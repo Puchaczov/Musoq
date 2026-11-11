@@ -33,7 +33,8 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy, d.Dummy from #system.dual() d where d.Dummy = d.Dummy",
-            new CompilationOptions(useCommonSubexpressionElimination: true));
+            new CompilationOptions(useCommonSubexpressionElimination: true)
+        );
 
         Assert.Contains("Let [dummy:", result.ExecutionPlanText);
         Assert.Contains("If [(dummy = dummy)]", result.ExecutionPlanText);
@@ -44,8 +45,8 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy, d.Dummy from #system.dual() d where d.Dummy = d.Dummy",
-            new CompilationOptions(useCommonSubexpressionElimination: false)
-                .WithStabilityAwareScalarReuse(false));
+            new CompilationOptions(useCommonSubexpressionElimination: false).WithStabilityAwareScalarReuse(false)
+        );
 
         Assert.IsFalse(result.ExecutionPlanText.Contains("Let [dummy:", StringComparison.Ordinal));
         Assert.Contains("If [(d.Dummy = d.Dummy)]", result.ExecutionPlanText);
@@ -57,20 +58,30 @@ public partial class QueryInspectionTests
         var result = Inspect(
             "select ExpensiveMethod(Score), ExpensiveMethod(Score) + 10, Name from #dynamic.all() where ExpensiveMethod(Score) > 0",
             CreateDynamicRowsSchemaProvider(),
-            new CompilationOptions(useCommonSubexpressionElimination: true));
+            new CompilationOptions(useCommonSubexpressionElimination: true)
+        );
 
         Assert.Contains("Let [expensiveMethod: int = ExpensiveMethod(score)]", result.ExecutionPlanText);
         Assert.Contains("If [(expensiveMethod > 0)]", result.ExecutionPlanText);
         Assert.Contains(
             "int expensiveMethod = (int)__resultEmptyLibrary0.ExpensiveMethod(score);",
-            result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ConcurrentDictionary", StringComparison.Ordinal) || result.GeneratedCSharpCode.Contains("GetOrAddCachedMethod<Musoq.Converter.Tests.Schema.EmptyLibrary, int, int>", StringComparison.Ordinal));
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("ConcurrentDictionary", StringComparison.Ordinal)
+                || result.GeneratedCSharpCode.Contains(
+                    "GetOrAddCachedMethod<Musoq.Converter.Tests.Schema.EmptyLibrary, int, int>",
+                    StringComparison.Ordinal
+                )
+        );
     }
 
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderOuterNestedLoopJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy <> e.Dummy");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy <> e.Dummy"
+        );
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("If [(dummy <> dummy1)]", result.ExecutionPlanText);
@@ -81,7 +92,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderAsOfJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d asof join #system.dual() e on d.Dummy >= e.Dummy");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d asof join #system.dual() e on d.Dummy >= e.Dummy"
+        );
 
         Assert.Contains("ExecutionPlan [compiled]", result.ExecutionPlanText);
         AssertExecutionPlanContains("AsOfProbe [e <- eRows", result.ExecutionPlanText);
@@ -95,7 +108,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderAsOfLeftJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d asof left join #system.dual() e on d.Dummy >= e.Dummy");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d asof left join #system.dual() e on d.Dummy >= e.Dummy"
+        );
 
         Assert.Contains("ExecutionPlan [compiled]", result.ExecutionPlanText);
         Assert.Contains("AsOfProbeNoMatch", result.ExecutionPlanText);
@@ -181,7 +196,9 @@ public partial class QueryInspectionTests
         Assert.Contains("resultAsOfIndex.Find", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetColumnValue", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.ConvertTableToSource", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.ConvertTableToSource", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -210,10 +227,17 @@ public partial class QueryInspectionTests
         Assert.Contains("If [Add(dummy)]", result.ExecutionPlanText);
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("var distinctKeys = new HashSet<string>();", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("TryGetNonEnumeratedCount(out var distinctKeysCapacity)", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "TryGetNonEnumeratedCount(out var distinctKeysCapacity)",
+                StringComparison.Ordinal
+            )
+        );
         Assert.Contains("if ((bool)distinctKeys.Add(dummy))", result.GeneratedCSharpCode);
         Assert.IsFalse(result.ExecutionPlanText.Contains("DistinctTable", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.ToDistinctTable", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.ToDistinctTable", StringComparison.Ordinal)
+        );
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -246,9 +270,7 @@ public partial class QueryInspectionTests
         var result = Inspect("select Rand() + 1 from #system.dual() d");
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains(
-            "(int)__resultLibraryBase0.Rand()",
-            result.GeneratedCSharpCode);
+        Assert.Contains("(int)__resultLibraryBase0.Rand()", result.GeneratedCSharpCode);
         Assert.Contains("+ 1", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -316,18 +338,24 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenInterpretationSchemasAreUnused_ShouldNotEmitInterpreterClasses()
     {
-        var result = Inspect(@"
-                binary UnusedBinary {
-                    Value: byte
-                };
-                text UnusedText {
-                    Value: rest
-                };
-                select 1 from #system.dual()");
+        var result = Inspect(
+            (
+                "\n"
+                + "                binary UnusedBinary {\n"
+                + "                    Value: byte\n"
+                + "                };\n"
+                + "                text UnusedText {\n"
+                + "                    Value: rest\n"
+                + "                };\n"
+                + "                select 1 from #system.dual()"
+            )
+        );
 
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("class UnusedBinary", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("class UnusedText", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("namespace Musoq.Generated.Interpreters", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("namespace Musoq.Generated.Interpreters", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -351,9 +379,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForPlainQuery_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(
-            "select d.Dummy from #system.dual() d",
-            new CompilationOptions());
+        var compiled = CompileForExecution("select d.Dummy from #system.dual() d", new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -365,7 +391,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "select d.Dummy from #system.dual() d order by d.Dummy",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -377,7 +404,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "select d.Dummy from #system.dual() d order by d.Dummy skip 0 take 1",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -390,16 +418,39 @@ public partial class QueryInspectionTests
         var result = Inspect("select d.Dummy from #system.dual() d order by d.Dummy skip 0 take 1");
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Dummy ASC, skip 0, take 1]", result.ExecutionPlanText);
-        Assert.Contains("MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0]", result.ExecutionPlanText);
-        Assert.Contains("new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(0, 1, ResultRow0WithSortKeysComparer.Instance)", result.GeneratedCSharpCode);
+        Assert.Contains(
+            "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Dummy ASC, skip 0, take 1]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains(
+            "MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains(
+            "new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(0, 1, ResultRow0WithSortKeysComparer.Instance)",
+            result.GeneratedCSharpCode
+        );
         Assert.Contains("resultOrderRecords", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("OrderRecordList [resultOrderRecords", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.SelectTopOffsetRecords(resultOrderRecords", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("OrderRecordList [resultOrderRecords", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "EvaluationHelper.SelectTopOffsetRecords(resultOrderRecords",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("AppendTopOffsetRowsDirect", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("RowOrderKey", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("SortShapeRows [result -> resultSorted", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("SliceTable [resultSorted -> resultSortedSliced", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("SortShapeRows [result -> resultSorted", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains(
+                "SliceTable [resultSorted -> resultSortedSliced",
+                StringComparison.Ordinal
+            )
+        );
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -408,7 +459,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "with p as (select d.Dummy as Dummy from #system.dual() d) select p.Dummy from p",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -425,8 +477,12 @@ public partial class QueryInspectionTests
         Assert.Contains("CteStrategy [CteReuseStrategy] cte:p -> FuseReadOnce", result.PlanningText);
         Assert.Contains("Materialization [CteFusionBoundary] cte:p -> Candidate", result.PlanningText);
         Assert.Contains("ForEach [d in dRows]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("ForEach [p in _tableResults[0].Rows]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("ForEach [p in _tableResults[0].Rows]", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_tableResults[0]", StringComparison.Ordinal));
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.Begin);", result.GeneratedCSharpCode);
         Assert.Contains("new ResultRow0", result.GeneratedCSharpCode);
@@ -436,7 +492,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderChainedCte_ShouldUseExecutionBackend()
     {
-        var result = Inspect("with p as (select d.Dummy as Dummy from #system.dual() d), q as (select Dummy from p where Dummy is not null) select Dummy from q");
+        var result = Inspect(
+            "with p as (select d.Dummy as Dummy from #system.dual() d), q as (select Dummy from p where Dummy is not null) select Dummy from q"
+        );
 
         AssertUsesExecutionBackend(result);
         Assert.Contains("PhaseBoundary [Begin:cte0]", result.ExecutionPlanText);
@@ -445,10 +503,18 @@ public partial class QueryInspectionTests
         Assert.Contains("CteStrategy [CteReuseStrategy] cte:q -> FuseReadOnce", result.PlanningText);
         Assert.Contains("ForEach [d in dRows]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: dummy)]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("ForEach [p in _tableResults[0].Rows]", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [cte1 -> _tableResults[1]]", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("ForEach [q in _tableResults[1].Rows]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("ForEach [p in _tableResults[0].Rows]", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [cte1 -> _tableResults[1]]", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("ForEach [q in _tableResults[1].Rows]", StringComparison.Ordinal)
+        );
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.Begin);", result.GeneratedCSharpCode);
         Assert.Contains("OnPhaseChanged(\"compiled:cte1\", QueryPhase.Begin);", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_tableResults[0]", StringComparison.Ordinal));
@@ -459,7 +525,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderChainedCte_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("with p as (select d.Dummy as Dummy from #system.dual() d), q as (select Dummy from p where Dummy is not null) select Dummy from q");
+        var compiled = CompileForExecution(
+            "with p as (select d.Dummy as Dummy from #system.dual() d), q as (select Dummy from p where Dummy is not null) select Dummy from q"
+        );
 
         var table = compiled.Run();
 
@@ -470,9 +538,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenCteParallelizationIsEnabledForIndependentCtes_ShouldEmitParallelExecutionIr()
     {
-        var result = Inspect(
-            CreateIndependentCteJoinQuery(),
-            new CompilationOptions(useCteParallelization: true));
+        var result = Inspect(CreateIndependentCteJoinQuery(), new CompilationOptions(useCteParallelization: true));
 
         AssertUsesExecutionBackend(result);
         Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
@@ -480,12 +546,23 @@ public partial class QueryInspectionTests
         Assert.Contains("Parallel.Invoke(new ParallelOptions", result.GeneratedCSharpCode);
         Assert.Contains("CancellationToken = token", result.GeneratedCSharpCode);
         Assert.Contains("MaxDegreeOfParallelism = 2", result.GeneratedCSharpCode);
-        Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0: List<Cte0Row0>]", result.ExecutionPlanText);
-        Assert.Contains("StoreCteIndex [cte1HashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
+        Assert.Contains(
+            "StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0: List<Cte0Row0>]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains(
+            "StoreCteIndex [cte1HashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("private static List<Cte0Row0> BuildCteLevel0Task0", result.GeneratedCSharpCode);
         Assert.Contains("_cteRowResults.Slot0 = __parallelCteLevel0Task0Result", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_tableResults[", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("private static Musoq.Evaluator.Tables.Table BuildCteLevel0Task", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "private static Musoq.Evaluator.Tables.Table BuildCteLevel0Task",
+                StringComparison.Ordinal
+            )
+        );
         Assert.Contains("ParallelEligibility [ParallelCte] PhysicalCteNode -> Candidate", result.PlanningText);
     }
 
@@ -494,14 +571,16 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             CreateIndependentCteJoinQuery(),
-            new CompilationOptions(
-                parallelizationMode: ParallelizationMode.None,
-                useCteParallelization: true));
+            new CompilationOptions(parallelizationMode: ParallelizationMode.None, useCteParallelization: true)
+        );
 
         AssertUsesExecutionBackend(result);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ParallelBlock", StringComparison.Ordinal));
         Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("StoreCteIndex [cte1HashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
+        Assert.Contains(
+            "StoreCteIndex [cte1HashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("LoadCteIndex [qHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
         Assert.Contains("ParallelEligibility [ParallelCte] PhysicalCteNode -> Skipped", result.PlanningText);
         Assert.Contains("Compilation option disables parallel execution.", result.PlanningText);
@@ -512,7 +591,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateIndependentCteJoinQuery(),
-            new CompilationOptions(useCteParallelization: true));
+            new CompilationOptions(useCteParallelization: true)
+        );
 
         var table = compiled.Run();
 
@@ -520,5 +600,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual("single", table[0].ReadValue(0));
         Assert.AreEqual("single", table[0].ReadValue(1));
     }
-
 }

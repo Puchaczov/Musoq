@@ -18,7 +18,7 @@ public sealed class ExecutionValueTupleTypeShapeTests
                 {
                     0 => typeof(int),
                     1 => typeof(string),
-                    _ => typeof(int?)
+                    _ => typeof(int?),
                 };
 
             Assert.IsTrue(ValueTupleTypeShape.TryCreate(elementTypes, out var tupleType));

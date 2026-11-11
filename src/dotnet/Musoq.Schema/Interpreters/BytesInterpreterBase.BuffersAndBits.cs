@@ -13,8 +13,13 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected byte[] ReadBytes(ReadOnlySpan<byte> data, int length)
     {
         if (length < 0)
-            throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
-                $"Negative byte array size: {length}");
+            throw ParseException.ForBytes(
+                ParseErrorCode.InvalidSize,
+                SchemaName,
+                _currentFieldName,
+                ParsePosition,
+                $"Negative byte array size: {length}"
+            );
 
         PrepareByteRead(data, length);
         return ReadPreparedByteArray(data, length);
@@ -37,8 +42,13 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected ReadOnlySpan<byte> ReadSubstreamSlice(ReadOnlySpan<byte> data, int length)
     {
         if (length < 0)
-            throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
-                $"Negative substream size: {length}");
+            throw ParseException.ForBytes(
+                ParseErrorCode.InvalidSize,
+                SchemaName,
+                _currentFieldName,
+                ParsePosition,
+                $"Negative substream size: {length}"
+            );
 
         AlignToBits(data, 8);
         PrepareByteRead(data, length);
@@ -53,16 +63,30 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected void EnsureSubstreamFullyConsumed(string fieldName, int length, int consumed)
     {
         if (consumed < length)
-            throw ParseException.ForBytes(ParseErrorCode.ValidationFailed, SchemaName, fieldName, ParsePosition,
-                $"Substream '{fieldName}' declared {length} bytes but nested parser consumed only {consumed}.");
+            throw ParseException.ForBytes(
+                ParseErrorCode.ValidationFailed,
+                SchemaName,
+                fieldName,
+                ParsePosition,
+                $"Substream '{fieldName}' declared {length} bytes but nested parser consumed only {consumed}."
+            );
     }
 
-    protected void EnsureSubstreamFullyConsumed<TChild>(string fieldName, int length, IBytesInterpreter<TChild> interpreter)
+    protected void EnsureSubstreamFullyConsumed<TChild>(
+        string fieldName,
+        int length,
+        IBytesInterpreter<TChild> interpreter
+    )
     {
         var bitOffset = interpreter is BytesInterpreterBase<TChild> nested ? nested.BitOffset : 0;
         if (interpreter.BytesConsumed != length || bitOffset != 0)
-            throw ParseException.ForBytes(ParseErrorCode.ValidationFailed, SchemaName, fieldName, ParsePosition,
-                $"Substream '{fieldName}' declared {length} bytes but nested parser stopped at byte {interpreter.BytesConsumed}, bit {bitOffset}.");
+            throw ParseException.ForBytes(
+                ParseErrorCode.ValidationFailed,
+                SchemaName,
+                fieldName,
+                ParsePosition,
+                $"Substream '{fieldName}' declared {length} bytes but nested parser stopped at byte {interpreter.BytesConsumed}, bit {bitOffset}."
+            );
     }
 
     /// <summary>
@@ -73,8 +97,13 @@ public abstract partial class BytesInterpreterBase<TOut>
     {
         ArgumentNullException.ThrowIfNull(encoding);
         if (byteLength < 0)
-            throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
-                $"Negative string size: {byteLength}");
+            throw ParseException.ForBytes(
+                ParseErrorCode.InvalidSize,
+                SchemaName,
+                _currentFieldName,
+                ParsePosition,
+                $"Negative string size: {byteLength}"
+            );
 
         PrepareByteRead(data, byteLength);
         var startPosition = ParsePosition;
@@ -92,15 +121,19 @@ public abstract partial class BytesInterpreterBase<TOut>
     {
         ArgumentNullException.ThrowIfNull(encoding);
         if (maxBytes < 0)
-            throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
-                $"Negative max string size: {maxBytes}");
+            throw ParseException.ForBytes(
+                ParseErrorCode.InvalidSize,
+                SchemaName,
+                _currentFieldName,
+                ParsePosition,
+                $"Negative max string size: {maxBytes}"
+            );
 
         PrepareByteRead(data, maxBytes);
         var startPosition = ParsePosition;
         var bytes = data.Slice(ParsePosition, maxBytes);
 
         int actualLength;
-
 
         if (encoding == Encoding.Unicode || encoding == Encoding.BigEndianUnicode)
         {
@@ -140,7 +173,8 @@ public abstract partial class BytesInterpreterBase<TOut>
                 _currentFieldName,
                 startPosition + invalidByteOffset,
                 $"String data is not valid for encoding '{encoding.WebName}'.",
-                exception);
+                exception
+            );
         }
     }
 
@@ -150,8 +184,13 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected ulong ReadBits(ReadOnlySpan<byte> data, int bitCount)
     {
         if (bitCount < 1 || bitCount > 64)
-            throw ParseException.ForBytes(ParseErrorCode.InvalidSize, SchemaName, _currentFieldName, ParsePosition,
-                $"Bit count must be between 1 and 64, got {bitCount}");
+            throw ParseException.ForBytes(
+                ParseErrorCode.InvalidSize,
+                SchemaName,
+                _currentFieldName,
+                ParsePosition,
+                $"Bit count must be between 1 and 64, got {bitCount}"
+            );
 
         ulong result = 0;
         var bitsRead = 0;
@@ -190,7 +229,8 @@ public abstract partial class BytesInterpreterBase<TOut>
                 SchemaName,
                 _currentFieldName,
                 ParsePosition,
-                $"Alignment boundary must be at least 1 bit, got {bits}");
+                $"Alignment boundary must be at least 1 bit, got {bits}"
+            );
 
         var currentBit = (long)ParsePosition * 8 + BitOffset;
         var remainder = currentBit % bits;
@@ -203,7 +243,8 @@ public abstract partial class BytesInterpreterBase<TOut>
                 SchemaName,
                 _currentFieldName,
                 ParsePosition,
-                $"Alignment boundary {bits} advances beyond the supported parse position");
+                $"Alignment boundary {bits} advances beyond the supported parse position"
+            );
 
         ParsePosition = (int)(targetBit / 8);
         BitOffset = (int)(targetBit % 8);
@@ -265,7 +306,8 @@ public abstract partial class BytesInterpreterBase<TOut>
             SchemaName,
             fieldName,
             ParsePosition,
-            $"Repeat field '{fieldName}' exceeded the maximum of {maxIterations} iterations.");
+            $"Repeat field '{fieldName}' exceeded the maximum of {maxIterations} iterations."
+        );
     }
 
     /// <summary>
@@ -278,8 +320,13 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected void EnsureRepeatMadeProgress(string fieldName, int startPosition, int startBitOffset)
     {
         if (ParsePosition < startPosition || ParsePosition == startPosition && BitOffset <= startBitOffset)
-            throw ParseException.ForBytes(ParseErrorCode.MaxIterationsExceeded, SchemaName, fieldName, ParsePosition,
-                $"Repeat-until-eof field '{fieldName}' made no progress reading an element; its byte-and-bit cursor did not advance.");
+            throw ParseException.ForBytes(
+                ParseErrorCode.MaxIterationsExceeded,
+                SchemaName,
+                fieldName,
+                ParsePosition,
+                $"Repeat-until-eof field '{fieldName}' made no progress reading an element; its byte-and-bit cursor did not advance."
+            );
     }
 
     /// <summary>
@@ -288,8 +335,13 @@ public abstract partial class BytesInterpreterBase<TOut>
     protected void SeekTo(int position)
     {
         if (position < 0)
-            throw ParseException.ForBytes(ParseErrorCode.InvalidPosition, SchemaName, null, position,
-                $"Cannot seek to negative position: {position}");
+            throw ParseException.ForBytes(
+                ParseErrorCode.InvalidPosition,
+                SchemaName,
+                null,
+                position,
+                $"Cannot seek to negative position: {position}"
+            );
 
         ParsePosition = position;
         BitOffset = 0;
@@ -306,7 +358,8 @@ public abstract partial class BytesInterpreterBase<TOut>
                 SchemaName,
                 fieldName,
                 ParsePosition,
-                message);
+                message
+            );
     }
 
     /// <summary>

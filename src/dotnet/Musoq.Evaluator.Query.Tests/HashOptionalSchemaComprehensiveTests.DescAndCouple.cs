@@ -13,7 +13,17 @@ public partial class HashOptionalSchemaComprehensiveTests
         var query = "select * from A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "Test1", City = "City1", Population = 100 }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Test1",
+                        City = "City1",
+                        Population = 100,
+                    },
+                ]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -27,10 +37,7 @@ public partial class HashOptionalSchemaComprehensiveTests
     public void HashOptional_DescSchema_ShouldWork()
     {
         var query = "desc A";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -44,10 +51,7 @@ public partial class HashOptionalSchemaComprehensiveTests
     public void HashOptional_DescSchemaMethod_ShouldWork()
     {
         var query = "desc A.entities";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -61,10 +65,7 @@ public partial class HashOptionalSchemaComprehensiveTests
     public void HashOptional_DescSchemaMethodWithParentheses_ShouldWork()
     {
         var query = "desc A.entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -78,10 +79,7 @@ public partial class HashOptionalSchemaComprehensiveTests
     public void HashOptional_DescFunctionsSchema_ShouldWork()
     {
         var query = "desc functions A";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -94,10 +92,7 @@ public partial class HashOptionalSchemaComprehensiveTests
     public void HashOptional_DescFunctionsSchemaMethod_ShouldWork()
     {
         var query = "desc functions A.entities";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -110,10 +105,7 @@ public partial class HashOptionalSchemaComprehensiveTests
     public void HashOptional_DescFunctionsSchemaMethodWithParentheses_ShouldWork()
     {
         var query = "desc functions A.entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -121,5 +113,4 @@ public partial class HashOptionalSchemaComprehensiveTests
         Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns: Method, Description, Category, and Source");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
     }
-
 }

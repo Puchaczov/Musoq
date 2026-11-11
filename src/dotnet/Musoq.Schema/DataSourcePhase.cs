@@ -5,5 +5,5 @@ public enum DataSourcePhase
     Begin,
     RowsKnown,
     RowsRead,
-    End
+    End,
 }

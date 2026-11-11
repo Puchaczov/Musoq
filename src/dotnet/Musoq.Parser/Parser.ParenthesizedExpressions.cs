@@ -15,7 +15,12 @@ public partial class Parser
         if (IsRecordLiteralStart())
             return ComposeRecordLiteral(opening);
 
-        if (Current.TokenType == TokenType.Select || Current.TokenType == TokenType.From || Current.TokenType == TokenType.Pivot || Current.TokenType == TokenType.Unpivot)
+        if (
+            Current.TokenType == TokenType.Select
+            || Current.TokenType == TokenType.From
+            || Current.TokenType == TokenType.Pivot
+            || Current.TokenType == TokenType.Unpivot
+        )
         {
             var subquery = ComposeSetOperators(1);
             Consume(TokenType.RightParenthesis);
@@ -25,7 +30,8 @@ public partial class Parser
         var expression = ComposeOperations();
         ConsumeClosingParenthesis(
             DiagnosticCode.MQ2010_MissingClosingParenthesis,
-            "A grouped expression is missing its closing parenthesis.");
+            "A grouped expression is missing its closing parenthesis."
+        );
         return expression;
     }
 
@@ -36,9 +42,9 @@ public partial class Parser
                 message,
                 _lexer.AlreadyResolvedQueryPart,
                 code,
-                new TextSpan(Current.Span.Start, 0));
+                new TextSpan(Current.Span.Start, 0)
+            );
 
         return ConsumeAndGetToken(TokenType.RightParenthesis);
     }
-
 }

@@ -10,24 +10,28 @@ internal enum ByteBufferCallableKind
     Encode,
     Decode,
     FixedWidthRead,
-    Length
+    Length,
 }
 
 internal enum ByteBufferEncoding
 {
     None,
     Base64,
-    Hex
+    Hex,
 }
 
 internal enum ByteBufferArgumentStorage
 {
     None,
     Array,
-    ReadOnlySpan
+    ReadOnlySpan,
 }
 
-internal enum ByteBufferEncodingRange { Complete, CheckedSlice }
+internal enum ByteBufferEncodingRange
+{
+    Complete,
+    CheckedSlice,
+}
 
 /// <summary>Declaration semantics established once from an exact bound callable.</summary>
 internal sealed record ByteBufferCallableSemantics(
@@ -37,7 +41,8 @@ internal sealed record ByteBufferCallableSemantics(
     int PaddingArgument = -1,
     ByteBufferArgumentStorage ArgumentStorage = ByteBufferArgumentStorage.None,
     ByteBufferEncodingRange EncodingRange = ByteBufferEncodingRange.Complete,
-    int DelimiterArgument = -1)
+    int DelimiterArgument = -1
+)
 {
     internal const string Contract = "byte-buffer-semantics-v1";
 }

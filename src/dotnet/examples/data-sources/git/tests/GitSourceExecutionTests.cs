@@ -14,20 +14,24 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
         var predicate = new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.AuthorName))),
-            new SourcePredicateLiteral("Bob Evaluator"));
+            new SourcePredicateLiteral("Bob Evaluator")
+        );
         var plan = SourceExecutionPlan.Empty(SourceIdentity.Empty) with
         {
             AcceptedPredicate = predicate,
             AcceptedOrderBy =
             [
-                new OrderByExpression(
-                    new SourceColumnRef(nameof(GitCommitRow.AuthoredAt)),
-                    OrderDirection.Descending)
+                new OrderByExpression(new SourceColumnRef(nameof(GitCommitRow.AuthoredAt)), OrderDirection.Descending),
             ],
-            AcceptedTake = 1
+            AcceptedTake = 1,
         };
         var context = CreateExecutionContext(plan);
-        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(new GitSchema(), GitSchema.Commits, context, global::Musoq.Schema.SourceArguments.Empty);
+        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(
+            new GitSchema(),
+            GitSchema.Commits,
+            context,
+            global::Musoq.Schema.SourceArguments.Empty
+        );
 
         var rows = source.Chunks.SelectMany(static chunk => chunk).ToArray();
 
@@ -41,13 +45,15 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
     {
         var plan = SourceExecutionPlan.Empty(SourceIdentity.Empty) with
         {
-            Properties = new Dictionary<string, object?>
-            {
-                [GitSourcePlanProperties.Repository] = "docs"
-            }
+            Properties = new Dictionary<string, object?> { [GitSourcePlanProperties.Repository] = "docs" },
         };
         var context = CreateExecutionContext(plan);
-        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(new GitSchema(), GitSchema.Commits, context, global::Musoq.Schema.SourceArguments.Empty);
+        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(
+            new GitSchema(),
+            GitSchema.Commits,
+            context,
+            global::Musoq.Schema.SourceArguments.Empty
+        );
 
         var rows = source.Chunks.SelectMany(static chunk => chunk).ToArray();
 
@@ -60,13 +66,15 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
     {
         var plan = SourceExecutionPlan.Empty(SourceIdentity.Empty) with
         {
-            Properties = new Dictionary<string, object?>
-            {
-                [GitSourcePlanProperties.Repository] = "docs"
-            }
+            Properties = new Dictionary<string, object?> { [GitSourcePlanProperties.Repository] = "docs" },
         };
         var context = CreateExecutionContext(plan);
-        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(new GitSchema(), GitSchema.Commits, context, global::Musoq.Schema.SourceArguments.Create("musoq", global::Musoq.Schema.SourceArguments.Empty));
+        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(
+            new GitSchema(),
+            GitSchema.Commits,
+            context,
+            global::Musoq.Schema.SourceArguments.Create("musoq", global::Musoq.Schema.SourceArguments.Empty)
+        );
 
         var rows = source.Chunks.SelectMany(static chunk => chunk).ToArray();
 
@@ -74,28 +82,28 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
         Assert.IsTrue(rows.All(static row => row.Repository == "musoq"));
     }
 
-
     [TestMethod]
     public void Source_WhenEnumerated_ShouldReportProgress()
     {
         var phases = new List<DataSourcePhase>();
         var context = CreateExecutionContext(
             SourceExecutionPlan.Empty(SourceIdentity.Empty),
-            (_, args) => phases.Add(args.Phase));
-        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(new GitSchema(), GitSchema.Commits, context, global::Musoq.Schema.SourceArguments.Empty);
+            (_, args) => phases.Add(args.Phase)
+        );
+        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(
+            new GitSchema(),
+            GitSchema.Commits,
+            context,
+            global::Musoq.Schema.SourceArguments.Empty
+        );
 
         var rows = source.Chunks.SelectMany(static chunk => chunk).ToArray();
 
         Assert.AreEqual(5, rows.Length);
         CollectionAssert.AreEqual(
-            new[]
-            {
-                DataSourcePhase.Begin,
-                DataSourcePhase.RowsKnown,
-                DataSourcePhase.RowsRead,
-                DataSourcePhase.End
-            },
-            phases);
+            new[] { DataSourcePhase.Begin, DataSourcePhase.RowsKnown, DataSourcePhase.RowsRead, DataSourcePhase.End },
+            phases
+        );
     }
 
     [TestMethod]
@@ -107,10 +115,16 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
         var context = CreateExecutionContext(
             SourceExecutionPlan.Empty(SourceIdentity.Empty),
             (_, args) => phases.Add(args.Phase),
-            cancellation.Token);
+            cancellation.Token
+        );
         Assert.Throws<OperationCanceledException>(() =>
         {
-            var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(new GitSchema(), GitSchema.Commits, context, global::Musoq.Schema.SourceArguments.Empty);
+            var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(
+                new GitSchema(),
+                GitSchema.Commits,
+                context,
+                global::Musoq.Schema.SourceArguments.Empty
+            );
             _ = source.Chunks.SelectMany(static chunk => chunk).ToArray();
         });
 
@@ -130,8 +144,14 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
                 if (args is { Phase: DataSourcePhase.RowsRead, RowsProcessed: >= 32 })
                     cancellation.Cancel();
             },
-            cancellation.Token);
-        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(new GitSchema(CreateLargeStore(40)), GitSchema.Commits, context, global::Musoq.Schema.SourceArguments.Empty);
+            cancellation.Token
+        );
+        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(
+            new GitSchema(CreateLargeStore(40)),
+            GitSchema.Commits,
+            context,
+            global::Musoq.Schema.SourceArguments.Empty
+        );
         var rows = new List<GitCommitRow>();
 
         Assert.Throws<OperationCanceledException>(() =>
@@ -142,7 +162,8 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
 
         Assert.IsTrue(
             rows.Count is 0 or 32,
-            $"The consumer should either observe cancellation before draining the buffered chunk or after receiving the completed chunk. Actual rows: {rows.Count}.");
+            $"The consumer should either observe cancellation before draining the buffered chunk or after receiving the completed chunk. Actual rows: {rows.Count}."
+        );
         Assert.AreEqual(DataSourcePhase.End, events.Last().Phase);
         Assert.AreEqual(32, events.Last().RowsProcessed);
     }
@@ -153,8 +174,14 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
         var recorder = new SourceProfileRecorder("git-example", StopwatchProfileClock.Instance);
         var context = CreateExecutionContext(
             SourceExecutionPlan.Empty(SourceIdentity.Empty),
-            diagnostics: recorder.CreateDiagnostics());
-        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(new GitSchema(), GitSchema.Commits, context, global::Musoq.Schema.SourceArguments.Empty);
+            diagnostics: recorder.CreateDiagnostics()
+        );
+        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(
+            new GitSchema(),
+            GitSchema.Commits,
+            context,
+            global::Musoq.Schema.SourceArguments.Empty
+        );
 
         var rows = source.Chunks.SelectMany(static chunk => chunk).ToArray();
         var snapshot = recorder.CreateSnapshot();
@@ -171,7 +198,12 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
     public void Source_WhenStoreThrows_ShouldSurfaceProducerException()
     {
         var context = CreateExecutionContext(SourceExecutionPlan.Empty(SourceIdentity.Empty));
-        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(new GitSchema(new ThrowingGitHistoryStore()), GitSchema.Commits, context, global::Musoq.Schema.SourceArguments.Empty);
+        var source = global::Musoq.Schema.SourceInvocation<GitCommitRow>.Open(
+            new GitSchema(new ThrowingGitHistoryStore()),
+            GitSchema.Commits,
+            context,
+            global::Musoq.Schema.SourceArguments.Empty
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() => source.Chunks.ToArray());
 

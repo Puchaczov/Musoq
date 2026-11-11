@@ -20,26 +20,30 @@ public static partial class EvaluationHelper
         ISchema schema,
         string methodName,
         IReadOnlyList<StructuralArgumentDescription>? selected,
-        SourceExecutionContext executionContext)
+        SourceExecutionContext executionContext
+    )
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentException.ThrowIfNullOrWhiteSpace(methodName);
         ArgumentNullException.ThrowIfNull(executionContext);
         executionContext.EndWorkToken.ThrowIfCancellationRequested();
 
-        var table = new Table("desc", [
-            new Column("Overload", typeof(int), 0),
-            new Column("Path", typeof(string), 1),
-            new Column("Kind", typeof(string), 2),
-            new Column("Type", typeof(string), 3),
-            new Column("Required", typeof(bool?), 4),
-            new Column("Nullable", typeof(bool), 5),
-            new Column("HasDefault", typeof(bool), 6),
-            new Column("Default", typeof(string), 7),
-            new Column("MaxDepth", typeof(int?), 8),
-            new Column("MaxNodes", typeof(int?), 9),
-            new Column("MaxStringBytes", typeof(long?), 10)
-        ]);
+        var table = new Table(
+            "desc",
+            [
+                new Column("Overload", typeof(int), 0),
+                new Column("Path", typeof(string), 1),
+                new Column("Kind", typeof(string), 2),
+                new Column("Type", typeof(string), 3),
+                new Column("Required", typeof(bool?), 4),
+                new Column("Nullable", typeof(bool), 5),
+                new Column("HasDefault", typeof(bool), 6),
+                new Column("Default", typeof(string), 7),
+                new Column("MaxDepth", typeof(int?), 8),
+                new Column("MaxNodes", typeof(int?), 9),
+                new Column("MaxStringBytes", typeof(long?), 10),
+            ]
+        );
 
         if (selected != null)
         {
@@ -49,22 +53,30 @@ public static partial class EvaluationHelper
 
         var reflectedMethods = schema.GetRawConstructors(methodName, executionContext);
         var preferredMethods = TypedSourceBindingMetadata.PreferTypedSource(schema, methodName, reflectedMethods);
-        var usesTypedRegistration = schema is ITypedSourceSchema typedSchema &&
-                                     typedSchema.TryGetTypedSourceRegistration(methodName, out _);
+        var usesTypedRegistration =
+            schema is ITypedSourceSchema typedSchema && typedSchema.TryGetTypedSourceRegistration(methodName, out _);
         var methods = usesTypedRegistration
             ? preferredMethods.Select(static method => (Method: method, Signature: string.Empty)).ToArray()
             : preferredMethods
-                .Select(static method => (Method: method, Signature: StructuralArgumentDescriptionFactory.CanonicalSignature(method)))
+                .Select(static method =>
+                    (Method: method, Signature: StructuralArgumentDescriptionFactory.CanonicalSignature(method))
+                )
                 .OrderBy(static item => item.Signature, StringComparer.Ordinal)
-                .ThenBy(static item => item.Method.ConstructorInfo.OriginConstructor?.DeclaringType?.AssemblyQualifiedName,
-                    StringComparer.Ordinal)
+                .ThenBy(
+                    static item => item.Method.ConstructorInfo.OriginConstructor?.DeclaringType?.AssemblyQualifiedName,
+                    StringComparer.Ordinal
+                )
                 .ThenBy(static item => item.Method.ConstructorInfo.OriginConstructor?.MetadataToken ?? 0)
                 .ToArray();
 
         for (var overload = 0; overload < methods.Length; overload++)
         {
             executionContext.EndWorkToken.ThrowIfCancellationRequested();
-            AddRows(table, StructuralArgumentDescriptionFactory.Create(methods[overload].Method, overload), executionContext);
+            AddRows(
+                table,
+                StructuralArgumentDescriptionFactory.Create(methods[overload].Method, overload),
+                executionContext
+            );
         }
 
         return table;
@@ -73,7 +85,8 @@ public static partial class EvaluationHelper
     private static void AddRows(
         Table table,
         IReadOnlyList<StructuralArgumentDescription> descriptions,
-        SourceExecutionContext executionContext)
+        SourceExecutionContext executionContext
+    )
     {
         foreach (var description in descriptions)
         {

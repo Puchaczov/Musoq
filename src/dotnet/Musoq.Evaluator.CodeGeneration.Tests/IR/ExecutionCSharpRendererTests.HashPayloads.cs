@@ -14,18 +14,18 @@ public sealed partial class ExecutionCSharpRendererTests
         var plan = CreateHashPayloadShapePlan();
         var code = RenderClassMembersCode(renderer, plan);
 
-        var expected = """
-            private readonly struct DHashPayload0
-            {
-                public readonly string b_City;
-                public readonly string b_Country;
-                public DHashPayload0(string b_City, string b_Country)
-                {
-                    this.b_City = b_City;
-                    this.b_Country = b_Country;
-                }
-            }
-            """;
+        var expected = (
+            "private readonly struct DHashPayload0\n"
+            + "{\n"
+            + "    public readonly string b_City;\n"
+            + "    public readonly string b_Country;\n"
+            + "    public DHashPayload0(string b_City, string b_Country)\n"
+            + "    {\n"
+            + "        this.b_City = b_City;\n"
+            + "        this.b_Country = b_Country;\n"
+            + "    }\n"
+            + "}"
+        );
 
         Assert.Contains(Normalize(expected), Normalize(code));
         Assert.IsFalse(code.Contains(": Row", StringComparison.Ordinal));

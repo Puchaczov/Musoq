@@ -6,7 +6,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Parser.Diagnostics;
-
 using static Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTestsFixtures;
 
 namespace Musoq.Evaluator.Tests.Runtime;
@@ -18,8 +17,7 @@ public sealed class EvaluationHelperNestedValueTests : GenericEntityTestBase
     public void NestedClrProperties_ShouldResolveAndPreserveNulls()
     {
         const string query = "select Position, Child.Value as Value from #schema.first() order by Position";
-        using var compiled = CreateAndRunVirtualMachine<OuterEntity>(query,
-            [new(1, new("resolved")), new(2, null)]);
+        using var compiled = CreateAndRunVirtualMachine<OuterEntity>(query, [new(1, new("resolved")), new(2, null)]);
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)), ("Value", typeof(string)));
@@ -35,7 +33,8 @@ public sealed class EvaluationHelperNestedValueTests : GenericEntityTestBase
     {
         using var compiled = CreateAndRunVirtualMachine<DictionaryEntity>(
             "select Children['Child'].Value as Value from #schema.first()",
-            [new(new Dictionary<string, InnerEntity> { ["Child"] = new("dictionary") })]);
+            [new(new Dictionary<string, InnerEntity> { ["Child"] = new("dictionary") })]
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         Assert.AreEqual("dictionary", table.Single().GetValue<string>(0));
@@ -44,8 +43,12 @@ public sealed class EvaluationHelperNestedValueTests : GenericEntityTestBase
     [TestMethod]
     public void DynamicObjects_ShouldRejectUnresolvedNestedValues()
     {
-        var error = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine<DynamicEntity>(
-            "select Child.Value from #schema.first()", [new(new TestDynamicObject())]));
+        var error = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine<DynamicEntity>(
+                "select Child.Value from #schema.first()",
+                [new(new TestDynamicObject())]
+            )
+        );
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, error.PrimaryEnvelope.Code);
         Assert.Contains("Child", error.Message);
     }
@@ -55,7 +58,8 @@ public sealed class EvaluationHelperNestedValueTests : GenericEntityTestBase
     {
         using var compiled = CreateAndRunVirtualMachine<IndexedEntity>(
             "select Items[0].Value as Numeric, Values['child'].Value as Named from #schema.first()",
-            [new([new("numeric")], new Dictionary<string, InnerEntity> { ["child"] = new("string") })]);
+            [new([new("numeric")], new Dictionary<string, InnerEntity> { ["child"] = new("string") })]
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(table, ("Numeric", typeof(string)), ("Named", typeof(string)));
         var row = table.Single();
@@ -66,8 +70,9 @@ public sealed class EvaluationHelperNestedValueTests : GenericEntityTestBase
     [TestMethod]
     public void MissingMembers_ShouldReportTheBindingDiagnostic()
     {
-        var error = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine<OuterEntity>(
-            "select Missing from #schema.first()", [new(1, null)]));
+        var error = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine<OuterEntity>("select Missing from #schema.first()", [new(1, null)])
+        );
         Assert.AreEqual(DiagnosticCode.MQ3001_UnknownColumn, error.PrimaryEnvelope.Code);
         Assert.Contains("Missing", error.Message);
     }
@@ -75,8 +80,7 @@ public sealed class EvaluationHelperNestedValueTests : GenericEntityTestBase
     [TestMethod]
     public void ThrowingGetters_ShouldPropagateTheGetterException()
     {
-        using var compiled = CreateAndRunVirtualMachine<ThrowingEntity>(
-            "select Value from #schema.first()", [new()]);
+        using var compiled = CreateAndRunVirtualMachine<ThrowingEntity>("select Value from #schema.first()", [new()]);
         var error = Assert.Throws<Musoq.Evaluator.Exceptions.QueryExecutionException>(() =>
         {
             using var table = compiled.Run(TestContext.CancellationToken);

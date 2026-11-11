@@ -16,9 +16,7 @@ public sealed class PreparedRLikeMatcher
     private object? _frontEntry;
     private int _regexResolutionCount;
 
-    internal PreparedRLikeMatcher(
-        string pattern,
-        Func<string, CultureInfo, Regex> regexFactory)
+    internal PreparedRLikeMatcher(string pattern, Func<string, CultureInfo, Regex> regexFactory)
         : this(pattern, RegexMatchBudget.Default, (value, culture, _) => regexFactory(value, culture))
     {
         ArgumentNullException.ThrowIfNull(regexFactory);
@@ -27,15 +25,15 @@ public sealed class PreparedRLikeMatcher
     internal PreparedRLikeMatcher(
         string pattern,
         TimeSpan timeout,
-        Func<string, CultureInfo, TimeSpan, Regex> regexFactory)
-        : this(pattern, RegexMatchBudget.Create(timeout), regexFactory)
-    {
-    }
+        Func<string, CultureInfo, TimeSpan, Regex> regexFactory
+    )
+        : this(pattern, RegexMatchBudget.Create(timeout), regexFactory) { }
 
     internal PreparedRLikeMatcher(
         string pattern,
         RegexMatchBudget budget,
-        Func<string, CultureInfo, TimeSpan, Regex> regexFactory)
+        Func<string, CultureInfo, TimeSpan, Regex> regexFactory
+    )
     {
         ArgumentNullException.ThrowIfNull(budget);
         Pattern = pattern ?? throw new ArgumentNullException(nameof(pattern));
@@ -53,13 +51,14 @@ public sealed class PreparedRLikeMatcher
     /// <summary>Gets the original regular-expression pattern.</summary>
     public string Pattern { get; }
 
-    internal TimeSpan MatchTimeout => Volatile.Read(ref _frontEntry) switch
-    {
-        RegexMatchBudget budget => budget.Timeout,
-        RLikeSimpleMatcher simpleMatcher => simpleMatcher.MatchTimeout,
-        CultureEntry cached => cached.Regex.MatchTimeout,
-        _ => throw new InvalidOperationException("The prepared RLIKE matcher has no match budget.")
-    };
+    internal TimeSpan MatchTimeout =>
+        Volatile.Read(ref _frontEntry) switch
+        {
+            RegexMatchBudget budget => budget.Timeout,
+            RLikeSimpleMatcher simpleMatcher => simpleMatcher.MatchTimeout,
+            CultureEntry cached => cached.Regex.MatchTimeout,
+            _ => throw new InvalidOperationException("The prepared RLIKE matcher has no match budget."),
+        };
 
     internal Regex? ResolvedRegex => (Volatile.Read(ref _frontEntry) as CultureEntry)?.Regex;
 
@@ -101,7 +100,11 @@ public sealed class PreparedRLikeMatcher
             RLikeLiteralMatchKind.Prefix => input.AsSpan().StartsWith(Pattern.AsSpan(AnchorLength)),
             RLikeLiteralMatchKind.Suffix => input.AsSpan().EndsWith(Pattern.AsSpan(0, Pattern.Length - AnchorLength)),
             RLikeLiteralMatchKind.Contains => MatchContainedLiteral(input),
-            _ => throw new ArgumentOutOfRangeException(nameof(_literalKind), _literalKind, "Unknown literal RLIKE strategy.")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(_literalKind),
+                _literalKind,
+                "Unknown literal RLIKE strategy."
+            ),
         };
     }
 
@@ -141,7 +144,6 @@ public sealed class PreparedRLikeMatcher
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Matches(CultureInfo culture) =>
-            ReferenceEquals(Culture, culture) ||
-            string.Equals(Culture.Name, culture.Name, StringComparison.Ordinal);
+            ReferenceEquals(Culture, culture) || string.Equals(Culture.Name, culture.Name, StringComparison.Ordinal);
     }
 }

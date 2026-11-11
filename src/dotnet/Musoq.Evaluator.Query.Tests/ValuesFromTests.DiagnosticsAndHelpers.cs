@@ -12,12 +12,14 @@ public partial class ValuesFromTests
     [TestMethod]
     public void ValuesSource_WithMissingField_ShouldThrow()
     {
-        const string query = @"
-from values {
-    ( Name: 'Newtonsoft.Json', Approved: true ),
-    ( Name: 'Legacy.Package' )
-} packages
-select packages.Name";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Name: 'Newtonsoft.Json', Approved: true ),\n"
+            + "    ( Name: 'Legacy.Package' )\n"
+            + "} packages\n"
+            + "select packages.Name"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, EmptySources()));
 
@@ -25,18 +27,21 @@ select packages.Name";
             ex,
             DiagnosticCode.MQ3055_InvalidValuesSource,
             DiagnosticPhase.Bind,
-            "missing field 'Approved'");
+            "missing field 'Approved'"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void ValuesSource_WithDuplicateField_ShouldThrow()
     {
-        const string query = @"
-from values {
-    ( Name: 'Newtonsoft.Json', Name: 'Legacy.Package' )
-} packages
-select packages.Name";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Name: 'Newtonsoft.Json', Name: 'Legacy.Package' )\n"
+            + "} packages\n"
+            + "select packages.Name"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, EmptySources()));
 
@@ -44,19 +49,22 @@ select packages.Name";
             ex,
             DiagnosticCode.MQ3055_InvalidValuesSource,
             DiagnosticPhase.Bind,
-            "duplicate field 'Name'");
+            "duplicate field 'Name'"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void ValuesSource_WithIncompatibleFieldTypes_ShouldThrow()
     {
-        const string query = @"
-from values {
-    ( Name: 'Newtonsoft.Json', Score: 10 ),
-    ( Name: 'Legacy.Package', Score: 'high' )
-} packages
-select packages.Name";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Name: 'Newtonsoft.Json', Score: 10 ),\n"
+            + "    ( Name: 'Legacy.Package', Score: 'high' )\n"
+            + "} packages\n"
+            + "select packages.Name"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, EmptySources()));
 
@@ -64,18 +72,21 @@ select packages.Name";
             ex,
             DiagnosticCode.MQ3055_InvalidValuesSource,
             DiagnosticPhase.Bind,
-            "VALUES field 'Score' mixes incompatible types");
+            "VALUES field 'Score' mixes incompatible types"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void ValuesSource_WithMethodExpression_ShouldThrow()
     {
-        const string query = @"
-from values {
-    ( Name: ToUpper('Newtonsoft.Json') )
-} packages
-select packages.Name";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Name: ToUpper('Newtonsoft.Json') )\n"
+            + "} packages\n"
+            + "select packages.Name"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, EmptySources()));
 
@@ -83,7 +94,8 @@ select packages.Name";
             ex,
             DiagnosticCode.MQ3055_InvalidValuesSource,
             DiagnosticPhase.Bind,
-            "must be a constant literal expression");
+            "must be a constant literal expression"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(ex);
     }
 
@@ -104,7 +116,7 @@ select packages.Name";
             ("UInt", "6ui", typeof(uint)),
             ("Long", "7l", typeof(long)),
             ("ULong", "8ul", typeof(ulong)),
-            ("Decimal", "9d", typeof(decimal))
+            ("Decimal", "9d", typeof(decimal)),
         ];
     }
 
@@ -152,9 +164,6 @@ select packages.Name";
 
     private static bool IsSignedIntegerType(Type type)
     {
-        return type == typeof(sbyte) ||
-               type == typeof(short) ||
-               type == typeof(int) ||
-               type == typeof(long);
+        return type == typeof(sbyte) || type == typeof(short) || type == typeof(int) || type == typeof(long);
     }
 }

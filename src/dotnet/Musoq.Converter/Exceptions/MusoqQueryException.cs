@@ -94,7 +94,8 @@ public sealed class MusoqQueryException : Exception
         sb.Append('[');
         for (var i = 0; i < Envelopes.Count; i++)
         {
-            if (i > 0) sb.Append(',');
+            if (i > 0)
+                sb.Append(',');
             sb.Append(MusoqErrorEnvelopeFormatter.FormatJson(Envelopes[i]));
         }
 

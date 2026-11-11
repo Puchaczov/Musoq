@@ -38,10 +38,14 @@ internal static partial class PredicateMovementPlanner
             SchemaScanNode scan => string.Equals(scan.Alias, alias, StringComparison.OrdinalIgnoreCase),
             InterpretSourceNode interpret => string.Equals(interpret.Alias, alias, StringComparison.OrdinalIgnoreCase),
             PropertySourceNode property => string.Equals(property.Alias, alias, StringComparison.OrdinalIgnoreCase),
-            AccessMethodSourceNode accessMethod => string.Equals(accessMethod.Alias, alias, StringComparison.OrdinalIgnoreCase),
+            AccessMethodSourceNode accessMethod => string.Equals(
+                accessMethod.Alias,
+                alias,
+                StringComparison.OrdinalIgnoreCase
+            ),
             CteRefNode cteRef => string.Equals(cteRef.Alias, alias, StringComparison.OrdinalIgnoreCase),
             ValuesScanNode values => string.Equals(values.Alias, alias, StringComparison.OrdinalIgnoreCase),
-            _ => node.Children.Any(child => ContainsProducedAlias(child, alias))
+            _ => node.Children.Any(child => ContainsProducedAlias(child, alias)),
         };
     }
 
@@ -54,15 +58,13 @@ internal static partial class PredicateMovementPlanner
         PredicatePlacementOrigin origin,
         PredicateMovementSide side,
         string alias,
-        IrExpression predicate)
+        IrExpression predicate
+    )
     {
         return $"{origin}:{side}:{alias}:{IrExpressionPrinter.Print(predicate)}";
     }
 
-    private static string CreateSkippedId(
-        PredicatePlacementOrigin origin,
-        string alias,
-        IrExpression predicate)
+    private static string CreateSkippedId(PredicatePlacementOrigin origin, string alias, IrExpression predicate)
     {
         return $"{origin}:Skipped:{alias}:{IrExpressionPrinter.Print(predicate)}";
     }
@@ -87,7 +89,10 @@ internal static partial class PredicateMovementPlanner
             if (!IsEligible)
                 return this;
 
-            return this with { Reason = $"{Reason} {reason}" };
+            return this with
+            {
+                Reason = $"{Reason} {reason}",
+            };
         }
 
         public static SideResolution Eligible(PredicateMovementSide side, string reason)

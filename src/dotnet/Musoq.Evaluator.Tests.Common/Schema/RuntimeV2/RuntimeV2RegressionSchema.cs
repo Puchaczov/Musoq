@@ -9,21 +9,31 @@ namespace Musoq.Evaluator.Tests.Schema.RuntimeV2;
 public sealed class RuntimeV2RegressionSchema(IReadOnlyList<RuntimeV2RegressionEntity> rows)
     : SchemaBase("test", CreateLibrary())
 {
-    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-        => base.DescribeSource(name, context, parameters) with
+    public override SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters
+    ) =>
+        base.DescribeSource(name, context, parameters) with
         {
-            ExecutionPermissions = SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing
+            ExecutionPermissions =
+                SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing,
         };
 
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return new RuntimeV2RegressionTable();
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, RuntimeV2RegressionEntity>(name, new RuntimeV2RegressionRowSource(rows));
     }

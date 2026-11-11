@@ -9,30 +9,33 @@ public sealed partial class ExecutionCSharpRenderer
     private MethodDeclarationSyntax CreateQueryMethod(
         string methodName,
         BlockSyntax body,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (!IsInstrumentationEnabled)
         {
             return context.Session.UseQueryRunContext
-                ? SyntaxFactory.MethodDeclaration(SyntaxFactory.IdentifierName("Table"), SyntaxFactory.Identifier(methodName))
+                ? SyntaxFactory
+                    .MethodDeclaration(SyntaxFactory.IdentifierName("Table"), SyntaxFactory.Identifier(methodName))
                     .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                     .WithParameterList(MethodDeclarationHelper.CreateTypedRunContextParameterList())
                     .WithBody(body)
                 : MethodDeclarationHelper.CreateStandardPrivateMethod(methodName, body);
         }
 
-        return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.IdentifierName("Table"),
-                SyntaxFactory.Identifier(methodName))
+        return SyntaxFactory
+            .MethodDeclaration(SyntaxFactory.IdentifierName("Table"), SyntaxFactory.Identifier(methodName))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(MethodDeclarationHelper.CreateStandardParameterList()
-                .AddParameters(CreateProfileRecorderParameter()))
+            .WithParameterList(
+                MethodDeclarationHelper.CreateStandardParameterList().AddParameters(CreateProfileRecorderParameter())
+            )
             .WithBody(body);
     }
 
     private static ParameterSyntax CreateProfileRecorderParameter()
     {
-        return SyntaxFactory.Parameter(SyntaxFactory.Identifier(ProfileRecorderVariableName))
+        return SyntaxFactory
+            .Parameter(SyntaxFactory.Identifier(ProfileRecorderVariableName))
             .WithType(SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder)));
     }
 }

@@ -14,12 +14,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenStringValueOverflowsInt32_ShouldExcludeRow()
     {
-        const string query = "table Items {" +
-                             "  Age: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Age = 100";
+        const string query =
+            "table Items {"
+            + "  Age: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Age = 100";
 
         dynamic item1 = new ExpandoObject();
         item1.Age = "100";
@@ -43,12 +44,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenStringValueOverflowsInt64_ShouldExcludeRow()
     {
-        const string query = "table Items {" +
-                             "  Count: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Count = 9223372036854775807l";
+        const string query =
+            "table Items {"
+            + "  Count: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Count = 9223372036854775807l";
 
         dynamic item1 = new ExpandoObject();
         item1.Count = "9223372036854775807";
@@ -72,12 +74,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenStringValueHasDecimalPart_AndComparingToInt_ShouldExcludeRow()
     {
-        const string query = "table Items {" +
-                             "  Amount: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Amount = 100";
+        const string query =
+            "table Items {"
+            + "  Amount: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Amount = 100";
 
         dynamic item1 = new ExpandoObject();
         item1.Amount = "100";
@@ -101,12 +104,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingStringToDecimalLiteral_OverflowDecimalRange_ShouldExcludeRow()
     {
-        const string query = "table Items {" +
-                             "  Price: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Price = 100.50";
+        const string query =
+            "table Items {"
+            + "  Price: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Price = 100.50";
 
         dynamic item1 = new ExpandoObject();
         item1.Price = "100,50";
@@ -130,12 +134,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenMultipleRowsWithMixedValidAndOverflow_OnlyValidRowsMatch()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size > 1000";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size > 1000";
 
         var items = new List<dynamic>();
 
@@ -181,12 +186,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenObjectColumnContainsNumericValues_ShouldRejectErasedShapeBeforeExecution()
     {
-        const string query = "table Items {" +
-                             "  Value: object," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value = 100";
+        const string query =
+            "table Items {"
+            + "  Value: object,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = 100";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (object)100;
@@ -201,8 +207,12 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         item3.Name = "TooLarge";
 
         var error = Assert.ThrowsExactly<global::Musoq.Converter.Exceptions.MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, [item1, item2, item3]));
-        Assert.AreEqual(global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.PrimaryEnvelope.Code);
+            CreateAndRunVirtualMachine(query, [item1, item2, item3])
+        );
+        Assert.AreEqual(
+            global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError,
+            error.PrimaryEnvelope.Code
+        );
         Assert.Contains("Value", error.Message);
         Assert.Contains("object runtime type", error.Message);
     }
@@ -210,12 +220,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenStringValueAtBoundary_ShouldMatchCorrectly()
     {
-        const string query = "table Items {" +
-                             "  Value: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value = 2147483647";
+        const string query =
+            "table Items {"
+            + "  Value: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = 2147483647";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = "2147483647";
@@ -231,12 +242,13 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         Assert.AreEqual(1, table.Count, "Only MaxValue should match");
         Assert.AreEqual("MaxValue", table[0].ReadValues()[0]);
 
-        const string query2 = "table Items {" +
-                              "  Value: string," +
-                              "  Name: string" +
-                              "};" +
-                              "couple #test.whatever with table Items as Items; " +
-                              "select Name from Items() where Value = -2147483648";
+        const string query2 =
+            "table Items {"
+            + "  Value: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = -2147483648";
 
         dynamic item3 = new ExpandoObject();
         item3.Value = "-2147483648";
@@ -252,7 +264,6 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         Assert.AreEqual(1, table2.Count, "Only MinValue should match");
         Assert.AreEqual("MinValue", table2[0].ReadValues()[0]);
     }
-
 
     #endregion
 }

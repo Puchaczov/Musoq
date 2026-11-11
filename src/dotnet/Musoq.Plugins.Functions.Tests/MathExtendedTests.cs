@@ -171,5 +171,4 @@ public partial class MathExtendedTests : PluginsTestBase
     }
 
     #endregion
-
 }

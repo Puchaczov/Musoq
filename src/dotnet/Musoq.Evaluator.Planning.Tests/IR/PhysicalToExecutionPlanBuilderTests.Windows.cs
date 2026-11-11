@@ -12,21 +12,25 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     {
         var scan = CreateScan();
         var materialize = new PhysicalMaterializeNode(scan);
-        var registration = CreateRowNumberRegistration(new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false));
+        var registration = CreateRowNumberRegistration(
+            new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false)
+        );
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("RowNum", new WindowFunctionRef(0, typeof(long)), 1)
+                new ProjectedField("RowNum", new WindowFunctionRef(0, typeof(long)), 1),
             ],
-            window);
+            window
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_RowNumberWindow");
         var plan = RequireExecutionPlan(result);
 
         AssertFinalShapeResult(plan, "result", "ResultRow0", "Name", "RowNum");
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_RowNumberWindow]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -43,7 +47,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(Name: p.Name, RowNum: resultRowNumbers[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -55,17 +60,20 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var materialize = new PhysicalMaterializeNode(scan);
         var registration = CreateRowNumberRegistration(
             new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false),
-            [new ColumnRef("p", "Age", typeof(int))]);
+            [new ColumnRef("p", "Age", typeof(int))]
+        );
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
             [new ProjectedField("RowNum", new WindowFunctionRef(0, typeof(long)), 0)],
-            window);
+            window
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_PartitionedRowNumberWindow");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_PartitionedRowNumberWindow]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -81,7 +89,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(RowNum: resultRowNumbers[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -91,21 +100,22 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     {
         var scan = CreateScan();
         var materialize = new PhysicalMaterializeNode(scan);
-        var registration = CreateRowNumberRegistration(
-            [
-                new OrderField(new ColumnRef("p", "Age", typeof(int)), Descending: true),
-                new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false)
-            ]);
+        var registration = CreateRowNumberRegistration([
+            new OrderField(new ColumnRef("p", "Age", typeof(int)), Descending: true),
+            new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false),
+        ]);
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
             [new ProjectedField("RowNum", new WindowFunctionRef(0, typeof(long)), 0)],
-            window);
+            window
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_MultiOrderRowNumberWindow");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_MultiOrderRowNumberWindow]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -121,7 +131,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(RowNum: resultRowNumbers[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -134,20 +145,25 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("p", "Age", typeof(int)),
             new Literal(18, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var filter = new PhysicalFilterNode(predicate, scan);
         var materialize = new PhysicalMaterializeNode(filter);
-        var registration = CreateRowNumberRegistration(new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false));
+        var registration = CreateRowNumberRegistration(
+            new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false)
+        );
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
             [new ProjectedField("RowNum", new WindowFunctionRef(0, typeof(long)), 0)],
-            window);
+            window
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_FilteredRowNumberWindow");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_FilteredRowNumberWindow]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -163,7 +179,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(RowNum: resultRowNumbers[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

@@ -8,4 +8,5 @@ internal sealed record SortMergeJoinDecomposition(
     BinaryOpKind ComparisonKind,
     IrExpression Residual,
     IrExpression[] LeftPartitionKeys,
-    IrExpression[] RightPartitionKeys);
+    IrExpression[] RightPartitionKeys
+);

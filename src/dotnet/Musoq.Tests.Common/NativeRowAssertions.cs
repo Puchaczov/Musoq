@@ -29,9 +29,11 @@ public static class NativeRowAssertions
     {
         public object? Value;
         public int VisitedCount;
+
         public void Visit<T>(int columnIndex, in T value)
         {
-            if (columnIndex != selected) return;
+            if (columnIndex != selected)
+                return;
             Value = value;
             VisitedCount++;
         }

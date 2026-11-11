@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class OuterApplyMethodCallTests : GenericEntityTestBase
 {
-
     [TestMethod]
     public void OuterApplyProperty_NoMatch_ShouldPass()
     {
@@ -17,13 +16,10 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { Value1 = 1, Value2 = string.Empty }
+            new() { Value1 = 1, Value2 = string.Empty },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -38,21 +34,25 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass2>
         {
-            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." }
+            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Lorem"], ["ipsum"], ["dolor"], ["sit"],
-            ["amet,"], ["consectetur"], ["adipiscing"], ["elit."]);
+            ["Lorem"],
+            ["ipsum"],
+            ["dolor"],
+            ["sit"],
+            ["amet,"],
+            ["consectetur"],
+            ["adipiscing"],
+            ["elit."]
+        );
     }
 
     [TestMethod]
@@ -62,21 +62,24 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass2>
         {
-            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." }
+            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["ipsum"], ["dolor"], ["sit"], ["amet,"],
-            ["consectetur"], ["adipiscing"], ["elit."]);
+            ["ipsum"],
+            ["dolor"],
+            ["sit"],
+            ["amet,"],
+            ["consectetur"],
+            ["adipiscing"],
+            ["elit."]
+        );
     }
 
     [TestMethod]
@@ -87,20 +90,23 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass2>
         {
-            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." }
+            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["ipsum"], ["dolor"], ["sit"], ["amet,"], ["consectetur"], ["adipiscing"]);
+            ["ipsum"],
+            ["dolor"],
+            ["sit"],
+            ["amet,"],
+            ["consectetur"],
+            ["adipiscing"]
+        );
     }
 
     [TestMethod]
@@ -111,13 +117,10 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass2>
         {
-            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." }
+            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -133,23 +136,19 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass2>
         {
-            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." }
+            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("b.Length(b.Value)", typeof(int?)),
-            ("b.Count(b.Length(b.Value))", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [5, 5L], [3, 1L], [11, 1L], [10, 1L]);
+            ("b.Count(b.Length(b.Value))", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [5, 5L], [3, 1L], [11, 1L], [10, 1L]);
     }
 
     [TestMethod]
@@ -160,23 +159,17 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         string[] words = ["Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."];
 
-        var firstSource = new List<OuterApplyClass2>
-        {
-            new() { Text = string.Join(" ", words) }
-        }.ToArray();
+        var firstSource = new List<OuterApplyClass2> { new() { Text = string.Join(" ", words) } }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table, ("Value", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            words.SelectMany(first => words.Select(second => new object?[] { first, second })).ToArray());
+            words.SelectMany(first => words.Select(second => new object?[] { first, second })).ToArray()
+        );
     }
 
     public sealed class OuterApplyClass1

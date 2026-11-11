@@ -7,7 +7,8 @@ internal sealed record PredicatePlacementPlan(
     string[] Aliases,
     PredicateEarliestPlacement EarliestPlacement,
     PlanningConfidence Confidence,
-    string Reason)
+    string Reason
+)
 {
     public string ConjunctGroupId { get; init; } = string.Empty;
 

@@ -8,14 +8,24 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private TableBuildResult BuildInnerHashJoinTable(HashJoinBuildContext context)
     {
-        var resultShape = CreateGeneratedShape(context.ResultShapeName, context.Pipeline.Project.Fields, context.SourceLookup);
+        var resultShape = CreateGeneratedShape(
+            context.ResultShapeName,
+            context.Pipeline.Project.Fields,
+            context.SourceLookup
+        );
         var resultTable = new ExecutionVariable(context.ResultTableName, typeof(object));
-        var appendRow = CreateAppendRow(resultTable, resultShape, context.Pipeline.Project.Fields, context.SourceLookup);
+        var appendRow = CreateAppendRow(
+            resultTable,
+            resultShape,
+            context.Pipeline.Project.Fields,
+            context.SourceLookup
+        );
         var matchedBody = CreateJoinLoopBody(
             context.Join.Residual,
             context.Pipeline.Filter,
             CreateOutputAppend(appendRow, context.Scope),
-            context.ConversionLookup);
+            context.ConversionLookup
+        );
         return CompleteHashJoinTableBuild(context, new HashJoinTableLowering(resultTable, resultShape, matchedBody));
     }
 
@@ -23,12 +33,15 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         var resultTable = new ExecutionVariable(context.ResultTableName, typeof(object));
         var nullAlias = RowShapeLookup.ResolveSourceAlias(context.Sides.Build.Shape);
-        var projection = CreateNullExtendedProjection(new NullExtendedProjectionContext(
-            context.ResultShapeName,
-            resultTable,
-            context.Pipeline.Project.Fields,
-            context.SourceLookup,
-            nullAlias));
+        var projection = CreateNullExtendedProjection(
+            new NullExtendedProjectionContext(
+                context.ResultShapeName,
+                resultTable,
+                context.Pipeline.Project.Fields,
+                context.SourceLookup,
+                nullAlias
+            )
+        );
         if (!projection.IsBuilt)
             return TableBuildResult.Unsupported(projection.UnsupportedReason);
 
@@ -37,7 +50,8 @@ internal sealed partial class PhysicalLoweringImplementation
             projection.MatchedAppendRow,
             projection.UnmatchedAppendRow,
             context.SourceLookup,
-            nullAlias);
+            nullAlias
+        );
         if (!appendBlocks.IsBuilt)
             return TableBuildResult.Unsupported(appendBlocks.UnsupportedReason);
 
@@ -48,7 +62,8 @@ internal sealed partial class PhysicalLoweringImplementation
             context.Pipeline.Filter,
             hasMatch,
             projection.MatchedAppendRow,
-            context.ConversionLookup);
+            context.ConversionLookup
+        );
         return CompleteHashJoinTableBuild(
             context,
             new HashJoinTableLowering(
@@ -56,7 +71,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 resultShape,
                 matchedBody,
                 appendBlocks.UnmatchedAppendBlock,
-                hasMatch));
+                hasMatch
+            )
+        );
     }
 
     private ExecutionBlock CreateOuterHashJoinMatchedBody(
@@ -64,13 +81,13 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalFilterNode? filter,
         ExecutionVariable hasMatch,
         ExecutionAppendRow appendRow,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var appendBlock = CreateOuterJoinMatchedAppendBlock(filter, appendRow, sourceLookup);
-        var matchedBlock = new ExecutionBlock(
-        [
+        var matchedBlock = new ExecutionBlock([
             new ExecutionAssign(hasMatch, new ExecutionLiteral(true, typeof(bool))),
-            ..appendBlock.Nodes
+            .. appendBlock.Nodes,
         ]);
 
         return CreateConditionalJoinBlock(joinCondition, sourceLookup, matchedBlock);

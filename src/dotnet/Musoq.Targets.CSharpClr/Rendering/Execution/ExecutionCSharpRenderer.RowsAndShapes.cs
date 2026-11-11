@@ -7,29 +7,34 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-
-
     private TupleExpressionSyntax CreateValueTupleKeyExpression(
         ExecutionValueTupleKey valueTupleKey,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(
-            valueTupleKey.Parts.Select(part => SyntaxFactory.Argument(RenderExpression(part, context)))));
+        return SyntaxFactory.TupleExpression(
+            SyntaxFactory.SeparatedList(
+                valueTupleKey.Parts.Select(part => SyntaxFactory.Argument(RenderExpression(part, context)))
+            )
+        );
     }
 
     private static ExpressionSyntax CreateValueTupleKeyExpression(int keyCount)
     {
         if (keyCount == 1)
-            return SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression("ValueTuple.Create"))
+            return SyntaxFactory
+                .InvocationExpression(SyntaxFactory.ParseExpression("ValueTuple.Create"))
                 .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(CreateGroupKeyVariableName(0))));
 
         return SyntaxFactory.ParseExpression(
-            $"({string.Join(", ", Enumerable.Range(0, keyCount).Select(CreateGroupKeyVariableName))})");
+            $"({string.Join(", ", Enumerable.Range(0, keyCount).Select(CreateGroupKeyVariableName))})"
+        );
     }
 
     private static ArrayCreationExpressionSyntax CreateWindowKeyArrayCreation(
         ExecutionVariable keyArray,
-        ExpressionSyntax size)
+        ExpressionSyntax size
+    )
     {
         return CreateSizedArrayCreation(GetArrayElementType(keyArray), size);
     }
@@ -41,7 +46,9 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static LiteralExpressionSyntax CreateBooleanLiteral(bool value)
     {
-        return SyntaxFactory.LiteralExpression(value ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
+        return SyntaxFactory.LiteralExpression(
+            value ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression
+        );
     }
 
     private static ExpressionSyntax CreateIntLiteral(PagingCount count) => PagingCountSyntax.Read(count);
@@ -56,7 +63,8 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(tableName),
-            SyntaxFactory.IdentifierName("Rows"));
+            SyntaxFactory.IdentifierName("Rows")
+        );
     }
 
     private ExpressionSyntax CreateRowsRead(ExecutionVariable rowsOwner, ExecutionRenderContext context)
@@ -78,58 +86,62 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             rowsExpression,
-            SyntaxFactory.IdentifierName("Count"));
+            SyntaxFactory.IdentifierName("Count")
+        );
     }
 
     private static bool CanRenderShape(RowShape shape)
     {
         return shape switch
         {
-            SourceEntityShape source => !DynamicEntityBoundary.IsNameIndexedSource(source.EntityType.RequireClrType()) &&
-                                        (CanReferenceType(source.EntityType) ||
-                                         source.Fields.Count == 0) &&
-                                        CanRenderFieldTypes(source.Fields),
+            SourceEntityShape source => !DynamicEntityBoundary.IsNameIndexedSource(source.EntityType.RequireClrType())
+                && (CanReferenceType(source.EntityType) || source.Fields.Count == 0)
+                && CanRenderFieldTypes(source.Fields),
             GeneratedRowShape generated => CanRenderGeneratedRowShape(generated),
             ValuesRowShape values => CanRenderGeneratedRowShape(values.GeneratedShape),
             GeneratedRecordShape generated => CanRenderGeneratedRecordShape(generated),
             HashPayloadShape hashPayload => CanRenderHashPayloadShape(hashPayload),
             AggregateGroupShape aggregateGroup => CanRenderAggregateGroupShape(aggregateGroup),
             TableRowShape => true,
-            _ => false
+            _ => false,
         };
     }
 
     private static bool CanRenderGeneratedRowShape(GeneratedRowShape shape)
     {
-        return CanRenderIdentifier(shape.TypeName) &&
-               CanRenderFieldNames(shape.Fields.Select(GetGeneratedFieldName)) &&
-               shape.Fields.Select(GetGeneratedFieldName).All(static fieldName => !GeneratedRowNamingPolicy.IsRendererReservedMemberName(fieldName)) &&
-               CanRenderFieldTypes(shape.Fields);
+        return CanRenderIdentifier(shape.TypeName)
+            && CanRenderFieldNames(shape.Fields.Select(GetGeneratedFieldName))
+            && shape
+                .Fields.Select(GetGeneratedFieldName)
+                .All(static fieldName => !GeneratedRowNamingPolicy.IsRendererReservedMemberName(fieldName))
+            && CanRenderFieldTypes(shape.Fields);
     }
 
     private static bool CanRenderGeneratedRecordShape(GeneratedRecordShape shape)
     {
-        return CanRenderIdentifier(shape.TypeName) &&
-               CanRenderFieldNames(shape.Fields.Select(GetGeneratedFieldName)) &&
-               CanRenderFieldTypes(shape.Fields);
+        return CanRenderIdentifier(shape.TypeName)
+            && CanRenderFieldNames(shape.Fields.Select(GetGeneratedFieldName))
+            && CanRenderFieldTypes(shape.Fields);
     }
 
     private static bool CanRenderHashPayloadShape(HashPayloadShape shape)
     {
-        return CanRenderIdentifier(shape.TypeName) &&
-               CanRenderFieldNames(GetHashPayloadFields(shape).Select(GetGeneratedFieldName)) &&
-               CanRenderFieldTypes(GetHashPayloadFields(shape));
+        return CanRenderIdentifier(shape.TypeName)
+            && CanRenderFieldNames(GetHashPayloadFields(shape).Select(GetGeneratedFieldName))
+            && CanRenderFieldTypes(GetHashPayloadFields(shape));
     }
 
     private static bool CanRenderFieldTypes(IEnumerable<FieldBinding> fields)
     {
-        return fields.All(field => field.GeneratedTypeName is { } generatedType
-            ? CanRenderGeneratedTypeName(generatedType)
-            : CanReferenceType(field.Type));
+        return fields.All(field =>
+            field.GeneratedTypeName is { } generatedType
+                ? CanRenderGeneratedTypeName(generatedType)
+                : CanReferenceType(field.Type)
+        );
     }
 
-    private static bool CanRenderGeneratedTypeName(string name)
-        => !SyntaxFactory.ParseTypeName(name).ContainsDiagnostics;
+    private static bool CanRenderGeneratedTypeName(string name) =>
+        !SyntaxFactory.ParseTypeName(name).ContainsDiagnostics;
 
     private static bool CanRenderFieldNames(IEnumerable<string> fieldNames)
     {
@@ -167,8 +179,8 @@ public sealed partial class ExecutionCSharpRenderer
             return CanReferenceType(nullableType);
 
         if (type.IsGenericType)
-            return CanReferencePublicType(type.GetGenericTypeDefinition()) &&
-                   type.GetGenericArguments().All(CanReferenceType);
+            return CanReferencePublicType(type.GetGenericTypeDefinition())
+                && type.GetGenericArguments().All(CanReferenceType);
 
         return CanReferencePublicType(type);
     }
@@ -180,7 +192,6 @@ public sealed partial class ExecutionCSharpRenderer
         if (!type.IsNested)
             return type.IsPublic;
 
-        return type is { IsNestedPublic: true, DeclaringType: not null } &&
-               CanReferencePublicType(type.DeclaringType);
+        return type is { IsNestedPublic: true, DeclaringType: not null } && CanReferencePublicType(type.DeclaringType);
     }
 }

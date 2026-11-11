@@ -12,7 +12,8 @@ public sealed record ExecutionMaterializeRecordListToTable : ExecutionNode
         IReadOnlyList<int> fieldIndexes,
         IReadOnlyList<int> renumberFieldIndexes,
         ExecutionCapacityHint? capacityHint = null,
-        ExecutionAppendMode appendMode = ExecutionAppendMode.Checked)
+        ExecutionAppendMode appendMode = ExecutionAppendMode.Checked
+    )
     {
         Source = source;
         Target = target;

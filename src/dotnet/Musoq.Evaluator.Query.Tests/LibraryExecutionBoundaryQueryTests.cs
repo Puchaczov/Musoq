@@ -1,17 +1,16 @@
 using System;
+using System.Collections;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Examples.DataSources.StructuredInputs;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
+using Musoq.Examples.DataSources.StructuredInputs;
 using Musoq.Schema;
-using Musoq.Evaluator.Tables;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -24,7 +23,9 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     {
         const string query = "select Position, Amount from #schema.first() order by Position";
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var visitor = new NumericVisitor();
         foreach (var row in result)
@@ -42,8 +43,12 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     public void MetadataResult_WhenProjectedToWritableStruct_ShouldConstructConcreteValues()
     {
         const string query = "desc functions #schema";
-        var compiled = InstanceCreator.CompileForTypedProfile<FunctionRow>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        var compiled = InstanceCreator.CompileForTypedProfile<FunctionRow>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         var rows = compiled.RunWithProfile(TestContext.CancellationToken).Rows.ToArray();
 
         Assert.IsTrue(rows.Length > 500);
@@ -56,7 +61,9 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     {
         const string query = "select Sum(Amount) as Total from #schema.first()";
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
@@ -72,7 +79,13 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
         var provider = LibraryExecutionFixture.CreateProvider<ObjectFieldEntity>([new(1m)]);
 
         var error = Assert.Throws<InvalidOperationException>(() =>
-            InstanceCreator.CompileForTypedExecution<AmountRow>(query, Guid.NewGuid().ToString(), provider, LoggerResolver));
+            InstanceCreator.CompileForTypedExecution<AmountRow>(
+                query,
+                Guid.NewGuid().ToString(),
+                provider,
+                LoggerResolver
+            )
+        );
 
         Assert.Contains("MQ3071", error.Message);
         Assert.Contains("Value", error.Message);
@@ -86,7 +99,13 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
         var provider = LibraryExecutionFixture.CreateProvider<NestedObjectEntity>([new(new(1m))]);
 
         var error = Assert.Throws<InvalidOperationException>(() =>
-            InstanceCreator.CompileForTypedExecution<AmountRow>(query, Guid.NewGuid().ToString(), provider, LoggerResolver));
+            InstanceCreator.CompileForTypedExecution<AmountRow>(
+                query,
+                Guid.NewGuid().ToString(),
+                provider,
+                LoggerResolver
+            )
+        );
 
         Assert.Contains("MQ3071", error.Message);
         Assert.Contains("ObjectFieldEntity.Value", error.Message);
@@ -96,38 +115,48 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     public void TupleResult_WhenAliasesAreDomainNames_ShouldBindPositionallyWithConcreteTypes()
     {
         const string query = "select Position, Amount from #schema.first() order by Position";
-        var compiled = InstanceCreator.CompileForTypedExecution<(int Position, decimal? Amount)>(query,
-            Guid.NewGuid().ToString(), LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        var compiled = InstanceCreator.CompileForTypedExecution<(int Position, decimal? Amount)>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         var rows = compiled.Run(TestContext.CancellationToken).ToArray();
 
-        CollectionAssert.AreEqual(new (int, decimal?)[]
-        {
-            (1, 1.25m), (2, 2.75m), (3, null), (4, -3m), (5, 5m)
-        }, rows);
+        CollectionAssert.AreEqual(new (int, decimal?)[] { (1, 1.25m), (2, 2.75m), (3, null), (4, -3m), (5, 5m) }, rows);
     }
 
     [TestMethod]
     public void TypedScalarParameter_WhenExecuted_ShouldRetainItsDeclaredTypeAcrossRows()
     {
-        const string query = "param(factor: int); select Position + $factor as Position, Amount " +
-                             "from #schema.first() order by Position";
-        var compiled = InstanceCreator.CompileForTypedExecution<(int, decimal?)>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        const string query =
+            "param(factor: int); select Position + $factor as Position, Amount "
+            + "from #schema.first() order by Position";
+        var compiled = InstanceCreator.CompileForTypedExecution<(int, decimal?)>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         compiled.TypedParameters.Set("factor", 10);
         var rows = compiled.Run(TestContext.CancellationToken).ToArray();
 
-        CollectionAssert.AreEqual(new (int, decimal?)[]
-        {
-            (11, 1.25m), (12, 2.75m), (13, null), (14, -3m), (15, 5m)
-        }, rows);
+        CollectionAssert.AreEqual(
+            new (int, decimal?)[] { (11, 1.25m), (12, 2.75m), (13, null), (14, -3m), (15, 5m) },
+            rows
+        );
     }
 
     [TestMethod]
     public void TypedNullableParameter_WhenExplicitlyNull_ShouldPreserveNullAsASuppliedValue()
     {
         const string query = "param(bonus: decimal?); select $bonus as Amount from #schema.first() where Position = 1";
-        var compiled = InstanceCreator.CompileForTypedExecution<AmountRow>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        var compiled = InstanceCreator.CompileForTypedExecution<AmountRow>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         compiled.TypedParameters.Set<decimal?>("bonus", null);
         var rows = compiled.Run(TestContext.CancellationToken).ToArray();
 
@@ -137,10 +166,15 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     [TestMethod]
     public void TypedCollectionParameter_WhenCallerMutatesItAfterRun_ShouldUseTheCapturedElements()
     {
-        const string query = "param(ids: int[]); select Position, Amount from #schema.first() " +
-                             "where Position in $ids order by Position";
-        var compiled = InstanceCreator.CompileForTypedExecution<(int, decimal?)>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        const string query =
+            "param(ids: int[]); select Position, Amount from #schema.first() "
+            + "where Position in $ids order by Position";
+        var compiled = InstanceCreator.CompileForTypedExecution<(int, decimal?)>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         var ids = new[] { 1, 2 };
         compiled.TypedParameters.SetCollection("ids", ids);
         var pendingRows = compiled.Run(TestContext.CancellationToken);
@@ -154,8 +188,12 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     public void TypedParameter_WhenItsSuppliedTypeDoesNotMatchSql_ShouldReportATypeMismatch()
     {
         const string query = "param(factor: int); select Position + $factor as Position from #schema.first()";
-        var compiled = InstanceCreator.CompileForTypedExecution<PositionRow>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        var compiled = InstanceCreator.CompileForTypedExecution<PositionRow>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         compiled.TypedParameters.Set("factor", 10L);
 
         var error = Assert.Throws<QueryExecutionException>(() => compiled.Run(TestContext.CancellationToken).ToArray());
@@ -168,10 +206,15 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     [TestMethod]
     public void TypedStructuredParameter_WhenDecoded_ShouldUseConcreteNestedValuesAndFieldDefaults()
     {
-        const string query = "param(options: (Enabled: bool, Codes: int[], Window: (Before: int, After: int = 3))); " +
-                             "select Enabled, Before, After from #inputs.configure(options: $options)";
-        var compiled = InstanceCreator.CompileForTypedExecution<(bool, int, int)>(query, Guid.NewGuid().ToString(),
-            new StructuredInputsSchemaProvider(), LoggerResolver);
+        const string query =
+            "param(options: (Enabled: bool, Codes: int[], Window: (Before: int, After: int = 3))); "
+            + "select Enabled, Before, After from #inputs.configure(options: $options)";
+        var compiled = InstanceCreator.CompileForTypedExecution<(bool, int, int)>(
+            query,
+            Guid.NewGuid().ToString(),
+            new StructuredInputsSchemaProvider(),
+            LoggerResolver
+        );
         using (var document = JsonDocument.Parse("{\"Enabled\":true,\"Codes\":[10,20],\"Window\":{\"Before\":2}}"))
             compiled.TypedParameters.SetJson("options", document.RootElement);
         var rows = compiled.Run(TestContext.CancellationToken).ToArray();
@@ -185,12 +228,20 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     [DataRow("{\"Enabled\":true,\"Codes\":[10],\"Window\":{\"Before\":null}}", "MQ7005")]
     [DataRow("{\"Enabled\":true,\"Codes\":[10],\"Window\":{\"Before\":2},\"Unexpected\":1}", "MQ7006")]
     [DataRow("{\"Enabled\":true,\"Codes\":[10],\"Window\":{\"Before\":2,\"before\":3}}", "MQ7004")]
-    public void TypedStructuredParameter_WhenShapeIsInvalid_ShouldReportTheResponsibleDiagnostic(string json, string code)
+    public void TypedStructuredParameter_WhenShapeIsInvalid_ShouldReportTheResponsibleDiagnostic(
+        string json,
+        string code
+    )
     {
-        const string query = "param(options: (Enabled: bool, Codes: int[], Window: (Before: int, After: int = 3))); " +
-                             "select Enabled, Before, After from #inputs.configure(options: $options)";
-        var compiled = InstanceCreator.CompileForTypedExecution<(bool, int, int)>(query, Guid.NewGuid().ToString(),
-            new StructuredInputsSchemaProvider(), LoggerResolver);
+        const string query =
+            "param(options: (Enabled: bool, Codes: int[], Window: (Before: int, After: int = 3))); "
+            + "select Enabled, Before, After from #inputs.configure(options: $options)";
+        var compiled = InstanceCreator.CompileForTypedExecution<(bool, int, int)>(
+            query,
+            Guid.NewGuid().ToString(),
+            new StructuredInputsSchemaProvider(),
+            LoggerResolver
+        );
         using var document = JsonDocument.Parse(json);
         compiled.TypedParameters.SetJson("options", document.RootElement);
 
@@ -202,9 +253,14 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     [TestMethod]
     public void TypedStructuredCollection_WhenNestedArraysAreDecoded_ShouldPreserveTheirCoordinates()
     {
-        const string query = "param(values: int[][]); select Value, Row, Column from #inputs.matrix(values: $values) order by Row, Column";
-        var compiled = InstanceCreator.CompileForTypedExecution<(int, int, int)>(query, Guid.NewGuid().ToString(),
-            new StructuredInputsSchemaProvider(), LoggerResolver);
+        const string query =
+            "param(values: int[][]); select Value, Row, Column from #inputs.matrix(values: $values) order by Row, Column";
+        var compiled = InstanceCreator.CompileForTypedExecution<(int, int, int)>(
+            query,
+            Guid.NewGuid().ToString(),
+            new StructuredInputsSchemaProvider(),
+            LoggerResolver
+        );
         using var document = JsonDocument.Parse("[[1,2],[],[3]]");
         compiled.TypedParameters.SetJson("values", document.RootElement);
         var rows = compiled.Run(TestContext.CancellationToken).ToArray();
@@ -215,14 +271,29 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     [TestMethod]
     public void TypedProfileParameter_WhenExecuted_ShouldUseTheSameConcreteSlots()
     {
-        const string query = "param(bonus: decimal?); select Amount + $bonus as Amount from #schema.first() order by Position";
-        var compiled = InstanceCreator.CompileForTypedProfile<AmountRow>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        const string query =
+            "param(bonus: decimal?); select Amount + $bonus as Amount from #schema.first() order by Position";
+        var compiled = InstanceCreator.CompileForTypedProfile<AmountRow>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         compiled.TypedParameters.Set<decimal?>("bonus", 1m);
         var result = compiled.RunWithProfile(TestContext.CancellationToken);
         var rows = result.Rows.ToArray();
 
-        CollectionAssert.AreEqual(new[] { new AmountRow(2.25m), new AmountRow(3.75m), new AmountRow(null), new AmountRow(-2m), new AmountRow(6m) }, rows);
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                new AmountRow(2.25m),
+                new AmountRow(3.75m),
+                new AmountRow(null),
+                new AmountRow(-2m),
+                new AmountRow(6m),
+            },
+            rows
+        );
         Assert.IsNotNull(result.Profile);
     }
 
@@ -233,7 +304,13 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
         var provider = LibraryExecutionFixture.CreateProvider<FrameworkCollectionEntity>([new(new ArrayList { 1 })]);
 
         var error = Assert.Throws<InvalidOperationException>(() =>
-            InstanceCreator.CompileForTypedExecution<TextRow>(query, Guid.NewGuid().ToString(), provider, LoggerResolver));
+            InstanceCreator.CompileForTypedExecution<TextRow>(
+                query,
+                Guid.NewGuid().ToString(),
+                provider,
+                LoggerResolver
+            )
+        );
 
         Assert.Contains("MQ3071", error.Message);
         Assert.Contains("ArrayList", error.Message);
@@ -243,8 +320,10 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     public void TypedColumns_WhenReadAndVisited_ShouldPreserveNumericValues()
     {
         const string query = "select Position, Amount from #schema.first() order by Position";
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
         var visitor = VisitColumnValues(rows);
@@ -252,8 +331,10 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
         Assert.AreEqual(15, visitor.Positions);
         Assert.AreEqual(6m, visitor.Amounts);
         CollectionAssert.AreEqual(new[] { 1, 2, 3, 4, 5 }, rows.Select(row => row.GetValue<int>(0)).ToArray());
-        CollectionAssert.AreEqual(new decimal?[] { 1.25m, 2.75m, null, -3m, 5m },
-            rows.Select(row => row.GetValue<decimal?>(1)).ToArray());
+        CollectionAssert.AreEqual(
+            new decimal?[] { 1.25m, 2.75m, null, -3m, 5m },
+            rows.Select(row => row.GetValue<decimal?>(1)).ToArray()
+        );
     }
 
     [TestMethod]
@@ -262,8 +343,13 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
         const string query = "select Amount from #schema.first()";
 
         var error = Assert.Throws<InvalidOperationException>(() =>
-            InstanceCreator.CompileForTypedExecution<ErasedAmountRow>(query, Guid.NewGuid().ToString(),
-                LibraryExecutionFixture.CreateProvider(), LoggerResolver));
+            InstanceCreator.CompileForTypedExecution<ErasedAmountRow>(
+                query,
+                Guid.NewGuid().ToString(),
+                LibraryExecutionFixture.CreateProvider(),
+                LoggerResolver
+            )
+        );
 
         Assert.Contains("MQ3071", error.Message);
         Assert.Contains("ErasedAmountRow.Amount", error.Message);
@@ -276,7 +362,13 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
         var provider = LibraryExecutionFixture.CreateProvider<ObjectFieldEntity>([new(1m)]);
 
         var error = Assert.Throws<InvalidOperationException>(() =>
-            InstanceCreator.CompileForTypedProfile<AmountRow>(query, Guid.NewGuid().ToString(), provider, LoggerResolver));
+            InstanceCreator.CompileForTypedProfile<AmountRow>(
+                query,
+                Guid.NewGuid().ToString(),
+                provider,
+                LoggerResolver
+            )
+        );
 
         Assert.Contains("MQ3071", error.Message);
         Assert.Contains("concrete value type", error.Message);
@@ -285,9 +377,14 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     [TestMethod]
     public void TypedScalarParameter_WhenLaterRunsChangeIt_ShouldKeepEachRunSnapshotIndependent()
     {
-        const string query = "param(factor: int); select Position + $factor as Position from #schema.first() where Position = 1";
-        var compiled = InstanceCreator.CompileForTypedExecution<PositionRow>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        const string query =
+            "param(factor: int); select Position + $factor as Position from #schema.first() where Position = 1";
+        var compiled = InstanceCreator.CompileForTypedExecution<PositionRow>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         compiled.TypedParameters.Set("factor", 10);
         var first = compiled.Run(TestContext.CancellationToken);
         compiled.TypedParameters.Set("factor", 20);
@@ -301,8 +398,12 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     public void TypedParameter_WhenItIsNotDeclared_ShouldReportUnknownParameter()
     {
         const string query = "select Position from #schema.first()";
-        var compiled = InstanceCreator.CompileForTypedExecution<PositionRow>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        var compiled = InstanceCreator.CompileForTypedExecution<PositionRow>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         compiled.TypedParameters.Set("typo", 10);
 
         var error = Assert.Throws<QueryExecutionException>(() => compiled.Run(TestContext.CancellationToken).ToArray());
@@ -314,14 +415,22 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     [TestMethod]
     public void TypedParameters_WhenEveryInputUsesNativeSlots_ShouldExposeNoLegacyDictionary()
     {
-        const string sql = "param(factor: int, bonus: decimal?); select Position + $factor as Position from #schema.first()";
-        using var compiled = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        const string sql =
+            "param(factor: int, bonus: decimal?); select Position + $factor as Position from #schema.first()";
+        using var compiled = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         compiled.TypedParameters.Set("factor", 10);
         compiled.TypedParameters.Set<decimal?>("bonus", 1m);
         using var table = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)));
-        CollectionAssert.AreEqual(new[] { 11, 12, 13, 14, 15 }, table.Select(row => row.GetValue<int>(0)).OrderBy(value => value).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { 11, 12, 13, 14, 15 },
+            table.Select(row => row.GetValue<int>(0)).OrderBy(value => value).ToArray()
+        );
         Assert.IsNull(typeof(CompiledQuery).GetProperty("Parameters"));
         Assert.IsNull(typeof(CompiledTypedQuery<PositionRow>).GetProperty("Parameters"));
     }
@@ -330,11 +439,14 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     public void TypedColumns_WhenSqlAliasesAreReservedWords_ShouldPreserveNamesAndConcreteValues()
     {
         const string query = "select Position as [case], Amount as [decimal] from #schema.first() order by Position";
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var visitor = new NumericVisitor();
-        foreach (var row in result) row.VisitColumns(ref visitor);
+        foreach (var row in result)
+            row.VisitColumns(ref visitor);
         var positions = result.Select(static row => row.GetValue<int>(0)).ToArray();
 
         TableMaterializationTestHelper.AssertColumns(result, ("case", typeof(int)), ("decimal", typeof(decimal?)));
@@ -352,8 +464,10 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     public void TypedColumns_WhenAliasMatchesATypeParameterOrRowMethod_ShouldPreserveTheSqlName(string alias)
     {
         var query = $"select Position as [{alias}] from #schema.first() order by Position";
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var positions = result.Select(static row => row.GetValue<int>(0)).ToArray();
 
@@ -364,11 +478,16 @@ public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTe
     [TestMethod]
     public void TypedStructuredParameter_WhenOmittedBesideASuppliedScalar_ShouldApplyItsDeclaredDefault()
     {
-        const string query = "param(offset: int, options: (Enabled: bool, Codes: int[], Window: (Before: int, After: int = 3)) = " +
-                             "(Enabled: true, Codes: array { 10 }, Window: (Before: 2))); " +
-                             "select Enabled, Before + $offset as Before, After from #inputs.configure(options: $options)";
-        var compiled = InstanceCreator.CompileForTypedExecution<(bool, int, int)>(query, Guid.NewGuid().ToString(),
-            new StructuredInputsSchemaProvider(), LoggerResolver);
+        const string query =
+            "param(offset: int, options: (Enabled: bool, Codes: int[], Window: (Before: int, After: int = 3)) = "
+            + "(Enabled: true, Codes: array { 10 }, Window: (Before: 2))); "
+            + "select Enabled, Before + $offset as Before, After from #inputs.configure(options: $options)";
+        var compiled = InstanceCreator.CompileForTypedExecution<(bool, int, int)>(
+            query,
+            Guid.NewGuid().ToString(),
+            new StructuredInputsSchemaProvider(),
+            LoggerResolver
+        );
         compiled.TypedParameters.Set("offset", 10);
         var rows = compiled.Run(TestContext.CancellationToken).ToArray();
 

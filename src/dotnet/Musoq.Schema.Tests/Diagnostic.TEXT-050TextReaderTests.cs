@@ -13,7 +13,13 @@ public sealed class DiagnosticText050TextReaderTests
         var interpreter = new TestTextInterpreter();
 
         var result = interpreter.TestReadBetween(
-            "[a~~]tail".AsSpan(), "[", "]", escaped: true, escapeCharacter: "~", fieldName: "Value");
+            "[a~~]tail".AsSpan(),
+            "[",
+            "]",
+            escaped: true,
+            escapeCharacter: "~",
+            fieldName: "Value"
+        );
 
         Assert.AreEqual("a~", result);
         Assert.AreEqual(5, interpreter.Position);
@@ -24,8 +30,13 @@ public sealed class DiagnosticText050TextReaderTests
     {
         var interpreter = new TestTextInterpreter();
 
-        var result = interpreter.TestReadBetween(@"<<a\>>>tail>>".AsSpan(), "<<", ">>", escaped: true,
-            fieldName: "Value");
+        var result = interpreter.TestReadBetween(
+            @"<<a\>>>tail>>".AsSpan(),
+            "<<",
+            ">>",
+            escaped: true,
+            fieldName: "Value"
+        );
 
         Assert.AreEqual(@"a\>", result);
         Assert.AreEqual("tail>>", interpreter.TestReadRest(@"<<a\>>>tail>>".AsSpan()));
@@ -36,8 +47,13 @@ public sealed class DiagnosticText050TextReaderTests
     {
         var interpreter = new TestTextInterpreter();
 
-        var result = interpreter.TestReadBetween("<<a<<b>>c>>tail".AsSpan(), "<<", ">>", nested: true,
-            fieldName: "Value");
+        var result = interpreter.TestReadBetween(
+            "<<a<<b>>c>>tail".AsSpan(),
+            "<<",
+            ">>",
+            nested: true,
+            fieldName: "Value"
+        );
 
         Assert.AreEqual("a<<b>>c", result);
         Assert.AreEqual("tail", interpreter.TestReadRest("<<a<<b>>c>>tail".AsSpan()));
@@ -48,8 +64,13 @@ public sealed class DiagnosticText050TextReaderTests
     {
         var interpreter = new TestTextInterpreter();
 
-        var result = interpreter.TestReadBetween("\"value\"tail".AsSpan(), "\"", "\"", nested: true,
-            fieldName: "Value");
+        var result = interpreter.TestReadBetween(
+            "\"value\"tail".AsSpan(),
+            "\"",
+            "\"",
+            nested: true,
+            fieldName: "Value"
+        );
 
         Assert.AreEqual("value", result);
         Assert.AreEqual(7, interpreter.Position);
@@ -61,7 +82,8 @@ public sealed class DiagnosticText050TextReaderTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestReadBetween("[[value]".AsSpan(), "[", "]", nested: true, fieldName: "Value"));
+            interpreter.TestReadBetween("[[value]".AsSpan(), "[", "]", nested: true, fieldName: "Value")
+        );
 
         Assert.AreEqual(ParseErrorCode.DelimiterNotFound, exception.ErrorCode);
         Assert.AreEqual("Text050", exception.SchemaName);
@@ -75,7 +97,8 @@ public sealed class DiagnosticText050TextReaderTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestReadUntil("value".AsSpan(), string.Empty, fieldName: "Value"));
+            interpreter.TestReadUntil("value".AsSpan(), string.Empty, fieldName: "Value")
+        );
 
         Assert.AreEqual(ParseErrorCode.GeneralError, exception.ErrorCode);
         Assert.AreEqual("Text050", exception.SchemaName);
@@ -133,7 +156,8 @@ public sealed class DiagnosticText050TextReaderTests
         interpreter.SetPosition(2);
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestReadPattern("xxabc".AsSpan(), @"(?=a)abc", fieldName: "Value"));
+            interpreter.TestReadPattern("xxabc".AsSpan(), @"(?=a)abc", fieldName: "Value")
+        );
 
         Assert.AreEqual(ParseErrorCode.GeneralError, exception.ErrorCode);
         Assert.AreEqual("Text050", exception.SchemaName);
@@ -148,7 +172,8 @@ public sealed class DiagnosticText050TextReaderTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestReadPattern("value".AsSpan(), "[", fieldName: "Value"));
+            interpreter.TestReadPattern("value".AsSpan(), "[", fieldName: "Value")
+        );
 
         Assert.AreEqual(ParseErrorCode.GeneralError, exception.ErrorCode);
         Assert.AreEqual("Value", exception.FieldName);
@@ -163,7 +188,8 @@ public sealed class DiagnosticText050TextReaderTests
         interpreter.SetPosition(2);
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestReadUntil("xxvalue".AsSpan(), ":", fieldName: "Value"));
+            interpreter.TestReadUntil("xxvalue".AsSpan(), ":", fieldName: "Value")
+        );
 
         Assert.AreEqual(ParseErrorCode.DelimiterNotFound, exception.ErrorCode);
         Assert.AreEqual("Text050", exception.SchemaName);
@@ -177,7 +203,8 @@ public sealed class DiagnosticText050TextReaderTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestReadBetween("value".AsSpan(), string.Empty, "]", fieldName: "Value"));
+            interpreter.TestReadBetween("value".AsSpan(), string.Empty, "]", fieldName: "Value")
+        );
 
         Assert.AreEqual(ParseErrorCode.GeneralError, exception.ErrorCode);
         Assert.AreEqual("Text050", exception.SchemaName);
@@ -193,7 +220,8 @@ public sealed class DiagnosticText050TextReaderTests
         interpreter.SetPosition(2);
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestReadBetween("xx[value".AsSpan(), "[", "]", fieldName: "Value"));
+            interpreter.TestReadBetween("xx[value".AsSpan(), "[", "]", fieldName: "Value")
+        );
 
         Assert.AreEqual(ParseErrorCode.DelimiterNotFound, exception.ErrorCode);
         Assert.AreEqual("Text050", exception.SchemaName);
@@ -208,7 +236,8 @@ public sealed class DiagnosticText050TextReaderTests
         interpreter.SetPosition(2);
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestSkipWhitespace("xxvalue".AsSpan(), required: true, fieldName: "Gap"));
+            interpreter.TestSkipWhitespace("xxvalue".AsSpan(), required: true, fieldName: "Gap")
+        );
 
         Assert.AreEqual(ParseErrorCode.ExpectedWhitespace, exception.ErrorCode);
         Assert.AreEqual("Text050", exception.SchemaName);
@@ -222,12 +251,14 @@ public sealed class DiagnosticText050TextReaderTests
         var negative = new TestTextInterpreter();
         negative.SetPosition(-1);
         var negativeException = Assert.ThrowsExactly<ParseException>(() =>
-            negative.TestReadRest("value".AsSpan(), fieldName: "Value"));
+            negative.TestReadRest("value".AsSpan(), fieldName: "Value")
+        );
 
         var pastEnd = new TestTextInterpreter();
         pastEnd.SetPosition(6);
         var pastEndException = Assert.ThrowsExactly<ParseException>(() =>
-            pastEnd.TestReadToken("value".AsSpan(), fieldName: "Value"));
+            pastEnd.TestReadToken("value".AsSpan(), fieldName: "Value")
+        );
 
         Assert.AreEqual(ParseErrorCode.InvalidPosition, negativeException.ErrorCode);
         Assert.AreEqual(-1, negativeException.Position);
@@ -247,14 +278,27 @@ public sealed class DiagnosticText050TextReaderTests
             return ReadRest(text);
         }
 
-        public string TestReadBetween(ReadOnlySpan<char> text, string open, string close, bool nested = false,
-            bool trim = false, bool escaped = false, string? escapeCharacter = null, string? fieldName = null)
+        public string TestReadBetween(
+            ReadOnlySpan<char> text,
+            string open,
+            string close,
+            bool nested = false,
+            bool trim = false,
+            bool escaped = false,
+            string? escapeCharacter = null,
+            string? fieldName = null
+        )
         {
             return ReadBetween(text, open, close, nested, trim, escaped, escapeCharacter, fieldName);
         }
 
-        public string TestReadPattern(ReadOnlySpan<char> text, string pattern, string? fieldName = null,
-            bool greedy = false, bool lazy = false)
+        public string TestReadPattern(
+            ReadOnlySpan<char> text,
+            string pattern,
+            string? fieldName = null,
+            bool greedy = false,
+            bool lazy = false
+        )
         {
             return ReadPattern(text, pattern, fieldName: fieldName, greedy: greedy, lazy: lazy);
         }

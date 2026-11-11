@@ -1,10 +1,9 @@
-using Microsoft.CodeAnalysis;
-using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Execution;
@@ -15,6 +14,7 @@ using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Physical.SourcePlanning;
 using Musoq.Evaluator.IR.Planning;
+using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Parser.Nodes;
 using PlanProperties = Musoq.Evaluator.IR.Planning.PlanProperties;
 
@@ -29,10 +29,9 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
     [TestMethod]
     public void PhysicalOptimizationSession_WhenShapeResolverIsMissing_ShouldThrow()
     {
-        Assert.ThrowsExactly<ArgumentNullException>(() => new PhysicalOptimizationSession(
-            CreateEmptyProperties(),
-            new CompilationOptions(),
-            shapeResolver: null!));
+        Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new PhysicalOptimizationSession(CreateEmptyProperties(), new CompilationOptions(), shapeResolver: null!)
+        );
     }
 
     [TestMethod]
@@ -44,9 +43,9 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
             .Where(static method =>
             {
                 var parameters = method.GetParameters();
-                return parameters.Length == 2 &&
-                       typeof(PhysicalNode).IsAssignableFrom(parameters[0].ParameterType) &&
-                       parameters[1].ParameterType == typeof(PlanProperties);
+                return parameters.Length == 2
+                    && typeof(PhysicalNode).IsAssignableFrom(parameters[0].ParameterType)
+                    && parameters[1].ParameterType == typeof(PlanProperties);
             })
             .ToArray();
 
@@ -64,22 +63,23 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             left,
-            right);
+            right
+        );
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["a"] = typeof(object),
-                ["b"] = typeof(ExpandoObject)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["a"] = typeof(object), ["b"] = typeof(ExpandoObject) }
+        );
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => new PhysicalOptimizer().Optimize(
-            candidate,
-            CreateEmptyProperties(),
-            new CompilationOptions(),
-            new ExecutionPlanningShapeResolverAdapter(shapeResolver)));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            new PhysicalOptimizer().Optimize(
+                candidate,
+                CreateEmptyProperties(),
+                new CompilationOptions(),
+                new ExecutionPlanningShapeResolverAdapter(shapeResolver)
+            )
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }
@@ -88,17 +88,15 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
     public void PhysicalOptimizationFacts_WhenApplied_ShouldUpdateOnlyPhysicalFactFields()
     {
         var properties = CreateEmptyProperties();
-        var sourcePlanRequest = SourcePlanRequest.Empty(new SourceIdentity("#sp", "items", SourceContextId, SourceAlias));
+        var sourcePlanRequest = SourcePlanRequest.Empty(
+            new SourceIdentity("#sp", "items", SourceContextId, SourceAlias)
+        );
         var sourcePlanResults = new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal)
         {
-            [SourceContextId] = SourcePlanResult.RejectAll(sourcePlanRequest)
+            [SourceContextId] = SourcePlanResult.RejectAll(sourcePlanRequest),
         };
-        var sourceRewriteFacts = SourceRewriteFacts.From(properties)
-            .WithSourcePlanResults(sourcePlanResults);
-        var facts = PhysicalOptimizationFacts.From(properties) with
-        {
-            SourceRewrite = sourceRewriteFacts
-        };
+        var sourceRewriteFacts = SourceRewriteFacts.From(properties).WithSourcePlanResults(sourcePlanResults);
+        var facts = PhysicalOptimizationFacts.From(properties) with { SourceRewrite = sourceRewriteFacts };
 
         var applied = facts.ApplyTo(properties);
 
@@ -116,10 +114,16 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
 
         Assert.AreSame(properties.SourcesById, properties.SourcePlanning.SourcesById);
         Assert.AreSame(properties.SourcePlanResultsBySourceId, properties.SourcePlanning.SourcePlanResultsBySourceId);
-        Assert.AreSame(properties.SourceContractDiagnosticLocationsBySourceId, properties.SourcePlanning.SourceContractDiagnosticLocationsBySourceId);
+        Assert.AreSame(
+            properties.SourceContractDiagnosticLocationsBySourceId,
+            properties.SourcePlanning.SourceContractDiagnosticLocationsBySourceId
+        );
         Assert.AreSame(properties.RequiredColumnBoundaryPlans, properties.RequiredColumns.RequiredColumnBoundaryPlans);
         Assert.AreSame(properties.PredicateMovementPlans, properties.PhysicalStrategies.PredicateMovementPlans);
-        Assert.AreSame(properties.ApplyPredicateMovementPlans, properties.PhysicalStrategies.ApplyPredicateMovementPlans);
+        Assert.AreSame(
+            properties.ApplyPredicateMovementPlans,
+            properties.PhysicalStrategies.ApplyPredicateMovementPlans
+        );
         Assert.AreSame(properties.BoundaryRowShapePlans, properties.BoundaryPruning.BoundaryRowShapePlans);
         Assert.AreSame(properties.CardinalityFacts, properties.Cardinality.Facts);
     }
@@ -133,13 +137,19 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
         var roundTrip = facts.ToPlanProperties();
 
         Assert.AreSame(properties.SourcesById, facts.SourcePlanning.SourcesById);
-        Assert.AreSame(properties.SourceContractDiagnosticLocationsBySourceId, facts.SourcePlanning.SourceContractDiagnosticLocationsBySourceId);
+        Assert.AreSame(
+            properties.SourceContractDiagnosticLocationsBySourceId,
+            facts.SourcePlanning.SourceContractDiagnosticLocationsBySourceId
+        );
         Assert.AreSame(properties.RequiredColumnUsagesBySourceId, facts.RequiredColumns.RequiredColumnUsagesBySourceId);
         Assert.AreSame(properties.PredicatePlacementPlans, facts.PhysicalStrategies.PredicatePlacementPlans);
         Assert.AreSame(properties.RowWidthPruningPlans, facts.BoundaryPruning.RowWidthPruningPlans);
         Assert.AreSame(properties.CardinalityFacts, facts.Cardinality.Facts);
         Assert.AreSame(facts.SourcePlanning.SourcesById, roundTrip.SourcesById);
-        Assert.AreSame(facts.SourcePlanning.SourceContractDiagnosticLocationsBySourceId, roundTrip.SourceContractDiagnosticLocationsBySourceId);
+        Assert.AreSame(
+            facts.SourcePlanning.SourceContractDiagnosticLocationsBySourceId,
+            roundTrip.SourceContractDiagnosticLocationsBySourceId
+        );
         Assert.AreSame(facts.RequiredColumns.RequiredColumnBoundaryPlans, roundTrip.RequiredColumnBoundaryPlans);
         Assert.AreSame(facts.PhysicalStrategies.PredicateMovementPlans, roundTrip.PredicateMovementPlans);
         Assert.AreSame(facts.PhysicalStrategies.ApplyPredicateMovementPlans, roundTrip.ApplyPredicateMovementPlans);
@@ -150,12 +160,34 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
     [TestMethod]
     public void PlanningHandoffRecords_ShouldCarryPlanningFactsAsPrimaryData()
     {
-        Assert.AreEqual(typeof(PlanningFacts), typeof(PlanningPropertyResult).GetProperty(nameof(PlanningPropertyResult.Facts))!.PropertyType);
-        Assert.AreEqual(typeof(PlanProperties), typeof(PlanningPropertyResult).GetProperty(nameof(PlanningPropertyResult.Properties))!.PropertyType);
-        Assert.AreEqual(typeof(PlanningFacts), typeof(PhysicalPlanningArtifacts).GetProperty(nameof(PhysicalPlanningArtifacts.OptimizedFacts))!.PropertyType);
-        Assert.AreEqual(typeof(PlanProperties), typeof(PhysicalPlanningArtifacts).GetProperty(nameof(PhysicalPlanningArtifacts.OptimizedProperties))!.PropertyType);
-        Assert.AreEqual(typeof(PlanningFacts), typeof(PlanningResult).GetProperty(nameof(PlanningResult.Facts))!.PropertyType);
-        Assert.AreEqual(typeof(PlanProperties), typeof(PlanningResult).GetProperty(nameof(PlanningResult.Properties))!.PropertyType);
+        Assert.AreEqual(
+            typeof(PlanningFacts),
+            typeof(PlanningPropertyResult).GetProperty(nameof(PlanningPropertyResult.Facts))!.PropertyType
+        );
+        Assert.AreEqual(
+            typeof(PlanProperties),
+            typeof(PlanningPropertyResult).GetProperty(nameof(PlanningPropertyResult.Properties))!.PropertyType
+        );
+        Assert.AreEqual(
+            typeof(PlanningFacts),
+            typeof(PhysicalPlanningArtifacts)
+                .GetProperty(nameof(PhysicalPlanningArtifacts.OptimizedFacts))!
+                .PropertyType
+        );
+        Assert.AreEqual(
+            typeof(PlanProperties),
+            typeof(PhysicalPlanningArtifacts)
+                .GetProperty(nameof(PhysicalPlanningArtifacts.OptimizedProperties))!
+                .PropertyType
+        );
+        Assert.AreEqual(
+            typeof(PlanningFacts),
+            typeof(PlanningResult).GetProperty(nameof(PlanningResult.Facts))!.PropertyType
+        );
+        Assert.AreEqual(
+            typeof(PlanProperties),
+            typeof(PlanningResult).GetProperty(nameof(PlanningResult.Properties))!.PropertyType
+        );
 
         Assert.IsFalse(HasConstructorParameter<PlanningPropertyResult, PlanProperties>());
         Assert.IsFalse(HasConstructorParameter<PhysicalPlanningArtifacts, PlanProperties>());
@@ -173,22 +205,23 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
                 BinaryOpKind.GreaterOrEqual,
                 new ColumnRef("a", "Age", typeof(int)),
                 new ColumnRef("b", "Age", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             left,
-            right);
+            right
+        );
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["a"] = typeof(object),
-                ["b"] = typeof(ExpandoObject)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["a"] = typeof(object), ["b"] = typeof(ExpandoObject) }
+        );
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => new PhysicalOptimizer().Optimize(
-            candidate,
-            CreateEmptyProperties(),
-            new CompilationOptions(),
-            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver)));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            new PhysicalOptimizer().Optimize(
+                candidate,
+                CreateEmptyProperties(),
+                new CompilationOptions(),
+                shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver)
+            )
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }
@@ -196,26 +229,18 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
     [TestMethod]
     public void SourcePlanPhysicalRewriter_WhenSourceAcceptsSortSkipTake_ShouldRemoveOperationsAndAlignResultFacts()
     {
-        var orderField = new OrderField(
-            new ColumnRef(SourceAlias, "Category", typeof(string)),
-            Descending: true);
+        var orderField = new OrderField(new ColumnRef(SourceAlias, "Category", typeof(string)), Descending: true);
         var scan = CreateSchemaScan(SourceAlias, ("Category", typeof(string))) with
         {
-            SourceContextId = SourceContextId
+            SourceContextId = SourceContextId,
         };
-        var physicalPlan = new PhysicalTakeNode(
-            5,
-            new PhysicalSkipNode(
-                2,
-                new PhysicalSortNode([orderField], scan)));
-        var orderBy = new[]
-        {
-            new OrderByExpression(new SourceColumnRef("Category"), OrderDirection.Descending)
-        };
+        var physicalPlan = new PhysicalTakeNode(5, new PhysicalSkipNode(2, new PhysicalSortNode([orderField], scan)));
+        var orderBy = new[] { new OrderByExpression(new SourceColumnRef("Category"), OrderDirection.Descending) };
 
         var rewritten = SourcePlanPhysicalRewriter.Rewrite(
             physicalPlan,
-            CreateSourcePlanResults(orderBy, acceptedSkip: 2, acceptedTake: 5));
+            CreateSourcePlanResults(orderBy, acceptedSkip: 2, acceptedTake: 5)
+        );
 
         Assert.IsInstanceOfType<PhysicalSchemaScanNode>(rewritten.PhysicalPlan);
         var sourcePlan = rewritten.SourcePlanResultsBySourceId[SourceContextId];
@@ -237,21 +262,22 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
         var predicate = CreatePredicate(SourceAlias);
         var scan = CreateSchemaScan(SourceAlias, ("Category", typeof(string))) with
         {
-            SourceContextId = SourceContextId
+            SourceContextId = SourceContextId,
         };
         var filter = new PhysicalFilterNode(predicate, scan);
         var acceptedPredicate = CreateSourcePredicate();
         var properties = CreateEmptyProperties() with
         {
             SourcePlanResultsBySourceId = CreateSourcePlanResults(acceptedPredicate),
-            SourcePredicatePlansBySourceId = CreateSourcePredicatePlans(predicate)
+            SourcePredicatePlansBySourceId = CreateSourcePredicatePlans(predicate),
         };
 
         var result = new PhysicalOptimizer().Optimize(
             filter,
             properties,
             new CompilationOptions(),
-            ConservativeTestPlanningShapeResolver.Instance);
+            ConservativeTestPlanningShapeResolver.Instance
+        );
 
         Assert.IsInstanceOfType<PhysicalSchemaScanNode>(result.OptimizedPlan);
         var sourcePlan = result.OptimizedProperties.SourcePlanResultsBySourceId[SourceContextId];
@@ -259,19 +285,29 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
         Assert.AreEqual(acceptedPredicate, sourcePlan.ExecutionPlan.AcceptedPredicate);
         Assert.AreSame(
             properties.SourcePredicatePlansBySourceId,
-            result.OptimizedProperties.SourcePredicatePlansBySourceId);
+            result.OptimizedProperties.SourcePredicatePlansBySourceId
+        );
     }
 
     [TestMethod]
     public void ExecutionStrategyPlan_WhenEquivalentProjectWasNotPlanned_ShouldNotReturnStrategy()
     {
-        var project = CreateMethodProject(CreateSchemaScan("p", ("Name", typeof(string)), ("Age", typeof(int))) with { SourceContextId = "p" });
+        var project = CreateMethodProject(
+            CreateSchemaScan("p", ("Name", typeof(string)), ("Age", typeof(int))) with
+            {
+                SourceContextId = "p",
+            }
+        );
         var result = ExecutionStrategyPlanner.Plan(
             project,
             new CompilationOptions(),
             null,
-            CreatePlanningShapeResolver(typeof(Person)), AuthorizedSourcePlanningFixture.Describe(project));
-        var equivalentUnplannedProject = CreateMethodProject(CreateSchemaScan("p", ("Name", typeof(string)), ("Age", typeof(int))));
+            CreatePlanningShapeResolver(typeof(Person)),
+            AuthorizedSourcePlanningFixture.Describe(project)
+        );
+        var equivalentUnplannedProject = CreateMethodProject(
+            CreateSchemaScan("p", ("Name", typeof(string)), ("Age", typeof(int)))
+        );
 
         Assert.IsTrue(result.Strategies.CanUseParallelFilterProject(project));
         Assert.IsTrue(result.Strategies.TryResolvePhysicalNodeId(project, out _));
@@ -282,8 +318,10 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
     [TestMethod]
     public void ParallelPlanningEligibilityRules_WhenMethodCallIsNestedInCompositeExpression_ShouldFindIt()
     {
-        var method = typeof(PhysicalPlanningArchitectureCharacterizationTests)
-            .GetMethod(nameof(StableMethod), BindingFlags.Public | BindingFlags.Static)!;
+        var method = typeof(PhysicalPlanningArchitectureCharacterizationTests).GetMethod(
+            nameof(StableMethod),
+            BindingFlags.Public | BindingFlags.Static
+        )!;
         var expression = new StrictCast(
             new CaseWhen(
                 [
@@ -292,18 +330,23 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
                         new Coalesce(
                             [
                                 new Literal(null, typeof(string)),
-                                new MethodCall(method, [new Literal("alpha", typeof(string))], null, typeof(string))
+                                new MethodCall(method, [new Literal("alpha", typeof(string))], null, typeof(string)),
                             ],
-                            typeof(string)))
+                            typeof(string)
+                        )
+                    ),
                 ],
                 new Literal("fallback", typeof(string)),
-                typeof(string)),
+                typeof(string)
+            ),
             "string",
-            typeof(string));
+            typeof(string)
+        );
 
         var eligibility = ParallelPlanningEligibilityRules.CanUseFilterProjectExpression(
             expression,
-            new PlanningRowShape("people", "p", PlanningRowShapeKind.SourceEntity, typeof(Person), []));
+            new PlanningRowShape("people", "p", PlanningRowShapeKind.SourceEntity, typeof(Person), [])
+        );
 
         Assert.IsTrue(ParallelPlanningEligibilityRules.ContainsMethodCall(expression));
         Assert.IsTrue(eligibility.IsEligible, eligibility.Reason);
@@ -317,7 +360,9 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
         Assert.AreEqual("Musoq.Evaluator.IR.Planning", pipelineType.Namespace);
     }
 
-    [Musoq.Plugins.Attributes.BindableMethod(ExecutionPermissions = Musoq.Plugins.FunctionExecutionPermissions.ConcurrentInvocations)]
+    [Musoq.Plugins.Attributes.BindableMethod(
+        ExecutionPermissions = Musoq.Plugins.FunctionExecutionPermissions.ConcurrentInvocations
+    )]
     public static string StableMethod(string value)
     {
         return value;
@@ -330,35 +375,39 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
                 BinaryOpKind.GreaterThan,
                 new ColumnRef("p", "Age", typeof(int)),
                 new Literal(18, typeof(int)),
-                typeof(bool)),
-            input);
-        var method = typeof(PhysicalPlanningArchitectureCharacterizationTests)
-            .GetMethod(nameof(StableMethod), BindingFlags.Public | BindingFlags.Static)!;
+                typeof(bool)
+            ),
+            input
+        );
+        var method = typeof(PhysicalPlanningArchitectureCharacterizationTests).GetMethod(
+            nameof(StableMethod),
+            BindingFlags.Public | BindingFlags.Static
+        )!;
 
         return new PhysicalProjectNode(
             [
                 new ProjectedField(
                     "Name",
                     new MethodCall(method, [new ColumnRef("p", "Name", typeof(string))], null, typeof(string)),
-                    0)
+                    0
+                ),
             ],
-            filter);
+            filter
+        );
     }
 
     private static IPlanningShapeResolver CreatePlanningShapeResolver(Type entityType)
     {
         return new ExecutionPlanningShapeResolverAdapter(
-            new ExecutionShapeResolver(
-                entityTypesByAlias: new Dictionary<string, Type>
-                {
-                    ["p"] = entityType
-                }));
+            new ExecutionShapeResolver(entityTypesByAlias: new Dictionary<string, Type> { ["p"] = entityType })
+        );
     }
 
     private static Dictionary<string, SourcePlanResult> CreateSourcePlanResults(
         IReadOnlyList<OrderByExpression> acceptedOrderBy,
         long acceptedSkip,
-        long acceptedTake)
+        long acceptedTake
+    )
     {
         var identity = new SourceIdentity("#sp", "items", SourceContextId, SourceAlias);
         return new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal)
@@ -368,30 +417,27 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
                 ExecutionPlan = SourceExecutionPlan.Empty(identity),
                 AcceptedOrderBy = acceptedOrderBy,
                 AcceptedSkip = acceptedSkip,
-                AcceptedTake = acceptedTake
-            }
+                AcceptedTake = acceptedTake,
+            },
         };
     }
 
     private static Dictionary<string, SourcePlanResult> CreateSourcePlanResults(
-        SourcePredicateExpression acceptedPredicate)
+        SourcePredicateExpression acceptedPredicate
+    )
     {
         var identity = new SourceIdentity("#sp", "items", SourceContextId, SourceAlias);
         return new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal)
         {
             [SourceContextId] = new()
             {
-                ExecutionPlan = SourceExecutionPlan.Empty(identity) with
-                {
-                    AcceptedPredicate = acceptedPredicate
-                },
-                AcceptedPredicate = acceptedPredicate
-            }
+                ExecutionPlan = SourceExecutionPlan.Empty(identity) with { AcceptedPredicate = acceptedPredicate },
+                AcceptedPredicate = acceptedPredicate,
+            },
         };
     }
 
-    private static Dictionary<string, SourcePredicatePlan> CreateSourcePredicatePlans(
-        IrExpression pushedPredicate)
+    private static Dictionary<string, SourcePredicatePlan> CreateSourcePredicatePlans(IrExpression pushedPredicate)
     {
         return new Dictionary<string, SourcePredicatePlan>(StringComparer.Ordinal)
         {
@@ -401,7 +447,8 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
                 new WhereNode(new BooleanNode(true)),
                 [pushedPredicate],
                 "test",
-                PlanningConfidence.High)
+                PlanningConfidence.High
+            ),
         };
     }
 
@@ -411,7 +458,8 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
             BinaryOpKind.Equal,
             new ColumnRef(alias, "Category", typeof(string)),
             new Literal("alpha", typeof(string)),
-            typeof(bool));
+            typeof(bool)
+        );
     }
 
     private static SourcePredicateComparison CreateSourcePredicate()
@@ -419,35 +467,35 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
         return new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             new SourcePredicateColumn(new SourceColumnRef("Category")),
-            new SourcePredicateLiteral("alpha"));
+            new SourcePredicateLiteral("alpha")
+        );
     }
 
-    private static PhysicalSchemaScanNode CreateSchemaScan(
-        string alias,
-        params (string Name, Type Type)[] columns)
+    private static PhysicalSchemaScanNode CreateSchemaScan(string alias, params (string Name, Type Type)[] columns)
     {
         var schemaColumns = new ColumnSchema[columns.Length];
 
         for (var i = 0; i < columns.Length; i++)
             schemaColumns[i] = new ColumnSchema(columns[i].Name, columns[i].Type, i);
 
-        return new PhysicalSchemaScanNode(
-            "test",
-            "items",
-            [],
-            alias,
-            [],
-            [],
-            new OutputSchema(schemaColumns));
+        return new PhysicalSchemaScanNode("test", "items", [], alias, [], [], new OutputSchema(schemaColumns));
     }
 
     private static bool HasConstructorParameter<TDeclaring, TParameter>()
     {
-        return CompilerContractSymbols.For(typeof(TDeclaring))
+        return CompilerContractSymbols
+            .For(typeof(TDeclaring))
             .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-            .Any(static constructor => constructor
-                .GetParameters()
-                .Any(static parameter => SymbolEqualityComparer.Default.Equals(parameter.ParameterType, CompilerContractSymbols.For(typeof(TParameter)))));
+            .Any(static constructor =>
+                constructor
+                    .GetParameters()
+                    .Any(static parameter =>
+                        SymbolEqualityComparer.Default.Equals(
+                            parameter.ParameterType,
+                            CompilerContractSymbols.For(typeof(TParameter))
+                        )
+                    )
+            );
     }
 
     private static PlanProperties CreateEmptyProperties()

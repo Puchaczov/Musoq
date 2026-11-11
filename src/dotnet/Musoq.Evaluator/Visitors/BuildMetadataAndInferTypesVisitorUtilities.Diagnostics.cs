@@ -22,15 +22,21 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         return new DynamicTable([]);
     }
 
-    internal static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] columns,
-        TextSpan span = default)
+    internal static void PrepareAndThrowUnknownColumnExceptionMessage(
+        string identifier,
+        ISchemaColumn[] columns,
+        TextSpan span = default
+    )
     {
         var library = new TransitionLibrary();
         var candidates = new StringBuilder();
 
-        var candidatesColumns = columns.Where(col =>
-            library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
-            library.LevenshteinDistance(col.ColumnName, identifier) < 3).ToArray();
+        var candidatesColumns = columns
+            .Where(col =>
+                library.Soundex(col.ColumnName) == library.Soundex(identifier)
+                || library.LevenshteinDistance(col.ColumnName, identifier) < 3
+            )
+            .ToArray();
 
         for (var i = 0; i < candidatesColumns.Length - 1; i++)
         {
@@ -47,21 +53,28 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
                 identifier,
                 $"Did you mean to use [{candidates}]?",
                 span,
-                candidatesColumns.Select(static column => column.ColumnName));
+                candidatesColumns.Select(static column => column.ColumnName)
+            );
         }
 
         throw new UnknownColumnOrAliasException(identifier, string.Empty, span);
     }
 
-    internal static void PrepareAndThrowUnknownPropertyExceptionMessage(string identifier, PropertyInfo[] properties,
-        TextSpan span = default)
+    internal static void PrepareAndThrowUnknownPropertyExceptionMessage(
+        string identifier,
+        PropertyInfo[] properties,
+        TextSpan span = default
+    )
     {
         var library = new TransitionLibrary();
         var candidates = new StringBuilder();
 
-        var candidatesProperties = properties.Where(prop =>
-            library.Soundex(prop.Name) == library.Soundex(identifier) ||
-            library.LevenshteinDistance(prop.Name, identifier) < 3).ToArray();
+        var candidatesProperties = properties
+            .Where(prop =>
+                library.Soundex(prop.Name) == library.Soundex(identifier)
+                || library.LevenshteinDistance(prop.Name, identifier) < 3
+            )
+            .ToArray();
 
         for (var i = 0; i < candidatesProperties.Length - 1; i++)
         {
@@ -78,7 +91,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
                 identifier,
                 $"Did you mean to use [{candidates}]?",
                 span,
-                candidatesProperties.Select(static property => property.Name));
+                candidatesProperties.Select(static property => property.Name)
+            );
         }
 
         throw new UnknownPropertyException(identifier, "unknown", span);
@@ -86,13 +100,13 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
 
     internal static bool IsInterpretFunction(string functionName)
     {
-        return functionName.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("Parse", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("TryParse", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("PartialParse", StringComparison.OrdinalIgnoreCase);
+        return functionName.Equals("Interpret", StringComparison.OrdinalIgnoreCase)
+            || functionName.Equals("Parse", StringComparison.OrdinalIgnoreCase)
+            || functionName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase)
+            || functionName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase)
+            || functionName.Equals("TryParse", StringComparison.OrdinalIgnoreCase)
+            || functionName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase)
+            || functionName.Equals("PartialParse", StringComparison.OrdinalIgnoreCase);
     }
 
     internal static void ThrowIfOldInterpretSyntax(string functionName, ArgsListNode args)
@@ -105,7 +119,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         {
             StringNode sn => sn.Value,
             WordNode wn => wn.Value,
-            _ => null
+            _ => null,
         };
 
         if (schemaName == null)
@@ -113,18 +127,19 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
 
         throw new QuerySyntaxException(
             $"The syntax '{functionName}(data, ''{schemaName}'')' is no longer supported. Use '{functionName}<{schemaName}>(data)' instead.",
-            args.Span);
+            args.Span
+        );
     }
 
     internal static bool IsInterpretOrParseFunction(string methodName)
     {
-        return methodName.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("Parse", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("TryParse", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("PartialParse", StringComparison.OrdinalIgnoreCase);
+        return methodName.Equals("Interpret", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("Parse", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("TryParse", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("PartialParse", StringComparison.OrdinalIgnoreCase);
     }
 
     internal static bool AreSameMethod(MethodInfo left, MethodInfo right)
@@ -148,7 +163,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
 
         if (args.Args.Length <= schemaArgIndex)
             throw new InvalidOperationException(
-                $"Interpret function '{functionName ?? "unknown"}' requires at least {schemaArgIndex + 1} arguments, got {args.Args.Length}.");
+                $"Interpret function '{functionName ?? "unknown"}' requires at least {schemaArgIndex + 1} arguments, got {args.Args.Length}."
+            );
 
         var schemaArg = args.Args[schemaArgIndex];
 
@@ -160,18 +176,23 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
 
         if (schemaArg is IdentifierNode identifierNode)
             throw new InvalidOperationException(
-                $"Schema name '{identifierNode.Name}' must be quoted. Use '{functionName ?? "Parse"}(source, \'{identifierNode.Name}\')' instead of '{functionName ?? "Parse"}(source, {identifierNode.Name})'.");
+                $"Schema name '{identifierNode.Name}' must be quoted. Use '{functionName ?? "Parse"}(source, \'{identifierNode.Name}\')' instead of '{functionName ?? "Parse"}(source, {identifierNode.Name})'."
+            );
 
         throw new InvalidOperationException(
-            $"Expected schema name as a quoted string at argument index {schemaArgIndex}, got {schemaArg?.GetType().Name ?? "null"}.");
+            $"Expected schema name as a quoted string at argument index {schemaArgIndex}, got {schemaArg?.GetType().Name ?? "null"}."
+        );
     }
 
-    private static readonly FrozenDictionary<string, string> DialectColumnHints =
-        new[] { "TOP", "FIRST", "LIMIT" }.ToDictionary(
+    private static readonly FrozenDictionary<string, string> DialectColumnHints = new[] { "TOP", "FIRST", "LIMIT" }
+        .ToDictionary(
             keyword => keyword,
-            keyword => $"Musoq does not support {keyword}. Use TAKE after the FROM clause instead. " +
-                       "Example: SELECT Name FROM #schema.method() alias TAKE 5",
-            StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+            keyword =>
+                $"Musoq does not support {keyword}. Use TAKE after the FROM clause instead. "
+                + "Example: SELECT Name FROM #schema.method() alias TAKE 5",
+            StringComparer.OrdinalIgnoreCase
+        )
+        .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
     internal static string? GetDialectColumnHint(string identifier)
     {

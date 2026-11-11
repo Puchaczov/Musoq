@@ -77,7 +77,10 @@ public class ParserPredicateQuantifierTests
     {
         var exception = Assert.Throws<SyntaxException>(() => ParseWhereExpression("any(*) like '%error%'"));
 
-        StringAssert.Contains(exception.Message, "ANY does not support star arguments; list columns or expressions explicitly.");
+        StringAssert.Contains(
+            exception.Message,
+            "ANY does not support star arguments; list columns or expressions explicitly."
+        );
     }
 
     [TestMethod]
@@ -85,7 +88,10 @@ public class ParserPredicateQuantifierTests
     {
         var exception = Assert.Throws<SyntaxException>(() => ParseWhereExpression("all(source.*) rlike 'error.*'"));
 
-        StringAssert.Contains(exception.Message, "ALL does not support star arguments; list columns or expressions explicitly.");
+        StringAssert.Contains(
+            exception.Message,
+            "ALL does not support star arguments; list columns or expressions explicitly."
+        );
     }
 
     [TestMethod]
@@ -134,8 +140,8 @@ public class ParserPredicateQuantifierTests
 
         var statements = (StatementsArrayNode)result.Expression;
         var singleSet = (SingleSetNode)statements.Statements[0].Node;
-        return singleSet.Query.Where?.Expression ??
-               throw new InvalidOperationException("Expected the parsed query to contain a WHERE clause.");
+        return singleSet.Query.Where?.Expression
+            ?? throw new InvalidOperationException("Expected the parsed query to contain a WHERE clause.");
     }
 
     private static Node ParseSingleSelectExpression(string expression)

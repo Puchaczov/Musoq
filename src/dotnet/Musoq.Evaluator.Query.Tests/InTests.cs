@@ -12,7 +12,8 @@ public class InTests : BasicEntityTestBase
     [TestProperty("CandidateId", "P1-029")]
     public void InListColumnReference_ShouldUseTheCurrentRowsValue()
     {
-        const string query = "select City from values { (City: 'Warsaw', Country: 'Poland'), (City: 'Poland', Country: 'Lithuania'), (City: 'Riga', Country: 'Latvia') } v where City in (Country, 'Warsaw')";
+        const string query =
+            "select City from values { (City: 'Warsaw', Country: 'Poland'), (City: 'Poland', Country: 'Lithuania'), (City: 'Riga', Country: 'Latvia') } v where City in (Country, 'Warsaw')";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -34,9 +35,9 @@ public class InTests : BasicEntityTestBase
                     new BasicEntity("A", 100),
                     new BasicEntity("AB", 200),
                     new BasicEntity("ABC", 300),
-                    new BasicEntity("ABCD", 400)
+                    new BasicEntity("ABCD", 400),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -61,9 +62,9 @@ public class InTests : BasicEntityTestBase
                     new BasicEntity("A", 100),
                     new BasicEntity("AB", 200),
                     new BasicEntity("ABC", 300),
-                    new BasicEntity("ABCD", 400)
+                    new BasicEntity("ABCD", 400),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -89,9 +90,9 @@ public class InTests : BasicEntityTestBase
                     new BasicEntity("Berlin", "Germany"),
                     new BasicEntity("Singapore", "Singapore"),
                     new BasicEntity("France", "Paris"),
-                    new BasicEntity("Monaco", "Monaco")
+                    new BasicEntity("Monaco", "Monaco"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -100,7 +101,10 @@ public class InTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Poland"), "First entry should be Poland");
-        Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Singapore"), "Second entry should be Singapore");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValue(0) == "Singapore"),
+            "Second entry should be Singapore"
+        );
         Assert.IsTrue(table.Any(entry => (string)entry.ReadValue(0) == "Monaco"), "Third entry should be Monaco");
     }
 
@@ -118,9 +122,9 @@ public class InTests : BasicEntityTestBase
                     new BasicEntity("Berlin", "Germany"),
                     new BasicEntity("Singapore", "Singapore"),
                     new BasicEntity("France", "Paris"),
-                    new BasicEntity("Monaco", "Monaco")
+                    new BasicEntity("Monaco", "Monaco"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -141,14 +145,7 @@ public class InTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 100),
-                    new BasicEntity("B", 200),
-                    new BasicEntity("C", 100)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 100), new BasicEntity("B", 200), new BasicEntity("C", 100)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -173,9 +170,9 @@ public class InTests : BasicEntityTestBase
                     new BasicEntity("B", 250),
                     new BasicEntity("C", 500),
                     new BasicEntity("D", 750),
-                    new BasicEntity("E", 1000)
+                    new BasicEntity("E", 1000),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -201,9 +198,9 @@ public class InTests : BasicEntityTestBase
                     new BasicEntity("David"),
                     new BasicEntity("Bob"),
                     new BasicEntity("Eve"),
-                    new BasicEntity("Charlie")
+                    new BasicEntity("Charlie"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -222,14 +219,7 @@ public class InTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 100),
-                    new BasicEntity("B", 200),
-                    new BasicEntity("C", 300)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 100), new BasicEntity("B", 200), new BasicEntity("C", 300)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -247,14 +237,7 @@ public class InTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 100),
-                    new BasicEntity("B", 200),
-                    new BasicEntity("C", 300)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 100), new BasicEntity("B", 200), new BasicEntity("C", 300)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -270,13 +253,7 @@ public class InTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 100),
-                    new BasicEntity("B", 200)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 100), new BasicEntity("B", 200)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -284,7 +261,6 @@ public class InTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count);
     }
-
 
     #endregion
 }

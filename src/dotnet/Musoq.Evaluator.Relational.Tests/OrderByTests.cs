@@ -4,7 +4,4 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 [global::Musoq.Tests.Common.CultureTestClass]
-public partial class OrderByTests : BasicEntityTestBase
-{
-
-}
+public partial class OrderByTests : BasicEntityTestBase { }

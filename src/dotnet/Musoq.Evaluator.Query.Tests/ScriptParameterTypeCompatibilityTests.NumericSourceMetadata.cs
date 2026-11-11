@@ -20,9 +20,19 @@ public sealed partial class ScriptParameterTypeCompatibilityTests
     {
         const string query = "param(minimum: int) select Status from #specstressnative.rows() where Status >= $minimum";
         using var compiled = InstanceCreator.CompileForExecution(
-            query, Guid.NewGuid().ToString(), CreateNumericStatusProvider(),
-            LoggerResolver, TestCompilationOptions, TestContext.CancellationToken);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "minimum", 10);
+            query,
+            Guid.NewGuid().ToString(),
+            CreateNumericStatusProvider(),
+            LoggerResolver,
+            TestCompilationOptions,
+            TestContext.CancellationToken
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "minimum",
+            10
+        );
 
         using var result = compiled.Run(TestContext.CancellationToken);
 
@@ -42,9 +52,11 @@ public sealed partial class ScriptParameterTypeCompatibilityTests
     [TestProperty("Phase", "1")]
     public void Current_P1_0110_TypeMismatchStringParameterIsRejected()
     {
-        const string query = "param(minimum: string) select Status from #specstressnative.rows() where Status >= $minimum";
+        const string query =
+            "param(minimum: string) select Status from #specstressnative.rows() where Status >= $minimum";
         AssertNumericStatusParameterMismatch(query);
     }
+
     [TestMethod]
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P1-0124")]
     [TestProperty("Campaign", "Current 2026-09-29")]
@@ -54,63 +66,63 @@ public sealed partial class ScriptParameterTypeCompatibilityTests
         const string query = "param(flag: bool) select Status from #specstressnative.rows() where Status >= $flag";
         AssertNumericStatusParameterMismatch(query);
     }
+
     [TestMethod]
     [TestProperty("CandidateId", "PROMOTED-StringParameterAgainstNumericColumnIsRejectedAtBindTime")]
     public void StringParameterAgainstNumericColumnIsRejectedAtBindTime()
     {
         const string query = "param(minimum: string) select 1 from #specstressnative.rows() where Status >= $minimum";
 
-        var exception = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(
-            () =>
-            {
-                using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-                    query,
-                    System.Guid.NewGuid().ToString(),
-                    CreateNumericStatusProvider(),
-                    LoggerResolver,
-                    TestCompilationOptions,
-                    TestContext.CancellationToken);
-            });
+        var exception = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
+        {
+            using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+                query,
+                System.Guid.NewGuid().ToString(),
+                CreateNumericStatusProvider(),
+                LoggerResolver,
+                TestCompilationOptions,
+                TestContext.CancellationToken
+            );
+        });
 
-        Assert.AreEqual(
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3005_TypeMismatch,
-            exception.PrimaryEnvelope.Code);
-        Assert.AreEqual(
-            Musoq.Parser.Diagnostics.DiagnosticPhase.Bind,
-            exception.PrimaryEnvelope.Phase);
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3005_TypeMismatch, exception.PrimaryEnvelope.Code);
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticPhase.Bind, exception.PrimaryEnvelope.Phase);
     }
+
     [TestMethod]
     [TestProperty("CandidateId", "PROMOTED-BooleanParameterAgainstNumericGreaterOrEqualIsRejectedAtBindTime")]
     public void BooleanParameterAgainstNumericGreaterOrEqualIsRejectedAtBindTime()
     {
         const string query = "param(flag: bool) select 1 from #specstressnative.rows() where Status >= $flag";
 
-        var exception = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(
-            () =>
-            {
-                using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-                    query,
-                    System.Guid.NewGuid().ToString(),
-                    CreateNumericStatusProvider(),
-                    LoggerResolver,
-                    TestCompilationOptions,
-                    TestContext.CancellationToken);
-            });
+        var exception = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
+        {
+            using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+                query,
+                System.Guid.NewGuid().ToString(),
+                CreateNumericStatusProvider(),
+                LoggerResolver,
+                TestCompilationOptions,
+                TestContext.CancellationToken
+            );
+        });
 
-        Assert.AreEqual(
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3005_TypeMismatch,
-            exception.PrimaryEnvelope.Code);
-        Assert.AreEqual(
-            Musoq.Parser.Diagnostics.DiagnosticPhase.Bind,
-            exception.PrimaryEnvelope.Phase);
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3005_TypeMismatch, exception.PrimaryEnvelope.Code);
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticPhase.Bind, exception.PrimaryEnvelope.Phase);
     }
+
     private void AssertNumericStatusParameterMismatch(string query)
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
         {
             using var compiled = InstanceCreator.CompileForExecution(
-                query, Guid.NewGuid().ToString(), CreateNumericStatusProvider(),
-                LoggerResolver, TestCompilationOptions, TestContext.CancellationToken);
+                query,
+                Guid.NewGuid().ToString(),
+                CreateNumericStatusProvider(),
+                LoggerResolver,
+                TestCompilationOptions,
+                TestContext.CancellationToken
+            );
         });
         Assert.AreEqual(DiagnosticCode.MQ3005_TypeMismatch, exception.PrimaryEnvelope.Code);
         Assert.AreEqual(DiagnosticPhase.Bind, exception.PrimaryEnvelope.Phase);
@@ -118,18 +130,22 @@ public sealed partial class ScriptParameterTypeCompatibilityTests
 
     private static ISchemaProvider CreateNumericStatusProvider()
     {
-        var schema = new GenericSchema<LibraryBase>(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
-            ["rows"] = (new GenericEntityTable<NumericStatusEntity>(),
-                new GenericChunkSource<NumericStatusEntity>([new NumericStatusEntity { Status = 20 }],
-                    GenericEntityTable<NumericStatusEntity>.NameToIndexMap,
-                    GenericEntityTable<NumericStatusEntity>.IndexToObjectAccessMap))
-        });
-        return new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            ["#specstressnative"] = schema,
-            ["specstressnative"] = schema
-        });
+        var schema = new GenericSchema<LibraryBase>(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
+            {
+                ["rows"] = (
+                    new GenericEntityTable<NumericStatusEntity>(),
+                    new GenericChunkSource<NumericStatusEntity>(
+                        [new NumericStatusEntity { Status = 20 }],
+                        GenericEntityTable<NumericStatusEntity>.NameToIndexMap,
+                        GenericEntityTable<NumericStatusEntity>.IndexToObjectAccessMap
+                    )
+                ),
+            }
+        );
+        return new GenericSchemaProvider(
+            new Dictionary<string, ISchema> { ["#specstressnative"] = schema, ["specstressnative"] = schema }
+        );
     }
 
     public sealed class NumericStatusEntity

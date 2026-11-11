@@ -29,25 +29,22 @@ public class InterpreterCompilationUnit : IDisposable
     /// <param name="assemblyName">The name for the generated assembly.</param>
     /// <param name="sourceCode">The C# source code to compile.</param>
     public InterpreterCompilationUnit(string assemblyName, string sourceCode)
-        : this(
-            assemblyName,
-            sourceCode,
-            new EvaluatorRuntimeEnvironment(),
-            DefaultAssemblyLoader.Instance)
-    {
-    }
+        : this(assemblyName, sourceCode, new EvaluatorRuntimeEnvironment(), DefaultAssemblyLoader.Instance) { }
 
     internal InterpreterCompilationUnit(
         string assemblyName,
         string sourceCode,
         EvaluatorRuntimeEnvironment runtimeEnvironment,
-        IAssemblyLoader assemblyLoader)
+        IAssemblyLoader assemblyLoader
+    )
     {
         ArgumentNullException.ThrowIfNull(runtimeEnvironment);
         AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
         SourceCode = sourceCode ?? throw new ArgumentNullException(nameof(sourceCode));
         _compilationFactory = runtimeEnvironment.CompilationFactory;
-        _interpreterReferenceProvider = new DefaultInterpreterReferenceProvider(runtimeEnvironment.MetadataReferenceCache);
+        _interpreterReferenceProvider = new DefaultInterpreterReferenceProvider(
+            runtimeEnvironment.MetadataReferenceCache
+        );
         _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
         _ownedRuntimeEnvironment = runtimeEnvironment;
     }
@@ -57,12 +54,14 @@ public class InterpreterCompilationUnit : IDisposable
         string sourceCode,
         ICSharpCompilationFactory compilationFactory,
         IInterpreterReferenceProvider interpreterReferenceProvider,
-        IAssemblyLoader assemblyLoader)
+        IAssemblyLoader assemblyLoader
+    )
     {
         AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
         SourceCode = sourceCode ?? throw new ArgumentNullException(nameof(sourceCode));
         _compilationFactory = compilationFactory ?? throw new ArgumentNullException(nameof(compilationFactory));
-        _interpreterReferenceProvider = interpreterReferenceProvider ?? throw new ArgumentNullException(nameof(interpreterReferenceProvider));
+        _interpreterReferenceProvider =
+            interpreterReferenceProvider ?? throw new ArgumentNullException(nameof(interpreterReferenceProvider));
         _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
     }
 
@@ -133,7 +132,8 @@ public class InterpreterCompilationUnit : IDisposable
 
         Diagnostics = result.Diagnostics.ToList();
 
-        if (!result.Success) return false;
+        if (!result.Success)
+            return false;
 
         _assemblyBytes = ms.ToArray();
         var loadedAssembly = _assemblyLoader.Load(_assemblyBytes);
@@ -165,13 +165,11 @@ public class InterpreterCompilationUnit : IDisposable
         if (CompiledAssembly == null)
             return null;
 
-
         var typeName = $"Musoq.Generated.Interpreters.{schemaName}";
         var type = CompiledAssembly.GetType(typeName);
 
         if (type != null)
             return type;
-
 
         for (var arity = 1; arity <= 8; arity++)
         {
@@ -190,7 +188,8 @@ public class InterpreterCompilationUnit : IDisposable
     /// <typeparam name="T">The interpreter type.</typeparam>
     /// <param name="schemaName">The schema name.</param>
     /// <returns>A new interpreter instance, or null if not found.</returns>
-    public T? CreateInterpreterInstance<T>(string schemaName) where T : class
+    public T? CreateInterpreterInstance<T>(string schemaName)
+        where T : class
     {
         var type = GetInterpreterType(schemaName);
         if (type == null)
@@ -210,10 +209,7 @@ public class InterpreterCompilationUnit : IDisposable
         if (Diagnostics == null)
             return Enumerable.Empty<string>();
 
-        return Diagnostics
-            .Where(d => d.Severity == DiagnosticSeverity.Error)
-            .Select(d => d.ToString())
-            .ToArray();
+        return Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString()).ToArray();
     }
 
     /// <summary>

@@ -12,28 +12,30 @@ public partial class BuildItems
 
     internal SemanticBuildArtifacts SemanticArtifacts
     {
-        get => new()
-        {
-            Phase = SemanticPhaseArtifacts ?? throw new InvalidOperationException(
-                "Semantic phase artifacts are not available."),
-            TransformedQueryTree = TransformedQueryTree,
-            UsedColumns = UsedColumns,
-            UsedWhereNodes = UsedWhereNodes,
-            SourcePlanRequestsPerSchema = SourcePlanRequestsPerSchema,
-            SourceContractDiagnosticLocationsPerSchema = SourceContractDiagnosticLocationsPerSchema,
-            ScriptParameterDefinitions = ScriptParameterDefinitions,
-            ScriptVariableDefinitions = ScriptVariableDefinitions,
-            SourceRuntimeSettingsBySourceContextId = SourceRuntimeSettingsBySourceContextId,
-            SourceRuntimeSettingDescriptionsBySourceContextId = SourceRuntimeSettingDescriptionsBySourceContextId,
-            HasDeclaredSourceRuntimeSettings = HasDeclaredSourceRuntimeSettings,
-            HasSourceRuntimeSettingValues = HasSourceRuntimeSettingValues,
-            ScopeArtifact = PipelineScope is { } scope
-                ? SemanticScopeArtifact.Capture(scope)
-                : throw new InvalidOperationException("Semantic scope artifact is not available."),
-            PipelineInferredColumns = PipelineInferredColumns,
-            PipelineUsedColumns = PipelineUsedColumns,
-            CteExecutionPlan = CteExecutionPlan
-        };
+        get =>
+            new()
+            {
+                Phase =
+                    SemanticPhaseArtifacts
+                    ?? throw new InvalidOperationException("Semantic phase artifacts are not available."),
+                TransformedQueryTree = TransformedQueryTree,
+                UsedColumns = UsedColumns,
+                UsedWhereNodes = UsedWhereNodes,
+                SourcePlanRequestsPerSchema = SourcePlanRequestsPerSchema,
+                SourceContractDiagnosticLocationsPerSchema = SourceContractDiagnosticLocationsPerSchema,
+                ScriptParameterDefinitions = ScriptParameterDefinitions,
+                ScriptVariableDefinitions = ScriptVariableDefinitions,
+                SourceRuntimeSettingsBySourceContextId = SourceRuntimeSettingsBySourceContextId,
+                SourceRuntimeSettingDescriptionsBySourceContextId = SourceRuntimeSettingDescriptionsBySourceContextId,
+                HasDeclaredSourceRuntimeSettings = HasDeclaredSourceRuntimeSettings,
+                HasSourceRuntimeSettingValues = HasSourceRuntimeSettingValues,
+                ScopeArtifact = PipelineScope is { } scope
+                    ? SemanticScopeArtifact.Capture(scope)
+                    : throw new InvalidOperationException("Semantic scope artifact is not available."),
+                PipelineInferredColumns = PipelineInferredColumns,
+                PipelineUsedColumns = PipelineUsedColumns,
+                CteExecutionPlan = CteExecutionPlan,
+            };
         set
         {
             SemanticPhaseArtifacts = value.Phase;
@@ -57,17 +59,18 @@ public partial class BuildItems
 
     internal PlanningBuildArtifacts PlanningArtifacts
     {
-        get => new()
-        {
-            InitialLogicalPlan = InitialLogicalPlan,
-            OptimizedLogicalPlan = OptimizedLogicalPlan,
-            LogicalPlan = LogicalPlan,
-            PlanningResult = PlanningResult,
-            PlanningText = PlanningText,
-            InitialPhysicalPlan = InitialPhysicalPlan,
-            OptimizedPhysicalPlan = OptimizedPhysicalPlan,
-            PhysicalPlan = PhysicalPlan
-        };
+        get =>
+            new()
+            {
+                InitialLogicalPlan = InitialLogicalPlan,
+                OptimizedLogicalPlan = OptimizedLogicalPlan,
+                LogicalPlan = LogicalPlan,
+                PlanningResult = PlanningResult,
+                PlanningText = PlanningText,
+                InitialPhysicalPlan = InitialPhysicalPlan,
+                OptimizedPhysicalPlan = OptimizedPhysicalPlan,
+                PhysicalPlan = PhysicalPlan,
+            };
         set
         {
             InitialLogicalPlan = value.InitialLogicalPlan;
@@ -83,14 +86,15 @@ public partial class BuildItems
 
     internal ExecutionBuildArtifacts ExecutionArtifacts
     {
-        get => new()
-        {
-            ExecutionPlanBuildResult = ExecutionPlanBuildResult,
-            InitialExecutionPlan = InitialExecutionPlan,
-            OptimizedExecutionPlan = OptimizedExecutionPlan,
-            ExecutionPlan = ExecutionPlan,
-            ExecutionPlanText = ExecutionPlanText
-        };
+        get =>
+            new()
+            {
+                ExecutionPlanBuildResult = ExecutionPlanBuildResult,
+                InitialExecutionPlan = InitialExecutionPlan,
+                OptimizedExecutionPlan = OptimizedExecutionPlan,
+                ExecutionPlan = ExecutionPlan,
+                ExecutionPlanText = ExecutionPlanText,
+            };
         set
         {
             ExecutionPlanBuildResult = value.ExecutionPlanBuildResult;
@@ -103,14 +107,15 @@ public partial class BuildItems
 
     internal RenderingBuildArtifacts RenderingArtifacts
     {
-        get => new(RenderingArtifact)
-        {
-            QueryMethodRenderMetadata = QueryMethodRenderMetadata,
-            CompatibilityReport = ExecutionTargetCompatibilityReport,
-            RuntimeContract = TargetRuntimeContract,
-            ReadinessReport = ExecutionTargetReadinessReport,
-            SemanticsContract = ExecutionSemanticsContract
-        };
+        get =>
+            new(RenderingArtifact)
+            {
+                QueryMethodRenderMetadata = QueryMethodRenderMetadata,
+                CompatibilityReport = ExecutionTargetCompatibilityReport,
+                RuntimeContract = TargetRuntimeContract,
+                ReadinessReport = ExecutionTargetReadinessReport,
+                SemanticsContract = ExecutionSemanticsContract,
+            };
         set
         {
             RenderingArtifact = value.Artifact;
@@ -124,9 +129,10 @@ public partial class BuildItems
 
     internal CompilationBuildArtifacts CompilationArtifacts
     {
-        get => FinalizationResult is { } finalizationResult
-            ? new CompilationBuildArtifacts(finalizationResult)
-            : new CompilationBuildArtifacts(EmitResult, ExecutableArtifact);
+        get =>
+            FinalizationResult is { } finalizationResult
+                ? new CompilationBuildArtifacts(finalizationResult)
+                : new CompilationBuildArtifacts(EmitResult, ExecutableArtifact);
         set
         {
             FinalizationResult = value.FinalizationResult;

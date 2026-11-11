@@ -57,7 +57,8 @@ public partial class Parser
 
                 if (Current is not ColumnToken column)
                     throw new ArgumentNullException(
-                        $"Expected token is {TokenType.Identifier} but received {Current.TokenType}");
+                        $"Expected token is {TokenType.Identifier} but received {Current.TokenType}"
+                    );
 
                 Consume(TokenType.Identifier);
 
@@ -81,11 +82,13 @@ public partial class Parser
             case TokenType.AliasedStar:
                 token = ConsumeAndGetToken(TokenType.AliasedStar);
                 return TryComposeStarModifiers(
-                    new AllColumnsNode(token.Value.Replace(".*", string.Empty, StringComparison.Ordinal)).WithSpan(token.Span));
+                    new AllColumnsNode(token.Value.Replace(".*", string.Empty, StringComparison.Ordinal)).WithSpan(
+                        token.Span
+                    )
+                );
             case TokenType.Star:
                 token = ConsumeAndGetToken(TokenType.Star);
-                return TryComposeStarModifiers(
-                    new AllColumnsNode().WithSpan(token.Span));
+                return TryComposeStarModifiers(new AllColumnsNode().WithSpan(token.Span));
             case TokenType.True:
                 token = ConsumeAndGetToken(TokenType.True);
                 return new BooleanNode(true, token.Span);
@@ -99,8 +102,10 @@ public partial class Parser
                 return new NotNode(ComposeEqualityOperators());
             case TokenType.Hyphen:
                 Consume(TokenType.Hyphen);
-                return new StarNode(new IntegerNode("-1", "s"),
-                    Compose(f => f.ComposeArithmeticExpression(minPrecedence)));
+                return new StarNode(
+                    new IntegerNode("-1", "s"),
+                    Compose(f => f.ComposeArithmeticExpression(minPrecedence))
+                );
             case TokenType.Case:
                 var (whenThenNodes, elseNode, caseSpan) = ComposeCase();
                 return new CaseNode(whenThenNodes, elseNode).WithSpan(caseSpan);
@@ -112,14 +117,17 @@ public partial class Parser
                 return ComposeParameterIndexAccess(new ParameterReferenceNode(token.Value, null, token.Span));
             default:
 
-                if (IsSchemaKeywordToken(Current.TokenType)) return ComposeSchemaTokenAsWord();
-                if (Current.TokenType == TokenType.Equality) throw ParserDiagnosticFacts.MissingLeftOperand(_lexer.AlreadyResolvedQueryPart, Current.Span);
+                if (IsSchemaKeywordToken(Current.TokenType))
+                    return ComposeSchemaTokenAsWord();
+                if (Current.TokenType == TokenType.Equality)
+                    throw ParserDiagnosticFacts.MissingLeftOperand(_lexer.AlreadyResolvedQueryPart, Current.Span);
                 if (GetArithmeticPrecedence(Current.TokenType) >= 0)
                     throw new SyntaxException(
                         "A binary operator is missing its left operand.",
                         _lexer.AlreadyResolvedQueryPart,
                         DiagnosticCode.MQ2020_MissingOperand,
-                        Current.Span);
+                        Current.Span
+                    );
                 break;
         }
 
@@ -127,7 +135,8 @@ public partial class Parser
             $"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2001_UnexpectedToken,
-            Current.Span);
+            Current.Span
+        );
     }
 
     private IntegerNode ComposeInteger()
@@ -194,20 +203,25 @@ public partial class Parser
                 $"Expected Word or StringLiteral but got {tokenType}.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2001_UnexpectedToken,
-                Current.Span)
+                Current.Span
+            ),
         };
         return new WordNode(token.Value, token.Span);
     }
 
     private SyntaxException NumericLiteralOutOfRange(Token token, Exception innerException)
     {
-        var literal = token.Span.Start >= 0 && token.Span.End <= _lexer.Input.Length ? _lexer.Input[token.Span.Start..token.Span.End] : token.Value;
+        var literal =
+            token.Span.Start >= 0 && token.Span.End <= _lexer.Input.Length
+                ? _lexer.Input[token.Span.Start..token.Span.End]
+                : token.Value;
         return new SyntaxException(
             $"Numeric literal '{literal}' is outside the supported range.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
             token.Span,
-            innerException);
+            innerException
+        );
     }
 
     private static bool IsNumericConstructionFailure(Exception exception)
@@ -236,39 +250,63 @@ public partial class Parser
 
     private static bool IsExistsFunction(Token token)
     {
-        return token is FunctionToken function &&
-               function.Value.Equals(ExistsToken.TokenText, StringComparison.OrdinalIgnoreCase);
+        return token is FunctionToken function
+            && function.Value.Equals(ExistsToken.TokenText, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsSchemaKeywordToken(TokenType tokenType)
     {
         return tokenType switch
         {
-            TokenType.Binary or TokenType.Text or
-                TokenType.LittleEndian or TokenType.BigEndian or
-                TokenType.ByteType or TokenType.SByteType or
-                TokenType.ShortType or TokenType.UShortType or
-                TokenType.IntType or TokenType.UIntType or
-                TokenType.LongType or TokenType.ULongType or
-                TokenType.FloatType or TokenType.DoubleType or
-                TokenType.BitsType or TokenType.Align or
-                TokenType.StringType or TokenType.Utf8 or
-                TokenType.Utf16Le or TokenType.Utf16Be or
-                TokenType.Ascii or TokenType.Latin1 or TokenType.Ebcdic or
-                TokenType.Trim or TokenType.RTrim or TokenType.LTrim or
-                TokenType.NullTerm or TokenType.Check or
-                TokenType.At or TokenType.Colon or
-                TokenType.Pattern or TokenType.Literal or
-                TokenType.Until or
-                TokenType.Chars or TokenType.Token or
-                TokenType.Rest or TokenType.Whitespace or
-                TokenType.Optional or TokenType.Repeat or
-                TokenType.Switch or TokenType.Nested or
-                TokenType.Escaped or TokenType.Greedy or TokenType.Lazy or
-                TokenType.Lower or TokenType.Upper or
-                TokenType.Capture or TokenType.Extends => true,
-            _ => false
+            TokenType.Binary
+            or TokenType.Text
+            or TokenType.LittleEndian
+            or TokenType.BigEndian
+            or TokenType.ByteType
+            or TokenType.SByteType
+            or TokenType.ShortType
+            or TokenType.UShortType
+            or TokenType.IntType
+            or TokenType.UIntType
+            or TokenType.LongType
+            or TokenType.ULongType
+            or TokenType.FloatType
+            or TokenType.DoubleType
+            or TokenType.BitsType
+            or TokenType.Align
+            or TokenType.StringType
+            or TokenType.Utf8
+            or TokenType.Utf16Le
+            or TokenType.Utf16Be
+            or TokenType.Ascii
+            or TokenType.Latin1
+            or TokenType.Ebcdic
+            or TokenType.Trim
+            or TokenType.RTrim
+            or TokenType.LTrim
+            or TokenType.NullTerm
+            or TokenType.Check
+            or TokenType.At
+            or TokenType.Colon
+            or TokenType.Pattern
+            or TokenType.Literal
+            or TokenType.Until
+            or TokenType.Chars
+            or TokenType.Token
+            or TokenType.Rest
+            or TokenType.Whitespace
+            or TokenType.Optional
+            or TokenType.Repeat
+            or TokenType.Switch
+            or TokenType.Nested
+            or TokenType.Escaped
+            or TokenType.Greedy
+            or TokenType.Lazy
+            or TokenType.Lower
+            or TokenType.Upper
+            or TokenType.Capture
+            or TokenType.Extends => true,
+            _ => false,
         };
     }
-
 }

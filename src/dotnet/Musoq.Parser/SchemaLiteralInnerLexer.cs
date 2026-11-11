@@ -12,8 +12,10 @@ public sealed partial class Lexer
 
         while (pos < content.Length)
         {
-            while (pos < content.Length && char.IsWhiteSpace(content[pos])) pos++;
-            if (pos >= content.Length) break;
+            while (pos < content.Length && char.IsWhiteSpace(content[pos]))
+                pos++;
+            if (pos >= content.Length)
+                break;
 
             var ch = content[pos];
             var spanStart = basePosition + pos;
@@ -55,42 +57,57 @@ public sealed partial class Lexer
                         if (ch == '0' && pos + 1 < content.Length && content[pos + 1] is ('x' or 'X'))
                         {
                             pos += 2;
-                            while (pos < content.Length && IsHexDigit(content[pos])) pos++;
+                            while (pos < content.Length && IsHexDigit(content[pos]))
+                                pos++;
                             tokens.Add(new HexIntegerToken(content[start..pos], new TextSpan(spanStart, pos - start)));
                         }
                         else if (ch == '0' && pos + 1 < content.Length && content[pos + 1] is ('b' or 'B'))
                         {
                             pos += 2;
-                            while (pos < content.Length && content[pos] is ('0' or '1')) pos++;
-                            tokens.Add(new BinaryIntegerToken(content[start..pos], new TextSpan(spanStart, pos - start)));
+                            while (pos < content.Length && content[pos] is ('0' or '1'))
+                                pos++;
+                            tokens.Add(
+                                new BinaryIntegerToken(content[start..pos], new TextSpan(spanStart, pos - start))
+                            );
                         }
                         else if (ch == '0' && pos + 1 < content.Length && content[pos + 1] is ('o' or 'O'))
                         {
                             pos += 2;
-                            while (pos < content.Length && content[pos] is >= '0' and <= '7') pos++;
-                            tokens.Add(new OctalIntegerToken(content[start..pos], new TextSpan(spanStart, pos - start)));
+                            while (pos < content.Length && content[pos] is >= '0' and <= '7')
+                                pos++;
+                            tokens.Add(
+                                new OctalIntegerToken(content[start..pos], new TextSpan(spanStart, pos - start))
+                            );
                         }
                         else
                         {
-                            while (pos < content.Length && char.IsDigit(content[pos])) pos++;
-                            if (pos < content.Length && content[pos] == '.' &&
-                                pos + 1 < content.Length && char.IsDigit(content[pos + 1]))
+                            while (pos < content.Length && char.IsDigit(content[pos]))
+                                pos++;
+                            if (
+                                pos < content.Length
+                                && content[pos] == '.'
+                                && pos + 1 < content.Length
+                                && char.IsDigit(content[pos + 1])
+                            )
                             {
                                 pos++;
-                                while (pos < content.Length && char.IsDigit(content[pos])) pos++;
+                                while (pos < content.Length && char.IsDigit(content[pos]))
+                                    pos++;
                                 tokens.Add(new DecimalToken(content[start..pos], new TextSpan(spanStart, pos - start)));
                             }
                             else
                             {
-                                tokens.Add(new IntegerToken(content[start..pos], new TextSpan(spanStart, pos - start), "i"));
+                                tokens.Add(
+                                    new IntegerToken(content[start..pos], new TextSpan(spanStart, pos - start), "i")
+                                );
                             }
                         }
                     }
                     else if (char.IsLetter(ch) || ch == '_')
                     {
                         var start = pos;
-                        while (pos < content.Length &&
-                               (char.IsLetterOrDigit(content[pos]) || content[pos] == '_')) pos++;
+                        while (pos < content.Length && (char.IsLetterOrDigit(content[pos]) || content[pos] == '_'))
+                            pos++;
                         tokens.Add(new WordToken(content[start..pos], new TextSpan(spanStart, pos - start)));
                     }
                     else

@@ -5,13 +5,13 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Musoq.Targets.CSharpClr;
 
-internal sealed record CSharpClrFinalizationResult(
-    EmitResult EmitResult,
-    ExecutableQueryArtifact? Artifact) : TargetFinalizationResult(
+internal sealed record CSharpClrFinalizationResult(EmitResult EmitResult, ExecutableQueryArtifact? Artifact)
+    : TargetFinalizationResult(
         ExecutionTargetIds.CSharpClr,
         EmitResult.Success,
         CreateDiagnostics(EmitResult),
-        Artifact)
+        Artifact
+    )
 {
     private static IReadOnlyList<TargetDiagnostic> CreateDiagnostics(EmitResult result)
     {
@@ -25,7 +25,8 @@ internal sealed record CSharpClrFinalizationResult(
                 diagnostic.ToString(),
                 CreateSourceRange(diagnostic),
                 diagnostic.Location.SourceTree?.FilePath,
-                CreateDiagnosticSourceSnippet(diagnostic));
+                CreateDiagnosticSourceSnippet(diagnostic)
+            );
         }
 
         return diagnostics;
@@ -39,7 +40,7 @@ internal sealed record CSharpClrFinalizationResult(
             DiagnosticSeverity.Info => TargetDiagnosticSeverity.Info,
             DiagnosticSeverity.Warning => TargetDiagnosticSeverity.Warning,
             DiagnosticSeverity.Error => TargetDiagnosticSeverity.Error,
-            _ => TargetDiagnosticSeverity.Error
+            _ => TargetDiagnosticSeverity.Error,
         };
     }
 
@@ -56,7 +57,8 @@ internal sealed record CSharpClrFinalizationResult(
             lineSpan.StartLinePosition.Line + 1,
             lineSpan.StartLinePosition.Character + 1,
             lineSpan.EndLinePosition.Line + 1,
-            lineSpan.EndLinePosition.Character + 1);
+            lineSpan.EndLinePosition.Character + 1
+        );
     }
 
     private static string? CreateDiagnosticSourceSnippet(Diagnostic diagnostic)

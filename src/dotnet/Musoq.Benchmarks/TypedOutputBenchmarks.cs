@@ -7,7 +7,9 @@ using Musoq.Evaluator;
 namespace Musoq.Benchmarks;
 
 public readonly record struct ProjectionOutput(int Id, string Name);
+
 public readonly record struct GroupOutput(int Id, decimal? Total, long Present);
+
 public readonly record struct WindowOutput(int Id, decimal? Total, decimal? First);
 
 [MemoryDiagnoser]
@@ -17,6 +19,7 @@ public abstract class TypedOutputBenchmark<T>
     private readonly Consumer _consumer = new();
     public string ScenarioId => BenchmarkRegistrations.TypedScenario<T>();
     public IEnumerable<string> Sizes => BenchmarkSizes.Labels;
+
     [ParamsSource(nameof(Sizes))]
     public string Size { get; set; } = "Small";
 
@@ -26,7 +29,13 @@ public abstract class TypedOutputBenchmark<T>
         var scenario = ScenarioCatalog.Get(ScenarioId);
         var count = BenchmarkSizes.Count(Size);
         MeasuredProcess.Record(scenario, count);
-        _query = InstanceCreator.CompileForTypedExecution<T>(scenario.Sql, "typed", FixtureCatalog.Prepare(scenario, count).CreateSchemaProvider(), BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, count));
+        _query = InstanceCreator.CompileForTypedExecution<T>(
+            scenario.Sql,
+            "typed",
+            FixtureCatalog.Prepare(scenario, count).CreateSchemaProvider(),
+            BenchmarkLogger.Instance,
+            ExecutionSettings.Create(scenario, count)
+        );
     }
 
     [Benchmark]
@@ -42,12 +51,8 @@ public abstract class TypedOutputBenchmark<T>
     }
 }
 
-public class TypedProjectionBenchmark : TypedOutputBenchmark<ProjectionOutput>
-{
-}
-public class TypedGroupBenchmark : TypedOutputBenchmark<GroupOutput>
-{
-}
-public class TypedWindowBenchmark : TypedOutputBenchmark<WindowOutput>
-{
-}
+public class TypedProjectionBenchmark : TypedOutputBenchmark<ProjectionOutput> { }
+
+public class TypedGroupBenchmark : TypedOutputBenchmark<GroupOutput> { }
+
+public class TypedWindowBenchmark : TypedOutputBenchmark<WindowOutput> { }

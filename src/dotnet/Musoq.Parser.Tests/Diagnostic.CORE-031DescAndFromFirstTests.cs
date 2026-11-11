@@ -39,7 +39,10 @@ public sealed class DiagnosticCore031DescAndFromFirstTests
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
-        Assert.AreEqual(new TextSpan(query.IndexOf("#schema", StringComparison.Ordinal), "#schema".Length), diagnostic.Span);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf("#schema", StringComparison.Ordinal), "#schema".Length),
+            diagnostic.Span
+        );
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
         Assert.IsNotEmpty(diagnostic.SuggestedFixes);
@@ -49,8 +52,7 @@ public sealed class DiagnosticCore031DescAndFromFirstTests
     public void FromFirstQuery_ShouldPreserveClauseOrderInAst()
     {
         const string query =
-            "from #schema.items() where Value > 0 group by Value select Value order by Value " +
-            "skip 1 take 2";
+            "from #schema.items() where Value > 0 group by Value select Value order by Value " + "skip 1 take 2";
 
         var root = new Parser(new Lexer(query, true)).ComposeAll();
         var statements = (StatementsArrayNode)root.Expression;
@@ -79,7 +81,10 @@ public sealed class DiagnosticCore031DescAndFromFirstTests
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
-        Assert.AreEqual(new TextSpan(query.IndexOf("where", StringComparison.Ordinal), "where".Length), diagnostic.Span);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf("where", StringComparison.Ordinal), "where".Length),
+            diagnostic.Span
+        );
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
         Assert.IsNotEmpty(diagnostic.SuggestedFixes);

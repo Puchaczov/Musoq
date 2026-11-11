@@ -21,7 +21,11 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
             Assert.AreEqual(typeof(long), descriptor.ResultType, overload.ToString());
             Assert.AreEqual(1, descriptor.InputShape.ArgumentTypes.Count, overload.ToString());
-            Assert.AreEqual(overload.GetParameters()[0].ParameterType, descriptor.InputShape.ArgumentTypes[0], overload.ToString());
+            Assert.AreEqual(
+                overload.GetParameters()[0].ParameterType,
+                descriptor.InputShape.ArgumentTypes[0],
+                overload.ToString()
+            );
             Assert.IsTrue(descriptor.SupportsMerge, overload.ToString());
             Assert.IsNotNull(descriptor.MergeMethod, overload.ToString());
             Assert.AreEqual(descriptor.KernelType, descriptor.MergeMethod!.DeclaringType, overload.ToString());

@@ -7,15 +7,18 @@ namespace Musoq.Evaluator.IR.Optimization.Logical;
 
 internal sealed partial class LogicalConstantExpressionFolder(
     DiagnosticContext? diagnostics,
-    IReadOnlyDictionary<string, ScriptVariableDefinition>? knownValues = null) : IrExpressionVisitor<IrExpression>
+    IReadOnlyDictionary<string, ScriptVariableDefinition>? knownValues = null
+) : IrExpressionVisitor<IrExpression>
 {
     public int FoldedExpressions { get; private set; }
 
     protected override IrExpression VisitColumnRef(ColumnRef node) => node;
 
-    protected override IrExpression VisitScriptParameterRef(ScriptParameterRef node) => ResolveKnownValue(node.Name, node);
+    protected override IrExpression VisitScriptParameterRef(ScriptParameterRef node) =>
+        ResolveKnownValue(node.Name, node);
 
-    protected override IrExpression VisitScriptVariableRef(ScriptVariableRef node) => ResolveKnownValue(node.Name, node);
+    protected override IrExpression VisitScriptVariableRef(ScriptVariableRef node) =>
+        ResolveKnownValue(node.Name, node);
 
     private IrExpression ResolveKnownValue(string name, IrExpression node)
     {
@@ -31,21 +34,25 @@ internal sealed partial class LogicalConstantExpressionFolder(
     protected override IrExpression VisitBinaryOp(BinaryOp node)
     {
         var left = Visit(node.Left);
-        if (left is Literal { Value: bool value } &&
-            (node.Kind == BinaryOpKind.And && !value || node.Kind == BinaryOpKind.Or && value))
+        if (
+            left is Literal { Value: bool value }
+            && (node.Kind == BinaryOpKind.And && !value || node.Kind == BinaryOpKind.Or && value)
+        )
         {
             FoldedExpressions++;
             return CreateFoldedLiteral(value, node);
         }
         var right = Visit(node.Right);
-        var rewritten = ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right)
-            ? node
-            : IrExpressionSourceSpans.CopyFrom(
-                new BinaryOp(node.Kind, left, right, node.ReturnType)
-                {
-                    UsesSqlNullSemantics = node.UsesSqlNullSemantics
-                },
-                node);
+        var rewritten =
+            ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right)
+                ? node
+                : IrExpressionSourceSpans.CopyFrom(
+                    new BinaryOp(node.Kind, left, right, node.ReturnType)
+                    {
+                        UsesSqlNullSemantics = node.UsesSqlNullSemantics,
+                    },
+                    node
+                );
 
         if (TryFoldBinary(rewritten, out var folded))
         {
@@ -61,9 +68,7 @@ internal sealed partial class LogicalConstantExpressionFolder(
         var operand = Visit(node.Operand);
         var rewritten = ReferenceEquals(operand, node.Operand)
             ? node
-            : IrExpressionSourceSpans.CopyFrom(
-                new UnaryOp(node.Kind, operand, node.ReturnType),
-                node);
+            : IrExpressionSourceSpans.CopyFrom(new UnaryOp(node.Kind, operand, node.ReturnType), node);
 
         if (TryFoldUnary(rewritten, out var folded))
         {
@@ -83,9 +88,7 @@ internal sealed partial class LogicalConstantExpressionFolder(
     protected override IrExpression VisitStrictCast(StrictCast node)
     {
         var expression = Visit(node.Expression);
-        return ReferenceEquals(expression, node.Expression)
-            ? node
-            : node with { Expression = expression };
+        return ReferenceEquals(expression, node.Expression) ? node : node with { Expression = expression };
     }
 
     protected override IrExpression VisitIsNullCheck(IsNullCheck node)
@@ -96,12 +99,11 @@ internal sealed partial class LogicalConstantExpressionFolder(
             FoldedExpressions++;
             return IrExpressionSourceSpans.CopyFrom(
                 new Literal(node.IsNegated ? literal.Value is not null : literal.Value is null, node.ReturnType),
-                node);
+                node
+            );
         }
 
-        return ReferenceEquals(expression, node.Expression)
-            ? node
-            : node with { Expression = expression };
+        return ReferenceEquals(expression, node.Expression) ? node : node with { Expression = expression };
     }
 
     protected override IrExpression VisitRowPresence(RowPresence node) => node;
@@ -112,7 +114,11 @@ internal sealed partial class LogicalConstantExpressionFolder(
         var values = RewriteExpressions(node.Values, out var valuesChanged);
         return ReferenceEquals(expression, node.Expression) && !valuesChanged
             ? node
-            : node with { Expression = expression, Values = values };
+            : node with
+            {
+                Expression = expression,
+                Values = values,
+            };
     }
 
     protected override IrExpression VisitPatternMatch(PatternMatch node)
@@ -121,7 +127,11 @@ internal sealed partial class LogicalConstantExpressionFolder(
         var pattern = Visit(node.Pattern);
         return ReferenceEquals(expression, node.Expression) && ReferenceEquals(pattern, node.Pattern)
             ? node
-            : node with { Expression = expression, Pattern = pattern };
+            : node with
+            {
+                Expression = expression,
+                Pattern = pattern,
+            };
     }
 
     protected override IrExpression VisitBetween(Between node)
@@ -129,11 +139,17 @@ internal sealed partial class LogicalConstantExpressionFolder(
         var expression = Visit(node.Expression);
         var low = Visit(node.Low);
         var high = Visit(node.High);
-        return ReferenceEquals(expression, node.Expression) &&
-               ReferenceEquals(low, node.Low) &&
-               ReferenceEquals(high, node.High)
+        return
+            ReferenceEquals(expression, node.Expression)
+            && ReferenceEquals(low, node.Low)
+            && ReferenceEquals(high, node.High)
             ? node
-            : node with { Expression = expression, Low = low, High = high };
+            : node with
+            {
+                Expression = expression,
+                Low = low,
+                High = high,
+            };
     }
 
     protected override IrExpression VisitCaseWhen(CaseWhen node)
@@ -146,9 +162,10 @@ internal sealed partial class LogicalConstantExpressionFolder(
             var branch = node.Branches[index];
             var condition = Visit(branch.Condition);
             var result = Visit(branch.Result);
-            branches[index] = ReferenceEquals(condition, branch.Condition) && ReferenceEquals(result, branch.Result)
-                ? branch
-                : new CaseWhenBranch(condition, result);
+            branches[index] =
+                ReferenceEquals(condition, branch.Condition) && ReferenceEquals(result, branch.Result)
+                    ? branch
+                    : new CaseWhenBranch(condition, result);
             changed |= !ReferenceEquals(branches[index], branch);
         }
 
@@ -161,7 +178,10 @@ internal sealed partial class LogicalConstantExpressionFolder(
     protected override IrExpression VisitCoalesce(Coalesce node)
     {
         var expressions = RewriteExpressions(node.Expressions, out var changed);
-        var firstLiveExpression = Array.FindIndex(expressions, static expression => expression is not Literal { Value: null });
+        var firstLiveExpression = Array.FindIndex(
+            expressions,
+            static expression => expression is not Literal { Value: null }
+        );
         if (firstLiveExpression < 0)
         {
             FoldedExpressions++;
@@ -191,7 +211,11 @@ internal sealed partial class LogicalConstantExpressionFolder(
         var index = Visit(node.Index);
         return ReferenceEquals(array, node.Array) && ReferenceEquals(index, node.Index)
             ? node
-            : node with { Array = array, Index = index };
+            : node with
+            {
+                Array = array,
+                Index = index,
+            };
     }
 
     protected override IrExpression VisitCteTableRef(CteTableRef node) => node;
@@ -217,7 +241,8 @@ internal sealed partial class LogicalConstantExpressionFolder(
         diagnostics?.ReportError(
             DiagnosticCode.MQ3008_DivisionByZero,
             "Division by zero in constant expression.",
-            GetSourceSpan(expression));
+            GetSourceSpan(expression)
+        );
     }
 
     private void ReportArithmeticOverflow(IrExpression expression)
@@ -225,7 +250,8 @@ internal sealed partial class LogicalConstantExpressionFolder(
         diagnostics?.ReportError(
             DiagnosticCode.MQ3032_ArithmeticOverflow,
             "Arithmetic overflow in constant expression.",
-            GetSourceSpan(expression));
+            GetSourceSpan(expression)
+        );
     }
 
     private static bool Succeed(IrExpression expression, out IrExpression folded)
@@ -243,6 +269,7 @@ internal sealed partial class LogicalConstantExpressionFolder(
     {
         return IrExpressionSourceSpans.Get(expression);
     }
+
     protected override IrExpression VisitStructuralRecordLiteral(StructuralRecordLiteral node)
     {
         var fields = new StructuralFieldExpression[node.Fields.Count];
@@ -251,12 +278,17 @@ internal sealed partial class LogicalConstantExpressionFolder(
         {
             var field = node.Fields[index];
             var value = Visit(field.Value);
-            fields[index] = ReferenceEquals(value, field.Value) ? field : new StructuralFieldExpression(field.Name, value);
+            fields[index] = ReferenceEquals(value, field.Value)
+                ? field
+                : new StructuralFieldExpression(field.Name, value);
             changed |= !ReferenceEquals(value, field.Value);
         }
 
         return changed
-            ? IrExpressionSourceSpans.CopyFrom(new StructuralRecordLiteral(node.ReturnType, fields, node.TargetType), node)
+            ? IrExpressionSourceSpans.CopyFrom(
+                new StructuralRecordLiteral(node.ReturnType, fields, node.TargetType),
+                node
+            )
             : node;
     }
 
@@ -271,7 +303,10 @@ internal sealed partial class LogicalConstantExpressionFolder(
         }
 
         return changed
-            ? IrExpressionSourceSpans.CopyFrom(new StructuralArrayLiteral(node.ReturnType, node.ElementType, elements), node)
+            ? IrExpressionSourceSpans.CopyFrom(
+                new StructuralArrayLiteral(node.ReturnType, node.ElementType, elements),
+                node
+            )
             : node;
     }
 
@@ -281,4 +316,5 @@ internal sealed partial class LogicalConstantExpressionFolder(
         return ReferenceEquals(value, node.Value)
             ? node
             : IrExpressionSourceSpans.CopyFrom(new StructuralConversion(value, node.TargetType), node);
-    }}
+    }
+}

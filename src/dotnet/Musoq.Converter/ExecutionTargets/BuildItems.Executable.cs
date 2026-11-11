@@ -27,15 +27,11 @@ public partial class BuildItems
 
     private byte[]? GetDllFileValue()
     {
-        return GetOptional<byte[]>(BuildItemKeys.DllFile) is { } value
-            ? (byte[])value.Clone()
-            : GetExecutableDllFile();
+        return GetOptional<byte[]>(BuildItemKeys.DllFile) is { } value ? (byte[])value.Clone() : GetExecutableDllFile();
     }
 
     private byte[]? GetPdbFileValue()
     {
-        return GetOptional<byte[]>(BuildItemKeys.PdbFile) is { } value
-            ? (byte[])value.Clone()
-            : GetExecutablePdbFile();
+        return GetOptional<byte[]>(BuildItemKeys.PdbFile) is { } value ? (byte[])value.Clone() : GetExecutablePdbFile();
     }
 }

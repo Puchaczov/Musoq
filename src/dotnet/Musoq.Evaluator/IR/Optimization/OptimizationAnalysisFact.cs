@@ -10,7 +10,8 @@ internal sealed record OptimizationAnalysisFact(
     OptimizationStage ProducedAtStage,
     string? ProducedByPass,
     int ProducedAtIteration,
-    IReadOnlyList<string> Consumers)
+    IReadOnlyList<string> Consumers
+)
 {
     internal int ProducedInPassRun { get; init; }
 }

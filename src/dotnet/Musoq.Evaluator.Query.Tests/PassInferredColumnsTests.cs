@@ -8,13 +8,13 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class PassInferredColumnsTests : UnknownQueryTestsBase
 {
-
     [TestMethod]
     public void PassInferredColumnsTest()
     {
-        const string query = "table Persons { Name: string, Surname: string, ContactNumber: string, Country: string }; " +
-                             "couple #test.whatever with table Persons as SourceOfPersons; " +
-                             "select Name, Surname, ContactNumber from SourceOfPersons() where Country = 'Poland'";
+        const string query =
+            "table Persons { Name: string, Surname: string, ContactNumber: string, Country: string }; "
+            + "couple #test.whatever with table Persons as SourceOfPersons; "
+            + "select Name, Surname, ContactNumber from SourceOfPersons() where Country = 'Poland'";
 
         dynamic first = new ExpandoObject();
         first.Name = "Roland";
@@ -28,10 +28,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         second.Country = "USA";
         second.ContactNumber = "987654321";
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -52,13 +49,14 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
     [TestMethod]
     public void PassInferredColumnsBasedOnCouplingSyntaxTest()
     {
-        const string query = "table Persons {" +
-                             "   Name: string," +
-                             "   Age: int," +
-                             "   Country: string" +
-                             "};" +
-                             "couple #test.whatever with table Persons as SourceOfPersons;" +
-                             "select Name, Age from SourceOfPersons() where Country = 'Poland';";
+        const string query =
+            "table Persons {"
+            + "   Name: string,"
+            + "   Age: int,"
+            + "   Country: string"
+            + "};"
+            + "couple #test.whatever with table Persons as SourceOfPersons;"
+            + "select Name, Age from SourceOfPersons() where Country = 'Poland';";
 
         dynamic first = new ExpandoObject();
         first.Name = "Roland";
@@ -72,10 +70,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         second.Country = "USA";
         second.ContactNumber = "987654321";
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -93,14 +88,15 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
     [TestMethod]
     public void PassInferredColumnsWithJoinBetweenTwoCoupledTables()
     {
-        const string query = "table Persons {" +
-                             "   Name: string," +
-                             "   Age: int," +
-                             "   Country: string" +
-                             "};" +
-                             "couple #test.whatever with table Persons as SourceOfPersons;" +
-                             "select p1.Name, p1.Age, p2.Name, p2.Age from SourceOfPersons() p1 inner join SourceOfPersons() p2 on p1.Country = p2.Country " +
-                             "where p1.Country = 'Poland' and p1.Name <> p2.Name;";
+        const string query =
+            "table Persons {"
+            + "   Name: string,"
+            + "   Age: int,"
+            + "   Country: string"
+            + "};"
+            + "couple #test.whatever with table Persons as SourceOfPersons;"
+            + "select p1.Name, p1.Age, p2.Name, p2.Age from SourceOfPersons() p1 inner join SourceOfPersons() p2 on p1.Country = p2.Country "
+            + "where p1.Country = 'Poland' and p1.Name <> p2.Name;";
 
         dynamic first = new ExpandoObject();
         first.Name = "Roland";
@@ -120,10 +116,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         third.Country = "Poland";
         third.ContactNumber = "31233133";
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second, third
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second, third]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -139,33 +132,40 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "Roland" &&
-                (int)row.ReadValues()[1] == 21 &&
-                (string)row.ReadValues()[2] == "Mateusz" &&
-                (int)row.ReadValues()[3] == 22),
-            "Row with Roland and Mateusz not found");
+        Assert.IsTrue(
+            table.Any(row =>
+                (string)row.ReadValues()[0] == "Roland"
+                && (int)row.ReadValues()[1] == 21
+                && (string)row.ReadValues()[2] == "Mateusz"
+                && (int)row.ReadValues()[3] == 22
+            ),
+            "Row with Roland and Mateusz not found"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "Mateusz" &&
-                (int)row.ReadValues()[1] == 22 &&
-                (string)row.ReadValues()[2] == "Roland" &&
-                (int)row.ReadValues()[3] == 21),
-            "Row with Mateusz and Roland not found");
+        Assert.IsTrue(
+            table.Any(row =>
+                (string)row.ReadValues()[0] == "Mateusz"
+                && (int)row.ReadValues()[1] == 22
+                && (string)row.ReadValues()[2] == "Roland"
+                && (int)row.ReadValues()[3] == 21
+            ),
+            "Row with Mateusz and Roland not found"
+        );
     }
 
     [TestMethod]
     public void PassInferredColumnsWithSetOfCoupledTables()
     {
-        const string query = "table Persons {" +
-                             "   Name: string," +
-                             "   Age: int," +
-                             "   Country: string" +
-                             "};" +
-                             "couple #test.whatever with table Persons as SourceOfPersons;" +
-                             "select Name, Age from SourceOfPersons() where Country = 'Poland' " +
-                             "union all (Name, Age) " +
-                             "select Name, Age from SourceOfPersons() where Country = 'USA';";
+        const string query =
+            "table Persons {"
+            + "   Name: string,"
+            + "   Age: int,"
+            + "   Country: string"
+            + "};"
+            + "couple #test.whatever with table Persons as SourceOfPersons;"
+            + "select Name, Age from SourceOfPersons() where Country = 'Poland' "
+            + "union all (Name, Age) "
+            + "select Name, Age from SourceOfPersons() where Country = 'USA';";
 
         dynamic first = new ExpandoObject();
         first.Name = "Roland";
@@ -185,10 +185,7 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
         third.Country = "Poland";
         third.ContactNumber = "31233133";
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second, third
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second, third]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -200,19 +197,19 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "Roland" &&
-                (int)row.ReadValues()[1] == 21),
-            "Row with Roland age 21 not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Roland" && (int)row.ReadValues()[1] == 21),
+            "Row with Roland age 21 not found"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "Mateusz" &&
-                (int)row.ReadValues()[1] == 22),
-            "Row with Mateusz age 22 not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Mateusz" && (int)row.ReadValues()[1] == 22),
+            "Row with Mateusz age 22 not found"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "John" &&
-                (int)row.ReadValues()[1] == 22),
-            "Row with John age 22 not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "John" && (int)row.ReadValues()[1] == 22),
+            "Row with John age 22 not found"
+        );
     }
 }

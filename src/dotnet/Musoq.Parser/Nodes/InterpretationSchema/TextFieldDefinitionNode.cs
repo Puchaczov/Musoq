@@ -27,7 +27,8 @@ public class TextFieldDefinitionNode : Node
         TextFieldModifier modifiers = TextFieldModifier.None,
         string? escapeCharacter = null,
         string[]? captureGroups = null,
-        TextFieldDefinitionNode? repeatElement = null)
+        TextFieldDefinitionNode? repeatElement = null
+    )
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         FieldType = fieldType;
@@ -53,7 +54,8 @@ public class TextFieldDefinitionNode : Node
     public TextFieldDefinitionNode(
         string name,
         TextSwitchCaseNode[] switchCases,
-        TextFieldModifier modifiers = TextFieldModifier.None)
+        TextFieldModifier modifiers = TextFieldModifier.None
+    )
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         FieldType = TextFieldType.Switch;
@@ -124,12 +126,13 @@ public class TextFieldDefinitionNode : Node
     public bool IsDiscard => Name == "_";
 
     /// <inheritdoc />
-    public override Type ReturnType => FieldType switch
-    {
-        TextFieldType.Repeat => RepeatElement?.ReturnType.MakeArrayType() ?? typeof(object[]),
-        TextFieldType.Switch or TextFieldType.SchemaReference => typeof(object),
-        _ => typeof(string)
-    };
+    public override Type ReturnType =>
+        FieldType switch
+        {
+            TextFieldType.Repeat => RepeatElement?.ReturnType.MakeArrayType() ?? typeof(object[]),
+            TextFieldType.Switch or TextFieldType.SchemaReference => typeof(object),
+            _ => typeof(string),
+        };
 
     /// <inheritdoc />
     public override string Id { get; }
@@ -165,25 +168,36 @@ public class TextFieldDefinitionNode : Node
 
     private void AppendTypeDefinition(StringBuilder builder)
     {
-
         switch (FieldType)
         {
             case TextFieldType.Pattern:
                 builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"pattern '{PrimaryValue}'");
-                if (CaptureGroups.Length > 0) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" capture ({string.Join(", ", CaptureGroups)})");
+                if (CaptureGroups.Length > 0)
+                    builder.Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $" capture ({string.Join(", ", CaptureGroups)})"
+                    );
                 break;
 
             case TextFieldType.Literal:
-                builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"literal '{EscapeString(PrimaryValue ?? string.Empty)}'");
+                builder.Append(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $"literal '{EscapeString(PrimaryValue ?? string.Empty)}'"
+                );
                 break;
 
             case TextFieldType.Until:
-                builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"until '{EscapeString(PrimaryValue ?? string.Empty)}'");
+                builder.Append(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $"until '{EscapeString(PrimaryValue ?? string.Empty)}'"
+                );
                 break;
 
             case TextFieldType.Between:
-                builder.Append(System.Globalization.CultureInfo.InvariantCulture,
-                    $"between '{EscapeString(PrimaryValue ?? string.Empty)}' '{EscapeString(SecondaryValue ?? string.Empty)}'");
+                builder.Append(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $"between '{EscapeString(PrimaryValue ?? string.Empty)}' '{EscapeString(SecondaryValue ?? string.Empty)}'"
+                );
                 break;
 
             case TextFieldType.Chars:
@@ -215,7 +229,10 @@ public class TextFieldDefinitionNode : Node
                 else
                     builder.Append(PrimaryValue);
                 if (SecondaryValue != null)
-                    builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" until '{EscapeString(SecondaryValue)}'");
+                    builder.Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $" until '{EscapeString(SecondaryValue)}'"
+                    );
                 else
                     builder.Append(" until end");
                 break;
@@ -224,7 +241,8 @@ public class TextFieldDefinitionNode : Node
                 builder.Append("switch { ");
                 for (var i = 0; i < SwitchCases.Length; i++)
                 {
-                    if (i > 0) builder.Append(", ");
+                    if (i > 0)
+                        builder.Append(", ");
                     builder.Append(SwitchCases[i]);
                 }
 
@@ -248,7 +266,11 @@ public class TextFieldDefinitionNode : Node
         if ((Modifiers & TextFieldModifier.Escaped) != 0)
         {
             builder.Append(" escaped");
-            if (!string.IsNullOrEmpty(EscapeCharacter)) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" '{EscapeString(EscapeCharacter)}'");
+            if (!string.IsNullOrEmpty(EscapeCharacter))
+                builder.Append(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $" '{EscapeString(EscapeCharacter)}'"
+                );
         }
 
         if ((Modifiers & TextFieldModifier.Greedy) != 0)

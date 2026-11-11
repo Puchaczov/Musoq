@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class CrossApplyMethodCallTests : GenericEntityTestBase
 {
-
     [TestMethod]
     public void CrossApplyProperty_NoMatch_ShouldPass()
     {
@@ -17,13 +16,10 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { Value1 = 1, Value2 = string.Empty }
+            new() { Value1 = 1, Value2 = string.Empty },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -38,51 +34,51 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass2>
         {
-            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." }
+            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Lorem"], ["ipsum"], ["dolor"], ["sit"],
-            ["amet,"], ["consectetur"], ["adipiscing"], ["elit."]);
+            ["Lorem"],
+            ["ipsum"],
+            ["dolor"],
+            ["sit"],
+            ["amet,"],
+            ["consectetur"],
+            ["adipiscing"],
+            ["elit."]
+        );
     }
 
     [TestMethod]
     public void CrossApplyProperty_MultipleSplitWords_ShouldPass()
     {
-        const string query = @"
-            select
-                b.Value,
-                c.Value
-            from #schema.first() a cross apply a.Split(a.Text, ' ') as b cross apply a.Split(a.Text, ' ') as c";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                b.Value,\n"
+            + "                c.Value\n"
+            + "            from #schema.first() a cross apply a.Split(a.Text, ' ') as b cross apply a.Split(a.Text, ' ') as c"
+        );
 
         string[] words = ["Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."];
 
-        var firstSource = new List<CrossApplyClass2>
-        {
-            new() { Text = string.Join(" ", words) }
-        }.ToArray();
+        var firstSource = new List<CrossApplyClass2> { new() { Text = string.Join(" ", words) } }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table, ("Value", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            words.SelectMany(first => words.Select(second => new object?[] { first, second })).ToArray());
+            words.SelectMany(first => words.Select(second => new object?[] { first, second })).ToArray()
+        );
     }
 
     [TestMethod]
@@ -95,25 +91,18 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass3>
         {
-            new()
-            {
-                Words = string.Join(" ", words),
-                Numbers = "1,2"
-            }
+            new() { Words = string.Join(" ", words), Numbers = "1,2" },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table, ("Value", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            new[] { "1", "2" }.SelectMany(number => words.Select(word => new object?[] { number, word })).ToArray());
+            new[] { "1", "2" }.SelectMany(number => words.Select(word => new object?[] { number, word })).ToArray()
+        );
     }
 
     [TestMethod]
@@ -124,26 +113,17 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         string[] words = ["Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit."];
 
-        var firstSource = new List<CrossApplyClass3>
-        {
-            new()
-            {
-                Words = string.Join(" ", words)
-            }
-        }.ToArray();
+        var firstSource = new List<CrossApplyClass3> { new() { Words = string.Join(" ", words) } }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table, ("Value", typeof(string)), ("Value", typeof(char)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)), ("Value", typeof(char)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            words.SelectMany(word => word.Select(character => new object?[] { word, character })).ToArray());
+            words.SelectMany(word => word.Select(character => new object?[] { word, character })).ToArray()
+        );
     }
 
     [TestMethod]
@@ -152,24 +132,18 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         const string query = "select b.Value from #schema.first() a cross apply a.Skip(a.Split(a.Text, ' '), 1) as b";
 
         var inputText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
-        var firstSource = new List<CrossApplyClass2>
-        {
-            new() { Text = inputText }
-        }.ToArray();
+        var firstSource = new List<CrossApplyClass2> { new() { Text = inputText } }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        var expectedWords = inputText.Split(' ')
-            .Skip(1)
-            .ToList();
+        var expectedWords = inputText.Split(' ').Skip(1).ToList();
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
-            table, expectedWords.Select(word => new object?[] { word }).ToArray());
+            table,
+            expectedWords.Select(word => new object?[] { word }).ToArray()
+        );
     }
 
     [TestMethod]
@@ -180,20 +154,19 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass2>
         {
-            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." }
+            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         var expectedWords = new[] { "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing" };
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
-            table, expectedWords.Select(word => new object?[] { word }).ToArray());
+            table,
+            expectedWords.Select(word => new object?[] { word }).ToArray()
+        );
     }
 
     [TestMethod]
@@ -204,20 +177,19 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass2>
         {
-            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." }
+            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         var expectedWords = new[] { "consectetur", "adipiscing" };
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
-            table, expectedWords.Select(word => new object?[] { word }).ToArray());
+            table,
+            expectedWords.Select(word => new object?[] { word }).ToArray()
+        );
     }
 
     [TestMethod]
@@ -228,23 +200,19 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass2>
         {
-            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." }
+            new() { Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("b.Length(b.Value)", typeof(int?)),
-            ("b.Count(Length(b.Value))", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [5, 5L], [3, 1L], [11, 1L], [10, 1L]);
+            ("b.Count(Length(b.Value))", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [5, 5L], [3, 1L], [11, 1L], [10, 1L]);
     }
 
     public sealed class CrossApplyClass1

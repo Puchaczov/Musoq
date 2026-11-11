@@ -4,10 +4,7 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class ConstantOperatorEvaluator
 {
-    public static object EvaluatePreservingNumericType(
-        ConstantOperatorKind operation,
-        object left,
-        object right)
+    public static object EvaluatePreservingNumericType(ConstantOperatorKind operation, object left, object right)
     {
         return operation switch
         {
@@ -21,14 +18,11 @@ internal static class ConstantOperatorEvaluator
             ConstantOperatorKind.BitwiseXor => (long)left ^ (long)right,
             ConstantOperatorKind.LeftShift => (long)left << (int)(long)right,
             ConstantOperatorKind.RightShift => (long)left >> (int)(long)right,
-            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
         };
     }
 
-    public static decimal EvaluateDecimalArithmetic(
-        ConstantOperatorKind operation,
-        decimal left,
-        decimal right)
+    public static decimal EvaluateDecimalArithmetic(ConstantOperatorKind operation, decimal left, decimal right)
     {
         return operation switch
         {
@@ -37,34 +31,28 @@ internal static class ConstantOperatorEvaluator
             ConstantOperatorKind.Multiply => left * right,
             ConstantOperatorKind.Divide => left / right,
             ConstantOperatorKind.Modulo => left % right,
-            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
         };
     }
 
-    public static long EvaluateIntegralBitwise(
-        ConstantOperatorKind operation,
-        long left,
-        long right)
+    public static long EvaluateIntegralBitwise(ConstantOperatorKind operation, long left, long right)
     {
         return operation switch
         {
             ConstantOperatorKind.BitwiseAnd => left & right,
             ConstantOperatorKind.BitwiseOr => left | right,
             ConstantOperatorKind.BitwiseXor => left ^ right,
-            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
         };
     }
 
-    public static long EvaluateIntegralShift(
-        ConstantOperatorKind operation,
-        long left,
-        int right)
+    public static long EvaluateIntegralShift(ConstantOperatorKind operation, long left, int right)
     {
         return operation switch
         {
             ConstantOperatorKind.LeftShift => left << right,
             ConstantOperatorKind.RightShift => left >> right,
-            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
         };
     }
 
@@ -122,7 +110,7 @@ internal static class ConstantOperatorEvaluator
             short l => checked(l + Convert.ToInt32(right, CultureInfo.InvariantCulture)),
             byte l => checked(l + Convert.ToInt32(right, CultureInfo.InvariantCulture)),
             sbyte l => checked(l + Convert.ToInt32(right, CultureInfo.InvariantCulture)),
-            _ => throw new InvalidCastException($"Cannot add {left.GetType().Name}")
+            _ => throw new InvalidCastException($"Cannot add {left.GetType().Name}"),
         };
     }
 
@@ -141,7 +129,7 @@ internal static class ConstantOperatorEvaluator
             short l => checked(l - Convert.ToInt32(right, CultureInfo.InvariantCulture)),
             byte l => checked(l - Convert.ToInt32(right, CultureInfo.InvariantCulture)),
             sbyte l => checked(l - Convert.ToInt32(right, CultureInfo.InvariantCulture)),
-            _ => throw new InvalidCastException($"Cannot subtract {left.GetType().Name}")
+            _ => throw new InvalidCastException($"Cannot subtract {left.GetType().Name}"),
         };
     }
 
@@ -160,7 +148,7 @@ internal static class ConstantOperatorEvaluator
             short l => checked(l * Convert.ToInt32(right, CultureInfo.InvariantCulture)),
             byte l => checked(l * Convert.ToInt32(right, CultureInfo.InvariantCulture)),
             sbyte l => checked(l * Convert.ToInt32(right, CultureInfo.InvariantCulture)),
-            _ => throw new InvalidCastException($"Cannot multiply {left.GetType().Name}")
+            _ => throw new InvalidCastException($"Cannot multiply {left.GetType().Name}"),
         };
     }
 
@@ -179,7 +167,7 @@ internal static class ConstantOperatorEvaluator
             short l => l / Convert.ToInt32(right, CultureInfo.InvariantCulture),
             byte l => l / Convert.ToInt32(right, CultureInfo.InvariantCulture),
             sbyte l => l / Convert.ToInt32(right, CultureInfo.InvariantCulture),
-            _ => throw new InvalidCastException($"Cannot divide {left.GetType().Name}")
+            _ => throw new InvalidCastException($"Cannot divide {left.GetType().Name}"),
         };
     }
 
@@ -198,7 +186,7 @@ internal static class ConstantOperatorEvaluator
             short l => l % Convert.ToInt32(right, CultureInfo.InvariantCulture),
             byte l => l % Convert.ToInt32(right, CultureInfo.InvariantCulture),
             sbyte l => l % Convert.ToInt32(right, CultureInfo.InvariantCulture),
-            _ => throw new InvalidCastException($"Cannot modulo {left.GetType().Name}")
+            _ => throw new InvalidCastException($"Cannot modulo {left.GetType().Name}"),
         };
     }
 }

@@ -12,15 +12,13 @@ internal interface IPipelineLoweringService
 
     SetOperationPipeline? DecomposeSetOperationPipeline(PhysicalNode node);
 
-    LoweringAttempt<ExecutionPlan> BuildPipeline(
-        CteSupportedPipeline pipeline,
-        string identifier,
-        LoweringScope scope);
+    LoweringAttempt<ExecutionPlan> BuildPipeline(CteSupportedPipeline pipeline, string identifier, LoweringScope scope);
 
     LoweringAttempt<ExecutionPlan> BuildSetOperation(
         SetOperationPipeline pipeline,
         string identifier,
-        LoweringScope scope);
+        LoweringScope scope
+    );
 
     LoweringAttempt<LoweredTable> BuildTable(
         CteSupportedPipeline pipeline,
@@ -29,7 +27,8 @@ internal interface IPipelineLoweringService
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope);
+        LoweringScope scope
+    );
 
     LoweringAttempt<LoweredTable> BuildSetOperationTable(
         SetOperationPipeline pipeline,
@@ -38,5 +37,6 @@ internal interface IPipelineLoweringService
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope);
+        LoweringScope scope
+    );
 }

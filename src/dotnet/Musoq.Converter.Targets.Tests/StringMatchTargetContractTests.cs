@@ -19,13 +19,13 @@ public sealed class StringMatchTargetContractTests
             "Google",
             ExecutionStringMatchKind.Prefix,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
         var plan = new ExecutionPlan(
             "Q_StringMatchTargetContract",
             [],
-            new ExecutionBlock([
-                new ExecutionLet(new ExecutionVariable("matched", typeof(bool)), match)
-            ]));
+            new ExecutionBlock([new ExecutionLet(new ExecutionVariable("matched", typeof(bool)), match)])
+        );
         var operations = ExecutionTargetOperationAnalyzer.Analyze(plan);
         var features = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
@@ -36,14 +36,18 @@ public sealed class StringMatchTargetContractTests
         var portableOperationValidation = PortableSubsetTarget.Capabilities.Validate(operations);
         var portableFeatureValidation = PortableSubsetTarget.Capabilities.Validate(features);
         Assert.IsFalse(portableOperationValidation.IsSupported);
-        Assert.AreEqual(
-            "expr.string-match",
-            portableOperationValidation.UnsupportedOperations.Single().Value);
+        Assert.AreEqual("expr.string-match", portableOperationValidation.UnsupportedOperations.Single().Value);
         Assert.IsFalse(portableFeatureValidation.IsSupported);
-        Assert.IsTrue(portableFeatureValidation.UnsupportedFeatures.Any(feature =>
-            feature.Kind == ExecutionTargetFeatureKind.StringMatchKind));
-        Assert.IsTrue(portableFeatureValidation.UnsupportedFeatures.Any(feature =>
-            feature.Kind == ExecutionTargetFeatureKind.StringMatchComparison));
+        Assert.IsTrue(
+            portableFeatureValidation.UnsupportedFeatures.Any(feature =>
+                feature.Kind == ExecutionTargetFeatureKind.StringMatchKind
+            )
+        );
+        Assert.IsTrue(
+            portableFeatureValidation.UnsupportedFeatures.Any(feature =>
+                feature.Kind == ExecutionTargetFeatureKind.StringMatchComparison
+            )
+        );
     }
 
     [TestMethod]
@@ -63,13 +67,17 @@ public sealed class StringMatchTargetContractTests
                     new ExecutionPrepareLikeMatcher(
                         new ExecutionLiteral("a%", typeof(string)),
                         ExecutionStringMatchComparison.LikeIgnoreCase,
-                        matcherType)),
+                        matcherType
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("prepared", typeof(bool)),
                     new ExecutionPreparedLikeMatch(
                         new ExecutionLiteral("alpha", typeof(string)),
                         new ExecutionVariableRead(matcher),
-                        ExecutionClrBindingFactory.FromClr(typeof(bool)))),
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("dynamic", typeof(bool)),
                     new ExecutionDynamicLikeMatch(
@@ -77,8 +85,11 @@ public sealed class StringMatchTargetContractTests
                         new ExecutionLiteral("a%", typeof(string)),
                         new ExecutionVariableRead(cache),
                         ExecutionStringMatchComparison.LikeIgnoreCase,
-                        ExecutionClrBindingFactory.FromClr(typeof(bool))))
-            ]));
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))
+                    )
+                ),
+            ])
+        );
         var operations = ExecutionTargetOperationAnalyzer.Analyze(plan);
         var features = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
@@ -92,13 +103,20 @@ public sealed class StringMatchTargetContractTests
                 "expr.like.cache-slot",
                 "expr.like.dynamic-match",
                 "expr.like.prepare-matcher",
-                "expr.like.prepared-match"
+                "expr.like.prepared-match",
             },
-            portableOperations.UnsupportedOperations.Select(static operation => operation.Value).ToArray());
-        Assert.IsTrue(portableFeatures.UnsupportedFeatures.Any(static feature =>
-            feature.Kind == ExecutionTargetFeatureKind.LikeMatcherStrategy));
-        Assert.IsTrue(portableFeatures.UnsupportedFeatures.Any(static feature =>
-            feature.Kind == ExecutionTargetFeatureKind.StringMatchComparison));
+            portableOperations.UnsupportedOperations.Select(static operation => operation.Value).ToArray()
+        );
+        Assert.IsTrue(
+            portableFeatures.UnsupportedFeatures.Any(static feature =>
+                feature.Kind == ExecutionTargetFeatureKind.LikeMatcherStrategy
+            )
+        );
+        Assert.IsTrue(
+            portableFeatures.UnsupportedFeatures.Any(static feature =>
+                feature.Kind == ExecutionTargetFeatureKind.StringMatchComparison
+            )
+        );
     }
 
     [TestMethod]
@@ -115,21 +133,27 @@ public sealed class StringMatchTargetContractTests
                 new ExecutionLet(cache, new ExecutionRLikeMatcherCacheSlot(cacheType)),
                 new ExecutionLet(
                     matcher,
-                    new ExecutionPrepareRLikeMatcher(new ExecutionLiteral("^a", typeof(string)), matcherType)),
+                    new ExecutionPrepareRLikeMatcher(new ExecutionLiteral("^a", typeof(string)), matcherType)
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("prepared", typeof(bool)),
                     new ExecutionPreparedRLikeMatch(
                         new ExecutionLiteral("alpha", typeof(string)),
                         new ExecutionVariableRead(matcher),
-                        ExecutionClrBindingFactory.FromClr(typeof(bool)))),
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("dynamic", typeof(bool)),
                     new ExecutionDynamicRLikeMatch(
                         new ExecutionLiteral("alpha", typeof(string)),
                         new ExecutionLiteral("^a", typeof(string)),
                         new ExecutionVariableRead(cache),
-                        ExecutionClrBindingFactory.FromClr(typeof(bool))))
-            ]));
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))
+                    )
+                ),
+            ])
+        );
         var operations = ExecutionTargetOperationAnalyzer.Analyze(plan);
         var features = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
@@ -143,10 +167,14 @@ public sealed class StringMatchTargetContractTests
                 "expr.rlike.cache-slot",
                 "expr.rlike.dynamic-match",
                 "expr.rlike.prepare-matcher",
-                "expr.rlike.prepared-match"
+                "expr.rlike.prepared-match",
             },
-            portableOperations.UnsupportedOperations.Select(static operation => operation.Value).ToArray());
-        Assert.IsTrue(portableFeatures.UnsupportedFeatures.Any(static feature =>
-            feature.Kind == ExecutionTargetFeatureKind.RLikeMatcherStrategy));
+            portableOperations.UnsupportedOperations.Select(static operation => operation.Value).ToArray()
+        );
+        Assert.IsTrue(
+            portableFeatures.UnsupportedFeatures.Any(static feature =>
+                feature.Kind == ExecutionTargetFeatureKind.RLikeMatcherStrategy
+            )
+        );
     }
 }

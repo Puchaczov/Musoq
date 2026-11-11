@@ -67,10 +67,16 @@ public class CompiledQueryParameterApiTests
     {
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
@@ -109,10 +115,16 @@ public class CompiledQueryParameterApiTests
     {
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =

@@ -13,9 +13,9 @@ internal static class SemanticExpressionDiagnosticFacts
         if (!leftHasParameter && !rightHasParameter)
             return $"Type mismatch: cannot compare '{leftType.Name}' with '{rightType.Name}'.";
 
-        return $"Type mismatch: cannot compare {DescribeComparedExpression(leftParameter, leftType)} with " +
-               $"{DescribeComparedExpression(rightParameter, rightType)}. Script parameters use their declared types; " +
-               "use an explicit conversion if needed.";
+        return $"Type mismatch: cannot compare {DescribeComparedExpression(leftParameter, leftType)} with "
+            + $"{DescribeComparedExpression(rightParameter, rightType)}. Script parameters use their declared types; "
+            + "use an explicit conversion if needed.";
     }
 
     public static string CreateBooleanContextTypeMismatchMessage(Node expression, Type expressionType, string context)
@@ -38,9 +38,7 @@ internal static class SemanticExpressionDiagnosticFacts
             return "null";
 
         var nullableType = Nullable.GetUnderlyingType(type);
-        return nullableType == null
-            ? type.Name
-            : $"{nullableType.Name}?";
+        return nullableType == null ? type.Name : $"{nullableType.Name}?";
     }
 
     public static bool ContainsScriptParameterReference(Node node)
@@ -50,7 +48,8 @@ internal static class SemanticExpressionDiagnosticFacts
 
     public static bool TryFindFirstScriptParameterReference(
         Node? node,
-        [NotNullWhen(true)] out ParameterReferenceNode? parameter)
+        [NotNullWhen(true)] out ParameterReferenceNode? parameter
+    )
     {
         switch (node)
         {
@@ -61,8 +60,8 @@ internal static class SemanticExpressionDiagnosticFacts
                 parameter = parameterReference;
                 return true;
             case BinaryNode binaryNode:
-                return TryFindFirstScriptParameterReference(binaryNode.Left, out parameter) ||
-                       TryFindFirstScriptParameterReference(binaryNode.Right, out parameter);
+                return TryFindFirstScriptParameterReference(binaryNode.Left, out parameter)
+                    || TryFindFirstScriptParameterReference(binaryNode.Right, out parameter);
             case UnaryNode unaryNode:
                 return TryFindFirstScriptParameterReference(unaryNode.Expression, out parameter);
             case ArgsListNode argsListNode:
@@ -79,14 +78,16 @@ internal static class SemanticExpressionDiagnosticFacts
                     return true;
                 return TryFindFirstScriptParameterReference(accessMethodNode.ExtraAggregateArguments, out parameter);
             case BetweenNode betweenNode:
-                return TryFindFirstScriptParameterReference(betweenNode.Expression, out parameter) ||
-                       TryFindFirstScriptParameterReference(betweenNode.Min, out parameter) ||
-                       TryFindFirstScriptParameterReference(betweenNode.Max, out parameter);
+                return TryFindFirstScriptParameterReference(betweenNode.Expression, out parameter)
+                    || TryFindFirstScriptParameterReference(betweenNode.Min, out parameter)
+                    || TryFindFirstScriptParameterReference(betweenNode.Max, out parameter);
             case CaseNode caseNode:
                 foreach (var (when, then) in caseNode.WhenThenPairs)
                 {
-                    if (TryFindFirstScriptParameterReference(when, out parameter) ||
-                        TryFindFirstScriptParameterReference(then, out parameter))
+                    if (
+                        TryFindFirstScriptParameterReference(when, out parameter)
+                        || TryFindFirstScriptParameterReference(then, out parameter)
+                    )
                     {
                         return true;
                     }

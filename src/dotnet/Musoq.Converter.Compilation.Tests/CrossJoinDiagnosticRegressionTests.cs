@@ -16,22 +16,25 @@ public sealed class CrossJoinDiagnosticRegressionTests
     [TestMethod]
     public void CrossJoin_ShouldExecuteWithoutSyntheticTautologicalWarning()
     {
-        const string query = """
-            select r.Id, marker.Label
-            from values { ( Id: 1 ) } r
-            cross join values { ( Label: 'x' ), ( Label: 'y' ) } marker
-            order by marker.Label
-            """;
+        const string query = (
+            "select r.Id, marker.Label\n"
+            + "from values { ( Id: 1 ) } r\n"
+            + "cross join values { ( Label: 'x' ), ( Label: 'y' ) } marker\n"
+            + "order by marker.Label"
+        );
 
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             $"CrossJoinDiagnostic_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result));
-        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5010_TautologicalCondition),
-            FormatDiagnostics(result));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5010_TautologicalCondition),
+            FormatDiagnostics(result)
+        );
 
         using var table = result.CompiledQuery!.Run();
         Assert.HasCount(2, table);
@@ -50,13 +53,15 @@ public sealed class CrossJoinDiagnosticRegressionTests
             query,
             $"ExplicitTrueJoinDiagnostic_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result));
         Assert.AreEqual(
             1,
             result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5010_TautologicalCondition),
-            FormatDiagnostics(result));
+            FormatDiagnostics(result)
+        );
     }
 
     [TestMethod]
@@ -65,20 +70,15 @@ public sealed class CrossJoinDiagnosticRegressionTests
         var offendingApplies = new List<string>();
         foreach (var apply in new[] { "cross apply", "outer apply" })
         {
-            var query = $$"""
-                select r.Id, d.Label
-                from values { ( Id: 1 ) } r
-                {{apply}} (
-                    select marker.Label
-                    from values { ( Label: 'x' ) } marker
-                ) d
-                """;
+            var query =
+                $"select r.Id, d.Label\nfrom values {{ ( Id: 1 ) }} r\n{apply} (\n    select marker.Label\n    from values {{ ( Label: 'x' ) }} marker\n) d";
 
             var result = InstanceCreator.CompileWithDiagnostics(
                 query,
                 $"DerivedApplyDiagnostic_{apply.Replace(' ', '_')}_{Guid.NewGuid():N}",
                 new SystemSchemaProvider(),
-                _loggerResolver);
+                _loggerResolver
+            );
 
             Assert.IsTrue(result.Succeeded, FormatDiagnostics(result));
             if (result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5010_TautologicalCondition))
@@ -95,7 +95,10 @@ public sealed class CrossJoinDiagnosticRegressionTests
 
     private static string FormatDiagnostics(BuildResult result)
     {
-        return $"{result.CaughtException}{Environment.NewLine}" +
-               string.Join(Environment.NewLine, result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
+        return $"{result.CaughtException}{Environment.NewLine}"
+            + string.Join(
+                Environment.NewLine,
+                result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            );
     }
 }

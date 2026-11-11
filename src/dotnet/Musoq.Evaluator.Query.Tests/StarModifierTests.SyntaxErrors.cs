@@ -15,10 +15,7 @@ public partial class StarModifierTests
     {
         const string query = "select * like 'zzz%' from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("january", 50m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -30,10 +27,7 @@ public partial class StarModifierTests
     {
         const string query = "select * exclude (City, City) from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("january", 50m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -45,10 +39,7 @@ public partial class StarModifierTests
     {
         const string query = "select * replace (1 as City, 2 as City) from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("january", 50m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -60,10 +51,7 @@ public partial class StarModifierTests
     {
         const string query = "select * like 'N%' replace (1 as City) from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("january", 50m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -77,11 +65,7 @@ public partial class StarModifierTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London" }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { City = "London" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -101,11 +85,7 @@ public partial class StarModifierTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { Id = 42 }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { Id = 42 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -123,11 +103,7 @@ public partial class StarModifierTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London" }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { City = "London" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -149,13 +125,17 @@ public partial class StarModifierTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("january", 50m)
                     {
-                        City = "London", Country = "UK", Population = 100m, Id = 1
-                    }
+                        City = "London",
+                        Country = "UK",
+                        Population = 100m,
+                        Id = 1,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -181,11 +161,7 @@ public partial class StarModifierTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { Population = 5m }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { Population = 5m }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -193,8 +169,7 @@ public partial class StarModifierTests
 
         Assert.AreEqual(9, table.Columns.Count());
 
-        var populationIdx = table.Columns.Select((c, i) => (c, i))
-            .First(x => x.c.ColumnName.Contains("Population")).i;
+        var populationIdx = table.Columns.Select((c, i) => (c, i)).First(x => x.c.ColumnName.Contains("Population")).i;
         Assert.AreEqual(3, populationIdx);
         Assert.AreEqual(50m, table[0].ReadValues()[populationIdx]);
     }
@@ -204,14 +179,7 @@ public partial class StarModifierTests
     {
         const string query = "select * from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m)
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -224,15 +192,17 @@ public partial class StarModifierTests
     // Parser syntax error tests — mistyped star modifiers
     // ============================================================================
 
-
     [TestMethod]
     public void WhenStarExcludeMissingParentheses_ShouldThrowWithUsageHint()
     {
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * exclude Name from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "EXCLUDE requires a parenthesized column list");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            "EXCLUDE requires a parenthesized column list"
+        );
     }
 
     [TestMethod]
@@ -241,8 +211,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * exclude () from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2003_InvalidExpression,
-            "EXCLUDE list must contain at least one column name");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2003_InvalidExpression,
+            "EXCLUDE list must contain at least one column name"
+        );
     }
 
     [TestMethod]
@@ -260,8 +233,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * exclude (123) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "Expected a column name");
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken, "Expected a column name");
     }
 
     [TestMethod]
@@ -270,8 +242,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace 1 as Name from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "REPLACE requires a parenthesized list");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            "REPLACE requires a parenthesized list"
+        );
     }
 
     [TestMethod]
@@ -280,8 +255,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace () from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2003_InvalidExpression,
-            "REPLACE list must contain at least one replacement");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2003_InvalidExpression,
+            "REPLACE list must contain at least one replacement"
+        );
     }
 
     [TestMethod]
@@ -290,8 +268,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace (Name) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "Expected AS keyword after expression in REPLACE item");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            "Expected AS keyword after expression in REPLACE item"
+        );
     }
 
     [TestMethod]
@@ -300,8 +281,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace (123 as) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "Expected a column name");
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken, "Expected a column name");
     }
 
     [TestMethod]
@@ -310,8 +290,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * like from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2003_InvalidExpression,
-            "Expected a string pattern after LIKE");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2003_InvalidExpression,
+            "Expected a string pattern after LIKE"
+        );
     }
 
     [TestMethod]
@@ -320,8 +303,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * like 123 from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2003_InvalidExpression,
-            "Expected a string pattern after LIKE");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2003_InvalidExpression,
+            "Expected a string pattern after LIKE"
+        );
     }
 
     [TestMethod]
@@ -330,8 +316,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * not like from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2003_InvalidExpression,
-            "Expected a string pattern after LIKE");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2003_InvalidExpression,
+            "Expected a string pattern after LIKE"
+        );
     }
 
     [TestMethod]
@@ -340,8 +329,10 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * exclude (Name) exclude (City) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
-            "Duplicate or out-of-order star modifier");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2041_InvalidStarModifierOrder,
+            "Duplicate or out-of-order star modifier"
+        );
     }
-
 }

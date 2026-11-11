@@ -21,8 +21,11 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
         _enumTypeResolver = enumTypeResolver;
     }
 
-    internal GetSelectFieldsVisitor(Func<Node, EnumTypeDescriptor?> enumTypeResolver,
-        Func<Node, bool> nullableInterpretationResolver) : this(enumTypeResolver)
+    internal GetSelectFieldsVisitor(
+        Func<Node, EnumTypeDescriptor?> enumTypeResolver,
+        Func<Node, bool> nullableInterpretationResolver
+    )
+        : this(enumTypeResolver)
     {
         _nullableInterpretationResolver = nullableInterpretationResolver;
     }
@@ -50,13 +53,9 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
         _queryPart = part;
     }
 
-    public void QueryBegins()
-    {
-    }
+    public void QueryBegins() { }
 
-    public void QueryEnds()
-    {
-    }
+    public void QueryEnds() { }
 
     public override void Visit(FieldNode node)
     {
@@ -70,25 +69,36 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
         var returnType = ResolveOutputType(node);
         var enumType = _enumTypeResolver?.Invoke(node.Expression);
         var intendedTypeName = InterpretationPropertyBinding.GetIntendedTypeName(node.Expression);
-        if (StructuralProjectionColumns.Describe(node.Expression) is { Kind: not Musoq.Schema.StructuralInputs.StructuralTypeKind.Scalar } structuralShape)
+        if (
+            StructuralProjectionColumns.Describe(node.Expression) is
+            { Kind: not Musoq.Schema.StructuralInputs.StructuralTypeKind.Scalar } structuralShape
+        )
         {
-            _collectedFieldNames.Add(new StructuralProjectionColumn(GetCteOutputColumnName(node), node.FieldOrder, structuralShape));
+            _collectedFieldNames.Add(
+                new StructuralProjectionColumn(GetCteOutputColumnName(node), node.FieldOrder, structuralShape)
+            );
             _fieldNamesCacheValid = false;
             return;
         }
-        ISchemaColumn outputColumn = enumType == null
-            ? new SchemaColumn(GetCteOutputColumnName(node), node.FieldOrder, returnType, intendedTypeName)
-            : new SchemaColumn(
-                GetCteOutputColumnName(node),
-                node.FieldOrder,
-                returnType,
-                returnType,
-                enumType,
-                intendedTypeName,
-                null,
-                ColumnStability.Stable);
-        _collectedFieldNames.Add(NullableInterpretationColumn.Preserve(outputColumn,
-            intendedTypeName != null && _nullableInterpretationResolver?.Invoke(node.Expression) == true));
+        ISchemaColumn outputColumn =
+            enumType == null
+                ? new SchemaColumn(GetCteOutputColumnName(node), node.FieldOrder, returnType, intendedTypeName)
+                : new SchemaColumn(
+                    GetCteOutputColumnName(node),
+                    node.FieldOrder,
+                    returnType,
+                    returnType,
+                    enumType,
+                    intendedTypeName,
+                    null,
+                    ColumnStability.Stable
+                );
+        _collectedFieldNames.Add(
+            NullableInterpretationColumn.Preserve(
+                outputColumn,
+                intendedTypeName != null && _nullableInterpretationResolver?.Invoke(node.Expression) == true
+            )
+        );
         _fieldNamesCacheValid = false;
     }
 
@@ -97,9 +107,7 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
         if (node.HasExplicitFieldName)
             return node.FieldName;
 
-        return node.Expression is AccessColumnNode accessColumn
-            ? accessColumn.Name
-            : node.FieldName;
+        return node.Expression is AccessColumnNode accessColumn ? accessColumn.Name : node.FieldName;
     }
 
     private static Type ResolveOutputType(FieldNode node)

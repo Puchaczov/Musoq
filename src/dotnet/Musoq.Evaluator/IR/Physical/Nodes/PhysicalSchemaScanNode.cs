@@ -18,7 +18,9 @@ public sealed record PhysicalSchemaScanNode(
     Type? SourceConstructionType = null,
     bool SourceConstructionSupportsContext = false,
     string? SourceConstructorStableId = null,
-    ExecutionCallableRef? SourceConstructor = null, IReadOnlyList<ExecutionStructuralLimitPlan?>? StructuralArgumentLimits = null) : PhysicalNode(OutputSchema)
+    ExecutionCallableRef? SourceConstructor = null,
+    IReadOnlyList<ExecutionStructuralLimitPlan?>? StructuralArgumentLimits = null
+) : PhysicalNode(OutputSchema)
 {
     public override IReadOnlyList<PhysicalNode> Children { get; } = Array.Empty<PhysicalNode>();
 }

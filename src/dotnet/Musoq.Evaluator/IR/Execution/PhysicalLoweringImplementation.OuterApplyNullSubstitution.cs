@@ -4,9 +4,9 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static OuterApplyNullSubstitutionResult SubstituteOuterApplyRightAlias(
         ExecutionExpression expression,
-        string rightAlias)
+        string rightAlias
+    )
     {
         return OuterApplyNullSubstitutionService.SubstituteRightAlias(expression, rightAlias);
     }
-
 }

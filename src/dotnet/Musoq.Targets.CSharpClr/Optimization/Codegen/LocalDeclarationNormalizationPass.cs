@@ -23,12 +23,14 @@ internal sealed class LocalDeclarationNormalizationPass : ICodegenReadabilityOpt
         {
             return OptimizationResult<CompilationUnitSyntax>.NoChange(
                 plan,
-                "No multi-variable local declarations were safe to split.");
+                "No multi-variable local declarations were safe to split."
+            );
         }
 
         return OptimizationResult<CompilationUnitSyntax>.Changed(
             optimized,
-            $"Split {rewriter.SplitDeclarations} multi-variable local declaration(s).");
+            $"Split {rewriter.SplitDeclarations} multi-variable local declaration(s)."
+        );
     }
 
     private sealed class LocalDeclarationNormalizationRewriter : CSharpSyntaxRewriter
@@ -49,9 +51,11 @@ internal sealed class LocalDeclarationNormalizationPass : ICodegenReadabilityOpt
 
         private IEnumerable<StatementSyntax> SplitIfSafe(StatementSyntax statement)
         {
-            if (statement is not LocalDeclarationStatementSyntax local ||
-                local.Declaration.Variables.Count <= 1 ||
-                !CanSplit(local))
+            if (
+                statement is not LocalDeclarationStatementSyntax local
+                || local.Declaration.Variables.Count <= 1
+                || !CanSplit(local)
+            )
             {
                 yield return statement;
                 yield break;
@@ -72,10 +76,9 @@ internal sealed class LocalDeclarationNormalizationPass : ICodegenReadabilityOpt
 
         private static bool CanSplit(LocalDeclarationStatementSyntax local)
         {
-            return local.UsingKeyword.RawKind == 0 &&
-                   local.AwaitKeyword.RawKind == 0 &&
-                   local.AttributeLists.Count == 0;
+            return local.UsingKeyword.RawKind == 0
+                && local.AwaitKeyword.RawKind == 0
+                && local.AttributeLists.Count == 0;
         }
     }
 }
-

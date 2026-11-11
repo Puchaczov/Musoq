@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Nodes.InterpretationSchema;
-using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -49,17 +49,32 @@ internal static class ParserNodeTraversalRegistry
         Children<WhereNode>(static node => Optional(node.Expression)),
         Children<GroupByNode>(GroupByChildren),
         Children<HavingNode>(static node => Optional(node.Expression)),
-        Children<JoinInMemoryWithSourceTableFromNode>(static node => Optional(node.SourceTable, node.Expression, node.TieBreak), includeDerivedTypes: true),
-        Children<ApplyInMemoryWithSourceTableFromNode>(static node => Optional(node.SourceTable), includeDerivedTypes: true),
+        Children<JoinInMemoryWithSourceTableFromNode>(
+            static node => Optional(node.SourceTable, node.Expression, node.TieBreak),
+            includeDerivedTypes: true
+        ),
+        Children<ApplyInMemoryWithSourceTableFromNode>(
+            static node => Optional(node.SourceTable),
+            includeDerivedTypes: true
+        ),
         Children<SchemaFromNode>(static node => Optional(node.Parameters), includeDerivedTypes: true),
-        Children<JoinSourcesTableFromNode>(static node => Optional(node.Expression, node.First, node.Second, node.TieBreak), includeDerivedTypes: true),
-        Children<ApplySourcesTableFromNode>(static node => Optional(node.First, node.Second), includeDerivedTypes: true),
+        Children<JoinSourcesTableFromNode>(
+            static node => Optional(node.Expression, node.First, node.Second, node.TieBreak),
+            includeDerivedTypes: true
+        ),
+        Children<ApplySourcesTableFromNode>(
+            static node => Optional(node.First, node.Second),
+            includeDerivedTypes: true
+        ),
         Children<DerivedTableFromNode>(static node => Optional(node.Query)),
         Leaf<InMemoryTableFromNode>(includeDerivedTypes: true),
         Leaf<InMemoryGroupedFromNode>(includeDerivedTypes: true),
         Children<ValuesFromNode>(ValuesChildren),
         Children<UnpivotFromNode>(UnpivotChildren),
-        Children<JoinFromNode>(static node => Optional(node.Source, node.With, node.Expression, node.TieBreak), includeDerivedTypes: true),
+        Children<JoinFromNode>(
+            static node => Optional(node.Source, node.With, node.Expression, node.TieBreak),
+            includeDerivedTypes: true
+        ),
         Children<ApplyFromNode>(static node => Optional(node.Source, node.With), includeDerivedTypes: true),
         Children<ExpressionFromNode>(static node => Optional(node.Expression), includeDerivedTypes: true),
         Children<InterpretFromNode>(static node => Optional(node.InterpretCall), includeDerivedTypes: true),
@@ -90,9 +105,9 @@ internal static class ParserNodeTraversalRegistry
         Children<InQueryNode>(static node => Optional(node.Left, node.Subquery)),
         Children<QuantifiedSubqueryNode>(static node => Optional(node.Left, node.Subquery)),
         Children<ExistsQueryNode>(static node => Optional(node.Subquery)),
-        Children<SubqueryApplyNode>(static node => node.IsBound
-            ? Optional(node.Operand).Concat(node.Bindings)
-            : Optional(node.Operand, node.Subquery)),
+        Children<SubqueryApplyNode>(static node =>
+            node.IsBound ? Optional(node.Operand).Concat(node.Bindings) : Optional(node.Operand, node.Subquery)
+        ),
         Leaf<SubqueryParameterNode>(),
         Children<ScalarSubqueryNode>(static node => Optional(node.Subquery)),
         Children<BetweenNode>(static node => Optional(node.Expression, node.Min, node.Max)),
@@ -116,7 +131,9 @@ internal static class ParserNodeTraversalRegistry
         Leaf<SchemaReferenceTypeNode>(),
         Leaf<StringTypeNode>(),
         Leaf<SubstreamTypeNode>(),
-        Children<TextFieldDefinitionNode>(static node => Optional(node.RepeatElement).Concat(node.SwitchCases.Select(arm => (Node)arm.Body))),
+        Children<TextFieldDefinitionNode>(static node =>
+            Optional(node.RepeatElement).Concat(node.SwitchCases.Select(arm => (Node)arm.Body))
+        ),
         Leaf<TextSchemaNode>(),
         Leaf<PutTrueNode>(),
         Children<EnumDeclarationNode>(static node => node.Members),
@@ -148,7 +165,7 @@ internal static class ParserNodeTraversalRegistry
         Leaf<WordNode>(),
         Leaf<DecimalNode>(),
         Leaf<NullNode>(),
-        Leaf<IdentifierNode>()
+        Leaf<IdentifierNode>(),
     ];
 
     public static IReadOnlyList<ParserNodeTraversalDescriptor> Descriptors => RegisteredDescriptors;
@@ -166,11 +183,7 @@ internal static class ParserNodeTraversalRegistry
                 return descriptor;
         }
 
-        return new ParserNodeTraversalDescriptor(
-            nodeType,
-            ParserNodeTraversalMode.Unsupported,
-            false,
-            static _ => []);
+        return new ParserNodeTraversalDescriptor(nodeType, ParserNodeTraversalMode.Unsupported, false, static _ => []);
     }
 
     public static IEnumerable<Node> EnumerateCteInnerExpressionsThenOuter(CteExpressionNode node)
@@ -183,26 +196,30 @@ internal static class ParserNodeTraversalRegistry
 
     private static ParserNodeTraversalDescriptor Children<T>(
         Func<T, IEnumerable<Node>> enumerateChildren,
-        bool includeDerivedTypes = false)
+        bool includeDerivedTypes = false
+    )
         where T : Node
     {
         return new ParserNodeTraversalDescriptor(
             typeof(T),
             ParserNodeTraversalMode.Children,
             includeDerivedTypes,
-            node => enumerateChildren((T)node));
+            node => enumerateChildren((T)node)
+        );
     }
 
     private static ParserNodeTraversalDescriptor Special<T>(
         Func<T, IEnumerable<Node>> enumerateChildren,
-        bool includeDerivedTypes = false)
+        bool includeDerivedTypes = false
+    )
         where T : Node
     {
         return new ParserNodeTraversalDescriptor(
             typeof(T),
             ParserNodeTraversalMode.SpecialOrder,
             includeDerivedTypes,
-            node => enumerateChildren((T)node));
+            node => enumerateChildren((T)node)
+        );
     }
 
     private static ParserNodeTraversalDescriptor Leaf<T>(bool includeDerivedTypes = false)
@@ -212,7 +229,8 @@ internal static class ParserNodeTraversalRegistry
             typeof(T),
             ParserNodeTraversalMode.Leaf,
             includeDerivedTypes,
-            static _ => []);
+            static _ => []
+        );
     }
 
     private static IEnumerable<Node> AllColumnsChildren(AllColumnsNode node)

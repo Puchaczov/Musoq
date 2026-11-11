@@ -23,14 +23,11 @@ internal sealed class HelperExtractionReadabilityPass : ICodegenReadabilityOptim
         var helperCount = 0;
         var linkedHelperCount = 0;
         var helperCallSiteCount = 0;
-        var candidateHelperCount = plan
-            .DescendantNodes()
+        var candidateHelperCount = plan.DescendantNodes()
             .Count(static node => CodegenHelperExtractionMetadata.TryGetCandidate(node, out _));
-        var candidateCallSiteCount = plan
-            .DescendantNodes()
+        var candidateCallSiteCount = plan.DescendantNodes()
             .Count(static node => CodegenHelperExtractionMetadata.TryGetCallSite(node, out _));
-        var inlineCandidateCount = plan
-            .DescendantNodes()
+        var inlineCandidateCount = plan.DescendantNodes()
             .Count(static node => CodegenHelperExtractionMetadata.TryGetInlineCandidate(node, out _));
 
         foreach (var @class in classes)
@@ -46,7 +43,9 @@ internal sealed class HelperExtractionReadabilityPass : ICodegenReadabilityOptim
 
             helperCount += helperNames.Count;
             var callSites = methods
-                .Where(static method => !CodegenReadabilitySyntaxFacts.IsLifecycleMethodName(method.Identifier.ValueText))
+                .Where(static method =>
+                    !CodegenReadabilitySyntaxFacts.IsLifecycleMethodName(method.Identifier.ValueText)
+                )
                 .SelectMany(CodegenReadabilitySyntaxFacts.CollectInvocationNames)
                 .Where(helperNames.Contains)
                 .ToArray();
@@ -55,13 +54,12 @@ internal sealed class HelperExtractionReadabilityPass : ICodegenReadabilityOptim
             helperCallSiteCount += callSites.Length;
         }
 
-        if (rewriter.ApprovedHelpers > 0 ||
-            rewriter.ApprovedCallSites > 0 ||
-            rewriter.ExtractedInlineBlocks > 0)
+        if (rewriter.ApprovedHelpers > 0 || rewriter.ApprovedCallSites > 0 || rewriter.ExtractedInlineBlocks > 0)
         {
             return OptimizationResult<CompilationUnitSyntax>.Changed(
                 optimized,
-                $"Approved {rewriter.ApprovedHelpers} metadata-backed helper extraction candidate(s), {rewriter.ApprovedCallSites} candidate call site(s), and extracted {rewriter.ExtractedInlineBlocks} metadata-approved inline helper block(s) for readability-owned helper extraction; observed {candidateHelperCount} explicit candidate helper(s), {candidateCallSiteCount} candidate call site(s), {inlineCandidateCount} inline candidate block(s), {rewriter.SkippedInlineBlocks} skipped inline candidate block(s), and {linkedHelperCount} linked helper(s).");
+                $"Approved {rewriter.ApprovedHelpers} metadata-backed helper extraction candidate(s), {rewriter.ApprovedCallSites} candidate call site(s), and extracted {rewriter.ExtractedInlineBlocks} metadata-approved inline helper block(s) for readability-owned helper extraction; observed {candidateHelperCount} explicit candidate helper(s), {candidateCallSiteCount} candidate call site(s), {inlineCandidateCount} inline candidate block(s), {rewriter.SkippedInlineBlocks} skipped inline candidate block(s), and {linkedHelperCount} linked helper(s)."
+            );
         }
 
         if (candidateHelperCount == 0 && candidateCallSiteCount == 0 && inlineCandidateCount == 0)
@@ -70,12 +68,14 @@ internal sealed class HelperExtractionReadabilityPass : ICodegenReadabilityOptim
                 plan,
                 helperCount == 0
                     ? "No metadata-approved helper extraction candidates were found."
-                    : $"Observed {helperCount} renderer-extracted private static helper method(s), but none carried helper extraction candidate metadata.");
+                    : $"Observed {helperCount} renderer-extracted private static helper method(s), but none carried helper extraction candidate metadata."
+            );
         }
 
         return OptimizationResult<CompilationUnitSyntax>.NoChange(
             plan,
-            $"Observed {helperCount} renderer-extracted private static helper method(s), {linkedHelperCount} helper(s) referenced from generated methods, {helperCallSiteCount} helper call site(s), {candidateHelperCount} explicit candidate helper(s), {candidateCallSiteCount} candidate call site(s), {inlineCandidateCount} inline candidate block(s), and {rewriter.SkippedInlineBlocks} skipped inline candidate block(s); metadata-approved helper extraction annotations were already present or unsafe to apply.");
+            $"Observed {helperCount} renderer-extracted private static helper method(s), {linkedHelperCount} helper(s) referenced from generated methods, {helperCallSiteCount} helper call site(s), {candidateHelperCount} explicit candidate helper(s), {candidateCallSiteCount} candidate call site(s), {inlineCandidateCount} inline candidate block(s), and {rewriter.SkippedInlineBlocks} skipped inline candidate block(s); metadata-approved helper extraction annotations were already present or unsafe to apply."
+        );
     }
 
     private sealed class HelperExtractionCandidateRewriter : CSharpSyntaxRewriter
@@ -104,8 +104,10 @@ internal sealed class HelperExtractionReadabilityPass : ICodegenReadabilityOptim
         public override SyntaxNode? VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             var visited = (MethodDeclarationSyntax)base.VisitMethodDeclaration(node)!;
-            if (!CodegenHelperExtractionMetadata.TryGetCandidate(visited, out var info) ||
-                visited.HasAnnotations(HelperExtractionAnnotationKind))
+            if (
+                !CodegenHelperExtractionMetadata.TryGetCandidate(visited, out var info)
+                || visited.HasAnnotations(HelperExtractionAnnotationKind)
+            )
             {
                 return visited;
             }
@@ -117,8 +119,10 @@ internal sealed class HelperExtractionReadabilityPass : ICodegenReadabilityOptim
         public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
         {
             var visited = (InvocationExpressionSyntax)base.VisitInvocationExpression(node)!;
-            if (!CodegenHelperExtractionMetadata.TryGetCallSite(visited, out var info) ||
-                visited.HasAnnotations(HelperExtractionAnnotationKind))
+            if (
+                !CodegenHelperExtractionMetadata.TryGetCallSite(visited, out var info)
+                || visited.HasAnnotations(HelperExtractionAnnotationKind)
+            )
             {
                 return visited;
             }
@@ -130,8 +134,10 @@ internal sealed class HelperExtractionReadabilityPass : ICodegenReadabilityOptim
         public override SyntaxNode? VisitBlock(BlockSyntax node)
         {
             var visited = (BlockSyntax)base.VisitBlock(node)!;
-            if (!CodegenHelperExtractionMetadata.TryGetInlineCandidate(visited, out var info) ||
-                visited.HasAnnotations(HelperExtractionAnnotationKind))
+            if (
+                !CodegenHelperExtractionMetadata.TryGetInlineCandidate(visited, out var info)
+                || visited.HasAnnotations(HelperExtractionAnnotationKind)
+            )
             {
                 return visited;
             }
@@ -147,4 +153,3 @@ internal sealed class HelperExtractionReadabilityPass : ICodegenReadabilityOptim
         }
     }
 }
-

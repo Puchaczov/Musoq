@@ -1,7 +1,13 @@
 namespace Musoq.Evaluator.Visitors;
 
 internal readonly record struct BinarySchemaArithmetic(
-    Type LeftType, Type RightType, Type ResultType, string Left, string Right, string Operation);
+    Type LeftType,
+    Type RightType,
+    Type ResultType,
+    string Left,
+    string Right,
+    string Operation
+);
 
 internal static class BinarySchemaArithmeticEmitter
 {
@@ -9,12 +15,15 @@ internal static class BinarySchemaArithmeticEmitter
     {
         var left = arithmetic.Left;
         var right = arithmetic.Right;
-        if (arithmetic.LeftType != arithmetic.RightType &&
-            BinaryOperatorTypeRules.IsNumericType(BinarySchemaExpressionTypes.Unwrap(arithmetic.LeftType)) &&
-            BinaryOperatorTypeRules.IsNumericType(BinarySchemaExpressionTypes.Unwrap(arithmetic.RightType)))
+        if (
+            arithmetic.LeftType != arithmetic.RightType
+            && BinaryOperatorTypeRules.IsNumericType(BinarySchemaExpressionTypes.Unwrap(arithmetic.LeftType))
+            && BinaryOperatorTypeRules.IsNumericType(BinarySchemaExpressionTypes.Unwrap(arithmetic.RightType))
+        )
         {
-            var name = BinarySchemaClrTypeNames.Map(BinarySchemaExpressionTypes.Unwrap(arithmetic.ResultType)) +
-                (BinarySchemaExpressionTypes.IsNullable(arithmetic.ResultType) ? "?" : string.Empty);
+            var name =
+                BinarySchemaClrTypeNames.Map(BinarySchemaExpressionTypes.Unwrap(arithmetic.ResultType))
+                + (BinarySchemaExpressionTypes.IsNullable(arithmetic.ResultType) ? "?" : string.Empty);
             left = $"(({name})({left}))";
             right = $"(({name})({right}))";
         }

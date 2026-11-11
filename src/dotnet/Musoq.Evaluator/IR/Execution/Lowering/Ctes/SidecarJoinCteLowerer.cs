@@ -7,16 +7,28 @@ namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 internal sealed class SidecarJoinCteLowerer(
     Func<PhysicalNode, PhysicalNode> unwrapSingleStatement,
     Func<PhysicalNode, CteSupportedPipeline?> decomposeSupportedPipeline,
-    Func<PhysicalMultiStatementNode, MultiStatementIndexes, Dictionary<string, CteReferenceClassification>> classifyMultiStatementCteReferences,
+    Func<
+        PhysicalMultiStatementNode,
+        MultiStatementIndexes,
+        Dictionary<string, CteReferenceClassification>
+    > classifyMultiStatementCteReferences,
     Func<string, IReadOnlyDictionary<string, CteReferenceClassification>, bool> canFuseReadOnceCte,
     Func<int, MultiStatementIndexes, string?> resolveStatementCteName,
-    Func<PhysicalMultiStatementNode, IReadOnlyDictionary<string, int>, IReadOnlyDictionary<string, GeneratedRowShape>, string, MultiStatementIndexes> createMultiStatementIndexes,
-    Func<int, IReadOnlyCollection<string>, string> createCteTableName)
+    Func<
+        PhysicalMultiStatementNode,
+        IReadOnlyDictionary<string, int>,
+        IReadOnlyDictionary<string, GeneratedRowShape>,
+        string,
+        MultiStatementIndexes
+    > createMultiStatementIndexes,
+    Func<int, IReadOnlyCollection<string>, string> createCteTableName
+)
 {
     public bool TryCreateSingleUseChainStages(
         PhysicalMultiStatementNode multiStatement,
         MultiStatementIndexes indexes,
-        out IReadOnlyList<SidecarJoinPipelineStage> stages)
+        out IReadOnlyList<SidecarJoinPipelineStage> stages
+    )
     {
         stages = [];
         if (multiStatement.Statements.Length < 2)
@@ -38,8 +50,7 @@ internal sealed class SidecarJoinCteLowerer(
             if (!isFinalStatement)
             {
                 outputName = resolveStatementCteName(index, indexes);
-                if (string.IsNullOrWhiteSpace(outputName) ||
-                    !canFuseReadOnceCte(outputName, classifications))
+                if (string.IsNullOrWhiteSpace(outputName) || !canFuseReadOnceCte(outputName, classifications))
                 {
                     return false;
                 }
@@ -59,7 +70,8 @@ internal sealed class SidecarJoinCteLowerer(
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         CteSupportedPipeline finalPipeline,
-        out IReadOnlyList<SidecarJoinPipelineStage> stages)
+        out IReadOnlyList<SidecarJoinPipelineStage> stages
+    )
     {
         stages = [];
         var producerPlan = unwrapSingleStatement(producer.Plan);
@@ -73,7 +85,8 @@ internal sealed class SidecarJoinCteLowerer(
             producerMultiStatement,
             cteIndexes,
             cteShapesByName,
-            createCteTableName(producerDefinitionIndex, cteDefinitionNames));
+            createCteTableName(producerDefinitionIndex, cteDefinitionNames)
+        );
         string? previousOutputName = null;
 
         for (var index = 0; index < producerMultiStatement.Statements.Length; index++)
@@ -82,9 +95,10 @@ internal sealed class SidecarJoinCteLowerer(
             if (pipeline == null)
                 return false;
 
-            var outputName = index == producerMultiStatement.Statements.Length - 1
-                ? producer.Name
-                : resolveStatementCteName(index, producerIndexes);
+            var outputName =
+                index == producerMultiStatement.Statements.Length - 1
+                    ? producer.Name
+                    : resolveStatementCteName(index, producerIndexes);
             if (string.IsNullOrWhiteSpace(outputName))
                 return false;
 

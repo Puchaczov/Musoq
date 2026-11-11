@@ -36,11 +36,9 @@ public partial class ErrorQualityExprEdgeCaseTests
         AssertNoErrors(result);
     }
 
-
     // ============================================================================
     // E-FMT: Whitespace, Comments, and Formatting Edge Cases
     // ============================================================================
-
 
     [TestMethod]
     public void E_FMT_01_QueryWithOnlyComments()
@@ -87,27 +85,31 @@ public partial class ErrorQualityExprEdgeCaseTests
     [TestMethod]
     public void E_FMT_05_EmptyQuery()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "";
 
         var result = analyzer.ValidateSyntax(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2016_IncompleteStatement, nameof(E_FMT_05_EmptyQuery));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2016_IncompleteStatement,
+            nameof(E_FMT_05_EmptyQuery)
+        );
     }
 
     [TestMethod]
     public void E_FMT_06_WhitespaceOnlyQuery()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "     ";
 
         var result = analyzer.ValidateSyntax(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2016_IncompleteStatement, nameof(E_FMT_06_WhitespaceOnlyQuery));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2016_IncompleteStatement,
+            nameof(E_FMT_06_WhitespaceOnlyQuery)
+        );
     }
 
     [TestMethod]
@@ -152,5 +154,4 @@ public partial class ErrorQualityExprEdgeCaseTests
         // Assert — Long but valid query should succeed
         AssertNoErrors(result);
     }
-
 }

@@ -30,8 +30,6 @@ public class BitwiseOperationsAndTests : BasicEntityTestBase
         TestMethodTemplate<int?>("And(1b, 1us)", 1);
     }
 
-
-
     [TestMethod]
     public void WhenBitwiseAndBetweenSbyteAndUint_ShouldBeEvaluated()
     {

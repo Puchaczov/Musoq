@@ -17,41 +17,49 @@ public sealed partial class ScriptVariableDiagnosticTests : EnvironmentVariables
         "let key: string = 'KEY_1'; select $kay from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3059_UndeclaredScriptParameter,
         "is not declared",
-        DisplayName = "mistyped script variable name")]
+        DisplayName = "mistyped script variable name"
+    )]
     [DataRow(
         "let key: string = 'KEY_1'; let key: string = 'KEY_2'; select $key from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3063_DuplicateScriptSymbolName,
         "declared more than once",
-        DisplayName = "duplicate let name")]
+        DisplayName = "duplicate let name"
+    )]
     [DataRow(
         "let key: object = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3064_UnsupportedScriptVariableType,
         "is not supported",
-        DisplayName = "unsupported let type")]
+        DisplayName = "unsupported let type"
+    )]
     [DataRow(
         "let limit: int = 'many'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
         "cannot be converted",
-        DisplayName = "initializer value has wrong type")]
+        DisplayName = "initializer value has wrong type"
+    )]
     [DataRow(
         "let ratio: int = 10 / 0; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
         "divide by zero",
-        DisplayName = "initializer divides by zero")]
+        DisplayName = "initializer divides by zero"
+    )]
     [DataRow(
         "param(root: string = 'KEY'); let key: string = $root + '_1'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
         "runtime parameter",
-        DisplayName = "initializer uses runtime parameter")]
+        DisplayName = "initializer uses runtime parameter"
+    )]
     [DataRow(
         "let key: string = $later; let later: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3066_ScriptVariableUsedBeforeDeclaration,
         "before it is declared",
-        DisplayName = "initializer references later variable")]
+        DisplayName = "initializer references later variable"
+    )]
     public void CompileForExecution_WhenScriptVariableDeclarationOrReferenceFails_ShouldUseSpecificEnvelope(
         string query,
         DiagnosticCode expectedCode,
-        string messagePart)
+        string messagePart
+    )
     {
         var exception = CompileFails(query);
 
@@ -68,7 +76,8 @@ public sealed partial class ScriptVariableDiagnosticTests : EnvironmentVariables
             "let key: string = 'KEY_1'; select $kay from #EnvironmentVariables.All()",
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
-            LoggerResolver);
+            LoggerResolver
+        );
 
         var envelope = result.ToEnvelopes().Single();
 
@@ -86,6 +95,8 @@ public sealed partial class ScriptVariableDiagnosticTests : EnvironmentVariables
                 query,
                 Guid.NewGuid().ToString(),
                 new EnvironmentVariablesSchemaProvider(),
-                LoggerResolver));
+                LoggerResolver
+            )
+        );
     }
 }

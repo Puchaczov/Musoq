@@ -6,8 +6,8 @@ public sealed record InCheck(
     IrExpression Expression,
     IReadOnlyList<IrExpression> Values,
     Type ReturnType,
-    bool IsNegated = false)
-    : IrExpression(ReturnType)
+    bool IsNegated = false
+) : IrExpression(ReturnType)
 {
     internal bool SqlSemantics { get; init; }
 }

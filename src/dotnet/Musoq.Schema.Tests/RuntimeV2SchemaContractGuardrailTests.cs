@@ -13,7 +13,8 @@ public sealed class RuntimeV2SchemaContractGuardrailTests
     {
         var getTable = typeof(ISchema).GetMethod(
             nameof(ISchema.GetTableByName),
-            [typeof(string), typeof(SourceMetadataContext), typeof(object[])]);
+            [typeof(string), typeof(SourceMetadataContext), typeof(object[])]
+        );
         Assert.IsNotNull(getTable);
         Assert.AreEqual(typeof(ISchemaTable), getTable.ReturnType);
 
@@ -22,11 +23,15 @@ public sealed class RuntimeV2SchemaContractGuardrailTests
             .Single(static method => method.Name == nameof(ISchema.GetRowSource));
         Assert.IsTrue(getRowSource.IsGenericMethodDefinition);
         Assert.HasCount(2, getRowSource.GetGenericArguments());
-        CollectionAssert.Contains(getRowSource.GetGenericArguments()[1].GetGenericParameterConstraints(), typeof(ISourceArguments));
+        CollectionAssert.Contains(
+            getRowSource.GetGenericArguments()[1].GetGenericParameterConstraints(),
+            typeof(ISourceArguments)
+        );
         Assert.AreEqual(typeof(RowSource<>), getRowSource.ReturnType.GetGenericTypeDefinition());
         CollectionAssert.AreEqual(
             new[] { typeof(string), typeof(SourceExecutionContext), getRowSource.GetGenericArguments()[1] },
-            getRowSource.GetParameters().Select(static parameter => parameter.ParameterType).ToArray());
+            getRowSource.GetParameters().Select(static parameter => parameter.ParameterType).ToArray()
+        );
     }
 
     [TestMethod]
@@ -38,21 +43,19 @@ public sealed class RuntimeV2SchemaContractGuardrailTests
             "QuerySourceInfo",
             "QueryHints",
             "IObjectResolver",
-            "EntityResolver"
+            "EntityResolver",
         ];
 
-        var publicTypeNames = typeof(ISchema).Assembly
-            .GetExportedTypes()
+        var publicTypeNames = typeof(ISchema)
+            .Assembly.GetExportedTypes()
             .Select(static type => type.Name)
             .ToHashSet(StringComparer.Ordinal);
 
-        var offenders = retiredTypeNames
-            .Where(publicTypeNames.Contains)
-            .ToArray();
+        var offenders = retiredTypeNames.Where(publicTypeNames.Contains).ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Runtime v2 intentionally removed runtime-v1 schema contract types: " +
-            string.Join(", ", offenders));
+            "Runtime v2 intentionally removed runtime-v1 schema contract types: " + string.Join(", ", offenders)
+        );
     }
 }

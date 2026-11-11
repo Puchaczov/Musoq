@@ -25,10 +25,16 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         const bool hasExternallyProvidedTypes = false;
 
-        _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _resultShape.GeneratedAliases, _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(
+            node.Alias,
+            _resultShape.GeneratedAliases,
+            _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        );
 
-        if (HasAlreadyUsedAlias(_sourceBinding.QueryAlias) &&
-            TryReportDuplicateAlias(node, _sourceBinding.QueryAlias, node))
+        if (
+            HasAlreadyUsedAlias(_sourceBinding.QueryAlias)
+            && TryReportDuplicateAlias(node, _sourceBinding.QueryAlias, node)
+        )
             return;
 
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
@@ -37,21 +43,31 @@ public partial class BuildMetadataAndInferTypesVisitor
         var queryId = node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture);
         BoundSchemaInvocation? boundInvocation = null;
         var isArgumentInventory = IsDescribingArguments && node.Parameters.Args.Length == 0;
-        var isSettingsInventory = IsDescribingSourceRuntimeSettings && node.Parameters.Args.Length == 0 && node.Parameters.Span.IsEmpty;
-        if (!IsDescribingConstructors && !isArgumentInventory && !isSettingsInventory && (_sourceBinding.CurrentScope.Name != "Desc" || !string.IsNullOrWhiteSpace(node.Method)))
+        var isSettingsInventory =
+            IsDescribingSourceRuntimeSettings && node.Parameters.Args.Length == 0 && node.Parameters.Span.IsEmpty;
+        if (
+            !IsDescribingConstructors
+            && !isArgumentInventory
+            && !isSettingsInventory
+            && (_sourceBinding.CurrentScope.Name != "Desc" || !string.IsNullOrWhiteSpace(node.Method))
+        )
         {
             SchemaMethodInfo[] sourceMethods;
             try
             {
                 ThrowIfCancellationRequested();
-                sourceMethods = SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
-                    node.Method,
-                    new SourceMetadataContext(
-                        queryId,
-                        CancellationToken,
-                        GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
-                        new Dictionary<string, string>(),
-                        _logger)));
+                sourceMethods = SchemaProviderBoundary.Invoke(() =>
+                    schema.GetRawConstructors(
+                        node.Method,
+                        new SourceMetadataContext(
+                            queryId,
+                            CancellationToken,
+                            GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
+                            new Dictionary<string, string>(),
+                            _logger
+                        )
+                    )
+                );
                 ThrowIfCancellationRequested();
             }
             catch (SchemaProviderFailureException exception) when (exception.InnerException is NotSupportedException)
@@ -63,30 +79,29 @@ public partial class BuildMetadataAndInferTypesVisitor
                     node.Schema,
                     node.Method,
                     node.MethodSpan ?? sourceSpan,
-                    exception.InnerException);
+                    exception.InnerException
+                );
             }
             catch (SchemaProviderFailureException exception)
                 when (DataSourceDiagnosticAdapter.ContainsRecognizedFailure(exception))
             {
-                throw DataSourceLifecycleDiagnosticAdapter.ForProviderOperation(
-                    exception,
-                    node,
-                    queryId,
-                    "construct");
+                throw DataSourceLifecycleDiagnosticAdapter.ForProviderOperation(exception, node, queryId, "construct");
             }
             sourceMethods = TypedSourceBindingMetadata.PreferTypedSource(schema, node.Method, sourceMethods);
             var bindingResult = SchemaSourceArgumentBinder.Bind(
                 schemaArgsNode,
                 sourceMethods,
                 ResolveStructuralArgumentType,
-            ResolveCteRelation);
+                ResolveCteRelation
+            );
             if (bindingResult.Failure is { } bindingFailure)
                 throw new CannotResolveMethodException(
                     bindingFailure.Message,
                     bindingFailure.Code,
                     bindingFailure.Span,
                     bindingFailure.Arguments,
-                    bindingFailure.SuggestedFixes);
+                    bindingFailure.SuggestedFixes
+                );
 
             boundInvocation = bindingResult.Invocation;
             SuspiciousOrdinaryStringEscapeDiagnostics.ReportSchemaArgumentRisks(
@@ -94,40 +109,50 @@ public partial class BuildMetadataAndInferTypesVisitor
                 schemaArgsNode,
                 node.Parameters,
                 bindingResult,
-                sourceMethods);
+                sourceMethods
+            );
         }
         var staticSchemaArguments = SchemaArgumentBinder.BindStaticArguments(
             schemaArgsNode,
             _scriptParameters.DefinitionsByName,
             _scriptVariables.DefinitionsByName,
             boundInvocation,
-            _compilationOptions.UseConstantFolding);
-        var hasUnavailableMetadataArguments = staticSchemaArguments.Length <
-            (boundInvocation?.Arguments.Length ?? schemaArgsNode.Args.Length);
+            _compilationOptions.UseConstantFolding
+        );
+        var hasUnavailableMetadataArguments =
+            staticSchemaArguments.Length < (boundInvocation?.Arguments.Length ?? schemaArgsNode.Args.Length);
         if (boundInvocation?.Signature.SourceConstructionType != null)
             staticSchemaArguments = [];
-        var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, schemaArgsNode,
-            _sourceBinding.QueryAlias, node.QueryId, hasExternallyProvidedTypes);
-        if (node.SchemaSpan is { } schemaSpan) aliasedSchemaFromNode.WithSchemaSpan(schemaSpan);
-        if (node.MethodSpan is { } methodSpan) aliasedSchemaFromNode.WithMethodSpan(methodSpan);
+        var aliasedSchemaFromNode = new Parser.SchemaFromNode(
+            node.Schema,
+            node.Method,
+            schemaArgsNode,
+            _sourceBinding.QueryAlias,
+            node.QueryId,
+            hasExternallyProvidedTypes
+        );
+        if (node.SchemaSpan is { } schemaSpan)
+            aliasedSchemaFromNode.WithSchemaSpan(schemaSpan);
+        if (node.MethodSpan is { } methodSpan)
+            aliasedSchemaFromNode.WithMethodSpan(methodSpan);
         if (boundInvocation != null)
             aliasedSchemaFromNode.SetBoundInvocation(boundInvocation);
-        aliasedSchemaFromNode.SetStaticMetadataArguments(
-            staticSchemaArguments,
-            hasUnavailableMetadataArguments);
+        aliasedSchemaFromNode.SetStaticMetadataArguments(staticSchemaArguments, hasUnavailableMetadataArguments);
         if (!sourceSpan.IsEmpty)
             aliasedSchemaFromNode.WithSpan(sourceSpan);
 
         var isDesc = _sourceBinding.CurrentScope.Name == "Desc";
-        var sourceRuntimeSettings = isDesc && string.IsNullOrWhiteSpace(node.Method)
-            ? RetrieveInitialSourceRuntimeSettings(aliasedSchemaFromNode.Id, aliasedSchemaFromNode)
-            : ResolveSourceRuntimeSettings(
-                schema,
-                aliasedSchemaFromNode,
-                staticSchemaArguments,
-                GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
-                queryId,
-                mode: GetSourceRuntimeSettingsResolutionMode());
+        var sourceRuntimeSettings =
+            isDesc && string.IsNullOrWhiteSpace(node.Method)
+                ? RetrieveInitialSourceRuntimeSettings(aliasedSchemaFromNode.Id, aliasedSchemaFromNode)
+                : ResolveSourceRuntimeSettings(
+                    schema,
+                    aliasedSchemaFromNode,
+                    staticSchemaArguments,
+                    GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
+                    queryId,
+                    mode: GetSourceRuntimeSettingsResolutionMode()
+                );
         var table = !isDesc
             ? GetSchemaSourceTable(
                 schema,
@@ -135,17 +160,23 @@ public partial class BuildMetadataAndInferTypesVisitor
                 queryId,
                 sourceRuntimeSettings,
                 staticSchemaArguments,
-                aliasedSchemaFromNode.HasRequiredRuntimeArguments)
+                aliasedSchemaFromNode.HasRequiredRuntimeArguments
+            )
             : new DynamicTable([]);
 
-        _sourceBinding.SchemaFromInfo.Add(_sourceBinding.QueryAlias, (_sourceBinding.SchemaFromKey, aliasedSchemaFromNode.Id));
+        _sourceBinding.SchemaFromInfo.Add(
+            _sourceBinding.QueryAlias,
+            (_sourceBinding.SchemaFromKey, aliasedSchemaFromNode.Id)
+        );
 
         AddAssembly(schema.GetType().Assembly);
 
         var tableSymbol = new TableSymbol(_sourceBinding.QueryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(_sourceBinding.QueryAlias, tableSymbol);
         _sourceBinding.CurrentScope[node.Id] = _sourceBinding.QueryAlias;
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_sourceBinding.QueryAlias);
+        _sourceBinding
+            .CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases)
+            .AddAlias(_sourceBinding.QueryAlias);
 
         _sourceBinding.AliasToSchemaFromNodeMap.Add(_sourceBinding.QueryAlias, aliasedSchemaFromNode);
         _sourceBinding.AllUsedSchemaNames.Add(aliasedSchemaFromNode.Schema);
@@ -176,10 +207,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedSchemaLookupFailure(ex))
         {
             var span = node.SchemaSpan ?? sourceSpan;
-            throw new UnknownInterpretationSchemaException(
-                node.Schema,
-                $"Unknown schema '{node.Schema}'.",
-                span);
+            throw new UnknownInterpretationSchemaException(node.Schema, $"Unknown schema '{node.Schema}'.", span);
         }
         catch (OperationCanceledException)
         {
@@ -197,7 +225,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 node.Alias,
                 node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 "construct",
-                ex);
+                ex
+            );
         }
 
         if (SourceArgumentContext is { } pending && ReferenceEquals(pending.Source, node))
@@ -219,7 +248,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         string queryId,
         IReadOnlyDictionary<string, string> sourceRuntimeSettings,
         object?[] sourceArguments,
-        bool hasRequiredRuntimeArguments)
+        bool hasRequiredRuntimeArguments
+    )
     {
         ThrowIfCancellationRequested();
         var sourceSpan = node.MethodSpan ?? node.Parameters.SpanOrEmpty().Through(node.SpanOrEmpty());
@@ -234,14 +264,15 @@ public partial class BuildMetadataAndInferTypesVisitor
                 GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
                 sourceRuntimeSettings,
                 sourceArguments,
-                hasRequiredRuntimeArguments);
+                hasRequiredRuntimeArguments
+            );
         }
         catch (TableNotFoundException)
         {
             throw new UnknownSourceException(node.Schema, node.Method, sourceSpan);
         }
-        catch (SchemaArgumentException exception) when (
-            string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
+        catch (SchemaArgumentException exception)
+            when (string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
         {
             throw new UnknownSourceException(node.Schema, node.Method, sourceSpan);
         }
@@ -256,20 +287,19 @@ public partial class BuildMetadataAndInferTypesVisitor
         IReadOnlyCollection<ISchemaColumn> columns,
         IReadOnlyDictionary<string, string> sourceRuntimeSettings,
         object?[] sourceArguments,
-        bool hasRequiredRuntimeArguments)
+        bool hasRequiredRuntimeArguments
+    )
     {
         ThrowIfCancellationRequested();
         try
         {
-            var table = SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
-                methodName,
-                new SourceMetadataContext(
-                    queryId,
-                    CancellationToken,
-                    columns,
-                    sourceRuntimeSettings,
-                    _logger),
-                sourceArguments));
+            var table = SchemaProviderBoundary.Invoke(() =>
+                schema.GetTableByName(
+                    methodName,
+                    new SourceMetadataContext(queryId, CancellationToken, columns, sourceRuntimeSettings, _logger),
+                    sourceArguments
+                )
+            );
             ThrowIfCancellationRequested();
             return table;
         }
@@ -289,15 +319,17 @@ public partial class BuildMetadataAndInferTypesVisitor
                 methodName,
                 _sourceBinding.QueryAlias,
                 queryId,
-                "metadata");
+                "metadata"
+            );
         }
         catch (SchemaProviderFailureException exception) when (hasRequiredRuntimeArguments)
         {
             throw new SourceMetadataRequiresDefaultException(schemaName, methodName, span, exception);
         }
-        catch (SchemaArgumentException exception) when (
-            !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal) &&
-            hasRequiredRuntimeArguments)
+        catch (SchemaArgumentException exception)
+            when (!string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal)
+                && hasRequiredRuntimeArguments
+            )
         {
             throw new SourceMetadataRequiresDefaultException(schemaName, methodName, span, exception);
         }

@@ -15,7 +15,15 @@ internal readonly struct GeneratedRecordConstraintWitness
         var constraints = parameter.GenericParameterAttributes;
         if ((constraints & GenericParameterAttributes.ReferenceTypeConstraint) != 0)
             return actual;
-        return (constraints & (GenericParameterAttributes.NotNullableValueTypeConstraint |
-            GenericParameterAttributes.DefaultConstructorConstraint)) != 0 ? typeof(GeneratedRecordConstraintWitness) : actual;
+        return
+            (
+                constraints
+                & (
+                    GenericParameterAttributes.NotNullableValueTypeConstraint
+                    | GenericParameterAttributes.DefaultConstructorConstraint
+                )
+            ) != 0
+            ? typeof(GeneratedRecordConstraintWitness)
+            : actual;
     }
 }

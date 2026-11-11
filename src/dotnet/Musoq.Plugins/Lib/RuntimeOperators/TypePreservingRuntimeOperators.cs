@@ -21,7 +21,8 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     public TypePreservingRuntimeOperators(
         NumericOnlyTypeConverter numericConverter,
         ComparisonTypeConverter comparisonConverter,
-        StrictTypeConverter strictConverter)
+        StrictTypeConverter strictConverter
+    )
     {
         _numericConverter = numericConverter ?? throw new ArgumentNullException(nameof(numericConverter));
         _comparisonConverter = comparisonConverter ?? throw new ArgumentNullException(nameof(comparisonConverter));
@@ -118,10 +119,13 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
         return true;
     }
 
-    private object? ApplyArithmeticOperator(object? left, object? right,
+    private object? ApplyArithmeticOperator(
+        object? left,
+        object? right,
         Func<long, long, long> longOp,
         Func<double, double, double> doubleOp,
-        Func<decimal, decimal, decimal> decimalOp)
+        Func<decimal, decimal, decimal> decimalOp
+    )
     {
         if (left == null || right == null)
             return null;
@@ -136,7 +140,7 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
             ArithmeticType.Long => ConvertAndApply(left, right, longOp, _numericConverter.TryConvertToInt64),
             ArithmeticType.Double => ConvertAndApply(left, right, doubleOp, _numericConverter.TryConvertToDouble),
             ArithmeticType.Decimal => ConvertAndApply(left, right, decimalOp, _numericConverter.TryConvertToDecimal),
-            _ => null
+            _ => null,
         };
     }
 
@@ -151,7 +155,12 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
         return ArithmeticType.Long;
     }
 
-    private static T? ConvertAndApply<T>(object? left, object? right, Func<T, T, T> operation, Func<object?, T?> converter)
+    private static T? ConvertAndApply<T>(
+        object? left,
+        object? right,
+        Func<T, T, T> operation,
+        Func<object?, T?> converter
+    )
         where T : struct
     {
         var leftConverted = converter(left);
@@ -181,6 +190,6 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     {
         Long,
         Double,
-        Decimal
+        Decimal,
     }
 }

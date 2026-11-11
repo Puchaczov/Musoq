@@ -25,7 +25,8 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
         {
             return OptimizationResult<ExecutionPlan>.NoChange(
                 plan,
-                "Loop-invariant code motion is disabled by compilation options.");
+                "Loop-invariant code motion is disabled by compilation options."
+            );
         }
 
         var rewriter = new Rewriter();
@@ -35,12 +36,14 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
         {
             return OptimizationResult<ExecutionPlan>.NoChange(
                 plan,
-                $"No stable loop-invariant scalar candidates were hoisted. {diagnostics}");
+                $"No stable loop-invariant scalar candidates were hoisted. {diagnostics}"
+            );
         }
 
         return OptimizationResult<ExecutionPlan>.Changed(
             optimized,
-            $"Inserted {rewriter.InsertedLets} eager loop-invariant local(s) in {rewriter.RewrittenLoops} loop scope(s). {diagnostics}");
+            $"Inserted {rewriter.InsertedLets} eager loop-invariant local(s) in {rewriter.RewrittenLoops} loop scope(s). {diagnostics}"
+        );
     }
 
     private sealed class Rewriter
@@ -65,16 +68,19 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
 
         public string FormatDiagnostics()
         {
-            var details = _skipReasons.Count == 0
-                ? "none"
-                : string.Join(
-                    ", ",
-                    _skipReasons
-                        .OrderBy(static pair => pair.Key, StringComparer.Ordinal)
-                        .Select(static pair => $"{pair.Key}={pair.Value.ToString(CultureInfo.InvariantCulture)}"));
-            var placements = _placements.Count == 0
-                ? "none"
-                : string.Join(", ", _placements.OrderBy(static placement => placement, StringComparer.Ordinal));
+            var details =
+                _skipReasons.Count == 0
+                    ? "none"
+                    : string.Join(
+                        ", ",
+                        _skipReasons
+                            .OrderBy(static pair => pair.Key, StringComparer.Ordinal)
+                            .Select(static pair => $"{pair.Key}={pair.Value.ToString(CultureInfo.InvariantCulture)}")
+                    );
+            var placements =
+                _placements.Count == 0
+                    ? "none"
+                    : string.Join(", ", _placements.OrderBy(static placement => placement, StringComparer.Ordinal));
             return $"Placements: {placements}. Skipped candidates: {details}.";
         }
 
@@ -92,7 +98,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                     ExecutionForEachWithOrdinality forEach => RewriteForEachWithOrdinality(forEach),
                     ExecutionForEachIndexed forEach => RewriteForEachIndexed(forEach),
                     ExecutionIf branch => RewriteIf(branch),
-                    _ => node
+                    _ => node,
                 };
 
                 rewritten[index] = next;
@@ -111,9 +117,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                 var (body, lets) = HoistInLoopBody(loop.Body, frame);
                 body = RewriteBlock(body);
                 body = InsertLets(body, lets, frame);
-                return lets.Count == 0 && ReferenceEquals(body, loop.Body)
-                    ? loop
-                    : loop with { Body = body };
+                return lets.Count == 0 && ReferenceEquals(body, loop.Body) ? loop : loop with { Body = body };
             }
             finally
             {
@@ -130,9 +134,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                 var (body, lets) = HoistInLoopBody(loop.Body, frame);
                 body = RewriteBlock(body);
                 body = InsertLets(body, lets, frame);
-                return lets.Count == 0 && ReferenceEquals(body, loop.Body)
-                    ? loop
-                    : loop with { Body = body };
+                return lets.Count == 0 && ReferenceEquals(body, loop.Body) ? loop : loop with { Body = body };
             }
             finally
             {
@@ -149,9 +151,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                 var (body, lets) = HoistInLoopBody(loop.Body, frame);
                 body = RewriteBlock(body);
                 body = InsertLets(body, lets, frame);
-                return lets.Count == 0 && ReferenceEquals(body, loop.Body)
-                    ? loop
-                    : loop with { Body = body };
+                return lets.Count == 0 && ReferenceEquals(body, loop.Body) ? loop : loop with { Body = body };
             }
             finally
             {
@@ -177,13 +177,14 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
 
         private (ExecutionBlock Body, IReadOnlyList<ExecutionLet> Lets) HoistInLoopBody(
             ExecutionBlock body,
-            LoopFrame currentFrame)
+            LoopFrame currentFrame
+        )
         {
             var observations = new Dictionary<string, CandidateObservation>(StringComparer.Ordinal);
             WalkBlock(body, 0, _loopPath.ToArray(), currentFrame, observations);
 
-            var candidates = observations.Values
-                .Where(observation => observation.MaxDescendantDepth > 0)
+            var candidates = observations
+                .Values.Where(observation => observation.MaxDescendantDepth > 0)
                 .OrderBy(observation => ExecutionExpressionCseFacts.GetExpressionDepth(observation.Expression))
                 .ThenBy(static observation => observation.Signature, StringComparer.Ordinal)
                 .ToArray();
@@ -195,15 +196,21 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             {
                 var variable = new ExecutionVariable(
                     CreateVariableName(candidate.Expression),
-                    candidate.Expression.ReturnType, ExecutionGeneratedTypeName.For(candidate.Expression));
+                    candidate.Expression.ReturnType,
+                    ExecutionGeneratedTypeName.For(candidate.Expression)
+                );
                 variables.Add(candidate.Signature, variable);
             }
 
             var lets = new List<ExecutionLet>(candidates.Length);
             foreach (var candidate in candidates)
             {
-                var value = new SubstitutionRewriter(variables, candidate.Signature).RewriteExpression(candidate.Expression);
-                lets.Add(new ExecutionLet(variables[candidate.Signature], value, ExecutionLetCacheMode.SuppressMethodCache));
+                var value = new SubstitutionRewriter(variables, candidate.Signature).RewriteExpression(
+                    candidate.Expression
+                );
+                lets.Add(
+                    new ExecutionLet(variables[candidate.Signature], value, ExecutionLetCacheMode.SuppressMethodCache)
+                );
             }
 
             var rewrittenBody = ReplaceInBlock(body, variables);
@@ -217,20 +224,48 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             int descendantDepth,
             IReadOnlyList<LoopFrame> frames,
             LoopFrame currentFrame,
-            IDictionary<string, CandidateObservation> observations)
+            IDictionary<string, CandidateObservation> observations
+        )
         {
             foreach (var node in block.Nodes)
             {
                 switch (node)
                 {
                     case ExecutionForEach forEach:
-                        WalkNestedLoop(forEach.Item, null, null, forEach.Body, descendantDepth, frames, currentFrame, observations);
+                        WalkNestedLoop(
+                            forEach.Item,
+                            null,
+                            null,
+                            forEach.Body,
+                            descendantDepth,
+                            frames,
+                            currentFrame,
+                            observations
+                        );
                         continue;
                     case ExecutionForEachWithOrdinality forEach:
-                        WalkNestedLoop(forEach.Item, forEach.Ordinal, null, forEach.Body, descendantDepth, frames, currentFrame, observations);
+                        WalkNestedLoop(
+                            forEach.Item,
+                            forEach.Ordinal,
+                            null,
+                            forEach.Body,
+                            descendantDepth,
+                            frames,
+                            currentFrame,
+                            observations
+                        );
                         continue;
                     case ExecutionForEachIndexed forEach:
-                        WalkNestedLoop(forEach.Item, forEach.Index, forEach.Source, forEach.Body, descendantDepth, frames, currentFrame, observations);
+                        WalkNestedLoop(
+                            forEach.Item,
+                            forEach.Index,
+                            forEach.Source,
+                            forEach.Body,
+                            descendantDepth,
+                            frames,
+                            currentFrame,
+                            observations
+                        );
                         continue;
                     case ExecutionIf:
                     case ExecutionContinueIf:
@@ -266,15 +301,11 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             int descendantDepth,
             IReadOnlyList<LoopFrame> frames,
             LoopFrame currentFrame,
-            IDictionary<string, CandidateObservation> observations)
+            IDictionary<string, CandidateObservation> observations
+        )
         {
             var nestedFrame = new LoopFrame(item, ordinal, index);
-            WalkBlock(
-                body,
-                descendantDepth + 1,
-                [.. frames, nestedFrame],
-                currentFrame,
-                observations);
+            WalkBlock(body, descendantDepth + 1, [.. frames, nestedFrame], currentFrame, observations);
         }
 
         private void CollectExpression(
@@ -282,7 +313,8 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             int descendantDepth,
             IReadOnlyList<LoopFrame> frames,
             LoopFrame currentFrame,
-            IDictionary<string, CandidateObservation> observations)
+            IDictionary<string, CandidateObservation> observations
+        )
         {
             if (IsConditionalExpression(expression))
             {
@@ -306,9 +338,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                 var signature = ExecutionExpressionFingerprint.ForHoist(expression);
                 if (!observations.TryGetValue(signature, out var observation))
                 {
-                    observations.Add(
-                        signature,
-                        new CandidateObservation(signature, expression, descendantDepth));
+                    observations.Add(signature, new CandidateObservation(signature, expression, descendantDepth));
                 }
                 else if (descendantDepth > observation.MaxDescendantDepth)
                 {
@@ -333,30 +363,31 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             {
                 ExecutionBinary { Kind: BinaryOpKind.And or BinaryOpKind.Or } => true,
                 ExecutionCaseWhen or ExecutionCoalesce or ExecutionInCheck { UsesSqlNullSemantics: true } => true,
-                _ => false
+                _ => false,
             };
         }
 
         private static bool IsTrivial(ExecutionExpression expression)
         {
-            return expression is ExecutionLiteral or
-                ExecutionVariableRead or
-                ExecutionScriptVariableRead or
-                ExecutionScriptParameterRead;
+            return expression
+                is ExecutionLiteral
+                    or ExecutionVariableRead
+                    or ExecutionScriptVariableRead
+                    or ExecutionScriptParameterRead;
         }
 
         private static IReadOnlyList<ExecutionExpression> GetCandidateExpressions(ExecutionNode node)
         {
             return node switch
             {
-                ExecutionAppendRow appendRow => appendRow.Values
-                    .Select(static value => value.Value)
+                ExecutionAppendRow appendRow => appendRow
+                    .Values.Select(static value => value.Value)
                     .Concat(appendRow.Contexts)
                     .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(appendRow.ContextLayout))
                     .ToArray(),
                 ExecutionAppendRecord appendRecord => appendRecord.Values.Select(static value => value.Value).ToArray(),
-                ExecutionCreateGeneratedRow createRow => createRow.Values
-                    .Select(static value => value.Value)
+                ExecutionCreateGeneratedRow createRow => createRow
+                    .Values.Select(static value => value.Value)
                     .Concat(createRow.Contexts)
                     .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(createRow.ContextLayout))
                     .ToArray(),
@@ -367,12 +398,10 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                 ExecutionKeySetProbe keySetProbe => [keySetProbe.Key],
                 ExecutionCreateHashPayload payload => payload.Values.Select(static value => value.Value).ToArray(),
                 ExecutionAggregateSet { FilterPredicate: not null } aggregateSet => [aggregateSet.FilterPredicate],
-                ExecutionAggregateSet aggregateSet => aggregateSet.Arguments
-                    .Concat(aggregateSet.AccumulatorInput is null
-                        ? []
-                        : [aggregateSet.AccumulatorInput])
+                ExecutionAggregateSet aggregateSet => aggregateSet
+                    .Arguments.Concat(aggregateSet.AccumulatorInput is null ? [] : [aggregateSet.AccumulatorInput])
                     .ToArray(),
-                _ => []
+                _ => [],
             };
         }
 
@@ -430,9 +459,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             }
         }
 
-        private static LoopFrame? FindDeepestOwner(
-            IReadOnlyList<LoopFrame> frames,
-            IReadOnlySet<string> dependencies)
+        private static LoopFrame? FindDeepestOwner(IReadOnlyList<LoopFrame> frames, IReadOnlySet<string> dependencies)
         {
             for (var index = frames.Count - 1; index >= 0; index--)
             {
@@ -445,7 +472,8 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
 
         private ExecutionBlock ReplaceInBlock(
             ExecutionBlock block,
-            IReadOnlyDictionary<string, ExecutionVariable> variables)
+            IReadOnlyDictionary<string, ExecutionVariable> variables
+        )
         {
             var rewriter = new SubstitutionRewriter(variables, null);
             var rewritten = new ExecutionNode[block.Nodes.Count];
@@ -456,7 +484,10 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                 var next = node switch
                 {
                     ExecutionForEach forEach => forEach with { Body = ReplaceInBlock(forEach.Body, variables) },
-                    ExecutionForEachWithOrdinality forEach => forEach with { Body = ReplaceInBlock(forEach.Body, variables) },
+                    ExecutionForEachWithOrdinality forEach => forEach with
+                    {
+                        Body = ReplaceInBlock(forEach.Body, variables),
+                    },
                     ExecutionForEachIndexed forEach => forEach with { Body = ReplaceInBlock(forEach.Body, variables) },
                     ExecutionIf branch => branch with { Body = ReplaceInBlock(branch.Body, variables) },
                     ExecutionScopedBlock => node,
@@ -464,7 +495,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                     ExecutionParallelBlock => node,
                     ExecutionParallelFilterProjectLoop => node,
                     ExecutionParallelSingleKeyAggregateLoop => node,
-                    _ => RewriteCandidateNode(node, rewriter)
+                    _ => RewriteCandidateNode(node, rewriter),
                 };
                 rewritten[index] = next;
                 changed |= !ReferenceEquals(node, next);
@@ -473,44 +504,45 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             return changed ? block with { Nodes = rewritten } : block;
         }
 
-        private static ExecutionNode RewriteCandidateNode(
-            ExecutionNode node,
-            SubstitutionRewriter rewriter)
+        private static ExecutionNode RewriteCandidateNode(ExecutionNode node, SubstitutionRewriter rewriter)
         {
             return node switch
             {
                 ExecutionAppendRow appendRow => appendRow with
                 {
-                    Values = appendRow.Values
-                        .Select(value => value with { Value = rewriter.RewriteExpression(value.Value) })
+                    Values = appendRow
+                        .Values.Select(value => value with { Value = rewriter.RewriteExpression(value.Value) })
                         .ToArray(),
                     Contexts = appendRow.Contexts.Select(rewriter.RewriteExpression).ToArray(),
-                    ContextLayout = rewriter.RewriteLayout(appendRow.ContextLayout)
+                    ContextLayout = rewriter.RewriteLayout(appendRow.ContextLayout),
                 },
                 ExecutionAppendRecord appendRecord => appendRecord with
                 {
-                    Values = appendRecord.Values
-                        .Select(value => value with { Value = rewriter.RewriteExpression(value.Value) })
-                        .ToArray()
+                    Values = appendRecord
+                        .Values.Select(value => value with { Value = rewriter.RewriteExpression(value.Value) })
+                        .ToArray(),
                 },
                 ExecutionCreateGeneratedRow createRow => createRow with
                 {
-                    Values = createRow.Values
-                        .Select(value => value with { Value = rewriter.RewriteExpression(value.Value) })
+                    Values = createRow
+                        .Values.Select(value => value with { Value = rewriter.RewriteExpression(value.Value) })
                         .ToArray(),
                     Contexts = createRow.Contexts.Select(rewriter.RewriteExpression).ToArray(),
-                    ContextLayout = rewriter.RewriteLayout(createRow.ContextLayout)
+                    ContextLayout = rewriter.RewriteLayout(createRow.ContextLayout),
                 },
                 ExecutionLet let => let with { Value = rewriter.RewriteExpression(let.Value) },
                 ExecutionHashAdd hashAdd => hashAdd with { Key = rewriter.RewriteExpression(hashAdd.Key) },
                 ExecutionHashProbe hashProbe => hashProbe with { Key = rewriter.RewriteExpression(hashProbe.Key) },
                 ExecutionKeySetAdd keySetAdd => keySetAdd with { Key = rewriter.RewriteExpression(keySetAdd.Key) },
-                ExecutionKeySetProbe keySetProbe => keySetProbe with { Key = rewriter.RewriteExpression(keySetProbe.Key) },
+                ExecutionKeySetProbe keySetProbe => keySetProbe with
+                {
+                    Key = rewriter.RewriteExpression(keySetProbe.Key),
+                },
                 ExecutionCreateHashPayload payload => payload with
                 {
-                    Values = payload.Values
-                        .Select(value => value with { Value = rewriter.RewriteExpression(value.Value) })
-                        .ToArray()
+                    Values = payload
+                        .Values.Select(value => value with { Value = rewriter.RewriteExpression(value.Value) })
+                        .ToArray(),
                 },
                 ExecutionAggregateSet aggregateSet => aggregateSet with
                 {
@@ -520,16 +552,13 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                         : rewriter.RewriteExpression(aggregateSet.FilterPredicate),
                     AccumulatorInput = aggregateSet.AccumulatorInput is null
                         ? null
-                        : rewriter.RewriteExpression(aggregateSet.AccumulatorInput)
+                        : rewriter.RewriteExpression(aggregateSet.AccumulatorInput),
                 },
-                _ => node
+                _ => node,
             };
         }
 
-        private ExecutionBlock InsertLets(
-            ExecutionBlock body,
-            IReadOnlyList<ExecutionLet> lets,
-            LoopFrame frame)
+        private ExecutionBlock InsertLets(ExecutionBlock body, IReadOnlyList<ExecutionLet> lets, LoopFrame frame)
         {
             if (lets.Count == 0)
                 return body;
@@ -552,7 +581,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             {
                 ExecutionMethodTargetDeclarationCandidate => true,
                 ExecutionLet let => !let.Variable.Name.StartsWith("__musoqStructural_", StringComparison.Ordinal),
-                _ => false
+                _ => false,
             };
         }
 
@@ -567,12 +596,12 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
                 ExecutionMethodCall methodCall => methodCall.Method.MethodName,
                 ExecutionMethodTargetReuseCandidate candidateCall => candidateCall.MethodCall.Method.MethodName,
                 ExecutionStrictCast => "cast",
-                _ => "expr"
+                _ => "expr",
             };
 
-            var normalized = new string(candidate
-                .Where(static character => char.IsLetterOrDigit(character) || character == '_')
-                .ToArray());
+            var normalized = new string(
+                candidate.Where(static character => char.IsLetterOrDigit(character) || character == '_').ToArray()
+            );
             if (string.IsNullOrWhiteSpace(normalized))
                 normalized = "expr";
             normalized = char.ToLowerInvariant(normalized[0]) + normalized[1..];
@@ -593,17 +622,15 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
         }
     }
 
-    private sealed record LoopFrame(
-        ExecutionVariable Item,
-        ExecutionVariable? Ordinal,
-        ExecutionVariable? Index)
+    private sealed record LoopFrame(ExecutionVariable Item, ExecutionVariable? Ordinal, ExecutionVariable? Index)
     {
         public IReadOnlyList<string> Names { get; } = CreateNames(Item, Ordinal, Index);
 
         private static IReadOnlyList<string> CreateNames(
             ExecutionVariable item,
             ExecutionVariable? ordinal,
-            ExecutionVariable? index)
+            ExecutionVariable? index
+        )
         {
             var names = new List<string> { item.Name };
             if (ordinal != null)
@@ -617,18 +644,24 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
     private sealed record CandidateObservation(
         string Signature,
         ExecutionExpression Expression,
-        int MaxDescendantDepth);
+        int MaxDescendantDepth
+    );
 
     private sealed class SubstitutionRewriter(
         IReadOnlyDictionary<string, ExecutionVariable> variables,
-        string? rootSignature) : ExecutionExpressionSubstitutionRewriterBase
+        string? rootSignature
+    ) : ExecutionExpressionSubstitutionRewriterBase
     {
         public override ExecutionExpression RewriteExpression(ExecutionExpression expression)
         {
-            if (rootSignature == null || !string.Equals(
+            if (
+                rootSignature == null
+                || !string.Equals(
                     ExecutionExpressionFingerprint.ForHoist(expression),
                     rootSignature,
-                    StringComparison.Ordinal))
+                    StringComparison.Ordinal
+                )
+            )
             {
                 if (variables.TryGetValue(ExecutionExpressionFingerprint.ForHoist(expression), out var variable))
                     return new ExecutionVariableRead(variable) { InterpretationShape = expression.InterpretationShape };
@@ -639,9 +672,7 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
 
         protected override ExecutionExpression RewriteBinary(ExecutionBinary expression)
         {
-            return expression.Kind is BinaryOpKind.And or BinaryOpKind.Or
-                ? expression
-                : base.RewriteBinary(expression);
+            return expression.Kind is BinaryOpKind.And or BinaryOpKind.Or ? expression : base.RewriteBinary(expression);
         }
 
         protected override ExecutionExpression RewriteCaseWhen(ExecutionCaseWhen expression) => expression;
@@ -656,8 +687,8 @@ internal sealed class LoopInvariantCodeMotionPass : IExecutionIrOptimizationPass
             if (layout == null)
                 return null;
 
-            var segments = layout.Segments
-                .Select(segment => segment with { Value = RewriteExpression(segment.Value) })
+            var segments = layout
+                .Segments.Select(segment => segment with { Value = RewriteExpression(segment.Value) })
                 .ToArray();
             return layout with { Segments = segments };
         }

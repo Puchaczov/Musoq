@@ -17,15 +17,17 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("FirstName", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("SecondName", new ColumnRef("p", "Name", typeof(string)), 1)
+                new ProjectedField("SecondName", new ColumnRef("p", "Name", typeof(string)), 1),
             ],
-            scan);
+            scan
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_Hoist");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_Hoist]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -40,7 +42,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ChunkedForEach [p in pRows]",
             "      AppendShape [result <- ResultRow0(FirstName: p.Name, SecondName: p.Name)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -53,17 +56,20 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("p", "Age", typeof(int)),
             new Literal(18, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var filter = new PhysicalFilterNode(predicate, scan);
         var project = new PhysicalProjectNode(
             [new ProjectedField("Age", new ColumnRef("p", "Age", typeof(int)), 0)],
-            filter);
+            filter
+        );
         var builder = CreateSerialBuilder();
 
         var result = builder.Build(project, "Q_FilterHoist");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_FilterHoist]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -78,7 +84,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    ChunkedForEach [p in pRows]",
             "      If [(p.Age > 18)]",
             "        AppendShape [result <- ResultRow0(Age: p.Age)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -89,10 +96,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var scan = CreateScan();
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            scan);
+            scan
+        );
         var sort = new PhysicalSortNode(
             [new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: true)],
-            project);
+            project
+        );
         var skip = new PhysicalSkipNode(1, sort);
         var take = new PhysicalTakeNode(2, skip);
         var builder = CreateBuilder();
@@ -100,7 +109,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var result = builder.Build(take, "Q_SortPage");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_SortPage]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -116,7 +126,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      AppendShape [result <- ResultShape0(Name: p.Name)]",
             "    SortShapeRows [result -> resultSorted by Name DESC; capacity: Candidate(resultSorted <- result.Count)]",
             "    SliceShapeRows [resultSorted -> resultSortedSliced, skip 1, take 2; capacity: Candidate(resultSortedSliced <- Min(Max(resultSorted.Count - 1, 0), 2))]",
-            "    ReturnDeferredTable [resultSortedSliced: ResultRow0 <- ResultShape0]");
+            "    ReturnDeferredTable [resultSortedSliced: ResultRow0 <- ResultShape0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -127,11 +138,13 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var scan = CreateScan();
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            scan);
+            scan
+        );
         var topN = new PhysicalTopNNode(
             2,
             [new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: true)],
-            project);
+            project
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(topN, "Q_TopN");
@@ -150,11 +163,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.AreEqual(ExecutionAppendMode.Direct, materialize.AppendMode);
         Assert.IsInstanceOfType<ExecutionConstantCapacityHintCandidate>(materialize.CapacityHint);
         StringAssert.Contains(printed, "GeneratedRecord [ResultRow0WithSortKeys]");
-        StringAssert.Contains(printed, "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Name DESC, take 2]");
+        StringAssert.Contains(
+            printed,
+            "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Name DESC, take 2]"
+        );
         StringAssert.Contains(printed, "AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Name: p.Name)]");
         StringAssert.Contains(
             printed,
-            "MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0; capacity: Candidate(result <- 2)]");
+            "MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0; capacity: Candidate(result <- 2)]"
+        );
         StringAssert.Contains(printed, "ReturnDeferredTable [result: ResultRow0 <- ResultShape0]");
     }
 
@@ -164,11 +181,13 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var scan = CreateScan();
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            scan);
+            scan
+        );
         var topN = new PhysicalTopNNode(
             2,
             [new OrderField(new ColumnRef("p", "Age", typeof(int)), Descending: false)],
-            project);
+            project
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(topN, "Q_TopNHiddenOrderKey");
@@ -177,13 +196,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
 
         StringAssert.Contains(
             printed,
-            "AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Name: p.Name, __sortKey0: p.Age)]");
+            "AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Name: p.Name, __sortKey0: p.Age)]"
+        );
         StringAssert.Contains(
             printed,
-            "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by __sortKey0 ASC, take 2]");
+            "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by __sortKey0 ASC, take 2]"
+        );
         StringAssert.Contains(
             printed,
-            "MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0; capacity: Candidate(result <- 2)]");
+            "MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0; capacity: Candidate(result <- 2)]"
+        );
     }
 
     [TestMethod]
@@ -192,13 +214,14 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var scan = CreateScan();
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            scan);
+            scan
+        );
         var topN = new PhysicalTopNNode(
             2,
             [new OrderField(new ColumnRef("p", "Age", typeof(int)), Descending: false)],
-            project);
-        var strategies = CreateExecutionStrategies(
-        [
+            project
+        );
+        var strategies = CreateExecutionStrategies([
             new RowWidthPruningPlan(
                 "top-n:0",
                 BoundaryRowShapeKind.TopN,
@@ -206,7 +229,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 ["p.Age"],
                 [],
                 PlanningConfidence.Medium,
-                "Test blocked row-width pruning plan.")
+                "Test blocked row-width pruning plan."
+            ),
         ]);
         var builder = CreateBuilder(strategies);
 

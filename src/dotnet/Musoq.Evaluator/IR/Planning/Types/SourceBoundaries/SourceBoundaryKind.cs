@@ -5,5 +5,5 @@ internal enum SourceBoundaryKind
     Apply,
     InterpretSource,
     PropertySource,
-    AccessMethodSource
+    AccessMethodSource,
 }

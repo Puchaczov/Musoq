@@ -90,10 +90,7 @@ public readonly struct SourceLocation : IEquatable<SourceLocation>, IComparable<
 
     public bool Equals(SourceLocation other)
     {
-        return Offset == other.Offset &&
-               Line == other.Line &&
-               Column == other.Column &&
-               FilePath == other.FilePath;
+        return Offset == other.Offset && Line == other.Line && Column == other.Column && FilePath == other.FilePath;
     }
 
     public override bool Equals(object? obj)
@@ -109,10 +106,12 @@ public readonly struct SourceLocation : IEquatable<SourceLocation>, IComparable<
     public int CompareTo(SourceLocation other)
     {
         var offsetComparison = Offset.CompareTo(other.Offset);
-        if (offsetComparison != 0) return offsetComparison;
+        if (offsetComparison != 0)
+            return offsetComparison;
 
         var lineComparison = Line.CompareTo(other.Line);
-        if (lineComparison != 0) return lineComparison;
+        if (lineComparison != 0)
+            return lineComparison;
 
         return Column.CompareTo(other.Column);
     }

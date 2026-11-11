@@ -4,7 +4,9 @@ using Musoq.Parser.Diagnostics;
 namespace Musoq.Evaluator.Exceptions;
 
 internal sealed class PivotUsingNonAggregateException(string functionName, TextSpan span)
-    : Exception($"PIVOT USING accepts aggregate function calls only, but '{functionName}' is not an aggregate function."),
+    : Exception(
+        $"PIVOT USING accepts aggregate function calls only, but '{functionName}' is not an aggregate function."
+    ),
         IDiagnosticException
 {
     public DiagnosticCode Code => DiagnosticCode.MQ3051_FilterOnNonAggregate;

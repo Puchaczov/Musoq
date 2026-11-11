@@ -8,7 +8,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-
     private ExpressionSyntax RenderMethodCall(ExecutionMethodCall methodCall, ExecutionRenderContext context)
     {
         if (methodCall.EnumIntrinsic != null)
@@ -20,29 +19,33 @@ public sealed partial class ExecutionCSharpRenderer
         if (TryRenderMethodCallWithoutTarget(methodCall, context, out var targetlessInvocation))
             return targetlessInvocation;
 
-        var targetExpression = methodCall.Target != null
-            ? SyntaxFactory.IdentifierName(methodCall.Target.Name)
-            : methodCall.Method.IsStatic
-                ? CreateTypeSyntax(methodCall.Method.RequireClrMethod().DeclaringType!)
-                : throw new NotSupportedException(CreateMissingMethodTargetMessage(methodCall));
+        var targetExpression =
+            methodCall.Target != null ? SyntaxFactory.IdentifierName(methodCall.Target.Name)
+            : methodCall.Method.IsStatic ? CreateTypeSyntax(methodCall.Method.RequireClrMethod().DeclaringType!)
+            : throw new NotSupportedException(CreateMissingMethodTargetMessage(methodCall));
         var methodName = CreateMethodNameSyntax(methodCall);
         var arguments = CreateMethodInvocationArguments(methodCall, context);
 
-        var invocation = SyntaxFactory.InvocationExpression(
+        var invocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     targetExpression,
-                    methodName))
+                    methodName
+                )
+            )
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
 
         return methodCall.GeneratedResultTypeName is null
-            ? CastIfNeeded(invocation, methodCall.ReturnType) : invocation;
+            ? CastIfNeeded(invocation, methodCall.ReturnType)
+            : invocation;
     }
 
     private bool TryRenderMethodCallWithoutTarget(
         ExecutionMethodCall methodCall,
         ExecutionRenderContext context,
-        [NotNullWhen(true)] out ExpressionSyntax? expression)
+        [NotNullWhen(true)] out ExpressionSyntax? expression
+    )
     {
         expression = null;
 
@@ -51,12 +54,22 @@ public sealed partial class ExecutionCSharpRenderer
 
         expression = methodCall.Method.MethodName switch
         {
-            nameof(LibraryBase.Contains) => RenderLibraryBaseStringPredicate(methodCall, nameof(string.Contains), context),
-            nameof(LibraryBase.StartsWith) => RenderLibraryBaseStringPredicate(methodCall, nameof(string.StartsWith), context),
+            nameof(LibraryBase.Contains) => RenderLibraryBaseStringPredicate(
+                methodCall,
+                nameof(string.Contains),
+                context
+            ),
+            nameof(LibraryBase.StartsWith) => RenderLibraryBaseStringPredicate(
+                methodCall,
+                nameof(string.StartsWith),
+                context
+            ),
             nameof(LibraryBase.ToDecimal) => RenderLibraryBaseNumericToDecimal(methodCall, context),
-            nameof(LibraryBase.__CorrelatedScalarSubqueryResult) =>
-                RenderCorrelatedScalarSubqueryResultAccessor(methodCall, context),
-            _ => null
+            nameof(LibraryBase.__CorrelatedScalarSubqueryResult) => RenderCorrelatedScalarSubqueryResultAccessor(
+                methodCall,
+                context
+            ),
+            _ => null,
         };
 
         return expression != null;
@@ -64,32 +77,40 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ParenthesizedExpressionSyntax RenderLibraryBaseNumericToDecimal(
         ExecutionMethodCall methodCall,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.CastExpression(
                 CreateTypeSyntax(typeof(decimal?)),
-                RenderExpression(methodCall.Arguments[0], context)));
+                RenderExpression(methodCall.Arguments[0], context)
+            )
+        );
     }
 
     private ExpressionSyntax RenderCorrelatedScalarSubqueryResultAccessor(
         ExecutionMethodCall methodCall,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var argument = methodCall.Arguments[0];
         var renderedArgument = RenderExpression(argument, context);
         if (argument is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null })
             renderedArgument = SyntaxFactory.CastExpression(CreateTypeSyntax(argument.ReturnType), renderedArgument);
 
-        var invocation = SyntaxFactory.InvocationExpression(
+        var invocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     CreateTypeSyntax(typeof(CorrelatedScalarSubqueryResultExtractor)),
-                    SyntaxFactory.IdentifierName(nameof(CorrelatedScalarSubqueryResultExtractor.GetValue))))
+                    SyntaxFactory.IdentifierName(nameof(CorrelatedScalarSubqueryResultExtractor.GetValue))
+                )
+            )
             .WithArgumentList(CreateArgumentList(renderedArgument));
 
         return methodCall.GeneratedResultTypeName is null
-            ? CastIfNeeded(invocation, methodCall.ReturnType) : invocation;
+            ? CastIfNeeded(invocation, methodCall.ReturnType)
+            : invocation;
     }
 
     private static ExpressionSyntax CreateOptionalParameterDefaultExpression(ParameterInfo parameter)
@@ -102,8 +123,15 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static ExpressionSyntax CastIfNeeded(ExpressionSyntax expression, Type targetType)
     {
-        if (expression is BinaryExpressionSyntax or ConditionalExpressionSyntax or
-            AssignmentExpressionSyntax or LambdaExpressionSyntax or SwitchExpressionSyntax or QueryExpressionSyntax)
+        if (
+            expression
+            is BinaryExpressionSyntax
+                or ConditionalExpressionSyntax
+                or AssignmentExpressionSyntax
+                or LambdaExpressionSyntax
+                or SwitchExpressionSyntax
+                or QueryExpressionSyntax
+        )
             expression = SyntaxFactory.ParenthesizedExpression(expression);
 
         return targetType == typeof(void)
@@ -113,5 +141,4 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static ExpressionSyntax CastIfNeeded(ExpressionSyntax expression, ExecutionTypeRef targetType) =>
         CastIfNeeded(expression, targetType.RequireClrType());
-
 }

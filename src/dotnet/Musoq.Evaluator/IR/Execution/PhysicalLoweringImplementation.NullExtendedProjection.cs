@@ -21,14 +21,14 @@ internal sealed partial class PhysicalLoweringImplementation
                 unmatchedBaseValue = SubstituteNullAliasFieldDefaults(
                     unmatchedBaseValue,
                     context.NullAlias,
-                    context.NullAliasFieldDefaults);
+                    context.NullAliasFieldDefaults
+                );
             }
 
             var unmatched = SubstituteOuterApplyRightAlias(unmatchedBaseValue, context.NullAlias);
             if (!unmatched.IsBuilt)
             {
-                return NullExtendedProjectionBuildResult.Unsupported(
-                    unmatched.UnsupportedReason);
+                return NullExtendedProjectionBuildResult.Unsupported(unmatched.UnsupportedReason);
             }
 
             matchedValue = NarrowCorrelatedScalarCarrierProjection(matchedValue, unmatched);
@@ -37,42 +37,50 @@ internal sealed partial class PhysicalLoweringImplementation
                 ? LiftNullExtendedProjectionType(matchedValue.ReturnType.ResolveClrType())
                 : ResolveNullExtendedProjectionType(
                     matchedValue.ReturnType.ResolveClrType(),
-                    unmatched.Expression.ReturnType.ResolveClrType());
-            var isNullable = unmatched.IsUnknown || IsLiftedNullableResult(matchedValue.ReturnType.ResolveClrType(), resultType);
+                    unmatched.Expression.ReturnType.ResolveClrType()
+                );
+            var isNullable =
+                unmatched.IsUnknown || IsLiftedNullableResult(matchedValue.ReturnType.ResolveClrType(), resultType);
             var unmatchedValue = unmatched.IsUnknown
                 ? new ExecutionLiteral(null, resultType)
                 : EnsureProjectionValueType(unmatched.Expression, resultType);
             matchedValue = EnsureProjectionValueType(matchedValue, resultType);
 
-            projectedValues.Add(new NullExtendedProjectedValue(
-                field.OutputName,
-                field.OutputIndex,
-                resultType,
-                isNullable ? FieldNullability.Nullable : FieldNullability.Unknown,
-                field.Expression.EnumType,
-                matchedValue,
-                unmatchedValue));
+            projectedValues.Add(
+                new NullExtendedProjectedValue(
+                    field.OutputName,
+                    field.OutputIndex,
+                    resultType,
+                    isNullable ? FieldNullability.Nullable : FieldNullability.Unknown,
+                    field.Expression.EnumType,
+                    matchedValue,
+                    unmatchedValue
+                )
+            );
         }
 
         var resultShape = CreateNullExtendedGeneratedShape(
             context.ResultShapeName,
             projectedValues,
             context.SourceLookup,
-            context.NullAlias);
+            context.NullAlias
+        );
         var matchedAppendRow = CreateNullExtendedAppendRow(
             context.ResultTable,
             resultShape,
             projectedValues,
             static projectedValue => projectedValue.MatchedValue,
             CreateContextValues(context.SourceLookup),
-            CreateContextLayout(context.SourceLookup));
+            CreateContextLayout(context.SourceLookup)
+        );
         var unmatchedAppendRow = CreateNullExtendedAppendRow(
             context.ResultTable,
             resultShape,
             projectedValues,
             static projectedValue => projectedValue.UnmatchedValue,
             CreateContextValues(context.SourceLookup, context.NullAlias),
-            CreateContextLayout(context.SourceLookup, context.NullAlias));
+            CreateContextLayout(context.SourceLookup, context.NullAlias)
+        );
 
         return NullExtendedProjectionBuildResult.Success(resultShape, matchedAppendRow, unmatchedAppendRow);
     }
@@ -80,20 +88,23 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ExecutionExpression SubstituteNullAliasFieldDefaults(
         ExecutionExpression expression,
         string nullAlias,
-        IReadOnlyDictionary<string, ExecutionExpression> defaults)
+        IReadOnlyDictionary<string, ExecutionExpression> defaults
+    )
     {
         return new ExecutionExpressionSubstitutionRewriter(candidate =>
-            candidate is ExecutionFieldRead fieldRead &&
-            string.Equals(fieldRead.Alias, nullAlias, StringComparison.OrdinalIgnoreCase) &&
-            defaults.TryGetValue(fieldRead.FieldName, out var value)
+            candidate is ExecutionFieldRead fieldRead
+            && string.Equals(fieldRead.Alias, nullAlias, StringComparison.OrdinalIgnoreCase)
+            && defaults.TryGetValue(fieldRead.FieldName, out var value)
                 ? value
-                : null).RewriteExpression(expression);
+                : null
+        ).RewriteExpression(expression);
     }
 
     private FullOuterNullExtendedProjectionBuildResult CreateFullOuterNullExtendedProjection(
         NullExtendedProjectionContext context,
         string leftAlias,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var projectedValues = new List<FullOuterNullExtendedProjectedValue>(context.Fields.Length);
         var matchedPresence = CreateAllPresentMap(context.SourceLookup);
@@ -117,10 +128,12 @@ internal sealed partial class PhysicalLoweringImplementation
             var resultType = ResolveFullOuterProjectionType(
                 matchedValue.ReturnType.ResolveClrType(),
                 leftOnly.IsUnknown ? null : leftOnly.Expression.ReturnType.ResolveClrType(),
-                rightOnly.IsUnknown ? null : rightOnly.Expression.ReturnType.ResolveClrType());
-            var isNullable = leftOnly.IsUnknown ||
-                             rightOnly.IsUnknown ||
-                             IsLiftedNullableResult(matchedValue.ReturnType.ResolveClrType(), resultType);
+                rightOnly.IsUnknown ? null : rightOnly.Expression.ReturnType.ResolveClrType()
+            );
+            var isNullable =
+                leftOnly.IsUnknown
+                || rightOnly.IsUnknown
+                || IsLiftedNullableResult(matchedValue.ReturnType.ResolveClrType(), resultType);
             var leftOnlyValue = leftOnly.IsUnknown
                 ? new ExecutionLiteral(null, resultType)
                 : EnsureProjectionValueType(leftOnly.Expression, resultType);
@@ -129,15 +142,18 @@ internal sealed partial class PhysicalLoweringImplementation
                 : EnsureProjectionValueType(rightOnly.Expression, resultType);
             matchedValue = EnsureProjectionValueType(matchedValue, resultType);
 
-            projectedValues.Add(new FullOuterNullExtendedProjectedValue(
-                field.OutputName,
-                field.OutputIndex,
-                resultType,
-                isNullable ? FieldNullability.Nullable : FieldNullability.Unknown,
-                field.Expression.EnumType,
-                matchedValue,
-                leftOnlyValue,
-                rightOnlyValue));
+            projectedValues.Add(
+                new FullOuterNullExtendedProjectedValue(
+                    field.OutputName,
+                    field.OutputIndex,
+                    resultType,
+                    isNullable ? FieldNullability.Nullable : FieldNullability.Unknown,
+                    field.Expression.EnumType,
+                    matchedValue,
+                    leftOnlyValue,
+                    rightOnlyValue
+                )
+            );
         }
 
         var resultShape = CreateFullOuterNullExtendedGeneratedShape(
@@ -145,34 +161,39 @@ internal sealed partial class PhysicalLoweringImplementation
             projectedValues,
             context.SourceLookup,
             leftAlias,
-            rightAlias);
+            rightAlias
+        );
         var matchedAppendRow = CreateFullOuterNullExtendedAppendRow(
             context.ResultTable,
             resultShape,
             projectedValues,
             static projectedValue => projectedValue.MatchedValue,
             CreateContextValues(context.SourceLookup),
-            CreateContextLayout(context.SourceLookup));
+            CreateContextLayout(context.SourceLookup)
+        );
         var leftOnlyAppendRow = CreateFullOuterNullExtendedAppendRow(
             context.ResultTable,
             resultShape,
             projectedValues,
             static projectedValue => projectedValue.LeftOnlyValue,
             CreateContextValues(context.SourceLookup, rightAlias),
-            CreateContextLayout(context.SourceLookup, rightAlias));
+            CreateContextLayout(context.SourceLookup, rightAlias)
+        );
         var rightOnlyAppendRow = CreateFullOuterNullExtendedAppendRow(
             context.ResultTable,
             resultShape,
             projectedValues,
             static projectedValue => projectedValue.RightOnlyValue,
             CreateContextValues(context.SourceLookup, leftAlias),
-            CreateContextLayout(context.SourceLookup, leftAlias));
+            CreateContextLayout(context.SourceLookup, leftAlias)
+        );
 
         return FullOuterNullExtendedProjectionBuildResult.Success(
             resultShape,
             matchedAppendRow,
             leftOnlyAppendRow,
-            rightOnlyAppendRow);
+            rightOnlyAppendRow
+        );
     }
 
     private static ExecutionAppendRow CreateFullOuterNullExtendedAppendRow(
@@ -181,17 +202,22 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyList<FullOuterNullExtendedProjectedValue> projectedValues,
         Func<FullOuterNullExtendedProjectedValue, ExecutionExpression> resolveValue,
         IReadOnlyList<ExecutionExpression> contexts,
-        ExecutionContextLayout? contextLayout)
+        ExecutionContextLayout? contextLayout
+    )
     {
         return new ExecutionAppendRow(
             resultTable,
             resultShape,
             projectedValues
-                .Select(projectedValue => new ExecutionRowValue(projectedValue.OutputName, resolveValue(projectedValue)))
+                .Select(projectedValue => new ExecutionRowValue(
+                    projectedValue.OutputName,
+                    resolveValue(projectedValue)
+                ))
                 .ToArray(),
             contexts,
             SerialAppendMode,
-            contextLayout);
+            contextLayout
+        );
     }
 
     private static ExecutionAppendRow CreateNullExtendedAppendRow(
@@ -200,17 +226,22 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyList<NullExtendedProjectedValue> projectedValues,
         Func<NullExtendedProjectedValue, ExecutionExpression> resolveValue,
         IReadOnlyList<ExecutionExpression> contexts,
-        ExecutionContextLayout? contextLayout)
+        ExecutionContextLayout? contextLayout
+    )
     {
         return new ExecutionAppendRow(
             resultTable,
             resultShape,
             projectedValues
-                .Select(projectedValue => new ExecutionRowValue(projectedValue.OutputName, resolveValue(projectedValue)))
+                .Select(projectedValue => new ExecutionRowValue(
+                    projectedValue.OutputName,
+                    resolveValue(projectedValue)
+                ))
                 .ToArray(),
             contexts,
             SerialAppendMode,
-            contextLayout);
+            contextLayout
+        );
     }
 
     private static Type LiftNullExtendedProjectionType(Type type)
@@ -221,18 +252,17 @@ internal sealed partial class PhysicalLoweringImplementation
         return typeof(Nullable<>).MakeGenericType(type);
     }
 
-    private static Type ResolveFullOuterProjectionType(
-        Type matchedType,
-        Type? leftOnlyType,
-        Type? rightOnlyType)
+    private static Type ResolveFullOuterProjectionType(Type matchedType, Type? leftOnlyType, Type? rightOnlyType)
     {
         var resultType = matchedType;
-        resultType = leftOnlyType == null
-            ? LiftNullExtendedProjectionType(resultType)
-            : ResolveNullExtendedProjectionType(resultType, leftOnlyType);
-        resultType = rightOnlyType == null
-            ? LiftNullExtendedProjectionType(resultType)
-            : ResolveNullExtendedProjectionType(resultType, rightOnlyType);
+        resultType =
+            leftOnlyType == null
+                ? LiftNullExtendedProjectionType(resultType)
+                : ResolveNullExtendedProjectionType(resultType, leftOnlyType);
+        resultType =
+            rightOnlyType == null
+                ? LiftNullExtendedProjectionType(resultType)
+                : ResolveNullExtendedProjectionType(resultType, rightOnlyType);
 
         return resultType;
     }
@@ -253,18 +283,18 @@ internal sealed partial class PhysicalLoweringImplementation
             : matchedType;
     }
 
-    private static ExecutionExpression EnsureProjectionValueType(
-        ExecutionExpression expression,
-        Type resultType)
+    private static ExecutionExpression EnsureProjectionValueType(ExecutionExpression expression, Type resultType)
     {
         return expression.ReturnType.ResolveClrType() == resultType
             ? expression
-            : expression with { ReturnType = ExecutionClrBindingFactory.FromClr(resultType) };
+            : expression with
+            {
+                ReturnType = ExecutionClrBindingFactory.FromClr(resultType),
+            };
     }
 
     private static bool IsLiftedNullableResult(Type originalType, Type resultType)
     {
         return Nullable.GetUnderlyingType(resultType) == originalType;
     }
-
 }

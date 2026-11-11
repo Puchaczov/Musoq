@@ -26,20 +26,28 @@ public class BugProbeTextPatternTokenWhitespaceTests
     [TestMethod]
     public void Text_PatternRegex_ShouldCaptureMatch()
     {
-        var query = @"
-            text Data { Digits: pattern '\d+', Rest: rest };
-            select d.Digits, d.Rest from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { Digits: pattern '\\d+', Rest: rest };\n"
+            + "            select d.Digits, d.Rest from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "123abc" }
+            new TextEntity { Name = "1.txt", Text = "123abc" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -54,23 +62,31 @@ public class BugProbeTextPatternTokenWhitespaceTests
     [TestMethod]
     public void Text_PatternRegex_ShouldCaptureIpAddress()
     {
-        var query = @"
-            text Data {
-                Ip: pattern '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',
-                Rest: rest
-            };
-            select d.Ip, d.Rest from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Ip: pattern '\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}',\n"
+            + "                Rest: rest\n"
+            + "            };\n"
+            + "            select d.Ip, d.Rest from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "192.168.1.1:8080" }
+            new TextEntity { Name = "1.txt", Text = "192.168.1.1:8080" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -85,26 +101,34 @@ public class BugProbeTextPatternTokenWhitespaceTests
     [TestMethod]
     public void Text_Token_ShouldCaptureNonWhitespace()
     {
-        var query = @"
-            text Data {
-                First: token,
-                _: whitespace,
-                Second: token,
-                _: whitespace,
-                Third: rest
-            };
-            select d.First, d.Second, d.Third from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                First: token,\n"
+            + "                _: whitespace,\n"
+            + "                Second: token,\n"
+            + "                _: whitespace,\n"
+            + "                Third: rest\n"
+            + "            };\n"
+            + "            select d.First, d.Second, d.Third from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "hello world rest" }
+            new TextEntity { Name = "1.txt", Text = "hello world rest" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -120,24 +144,32 @@ public class BugProbeTextPatternTokenWhitespaceTests
     [TestMethod]
     public void Text_WhitespaceStarQuantifier_ShouldHandleZeroSpaces()
     {
-        var query = @"
-            text Data {
-                A: until ':',
-                _: whitespace*,
-                B: rest
-            };
-            select d.A, d.B from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                A: until ':',\n"
+            + "                _: whitespace*,\n"
+            + "                B: rest\n"
+            + "            };\n"
+            + "            select d.A, d.B from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "key:value" }
+            new TextEntity { Name = "1.txt", Text = "key:value" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -152,24 +184,32 @@ public class BugProbeTextPatternTokenWhitespaceTests
     [TestMethod]
     public void Text_WhitespacePlusQuantifier_ShouldConsumeMandatorySpaces()
     {
-        var query = @"
-            text Data {
-                A: token,
-                _: whitespace+,
-                B: rest
-            };
-            select d.A, d.B from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                A: token,\n"
+            + "                _: whitespace+,\n"
+            + "                B: rest\n"
+            + "            };\n"
+            + "            select d.A, d.B from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "hello   world" }
+            new TextEntity { Name = "1.txt", Text = "hello   world" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

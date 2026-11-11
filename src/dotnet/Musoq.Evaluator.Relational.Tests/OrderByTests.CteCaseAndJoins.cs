@@ -15,14 +15,15 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("katowice", "feb", 100m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -35,7 +36,8 @@ public partial class OrderByTests
             ["cracow"],
             ["katowice"],
             ["katowice"],
-            ["czestochowa"]);
+            ["czestochowa"]
+        );
     }
 
     [TestMethod]
@@ -47,14 +49,15 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("katowice", "feb", 100m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -68,7 +71,8 @@ public partial class OrderByTests
             ["katowice"],
             ["katowice"],
             ["cracow"],
-            ["glasgow"]);
+            ["glasgow"]
+        );
     }
 
     [TestMethod]
@@ -80,14 +84,15 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("katowice", "feb", 100m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -101,7 +106,8 @@ public partial class OrderByTests
             ["katowice"],
             ["katowice"],
             ["cracow"],
-            ["glasgow"]);
+            ["glasgow"]
+        );
     }
 
     [TestMethod]
@@ -113,14 +119,15 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("katowice", "feb", 100m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -134,7 +141,8 @@ public partial class OrderByTests
             ["katowice"],
             ["katowice"],
             ["cracow"],
-            ["glasgow"]);
+            ["glasgow"]
+        );
     }
 
     [TestMethod]
@@ -146,30 +154,29 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("katowice", "feb", 100m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Money", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["czestochowa", 400m],
             ["katowice", 300m],
             ["katowice", 100m],
             ["cracow", 10m],
-            ["glasgow", -10m]);
+            ["glasgow", -10m]
+        );
     }
 
     [TestMethod]
@@ -180,14 +187,15 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("katowice", "feb", 100m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -201,7 +209,8 @@ public partial class OrderByTests
             ["cracow"],
             ["katowice"],
             ["katowice"],
-            ["czestochowa"]);
+            ["czestochowa"]
+        );
     }
 
     [TestMethod]
@@ -212,14 +221,15 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("katowice", "feb", 100m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -233,7 +243,8 @@ public partial class OrderByTests
             ["katowice"],
             ["katowice"],
             ["cracow"],
-            ["glasgow"]);
+            ["glasgow"]
+        );
     }
 
     [TestMethod]
@@ -244,14 +255,15 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("katowice", "feb", 100m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -265,7 +277,8 @@ public partial class OrderByTests
             ["cracow"],
             ["katowice"],
             ["katowice"],
-            ["czestochowa"]);
+            ["czestochowa"]
+        );
     }
 
     [TestMethod]
@@ -277,14 +290,15 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("katowice", "feb", 100m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -298,7 +312,8 @@ public partial class OrderByTests
             ["katowice"],
             ["katowice"],
             ["cracow"],
-            ["glasgow"]);
+            ["glasgow"]
+        );
     }
 
     [TestMethod]
@@ -310,13 +325,14 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -324,12 +340,7 @@ public partial class OrderByTests
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["glasgow"],
-            ["cracow"],
-            ["katowice"],
-            ["czestochowa"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["glasgow"], ["cracow"], ["katowice"], ["czestochowa"]);
     }
 
     [TestMethod]
@@ -341,13 +352,14 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -355,12 +367,7 @@ public partial class OrderByTests
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["czestochowa"],
-            ["katowice"],
-            ["cracow"],
-            ["glasgow"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["czestochowa"], ["katowice"], ["cracow"], ["glasgow"]);
     }
 
     [TestMethod]
@@ -372,13 +379,14 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -386,12 +394,7 @@ public partial class OrderByTests
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["cracow"],
-            ["czestochowa"],
-            ["glasgow"],
-            ["katowice"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["cracow"], ["czestochowa"], ["glasgow"], ["katowice"]);
     }
 
     [TestMethod]
@@ -403,13 +406,14 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("czestochowa", "jan", 400m),
                     new BasicEntity("cracow", "jan", 10m),
-                    new BasicEntity("glasgow", "feb", -10m)
+                    new BasicEntity("glasgow", "feb", -10m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -417,30 +421,23 @@ public partial class OrderByTests
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["katowice"],
-            ["glasgow"],
-            ["czestochowa"],
-            ["cracow"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["katowice"], ["glasgow"], ["czestochowa"], ["cracow"]);
     }
 
     [TestMethod]
     public void WhenOrderByWithGroupBy_ShouldSucceed()
     {
-        const string query = """
-                             select
-                                a.GetTypeName(a.Name),
-                                a.Count(a.Name)
-                             from #A.Entities() a
-                             group by a.GetTypeName(a.Name)
-                             order by a.GetTypeName(a.Name)
-                             """;
+        const string query = (
+            "select\n"
+            + "   a.GetTypeName(a.Name),\n"
+            + "   a.Count(a.Name)\n"
+            + "from #A.Entities() a\n"
+            + "group by a.GetTypeName(a.Name)\n"
+            + "order by a.GetTypeName(a.Name)"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [new BasicEntity("a"), new BasicEntity("b"), new BasicEntity("c")]
-            }
+            { "#A", [new BasicEntity("a"), new BasicEntity("b"), new BasicEntity("c")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -450,9 +447,8 @@ public partial class OrderByTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("a.GetTypeName(a.Name)", typeof(string)),
-            ("a.Count(a.Name)", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["System.String", 3L]);
+            ("a.Count(a.Name)", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["System.String", 3L]);
     }
 }

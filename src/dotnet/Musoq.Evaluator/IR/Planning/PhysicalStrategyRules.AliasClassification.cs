@@ -14,7 +14,8 @@ internal static partial class PhysicalStrategyRules
         HashSet<string> rightAliases,
         List<IrExpression> leftKeys,
         List<IrExpression> rightKeys,
-        bool allowConstantKeys)
+        bool allowConstantKeys
+    )
     {
         var leftColumns = ColumnRefExtractor.Extract(equality.Left);
         var rightColumns = ColumnRefExtractor.Extract(equality.Right);

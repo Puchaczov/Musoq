@@ -11,7 +11,6 @@ namespace Musoq.Converter.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class BuildTests
 {
-
     [TestMethod]
     public void CompileForStoreTest()
     {
@@ -31,8 +30,14 @@ public class BuildTests
     {
         var query = "select 1 from #system.dual()";
 
-        var arrays = await InstanceCreator.CompileForStoreAsync(query, Guid.NewGuid().ToString(),
-            new SystemSchemaProvider(), new TestsLoggerResolver()).ConfigureAwait(false);
+        var arrays = await InstanceCreator
+            .CompileForStoreAsync(
+                query,
+                Guid.NewGuid().ToString(),
+                new SystemSchemaProvider(),
+                new TestsLoggerResolver()
+            )
+            .ConfigureAwait(false);
 
         Assert.IsNotNull(arrays.DllFile);
         Assert.IsNotNull(arrays.PdbFile);
@@ -75,7 +80,8 @@ public class BuildTests
         var sourceExecutionPlans = sourceArtifact.SourceExecutionPlans.ToDictionary(
             static entry => entry.Key,
             static entry => entry.Value,
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
         var parameterDefinitions = sourceArtifact.ParameterDefinitions.ToList();
         var artifact = new CompiledTypedQueryArtifact(
             dllFile,
@@ -86,7 +92,8 @@ public class BuildTests
             sourceRuntimeSettings,
             sourceRuntimeSettingDescriptions,
             sourceExecutionPlans,
-            parameterDefinitions);
+            parameterDefinitions
+        );
 
         Array.Clear(dllFile);
         if (pdbFile != null)
@@ -126,7 +133,8 @@ public class BuildTests
             out var acceptedOrderBy,
             out var predicateValues,
             out var propertyTags,
-            out var nestedProperties);
+            out var nestedProperties
+        );
 
         acceptedColumns.Clear();
         acceptedOrderBy.Clear();
@@ -152,31 +160,21 @@ public class BuildTests
     [TestMethod]
     public void CompiledTypedQueryArtifact_WhenReturnedSourcePlanCollectionsMutate_ShouldRejectAndRemainLoadable()
     {
-        var artifact = CreateArtifactWithMutableSourcePlan(
-            out _,
-            out _,
-            out _,
-            out _,
-            out _);
+        var artifact = CreateArtifactWithMutableSourcePlan(out _, out _, out _, out _, out _);
         var plan = artifact.SourceExecutionPlans["mutable"];
         var predicate = (SourcePredicateIn)plan.AcceptedPredicate!;
         var nested = (IReadOnlyDictionary<string, object?>)plan.Properties["nested"]!;
         var tags = (IReadOnlyList<string>)nested["tags"]!;
 
         Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, SourceExecutionPlan>)artifact.SourceExecutionPlans).Clear());
-        Assert.Throws<NotSupportedException>(() =>
-            ((IList<SourceColumnRef>)plan.AcceptedColumns).Clear());
-        Assert.Throws<NotSupportedException>(() =>
-            ((IList<OrderByExpression>)plan.AcceptedOrderBy).Clear());
-        Assert.Throws<NotSupportedException>(() =>
-            ((IList<SourcePredicateExpression>)predicate.Values).Clear());
-        Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, object?>)plan.Properties).Clear());
-        Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, object?>)nested).Clear());
-        Assert.Throws<NotSupportedException>(() =>
-            ((IList<string>)tags).Clear());
+            ((IDictionary<string, SourceExecutionPlan>)artifact.SourceExecutionPlans).Clear()
+        );
+        Assert.Throws<NotSupportedException>(() => ((IList<SourceColumnRef>)plan.AcceptedColumns).Clear());
+        Assert.Throws<NotSupportedException>(() => ((IList<OrderByExpression>)plan.AcceptedOrderBy).Clear());
+        Assert.Throws<NotSupportedException>(() => ((IList<SourcePredicateExpression>)predicate.Values).Clear());
+        Assert.Throws<NotSupportedException>(() => ((IDictionary<string, object?>)plan.Properties).Clear());
+        Assert.Throws<NotSupportedException>(() => ((IDictionary<string, object?>)nested).Clear());
+        Assert.Throws<NotSupportedException>(() => ((IList<string>)tags).Clear());
 
         Assert.AreEqual("single", LoadDualArtifact(artifact).Run().Single().Dummy);
     }
@@ -184,7 +182,12 @@ public class BuildTests
     [TestMethod]
     public void CompiledTypedQueryArtifact_ShouldSnapshotTypedStringPredicateApplications()
     {
-        var match = new SourcePredicateStringMatch(new SourceColumnRef("Name"), SourceStringMatchKind.Contains, "%item%", "item");
+        var match = new SourcePredicateStringMatch(
+            new SourceColumnRef("Name"),
+            SourceStringMatchKind.Contains,
+            "%item%",
+            "item"
+        );
         var plan = CreatePatternApplicationSnapshot(match);
         Assert.HasCount(1, plan.PredicateApplications);
         Assert.AreNotSame(match, plan.PredicateApplications[0].Predicate);
@@ -193,13 +196,19 @@ public class BuildTests
         Assert.AreEqual("%item%", copiedMatch.OriginalPattern);
         Assert.AreEqual("item", copiedMatch.Needle);
         Assert.Throws<NotSupportedException>(() =>
-            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear());
+            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear()
+        );
     }
 
     [TestMethod]
     public void CompiledTypedQueryArtifact_ShouldSnapshotTypedRegexPredicateApplications()
     {
-        var match = new SourcePredicateRegexMatch(new SourceColumnRef("Name"), "item.*", TimeSpan.FromMilliseconds(37), isNegated: true);
+        var match = new SourcePredicateRegexMatch(
+            new SourceColumnRef("Name"),
+            "item.*",
+            TimeSpan.FromMilliseconds(37),
+            isNegated: true
+        );
         var plan = CreatePatternApplicationSnapshot(match);
         Assert.HasCount(1, plan.PredicateApplications);
         Assert.AreNotSame(match, plan.PredicateApplications[0].Predicate);
@@ -210,7 +219,8 @@ public class BuildTests
         Assert.IsTrue(copiedRegex.IsNegated);
         Assert.AreEqual(copiedRegex, plan.AcceptedPredicate);
         Assert.Throws<NotSupportedException>(() =>
-            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear());
+            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear()
+        );
     }
 
     private static SourceExecutionPlan CreatePatternApplicationSnapshot(SourcePredicatePatternMatch match)
@@ -218,17 +228,18 @@ public class BuildTests
         var sourceArtifact = CompileDualArtifact();
         var applications = new List<SourcePredicateApplication>
         {
-            new(match, SourcePredicateEvaluationPhase.RowFiltering)
+            new(match, SourcePredicateEvaluationPhase.RowFiltering),
         };
         var sourceExecutionPlans = sourceArtifact.SourceExecutionPlans.ToDictionary(
             static entry => entry.Key,
             static entry => entry.Value,
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
         sourceExecutionPlans["typed"] = new SourceExecutionPlan
         {
             Identity = new SourceIdentity("#test", "entities", "typed", "s"),
             AcceptedPredicate = match,
-            PredicateApplications = applications
+            PredicateApplications = applications,
         };
 
         var artifact = new CompiledTypedQueryArtifact(
@@ -240,7 +251,8 @@ public class BuildTests
             sourceArtifact.SourceRuntimeSettingsBySourceContextId,
             sourceArtifact.SourceRuntimeSettingDescriptionsBySourceContextId,
             sourceExecutionPlans,
-            sourceArtifact.ParameterDefinitions);
+            sourceArtifact.ParameterDefinitions
+        );
 
         applications.Clear();
 
@@ -251,20 +263,15 @@ public class BuildTests
     public void CompiledTypedQueryArtifact_WhenNestedKnownDictionariesMutate_ShouldKeepMetadataSnapshot()
     {
         var sourceArtifact = CompileDualArtifact();
-        var readModifiers = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["trim"] = "true"
-        };
+        var readModifiers = new Dictionary<string, string>(StringComparer.Ordinal) { ["trim"] = "true" };
         var labels = new List<string> { "hot" };
-        var nestedMap = new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["labels"] = labels
-        };
+        var nestedMap = new Dictionary<string, object?>(StringComparer.Ordinal) { ["labels"] = labels };
         var column = new SourceColumnRef("Name", readModifiers);
         var sourceExecutionPlans = sourceArtifact.SourceExecutionPlans.ToDictionary(
             static entry => entry.Key,
             static entry => entry.Value,
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
         sourceExecutionPlans["nested"] = new SourceExecutionPlan
         {
             Identity = new SourceIdentity("#test", "entities", "nested", "n"),
@@ -274,8 +281,8 @@ public class BuildTests
             Properties = new Dictionary<string, object?>(StringComparer.Ordinal)
             {
                 ["map"] = nestedMap,
-                ["columns"] = new[] { column }
-            }
+                ["columns"] = new[] { column },
+            },
         };
         var artifact = new CompiledTypedQueryArtifact(
             sourceArtifact.DllFile,
@@ -286,7 +293,8 @@ public class BuildTests
             sourceArtifact.SourceRuntimeSettingsBySourceContextId,
             sourceArtifact.SourceRuntimeSettingDescriptionsBySourceContextId,
             sourceExecutionPlans,
-            sourceArtifact.ParameterDefinitions);
+            sourceArtifact.ParameterDefinitions
+        );
 
         readModifiers["trim"] = "false";
         readModifiers["pad"] = "left";
@@ -295,7 +303,8 @@ public class BuildTests
 
         var plan = artifact.SourceExecutionPlans["nested"];
         var copiedColumn = plan.AcceptedColumns.Single();
-        var copiedPredicateMap = (IReadOnlyDictionary<string, object?>)((SourcePredicateLiteral)plan.AcceptedPredicate!).Value!;
+        var copiedPredicateMap =
+            (IReadOnlyDictionary<string, object?>)((SourcePredicateLiteral)plan.AcceptedPredicate!).Value!;
         var copiedPropertyMap = (IReadOnlyDictionary<string, object?>)plan.Properties["map"]!;
         var copiedLabels = (IReadOnlyList<string>)copiedPropertyMap["labels"]!;
 
@@ -305,17 +314,22 @@ public class BuildTests
         Assert.IsFalse(copiedPropertyMap.ContainsKey("extra"));
         CollectionAssert.AreEqual(new[] { "hot" }, copiedLabels.ToArray());
         Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, string>)copiedColumn.ReadModifiers).Add("new", "value"));
+            ((IDictionary<string, string>)copiedColumn.ReadModifiers).Add("new", "value")
+        );
         Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, object?>)copiedPropertyMap).Add("new", "value"));
-        Assert.Throws<NotSupportedException>(() =>
-            ((IList<string>)copiedLabels).Add("new"));
+            ((IDictionary<string, object?>)copiedPropertyMap).Add("new", "value")
+        );
+        Assert.Throws<NotSupportedException>(() => ((IList<string>)copiedLabels).Add("new"));
     }
 
     private (byte[] DllFile, byte[] PdbFile) CreateForStore(string script)
     {
-        return InstanceCreator.CompileForStore(script, Guid.NewGuid().ToString(), new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+        return InstanceCreator.CompileForStore(
+            script,
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver()
+        );
     }
 
     private static ICompiledTypedQueryArtifact CompileDualArtifact()
@@ -325,7 +339,8 @@ public class BuildTests
             query,
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
     }
 
     private static ICompiledTypedQueryArtifact CreateArtifactWithMutableSourcePlan(
@@ -333,28 +348,25 @@ public class BuildTests
         out List<OrderByExpression> acceptedOrderBy,
         out List<SourcePredicateExpression> predicateValues,
         out List<string> propertyTags,
-        out Dictionary<string, object?> nestedProperties)
+        out Dictionary<string, object?> nestedProperties
+    )
     {
         var sourceArtifact = CompileDualArtifact();
         acceptedColumns = [new SourceColumnRef("Name", new Dictionary<string, string> { ["trim"] = "true" })];
         acceptedOrderBy = [new OrderByExpression(acceptedColumns[0], OrderDirection.Ascending)];
         predicateValues = [new SourcePredicateLiteral("single")];
         propertyTags = ["hot"];
-        nestedProperties = new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["tags"] = propertyTags
-        };
+        nestedProperties = new Dictionary<string, object?>(StringComparer.Ordinal) { ["tags"] = propertyTags };
         var sourceExecutionPlans = sourceArtifact.SourceExecutionPlans.ToDictionary(
             static entry => entry.Key,
             static entry => entry.Value,
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
         sourceExecutionPlans["mutable"] = new SourceExecutionPlan
         {
             Identity = new SourceIdentity("#test", "entities", "mutable", "m"),
             AcceptedColumns = acceptedColumns,
-            AcceptedPredicate = new SourcePredicateIn(
-                new SourcePredicateColumn(acceptedColumns[0]),
-                predicateValues),
+            AcceptedPredicate = new SourcePredicateIn(new SourcePredicateColumn(acceptedColumns[0]), predicateValues),
             AcceptedOrderBy = acceptedOrderBy,
             AcceptedSkip = 1,
             AcceptedTake = 2,
@@ -362,8 +374,8 @@ public class BuildTests
             {
                 ["nested"] = nestedProperties,
                 ["columns"] = acceptedColumns,
-                ["order"] = acceptedOrderBy
-            }
+                ["order"] = acceptedOrderBy,
+            },
         };
 
         return new CompiledTypedQueryArtifact(
@@ -375,41 +387,48 @@ public class BuildTests
             sourceArtifact.SourceRuntimeSettingsBySourceContextId,
             sourceArtifact.SourceRuntimeSettingDescriptionsBySourceContextId,
             sourceExecutionPlans,
-            sourceArtifact.ParameterDefinitions);
+            sourceArtifact.ParameterDefinitions
+        );
     }
 
-    private static Evaluator.CompiledTypedQuery<DualDto> LoadDualArtifact(
-        ICompiledTypedQueryArtifact artifact)
+    private static Evaluator.CompiledTypedQuery<DualDto> LoadDualArtifact(ICompiledTypedQueryArtifact artifact)
     {
         return InstanceCreator.LoadTypedArtifact<DualDto>(
             artifact,
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
     }
 
     private static Dictionary<string, IReadOnlyDictionary<string, string>> CopySourceRuntimeSettings(
-        ICompiledTypedQueryArtifact artifact)
+        ICompiledTypedQueryArtifact artifact
+    )
     {
         return artifact.SourceRuntimeSettingsBySourceContextId.ToDictionary(
             static entry => entry.Key,
-            static entry => (IReadOnlyDictionary<string, string>)new Dictionary<string, string>(entry.Value, StringComparer.Ordinal),
-            StringComparer.Ordinal);
+            static entry =>
+                (IReadOnlyDictionary<string, string>)
+                    new Dictionary<string, string>(entry.Value, StringComparer.Ordinal),
+            StringComparer.Ordinal
+        );
     }
 
-    private static Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> CopySourceRuntimeSettingDescriptions(
-        ICompiledTypedQueryArtifact artifact)
+    private static Dictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > CopySourceRuntimeSettingDescriptions(ICompiledTypedQueryArtifact artifact)
     {
         return artifact.SourceRuntimeSettingDescriptionsBySourceContextId.ToDictionary(
             static entry => entry.Key,
             static entry => (IReadOnlyList<SourceRuntimeSettingDescription>)entry.Value.ToArray(),
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
     }
 
     public sealed record DualDto(string Dummy);
 
-    private sealed class VersionedArtifact(
-        ICompiledTypedQueryArtifact inner,
-        int artifactVersion) : ICompiledTypedQueryArtifact
+    private sealed class VersionedArtifact(ICompiledTypedQueryArtifact inner, int artifactVersion)
+        : ICompiledTypedQueryArtifact
     {
         public int ArtifactVersion => artifactVersion;
 
@@ -431,11 +450,15 @@ public class BuildTests
 
         public string OutputTypeName => inner.OutputTypeName;
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId =>
-            inner.SourceRuntimeSettingsBySourceContextId;
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId => inner.SourceRuntimeSettingsBySourceContextId;
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId =>
-            inner.SourceRuntimeSettingDescriptionsBySourceContextId;
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId => inner.SourceRuntimeSettingDescriptionsBySourceContextId;
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans => inner.SourceExecutionPlans;
 

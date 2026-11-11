@@ -13,7 +13,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private LoweringAttempt<ProjectedField[]> CreateNestedSourceProjectionFields(
         PhysicalNode source,
         IReadOnlyDictionary<string, int> cteIndexes,
-        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName)
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName
+    )
     {
         var fields = new List<ProjectedField>();
         var collection = CollectNestedSourceProjectionFields(source, cteIndexes, cteShapesByName, fields);
@@ -27,7 +28,8 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalNode source,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        List<ProjectedField> fields)
+        List<ProjectedField> fields
+    )
     {
         if (source is PhysicalNestedLoopApplyNode apply)
         {
@@ -85,15 +87,19 @@ internal sealed partial class PhysicalLoweringImplementation
         if (shape == null)
         {
             return ProjectionFieldCollectionResult.Unsupported(
-                $"Execution IR apply lowering cannot resolve nested apply source shape for {source.GetType().Name}.");
+                $"Execution IR apply lowering cannot resolve nested apply source shape for {source.GetType().Name}."
+            );
         }
 
         foreach (var field in shape.Fields)
         {
-            fields.Add(new ProjectedField(
-                CreateMaterializedSourceProjectionFieldName(field),
-                CreateMaterializedSourceProjectionColumnRef(field),
-                fields.Count));
+            fields.Add(
+                new ProjectedField(
+                    CreateMaterializedSourceProjectionFieldName(field),
+                    CreateMaterializedSourceProjectionColumnRef(field),
+                    fields.Count
+                )
+            );
         }
 
         return ProjectionFieldCollectionResult.Success();
@@ -101,9 +107,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static string CreateMaterializedSourceProjectionFieldName(FieldBinding field)
     {
-        return string.IsNullOrWhiteSpace(field.QualifiedName)
-            ? field.Name
-            : field.QualifiedName;
+        return string.IsNullOrWhiteSpace(field.QualifiedName) ? field.Name : field.QualifiedName;
     }
 
     private static ColumnRef CreateMaterializedSourceProjectionColumnRef(FieldBinding field)
@@ -116,13 +120,14 @@ internal sealed partial class PhysicalLoweringImplementation
                 qualifiedName[..separatorIndex],
                 qualifiedName[(separatorIndex + 1)..],
                 field.Type.ResolveClrType(),
-                field.GeneratedTypeName)
+                field.GeneratedTypeName
+            )
             {
-                Stability = field.Stability
+                Stability = field.Stability,
             }
             : new ColumnRef(string.Empty, qualifiedName, field.Type.ResolveClrType(), field.GeneratedTypeName)
             {
-                Stability = field.Stability
+                Stability = field.Stability,
             };
     }
 
@@ -130,14 +135,16 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return CreateIdentifierCandidate(
             $"join_{schemaFromIndex.ToString(CultureInfo.InvariantCulture)}_{CreateMaterializedSourceAliasFragment(join)}",
-            schemaFromIndex);
+            schemaFromIndex
+        );
     }
 
     private static string CreateNestedApplySourceAlias(PhysicalNestedLoopApplyNode apply, int schemaFromIndex)
     {
         return CreateIdentifierCandidate(
             $"apply_{schemaFromIndex.ToString(CultureInfo.InvariantCulture)}_{CreateMaterializedSourceAliasFragment(apply)}",
-            schemaFromIndex);
+            schemaFromIndex
+        );
     }
 
     private static string CreateNestedSourceShapeName(string sourceAlias)
@@ -155,11 +162,15 @@ internal sealed partial class PhysicalLoweringImplementation
             PhysicalPropertySourceNode property => property.Alias,
             PhysicalAccessMethodSourceNode accessMethod => accessMethod.Alias,
             PhysicalValuesScanNode values => values.Alias,
-            PhysicalNestedLoopApplyNode apply => $"{CreateMaterializedSourceAliasFragment(apply.Left)}_{CreateMaterializedSourceAliasFragment(apply.Right)}",
-            PhysicalNestedLoopJoinNode join => $"{CreateMaterializedSourceAliasFragment(join.Left)}_{CreateMaterializedSourceAliasFragment(join.Right)}",
-            PhysicalHashJoinNode join => $"{CreateMaterializedSourceAliasFragment(join.Left)}_{CreateMaterializedSourceAliasFragment(join.Right)}",
-            PhysicalSortMergeJoinNode join => $"{CreateMaterializedSourceAliasFragment(join.Left)}_{CreateMaterializedSourceAliasFragment(join.Right)}",
-            _ => source.GetType().Name
+            PhysicalNestedLoopApplyNode apply =>
+                $"{CreateMaterializedSourceAliasFragment(apply.Left)}_{CreateMaterializedSourceAliasFragment(apply.Right)}",
+            PhysicalNestedLoopJoinNode join =>
+                $"{CreateMaterializedSourceAliasFragment(join.Left)}_{CreateMaterializedSourceAliasFragment(join.Right)}",
+            PhysicalHashJoinNode join =>
+                $"{CreateMaterializedSourceAliasFragment(join.Left)}_{CreateMaterializedSourceAliasFragment(join.Right)}",
+            PhysicalSortMergeJoinNode join =>
+                $"{CreateMaterializedSourceAliasFragment(join.Left)}_{CreateMaterializedSourceAliasFragment(join.Right)}",
+            _ => source.GetType().Name,
         };
     }
 }

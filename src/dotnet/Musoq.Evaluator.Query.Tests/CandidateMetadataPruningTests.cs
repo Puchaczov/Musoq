@@ -21,8 +21,9 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
     [TestMethod]
     public void CandidateMetadata_ShouldPreserveResultsAndOpenExactlyMatchingPayloads()
     {
-        const string query = "select c.Id, c.Path, c.Payload from #candidate.items() c " +
-                             "where c.Path like '/root/alpha%' order by c.Id";
+        const string query =
+            "select c.Id, c.Path, c.Payload from #candidate.items() c "
+            + "where c.Path like '/root/alpha%' order by c.Id";
 
         var baseline = Run(query, CandidatePayloadMode.RejectAll, out var baselineRecorder);
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var optimizedRecorder);
@@ -42,7 +43,8 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var table = Run(
             "select c.Id from #candidate.items() c where c.Path like '/missing/%'",
             CandidatePayloadMode.CandidateMetadata,
-            out var recorder);
+            out var recorder
+        );
 
         Assert.AreEqual(0, table.Count);
         Assert.AreEqual(0, recorder.PayloadOpens);
@@ -54,8 +56,8 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
     [TestMethod]
     public void CandidateMetadata_ShouldUseLegacyUnicodeInputSemantics()
     {
-        const string query = "select c.Id, c.Path from #candidate.items() c " +
-                             "where c.Path like '/root/k%' order by c.Id";
+        const string query =
+            "select c.Id, c.Path from #candidate.items() c " + "where c.Path like '/root/k%' order by c.Id";
 
         var baseline = Run(query, CandidatePayloadMode.RejectAll, out _);
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var recorder);
@@ -73,14 +75,15 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
     [DataRow("where c.Path like '%K%'", 0)]
     public void CandidateMetadata_AllSpecializedKindsShouldPreserveLegacyUnicodeInputSemantics(
         string predicate,
-        int expectedId)
+        int expectedId
+    )
     {
         var rows = new[]
         {
             CandidatePayloadSeed.Create(0, "K", "kelvin"),
             CandidatePayloadSeed.Create(1, "İ", "dotted-i"),
             CandidatePayloadSeed.Create(2, "ASCII", "ascii"),
-            CandidatePayloadSeed.Create(3, null, "null")
+            CandidatePayloadSeed.Create(3, null, "null"),
         };
         var query = $"select c.Id from #candidate.items() c {predicate} order by c.Id";
 
@@ -101,7 +104,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         {
             CandidatePayloadSeed.Create(0, "i", "dotted-lower"),
             CandidatePayloadSeed.Create(1, "ı", "dotless-lower"),
-            CandidatePayloadSeed.Create(2, "I", "ascii-upper")
+            CandidatePayloadSeed.Create(2, "I", "ascii-upper"),
         };
 
         try
@@ -124,8 +127,8 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
     [TestMethod]
     public void CandidateMetadata_NegationShouldPreserveNullSemantics()
     {
-        const string query = "select c.Id from #candidate.items() c " +
-                             "where c.Path not like '/root/alpha%' order by c.Id";
+        const string query =
+            "select c.Id from #candidate.items() c " + "where c.Path not like '/root/alpha%' order by c.Id";
 
         var baseline = Run(query, CandidatePayloadMode.RejectAll, out _);
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var recorder);
@@ -141,7 +144,8 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var table = Run(
             "select c.Id from #candidate.items() c where c.Path like '/root/alpha%' order by c.Id",
             CandidatePayloadMode.RowFiltering,
-            out var recorder);
+            out var recorder
+        );
 
         CollectionAssert.AreEqual(new[] { 0, 5 }, table.Select(row => (int)row.ReadValue(0)).ToArray());
         Assert.AreEqual(DefaultRows.Count, recorder.PayloadOpens);
@@ -152,8 +156,9 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
     [TestMethod]
     public void PartialAnd_ShouldPruneByMetadataAndRetainPayloadResidual()
     {
-        const string query = "select c.Id from #candidate.items() c " +
-                             "where c.Path like '/root/%' and c.Payload like '%keep%' order by c.Id";
+        const string query =
+            "select c.Id from #candidate.items() c "
+            + "where c.Path like '/root/%' and c.Payload like '%keep%' order by c.Id";
 
         var baseline = Run(query, CandidatePayloadMode.RejectAll, out _);
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var recorder);
@@ -166,8 +171,9 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
     [TestMethod]
     public void SupportedLookingOr_ShouldRemainResidualAndOpenEveryPayload()
     {
-        const string query = "select c.Id from #candidate.items() c " +
-                             "where c.Path like '/root/alpha%' or c.Payload like '%other%' order by c.Id";
+        const string query =
+            "select c.Id from #candidate.items() c "
+            + "where c.Path like '/root/alpha%' or c.Payload like '%other%' order by c.Id";
 
         var baseline = Run(query, CandidatePayloadMode.RejectAll, out _);
         var optimized = Run(query, CandidatePayloadMode.CandidateMetadata, out var recorder);
@@ -182,9 +188,7 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
     [DataRow(CandidatePayloadMode.UnknownVersion, "'/root/alpha%'")]
     [DataRow(CandidatePayloadMode.PayloadOnlyCapability, "'/root/alpha%'")]
     [DataRow(CandidatePayloadMode.CandidateMetadata, "'/root/_lpha%'")]
-    public void UnsupportedCapabilityShapeOrVersion_ShouldKeepRuntimeResidual(
-        CandidatePayloadMode mode,
-        string pattern)
+    public void UnsupportedCapabilityShapeOrVersion_ShouldKeepRuntimeResidual(CandidatePayloadMode mode, string pattern)
     {
         var query = $"select c.Id from #candidate.items() c where c.Path like {pattern} order by c.Id";
         var baseline = Run(query, CandidatePayloadMode.RejectAll, out _);
@@ -208,7 +212,9 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         _ = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
                 "select c.Id from #candidate.items() c where c.Path like '/root/%'",
-                schemaProvider: provider));
+                schemaProvider: provider
+            )
+        );
 
         Assert.AreEqual(0, provider.Recorder.PayloadOpens);
         Assert.AreEqual(0, provider.Recorder.PayloadDecodes);
@@ -224,20 +230,23 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         int expectedOpens,
         int expectedDecodes,
         int expectedMaterializations,
-        DiagnosticCode expectedDiagnosticCode)
+        DiagnosticCode expectedDiagnosticCode
+    )
     {
         var rows = new[]
         {
             CandidatePayloadSeed.Create(10, "/ignored/value", "ignored"),
-            CandidatePayloadSeed.Create(11, "/fault/value", "secret-payload", fault)
+            CandidatePayloadSeed.Create(11, "/fault/value", "secret-payload", fault),
         };
         var provider = new CandidatePayloadSchemaProvider(rows, CandidatePayloadMode.CandidateMetadata);
         using var compiled = CreateAndRunVirtualMachine(
             "select c.Id from #candidate.items() c where c.Path like '/fault/%'",
-            schemaProvider: provider);
+            schemaProvider: provider
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() =>
-            TableMaterializationTestHelper.Materialize(compiled.Run()));
+            TableMaterializationTestHelper.Materialize(compiled.Run())
+        );
 
         Assert.IsNotNull(exception.Envelope);
         Assert.AreEqual(expectedDiagnosticCode, exception.Envelope.Code);
@@ -261,18 +270,21 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
             {
                 if (id == 1)
                     cancellation.Cancel();
-            }
+            },
         };
         var provider = new CandidatePayloadSchemaProvider(
             DefaultRows,
             CandidatePayloadMode.CandidateMetadata,
-            recorder);
+            recorder
+        );
         using var compiled = CreateAndRunVirtualMachine(
             "select c.Id from #candidate.items() c where c.Path like '/root/%'",
-            schemaProvider: provider);
+            schemaProvider: provider
+        );
 
         _ = Assert.Throws<OperationCanceledException>(() =>
-            TableMaterializationTestHelper.Materialize(compiled.Run(cancellation.Token)));
+            TableMaterializationTestHelper.Materialize(compiled.Run(cancellation.Token))
+        );
 
         Assert.AreEqual(1, recorder.PayloadOpens);
         Assert.AreEqual(1, recorder.PayloadDecodes);
@@ -286,7 +298,8 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         var provider = new CandidatePayloadSchemaProvider(DefaultRows, CandidatePayloadMode.CandidateMetadata);
         using var compiled = CreateAndRunVirtualMachine(
             "select c.Id from #candidate.items() c where c.Path like '/root/%' take 1",
-            schemaProvider: provider);
+            schemaProvider: provider
+        );
 
         var table = TableMaterializationTestHelper.Materialize(compiled.Run());
 
@@ -302,13 +315,10 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         CandidatePayloadSeed.Create(3, null, "keep-null"),
         CandidatePayloadSeed.Create(4, "/other/alpha.txt", "keep-other"),
         CandidatePayloadSeed.Create(5, "/root/ALPHA.log", "keep-upper"),
-        CandidatePayloadSeed.Create(6, "/root/gamma.txt", "keep-gamma")
+        CandidatePayloadSeed.Create(6, "/root/gamma.txt", "keep-gamma"),
     ];
 
-    private Table Run(
-        string query,
-        CandidatePayloadMode mode,
-        out CandidatePayloadRecorder recorder)
+    private Table Run(string query, CandidatePayloadMode mode, out CandidatePayloadRecorder recorder)
     {
         return Run(query, DefaultRows, mode, out recorder);
     }
@@ -317,7 +327,8 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         string query,
         IReadOnlyList<CandidatePayloadSeed> rows,
         CandidatePayloadMode mode,
-        out CandidatePayloadRecorder recorder)
+        out CandidatePayloadRecorder recorder
+    )
     {
         var provider = new CandidatePayloadSchemaProvider(rows, mode);
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: provider);
@@ -331,7 +342,8 @@ public sealed class CandidateMetadataPruningTests : BasicEntityTestBase
         Assert.AreEqual(expected.Count, actual.Count);
         CollectionAssert.AreEqual(
             expected.Select(row => row.ReadValues()).SelectMany(static values => values).ToArray(),
-            actual.Select(row => row.ReadValues()).SelectMany(static values => values).ToArray());
+            actual.Select(row => row.ReadValues()).SelectMany(static values => values).ToArray()
+        );
         Assert.AreEqual(ComputeHash(expected), ComputeHash(actual));
     }
 

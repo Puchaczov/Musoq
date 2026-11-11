@@ -12,13 +12,13 @@ public sealed class DiagnosticREC099RepresentabilityRuntimeTests : GenericEntity
     public void UnknownRepresentableNativeEnumValue_ShouldRemainPrimitiveAndPreserveCarrier()
     {
         var table = CreateAndRunVirtualMachine(
-            "select e.Status as Status, EnumValue(e.Status) as StatusValue, EnumName(e.Status) as StatusName, IsDefined(e.Status) as StatusDefined from #schema.first() e",
-            [new RuntimeEnumEntity((RuntimeStatus)99)]).Run(TestContext.CancellationToken);
+                "select e.Status as Status, EnumValue(e.Status) as StatusValue, EnumName(e.Status) as StatusName, IsDefined(e.Status) as StatusDefined from #schema.first() e",
+                [new RuntimeEnumEntity((RuntimeStatus)99)]
+            )
+            .Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
-        CollectionAssert.AreEqual(
-            new object?[] { (short)99, (short)99, null, false },
-            table[0].ReadValues());
+        CollectionAssert.AreEqual(new object?[] { (short)99, (short)99, null, false }, table[0].ReadValues());
         Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum));
         var statusColumn = table.Columns.Single(static column => column.ColumnName == "Status");
         Assert.AreEqual(typeof(short), statusColumn.ColumnType);
@@ -30,6 +30,6 @@ public sealed class DiagnosticREC099RepresentabilityRuntimeTests : GenericEntity
 
     public enum RuntimeStatus : short
     {
-        Known = 10
+        Known = 10,
     }
 }

@@ -6,7 +6,6 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-
     /// <summary>
     ///     Decompresses a Deflate-compressed byte array and returns it as a UTF-8 string.
     /// </summary>
@@ -35,7 +34,11 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        return DecompressToString(compressedData, Encoding.GetEncoding(encodingName), s => new DeflateStream(s, CompressionMode.Decompress));
+        return DecompressToString(
+            compressedData,
+            Encoding.GetEncoding(encodingName),
+            s => new DeflateStream(s, CompressionMode.Decompress)
+        );
     }
 
     /// <summary>

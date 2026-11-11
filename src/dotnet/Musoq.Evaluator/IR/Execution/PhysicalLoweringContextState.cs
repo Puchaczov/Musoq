@@ -24,7 +24,8 @@ internal sealed class PhysicalLoweringFacts
         SchemaRegistry? schemaRegistry,
         CompilationOptions compilationOptions,
         CteExecutionPlan? cteExecutionPlan,
-        ExecutionPlanningArtifacts executionArtifacts)
+        ExecutionPlanningArtifacts executionArtifacts
+    )
     {
         ShapeResolver = shapeResolver ?? throw new ArgumentNullException(nameof(shapeResolver));
         SchemaRegistry = schemaRegistry;
@@ -32,18 +33,23 @@ internal sealed class PhysicalLoweringFacts
         CteExecutionPlan = cteExecutionPlan;
         ArgumentNullException.ThrowIfNull(executionArtifacts);
         GeneratedTypePrefix = executionArtifacts.GeneratedTypePrefix;
-        ExecutionStrategies = executionArtifacts.ExecutionStrategies ??
-            throw new ArgumentNullException(nameof(executionArtifacts.ExecutionStrategies));
+        ExecutionStrategies =
+            executionArtifacts.ExecutionStrategies
+            ?? throw new ArgumentNullException(nameof(executionArtifacts.ExecutionStrategies));
         SourceInteractionPlansBySourceId = new ReadOnlyDictionary<string, SourceInteractionPlan>(
             new Dictionary<string, SourceInteractionPlan>(
-                executionArtifacts.SourceInteractionPlansBySourceId ??
-                new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
-                StringComparer.Ordinal));
+                executionArtifacts.SourceInteractionPlansBySourceId
+                    ?? new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
+                StringComparer.Ordinal
+            )
+        );
         SourceTransferPlansBySourceId = new ReadOnlyDictionary<string, SourceTransferStrategyPlan>(
             new Dictionary<string, SourceTransferStrategyPlan>(
-                executionArtifacts.SourceTransferPlansBySourceId ??
-                new Dictionary<string, SourceTransferStrategyPlan>(StringComparer.Ordinal),
-                StringComparer.Ordinal));
+                executionArtifacts.SourceTransferPlansBySourceId
+                    ?? new Dictionary<string, SourceTransferStrategyPlan>(StringComparer.Ordinal),
+                StringComparer.Ordinal
+            )
+        );
     }
 
     public ExecutionShapeResolver ShapeResolver { get; }
@@ -64,17 +70,16 @@ internal sealed class PhysicalLoweringFacts
 
 internal sealed record RecursiveCteLoweringContext(
     RecursiveCteTableSink? Sink,
-    IReadOnlyDictionary<string, RecursiveCteInvariantInput> InvariantInputs)
+    IReadOnlyDictionary<string, RecursiveCteInvariantInput> InvariantInputs
+)
 {
-    public static RecursiveCteLoweringContext Empty => new(
-        null,
-        new Dictionary<string, RecursiveCteInvariantInput>(StringComparer.Ordinal));
+    public static RecursiveCteLoweringContext Empty =>
+        new(null, new Dictionary<string, RecursiveCteInvariantInput>(StringComparer.Ordinal));
 }
 
 internal sealed record DirectTableLoweringContext(IDirectTableSink? Sink)
 {
-    public static DirectTableLoweringContext Empty { get; } =
-        new DirectTableLoweringContext((IDirectTableSink?)null);
+    public static DirectTableLoweringContext Empty { get; } = new DirectTableLoweringContext((IDirectTableSink?)null);
 }
 
 internal sealed record CteLoweringContext(
@@ -82,14 +87,17 @@ internal sealed record CteLoweringContext(
     CteSidecarHashPayloadState SidecarHashPayloads,
     bool SuppressSidecarJoinPipeline,
     IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> ScalarSubqueryEmptyResults,
-    RecursiveCteLoweringContext RecursiveCte)
+    RecursiveCteLoweringContext RecursiveCte
+)
 {
-    public static CteLoweringContext Empty => new(
-        null,
-        new CteSidecarHashPayloadState(),
-        false,
-        new Dictionary<string, ScalarSubqueryEmptyResultSpec>(StringComparer.OrdinalIgnoreCase),
-        RecursiveCteLoweringContext.Empty);
+    public static CteLoweringContext Empty =>
+        new(
+            null,
+            new CteSidecarHashPayloadState(),
+            false,
+            new Dictionary<string, ScalarSubqueryEmptyResultSpec>(StringComparer.OrdinalIgnoreCase),
+            RecursiveCteLoweringContext.Empty
+        );
 }
 
 internal sealed class CteSidecarHashPayloadState
@@ -97,14 +105,13 @@ internal sealed class CteSidecarHashPayloadState
     private readonly IReadOnlyDictionary<int, HashPayloadShape> _payloadsBySlot;
 
     public CteSidecarHashPayloadState()
-        : this(new Dictionary<int, HashPayloadShape>())
-    {
-    }
+        : this(new Dictionary<int, HashPayloadShape>()) { }
 
     private CteSidecarHashPayloadState(IReadOnlyDictionary<int, HashPayloadShape> payloadsBySlot)
     {
         _payloadsBySlot = new ReadOnlyDictionary<int, HashPayloadShape>(
-            new Dictionary<int, HashPayloadShape>(payloadsBySlot));
+            new Dictionary<int, HashPayloadShape>(payloadsBySlot)
+        );
     }
 
     public IReadOnlyDictionary<int, HashPayloadShape> Snapshot => _payloadsBySlot;
@@ -112,10 +119,7 @@ internal sealed class CteSidecarHashPayloadState
     public CteSidecarHashPayloadState WithPayload(int indexSlot, HashPayloadShape payloadShape)
     {
         ArgumentNullException.ThrowIfNull(payloadShape);
-        var payloads = new Dictionary<int, HashPayloadShape>(_payloadsBySlot)
-        {
-            [indexSlot] = payloadShape
-        };
+        var payloads = new Dictionary<int, HashPayloadShape>(_payloadsBySlot) { [indexSlot] = payloadShape };
         return new CteSidecarHashPayloadState(payloads);
     }
 

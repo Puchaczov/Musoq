@@ -8,7 +8,8 @@ internal sealed record CorrelatedSubqueryRewriteRequest(
     SubqueryCorrelationFacts Correlation,
     SubqueryEvaluationPhase EvaluationPhase,
     bool IsDirectFilter,
-    bool IsNegated)
+    bool IsNegated
+)
 {
     public bool IsScalar => Node is ScalarSubqueryNode;
 

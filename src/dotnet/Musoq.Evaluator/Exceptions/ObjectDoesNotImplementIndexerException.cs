@@ -8,15 +8,11 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class ObjectDoesNotImplementIndexerException : Exception, IDiagnosticException
 {
-
     public ObjectDoesNotImplementIndexerException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
-    public ObjectDoesNotImplementIndexerException()
-    {
-    }
+    public ObjectDoesNotImplementIndexerException() { }
+
     /// <summary>
     ///     Initializes a new instance of ObjectDoesNotImplementIndexerException.
     /// </summary>

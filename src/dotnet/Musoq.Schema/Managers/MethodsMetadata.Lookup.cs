@@ -10,8 +10,12 @@ public partial class MethodsMetadata
 {
     private delegate bool TryGetMethodByExactNameFunc(string exactName, out int index);
 
-    private bool TryGetMethodWithNormalization(string name, out int index, out string? actualMethodName,
-        TryGetMethodByExactNameFunc tryExactName)
+    private bool TryGetMethodWithNormalization(
+        string name,
+        out int index,
+        out string? actualMethodName,
+        TryGetMethodByExactNameFunc tryExactName
+    )
     {
         if (tryExactName(name, out index))
         {
@@ -20,8 +24,10 @@ public partial class MethodsMetadata
         }
 
         var normalizedName = MethodNameNormalizer.Normalize(name);
-        if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName) &&
-            tryExactName(originalName, out index))
+        if (
+            _normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName)
+            && tryExactName(originalName, out index)
+        )
         {
             actualMethodName = originalName;
             return true;
@@ -34,8 +40,12 @@ public partial class MethodsMetadata
 
     private bool TryGetRawMethod(string name, Type[] methodArgs, out int index, out string? actualMethodName)
     {
-        return TryGetMethodWithNormalization(name, out index, out actualMethodName,
-            (string exactName, out int idx) => TryGetRawMethodByExactName(exactName, methodArgs, out idx));
+        return TryGetMethodWithNormalization(
+            name,
+            out index,
+            out actualMethodName,
+            (string exactName, out int idx) => TryGetRawMethodByExactName(exactName, methodArgs, out idx)
+        );
     }
 
     private bool TryGetRawMethodByExactName(string name, Type[] methodArgs, out int index)
@@ -76,8 +86,13 @@ public partial class MethodsMetadata
         return false;
     }
 
-    private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type? entityType, out int index,
-        out string? actualMethodName)
+    private bool TryGetAnnotatedMethod(
+        string name,
+        IReadOnlyList<Type> methodArgs,
+        Type? entityType,
+        out int index,
+        out string? actualMethodName
+    )
     {
         var argTypesArray = methodArgs as Type[] ?? CopyToArray(methodArgs);
         var cacheKey = new MethodResolutionKey(name, argTypesArray, entityType);
@@ -89,9 +104,13 @@ public partial class MethodsMetadata
             return cached.Found;
         }
 
-        var found = TryGetMethodWithNormalization(name, out index, out actualMethodName,
+        var found = TryGetMethodWithNormalization(
+            name,
+            out index,
+            out actualMethodName,
             (string exactName, out int idx) =>
-                TryGetAnnotatedMethodByExactName(exactName, methodArgs, entityType, out idx));
+                TryGetAnnotatedMethodByExactName(exactName, methodArgs, entityType, out idx)
+        );
 
         _annotatedMethodCache.TryAdd(cacheKey, (found, index, actualMethodName));
         return found;
@@ -103,11 +122,16 @@ public partial class MethodsMetadata
         Type? entityType,
         Func<MethodInfo, bool> methodFilter,
         out int index,
-        out string? actualMethodName)
+        out string? actualMethodName
+    )
     {
-        return TryGetMethodWithNormalization(name, out index, out actualMethodName,
+        return TryGetMethodWithNormalization(
+            name,
+            out index,
+            out actualMethodName,
             (string exactName, out int idx) =>
-                TryGetAnnotatedMethodByExactName(exactName, methodArgs, entityType, methodFilter, out idx));
+                TryGetAnnotatedMethodByExactName(exactName, methodArgs, entityType, methodFilter, out idx)
+        );
     }
 
     private static Type[] CopyToArray(IReadOnlyList<Type> list)
@@ -118,8 +142,12 @@ public partial class MethodsMetadata
         return result;
     }
 
-    private bool TryGetAnnotatedMethodByExactName(string name, IReadOnlyList<Type> methodArgs, Type? entityType,
-        out int index)
+    private bool TryGetAnnotatedMethodByExactName(
+        string name,
+        IReadOnlyList<Type> methodArgs,
+        Type? entityType,
+        out int index
+    )
     {
         return TryGetAnnotatedMethodByExactName(name, methodArgs, entityType, static _ => true, out index);
     }
@@ -129,7 +157,8 @@ public partial class MethodsMetadata
         IReadOnlyList<Type> methodArgs,
         Type? entityType,
         Func<MethodInfo, bool> methodFilter,
-        out int index)
+        out int index
+    )
     {
         if (!_methods.TryGetValue(name, out var methods))
         {
@@ -148,27 +177,41 @@ public partial class MethodsMetadata
                 continue;
 
             var metadata = GetCachedParameterMetadata(methodInfo);
-            var parameters = metadata.Parameters.Where(static parameter => !parameter.IsDefined(typeof(InjectTypeAttribute))).ToArray();
+            var parameters = metadata
+                .Parameters.Where(static parameter => !parameter.IsDefined(typeof(InjectTypeAttribute)))
+                .ToArray();
             var optionalParametersCount = metadata.OptionalParametersCount;
             var notAnnotatedParametersCount = metadata.NotAnnotatedParametersCount;
             var paramsParameter = metadata.ParamsParameters;
 
-            if (paramsParameter.HasParameters() && methodArgs.Count < notAnnotatedParametersCount - optionalParametersCount - 1)
+            if (
+                paramsParameter.HasParameters()
+                && methodArgs.Count < notAnnotatedParametersCount - optionalParametersCount - 1
+            )
                 continue;
 
-            if (!paramsParameter.HasParameters() &&
-                (HasMoreArgumentsThanMethodDefinitionContains(methodArgs, notAnnotatedParametersCount) ||
-                 !CanUseSomeArgumentsAsDefaultParameters(methodArgs, notAnnotatedParametersCount,
-                     optionalParametersCount)))
+            if (
+                !paramsParameter.HasParameters()
+                && (
+                    HasMoreArgumentsThanMethodDefinitionContains(methodArgs, notAnnotatedParametersCount)
+                    || !CanUseSomeArgumentsAsDefaultParameters(
+                        methodArgs,
+                        notAnnotatedParametersCount,
+                        optionalParametersCount
+                    )
+                )
+            )
                 continue;
 
             var hasMatchedArgTypes = true;
-            for (int f = 0,
-                 g = paramsParameter.HasParameters()
-                     ? Math.Min(methodArgs.Count, notAnnotatedParametersCount - 1)
-                     : methodArgs.Count;
-                 f < g;
-                 ++f)
+            for (
+                int f = 0,
+                    g = paramsParameter.HasParameters()
+                        ? Math.Min(methodArgs.Count, notAnnotatedParametersCount - 1)
+                        : methodArgs.Count;
+                f < g;
+                ++f
+            )
             {
                 var rawParam = parameters[f].ParameterType;
                 var param = rawParam.GetUnderlyingNullable();
@@ -187,7 +230,13 @@ public partial class MethodsMetadata
                 var elementType = global::Musoq.Plugins.VariadicParameter.ElementType(parameters[^1].ParameterType)!;
                 for (var argumentIndex = paramsStartIndex; argumentIndex < methodArgs.Count; argumentIndex++)
                 {
-                    if (IsParameterTypeCompatible(elementType, elementType.GetUnderlyingNullable(), methodArgs[argumentIndex]))
+                    if (
+                        IsParameterTypeCompatible(
+                            elementType,
+                            elementType.GetUnderlyingNullable(),
+                            methodArgs[argumentIndex]
+                        )
+                    )
                         continue;
                     hasMatchedArgTypes = false;
                     break;
@@ -208,7 +257,6 @@ public partial class MethodsMetadata
             index = -1;
             return false;
         }
-
 
         index = GetCachedMethodIndex(name, SelectBestMethod(name, methodArgs, candidates));
         return true;

@@ -7,7 +7,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static bool TryGetGeneratedRowShape(
         ExecutionVariable table,
         ExecutionRenderContext context,
-        out GeneratedRowShape rowShape)
+        out GeneratedRowShape rowShape
+    )
     {
         return context.Session.TableRowShapesByVariableName.TryGetValue(table.Name, out rowShape!);
     }
@@ -17,7 +18,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static IEnumerable<GeneratedRowOrderComparerInput> CollectGeneratedRowOrderComparerInputs(
         ExecutionBlock block,
-        IReadOnlyDictionary<string, GeneratedRowShape> rowShapesByTableName)
+        IReadOnlyDictionary<string, GeneratedRowShape> rowShapesByTableName
+    )
     {
         foreach (var node in FlattenNodes(block))
         {
@@ -28,7 +30,8 @@ public sealed partial class ExecutionCSharpRenderer
                     sort.Target,
                     sort.Keys,
                     rowShapesByTableName,
-                    out var sortInput)
+                    out var sortInput
+                )
                     ? sortInput
                     : null,
                 ExecutionTopNTable topN => TryCreateGeneratedRowOrderComparerInput(
@@ -36,7 +39,8 @@ public sealed partial class ExecutionCSharpRenderer
                     topN.Target,
                     topN.Keys,
                     rowShapesByTableName,
-                    out var topNInput)
+                    out var topNInput
+                )
                     ? topNInput
                     : null,
                 ExecutionTopOffsetTable topOffset => TryCreateGeneratedRowOrderComparerInput(
@@ -44,10 +48,11 @@ public sealed partial class ExecutionCSharpRenderer
                     topOffset.Target,
                     topOffset.Keys,
                     rowShapesByTableName,
-                    out var topOffsetInput)
+                    out var topOffsetInput
+                )
                     ? topOffsetInput
                     : (GeneratedRowOrderComparerInput?)null,
-                _ => null
+                _ => null,
             };
 
             if (input.HasValue)
@@ -60,10 +65,13 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable target,
         IReadOnlyList<ExecutionOrderField> keys,
         IReadOnlyDictionary<string, GeneratedRowShape> rowShapesByTableName,
-        out GeneratedRowOrderComparerInput input)
+        out GeneratedRowOrderComparerInput input
+    )
     {
-        if (!rowShapesByTableName.TryGetValue(source.Name, out var rowShape) ||
-            !CanUseGeneratedRowOrderComparer(keys, rowShape))
+        if (
+            !rowShapesByTableName.TryGetValue(source.Name, out var rowShape)
+            || !CanUseGeneratedRowOrderComparer(keys, rowShape)
+        )
         {
             input = default;
             return false;

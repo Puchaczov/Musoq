@@ -21,7 +21,8 @@ public sealed class QueryTableEnumerable<TRow> : ITableRowBatchSource<TRow>
         CancellationToken token,
         Action? onCompleted = null,
         Action<Exception>? onException = null,
-        Action? onDisposed = null)
+        Action? onDisposed = null
+    )
     {
         _rowsFactory = rowsFactory ?? throw new ArgumentNullException(nameof(rowsFactory));
         _token = token;

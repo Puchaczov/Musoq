@@ -18,7 +18,11 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
 
     public TFieldNode Expression
     {
-        get => _expression ?? throw new InvalidOperationException("The rewritten field expression is available only after visiting a compatible field node.");
+        get =>
+            _expression
+            ?? throw new InvalidOperationException(
+                "The rewritten field expression is available only after visiting a compatible field node."
+            );
         protected set => _expression = value ?? throw new ArgumentNullException(nameof(value));
     }
 
@@ -27,8 +31,15 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
     public override void Visit(AccessColumnNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), string.Empty,
-            node.ReturnType, TextSpan.Empty, node.IntendedTypeName));
+        Nodes.Push(
+            new AccessColumnNode(
+                NamingHelper.ToColumnName(node.Alias, node.Name),
+                string.Empty,
+                node.ReturnType,
+                TextSpan.Empty,
+                node.IntendedTypeName
+            )
+        );
     }
 
     public override void Visit(DotNode node)
@@ -54,16 +65,17 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
         {
             Nodes.Pop();
 
-            var wordNode = node.Arguments.Args.Length > 0
-                ? node.Arguments.Args[0] as WordNode
-                : null;
+            var wordNode = node.Arguments.Args.Length > 0 ? node.Arguments.Args[0] as WordNode : null;
             if (IsAggregateDeclarationMethod(node))
             {
-                Nodes.Push(new AccessColumnNode(
-                    GetAggregateFieldName(node, wordNode),
-                    string.Empty,
-                    node.ReturnType,
-                    TextSpan.Empty));
+                Nodes.Push(
+                    new AccessColumnNode(
+                        GetAggregateFieldName(node, wordNode),
+                        string.Empty,
+                        node.ReturnType,
+                        TextSpan.Empty
+                    )
+                );
                 return;
             }
 
@@ -72,8 +84,14 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
             args.AddRange(node.Arguments.Args.Skip(1));
             var extractFromGroup = new AccessMethodNode(
                 new FunctionToken(node.Method?.Name ?? node.Name, TextSpan.Empty),
-                new ArgsListNode(args.ToArray()), node.ExtraAggregateArguments, node.CanSkipInjectSource, node.Method,
-                node.Alias, default, node.IsDistinct);
+                new ArgsListNode(args.ToArray()),
+                node.ExtraAggregateArguments,
+                node.CanSkipInjectSource,
+                node.Method,
+                node.Alias,
+                default,
+                node.IsDistinct
+            );
             Nodes.Push(extractFromGroup);
         }
         else if (fields.Select(ExtractOriginalExpression).Contains(node.ToString()))

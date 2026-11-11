@@ -16,10 +16,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             const string message = "Variable key access is not supported.";
             if (DiagnosticContext != null)
             {
-                DiagnosticContext.ReportError(
-                DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess,
-                    message,
-                    node);
+                DiagnosticContext.ReportError(DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess, message, node);
                 // Keep the semantic stack balanced so this root error does
                 // not become an unrelated internal visitor failure.
                 PushSemanticNode(new IdentifierNode(node.ToString(), typeof(object), node.SpanOrEmpty()));
@@ -27,10 +24,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             }
 
             var keySpan = node.SpanOrEmpty();
-            throw new ConstructionNotYetSupported(
-                message,
-                DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess,
-                keySpan);
+            throw new ConstructionNotYetSupported(message, DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess, keySpan);
         }
 
         if (node.IsColumnAccess)
@@ -40,7 +34,9 @@ public partial class BuildMetadataAndInferTypesVisitor
                 if (TryReportNoIndexer($"Object {node.Name} does not implement a string key indexer.", node))
                     return;
                 throw new ObjectDoesNotImplementIndexerException(
-                    $"Object {node.Name} does not implement a string key indexer.", node.SpanOrEmpty());
+                    $"Object {node.Name} does not implement a string key indexer.",
+                    node.SpanOrEmpty()
+                );
             }
             PushSemanticNode(node);
             return;
@@ -50,7 +46,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!_columnPropertyBindingService.HasTypedParentForArrayAccess(parentNode))
         {
             var table = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
-            var columnAccess = _columnPropertyBindingService.TryCreateColumnKeyAccess(table, _sourceBinding.Identifier, node);
+            var columnAccess = _columnPropertyBindingService.TryCreateColumnKeyAccess(
+                table,
+                _sourceBinding.Identifier,
+                node
+            );
             if (columnAccess != null)
             {
                 PushSemanticNode(columnAccess);
@@ -69,7 +69,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 parentNodeType,
                 node.Name,
                 typeof(object),
-                typeof(ExpandoObject));
+                typeof(ExpandoObject)
+            );
             PushSemanticNode(new AccessObjectKeyNode(node.Token, propertyInfo));
         }
         else
@@ -81,28 +82,39 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var propertyAccess = _columnPropertyBindingService.TryResolveTypedProperty(
                     parentNodeType,
                     node.Name,
-                    out var error);
+                    out var error
+                );
 
                 if (error != null)
                 {
-                    if (TryReportNoIndexer(
+                    if (
+                        TryReportNoIndexer(
                             $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
-                            node))
+                            node
+                        )
+                    )
                         return;
                     var exSpan1 = node.SpanOrEmpty();
                     throw new ObjectDoesNotImplementIndexerException(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
-                        exSpan1);
+                        exSpan1
+                    );
                 }
 
                 if (!_columnPropertyBindingService.CanUseAsIndexer(propertyAccess))
                 {
-                    if (TryReportNoIndexer(
-                            $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.", node))
+                    if (
+                        TryReportNoIndexer(
+                            $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.",
+                            node
+                        )
+                    )
                         return;
                     var niSpan1 = node.SpanOrEmpty();
                     throw new ObjectDoesNotImplementIndexerException(
-                        $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.", niSpan1);
+                        $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.",
+                        niSpan1
+                    );
                 }
 
                 if (propertyAccess == null)
@@ -110,8 +122,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     if (TryReportUnknownProperty(node.Name, parentNodeType, node))
                         return;
                     var propSpan1 = node.SpanOrEmpty();
-                    throw new UnknownPropertyException(
-                        node.Name, parentNodeType.Name, propSpan1);
+                    throw new UnknownPropertyException(node.Name, parentNodeType.Name, propSpan1);
                 }
 
                 PushSemanticNode(new AccessObjectKeyNode(node.Token, propertyAccess));
@@ -122,16 +133,23 @@ public partial class BuildMetadataAndInferTypesVisitor
             var property = _columnPropertyBindingService.TryResolveTypedProperty(
                 parentNodeType,
                 node.Name,
-                out var rootError);
+                out var rootError
+            );
 
             if (rootError != null)
             {
-                if (TryReportNoIndexer(
-                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {rootError.Message}", node))
+                if (
+                    TryReportNoIndexer(
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {rootError.Message}",
+                        node
+                    )
+                )
                     return;
                 var exSpan2 = node.SpanOrEmpty();
                 throw new ObjectDoesNotImplementIndexerException(
-                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {rootError.Message}", exSpan2);
+                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {rootError.Message}",
+                    exSpan2
+                );
             }
 
             if (!_columnPropertyBindingService.CanUseAsIndexer(property))
@@ -140,7 +158,9 @@ public partial class BuildMetadataAndInferTypesVisitor
                     return;
                 var niSpan2 = node.SpanOrEmpty();
                 throw new ObjectDoesNotImplementIndexerException(
-                    $"Object {node.Name} does not implement indexer.", niSpan2);
+                    $"Object {node.Name} does not implement indexer.",
+                    niSpan2
+                );
             }
 
             if (property == null)
@@ -148,8 +168,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 if (TryReportUnknownProperty(node.Name, parentNodeType, node))
                     return;
                 var propSpan2 = node.SpanOrEmpty();
-                throw new UnknownPropertyException(
-                    node.Name, parentNodeType.Name, propSpan2);
+                throw new UnknownPropertyException(node.Name, parentNodeType.Name, propSpan2);
             }
 
             PushSemanticNode(new AccessObjectKeyNode(node.Token, property));

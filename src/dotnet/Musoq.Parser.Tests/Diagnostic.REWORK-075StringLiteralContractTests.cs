@@ -141,9 +141,7 @@ public sealed class DiagnosticRework075StringLiteralContractTests
     [DataRow("""r'a''b''''c'""", "a'b''c")]
     [DataRow("""r'C:\Temp\'""", "C:\\Temp\\")]
     [DataRow("""r'Δ[]{};!?/* --'""", "Δ[]{};!?/* --")]
-    public void RawLiteralMatrix_ShouldPreserveContentAndDecodeOnlyDoubledQuotes(
-        string source,
-        string expected)
+    public void RawLiteralMatrix_ShouldPreserveContentAndDecodeOnlyDoubledQuotes(string source, string expected)
     {
         var lexer = new Lexer(source, true, recoverOnError: true);
 
@@ -216,9 +214,7 @@ public sealed class DiagnosticRework075StringLiteralContractTests
         var diagnostic = lexer.Diagnostics.ToSortedList().Single();
         Assert.AreEqual(DiagnosticCode.MQ1002_UnterminatedString, diagnostic.Code);
         Assert.AreEqual(new TextSpan(0, source.IndexOf(';')), diagnostic.Span);
-        Assert.AreEqual(
-            "Unterminated raw string literal: missing closing '",
-            diagnostic.Message);
+        Assert.AreEqual("Unterminated raw string literal: missing closing '", diagnostic.Message);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));

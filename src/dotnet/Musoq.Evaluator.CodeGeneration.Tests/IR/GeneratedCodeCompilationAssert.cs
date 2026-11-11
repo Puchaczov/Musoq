@@ -16,12 +16,17 @@ internal static class GeneratedCodeCompilationAssert
         RuntimeLibraries.CreateReferences();
 
         var compilationContext = new CompilationContextManager(
-            RoslynSharedFactory.CreateCompilation(Guid.NewGuid().ToString("N")));
+            RoslynSharedFactory.CreateCompilation(Guid.NewGuid().ToString("N"))
+        );
         compilationContext.InitializeDefaults();
-        compilationContext.InitializeCoreReferences([typeof(GeneratedCodeCompilationAssert).Assembly, typeof(Musoq.Evaluator.Tests.Schema.Basic.BasicEntity).Assembly]);
+        compilationContext.InitializeCoreReferences([
+            typeof(GeneratedCodeCompilationAssert).Assembly,
+            typeof(Musoq.Evaluator.Tests.Schema.Basic.BasicEntity).Assembly,
+        ]);
         compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(compilationUnit));
 
-        var errors = compilationContext.GetCompilation()
+        var errors = compilationContext
+            .GetCompilation()
             .GetDiagnostics()
             .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
             .Select(diagnostic => diagnostic.ToString())

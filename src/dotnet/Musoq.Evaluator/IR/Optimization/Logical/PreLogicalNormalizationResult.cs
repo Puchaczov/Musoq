@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Musoq.Parser.Nodes;
 using Musoq.Evaluator.IR.Optimization.Logical.Subqueries;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 
@@ -9,5 +9,5 @@ internal sealed record PreLogicalNormalizationResult(
     RootNode NormalizedRoot,
     OptimizationTrace Trace,
     IReadOnlyList<LogicalSubqueryOwnershipFact> LogicalSubqueryFacts,
-    IReadOnlyList<CorrelatedSubqueryDecision> CorrelatedSubqueryDecisions);
-
+    IReadOnlyList<CorrelatedSubqueryDecision> CorrelatedSubqueryDecisions
+);

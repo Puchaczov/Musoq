@@ -31,7 +31,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var samples = ReadNamedSamples(
                 PivotGroupedSingleMeasureSampleFileName,
                 PivotMultipleMeasuresSampleFileName,
-                PivotCteNoGroupBySampleFileName)
+                PivotCteNoGroupBySampleFileName
+            )
             .ToDictionary(static sample => sample.FileName);
         var single = samples[PivotGroupedSingleMeasureSampleFileName].Content;
         var multiple = samples[PivotMultipleMeasuresSampleFileName].Content;

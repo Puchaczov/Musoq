@@ -26,9 +26,13 @@ internal static class SubqueryWindowCloner
             specification = (WindowSpecificationNode)nodes.Pop();
         var function = (AccessMethodNode)nodes.Pop();
         if (node.IsNamedWindowReference)
-            return new WindowFunctionNode(function,
-                node.WindowName ?? throw new InvalidOperationException("Named window reference requires a name.")).CopySpansFrom(node);
-        return new WindowFunctionNode(function,
-            specification ?? throw new InvalidOperationException("Window function requires a specification.")).CopySpansFrom(node);
+            return new WindowFunctionNode(
+                function,
+                node.WindowName ?? throw new InvalidOperationException("Named window reference requires a name.")
+            ).CopySpansFrom(node);
+        return new WindowFunctionNode(
+            function,
+            specification ?? throw new InvalidOperationException("Window function requires a specification.")
+        ).CopySpansFrom(node);
     }
 }

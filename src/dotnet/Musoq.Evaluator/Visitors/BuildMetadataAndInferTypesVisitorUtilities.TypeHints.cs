@@ -29,6 +29,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         ArgumentNullException.ThrowIfNull(type);
         return TypeHintAttributeCache.GetOrAdd(
             type,
-            static candidate => candidate.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray());
+            static candidate => candidate.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray()
+        );
     }
 }

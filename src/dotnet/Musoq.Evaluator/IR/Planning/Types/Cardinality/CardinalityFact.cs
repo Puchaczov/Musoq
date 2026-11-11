@@ -10,7 +10,8 @@ internal sealed record CardinalityFact(
     long? LowerBound,
     long? UpperBound,
     double Confidence,
-    string Reason)
+    string Reason
+)
 {
     public PhysicalNode? Node { get; init; }
 }

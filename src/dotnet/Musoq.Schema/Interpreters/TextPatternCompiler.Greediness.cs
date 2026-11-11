@@ -56,8 +56,13 @@ internal static partial class TextPatternCompiler
         return builder.ToString();
     }
 
-    private static void AppendQuantifierMode(StringBuilder builder, string pattern, ref int index, bool greedy,
-        bool lazy)
+    private static void AppendQuantifierMode(
+        StringBuilder builder,
+        string pattern,
+        ref int index,
+        bool greedy,
+        bool lazy
+    )
     {
         var hasLazyMarker = index + 1 < pattern.Length && pattern[index + 1] == '?';
         if (hasLazyMarker)
@@ -88,7 +93,8 @@ internal static partial class TextPatternCompiler
         if (end < pattern.Length && pattern[end] == ',')
         {
             end++;
-            while (end < pattern.Length && char.IsDigit(pattern[end])) end++;
+            while (end < pattern.Length && char.IsDigit(pattern[end]))
+                end++;
         }
 
         if (end >= pattern.Length || pattern[end] != '}')

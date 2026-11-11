@@ -14,7 +14,8 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
     [TestProperty("CandidateId", "P1-038")]
     public void HavingAliases_WithNullCheck_ShouldFilterGroupedInlineValues()
     {
-        const string query = "select City as c, Count(*) as cnt from values { (City: 'A'), (City: 'A'), (City: 'B') } v group by c having cnt > 1 and c is not null";
+        const string query =
+            "select City as c, Count(*) as cnt from values { (City: 'A'), (City: 'A'), (City: 'B') } v group by c having cnt > 1 and c is not null";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -28,7 +29,8 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
     [DataRow("is not null", "A")]
     public void HavingGroupedNullCheck_ShouldSelectMatchingGroup(string predicate, string? expectedCity)
     {
-        var query = $"select City as c, Count(*) as cnt from values {{ (City: 'A'), (City: null) }} v group by c having c {predicate}";
+        var query =
+            $"select City as c, Count(*) as cnt from values {{ (City: 'A'), (City: null) }} v group by c having c {predicate}";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -44,15 +46,8 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("C", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Berlin", 2L],
-            ["Paris", 2L],
-            ["Warsaw", 2L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Berlin", 2L], ["Paris", 2L], ["Warsaw", 2L]);
     }
 
     [TestMethod]
@@ -60,8 +55,7 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
     {
         const string query = "select ::1, Count(Name) from #A.Entities() group by City";
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSources()));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "DoubleColon");
     }
@@ -69,7 +63,8 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
     [TestMethod]
     public void GroupByOrdinal_MultipleOrdinals_ShouldGroupByEachReferencedProjection()
     {
-        const string query = "select Country, City, Count(Name) as C from #A.Entities() group by 1, 2 order by Country, City";
+        const string query =
+            "select Country, City, Count(Name) as C from #A.Entities() group by 1, 2 order by Country, City";
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
@@ -77,18 +72,21 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
             table,
             ("Country", typeof(string)),
             ("City", typeof(string)),
-            ("C", typeof(long)));
+            ("C", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["DE", "Berlin", 2L],
             ["FR", "Paris", 2L],
-            ["PL", "Warsaw", 2L]);
+            ["PL", "Warsaw", 2L]
+        );
     }
 
     [TestMethod]
     public void GroupByOrdinal_AfterStarProjectionExpansion_ShouldUseExpandedProjectionPositions()
     {
-        const string query = "select * like 'C%', Count(Name) as C from #A.Entities() group by 1, 2 order by Country, City";
+        const string query =
+            "select * like 'C%', Count(Name) as C from #A.Entities() group by 1, 2 order by Country, City";
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
@@ -96,12 +94,14 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
             table,
             ("City", typeof(string)),
             ("Country", typeof(string)),
-            ("C", typeof(long)));
+            ("C", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Berlin", "DE", 2L],
             ["Paris", "FR", 2L],
-            ["Warsaw", "PL", 2L]);
+            ["Warsaw", "PL", 2L]
+        );
     }
 
     [TestMethod]
@@ -109,8 +109,7 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
     {
         const string query = "select City, Count(Name) from #A.Entities() group by 0";
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSources()));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3024_GroupByIndexOutOfRange, DiagnosticPhase.Bind);
     }
@@ -120,8 +119,7 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
     {
         const string query = "select City, Count(Name) from #A.Entities() group by 3";
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSources()));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3024_GroupByIndexOutOfRange, DiagnosticPhase.Bind);
     }
@@ -161,7 +159,8 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
     [TestMethod]
     public void HavingAlias_AggregateSelectAlias_ShouldFilterByAggregateAlias()
     {
-        const string query = "select City, Count(Name) as cnt from #A.Entities() group by City having cnt > 1 order by City";
+        const string query =
+            "select City, Count(Name) as cnt from #A.Entities() group by City having cnt > 1 order by City";
 
         var table = CreateAndRunVirtualMachine(query, CreateSourcesWithSingleCity()).Run(TokenSource.Token);
 
@@ -203,10 +202,14 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
     {
         const string query = "select Count(Name) as cnt from #A.Entities() group by cnt";
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSources()));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3092_AggregateInGroupBy, DiagnosticPhase.Bind, "aggregate SELECT aliases");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3092_AggregateInGroupBy,
+            DiagnosticPhase.Bind,
+            "aggregate SELECT aliases"
+        );
     }
 
     [TestMethod]
@@ -214,20 +217,26 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
     {
         const string query = "select City, Count(Name) as cnt from #A.Entities() group by 2";
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSources()));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3092_AggregateInGroupBy, DiagnosticPhase.Bind, "aggregate SELECT aliases");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3092_AggregateInGroupBy,
+            DiagnosticPhase.Bind,
+            "aggregate SELECT aliases"
+        );
     }
 
     [TestMethod]
     public void GroupByAll_WithAliasesAndCasts_ShouldExpandNonAggregateCastExpressions()
     {
-        const string query = @"
-            select City::String as c, Population::Int32 as p, Count(Name) as cnt
-            from #A.Entities()
-            group by all
-            order by c, p";
+        const string query = (
+            "\n"
+            + "            select City::String as c, Population::Int32 as p, Count(Name) as cnt\n"
+            + "            from #A.Entities()\n"
+            + "            group by all\n"
+            + "            order by c, p"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
@@ -235,7 +244,8 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
             table,
             ("c", typeof(string)),
             ("p", typeof(int?)),
-            ("cnt", typeof(long)));
+            ("cnt", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Berlin", 200, 1L],
@@ -243,7 +253,8 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
             ["Paris", 25, 1L],
             ["Paris", 75, 1L],
             ["Warsaw", 100, 1L],
-            ["Warsaw", 150, 1L]);
+            ["Warsaw", 150, 1L]
+        );
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources()
@@ -253,14 +264,44 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("Alice") { City = "Warsaw", Country = "PL", Population = 100m },
-                    new BasicEntity("Bob") { City = "Warsaw", Country = "PL", Population = 150m },
-                    new BasicEntity("Carla") { City = "Berlin", Country = "DE", Population = 200m },
-                    new BasicEntity("Dora") { City = "Paris", Country = "FR", Population = 75m },
-                    new BasicEntity("Eve") { City = "Paris", Country = "FR", Population = 25m },
-                    new BasicEntity("Grace") { City = "Berlin", Country = "DE", Population = 250m }
+                    new BasicEntity("Alice")
+                    {
+                        City = "Warsaw",
+                        Country = "PL",
+                        Population = 100m,
+                    },
+                    new BasicEntity("Bob")
+                    {
+                        City = "Warsaw",
+                        Country = "PL",
+                        Population = 150m,
+                    },
+                    new BasicEntity("Carla")
+                    {
+                        City = "Berlin",
+                        Country = "DE",
+                        Population = 200m,
+                    },
+                    new BasicEntity("Dora")
+                    {
+                        City = "Paris",
+                        Country = "FR",
+                        Population = 75m,
+                    },
+                    new BasicEntity("Eve")
+                    {
+                        City = "Paris",
+                        Country = "FR",
+                        Population = 25m,
+                    },
+                    new BasicEntity("Grace")
+                    {
+                        City = "Berlin",
+                        Country = "DE",
+                        Population = 250m,
+                    },
                 ]
-            }
+            },
         };
     }
 
@@ -275,9 +316,9 @@ public sealed class GroupByReferenceTests : BasicEntityTestBase
                     new BasicEntity("Bob") { City = "Warsaw" },
                     new BasicEntity("Carla") { City = "Berlin" },
                     new BasicEntity("Dora") { City = "Berlin" },
-                    new BasicEntity("Eve") { City = "Paris" }
+                    new BasicEntity("Eve") { City = "Paris" },
                 ]
-            }
+            },
         };
     }
 }

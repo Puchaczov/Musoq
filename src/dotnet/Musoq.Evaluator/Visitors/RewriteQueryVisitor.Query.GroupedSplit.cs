@@ -15,15 +15,27 @@ public sealed partial class RewriteQueryVisitor
     {
         var groupBy = context.GroupBy!;
         QueryRewriteUtilities.ThrowIfUnsupportedAggregateProjection(context.GroupBy, context.Select.Fields, true);
-        var nestedFrom = context.SplitNodes.Count > 0
-            ? new Parser.ExpressionFromNode(new InMemoryGroupedFromNode(context.LastJoinQuery!.From.Alias) { IntermediateSource = IntermediateSources.Get(context.LastJoinQuery) })
-            : context.From;
+        var nestedFrom =
+            context.SplitNodes.Count > 0
+                ? new Parser.ExpressionFromNode(
+                    new InMemoryGroupedFromNode(context.LastJoinQuery!.From.Alias)
+                    {
+                        IntermediateSource = IntermediateSources.Get(context.LastJoinQuery),
+                    }
+                )
+                : context.From;
         var refreshMethods = QueryRewriteUtilities.CreateRefreshMethods(context.UsedRefreshMethods ?? []);
-        var splitSelectFields =
-            FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(context.Select.Fields, groupBy.Fields, true);
-        var aggSelect = new SelectNode(QueryRewriteUtilities
-            .ConcatAggregateFieldsWithGroupByFields(splitSelectFields[0], groupBy.Fields)
-            .Reverse().ToArray());
+        var splitSelectFields = FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(
+            context.Select.Fields,
+            groupBy.Fields,
+            true
+        );
+        var aggSelect = new SelectNode(
+            QueryRewriteUtilities
+                .ConcatAggregateFieldsWithGroupByFields(splitSelectFields[0], groupBy.Fields)
+                .Reverse()
+                .ToArray()
+        );
         var outSelect = new SelectNode(splitSelectFields[1], context.Select.IsDistinct);
 
         var scopeCreateTransformingTable = Scope.AddScope("Table");
@@ -36,12 +48,15 @@ public sealed partial class RewriteQueryVisitor
         scopeCreateResultTable[MetaAttributes.CreateTableVariableName] = nestedFrom.Alias.ToScoreTable();
 
         scopeTransformedQuery[MetaAttributes.SelectIntoVariableName] = groupingTableName;
-        scopeTransformedQuery[MetaAttributes.SourceName] = context.SplitNodes.Count > 0
-            ? nestedFrom.Alias.ToTransitionTable().ToTransformedRowsSource()
-            : nestedFrom.Alias.ToRowsSource().WithRowsUsage();
+        scopeTransformedQuery[MetaAttributes.SourceName] =
+            context.SplitNodes.Count > 0
+                ? nestedFrom.Alias.ToTransitionTable().ToTransformedRowsSource()
+                : nestedFrom.Alias.ToRowsSource().WithRowsUsage();
         scopeTransformedQuery[MetaAttributes.OriginAlias] = nestedFrom.Alias;
-        scopeTransformedQuery.ScopeSymbolTable.AddSymbol(nestedFrom.Alias,
-            Scope.ScopeSymbolTable.GetSymbol(nestedFrom.Alias));
+        scopeTransformedQuery.ScopeSymbolTable.AddSymbol(
+            nestedFrom.Alias,
+            Scope.ScopeSymbolTable.GetSymbol(nestedFrom.Alias)
+        );
         scopeTransformedQuery[MetaAttributes.Contexts] = $"{nestedFrom.Alias}";
 
         if (context.SplitNodes.Count > 0)
@@ -50,13 +65,16 @@ public sealed partial class RewriteQueryVisitor
             var selectTraverser = new CloneTraverseVisitor(selectRewriter);
 
             groupBy.Accept(selectTraverser);
-            groupBy = selectRewriter.ChangedGroupBy ??
-                      throw new InvalidOperationException("Expected GROUP BY to be rewritten for grouped query split.");
+            groupBy =
+                selectRewriter.ChangedGroupBy
+                ?? throw new InvalidOperationException("Expected GROUP BY to be rewritten for grouped query split.");
             context.Where?.Accept(selectTraverser);
             context.Where = selectRewriter.ChangedWhere;
 
-            scopeTransformedQuery.ScopeSymbolTable.AddSymbol("groupFields",
-                new FieldsNamesSymbol(groupBy.Fields.Select(f => f.FieldName).ToArray()));
+            scopeTransformedQuery.ScopeSymbolTable.AddSymbol(
+                "groupFields",
+                new FieldsNamesSymbol(groupBy.Fields.Select(f => f.FieldName).ToArray())
+            );
 
             var newRefreshMethods = new List<AccessMethodNode>();
             foreach (var method in refreshMethods.Nodes)
@@ -76,27 +94,46 @@ public sealed partial class RewriteQueryVisitor
                 }
 
                 var newArgs = new ArgsListNode(newNodes.ToArray());
-                newRefreshMethods.Add(new AccessMethodNode(method.FunctionToken, newArgs,
-                    method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method, method.Alias,
-                    default, method.IsDistinct)
-                {
-                    HasFilter = method.HasFilter,
-                    FilterExpression = filterExpression,
-                    FilterExpressionText = method.FilterExpressionText,
-                    IsPivotGenerated = method.IsPivotGenerated
-                });
+                newRefreshMethods.Add(
+                    new AccessMethodNode(
+                        method.FunctionToken,
+                        newArgs,
+                        method.ExtraAggregateArguments,
+                        method.CanSkipInjectSource,
+                        method.Method,
+                        method.Alias,
+                        default,
+                        method.IsDistinct
+                    )
+                    {
+                        HasFilter = method.HasFilter,
+                        FilterExpression = filterExpression,
+                        FilterExpressionText = method.FilterExpressionText,
+                        IsPivotGenerated = method.IsPivotGenerated,
+                    }
+                );
             }
 
             refreshMethods = new RefreshNode(newRefreshMethods.ToArray());
         }
         else
         {
-            scopeTransformedQuery.ScopeSymbolTable.AddSymbol("groupFields",
-                new FieldsNamesSymbol(groupBy.Fields.Select(f => f.Expression.ToString()).ToArray()));
+            scopeTransformedQuery.ScopeSymbolTable.AddSymbol(
+                "groupFields",
+                new FieldsNamesSymbol(groupBy.Fields.Select(f => f.Expression.ToString()).ToArray())
+            );
         }
 
-        var transformingQuery = new InternalQueryNode(aggSelect, nestedFrom, context.Where, groupBy, null, null, null,
-            refreshMethods);
+        var transformingQuery = new InternalQueryNode(
+            aggSelect,
+            nestedFrom,
+            context.Where,
+            groupBy,
+            null,
+            null,
+            null,
+            refreshMethods
+        );
 
         var returnScore = nestedFrom.Alias.ToScoreTable();
         IntermediateSources.Register(transformingQuery, returnScore);
@@ -111,15 +148,21 @@ public sealed partial class RewriteQueryVisitor
 
         if (context.OrderBy != null)
         {
-            var splitOrderBy =
-                FieldProcessingHelper.CreateAfterGroupByOrderByAccessFields(context.OrderBy.Fields, groupBy.Fields);
+            var splitOrderBy = FieldProcessingHelper.CreateAfterGroupByOrderByAccessFields(
+                context.OrderBy.Fields,
+                groupBy.Fields
+            );
             modifiedOrderBy = new OrderByNode(splitOrderBy);
         }
 
         QueryNode query = new DetailedQueryNode(
             outSelect,
             new Parser.ExpressionFromNode(
-                new InMemoryGroupedFromNode(returnScore) { IntermediateSource = IntermediateSources.Get(transformingQuery) }),
+                new InMemoryGroupedFromNode(returnScore)
+                {
+                    IntermediateSource = IntermediateSources.Get(transformingQuery),
+                }
+            ),
             null,
             null,
             modifiedOrderBy,
@@ -127,10 +170,12 @@ public sealed partial class RewriteQueryVisitor
             context.Take,
             returnScore,
             context.Window,
-            context.Qualify);
+            context.Qualify
+        );
 
-        context.SplitNodes.Add(new CreateTransformationTableNode(groupingTableName, [], transformingQuery.Select.Fields,
-            true));
+        context.SplitNodes.Add(
+            new CreateTransformationTableNode(groupingTableName, [], transformingQuery.Select.Fields, true)
+        );
         context.SplitNodes.Add(transformingQuery);
         context.SplitNodes.Add(new CreateTransformationTableNode(query.From.Alias, [], query.Select.Fields, false));
         context.SplitNodes.Add(query);

@@ -19,8 +19,10 @@ internal static class DataSourceDiagnosticReporter
 
     public static void ReportOrRethrowProviderFailure(Exception exception, DiagnosticContext context)
     {
-        if (TryReport(exception, context) ||
-            EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(exception) is not { } providerFailure)
+        if (
+            TryReport(exception, context)
+            || EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(exception) is not { } providerFailure
+        )
             return;
 
         ExceptionDispatchInfo.Capture(providerFailure.InnerException ?? providerFailure).Throw();
@@ -29,14 +31,22 @@ internal static class DataSourceDiagnosticReporter
 
     public static bool TryReport(Exception exception, DiagnosticContext context)
     {
-        if (exception is DataSourceLifecycleException { Code: DiagnosticCode.MQ7014_MalformedRuntimeInput or DiagnosticCode.MQ7020_ReportedDataSourceFailure } lifecycleFailure)
+        if (
+            exception is DataSourceLifecycleException
+            {
+                Code: DiagnosticCode.MQ7014_MalformedRuntimeInput or DiagnosticCode.MQ7020_ReportedDataSourceFailure
+            } lifecycleFailure
+        )
         {
             context.ReportException(lifecycleFailure);
             return true;
         }
 
         var providerFailure = EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(exception);
-        if (providerFailure is not null && DataSourceDiagnosticAdapter.TryAdapt(providerFailure, out var providerDiagnostic))
+        if (
+            providerFailure is not null
+            && DataSourceDiagnosticAdapter.TryAdapt(providerFailure, out var providerDiagnostic)
+        )
         {
             context.ReportException(providerDiagnostic);
             return true;

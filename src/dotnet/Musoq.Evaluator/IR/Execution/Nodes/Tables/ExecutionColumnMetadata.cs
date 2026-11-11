@@ -7,7 +7,8 @@ public sealed record ExecutionColumnMetadata
     public ExecutionColumnMetadata(
         string referenceName,
         IReadOnlyList<ExecutionColumnMetadataField> fields,
-        ExecutionColumnMetadataKind kind)
+        ExecutionColumnMetadataKind kind
+    )
     {
         ReferenceName = referenceName;
         Fields = ExecutionIrCollections.Freeze(fields);

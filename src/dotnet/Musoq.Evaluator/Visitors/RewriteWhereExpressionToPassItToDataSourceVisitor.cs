@@ -74,7 +74,6 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-
         var leftHasOtherAlias = ContainsOtherAlias(node.Left);
         var rightHasOtherAlias = ContainsOtherAlias(node.Right);
 
@@ -90,7 +89,8 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node)) Nodes.Push(new GreaterNode(left, right));
+        if (!VisitForBinaryNode(node))
+            Nodes.Push(new GreaterNode(left, right));
     }
 
     public override void Visit(GreaterOrEqualNode node)
@@ -99,7 +99,8 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node)) Nodes.Push(new GreaterOrEqualNode(left, right));
+        if (!VisitForBinaryNode(node))
+            Nodes.Push(new GreaterOrEqualNode(left, right));
     }
 
     public override void Visit(LessNode node)
@@ -108,7 +109,8 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node)) Nodes.Push(new LessNode(left, right));
+        if (!VisitForBinaryNode(node))
+            Nodes.Push(new LessNode(left, right));
     }
 
     public override void Visit(LessOrEqualNode node)
@@ -117,7 +119,8 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node)) Nodes.Push(new LessOrEqualNode(left, right));
+        if (!VisitForBinaryNode(node))
+            Nodes.Push(new LessOrEqualNode(left, right));
     }
 
     public override void Visit(EqualityNode node)
@@ -126,7 +129,8 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node)) Nodes.Push(new EqualityNode(left, right));
+        if (!VisitForBinaryNode(node))
+            Nodes.Push(new EqualityNode(left, right));
     }
 
     public override void Visit(IsDistinctFromNode node)
@@ -135,7 +139,8 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node)) Nodes.Push(new IsDistinctFromNode(left, right, node.IsNegated));
+        if (!VisitForBinaryNode(node))
+            Nodes.Push(new IsDistinctFromNode(left, right, node.IsNegated));
     }
 
     public override void Visit(DiffNode node)
@@ -144,7 +149,8 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node)) Nodes.Push(new DiffNode(left, right));
+        if (!VisitForBinaryNode(node))
+            Nodes.Push(new DiffNode(left, right));
     }
 
     public override void Visit(LikeNode node)

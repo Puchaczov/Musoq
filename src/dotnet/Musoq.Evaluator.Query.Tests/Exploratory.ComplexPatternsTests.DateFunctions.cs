@@ -8,15 +8,17 @@ public partial class ExploratoryComplexPatternsTests
     [TestMethod]
     public void Explore77_DateFunctions_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                Year(GetDate()) as CurrentYear
-            from #schema.first() p";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                Year(GetDate()) as CurrentYear\n"
+            + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -33,6 +35,7 @@ public partial class ExploratoryComplexPatternsTests
         var year = (int)row.ReadValue(1)!;
         Assert.IsTrue(
             year == before.Year || year == after.Year,
-            $"Expected current year {before.Year} or {after.Year}, but received {year}.");
+            $"Expected current year {before.Year} or {after.Year}, but received {year}."
+        );
     }
 }

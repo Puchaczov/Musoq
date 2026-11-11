@@ -12,13 +12,11 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class DistinctComprehensiveTests : BasicEntityTestBase
 {
-
     #region DISTINCT with WHERE clause in CTE
 
     /// <summary>
     ///     Tests DISTINCT with WHERE clause inside CTE.
     /// </summary>
-
     #endregion
 
     #region DISTINCT with ORDER BY in CTE
@@ -28,7 +26,6 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     ///     Note: Due to parallelization, the outer query may not preserve the CTE's ORDER BY.
     ///     This test only verifies deduplication works, not order preservation.
     /// </summary>
-
     #endregion
 
     #region DISTINCT with Aggregation scenarios
@@ -43,7 +40,6 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     ///     Expected: 2 unique sum values (350 and 900)
     ///     Actual: 3 rows (DISTINCT is ignored)
     /// </summary>
-
     #endregion
 
     #region DISTINCT with subqueries (using CTE pattern)
@@ -52,7 +48,6 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     ///     Tests using distinct CTE as filter source in outer query.
     ///     Note: Musoq doesn't support inline subqueries in WHERE IN, use CTE + join pattern.
     /// </summary>
-
     #endregion
 
     #region DISTINCT in CTE Inner Query
@@ -61,15 +56,12 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     ///     Tests DISTINCT inside CTE and selecting all rows from CTE.
     ///     The CTE should contain only distinct values.
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT inside CTE with multiple columns.
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT inside CTE when all rows are duplicates.
     /// </summary>
-
     #endregion
 
     #region DISTINCT in Outer Query (selecting from CTE)
@@ -77,11 +69,9 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     /// <summary>
     ///     Tests DISTINCT in outer query when selecting from CTE that has duplicates.
     /// </summary>
-
     /// <summary>
     ///     Tests that DISTINCT in outer query works when CTE already has distinct values.
     /// </summary>
-
     #endregion
 
     #region DISTINCT in Multiple CTEs
@@ -89,19 +79,15 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     /// <summary>
     ///     Tests DISTINCT in first CTE of multiple CTEs.
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT in second CTE (referencing first CTE without distinct).
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT in both CTEs - values should be deduplicated at each level.
     /// </summary>
-
     /// <summary>
     ///     Tests independent CTEs both with DISTINCT, then joined.
     /// </summary>
-
     #endregion
 
     #region DISTINCT with Set Operations
@@ -113,22 +99,18 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     ///     Tests DISTINCT with UNION ALL using aliased columns.
     ///     Skipped: placeholder for future DISTINCT plus set-operation coverage.
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT in CTE combined with UNION using aliased columns.
     ///     Skipped: placeholder for future DISTINCT plus set-operation coverage.
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT in CTE with EXCEPT operation using aliased columns.
     ///     Skipped: placeholder for future DISTINCT plus set-operation coverage.
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT in CTE with INTERSECT operation using aliased columns.
     ///     Skipped: placeholder for future DISTINCT plus set-operation coverage.
     /// </summary>
-
     #endregion
 
     #region DISTINCT with JOINs
@@ -136,11 +118,9 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     /// <summary>
     ///     Tests DISTINCT on result of JOIN.
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT inside CTE that performs a JOIN.
     /// </summary>
-
     #endregion
 
     #region Edge cases
@@ -151,52 +131,46 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     [TestMethod]
     public void Distinct_WithNullValues_ShouldTreatNullAsDistinctValue()
     {
-        var query = @"
-            with cte as (
-                select distinct Country from #A.Entities()
-            )
-            select Country from cte";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select distinct Country from #A.Entities()\n"
+            + "            )\n"
+            + "            select Country from cte"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Warsaw", "Poland", 500),
                     new BasicEntity("Unknown", null, 0),
                     new BasicEntity("Berlin", "Germany", 350),
-                    new BasicEntity("NoCountry", null, 100)
+                    new BasicEntity("NoCountry", null, 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            new object?[] { null },
-            ["Germany"],
-            ["Poland"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null }, ["Germany"], ["Poland"]);
     }
 
     /// <summary>
     ///     Tests DISTINCT in deeply nested CTEs (3 levels).
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT applied at multiple levels (CTE + outer query).
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT in CTE with expressions (not just column references).
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT with SKIP and TAKE in CTE.
     /// </summary>
-
     #endregion
 
     #region Reordered Syntax (FROM-first)
@@ -204,15 +178,12 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     /// <summary>
     ///     Tests DISTINCT in CTE using reordered syntax (FROM first).
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT in outer query with reordered syntax.
     /// </summary>
-
     /// <summary>
     ///     Tests mixed syntax - reordered in CTE, regular in outer query.
     /// </summary>
-
     #endregion
 
     #region Complex combined scenarios
@@ -220,16 +191,13 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     /// <summary>
     ///     Complex test combining DISTINCT in CTE with JOIN and GROUP BY in outer query.
     /// </summary>
-
     /// <summary>
     ///     Tests DISTINCT values returned from a grouped result in CTE.
     ///     COUNT(DISTINCT column) is supported directly in the grouped query.
     /// </summary>
-
     /// <summary>
     ///     Debug test: Verify that the first CTE produces correct values without DISTINCT in the second.
     /// </summary>
-
     /// <summary>
     ///     Test: Count() aggregate in CTE should work correctly.
     ///     Note: The original test was incorrectly counting Name which was null (not set by the constructor).
@@ -237,6 +205,5 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
     ///     Fixed to use Count(City) which has actual values.
     ///     Expected: [1, 2, 2] (counts for each country)
     /// </summary>
-
     #endregion
 }

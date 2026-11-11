@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Musoq.Targets.CSharpClr;
+
 public sealed partial class ExecutionCSharpRenderer
 {
     private sealed class ExpressionRenderer(ExecutionCSharpRenderer renderer, ExecutionRenderContext context)
@@ -11,59 +12,123 @@ public sealed partial class ExecutionCSharpRenderer
             {
                 ExecutionSubquery subquery => renderer.RenderSubquery(subquery, context),
                 ExecutionFieldRead fieldRead => renderer.RenderFieldRead(fieldRead, context),
-                ExecutionStructuralArray structuralArray => StructuralInputSyntaxFactory.RenderArray(structuralArray, context, renderer),
-                ExecutionStructuralRecord structuralRecord when structuralRecord.ConstructionPlan is { } plan => StructuralInputSyntaxFactory.RenderConstruction(structuralRecord, plan, context, renderer),
-                ExecutionStructuralRecord structuralRecord => StructuralLiteralSyntaxFactory.RenderRecord(structuralRecord, context, renderer),
-                ExecutionStructuralConversion conversion => StructuralInputSyntaxFactory.RenderConversion(conversion, context, renderer),
-                ExecutionCteCollectionInput cteCollection => StructuralInputSyntaxFactory.RenderCteCollection(cteCollection, context, renderer),
+                ExecutionStructuralArray structuralArray => StructuralInputSyntaxFactory.RenderArray(
+                    structuralArray,
+                    context,
+                    renderer
+                ),
+                ExecutionStructuralRecord structuralRecord when structuralRecord.ConstructionPlan is { } plan =>
+                    StructuralInputSyntaxFactory.RenderConstruction(structuralRecord, plan, context, renderer),
+                ExecutionStructuralRecord structuralRecord => StructuralLiteralSyntaxFactory.RenderRecord(
+                    structuralRecord,
+                    context,
+                    renderer
+                ),
+                ExecutionStructuralConversion conversion => StructuralInputSyntaxFactory.RenderConversion(
+                    conversion,
+                    context,
+                    renderer
+                ),
+                ExecutionCteCollectionInput cteCollection => StructuralInputSyntaxFactory.RenderCteCollection(
+                    cteCollection,
+                    context,
+                    renderer
+                ),
                 ExecutionUnionMemberRead union => renderer.RenderUnionMemberRead(union, context),
                 ExecutionMemberRead memberRead => renderer.RenderMemberRead(memberRead, context),
-                ExecutionScriptParameterRead parameterRead => CreateIdentifierName(renderer.GetScriptParameterLocalName(parameterRead.Name)),
-                ExecutionScriptVariableRead variableRead => CreateIdentifierName(renderer.GetScriptVariableLocalName(variableRead.Name)),
+                ExecutionScriptParameterRead parameterRead => CreateIdentifierName(
+                    renderer.GetScriptParameterLocalName(parameterRead.Name)
+                ),
+                ExecutionScriptVariableRead variableRead => CreateIdentifierName(
+                    renderer.GetScriptVariableLocalName(variableRead.Name)
+                ),
                 ExecutionLiteral literal => RenderLiteral(literal.Value),
                 ExecutionBinary binary => renderer.RenderBinary(binary, context),
                 ExecutionUnary unary => renderer.RenderUnary(unary, context),
                 ExecutionMethodCall methodCall => renderer.RenderMethodCall(methodCall, context),
                 ExecutionByteBufferSnapshot snapshot => renderer.RenderByteBufferSnapshot(snapshot, context),
-                ExecutionByteBufferOperation { Program: { } program } => renderer.RenderByteBufferProgram(program, context),
-                ExecutionByteBufferOperation { ViewAccess: not null } view => renderer.RenderByteBufferViewAccess(view, context),
+                ExecutionByteBufferOperation { Program: { } program } => renderer.RenderByteBufferProgram(
+                    program,
+                    context
+                ),
+                ExecutionByteBufferOperation { ViewAccess: not null } view => renderer.RenderByteBufferViewAccess(
+                    view,
+                    context
+                ),
                 ExecutionByteBufferOperation buffer => Render(buffer.Original),
-                ExecutionByteBufferArgument argument => CreateIdentifierName("__bufferArg" + argument.Index.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                ExecutionByteBufferArgument argument => CreateIdentifierName(
+                    "__bufferArg" + argument.Index.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                ),
                 ExecutionStrictCast strictCast => renderer.RenderStrictCast(strictCast, context),
-                ExecutionMethodTargetReuseCandidate candidate => renderer.RenderMethodCall(candidate.MethodCall, context),
+                ExecutionMethodTargetReuseCandidate candidate => renderer.RenderMethodCall(
+                    candidate.MethodCall,
+                    context
+                ),
                 ExecutionArrayAccess arrayAccess => renderer.RenderArrayAccess(arrayAccess, context),
                 ExecutionIndexedHashRowCreate indexedRowCreate => RenderIndexedHashRowCreate(indexedRowCreate),
-                ExecutionIndexedHashRowRowRead indexedRowRead => CreateIndexedHashRowMemberRead(indexedRowRead.IndexedRow, "Row"),
-                ExecutionIndexedHashRowIndexRead indexedIndexRead => CreateIndexedHashRowMemberRead(indexedIndexRead.IndexedRow, "Index"),
+                ExecutionIndexedHashRowRowRead indexedRowRead => CreateIndexedHashRowMemberRead(
+                    indexedRowRead.IndexedRow,
+                    "Row"
+                ),
+                ExecutionIndexedHashRowIndexRead indexedIndexRead => CreateIndexedHashRowMemberRead(
+                    indexedIndexRead.IndexedRow,
+                    "Index"
+                ),
                 ExecutionIsNullCheck isNull => renderer.RenderIsNullCheck(isNull, context),
                 ExecutionRowPresence rowPresence => renderer.RenderRowPresence(rowPresence, context),
                 ExecutionInCheck inCheck => renderer.RenderInCheck(inCheck, context),
-                ExecutionCollectionInCheck collectionInCheck => renderer.RenderCollectionInCheck(collectionInCheck, context),
+                ExecutionCollectionInCheck collectionInCheck => renderer.RenderCollectionInCheck(
+                    collectionInCheck,
+                    context
+                ),
                 ExecutionPatternMatch patternMatch => renderer.RenderPatternMatch(patternMatch, context),
-                ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.Render(expression, Render, context.Session),
+                ExecutionStringMatch
+                or ExecutionPrepareLikeMatcher
+                or ExecutionPreparedLikeMatch
+                or ExecutionDynamicLikeMatch
+                or ExecutionLikeMatcherCacheSlot
+                or ExecutionPrepareRLikeMatcher
+                or ExecutionPreparedRLikeMatch
+                or ExecutionDynamicRLikeMatch
+                or ExecutionRLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.Render(
+                    expression,
+                    Render,
+                    context.Session
+                ),
                 ExecutionBetween between => renderer.RenderBetween(between, context),
                 ExecutionCaseWhen caseWhen => renderer.RenderCaseWhen(caseWhen, context),
                 ExecutionCoalesce coalesce => renderer.RenderCoalesce(coalesce, context),
-                ExecutionStringConcatenation concatenation => renderer.RenderStringConcatenation(concatenation, context),
-                ExecutionRowStream { Kind: ExecutionRowStreamKind.Rows, RowsAccess: ExecutionRowStreamRowsAccess.TableRows } rows =>
-                    context.Session.TypedRowBufferVariables.ContainsKey(rows.Variable.Name)
-                        ? CreateIdentifierName(rows.Variable.Name)
-                        : CreateTableRowsRead(rows.Variable.Name),
+                ExecutionStringConcatenation concatenation => renderer.RenderStringConcatenation(
+                    concatenation,
+                    context
+                ),
+                ExecutionRowStream
+                {
+                    Kind: ExecutionRowStreamKind.Rows,
+                    RowsAccess: ExecutionRowStreamRowsAccess.TableRows
+                } rows => context.Session.TypedRowBufferVariables.ContainsKey(rows.Variable.Name)
+                    ? CreateIdentifierName(rows.Variable.Name)
+                    : CreateTableRowsRead(rows.Variable.Name),
                 ExecutionRowStream rows => SyntaxFactory.IdentifierName(rows.Variable.Name),
                 ExecutionScalarRowStream rows => SyntaxFactory.IdentifierName(rows.Variable.Name),
                 ExecutionStoredTable storedTable => CreateStoredTableRead(storedTable.TableIndex),
                 ExecutionStoredTableRows storedRows => renderer.RenderStoredTableRows(storedRows, context),
                 ExecutionVariableRead variableRead => CreateIdentifierName(variableRead.Variable.Name),
-                ExecutionRowContextsRead => throw UnsupportedShape.Of("Row contexts must be lowered to concrete fields."),
-                ExecutionNullContextArray => throw UnsupportedShape.Of("Null source contexts must be lowered to concrete presence fields."),
+                ExecutionRowContextsRead => throw UnsupportedShape.Of(
+                    "Row contexts must be lowered to concrete fields."
+                ),
+                ExecutionNullContextArray => throw UnsupportedShape.Of(
+                    "Null source contexts must be lowered to concrete presence fields."
+                ),
                 ExecutionContextArray contextArray => renderer.RenderContextArray(),
                 ExecutionValueTupleKey valueTupleKey => renderer.CreateValueTupleKeyExpression(valueTupleKey, context),
                 ExecutionAggregateCall aggregateCall => CreateAggregateAccumulatorRead(aggregateCall),
                 ExecutionWindowValueRead windowValueRead => CreateWindowValueRead(windowValueRead),
                 ExecutionGroupKeyRead groupKeyRead => CreateGroupKeyRead(groupKeyRead),
-                ExecutionAggregateCapturedValueRead capturedValueRead => CreateAggregateCapturedValueRead(capturedValueRead),
-                _ => throw UnsupportedShape.Of($"Execution expression '{expression.GetType().Name}'", "the C# backend")
+                ExecutionAggregateCapturedValueRead capturedValueRead => CreateAggregateCapturedValueRead(
+                    capturedValueRead
+                ),
+                _ => throw UnsupportedShape.Of($"Execution expression '{expression.GetType().Name}'", "the C# backend"),
             };
     }
-
 }

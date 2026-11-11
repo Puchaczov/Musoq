@@ -138,8 +138,7 @@ public partial class NoOpExpressionVisitorTests
     public void NoOpExpressionVisitor_VisitSchemaFromNode_DoesNotThrow()
     {
         var visitor = new TestableNoOpVisitor();
-        var node = new SchemaFromNode("schema", "method", new ArgsListNode([]), "alias",
-            typeof(object), 0);
+        var node = new SchemaFromNode("schema", "method", new ArgsListNode([]), "alias", typeof(object), 0);
 
         visitor.Visit(node);
     }
@@ -167,8 +166,7 @@ public partial class NoOpExpressionVisitorTests
     public void NoOpExpressionVisitor_VisitUnionAllNode_DoesNotThrow()
     {
         var visitor = new TestableNoOpVisitor();
-        var node = new UnionAllNode("result", ["key1"], new IntegerNode("1"), new IntegerNode("2"), false,
-            true);
+        var node = new UnionAllNode("result", ["key1"], new IntegerNode("1"), new IntegerNode("2"), false, true);
 
         visitor.Visit(node);
     }
@@ -186,8 +184,7 @@ public partial class NoOpExpressionVisitorTests
     public void NoOpExpressionVisitor_VisitIntersectNode_DoesNotThrow()
     {
         var visitor = new TestableNoOpVisitor();
-        var node = new IntersectNode("result", ["key1"], new IntegerNode("1"), new IntegerNode("2"), false,
-            true);
+        var node = new IntersectNode("result", ["key1"], new IntegerNode("1"), new IntegerNode("2"), false, true);
 
         visitor.Visit(node);
     }

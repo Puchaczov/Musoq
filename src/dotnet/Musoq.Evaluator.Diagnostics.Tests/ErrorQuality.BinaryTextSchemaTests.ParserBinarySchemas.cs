@@ -12,19 +12,19 @@ public partial class ErrorQualityBinaryTextSchemaTests
     {
         // Arrange — two fields with same name
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: int le,
-    Magic: short le
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary HeaderFormat {\n"
+            + "    Magic: int le,\n"
+            + "    Magic: short le\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — duplicate field names are a schema definition error.
-        AssertHasDiagnosticCode(result,
-            DiagnosticCode.MQ4008_DuplicateSchemaField,
-            "duplicate binary schema field");
+        AssertHasDiagnosticCode(result, DiagnosticCode.MQ4008_DuplicateSchemaField, "duplicate binary schema field");
     }
 
     #endregion
@@ -36,9 +36,7 @@ select 1 from #A.Entities()";
     {
         // Arrange — binary schema with no fields
         var analyzer = CreateAnalyzer();
-        var query = @"binary EmptyFormat {
-};
-select 1 from #A.Entities()";
+        var query = ("binary EmptyFormat {\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -58,17 +56,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — binary keyword without schema name
         var analyzer = CreateAnalyzer();
-        var query = @"binary {
-    Magic: int le
-};
-select 1 from #A.Entities()";
+        var query = ("binary {\n" + "    Magic: int le\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — missing name
-        AssertParseOrSemanticFailure(result,
-            "Binary schema without name should produce parse error");
+        AssertParseOrSemanticFailure(result, "Binary schema without name should produce parse error");
     }
 
     #endregion
@@ -80,14 +74,16 @@ select 1 from #A.Entities()";
     {
         // Arrange — binary schema references another not yet defined
         var analyzer = CreateAnalyzer();
-        var query = @"binary Outer {
-    Header: Inner,
-    Payload: byte[10]
-};
-binary Inner {
-    Size: int le
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary Outer {\n"
+            + "    Header: Inner,\n"
+            + "    Payload: byte[10]\n"
+            + "};\n"
+            + "binary Inner {\n"
+            + "    Size: int le\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -106,10 +102,7 @@ select 1 from #A.Entities()";
     {
         // Arrange — bits field with size > 8
         var analyzer = CreateAnalyzer();
-        var query = @"binary Flags {
-    HighBits: bits[16]
-};
-select 1 from #A.Entities()";
+        var query = ("binary Flags {\n" + "    HighBits: bits[16]\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);

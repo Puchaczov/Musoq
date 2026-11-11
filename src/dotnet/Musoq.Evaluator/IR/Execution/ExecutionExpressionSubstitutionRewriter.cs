@@ -3,7 +3,8 @@ using System.Collections.Generic;
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed class ExecutionExpressionSubstitutionRewriter(
-    Func<ExecutionExpression, ExecutionExpression?> substitute) : ExecutionIrRewriter
+    Func<ExecutionExpression, ExecutionExpression?> substitute
+) : ExecutionIrRewriter
 {
     public override ExecutionExpression RewriteExpression(ExecutionExpression expression)
     {

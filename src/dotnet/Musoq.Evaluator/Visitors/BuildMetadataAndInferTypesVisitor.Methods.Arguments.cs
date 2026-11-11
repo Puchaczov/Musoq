@@ -12,5 +12,4 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw CannotResolveMethodException.CreateForNullArguments(node.Name);
         return args;
     }
-
 }

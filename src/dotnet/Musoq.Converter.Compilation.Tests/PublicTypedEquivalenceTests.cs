@@ -4,14 +4,14 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
-using MusoqApi = Musoq.Converter.Musoq;
 using static Musoq.Converter.Tests.TwoModeTestFixtures;
 using City = Musoq.Converter.Tests.TwoModeTestFixtures.NameRow;
 using CityCountDto = Musoq.Converter.Tests.TwoModeTestFixtures.CityCountDto;
 using CityDto = Musoq.Converter.Tests.TwoModeTestFixtures.CityDto;
+using MusoqApi = Musoq.Converter.Musoq;
 using NameAgeDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameAgeDto;
-using NameDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameDto;
 using NameCityAgeDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameCityAgeDto;
+using NameDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameDto;
 using NameNumberDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameNumberDto;
 using NameRankDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameRankDto;
 using Person = Musoq.Converter.Tests.TwoModeTestFixtures.Person;
@@ -25,7 +25,6 @@ namespace Musoq.Converter.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class PublicTypedEquivalenceTests
 {
-
     [TestMethod]
     public void TypedExecution_WhenQueryUsesJoin_ShouldMatchEquivalentProjection()
     {
@@ -33,7 +32,9 @@ public sealed class PublicTypedEquivalenceTests
         var cities = new[] { new City("NY"), new City("SF") };
 
         var actual = MusoqApi
-            .Query("select p.Name as Name from #A.entities() p inner join #B.entities() c on p.City = c.Name order by p.Name")
+            .Query(
+                "select p.Name as Name from #A.entities() p inner join #B.entities() c on p.City = c.Name order by p.Name"
+            )
             .Source("#A", "entities", Chunks(people))
             .Source("#B", "entities", Chunks(cities))
             .WithCompilationOptions(new CompilationOptions(ParallelizationMode.None))
@@ -133,7 +134,9 @@ public sealed class PublicTypedEquivalenceTests
         var people = People();
 
         var actual = MusoqApi
-            .Query("select p.Name as Name, RowNumber() over (order by p.Age, p.Name) as Rank from #A.entities() p order by Rank")
+            .Query(
+                "select p.Name as Name, RowNumber() over (order by p.Age, p.Name) as Rank from #A.entities() p order by Rank"
+            )
             .Source("#A", "entities", Chunks(people))
             .WithCompilationOptions(new CompilationOptions(ParallelizationMode.None))
             .CompileAndRun<NameRankDto>(CancellationToken.None)
@@ -154,12 +157,14 @@ public sealed class PublicTypedEquivalenceTests
         var people = People();
 
         var actual = MusoqApi
-            .Query("""
-                   with adults as (
-                       select p.Name as Name, p.Age as Age from #A.entities() p where p.Age >= 30
-                   )
-                   select a.Name as Name, a.Age as Age from adults a order by a.Name
-                   """)
+            .Query(
+                """
+                with adults as (
+                    select p.Name as Name, p.Age as Age from #A.entities() p where p.Age >= 30
+                )
+                select a.Name as Name, a.Age as Age from adults a order by a.Name
+                """
+            )
             .Source("#A", "entities", Chunks(people))
             .WithCompilationOptions(new CompilationOptions(ParallelizationMode.None))
             .CompileAndRun<NameAgeDto>(CancellationToken.None)
@@ -180,11 +185,13 @@ public sealed class PublicTypedEquivalenceTests
         var people = People();
 
         var actual = MusoqApi
-            .Query("""
-                   select p.Name as Name from #A.entities() p where p.City = 'NY'
-                   union (Name)
-                   select q.Name as Name from #A.entities() q where q.Age >= 30
-                   """)
+            .Query(
+                """
+                select p.Name as Name from #A.entities() p where p.City = 'NY'
+                union (Name)
+                select q.Name as Name from #A.entities() q where q.Age >= 30
+                """
+            )
             .Source("#A", "entities", Chunks(people))
             .WithCompilationOptions(new CompilationOptions(ParallelizationMode.None))
             .CompileAndRun<NameDto>(CancellationToken.None)
@@ -193,9 +200,7 @@ public sealed class PublicTypedEquivalenceTests
         var expected = people
             .Where(static person => person.City == "NY")
             .Select(static person => person.Name)
-            .Union(people
-                .Where(static person => person.Age >= 30)
-                .Select(static person => person.Name))
+            .Union(people.Where(static person => person.Age >= 30).Select(static person => person.Name))
             .ToArray();
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -204,15 +209,12 @@ public sealed class PublicTypedEquivalenceTests
     [TestMethod]
     public void TypedExecution_WhenQueryUsesApplyChain_ShouldMatchEquivalentProjection()
     {
-        var people =
-            new[]
-            {
-                new ScoredPerson("Alice", 35, "NY", [2, 1]),
-                new ScoredPerson("Bob", 20, "LA", [3])
-            };
+        var people = new[] { new ScoredPerson("Alice", 35, "NY", [2, 1]), new ScoredPerson("Bob", 20, "LA", [3]) };
 
         var actual = MusoqApi
-            .Query("select p.Name as Name, s.Value as Number from #A.entities() p cross apply p.Scores as s order by p.Name, s.Value")
+            .Query(
+                "select p.Name as Name, s.Value as Number from #A.entities() p cross apply p.Scores as s order by p.Name, s.Value"
+            )
             .Source("#A", "entities", Chunks(people))
             .WithCompilationOptions(new CompilationOptions(ParallelizationMode.None))
             .CompileAndRun<NameNumberDto>(CancellationToken.None)
@@ -234,13 +236,15 @@ public sealed class PublicTypedEquivalenceTests
         var cities = new[] { new City("NY"), new City("LA") };
 
         var actual = MusoqApi
-            .Query("""
-                   select p.Name as Name, p.City as City, p.Age as Age
-                   from #A.entities() p
-                   inner join #B.entities() c on p.City = c.Name
-                   where p.Age >= 25
-                   order by p.City, p.Age desc
-                   """)
+            .Query(
+                """
+                select p.Name as Name, p.City as City, p.Age as Age
+                from #A.entities() p
+                inner join #B.entities() c on p.City = c.Name
+                where p.Age >= 25
+                order by p.City, p.Age desc
+                """
+            )
             .Source("#A", "entities", Chunks(people))
             .Source("#B", "entities", Chunks(cities))
             .WithCompilationOptions(new CompilationOptions(ParallelizationMode.None))
@@ -303,15 +307,21 @@ public sealed class PublicTypedEquivalenceTests
         var minAge = 30;
 
         var actual = MusoqApi
-            .Query("param(minAge: int) select p.Name as Name from #A.entities() p where p.Age >= $minAge order by p.Name")
+            .Query(
+                "param(minAge: int) select p.Name as Name from #A.entities() p where p.Age >= $minAge order by p.Name"
+            )
             .Source<Person>("#A", "entities")
             .WithCompilationOptions(new CompilationOptions(ParallelizationMode.None))
             .Compile<NameDto>()
             .Run(
                 new TypedQueryRunOptions(
                     CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["minAge"] = minAge })),
-                MusoqApi.Source("#A", "entities", Chunks(people)))
+                    global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                        new Dictionary<string, object?> { ["minAge"] = minAge }
+                    )
+                ),
+                MusoqApi.Source("#A", "entities", Chunks(people))
+            )
             .Select(static row => row.Name)
             .ToArray();
         var expected = people
@@ -326,14 +336,17 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
     [TestMethod]
     public void TypedExecution_WhenQueryHasDuplicateAliases_ShouldRejectLikeOutputBindingRules()
     {
-        var exception = Assert.Throws<InvalidOperationException>(() => MusoqApi
-            .Query("select p.Name as Value, p.City as Value from #A.entities() p")
-            .Source<Person>("#A", "entities")
-            .Compile<ValueDto>());
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            MusoqApi
+                .Query("select p.Name as Value, p.City as Value from #A.entities() p")
+                .Source<Person>("#A", "entities")
+                .Compile<ValueDto>()
+        );
 
         StringAssert.Contains(exception.Message, "duplicate output alias 'Value'");
     }
 
     public sealed record NullableIntegerInput(int? Value);
+
     public readonly record struct NullableIntegerAggregateOutput(int? Total, decimal? Average, long Present);
 }

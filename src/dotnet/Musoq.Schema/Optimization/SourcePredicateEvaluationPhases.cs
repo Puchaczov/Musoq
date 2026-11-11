@@ -14,5 +14,5 @@ public enum SourcePredicateEvaluationPhases
     CandidateMetadata = 1 << 1,
 
     /// <summary>All version 1 evaluation phases are supported.</summary>
-    All = RowFiltering | CandidateMetadata
+    All = RowFiltering | CandidateMetadata,
 }

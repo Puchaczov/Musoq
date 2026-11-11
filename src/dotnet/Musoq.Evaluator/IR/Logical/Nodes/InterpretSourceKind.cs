@@ -8,5 +8,5 @@ public enum InterpretSourceKind
     TryInterpret,
     TryParse,
     PartialInterpret,
-    PartialParse
+    PartialParse,
 }

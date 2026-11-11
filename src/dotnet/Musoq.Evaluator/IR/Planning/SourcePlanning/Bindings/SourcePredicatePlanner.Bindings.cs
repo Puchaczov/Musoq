@@ -9,9 +9,11 @@ internal static partial class SourcePredicatePlanner
     private static IReadOnlyDictionary<string, ISchemaColumn[]> ResolveScopedColumns(
         SchemaFromNode source,
         IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns,
-        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? sourceColumns)
+        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? sourceColumns
+    )
     {
-        if (sourceColumns == null) return inferredColumns;
+        if (sourceColumns == null)
+            return inferredColumns;
         var scoped = new Dictionary<string, ISchemaColumn[]>(inferredColumns, StringComparer.OrdinalIgnoreCase);
         foreach (var binding in sourceColumns)
         {

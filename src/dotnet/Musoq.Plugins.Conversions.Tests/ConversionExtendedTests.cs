@@ -443,7 +443,10 @@ public class ConversionExtendedTests : PluginsTestBase
     [TestMethod]
     public void ToBin_DateTime_ReturnsNotSupported()
     {
-        Assert.AreEqual("CONVERSION_NOT_SUPPORTED", Library.ToBin(new DateTime(2024, 2, 29, 12, 34, 56, DateTimeKind.Utc)));
+        Assert.AreEqual(
+            "CONVERSION_NOT_SUPPORTED",
+            Library.ToBin(new DateTime(2024, 2, 29, 12, 34, 56, DateTimeKind.Utc))
+        );
     }
 
     [TestMethod]

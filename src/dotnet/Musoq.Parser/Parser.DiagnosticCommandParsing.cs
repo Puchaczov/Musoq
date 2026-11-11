@@ -9,15 +9,13 @@ public partial class Parser
 {
     private bool IsDiagnosticCommandStart()
     {
-        return IsContextWord("profile") ||
-               IsContextWord("explain") ||
-               IsContextWord("analyze");
+        return IsContextWord("profile") || IsContextWord("explain") || IsContextWord("analyze");
     }
 
     private bool IsContextWord(string value)
     {
-        return Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function &&
-               Current.Value.Equals(value, StringComparison.OrdinalIgnoreCase);
+        return Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function
+            && Current.Value.Equals(value, StringComparison.OrdinalIgnoreCase);
     }
 
     private DiagnosticCommandNode ComposeDiagnosticCommand()
@@ -33,7 +31,8 @@ public partial class Parser
             "Standalone ANALYZE is not implemented. Use EXPLAIN ANALYZE <query>.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2040_InvalidDiagnosticCommand,
-            Current.Span);
+            Current.Span
+        );
     }
 
     private DiagnosticCommandNode ComposeProfileCommand()
@@ -52,7 +51,8 @@ public partial class Parser
                 "EXPLAIN without ANALYZE is not supported. Use EXPLAIN ANALYZE <query>.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2040_InvalidDiagnosticCommand,
-                Current.Span.IsEmpty ? explainToken.Span : Current.Span);
+                Current.Span.IsEmpty ? explainToken.Span : Current.Span
+            );
         }
 
         _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
@@ -60,22 +60,22 @@ public partial class Parser
         return ComposeDiagnosticCommandBody(
             DiagnosticCommandKind.ExplainAnalyze,
             explainToken.Span.Start,
-            explainToken.Span.Through(analyzeToken.Span));
+            explainToken.Span.Through(analyzeToken.Span)
+        );
     }
 
     private DiagnosticCommandNode ComposeDiagnosticCommandBody(
         DiagnosticCommandKind kind,
         int commandStart,
-        TextSpan commandSpan)
+        TextSpan commandSpan
+    )
     {
         EnsureDiagnosticInnerQueryStart();
 
         var innerStart = Current.Span.Start;
         var innerEnd = ConsumeDiagnosticInnerStatement();
         var span = commandSpan.Through(new TextSpan(innerStart, Math.Max(0, innerEnd - innerStart)));
-        var innerQueryText = innerEnd > innerStart
-            ? _lexer.Input[innerStart..innerEnd]
-            : string.Empty;
+        var innerQueryText = innerEnd > innerStart ? _lexer.Input[innerStart..innerEnd] : string.Empty;
 
         return new DiagnosticCommandNode(kind, commandStart, innerStart, innerEnd, innerQueryText, span);
     }
@@ -88,21 +88,28 @@ public partial class Parser
                 "Diagnostic command requires an inner SELECT, FROM, WITH, PIVOT, or UNPIVOT query.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2040_InvalidDiagnosticCommand,
-                Current.Span);
+                Current.Span
+            );
         }
 
-        if (Current.TokenType is TokenType.Select or TokenType.From or TokenType.With or TokenType.Pivot or TokenType.Unpivot)
+        if (
+            Current.TokenType
+            is TokenType.Select
+                or TokenType.From
+                or TokenType.With
+                or TokenType.Pivot
+                or TokenType.Unpivot
+        )
             return;
 
-        var actual = string.IsNullOrWhiteSpace(Current.Value)
-            ? Current.TokenType.ToString()
-            : Current.Value;
+        var actual = string.IsNullOrWhiteSpace(Current.Value) ? Current.TokenType.ToString() : Current.Value;
 
         throw new SyntaxException(
             $"Diagnostic command does not support inner query starting with '{actual}'. Expected SELECT, FROM, WITH, PIVOT, or UNPIVOT.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2040_InvalidDiagnosticCommand,
-            Current.Span);
+            Current.Span
+        );
     }
 
     private int ConsumeDiagnosticInnerStatement()

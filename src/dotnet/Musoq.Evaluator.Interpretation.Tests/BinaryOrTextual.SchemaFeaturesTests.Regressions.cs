@@ -13,13 +13,15 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_NegativeDynamicByteArraySize_ShouldThrowInvalidSize()
     {
-        const string query = @"
-            binary Packet {
-                Length: sbyte,
-                Payload: byte[Length]
-            };
-            select p.Payload from #test.files() f
-            cross apply Interpret<Packet>(f.Content) p";
+        const string query = (
+            "\n"
+            + "            binary Packet {\n"
+            + "                Length: sbyte,\n"
+            + "                Payload: byte[Length]\n"
+            + "            };\n"
+            + "            select p.Payload from #test.files() f\n"
+            + "            cross apply Interpret<Packet>(f.Content) p"
+        );
 
         AssertInvalidSize(query);
     }
@@ -27,13 +29,15 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_NegativeDynamicStringSize_ShouldThrowInvalidSize()
     {
-        const string query = @"
-            binary Packet {
-                Length: sbyte,
-                Payload: string[Length] utf8
-            };
-            select p.Payload from #test.files() f
-            cross apply Interpret<Packet>(f.Content) p";
+        const string query = (
+            "\n"
+            + "            binary Packet {\n"
+            + "                Length: sbyte,\n"
+            + "                Payload: string[Length] utf8\n"
+            + "            };\n"
+            + "            select p.Payload from #test.files() f\n"
+            + "            cross apply Interpret<Packet>(f.Content) p"
+        );
 
         AssertInvalidSize(query);
     }
@@ -41,13 +45,15 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_NegativeDynamicRawSubstreamSize_ShouldThrowInvalidSize()
     {
-        const string query = @"
-            binary Packet {
-                Length: sbyte,
-                Payload: substream[Length] raw
-            };
-            select p.Payload from #test.files() f
-            cross apply Interpret<Packet>(f.Content) p";
+        const string query = (
+            "\n"
+            + "            binary Packet {\n"
+            + "                Length: sbyte,\n"
+            + "                Payload: substream[Length] raw\n"
+            + "            };\n"
+            + "            select p.Payload from #test.files() f\n"
+            + "            cross apply Interpret<Packet>(f.Content) p"
+        );
 
         AssertInvalidSize(query);
     }
@@ -55,30 +61,32 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_MixedBinaryTextApplyAliases_ShouldCompileAndReturnProjectedFields()
     {
-        const string query = @"
-            binary MessageFrame {
-                MsgType: byte,
-                PayloadLen: byte,
-                Payload: byte[PayloadLen]
-            };
-            text CommandPayload {
-                Command: until ';',
-                Argument: rest
-            };
-            binary TelemetryPayload {
-                SensorId: byte,
-                Reading: byte
-            };
-            select
-                frame.MsgType,
-                command.Command,
-                command.Argument,
-                telemetry.SensorId,
-                telemetry.Reading
-            from #test.files() f
-            cross apply Interpret<MessageFrame>(f.Content) frame
-            outer apply TryParse<CommandPayload>(ToText(frame.Payload, 'utf8')) command
-            outer apply TryInterpret<TelemetryPayload>(frame.Payload) telemetry";
+        const string query = (
+            "\n"
+            + "            binary MessageFrame {\n"
+            + "                MsgType: byte,\n"
+            + "                PayloadLen: byte,\n"
+            + "                Payload: byte[PayloadLen]\n"
+            + "            };\n"
+            + "            text CommandPayload {\n"
+            + "                Command: until ';',\n"
+            + "                Argument: rest\n"
+            + "            };\n"
+            + "            binary TelemetryPayload {\n"
+            + "                SensorId: byte,\n"
+            + "                Reading: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                frame.MsgType,\n"
+            + "                command.Command,\n"
+            + "                command.Argument,\n"
+            + "                telemetry.SensorId,\n"
+            + "                telemetry.Reading\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<MessageFrame>(f.Content) frame\n"
+            + "            outer apply TryParse<CommandPayload>(ToText(frame.Payload, 'utf8')) command\n"
+            + "            outer apply TryInterpret<TelemetryPayload>(frame.Payload) telemetry"
+        );
 
         var payload = "PING;42"u8.ToArray();
         var data = new byte[2 + payload.Length];
@@ -105,16 +113,21 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
     private static Table RunBinaryQuery(string query, byte[] content)
     {
-        var entities = new[] { new BinaryEntity { Name = "packet.bin", Content = content } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "packet.bin", Content = content },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         return TableMaterializationTestHelper.Materialize(vm.Run(CancellationToken.None));
     }

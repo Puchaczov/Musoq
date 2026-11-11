@@ -5,7 +5,10 @@ namespace Musoq.Parser;
 
 public partial class SchemaParser
 {
-    private FieldValueValidationNode? ComposeOptionalFieldValueValidation(TypeAnnotationNode typeAnnotation, string fieldName)
+    private FieldValueValidationNode? ComposeOptionalFieldValueValidation(
+        TypeAnnotationNode typeAnnotation,
+        string fieldName
+    )
     {
         var kind = MatchValidationKeyword();
         if (kind is null)
@@ -14,14 +17,16 @@ public partial class SchemaParser
         var keywordSpan = Current.Span;
         Consume(Current.TokenType);
 
-        var validation = kind == FieldValueValidationKind.OneOf
-            ? ComposeOneOfValidation(typeAnnotation, fieldName, keywordSpan)
-            : ComposeConstValidation(kind.Value, typeAnnotation, fieldName, keywordSpan);
+        var validation =
+            kind == FieldValueValidationKind.OneOf
+                ? ComposeOneOfValidation(typeAnnotation, fieldName, keywordSpan)
+                : ComposeConstValidation(kind.Value, typeAnnotation, fieldName, keywordSpan);
 
         if (MatchValidationKeyword() is not null)
             throw InvalidFieldValueValidation(
                 $"Field '{fieldName}' may only declare a single value validation modifier.",
-                Current.Span);
+                Current.Span
+            );
 
         return validation;
     }
@@ -38,7 +43,7 @@ public partial class SchemaParser
             "const" => FieldValueValidationKind.Const,
             "magic" => FieldValueValidationKind.Magic,
             "oneof" => FieldValueValidationKind.OneOf,
-            _ => null
+            _ => null,
         };
     }
 
@@ -49,14 +54,16 @@ public partial class SchemaParser
 
         throw InvalidFieldValueValidation(
             $"Field '{fieldName}' value validation must appear immediately after the type/repeat annotation and before 'at', 'when', or 'check'.",
-            Current.Span);
+            Current.Span
+        );
     }
 
     private FieldValueValidationNode ComposeConstValidation(
         FieldValueValidationKind kind,
         TypeAnnotationNode typeAnnotation,
         string fieldName,
-        TextSpan keywordSpan)
+        TextSpan keywordSpan
+    )
     {
         if (Current.TokenType == TokenType.LeftSquareBracket)
         {
@@ -74,21 +81,21 @@ public partial class SchemaParser
     private FieldValueValidationNode ComposeOneOfValidation(
         TypeAnnotationNode typeAnnotation,
         string fieldName,
-        TextSpan keywordSpan)
+        TextSpan keywordSpan
+    )
     {
         EnsureScalarCompatible(typeAnnotation, fieldName, keywordSpan);
 
         if (Current.TokenType != TokenType.LeftSquareBracket)
             throw InvalidFieldValueValidation(
                 $"Field '{fieldName}' 'oneOf' requires a bracketed list of values.",
-                Current.Span);
+                Current.Span
+            );
 
         var values = ComposeBracketedLiterals(fieldName);
 
         if (values.Count == 0)
-            throw InvalidFieldValueValidation(
-                $"Field '{fieldName}' 'oneOf' requires at least one value.",
-                keywordSpan);
+            throw InvalidFieldValueValidation($"Field '{fieldName}' 'oneOf' requires at least one value.", keywordSpan);
 
         foreach (var value in values)
             EnsureScalarValueCompatible(typeAnnotation, value, fieldName, keywordSpan);

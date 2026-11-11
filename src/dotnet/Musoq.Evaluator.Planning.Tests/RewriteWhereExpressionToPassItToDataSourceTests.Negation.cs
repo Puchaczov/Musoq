@@ -15,8 +15,12 @@ public partial class RewriteWhereExpressionToPassItToDataSourceTests
     public void ForeignAtom_ShouldNeverEnterSourceLocalPredicate(string predicate)
     {
         var result = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(
-            $"select a.Name from #A.entities() a join #B.entities() b on a.City = b.City where {predicate}");
-        Assert.AreEqual("1 = 1", result.UsedWhereNodes.Single(entry => entry.Key.Alias == "a").Value.Expression.ToString());
+            $"select a.Name from #A.entities() a join #B.entities() b on a.City = b.City where {predicate}"
+        );
+        Assert.AreEqual(
+            "1 = 1",
+            result.UsedWhereNodes.Single(entry => entry.Key.Alias == "a").Value.Expression.ToString()
+        );
     }
 
     [TestMethod]
@@ -27,7 +31,8 @@ public partial class RewriteWhereExpressionToPassItToDataSourceTests
     public void SourceLocalRange_ShouldRemainACompleteBooleanPredicate(string predicate)
     {
         var result = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(
-            $"select a.Name from #A.entities() a where {predicate}");
+            $"select a.Name from #A.entities() a where {predicate}"
+        );
         Assert.AreEqual(predicate, result.UsedWhereNodes.Single().Value.Expression.ToString());
     }
 
@@ -48,9 +53,13 @@ public partial class RewriteWhereExpressionToPassItToDataSourceTests
     public void WhenNegatedOperandCannotTransferExactly_ShouldOfferNeutralPredicate(string predicate)
     {
         var result = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(
-            $"select a.Name from #A.entities() a join #B.entities() b on a.City = b.City where {predicate}");
+            $"select a.Name from #A.entities() a join #B.entities() b on a.City = b.City where {predicate}"
+        );
 
-        Assert.AreEqual("1 = 1", result.UsedWhereNodes.Single(entry => entry.Key.Alias == "a").Value.Expression.ToString());
+        Assert.AreEqual(
+            "1 = 1",
+            result.UsedWhereNodes.Single(entry => entry.Key.Alias == "a").Value.Expression.ToString()
+        );
     }
 
     [TestMethod]
@@ -64,7 +73,8 @@ public partial class RewriteWhereExpressionToPassItToDataSourceTests
     public void WhenNegatedOperandTransfersExactly_ShouldPreserveNegation(string predicate)
     {
         var result = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(
-            $"select a.Name from #A.entities() a where {predicate}");
+            $"select a.Name from #A.entities() a where {predicate}"
+        );
 
         Assert.AreEqual(predicate, result.UsedWhereNodes.Single().Value.Expression.ToString());
     }
@@ -73,8 +83,12 @@ public partial class RewriteWhereExpressionToPassItToDataSourceTests
     public void WhenUnsafeNegationHasIndependentConjunct_ShouldPreserveSafeConjunct()
     {
         var result = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(
-            "select a.Name from #A.entities() a join #B.entities() b on a.City = b.City where a.Population > 0 and not (a.Population < b.Population)");
+            "select a.Name from #A.entities() a join #B.entities() b on a.City = b.City where a.Population > 0 and not (a.Population < b.Population)"
+        );
 
-        Assert.AreEqual("a.Population > 0 and 1 = 1", result.UsedWhereNodes.Single(entry => entry.Key.Alias == "a").Value.Expression.ToString());
+        Assert.AreEqual(
+            "a.Population > 0 and 1 = 1",
+            result.UsedWhereNodes.Single(entry => entry.Key.Alias == "a").Value.Expression.ToString()
+        );
     }
 }

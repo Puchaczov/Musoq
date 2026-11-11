@@ -4,4 +4,5 @@ namespace Musoq.Evaluator.IR.Planning.Subqueries;
 
 internal sealed record SubqueryLoweringStrategyPlanningResult(
     IReadOnlyList<SubqueryLoweringStrategyDecision> Strategies,
-    IReadOnlyList<PlanningDecision> Decisions);
+    IReadOnlyList<PlanningDecision> Decisions
+);

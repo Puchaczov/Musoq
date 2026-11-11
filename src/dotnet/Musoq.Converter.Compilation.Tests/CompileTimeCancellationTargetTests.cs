@@ -17,11 +17,13 @@ public sealed class CompileTimeCancellationTargetTests
         using var gate = new CooperativeTargetGate();
         var backend = new CooperativeBackend(gate);
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(backend: backend));
+            TestOnlyExecutionTarget.CreateDescriptor(backend: backend)
+        );
 
         var token = await AssertCancelledAtGateAsync(
             gate,
-            cancellationToken => ExecutionTargetCatalog.Render(CreateMinimalRequest(cancellationToken)));
+            cancellationToken => ExecutionTargetCatalog.Render(CreateMinimalRequest(cancellationToken))
+        );
 
         Assert.AreEqual(token, backend.ObservedToken);
     }
@@ -34,8 +36,11 @@ public sealed class CompileTimeCancellationTargetTests
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
             TestOnlyExecutionTarget.CreateDescriptor(
                 finalizer: finalizer,
-                createFinalizationOptions: static context =>
-                    new CooperativeFinalizationOptions(context.CancellationToken)));
+                createFinalizationOptions: static context => new CooperativeFinalizationOptions(
+                    context.CancellationToken
+                )
+            )
+        );
 
         var token = await AssertCancelledAtGateAsync(
             gate,
@@ -43,11 +48,14 @@ public sealed class CompileTimeCancellationTargetTests
             {
                 var options = ExecutionTargetCatalog.CreateFinalizationOptions(
                     TestExecutionTargetIds.TestOnlyNonClr,
-                    new TargetFinalizationOptionsContext(false, CancellationToken: cancellationToken));
+                    new TargetFinalizationOptionsContext(false, CancellationToken: cancellationToken)
+                );
                 return ExecutionTargetCatalog.FinalizeArtifact(
                     new CooperativeRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr),
-                    options);
-            });
+                    options
+                );
+            }
+        );
 
         Assert.AreEqual(token, finalizer.ObservedToken);
     }
@@ -58,32 +66,37 @@ public sealed class CompileTimeCancellationTargetTests
         using var gate = new CooperativeTargetGate();
         CancellationToken? observedToken = null;
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(
-                createArtifactPackage: context =>
-                {
-                    observedToken = context.CancellationToken;
-                    gate.Wait(context.CancellationToken);
-                    return TargetArtifactPackage.CreateValidated(
-                        context.TargetId,
-                        "cancellation-test",
-                        nameof(TargetExportArtifact),
-                        context.SemanticsContract,
-                        executionIrVersion: context.ExecutionIrVersion);
-                }));
+            TestOnlyExecutionTarget.CreateDescriptor(createArtifactPackage: context =>
+            {
+                observedToken = context.CancellationToken;
+                gate.Wait(context.CancellationToken);
+                return TargetArtifactPackage.CreateValidated(
+                    context.TargetId,
+                    "cancellation-test",
+                    nameof(TargetExportArtifact),
+                    context.SemanticsContract,
+                    executionIrVersion: context.ExecutionIrVersion
+                );
+            })
+        );
 
         var token = await AssertCancelledAtGateAsync(
             gate,
-            cancellationToken => ExecutionTargetCatalog.CreateArtifactPackage(
-                new TargetArtifactPackagingContext(
-                    cancellationToken,
-                    TestExecutionTargetIds.TestOnlyNonClr,
-                    "CancellationPackage",
-                    "select 1",
-                    "options",
-                    new CooperativeRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr),
-                    new CooperativeExecutableArtifact(TestExecutionTargetIds.TestOnlyNonClr),
-                    TargetArtifactSemanticFacts.Empty,
-                    ExecutionSemanticsContract.Current)));
+            cancellationToken =>
+                ExecutionTargetCatalog.CreateArtifactPackage(
+                    new TargetArtifactPackagingContext(
+                        cancellationToken,
+                        TestExecutionTargetIds.TestOnlyNonClr,
+                        "CancellationPackage",
+                        "select 1",
+                        "options",
+                        new CooperativeRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr),
+                        new CooperativeExecutableArtifact(TestExecutionTargetIds.TestOnlyNonClr),
+                        TargetArtifactSemanticFacts.Empty,
+                        ExecutionSemanticsContract.Current
+                    )
+                )
+        );
 
         Assert.AreEqual(token, observedToken);
     }
@@ -94,13 +107,17 @@ public sealed class CompileTimeCancellationTargetTests
         using var gate = new CooperativeTargetGate();
         var inspector = new CooperativeInspector(gate);
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(inspector: inspector));
+            TestOnlyExecutionTarget.CreateDescriptor(inspector: inspector)
+        );
 
         var token = await AssertCancelledAtGateAsync(
             gate,
-            cancellationToken => ExecutionTargetCatalog.InspectArtifact(
-                new CooperativeRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr),
-                cancellationToken));
+            cancellationToken =>
+                ExecutionTargetCatalog.InspectArtifact(
+                    new CooperativeRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr),
+                    cancellationToken
+                )
+        );
 
         Assert.AreEqual(token, inspector.ObservedToken);
     }
@@ -132,15 +149,17 @@ public sealed class CompileTimeCancellationTargetTests
                 new TargetNullBehaviorContract(false, false, false, "none"),
                 new TargetCancellationContract(false, false),
                 new TargetDiagnosticsContract(false, false, false),
-                new TargetProfilingContract(false, false, 0, 0)),
+                new TargetProfilingContract(false, false, 0, 0)
+            ),
             HostAbiVersion = TargetContractVersions.HostAbi,
-            BackendInputs = new EmptyTargetBackendRenderInputs(TestExecutionTargetIds.TestOnlyNonClr)
+            BackendInputs = new EmptyTargetBackendRenderInputs(TestExecutionTargetIds.TestOnlyNonClr),
         };
     }
 
     private static async Task<CancellationToken> AssertCancelledAtGateAsync<T>(
         CooperativeTargetGate gate,
-        Func<CancellationToken, T> operation)
+        Func<CancellationToken, T> operation
+    )
     {
         using var cancellation = new CancellationTokenSource();
         var operationTask = Task.Run(() => operation(cancellation.Token));
@@ -149,11 +168,13 @@ public sealed class CompileTimeCancellationTargetTests
         {
             var firstCompleted = await Task.WhenAny(
                 gate.Entered,
-                operationTask.WaitAsync(TestSynchronization.DeadlockTimeout));
+                operationTask.WaitAsync(TestSynchronization.DeadlockTimeout)
+            );
             Assert.AreSame(
                 gate.Entered,
                 firstCompleted,
-                $"The target operation completed before entering its cancellation gate. Status={operationTask.Status}; Exception={operationTask.Exception}");
+                $"The target operation completed before entering its cancellation gate. Status={operationTask.Status}; Exception={operationTask.Exception}"
+            );
             Assert.IsFalse(operationTask.IsCompleted);
 
             var token = cancellation.Token;
@@ -181,19 +202,15 @@ public sealed class CompileTimeCancellationTargetTests
                 {
                     _ = await operationTask.WaitAsync(TestSynchronization.DeadlockTimeout);
                 }
-                catch (OperationCanceledException)
-                {
-                }
+                catch (OperationCanceledException) { }
             }
         }
     }
 
     private sealed class CooperativeTargetGate : IDisposable
     {
-        private readonly TaskCompletionSource<bool> _entered =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly TaskCompletionSource<bool> _release =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<bool> _entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<bool> _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public Task Entered => _entered.Task;
 
@@ -231,19 +248,17 @@ public sealed class CompileTimeCancellationTargetTests
 
         public CancellationToken? ObservedToken { get; private set; }
 
-        public TargetFinalizationResult Finalize(
-            RenderedQueryArtifact artifact,
-            TargetFinalizationOptions options)
+        public TargetFinalizationResult Finalize(RenderedQueryArtifact artifact, TargetFinalizationOptions options)
         {
             ObservedToken = options.CancellationToken;
             gate.Wait(options.CancellationToken);
-            return new CooperativeFinalizationResult(
-                new CooperativeExecutableArtifact(TargetId));
+            return new CooperativeFinalizationResult(new CooperativeExecutableArtifact(TargetId));
         }
     }
 
     private sealed class CooperativeInspector(CooperativeTargetGate gate)
-        : IRenderedQueryInspector, ICancellableRenderedQueryInspector
+        : IRenderedQueryInspector,
+            ICancellableRenderedQueryInspector
     {
         public ExecutionTargetId TargetId => TestExecutionTargetIds.TestOnlyNonClr;
 
@@ -254,9 +269,7 @@ public sealed class CompileTimeCancellationTargetTests
             return new RenderedQueryInspection(TargetId, null, new Dictionary<string, string>());
         }
 
-        public RenderedQueryInspection Inspect(
-            RenderedQueryArtifact artifact,
-            CancellationToken cancellationToken)
+        public RenderedQueryInspection Inspect(RenderedQueryArtifact artifact, CancellationToken cancellationToken)
         {
             ObservedToken = cancellationToken;
             gate.Wait(cancellationToken);
@@ -264,21 +277,14 @@ public sealed class CompileTimeCancellationTargetTests
         }
     }
 
-    private sealed record CooperativeRenderedArtifact(ExecutionTargetId TargetId)
-        : RenderedQueryArtifact(TargetId);
+    private sealed record CooperativeRenderedArtifact(ExecutionTargetId TargetId) : RenderedQueryArtifact(TargetId);
 
-    private sealed record CooperativeExecutableArtifact(ExecutionTargetId TargetId)
-        : ExecutableQueryArtifact(TargetId);
+    private sealed record CooperativeExecutableArtifact(ExecutionTargetId TargetId) : ExecutableQueryArtifact(TargetId);
 
     private sealed record CooperativeFinalizationResult(ExecutableQueryArtifact Executable)
-        : TargetFinalizationResult(
-            TestExecutionTargetIds.TestOnlyNonClr,
-            true,
-            [],
-            Executable);
+        : TargetFinalizationResult(TestExecutionTargetIds.TestOnlyNonClr, true, [], Executable);
 
-    private sealed record CooperativeFinalizationOptions(CancellationToken Token)
-        : TargetFinalizationOptions
+    private sealed record CooperativeFinalizationOptions(CancellationToken Token) : TargetFinalizationOptions
     {
         public override CancellationToken CancellationToken => Token;
     }

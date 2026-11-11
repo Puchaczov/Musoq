@@ -7,6 +7,7 @@ namespace Musoq.Examples.DataSources.Csv;
 internal static class CsvTextFormat
 {
     internal const string SourceName = "csv.file";
+
     internal static char ResolveDelimiter(string delimiter)
     {
         if (string.IsNullOrEmpty(delimiter))
@@ -17,15 +18,17 @@ internal static class CsvTextFormat
 
         return delimiter[0] switch
         {
-            '"' or '\r' or '\n' => throw new ArgumentException("CSV delimiter cannot be a quote or newline.", nameof(delimiter)),
-            var value => value
+            '"' or '\r' or '\n' => throw new ArgumentException(
+                "CSV delimiter cannot be a quote or newline.",
+                nameof(delimiter)
+            ),
+            var value => value,
         };
     }
 
     internal static Encoding ResolveEncoding(string? encoding)
     {
-        if (string.IsNullOrWhiteSpace(encoding) ||
-            string.Equals(encoding, "utf-8", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(encoding) || string.Equals(encoding, "utf-8", StringComparison.OrdinalIgnoreCase))
         {
             return new UTF8Encoding(false, true);
         }
@@ -39,10 +42,7 @@ internal static class CsvTextFormat
         return Encoding.GetEncoding(encoding);
     }
 
-    internal static void SkipRecords(
-        IEnumerator<string[]> records,
-        int skipRows,
-        CancellationToken token)
+    internal static void SkipRecords(IEnumerator<string[]> records, int skipRows, CancellationToken token)
     {
         for (var index = 0; index < skipRows; index++)
         {
@@ -52,10 +52,7 @@ internal static class CsvTextFormat
         }
     }
 
-    internal static IEnumerable<string[]> ReadRecords(
-        TextReader reader,
-        char delimiter,
-        CancellationToken token)
+    internal static IEnumerable<string[]> ReadRecords(TextReader reader, char delimiter, CancellationToken token)
     {
         var fields = new List<string>();
         var field = new StringBuilder();
@@ -69,7 +66,9 @@ internal static class CsvTextFormat
             if (value < 0)
             {
                 if (inQuotes)
-                    throw new Musoq.Schema.Diagnostics.DataSourceInputException(Musoq.Schema.Diagnostics.DataSourceInputFailureReason.UnterminatedQuotedField);
+                    throw new Musoq.Schema.Diagnostics.DataSourceInputException(
+                        Musoq.Schema.Diagnostics.DataSourceInputFailureReason.UnterminatedQuotedField
+                    );
 
                 if (hasAnyData || field.Length > 0 || fields.Count > 0)
                 {
@@ -149,7 +148,8 @@ internal static class CsvTextFormat
     internal static DateTime ParseDateTime(
         string text,
         IReadOnlyDictionary<string, string> modifiers,
-        CultureInfo culture)
+        CultureInfo culture
+    )
     {
         return modifiers.TryGetValue(ColumnReadModifiers.Format, out var format)
             ? DateTime.ParseExact(text, format, culture)
@@ -159,7 +159,8 @@ internal static class CsvTextFormat
     internal static DateTimeOffset ParseDateTimeOffset(
         string text,
         IReadOnlyDictionary<string, string> modifiers,
-        CultureInfo culture)
+        CultureInfo culture
+    )
     {
         return modifiers.TryGetValue(ColumnReadModifiers.Format, out var format)
             ? DateTimeOffset.ParseExact(text, format, culture)
@@ -169,7 +170,8 @@ internal static class CsvTextFormat
     internal static TimeSpan ParseTimeSpan(
         string text,
         IReadOnlyDictionary<string, string> modifiers,
-        CultureInfo culture)
+        CultureInfo culture
+    )
     {
         return modifiers.TryGetValue(ColumnReadModifiers.Format, out var format)
             ? TimeSpan.ParseExact(text, format, culture)
@@ -182,5 +184,4 @@ internal static class CsvTextFormat
             ? CultureInfo.GetCultureInfo(culture)
             : CultureInfo.InvariantCulture;
     }
-
 }

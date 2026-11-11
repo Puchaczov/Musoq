@@ -22,9 +22,7 @@ public partial class SpecExplorationCoreLanguageTests
         var diagnostic = invalid.Errors.Single();
         Assert.AreEqual(DiagnosticCode.MQ2035_MissingRequiredAlias, diagnostic.Code);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
-        Assert.AreEqual(
-            "The CROSS APPLY source requires an alias before TAKE.",
-            diagnostic.Message);
+        Assert.AreEqual("The CROSS APPLY source requires an alias before TAKE.", diagnostic.Message);
         var sourceEnd = invalidQuery.IndexOf("a1.Column", StringComparison.Ordinal) + "a1.Column".Length;
         Assert.AreEqual(sourceEnd, diagnostic.Location.Offset);
         Assert.AreEqual(sourceEnd, diagnostic.EndLocation.Offset);
@@ -35,8 +33,8 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_StableAlias_ConcreteApplyExample_ShouldAnalyzeCompileAndExecute()
     {
         const string query =
-            "select a1.Name, item.Name from #A.Entities() a1 " +
-            "cross apply a1.Children item order by a1.Name, item.Name take 10";
+            "select a1.Name, item.Name from #A.Entities() a1 "
+            + "cross apply a1.Children item order by a1.Name, item.Name take 10";
 
         var analysis = new QueryAnalyzer(CreateProvider()).Analyze(query);
         Assert.IsFalse(analysis.HasErrors, FormatDiagnostics(analysis.Diagnostics, query));
@@ -46,7 +44,8 @@ public partial class SpecExplorationCoreLanguageTests
             $"SpecStableAliasApply_{Guid.NewGuid():N}",
             CreateProvider(),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         Assert.IsTrue(build.Succeeded, FormatDiagnostics(build.Diagnostics, query));
         Assert.IsEmpty(build.Diagnostics, FormatDiagnostics(build.Diagnostics, query));
@@ -54,21 +53,23 @@ public partial class SpecExplorationCoreLanguageTests
         using var table = build.CompiledQuery!.Run(TokenSource.Token);
         CollectionAssert.AreEqual(
             new[] { "word:child1", "word:child2" },
-            table.Select(row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray());
+            table.Select(row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray()
+        );
     }
 
     [TestMethod]
     public void Spec_StableAlias_BracketedReservedWords_ShouldCompileAndExecute()
     {
         const string bracketedQuery =
-            "select [take].Name, [where].Name from #A.Entities() [take] " +
-            "cross apply [take].Children [where] order by [where].Name take 10";
+            "select [take].Name, [where].Name from #A.Entities() [take] "
+            + "cross apply [take].Children [where] order by [where].Name take 10";
         var bracketedBuild = InstanceCreator.CompileWithDiagnostics(
             bracketedQuery,
             $"SpecStableAliasBracketed_{Guid.NewGuid():N}",
             CreateProvider(),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         Assert.IsTrue(bracketedBuild.Succeeded, FormatDiagnostics(bracketedBuild.Diagnostics, bracketedQuery));
         Assert.IsEmpty(bracketedBuild.Diagnostics, FormatDiagnostics(bracketedBuild.Diagnostics, bracketedQuery));
@@ -76,22 +77,20 @@ public partial class SpecExplorationCoreLanguageTests
         {
             CollectionAssert.AreEqual(
                 new[] { "word:child1", "word:child2" },
-                bracketedTable.Select(row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray());
+                bracketedTable.Select(row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray()
+            );
         }
     }
 
     [TestMethod]
     public void Spec_StableAlias_DerivedAndValuesSources_ShouldCompileAndExecute()
     {
-        AssertValidSourceQuery(
-            "select d.Name from (select a.Name from #A.Entities() a) d",
-            "Derived");
-        AssertValidSourceQuery(
-            "from values { ( Name: 'inline' ) } valuesSource select valuesSource.Name",
-            "Values");
+        AssertValidSourceQuery("select d.Name from (select a.Name from #A.Entities() a) d", "Derived");
+        AssertValidSourceQuery("from values { ( Name: 'inline' ) } valuesSource select valuesSource.Name", "Values");
         AssertValidSourceQuery(
             "select a.Name, valuesSource.Name from #A.Entities() a cross join values { ( Name: 'inline' ) } valuesSource",
-            "ValuesJoin");
+            "ValuesJoin"
+        );
     }
 
     private void AssertValidSourceQuery(string query, string label)
@@ -101,13 +100,15 @@ public partial class SpecExplorationCoreLanguageTests
             $"SpecStableAliasSource_{label}_{Guid.NewGuid():N}",
             CreateProvider(),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         Assert.IsTrue(build.Succeeded, FormatDiagnostics(build.Diagnostics, query));
         Assert.IsEmpty(build.Errors, FormatDiagnostics(build.Diagnostics, query));
-        Assert.IsFalse(build.Diagnostics.Any(static diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ2035_MissingRequiredAlias),
-            FormatDiagnostics(build.Diagnostics, query));
+        Assert.IsFalse(
+            build.Diagnostics.Any(static diagnostic => diagnostic.Code == DiagnosticCode.MQ2035_MissingRequiredAlias),
+            FormatDiagnostics(build.Diagnostics, query)
+        );
         using var table = build.CompiledQuery!.Run(TokenSource.Token);
         Assert.IsTrue(table.Count > 0, query);
     }
@@ -121,7 +122,8 @@ public partial class SpecExplorationCoreLanguageTests
             $"SpecStableAliasError_{Guid.NewGuid():N}",
             CreateProvider(),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         Assert.IsFalse(build.Succeeded);
         Assert.IsNull(build.CompiledQuery);
@@ -131,7 +133,10 @@ public partial class SpecExplorationCoreLanguageTests
         Assert.HasCount(1, build.ToEnvelopes());
     }
 
-    private static string FormatDiagnostics(System.Collections.Generic.IEnumerable<Diagnostic> diagnostics, string query)
+    private static string FormatDiagnostics(
+        System.Collections.Generic.IEnumerable<Diagnostic> diagnostics,
+        string query
+    )
     {
         return $"{query}{Environment.NewLine}{string.Join(Environment.NewLine, diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()))}";
     }

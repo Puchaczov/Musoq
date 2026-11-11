@@ -12,13 +12,30 @@ namespace Musoq.Evaluator.Visitors;
 /// </summary>
 public static partial class BuildMetadataAndInferTypesVisitorUtilities
 {
-    internal static bool TryReduceDimensions(MethodInfo method, ArgsListNode args, [NotNullWhen(true)] out MethodInfo? reducedMethod)
-        => ScalarGenericDimensionReduction.TryReduce(method, args, out reducedMethod);
+    internal static bool TryReduceDimensions(
+        MethodInfo method,
+        ArgsListNode args,
+        [NotNullWhen(true)] out MethodInfo? reducedMethod
+    ) => ScalarGenericDimensionReduction.TryReduce(method, args, out reducedMethod);
 
-    internal static bool TryConstructGenericMethod(MethodInfo methodInfo, ArgsListNode args, Type entity,
-        [NotNullWhen(true)] out MethodInfo? constructedMethod)
+    internal static bool TryConstructGenericMethod(
+        MethodInfo methodInfo,
+        ArgsListNode args,
+        Type entity,
+        [NotNullWhen(true)] out MethodInfo? constructedMethod
+    )
     {
-        if (args.Args.Any(static argument => argument is RecordLiteralNode) || methodInfo.GetGenericArguments().Length > 1 || methodInfo.GetParameters().Any(static parameter => global::Musoq.Plugins.VariadicParameter.IsNativeSpan(parameter.ParameterType) || parameter.ParameterType.IsGenericType || parameter.ParameterType.IsArray))
+        if (
+            args.Args.Any(static argument => argument is RecordLiteralNode)
+            || methodInfo.GetGenericArguments().Length > 1
+            || methodInfo
+                .GetParameters()
+                .Any(static parameter =>
+                    global::Musoq.Plugins.VariadicParameter.IsNativeSpan(parameter.ParameterType)
+                    || parameter.ParameterType.IsGenericType
+                    || parameter.ParameterType.IsArray
+                )
+        )
             return ScalarGenericMethodConstruction.TryConstruct(methodInfo, args, entity, out constructedMethod);
         var genericArguments = methodInfo.GetGenericArguments();
         var genericArgumentsDistinct = new List<Type>();
@@ -33,31 +50,45 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
             {
                 i = 1;
                 shiftArgsWhenInjectSpecificSourcePresent = 1;
-                if ((genericArgument.IsGenericParameter || genericArgument.IsGenericMethodParameter) &&
-                    parameters[0].ParameterType.IsGenericParameter) genericArgumentsDistinct.Add(entity);
+                if (
+                    (genericArgument.IsGenericParameter || genericArgument.IsGenericMethodParameter)
+                    && parameters[0].ParameterType.IsGenericParameter
+                )
+                    genericArgumentsDistinct.Add(entity);
             }
 
             for (; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
 
-                if (parameter.IsOptional &&
-                    args.Args.Length < parameters.Length - shiftArgsWhenInjectSpecificSourcePresent) continue;
+                if (
+                    parameter.IsOptional
+                    && args.Args.Length < parameters.Length - shiftArgsWhenInjectSpecificSourcePresent
+                )
+                    continue;
 
-                var returnType = args.Args.Where((_, index) => index == i - shiftArgsWhenInjectSpecificSourcePresent)
-                    .Single().ReturnType ?? typeof(object);
+                var returnType =
+                    args.Args.Where((_, index) => index == i - shiftArgsWhenInjectSpecificSourcePresent)
+                        .Single()
+                        .ReturnType
+                    ?? typeof(object);
                 var elementType = returnType.GetElementType();
 
-                if (returnType.IsGenericType && parameter.ParameterType.IsGenericType &&
-                    returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition())
+                if (
+                    returnType.IsGenericType
+                    && parameter.ParameterType.IsGenericType
+                    && returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition()
+                )
                 {
                     genericArgumentsDistinct.Add(returnType.GetGenericArguments()[0]);
                     continue;
                 }
 
-                if (parameter.ParameterType.IsGenericType &&
-                    parameter.ParameterType.IsAssignableTo(typeof(IEnumerable<>).MakeGenericType(genericArgument)) &&
-                    elementType is not null)
+                if (
+                    parameter.ParameterType.IsGenericType
+                    && parameter.ParameterType.IsAssignableTo(typeof(IEnumerable<>).MakeGenericType(genericArgument))
+                    && elementType is not null
+                )
                 {
                     genericArgumentsDistinct.Add(elementType);
                     continue;
@@ -71,18 +102,22 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
                         .Select(type => new { type, definition = type.GetGenericTypeDefinition() })
                         .ToArray();
 
-                    var firstAssignableInterface =
-                        assignableInterfaces.FirstOrDefault(f => f.definition.IsAssignableFrom(typeof(IEnumerable<>)));
+                    var firstAssignableInterface = assignableInterfaces.FirstOrDefault(f =>
+                        f.definition.IsAssignableFrom(typeof(IEnumerable<>))
+                    );
 
-                    if (firstAssignableInterface is null) continue;
+                    if (firstAssignableInterface is null)
+                        continue;
 
-                    var elementTypeOfFirstAssignableInterface = firstAssignableInterface.type.GetElementType() ??
-                                                                firstAssignableInterface.type.GetGenericArguments()[0];
+                    var elementTypeOfFirstAssignableInterface =
+                        firstAssignableInterface.type.GetElementType()
+                        ?? firstAssignableInterface.type.GetGenericArguments()[0];
 
                     genericArgumentsDistinct.Add(elementTypeOfFirstAssignableInterface);
                 }
 
-                if (parameter.ParameterType == genericArgument) genericArgumentsDistinct.Add(returnType);
+                if (parameter.ParameterType == genericArgument)
+                    genericArgumentsDistinct.Add(returnType);
             }
         }
 
@@ -99,11 +134,14 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         {
             for (var i = 0; i < genericArgumentsConcreteTypes.Length; i++)
             {
-                if (genericArgumentsConcreteTypes[i].IsValueType &&
-                    Nullable.GetUnderlyingType(genericArgumentsConcreteTypes[i]) == null)
+                if (
+                    genericArgumentsConcreteTypes[i].IsValueType
+                    && Nullable.GetUnderlyingType(genericArgumentsConcreteTypes[i]) == null
+                )
                 {
-                    genericArgumentsConcreteTypes[i] =
-                        typeof(Nullable<>).MakeGenericType(genericArgumentsConcreteTypes[i]);
+                    genericArgumentsConcreteTypes[i] = typeof(Nullable<>).MakeGenericType(
+                        genericArgumentsConcreteTypes[i]
+                    );
                 }
             }
         }

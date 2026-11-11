@@ -14,10 +14,13 @@ internal sealed class HelperExtractionReadabilityApproval
 
     public void EnterClass(ClassDeclarationSyntax node)
     {
-        _classStates.Push(new ClassExtractionState(node.Members
-            .OfType<MethodDeclarationSyntax>()
-            .Select(static method => method.Identifier.ValueText)
-            .ToHashSet(StringComparer.Ordinal)));
+        _classStates.Push(
+            new ClassExtractionState(
+                node.Members.OfType<MethodDeclarationSyntax>()
+                    .Select(static method => method.Identifier.ValueText)
+                    .ToHashSet(StringComparer.Ordinal)
+            )
+        );
     }
 
     public IReadOnlyList<MemberDeclarationSyntax> LeaveClass()
@@ -29,29 +32,30 @@ internal sealed class HelperExtractionReadabilityApproval
     {
         return new SyntaxAnnotation(
             AnnotationKind,
-            $"helper:{info.HelperName};role:{info.Role};phase:{info.PhaseBoundary};mutation:{info.MutationBoundary};progress:safe;captures:metadata-owned;queryStats:preserved");
+            $"helper:{info.HelperName};role:{info.Role};phase:{info.PhaseBoundary};mutation:{info.MutationBoundary};progress:safe;captures:metadata-owned;queryStats:preserved"
+        );
     }
 
     public SyntaxAnnotation CreateHelperCallAnnotation(CodegenHelperExtractionInfo info)
     {
         return new SyntaxAnnotation(
             AnnotationKind,
-            $"call:{info.HelperName};role:{info.Role};phase:{info.PhaseBoundary};mutation:{info.MutationBoundary};progress:safe;captures:metadata-owned;queryStats:preserved");
+            $"call:{info.HelperName};role:{info.Role};phase:{info.PhaseBoundary};mutation:{info.MutationBoundary};progress:safe;captures:metadata-owned;queryStats:preserved"
+        );
     }
 
-    public bool TryExtractInlineBlock(
-        BlockSyntax block,
-        CodegenHelperExtractionInfo info,
-        out BlockSyntax rewritten)
+    public bool TryExtractInlineBlock(BlockSyntax block, CodegenHelperExtractionInfo info, out BlockSyntax rewritten)
     {
         rewritten = block;
-        if (_classStates.Count == 0 ||
-            info.CandidateKind != CodegenHelperExtractionCandidateKind.InlineBlock ||
-            !string.Equals(info.CaptureBoundary, "none", StringComparison.Ordinal) ||
-            !string.Equals(info.ReturnBoundary, "void", StringComparison.Ordinal) ||
-            !SyntaxFacts.IsValidIdentifier(info.HelperName) ||
-            ContainsLifecycleInvocation(block) ||
-            ContainsUnsupportedControlFlow(block))
+        if (
+            _classStates.Count == 0
+            || info.CandidateKind != CodegenHelperExtractionCandidateKind.InlineBlock
+            || !string.Equals(info.CaptureBoundary, "none", StringComparison.Ordinal)
+            || !string.Equals(info.ReturnBoundary, "void", StringComparison.Ordinal)
+            || !SyntaxFacts.IsValidIdentifier(info.HelperName)
+            || ContainsLifecycleInvocation(block)
+            || ContainsUnsupportedControlFlow(block)
+        )
         {
             return false;
         }
@@ -62,24 +66,27 @@ internal sealed class HelperExtractionReadabilityApproval
         state.ExtractedHelpers.Add(CreateInlineHelper(helperName, block, helperInfo));
 
         var invocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(helperName));
-        var statement = SyntaxFactory.ExpressionStatement(invocation.WithAdditionalAnnotations(
-            CreateHelperCallAnnotation(helperInfo)));
-        rewritten = SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(statement))
-            .WithTriviaFrom(block);
+        var statement = SyntaxFactory.ExpressionStatement(
+            invocation.WithAdditionalAnnotations(CreateHelperCallAnnotation(helperInfo))
+        );
+        rewritten = SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(statement)).WithTriviaFrom(block);
         return true;
     }
 
     private MethodDeclarationSyntax CreateInlineHelper(
         string helperName,
         BlockSyntax block,
-        CodegenHelperExtractionInfo info)
+        CodegenHelperExtractionInfo info
+    )
     {
-        return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                helperName)
-            .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
+        return SyntaxFactory
+            .MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), helperName)
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
+                    SyntaxFactory.Token(SyntaxKind.StaticKeyword)
+                )
+            )
             .WithBody(RemoveInlineCandidateAnnotations(block))
             .WithAdditionalAnnotations(CreateHelperAnnotation(info));
     }
@@ -106,13 +113,17 @@ internal sealed class HelperExtractionReadabilityApproval
 
     private static bool ContainsUnsupportedControlFlow(BlockSyntax block)
     {
-        return block.DescendantNodes().Any(static node => node is
-            ReturnStatementSyntax or
-            YieldStatementSyntax or
-            BreakStatementSyntax or
-            ContinueStatementSyntax or
-            GotoStatementSyntax or
-            ThrowStatementSyntax);
+        return block
+            .DescendantNodes()
+            .Any(static node =>
+                node
+                    is ReturnStatementSyntax
+                        or YieldStatementSyntax
+                        or BreakStatementSyntax
+                        or ContinueStatementSyntax
+                        or GotoStatementSyntax
+                        or ThrowStatementSyntax
+            );
     }
 
     private sealed class ClassExtractionState(HashSet<string> methodNames)
@@ -124,7 +135,7 @@ internal sealed class HelperExtractionReadabilityApproval
             if (methodNames.Add(requestedName))
                 return requestedName;
 
-            for (var index = 1;; index++)
+            for (var index = 1; ; index++)
             {
                 var candidate = $"{requestedName}_{index}";
                 if (methodNames.Add(candidate))
@@ -133,4 +144,3 @@ internal sealed class HelperExtractionReadabilityApproval
         }
     }
 }
-

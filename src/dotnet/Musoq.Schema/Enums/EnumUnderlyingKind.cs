@@ -12,5 +12,5 @@ public enum EnumUnderlyingKind : byte
     Int32,
     UInt32,
     Int64,
-    UInt64
+    UInt64,
 }

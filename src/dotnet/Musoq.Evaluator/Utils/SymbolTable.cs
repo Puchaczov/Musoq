@@ -9,7 +9,8 @@ public class SymbolTable
 {
     private readonly Dictionary<object, Symbol> _symbols = new();
 
-    internal IEnumerable<TSymbol> GetSymbols<TSymbol>() where TSymbol : Symbol
+    internal IEnumerable<TSymbol> GetSymbols<TSymbol>()
+        where TSymbol : Symbol
     {
         return _symbols.Values.OfType<TSymbol>();
     }
@@ -19,9 +20,11 @@ public class SymbolTable
         _symbols.Add(key, symbol);
     }
 
-    public TSymbol AddOrGetSymbol<TSymbol>(object key) where TSymbol : Symbol, new()
+    public TSymbol AddOrGetSymbol<TSymbol>(object key)
+        where TSymbol : Symbol, new()
     {
-        if (_symbols.TryGetValue(key, out var symbol) && symbol is TSymbol castedSymbol) return castedSymbol;
+        if (_symbols.TryGetValue(key, out var symbol) && symbol is TSymbol castedSymbol)
+            return castedSymbol;
 
         var newSymbol = new TSymbol();
         _symbols.Add(key, newSymbol);
@@ -38,7 +41,8 @@ public class SymbolTable
         return _symbols[key];
     }
 
-    public TSymbol GetSymbol<TSymbol>(object key) where TSymbol : Symbol
+    public TSymbol GetSymbol<TSymbol>(object key)
+        where TSymbol : Symbol
     {
         return (TSymbol)GetSymbol(key);
     }
@@ -67,7 +71,8 @@ public class SymbolTable
         _symbols.Add(oldKey, symbol);
     }
 
-    public bool SymbolIsOfType<TType>(object key) where TType : Symbol
+    public bool SymbolIsOfType<TType>(object key)
+        where TType : Symbol
     {
         return _symbols.TryGetValue(key, out var symbol) && symbol.GetType() == typeof(TType);
     }

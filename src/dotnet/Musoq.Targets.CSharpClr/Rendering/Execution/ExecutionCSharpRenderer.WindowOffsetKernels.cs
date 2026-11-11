@@ -13,7 +13,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable values,
         ExecutionVariable? offsets,
         ExecutionVariable? defaultValues,
-        ExecutionWindowPartitionSet? partitions)
+        ExecutionWindowPartitionSet? partitions
+    )
     {
         if (partitions == null)
             throw new InvalidOperationException("Offset window kernels require a sorted partition set.");
@@ -23,8 +24,12 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 offset.Results.Name,
-                CreateSizedArrayCreation(CreateWindowResultElementType(offset.Results), CreateBufferCountExpression(offset.Buffer))),
-            CreateOffsetKernelLoop(offset, values, offsets, defaultValues, partitions)
+                CreateSizedArrayCreation(
+                    CreateWindowResultElementType(offset.Results),
+                    CreateBufferCountExpression(offset.Buffer)
+                )
+            ),
+            CreateOffsetKernelLoop(offset, values, offsets, defaultValues, partitions),
         ];
     }
 
@@ -33,7 +38,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable values,
         ExecutionVariable? offsets,
         ExecutionVariable? defaultValues,
-        ExecutionWindowPartitionSet partitions)
+        ExecutionWindowPartitionSet partitions
+    )
     {
         var result = offset.Results.Name;
         var partitionsName = partitions.Variable.Name;
@@ -44,36 +50,50 @@ public sealed partial class ExecutionCSharpRenderer
         var partitionIndex = $"{result}PartitionIndex";
         var currentIndex = $"{result}CurrentIndex";
         var sourcePartitionIndex = $"{result}SourcePartitionIndex";
-        var offsetExpression = offsets == null
-            ? RenderExpressionSource(offset.Offset)
-            : $"{offsets.Name}[{currentIndex}]";
+        var offsetExpression =
+            offsets == null ? RenderExpressionSource(offset.Offset) : $"{offsets.Name}[{currentIndex}]";
         var resultElementType = CreateWindowResultElementType(offset.Results);
         var valueExpression = CreateCastSource(
             resultElementType,
-            $"{values.Name}[{partitionIndices}[{partitionStart} + {sourcePartitionIndex}]]");
-        var defaultExpression = defaultValues == null
-            ? CreateCastSource(resultElementType, RenderExpressionSource(offset.DefaultValue))
-            : $"{defaultValues.Name}[{currentIndex}]";
-        var sourceIndexExpression = offset.Function == ExecutionOffsetWindowFunction.Lag
-            ? $"{partitionIndex} - {offsetExpression}"
-            : $"{partitionIndex} + {offsetExpression}";
-        var sourceIndexGuard = offset.Function == ExecutionOffsetWindowFunction.Lag
-            ? $"{sourcePartitionIndex} >= 0"
-            : $"{sourcePartitionIndex} < {partitionCount}";
+            $"{values.Name}[{partitionIndices}[{partitionStart} + {sourcePartitionIndex}]]"
+        );
+        var defaultExpression =
+            defaultValues == null
+                ? CreateCastSource(resultElementType, RenderExpressionSource(offset.DefaultValue))
+                : $"{defaultValues.Name}[{currentIndex}]";
+        var sourceIndexExpression =
+            offset.Function == ExecutionOffsetWindowFunction.Lag
+                ? $"{partitionIndex} - {offsetExpression}"
+                : $"{partitionIndex} + {offsetExpression}";
+        var sourceIndexGuard =
+            offset.Function == ExecutionOffsetWindowFunction.Lag
+                ? $"{sourcePartitionIndex} >= 0"
+                : $"{sourcePartitionIndex} < {partitionCount}";
 
         var source =
-            $"for (int {partitionSetIndex} = 0; {partitionSetIndex} < {partitionsName}.PartitionCount; ++{partitionSetIndex})" + Environment.NewLine +
-            "{" + Environment.NewLine +
-            $"    var {partitionStart} = {partitionsName}.GetStart({partitionSetIndex});" + Environment.NewLine +
-            $"    var {partitionCount} = {partitionsName}.GetLength({partitionSetIndex});" + Environment.NewLine +
-            $"    var {partitionIndices} = {partitionsName}.Indices;" + Environment.NewLine +
-            $"    for (int {partitionIndex} = 0; {partitionIndex} < {partitionCount}; ++{partitionIndex})" + Environment.NewLine +
-            "    {" + Environment.NewLine +
-            $"        var {currentIndex} = {partitionIndices}[{partitionStart} + {partitionIndex}];" + Environment.NewLine +
-            $"        var {sourcePartitionIndex} = {sourceIndexExpression};" + Environment.NewLine +
-            $"        {result}[{currentIndex}] = {sourceIndexGuard} ? {valueExpression} : {defaultExpression};" + Environment.NewLine +
-            "    }" + Environment.NewLine +
-            "}";
+            $"for (int {partitionSetIndex} = 0; {partitionSetIndex} < {partitionsName}.PartitionCount; ++{partitionSetIndex})"
+            + Environment.NewLine
+            + "{"
+            + Environment.NewLine
+            + $"    var {partitionStart} = {partitionsName}.GetStart({partitionSetIndex});"
+            + Environment.NewLine
+            + $"    var {partitionCount} = {partitionsName}.GetLength({partitionSetIndex});"
+            + Environment.NewLine
+            + $"    var {partitionIndices} = {partitionsName}.Indices;"
+            + Environment.NewLine
+            + $"    for (int {partitionIndex} = 0; {partitionIndex} < {partitionCount}; ++{partitionIndex})"
+            + Environment.NewLine
+            + "    {"
+            + Environment.NewLine
+            + $"        var {currentIndex} = {partitionIndices}[{partitionStart} + {partitionIndex}];"
+            + Environment.NewLine
+            + $"        var {sourcePartitionIndex} = {sourceIndexExpression};"
+            + Environment.NewLine
+            + $"        {result}[{currentIndex}] = {sourceIndexGuard} ? {valueExpression} : {defaultExpression};"
+            + Environment.NewLine
+            + "    }"
+            + Environment.NewLine
+            + "}";
 
         return SyntaxFactory.ParseStatement(source);
     }

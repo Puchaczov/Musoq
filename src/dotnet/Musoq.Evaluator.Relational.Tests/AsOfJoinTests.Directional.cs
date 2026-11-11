@@ -9,31 +9,35 @@ public partial class AsOfJoinTests
     [TestMethod]
     public void WhenAsOfJoinWithGreaterOrEqual_ShouldReturnClosestMatch()
     {
-        var query = @"
-select
-    a.Name,
-    a.Population,
-    b.Name,
-    b.Population
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    a.Population,\n"
+            + "    b.Name,\n"
+            + "    b.Population\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "A1", Population = 100 },
                     new BasicEntity { Name = "A2", Population = 50 },
-                    new BasicEntity { Name = "A3", Population = 10 }
+                    new BasicEntity { Name = "A3", Population = 10 },
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B1", Population = 90 },
                     new BasicEntity { Name = "B2", Population = 40 },
-                    new BasicEntity { Name = "B3", Population = 5 }
+                    new BasicEntity { Name = "B3", Population = 5 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -44,41 +48,44 @@ asof join #B.entities() b on a.Population >= b.Population";
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
             ("Name", typeof(string)),
-            ("Population", typeof(decimal)));
+            ("Population", typeof(decimal))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", 100m, "B1", 90m],
             ["A2", 50m, "B2", 40m],
-            ["A3", 10m, "B3", 5m]);
+            ["A3", 10m, "B3", 5m]
+        );
     }
 
     [TestMethod]
     public void WhenAsOfJoinWithGreaterThan_ShouldReturnStrictlyLessMatch()
     {
-        var query = @"
-select
-    a.Name,
-    a.Population,
-    b.Name,
-    b.Population
-from #A.entities() a
-asof join #B.entities() b on a.Population > b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    a.Population,\n"
+            + "    b.Name,\n"
+            + "    b.Population\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population > b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 },
-                    new BasicEntity { Name = "A2", Population = 50 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 50 }]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B1", Population = 100 },
                     new BasicEntity { Name = "B2", Population = 50 },
-                    new BasicEntity { Name = "B3", Population = 30 }
+                    new BasicEntity { Name = "B3", Population = 30 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -89,39 +96,35 @@ asof join #B.entities() b on a.Population > b.Population";
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
             ("Name", typeof(string)),
-            ("Population", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["A1", 100m, "B2", 50m],
-            ["A2", 50m, "B3", 30m]);
+            ("Population", typeof(decimal))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", 100m, "B2", 50m], ["A2", 50m, "B3", 30m]);
     }
 
     [TestMethod]
     public void WhenAsOfJoinWithLessThanOrEqual_ShouldReturnClosestGreaterOrEqual()
     {
-        var query = @"
-select
-    a.Name,
-    a.Population,
-    b.Name,
-    b.Population
-from #A.entities() a
-asof join #B.entities() b on a.Population <= b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    a.Population,\n"
+            + "    b.Name,\n"
+            + "    b.Population\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population <= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 10 },
-                    new BasicEntity { Name = "A2", Population = 50 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 10 }, new BasicEntity { Name = "A2", Population = 50 }]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 20 },
-                    new BasicEntity { Name = "B2", Population = 60 }
-                ]
-            }
+                "#B",
+                [new BasicEntity { Name = "B1", Population = 20 }, new BasicEntity { Name = "B2", Population = 60 }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -132,40 +135,39 @@ asof join #B.entities() b on a.Population <= b.Population";
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
             ("Name", typeof(string)),
-            ("Population", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["A1", 10m, "B1", 20m],
-            ["A2", 50m, "B2", 60m]);
+            ("Population", typeof(decimal))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", 10m, "B1", 20m], ["A2", 50m, "B2", 60m]);
     }
 
     [TestMethod]
     public void WhenAsOfJoinWithLessThan_ShouldReturnClosestStrictlyGreater()
     {
-        var query = @"
-select
-    a.Name,
-    a.Population,
-    b.Name,
-    b.Population
-from #A.entities() a
-asof join #B.entities() b on a.Population < b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    a.Population,\n"
+            + "    b.Name,\n"
+            + "    b.Population\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population < b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 10 },
-                    new BasicEntity { Name = "A2", Population = 50 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 10 }, new BasicEntity { Name = "A2", Population = 50 }]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B1", Population = 10 },
                     new BasicEntity { Name = "B2", Population = 50 },
-                    new BasicEntity { Name = "B3", Population = 60 }
+                    new BasicEntity { Name = "B3", Population = 60 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -176,109 +178,85 @@ asof join #B.entities() b on a.Population < b.Population";
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
             ("Name", typeof(string)),
-            ("Population", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["A1", 10m, "B2", 50m],
-            ["A2", 50m, "B3", 60m]);
+            ("Population", typeof(decimal))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", 10m, "B2", 50m], ["A2", 50m, "B3", 60m]);
     }
 
     [TestMethod]
     public void WhenAsOfJoinNoMatch_ShouldReturnEmpty()
     {
-        var query = @"
-select
-    a.Name,
-    b.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 1 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = "A1", Population = 1 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
     [TestMethod]
     public void WhenAsOfLeftJoinNoMatch_ShouldReturnLeftWithNulls()
     {
-        var query = @"
-select
-    a.Name,
-    b.Name
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 1 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = "A1", Population = 1 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["A1", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", null]);
     }
 
     [TestMethod]
     public void WhenAsOfLeftJoinWithMatch_ShouldReturnClosestMatch()
     {
-        var query = @"
-select
-    a.Name,
-    a.Population,
-    b.Name,
-    b.Population
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    a.Population,\n"
+            + "    b.Name,\n"
+            + "    b.Population\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 },
-                    new BasicEntity { Name = "A2", Population = 1 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 1 }]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 50 },
-                    new BasicEntity { Name = "B2", Population = 200 }
-                ]
-            }
+                "#B",
+                [new BasicEntity { Name = "B1", Population = 50 }, new BasicEntity { Name = "B2", Population = 200 }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -289,43 +267,75 @@ asof left join #B.entities() b on a.Population >= b.Population";
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
             ("Name", typeof(string)),
-            ("Population", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["A1", 100m, "B1", 50m],
-            ["A2", 1m, null, null]);
+            ("Population", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", 100m, "B1", 50m], ["A2", 1m, null, null]);
     }
 
     [TestMethod]
     public void WhenAsOfJoinWithEqualityAndInequality_ShouldPartitionByEqualityKey()
     {
-        var query = @"
-select
-    a.Name,
-    a.Country,
-    a.Population,
-    b.Name,
-    b.Country,
-    b.Population
-from #A.entities() a
-asof join #B.entities() b on a.Country = b.Country and a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    a.Country,\n"
+            + "    a.Population,\n"
+            + "    b.Name,\n"
+            + "    b.Country,\n"
+            + "    b.Population\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Country = b.Country and a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Country = "US", Population = 100 },
-                    new BasicEntity { Name = "A2", Country = "UK", Population = 80 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Country = "US",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A2",
+                        Country = "UK",
+                        Population = 80,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Country = "US", Population = 90 },
-                    new BasicEntity { Name = "B2", Country = "US", Population = 50 },
-                    new BasicEntity { Name = "B3", Country = "UK", Population = 70 },
-                    new BasicEntity { Name = "B4", Country = "UK", Population = 30 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Country = "US",
+                        Population = 90,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B2",
+                        Country = "US",
+                        Population = 50,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B3",
+                        Country = "UK",
+                        Population = 70,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B4",
+                        Country = "UK",
+                        Population = 30,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -338,37 +348,58 @@ asof join #B.entities() b on a.Country = b.Country and a.Population >= b.Populat
             ("Population", typeof(decimal)),
             ("Name", typeof(string)),
             ("Country", typeof(string)),
-            ("Population", typeof(decimal)));
+            ("Population", typeof(decimal))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", "US", 100m, "B1", "US", 90m],
-            ["A2", "UK", 80m, "B3", "UK", 70m]);
+            ["A2", "UK", 80m, "B3", "UK", 70m]
+        );
     }
 
     [TestMethod]
     public void WhenAsOfLeftJoinWithEqualityNoMatch_ShouldReturnNulls()
     {
-        var query = @"
-select
-    a.Name,
-    a.Country,
-    b.Name
-from #A.entities() a
-asof left join #B.entities() b on a.Country = b.Country and a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    a.Country,\n"
+            + "    b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Country = b.Country and a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Country = "US", Population = 100 },
-                    new BasicEntity { Name = "A2", Country = "FR", Population = 50 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Country = "US",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A2",
+                        Country = "FR",
+                        Population = 50,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Country = "US", Population = 90 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Country = "US",
+                        Population = 90,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -378,10 +409,8 @@ asof left join #B.entities() b on a.Country = b.Country and a.Population >= b.Po
             table,
             ("Name", typeof(string)),
             ("Country", typeof(string)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["A1", "US", "B1"],
-            ["A2", "FR", null]);
+            ("Name", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "US", "B1"], ["A2", "FR", null]);
     }
 }

@@ -10,21 +10,33 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore23_TwoJoins_ThenCrossApply_ShouldWork()
     {
-        const string query = @"
-            select p.Name, o.OrderId, t.Value
-            from #schema.first() p
-            inner join #schema.second() o on p.Name = o.CustomerName
-            inner join #schema.second() o2 on o.OrderId = o2.OrderId
-            cross apply p.Tags t";
+        const string query = (
+            "\n"
+            + "            select p.Name, o.OrderId, t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            inner join #schema.second() o on p.Name = o.CustomerName\n"
+            + "            inner join #schema.second() o2 on o.OrderId = o2.OrderId\n"
+            + "            cross apply p.Tags t"
+        );
 
         var persons = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["vip"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["vip"],
+            },
         }.ToArray();
 
         var orders = new List<Order>
         {
-            new() { OrderId = 1, CustomerName = "John", Total = 100 }
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "John",
+                Total = 100,
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
@@ -32,28 +44,43 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("OrderId", typeof(int)), ("Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("OrderId", typeof(int)),
+            ("Value", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 1, "vip"]);
     }
 
     [TestMethod]
     public void Explore23_CrossApply_ThenTwoJoins_ShouldWork()
     {
-        const string query = @"
-            select p.Name, t.Value, o.OrderId, o2.Total
-            from #schema.first() p
-            cross apply p.Tags t
-            inner join #schema.second() o on p.Name = o.CustomerName
-            inner join #schema.second() o2 on o.OrderId = o2.OrderId";
+        const string query = (
+            "\n"
+            + "            select p.Name, t.Value, o.OrderId, o2.Total\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            inner join #schema.second() o on p.Name = o.CustomerName\n"
+            + "            inner join #schema.second() o2 on o.OrderId = o2.OrderId"
+        );
 
         var persons = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["vip"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["vip"],
+            },
         }.ToArray();
 
         var orders = new List<Order>
         {
-            new() { OrderId = 1, CustomerName = "John", Total = 100 }
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "John",
+                Total = 100,
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
@@ -61,8 +88,11 @@ public partial class ExploratoryQueriesAndJoinsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Value", typeof(string)), ("OrderId", typeof(int)),
-            ("Total", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)),
+            ("OrderId", typeof(int)),
+            ("Total", typeof(decimal))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "vip", 1, 100m]);
     }
 
@@ -73,19 +103,26 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore31_LeftJoin_NoMatchingRows_ShouldReturnNull()
     {
-        const string query = @"
-            select p.Name, o.OrderId
-            from #schema.first() p
-            left outer join #schema.second() o on p.Name = o.CustomerName";
+        const string query = (
+            "\n"
+            + "            select p.Name, o.OrderId\n"
+            + "            from #schema.first() p\n"
+            + "            left outer join #schema.second() o on p.Name = o.CustomerName"
+        );
 
         var persons = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var orders = new List<Order>
         {
-            new() { OrderId = 1, CustomerName = "Jane", Total = 100 }
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "Jane",
+                Total = 100,
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
@@ -98,21 +135,38 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore31_LeftJoin_MultipleMatches_ShouldReturnAll()
     {
-        const string query = @"
-            select p.Name, o.OrderId
-            from #schema.first() p
-            left outer join #schema.second() o on p.Name = o.CustomerName";
+        const string query = (
+            "\n"
+            + "            select p.Name, o.OrderId\n"
+            + "            from #schema.first() p\n"
+            + "            left outer join #schema.second() o on p.Name = o.CustomerName"
+        );
 
         var persons = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var orders = new List<Order>
         {
-            new() { OrderId = 1, CustomerName = "John", Total = 100 },
-            new() { OrderId = 2, CustomerName = "John", Total = 200 },
-            new() { OrderId = 3, CustomerName = "John", Total = 300 }
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "John",
+                Total = 100,
+            },
+            new()
+            {
+                OrderId = 2,
+                CustomerName = "John",
+                Total = 200,
+            },
+            new()
+            {
+                OrderId = 3,
+                CustomerName = "John",
+                Total = 300,
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
@@ -129,19 +183,26 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore32_RightJoin_NoMatchingRows_ShouldReturnNull()
     {
-        const string query = @"
-            select p.Name, o.OrderId
-            from #schema.first() p
-            right outer join #schema.second() o on p.Name = o.CustomerName";
+        const string query = (
+            "\n"
+            + "            select p.Name, o.OrderId\n"
+            + "            from #schema.first() p\n"
+            + "            right outer join #schema.second() o on p.Name = o.CustomerName"
+        );
 
         var persons = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var orders = new List<Order>
         {
-            new() { OrderId = 1, CustomerName = "Jane", Total = 100 }
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "Jane",
+                Total = 100,
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
@@ -158,17 +219,19 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore33_SelfJoin_WithDifferentAliases_ShouldWork()
     {
-        const string query = @"
-            select p1.Name, p2.Name
-            from #schema.first() p1
-            inner join #schema.first() p2 on p1.Age = p2.Age
-            where p1.Name <> p2.Name";
+        const string query = (
+            "\n"
+            + "            select p1.Name, p2.Name\n"
+            + "            from #schema.first() p1\n"
+            + "            inner join #schema.first() p2 on p1.Age = p2.Age\n"
+            + "            where p1.Name <> p2.Name"
+        );
 
         var persons = new List<Person>
         {
             new() { Name = "John", Age = 30 },
             new() { Name = "Jane", Age = 30 },
-            new() { Name = "Bob", Age = 25 }
+            new() { Name = "Bob", Age = 25 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, persons);

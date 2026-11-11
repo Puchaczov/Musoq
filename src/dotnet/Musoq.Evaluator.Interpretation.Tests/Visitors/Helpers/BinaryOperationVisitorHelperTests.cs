@@ -18,9 +18,7 @@ public class BinaryOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         BinaryOperationVisitorHelper.ProcessStarOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -39,9 +37,7 @@ public class BinaryOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         BinaryOperationVisitorHelper.ProcessFSlashOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -60,9 +56,7 @@ public class BinaryOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         BinaryOperationVisitorHelper.ProcessModuloOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -81,9 +75,7 @@ public class BinaryOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         BinaryOperationVisitorHelper.ProcessAddOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -102,9 +94,7 @@ public class BinaryOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         BinaryOperationVisitorHelper.ProcessHyphenOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -117,8 +107,7 @@ public class BinaryOperationVisitorHelperTests
     [TestMethod]
     public void ProcessStarOperation_WhenNullStack_ShouldThrowArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() =>
-            BinaryOperationVisitorHelper.ProcessStarOperation(null!));
+        Assert.Throws<ArgumentNullException>(() => BinaryOperationVisitorHelper.ProcessStarOperation(null!));
     }
 
     [TestMethod]
@@ -127,8 +116,6 @@ public class BinaryOperationVisitorHelperTests
         var nodes = new Stack<Node>();
         nodes.Push(new IntegerNode("5"));
 
-
-        Assert.Throws<InvalidOperationException>(() =>
-            BinaryOperationVisitorHelper.ProcessStarOperation(nodes));
+        Assert.Throws<InvalidOperationException>(() => BinaryOperationVisitorHelper.ProcessStarOperation(nodes));
     }
 }

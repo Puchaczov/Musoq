@@ -13,14 +13,16 @@ public sealed class ScalarReuseContractTests
             SourceScalarBinaryOperator.Add,
             column,
             new SourceScalarLiteral(1, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var volatileExpression = stable with { ExpressionStability = Musoq.Schema.ColumnStability.Volatile };
 
         Assert.IsTrue(SourceScalarExpressionFacts.IsStable(stable));
         Assert.IsFalse(SourceScalarExpressionFacts.IsStable(volatileExpression));
         Assert.AreNotEqual(
             SourceScalarExpressionFingerprint.Compute(stable),
-            SourceScalarExpressionFingerprint.Compute(volatileExpression));
+            SourceScalarExpressionFingerprint.Compute(volatileExpression)
+        );
     }
 
     [TestMethod]
@@ -31,12 +33,9 @@ public sealed class ScalarReuseContractTests
             Identity = SourceIdentity.Empty,
             RequestedComputedProjections =
             [
-                new SourceComputedProjection(
-                    "Total",
-                    new SourceScalarLiteral(42, typeof(int)),
-                    typeof(int))
+                new SourceComputedProjection("Total", new SourceScalarLiteral(42, typeof(int)), typeof(int)),
             ],
-            Replayability = RowStreamReplayability.Materialized
+            Replayability = RowStreamReplayability.Materialized,
         };
 
         var accepted = SourcePlanResult.AcceptAll(request);
@@ -51,11 +50,11 @@ public sealed class ScalarReuseContractTests
     [TestMethod]
     public void QueryRowShapeFingerprintIncludesNonDefaultStabilityAndReplayability()
     {
-        var stable = new QueryRowShape(
-            [new QueryRowField(0, 0, "Value", typeof(int), false)]);
+        var stable = new QueryRowShape([new QueryRowField(0, 0, "Value", typeof(int), false)]);
         var volatileShape = new QueryRowShape(
             [new QueryRowField(0, 0, "Value", typeof(int), false, ColumnStability.Volatile)],
-            RowStreamReplayability.Materialized);
+            RowStreamReplayability.Materialized
+        );
 
         Assert.AreNotEqual(stable.Fingerprint, volatileShape.Fingerprint);
         Assert.AreEqual(RowStreamReplayability.Materialized, volatileShape.Replayability);
@@ -72,7 +71,8 @@ public sealed class ScalarReuseContractTests
             [literal],
             SourceComputedProjectionCapabilities.Literals,
             out var partition,
-            out var diagnostic);
+            out var diagnostic
+        );
 
         Assert.IsTrue(accepted);
         Assert.AreEqual(string.Empty, diagnostic);
@@ -87,17 +87,30 @@ public sealed class ScalarReuseContractTests
             "A",
             new SourceScalarLiteral(1, typeof(int)),
             typeof(int),
-            Musoq.Schema.ColumnStability.Volatile);
+            Musoq.Schema.ColumnStability.Volatile
+        );
         var unknown = volatileProjection with { Name = "Unknown" };
 
-        Assert.IsFalse(SourceComputedProjectionNegotiator.TryPartition(
-            [volatileProjection], [volatileProjection], SourceComputedProjectionCapabilities.AllPortable,
-            out _, out var volatileDiagnostic));
+        Assert.IsFalse(
+            SourceComputedProjectionNegotiator.TryPartition(
+                [volatileProjection],
+                [volatileProjection],
+                SourceComputedProjectionCapabilities.AllPortable,
+                out _,
+                out var volatileDiagnostic
+            )
+        );
         Assert.Contains("unstable", volatileDiagnostic);
 
-        Assert.IsFalse(SourceComputedProjectionNegotiator.TryPartition(
-            [volatileProjection], [unknown], SourceComputedProjectionCapabilities.AllPortable,
-            out _, out var unknownDiagnostic));
+        Assert.IsFalse(
+            SourceComputedProjectionNegotiator.TryPartition(
+                [volatileProjection],
+                [unknown],
+                SourceComputedProjectionCapabilities.AllPortable,
+                out _,
+                out var unknownDiagnostic
+            )
+        );
         Assert.Contains("unknown", unknownDiagnostic);
     }
 }

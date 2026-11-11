@@ -9,33 +9,29 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class NonEquiJoinTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void SimpleNonEquiJoinTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on a.Population > b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Population > b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 },
-                    new BasicEntity { Name = "A2", Population = 200 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 200 }]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 50 },
-                    new BasicEntity { Name = "B2", Population = 150 }
-                ]
-            }
+                "#B",
+                [new BasicEntity { Name = "B1", Population = 50 }, new BasicEntity { Name = "B2", Population = 150 }]
+            },
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -46,36 +42,29 @@ inner join #B.entities() b on a.Population > b.Population";
     [TestMethod]
     public void MultiJoinNonEquiTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name,
-    c.Name
-from #A.entities() a 
-inner join #B.entities() b on a.Population > b.Population
-inner join #C.entities() c on b.Population > c.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name,\n"
+            + "    c.Name\n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Population > b.Population\n"
+            + "inner join #C.entities() c on b.Population > c.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Population = 300 }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 300 }
-                ]
+                "#B",
+                [new BasicEntity { Name = "B1", Population = 200 }, new BasicEntity { Name = "B2", Population = 400 }]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 200 },
-                    new BasicEntity { Name = "B2", Population = 400 }
-                ]
+                "#C",
+                [new BasicEntity { Name = "C1", Population = 100 }, new BasicEntity { Name = "C2", Population = 250 }]
             },
-            {
-                "#C", [
-                    new BasicEntity { Name = "C1", Population = 100 },
-                    new BasicEntity { Name = "C2", Population = 250 }
-                ]
-            }
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -89,28 +78,23 @@ inner join #C.entities() c on b.Population > c.Population";
     [TestMethod]
     public void LessThanTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on a.Population < b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Population < b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 }
-                ]
+                "#B",
+                [new BasicEntity { Name = "B1", Population = 50 }, new BasicEntity { Name = "B2", Population = 150 }]
             },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 50 },
-                    new BasicEntity { Name = "B2", Population = 150 }
-                ]
-            }
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -123,29 +107,27 @@ inner join #B.entities() b on a.Population < b.Population";
     [TestMethod]
     public void GreaterOrEqualTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 }
-                ]
-            },
-            {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B1", Population = 100 },
                     new BasicEntity { Name = "B2", Population = 50 },
-                    new BasicEntity { Name = "B3", Population = 150 }
+                    new BasicEntity { Name = "B3", Population = 150 },
                 ]
-            }
+            },
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -156,29 +138,27 @@ inner join #B.entities() b on a.Population >= b.Population";
     [TestMethod]
     public void LessOrEqualTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on a.Population <= b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Population <= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 }
-                ]
-            },
-            {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B1", Population = 100 },
                     new BasicEntity { Name = "B2", Population = 50 },
-                    new BasicEntity { Name = "B3", Population = 150 }
+                    new BasicEntity { Name = "B3", Population = 150 },
                 ]
-            }
+            },
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -189,28 +169,23 @@ inner join #B.entities() b on a.Population <= b.Population";
     [TestMethod]
     public void NotEqualTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on a.Population <> b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Population <> b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 }
-                ]
+                "#B",
+                [new BasicEntity { Name = "B1", Population = 100 }, new BasicEntity { Name = "B2", Population = 50 }]
             },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 100 },
-                    new BasicEntity { Name = "B2", Population = 50 }
-                ]
-            }
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -223,29 +198,27 @@ inner join #B.entities() b on a.Population <> b.Population";
     [TestMethod]
     public void DateComparisonTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on a.Time > b.Time";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Time > b.Time"
+        );
 
         var now = new DateTime(2024, 2, 29, 12, 34, 56, DateTimeKind.Utc);
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Time = now }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Time = now }
+                "#B",
+                [
+                    new BasicEntity { Name = "B1", Time = now.AddDays(-1) },
+                    new BasicEntity { Name = "B2", Time = now.AddDays(1) },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Time = now.AddDays(-1) },
-                    new BasicEntity { Name = "B2", Time = now.AddDays(1) }
-                ]
-            }
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -258,30 +231,58 @@ inner join #B.entities() b on a.Time > b.Time";
     [TestMethod]
     public void MixedEquiAndNonEquiTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on a.Country = b.Country AND a.Population > b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Country = b.Country AND a.Population > b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Country = "PL", Population = 100 },
-                    new BasicEntity { Name = "A2", Country = "DE", Population = 100 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Country = "PL",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A2",
+                        Country = "DE",
+                        Population = 100,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Country = "PL", Population = 50 },
-                    new BasicEntity { Name = "B2", Country = "PL", Population = 150 },
-                    new BasicEntity { Name = "B3", Country = "DE", Population = 50 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Country = "PL",
+                        Population = 50,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B2",
+                        Country = "PL",
+                        Population = 150,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B3",
+                        Country = "DE",
+                        Population = 50,
+                    },
                 ]
-            }
+            },
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -292,27 +293,51 @@ inner join #B.entities() b on a.Country = b.Country AND a.Population > b.Populat
     [TestMethod]
     public void ComplexConditionsTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on (a.Population > b.Population OR a.Money > b.Money)";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on (a.Population > b.Population OR a.Money > b.Money)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100, Money = 100 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Population = 100,
+                        Money = 100,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 50, Money = 200 },
-                    new BasicEntity { Name = "B2", Population = 150, Money = 50 },
-                    new BasicEntity { Name = "B3", Population = 150, Money = 150 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Population = 50,
+                        Money = 200,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B2",
+                        Population = 150,
+                        Money = 50,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B3",
+                        Population = 150,
+                        Money = 150,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -324,28 +349,23 @@ inner join #B.entities() b on (a.Population > b.Population OR a.Money > b.Money)
     [TestMethod]
     public void LeftJoinNonEquiTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-left join #B.entities() b on a.Population > b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "left join #B.entities() b on a.Population > b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 },
-                    new BasicEntity { Name = "A2", Population = 10 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 10 }]
             },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 50 }
-                ]
-            }
+            { "#B", [new BasicEntity { Name = "B1", Population = 50 }] },
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -366,23 +386,22 @@ left join #B.entities() b on a.Population > b.Population";
     [TestMethod]
     public void SelfJoinNonEquiTest()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #A.entities() b on a.Population > b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #A.entities() b on a.Population > b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "High", Population = 100 },
-                    new BasicEntity { Name = "Low", Population = 50 }
-                ]
-            }
+                "#A",
+                [new BasicEntity { Name = "High", Population = 100 }, new BasicEntity { Name = "Low", Population = 50 }]
+            },
         };
-
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);

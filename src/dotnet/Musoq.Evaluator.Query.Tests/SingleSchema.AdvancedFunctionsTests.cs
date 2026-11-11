@@ -17,14 +17,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     {
         var query = @"select Match('\d{7}', Name) from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("3213213")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("3213213")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -37,14 +30,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     {
         var query = "select Head('ABCDEF', 2) from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("3213213")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("3213213")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -57,14 +43,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     {
         var query = "select Tail('ABCDEF', 2) from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("3213213")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("3213213")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -77,14 +56,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     {
         var query = "select a.Money - a.Money from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("may", 2512m)
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("may", 2512m)] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -99,11 +71,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 10 }
-                ]
-            }
+            { "#A", [new BasicEntity("may", 100m) { Population = 10 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -120,11 +88,9 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 10 },
-                    new BasicEntity("june", 200m) { Population = 20 }
-                ]
-            }
+                "#A",
+                [new BasicEntity("may", 100m) { Population = 10 }, new BasicEntity("june", 200m) { Population = 20 }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -142,11 +108,9 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 10 },
-                    new BasicEntity("june", 200m) { Population = 20 }
-                ]
-            }
+                "#A",
+                [new BasicEntity("may", 100m) { Population = 10 }, new BasicEntity("june", 200m) { Population = 20 }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -158,22 +122,21 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     [TestMethod]
     public void CaseWhenSimpleTest()
     {
-        var query = "select " +
-                    "   (case " +
-                    "       when Population > 100d" +
-                    "       then true" +
-                    "       else false" +
-                    "   end)" +
-                    "from #A.entities()";
+        var query =
+            "select "
+            + "   (case "
+            + "       when Population > 100d"
+            + "       then true"
+            + "       else false"
+            + "   end)"
+            + "from #A.entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 100 },
-                    new BasicEntity("june", 200m) { Population = 200 }
-                ]
-            }
+                "#A",
+                [new BasicEntity("may", 100m) { Population = 100 }, new BasicEntity("june", 200m) { Population = 200 }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -188,22 +151,21 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     [TestMethod]
     public void CaseWhenWithLibraryMethodCallTest()
     {
-        var query = "select " +
-                    "   (case " +
-                    "       when Population > 100d" +
-                    "       then entities.GetOne()" +
-                    "       else entities.Inc(entities.GetOne())" +
-                    "   end)" +
-                    "from #A.entities() entities";
+        var query =
+            "select "
+            + "   (case "
+            + "       when Population > 100d"
+            + "       then entities.GetOne()"
+            + "       else entities.Inc(entities.GetOne())"
+            + "   end)"
+            + "from #A.entities() entities";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 100 },
-                    new BasicEntity("june", 200m) { Population = 200 }
-                ]
-            }
+                "#A",
+                [new BasicEntity("may", 100m) { Population = 100 }, new BasicEntity("june", 200m) { Population = 200 }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -211,35 +173,35 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.Any(row => (decimal)row.ReadValue(0) == 2m) &&
-                      table.Any(row => (decimal)row.ReadValue(0) == 1m),
-            "Expected rows with values 2 and 1");
+        Assert.IsTrue(
+            table.Any(row => (decimal)row.ReadValue(0) == 2m) && table.Any(row => (decimal)row.ReadValue(0) == 1m),
+            "Expected rows with values 2 and 1"
+        );
     }
 
     [TestMethod]
     public void MultipleCaseWhenWithLibraryMethodCallTest()
     {
-        var query = "select " +
-                    "   (case " +
-                    "       when Population > 100d" +
-                    "       then entities.GetOne()" +
-                    "       else entities.Inc(entities.GetOne())" +
-                    "   end)," +
-                    "   (case " +
-                    "       when Population <= 100d" +
-                    "       then entities.GetOne()" +
-                    "       else entities.Inc(entities.GetOne())" +
-                    "   end)" +
-                    "from #A.entities() entities";
+        var query =
+            "select "
+            + "   (case "
+            + "       when Population > 100d"
+            + "       then entities.GetOne()"
+            + "       else entities.Inc(entities.GetOne())"
+            + "   end),"
+            + "   (case "
+            + "       when Population <= 100d"
+            + "       then entities.GetOne()"
+            + "       else entities.Inc(entities.GetOne())"
+            + "   end)"
+            + "from #A.entities() entities";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 100 },
-                    new BasicEntity("june", 200m) { Population = 200 }
-                ]
-            }
+                "#A",
+                [new BasicEntity("may", 100m) { Population = 100 }, new BasicEntity("june", 200m) { Population = 200 }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -247,15 +209,15 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.Any(row =>
-                (decimal)row.ReadValue(0) == 2m &&
-                (decimal)row.ReadValue(1) == 1m),
-            "Row with values (2,1) not found");
+        Assert.IsTrue(
+            table.Any(row => (decimal)row.ReadValue(0) == 2m && (decimal)row.ReadValue(1) == 1m),
+            "Row with values (2,1) not found"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (decimal)row.ReadValue(0) == 1m &&
-                (decimal)row.ReadValue(1) == 2m),
-            "Row with values (1,2) not found");
+        Assert.IsTrue(
+            table.Any(row => (decimal)row.ReadValue(0) == 1m && (decimal)row.ReadValue(1) == 2m),
+            "Row with values (1,2) not found"
+        );
     }
 
     [TestMethod]
@@ -265,11 +227,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity("may", 100m) { Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -286,11 +244,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity("may", 100m) { Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -307,11 +261,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity("may", 100m) { Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -328,11 +278,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity("may", 100m) { Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -349,11 +295,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity("may", 100m) { Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -370,11 +312,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("may", 100m) { Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity("may", 100m) { Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -391,11 +329,7 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Test 123 and 456")
-                ]
-            }
+            { "#A", [new BasicEntity("Test 123 and 456")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -414,18 +348,8 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenTwoCommentsWithEmptyLineThenQuery_ShouldEvaluate()
     {
-        var query = """
-                    --comment 1
-                    --comment 2
-
-                    select Name from #A.Entities()
-                    """;
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("Test")]
-            }
-        };
+        var query = ("--comment 1\n" + "--comment 2\n" + "\n" + "select Name from #A.Entities()");
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -437,19 +361,17 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMultipleCommentsWithEmptyLinesThenQuery_ShouldEvaluate()
     {
-        var query = """
-                    --comment 1
-                    --comment 2
-                    --comment 3
-
-
-                    select Name from #A.Entities() where Name = 'Test'
-                    """;
+        var query = (
+            "--comment 1\n"
+            + "--comment 2\n"
+            + "--comment 3\n"
+            + "\n"
+            + "\n"
+            + "select Name from #A.Entities() where Name = 'Test'"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [new BasicEntity("Test"), new BasicEntity("Other")]
-            }
+            { "#A", [new BasicEntity("Test"), new BasicEntity("Other")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -462,18 +384,10 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMultiLineCommentWithEmptyLineThenQuery_ShouldEvaluate()
     {
-        var query = """
-                    /* multi-line comment
-                       spanning multiple lines */
-
-                    select Name from #A.Entities()
-                    """;
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("Test")]
-            }
-        };
+        var query = (
+            "/* multi-line comment\n" + "   spanning multiple lines */\n" + "\n" + "select Name from #A.Entities()"
+        );
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -485,19 +399,10 @@ public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMixedCommentsWithEmptyLinesThenQuery_ShouldEvaluate()
     {
-        var query = """
-                    --single line comment
-                    /* multi-line
-                       comment */
-
-                    select Name from #A.Entities()
-                    """;
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("Test")]
-            }
-        };
+        var query = (
+            "--single line comment\n" + "/* multi-line\n" + "   comment */\n" + "\n" + "select Name from #A.Entities()"
+        );
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);

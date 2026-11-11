@@ -34,11 +34,15 @@ internal static partial class ApplyPredicateMovementPlanner
             LogicalNode logicalPlan,
             IReadOnlyDictionary<string, SourcePlanProperties> sources,
             IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults,
-            IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans)
+            IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans
+        )
         {
             var definitions = new Dictionary<string, LogicalNode>(StringComparer.OrdinalIgnoreCase);
             CollectCteDefinitionsAndReferences(logicalPlan, definitions, new List<CteRefNode>());
-            var sourcesByAlias = sources.Values.ToLookup(static source => source.Alias, StringComparer.OrdinalIgnoreCase);
+            var sourcesByAlias = sources.Values.ToLookup(
+                static source => source.Alias,
+                StringComparer.OrdinalIgnoreCase
+            );
             foreach (var scope in _scopes.Values.Distinct())
             {
                 var sourceIds = new HashSet<string>(StringComparer.Ordinal);
@@ -57,8 +61,15 @@ internal static partial class ApplyPredicateMovementPlanner
                 foreach (var sourceId in sourceIds)
                     if (sources.TryGetValue(sourceId, out var source))
                         IncrementAlias(scope.SourceAliasCounts, source.Alias);
-                scope.SourceAliasesByCteAlias = CreateSourceAliasesByCteAlias(definitions, scope.Nodes.OfType<CteRefNode>());
-                scope.SourceAcceptedPredicateTexts = CreateSourceAcceptedPredicateTexts(sourcePlanResults, sourcePredicatePlans, sourceIds);
+                scope.SourceAliasesByCteAlias = CreateSourceAliasesByCteAlias(
+                    definitions,
+                    scope.Nodes.OfType<CteRefNode>()
+                );
+                scope.SourceAcceptedPredicateTexts = CreateSourceAcceptedPredicateTexts(
+                    sourcePlanResults,
+                    sourcePredicatePlans,
+                    sourceIds
+                );
             }
         }
 

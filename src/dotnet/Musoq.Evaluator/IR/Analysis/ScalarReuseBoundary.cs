@@ -13,7 +13,7 @@ internal enum ScalarReuseBoundaryKind
     Ordering,
     Paging,
     Materialization,
-    FinalOutput
+    FinalOutput,
 }
 
 internal sealed record ScalarReuseBoundary(
@@ -21,15 +21,16 @@ internal sealed record ScalarReuseBoundary(
     string OwnerScope,
     bool AcceptsStableValues,
     bool RetainsOriginalRow,
-    bool IsConditional)
+    bool IsConditional
+)
 {
     public bool CanCarry(ScalarReuseCandidate candidate)
     {
         ArgumentNullException.ThrowIfNull(candidate);
-        return AcceptsStableValues &&
-               candidate.IsStable &&
-               !IsConditional &&
-               candidate.Region.AllowsHoisting &&
-               string.Equals(candidate.OwnerScope, OwnerScope, StringComparison.Ordinal);
+        return AcceptsStableValues
+            && candidate.IsStable
+            && !IsConditional
+            && candidate.Region.AllowsHoisting
+            && string.Equals(candidate.OwnerScope, OwnerScope, StringComparison.Ordinal);
     }
 }

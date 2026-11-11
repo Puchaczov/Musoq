@@ -10,12 +10,12 @@ public enum DataSourceFailureKind
     RateLimited,
     Unavailable,
     Timeout,
-    ProviderFailure
+    ProviderFailure,
 }
 
 /// <summary>Determines whether a provider report interrupts query execution.</summary>
 public enum DataSourceDiagnosticSeverity
 {
     Warning,
-    Error
+    Error,
 }

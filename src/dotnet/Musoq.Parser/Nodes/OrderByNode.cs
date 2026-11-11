@@ -5,9 +5,7 @@ namespace Musoq.Parser.Nodes;
 public class OrderByNode : Node
 {
     public OrderByNode(FieldOrderedNode[] fields)
-        : this(fields, default)
-    {
-    }
+        : this(fields, default) { }
 
     public OrderByNode(FieldOrderedNode[] fields, TextSpan span)
     {
@@ -43,9 +41,7 @@ public class OrderByNode : Node
 
     public override string ToString()
     {
-        var fieldsTxt = Fields.Length == 0
-            ? string.Empty
-            : string.Join(", ", Fields.Select(FieldToString));
+        var fieldsTxt = Fields.Length == 0 ? string.Empty : string.Join(", ", Fields.Select(FieldToString));
         return $"order by {fieldsTxt}";
     }
 

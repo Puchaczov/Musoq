@@ -16,7 +16,8 @@ public static class SyntaxDiagnosticFactory
         string message,
         TextSpan span,
         Token? currentToken,
-        SourceText? sourceText)
+        SourceText? sourceText
+    )
     {
         return SyntaxDiagnosticEnhancer.CreateDiagnostic(code, message, span, currentToken, sourceText);
     }
@@ -29,7 +30,8 @@ public static class SyntaxDiagnosticFactory
         string message,
         TextSpan span,
         SourceText? sourceText,
-        IEnumerable<string>? relatedInfo = null)
+        IEnumerable<string>? relatedInfo = null
+    )
     {
         return SyntaxDiagnosticEnhancer.EnhanceLexerDiagnostic(code, message, span, sourceText, relatedInfo);
     }

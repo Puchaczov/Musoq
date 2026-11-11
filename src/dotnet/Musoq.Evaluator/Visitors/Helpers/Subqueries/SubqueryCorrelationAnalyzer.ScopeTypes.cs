@@ -7,10 +7,7 @@ internal sealed partial class SubqueryCorrelationAnalyzer
 {
     private sealed record QueryScopeInfo(IReadOnlySet<string> Aliases);
 
-    private sealed class SubqueryScopeBuilder(
-        Node node,
-        IReadOnlySet<string> outerAliases,
-        bool isInsideCteDefinition)
+    private sealed class SubqueryScopeBuilder(Node node, IReadOnlySet<string> outerAliases, bool isInsideCteDefinition)
     {
         private readonly HashSet<string> _localAliases = CreateAliasSet();
         private readonly HashSet<string> _correlatedAliases = CreateAliasSet();
@@ -44,12 +41,9 @@ internal sealed partial class SubqueryCorrelationAnalyzer
                 OuterAliases,
                 correlatedAliases,
                 CopyAliasSet(_illegalOuterConsumingCteAliases),
-                SubqueryCorrelationFactBuilder.Build(
-                    node,
-                    localAliases,
-                    OuterAliases,
-                    correlatedAliases),
-                isInsideCteDefinition);
+                SubqueryCorrelationFactBuilder.Build(node, localAliases, OuterAliases, correlatedAliases),
+                isInsideCteDefinition
+            );
         }
     }
 }

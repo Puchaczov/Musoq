@@ -14,6 +14,7 @@ public sealed partial class PhysicalPlanBuilder
             unpivot.Entries,
             unpivot.KeepFields,
             Lower(unpivot.Source, strategyPlan),
-            unpivot.OutputSchema);
+            unpivot.OutputSchema
+        );
     }
 }

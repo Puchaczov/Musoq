@@ -10,7 +10,8 @@ public static class QueryProgressRuntime
     public static IEnumerable<IReadOnlyList<T>> WrapChunks<T>(
         IEnumerable<IReadOnlyList<T>> chunks,
         QueryRunContext context,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         ArgumentNullException.ThrowIfNull(chunks);
         ArgumentNullException.ThrowIfNull(context);

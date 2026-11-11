@@ -28,10 +28,18 @@ public partial class SubqueryToCteRewriteVisitor
                     probe.PrepareScalarSubquery(scalar, analysis, definitions);
                     break;
                 case InQueryNode membership:
-                    probe.PreparePredicateApplySubquery(SubqueryInfo.CreateIn(membership, false), analysis, definitions);
+                    probe.PreparePredicateApplySubquery(
+                        SubqueryInfo.CreateIn(membership, false),
+                        analysis,
+                        definitions
+                    );
                     break;
                 case ExistsQueryNode exists:
-                    probe.PreparePredicateApplySubquery(SubqueryInfo.CreateExists(exists, false), analysis, definitions);
+                    probe.PreparePredicateApplySubquery(
+                        SubqueryInfo.CreateExists(exists, false),
+                        analysis,
+                        definitions
+                    );
                     break;
             }
             return null;
@@ -41,5 +49,4 @@ public partial class SubqueryToCteRewriteVisitor
             return exception.Message;
         }
     }
-
 }

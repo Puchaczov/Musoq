@@ -15,7 +15,8 @@ internal static class LogicalExpressionTraversal
 
     public static IEnumerable<IrExpression> SelfAndDescendantExpressions(
         LogicalNode node,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(node);
         cancellationToken.ThrowIfCancellationRequested();

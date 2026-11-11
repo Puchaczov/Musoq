@@ -90,7 +90,7 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
             new FieldDefinitionNode("Bit4", new BitsTypeNode(1)),
             new FieldDefinitionNode("Bit5", new BitsTypeNode(1)),
             new FieldDefinitionNode("Bit6", new BitsTypeNode(1)),
-            new FieldDefinitionNode("Bit7", new BitsTypeNode(1))
+            new FieldDefinitionNode("Bit7", new BitsTypeNode(1)),
         };
 
         var schema = new BinarySchemaNode("BitFlags", [.. fields]);
@@ -159,8 +159,10 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
 
         var flagsField = new FieldDefinitionNode("Flags", new BitsTypeNode(3));
         var alignField = new FieldDefinitionNode("_align", new AlignmentNode(8));
-        var nextByteField = new FieldDefinitionNode("NextByte",
-            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable));
+        var nextByteField = new FieldDefinitionNode(
+            "NextByte",
+            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)
+        );
 
         var schema = new BinarySchemaNode("Record", [flagsField, alignField, nextByteField]);
         registry.Register("Record", schema);
@@ -184,8 +186,10 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
 
         var flagField = new FieldDefinitionNode("Flag", new BitsTypeNode(4));
         var alignField = new FieldDefinitionNode("_align", new AlignmentNode(8));
-        var valueField = new FieldDefinitionNode("Value",
-            new PrimitiveTypeNode(PrimitiveTypeName.Short, Endianness.LittleEndian));
+        var valueField = new FieldDefinitionNode(
+            "Value",
+            new PrimitiveTypeNode(PrimitiveTypeName.Short, Endianness.LittleEndian)
+        );
 
         var schema = new BinarySchemaNode("Mixed", [flagField, alignField, valueField]);
         registry.Register("Mixed", schema);
@@ -208,9 +212,8 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
         var interpreter = CreateAndCompileInterpreter(
             "Mixed",
             new FieldDefinitionNode("Flags", new BitsTypeNode(3)),
-            new FieldDefinitionNode(
-                "Value",
-                new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)));
+            new FieldDefinitionNode("Value", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))
+        );
 
         var result = InvokeInterpret(interpreter, [0x05, 0x42]);
 
@@ -224,7 +227,8 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
         var interpreter = CreateAndCompileInterpreter(
             "Mixed",
             new FieldDefinitionNode("Flags", new BitsTypeNode(3)),
-            CreatePrimitiveField("Value", PrimitiveTypeName.Short, Endianness.LittleEndian));
+            CreatePrimitiveField("Value", PrimitiveTypeName.Short, Endianness.LittleEndian)
+        );
 
         var result = InvokeInterpret(interpreter, [0x05, 0x34, 0x12]);
 
@@ -240,7 +244,9 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
             "Child",
             new BinarySchemaNode(
                 "Child",
-                [CreatePrimitiveField("Value", PrimitiveTypeName.Byte, Endianness.NotApplicable)]));
+                [CreatePrimitiveField("Value", PrimitiveTypeName.Byte, Endianness.NotApplicable)]
+            )
+        );
         registry.Register(
             "Parent",
             new BinarySchemaNode(
@@ -248,8 +254,10 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
                 [
                     new FieldDefinitionNode("Flags", new BitsTypeNode(3)),
                     new FieldDefinitionNode("Nested", new SchemaReferenceTypeNode("Child")),
-                    CreatePrimitiveField("Trailer", PrimitiveTypeName.Byte, Endianness.NotApplicable)
-                ]));
+                    CreatePrimitiveField("Trailer", PrimitiveTypeName.Byte, Endianness.NotApplicable),
+                ]
+            )
+        );
 
         var interpreter = CompileInterpreter(registry, "Parent");
         var result = InvokeInterpret(interpreter, [0x05, 0x42, 0xEE]);
@@ -266,17 +274,18 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         registry.Register(
             "Child",
-            new BinarySchemaNode(
-                "Child",
-                [new FieldDefinitionNode("Flags", new BitsTypeNode(3))]));
+            new BinarySchemaNode("Child", [new FieldDefinitionNode("Flags", new BitsTypeNode(3))])
+        );
         registry.Register(
             "Parent",
             new BinarySchemaNode(
                 "Parent",
                 [
                     new FieldDefinitionNode("Nested", new SchemaReferenceTypeNode("Child")),
-                    CreatePrimitiveField("Trailer", PrimitiveTypeName.Byte, Endianness.NotApplicable)
-                ]));
+                    CreatePrimitiveField("Trailer", PrimitiveTypeName.Byte, Endianness.NotApplicable),
+                ]
+            )
+        );
 
         var interpreter = CompileInterpreter(registry, "Parent");
         var result = InvokeInterpret(interpreter, [0x05, 0x42]);
@@ -302,7 +311,7 @@ public class BinaryInterpretationBitFieldTests : BinaryInterpretationTestBase
             new FieldDefinitionNode("Ack", new BitsTypeNode(1)),
             new FieldDefinitionNode("Urg", new BitsTypeNode(1)),
             new FieldDefinitionNode("Ece", new BitsTypeNode(1)),
-            new FieldDefinitionNode("Cwr", new BitsTypeNode(1))
+            new FieldDefinitionNode("Cwr", new BitsTypeNode(1)),
         };
 
         var schema = new BinarySchemaNode("TcpFlags", [.. fields]);

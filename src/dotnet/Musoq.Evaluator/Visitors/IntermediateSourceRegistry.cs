@@ -8,7 +8,9 @@ namespace Musoq.Evaluator.Visitors;
 
 internal sealed class IntermediateSourceRegistry
 {
-    private readonly Dictionary<QueryNode, IntermediateSourceBinding> _intermediateSources = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<QueryNode, IntermediateSourceBinding> _intermediateSources = new(
+        ReferenceEqualityComparer.Instance
+    );
     private readonly HashSet<string> _intermediateStorageNames = new(StringComparer.OrdinalIgnoreCase);
     private int _nextIntermediateProducer;
     private int _nextIntermediateName;
@@ -33,8 +35,10 @@ internal sealed class IntermediateSourceRegistry
         var storageName = displayName;
         while (!_intermediateStorageNames.Add(storageName))
             storageName = "__musoqIntermediate" + (_nextIntermediateName++).ToString(CultureInfo.InvariantCulture);
-        _intermediateSources.Add(query, new IntermediateSourceBinding(
-            new IntermediateProducerId(_nextIntermediateProducer++), storageName));
+        _intermediateSources.Add(
+            query,
+            new IntermediateSourceBinding(new IntermediateProducerId(_nextIntermediateProducer++), storageName)
+        );
     }
 
     internal IntermediateSourceBinding Get(QueryNode query) => _intermediateSources[query];

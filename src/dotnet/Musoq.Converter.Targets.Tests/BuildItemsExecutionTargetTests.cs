@@ -18,10 +18,7 @@ public sealed class BuildItemsExecutionTargetTests
     [TestMethod]
     public void ExecutionTarget_WhenSet_ShouldRoundTripThroughBuildItems()
     {
-        var items = new BuildItems
-        {
-            ExecutionTarget = TestExecutionTargetIds.TestOnlyNonClr
-        };
+        var items = new BuildItems { ExecutionTarget = TestExecutionTargetIds.TestOnlyNonClr };
 
         Assert.AreEqual(TestExecutionTargetIds.TestOnlyNonClr, items.ExecutionTarget);
     }
@@ -39,15 +36,13 @@ public sealed class BuildItemsExecutionTargetTests
     {
         Assert.IsFalse(typeof(ExecutionTargetId).IsPublic);
 
-        var publicMethods = typeof(InstanceCreator)
-            .GetMethods()
-            .Where(static method => method.IsPublic)
-            .ToArray();
+        var publicMethods = typeof(InstanceCreator).GetMethods().Where(static method => method.IsPublic).ToArray();
 
         var exposed = publicMethods
             .Where(static method =>
-                method.ReturnType == typeof(ExecutionTargetId) ||
-                method.GetParameters().Any(static parameter => parameter.ParameterType == typeof(ExecutionTargetId)))
+                method.ReturnType == typeof(ExecutionTargetId)
+                || method.GetParameters().Any(static parameter => parameter.ParameterType == typeof(ExecutionTargetId))
+            )
             .Select(static method => method.Name)
             .ToArray();
 

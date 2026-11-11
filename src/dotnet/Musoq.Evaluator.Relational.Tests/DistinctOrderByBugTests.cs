@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class DistinctOrderByBugTests : BasicEntityTestBase
 {
-
     #region Edge case: DISTINCT + ORDER BY with NULL values
 
     [TestMethod]
@@ -23,25 +22,27 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c1") { Country = null },
                     new BasicEntity("c2") { Country = "Poland" },
                     new BasicEntity("c3") { Country = null },
                     new BasicEntity("c4") { Country = "Germany" },
-                    new BasicEntity("c5") { Country = "Poland" }
+                    new BasicEntity("c5") { Country = "Poland" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { null },
             new object?[] { "Germany" },
-            new object?[] { "Poland" });
+            new object?[] { "Poland" }
+        );
     }
 
     #endregion
@@ -56,26 +57,29 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c1") { Population = 100m },
                     new BasicEntity("c2") { Population = 500m },
                     new BasicEntity("c3") { Population = 100m },
                     new BasicEntity("c4") { Population = 300m },
                     new BasicEntity("c5") { Population = 500m },
-                    new BasicEntity("c6") { Population = 200m }
+                    new BasicEntity("c6") { Population = 200m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Population", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { 500m },
             new object?[] { 300m },
             new object?[] { 200m },
-            new object?[] { 100m });
+            new object?[] { 100m }
+        );
     }
 
     #endregion
@@ -90,26 +94,28 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c1", "Poland", 500),
                     new BasicEntity("c2", "Germany", 100),
                     new BasicEntity("c3", "Poland", 200),
                     new BasicEntity("c4", "France", 300),
                     new BasicEntity("c5", "Germany", 250),
-                    new BasicEntity("c6", "Austria", 50)
+                    new BasicEntity("c6", "Austria", 50),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { "Poland" },
             new object?[] { "Germany" },
-            new object?[] { "France" });
+            new object?[] { "France" }
+        );
     }
 
     #endregion
@@ -124,26 +130,31 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c1", "Poland", 500),
                     new BasicEntity("c2", "Germany", 200),
                     new BasicEntity("c3", "Poland", 150),
                     new BasicEntity("c4", "France", 300),
-                    new BasicEntity("c5", "Germany", 250)
+                    new BasicEntity("c5", "Germany", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
+        TableMaterializationTestHelper.AssertColumns(
+            table,
             ("Country", typeof(string)),
-            ("Count(Country)", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            ("Count(Country)", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { "France", 1L },
             new object?[] { "Germany", 2L },
-            new object?[] { "Poland", 2L });
+            new object?[] { "Poland", 2L }
+        );
     }
 
     #endregion
@@ -158,29 +169,30 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Berlin", "Germany", 350),
                     new BasicEntity("Warsaw", "Poland", 500),
                     new BasicEntity("Krakow", "Poland", 400),
                     new BasicEntity("Berlin", "Germany", 100),
                     new BasicEntity("Munich", "Germany", 200),
-                    new BasicEntity("Paris", "France", 600)
+                    new BasicEntity("Paris", "France", 600),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Country", typeof(string)),
-            ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { "France", "Paris" },
             new object?[] { "Germany", "Munich" },
             new object?[] { "Germany", "Berlin" },
             new object?[] { "Poland", "Warsaw" },
-            new object?[] { "Poland", "Krakow" });
+            new object?[] { "Poland", "Krakow" }
+        );
     }
 
     #endregion
@@ -195,25 +207,27 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c5", "Poland", 500),
                     new BasicEntity("c1", "Germany", 200),
                     new BasicEntity("c3", "Poland", 150),
                     new BasicEntity("c4", "France", 300),
                     new BasicEntity("c2", "Germany", 250),
-                    new BasicEntity("c6", "Austria", 100)
+                    new BasicEntity("c6", "Austria", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { "Germany" },
-            new object?[] { "France" });
+            new object?[] { "France" }
+        );
     }
 
     #endregion

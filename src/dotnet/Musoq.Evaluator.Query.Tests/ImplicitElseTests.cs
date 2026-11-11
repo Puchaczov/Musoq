@@ -39,8 +39,9 @@ public sealed class ImplicitElseTests : BasicEntityTestBase
     [TestMethod]
     public void WrappedAggregatesWithImplicitElse_ShouldPreserveSeparateState()
     {
-        const string sql = "select Trim(Max(case when e.Id = 1 then ' a ' end)) as A, " +
-                           "Trim(Max(case when e.Id = 2 then ' b ' end)) as B from #A.Entities() e";
+        const string sql =
+            "select Trim(Max(case when e.Id = 1 then ' a ' end)) as A, "
+            + "Trim(Max(case when e.Id = 2 then ' b ' end)) as B from #A.Entities() e";
         using var query = CreateAndRunVirtualMachine(sql, Sources());
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -54,29 +55,48 @@ public sealed class ImplicitElseTests : BasicEntityTestBase
     {
         var provider = new BasicSchemaProvider<BasicEntity>(Sources());
         var implicitForm = InstanceCreator.CompileForInspection(
-            $"select {expression} end as A from #A.Entities() e", Guid.NewGuid().ToString(), provider, LoggerResolver);
+            $"select {expression} end as A from #A.Entities() e",
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver
+        );
         var explicitForm = InstanceCreator.CompileForInspection(
-            $"select {expression} else null end as A from #A.Entities() e", Guid.NewGuid().ToString(), provider, LoggerResolver);
+            $"select {expression} else null end as A from #A.Entities() e",
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver
+        );
 
-        Assert.AreEqual(GeneratedCodeSnapshotText.NormalizeForComparison(explicitForm.GeneratedCSharpCode),
-            GeneratedCodeSnapshotText.NormalizeForComparison(implicitForm.GeneratedCSharpCode));
+        Assert.AreEqual(
+            GeneratedCodeSnapshotText.NormalizeForComparison(explicitForm.GeneratedCSharpCode),
+            GeneratedCodeSnapshotText.NormalizeForComparison(implicitForm.GeneratedCSharpCode)
+        );
     }
 
     [TestMethod]
     public void ImplicitElseCompute_ShouldRemainTypedWithoutBoxingOrReflection()
     {
         using var query = CreateAndRunVirtualMachine(
-            "select case when e.Id = 1 then e.Id end as A from #A.Entities() e", Sources());
-        var boxed = GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query)
-            .Where(GeneratedExecutionIlInspection.ContainsBoxOpcode).Select(method => method.Name).ToArray();
+            "select case when e.Id = 1 then e.Id end as A from #A.Entities() e",
+            Sources()
+        );
+        var boxed = GeneratedExecutionIlInspection
+            .GetGeneratedComputeMethods(query)
+            .Where(GeneratedExecutionIlInspection.ContainsBoxOpcode)
+            .Select(method => method.Name)
+            .ToArray();
 
         Assert.IsEmpty(boxed, string.Join(", ", boxed));
     }
 
-    private static Dictionary<string, IEnumerable<BasicEntity>> Sources() => new()
-    {
-        ["#A"] = [new BasicEntity("A") { Id = 1, NullableValue = 1 },
-            new BasicEntity("B") { Id = 2, NullableValue = 2 },
-            new BasicEntity((string?)null) { Id = 3, NullableValue = null }]
-    };
+    private static Dictionary<string, IEnumerable<BasicEntity>> Sources() =>
+        new()
+        {
+            ["#A"] =
+            [
+                new BasicEntity("A") { Id = 1, NullableValue = 1 },
+                new BasicEntity("B") { Id = 2, NullableValue = 2 },
+                new BasicEntity((string?)null) { Id = 3, NullableValue = null },
+            ],
+        };
 }

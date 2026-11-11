@@ -7,25 +7,20 @@ internal static class OptimizationDiagnosticOriginMarker
 {
     public static SourcePlanResult Mark(SourcePlanResult result, string origin)
     {
-        return result.Diagnostics.Count == 0
-            ? result
-            : result with { Diagnostics = Mark(result.Diagnostics, origin) };
+        return result.Diagnostics.Count == 0 ? result : result with { Diagnostics = Mark(result.Diagnostics, origin) };
     }
 
     public static SourcePlanResult Prepend(
         SourcePlanResult result,
         IReadOnlyList<OptimizationDiagnostic> diagnostics,
-        string origin)
+        string origin
+    )
     {
         var marked = Mark(diagnostics, origin);
-        return marked.Length == 0
-            ? result
-            : result with { Diagnostics = marked.Concat(result.Diagnostics).ToArray() };
+        return marked.Length == 0 ? result : result with { Diagnostics = marked.Concat(result.Diagnostics).ToArray() };
     }
 
-    private static OptimizationDiagnostic[] Mark(
-        IReadOnlyList<OptimizationDiagnostic> diagnostics,
-        string origin)
+    private static OptimizationDiagnostic[] Mark(IReadOnlyList<OptimizationDiagnostic> diagnostics, string origin)
     {
         if (diagnostics.Count == 0)
             return [];
@@ -35,7 +30,10 @@ internal static class OptimizationDiagnosticOriginMarker
         {
             var diagnostic = diagnostics[index];
             result[index] = string.IsNullOrWhiteSpace(diagnostic.Origin)
-                ? diagnostic with { Origin = origin }
+                ? diagnostic with
+                {
+                    Origin = origin,
+                }
                 : diagnostic;
         }
 

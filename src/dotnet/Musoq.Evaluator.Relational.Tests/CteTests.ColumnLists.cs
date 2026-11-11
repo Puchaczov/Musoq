@@ -13,30 +13,24 @@ public partial class CteTests
     public void CteColumnList_ShouldOverrideInnerAliasesPositionally()
     {
         const string query =
-            "with places (Name, Nation) as (select City as InnerCity, Country as InnerCountry from #A.entities()) " +
-            "select Nation, Name from places";
+            "with places (Name, Nation) as (select City as InnerCity, Country as InnerCountry from #A.entities()) "
+            + "select Nation, Name from places";
 
         var vm = CreateAndRunVirtualMachine(query, CreateColumnListSources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Nation", typeof(string)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["POLAND", "WARSAW"],
-            ["GERMANY", "BERLIN"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Nation", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["POLAND", "WARSAW"], ["GERMANY", "BERLIN"]);
     }
 
     [TestMethod]
     public void CteColumnList_WithSetOperation_ShouldExportNamesFromFirstProjection()
     {
         const string query =
-            "with places (Name, Nation) as (" +
-            "select City, Country from #A.entities() " +
-            "union all select City, Country from #B.entities()) " +
-            "select Name, Nation from places order by Name";
+            "with places (Name, Nation) as ("
+            + "select City, Country from #A.entities() "
+            + "union all select City, Country from #B.entities()) "
+            + "select Name, Nation from places order by Name";
 
         var sources = CreateColumnListSources();
         sources["#B"] = [new BasicEntity("PRAGUE", "CZECHIA", 300)];
@@ -44,25 +38,23 @@ public partial class CteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Nation", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Nation", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BERLIN", "GERMANY"],
             ["PRAGUE", "CZECHIA"],
-            ["WARSAW", "POLAND"]);
+            ["WARSAW", "POLAND"]
+        );
     }
 
     [TestMethod]
     public void CteColumnList_WithWrongCount_ShouldReportMq3077()
     {
-        const string query =
-            "with places (Name) as (select City, Country from #A.entities()) select Name from places";
+        const string query = "with places (Name) as (select City, Country from #A.entities()) select Name from places";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateColumnListSources()));
+            CreateAndRunVirtualMachine(query, CreateColumnListSources())
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3077_CteColumnListCountMismatch, DiagnosticPhase.Bind);
         StringAssert.Contains(exception.Message, "declares 1 column name(s)");
@@ -76,7 +68,8 @@ public partial class CteTests
             "with places (Name, Name) as (select City, Country from #A.entities()) select Name from places";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateColumnListSources()));
+            CreateAndRunVirtualMachine(query, CreateColumnListSources())
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3078_DuplicateCteColumnName, DiagnosticPhase.Bind);
         StringAssert.Contains(exception.Message, "duplicate column name 'Name'");
@@ -102,7 +95,8 @@ public partial class CteTests
             "with places (Name, name) as (select City, Country from #A.entities()) select Name from places";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateColumnListSources()));
+            CreateAndRunVirtualMachine(query, CreateColumnListSources())
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3078_DuplicateCteColumnName, DiagnosticPhase.Bind);
         StringAssert.Contains(exception.Message, "duplicate column name 'name'");
@@ -112,13 +106,14 @@ public partial class CteTests
     public void RecursiveCteColumnList_WithCaseOnlyDuplicateName_ShouldReportMq3078()
     {
         const string query =
-            "with recursive counter (Id, id) as (" +
-            "select A, B from values {( A: 1, B: 10 )} seed union all " +
-            "select c.Id + 1, c.id + 10 from counter c where c.Id < 2) " +
-            "select Id, id from counter";
+            "with recursive counter (Id, id) as ("
+            + "select A, B from values {( A: 1, B: 10 )} seed union all "
+            + "select c.Id + 1, c.id + 10 from counter c where c.Id < 2) "
+            + "select Id, id from counter";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>()));
+            CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>())
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3078_DuplicateCteColumnName, DiagnosticPhase.Bind);
         StringAssert.Contains(exception.Message, "duplicate column name 'id'");
@@ -128,11 +123,7 @@ public partial class CteTests
     {
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] =
-            [
-                new BasicEntity("WARSAW", "POLAND", 500),
-                new BasicEntity("BERLIN", "GERMANY", 250)
-            ]
+            ["#A"] = [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("BERLIN", "GERMANY", 250)],
         };
     }
 }

@@ -6,10 +6,7 @@ public sealed record GeneratedRecordShape : RowShape
 {
     private IReadOnlyList<FieldBinding> _fields = [];
 
-    public GeneratedRecordShape(
-        string typeName,
-        IReadOnlyList<FieldBinding> fields,
-        bool emitAsValueType = false)
+    public GeneratedRecordShape(string typeName, IReadOnlyList<FieldBinding> fields, bool emitAsValueType = false)
         : base(typeName, fields)
     {
         TypeName = typeName;

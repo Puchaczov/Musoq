@@ -14,23 +14,71 @@ namespace Musoq.Evaluator.Tests.Runtime;
 public sealed class StringExtremaExecutionStrategyTests : BasicEntityTestBase
 {
     [TestMethod]
-    [DataRow(ParallelizationMode.None, "select City as Bucket, Min(Name) as Smallest, Max(Name) as Largest from #schema.rows() group by City", "")]
-    [DataRow(ParallelizationMode.Full, "select City as Bucket, Min(Name) as Smallest, Max(Name) as Largest from #schema.rows() group by City", "")]
-    [DataRow(ParallelizationMode.None, "select City as Bucket, Min(Name) filter (where Name <> '') as Smallest, Max(Name) filter (where Name <> '') as Largest from #schema.rows() group by City", "a")]
-    [DataRow(ParallelizationMode.Full, "select City as Bucket, Min(Name) filter (where Name <> '') as Smallest, Max(Name) filter (where Name <> '') as Largest from #schema.rows() group by City", "a")]
-    public void GroupedStringExtrema_ShouldMergeChunksWithSelectedStrategy(ParallelizationMode mode, string query, string minimumA)
+    [DataRow(
+        ParallelizationMode.None,
+        "select City as Bucket, Min(Name) as Smallest, Max(Name) as Largest from #schema.rows() group by City",
+        ""
+    )]
+    [DataRow(
+        ParallelizationMode.Full,
+        "select City as Bucket, Min(Name) as Smallest, Max(Name) as Largest from #schema.rows() group by City",
+        ""
+    )]
+    [DataRow(
+        ParallelizationMode.None,
+        "select City as Bucket, Min(Name) filter (where Name <> '') as Smallest, Max(Name) filter (where Name <> '') as Largest from #schema.rows() group by City",
+        "a"
+    )]
+    [DataRow(
+        ParallelizationMode.Full,
+        "select City as Bucket, Min(Name) filter (where Name <> '') as Smallest, Max(Name) filter (where Name <> '') as Largest from #schema.rows() group by City",
+        "a"
+    )]
+    public void GroupedStringExtrema_ShouldMergeChunksWithSelectedStrategy(
+        ParallelizationMode mode,
+        string query,
+        string minimumA
+    )
     {
         var provider = CreateSchemaProvider();
-        var options = new CompilationOptions(mode, maxDegreeOfParallelismOverride: 2, forceTableResultMaterialization: true);
-        var inspection = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString(), provider, LoggerResolver, options);
-        Assert.AreEqual(mode == ParallelizationMode.Full,
-            inspection.GeneratedCSharpCode.Contains("Parallel.ForEach<IReadOnlyList<", StringComparison.Ordinal));
+        var options = new CompilationOptions(
+            mode,
+            maxDegreeOfParallelismOverride: 2,
+            forceTableResultMaterialization: true
+        );
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            options
+        );
+        Assert.AreEqual(
+            mode == ParallelizationMode.Full,
+            inspection.GeneratedCSharpCode.Contains("Parallel.ForEach<IReadOnlyList<", StringComparison.Ordinal)
+        );
 
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, LoggerResolver, options);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            options
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Bucket", typeof(string)), ("Smallest", typeof(string)), ("Largest", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A", minimumA, "z"], ["B", null, null], ["C", "I", "i"]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Bucket", typeof(string)),
+            ("Smallest", typeof(string)),
+            ("Largest", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A", minimumA, "z"],
+            ["B", null, null],
+            ["C", "I", "i"]
+        );
     }
 
     [TestMethod]
@@ -39,8 +87,18 @@ public sealed class StringExtremaExecutionStrategyTests : BasicEntityTestBase
     public void UngroupedStringExtrema_ShouldAggregateAcrossChunks(ParallelizationMode mode)
     {
         const string query = "select Min(Name) as Smallest, Max(Name) as Largest from #schema.rows()";
-        var options = new CompilationOptions(mode, maxDegreeOfParallelismOverride: 2, forceTableResultMaterialization: true);
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, options);
+        var options = new CompilationOptions(
+            mode,
+            maxDegreeOfParallelismOverride: 2,
+            forceTableResultMaterialization: true
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            options
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Smallest", typeof(string)), ("Largest", typeof(string)));
@@ -52,8 +110,10 @@ public sealed class StringExtremaExecutionStrategyTests : BasicEntityTestBase
         var schema = new GenericSchema<StringExtremaLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                { "rows", (new GenericEntityTable<StringExtremaEntity>(), new StringExtremaRowSource()) }
-            }, executionPermissions: SourceExecutionPermissions.ConcurrentRowProcessing);
+                { "rows", (new GenericEntityTable<StringExtremaEntity>(), new StringExtremaRowSource()) },
+            },
+            executionPermissions: SourceExecutionPermissions.ConcurrentRowProcessing
+        );
         return new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#schema", schema } });
     }
 
@@ -65,8 +125,18 @@ public sealed class StringExtremaExecutionStrategyTests : BasicEntityTestBase
     {
         protected override void CollectChunks(IChunkWriter<StringExtremaEntity> writer)
         {
-            writer.Write([new StringExtremaEntity("A", null), new StringExtremaEntity("A", "z"), new StringExtremaEntity("B", null), new StringExtremaEntity("C", "I")]);
-            writer.Write([new StringExtremaEntity("A", ""), new StringExtremaEntity("A", "a"), new StringExtremaEntity("B", null), new StringExtremaEntity("C", "i")]);
+            writer.Write([
+                new StringExtremaEntity("A", null),
+                new StringExtremaEntity("A", "z"),
+                new StringExtremaEntity("B", null),
+                new StringExtremaEntity("C", "I"),
+            ]);
+            writer.Write([
+                new StringExtremaEntity("A", ""),
+                new StringExtremaEntity("A", "a"),
+                new StringExtremaEntity("B", null),
+                new StringExtremaEntity("C", "i"),
+            ]);
         }
     }
 }

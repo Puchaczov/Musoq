@@ -7,7 +7,8 @@ namespace Musoq.Evaluator.Visitors;
 public partial class BuildMetadataAndInferTypesVisitor
 {
     private (Type ClrType, string? IntendedTypeName) ResolveTypeAnnotationClrTypeWithIntendedName(
-        TypeAnnotationNode typeAnnotation)
+        TypeAnnotationNode typeAnnotation
+    )
     {
         if (typeAnnotation is SubstreamTypeNode { Target: not null } substream)
             return ResolveTypeAnnotationClrTypeWithIntendedName(substream.Target);
@@ -15,12 +16,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (typeAnnotation is SchemaReferenceTypeNode schemaRef)
             return ResolveSchemaReferenceTypeWithIntendedName(schemaRef);
 
-
-        if (typeAnnotation is StringTypeNode stringType &&
-            !string.IsNullOrEmpty(stringType.AsTextSchemaName))
+        if (typeAnnotation is StringTypeNode stringType && !string.IsNullOrEmpty(stringType.AsTextSchemaName))
         {
-            if (SchemaRegistry != null &&
-                SchemaRegistry.TryGetSchema(stringType.AsTextSchemaName, out var textSchema))
+            if (SchemaRegistry != null && SchemaRegistry.TryGetSchema(stringType.AsTextSchemaName, out var textSchema))
             {
                 if (textSchema?.GeneratedType != null)
                     return (textSchema.GeneratedType, null);
@@ -31,22 +29,24 @@ public partial class BuildMetadataAndInferTypesVisitor
             return (typeof(object), null);
         }
 
-
         if (typeAnnotation is ArrayTypeNode arrayType)
         {
-            var (elementType, elementIntendedTypeName) =
-                ResolveTypeAnnotationClrTypeWithIntendedName(arrayType.ElementType);
+            var (elementType, elementIntendedTypeName) = ResolveTypeAnnotationClrTypeWithIntendedName(
+                arrayType.ElementType
+            );
             var arrayClrType = elementType.MakeArrayType();
             var arrayIntendedTypeName = elementIntendedTypeName != null ? $"{elementIntendedTypeName}[]" : null;
             return (arrayClrType, arrayIntendedTypeName);
         }
 
-        if (typeAnnotation is InlineSchemaTypeNode) return (typeof(object), null);
+        if (typeAnnotation is InlineSchemaTypeNode)
+            return (typeof(object), null);
 
         if (typeAnnotation is RepeatUntilTypeNode repeatUntilType)
         {
-            var (elementType, elementIntendedTypeName) =
-                ResolveTypeAnnotationClrTypeWithIntendedName(repeatUntilType.ElementType);
+            var (elementType, elementIntendedTypeName) = ResolveTypeAnnotationClrTypeWithIntendedName(
+                repeatUntilType.ElementType
+            );
             var arrayClrType = elementType.MakeArrayType();
             var arrayIntendedTypeName = elementIntendedTypeName != null ? $"{elementIntendedTypeName}[]" : null;
             return (arrayClrType, arrayIntendedTypeName);
@@ -64,8 +64,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!reference.IsGenericInstantiation)
             return QualifyInterpretersSimpleTypeArgument(reference.SchemaName);
 
-        var qualifiedTypeArguments = reference.TypeArguments
-            .Select(QualifyInterpretersTypeArgument);
+        var qualifiedTypeArguments = reference.TypeArguments.Select(QualifyInterpretersTypeArgument);
 
         return $"{QualifyInterpretersSimpleTypeArgument(reference.SchemaName)}<{string.Join(",", qualifiedTypeArguments)}>";
     }
@@ -84,7 +83,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     }
 
     private (Type ClrType, string? IntendedTypeName) ResolveSchemaReferenceTypeWithIntendedName(
-        SchemaReferenceTypeNode schemaRef)
+        SchemaReferenceTypeNode schemaRef
+    )
     {
         if (SchemaRegistry == null || !SchemaRegistry.TryGetSchema(schemaRef.SchemaName, out var refSchema))
             return (typeof(object), null);
@@ -95,8 +95,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var typeName = refSchema?.GeneratedTypeName;
         if (typeName != null && schemaRef.IsGenericInstantiation)
         {
-            var qualifiedTypeArguments = schemaRef.TypeArguments
-                .Select(QualifyInterpretersTypeArgument);
+            var qualifiedTypeArguments = schemaRef.TypeArguments.Select(QualifyInterpretersTypeArgument);
             typeName = $"{typeName}<{string.Join(",", qualifiedTypeArguments)}>";
         }
 
@@ -139,9 +138,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private static string RemoveArraySuffix(string typeName)
     {
-        return typeName.EndsWith("[]", StringComparison.Ordinal)
-            ? typeName[..^2]
-            : typeName;
+        return typeName.EndsWith("[]", StringComparison.Ordinal) ? typeName[..^2] : typeName;
     }
 
     private static string[] SplitGenericTypeArguments(string argumentText)

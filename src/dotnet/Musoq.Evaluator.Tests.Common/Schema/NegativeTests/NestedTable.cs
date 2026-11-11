@@ -9,7 +9,7 @@ public class NestedTable : ISchemaTable
     public ISchemaColumn[] Columns { get; } =
     [
         new SchemaColumn(nameof(NestedEntity.Id), 0, typeof(int)),
-        new SchemaColumn(nameof(NestedEntity.Info), 1, typeof(ComplexInfo))
+        new SchemaColumn(nameof(NestedEntity.Info), 1, typeof(ComplexInfo)),
     ];
 
     public ISchemaColumn? GetColumnByName(string name)

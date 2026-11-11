@@ -9,18 +9,19 @@ internal static partial class EvaluatorSampleFixtures
     {
         return
         [
-            RuntimeDynamicInspection(
-                "Q231_PublicDynamicRootConstant",
-                "select 1 as Marker from #runtime.events()"),
+            RuntimeDynamicInspection("Q231_PublicDynamicRootConstant", "select 1 as Marker from #runtime.events()"),
             RuntimeDynamicInspection(
                 "Q232_PublicDynamicRootFilterProjection",
-                "select label, metric, payload from #runtime.events() where 2 = runtimekey and runtimekey = 2 and true = enabled"),
+                "select label, metric, payload from #runtime.events() where 2 = runtimekey and runtimekey = 2 and true = enabled"
+            ),
             RuntimeDynamicInspection(
                 "Q233_PublicDynamicNestedNullable",
-                "select branch.Measurement, branch.Raw from #runtime.events() where branch is not null"),
+                "select branch.Measurement, branch.Raw from #runtime.events() where branch is not null"
+            ),
             RuntimeDynamicInspection(
                 "Q234_PublicDynamicJoinMethod",
-                "select Scale(e.metric, l.factor) from #runtime.events() e inner join #runtime.lookup() l on e.runtimekey = l.id")
+                "select Scale(e.metric, l.factor) from #runtime.events() e inner join #runtime.lookup() l on e.runtimekey = l.id"
+            ),
         ];
     }
 
@@ -33,7 +34,7 @@ internal static partial class EvaluatorSampleFixtures
             Query = query,
             Category = "RuntimeDynamic",
             Format = GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode,
-            CreateSchemaProvider = static () => new RuntimeDynamicSchemaProvider()
+            CreateSchemaProvider = static () => new RuntimeDynamicSchemaProvider(),
         };
     }
 }

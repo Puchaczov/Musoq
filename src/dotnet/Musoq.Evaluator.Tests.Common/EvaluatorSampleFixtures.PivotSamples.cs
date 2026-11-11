@@ -13,7 +13,8 @@ internal static partial class EvaluatorSampleFixtures
                   on Month in ('Jan' as Jan, 'Feb' as Feb)
                   using Sum(Money) as Sales
                   group by City
-                  order by City"),
+                  order by City"
+            ),
             Basic(
                 "Q163_PivotMultipleMeasures",
                 "Pivot",
@@ -21,7 +22,8 @@ internal static partial class EvaluatorSampleFixtures
                   on Month in ('Jan' as Jan, 'Feb' as Feb)
                   using Sum(Money) as Sales, Count(*) as Orders
                   group by City
-                  order by City"),
+                  order by City"
+            ),
             Basic(
                 "Q164_PivotCteNoGroupBy",
                 "Pivot",
@@ -30,7 +32,8 @@ internal static partial class EvaluatorSampleFixtures
                       on Month in ('Jan' as Jan, 'Feb' as Feb)
                       using Sum(Money) as Sales
                   )
-                  select Jan, Feb from p")
+                  select Jan, Feb from p"
+            ),
         ];
     }
 }

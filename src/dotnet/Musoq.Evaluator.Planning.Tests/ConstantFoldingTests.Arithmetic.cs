@@ -122,7 +122,8 @@ public partial class ConstantFoldingTests
     public void WhenDivisionByZeroConstant_ShouldThrowDivisionByZero()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 10 / 0 from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 10 / 0 from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
@@ -131,7 +132,8 @@ public partial class ConstantFoldingTests
     public void WhenModuloByZeroConstant_ShouldThrowDivisionByZero()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 10 % 0 from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 10 % 0 from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
@@ -140,7 +142,8 @@ public partial class ConstantFoldingTests
     public void WhenDivisionByZeroInWhereClause_ShouldThrowDivisionByZero()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select Name from #schema.first() where 10 / 0 > 1", SingleEntitySource));
+            CreateAndRunVirtualMachine("select Name from #schema.first() where 10 / 0 > 1", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
@@ -149,7 +152,8 @@ public partial class ConstantFoldingTests
     public void WhenDivisionByZeroNested_ShouldThrowDivisionByZero()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 1 + 10 / 0 from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 1 + 10 / 0 from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
@@ -158,7 +162,8 @@ public partial class ConstantFoldingTests
     public void WhenDivisionByZeroDecimal_ShouldThrowDivisionByZero()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 10.5 / 0.0 from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 10.5 / 0.0 from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
@@ -274,7 +279,8 @@ public partial class ConstantFoldingTests
     public void WhenIntAdditionOverflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 2147483647i + 1i from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 2147483647i + 1i from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -283,7 +289,8 @@ public partial class ConstantFoldingTests
     public void WhenIntSubtractionUnderflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select -2147483648i - 1i from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select -2147483648i - 1i from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -292,7 +299,8 @@ public partial class ConstantFoldingTests
     public void WhenIntMultiplicationOverflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 2000000000i * 2i from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 2000000000i * 2i from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -313,7 +321,8 @@ public partial class ConstantFoldingTests
     public void WhenUintAdditionOverflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 4294967295ui + 1ui from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 4294967295ui + 1ui from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -322,7 +331,8 @@ public partial class ConstantFoldingTests
     public void WhenUintSubtractionUnderflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 0ui - 1ui from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 0ui - 1ui from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -331,7 +341,8 @@ public partial class ConstantFoldingTests
     public void WhenUintMultiplicationOverflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 3000000000ui * 2ui from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 3000000000ui * 2ui from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -352,7 +363,8 @@ public partial class ConstantFoldingTests
     public void WhenLongAdditionOverflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 9223372036854775807l + 1l from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 9223372036854775807l + 1l from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -361,7 +373,8 @@ public partial class ConstantFoldingTests
     public void WhenLongMultiplicationOverflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 9223372036854775807l * 2l from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 9223372036854775807l * 2l from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -371,7 +384,10 @@ public partial class ConstantFoldingTests
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
-                "select 9223372036854775807l + 9223372036854775807l from #schema.first()", SingleEntitySource));
+                "select 9223372036854775807l + 9223372036854775807l from #schema.first()",
+                SingleEntitySource
+            )
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -379,7 +395,10 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenLongAdditionAtBoundary_ShouldFoldSuccessfully()
     {
-        var vm = CreateAndRunVirtualMachine("select 9223372036854775806l + 1l from #schema.first()", SingleEntitySource);
+        var vm = CreateAndRunVirtualMachine(
+            "select 9223372036854775806l + 1l from #schema.first()",
+            SingleEntitySource
+        );
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -392,7 +411,8 @@ public partial class ConstantFoldingTests
     public void WhenUlongSubtractionUnderflows_ShouldThrowArithmeticOverflow()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 0ul - 1ul from #schema.first()", SingleEntitySource));
+            CreateAndRunVirtualMachine("select 0ul - 1ul from #schema.first()", SingleEntitySource)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }
@@ -414,7 +434,10 @@ public partial class ConstantFoldingTests
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
-                "select Name from #schema.first() where 9223372036854775807l + 1l > 0", SingleEntitySource));
+                "select Name from #schema.first() where 9223372036854775807l + 1l > 0",
+                SingleEntitySource
+            )
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3032_ArithmeticOverflow, DiagnosticPhase.Bind);
     }

@@ -1,9 +1,9 @@
-using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -28,18 +28,27 @@ public sealed class RuntimeV2RemediationCharacterizationTests : BasicEntityTestB
         Assert.HasCount(1, builderTypes);
 
         var builderMethods = builderTypes[0]
-            .GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+            .GetMethods(
+                BindingFlags.Instance
+                    | BindingFlags.Static
+                    | BindingFlags.Public
+                    | BindingFlags.NonPublic
+                    | BindingFlags.DeclaredOnly
+            )
             .Where(static method => !method.IsSpecialName)
             .ToArray();
 
-        CollectionAssert.AreEqual(new[] { nameof(PhysicalToExecutionPlanBuilder.Build) }, builderMethods.Select(static method => method.MetadataName).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { nameof(PhysicalToExecutionPlanBuilder.Build) },
+            builderMethods.Select(static method => method.MetadataName).ToArray()
+        );
 
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var builderFiles = RepositorySourceScan.FilesUnder(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution",
-            "*.cs")
-            .Where(file => File.ReadAllText(file).Contains("class PhysicalToExecutionPlanBuilder", StringComparison.Ordinal))
+        var builderFiles = RepositorySourceScan
+            .FilesUnder(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution", "*.cs")
+            .Where(file =>
+                File.ReadAllText(file).Contains("class PhysicalToExecutionPlanBuilder", StringComparison.Ordinal)
+            )
             .ToArray();
 
         Assert.HasCount(1, builderFiles);
@@ -49,21 +58,44 @@ public sealed class RuntimeV2RemediationCharacterizationTests : BasicEntityTestB
     [TestMethod]
     public void LoweringHandlers_ShouldUseTheDiscriminatedAttemptContract()
     {
-        var handlerConstructor = CompilerContractSymbols.For(typeof(PhysicalLoweringHandlers))
+        var handlerConstructor = CompilerContractSymbols
+            .For(typeof(PhysicalLoweringHandlers))
             .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
             .Single(static constructor => constructor.GetParameters().Length == 12);
-        var handlerDelegates = handlerConstructor.GetParameters().Select(static parameter => parameter.ParameterType).ToArray();
+        var handlerDelegates = handlerConstructor
+            .GetParameters()
+            .Select(static parameter => parameter.ParameterType)
+            .ToArray();
 
-        Assert.IsTrue(handlerDelegates.All(static type =>
-            type.IsGenericType &&
-            SymbolEqualityComparer.Default.Equals(type.GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(Func<,>))) &&
-            type.GetGenericArguments()[1].IsGenericType &&
-            SymbolEqualityComparer.Default.Equals(type.GetGenericArguments()[1].GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(LoweringAttempt<>)))));
+        Assert.IsTrue(
+            handlerDelegates.All(static type =>
+                type.IsGenericType
+                && SymbolEqualityComparer.Default.Equals(
+                    type.GetGenericTypeDefinition(),
+                    CompilerContractSymbols.For(typeof(Func<,>))
+                )
+                && type.GetGenericArguments()[1].IsGenericType
+                && SymbolEqualityComparer.Default.Equals(
+                    type.GetGenericArguments()[1].GetGenericTypeDefinition(),
+                    CompilerContractSymbols.For(typeof(LoweringAttempt<>))
+                )
+            )
+        );
 
         var attemptType = CompilerContractSymbols.For(typeof(LoweringAttempt<>));
         Assert.IsNull(attemptType.GetProperty("Supported", BindingFlags.Instance | BindingFlags.Public));
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(attemptType.GetGenericArguments()[0], attemptType.GetProperty(nameof(LoweringAttempt<object>.Value))!.PropertyType));
-        Assert.IsFalse(CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder)).GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic).Any());
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                attemptType.GetGenericArguments()[0],
+                attemptType.GetProperty(nameof(LoweringAttempt<object>.Value))!.PropertyType
+            )
+        );
+        Assert.IsFalse(
+            CompilerContractSymbols
+                .For(typeof(PhysicalToExecutionPlanBuilder))
+                .GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)
+                .Any()
+        );
     }
 
     [TestMethod]

@@ -17,7 +17,8 @@ public partial class Table
         ArgumentNullException.ThrowIfNull(value);
         if (value.Count != _columnsByIndex.Count)
             throw new NotSupportedException(
-                $"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
+                $"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required."
+            );
 
         var validation = new ColumnTypeValidation(_columnsByIndex);
         value.VisitColumns(ref validation);
@@ -51,7 +52,8 @@ public partial class Table
     public void AddRange(IEnumerable<Row> values)
     {
         ArgumentNullException.ThrowIfNull(values);
-        foreach (var value in values) Add(value);
+        foreach (var value in values)
+            Add(value);
     }
 
     public void AddDirectDeferred<TRow>(RowShard<TRow>[] shards)
@@ -129,8 +131,9 @@ public partial class Table
             return;
 
         _rows.Capacity = Math.Max(_rows.Capacity, _rows.Count + _pendingDirectRowCount);
-        var pendingDirectRowShards = _pendingDirectRowShards ??
-            throw new InvalidOperationException("Pending direct row count was set without row shards.");
+        var pendingDirectRowShards =
+            _pendingDirectRowShards
+            ?? throw new InvalidOperationException("Pending direct row count was set without row shards.");
         foreach (var shard in pendingDirectRowShards)
             shard.AppendTo(_rows);
 
@@ -154,9 +157,11 @@ public partial class Table
 
         public static DirectRowShard FromRows(Row[] rows, int count) => new(rows, null, count);
 
-        public static DirectRowShard FromRows<TRow>(TRow[] rows, int count) where TRow : Row => new(null, rows, count);
+        public static DirectRowShard FromRows<TRow>(TRow[] rows, int count)
+            where TRow : Row => new(null, rows, count);
 
-        public static DirectRowShard FromList<TRow>(IReadOnlyList<TRow> rows) where TRow : Row => new(null, rows, rows.Count);
+        public static DirectRowShard FromList<TRow>(IReadOnlyList<TRow> rows)
+            where TRow : Row => new(null, rows, rows.Count);
 
         public void AppendTo(List<Row> target)
         {
@@ -174,7 +179,8 @@ public partial class Table
                 return;
             }
 
-            var list = _list ?? throw new InvalidOperationException("Direct row shard contains neither array nor list rows.");
+            var list =
+                _list ?? throw new InvalidOperationException("Direct row shard contains neither array nor list rows.");
             for (var index = 0; index < Count; index++)
                 target.Add(list[index]);
         }

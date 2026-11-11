@@ -72,7 +72,7 @@ public class FieldValueValidationNode : Node
             FieldValueValidationKind.Const => "const",
             FieldValueValidationKind.Magic => "magic",
             FieldValueValidationKind.OneOf => "oneOf",
-            _ => "const"
+            _ => "const",
         };
 
         if (Kind != FieldValueValidationKind.OneOf && !IsByteList)

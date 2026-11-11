@@ -11,16 +11,16 @@ public sealed class RecordFieldNode
 {
     public RecordFieldNode(string name, Node expression, TextSpan nameSpan, TextSpan span)
     {
-        Name = string.IsNullOrWhiteSpace(name) ? throw new ArgumentException("Field name cannot be empty.", nameof(name)) : name;
+        Name = string.IsNullOrWhiteSpace(name)
+            ? throw new ArgumentException("Field name cannot be empty.", nameof(name))
+            : name;
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         NameSpan = nameSpan;
         Span = span;
     }
 
     public RecordFieldNode(string name, Node expression)
-        : this(name, expression, TextSpan.Empty, expression?.Span ?? TextSpan.Empty)
-    {
-    }
+        : this(name, expression, TextSpan.Empty, expression?.Span ?? TextSpan.Empty) { }
 
     public string Name { get; }
 
@@ -46,17 +46,17 @@ public sealed class RecordLiteralNode : ArgsListNode
 {
     public RecordLiteralNode(IReadOnlyList<RecordFieldNode> fields, TextSpan span)
         : base(
-            fields?.Select(static field => field.Expression).ToArray() ?? throw new ArgumentNullException(nameof(fields)),
+            fields?.Select(static field => field.Expression).ToArray()
+                ?? throw new ArgumentNullException(nameof(fields)),
             fields.Select(static field => new ArgumentName(field.Name, field.NameSpan)).Cast<ArgumentName?>().ToArray(),
-            span)
+            span
+        )
     {
         Fields = new ReadOnlyCollection<RecordFieldNode>(fields.ToArray());
     }
 
     public RecordLiteralNode(IReadOnlyList<RecordFieldNode> fields)
-        : this(fields, TextSpan.Empty)
-    {
-    }
+        : this(fields, TextSpan.Empty) { }
 
     public IReadOnlyList<RecordFieldNode> Fields { get; }
 

@@ -16,16 +16,23 @@ public sealed class GeneratedCodeArtifactCacheTests
         var factoryCalls = 0;
 
         var values = await Task.WhenAll(
-            Enumerable.Range(0, 32).Select(index => Task.Run(() =>
-                cache.GetOrAdd(
-                    "sample",
-                    key =>
-                    {
-                        Interlocked.Increment(ref factoryCalls);
-                        Thread.SpinWait(100_000);
-                        return "generated";
-                    },
-                    out _))));
+            Enumerable
+                .Range(0, 32)
+                .Select(index =>
+                    Task.Run(() =>
+                        cache.GetOrAdd(
+                            "sample",
+                            key =>
+                            {
+                                Interlocked.Increment(ref factoryCalls);
+                                Thread.SpinWait(100_000);
+                                return "generated";
+                            },
+                            out _
+                        )
+                    )
+                )
+        );
 
         Assert.AreEqual(1, factoryCalls);
         CollectionAssert.AreEqual(new[] { "generated" }, values.Distinct().ToArray());
@@ -59,7 +66,9 @@ public sealed class GeneratedCodeArtifactCacheTests
                     factoryCalls++;
                     throw new InvalidOperationException("expected");
                 },
-                out _));
+                out _
+            )
+        );
 
         var value = cache.GetOrAdd(
             "sample",
@@ -68,7 +77,8 @@ public sealed class GeneratedCodeArtifactCacheTests
                 factoryCalls++;
                 return "recovered";
             },
-            out var cacheHit);
+            out var cacheHit
+        );
 
         Assert.AreEqual("recovered", value);
         Assert.IsFalse(cacheHit);

@@ -11,15 +11,14 @@ public class UnknownQueryTestsBase : MSTestContextTestBase
 
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
-    protected CompiledQuery CreateAndRunVirtualMachine(
-        string script,
-        IReadOnlyCollection<dynamic> values)
+    protected CompiledQuery CreateAndRunVirtualMachine(string script, IReadOnlyCollection<dynamic> values)
     {
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             new UnknownSchemaProvider(values),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 }

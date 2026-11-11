@@ -10,7 +10,8 @@ public sealed record ExecutionProjectTable : ExecutionNode
         GeneratedRowShape rowShape,
         IReadOnlyList<int> fieldIndexes,
         ExecutionCapacityHint? capacityHint = null,
-        ExecutionAppendMode appendMode = ExecutionAppendMode.Checked)
+        ExecutionAppendMode appendMode = ExecutionAppendMode.Checked
+    )
     {
         Source = source;
         Target = target;

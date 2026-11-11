@@ -13,5 +13,5 @@ internal enum AggregateInlineKind
     Sum,
     Avg,
     Min,
-    Max
+    Max,
 }

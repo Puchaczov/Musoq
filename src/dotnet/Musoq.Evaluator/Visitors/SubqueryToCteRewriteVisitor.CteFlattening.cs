@@ -18,7 +18,9 @@ public partial class SubqueryToCteRewriteVisitor
             }
 
             flattened.AddRange(nested.InnerExpression);
-            flattened.Add(new CteInnerExpressionNode(nested.OuterExpression, set.Name, set.Columns, set.IsRecursiveDefinition));
+            flattened.Add(
+                new CteInnerExpressionNode(nested.OuterExpression, set.Name, set.Columns, set.IsRecursiveDefinition)
+            );
         }
 
         return flattened.ToArray();

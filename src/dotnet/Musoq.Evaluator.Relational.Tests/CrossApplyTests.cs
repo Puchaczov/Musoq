@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class CrossApplyTests : GenericEntityTestBase
 {
-
     [TestMethod]
     public void WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_ShouldPass()
     {
@@ -18,16 +17,46 @@ public class CrossApplyTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -38,7 +67,8 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -49,35 +79,66 @@ public class CrossApplyTests : GenericEntityTestBase
             ("Population", typeof(int)),
             ("Country", typeof(string)),
             ("Money", typeof(decimal)),
-            ("Month", typeof(string)));
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", "Country1", 100, "Country1", 1000m, "January"],
             ["City1", "Country1", 100, "Country1", 2000m, "February"],
             ["City2", "Country1", 200, "Country1", 1000m, "January"],
             ["City2", "Country1", 200, "Country1", 2000m, "February"],
-            ["City3", "Country2", 300, "Country2", 3000m, "March"]);
+            ["City3", "Country2", 300, "Country2", 3000m, "March"]
+        );
     }
 
     [TestMethod]
-    public void
-        WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_UseOnlyValuesOfCrossApplySchemaMethod_ShouldPass()
+    public void WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_UseOnlyValuesOfCrossApplySchemaMethod_ShouldPass()
     {
         const string query =
             "select b.Country, b.Money, b.Month from #schema.first() a cross apply #schema.second(a.Country) b";
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -88,7 +149,8 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -96,35 +158,66 @@ public class CrossApplyTests : GenericEntityTestBase
             table,
             ("Country", typeof(string)),
             ("Money", typeof(decimal)),
-            ("Month", typeof(string)));
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Country1", 1000m, "January"],
             ["Country1", 2000m, "February"],
             ["Country1", 1000m, "January"],
             ["Country1", 2000m, "February"],
-            ["Country2", 3000m, "March"]);
+            ["Country2", 3000m, "March"]
+        );
     }
 
     [TestMethod]
-    public void
-        WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_FilterWithAValue_ShouldPass()
+    public void WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_FilterWithAValue_ShouldPass()
     {
         const string query =
             "select b.Country, b.Money, b.Month from #schema.first() a cross apply #schema.second(a.Country) b where a.Country = 'Country2'";
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -135,7 +228,8 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -143,10 +237,9 @@ public class CrossApplyTests : GenericEntityTestBase
             table,
             ("Country", typeof(string)),
             ("Money", typeof(decimal)),
-            ("Month", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Country2", 3000m, "March"]);
+            ("Month", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Country2", 3000m, "March"]);
     }
 
     [TestMethod]
@@ -157,23 +250,53 @@ public class CrossApplyTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var thirdSource = new List<CrossApplyClass3>
         {
             new() { Country = "Country1", Address = "Address1" },
             new() { Country = "Country1", Address = "Address2" },
-            new() { Country = "Country2", Address = "Address3" }
+            new() { Country = "Country2", Address = "Address3" },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -188,7 +311,8 @@ public class CrossApplyTests : GenericEntityTestBase
             (parameters, source) =>
                 source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray(),
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -196,7 +320,8 @@ public class CrossApplyTests : GenericEntityTestBase
             table,
             ("Country", typeof(string)),
             ("Money", typeof(decimal)),
-            ("Month", typeof(string)));
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Country1", 1000m, "January"],
@@ -207,7 +332,8 @@ public class CrossApplyTests : GenericEntityTestBase
             ["Country1", 2000m, "February"],
             ["Country1", 2000m, "February"],
             ["Country1", 2000m, "February"],
-            ["Country2", 3000m, "March"]);
+            ["Country2", 3000m, "March"]
+        );
     }
 
     [TestMethod]
@@ -218,23 +344,53 @@ public class CrossApplyTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var thirdSource = new List<CrossApplyClass3>
         {
             new() { Country = "Country1", Address = "Address1" },
             new() { Country = "Country1", Address = "Address2" },
-            new() { Country = "Country2", Address = "Address3" }
+            new() { Country = "Country2", Address = "Address3" },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -249,15 +405,13 @@ public class CrossApplyTests : GenericEntityTestBase
             (parameters, source) =>
                 source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray(),
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Country1"],
-            ["Country2"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Country1"], ["Country2"]);
     }
 
     [TestMethod]
@@ -268,23 +422,53 @@ public class CrossApplyTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var thirdSource = new List<CrossApplyClass3>
         {
             new() { Country = "Country1", Address = "Address1" },
             new() { Country = "Country1", Address = "Address2" },
-            new() { Country = "Country2", Address = "Address3" }
+            new() { Country = "Country2", Address = "Address3" },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -299,7 +483,8 @@ public class CrossApplyTests : GenericEntityTestBase
             (parameters, source) =>
                 source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray(),
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -308,29 +493,57 @@ public class CrossApplyTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void
-        WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_UsedWithinCte_ShouldPass()
+    public void WhenSchemaMethodCrossAppliedWithAnotherSchema_UsesValuesOfSchemaMethodWithinTableValue_UsedWithinCte_ShouldPass()
     {
-        const string query =
-            """
-            with rows as (
-                select b.Country as Country, b.Money as Money, b.Month as Month from #schema.first() a cross apply #schema.second(a.Country) b
-            )
-            select Country, Money, Month from rows as p
-            """;
+        const string query = (
+            "with rows as (\n"
+            + "    select b.Country as Country, b.Money as Money, b.Month as Month from #schema.first() a cross apply #schema.second(a.Country) b\n"
+            + ")\n"
+            + "select Country, Money, Month from rows as p"
+        );
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -341,7 +554,8 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -349,14 +563,16 @@ public class CrossApplyTests : GenericEntityTestBase
             table,
             ("Country", typeof(string)),
             ("Money", typeof(decimal)),
-            ("Month", typeof(string)));
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Country1", 1000m, "January"],
             ["Country1", 2000m, "February"],
             ["Country1", 1000m, "January"],
             ["Country1", 2000m, "February"],
-            ["Country2", 3000m, "March"]);
+            ["Country2", 3000m, "March"]
+        );
     }
 
     public sealed class CrossApplyClass1

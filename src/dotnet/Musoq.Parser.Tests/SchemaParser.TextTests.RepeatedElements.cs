@@ -9,7 +9,10 @@ public partial class SchemaParserTextTests
     [DataRow("chars[1]", TextFieldType.Chars, "1")]
     [DataRow("literal 'x'", TextFieldType.Literal, "x")]
     public void TextRepeat_InlineElement_ShouldPreserveTypeAndDefinition(
-        string definition, TextFieldType elementType, string value)
+        string definition,
+        TextFieldType elementType,
+        string value
+    )
     {
         var text = $"text Letters {{ Items: repeat {definition} until end }}";
         var schema = ParseTextSchema(text);

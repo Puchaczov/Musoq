@@ -12,7 +12,8 @@ public sealed class RuntimeV2CastGroupingFeatureSchema(IReadOnlyList<RuntimeV2Ca
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return new RuntimeV2CastGroupingFeatureTable();
     }
@@ -20,11 +21,13 @@ public sealed class RuntimeV2CastGroupingFeatureSchema(IReadOnlyList<RuntimeV2Ca
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, RuntimeV2CastGroupingFeatureEntity>(
             name,
-            new RuntimeV2CastGroupingFeatureRowSource(rows));
+            new RuntimeV2CastGroupingFeatureRowSource(rows)
+        );
     }
 
     private static MethodsAggregator CreateLibrary()

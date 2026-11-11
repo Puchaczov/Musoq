@@ -1,6 +1,6 @@
 using System.Globalization;
-using Musoq.Parser.Nodes;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.IR;
 
@@ -28,14 +28,24 @@ public readonly record struct PagingCount
         return new PagingCount(0, name, type);
     }
 
-    internal static PagingCount FromSyntax(Node operand) => operand switch
-    {
-        IntegerNode integer => new PagingCount(checked(Convert.ToInt32(integer.ObjValue, CultureInfo.InvariantCulture)), null, null),
-        ParameterReferenceNode parameter => FromParameter(parameter.Name, ExecutionClrBindingFactory.FromClr(parameter.ReturnType!)),
-        _ => throw new InvalidOperationException("Paging operand must be bound before logical planning.")
-    };
+    internal static PagingCount FromSyntax(Node operand) =>
+        operand switch
+        {
+            IntegerNode integer => new PagingCount(
+                checked(Convert.ToInt32(integer.ObjValue, CultureInfo.InvariantCulture)),
+                null,
+                null
+            ),
+            ParameterReferenceNode parameter => FromParameter(
+                parameter.Name,
+                ExecutionClrBindingFactory.FromClr(parameter.ReturnType!)
+            ),
+            _ => throw new InvalidOperationException("Paging operand must be bound before logical planning."),
+        };
 
     public static implicit operator PagingCount(int value) => new(value, null, null);
+
     public override string ToString() => ToString(CultureInfo.InvariantCulture);
+
     public string ToString(IFormatProvider provider) => Constant?.ToString(provider) ?? $"${ParameterName}";
 }

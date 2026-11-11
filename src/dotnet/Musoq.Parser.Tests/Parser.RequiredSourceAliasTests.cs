@@ -28,7 +28,11 @@ public sealed class ParserRequiredSourceAliasTests
         Assert.AreEqual("CROSS APPLY", diagnostic.Arguments["operator"]);
         Assert.AreEqual("TAKE", diagnostic.Arguments["boundary"]);
         Assert.AreEqual("false", diagnostic.Arguments["isFirstSource"]);
-        Assert.IsTrue(new DiagnosticFormatter { UseColor = false }.Format(diagnostic).Contains("MQ2035_MissingRequiredAlias"));
+        Assert.IsTrue(
+            new DiagnosticFormatter { UseColor = false }
+                .Format(diagnostic)
+                .Contains("MQ2035_MissingRequiredAlias")
+        );
 
         var metadata = ErrorMetadataCatalog.Get(diagnostic.Code);
         Assert.IsNotNull(metadata);
@@ -60,8 +64,10 @@ public sealed class ParserRequiredSourceAliasTests
     [TestMethod]
     [DataRow("cross join", "CROSS JOIN")]
     [DataRow("outer apply", "OUTER APPLY")]
-    public void MissingRightUnconditionalSourceAlias_ShouldBeReportedBeforeNextClause(string operatorText,
-        string displayText)
+    public void MissingRightUnconditionalSourceAlias_ShouldBeReportedBeforeNextClause(
+        string operatorText,
+        string displayText
+    )
     {
         var query = $"select 1 from a.first() first {operatorText} b.second() take 1";
         var diagnostic = GetSingleDiagnostic(query);
@@ -92,8 +98,10 @@ public sealed class ParserRequiredSourceAliasTests
         var diagnostic = GetSingleDiagnostic(query);
 
         Assert.AreEqual(DiagnosticCode.MQ2035_MissingRequiredAlias, diagnostic.Code);
-        Assert.AreEqual($"The first source in a multi-source query requires an alias before {GetDisplay(operatorText)}.",
-            diagnostic.Message);
+        Assert.AreEqual(
+            $"The first source in a multi-source query requires an alias before {GetDisplay(operatorText)}.",
+            diagnostic.Message
+        );
         Assert.AreEqual(query.IndexOf("first()", StringComparison.Ordinal) + "first()".Length, diagnostic.Span.Start);
         Assert.AreEqual(0, diagnostic.Span.Length);
     }
@@ -106,7 +114,11 @@ public sealed class ParserRequiredSourceAliasTests
 
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
         Assert.AreEqual(DiagnosticCode.MQ2035_MissingRequiredAlias, result.Diagnostics[0].Code);
-        Assert.IsFalse(result.Diagnostics.Any(d => d.Code is DiagnosticCode.MQ2030_UnsupportedSyntax or DiagnosticCode.MQ2001_UnexpectedToken));
+        Assert.IsFalse(
+            result.Diagnostics.Any(d =>
+                d.Code is DiagnosticCode.MQ2030_UnsupportedSyntax or DiagnosticCode.MQ2001_UnexpectedToken
+            )
+        );
     }
 
     [TestMethod]
@@ -217,7 +229,7 @@ public sealed class ParserRequiredSourceAliasTests
             "RIGHT JOIN" or "RIGHT OUTER JOIN" => "RIGHT OUTER JOIN",
             "FULL JOIN" or "FULL OUTER JOIN" => "FULL OUTER JOIN",
             "ASOF LEFT JOIN" => "ASOF LEFT JOIN",
-            _ => operatorText.ToUpperInvariant()
+            _ => operatorText.ToUpperInvariant(),
         };
     }
 }

@@ -28,7 +28,8 @@ public class BytesTests : PluginsTestBase
     {
         Assert.HasCount(byte1.Length, byte2);
 
-        for (var i = 0; i < byte1.Length; ++i) Assert.AreEqual(byte1[i], byte2[i]);
+        for (var i = 0; i < byte1.Length; ++i)
+            Assert.AreEqual(byte1[i], byte2[i]);
     }
 
     #endregion

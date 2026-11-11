@@ -145,7 +145,10 @@ internal sealed partial class AstProjector
         Member(nameof(value.Args));
         Sequence(value.Args, static (writer, item) => writer.Write(item));
         Member(nameof(value.ArgumentNames));
-        Sequence(value.ArgumentNames, static (writer, item) => writer.Optional(item, static (writer, item) => writer.Write(item)));
+        Sequence(
+            value.ArgumentNames,
+            static (writer, item) => writer.Optional(item, static (writer, item) => writer.Write(item))
+        );
         Member(nameof(value.HasNamedArguments));
         Write(value.HasNamedArguments);
         Member(nameof(value.ReturnType));
@@ -171,7 +174,10 @@ internal sealed partial class AstProjector
         Member(nameof(value.Args));
         Sequence(value.Args, static (writer, item) => writer.Write(item));
         Member(nameof(value.ArgumentNames));
-        Sequence(value.ArgumentNames, static (writer, item) => writer.Optional(item, static (writer, item) => writer.Write(item)));
+        Sequence(
+            value.ArgumentNames,
+            static (writer, item) => writer.Optional(item, static (writer, item) => writer.Write(item))
+        );
         Member(nameof(value.HasNamedArguments));
         Write(value.HasNamedArguments);
     }
@@ -243,7 +249,20 @@ internal sealed partial class AstProjector
         Member(nameof(value.ReturnType));
         Write(value.ReturnType);
         Member(nameof(value.WhenThenPairs));
-        Sequence(value.WhenThenPairs, static (writer, item) => writer.Pair(item, static (writer, pair) => { writer.Member("When"); writer.Write(pair.When); writer.Member("Then"); writer.Write(pair.Then); }));
+        Sequence(
+            value.WhenThenPairs,
+            static (writer, item) =>
+                writer.Pair(
+                    item,
+                    static (writer, pair) =>
+                    {
+                        writer.Member("When");
+                        writer.Write(pair.When);
+                        writer.Member("Then");
+                        writer.Write(pair.Then);
+                    }
+                )
+        );
     }
 
     private void Project(global::Musoq.Parser.Nodes.CastNode value)

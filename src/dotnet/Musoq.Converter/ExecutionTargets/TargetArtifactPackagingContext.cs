@@ -15,7 +15,8 @@ internal sealed record TargetArtifactPackagingContext
         ExecutionSemanticsContract semanticsContract,
         TargetRuntimeContract? runtimeContract = null,
         ExecutionTargetReadinessReport? readinessReport = null,
-        int executionIrVersion = TargetContractVersions.ExecutionIr)
+        int executionIrVersion = TargetContractVersions.ExecutionIr
+    )
         : this(
             CancellationToken.None,
             targetId,
@@ -28,9 +29,8 @@ internal sealed record TargetArtifactPackagingContext
             semanticsContract,
             runtimeContract,
             readinessReport,
-            executionIrVersion)
-    {
-    }
+            executionIrVersion
+        ) { }
 
     public TargetArtifactPackagingContext(
         CancellationToken cancellationToken,
@@ -44,7 +44,8 @@ internal sealed record TargetArtifactPackagingContext
         ExecutionSemanticsContract semanticsContract,
         TargetRuntimeContract? runtimeContract = null,
         ExecutionTargetReadinessReport? readinessReport = null,
-        int executionIrVersion = TargetContractVersions.ExecutionIr)
+        int executionIrVersion = TargetContractVersions.ExecutionIr
+    )
     {
         CancellationToken = cancellationToken;
         if (executionIrVersion <= 0)

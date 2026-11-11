@@ -7,7 +7,6 @@ using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Schema;
 using Musoq.TypedLibraryExamples;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionDocumentationQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -22,8 +21,13 @@ public sealed class LibraryExecutionDocumentationQueryTests : GenericEntityTestB
         using var compiled = CreateAndRunVirtualMachine<Invoice, InvoiceLibrary>(query, Rows());
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table, ("Customer", typeof(string)), ("Total", typeof(decimal?)),
-            ("Positive", typeof(long)), ("AverageQuantity", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Customer", typeof(string)),
+            ("Total", typeof(decimal?)),
+            ("Positive", typeof(long)),
+            ("AverageQuantity", typeof(decimal?))
+        );
         Assert.HasCount(2, rows);
         Assert.AreEqual("A", rows[0].GetValue<string>(0));
         Assert.AreEqual(3.75m, rows[0].GetValue<decimal?>(1));
@@ -46,11 +50,16 @@ public sealed class LibraryExecutionDocumentationQueryTests : GenericEntityTestB
         using var compiled = CreateAndRunVirtualMachine<Invoice, InvoiceLibrary>(query, Rows());
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)), ("RunningTotal", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Position", typeof(int)),
+            ("RunningTotal", typeof(decimal?))
+        );
         Assert.HasCount(4, rows);
-        CollectionAssert.AreEqual(new[] { 1, 2, 3, 4 },
-            rows.Select(row => row.GetValue<int>(0)).ToArray());
-        CollectionAssert.AreEqual(new decimal?[] { 1.25m, 3.75m, 3.75m, -1m },
-            rows.Select(row => row.GetValue<decimal?>(1)).ToArray());
+        CollectionAssert.AreEqual(new[] { 1, 2, 3, 4 }, rows.Select(row => row.GetValue<int>(0)).ToArray());
+        CollectionAssert.AreEqual(
+            new decimal?[] { 1.25m, 3.75m, 3.75m, -1m },
+            rows.Select(row => row.GetValue<decimal?>(1)).ToArray()
+        );
     }
 }

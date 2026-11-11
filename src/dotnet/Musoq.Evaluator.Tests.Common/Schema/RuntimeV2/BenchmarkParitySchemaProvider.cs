@@ -19,16 +19,22 @@ public sealed class BenchmarkParitySchemaProvider(IReadOnlyList<BenchmarkParityE
 public sealed class BenchmarkParitySchema(IReadOnlyList<BenchmarkParityEntity> rows)
     : SchemaBase("test", CreateLibrary())
 {
-    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-        => base.DescribeSource(name, context, parameters) with
+    public override SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters
+    ) =>
+        base.DescribeSource(name, context, parameters) with
         {
-            ExecutionPermissions = SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing
+            ExecutionPermissions =
+                SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing,
         };
 
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return new BenchmarkParityTable();
     }
@@ -36,7 +42,8 @@ public sealed class BenchmarkParitySchema(IReadOnlyList<BenchmarkParityEntity> r
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, BenchmarkParityEntity>(name, new BenchmarkParityRowSource(rows));
     }
@@ -60,7 +67,7 @@ public sealed class BenchmarkParityTable : ISchemaTable
         new SchemaColumn(nameof(BenchmarkParityEntity.Category), 3, typeof(string)),
         new SchemaColumn(nameof(BenchmarkParityEntity.City), 4, typeof(string)),
         new SchemaColumn(nameof(BenchmarkParityEntity.Country), 5, typeof(string)),
-        new SchemaColumn(nameof(BenchmarkParityEntity.Population), 6, typeof(decimal))
+        new SchemaColumn(nameof(BenchmarkParityEntity.Population), 6, typeof(decimal)),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(BenchmarkParityEntity));

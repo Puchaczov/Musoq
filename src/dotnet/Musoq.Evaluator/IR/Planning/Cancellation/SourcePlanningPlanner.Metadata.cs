@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Schema.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Planning.OptimizationDiagnostics;
@@ -8,19 +7,25 @@ using Musoq.Evaluator.IR.SourcePlanning;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
+using Musoq.Schema.Diagnostics;
 using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator.IR.Planning.SourcePlanning;
 
 internal static partial class SourcePlanningPlanner
 {
-    private static (SourcePlanResult Result, SourceDescriptor Descriptor, SourcePlanRequest Request,
-        SourceComputedProjectionAnalysis Computed) PlanSource(
+    private static (
+        SourcePlanResult Result,
+        SourceDescriptor Descriptor,
+        SourcePlanRequest Request,
+        SourceComputedProjectionAnalysis Computed
+    ) PlanSource(
         PlanningContext context,
         SchemaScanNode scan,
         SchemaFromNode? sourceNode,
         SourcePlanRequest request,
-        IReadOnlyList<RequiredColumnUsage> usages)
+        IReadOnlyList<RequiredColumnUsage> usages
+    )
     {
         context.CancellationToken.ThrowIfCancellationRequested();
         request = request with { CancellationToken = context.CancellationToken };
@@ -37,43 +42,58 @@ internal static partial class SourcePlanningPlanner
                 scan.Alias,
                 request.Identity.SourceContextId,
                 "construct",
-                exception.InnerException ?? exception);
+                exception.InnerException ?? exception
+            );
         }
         context.CancellationToken.ThrowIfCancellationRequested();
         var semanticSource = sourceNode as Musoq.Evaluator.Parser.SchemaFromNode;
-        var parameters = semanticSource?.BoundInvocation?.Signature.SourceConstructionType != null
-            ? []
-            : semanticSource is { StaticMetadataArguments.Length: > 0 } or
-                         { HasRequiredRuntimeArguments: true }
-            ? semanticSource.StaticMetadataArguments
+        var parameters =
+            semanticSource?.BoundInvocation?.Signature.SourceConstructionType != null ? []
+            : semanticSource is { StaticMetadataArguments.Length: > 0 } or { HasRequiredRuntimeArguments: true }
+                ? semanticSource.StaticMetadataArguments
             : semanticSource != null
-                ? SchemaArgumentBinder.BindStaticArguments(semanticSource.Parameters, invocation: semanticSource.BoundInvocation)
-                : sourceNode != null
-                    ? SchemaArgumentBinder.BindStaticArguments(sourceNode.Parameters)
-                    : [];
+                ? SchemaArgumentBinder.BindStaticArguments(
+                    semanticSource.Parameters,
+                    invocation: semanticSource.BoundInvocation
+                )
+            : sourceNode != null ? SchemaArgumentBinder.BindStaticArguments(sourceNode.Parameters)
+            : [];
         var metadataContext = new SourceMetadataContext(
             request.Identity.SourceContextId,
             context.CancellationToken,
             ResolveColumns(context, scan),
             request.SourceRuntimeSettings,
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
 
         SourceDescriptor descriptor;
         try
         {
-            descriptor = SchemaProviderBoundary.Invoke(() => schema.DescribeSource(
-                scan.MethodName,
-                new SourceDescribeContext(request.Identity, metadataContext),
-                parameters));
+            descriptor = SchemaProviderBoundary.Invoke(() =>
+                schema.DescribeSource(
+                    scan.MethodName,
+                    new SourceDescribeContext(request.Identity, metadataContext),
+                    parameters
+                )
+            );
             context.CancellationToken.ThrowIfCancellationRequested();
-            var reportedError = descriptor.ReportedDiagnostics.FirstOrDefault(report => report.Severity == DataSourceDiagnosticSeverity.Error);
+            var reportedError = descriptor.ReportedDiagnostics.FirstOrDefault(report =>
+                report.Severity == DataSourceDiagnosticSeverity.Error
+            );
             if (reportedError is not null)
-                throw DataSourceLifecycleException.ForProviderOperation(scan.SchemaName, scan.MethodName, request.Identity.Alias,
-                    request.Identity.SourceContextId, "describe", new DataSourceException(reportedError));
+                throw DataSourceLifecycleException.ForProviderOperation(
+                    scan.SchemaName,
+                    scan.MethodName,
+                    request.Identity.Alias,
+                    request.Identity.SourceContextId,
+                    "describe",
+                    new DataSourceException(reportedError)
+                );
             EnumSourceDescriptorContractValidator.Validate(
                 metadataContext.AllColumns,
                 descriptor,
-                columnName => ResolveColumnSpan(context, sourceNode, columnName));
+                columnName => ResolveColumnSpan(context, sourceNode, columnName)
+            );
             descriptor = ValidateQueryScopedRowsCapability(schema, descriptor);
         }
         catch (SchemaProviderFailureException exception) when (semanticSource?.HasRequiredRuntimeArguments == true)
@@ -88,45 +108,51 @@ internal static partial class SourcePlanningPlanner
                 request.Identity.Alias,
                 request.Identity.SourceContextId,
                 "describe",
-                exception.InnerException ?? exception);
+                exception.InnerException ?? exception
+            );
         }
-        catch (SchemaArgumentException exception) when (
-            semanticSource?.HasRequiredRuntimeArguments == true &&
-            !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
+        catch (SchemaArgumentException exception)
+            when (semanticSource?.HasRequiredRuntimeArguments == true
+                && !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal)
+            )
         {
             throw CreateMetadataDefaultException(scan, semanticSource, exception);
         }
 
-        var computed = SourceComputedProjectionPlanner.Analyze(context, request.Identity.SourceContextId, descriptor, usages);
+        var computed = SourceComputedProjectionPlanner.Analyze(
+            context,
+            request.Identity.SourceContextId,
+            descriptor,
+            usages
+        );
         if (computed.Offers.Count > 0)
         {
             request = request with
             {
-                RequestedComputedProjections = computed.Offers.Select(static item => item.Projection).ToArray()
+                RequestedComputedProjections = computed.Offers.Select(static item => item.Projection).ToArray(),
             };
         }
         var sourceSpan = ResolveSourceSpan(sourceNode);
-        SourcePredicatePlanContractValidator.ValidateCapabilities(
-            descriptor.PredicateCapabilities,
-            sourceSpan);
+        SourcePredicatePlanContractValidator.ValidateCapabilities(descriptor.PredicateCapabilities, sourceSpan);
         var predicateNegotiation = SourcePredicateCapabilityNegotiator.Negotiate(
             request,
-            descriptor.PredicateCapabilities);
+            descriptor.PredicateCapabilities
+        );
 
         SourcePlanResult result;
         try
         {
-            result = SchemaProviderBoundary.Invoke(() => schema.TryPlanSource(
-                         scan.MethodName,
-                         predicateNegotiation.ProviderRequest,
-                         parameters))
-                     ?? SourcePlanResult.RejectAll(predicateNegotiation.ProviderRequest);
+            result =
+                SchemaProviderBoundary.Invoke(() =>
+                    schema.TryPlanSource(scan.MethodName, predicateNegotiation.ProviderRequest, parameters)
+                ) ?? SourcePlanResult.RejectAll(predicateNegotiation.ProviderRequest);
             context.CancellationToken.ThrowIfCancellationRequested();
             SourcePredicatePlanContractValidator.Validate(
                 predicateNegotiation.ProviderRequest,
                 result,
                 descriptor.PredicateCapabilities,
-                sourceSpan);
+                sourceSpan
+            );
             result = SourcePredicateCapabilityNegotiator.RestoreDeferredPredicates(result, predicateNegotiation);
             if (predicateNegotiation.HasUnknownContractVersion)
             {
@@ -136,9 +162,12 @@ internal static partial class SourcePlanningPlanner
                     [
                         .. result.Diagnostics,
                         OptimizationDiagnostic.Warning(
-                                $"Source predicate capability contract version {descriptor.PredicateCapabilities.ContractVersion} is not understood; typed pattern predicates remain residual.")
-                            with { Origin = "SourcePredicateCapabilityNegotiation" }
-                    ]
+                            $"Source predicate capability contract version {descriptor.PredicateCapabilities.ContractVersion} is not understood; typed pattern predicates remain residual."
+                        ) with
+                        {
+                            Origin = "SourcePredicateCapabilityNegotiation",
+                        },
+                    ],
                 };
             }
 
@@ -146,7 +175,8 @@ internal static partial class SourcePlanningPlanner
                 request,
                 result,
                 descriptor.PredicateCapabilities,
-                sourceSpan);
+                sourceSpan
+            );
         }
         catch (SchemaProviderFailureException exception) when (semanticSource?.HasRequiredRuntimeArguments == true)
         {
@@ -160,11 +190,13 @@ internal static partial class SourcePlanningPlanner
                 request.Identity.Alias,
                 request.Identity.SourceContextId,
                 "plan",
-                exception.InnerException ?? exception);
+                exception.InnerException ?? exception
+            );
         }
-        catch (SchemaArgumentException exception) when (
-            semanticSource?.HasRequiredRuntimeArguments == true &&
-            !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
+        catch (SchemaArgumentException exception)
+            when (semanticSource?.HasRequiredRuntimeArguments == true
+                && !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal)
+            )
         {
             throw CreateMetadataDefaultException(scan, semanticSource, exception);
         }
@@ -177,43 +209,60 @@ internal static partial class SourcePlanningPlanner
         return (result, descriptor, request, computed);
     }
 
-    private static SourceDescriptor ValidateQueryScopedRowsCapability(
-        ISchema schema,
-        SourceDescriptor descriptor)
+    private static SourceDescriptor ValidateQueryScopedRowsCapability(ISchema schema, SourceDescriptor descriptor)
     {
-        if (!descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows) &&
-            descriptor.RowType is not null && DynamicEntityBoundary.IsNameIndexedSource(descriptor.RowType))
+        if (
+            !descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows)
+            && descriptor.RowType is not null
+            && DynamicEntityBoundary.IsNameIndexedSource(descriptor.RowType)
+        )
             return descriptor with
             {
-                ContractDiagnostics = [.. descriptor.ContractDiagnostics, SourceContractDiagnostic.Error(
-                    "Erased dynamic rows require native QueryScopedRows transfer with authoritative concrete columns.",
-                    "ErasedDynamicTransferRemoved")]
+                ContractDiagnostics =
+                [
+                    .. descriptor.ContractDiagnostics,
+                    SourceContractDiagnostic.Error(
+                        "Erased dynamic rows require native QueryScopedRows transfer with authoritative concrete columns.",
+                        "ErasedDynamicTransferRemoved"
+                    ),
+                ],
             };
 
-        if (descriptor.RowType == typeof(QueryScopedRowContract) &&
-            !descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows))
+        if (
+            descriptor.RowType == typeof(QueryScopedRowContract)
+            && !descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows)
+        )
             return descriptor with
             {
-                ContractDiagnostics = [.. descriptor.ContractDiagnostics, SourceContractDiagnostic.Error(
-                    "Authoritative query-scoped columns require native QueryScopedRows transfer.", "QueryScopedContractMissingTransfer")]
+                ContractDiagnostics =
+                [
+                    .. descriptor.ContractDiagnostics,
+                    SourceContractDiagnostic.Error(
+                        "Authoritative query-scoped columns require native QueryScopedRows transfer.",
+                        "QueryScopedContractMissingTransfer"
+                    ),
+                ],
             };
 
-        if (!descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows) ||
-            schema is IQueryScopedRowSourceSchema)
+        if (
+            !descriptor.TransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows)
+            || schema is IQueryScopedRowSourceSchema
+        )
         {
             return descriptor;
         }
 
         var runtimeSchemaTypeName = schema.GetType().FullName ?? schema.GetType().Name;
         var diagnostic = SourceContractDiagnostic.Error(
-            $"Schema '{schema.Name}' advertises '{nameof(SourceTransferCapabilities.QueryScopedRows)}', " +
-            $"but runtime schema type '{runtimeSchemaTypeName}' does not implement " +
-            $"'{nameof(IQueryScopedRowSourceSchema)}'.",
-            "QueryScopedRowsMissingRuntimeImplementation");
+            $"Schema '{schema.Name}' advertises '{nameof(SourceTransferCapabilities.QueryScopedRows)}', "
+                + $"but runtime schema type '{runtimeSchemaTypeName}' does not implement "
+                + $"'{nameof(IQueryScopedRowSourceSchema)}'.",
+            "QueryScopedRowsMissingRuntimeImplementation"
+        );
 
         return descriptor with
         {
-            ContractDiagnostics = [.. descriptor.ContractDiagnostics, diagnostic]
+            ContractDiagnostics = [.. descriptor.ContractDiagnostics, diagnostic],
         };
     }
 }

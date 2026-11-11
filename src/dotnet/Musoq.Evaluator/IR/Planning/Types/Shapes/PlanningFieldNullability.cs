@@ -4,5 +4,5 @@ internal enum PlanningFieldNullability
 {
     Unknown,
     Nullable,
-    NotNullable
+    NotNullable,
 }

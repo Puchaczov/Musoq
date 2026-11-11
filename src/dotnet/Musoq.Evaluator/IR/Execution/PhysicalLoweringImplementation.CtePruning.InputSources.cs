@@ -21,36 +21,42 @@ internal sealed partial class PhysicalLoweringImplementation
         {
             PhysicalFilterNode filter => new PhysicalFilterNode(
                 filter.Predicate,
-                PruneProjectInputCore(filter.Input, [..expressions, filter.Predicate])),
+                PruneProjectInputCore(filter.Input, [.. expressions, filter.Predicate])
+            ),
             PhysicalSchemaScanNode scan => PruneSchemaScan(scan, expressions),
-            _ => input
+            _ => input,
         };
     }
 
     private static PhysicalSchemaScanNode PruneSchemaScan(
         PhysicalSchemaScanNode scan,
-        IReadOnlyList<IrExpression> expressions)
+        IReadOnlyList<IrExpression> expressions
+    )
     {
         var required = expressions
             .SelectMany(ColumnRefExtractor.Extract)
-            .Where(column => string.IsNullOrWhiteSpace(column.Alias) ||
-                             string.Equals(column.Alias, scan.Alias, StringComparison.OrdinalIgnoreCase))
-            .Select(column => CteColumnUsageCollector.GetColumnRoot(CteColumnUsageCollector.NormalizeColumnName(column.ColumnName, scan.Alias)))
+            .Where(column =>
+                string.IsNullOrWhiteSpace(column.Alias)
+                || string.Equals(column.Alias, scan.Alias, StringComparison.OrdinalIgnoreCase)
+            )
+            .Select(column =>
+                CteColumnUsageCollector.GetColumnRoot(
+                    CteColumnUsageCollector.NormalizeColumnName(column.ColumnName, scan.Alias)
+                )
+            )
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         if (required.Count == 0)
             return scan;
 
-        var columns = scan.OutputSchema.Columns
-            .Where(column => required.Contains(column.Name))
-            .ToArray();
+        var columns = scan.OutputSchema.Columns.Where(column => required.Contains(column.Name)).ToArray();
 
         return columns.Length == 0 || columns.Length == scan.OutputSchema.Columns.Length
             ? scan
             : scan with
             {
                 OutputSchema = new OutputSchema(columns),
-                ProjectedColumns = columns.Select(static column => column.Name).ToArray()
+                ProjectedColumns = columns.Select(static column => column.Name).ToArray(),
             };
     }
 
@@ -63,19 +69,20 @@ internal sealed partial class PhysicalLoweringImplementation
             BinaryOp binary => ContainsSourceInjectedMethod(binary.Left) || ContainsSourceInjectedMethod(binary.Right),
             UnaryOp unary => ContainsSourceInjectedMethod(unary.Operand),
             IsNullCheck isNull => ContainsSourceInjectedMethod(isNull.Expression),
-            InCheck check => ContainsSourceInjectedMethod(check.Expression) || check.Values.Any(ContainsSourceInjectedMethod),
-            PatternMatch match => ContainsSourceInjectedMethod(match.Expression) || ContainsSourceInjectedMethod(match.Pattern),
-            Between between => ContainsSourceInjectedMethod(between.Expression) ||
-                               ContainsSourceInjectedMethod(between.Low) ||
-                               ContainsSourceInjectedMethod(between.High),
+            InCheck check => ContainsSourceInjectedMethod(check.Expression)
+                || check.Values.Any(ContainsSourceInjectedMethod),
+            PatternMatch match => ContainsSourceInjectedMethod(match.Expression)
+                || ContainsSourceInjectedMethod(match.Pattern),
+            Between between => ContainsSourceInjectedMethod(between.Expression)
+                || ContainsSourceInjectedMethod(between.Low)
+                || ContainsSourceInjectedMethod(between.High),
             CaseWhen caseWhen => caseWhen.Branches.Any(branch =>
-                                     ContainsSourceInjectedMethod(branch.Condition) ||
-                                     ContainsSourceInjectedMethod(branch.Result)) ||
-                                 (caseWhen.ElseExpression != null &&
-                                  ContainsSourceInjectedMethod(caseWhen.ElseExpression)),
+                ContainsSourceInjectedMethod(branch.Condition) || ContainsSourceInjectedMethod(branch.Result)
+            ) || (caseWhen.ElseExpression != null && ContainsSourceInjectedMethod(caseWhen.ElseExpression)),
             Coalesce coalesce => coalesce.Expressions.Any(ContainsSourceInjectedMethod),
-            ArrayAccess access => ContainsSourceInjectedMethod(access.Array) || ContainsSourceInjectedMethod(access.Index),
-            _ => false
+            ArrayAccess access => ContainsSourceInjectedMethod(access.Array)
+                || ContainsSourceInjectedMethod(access.Index),
+            _ => false,
         };
     }
 }

@@ -16,8 +16,12 @@ public sealed partial class ExecutionCSharpRendererTests
             [
                 new ExecutionStructuralField("Id", new ExecutionLiteral(3, typeof(int))),
                 new ExecutionStructuralField("Absent", new ExecutionLiteral(7, typeof(int)), IsPresent: false),
-                new ExecutionStructuralField("Mode", new ExecutionLiteral(null, typeof(string)))
-            ]) { GeneratedTypeName = "__musoqStructuralCarrier_0_root" };
+                new ExecutionStructuralField("Mode", new ExecutionLiteral(null, typeof(string))),
+            ]
+        )
+        {
+            GeneratedTypeName = "__musoqStructuralCarrier_0_root",
+        };
         var plan = CreateProjectionPlan("Q_PublicRecord", "Value", typeof(StructuralValue), record);
         var renderer = new ExecutionCSharpRenderer();
 
@@ -34,7 +38,8 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var record = new ExecutionStructuralRecord(
             ExecutionClrBindingFactory.FromClr(typeof(Uri)),
-            [new ExecutionStructuralField("Value", new ExecutionLiteral("todo", typeof(string)))]);
+            [new ExecutionStructuralField("Value", new ExecutionLiteral("todo", typeof(string)))]
+        );
         var plan = CreateProjectionPlan("Q_UnboundReceiverRecord", "Value", typeof(Uri), record);
 
         Assert.IsFalse(new ExecutionCSharpRenderer().CanRender(plan));

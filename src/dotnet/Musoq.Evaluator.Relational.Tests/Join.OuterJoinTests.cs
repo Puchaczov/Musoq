@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class JoinOuterJoinTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void SimpleLeftJoinTest()
     {
@@ -15,23 +14,14 @@ public class JoinOuterJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#B",
-                [
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }] },
+            { "#B", [] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Id", typeof(int)), ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1, null });
     }
 
@@ -43,16 +33,14 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("xX") { Id = 1 }, new BasicEntity("yY") { Id = 2 }] },
-            { "#B", [new BasicEntity("xX") { Id = 2 }] }
+            { "#B", [new BasicEntity("xX") { Id = 2 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Id", typeof(int)), ("Id", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { 1, null }, new object?[] { 2, 2 });
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { 1, null }, new object?[] { 2, 2 });
     }
 
     [TestMethod]
@@ -63,16 +51,14 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("xX") { Id = 1 }, new BasicEntity("yY") { Id = 2 }] },
-            { "#B", [new BasicEntity("xX") { Id = 2 }] }
+            { "#B", [new BasicEntity("xX") { Id = 2 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Id", typeof(int)), ("Id", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { 1, null }, new object?[] { 2, 2 });
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { 1, null }, new object?[] { 2, 2 });
     }
 
     [TestMethod]
@@ -83,23 +69,19 @@ public class JoinOuterJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#B",
-                [
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }] },
+            { "#B", [] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Id", typeof(int)), ("Id", typeof(int?)), ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1, null, null });
     }
 
@@ -111,29 +93,20 @@ public class JoinOuterJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#B",
-                [
-                ]
-            },
-            {
-                "#C",
-                [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }] },
+            { "#B", [] },
+            { "#C", [new BasicEntity("xX") { Id = 1 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Id", typeof(int)), ("Id", typeof(int?)), ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1, null, null });
     }
 
@@ -145,33 +118,25 @@ public class JoinOuterJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 },
-                    new BasicEntity("xX") { Id = 2 }
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#C",
-                [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }, new BasicEntity("xX") { Id = 2 }] },
+            { "#B", [new BasicEntity("xX") { Id = 1 }] },
+            { "#C", [new BasicEntity("xX") { Id = 1 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Id", typeof(int)), ("Id", typeof(int?)), ("Id", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { 1, 1, 1 }, new object?[] { 2, null, null });
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int)),
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { 1, 1, 1 },
+            new object?[] { 2, null, null }
+        );
     }
 
     [TestMethod]
@@ -181,23 +146,14 @@ public class JoinOuterJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            }
+            { "#A", [] },
+            { "#B", [new BasicEntity("xX") { Id = 1 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Id", typeof(int?)), ("Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int?)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null, 1 });
     }
 
@@ -209,33 +165,25 @@ public class JoinOuterJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#C",
-                [
-                    new BasicEntity("xX") { Id = 1 },
-                    new BasicEntity("xX") { Id = 2 }
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }] },
+            { "#B", [new BasicEntity("xX") { Id = 1 }] },
+            { "#C", [new BasicEntity("xX") { Id = 1 }, new BasicEntity("xX") { Id = 2 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Id", typeof(int?)), ("Id", typeof(int?)), ("Id", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { 1, 1, 1 }, new object?[] { null, null, 2 });
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?)),
+            ("Id", typeof(int))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { 1, 1, 1 },
+            new object?[] { null, null, 2 }
+        );
     }
 
     [TestMethod]
@@ -246,120 +194,83 @@ public class JoinOuterJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity("xX") { Id = 2 }
-                ]
-            },
-            {
-                "#C",
-                [
-                    new BasicEntity("xX") { Id = 3 }
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }] },
+            { "#B", [new BasicEntity("xX") { Id = 2 }] },
+            { "#C", [new BasicEntity("xX") { Id = 3 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
+        TableMaterializationTestHelper.AssertColumns(
+            table,
             ("a.ToDecimal(a.Id)", typeof(decimal?)),
             ("b.ToDecimal(b.Id)", typeof(decimal?)),
-            ("c.ToDecimal(c.Id)", typeof(decimal?)));
+            ("c.ToDecimal(c.Id)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m });
     }
 
     [TestMethod]
     public void LeftOuterJoinPassMethodContextTest()
     {
-        var query = @"
-select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id)
-from #A.entities() a
-left outer join #B.entities() b on 1 = 1
-left outer join #C.entities() c on 1 = 1";
+        var query = (
+            "\n"
+            + "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id)\n"
+            + "from #A.entities() a\n"
+            + "left outer join #B.entities() b on 1 = 1\n"
+            + "left outer join #C.entities() c on 1 = 1"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity("xX") { Id = 2 }
-                ]
-            },
-            {
-                "#C",
-                [
-                    new BasicEntity("xX") { Id = 3 }
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }] },
+            { "#B", [new BasicEntity("xX") { Id = 2 }] },
+            { "#C", [new BasicEntity("xX") { Id = 3 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
+        TableMaterializationTestHelper.AssertColumns(
+            table,
             ("a.ToDecimal(a.Id)", typeof(decimal?)),
             ("b.ToDecimal(b.Id)", typeof(decimal?)),
-            ("c.ToDecimal(c.Id)", typeof(decimal?)));
+            ("c.ToDecimal(c.Id)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m });
     }
 
     [TestMethod]
     public void LeftOuterJoinWithFourOtherJoinsTest()
     {
-        var query = @"
-select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id), d.ToDecimal(d.Id)
-from #A.entities() a
-left outer join #B.entities() b on 1 = 1
-left outer join #C.entities() c on 1 = 1
-left outer join #D.entities() d on 1 = 1";
+        var query = (
+            "\n"
+            + "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id), d.ToDecimal(d.Id)\n"
+            + "from #A.entities() a\n"
+            + "left outer join #B.entities() b on 1 = 1\n"
+            + "left outer join #C.entities() c on 1 = 1\n"
+            + "left outer join #D.entities() d on 1 = 1"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity("xX") { Id = 2 }
-                ]
-            },
-            {
-                "#C",
-                [
-                    new BasicEntity("xX") { Id = 3 }
-                ]
-            },
-            {
-                "#D",
-                [
-                    new BasicEntity("xX") { Id = 4 }
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }] },
+            { "#B", [new BasicEntity("xX") { Id = 2 }] },
+            { "#C", [new BasicEntity("xX") { Id = 3 }] },
+            { "#D", [new BasicEntity("xX") { Id = 4 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
+        TableMaterializationTestHelper.AssertColumns(
+            table,
             ("a.ToDecimal(a.Id)", typeof(decimal?)),
             ("b.ToDecimal(b.Id)", typeof(decimal?)),
             ("c.ToDecimal(c.Id)", typeof(decimal?)),
-            ("d.ToDecimal(d.Id)", typeof(decimal?)));
+            ("d.ToDecimal(d.Id)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m, 4m });
     }
 
@@ -371,32 +282,20 @@ left outer join #D.entities() d on 1 = 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity("xX") { Id = 2 }
-                ]
-            },
-            {
-                "#C",
-                [
-                    new BasicEntity("xX") { Id = 3 }
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }] },
+            { "#B", [new BasicEntity("xX") { Id = 2 }] },
+            { "#C", [new BasicEntity("xX") { Id = 3 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
+        TableMaterializationTestHelper.AssertColumns(
+            table,
             ("a.ToDecimal(a.Id)", typeof(decimal?)),
             ("b.ToDecimal(b.Id)", typeof(decimal?)),
-            ("c.ToDecimal(c.Id)", typeof(decimal?)));
+            ("c.ToDecimal(c.Id)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m });
     }
 
@@ -408,106 +307,96 @@ left outer join #D.entities() d on 1 = 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("xX") { Id = 1 }
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity("xX") { Id = 2 }
-                ]
-            },
-            {
-                "#C",
-                [
-                    new BasicEntity("xX") { Id = 3 }
-                ]
-            }
+            { "#A", [new BasicEntity("xX") { Id = 1 }] },
+            { "#B", [new BasicEntity("xX") { Id = 2 }] },
+            { "#C", [new BasicEntity("xX") { Id = 3 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
+        TableMaterializationTestHelper.AssertColumns(
+            table,
             ("a.ToDecimal(a.Id)", typeof(decimal?)),
             ("b.ToDecimal(b.Id)", typeof(decimal?)),
-            ("c.ToDecimal(c.Id)", typeof(decimal?)));
+            ("c.ToDecimal(c.Id)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m });
     }
 
     [TestMethod]
     public void WhenMultipleAliasesAroundCteQuery_LeftOuterJoin_ShouldRetrieveValues()
     {
-        var query =
-            @"
-with first as (
-    select a.Country as Country from #A.entities() a
-), second as (
-    select a.Country as Country from #A.entities() a
-), third as (
-    select
-        a.Country as LeftCountry,
-        b.Country as RightCountry
-    from first a left outer join second b on a.Country = b.Country
-)
-select LeftCountry, RightCountry from third
-";
+        var query = (
+            "\n"
+            + "with first as (\n"
+            + "    select a.Country as Country from #A.entities() a\n"
+            + "), second as (\n"
+            + "    select a.Country as Country from #A.entities() a\n"
+            + "), third as (\n"
+            + "    select\n"
+            + "        a.Country as LeftCountry,\n"
+            + "        b.Country as RightCountry\n"
+            + "    from first a left outer join second b on a.Country = b.Country\n"
+            + ")\n"
+            + "select LeftCountry, RightCountry from third\n"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Poland", "Krakow"),
-                    new BasicEntity("Germany", "Berlin")
-                ]
-            }
+            { "#A", [new BasicEntity("Poland", "Krakow"), new BasicEntity("Germany", "Berlin")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("LeftCountry", typeof(string)), ("RightCountry", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { "Poland", "Poland" }, new object?[] { "Germany", "Germany" });
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("LeftCountry", typeof(string)),
+            ("RightCountry", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { "Poland", "Poland" },
+            new object?[] { "Germany", "Germany" }
+        );
     }
 
     [TestMethod]
     public void WhenMultipleAliasesAroundCteQuery_RightOuterJoin_ShouldRetrieveValues()
     {
-        var query =
-            @"
-with first as (
-    select a.Country as Country from #A.entities() a
-), second as (
-    select a.Country as Country from #A.entities() a
-), third as (
-    select
-        a.Country as LeftCountry,
-        b.Country as RightCountry
-    from first a right outer join second b on a.Country = b.Country
-)
-select LeftCountry, RightCountry from third
-";
+        var query = (
+            "\n"
+            + "with first as (\n"
+            + "    select a.Country as Country from #A.entities() a\n"
+            + "), second as (\n"
+            + "    select a.Country as Country from #A.entities() a\n"
+            + "), third as (\n"
+            + "    select\n"
+            + "        a.Country as LeftCountry,\n"
+            + "        b.Country as RightCountry\n"
+            + "    from first a right outer join second b on a.Country = b.Country\n"
+            + ")\n"
+            + "select LeftCountry, RightCountry from third\n"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Poland", "Krakow"),
-                    new BasicEntity("Germany", "Berlin")
-                ]
-            }
+            { "#A", [new BasicEntity("Poland", "Krakow"), new BasicEntity("Germany", "Berlin")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("LeftCountry", typeof(string)), ("RightCountry", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { "Poland", "Poland" }, new object?[] { "Germany", "Germany" });
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("LeftCountry", typeof(string)),
+            ("RightCountry", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { "Poland", "Poland" },
+            new object?[] { "Germany", "Germany" }
+        );
     }
 }

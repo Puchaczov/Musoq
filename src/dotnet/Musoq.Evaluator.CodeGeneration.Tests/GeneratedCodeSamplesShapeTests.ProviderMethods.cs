@@ -14,7 +14,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CASE WHEN b1 IS NULL THEN NULL ELSE GetCountry() END", result.ExecutionPlanText);
         Assert.Contains(
             "Musoq.Evaluator.Tests.Schema.Basic.BasicEntity b1 = (Musoq.Evaluator.Tests.Schema.Basic.BasicEntity)ab.__rightContext",
-            generated);
+            generated
+        );
         Assert.Contains("(b1 == null) ? (string)null :", generated);
         Assert.Contains("__resultLibrary0.GetCountry((Musoq.Evaluator.Tests.Schema.Basic.BasicEntity)b1)", generated);
         Assert.IsFalse(generated.Contains("MethodInfo.Invoke", StringComparison.Ordinal), generated);
@@ -31,7 +32,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CASE WHEN b1 IS NULL THEN NULL ELSE GetCountry() END", generated);
         Assert.Contains(
             "Musoq.Evaluator.Tests.Schema.Basic.BasicEntity b1 = (Musoq.Evaluator.Tests.Schema.Basic.BasicEntity)ab.__rightContext",
-            generated);
+            generated
+        );
         Assert.Contains("__resultLibrary0.GetCountry((Musoq.Evaluator.Tests.Schema.Basic.BasicEntity)b1)", generated);
         Assert.IsFalse(generated.Contains("MethodInfo.Invoke", StringComparison.Ordinal), generated);
         Assert.IsFalse(generated.Contains("dynamic ", StringComparison.Ordinal), generated);

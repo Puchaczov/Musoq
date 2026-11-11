@@ -23,7 +23,7 @@ public partial class InterpreterCodeGenerator
                 PrimitiveTypeName.ULong => "ulong",
                 PrimitiveTypeName.Float => "float",
                 PrimitiveTypeName.Double => "double",
-                _ => "object"
+                _ => "object",
             },
             ByteArrayTypeNode => "byte[]",
             StringTypeNode s => s.AsTextSchemaName ?? "string",
@@ -35,37 +35,42 @@ public partial class InterpreterCodeGenerator
             InlineSchemaTypeNode => "object",
             SubstreamTypeNode { Mode: SubstreamMode.Raw } => "byte[]",
             SubstreamTypeNode sub => GetClrTypeName(sub.Target!),
-            _ => "object"
+            _ => "object",
         };
     }
 
     private string GetClrTypeNameForFieldDefinition(FieldDefinitionNode field) =>
         GetBinaryValueClrTypeName(field.Name, field.TypeAnnotation);
 
-    private string GetBinaryValueClrTypeName(string fieldName, TypeAnnotationNode type) => type switch
-    {
-        InlineSchemaTypeNode inline => GetOrRegisterInlineSchemaClassName(fieldName, inline, null),
-        BinarySwitchTypeNode choice => GetOrRegisterSwitchClassName(fieldName, choice),
-        ArrayTypeNode array => $"{GetBinaryValueClrTypeName(fieldName, array.ElementType)}[]",
-        RepeatUntilTypeNode repeat => $"{GetBinaryValueClrTypeName(fieldName, repeat.ElementType)}[]",
-        SubstreamTypeNode { Target: { } target } => GetBinaryValueClrTypeName(fieldName, target),
-        _ => GetClrTypeName(type)
-    };
+    private string GetBinaryValueClrTypeName(string fieldName, TypeAnnotationNode type) =>
+        type switch
+        {
+            InlineSchemaTypeNode inline => GetOrRegisterInlineSchemaClassName(fieldName, inline, null),
+            BinarySwitchTypeNode choice => GetOrRegisterSwitchClassName(fieldName, choice),
+            ArrayTypeNode array => $"{GetBinaryValueClrTypeName(fieldName, array.ElementType)}[]",
+            RepeatUntilTypeNode repeat => $"{GetBinaryValueClrTypeName(fieldName, repeat.ElementType)}[]",
+            SubstreamTypeNode { Target: { } target } => GetBinaryValueClrTypeName(fieldName, target),
+            _ => GetClrTypeName(type),
+        };
 
-    private string GetClrTypeNameForFieldWithContext(SchemaFieldNode field, List<SchemaFieldNode> contextFields) => field switch
-    {
-        FieldDefinitionNode parsed => GetClrTypeNameForFieldDefinition(parsed),
-        ComputedFieldNode computed => InferComputedFieldTypeName(computed.Expression, contextFields),
-        _ => "object"
-    };
+    private string GetClrTypeNameForFieldWithContext(SchemaFieldNode field, List<SchemaFieldNode> contextFields) =>
+        field switch
+        {
+            FieldDefinitionNode parsed => GetClrTypeNameForFieldDefinition(parsed),
+            ComputedFieldNode computed => InferComputedFieldTypeName(computed.Expression, contextFields),
+            _ => "object",
+        };
 
     private string InferComputedFieldTypeName(Node expression, List<SchemaFieldNode>? contextFields = null) =>
         BinarySchemaRecordAliases.Resolve(expression, contextFields ?? []) is { } record
             ? GetClrTypeNameForFieldDefinition(record)
-            : MapClrTypeName(BinarySchemaExpressionTypes.Unwrap(BinarySchemaExpressionTypes.Resolve(expression, contextFields ?? [], _registry)));
+            : MapClrTypeName(
+                BinarySchemaExpressionTypes.Unwrap(
+                    BinarySchemaExpressionTypes.Resolve(expression, contextFields ?? [], _registry)
+                )
+            );
 
-    private static string MapClrTypeName(Type type)
-        => BinarySchemaClrTypeNames.Map(type);
+    private static string MapClrTypeName(Type type) => BinarySchemaClrTypeNames.Map(type);
 
     private static bool IsReferenceType(string clrTypeName)
     {
@@ -74,7 +79,7 @@ public partial class InterpreterCodeGenerator
             "string" => true,
             "object" => true,
             _ when clrTypeName.EndsWith("[]", StringComparison.Ordinal) => true,
-            _ => false
+            _ => false,
         };
     }
 
@@ -82,5 +87,4 @@ public partial class InterpreterCodeGenerator
     {
         return _currentTypeParameters.Contains(typeName, StringComparer.Ordinal);
     }
-
 }

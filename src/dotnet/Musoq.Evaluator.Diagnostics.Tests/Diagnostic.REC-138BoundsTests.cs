@@ -29,18 +29,26 @@ public sealed class DiagnosticRec138BoundsTests
     {
         foreach (var testCase in DepthCases)
         {
-            var query = "select " + new string('(', testCase.Depth) + "1" +
-                        new string(')', testCase.Depth - 1) + " from #system.dual()";
+            var query =
+                "select "
+                + new string('(', testCase.Depth)
+                + "1"
+                + new string(')', testCase.Depth - 1)
+                + " from #system.dual()";
             var result = Parse(query);
 
             Assert.IsNotEmpty(result.Errors, $"{FixtureId}/{testCase.CaseId}");
             Assert.IsLessThanOrEqualTo(
                 DiagnosticLimit,
                 result.Diagnostics.Count,
-                $"{FixtureId}/{testCase.CaseId} emitted unbounded diagnostics.");
+                $"{FixtureId}/{testCase.CaseId} emitted unbounded diagnostics."
+            );
             Assert.IsTrue(
-                result.Diagnostics.All(static diagnostic => diagnostic.Code != DiagnosticCode.MQ9001_InternalCompilerError),
-                $"{FixtureId}/{testCase.CaseId} leaked an internal compiler diagnostic: {result.FormatDiagnostics()}");
+                result.Diagnostics.All(static diagnostic =>
+                    diagnostic.Code != DiagnosticCode.MQ9001_InternalCompilerError
+                ),
+                $"{FixtureId}/{testCase.CaseId} leaked an internal compiler diagnostic: {result.FormatDiagnostics()}"
+            );
         }
     }
 
@@ -58,17 +66,20 @@ public sealed class DiagnosticRec138BoundsTests
             Assert.IsLessThanOrEqualTo(
                 DiagnosticLimit,
                 result.Diagnostics.Count,
-                $"{FixtureId}/{testCase.CaseId} emitted unbounded diagnostics.");
+                $"{FixtureId}/{testCase.CaseId} emitted unbounded diagnostics."
+            );
             Assert.IsLessThanOrEqualTo(
                 DiagnosticSafety.MaxDisplayLength,
                 DiagnosticSafety.SanitizeMessage(diagnostic!).Length,
-                $"{FixtureId}/{testCase.CaseId} exceeded the display bound.");
+                $"{FixtureId}/{testCase.CaseId} exceeded the display bound."
+            );
 
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
             Assert.Throws<OperationCanceledException>(
                 () => new QueryAnalyzer(new UnexpectedSchemaProvider()).Analyze(query, cancellation.Token),
-                $"{FixtureId}/{testCase.CaseId} did not preserve cancellation.");
+                $"{FixtureId}/{testCase.CaseId} did not preserve cancellation."
+            );
         }
     }
 
@@ -77,15 +88,9 @@ public sealed class DiagnosticRec138BoundsTests
     {
         foreach (var testCase in VolumeCases)
         {
-            var query = string.Join(
-                ";",
-                Enumerable.Repeat("select from #system.dual()", testCase.StatementCount));
+            var query = string.Join(";", Enumerable.Repeat("select from #system.dual()", testCase.StatementCount));
             var lexer = new Lexer(query, skipWhiteSpaces: true, recoverOnError: true);
-            var diagnostics = new DiagnosticBag
-            {
-                SourceText = lexer.SourceText,
-                MaxErrors = testCase.MaxErrors
-            };
+            var diagnostics = new DiagnosticBag { SourceText = lexer.SourceText, MaxErrors = testCase.MaxErrors };
             var result = new MusoqParser(lexer, diagnostics).ParseWithDiagnostics();
 
             Assert.IsNotEmpty(result.Errors, $"{FixtureId}/{testCase.CaseId}");
@@ -93,8 +98,11 @@ public sealed class DiagnosticRec138BoundsTests
             Assert.IsLessThanOrEqualTo(testCase.MaxErrors, diagnostics.ErrorCount, testCase.CaseId);
             Assert.IsLessThanOrEqualTo(testCase.MaxErrors, result.ErrorCount, testCase.CaseId);
             Assert.IsTrue(
-                result.Diagnostics.All(static diagnostic => diagnostic.Code != DiagnosticCode.MQ9001_InternalCompilerError),
-                $"{FixtureId}/{testCase.CaseId} leaked an internal compiler diagnostic: {result.FormatDiagnostics()}");
+                result.Diagnostics.All(static diagnostic =>
+                    diagnostic.Code != DiagnosticCode.MQ9001_InternalCompilerError
+                ),
+                $"{FixtureId}/{testCase.CaseId} leaked an internal compiler diagnostic: {result.FormatDiagnostics()}"
+            );
         }
     }
 
@@ -104,7 +112,8 @@ public sealed class DiagnosticRec138BoundsTests
         foreach (var testCase in CandidateCases)
         {
             var input = "Column00000";
-            var candidates = Enumerable.Range(1, testCase.CandidateCount)
+            var candidates = Enumerable
+                .Range(1, testCase.CandidateCount)
                 .Select(index => $"Column{index:D5}")
                 .ToArray();
             var expected = candidates.Take(SuggestedCandidateLimit).ToArray();
@@ -113,12 +122,14 @@ public sealed class DiagnosticRec138BoundsTests
                 input,
                 candidates,
                 maxDistance: 1,
-                maxCandidates: SuggestedCandidateLimit);
+                maxCandidates: SuggestedCandidateLimit
+            );
             var second = ErrorCatalog.GetDidYouMeanCandidates(
                 input,
                 candidates.Reverse(),
                 maxDistance: 1,
-                maxCandidates: SuggestedCandidateLimit);
+                maxCandidates: SuggestedCandidateLimit
+            );
 
             CollectionAssert.AreEqual(expected, first.ToArray(), $"{FixtureId}/{testCase.CaseId}");
             CollectionAssert.AreEqual(first.ToArray(), second.ToArray(), $"{FixtureId}/{testCase.CaseId}");
@@ -133,18 +144,22 @@ public sealed class DiagnosticRec138BoundsTests
             Assert.IsLessThanOrEqualTo(
                 DiagnosticSafety.MaxDisplayLength,
                 DiagnosticSafety.SanitizeMessage(diagnostic).Length,
-                $"{FixtureId}/{testCase.CaseId} rendered an unbounded message.");
+                $"{FixtureId}/{testCase.CaseId} rendered an unbounded message."
+            );
             Assert.IsTrue(
-                diagnostic.Arguments["availableColumns"].Split(", ", StringSplitOptions.RemoveEmptyEntries).Length <=
-                SuggestedCandidateLimit,
-                $"{FixtureId}/{testCase.CaseId} rendered too many available candidates.");
+                diagnostic.Arguments["availableColumns"].Split(", ", StringSplitOptions.RemoveEmptyEntries).Length
+                    <= SuggestedCandidateLimit,
+                $"{FixtureId}/{testCase.CaseId} rendered too many available candidates."
+            );
             Assert.IsTrue(
-                diagnostic.Arguments["candidateColumns"].Split(", ", StringSplitOptions.RemoveEmptyEntries).Length <=
-                SuggestedCandidateLimit,
-                $"{FixtureId}/{testCase.CaseId} rendered too many close candidates.");
+                diagnostic.Arguments["candidateColumns"].Split(", ", StringSplitOptions.RemoveEmptyEntries).Length
+                    <= SuggestedCandidateLimit,
+                $"{FixtureId}/{testCase.CaseId} rendered too many close candidates."
+            );
             Assert.IsTrue(
                 diagnostic.SuggestedFixes.All(static action => action.TextEdit is null),
-                $"{FixtureId}/{testCase.CaseId} created an arbitrary text edit for a tie.");
+                $"{FixtureId}/{testCase.CaseId} created an arbitrary text edit for a tie."
+            );
         }
     }
 
@@ -168,7 +183,7 @@ public sealed class DiagnosticRec138BoundsTests
         new("D09", 96),
         new("D10", 128),
         new("D11", 160),
-        new("D12", 192)
+        new("D12", 192),
     ];
 
     private static readonly IReadOnlyList<LiteralCase> LiteralCases =
@@ -184,7 +199,7 @@ public sealed class DiagnosticRec138BoundsTests
         new("L09", 2048),
         new("L10", 4096),
         new("L11", 8192),
-        new("L12", 16384)
+        new("L12", 16384),
     ];
 
     private static readonly IReadOnlyList<VolumeCase> VolumeCases =
@@ -200,7 +215,7 @@ public sealed class DiagnosticRec138BoundsTests
         new("V09", 256, 11),
         new("V10", 384, 12),
         new("V11", 512, 13),
-        new("V12", 768, 14)
+        new("V12", 768, 14),
     ];
 
     private static readonly IReadOnlyList<CandidateCase> CandidateCases =
@@ -216,7 +231,7 @@ public sealed class DiagnosticRec138BoundsTests
         new("C09", 1536),
         new("C10", 2048),
         new("C11", 3072),
-        new("C12", 4096)
+        new("C12", 4096),
     ];
 
     private sealed class UnexpectedSchemaProvider : ISchemaProvider

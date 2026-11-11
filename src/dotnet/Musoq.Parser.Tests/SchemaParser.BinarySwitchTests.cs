@@ -12,15 +12,17 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_WithCasesAndDefault_ShouldParse()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Length: short le,
-            Payload: switch Type {
-                1 => Login: LoginPayload,
-                2 => Data: DataPayload,
-                _ => Raw: byte[Length]
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Length: short le,\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => Login: LoginPayload,\n"
+            + "                2 => Data: DataPayload,\n"
+            + "                _ => Raw: byte[Length]\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var result = ParseBinarySchema(schema);
 
@@ -34,13 +36,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_BranchAliases_ShouldBePreserved()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                1 => Login: LoginPayload,
-                _ => Raw: byte[4]
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => Login: LoginPayload,\n"
+            + "                _ => Raw: byte[4]\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var switchType = ParseSwitchType(schema);
 
@@ -51,13 +55,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_CaseLabel_ShouldBeIntegerLiteral()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                1 => Login: LoginPayload,
-                _ => Raw: byte[4]
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => Login: LoginPayload,\n"
+            + "                _ => Raw: byte[4]\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var switchType = ParseSwitchType(schema);
 
@@ -67,13 +73,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_DefaultCase_ShouldBeMarkedDefault()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                1 => Login: LoginPayload,
-                _ => Raw: byte[4]
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => Login: LoginPayload,\n"
+            + "                _ => Raw: byte[4]\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var switchType = ParseSwitchType(schema);
 
@@ -85,13 +93,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_WithoutDefault_ShouldParse()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                1 => Login: LoginPayload,
-                2 => Data: DataPayload
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => Login: LoginPayload,\n"
+            + "                2 => Data: DataPayload\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var switchType = ParseSwitchType(schema);
 
@@ -102,13 +112,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_NestedSchemaBranchType_ShouldParse()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                1 => Login: LoginPayload,
-                _ => Raw: byte[4]
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => Login: LoginPayload,\n"
+            + "                _ => Raw: byte[4]\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var switchType = ParseSwitchType(schema);
 
@@ -120,13 +132,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_ByteArrayBranchType_ShouldParse()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                1 => Login: LoginPayload,
-                _ => Raw: byte[4]
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => Login: LoginPayload,\n"
+            + "                _ => Raw: byte[4]\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var switchType = ParseSwitchType(schema);
 
@@ -136,13 +150,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_DuplicateAliases_ShouldReportDiagnostic()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                1 => Same: LoginPayload,
-                2 => Same: DataPayload
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => Same: LoginPayload,\n"
+            + "                2 => Same: DataPayload\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
         Assert.AreEqual(DiagnosticCode.MQ4012_DuplicateSwitchBranchAlias, exception.Code);
@@ -151,13 +167,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_SelectorNotPreviousField_ShouldReportDiagnostic()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Missing {
-                1 => Login: LoginPayload,
-                _ => Raw: byte[4]
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Missing {\n"
+            + "                1 => Login: LoginPayload,\n"
+            + "                _ => Raw: byte[4]\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
         Assert.AreEqual(DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField, exception.Code);
@@ -166,13 +184,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_SelectorAfterSwitchField_ShouldReportDiagnostic()
     {
-        var schema = @"binary Packet {
-            Payload: switch Type {
-                1 => Login: LoginPayload,
-                _ => Raw: byte[4]
-            },
-            Type: byte
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => Login: LoginPayload,\n"
+            + "                _ => Raw: byte[4]\n"
+            + "            },\n"
+            + "            Type: byte\n"
+            + "        }"
+        );
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
         Assert.AreEqual(DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField, exception.Code);
@@ -181,13 +201,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_NonLiteralCaseLabel_ShouldReportDiagnostic()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                Type => Login: LoginPayload,
-                _ => Raw: byte[4]
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                Type => Login: LoginPayload,\n"
+            + "                _ => Raw: byte[4]\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
         Assert.AreEqual(DiagnosticCode.MQ4013_InvalidSwitchCaseLabel, exception.Code);
@@ -196,13 +218,15 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_DefaultNotLast_ShouldReportDiagnostic()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                _ => Raw: byte[4],
-                1 => Login: LoginPayload
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                _ => Raw: byte[4],\n"
+            + "                1 => Login: LoginPayload\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
         Assert.AreEqual(DiagnosticCode.MQ4013_InvalidSwitchCaseLabel, exception.Code);
@@ -211,12 +235,14 @@ public class SchemaParserBinarySwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_MissingBranchAliasColon_ShouldThrow()
     {
-        var schema = @"binary Packet {
-            Type: byte,
-            Payload: switch Type {
-                1 => LoginPayload
-            }
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Type: byte,\n"
+            + "            Payload: switch Type {\n"
+            + "                1 => LoginPayload\n"
+            + "            }\n"
+            + "        }"
+        );
 
         Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
     }

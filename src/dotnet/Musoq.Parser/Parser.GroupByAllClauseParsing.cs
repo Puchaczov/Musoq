@@ -21,7 +21,11 @@ public partial class Parser
         return new GroupByNode([], having, true, allToken.Span);
     }
 
-    private SyntaxException GroupByAllWithExplicitFields(TextSpan span) => new(
-        "GROUP BY ALL cannot be combined with explicit GROUP BY fields.",
-        _lexer.AlreadyResolvedQueryPart, DiagnosticCode.MQ2001_UnexpectedToken, span);
+    private SyntaxException GroupByAllWithExplicitFields(TextSpan span) =>
+        new(
+            "GROUP BY ALL cannot be combined with explicit GROUP BY fields.",
+            _lexer.AlreadyResolvedQueryPart,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            span
+        );
 }

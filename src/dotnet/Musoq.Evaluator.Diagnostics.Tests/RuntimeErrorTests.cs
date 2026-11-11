@@ -1,6 +1,6 @@
 using System.Threading;
-using Musoq.Converter.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.NegativeTests;
 using Musoq.Parser.Diagnostics;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
@@ -16,7 +16,8 @@ public class RuntimeErrorTests : NegativeTestsBase
     public void RE020_InvalidRegexPattern_ShouldFailDuringBinding()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE '[invalid('"));
+            CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE '[invalid('")
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3094_InvalidConstantRegex, DiagnosticPhase.Bind);
     }
@@ -47,8 +48,7 @@ public class RuntimeErrorTests : NegativeTestsBase
     public void RE004_DivisionByZeroLiteral_ShouldThrowCompilationError()
     {
         // Constant folding detects division by zero at compile time
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT 10 / 0 FROM #test.single()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT 10 / 0 FROM #test.single()"));
 
         AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
@@ -57,8 +57,7 @@ public class RuntimeErrorTests : NegativeTestsBase
     public void RE006_ModuloByZeroLiteral_ShouldThrowCompilationError()
     {
         // Constant folding detects modulo by zero at compile time
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT 10 % 0 FROM #test.single()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT 10 % 0 FROM #test.single()"));
 
         AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }

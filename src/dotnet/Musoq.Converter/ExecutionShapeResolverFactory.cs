@@ -9,9 +9,11 @@ namespace Musoq.Converter;
 internal static class ExecutionShapeResolverFactory
 {
     internal static ExecutionShapeResolver Create(SemanticBuildArtifacts semantic, SchemaRegistry? registry) =>
-        new(semantic.ScopeArtifact.CreateScope(),
+        new(
+            semantic.ScopeArtifact.CreateScope(),
             semantic.PipelineInferredColumns ?? new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal),
             schemaRegistry: registry,
             scriptVariables: semantic.ScriptVariableDefinitions,
-            scriptParameters: semantic.ScriptParameterDefinitions);
+            scriptParameters: semantic.ScriptParameterDefinitions
+        );
 }

@@ -11,7 +11,8 @@ internal static partial class SourcePredicateExpressionConverter
         string sourceAlias,
         EnumTypeDescriptor? enumType,
         TimeSpan regexMatchTimeout,
-        [NotNullWhen(true)] out SourcePredicateExpression? predicate)
+        [NotNullWhen(true)] out SourcePredicateExpression? predicate
+    )
     {
         if (enumType != null && expression is Literal literal && literal.Value != null)
         {
@@ -32,14 +33,17 @@ internal static partial class SourcePredicateExpressionConverter
         MethodCall methodCall,
         string sourceAlias,
         TimeSpan regexMatchTimeout,
-        [NotNullWhen(true)] out SourcePredicateExpression? predicate)
+        [NotNullWhen(true)] out SourcePredicateExpression? predicate
+    )
     {
-        if (methodCall.EnumIntrinsic is not (EnumIntrinsicKind.HasAnyFlags or EnumIntrinsicKind.HasAllFlags) ||
-            methodCall.OperandEnumType is not { IsFlags: true } descriptor ||
-            methodCall.EnumMask is not { } mask ||
-            methodCall.Arguments.Count == 0 ||
-            !TryConvertPredicate(methodCall.Arguments[0], sourceAlias, out var expression, regexMatchTimeout) ||
-            expression is not SourcePredicateColumn)
+        if (
+            methodCall.EnumIntrinsic is not (EnumIntrinsicKind.HasAnyFlags or EnumIntrinsicKind.HasAllFlags)
+            || methodCall.OperandEnumType is not { IsFlags: true } descriptor
+            || methodCall.EnumMask is not { } mask
+            || methodCall.Arguments.Count == 0
+            || !TryConvertPredicate(methodCall.Arguments[0], sourceAlias, out var expression, regexMatchTimeout)
+            || expression is not SourcePredicateColumn
+        )
         {
             predicate = null;
             return false;
@@ -50,14 +54,12 @@ internal static partial class SourcePredicateExpressionConverter
             new SourcePredicateEnumLiteral(mask, descriptor.Fingerprint),
             methodCall.EnumIntrinsic == EnumIntrinsicKind.HasAnyFlags
                 ? SourcePredicateFlagsMatchMode.Any
-                : SourcePredicateFlagsMatchMode.All);
+                : SourcePredicateFlagsMatchMode.All
+        );
         return true;
     }
 
-    private static bool TryCreateEnumScalarValue(
-        EnumUnderlyingKind kind,
-        object value,
-        out EnumScalarValue scalar)
+    private static bool TryCreateEnumScalarValue(EnumUnderlyingKind kind, object value, out EnumScalarValue scalar)
     {
         switch (kind)
         {
@@ -93,7 +95,8 @@ internal static partial class SourcePredicateExpressionConverter
 
     private static bool TryConvertComparisonOperator(
         BinaryOpKind kind,
-        out SourcePredicateComparisonOperator comparisonOperator)
+        out SourcePredicateComparisonOperator comparisonOperator
+    )
     {
         switch (kind)
         {

@@ -14,7 +14,7 @@ public sealed class RuntimeV2CastGroupingFeatureTable : ISchemaTable
         new SchemaColumn(nameof(RuntimeV2CastGroupingFeatureEntity.Amount), 3, typeof(string)),
         new SchemaColumn(nameof(RuntimeV2CastGroupingFeatureEntity.Id), 4, typeof(string)),
         new SchemaColumn(nameof(RuntimeV2CastGroupingFeatureEntity.CreatedAt), 5, typeof(string)),
-        new SchemaColumn(nameof(RuntimeV2CastGroupingFeatureEntity.Quantity), 6, typeof(int))
+        new SchemaColumn(nameof(RuntimeV2CastGroupingFeatureEntity.Quantity), 6, typeof(int)),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(RuntimeV2CastGroupingFeatureEntity));

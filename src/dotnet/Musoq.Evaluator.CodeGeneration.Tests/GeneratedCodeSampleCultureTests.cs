@@ -19,14 +19,15 @@ public sealed class GeneratedCodeSampleCultureTests
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
             var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q108_RuntimeV2DecimalConversion.cs") with
             {
-                Category = $"culture-regression-{cultureName}"
+                Category = $"culture-regression-{cultureName}",
             };
             var generated = GeneratedCodeSampleArtifacts.Generate(sample, new TestsLoggerResolver());
             var expected = File.ReadAllText(GeneratedCodeSampleArtifacts.GetSamplePath(sample));
 
             Assert.AreEqual(
                 GeneratedCodeSampleArtifacts.NormalizeForComparison(expected),
-                GeneratedCodeSampleArtifacts.NormalizeForComparison(generated));
+                GeneratedCodeSampleArtifacts.NormalizeForComparison(generated)
+            );
         }
         finally
         {
@@ -44,7 +45,7 @@ public sealed class GeneratedCodeSampleCultureTests
             CultureInfo.CurrentCulture = requestedCulture;
             var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q108_RuntimeV2DecimalConversion.cs") with
             {
-                Category = "culture-restore-regression"
+                Category = "culture-restore-regression",
             };
 
             GeneratedCodeSampleArtifacts.Generate(sample, new TestsLoggerResolver());

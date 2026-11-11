@@ -31,8 +31,14 @@ public static class ExplainAnalyzeTextPrinter
             {
                 builder.AppendLine(CultureInfo.InvariantCulture, $"  Source: {source.Name}");
                 builder.AppendLine(CultureInfo.InvariantCulture, $"    Rows read: {source.RowsRead}");
-                builder.AppendLine(CultureInfo.InvariantCulture, $"    MoveNext wait{CreateEstimatedSuffix(source)}: {FormatDuration(source.MoveNextWaitTime)}");
-                builder.AppendLine(CultureInfo.InvariantCulture, $"    Consumer gap{CreateEstimatedSuffix(source)}: {FormatDuration(source.ConsumerGapTime)}");
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"    MoveNext wait{CreateEstimatedSuffix(source)}: {FormatDuration(source.MoveNextWaitTime)}"
+                );
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"    Consumer gap{CreateEstimatedSuffix(source)}: {FormatDuration(source.ConsumerGapTime)}"
+                );
                 builder.AppendLine(CultureInfo.InvariantCulture, $"    Diagnosis: {source.Diagnosis}");
             }
         }
@@ -60,7 +66,8 @@ public static class ExplainAnalyzeTextPrinter
 
         return string.Create(
             CultureInfo.InvariantCulture,
-            $"{line}  actual rows={snapshot.OutputRows}, elapsed={FormatDuration(snapshot)}");
+            $"{line}  actual rows={snapshot.OutputRows}, elapsed={FormatDuration(snapshot)}"
+        );
     }
 
     private static string FormatDuration(TimeSpan value) =>

@@ -115,29 +115,17 @@ public class BasicMethodResolutionTests
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class TestClass
     {
-        public void NoParameters()
-        {
-        }
+        public void NoParameters() { }
 
-        public void SingleParameter(int x)
-        {
-        }
+        public void SingleParameter(int x) { }
 
-        public void TwoParameters(int x, string y)
-        {
-        }
+        public void TwoParameters(int x, string y) { }
 
-        public void Overloaded(int x)
-        {
-        }
+        public void Overloaded(int x) { }
 
-        public void Overloaded(string x)
-        {
-        }
+        public void Overloaded(string x) { }
 
-        public void Overloaded(int x, string y)
-        {
-        }
+        public void Overloaded(int x, string y) { }
     }
 
     private sealed class TestMethodsMetadata : MethodsMetadata
@@ -145,8 +133,12 @@ public class BasicMethodResolutionTests
         public TestMethodsMetadata()
         {
             var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
-                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
+            foreach (
+                var method in testClass.GetMethods(
+                    BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly
+                )
+            )
+                RegisterMethod(method);
         }
 
         private new void RegisterMethod(MethodInfo methodInfo)

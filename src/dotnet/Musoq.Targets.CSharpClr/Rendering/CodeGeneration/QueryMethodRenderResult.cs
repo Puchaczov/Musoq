@@ -5,10 +5,9 @@ namespace Musoq.Targets.CSharpClr;
 public readonly record struct QueryMethodRenderResult(
     string MethodName,
     MethodDeclarationSyntax MethodDeclaration,
-    QueryMethodRenderMetadata Metadata)
+    QueryMethodRenderMetadata Metadata
+)
 {
     public QueryMethodRenderResult(string methodName, MethodDeclarationSyntax methodDeclaration)
-        : this(methodName, methodDeclaration, QueryMethodRenderMetadata.Unknown)
-    {
-    }
+        : this(methodName, methodDeclaration, QueryMethodRenderMetadata.Unknown) { }
 }

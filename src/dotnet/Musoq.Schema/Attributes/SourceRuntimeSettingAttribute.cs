@@ -5,9 +5,10 @@ namespace Musoq.Schema.Attributes;
 [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = true)]
 public sealed class SourceRuntimeSettingAttribute(string name) : Attribute
 {
-    public string Name { get; } = string.IsNullOrWhiteSpace(name)
-        ? throw new ArgumentException("Runtime setting name cannot be empty.", nameof(name))
-        : name;
+    public string Name { get; } =
+        string.IsNullOrWhiteSpace(name)
+            ? throw new ArgumentException("Runtime setting name cannot be empty.", nameof(name))
+            : name;
 
     public bool Required { get; init; } = true;
 

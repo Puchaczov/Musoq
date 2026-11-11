@@ -12,11 +12,7 @@ public sealed class NamedArgumentAstTests
     public void ArgsListNode_NamedArguments_PreservesLabelsInIdentityAndText()
     {
         var value = new IntegerNode(4, new TextSpan(19, 1));
-        var names = new ArgumentName?[]
-        {
-            new ArgumentName("someArgument", new TextSpan(5, 12)),
-            null
-        };
+        var names = new ArgumentName?[] { new ArgumentName("someArgument", new TextSpan(5, 12)), null };
 
         var node = new ArgsListNode([value, new IntegerNode(2)], names, default);
 
@@ -43,6 +39,7 @@ public sealed class NamedArgumentAstTests
     public void ArgsListNode_MismatchedNameMetadata_IsRejected()
     {
         Assert.Throws<ArgumentException>(() =>
-            new ArgsListNode([new IntegerNode(1)], [new ArgumentName("value", default), null], default));
+            new ArgsListNode([new IntegerNode(1)], [new ArgumentName("value", default), null], default)
+        );
     }
 }

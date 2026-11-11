@@ -24,9 +24,7 @@ internal sealed class CorrelatedSubqueryRewriteRequestBuilder
         _correlations = correlations;
     }
 
-    public static IReadOnlyList<CorrelatedSubqueryRewriteRequest> Build(
-        Node root,
-        SubqueryCorrelationAnalysis analysis)
+    public static IReadOnlyList<CorrelatedSubqueryRewriteRequest> Build(Node root, SubqueryCorrelationAnalysis analysis)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(analysis);
@@ -171,12 +169,9 @@ internal sealed class CorrelatedSubqueryRewriteRequestBuilder
         if (!_correlations.TryGetValue(node, out var correlation) || !correlation.IsCorrelated)
             return;
 
-        _requests.Add(new CorrelatedSubqueryRewriteRequest(
-            node,
-            correlation.Facts,
-            _phase,
-            _isDirectFilter,
-            _isNegated));
+        _requests.Add(
+            new CorrelatedSubqueryRewriteRequest(node, correlation.Facts, _phase, _isDirectFilter, _isNegated)
+        );
     }
 
     internal sealed class NoOpVisitor : NoOpExpressionVisitor;

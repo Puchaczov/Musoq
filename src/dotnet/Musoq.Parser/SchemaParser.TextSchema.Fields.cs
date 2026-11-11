@@ -20,10 +20,10 @@ public partial class SchemaParser
 
     private TextFieldDefinitionNode ComposeTextFieldType(string name)
     {
-
         var typeSpan = Current.Span;
         var isOptionalPrefix = Current.TokenType == TokenType.Optional;
-        if (isOptionalPrefix) Consume(TokenType.Optional);
+        if (isOptionalPrefix)
+            Consume(TokenType.Optional);
 
         var field = IsTextSchemaReferenceStart()
             ? ComposeSchemaReferenceField(name)
@@ -41,24 +41,28 @@ public partial class SchemaParser
                 TokenType.Switch => ComposeSwitchField(name),
                 _ => throw new SyntaxException(
                     $"Expected text field type (pattern, literal, until, between, chars, token, rest, whitespace, repeat, switch, or a schema reference) but found '{Current.TokenType}'",
-                    _lexer.AlreadyResolvedQueryPart)
+                    _lexer.AlreadyResolvedQueryPart
+                ),
             };
 
         if (isOptionalPrefix)
-            field = field.FieldType == TextFieldType.Switch
-                ? new TextFieldDefinitionNode(
-                    field.Name,
-                    field.SwitchCases,
-                    field.Modifiers | TextFieldModifier.Optional)
-                : new TextFieldDefinitionNode(
-                    field.Name,
-                    field.FieldType,
-                    field.PrimaryValue,
-                    field.SecondaryValue,
-                    field.Modifiers | TextFieldModifier.Optional,
-                    field.EscapeCharacter,
-                    field.CaptureGroups,
-                    field.RepeatElement);
+            field =
+                field.FieldType == TextFieldType.Switch
+                    ? new TextFieldDefinitionNode(
+                        field.Name,
+                        field.SwitchCases,
+                        field.Modifiers | TextFieldModifier.Optional
+                    )
+                    : new TextFieldDefinitionNode(
+                        field.Name,
+                        field.FieldType,
+                        field.PrimaryValue,
+                        field.SecondaryValue,
+                        field.Modifiers | TextFieldModifier.Optional,
+                        field.EscapeCharacter,
+                        field.CaptureGroups,
+                        field.RepeatElement
+                    );
 
         return (TextFieldDefinitionNode)field.WithSpan(typeSpan);
     }
@@ -74,12 +78,12 @@ public partial class SchemaParser
                 $"Invalid pattern for text field '{name}': {validationError}",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ4002_InvalidTextSchemaField,
-                patternToken.Span);
+                patternToken.Span
+            );
 
         var modifiers = ComposeTextFieldModifiers();
 
-        return new TextFieldDefinitionNode(
-            name, TextFieldType.Pattern, pattern, null, modifiers, null, captureGroups);
+        return new TextFieldDefinitionNode(name, TextFieldType.Pattern, pattern, null, modifiers, null, captureGroups);
     }
 
     private TextFieldDefinitionNode ComposeLiteralField(string name)
@@ -88,8 +92,7 @@ public partial class SchemaParser
         var literal = ComposeStringLiteral();
         var modifiers = ComposeTextFieldModifiers();
 
-        return new TextFieldDefinitionNode(
-            name, TextFieldType.Literal, literal, null, modifiers);
+        return new TextFieldDefinitionNode(name, TextFieldType.Literal, literal, null, modifiers);
     }
 
     private TextFieldDefinitionNode ComposeUntilField(string name)
@@ -98,8 +101,7 @@ public partial class SchemaParser
         var delimiter = ComposeStringLiteral();
         var modifiers = ComposeTextFieldModifiers();
 
-        return new TextFieldDefinitionNode(
-            name, TextFieldType.Until, delimiter, null, modifiers);
+        return new TextFieldDefinitionNode(name, TextFieldType.Until, delimiter, null, modifiers);
     }
 
     private TextFieldDefinitionNode ComposeCharsField(string name)
@@ -108,9 +110,7 @@ public partial class SchemaParser
         Consume(TokenType.LeftSquareBracket);
 
         if (Current.TokenType != TokenType.Integer)
-            throw new SyntaxException(
-                "chars[] requires an integer count",
-                _lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException("chars[] requires an integer count", _lexer.AlreadyResolvedQueryPart);
 
         var countToken = ConsumeAndGetToken(TokenType.Integer);
         var countStr = countToken.Value;
@@ -120,14 +120,14 @@ public partial class SchemaParser
                 $"chars[] size must be a non-negative 32-bit integer, but got {countStr}.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ4002_InvalidTextSchemaField,
-                countToken.Span);
+                countToken.Span
+            );
 
         Consume(TokenType.RightSquareBracket);
 
         var modifiers = ComposeTextFieldModifiers();
 
-        return new TextFieldDefinitionNode(
-            name, TextFieldType.Chars, countStr, null, modifiers);
+        return new TextFieldDefinitionNode(name, TextFieldType.Chars, countStr, null, modifiers);
     }
 
     private TextFieldDefinitionNode ComposeTokenField(string name)
@@ -135,8 +135,7 @@ public partial class SchemaParser
         Consume(TokenType.Token);
         var modifiers = ComposeTextFieldModifiers();
 
-        return new TextFieldDefinitionNode(
-            name, TextFieldType.Token, null, null, modifiers);
+        return new TextFieldDefinitionNode(name, TextFieldType.Token, null, null, modifiers);
     }
 
     private TextFieldDefinitionNode ComposeRestField(string name)
@@ -144,8 +143,7 @@ public partial class SchemaParser
         Consume(TokenType.Rest);
         var modifiers = ComposeTextFieldModifiers();
 
-        return new TextFieldDefinitionNode(
-            name, TextFieldType.Rest, null, null, modifiers);
+        return new TextFieldDefinitionNode(name, TextFieldType.Rest, null, null, modifiers);
     }
 
     private TextFieldDefinitionNode ComposeWhitespaceField(string name)
@@ -163,8 +161,7 @@ public partial class SchemaParser
             Consume(TokenType.Star);
             quantifier = "*";
         }
-        else if (Current.TokenType == TokenType.QuestionMark ||
-                 Current is { TokenType: TokenType.Word, Value: "?" })
+        else if (Current.TokenType == TokenType.QuestionMark || Current is { TokenType: TokenType.Word, Value: "?" })
         {
             Consume(Current.TokenType);
             quantifier = "?";
@@ -172,7 +169,6 @@ public partial class SchemaParser
 
         var modifiers = ComposeTextFieldModifiers();
 
-        return new TextFieldDefinitionNode(
-            name, TextFieldType.Whitespace, quantifier, null, modifiers);
+        return new TextFieldDefinitionNode(name, TextFieldType.Whitespace, quantifier, null, modifiers);
     }
 }

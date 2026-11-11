@@ -18,16 +18,12 @@ public partial class ParallelismOutputRowsTests
         const string query = "select Name, Id, City from #A.Entities()";
 
         var entities = CreateBasicEntitiesWithIds(rowCount);
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities } };
 
         var vm = CreateVirtualMachineWithOptions(query, sources, new CompilationOptions(ParallelizationMode.Full));
         var table = vm.Run();
 
         Assert.AreEqual(rowCount, table.Count, $"Expected {rowCount} rows but got {table.Count}");
-
 
         var resultIds = table.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         Assert.AreEqual(rowCount, resultIds.Distinct().Count(), "Duplicate IDs found in results");
@@ -43,30 +39,36 @@ public partial class ParallelismOutputRowsTests
         const string query = "select Name, Id from #A.Entities()";
 
         var entities = CreateBasicEntitiesWithIds(rowCount);
-        var sourcesParallel = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities.ToList() }
-        };
-        var sourcesNonParallel = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities.ToList() }
-        };
+        var sourcesParallel = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities.ToList() } };
+        var sourcesNonParallel = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities.ToList() } };
 
-        var vmParallel =
-            CreateVirtualMachineWithOptions(query, sourcesParallel, new CompilationOptions(ParallelizationMode.Full));
-        var vmNonParallel = CreateVirtualMachineWithOptions(query, sourcesNonParallel,
-            new CompilationOptions(ParallelizationMode.None));
+        var vmParallel = CreateVirtualMachineWithOptions(
+            query,
+            sourcesParallel,
+            new CompilationOptions(ParallelizationMode.Full)
+        );
+        var vmNonParallel = CreateVirtualMachineWithOptions(
+            query,
+            sourcesNonParallel,
+            new CompilationOptions(ParallelizationMode.None)
+        );
 
         var tableParallel = vmParallel.Run();
         var tableNonParallel = vmNonParallel.Run();
 
-        Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
-            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
+        Assert.AreEqual(
+            tableNonParallel.Count,
+            tableParallel.Count,
+            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}"
+        );
 
         var parallelIds = tableParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         var nonParallelIds = tableNonParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
-        CollectionAssert.AreEqual(nonParallelIds, parallelIds,
-            "Result sets differ between parallel and non-parallel execution");
+        CollectionAssert.AreEqual(
+            nonParallelIds,
+            parallelIds,
+            "Result sets differ between parallel and non-parallel execution"
+        );
     }
 
     [TestMethod]
@@ -76,31 +78,36 @@ public partial class ParallelismOutputRowsTests
         const string query = "select Name, Id from #A.Entities() where Id % 7 = 0 or Id % 11 = 0";
 
         var entities = CreateBasicEntitiesWithIds(rowCount);
-        var sourcesParallel = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities.ToList() }
-        };
-        var sourcesNonParallel = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities.ToList() }
-        };
+        var sourcesParallel = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities.ToList() } };
+        var sourcesNonParallel = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities.ToList() } };
 
-        var vmParallel =
-            CreateVirtualMachineWithOptions(query, sourcesParallel, new CompilationOptions(ParallelizationMode.Full));
-        var vmNonParallel = CreateVirtualMachineWithOptions(query, sourcesNonParallel,
-            new CompilationOptions(ParallelizationMode.None));
+        var vmParallel = CreateVirtualMachineWithOptions(
+            query,
+            sourcesParallel,
+            new CompilationOptions(ParallelizationMode.Full)
+        );
+        var vmNonParallel = CreateVirtualMachineWithOptions(
+            query,
+            sourcesNonParallel,
+            new CompilationOptions(ParallelizationMode.None)
+        );
 
         var tableParallel = vmParallel.Run();
         var tableNonParallel = vmNonParallel.Run();
 
-        Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
-            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
+        Assert.AreEqual(
+            tableNonParallel.Count,
+            tableParallel.Count,
+            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}"
+        );
 
         var parallelIds = tableParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
         var nonParallelIds = tableNonParallel.Select(row => (int)row.ReadValue(1)).OrderBy(x => x).ToList();
-        CollectionAssert.AreEqual(nonParallelIds, parallelIds,
-            "Result sets differ between parallel and non-parallel execution");
-
+        CollectionAssert.AreEqual(
+            nonParallelIds,
+            parallelIds,
+            "Result sets differ between parallel and non-parallel execution"
+        );
 
         Assert.IsTrue(parallelIds.All(id => id % 7 == 0 || id % 11 == 0), "Filter not correctly applied");
     }
@@ -124,8 +131,9 @@ public partial class ParallelismOutputRowsTests
 
         Assert.AreEqual(size, table.Count, $"Expected {size} rows but got {table.Count}");
 
-
-        var resultPairs = table.Select(row => ((string)row.ReadValue(0), (string)row.ReadValue(1))).OrderBy(x => int.Parse(x.Item1))
+        var resultPairs = table
+            .Select(row => ((string)row.ReadValue(0), (string)row.ReadValue(1)))
+            .OrderBy(x => int.Parse(x.Item1))
             .ToList();
         for (var i = 0; i < size; i++)
         {
@@ -160,21 +168,35 @@ public partial class ParallelismOutputRowsTests
         var first = Enumerable.Range(0, size).Select(i => new FirstEntity { FirstItem = i.ToString() }).ToArray();
         var second = Enumerable.Range(0, size).Select(i => new SecondEntity { FirstItem = i.ToString() }).ToArray();
 
-        var vmParallel =
-            CreateJoinVirtualMachine(query, first, second, new CompilationOptions(ParallelizationMode.Full));
-        var vmNonParallel =
-            CreateJoinVirtualMachine(query, first, second, new CompilationOptions(ParallelizationMode.None));
+        var vmParallel = CreateJoinVirtualMachine(
+            query,
+            first,
+            second,
+            new CompilationOptions(ParallelizationMode.Full)
+        );
+        var vmNonParallel = CreateJoinVirtualMachine(
+            query,
+            first,
+            second,
+            new CompilationOptions(ParallelizationMode.None)
+        );
 
         var tableParallel = vmParallel.Run();
         var tableNonParallel = vmNonParallel.Run();
 
-        Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
-            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
+        Assert.AreEqual(
+            tableNonParallel.Count,
+            tableParallel.Count,
+            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}"
+        );
 
         var parallelItems = tableParallel.Select(row => (string)row.ReadValue(0)).OrderBy(int.Parse).ToList();
         var nonParallelItems = tableNonParallel.Select(row => (string)row.ReadValue(0)).OrderBy(int.Parse).ToList();
-        CollectionAssert.AreEqual(nonParallelItems, parallelItems,
-            "Result sets differ between parallel and non-parallel execution");
+        CollectionAssert.AreEqual(
+            nonParallelItems,
+            parallelItems,
+            "Result sets differ between parallel and non-parallel execution"
+        );
     }
 
     [TestMethod]
@@ -186,7 +208,9 @@ public partial class ParallelismOutputRowsTests
             "select first.FirstItem, second.FirstItem from #schema.first() first left outer join #schema.second() second on first.FirstItem = second.FirstItem";
 
         var first = Enumerable.Range(0, leftSize).Select(i => new FirstEntity { FirstItem = i.ToString() }).ToArray();
-        var second = Enumerable.Range(0, rightSize).Select(i => new SecondEntity { FirstItem = i.ToString() })
+        var second = Enumerable
+            .Range(0, rightSize)
+            .Select(i => new SecondEntity { FirstItem = i.ToString() })
             .ToArray();
 
         var vm = CreateJoinVirtualMachine(query, first, second, new CompilationOptions(ParallelizationMode.Full));
@@ -194,13 +218,15 @@ public partial class ParallelismOutputRowsTests
 
         Assert.AreEqual(leftSize, table.Count, $"Expected {leftSize} rows but got {table.Count}");
 
-
         var matchedCount = table.Count(row => row.ReadValue(1) != null);
         var unmatchedCount = table.Count(row => row.ReadValue(1) == null);
 
         Assert.AreEqual(rightSize, matchedCount, $"Expected {rightSize} matched rows but got {matchedCount}");
-        Assert.AreEqual(leftSize - rightSize, unmatchedCount,
-            $"Expected {leftSize - rightSize} unmatched rows but got {unmatchedCount}");
+        Assert.AreEqual(
+            leftSize - rightSize,
+            unmatchedCount,
+            $"Expected {leftSize - rightSize} unmatched rows but got {unmatchedCount}"
+        );
     }
 
     [TestMethod]
@@ -212,19 +238,32 @@ public partial class ParallelismOutputRowsTests
             "select first.FirstItem, second.FirstItem from #schema.first() first left outer join #schema.second() second on first.FirstItem = second.FirstItem";
 
         var first = Enumerable.Range(0, leftSize).Select(i => new FirstEntity { FirstItem = i.ToString() }).ToArray();
-        var second = Enumerable.Range(0, rightSize).Select(i => new SecondEntity { FirstItem = i.ToString() })
+        var second = Enumerable
+            .Range(0, rightSize)
+            .Select(i => new SecondEntity { FirstItem = i.ToString() })
             .ToArray();
 
-        var vmParallel =
-            CreateJoinVirtualMachine(query, first, second, new CompilationOptions(ParallelizationMode.Full));
-        var vmNonParallel =
-            CreateJoinVirtualMachine(query, first, second, new CompilationOptions(ParallelizationMode.None));
+        var vmParallel = CreateJoinVirtualMachine(
+            query,
+            first,
+            second,
+            new CompilationOptions(ParallelizationMode.Full)
+        );
+        var vmNonParallel = CreateJoinVirtualMachine(
+            query,
+            first,
+            second,
+            new CompilationOptions(ParallelizationMode.None)
+        );
 
         var tableParallel = vmParallel.Run();
         var tableNonParallel = vmNonParallel.Run();
 
-        Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
-            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
+        Assert.AreEqual(
+            tableNonParallel.Count,
+            tableParallel.Count,
+            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}"
+        );
     }
 
     #endregion

@@ -34,23 +34,33 @@ public partial class BranchCoverageImprovementTests
     {
         public string Name { get; } = name;
 
-        public ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters) =>
-            throw new NotImplementedException();
+        public ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters
+        ) => throw new NotImplementedException();
 
-        public SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters) =>
-            throw new NotImplementedException();
+        public SourceDescriptor DescribeSource(
+            string name,
+            SourceDescribeContext context,
+            params object?[] parameters
+        ) => throw new NotImplementedException();
 
         public IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
             string name,
             SourceRuntimeSettingsDescribeContext context,
-            params object?[] parameters) =>
-            [];
+            params object?[] parameters
+        ) => [];
 
         public SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters) =>
             SourcePlanResult.RejectAll(request);
 
-        public RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments =>
-            throw new NotImplementedException();
+        public RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext executionContext,
+            TArguments parameters
+        )
+            where TArguments : struct, global::Musoq.Schema.ISourceArguments => throw new NotImplementedException();
 
         public SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext) =>
             throw new NotImplementedException();
@@ -58,19 +68,33 @@ public partial class BranchCoverageImprovementTests
         public SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext) =>
             throw new NotImplementedException();
 
-        public bool TryResolveMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo)
+        public bool TryResolveMethod(
+            string method,
+            Type[] parameters,
+            Type? entityType,
+            [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
         }
 
-        public bool TryResolveRawMethod(string method, Type[] parameters, [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo)
+        public bool TryResolveRawMethod(
+            string method,
+            Type[] parameters,
+            [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
         }
 
-        public bool TryResolveAggregationMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo)
+        public bool TryResolveAggregationMethod(
+            string method,
+            Type[] parameters,
+            Type? entityType,
+            [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
@@ -81,13 +105,17 @@ public partial class BranchCoverageImprovementTests
             Type[] parameters,
             Type? entityType,
             Func<System.Reflection.MethodInfo, bool> methodFilter,
-            [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo)
+            [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
         }
 
-        public bool TryResolveWindowFunction(string method, [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo)
+        public bool TryResolveWindowFunction(
+            string method,
+            [NotNullWhen(true)] out System.Reflection.MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;

@@ -33,6 +33,7 @@ public partial class LibraryBase
         ArgumentNullException.ThrowIfNull(partOfDate);
         return ExtractFromDate(date, new CultureInfo(culture), partOfDate);
     }
+
     /// <summary>
     ///     Extracts time from DateTime
     /// </summary>
@@ -71,7 +72,7 @@ public partial class LibraryBase
             "minute" => value.Minute,
             "second" => value.Second,
             "millisecond" => value.Millisecond,
-            _ => throw new NotSupportedException($"specified part of date value ({partOfDate}) is not valid.")
+            _ => throw new NotSupportedException($"specified part of date value ({partOfDate}) is not valid."),
         };
     }
 }

@@ -45,17 +45,18 @@ public static partial class EvaluationHelper
         var columns = new Column[maxColumns];
         columns[0] = new Column("Name", typeof(string), 0);
 
-        for (var i = 1; i < columns.Length; i++) columns[i] = new Column($"Param {i - 1}", typeof(string), i);
+        for (var i = 1; i < columns.Length; i++)
+            columns[i] = new Column($"Param {i - 1}", typeof(string), i);
 
         var descTable = new Table("desc", columns);
         var layout = RowLayout.Create(
             columns.Length,
-            columns.Select(static column => new RowLayoutName(column.ColumnName, column.ColumnIndex)).ToArray());
+            columns.Select(static column => new RowLayoutName(column.ColumnName, column.ColumnIndex)).ToArray()
+        );
 
         foreach (var row in values)
             descTable.AddUnchecked(new DescriptionConstructorRow(layout, row.ToArray()));
 
         return descTable;
     }
-
 }

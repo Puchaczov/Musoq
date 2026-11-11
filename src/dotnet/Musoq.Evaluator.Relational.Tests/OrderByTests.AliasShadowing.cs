@@ -16,30 +16,22 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("20"),
                     new BasicEntity("3"),
                     new BasicEntity("1"),
                     new BasicEntity("10"),
-                    new BasicEntity("2")
+                    new BasicEntity("2"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("RawName", typeof(string)),
-            ("Name", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["1", 1],
-            ["2", 2],
-            ["3", 3],
-            ["10", 10],
-            ["20", 20]);
+        TableMaterializationTestHelper.AssertColumns(table, ("RawName", typeof(string)), ("Name", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["1", 1], ["2", 2], ["3", 3], ["10", 10], ["20", 20]);
     }
 
     [TestMethod]
@@ -50,30 +42,22 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("20"),
                     new BasicEntity("3"),
                     new BasicEntity("1"),
                     new BasicEntity("10"),
-                    new BasicEntity("2")
+                    new BasicEntity("2"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("RawName", typeof(string)),
-            ("Name", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["20", 20],
-            ["10", 10],
-            ["3", 3],
-            ["2", 2],
-            ["1", 1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("RawName", typeof(string)), ("Name", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["20", 20], ["10", 10], ["3", 3], ["2", 2], ["1", 1]);
     }
 
     [TestMethod]
@@ -84,29 +68,21 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("20"),
                     new BasicEntity("3"),
                     new BasicEntity("1"),
                     new BasicEntity("10"),
-                    new BasicEntity("2")
+                    new BasicEntity("2"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("RawName", typeof(string)),
-            ("Name", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["1", 1],
-            ["2", 2],
-            ["3", 3],
-            ["10", 10],
-            ["20", 20]);
+        TableMaterializationTestHelper.AssertColumns(table, ("RawName", typeof(string)), ("Name", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["1", 1], ["2", 2], ["3", 3], ["10", 10], ["20", 20]);
     }
 }

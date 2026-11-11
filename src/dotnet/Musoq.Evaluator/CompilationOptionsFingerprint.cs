@@ -34,7 +34,11 @@ public static class CompilationOptionsFingerprint
         Append(builder, nameof(options.RecursiveCteLimits.MaxSnapshotRows), options.RecursiveCteLimits.MaxSnapshotRows);
 
         Append(builder, nameof(options.RegexMatchTimeout), options.RegexMatchTimeout.Ticks);
-        Append(builder, nameof(options.InterpretationLimits.MaxRepeatIterations), options.InterpretationLimits.MaxRepeatIterations);
+        Append(
+            builder,
+            nameof(options.InterpretationLimits.MaxRepeatIterations),
+            options.InterpretationLimits.MaxRepeatIterations
+        );
 
         var bytes = Encoding.UTF8.GetBytes(builder.ToString());
         return $"{FormatVersion}:{Convert.ToHexString(SHA256.HashData(bytes))}";
@@ -43,19 +47,11 @@ public static class CompilationOptionsFingerprint
     private static void Append<T>(StringBuilder builder, string name, T value)
         where T : IConvertible
     {
-        builder
-            .Append(name)
-            .Append('=')
-            .Append(value.ToString(CultureInfo.InvariantCulture))
-            .Append(';');
+        builder.Append(name).Append('=').Append(value.ToString(CultureInfo.InvariantCulture)).Append(';');
     }
 
     private static void Append(StringBuilder builder, string name, int? value)
     {
-        builder
-            .Append(name)
-            .Append('=')
-            .Append(value?.ToString(CultureInfo.InvariantCulture) ?? "<null>")
-            .Append(';');
+        builder.Append(name).Append('=').Append(value?.ToString(CultureInfo.InvariantCulture) ?? "<null>").Append(';');
     }
 }

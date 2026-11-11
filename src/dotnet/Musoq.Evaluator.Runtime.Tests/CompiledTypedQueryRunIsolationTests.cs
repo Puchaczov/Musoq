@@ -17,7 +17,10 @@ public sealed class CompiledTypedQueryRunIsolationTests
     {
         var query = new CompiledTypedQuery<string>(new ObservedTypedRunnable());
         var parameters = new Dictionary<string, object?> { ["value"] = "first" };
-        var options = new TypedQueryRunOptions { TypedParameters = global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters) };
+        var options = new TypedQueryRunOptions
+        {
+            TypedParameters = global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters),
+        };
 
         var rows = query.Run(options);
         parameters["value"] = "second";
@@ -46,12 +49,22 @@ public sealed class CompiledTypedQueryRunIsolationTests
     {
         var runnable = new ObservedTypedRunnable();
         var query = new CompiledTypedQuery<string>(runnable);
-        var firstRows = query.Run(new TypedQueryRunOptions(
-            CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["value"] = "first" })));
-        var secondRows = query.Run(new TypedQueryRunOptions(
-            CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["value"] = "second" })));
+        var firstRows = query.Run(
+            new TypedQueryRunOptions(
+                CancellationToken.None,
+                global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                    new Dictionary<string, object?> { ["value"] = "first" }
+                )
+            )
+        );
+        var secondRows = query.Run(
+            new TypedQueryRunOptions(
+                CancellationToken.None,
+                global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                    new Dictionary<string, object?> { ["value"] = "second" }
+                )
+            )
+        );
 
         using var firstEnumerator = firstRows.GetEnumerator();
         Assert.IsTrue(firstEnumerator.MoveNext());
@@ -62,7 +75,8 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
             () => secondMaterialized = secondRows.ToArray(),
             CancellationToken.None,
             TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+            TaskScheduler.Default
+        );
         var secondEnteredBeforeFirstDisposed = runnable.WaitForRunCount(2, TimeSpan.FromSeconds(2));
 
         firstEnumerator.Dispose();
@@ -80,10 +94,16 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
 
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
@@ -91,7 +111,8 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
 
         public ILogger Logger { get; set; } = new NullLogger<object>();
 
-        public IDictionary<string, object?> Parameters { get; } = new Dictionary<string, object?>(StringComparer.Ordinal);
+        public IDictionary<string, object?> Parameters { get; } =
+            new Dictionary<string, object?>(StringComparer.Ordinal);
 
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = [];
 
@@ -126,7 +147,14 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
 
         public IEnumerable<string> Run(CancellationToken token)
         {
-            return Run(new TypedQueryRunOptions(token, global::Musoq.Tests.Common.NativeParameterFixture.Capture(Parameters), _phaseChanged, _dataSourceProgress));
+            return Run(
+                new TypedQueryRunOptions(
+                    token,
+                    global::Musoq.Tests.Common.NativeParameterFixture.Capture(Parameters),
+                    _phaseChanged,
+                    _dataSourceProgress
+                )
+            );
         }
 
         public bool WaitForRunCount(int count, TimeSpan timeout)

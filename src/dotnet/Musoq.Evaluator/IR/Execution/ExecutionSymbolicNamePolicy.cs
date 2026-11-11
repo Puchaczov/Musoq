@@ -14,26 +14,90 @@ internal static class ExecutionSymbolicNamePolicy
 {
     internal const int MaxIdentifierLength = 256;
 
-    private static readonly FrozenSet<string> ReservedMemberNames = CreateReservedMemberNames(
-        "__contexts",
-        "__values");
+    private static readonly FrozenSet<string> ReservedMemberNames = CreateReservedMemberNames("__contexts", "__values");
 
     private static readonly FrozenSet<string> ReservedIdentifiers = new HashSet<string>(StringComparer.Ordinal)
     {
-        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
-        "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
-        "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for", "foreach",
-        "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock", "long", "namespace",
-        "new", "null", "object", "operator", "out", "override", "params", "private", "protected", "public",
-        "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string",
-        "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe",
-        "ushort", "using", "virtual", "void", "volatile", "while"
+        "abstract",
+        "as",
+        "base",
+        "bool",
+        "break",
+        "byte",
+        "case",
+        "catch",
+        "char",
+        "checked",
+        "class",
+        "const",
+        "continue",
+        "decimal",
+        "default",
+        "delegate",
+        "do",
+        "double",
+        "else",
+        "enum",
+        "event",
+        "explicit",
+        "extern",
+        "false",
+        "finally",
+        "fixed",
+        "float",
+        "for",
+        "foreach",
+        "goto",
+        "if",
+        "implicit",
+        "in",
+        "int",
+        "interface",
+        "internal",
+        "is",
+        "lock",
+        "long",
+        "namespace",
+        "new",
+        "null",
+        "object",
+        "operator",
+        "out",
+        "override",
+        "params",
+        "private",
+        "protected",
+        "public",
+        "readonly",
+        "ref",
+        "return",
+        "sbyte",
+        "sealed",
+        "short",
+        "sizeof",
+        "stackalloc",
+        "static",
+        "string",
+        "struct",
+        "switch",
+        "this",
+        "throw",
+        "true",
+        "try",
+        "typeof",
+        "uint",
+        "ulong",
+        "unchecked",
+        "unsafe",
+        "ushort",
+        "using",
+        "virtual",
+        "void",
+        "volatile",
+        "while",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    internal static string CreateGeneratedFieldName(
-        string outputName,
-        int outputIndex,
-        ISet<string> usedFieldNames)
+    internal static string CreateGeneratedFieldName(string outputName, int outputIndex, ISet<string> usedFieldNames)
     {
         var candidate = CreateLoweringIdentifierCandidate(outputName, outputIndex);
         if (ReservedMemberNames.Contains(candidate))
@@ -55,20 +119,17 @@ internal static class ExecutionSymbolicNamePolicy
     internal static string CreateValuesRowTypeName(string alias, uint shapeHash)
     {
         var hash = shapeHash.ToString("X8", CultureInfo.InvariantCulture);
-        return TrimIdentifier(
-            CreateLoweringIdentifierCandidate($"{alias}Values{hash}Row0", 0),
-            0);
+        return TrimIdentifier(CreateLoweringIdentifierCandidate($"{alias}Values{hash}Row0", 0), 0);
     }
 
     internal static string GetGeneratedFieldName(FieldBinding field)
     {
-        return field.AccessStrategy is GeneratedFieldAccess generated
-            ? generated.FieldName
-            : field.Name;
+        return field.AccessStrategy is GeneratedFieldAccess generated ? generated.FieldName : field.Name;
     }
 
     internal static bool IsReservedResultRowMember(string name) =>
-        ReservedMemberNames.Contains(name) || name is "__columnIndexPairs" or "__columnIndexes" or "CreateColumnIndexes";
+        ReservedMemberNames.Contains(name)
+        || name is "__columnIndexPairs" or "__columnIndexes" or "CreateColumnIndexes";
 
     internal static string TrimIdentifier(string identifier, int reservedSuffixLength)
     {
@@ -110,7 +171,7 @@ internal static class ExecutionSymbolicNamePolicy
             nameof(Row.VisitColumn),
             nameof(Row.VisitColumns),
             nameof(Row.Equals),
-            nameof(Row.GetHashCode)
+            nameof(Row.GetHashCode),
         };
 
         foreach (var name in additionalNames)

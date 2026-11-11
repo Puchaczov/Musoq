@@ -61,9 +61,11 @@ internal static class AggregateCallIdentity
             return;
         }
 
-        writer.Add(node is CastNode
-            ? typeof(StrictCast).FullName ?? nameof(StrictCast)
-            : node.GetType().FullName ?? node.GetType().Name);
+        writer.Add(
+            node is CastNode
+                ? typeof(StrictCast).FullName ?? nameof(StrictCast)
+                : node.GetType().FullName ?? node.GetType().Name
+        );
         writer.Add(TypeName(node.ReturnType));
 
         switch (node)
@@ -141,9 +143,11 @@ internal static class AggregateCallIdentity
                 writer.Add(method.Alias ?? string.Empty);
                 writer.Add(method.EnumIntrinsic?.ToString() ?? string.Empty);
                 writer.Add(method.OperandEnumType?.Fingerprint ?? string.Empty);
-                writer.Add(method.EnumMask is { } enumMask
-                    ? $"{enumMask.Kind}:{enumMask.RawValue.ToString("X16", CultureInfo.InvariantCulture)}"
-                    : string.Empty);
+                writer.Add(
+                    method.EnumMask is { } enumMask
+                        ? $"{enumMask.Kind}:{enumMask.RawValue.ToString("X16", CultureInfo.InvariantCulture)}"
+                        : string.Empty
+                );
                 foreach (var argument in method.Arguments)
                     WriteExpression(argument, writer);
                 break;
@@ -177,7 +181,7 @@ internal static class AggregateCallIdentity
             null => "<null>",
             string text => text,
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
-            _ => value.ToString() ?? string.Empty
+            _ => value.ToString() ?? string.Empty,
         };
     }
 

@@ -51,8 +51,7 @@ public sealed class ParserPrecisionDiagnosticsTests
     [TestMethod]
     public void AlternativeBaseLiteralSeed_ShouldParseWithoutDiagnostics()
     {
-        const string query =
-            "select 0xFF, 0XFF, 0b1010, 0B1010, 0o77, 0O77, 0x0 from system.dual()";
+        const string query = "select 0xFF, 0XFF, 0b1010, 0B1010, 0o77, 0O77, 0x0 from system.dual()";
 
         var result = ParseWithDiagnostics(query);
 
@@ -86,8 +85,7 @@ public sealed class ParserPrecisionDiagnosticsTests
     public void BinaryLiteralWithTrailingInvalidDigit_ShouldReportWholeInvalidLiteral()
     {
         const string invalidLiteral = "0b1012";
-        const string query =
-            "select 0xFF, 0XFF, 0b1012, 0B1010, 0o77, 0O77, 0x0 from system.dual()";
+        const string query = "select 0xFF, 0XFF, 0b1012, 0B1010, 0o77, 0O77, 0x0 from system.dual()";
 
         var result = ParseWithDiagnostics(query);
 
@@ -96,7 +94,8 @@ public sealed class ParserPrecisionDiagnosticsTests
         Assert.AreEqual(DiagnosticCode.MQ1007_InvalidBinaryNumber, diagnostic.Code, result.FormatDiagnostics());
         Assert.AreEqual(
             new TextSpan(query.IndexOf(invalidLiteral, StringComparison.Ordinal), invalidLiteral.Length),
-            diagnostic.Span);
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
@@ -136,8 +135,7 @@ public sealed class ParserPrecisionDiagnosticsTests
         const string literal = "0xFFFFFFFFFFFFFFFF1";
         var query = $"select {literal} from #test.rows()";
 
-        var exception = Assert.Throws<SyntaxException>(() =>
-            new Parser(new Lexer(query, true)).ComposeAll());
+        var exception = Assert.Throws<SyntaxException>(() => new Parser(new Lexer(query, true)).ComposeAll());
 
         Assert.AreEqual(DiagnosticCode.MQ1009_NumericLiteralOutOfRange, exception.Code);
         Assert.AreEqual(query.IndexOf(literal, StringComparison.Ordinal), exception.Span!.Value.Start);
@@ -206,7 +204,8 @@ public sealed class ParserPrecisionDiagnosticsTests
     public void TieBreakOutsideAsOfJoin_ShouldUseTheTieBreakDiagnostic()
     {
         var result = ParseWithDiagnostics(
-            "select 1 from a.first() a inner join b.second() b on a.Id = b.Id tie break by b.Score");
+            "select 1 from a.first() a inner join b.second() b on a.Id = b.Id tie break by b.Score"
+        );
 
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
         var diagnostic = result.Diagnostics[0];

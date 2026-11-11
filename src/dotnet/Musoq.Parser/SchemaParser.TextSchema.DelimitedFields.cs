@@ -15,8 +15,10 @@ public partial class SchemaParser
         var modifiers = ComposeTextFieldModifiers();
 
         string? escapeChar = null;
-        if ((modifiers & TextFieldModifier.Escaped) != 0 &&
-            Current.TokenType is TokenType.Word or TokenType.StringLiteral)
+        if (
+            (modifiers & TextFieldModifier.Escaped) != 0
+            && Current.TokenType is TokenType.Word or TokenType.StringLiteral
+        )
         {
             var escapeToken = Current;
             escapeChar = ComposeStringLiteral();
@@ -25,10 +27,17 @@ public partial class SchemaParser
                     $"The escape character for text field '{name}' must contain exactly one character.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ4002_InvalidTextSchemaField,
-                    escapeToken.Span);
+                    escapeToken.Span
+                );
         }
 
         return new TextFieldDefinitionNode(
-            name, TextFieldType.Between, openDelimiter, closeDelimiter, modifiers, escapeChar);
+            name,
+            TextFieldType.Between,
+            openDelimiter,
+            closeDelimiter,
+            modifiers,
+            escapeChar
+        );
     }
 }

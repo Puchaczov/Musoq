@@ -9,21 +9,22 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class IsDistinctFromTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void IsDistinctFrom_WithNullsAndValues_ShouldUseNullSafeTruthTable()
     {
-        const string query = @"
-from values {
-    ( Label: 'both-null', LeftValue: null, RightValue: null ),
-    ( Label: 'left-null', LeftValue: null, RightValue: 1 ),
-    ( Label: 'right-null', LeftValue: 1, RightValue: null ),
-    ( Label: 'equal', LeftValue: 1, RightValue: 1 ),
-    ( Label: 'different', LeftValue: 1, RightValue: 2 )
-} pairs
-where pairs.LeftValue is distinct from pairs.RightValue
-select pairs.Label
-order by pairs.Label";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Label: 'both-null', LeftValue: null, RightValue: null ),\n"
+            + "    ( Label: 'left-null', LeftValue: null, RightValue: 1 ),\n"
+            + "    ( Label: 'right-null', LeftValue: 1, RightValue: null ),\n"
+            + "    ( Label: 'equal', LeftValue: 1, RightValue: 1 ),\n"
+            + "    ( Label: 'different', LeftValue: 1, RightValue: 2 )\n"
+            + "} pairs\n"
+            + "where pairs.LeftValue is distinct from pairs.RightValue\n"
+            + "select pairs.Label\n"
+            + "order by pairs.Label"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -35,17 +36,19 @@ order by pairs.Label";
     [TestMethod]
     public void IsNotDistinctFrom_WithNullsAndValues_ShouldUseNullSafeTruthTable()
     {
-        const string query = @"
-from values {
-    ( Label: 'both-null', LeftValue: null, RightValue: null ),
-    ( Label: 'left-null', LeftValue: null, RightValue: 1 ),
-    ( Label: 'right-null', LeftValue: 1, RightValue: null ),
-    ( Label: 'equal', LeftValue: 1, RightValue: 1 ),
-    ( Label: 'different', LeftValue: 1, RightValue: 2 )
-} pairs
-where pairs.LeftValue is not distinct from pairs.RightValue
-select pairs.Label
-order by pairs.Label";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Label: 'both-null', LeftValue: null, RightValue: null ),\n"
+            + "    ( Label: 'left-null', LeftValue: null, RightValue: 1 ),\n"
+            + "    ( Label: 'right-null', LeftValue: 1, RightValue: null ),\n"
+            + "    ( Label: 'equal', LeftValue: 1, RightValue: 1 ),\n"
+            + "    ( Label: 'different', LeftValue: 1, RightValue: 2 )\n"
+            + "} pairs\n"
+            + "where pairs.LeftValue is not distinct from pairs.RightValue\n"
+            + "select pairs.Label\n"
+            + "order by pairs.Label"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -57,15 +60,17 @@ order by pairs.Label";
     [TestMethod]
     public void IsNotDistinctFrom_WithStrings_ShouldUseExistingTypedEquality()
     {
-        const string query = @"
-from values {
-    ( Label: 'alpha', LeftValue: 'Alpha', RightValue: 'Alpha' ),
-    ( Label: 'beta', LeftValue: 'Beta', RightValue: 'Gamma' ),
-    ( Label: 'both-null', LeftValue: null, RightValue: null )
-} pairs
-where pairs.LeftValue is not distinct from pairs.RightValue
-select pairs.Label
-order by pairs.Label";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Label: 'alpha', LeftValue: 'Alpha', RightValue: 'Alpha' ),\n"
+            + "    ( Label: 'beta', LeftValue: 'Beta', RightValue: 'Gamma' ),\n"
+            + "    ( Label: 'both-null', LeftValue: null, RightValue: null )\n"
+            + "} pairs\n"
+            + "where pairs.LeftValue is not distinct from pairs.RightValue\n"
+            + "select pairs.Label\n"
+            + "order by pairs.Label"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -77,12 +82,14 @@ order by pairs.Label";
     [TestMethod]
     public void IsDistinctFrom_WithIncompatibleOperands_ShouldUseTypeMismatchDiagnostic()
     {
-        const string query = @"
-from values {
-    ( LeftValue: 1, Flag: true )
-} pairs
-where pairs.LeftValue is distinct from pairs.Flag
-select pairs.LeftValue";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( LeftValue: 1, Flag: true )\n"
+            + "} pairs\n"
+            + "where pairs.LeftValue is distinct from pairs.Flag\n"
+            + "select pairs.LeftValue"
+        );
 
         var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, EmptySources()));
 
@@ -90,7 +97,8 @@ select pairs.LeftValue";
             exception,
             DiagnosticCode.MQ3005_TypeMismatch,
             DiagnosticPhase.Bind,
-            "cannot compare");
+            "cannot compare"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(exception);
     }
 

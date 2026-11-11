@@ -13,22 +13,26 @@ internal static partial class ApplyPredicateMovementPlanner
     private sealed partial class PlanningState
     {
         private static bool IsAmbiguousAlias(string alias, QueryScope scope) =>
-            scope.ProducedAliasCounts.TryGetValue(alias, out var produced) && produced > 1 ||
-            scope.SourceAliasCounts.TryGetValue(alias, out var sources) && sources > 1;
+            scope.ProducedAliasCounts.TryGetValue(alias, out var produced) && produced > 1
+            || scope.SourceAliasCounts.TryGetValue(alias, out var sources) && sources > 1;
 
         private void AddResidualDecision(
             int ordinal,
             string predicateText,
             PlanningConfidence confidence,
-            string reason)
+            string reason
+        )
         {
-            _decisions.Add(new PlanningDecision(
-                PlanningDecisionCategory.PredicateMovement,
-                "ApplyPredicateMovementPlan",
-                $"Where:ApplyResidual:{ordinal}:{predicateText}",
-                "RetainedResidual",
-                confidence,
-                reason));
+            _decisions.Add(
+                new PlanningDecision(
+                    PlanningDecisionCategory.PredicateMovement,
+                    "ApplyPredicateMovementPlan",
+                    $"Where:ApplyResidual:{ordinal}:{predicateText}",
+                    "RetainedResidual",
+                    confidence,
+                    reason
+                )
+            );
         }
 
         private string CreateMovementId(ApplyBoundary boundary, int ordinal, string predicateText)
@@ -42,25 +46,23 @@ internal static partial class ApplyPredicateMovementPlanner
             var leftAliases = _expandedLeftAliases.TryGetValue(apply, out var expanded)
                 ? new HashSet<string>(expanded, StringComparer.OrdinalIgnoreCase)
                 : CollectProducedAliases(apply.Left);
-            return new ApplyBoundary(
-                apply,
-                ordinal,
-                leftAliases,
-                CollectProducedAliases(apply.Right));
+            return new ApplyBoundary(apply, ordinal, leftAliases, CollectProducedAliases(apply.Right));
         }
 
         private static string CreateCteName(ApplyBoundary boundary)
         {
             return string.Concat(
-                boundary.LeftAliases
-                    .Concat(boundary.RightAliases)
-                    .OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase));
+                boundary
+                    .LeftAliases.Concat(boundary.RightAliases)
+                    .OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase)
+            );
         }
 
         private static HashSet<string> CreateSourceAcceptedPredicateTexts(
             IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults,
             IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans,
-            IReadOnlySet<string> sourceIds)
+            IReadOnlySet<string> sourceIds
+        )
         {
             var result = new HashSet<string>(StringComparer.Ordinal);
             if (sourcePlanResults == null || sourcePredicatePlans == null)
@@ -68,17 +70,22 @@ internal static partial class ApplyPredicateMovementPlanner
 
             foreach (var sourceId in sourceIds)
             {
-                if (!sourcePlanResults.TryGetValue(sourceId, out var resultForSource) ||
-                    resultForSource.AcceptedPredicate == null ||
-                    !sourcePredicatePlans.TryGetValue(sourceId, out var sourcePredicatePlan))
+                if (
+                    !sourcePlanResults.TryGetValue(sourceId, out var resultForSource)
+                    || resultForSource.AcceptedPredicate == null
+                    || !sourcePredicatePlans.TryGetValue(sourceId, out var sourcePredicatePlan)
+                )
                 {
                     continue;
                 }
 
-                foreach (var predicate in SourcePredicateConjunctMatcher.MatchAcceptedConjuncts(
-                             resultForSource.AcceptedPredicate,
-                             sourcePredicatePlan,
-                             allowWholePredicateMatch: resultForSource.ResidualPredicate == null))
+                foreach (
+                    var predicate in SourcePredicateConjunctMatcher.MatchAcceptedConjuncts(
+                        resultForSource.AcceptedPredicate,
+                        sourcePredicatePlan,
+                        allowWholePredicateMatch: resultForSource.ResidualPredicate == null
+                    )
+                )
                 {
                     result.Add(IrExpressionPrinter.Print(predicate));
                 }
@@ -92,7 +99,8 @@ internal static partial class ApplyPredicateMovementPlanner
         ApplyNode Apply,
         int Ordinal,
         HashSet<string> LeftAliases,
-        HashSet<string> RightAliases);
+        HashSet<string> RightAliases
+    );
 
     private static IEnumerable<IrExpression> SplitTopLevelConjuncts(IrExpression predicate)
     {
@@ -151,7 +159,7 @@ internal static partial class ApplyPredicateMovementPlanner
             CteRefNode cteRef => cteRef.Alias,
             ValuesScanNode values => values.Alias,
             UnpivotNode unpivot => unpivot.Alias,
-            _ => null
+            _ => null,
         };
     }
 
@@ -188,7 +196,8 @@ internal static partial class ApplyPredicateMovementPlanner
     {
         var scopes = boundaries
             .Select(static boundary =>
-                $"Apply{boundary.Ordinal}=[{string.Join(", ", boundary.LeftAliases.OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase))}]")
+                $"Apply{boundary.Ordinal}=[{string.Join(", ", boundary.LeftAliases.OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase))}]"
+            )
             .ToArray();
         return string.Join("; ", scopes);
     }

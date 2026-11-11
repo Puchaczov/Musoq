@@ -14,7 +14,8 @@ public sealed class TypedOutputBinderTests
     {
         var plan = CreatePlan<ConstructorOutput>(
             new TypedOutputColumn("Name", 0, typeof(string)),
-            new TypedOutputColumn("Age", 1, typeof(int)));
+            new TypedOutputColumn("Age", 1, typeof(int))
+        );
 
         Assert.IsNotNull(plan.Constructor);
         Assert.AreEqual(2, plan.ConstructorBindings.Count);
@@ -30,7 +31,8 @@ public sealed class TypedOutputBinderTests
     {
         var plan = CreatePlan<PropertyOutput>(
             new TypedOutputColumn("Source.Name", 0, typeof(string)),
-            new TypedOutputColumn("Age", 1, typeof(int)));
+            new TypedOutputColumn("Age", 1, typeof(int))
+        );
 
         Assert.IsNull(plan.Constructor);
         Assert.AreEqual(2, plan.MemberBindings.Count);
@@ -45,7 +47,8 @@ public sealed class TypedOutputBinderTests
     {
         var plan = CreatePlan<FieldOutput>(
             new TypedOutputColumn("Name", 0, typeof(string)),
-            new TypedOutputColumn("Age", 1, typeof(int)));
+            new TypedOutputColumn("Age", 1, typeof(int))
+        );
 
         Assert.IsNull(plan.Constructor);
         Assert.AreEqual(2, plan.MemberBindings.Count);
@@ -59,7 +62,9 @@ public sealed class TypedOutputBinderTests
         var exception = Assert.Throws<InvalidOperationException>(() =>
             CreatePlan<PropertyOutput>(
                 new TypedOutputColumn("A.Name", 0, typeof(string)),
-                new TypedOutputColumn("B.Name", 1, typeof(string))));
+                new TypedOutputColumn("B.Name", 1, typeof(string))
+            )
+        );
 
         StringAssert.Contains(exception.Message, "duplicate output alias 'Name'");
     }
@@ -68,7 +73,8 @@ public sealed class TypedOutputBinderTests
     public void Create_WhenMemberIsMissing_ShouldReject()
     {
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            CreatePlan<MissingMemberOutput>(new TypedOutputColumn("Name", 0, typeof(string))));
+            CreatePlan<MissingMemberOutput>(new TypedOutputColumn("Name", 0, typeof(string)))
+        );
 
         StringAssert.Contains(exception.Message, "does not expose writable member 'Name'");
     }
@@ -77,7 +83,8 @@ public sealed class TypedOutputBinderTests
     public void Create_WhenMemberTypeIsIncompatible_ShouldReject()
     {
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            CreatePlan<IncompatibleMemberOutput>(new TypedOutputColumn("Name", 0, typeof(string))));
+            CreatePlan<IncompatibleMemberOutput>(new TypedOutputColumn("Name", 0, typeof(string)))
+        );
 
         StringAssert.Contains(exception.Message, "expects 'System.Int32'");
         StringAssert.Contains(exception.Message, "has type 'System.String'");
@@ -87,7 +94,8 @@ public sealed class TypedOutputBinderTests
     public void Create_WhenEnumValuedMemberTargetsIntegralCarrier_ShouldReject()
     {
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            CreatePlan<EnumMemberOutput>(new TypedOutputColumn("Status", 0, typeof(short))));
+            CreatePlan<EnumMemberOutput>(new TypedOutputColumn("Status", 0, typeof(short)))
+        );
 
         StringAssert.Contains(exception.Message, typeof(TypedOutputStatus).FullName!);
         StringAssert.Contains(exception.Message, typeof(short).FullName!);
@@ -97,7 +105,8 @@ public sealed class TypedOutputBinderTests
     public void Create_WhenMemberNameIsAmbiguous_ShouldReject()
     {
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            CreatePlan<AmbiguousMemberOutput>(new TypedOutputColumn("Name", 0, typeof(string))));
+            CreatePlan<AmbiguousMemberOutput>(new TypedOutputColumn("Name", 0, typeof(string)))
+        );
 
         StringAssert.Contains(exception.Message, "is ambiguous");
     }
@@ -106,7 +115,8 @@ public sealed class TypedOutputBinderTests
     public void Create_WhenConstructorsAreAmbiguous_ShouldReject()
     {
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            CreatePlan<AmbiguousConstructorOutput>(new TypedOutputColumn("Name", 0, typeof(string))));
+            CreatePlan<AmbiguousConstructorOutput>(new TypedOutputColumn("Name", 0, typeof(string)))
+        );
 
         StringAssert.Contains(exception.Message, "multiple public constructors");
     }
@@ -116,7 +126,8 @@ public sealed class TypedOutputBinderTests
     {
         var binding = TypedOutputBinding.Create(
             typeof(KeywordMemberOutput),
-            [new ExecutionColumnMetadataField("class", 0, typeof(string))]);
+            [new ExecutionColumnMetadataField("class", 0, typeof(string))]
+        );
 
         var expression = binding.CreateOutputExpression("row").NormalizeWhitespace().ToFullString();
 
@@ -168,7 +179,7 @@ public sealed class TypedOutputBinderTests
 
     private enum TypedOutputStatus : short
     {
-        Queued = 10
+        Queued = 10,
     }
 
     private sealed class AmbiguousMemberOutput

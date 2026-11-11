@@ -13,51 +13,43 @@ public sealed class RLikeMatcherCacheSlot
 
     /// <summary>Initializes a serial two-entry matcher cache.</summary>
     public RLikeMatcherCacheSlot()
-        : this(false)
-    {
-    }
+        : this(false) { }
 
     /// <summary>Initializes a two-entry matcher cache, optionally partitioned by worker thread.</summary>
     public RLikeMatcherCacheSlot(bool workerLocal)
-        : this(workerLocal, Runtime.RuntimeCacheOptions.DefaultRegexTimeout)
-    {
-    }
+        : this(workerLocal, Runtime.RuntimeCacheOptions.DefaultRegexTimeout) { }
 
     /// <summary>Initializes an execution-local matcher cache with a finite per-match budget.</summary>
     public RLikeMatcherCacheSlot(bool workerLocal, TimeSpan timeout)
-        : this(workerLocal, CreateMatcherFactory(timeout))
-    {
-    }
+        : this(workerLocal, CreateMatcherFactory(timeout)) { }
 
-    internal RLikeMatcherCacheSlot(
-        bool workerLocal,
-        Func<string, PreparedRLikeMatcher> matcherFactory)
+    internal RLikeMatcherCacheSlot(bool workerLocal, Func<string, PreparedRLikeMatcher> matcherFactory)
     {
         _matcherFactory = matcherFactory ?? throw new ArgumentNullException(nameof(matcherFactory));
         _serialState = new SlotState(_matcherFactory);
         _workerStates = workerLocal ? new ConcurrentDictionary<int, SlotState>() : null;
     }
 
-    internal int Count => _workerStates is null
-        ? _serialState.Count
-        : _workerStates.Values.Sum(static state => state.Count);
+    internal int Count =>
+        _workerStates is null ? _serialState.Count : _workerStates.Values.Sum(static state => state.Count);
 
-    internal int MatcherConstructionCount => _workerStates is null
-        ? _serialState.MatcherConstructionCount
-        : _workerStates.Values.Sum(static state => state.MatcherConstructionCount);
+    internal int MatcherConstructionCount =>
+        _workerStates is null
+            ? _serialState.MatcherConstructionCount
+            : _workerStates.Values.Sum(static state => state.MatcherConstructionCount);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool IsMatch(string input, string pattern) => GetState().IsMatch(input, pattern);
 
-
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private SlotState GetState() => _workerStates is null
-        ? _serialState
-        : _workerStates.GetOrAdd(
-            Environment.CurrentManagedThreadId,
-            static (_, factory) => new SlotState(factory),
-            _matcherFactory);
+    private SlotState GetState() =>
+        _workerStates is null
+            ? _serialState
+            : _workerStates.GetOrAdd(
+                Environment.CurrentManagedThreadId,
+                static (_, factory) => new SlotState(factory),
+                _matcherFactory
+            );
 
     private static Func<string, PreparedRLikeMatcher> CreateMatcherFactory(TimeSpan timeout)
     {

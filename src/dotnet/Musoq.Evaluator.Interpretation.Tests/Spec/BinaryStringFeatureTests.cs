@@ -26,21 +26,32 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringDynamicSize_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { 
-                Length: byte,
-                Name: string[Length] utf8 
-            };
-            select d.Length, d.Name from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Length: byte,\n"
+            + "                Name: string[Length] utf8 \n"
+            + "            };\n"
+            + "            select d.Length, d.Name from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0x05, 0x48, 0x65, 0x6C, 0x6C, 0x6F };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -58,24 +69,35 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_MultipleStrings_ShouldParseSequentially()
     {
-        var query = @"
-            binary Record { 
-                FirstName: string[10] utf8 trim,
-                LastName: string[10] utf8 trim
-            };
-            select r.FirstName, r.LastName from #test.files() f
-            cross apply Interpret<Record>(f.Content) r";
+        var query = (
+            "\n"
+            + "            binary Record { \n"
+            + "                FirstName: string[10] utf8 trim,\n"
+            + "                LastName: string[10] utf8 trim\n"
+            + "            };\n"
+            + "            select r.FirstName, r.LastName from #test.files() f\n"
+            + "            cross apply Interpret<Record>(f.Content) r"
+        );
 
         var firstName = "John".PadRight(10);
         var lastName = "Doe".PadRight(10);
         var testData = Encoding.UTF8.GetBytes(firstName + lastName);
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -93,22 +115,30 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringInWhereClause_ShouldFilter()
     {
-        var query = @"
-            binary Header { Magic: string[4] ascii };
-            select f.Name from #test.files() f
-            cross apply Interpret<Header>(f.Content) h
-            where h.Magic = 'PNG '";
+        var query = (
+            "\n"
+            + "            binary Header { Magic: string[4] ascii };\n"
+            + "            select f.Name from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h\n"
+            + "            where h.Magic = 'PNG '"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "image.png", Content = "PNG "u8.ToArray() },
-            new BinaryEntity { Name = "image.gif", Content = "GIF8"u8.ToArray() }
+            new BinaryEntity { Name = "image.gif", Content = "GIF8"u8.ToArray() },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -125,18 +155,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringUtf8_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Name: string[5] utf8 };
-            select d.Name from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Name: string[5] utf8 };\n"
+            + "            select d.Name from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "Hello"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -149,19 +190,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringUtf8MultiByteChars_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Text: string[6] utf8 };
-            select d.Text from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Text: string[6] utf8 };\n"
+            + "            select d.Text from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "日本"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -178,18 +229,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringAscii_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Code: string[4] ascii };
-            select d.Code from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Code: string[4] ascii };\n"
+            + "            select d.Code from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "TEST"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -202,18 +264,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringAsciiMixed_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: string[8] ascii };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Value: string[8] ascii };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "ABC-1234"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -230,18 +303,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringTrim_ShouldRemoveTrailingSpaces()
     {
-        var query = @"
-            binary Data { Name: string[10] utf8 trim };
-            select d.Name from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Name: string[10] utf8 trim };\n"
+            + "            select d.Name from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "Hello     "u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -254,18 +338,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringTrim_ShouldRemoveLeadingAndTrailingSpaces()
     {
-        var query = @"
-            binary Data { Name: string[12] utf8 trim };
-            select d.Name from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Name: string[12] utf8 trim };\n"
+            + "            select d.Name from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "  Testing   "u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -278,18 +373,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringRtrim_ShouldRemoveOnlyTrailingSpaces()
     {
-        var query = @"
-            binary Data { Name: string[12] utf8 rtrim };
-            select d.Name from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Name: string[12] utf8 rtrim };\n"
+            + "            select d.Name from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "  Testing   "u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -302,18 +408,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringLtrim_ShouldRemoveOnlyLeadingSpaces()
     {
-        var query = @"
-            binary Data { Name: string[12] utf8 ltrim };
-            select d.Name from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Name: string[12] utf8 ltrim };\n"
+            + "            select d.Name from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "  Testing   "u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -330,18 +447,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringNullterm_ShouldTruncateAtNull()
     {
-        var query = @"
-            binary Data { Name: string[10] utf8 nullterm };
-            select d.Name from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Name: string[10] utf8 nullterm };\n"
+            + "            select d.Name from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "Hello\u0000XXXX"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -354,18 +482,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringNullterm_ImmediateNull_ShouldReturnEmpty()
     {
-        var query = @"
-            binary Data { Name: string[10] utf8 nullterm };
-            select d.Name from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Name: string[10] utf8 nullterm };\n"
+            + "            select d.Name from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "\u0000XXXXXXXXX"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -378,18 +517,29 @@ public class BinaryStringFeatureTests
     [TestMethod]
     public void Binary_StringNullterm_NoNull_ShouldUseFullBuffer()
     {
-        var query = @"
-            binary Data { Name: string[5] utf8 nullterm };
-            select d.Name from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Name: string[5] utf8 nullterm };\n"
+            + "            select d.Name from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = "ABCDE"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

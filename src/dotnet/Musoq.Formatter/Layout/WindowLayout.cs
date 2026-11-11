@@ -7,9 +7,11 @@ using Musoq.Parser.Tokens;
 
 namespace Musoq.Formatter.Layout;
 
-internal sealed class WindowLayout(LayoutContext context,
+internal sealed class WindowLayout(
+    LayoutContext context,
     Func<IReadOnlyList<LayoutElement>, ExpressionMode, Document> sequence,
-    Func<IReadOnlyList<LayoutElement>, Document> clauseLayout)
+    Func<IReadOnlyList<LayoutElement>, Document> clauseLayout
+)
 {
     internal Document Build(LayoutElement group)
     {
@@ -17,9 +19,12 @@ internal sealed class WindowLayout(LayoutContext context,
         var start = 0;
         for (var index = 1; index <= group.Children.Count; index++)
         {
-            if (index != group.Children.Count && group.Children[index].Token.TokenType is not
-                (TokenType.PartitionBy or TokenType.OrderBy or TokenType.Rows or TokenType.Range) &&
-                !context.Syntax.IsWindowFrameStart(group.Children[index].Start))
+            if (
+                index != group.Children.Count
+                && group.Children[index].Token.TokenType
+                    is not (TokenType.PartitionBy or TokenType.OrderBy or TokenType.Rows or TokenType.Range)
+                && !context.Syntax.IsWindowFrameStart(group.Children[index].Start)
+            )
                 continue;
             if (clauses.Count > 0)
                 clauses.Add(Document.Break());
@@ -30,9 +35,13 @@ internal sealed class WindowLayout(LayoutContext context,
                 clauses.Add(sequence(clause, ExpressionMode.WindowFrame));
             start = index;
         }
-        return Document.Group(Document.Concat(context.Tokens.Of(group.Token),
-            Document.Indent(Document.Concat(Document.Break(""), Document.Join(clauses))),
-            Document.Break(""), context.Tokens.Of(group.Close!)));
+        return Document.Group(
+            Document.Concat(
+                context.Tokens.Of(group.Token),
+                Document.Indent(Document.Concat(Document.Break(""), Document.Join(clauses))),
+                Document.Break(""),
+                context.Tokens.Of(group.Close!)
+            )
+        );
     }
-
 }

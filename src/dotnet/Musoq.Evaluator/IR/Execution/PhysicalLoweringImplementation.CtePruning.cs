@@ -9,9 +9,19 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private CteDefinitionPruningPlan CreateCteDefinitionPruningPlan(PhysicalCteNode cte)
     {
-        var names = cte.Definitions.Select(static definition => definition.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var required = names.ToDictionary(static name => name, static _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase);
-        var outputSchemas = cte.Definitions.ToDictionary(static definition => definition.Name, static definition => definition.Plan.OutputSchema, StringComparer.OrdinalIgnoreCase);
+        var names = cte
+            .Definitions.Select(static definition => definition.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var required = names.ToDictionary(
+            static name => name,
+            static _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+            StringComparer.OrdinalIgnoreCase
+        );
+        var outputSchemas = cte.Definitions.ToDictionary(
+            static definition => definition.Name,
+            static definition => definition.Plan.OutputSchema,
+            StringComparer.OrdinalIgnoreCase
+        );
 
         foreach (var definition in cte.Definitions)
         {
@@ -24,7 +34,8 @@ internal sealed partial class PhysicalLoweringImplementation
             var local = names.ToDictionary(
                 static name => name,
                 static _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-                StringComparer.OrdinalIgnoreCase);
+                StringComparer.OrdinalIgnoreCase
+            );
             CteColumnUsageCollector.CollectRequiredCteColumns(definition.Plan, names, outputSchemas, local);
             foreach (var (name, columns) in local)
             {
@@ -42,7 +53,8 @@ internal sealed partial class PhysicalLoweringImplementation
             .ToDictionary(
                 static pair => pair.Key,
                 static pair => (IReadOnlySet<string>)pair.Value,
-                StringComparer.OrdinalIgnoreCase);
+                StringComparer.OrdinalIgnoreCase
+            );
 
         var contextFreeDefinitions = CreateContextFreeCteDefinitions(cte);
         contextFreeDefinitions.ExceptWith(CteColumnUsageCollector.CollectContextRequiredCteDefinitions(cte, names));
@@ -50,9 +62,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return new CteDefinitionPruningPlan(compact, contextFreeDefinitions);
     }
 
-    private void AddSidecarRequiredColumns(
-        PhysicalCteNode cte,
-        IReadOnlyDictionary<string, HashSet<string>> required)
+    private void AddSidecarRequiredColumns(PhysicalCteNode cte, IReadOnlyDictionary<string, HashSet<string>> required)
     {
         foreach (var definition in cte.Definitions)
         foreach (var spec in ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name))
@@ -70,10 +80,12 @@ internal sealed partial class PhysicalLoweringImplementation
         foreach (var definition in cte.Definitions)
         {
             var specs = ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name);
-            if (specs.Count == 0 ||
-                specs.Any(static spec => spec.Kind != CteSidecarIndexKind.KeySet) ||
-                !classifications.TryGetValue(definition.Name, out var classification) ||
-                classification.ReferenceCount != specs.Count)
+            if (
+                specs.Count == 0
+                || specs.Any(static spec => spec.Kind != CteSidecarIndexKind.KeySet)
+                || !classifications.TryGetValue(definition.Name, out var classification)
+                || classification.ReferenceCount != specs.Count
+            )
             {
                 continue;
             }
@@ -86,7 +98,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static PhysicalCteDefinition ApplyCteDefinitionPruning(
         PhysicalCteDefinition definition,
-        CteDefinitionPruningPlan pruningPlan)
+        CteDefinitionPruningPlan pruningPlan
+    )
     {
         if (!pruningPlan.TryGetRequiredColumns(definition.Name, out var required) || required.Count == 0)
             return definition;
@@ -95,11 +108,14 @@ internal sealed partial class PhysicalLoweringImplementation
         if (plan is not PhysicalProjectNode project || project.IsDistinct)
             return definition;
 
-        if (project.Fields.Select(field => field.OutputName).Distinct(StringComparer.OrdinalIgnoreCase).Count() != project.Fields.Length)
+        if (
+            project.Fields.Select(field => field.OutputName).Distinct(StringComparer.OrdinalIgnoreCase).Count()
+            != project.Fields.Length
+        )
             return definition;
 
-        var fields = project.Fields
-            .Where(field => IsRequiredOutputField(field.OutputName, required))
+        var fields = project
+            .Fields.Where(field => IsRequiredOutputField(field.OutputName, required))
             .Select(static (field, index) => field with { OutputIndex = index })
             .ToArray();
 
@@ -112,7 +128,10 @@ internal sealed partial class PhysicalLoweringImplementation
             ? new PhysicalMultiStatementNode([pruned]) { IntermediateProducers = statements.IntermediateProducers }
             : pruned;
 
-        return definition with { Plan = prunedPlan };
+        return definition with
+        {
+            Plan = prunedPlan,
+        };
     }
 
     private static bool IsRequiredOutputField(string outputName, IReadOnlySet<string> required)

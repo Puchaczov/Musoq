@@ -6,7 +6,6 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Parser.Tests;
 
-
 [TestClass]
 public class DescParserFunctionTests : DescParserTestBase
 {
@@ -76,11 +75,13 @@ public class DescParserFunctionTests : DescParserTestBase
     [TestMethod]
     public void DescFunctionsSchema_WithComment_ShouldParse()
     {
-        var query = @"
-            -- This is a comment
-            desc functions #schema
-            -- Another comment
-        ";
+        var query = (
+            "\n"
+            + "            -- This is a comment\n"
+            + "            desc functions #schema\n"
+            + "            -- Another comment\n"
+            + "        "
+        );
 
         var desc = ParseDescNode(query);
         var source = GetSchemaFromNode(desc);
@@ -93,11 +94,9 @@ public class DescParserFunctionTests : DescParserTestBase
     [TestMethod]
     public void DescFunctionsSchema_WithMultilineFormat_ShouldParse()
     {
-        var query = @"
-            desc
-                functions
-                    #schema
-        ";
+        var query = (
+            "\n" + "            desc\n" + "                functions\n" + "                    #schema\n" + "        "
+        );
 
         var desc = ParseDescNode(query);
         var source = GetSchemaFromNode(desc);
@@ -235,8 +234,11 @@ public class DescParserFunctionTests : DescParserTestBase
 
         var schemaFromNode = (SchemaFromNode)descNode.From;
         Assert.AreEqual("#schema", schemaFromNode.Schema);
-        Assert.AreEqual(string.Empty, schemaFromNode.Method,
-            "desc functions should ignore the .method() part and behave like desc functions schema");
+        Assert.AreEqual(
+            string.Empty,
+            schemaFromNode.Method,
+            "desc functions should ignore the .method() part and behave like desc functions schema"
+        );
     }
 
     [TestMethod]
@@ -254,8 +256,11 @@ public class DescParserFunctionTests : DescParserTestBase
 
         var schemaFromNode = (SchemaFromNode)descNode.From;
         Assert.AreEqual("#schema", schemaFromNode.Schema);
-        Assert.AreEqual(string.Empty, schemaFromNode.Method,
-            "desc functions should ignore the .method part and behave like desc functions schema");
+        Assert.AreEqual(
+            string.Empty,
+            schemaFromNode.Method,
+            "desc functions should ignore the .method part and behave like desc functions schema"
+        );
     }
 
     [TestMethod]
@@ -273,8 +278,11 @@ public class DescParserFunctionTests : DescParserTestBase
 
         var schemaFromNode = (SchemaFromNode)descNode.From;
         Assert.AreEqual("#schema", schemaFromNode.Schema);
-        Assert.AreEqual(string.Empty, schemaFromNode.Method,
-            "desc functions should ignore the .method('arg1', 123) part and behave like desc functions schema");
+        Assert.AreEqual(
+            string.Empty,
+            schemaFromNode.Method,
+            "desc functions should ignore the .method('arg1', 123) part and behave like desc functions schema"
+        );
     }
 
     [TestMethod]
@@ -292,8 +300,11 @@ public class DescParserFunctionTests : DescParserTestBase
 
         var schemaFromNode = (SchemaFromNode)descNode.From;
         Assert.AreEqual("#schema", schemaFromNode.Schema);
-        Assert.AreEqual(string.Empty, schemaFromNode.Method,
-            "desc functions should ignore the .method() part and behave like desc functions schema");
+        Assert.AreEqual(
+            string.Empty,
+            schemaFromNode.Method,
+            "desc functions should ignore the .method() part and behave like desc functions schema"
+        );
     }
 
     [TestMethod]

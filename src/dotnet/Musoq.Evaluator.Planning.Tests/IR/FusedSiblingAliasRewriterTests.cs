@@ -26,19 +26,23 @@ public sealed class FusedSiblingAliasRewriterTests
             [new ExecutionRowValue("Value", complex)],
             [new ExecutionRowContextsRead(source)],
             ExecutionAppendMode.Checked,
-            CreateContextLayout(source));
-        var block = new ExecutionBlock(
-        [
+            CreateContextLayout(source)
+        );
+        var block = new ExecutionBlock([
             new ExecutionLet(new ExecutionVariable("complex", typeof(object)), complex),
             new ExecutionIf(
                 new ExecutionIsNullCheck(Read(source), false, typeof(bool)),
-                new ExecutionBlock([new ExecutionContinueIf(new ExecutionInCheck(Read(source), [Literal(1)], typeof(bool)))])),
+                new ExecutionBlock([
+                    new ExecutionContinueIf(new ExecutionInCheck(Read(source), [Literal(1)], typeof(bool))),
+                ])
+            ),
             new ExecutionCreateGeneratedRow(
                 row,
                 rowShape,
                 [new ExecutionRowValue("Value", complex)],
                 [new ExecutionVariableRead(source)],
-                CreateContextLayout(source)),
+                CreateContextLayout(source)
+            ),
             append,
             new ExecutionHashAdd(hash, complex, row, typeof(object), typeof(object), precomputedKey: source),
             new ExecutionKeySetAdd(keySet, complex, typeof(object), precomputedKey: source),
@@ -51,8 +55,10 @@ public sealed class FusedSiblingAliasRewriterTests
                         ExecutionCteSidecarIndexKind.Hash,
                         typeof(object),
                         null,
-                        [new ExecutionRowValue("Payload", complex)])
-                ])
+                        [new ExecutionRowValue("Payload", complex)]
+                    ),
+                ]
+            ),
         ]);
         var before = new AliasReferenceCounter(source.Name, target.Name);
         before.RewriteBlock(block);
@@ -71,11 +77,12 @@ public sealed class FusedSiblingAliasRewriterTests
     [TestMethod]
     public void RewriterCompleteness_ShouldBeBackedByTheAuthoritativeNodeRegistryAndRejectUnknownExpressions()
     {
-        var concreteNodes = typeof(ExecutionPlan).Assembly.GetTypes()
+        var concreteNodes = typeof(ExecutionPlan)
+            .Assembly.GetTypes()
             .Where(static type => !type.IsAbstract && typeof(ExecutionNode).IsAssignableFrom(type))
             .ToArray();
-        var registeredNodes = ExecutionNodeRegistry.Descriptors
-            .Select(static descriptor => descriptor.NodeType)
+        var registeredNodes = ExecutionNodeRegistry
+            .Descriptors.Select(static descriptor => descriptor.NodeType)
             .ToArray();
 
         CollectionAssert.AreEquivalent(concreteNodes, registeredNodes);
@@ -83,44 +90,61 @@ public sealed class FusedSiblingAliasRewriterTests
 
         var rewriter = new FusedSiblingAliasRewriter(
             new ExecutionVariable("from", typeof(object)),
-            new ExecutionVariable("to", typeof(object)));
-        var exception = Assert.ThrowsExactly<NotSupportedException>(
-            () => rewriter.RewriteExpression(new UnregisteredExpression()));
+            new ExecutionVariable("to", typeof(object))
+        );
+        var exception = Assert.ThrowsExactly<NotSupportedException>(() =>
+            rewriter.RewriteExpression(new UnregisteredExpression())
+        );
         StringAssert.Contains(exception.Message, typeof(UnregisteredExpression).FullName!);
     }
 
     private static ExecutionExpression CreateComplexExpression(ExecutionVariable source)
     {
         return new ExecutionValueTupleKey(
-        [
-            new ExecutionBinary(BinaryOpKind.Add, Read(source), Literal(1), typeof(int)),
-            new ExecutionUnary(UnaryOpKind.Negate, Read(source), typeof(int)),
-            new ExecutionStrictCast(Read(source), "System.Int32", typeof(int)),
-            new ExecutionArrayAccess(new ExecutionVariableRead(source), Literal(0), typeof(object), typeof(object)),
-            new ExecutionIsNullCheck(Read(source), false, typeof(bool)),
-            new ExecutionInCheck(Read(source), [Literal(1), Literal(2)], typeof(bool)),
-            new ExecutionPatternMatch(Read(source), new ExecutionLiteral("x", typeof(string)), PatternKind.Like, typeof(bool)),
-            new ExecutionBetween(Read(source), Literal(0), Literal(10), typeof(bool)),
-            new ExecutionCaseWhen(
-                [new ExecutionCaseWhenBranch(new ExecutionIsNullCheck(Read(source), false, typeof(bool)), Read(source))],
-                Read(source),
-                typeof(object)),
-            new ExecutionCoalesce([Read(source), new ExecutionLiteral(null, typeof(object))], typeof(object)),
-            new ExecutionValueTupleKey([Read(source), new ExecutionVariableRead(source)], typeof(object)),
-            new ExecutionContextArray(
             [
-                new ExecutionContextSegment(ExecutionContextSegmentKind.Single, Read(source), 1),
-                new ExecutionContextSegment(ExecutionContextSegmentKind.Array, new ExecutionRowContextsRead(source), 2)
-            ])
-        ], typeof((int, int, int, object, bool, bool, bool, bool, object, object, object, object)));
+                new ExecutionBinary(BinaryOpKind.Add, Read(source), Literal(1), typeof(int)),
+                new ExecutionUnary(UnaryOpKind.Negate, Read(source), typeof(int)),
+                new ExecutionStrictCast(Read(source), "System.Int32", typeof(int)),
+                new ExecutionArrayAccess(new ExecutionVariableRead(source), Literal(0), typeof(object), typeof(object)),
+                new ExecutionIsNullCheck(Read(source), false, typeof(bool)),
+                new ExecutionInCheck(Read(source), [Literal(1), Literal(2)], typeof(bool)),
+                new ExecutionPatternMatch(
+                    Read(source),
+                    new ExecutionLiteral("x", typeof(string)),
+                    PatternKind.Like,
+                    typeof(bool)
+                ),
+                new ExecutionBetween(Read(source), Literal(0), Literal(10), typeof(bool)),
+                new ExecutionCaseWhen(
+                    [
+                        new ExecutionCaseWhenBranch(
+                            new ExecutionIsNullCheck(Read(source), false, typeof(bool)),
+                            Read(source)
+                        ),
+                    ],
+                    Read(source),
+                    typeof(object)
+                ),
+                new ExecutionCoalesce([Read(source), new ExecutionLiteral(null, typeof(object))], typeof(object)),
+                new ExecutionValueTupleKey([Read(source), new ExecutionVariableRead(source)], typeof(object)),
+                new ExecutionContextArray([
+                    new ExecutionContextSegment(ExecutionContextSegmentKind.Single, Read(source), 1),
+                    new ExecutionContextSegment(
+                        ExecutionContextSegmentKind.Array,
+                        new ExecutionRowContextsRead(source),
+                        2
+                    ),
+                ]),
+            ],
+            typeof((int, int, int, object, bool, bool, bool, bool, object, object, object, object))
+        );
     }
 
     private static ExecutionContextLayout CreateContextLayout(ExecutionVariable source)
     {
-        return new ExecutionContextLayout(
-        [
+        return new ExecutionContextLayout([
             new ExecutionContextSegment(ExecutionContextSegmentKind.Single, Read(source), 1),
-            new ExecutionContextSegment(ExecutionContextSegmentKind.Array, new ExecutionRowContextsRead(source), 2)
+            new ExecutionContextSegment(ExecutionContextSegmentKind.Array, new ExecutionRowContextsRead(source), 2),
         ]);
     }
 
@@ -138,7 +162,17 @@ public sealed class FusedSiblingAliasRewriterTests
     {
         return new GeneratedRowShape(
             "FusedSiblingRow",
-            [new FieldBinding("Value", "Value", 0, typeof(object), FieldNullability.Unknown, new GeneratedFieldAccess("Value"))]);
+            [
+                new FieldBinding(
+                    "Value",
+                    "Value",
+                    0,
+                    typeof(object),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Value")
+                ),
+            ]
+        );
     }
 
     private sealed class AliasReferenceCounter(string sourceName, string targetName) : ExecutionIrRewriter

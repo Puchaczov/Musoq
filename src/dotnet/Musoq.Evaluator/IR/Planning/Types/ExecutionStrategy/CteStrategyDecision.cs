@@ -2,8 +2,7 @@ using System.Collections.Generic;
 
 namespace Musoq.Evaluator.IR.Planning;
 
-internal sealed record CteStrategyDecision(
-    IReadOnlyDictionary<string, CteDefinitionStrategyDecision> DefinitionsByName)
+internal sealed record CteStrategyDecision(IReadOnlyDictionary<string, CteDefinitionStrategyDecision> DefinitionsByName)
 {
     public bool CanFuseReadOnce(string name)
     {

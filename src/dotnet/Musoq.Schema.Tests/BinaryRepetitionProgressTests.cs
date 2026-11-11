@@ -19,14 +19,18 @@ public sealed class BinaryRepetitionProgressTests
     [DataRow(0, 3, 0, 3)]
     public void Progress_ShouldRejectStationaryOrBackwardCursor(int startByte, int startBit, int endByte, int endBit)
     {
-        var failure = Assert.ThrowsExactly<ParseException>(() => new Probe().Validate(startByte, startBit, endByte, endBit));
+        var failure = Assert.ThrowsExactly<ParseException>(() =>
+            new Probe().Validate(startByte, startBit, endByte, endBit)
+        );
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, failure.ErrorCode);
     }
 
     private sealed class Probe : BytesInterpreterBase<int>
     {
         public override string SchemaName => "Progress";
+
         public override int InterpretAt(ReadOnlySpan<byte> data, int offset) => 0;
+
         internal void Validate(int startByte, int startBit, int endByte, int endBit)
         {
             ParsePosition = endByte;

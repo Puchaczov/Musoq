@@ -9,9 +9,16 @@ public class JoinInMemoryWithSourceTableFromNode(
     Node expression,
     JoinType joinType,
     string? inMemoryTableVariableName = null,
-    FieldOrderedNode? tieBreak = null)
-    : Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode(inMemoryTableAlias, sourceTable, expression, joinType,
-        typeof(RowSource<>), tieBreak)
+    FieldOrderedNode? tieBreak = null
+)
+    : Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode(
+        inMemoryTableAlias,
+        sourceTable,
+        expression,
+        joinType,
+        typeof(RowSource<>),
+        tieBreak
+    )
 {
     public string? InMemoryTableVariableName { get; } = inMemoryTableVariableName;
     internal IntermediateSourceBinding? IntermediateSource { get; init; }

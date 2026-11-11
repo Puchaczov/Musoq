@@ -10,11 +10,11 @@ namespace Musoq.Evaluator.Visitors;
 
 internal sealed class ScriptParameterMetadataBinder(
     Func<DiagnosticCode, string, Node, bool> reportScriptParameterError,
-    Action<Assembly> addAssembly)
+    Action<Assembly> addAssembly
+)
 {
     private readonly List<ScriptParameterDefinition> _definitions = [];
-    private readonly Dictionary<string, ScriptParameterDefinition> _definitionsByName =
-        new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ScriptParameterDefinition> _definitionsByName = new(StringComparer.Ordinal);
 
     private bool _hasSeenParameterBlock;
 
@@ -30,13 +30,15 @@ internal sealed class ScriptParameterMetadataBinder(
             return ReportAndSkipParameterBlock(
                 DiagnosticCode.MQ3056_DuplicateScriptParameterBlock,
                 "Only one parameter block is allowed per script.",
-                node);
+                node
+            );
 
         if (hasSeenNonParameterStatement)
             return ReportAndSkipParameterBlock(
                 DiagnosticCode.MQ3057_ScriptParameterBlockAfterStatement,
                 "The parameter block must appear before all query statements.",
-                node);
+                node
+            );
 
         _hasSeenParameterBlock = true;
         return true;
@@ -57,39 +59,52 @@ internal sealed class ScriptParameterMetadataBinder(
         {
             if (!StructuralTypeSyntaxBinder.TryBind(structuralSyntax, out var structuralType, out var structuralError))
             {
-                if (reportScriptParameterError(
+                if (
+                    reportScriptParameterError(
                         DiagnosticCode.MQ3060_UnsupportedScriptParameterType,
                         structuralError,
-                        parameter))
+                        parameter
+                    )
+                )
                     return;
 
                 throw new TypeNotFoundException(
                     parameter.DeclaredTypeName,
                     "script parameter declaration",
-                    parameter.HasSpan ? parameter.Span : TextSpan.Empty);
+                    parameter.HasSpan ? parameter.Span : TextSpan.Empty
+                );
             }
 
-            if (!ScriptParameterDefaultValueBinder.TryBindStructural(
+            if (
+                !ScriptParameterDefaultValueBinder.TryBindStructural(
                     parameter,
                     structuralType,
                     out var structuralDefault,
-                    out var defaultError))
+                    out var defaultError
+                )
+            )
             {
-                if (reportScriptParameterError(
+                if (
+                    reportScriptParameterError(
                         DiagnosticCode.MQ3061_InvalidScriptParameterDefault,
                         defaultError,
-                        parameter))
+                        parameter
+                    )
+                )
                     return;
 
                 throw StructuralBindingFailure.Create(defaultError);
             }
 
-            var structuralDefinition = new ScriptParameterDefinition(ScriptParameterContract.CreateStructural(
-                parameter.Name,
-                parameter.DeclaredTypeName,
-                structuralType,
-                parameter.HasDefaultValue,
-                structuralDefault));
+            var structuralDefinition = new ScriptParameterDefinition(
+                ScriptParameterContract.CreateStructural(
+                    parameter.Name,
+                    parameter.DeclaredTypeName,
+                    structuralType,
+                    parameter.HasDefaultValue,
+                    structuralDefault
+                )
+            );
             _definitions.Add(structuralDefinition);
             _definitionsByName.Add(parameter.Name, structuralDefinition);
             addAssembly(structuralType.CoreValueType.Assembly);
@@ -106,8 +121,10 @@ internal sealed class ScriptParameterMetadataBinder(
             throw new TypeNotFoundException(parameter.DeclaredTypeName, "script parameter declaration", span);
         }
 
-        if (!PrimitiveTypeResolver.IsValidQueryExpressionType(parameterType) &&
-            !PrimitiveTypeResolver.IsSupportedCollectionParameterType(parameterType))
+        if (
+            !PrimitiveTypeResolver.IsValidQueryExpressionType(parameterType)
+            && !PrimitiveTypeResolver.IsSupportedCollectionParameterType(parameterType)
+        )
         {
             var message = CreateUnsupportedTypeMessage(parameter);
             if (reportScriptParameterError(DiagnosticCode.MQ3060_UnsupportedScriptParameterType, message, parameter))
@@ -124,12 +141,15 @@ internal sealed class ScriptParameterMetadataBinder(
             throw new NotSupportedException(error);
         }
 
-        var definition = new ScriptParameterDefinition(ScriptParameterContract.Create(
-            parameter.Name,
-            parameter.DeclaredTypeName,
-            parameterType,
-            parameter.HasDefaultValue,
-            defaultValue));
+        var definition = new ScriptParameterDefinition(
+            ScriptParameterContract.Create(
+                parameter.Name,
+                parameter.DeclaredTypeName,
+                parameterType,
+                parameter.HasDefaultValue,
+                defaultValue
+            )
+        );
 
         _definitions.Add(definition);
         _definitionsByName.Add(parameter.Name, definition);
@@ -166,5 +186,4 @@ internal sealed class ScriptParameterMetadataBinder(
 
         return $"Script parameter '{parameter.Name}' type '{parameter.DeclaredTypeName}' is not supported.";
     }
-
 }

@@ -5,7 +5,8 @@ public ref struct TextParseInput(ReadOnlySpan<char> text)
 {
     private string? _captureText;
 
-    internal TextParseInput(string? text, bool suppressFailureDetails) : this(text.AsSpan())
+    internal TextParseInput(string? text, bool suppressFailureDetails)
+        : this(text.AsSpan())
     {
         _captureText = text;
         SuppressFailureDetails = suppressFailureDetails;

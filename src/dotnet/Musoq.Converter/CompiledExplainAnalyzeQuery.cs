@@ -12,9 +12,7 @@ public sealed class CompiledExplainAnalyzeQuery : IDisposable
     private readonly ExecutionPlanOperatorCatalog _operatorCatalog;
     private bool _disposed;
 
-    internal CompiledExplainAnalyzeQuery(
-        CompiledQuery compiledQuery,
-        ExecutionPlanOperatorCatalog operatorCatalog)
+    internal CompiledExplainAnalyzeQuery(CompiledQuery compiledQuery, ExecutionPlanOperatorCatalog operatorCatalog)
     {
         _compiledQuery = compiledQuery ?? throw new ArgumentNullException(nameof(compiledQuery));
         _operatorCatalog = operatorCatalog ?? throw new ArgumentNullException(nameof(operatorCatalog));
@@ -36,7 +34,8 @@ public sealed class CompiledExplainAnalyzeQuery : IDisposable
         var executionPlanText = _operatorCatalog.AnnotatedExecutionPlanText;
         var operators = ExecutionPlanOperatorIdAnnotator.CreateOperatorSnapshots(
             _operatorCatalog,
-            profileResult.Profile);
+            profileResult.Profile
+        );
         var profile = profileResult.Profile with { Operators = operators };
         QueryProfileTelemetry.Emit(profile);
 
@@ -44,7 +43,8 @@ public sealed class CompiledExplainAnalyzeQuery : IDisposable
             profileResult.Result,
             profile,
             executionPlanText,
-            ExplainAnalyzeTextPrinter.Print(executionPlanText, profile));
+            ExplainAnalyzeTextPrinter.Print(executionPlanText, profile)
+        );
     }
 
     public void Dispose()

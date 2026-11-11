@@ -14,8 +14,9 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExpressionVisitor
 {
-    private static readonly WhereNode AllTrueWhereNode =
-        new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
+    private static readonly WhereNode AllTrueWhereNode = new(
+        new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s"))
+    );
 
     private readonly IReadOnlyDictionary<string, string[]> _columns;
     private readonly CompilationOptions _compilationOptions;
@@ -35,10 +36,9 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         IReadOnlyDictionary<string, string[]> columns,
         ILogger<BuildMetadataAndInferTypesVisitor> logger,
         CompilationOptions? compilationOptions = null,
-        SchemaRegistry? schemaRegistry = null)
-        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, null, CancellationToken.None)
-    {
-    }
+        SchemaRegistry? schemaRegistry = null
+    )
+        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, null, CancellationToken.None) { }
 
     public BuildMetadataAndInferTypesVisitor(
         ISchemaProvider provider,
@@ -46,10 +46,9 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         ILogger<BuildMetadataAndInferTypesVisitor> logger,
         CompilationOptions? compilationOptions,
         SchemaRegistry? schemaRegistry,
-        CancellationToken cancellationToken)
-        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, null, cancellationToken)
-    {
-    }
+        CancellationToken cancellationToken
+    )
+        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, null, cancellationToken) { }
 
     /// <summary>
     ///     Public constructor for LSP/diagnostic use with error collection.
@@ -60,10 +59,18 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         ILogger<BuildMetadataAndInferTypesVisitor> logger,
         DiagnosticContext diagnosticContext,
         CompilationOptions? compilationOptions = null,
-        SchemaRegistry? schemaRegistry = null)
-        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, diagnosticContext, CancellationToken.None)
-    {
-    }
+        SchemaRegistry? schemaRegistry = null
+    )
+        : this(
+            provider,
+            columns,
+            logger,
+            null,
+            compilationOptions,
+            schemaRegistry,
+            diagnosticContext,
+            CancellationToken.None
+        ) { }
 
     public BuildMetadataAndInferTypesVisitor(
         ISchemaProvider provider,
@@ -72,10 +79,18 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         DiagnosticContext diagnosticContext,
         CompilationOptions? compilationOptions,
         SchemaRegistry? schemaRegistry,
-        CancellationToken cancellationToken)
-        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, diagnosticContext, cancellationToken)
-    {
-    }
+        CancellationToken cancellationToken
+    )
+        : this(
+            provider,
+            columns,
+            logger,
+            null,
+            compilationOptions,
+            schemaRegistry,
+            diagnosticContext,
+            cancellationToken
+        ) { }
 
     internal BuildMetadataAndInferTypesVisitor(
         ISchemaProvider provider,
@@ -85,7 +100,8 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         CompilationOptions? compilationOptions = null,
         SchemaRegistry? schemaRegistry = null,
         DiagnosticContext? diagnosticContext = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         _provider = provider;
         _columns = columns;
@@ -103,8 +119,10 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         _methodBindingService = new SemanticMethodBindingService(AddAssembly);
         _resultShapeBindingService = new SemanticResultShapeBindingService(_resultShape);
         _queryValidationService = new SemanticQueryValidationService(_diagnosticReporter, _compilationOptions);
-        _sourceRuntimeSettingsResolutionService =
-            new SourceRuntimeSettingsResolutionService(_compilationOptions, DiagnosticContext);
+        _sourceRuntimeSettingsResolutionService = new SourceRuntimeSettingsResolutionService(
+            _compilationOptions,
+            DiagnosticContext
+        );
         _scriptParameters = new ScriptParameterMetadataBinder(TryReportScriptParameterError, AddAssembly);
         _scriptVariables = new ScriptVariableMetadataBinder(TryReportScriptParameterError, AddAssembly);
     }
@@ -120,6 +138,7 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
     protected DiagnosticContext? DiagnosticContext { get; }
 
     protected override string VisitorName => nameof(BuildMetadataAndInferTypesVisitor);
+
     /// <summary>
     /// Gets the cooperative cancellation token used by compile-time metadata access.
     /// </summary>
@@ -161,21 +180,31 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         return TraversalFrame.PeekNode(VisitorName, operation);
     }
 
-    public virtual IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId =>
+    public virtual IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > SourceRuntimeSettingsBySourceContextId =>
         new Dictionary<string, IReadOnlyDictionary<string, string>>(
             InternalSourceRuntimeSettingsBySourceContextId.ToDictionary(
                 pair => pair.Key,
                 pair => (IReadOnlyDictionary<string, string>)new Dictionary<string, string>(pair.Value),
-                StringComparer.Ordinal),
-            StringComparer.Ordinal);
+                StringComparer.Ordinal
+            ),
+            StringComparer.Ordinal
+        );
 
-    public virtual IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId =>
+    public virtual IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId =>
         new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>(
             InternalSourceRuntimeSettingDescriptionsBySourceContextId.ToDictionary(
                 pair => pair.Key,
                 pair => (IReadOnlyList<SourceRuntimeSettingDescription>)pair.Value.ToArray(),
-                StringComparer.Ordinal),
-            StringComparer.Ordinal);
+                StringComparer.Ordinal
+            ),
+            StringComparer.Ordinal
+        );
 
     public List<Assembly> Assemblies => new(_methodResolution.Assemblies);
 
@@ -183,13 +212,15 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         _queryState.SetOperatorFieldPositions.ToDictionary(
             pair => pair.Key,
             pair => pair.Value.ToArray(),
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
 
     public IDictionary<string, Type[]> SetOperatorFieldTypes =>
         _queryState.SetOperatorFieldTypes.ToDictionary(
             pair => pair.Key,
             pair => pair.Value.ToArray(),
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
 
     internal List<Assembly> MutableAssemblies => _methodResolution.Assemblies;
 
@@ -242,26 +273,21 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
     {
         get
         {
-            return _sourceBinding.UsedWhereNodes.ToDictionary(aliasColumnsPair => aliasColumnsPair.Key,
-                aliasColumnsPair => aliasColumnsPair.Value);
+            return _sourceBinding.UsedWhereNodes.ToDictionary(
+                aliasColumnsPair => aliasColumnsPair.Key,
+                aliasColumnsPair => aliasColumnsPair.Value
+            );
         }
     }
 
     public IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> SourcePlanRequestsPerSchema
     {
-        get
-        {
-            return _sourceBinding.SourcePlanRequestsPerSchema.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value);
-        }
+        get { return _sourceBinding.SourcePlanRequestsPerSchema.ToDictionary(kvp => kvp.Key, kvp => kvp.Value); }
     }
 
     public RootNode Root => TraversalFrame.PeekNode<RootNode>(VisitorName, VisitorOperationNames.GettingRoot);
 
-    public override void Visit(Node node)
-    {
-    }
+    public override void Visit(Node node) { }
 
     public override void Visit(DescNode node)
     {
@@ -275,16 +301,13 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         }
 
         var fromNode = TraversalFrame.PopNode<FromNode>(VisitorName, VisitorOperationNames.VisitDescNode);
-        SemanticNodeResult
-            .From(new DescNode(fromNode, node.Type, node.Column))
-            .ApplyTo(TraversalFrame);
+        SemanticNodeResult.From(new DescNode(fromNode, node.Type, node.Column)).ApplyTo(TraversalFrame);
     }
 
-
-
-
-    protected virtual IReadOnlyDictionary<string, string> RetrieveInitialSourceRuntimeSettings(string sourceContextId,
-        SchemaFromNode node)
+    protected virtual IReadOnlyDictionary<string, string> RetrieveInitialSourceRuntimeSettings(
+        string sourceContextId,
+        SchemaFromNode node
+    )
     {
         var sourceRuntimeSettings = new Dictionary<string, string>();
 
@@ -300,5 +323,4 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
 
         MutableAssemblies.Add(asm);
     }
-
 }

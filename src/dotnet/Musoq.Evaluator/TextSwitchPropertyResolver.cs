@@ -11,7 +11,8 @@ internal static class TextSwitchPropertyResolver
         SchemaRegistry registry,
         Func<TextSchemaNode, List<TextFieldDefinitionNode>> fields,
         string intendedTypeName,
-        string propertyName)
+        string propertyName
+    )
     {
         const string prefix = "Musoq.Generated.Interpreters.";
         const string marker = ".TextSwitch_";
@@ -23,19 +24,26 @@ internal static class TextSwitchPropertyResolver
             return null;
 
         var schemaName = intendedTypeName[prefix.Length..markerIndex];
-        if (!registry.TryGetSchema(schemaName, out var registration) ||
-            registration?.Node is not TextSchemaNode schema)
+        if (!registry.TryGetSchema(schemaName, out var registration) || registration?.Node is not TextSchemaNode schema)
             return null;
 
         var path = intendedTypeName[(markerIndex + marker.Length)..].Split('.');
-        var switchField = InterpretationTextFieldTypeResolver.EnumerateDefinitions(fields(schema)).FirstOrDefault(field =>
-            field.FieldType == TextFieldType.Switch && string.Equals(field.Name, path[0], StringComparison.Ordinal));
-        if (switchField == null) return null;
+        var switchField = InterpretationTextFieldTypeResolver
+            .EnumerateDefinitions(fields(schema))
+            .FirstOrDefault(field =>
+                field.FieldType == TextFieldType.Switch && string.Equals(field.Name, path[0], StringComparison.Ordinal)
+            );
+        if (switchField == null)
+            return null;
         var shape = new TextResultShapeBinding(registry).Field(schema.Name, switchField);
-        if (shape.Element != null) shape = shape.Element;
+        if (shape.Element != null)
+            shape = shape.Element;
         foreach (var part in path.Skip(1).Append(propertyName))
-            shape = shape.Member(part) ?? throw new SourcePlanContractException(
-                $"Switch field '{switchField.Name}' does not declare property '{part}' in any branch.");
+            shape =
+                shape.Member(part)
+                ?? throw new SourcePlanContractException(
+                    $"Switch field '{switchField.Name}' does not declare property '{part}' in any branch."
+                );
         var typeName = shape.TypeName;
         if (shape.Alternatives.Count > 0)
             typeName = $"{intendedTypeName}.{propertyName}";

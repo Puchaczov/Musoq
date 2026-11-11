@@ -19,10 +19,15 @@ internal static class CSharpClrCompiledArtifactLoader
         ICompiledQueryArtifact artifact,
         string key,
         ICollection<Diagnostic> diagnostics,
-        out string value)
+        out string value
+    )
     {
         value = string.Empty;
-        if (artifact.Metadata == null || !artifact.Metadata.TryGetValue(key, out value!) || string.IsNullOrWhiteSpace(value))
+        if (
+            artifact.Metadata == null
+            || !artifact.Metadata.TryGetValue(key, out value!)
+            || string.IsNullOrWhiteSpace(value)
+        )
         {
             diagnostics.Add(CreateArtifactDiagnostic($"Compiled artifact is missing required metadata '{key}'."));
             value = string.Empty;
@@ -33,14 +38,16 @@ internal static class CSharpClrCompiledArtifactLoader
     }
 
     public static ClrLoadedExecutableArtifact CreateLoadedExecutableArtifact(
-        CompiledQueryArtifactLoadResult? loadResult)
+        CompiledQueryArtifactLoadResult? loadResult
+    )
     {
         return CreateLoadedExecutableArtifact(loadResult, CancellationToken.None);
     }
 
     public static ClrLoadedExecutableArtifact CreateLoadedExecutableArtifact(
         CompiledQueryArtifactLoadResult? loadResult,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ClrLoadedExecutableArtifact? loadedArtifact = null;
         try
@@ -53,7 +60,8 @@ internal static class CSharpClrCompiledArtifactLoader
                 ExecutionTargetCatalog
                     .ResolveActivator(ExecutionTargetIds.CSharpClr)
                     .CreateLoadedExecutableArtifact(loadResult.RunnableType, loadResult.LifetimeOwner),
-                "compiled artifact loader");
+                "compiled artifact loader"
+            );
             cancellationToken.ThrowIfCancellationRequested();
             return loadedArtifact;
         }
@@ -64,15 +72,15 @@ internal static class CSharpClrCompiledArtifactLoader
         }
     }
 
-    public static ClrLoadedExecutableArtifact LoadExecutableArtifactFromArtifactBytes(
-        ICompiledQueryArtifact artifact)
+    public static ClrLoadedExecutableArtifact LoadExecutableArtifactFromArtifactBytes(ICompiledQueryArtifact artifact)
     {
         return LoadExecutableArtifactFromArtifactBytes(artifact, CancellationToken.None);
     }
 
     public static ClrLoadedExecutableArtifact LoadExecutableArtifactFromArtifactBytes(
         ICompiledQueryArtifact artifact,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var assemblyBytes = artifact is CompiledQueryArtifact ownedArtifact
@@ -103,16 +111,18 @@ internal static class CSharpClrCompiledArtifactLoader
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var runnableType = assembly.GetType(artifact.RunnableTypeName)
-                               ?? throw new InvalidOperationException(
-                                   $"Type {artifact.RunnableTypeName} was not found in artifact assembly {assembly.FullName}.");
+            var runnableType =
+                assembly.GetType(artifact.RunnableTypeName)
+                ?? throw new InvalidOperationException(
+                    $"Type {artifact.RunnableTypeName} was not found in artifact assembly {assembly.FullName}."
+                );
             lifetimeOwner = new CompiledQueryArtifactLoadContextLifetime(loadContext);
-            loadedArtifact = CSharpClrArtifactCompatibility.RequireLoadedExecutable(ExecutionTargetCatalog
-                .ResolveActivator(ExecutionTargetIds.CSharpClr)
-                .CreateLoadedExecutableArtifact(
-                    runnableType,
-                    lifetimeOwner),
-                "compiled artifact byte loading");
+            loadedArtifact = CSharpClrArtifactCompatibility.RequireLoadedExecutable(
+                ExecutionTargetCatalog
+                    .ResolveActivator(ExecutionTargetIds.CSharpClr)
+                    .CreateLoadedExecutableArtifact(runnableType, lifetimeOwner),
+                "compiled artifact byte loading"
+            );
 
             cancellationToken.ThrowIfCancellationRequested();
             return loadedArtifact;
@@ -133,70 +143,76 @@ internal static class CSharpClrCompiledArtifactLoader
         CompiledQueryArtifactValidationMode validationMode,
         BuildItems items,
         ICollection<Diagnostic> diagnostics,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         ValidateEqual(
             "artifact format version",
             CompiledQueryArtifact.CurrentArtifactFormatVersion,
             artifact.ArtifactFormatVersion,
-            diagnostics);
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
         ValidateEqual(
             "engine version",
             CompiledQueryArtifactSupport.CurrentEngineVersion,
             artifact.EngineVersion,
-            diagnostics);
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
         ValidateEqual(
             "compilation options signature",
             CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(compilationOptions),
             artifact.CompilationOptionsSignature,
-            diagnostics);
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
 
         var expectedRunnableTypeName = CompiledQueryArtifactSupport.GetRunnableTypeName(assemblyName);
-        ValidateEqual(
-            "runnable type name",
-            expectedRunnableTypeName,
-            artifact.RunnableTypeName,
-            diagnostics);
+        ValidateEqual("runnable type name", expectedRunnableTypeName, artifact.RunnableTypeName, diagnostics);
 
         ValidateMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataArtifactKind,
             CompiledQueryArtifactSupport.ArtifactKindRuntimeV2Query,
-            diagnostics);
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
         ValidateMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature,
             RuntimeV2Contract.ContractSignature,
-            diagnostics);
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
         ValidateMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion,
             ExecutionSemanticsContract.Current.Version.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            diagnostics);
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
         ValidateOptionalMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataExecutionTarget,
             ExecutionTargetIds.CSharpClr.ToString(),
-            diagnostics);
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
         ValidateOptionalMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataExecutableArtifactKind,
             CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
-            diagnostics);
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
         ValidateMetadataValue(
             artifact,
             CompiledQueryArtifactSupport.MetadataScriptSha256,
             CompiledQueryArtifactSupport.ComputeHash(script),
-            diagnostics);
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
         ValidateMetadataValue(
             artifact,
@@ -204,8 +220,10 @@ internal static class CSharpClrCompiledArtifactLoader
             CompiledQueryArtifactSupport.ComputeSemanticShapeHash(
                 TargetArtifactSemanticFactsFactory.From(items, cancellationToken),
                 expectedRunnableTypeName,
-                cancellationToken),
-            diagnostics);
+                cancellationToken
+            ),
+            diagnostics
+        );
         cancellationToken.ThrowIfCancellationRequested();
 
         if (validationMode == CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash)
@@ -213,10 +231,9 @@ internal static class CSharpClrCompiledArtifactLoader
             ValidateMetadataValue(
                 artifact,
                 CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256,
-                CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(
-                    items.RenderingArtifact,
-                    cancellationToken),
-                diagnostics);
+                CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(items.RenderingArtifact, cancellationToken),
+                diagnostics
+            );
             cancellationToken.ThrowIfCancellationRequested();
         }
 
@@ -232,7 +249,8 @@ internal static class CSharpClrCompiledArtifactLoader
         ICompiledQueryArtifact artifact,
         Type? runnableType,
         ICollection<Diagnostic> diagnostics,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (runnableType == null)
@@ -243,16 +261,22 @@ internal static class CSharpClrCompiledArtifactLoader
 
         if (!typeof(ITableRunnable).IsAssignableFrom(runnableType))
         {
-            diagnostics.Add(CreateArtifactDiagnostic(
-                $"Compiled artifact type '{runnableType.FullName}' does not implement {nameof(ITableRunnable)}."));
+            diagnostics.Add(
+                CreateArtifactDiagnostic(
+                    $"Compiled artifact type '{runnableType.FullName}' does not implement {nameof(ITableRunnable)}."
+                )
+            );
             return;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
         if (!string.Equals(runnableType.FullName, artifact.RunnableTypeName, StringComparison.Ordinal))
         {
-            diagnostics.Add(CreateArtifactDiagnostic(
-                $"Compiled artifact loader returned type '{runnableType.FullName}', but artifact expects '{artifact.RunnableTypeName}'."));
+            diagnostics.Add(
+                CreateArtifactDiagnostic(
+                    $"Compiled artifact loader returned type '{runnableType.FullName}', but artifact expects '{artifact.RunnableTypeName}'."
+                )
+            );
         }
     }
 
@@ -272,7 +296,8 @@ internal static class CSharpClrCompiledArtifactLoader
         ICompiledQueryArtifact artifact,
         string key,
         string expected,
-        ICollection<Diagnostic> diagnostics)
+        ICollection<Diagnostic> diagnostics
+    )
     {
         if (!TryGetRequiredMetadata(artifact, key, diagnostics, out var actual))
             return;
@@ -284,11 +309,14 @@ internal static class CSharpClrCompiledArtifactLoader
         ICompiledQueryArtifact artifact,
         string key,
         string expected,
-        ICollection<Diagnostic> diagnostics)
+        ICollection<Diagnostic> diagnostics
+    )
     {
-        if (artifact.Metadata == null ||
-            !artifact.Metadata.TryGetValue(key, out var actual) ||
-            string.IsNullOrWhiteSpace(actual))
+        if (
+            artifact.Metadata == null
+            || !artifact.Metadata.TryGetValue(key, out var actual)
+            || string.IsNullOrWhiteSpace(actual)
+        )
         {
             return;
         }
@@ -296,15 +324,14 @@ internal static class CSharpClrCompiledArtifactLoader
         ValidateEqual($"metadata '{key}'", expected, actual, diagnostics);
     }
 
-    private static void ValidateEqual(
-        string label,
-        string expected,
-        string actual,
-        ICollection<Diagnostic> diagnostics)
+    private static void ValidateEqual(string label, string expected, string actual, ICollection<Diagnostic> diagnostics)
     {
         if (!string.Equals(expected, actual, StringComparison.Ordinal))
-            diagnostics.Add(CreateArtifactDiagnostic(
-                $"Compiled artifact {label} is incompatible. Expected '{expected}', got '{actual}'."));
+            diagnostics.Add(
+                CreateArtifactDiagnostic(
+                    $"Compiled artifact {label} is incompatible. Expected '{expected}', got '{actual}'."
+                )
+            );
     }
 
     private static Diagnostic CreateArtifactDiagnostic(string message)
@@ -312,26 +339,29 @@ internal static class CSharpClrCompiledArtifactLoader
         return Diagnostic.ErrorUnknownLocation(
             DiagnosticCode.MQ8002_CompiledArtifactIncompatible,
             message,
-            sourceKind: DiagnosticSourceKind.GeneratedSource);
+            sourceKind: DiagnosticSourceKind.GeneratedSource
+        );
     }
 
     private sealed class CompiledQueryArtifactAssemblyLoadContext(string name)
         : AssemblyLoadContext(name, isCollectible: true)
     {
-        private static readonly FrozenDictionary<string, Assembly> DefaultAssembliesByName =
-            Default.Assemblies
-                .Where(static assembly => assembly.GetName().Name is not null)
-                .GroupBy(static assembly => assembly.GetName().Name!, StringComparer.OrdinalIgnoreCase)
-                .ToFrozenDictionary(
-                    static group => group.Key,
-                    static group => group.First(),
-                    StringComparer.OrdinalIgnoreCase);
+        private static readonly FrozenDictionary<string, Assembly> DefaultAssembliesByName = Default
+            .Assemblies.Where(static assembly => assembly.GetName().Name is not null)
+            .GroupBy(static assembly => assembly.GetName().Name!, StringComparer.OrdinalIgnoreCase)
+            .ToFrozenDictionary(
+                static group => group.Key,
+                static group => group.First(),
+                StringComparer.OrdinalIgnoreCase
+            );
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            if (assemblyName.Name is { } simpleName &&
-                DefaultAssembliesByName.TryGetValue(simpleName, out var assembly) &&
-                AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName))
+            if (
+                assemblyName.Name is { } simpleName
+                && DefaultAssembliesByName.TryGetValue(simpleName, out var assembly)
+                && AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName)
+            )
             {
                 return assembly;
             }
@@ -348,7 +378,6 @@ internal static class CSharpClrCompiledArtifactLoader
             {
                 return null;
             }
-
         }
     }
 

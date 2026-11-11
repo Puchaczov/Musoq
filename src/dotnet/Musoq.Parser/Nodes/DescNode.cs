@@ -7,19 +7,13 @@ public class DescNode : Node
     private const string QueryAlias = "__desc_query";
 
     public DescNode(FromNode from, DescForType type)
-        : this(from, type, null, null)
-    {
-    }
+        : this(from, type, null, null) { }
 
     public DescNode(FromNode from, DescForType type, Node? column)
-        : this(from, type, column, null)
-    {
-    }
+        : this(from, type, column, null) { }
 
     public DescNode(Node query)
-        : this(new InMemoryTableFromNode(QueryAlias, QueryAlias, typeof(object)), DescForType.Query, null, query)
-    {
-    }
+        : this(new InMemoryTableFromNode(QueryAlias, QueryAlias, typeof(object)), DescForType.Query, null, query) { }
 
     private DescNode(FromNode from, DescForType type, Node? column, Node? query)
     {
@@ -39,11 +33,10 @@ public class DescNode : Node
 
     public override Type? ReturnType => null;
 
-    public override string Id => Query != null
-        ? $"{nameof(DescNode)}Query{Query.Id}"
-        : Column != null
-            ? $"{nameof(DescNode)}{From.Id}_{Column.Id}"
-            : $"{nameof(DescNode)}{From.Id}";
+    public override string Id =>
+        Query != null ? $"{nameof(DescNode)}Query{Query.Id}"
+        : Column != null ? $"{nameof(DescNode)}{From.Id}_{Column.Id}"
+        : $"{nameof(DescNode)}{From.Id}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
@@ -60,7 +53,7 @@ public class DescNode : Node
         {
             DescForType.Settings => "desc settings",
             DescForType.Arguments => "desc arguments",
-            _ => "desc"
+            _ => "desc",
         };
 
         return Column != null

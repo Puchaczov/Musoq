@@ -3,7 +3,8 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
-public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitionSkippingTraverseVisitor<IScopeAwareExpressionVisitor>
+public partial class RewriteQueryTraverseVisitor
+    : InterpretationSchemaDefinitionSkippingTraverseVisitor<IScopeAwareExpressionVisitor>
 {
     public override void Visit(InterpretCallNode node)
     {
@@ -49,13 +50,13 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
 
     private static bool IsInterpretFunctionCall(string methodName)
     {
-        return methodName.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("Parse", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("TryParse", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("PartialParse", StringComparison.OrdinalIgnoreCase);
+        return methodName.Equals("Interpret", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("Parse", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("TryParse", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase)
+            || methodName.Equals("PartialParse", StringComparison.OrdinalIgnoreCase);
     }
 
     private static Node CreateInterpretCallNode(AccessMethodNode accessMethod)
@@ -67,21 +68,20 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
         {
             ThrowIfOldInterpretSyntax(accessMethod.Name, args);
             throw new InvalidOperationException(
-                $"{accessMethod.Name} requires a type parameter. Use '{accessMethod.Name}<SchemaName>(data)' syntax.");
+                $"{accessMethod.Name} requires a type parameter. Use '{accessMethod.Name}<SchemaName>(data)' syntax."
+            );
         }
 
         if (accessMethod.Name.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase))
         {
             if (args.Length < 2)
-                throw new InvalidOperationException(
-                    "InterpretAt<SchemaName> requires 2 arguments: data and offset");
+                throw new InvalidOperationException("InterpretAt<SchemaName> requires 2 arguments: data and offset");
 
             return new InterpretAtCallNode(args[0], args[1], schemaName).CopySpansFrom(accessMethod);
         }
 
         if (args.Length < 1)
-            throw new InvalidOperationException(
-                $"{accessMethod.Name}<SchemaName> requires 1 argument: data");
+            throw new InvalidOperationException($"{accessMethod.Name}<SchemaName> requires 1 argument: data");
 
         var dataArg = args[0];
 
@@ -111,7 +111,8 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
         {
             ThrowIfOldInterpretSyntaxInAliasedFrom(node);
             throw new InvalidOperationException(
-                $"{node.Identifier} requires a type parameter. Use '{node.Identifier}<SchemaName>(data)' syntax.");
+                $"{node.Identifier} requires a type parameter. Use '{node.Identifier}<SchemaName>(data)' syntax."
+            );
         }
 
         var dataSource = node.Args.Args[0];
@@ -120,7 +121,8 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
         {
             if (node.Args.Args.Length < 2)
                 throw new InvalidOperationException(
-                    $"InterpretAt<SchemaName> requires 2 arguments: data and offset, got {node.Args.Args.Length}");
+                    $"InterpretAt<SchemaName> requires 2 arguments: data and offset, got {node.Args.Args.Length}"
+                );
 
             var offset = node.Args.Args[1];
             return new InterpretAtCallNode(dataSource, offset, schemaName, node.ReturnType).CopySpansFrom(node);
@@ -128,22 +130,32 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
 
         if (node.Args.Args.Length < 1)
             throw new InvalidOperationException(
-                $"{node.Identifier}<SchemaName> requires 1 argument: data, got {node.Args.Args.Length}");
+                $"{node.Identifier}<SchemaName> requires 1 argument: data, got {node.Args.Args.Length}"
+            );
 
         if (node.Identifier.Equals("Parse", StringComparison.OrdinalIgnoreCase))
             return CopyInterpretationMethodSpan(new ParseCallNode(dataSource, schemaName, node.ReturnType), node);
 
         if (node.Identifier.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase))
-            return CopyInterpretationMethodSpan(new TryInterpretCallNode(dataSource, schemaName, node.ReturnType), node);
+            return CopyInterpretationMethodSpan(
+                new TryInterpretCallNode(dataSource, schemaName, node.ReturnType),
+                node
+            );
 
         if (node.Identifier.Equals("TryParse", StringComparison.OrdinalIgnoreCase))
             return CopyInterpretationMethodSpan(new TryParseCallNode(dataSource, schemaName, node.ReturnType), node);
 
         if (node.Identifier.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase))
-            return CopyInterpretationMethodSpan(new PartialInterpretCallNode(dataSource, schemaName, node.ReturnType), node);
+            return CopyInterpretationMethodSpan(
+                new PartialInterpretCallNode(dataSource, schemaName, node.ReturnType),
+                node
+            );
 
         if (node.Identifier.Equals("PartialParse", StringComparison.OrdinalIgnoreCase))
-            return CopyInterpretationMethodSpan(new PartialParseCallNode(dataSource, schemaName, node.ReturnType), node);
+            return CopyInterpretationMethodSpan(
+                new PartialParseCallNode(dataSource, schemaName, node.ReturnType),
+                node
+            );
 
         return CopyInterpretationMethodSpan(new InterpretCallNode(dataSource, schemaName, node.ReturnType), node);
     }
@@ -165,13 +177,15 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
         {
             if (args is [_, _, StringNode schemaArg, ..])
                 throw new InvalidOperationException(
-                    $"The syntax 'InterpretAt(data, offset, ''{schemaArg.Value}'')' is no longer supported. Use 'InterpretAt<{schemaArg.Value}>(data, offset)' instead.");
+                    $"The syntax 'InterpretAt(data, offset, ''{schemaArg.Value}'')' is no longer supported. Use 'InterpretAt<{schemaArg.Value}>(data, offset)' instead."
+                );
         }
         else
         {
             if (args is [_, StringNode schemaArg, ..])
                 throw new InvalidOperationException(
-                    $"The syntax '{functionName}(data, ''{schemaArg.Value}'')' is no longer supported. Use '{functionName}<{schemaArg.Value}>(data)' instead.");
+                    $"The syntax '{functionName}(data, ''{schemaArg.Value}'')' is no longer supported. Use '{functionName}<{schemaArg.Value}>(data)' instead."
+                );
         }
     }
 
@@ -185,7 +199,8 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
             {
                 var name = args[2] is StringNode s ? s.Value : ((WordNode)args[2]).Value;
                 throw new InvalidOperationException(
-                    $"The syntax 'InterpretAt(data, offset, ''{name}'')' is no longer supported. Use 'InterpretAt<{name}>(data, offset)' instead.");
+                    $"The syntax 'InterpretAt(data, offset, ''{name}'')' is no longer supported. Use 'InterpretAt<{name}>(data, offset)' instead."
+                );
             }
         }
         else
@@ -194,7 +209,8 @@ public partial class RewriteQueryTraverseVisitor : InterpretationSchemaDefinitio
             {
                 var name = args[1] is StringNode s ? s.Value : ((WordNode)args[1]).Value;
                 throw new InvalidOperationException(
-                    $"The syntax '{node.Identifier}(data, ''{name}'')' is no longer supported. Use '{node.Identifier}<{name}>(data)' instead.");
+                    $"The syntax '{node.Identifier}(data, ''{name}'')' is no longer supported. Use '{node.Identifier}<{name}>(data)' instead."
+                );
             }
         }
     }

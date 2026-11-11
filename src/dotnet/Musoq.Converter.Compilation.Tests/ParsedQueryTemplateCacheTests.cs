@@ -25,43 +25,38 @@ public sealed class ParsedQueryTemplateCacheTests
             [
                 "binary",
                 "binary Packet { Length: byte, Payload: byte[Length] }; select 1 from #A.Entities()",
-                1
+                1,
             ];
-            yield return
-            [
-                "text",
-                "text Line { Key: until '=', Value: rest trim }; select 1 from #A.Entities()",
-                1
-            ];
+            yield return ["text", "text Line { Key: until '=', Value: rest trim }; select 1 from #A.Entities()", 1];
             yield return
             [
                 "text-captures",
                 "text Coordinates { Value: pattern '(?<Lat>-?[0-9]+),(?<Lon>-?[0-9]+)' capture (Lat, Lon) }; select 1 from #A.Entities()",
-                1
+                1,
             ];
             yield return
             [
                 "text-switch",
                 "text Line { Content: switch { pattern 'header' => Header, _ => Value } }; select 1 from #A.Entities()",
-                1
+                1,
             ];
             yield return
             [
                 "nested",
                 "binary Point { X: float le, Y: float le }; binary Mesh { Count: byte, Points: Point[Count] }; select 1 from #A.Entities()",
-                2
+                2,
             ];
             yield return
             [
                 "composed",
                 "text Pair { Key: until ':', Value: rest trim }; binary Packet { Length: byte, Value: string[Length] utf8 as Pair }; select 1 from #A.Entities()",
-                2
+                2,
             ];
             yield return
             [
                 "rich-binary",
                 "binary Leaf { Value: byte }; binary Packet { Type: byte oneOf [1, 2], Length: byte, Signature: byte[2] magic [1, 2], Name: string[Length] utf8, Points: Leaf[2], Flags: bits[3], _: align[8], Inline: { Tag: byte, Value: short le }, Payload: switch Type { 1 => Structured: Leaf, _ => Raw: byte[Length] }, Body: substream[Length] as Leaf lax, Items: Leaf repeat until eof }; select 1 from #A.Entities()",
-                2
+                2,
             ];
         }
     }
@@ -85,15 +80,19 @@ public sealed class ParsedQueryTemplateCacheTests
         var parseCount = 0;
         using var contention = new global::Musoq.Tests.Common.SynchronousContention();
 
-        var roots = contention.Run(() =>
-            ParsedQueryTemplateCache.GetOrAdd(
-                script,
-                () =>
-                {
-                    Interlocked.Increment(ref parseCount);
-                    contention.HoldOwner();
-                    return Parse(script);
-                }), 32);
+        var roots = contention.Run(
+            () =>
+                ParsedQueryTemplateCache.GetOrAdd(
+                    script,
+                    () =>
+                    {
+                        Interlocked.Increment(ref parseCount);
+                        contention.HoldOwner();
+                        return Parse(script);
+                    }
+                ),
+            32
+        );
 
         Assert.AreEqual(1, parseCount);
         Assert.HasCount(32, roots.Distinct(ReferenceEqualityComparer.Instance));
@@ -107,18 +106,21 @@ public sealed class ParsedQueryTemplateCacheTests
     public void InterpretationSchemaScript_WhenReused_ShouldCoverColdHotRepeatedAndConcurrentCloning(
         string scenario,
         string script,
-        int expectedSchemaCount)
+        int expectedSchemaCount
+    )
     {
         _ = scenario;
         var parseCount = 0;
 
-        RootNode GetRoot() => ParsedQueryTemplateCache.GetOrAdd(
-            script,
-            () =>
-            {
-                Interlocked.Increment(ref parseCount);
-                return Parse(script);
-            });
+        RootNode GetRoot() =>
+            ParsedQueryTemplateCache.GetOrAdd(
+                script,
+                () =>
+                {
+                    Interlocked.Increment(ref parseCount);
+                    return Parse(script);
+                }
+            );
 
         var cold = GetRoot();
         var hot = GetRoot();
@@ -133,12 +135,19 @@ public sealed class ParsedQueryTemplateCacheTests
         ParsedQueryTemplateCache.Clear();
         parseCount = 0;
         using var contention = new global::Musoq.Tests.Common.SynchronousContention();
-        var concurrent = contention.Run(() => ParsedQueryTemplateCache.GetOrAdd(script, () =>
-        {
-            Interlocked.Increment(ref parseCount);
-            contention.HoldOwner();
-            return Parse(script);
-        }), 16);
+        var concurrent = contention.Run(
+            () =>
+                ParsedQueryTemplateCache.GetOrAdd(
+                    script,
+                    () =>
+                    {
+                        Interlocked.Increment(ref parseCount);
+                        contention.HoldOwner();
+                        return Parse(script);
+                    }
+                ),
+            16
+        );
 
         Assert.AreEqual(1, parseCount);
         Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Misses);
@@ -150,8 +159,7 @@ public sealed class ParsedQueryTemplateCacheTests
     [TestMethod]
     public void InterpretationSchemaScript_WhenOneCloneIsMutated_ShouldNotChangeCachedTemplateOrOtherClones()
     {
-        const string script =
-            "binary Packet { Length: byte, Payload: byte[Length] }; select 1 from #A.Entities()";
+        const string script = "binary Packet { Length: byte, Payload: byte[Length] }; select 1 from #A.Entities()";
 
         var first = ParsedQueryTemplateCache.GetOrAdd(script, () => Parse(script));
         var second = ParsedQueryTemplateCache.GetOrAdd(script, () => throw new InvalidOperationException());
@@ -176,24 +184,34 @@ public sealed class ParsedQueryTemplateCacheTests
         var parseCount = 0;
         using var contention = new global::Musoq.Tests.Common.SynchronousContention();
 
-        var templates = contention.Run(() =>
-            ParsedQueryTemplateCache.GetOrAddWithDiagnostics(
-                script,
-                ParsedQueryTemplateCache.DefaultParserContract,
-                () =>
-                {
-                    Interlocked.Increment(ref parseCount);
-                    contention.HoldOwner();
-                    var lexer = new Lexer(script, true);
-                    var root = new ParserType(lexer).ComposeAll();
-                    return new ParsedQueryTemplate(root, lexer.Diagnostics.ToImmutableArray());
-                }), 32);
+        var templates = contention.Run(
+            () =>
+                ParsedQueryTemplateCache.GetOrAddWithDiagnostics(
+                    script,
+                    ParsedQueryTemplateCache.DefaultParserContract,
+                    () =>
+                    {
+                        Interlocked.Increment(ref parseCount);
+                        contention.HoldOwner();
+                        var lexer = new Lexer(script, true);
+                        var root = new ParserType(lexer).ComposeAll();
+                        return new ParsedQueryTemplate(root, lexer.Diagnostics.ToImmutableArray());
+                    }
+                ),
+            32
+        );
 
         Assert.AreEqual(1, parseCount);
-        Assert.HasCount(32, templates.Select(static template => template.Root).Distinct(ReferenceEqualityComparer.Instance));
+        Assert.HasCount(
+            32,
+            templates.Select(static template => template.Root).Distinct(ReferenceEqualityComparer.Instance)
+        );
         Assert.IsTrue(templates.All(static template => template.Diagnostics.Length == 1));
-        Assert.IsTrue(templates.All(static template =>
-            template.Diagnostics[0].Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+        Assert.IsTrue(
+            templates.All(static template =>
+                template.Diagnostics[0].Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+            )
+        );
         Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Count);
         Assert.AreEqual(31, ParsedQueryTemplateCache.Snapshot.Hits);
         Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Misses);
@@ -203,32 +221,41 @@ public sealed class ParsedQueryTemplateCacheTests
     public void SameScriptWithRequiredAliasError_WhenRequestedConcurrently_ShouldReplayOneErrorPerCaller()
     {
         const string script =
-            "select 1 from #system.dual() source cross apply source.Column take 10; " +
-            "select 1 from #system.dual() d";
+            "select 1 from #system.dual() source cross apply source.Column take 10; "
+            + "select 1 from #system.dual() d";
         var parseCount = 0;
         using var contention = new global::Musoq.Tests.Common.SynchronousContention();
 
-        var templates = contention.Run(() =>
-            ParsedQueryTemplateCache.GetOrAddWithDiagnostics(
-                script,
-                ParsedQueryTemplateCache.DefaultParserContract,
-                () =>
-                {
-                    Interlocked.Increment(ref parseCount);
-                    contention.HoldOwner();
-                    var lexer = new Lexer(script, true);
-                    var diagnostics = new DiagnosticBag { SourceText = new SourceText(script) };
-                    var parseResult = new ParserType(lexer, diagnostics).ParseWithDiagnostics();
-                    return new ParsedQueryTemplate(
-                        parseResult.Root!,
-                        diagnostics.ToSortedList().ToImmutableArray());
-                }), 32);
+        var templates = contention.Run(
+            () =>
+                ParsedQueryTemplateCache.GetOrAddWithDiagnostics(
+                    script,
+                    ParsedQueryTemplateCache.DefaultParserContract,
+                    () =>
+                    {
+                        Interlocked.Increment(ref parseCount);
+                        contention.HoldOwner();
+                        var lexer = new Lexer(script, true);
+                        var diagnostics = new DiagnosticBag { SourceText = new SourceText(script) };
+                        var parseResult = new ParserType(lexer, diagnostics).ParseWithDiagnostics();
+                        return new ParsedQueryTemplate(
+                            parseResult.Root!,
+                            diagnostics.ToSortedList().ToImmutableArray()
+                        );
+                    }
+                ),
+            32
+        );
 
         Assert.AreEqual(1, parseCount);
-        Assert.HasCount(32, templates.Select(static template => template.Root).Distinct(ReferenceEqualityComparer.Instance));
+        Assert.HasCount(
+            32,
+            templates.Select(static template => template.Root).Distinct(ReferenceEqualityComparer.Instance)
+        );
         Assert.IsTrue(templates.All(static template => template.Diagnostics.Length == 1));
-        Assert.IsTrue(templates.All(static template =>
-            template.Diagnostics[0].Code == DiagnosticCode.MQ2035_MissingRequiredAlias));
+        Assert.IsTrue(
+            templates.All(static template => template.Diagnostics[0].Code == DiagnosticCode.MQ2035_MissingRequiredAlias)
+        );
         Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Count);
         Assert.AreEqual(31, ParsedQueryTemplateCache.Snapshot.Hits);
         Assert.AreEqual(1, ParsedQueryTemplateCache.Snapshot.Misses);
@@ -241,17 +268,24 @@ public sealed class ParsedQueryTemplateCacheTests
         var calls = 0;
 
         Assert.Throws<InvalidOperationException>(() =>
-            ParsedQueryTemplateCache.GetOrAdd(script, () =>
+            ParsedQueryTemplateCache.GetOrAdd(
+                script,
+                () =>
+                {
+                    calls++;
+                    throw new InvalidOperationException("parse failed");
+                }
+            )
+        );
+
+        var root = ParsedQueryTemplateCache.GetOrAdd(
+            script,
+            () =>
             {
                 calls++;
-                throw new InvalidOperationException("parse failed");
-            }));
-
-        var root = ParsedQueryTemplateCache.GetOrAdd(script, () =>
-        {
-            calls++;
-            return Parse(script);
-        });
+                return Parse(script);
+            }
+        );
 
         Assert.IsNotNull(root);
         Assert.AreEqual(2, calls);
@@ -264,21 +298,33 @@ public sealed class ParsedQueryTemplateCacheTests
         const string script = "select 1 from #A.Entities()";
         var calls = 0;
 
-        ParsedQueryTemplateCache.GetOrAdd(script, "mode-a", () =>
-        {
-            calls++;
-            return Parse(script);
-        });
-        ParsedQueryTemplateCache.GetOrAdd(" " + script, "mode-a", () =>
-        {
-            calls++;
-            return Parse(script);
-        });
-        ParsedQueryTemplateCache.GetOrAdd(script, "mode-b", () =>
-        {
-            calls++;
-            return Parse(script);
-        });
+        ParsedQueryTemplateCache.GetOrAdd(
+            script,
+            "mode-a",
+            () =>
+            {
+                calls++;
+                return Parse(script);
+            }
+        );
+        ParsedQueryTemplateCache.GetOrAdd(
+            " " + script,
+            "mode-a",
+            () =>
+            {
+                calls++;
+                return Parse(script);
+            }
+        );
+        ParsedQueryTemplateCache.GetOrAdd(
+            script,
+            "mode-b",
+            () =>
+            {
+                calls++;
+                return Parse(script);
+            }
+        );
 
         Assert.AreEqual(3, calls);
         Assert.AreEqual(3, ParsedQueryTemplateCache.Snapshot.Count);
@@ -307,16 +353,13 @@ public sealed class ParsedQueryTemplateCacheTests
     private static Node[] GetSchemaDefinitions(RootNode root)
     {
         var statements = (StatementsArrayNode)root.Expression;
-        return statements.Statements
-            .Select(static statement => statement.Node)
+        return statements
+            .Statements.Select(static statement => statement.Node)
             .Where(static node => node is BinarySchemaNode or TextSchemaNode)
             .ToArray();
     }
 
-    private static void AssertInterpretationSchemasAreIsolated(
-        RootNode first,
-        RootNode second,
-        int expectedSchemaCount)
+    private static void AssertInterpretationSchemasAreIsolated(RootNode first, RootNode second, int expectedSchemaCount)
     {
         Assert.AreNotSame(first, second);
         var firstSchemas = GetSchemaDefinitions(first);
@@ -338,9 +381,7 @@ public sealed class ParsedQueryTemplateCacheTests
                     for (var fieldIndex = 0; fieldIndex < firstBinary.Fields.Length; fieldIndex++)
                     {
                         Assert.AreNotSame(firstBinary.Fields[fieldIndex], secondBinary.Fields[fieldIndex]);
-                        AssertSchemaFieldIsIsolated(
-                            firstBinary.Fields[fieldIndex],
-                            secondBinary.Fields[fieldIndex]);
+                        AssertSchemaFieldIsIsolated(firstBinary.Fields[fieldIndex], secondBinary.Fields[fieldIndex]);
                     }
                     break;
 
@@ -353,11 +394,13 @@ public sealed class ParsedQueryTemplateCacheTests
                         if (firstText.Fields[fieldIndex].CaptureGroups.Length > 0)
                             Assert.AreNotSame(
                                 firstText.Fields[fieldIndex].CaptureGroups,
-                                secondText.Fields[fieldIndex].CaptureGroups);
+                                secondText.Fields[fieldIndex].CaptureGroups
+                            );
                         if (firstText.Fields[fieldIndex].SwitchCases.Length > 0)
                             Assert.AreNotSame(
                                 firstText.Fields[fieldIndex].SwitchCases,
-                                secondText.Fields[fieldIndex].SwitchCases);
+                                secondText.Fields[fieldIndex].SwitchCases
+                            );
                     }
                     break;
             }
@@ -418,7 +461,8 @@ public sealed class ParsedQueryTemplateCacheTests
                     Assert.AreNotSame(firstType.Cases[index].BranchType, secondType.Cases[index].BranchType);
                     AssertTypeAnnotationIsIsolated(
                         firstType.Cases[index].BranchType,
-                        secondType.Cases[index].BranchType);
+                        secondType.Cases[index].BranchType
+                    );
                 }
                 break;
             case (RepeatUntilTypeNode firstType, RepeatUntilTypeNode secondType):

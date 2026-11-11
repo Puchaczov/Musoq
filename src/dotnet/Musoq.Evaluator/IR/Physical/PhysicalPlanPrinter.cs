@@ -4,6 +4,7 @@ using Musoq.Evaluator.IR.Printing;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 
 namespace Musoq.Evaluator.IR.Physical;
+
 public static partial class PhysicalPlanPrinter
 {
     public static string Print(PhysicalNode node)
@@ -29,7 +30,11 @@ public static partial class PhysicalPlanPrinter
                 PrintAggregateCandidate(aggregateCandidate, sb, prefix, indent);
                 break;
             case PhysicalSingleKeyAggregateNode singleAgg:
-                sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalSingleKeyAggregate [key: {singleAgg.GroupKeyName} ({singleAgg.GroupKeyType.Name})] [aggs: ");
+                sb.Append(prefix)
+                    .Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalSingleKeyAggregate [key: {singleAgg.GroupKeyName} ({singleAgg.GroupKeyType.Name})] [aggs: "
+                    );
                 PlanPrinterHelpers.AppendAggregateBindings(sb, singleAgg.Bindings);
                 sb.AppendLine("]");
                 PrintNode(singleAgg.Input, sb, indent + 2);
@@ -80,24 +85,31 @@ public static partial class PhysicalPlanPrinter
                 break;
 
             case PhysicalSkipNode skip:
-                sb.Append(prefix).AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalSkip [{skip.Count}]");
+                sb.Append(prefix)
+                    .AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalSkip [{skip.Count}]");
                 PrintNode(skip.Input, sb, indent + 2);
                 break;
 
             case PhysicalTakeNode take:
-                sb.Append(prefix).AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalTake [{take.Count}]");
+                sb.Append(prefix)
+                    .AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalTake [{take.Count}]");
                 PrintNode(take.Input, sb, indent + 2);
                 break;
 
             case PhysicalTopNNode topN:
-                sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalTopN [{topN.N}] [");
+                sb.Append(prefix)
+                    .Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalTopN [{topN.N}] [");
                 PlanPrinterHelpers.AppendOrderFields(sb, topN.Keys);
                 sb.AppendLine("]");
                 PrintNode(topN.Input, sb, indent + 2);
                 break;
 
             case PhysicalTopOffsetNode topOffset:
-                sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalTopOffset [skip {topOffset.Skip}, take {topOffset.Take}] [");
+                sb.Append(prefix)
+                    .Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalTopOffset [skip {topOffset.Skip}, take {topOffset.Take}] ["
+                    );
                 PlanPrinterHelpers.AppendOrderFields(sb, topOffset.Keys);
                 sb.AppendLine("]");
                 PrintNode(topOffset.Input, sb, indent + 2);
@@ -116,31 +128,53 @@ public static partial class PhysicalPlanPrinter
                 break;
 
             case PhysicalSchemaScanNode scan:
-                sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalSchemaScan [{PlanPrinterHelpers.FormatSchemaName(scan.SchemaName)}.{scan.MethodName}(");
+                sb.Append(prefix)
+                    .Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalSchemaScan [{PlanPrinterHelpers.FormatSchemaName(scan.SchemaName)}.{scan.MethodName}("
+                    );
                 PlanPrinterHelpers.AppendExpressions(sb, scan.Arguments);
                 sb.Append(System.Globalization.CultureInfo.InvariantCulture, $") as {scan.Alias}]");
                 AppendPushedPredicates(sb, scan.PushedPredicates);
                 if (scan.SourceTransferStrategy is { Mode: SourceTransferMode.QueryScopedRows } transfer)
-                    sb.Append(System.Globalization.CultureInfo.InvariantCulture, $" [query-row:{transfer.Carrier};lifetime={transfer.Lifetime};shape={transfer.Shape?.Fingerprint}]");
+                    sb.Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $" [query-row:{transfer.Carrier};lifetime={transfer.Lifetime};shape={transfer.Shape?.Fingerprint}]"
+                    );
                 sb.AppendLine();
                 break;
 
             case PhysicalValuesScanNode values:
-                sb.Append(prefix).AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalValuesScan [{values.Rows.Count} rows as {values.Alias}]");
+                sb.Append(prefix)
+                    .AppendLine(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalValuesScan [{values.Rows.Count} rows as {values.Alias}]"
+                    );
                 break;
 
             case PhysicalUnpivotNode unpivot:
                 PrintUnpivot(unpivot, sb, prefix, indent);
                 break;
             case PhysicalInterpretSourceNode interpret:
-                sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalInterpretSource [{PlanPrinterHelpers.FormatSchemaName(interpret.SchemaName)}(");
+                sb.Append(prefix)
+                    .Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalInterpretSource [{PlanPrinterHelpers.FormatSchemaName(interpret.SchemaName)}("
+                    );
                 PlanPrinterHelpers.AppendExpressions(sb, interpret.Arguments);
                 sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $") as {interpret.Alias}]");
                 break;
             case PhysicalPropertySourceNode property:
-                sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalPropertySource [{property.SourceAlias}.");
+                sb.Append(prefix)
+                    .Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalPropertySource [{property.SourceAlias}."
+                    );
                 PlanPrinterHelpers.AppendProperties(sb, property.PropertiesChain);
-                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $" as {property.Alias}] [apply: {property.ApplyKind}] [type: ");
+                sb.Append(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $" as {property.Alias}] [apply: {property.ApplyKind}] [type: "
+                );
                 sb.Append(property.ResultType.Name);
                 sb.AppendLine("]");
                 break;
@@ -148,18 +182,29 @@ public static partial class PhysicalPlanPrinter
             case PhysicalAccessMethodSourceNode accessMethod:
                 sb.Append(prefix).Append("PhysicalAccessMethodSource [");
                 sb.Append(IrExpressionPrinter.Print(accessMethod.MethodCallExpression));
-                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $" as {accessMethod.Alias}] [apply: {accessMethod.ApplyKind}] [type: ");
+                sb.Append(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $" as {accessMethod.Alias}] [apply: {accessMethod.ApplyKind}] [type: "
+                );
                 sb.Append(accessMethod.ResultType.Name);
                 sb.AppendLine("]");
                 break;
             case PhysicalCteRefNode cteRef:
-                sb.Append(prefix).AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalCteRef [{cteRef.CteName} as {cteRef.Alias}]");
+                sb.Append(prefix)
+                    .AppendLine(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalCteRef [{cteRef.CteName} as {cteRef.Alias}]"
+                    );
                 break;
             case PhysicalJoinCandidateNode joinCandidate:
                 PrintJoinCandidate(joinCandidate, sb, prefix, indent);
                 break;
             case PhysicalHashJoinNode hashJoin:
-                sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalHashJoin [{hashJoin.Kind}] [build: ");
+                sb.Append(prefix)
+                    .Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalHashJoin [{hashJoin.Kind}] [build: "
+                    );
                 PlanPrinterHelpers.AppendExpressions(sb, hashJoin.BuildKeys);
                 sb.Append("] [probe: ");
                 PlanPrinterHelpers.AppendExpressions(sb, hashJoin.ProbeKeys);
@@ -176,7 +221,11 @@ public static partial class PhysicalPlanPrinter
                 break;
 
             case PhysicalNestedLoopJoinNode nlJoin:
-                sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalNestedLoopJoin [{nlJoin.Kind}] [");
+                sb.Append(prefix)
+                    .Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalNestedLoopJoin [{nlJoin.Kind}] ["
+                    );
                 sb.Append(IrExpressionPrinter.Print(nlJoin.OnPredicate));
                 sb.Append(']');
                 if (nlJoin.WithOrdinality)
@@ -188,7 +237,11 @@ public static partial class PhysicalPlanPrinter
                 break;
 
             case PhysicalSortMergeJoinNode sortMergeJoin:
-                sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalSortMergeJoin [{sortMergeJoin.Kind}] [left: ");
+                sb.Append(prefix)
+                    .Append(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        $"PhysicalSortMergeJoin [{sortMergeJoin.Kind}] [left: "
+                    );
                 sb.Append(IrExpressionPrinter.Print(sortMergeJoin.LeftKey));
                 sb.Append("] [right: ");
                 sb.Append(IrExpressionPrinter.Print(sortMergeJoin.RightKey));
@@ -211,13 +264,18 @@ public static partial class PhysicalPlanPrinter
                 break;
 
             case PhysicalSetOperationNode setOp:
-                sb.Append(prefix).AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalSetOp [{setOp.Kind}]");
+                sb.Append(prefix)
+                    .AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalSetOp [{setOp.Kind}]");
                 PrintNode(setOp.Left, sb, indent + 2);
                 PrintNode(setOp.Right, sb, indent + 2);
                 break;
 
-            case PhysicalRecursiveCteNode recursiveCte: PrintRecursiveCte(recursiveCte, sb, prefix, indent); break;
-            case PhysicalCteNode cte: PrintCte(cte, sb, prefix, indent); break;
+            case PhysicalRecursiveCteNode recursiveCte:
+                PrintRecursiveCte(recursiveCte, sb, prefix, indent);
+                break;
+            case PhysicalCteNode cte:
+                PrintCte(cte, sb, prefix, indent);
+                break;
 
             case PhysicalDescNode desc:
                 PrintDesc(desc, sb, prefix);
@@ -229,9 +287,9 @@ public static partial class PhysicalPlanPrinter
                     PrintNode(stmt, sb, indent + 2);
                 break;
             default:
-                sb.Append(prefix).AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Unknown [{node.GetType().Name}]");
+                sb.Append(prefix)
+                    .AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Unknown [{node.GetType().Name}]");
                 break;
         }
     }
-
 }

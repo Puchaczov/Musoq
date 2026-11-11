@@ -20,11 +20,12 @@ public partial class SetsOperatorsTests
     [DataRow("intersect")]
     public void ResultOrderBy_WithAliasesAndNullOrdering_ShouldApplyAfterTheSet(string setOperator)
     {
-        var query = $"select Name as Result from #A.Entities() {setOperator} select Name as Other from #B.Entities() order by Result nulls last";
+        var query =
+            $"select Name as Result from #A.Entities() {setOperator} select Name as Other from #B.Entities() order by Result nulls last";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity(null), new BasicEntity("c"), new BasicEntity("a")],
-            ["#B"] = [new BasicEntity("b"), new BasicEntity("a"), new BasicEntity(null)]
+            ["#B"] = [new BasicEntity("b"), new BasicEntity("a"), new BasicEntity(null)],
         };
 
         var compiled = CreateAndRunVirtualMachine(query, sources);
@@ -34,10 +35,25 @@ public partial class SetsOperatorsTests
         var expected = setOperator switch
         {
             "union" or "union (Result)" => new object?[][] { ["a"], ["b"], ["c"], [null] },
-            "union all" => [["a"], ["a"], ["b"], ["c"], [null], [null]],
-            "except" => [["c"]],
-            "intersect" => [["a"], [null]],
-            _ => throw new InvalidOperationException(setOperator)
+            "union all" =>
+            [
+                ["a"],
+                ["a"],
+                ["b"],
+                ["c"],
+                [null],
+                [null],
+            ],
+            "except" =>
+            [
+                ["c"],
+            ],
+            "intersect" =>
+            [
+                ["a"],
+                [null],
+            ],
+            _ => throw new InvalidOperationException(setOperator),
         };
         TableMaterializationTestHelper.AssertRowsInOrder(table, expected);
     }
@@ -45,41 +61,41 @@ public partial class SetsOperatorsTests
     [TestMethod]
     public void ChainedUnionAll_WithDescendingSkipAndTake_ShouldSliceTheCombinedResult()
     {
-        const string query = @"
-select Name as Label from #A.Entities()
-union all select Name from #B.Entities()
-union all select Name from #C.Entities()
-order by Label desc skip 1 take 3";
+        const string query = (
+            "\n"
+            + "select Name as Label from #A.Entities()\n"
+            + "union all select Name from #B.Entities()\n"
+            + "union all select Name from #C.Entities()\n"
+            + "order by Label desc skip 1 take 3"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity("delta"), new BasicEntity("alpha")],
             ["#B"] = [new BasicEntity("charlie")],
-            ["#C"] = [new BasicEntity("bravo"), new BasicEntity("echo")]
+            ["#C"] = [new BasicEntity("bravo"), new BasicEntity("echo")],
         };
 
         var compiled = CreateAndRunVirtualMachine(query, sources);
         var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["delta"],
-            ["charlie"],
-            ["bravo"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["delta"], ["charlie"], ["bravo"]);
     }
 
     [TestMethod]
     public void DerivedOperand_WithLocalSlice_ShouldRemainLocalWhileTrailingOrderIsGlobal()
     {
-        const string query = @"
-select sliced.Name as Label
-from (select Name from #A.Entities() order by Name take 1) sliced
-union all
-select Name from #B.Entities()
-order by Label desc";
+        const string query = (
+            "\n"
+            + "select sliced.Name as Label\n"
+            + "from (select Name from #A.Entities() order by Name take 1) sliced\n"
+            + "union all\n"
+            + "select Name from #B.Entities()\n"
+            + "order by Label desc"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity("zulu"), new BasicEntity("alpha")],
-            ["#B"] = [new BasicEntity("mike")]
+            ["#B"] = [new BasicEntity("mike")],
         };
 
         var compiled = CreateAndRunVirtualMachine(query, sources);
@@ -91,19 +107,20 @@ order by Label desc";
     [TestMethod]
     public void ResultModifiers_Inspection_ShouldPlaceOrderingAndSlicingAboveTheSet()
     {
-        const string query = @"
-select Name as Label from #A.Entities()
-union all select Name from #B.Entities()
-order by Label desc skip 1 take 2";
+        const string query = (
+            "\n"
+            + "select Name as Label from #A.Entities()\n"
+            + "union all select Name from #B.Entities()\n"
+            + "order by Label desc skip 1 take 2"
+        );
         var inspection = InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
-            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [],
-                ["#B"] = []
-            }),
-            new TestsLoggerResolver());
+            new BasicSchemaProvider<BasicEntity>(
+                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [], ["#B"] = [] }
+            ),
+            new TestsLoggerResolver()
+        );
 
         AssertTextBefore("Take [2]", "Skip [1]", inspection.LogicalPlanText);
         AssertTextBefore("Skip [1]", "Sort [Label DESC]", inspection.LogicalPlanText);
@@ -117,7 +134,8 @@ order by Label desc skip 1 take 2";
     [TestMethod]
     public void CloneQueryVisitor_ShouldPreserveIndependentSetResultModifiers()
     {
-        const string query = "select Name as Label from schemaA.methodA() union all select Name from schemaB.methodB() order by Label desc skip 1 take 2";
+        const string query =
+            "select Name as Label from schemaA.methodA() union all select Name from schemaB.methodB() order by Label desc skip 1 take 2";
         var root = new Musoq.Parser.Parser(new Lexer(query, true)).ComposeAll();
         var visitor = new CloneQueryVisitor();
 

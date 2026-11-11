@@ -4,5 +4,5 @@ internal enum TakeStrategyKind
 {
     TopOffset,
     TopN,
-    Take
+    Take,
 }

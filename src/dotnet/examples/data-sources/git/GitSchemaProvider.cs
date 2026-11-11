@@ -9,19 +9,13 @@ public sealed class GitSchemaProvider : ISchemaProvider
     private readonly GitDataSourceApiRecorder? _recorder;
 
     public GitSchemaProvider()
-        : this(InMemoryGitHistoryStore.CreateDefault())
-    {
-    }
+        : this(InMemoryGitHistoryStore.CreateDefault()) { }
 
     public GitSchemaProvider(IGitHistoryStore store)
-        : this(store, null)
-    {
-    }
+        : this(store, null) { }
 
     internal GitSchemaProvider(GitDataSourceApiRecorder recorder)
-        : this(InMemoryGitHistoryStore.CreateDefault(), recorder)
-    {
-    }
+        : this(InMemoryGitHistoryStore.CreateDefault(), recorder) { }
 
     internal GitSchemaProvider(IGitHistoryStore store, GitDataSourceApiRecorder? recorder)
     {
@@ -33,8 +27,10 @@ public sealed class GitSchemaProvider : ISchemaProvider
     {
         _recorder?.SchemaRequests.Add(schema);
 
-        if (string.Equals(schema, GitSchema.SchemaName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(schema, $"#{GitSchema.SchemaName}", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(schema, GitSchema.SchemaName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(schema, $"#{GitSchema.SchemaName}", StringComparison.OrdinalIgnoreCase)
+        )
             return new GitSchema(_store, _recorder);
 
         throw new SourceNotFoundException($"Git example schema provider does not expose schema '{schema}'.");

@@ -7,4 +7,5 @@ internal sealed record SourcePlanningResult(
     IReadOnlyDictionary<string, SourcePlanResult> ResultsBySourceId,
     IReadOnlyDictionary<string, SourceDescriptor> DescriptorsBySourceId,
     IReadOnlyList<PlanningDecision> Decisions,
-    IReadOnlyDictionary<string, SourceComputedTransferPlan>? ComputedTransfers);
+    IReadOnlyDictionary<string, SourceComputedTransferPlan>? ComputedTransfers
+);

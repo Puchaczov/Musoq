@@ -56,7 +56,8 @@ public sealed class LikeMatcherCacheSlotTests
             {
                 Interlocked.Increment(ref factoryCalls);
                 return Operators.PrepareLike(pattern)!;
-            });
+            }
+        );
 
         for (var repetition = 0; repetition < 32; repetition++)
         {
@@ -95,7 +96,8 @@ public sealed class LikeMatcherCacheSlotTests
             {
                 Interlocked.Increment(ref factoryCalls);
                 return Operators.PrepareLike(pattern)!;
-            });
+            }
+        );
 
         for (var index = 0; index < 4096; index++)
         {
@@ -127,7 +129,7 @@ public sealed class LikeMatcherCacheSlotTests
                 $"prefix-value-{index}",
                 $"Ż{index}-payload",
                 $@"C:\path\{index}\payload",
-                string.Empty
+                string.Empty,
             };
 
             foreach (var input in inputs)
@@ -135,7 +137,8 @@ public sealed class LikeMatcherCacheSlotTests
                 Assert.AreEqual(
                     FreshHistoricalLike(input, pattern),
                     Operators.LikeDynamic(input, pattern, cacheSlot),
-                    $"Input '{input}', pattern '{pattern}'.");
+                    $"Input '{input}', pattern '{pattern}'."
+                );
             }
         }
 
@@ -154,7 +157,8 @@ public sealed class LikeMatcherCacheSlotTests
             {
                 Interlocked.Increment(ref factoryCalls);
                 return Operators.PrepareLike(pattern)!;
-            });
+            }
+        );
         using var ready = new Barrier(workerCount);
         var failures = new Exception?[workerCount];
         var workers = new Thread[workerCount];
@@ -170,10 +174,13 @@ public sealed class LikeMatcherCacheSlotTests
                     for (var patternIndex = 0; patternIndex < patternCount; patternIndex++)
                     {
                         var pattern = $"worker-{capturedWorkerIndex}-value-{patternIndex}%";
-                        Assert.IsTrue(Operators.LikeDynamic(
-                            $"worker-{capturedWorkerIndex}-value-{patternIndex}-payload",
-                            pattern,
-                            cacheSlot));
+                        Assert.IsTrue(
+                            Operators.LikeDynamic(
+                                $"worker-{capturedWorkerIndex}-value-{patternIndex}-payload",
+                                pattern,
+                                cacheSlot
+                            )
+                        );
                     }
                 }
                 catch (Exception exception)
@@ -262,9 +269,8 @@ public sealed class LikeMatcherCacheSlotTests
         {
             foreach (var cultureName in cultures)
             {
-                CultureInfo.CurrentCulture = cultureName.Length == 0
-                    ? CultureInfo.InvariantCulture
-                    : CultureInfo.GetCultureInfo(cultureName);
+                CultureInfo.CurrentCulture =
+                    cultureName.Length == 0 ? CultureInfo.InvariantCulture : CultureInfo.GetCultureInfo(cultureName);
                 foreach (var pattern in patterns)
                 {
                     var matcher = Operators.PrepareLike(pattern);
@@ -273,7 +279,8 @@ public sealed class LikeMatcherCacheSlotTests
                         Assert.AreEqual(
                             FreshHistoricalLike(input, pattern),
                             Operators.LikePrepared(input, matcher),
-                            $"Culture '{cultureName}', input '{input}', pattern '{pattern}'.");
+                            $"Culture '{cultureName}', input '{input}', pattern '{pattern}'."
+                        );
                     }
                 }
             }
@@ -284,10 +291,7 @@ public sealed class LikeMatcherCacheSlotTests
         }
     }
 
-    private static void MatchRepeatedly(
-        LikeMatcherCacheSlot slot,
-        Barrier ready,
-        ref Exception? failure)
+    private static void MatchRepeatedly(LikeMatcherCacheSlot slot, Barrier ready, ref Exception? failure)
     {
         try
         {
@@ -311,18 +315,20 @@ public sealed class LikeMatcherCacheSlotTests
             input,
             string.Concat(@"\A", sqlPattern, @"\z"),
             RegexOptions.IgnoreCase | RegexOptions.Singleline,
-            TimeSpan.FromSeconds(1));
+            TimeSpan.FromSeconds(1)
+        );
     }
 
-    private static string CreateChurnPattern(int index) => (index % 8) switch
-    {
-        0 => $"value-{index}",
-        1 => $"value-{index}%",
-        2 => $"%{index}",
-        3 => $"%value-{index}%",
-        4 => $"v_lue-{index}",
-        5 => $"value%{index}",
-        6 => $"Ż{index}%",
-        _ => $@"C:\path\{index}\%"
-    };
+    private static string CreateChurnPattern(int index) =>
+        (index % 8) switch
+        {
+            0 => $"value-{index}",
+            1 => $"value-{index}%",
+            2 => $"%{index}",
+            3 => $"%value-{index}%",
+            4 => $"v_lue-{index}",
+            5 => $"value%{index}",
+            6 => $"Ż{index}%",
+            _ => $@"C:\path\{index}\%",
+        };
 }

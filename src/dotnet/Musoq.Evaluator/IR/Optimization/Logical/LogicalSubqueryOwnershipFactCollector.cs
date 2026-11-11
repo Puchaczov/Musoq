@@ -62,18 +62,24 @@ internal static class LogicalSubqueryOwnershipFactCollector
 
         var outputColumns = CollectOutputColumns(expression.Value);
         var kind = Classify(expression.Name, outputColumns);
-        facts.Add(new LogicalSubqueryOwnershipFact(
-            expression.Name,
-            kind,
-            outputColumns.Any(GeneratedSubqueryContract.IsCorrelationColumnName),
-            outputColumns,
-            CreateReason(expression.Name, kind)));
+        facts.Add(
+            new LogicalSubqueryOwnershipFact(
+                expression.Name,
+                kind,
+                outputColumns.Any(GeneratedSubqueryContract.IsCorrelationColumnName),
+                outputColumns,
+                CreateReason(expression.Name, kind)
+            )
+        );
     }
 
     private static bool IsGeneratedSubqueryName(string name)
     {
-        return GeneratedSubqueryContract.IsGeneratedSubqueryCteName(name) ||
-               name.StartsWith(GeneratedSubqueryContract.ScalarMaterializationPrefix, StringComparison.OrdinalIgnoreCase);
+        return GeneratedSubqueryContract.IsGeneratedSubqueryCteName(name)
+            || name.StartsWith(
+                GeneratedSubqueryContract.ScalarMaterializationPrefix,
+                StringComparison.OrdinalIgnoreCase
+            );
     }
 
     private static LogicalSubqueryFormKind Classify(string cteName, IReadOnlyList<string> outputColumns)
@@ -81,7 +87,12 @@ internal static class LogicalSubqueryOwnershipFactCollector
         if (GeneratedSubqueryContract.IsDerivedTableCteName(cteName))
             return LogicalSubqueryFormKind.DerivedTable;
 
-        if (cteName.StartsWith(GeneratedSubqueryContract.ScalarMaterializationPrefix, StringComparison.OrdinalIgnoreCase))
+        if (
+            cteName.StartsWith(
+                GeneratedSubqueryContract.ScalarMaterializationPrefix,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
             return LogicalSubqueryFormKind.ScalarMaterialization;
 
         if (outputColumns.Any(column => GeneratedSubqueryContract.IsValueColumnForCte(column, cteName)))
@@ -95,10 +106,11 @@ internal static class LogicalSubqueryOwnershipFactCollector
     private static string[] CollectOutputColumns(Node node)
     {
         var query = GetLeftmostQuery(node);
-        return query?.Select.Fields
-            .Select(static field => field.FieldName)
-            .Where(static name => !string.IsNullOrWhiteSpace(name))
-            .ToArray() ?? [];
+        return query
+                ?.Select.Fields.Select(static field => field.FieldName)
+                .Where(static name => !string.IsNullOrWhiteSpace(name))
+                .ToArray()
+            ?? [];
     }
 
     private static QueryNode? GetLeftmostQuery(Node node)
@@ -116,4 +128,3 @@ internal static class LogicalSubqueryOwnershipFactCollector
         return $"{cteName} is a generated {kind} subquery form prepared for future logical optimizer ownership.";
     }
 }
-

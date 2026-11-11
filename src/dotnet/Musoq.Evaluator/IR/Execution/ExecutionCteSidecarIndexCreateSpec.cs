@@ -6,7 +6,8 @@ internal sealed record ExecutionCteSidecarIndexCreateSpec(
     ExecutionTypeRef KeyType,
     ExecutionCapacityHint? CapacityHint,
     ExecutionTypeRef? RowType = null,
-    string? GeneratedRowTypeName = null)
+    string? GeneratedRowTypeName = null
+)
 {
     internal ExecutionCteSidecarIndexCreateSpec(
         ExecutionVariable index,
@@ -14,8 +15,14 @@ internal sealed record ExecutionCteSidecarIndexCreateSpec(
         Type keyType,
         ExecutionCapacityHint? capacityHint,
         Type? rowType = null,
-        string? generatedRowTypeName = null)
-        : this(index, kind, ExecutionClrBindingFactory.FromClr(keyType), capacityHint, ExecutionClrBindingFactory.FromOptionalClr(rowType), generatedRowTypeName)
-    {
-    }
+        string? generatedRowTypeName = null
+    )
+        : this(
+            index,
+            kind,
+            ExecutionClrBindingFactory.FromClr(keyType),
+            capacityHint,
+            ExecutionClrBindingFactory.FromOptionalClr(rowType),
+            generatedRowTypeName
+        ) { }
 }

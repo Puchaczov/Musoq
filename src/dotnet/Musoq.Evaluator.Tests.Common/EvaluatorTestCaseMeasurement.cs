@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System;
+using System.Diagnostics;
 using Musoq.Converter;
 
 namespace Musoq.Evaluator.Tests;
@@ -30,7 +30,8 @@ internal sealed class EvaluatorTestCaseMeasurement : IDisposable
         string parentMethod,
         string caseId,
         string? sampleName = null,
-        string? profile = null)
+        string? profile = null
+    )
     {
         return new EvaluatorTestCaseMeasurement(parentMethod, caseId, sampleName, profile);
     }
@@ -81,6 +82,8 @@ internal sealed class EvaluatorTestCaseMeasurement : IDisposable
                 Environment.ProcessId,
                 Environment.CurrentManagedThreadId,
                 _startedUtc,
-                finishedUtc));
+                finishedUtc
+            )
+        );
     }
 }

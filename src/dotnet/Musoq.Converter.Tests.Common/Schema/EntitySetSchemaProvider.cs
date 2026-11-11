@@ -7,8 +7,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Converter.Tests.Schema;
 
-public sealed class EntitySetSchemaProvider(
-    IReadOnlyDictionary<string, IReadOnlyList<EntitySetEntity>> rowsBySchema)
+public sealed class EntitySetSchemaProvider(IReadOnlyDictionary<string, IReadOnlyList<EntitySetEntity>> rowsBySchema)
     : ISchemaProvider
 {
     public ISchema GetSchema(string schema)
@@ -21,20 +20,27 @@ public sealed class EntitySetSchemaProvider(
     }
 }
 
-public sealed class EntitySetSchema(
-    string schemaName,
-    IReadOnlyList<EntitySetEntity> rows)
+public sealed class EntitySetSchema(string schemaName, IReadOnlyList<EntitySetEntity> rows)
     : SchemaBase(schemaName, CreateLibrary())
 {
     private const string Entities = "entities";
 
-    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-        => base.DescribeSource(name, context, parameters) with
+    public override SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters
+    ) =>
+        base.DescribeSource(name, context, parameters) with
         {
-            ExecutionPermissions = SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing
+            ExecutionPermissions =
+                SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing,
         };
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         if (string.Equals(name, Entities, StringComparison.OrdinalIgnoreCase))
             return new EntitySetTable();
@@ -42,7 +48,11 @@ public sealed class EntitySetSchema(
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         if (string.Equals(name, Entities, StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, EntitySetEntity>(name, new EntitySetRowSource(rows));
@@ -67,7 +77,7 @@ public sealed class EntitySetTable : ISchemaTable
         new SchemaColumn(nameof(EntitySetEntity.City), 0, typeof(string)),
         new SchemaColumn(nameof(EntitySetEntity.Country), 1, typeof(string)),
         new SchemaColumn(nameof(EntitySetEntity.Population), 2, typeof(decimal)),
-        new SchemaColumn(nameof(EntitySetEntity.Name), 3, typeof(string))
+        new SchemaColumn(nameof(EntitySetEntity.Name), 3, typeof(string)),
     ];
 
     public ISchemaColumn? GetColumnByName(string name)
@@ -83,8 +93,7 @@ public sealed class EntitySetTable : ISchemaTable
     public SchemaTableMetadata Metadata { get; } = new(typeof(EntitySetEntity));
 }
 
-public sealed class EntitySetRowSource(IReadOnlyList<EntitySetEntity> rows)
-    : RowSourceBase<EntitySetEntity>
+public sealed class EntitySetRowSource(IReadOnlyList<EntitySetEntity> rows) : RowSourceBase<EntitySetEntity>
 {
     protected override void CollectChunks(IChunkWriter<EntitySetEntity> writer)
     {

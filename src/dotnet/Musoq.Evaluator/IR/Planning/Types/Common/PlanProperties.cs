@@ -26,4 +26,5 @@ internal sealed partial record PlanProperties(
     IReadOnlyList<CardinalityFact> CardinalityFacts,
     IReadOnlyList<PredicatePlacementPlan> PredicatePlacementPlans,
     IReadOnlyList<PredicateMovementPlan> PredicateMovementPlans,
-    IReadOnlyList<ApplyPredicateMovementPlan> ApplyPredicateMovementPlans);
+    IReadOnlyList<ApplyPredicateMovementPlan> ApplyPredicateMovementPlans
+);

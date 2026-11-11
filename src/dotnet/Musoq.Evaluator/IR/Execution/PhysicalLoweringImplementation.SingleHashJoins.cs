@@ -5,42 +5,46 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private TableBuildResult BuildSingleHashJoinTable(
-        HashJoinBuildContext context,
-        LoweringScope scope)
+    private TableBuildResult BuildSingleHashJoinTable(HashJoinBuildContext context, LoweringScope scope)
     {
-        if (context.Join.Kind != JoinKind.LeftSingle ||
-            !ReferenceEquals(context.Sides.Build, context.Sources.Right))
+        if (context.Join.Kind != JoinKind.LeftSingle || !ReferenceEquals(context.Sides.Build, context.Sources.Right))
         {
             return TableBuildResult.Unsupported(
-                "Execution IR single hash join lowering requires the right side to be the hash build side.");
+                "Execution IR single hash join lowering requires the right side to be the hash build side."
+            );
         }
 
         var resultTable = new ExecutionVariable(context.ResultTableName, typeof(object));
         var nullAlias = RowShapeLookup.ResolveSourceAlias(context.Sources.Right.Shape);
         IReadOnlyDictionary<string, ExecutionExpression>? emptyDefaults = null;
         IReadOnlyList<ExecutionNode>? preludeNodes = null;
-        if (TryCreateScalarSubqueryEmptyResultLowering(
+        if (
+            TryCreateScalarSubqueryEmptyResultLowering(
                 scope,
                 context.Sides.Build.Node,
                 context.Hash.Name,
                 out var valueColumnName,
-                out var emptyLowering))
+                out var emptyLowering
+            )
+        )
         {
             emptyDefaults = new Dictionary<string, ExecutionExpression>(StringComparer.OrdinalIgnoreCase)
             {
-                [valueColumnName] = emptyLowering.Value
+                [valueColumnName] = emptyLowering.Value,
             };
             preludeNodes = emptyLowering.PreludeNodes;
         }
 
-        var projection = CreateNullExtendedProjection(new NullExtendedProjectionContext(
-            context.ResultShapeName,
-            resultTable,
-            context.Pipeline.Project.Fields,
-            context.SourceLookup,
-            nullAlias,
-            emptyDefaults));
+        var projection = CreateNullExtendedProjection(
+            new NullExtendedProjectionContext(
+                context.ResultShapeName,
+                resultTable,
+                context.Pipeline.Project.Fields,
+                context.SourceLookup,
+                nullAlias,
+                emptyDefaults
+            )
+        );
         if (!projection.IsBuilt)
             return TableBuildResult.Unsupported(projection.UnsupportedReason);
 
@@ -49,7 +53,8 @@ internal sealed partial class PhysicalLoweringImplementation
             projection.MatchedAppendRow,
             projection.UnmatchedAppendRow,
             context.SourceLookup,
-            nullAlias);
+            nullAlias
+        );
         if (!appendBlocks.IsBuilt)
             return TableBuildResult.Unsupported(appendBlocks.UnsupportedReason);
 
@@ -59,7 +64,8 @@ internal sealed partial class PhysicalLoweringImplementation
             context.Pipeline.Filter,
             hasMatch,
             projection.MatchedAppendRow,
-            context.ConversionLookup);
+            context.ConversionLookup
+        );
         return CompleteHashJoinTableBuild(
             context,
             new HashJoinTableLowering(
@@ -68,6 +74,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 matchedBody,
                 appendBlocks.UnmatchedAppendBlock,
                 hasMatch,
-                PreludeNodes: preludeNodes));
+                PreludeNodes: preludeNodes
+            )
+        );
     }
 }

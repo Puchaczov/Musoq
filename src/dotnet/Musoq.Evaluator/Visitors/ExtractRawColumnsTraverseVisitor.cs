@@ -329,7 +329,8 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
     public override void Visit(CteExpressionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        foreach (var exp in node.InnerExpression) exp.Accept(this);
+        foreach (var exp in node.InnerExpression)
+            exp.Accept(this);
         node.OuterExpression.Accept(this);
         node.Accept(Visitor);
     }

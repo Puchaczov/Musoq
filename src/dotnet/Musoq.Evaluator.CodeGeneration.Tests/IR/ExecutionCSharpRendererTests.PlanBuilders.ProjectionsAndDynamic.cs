@@ -20,18 +20,15 @@ public sealed partial class ExecutionCSharpRendererTests
             null,
             typeof(string),
             null,
-            target);
+            target
+        );
     }
 
     private static ExecutionMethodCall CreateMathAbsCall()
     {
         var method = typeof(Math).GetMethod(nameof(Math.Abs), [typeof(int)])!;
 
-        return new ExecutionMethodCall(
-            method,
-            [new ExecutionLiteral(1, typeof(int))],
-            null,
-            typeof(int));
+        return new ExecutionMethodCall(method, [new ExecutionLiteral(1, typeof(int))], null, typeof(int));
     }
 
     private static ExecutionMethodCall CreateToFloatCall()
@@ -45,7 +42,8 @@ public sealed partial class ExecutionCSharpRendererTests
             null,
             typeof(float?),
             null,
-            target);
+            target
+        );
     }
 
     private static ExecutionMethodCall CreateUnboundToUpperNameCall()
@@ -55,7 +53,8 @@ public sealed partial class ExecutionCSharpRendererTests
             method,
             [new ExecutionFieldRead("p", "Name", typeof(string))],
             null,
-            typeof(string));
+            typeof(string)
+        );
     }
 
     private static ExecutionPlan CreateProjectionPlan(
@@ -63,39 +62,56 @@ public sealed partial class ExecutionCSharpRendererTests
         string outputName,
         Type outputType,
         ExecutionExpression expression,
-        Type? publicOutputType = null)
+        Type? publicOutputType = null
+    )
     {
         return CreateProjectionPlan(queryName, [(outputName, outputType, expression, publicOutputType)]);
     }
 
     private static ExecutionPlan CreateProjectionPlan(
         string queryName,
-        IReadOnlyList<(string Name, Type Type, ExecutionExpression Expression, Type? PublicType)> projections)
+        IReadOnlyList<(string Name, Type Type, ExecutionExpression Expression, Type? PublicType)> projections
+    )
     {
         var sourceShape = new SourceEntityShape(
             "p",
             typeof(Person),
             [
-                new FieldBinding("Name", "p.Name", 0, typeof(string), FieldNullability.Unknown, new ClrPropertyAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "p.Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Name")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
-            projections.Select((projection, index) =>
-                new FieldBinding(projection.Name, projection.Name, index, projection.Type, FieldNullability.Unknown, new GeneratedFieldAccess(projection.Name))
-                {
-                    PublicType = ExecutionClrBindingFactory.FromOptionalClr(projection.PublicType)
-                }).ToArray());
+            projections
+                .Select(
+                    (projection, index) =>
+                        new FieldBinding(
+                            projection.Name,
+                            projection.Name,
+                            index,
+                            projection.Type,
+                            FieldNullability.Unknown,
+                            new GeneratedFieldAccess(projection.Name)
+                        )
+                        {
+                            PublicType = ExecutionClrBindingFactory.FromOptionalClr(projection.PublicType),
+                        }
+                )
+                .ToArray()
+        );
         var source = new ExecutionVariable("p", typeof(Person));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
-        var sourceBinding = new ExecutionSourceBinding(
-            "test",
-            "data",
-            "p:1",
-            0,
-            [],
-            sourceShape.Fields);
+        var sourceBinding = new ExecutionSourceBinding("test", "data", "p:1", 0, [], sourceShape.Fields);
         var resultTable = new ExecutionVariable("result", typeof(object));
-        var targetDeclarations = projections.SelectMany(static projection => ExecutionIrAnalysis.FlattenExpressions(projection.Expression))
+        var targetDeclarations = projections
+            .SelectMany(static projection => ExecutionIrAnalysis.FlattenExpressions(projection.Expression))
             .OfType<ExecutionMethodCall>()
             .Select(static call => call.Target)
             .Where(static target => target != null)
@@ -106,25 +122,31 @@ public sealed partial class ExecutionCSharpRendererTests
         return CreateFinalResultPlan(
             queryName,
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(source, sourceRows, sourceBinding),
                 new ExecutionCreateTable(resultTable, resultShape),
-                ..targetDeclarations,
+                .. targetDeclarations,
                 new ExecutionForEach(
                     source,
                     new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Rows),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,
-                            projections.Select(static projection => new ExecutionRowValue(projection.Name, projection.Expression)).ToArray())
-                    ])),
-                new ExecutionReturnTable(resultTable)
+                            projections
+                                .Select(static projection => new ExecutionRowValue(
+                                    projection.Name,
+                                    projection.Expression
+                                ))
+                                .ToArray()
+                        ),
+                    ])
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateDynamicPlan()
@@ -133,50 +155,67 @@ public sealed partial class ExecutionCSharpRendererTests
             "p",
             typeof(ExpandoObject),
             [
-                new FieldBinding("Id", "p.Id", 0, typeof(int), FieldNullability.Unknown, new ReflectedMemberAccess("Id")),
-                new FieldBinding("Name", "p.Name", 1, typeof(string), FieldNullability.Unknown, new ReflectedMemberAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Id",
+                    "p.Id",
+                    0,
+                    typeof(int),
+                    FieldNullability.Unknown,
+                    new ReflectedMemberAccess("Id")
+                ),
+                new FieldBinding(
+                    "Name",
+                    "p.Name",
+                    1,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new ReflectedMemberAccess("Name")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
                 new FieldBinding("Id", "Id", 0, typeof(int), FieldNullability.Unknown, new GeneratedFieldAccess("Id")),
-                new FieldBinding("Name", "Name", 1, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    1,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var source = new ExecutionVariable("pDynamicSource", typeof(IReadOnlyDictionary<string, object>));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
-        var sourceBinding = new ExecutionSourceBinding(
-            "test",
-            "data",
-            "p:1",
-            0,
-            [],
-            sourceShape.Fields);
+        var sourceBinding = new ExecutionSourceBinding("test", "data", "p:1", 0, [], sourceShape.Fields);
         var resultTable = new ExecutionVariable("result", typeof(object));
 
         return CreateFinalResultPlan(
             "Q_Dynamic",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(source, sourceRows, sourceBinding),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
                     source,
                     new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,
                             [
                                 new ExecutionRowValue("Id", new ExecutionFieldRead("p", "Id", typeof(int))),
-                                new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string)))
-                            ])
-                    ])),
-                new ExecutionReturnTable(resultTable)
+                                new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string))),
+                            ]
+                        ),
+                    ])
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
-
 }

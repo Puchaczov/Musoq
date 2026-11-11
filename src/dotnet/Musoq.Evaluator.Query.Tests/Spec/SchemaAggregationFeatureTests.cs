@@ -25,12 +25,14 @@ public class SchemaAggregationFeatureTests
     [TestMethod]
     public void Binary_CountWithGroupBy_ShouldCountPerGroup()
     {
-        var query = @"
-            binary Record { Category: byte, Value: short le };
-            select d.Category, Count(d.Category) as Cnt from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) d
-            group by d.Category
-            order by d.Category asc";
+        var query = (
+            "\n"
+            + "            binary Record { Category: byte, Value: short le };\n"
+            + "            select d.Category, Count(d.Category) as Cnt from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) d\n"
+            + "            group by d.Category\n"
+            + "            order by d.Category asc"
+        );
 
         var entities = new[]
         {
@@ -38,13 +40,19 @@ public class SchemaAggregationFeatureTests
             new BinaryEntity { Name = "2.bin", Data = [0x02, 0x14, 0x00] },
             new BinaryEntity { Name = "3.bin", Data = [0x01, 0x1E, 0x00] },
             new BinaryEntity { Name = "4.bin", Data = [0x01, 0x28, 0x00] },
-            new BinaryEntity { Name = "5.bin", Data = [0x02, 0x32, 0x00] }
+            new BinaryEntity { Name = "5.bin", Data = [0x02, 0x32, 0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -64,13 +72,15 @@ public class SchemaAggregationFeatureTests
     [TestMethod]
     public void Binary_MinMaxWithGroupBy_ShouldFindExtremes()
     {
-        var query = @"
-            binary Measurement { Sensor: byte, Reading: short le };
-            select m.Sensor, Min(m.Reading) as MinVal, Max(m.Reading) as MaxVal 
-            from #test.bytes() b
-            cross apply Interpret<Measurement>(b.Content) m
-            group by m.Sensor
-            order by m.Sensor asc";
+        var query = (
+            "\n"
+            + "            binary Measurement { Sensor: byte, Reading: short le };\n"
+            + "            select m.Sensor, Min(m.Reading) as MinVal, Max(m.Reading) as MaxVal \n"
+            + "            from #test.bytes() b\n"
+            + "            cross apply Interpret<Measurement>(b.Content) m\n"
+            + "            group by m.Sensor\n"
+            + "            order by m.Sensor asc"
+        );
 
         var entities = new[]
         {
@@ -78,13 +88,19 @@ public class SchemaAggregationFeatureTests
             new BinaryEntity { Name = "2.bin", Data = [0x01, 0x1E, 0x00] },
             new BinaryEntity { Name = "3.bin", Data = [0x01, 0x05, 0x00] },
             new BinaryEntity { Name = "4.bin", Data = [0x02, 0x64, 0x00] },
-            new BinaryEntity { Name = "5.bin", Data = [0x02, 0x32, 0x00] }
+            new BinaryEntity { Name = "5.bin", Data = [0x02, 0x32, 0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -106,25 +122,33 @@ public class SchemaAggregationFeatureTests
     [TestMethod]
     public void Binary_AvgWithGroupBy_ShouldCalculateAverage()
     {
-        var query = @"
-            binary Sample { Group: byte, Score: int le };
-            select s.Group, Avg(s.Score) as AvgScore 
-            from #test.bytes() b
-            cross apply Interpret<Sample>(b.Content) s
-            group by s.Group
-            order by s.Group asc";
+        var query = (
+            "\n"
+            + "            binary Sample { Group: byte, Score: int le };\n"
+            + "            select s.Group, Avg(s.Score) as AvgScore \n"
+            + "            from #test.bytes() b\n"
+            + "            cross apply Interpret<Sample>(b.Content) s\n"
+            + "            group by s.Group\n"
+            + "            order by s.Group asc"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = [0x01, 0x0A, 0x00, 0x00, 0x00] },
             new BinaryEntity { Name = "2.bin", Data = [0x01, 0x14, 0x00, 0x00, 0x00] },
-            new BinaryEntity { Name = "3.bin", Data = [0x02, 0x64, 0x00, 0x00, 0x00] }
+            new BinaryEntity { Name = "3.bin", Data = [0x02, 0x64, 0x00, 0x00, 0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -144,24 +168,32 @@ public class SchemaAggregationFeatureTests
     [TestMethod]
     public void Binary_MultipleAggregates_ShouldComputeAll()
     {
-        var query = @"
-            binary Item { Value: int le };
-            select Count(d.Value) as Cnt, Sum(d.Value) as Total, Min(d.Value) as MinV, Max(d.Value) as MaxV
-            from #test.bytes() b
-            cross apply Interpret<Item>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Item { Value: int le };\n"
+            + "            select Count(d.Value) as Cnt, Sum(d.Value) as Total, Min(d.Value) as MinV, Max(d.Value) as MaxV\n"
+            + "            from #test.bytes() b\n"
+            + "            cross apply Interpret<Item>(b.Content) d"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = "\n\u0000\u0000\u0000"u8.ToArray() },
             new BinaryEntity { Name = "2.bin", Data = "\u0014\u0000\u0000\u0000"u8.ToArray() },
             new BinaryEntity { Name = "3.bin", Data = "\u0005\u0000\u0000\u0000"u8.ToArray() },
-            new BinaryEntity { Name = "4.bin", Data = "\u001E\u0000\u0000\u0000"u8.ToArray() }
+            new BinaryEntity { Name = "4.bin", Data = "\u001E\u0000\u0000\u0000"u8.ToArray() },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -181,14 +213,16 @@ public class SchemaAggregationFeatureTests
     [TestMethod]
     public void Binary_Having_ShouldFilterGroups()
     {
-        var query = @"
-            binary Record { Category: byte, Amount: int le };
-            select d.Category, Sum(d.Amount) as Total
-            from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) d
-            group by d.Category
-            having Sum(d.Amount) > 20
-            order by d.Category asc";
+        var query = (
+            "\n"
+            + "            binary Record { Category: byte, Amount: int le };\n"
+            + "            select d.Category, Sum(d.Amount) as Total\n"
+            + "            from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) d\n"
+            + "            group by d.Category\n"
+            + "            having Sum(d.Amount) > 20\n"
+            + "            order by d.Category asc"
+        );
 
         var entities = new[]
         {
@@ -196,13 +230,19 @@ public class SchemaAggregationFeatureTests
             new BinaryEntity { Name = "2.bin", Data = [0x02, 0x14, 0x00, 0x00, 0x00] },
             new BinaryEntity { Name = "3.bin", Data = [0x01, 0x03, 0x00, 0x00, 0x00] },
             new BinaryEntity { Name = "4.bin", Data = [0x02, 0x0A, 0x00, 0x00, 0x00] },
-            new BinaryEntity { Name = "5.bin", Data = [0x03, 0x02, 0x00, 0x00, 0x00] }
+            new BinaryEntity { Name = "5.bin", Data = [0x03, 0x02, 0x00, 0x00, 0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -220,13 +260,15 @@ public class SchemaAggregationFeatureTests
     [TestMethod]
     public void Text_GroupByWithCount_ShouldCountPerCategory()
     {
-        var query = @"
-            text LogLine { Level: until ' ', Message: rest };
-            select l2.Level, Count(l2.Level) as Cnt
-            from #test.lines() l
-            cross apply Parse<LogLine>(l.Line) l2
-            group by l2.Level
-            order by l2.Level asc";
+        var query = (
+            "\n"
+            + "            text LogLine { Level: until ' ', Message: rest };\n"
+            + "            select l2.Level, Count(l2.Level) as Cnt\n"
+            + "            from #test.lines() l\n"
+            + "            cross apply Parse<LogLine>(l.Line) l2\n"
+            + "            group by l2.Level\n"
+            + "            order by l2.Level asc"
+        );
 
         var entities = new[]
         {
@@ -234,13 +276,19 @@ public class SchemaAggregationFeatureTests
             new TextEntity { Name = "2.txt", Text = "WARN low memory" },
             new TextEntity { Name = "3.txt", Text = "ERROR timeout" },
             new TextEntity { Name = "4.txt", Text = "INFO started" },
-            new TextEntity { Name = "5.txt", Text = "ERROR crash" }
+            new TextEntity { Name = "5.txt", Text = "ERROR crash" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -262,28 +310,32 @@ public class SchemaAggregationFeatureTests
     [TestMethod]
     public void Binary_SchemaArrayAggregation_ShouldAggregateAcrossElements()
     {
-        var query = @"
-            binary Item { Score: byte };
-            binary Container { Count: byte, Items: Item[Count] };
-            select Sum(i.Score) as TotalScore, Count(i.Score) as NumItems
-            from #test.files() b
-            cross apply Interpret<Container>(b.Content) c
-            cross apply c.Items i";
+        var query = (
+            "\n"
+            + "            binary Item { Score: byte };\n"
+            + "            binary Container { Count: byte, Items: Item[Count] };\n"
+            + "            select Sum(i.Score) as TotalScore, Count(i.Score) as NumItems\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<Container>(b.Content) c\n"
+            + "            cross apply c.Items i"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x04, 0x0A, 0x14, 0x1E, 0x28 };
+        var entities = new[]
         {
-            0x04,
-            0x0A,
-            0x14,
-            0x1E,
-            0x28
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -301,31 +353,52 @@ public class SchemaAggregationFeatureTests
     [TestMethod]
     public void Binary_GroupBySchemaArrayElements_ShouldGroupAndAggregate()
     {
-        var query = @"
-            binary Entry { Type: byte, Value: short le };
-            binary DataBlock { Count: byte, Entries: Entry[Count] };
-            select e.Type, Sum(e.Value) as Total, Count(e.Type) as Cnt
-            from #test.files() b
-            cross apply Interpret<DataBlock>(b.Content) d
-            cross apply d.Entries e
-            group by e.Type
-            order by e.Type asc";
+        var query = (
+            "\n"
+            + "            binary Entry { Type: byte, Value: short le };\n"
+            + "            binary DataBlock { Count: byte, Entries: Entry[Count] };\n"
+            + "            select e.Type, Sum(e.Value) as Total, Count(e.Type) as Cnt\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<DataBlock>(b.Content) d\n"
+            + "            cross apply d.Entries e\n"
+            + "            group by e.Type\n"
+            + "            order by e.Type asc"
+        );
 
         var testData = new byte[]
         {
             0x05,
-            0x01, 0x0A, 0x00,
-            0x02, 0x14, 0x00,
-            0x01, 0x1E, 0x00,
-            0x02, 0x28, 0x00,
-            0x01, 0x32, 0x00
+            0x01,
+            0x0A,
+            0x00,
+            0x02,
+            0x14,
+            0x00,
+            0x01,
+            0x1E,
+            0x00,
+            0x02,
+            0x28,
+            0x00,
+            0x01,
+            0x32,
+            0x00,
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);

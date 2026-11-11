@@ -16,108 +16,115 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyDerivedTableWithOrdinality_ShouldResetOrdinalPerLeftRow()
     {
-        const string query = """
-            select a.Key, d.Value, d.Ordinal
-            from #schema.first() a
-            cross apply (
-                select b.Key, b.Value
-                from #schema.second() b
-                where b.Key = a.Key
-            ) d with ordinality
-            order by a.Key, d.Ordinal
-            """;
+        const string query = (
+            "select a.Key, d.Value, d.Ordinal\n"
+            + "from #schema.first() a\n"
+            + "cross apply (\n"
+            + "    select b.Key, b.Value\n"
+            + "    from #schema.second() b\n"
+            + "    where b.Key = a.Key\n"
+            + ") d with ordinality\n"
+            + "order by a.Key, d.Ordinal"
+        );
         var parents = new[]
         {
             new Apply021Parent { Key = "one" },
             new Apply021Parent { Key = "two" },
-            new Apply021Parent { Key = "missing" }
+            new Apply021Parent { Key = "missing" },
         };
         var children = new[]
         {
             new Apply021Child { Key = "one", Value = "first" },
             new Apply021Child { Key = "one", Value = "second" },
-            new Apply021Child { Key = "two", Value = "only" }
+            new Apply021Child { Key = "two", Value = "only" },
         };
 
-        _ = new GenericSchema<GenericLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
-            ["first"] = (new GenericEntityTable<Apply021Parent>(), new GenericChunkSource<Apply021Parent>(
-                parents,
-                GenericEntityTable<Apply021Parent>.NameToIndexMap,
-                GenericEntityTable<Apply021Parent>.IndexToObjectAccessMap)),
-            ["second"] = (new GenericEntityTable<Apply021Child>(), new GenericChunkSource<Apply021Child>(
-                children,
-                GenericEntityTable<Apply021Child>.NameToIndexMap,
-                GenericEntityTable<Apply021Child>.IndexToObjectAccessMap))
-        });
-        var table = CreateAndRunVirtualMachine(query, parents, children)
-            .Run(TestContext.CancellationToken);
+        _ = new GenericSchema<GenericLibrary>(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
+            {
+                ["first"] = (
+                    new GenericEntityTable<Apply021Parent>(),
+                    new GenericChunkSource<Apply021Parent>(
+                        parents,
+                        GenericEntityTable<Apply021Parent>.NameToIndexMap,
+                        GenericEntityTable<Apply021Parent>.IndexToObjectAccessMap
+                    )
+                ),
+                ["second"] = (
+                    new GenericEntityTable<Apply021Child>(),
+                    new GenericChunkSource<Apply021Child>(
+                        children,
+                        GenericEntityTable<Apply021Child>.NameToIndexMap,
+                        GenericEntityTable<Apply021Child>.IndexToObjectAccessMap
+                    )
+                ),
+            }
+        );
+        var table = CreateAndRunVirtualMachine(query, parents, children).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Key", typeof(string)),
             ("Value", typeof(string)),
-            ("Ordinal", typeof(int)));
+            ("Ordinal", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["one", "first", 0],
             ["one", "second", 1],
-            ["two", "only", 0]);
+            ["two", "only", 0]
+        );
     }
 
     [TestMethod]
     public void OuterApplyDerivedTableWithOrdinality_ShouldNullExtendValuesAndOrdinal()
     {
-        const string query = """
-            select a.Key, d.Score, d.Ordinal
-            from #schema.first() a
-            outer apply (
-                select b.Key, b.Score
-                from #schema.second() b
-                where b.Key = a.Key
-            ) d with ordinality
-            """;
+        const string query = (
+            "select a.Key, d.Score, d.Ordinal\n"
+            + "from #schema.first() a\n"
+            + "outer apply (\n"
+            + "    select b.Key, b.Score\n"
+            + "    from #schema.second() b\n"
+            + "    where b.Key = a.Key\n"
+            + ") d with ordinality"
+        );
         var parents = new[]
         {
             new Apply021Parent { Key = "matched" },
-            new Apply021Parent { Key = "empty" }
+            new Apply021Parent { Key = "empty" },
         };
         var children = new[]
         {
-            new Apply021Child { Key = "matched", Score = 17 }
+            new Apply021Child { Key = "matched", Score = 17 },
         };
 
-        var table = CreateAndRunVirtualMachine(query, parents, children)
-            .Run(TestContext.CancellationToken);
+        var table = CreateAndRunVirtualMachine(query, parents, children).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Key", typeof(string)),
             ("Score", typeof(int?)),
-            ("Ordinal", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["matched", 17, 0],
-            ["empty", null, null]);
+            ("Ordinal", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["matched", 17, 0], ["empty", null, null]);
     }
 
     [TestMethod]
     public void ChainedAppliesWithOrdinality_ShouldResetEachDependentSource()
     {
-        const string query = """
-            select a.Key, b.Value, b.Ordinal, c.Value, c.Ordinal
-            from #schema.first() a
-            cross apply a.Split(a.Text, '|') b with ordinality
-            cross apply b.ToCharArray(b.Value) c with ordinality
-            order by b.Ordinal, c.Ordinal
-            """;
+        const string query = (
+            "select a.Key, b.Value, b.Ordinal, c.Value, c.Ordinal\n"
+            + "from #schema.first() a\n"
+            + "cross apply a.Split(a.Text, '|') b with ordinality\n"
+            + "cross apply b.ToCharArray(b.Value) c with ordinality\n"
+            + "order by b.Ordinal, c.Ordinal"
+        );
         var parents = new[]
         {
-            new Apply021Parent { Key = "chain", Text = "a|bc" }
+            new Apply021Parent { Key = "chain", Text = "a|bc" },
         };
 
-        var table = CreateAndRunVirtualMachine(query, parents)
-            .Run(TestContext.CancellationToken);
+        var table = CreateAndRunVirtualMachine(query, parents).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -125,40 +132,34 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
             ("Value", typeof(string)),
             ("Ordinal", typeof(int)),
             ("Value", typeof(char)),
-            ("Ordinal", typeof(int)));
+            ("Ordinal", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["chain", "a", 0, 'a', 0],
             ["chain", "bc", 1, 'b', 0],
-            ["chain", "bc", 1, 'c', 1]);
+            ["chain", "bc", 1, 'c', 1]
+        );
     }
 
     [TestMethod]
     public void IndependentApplies_ShouldProduceCartesianProduct()
     {
-        const string query = """
-            select n.Value, w.Value
-            from #schema.first() a
-            cross apply a.Numbers n
-            cross apply a.Words w
-            order by n.Value, w.Value
-            """;
+        const string query = (
+            "select n.Value, w.Value\n"
+            + "from #schema.first() a\n"
+            + "cross apply a.Numbers n\n"
+            + "cross apply a.Words w\n"
+            + "order by n.Value, w.Value"
+        );
         var parents = new[]
         {
-            new Apply021Parent
-            {
-                Numbers = [1, 2],
-                Words = ["x", "y", "z"]
-            }
+            new Apply021Parent { Numbers = [1, 2], Words = ["x", "y", "z"] },
         };
 
-        var table = CreateAndRunVirtualMachine(query, parents)
-            .Run(TestContext.CancellationToken);
+        var table = CreateAndRunVirtualMachine(query, parents).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Value", typeof(int)),
-            ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [1, "x"],
@@ -166,71 +167,72 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
             [1, "z"],
             [2, "x"],
             [2, "y"],
-            [2, "z"]);
+            [2, "z"]
+        );
     }
 
     [TestMethod]
     public void CrossApplyDerivedSetBranches_ShouldShareCorrelationKey()
     {
-        const string query = """
-            select a.Key, d.Value
-            from #schema.first() a
-            cross apply (
-                select b.Key, b.Value
-                from #schema.second() b
-                where b.Key = a.Key
-                union (Key, Value)
-                select c.Key, c.Value
-                from #schema.third() c
-                where c.Key = a.Key
-            ) d
-            """;
+        const string query = (
+            "select a.Key, d.Value\n"
+            + "from #schema.first() a\n"
+            + "cross apply (\n"
+            + "    select b.Key, b.Value\n"
+            + "    from #schema.second() b\n"
+            + "    where b.Key = a.Key\n"
+            + "    union (Key, Value)\n"
+            + "    select c.Key, c.Value\n"
+            + "    from #schema.third() c\n"
+            + "    where c.Key = a.Key\n"
+            + ") d"
+        );
         var parents = new[]
         {
             new Apply021Parent { Key = "one" },
-            new Apply021Parent { Key = "two" }
+            new Apply021Parent { Key = "two" },
         };
         var children = new[]
         {
-            new Apply021Child { Key = "one", Value = "second-one" }
+            new Apply021Child { Key = "one", Value = "second-one" },
         };
         var alternatives = new[]
         {
             new Apply021Alternative { Key = "one", Value = "third-one" },
-            new Apply021Alternative { Key = "two", Value = "third-two" }
+            new Apply021Alternative { Key = "two", Value = "third-two" },
         };
 
         var table = CreateAndRunVirtualMachine(query, parents, children, alternatives)
             .Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Key", typeof(string)),
-            ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Key", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["one", "second-one"],
             ["one", "third-one"],
-            ["two", "third-two"]);
+            ["two", "third-two"]
+        );
     }
 
     [TestMethod]
     public void CorrelatedDerivedTableMissingVisibleKey_ShouldReportExactDiagnostic()
     {
-        const string query = """
-            select a.Key, d.Value
-            from #schema.first() a
-            cross apply (
-                select b.Value
-                from #schema.second() b
-                where b.Key = a.Key
-            ) d
-            """;
+        const string query = (
+            "select a.Key, d.Value\n"
+            + "from #schema.first() a\n"
+            + "cross apply (\n"
+            + "    select b.Value\n"
+            + "    from #schema.second() b\n"
+            + "    where b.Key = a.Key\n"
+            + ") d"
+        );
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
                 query,
                 [new Apply021Parent { Key = "one" }],
-                [new Apply021Child { Key = "one", Value = "value" }]));
+                [new Apply021Child { Key = "one", Value = "value" }]
+            )
+        );
         var opening = query.IndexOf('(', query.IndexOf("cross apply", StringComparison.OrdinalIgnoreCase));
         var closing = query.IndexOf(") d", opening, StringComparison.Ordinal);
 
@@ -245,8 +247,9 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
             "Core Spec - Subqueries",
             [
                 "Ensure the subquery starts with SELECT and is enclosed in parentheses.",
-                "Use the subquery only in a supported expression or source position."
-            ]);
+                "Use the subquery only in a supported expression or source position.",
+            ]
+        );
 
         Assert.HasCount(0, envelope.Arguments);
     }
@@ -254,25 +257,27 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
     [TestMethod]
     public void CorrelatedDerivedSetBranchesWithDifferentKeys_ShouldReportExactDiagnostic()
     {
-        const string query = """
-            select a.Key, d.Value
-            from #schema.first() a
-            cross apply (
-                select b.Key, b.Value
-                from #schema.second() b
-                where b.Key = a.Key
-                union (Key, Value)
-                select c.OtherKey as Key, c.Value
-                from #schema.third() c
-                where c.OtherKey = a.Key
-            ) d
-            """;
+        const string query = (
+            "select a.Key, d.Value\n"
+            + "from #schema.first() a\n"
+            + "cross apply (\n"
+            + "    select b.Key, b.Value\n"
+            + "    from #schema.second() b\n"
+            + "    where b.Key = a.Key\n"
+            + "    union (Key, Value)\n"
+            + "    select c.OtherKey as Key, c.Value\n"
+            + "    from #schema.third() c\n"
+            + "    where c.OtherKey = a.Key\n"
+            + ") d"
+        );
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
                 query,
                 [new Apply021Parent { Key = "one" }],
                 [new Apply021Child { Key = "one", Value = "value" }],
-                [new Apply021Alternative { OtherKey = "one", Value = "other" }]));
+                [new Apply021Alternative { OtherKey = "one", Value = "other" }]
+            )
+        );
         var opening = query.IndexOf('(', query.IndexOf("cross apply", StringComparison.OrdinalIgnoreCase));
         var closing = query.IndexOf(") d", opening, StringComparison.Ordinal);
 
@@ -287,8 +292,9 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
             "Core Spec - Subqueries",
             [
                 "Ensure the subquery starts with SELECT and is enclosed in parentheses.",
-                "Use the subquery only in a supported expression or source position."
-            ]);
+                "Use the subquery only in a supported expression or source position.",
+            ]
+        );
 
         Assert.HasCount(0, envelope.Arguments);
     }
@@ -298,7 +304,8 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
     {
         const string query = "select 1 from #schema.first() a cross apply a.Values with ordinality";
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, [new Apply021Parent()]));
+            CreateAndRunVirtualMachine(query, [new Apply021Parent()])
+        );
         var source = "a.Values";
         var expectedOffset = query.IndexOf(source, StringComparison.Ordinal) + source.Length;
 
@@ -313,8 +320,9 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
             "Core Spec - Aliasing",
             [
                 "Add an alias immediately after the source, for example: FROM #schema.items() items.",
-                "Use AS for clarity, or bracket an alias that is also a SQL keyword."
-            ]);
+                "Use AS for clarity, or bracket an alias that is also a SQL keyword.",
+            ]
+        );
 
         Assert.HasCount(5, envelope.Arguments);
         Assert.AreEqual("required-source-alias", envelope.Arguments["aliasKind"]);
@@ -327,16 +335,18 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
     [TestMethod]
     public void MissingDerivedApplyAliasBeforeOrdinality_ShouldReportExactRequiredAliasContract()
     {
-        const string query = """
-            select 1
-            from #schema.first() a
-            cross apply (select b.Value from #schema.second() b) with ordinality
-            """;
+        const string query = (
+            "select 1\n"
+            + "from #schema.first() a\n"
+            + "cross apply (select b.Value from #schema.second() b) with ordinality"
+        );
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
                 query,
                 [new Apply021Parent { Key = "one" }],
-                [new Apply021Child { Value = "value" }]));
+                [new Apply021Child { Value = "value" }]
+            )
+        );
         var closing = query.LastIndexOf(')');
 
         var envelope = AssertExactEnvelope(
@@ -350,8 +360,9 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
             "Core Spec - Aliasing",
             [
                 "Add an alias immediately after the source, for example: FROM #schema.items() items.",
-                "Use AS for clarity, or bracket an alias that is also a SQL keyword."
-            ]);
+                "Use AS for clarity, or bracket an alias that is also a SQL keyword.",
+            ]
+        );
 
         Assert.HasCount(3, envelope.Arguments);
         Assert.AreEqual("required-source-alias", envelope.Arguments["aliasKind"]);
@@ -364,7 +375,8 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
     {
         const string query = "select 1 from #schema.first() a cross apply a.Values b with numbering";
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, [new Apply021Parent()]));
+            CreateAndRunVirtualMachine(query, [new Apply021Parent()])
+        );
         var expectedOffset = query.IndexOf("with", StringComparison.OrdinalIgnoreCase);
 
         var envelope = AssertExactEnvelope(
@@ -378,8 +390,9 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
             "Core Spec - Statement Structure",
             [
                 "Insert the missing keyword or delimiter near the highlighted location.",
-                "Check for a missing FROM clause, comma, or closing parenthesis."
-            ]);
+                "Check for a missing FROM clause, comma, or closing parenthesis.",
+            ]
+        );
 
         Assert.HasCount(0, envelope.Arguments);
     }
@@ -389,10 +402,11 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
     {
         const string query = "select item.Value from #schema.first() a cross apply a.OrdinalItems item with ordinality";
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, [new Apply021Parent
-            {
-                OrdinalItems = [new Apply021OrdinalItem { Value = "existing", Ordinal = 9 }]
-            }]));
+            CreateAndRunVirtualMachine(
+                query,
+                [new Apply021Parent { OrdinalItems = [new Apply021OrdinalItem { Value = "existing", Ordinal = 9 }] }]
+            )
+        );
 
         var envelope = AssertExactEnvelope(
             exception,
@@ -405,9 +419,10 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
             "Core Spec - Statement Structure",
             [
                 "Rewrite the clause using Musoq SQL syntax.",
-                "If this came from another SQL dialect, check the Musoq equivalent keywords."
+                "If this came from another SQL dialect, check the Musoq equivalent keywords.",
             ],
-            requireSnippet: true);
+            requireSnippet: true
+        );
 
         Assert.HasCount(0, envelope.Arguments);
     }
@@ -422,10 +437,14 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
         string expectedExplanation,
         string expectedDocsReference,
         string[] expectedFixes,
-        bool requireSnippet = true)
+        bool requireSnippet = true
+    )
     {
-        Assert.HasCount(1, exception.Envelopes,
-            $"Expected one diagnostic but got: {string.Join(" | ", exception.Envelopes.Select(item => item.Code))}");
+        Assert.HasCount(
+            1,
+            exception.Envelopes,
+            $"Expected one diagnostic but got: {string.Join(" | ", exception.Envelopes.Select(item => item.Code))}"
+        );
 
         var envelope = exception.PrimaryEnvelope;
         Assert.AreEqual(expectedCode, envelope.Code);
@@ -444,11 +463,12 @@ public sealed class Core021ApplyAdvancedTests : GenericEntityTestBase
         Assert.AreEqual(expectedDocsReference, envelope.DocsReference);
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
-        CollectionAssert.AreEqual(
-            expectedFixes,
-            envelope.Actions.Select(static action => action.Title).ToArray());
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        CollectionAssert.AreEqual(expectedFixes, envelope.Actions.Select(static action => action.Title).ToArray());
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
 
         return envelope;
     }

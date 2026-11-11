@@ -37,7 +37,10 @@ public abstract class IrExpressionRewriter : ExpressionArrayRewriter
         if (ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right))
             return node;
 
-        return new BinaryOp(node.Kind, left, right, node.ReturnType) { UsesSqlNullSemantics = node.UsesSqlNullSemantics };
+        return new BinaryOp(node.Kind, left, right, node.ReturnType)
+        {
+            UsesSqlNullSemantics = node.UsesSqlNullSemantics,
+        };
     }
 
     protected override IrExpression VisitUnaryOp(UnaryOp node)
@@ -74,7 +77,11 @@ public abstract class IrExpressionRewriter : ExpressionArrayRewriter
         if (ReferenceEquals(expression, node.Expression) && !valuesChanged)
             return node;
 
-        return node with { Expression = expression, Values = values };
+        return node with
+        {
+            Expression = expression,
+            Values = values,
+        };
     }
 
     protected override IrExpression VisitPatternMatch(PatternMatch node)
@@ -94,9 +101,11 @@ public abstract class IrExpressionRewriter : ExpressionArrayRewriter
         var low = Visit(node.Low);
         var high = Visit(node.High);
 
-        if (ReferenceEquals(expression, node.Expression) &&
-            ReferenceEquals(low, node.Low) &&
-            ReferenceEquals(high, node.High))
+        if (
+            ReferenceEquals(expression, node.Expression)
+            && ReferenceEquals(low, node.Low)
+            && ReferenceEquals(high, node.High)
+        )
             return node;
 
         return new Between(expression, low, high, node.ReturnType);
@@ -134,5 +143,4 @@ public abstract class IrExpressionRewriter : ExpressionArrayRewriter
     {
         return node;
     }
-
 }

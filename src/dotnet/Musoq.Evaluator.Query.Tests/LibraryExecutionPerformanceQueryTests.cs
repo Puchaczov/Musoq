@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionPerformanceQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -15,13 +14,24 @@ public sealed partial class LibraryExecutionPerformanceQueryTests : GenericEntit
     [TestMethod]
     public void GroupedNumericExecution_ShouldConsumeExpectedTypedResultsAndEmitNoBoxes()
     {
-        const string sql = "select Partition, Sum(Amount) as Total, Avg(Integral) as Average, " +
-            "Count(Amount) as Present from #schema.first() group by Partition order by Partition";
-        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver, TestCompilationOptions);
+        const string sql =
+            "select Partition, Sum(Amount) as Total, Avg(Integral) as Average, "
+            + "Count(Amount) as Present from #schema.first() group by Partition order by Partition";
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = query.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(table, ("Partition", typeof(string)),
-            ("Total", typeof(decimal?)), ("Average", typeof(decimal?)), ("Present", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Partition", typeof(string)),
+            ("Total", typeof(decimal?)),
+            ("Average", typeof(decimal?)),
+            ("Present", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A", 4m, 1.5m, 2L], ["B", 2m, 1m, 2L]);
         AssertNoExecutionBoxes(query);
     }
@@ -29,13 +39,23 @@ public sealed partial class LibraryExecutionPerformanceQueryTests : GenericEntit
     [TestMethod]
     public void CustomKernelExecution_ShouldConsumeExpectedResultsAndEmitNoBoxes()
     {
-        const string sql = "select Partition, PositiveTotal(Amount) as Positive, ScaledTotal(Amount, 2) as Scaled " +
-            "from #schema.first() group by Partition order by Partition";
-        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver, TestCompilationOptions);
+        const string sql =
+            "select Partition, PositiveTotal(Amount) as Positive, ScaledTotal(Amount, 2) as Scaled "
+            + "from #schema.first() group by Partition order by Partition";
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = query.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(table, ("Partition", typeof(string)),
-            ("Positive", typeof(decimal?)), ("Scaled", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Partition", typeof(string)),
+            ("Positive", typeof(decimal?)),
+            ("Scaled", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A", 4m, 8m], ["B", 5m, 4m]);
         AssertNoExecutionBoxes(query);
     }

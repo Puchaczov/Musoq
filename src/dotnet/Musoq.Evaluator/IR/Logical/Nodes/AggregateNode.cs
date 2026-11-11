@@ -9,12 +9,17 @@ public sealed record AggregateNode(
     string[] GroupKeyNames,
     Type[] GroupKeyTypes,
     AggregateBinding[] Bindings,
-    LogicalNode Input) : LogicalNode(OutputSchemaFactory.ForGroupedAggregate(
-        GroupKeyNames,
-        GroupKeyTypes,
-        GroupKeys,
-        Bindings,
-        AggregateOutputName.ColumnName))
+    LogicalNode Input
+)
+    : LogicalNode(
+        OutputSchemaFactory.ForGroupedAggregate(
+            GroupKeyNames,
+            GroupKeyTypes,
+            GroupKeys,
+            Bindings,
+            AggregateOutputName.ColumnName
+        )
+    )
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = [Input];
 }

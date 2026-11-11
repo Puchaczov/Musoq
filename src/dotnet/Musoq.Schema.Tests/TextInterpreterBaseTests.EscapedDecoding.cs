@@ -20,7 +20,12 @@ public partial class TextInterpreterBaseTests
     [DataRow("'a''''b'tail", "'", "'", "'", "a''b")]
     [DataRow("\"a\\\"b\"tail", "\"", "\"", null, "a\"b")]
     public void ReadBetween_EscapedContentDecodesOnceAndPreservesCursor(
-        string input, string open, string close, string? escape, string expected)
+        string input,
+        string open,
+        string close,
+        string? escape,
+        string expected
+    )
     {
         var interpreter = new TestTextInterpreter();
         var result = interpreter.TestReadBetween(input.AsSpan(), open, close, escaped: true, escapeCharacter: escape);
@@ -44,11 +49,23 @@ public partial class TextInterpreterBaseTests
     [DataRow(@"<a\>", "<", ">", null)]
     [DataRow("'it''", "'", "'", "'")]
     public void ReadBetween_EscapedClosingDelimiterWithoutTerminatorReportsFieldError(
-        string input, string open, string close, string? escape)
+        string input,
+        string open,
+        string close,
+        string? escape
+    )
     {
         var interpreter = new TestTextInterpreter();
-        var exception = Assert.ThrowsExactly<ParseException>(() => interpreter.TestReadBetween(input.AsSpan(),
-            open, close, escaped: true, escapeCharacter: escape, fieldName: "Value"));
+        var exception = Assert.ThrowsExactly<ParseException>(() =>
+            interpreter.TestReadBetween(
+                input.AsSpan(),
+                open,
+                close,
+                escaped: true,
+                escapeCharacter: escape,
+                fieldName: "Value"
+            )
+        );
 
         Assert.AreEqual(ParseErrorCode.DelimiterNotFound, exception.ErrorCode);
         Assert.AreEqual("Value", exception.FieldName);

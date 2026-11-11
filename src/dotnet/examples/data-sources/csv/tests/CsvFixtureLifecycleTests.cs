@@ -13,7 +13,8 @@ public sealed class CsvFixtureLifecycleTests : CsvExampleTestBase
 
         Assert.AreEqual(
             Path.Combine(RepositoryPaths.FindRoot(), ".artifacts", "csv-tests"),
-            Directory.GetParent(ownerDirectory)!.FullName);
+            Directory.GetParent(ownerDirectory)!.FullName
+        );
     }
 
     [TestMethod]

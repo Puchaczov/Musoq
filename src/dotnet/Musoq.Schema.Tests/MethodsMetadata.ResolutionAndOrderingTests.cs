@@ -27,10 +27,7 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_GenericT_ShouldResolveCorrectly()
     {
-        var types = new[]
-        {
-            typeof(string)
-        };
+        var types = new[] { typeof(string) };
 
         var success = _genericResolution.TryGetMethod("GenericMethod1", types, null, out var method);
 
@@ -43,10 +40,7 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_GenericTArray_ShouldResolveCorrectly()
     {
-        var types = new[]
-        {
-            typeof(string[])
-        };
+        var types = new[] { typeof(string[]) };
 
         var success = _genericResolution.TryGetMethod("GenericMethod2", types, null, out var method);
 
@@ -59,10 +53,7 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_GenericEnumerableT_ShouldResolveCorrectly()
     {
-        var types = new[]
-        {
-            typeof(IEnumerable<string>)
-        };
+        var types = new[] { typeof(IEnumerable<string>) };
 
         var success = _genericResolution.TryGetMethod("GenericMethod3", types, null, out var method);
 
@@ -79,60 +70,91 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_Bool_Compatibility()
     {
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("BoolMethod", [typeof(bool)], null, out _),
-            "bool -> bool should work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("ShortMethod", [typeof(bool)], null, out _),
-            "bool -> short should not work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("IntMethod", [typeof(bool)], null, out _),
-            "bool -> int should not work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("LongMethod", [typeof(bool)], null, out _),
-            "bool -> long should not work");
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("BoolMethod", [typeof(bool)], null, out _),
+            "bool -> bool should work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("ShortMethod", [typeof(bool)], null, out _),
+            "bool -> short should not work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("IntMethod", [typeof(bool)], null, out _),
+            "bool -> int should not work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("LongMethod", [typeof(bool)], null, out _),
+            "bool -> long should not work"
+        );
     }
 
     [TestMethod]
     public void TryGetMethod_Short_Compatibility()
     {
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("ShortMethod", [typeof(short)], null, out _),
-            "short -> short should work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("BoolMethod", [typeof(short)], null, out _),
-            "short -> bool should not work");
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("IntMethod", [typeof(short)], null, out _),
-            "short -> int should work");
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("LongMethod", [typeof(short)], null, out _),
-            "short -> long should work");
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("ShortMethod", [typeof(short)], null, out _),
+            "short -> short should work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("BoolMethod", [typeof(short)], null, out _),
+            "short -> bool should not work"
+        );
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("IntMethod", [typeof(short)], null, out _),
+            "short -> int should work"
+        );
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("LongMethod", [typeof(short)], null, out _),
+            "short -> long should work"
+        );
     }
 
     [TestMethod]
     public void TryGetMethod_Int_Compatibility()
     {
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("IntMethod", [typeof(int)], null, out _),
-            "int -> int should work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("ShortMethod", [typeof(int)], null, out _),
-            "int -> short should not work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("BoolMethod", [typeof(int)], null, out _),
-            "int -> bool should not work");
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("LongMethod", [typeof(int)], null, out _),
-            "int -> long should work");
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("IntMethod", [typeof(int)], null, out _),
+            "int -> int should work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("ShortMethod", [typeof(int)], null, out _),
+            "int -> short should not work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("BoolMethod", [typeof(int)], null, out _),
+            "int -> bool should not work"
+        );
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("LongMethod", [typeof(int)], null, out _),
+            "int -> long should work"
+        );
     }
 
     [TestMethod]
     public void TryGetMethod_Long_Compatibility()
     {
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("LongMethod", [typeof(long)], null, out _),
-            "long -> long should work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("IntMethod", [typeof(long)], null, out _),
-            "long -> int should not work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("ShortMethod", [typeof(long)], null, out _),
-            "long -> short should not work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("BoolMethod", [typeof(long)], null, out _),
-            "long -> bool should not work");
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("LongMethod", [typeof(long)], null, out _),
+            "long -> long should work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("IntMethod", [typeof(long)], null, out _),
+            "long -> int should not work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("ShortMethod", [typeof(long)], null, out _),
+            "long -> short should not work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("BoolMethod", [typeof(long)], null, out _),
+            "long -> bool should not work"
+        );
     }
 
     [TestMethod]
     public void TryGetMethod_DateTimeTypes_Compatibility()
     {
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("DateTimeOffsetMethod", [typeof(DateTimeOffset)], null,
-            out _));
+        Assert.IsTrue(_typeCompatibility.TryGetMethod("DateTimeOffsetMethod", [typeof(DateTimeOffset)], null, out _));
         Assert.IsFalse(_typeCompatibility.TryGetMethod("DateTimeOffsetMethod", [typeof(DateTime)], null, out _));
 
         Assert.IsTrue(_typeCompatibility.TryGetMethod("DateTimeMethod", [typeof(DateTime)], null, out _));
@@ -145,24 +167,36 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_StringAndDecimal_StrictTypeMatching()
     {
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("StringMethod", [typeof(string)], null, out _),
-            "string -> string should work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("StringMethod", [typeof(object)], null, out _),
-            "object -> string should not work");
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("StringMethod", [typeof(string)], null, out _),
+            "string -> string should work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("StringMethod", [typeof(object)], null, out _),
+            "object -> string should not work"
+        );
 
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("DecimalMethod", [typeof(decimal)], null, out _),
-            "decimal -> decimal should work");
-        Assert.IsFalse(_typeCompatibility.TryGetMethod("DecimalMethod", [typeof(double)], null, out _),
-            "double -> decimal should not work");
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("DecimalMethod", [typeof(decimal)], null, out _),
+            "decimal -> decimal should work"
+        );
+        Assert.IsFalse(
+            _typeCompatibility.TryGetMethod("DecimalMethod", [typeof(double)], null, out _),
+            "double -> decimal should not work"
+        );
     }
 
     [TestMethod]
     public void TryGetMethod_InheritanceBasedCompatibility()
     {
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("BaseClassMethod", [typeof(Animal)], null, out _),
-            "Animal -> Animal should work");
-        Assert.IsTrue(_typeCompatibility.TryGetMethod("BaseClassMethod", [typeof(Dog)], null, out _),
-            "Dog -> Animal should work");
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("BaseClassMethod", [typeof(Animal)], null, out _),
+            "Animal -> Animal should work"
+        );
+        Assert.IsTrue(
+            _typeCompatibility.TryGetMethod("BaseClassMethod", [typeof(Dog)], null, out _),
+            "Dog -> Animal should work"
+        );
     }
 
     #endregion
@@ -205,8 +239,7 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_MixedParams_MostSpecificMatch()
     {
-        var result =
-            _ordering.TryGetMethod("MixedParams", [typeof(int), typeof(Specific)], null, out var method);
+        var result = _ordering.TryGetMethod("MixedParams", [typeof(int), typeof(Specific)], null, out var method);
         Assert.IsTrue(result);
         method = RequireResolved(method);
         var parameters = method.GetParameters();
@@ -224,14 +257,12 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_OptionalParams_PreferFewerParameters()
     {
-        var result =
-            _ordering.TryGetMethod("OptionalParams", [typeof(int), typeof(string)], null, out var method);
+        var result = _ordering.TryGetMethod("OptionalParams", [typeof(int), typeof(string)], null, out var method);
         Assert.IsTrue(result);
         method = RequireResolved(method);
         Assert.HasCount(2, method.GetParameters());
 
-        result = _ordering.TryGetMethod("OptionalParams", [typeof(int), typeof(string), typeof(int)], null,
-            out method);
+        result = _ordering.TryGetMethod("OptionalParams", [typeof(int), typeof(string), typeof(int)], null, out method);
         Assert.IsTrue(result);
         method = RequireResolved(method);
         Assert.HasCount(3, method.GetParameters());
@@ -254,8 +285,7 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_AmbiguousCall_ShouldResolveCorrectly()
     {
-        var result =
-            _ordering.TryGetMethod("MixedParams", [typeof(int), typeof(MoreSpecific)], null, out var method);
+        var result = _ordering.TryGetMethod("MixedParams", [typeof(int), typeof(MoreSpecific)], null, out var method);
         Assert.IsTrue(result);
         method = RequireResolved(method);
         var parameters = method.GetParameters();
@@ -271,61 +301,35 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class GenericResolutionMethods
     {
-        public void GenericMethod1<T>(T obj)
-        {
-        }
+        public void GenericMethod1<T>(T obj) { }
 
-        public void GenericMethod2<T>(T[] objs)
-        {
-        }
+        public void GenericMethod2<T>(T[] objs) { }
 
-        public void GenericMethod3<T>(IEnumerable<T> objs)
-        {
-        }
+        public void GenericMethod3<T>(IEnumerable<T> objs) { }
     }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class TypeCompatibilityMethods
     {
-        public void BoolMethod(bool x)
-        {
-        }
+        public void BoolMethod(bool x) { }
 
-        public void ShortMethod(short x)
-        {
-        }
+        public void ShortMethod(short x) { }
 
-        public void IntMethod(int x)
-        {
-        }
+        public void IntMethod(int x) { }
 
-        public void LongMethod(long x)
-        {
-        }
+        public void LongMethod(long x) { }
 
-        public void DateTimeOffsetMethod(DateTimeOffset date)
-        {
-        }
+        public void DateTimeOffsetMethod(DateTimeOffset date) { }
 
-        public void DateTimeMethod(DateTime date)
-        {
-        }
+        public void DateTimeMethod(DateTime date) { }
 
-        public void TimeSpanMethod(TimeSpan span)
-        {
-        }
+        public void TimeSpanMethod(TimeSpan span) { }
 
-        public void StringMethod(string text)
-        {
-        }
+        public void StringMethod(string text) { }
 
-        public void DecimalMethod(decimal value)
-        {
-        }
+        public void DecimalMethod(decimal value) { }
 
-        public void BaseClassMethod(Animal animal)
-        {
-        }
+        public void BaseClassMethod(Animal animal) { }
     }
 
     private class Animal;
@@ -345,17 +349,11 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class OrderingMethods
     {
-        public void NumericMethod(int x)
-        {
-        }
+        public void NumericMethod(int x) { }
 
-        public void NumericMethod(long x)
-        {
-        }
+        public void NumericMethod(long x) { }
 
-        public void NumericMethod(short x)
-        {
-        }
+        public void NumericMethod(short x) { }
 
         public string InheritanceMethod([InjectSpecificSource(typeof(IBase))] IBase x)
         {
@@ -377,17 +375,11 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
             return "Specific";
         }
 
-        public void GenericMethod<T>(T value)
-        {
-        }
+        public void GenericMethod<T>(T value) { }
 
-        public void GenericMethod(int value)
-        {
-        }
+        public void GenericMethod(int value) { }
 
-        public void GenericMethod(string value)
-        {
-        }
+        public void GenericMethod(string value) { }
 
         public string MixedParams(int x, Base b)
         {
@@ -421,9 +413,7 @@ public class MethodsMetadataResolutionAndOrderingTests : MethodsMetadataTestBase
             return 0;
         }
 
-        public void ContextMethod(int value)
-        {
-        }
+        public void ContextMethod(int value) { }
     }
 
     #endregion

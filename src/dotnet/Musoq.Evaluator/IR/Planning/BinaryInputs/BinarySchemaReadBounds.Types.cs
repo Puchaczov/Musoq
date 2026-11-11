@@ -14,12 +14,18 @@ internal sealed partial class BinarySchemaReadBounds
             BitsTypeNode bits => bits.BitCount,
             AlignmentNode alignment => alignment.AlignmentBits - 1L,
             ByteArrayTypeNode bytes => SizedBits(Maximum(bytes.SizeExpression, values), 1),
-            StringTypeNode text when text.AsTextSchemaName is null => SizedBits(Maximum(text.SizeExpression, values), 1),
-            SchemaReferenceTypeNode { IsGenericInstantiation: false } reference => SizedBits(SchemaBytes(reference.SchemaName), 1),
+            StringTypeNode text when text.AsTextSchemaName is null => SizedBits(
+                Maximum(text.SizeExpression, values),
+                1
+            ),
+            SchemaReferenceTypeNode { IsGenericInstantiation: false } reference => SizedBits(
+                SchemaBytes(reference.SchemaName),
+                1
+            ),
             InlineSchemaTypeNode inline => SizedBits(FieldsBytes(inline.Fields), 1),
             BinarySwitchTypeNode choice => MaximumBranchBits(choice, values),
             ArrayTypeNode array => SizedBits(Maximum(array.SizeExpression, values), ElementBytes(array.ElementType)),
-            _ => null
+            _ => null,
         };
     }
 
@@ -43,8 +49,15 @@ internal sealed partial class BinarySchemaReadBounds
 
     private static long? SizedBits(long? count, long? size)
     {
-        if (count is null || size is null || count < 0 || size < 0 || count > int.MaxValue ||
-            size > int.MaxValue || count > int.MaxValue / Math.Max(1, size.Value))
+        if (
+            count is null
+            || size is null
+            || count < 0
+            || size < 0
+            || count > int.MaxValue
+            || size > int.MaxValue
+            || count > int.MaxValue / Math.Max(1, size.Value)
+        )
             return null;
         return count * size * 8;
     }

@@ -39,11 +39,15 @@ public sealed class LikeQueryConformanceTests : BasicEntityTestBase
 
         AddMissingValues(cases.Select(testCase => testCase.Shape), missing);
         AddMissingValues(
-            cases.Select(testCase => testCase.Source)
-                .Concat(LikeQueryConformanceCatalog.ContextCoverage
-                    .Where(item => item.PatternSource.HasValue)
-                    .Select(item => item.PatternSource!.Value)),
-            missing);
+            cases
+                .Select(testCase => testCase.Source)
+                .Concat(
+                    LikeQueryConformanceCatalog
+                        .ContextCoverage.Where(item => item.PatternSource.HasValue)
+                        .Select(item => item.PatternSource!.Value)
+                ),
+            missing
+        );
         AddMissingValues(cases.Select(testCase => testCase.Domain), missing);
         AddMissingValues(cases.Select(testCase => testCase.Polarity), missing);
         AddMissingValues(cases.Select(testCase => testCase.NullCase), missing);
@@ -67,7 +71,12 @@ public sealed class LikeQueryConformanceTests : BasicEntityTestBase
             if (testCase.Parameters is not null)
             {
                 foreach (var parameter in testCase.Parameters)
-                    global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, parameter.Key, parameter.Value);
+                    global::Musoq.Tests.Common.NativeParameterFixture.Set(
+                        query.TypedParameters,
+                        query.ParameterDefinitions,
+                        parameter.Key,
+                        parameter.Value
+                    );
             }
 
             AssertSnapshot(testCase, culture, query.Run(TestContext.CancellationToken));
@@ -103,14 +112,21 @@ public sealed class LikeQueryConformanceTests : BasicEntityTestBase
         return value switch
         {
             null => "<null>",
-            string text => string.Concat("string:", text.Replace("\\", "\\\\", StringComparison.Ordinal)
-                .Replace("\r", "\\r", StringComparison.Ordinal)
-                .Replace("\n", "\\n", StringComparison.Ordinal)),
-            _ => string.Concat(value.GetType().FullName, ":", Convert.ToString(value, CultureInfo.InvariantCulture))
+            string text => string.Concat(
+                "string:",
+                text.Replace("\\", "\\\\", StringComparison.Ordinal)
+                    .Replace("\r", "\\r", StringComparison.Ordinal)
+                    .Replace("\n", "\\n", StringComparison.Ordinal)
+            ),
+            _ => string.Concat(value.GetType().FullName, ":", Convert.ToString(value, CultureInfo.InvariantCulture)),
         };
     }
 
-    private static void AddMissingValues<T>(IEnumerable<T> values, ICollection<string> missing, params T[] deferredValues)
+    private static void AddMissingValues<T>(
+        IEnumerable<T> values,
+        ICollection<string> missing,
+        params T[] deferredValues
+    )
         where T : struct, Enum
     {
         var present = values.ToHashSet();

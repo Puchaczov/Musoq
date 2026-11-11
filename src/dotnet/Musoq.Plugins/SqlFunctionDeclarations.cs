@@ -1,5 +1,5 @@
-using System.Collections.Immutable;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Musoq.Plugins.Attributes;
@@ -28,21 +28,29 @@ public static class SqlFunctionDeclarations
         if (window is not null)
             declarations.Add(CreateWindow(method, window));
 
-        var scalar = method.GetCustomAttributes<BindableMethodAttribute>()
-            .FirstOrDefault(static attribute => attribute is not AggregateFunctionAttribute and not WindowFunctionAttribute);
+        var scalar = method
+            .GetCustomAttributes<BindableMethodAttribute>()
+            .FirstOrDefault(static attribute =>
+                attribute is not AggregateFunctionAttribute and not WindowFunctionAttribute
+            );
         if (scalar is not null)
             declarations.Add(CreateScalar(method, scalar));
 
         return declarations.ToImmutable();
     }
 
-    private static SqlFunctionDescriptor CreateAggregate(MethodInfo method, AggregateFunctionAttribute attribute)
-        => CreateScalar(method, attribute) with
+    private static SqlFunctionDescriptor CreateAggregate(MethodInfo method, AggregateFunctionAttribute attribute) =>
+        CreateScalar(method, attribute) with
         {
-            Name = DeclaredName(method, attribute.Name), Kind = SqlFunctionKind.Aggregate,
+            Name = DeclaredName(method, attribute.Name),
+            Kind = SqlFunctionKind.Aggregate,
             KernelType = attribute.KernelType,
             EmptyResultBehavior = attribute.EmptyResultBehavior,
-            ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(method, SqlFunctionKind.Aggregate, attribute)
+            ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(
+                method,
+                SqlFunctionKind.Aggregate,
+                attribute
+            ),
         };
 
     private static SqlFunctionDescriptor CreateWindow(MethodInfo method, WindowFunctionAttribute attribute)
@@ -50,36 +58,59 @@ public static class SqlFunctionDeclarations
         if (attribute.KernelType is not null)
             return CreateScalar(method, attribute) with
             {
-                Name = DeclaredName(method, attribute.Name), Kind = SqlFunctionKind.Window,
-                Parameters = ReadParameters(method).Where(static parameter => !parameter.IsAggregateParent).ToImmutableArray(),
+                Name = DeclaredName(method, attribute.Name),
+                Kind = SqlFunctionKind.Window,
+                Parameters = ReadParameters(method)
+                    .Where(static parameter => !parameter.IsAggregateParent)
+                    .ToImmutableArray(),
                 KernelType = attribute.KernelType,
-                WindowModes = attribute.Modes, RankingKind = attribute.RankingKind,
-                WindowContextType = attribute.ContextType, RequiresWindowOrdering = attribute.RequiresOrderBy,
+                WindowModes = attribute.Modes,
+                RankingKind = attribute.RankingKind,
+                WindowContextType = attribute.ContextType,
+                RequiresWindowOrdering = attribute.RequiresOrderBy,
                 WindowBatchKernelType = attribute.BatchKernelType,
                 RequiresWindowPeerMetadata = attribute.RequiresPeerMetadata,
                 EmptyResultBehavior = attribute.EmptyResultBehavior,
-                ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(method, SqlFunctionKind.Window, attribute)
+                ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(
+                    method,
+                    SqlFunctionKind.Window,
+                    attribute
+                ),
             };
 
-        throw new InvalidOperationException($"Window declaration {method.DeclaringType?.FullName}.{method.Name} must register a concrete typed kernel; legacy factories are unsupported.");
+        throw new InvalidOperationException(
+            $"Window declaration {method.DeclaringType?.FullName}.{method.Name} must register a concrete typed kernel; legacy factories are unsupported."
+        );
     }
 
-    private static SqlFunctionDescriptor CreateScalar(MethodInfo method, BindableMethodAttribute attribute)
-        => new()
+    private static SqlFunctionDescriptor CreateScalar(MethodInfo method, BindableMethodAttribute attribute) =>
+        new()
         {
-            Name = method.Name, Kind = SqlFunctionKind.Scalar, Declaration = method,
-            Parameters = ReadParameters(method), ResultType = method.ReturnType, Visibility = attribute.Visibility,
-            ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(method, SqlFunctionKind.Scalar, attribute)
+            Name = method.Name,
+            Kind = SqlFunctionKind.Scalar,
+            Declaration = method,
+            Parameters = ReadParameters(method),
+            ResultType = method.ReturnType,
+            Visibility = attribute.Visibility,
+            ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(
+                method,
+                SqlFunctionKind.Scalar,
+                attribute
+            ),
         };
 
-    private static ImmutableArray<SqlFunctionParameter> ReadParameters(MethodInfo method)
-        => method.GetParameters()
+    private static ImmutableArray<SqlFunctionParameter> ReadParameters(MethodInfo method) =>
+        method
+            .GetParameters()
             .Where(static parameter => parameter.GetCustomAttribute<InjectTypeAttribute>() is null)
             .Select(static parameter => new SqlFunctionParameter(
-                parameter.Name ?? "value", parameter.ParameterType, parameter.IsOptional,
-                parameter.GetCustomAttribute<AggregateParentAttribute>() is not null))
+                parameter.Name ?? "value",
+                parameter.ParameterType,
+                parameter.IsOptional,
+                parameter.GetCustomAttribute<AggregateParentAttribute>() is not null
+            ))
             .ToImmutableArray();
 
-    private static string DeclaredName(MethodInfo method, string? name)
-        => string.IsNullOrWhiteSpace(name) ? method.Name : name;
+    private static string DeclaredName(MethodInfo method, string? name) =>
+        string.IsNullOrWhiteSpace(name) ? method.Name : name;
 }

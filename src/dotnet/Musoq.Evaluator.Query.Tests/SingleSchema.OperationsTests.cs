@@ -19,31 +19,33 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         const string query = "select Self.ToString() as Text from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = [new BasicEntity { Name = "Alice" }]
+            ["#A"] = [new BasicEntity { Name = "Alice" }],
         };
         var failure = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, sources));
-        MusoqExceptionAssertions.AssertSingleError(failure,
+            CreateAndRunVirtualMachine(query, sources)
+        );
+        MusoqExceptionAssertions.AssertSingleError(
+            failure,
             Musoq.Parser.Diagnostics.DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod,
-            Musoq.Parser.Diagnostics.DiagnosticPhase.Bind, "Column 'Self'");
+            Musoq.Parser.Diagnostics.DiagnosticPhase.Bind,
+            "Column 'Self'"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(failure);
         Assert.Contains("not a method owner", failure.Message);
-        Assert.Contains("ToString", query.Substring(failure.PrimaryEnvelope.Offset!.Value, failure.PrimaryEnvelope.Length!.Value));
+        Assert.Contains(
+            "ToString",
+            query.Substring(failure.PrimaryEnvelope.Offset!.Value, failure.PrimaryEnvelope.Length!.Value)
+        );
     }
 
     [TestMethod]
     public void NullColumnTest()
     {
-        var query =
-            "select null from #A.Entities()";
+        var query = "select null from #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -59,16 +61,11 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
     [TestMethod]
     public void CaseWhenWithEmptyStringTest()
     {
-        var query =
-            "select (case when 1 = 2 then 'test' else '' end) from #A.Entities()";
+        var query = "select (case when 1 = 2 then 'test' else '' end) from #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -84,16 +81,11 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
     [TestMethod]
     public void CaseWhenWithNullTest()
     {
-        var query =
-            "select (case when 1 = 2 then 'test' else null end) from #A.Entities()";
+        var query = "select (case when 1 = 2 then 'test' else null end) from #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -115,13 +107,14 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 99),
                     new BasicEntity("KATOWICE", "POLAND", 101),
-                    new BasicEntity("BERLIN", "GERMANY", 50)
+                    new BasicEntity("BERLIN", "GERMANY", 50),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -144,10 +137,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
             "select Name from #A.Entities() where IndexOf(Name, 'A') = 0 and IndexOf(Name, 'B') = 1 and IndexOf(Name, 'C') = 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -169,10 +159,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Name = 'ABC' or Name = 'ABCD' or Name = 'A'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -193,10 +180,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
     public void AddOperatorWithStringsTurnsIntoConcatTest()
     {
         var query = "select 'abc' + 'cda' from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("ABCAACBA")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("ABCAACBA")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -217,13 +201,8 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         {
             {
                 "#A",
-                [
-                    new BasicEntity("ABC"),
-                    new BasicEntity("XXX"),
-                    new BasicEntity("CDA"),
-                    new BasicEntity("DDABC")
-                ]
-            }
+                [new BasicEntity("ABC"), new BasicEntity("XXX"), new BasicEntity("CDA"), new BasicEntity("DDABC")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -256,10 +235,10 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
                         City = "CRACOV",
                         Money = 1.23m,
                         Month = "JANUARY",
-                        Population = 250
-                    }
+                        Population = 250,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -289,10 +268,10 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
                         City = "CRACOV",
                         Money = 1.23m,
                         Month = "JANUARY",
-                        Population = 250
-                    }
+                        Population = 250,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -319,13 +298,10 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
             Population = 250,
             Time = DateTime.MaxValue,
             Id = 5,
-            NullableValue = null
+            NullableValue = null,
         };
         var query = "select 1, *, Name as Name2, ToString(Self) as SelfString from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [entity] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [entity] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -368,20 +344,23 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
-        Assert.IsTrue(table.Any(entry =>
-            (int)entry.ReadValues()[0] == Convert.ToInt32(1) &&
-            (string)entry.ReadValues()[1] == "ABBA" &&
-            (string)entry.ReadValues()[2] == "CRACOV" &&
-            (string)entry.ReadValues()[3] == "POLAND" &&
-            (decimal)entry.ReadValues()[4] == 250m &&
-            (decimal)entry.ReadValues()[5] == 1.23m &&
-            (string)entry.ReadValues()[6] == "JANUARY" &&
-            (DateTime)entry.ReadValues()[7] == DateTime.MaxValue &&
-            (int)entry.ReadValues()[8] == 5 &&
-            entry.ReadValues()[9] == null &&
-            (string)entry.ReadValues()[10] == "ABBA" &&
-            (string)entry.ReadValues()[11] == "TEST STRING"
-        ), "Entry should match all specified values");
+        Assert.IsTrue(
+            table.Any(entry =>
+                (int)entry.ReadValues()[0] == Convert.ToInt32(1)
+                && (string)entry.ReadValues()[1] == "ABBA"
+                && (string)entry.ReadValues()[2] == "CRACOV"
+                && (string)entry.ReadValues()[3] == "POLAND"
+                && (decimal)entry.ReadValues()[4] == 250m
+                && (decimal)entry.ReadValues()[5] == 1.23m
+                && (string)entry.ReadValues()[6] == "JANUARY"
+                && (DateTime)entry.ReadValues()[7] == DateTime.MaxValue
+                && (int)entry.ReadValues()[8] == 5
+                && entry.ReadValues()[9] == null
+                && (string)entry.ReadValues()[10] == "ABBA"
+                && (string)entry.ReadValues()[11] == "TEST STRING"
+            ),
+            "Entry should match all specified values"
+        );
     }
 
     [TestMethod]
@@ -390,7 +369,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         var query = @"select Self.Array[2] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -408,10 +387,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
     public void SimpleAccessObjectTest()
     {
         var query = @"select Self.Array from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("001")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -426,10 +402,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
     public void AccessObjectTest()
     {
         var query = @"select Self.Self.Array from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("001")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -446,7 +419,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         var query = @"select Inc(Self.Array[2]) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -466,7 +439,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         var query = @"select Name from #A.Entities() where Name = '001' or Name = '005'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
+            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -484,7 +457,7 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         var query = @"select Name as 'x1' from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -492,13 +465,9 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.ReadValues()[0] == "001"),
-            "First entry should be '001'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "001"), "First entry should be '001'");
 
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.ReadValues()[0] == "002"),
-            "Second entry should be '002'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "002"), "Second entry should be '002'");
     }
 
     [TestMethod]
@@ -510,10 +479,14 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
-                    new BasicEntity("005"), new BasicEntity("006")
+                    new BasicEntity("001"),
+                    new BasicEntity("002"),
+                    new BasicEntity("003"),
+                    new BasicEntity("004"),
+                    new BasicEntity("005"),
+                    new BasicEntity("006"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -526,5 +499,4 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "005"), "Third entry should be '005'");
         Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "006"), "Fourth entry should be '006'");
     }
-
 }

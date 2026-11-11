@@ -38,8 +38,13 @@ public partial class CteDependencyGraphBuilderTests
 
         var outerFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteA", outerFromB, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            outerFromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB], outerQuery);
 
@@ -117,8 +122,13 @@ public partial class CteDependencyGraphBuilderTests
         // cteD references both cteB and cteC via a join
         var cteDFromC = new InMemoryTableFromNode("cteC", "c", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var cteDValue =
-            new JoinInMemoryWithSourceTableFromNode("cteB", cteDFromC, joinCondition, JoinType.Inner, typeof(object));
+        var cteDValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteB",
+            cteDFromC,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteA = new CteInnerExpressionNode(cteAValue, "cteA");
         var cteB = new CteInnerExpressionNode(cteBValue, "cteB");
@@ -177,8 +187,13 @@ public partial class CteDependencyGraphBuilderTests
         // Outer references cteA, cteB, cteC via nested joins
         var joinFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCond1 = new BooleanNode(true);
-        var joinAb =
-            new JoinInMemoryWithSourceTableFromNode("cteA", joinFromB, joinCond1, JoinType.Inner, typeof(object));
+        var joinAb = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            joinFromB,
+            joinCond1,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var joinFromC = new InMemoryTableFromNode("cteC", "c", typeof(object));
         var joinCond2 = new BooleanNode(true);

@@ -21,15 +21,15 @@ internal enum CooperativeCompileTimeStage
     SourceDescription,
     RuntimeSettingsDescription,
     RuntimeSettingsResolution,
-    SourcePlanning
+    SourcePlanning,
 }
 
 internal sealed class CooperativeCompileTimeFixture : IDisposable
 {
-    private readonly TaskCompletionSource<CooperativeCompileTimeStage> _entered =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private readonly TaskCompletionSource<bool> _release =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly TaskCompletionSource<CooperativeCompileTimeStage> _entered = new(
+        TaskCreationOptions.RunContinuationsAsynchronously
+    );
+    private readonly TaskCompletionSource<bool> _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly ConcurrentQueue<CancellationToken> _metadataTokens = [];
     private int _stageWaited;
     private int _disposed;
@@ -113,8 +113,10 @@ internal sealed class CooperativeSchemaProvider(CooperativeSchema schemaDefiniti
     public ISchema GetSchema(string schema)
     {
         GetSchemaCount++;
-        if (!string.Equals(schema, "cooperative", System.StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(schema, "#cooperative", System.StringComparison.OrdinalIgnoreCase))
+        if (
+            !string.Equals(schema, "cooperative", System.StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(schema, "#cooperative", System.StringComparison.OrdinalIgnoreCase)
+        )
         {
             throw new System.NotSupportedException(schema);
         }
@@ -130,10 +132,7 @@ internal sealed class CooperativeRuntimeSettingsResolver(CooperativeCompileTimeF
     {
         fixture.CaptureRuntimeSettingsToken(request.CancellationToken);
         fixture.WaitAt(CooperativeCompileTimeStage.RuntimeSettingsResolution, request.CancellationToken);
-        return new Dictionary<string, string>(System.StringComparer.Ordinal)
-        {
-            ["TOKEN"] = "cooperative"
-        };
+        return new Dictionary<string, string>(System.StringComparer.Ordinal) { ["TOKEN"] = "cooperative" };
     }
 }
 
@@ -156,14 +155,13 @@ internal sealed class CooperativeSchema : SchemaBase
         return base.GetRawConstructors(metadataContext);
     }
 
-    public override SchemaMethodInfo[] GetRawConstructors(
-        string methodName,
-        SourceMetadataContext metadataContext)
+    public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
     {
         Fixture.CaptureMetadataToken(metadataContext.EndWorkToken);
-        var stage = Fixture.Stage == CooperativeCompileTimeStage.AliasedLookup
-            ? CooperativeCompileTimeStage.AliasedLookup
-            : CooperativeCompileTimeStage.RawConstructors;
+        var stage =
+            Fixture.Stage == CooperativeCompileTimeStage.AliasedLookup
+                ? CooperativeCompileTimeStage.AliasedLookup
+                : CooperativeCompileTimeStage.RawConstructors;
         Fixture.WaitAt(stage, metadataContext.EndWorkToken);
         return base.GetRawConstructors(methodName, metadataContext);
     }
@@ -171,7 +169,8 @@ internal sealed class CooperativeSchema : SchemaBase
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         Fixture.CaptureMetadataToken(metadataContext.EndWorkToken);
         Fixture.WaitAt(CooperativeCompileTimeStage.TableLookup, metadataContext.EndWorkToken);
@@ -181,7 +180,8 @@ internal sealed class CooperativeSchema : SchemaBase
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         Fixture.CaptureMetadataToken(context.MetadataContext.EndWorkToken);
         Fixture.WaitAt(CooperativeCompileTimeStage.SourceDescription, context.MetadataContext.EndWorkToken);
@@ -191,12 +191,11 @@ internal sealed class CooperativeSchema : SchemaBase
     public override IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
         string name,
         SourceRuntimeSettingsDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         Fixture.CaptureMetadataToken(context.MetadataContext.EndWorkToken);
-        Fixture.WaitAt(
-            CooperativeCompileTimeStage.RuntimeSettingsDescription,
-            context.MetadataContext.EndWorkToken);
+        Fixture.WaitAt(CooperativeCompileTimeStage.RuntimeSettingsDescription, context.MetadataContext.EndWorkToken);
         return
         [
             new SourceRuntimeSettingRequirement(
@@ -204,14 +203,12 @@ internal sealed class CooperativeSchema : SchemaBase
                 Required: true,
                 Secret: false,
                 SourceRuntimeSettingPhase.All,
-                "Cooperative test setting.")
+                "Cooperative test setting."
+            ),
         ];
     }
 
-    public override SourcePlanResult TryPlanSource(
-        string name,
-        SourcePlanRequest request,
-        params object?[] parameters)
+    public override SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
     {
         Fixture.CapturePlanningToken(request.CancellationToken);
         Fixture.WaitAt(CooperativeCompileTimeStage.SourcePlanning, request.CancellationToken);
@@ -221,7 +218,8 @@ internal sealed class CooperativeSchema : SchemaBase
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, CooperativeRow>(name, new CooperativeRowSource());
     }
@@ -234,10 +232,7 @@ internal sealed class CooperativeSchema : SchemaBase
 
 internal sealed class CooperativeTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns { get; } =
-    [
-        new SchemaColumn("Value", 0, typeof(string))
-    ];
+    public ISchemaColumn[] Columns { get; } = [new SchemaColumn("Value", 0, typeof(string))];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(CooperativeRow));
 

@@ -1,10 +1,10 @@
-using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Evaluator.Visitors;
@@ -21,8 +21,8 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
     public void QueryAnalyzer_ShouldExposeTheCompletedSemanticHandoff()
     {
         var analyzer = new QueryAnalyzer(
-            new BasicSchemaProvider<BasicEntity>(
-                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }));
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] })
+        );
 
         var result = analyzer.Analyze("select Name from #A.Entities()");
 
@@ -41,20 +41,20 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
         var lexer = new Musoq.Parser.Lexing.Lexer("select Name from #A.Entities()", true);
         var root = new Musoq.Parser.Parser(lexer).ComposeAll();
         var visitor = new BuildMetadataAndInferTypesVisitor(
-            new BasicSchemaProvider<BasicEntity>(
-                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }),
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }),
             new Dictionary<string, string[]>(),
-            new NullLogger<BuildMetadataAndInferTypesVisitor>());
+            new NullLogger<BuildMetadataAndInferTypesVisitor>()
+        );
 
         root.Accept(new BuildMetadataAndInferTypesTraverseVisitor(visitor));
         var snapshot = visitor.CreateSemanticMetadataSnapshot();
 
         Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, IReadOnlyList<ISchemaColumn>>)snapshot.InferredColumnsByAlias).Clear());
+            ((IDictionary<string, IReadOnlyList<ISchemaColumn>>)snapshot.InferredColumnsByAlias).Clear()
+        );
 
         var columns = snapshot.InferredColumns.Values.First();
-        Assert.Throws<NotSupportedException>(() =>
-            ((IList<ISchemaColumn>)columns).Add(columns[0]));
+        Assert.Throws<NotSupportedException>(() => ((IList<ISchemaColumn>)columns).Add(columns[0]));
 
         Assert.Throws<InvalidOperationException>(() => visitor.CreateSemanticMetadataSnapshot());
     }
@@ -64,8 +64,7 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
     {
         var input = new RewriteQueryPhaseInput(null!, null!);
 
-        Assert.Throws<ArgumentNullException>(() =>
-            new RewriteQueryVisitor(input));
+        Assert.Throws<ArgumentNullException>(() => new RewriteQueryVisitor(input));
     }
 
     [TestMethod]
@@ -98,16 +97,26 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
         var visitorType = CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitor));
         var builderType = CompilerContractSymbols.For(typeof(SemanticMetadataSnapshotBuilder));
 
-        Assert.IsTrue(builderType.GetMethods(System.Reflection.BindingFlags.Instance |
-                                             System.Reflection.BindingFlags.Public |
-                                             System.Reflection.BindingFlags.NonPublic)
-            .Any(method => method.MetadataName == "Build"));
-        Assert.IsFalse(builderType.GetMethods(System.Reflection.BindingFlags.Instance |
-                                              System.Reflection.BindingFlags.Static |
-                                              System.Reflection.BindingFlags.Public |
-                                              System.Reflection.BindingFlags.NonPublic)
-            .SelectMany(method => method.GetParameters())
-            .Any(parameter => SymbolEqualityComparer.Default.Equals(parameter.ParameterType, visitorType)));
+        Assert.IsTrue(
+            builderType
+                .GetMethods(
+                    System.Reflection.BindingFlags.Instance
+                        | System.Reflection.BindingFlags.Public
+                        | System.Reflection.BindingFlags.NonPublic
+                )
+                .Any(method => method.MetadataName == "Build")
+        );
+        Assert.IsFalse(
+            builderType
+                .GetMethods(
+                    System.Reflection.BindingFlags.Instance
+                        | System.Reflection.BindingFlags.Static
+                        | System.Reflection.BindingFlags.Public
+                        | System.Reflection.BindingFlags.NonPublic
+                )
+                .SelectMany(method => method.GetParameters())
+                .Any(parameter => SymbolEqualityComparer.Default.Equals(parameter.ParameterType, visitorType))
+        );
     }
 
     [TestMethod]
@@ -115,12 +124,8 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
     {
         var providerColumn = new ProviderColumn("Value", 7, typeof(int));
         var frozen = MetadataSnapshotContractsFreezer.FreezeSchemaColumns(
-            new[]
-            {
-                new KeyValuePair<string, IEnumerable<ISchemaColumn>>(
-                    "source",
-                    new[] { providerColumn })
-            });
+            new[] { new KeyValuePair<string, IEnumerable<ISchemaColumn>>("source", new[] { providerColumn }) }
+        );
 
         var boundColumn = frozen["source"].Single();
 
@@ -133,14 +138,13 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
     [TestMethod]
     public void SemanticScopeArtifact_ShouldMaterializeProviderNeutralTableContracts()
     {
-        var providerTable = new ProviderTable(
-            [new ProviderColumn("Value", 0, typeof(int))],
-            typeof(int));
+        var providerTable = new ProviderTable([new ProviderColumn("Value", 0, typeof(int))], typeof(int));
         var providerSchema = new ProviderSchema(providerTable);
         var source = new Scope(null, -1, "Root");
         source.ScopeSymbolTable.AddSymbol(
             "items",
-            new TableSymbol("items", providerSchema, providerTable, hasAlias: true));
+            new TableSymbol("items", providerSchema, providerTable, hasAlias: true)
+        );
 
         var artifact = SemanticScopeArtifact.Capture(source);
         var restored = artifact.CreateScope().ScopeSymbolTable.GetSymbol<TableSymbol>("items");
@@ -159,10 +163,10 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
         var lexer = new Musoq.Parser.Lexing.Lexer("select e.Name from #A.Entities() e", true);
         var root = new Musoq.Parser.Parser(lexer).ComposeAll();
         var visitor = new BuildMetadataAndInferTypesVisitor(
-            new BasicSchemaProvider<BasicEntity>(
-                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }),
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }),
             new Dictionary<string, string[]>(),
-            new NullLogger<BuildMetadataAndInferTypesVisitor>());
+            new NullLogger<BuildMetadataAndInferTypesVisitor>()
+        );
 
         root.Accept(new BuildMetadataAndInferTypesTraverseVisitor(visitor));
         var snapshot = visitor.CreateSemanticMetadataSnapshot();
@@ -172,7 +176,9 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
         Assert.AreEqual("Entities", source.Identity.MethodName);
         Assert.AreEqual("e", source.Identity.Alias);
         Assert.IsTrue(source.RequiredMethodSignature.Contains("#A.Entities", StringComparison.Ordinal));
-        Assert.IsTrue(source.RequiredMemberSignatures.Any(signature => signature.StartsWith("Name:", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            source.RequiredMemberSignatures.Any(signature => signature.StartsWith("Name:", StringComparison.Ordinal))
+        );
         Assert.IsTrue(source.Columns.All(column => column is BoundSchemaColumn));
     }
 
@@ -182,7 +188,8 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters) => table;
+            params object?[] parameters
+        ) => table;
     }
 
     private sealed class ProviderTable(ISchemaColumn[] columns, Type entityType) : ISchemaTable
@@ -192,10 +199,14 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
         public SchemaTableMetadata Metadata { get; } = new(entityType);
 
         public ISchemaColumn? GetColumnByName(string name) =>
-            Columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            Columns.SingleOrDefault(column =>
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+            );
 
         public ISchemaColumn[] GetColumnsByName(string name) =>
-            Columns.Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            Columns
+                .Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
     }
 
     private sealed class ProviderColumn(string name, int index, Type type) : ISchemaColumn

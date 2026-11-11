@@ -39,7 +39,5 @@ public abstract class AstWalker
     ///     Called after a node's children have been visited.
     /// </summary>
     /// <param name="node">The node being left.</param>
-    protected virtual void Leave(Node node)
-    {
-    }
+    protected virtual void Leave(Node node) { }
 }

@@ -15,19 +15,14 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class SpecExplorationErrorTests : BasicEntityTestBase
 {
-
     #region Malformed Queries - Parser/Compile Errors
 
     [TestMethod]
     public void Spec_Error_SelectWithoutFrom_ShouldFail()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 1", sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine("select 1", sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2004_MissingFromClause, DiagnosticPhase.Parse, "FROM clause");
     }
@@ -37,11 +32,13 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("test") { Population = 100m }] }
+            { "#A", [new BasicEntity("test") { Population = 100m }] },
         };
 
         using var query = CreateAndRunVirtualMachine(
-            "select case when Population > 0 then 'positive' end as Category from #A.Entities()", sources);
+            "select case when Population > 0 then 'positive' end as Category from #A.Entities()",
+            sources
+        );
         using var table = query.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["positive"]);
@@ -50,13 +47,11 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     [TestMethod]
     public void Spec_Error_DivisionByZeroLiteral_ShouldFail()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 10 / 0 from #A.Entities()", sources));
+            CreateAndRunVirtualMachine("select 10 / 0 from #A.Entities()", sources)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
@@ -64,13 +59,11 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     [TestMethod]
     public void Spec_Error_ModuloByZeroLiteral_ShouldFail()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine("select 10 % 0 from #A.Entities()", sources));
+            CreateAndRunVirtualMachine("select 10 % 0 from #A.Entities()", sources)
+        );
 
         AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
@@ -80,11 +73,12 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("test"), new BasicEntity("other")] }
+            { "#A", [new BasicEntity("test"), new BasicEntity("other")] },
         };
         var vm = CreateAndRunVirtualMachine(
             "select Name as FileName from #A.Entities() where FileName = 'test'",
-            sources);
+            sources
+        );
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
@@ -97,38 +91,35 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { City = "NYC", Country = "USA" },
-                    new BasicEntity("b") { City = "LA", Country = "USA" }
+                    new BasicEntity("b") { City = "LA", Country = "USA" },
                 ]
-            }
+            },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(
-                "select Name, City, Count(1) from #A.Entities() group by City",
-                sources));
+            CreateAndRunVirtualMachine("select Name, City, Count(1) from #A.Entities() group by City", sources)
+        );
 
         AssertErrorEnvelope(
             ex,
             DiagnosticCode.MQ3012_NonAggregateInSelect,
             DiagnosticPhase.Bind,
-            "must appear in the GROUP BY");
+            "must appear in the GROUP BY"
+        );
         AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void Spec_Error_DuplicateAliasInJoin_ShouldFail()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(
-                "select 1 from #A.Entities() a inner join #A.Entities() a on 1 = 1",
-                sources));
+            CreateAndRunVirtualMachine("select 1 from #A.Entities() a inner join #A.Entities() a on 1 = 1", sources)
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind, "a");
         AssertHasGuidance(ex);
@@ -137,15 +128,11 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     [TestMethod]
     public void Spec_Error_NonExistingProperty_ShouldFail()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(
-                "select Self.NonExistingProperty from #A.Entities()",
-                sources));
+            CreateAndRunVirtualMachine("select Self.NonExistingProperty from #A.Entities()", sources)
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "NonExistingProperty");
     }
@@ -155,24 +142,19 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("a") { City = "NYC" },
-                    new BasicEntity("b") { City = "LA" }
-                ]
-            }
+            { "#A", [new BasicEntity("a") { City = "NYC" }, new BasicEntity("b") { City = "LA" }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(
-                "select * from #A.Entities() group by City",
-                sources));
+            CreateAndRunVirtualMachine("select * from #A.Entities() group by City", sources)
+        );
 
         AssertErrorEnvelope(
             ex,
             DiagnosticCode.MQ3012_NonAggregateInSelect,
             DiagnosticPhase.Bind,
-            "must appear in the GROUP BY");
+            "must appear in the GROUP BY"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -183,15 +165,14 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     [TestMethod]
     public void Spec_Error_CoupleWithoutTable_ShouldFail()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
                 "couple #A.Entities with table NonExistentTable as Source; select * from Source()",
-                sources));
+                sources
+            )
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3023_TableNotDefined, DiagnosticPhase.Bind, "NonExistentTable");
     }
@@ -201,17 +182,12 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("a") { Country = "POLAND" }
-                ]
-            }
+            { "#A", [new BasicEntity("a") { Country = "POLAND" }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(
-                "select ::5, Count(Name) from #A.Entities() group by Country",
-                sources));
+            CreateAndRunVirtualMachine("select ::5, Count(Name) from #A.Entities() group by Country", sources)
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "DoubleColon");
     }
@@ -226,16 +202,18 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Population = 200m },
                     new BasicEntity("b") { Population = 50m },
-                    new BasicEntity("c") { Population = 300m }
+                    new BasicEntity("c") { Population = 300m },
                 ]
-            }
+            },
         };
         var vm = CreateAndRunVirtualMachine(
             "select Name from #A.Entities() where Population between 100 and 300",
-            sources);
+            sources
+        );
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
@@ -247,24 +225,19 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob")] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(
-                "select Name from #A.Entities() order by 1",
-                sources));
+            CreateAndRunVirtualMachine("select Name from #A.Entities() order by 1", sources)
+        );
 
         AssertErrorEnvelope(
             ex,
             DiagnosticCode.MQ3093_OrderByOrdinalUnsupported,
             DiagnosticPhase.Bind,
-            "ORDER BY column position is not supported");
+            "ORDER BY column position is not supported"
+        );
         AssertHasGuidance(ex);
     }
 

@@ -11,7 +11,8 @@ public sealed class QueryProgressEventArgs : EventArgs
         long queryRowsProcessed,
         long? sourceRowsProcessed,
         long sequence,
-        bool isFinal)
+        bool isFinal
+    )
     {
         ArgumentOutOfRangeException.ThrowIfNegative(queryRowsProcessed);
         ArgumentOutOfRangeException.ThrowIfNegative(sequence);

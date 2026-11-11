@@ -13,7 +13,9 @@ internal static class FinalShapeBoundaryProjection
             {
                 if (node is ExecutionCreateTable { CapacityHint: not null } create && create.Table.Name == tableName)
                 {
-                    nodes.Add(new ExecutionEnsureTableCapacity(create.Table with { Name = bufferName }, create.CapacityHint));
+                    nodes.Add(
+                        new ExecutionEnsureTableCapacity(create.Table with { Name = bufferName }, create.CapacityHint)
+                    );
                     continue;
                 }
                 if (node is ExecutionEnsureTableCapacity ensure && ensure.Table.Name == tableName)
@@ -28,12 +30,12 @@ internal static class FinalShapeBoundaryProjection
         return new ExecutionBlock(nodes);
     }
 
-    private static bool IsBoundary(ExecutionNode node, string tableName)
-        => node switch
+    private static bool IsBoundary(ExecutionNode node, string tableName) =>
+        node switch
         {
             ExecutionCreateTable create => create.Table.Name == tableName,
             ExecutionEnsureTableCapacity ensure => ensure.Table.Name == tableName,
             ExecutionReturnTable returned => returned.Table.Name == tableName,
-            _ => false
+            _ => false,
         };
 }

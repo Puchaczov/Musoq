@@ -23,7 +23,7 @@ public partial class ErrorQualityDialectConfusionTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -33,8 +33,7 @@ public partial class ErrorQualityDialectConfusionTests : BasicEntityTestBase
         return new QueryAnalyzer(CreateSchemaProvider());
     }
 
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -56,12 +55,10 @@ public partial class ErrorQualityDialectConfusionTests : BasicEntityTestBase
     // Expected hint: Suggest TAKE and SKIP keywords with correct syntax.
     // ============================================================================
 
-
     // ============================================================================
     // P-AGG: COUNT(*) and aggregate syntax
     // Expected hint: COUNT(*) → suggest Count(1); COUNT(DISTINCT x) is supported directly.
     // ============================================================================
-
 
     // ============================================================================
     // P-JOIN: JOIN syntax variations
@@ -69,18 +66,15 @@ public partial class ErrorQualityDialectConfusionTests : BasicEntityTestBase
     // JOIN alone → INNER JOIN. LEFT JOIN → LEFT OUTER JOIN. USING → ON.
     // ============================================================================
 
-
     // ============================================================================
     // P-SUB: Subquery attempts
     // Subqueries are not supported; suggest CTE with appropriate restructuring pattern.
     // ============================================================================
 
-
     // ============================================================================
     // P-SET: Set operations without column specification
     // Omitted set-operation keys compare all projected values.
     // ============================================================================
-
 
     // ============================================================================
     // P-WIN: Window functions (not supported)
@@ -88,10 +82,8 @@ public partial class ErrorQualityDialectConfusionTests : BasicEntityTestBase
     // Suggest GROUP BY for aggregation or CTE-based alternatives.
     // ============================================================================
 
-
     // ============================================================================
     // P-MISC: Miscellaneous SQL dialect confusion
     // Tests for operators, casting, and functions from other dialects.
     // ============================================================================
-
 }

@@ -10,7 +10,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionWindowAggregateKernel kernel,
         string partitionIndicesName,
         string partitionStartName,
-        string partitionCountName)
+        string partitionCountName
+    )
     {
         var partitionIndexName = $"{kernel.Results.Name}PartitionIndex";
         var currentIndexName = $"{kernel.Results.Name}CurrentIndex";
@@ -21,31 +22,33 @@ public sealed partial class ExecutionCSharpRenderer
                 partitionIndicesName,
                 partitionStartName,
                 partitionIndexName,
-                currentIndexName)
+                currentIndexName
+            ),
         };
 
-        body.AddRange(CreateIndexedItemDeclarations(
-            kernel.Item,
-            kernel.Buffer,
-            currentIndex,
-            kernel.RowAccessMode));
+        body.AddRange(CreateIndexedItemDeclarations(kernel.Item, kernel.Buffer, currentIndex, kernel.RowAccessMode));
         body.AddRange(CreateWindowAggregateAccumulateStatements(kernel));
-        body.Add(CreateWindowResultAssignment(
-            kernel.Results.Name,
-            SyntaxFactory.IdentifierName(currentIndexName),
-            CreateWindowAggregateValueExpression(kernel)));
+        body.Add(
+            CreateWindowResultAssignment(
+                kernel.Results.Name,
+                SyntaxFactory.IdentifierName(currentIndexName),
+                CreateWindowAggregateValueExpression(kernel)
+            )
+        );
 
         return CreatePartitionIndexedForLoop(
             partitionIndexName,
             partitionCountName,
-            StatementEmitter.CreateBlock(body));
+            StatementEmitter.CreateBlock(body)
+        );
     }
 
     private ForStatementSyntax CreateWindowAggregateAccumulationLoop(
         ExecutionWindowAggregateKernel kernel,
         string partitionIndicesName,
         string partitionStartName,
-        string partitionCountName)
+        string partitionCountName
+    )
     {
         var partitionIndexName = $"{kernel.Results.Name}PartitionIndex";
         var currentIndexName = $"{kernel.Results.Name}CurrentIndex";
@@ -56,27 +59,26 @@ public sealed partial class ExecutionCSharpRenderer
                 partitionIndicesName,
                 partitionStartName,
                 partitionIndexName,
-                currentIndexName)
+                currentIndexName
+            ),
         };
 
-        body.AddRange(CreateIndexedItemDeclarations(
-            kernel.Item,
-            kernel.Buffer,
-            currentIndex,
-            kernel.RowAccessMode));
+        body.AddRange(CreateIndexedItemDeclarations(kernel.Item, kernel.Buffer, currentIndex, kernel.RowAccessMode));
         body.AddRange(CreateWindowAggregateAccumulateStatements(kernel));
 
         return CreatePartitionIndexedForLoop(
             partitionIndexName,
             partitionCountName,
-            StatementEmitter.CreateBlock(body));
+            StatementEmitter.CreateBlock(body)
+        );
     }
 
     private static ForStatementSyntax CreateWindowAggregateWholePartitionAssignmentLoop(
         ExecutionWindowAggregateKernel kernel,
         string partitionIndicesName,
         string partitionStartName,
-        string partitionCountName)
+        string partitionCountName
+    )
     {
         var partitionIndexName = $"{kernel.Results.Name}PartitionIndex";
         var currentIndexName = $"{kernel.Results.Name}CurrentIndex";
@@ -89,11 +91,14 @@ public sealed partial class ExecutionCSharpRenderer
                     partitionIndicesName,
                     partitionStartName,
                     partitionIndexName,
-                    currentIndexName),
+                    currentIndexName
+                ),
                 CreateWindowResultAssignment(
                     kernel.Results.Name,
                     SyntaxFactory.IdentifierName(currentIndexName),
-                    SyntaxFactory.IdentifierName($"{kernel.Results.Name}FinalValue"))));
+                    SyntaxFactory.IdentifierName($"{kernel.Results.Name}FinalValue")
+                )
+            )
+        );
     }
-
 }

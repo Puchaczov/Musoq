@@ -14,7 +14,10 @@ public static class QueryProfileTextPrinter
 
         builder.AppendLine("Musoq query profile");
         builder.AppendLine(CultureInfo.InvariantCulture, $"Total elapsed: {FormatDuration(snapshot.TotalElapsed)}");
-        builder.AppendLine(CultureInfo.InvariantCulture, $"Total source rows: {snapshot.Sources.Sum(source => source.RowsRead)}");
+        builder.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"Total source rows: {snapshot.Sources.Sum(source => source.RowsRead)}"
+        );
 
         if (snapshot.Sources.Count == 0)
         {
@@ -28,10 +31,22 @@ public static class QueryProfileTextPrinter
             {
                 builder.AppendLine(CultureInfo.InvariantCulture, $"  Source: {source.Name}");
                 builder.AppendLine(CultureInfo.InvariantCulture, $"    Rows read: {source.RowsRead}");
-                builder.AppendLine(CultureInfo.InvariantCulture, $"    First row latency: {FormatDuration(source.FirstRowLatency)}");
-                builder.AppendLine(CultureInfo.InvariantCulture, $"    Last row time: {FormatDuration(source.LastRowTime)}");
-                builder.AppendLine(CultureInfo.InvariantCulture, $"    MoveNext wait{CreateEstimatedSuffix(source)}: {FormatDuration(source.MoveNextWaitTime)}");
-                builder.AppendLine(CultureInfo.InvariantCulture, $"    Consumer gap{CreateEstimatedSuffix(source)}: {FormatDuration(source.ConsumerGapTime)}");
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"    First row latency: {FormatDuration(source.FirstRowLatency)}"
+                );
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"    Last row time: {FormatDuration(source.LastRowTime)}"
+                );
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"    MoveNext wait{CreateEstimatedSuffix(source)}: {FormatDuration(source.MoveNextWaitTime)}"
+                );
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"    Consumer gap{CreateEstimatedSuffix(source)}: {FormatDuration(source.ConsumerGapTime)}"
+                );
                 builder.AppendLine(CultureInfo.InvariantCulture, $"    Rows produced: {source.RowsProduced}");
                 builder.AppendLine(CultureInfo.InvariantCulture, $"    Bytes read: {source.BytesRead}");
                 builder.AppendLine(CultureInfo.InvariantCulture, $"    Exceptions: {source.ExceptionCount}");
@@ -47,7 +62,8 @@ public static class QueryProfileTextPrinter
                 {
                     builder.AppendLine(
                         CultureInfo.InvariantCulture,
-                        $"    Operation {operation.Operation}/{operation.Name}: count={operation.Count}, elapsed={FormatDuration(operation.ElapsedTime)}");
+                        $"    Operation {operation.Operation}/{operation.Name}: count={operation.Count}, elapsed={FormatDuration(operation.ElapsedTime)}"
+                    );
                 }
             }
         }
@@ -66,14 +82,18 @@ public static class QueryProfileTextPrinter
                 {
                     builder.AppendLine(
                         CultureInfo.InvariantCulture,
-                        $"  {operation.Id} {operation.Name}: input rows={operation.InputRows}, output rows={operation.OutputRows}, elapsed={FormatDuration(operation)}");
+                        $"  {operation.Id} {operation.Name}: input rows={operation.InputRows}, output rows={operation.OutputRows}, elapsed={FormatDuration(operation)}"
+                    );
 
                     if (operation.ExceptionCount > 0)
                         builder.AppendLine(CultureInfo.InvariantCulture, $"    Exceptions: {operation.ExceptionCount}");
                 }
                 else
                 {
-                    builder.AppendLine(CultureInfo.InvariantCulture, $"  {operation.Id} {operation.Name}: stats unavailable");
+                    builder.AppendLine(
+                        CultureInfo.InvariantCulture,
+                        $"  {operation.Id} {operation.Name}: stats unavailable"
+                    );
                 }
             }
         }
@@ -81,8 +101,7 @@ public static class QueryProfileTextPrinter
         return builder.ToString();
     }
 
-    private static string FormatDuration(TimeSpan? value) =>
-        value.HasValue ? FormatDuration(value.Value) : "n/a";
+    private static string FormatDuration(TimeSpan? value) => value.HasValue ? FormatDuration(value.Value) : "n/a";
 
     private static string FormatDuration(TimeSpan value) =>
         string.Create(CultureInfo.InvariantCulture, $"{value.TotalMilliseconds:0.###} ms");

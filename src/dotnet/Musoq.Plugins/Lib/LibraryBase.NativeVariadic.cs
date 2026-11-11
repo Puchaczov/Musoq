@@ -7,8 +7,7 @@ public partial class LibraryBase
 {
     /// <summary>Selects one concrete value without allocating an invocation array.</summary>
     [BindableMethod]
-    public T? Choose<T>(int index, params ReadOnlySpan<T> values)
-        => values.Length <= index ? default : values[index];
+    public T? Choose<T>(int index, params ReadOnlySpan<T> values) => values.Length <= index ? default : values[index];
 
     /// <summary>Merges typed arrays without an outer invocation array.</summary>
     [BindableMethod]
@@ -97,6 +96,7 @@ public partial class LibraryBase
         }
         return builder.ToString();
     }
+
     /// <summary>Splits strings while scanning concrete separators without an invocation array.</summary>
     [BindableMethod]
     public string[] Split(string? value, params ReadOnlySpan<string> separators)
@@ -179,5 +179,4 @@ public partial class LibraryBase
     /// <summary>Selects the first non-null decimal value using concrete span storage.</summary>
     [BindableMethod]
     public decimal? Coalesce(params ReadOnlySpan<decimal?> values) => Coalesce<decimal?>(values);
-
 }

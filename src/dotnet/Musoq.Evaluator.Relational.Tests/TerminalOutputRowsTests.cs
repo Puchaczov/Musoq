@@ -21,8 +21,7 @@ public sealed class TerminalOutputRowsTests
     {
         using var query = Compile();
         using var result = query.Run();
-        TableMaterializationTestHelper.AssertRowsInOrder(result,
-            ["first", null, 1], ["second", 7, 1], ["later", 2, 2]);
+        TableMaterializationTestHelper.AssertRowsInOrder(result, ["first", null, 1], ["second", 7, 1], ["later", 2, 2]);
         var row = result.First();
         var visitor = new ColumnTypes([]);
         row.VisitColumns(ref visitor);
@@ -60,17 +59,24 @@ public sealed class TerminalOutputRowsTests
 
     private static CompiledQuery Compile()
     {
-        var provider = new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new("later") { Id = 2, NullableValue = 2 },
-                new("first") { Id = 1 },
-                new("second") { Id = 1, NullableValue = 7 }
-            ]
-        });
-        return InstanceCreator.CompileForExecution(Sql, Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+        var provider = new BasicSchemaProvider<BasicEntity>(
+            new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] =
+                [
+                    new("later") { Id = 2, NullableValue = 2 },
+                    new("first") { Id = 1 },
+                    new("second") { Id = 1, NullableValue = 7 },
+                ],
+            }
+        );
+        return InstanceCreator.CompileForExecution(
+            Sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
     }
 
     private readonly record struct ColumnTypes(List<Type> Types) : IColumnValueVisitor

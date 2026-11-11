@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class TypeRelatedMistakesTests
 {
-
     [TestMethod]
     public void Function_SubstringOnNumber_ShouldHandle()
     {
@@ -195,5 +194,4 @@ public partial class TypeRelatedMistakesTests
         // Assert - Integer division is valid
         AssertNoErrors(result);
     }
-
 }

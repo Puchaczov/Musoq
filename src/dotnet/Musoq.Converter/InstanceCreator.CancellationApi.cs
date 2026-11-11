@@ -12,13 +12,22 @@ namespace Musoq.Converter;
 
 public static partial class InstanceCreator
 {
-    public static BuildItems CreateForAnalyze(string script, string assemblyName, ISchemaProvider provider,
-        ILoggerResolver loggerResolver, CancellationToken cancellationToken) =>
-        CreateForAnalyze(script, assemblyName, provider, loggerResolver, null, cancellationToken);
+    public static BuildItems CreateForAnalyze(
+        string script,
+        string assemblyName,
+        ISchemaProvider provider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    ) => CreateForAnalyze(script, assemblyName, provider, loggerResolver, null, cancellationToken);
 
-    public static BuildItems CreateForAnalyze(string script, string assemblyName, ISchemaProvider provider,
-        ILoggerResolver loggerResolver, CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken)
+    public static BuildItems CreateForAnalyze(
+        string script,
+        string assemblyName,
+        ISchemaProvider provider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions,
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
@@ -33,13 +42,22 @@ public static partial class InstanceCreator
         return items;
     }
 
-    public static QueryInspectionResult CompileForInspection(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CancellationToken cancellationToken) =>
-        CompileForInspection(script, assemblyName, schemaProvider, loggerResolver, null, cancellationToken);
+    public static QueryInspectionResult CompileForInspection(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    ) => CompileForInspection(script, assemblyName, schemaProvider, loggerResolver, null, cancellationToken);
 
-    public static QueryInspectionResult CompileForInspection(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken)
+    public static QueryInspectionResult CompileForInspection(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions,
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
@@ -54,36 +72,72 @@ public static partial class InstanceCreator
         return CreateInspectionResult(items);
     }
 
-    public static string GetLogicalPlanText(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CancellationToken cancellationToken) =>
-        CompileForInspection(script, assemblyName, schemaProvider, loggerResolver, cancellationToken).LogicalPlanText;
+    public static string GetLogicalPlanText(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    ) => CompileForInspection(script, assemblyName, schemaProvider, loggerResolver, cancellationToken).LogicalPlanText;
 
-    public static string GetPhysicalPlanText(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CancellationToken cancellationToken) =>
-        CompileForInspection(script, assemblyName, schemaProvider, loggerResolver, cancellationToken).PhysicalPlanText;
+    public static string GetPhysicalPlanText(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    ) => CompileForInspection(script, assemblyName, schemaProvider, loggerResolver, cancellationToken).PhysicalPlanText;
 
-    public static string GetGeneratedCSharpCode(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CancellationToken cancellationToken) =>
-        CompileForInspection(script, assemblyName, schemaProvider, loggerResolver, cancellationToken).GeneratedCSharpCode;
+    public static string GetGeneratedCSharpCode(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    ) =>
+        CompileForInspection(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            cancellationToken
+        ).GeneratedCSharpCode;
 
-    public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName,
-        ISchemaProvider provider, ILoggerResolver loggerResolver, CancellationToken cancellationToken)
+    public static (byte[] DllFile, byte[] PdbFile) CompileForStore(
+        string script,
+        string assemblyName,
+        ISchemaProvider provider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    )
     {
         var items = CreateForAnalyze(script, assemblyName, provider, loggerResolver, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         return (
             items.DllFile ?? throw new InvalidOperationException("Compilation did not produce a DLL file."),
-            items.PdbFile ?? throw new InvalidOperationException("Compilation did not produce a PDB file."));
+            items.PdbFile ?? throw new InvalidOperationException("Compilation did not produce a PDB file.")
+        );
     }
 
-    public static Task<(byte[] DllFile, byte[] PdbFile)> CompileForStoreAsync(string script, string assemblyName,
-        ISchemaProvider provider, ILoggerResolver loggerResolver, CancellationToken cancellationToken) =>
+    public static Task<(byte[] DllFile, byte[] PdbFile)> CompileForStoreAsync(
+        string script,
+        string assemblyName,
+        ISchemaProvider provider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    ) =>
         Task.Run(
             () => CompileForStore(script, assemblyName, provider, loggerResolver, cancellationToken),
-            cancellationToken);
+            cancellationToken
+        );
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider,
-        ILoggerResolver loggerResolver, CancellationToken cancellationToken)
+    public static CompiledQuery CompileForExecution(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    )
     {
         var result = CompileWithDiagnostics(script, assemblyName, schemaProvider, loggerResolver, cancellationToken);
         if (result.Succeeded)
@@ -94,12 +148,23 @@ public static partial class InstanceCreator
             : new MusoqQueryException(result.ToEnvelopes());
     }
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider,
-        ILoggerResolver loggerResolver, CompilationOptions compilationOptions,
-        CancellationToken cancellationToken)
+    public static CompiledQuery CompileForExecution(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions compilationOptions,
+        CancellationToken cancellationToken
+    )
     {
         var result = CompileWithDiagnostics(
-            script, assemblyName, schemaProvider, loggerResolver, compilationOptions, cancellationToken);
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            cancellationToken
+        );
         if (result.Succeeded)
             return result.CompiledQuery;
 
@@ -109,14 +174,29 @@ public static partial class InstanceCreator
     }
 
     public static CompiledTypedQuery<TOut> CompileForTypedExecution<TOut>(
-        string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver,
-        CancellationToken cancellationToken) =>
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    ) =>
         CompileForTypedExecution<TOut>(
-            script, assemblyName, schemaProvider, loggerResolver, new CompilationOptions(), cancellationToken);
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            new CompilationOptions(),
+            cancellationToken
+        );
 
     public static CompiledTypedQuery<TOut> CompileForTypedExecution<TOut>(
-        string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver,
-        CompilationOptions compilationOptions, CancellationToken cancellationToken)
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions compilationOptions,
+        CancellationToken cancellationToken
+    )
     {
         var items = BuildTypedItems<TOut>(
             script,
@@ -126,16 +206,16 @@ public static partial class InstanceCreator
             compilationOptions,
             [],
             CreateExecutableBuildChain,
-            cancellationToken: cancellationToken);
+            cancellationToken: cancellationToken
+        );
         cancellationToken.ThrowIfCancellationRequested();
         using var loadedRunnableType = LoadRunnableTypeWithLifetime(items);
         ITypedRunnable<TOut>? runnable = null;
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            runnable = RequireClrActivator(ExecutionTargetIds.CSharpClr).ActivateTyped<TOut>(
-                loadedRunnableType.RunnableType,
-                CreateRuntimeBinding(items));
+            runnable = RequireClrActivator(ExecutionTargetIds.CSharpClr)
+                .ActivateTyped<TOut>(loadedRunnableType.RunnableType, CreateRuntimeBinding(items));
             cancellationToken.ThrowIfCancellationRequested();
             runnable.Logger = loggerResolver.ResolveLogger();
             cancellationToken.ThrowIfCancellationRequested();
@@ -156,9 +236,15 @@ public static partial class InstanceCreator
         }
     }
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider,
-        ILoggerResolver loggerResolver, Func<BuildChain> createChain, Action<BuildItems> modifyBuildItems,
-        CancellationToken cancellationToken)
+    public static CompiledQuery CompileForExecution(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        Func<BuildChain> createChain,
+        Action<BuildItems> modifyBuildItems,
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(loggerResolver);
@@ -172,84 +258,86 @@ public static partial class InstanceCreator
 
         try
         {
-        var chain = createChain.Invoke() ??
-                    new CreateTree(new TransformTree(new TurnQueryIntoRunnableCode(null), loggerResolver));
-        CompilationException? compilationError = null;
-        try
-        {
-            Build(items, chain);
-        }
-        catch (CompilationException ce)
-        {
-            compilationError = ce;
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-        if (compilationError == null && !Debugger.IsAttached)
-        {
-            ITableRunnable? runnable = null;
-            CompiledQuery? compiledQuery = null;
+            var chain =
+                createChain.Invoke()
+                ?? new CreateTree(new TransformTree(new TurnQueryIntoRunnableCode(null), loggerResolver));
+            CompilationException? compilationError = null;
             try
             {
-                runnable = CreateRunnable(items);
+                Build(items, chain);
+            }
+            catch (CompilationException ce)
+            {
+                compilationError = ce;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            if (compilationError == null && !Debugger.IsAttached)
+            {
+                ITableRunnable? runnable = null;
+                CompiledQuery? compiledQuery = null;
+                try
+                {
+                    runnable = CreateRunnable(items);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    runnable.Logger = loggerResolver.ResolveLogger();
+                    cancellationToken.ThrowIfCancellationRequested();
+                    compiledQuery = new CompiledQuery(runnable);
+                    runnable = null;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    CompleteSemanticCache(items, commit: true);
+                    return compiledQuery;
+                }
+                catch (OperationCanceledException)
+                {
+                    compiledQuery?.Dispose();
+                    (runnable as IDisposable)?.Dispose();
+                    throw;
+                }
+                catch
+                {
+                    compiledQuery?.Dispose();
+                    (runnable as IDisposable)?.Dispose();
+                    throw;
+                }
+            }
+
+            var tempPath = Path.Combine(Path.GetTempPath(), "Musoq");
+            var tempFileName = Guid.NewGuid().ToString();
+            var assemblyPath = Path.Combine(tempPath, $"{tempFileName}.dll");
+            var pdbPath = Path.Combine(tempPath, $"{tempFileName}.pdb");
+            var csPath = Path.Combine(tempPath, $"{tempFileName}.cs");
+            if (!Directory.Exists(tempPath))
+                Directory.CreateDirectory(tempPath);
+
+            cancellationToken.ThrowIfCancellationRequested();
+            File.WriteAllText(csPath, InspectGeneratedCSharpCode(items.RenderingArtifact, cancellationToken));
+            if (items.DllFile is { Length: > 0 })
+                File.WriteAllBytes(assemblyPath, items.DllFile);
+            if (items.PdbFile is { Length: > 0 })
+                File.WriteAllBytes(pdbPath, items.PdbFile);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (compilationError != null)
+                throw compilationError;
+
+            var assemblyLoadContext = new DebugAssemblyLoadContext();
+            try
+            {
+                var runnable = new RunnableDebugDecorator(
+                    CreateRunnableForDebug(items, () => assemblyLoadContext.LoadFromAssemblyPath(assemblyPath)),
+                    assemblyLoadContext,
+                    csPath,
+                    assemblyPath,
+                    pdbPath
+                );
                 cancellationToken.ThrowIfCancellationRequested();
-                runnable.Logger = loggerResolver.ResolveLogger();
-                cancellationToken.ThrowIfCancellationRequested();
-                compiledQuery = new CompiledQuery(runnable);
-                runnable = null;
-                cancellationToken.ThrowIfCancellationRequested();
-                CompleteSemanticCache(items, commit: true);
-                return compiledQuery;
+                return new CompiledQuery(runnable);
             }
             catch (OperationCanceledException)
             {
-                compiledQuery?.Dispose();
-                (runnable as IDisposable)?.Dispose();
+                assemblyLoadContext.Unload();
                 throw;
             }
-            catch
-            {
-                compiledQuery?.Dispose();
-                (runnable as IDisposable)?.Dispose();
-                throw;
-            }
-        }
-
-        var tempPath = Path.Combine(Path.GetTempPath(), "Musoq");
-        var tempFileName = Guid.NewGuid().ToString();
-        var assemblyPath = Path.Combine(tempPath, $"{tempFileName}.dll");
-        var pdbPath = Path.Combine(tempPath, $"{tempFileName}.pdb");
-        var csPath = Path.Combine(tempPath, $"{tempFileName}.cs");
-        if (!Directory.Exists(tempPath))
-            Directory.CreateDirectory(tempPath);
-
-        cancellationToken.ThrowIfCancellationRequested();
-        File.WriteAllText(csPath, InspectGeneratedCSharpCode(items.RenderingArtifact, cancellationToken));
-        if (items.DllFile is { Length: > 0 })
-            File.WriteAllBytes(assemblyPath, items.DllFile);
-        if (items.PdbFile is { Length: > 0 })
-            File.WriteAllBytes(pdbPath, items.PdbFile);
-        cancellationToken.ThrowIfCancellationRequested();
-        if (compilationError != null)
-            throw compilationError;
-
-        var assemblyLoadContext = new DebugAssemblyLoadContext();
-        try
-        {
-            var runnable = new RunnableDebugDecorator(
-                CreateRunnableForDebug(items, () => assemblyLoadContext.LoadFromAssemblyPath(assemblyPath)),
-                assemblyLoadContext,
-                csPath,
-                assemblyPath,
-                pdbPath);
-            cancellationToken.ThrowIfCancellationRequested();
-            return new CompiledQuery(runnable);
-        }
-        catch (OperationCanceledException)
-        {
-            assemblyLoadContext.Unload();
-            throw;
-        }
         }
         finally
         {
@@ -257,13 +345,22 @@ public static partial class InstanceCreator
         }
     }
 
-    public static BuildResult CompileWithDiagnostics(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CancellationToken cancellationToken) =>
-        CompileWithDiagnostics(script, assemblyName, schemaProvider, loggerResolver, null, cancellationToken);
+    public static BuildResult CompileWithDiagnostics(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    ) => CompileWithDiagnostics(script, assemblyName, schemaProvider, loggerResolver, null, cancellationToken);
 
-    public static BuildResult CompileWithDiagnostics(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken) =>
+    public static BuildResult CompileWithDiagnostics(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions,
+        CancellationToken cancellationToken
+    ) =>
         CompileWithDiagnostics(
             script,
             assemblyName,
@@ -271,11 +368,18 @@ public static partial class InstanceCreator
             loggerResolver,
             compilationOptions,
             requireExecutionPlan: false,
-            cancellationToken);
+            cancellationToken
+        );
 
-    internal static BuildResult CompileWithDiagnostics(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions? compilationOptions,
-        bool requireExecutionPlan, CancellationToken cancellationToken) =>
+    internal static BuildResult CompileWithDiagnostics(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions,
+        bool requireExecutionPlan,
+        CancellationToken cancellationToken
+    ) =>
         CompileWithDiagnosticsCore(
             script,
             assemblyName,
@@ -283,18 +387,35 @@ public static partial class InstanceCreator
             loggerResolver,
             compilationOptions,
             requireExecutionPlan,
-            cancellationToken);
+            cancellationToken
+        );
 
-    public static Task<BuildResult> CompileWithDiagnosticsAsync(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CancellationToken cancellationToken) =>
-        CompileWithDiagnosticsAsync(
-            script, assemblyName, schemaProvider, loggerResolver, null, cancellationToken);
+    public static Task<BuildResult> CompileWithDiagnosticsAsync(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CancellationToken cancellationToken
+    ) => CompileWithDiagnosticsAsync(script, assemblyName, schemaProvider, loggerResolver, null, cancellationToken);
 
-    public static Task<BuildResult> CompileWithDiagnosticsAsync(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken) =>
+    public static Task<BuildResult> CompileWithDiagnosticsAsync(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions,
+        CancellationToken cancellationToken
+    ) =>
         Task.Run(
-            () => CompileWithDiagnostics(
-                script, assemblyName, schemaProvider, loggerResolver, compilationOptions, cancellationToken),
-            cancellationToken);
+            () =>
+                CompileWithDiagnostics(
+                    script,
+                    assemblyName,
+                    schemaProvider,
+                    loggerResolver,
+                    compilationOptions,
+                    cancellationToken
+                ),
+            cancellationToken
+        );
 }

@@ -8,14 +8,12 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public sealed partial class Lexer
 {
-
     private Token ScanUnknown()
     {
         var start = Position;
         var c = Input[start];
         var span = new TextSpan(start, 1);
         Position++;
-
 
         if (RecoverOnError)
         {
@@ -29,8 +27,8 @@ public sealed partial class Lexer
 
     private bool ShouldSkipToken(Token token)
     {
-        return (_skipWhiteSpaces && token.TokenType == TokenType.WhiteSpace) ||
-               token.TokenType == TokenType.Comment ||
-               (RecoverOnError && token.TokenType == TokenType.Error);
+        return (_skipWhiteSpaces && token.TokenType == TokenType.WhiteSpace)
+            || token.TokenType == TokenType.Comment
+            || (RecoverOnError && token.TokenType == TokenType.Error);
     }
 }

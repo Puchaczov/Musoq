@@ -53,8 +53,10 @@ internal class JsonExtractorHelper
 
                 var bracketContent = path[currentPos..closeBracketPos];
 
-                if ((bracketContent.StartsWith('\'') && bracketContent.EndsWith('\'')) ||
-                    (bracketContent.StartsWith('"') && bracketContent.EndsWith('"')))
+                if (
+                    (bracketContent.StartsWith('\'') && bracketContent.EndsWith('\''))
+                    || (bracketContent.StartsWith('"') && bracketContent.EndsWith('"'))
+                )
                     parts.Add(bracketContent[1..^1]);
                 else if (bracketContent == "*")
                     parts.Add("*");
@@ -72,11 +74,12 @@ internal class JsonExtractorHelper
                 {
                     -1 when nextBracket == -1 => path.Length,
                     -1 => nextBracket,
-                    _ => nextBracket == -1 ? nextDot : Math.Min(nextDot, nextBracket)
+                    _ => nextBracket == -1 ? nextDot : Math.Min(nextDot, nextBracket),
                 };
 
                 var part = path[currentPos..endPos];
-                if (!string.IsNullOrEmpty(part)) parts.Add(part);
+                if (!string.IsNullOrEmpty(part))
+                    parts.Add(part);
 
                 currentPos = endPos;
             }
@@ -166,8 +169,12 @@ internal class JsonExtractorHelper
         pathParts.Push(currentPath);
     }
 
-    private static void ProcessArray(JsonElement element, Stack<string> pathParts, List<string> results,
-        string currentPath)
+    private static void ProcessArray(
+        JsonElement element,
+        Stack<string> pathParts,
+        List<string> results,
+        string currentPath
+    )
     {
         if (currentPath == "*")
         {
@@ -181,16 +188,23 @@ internal class JsonExtractorHelper
         }
     }
 
-    private static void ProcessObject(JsonElement element, Stack<string> pathParts, List<string> results,
-        string currentPath)
+    private static void ProcessObject(
+        JsonElement element,
+        Stack<string> pathParts,
+        List<string> results,
+        string currentPath
+    )
     {
-        if ((currentPath.StartsWith('\'') && currentPath.EndsWith('\'')) ||
-            (currentPath.StartsWith('"') && currentPath.EndsWith('"')))
+        if (
+            (currentPath.StartsWith('\'') && currentPath.EndsWith('\''))
+            || (currentPath.StartsWith('"') && currentPath.EndsWith('"'))
+        )
             currentPath = currentPath[1..^1];
 
         if (currentPath == "*")
             foreach (var property in element.EnumerateObject())
                 ProcessElement(property.Value, new Stack<string>(pathParts.Reverse()), results);
-        else if (element.TryGetProperty(currentPath, out var child)) ProcessElement(child, pathParts, results);
+        else if (element.TryGetProperty(currentPath, out var child))
+            ProcessElement(child, pathParts, results);
     }
 }

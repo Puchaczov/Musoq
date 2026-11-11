@@ -4,5 +4,5 @@ internal enum SourceColumnContract
 {
     FullColumns,
     ProjectedColumns,
-    UnavailableColumns
+    UnavailableColumns,
 }

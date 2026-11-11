@@ -1,5 +1,5 @@
-using Musoq.Tests.Common;
 using Musoq.Schema.Optimization;
+using Musoq.Tests.Common;
 
 namespace Musoq.Examples.DataSources.Csv.Tests;
 
@@ -10,18 +10,15 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
     public void Execution_WhenPredicateIsAccepted_ShouldFilterInsideCsvSource()
     {
         var path = WriteTempCsv(
-            "Name,Amount,Status\n" +
-            "Ada,12.5,Open\n" +
-            "Bob,8,Open\n" +
-            "Cyd,13,Closed\n" +
-            "Dee,15,Hold\n");
+            "Name,Amount,Status\n" + "Ada,12.5,Open\n" + "Bob,8,Open\n" + "Cyd,13,Closed\n" + "Dee,15,Hold\n"
+        );
         var recorder = new CsvDataSourceApiRecorder();
         var query =
-            "table CsvShape { Name: string, Amount: decimal, Status: string };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select r.Name from Rows({SqlString(path)}, true) r " +
-            "where r.Amount >= 10 and r.Status in ('Open', 'Closed') " +
-            "order by r.Name";
+            "table CsvShape { Name: string, Amount: decimal, Status: string };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select r.Name from Rows({SqlString(path)}, true) r "
+            + "where r.Amount >= 10 and r.Status in ('Open', 'Closed') "
+            + "order by r.Name";
 
         var table = Run(query, new CsvSchemaProvider(recorder));
 
@@ -34,18 +31,13 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
     [TestMethod]
     public void Execution_WhenOrderSkipTakeAreAccepted_ShouldSortAndSliceInsideCsvSource()
     {
-        var path = WriteTempCsv(
-            "Name,Amount\n" +
-            "Ada,12\n" +
-            "Bob,30\n" +
-            "Cyd,20\n" +
-            "Dee,15\n");
+        var path = WriteTempCsv("Name,Amount\n" + "Ada,12\n" + "Bob,30\n" + "Cyd,20\n" + "Dee,15\n");
         var recorder = new CsvDataSourceApiRecorder();
         var query =
-            "table CsvShape { Name: string, Amount: int };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select r.Name from Rows({SqlString(path)}, true) r " +
-            "order by r.Amount desc skip 1 take 2";
+            "table CsvShape { Name: string, Amount: int };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select r.Name from Rows({SqlString(path)}, true) r "
+            + "order by r.Amount desc skip 1 take 2";
 
         var table = Run(query, new CsvSchemaProvider(recorder));
 
@@ -64,16 +56,12 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
     [TestMethod]
     public void Execution_WhenAcceptedPredicateUsesUnprojectedColumn_ShouldStillReadPredicateColumn()
     {
-        var path = WriteTempCsv(
-            "Name,Amount\n" +
-            "Ada,12\n" +
-            "Bob,8\n" +
-            "Cyd,20\n");
+        var path = WriteTempCsv("Name,Amount\n" + "Ada,12\n" + "Bob,8\n" + "Cyd,20\n");
         var query =
-            "table CsvShape { Name: string, Amount: int };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select r.Name from Rows({SqlString(path)}, true) r " +
-            "where r.Amount > 10 order by r.Name";
+            "table CsvShape { Name: string, Amount: int };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select r.Name from Rows({SqlString(path)}, true) r "
+            + "where r.Amount > 10 order by r.Name";
 
         var table = Run(query);
 
@@ -85,14 +73,11 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
     [TestMethod]
     public void Execution_WhenColumnIsUnusedByPlan_ShouldNotConvertIt()
     {
-        var path = WriteTempCsv(
-            "Name,Bad\n" +
-            "Ada,not-a-decimal\n" +
-            "Bob,also-bad\n");
+        var path = WriteTempCsv("Name,Bad\n" + "Ada,not-a-decimal\n" + "Bob,also-bad\n");
         var query =
-            "table CsvShape { Name: string, Bad: decimal };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select r.Name from Rows({SqlString(path)}, true) r where r.Name = 'Ada'";
+            "table CsvShape { Name: string, Bad: decimal };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select r.Name from Rows({SqlString(path)}, true) r where r.Name = 'Ada'";
 
         var table = Run(query);
 
@@ -103,16 +88,12 @@ public sealed class CsvSourcePlanningExecutionTests : CsvExampleTestBase
     [TestMethod]
     public void Inspection_WhenOrderSkipTakeAreAccepted_ShouldRemovePhysicalSortAndSlice()
     {
-        var path = WriteTempCsv(
-            "Name,Amount\n" +
-            "Ada,12\n" +
-            "Bob,30\n" +
-            "Cyd,20\n");
+        var path = WriteTempCsv("Name,Amount\n" + "Ada,12\n" + "Bob,30\n" + "Cyd,20\n");
         var query =
-            "table CsvShape { Name: string, Amount: int };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select r.Name from Rows({SqlString(path)}, true) r " +
-            "order by r.Amount desc skip 1 take 1";
+            "table CsvShape { Name: string, Amount: int };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select r.Name from Rows({SqlString(path)}, true) r "
+            + "order by r.Amount desc skip 1 take 1";
 
         var inspection = Inspect(query);
 

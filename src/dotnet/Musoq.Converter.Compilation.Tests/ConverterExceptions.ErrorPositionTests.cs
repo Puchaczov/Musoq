@@ -43,8 +43,7 @@ public class ConverterExceptionsErrorPositionTests
         var query = "SELECT a.nonexistent FROM #system.dual() a";
         var envelopes = CompileAndGetEnvelopes(query);
 
-        Assert.IsGreaterThanOrEqualTo(1, envelopes.Count,
-            $"Expected at least 1 error, got {envelopes.Count}");
+        Assert.IsGreaterThanOrEqualTo(1, envelopes.Count, $"Expected at least 1 error, got {envelopes.Count}");
 
         var env = envelopes[0];
         Assert.AreEqual(DiagnosticCode.MQ3001_UnknownColumn, env.Code);
@@ -194,8 +193,7 @@ public class ConverterExceptionsErrorPositionTests
         var query = "SELECT Dummy, 1 FROM #system.dual() GROUP BY Dummy HAVING Dummy = 'x' AND missing = 1";
         var envelopes = CompileAndGetEnvelopes(query);
 
-        Assert.IsGreaterThanOrEqualTo(1, envelopes.Count,
-            $"Expected at least 1 error but got {envelopes.Count}");
+        Assert.IsGreaterThanOrEqualTo(1, envelopes.Count, $"Expected at least 1 error but got {envelopes.Count}");
 
         var unknownColEnvelope = envelopes.FirstOrDefault(e => e.Code == DiagnosticCode.MQ3001_UnknownColumn);
         Assert.IsNotNull(unknownColEnvelope);
@@ -225,8 +223,11 @@ public class ConverterExceptionsErrorPositionTests
     private static MusoqErrorEnvelope CompileAndGetSingleEnvelope(string query)
     {
         var envelopes = CompileAndGetEnvelopes(query);
-        Assert.HasCount(1, envelopes,
-            $"Expected 1 error but got {envelopes.Count}: [{string.Join(", ", envelopes.Select(e => $"{e.CodeString}: {e.Message}"))}]");
+        Assert.HasCount(
+            1,
+            envelopes,
+            $"Expected 1 error but got {envelopes.Count}: [{string.Join(", ", envelopes.Select(e => $"{e.CodeString}: {e.Message}"))}]"
+        );
         return envelopes[0];
     }
 
@@ -236,7 +237,8 @@ public class ConverterExceptionsErrorPositionTests
             query,
             System.Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
         return result.ToEnvelopes();
     }
 }

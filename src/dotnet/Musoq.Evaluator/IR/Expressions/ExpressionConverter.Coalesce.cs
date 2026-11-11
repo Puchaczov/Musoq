@@ -1,5 +1,5 @@
-using Musoq.Parser.Nodes;
 using System.Collections.Generic;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.IR.Expressions;
 
@@ -16,9 +16,7 @@ public sealed partial class ExpressionConverter
         var expressions = new List<IrExpression>();
         CollectCoalesceExpressions(node, expressions);
 
-        return expressions.Count == 1
-            ? expressions[0]
-            : new Coalesce([.. expressions], RequireReturnType(node));
+        return expressions.Count == 1 ? expressions[0] : new Coalesce([.. expressions], RequireReturnType(node));
     }
 
     private void CollectCoalesceExpressions(Node node, ICollection<IrExpression> expressions)

@@ -14,7 +14,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         int schemaFromIndex,
         CteDefinitionPruningPlan pruningPlan,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         definition = ApplyCteDefinitionPruning(definition, pruningPlan);
         var cteName = CreateCteTableName(index, cteDefinitionNames);
@@ -26,10 +27,9 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             scopeAggregateVariables: true,
-            scope: scope);
+            scope: scope
+        );
 
-        return _compilationOptions.UseCteSidecarIndexes
-            ? ApplyCteRowBufferCapacity(result)
-            : result;
+        return _compilationOptions.UseCteSidecarIndexes ? ApplyCteRowBufferCapacity(result) : result;
     }
 }

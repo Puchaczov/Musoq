@@ -15,17 +15,21 @@ public sealed partial class ProjectionSensitiveWildcardTests
     private const int DeterministicThreshold = -1_000_000;
 
     private const string PipelineQuery =
-        "select * exclude (Other) replace (Score + 1 as Score) from #wildcard.rows() a " +
-        "where a.Other = 'source-column' order by a.Score desc";
+        "select * exclude (Other) replace (Score + 1 as Score) from #wildcard.rows() a "
+        + "where a.Other = 'source-column' order by a.Score desc";
 
     [TestMethod]
     public void LegacyObjectRows_ShouldBeRejectedBeforeOpeningTheSource()
     {
         var recorder = new ProjectionSensitiveWildcardRecorder();
         var exception = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
-            InstanceCreator.CompileForExecution(PipelineQuery, Guid.NewGuid().ToString(),
+            InstanceCreator.CompileForExecution(
+                PipelineQuery,
+                Guid.NewGuid().ToString(),
                 new ProjectionSensitiveWildcardSchemaProvider(recorder, queryScopedRowsEnabled: false),
-                new TestsLoggerResolver()));
+                new TestsLoggerResolver()
+            )
+        );
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, exception.PrimaryEnvelope.Code);
         Assert.Contains("native query-scoped transfer", exception.Message);
         Assert.IsEmpty(recorder.ExecutionContexts);
@@ -40,7 +44,8 @@ public sealed partial class ProjectionSensitiveWildcardTests
             PipelineQuery,
             Guid.NewGuid().ToString(),
             new ProjectionSensitiveWildcardSchemaProvider(recorder, queryScopedRowsEnabled: true),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         using var table = query.Run();
 
@@ -48,16 +53,19 @@ public sealed partial class ProjectionSensitiveWildcardTests
             table,
             ("Id", typeof(int)),
             ("Name", typeof(string)),
-            ("Score", typeof(int)));
+            ("Score", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", 11]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
         Assert.IsEmpty(recorder.ExecutionContexts);
         Assert.IsNotEmpty(recorder.QueryScopedExecutionContexts);
         Assert.IsNotEmpty(recorder.QueryScopedShapes);
         Assert.IsTrue(
-            recorder.QueryScopedShapes.SelectMany(static shape => shape).Any(static field =>
-                string.Equals(field.Name, "Other", StringComparison.OrdinalIgnoreCase)),
-            "Query-scoped transfer must carry the excluded predicate column.");
+            recorder
+                .QueryScopedShapes.SelectMany(static shape => shape)
+                .Any(static field => string.Equals(field.Name, "Other", StringComparison.OrdinalIgnoreCase)),
+            "Query-scoped transfer must carry the excluded predicate column."
+        );
     }
 
     [TestMethod]
@@ -68,7 +76,8 @@ public sealed partial class ProjectionSensitiveWildcardTests
             PipelineQuery,
             Guid.NewGuid().ToString(),
             new ProjectionSensitiveWildcardSchemaProvider(recorder),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         Assert.IsFalse(string.IsNullOrWhiteSpace(inspection.GeneratedCSharpCode));
         Assert.IsTrue(inspection.Diagnostics.All(static diagnostic => !diagnostic.IsError));
@@ -84,7 +93,8 @@ public sealed partial class ProjectionSensitiveWildcardTests
             PipelineQuery,
             Guid.NewGuid().ToString(),
             new ProjectionSensitiveWildcardSchemaProvider(validRecorder),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         Assert.IsTrue(valid.Succeeded, string.Join(Environment.NewLine, valid.Errors));
         Assert.IsTrue(valid.Diagnostics.All(static diagnostic => !diagnostic.IsError));
@@ -94,18 +104,19 @@ public sealed partial class ProjectionSensitiveWildcardTests
             "select * exclude (Missing) from #wildcard.rows() a",
             Guid.NewGuid().ToString(),
             new ProjectionSensitiveWildcardSchemaProvider(new ProjectionSensitiveWildcardRecorder()),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         Assert.IsFalse(invalid.Succeeded);
-        Assert.IsTrue(invalid.Errors.Any(static diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ3041_StarExcludeColumnNotFound));
+        Assert.IsTrue(
+            invalid.Errors.Any(static diagnostic => diagnostic.Code == DiagnosticCode.MQ3041_StarExcludeColumnNotFound)
+        );
     }
 
     [TestMethod]
     public void RepeatedCompilation_ShouldReuseSemanticExecutionArtifactWithoutChangingResults()
     {
-        var queryText =
-            $"select * exclude (Other) from #wildcard.rows() a where a.Id > {DeterministicThreshold}";
+        var queryText = $"select * exclude (Other) from #wildcard.rows() a where a.Id > {DeterministicThreshold}";
         var recorder = new ProjectionSensitiveWildcardRecorder();
         var provider = new ProjectionSensitiveWildcardSchemaProvider(recorder);
 
@@ -113,7 +124,8 @@ public sealed partial class ProjectionSensitiveWildcardTests
             queryText,
             $"ProjectionSensitiveWildcardCacheFirst_{Guid.NewGuid():N}",
             provider,
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
         Assert.IsTrue(first.Succeeded, string.Join(Environment.NewLine, first.Errors));
         Assert.IsNotNull(first.BuildItems);
         Assert.IsFalse(first.BuildItems.StopAfterPlanning);
@@ -125,7 +137,8 @@ public sealed partial class ProjectionSensitiveWildcardTests
             queryText,
             $"ProjectionSensitiveWildcardCacheSecond_{Guid.NewGuid():N}",
             provider,
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
         Assert.IsTrue(second.Succeeded, string.Join(Environment.NewLine, second.Errors));
         Assert.IsNotNull(second.BuildItems);
         Assert.IsTrue(second.BuildItems.StopAfterPlanning);
@@ -137,14 +150,18 @@ public sealed partial class ProjectionSensitiveWildcardTests
     [TestMethod]
     public void StaticSchemaStar_ShouldRetainExistingExpansionBehavior()
     {
-        using var table = InstanceCreator.CompileForExecution(
+        using var table = InstanceCreator
+            .CompileForExecution(
                 "select * from #A.entities() a where a.Population > 0",
                 Guid.NewGuid().ToString(),
-                new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-                {
-                    ["#A"] = [new BasicEntity("Ada", 50m) { Population = 10m }]
-                }),
-                new TestsLoggerResolver())
+                new BasicSchemaProvider<BasicEntity>(
+                    new Dictionary<string, IEnumerable<BasicEntity>>
+                    {
+                        ["#A"] = [new BasicEntity("Ada", 50m) { Population = 10m }],
+                    }
+                ),
+                new TestsLoggerResolver()
+            )
             .Run();
 
         Assert.AreEqual(9, table.Columns.Count());

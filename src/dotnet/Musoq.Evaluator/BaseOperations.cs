@@ -28,9 +28,11 @@ public abstract class BaseOperations
         ArgumentNullException.ThrowIfNull(second);
         var result = new Table($"{first.Name}UnionAll{second.Name}", first.Columns.ToArray());
 
-        foreach (var row in first) result.AddUnchecked(row);
+        foreach (var row in first)
+            result.AddUnchecked(row);
 
-        foreach (var row in second) result.AddUnchecked(row);
+        foreach (var row in second)
+            result.AddUnchecked(row);
 
         return result;
     }

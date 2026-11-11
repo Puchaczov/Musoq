@@ -16,17 +16,21 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionCreateSingleKeyAggregateContext Context,
         ExecutionSourceLoop AccumulationLoop,
         ExecutionEnsureTableCapacity EnsureCapacity,
-        ExecutionForEach FinalizationLoop);
+        ExecutionForEach FinalizationLoop
+    );
 
     private static SingleKeyAggregateHelper? CreateSingleKeyHashAggregateHelper(
         IReadOnlyList<ExecutionNode> nodes,
-        int startIndex)
+        int startIndex
+    )
     {
-        if (startIndex + 3 >= nodes.Count ||
-            nodes[startIndex] is not ExecutionCreateSingleKeyAggregateContext context ||
-            nodes[startIndex + 1] is not ExecutionSourceLoop accumulationLoop ||
-            nodes[startIndex + 2] is not ExecutionEnsureTableCapacity ensureCapacity ||
-            nodes[startIndex + 3] is not ExecutionForEach finalizationLoop)
+        if (
+            startIndex + 3 >= nodes.Count
+            || nodes[startIndex] is not ExecutionCreateSingleKeyAggregateContext context
+            || nodes[startIndex + 1] is not ExecutionSourceLoop accumulationLoop
+            || nodes[startIndex + 2] is not ExecutionEnsureTableCapacity ensureCapacity
+            || nodes[startIndex + 3] is not ExecutionForEach finalizationLoop
+        )
         {
             return null;
         }
@@ -37,17 +41,21 @@ public sealed partial class ExecutionCSharpRenderer
             context,
             accumulationLoop,
             ensureCapacity,
-            finalizationLoop);
+            finalizationLoop
+        );
     }
 
     private static ExpressionStatementSyntax CreateHelperInvocationWithArguments(
         string functionName,
-        IReadOnlyList<ArgumentSyntax> arguments)
+        IReadOnlyList<ArgumentSyntax> arguments
+    )
     {
-        var invocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(functionName))
+        var invocation = SyntaxFactory
+            .InvocationExpression(SyntaxFactory.IdentifierName(functionName))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
         return SyntaxFactory.ExpressionStatement(
-            CodegenHelperExtractionMetadata.AnnotateCallSite(invocation, functionName));
+            CodegenHelperExtractionMetadata.AnnotateCallSite(invocation, functionName)
+        );
     }
 
     private static IEnumerable<SingleKeyAggregateHelper> CollectSingleKeyHashAggregateHelpers(ExecutionBlock block)
@@ -56,41 +64,42 @@ public sealed partial class ExecutionCSharpRenderer
             yield return helper;
     }
 
-    private static IEnumerable<(SingleKeyAggregateHelper Helper, int Index)> CollectSingleKeyHashAggregateHelpersWithIndexes(
-        ExecutionBlock block) =>
+    private static IEnumerable<(
+        SingleKeyAggregateHelper Helper,
+        int Index
+    )> CollectSingleKeyHashAggregateHelpersWithIndexes(ExecutionBlock block) =>
         CollectAggregateHelpersWithIndexes(
             block,
             CreateSingleKeyHashAggregateHelper,
-            AssignSingleKeyAggregateHelperNames);
+            AssignSingleKeyAggregateHelperNames
+        );
 
     private static SingleKeyAggregateHelper AssignSingleKeyAggregateHelperNames(
         SingleKeyAggregateHelper helper,
-        int helperIndex) =>
+        int helperIndex
+    ) =>
         helper with
         {
             PopulateFunctionName = CreateSingleKeyPopulateFunctionName(helper.EnsureCapacity.Table.Name, helperIndex),
-            FinalizeFunctionName = CreateSingleKeyFinalizeFunctionName(helper.EnsureCapacity.Table.Name, helperIndex)
+            FinalizeFunctionName = CreateSingleKeyFinalizeFunctionName(helper.EnsureCapacity.Table.Name, helperIndex),
         };
 
     private static string CreateSingleKeyPopulateFunctionName(string tableName, int helperIndex = 0)
     {
-        var suffix = helperIndex == 0
-            ? string.Empty
-            : helperIndex.ToString(CultureInfo.InvariantCulture);
+        var suffix = helperIndex == 0 ? string.Empty : helperIndex.ToString(CultureInfo.InvariantCulture);
         return $"Populate{CreatePascalIdentifier(tableName)}SingleKeyGroups{suffix}";
     }
 
     private static string CreateSingleKeyFinalizeFunctionName(string tableName, int helperIndex = 0)
     {
-        var suffix = helperIndex == 0
-            ? string.Empty
-            : helperIndex.ToString(CultureInfo.InvariantCulture);
+        var suffix = helperIndex == 0 ? string.Empty : helperIndex.ToString(CultureInfo.InvariantCulture);
         return $"Finalize{CreatePascalIdentifier(tableName)}SingleKeyGroups{suffix}";
     }
 
     private IEnumerable<MethodDeclarationSyntax> CreateSingleKeyAggregateFunctions(
         SingleKeyAggregateHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         yield return CreateSingleKeyPopulateFunction(helper, context);
         yield return CreateSingleKeyFinalizeFunction(helper, context);
@@ -98,52 +107,64 @@ public sealed partial class ExecutionCSharpRenderer
 
     private MethodDeclarationSyntax CreateSingleKeyPopulateFunction(
         SingleKeyAggregateHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var rowsParameterName = CreateSingleKeyRowsParameterName(helper.AccumulationLoop);
         var helperLoop = ReplaceLoopSource(helper.AccumulationLoop, rowsParameterName);
 
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                helper.PopulateFunctionName)
+                helper.PopulateFunctionName
+            )
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
             .WithParameterList(CreateSingleKeyPopulateParameterList(helper, rowsParameterName, context))
-            .WithBody(StatementEmitter.CreateBlock([
-                QueryEmitter.GenerateCancellationCheck(),
-                ..RenderIsolatedHelperBlock(
-                    new ExecutionBlock([helperLoop]),
-                    context,
-                    profileRecorderInScope: IsInstrumentationEnabled,
-                    emitChunkLoopCancellationChecks: true)
-            ]));
+            .WithBody(
+                StatementEmitter.CreateBlock([
+                    QueryEmitter.GenerateCancellationCheck(),
+                    .. RenderIsolatedHelperBlock(
+                        new ExecutionBlock([helperLoop]),
+                        context,
+                        profileRecorderInScope: IsInstrumentationEnabled,
+                        emitChunkLoopCancellationChecks: true
+                    ),
+                ])
+            );
     }
 
     private MethodDeclarationSyntax CreateSingleKeyFinalizeFunction(
         SingleKeyAggregateHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                helper.FinalizeFunctionName)
+                helper.FinalizeFunctionName
+            )
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
             .WithParameterList(CreateSingleKeyFinalizeParameterList(helper, context))
-            .WithBody(StatementEmitter.CreateBlock([
-                QueryEmitter.GenerateCancellationCheck(),
-                ..RenderIsolatedHelperBlock(new ExecutionBlock([
-                    helper.EnsureCapacity,
-                    helper.FinalizationLoop
-                ]), context,
-                    profileRecorderInScope: IsInstrumentationEnabled,
-                    emitChunkLoopCancellationChecks: true)
-            ]));
+            .WithBody(
+                StatementEmitter.CreateBlock([
+                    QueryEmitter.GenerateCancellationCheck(),
+                    .. RenderIsolatedHelperBlock(
+                        new ExecutionBlock([helper.EnsureCapacity, helper.FinalizationLoop]),
+                        context,
+                        profileRecorderInScope: IsInstrumentationEnabled,
+                        emitChunkLoopCancellationChecks: true
+                    ),
+                ])
+            );
     }
 
     private ParameterListSyntax CreateSingleKeyPopulateParameterList(
         SingleKeyAggregateHelper helper,
         string rowsParameterName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var parameters = new List<ParameterSyntax>
         {
@@ -151,41 +172,44 @@ public sealed partial class ExecutionCSharpRenderer
                 rowsParameterName,
                 CreateAggregateRowsParameterType(
                     helper.AccumulationLoop.Source,
-                    CreateVariableTypeSyntax(helper.AccumulationLoop.Item)))
+                    CreateVariableTypeSyntax(helper.AccumulationLoop.Item)
+                )
+            ),
         };
 
         parameters.AddRange(CreateSingleKeyContextParameters(helper.Context, context));
         parameters.Add(CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken))));
         AddProfileRecorderParameter(parameters);
-        parameters.AddRange(CollectSingleKeyPopulateCaptures(helper)
-            .Select(CreateCapturedLocalParameter));
+        parameters.AddRange(CollectSingleKeyPopulateCaptures(helper).Select(CreateCapturedLocalParameter));
 
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
     private ParameterListSyntax CreateSingleKeyFinalizeParameterList(
         SingleKeyAggregateHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var parameters = new List<ParameterSyntax>
         {
-            CreateParameter(helper.EnsureCapacity.Table.Name, CreateAggregateOutputTargetType(helper.EnsureCapacity.Table, context)),
+            CreateParameter(
+                helper.EnsureCapacity.Table.Name,
+                CreateAggregateOutputTargetType(helper.EnsureCapacity.Table, context)
+            ),
             CreateParameter(
                 helper.Context.GroupsToFinalize.Name,
-                CreateListTypeSyntax(CreateAggregateGroupType(helper.Context.GroupShape, context)))
+                CreateListTypeSyntax(CreateAggregateGroupType(helper.Context.GroupShape, context))
+            ),
         };
 
         AddProfileRecorderParameter(parameters);
         parameters.Insert(2, CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken))));
-        parameters.AddRange(CollectSingleKeyFinalizeCaptures(helper)
-            .Select(CreateCapturedLocalParameter));
+        parameters.AddRange(CollectSingleKeyFinalizeCaptures(helper).Select(CreateCapturedLocalParameter));
 
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
-    private TypeSyntax CreateAggregateOutputTargetType(
-        ExecutionVariable table,
-        ExecutionRenderContext context)
+    private TypeSyntax CreateAggregateOutputTargetType(ExecutionVariable table, ExecutionRenderContext context)
     {
         return TryGetTypedRowBufferShape(table.Name, context, out var rowShape)
             ? CreateListTypeSyntax(rowShape.TypeName)
@@ -194,14 +218,21 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IEnumerable<ParameterSyntax> CreateSingleKeyContextParameters(
         ExecutionCreateSingleKeyAggregateContext aggregateContext,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         foreach (var rootLevel in aggregateContext.GroupPlan.Levels.Where(static level => level.IsRoot))
-            yield return CreateParameter(aggregateContext.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape, context));
+            yield return CreateParameter(
+                aggregateContext.RootGroup.Name,
+                CreateAggregateGroupType(rootLevel.Shape, context)
+            );
 
         var groupType = CreateAggregateGroupType(aggregateContext.GroupShape, context);
         yield return CreateParameter(aggregateContext.GroupsToFinalize.Name, CreateListTypeSyntax(groupType));
-        yield return CreateParameter(aggregateContext.Groups.Name, CreateGroupDictionaryTypeSyntax(aggregateContext.KeyType, groupType));
+        yield return CreateParameter(
+            aggregateContext.Groups.Name,
+            CreateGroupDictionaryTypeSyntax(aggregateContext.KeyType, groupType)
+        );
 
         if (aggregateContext.NullGroup is not null)
         {
@@ -212,17 +243,20 @@ public sealed partial class ExecutionCSharpRenderer
 
     private List<ArgumentSyntax> CreateSingleKeyPopulateArguments(
         SingleKeyAggregateHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var arguments = new List<ArgumentSyntax>
         {
-            SyntaxFactory.Argument(RenderExpression(helper.AccumulationLoop.Source, context))
+            SyntaxFactory.Argument(RenderExpression(helper.AccumulationLoop.Source, context)),
         };
         arguments.AddRange(CreateSingleKeyContextArguments(helper.Context));
         arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")));
         AddProfileRecorderArgument(arguments);
-        arguments.AddRange(CollectSingleKeyPopulateCaptures(helper)
-            .Select(capture => SyntaxFactory.Argument(CreateCapturedLocalArgument(capture))));
+        arguments.AddRange(
+            CollectSingleKeyPopulateCaptures(helper)
+                .Select(capture => SyntaxFactory.Argument(CreateCapturedLocalArgument(capture)))
+        );
         return arguments;
     }
 
@@ -232,16 +266,16 @@ public sealed partial class ExecutionCSharpRenderer
         {
             SyntaxFactory.IdentifierName(helper.EnsureCapacity.Table.Name),
             SyntaxFactory.IdentifierName(helper.Context.GroupsToFinalize.Name),
-            SyntaxFactory.IdentifierName("token")
+            SyntaxFactory.IdentifierName("token"),
         };
         AddProfileRecorderArgument(arguments);
-        arguments.AddRange(CollectSingleKeyFinalizeCaptures(helper)
-            .Select(CreateCapturedLocalArgument));
+        arguments.AddRange(CollectSingleKeyFinalizeCaptures(helper).Select(CreateCapturedLocalArgument));
         return arguments;
     }
 
     private static IEnumerable<ArgumentSyntax> CreateSingleKeyContextArguments(
-        ExecutionCreateSingleKeyAggregateContext context)
+        ExecutionCreateSingleKeyAggregateContext context
+    )
     {
         foreach (var _ in context.GroupPlan.Levels.Where(static level => level.IsRoot))
             yield return SyntaxFactory.Argument(SyntaxFactory.IdentifierName(context.RootGroup.Name));
@@ -251,7 +285,8 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (context.NullGroup is not null)
         {
-            yield return SyntaxFactory.Argument(SyntaxFactory.IdentifierName(context.NullGroup.Name))
+            yield return SyntaxFactory
+                .Argument(SyntaxFactory.IdentifierName(context.NullGroup.Name))
                 .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.RefKeyword));
         }
     }
@@ -263,7 +298,7 @@ public sealed partial class ExecutionCSharpRenderer
             helper.AccumulationLoop.Item.Name,
             helper.Context.RootGroup.Name,
             helper.Context.Groups.Name,
-            helper.Context.GroupsToFinalize.Name
+            helper.Context.GroupsToFinalize.Name,
         };
         AddProfileRecorderExcludedName(excludedNames);
 
@@ -284,7 +319,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             helper.FinalizationLoop.Item.Name,
             helper.EnsureCapacity.Table.Name,
-            helper.Context.GroupsToFinalize.Name
+            helper.Context.GroupsToFinalize.Name,
         };
         AddProfileRecorderExcludedName(excludedNames);
 
@@ -298,8 +333,6 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateSingleKeyRowsParameterName(ExecutionSourceLoop loop)
     {
-        return loop.Source is ExecutionVariableRead variableRead
-            ? variableRead.Variable.Name
-            : "rows";
+        return loop.Source is ExecutionVariableRead variableRead ? variableRead.Variable.Name : "rows";
     }
 }

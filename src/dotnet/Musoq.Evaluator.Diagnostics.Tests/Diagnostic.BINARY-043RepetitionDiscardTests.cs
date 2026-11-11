@@ -15,18 +15,22 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
     public void BinaryRepeatUntil_LastElementReference_ShouldStopAfterTerminator()
     {
         var registry = new SchemaRegistry();
-        registry.Register("Record", new BinarySchemaNode("Record",
-        [
-            new FieldDefinitionNode("Type", ByteType()),
-            new FieldDefinitionNode("Value", ByteType())
-        ]));
+        registry.Register(
+            "Record",
+            new BinarySchemaNode(
+                "Record",
+                [new FieldDefinitionNode("Type", ByteType()), new FieldDefinitionNode("Value", ByteType())]
+            )
+        );
 
         var lastRecord = new ArrayIndexNode(
             new IdentifierNode("Records"),
-            new HyphenNode(new IntegerNode(0, new TextSpan(0, 0)), new IntegerNode(1, new TextSpan(0, 0))));
+            new HyphenNode(new IntegerNode(0, new TextSpan(0, 0)), new IntegerNode(1, new TextSpan(0, 0)))
+        );
         var condition = new EqualityNode(
             new DotNode(lastRecord, new IdentifierNode("Type"), "Type"),
-            new IntegerNode(0, new TextSpan(0, 0)));
+            new IntegerNode(0, new TextSpan(0, 0))
+        );
         var repeat = new RepeatUntilTypeNode(new SchemaReferenceTypeNode("Record"), condition, "Records");
         registry.Register("Stream", new BinarySchemaNode("Stream", [new FieldDefinitionNode("Records", repeat)]));
 
@@ -46,8 +50,7 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
         var repeat = new RepeatUntilTypeNode(ByteType(), new BooleanNode(true), "Values");
         var interpreter = CreateAndCompileInterpreter("DoWhile", new FieldDefinitionNode("Values", repeat));
 
-        var exception = Assert.ThrowsExactly<BinaryParseException>(
-            () => InvokeInterpret(interpreter, []));
+        var exception = Assert.ThrowsExactly<BinaryParseException>(() => InvokeInterpret(interpreter, []));
 
         Assert.AreEqual(ParseErrorCode.InsufficientData, exception.ErrorCode);
         Assert.AreEqual("DoWhile", exception.SchemaName);
@@ -60,7 +63,8 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
     {
         var repeat = RepeatUntilTypeNode.EndOfInput(
             new ByteArrayTypeNode(new IntegerNode(2, new TextSpan(0, 0))),
-            "Chunks");
+            "Chunks"
+        );
         var interpreter = CreateAndCompileInterpreter("ChunkStream", new FieldDefinitionNode("Chunks", repeat));
 
         var empty = InvokeInterpret(interpreter, []);
@@ -79,8 +83,9 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
         var repeat = new RepeatUntilTypeNode(ByteType(), new BooleanNode(false), "Values");
         var interpreter = CreateAndCompileInterpreter("ConditionLimit", new FieldDefinitionNode("Values", repeat));
 
-        var exception = Assert.ThrowsExactly<BinaryParseException>(
-            () => InvokeInterpret(interpreter, new byte[10_001]));
+        var exception = Assert.ThrowsExactly<BinaryParseException>(() =>
+            InvokeInterpret(interpreter, new byte[10_001])
+        );
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("ConditionLimit", exception.SchemaName);
@@ -96,8 +101,9 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
         var repeat = RepeatUntilTypeNode.EndOfInput(ByteType(), "Values");
         var interpreter = CreateAndCompileInterpreter("EofLimit", new FieldDefinitionNode("Values", repeat));
 
-        var exception = Assert.ThrowsExactly<BinaryParseException>(
-            () => InvokeInterpret(interpreter, new byte[10_001]));
+        var exception = Assert.ThrowsExactly<BinaryParseException>(() =>
+            InvokeInterpret(interpreter, new byte[10_001])
+        );
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("EofLimit", exception.SchemaName);
@@ -111,11 +117,11 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
     {
         var repeat = RepeatUntilTypeNode.EndOfInput(
             new ByteArrayTypeNode(new IntegerNode(0, new TextSpan(0, 0))),
-            "Chunks");
+            "Chunks"
+        );
         var interpreter = CreateAndCompileInterpreter("ZeroProgress", new FieldDefinitionNode("Chunks", repeat));
 
-        var exception = Assert.ThrowsExactly<BinaryParseException>(
-            () => InvokeInterpret(interpreter, [0xAA]));
+        var exception = Assert.ThrowsExactly<BinaryParseException>(() => InvokeInterpret(interpreter, [0xAA]));
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("ZeroProgress", exception.SchemaName);
@@ -130,7 +136,8 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
     {
         var lastDiscard = new ArrayIndexNode(
             new IdentifierNode("_"),
-            new HyphenNode(new IntegerNode(0, new TextSpan(0, 0)), new IntegerNode(1, new TextSpan(0, 0))));
+            new HyphenNode(new IntegerNode(0, new TextSpan(0, 0)), new IntegerNode(1, new TextSpan(0, 0)))
+        );
         var repeatCondition = new EqualityNode(lastDiscard, new IntegerNode(0, new TextSpan(0, 0)));
         var repeat = new RepeatUntilTypeNode(ByteType(), repeatCondition, "_");
         var when = new EqualityNode(new IdentifierNode("Flag"), new IntegerNode(1, new TextSpan(0, 0)));
@@ -138,7 +145,8 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
             "ConditionalDiscard",
             new FieldDefinitionNode("Flag", ByteType()),
             new FieldDefinitionNode("_", repeat, null, null, when),
-            new FieldDefinitionNode("Tail", ByteType()));
+            new FieldDefinitionNode("Tail", ByteType())
+        );
 
         var parsed = InvokeInterpret(interpreter, [1, 0xAA, 0x00, 0xBB]);
         Assert.AreEqual((byte)0xBB, GetPropertyValue<byte>(parsed, "Tail"));
@@ -152,5 +160,4 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
     {
         return new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable);
     }
-
 }

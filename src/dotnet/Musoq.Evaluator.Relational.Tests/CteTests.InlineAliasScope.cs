@@ -40,8 +40,7 @@ public partial class CteTests
 
     private void AssertInlineCteIntegerResult(string query, string outputName)
     {
-        using var compiled = CreateAndRunVirtualMachine(query,
-            new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var result = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(result, (outputName, typeof(int)));

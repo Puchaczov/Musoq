@@ -20,31 +20,39 @@ var queryDirectory = Path.Combine(
     "examples",
     "data-sources",
     "structured-inputs",
-    "queries");
+    "queries"
+);
 var manifestPath = Path.Combine(queryDirectory, "manifest.json");
-var cases = JsonSerializer.Deserialize<QueryCase[]>(
-                File.ReadAllText(manifestPath),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-            ?? throw new InvalidOperationException("The structured-input query manifest is empty.");
+var cases =
+    JsonSerializer.Deserialize<QueryCase[]>(
+        File.ReadAllText(manifestPath),
+        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+    ) ?? throw new InvalidOperationException("The structured-input query manifest is empty.");
 
 var nativePatterns = new PatternInput[]
 {
     new("todo", "TODO"),
     new("fixme", "FIXME"),
-    new("issue", "ISSUE-[0-9]+", "regex")
+    new("issue", "ISSUE-[0-9]+", "regex"),
 };
 var nativeMatches = StructuredInputOperations.Match("TODO FIXME ISSUE-42", nativePatterns);
 var nativeNumbers = StructuredInputOperations.Numbers([1, 2, 2, 3]);
-var nativeMatrix = StructuredInputOperations.Matrix([[1, 2], [3], []]);
+var nativeMatrix = StructuredInputOperations.Matrix([
+    [1, 2],
+    [3],
+    [],
+]);
 var nativeWeighted = StructuredInputOperations.Weighted([
     new WeightedInput(10, 1.5m),
-    new WeightedInput(20, 2.5m, false)
+    new WeightedInput(20, 2.5m, false),
 ]);
 
 Console.WriteLine($"native.match={nativeMatches.Length} first={nativeMatches[0].PatternId}:{nativeMatches[0].Offset}");
 Console.WriteLine($"native.numbers={string.Join(',', nativeNumbers.Select(static row => row.Value))}");
 Console.WriteLine($"native.matrix={string.Join(',', nativeMatrix.Select(static row => row.Value))}");
-Console.WriteLine($"native.weighted={string.Join(',', nativeWeighted.Select(static row => $"{row.Value}:{row.Weight.ToString(CultureInfo.InvariantCulture)}:{row.Enabled}"))}");
+Console.WriteLine(
+    $"native.weighted={string.Join(',', nativeWeighted.Select(static row => $"{row.Value}:{row.Weight.ToString(CultureInfo.InvariantCulture)}:{row.Enabled}"))}"
+);
 
 foreach (var testCase in cases)
 {
@@ -59,31 +67,47 @@ foreach (var testCase in cases)
         $"structured-input-example-{testCase.Name}",
         new StructuredInputsSchemaProvider(),
         new NullLoggerResolver(),
-        new CompilationOptions(usePrimitiveTypeValidation: false));
+        new CompilationOptions(usePrimitiveTypeValidation: false)
+    );
     if (!build.Succeeded || build.CompiledQuery is null)
     {
-        var details = build.CaughtException?.ToString() ?? string.Join(Environment.NewLine, build.Diagnostics.Select(static diagnostic => diagnostic.ToString()));
-        throw new InvalidOperationException($"Example '{testCase.Name}' failed to compile.{Environment.NewLine}{details}");
+        var details =
+            build.CaughtException?.ToString()
+            ?? string.Join(Environment.NewLine, build.Diagnostics.Select(static diagnostic => diagnostic.ToString()));
+        throw new InvalidOperationException(
+            $"Example '{testCase.Name}' failed to compile.{Environment.NewLine}{details}"
+        );
     }
 
     using var compiled = build.CompiledQuery;
     if (string.Equals(testCase.Host, "patterns", StringComparison.Ordinal))
-        compiled.TypedParameters.SetJson("patterns", System.Text.Json.JsonSerializer.SerializeToElement(CreateHostPatterns()));
+        compiled.TypedParameters.SetJson(
+            "patterns",
+            System.Text.Json.JsonSerializer.SerializeToElement(CreateHostPatterns())
+        );
 
     using var table = compiled.Run();
     var columns = table.Columns.Count();
     var rows = table.Rows.Count;
     if (testCase.Columns is int expectedColumns && columns != expectedColumns)
-        throw new InvalidOperationException($"Example '{testCase.Name}' returned {columns} columns; expected {expectedColumns}.");
+        throw new InvalidOperationException(
+            $"Example '{testCase.Name}' returned {columns} columns; expected {expectedColumns}."
+        );
     if (testCase.Rows is int expectedRows && rows != expectedRows)
-        throw new InvalidOperationException($"Example '{testCase.Name}' returned {rows} rows; expected {expectedRows}.");
+        throw new InvalidOperationException(
+            $"Example '{testCase.Name}' returned {rows} rows; expected {expectedRows}."
+        );
     if (testCase.First is { Length: > 0 })
     {
         if (rows == 0)
-            throw new InvalidOperationException($"Example '{testCase.Name}' has expected first-row values but returned no rows.");
+            throw new InvalidOperationException(
+                $"Example '{testCase.Name}' has expected first-row values but returned no rows."
+            );
         var firstRow = table.Rows[0];
         if (testCase.First.Length > columns)
-            throw new InvalidOperationException($"Example '{testCase.Name}' specifies more first-row values than columns.");
+            throw new InvalidOperationException(
+                $"Example '{testCase.Name}' specifies more first-row values than columns."
+            );
         var comparison = new ManifestValueVisitor(testCase.First, testCase.Name);
         firstRow.VisitColumns(ref comparison);
     }
@@ -100,16 +124,8 @@ static List<Dictionary<string, object?>> CreateHostPatterns()
 {
     return new List<Dictionary<string, object?>>
     {
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Id"] = "todo",
-            ["Pattern"] = "TODO"
-        },
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Pattern"] = "FIXME",
-            ["Id"] = "fixme"
-        }
+        new(StringComparer.OrdinalIgnoreCase) { ["Id"] = "todo", ["Pattern"] = "TODO" },
+        new(StringComparer.OrdinalIgnoreCase) { ["Pattern"] = "FIXME", ["Id"] = "fixme" },
     };
 }
 static int ReadCounter(string name)
@@ -127,29 +143,31 @@ static int ReadCounter(string name)
         "strict" => StructuredInputSourceCounters.StrictConstructed,
         "mutable" => StructuredInputSourceCounters.MutableConstructed,
         "throwing" => StructuredInputSourceCounters.ThrowingConstructed,
-        _ => throw new InvalidOperationException($"Unknown source counter '{name}'.")
+        _ => throw new InvalidOperationException($"Unknown source counter '{name}'."),
     };
 }
 
 static int ReadTotalCounter()
 {
-    return StructuredInputSourceCounters.MatchConstructed +
-           StructuredInputSourceCounters.ConfigureConstructed +
-           StructuredInputSourceCounters.NumbersConstructed +
-           StructuredInputSourceCounters.MatrixConstructed +
-           StructuredInputSourceCounters.WeightedConstructed +
-           StructuredInputSourceCounters.OverloadConstructed +
-           StructuredInputSourceCounters.DefaultConflictConstructed +
-           StructuredInputSourceCounters.ContextProbeConstructed +
-           StructuredInputSourceCounters.StrictConstructed +
-           StructuredInputSourceCounters.MutableConstructed +
-           StructuredInputSourceCounters.ThrowingConstructed;
+    return StructuredInputSourceCounters.MatchConstructed
+        + StructuredInputSourceCounters.ConfigureConstructed
+        + StructuredInputSourceCounters.NumbersConstructed
+        + StructuredInputSourceCounters.MatrixConstructed
+        + StructuredInputSourceCounters.WeightedConstructed
+        + StructuredInputSourceCounters.OverloadConstructed
+        + StructuredInputSourceCounters.DefaultConflictConstructed
+        + StructuredInputSourceCounters.ContextProbeConstructed
+        + StructuredInputSourceCounters.StrictConstructed
+        + StructuredInputSourceCounters.MutableConstructed
+        + StructuredInputSourceCounters.ThrowingConstructed;
 }
 
 static string FindRepositoryRoot()
 {
     var directory = new DirectoryInfo(AppContext.BaseDirectory);
-    while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "specs", "musoq-core-language-spec.md")))
+    while (
+        directory is not null && !File.Exists(Path.Combine(directory.FullName, "specs", "musoq-core-language-spec.md"))
+    )
         directory = directory.Parent;
     return directory?.FullName ?? throw new InvalidOperationException("Repository root was not found.");
 }
@@ -169,6 +187,7 @@ sealed class QueryCase
 sealed class NullLoggerResolver : ILoggerResolver
 {
     public ILogger ResolveLogger() => NullLogger.Instance;
+
     public ILogger<T> ResolveLogger<T>() => NullLogger<T>.Instance;
 }
 
@@ -176,17 +195,28 @@ sealed class ManifestValueVisitor(JsonElement[] expected, string name) : Musoq.S
 {
     public void Visit<T>(int columnIndex, in T value)
     {
-        if (columnIndex >= expected.Length) return;
+        if (columnIndex >= expected.Length)
+            return;
         var actual = JsonSerializer.SerializeToElement(value);
         var item = expected[columnIndex];
-        var matches = item.ValueKind == actual.ValueKind && (item.ValueKind switch
-        {
-            JsonValueKind.Null or JsonValueKind.True or JsonValueKind.False => true,
-            JsonValueKind.String => string.Equals(item.GetString(), actual.GetString(), StringComparison.Ordinal),
-            JsonValueKind.Number => item.GetDecimal() == actual.GetDecimal(),
-            _ => false
-        });
+        var matches =
+            item.ValueKind == actual.ValueKind
+            && (
+                item.ValueKind switch
+                {
+                    JsonValueKind.Null or JsonValueKind.True or JsonValueKind.False => true,
+                    JsonValueKind.String => string.Equals(
+                        item.GetString(),
+                        actual.GetString(),
+                        StringComparison.Ordinal
+                    ),
+                    JsonValueKind.Number => item.GetDecimal() == actual.GetDecimal(),
+                    _ => false,
+                }
+            );
         if (!matches)
-            throw new InvalidOperationException($"Example '{name}' first-row column {columnIndex} was '{actual}', which does not match the manifest.");
+            throw new InvalidOperationException(
+                $"Example '{name}' first-row column {columnIndex} was '{actual}', which does not match the manifest."
+            );
     }
 }

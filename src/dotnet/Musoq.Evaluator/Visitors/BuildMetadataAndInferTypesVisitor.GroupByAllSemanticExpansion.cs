@@ -55,5 +55,4 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         return new GroupByNode(fields.ToArray(), groupBy.Having, false, groupBy.Span);
     }
-
 }

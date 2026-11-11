@@ -5,8 +5,7 @@ public readonly record struct CorrelatedScalarSubqueryResult<T>(T Value, byte Ca
 
 public static class CorrelatedScalarSubqueryResultExtractor
 {
-    [System.Runtime.CompilerServices.MethodImpl(
-        System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public static T GetValue<T>(CorrelatedScalarSubqueryResult<T> result)
     {
         if (result.Cardinality > 1)
@@ -15,8 +14,7 @@ public static class CorrelatedScalarSubqueryResultExtractor
         return result.Cardinality == 0 ? default! : result.Value;
     }
 
-    [System.Runtime.CompilerServices.MethodImpl(
-        System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public static T GetValue<T>(CorrelatedScalarSubqueryResult<T>? result)
     {
         return result.HasValue ? GetValue(result.GetValueOrDefault()) : default!;

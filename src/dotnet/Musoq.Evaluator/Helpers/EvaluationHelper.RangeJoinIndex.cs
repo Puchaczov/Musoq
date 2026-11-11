@@ -12,10 +12,7 @@ public sealed class RangeJoinIndex<TRow, TKey>
     private readonly IPartitionLookup? _partitionedEntries;
     private readonly BinaryOpKind _comparisonKind;
 
-    private RangeJoinIndex(
-        RangeJoinEntry[] entries,
-        IPartitionLookup? partitionedEntries,
-        BinaryOpKind comparisonKind)
+    private RangeJoinIndex(RangeJoinEntry[] entries, IPartitionLookup? partitionedEntries, BinaryOpKind comparisonKind)
     {
         _entries = entries;
         _partitionedEntries = partitionedEntries;
@@ -25,7 +22,8 @@ public sealed class RangeJoinIndex<TRow, TKey>
     public static RangeJoinIndex<TRow, TKey> Create(
         IEnumerable<TRow> candidates,
         Func<TRow, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
     {
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(keySelector);
@@ -56,7 +54,8 @@ public sealed class RangeJoinIndex<TRow, TKey>
         IEnumerable<TRow> candidates,
         Func<TRow, TPartitionKey> partitionKeySelector,
         Func<TRow, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
     {
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(partitionKeySelector);
@@ -74,7 +73,8 @@ public sealed class RangeJoinIndex<TRow, TKey>
     public static RangeJoinIndex<TRow, TKey> CreateFromChunks(
         IEnumerable<IReadOnlyList<TRow>> candidateChunks,
         Func<TRow, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
     {
         ArgumentNullException.ThrowIfNull(candidateChunks);
         ArgumentNullException.ThrowIfNull(keySelector);
@@ -113,7 +113,8 @@ public sealed class RangeJoinIndex<TRow, TKey>
         IEnumerable<IReadOnlyList<TRow>> candidateChunks,
         Func<TRow, TPartitionKey> partitionKeySelector,
         Func<TRow, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
     {
         ArgumentNullException.ThrowIfNull(candidateChunks);
         ArgumentNullException.ThrowIfNull(partitionKeySelector);
@@ -144,9 +145,12 @@ public sealed class RangeJoinIndex<TRow, TKey>
 
     public RangeJoinMatch Find<TPartitionKey>(TPartitionKey partitionKey, TKey probeValue)
     {
-        if (partitionKey is null || IsNullKey(probeValue) ||
-            _partitionedEntries is not PartitionLookup<TPartitionKey> partitions ||
-            !partitions.Entries.TryGetValue(partitionKey, out var entries))
+        if (
+            partitionKey is null
+            || IsNullKey(probeValue)
+            || _partitionedEntries is not PartitionLookup<TPartitionKey> partitions
+            || !partitions.Entries.TryGetValue(partitionKey, out var entries)
+        )
         {
             return RangeJoinMatch.Empty;
         }
@@ -161,9 +165,12 @@ public sealed class RangeJoinIndex<TRow, TKey>
             BinaryOpKind.GreaterThan => CreateMatch(entries, 0, FindFirstGreaterOrEqual(entries, probeValue)),
             BinaryOpKind.GreaterOrEqual => CreateMatch(entries, 0, FindFirstGreaterThan(entries, probeValue)),
             BinaryOpKind.LessThan => CreateMatch(entries, FindFirstGreaterThan(entries, probeValue), entries.Length),
-            BinaryOpKind.LessOrEqual => CreateMatch(entries, FindFirstGreaterOrEqual(entries, probeValue), entries.Length),
-            _ => throw new InvalidOperationException(
-                $"Unsupported range join comparison kind '{_comparisonKind}'.")
+            BinaryOpKind.LessOrEqual => CreateMatch(
+                entries,
+                FindFirstGreaterOrEqual(entries, probeValue),
+                entries.Length
+            ),
+            _ => throw new InvalidOperationException($"Unsupported range join comparison kind '{_comparisonKind}'."),
         };
     }
 
@@ -218,7 +225,8 @@ public sealed class RangeJoinIndex<TRow, TKey>
         TRow? candidate,
         Func<TRow, TPartitionKey> partitionKeySelector,
         Func<TRow, TKey> keySelector,
-        ref int ordinal)
+        ref int ordinal
+    )
     {
         if (candidate is null)
             return;
@@ -240,7 +248,8 @@ public sealed class RangeJoinIndex<TRow, TKey>
 
     private static RangeJoinIndex<TRow, TKey> CreatePartitioned<TPartitionKey>(
         Dictionary<TPartitionKey, List<RangeJoinEntry>> entries,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
     {
         var partitions = new Dictionary<TPartitionKey, RangeJoinEntry[]>(entries.Count);
         foreach (var pair in entries)
@@ -254,24 +263,28 @@ public sealed class RangeJoinIndex<TRow, TKey>
 
     private static void SortEntries(List<RangeJoinEntry> entries)
     {
-        entries.Sort(static (left, right) =>
-        {
-            var comparison = CompareKeys(left.Key, right.Key);
-            return comparison != 0
-                ? comparison
-                : left.Ordinal.CompareTo(right.Ordinal);
-        });
+        entries.Sort(
+            static (left, right) =>
+            {
+                var comparison = CompareKeys(left.Key, right.Key);
+                return comparison != 0 ? comparison : left.Ordinal.CompareTo(right.Ordinal);
+            }
+        );
     }
 
     private static void ValidateComparisonKind(BinaryOpKind comparisonKind)
     {
-        if (comparisonKind is not (BinaryOpKind.GreaterThan
-            or BinaryOpKind.GreaterOrEqual
-            or BinaryOpKind.LessThan
-            or BinaryOpKind.LessOrEqual))
+        if (
+            comparisonKind
+            is not (
+                BinaryOpKind.GreaterThan
+                or BinaryOpKind.GreaterOrEqual
+                or BinaryOpKind.LessThan
+                or BinaryOpKind.LessOrEqual
+            )
+        )
         {
-            throw new InvalidOperationException(
-                $"Unsupported range join comparison kind '{comparisonKind}'.");
+            throw new InvalidOperationException($"Unsupported range join comparison kind '{comparisonKind}'.");
         }
     }
 
@@ -290,18 +303,14 @@ public sealed class RangeJoinIndex<TRow, TKey>
         {
             throw new InvalidOperationException(
                 $"Range join comparison requires compatible values of type '{typeof(TKey).FullName}'.",
-                ex);
+                ex
+            );
         }
     }
 
-    internal readonly record struct RangeJoinEntry(
-        TKey Key,
-        TRow Row,
-        int Ordinal);
+    internal readonly record struct RangeJoinEntry(TKey Key, TRow Row, int Ordinal);
 
-    private interface IPartitionLookup
-    {
-    }
+    private interface IPartitionLookup { }
 
     private sealed class PartitionLookup<TPartitionKey>(Dictionary<TPartitionKey, RangeJoinEntry[]> entries)
         : IPartitionLookup
@@ -317,10 +326,7 @@ public sealed class RangeJoinIndex<TRow, TKey>
         private readonly int _startInclusive;
         private readonly int _endExclusive;
 
-        internal RangeJoinMatch(
-            RangeJoinEntry[] entries,
-            int startInclusive,
-            int endExclusive)
+        internal RangeJoinMatch(RangeJoinEntry[] entries, int startInclusive, int endExclusive)
         {
             _entries = entries;
             _startInclusive = startInclusive;
@@ -339,10 +345,7 @@ public sealed class RangeJoinIndex<TRow, TKey>
         private readonly int _endExclusive;
         private int _index;
 
-        internal Enumerator(
-            RangeJoinEntry[] entries,
-            int startInclusive,
-            int endExclusive)
+        internal Enumerator(RangeJoinEntry[] entries, int startInclusive, int endExclusive)
         {
             _entries = entries;
             _endExclusive = endExclusive;

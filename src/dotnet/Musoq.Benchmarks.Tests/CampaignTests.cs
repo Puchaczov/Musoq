@@ -10,9 +10,12 @@ public sealed class CampaignTests
     public void ExecutionSizes_UseThreeStandardCountsWithoutScenarioCaps()
     {
         var cases = CampaignCases.CreateComplete(new CampaignOptions(), Path.GetTempPath());
-        var counts = cases.Where(item => item.Definition.Phase == "execution")
+        var counts = cases
+            .Where(item => item.Definition.Phase == "execution")
             .GroupBy(item => item.Definition.ScenarioId)
-            .Select(group => string.Join(",", group.Select(item => item.Definition.InputCount).Distinct().Order())).Distinct().ToArray();
+            .Select(group => string.Join(",", group.Select(item => item.Definition.InputCount).Distinct().Order()))
+            .Distinct()
+            .ToArray();
         CollectionAssert.AreEqual(new[] { "1000,10000,100000" }, counts);
     }
 
@@ -22,10 +25,18 @@ public sealed class CampaignTests
         var options = CampaignOptions.Parse(["--size", "1_007"]);
         var cases = CampaignCases.Create(options, Path.GetTempPath());
         Assert.AreEqual(87, cases.Count(item => item.Definition.Phase == "execution"));
-        Assert.IsTrue(cases.Where(item => item.Definition.Phase == "execution").All(item => item.Definition.InputCount == 1007));
-        Assert.IsTrue(cases.Where(item => item.Definition.Phase != "execution").All(item => item.Definition.InputCount == FixtureData.TestSize));
+        Assert.IsTrue(
+            cases.Where(item => item.Definition.Phase == "execution").All(item => item.Definition.InputCount == 1007)
+        );
+        Assert.IsTrue(
+            cases
+                .Where(item => item.Definition.Phase != "execution")
+                .All(item => item.Definition.InputCount == FixtureData.TestSize)
+        );
         Assert.Throws<ArgumentException>(() => CampaignOptions.Parse(["--size", "0"]));
-        Assert.Throws<ArgumentException>(() => CampaignOptions.Parse(["--mode", "Official", "--machine-profile", "desktop", "--size", "7"]));
+        Assert.Throws<ArgumentException>(() =>
+            CampaignOptions.Parse(["--mode", "Official", "--machine-profile", "desktop", "--size", "7"])
+        );
     }
 
     [TestMethod]
@@ -36,7 +47,7 @@ public sealed class CampaignTests
         var arguments = new SortedDictionary<string, string>(StringComparer.Ordinal)
         {
             ["WorkerLimit"] = "24",
-            ["InputCount"] = "1000"
+            ["InputCount"] = "1000",
         };
         ArtifactJson.Write(path, arguments);
         var reloaded = ArtifactJson.Read<SortedDictionary<string, string>>(path);
@@ -62,7 +73,9 @@ public sealed class CampaignTests
         Assert.IsTrue(CampaignOptions.Parse(["--mode", "Official", "--machine-profile", "desktop"]).Official);
         Assert.AreEqual("Dry", CampaignOptions.Parse(["--job", "dry", "--filter", "*Join*"]).Job);
         Assert.Throws<ArgumentException>(() => CampaignOptions.Parse(["--mode", "Official"]));
-        Assert.Throws<ArgumentException>(() => CampaignOptions.Parse(["--mode", "Official", "--machine-profile", "a", "--job", "Dry"]));
+        Assert.Throws<ArgumentException>(() =>
+            CampaignOptions.Parse(["--mode", "Official", "--machine-profile", "a", "--job", "Dry"])
+        );
         Assert.Throws<ArgumentException>(() => CampaignOptions.Parse(["--job"]));
         Assert.Throws<ArgumentException>(() => CampaignOptions.Parse(["--unknown", "value"]));
         Assert.Throws<ArgumentException>(() => CampaignOptions.Parse(["--resume", "a", "--output", "b"]));
@@ -74,13 +87,23 @@ public sealed class CampaignTests
     [TestMethod]
     public void Inventory_CoversAllFamiliesAndRegisteredBenchmarkTypes()
     {
-        var families = ScenarioCatalog.All.Where(item => item.Id.StartsWith('B')).Select(item => int.Parse(item.Id.AsSpan(1, 2))).Distinct().Order().ToArray();
+        var families = ScenarioCatalog
+            .All.Where(item => item.Id.StartsWith('B'))
+            .Select(item => int.Parse(item.Id.AsSpan(1, 2)))
+            .Distinct()
+            .Order()
+            .ToArray();
         CollectionAssert.AreEqual(Enumerable.Range(1, 32).ToArray(), families);
         Assert.AreEqual(10, ScenarioCatalog.All.Count(item => item.Id.StartsWith('X')));
         Type[] actual =
         [
-            typeof(QueryExecutionBenchmark), typeof(ColdCompilationBenchmark), typeof(WarmCompilationBenchmark),
-            typeof(ArtifactLoadBenchmark), typeof(TypedProjectionBenchmark), typeof(TypedGroupBenchmark), typeof(TypedWindowBenchmark)
+            typeof(QueryExecutionBenchmark),
+            typeof(ColdCompilationBenchmark),
+            typeof(WarmCompilationBenchmark),
+            typeof(ArtifactLoadBenchmark),
+            typeof(TypedProjectionBenchmark),
+            typeof(TypedGroupBenchmark),
+            typeof(TypedWindowBenchmark),
         ];
         CollectionAssert.AreEquivalent(actual, CampaignCases.Types.ToArray());
         var cases = CampaignCases.CreateComplete(new CampaignOptions(), Path.GetTempPath());
@@ -113,13 +136,18 @@ public sealed class CampaignTests
     [TestMethod]
     public void LinuxHardware_ParsesModelTopologyAndRam()
     {
-        const string cpu = "processor : 0\nmodel name : Test CPU\nphysical id : 0\ncore id : 0\n\nprocessor : 1\nmodel name : Test CPU\nphysical id : 0\ncore id : 1\n\n";
+        const string cpu =
+            "processor : 0\nmodel name : Test CPU\nphysical id : 0\ncore id : 0\n\nprocessor : 1\nmodel name : Test CPU\nphysical id : 0\ncore id : 1\n\n";
         var result = ProvenanceCollector.ParseLinux("fixture", cpu, "MemTotal: 1024 kB\nMemFree: 512 kB\n");
         Assert.AreEqual("Test CPU", result.CpuModel);
         Assert.AreEqual(2, result.PhysicalCores);
         Assert.AreEqual(2, result.LogicalCores);
         Assert.AreEqual(1_048_576L, result.MemoryBytes);
-        var withoutTopology = ProvenanceCollector.ParseLinux("fixture", "processor : 0\nHardware : ARM CPU\n", "MemTotal: 1024 kB\n");
+        var withoutTopology = ProvenanceCollector.ParseLinux(
+            "fixture",
+            "processor : 0\nHardware : ARM CPU\n",
+            "MemTotal: 1024 kB\n"
+        );
         Assert.IsNull(withoutTopology.PhysicalCores);
         Assert.IsNotEmpty(withoutTopology.Unavailable);
     }
@@ -130,7 +158,15 @@ public sealed class CampaignTests
         using var temporary = new TemporaryDirectory();
         var manifest = Manifest();
         var store = new CampaignStore(temporary.Path, manifest);
-        store.Save(new Measurement("case", new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero), new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero), "failed", "synthetic failure"));
+        store.Save(
+            new Measurement(
+                "case",
+                new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero),
+                new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero),
+                "failed",
+                "synthetic failure"
+            )
+        );
         store.Finish();
         Assert.AreEqual("incomplete", store.Manifest.Status);
         File.WriteAllText(System.IO.Path.Combine(temporary.Path, "measurements.json"), "interrupted aggregate");
@@ -142,7 +178,9 @@ public sealed class CampaignTests
         Assert.HasCount(2, resumed.Attempts);
         Assert.Throws<InvalidOperationException>(() => CampaignStore.Resume(temporary.Path, Manifest()));
         Assert.Throws<InvalidOperationException>(() => resumed.Save(Success()));
-        var measurements = ArtifactJson.Read<Measurement[]>(System.IO.Path.Combine(temporary.Path, "measurements.json"));
+        var measurements = ArtifactJson.Read<Measurement[]>(
+            System.IO.Path.Combine(temporary.Path, "measurements.json")
+        );
         Assert.HasCount(1, measurements);
         Assert.AreEqual(10d, measurements[0].MeanNanoseconds);
     }
@@ -155,11 +193,20 @@ public sealed class CampaignTests
         var changed = Manifest("changed");
         Assert.Throws<InvalidOperationException>(() => CampaignStore.ValidateResume(original, changed));
         var provenance = original.Provenance with { Source = original.Provenance.Source with { Commit = "other" } };
-        Assert.Throws<InvalidOperationException>(() => CampaignStore.ValidateResume(original, Manifest(provenance: provenance)));
+        Assert.Throws<InvalidOperationException>(() =>
+            CampaignStore.ValidateResume(original, Manifest(provenance: provenance))
+        );
         provenance = original.Provenance with { Hardware = original.Provenance.Hardware with { CpuModel = "other" } };
-        Assert.Throws<InvalidOperationException>(() => CampaignStore.ValidateResume(original, Manifest(provenance: provenance)));
-        provenance = original.Provenance with { Build = original.Provenance.Build with { EngineVersion = "different" } };
-        Assert.Throws<InvalidOperationException>(() => CampaignStore.ValidateResume(original, Manifest(provenance: provenance)));
+        Assert.Throws<InvalidOperationException>(() =>
+            CampaignStore.ValidateResume(original, Manifest(provenance: provenance))
+        );
+        provenance = original.Provenance with
+        {
+            Build = original.Provenance.Build with { EngineVersion = "different" },
+        };
+        Assert.Throws<InvalidOperationException>(() =>
+            CampaignStore.ValidateResume(original, Manifest(provenance: provenance))
+        );
         var differentCases = Manifest();
         differentCases.Cases[0] = differentCases.Cases[0] with { InputCount = 99 };
         Assert.Throws<InvalidOperationException>(() => CampaignStore.ValidateResume(original, differentCases));
@@ -179,10 +226,56 @@ public sealed class CampaignTests
     [TestMethod]
     public void RowAssertions_RejectMissingWrongAndDuplicatedValues()
     {
-        Assert.Throws<AssertFailedException>(() => ResultAssertions.Rows([[1]], [], true, "missing"));
-        Assert.Throws<AssertFailedException>(() => ResultAssertions.Rows([[1]], [["1"]], true, "type"));
-        Assert.Throws<AssertFailedException>(() => ResultAssertions.Rows([[1], [1]], [[1], [2]], false, "duplicate"));
-        ResultAssertions.Rows([[1], [2], [1]], [[2], [1], [1]], false, "bag");
+        Assert.Throws<AssertFailedException>(() =>
+            ResultAssertions.Rows(
+                [
+                    [1],
+                ],
+                [],
+                true,
+                "missing"
+            )
+        );
+        Assert.Throws<AssertFailedException>(() =>
+            ResultAssertions.Rows(
+                [
+                    [1],
+                ],
+                [
+                    ["1"],
+                ],
+                true,
+                "type"
+            )
+        );
+        Assert.Throws<AssertFailedException>(() =>
+            ResultAssertions.Rows(
+                [
+                    [1],
+                    [1],
+                ],
+                [
+                    [1],
+                    [2],
+                ],
+                false,
+                "duplicate"
+            )
+        );
+        ResultAssertions.Rows(
+            [
+                [1],
+                [2],
+                [1],
+            ],
+            [
+                [2],
+                [1],
+                [1],
+            ],
+            false,
+            "bag"
+        );
     }
 
     [TestMethod]
@@ -192,7 +285,18 @@ public sealed class CampaignTests
         ProcessCommand.Require(temporary.Path, "git", "init", "--quiet");
         File.WriteAllText(System.IO.Path.Combine(temporary.Path, "fixture.txt"), "fixture");
         ProcessCommand.Require(temporary.Path, "git", "add", "fixture.txt");
-        ProcessCommand.Require(temporary.Path, "git", "-c", "user.name=Benchmark Test", "-c", "user.email=benchmark@example.invalid", "commit", "--quiet", "-m", "fixture");
+        ProcessCommand.Require(
+            temporary.Path,
+            "git",
+            "-c",
+            "user.name=Benchmark Test",
+            "-c",
+            "user.email=benchmark@example.invalid",
+            "commit",
+            "--quiet",
+            "-m",
+            "fixture"
+        );
         ProcessCommand.Require(temporary.Path, "git", "checkout", "--quiet", "--detach");
         var stamp = ProvenanceCollector.Collect(temporary.Path, new CampaignOptions(MachineProfile: "fixture"));
         Assert.IsNull(stamp.Source.Branch);
@@ -201,26 +305,50 @@ public sealed class CampaignTests
         Assert.AreEqual(40, stamp.Source.Commit.Length);
         File.WriteAllText(System.IO.Path.Combine(temporary.Path, "fixture.txt"), "dirty");
         Assert.IsTrue(ProvenanceCollector.Collect(temporary.Path, new CampaignOptions()).Source.Dirty);
-        Assert.Throws<InvalidOperationException>(() => CampaignIntegrity.ValidateSource(temporary.Path, Manifest(provenance: stamp)));
+        Assert.Throws<InvalidOperationException>(() =>
+            CampaignIntegrity.ValidateSource(temporary.Path, Manifest(provenance: stamp))
+        );
     }
 
-    internal static Measurement Success() => new("case", new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero), new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero), "complete", null,
-        MeanNanoseconds: 10, MedianNanoseconds: 10, SampleCount: 2);
+    internal static Measurement Success() =>
+        new(
+            "case",
+            new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero),
+            new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero),
+            "complete",
+            null,
+            MeanNanoseconds: 10,
+            MedianNanoseconds: 10,
+            SampleCount: 2
+        );
 
-    internal static RunManifest Manifest(string suite = "suite", RunProvenance? provenance = null) => new()
-    {
-        SuiteVersion = suite,
-        RunId = "fixture",
-        Provenance = provenance ?? new(new("commit", "branch", [], false, null), new("profile", "cpu", 2, 4, 4, 1024, "x64", []),
-            new("os", "runtime", "sdk", "bdn", true, true, 4, "Local", "Dry", false), new("version", "commit")),
-        Cases = [new("case", "B01_Scan", "Expressions", "execution", "Table", "Small", 4, "shared", "core/5", "consume")]
-    };
+    internal static RunManifest Manifest(string suite = "suite", RunProvenance? provenance = null) =>
+        new()
+        {
+            SuiteVersion = suite,
+            RunId = "fixture",
+            Provenance =
+                provenance
+                ?? new(
+                    new("commit", "branch", [], false, null),
+                    new("profile", "cpu", 2, 4, 4, 1024, "x64", []),
+                    new("os", "runtime", "sdk", "bdn", true, true, 4, "Local", "Dry", false),
+                    new("version", "commit")
+                ),
+            Cases =
+            [
+                new("case", "B01_Scan", "Expressions", "execution", "Table", "Small", 4, "shared", "core/5", "consume"),
+            ],
+        };
 }
 
 public sealed class TemporaryDirectory : IDisposable
 {
-    public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "musoq-benchmark-test-" + Guid.NewGuid().ToString("N"));
+    public string Path { get; } =
+        System.IO.Path.Combine(System.IO.Path.GetTempPath(), "musoq-benchmark-test-" + Guid.NewGuid().ToString("N"));
+
     public TemporaryDirectory() => Directory.CreateDirectory(Path);
+
     public void Dispose()
     {
         // This directory is created and owned exclusively by this test instance.

@@ -13,16 +13,11 @@ public sealed record PhysicalJoinCandidateNode(
     IrExpression[] LeftMovedPredicates,
     IrExpression[] RightMovedPredicates,
     OrderField? TieBreak = null,
-    bool WithOrdinality = false) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
+    bool WithOrdinality = false
+) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
 {
-    public PhysicalJoinCandidateNode(
-        JoinKind kind,
-        IrExpression onPredicate,
-        PhysicalNode left,
-        PhysicalNode right)
-        : this(kind, onPredicate, left, right, [], [], null, false)
-    {
-    }
+    public PhysicalJoinCandidateNode(JoinKind kind, IrExpression onPredicate, PhysicalNode left, PhysicalNode right)
+        : this(kind, onPredicate, left, right, [], [], null, false) { }
 
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Left, Right];
 }

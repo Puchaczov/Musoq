@@ -1,15 +1,13 @@
 using Musoq.Evaluator.Visitors.Helpers;
-using Musoq.Parser.Nodes;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
+using Musoq.Parser.Nodes;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.Visitors;
 
 public sealed partial class RewriteQueryVisitor
 {
-    public void Visit(Node node)
-    {
-    }
+    public void Visit(Node node) { }
 
     public void Visit(DescNode node)
     {
@@ -40,7 +38,11 @@ public sealed partial class RewriteQueryVisitor
     }
 
     public void Visit(StringConcatenationNode node) =>
-        BinaryOperationVisitorHelper.ProcessBinaryOperation(Nodes, (left, right) => new StringConcatenationNode(left, right), node.Span);
+        BinaryOperationVisitorHelper.ProcessBinaryOperation(
+            Nodes,
+            (left, right) => new StringConcatenationNode(left, right),
+            node.Span
+        );
 
     public void Visit(AddNode node)
     {
@@ -93,12 +95,20 @@ public sealed partial class RewriteQueryVisitor
 
     public void Visit(AndNode node)
     {
-        LogicalOperationVisitorHelper.ProcessAndOperation(Nodes, QueryRewriteUtilities.RewriteNullableBoolExpressions, node.Span);
+        LogicalOperationVisitorHelper.ProcessAndOperation(
+            Nodes,
+            QueryRewriteUtilities.RewriteNullableBoolExpressions,
+            node.Span
+        );
     }
 
     public void Visit(OrNode node)
     {
-        LogicalOperationVisitorHelper.ProcessOrOperation(Nodes, QueryRewriteUtilities.RewriteNullableBoolExpressions, node.Span);
+        LogicalOperationVisitorHelper.ProcessOrOperation(
+            Nodes,
+            QueryRewriteUtilities.RewriteNullableBoolExpressions,
+            node.Span
+        );
     }
 
     public void Visit(EqualityNode node)
@@ -182,7 +192,10 @@ public sealed partial class RewriteQueryVisitor
         throw new NotSupportedException("InQueryNode should have been rewritten to CTE before this visitor runs.");
     }
 
-    public void Visit(ExistsQueryNode node) => throw new InvalidOperationException("ExistsQueryNode should have been rewritten to CTE before this visitor runs.");
+    public void Visit(ExistsQueryNode node) =>
+        throw new InvalidOperationException(
+            "ExistsQueryNode should have been rewritten to CTE before this visitor runs."
+        );
 
     public void Visit(ScalarSubqueryNode node) => Nodes.Push(SubqueryApplyCloner.Rewrite(node, Nodes));
 
@@ -194,7 +207,6 @@ public sealed partial class RewriteQueryVisitor
         var max = Nodes.Pop();
         var min = Nodes.Pop();
         var expression = Nodes.Pop();
-
 
         var greaterOrEqual = new GreaterOrEqualNode(expression, min).WithSpan(node.Span);
         var lessOrEqual = new LessOrEqualNode(expression, max).WithSpan(node.Span);
@@ -283,9 +295,7 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(RowPresenceNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new RowPresenceNode(Nodes.Pop(), node.IsPresent)
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(new RowPresenceNode(Nodes.Pop(), node.IsPresent).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 
     public void Visit(AccessRefreshAggregationScoreNode node)
@@ -314,13 +324,16 @@ public sealed partial class RewriteQueryVisitor
             }
         }
 
-        Nodes.Push(new AllColumnsNode(
-            node.Alias,
-            node.LikePattern,
-            node.IsNotLike,
-            node.ExcludeColumns,
-            rewrittenReplaceItems ?? node.ReplaceItems,
-            node.RenameItems).CopySpansFrom(node));
+        Nodes.Push(
+            new AllColumnsNode(
+                node.Alias,
+                node.LikePattern,
+                node.IsNotLike,
+                node.ExcludeColumns,
+                rewrittenReplaceItems ?? node.ReplaceItems,
+                node.RenameItems
+            ).CopySpansFrom(node)
+        );
     }
 
     public void Visit(IdentifierNode node)
@@ -345,7 +358,6 @@ public sealed partial class RewriteQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var defaultValue = node.HasDefaultValue ? Nodes.Pop() : null;
         Nodes.Push(StructuralNodeRebuildSupport.RebuildParameter(node, defaultValue));
-
     }
 
     public void Visit(ParameterReferenceNode node)
@@ -384,7 +396,5 @@ public sealed partial class RewriteQueryVisitor
         Nodes.Push(InterpretationPropertyBinding.CopyBoundDot(root, exp, node, node.Name));
     }
 
-    public void Visit(AccessCallChainNode node)
-    {
-    }
+    public void Visit(AccessCallChainNode node) { }
 }

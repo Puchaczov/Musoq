@@ -13,17 +13,28 @@ namespace Musoq.Formatter.Tests;
 public sealed class CoverageAndDependencyTests
 {
     private static readonly Lazy<IReadOnlyDictionary<string, IReadOnlySet<string>>> FixtureCoverage = new(() =>
-        CorpusFixtures.Load().ToDictionary(fixture => fixture.Id, fixture => AstCoverage.Types(fixture.Source), StringComparer.Ordinal));
+        CorpusFixtures
+            .Load()
+            .ToDictionary(fixture => fixture.Id, fixture => AstCoverage.Types(fixture.Source), StringComparer.Ordinal)
+    );
 
-    public static IEnumerable<object[]> NodeCases => Entries("parserNodes")
-        .Select(entry => new object[] { entry.GetProperty("fullName").GetString()!, entry.GetRawText() });
+    public static IEnumerable<object[]> NodeCases =>
+        Entries("parserNodes")
+            .Select(entry => new object[] { entry.GetProperty("fullName").GetString()!, entry.GetRawText() });
 
-    public static IEnumerable<object[]> FamilyCases => Entries("families")
-        .Select(entry => new object[] { entry.GetProperty("id").GetString()!, entry.GetRawText() });
+    public static IEnumerable<object[]> FamilyCases =>
+        Entries("families").Select(entry => new object[] { entry.GetProperty("id").GetString()!, entry.GetRawText() });
 
-    public static IEnumerable<object[]> SyntaxCases => Entries("syntaxKinds").SelectMany(entry =>
-        entry.GetProperty("fixtures").EnumerateArray().Select(id => new object[] {
-            entry.GetProperty("kind").GetString()!, id.GetString()!, entry.GetRawText() }));
+    public static IEnumerable<object[]> SyntaxCases =>
+        Entries("syntaxKinds")
+            .SelectMany(entry =>
+                entry
+                    .GetProperty("fixtures")
+                    .EnumerateArray()
+                    .Select(id =>
+                        new object[] { entry.GetProperty("kind").GetString()!, id.GetString()!, entry.GetRawText() }
+                    )
+            );
 
     [TestMethod]
     public void LibraryDependencies_ShouldContainOnlyTheParserAmongMusoqAssemblies()
@@ -47,8 +58,14 @@ public sealed class CoverageAndDependencyTests
         var inventory = CoverageManifest.Inventory;
         var actual = VerificationCompiler.Current.ParserDeclarations();
         Assert.AreEqual(inventory.Length, inventory.Distinct(StringComparer.Ordinal).Count());
-        CollectionAssert.AreEquivalent(actual, inventory, "Unexpected: " + string.Join(", ", actual.Except(inventory)) +
-            "; missing: " + string.Join(", ", inventory.Except(actual)));
+        CollectionAssert.AreEquivalent(
+            actual,
+            inventory,
+            "Unexpected: "
+                + string.Join(", ", actual.Except(inventory))
+                + "; missing: "
+                + string.Join(", ", inventory.Except(actual))
+        );
     }
 
     [TestMethod]
@@ -75,7 +92,11 @@ public sealed class CoverageAndDependencyTests
     {
         using var entry = JsonDocument.Parse(entryJson);
         var ids = CorpusFixtures.Load().Select(fixture => fixture.Id).ToHashSet(StringComparer.Ordinal);
-        var fixtures = entry.RootElement.GetProperty("fixtures").EnumerateArray().Select(id => id.GetString()!).ToArray();
+        var fixtures = entry
+            .RootElement.GetProperty("fixtures")
+            .EnumerateArray()
+            .Select(id => id.GetString()!)
+            .ToArray();
 
         Assert.IsNotEmpty(fixtures, family);
         CollectionAssert.AreEqual(Array.Empty<string>(), fixtures.Where(id => !ids.Contains(id)).ToArray(), family);
@@ -110,7 +131,12 @@ public sealed class CoverageAndDependencyTests
         if (kind == SyntaxKind.HavingClause)
         {
             Assert.IsFalse(string.IsNullOrWhiteSpace(entry.GetProperty("reason").GetString()));
-            Assert.IsTrue(parsed.Tokens.Any(token => token.Role == SyntaxTokenRole.Keyword && token.TokenType == TokenType.Having), fixture.Id);
+            Assert.IsTrue(
+                parsed.Tokens.Any(token =>
+                    token.Role == SyntaxTokenRole.Keyword && token.TokenType == TokenType.Having
+                ),
+                fixture.Id
+            );
             Assert.IsTrue(AstCoverage.Types(fixture.Source).Contains("Musoq.Parser.Nodes.HavingNode"), fixture.Id);
             return;
         }
@@ -125,7 +151,10 @@ public sealed class CoverageAndDependencyTests
         if (disposition == "normalized-ast-only")
         {
             Assert.IsFalse(string.IsNullOrWhiteSpace(entry.GetProperty("reason").GetString()), name);
-            Assert.IsFalse(coverage.Values.Any(types => types.Contains(name)), "Parsed declaration misclassified: " + name);
+            Assert.IsFalse(
+                coverage.Values.Any(types => types.Contains(name)),
+                "Parsed declaration misclassified: " + name
+            );
             return;
         }
         Assert.AreEqual("source-syntax", disposition, name);
@@ -142,8 +171,8 @@ public sealed class CoverageAndDependencyTests
     {
         yield return node.Kind;
         foreach (var child in node.Children)
-            foreach (var kind in Kinds(child))
-                yield return kind;
+        foreach (var kind in Kinds(child))
+            yield return kind;
     }
 
     private static JsonElement[] Entries(string property) => CoverageManifest.Entries(property);

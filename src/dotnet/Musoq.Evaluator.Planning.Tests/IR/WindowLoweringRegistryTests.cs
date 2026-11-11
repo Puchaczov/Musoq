@@ -69,7 +69,8 @@ public sealed class WindowLoweringRegistryTests
         var reused = registry.GetOrAdd(
             "sorted:id:name",
             new ExecutionVariable("sortedPartitions", typeof(object)),
-            sortInPlace: true);
+            sortInPlace: true
+        );
 
         Assert.AreEqual(partitions, first.Variable);
         Assert.IsTrue(first.ShouldCreate);

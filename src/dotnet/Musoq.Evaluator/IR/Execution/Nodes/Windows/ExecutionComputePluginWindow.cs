@@ -22,7 +22,8 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
         ExecutionWindowKeyArray? OrderKeyArray = null,
         ExecutionWindowPartitionSet? Partitions = null,
         ExecutionWindowPartitionSet? SortedPartitions = null,
-        IReadOnlyList<ExecutionVariable>? MethodTargets = null)
+        IReadOnlyList<ExecutionVariable>? MethodTargets = null
+    )
     {
         this.Buffer = Buffer;
         this.Item = Item;
@@ -44,6 +45,7 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
     }
 
     public ExecutionVariable Buffer { get; init; }
+
     /// <summary>Gets the planner-selected integer ordering strategy.</summary>
     public bool UseIntegerOrderIndex { get; init; }
     public ExecutionVariable Item { get; init; }
@@ -62,8 +64,10 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
     public ExecutionWindowPartitionSet? Partitions { get; init; }
     public ExecutionWindowPartitionSet? SortedPartitions { get; init; }
     public IReadOnlyList<ExecutionVariable>? MethodTargets { get; init; }
+
     /// <summary>Gets the validated direct operation over a concrete frame context.</summary>
     public ExecutionCallableRef? LibraryGet { get; init; }
+
     /// <summary>Gets the compilation-selected concrete frame and order-key storage.</summary>
     public ExecutionWindowContextBuffers? ContextBuffers { get; init; }
 
@@ -84,7 +88,8 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
         ExecutionWindowKeyArray? orderKeyArray = null,
         ExecutionWindowPartitionSet? partitions = null,
         ExecutionWindowPartitionSet? sortedPartitions = null,
-        IReadOnlyList<ExecutionVariable>? methodTargets = null)
+        IReadOnlyList<ExecutionVariable>? methodTargets = null
+    )
         : this(
             buffer,
             item,
@@ -102,7 +107,6 @@ public sealed record ExecutionComputePluginWindow : ExecutionNode
             orderKeyArray,
             partitions,
             sortedPartitions,
-            methodTargets)
-    {
-    }
+            methodTargets
+        ) { }
 }

@@ -27,13 +27,13 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             if (entries.Count == 0)
                 return Empty;
 
-            entries.Sort((left, right) =>
-            {
-                var comparison = comparer.Compare(left.Key, right.Key);
-                return comparison != 0
-                    ? comparison
-                    : left.Ordinal.CompareTo(right.Ordinal);
-            });
+            entries.Sort(
+                (left, right) =>
+                {
+                    var comparison = comparer.Compare(left.Key, right.Key);
+                    return comparison != 0 ? comparison : left.Ordinal.CompareTo(right.Ordinal);
+                }
+            );
 
             return new AsOfJoinBucket(entries.ToArray());
         }
@@ -49,8 +49,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 BinaryOpKind.GreaterThan => FindLastCandidateBeforeProbe(probeValue, comparer, includeEqual: false),
                 BinaryOpKind.LessOrEqual => FindFirstCandidateAfterProbe(probeValue, comparer, includeEqual: true),
                 BinaryOpKind.LessThan => FindFirstCandidateAfterProbe(probeValue, comparer, includeEqual: false),
-                _ => throw new InvalidOperationException(
-                    $"Unsupported ASOF comparison kind '{comparisonKind}'.")
+                _ => throw new InvalidOperationException($"Unsupported ASOF comparison kind '{comparisonKind}'."),
             };
 
             return index < 0 ? null : _entries[index].Row;
@@ -113,8 +112,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             if (index <= 0)
                 return index;
 
-            while (index > 0 &&
-                   comparer.Compare(_entries[index].Key, _entries[index - 1].Key) == 0)
+            while (index > 0 && comparer.Compare(_entries[index].Key, _entries[index - 1].Key) == 0)
             {
                 index--;
             }
@@ -123,10 +121,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         }
     }
 
-    private readonly record struct AsOfJoinEntry(
-        TKey Key,
-        T Row,
-        int Ordinal);
+    private readonly record struct AsOfJoinEntry(TKey Key, T Row, int Ordinal);
 
     private sealed class AsOfJoinTieBucket<TTie> : IAsOfJoinBucket
     {
@@ -141,22 +136,23 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         public static AsOfJoinTieBucket<TTie> Create(
             List<AsOfJoinTieEntry<TTie>> entries,
             IComparer<TKey> comparer,
-            IComparer<TTie> tieBreakComparer)
+            IComparer<TTie> tieBreakComparer
+        )
         {
             if (entries.Count == 0)
                 return Empty;
 
-            entries.Sort((left, right) =>
-            {
-                var comparison = comparer.Compare(left.Key, right.Key);
-                if (comparison != 0)
-                    return comparison;
+            entries.Sort(
+                (left, right) =>
+                {
+                    var comparison = comparer.Compare(left.Key, right.Key);
+                    if (comparison != 0)
+                        return comparison;
 
-                comparison = tieBreakComparer.Compare(left.TieBreakKey, right.TieBreakKey);
-                return comparison != 0
-                    ? comparison
-                    : left.Ordinal.CompareTo(right.Ordinal);
-            });
+                    comparison = tieBreakComparer.Compare(left.TieBreakKey, right.TieBreakKey);
+                    return comparison != 0 ? comparison : left.Ordinal.CompareTo(right.Ordinal);
+                }
+            );
 
             return new AsOfJoinTieBucket<TTie>(entries.ToArray());
         }
@@ -172,8 +168,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 BinaryOpKind.GreaterThan => FindLastCandidateBeforeProbe(probeValue, comparer, includeEqual: false),
                 BinaryOpKind.LessOrEqual => FindFirstCandidateAfterProbe(probeValue, comparer, includeEqual: true),
                 BinaryOpKind.LessThan => FindFirstCandidateAfterProbe(probeValue, comparer, includeEqual: false),
-                _ => throw new InvalidOperationException(
-                    $"Unsupported ASOF comparison kind '{comparisonKind}'.")
+                _ => throw new InvalidOperationException($"Unsupported ASOF comparison kind '{comparisonKind}'."),
             };
 
             return index < 0 ? null : _entries[index].Row;
@@ -236,8 +231,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             if (index <= 0)
                 return index;
 
-            while (index > 0 &&
-                   comparer.Compare(_entries[index].Key, _entries[index - 1].Key) == 0)
+            while (index > 0 && comparer.Compare(_entries[index].Key, _entries[index - 1].Key) == 0)
             {
                 index--;
             }
@@ -246,9 +240,5 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         }
     }
 
-    private readonly record struct AsOfJoinTieEntry<TTie>(
-        TKey Key,
-        T Row,
-        TTie TieBreakKey,
-        int Ordinal);
+    private readonly record struct AsOfJoinTieEntry<TTie>(TKey Key, T Row, TTie TieBreakKey, int Ordinal);
 }

@@ -11,12 +11,9 @@ public sealed class LikePatternClassifierTests
         var classification = LikePatternClassifier.Classify("Google");
 
         Assert.AreEqual(
-            new LikePatternClassification(
-                LikePatternMatchKind.Exact,
-                LikePatternCharacterDomain.Ascii,
-                0,
-                6),
-            classification.Classification);
+            new LikePatternClassification(LikePatternMatchKind.Exact, LikePatternCharacterDomain.Ascii, 0, 6),
+            classification.Classification
+        );
     }
 
     [TestMethod]
@@ -25,12 +22,9 @@ public sealed class LikePatternClassifierTests
         var classification = LikePatternClassifier.Classify("Google%%");
 
         Assert.AreEqual(
-            new LikePatternClassification(
-                LikePatternMatchKind.Prefix,
-                LikePatternCharacterDomain.Ascii,
-                0,
-                6),
-            classification.Classification);
+            new LikePatternClassification(LikePatternMatchKind.Prefix, LikePatternCharacterDomain.Ascii, 0, 6),
+            classification.Classification
+        );
     }
 
     [TestMethod]
@@ -39,12 +33,9 @@ public sealed class LikePatternClassifierTests
         var classification = LikePatternClassifier.Classify("%%example.com");
 
         Assert.AreEqual(
-            new LikePatternClassification(
-                LikePatternMatchKind.Suffix,
-                LikePatternCharacterDomain.Ascii,
-                2,
-                11),
-            classification.Classification);
+            new LikePatternClassification(LikePatternMatchKind.Suffix, LikePatternCharacterDomain.Ascii, 2, 11),
+            classification.Classification
+        );
     }
 
     [TestMethod]
@@ -53,12 +44,9 @@ public sealed class LikePatternClassifierTests
         var classification = LikePatternClassifier.Classify("%%Google%%");
 
         Assert.AreEqual(
-            new LikePatternClassification(
-                LikePatternMatchKind.Contains,
-                LikePatternCharacterDomain.Ascii,
-                2,
-                6),
-            classification.Classification);
+            new LikePatternClassification(LikePatternMatchKind.Contains, LikePatternCharacterDomain.Ascii, 2, 6),
+            classification.Classification
+        );
     }
 
     [TestMethod]
@@ -67,12 +55,9 @@ public sealed class LikePatternClassifierTests
         var classification = LikePatternClassifier.Classify("%%");
 
         Assert.AreEqual(
-            new LikePatternClassification(
-                LikePatternMatchKind.Contains,
-                LikePatternCharacterDomain.Ascii,
-                2,
-                0),
-            classification.Classification);
+            new LikePatternClassification(LikePatternMatchKind.Contains, LikePatternCharacterDomain.Ascii, 2, 0),
+            classification.Classification
+        );
     }
 
     [TestMethod]
@@ -99,12 +84,9 @@ public sealed class LikePatternClassifierTests
         var classification = LikePatternClassifier.Classify("Ż%");
 
         Assert.AreEqual(
-            new LikePatternClassification(
-                LikePatternMatchKind.Prefix,
-                LikePatternCharacterDomain.Unicode,
-                0,
-                1),
-            classification.Classification);
+            new LikePatternClassification(LikePatternMatchKind.Prefix, LikePatternCharacterDomain.Unicode, 0, 1),
+            classification.Classification
+        );
         Assert.AreEqual(LikePatternCharacterDomain.Unicode, classification.Domain);
     }
 
@@ -117,5 +99,4 @@ public sealed class LikePatternClassifierTests
         Assert.AreEqual(LikePatternCharacterDomain.Unicode, classification.Domain);
         Assert.AreEqual(LikePatternRejectionReason.SingleCharacterWildcard, classification.RejectionReason);
     }
-
 }

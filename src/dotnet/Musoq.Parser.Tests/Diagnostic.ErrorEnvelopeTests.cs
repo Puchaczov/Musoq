@@ -4,7 +4,6 @@ using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser.Tests;
 
-
 [TestClass]
 public class DiagnosticErrorEnvelopeTests
 {
@@ -20,7 +19,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticSeverity.Error,
             "Unknown column 'Foo'",
             location,
-            endLocation);
+            endLocation
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, "SELECT Foo FROM #test.data() t");
 
@@ -45,7 +45,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticSeverity.Error,
             "Unknown column",
             location,
-            explanation: "Custom explanation from diagnostic");
+            explanation: "Custom explanation from diagnostic"
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic);
 
@@ -56,11 +57,7 @@ public class DiagnosticErrorEnvelopeTests
     public void MusoqErrorEnvelope_FromDiagnostic_WhenNoMetadata_ShouldHaveNullExplanation()
     {
         var location = new SourceLocation(0, 1, 1);
-        var diagnostic = new Diagnostic(
-            (DiagnosticCode)(-1),
-            DiagnosticSeverity.Error,
-            "Unknown error",
-            location);
+        var diagnostic = new Diagnostic((DiagnosticCode)(-1), DiagnosticSeverity.Error, "Unknown error", location);
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic);
 
@@ -78,7 +75,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticSeverity.Error,
             "Unknown column",
             location,
-            suggestedFixes: [action]);
+            suggestedFixes: [action]
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic);
 
@@ -93,7 +91,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticCode.MQ9001_InternalCompilerError,
             DiagnosticSeverity.Error,
             "Error",
-            SourceLocation.None);
+            SourceLocation.None
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic);
 
@@ -120,14 +119,22 @@ public class DiagnosticErrorEnvelopeTests
     [TestMethod]
     public void MusoqErrorEnvelope_FromException_WhenNullMessage_ShouldThrow()
     {
-        Assert.Throws<ArgumentNullException>(
-            () => new MusoqErrorEnvelope(
+        Assert.Throws<ArgumentNullException>(() =>
+            new MusoqErrorEnvelope(
                 DiagnosticCode.MQ9001_InternalCompilerError,
                 DiagnosticSeverity.Error,
                 DiagnosticPhase.Runtime,
                 null!,
-                null, null, null, null, null,
-                Array.Empty<string>(), null, null));
+                null,
+                null,
+                null,
+                null,
+                null,
+                Array.Empty<string>(),
+                null,
+                null
+            )
+        );
     }
 
     #endregion
@@ -141,7 +148,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticCode.MQ3022_MissingAlias,
             DiagnosticSeverity.Error,
             DiagnosticPhase.Bind,
-            "Missing alias for data source");
+            "Missing alias for data source"
+        );
 
         var text = MusoqErrorEnvelopeFormatter.FormatText(envelope);
 
@@ -159,7 +167,9 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticSeverity.Error,
             DiagnosticPhase.Bind,
             "Missing alias",
-            line: 3, column: 10);
+            line: 3,
+            column: 10
+        );
 
         var text = MusoqErrorEnvelopeFormatter.FormatText(envelope);
 
@@ -173,7 +183,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticCode.MQ7010_DataSourceOpenFailed,
             DiagnosticSeverity.Error,
             DiagnosticPhase.Runtime,
-            "Binding failed");
+            "Binding failed"
+        );
 
         var text = MusoqErrorEnvelopeFormatter.FormatText(envelope);
 
@@ -188,7 +199,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticSeverity.Error,
             DiagnosticPhase.Bind,
             "Unknown column",
-            explanation: "Column was not found in sources.");
+            explanation: "Column was not found in sources."
+        );
 
         var text = MusoqErrorEnvelopeFormatter.FormatText(envelope);
 
@@ -203,7 +215,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticSeverity.Error,
             DiagnosticPhase.Bind,
             "Unknown column",
-            suggestedFixes: ["Check spelling.", "Use alias.ColumnName"]);
+            suggestedFixes: ["Check spelling.", "Use alias.ColumnName"]
+        );
 
         var text = MusoqErrorEnvelopeFormatter.FormatText(envelope);
 
@@ -220,7 +233,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticSeverity.Error,
             DiagnosticPhase.Bind,
             "Unknown column",
-            docsReference: "Core Spec §Column References");
+            docsReference: "Core Spec §Column References"
+        );
 
         var text = MusoqErrorEnvelopeFormatter.FormatText(envelope);
 
@@ -235,10 +249,13 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticSeverity.Error,
             DiagnosticPhase.Bind,
             "Missing alias",
-            line: 2, column: 5, length: 10,
+            line: 2,
+            column: 5,
+            length: 10,
             explanation: "Aliases required",
             suggestedFixes: ["Add alias"],
-            docsReference: "Core Spec §Aliasing");
+            docsReference: "Core Spec §Aliasing"
+        );
 
         var json = MusoqErrorEnvelopeFormatter.FormatJson(envelope);
 
@@ -261,7 +278,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticCode.MQ9001_InternalCompilerError,
             DiagnosticSeverity.Error,
             DiagnosticPhase.Runtime,
-            "Error");
+            "Error"
+        );
 
         var json = MusoqErrorEnvelopeFormatter.FormatJson(envelope);
 
@@ -275,7 +293,8 @@ public class DiagnosticErrorEnvelopeTests
             DiagnosticCode.MQ9001_InternalCompilerError,
             DiagnosticSeverity.Error,
             DiagnosticPhase.Runtime,
-            "Error with \"quotes\" and\nnewline");
+            "Error with \"quotes\" and\nnewline"
+        );
 
         var json = MusoqErrorEnvelopeFormatter.FormatJson(envelope);
 
@@ -299,13 +318,23 @@ public class DiagnosticErrorEnvelopeTests
         string? explanation = null,
         string[]? suggestedFixes = null,
         string? docsReference = null,
-        string? details = null)
+        string? details = null
+    )
     {
         return new MusoqErrorEnvelope(
-            code, severity, phase, message,
-            line, column, length, snippet,
-            explanation, suggestedFixes ?? Array.Empty<string>(),
-            docsReference, details);
+            code,
+            severity,
+            phase,
+            message,
+            line,
+            column,
+            length,
+            snippet,
+            explanation,
+            suggestedFixes ?? Array.Empty<string>(),
+            docsReference,
+            details
+        );
     }
 
     #endregion

@@ -5,11 +5,7 @@ namespace Musoq.Evaluator.Tests.Schema.RecursiveCte;
 
 public sealed record RecursiveGraphRoot(int RootId);
 
-public sealed class RecursiveGraphEdge(
-    int sourceId,
-    int targetId,
-    decimal weight,
-    string? label)
+public sealed class RecursiveGraphEdge(int sourceId, int targetId, decimal weight, string? label)
 {
     public int SourceId { get; set; } = sourceId;
 

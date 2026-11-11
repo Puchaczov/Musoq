@@ -34,9 +34,7 @@ public sealed class ExecutionBlockRewriteBuilderTests
 
         var result = builder.ToBlock();
 
-        CollectionAssert.AreEqual(
-            new ExecutionNode[] { prefix, inserted, current },
-            result.Nodes.ToArray());
+        CollectionAssert.AreEqual(new ExecutionNode[] { prefix, inserted, current }, result.Nodes.ToArray());
     }
 
     [TestMethod]
@@ -52,9 +50,7 @@ public sealed class ExecutionBlockRewriteBuilderTests
 
         var result = builder.ToBlock();
 
-        CollectionAssert.AreEqual(
-            new ExecutionNode[] { first, second },
-            result.Nodes.ToArray());
+        CollectionAssert.AreEqual(new ExecutionNode[] { first, second }, result.Nodes.ToArray());
     }
 
     [TestMethod]
@@ -79,8 +75,6 @@ public sealed class ExecutionBlockRewriteBuilderTests
 
     private static ExecutionLet Let(string name, int value)
     {
-        return new ExecutionLet(
-            new ExecutionVariable(name, typeof(int)),
-            new ExecutionLiteral(value, typeof(int)));
+        return new ExecutionLet(new ExecutionVariable(name, typeof(int)), new ExecutionLiteral(value, typeof(int)));
     }
 }

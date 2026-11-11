@@ -39,28 +39,34 @@ public partial class BinaryOrTextualRepeatUntilEofSubstreamTests
         {
             new ComponentBinaryEntity { Name = "empty", Content = [0] },
             new ComponentBinaryEntity { Name = "one", Content = [2, 7] },
-            new ComponentBinaryEntity { Name = "two", Content = [3, 8, 9] }
+            new ComponentBinaryEntity { Name = "two", Content = [3, 8, 9] },
         };
         var sources = new Dictionary<string, IEnumerable<ComponentBinaryEntity>>(StringComparer.OrdinalIgnoreCase)
         {
             ["test"] = entities,
-            ["#test"] = entities
+            ["#test"] = entities,
         };
         using var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             new ComponentBinarySchemaProvider(sources),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var result = TableMaterializationTestHelper.Materialize(compiled.Run());
 
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("Name", typeof(string)), ("Prefix", typeof(byte)),
-            ("Item", typeof(byte)), ("Ordinal", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Name", typeof(string)),
+            ("Prefix", typeof(byte)),
+            ("Item", typeof(byte)),
+            ("Ordinal", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             result,
             new object?[] { "one", (byte)2, (byte)7, 0 },
             new object?[] { "two", (byte)3, (byte)9, 1 },
-            new object?[] { "two", (byte)3, (byte)8, 0 });
+            new object?[] { "two", (byte)3, (byte)8, 0 }
+        );
     }
 }

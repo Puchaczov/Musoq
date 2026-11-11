@@ -25,22 +25,33 @@ public class BinaryBitFieldsFeatureTests
     [TestMethod]
     public void Binary_BitField_WithAlignment_ShouldSkipToNextByte()
     {
-        var query = @"
-            binary Record { 
-                Flags: bits[3],
-                _: align[8],
-                NextByte: byte
-            };
-            select r.Flags, r.NextByte from #test.files() b
-            cross apply Interpret<Record>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Record { \n"
+            + "                Flags: bits[3],\n"
+            + "                _: align[8],\n"
+            + "                NextByte: byte\n"
+            + "            };\n"
+            + "            select r.Flags, r.NextByte from #test.files() b\n"
+            + "            cross apply Interpret<Record>(b.Content) r"
+        );
 
         var testData = new byte[] { 0x05, 0xAB };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -58,24 +69,35 @@ public class BinaryBitFieldsFeatureTests
     [TestMethod]
     public void Binary_BitField_MixedWithRegularFields_ShouldParseAll()
     {
-        var query = @"
-            binary Packet { 
-                Version: bits[4],
-                HeaderLen: bits[4],
-                Protocol: byte,
-                Length: short le
-            };
-            select p.Version, p.HeaderLen, p.Protocol, p.Length 
-            from #test.files() b
-            cross apply Interpret<Packet>(b.Content) p";
+        var query = (
+            "\n"
+            + "            binary Packet { \n"
+            + "                Version: bits[4],\n"
+            + "                HeaderLen: bits[4],\n"
+            + "                Protocol: byte,\n"
+            + "                Length: short le\n"
+            + "            };\n"
+            + "            select p.Version, p.HeaderLen, p.Protocol, p.Length \n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<Packet>(b.Content) p"
+        );
 
         var testData = new byte[] { 0x54, 0x06, 0x40, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -95,28 +117,36 @@ public class BinaryBitFieldsFeatureTests
     [TestMethod]
     public void Binary_BitField_InWhereClause_ShouldFilter()
     {
-        var query = @"
-            binary Flags { 
-                Readable: bits[1],
-                Writable: bits[1],
-                Executable: bits[1]
-            };
-            select f.Readable, f.Writable, f.Executable
-            from #test.files() b
-            cross apply Interpret<Flags>(b.Content) f
-            where f.Writable = 1";
+        var query = (
+            "\n"
+            + "            binary Flags { \n"
+            + "                Readable: bits[1],\n"
+            + "                Writable: bits[1],\n"
+            + "                Executable: bits[1]\n"
+            + "            };\n"
+            + "            select f.Readable, f.Writable, f.Executable\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<Flags>(b.Content) f\n"
+            + "            where f.Writable = 1"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "rw.bin", Content = [0b011] },
             new BinaryEntity { Name = "ro.bin", Content = [0b001] },
-            new BinaryEntity { Name = "rwx.bin", Content = [0b111] }
+            new BinaryEntity { Name = "rwx.bin", Content = [0b111] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -132,18 +162,29 @@ public class BinaryBitFieldsFeatureTests
     [TestMethod]
     public void Binary_BitField_SingleBit_ShouldReadLeastSignificant()
     {
-        var query = @"
-            binary Flags { Flag0: bits[1] };
-            select f.Flag0 from #test.files() b
-            cross apply Interpret<Flags>(b.Content) f";
+        var query = (
+            "\n"
+            + "            binary Flags { Flag0: bits[1] };\n"
+            + "            select f.Flag0 from #test.files() b\n"
+            + "            cross apply Interpret<Flags>(b.Content) f"
+        );
 
         var testData = new byte[] { 0x01 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -156,18 +197,29 @@ public class BinaryBitFieldsFeatureTests
     [TestMethod]
     public void Binary_BitField_SingleBitZero_ShouldReturnZero()
     {
-        var query = @"
-            binary Flags { Flag0: bits[1] };
-            select f.Flag0 from #test.files() b
-            cross apply Interpret<Flags>(b.Content) f";
+        var query = (
+            "\n"
+            + "            binary Flags { Flag0: bits[1] };\n"
+            + "            select f.Flag0 from #test.files() b\n"
+            + "            cross apply Interpret<Flags>(b.Content) f"
+        );
 
         var testData = new byte[] { 0xFE };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -184,21 +236,32 @@ public class BinaryBitFieldsFeatureTests
     [TestMethod]
     public void Binary_BitField_MultipleBits_ShouldReadSequentially()
     {
-        var query = @"
-            binary Flags { 
-                Low: bits[4],
-                High: bits[4] 
-            };
-            select f.Low, f.High from #test.files() b
-            cross apply Interpret<Flags>(b.Content) f";
+        var query = (
+            "\n"
+            + "            binary Flags { \n"
+            + "                Low: bits[4],\n"
+            + "                High: bits[4] \n"
+            + "            };\n"
+            + "            select f.Low, f.High from #test.files() b\n"
+            + "            cross apply Interpret<Flags>(b.Content) f"
+        );
 
         var testData = new byte[] { 0xAB };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -212,14 +275,16 @@ public class BinaryBitFieldsFeatureTests
     [TestMethod]
     public void Binary_BitField_ThreeBitFields_ShouldPackCorrectly()
     {
-        var query = @"
-            binary Data { 
-                A: bits[2],
-                B: bits[3],
-                C: bits[3]
-            };
-            select d.A, d.B, d.C from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                A: bits[2],\n"
+            + "                B: bits[3],\n"
+            + "                C: bits[3]\n"
+            + "            };\n"
+            + "            select d.A, d.B, d.C from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // 0b11_101_011 = 0xEB
         // bits[2] A reads bits 0-1: 11 = 3
@@ -231,12 +296,21 @@ public class BinaryBitFieldsFeatureTests
         // B = bits[2:4] = 010 = 2
         // C = bits[5:7] = 111 = 7
         var testData = new byte[] { 0xEB };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

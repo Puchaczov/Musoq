@@ -13,7 +13,6 @@ public partial class Parser
             Consume(TokenType.WhiteSpace);
     }
 
-
     private void Consume(TokenType tokenType)
     {
         if (!Current.TokenType.Equals(tokenType))
@@ -21,15 +20,14 @@ public partial class Parser
                 $"Expected token is {tokenType} but received {Current.TokenType}.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2001_UnexpectedToken,
-                Current.Span);
+                Current.Span
+            );
 
         _sourceCapture?.Consume(Current);
         Previous = Current;
         _hasReplacedToken = false;
         _lexer.Next();
     }
-
-
 
     private Token ConsumeAndGetToken(TokenType expected)
     {
@@ -38,15 +36,10 @@ public partial class Parser
         return token;
     }
 
-
     private Token ConsumeAndGetToken()
     {
         return ConsumeAndGetToken(Current.TokenType);
     }
-
-
-
-
 
     private TNode ComposeAndSkipIfPresent<TNode>(Func<Parser, TNode> parserAction, TokenType type)
     {
@@ -57,7 +50,6 @@ public partial class Parser
         return node;
     }
 
-
     private TNode Compose<TNode>(Func<Parser, TNode> parserAction)
     {
         ArgumentNullException.ThrowIfNull(parserAction);
@@ -65,5 +57,4 @@ public partial class Parser
         var node = parserAction(this);
         return node;
     }
-
 }

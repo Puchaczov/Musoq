@@ -13,7 +13,8 @@ public sealed class DiagnosticChunkWriter<T> : IChunkWriter<T>
     internal DiagnosticChunkWriter(
         BlockingCollection<IReadOnlyList<T>> chunks,
         DiagnosticChunkMetrics metrics,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         _chunks = chunks;
         _metrics = metrics;

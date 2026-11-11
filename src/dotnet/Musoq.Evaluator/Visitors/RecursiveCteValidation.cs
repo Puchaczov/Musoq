@@ -14,7 +14,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         QueryNode anchor,
         QueryNode recursiveMember,
         string cachedSetOperatorKey,
-        string cteName)
+        string cteName
+    )
     {
         var anchorFields = anchor.Select.Fields;
         var memberFields = recursiveMember.Select.Fields;
@@ -28,8 +29,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (anchorFields.Length != memberFields.Length)
         {
-            if (HasDiagnosticErrorWithinAnyField(anchorFields) ||
-                HasDiagnosticErrorWithinAnyField(memberFields))
+            if (HasDiagnosticErrorWithinAnyField(anchorFields) || HasDiagnosticErrorWithinAnyField(memberFields))
             {
                 _queryState.CachedSetFields.TryAdd(cachedSetOperatorKey, anchorFields);
                 UpdateProvisionalRecursiveColumns(cteName, anchorFields);
@@ -38,14 +38,17 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             ReportRecursiveCteOutputMismatch(
                 $"CTE '{cteName}' anchor projects {anchorFields.Length} column(s), but its recursive member projects {memberFields.Length}.",
-                recursiveMember.Select);
+                recursiveMember.Select
+            );
             return;
         }
 
         for (var index = 0; index < anchorFields.Length; index++)
         {
-            if (DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, anchorFields[index].Expression) ||
-                DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, memberFields[index].Expression))
+            if (
+                DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, anchorFields[index].Expression)
+                || DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, memberFields[index].Expression)
+            )
                 continue;
 
             var anchorType = anchorFields[index].Expression.ReturnType ?? typeof(object);
@@ -55,9 +58,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (anchorType is NullNode.NullType)
             {
-                anchorFields[index] = ContextualizeNull(
-                    anchorFields[index],
-                    MakeNullableWhenRequired(memberType));
+                anchorFields[index] = ContextualizeNull(anchorFields[index], MakeNullableWhenRequired(memberType));
                 continue;
             }
 
@@ -69,37 +70,33 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             var columnName = anchorFields[index].FieldName;
             ReportRecursiveCteOutputMismatch(
-                $"CTE '{cteName}' column {index + 1} '{columnName}' has anchor type " +
-                $"'{FormatRecursiveCteType(anchorType)}', but its recursive member produces " +
-                $"'{FormatRecursiveCteType(memberType)}'. Cast the anchor expression explicitly using postfix syntax (::Type).",
-                memberFields[index].Expression);
+                $"CTE '{cteName}' column {index + 1} '{columnName}' has anchor type "
+                    + $"'{FormatRecursiveCteType(anchorType)}', but its recursive member produces "
+                    + $"'{FormatRecursiveCteType(memberType)}'. Cast the anchor expression explicitly using postfix syntax (::Type).",
+                memberFields[index].Expression
+            );
         }
 
-        _queryState.CachedSetFields.TryAdd(
-            cachedSetOperatorKey,
-            [..anchorFields]);
+        _queryState.CachedSetFields.TryAdd(cachedSetOperatorKey, [.. anchorFields]);
         UpdateProvisionalRecursiveColumns(cteName, anchorFields);
     }
 
     private bool HasDiagnosticErrorWithinAnyField(IEnumerable<FieldNode> fields)
     {
-        return fields.Any(field =>
-            DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, field.Expression));
+        return fields.Any(field => DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, field.Expression));
     }
 
     private static FieldNode ContextualizeNull(FieldNode field, Type type)
     {
-        return new FieldNode(
-            new NullNode(type, field.Expression.Span),
-            field.FieldOrder,
-            field.FieldName,
-            field.Span);
+        return new FieldNode(new NullNode(type, field.Expression.Span), field.FieldOrder, field.FieldName, field.Span);
     }
 
     private void UpdateProvisionalRecursiveColumns(string cteName, FieldNode[] anchorFields)
     {
-        if (!_provisionalRecursiveCteColumns.TryGetValue(cteName, out var columns) ||
-            columns.Length != anchorFields.Length)
+        if (
+            !_provisionalRecursiveCteColumns.TryGetValue(cteName, out var columns)
+            || columns.Length != anchorFields.Length
+        )
         {
             return;
         }
@@ -110,7 +107,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             updated[index] = new SchemaColumn(
                 columns[index].ColumnName,
                 columns[index].ColumnIndex,
-                anchorFields[index].Expression.ReturnType ?? columns[index].ColumnType);
+                anchorFields[index].Expression.ReturnType ?? columns[index].ColumnType
+            );
         }
 
         _provisionalRecursiveCteColumns[cteName] = updated;
@@ -125,42 +123,34 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private void ReportRecursiveCteOutputMismatch(string details, Node node)
     {
-        var message = ErrorCatalog.GetMessage(
-            DiagnosticCode.MQ3076_RecursiveCteOutputMismatch,
-            details);
+        var message = ErrorCatalog.GetMessage(DiagnosticCode.MQ3076_RecursiveCteOutputMismatch, details);
         if (DiagnosticContext != null)
         {
-            DiagnosticContext.ReportError(
-                DiagnosticCode.MQ3076_RecursiveCteOutputMismatch,
-                message,
-                node);
+            DiagnosticContext.ReportError(DiagnosticCode.MQ3076_RecursiveCteOutputMismatch, message, node);
             return;
         }
 
         throw new RecursiveCteValidationException(
             DiagnosticCode.MQ3076_RecursiveCteOutputMismatch,
             message,
-            node.SpanOrEmpty());
+            node.SpanOrEmpty()
+        );
     }
 
     private void ReportUnsupportedRecursiveOperator(string operatorName, Node node)
     {
-        var message = ErrorCatalog.GetMessage(
-            DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator,
-            operatorName);
+        var message = ErrorCatalog.GetMessage(DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator, operatorName);
         if (DiagnosticContext != null)
         {
-            DiagnosticContext.ReportError(
-                DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator,
-                message,
-                node);
+            DiagnosticContext.ReportError(DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator, message, node);
             return;
         }
 
         throw new RecursiveCteValidationException(
             DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator,
             message,
-            node.SpanOrEmpty());
+            node.SpanOrEmpty()
+        );
     }
 
     private static AccessMethodNode? FindRecursiveAggregate(Node node)

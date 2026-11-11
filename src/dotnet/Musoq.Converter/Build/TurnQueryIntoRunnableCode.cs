@@ -18,12 +18,15 @@ public partial class TurnQueryIntoRunnableCode(BuildChain? successor) : BuildCha
                 items.RenderingArtifacts,
                 items.EmitPdb,
                 items.FinalizationPurpose,
-                items.CancellationToken);
+                items.CancellationToken
+            );
             items.CompilationArtifacts = artifacts;
             items.CancellationToken.ThrowIfCancellationRequested();
 
             if (!artifacts.FinalizationResult.Success)
-                throw new CompilationException(CreateCompilationErrorText(artifacts.FinalizationResult, items.CancellationToken));
+                throw new CompilationException(
+                    CreateCompilationErrorText(artifacts.FinalizationResult, items.CancellationToken)
+                );
         }
         finally
         {
@@ -34,25 +37,33 @@ public partial class TurnQueryIntoRunnableCode(BuildChain? successor) : BuildCha
         Successor?.Build(items);
     }
 
-    private static CompilationBuildArtifacts Finalize(RenderingBuildArtifacts rendering, bool emitPdb, TargetFinalizationPurpose purpose)
+    private static CompilationBuildArtifacts Finalize(
+        RenderingBuildArtifacts rendering,
+        bool emitPdb,
+        TargetFinalizationPurpose purpose
+    )
     {
         var options = ExecutionTargetCatalog.CreateFinalizationOptions(
             rendering.Artifact.TargetId,
             purpose == TargetFinalizationPurpose.Execution
                 ? new TargetFinalizationOptionsContext(emitPdb)
-                : new TargetFinalizationOptionsContext(emitPdb, purpose));
-        return CompilationBuildArtifacts.From(
-            ExecutionTargetCatalog.FinalizeArtifact(rendering.Artifact, options));
+                : new TargetFinalizationOptionsContext(emitPdb, purpose)
+        );
+        return CompilationBuildArtifacts.From(ExecutionTargetCatalog.FinalizeArtifact(rendering.Artifact, options));
     }
 
     private static string CreateCompilationErrorText(
         TargetFinalizationResult result,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var all = new StringBuilder();
 
-        foreach (var diagnostic in result.Diagnostics.Where(static diagnostic =>
-                     diagnostic.Severity == TargetDiagnosticSeverity.Error))
+        foreach (
+            var diagnostic in result.Diagnostics.Where(static diagnostic =>
+                diagnostic.Severity == TargetDiagnosticSeverity.Error
+            )
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
             all.AppendLine(diagnostic.Message);

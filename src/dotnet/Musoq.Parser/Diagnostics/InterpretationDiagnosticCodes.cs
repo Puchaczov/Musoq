@@ -27,6 +27,6 @@ public static class InterpretationDiagnosticCodes
         DiagnosticCode.MQ7112_InterpretationNoAlternativeMatched,
         DiagnosticCode.MQ7113_InterpretationInvalidSchemaReference,
         DiagnosticCode.MQ7114_InterpretationFieldReferenceError,
-        DiagnosticCode.MQ7115_InterpretationGeneralError
+        DiagnosticCode.MQ7115_InterpretationGeneralError,
     ];
 }

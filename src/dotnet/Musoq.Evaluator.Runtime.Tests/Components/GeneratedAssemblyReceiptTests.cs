@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -15,10 +15,9 @@ public sealed class GeneratedAssemblyReceiptTests
     public void CachedCompilation_RetainsTheExecutableReceiptWithoutAnotherAssemblyLoad()
     {
         using var capture = new GeneratedAssemblyCapture();
-        var provider = new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] = [new BasicEntity("first") { Id = 1 }]
-        });
+        var provider = new BasicSchemaProvider<BasicEntity>(
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity("first") { Id = 1 }] }
+        );
         var logger = new TestsLoggerResolver();
         var options = new CompilationOptions(usePrimitiveTypeValidation: false);
         var sql = $"select Sum(e.Id) as Receipt{Guid.NewGuid():N} from #A.Entities() e";
@@ -36,23 +35,24 @@ public sealed class GeneratedAssemblyReceiptTests
 
         Assert.IsTrue(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(cachedQuery).Any());
         Assert.IsInstanceOfType<ClrLoadedExecutableArtifact>(cached.BuildItems!.ExecutableArtifact);
-        Assert.AreSame(firstType, GeneratedExecutionIlInspection.GetGeneratedComputeMethods(cachedQuery).First().DeclaringType);
+        Assert.AreSame(
+            firstType,
+            GeneratedExecutionIlInspection.GetGeneratedComputeMethods(cachedQuery).First().DeclaringType
+        );
     }
 
     [TestMethod]
     public void BatchedCompilation_RetainsEachExactGeneratedTypeForIlInspection()
     {
         using var capture = new GeneratedAssemblyCapture();
-        var provider = new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] = [new BasicEntity("first") { Id = 1 }]
-        });
+        var provider = new BasicSchemaProvider<BasicEntity>(
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity("first") { Id = 1 }] }
+        );
         var logger = new TestsLoggerResolver();
         var options = new CompilationOptions(usePrimitiveTypeValidation: false);
-        var results = InstanceCreator.CompileForExecutionBatch(
-        [
+        var results = InstanceCreator.CompileForExecutionBatch([
             new("first", "select e.Id from #A.Entities() e", "ReceiptFirst", provider, logger, options),
-            new("second", "select e.Id + 1 from #A.Entities() e", "ReceiptSecond", provider, logger, options)
+            new("second", "select e.Id + 1 from #A.Entities() e", "ReceiptSecond", provider, logger, options),
         ]);
         Assert.HasCount(2, results);
         AssertReceipt(results[0].Result, capture);

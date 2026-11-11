@@ -17,7 +17,10 @@ public sealed partial class DiagnosticCore009SelectTests
         using var result = compiled.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, result.Count);
-        var record = NativeStructuralProjectionAssertions.Read(result[0].ReadValue(0), NativeStructuralProjectionAssertions.IdRecord);
+        var record = NativeStructuralProjectionAssertions.Read(
+            result[0].ReadValue(0),
+            NativeStructuralProjectionAssertions.IdRecord
+        );
         Assert.AreEqual(StructuralTypeKind.Record, record.Kind);
         Assert.AreEqual(1, record.Fields.Count);
         Assert.AreEqual(1, record.Fields["Id"].Scalar);
@@ -33,7 +36,10 @@ public sealed partial class DiagnosticCore009SelectTests
         using var result = compiled.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, result.Count);
-        var record = NativeStructuralProjectionAssertions.Read(result[0].ReadValue(0), NativeStructuralProjectionAssertions.IdAndValueRecord);
+        var record = NativeStructuralProjectionAssertions.Read(
+            result[0].ReadValue(0),
+            NativeStructuralProjectionAssertions.IdAndValueRecord
+        );
         Assert.AreEqual(StructuralTypeKind.Record, record.Kind);
         Assert.AreEqual(2, record.Fields.Count);
         Assert.AreEqual(0, record.Fields["Id"].Scalar);
@@ -49,14 +55,19 @@ public sealed partial class DiagnosticCore009SelectTests
         using var result = compiled.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, result.Count);
-        var record = NativeStructuralProjectionAssertions.Read(result[0].ReadValue(0), NativeStructuralProjectionAssertions.IdRecord);
+        var record = NativeStructuralProjectionAssertions.Read(
+            result[0].ReadValue(0),
+            NativeStructuralProjectionAssertions.IdRecord
+        );
         Assert.AreEqual(StructuralTypeKind.Record, record.Kind);
         Assert.AreEqual(0, record.Fields["Id"].Scalar);
     }
 
     [TestMethod]
     [DataRow("select (Payload: (Id: 3), Items: array { 7, 9 }, Mode: null) as Value from #specstressnative.rows()")]
-    [DataRow("with projected as (select (Payload: (Id: 3), Items: array { 7, 9 }, Mode: null) as Value from #specstressnative.rows()) select Value from projected")]
+    [DataRow(
+        "with projected as (select (Payload: (Id: 3), Items: array { 7, 9 }, Mode: null) as Value from #specstressnative.rows()) select Value from projected"
+    )]
     public void NestedRecordProjection_ShouldPreservePublicShape(string query)
     {
         using var compiled = CompileStructuralProjection(query);
@@ -64,7 +75,10 @@ public sealed partial class DiagnosticCore009SelectTests
 
         Assert.AreEqual(1, result.Count);
         Assert.AreEqual(result[0].ReadValue(0)!.GetType(), result.Columns.Single().ColumnType);
-        var record = NativeStructuralProjectionAssertions.Read(result[0].ReadValue(0), NativeStructuralProjectionAssertions.NestedRecord);
+        var record = NativeStructuralProjectionAssertions.Read(
+            result[0].ReadValue(0),
+            NativeStructuralProjectionAssertions.NestedRecord
+        );
         Assert.AreEqual(3, record.Fields.Count);
         Assert.AreEqual(3, record.Fields["Payload"].Fields["Id"].Scalar);
         Assert.AreEqual(StructuralTypeKind.Collection, record.Fields["Items"].Kind);
@@ -76,7 +90,12 @@ public sealed partial class DiagnosticCore009SelectTests
     private CompiledQuery CompileStructuralProjection(string query)
     {
         return InstanceCreator.CompileForExecution(
-            query, Guid.NewGuid().ToString(), new NativeTableCarrierSchemaProvider(),
-            LoggerResolver, TestCompilationOptions, TestContext.CancellationToken);
+            query,
+            Guid.NewGuid().ToString(),
+            new NativeTableCarrierSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions,
+            TestContext.CancellationToken
+        );
     }
 }

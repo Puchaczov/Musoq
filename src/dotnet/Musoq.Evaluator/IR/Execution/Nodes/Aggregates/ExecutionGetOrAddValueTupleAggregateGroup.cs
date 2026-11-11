@@ -12,7 +12,8 @@ public sealed record ExecutionGetOrAddValueTupleAggregateGroup : ExecutionNode
         IReadOnlyList<ExecutionExpression> keys,
         IReadOnlyList<string> keyNames,
         IReadOnlyList<ExecutionTypeRef> keyTypes,
-        AggregateGroupPlan groupPlan)
+        AggregateGroupPlan groupPlan
+    )
     {
         RootGroup = rootGroup;
         GroupDictionaries = ExecutionIrCollections.Freeze(groupDictionaries);
@@ -41,10 +42,18 @@ public sealed record ExecutionGetOrAddValueTupleAggregateGroup : ExecutionNode
         IReadOnlyList<ExecutionExpression> keys,
         IReadOnlyList<string> keyNames,
         IReadOnlyList<Type> keyTypes,
-        AggregateGroupPlan groupPlan)
-        : this(rootGroup, groupDictionaries, groupsToFinalize, group, keys, keyNames, ExecutionClrBindingFactory.FromClrTypes(keyTypes), groupPlan)
-    {
-    }
+        AggregateGroupPlan groupPlan
+    )
+        : this(
+            rootGroup,
+            groupDictionaries,
+            groupsToFinalize,
+            group,
+            keys,
+            keyNames,
+            ExecutionClrBindingFactory.FromClrTypes(keyTypes),
+            groupPlan
+        ) { }
 
     public AggregateGroupShape GroupShape => GroupPlan.LeafShape;
 }

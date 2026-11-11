@@ -14,7 +14,6 @@ using Musoq.Schema;
 using Musoq.Schema.Attributes;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-
 using static Musoq.Evaluator.Tests.SourceRuntimeSettingsLifecycleTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -27,7 +26,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
     {
         var provider = new SettingsSchemaProvider(declareRequirement: true);
         var resolver = new ContextTokenResolver(contextId =>
-            contextId.StartsWith("l:", StringComparison.Ordinal) ? "left-token" : "right-token");
+            contextId.StartsWith("l:", StringComparison.Ordinal) ? "left-token" : "right-token"
+        );
         var options = new CompilationOptions(sourceRuntimeSettingsResolver: resolver);
 
         var compiled = InstanceCreator.CompileForExecution(
@@ -35,7 +35,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
 
         var table = compiled.Run();
 
@@ -58,10 +59,12 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             Guid.NewGuid().ToString(),
             new SettingsSchemaProvider(declareRequirement: true),
             new TestsLoggerResolver(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var diagnostic = result.Diagnostics.Single(item =>
-            item.Code == DiagnosticCode.MQ3067_MissingSourceRuntimeSetting);
+            item.Code == DiagnosticCode.MQ3067_MissingSourceRuntimeSetting
+        );
 
         Assert.IsFalse(result.Succeeded);
         Assert.Contains("TOKEN", diagnostic.Message);
@@ -82,14 +85,16 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             "RuntimeSettingsCacheProbe",
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
         resolver.Token = "second-token";
         var second = InstanceCreator.CompileForExecution(
             query,
             "RuntimeSettingsCacheProbe",
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
 
         Assert.AreEqual("first-token", first.Run()[0].ReadValue(0));
         Assert.AreEqual("second-token", second.Run()[0].ReadValue(0));
@@ -102,16 +107,12 @@ public sealed class SourceRuntimeSettingsLifecycleTests
         var provider = new SettingsSchemaProvider(SettingsDeclarationMode.OptionalOnly);
         const string query = "select Token from #settings.items()";
 
-        InstanceCreator.CompileForExecution(
-            query,
-            "DeclaredRuntimeSettingsCacheProbe",
-            provider,
-            new TestsLoggerResolver()).Run();
-        InstanceCreator.CompileForExecution(
-            query,
-            "DeclaredRuntimeSettingsCacheProbe",
-            provider,
-            new TestsLoggerResolver()).Run();
+        InstanceCreator
+            .CompileForExecution(query, "DeclaredRuntimeSettingsCacheProbe", provider, new TestsLoggerResolver())
+            .Run();
+        InstanceCreator
+            .CompileForExecution(query, "DeclaredRuntimeSettingsCacheProbe", provider, new TestsLoggerResolver())
+            .Run();
 
         Assert.IsGreaterThanOrEqualTo(2, provider.Schema.DescribeRuntimeSettingsCount);
     }
@@ -122,17 +123,13 @@ public sealed class SourceRuntimeSettingsLifecycleTests
         var provider = new SettingsSchemaProvider(SettingsDeclarationMode.None);
         const string query = "select Token from #settings.items()";
 
-        InstanceCreator.CompileForExecution(
-            query,
-            "RuntimeSettingsStaleCacheProbe",
-            provider,
-            new TestsLoggerResolver()).Run();
+        InstanceCreator
+            .CompileForExecution(query, "RuntimeSettingsStaleCacheProbe", provider, new TestsLoggerResolver())
+            .Run();
         provider.Schema.DeclarationMode = SettingsDeclarationMode.OptionalOnly;
-        InstanceCreator.CompileForExecution(
-            query,
-            "RuntimeSettingsStaleCacheProbe",
-            provider,
-            new TestsLoggerResolver()).Run();
+        InstanceCreator
+            .CompileForExecution(query, "RuntimeSettingsStaleCacheProbe", provider, new TestsLoggerResolver())
+            .Run();
 
         Assert.IsGreaterThanOrEqualTo(3, provider.Schema.DescribeRuntimeSettingsCount);
     }
@@ -144,7 +141,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             "select Token from #settings.items()",
             Guid.NewGuid().ToString(),
             new SettingsSchemaProvider(SettingsDeclarationMode.OptionalOnly),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         var descriptions = items.SourceRuntimeSettingDescriptionsBySourceContextId.Values.Single();
         var description = descriptions.Single();
@@ -158,10 +156,7 @@ public sealed class SourceRuntimeSettingsLifecycleTests
     public void CompileForExecution_WhenInitialHostSettingsChange_UsesLatestInitialSettings()
     {
         var provider = new SettingsSchemaProvider(declareRequirement: false);
-        var initialSettings = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["TOKEN"] = "first-token"
-        };
+        var initialSettings = new Dictionary<string, string>(StringComparer.Ordinal) { ["TOKEN"] = "first-token" };
         const string query = "select Token from #settings.items()";
 
         var first = CompileWithInitialSettings(query, provider, initialSettings);
@@ -184,7 +179,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
 
         var table = compiled.Run();
 
@@ -205,7 +201,8 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
 
         var table = compiled.Run();
 
@@ -221,38 +218,40 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             "desc settings #settings.items()",
             Guid.NewGuid().ToString(),
             new SettingsSchemaProvider(declareRequirement: true),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         var table = compiled.Run();
 
         AssertDescSettingsRows(
             table,
             ["OPTIONAL_TOKEN", false, false, "All", "Default", "Optional token override."],
-            ["TOKEN", true, true, "All", "Missing", "Token used by the settings source."]);
+            ["TOKEN", true, true, "All", "Missing", "Token used by the settings source."]
+        );
         Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "blue-token")));
     }
 
     [TestMethod]
     public void DescSettings_WhenOptionalSettingIsProvided_ShowsProvidedStatus()
     {
-        var resolver = new StaticSettingsResolver(new Dictionary<string, string>
-        {
-            ["TOKEN"] = "token-value",
-            ["OPTIONAL_TOKEN"] = "optional-value"
-        });
+        var resolver = new StaticSettingsResolver(
+            new Dictionary<string, string> { ["TOKEN"] = "token-value", ["OPTIONAL_TOKEN"] = "optional-value" }
+        );
         var compiled = InstanceCreator.CompileForExecution(
             "desc settings #settings.items()",
             Guid.NewGuid().ToString(),
             new SettingsSchemaProvider(declareRequirement: true),
             new TestsLoggerResolver(),
-            new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
+            new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+        );
 
         var table = compiled.Run();
 
         AssertDescSettingsRows(
             table,
             ["OPTIONAL_TOKEN", false, false, "All", "Provided", "Optional token override."],
-            ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]);
+            ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]
+        );
         Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "optional-value")));
         Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "token-value")));
     }
@@ -261,11 +260,9 @@ public sealed class SourceRuntimeSettingsLifecycleTests
     public void CompileForExecution_WhenResolverReturnsExtraKeys_FlowsExtrasButDescListsDeclaredRequirementsOnly()
     {
         var provider = new SettingsSchemaProvider(declareRequirement: true);
-        var resolver = new StaticSettingsResolver(new Dictionary<string, string>
-        {
-            ["TOKEN"] = "token-value",
-            ["EXTRA_TOKEN"] = "extra-value"
-        });
+        var resolver = new StaticSettingsResolver(
+            new Dictionary<string, string> { ["TOKEN"] = "token-value", ["EXTRA_TOKEN"] = "extra-value" }
+        );
         var options = new CompilationOptions(sourceRuntimeSettingsResolver: resolver);
 
         var compiled = InstanceCreator.CompileForExecution(
@@ -273,13 +270,15 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
         var desc = InstanceCreator.CompileForExecution(
             "desc settings #settings.items()",
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
 
         Assert.AreEqual("token-value", compiled.Run()[0].ReadValue(0));
         Assert.IsTrue(provider.Schema.MetadataSettings.Any(settings => settings.ContainsKey("EXTRA_TOKEN")));
@@ -291,17 +290,15 @@ public sealed class SourceRuntimeSettingsLifecycleTests
     [TestMethod]
     public void CompileForExecution_WhenRequiredSettingIsEmptyString_TreatsItAsProvided()
     {
-        var resolver = new StaticSettingsResolver(new Dictionary<string, string>
-        {
-            ["TOKEN"] = string.Empty
-        });
+        var resolver = new StaticSettingsResolver(new Dictionary<string, string> { ["TOKEN"] = string.Empty });
 
         var compiled = InstanceCreator.CompileForExecution(
             "select Token from #settings.items()",
             Guid.NewGuid().ToString(),
             new SettingsSchemaProvider(declareRequirement: true),
             new TestsLoggerResolver(),
-            new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
+            new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+        );
 
         Assert.AreEqual(string.Empty, compiled.Run()[0].ReadValue(0));
     }
@@ -309,24 +306,25 @@ public sealed class SourceRuntimeSettingsLifecycleTests
     [TestMethod]
     public void DescSettings_WhenSecretSettingIsProvided_DoesNotExposeValue()
     {
-        var resolver = new StaticSettingsResolver(new Dictionary<string, string>
-        {
-            ["TOKEN"] = "super-secret-token"
-        });
+        var resolver = new StaticSettingsResolver(new Dictionary<string, string> { ["TOKEN"] = "super-secret-token" });
         var compiled = InstanceCreator.CompileForExecution(
             "desc settings #settings.items()",
             Guid.NewGuid().ToString(),
             new SettingsSchemaProvider(declareRequirement: true),
             new TestsLoggerResolver(),
-            new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
+            new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+        );
 
         var table = compiled.Run();
 
         AssertDescSettingsRows(
             table,
             ["OPTIONAL_TOKEN", false, false, "All", "Default", "Optional token override."],
-            ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]);
-        Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "super-secret-token")));
+            ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]
+        );
+        Assert.IsFalse(
+            table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "super-secret-token"))
+        );
     }
 
     [TestMethod]
@@ -338,14 +336,16 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             Guid.NewGuid().ToString(),
             new SettingsSchemaProvider(declareRequirement: true),
             new TestsLoggerResolver(),
-            new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
+            new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+        );
 
         var table = compiled.Run();
 
         AssertDescSettingsRows(
             table,
             ["OPTIONAL_TOKEN", false, false, "All", "Default", "Optional token override."],
-            ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]);
+            ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]
+        );
         Assert.AreEqual("blue", resolver.ProfileNames.Single());
         Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value => Equals(value, "blue-token")));
     }

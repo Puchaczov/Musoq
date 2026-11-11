@@ -14,7 +14,8 @@ internal static class AggregateGroupPlanner
         string leafTypeName,
         IReadOnlyList<AggregateGroupKeyField> keys,
         IReadOnlyList<AggregateCapturedField> capturedFields,
-        IReadOnlyList<AggregateAccumulatorField> accumulators)
+        IReadOnlyList<AggregateAccumulatorField> accumulators
+    )
     {
         var keyCount = keys.Count;
         var ownerPrefixLengths = CreateOwnerPrefixLengths(keyCount, accumulators);
@@ -22,37 +23,37 @@ internal static class AggregateGroupPlanner
             .Where(prefixLength => prefixLength < keyCount)
             .ToDictionary(
                 static prefixLength => prefixLength,
-                prefixLength => CreateGroupShape(
-                    CreateLevelTypeName(leafTypeName, prefixLength, keyCount),
-                    keys.Take(prefixLength).ToArray(),
-                    [],
-                    accumulators.Where(accumulator => accumulator.OwnerPrefixLength == prefixLength).ToArray(),
-                    []));
+                prefixLength =>
+                    CreateGroupShape(
+                        CreateLevelTypeName(leafTypeName, prefixLength, keyCount),
+                        keys.Take(prefixLength).ToArray(),
+                        [],
+                        accumulators.Where(accumulator => accumulator.OwnerPrefixLength == prefixLength).ToArray(),
+                        []
+                    )
+            );
         var ownerFields = nonLeafShapes
             .OrderBy(static pair => pair.Key)
-            .Select(static pair => new AggregateGroupOwnerField(
-                pair.Key,
-                CreateOwnerFieldName(pair.Key),
-                pair.Value))
+            .Select(static pair => new AggregateGroupOwnerField(pair.Key, CreateOwnerFieldName(pair.Key), pair.Value))
             .ToArray();
         var leafShape = CreateGroupShape(
             leafTypeName,
             keys,
             capturedFields,
             accumulators.Where(accumulator => accumulator.OwnerPrefixLength == keyCount).ToArray(),
-            ownerFields);
+            ownerFields
+        );
         var levels = ownerPrefixLengths
             .Select(prefixLength => new AggregateGroupLevelPlan(
                 prefixLength,
-                prefixLength == keyCount ? leafShape : nonLeafShapes[prefixLength]))
+                prefixLength == keyCount ? leafShape : nonLeafShapes[prefixLength]
+            ))
             .ToArray();
 
         return new AggregateGroupPlan(leafShape, levels);
     }
 
-    private static int[] CreateOwnerPrefixLengths(
-        int keyCount,
-        IReadOnlyList<AggregateAccumulatorField> accumulators)
+    private static int[] CreateOwnerPrefixLengths(int keyCount, IReadOnlyList<AggregateAccumulatorField> accumulators)
     {
         return accumulators
             .Select(static accumulator => accumulator.OwnerPrefixLength)
@@ -67,7 +68,8 @@ internal static class AggregateGroupPlanner
         IReadOnlyList<AggregateGroupKeyField> keys,
         IReadOnlyList<AggregateCapturedField> capturedFields,
         IReadOnlyList<AggregateAccumulatorField> accumulators,
-        IReadOnlyList<AggregateGroupOwnerField> ownerFields)
+        IReadOnlyList<AggregateGroupOwnerField> ownerFields
+    )
     {
         return new AggregateGroupShape(typeName, keys, capturedFields, accumulators, ownerFields);
     }

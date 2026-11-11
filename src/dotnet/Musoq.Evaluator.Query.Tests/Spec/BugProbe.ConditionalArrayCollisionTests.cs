@@ -27,26 +27,37 @@ public class BugProbeConditionalArrayCollisionTests
     [TestMethod]
     public void Binary_TwoConditionalArrays_ShouldNotCollideOnLoopVar()
     {
-        var query = @"
-            binary Item { Val: byte };
-            binary Data {
-                Type: byte,
-                CountA: byte,
-                ItemsA: Item[CountA] when Type = 1,
-                CountB: byte,
-                ItemsB: Item[CountB] when Type = 2
-            };
-            select d.Type, d.CountA, d.CountB from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Item { Val: byte };\n"
+            + "            binary Data {\n"
+            + "                Type: byte,\n"
+            + "                CountA: byte,\n"
+            + "                ItemsA: Item[CountA] when Type = 1,\n"
+            + "                CountB: byte,\n"
+            + "                ItemsB: Item[CountB] when Type = 2\n"
+            + "            };\n"
+            + "            select d.Type, d.CountA, d.CountB from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // Type=1, CountA=2, Item1=0xAA, Item2=0xBB, CountB=0
         var testData = new byte[] { 0x01, 0x02, 0xAA, 0xBB, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -62,29 +73,49 @@ public class BugProbeConditionalArrayCollisionTests
     [TestMethod]
     public void Binary_PrimitiveIntArray_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data {
-                Count: byte,
-                Values: int le[Count]
-            };
-            select v from #test.files() b
-            cross apply Interpret<Data>(b.Content) d
-            cross apply d.Values v
-            order by v asc";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Count: byte,\n"
+            + "                Values: int le[Count]\n"
+            + "            };\n"
+            + "            select v from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d\n"
+            + "            cross apply d.Values v\n"
+            + "            order by v asc"
+        );
 
         var testData = new byte[]
         {
             0x03, // Count=3
-            0x03, 0x00, 0x00, 0x00, // 3
-            0x01, 0x00, 0x00, 0x00, // 1
-            0x02, 0x00, 0x00, 0x00 // 2
+            0x03,
+            0x00,
+            0x00,
+            0x00, // 3
+            0x01,
+            0x00,
+            0x00,
+            0x00, // 1
+            0x02,
+            0x00,
+            0x00,
+            0x00, // 2
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -101,28 +132,43 @@ public class BugProbeConditionalArrayCollisionTests
     [TestMethod]
     public void Binary_StringArray_ShouldParseMultipleStrings()
     {
-        var query = @"
-            binary Data {
-                Count: byte,
-                Names: string[3] utf8[Count]
-            };
-            select n from #test.files() b
-            cross apply Interpret<Data>(b.Content) d
-            cross apply d.Names n
-            order by n asc";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Count: byte,\n"
+            + "                Names: string[3] utf8[Count]\n"
+            + "            };\n"
+            + "            select n from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d\n"
+            + "            cross apply d.Names n\n"
+            + "            order by n asc"
+        );
 
         var testData = new byte[]
         {
             0x02, // Count=2
-            0x48, 0x69, 0x21, // "Hi!"
-            0x42, 0x79, 0x65 // "Bye"
+            0x48,
+            0x69,
+            0x21, // "Hi!"
+            0x42,
+            0x79,
+            0x65, // "Bye"
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);

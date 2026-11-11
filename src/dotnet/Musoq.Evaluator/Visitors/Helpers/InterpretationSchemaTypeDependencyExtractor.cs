@@ -22,8 +22,8 @@ internal static class InterpretationSchemaTypeDependencyExtractor
 
         var argumentText = trimmedTypeName[(openIndex + 1)..^1];
         foreach (var typeArgument in SplitTypeArguments(argumentText))
-            foreach (var dependency in Extract(typeArgument, typeParameters))
-                yield return dependency;
+        foreach (var dependency in Extract(typeArgument, typeParameters))
+            yield return dependency;
     }
 
     private static string[] SplitTypeArguments(string argumentText)

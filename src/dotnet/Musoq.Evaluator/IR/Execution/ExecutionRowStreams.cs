@@ -12,16 +12,17 @@ internal static class ExecutionRowStreams
         return rows is ExecutionScalarRowStream;
     }
 
-    public static ExecutionExpression RebindLike(
-        ExecutionExpression rows,
-        ExecutionVariable variable)
+    public static ExecutionExpression RebindLike(ExecutionExpression rows, ExecutionVariable variable)
     {
         return rows switch
         {
             ExecutionRowStream stream => new ExecutionRowStream(variable, stream.Kind)
-                { HasDirectScalarElements = stream.HasDirectScalarElements, IsValueEnumerable = stream.IsValueEnumerable },
+            {
+                HasDirectScalarElements = stream.HasDirectScalarElements,
+                IsValueEnumerable = stream.IsValueEnumerable,
+            },
             ExecutionScalarRowStream => new ExecutionScalarRowStream(variable),
-            _ => new ExecutionVariableRead(variable)
+            _ => new ExecutionVariableRead(variable),
         };
     }
 
@@ -29,7 +30,8 @@ internal static class ExecutionRowStreams
         RowShape sourceShape,
         ExecutionExpression sourceRows,
         ExecutionVariable source,
-        ExecutionBlock loopBody)
+        ExecutionBlock loopBody
+    )
     {
         RequireNativeShape(sourceShape);
         return new ExecutionForEach(source, sourceRows, loopBody);
@@ -40,7 +42,8 @@ internal static class ExecutionRowStreams
         ExecutionVariable sourceRows,
         ExecutionVariable source,
         ExecutionVariable index,
-        ExecutionBlock loopBody)
+        ExecutionBlock loopBody
+    )
     {
         RequireNativeShape(sourceShape);
         return new ExecutionForEachIndexed(source, index, sourceRows, ExecutionRowAccessMode.Direct, loopBody);
@@ -51,7 +54,8 @@ internal static class ExecutionRowStreams
         ExecutionExpression sourceRows,
         ExecutionVariable source,
         ExecutionVariable ordinal,
-        ExecutionBlock loopBody)
+        ExecutionBlock loopBody
+    )
     {
         RequireNativeShape(sourceShape);
         return new ExecutionForEachWithOrdinality(source, sourceRows, ordinal, loopBody);
@@ -60,7 +64,8 @@ internal static class ExecutionRowStreams
     public static ExecutionNode CreateMaterializeList(
         ExecutionExpression source,
         ExecutionVariable buffer,
-        GeneratedRowShape? generatedRowShape = null)
+        GeneratedRowShape? generatedRowShape = null
+    )
     {
         return new ExecutionMaterializeList(source, buffer, generatedRowShape);
     }
@@ -71,19 +76,21 @@ internal static class ExecutionRowStreams
         ExecutionVariable item,
         ExecutionRowAccessMode rowAccessMode,
         ExecutionExpression predicate,
-        GeneratedRowShape? generatedRowShape = null)
+        GeneratedRowShape? generatedRowShape = null
+    )
     {
         return new ExecutionMaterializeFilteredList(source, buffer, item, rowAccessMode, predicate, generatedRowShape);
     }
 
-
-
     private static void RequireNativeShape(RowShape shape)
     {
-        if (shape is SourceEntityShape source &&
-            DynamicEntityBoundary.IsNameIndexedSource(source.EntityType.ResolveClrType()))
+        if (
+            shape is SourceEntityShape source
+            && DynamicEntityBoundary.IsNameIndexedSource(source.EntityType.ResolveClrType())
+        )
             throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
                 "Erased dictionary iteration is unsupported; use native query-scoped rows.",
-                Musoq.Parser.TextSpan.Empty);
+                Musoq.Parser.TextSpan.Empty
+            );
     }
 }

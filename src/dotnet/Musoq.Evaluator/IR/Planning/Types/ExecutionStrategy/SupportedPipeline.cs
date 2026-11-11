@@ -8,4 +8,5 @@ internal sealed record SupportedPipeline(
     PhysicalProjectNode Project,
     PhysicalNode Source,
     PhysicalFilterNode? Filter,
-    IReadOnlyList<PhysicalNode> PostOperations);
+    IReadOnlyList<PhysicalNode> PostOperations
+);

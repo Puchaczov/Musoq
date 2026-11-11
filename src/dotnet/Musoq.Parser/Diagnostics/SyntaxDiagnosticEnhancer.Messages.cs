@@ -14,18 +14,24 @@ internal static partial class SyntaxDiagnosticEnhancer
         TextSpan span,
         string? keywordCandidate,
         string? keywordSuggestion,
-        DialectKeywordHelp? dialectHelp)
+        DialectKeywordHelp? dialectHelp
+    )
     {
         if (dialectHelp != null)
             return AppendSentence(message, dialectHelp.Message);
 
-        if (!string.IsNullOrWhiteSpace(keywordSuggestion) && !string.IsNullOrWhiteSpace(keywordCandidate) &&
-            !string.Equals(keywordCandidate, keywordSuggestion, StringComparison.OrdinalIgnoreCase))
+        if (
+            !string.IsNullOrWhiteSpace(keywordSuggestion)
+            && !string.IsNullOrWhiteSpace(keywordCandidate)
+            && !string.Equals(keywordCandidate, keywordSuggestion, StringComparison.OrdinalIgnoreCase)
+        )
             return AppendSentence(message, $"Did you mean '{keywordSuggestion}'?");
 
         if (span.Start == 0)
-            return AppendSentence(message,
-                $"Queries usually start with {string.Join(", ", StatementStarts[..^1])}, or {StatementStarts[^1]}.");
+            return AppendSentence(
+                message,
+                $"Queries usually start with {string.Join(", ", StatementStarts[..^1])}, or {StatementStarts[^1]}."
+            );
 
         return message;
     }
@@ -34,13 +40,17 @@ internal static partial class SyntaxDiagnosticEnhancer
         ErrorMetadata? metadata,
         string? keywordCandidate,
         string? keywordSuggestion,
-        DialectKeywordHelp? dialectHelp)
+        DialectKeywordHelp? dialectHelp
+    )
     {
         if (dialectHelp != null)
             return dialectHelp.Message;
 
-        if (!string.IsNullOrWhiteSpace(keywordSuggestion) && !string.IsNullOrWhiteSpace(keywordCandidate) &&
-            !string.Equals(keywordCandidate, keywordSuggestion, StringComparison.OrdinalIgnoreCase))
+        if (
+            !string.IsNullOrWhiteSpace(keywordSuggestion)
+            && !string.IsNullOrWhiteSpace(keywordCandidate)
+            && !string.Equals(keywordCandidate, keywordSuggestion, StringComparison.OrdinalIgnoreCase)
+        )
             return $"'{keywordCandidate}' is not recognized here. The query likely contains a mistyped Musoq keyword.";
 
         return metadata?.Explanation;
@@ -51,19 +61,27 @@ internal static partial class SyntaxDiagnosticEnhancer
         string? keywordCandidate,
         TextSpan span,
         string? keywordSuggestion,
-        DialectKeywordHelp? dialectHelp)
+        DialectKeywordHelp? dialectHelp
+    )
     {
         var fixes = new List<DiagnosticAction>();
 
         if (dialectHelp != null)
             fixes.AddRange(dialectHelp.SuggestedFixes.Select(DiagnosticAction.Suggestion));
 
-        if (!string.IsNullOrWhiteSpace(keywordSuggestion) && !string.IsNullOrWhiteSpace(keywordCandidate) &&
-            span.Length > 0 && !string.Equals(keywordCandidate, keywordSuggestion, StringComparison.OrdinalIgnoreCase))
-            fixes.Add(DiagnosticAction.QuickFix(
-                $"Replace '{keywordCandidate}' with '{keywordSuggestion}'",
-                span,
-                keywordSuggestion));
+        if (
+            !string.IsNullOrWhiteSpace(keywordSuggestion)
+            && !string.IsNullOrWhiteSpace(keywordCandidate)
+            && span.Length > 0
+            && !string.Equals(keywordCandidate, keywordSuggestion, StringComparison.OrdinalIgnoreCase)
+        )
+            fixes.Add(
+                DiagnosticAction.QuickFix(
+                    $"Replace '{keywordCandidate}' with '{keywordSuggestion}'",
+                    span,
+                    keywordSuggestion
+                )
+            );
 
         if (metadata?.SuggestedFixes != null)
         {

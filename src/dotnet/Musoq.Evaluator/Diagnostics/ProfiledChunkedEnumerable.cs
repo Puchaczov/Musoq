@@ -17,7 +17,8 @@ public sealed class ProfiledChunkedEnumerable<T> : IEnumerable<IReadOnlyList<T>>
 
     public static IEnumerable<IReadOnlyList<T>> Create(
         IEnumerable<IReadOnlyList<T>> source,
-        SourceProfileRecorder recorder)
+        SourceProfileRecorder recorder
+    )
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(recorder);
@@ -162,21 +163,24 @@ public sealed class ProfiledChunkedEnumerable<T> : IEnumerable<IReadOnlyList<T>>
             if (Interlocked.Exchange(ref _flushed, 1) != 0)
                 return;
 
-            _recorder.RecordEnumeration(new SourceEnumerationProfileBatch(
-                _started,
-                _startedTimestamp,
-                _rowsRead,
-                _hasFirstRow,
-                _firstRowTimestamp,
-                _lastRowTimestamp,
-                _moveNextWaitTime,
-                TimeSpan.Zero,
-                _exceptionCount,
-                _exceptionType,
-                _exceptionMessage,
-                false,
-                _moveNextCalls,
-                0));
+            _recorder.RecordEnumeration(
+                new SourceEnumerationProfileBatch(
+                    _started,
+                    _startedTimestamp,
+                    _rowsRead,
+                    _hasFirstRow,
+                    _firstRowTimestamp,
+                    _lastRowTimestamp,
+                    _moveNextWaitTime,
+                    TimeSpan.Zero,
+                    _exceptionCount,
+                    _exceptionType,
+                    _exceptionMessage,
+                    false,
+                    _moveNextCalls,
+                    0
+                )
+            );
             _operatorExclusionTarget.ExcludeElapsedTicks(_moveNextWaitTicksToExclude);
         }
     }

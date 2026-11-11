@@ -10,18 +10,13 @@ namespace Musoq.Evaluator.Exceptions;
 public class NonAggregatedColumnInSelectException : Exception, IDiagnosticException
 {
     public NonAggregatedColumnInSelectException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public NonAggregatedColumnInSelectException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public NonAggregatedColumnInSelectException()
-    {
-    }
+    public NonAggregatedColumnInSelectException() { }
+
     /// <summary>
     ///     Initializes a new instance with column name and available GROUP BY columns.
     /// </summary>
@@ -76,10 +71,8 @@ public class NonAggregatedColumnInSelectException : Exception, IDiagnosticExcept
 
     private static string BuildMessage(string columnName, string[] groupByColumns)
     {
-        var groupByList = groupByColumns.Length > 0
-            ? string.Join(", ", groupByColumns)
-            : "(none)";
-        return $"Column '{columnName}' must appear in the GROUP BY clause or be used in an aggregate function. " +
-               $"Current GROUP BY columns: {groupByList}.";
+        var groupByList = groupByColumns.Length > 0 ? string.Join(", ", groupByColumns) : "(none)";
+        return $"Column '{columnName}' must appear in the GROUP BY clause or be used in an aggregate function. "
+            + $"Current GROUP BY columns: {groupByList}.";
     }
 }

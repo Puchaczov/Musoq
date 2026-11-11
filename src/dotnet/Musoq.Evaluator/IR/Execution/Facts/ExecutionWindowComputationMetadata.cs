@@ -14,7 +14,8 @@ internal sealed record ExecutionWindowComputationMetadata
         ExecutionWindowKeyArray? partitionKeyArray,
         ExecutionWindowKeyArray? orderKeyArray,
         ExecutionWindowPartitionSet? partitions,
-        ExecutionWindowPartitionSet? sortedPartitions)
+        ExecutionWindowPartitionSet? sortedPartitions
+    )
     {
         Buffer = buffer;
         Item = item;

@@ -30,8 +30,6 @@ public class BitwiseOperationsXorTests : BasicEntityTestBase
         TestMethodTemplate<int?>("Xor(1b, 1us)", 0);
     }
 
-
-
     [TestMethod]
     public void WhenBitwiseXorBetweenSbyteAndUint_ShouldBeEvaluated()
     {

@@ -19,16 +19,29 @@ public sealed class BinaryInputSnapshotTests
     [DataRow("FromHexToBytes(ToHex(f.Content))")]
     public void OrdinaryApply_LosslessComposition_ShouldPlanOwnedBoundedInputAndPreserveValues(string input)
     {
-        var sql = $"binary Independent {{ Count: byte, Items: short le[Count] }} select p.Count, p.Items from #schema.first() f cross apply Interpret<Independent>({input}) p";
+        var sql =
+            $"binary Independent {{ Count: byte, Items: short le[Count] }} select p.Count, p.Items from #schema.first() f cross apply Interpret<Independent>({input}) p";
         var provider = Provider([2, 1, 0, 2, 0, 99, 99]);
-        var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
-        var snapshot = ExecutionIrAnalysis.FlattenExpressions(inspection.ExecutionPlan!.Body)
-            .OfType<ExecutionByteBufferSnapshot>().Single();
+        var inspection = InstanceCreator.CompileForInspection(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
+        var snapshot = ExecutionIrAnalysis
+            .FlattenExpressions(inspection.ExecutionPlan!.Body)
+            .OfType<ExecutionByteBufferSnapshot>()
+            .Single();
         Assert.AreEqual(511, snapshot.MaximumReadBytes);
         Assert.Contains("ByteBufferSnapshot.Copy", inspection.GeneratedCSharpCode);
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+        using var query = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         using var result = query.Run();
         var row = result.Single();
         Assert.AreEqual((byte)2, row.GetValue<byte>(0));
@@ -48,14 +61,26 @@ public sealed class BinaryInputSnapshotTests
             """;
         var provider = Provider(Convert.FromHexString(input));
         var options = new CompilationOptions(usePrimitiveTypeValidation: false);
-        var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), options);
-        var snapshot = ExecutionIrAnalysis.FlattenExpressions(inspection.ExecutionPlan!.Body)
-            .OfType<ExecutionByteBufferSnapshot>().Single();
+        var inspection = InstanceCreator.CompileForInspection(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            options
+        );
+        var snapshot = ExecutionIrAnalysis
+            .FlattenExpressions(inspection.ExecutionPlan!.Body)
+            .OfType<ExecutionByteBufferSnapshot>()
+            .Single();
         Assert.AreEqual(4, snapshot.MaximumReadBytes);
 
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), options);
+        using var query = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            options
+        );
         using var result = query.Run();
         var row = result.Single();
         Assert.AreEqual(branch, row.GetValue<string>(0));
@@ -66,9 +91,15 @@ public sealed class BinaryInputSnapshotTests
     public void EscapingComposition_ShouldKeepCompleteIndependentSnapshot()
     {
         byte[] input = [7, 8, 9];
-        const string sql = "binary Prefix { Value: byte } select FromBase64(ToBase64(f.Content)) as Bytes, p.Value from #schema.first() f cross apply Interpret<Prefix>(FromBase64(ToBase64(f.Content))) p";
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), Provider(input),
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+        const string sql =
+            "binary Prefix { Value: byte } select FromBase64(ToBase64(f.Content)) as Bytes, p.Value from #schema.first() f cross apply Interpret<Prefix>(FromBase64(ToBase64(f.Content))) p";
+        using var query = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            Provider(input),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         using var result = query.Run();
         var copy = result.Single().GetValue<byte[]>(0);
         input[0] = 99;
@@ -81,15 +112,30 @@ public sealed class BinaryInputSnapshotTests
     [TestMethod]
     public void ShadowedBuiltIn_ShouldRetainTheBoundPluginImplementation()
     {
-        var provider = LibraryExecutionFixture.CreateProvider<BinaryEntity, ShadowBufferLibrary>(
-            [new() { Content = [99] }]);
-        const string sql = "binary Prefix { Value: byte } select p.Value from #schema.first() f cross apply Interpret<Prefix>(FromBase64(ToBase64(f.Content))) p";
-        var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
-        Assert.IsFalse(ExecutionIrAnalysis.FlattenExpressions(inspection.ExecutionPlan!.Body)
-            .Any(expression => expression is ExecutionByteBufferSnapshot));
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+        var provider = LibraryExecutionFixture.CreateProvider<BinaryEntity, ShadowBufferLibrary>([
+            new() { Content = [99] },
+        ]);
+        const string sql =
+            "binary Prefix { Value: byte } select p.Value from #schema.first() f cross apply Interpret<Prefix>(FromBase64(ToBase64(f.Content))) p";
+        var inspection = InstanceCreator.CompileForInspection(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
+        Assert.IsFalse(
+            ExecutionIrAnalysis
+                .FlattenExpressions(inspection.ExecutionPlan!.Body)
+                .Any(expression => expression is ExecutionByteBufferSnapshot)
+        );
+        using var query = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         using var result = query.Run();
         Assert.AreEqual((byte)7, result.Single().GetValue<byte>(0));
     }
@@ -99,9 +145,15 @@ public sealed class BinaryInputSnapshotTests
     [DataRow("FromBase64(ToBase64(f.Content, case when f.Name = '' then null else 0 end, 1))", false)]
     public void TolerantApply_WithNullBufferOrNullableRange_ShouldRetainTheLeftRow(string input, bool nullBuffer)
     {
-        var sql = $"binary Prefix {{ Value: byte }} select p.Value from #schema.first() f outer apply TryInterpret<Prefix>({input}) p";
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), Provider(nullBuffer ? null! : [7]),
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+        var sql =
+            $"binary Prefix {{ Value: byte }} select p.Value from #schema.first() f outer apply TryInterpret<Prefix>({input}) p";
+        using var query = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            Provider(nullBuffer ? null! : [7]),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         using var result = query.Run();
         Assert.HasCount(1, result);
         Assert.IsNull(result.Single().GetValue<byte?>(0));
@@ -114,13 +166,28 @@ public sealed class BinaryInputSnapshotTests
     {
         var entity = new BufferProducerEntity { Content = [7, 8, 9] };
         var provider = LibraryExecutionFixture.CreateProvider<BufferProducerEntity, BufferProducerLibrary>([entity]);
-        var sql = $"binary Prefix {{ Value: byte }} select p.Value from #schema.first() f cross apply Interpret<Prefix>({input}) p";
-        var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
-        Assert.AreEqual(expectSnapshot, ExecutionIrAnalysis.FlattenExpressions(inspection.ExecutionPlan!.Body)
-            .Any(expression => expression is ExecutionByteBufferSnapshot));
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+        var sql =
+            $"binary Prefix {{ Value: byte }} select p.Value from #schema.first() f cross apply Interpret<Prefix>({input}) p";
+        var inspection = InstanceCreator.CompileForInspection(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
+        Assert.AreEqual(
+            expectSnapshot,
+            ExecutionIrAnalysis
+                .FlattenExpressions(inspection.ExecutionPlan!.Body)
+                .Any(expression => expression is ExecutionByteBufferSnapshot)
+        );
+        using var query = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         using var first = query.Run();
         Assert.AreEqual((byte)7, first.Single().GetValue<byte>(0));
         Assert.AreEqual(1, entity.Calls);

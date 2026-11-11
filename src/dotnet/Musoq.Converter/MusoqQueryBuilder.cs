@@ -22,8 +22,11 @@ public sealed class MusoqQueryBuilder
         _query = query;
     }
 
-    public MusoqQueryBuilder Source<T>(string schemaName, string sourceName,
-        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None)
+    public MusoqQueryBuilder Source<T>(
+        string schemaName,
+        string sourceName,
+        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None
+    )
     {
         AddOrValidateSource<T>(schemaName, sourceName, executionPermissions);
         return this;
@@ -33,7 +36,8 @@ public sealed class MusoqQueryBuilder
         string schemaName,
         string sourceName,
         IEnumerable<IReadOnlyList<T>> chunks,
-        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None)
+        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None
+    )
     {
         AddOrValidateSource<T>(schemaName, sourceName, executionPermissions);
         var binding = MusoqSourceRows.Create(schemaName, sourceName, chunks);
@@ -69,7 +73,8 @@ public sealed class MusoqQueryBuilder
             _loggerResolver,
             _compilationOptions,
             sourceBinding.AdditionalReferenceTypes,
-            cancellationToken);
+            cancellationToken
+        );
 
         return new PublicCompiledTypedQuery<TOut>(factory, sourceBinding);
     }
@@ -91,7 +96,8 @@ public sealed class MusoqQueryBuilder
             _compilationOptions,
             sourceBinding.AdditionalReferenceTypes,
             sourceBinding.Slots,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public TypedQueryInspectionResult InspectTyped<TOut>()
@@ -110,7 +116,8 @@ public sealed class MusoqQueryBuilder
             _loggerResolver,
             _compilationOptions,
             sourceBinding.AdditionalReferenceTypes,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public ICompiledTypedProfileQuery<TOut> CompileForProfile<TOut>()
@@ -126,7 +133,8 @@ public sealed class MusoqQueryBuilder
             CreateSourceBinding(),
             _loggerResolver,
             _compilationOptions,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public IEnumerable<TOut> CompileAndRun<TOut>()
@@ -145,10 +153,16 @@ public sealed class MusoqQueryBuilder
         return new InMemorySourceBinding(_sources);
     }
 
-    private void AddOrValidateSource<T>(string schemaName, string sourceName, SourceExecutionPermissions executionPermissions)
+    private void AddOrValidateSource<T>(
+        string schemaName,
+        string sourceName,
+        SourceExecutionPermissions executionPermissions
+    )
     {
         var slot = new InMemorySourceSlot(schemaName, sourceName, typeof(T), executionPermissions);
-        var existing = _sources.FirstOrDefault(source => string.Equals(source.Key, slot.Key, StringComparison.OrdinalIgnoreCase));
+        var existing = _sources.FirstOrDefault(source =>
+            string.Equals(source.Key, slot.Key, StringComparison.OrdinalIgnoreCase)
+        );
         if (existing == null)
         {
             _sources.Add(slot);
@@ -158,9 +172,12 @@ public sealed class MusoqQueryBuilder
         if (existing.RowType != slot.RowType)
         {
             throw new InvalidOperationException(
-                $"Source '#{slot.SchemaName}.{slot.SourceName}()' is already declared with row type '{existing.RowType.FullName}'.");
+                $"Source '#{slot.SchemaName}.{slot.SourceName}()' is already declared with row type '{existing.RowType.FullName}'."
+            );
         }
         if (existing.ExecutionPermissions != executionPermissions)
-            throw new InvalidOperationException($"Source '#{slot.SchemaName}.{slot.SourceName}()' has conflicting execution permissions.");
+            throw new InvalidOperationException(
+                $"Source '#{slot.SchemaName}.{slot.SourceName}()' has conflicting execution permissions."
+            );
     }
 }

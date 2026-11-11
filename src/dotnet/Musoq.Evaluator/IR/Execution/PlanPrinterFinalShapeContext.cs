@@ -16,7 +16,8 @@ public static partial class ExecutionPlanPrinter
             output.RowTypeName,
             output.SourceBuffers,
             output.OwnedBuffer,
-            output.ReturnsOwnedRows);
+            output.ReturnsOwnedRows
+        );
     }
 
     private static bool TryGetFinalShapeContext(out FinalShapePrintContext context)
@@ -33,14 +34,15 @@ public static partial class ExecutionPlanPrinter
 
     private static bool IsFinalShapeTarget(string tableName)
     {
-        return TryGetFinalShapeContext(out var context) &&
-               string.Equals(context.FinalTableName, tableName, StringComparison.Ordinal);
+        return TryGetFinalShapeContext(out var context)
+            && string.Equals(context.FinalTableName, tableName, StringComparison.Ordinal);
     }
 
     private static bool IsFinalShapeSourceBuffer(string tableName, out string shapeTypeName)
     {
-        if (TryGetFinalShapeContext(out var context) &&
-            context.SourceBuffers.TryGetValue(tableName, out shapeTypeName!))
+        if (
+            TryGetFinalShapeContext(out var context) && context.SourceBuffers.TryGetValue(tableName, out shapeTypeName!)
+        )
         {
             return true;
         }
@@ -54,8 +56,10 @@ public static partial class ExecutionPlanPrinter
         if (IsFinalShapeSourceBuffer(tableName, out shapeTypeName))
             return true;
 
-        if (TryGetFinalShapeContext(out var context) &&
-            string.Equals(context.FinalTableName, tableName, StringComparison.Ordinal))
+        if (
+            TryGetFinalShapeContext(out var context)
+            && string.Equals(context.FinalTableName, tableName, StringComparison.Ordinal)
+        )
         {
             shapeTypeName = context.ShapeTypeName;
             return true;
@@ -67,8 +71,8 @@ public static partial class ExecutionPlanPrinter
 
     private static bool IsFinalShapePostOperation(ExecutionVariable target, ExecutionVariable source)
     {
-        return IsFinalShapeTarget(target.Name) ||
-               IsFinalShapeSourceBuffer(target.Name, out _) ||
-               IsFinalShapeSourceBuffer(source.Name, out _);
+        return IsFinalShapeTarget(target.Name)
+            || IsFinalShapeSourceBuffer(target.Name, out _)
+            || IsFinalShapeSourceBuffer(source.Name, out _);
     }
 }

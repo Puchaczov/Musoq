@@ -9,12 +9,19 @@ namespace Musoq.Evaluator.Tests;
 public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
 {
     [TestMethod]
-    [DataRow("select case when true then 1 else MissingColumn end from #A.Entities()", DiagnosticCode.MQ3001_UnknownColumn)]
-    [DataRow("select case when false then MissingMethod() else 1 end from #A.Entities()", DiagnosticCode.MQ3086_UnknownCallable)]
+    [DataRow(
+        "select case when true then 1 else MissingColumn end from #A.Entities()",
+        DiagnosticCode.MQ3001_UnknownColumn
+    )]
+    [DataRow(
+        "select case when false then MissingMethod() else 1 end from #A.Entities()",
+        DiagnosticCode.MQ3086_UnknownCallable
+    )]
     public void UnreachableCaseResults_ShouldStillBind(string query, DiagnosticCode expected)
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity())));
+            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity()))
+        );
 
         Assert.AreEqual(expected, exception.PrimaryEnvelope.Code);
     }
@@ -65,7 +72,10 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
     public void MixedIntegralFallback_ShouldWidenBothValuesAndMetadata(int? value, long expected)
     {
         const string query = "select NullableValue ?? 7L as Value from #A.Entities()";
-        using var compiled = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity { NullableValue = value }));
+        using var compiled = CreateAndRunVirtualMachine(
+            query,
+            CreateSingleSource(new BasicEntity { NullableValue = value })
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(long)));
@@ -87,7 +97,10 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
     public void MixedNullableFallbacks_ShouldPreserveNullAndWidenMetadata()
     {
         const string query = "select (NullableValue::long) ?? NullableValue as Value from #A.Entities()";
-        using var compiled = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity { NullableValue = null }));
+        using var compiled = CreateAndRunVirtualMachine(
+            query,
+            CreateSingleSource(new BasicEntity { NullableValue = null })
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(long?)));
@@ -99,7 +112,8 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
     {
         const string query = "select (NullableValue::long) ?? (1::double) as Value from #A.Entities()";
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity())));
+            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity()))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3005_TypeMismatch, exception.PrimaryEnvelope.Code);
     }
@@ -142,9 +156,25 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
     {
         const string query = "select Name ?? City ?? 'fallback' as Label from #A.Entities() order by Id";
         var sources = CreateSingleSource(
-            new BasicEntity { Id = 1, Name = null, City = null },
-            new BasicEntity { Id = 2, Name = null, City = "Paris" },
-            new BasicEntity { Id = 3, Name = "Alice", City = "Warsaw" });
+            new BasicEntity
+            {
+                Id = 1,
+                Name = null,
+                City = null,
+            },
+            new BasicEntity
+            {
+                Id = 2,
+                Name = null,
+                City = "Paris",
+            },
+            new BasicEntity
+            {
+                Id = 3,
+                Name = "Alice",
+                City = "Warsaw",
+            }
+        );
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 

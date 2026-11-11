@@ -11,13 +11,13 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextualEvaluatorTestBase
 {
-    private static readonly CompilationOptions CompilationOptions =
-        new(usePrimitiveTypeValidation: false);
+    private static readonly CompilationOptions CompilationOptions = new(usePrimitiveTypeValidation: false);
 
     [TestMethod]
     public void BinaryInterpretation_NestedPrimitiveSchemaAndStringArrays_WithConditionalStrings_ShouldPreserveBoundaries()
     {
-        const string query = @"
+        const string query =
+            @"
             binary Inner {
                 Value: short le
             };
@@ -53,18 +53,16 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
         var entities = new[]
         {
             new BinaryEntity { Name = "without-extra.bin", Content = CreatePacket(false, 0xEE) },
-            new BinaryEntity { Name = "with-extra.bin", Content = CreatePacket(true, 0xEF) }
+            new BinaryEntity { Name = "with-extra.bin", Content = CreatePacket(true, 0xEF) },
         };
 
         var table = CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
-                new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-                {
-                    ["#test"] = entities
-                }),
+                new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>> { ["#test"] = entities }),
                 LoggerResolver,
-                CompilationOptions)
+                CompilationOptions
+            )
             .Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -99,7 +97,8 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
     [TestMethod]
     public void BinaryInterpretation_NullConditionalSize_ShouldReportInvalidSize()
     {
-        const string query = @"
+        const string query =
+            @"
             binary NullSized {
                 HasData: byte,
                 Length: int le when HasData <> 0,
@@ -114,12 +113,15 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
         var table = CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
-                new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-                {
-                    ["#test"] = [new BinaryEntity { Name = "null-sized.bin", Content = [0, 0x7A] }]
-                }),
+                new BinarySchemaProvider(
+                    new Dictionary<string, IEnumerable<BinaryEntity>>
+                    {
+                        ["#test"] = [new BinaryEntity { Name = "null-sized.bin", Content = [0, 0x7A] }],
+                    }
+                ),
                 LoggerResolver,
-                CompilationOptions)
+                CompilationOptions
+            )
             .Run(CancellationToken.None);
 
         var exception = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => _ = table.Count);
@@ -129,7 +131,8 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
     [TestMethod]
     public void BinaryInterpretation_ZeroLengthPrimitiveSchemaAndStringArrays_ShouldKeepTailBoundary()
     {
-        const string query = @"
+        const string query =
+            @"
             binary Item {
                 Value: byte
             };
@@ -147,12 +150,15 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
         var table = CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
-                new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-                {
-                    ["#test"] = [new BinaryEntity { Name = "empty-collections.bin", Content = [0, 0x7B] }]
-                }),
+                new BinarySchemaProvider(
+                    new Dictionary<string, IEnumerable<BinaryEntity>>
+                    {
+                        ["#test"] = [new BinaryEntity { Name = "empty-collections.bin", Content = [0, 0x7B] }],
+                    }
+                ),
                 LoggerResolver,
-                CompilationOptions)
+                CompilationOptions
+            )
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -165,19 +171,18 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
     [TestMethod]
     public void BinaryInterpretation_ForwardFieldReferences_ShouldReportStructuredDiagnostic()
     {
-        const string query =
-            "binary Packet { Data: byte[Later], Later: byte };" +
-            "select 1 from #test.files();";
+        const string query = "binary Packet { Data: byte[Later], Later: byte };" + "select 1 from #test.files();";
 
         var result = new QueryAnalyzer(
-                new UnknownSchemaProvider(Array.Empty<dynamic>()),
-                compilationOptions: CompilationOptions)
-            .Analyze(query);
+            new UnknownSchemaProvider(Array.Empty<dynamic>()),
+            compilationOptions: CompilationOptions
+        ).Analyze(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            "binary size expression referencing a later field");
+            "binary size expression referencing a later field"
+        );
         var expectedSpan = new TextSpan(query.IndexOf("Later", StringComparison.Ordinal), "Later".Length);
 
         Assert.AreEqual(expectedSpan, diagnostic.Span);
@@ -193,19 +198,18 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : BinaryOrTextua
     public void BinaryInterpretation_ForwardSchemaReference_ShouldFailBeforeCodeGeneration()
     {
         const string query =
-            "binary Outer { Child: Inner };" +
-            "binary Inner { Value: byte };" +
-            "select 1 from #test.files();";
+            "binary Outer { Child: Inner };" + "binary Inner { Value: byte };" + "select 1 from #test.files();";
 
         var result = new QueryAnalyzer(
-                new UnknownSchemaProvider(Array.Empty<dynamic>()),
-                compilationOptions: CompilationOptions)
-            .Analyze(query);
+            new UnknownSchemaProvider(Array.Empty<dynamic>()),
+            compilationOptions: CompilationOptions
+        ).Analyze(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            "binary schema reference declared after its use");
+            "binary schema reference declared after its use"
+        );
         var expectedSpan = new TextSpan(query.IndexOf("Inner", StringComparison.Ordinal), "Inner".Length);
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
 

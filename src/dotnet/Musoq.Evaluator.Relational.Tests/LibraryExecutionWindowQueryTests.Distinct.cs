@@ -1,6 +1,5 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -22,8 +21,13 @@ public sealed partial class LibraryExecutionWindowQueryTests
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)), ("Total", typeof(int?)),
-            ("Average", typeof(decimal?)), ("Values", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Position", typeof(int)),
+            ("Total", typeof(int?)),
+            ("Average", typeof(decimal?)),
+            ("Values", typeof(long))
+        );
         Assert.HasCount(5, rows);
         int?[] totals = [1, 1, 5, 5, 4];
         decimal?[] averages = [1m, 1m, 2.5m, 2.5m, 4m];

@@ -16,7 +16,8 @@ public sealed class UnpivotPlanningTests
     public void Build_WhenUnpivotHasKeepFields_ShouldInferOutputSchemaInOrder()
     {
         var buildItems = PlanOnlyBuildItems.Create(
-            "unpivot #A.Entities() s on Metric in (s.Population as Population, s.Money as Money) using Amount keep s.Country as Country");
+            "unpivot #A.Entities() s on Metric in (s.Population as Population, s.Money as Money) using Amount keep s.Country as Country"
+        );
 
         var unpivot = FindLogicalUnpivot(buildItems.RequireLogicalPlan());
 
@@ -36,7 +37,8 @@ public sealed class UnpivotPlanningTests
     public void Build_WhenUnpivotMixesIntegerAndNull_ShouldInferNullableValueColumn()
     {
         var buildItems = PlanOnlyBuildItems.Create(
-            "unpivot #A.Entities() s on Metric in (s.Id as Id, null as Missing) using Value keep s.Name as Name");
+            "unpivot #A.Entities() s on Metric in (s.Id as Id, null as Missing) using Value keep s.Name as Name"
+        );
 
         var unpivot = FindLogicalUnpivot(buildItems.RequireLogicalPlan());
 
@@ -49,7 +51,8 @@ public sealed class UnpivotPlanningTests
     public void Build_WhenUnpivotUsesNullableExpressionOnly_ShouldInferNullableValueColumn()
     {
         var buildItems = PlanOnlyBuildItems.Create(
-            "unpivot #A.Entities() s on Metric in (s.NullableValue as NullableValue) using Value keep s.Name as Name");
+            "unpivot #A.Entities() s on Metric in (s.NullableValue as NullableValue) using Value keep s.Name as Name"
+        );
 
         var unpivot = FindLogicalUnpivot(buildItems.RequireLogicalPlan());
 
@@ -62,7 +65,8 @@ public sealed class UnpivotPlanningTests
     public void Build_WhenUnpivotMixesNullableAndNonNullableIntegers_ShouldInferNullableValueColumn()
     {
         var buildItems = PlanOnlyBuildItems.Create(
-            "unpivot #A.Entities() s on Metric in (s.NullableValue as NullableValue, s.Id as Id) using Value keep s.Name as Name");
+            "unpivot #A.Entities() s on Metric in (s.NullableValue as NullableValue, s.Id as Id) using Value keep s.Name as Name"
+        );
 
         var unpivot = FindLogicalUnpivot(buildItems.RequireLogicalPlan());
 
@@ -75,7 +79,8 @@ public sealed class UnpivotPlanningTests
     public void Build_WhenUnpivotMixesIntegerAndDecimal_ShouldInferDecimalValueColumn()
     {
         var buildItems = PlanOnlyBuildItems.Create(
-            "unpivot #A.Entities() s on Metric in (s.Id as Id, s.Population as Population) using Value keep s.Name as Name");
+            "unpivot #A.Entities() s on Metric in (s.Id as Id, s.Population as Population) using Value keep s.Name as Name"
+        );
 
         var unpivot = FindLogicalUnpivot(buildItems.RequireLogicalPlan());
 
@@ -88,7 +93,8 @@ public sealed class UnpivotPlanningTests
     public void Build_WhenUnpivotValueTypesAreIncompatible_ShouldThrowDiagnosticException()
     {
         var buildItems = PlanOnlyBuildItems.Create(
-            "unpivot #A.Entities() s on Metric in (1 as Id, 'Name' as Name) using Value");
+            "unpivot #A.Entities() s on Metric in (1 as Id, 'Name' as Name) using Value"
+        );
         var errors = buildItems.DiagnosticContext.Errors.ToArray();
 
         Assert.AreEqual(1, errors.Length);
@@ -99,13 +105,20 @@ public sealed class UnpivotPlanningTests
     public void Print_WhenUnpivotIsPlanned_ShouldShowLogicalAndPhysicalNodes()
     {
         var buildItems = PlanOnlyBuildItems.Create(
-            "unpivot #A.Entities() s on Metric in (s.Population as Population, s.Money as Money) using Amount keep s.Country as Country order by Country, Metric");
+            "unpivot #A.Entities() s on Metric in (s.Population as Population, s.Money as Money) using Amount keep s.Country as Country order by Country, Metric"
+        );
 
         var logicalText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
         var physicalText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
-        StringAssert.Contains(logicalText, "Unpivot [name: Metric; value: Amount; entries: s.Population as Population, s.Money as Money; keep: s.Country as Country] as __unpivot");
-        StringAssert.Contains(physicalText, "PhysicalUnpivot [name: Metric; value: Amount; entries: s.Population as Population, s.Money as Money; keep: s.Country as Country] as __unpivot");
+        StringAssert.Contains(
+            logicalText,
+            "Unpivot [name: Metric; value: Amount; entries: s.Population as Population, s.Money as Money; keep: s.Country as Country] as __unpivot"
+        );
+        StringAssert.Contains(
+            physicalText,
+            "PhysicalUnpivot [name: Metric; value: Amount; entries: s.Population as Population, s.Money as Money; keep: s.Country as Country] as __unpivot"
+        );
 
         var physicalUnpivot = FindPhysicalUnpivot(buildItems.RequirePhysicalPlan());
         AssertOutputColumn(physicalUnpivot, 0, "Country", typeof(string));
@@ -134,9 +147,7 @@ public sealed class UnpivotPlanningTests
         if (node is UnpivotNode unpivot)
             return unpivot;
 
-        return node.Children
-            .Select(TryFindLogicalUnpivot)
-            .FirstOrDefault(found => found != null);
+        return node.Children.Select(TryFindLogicalUnpivot).FirstOrDefault(found => found != null);
     }
 
     private static PhysicalUnpivotNode FindPhysicalUnpivot(PhysicalNode node)
@@ -160,9 +171,7 @@ public sealed class UnpivotPlanningTests
         if (node is PhysicalUnpivotNode unpivot)
             return unpivot;
 
-        return node.Children
-            .Select(TryFindPhysicalUnpivot)
-            .FirstOrDefault(found => found != null);
+        return node.Children.Select(TryFindPhysicalUnpivot).FirstOrDefault(found => found != null);
     }
 
     private static void AssertOutputColumn(UnpivotNode node, int index, string name, Type type)

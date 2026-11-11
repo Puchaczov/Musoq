@@ -8,9 +8,7 @@ internal sealed class ChunkWriter<T> : IChunkWriter<T>
 {
     private readonly BlockingCollection<IReadOnlyList<T>> _chunks;
 
-    public ChunkWriter(
-        BlockingCollection<IReadOnlyList<T>> chunks,
-        CancellationToken token)
+    public ChunkWriter(BlockingCollection<IReadOnlyList<T>> chunks, CancellationToken token)
     {
         _chunks = chunks ?? throw new ArgumentNullException(nameof(chunks));
         CancellationToken = token;

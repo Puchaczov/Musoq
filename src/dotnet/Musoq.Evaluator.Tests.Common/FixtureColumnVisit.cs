@@ -11,15 +11,33 @@ internal static class FixtureColumnVisit
     {
         switch (value)
         {
-            case int typed: TypedColumnVisit.Apply(index, typed, ref visitor); break;
-            case long typed: TypedColumnVisit.Apply(index, typed, ref visitor); break;
-            case decimal typed: TypedColumnVisit.Apply(index, typed, ref visitor); break;
-            case double typed: TypedColumnVisit.Apply(index, typed, ref visitor); break;
-            case float typed: TypedColumnVisit.Apply(index, typed, ref visitor); break;
-            case string typed: TypedColumnVisit.Apply(index, typed, ref visitor); break;
-            case bool typed: TypedColumnVisit.Apply(index, typed, ref visitor); break;
-            case DateTime typed: TypedColumnVisit.Apply(index, typed, ref visitor); break;
-            default: TypedColumnVisit.Apply(index, value, ref visitor); break;
+            case int typed:
+                TypedColumnVisit.Apply(index, typed, ref visitor);
+                break;
+            case long typed:
+                TypedColumnVisit.Apply(index, typed, ref visitor);
+                break;
+            case decimal typed:
+                TypedColumnVisit.Apply(index, typed, ref visitor);
+                break;
+            case double typed:
+                TypedColumnVisit.Apply(index, typed, ref visitor);
+                break;
+            case float typed:
+                TypedColumnVisit.Apply(index, typed, ref visitor);
+                break;
+            case string typed:
+                TypedColumnVisit.Apply(index, typed, ref visitor);
+                break;
+            case bool typed:
+                TypedColumnVisit.Apply(index, typed, ref visitor);
+                break;
+            case DateTime typed:
+                TypedColumnVisit.Apply(index, typed, ref visitor);
+                break;
+            default:
+                TypedColumnVisit.Apply(index, value, ref visitor);
+                break;
         }
     }
 }

@@ -16,14 +16,10 @@ public sealed class TargetRenderTelemetryTests
             using (TargetRenderTelemetry.BeginPhase("class-assembly"))
             {
                 using (TargetRenderTelemetry.Push(name => new RecordingScope(events, "inner", name)))
-                using (TargetRenderTelemetry.BeginPhase("syntax-tree"))
-                {
-                }
+                using (TargetRenderTelemetry.BeginPhase("syntax-tree")) { }
             }
 
-            using (TargetRenderTelemetry.BeginPhase("references"))
-            {
-            }
+            using (TargetRenderTelemetry.BeginPhase("references")) { }
         }
 
         CollectionAssert.AreEqual(
@@ -34,9 +30,10 @@ public sealed class TargetRenderTelemetryTests
                 "end:inner:syntax-tree",
                 "end:outer:class-assembly",
                 "begin:outer:references",
-                "end:outer:references"
+                "end:outer:references",
             },
-            events);
+            events
+        );
     }
 
     [TestMethod]

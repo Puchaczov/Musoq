@@ -33,22 +33,36 @@ internal static class ExecutionPortableSymbolCatalog
         [typeof(DateTimeOffset)] = "datetimeoffset",
         [typeof(Guid)] = "guid",
         [typeof(TimeSpan)] = "timespan",
-        [typeof(void)] = "void"
+        [typeof(void)] = "void",
     };
 
-    private static readonly IReadOnlyDictionary<Type, ExecutionPortableContainerDefinition> PortableContainerDefinitions = new Dictionary<Type, ExecutionPortableContainerDefinition>
+    private static readonly IReadOnlyDictionary<
+        Type,
+        ExecutionPortableContainerDefinition
+    > PortableContainerDefinitions = new Dictionary<Type, ExecutionPortableContainerDefinition>
     {
         [typeof(IEnumerable<>)] = Sequence("sequence", ExecutionPortableContainerBindingKind.Enumerable),
-        [typeof(IReadOnlyCollection<>)] = Sequence("sequence", ExecutionPortableContainerBindingKind.ReadOnlyCollection),
+        [typeof(IReadOnlyCollection<>)] = Sequence(
+            "sequence",
+            ExecutionPortableContainerBindingKind.ReadOnlyCollection
+        ),
         [typeof(IReadOnlyList<>)] = Sequence("sequence", ExecutionPortableContainerBindingKind.ReadOnlyList),
         [typeof(ICollection<>)] = List("list", ExecutionPortableContainerBindingKind.Collection),
         [typeof(IList<>)] = List("list", ExecutionPortableContainerBindingKind.ListInterface),
         [typeof(List<>)] = List("list", ExecutionPortableContainerBindingKind.List),
-        [typeof(IReadOnlyDictionary<,>)] = Map("map", isMutable: false, ExecutionPortableContainerBindingKind.ReadOnlyDictionary),
-        [typeof(IDictionary<,>)] = Map("map", isMutable: true, ExecutionPortableContainerBindingKind.DictionaryInterface),
+        [typeof(IReadOnlyDictionary<,>)] = Map(
+            "map",
+            isMutable: false,
+            ExecutionPortableContainerBindingKind.ReadOnlyDictionary
+        ),
+        [typeof(IDictionary<,>)] = Map(
+            "map",
+            isMutable: true,
+            ExecutionPortableContainerBindingKind.DictionaryInterface
+        ),
         [typeof(Dictionary<,>)] = Map("map", isMutable: true, ExecutionPortableContainerBindingKind.Dictionary),
         [typeof(KeyValuePair<,>)] = Pair("pair", ExecutionPortableContainerBindingKind.KeyValuePair),
-        [typeof(HashSet<>)] = Set("set", ExecutionPortableContainerBindingKind.HashSet)
+        [typeof(HashSet<>)] = Set("set", ExecutionPortableContainerBindingKind.HashSet),
     };
 
     private static readonly IReadOnlySet<Type> HostImportTypes = new HashSet<Type>
@@ -71,16 +85,19 @@ internal static class ExecutionPortableSymbolCatalog
         typeof(SourcePlanResult),
         typeof(SourceIdentity),
         typeof(Table),
-        typeof(Row)
+        typeof(Row),
     };
 
-    private static readonly IReadOnlyDictionary<Type, string> HostImportGenericDefinitions = new Dictionary<Type, string>
+    private static readonly IReadOnlyDictionary<Type, string> HostImportGenericDefinitions = new Dictionary<
+        Type,
+        string
+    >
     {
         [typeof(IQueryRows<>)] = "Musoq.Evaluator.Runtime.IQueryRows",
         [typeof(ITableRowBatchSource<>)] = "Musoq.Evaluator.Runtime.ITableRowBatchSource",
         [typeof(TableRows<>)] = "Musoq.Evaluator.Runtime.TableRows",
         [typeof(QueryTableEnumerable<>)] = "Musoq.Evaluator.Runtime.QueryTableEnumerable",
-        [typeof(QueryRowShardedEnumerable<>)] = "Musoq.Evaluator.Runtime.QueryRowShardedEnumerable"
+        [typeof(QueryRowShardedEnumerable<>)] = "Musoq.Evaluator.Runtime.QueryRowShardedEnumerable",
     };
 
     public static bool TryGetPrimitiveName(Type type, out string primitiveName)
@@ -90,7 +107,8 @@ internal static class ExecutionPortableSymbolCatalog
 
     public static bool TryGetPortableContainer(
         Type genericDefinition,
-        out ExecutionPortableContainerDefinition definition)
+        out ExecutionPortableContainerDefinition definition
+    )
     {
         return PortableContainerDefinitions.TryGetValue(genericDefinition, out definition);
     }
@@ -137,15 +155,17 @@ internal static class ExecutionPortableSymbolCatalog
     {
         ArgumentNullException.ThrowIfNull(method);
 
-        return method.DeclaringType == typeof(LibraryBase) &&
-               string.Equals(method.Name, nameof(LibraryBase.Coalesce), StringComparison.Ordinal)
+        return
+            method.DeclaringType == typeof(LibraryBase)
+            && string.Equals(method.Name, nameof(LibraryBase.Coalesce), StringComparison.Ordinal)
             ? ExecutionIntrinsicCallableKind.Coalesce
             : ExecutionIntrinsicCallableKind.None;
     }
 
     private static ExecutionPortableContainerDefinition Sequence(
         string stableName,
-        ExecutionPortableContainerBindingKind bindingKind) =>
+        ExecutionPortableContainerBindingKind bindingKind
+    ) =>
         new(
             stableName,
             ExecutionPortableTypeKind.Sequence,
@@ -155,11 +175,14 @@ internal static class ExecutionPortableSymbolCatalog
                 IsMutable: false,
                 RequiresKeyEquality: false,
                 RequiresKeyHashing: false,
-                bindingKind));
+                bindingKind
+            )
+        );
 
     private static ExecutionPortableContainerDefinition List(
         string stableName,
-        ExecutionPortableContainerBindingKind bindingKind) =>
+        ExecutionPortableContainerBindingKind bindingKind
+    ) =>
         new(
             stableName,
             ExecutionPortableTypeKind.List,
@@ -169,12 +192,15 @@ internal static class ExecutionPortableSymbolCatalog
                 IsMutable: true,
                 RequiresKeyEquality: false,
                 RequiresKeyHashing: false,
-                bindingKind));
+                bindingKind
+            )
+        );
 
     private static ExecutionPortableContainerDefinition Map(
         string stableName,
         bool isMutable,
-        ExecutionPortableContainerBindingKind bindingKind) =>
+        ExecutionPortableContainerBindingKind bindingKind
+    ) =>
         new(
             stableName,
             ExecutionPortableTypeKind.Map,
@@ -184,11 +210,14 @@ internal static class ExecutionPortableSymbolCatalog
                 IsMutable: isMutable,
                 RequiresKeyEquality: true,
                 RequiresKeyHashing: true,
-                bindingKind));
+                bindingKind
+            )
+        );
 
     private static ExecutionPortableContainerDefinition Set(
         string stableName,
-        ExecutionPortableContainerBindingKind bindingKind) =>
+        ExecutionPortableContainerBindingKind bindingKind
+    ) =>
         new(
             stableName,
             ExecutionPortableTypeKind.Set,
@@ -198,11 +227,14 @@ internal static class ExecutionPortableSymbolCatalog
                 IsMutable: true,
                 RequiresKeyEquality: true,
                 RequiresKeyHashing: true,
-                bindingKind));
+                bindingKind
+            )
+        );
 
     private static ExecutionPortableContainerDefinition Pair(
         string stableName,
-        ExecutionPortableContainerBindingKind bindingKind) =>
+        ExecutionPortableContainerBindingKind bindingKind
+    ) =>
         new(
             stableName,
             ExecutionPortableTypeKind.Pair,
@@ -212,10 +244,13 @@ internal static class ExecutionPortableSymbolCatalog
                 IsMutable: false,
                 RequiresKeyEquality: false,
                 RequiresKeyHashing: false,
-                bindingKind));
+                bindingKind
+            )
+        );
 
     public readonly record struct ExecutionPortableContainerDefinition(
         string StableName,
         ExecutionPortableTypeKind TypeKind,
-        ExecutionPortableContainerContract Contract);
+        ExecutionPortableContainerContract Contract
+    );
 }

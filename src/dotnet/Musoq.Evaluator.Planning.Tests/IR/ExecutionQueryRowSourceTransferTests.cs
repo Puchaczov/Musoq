@@ -33,13 +33,14 @@ public sealed class ExecutionQueryRowSourceTransferTests
         var plan = new ExecutionPlan(
             "query-row",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(
                     new ExecutionVariable("source", typeof(object)),
                     new ExecutionVariable("rows", typeof(object)),
-                    binding)
-            ]));
+                    binding
+                ),
+            ])
+        );
 
         ExecutionBindingInvariantValidator.Validate(plan);
     }
@@ -51,24 +52,29 @@ public sealed class ExecutionQueryRowSourceTransferTests
         var plan = new ExecutionPlan(
             "query-row-abi",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(
                     new ExecutionVariable("source", typeof(object)),
                     new ExecutionVariable("rows", typeof(object)),
-                    binding)
-            ]));
+                    binding
+                ),
+            ])
+        );
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
         var contract = TargetRuntimeContractBuilder.Build(plan, report);
         var shapeFingerprint = binding.QueryRowSourceTransfer!.ShapeFingerprint;
 
         Assert.HasCount(1, contract.QueryRowSourceAccess);
         Assert.AreEqual(shapeFingerprint, contract.QueryRowSourceAccess[0].ShapeFingerprint);
-        Assert.IsTrue(report.Requirements.Any(static requirement =>
-            requirement.Kind == ExecutionTargetRequirementKind.QueryRowSourceAccess));
+        Assert.IsTrue(
+            report.Requirements.Any(static requirement =>
+                requirement.Kind == ExecutionTargetRequirementKind.QueryRowSourceAccess
+            )
+        );
 
-        var import = TargetHostAbiInventoryBuilder.Build(contract).Imports.Single(static item =>
-            item.Kind == TargetHostAbiImportKind.QueryRowSourceAccess);
+        var import = TargetHostAbiInventoryBuilder
+            .Build(contract)
+            .Imports.Single(static item => item.Kind == TargetHostAbiImportKind.QueryRowSourceAccess);
         Assert.AreEqual("query-row-source-access-v2", import.Contract);
         Assert.AreEqual(2, import.ContractVersion);
         Assert.AreEqual(shapeFingerprint, import.Attributes["shapeFingerprint"]);
@@ -85,7 +91,8 @@ public sealed class ExecutionQueryRowSourceTransferTests
         var transfer = new ExecutionQueryRowSourceTransfer(
             ExecutionQueryRowCarrier.ReadonlyStruct,
             CreateFingerprint(),
-            [new ExecutionQueryRowField(0, 0, "Status", fieldType, sourceReadType, descriptor, false)]);
+            [new ExecutionQueryRowField(0, 0, "Status", fieldType, sourceReadType, descriptor, false)]
+        );
         var field = new FieldBinding(
             "Status",
             "source.Status",
@@ -95,7 +102,8 @@ public sealed class ExecutionQueryRowSourceTransferTests
             new GeneratedFieldAccess(QueryRowSourceNaming.CreateFieldName(0)),
             publicType: fieldType,
             sourceReadType: sourceReadType,
-            enumType: descriptor);
+            enumType: descriptor
+        );
         var binding = new ExecutionSourceBinding(
             "test",
             "rows",
@@ -104,12 +112,11 @@ public sealed class ExecutionQueryRowSourceTransferTests
             [],
             [field],
             SourceType: ExecutionClrBindingFactory.FromClr(typeof(object)),
-            QueryRowSourceTransfer: transfer);
+            QueryRowSourceTransfer: transfer
+        );
         var plan = CreatePlan(binding);
 
-        var contract = TargetRuntimeContractBuilder.Build(
-            plan,
-            ExecutionTargetCompatibilityAnalyzer.Analyze(plan));
+        var contract = TargetRuntimeContractBuilder.Build(plan, ExecutionTargetCompatibilityAnalyzer.Analyze(plan));
         var sourceField = contract.SourceAccess.Single().Fields.Single();
         var queryRowField = contract.QueryRowSourceAccess.Single().Fields.Single();
 
@@ -122,9 +129,11 @@ public sealed class ExecutionQueryRowSourceTransferTests
 
         var imports = TargetHostAbiInventoryBuilder.Build(contract).Imports;
         var sourceDetails = Assert.IsInstanceOfType<TargetSourceAccessAbiDetails>(
-            imports.Single(static import => import.Kind == TargetHostAbiImportKind.SourceAccess).Details);
+            imports.Single(static import => import.Kind == TargetHostAbiImportKind.SourceAccess).Details
+        );
         var queryRowDetails = Assert.IsInstanceOfType<TargetQueryRowSourceAccessAbiDetails>(
-            imports.Single(static import => import.Kind == TargetHostAbiImportKind.QueryRowSourceAccess).Details);
+            imports.Single(static import => import.Kind == TargetHostAbiImportKind.QueryRowSourceAccess).Details
+        );
         Assert.AreEqual(descriptor.Fingerprint, sourceDetails.Fields[0].EnumType!.Fingerprint);
         Assert.AreEqual(descriptor.Fingerprint, queryRowDetails.Fields[0].EnumType!.Fingerprint);
         StringAssert.Contains(sourceDetails.CanonicalDefinition, descriptor.Fingerprint);
@@ -134,11 +143,14 @@ public sealed class ExecutionQueryRowSourceTransferTests
     [TestMethod]
     public void Transfer_WhenReadonlyStructEscapesScan_ShouldRejectLifetime()
     {
-        Assert.Throws<ArgumentException>(() => new ExecutionQueryRowSourceTransfer(
-            ExecutionQueryRowCarrier.ReadonlyStruct,
-            ExecutionQueryRowLifetime.EscapesScan,
-            CreateFingerprint(),
-            []));
+        Assert.Throws<ArgumentException>(() =>
+            new ExecutionQueryRowSourceTransfer(
+                ExecutionQueryRowCarrier.ReadonlyStruct,
+                ExecutionQueryRowLifetime.EscapesScan,
+                CreateFingerprint(),
+                []
+            )
+        );
     }
 
     [TestMethod]
@@ -146,10 +158,12 @@ public sealed class ExecutionQueryRowSourceTransferTests
     {
         var structName = QueryRowSourceNaming.CreateCarrierTypeName(
             CreateFingerprint(),
-            SourceQueryRowCarrier.ReadonlyStruct);
+            SourceQueryRowCarrier.ReadonlyStruct
+        );
         var className = QueryRowSourceNaming.CreateCarrierTypeName(
             CreateFingerprint(),
-            SourceQueryRowCarrier.SealedClass);
+            SourceQueryRowCarrier.SealedClass
+        );
 
         Assert.AreNotEqual(structName, className);
     }
@@ -167,11 +181,11 @@ public sealed class ExecutionQueryRowSourceTransferTests
     [TestMethod]
     public void CSharpClrCapabilities_WhenTransferRequirementIsReported_AcceptsIt()
     {
-        var report = new ExecutionTargetCompatibilityReport(
-        [
+        var report = new ExecutionTargetCompatibilityReport([
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.QueryRowSourceAccess,
-                "source:0:test.rows:shape")
+                "source:0:test.rows:shape"
+            ),
         ]);
 
         var result = ExecutionTargetCapabilities.CSharpClr.Validate(report);
@@ -185,37 +199,45 @@ public sealed class ExecutionQueryRowSourceTransferTests
     [DataRow("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")]
     public void Transfer_WhenFingerprintIsMalformed_ShouldRejectIt(string fingerprint)
     {
-        Assert.Throws<ArgumentException>(() => new ExecutionQueryRowSourceTransfer(
-            ExecutionQueryRowCarrier.ReadonlyStruct,
-            fingerprint,
-            []));
+        Assert.Throws<ArgumentException>(() =>
+            new ExecutionQueryRowSourceTransfer(ExecutionQueryRowCarrier.ReadonlyStruct, fingerprint, [])
+        );
     }
 
     [TestMethod]
     public void Transfer_WhenSlotsAreNotDense_ShouldRejectIt()
     {
-        Assert.Throws<ArgumentException>(() => new ExecutionQueryRowSourceTransfer(
-            ExecutionQueryRowCarrier.ReadonlyStruct,
-            CreateFingerprint(),
-            [CreateField(1, 0)]));
+        Assert.Throws<ArgumentException>(() =>
+            new ExecutionQueryRowSourceTransfer(
+                ExecutionQueryRowCarrier.ReadonlyStruct,
+                CreateFingerprint(),
+                [CreateField(1, 0)]
+            )
+        );
     }
 
     [TestMethod]
     public void Transfer_WhenSlotsAreDuplicated_ShouldRejectIt()
     {
-        Assert.Throws<ArgumentException>(() => new ExecutionQueryRowSourceTransfer(
-            ExecutionQueryRowCarrier.ReadonlyStruct,
-            CreateFingerprint(),
-            [CreateField(0, 0), CreateField(0, 1)]));
+        Assert.Throws<ArgumentException>(() =>
+            new ExecutionQueryRowSourceTransfer(
+                ExecutionQueryRowCarrier.ReadonlyStruct,
+                CreateFingerprint(),
+                [CreateField(0, 0), CreateField(0, 1)]
+            )
+        );
     }
 
     [TestMethod]
     public void Transfer_WhenSourceOrdinalsAreDuplicated_ShouldRejectIt()
     {
-        Assert.Throws<ArgumentException>(() => new ExecutionQueryRowSourceTransfer(
-            ExecutionQueryRowCarrier.ReadonlyStruct,
-            CreateFingerprint(),
-            [CreateField(0, 0), CreateField(1, 0)]));
+        Assert.Throws<ArgumentException>(() =>
+            new ExecutionQueryRowSourceTransfer(
+                ExecutionQueryRowCarrier.ReadonlyStruct,
+                CreateFingerprint(),
+                [CreateField(0, 0), CreateField(1, 0)]
+            )
+        );
     }
 
     [TestMethod]
@@ -225,25 +247,31 @@ public sealed class ExecutionQueryRowSourceTransferTests
         var transfer = new ExecutionQueryRowSourceTransfer(
             ExecutionQueryRowCarrier.ReadonlyStruct,
             CreateFingerprint(),
-            [new ExecutionQueryRowField(0, 0, "Hidden", type, false)]);
+            [new ExecutionQueryRowField(0, 0, "Hidden", type, false)]
+        );
         var binding = new ExecutionSourceBinding(
             "test",
             "rows",
             "source:0",
             0,
             [],
-            [new FieldBinding(
-                "Hidden",
-                "source.Hidden",
-                0,
-                typeof(HiddenQueryRowField),
-                FieldNullability.NotNullable,
-                new GeneratedFieldAccess(QueryRowSourceNaming.CreateFieldName(0)))],
+            [
+                new FieldBinding(
+                    "Hidden",
+                    "source.Hidden",
+                    0,
+                    typeof(HiddenQueryRowField),
+                    FieldNullability.NotNullable,
+                    new GeneratedFieldAccess(QueryRowSourceNaming.CreateFieldName(0))
+                ),
+            ],
             SourceType: ExecutionClrBindingFactory.FromClr(typeof(object)),
-            QueryRowSourceTransfer: transfer);
+            QueryRowSourceTransfer: transfer
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            ExecutionBindingInvariantValidator.Validate(CreatePlan(binding)));
+            ExecutionBindingInvariantValidator.Validate(CreatePlan(binding))
+        );
 
         StringAssert.Contains(exception.Message, "unsupported CLR type");
     }
@@ -262,12 +290,14 @@ public sealed class ExecutionQueryRowSourceTransferTests
                     0,
                     typeof(int),
                     FieldNullability.NotNullable,
-                    new GeneratedFieldAccess("WrongField"))
-            ]
+                    new GeneratedFieldAccess("WrongField")
+                ),
+            ],
         };
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            ExecutionBindingInvariantValidator.Validate(CreatePlan(binding)));
+            ExecutionBindingInvariantValidator.Validate(CreatePlan(binding))
+        );
 
         StringAssert.Contains(exception.Message, "incompatible with its generated source binding");
     }
@@ -280,10 +310,12 @@ public sealed class ExecutionQueryRowSourceTransferTests
             valid.Carrier,
             valid.Lifetime,
             CreateFingerprint(),
-            valid.Fields);
+            valid.Fields
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            ExecutionBindingInvariantValidator.Validate(CreatePlan(CreateBinding(corrupted))));
+            ExecutionBindingInvariantValidator.Validate(CreatePlan(CreateBinding(corrupted)))
+        );
 
         StringAssert.Contains(exception.Message, "shape fingerprint");
     }
@@ -291,53 +323,65 @@ public sealed class ExecutionQueryRowSourceTransferTests
     [TestMethod]
     public void TargetContract_WhenFingerprintIsMalformed_ShouldRejectIt()
     {
-        Assert.Throws<ArgumentException>(() => new TargetQueryRowSourceAccessContract(
-            "source:0",
-            "test",
-            "rows",
-            ExecutionQueryRowCarrier.ReadonlyStruct,
-            ExecutionQueryRowLifetime.ScanLocal,
-            "not-a-fingerprint",
-            []));
+        Assert.Throws<ArgumentException>(() =>
+            new TargetQueryRowSourceAccessContract(
+                "source:0",
+                "test",
+                "rows",
+                ExecutionQueryRowCarrier.ReadonlyStruct,
+                ExecutionQueryRowLifetime.ScanLocal,
+                "not-a-fingerprint",
+                []
+            )
+        );
     }
 
     [TestMethod]
     public void TargetContract_WhenSlotsAreNotDense_ShouldRejectIt()
     {
-        Assert.Throws<ArgumentException>(() => new TargetQueryRowSourceAccessContract(
-            "source:0",
-            "test",
-            "rows",
-            ExecutionQueryRowCarrier.ReadonlyStruct,
-            ExecutionQueryRowLifetime.ScanLocal,
-            CreateFingerprint(),
-            [CreateTargetField(1, 0)]));
+        Assert.Throws<ArgumentException>(() =>
+            new TargetQueryRowSourceAccessContract(
+                "source:0",
+                "test",
+                "rows",
+                ExecutionQueryRowCarrier.ReadonlyStruct,
+                ExecutionQueryRowLifetime.ScanLocal,
+                CreateFingerprint(),
+                [CreateTargetField(1, 0)]
+            )
+        );
     }
 
     [TestMethod]
     public void TargetAbiDetails_WhenSourceOrdinalsAreDuplicated_ShouldRejectIt()
     {
-        Assert.Throws<ArgumentException>(() => new TargetQueryRowSourceAccessAbiDetails(
-            "source:0",
-            "test",
-            "rows",
-            "ReadonlyStruct",
-            "ScanLocal",
-            CreateFingerprint(),
-            [CreateAbiField(0, 0), CreateAbiField(1, 0)]));
+        Assert.Throws<ArgumentException>(() =>
+            new TargetQueryRowSourceAccessAbiDetails(
+                "source:0",
+                "test",
+                "rows",
+                "ReadonlyStruct",
+                "ScanLocal",
+                CreateFingerprint(),
+                [CreateAbiField(0, 0), CreateAbiField(1, 0)]
+            )
+        );
     }
 
     [TestMethod]
     public void TargetAbiDetails_WhenFingerprintIsMalformed_ShouldRejectIt()
     {
-        Assert.Throws<ArgumentException>(() => new TargetQueryRowSourceAccessAbiDetails(
-            "source:0",
-            "test",
-            "rows",
-            "ReadonlyStruct",
-            "ScanLocal",
-            new string('G', 64),
-            []));
+        Assert.Throws<ArgumentException>(() =>
+            new TargetQueryRowSourceAccessAbiDetails(
+                "source:0",
+                "test",
+                "rows",
+                "ReadonlyStruct",
+                "ScanLocal",
+                new string('G', 64),
+                []
+            )
+        );
     }
 
     [TestMethod]
@@ -348,18 +392,23 @@ public sealed class ExecutionQueryRowSourceTransferTests
         var result = ExecutionTargetCapabilities.Create().Validate(featureReport);
 
         Assert.IsFalse(result.IsSupported);
-        Assert.IsTrue(result.UnsupportedFeatures.Any(static feature =>
-            feature.Kind == ExecutionTargetFeatureKind.QueryRowSourceAccess));
+        Assert.IsTrue(
+            result.UnsupportedFeatures.Any(static feature =>
+                feature.Kind == ExecutionTargetFeatureKind.QueryRowSourceAccess
+            )
+        );
     }
 
     [TestMethod]
     public void HostAbiInventory_WhenQueryRowRuntimeServiceHasNoImport_ShouldRejectIt()
     {
         var runtimeServices = TargetRuntimeServiceRequirements.Create(
-            TargetRuntimeServiceRequirementKind.QueryRowSourceAccess);
+            TargetRuntimeServiceRequirementKind.QueryRowSourceAccess
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            TargetHostAbiInventory.Empty.ValidateRuntimeServices(runtimeServices));
+            TargetHostAbiInventory.Empty.ValidateRuntimeServices(runtimeServices)
+        );
 
         StringAssert.Contains(exception.Message, "QueryRowSourceAccess");
         StringAssert.Contains(exception.Message, "missing");
@@ -373,7 +422,8 @@ public sealed class ExecutionQueryRowSourceTransferTests
             0,
             typeof(int),
             FieldNullability.NotNullable,
-            new GeneratedFieldAccess(QueryRowSourceNaming.CreateFieldName(0)));
+            new GeneratedFieldAccess(QueryRowSourceNaming.CreateFieldName(0))
+        );
         return new ExecutionSourceBinding(
             "test",
             "rows",
@@ -382,26 +432,18 @@ public sealed class ExecutionQueryRowSourceTransferTests
             [],
             [field],
             SourceType: ExecutionClrBindingFactory.FromClr(typeof(object)),
-            QueryRowSourceTransfer: transfer);
+            QueryRowSourceTransfer: transfer
+        );
     }
 
     private static ExecutionQueryRowSourceTransfer CreateTransfer()
     {
-        var shape = new QueryRowShape(
-        [
-            new QueryRowField(0, 0, "Id", typeof(int), false)
-        ]);
+        var shape = new QueryRowShape([new QueryRowField(0, 0, "Id", typeof(int), false)]);
         return new ExecutionQueryRowSourceTransfer(
             ExecutionQueryRowCarrier.ReadonlyStruct,
             shape.Fingerprint,
-            [
-                new ExecutionQueryRowField(
-                    0,
-                    0,
-                    "Id",
-                    ExecutionClrBindingFactory.FromClr(typeof(int)),
-                    false)
-            ]);
+            [new ExecutionQueryRowField(0, 0, "Id", ExecutionClrBindingFactory.FromClr(typeof(int)), false)]
+        );
     }
 
     private static ExecutionPlan CreatePlan(ExecutionSourceBinding binding)
@@ -409,13 +451,14 @@ public sealed class ExecutionQueryRowSourceTransferTests
         return new ExecutionPlan(
             "query-row",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(
                     new ExecutionVariable("source", typeof(object)),
                     new ExecutionVariable("rows", typeof(object)),
-                    binding)
-            ]));
+                    binding
+                ),
+            ])
+        );
     }
 
     private static ExecutionQueryRowField CreateField(int slot, int sourceColumnIndex)
@@ -425,7 +468,8 @@ public sealed class ExecutionQueryRowSourceTransferTests
             sourceColumnIndex,
             $"F{slot}",
             ExecutionClrBindingFactory.FromClr(typeof(int)),
-            false);
+            false
+        );
     }
 
     private static TargetQueryRowFieldContract CreateTargetField(int slot, int sourceColumnIndex)
@@ -436,7 +480,8 @@ public sealed class ExecutionQueryRowSourceTransferTests
             $"F{slot}",
             ExecutionClrBindingFactory.FromClr(typeof(int)).Descriptor,
             false,
-            new Dictionary<string, string>(StringComparer.Ordinal));
+            new Dictionary<string, string>(StringComparer.Ordinal)
+        );
     }
 
     private static TargetQueryRowFieldAbiContract CreateAbiField(int slot, int sourceColumnIndex)
@@ -447,7 +492,8 @@ public sealed class ExecutionQueryRowSourceTransferTests
             $"F{slot}",
             ExecutionClrBindingFactory.FromClr(typeof(int)).Descriptor,
             false,
-            new Dictionary<string, string>(StringComparer.Ordinal));
+            new Dictionary<string, string>(StringComparer.Ordinal)
+        );
     }
 
     private static string CreateFingerprint() => new('A', 64);
@@ -458,6 +504,6 @@ public sealed class ExecutionQueryRowSourceTransferTests
     {
         Queued = 10,
         Waiting = Queued,
-        Running = 20
+        Running = 20,
     }
 }

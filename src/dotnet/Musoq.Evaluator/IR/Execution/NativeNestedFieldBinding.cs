@@ -6,37 +6,59 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class NativeNestedFieldBinding
 {
-    internal static ExecutionExpression? TryCreate(ColumnRef column, string alias, FieldBinding field,
-        IReadOnlyDictionary<string, RowShape> shapes)
+    internal static ExecutionExpression? TryCreate(
+        ColumnRef column,
+        string alias,
+        FieldBinding field,
+        IReadOnlyDictionary<string, RowShape> shapes
+    )
     {
-        if (shapes.TryGetValue(alias, out var generatedShape) && generatedShape is GeneratedRowShape generated &&
-            field.AccessStrategy is GeneratedRowNestedAccess generatedPath)
+        if (
+            shapes.TryGetValue(alias, out var generatedShape)
+            && generatedShape is GeneratedRowShape generated
+            && field.AccessStrategy is GeneratedRowNestedAccess generatedPath
+        )
         {
             var root = generated.Fields.FirstOrDefault(candidate =>
-                candidate.AccessStrategy is GeneratedFieldAccess access && access.FieldName == generatedPath.FieldName);
+                candidate.AccessStrategy is GeneratedFieldAccess access && access.FieldName == generatedPath.FieldName
+            );
             if (root is null || root.Type.ResolveClrType() is not { } rootType)
                 return null;
-            var generatedReceiver = new ExecutionFieldRead(alias, root.Name, root.Type, root.AccessStrategy, root.GeneratedTypeName)
-            { Stability = root.Stability, SourceReadType = root.SourceReadType, EnumType = root.EnumType };
+            var generatedReceiver = new ExecutionFieldRead(
+                alias,
+                root.Name,
+                root.Type,
+                root.AccessStrategy,
+                root.GeneratedTypeName
+            )
+            {
+                Stability = root.Stability,
+                SourceReadType = root.SourceReadType,
+                EnumType = root.EnumType,
+            };
             var generatedIndexed = NativeIndexedFieldBinding.TryCreateFromReceiver(
                 generatedReceiver,
                 rootType,
                 field,
-                generatedPath.PropertyPath);
+                generatedPath.PropertyPath
+            );
             if (generatedIndexed is not null)
                 return generatedIndexed;
             return generatedPath.PropertyPath.IndexOf('[') >= 0
                 ? null
                 : CreateMembers(column, generatedReceiver, rootType, generatedPath.PropertyPath.Split('.'));
         }
-        if (field.AccessStrategy is GeneratedRowNestedAccess generatedSourcePath &&
-            shapes.TryGetValue(alias, out var generatedSourceShape) &&
-            generatedSourceShape is SourceEntityShape sourceWithGeneratedNested)
+        if (
+            field.AccessStrategy is GeneratedRowNestedAccess generatedSourcePath
+            && shapes.TryGetValue(alias, out var generatedSourceShape)
+            && generatedSourceShape is SourceEntityShape sourceWithGeneratedNested
+        )
         {
             var root = sourceWithGeneratedNested.Fields.FirstOrDefault(candidate =>
-                candidate.Name.Equals(generatedSourcePath.FieldName, System.StringComparison.Ordinal) ||
-                candidate.AccessStrategy is GeneratedFieldAccess access &&
-                access.FieldName.Equals(generatedSourcePath.FieldName, System.StringComparison.Ordinal));
+                candidate.Name.Equals(generatedSourcePath.FieldName, System.StringComparison.Ordinal)
+                || candidate.AccessStrategy is GeneratedFieldAccess access
+                    && access.FieldName.Equals(generatedSourcePath.FieldName, System.StringComparison.Ordinal)
+            );
             if (root is not null && root.Type.ResolveClrType() is { } rootType)
             {
                 var generatedReceiver = new ExecutionFieldRead(
@@ -44,26 +66,32 @@ internal static class NativeNestedFieldBinding
                     root.Name,
                     root.Type,
                     root.AccessStrategy,
-                    root.GeneratedTypeName)
+                    root.GeneratedTypeName
+                )
                 {
                     Stability = root.Stability,
                     SourceReadType = root.SourceReadType,
-                    EnumType = root.EnumType
+                    EnumType = root.EnumType,
                 };
                 var generatedIndexed = NativeIndexedFieldBinding.TryCreateFromReceiver(
                     generatedReceiver,
                     rootType,
                     field,
-                    generatedSourcePath.PropertyPath);
+                    generatedSourcePath.PropertyPath
+                );
                 if (generatedIndexed is not null)
                     return generatedIndexed;
             }
         }
-        if (field.AccessStrategy is not NestedClrPropertyAccess path ||
-            !shapes.TryGetValue(alias, out var shape) || shape is not SourceEntityShape source)
+        if (
+            field.AccessStrategy is not NestedClrPropertyAccess path
+            || !shapes.TryGetValue(alias, out var shape)
+            || shape is not SourceEntityShape source
+        )
             return null;
         var indexed = NativeIndexedFieldBinding.TryCreate(alias, field, source, path.PropertyPath);
-        if (indexed is not null) return indexed;
+        if (indexed is not null)
+            return indexed;
         var names = path.PropertyPath.Split('.');
         if (names.Length < 2)
             return null;
@@ -72,15 +100,24 @@ internal static class NativeNestedFieldBinding
         if (rootProperty is null)
             return null;
         var rootBinding = source.Fields.FirstOrDefault(candidate => candidate.Name == names[0]);
-        ExecutionExpression receiver = new ExecutionFieldRead(alias, names[0], rootProperty.PropertyType,
-            new ClrPropertyAccess(names[0]))
+        ExecutionExpression receiver = new ExecutionFieldRead(
+            alias,
+            names[0],
+            rootProperty.PropertyType,
+            new ClrPropertyAccess(names[0])
+        )
         {
-            Stability = rootBinding?.Stability ?? field.Stability
+            Stability = rootBinding?.Stability ?? field.Stability,
         };
         return CreateMembers(column, receiver, rootProperty.PropertyType, names.Skip(1));
     }
-    private static ExecutionExpression? CreateMembers(ColumnRef column, ExecutionExpression receiver,
-        Type receiverType, IEnumerable<string> names)
+
+    private static ExecutionExpression? CreateMembers(
+        ColumnRef column,
+        ExecutionExpression receiver,
+        Type receiverType,
+        IEnumerable<string> names
+    )
     {
         foreach (var name in names)
         {
@@ -89,7 +126,7 @@ internal static class NativeNestedFieldBinding
                 return null;
             receiver = new ExecutionMemberRead(receiver, name, property.PropertyType, false)
             {
-                IsNullSafe = !receiverType.IsValueType || Nullable.GetUnderlyingType(receiverType) != null
+                IsNullSafe = !receiverType.IsValueType || Nullable.GetUnderlyingType(receiverType) != null,
             };
             receiverType = property.PropertyType;
         }

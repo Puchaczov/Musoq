@@ -17,16 +17,19 @@ public sealed partial class Core029NonRecursiveCteTests : BasicEntityTestBase
     [TestMethod]
     public void CteDefinitions_ShouldResolveEarlierDeclarationsAndExportRenamedColumns()
     {
-        const string query = "with base_rows as (select City, Country from #A.Entities()), " +
-                             "filtered as (select City from base_rows where Country = 'POLAND'), " +
-                             "renamed as (select City as Place from filtered) " +
-                             "select Place from renamed";
+        const string query =
+            "with base_rows as (select City, Country from #A.Entities()), "
+            + "filtered as (select City from base_rows where Country = 'POLAND'), "
+            + "renamed as (select City as Place from filtered) "
+            + "select Place from renamed";
 
         var table = Run(
             query,
             CreateSingleSource(
                 new BasicEntity { City = "WARSAW", Country = "POLAND" },
-                new BasicEntity { City = "BERLIN", Country = "GERMANY" }));
+                new BasicEntity { City = "BERLIN", Country = "GERMANY" }
+            )
+        );
 
         TableMaterializationTestHelper.AssertColumns(table, ("Place", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW"]);
@@ -35,9 +38,10 @@ public sealed partial class Core029NonRecursiveCteTests : BasicEntityTestBase
     [TestMethod]
     public void ForwardCteReference_ShouldReportExactTableDiagnostic()
     {
-        const string query = "with later as (select Name from earlier), " +
-                             "earlier as (select Name from #A.Entities()) " +
-                             "select Name from later";
+        const string query =
+            "with later as (select Name from earlier), "
+            + "earlier as (select Name from #A.Entities()) "
+            + "select Name from later";
 
         var diagnostic = AssertSingleError(Analyze(query), DiagnosticCode.MQ3023_TableNotDefined);
 
@@ -55,56 +59,51 @@ public sealed partial class Core029NonRecursiveCteTests : BasicEntityTestBase
     [TestMethod]
     public void CteProjection_ShouldUseExplicitAliasesAndExpandStarsFromExportedShape()
     {
-        const string query = "with places as (select a.City as LeftCity, a.Country as Nation from #A.Entities() a) " +
-                             "select * from places";
+        const string query =
+            "with places as (select a.City as LeftCity, a.Country as Nation from #A.Entities() a) "
+            + "select * from places";
 
         var table = Run(
             query,
             CreateSingleSource(
                 new BasicEntity { City = "WARSAW", Country = "POLAND" },
-                new BasicEntity { City = "BERLIN", Country = "GERMANY" }));
+                new BasicEntity { City = "BERLIN", Country = "GERMANY" }
+            )
+        );
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("LeftCity", typeof(string)),
-            ("Nation", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["WARSAW", "POLAND"],
-            ["BERLIN", "GERMANY"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("LeftCity", typeof(string)), ("Nation", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"], ["BERLIN", "GERMANY"]);
     }
 
     [TestMethod]
     public void CteProjection_ShouldStripLocalQualifierUnlessDottedAliasIsExplicit()
     {
-        const string query = "with places as (select a.City, a.Country as [a.Country] from #A.Entities() a) " +
-                             "select City, [a.Country] from places";
+        const string query =
+            "with places as (select a.City, a.Country as [a.Country] from #A.Entities() a) "
+            + "select City, [a.Country] from places";
 
-        var table = Run(
-            query,
-            CreateSingleSource(new BasicEntity { City = "WARSAW", Country = "POLAND" }));
+        var table = Run(query, CreateSingleSource(new BasicEntity { City = "WARSAW", Country = "POLAND" }));
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("a.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("a.Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"]);
     }
 
     [TestMethod]
     public void CteReferenceAlias_ShouldHideTheCteNameInTheCurrentQueryBlock()
     {
-        const string query = "with places as (select City from #A.Entities()) " +
-                             "select places.City from places p";
+        const string query = "with places as (select City from #A.Entities()) " + "select places.City from places p";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity { City = "WARSAW" })));
+            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity { City = "WARSAW" }))
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3015_UnknownAlias, DiagnosticPhase.Bind, "places");
         AssertHasGuidance(exception);
         Assert.AreEqual(DiagnosticSourceKind.Query, exception.PrimaryEnvelope.SourceKind);
-        Assert.AreEqual(new TextSpan(query.IndexOf("places.City", StringComparison.Ordinal), "places".Length),
-            new TextSpan(exception.PrimaryEnvelope.Offset!.Value, exception.PrimaryEnvelope.Length!.Value));
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf("places.City", StringComparison.Ordinal), "places".Length),
+            new TextSpan(exception.PrimaryEnvelope.Offset!.Value, exception.PrimaryEnvelope.Length!.Value)
+        );
     }
 
     [TestMethod]
@@ -122,82 +121,85 @@ public sealed partial class Core029NonRecursiveCteTests : BasicEntityTestBase
     public void CteAggregation_ShouldWorkInsideTheDefinitionAndOnTheCteReference()
     {
         var sources = CreateSingleSource(
-            new BasicEntity { City = "WARSAW", Country = "POLAND", Population = 500m },
-            new BasicEntity { City = "KRAKOW", Country = "POLAND", Population = 300m },
-            new BasicEntity { City = "BERLIN", Country = "GERMANY", Population = 250m });
+            new BasicEntity
+            {
+                City = "WARSAW",
+                Country = "POLAND",
+                Population = 500m,
+            },
+            new BasicEntity
+            {
+                City = "KRAKOW",
+                Country = "POLAND",
+                Population = 300m,
+            },
+            new BasicEntity
+            {
+                City = "BERLIN",
+                Country = "GERMANY",
+                Population = 250m,
+            }
+        );
 
         var inside = Run(
-            "with summary as (select Country, Sum(Population) as Total from #A.Entities() group by Country) " +
-            "select Country, Total from summary order by Country",
-            sources);
+            "with summary as (select Country, Sum(Population) as Total from #A.Entities() group by Country) "
+                + "select Country, Total from summary order by Country",
+            sources
+        );
         var outside = Run(
-            "with raw as (select Population, Country from #A.Entities()) " +
-            "select Country, Sum(Population) as Total from raw group by Country order by Country",
-            sources);
+            "with raw as (select Population, Country from #A.Entities()) "
+                + "select Country, Sum(Population) as Total from raw group by Country order by Country",
+            sources
+        );
 
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            inside,
-            ["GERMANY", 250m],
-            ["POLAND", 800m]);
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            outside,
-            ["GERMANY", 250m],
-            ["POLAND", 800m]);
+        TableMaterializationTestHelper.AssertRowsInOrder(inside, ["GERMANY", 250m], ["POLAND", 800m]);
+        TableMaterializationTestHelper.AssertRowsInOrder(outside, ["GERMANY", 250m], ["POLAND", 800m]);
     }
 
     [TestMethod]
     public void MultipleCtes_WithSetOperationAndJoin_ShouldComposeUsingExportedColumns()
     {
-        const string query = "with left_rows as (select Id, City from #A.Entities()), " +
-                             "right_rows as (select Id, City from #B.Entities()), " +
-                             "combined as (select Id, City from left_rows union all (Id, City) " +
-                             "select Id, City from right_rows) " +
-                             "select c.City, r.City as MatchedCity from combined c " +
-                             "inner join right_rows r on c.Id = r.Id order by c.City";
+        const string query =
+            "with left_rows as (select Id, City from #A.Entities()), "
+            + "right_rows as (select Id, City from #B.Entities()), "
+            + "combined as (select Id, City from left_rows union all (Id, City) "
+            + "select Id, City from right_rows) "
+            + "select c.City, r.City as MatchedCity from combined c "
+            + "inner join right_rows r on c.Id = r.Id order by c.City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] =
-            [
-                new BasicEntity { Id = 1, City = "ALPHA" },
-                new BasicEntity { Id = 2, City = "BETA" }
-            ],
-            ["#B"] =
-            [
-                new BasicEntity { Id = 2, City = "BETA-RIGHT" },
-                new BasicEntity { Id = 3, City = "GAMMA" }
-            ]
+            ["#A"] = [new BasicEntity { Id = 1, City = "ALPHA" }, new BasicEntity { Id = 2, City = "BETA" }],
+            ["#B"] = [new BasicEntity { Id = 2, City = "BETA-RIGHT" }, new BasicEntity { Id = 3, City = "GAMMA" }],
         };
 
         var table = Run(query, sources);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("MatchedCity", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("MatchedCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["BETA", "BETA-RIGHT"],
             ["BETA-RIGHT", "BETA-RIGHT"],
-            ["GAMMA", "GAMMA"]);
+            ["GAMMA", "GAMMA"]
+        );
     }
 
     [TestMethod]
     public void CteBodySubquery_ShouldCorrelateOnlyToItsBodyLocalSource()
     {
-        const string query = "with matched as (" +
-                             "select a.City from #A.Entities() a where exists (" +
-                             "select b.City from #B.Entities() b where b.Country = a.Country)) " +
-                             "select City from matched order by City";
+        const string query =
+            "with matched as ("
+            + "select a.City from #A.Entities() a where exists ("
+            + "select b.City from #B.Entities() b where b.Country = a.Country)) "
+            + "select City from matched order by City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] =
             [
                 new BasicEntity { City = "WARSAW", Country = "POLAND" },
                 new BasicEntity { City = "BERLIN", Country = "GERMANY" },
-                new BasicEntity { City = "PARIS", Country = "FRANCE" }
+                new BasicEntity { City = "PARIS", Country = "FRANCE" },
             ],
-            ["#B"] =
-            [new BasicEntity { City = "KRAKOW", Country = "POLAND" }]
+            ["#B"] = [new BasicEntity { City = "KRAKOW", Country = "POLAND" }],
         };
 
         var table = Run(query, sources);
@@ -209,27 +211,26 @@ public sealed partial class Core029NonRecursiveCteTests : BasicEntityTestBase
     [TestMethod]
     public void CteDefinitionReferencingConsumerAlias_ShouldReportExactInvalidSubqueryContract()
     {
-        const string query = "with matched as (" +
-                             "select b.City from #B.Entities() b where b.Country = a.Country) " +
-                             "select a.City from #A.Entities() a " +
-                             "where a.City in (select City from matched)";
+        const string query =
+            "with matched as ("
+            + "select b.City from #B.Entities() b where b.Country = a.Country) "
+            + "select a.City from #A.Entities() a "
+            + "where a.City in (select City from matched)";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [],
-                ["#B"] = []
-            }));
+            CreateAndRunVirtualMachine(
+                query,
+                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [], ["#B"] = [] }
+            )
+        );
 
-        AssertErrorEnvelope(
-            exception,
-            DiagnosticCode.MQ3015_UnknownAlias,
-            DiagnosticPhase.Bind,
-            "Unknown alias 'a'.");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3015_UnknownAlias, DiagnosticPhase.Bind, "Unknown alias 'a'.");
         AssertHasGuidance(exception);
         Assert.AreEqual(DiagnosticSourceKind.Query, exception.PrimaryEnvelope.SourceKind);
-        Assert.AreEqual(new TextSpan(query.IndexOf("a.Country", StringComparison.Ordinal), "a".Length),
-            new TextSpan(exception.PrimaryEnvelope.Offset!.Value, exception.PrimaryEnvelope.Length!.Value));
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf("a.Country", StringComparison.Ordinal), "a".Length),
+            new TextSpan(exception.PrimaryEnvelope.Offset!.Value, exception.PrimaryEnvelope.Length!.Value)
+        );
         Assert.AreEqual("Core Spec - Aliasing", exception.PrimaryEnvelope.DocsReference);
         Assert.AreEqual("a", exception.PrimaryEnvelope.Arguments["alias"]);
     }
@@ -237,29 +238,37 @@ public sealed partial class Core029NonRecursiveCteTests : BasicEntityTestBase
     [TestMethod]
     public void UnreachableCteChain_ShouldReportStructuredWarningsForEachDeadDefinition()
     {
-        const string query = "with dead as (select Name from #A.Entities()), " +
-                             "dead_dependency as (select Name from dead), " +
-                             "live as (select Name from #A.Entities()) " +
-                             "select Name from live";
+        const string query =
+            "with dead as (select Name from #A.Entities()), "
+            + "dead_dependency as (select Name from dead), "
+            + "live as (select Name from #A.Entities()) "
+            + "select Name from live";
         var result = Analyze(query);
 
         Assert.IsFalse(result.HasErrors, FormatDiagnostics(result));
-        var warnings = result.Warnings
-            .Where(static warning => warning.Code == DiagnosticCode.MQ5022_UnusedCte)
+        var warnings = result
+            .Warnings.Where(static warning => warning.Code == DiagnosticCode.MQ5022_UnusedCte)
             .ToArray();
         Assert.HasCount(2, warnings);
         Assert.AreEqual("CTE 'dead' is not reachable from the outer query", warnings[0].Message);
         Assert.AreEqual("CTE 'dead_dependency' is not reachable from the outer query", warnings[1].Message);
-        Assert.IsTrue(warnings.All(static warning =>
-            warning.Severity == DiagnosticSeverity.Warning &&
-            warning.Phase == DiagnosticPhase.Bind &&
-            warning.SourceKind == DiagnosticSourceKind.Query &&
-            !string.IsNullOrWhiteSpace(warning.ContextSnippet) &&
-            !string.IsNullOrWhiteSpace(warning.Explanation) &&
-            warning.SuggestedFixes.Count > 0),
-            string.Join(" | ", warnings.Select(static warning =>
-                $"{warning.Code} severity={warning.Severity} phase={warning.Phase} source={warning.SourceKind} " +
-                $"snippet={warning.ContextSnippet} explanation={warning.Explanation} fixes={warning.SuggestedFixes.Count}")));
+        Assert.IsTrue(
+            warnings.All(static warning =>
+                warning.Severity == DiagnosticSeverity.Warning
+                && warning.Phase == DiagnosticPhase.Bind
+                && warning.SourceKind == DiagnosticSourceKind.Query
+                && !string.IsNullOrWhiteSpace(warning.ContextSnippet)
+                && !string.IsNullOrWhiteSpace(warning.Explanation)
+                && warning.SuggestedFixes.Count > 0
+            ),
+            string.Join(
+                " | ",
+                warnings.Select(static warning =>
+                    $"{warning.Code} severity={warning.Severity} phase={warning.Phase} source={warning.SourceKind} "
+                    + $"snippet={warning.ContextSnippet} explanation={warning.Explanation} fixes={warning.SuggestedFixes.Count}"
+                )
+            )
+        );
         Assert.AreEqual(SpanOf(query, "dead"), warnings[0].Span);
         Assert.AreEqual(SpanOf(query, "dead_dependency"), warnings[1].Span);
         Assert.IsTrue(warnings.All(static warning => warning.DocsReference == "Core Spec - Common Table Expressions"));
@@ -273,12 +282,11 @@ public sealed partial class Core029NonRecursiveCteTests : BasicEntityTestBase
 
     private static QueryAnalysisResult Analyze(string query)
     {
-        return new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [],
-                ["#B"] = []
-            })).Analyze(query);
+        return new QueryAnalyzer(
+            new BasicSchemaProvider<BasicEntity>(
+                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [], ["#B"] = [] }
+            )
+        ).Analyze(query);
     }
 
     private static Diagnostic AssertSingleError(QueryAnalysisResult result, DiagnosticCode expectedCode)
@@ -297,7 +305,11 @@ public sealed partial class Core029NonRecursiveCteTests : BasicEntityTestBase
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code}: {diagnostic.Message} at {diagnostic.Span}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic =>
+                $"{diagnostic.Code}: {diagnostic.Message} at {diagnostic.Span}"
+            )
+        );
     }
 }

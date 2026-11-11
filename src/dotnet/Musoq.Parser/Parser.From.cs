@@ -41,8 +41,15 @@ public partial class Parser
                 EnsureAliasSyntax(aliasResult, AliasContext.Source);
                 alias = aliasResult.Alias;
                 aliasSpan = aliasResult.Span;
-                fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, alias,
-                    _fromPosition).WithSchemaSpan(name.Span).WithMethodSpan(accessMethod.FunctionToken.Span);
+                fromNode = new SchemaFromNode(
+                    name.Value,
+                    accessMethod.Name,
+                    accessMethod.Arguments,
+                    alias,
+                    _fromPosition
+                )
+                    .WithSchemaSpan(name.Span)
+                    .WithMethodSpan(accessMethod.FunctionToken.Span);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
                 if (!string.IsNullOrWhiteSpace(alias))
@@ -60,8 +67,14 @@ public partial class Parser
                 fromNode.WithSpan(aliasSpan);
             RegisterFromAlias(string.IsNullOrWhiteSpace(alias) ? name.Value : alias);
 
-            return ParsedSource.Create(fromNode, SourceKind.Referential, sourceStart, referentialSourceEnd,
-                referentialAlias, name.Value);
+            return ParsedSource.Create(
+                fromNode,
+                SourceKind.Referential,
+                sourceStart,
+                referentialSourceEnd,
+                referentialAlias,
+                name.Value
+            );
         }
 
         if (Current.TokenType == TokenType.Function)
@@ -75,7 +88,13 @@ public partial class Parser
             if (!string.IsNullOrWhiteSpace(alias))
                 RegisterFromAlias(alias);
 
-            var fromNode = new AliasedFromNode(method.Name, method.Arguments, alias, _fromPosition, method.TypeParameter).WithMethodSpan(method.FunctionToken.Span);
+            var fromNode = new AliasedFromNode(
+                method.Name,
+                method.Arguments,
+                alias,
+                _fromPosition,
+                method.TypeParameter
+            ).WithMethodSpan(method.FunctionToken.Span);
             if (!aliasSpan.IsEmpty)
                 fromNode.WithSpan(aliasSpan);
             return ParsedSource.Create(fromNode, SourceKind.Function, sourceStart, sourceEndSpan, aliasResult);
@@ -84,9 +103,10 @@ public partial class Parser
         if (Current.TokenType == TokenType.MethodAccess)
         {
             var sourceAlias = Current.Value;
-            var allowNamedArguments = sourceAlias.StartsWith('#') ||
-                                      context != SourceParseContext.ApplyRight ||
-                                      !IsKnownFromAlias(sourceAlias);
+            var allowNamedArguments =
+                sourceAlias.StartsWith('#')
+                || context != SourceParseContext.ApplyRight
+                || !IsKnownFromAlias(sourceAlias);
             var accessMethod = ComposeAccessMethod(sourceAlias, allowNamedArguments);
             var sourceEndSpan = Previous?.Span ?? new TextSpan(sourceStart, sourceAlias.Length);
             var aliasResult = ComposeAlias(AliasContext.Source);
@@ -94,9 +114,10 @@ public partial class Parser
             alias = aliasResult.Alias;
             aliasSpan = aliasResult.Span;
 
-            var isSchemaReference = sourceAlias.StartsWith('#') ||
-                                    context != SourceParseContext.ApplyRight ||
-                                    !IsKnownFromAlias(sourceAlias);
+            var isSchemaReference =
+                sourceAlias.StartsWith('#')
+                || context != SourceParseContext.ApplyRight
+                || !IsKnownFromAlias(sourceAlias);
 
             if (isSchemaReference && !sourceAlias.StartsWith('#'))
             {
@@ -105,8 +126,15 @@ public partial class Parser
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
-                var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition)
-                    .WithSchemaSpan(new TextSpan(sourceStart, sourceAlias.Length)).WithMethodSpan(accessMethod.FunctionToken.Span);
+                var fromNode = new SchemaFromNode(
+                    schemaName,
+                    accessMethod.Name,
+                    accessMethod.Arguments,
+                    alias,
+                    _fromPosition
+                )
+                    .WithSchemaSpan(new TextSpan(sourceStart, sourceAlias.Length))
+                    .WithMethodSpan(accessMethod.FunctionToken.Span);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
                 return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
@@ -117,8 +145,15 @@ public partial class Parser
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
-                var fromNode = new SchemaFromNode(sourceAlias, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition)
-                    .WithSchemaSpan(new TextSpan(sourceStart, sourceAlias.Length)).WithMethodSpan(accessMethod.FunctionToken.Span);
+                var fromNode = new SchemaFromNode(
+                    sourceAlias,
+                    accessMethod.Name,
+                    accessMethod.Arguments,
+                    alias,
+                    _fromPosition
+                )
+                    .WithSchemaSpan(new TextSpan(sourceStart, sourceAlias.Length))
+                    .WithMethodSpan(accessMethod.FunctionToken.Span);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
                 return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
@@ -131,7 +166,13 @@ public partial class Parser
             if (!string.IsNullOrWhiteSpace(alias))
                 RegisterFromAlias(alias);
 
-            return ParsedSource.Create(accessFromNode, SourceKind.AccessMethod, sourceStart, sourceEndSpan, aliasResult);
+            return ParsedSource.Create(
+                accessFromNode,
+                SourceKind.AccessMethod,
+                sourceStart,
+                sourceEndSpan,
+                aliasResult
+            );
         }
 
         var baseNode = ComposeBaseTypes();
@@ -143,7 +184,8 @@ public partial class Parser
                 $"Expected identifier or word but got {baseNode.GetType().Name}.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2001_UnexpectedToken,
-                baseNode.Span)
+                baseNode.Span
+            ),
         };
 
         if (Current.TokenType == TokenType.Dot)
@@ -163,8 +205,15 @@ public partial class Parser
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
-                var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition)
-                    .WithSchemaSpan(baseNode.Span).WithMethodSpan(accessMethod.FunctionToken.Span);
+                var fromNode = new SchemaFromNode(
+                    schemaName,
+                    accessMethod.Name,
+                    accessMethod.Arguments,
+                    alias,
+                    _fromPosition
+                )
+                    .WithSchemaSpan(baseNode.Span)
+                    .WithMethodSpan(accessMethod.FunctionToken.Span);
                 if (!aliasSpan.IsEmpty)
                     fromNode.WithSpan(aliasSpan);
                 return ParsedSource.Create(fromNode, SourceKind.Schema, sourceStart, sourceEndSpan, aliasResult);
@@ -208,7 +257,8 @@ public partial class Parser
                 $"Unrecognized token {Current.TokenType} when parsing FROM clause.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2001_UnexpectedToken,
-                Current.Span);
+                Current.Span
+            );
         }
 
         var inMemoryAlias = ComposeAlias(AliasContext.Source);
@@ -219,8 +269,14 @@ public partial class Parser
 
         var inMemoryNode = new InMemoryTableFromNode(columnName, alias);
         inMemoryNode.WithSpan(baseNode.Span.Through(aliasSpan));
-        return ParsedSource.Create(inMemoryNode, SourceKind.InMemory, sourceStart, baseNode.Span, inMemoryAlias,
-            columnName);
+        return ParsedSource.Create(
+            inMemoryNode,
+            SourceKind.InMemory,
+            sourceStart,
+            baseNode.Span,
+            inMemoryAlias,
+            columnName
+        );
     }
 
     private void PushFromAliasesScope()

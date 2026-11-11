@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public abstract class ExploratoryEvaluatorTestsBase : GenericEntityTestBase
 {
-
     #region Test Data Classes
 
     public class Person

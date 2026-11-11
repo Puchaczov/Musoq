@@ -27,7 +27,7 @@ internal static class FixtureContextArrays
             return Append(leftContexts, null);
 
         return Merge(leftContexts, rightContexts)
-               ?? throw new InvalidOperationException("Both context segments were expected to be materialized.");
+            ?? throw new InvalidOperationException("Both context segments were expected to be materialized.");
     }
 
     public static object?[] Append(object?[]? contexts, object? context)
@@ -43,9 +43,7 @@ internal static class FixtureContextArrays
 
     public static object?[] AppendPreservingNullSegment(object?[]? contexts, object? context)
     {
-        return contexts == null
-            ? [null, context]
-            : Append(contexts, context);
+        return contexts == null ? [null, context] : Append(contexts, context);
     }
 
     public static object?[] Prepend(object? context, object?[]? contexts)
@@ -61,8 +59,6 @@ internal static class FixtureContextArrays
 
     public static object?[] PrependPreservingNullSegment(object? context, object?[]? contexts)
     {
-        return contexts == null
-            ? [context, null]
-            : Prepend(context, contexts);
+        return contexts == null ? [context, null] : Prepend(context, contexts);
     }
 }

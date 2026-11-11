@@ -35,10 +35,12 @@ public sealed class ParserNullOrderingTests
     public void WindowOrderBy_NullsLast_ShouldParseWindowFieldModifier()
     {
         var expression = ParseSingleSelectExpression(
-            "RowNumber() over (partition by Country order by City desc nulls last)");
+            "RowNumber() over (partition by Country order by City desc nulls last)"
+        );
         var window = Assert.IsInstanceOfType<WindowFunctionNode>(expression);
-        var field = window.WindowSpecification?.OrderByFields[0] ??
-                    throw new InvalidOperationException("Expected window ORDER BY.");
+        var field =
+            window.WindowSpecification?.OrderByFields[0]
+            ?? throw new InvalidOperationException("Expected window ORDER BY.");
 
         Assert.AreEqual(Order.Descending, field.Order);
         Assert.AreEqual(NullOrdering.Last, field.NullOrdering);
@@ -48,7 +50,8 @@ public sealed class ParserNullOrderingTests
     public void OrderBy_NullsWithoutFirstOrLast_ShouldThrowSyntaxException()
     {
         Assert.ThrowsExactly<SyntaxException>(() =>
-            ParseQuery("select Name from #A.entities() order by City nulls middle"));
+            ParseQuery("select Name from #A.entities() order by City nulls middle")
+        );
     }
 
     private static Node ParseSingleSelectExpression(string expression)

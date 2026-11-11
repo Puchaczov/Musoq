@@ -38,24 +38,38 @@ public class BugProbeNulltermUtf16Tests
         Array.Copy(text, testData, text.Length);
         // Remaining bytes are 0x00 — the double 0x00 after "Hello" is the real terminator
 
-        var query = @"
-            binary Msg {
-                Label: string[64] utf16le nullterm
-            };
-            select m.Label from #test.files() b
-            cross apply Interpret<Msg>(b.Content) m";
+        var query = (
+            "\n"
+            + "            binary Msg {\n"
+            + "                Label: string[64] utf16le nullterm\n"
+            + "            };\n"
+            + "            select m.Label from #test.files() b\n"
+            + "            cross apply Interpret<Msg>(b.Content) m"
+        );
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hello", table[0].ReadValue(0),
-            "nullterm with UTF-16LE should find double-byte null terminator, not single 0x00");
+        Assert.AreEqual(
+            "Hello",
+            table[0].ReadValue(0),
+            "nullterm with UTF-16LE should find double-byte null terminator, not single 0x00"
+        );
     }
 
     /// <summary>
@@ -73,24 +87,38 @@ public class BugProbeNulltermUtf16Tests
         Array.Copy(text, testData, text.Length);
         // Rest is 0x00 padding
 
-        var query = @"
-            binary Msg {
-                Label: string[32] utf16be nullterm
-            };
-            select m.Label from #test.files() b
-            cross apply Interpret<Msg>(b.Content) m";
+        var query = (
+            "\n"
+            + "            binary Msg {\n"
+            + "                Label: string[32] utf16be nullterm\n"
+            + "            };\n"
+            + "            select m.Label from #test.files() b\n"
+            + "            cross apply Interpret<Msg>(b.Content) m"
+        );
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Hi", table[0].ReadValue(0),
-            "nullterm with UTF-16BE should find double-byte null terminator, not single 0x00");
+        Assert.AreEqual(
+            "Hi",
+            table[0].ReadValue(0),
+            "nullterm with UTF-16BE should find double-byte null terminator, not single 0x00"
+        );
     }
 
     /// <summary>
@@ -103,19 +131,30 @@ public class BugProbeNulltermUtf16Tests
         // "Test" + 0x00 + garbage
         var testData = new byte[] { 0x54, 0x65, 0x73, 0x74, 0x00, 0xFF, 0xFF, 0xFF };
 
-        var query = @"
-            binary Msg {
-                Label: string[8] ascii nullterm
-            };
-            select m.Label from #test.files() b
-            cross apply Interpret<Msg>(b.Content) m";
+        var query = (
+            "\n"
+            + "            binary Msg {\n"
+            + "                Label: string[8] ascii nullterm\n"
+            + "            };\n"
+            + "            select m.Label from #test.files() b\n"
+            + "            cross apply Interpret<Msg>(b.Content) m"
+        );
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

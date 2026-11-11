@@ -6,5 +6,5 @@ namespace Musoq.Targets.CSharpClr.Optimization.Codegen;
 internal sealed record CodegenReadabilityOptimizationResult(
     CompilationUnitSyntax InitialCode,
     CompilationUnitSyntax OptimizedCode,
-    OptimizationTrace Trace);
-
+    OptimizationTrace Trace
+);

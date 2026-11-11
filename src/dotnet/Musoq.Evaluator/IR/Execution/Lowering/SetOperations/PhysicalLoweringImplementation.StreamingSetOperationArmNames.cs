@@ -10,7 +10,8 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultTableName,
         string resultShapeName,
         PhysicalNode leftSource,
-        PhysicalNode rightSource)
+        PhysicalNode rightSource
+    )
     {
         return HasSourceAliasOverlap(leftSource, rightSource)
             ? CreateSetOperationArmNames(resultTableName, resultShapeName)
@@ -45,9 +46,11 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool HasSourceAlias(PhysicalNode node, HashSet<string> aliases)
     {
-        if (node is PhysicalSchemaScanNode scan && aliases.Contains(scan.Alias) ||
-            node is PhysicalCteRefNode cteRef && aliases.Contains(cteRef.Alias) ||
-            node is PhysicalValuesScanNode values && aliases.Contains(values.Alias))
+        if (
+            node is PhysicalSchemaScanNode scan && aliases.Contains(scan.Alias)
+            || node is PhysicalCteRefNode cteRef && aliases.Contains(cteRef.Alias)
+            || node is PhysicalValuesScanNode values && aliases.Contains(values.Alias)
+        )
             return true;
 
         foreach (var child in node.Children)

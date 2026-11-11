@@ -44,7 +44,7 @@ internal static class OptimizerClassificationRegistry
             ["ControlFlowNormalization"] = OptimizationEvaluationClassification.RegionChecked,
             ["HelperExtractionReadability"] = OptimizationEvaluationClassification.RegionChecked,
             ["ReadabilityDecisionTrace"] = OptimizationEvaluationClassification.NotApplicable,
-            ["ExecutionCodegenOptimization"] = OptimizationEvaluationClassification.RegionChecked
+            ["ExecutionCodegenOptimization"] = OptimizationEvaluationClassification.RegionChecked,
         };
 
     public static OptimizationEvaluationClassification Resolve<TPlan>(IPlanOptimizationPass<TPlan> pass)
@@ -60,7 +60,8 @@ internal static class OptimizerClassificationRegistry
         if (Resolve(pass) == OptimizationEvaluationClassification.Unknown)
         {
             throw new InvalidOperationException(
-                $"Optimizer pass '{pass.Name}' is missing an evaluation classification.");
+                $"Optimizer pass '{pass.Name}' is missing an evaluation classification."
+            );
         }
     }
 }

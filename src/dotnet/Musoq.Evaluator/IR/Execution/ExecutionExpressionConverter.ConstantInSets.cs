@@ -28,17 +28,13 @@ public static partial class ExecutionExpressionConverter
         return new ExecutionConstantInSet(elementType, values, kind);
     }
 
-    private static ExecutionConstantInSetKind SelectConstantInSetKind(
-        Type elementType,
-        object?[] values)
+    private static ExecutionConstantInSetKind SelectConstantInSetKind(Type elementType, object?[] values)
     {
         if (CanUseSwitchInSet(elementType, values))
             return ExecutionConstantInSetKind.Switch;
 
         var threshold = GetArrayInValueThreshold(elementType);
-        return values.Length <= threshold
-            ? ExecutionConstantInSetKind.Array
-            : ExecutionConstantInSetKind.FrozenSet;
+        return values.Length <= threshold ? ExecutionConstantInSetKind.Array : ExecutionConstantInSetKind.FrozenSet;
     }
 
     private static bool CanUseSwitchInSet(Type elementType, object?[] values)
@@ -56,34 +52,47 @@ public static partial class ExecutionExpressionConverter
     private static int GetArrayInValueThreshold(Type elementType)
     {
         var valueType = Nullable.GetUnderlyingType(elementType) ?? elementType;
-        return UsesPrimitiveArrayStrategy(valueType)
-            ? PrimitiveArrayInValueThreshold
-            : DefaultArrayInValueThreshold;
+        return UsesPrimitiveArrayStrategy(valueType) ? PrimitiveArrayInValueThreshold : DefaultArrayInValueThreshold;
     }
 
     private static bool UsesPrimitiveArrayStrategy(Type valueType)
     {
-        return valueType.IsEnum ||
-               Type.GetTypeCode(valueType) is TypeCode.Boolean or
-                   TypeCode.Byte or
-                   TypeCode.Char or
-                   TypeCode.DateTime or
-                   TypeCode.Decimal or
-                   TypeCode.Double or
-                   TypeCode.Int16 or
-                   TypeCode.Int32 or
-                   TypeCode.Int64 or
-                   TypeCode.SByte or
-                   TypeCode.Single or
-                   TypeCode.String or
-                   TypeCode.UInt16 or
-                   TypeCode.UInt32 or
-                   TypeCode.UInt64;
+        return valueType.IsEnum
+            || Type.GetTypeCode(valueType)
+                is TypeCode.Boolean
+                    or TypeCode.Byte
+                    or TypeCode.Char
+                    or TypeCode.DateTime
+                    or TypeCode.Decimal
+                    or TypeCode.Double
+                    or TypeCode.Int16
+                    or TypeCode.Int32
+                    or TypeCode.Int64
+                    or TypeCode.SByte
+                    or TypeCode.Single
+                    or TypeCode.String
+                    or TypeCode.UInt16
+                    or TypeCode.UInt32
+                    or TypeCode.UInt64;
     }
 
     private static bool CanHoistLiteral(object? value)
     {
-        return value is null or string or bool or char or byte or sbyte or short or ushort or int or uint or long or ulong
-            or float or double or decimal;
+        return value
+            is null
+                or string
+                or bool
+                or char
+                or byte
+                or sbyte
+                or short
+                or ushort
+                or int
+                or uint
+                or long
+                or ulong
+                or float
+                or double
+                or decimal;
     }
 }

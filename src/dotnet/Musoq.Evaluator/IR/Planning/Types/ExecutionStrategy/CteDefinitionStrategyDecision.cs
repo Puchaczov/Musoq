@@ -5,7 +5,8 @@ internal sealed record CteDefinitionStrategyDecision(
     int ReferenceCount,
     CteOutputCharacteristics Characteristics,
     CteDefinitionStrategyKind Kind,
-    string Reason)
+    string Reason
+)
 {
     public bool CanFuseReadOnce => Kind == CteDefinitionStrategyKind.FuseReadOnce;
 }

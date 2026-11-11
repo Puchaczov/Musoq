@@ -11,13 +11,15 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         Dictionary<string, int> schemaFromIndexes,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var lowerer = new SingleUseHashBuildFusionLowerer(
             ClassifyCteReferences,
             CanFuseReadOnceCte,
             TryFindHashBuildCteRef,
-            TryCreateFusedCteHashBuildSource);
+            TryCreateFusedCteHashBuildSource
+        );
 
         return lowerer.TryPlanFusedSources(
             cte,
@@ -25,12 +27,14 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             cteShapesByName,
             schemaFromIndexes,
-            scope);
+            scope
+        );
     }
 
     private static IReadOnlyDictionary<string, FusedCteHashBuildSource>? MergeFusedCteHashBuildSources(
         IReadOnlyDictionary<string, FusedCteHashBuildSource>? previous,
-        IReadOnlyDictionary<string, FusedCteHashBuildSource> current)
+        IReadOnlyDictionary<string, FusedCteHashBuildSource> current
+    )
     {
         if (current.Count == 0)
             return previous;

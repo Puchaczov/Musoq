@@ -11,19 +11,22 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalLoweringDispatchFacade.TableLoweringDescriptorNames;
 
     private PhysicalLoweringDispatchFacade CreatePhysicalLoweringDispatchFacade() =>
-        new(new PhysicalLoweringHandlers(
-            TryBuildMultiStatementPlan,
-            TryBuildCtePlan,
-            TryBuildDescPlan,
-            TryBuildSetOperationPlan,
-            TryBuildAggregatePlan,
-            TryBuildWindowPlan,
-            TryBuildPipelinePlan,
-            TryBuildMultiStatementTable,
-            TryBuildSetOperationTable,
-            TryBuildWindowTable,
-            TryBuildPipelineTable,
-            TryBuildAggregateTable));
+        new(
+            new PhysicalLoweringHandlers(
+                TryBuildMultiStatementPlan,
+                TryBuildCtePlan,
+                TryBuildDescPlan,
+                TryBuildSetOperationPlan,
+                TryBuildAggregatePlan,
+                TryBuildWindowPlan,
+                TryBuildPipelinePlan,
+                TryBuildMultiStatementTable,
+                TryBuildSetOperationTable,
+                TryBuildWindowTable,
+                TryBuildPipelineTable,
+                TryBuildAggregateTable
+            )
+        );
 
     private AggregatePlanLowerer CreateAggregatePlanLowerer()
     {
@@ -39,8 +42,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private CtePlanLowerer CreateCtePlanLowerer() => new(new CteLoweringService(this));
 
-    private PipelinePlanLowerer CreatePipelinePlanLowerer()
-        => new(new PipelineLoweringService(this));
+    private PipelinePlanLowerer CreatePipelinePlanLowerer() => new(new PipelineLoweringService(this));
 
     private LoweringAttempt<ExecutionPlan> TryBuildMultiStatementPlan(PhysicalToExecutionLoweringContext context)
     {

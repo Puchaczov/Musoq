@@ -5,8 +5,14 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionSubquery : ExecutionExpression
 {
-    public ExecutionSubquery(string identifier, SubqueryResultKind kind, ExecutionPlan plan,
-        IReadOnlyList<ExecutionExpression> bindings, ExecutionExpression? operand, ExecutionTypeRef returnType)
+    public ExecutionSubquery(
+        string identifier,
+        SubqueryResultKind kind,
+        ExecutionPlan plan,
+        IReadOnlyList<ExecutionExpression> bindings,
+        ExecutionExpression? operand,
+        ExecutionTypeRef returnType
+    )
         : base(returnType)
     {
         Identifier = identifier;

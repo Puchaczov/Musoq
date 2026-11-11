@@ -10,9 +10,7 @@ internal sealed class ChunkedLoopBreakRewriter(string breakTarget) : CSharpSynta
 {
     private int _nestedBreakableDepth;
 
-    public static IEnumerable<StatementSyntax> Rewrite(
-        IEnumerable<StatementSyntax> statements,
-        string breakTarget)
+    public static IEnumerable<StatementSyntax> Rewrite(IEnumerable<StatementSyntax> statements, string breakTarget)
     {
         var rewriter = new ChunkedLoopBreakRewriter(breakTarget);
         return statements.Select(statement => (StatementSyntax)rewriter.Visit(statement)!);
@@ -23,9 +21,8 @@ internal sealed class ChunkedLoopBreakRewriter(string breakTarget) : CSharpSynta
         if (_nestedBreakableDepth > 0)
             return node;
 
-        return SyntaxFactory.GotoStatement(
-                SyntaxKind.GotoStatement,
-                SyntaxFactory.IdentifierName(breakTarget))
+        return SyntaxFactory
+            .GotoStatement(SyntaxKind.GotoStatement, SyntaxFactory.IdentifierName(breakTarget))
             .WithTriviaFrom(node);
     }
 

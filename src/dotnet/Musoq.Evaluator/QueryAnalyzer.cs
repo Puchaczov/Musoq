@@ -3,8 +3,8 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using Microsoft.Extensions.Logging;
-using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
@@ -35,7 +35,8 @@ public sealed class QueryAnalyzer
     public QueryAnalyzer(
         ISchemaProvider schemaProvider,
         ILoggerFactory? loggerFactory = null,
-        CompilationOptions? compilationOptions = null)
+        CompilationOptions? compilationOptions = null
+    )
     {
         _schemaProvider = schemaProvider ?? throw new ArgumentNullException(nameof(schemaProvider));
         _loggerFactory = loggerFactory;
@@ -67,7 +68,6 @@ public sealed class QueryAnalyzer
         ArgumentNullException.ThrowIfNull(query);
         var sourceText = new SourceText(query);
         var diagnosticBag = new DiagnosticBag { SourceText = sourceText };
-
 
         RootNode? rootNode = null;
         RootNode? parsedQueryTree = null;
@@ -118,9 +118,7 @@ public sealed class QueryAnalyzer
             }
 
             if (!diagnosticBag.HasErrors && !TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
-                diagnosticBag.Add(
-                    InternalDiagnosticException.ForCompiler(ex)
-                        .ToDiagnostic(sourceText));
+                diagnosticBag.Add(InternalDiagnosticException.ForCompiler(ex).ToDiagnostic(sourceText));
         }
 
         // Do not normalize or bind a recovery tree that already contains parser errors.
@@ -128,18 +126,10 @@ public sealed class QueryAnalyzer
         // stack, cast, or missing-member failures that hide the parser root cause.
         cancellationToken.ThrowIfCancellationRequested();
         if (diagnosticBag.HasErrors)
-            return new QueryAnalysisResult
-            {
-                Root = rootNode,
-                Diagnostics = diagnosticBag.ToSortedList()
-            };
+            return new QueryAnalysisResult { Root = rootNode, Diagnostics = diagnosticBag.ToSortedList() };
 
         if (rootNode == null)
-            return new QueryAnalysisResult
-            {
-                Root = null,
-                Diagnostics = diagnosticBag.ToSortedList()
-            };
+            return new QueryAnalysisResult { Root = null, Diagnostics = diagnosticBag.ToSortedList() };
 
         try
         {
@@ -179,25 +169,15 @@ public sealed class QueryAnalyzer
             }
 
             if (diagnosticBag.HasErrors)
-                return new QueryAnalysisResult
-                {
-                    Root = rootNode,
-                    Diagnostics = diagnosticBag.ToSortedList()
-                };
+                return new QueryAnalysisResult { Root = rootNode, Diagnostics = diagnosticBag.ToSortedList() };
 
             if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
-                diagnosticBag.Add(
-                    InternalDiagnosticException.ForCompiler(ex)
-                        .ToDiagnostic(sourceText));
+                diagnosticBag.Add(InternalDiagnosticException.ForCompiler(ex).ToDiagnostic(sourceText));
         }
 
         cancellationToken.ThrowIfCancellationRequested();
         if (diagnosticBag.HasErrors)
-            return new QueryAnalysisResult
-            {
-                Root = rootNode,
-                Diagnostics = diagnosticBag.ToSortedList()
-            };
+            return new QueryAnalysisResult { Root = rootNode, Diagnostics = diagnosticBag.ToSortedList() };
 
         var diagnosticContext = new DiagnosticContext(sourceText);
         SemanticMetadataSnapshot? metadataSnapshot = null;
@@ -206,16 +186,13 @@ public sealed class QueryAnalyzer
 
         try
         {
-            var logger = _loggerFactory?.CreateLogger<BuildMetadataAndInferTypesVisitor>()
-                         ?? new NullLogger<BuildMetadataAndInferTypesVisitor>();
+            var logger =
+                _loggerFactory?.CreateLogger<BuildMetadataAndInferTypesVisitor>()
+                ?? new NullLogger<BuildMetadataAndInferTypesVisitor>();
 
             var schemaRegistry = CreateSchemaRegistry(rootNode, diagnosticBag, cancellationToken);
             if (diagnosticBag.HasErrors)
-                return new QueryAnalysisResult
-                {
-                    Root = rootNode,
-                    Diagnostics = diagnosticBag.ToSortedList()
-                };
+                return new QueryAnalysisResult { Root = rootNode, Diagnostics = diagnosticBag.ToSortedList() };
 
             // Semantic advisory analyzers need to refine parse-time warnings
             // when the bound AST establishes a more specific interpretation.
@@ -232,9 +209,14 @@ public sealed class QueryAnalyzer
                 diagnosticContext,
                 _compilationOptions,
                 schemaRegistry,
-                cancellationToken);
+                cancellationToken
+            );
 
-            var metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(rootNode, metadataVisitor, parsedQueryTree);
+            var metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(
+                rootNode,
+                metadataVisitor,
+                parsedQueryTree
+            );
             rootNode = metadataPhase.Query;
 
             if (metadataVisitor.Root is { } typedRoot)
@@ -252,7 +234,8 @@ public sealed class QueryAnalyzer
                         diagnosticContext,
                         normalizedQueryTree,
                         parsedQueryTree,
-                        cancellationToken);
+                        cancellationToken
+                    );
                     cancellationToken.ThrowIfCancellationRequested();
                 }
             }
@@ -264,7 +247,11 @@ public sealed class QueryAnalyzer
         catch (DataSourceLifecycleException ex)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (ex.Code is DiagnosticCode.MQ7014_MalformedRuntimeInput or DiagnosticCode.MQ7020_ReportedDataSourceFailure)
+            if (
+                ex.Code
+                is DiagnosticCode.MQ7014_MalformedRuntimeInput
+                    or DiagnosticCode.MQ7020_ReportedDataSourceFailure
+            )
             {
                 diagnosticContext.ReportException(ex);
             }
@@ -308,8 +295,7 @@ public sealed class QueryAnalyzer
             }
 
             if (!diagnosticContext.HasErrors && !TryReportDataSourceFailure(ex, diagnosticContext))
-                diagnosticContext.ReportException(
-                    InternalDiagnosticException.ForCompiler(ex));
+                diagnosticContext.ReportException(InternalDiagnosticException.ForCompiler(ex));
         }
 
         var allDiagnosticsBag = new DiagnosticBag { SourceText = sourceText };
@@ -318,27 +304,28 @@ public sealed class QueryAnalyzer
         allDiagnosticsBag.AddRange(diagnosticContext.Diagnostics);
         var allDiagnostics = allDiagnosticsBag.ToSortedList().ToList();
 
-        var semanticArtifacts = metadataSnapshot is { } snapshot &&
-                                parsedQueryTree is { } parsed &&
-                                normalizedQueryTree is { } normalized &&
-                                rootNode is { } metadataRoot &&
-                                scopeArtifact is { } scope
-            ? new SemanticPhaseArtifacts
-            {
-                ParsedQuery = parsed,
-                NormalizedQuery = normalized,
-                MetadataQuery = metadataRoot,
-                Metadata = snapshot,
-                Scope = scope,
-                Diagnostics = allDiagnostics.ToArray()
-            }
-            : null;
+        var semanticArtifacts =
+            metadataSnapshot is { } snapshot
+            && parsedQueryTree is { } parsed
+            && normalizedQueryTree is { } normalized
+            && rootNode is { } metadataRoot
+            && scopeArtifact is { } scope
+                ? new SemanticPhaseArtifacts
+                {
+                    ParsedQuery = parsed,
+                    NormalizedQuery = normalized,
+                    MetadataQuery = metadataRoot,
+                    Metadata = snapshot,
+                    Scope = scope,
+                    Diagnostics = allDiagnostics.ToArray(),
+                }
+                : null;
 
         return new QueryAnalysisResult
         {
             Root = rootNode,
             Diagnostics = allDiagnostics,
-            SemanticArtifacts = semanticArtifacts
+            SemanticArtifacts = semanticArtifacts,
         };
     }
 
@@ -394,26 +381,21 @@ public sealed class QueryAnalyzer
             }
 
             if (!TryReportDataSourceFailure(ex, diagnosticBag, sourceText))
-                diagnosticBag.Add(
-                    InternalDiagnosticException.ForCompiler(ex)
-                        .ToDiagnostic(sourceText));
+                diagnosticBag.Add(InternalDiagnosticException.ForCompiler(ex).ToDiagnostic(sourceText));
         }
 
         var syntaxDiagnostics = rootNode is null
             ? diagnosticBag.ToSortedList()
-            : RegexPatternAdvisoryAnalyzer.FilterSyntaxDiagnostics(
-                rootNode,
-                sourceText,
-                diagnosticBag.ToSortedList());
+            : RegexPatternAdvisoryAnalyzer.FilterSyntaxDiagnostics(rootNode, sourceText, diagnosticBag.ToSortedList());
 
-        return new QueryAnalysisResult
-        {
-            Root = rootNode,
-            Diagnostics = syntaxDiagnostics
-        };
+        return new QueryAnalysisResult { Root = rootNode, Diagnostics = syntaxDiagnostics };
     }
 
-    private static void AddParseDiagnostics(DiagnosticBag diagnosticBag, ParseException exception, SourceText sourceText)
+    private static void AddParseDiagnostics(
+        DiagnosticBag diagnosticBag,
+        ParseException exception,
+        SourceText sourceText
+    )
     {
         if (exception.Diagnostics.Count > 0)
         {
@@ -427,7 +409,8 @@ public sealed class QueryAnalyzer
     private static SchemaRegistry CreateSchemaRegistry(
         RootNode rootNode,
         DiagnosticBag diagnosticBag,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var registry = new SchemaRegistry();
         if (rootNode.Expression is not StatementsArrayNode statements)
@@ -454,7 +437,8 @@ public sealed class QueryAnalyzer
                 diagnosticBag.AddError(
                     DiagnosticCode.MQ2030_UnsupportedSyntax,
                     "The interpretation schema definition contains an invalid or unresolved schema reference.",
-                    statement.SpanOrEmpty());
+                    statement.SpanOrEmpty()
+                );
                 break;
             }
         }
@@ -471,7 +455,8 @@ public sealed class QueryAnalyzer
     private static bool TryReportDataSourceFailure(
         Exception exception,
         DiagnosticBag diagnosticBag,
-        SourceText sourceText)
+        SourceText sourceText
+    )
     {
         if (!DataSourceDiagnosticAdapter.TryAdapt(exception, out var diagnostic))
             return false;

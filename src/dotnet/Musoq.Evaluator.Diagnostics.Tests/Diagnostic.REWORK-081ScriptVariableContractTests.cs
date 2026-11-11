@@ -23,29 +23,29 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         const string dateTimeText = "2024-01-02T03:04:05.0000000Z";
         const string offsetText = "2024-01-02T03:04:05+02:00";
         const string query =
-            "let boolValue: bit = true; " +
-            "let byteValue: byte = 1ub; " +
-            "let sbyteValue: sbyte = 2b; " +
-            "let shortValue: short = 3s; " +
-            "let ushortValue: ushort = 4us; " +
-            "let intValue: int = 5 + 5; " +
-            "let uintValue: uint = 6ui; " +
-            "let longValue: long = 7l; " +
-            "let ulongValue: ulong = 8ul; " +
-            "let floatValue: float = 9.5; " +
-            "let doubleValue: double = 10.5; " +
-            "let decimalValue: money = 11.5d; " +
-            "let charValue: char = 'x'; " +
-            "let textValue: string = 'text'; " +
-            $"let idValue: guid = '{guidText}'; " +
-            $"let dateValue: datetime = '{dateTimeText}'; " +
-            $"let offsetValue: datetimeoffset = '{offsetText}'; " +
-            "let durationValue: timespan = '01:02:03'; " +
-            "let nullableValue: int? = null; " +
-            "select $boolValue, $byteValue, $sbyteValue, $shortValue, $ushortValue, " +
-            "$intValue, $uintValue, $longValue, $ulongValue, $floatValue, $doubleValue, " +
-            "$decimalValue, $charValue, $textValue, $idValue, $dateValue, $offsetValue, " +
-            "$durationValue, $nullableValue from #EnvironmentVariables.All()";
+            "let boolValue: bit = true; "
+            + "let byteValue: byte = 1ub; "
+            + "let sbyteValue: sbyte = 2b; "
+            + "let shortValue: short = 3s; "
+            + "let ushortValue: ushort = 4us; "
+            + "let intValue: int = 5 + 5; "
+            + "let uintValue: uint = 6ui; "
+            + "let longValue: long = 7l; "
+            + "let ulongValue: ulong = 8ul; "
+            + "let floatValue: float = 9.5; "
+            + "let doubleValue: double = 10.5; "
+            + "let decimalValue: money = 11.5d; "
+            + "let charValue: char = 'x'; "
+            + "let textValue: string = 'text'; "
+            + $"let idValue: guid = '{guidText}'; "
+            + $"let dateValue: datetime = '{dateTimeText}'; "
+            + $"let offsetValue: datetimeoffset = '{offsetText}'; "
+            + "let durationValue: timespan = '01:02:03'; "
+            + "let nullableValue: int? = null; "
+            + "select $boolValue, $byteValue, $sbyteValue, $shortValue, $ushortValue, "
+            + "$intValue, $uintValue, $longValue, $ulongValue, $floatValue, $doubleValue, "
+            + "$decimalValue, $charValue, $textValue, $idValue, $dateValue, $offsetValue, "
+            + "$durationValue, $nullableValue from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -68,11 +68,16 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         Assert.AreEqual(Guid.Parse(guidText), table[0].ReadValue(14));
         Assert.AreEqual(
             DateTime.Parse(dateTimeText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0].ReadValue(15));
+            table[0].ReadValue(15)
+        );
         Assert.AreEqual(
             DateTimeOffset.Parse(offsetText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0].ReadValue(16));
-        Assert.AreEqual(TimeSpan.FromHours(1) + TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(3), table[0].ReadValue(17));
+            table[0].ReadValue(16)
+        );
+        Assert.AreEqual(
+            TimeSpan.FromHours(1) + TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(3),
+            table[0].ReadValue(17)
+        );
         Assert.IsNull(table[0].ReadValue(18));
     }
 
@@ -80,13 +85,13 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
     public void EarlierVariablesAndConstantOperators_ShouldBeEvaluatedAtCompileTime()
     {
         const string query =
-            "let prefix: string = 'VALUE'; " +
-            "let label: string = $prefix + '_2'; " +
-            "let total: int = (10 + 5) * 2; " +
-            "let enabled: bool = $total between 30 and 30; " +
-            "let maybe: int? = null; " +
-            "let absent: bool = $maybe is null; " +
-            "select $label, $total, $enabled, $maybe, $absent from #EnvironmentVariables.All()";
+            "let prefix: string = 'VALUE'; "
+            + "let label: string = $prefix + '_2'; "
+            + "let total: int = (10 + 5) * 2; "
+            + "let enabled: bool = $total between 30 and 30; "
+            + "let maybe: int? = null; "
+            + "let absent: bool = $maybe is null; "
+            + "select $label, $total, $enabled, $maybe, $absent from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -103,9 +108,9 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
     public void VariableDeclaredAfterAnEarlierStatement_ShouldBeUsableAfterItsDeclaration()
     {
         const string query =
-            "table VariableRowsContract { Value: string }; " +
-            "let label: string = 'KEY_2'; " +
-            "select $label from #VariableRows.Items()";
+            "table VariableRowsContract { Value: string }; "
+            + "let label: string = 'KEY_2'; "
+            + "select $label from #VariableRows.Items()";
         var provider = new VariableSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
@@ -120,9 +125,9 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
     public void SharedVariableNamespace_ShouldRemainCaseSensitiveAndImmutable()
     {
         const string query =
-            "let key: string = 'lower'; " +
-            "let Key: string = 'upper'; " +
-            "select $key, $Key from #VariableRows.Items()";
+            "let key: string = 'lower'; "
+            + "let Key: string = 'upper'; "
+            + "select $key, $Key from #VariableRows.Items()";
         var vm = CompileWithProvider(query, new VariableSchemaProvider());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -138,14 +143,20 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         const string query = "let key: string = 'constant'; select $key from #VariableRows.Items()";
         var provider = new VariableSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "override");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "override"
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7006_UnknownScriptParameter,
-            "Script parameter 'key' was provided but is not declared.");
+            "Script parameter 'key' was provided but is not declared."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -153,9 +164,9 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
     public void ComputedVariableSourceArgument_ShouldUseItsCompileTimeValue()
     {
         const string query =
-            "let prefix: string = 'KEY'; " +
-            "let suffix: string = '_2'; " +
-            "select Key from #VariableRows.Items($prefix + $suffix)";
+            "let prefix: string = 'KEY'; "
+            + "let suffix: string = '_2'; "
+            + "select Key from #VariableRows.Items($prefix + $suffix)";
         var provider = new VariableSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
@@ -173,36 +184,42 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         "let key: string = 'local'",
         DiagnosticCode.MQ3063_DuplicateScriptSymbolName,
         "declared more than once",
-        DisplayName = "parameter and variable collision")]
+        DisplayName = "parameter and variable collision"
+    )]
     [DataRow(
         "let key: string = 'first'; let key: string = 'second'; select 1 from #EnvironmentVariables.All()",
         "let key: string = 'second'",
         DiagnosticCode.MQ3063_DuplicateScriptSymbolName,
         "declared more than once",
-        DisplayName = "duplicate variable")]
+        DisplayName = "duplicate variable"
+    )]
     [DataRow(
         "let item: object = 'value'; select 1 from #EnvironmentVariables.All()",
         "let item: object = 'value'",
         DiagnosticCode.MQ3064_UnsupportedScriptVariableType,
         "is not supported",
-        DisplayName = "unsupported variable type")]
+        DisplayName = "unsupported variable type"
+    )]
     [DataRow(
         "let limit: int = 'many'; select 1 from #EnvironmentVariables.All()",
         "let limit: int = 'many'",
         DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
         "cannot be converted",
-        DisplayName = "invalid variable initializer")]
+        DisplayName = "invalid variable initializer"
+    )]
     public void VariableDeclarationDiagnostics_ShouldExposeExactBindEnvelopes(
         string query,
         string declaration,
         DiagnosticCode expectedCode,
-        string expectedMessage)
+        string expectedMessage
+    )
     {
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
-            LoggerResolver);
+            LoggerResolver
+        );
         var envelope = result.ToEnvelopes().Single();
 
         Assert.AreEqual(expectedCode, envelope.Code);
@@ -224,30 +241,35 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         "let key: string = $root + '_1'",
         DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
         "runtime parameter",
-        DisplayName = "runtime parameter initializer")]
+        DisplayName = "runtime parameter initializer"
+    )]
     [DataRow(
         "let key: string = ToUpper('key_1'); select 1 from #EnvironmentVariables.All()",
         "let key: string = ToUpper('key_1')",
         DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
         "only literals",
-        DisplayName = "function initializer")]
+        DisplayName = "function initializer"
+    )]
     [DataRow(
         "let key: string = Key; select 1 from #EnvironmentVariables.All()",
         "let key: string = Key",
         DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
         "only literals",
-        DisplayName = "source column initializer")]
+        DisplayName = "source column initializer"
+    )]
     public void RuntimeDependentInitializer_ShouldExposeExactBindEnvelope(
         string query,
         string declaration,
         DiagnosticCode expectedCode,
-        string expectedMessage)
+        string expectedMessage
+    )
     {
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
-            LoggerResolver);
+            LoggerResolver
+        );
         var envelope = result.ToEnvelopes().Single();
 
         Assert.AreEqual(expectedCode, envelope.Code);
@@ -266,14 +288,14 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
     [TestMethod]
     public void ForwardVariableReference_ShouldExposeUsedBeforeDeclarationEnvelope()
     {
-        const string query =
-            "let copy: int = $later; let later: int = 1; select 1 from #EnvironmentVariables.All()";
+        const string query = "let copy: int = $later; let later: int = 1; select 1 from #EnvironmentVariables.All()";
         const string declaration = "let copy: int = $later";
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
-            LoggerResolver);
+            LoggerResolver
+        );
         var envelope = result.ToEnvelopes().Single();
 
         Assert.AreEqual(DiagnosticCode.MQ3066_ScriptVariableUsedBeforeDeclaration, envelope.Code);
@@ -299,7 +321,8 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
             query,
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
-            LoggerResolver);
+            LoggerResolver
+        );
         var envelope = result.ToEnvelopes().Single();
 
         Assert.AreEqual(DiagnosticCode.MQ3063_DuplicateScriptSymbolName, envelope.Code);
@@ -317,17 +340,14 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
 
     private CompiledQuery CompileWithProvider(string query, ISchemaProvider provider)
     {
-        return InstanceCreator.CompileForExecution(
-            query,
-            Guid.NewGuid().ToString(),
-            provider,
-            LoggerResolver);
+        return InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, LoggerResolver);
     }
 
     private static void AssertRuntimeEnvelope(
         QueryExecutionException exception,
         DiagnosticCode expectedCode,
-        string expectedMessage)
+        string expectedMessage
+    )
     {
         var envelope = exception.Envelope;
         Assert.IsNotNull(envelope);
@@ -353,11 +373,8 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         {
             {
                 "*",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
-                ]
-            }
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_1"), new EnvironmentVariableEntity("KEY_2", "VALUE_2")]
+            },
         };
     }
 
@@ -377,16 +394,10 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
 
     private sealed class VariableSchema : SchemaBase
     {
-        private static readonly EnvironmentVariableEntity[] Rows =
-        [
-            new("KEY_1", "VALUE_1"),
-            new("KEY_2", "VALUE_2")
-        ];
+        private static readonly EnvironmentVariableEntity[] Rows = [new("KEY_1", "VALUE_1"), new("KEY_2", "VALUE_2")];
 
         public VariableSchema()
-            : base("variableRows", new MethodsAggregator(new MethodsManager()))
-        {
-        }
+            : base("variableRows", new MethodsAggregator(new MethodsManager())) { }
 
         public int OpenCount { get; private set; }
 
@@ -395,7 +406,8 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new EnvironmentVariableEntityTable();
         }
@@ -403,18 +415,15 @@ public sealed class DiagnosticRework081ScriptVariableContractTests : Environment
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             OpenCount++;
             LastKey = parameters.Length == 0 ? null : parameters[0] as string;
-            var rows = LastKey == null
-                ? Rows
-                : Rows.Where(row => row.Key == LastKey).ToArray();
+            var rows = LastKey == null ? Rows : Rows.Where(row => row.Key == LastKey).ToArray();
 
-            return EnsureSourceType<T, EnvironmentVariableEntity>(
-                name,
-                new VariableSource(rows));
+            return EnsureSourceType<T, EnvironmentVariableEntity>(name, new VariableSource(rows));
         }
     }
 

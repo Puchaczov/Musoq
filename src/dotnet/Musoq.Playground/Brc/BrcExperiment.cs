@@ -34,14 +34,12 @@ internal sealed class BrcEntityTable : ISchemaTable
     public ISchemaColumn[] Columns { get; } =
     [
         new SchemaColumn(nameof(BrcEntity.Station), 0, typeof(string)),
-        new SchemaColumn(nameof(BrcEntity.Temperature), 1, typeof(double))
+        new SchemaColumn(nameof(BrcEntity.Temperature), 1, typeof(double)),
     ];
 
-    public ISchemaColumn? GetColumnByName(string name)
-        => Array.Find(Columns, c => c.ColumnName == name);
+    public ISchemaColumn? GetColumnByName(string name) => Array.Find(Columns, c => c.ColumnName == name);
 
-    public ISchemaColumn[] GetColumnsByName(string name)
-        => Columns.Where(c => c.ColumnName == name).ToArray();
+    public ISchemaColumn[] GetColumnsByName(string name) => Columns.Where(c => c.ColumnName == name).ToArray();
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(BrcEntity));
 }
@@ -103,16 +101,20 @@ internal sealed class BrcSchema : SchemaBase
 {
     private readonly RowSource<BrcEntity> _source;
 
-    public BrcSchema(RowSource<BrcEntity> source) : base("brc", CreateLibrary())
-        => _source = source;
+    public BrcSchema(RowSource<BrcEntity> source)
+        : base("brc", CreateLibrary()) => _source = source;
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
-        params object?[] parameters)
-        => new BrcEntityTable();
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    ) => new BrcEntityTable();
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext,
-        TArguments parameters)
-        => EnsureSourceType<T, BrcEntity>(name, _source);
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments parameters
+    ) => EnsureSourceType<T, BrcEntity>(name, _source);
 
     private static MethodsAggregator CreateLibrary()
     {
@@ -134,8 +136,8 @@ internal sealed class BrcSchemaProvider : ISchemaProvider
 internal static class BrcExperiment
 {
     private const string Query =
-        "select Station, Min(Temperature), Avg(Temperature), Max(Temperature) " +
-        "from #brc.entities() group by Station";
+        "select Station, Min(Temperature), Avg(Temperature), Max(Temperature) "
+        + "from #brc.entities() group by Station";
 
     private const int StationCount = 413;
 
@@ -159,7 +161,7 @@ internal static class BrcExperiment
         long[] materializedScales = [2_000_000, 10_000_000, 20_000_000];
 
         Console.WriteLine("--- Materialized source (in-memory List, parallel-eligible) ---");
-        Console.WriteLine($"{"Rows",12} {"Mode",10} {"Time(ms)",10} {"Rows/sec",15} {"Groups",8}");
+        Console.WriteLine($"{"Rows", 12} {"Mode", 10} {"Time(ms)", 10} {"Rows/sec", 15} {"Groups", 8}");
         foreach (var scale in materializedScales)
         {
             var data = BuildData(scale, stations);
@@ -171,7 +173,7 @@ internal static class BrcExperiment
 
         Console.WriteLine();
         Console.WriteLine("--- Streaming source (lazy generator, no retention) ---");
-        Console.WriteLine($"{"Rows",12} {"Mode",10} {"Time(ms)",10} {"Rows/sec",15} {"Groups",8}");
+        Console.WriteLine($"{"Rows", 12} {"Mode", 10} {"Time(ms)", 10} {"Rows/sec", 15} {"Groups", 8}");
         long[] streamingScales = [10_000_000, 50_000_000];
         foreach (var scale in streamingScales)
         {
@@ -189,7 +191,12 @@ internal static class BrcExperiment
         var options = new CompilationOptions(mode);
 
         var query = InstanceCreator.CompileForExecution(
-            Query, Guid.NewGuid().ToString(), provider, new MyLoggerResolver(), options);
+            Query,
+            Guid.NewGuid().ToString(),
+            provider,
+            new MyLoggerResolver(),
+            options
+        );
 
         // Warm up JIT for the generated assembly with a single run is not possible
         // (single source enumeration), so we measure the cold run directly. The query
@@ -208,7 +215,12 @@ internal static class BrcExperiment
         var options = new CompilationOptions(mode);
 
         var query = InstanceCreator.CompileForExecution(
-            Query, Guid.NewGuid().ToString(), provider, new MyLoggerResolver(), options);
+            Query,
+            Guid.NewGuid().ToString(),
+            provider,
+            new MyLoggerResolver(),
+            options
+        );
 
         var sw = Stopwatch.StartNew();
         var result = query.Run();
@@ -220,7 +232,7 @@ internal static class BrcExperiment
     private static void Report(long scale, ParallelizationMode mode, double ms, int groups)
     {
         var rowsPerSec = scale / (ms / 1000.0);
-        Console.WriteLine($"{scale,12:N0} {mode,10} {ms,10:N1} {rowsPerSec,15:N0} {groups,8}");
+        Console.WriteLine($"{scale, 12:N0} {mode, 10} {ms, 10:N1} {rowsPerSec, 15:N0} {groups, 8}");
     }
 
     private static void DumpInspection(string[] stations)
@@ -231,7 +243,12 @@ internal static class BrcExperiment
         var options = new CompilationOptions(ParallelizationMode.Full);
 
         var inspection = InstanceCreator.CompileForInspection(
-            Query, Guid.NewGuid().ToString(), provider, new MyLoggerResolver(), options);
+            Query,
+            Guid.NewGuid().ToString(),
+            provider,
+            new MyLoggerResolver(),
+            options
+        );
 
         Console.WriteLine("===== PLANNING TEXT =====");
         Console.WriteLine(inspection.PlanningText);

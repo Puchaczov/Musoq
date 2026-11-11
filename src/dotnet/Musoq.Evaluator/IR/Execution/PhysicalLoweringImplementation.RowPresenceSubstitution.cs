@@ -6,28 +6,30 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static ExecutionExpression SubstituteRowPresenceAliases(
         ExecutionExpression expression,
-        IReadOnlyDictionary<string, bool> presenceByAlias)
+        IReadOnlyDictionary<string, bool> presenceByAlias
+    )
     {
         return new RowPresenceSubstitutionRewriter(presenceByAlias).RewriteExpression(expression);
     }
 
     private static IReadOnlyDictionary<string, bool> CreateAllPresentMap(
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         return CreatePresenceMap(sourceLookup);
     }
 
     private static IReadOnlyDictionary<string, bool> CreateNullExtendedPresenceMap(
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        string missingAlias)
+        string missingAlias
+    )
     {
         var map = CreatePresenceMap(sourceLookup);
         map[missingAlias] = false;
         return map;
     }
 
-    private static Dictionary<string, bool> CreatePresenceMap(
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+    private static Dictionary<string, bool> CreatePresenceMap(IReadOnlyDictionary<string, RowShape> sourceLookup)
     {
         var map = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
@@ -37,8 +39,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return map;
     }
 
-    private static IEnumerable<string> CollectPresenceAliases(
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+    private static IEnumerable<string> CollectPresenceAliases(IReadOnlyDictionary<string, RowShape> sourceLookup)
     {
         foreach (var alias in sourceLookup.Keys)
         {
@@ -64,5 +65,4 @@ internal sealed partial class PhysicalLoweringImplementation
             }
         }
     }
-
 }

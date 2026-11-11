@@ -28,9 +28,7 @@ public class InlineSchemaTypeNode : TypeAnnotationNode
     {
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
 
-        var fieldsId = fields.Length == 0
-            ? string.Empty
-            : string.Concat(fields.Select(f => f.Id));
+        var fieldsId = fields.Length == 0 ? string.Empty : string.Concat(fields.Select(f => f.Id));
         _id = $"{nameof(InlineSchemaTypeNode)}{fieldsId}";
     }
 
@@ -56,8 +54,7 @@ public class InlineSchemaTypeNode : TypeAnnotationNode
     /// <remarks>
     ///     Inline schemas have a fixed size only if all their fields have fixed sizes.
     /// </remarks>
-    public override bool IsFixedSize => Fields.All(f =>
-        f is FieldDefinitionNode { TypeAnnotation.IsFixedSize: true });
+    public override bool IsFixedSize => Fields.All(f => f is FieldDefinitionNode { TypeAnnotation.IsFixedSize: true });
 
     /// <inheritdoc />
     /// <remarks>
@@ -67,7 +64,8 @@ public class InlineSchemaTypeNode : TypeAnnotationNode
     {
         get
         {
-            if (!IsFixedSize) return null;
+            if (!IsFixedSize)
+                return null;
 
             var total = 0;
             foreach (var schemaField in Fields)

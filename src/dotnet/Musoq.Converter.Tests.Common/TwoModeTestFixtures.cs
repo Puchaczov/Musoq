@@ -14,18 +14,13 @@ public static class TwoModeTestFixtures
             new Person("Bob", 20, "LA"),
             new Person("Charlie", 28, "NY"),
             new Person("Dana", 41, "SF"),
-            new Person("Eve", 32, "LA")
+            new Person("Eve", 32, "LA"),
         ];
     }
 
     public static Person[] PeopleWithNullCity()
     {
-        return
-        [
-            new Person("Alice", 35, "NY"),
-            new Person("NoCity", 25, null),
-            new Person("AlsoNoCity", 31, null)
-        ];
+        return [new Person("Alice", 35, "NY"), new Person("NoCity", 25, null), new Person("AlsoNoCity", 31, null)];
     }
 
     public static IReadOnlyList<T>[] Chunks<T>(IReadOnlyList<T> rows)
@@ -80,7 +75,9 @@ public static class TwoModeTestFixtures
         public IEnumerator<IReadOnlyList<T>> GetEnumerator()
         {
             yield return first;
-            throw new InvalidOperationException("Second chunk should not be requested before the first typed result is consumed.");
+            throw new InvalidOperationException(
+                "Second chunk should not be requested before the first typed result is consumed."
+            );
         }
 
         IEnumerator IEnumerable.GetEnumerator()

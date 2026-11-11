@@ -12,8 +12,8 @@ internal sealed class PhysicalNodeIdentityMap
         _ids = ids;
     }
 
-    public static PhysicalNodeIdentityMap Empty { get; } = new(
-        new Dictionary<PhysicalNode, PhysicalNodeId>(ReferenceComparer<PhysicalNode>.Instance));
+    public static PhysicalNodeIdentityMap Empty { get; } =
+        new(new Dictionary<PhysicalNode, PhysicalNodeId>(ReferenceComparer<PhysicalNode>.Instance));
 
     public static PhysicalNodeIdentityMap Build(PhysicalNode root)
     {
@@ -46,12 +46,12 @@ internal sealed class PhysicalNodeIdentityMap
     {
         return TryGetId(node, out var id)
             ? id
-            : throw new InvalidOperationException($"Physical node {node.GetType().Name} is not registered in the identity map.");
+            : throw new InvalidOperationException(
+                $"Physical node {node.GetType().Name} is not registered in the identity map."
+            );
     }
 
-    private static void AddTree(
-        PhysicalNode node,
-        Dictionary<PhysicalNode, PhysicalNodeId> ids)
+    private static void AddTree(PhysicalNode node, Dictionary<PhysicalNode, PhysicalNodeId> ids)
     {
         if (!AddNode(node, ids))
             return;
@@ -60,9 +60,7 @@ internal sealed class PhysicalNodeIdentityMap
             AddTree(child, ids);
     }
 
-    private static bool AddNode(
-        PhysicalNode node,
-        Dictionary<PhysicalNode, PhysicalNodeId> ids)
+    private static bool AddNode(PhysicalNode node, Dictionary<PhysicalNode, PhysicalNodeId> ids)
     {
         ArgumentNullException.ThrowIfNull(node);
         if (ids.ContainsKey(node))

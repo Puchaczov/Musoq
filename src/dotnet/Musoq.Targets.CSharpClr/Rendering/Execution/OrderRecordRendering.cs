@@ -10,76 +10,95 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private LocalDeclarationStatementSyntax RenderCreateRecordList(
         ExecutionCreateRecordList createList,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        var argumentList = createList.CapacityHint == null
-            ? SyntaxFactory.ArgumentList()
-            : CreateArgumentList(RenderCapacityHint(createList.CapacityHint, context));
+        var argumentList =
+            createList.CapacityHint == null
+                ? SyntaxFactory.ArgumentList()
+                : CreateArgumentList(RenderCapacityHint(createList.CapacityHint, context));
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             createList.List.Name,
-            SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(createList.RecordShape.TypeName))
-                .WithArgumentList(argumentList));
+            SyntaxFactory
+                .ObjectCreationExpression(CreateListTypeSyntax(createList.RecordShape.TypeName))
+                .WithArgumentList(argumentList)
+        );
     }
 
-    private static LocalDeclarationStatementSyntax RenderCreateBoundedRecordList(ExecutionCreateBoundedRecordList createList)
+    private static LocalDeclarationStatementSyntax RenderCreateBoundedRecordList(
+        ExecutionCreateBoundedRecordList createList
+    )
     {
         var comparer = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(CreateOrderRecordComparerTypeName(createList.RecordShape)),
-            SyntaxFactory.IdentifierName("Instance"));
+            SyntaxFactory.IdentifierName("Instance")
+        );
 
         var arguments = createList.Selection switch
         {
-            ExecutionTakeOrderRecordSelection take => new ExpressionSyntax[]
-            {
-                CreateIntLiteral(take.Count),
-                comparer
-            },
+            ExecutionTakeOrderRecordSelection take => new ExpressionSyntax[] { CreateIntLiteral(take.Count), comparer },
             ExecutionSkipTakeOrderRecordSelection skipTake => new ExpressionSyntax[]
             {
                 CreateIntLiteral(skipTake.SkipCount),
                 CreateIntLiteral(skipTake.TakeCount),
-                comparer
+                comparer,
             },
             _ => throw UnsupportedShape.Of(
-                $"Bounded ORDER BY record selection '{createList.Selection.GetType().Name}'")
+                $"Bounded ORDER BY record selection '{createList.Selection.GetType().Name}'"
+            ),
         };
 
         var listType = SyntaxFactory.ParseTypeName(
-            $"{nameof(EvaluationHelper)}.BoundedTopRecordList<{createList.RecordShape.TypeName}>");
+            $"{nameof(EvaluationHelper)}.BoundedTopRecordList<{createList.RecordShape.TypeName}>"
+        );
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             createList.List.Name,
-            SyntaxFactory.ObjectCreationExpression(listType)
-                .WithArgumentList(CreateArgumentList(arguments)));
+            SyntaxFactory.ObjectCreationExpression(listType).WithArgumentList(CreateArgumentList(arguments))
+        );
     }
 
-    private ExpressionStatementSyntax RenderAppendRecord(ExecutionAppendRecord appendRecord, ExecutionRenderContext context)
+    private ExpressionStatementSyntax RenderAppendRecord(
+        ExecutionAppendRecord appendRecord,
+        ExecutionRenderContext context
+    )
     {
-        var rowValues = appendRecord.Values
-            .Select((value, index) => RenderRowConstructorValue(
-                value.Value,
-                appendRecord.RecordShape.Fields[index].Type.RequireClrType(), context))
+        var rowValues = appendRecord
+            .Values.Select(
+                (value, index) =>
+                    RenderRowConstructorValue(
+                        value.Value,
+                        appendRecord.RecordShape.Fields[index].Type.RequireClrType(),
+                        context
+                    )
+            )
             .ToList();
 
-        if (appendRecord.RecordShape.Fields.Count == appendRecord.Values.Count + 1 &&
-            string.Equals(
+        if (
+            appendRecord.RecordShape.Fields.Count == appendRecord.Values.Count + 1
+            && string.Equals(
                 GetGeneratedFieldName(appendRecord.RecordShape.Fields[^1]),
                 "__ordinal",
-                StringComparison.Ordinal))
+                StringComparison.Ordinal
+            )
+        )
         {
             rowValues.Add(CreateCollectionCountRead(appendRecord.List.Name));
         }
 
         var recordCreation = CreateObjectCreation(appendRecord.RecordShape.TypeName, rowValues.ToArray());
-        var invocation = SyntaxFactory.InvocationExpression(
+        var invocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(appendRecord.List.Name),
-                    SyntaxFactory.IdentifierName(nameof(List<object>.Add))))
+                    SyntaxFactory.IdentifierName(nameof(List<object>.Add))
+                )
+            )
             .WithArgumentList(CreateArgumentList(recordCreation));
 
         return SyntaxFactory.ExpressionStatement(invocation);
@@ -90,17 +109,22 @@ public sealed partial class ExecutionCSharpRenderer
         var comparer = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(CreateOrderRecordComparerTypeName(orderRecords.RecordShape)),
-            SyntaxFactory.IdentifierName("Instance"));
+            SyntaxFactory.IdentifierName("Instance")
+        );
 
         return orderRecords.Selection switch
         {
             ExecutionFullOrderRecordSelection => SyntaxFactory.ExpressionStatement(
-                SyntaxFactory.InvocationExpression(
+                SyntaxFactory
+                    .InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             SyntaxFactory.IdentifierName(orderRecords.Source.Name),
-                            SyntaxFactory.IdentifierName(nameof(List<object>.Sort))))
-                    .WithArgumentList(CreateArgumentList(comparer))),
+                            SyntaxFactory.IdentifierName(nameof(List<object>.Sort))
+                        )
+                    )
+                    .WithArgumentList(CreateArgumentList(comparer))
+            ),
             ExecutionTakeOrderRecordSelection take => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
@@ -109,7 +133,10 @@ public sealed partial class ExecutionCSharpRenderer
                         nameof(EvaluationHelper.SelectTopRecords),
                         SyntaxFactory.IdentifierName(orderRecords.Source.Name),
                         CreateIntLiteral(take.Count),
-                        comparer))),
+                        comparer
+                    )
+                )
+            ),
             ExecutionSkipTakeOrderRecordSelection skipTake => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
@@ -119,9 +146,11 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.IdentifierName(orderRecords.Source.Name),
                         CreateIntLiteral(skipTake.SkipCount),
                         CreateIntLiteral(skipTake.TakeCount),
-                        comparer))),
-            _ => throw UnsupportedShape.Of(
-                $"ORDER BY record selection '{orderRecords.Selection.GetType().Name}'")
+                        comparer
+                    )
+                )
+            ),
+            _ => throw UnsupportedShape.Of($"ORDER BY record selection '{orderRecords.Selection.GetType().Name}'"),
         };
     }
 }

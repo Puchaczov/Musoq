@@ -12,7 +12,8 @@ public partial class ExtractRawColumnsVisitor
         var alias = AliasGenerator.CreateAliasIfEmpty(
             node.Alias,
             _generatedAliases,
-            _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        );
         _queryAlias = alias + _schemaFromKey;
 
         if (_columns.ContainsKey(_queryAlias))

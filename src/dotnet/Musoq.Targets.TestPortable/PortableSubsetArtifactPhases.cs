@@ -12,40 +12,33 @@ internal sealed class PortableSubsetRenderedQueryFinalizer : IRenderedQueryFinal
         if (artifact is not PortableSubsetRenderedArtifact portable)
         {
             throw new InvalidOperationException(
-                $"Portable subset finalizer expected '{nameof(PortableSubsetRenderedArtifact)}', but received '{artifact.GetType().Name}'.");
+                $"Portable subset finalizer expected '{nameof(PortableSubsetRenderedArtifact)}', but received '{artifact.GetType().Name}'."
+            );
         }
 
         var manifest = portable.Program.CreateManifest();
         var runtimeServices = portable.HostAbiInventory.CreateServiceRequirements(
-            TargetRuntimeServiceFulfillmentKind.HostImport);
+            TargetRuntimeServiceFulfillmentKind.HostImport
+        );
         var export = TargetExportArtifact.Create(
             TargetId,
-            sourceFiles:
-            [
-                new TargetExportSourceFile("program.musoq-portable", "musoq-portable-subset", manifest)
-            ],
-            entrypoints:
-            [
-                new TargetRuntimeEntrypoint("run", TargetRuntimeEntrypointKind.TableQuery, "run")
-            ],
+            sourceFiles: [new TargetExportSourceFile("program.musoq-portable", "musoq-portable-subset", manifest)],
+            entrypoints: [new TargetRuntimeEntrypoint("run", TargetRuntimeEntrypointKind.TableQuery, "run")],
             runtimeServices: runtimeServices,
             hostAbiInventory: portable.HostAbiInventory,
             diagnosticsMetadata: new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["language"] = "musoq-portable-subset",
-                ["manifestFormat"] = "1"
-            });
+                ["manifestFormat"] = "1",
+            }
+        );
 
         return new PortableSubsetFinalizationResult(export);
     }
 }
 
 internal sealed record PortableSubsetFinalizationResult(ExecutableQueryArtifact Executable)
-    : TargetFinalizationResult(
-        PortableSubsetTarget.TargetId,
-        true,
-        [],
-        Executable);
+    : TargetFinalizationResult(PortableSubsetTarget.TargetId, true, [], Executable);
 
 internal sealed class PortableSubsetRenderedQueryInspector : IRenderedQueryInspector
 {
@@ -56,7 +49,8 @@ internal sealed class PortableSubsetRenderedQueryInspector : IRenderedQueryInspe
         if (artifact is not PortableSubsetRenderedArtifact portable)
         {
             throw new InvalidOperationException(
-                $"Portable subset inspector expected '{nameof(PortableSubsetRenderedArtifact)}', but received '{artifact.GetType().Name}'.");
+                $"Portable subset inspector expected '{nameof(PortableSubsetRenderedArtifact)}', but received '{artifact.GetType().Name}'."
+            );
         }
 
         return new RenderedQueryInspection(
@@ -65,7 +59,8 @@ internal sealed class PortableSubsetRenderedQueryInspector : IRenderedQueryInspe
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["language"] = "musoq-portable-subset",
-                ["inspectionText"] = portable.Program.CreateManifest()
-            });
+                ["inspectionText"] = portable.Program.CreateManifest(),
+            }
+        );
     }
 }

@@ -10,17 +10,17 @@ public partial class SpecExplorationTableCoupleTests
     public void Spec_TableCouple_AllSupportedTypes_ShouldPreserveSchemaValuesAndNulls()
     {
         const string query =
-            "table AllTypes {" +
-            " ByteCol: byte, SByteCol: sbyte, ShortCol: short, IntCol: int, LongCol: long," +
-            " UShortCol: ushort, UIntCol: uint, ULongCol: ulong, FloatCol: float, DoubleCol: double," +
-            " DecimalCol: decimal, MoneyCol: money, BoolCol: bool, BooleanCol: boolean, BitCol: bit," +
-            " CharCol: char, StringCol: string, DateTimeCol: datetime," +
-            " DateTimeOffsetCol: datetimeoffset, TimeSpanCol: timespan, GuidCol: guid, ConcreteCol: string" +
-            " };" +
-            "couple #test.whatever with table AllTypes as Source;" +
-            "select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol," +
-            " FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, BooleanCol, BitCol, CharCol," +
-            " StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ConcreteCol from Source()";
+            "table AllTypes {"
+            + " ByteCol: byte, SByteCol: sbyte, ShortCol: short, IntCol: int, LongCol: long,"
+            + " UShortCol: ushort, UIntCol: uint, ULongCol: ulong, FloatCol: float, DoubleCol: double,"
+            + " DecimalCol: decimal, MoneyCol: money, BoolCol: bool, BooleanCol: boolean, BitCol: bit,"
+            + " CharCol: char, StringCol: string, DateTimeCol: datetime,"
+            + " DateTimeOffsetCol: datetimeoffset, TimeSpanCol: timespan, GuidCol: guid, ConcreteCol: string"
+            + " };"
+            + "couple #test.whatever with table AllTypes as Source;"
+            + "select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol,"
+            + " FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, BooleanCol, BitCol, CharCol,"
+            + " StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ConcreteCol from Source()";
 
         var identifier = Guid.Parse("11111111-2222-3333-4444-555555555555");
         var dateTime = new DateTime(2020, 1, 2, 3, 4, 5);
@@ -101,36 +101,96 @@ public partial class SpecExplorationTableCoupleTests
             ("DateTimeOffsetCol", typeof(DateTimeOffset?)),
             ("TimeSpanCol", typeof(TimeSpan?)),
             ("GuidCol", typeof(Guid?)),
-            ("ConcreteCol", typeof(string)));
+            ("ConcreteCol", typeof(string))
+        );
 
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [
-                (byte)1, (sbyte)-2, (short)-3, 4, 5L, (ushort)6, 7U, 8UL,
-                1.5f, 2.5d, 3.5m, 4.5m, true, false, true, 'Z', "text",
-                dateTime, dateTimeOffset, duration, identifier, "object-value"
+                (byte)1,
+                (sbyte)-2,
+                (short)-3,
+                4,
+                5L,
+                (ushort)6,
+                7U,
+                8UL,
+                1.5f,
+                2.5d,
+                3.5m,
+                4.5m,
+                true,
+                false,
+                true,
+                'Z',
+                "text",
+                dateTime,
+                dateTimeOffset,
+                duration,
+                identifier,
+                "object-value",
             ],
             [
-                (byte)1, (sbyte)-2, (short)-3, 4, 5L, (ushort)6, 7U, 8UL,
-                1.5f, 2.5d, 3.5m, 4.5m, true, false, true, 'Z', "text",
-                dateTime, dateTimeOffset, duration, identifier, "object-value"
+                (byte)1,
+                (sbyte)-2,
+                (short)-3,
+                4,
+                5L,
+                (ushort)6,
+                7U,
+                8UL,
+                1.5f,
+                2.5d,
+                3.5m,
+                4.5m,
+                true,
+                false,
+                true,
+                'Z',
+                "text",
+                dateTime,
+                dateTimeOffset,
+                duration,
+                identifier,
+                "object-value",
             ],
             [
-                null, null, null, null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null
-            ]);
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+            ]
+        );
     }
 
     [TestMethod]
     public void Spec_TableCouple_FullyQualifiedAndAliasTypes_ShouldPreserveExactTypes()
     {
         const string query =
-            "table TypedAliases {" +
-            " Amount: MONEY, FlagA: BOOLEAN, FlagB: BIT," +
-            " Id: System.Int32, Stamp: System.DateTimeOffset, Label: System.String" +
-            " };" +
-            "couple #test.whatever with table TypedAliases as Source;" +
-            "select * from Source()";
+            "table TypedAliases {"
+            + " Amount: MONEY, FlagA: BOOLEAN, FlagB: BIT,"
+            + " Id: System.Int32, Stamp: System.DateTimeOffset, Label: System.String"
+            + " };"
+            + "couple #test.whatever with table TypedAliases as Source;"
+            + "select * from Source()";
 
         var stamp = new DateTimeOffset(2024, 6, 7, 8, 9, 10, TimeSpan.Zero);
         dynamic item = new ExpandoObject();
@@ -151,9 +211,8 @@ public partial class SpecExplorationTableCoupleTests
             ("FlagB", typeof(bool?)),
             ("Id", typeof(int?)),
             ("Stamp", typeof(DateTimeOffset?)),
-            ("Label", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [12.5m, true, false, 42, stamp, "qualified"]);
+            ("Label", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [12.5m, true, false, 42, stamp, "qualified"]);
     }
 }

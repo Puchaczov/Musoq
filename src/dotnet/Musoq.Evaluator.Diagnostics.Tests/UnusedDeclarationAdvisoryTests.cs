@@ -12,24 +12,34 @@ public sealed class UnusedDeclarationAdvisoryTests
     [TestMethod]
     public void UnreachableCteAndDeadDependencyChain_ReportEachDefinition()
     {
-        var result = Analyze(@"
-            with dead as (select Name from #A.Entities()),
-                 dead_dependency as (select Name from dead),
-                 live as (select Name from #A.Entities())
-            select Name from live");
+        var result = Analyze(
+            (
+                "\n"
+                + "            with dead as (select Name from #A.Entities()),\n"
+                + "                 dead_dependency as (select Name from dead),\n"
+                + "                 live as (select Name from #A.Entities())\n"
+                + "            select Name from live"
+            )
+        );
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         Assert.AreEqual(2, result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5022_UnusedCte));
-        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable)
+        );
     }
 
     [TestMethod]
     public void TransitiveLiveCtes_RemainQuiet()
     {
-        var result = Analyze(@"
-            with base as (select Name from #A.Entities()),
-                 live as (select Name from base)
-            select Name from live");
+        var result = Analyze(
+            (
+                "\n"
+                + "            with base as (select Name from #A.Entities()),\n"
+                + "                 live as (select Name from base)\n"
+                + "            select Name from live"
+            )
+        );
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5022_UnusedCte));
@@ -41,7 +51,10 @@ public sealed class UnusedDeclarationAdvisoryTests
         var result = Analyze("let dead: int = 1; let alsoDead: int = $dead + 1; select Name from #A.Entities()");
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
-        Assert.AreEqual(2, result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable));
+        Assert.AreEqual(
+            2,
+            result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable)
+        );
     }
 
     [TestMethod]
@@ -50,33 +63,48 @@ public sealed class UnusedDeclarationAdvisoryTests
         var result = Analyze("let root: int = 1; let live: int = $root + 1; select $live from #A.Entities()");
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
-        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable)
+        );
     }
 
     [TestMethod]
     public void VariableUsedByLiveCte_RemainsQuiet()
     {
-        var result = Analyze(@"
-            let label: string = 'live';
-            with live as (select $label as Name from #A.Entities())
-            select Name from live");
+        var result = Analyze(
+            (
+                "\n"
+                + "            let label: string = 'live';\n"
+                + "            with live as (select $label as Name from #A.Entities())\n"
+                + "            select Name from live"
+            )
+        );
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
-        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable)
+        );
         Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5022_UnusedCte));
     }
 
     [TestMethod]
     public void VariableUsedOnlyByDeadCte_RemainsUnused()
     {
-        var result = Analyze(@"
-            let label: string = 'dead';
-            with dead as (select $label as Name from #A.Entities())
-            select Name from #A.Entities()");
+        var result = Analyze(
+            (
+                "\n"
+                + "            let label: string = 'dead';\n"
+                + "            with dead as (select $label as Name from #A.Entities())\n"
+                + "            select Name from #A.Entities()"
+            )
+        );
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         Assert.AreEqual(1, result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5022_UnusedCte));
-        Assert.AreEqual(1, result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable));
+        Assert.AreEqual(
+            1,
+            result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable)
+        );
     }
 
     [TestMethod]
@@ -85,18 +113,24 @@ public sealed class UnusedDeclarationAdvisoryTests
         var result = Analyze("param(name: string); select Name from #A.Entities()");
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
-        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable)
+        );
     }
 
     [TestMethod]
     public void UnusedRecursiveCte_IsReportedWithoutTreatingSelfReferenceAsLive()
     {
-        var result = Analyze(@"
-            with recursive counter (Value) as (
-                select Value from values {( Value: 1 )} seed
-                union all
-                select c.Value + 1 from counter c where c.Value < 2)
-            select Name from #A.Entities()");
+        var result = Analyze(
+            (
+                "\n"
+                + "            with recursive counter (Value) as (\n"
+                + "                select Value from values {( Value: 1 )} seed\n"
+                + "                union all\n"
+                + "                select c.Value + 1 from counter c where c.Value < 2)\n"
+                + "            select Name from #A.Entities()"
+            )
+        );
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         Assert.AreEqual(1, result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5022_UnusedCte));
@@ -105,11 +139,15 @@ public sealed class UnusedDeclarationAdvisoryTests
     [TestMethod]
     public void MultipleCteScopes_AreAnalyzedIndependently()
     {
-        var result = Analyze(@"
-            with first_dead as (select Name from #A.Entities())
-            select Name from #A.Entities();
-            with second_dead as (select Name from #A.Entities())
-            select Name from #A.Entities()");
+        var result = Analyze(
+            (
+                "\n"
+                + "            with first_dead as (select Name from #A.Entities())\n"
+                + "            select Name from #A.Entities();\n"
+                + "            with second_dead as (select Name from #A.Entities())\n"
+                + "            select Name from #A.Entities()"
+            )
+        );
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         Assert.AreEqual(2, result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5022_UnusedCte));
@@ -122,7 +160,9 @@ public sealed class UnusedDeclarationAdvisoryTests
         const string cteQuery = "with dead as (select Name from #A.Entities()) select Name from #A.Entities()";
 
         var variableResult = Analyze(variableQuery);
-        var variableWarning = variableResult.Warnings.Single(warning => warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable);
+        var variableWarning = variableResult.Warnings.Single(warning =>
+            warning.Code == DiagnosticCode.MQ5023_UnusedScriptVariable
+        );
         Assert.AreEqual(variableQuery.IndexOf("dead", System.StringComparison.Ordinal), variableWarning.Span.Start);
         Assert.AreEqual(4, variableWarning.Span.Length);
 
@@ -135,10 +175,8 @@ public sealed class UnusedDeclarationAdvisoryTests
     private static QueryAnalysisResult Analyze(string query)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = []
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }
+        );
         return new QueryAnalyzer(provider).Analyze(query);
     }
 }

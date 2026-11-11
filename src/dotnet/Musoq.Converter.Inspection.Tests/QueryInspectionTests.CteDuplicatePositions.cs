@@ -8,7 +8,8 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CteWildcard_DuplicateNamesPreserveDistinctValuesAcrossRows()
     {
-        const string query = "with data as (select v.First as Value, v.Second as Value from values { (First: 1i, Second: 11i), (First: 2i, Second: 22i) } v) select * from data d";
+        const string query =
+            "with data as (select v.First as Value, v.Second as Value from values { (First: 1i, Second: 11i), (First: 2i, Second: 22i) } v) select * from data d";
         using var compiled = CompileForExecution(query);
         using var table = compiled.Run();
         var columns = table.Columns.ToArray();
@@ -28,7 +29,8 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CteWildcard_UnusedLeadingColumnKeepsDuplicateSourcePositions()
     {
-        const string query = "with data as (select v.Unused as Unused, v.First as Value, v.Second as Value from values { (Unused: 0i, First: 1i, Second: 2i) } v) select * exclude (Unused) from data d";
+        const string query =
+            "with data as (select v.Unused as Unused, v.First as Value, v.Second as Value from values { (Unused: 0i, First: 1i, Second: 2i) } v) select * exclude (Unused) from data d";
         using var compiled = CompileForExecution(query);
         using var table = compiled.Run();
 

@@ -7,7 +7,8 @@ internal sealed record TakeStrategyDecision(
     SortNode? Sort,
     SkipNode? Skip,
     TakeNode Take,
-    string Reason)
+    string Reason
+)
 {
     public static TakeStrategyDecision TopOffset(SortNode sort, SkipNode skip, TakeNode take, string reason)
     {

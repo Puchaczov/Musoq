@@ -21,7 +21,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class CompilationPipelineErrorTests
 {
-
     [TestMethod]
     public void Stage3a_UnknownSchema()
     {
@@ -33,14 +32,20 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - unknown schema should map to MQ3010
-        AssertHasErrorCode(result, DiagnosticCode.MQ3010_UnknownSchema,
-            "schema 'unknown' not registered in SchemaProvider");
+        AssertHasErrorCode(
+            result,
+            DiagnosticCode.MQ3010_UnknownSchema,
+            "schema 'unknown' not registered in SchemaProvider"
+        );
 
         // Verify the error mentions schema-related issue
-        Assert.IsTrue(result.Errors.Any(e =>
-                e.Message.Contains("Schema", StringComparison.OrdinalIgnoreCase) ||
-                e.Message.Contains("unknown", StringComparison.OrdinalIgnoreCase)),
-            "Error should mention schema issue");
+        Assert.IsTrue(
+            result.Errors.Any(e =>
+                e.Message.Contains("Schema", StringComparison.OrdinalIgnoreCase)
+                || e.Message.Contains("unknown", StringComparison.OrdinalIgnoreCase)
+            ),
+            "Error should mention schema issue"
+        );
     }
 
     [TestMethod]
@@ -54,25 +59,25 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - the schema exists, but the requested source does not
-        AssertHasErrorCode(result, DiagnosticCode.MQ3085_UnknownSource,
-            "method 'UnknownMethod' not found in schema A");
+        AssertHasErrorCode(result, DiagnosticCode.MQ3085_UnknownSource, "method 'UnknownMethod' not found in schema A");
 
         // Verify the error mentions the unknown method and suggests available methods
-        Assert.IsTrue(result.Errors.Any(e =>
-                e.Message.Contains("UnknownMethod", StringComparison.OrdinalIgnoreCase) ||
-                e.Message.Contains("method", StringComparison.OrdinalIgnoreCase)),
-            "Error should mention the unknown method");
+        Assert.IsTrue(
+            result.Errors.Any(e =>
+                e.Message.Contains("UnknownMethod", StringComparison.OrdinalIgnoreCase)
+                || e.Message.Contains("method", StringComparison.OrdinalIgnoreCase)
+            ),
+            "Error should mention the unknown method"
+        );
     }
 
     [TestMethod]
     public void Stage3a_MissingSchemaPrefix()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM A.Entities()";
 
         var result = analyzer.Analyze(query);
-
 
         Assert.IsTrue(result.IsParsed);
         AssertNoErrors(result);
@@ -81,15 +86,20 @@ public partial class CompilationPipelineErrorTests
     [TestMethod]
     public void Stage3a_InvalidSchemaName_EmptyAfterHash()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #.Entities()";
 
         var result = analyzer.Analyze(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ3010_UnknownSchema, nameof(Stage3a_InvalidSchemaName_EmptyAfterHash));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("#", System.StringComparison.Ordinal), 1), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ3010_UnknownSchema,
+            nameof(Stage3a_InvalidSchemaName_EmptyAfterHash)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("#", System.StringComparison.Ordinal), 1),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
@@ -118,8 +128,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - Must be MQ3001_UnknownColumn
-        AssertHasErrorCode(result, DiagnosticCode.MQ3001_UnknownColumn,
-            "typo 'Naem' - should suggest 'Name'");
+        AssertHasErrorCode(result, DiagnosticCode.MQ3001_UnknownColumn, "typo 'Naem' - should suggest 'Name'");
     }
 
     [TestMethod]
@@ -133,14 +142,12 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - Must be MQ3001_UnknownColumn
-        AssertHasErrorCode(result, DiagnosticCode.MQ3001_UnknownColumn,
-            "column 'XYZ123' doesn't exist");
+        AssertHasErrorCode(result, DiagnosticCode.MQ3001_UnknownColumn, "column 'XYZ123' doesn't exist");
     }
 
     [TestMethod]
     public void Stage3b_TypeMismatch_StringEqualsNumber()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name = 42";
 
@@ -176,7 +183,11 @@ public partial class CompilationPipelineErrorTests
 
         // Assert - Musoq now enforces standard SQL GROUP BY rules.
         // Name is not in GROUP BY and not inside an aggregate → MQ3012 error.
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3012_NonAggregateInSelect, "Name not in GROUP BY should produce MQ3012");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3012_NonAggregateInSelect,
+            "Name not in GROUP BY should produce MQ3012"
+        );
     }
 
     [TestMethod]
@@ -190,13 +201,20 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - ambiguous column name should use dedicated diagnostic
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3002_AmbiguousColumn, "'Name' exists in both tables - must qualify with alias");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3002_AmbiguousColumn,
+            "'Name' exists in both tables - must qualify with alias"
+        );
 
         // Verify the error mentions ambiguous column
-        Assert.IsTrue(result.Errors.Any(e =>
-                e.Message.Contains("Ambiguous", StringComparison.OrdinalIgnoreCase) ||
-                e.Message.Contains("Name", StringComparison.OrdinalIgnoreCase)),
-            "Error should mention ambiguous column");
+        Assert.IsTrue(
+            result.Errors.Any(e =>
+                e.Message.Contains("Ambiguous", StringComparison.OrdinalIgnoreCase)
+                || e.Message.Contains("Name", StringComparison.OrdinalIgnoreCase)
+            ),
+            "Error should mention ambiguous column"
+        );
     }
 
     [TestMethod]
@@ -263,7 +281,11 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.Analyze(query);
 
-        AssertHasErrorCode(result, DiagnosticCode.MQ3088_NoMatchingCallableOverload, "wrong argument type for Substring()");
+        AssertHasErrorCode(
+            result,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            "wrong argument type for Substring()"
+        );
     }
 
     [TestMethod]
@@ -324,5 +346,4 @@ public partial class CompilationPipelineErrorTests
         Assert.IsTrue(result.IsParsed, "Valid method calls should parse");
         AssertNoErrors(result);
     }
-
 }

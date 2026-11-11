@@ -9,9 +9,8 @@ internal static partial class EvaluatorSampleFixtures
 
     public static IReadOnlyList<GeneratedCodeSample> Samples { get; } = CreateSamples();
 
-    public static IReadOnlyList<GeneratedCodeSample> InterpretationSamples { get; } = Samples
-        .Where(sample => sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode)
-        .ToArray();
+    public static IReadOnlyList<GeneratedCodeSample> InterpretationSamples { get; } =
+        Samples.Where(sample => sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode).ToArray();
 
     public static GeneratedCodeSample GetByFileName(string fileName)
     {

@@ -49,8 +49,7 @@ internal sealed partial record SourceBindingState
 
     public Dictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; } = new();
 
-    public Dictionary<string, ISchemaColumn[]> InferredColumnsByAlias { get; } =
-        new(StringComparer.Ordinal);
+    public Dictionary<string, ISchemaColumn[]> InferredColumnsByAlias { get; } = new(StringComparer.Ordinal);
 
     public Dictionary<SchemaFromNode, SourcePlanRequest> SourcePlanRequestsPerSchema { get; } = new();
 
@@ -62,11 +61,15 @@ internal sealed partial record SourceBindingState
 
     public HashSet<string> AllUsedSchemaNames { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    public Dictionary<string, IReadOnlyDictionary<string, string>> InternalSourceRuntimeSettingsBySourceContextId { get; } =
-        new(StringComparer.Ordinal);
+    public Dictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > InternalSourceRuntimeSettingsBySourceContextId { get; } = new(StringComparer.Ordinal);
 
-    public Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> InternalSourceRuntimeSettingDescriptionsBySourceContextId { get; } =
-        new(StringComparer.Ordinal);
+    public Dictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > InternalSourceRuntimeSettingDescriptionsBySourceContextId { get; } = new(StringComparer.Ordinal);
 
     public Scope CurrentScope { get; set; } = new(null, 0);
 
@@ -91,7 +94,6 @@ internal sealed record DiagnosticState
     public List<Type> NullSuspiciousTypes { get; } = [];
 
     public bool HasSeenNonParameterStatement { get; set; }
-
 }
 
 internal sealed record SemanticQueryState

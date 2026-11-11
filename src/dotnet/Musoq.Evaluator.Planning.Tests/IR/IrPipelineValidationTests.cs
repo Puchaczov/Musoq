@@ -51,17 +51,14 @@ public class IrPipelineValidationTests
     public void WhenSelectWithArithmetic_ShouldProduceSameResults()
     {
         const string query = "select Country, Population + 10, Population * 2 from #A.Entities()";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("NYC", 200),
-            new BasicEntity("LA", 50)));
+        AssertSameResults(query, SingleSource(new BasicEntity("NYC", 200), new BasicEntity("LA", 50)));
     }
 
     [TestMethod]
     public void WhenSelectStar_ShouldProduceSameResults()
     {
         const string query = "select Name from #A.Entities()";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("Alice")));
+        AssertSameResults(query, SingleSource(new BasicEntity("Alice")));
     }
 
     #endregion
@@ -72,20 +69,20 @@ public class IrPipelineValidationTests
     public void WhenWhereGreaterThan_ShouldProduceSameResults()
     {
         const string query = "select Country from #A.Entities() where Population > 100";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("NYC", 200),
-            new BasicEntity("LA", 50),
-            new BasicEntity("CHI", 150)));
+        AssertSameResults(
+            query,
+            SingleSource(new BasicEntity("NYC", 200), new BasicEntity("LA", 50), new BasicEntity("CHI", 150))
+        );
     }
 
     [TestMethod]
     public void WhenWhereWithAnd_ShouldProduceSameResults()
     {
         const string query = "select Country from #A.Entities() where Population > 50 and Population < 200";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("NYC", 200),
-            new BasicEntity("LA", 50),
-            new BasicEntity("CHI", 150)));
+        AssertSameResults(
+            query,
+            SingleSource(new BasicEntity("NYC", 200), new BasicEntity("LA", 50), new BasicEntity("CHI", 150))
+        );
     }
 
     [TestMethod]
@@ -99,9 +96,10 @@ public class IrPipelineValidationTests
     public void WhenWhereWithIsNull_ShouldProduceSameResults()
     {
         const string query = "select City from #A.Entities() where Country is not null";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("Warsaw", "Poland", 100),
-            new BasicEntity("Berlin", null, 200)));
+        AssertSameResults(
+            query,
+            SingleSource(new BasicEntity("Warsaw", "Poland", 100), new BasicEntity("Berlin", null, 200))
+        );
     }
 
     #endregion
@@ -112,31 +110,44 @@ public class IrPipelineValidationTests
     public void WhenGroupByWithCount_ShouldProduceSameResults()
     {
         const string query = "select Country, Count(Country) from #A.Entities() group by Country";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("Warsaw", "Poland", 100),
-            new BasicEntity("Krakow", "Poland", 50),
-            new BasicEntity("Berlin", "Germany", 200)));
+        AssertSameResults(
+            query,
+            SingleSource(
+                new BasicEntity("Warsaw", "Poland", 100),
+                new BasicEntity("Krakow", "Poland", 50),
+                new BasicEntity("Berlin", "Germany", 200)
+            )
+        );
     }
 
     [TestMethod]
     public void WhenGroupByWithSum_ShouldProduceSameResults()
     {
         const string query = "select Country, Sum(Population) from #A.Entities() group by Country";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("Warsaw", "Poland", 100),
-            new BasicEntity("Krakow", "Poland", 50),
-            new BasicEntity("Berlin", "Germany", 200)));
+        AssertSameResults(
+            query,
+            SingleSource(
+                new BasicEntity("Warsaw", "Poland", 100),
+                new BasicEntity("Krakow", "Poland", 50),
+                new BasicEntity("Berlin", "Germany", 200)
+            )
+        );
     }
 
     [TestMethod]
     public void WhenGroupByWithMultipleAggregates_ShouldProduceSameResults()
     {
-        const string query = "select Country, Count(Country), Sum(Population), Min(Population), Max(Population) from #A.Entities() group by Country";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("Warsaw", "Poland", 100),
-            new BasicEntity("Krakow", "Poland", 50),
-            new BasicEntity("Berlin", "Germany", 200),
-            new BasicEntity("Munich", "Germany", 150)));
+        const string query =
+            "select Country, Count(Country), Sum(Population), Min(Population), Max(Population) from #A.Entities() group by Country";
+        AssertSameResults(
+            query,
+            SingleSource(
+                new BasicEntity("Warsaw", "Poland", 100),
+                new BasicEntity("Krakow", "Poland", 50),
+                new BasicEntity("Berlin", "Germany", 200),
+                new BasicEntity("Munich", "Germany", 150)
+            )
+        );
     }
 
     [TestMethod]
@@ -153,11 +164,16 @@ public class IrPipelineValidationTests
     [TestMethod]
     public void WhenHaving_ShouldProduceSameResults()
     {
-        const string query = "select Country, Count(Country) from #A.Entities() group by Country having Count(Country) > 1";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("Warsaw", "Poland", 100),
-            new BasicEntity("Krakow", "Poland", 50),
-            new BasicEntity("Berlin", "Germany", 200)));
+        const string query =
+            "select Country, Count(Country) from #A.Entities() group by Country having Count(Country) > 1";
+        AssertSameResults(
+            query,
+            SingleSource(
+                new BasicEntity("Warsaw", "Poland", 100),
+                new BasicEntity("Krakow", "Poland", 50),
+                new BasicEntity("Berlin", "Germany", 200)
+            )
+        );
     }
 
     #endregion
@@ -192,19 +208,39 @@ public class IrPipelineValidationTests
     [TestMethod]
     public void WhenInnerJoin_ShouldProduceSameResults()
     {
-        const string query = "select a.Name, b.Name from #A.Entities() a inner join #B.Entities() b on a.Country = b.Country";
-        AssertSameResults(query, DualSource(
-            [new BasicEntity { Name = "Alice", Country = "PL" }, new BasicEntity { Name = "Bob", Country = "DE" }],
-            [new BasicEntity { Name = "Warsaw", Country = "PL" }, new BasicEntity { Name = "Berlin", Country = "DE" }]));
+        const string query =
+            "select a.Name, b.Name from #A.Entities() a inner join #B.Entities() b on a.Country = b.Country";
+        AssertSameResults(
+            query,
+            DualSource(
+                [new BasicEntity { Name = "Alice", Country = "PL" }, new BasicEntity { Name = "Bob", Country = "DE" }],
+                [
+                    new BasicEntity { Name = "Warsaw", Country = "PL" },
+                    new BasicEntity { Name = "Berlin", Country = "DE" },
+                ]
+            )
+        );
     }
 
     [TestMethod]
     public void WhenLeftOuterJoin_ShouldProduceSameResults()
     {
-        const string query = "select a.Name, b.Name from #A.Entities() a left outer join #B.Entities() b on a.Country = b.Country";
-        AssertSameResults(query, DualSource(
-            [new BasicEntity { Name = "Alice", Country = "PL" }, new BasicEntity { Name = "Bob", Country = "DE" }, new BasicEntity { Name = "Charlie", Country = "FR" }],
-            [new BasicEntity { Name = "Warsaw", Country = "PL" }, new BasicEntity { Name = "Berlin", Country = "DE" }]));
+        const string query =
+            "select a.Name, b.Name from #A.Entities() a left outer join #B.Entities() b on a.Country = b.Country";
+        AssertSameResults(
+            query,
+            DualSource(
+                [
+                    new BasicEntity { Name = "Alice", Country = "PL" },
+                    new BasicEntity { Name = "Bob", Country = "DE" },
+                    new BasicEntity { Name = "Charlie", Country = "FR" },
+                ],
+                [
+                    new BasicEntity { Name = "Warsaw", Country = "PL" },
+                    new BasicEntity { Name = "Berlin", Country = "DE" },
+                ]
+            )
+        );
     }
 
     #endregion
@@ -215,36 +251,46 @@ public class IrPipelineValidationTests
     public void WhenUnionAll_ShouldProduceSameResults()
     {
         const string query = "select Name from #A.Entities() union all (Name) select Name from #B.Entities()";
-        AssertSameResults(query, DualSource(
-            [new BasicEntity("Alice")],
-            [new BasicEntity("Bob")]));
+        AssertSameResults(query, DualSource([new BasicEntity("Alice")], [new BasicEntity("Bob")]));
     }
 
     [TestMethod]
     public void WhenUnion_ShouldProduceSameResults()
     {
         const string query = "select Name from #A.Entities() union (Name) select Name from #B.Entities()";
-        AssertSameResults(query, DualSource(
-            [new BasicEntity("Alice"), new BasicEntity("Bob")],
-            [new BasicEntity("Bob"), new BasicEntity("Charlie")]));
+        AssertSameResults(
+            query,
+            DualSource(
+                [new BasicEntity("Alice"), new BasicEntity("Bob")],
+                [new BasicEntity("Bob"), new BasicEntity("Charlie")]
+            )
+        );
     }
 
     [TestMethod]
     public void WhenExcept_ShouldProduceSameResults()
     {
         const string query = "select Name from #A.Entities() except (Name) select Name from #B.Entities()";
-        AssertSameResults(query, DualSource(
-            [new BasicEntity("Alice"), new BasicEntity("Bob")],
-            [new BasicEntity("Bob"), new BasicEntity("Charlie")]));
+        AssertSameResults(
+            query,
+            DualSource(
+                [new BasicEntity("Alice"), new BasicEntity("Bob")],
+                [new BasicEntity("Bob"), new BasicEntity("Charlie")]
+            )
+        );
     }
 
     [TestMethod]
     public void WhenIntersect_ShouldProduceSameResults()
     {
         const string query = "select Name from #A.Entities() intersect (Name) select Name from #B.Entities()";
-        AssertSameResults(query, DualSource(
-            [new BasicEntity("Alice"), new BasicEntity("Bob")],
-            [new BasicEntity("Bob"), new BasicEntity("Charlie")]));
+        AssertSameResults(
+            query,
+            DualSource(
+                [new BasicEntity("Alice"), new BasicEntity("Bob")],
+                [new BasicEntity("Bob"), new BasicEntity("Charlie")]
+            )
+        );
     }
 
     #endregion
@@ -261,14 +307,16 @@ public class IrPipelineValidationTests
     [TestMethod]
     public void WhenChainedCte_ShouldProduceSameResults()
     {
-        const string query = @"
-            with first as (select Country, Population from #A.Entities() where Population > 50),
-                 second as (select Country from first where Population < 200)
-            select Country from second";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("NYC", 200),
-            new BasicEntity("LA", 50),
-            new BasicEntity("CHI", 150)));
+        const string query = (
+            "\n"
+            + "            with first as (select Country, Population from #A.Entities() where Population > 50),\n"
+            + "                 second as (select Country from first where Population < 200)\n"
+            + "            select Country from second"
+        );
+        AssertSameResults(
+            query,
+            SingleSource(new BasicEntity("NYC", 200), new BasicEntity("LA", 50), new BasicEntity("CHI", 150))
+        );
     }
 
     #endregion
@@ -290,10 +338,14 @@ public class IrPipelineValidationTests
     public void WhenDistinct_ShouldProduceSameResults()
     {
         const string query = "select distinct Country from #A.Entities()";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("Warsaw", "Poland", 100),
-            new BasicEntity("Krakow", "Poland", 50),
-            new BasicEntity("Berlin", "Germany", 200)));
+        AssertSameResults(
+            query,
+            SingleSource(
+                new BasicEntity("Warsaw", "Poland", 100),
+                new BasicEntity("Krakow", "Poland", 50),
+                new BasicEntity("Berlin", "Germany", 200)
+            )
+        );
     }
 
     #endregion
@@ -310,24 +362,26 @@ public class IrPipelineValidationTests
     [TestMethod]
     public void WhenCaseWhen_ShouldProduceSameResults()
     {
-        const string query = @"
-            select
-                case when Population > 150 then 'big' when Population > 50 then 'medium' else 'small' end
-            from #A.Entities()";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("NYC", 200),
-            new BasicEntity("LA", 50),
-            new BasicEntity("CHI", 150)));
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                case when Population > 150 then 'big' when Population > 50 then 'medium' else 'small' end\n"
+            + "            from #A.Entities()"
+        );
+        AssertSameResults(
+            query,
+            SingleSource(new BasicEntity("NYC", 200), new BasicEntity("LA", 50), new BasicEntity("CHI", 150))
+        );
     }
 
     [TestMethod]
     public void WhenBetween_ShouldProduceSameResults()
     {
         const string query = "select Country from #A.Entities() where Population between 50 and 150";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("NYC", 200),
-            new BasicEntity("LA", 50),
-            new BasicEntity("CHI", 150)));
+        AssertSameResults(
+            query,
+            SingleSource(new BasicEntity("NYC", 200), new BasicEntity("LA", 50), new BasicEntity("CHI", 150))
+        );
     }
 
     [TestMethod]
@@ -341,18 +395,17 @@ public class IrPipelineValidationTests
     public void WhenCoalesce_ShouldProduceSameResults()
     {
         const string query = "select Coalesce(Country, 'Unknown') from #A.Entities()";
-        AssertSameResults(query, SingleSource(
-            new BasicEntity("Warsaw", "Poland", 100),
-            new BasicEntity("Berlin", null, 200)));
+        AssertSameResults(
+            query,
+            SingleSource(new BasicEntity("Warsaw", "Poland", 100), new BasicEntity("Berlin", null, 200))
+        );
     }
 
     #endregion
 
     #region Helpers
 
-    private void AssertSameResults(
-        string query,
-        IDictionary<string, IEnumerable<BasicEntity>> sources)
+    private void AssertSameResults(string query, IDictionary<string, IEnumerable<BasicEntity>> sources)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(sources);
 
@@ -362,9 +415,7 @@ public class IrPipelineValidationTests
         AssertTablesEqual(compatibilityTable, explicitIrTable, query);
     }
 
-    private void AssertSameResultsOrdered(
-        string query,
-        IDictionary<string, IEnumerable<BasicEntity>> sources)
+    private void AssertSameResultsOrdered(string query, IDictionary<string, IEnumerable<BasicEntity>> sources)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(sources);
 
@@ -381,28 +432,37 @@ public class IrPipelineValidationTests
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            options);
+            options
+        );
 
         return compiled.Run(CancellationToken.None);
     }
 
     private static void AssertTablesEqual(Table expected, Table actual, string query)
     {
-        Assert.AreEqual(expected.Count, actual.Count,
-            $"Row count mismatch for query: {query}. Expected {expected.Count}, got {actual.Count}");
+        Assert.AreEqual(
+            expected.Count,
+            actual.Count,
+            $"Row count mismatch for query: {query}. Expected {expected.Count}, got {actual.Count}"
+        );
 
         var expectedColumns = expected.Columns.ToList();
         var actualColumns = actual.Columns.ToList();
 
-        Assert.HasCount(expectedColumns.Count, actualColumns,
-            $"Column count mismatch for query: {query}");
+        Assert.HasCount(expectedColumns.Count, actualColumns, $"Column count mismatch for query: {query}");
 
         for (var col = 0; col < expectedColumns.Count; col++)
         {
-            Assert.AreEqual(expectedColumns[col].ColumnName, actualColumns[col].ColumnName,
-                $"Column {col} name mismatch for query: {query}");
-            Assert.AreEqual(expectedColumns[col].ColumnType, actualColumns[col].ColumnType,
-                $"Column {col} type mismatch for '{expectedColumns[col].ColumnName}' in query: {query}");
+            Assert.AreEqual(
+                expectedColumns[col].ColumnName,
+                actualColumns[col].ColumnName,
+                $"Column {col} name mismatch for query: {query}"
+            );
+            Assert.AreEqual(
+                expectedColumns[col].ColumnType,
+                actualColumns[col].ColumnType,
+                $"Column {col} type mismatch for '{expectedColumns[col].ColumnName}' in query: {query}"
+            );
         }
 
         var expectedRows = expected
@@ -416,33 +476,37 @@ public class IrPipelineValidationTests
             .ToList();
 
         for (var row = 0; row < expectedRows.Count; row++)
-            for (var col = 0; col < expectedColumns.Count; col++)
-                Assert.AreEqual(expectedRows[row][col], actualRows[row][col],
-                    $"Value mismatch at sorted row {row}, column '{expectedColumns[col].ColumnName}' for query: {query}");
+        for (var col = 0; col < expectedColumns.Count; col++)
+            Assert.AreEqual(
+                expectedRows[row][col],
+                actualRows[row][col],
+                $"Value mismatch at sorted row {row}, column '{expectedColumns[col].ColumnName}' for query: {query}"
+            );
     }
 
     private static void AssertTablesEqualOrdered(Table expected, Table actual, string query)
     {
-        Assert.AreEqual(expected.Count, actual.Count,
-            $"Row count mismatch for query: {query}");
+        Assert.AreEqual(expected.Count, actual.Count, $"Row count mismatch for query: {query}");
 
         var expectedColumns = expected.Columns.ToList();
         var actualColumns = actual.Columns.ToList();
 
-        Assert.HasCount(expectedColumns.Count, actualColumns,
-            $"Column count mismatch for query: {query}");
+        Assert.HasCount(expectedColumns.Count, actualColumns, $"Column count mismatch for query: {query}");
 
         for (var row = 0; row < expected.Count; row++)
-            for (var col = 0; col < expectedColumns.Count; col++)
-                Assert.AreEqual(expected[row].ReadValue(col), actual[row].ReadValue(col),
-                    $"Value mismatch at row {row}, column '{expectedColumns[col].ColumnName}' for query: {query}");
+        for (var col = 0; col < expectedColumns.Count; col++)
+            Assert.AreEqual(
+                expected[row].ReadValue(col),
+                actual[row].ReadValue(col),
+                $"Value mismatch at row {row}, column '{expectedColumns[col].ColumnName}' for query: {query}"
+            );
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> SingleSource(params string[] names)
     {
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", names.Select(n => new BasicEntity(n)).ToArray() }
+            { "#A", names.Select(n => new BasicEntity(n)).ToArray() },
         };
     }
 
@@ -453,13 +517,10 @@ public class IrPipelineValidationTests
 
     private static Dictionary<string, IEnumerable<BasicEntity>> DualSource(
         BasicEntity[] sourcesA,
-        BasicEntity[] sourcesB)
+        BasicEntity[] sourcesB
+    )
     {
-        return new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", sourcesA },
-            { "#B", sourcesB }
-        };
+        return new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", sourcesA }, { "#B", sourcesB } };
     }
 
     #endregion

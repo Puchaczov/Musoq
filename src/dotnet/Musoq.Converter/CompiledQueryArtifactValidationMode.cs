@@ -14,5 +14,5 @@ public enum CompiledQueryArtifactValidationMode
     /// <summary>
     ///     Validate the fast checks and also rebuild generated executable C# to compare its hash.
     /// </summary>
-    StrictGeneratedCodeHash = 1
+    StrictGeneratedCodeHash = 1,
 }

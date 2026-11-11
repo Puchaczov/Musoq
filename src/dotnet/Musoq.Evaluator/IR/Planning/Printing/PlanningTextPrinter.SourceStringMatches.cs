@@ -11,7 +11,8 @@ internal static partial class PlanningTextPrinter
         StringBuilder builder,
         SourcePredicateExpression? predicate,
         SourcePlanResult plan,
-        SourcePredicateCapabilities capabilities)
+        SourcePredicateCapabilities capabilities
+    )
     {
         var applications = plan.ExecutionPlan.PredicateApplications;
         var consumed = new bool[applications.Count];
@@ -27,7 +28,8 @@ internal static partial class PlanningTextPrinter
                     builder,
                     directMatch,
                     applicationIndex < 0 ? null : applications[applicationIndex].Phase,
-                    ResolveFallbackReason(directMatch, capabilities, applicationIndex >= 0));
+                    ResolveFallbackReason(directMatch, capabilities, applicationIndex >= 0)
+                );
                 continue;
             }
 
@@ -40,32 +42,36 @@ internal static partial class PlanningTextPrinter
         StringBuilder builder,
         SourcePredicatePatternMatch match,
         SourcePredicateEvaluationPhase? phase,
-        string fallbackReason)
+        string fallbackReason
+    )
     {
         if (match is SourcePredicateRegexMatch regex)
         {
             builder.AppendLine(
                 System.Globalization.CultureInfo.InvariantCulture,
-                $"      source regex-match: column={regex.Column.Name}, pattern='{EscapeMatchText(regex.Pattern)}', " +
-                $"semantics={regex.Semantics}, timeoutMilliseconds={regex.MatchTimeout.TotalMilliseconds}, " +
-                $"negated={FormatYesNo(regex.IsNegated)}, acceptedPhase={(phase?.ToString() ?? "none")}, " +
-                $"fallback={fallbackReason}");
+                $"      source regex-match: column={regex.Column.Name}, pattern='{EscapeMatchText(regex.Pattern)}', "
+                    + $"semantics={regex.Semantics}, timeoutMilliseconds={regex.MatchTimeout.TotalMilliseconds}, "
+                    + $"negated={FormatYesNo(regex.IsNegated)}, acceptedPhase={(phase?.ToString() ?? "none")}, "
+                    + $"fallback={fallbackReason}"
+            );
             return;
         }
 
         var stringMatch = (SourcePredicateStringMatch)match;
         builder.AppendLine(
             System.Globalization.CultureInfo.InvariantCulture,
-            $"      source string-match: column={stringMatch.Column.Name}, pattern='{EscapeMatchText(stringMatch.OriginalPattern)}', " +
-            $"kind={stringMatch.Kind}, needle='{EscapeMatchText(stringMatch.Needle)}', comparison={stringMatch.Comparison}, " +
-            $"negated={FormatYesNo(stringMatch.IsNegated)}, acceptedPhase={(phase?.ToString() ?? "none")}, " +
-            $"fallback={fallbackReason}");
+            $"      source string-match: column={stringMatch.Column.Name}, pattern='{EscapeMatchText(stringMatch.OriginalPattern)}', "
+                + $"kind={stringMatch.Kind}, needle='{EscapeMatchText(stringMatch.Needle)}', comparison={stringMatch.Comparison}, "
+                + $"negated={FormatYesNo(stringMatch.IsNegated)}, acceptedPhase={(phase?.ToString() ?? "none")}, "
+                + $"fallback={fallbackReason}"
+        );
     }
 
     private static string ResolveFallbackReason(
         SourcePredicatePatternMatch match,
         SourcePredicateCapabilities capabilities,
-        bool hasApplication)
+        bool hasApplication
+    )
     {
         if (hasApplication)
             return "none";
@@ -75,7 +81,8 @@ internal static partial class PlanningTextPrinter
         if (match is SourcePredicateRegexMatch regex)
         {
             var regexCapability = capabilities.RegexMatches.FirstOrDefault(candidate =>
-                string.Equals(candidate.Column.Name, regex.Column.Name, StringComparison.OrdinalIgnoreCase));
+                string.Equals(candidate.Column.Name, regex.Column.Name, StringComparison.OrdinalIgnoreCase)
+            );
             if (regexCapability == null)
                 return "unsupported-column";
             if (regexCapability.Semantics != regex.Semantics)
@@ -87,7 +94,8 @@ internal static partial class PlanningTextPrinter
 
         var stringMatch = (SourcePredicateStringMatch)match;
         var capability = capabilities.StringMatches.FirstOrDefault(candidate =>
-            string.Equals(candidate.Column.Name, stringMatch.Column.Name, StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate.Column.Name, stringMatch.Column.Name, StringComparison.OrdinalIgnoreCase)
+        );
         if (capability == null)
             return "unsupported-column";
         if (capability.Comparison != stringMatch.Comparison)
@@ -103,11 +111,15 @@ internal static partial class PlanningTextPrinter
     private static int FindApplication(
         SourcePredicatePatternMatch match,
         IReadOnlyList<SourcePredicateApplication> applications,
-        IReadOnlyList<bool> consumed)
+        IReadOnlyList<bool> consumed
+    )
     {
         for (var index = 0; index < applications.Count; index++)
         {
-            if (!consumed[index] && SourcePredicateExpressionComparer.Instance.Equals(match, applications[index].Predicate))
+            if (
+                !consumed[index]
+                && SourcePredicateExpressionComparer.Instance.Equals(match, applications[index].Predicate)
+            )
                 return index;
         }
 
@@ -115,7 +127,8 @@ internal static partial class PlanningTextPrinter
     }
 
     private static IReadOnlyList<SourcePredicateExpression> FlattenSourceConjunction(
-        SourcePredicateExpression? predicate)
+        SourcePredicateExpression? predicate
+    )
     {
         var result = new List<SourcePredicateExpression>();
         AddSourceConjuncts(predicate, result);
@@ -124,7 +137,8 @@ internal static partial class PlanningTextPrinter
 
     private static void AddSourceConjuncts(
         SourcePredicateExpression? predicate,
-        ICollection<SourcePredicateExpression> result)
+        ICollection<SourcePredicateExpression> result
+    )
     {
         if (predicate is SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical)
         {
@@ -138,7 +152,8 @@ internal static partial class PlanningTextPrinter
     }
 
     private static IReadOnlyList<SourcePredicatePatternMatch> CollectNestedPatternMatches(
-        SourcePredicateExpression predicate)
+        SourcePredicateExpression predicate
+    )
     {
         var result = new List<SourcePredicatePatternMatch>();
         AddNestedPatternMatches(predicate, result);
@@ -147,7 +162,8 @@ internal static partial class PlanningTextPrinter
 
     private static void AddNestedPatternMatches(
         SourcePredicateExpression predicate,
-        ICollection<SourcePredicatePatternMatch> result)
+        ICollection<SourcePredicatePatternMatch> result
+    )
     {
         switch (predicate)
         {
@@ -177,18 +193,20 @@ internal static partial class PlanningTextPrinter
         }
     }
 
-    private static SourceStringMatchOperations ToOperation(SourceStringMatchKind kind) => kind switch
-    {
-        SourceStringMatchKind.Exact => SourceStringMatchOperations.Exact,
-        SourceStringMatchKind.Prefix => SourceStringMatchOperations.Prefix,
-        SourceStringMatchKind.Suffix => SourceStringMatchOperations.Suffix,
-        SourceStringMatchKind.Contains => SourceStringMatchOperations.Contains,
-        _ => SourceStringMatchOperations.None
-    };
+    private static SourceStringMatchOperations ToOperation(SourceStringMatchKind kind) =>
+        kind switch
+        {
+            SourceStringMatchKind.Exact => SourceStringMatchOperations.Exact,
+            SourceStringMatchKind.Prefix => SourceStringMatchOperations.Prefix,
+            SourceStringMatchKind.Suffix => SourceStringMatchOperations.Suffix,
+            SourceStringMatchKind.Contains => SourceStringMatchOperations.Contains,
+            _ => SourceStringMatchOperations.None,
+        };
 
-    private static string EscapeMatchText(string value) => value
-        .Replace("\\", "\\\\", StringComparison.Ordinal)
-        .Replace("'", "''", StringComparison.Ordinal)
-        .Replace("\r", "\\r", StringComparison.Ordinal)
-        .Replace("\n", "\\n", StringComparison.Ordinal);
+    private static string EscapeMatchText(string value) =>
+        value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("'", "''", StringComparison.Ordinal)
+            .Replace("\r", "\\r", StringComparison.Ordinal)
+            .Replace("\n", "\\n", StringComparison.Ordinal);
 }

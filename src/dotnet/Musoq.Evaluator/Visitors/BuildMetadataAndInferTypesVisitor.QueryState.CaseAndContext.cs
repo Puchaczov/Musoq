@@ -23,12 +23,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         var elseNode = PopSemanticNode();
 
         EnumTypeDescriptor? enumType = null;
-        if (TryBindEnumCaseResults(
+        if (
+            TryBindEnumCaseResults(
                 whenThenPairs,
                 elseNode,
                 out var boundWhenThenPairs,
                 out var boundElseNode,
-                out var boundEnumType))
+                out var boundEnumType
+            )
+        )
         {
             whenThenPairs = boundWhenThenPairs;
             elseNode = boundElseNode;
@@ -98,19 +101,21 @@ public partial class BuildMetadataAndInferTypesVisitor
         _resultShape.TheMostInnerIdentifier = node;
     }
 
-    public void InnerCteBegins()
-    {
-    }
+    public void InnerCteBegins() { }
 
-    public void InnerCteEnds()
-    {
-    }
+    public void InnerCteEnds() { }
 
     public bool IsCurrentContextColumn(string name)
     {
-        if (string.IsNullOrEmpty(_sourceBinding.Identifier)) return false;
+        if (string.IsNullOrEmpty(_sourceBinding.Identifier))
+            return false;
 
-        if (!_sourceBinding.CurrentScope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(_sourceBinding.Identifier, out var tableSymbol))
+        if (
+            !_sourceBinding.CurrentScope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(
+                _sourceBinding.Identifier,
+                out var tableSymbol
+            )
+        )
             return false;
 
         return tableSymbol.GetColumnByAliasAndName(_sourceBinding.Identifier, name) != null;

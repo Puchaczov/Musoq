@@ -6,7 +6,8 @@ internal static partial class SourcePredicateCapabilityNegotiator
 {
     private static SourcePredicateExpression? RemoveTypedPredicates(
         SourcePredicateExpression? predicate,
-        out SourcePredicateExpression? deferred)
+        out SourcePredicateExpression? deferred
+    )
     {
         if (predicate == null)
         {
@@ -30,10 +31,13 @@ internal static partial class SourcePredicateCapabilityNegotiator
 
     private static bool SupportsTopLevelPatternMatch(
         SourcePredicateExpression conjunct,
-        SourcePredicateCapabilities capabilities)
+        SourcePredicateCapabilities capabilities
+    )
     {
-        return conjunct is SourcePredicatePatternMatch patternMatch &&
-               (capabilities.Supports(patternMatch, SourcePredicateEvaluationPhase.RowFiltering) ||
-                capabilities.Supports(patternMatch, SourcePredicateEvaluationPhase.CandidateMetadata));
+        return conjunct is SourcePredicatePatternMatch patternMatch
+            && (
+                capabilities.Supports(patternMatch, SourcePredicateEvaluationPhase.RowFiltering)
+                || capabilities.Supports(patternMatch, SourcePredicateEvaluationPhase.CandidateMetadata)
+            );
     }
 }

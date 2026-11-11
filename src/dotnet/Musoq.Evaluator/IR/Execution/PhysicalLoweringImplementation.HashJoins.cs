@@ -14,10 +14,13 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (join.BuildKeys.Length != join.ProbeKeys.Length || join.BuildKeys.Length == 0)
-            return TableBuildResult.Unsupported("Execution IR hash join lowering requires matching equality key counts.");
+            return TableBuildResult.Unsupported(
+                "Execution IR hash join lowering requires matching equality key counts."
+            );
 
         var sources = BuildJoinSources(
             join.Left,
@@ -26,38 +29,53 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
-            scope);
+            scope
+        );
         if (!sources.IsBuilt)
             return TableBuildResult.Unsupported(sources.UnsupportedReason);
 
         var joinSources = sources.Source;
         if (!TryResolveHashJoinSides(join, joinSources, out var hashSides))
-            return TableBuildResult.Unsupported("Execution IR hash join lowering cannot map build/probe keys to flat join inputs.");
+            return TableBuildResult.Unsupported(
+                "Execution IR hash join lowering cannot map build/probe keys to flat join inputs."
+            );
 
-
-
-        var sidecarIndex = join.Kind == JoinKind.FullOuter
-            ? null
-            : TryResolveCteSidecarIndex(join, hashSides, CteSidecarIndexKind.Hash) ??
-              TryResolveCteSidecarIndex(join, hashSides, CteSidecarIndexKind.KeySet);
-        if (sidecarIndex is { Kind: CteSidecarIndexKind.Hash } &&
-            TryUseCteSidecarHashPayloadJoinSource(hashSides.Build, sidecarIndex, scope, out var payloadBuildSource))
+        var sidecarIndex =
+            join.Kind == JoinKind.FullOuter
+                ? null
+                : TryResolveCteSidecarIndex(join, hashSides, CteSidecarIndexKind.Hash)
+                    ?? TryResolveCteSidecarIndex(join, hashSides, CteSidecarIndexKind.KeySet);
+        if (
+            sidecarIndex is { Kind: CteSidecarIndexKind.Hash }
+            && TryUseCteSidecarHashPayloadJoinSource(hashSides.Build, sidecarIndex, scope, out var payloadBuildSource)
+        )
         {
             joinSources = ReferenceEquals(hashSides.Build, joinSources.Left)
-                ? joinSources with { Left = payloadBuildSource }
-                : joinSources with { Right = payloadBuildSource };
+                ? joinSources with
+                {
+                    Left = payloadBuildSource,
+                }
+                : joinSources with
+                {
+                    Right = payloadBuildSource,
+                };
             hashSides = hashSides with { Build = payloadBuildSource };
         }
 
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(joinSources.Left.Shape, joinSources.Right.Shape);
         var conversionLookup = RowShapeLookup.CreateTransitionAliasLookup(sourceLookup);
         var keyType = ResolveHashJoinKeyType(join);
-        var invariantHash = hashSides.Build.Node is PhysicalCteRefNode invariantRef &&
-                            scope.RecursiveCteInvariantInputs.TryGetValue(invariantRef.CteName, out var invariantInput)
-            ? invariantInput.Hash
-            : null;
-        var hash = invariantHash ??
-                   new ExecutionVariable(CreateScopedHashName(resultTableName, $"{hashSides.Build.Variable.Name}Hash"), typeof(object));
+        var invariantHash =
+            hashSides.Build.Node is PhysicalCteRefNode invariantRef
+            && scope.RecursiveCteInvariantInputs.TryGetValue(invariantRef.CteName, out var invariantInput)
+                ? invariantInput.Hash
+                : null;
+        var hash =
+            invariantHash
+            ?? new ExecutionVariable(
+                CreateScopedHashName(resultTableName, $"{hashSides.Build.Variable.Name}Hash"),
+                typeof(object)
+            );
         var matches = new ExecutionVariable($"{hash.Name}Matches", typeof(object));
         var context = new HashJoinBuildContext(
             join,
@@ -73,7 +91,8 @@ internal sealed partial class PhysicalLoweringImplementation
             resultShapeName,
             scope,
             sidecarIndex,
-            invariantHash != null);
+            invariantHash != null
+        );
 
         return join.Kind switch
         {
@@ -84,21 +103,22 @@ internal sealed partial class PhysicalLoweringImplementation
             JoinKind.FullOuter => BuildFullOuterHashJoinTable(context),
             JoinKind.LeftSemi => BuildSemiHashJoinTable(context, isAntiSemiJoin: false),
             JoinKind.LeftAntiSemi => BuildSemiHashJoinTable(context, isAntiSemiJoin: true),
-            _ => UnsupportedJoinKind(join.Kind)
+            _ => UnsupportedJoinKind(join.Kind),
         };
     }
-
-
 
     private CteSidecarIndexSpec? TryResolveCteSidecarIndex(
         PhysicalHashJoinNode join,
         HashJoinSides sides,
-        CteSidecarIndexKind expectedKind)
+        CteSidecarIndexKind expectedKind
+    )
     {
-        if (!ExecutionStrategies.TryGetCteSidecarIndexConsumer(join, out var spec) ||
-            spec.Kind != expectedKind ||
-            sides.Build.Node is not PhysicalCteRefNode cteRef ||
-            !string.Equals(cteRef.CteName, spec.CteName, StringComparison.OrdinalIgnoreCase))
+        if (
+            !ExecutionStrategies.TryGetCteSidecarIndexConsumer(join, out var spec)
+            || spec.Kind != expectedKind
+            || sides.Build.Node is not PhysicalCteRefNode cteRef
+            || !string.Equals(cteRef.CteName, spec.CteName, StringComparison.OrdinalIgnoreCase)
+        )
         {
             return null;
         }
@@ -111,8 +131,10 @@ internal sealed partial class PhysicalLoweringImplementation
         if (ExecutionStrategies.TryResolveCardinalityCapacity(buildSource.Node, out var cardinalityCapacity))
             return ExecutionCapacityHintCandidates.CreateConstantCandidate(hash, cardinalityCapacity);
 
-        if (buildSource.Rows is ExecutionRowStream { Kind: ExecutionRowStreamKind.Rows } &&
-            buildSource.Node is not (PhysicalHashJoinNode or PhysicalNestedLoopJoinNode or PhysicalSortMergeJoinNode))
+        if (
+            buildSource.Rows is ExecutionRowStream { Kind: ExecutionRowStreamKind.Rows }
+            && buildSource.Node is not (PhysicalHashJoinNode or PhysicalNestedLoopJoinNode or PhysicalSortMergeJoinNode)
+        )
         {
             return null;
         }
@@ -120,12 +142,14 @@ internal sealed partial class PhysicalLoweringImplementation
         return CreateRowsCapacityCandidate(hash, buildSource.Rows);
     }
 
-    private ExecutionCapacityHint? CreateJoinResultCapacityCandidate(ExecutionVariable resultTable, JoinSource probeSource)
+    private ExecutionCapacityHint? CreateJoinResultCapacityCandidate(
+        ExecutionVariable resultTable,
+        JoinSource probeSource
+    )
     {
         if (ExecutionStrategies.TryResolveCardinalityCapacity(probeSource.Node, out var cardinalityCapacity))
             return ExecutionCapacityHintCandidates.CreateConstantCandidate(resultTable, cardinalityCapacity);
 
         return CreateRowsCapacityCandidate(resultTable, probeSource.Rows);
     }
-
 }

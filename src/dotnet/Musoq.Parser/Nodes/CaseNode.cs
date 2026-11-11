@@ -3,8 +3,7 @@ using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
-public class CaseNode((Node When, Node Then)[] whenThenNodesPairs, Node elseNode, Type? returnType = null)
-    : Node
+public class CaseNode((Node When, Node Then)[] whenThenNodesPairs, Node elseNode, Type? returnType = null) : Node
 {
     public (Node When, Node Then)[] WhenThenPairs { get; } = whenThenNodesPairs;
 
@@ -18,7 +17,8 @@ public class CaseNode((Node When, Node Then)[] whenThenNodesPairs, Node elseNode
         {
             var id = $"{nameof(CaseNode)}";
 
-            foreach (var item in WhenThenPairs) id += $"{item.When.Id}{item.Then.Id}";
+            foreach (var item in WhenThenPairs)
+                id += $"{item.When.Id}{item.Then.Id}";
 
             id += $"{Else.Id}";
 

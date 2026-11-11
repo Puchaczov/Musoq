@@ -10,15 +10,16 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static LocalDeclarationStatementSyntax CreateSchemaDeclaration(
-        string schemaVariableName,
-        string schemaName)
+    private static LocalDeclarationStatementSyntax CreateSchemaDeclaration(string schemaVariableName, string schemaName)
     {
-        var invocation = SyntaxFactory.InvocationExpression(
+        var invocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName("provider"),
-                    SyntaxFactory.IdentifierName("GetSchema")))
+                    SyntaxFactory.IdentifierName("GetSchema")
+                )
+            )
             .WithArgumentList(CreateArgumentList(CreateStringLiteral(schemaName)));
 
         return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), schemaVariableName, invocation);
@@ -28,25 +29,31 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionSourceScan sourceScan,
         string schemaVariableName,
         string infoTableName,
-        ExpressionSyntax[] arguments)
+        ExpressionSyntax[] arguments
+    )
     {
-        var declaredArgumentTypes = sourceScan.Binding.SourceConstructor?.RequireClrConstructor()
-            .GetParameters().Where(static parameter => parameter.ParameterType != typeof(SourceExecutionContext))
-            .Select(static parameter => parameter.ParameterType).ToArray();
+        var declaredArgumentTypes = sourceScan
+            .Binding.SourceConstructor?.RequireClrConstructor()
+            .GetParameters()
+            .Where(static parameter => parameter.ParameterType != typeof(SourceExecutionContext))
+            .Select(static parameter => parameter.ParameterType)
+            .ToArray();
         ExpressionSyntax argsExpression = SyntaxFactory.ParseExpression("global::Musoq.Schema.SourceArguments.Empty");
         for (var index = arguments.Length - 1; index >= 0; index--)
         {
             var argument = arguments[index];
             var argumentType = sourceScan.Binding.Arguments[index].ReturnType.RequireClrType();
-            var declaredType = declaredArgumentTypes is { } types && index < types.Length
-                ? types[index] : argumentType;
+            var declaredType = declaredArgumentTypes is { } types && index < types.Length ? types[index] : argumentType;
             // Generated structural carriers remain compiler-selected concrete types.
-            if (declaredType != typeof(object) && declaredType != typeof(object[]) &&
-                !declaredType.ContainsGenericParameters &&
-                (declaredType != argumentType || sourceScan.Binding.Arguments[index] is ExecutionLiteral))
+            if (
+                declaredType != typeof(object)
+                && declaredType != typeof(object[])
+                && !declaredType.ContainsGenericParameters
+                && (declaredType != argumentType || sourceScan.Binding.Arguments[index] is ExecutionLiteral)
+            )
                 argument = SyntaxFactory.CastExpression(CreateTypeSyntax(declaredType), argument);
-            argsExpression = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.ParseExpression("global::Musoq.Schema.SourceArguments.Create"))
+            argsExpression = SyntaxFactory
+                .InvocationExpression(SyntaxFactory.ParseExpression("global::Musoq.Schema.SourceArguments.Create"))
                 .WithArgumentList(CreateArgumentList(argument, argsExpression));
         }
         var statements = new List<StatementSyntax>();
@@ -54,82 +61,114 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (IsInstrumentationEnabled)
         {
-            statements.Add(CreateSourceProfileRecorderDeclaration(
-                sourceProfileName,
-                sourceScan.Source.Name,
-                _instrumentationMode == QueryInstrumentationMode.SourceBoundaries));
+            statements.Add(
+                CreateSourceProfileRecorderDeclaration(
+                    sourceProfileName,
+                    sourceScan.Source.Name,
+                    _instrumentationMode == QueryInstrumentationMode.SourceBoundaries
+                )
+            );
         }
 
         var runtimeContext = SchemaNodeEmitter.CreateRuntimeContext(
             sourceScan.Binding.RuntimeContextId,
             sourceScan.Binding.SchemaFromIndex,
             SyntaxFactory.IdentifierName(infoTableName),
-            IsInstrumentationEnabled ? CreateSourceDiagnosticsExpression(sourceProfileName) : null);
+            IsInstrumentationEnabled ? CreateSourceDiagnosticsExpression(sourceProfileName) : null
+        );
 
         if (sourceScan.Binding.QueryRowSourceTransfer is { } queryRowTransfer)
         {
             var carrierTypeName = QueryRowSourceNaming.CreateCarrierTypeName(
                 queryRowTransfer.ShapeFingerprint,
-                queryRowTransfer.Carrier);
+                queryRowTransfer.Carrier
+            );
             var materializerTypeName = QueryRowSourceNaming.CreateMaterializerTypeName(
                 queryRowTransfer.ShapeFingerprint,
-                queryRowTransfer.Carrier);
+                queryRowTransfer.Carrier
+            );
             var querySchemaVariableName = $"{schemaVariableName}QueryRows";
             var querySchemaAsExpression = SyntaxFactory.BinaryExpression(
                 SyntaxKind.AsExpression,
                 SyntaxFactory.IdentifierName(schemaVariableName),
-                CreateTypeSyntax(typeof(IQueryScopedRowSourceSchema)));
+                CreateTypeSyntax(typeof(IQueryScopedRowSourceSchema))
+            );
             var querySchemaGuard = SyntaxFactory.BinaryExpression(
                 SyntaxKind.CoalesceExpression,
                 querySchemaAsExpression,
-                SyntaxFactory.ThrowExpression(CreateObjectCreation(
-                    nameof(InvalidOperationException),
-                    CreateStringLiteral(
-                        $"Source '{sourceScan.Binding.SchemaName}.{sourceScan.Binding.MethodName}' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape {queryRowTransfer.ShapeFingerprint})."))));
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                querySchemaVariableName,
-                querySchemaGuard));
+                SyntaxFactory.ThrowExpression(
+                    CreateObjectCreation(
+                        nameof(InvalidOperationException),
+                        CreateStringLiteral(
+                            $"Source '{sourceScan.Binding.SchemaName}.{sourceScan.Binding.MethodName}' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape {queryRowTransfer.ShapeFingerprint})."
+                        )
+                    )
+                )
+            );
+            statements.Add(
+                CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), querySchemaVariableName, querySchemaGuard)
+            );
 
-            var getQueryRowSourceName = SyntaxFactory.GenericName("QuerySourceInvocation")
-                .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                    SyntaxFactory.SeparatedList<TypeSyntax>(new TypeSyntax[]
-                    {
-                        SyntaxFactory.ParseTypeName(carrierTypeName),
-                        SyntaxFactory.ParseTypeName(materializerTypeName)
-                    })));
-            var queryInvocation = SyntaxFactory.InvocationExpression(
+            var getQueryRowSourceName = SyntaxFactory
+                .GenericName("QuerySourceInvocation")
+                .WithTypeArgumentList(
+                    SyntaxFactory.TypeArgumentList(
+                        SyntaxFactory.SeparatedList<TypeSyntax>(
+                            new TypeSyntax[]
+                            {
+                                SyntaxFactory.ParseTypeName(carrierTypeName),
+                                SyntaxFactory.ParseTypeName(materializerTypeName),
+                            }
+                        )
+                    )
+                );
+            var queryInvocation = SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         getQueryRowSourceName,
-                        SyntaxFactory.IdentifierName("Open")))
-                .WithArgumentList(CreateArgumentList(
-                    SyntaxFactory.IdentifierName(querySchemaVariableName),
-                    CreateStringLiteral(sourceScan.Binding.MethodName),
-                    CreateObjectCreation(
-                        nameof(QueryScopedRowSourceRequest),
-                        runtimeContext,
-                        SyntaxFactory.IdentifierName(
-                            QueryRowSourceNaming.CreateShapeFieldName(queryRowTransfer.ShapeFingerprint))),
-                    argsExpression));
+                        SyntaxFactory.IdentifierName("Open")
+                    )
+                )
+                .WithArgumentList(
+                    CreateArgumentList(
+                        SyntaxFactory.IdentifierName(querySchemaVariableName),
+                        CreateStringLiteral(sourceScan.Binding.MethodName),
+                        CreateObjectCreation(
+                            nameof(QueryScopedRowSourceRequest),
+                            runtimeContext,
+                            SyntaxFactory.IdentifierName(
+                                QueryRowSourceNaming.CreateShapeFieldName(queryRowTransfer.ShapeFingerprint)
+                            )
+                        ),
+                        argsExpression
+                    )
+                );
             var queryRowSourceName = CreateRowSourceVariableName(sourceScan.Rows.Name);
             var queryRows = SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(queryRowSourceName),
-                    SyntaxFactory.IdentifierName("Chunks"));
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(queryRowSourceName),
+                SyntaxFactory.IdentifierName("Chunks")
+            );
             var carrierType = SyntaxFactory.ParseTypeName(carrierTypeName);
 
-            statements.Add(CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), queryRowSourceName, queryInvocation));
+            statements.Add(
+                CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), queryRowSourceName, queryInvocation)
+            );
             var queryProgressRows = CreateProgressChunksExpression(
                 queryRows,
                 carrierType,
-                sourceScan.Binding.RuntimeContextId);
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                sourceScan.Rows.Name,
-                IsInstrumentationEnabled
-                    ? CreateProfiledChunksExpression(queryProgressRows, sourceProfileName, carrierType)
-                    : queryProgressRows));
+                sourceScan.Binding.RuntimeContextId
+            );
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    sourceScan.Rows.Name,
+                    IsInstrumentationEnabled
+                        ? CreateProfiledChunksExpression(queryProgressRows, sourceProfileName, carrierType)
+                        : queryProgressRows
+                )
+            );
 
             return statements;
         }
@@ -140,71 +179,98 @@ public sealed partial class ExecutionCSharpRenderer
             var sourceClrType = constructionType.RequireClrType();
             if (!CanReferenceType(sourceClrType) || !CanReferenceType(rowType))
                 throw new InvalidOperationException(
-                    $"Generated typed source '{sourceScan.Binding.MethodName}' has a non-referenceable construction or row type.");
+                    $"Generated typed source '{sourceScan.Binding.MethodName}' has a non-referenceable construction or row type."
+                );
 
             var typedRowSourceName = CreateRowSourceVariableName(sourceScan.Rows.Name);
             var sourceContextName = $"{typedRowSourceName}Context";
-            statements.AddRange(TypedSourceDeclarationHelper.Create(
-                sourceScan,
-                schemaVariableName,
-                arguments,
-                runtimeContext,
-                sourceClrType,
-                rowType,
-                typedRowSourceName,
-                sourceContextName));
+            statements.AddRange(
+                TypedSourceDeclarationHelper.Create(
+                    sourceScan,
+                    schemaVariableName,
+                    arguments,
+                    runtimeContext,
+                    sourceClrType,
+                    rowType,
+                    typedRowSourceName,
+                    sourceContextName
+                )
+            );
 
             var typedRows = SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(typedRowSourceName),
-                    SyntaxFactory.IdentifierName("Chunks"));
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName(typedRowSourceName),
+                SyntaxFactory.IdentifierName("Chunks")
+            );
             var typedProgressRows = CreateProgressChunksExpression(
                 typedRows,
                 CreateTypeSyntax(rowType),
-                sourceScan.Binding.RuntimeContextId);
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                sourceScan.Rows.Name,
-                IsInstrumentationEnabled
-                    ? CreateProfiledChunksExpression(typedProgressRows, sourceProfileName, CreateTypeSyntax(rowType))
-                    : typedProgressRows));
+                sourceScan.Binding.RuntimeContextId
+            );
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    sourceScan.Rows.Name,
+                    IsInstrumentationEnabled
+                        ? CreateProfiledChunksExpression(
+                            typedProgressRows,
+                            sourceProfileName,
+                            CreateTypeSyntax(rowType)
+                        )
+                        : typedProgressRows
+                )
+            );
             return statements;
         }
         var sourceType = sourceScan.Binding.SourceType?.RequireClrType() ?? sourceScan.Source.Type.RequireClrType();
         if (!CanReferenceType(sourceType))
             throw new InvalidOperationException(
-                $"Generated execution source '{sourceScan.Binding.MethodName}' has non-referenceable type '{sourceType.FullName ?? sourceType.Name}'.");
+                $"Generated execution source '{sourceScan.Binding.MethodName}' has non-referenceable type '{sourceType.FullName ?? sourceType.Name}'."
+            );
 
-        var getRowSourceName = SyntaxFactory.GenericName("SourceInvocation")
-            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                SyntaxFactory.SingletonSeparatedList(CreateTypeSyntax(sourceType))));
-        var invocation = SyntaxFactory.InvocationExpression(
+        var getRowSourceName = SyntaxFactory
+            .GenericName("SourceInvocation")
+            .WithTypeArgumentList(
+                SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(CreateTypeSyntax(sourceType)))
+            );
+        var invocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     getRowSourceName,
-                    SyntaxFactory.IdentifierName("Open")))
-            .WithArgumentList(CreateArgumentList(
-                SyntaxFactory.IdentifierName(schemaVariableName),
-                CreateStringLiteral(sourceScan.Binding.MethodName),
-                runtimeContext,
-                argsExpression));
+                    SyntaxFactory.IdentifierName("Open")
+                )
+            )
+            .WithArgumentList(
+                CreateArgumentList(
+                    SyntaxFactory.IdentifierName(schemaVariableName),
+                    CreateStringLiteral(sourceScan.Binding.MethodName),
+                    runtimeContext,
+                    argsExpression
+                )
+            );
         var rowSourceName = CreateRowSourceVariableName(sourceScan.Rows.Name);
         var rows = SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(rowSourceName),
-                SyntaxFactory.IdentifierName("Chunks"));
+            SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxFactory.IdentifierName(rowSourceName),
+            SyntaxFactory.IdentifierName("Chunks")
+        );
         var progressRows = CreateProgressChunksExpression(
             rows,
             CreateTypeSyntax(sourceType),
-            sourceScan.Binding.RuntimeContextId);
+            sourceScan.Binding.RuntimeContextId
+        );
 
         statements.Add(CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowSourceName, invocation));
-        statements.Add(CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            sourceScan.Rows.Name,
-            IsInstrumentationEnabled
-                ? CreateProfiledChunksExpression(progressRows, sourceProfileName, CreateTypeSyntax(sourceType))
-                : progressRows));
+        statements.Add(
+            CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                sourceScan.Rows.Name,
+                IsInstrumentationEnabled
+                    ? CreateProfiledChunksExpression(progressRows, sourceProfileName, CreateTypeSyntax(sourceType))
+                    : progressRows
+            )
+        );
 
         return statements;
     }
@@ -212,7 +278,12 @@ public sealed partial class ExecutionCSharpRenderer
     private static SchemaColumn[] CreateSchemaColumns(IEnumerable<FieldBinding> fields)
     {
         return fields
-            .Select(field => new SchemaColumn(field.Name, field.OutputIndex, field.Type.RequireClrType(), field.ReadModifiers))
+            .Select(field => new SchemaColumn(
+                field.Name,
+                field.OutputIndex,
+                field.Type.RequireClrType(),
+                field.ReadModifiers
+            ))
             .ToArray();
     }
 
@@ -229,30 +300,27 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax CreateProgressChunksExpression(
         ExpressionSyntax chunks,
         TypeSyntax elementType,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         var queryContext = SyntaxFactory.IdentifierName("__musoqProgressContext");
         var wrapMethod = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(nameof(QueryProgressRuntime)),
-            SyntaxFactory.GenericName(nameof(QueryProgressRuntime.WrapChunks))
-                .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(elementType))));
-        var wrapped = SyntaxFactory.InvocationExpression(wrapMethod)
-            .WithArgumentList(CreateArgumentList(
-                chunks,
-                queryContext,
-                CreateStringLiteral(sourceContextId)));
+            SyntaxFactory
+                .GenericName(nameof(QueryProgressRuntime.WrapChunks))
+                .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(elementType)))
+        );
+        var wrapped = SyntaxFactory
+            .InvocationExpression(wrapMethod)
+            .WithArgumentList(CreateArgumentList(chunks, queryContext, CreateStringLiteral(sourceContextId)));
 
         var progressCondition = SyntaxFactory.BinaryExpression(
             SyntaxKind.NotEqualsExpression,
             queryContext,
-            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+        );
 
-        return SyntaxFactory.ConditionalExpression(
-            progressCondition,
-            wrapped,
-            chunks);
+        return SyntaxFactory.ConditionalExpression(progressCondition, wrapped, chunks);
     }
-
 }

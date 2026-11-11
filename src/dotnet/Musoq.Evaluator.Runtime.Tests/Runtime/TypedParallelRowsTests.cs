@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests.Runtime;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class TypedParallelRowsTests
 {
-
     [TestMethod]
     public void ProjectValuesParallel_ShouldPreserveDeterministicShardOrder()
     {
@@ -21,13 +20,11 @@ public class TypedParallelRowsTests
             maxDegreeOfParallelism: 4,
             value => value % 3 == 0,
             value => value * 2,
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
         var projected = QueryRows.FromShards(shards).ToArray();
-        var expected = rows
-            .Where(static value => value % 3 == 0)
-            .Select(static value => value * 2)
-            .ToArray();
+        var expected = rows.Where(static value => value % 3 == 0).Select(static value => value * 2).ToArray();
 
         CollectionAssert.AreEqual(expected, projected);
     }
@@ -50,7 +47,9 @@ public class TypedParallelRowsTests
         public System.Collections.Generic.IEnumerator<T> GetEnumerator()
         {
             yield return first;
-            throw new InvalidOperationException("Second row should not be requested before the first result is consumed.");
+            throw new InvalidOperationException(
+                "Second row should not be requested before the first result is consumed."
+            );
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

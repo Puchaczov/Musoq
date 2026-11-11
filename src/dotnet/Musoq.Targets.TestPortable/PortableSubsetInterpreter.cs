@@ -11,16 +11,18 @@ internal sealed record PortableExecutionContext
     public PortableExecutionContext(
         IReadOnlyDictionary<string, PortableValue>? parameters = null,
         IReadOnlyDictionary<string, PortableValue>? scriptVariables = null,
-        IReadOnlyDictionary<string, IReadOnlyList<PortableRow>>? sources = null)
+        IReadOnlyDictionary<string, IReadOnlyList<PortableRow>>? sources = null
+    )
     {
         Parameters = FreezeDictionary(parameters);
         ScriptVariables = FreezeDictionary(scriptVariables);
         Sources = new ReadOnlyDictionary<string, IReadOnlyList<PortableRow>>(
-            (sources ?? new Dictionary<string, IReadOnlyList<PortableRow>>(StringComparer.Ordinal))
-            .ToDictionary(
+            (sources ?? new Dictionary<string, IReadOnlyList<PortableRow>>(StringComparer.Ordinal)).ToDictionary(
                 static pair => pair.Key,
                 static pair => (IReadOnlyList<PortableRow>)Array.AsReadOnly(pair.Value.ToArray()),
-                StringComparer.Ordinal));
+                StringComparer.Ordinal
+            )
+        );
     }
 
     public IReadOnlyDictionary<string, PortableValue> Parameters { get; }
@@ -32,12 +34,14 @@ internal sealed record PortableExecutionContext
     public static PortableExecutionContext Empty { get; } = new();
 
     private static IReadOnlyDictionary<string, PortableValue> FreezeDictionary(
-        IReadOnlyDictionary<string, PortableValue>? values)
+        IReadOnlyDictionary<string, PortableValue>? values
+    )
     {
         return new ReadOnlyDictionary<string, PortableValue>(
             values is null
                 ? new Dictionary<string, PortableValue>(StringComparer.Ordinal)
-                : new Dictionary<string, PortableValue>(values, StringComparer.Ordinal));
+                : new Dictionary<string, PortableValue>(values, StringComparer.Ordinal)
+        );
     }
 }
 
@@ -55,7 +59,8 @@ internal static class PortableSubsetInterpreter
 {
     public static PortableTable Execute(
         PortableSubsetRenderedArtifact artifact,
-        PortableExecutionContext? context = null)
+        PortableExecutionContext? context = null
+    )
     {
         ArgumentNullException.ThrowIfNull(artifact);
         var executionContext = context ?? PortableExecutionContext.Empty;
@@ -63,15 +68,14 @@ internal static class PortableSubsetInterpreter
         return Execute(artifact.Program, executionContext);
     }
 
-    public static PortableTable Execute(
-        PortableSubsetProgram program,
-        PortableExecutionContext? context = null)
+    public static PortableTable Execute(PortableSubsetProgram program, PortableExecutionContext? context = null)
     {
         ArgumentNullException.ThrowIfNull(program);
         if (!program.SemanticsContract.IsEquivalentTo(ExecutionSemanticsContract.Current))
         {
             throw new NotSupportedException(
-                $"Portable subset interpreter supports semantics fingerprint '{ExecutionSemanticsContract.Current.Fingerprint}', not '{program.SemanticsFingerprint}'.");
+                $"Portable subset interpreter supports semantics fingerprint '{ExecutionSemanticsContract.Current.Fingerprint}', not '{program.SemanticsFingerprint}'."
+            );
         }
 
         var state = new InterpreterState(context ?? PortableExecutionContext.Empty);
@@ -79,15 +83,14 @@ internal static class PortableSubsetInterpreter
         return signal.Result ?? throw new InvalidOperationException("Portable program did not return a table.");
     }
 
-    private static void ValidateHostBindings(
-        TargetHostAbiInventory inventory,
-        PortableExecutionContext context)
+    private static void ValidateHostBindings(TargetHostAbiInventory inventory, PortableExecutionContext context)
     {
         inventory.ValidateRuntimeServices(
-            inventory.CreateServiceRequirements(TargetRuntimeServiceFulfillmentKind.HostImport));
+            inventory.CreateServiceRequirements(TargetRuntimeServiceFulfillmentKind.HostImport)
+        );
 
-        var missingSourceContexts = inventory.Imports
-            .Where(static import => import.Details is TargetSourceAccessAbiDetails)
+        var missingSourceContexts = inventory
+            .Imports.Where(static import => import.Details is TargetSourceAccessAbiDetails)
             .Select(static import => ((TargetSourceAccessAbiDetails)import.Details).SourceContextId)
             .Where(sourceContextId => !context.Sources.ContainsKey(sourceContextId))
             .OrderBy(static sourceContextId => sourceContextId, StringComparer.Ordinal)
@@ -95,7 +98,8 @@ internal static class PortableSubsetInterpreter
         if (missingSourceContexts.Length > 0)
         {
             throw new InvalidOperationException(
-                $"Portable host bindings are missing required source context(s): {string.Join(", ", missingSourceContexts)}.");
+                $"Portable host bindings are missing required source context(s): {string.Join(", ", missingSourceContexts)}."
+            );
         }
     }
 
@@ -111,17 +115,14 @@ internal static class PortableSubsetInterpreter
         return ExecutionSignal.None;
     }
 
-    private static ExecutionSignal ExecuteInstruction(
-        PortableInstruction instruction,
-        InterpreterState state)
+    private static ExecutionSignal ExecuteInstruction(PortableInstruction instruction, InterpreterState state)
     {
         switch (instruction)
         {
             case PortableLoadSourceInstruction source:
                 if (!state.Context.Sources.TryGetValue(source.SourceContextId, out var rows))
                 {
-                    throw new KeyNotFoundException(
-                        $"Portable source '{source.SourceContextId}' was not supplied.");
+                    throw new KeyNotFoundException($"Portable source '{source.SourceContextId}' was not supplied.");
                 }
 
                 state.Tables[source.RowsVariable] = rows.ToList();
@@ -130,9 +131,7 @@ internal static class PortableSubsetInterpreter
                 state.Tables[table.TableVariable] = [];
                 return ExecutionSignal.None;
             case PortableCreateValuesInstruction values:
-                state.Tables[values.RowsVariable] = values.Rows
-                    .Select(row => CreateRow(row, state))
-                    .ToList();
+                state.Tables[values.RowsVariable] = values.Rows.Select(row => CreateRow(row, state)).ToList();
                 return ExecutionSignal.None;
             case PortableForEachInstruction loop:
                 foreach (var row in GetTable(state, loop.RowsVariable))
@@ -157,9 +156,7 @@ internal static class PortableSubsetInterpreter
             case PortableContinueInstruction:
                 return ExecutionSignal.Continue;
             case PortableContinueIfInstruction condition:
-                return IsTrue(Evaluate(condition.Condition, state))
-                    ? ExecutionSignal.Continue
-                    : ExecutionSignal.None;
+                return IsTrue(Evaluate(condition.Condition, state)) ? ExecutionSignal.Continue : ExecutionSignal.None;
             case PortableAppendRowInstruction append:
                 GetTable(state, append.TableVariable).Add(CreateRow(append.Values, state));
                 return ExecutionSignal.None;
@@ -167,62 +164,71 @@ internal static class PortableSubsetInterpreter
                 state.Rows[row.RowVariable] = CreateRow(row.Values, state);
                 return ExecutionSignal.None;
             case PortableOrderSliceInstruction order:
-                var ordered = order.Order.Count == 0
-                    ? GetTable(state, order.SourceVariable).ToArray()
-                    : GetTable(state, order.SourceVariable)
-                        .OrderBy(static row => row, new PortableRowComparer(order.Order))
-                        .ToArray();
-                state.Tables[order.TargetVariable] = ordered
-                    .Skip(order.Skip)
-                    .Take(order.Take ?? int.MaxValue)
-                    .ToList();
+                var ordered =
+                    order.Order.Count == 0
+                        ? GetTable(state, order.SourceVariable).ToArray()
+                        : GetTable(state, order.SourceVariable)
+                            .OrderBy(static row => row, new PortableRowComparer(order.Order))
+                            .ToArray();
+                state.Tables[order.TargetVariable] = ordered.Skip(order.Skip).Take(order.Take ?? int.MaxValue).ToList();
                 return ExecutionSignal.None;
             case PortableReturnInstruction result:
                 return ExecutionSignal.Return(new PortableTable(GetTable(state, result.TableVariable)));
             default:
                 throw new InvalidOperationException(
-                    $"Portable interpreter does not implement instruction '{instruction.GetType().Name}'.");
+                    $"Portable interpreter does not implement instruction '{instruction.GetType().Name}'."
+                );
         }
     }
 
-    private static PortableRow CreateRow(
-        IEnumerable<PortableRowValue> values,
-        InterpreterState state)
+    private static PortableRow CreateRow(IEnumerable<PortableRowValue> values, InterpreterState state)
     {
-        return new PortableRow(values.Select(value =>
-            new KeyValuePair<string, PortableValue>(value.FieldName, Evaluate(value.Value, state))));
+        return new PortableRow(
+            values.Select(value => new KeyValuePair<string, PortableValue>(
+                value.FieldName,
+                Evaluate(value.Value, state)
+            ))
+        );
     }
 
-    private static PortableValue Evaluate(PortableExpression expression, InterpreterState state) => expression switch
-    {
-        PortableLiteralExpression literal => literal.Value,
-        PortableFieldExpression field => ResolveField(field, state),
-        PortableParameterExpression parameter => GetRequired(state.Context.Parameters, parameter.Name, "parameter"),
-        PortableScriptVariableExpression variable => GetRequired(state.Context.ScriptVariables, variable.Name, "script variable"),
-        PortableVariableExpression variable => GetRequired(state.Values, variable.Name, "variable"),
-        PortableBinaryExpression binary => EvaluateBinaryExpression(binary, state),
-        PortableUnaryExpression unary => EvaluateUnary(unary.Operation, Evaluate(unary.Operand, state)),
-        PortableNullCheckExpression nullCheck => PortableValue.FromBoolean(
-            Evaluate(nullCheck.Expression, state).IsNull != nullCheck.IsNegated),
-        PortableCoalesceExpression coalesce => coalesce.Expressions
-            .Select(expressionValue => Evaluate(expressionValue, state))
-            .FirstOrDefault(static value => !value.IsNull, PortableValue.Null),
-        PortableCaseExpression @case => EvaluateCase(@case, state),
-        PortableInExpression @in => EvaluateIn(@in, state),
-        PortableStrictCastExpression cast => EvaluateStrictCast(
-            Evaluate(cast.Expression, state),
-            cast.TargetTypeName),
-        _ => throw new InvalidOperationException(
-            $"Portable interpreter does not implement expression '{expression.GetType().Name}'.")
-    };
+    private static PortableValue Evaluate(PortableExpression expression, InterpreterState state) =>
+        expression switch
+        {
+            PortableLiteralExpression literal => literal.Value,
+            PortableFieldExpression field => ResolveField(field, state),
+            PortableParameterExpression parameter => GetRequired(state.Context.Parameters, parameter.Name, "parameter"),
+            PortableScriptVariableExpression variable => GetRequired(
+                state.Context.ScriptVariables,
+                variable.Name,
+                "script variable"
+            ),
+            PortableVariableExpression variable => GetRequired(state.Values, variable.Name, "variable"),
+            PortableBinaryExpression binary => EvaluateBinaryExpression(binary, state),
+            PortableUnaryExpression unary => EvaluateUnary(unary.Operation, Evaluate(unary.Operand, state)),
+            PortableNullCheckExpression nullCheck => PortableValue.FromBoolean(
+                Evaluate(nullCheck.Expression, state).IsNull != nullCheck.IsNegated
+            ),
+            PortableCoalesceExpression coalesce => coalesce
+                .Expressions.Select(expressionValue => Evaluate(expressionValue, state))
+                .FirstOrDefault(static value => !value.IsNull, PortableValue.Null),
+            PortableCaseExpression @case => EvaluateCase(@case, state),
+            PortableInExpression @in => EvaluateIn(@in, state),
+            PortableStrictCastExpression cast => EvaluateStrictCast(
+                Evaluate(cast.Expression, state),
+                cast.TargetTypeName
+            ),
+            _ => throw new InvalidOperationException(
+                $"Portable interpreter does not implement expression '{expression.GetType().Name}'."
+            ),
+        };
 
     private static PortableValue ResolveField(PortableFieldExpression field, InterpreterState state)
     {
         if (field.Alias != null && state.Rows.TryGetValue(field.Alias, out var aliasedRow))
             return aliasedRow[field.FieldName];
 
-        var matches = state.Rows.Values
-            .SelectMany(static row => row.Fields)
+        var matches = state
+            .Rows.Values.SelectMany(static row => row.Fields)
             .Where(pair => string.Equals(pair.Key, field.FieldName, StringComparison.Ordinal))
             .Select(static pair => pair.Value)
             .ToArray();
@@ -230,7 +236,7 @@ internal static class PortableSubsetInterpreter
         {
             1 => matches[0],
             0 => throw new KeyNotFoundException($"Portable field '{field.FieldName}' was not found."),
-            _ => throw new InvalidOperationException($"Portable field '{field.FieldName}' is ambiguous.")
+            _ => throw new InvalidOperationException($"Portable field '{field.FieldName}' is ambiguous."),
         };
     }
 
@@ -242,9 +248,7 @@ internal static class PortableSubsetInterpreter
                 return Evaluate(branch.Result, state);
         }
 
-        return expression.ElseExpression is null
-            ? PortableValue.Null
-            : Evaluate(expression.ElseExpression, state);
+        return expression.ElseExpression is null ? PortableValue.Null : Evaluate(expression.ElseExpression, state);
     }
 
     private static PortableValue EvaluateIn(PortableInExpression expression, InterpreterState state)
@@ -278,24 +282,34 @@ internal static class PortableSubsetInterpreter
 
         return operation switch
         {
-            PortableUnaryOperation.Not when operand.Kind == PortableValueKind.Boolean => PortableValue.FromBoolean(!operand.Boolean),
-            PortableUnaryOperation.Negate when operand.Kind == PortableValueKind.SignedInteger =>
-                CreateSignedWrapped(unchecked(-operand.SignedInteger), operand.BitWidth),
-            PortableUnaryOperation.Negate when operand.Kind == PortableValueKind.Decimal =>
-                PortableValue.FromDecimal(checked(-operand.AsDecimal())),
+            PortableUnaryOperation.Not when operand.Kind == PortableValueKind.Boolean => PortableValue.FromBoolean(
+                !operand.Boolean
+            ),
+            PortableUnaryOperation.Negate when operand.Kind == PortableValueKind.SignedInteger => CreateSignedWrapped(
+                unchecked(-operand.SignedInteger),
+                operand.BitWidth
+            ),
+            PortableUnaryOperation.Negate when operand.Kind == PortableValueKind.Decimal => PortableValue.FromDecimal(
+                checked(-operand.AsDecimal())
+            ),
             PortableUnaryOperation.Negate when operand.Kind == PortableValueKind.FloatingPoint =>
                 PortableValue.FromDouble(-operand.AsDouble()),
             _ => throw new InvalidOperationException(
-                $"Portable unary operation '{operation}' does not support '{operand.Kind}'.")
+                $"Portable unary operation '{operation}' does not support '{operand.Kind}'."
+            ),
         };
     }
 
     private static PortableValue EvaluateBinaryExpression(PortableBinaryExpression binary, InterpreterState state)
     {
         var left = Evaluate(binary.Left, state);
-        if (!left.IsNull &&
-            (binary.Operation == PortableBinaryOperation.And && !left.Boolean ||
-             binary.Operation == PortableBinaryOperation.Or && left.Boolean))
+        if (
+            !left.IsNull
+            && (
+                binary.Operation == PortableBinaryOperation.And && !left.Boolean
+                || binary.Operation == PortableBinaryOperation.Or && left.Boolean
+            )
+        )
             return left;
 
         return EvaluateBinary(binary.Operation, left, Evaluate(binary.Right, state));
@@ -304,7 +318,8 @@ internal static class PortableSubsetInterpreter
     private static PortableValue EvaluateBinary(
         PortableBinaryOperation operation,
         PortableValue left,
-        PortableValue right)
+        PortableValue right
+    )
     {
         if (operation == PortableBinaryOperation.IsDistinctFrom)
             return PortableValue.FromBoolean(left.IsNull != right.IsNull || !left.IsNull && !ValuesEqual(left, right));
@@ -321,22 +336,31 @@ internal static class PortableSubsetInterpreter
             return PortableValue.FromBoolean(operation == PortableBinaryOperation.Equal ? equal : !equal);
         }
 
-        if (operation is PortableBinaryOperation.GreaterThan or PortableBinaryOperation.LessThan or
-            PortableBinaryOperation.GreaterOrEqual or PortableBinaryOperation.LessOrEqual)
+        if (
+            operation
+            is PortableBinaryOperation.GreaterThan
+                or PortableBinaryOperation.LessThan
+                or PortableBinaryOperation.GreaterOrEqual
+                or PortableBinaryOperation.LessOrEqual
+        )
         {
             var comparison = Compare(left, right);
-            return PortableValue.FromBoolean(operation switch
-            {
-                PortableBinaryOperation.GreaterThan => comparison > 0,
-                PortableBinaryOperation.LessThan => comparison < 0,
-                PortableBinaryOperation.GreaterOrEqual => comparison >= 0,
-                _ => comparison <= 0
-            });
+            return PortableValue.FromBoolean(
+                operation switch
+                {
+                    PortableBinaryOperation.GreaterThan => comparison > 0,
+                    PortableBinaryOperation.LessThan => comparison < 0,
+                    PortableBinaryOperation.GreaterOrEqual => comparison >= 0,
+                    _ => comparison <= 0,
+                }
+            );
         }
 
-        if (operation == PortableBinaryOperation.StringConcatenate &&
-            left.Kind == PortableValueKind.String &&
-            right.Kind == PortableValueKind.String)
+        if (
+            operation == PortableBinaryOperation.StringConcatenate
+            && left.Kind == PortableValueKind.String
+            && right.Kind == PortableValueKind.String
+        )
         {
             return PortableValue.FromString(left.Text + right.Text);
         }
@@ -347,87 +371,109 @@ internal static class PortableSubsetInterpreter
     private static PortableValue EvaluateThreeValuedBoolean(
         PortableBinaryOperation operation,
         PortableValue left,
-        PortableValue right)
+        PortableValue right
+    )
     {
         bool? leftValue = left.IsNull ? null : left.Boolean;
         bool? rightValue = right.IsNull ? null : right.Boolean;
-        bool? result = operation == PortableBinaryOperation.And
-            ? leftValue == false || rightValue == false
-                ? false
-                : leftValue == true && rightValue == true ? true : null
-            : leftValue == true || rightValue == true
-                ? true
-                : leftValue == false && rightValue == false ? false : null;
+        bool? result =
+            operation == PortableBinaryOperation.And
+                ? leftValue == false || rightValue == false
+                    ? false
+                    : leftValue == true && rightValue == true
+                        ? true
+                        : null
+                : leftValue == true || rightValue == true
+                    ? true
+                    : leftValue == false && rightValue == false
+                        ? false
+                        : null;
         return result.HasValue ? PortableValue.FromBoolean(result.Value) : PortableValue.Null;
     }
 
     private static PortableValue EvaluateArithmetic(
         PortableBinaryOperation operation,
         PortableValue left,
-        PortableValue right)
+        PortableValue right
+    )
     {
         if (left.Kind == PortableValueKind.SignedInteger && right.Kind == PortableValueKind.SignedInteger)
         {
             var bitWidth = Math.Max(left.BitWidth, right.BitWidth);
-            if (operation is PortableBinaryOperation.Add or PortableBinaryOperation.Subtract or PortableBinaryOperation.Multiply)
+            if (
+                operation
+                is PortableBinaryOperation.Add
+                    or PortableBinaryOperation.Subtract
+                    or PortableBinaryOperation.Multiply
+            )
             {
                 var value = operation switch
                 {
                     PortableBinaryOperation.Add => unchecked(left.SignedInteger + right.SignedInteger),
                     PortableBinaryOperation.Subtract => unchecked(left.SignedInteger - right.SignedInteger),
-                    _ => unchecked(left.SignedInteger * right.SignedInteger)
+                    _ => unchecked(left.SignedInteger * right.SignedInteger),
                 };
                 return CreateSignedWrapped(value, bitWidth);
             }
 
-            if (bitWidth == 32 &&
-                left.SignedInteger == int.MinValue &&
-                right.SignedInteger == -1 &&
-                operation is PortableBinaryOperation.Divide or PortableBinaryOperation.Modulo)
+            if (
+                bitWidth == 32
+                && left.SignedInteger == int.MinValue
+                && right.SignedInteger == -1
+                && operation is PortableBinaryOperation.Divide or PortableBinaryOperation.Modulo
+            )
             {
                 throw new OverflowException("Integer division overflowed the portable Int32 range.");
             }
 
-            return CreateSigned(operation switch
-            {
-                PortableBinaryOperation.Divide => left.SignedInteger / right.SignedInteger,
-                PortableBinaryOperation.Modulo => left.SignedInteger % right.SignedInteger,
-                _ => throw UnsupportedArithmetic(operation, left.Kind)
-            }, bitWidth);
+            return CreateSigned(
+                operation switch
+                {
+                    PortableBinaryOperation.Divide => left.SignedInteger / right.SignedInteger,
+                    PortableBinaryOperation.Modulo => left.SignedInteger % right.SignedInteger,
+                    _ => throw UnsupportedArithmetic(operation, left.Kind),
+                },
+                bitWidth
+            );
         }
 
         if (left.Kind == PortableValueKind.Decimal && right.Kind == PortableValueKind.Decimal)
         {
             var leftDecimal = left.AsDecimal();
             var rightDecimal = right.AsDecimal();
-            return PortableValue.FromDecimal(operation switch
-            {
-                PortableBinaryOperation.Add => checked(leftDecimal + rightDecimal),
-                PortableBinaryOperation.Subtract => checked(leftDecimal - rightDecimal),
-                PortableBinaryOperation.Multiply => checked(leftDecimal * rightDecimal),
-                PortableBinaryOperation.Divide => leftDecimal / rightDecimal,
-                PortableBinaryOperation.Modulo => leftDecimal % rightDecimal,
-                _ => throw UnsupportedArithmetic(operation, left.Kind)
-            });
+            return PortableValue.FromDecimal(
+                operation switch
+                {
+                    PortableBinaryOperation.Add => checked(leftDecimal + rightDecimal),
+                    PortableBinaryOperation.Subtract => checked(leftDecimal - rightDecimal),
+                    PortableBinaryOperation.Multiply => checked(leftDecimal * rightDecimal),
+                    PortableBinaryOperation.Divide => leftDecimal / rightDecimal,
+                    PortableBinaryOperation.Modulo => leftDecimal % rightDecimal,
+                    _ => throw UnsupportedArithmetic(operation, left.Kind),
+                }
+            );
         }
 
         if (left.Kind == PortableValueKind.FloatingPoint && right.Kind == PortableValueKind.FloatingPoint)
         {
             var leftDouble = left.AsDouble();
             var rightDouble = right.AsDouble();
-            return PortableValue.FromDouble(operation switch
-            {
-                PortableBinaryOperation.Add => leftDouble + rightDouble,
-                PortableBinaryOperation.Subtract => leftDouble - rightDouble,
-                PortableBinaryOperation.Multiply => leftDouble * rightDouble,
-                PortableBinaryOperation.Divide => leftDouble / rightDouble,
-                PortableBinaryOperation.Modulo => leftDouble % rightDouble,
-                _ => throw UnsupportedArithmetic(operation, left.Kind)
-            });
+            return PortableValue.FromDouble(
+                operation switch
+                {
+                    PortableBinaryOperation.Add => leftDouble + rightDouble,
+                    PortableBinaryOperation.Subtract => leftDouble - rightDouble,
+                    PortableBinaryOperation.Multiply => leftDouble * rightDouble,
+                    PortableBinaryOperation.Divide => leftDouble / rightDouble,
+                    PortableBinaryOperation.Modulo => leftDouble % rightDouble,
+                    _ => throw UnsupportedArithmetic(operation, left.Kind),
+                }
+            );
         }
 
         throw new InvalidOperationException(
-            $"Portable arithmetic requires matching numeric kinds, but got '{left.Kind}' and '{right.Kind}'.");
+            $"Portable arithmetic requires matching numeric kinds, but got '{left.Kind}' and '{right.Kind}'."
+        );
     }
 
     private static PortableValue EvaluateStrictCast(PortableValue value, string targetTypeName)
@@ -438,13 +484,17 @@ internal static class PortableSubsetInterpreter
         return targetTypeName.ToLowerInvariant() switch
         {
             "string" => PortableValue.FromString(value.ToManifestValue()),
-            "int" or "int32" when value.Kind == PortableValueKind.String =>
-                PortableValue.FromSigned(int.Parse(value.Text, NumberStyles.Integer, CultureInfo.InvariantCulture), 32),
-            "long" or "int64" when value.Kind == PortableValueKind.String =>
-                PortableValue.FromSigned(long.Parse(value.Text, NumberStyles.Integer, CultureInfo.InvariantCulture)),
-            "decimal" when value.Kind == PortableValueKind.String =>
-                PortableValue.FromDecimal(decimal.Parse(value.Text, NumberStyles.Number, CultureInfo.InvariantCulture)),
-            _ => value
+            "int" or "int32" when value.Kind == PortableValueKind.String => PortableValue.FromSigned(
+                int.Parse(value.Text, NumberStyles.Integer, CultureInfo.InvariantCulture),
+                32
+            ),
+            "long" or "int64" when value.Kind == PortableValueKind.String => PortableValue.FromSigned(
+                long.Parse(value.Text, NumberStyles.Integer, CultureInfo.InvariantCulture)
+            ),
+            "decimal" when value.Kind == PortableValueKind.String => PortableValue.FromDecimal(
+                decimal.Parse(value.Text, NumberStyles.Number, CultureInfo.InvariantCulture)
+            ),
+            _ => value,
         };
     }
 
@@ -461,7 +511,7 @@ internal static class PortableSubsetInterpreter
             PortableValueKind.FloatingPoint => left.AsDouble().CompareTo(right.AsDouble()),
             PortableValueKind.Decimal => left.AsDecimal().CompareTo(right.AsDecimal()),
             PortableValueKind.String => string.CompareOrdinal(left.Text, right.Text),
-            _ => throw new InvalidOperationException($"Portable value kind '{left.Kind}' is not orderable.")
+            _ => throw new InvalidOperationException($"Portable value kind '{left.Kind}' is not orderable."),
         };
     }
 
@@ -479,7 +529,7 @@ internal static class PortableSubsetInterpreter
             PortableValueKind.FloatingPoint => left.FloatingPointBits == right.FloatingPointBits,
             PortableValueKind.Decimal => left.AsDecimal() == right.AsDecimal(),
             PortableValueKind.String => string.Equals(left.Text, right.Text, StringComparison.Ordinal),
-            _ => false
+            _ => false,
         };
     }
 
@@ -491,7 +541,7 @@ internal static class PortableSubsetInterpreter
             16 => checked((short)value),
             32 => checked((int)value),
             64 => value,
-            _ => throw new InvalidOperationException($"Unsupported signed integer width '{bitWidth}'.")
+            _ => throw new InvalidOperationException($"Unsupported signed integer width '{bitWidth}'."),
         };
         return PortableValue.FromSigned(value, bitWidth);
     }
@@ -504,17 +554,17 @@ internal static class PortableSubsetInterpreter
             16 => PortableValue.FromSigned(unchecked((short)value), bitWidth),
             32 => PortableValue.FromSigned(unchecked((int)value), bitWidth),
             64 => PortableValue.FromSigned(value, bitWidth),
-            _ => throw new InvalidOperationException($"Unsupported signed integer width '{bitWidth}'.")
+            _ => throw new InvalidOperationException($"Unsupported signed integer width '{bitWidth}'."),
         };
     }
 
-    private static bool IsTrue(PortableValue value) =>
-        value.Kind == PortableValueKind.Boolean && value.Boolean;
+    private static bool IsTrue(PortableValue value) => value.Kind == PortableValueKind.Boolean && value.Boolean;
 
     private static PortableValue GetRequired(
         IReadOnlyDictionary<string, PortableValue> values,
         string name,
-        string kind)
+        string kind
+    )
     {
         return values.TryGetValue(name, out var value)
             ? value
@@ -528,8 +578,8 @@ internal static class PortableSubsetInterpreter
 
     private static InvalidOperationException UnsupportedArithmetic(
         PortableBinaryOperation operation,
-        PortableValueKind kind) =>
-        new($"Portable arithmetic operation '{operation}' does not support '{kind}'.");
+        PortableValueKind kind
+    ) => new($"Portable arithmetic operation '{operation}' does not support '{kind}'.");
 
     private sealed class InterpreterState(PortableExecutionContext context)
     {
@@ -546,7 +596,7 @@ internal static class PortableSubsetInterpreter
     {
         None,
         Continue,
-        Return
+        Return,
     }
 
     private readonly record struct ExecutionSignal(ExecutionSignalKind Kind, PortableTable? Result)

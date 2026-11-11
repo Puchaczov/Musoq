@@ -14,14 +14,17 @@ internal sealed record DiagnosticDescriptor(
     string? Explanation,
     IReadOnlyList<string> SuggestedFixes,
     IReadOnlyList<DiagnosticAction> DefaultActions,
-    string? DocsReference)
+    string? DocsReference
+)
 {
-    public ErrorMetadata? Metadata => Explanation == null && DocsReference == null && SuggestedFixes.Count == 0
-        ? null
-        : new ErrorMetadata(
-            Code,
-            DefaultPhase,
-            Explanation ?? string.Empty,
-            [..SuggestedFixes],
-            DocsReference ?? string.Empty);
+    public ErrorMetadata? Metadata =>
+        Explanation == null && DocsReference == null && SuggestedFixes.Count == 0
+            ? null
+            : new ErrorMetadata(
+                Code,
+                DefaultPhase,
+                Explanation ?? string.Empty,
+                [.. SuggestedFixes],
+                DocsReference ?? string.Empty
+            );
 }

@@ -7,11 +7,13 @@ internal static class OuterApplyNullSubstitutionService
 {
     public static OuterApplyNullSubstitutionResult SubstituteRightAlias(
         ExecutionExpression expression,
-        string rightAlias)
+        string rightAlias
+    )
     {
         return expression switch
         {
-            ExecutionFieldRead fieldRead when string.Equals(fieldRead.Alias, rightAlias, StringComparison.OrdinalIgnoreCase) =>
+            ExecutionFieldRead fieldRead
+                when string.Equals(fieldRead.Alias, rightAlias, StringComparison.OrdinalIgnoreCase) =>
                 OuterApplyNullSubstitutionResult.Unknown(),
             ExecutionFieldRead => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionUnionMemberRead union => SubstituteMember(union, union.Receiver, rightAlias),
@@ -22,10 +24,12 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionStrictCast strictCast => SubstituteStrictCast(strictCast, rightAlias),
             ExecutionMethodCall method => SubstituteMethodCall(method, rightAlias),
             ExecutionIsNullCheck isNull => SubstituteIsNullCheck(isNull, rightAlias),
-            ExecutionRowPresence rowPresence when string.Equals(rowPresence.Alias, rightAlias, StringComparison.OrdinalIgnoreCase) =>
+            ExecutionRowPresence rowPresence
+                when string.Equals(rowPresence.Alias, rightAlias, StringComparison.OrdinalIgnoreCase) =>
                 OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(!rowPresence.IsPresent, typeof(bool))),
             ExecutionRowPresence => OuterApplyNullSubstitutionResult.Known(expression),
-            ExecutionVariableRead variable when string.Equals(variable.Variable.Name, rightAlias, StringComparison.OrdinalIgnoreCase) =>
+            ExecutionVariableRead variable
+                when string.Equals(variable.Variable.Name, rightAlias, StringComparison.OrdinalIgnoreCase) =>
                 OuterApplyNullSubstitutionResult.Unknown(),
             ExecutionVariableRead => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionInCheck inCheck => SubstituteInCheck(inCheck, rightAlias),
@@ -42,7 +46,10 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionBetween between => SubstituteBetween(between, rightAlias),
             ExecutionCaseWhen caseWhen => SubstituteCaseWhen(caseWhen, rightAlias),
             ExecutionCoalesce coalesce => SubstituteCoalesce(coalesce, rightAlias),
-            ExecutionStringConcatenation concatenation => StringConcatenationNullSubstitution.Substitute(concatenation, rightAlias),
+            ExecutionStringConcatenation concatenation => StringConcatenationNullSubstitution.Substitute(
+                concatenation,
+                rightAlias
+            ),
             ExecutionRowStream => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionScalarRowStream => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionStoredTableRows => OuterApplyNullSubstitutionResult.Known(expression),
@@ -51,19 +58,25 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionAggregateCall aggregateCall => SubstituteAggregateCall(aggregateCall, rightAlias),
             ExecutionGroupKeyRead => OuterApplyNullSubstitutionResult.Known(expression),
             _ => OuterApplyNullSubstitutionResult.Unsupported(
-                $"Execution IR outer apply lowering cannot null-substitute expression {expression.GetType().Name}.")
+                $"Execution IR outer apply lowering cannot null-substitute expression {expression.GetType().Name}."
+            ),
         };
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteMember(ExecutionExpression member, ExecutionExpression receiver, string alias)
+    private static OuterApplyNullSubstitutionResult SubstituteMember(
+        ExecutionExpression member,
+        ExecutionExpression receiver,
+        string alias
+    )
     {
         var value = SubstituteRightAlias(receiver, alias);
-        if (!value.IsBuilt || value.IsUnknown) return value;
+        if (!value.IsBuilt || value.IsUnknown)
+            return value;
         ExecutionExpression rewritten = member switch
         {
             ExecutionUnionMemberRead union => union with { Receiver = value.Expression },
             ExecutionMemberRead read => read with { Receiver = value.Expression },
-            _ => throw new InvalidOperationException("Expected a bound member read.")
+            _ => throw new InvalidOperationException("Expected a bound member read."),
         };
         return OuterApplyNullSubstitutionResult.Known(rewritten);
     }
@@ -75,20 +88,25 @@ internal static class OuterApplyNullSubstitutionService
 
         if (Nullable.GetUnderlyingType(expression.ReturnType.ResolveClrType()) == typeof(bool))
         {
-            return LoweringAttempt<ExecutionExpression>.Built(new ExecutionBinary(
-                BinaryOpKind.Equal,
-                expression,
-                new ExecutionLiteral(true, typeof(bool)),
-                typeof(bool)));
+            return LoweringAttempt<ExecutionExpression>.Built(
+                new ExecutionBinary(
+                    BinaryOpKind.Equal,
+                    expression,
+                    new ExecutionLiteral(true, typeof(bool)),
+                    typeof(bool)
+                )
+            );
         }
 
         return LoweringAttempt<ExecutionExpression>.Unsupported(
-            $"Execution IR outer apply lowering expected a boolean expression but found {FormatTypeName(expression.ReturnType)}.");
+            $"Execution IR outer apply lowering expected a boolean expression but found {FormatTypeName(expression.ReturnType)}."
+        );
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteStrictCast(
         ExecutionStrictCast strictCast,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var expression = SubstituteRightAlias(strictCast.Expression, rightAlias);
         if (!expression.IsBuilt)
@@ -99,9 +117,7 @@ internal static class OuterApplyNullSubstitutionService
             : OuterApplyNullSubstitutionResult.Known(strictCast with { Expression = expression.Expression });
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteBinary(
-        ExecutionBinary binary,
-        string rightAlias)
+    private static OuterApplyNullSubstitutionResult SubstituteBinary(ExecutionBinary binary, string rightAlias)
     {
         var left = SubstituteRightAlias(binary.Left, rightAlias);
         if (!left.IsBuilt)
@@ -115,18 +131,21 @@ internal static class OuterApplyNullSubstitutionService
         {
             BinaryOpKind.And or BinaryOpKind.Or => SubstituteBooleanBinary(binary.Kind, left, right),
             _ when left.IsUnknown || right.IsUnknown => OuterApplyNullSubstitutionResult.Unknown(),
-            _ => OuterApplyNullSubstitutionResult.Known(binary with
-            {
-                Left = left.Expression,
-                Right = right.Expression
-            })
+            _ => OuterApplyNullSubstitutionResult.Known(
+                binary with
+                {
+                    Left = left.Expression,
+                    Right = right.Expression,
+                }
+            ),
         };
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteBooleanBinary(
         BinaryOpKind kind,
         OuterApplyNullSubstitutionResult left,
-        OuterApplyNullSubstitutionResult right)
+        OuterApplyNullSubstitutionResult right
+    )
     {
         if (left.IsUnknown && right.IsUnknown)
             return OuterApplyNullSubstitutionResult.Unknown();
@@ -135,24 +154,23 @@ internal static class OuterApplyNullSubstitutionService
         var rightExpression = right.IsUnknown ? new ExecutionLiteral(null, typeof(bool?)) : right.Expression;
         var leftType = leftExpression.ReturnType.ResolveClrType();
         var rightType = rightExpression.ReturnType.ResolveClrType();
-        if ((leftType != typeof(bool) && leftType != typeof(bool?)) ||
-            (rightType != typeof(bool) && rightType != typeof(bool?)))
+        if (
+            (leftType != typeof(bool) && leftType != typeof(bool?))
+            || (rightType != typeof(bool) && rightType != typeof(bool?))
+        )
         {
             return OuterApplyNullSubstitutionResult.Unsupported(
-                "Execution IR null substitution expected boolean operands.");
+                "Execution IR null substitution expected boolean operands."
+            );
         }
 
         var resultType = leftType == typeof(bool?) || rightType == typeof(bool?) ? typeof(bool?) : typeof(bool);
-        return OuterApplyNullSubstitutionResult.Known(new ExecutionBinary(
-            kind,
-            leftExpression,
-            rightExpression,
-            resultType));
+        return OuterApplyNullSubstitutionResult.Known(
+            new ExecutionBinary(kind, leftExpression, rightExpression, resultType)
+        );
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteUnary(
-        ExecutionUnary unary,
-        string rightAlias)
+    private static OuterApplyNullSubstitutionResult SubstituteUnary(ExecutionUnary unary, string rightAlias)
     {
         var operand = SubstituteRightAlias(unary.Operand, rightAlias);
         if (!operand.IsBuilt)
@@ -161,16 +179,16 @@ internal static class OuterApplyNullSubstitutionService
         if (operand.IsUnknown)
             return OuterApplyNullSubstitutionResult.Unknown();
 
-        return OuterApplyNullSubstitutionResult.Known(unary with
-        {
-            Operand = operand.Expression,
-            ReturnType = unary.Kind == UnaryOpKind.Not ? operand.Expression.ReturnType : unary.ReturnType
-        });
+        return OuterApplyNullSubstitutionResult.Known(
+            unary with
+            {
+                Operand = operand.Expression,
+                ReturnType = unary.Kind == UnaryOpKind.Not ? operand.Expression.ReturnType : unary.ReturnType,
+            }
+        );
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteMethodCall(
-        ExecutionMethodCall method,
-        string rightAlias)
+    private static OuterApplyNullSubstitutionResult SubstituteMethodCall(ExecutionMethodCall method, string rightAlias)
     {
         var arguments = SubstituteArguments(method.Arguments, rightAlias);
         if (!arguments.IsBuilt)
@@ -190,16 +208,19 @@ internal static class OuterApplyNullSubstitutionService
 
         return injectedSourceIsUnknown
             ? OuterApplyNullSubstitutionResult.Unknown()
-            : OuterApplyNullSubstitutionResult.Known(method with
-            {
-                Arguments = arguments.Expressions,
-                InjectedSource = injectedSource
-            });
+            : OuterApplyNullSubstitutionResult.Known(
+                method with
+                {
+                    Arguments = arguments.Expressions,
+                    InjectedSource = injectedSource,
+                }
+            );
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteIsNullCheck(
         ExecutionIsNullCheck isNull,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var expression = SubstituteRightAlias(isNull.Expression, rightAlias);
         if (!expression.IsBuilt)
@@ -210,30 +231,36 @@ internal static class OuterApplyNullSubstitutionService
             : OuterApplyNullSubstitutionResult.Known(isNull with { Expression = expression.Expression });
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteInCheck(
-        ExecutionInCheck inCheck, string rightAlias)
+    private static OuterApplyNullSubstitutionResult SubstituteInCheck(ExecutionInCheck inCheck, string rightAlias)
     {
         var expression = SubstituteRightAlias(inCheck.Expression, rightAlias);
-        if (!expression.IsBuilt) return expression;
+        if (!expression.IsBuilt)
+            return expression;
         var values = new List<ExecutionExpression>();
         foreach (var value in inCheck.Values)
         {
             var substituted = SubstituteRightAlias(value, rightAlias);
-            if (!substituted.IsBuilt) return substituted;
+            if (!substituted.IsBuilt)
+                return substituted;
             values.Add(substituted.IsUnknown ? CreateNullLiteral(value.ReturnType) : substituted.Expression);
         }
-        return OuterApplyNullSubstitutionResult.Known(inCheck with
-        {
-            Expression = expression.IsUnknown ? CreateNullLiteral(inCheck.Expression.ReturnType) : expression.Expression,
-            Values = values,
-            ConstantSet = null,
-            TypedBinding = inCheck.TypedBinding ?? ExecutionMembershipBindingResolver.Bind(inCheck)
-        });
+        return OuterApplyNullSubstitutionResult.Known(
+            inCheck with
+            {
+                Expression = expression.IsUnknown
+                    ? CreateNullLiteral(inCheck.Expression.ReturnType)
+                    : expression.Expression,
+                Values = values,
+                ConstantSet = null,
+                TypedBinding = inCheck.TypedBinding ?? ExecutionMembershipBindingResolver.Bind(inCheck),
+            }
+        );
     }
 
     private static OuterApplyNullSubstitutionResult SubstitutePatternMatch(
         ExecutionPatternMatch patternMatch,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var expression = SubstituteRightAlias(patternMatch.Expression, rightAlias);
         if (!expression.IsBuilt)
@@ -245,16 +272,19 @@ internal static class OuterApplyNullSubstitutionService
 
         return expression.IsUnknown || pattern.IsUnknown
             ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
-            : OuterApplyNullSubstitutionResult.Known(patternMatch with
-            {
-                Expression = expression.Expression,
-                Pattern = pattern.Expression
-            });
+            : OuterApplyNullSubstitutionResult.Known(
+                patternMatch with
+                {
+                    Expression = expression.Expression,
+                    Pattern = pattern.Expression,
+                }
+            );
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteStringMatch(
         ExecutionStringMatch stringMatch,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var input = SubstituteRightAlias(stringMatch.Input, rightAlias);
         if (!input.IsBuilt)
@@ -267,7 +297,8 @@ internal static class OuterApplyNullSubstitutionService
 
     private static OuterApplyNullSubstitutionResult SubstitutePrepareLikeMatcher(
         ExecutionPrepareLikeMatcher prepareLike,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var pattern = SubstituteRightAlias(prepareLike.Pattern, rightAlias);
         if (!pattern.IsBuilt)
@@ -280,7 +311,8 @@ internal static class OuterApplyNullSubstitutionService
 
     private static OuterApplyNullSubstitutionResult SubstitutePreparedLikeMatch(
         ExecutionPreparedLikeMatch preparedLike,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var input = SubstituteRightAlias(preparedLike.Input, rightAlias);
         if (!input.IsBuilt)
@@ -291,16 +323,19 @@ internal static class OuterApplyNullSubstitutionService
 
         return input.IsUnknown || matcher.IsUnknown
             ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
-            : OuterApplyNullSubstitutionResult.Known(preparedLike with
-            {
-                Input = input.Expression,
-                Matcher = matcher.Expression
-            });
+            : OuterApplyNullSubstitutionResult.Known(
+                preparedLike with
+                {
+                    Input = input.Expression,
+                    Matcher = matcher.Expression,
+                }
+            );
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteDynamicLikeMatch(
         ExecutionDynamicLikeMatch dynamicLike,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var input = SubstituteRightAlias(dynamicLike.Input, rightAlias);
         if (!input.IsBuilt)
@@ -314,17 +349,20 @@ internal static class OuterApplyNullSubstitutionService
 
         return input.IsUnknown || pattern.IsUnknown || cacheSlot.IsUnknown
             ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
-            : OuterApplyNullSubstitutionResult.Known(dynamicLike with
-            {
-                Input = input.Expression,
-                Pattern = pattern.Expression,
-                CacheSlot = cacheSlot.Expression
-            });
+            : OuterApplyNullSubstitutionResult.Known(
+                dynamicLike with
+                {
+                    Input = input.Expression,
+                    Pattern = pattern.Expression,
+                    CacheSlot = cacheSlot.Expression,
+                }
+            );
     }
 
     private static OuterApplyNullSubstitutionResult SubstitutePrepareRLikeMatcher(
         ExecutionPrepareRLikeMatcher prepareRLike,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var pattern = SubstituteRightAlias(prepareRLike.Pattern, rightAlias);
         if (!pattern.IsBuilt)
@@ -337,7 +375,8 @@ internal static class OuterApplyNullSubstitutionService
 
     private static OuterApplyNullSubstitutionResult SubstitutePreparedRLikeMatch(
         ExecutionPreparedRLikeMatch preparedRLike,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var input = SubstituteRightAlias(preparedRLike.Input, rightAlias);
         if (!input.IsBuilt)
@@ -348,16 +387,19 @@ internal static class OuterApplyNullSubstitutionService
 
         return input.IsUnknown || matcher.IsUnknown
             ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
-            : OuterApplyNullSubstitutionResult.Known(preparedRLike with
-            {
-                Input = input.Expression,
-                Matcher = matcher.Expression
-            });
+            : OuterApplyNullSubstitutionResult.Known(
+                preparedRLike with
+                {
+                    Input = input.Expression,
+                    Matcher = matcher.Expression,
+                }
+            );
     }
 
     private static OuterApplyNullSubstitutionResult SubstituteDynamicRLikeMatch(
         ExecutionDynamicRLikeMatch dynamicRLike,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var input = SubstituteRightAlias(dynamicRLike.Input, rightAlias);
         if (!input.IsBuilt)
@@ -371,17 +413,17 @@ internal static class OuterApplyNullSubstitutionService
 
         return input.IsUnknown || pattern.IsUnknown || cacheSlot.IsUnknown
             ? OuterApplyNullSubstitutionResult.Known(new ExecutionLiteral(false, typeof(bool)))
-            : OuterApplyNullSubstitutionResult.Known(dynamicRLike with
-            {
-                Input = input.Expression,
-                Pattern = pattern.Expression,
-                CacheSlot = cacheSlot.Expression
-            });
+            : OuterApplyNullSubstitutionResult.Known(
+                dynamicRLike with
+                {
+                    Input = input.Expression,
+                    Pattern = pattern.Expression,
+                    CacheSlot = cacheSlot.Expression,
+                }
+            );
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteBetween(
-        ExecutionBetween between,
-        string rightAlias)
+    private static OuterApplyNullSubstitutionResult SubstituteBetween(ExecutionBetween between, string rightAlias)
     {
         var expression = SubstituteRightAlias(between.Expression, rightAlias);
         if (!expression.IsBuilt)
@@ -397,17 +439,17 @@ internal static class OuterApplyNullSubstitutionService
 
         return expression.IsUnknown || low.IsUnknown || high.IsUnknown
             ? OuterApplyNullSubstitutionResult.Unknown()
-            : OuterApplyNullSubstitutionResult.Known(between with
-            {
-                Expression = expression.Expression,
-                Low = low.Expression,
-                High = high.Expression
-            });
+            : OuterApplyNullSubstitutionResult.Known(
+                between with
+                {
+                    Expression = expression.Expression,
+                    Low = low.Expression,
+                    High = high.Expression,
+                }
+            );
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteCaseWhen(
-        ExecutionCaseWhen caseWhen,
-        string rightAlias)
+    private static OuterApplyNullSubstitutionResult SubstituteCaseWhen(ExecutionCaseWhen caseWhen, string rightAlias)
     {
         var branches = new List<ExecutionCaseWhenBranch>(caseWhen.Branches.Count);
         var hasNullResult = false;
@@ -428,9 +470,7 @@ internal static class OuterApplyNullSubstitutionService
             if (!result.IsBuilt)
                 return result;
 
-            var resultExpression = result.IsUnknown
-                ? CreateNullLiteral(caseWhen.ReturnType)
-                : result.Expression;
+            var resultExpression = result.IsUnknown ? CreateNullLiteral(caseWhen.ReturnType) : result.Expression;
             hasNullResult |= result.IsUnknown;
 
             branches.Add(new ExecutionCaseWhenBranch(conditionExpression.Value, resultExpression));
@@ -450,19 +490,20 @@ internal static class OuterApplyNullSubstitutionService
                 ? OuterApplyNullSubstitutionResult.Unknown()
                 : OuterApplyNullSubstitutionResult.Known(resolvedElseExpression);
 
-        return OuterApplyNullSubstitutionResult.Known(caseWhen with
-        {
-            Branches = branches,
-            ElseExpression = resolvedElseExpression,
-            ReturnType = hasNullResult
-                ? LiftNullSubstitutionType(caseWhen.ReturnType)
-                : caseWhen.ReturnType
-        });
+        return OuterApplyNullSubstitutionResult.Known(
+            caseWhen with
+            {
+                Branches = branches,
+                ElseExpression = resolvedElseExpression,
+                ReturnType = hasNullResult ? LiftNullSubstitutionType(caseWhen.ReturnType) : caseWhen.ReturnType,
+            }
+        );
     }
 
     private static OuterApplyCaseElseSubstitutionResult SubstituteCaseElse(
         ExecutionExpression? elseExpression,
-        string rightAlias)
+        string rightAlias
+    )
     {
         if (elseExpression == null)
             return OuterApplyCaseElseSubstitutionResult.Known(null);
@@ -476,9 +517,7 @@ internal static class OuterApplyNullSubstitutionService
             : OuterApplyCaseElseSubstitutionResult.Known(substituted.Expression);
     }
 
-    private static OuterApplyNullSubstitutionResult SubstituteCoalesce(
-        ExecutionCoalesce coalesce,
-        string rightAlias)
+    private static OuterApplyNullSubstitutionResult SubstituteCoalesce(ExecutionCoalesce coalesce, string rightAlias)
     {
         var expressions = new List<ExecutionExpression>(coalesce.Expressions.Count);
 
@@ -496,15 +535,14 @@ internal static class OuterApplyNullSubstitutionService
         {
             0 => OuterApplyNullSubstitutionResult.Unknown(),
             1 => OuterApplyNullSubstitutionResult.Known(expressions[0]),
-            _ => OuterApplyNullSubstitutionResult.Known(coalesce with { Expressions = expressions })
+            _ => OuterApplyNullSubstitutionResult.Known(coalesce with { Expressions = expressions }),
         };
     }
 
-
-
     private static OuterApplyNullSubstitutionResult SubstituteValueTupleKey(
         ExecutionValueTupleKey valueTupleKey,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var parts = SubstituteArguments(valueTupleKey.Parts, rightAlias);
         if (!parts.IsBuilt)
@@ -517,7 +555,8 @@ internal static class OuterApplyNullSubstitutionService
 
     private static OuterApplyNullSubstitutionResult SubstituteAggregateCall(
         ExecutionAggregateCall aggregateCall,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var arguments = SubstituteArguments(aggregateCall.Arguments, rightAlias);
         if (!arguments.IsBuilt)
@@ -530,7 +569,8 @@ internal static class OuterApplyNullSubstitutionService
 
     private static OuterApplyArgumentSubstitutionResult SubstituteArguments(
         IReadOnlyList<ExecutionExpression> arguments,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var expressions = new List<ExecutionExpression>(arguments.Count);
         var hasUnknown = false;
@@ -571,12 +611,8 @@ internal static class OuterApplyNullSubstitutionService
     private static string FormatTypeName(Type type)
     {
         var nullableUnderlying = Nullable.GetUnderlyingType(type);
-        return nullableUnderlying == null
-            ? type.Name
-            : $"{nullableUnderlying.Name}?";
+        return nullableUnderlying == null ? type.Name : $"{nullableUnderlying.Name}?";
     }
 
     private static string FormatTypeName(ExecutionTypeRef type) => FormatTypeName(type.ResolveClrType());
-
-
 }

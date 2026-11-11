@@ -42,8 +42,10 @@ public static partial class KeywordLookup
             { "true", TokenType.True },
             { "false", TokenType.False },
             { "in", TokenType.In },
-            { "exists", TokenType.Exists }, { "any", TokenType.Any },
-            { "some", TokenType.Some }, { "all", TokenType.All },
+            { "exists", TokenType.Exists },
+            { "any", TokenType.Any },
+            { "some", TokenType.Some },
+            { "all", TokenType.All },
             { "table", TokenType.Table },
             { "couple", TokenType.Couple },
             { "case", TokenType.Case },
@@ -54,7 +56,7 @@ public static partial class KeywordLookup
             { "distinct", TokenType.Distinct },
             { "between", TokenType.Between },
             { "over", TokenType.Over },
-            { "window", TokenType.Window }
+            { "window", TokenType.Window },
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
@@ -91,7 +93,7 @@ public static partial class KeywordLookup
             { ">>", TokenType.RightShift },
             { "=>", TokenType.FatArrow },
             { "??", TokenType.NullCoalescing },
-            { "?", TokenType.QuestionMark }
+            { "?", TokenType.QuestionMark },
         }.ToFrozenDictionary(StringComparer.Ordinal);
     }
 
@@ -148,7 +150,7 @@ public static partial class KeywordLookup
             { "lower", TokenType.Lower },
             { "upper", TokenType.Upper },
             { "capture", TokenType.Capture },
-            { "extends", TokenType.Extends }
+            { "extends", TokenType.Extends },
         }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
@@ -162,68 +164,110 @@ public static partial class KeywordLookup
         switch (text.Length)
         {
             case 2:
-                if (EqualsKeyword(text, "or")) return Found(TokenType.Or, out tokenType);
-                if (EqualsKeyword(text, "as")) return Found(TokenType.As, out tokenType);
-                if (EqualsKeyword(text, "is")) return Found(TokenType.Is, out tokenType);
-                if (EqualsKeyword(text, "on")) return Found(TokenType.On, out tokenType);
-                if (EqualsKeyword(text, "in")) return Found(TokenType.In, out tokenType);
+                if (EqualsKeyword(text, "or"))
+                    return Found(TokenType.Or, out tokenType);
+                if (EqualsKeyword(text, "as"))
+                    return Found(TokenType.As, out tokenType);
+                if (EqualsKeyword(text, "is"))
+                    return Found(TokenType.Is, out tokenType);
+                if (EqualsKeyword(text, "on"))
+                    return Found(TokenType.On, out tokenType);
+                if (EqualsKeyword(text, "in"))
+                    return Found(TokenType.In, out tokenType);
                 break;
             case 3:
-                if (EqualsKeyword(text, "and")) return Found(TokenType.And, out tokenType);
-                if (EqualsKeyword(text, "not")) return Found(TokenType.Not, out tokenType);
-                if (EqualsKeyword(text, "any")) return Found(TokenType.Any, out tokenType);
-                if (EqualsKeyword(text, "all")) return Found(TokenType.All, out tokenType);
-                if (EqualsKeyword(text, "asc")) return Found(TokenType.Asc, out tokenType);
-                if (EqualsKeyword(text, "end")) return Found(TokenType.End, out tokenType);
+                if (EqualsKeyword(text, "and"))
+                    return Found(TokenType.And, out tokenType);
+                if (EqualsKeyword(text, "not"))
+                    return Found(TokenType.Not, out tokenType);
+                if (EqualsKeyword(text, "any"))
+                    return Found(TokenType.Any, out tokenType);
+                if (EqualsKeyword(text, "all"))
+                    return Found(TokenType.All, out tokenType);
+                if (EqualsKeyword(text, "asc"))
+                    return Found(TokenType.Asc, out tokenType);
+                if (EqualsKeyword(text, "end"))
+                    return Found(TokenType.End, out tokenType);
                 break;
             case 4:
-                if (EqualsKeyword(text, "desc")) return Found(TokenType.Desc, out tokenType);
-                if (EqualsKeyword(text, "from")) return Found(TokenType.From, out tokenType);
-                if (EqualsKeyword(text, "like")) return Found(TokenType.Like, out tokenType);
-                if (EqualsKeyword(text, "null")) return Found(TokenType.Null, out tokenType);
-                if (EqualsKeyword(text, "skip")) return Found(TokenType.Skip, out tokenType);
-                if (EqualsKeyword(text, "take")) return Found(TokenType.Take, out tokenType);
-                if (EqualsKeyword(text, "with")) return Found(TokenType.With, out tokenType);
-                if (EqualsKeyword(text, "true")) return Found(TokenType.True, out tokenType);
-                if (EqualsKeyword(text, "some")) return Found(TokenType.Some, out tokenType);
-                if (EqualsKeyword(text, "case")) return Found(TokenType.Case, out tokenType);
-                if (EqualsKeyword(text, "when")) return Found(TokenType.When, out tokenType);
-                if (EqualsKeyword(text, "then")) return Found(TokenType.Then, out tokenType);
-                if (EqualsKeyword(text, "else")) return Found(TokenType.Else, out tokenType);
-                if (EqualsKeyword(text, "over")) return Found(TokenType.Over, out tokenType);
+                if (EqualsKeyword(text, "desc"))
+                    return Found(TokenType.Desc, out tokenType);
+                if (EqualsKeyword(text, "from"))
+                    return Found(TokenType.From, out tokenType);
+                if (EqualsKeyword(text, "like"))
+                    return Found(TokenType.Like, out tokenType);
+                if (EqualsKeyword(text, "null"))
+                    return Found(TokenType.Null, out tokenType);
+                if (EqualsKeyword(text, "skip"))
+                    return Found(TokenType.Skip, out tokenType);
+                if (EqualsKeyword(text, "take"))
+                    return Found(TokenType.Take, out tokenType);
+                if (EqualsKeyword(text, "with"))
+                    return Found(TokenType.With, out tokenType);
+                if (EqualsKeyword(text, "true"))
+                    return Found(TokenType.True, out tokenType);
+                if (EqualsKeyword(text, "some"))
+                    return Found(TokenType.Some, out tokenType);
+                if (EqualsKeyword(text, "case"))
+                    return Found(TokenType.Case, out tokenType);
+                if (EqualsKeyword(text, "when"))
+                    return Found(TokenType.When, out tokenType);
+                if (EqualsKeyword(text, "then"))
+                    return Found(TokenType.Then, out tokenType);
+                if (EqualsKeyword(text, "else"))
+                    return Found(TokenType.Else, out tokenType);
+                if (EqualsKeyword(text, "over"))
+                    return Found(TokenType.Over, out tokenType);
                 break;
             case 5:
-                if (EqualsKeyword(text, "where")) return Found(TokenType.Where, out tokenType);
-                if (EqualsKeyword(text, "pivot")) return Found(TokenType.Pivot, out tokenType);
-                if (EqualsKeyword(text, "rlike")) return Found(TokenType.RLike, out tokenType);
-                if (EqualsKeyword(text, "union")) return Found(TokenType.Union, out tokenType);
-                if (EqualsKeyword(text, "table")) return Found(TokenType.Table, out tokenType);
-                if (EqualsKeyword(text, "false")) return Found(TokenType.False, out tokenType);
+                if (EqualsKeyword(text, "where"))
+                    return Found(TokenType.Where, out tokenType);
+                if (EqualsKeyword(text, "pivot"))
+                    return Found(TokenType.Pivot, out tokenType);
+                if (EqualsKeyword(text, "rlike"))
+                    return Found(TokenType.RLike, out tokenType);
+                if (EqualsKeyword(text, "union"))
+                    return Found(TokenType.Union, out tokenType);
+                if (EqualsKeyword(text, "table"))
+                    return Found(TokenType.Table, out tokenType);
+                if (EqualsKeyword(text, "false"))
+                    return Found(TokenType.False, out tokenType);
                 break;
             case 6:
-                if (EqualsKeyword(text, "select")) return Found(TokenType.Select, out tokenType);
-                if (EqualsKeyword(text, "except")) return Found(TokenType.Except, out tokenType);
-                if (EqualsKeyword(text, "having")) return Found(TokenType.Having, out tokenType);
-                if (EqualsKeyword(text, "couple")) return Found(TokenType.Couple, out tokenType);
-                if (EqualsKeyword(text, "window")) return Found(TokenType.Window, out tokenType);
-                if (EqualsKeyword(text, "exists")) return Found(TokenType.Exists, out tokenType);
+                if (EqualsKeyword(text, "select"))
+                    return Found(TokenType.Select, out tokenType);
+                if (EqualsKeyword(text, "except"))
+                    return Found(TokenType.Except, out tokenType);
+                if (EqualsKeyword(text, "having"))
+                    return Found(TokenType.Having, out tokenType);
+                if (EqualsKeyword(text, "couple"))
+                    return Found(TokenType.Couple, out tokenType);
+                if (EqualsKeyword(text, "window"))
+                    return Found(TokenType.Window, out tokenType);
+                if (EqualsKeyword(text, "exists"))
+                    return Found(TokenType.Exists, out tokenType);
                 break;
             case 7:
-                if (EqualsKeyword(text, "between")) return Found(TokenType.Between, out tokenType);
-                if (EqualsKeyword(text, "unpivot")) return Found(TokenType.Unpivot, out tokenType);
+                if (EqualsKeyword(text, "between"))
+                    return Found(TokenType.Between, out tokenType);
+                if (EqualsKeyword(text, "unpivot"))
+                    return Found(TokenType.Unpivot, out tokenType);
                 break;
             case 8:
-                if (EqualsKeyword(text, "contains")) return Found(TokenType.Contains, out tokenType);
-                if (EqualsKeyword(text, "distinct")) return Found(TokenType.Distinct, out tokenType);
+                if (EqualsKeyword(text, "contains"))
+                    return Found(TokenType.Contains, out tokenType);
+                if (EqualsKeyword(text, "distinct"))
+                    return Found(TokenType.Distinct, out tokenType);
                 break;
             case 9:
-                if (EqualsKeyword(text, "functions")) return Found(TokenType.Functions, out tokenType);
-                if (EqualsKeyword(text, "intersect")) return Found(TokenType.Intersect, out tokenType);
+                if (EqualsKeyword(text, "functions"))
+                    return Found(TokenType.Functions, out tokenType);
+                if (EqualsKeyword(text, "intersect"))
+                    return Found(TokenType.Intersect, out tokenType);
                 break;
         }
 
         tokenType = TokenType.Word;
         return false;
     }
-
 }

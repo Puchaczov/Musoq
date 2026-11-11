@@ -7,19 +7,18 @@ internal static partial class ExecutionNodeFacts
 {
     internal static IEnumerable<ExecutionExpression> GetContextLayoutExpressions(ExecutionContextLayout? contextLayout)
     {
-        return contextLayout == null
-            ? []
-            : contextLayout.Segments.Select(static segment => segment.Value);
+        return contextLayout == null ? [] : contextLayout.Segments.Select(static segment => segment.Value);
     }
 
-    internal static IEnumerable<ExecutionExpression> GetLocalExpressions(ExecutionNode node) => node switch
-    {
-        ExecutionSourceScan scan => scan.Binding.Arguments,
-        ExecutionInterpretSource interpret => interpret.Arguments,
-        ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => getOrAdd.Keys,
-        ExecutionReturnDesc description => description.Arguments,
-        _ => MaterializeSmallLocalExpressions(node)
-    };
+    internal static IEnumerable<ExecutionExpression> GetLocalExpressions(ExecutionNode node) =>
+        node switch
+        {
+            ExecutionSourceScan scan => scan.Binding.Arguments,
+            ExecutionInterpretSource interpret => interpret.Arguments,
+            ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => getOrAdd.Keys,
+            ExecutionReturnDesc description => description.Arguments,
+            _ => MaterializeSmallLocalExpressions(node),
+        };
 
     private static IEnumerable<ExecutionExpression> MaterializeSmallLocalExpressions(ExecutionNode node)
     {

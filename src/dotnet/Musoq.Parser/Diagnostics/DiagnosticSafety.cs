@@ -1,5 +1,5 @@
-using System.Globalization;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Musoq.Parser.Diagnostics;
@@ -28,9 +28,7 @@ public static class DiagnosticSafety
         var result = new System.Text.StringBuilder(Math.Min(value.Length, MaxDisplayLength));
         foreach (var character in value)
         {
-            var escaped = IsUnsafeDisplayCharacter(character)
-                ? EscapeUnsafeCharacter(character)
-                : character.ToString();
+            var escaped = IsUnsafeDisplayCharacter(character) ? EscapeUnsafeCharacter(character) : character.ToString();
             var remaining = MaxDisplayLength - result.Length;
             if (escaped.Length > remaining)
             {
@@ -66,17 +64,27 @@ public static class DiagnosticSafety
 
         foreach (var character in value)
         {
-            if (IsUnsafeDisplayCharacter(character) || char.IsWhiteSpace(character) ||
-                character is '\'' or '"' or '`' or ';' or '\\' or '<' or '>' or '&' or '|')
+            if (
+                IsUnsafeDisplayCharacter(character)
+                || char.IsWhiteSpace(character)
+                || character is '\'' or '"' or '`' or ';' or '\\' or '<' or '>' or '&' or '|'
+            )
                 return false;
 
             if (character is '.' or '_' or '$' or '#')
                 continue;
 
             var category = CharUnicodeInfo.GetUnicodeCategory(character);
-            if (!char.IsLetterOrDigit(character) && category is not
-                    (UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or
-                    UnicodeCategory.ConnectorPunctuation) && !char.IsSurrogate(character))
+            if (
+                !char.IsLetterOrDigit(character)
+                && category
+                    is not (
+                        UnicodeCategory.NonSpacingMark
+                        or UnicodeCategory.SpacingCombiningMark
+                        or UnicodeCategory.ConnectorPunctuation
+                    )
+                && !char.IsSurrogate(character)
+            )
                 return false;
         }
 
@@ -85,8 +93,15 @@ public static class DiagnosticSafety
 
     internal static bool IsUnsafeDisplayCharacter(char character)
     {
-        return char.IsControl(character) || character is '\u007f' or '\u2028' or '\u2029' or
-            >= '\u202A' and <= '\u202E' or >= '\u2066' and <= '\u2069';
+        return char.IsControl(character)
+            || character
+                is '\u007f'
+                    or '\u2028'
+                    or '\u2029'
+                    or >= '\u202A'
+                    and <= '\u202E'
+                    or >= '\u2066'
+                    and <= '\u2069';
     }
 
     internal static string EscapeUnsafeCharacter(char character)
@@ -99,7 +114,7 @@ public static class DiagnosticSafety
             '\r' => "\\r",
             '\t' => "\\t",
             '\v' => "\\v",
-            _ => $"\\u{((int)character).ToString("x4", CultureInfo.InvariantCulture)}"
+            _ => $"\\u{((int)character).ToString("x4", CultureInfo.InvariantCulture)}",
         };
     }
 
@@ -113,33 +128,22 @@ public static class DiagnosticSafety
     ///     diagnostic values retain their control characters so the JSON
     ///     encoder can round-trip them; provider-owned values are bounded first.
     /// </summary>
-    public static string SanitizeForJson(
-        string? value,
-        DiagnosticSourceKind sourceKind)
+    public static string SanitizeForJson(string? value, DiagnosticSourceKind sourceKind)
     {
         var result = value ?? string.Empty;
-        return sourceKind == DiagnosticSourceKind.DataSource
-            ? BoundRaw(result)
-            : result;
+        return sourceKind == DiagnosticSourceKind.DataSource ? BoundRaw(result) : result;
     }
 
     /// <summary>
     ///     Redacts a diagnostic message for JSON without converting control
     ///     characters into display escape text.
     /// </summary>
-    public static string SanitizeMessageForJson(
-        Diagnostic diagnostic,
-        string? queryText = null)
+    public static string SanitizeMessageForJson(Diagnostic diagnostic, string? queryText = null)
     {
-        return SanitizeForJson(
-            SanitizeText(diagnostic.Message, diagnostic, queryText),
-            diagnostic.SourceKind);
+        return SanitizeForJson(SanitizeText(diagnostic.Message, diagnostic, queryText), diagnostic.SourceKind);
     }
 
-    public static string? SanitizeText(
-        string? value,
-        Diagnostic diagnostic,
-        string? queryText = null)
+    public static string? SanitizeText(string? value, Diagnostic diagnostic, string? queryText = null)
     {
         if (value == null)
             return null;
@@ -158,22 +162,21 @@ public static class DiagnosticSafety
 
     public static string? GetSafeSnippet(Diagnostic diagnostic, string? queryText = null)
     {
-        if (queryText != null && diagnostic.SourceKind == DiagnosticSourceKind.Query &&
-            TryGetSourceSpan(diagnostic, queryText, out var source, out var span) &&
-            IsPotentialLiteral(source.GetText(span)))
+        if (
+            queryText != null
+            && diagnostic.SourceKind == DiagnosticSourceKind.Query
+            && TryGetSourceSpan(diagnostic, queryText, out var source, out var span)
+            && IsPotentialLiteral(source.GetText(span))
+        )
         {
             var masked = MaskSpan(source.Text, span);
             return new SourceText(masked).GetContextSnippet(span);
         }
 
-        return diagnostic.ContextSnippet == null
-            ? null
-            : MaskContextSnippet(diagnostic, diagnostic.ContextSnippet);
+        return diagnostic.ContextSnippet == null ? null : MaskContextSnippet(diagnostic, diagnostic.ContextSnippet);
     }
 
-    public static IReadOnlyDictionary<string, string> SanitizeArguments(
-        Diagnostic diagnostic,
-        string? queryText = null)
+    public static IReadOnlyDictionary<string, string> SanitizeArguments(Diagnostic diagnostic, string? queryText = null)
     {
         var arguments = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var argument in diagnostic.Arguments)
@@ -188,39 +191,42 @@ public static class DiagnosticSafety
 
     public static IReadOnlyList<DiagnosticRelatedLocation> SanitizeRelatedLocations(
         Diagnostic diagnostic,
-        string? queryText = null)
+        string? queryText = null
+    )
     {
-        return diagnostic.RelatedLocations
-            .Select(location => new DiagnosticRelatedLocation(
+        return diagnostic
+            .RelatedLocations.Select(location => new DiagnosticRelatedLocation(
                 location.Location,
                 location.EndLocation,
                 SanitizeText(location.Message, diagnostic, queryText),
-                location.SourceKind))
+                location.SourceKind
+            ))
             .ToArray();
     }
 
-    public static IReadOnlyList<DiagnosticAction> SanitizeActions(
-        Diagnostic diagnostic,
-        string? queryText = null)
+    public static IReadOnlyList<DiagnosticAction> SanitizeActions(Diagnostic diagnostic, string? queryText = null)
     {
-        return diagnostic.SuggestedFixes
-            .Select(action => new DiagnosticAction(
+        return diagnostic
+            .SuggestedFixes.Select(action => new DiagnosticAction(
                 SanitizeText(action.Title, diagnostic, queryText) ?? string.Empty,
                 action.Kind,
                 action.TextEdit == null
                     ? null
                     : new TextEdit(
                         action.TextEdit.Span,
-                        SanitizeText(action.TextEdit.NewText, diagnostic, queryText) ?? string.Empty)))
+                        SanitizeText(action.TextEdit.NewText, diagnostic, queryText) ?? string.Empty
+                    )
+            ))
             .ToArray();
     }
 
-    private static IEnumerable<string> GetSensitiveValues(
-        Diagnostic diagnostic,
-        string? queryText)
+    private static IEnumerable<string> GetSensitiveValues(Diagnostic diagnostic, string? queryText)
     {
-        if (queryText != null && diagnostic.SourceKind == DiagnosticSourceKind.Query &&
-            TryGetSourceSpan(diagnostic, queryText, out var source, out var span))
+        if (
+            queryText != null
+            && diagnostic.SourceKind == DiagnosticSourceKind.Query
+            && TryGetSourceSpan(diagnostic, queryText, out var source, out var span)
+        )
         {
             var sourceValue = source.GetText(span);
             if (IsPotentialLiteral(sourceValue))
@@ -253,33 +259,35 @@ public static class DiagnosticSafety
             .Replace("-", string.Empty, StringComparison.Ordinal)
             .ToLowerInvariant();
 
-        return normalized.Contains("secret", StringComparison.Ordinal) ||
-               normalized.Contains("password", StringComparison.Ordinal) ||
-               normalized.Contains("token", StringComparison.Ordinal) ||
-               normalized.Contains("credential", StringComparison.Ordinal) ||
-               normalized.Contains("apikey", StringComparison.Ordinal) ||
-               normalized.Contains("authorization", StringComparison.Ordinal) ||
-               normalized.Contains("connectionstring", StringComparison.Ordinal) ||
-               normalized.Contains("privatekey", StringComparison.Ordinal);
+        return normalized.Contains("secret", StringComparison.Ordinal)
+            || normalized.Contains("password", StringComparison.Ordinal)
+            || normalized.Contains("token", StringComparison.Ordinal)
+            || normalized.Contains("credential", StringComparison.Ordinal)
+            || normalized.Contains("apikey", StringComparison.Ordinal)
+            || normalized.Contains("authorization", StringComparison.Ordinal)
+            || normalized.Contains("connectionstring", StringComparison.Ordinal)
+            || normalized.Contains("privatekey", StringComparison.Ordinal);
     }
 
     private static bool TryGetSourceSpan(
         Diagnostic diagnostic,
         string queryText,
         out SourceText source,
-        out TextSpan span)
+        out TextSpan span
+    )
     {
         source = new SourceText(queryText);
-        if (!diagnostic.Location.IsValid || diagnostic.Location.Offset < 0 ||
-            diagnostic.Location.Offset > source.Length)
+        if (
+            !diagnostic.Location.IsValid
+            || diagnostic.Location.Offset < 0
+            || diagnostic.Location.Offset > source.Length
+        )
         {
             span = TextSpan.Empty;
             return false;
         }
 
-        var endOffset = diagnostic.EndLocation.IsValid
-            ? diagnostic.EndLocation.Offset
-            : diagnostic.Location.Offset + 1;
+        var endOffset = diagnostic.EndLocation.IsValid ? diagnostic.EndLocation.Offset : diagnostic.Location.Offset + 1;
         endOffset = Math.Clamp(endOffset, diagnostic.Location.Offset, source.Length);
         span = new TextSpan(diagnostic.Location.Offset, endOffset - diagnostic.Location.Offset);
         return span.Length > 0;
@@ -291,8 +299,7 @@ public static class DiagnosticSafety
             return false;
 
         var first = value[0];
-        return first is '\'' or '"' ||
-               ((first is 'r' or 'R') && value.Length > 1 && (value[1] is '\'' or '"'));
+        return first is '\'' or '"' || ((first is 'r' or 'R') && value.Length > 1 && (value[1] is '\'' or '"'));
     }
 
     private static string GetLiteralContent(string value)
@@ -301,9 +308,7 @@ public static class DiagnosticSafety
         if (value.Length <= start)
             return string.Empty;
 
-        var end = value.Length > start && value[^1] == value[start - 1]
-            ? value.Length - 1
-            : value.Length;
+        var end = value.Length > start && value[^1] == value[start - 1] ? value.Length - 1 : value.Length;
         return value[start..end];
     }
 
@@ -325,7 +330,9 @@ public static class DiagnosticSafety
             return snippet;
 
         var result = snippet;
-        foreach (var value in values.Where(static value => value.Length > 0).OrderByDescending(static value => value.Length))
+        foreach (
+            var value in values.Where(static value => value.Length > 0).OrderByDescending(static value => value.Length)
+        )
             result = result.Replace(value, new string('*', value.Length), StringComparison.Ordinal);
 
         return result;
@@ -347,16 +354,19 @@ public static class DiagnosticSafety
         foreach (var line in snippet.Split('\n'))
         {
             var separator = line.IndexOf(" | ", StringComparison.Ordinal);
-            if (separator < 0 || !int.TryParse(line[..separator].Trim(), out var lineNumber) ||
-                lineNumber != diagnostic.Location.Line)
+            if (
+                separator < 0
+                || !int.TryParse(line[..separator].Trim(), out var lineNumber)
+                || lineNumber != diagnostic.Location.Line
+            )
                 continue;
 
             var sourceLine = line[(separator + 3)..].TrimEnd('\r');
             var start = Math.Clamp(diagnostic.Location.Column - 1, 0, sourceLine.Length);
-            var endColumn = diagnostic.EndLocation.IsValid &&
-                            diagnostic.EndLocation.Line == diagnostic.Location.Line
-                ? diagnostic.EndLocation.Column
-                : diagnostic.Location.Column + 1;
+            var endColumn =
+                diagnostic.EndLocation.IsValid && diagnostic.EndLocation.Line == diagnostic.Location.Line
+                    ? diagnostic.EndLocation.Column
+                    : diagnostic.Location.Column + 1;
             var end = Math.Clamp(endColumn - 1, start, sourceLine.Length);
             return sourceLine[start..end];
         }

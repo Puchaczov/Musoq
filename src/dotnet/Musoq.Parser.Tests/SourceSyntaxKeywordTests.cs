@@ -9,9 +9,18 @@ namespace Musoq.Parser.Tests;
 public sealed class SourceSyntaxKeywordTests
 {
     [TestMethod]
-    [DataRow("select Sum(Value) over (order by Name rows between unbounded preceding and current row) from #s.rows()", "rows")]
-    [DataRow("select Sum(Value) over (order by Name rows between unbounded preceding and current row) from #s.rows()", "unbounded")]
-    [DataRow("select Sum(Value) over (order by Name rows between unbounded preceding and current row) from #s.rows()", "preceding")]
+    [DataRow(
+        "select Sum(Value) over (order by Name rows between unbounded preceding and current row) from #s.rows()",
+        "rows"
+    )]
+    [DataRow(
+        "select Sum(Value) over (order by Name rows between unbounded preceding and current row) from #s.rows()",
+        "unbounded"
+    )]
+    [DataRow(
+        "select Sum(Value) over (order by Name rows between unbounded preceding and current row) from #s.rows()",
+        "preceding"
+    )]
     [DataRow("select Count(Value) filter (where Flag=1) from #s.rows()", "filter")]
     [DataRow("select * exclude (Secret) from #s.rows()", "exclude")]
     [DataRow("select * rename (Name as Label) from #s.rows()", "rename")]

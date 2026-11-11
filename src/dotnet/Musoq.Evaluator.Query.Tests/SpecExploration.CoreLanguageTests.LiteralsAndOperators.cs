@@ -12,10 +12,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_StringLiteral_BackslashEscape_ShouldReturnBackslash()
     {
         var query = @"select '\\' from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -28,10 +25,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_StringLiteral_SingleQuoteEscape_ShouldReturnSingleQuote()
     {
         var query = @"select '\'' from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -44,10 +38,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_StringLiteral_NewlineEscape_ShouldReturnNewline()
     {
         var query = @"select '\n' from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -60,10 +51,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_StringLiteral_UnicodeEscape_ShouldReturnCorrectCharacter()
     {
         var query = @"select '\u0041' from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -76,10 +64,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_StringLiteral_HexEscape_ShouldReturnCorrectCharacter()
     {
         var query = @"select '\x41' from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -92,10 +77,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_StringLiteral_CombinedEscapes_ShouldReturnCorrectString()
     {
         var query = @"select 'Hello\nWorld\t\u0394\\test' from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);

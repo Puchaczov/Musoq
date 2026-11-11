@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Parser;
 using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Schema;
@@ -14,21 +14,27 @@ public partial class BuildMetadataAndInferTypesVisitor
 {
     private ISchemaTable CreatePartialInterpretTable(string schemaName)
     {
-        return new DynamicTable(Musoq.Evaluator.IR.Bindings.PartialInterpretationShape.CreateColumns(schemaName)
-            .Select(static column => column.ToSchemaColumn()).ToArray());
+        return new DynamicTable(
+            Musoq
+                .Evaluator.IR.Bindings.PartialInterpretationShape.CreateColumns(schemaName)
+                .Select(static column => column.ToSchemaColumn())
+                .ToArray()
+        );
     }
 
     private ISchemaTable CreateInterpretTable(string? schemaName)
     {
         if (schemaName == null || SchemaRegistry == null)
             throw new InvalidOperationException(
-                $"Cannot create interpret table: schema name is '{schemaName ?? "null"}' and schema registry is {(SchemaRegistry != null ? "present" : "null")}.");
+                $"Cannot create interpret table: schema name is '{schemaName ?? "null"}' and schema registry is {(SchemaRegistry != null ? "present" : "null")}."
+            );
 
         if (!SchemaRegistry.TryGetSchema(schemaName, out var registration) || registration == null)
             throw new UnknownInterpretationSchemaException(
                 schemaName,
                 $"Interpretation schema '{schemaName}' is not defined.",
-                TextSpan.Empty);
+                TextSpan.Empty
+            );
 
         var schema = registration;
         if (schema.Node is BinarySchemaNode)
@@ -40,8 +46,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             case BinarySchemaNode binaryNode:
             {
                 var allFields = GetAllBinarySchemaFields(binaryNode);
-                columns.AddRange(CreateBinarySchemaColumns(
-                    allFields));
+                columns.AddRange(CreateBinarySchemaColumns(allFields));
                 break;
             }
             case TextSchemaNode textSchemaNode:
@@ -55,8 +60,14 @@ public partial class BuildMetadataAndInferTypesVisitor
 
                     if (field is { FieldType: TextFieldType.Pattern, CaptureGroups.Length: > 0 })
                     {
-                        columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(object),
-                            $"Musoq.Generated.Interpreters.{schema.Name}.CaptureResult_{field.Name}"));
+                        columns.Add(
+                            new SchemaColumn(
+                                field.Name,
+                                columnIndex++,
+                                typeof(object),
+                                $"Musoq.Generated.Interpreters.{schema.Name}.CaptureResult_{field.Name}"
+                            )
+                        );
                         continue;
                     }
 
@@ -65,13 +76,21 @@ public partial class BuildMetadataAndInferTypesVisitor
                         if (field.RepeatElement != null)
                         {
                             var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field, SchemaRegistry);
-                            columns.Add(new SchemaColumn(field.Name, columnIndex++, shape.ClrType, shape.IntendedTypeName));
+                            columns.Add(
+                                new SchemaColumn(field.Name, columnIndex++, shape.ClrType, shape.IntendedTypeName)
+                            );
                             continue;
                         }
 
                         var elementSchemaName = field.PrimaryValue ?? "object";
-                        columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(object[]),
-                            $"Musoq.Generated.Interpreters.{elementSchemaName}[]"));
+                        columns.Add(
+                            new SchemaColumn(
+                                field.Name,
+                                columnIndex++,
+                                typeof(object[]),
+                                $"Musoq.Generated.Interpreters.{elementSchemaName}[]"
+                            )
+                        );
                         continue;
                     }
 
@@ -85,11 +104,14 @@ public partial class BuildMetadataAndInferTypesVisitor
                     if (field.FieldType == TextFieldType.SchemaReference)
                     {
                         var referencedSchemaName = field.PrimaryValue ?? "object";
-                        columns.Add(new SchemaColumn(
-                            field.Name,
-                            columnIndex++,
-                            typeof(object),
-                            $"Musoq.Generated.Interpreters.{referencedSchemaName}"));
+                        columns.Add(
+                            new SchemaColumn(
+                                field.Name,
+                                columnIndex++,
+                                typeof(object),
+                                $"Musoq.Generated.Interpreters.{referencedSchemaName}"
+                            )
+                        );
                         continue;
                     }
 
@@ -106,8 +128,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         return new DynamicTable(columns.ToArray());
     }
 
-    private List<SchemaFieldNode> GetAllBinarySchemaFields(
-        BinarySchemaNode binaryNode)
+    private List<SchemaFieldNode> GetAllBinarySchemaFields(BinarySchemaNode binaryNode)
     {
         if (string.IsNullOrEmpty(binaryNode.Extends))
             return binaryNode.Fields.ToList();
@@ -121,7 +142,6 @@ public partial class BuildMetadataAndInferTypesVisitor
                 allFields.AddRange(GetAllBinarySchemaFields(parentBinaryNode));
         }
 
-
         var overriddenParentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var childField in binaryNode.Fields)
             for (var i = 0; i < allFields.Count; i++)
@@ -132,7 +152,6 @@ public partial class BuildMetadataAndInferTypesVisitor
                     break;
                 }
 
-
         foreach (var childField in binaryNode.Fields)
             if (!overriddenParentNames.Contains(childField.Name))
                 allFields.Add(childField);
@@ -140,17 +159,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         return allFields;
     }
 
-    private List<ISchemaColumn> CreateBinarySchemaColumns(
-        IReadOnlyList<SchemaFieldNode> fields)
+    private List<ISchemaColumn> CreateBinarySchemaColumns(IReadOnlyList<SchemaFieldNode> fields)
     {
-        return CreateBinarySchemaColumns(
-            fields,
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
+        return CreateBinarySchemaColumns(fields, new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
     }
 
     private List<ISchemaColumn> CreateBinarySchemaColumns(
         IReadOnlyList<SchemaFieldNode> fields,
-        IReadOnlyDictionary<string, string> typeParamMap)
+        IReadOnlyDictionary<string, string> typeParamMap
+    )
     {
         var columns = new List<ISchemaColumn>();
         var columnIndex = 0;
@@ -165,19 +182,19 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (field is FieldDefinitionNode fieldDef)
             {
-                var (columnType, intendedTypeName) = ResolveBinaryFieldClrTypeWithIntendedName(
-                    fieldDef,
-                    typeParamMap);
+                var (columnType, intendedTypeName) = ResolveBinaryFieldClrTypeWithIntendedName(fieldDef, typeParamMap);
 
-                if (fieldDef.IsConditional &&
-                    columnType.IsValueType &&
-                    Nullable.GetUnderlyingType(columnType) == null)
+                if (fieldDef.IsConditional && columnType.IsValueType && Nullable.GetUnderlyingType(columnType) == null)
                 {
                     columnType = typeof(Nullable<>).MakeGenericType(columnType);
                 }
 
-                columns.Add(NullableInterpretationColumn.Preserve(
-                    new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName), fieldDef.IsConditional));
+                columns.Add(
+                    NullableInterpretationColumn.Preserve(
+                        new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName),
+                        fieldDef.IsConditional
+                    )
+                );
                 continue;
             }
 
@@ -185,10 +202,16 @@ public partial class BuildMetadataAndInferTypesVisitor
             {
                 var columnType = BinarySchemaExpressionTypes.Resolve(computedField.Expression, fields, SchemaRegistry);
                 var alias = BinarySchemaRecordAliases.Resolve(computedField.Expression, fields);
-                var intendedTypeName = alias is null ? null : ResolveBinaryFieldClrTypeWithIntendedName(alias, typeParamMap).IntendedTypeName;
-                columns.Add(NullableInterpretationColumn.Preserve(
-                    new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName),
-                    intendedTypeName != null && BinarySchemaExpressionTypes.MayBeNull(computedField.Expression, fields, SchemaRegistry)));
+                var intendedTypeName = alias is null
+                    ? null
+                    : ResolveBinaryFieldClrTypeWithIntendedName(alias, typeParamMap).IntendedTypeName;
+                columns.Add(
+                    NullableInterpretationColumn.Preserve(
+                        new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName),
+                        intendedTypeName != null
+                            && BinarySchemaExpressionTypes.MayBeNull(computedField.Expression, fields, SchemaRegistry)
+                    )
+                );
                 continue;
             }
 
@@ -220,8 +243,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             for (var i = 0; i < allFields.Count; i++)
             {
-                if (allFields[i].IsDiscard ||
-                    !string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase))
+                if (
+                    allFields[i].IsDiscard
+                    || !string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase)
+                )
                     continue;
 
                 allFields[i] = childField;
@@ -241,6 +266,9 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private SchemaRegistry RequireSchemaRegistry()
     {
-        return SchemaRegistry ?? throw new InvalidOperationException("Schema registry is required to resolve interpretation schema inheritance.");
+        return SchemaRegistry
+            ?? throw new InvalidOperationException(
+                "Schema registry is required to resolve interpretation schema inheritance."
+            );
     }
 }

@@ -17,7 +17,8 @@ public partial class Parser
             throw InvalidOrderByList(
                 DiagnosticCode.MQ2015_LeadingComma,
                 "ORDER BY list has a leading comma. Add an expression before the comma or remove it.",
-                Current.Span);
+                Current.Span
+            );
 
         fields.Add(ConsumeFieldOrdered(i++));
         while (Current.TokenType == TokenType.Comma)
@@ -28,14 +29,23 @@ public partial class Parser
                 throw InvalidOrderByList(
                     DiagnosticCode.MQ2015_LeadingComma,
                     "ORDER BY list has a leading comma. Add an expression before the comma or remove it.",
-                    Current.Span);
-            if (IsSetOperator(Current.TokenType) ||
-                Current.TokenType is TokenType.EndOfFile or TokenType.RightParenthesis or TokenType.Skip or TokenType.Take ||
-                IsContextualKeyword("rows") || IsContextualKeyword("range"))
+                    Current.Span
+                );
+            if (
+                IsSetOperator(Current.TokenType)
+                || Current.TokenType
+                    is TokenType.EndOfFile
+                        or TokenType.RightParenthesis
+                        or TokenType.Skip
+                        or TokenType.Take
+                || IsContextualKeyword("rows")
+                || IsContextualKeyword("range")
+            )
                 throw InvalidOrderByList(
                     DiagnosticCode.MQ2014_TrailingComma,
                     "ORDER BY list has a trailing comma. Add another expression or remove the comma.",
-                    commaSpan);
+                    commaSpan
+                );
             fields.Add(ConsumeFieldOrdered(i++));
         }
 
@@ -48,6 +58,4 @@ public partial class Parser
 
         return ErrorCatalog.GetDidYouMeanSuggestion(identifier, ClauseKeywords, maxDistance: maxDistance) != null;
     }
-
-
 }

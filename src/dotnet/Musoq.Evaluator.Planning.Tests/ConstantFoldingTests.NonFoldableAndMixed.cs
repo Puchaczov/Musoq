@@ -10,7 +10,10 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenColumnInArithmetic_ShouldNotFoldButStillWork()
     {
-        var source = new[] { new FoldEntity { Name = "a", Value = 10 } };
+        var source = new[]
+        {
+            new FoldEntity { Name = "a", Value = 10 },
+        };
 
         var vm = CreateAndRunVirtualMachine("select Value + 5 from #schema.first()", source);
         var table = vm.Run();
@@ -22,7 +25,10 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenColumnInStringConcat_ShouldNotFoldButStillWork()
     {
-        var source = new[] { new FoldEntity { Name = "world", Value = 1 } };
+        var source = new[]
+        {
+            new FoldEntity { Name = "world", Value = 1 },
+        };
 
         var vm = CreateAndRunVirtualMachine("select 'hello ' + Name from #schema.first()", source);
         var table = vm.Run();
@@ -34,7 +40,10 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenPartiallyConstant_ShouldFoldConstantPartOnly()
     {
-        var source = new[] { new FoldEntity { Name = "a", Value = 10 } };
+        var source = new[]
+        {
+            new FoldEntity { Name = "a", Value = 10 },
+        };
 
         var vm = CreateAndRunVirtualMachine("select (2 + 3) + Value from #schema.first()", source);
         var table = vm.Run();
@@ -49,11 +58,10 @@ public partial class ConstantFoldingTests
         var source = new[]
         {
             new FoldEntity { Name = "a", Value = 10 },
-            new FoldEntity { Name = "b", Value = 0 }
+            new FoldEntity { Name = "b", Value = 0 },
         };
 
-        var vm = CreateAndRunVirtualMachine(
-            "select Name from #schema.first() where true and Value > 5", source);
+        var vm = CreateAndRunVirtualMachine("select Name from #schema.first() where true and Value > 5", source);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -68,7 +76,9 @@ public partial class ConstantFoldingTests
     public void WhenConstantInSelect_ShouldFoldArithmetic()
     {
         var vm = CreateAndRunVirtualMachine(
-            "select 100 + 200 from #schema.first() where 1 + 1 > 0", SingleEntitySource);
+            "select 100 + 200 from #schema.first() where 1 + 1 > 0",
+            SingleEntitySource
+        );
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -78,8 +88,7 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenConstantInWhere_ShouldFilterCorrectly()
     {
-        var vm = CreateAndRunVirtualMachine(
-            "select Name from #schema.first() where 1 + 1 > 0", SingleEntitySource);
+        var vm = CreateAndRunVirtualMachine("select Name from #schema.first() where 1 + 1 > 0", SingleEntitySource);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -123,7 +132,7 @@ public partial class ConstantFoldingTests
         {
             new FoldEntity { Name = "a", Value = 1 },
             new FoldEntity { Name = "b", Value = 2 },
-            new FoldEntity { Name = "c", Value = 3 }
+            new FoldEntity { Name = "c", Value = 3 },
         };
 
         var vm = CreateAndRunVirtualMachine("select 100 * 3, Name from #schema.first()", source);

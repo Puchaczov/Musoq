@@ -24,7 +24,9 @@ public sealed class MultiStatementQueryException : Exception, IDiagnosticExcepti
     }
 
     public MultiStatementQueryException(TextSpan span)
-        : base("Multiple executable statements are not supported by this compilation entry point. Submit one statement at a time.")
+        : base(
+            "Multiple executable statements are not supported by this compilation entry point. Submit one statement at a time."
+        )
     {
         Span = span;
     }
@@ -35,6 +37,12 @@ public sealed class MultiStatementQueryException : Exception, IDiagnosticExcepti
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return SyntaxDiagnosticFactory.CreateDiagnostic(Code, Message, Span ?? TextSpan.Empty, currentToken: null, sourceText);
+        return SyntaxDiagnosticFactory.CreateDiagnostic(
+            Code,
+            Message,
+            Span ?? TextSpan.Empty,
+            currentToken: null,
+            sourceText
+        );
     }
 }

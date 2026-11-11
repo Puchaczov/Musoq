@@ -11,7 +11,8 @@ public sealed record ExecutionMemberRead : ExecutionExpression
         ExecutionExpression receiver,
         string memberName,
         ExecutionTypeRef returnType,
-        bool isDynamic)
+        bool isDynamic
+    )
         : base(returnType)
     {
         ArgumentNullException.ThrowIfNull(receiver);
@@ -23,14 +24,8 @@ public sealed record ExecutionMemberRead : ExecutionExpression
         IsDynamic = isDynamic;
     }
 
-    internal ExecutionMemberRead(
-        ExecutionExpression receiver,
-        string memberName,
-        Type returnType,
-        bool isDynamic)
-        : this(receiver, memberName, ExecutionClrBindingFactory.FromClr(returnType), isDynamic)
-    {
-    }
+    internal ExecutionMemberRead(ExecutionExpression receiver, string memberName, Type returnType, bool isDynamic)
+        : this(receiver, memberName, ExecutionClrBindingFactory.FromClr(returnType), isDynamic) { }
 
     public ExecutionExpression Receiver { get; init; }
 

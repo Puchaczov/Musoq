@@ -1,6 +1,6 @@
 using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -20,7 +20,9 @@ public sealed class CSharpClrReferenceAssemblyCollectorTests
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
                 "process-source",
-                ExecutionPortableSymbolFactory.FromType(typeof(Process))));
+                ExecutionPortableSymbolFactory.FromType(typeof(Process))
+            )
+        );
 
         Assert.AreEqual(1, references.Count);
         Assert.AreEqual(Normalize(typeof(Process).Assembly.Location), Normalize(references[0].Location));
@@ -34,11 +36,13 @@ public sealed class CSharpClrReferenceAssemblyCollectorTests
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
                 "string",
-                ExecutionPortableSymbolFactory.FromType(typeof(string))),
+                ExecutionPortableSymbolFactory.FromType(typeof(string))
+            ),
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
                 "integer",
-                ExecutionPortableSymbolFactory.FromType(typeof(int)))
+                ExecutionPortableSymbolFactory.FromType(typeof(int))
+            ),
         };
 
         var references = Collect(requirements);
@@ -51,20 +55,23 @@ public sealed class CSharpClrReferenceAssemblyCollectorTests
     {
         var generatedRow = ExecutionPortableSymbolFactory.GeneratedRow(
             "ResultRow",
-            [new ExecutionPortableRowFieldDescriptor(
-                "Process",
-                ExecutionPortableSymbolFactory.FromType(typeof(Process)),
-                "Unknown")]);
+            [
+                new ExecutionPortableRowFieldDescriptor(
+                    "Process",
+                    ExecutionPortableSymbolFactory.FromType(typeof(Process)),
+                    "Unknown"
+                ),
+            ]
+        );
 
         var references = Collect(
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
                 "process-source",
-                ExecutionPortableSymbolFactory.FromType(typeof(Process))),
-            new ExecutionTargetRequirement(
-                ExecutionTargetRequirementKind.GeneratedClrRow,
-                "ResultRow",
-                generatedRow));
+                ExecutionPortableSymbolFactory.FromType(typeof(Process))
+            ),
+            new ExecutionTargetRequirement(ExecutionTargetRequirementKind.GeneratedClrRow, "ResultRow", generatedRow)
+        );
 
         Assert.AreEqual(1, references.Count);
         Assert.AreEqual(Normalize(typeof(Process).Assembly.Location), Normalize(references[0].Location));
@@ -77,28 +84,35 @@ public sealed class CSharpClrReferenceAssemblyCollectorTests
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
                 "uri-map",
-                ExecutionPortableSymbolFactory.FromType(typeof(Dictionary<string, Uri>))));
+                ExecutionPortableSymbolFactory.FromType(typeof(Dictionary<string, Uri>))
+            )
+        );
 
         CollectionAssert.AreEquivalent(
             new[] { Normalize(typeof(Uri).Assembly.Location) },
-            references.Select(reference => Normalize(reference.Location)).ToArray());
+            references.Select(reference => Normalize(reference.Location)).ToArray()
+        );
     }
 
     [TestMethod]
     public void Collect_WhenCallableUsesExternalDeclaringType_ShouldVisitCallableAssembly()
     {
-        var method = typeof(Uri).GetMethod(nameof(Uri.ToString), Type.EmptyTypes) ??
-                     throw new InvalidOperationException("Uri.ToString() was not found.");
+        var method =
+            typeof(Uri).GetMethod(nameof(Uri.ToString), Type.EmptyTypes)
+            ?? throw new InvalidOperationException("Uri.ToString() was not found.");
 
         var references = Collect(
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.MethodInfoCall,
                 "uri-to-string",
-                CallableSymbol: ExecutionPortableSymbolFactory.FromMethod(method)));
+                CallableSymbol: ExecutionPortableSymbolFactory.FromMethod(method)
+            )
+        );
 
         CollectionAssert.AreEquivalent(
             new[] { Normalize(typeof(Uri).Assembly.Location) },
-            references.Select(reference => Normalize(reference.Location)).ToArray());
+            references.Select(reference => Normalize(reference.Location)).ToArray()
+        );
     }
 
     [TestMethod]
@@ -110,15 +124,13 @@ public sealed class CSharpClrReferenceAssemblyCollectorTests
             [],
             [typeof(Uri)],
             typeof(Process),
-            PreloadedPaths());
+            PreloadedPaths()
+        );
 
         CollectionAssert.AreEqual(
-            new[]
-            {
-                Normalize(typeof(Uri).Assembly.Location),
-                Normalize(typeof(Process).Assembly.Location)
-            },
-            references.Select(reference => Normalize(reference.Location)).ToArray());
+            new[] { Normalize(typeof(Uri).Assembly.Location), Normalize(typeof(Process).Assembly.Location) },
+            references.Select(reference => Normalize(reference.Location)).ToArray()
+        );
     }
 
     [TestMethod]
@@ -129,20 +141,24 @@ public sealed class CSharpClrReferenceAssemblyCollectorTests
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
                 "uri",
-                ExecutionPortableSymbolFactory.FromType(typeof(Uri))),
+                ExecutionPortableSymbolFactory.FromType(typeof(Uri))
+            ),
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
                 "process",
-                ExecutionPortableSymbolFactory.FromType(typeof(Process)))
+                ExecutionPortableSymbolFactory.FromType(typeof(Process))
+            ),
         };
         var results = new string[8][];
 
-        Parallel.For(0, results.Length, index =>
-        {
-            results[index] = Collect(requirements)
-                .Select(reference => Normalize(reference.Location))
-                .ToArray();
-        });
+        Parallel.For(
+            0,
+            results.Length,
+            index =>
+            {
+                results[index] = Collect(requirements).Select(reference => Normalize(reference.Location)).ToArray();
+            }
+        );
 
         for (var index = 1; index < results.Length; index++)
             CollectionAssert.AreEqual(results[0], results[index]);
@@ -156,17 +172,16 @@ public sealed class CSharpClrReferenceAssemblyCollectorTests
             [],
             [],
             null,
-            PreloadedPaths());
+            PreloadedPaths()
+        );
     }
 
     private static IReadOnlySet<string> PreloadedPaths()
     {
         return new HashSet<string>(
-            [
-                Normalize(typeof(object).Assembly.Location),
-                Normalize(typeof(Component).Assembly.Location)
-            ],
-            StringComparer.OrdinalIgnoreCase);
+            [Normalize(typeof(object).Assembly.Location), Normalize(typeof(Component).Assembly.Location)],
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
     private static string Normalize(string path) => Path.GetFullPath(path);

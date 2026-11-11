@@ -7,50 +7,123 @@ public static partial class WindowFunctionHelpers
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ResolveRangeFrameStart<TNumber, TOrder>(
-        TNumber[] orderKeys, TOrder[] peerOrderKeys, int[] partitionIndices,
-        int partitionStart, int partitionCount, int currentPartitionIndex,
-        int offsetInSortDirection, bool descending, bool nullsFirst)
-        where TNumber : struct, INumber<TNumber>
-        => ResolveNumericRangeFrame(new RangeNumericKeys<TNumber>(orderKeys),
-            new RangeFrameRequest<TOrder>(peerOrderKeys, partitionIndices, partitionStart, partitionCount,
-                currentPartitionIndex, offsetInSortDirection, descending, nullsFirst), RangeBoundary.Start);
+        TNumber[] orderKeys,
+        TOrder[] peerOrderKeys,
+        int[] partitionIndices,
+        int partitionStart,
+        int partitionCount,
+        int currentPartitionIndex,
+        int offsetInSortDirection,
+        bool descending,
+        bool nullsFirst
+    )
+        where TNumber : struct, INumber<TNumber> =>
+        ResolveNumericRangeFrame(
+            new RangeNumericKeys<TNumber>(orderKeys),
+            new RangeFrameRequest<TOrder>(
+                peerOrderKeys,
+                partitionIndices,
+                partitionStart,
+                partitionCount,
+                currentPartitionIndex,
+                offsetInSortDirection,
+                descending,
+                nullsFirst
+            ),
+            RangeBoundary.Start
+        );
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ResolveRangeFrameStart<TNumber, TOrder>(
-        TNumber?[] orderKeys, TOrder[] peerOrderKeys, int[] partitionIndices,
-        int partitionStart, int partitionCount, int currentPartitionIndex,
-        int offsetInSortDirection, bool descending, bool nullsFirst)
-        where TNumber : struct, INumber<TNumber>
-        => ResolveNumericRangeFrame(new NullableRangeNumericKeys<TNumber>(orderKeys),
-            new RangeFrameRequest<TOrder>(peerOrderKeys, partitionIndices, partitionStart, partitionCount,
-                currentPartitionIndex, offsetInSortDirection, descending, nullsFirst), RangeBoundary.Start);
+        TNumber?[] orderKeys,
+        TOrder[] peerOrderKeys,
+        int[] partitionIndices,
+        int partitionStart,
+        int partitionCount,
+        int currentPartitionIndex,
+        int offsetInSortDirection,
+        bool descending,
+        bool nullsFirst
+    )
+        where TNumber : struct, INumber<TNumber> =>
+        ResolveNumericRangeFrame(
+            new NullableRangeNumericKeys<TNumber>(orderKeys),
+            new RangeFrameRequest<TOrder>(
+                peerOrderKeys,
+                partitionIndices,
+                partitionStart,
+                partitionCount,
+                currentPartitionIndex,
+                offsetInSortDirection,
+                descending,
+                nullsFirst
+            ),
+            RangeBoundary.Start
+        );
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ResolveRangeFrameEnd<TNumber, TOrder>(
-        TNumber[] orderKeys, TOrder[] peerOrderKeys, int[] partitionIndices,
-        int partitionStart, int partitionCount, int currentPartitionIndex,
-        int offsetInSortDirection, bool descending, bool nullsFirst)
-        where TNumber : struct, INumber<TNumber>
-        => ResolveNumericRangeFrame(new RangeNumericKeys<TNumber>(orderKeys),
-            new RangeFrameRequest<TOrder>(peerOrderKeys, partitionIndices, partitionStart, partitionCount,
-                currentPartitionIndex, offsetInSortDirection, descending, nullsFirst), RangeBoundary.End);
+        TNumber[] orderKeys,
+        TOrder[] peerOrderKeys,
+        int[] partitionIndices,
+        int partitionStart,
+        int partitionCount,
+        int currentPartitionIndex,
+        int offsetInSortDirection,
+        bool descending,
+        bool nullsFirst
+    )
+        where TNumber : struct, INumber<TNumber> =>
+        ResolveNumericRangeFrame(
+            new RangeNumericKeys<TNumber>(orderKeys),
+            new RangeFrameRequest<TOrder>(
+                peerOrderKeys,
+                partitionIndices,
+                partitionStart,
+                partitionCount,
+                currentPartitionIndex,
+                offsetInSortDirection,
+                descending,
+                nullsFirst
+            ),
+            RangeBoundary.End
+        );
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ResolveRangeFrameEnd<TNumber, TOrder>(
-        TNumber?[] orderKeys, TOrder[] peerOrderKeys, int[] partitionIndices,
-        int partitionStart, int partitionCount, int currentPartitionIndex,
-        int offsetInSortDirection, bool descending, bool nullsFirst)
-        where TNumber : struct, INumber<TNumber>
-        => ResolveNumericRangeFrame(new NullableRangeNumericKeys<TNumber>(orderKeys),
-            new RangeFrameRequest<TOrder>(peerOrderKeys, partitionIndices, partitionStart, partitionCount,
-                currentPartitionIndex, offsetInSortDirection, descending, nullsFirst), RangeBoundary.End);
+        TNumber?[] orderKeys,
+        TOrder[] peerOrderKeys,
+        int[] partitionIndices,
+        int partitionStart,
+        int partitionCount,
+        int currentPartitionIndex,
+        int offsetInSortDirection,
+        bool descending,
+        bool nullsFirst
+    )
+        where TNumber : struct, INumber<TNumber> =>
+        ResolveNumericRangeFrame(
+            new NullableRangeNumericKeys<TNumber>(orderKeys),
+            new RangeFrameRequest<TOrder>(
+                peerOrderKeys,
+                partitionIndices,
+                partitionStart,
+                partitionCount,
+                currentPartitionIndex,
+                offsetInSortDirection,
+                descending,
+                nullsFirst
+            ),
+            RangeBoundary.End
+        );
 
     public static int ResolveRangePeerFrameStart<TOrder>(
         TOrder[] orderKeys,
         int[] partitionIndices,
         int partitionStart,
         int partitionCount,
-        int currentPartitionIndex)
+        int currentPartitionIndex
+    )
     {
         var current = orderKeys[partitionIndices[partitionStart + currentPartitionIndex]];
         var low = 0;
@@ -74,7 +147,8 @@ public static partial class WindowFunctionHelpers
         int[] partitionIndices,
         int partitionStart,
         int partitionCount,
-        int currentPartitionIndex)
+        int currentPartitionIndex
+    )
     {
         var current = orderKeys[partitionIndices[partitionStart + currentPartitionIndex]];
         var low = 0;
@@ -94,8 +168,11 @@ public static partial class WindowFunctionHelpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int ResolveNumericRangeFrame<TOrder, TKeys>(TKeys keys,
-        in RangeFrameRequest<TOrder> request, RangeBoundary boundary)
+    private static int ResolveNumericRangeFrame<TOrder, TKeys>(
+        TKeys keys,
+        in RangeFrameRequest<TOrder> request,
+        RangeBoundary boundary
+    )
         where TKeys : struct, IRangeNumericKeys
     {
         var current = keys.ReadDecimal(request.Indices[request.Start + request.Current]);
@@ -117,13 +194,23 @@ public static partial class WindowFunctionHelpers
         return boundary == RangeBoundary.Start ? low : low - 1;
     }
 
-    private static int ResolveNullRangePeers<TOrder>(in RangeFrameRequest<TOrder> request, RangeBoundary boundary)
-        => boundary switch
+    private static int ResolveNullRangePeers<TOrder>(in RangeFrameRequest<TOrder> request, RangeBoundary boundary) =>
+        boundary switch
         {
-            RangeBoundary.Start => ResolveRangePeerFrameStart(request.PeerKeys, request.Indices,
-                request.Start, request.Count, request.Current),
-            _ => ResolveRangePeerFrameEnd(request.PeerKeys, request.Indices,
-                request.Start, request.Count, request.Current)
+            RangeBoundary.Start => ResolveRangePeerFrameStart(
+                request.PeerKeys,
+                request.Indices,
+                request.Start,
+                request.Count,
+                request.Current
+            ),
+            _ => ResolveRangePeerFrameEnd(
+                request.PeerKeys,
+                request.Indices,
+                request.Start,
+                request.Count,
+                request.Current
+            ),
         };
 
     private static decimal? ShiftRangeTarget(decimal? current, int offset, bool descending)
@@ -138,7 +225,9 @@ public static partial class WindowFunctionHelpers
     private static int CompareNumericRangeKeys(decimal? left, decimal? right, bool descending, bool nullsFirst)
     {
         if (!left.HasValue)
-            return !right.HasValue ? 0 : nullsFirst ? -1 : 1;
+            return !right.HasValue ? 0
+                : nullsFirst ? -1
+                : 1;
         if (!right.HasValue)
             return nullsFirst ? 1 : -1;
         if (descending)
@@ -146,9 +235,22 @@ public static partial class WindowFunctionHelpers
         return left.Value.CompareTo(right.Value);
     }
 
-    private enum RangeBoundary { Start, End }
-    private readonly record struct RangeFrameRequest<TOrder>(TOrder[] PeerKeys, int[] Indices,
-        int Start, int Count, int Current, int Offset, bool Descending, bool NullsFirst);
+    private enum RangeBoundary
+    {
+        Start,
+        End,
+    }
+
+    private readonly record struct RangeFrameRequest<TOrder>(
+        TOrder[] PeerKeys,
+        int[] Indices,
+        int Start,
+        int Count,
+        int Current,
+        int Offset,
+        bool Descending,
+        bool NullsFirst
+    );
 
     private interface IRangeNumericKeys
     {

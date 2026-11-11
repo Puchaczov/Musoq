@@ -17,9 +17,7 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void DiagnosticChunkedRowSource_WhenChunksPropertyRead_ShouldNotStartProducer()
     {
-        var source = new StartTrackingDiagnosticChunkedSource(
-            CreateSourceContext(SourceDiagnostics.None),
-            "items");
+        var source = new StartTrackingDiagnosticChunkedSource(CreateSourceContext(SourceDiagnostics.None), "items");
 
         var chunks = source.Chunks;
 

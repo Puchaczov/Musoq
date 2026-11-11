@@ -28,7 +28,8 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
                 "ComplexAggregation",
                 [typeof(string), typeof(decimal), typeof(string), typeof(string), typeof(string)],
                 typeof(Entity),
-                out var method),
+                out var method
+            ),
             "Should resolve with all parameters"
         );
 
@@ -47,7 +48,8 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
                 "ComplexAggregation",
                 [typeof(string), typeof(decimal)],
                 typeof(Entity),
-                out _),
+                out _
+            ),
             "Should resolve without optional parameters"
         );
 
@@ -56,7 +58,8 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
                 "ComplexAggregation",
                 [typeof(string), typeof(decimal), typeof(NullNode.NullType)],
                 typeof(Entity),
-                out _),
+                out _
+            ),
             "Should resolve with null optional parameter"
         );
     }
@@ -65,11 +68,7 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
     public void TryGetMethod_ProcessCollection_Overloads()
     {
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod(
-                "ProcessCollection",
-                [typeof(int[])],
-                null,
-                out var arrayMethod),
+            _methodsMetadata.TryGetMethod("ProcessCollection", [typeof(int[])], null, out var arrayMethod),
             "Should resolve array method"
         );
 
@@ -78,7 +77,8 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
                 "ProcessCollection",
                 [typeof(IEnumerable<string>)],
                 null,
-                out var genericMethod),
+                out var genericMethod
+            ),
             "Should resolve generic method"
         );
 
@@ -87,7 +87,8 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
                 "ProcessCollection",
                 [typeof(object), typeof(object)],
                 null,
-                out var paramsMethod),
+                out var paramsMethod
+            ),
             "Should resolve params method"
         );
 
@@ -103,24 +104,18 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
                 "HandleNullableData",
                 [typeof(NullNode.NullType), typeof(NullNode.NullType)],
                 null,
-                out _));
+                out _
+            )
+        );
         Assert.AreEqual("ambiguous-overload", exception.ResolutionReason);
 
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod(
-                "HandleNullableData",
-                [typeof(int?), typeof(string)],
-                null,
-                out _),
+            _methodsMetadata.TryGetMethod("HandleNullableData", [typeof(int?), typeof(string)], null, out _),
             "Should resolve with specific nullable type"
         );
 
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod(
-                "HandleNullableData",
-                [typeof(int), typeof(string)],
-                null,
-                out _),
+            _methodsMetadata.TryGetMethod("HandleNullableData", [typeof(int), typeof(string)], null, out _),
             "Should resolve with non-nullable value"
         );
     }
@@ -135,41 +130,33 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
         [AggregateFunction(typeof(MetadataAggregateKernel))]
         public int ComplexAggregation(
             string name,
-            [InjectSpecificSource(typeof(IEntity))]
-            IEntity entity,
+            [InjectSpecificSource(typeof(IEntity))] IEntity entity,
             decimal value,
             string format = "F2",
-            params string[] tags)
+            params string[] tags
+        )
         {
             return 0;
         }
 
         public TResult? ProcessData<TSource, TResult>(
-            [InjectSpecificSource(typeof(IEntity))]
-            IEntity entity,
+            [InjectSpecificSource(typeof(IEntity))] IEntity entity,
             TSource source,
-            Func<TSource, TResult> transformer)
+            Func<TSource, TResult> transformer
+        )
             where TSource : struct
             where TResult : class
         {
             return null;
         }
 
-        public void ProcessCollection<T>(IEnumerable<T> items)
-        {
-        }
+        public void ProcessCollection<T>(IEnumerable<T> items) { }
 
-        public void ProcessCollection(IEnumerable<int> items)
-        {
-        }
+        public void ProcessCollection(IEnumerable<int> items) { }
 
-        public void ProcessCollection(int[] items)
-        {
-        }
+        public void ProcessCollection(int[] items) { }
 
-        public void ProcessCollection(params object[] items)
-        {
-        }
+        public void ProcessCollection(params object[] items) { }
 
         public string HandleNullableData(int? value, string? format = null)
         {
@@ -187,14 +174,11 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
         }
 
         public void ComplexInjection<T>(
-            [InjectSpecificSource(typeof(IEntity))]
-            IEntity entity,
+            [InjectSpecificSource(typeof(IEntity))] IEntity entity,
             [InjectQueryStats] object stats,
             T value,
-            params string[] additionalData)
-            where T : IEntity
-        {
-        }
+            params string[] additionalData
+        )
+            where T : IEntity { }
     }
-
 }

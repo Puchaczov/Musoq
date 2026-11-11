@@ -9,15 +9,14 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors;
 
-internal sealed class NativeTableEnumDeclarationValidator(
-    ISchemaProvider provider,
-    IEnumerable<Assembly> assemblies)
+internal sealed class NativeTableEnumDeclarationValidator(ISchemaProvider provider, IEnumerable<Assembly> assemblies)
 {
     public void Validate(
         CreateTableNode table,
         CreateTableColumnDefinition column,
         string declaredTypeName,
-        Type? resolvedType)
+        Type? resolvedType
+    )
     {
         Type? nativeEnumType;
         if (resolvedType == null)
@@ -33,10 +32,11 @@ internal sealed class NativeTableEnumDeclarationValidator(
         throw new VisitorException(
             nameof(BuildMetadataAndInferTypesVisitor),
             "BindTableColumn",
-            $"TABLE '{table.Name}' column '{column.ColumnName}' cannot declare native CLR enum type '{declaredTypeName}'. " +
-            $"Declare its underlying primitive type '{backingType}', or use a query-local ENUM.",
+            $"TABLE '{table.Name}' column '{column.ColumnName}' cannot declare native CLR enum type '{declaredTypeName}'. "
+                + $"Declare its underlying primitive type '{backingType}', or use a query-local ENUM.",
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-            span);
+            span
+        );
     }
 
     private Type? ResolveExactNativeEnum(string typeName)
@@ -45,9 +45,11 @@ internal sealed class NativeTableEnumDeclarationValidator(
             return null;
 
         var reachableAssemblies = new List<Assembly>();
-        for (var currentProvider = provider; currentProvider != null; currentProvider = currentProvider is TransitionSchemaProvider transition
-                 ? transition.InnerProvider
-                 : null)
+        for (
+            var currentProvider = provider;
+            currentProvider != null;
+            currentProvider = currentProvider is TransitionSchemaProvider transition ? transition.InnerProvider : null
+        )
         {
             if (!reachableAssemblies.Contains(currentProvider.GetType().Assembly))
                 reachableAssemblies.Add(currentProvider.GetType().Assembly);

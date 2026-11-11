@@ -6,9 +6,7 @@ public sealed record ExecutionCoalesce : ExecutionExpression
 {
     private IReadOnlyList<ExecutionExpression> _expressions = [];
 
-    public ExecutionCoalesce(
-        IReadOnlyList<ExecutionExpression> expressions,
-        ExecutionTypeRef returnType)
+    public ExecutionCoalesce(IReadOnlyList<ExecutionExpression> expressions, ExecutionTypeRef returnType)
         : base(returnType)
     {
         Expressions = expressions;
@@ -24,7 +22,5 @@ public sealed record ExecutionCoalesce : ExecutionExpression
     public override ExecutionTypeRef ReturnType { get; init; }
 
     internal ExecutionCoalesce(IReadOnlyList<ExecutionExpression> expressions, Type returnType)
-        : this(expressions, ExecutionClrBindingFactory.FromClr(returnType))
-    {
-    }
+        : this(expressions, ExecutionClrBindingFactory.FromClr(returnType)) { }
 }

@@ -1,16 +1,15 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
 [global::Musoq.Tests.Common.CultureTestClass]
 public class CaseWhenTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void WhenWhenTrueCaseWhenTest()
     {
@@ -18,11 +17,7 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -39,11 +34,7 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -60,11 +51,7 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -82,11 +69,7 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -104,11 +87,7 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -126,11 +105,7 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("KRAKOW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("KRAKOW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -148,11 +123,7 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

@@ -18,8 +18,15 @@ internal static partial class SourcePredicatePlanContractValidator
         if (result.ExecutionPlan.Identity != request.Identity)
             ThrowContract("the execution plan identity differs from the requested source identity", span);
 
-        foreach (var predicate in new[] { request.Predicate, result.AcceptedPredicate,
-                     result.ResidualPredicate, result.ExecutionPlan.AcceptedPredicate })
+        foreach (
+            var predicate in new[]
+            {
+                request.Predicate,
+                result.AcceptedPredicate,
+                result.ResidualPredicate,
+                result.ExecutionPlan.AcceptedPredicate,
+            }
+        )
         {
             if (!SourcePredicateGraphValidator.IsValid(predicate, request.CancellationToken))
                 ThrowContract("a predicate graph is malformed or exceeds the depth or node budget", span);
@@ -43,7 +50,8 @@ internal static partial class SourcePredicatePlanContractValidator
         {
             ThrowContract(
                 "accepted and residual predicates are not an exact partition of the requested predicate",
-                span);
+                span
+            );
         }
     }
 
@@ -57,9 +65,7 @@ internal static partial class SourcePredicatePlanContractValidator
         return result.ToArray();
     }
 
-    private static void AddConjuncts(
-        SourcePredicateExpression predicate,
-        ICollection<SourcePredicateExpression> result)
+    private static void AddConjuncts(SourcePredicateExpression predicate, ICollection<SourcePredicateExpression> result)
     {
         if (predicate is SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical)
         {
@@ -74,7 +80,8 @@ internal static partial class SourcePredicatePlanContractValidator
     private static bool AreExactMultisets(
         IReadOnlyList<SourcePredicateExpression> expected,
         IReadOnlyList<SourcePredicateExpression> actual,
-        IEqualityComparer<SourcePredicateExpression> comparer)
+        IEqualityComparer<SourcePredicateExpression> comparer
+    )
     {
         if (expected.Count != actual.Count)
             return false;
@@ -94,7 +101,8 @@ internal static partial class SourcePredicatePlanContractValidator
     private static void ValidateEnumFingerprints(
         SourcePredicateExpression? requested,
         SourcePredicateExpression? returned,
-        TextSpan span)
+        TextSpan span
+    )
     {
         if (returned == null)
             return;
@@ -104,19 +112,20 @@ internal static partial class SourcePredicatePlanContractValidator
 
         var returnedFingerprints = new HashSet<string>(StringComparer.Ordinal);
         CollectEnumFingerprints(returned, returnedFingerprints);
-        var unexpected = returnedFingerprints.FirstOrDefault(fingerprint => !requestedFingerprints.Contains(fingerprint));
+        var unexpected = returnedFingerprints.FirstOrDefault(fingerprint =>
+            !requestedFingerprints.Contains(fingerprint)
+        );
         if (unexpected == null)
             return;
 
         throw new EnumDescriptorMismatchException(
             FindFirstColumn(returned) ?? "<predicate>",
             span,
-            "The datasource returned a predicate with a different enum fingerprint.");
+            "The datasource returned a predicate with a different enum fingerprint."
+        );
     }
 
-    private static void CollectEnumFingerprints(
-        SourcePredicateExpression? predicate,
-        ISet<string> fingerprints)
+    private static void CollectEnumFingerprints(SourcePredicateExpression? predicate, ISet<string> fingerprints)
     {
         switch (predicate)
         {
@@ -153,13 +162,14 @@ internal static partial class SourcePredicatePlanContractValidator
         return predicate switch
         {
             SourcePredicateColumn column => column.Column.Name,
-            SourcePredicateComparison comparison => FindFirstColumn(comparison.Left) ?? FindFirstColumn(comparison.Right),
+            SourcePredicateComparison comparison => FindFirstColumn(comparison.Left)
+                ?? FindFirstColumn(comparison.Right),
             SourcePredicateLogical logical => FindFirstColumn(logical.Left) ?? FindFirstColumn(logical.Right),
             SourcePredicateIn sourceIn => FindFirstColumn(sourceIn.Expression),
             SourcePredicateNullCheck nullCheck => FindFirstColumn(nullCheck.Expression),
             SourcePredicatePatternMatch patternMatch => patternMatch.Column.Name,
             SourcePredicateFlags flags => FindFirstColumn(flags.Expression),
-            _ => null
+            _ => null,
         };
     }
 

@@ -56,22 +56,20 @@ public class CompilationOptionsTests
     public void WithMethods_ShouldPreserveEveryUnchangedCompilationOption()
     {
         var original = new CompilationOptions(
-                ParallelizationMode.None,
-                useHashJoin: false,
-                useSortMergeJoin: false,
-                useCommonSubexpressionElimination: false,
-                useConstantFolding: false,
-                usePrimitiveTypeValidation: false,
-                useCteParallelization: false,
-                useCteSidecarIndexes: false,
-                instrumentationMode: QueryInstrumentationMode.SourceBoundaries,
-                maxDegreeOfParallelismOverride: 3,
-                forceTableResultMaterialization: false)
-            .WithRecursiveCteLimits(new(17, 123));
+            ParallelizationMode.None,
+            useHashJoin: false,
+            useSortMergeJoin: false,
+            useCommonSubexpressionElimination: false,
+            useConstantFolding: false,
+            usePrimitiveTypeValidation: false,
+            useCteParallelization: false,
+            useCteSidecarIndexes: false,
+            instrumentationMode: QueryInstrumentationMode.SourceBoundaries,
+            maxDegreeOfParallelismOverride: 3,
+            forceTableResultMaterialization: false
+        ).WithRecursiveCteLimits(new(17, 123));
 
-        var clone = original
-            .WithInstrumentationMode(QueryInstrumentationMode.Full)
-            .WithTableResultMaterialization();
+        var clone = original.WithInstrumentationMode(QueryInstrumentationMode.Full).WithTableResultMaterialization();
 
         Assert.AreEqual(original.ParallelizationMode, clone.ParallelizationMode);
         Assert.AreEqual(original.UseHashJoin, clone.UseHashJoin);
@@ -99,19 +97,21 @@ public class CompilationOptionsTests
 
         Assert.AreEqual(
             CompilationOptionsFingerprint.Compute(baseline),
-            CompilationOptionsFingerprint.Compute(equivalent));
+            CompilationOptionsFingerprint.Compute(equivalent)
+        );
         Assert.AreNotEqual(
             CompilationOptionsFingerprint.Compute(baseline),
-            CompilationOptionsFingerprint.Compute(instrumented));
+            CompilationOptionsFingerprint.Compute(instrumented)
+        );
         Assert.AreNotEqual(
             CompilationOptionsFingerprint.Compute(baseline),
-            CompilationOptionsFingerprint.Compute(limited));
+            CompilationOptionsFingerprint.Compute(limited)
+        );
         Assert.AreNotEqual(
             CompilationOptionsFingerprint.Compute(baseline),
-            CompilationOptionsFingerprint.Compute(snapshotLimited));
-        StringAssert.StartsWith(
-            CompilationOptionsFingerprint.Compute(baseline),
-            "compilation-options-v1:");
+            CompilationOptionsFingerprint.Compute(snapshotLimited)
+        );
+        StringAssert.StartsWith(CompilationOptionsFingerprint.Compute(baseline), "compilation-options-v1:");
     }
 
     [TestMethod]

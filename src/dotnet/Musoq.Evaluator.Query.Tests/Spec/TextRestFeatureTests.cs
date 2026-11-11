@@ -25,26 +25,34 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_InWhereClause_ShouldFilter()
     {
-        var query = @"
-            text Record { 
-                Type: chars[3],
-                Data: rest trim
-            };
-            select r.Type, r.Data from #test.lines() l
-            cross apply Parse<Record>(l.Line) r
-            where r.Data like '%error%'";
+        var query = (
+            "\n"
+            + "            text Record { \n"
+            + "                Type: chars[3],\n"
+            + "                Data: rest trim\n"
+            + "            };\n"
+            + "            select r.Type, r.Data from #test.lines() l\n"
+            + "            cross apply Parse<Record>(l.Line) r\n"
+            + "            where r.Data like '%error%'"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "line1", Text = "LOG An error occurred" },
             new TextEntity { Name = "line2", Text = "LOG Normal operation" },
-            new TextEntity { Name = "line3", Text = "ERR Another error here" }
+            new TextEntity { Name = "line3", Text = "ERR Another error here" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -60,19 +68,30 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_CaptureAll_ShouldReturnEntireInput()
     {
-        var query = @"
-            text Data { 
-                Content: rest
-            };
-            select d.Content from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Content: rest\n"
+            + "            };\n"
+            + "            select d.Content from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "This is the entire content" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "This is the entire content" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -85,20 +104,31 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_AfterChars_ShouldCaptureRemaining()
     {
-        var query = @"
-            text Data { 
-                Prefix: chars[5],
-                Remainder: rest
-            };
-            select d.Prefix, d.Remainder from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Prefix: chars[5],\n"
+            + "                Remainder: rest\n"
+            + "            };\n"
+            + "            select d.Prefix, d.Remainder from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "HelloWorld123" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "HelloWorld123" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -112,20 +142,31 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_AfterUntil_ShouldCaptureRemaining()
     {
-        var query = @"
-            text Data { 
-                Field1: until ':',
-                Field2: rest
-            };
-            select d.Field1, d.Field2 from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Field1: until ':',\n"
+            + "                Field2: rest\n"
+            + "            };\n"
+            + "            select d.Field1, d.Field2 from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "key:value and more" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "key:value and more" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -143,19 +184,30 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_WithTrim_ShouldRemoveWhitespace()
     {
-        var query = @"
-            text Data { 
-                Content: rest trim
-            };
-            select d.Content from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Content: rest trim\n"
+            + "            };\n"
+            + "            select d.Content from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "  trimmed content  " } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "  trimmed content  " },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -168,19 +220,30 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_WithRtrim_ShouldRemoveTrailingOnly()
     {
-        var query = @"
-            text Data { 
-                Content: rest rtrim
-            };
-            select d.Content from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Content: rest rtrim\n"
+            + "            };\n"
+            + "            select d.Content from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "  content  " } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "  content  " },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -193,19 +256,30 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_WithLtrim_ShouldRemoveLeadingOnly()
     {
-        var query = @"
-            text Data { 
-                Content: rest ltrim
-            };
-            select d.Content from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Content: rest ltrim\n"
+            + "            };\n"
+            + "            select d.Content from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "  content  " } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "  content  " },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -222,22 +296,33 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_AfterMultipleFields_ShouldCaptureRemaining()
     {
-        var query = @"
-            text LogEntry { 
-                Level: chars[5],
-                Sep1: chars[1],
-                Code: until ' ',
-                Message: rest trim
-            };
-            select e.Level, e.Code, e.Message from #test.lines() l
-            cross apply Parse<LogEntry>(l.Line) e";
+        var query = (
+            "\n"
+            + "            text LogEntry { \n"
+            + "                Level: chars[5],\n"
+            + "                Sep1: chars[1],\n"
+            + "                Code: until ' ',\n"
+            + "                Message: rest trim\n"
+            + "            };\n"
+            + "            select e.Level, e.Code, e.Message from #test.lines() l\n"
+            + "            cross apply Parse<LogEntry>(l.Line) e"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "ERROR:E001 Something went wrong" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "ERROR:E001 Something went wrong" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -252,25 +337,33 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_ForMessageCapture_ShouldWork()
     {
-        var query = @"
-            text Message { 
-                Sender: until ':',
-                Body: rest trim
-            };
-            select m.Sender, m.Body from #test.lines() l
-            cross apply Parse<Message>(l.Line) m
-            order by m.Sender";
+        var query = (
+            "\n"
+            + "            text Message { \n"
+            + "                Sender: until ':',\n"
+            + "                Body: rest trim\n"
+            + "            };\n"
+            + "            select m.Sender, m.Body from #test.lines() l\n"
+            + "            cross apply Parse<Message>(l.Line) m\n"
+            + "            order by m.Sender"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "msg1", Text = "Alice: Hello there!" },
-            new TextEntity { Name = "msg2", Text = "Bob: Hi Alice!" }
+            new TextEntity { Name = "msg2", Text = "Bob: Hi Alice!" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -290,20 +383,31 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_EmptyRemaining_ShouldReturnEmpty()
     {
-        var query = @"
-            text Data { 
-                Full: chars[10],
-                Extra: rest
-            };
-            select d.Full, d.Extra from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Full: chars[10],\n"
+            + "                Extra: rest\n"
+            + "            };\n"
+            + "            select d.Full, d.Extra from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "1234567890" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "1234567890" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -317,20 +421,31 @@ public class TextRestFeatureTests
     [TestMethod]
     public void Text_Rest_WithSpecialCharacters_ShouldCapture()
     {
-        var query = @"
-            text Data { 
-                Prefix: chars[3],
-                Content: rest
-            };
-            select d.Prefix, d.Content from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Prefix: chars[3],\n"
+            + "                Content: rest\n"
+            + "            };\n"
+            + "            select d.Prefix, d.Content from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = ">>>Special: @#$%^&*()!" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = ">>>Special: @#$%^&*()!" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

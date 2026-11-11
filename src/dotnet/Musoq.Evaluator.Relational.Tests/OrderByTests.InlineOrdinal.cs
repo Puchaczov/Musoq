@@ -24,12 +24,13 @@ public partial class OrderByTests
 
     private void AssertInlineOrdinalResult(string outputName)
     {
-        using var compiled = CreateAndRunVirtualMachine(InlineOrdinalQuery,
-            new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var compiled = CreateAndRunVirtualMachine(
+            InlineOrdinalQuery,
+            new Dictionary<string, IEnumerable<BasicEntity>>()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(result, (outputName, typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(result,
-            new object?[] { "A" }, new object?[] { "a" });
+        TableMaterializationTestHelper.AssertRowsInOrder(result, new object?[] { "A" }, new object?[] { "a" });
     }
 }

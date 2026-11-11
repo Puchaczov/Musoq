@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Execution.Facts;
 
 namespace Musoq.Evaluator.IR.Execution;
+
 internal static partial class ExecutionIrAnalysis
 {
-    internal static IEnumerable<ExecutionExpression> GetContextLayoutExpressions(ExecutionContextLayout? contextLayout) =>
-        ExecutionNodeFacts.GetContextLayoutExpressions(contextLayout);
+    internal static IEnumerable<ExecutionExpression> GetContextLayoutExpressions(
+        ExecutionContextLayout? contextLayout
+    ) => ExecutionNodeFacts.GetContextLayoutExpressions(contextLayout);
 
     internal static IEnumerable<ExecutionExpression> FlattenExpressions(ExecutionBlock block)
     {

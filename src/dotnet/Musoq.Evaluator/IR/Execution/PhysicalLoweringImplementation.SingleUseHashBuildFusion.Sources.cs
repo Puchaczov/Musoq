@@ -16,16 +16,19 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         int schemaFromIndex,
         LoweringScope scope,
-        out FusedCteHashBuildSource fusion)
+        out FusedCteHashBuildSource fusion
+    )
     {
         fusion = null!;
         var unwrapped = UnwrapSingleStatement(definition.Plan);
         var pipeline = DecomposeSupportedPipeline(unwrapped);
-        if (pipeline == null ||
-            pipeline.Filter != null ||
-            pipeline.PostOperations.Count != 0 ||
-            pipeline.Project.IsDistinct ||
-            !SingleUseHashBuildFusionPlanner.CanFuseProducerSource(pipeline.Source))
+        if (
+            pipeline == null
+            || pipeline.Filter != null
+            || pipeline.PostOperations.Count != 0
+            || pipeline.Project.IsDistinct
+            || !SingleUseHashBuildFusionPlanner.CanFuseProducerSource(pipeline.Source)
+        )
         {
             return false;
         }
@@ -41,27 +44,45 @@ internal sealed partial class PhysicalLoweringImplementation
         var rowShape = CreateGeneratedShape(
             $"Cte{definitionIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}Row0",
             pipeline.Project.Fields,
-            sourceLookup);
-        var rowValues = pipeline.Project.Fields
-            .Select(field => new ExecutionRowValue(field.OutputName, ConvertProjectedExpression(field, sourceLookup)))
+            sourceLookup
+        );
+        var rowValues = pipeline
+            .Project.Fields.Select(field => new ExecutionRowValue(
+                field.OutputName,
+                ConvertProjectedExpression(field, sourceLookup)
+            ))
             .ToArray();
         var payloadShape = CreateFusedHashPayloadShape(cteRef.Alias, rowShape);
-        var definitionShapes = payloadShape == null
-            ? (IReadOnlyList<RowShape>)[producerShape, rowShape]
-            : [producerShape, payloadShape];
+        var definitionShapes =
+            payloadShape == null ? (IReadOnlyList<RowShape>)[producerShape, rowShape] : [producerShape, payloadShape];
 
         fusion = new FusedCteHashBuildSource(
             rowShape,
             definitionShapes,
             producerShape,
             producerVariable,
-            CreateSourceSetup(pipeline.Source, producerShape, producerVariable, schemaFromIndex, cteIndexes, sourceRowsScope),
-            CreateSourceRowsExpression(pipeline.Source, producerShape, cteIndexes, cteShapesByName, sourceRowsScope, scope),
+            CreateSourceSetup(
+                pipeline.Source,
+                producerShape,
+                producerVariable,
+                schemaFromIndex,
+                cteIndexes,
+                sourceRowsScope
+            ),
+            CreateSourceRowsExpression(
+                pipeline.Source,
+                producerShape,
+                cteIndexes,
+                cteShapesByName,
+                sourceRowsScope,
+                scope
+            ),
             rowValues,
             CreateContextValues(sourceLookup),
             CreateContextLayout(sourceLookup),
             pipeline.Source is PhysicalSchemaScanNode ? 1 : 0,
-            payloadShape);
+            payloadShape
+        );
         return true;
     }
 
@@ -70,11 +91,14 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         LoweringScope scope,
-        out JoinSource source)
+        out JoinSource source
+    )
     {
         source = null!;
-        if (scope.FusedCteHashBuildSources == null ||
-            !scope.FusedCteHashBuildSources.TryGetValue(cteRef.CteName, out var fusion))
+        if (
+            scope.FusedCteHashBuildSources == null
+            || !scope.FusedCteHashBuildSources.TryGetValue(cteRef.CteName, out var fusion)
+        )
         {
             return false;
         }
@@ -88,8 +112,16 @@ internal sealed partial class PhysicalLoweringImplementation
         shapes.AddRange(fusion.DefinitionShapes);
         shapes.Add(shape);
         FusedHashPayload? payload = null;
-        if (shape is TableRowShape tableRow &&
-            TryCreateFusedHashPayload(fusion, tableRow, out var payloadShape, out var payloadTableRow, out var payloadValues))
+        if (
+            shape is TableRowShape tableRow
+            && TryCreateFusedHashPayload(
+                fusion,
+                tableRow,
+                out var payloadShape,
+                out var payloadTableRow,
+                out var payloadValues
+            )
+        )
         {
             shape = payloadTableRow;
             variable = new ExecutionVariable(cteRef.Alias, typeof(Row), payloadShape.TypeName);
@@ -108,7 +140,8 @@ internal sealed partial class PhysicalLoweringImplementation
             shapes,
             fusion.SchemaSourceCount,
             FusedHashBuild: fusion,
-            FusedHashPayload: payload);
+            FusedHashPayload: payload
+        );
         return true;
     }
 }

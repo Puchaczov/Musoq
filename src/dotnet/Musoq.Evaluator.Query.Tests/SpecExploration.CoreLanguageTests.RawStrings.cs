@@ -12,9 +12,7 @@ public partial class SpecExplorationCoreLanguageTests
     [DataRow(@"r'\\server\share'", @"\\server\share")]
     [DataRow(@"r'C:\Temp\'", @"C:\Temp\")]
     [DataRow("r'a''b'", "a'b")]
-    public void Spec_RawStringLiteral_DocumentedExamples_ShouldReturnExactValue(
-        string operation,
-        string expected)
+    public void Spec_RawStringLiteral_DocumentedExamples_ShouldReturnExactValue(string operation, string expected)
     {
         TestMethodTemplate(operation, expected);
     }
@@ -22,9 +20,7 @@ public partial class SpecExplorationCoreLanguageTests
     [TestMethod]
     public void Spec_RawStringLiteral_ShouldRemainDistinctFromOrdinaryEscapes()
     {
-        TestMethodBatchTemplate(
-            (@"'\n'", "\n"),
-            (@"r'\n'", @"\n"));
+        TestMethodBatchTemplate((@"'\n'", "\n"), (@"r'\n'", @"\n"));
     }
 
     #endregion

@@ -23,7 +23,8 @@ public partial class Parser
             var accessMethod = ComposeAccessMethod(sourceAlias, true);
             return new DescNode(
                 new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1),
-                DescForType.Arguments);
+                DescForType.Arguments
+            );
         }
 
         if (Current is FunctionToken)
@@ -42,7 +43,8 @@ public partial class Parser
                 var accessMethod = ComposeAccessMethod(string.Empty, true);
                 return new DescNode(
                     new SchemaFromNode(name, accessMethod.Name, accessMethod.Arguments, string.Empty, 1),
-                    DescForType.Arguments);
+                    DescForType.Arguments
+                );
             }
 
             // Method references without parentheses are accepted for the
@@ -50,7 +52,8 @@ public partial class Parser
             var methodName = new WordNode(ConsumeAndGetToken(TokenType.Property).Value);
             return new DescNode(
                 new SchemaFromNode(name, methodName.Value, ArgsListNode.Empty, string.Empty, startToken.Span.Start),
-                DescForType.Arguments);
+                DescForType.Arguments
+            );
         }
 
         if (targetToken.Value.StartsWith("#", StringComparison.Ordinal))
@@ -58,10 +61,12 @@ public partial class Parser
                 "DESC ARGUMENTS requires a source method or a coupled alias.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2030_UnsupportedSyntax,
-                startToken.Span);
+                startToken.Span
+            );
 
         return new DescNode(
             new AliasedFromNode(targetToken.Value, ArgsListNode.Empty, string.Empty, startToken.Span.Start),
-            DescForType.Arguments);
+            DescForType.Arguments
+        );
     }
 }

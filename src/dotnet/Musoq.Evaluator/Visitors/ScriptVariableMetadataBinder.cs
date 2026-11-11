@@ -11,7 +11,8 @@ namespace Musoq.Evaluator.Visitors;
 
 internal sealed class ScriptVariableMetadataBinder(
     Func<DiagnosticCode, string, Node, bool> reportError,
-    Action<Assembly> addAssembly)
+    Action<Assembly> addAssembly
+)
 {
     private readonly List<ScriptVariableDefinition> _definitions = [];
     private readonly Dictionary<string, ScriptVariableDefinition> _definitionsByName = new(StringComparer.Ordinal);
@@ -24,7 +25,8 @@ internal sealed class ScriptVariableMetadataBinder(
 
     public void TryAddDefinition(
         ScriptVariableDeclarationNode declaration,
-        IReadOnlyDictionary<string, ScriptParameterDefinition> scriptParameters)
+        IReadOnlyDictionary<string, ScriptParameterDefinition> scriptParameters
+    )
     {
         if (_definitionsByName.ContainsKey(declaration.Name) || scriptParameters.ContainsKey(declaration.Name))
         {
@@ -41,24 +43,29 @@ internal sealed class ScriptVariableMetadataBinder(
             return;
         }
 
-        if (!PrimitiveTypeResolver.TryResolveDeclarationType(declaration.DeclaredTypeName, out var variableType) ||
-            !PrimitiveTypeResolver.IsValidQueryExpressionType(variableType))
+        if (
+            !PrimitiveTypeResolver.TryResolveDeclarationType(declaration.DeclaredTypeName, out var variableType)
+            || !PrimitiveTypeResolver.IsValidQueryExpressionType(variableType)
+        )
         {
-            var message = $"Script variable '{declaration.Name}' type '{declaration.DeclaredTypeName}' is not supported.";
+            var message =
+                $"Script variable '{declaration.Name}' type '{declaration.DeclaredTypeName}' is not supported.";
             if (reportError(DiagnosticCode.MQ3064_UnsupportedScriptVariableType, message, declaration))
                 return;
 
             throw new TypeNotFoundException(
                 declaration.DeclaredTypeName,
                 "script variable declaration",
-                declaration.HasSpan ? declaration.Span : TextSpan.Empty);
+                declaration.HasSpan ? declaration.Span : TextSpan.Empty
+            );
         }
 
         var evaluation = ScriptVariableInitializerEvaluator.Evaluate(
             declaration.Initializer,
             _definitionsByName,
             scriptParameters,
-            declaration.Name);
+            declaration.Name
+        );
 
         if (!evaluation.Success)
         {
@@ -74,7 +81,8 @@ internal sealed class ScriptVariableMetadataBinder(
             declaration.Name,
             declaration.DeclaredTypeName,
             variableType,
-            evaluation.Value);
+            evaluation.Value
+        );
 
         if (!conversion.Success)
         {
@@ -102,13 +110,15 @@ internal sealed class ScriptVariableMetadataBinder(
 
     private void TryAddStructuralDefinition(
         ScriptVariableDeclarationNode declaration,
-        IReadOnlyDictionary<string, ScriptParameterDefinition> scriptParameters)
+        IReadOnlyDictionary<string, ScriptParameterDefinition> scriptParameters
+    )
     {
         var evaluation = ScriptVariableInitializerEvaluator.Evaluate(
             declaration.Initializer,
             _definitionsByName,
             scriptParameters,
-            declaration.Name);
+            declaration.Name
+        );
         if (!evaluation.Success)
         {
             ReportInitializerFailure(declaration, evaluation.ErrorCode, evaluation.Error);
@@ -120,30 +130,43 @@ internal sealed class ScriptVariableMetadataBinder(
         {
             if (!StructuralValueInference.TryInfer(evaluation.Value, out structuralType, out var inferenceError))
             {
-                ReportInitializerFailure(declaration, DiagnosticCode.MQ3065_InvalidScriptVariableInitializer, inferenceError);
+                ReportInitializerFailure(
+                    declaration,
+                    DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
+                    inferenceError
+                );
                 return;
             }
         }
         else if (!StructuralTypeSyntaxBinder.TryBind(declaration.TypeSyntax!, out structuralType, out var typeError))
         {
-            var message = $"Script variable '{declaration.Name}' type '{declaration.DeclaredTypeName}' is not supported: {typeError}";
+            var message =
+                $"Script variable '{declaration.Name}' type '{declaration.DeclaredTypeName}' is not supported: {typeError}";
             if (reportError(DiagnosticCode.MQ3064_UnsupportedScriptVariableType, message, declaration))
                 return;
 
             throw new TypeNotFoundException(
                 declaration.DeclaredTypeName,
                 "script variable declaration",
-                declaration.HasSpan ? declaration.Span : TextSpan.Empty);
+                declaration.HasSpan ? declaration.Span : TextSpan.Empty
+            );
         }
 
-        if (!StructuralValueBinder.TryNormalize(
+        if (
+            !StructuralValueBinder.TryNormalize(
                 evaluation.Value,
                 structuralType,
                 $"script variable '{declaration.Name}'",
                 out var normalizedValue,
-                out var normalizationError))
+                out var normalizationError
+            )
+        )
         {
-            ReportInitializerFailure(declaration, DiagnosticCode.MQ3065_InvalidScriptVariableInitializer, normalizationError);
+            ReportInitializerFailure(
+                declaration,
+                DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
+                normalizationError
+            );
             return;
         }
 
@@ -154,14 +177,16 @@ internal sealed class ScriptVariableMetadataBinder(
         ScriptVariableDeclarationNode declaration,
         Type variableType,
         object? value,
-        StructuralTypeDescriptor? structuralType)
+        StructuralTypeDescriptor? structuralType
+    )
     {
         var definition = new ScriptVariableDefinition(
             declaration.Name,
             variableType,
             value,
             structuralType == null && CanUseConstKeyword(variableType, value),
-            structuralType);
+            structuralType
+        );
 
         _definitions.Add(definition);
         _definitionsByName.Add(declaration.Name, definition);
@@ -171,7 +196,8 @@ internal sealed class ScriptVariableMetadataBinder(
     private void ReportInitializerFailure(
         ScriptVariableDeclarationNode declaration,
         DiagnosticCode? code,
-        string message)
+        string message
+    )
     {
         var diagnosticCode = code ?? DiagnosticCode.MQ3065_InvalidScriptVariableInitializer;
         if (reportError(diagnosticCode, message, declaration))
@@ -189,18 +215,18 @@ internal sealed class ScriptVariableMetadataBinder(
             return variableType == typeof(string);
 
         return variableType == typeof(string)
-               || variableType == typeof(bool)
-               || variableType == typeof(char)
-               || variableType == typeof(byte)
-               || variableType == typeof(sbyte)
-               || variableType == typeof(short)
-               || variableType == typeof(ushort)
-               || variableType == typeof(int)
-               || variableType == typeof(uint)
-               || variableType == typeof(long)
-               || variableType == typeof(ulong)
-               || variableType == typeof(float)
-               || variableType == typeof(double)
-               || variableType == typeof(decimal);
+            || variableType == typeof(bool)
+            || variableType == typeof(char)
+            || variableType == typeof(byte)
+            || variableType == typeof(sbyte)
+            || variableType == typeof(short)
+            || variableType == typeof(ushort)
+            || variableType == typeof(int)
+            || variableType == typeof(uint)
+            || variableType == typeof(long)
+            || variableType == typeof(ulong)
+            || variableType == typeof(float)
+            || variableType == typeof(double)
+            || variableType == typeof(decimal);
     }
 }

@@ -16,9 +16,9 @@ public sealed class DiagnosticCore008ScriptVariableTests : EnvironmentVariablesT
     public void ScriptVariableNames_ShouldRemainCaseSensitive()
     {
         const string query =
-            "let key: string = 'lower'; " +
-            "let Key: string = 'upper'; " +
-            "select $key, $Key from #EnvironmentVariables.All()";
+            "let key: string = 'lower'; "
+            + "let Key: string = 'upper'; "
+            + "select $key, $Key from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
         Assert.IsEmpty(vm.ParameterDefinitions);
@@ -35,27 +35,29 @@ public sealed class DiagnosticCore008ScriptVariableTests : EnvironmentVariablesT
     {
         const string query = "let key: string = 'constant'; select $key from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "override");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "override"
+        );
 
-        var exception = Assert.Throws<QueryExecutionException>(
-            () => _ = vm.Run(TestContext.CancellationToken).Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeError(exception, DiagnosticCode.MQ7006_UnknownScriptParameter);
-        StringAssert.Contains(
-            exception.Envelope!.Message,
-            "Script parameter 'key' was provided but is not declared.");
+        StringAssert.Contains(exception.Envelope!.Message, "Script parameter 'key' was provided but is not declared.");
     }
 
     [TestMethod]
     [DataRow(
         "let key: string = ToUpper('key_1'); select 1 from #EnvironmentVariables.All()",
-        DisplayName = "function call")]
-    [DataRow(
-        "let key: string = Key; select 1 from #EnvironmentVariables.All()",
-        DisplayName = "data-source column")]
+        DisplayName = "function call"
+    )]
+    [DataRow("let key: string = Key; select 1 from #EnvironmentVariables.All()", DisplayName = "data-source column")]
     [DataRow(
         "let key: string = (select Key from #EnvironmentVariables.All()); select 1 from #EnvironmentVariables.All()",
-        DisplayName = "scalar subquery")]
+        DisplayName = "scalar subquery"
+    )]
     public void RuntimeDependentInitializer_ShouldReportSpecificBindDiagnostic(string query)
     {
         var exception = CompileFails(query);
@@ -64,7 +66,8 @@ public sealed class DiagnosticCore008ScriptVariableTests : EnvironmentVariablesT
             exception,
             DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
             DiagnosticPhase.Bind,
-            "only literals");
+            "only literals"
+        );
         AssertHasGuidance(exception);
     }
 
@@ -75,24 +78,25 @@ public sealed class DiagnosticCore008ScriptVariableTests : EnvironmentVariablesT
                 query,
                 Guid.NewGuid().ToString(),
                 new EnvironmentVariablesSchemaProvider(),
-                LoggerResolver));
+                LoggerResolver
+            )
+        );
     }
 
     private static System.Collections.Generic.Dictionary<
         string,
-        System.Collections.Generic.IEnumerable<EnvironmentVariableEntity>> CreateEnvironmentVariableSources()
+        System.Collections.Generic.IEnumerable<EnvironmentVariableEntity>
+    > CreateEnvironmentVariableSources()
     {
         return new System.Collections.Generic.Dictionary<
             string,
-            System.Collections.Generic.IEnumerable<EnvironmentVariableEntity>>
+            System.Collections.Generic.IEnumerable<EnvironmentVariableEntity>
+        >
         {
             {
                 "*",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
-                ]
-            }
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_1"), new EnvironmentVariableEntity("KEY_2", "VALUE_2")]
+            },
         };
     }
 }

@@ -1,8 +1,8 @@
-using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Execution;
@@ -18,16 +18,27 @@ public sealed class FinalArchitectureBoundaryTests
     [TestMethod]
     public void PhysicalLoweringFacade_ShouldOwnCompositionAndBoundedDispatchInventory()
     {
-        var builderField = CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder)).GetField(
-            "_physicalLoweringFacade",
-            BindingFlags.Instance | BindingFlags.NonPublic);
+        var builderField = CompilerContractSymbols
+            .For(typeof(PhysicalToExecutionPlanBuilder))
+            .GetField("_physicalLoweringFacade", BindingFlags.Instance | BindingFlags.NonPublic);
 
         Assert.IsNotNull(builderField);
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(PhysicalLoweringFacade)), builderField!.FieldType));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(PhysicalLoweringFacade)),
+                builderField!.FieldType
+            )
+        );
 
-        var facadeMethods = CompilerContractSymbols.For(typeof(PhysicalLoweringFacade))
+        var facadeMethods = CompilerContractSymbols
+            .For(typeof(PhysicalLoweringFacade))
             .GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(static method => SymbolEqualityComparer.Default.Equals(method.DeclaringType, CompilerContractSymbols.For(typeof(PhysicalLoweringFacade))) && !method.IsSpecialName)
+            .Where(static method =>
+                SymbolEqualityComparer.Default.Equals(
+                    method.DeclaringType,
+                    CompilerContractSymbols.For(typeof(PhysicalLoweringFacade))
+                ) && !method.IsSpecialName
+            )
             .ToArray();
         Assert.IsLessThanOrEqualTo(3, facadeMethods.Length);
 
@@ -35,8 +46,14 @@ public sealed class FinalArchitectureBoundaryTests
         trace.Exercise();
         CollectionAssert.AreEqual(LoweringDispatchTrace.ExpectedPlanOrder, trace.PlanCalls.ToArray());
         CollectionAssert.AreEqual(LoweringDispatchTrace.ExpectedTableOrder, trace.TableCalls.ToArray());
-        CollectionAssert.AreEqual(LoweringDispatchTrace.ExpectedPlanOrder, PhysicalLoweringDispatchFacade.PlanLoweringDescriptorNames.ToArray());
-        CollectionAssert.AreEqual(LoweringDispatchTrace.ExpectedTableOrder, PhysicalLoweringDispatchFacade.TableLoweringDescriptorNames.ToArray());
+        CollectionAssert.AreEqual(
+            LoweringDispatchTrace.ExpectedPlanOrder,
+            PhysicalLoweringDispatchFacade.PlanLoweringDescriptorNames.ToArray()
+        );
+        CollectionAssert.AreEqual(
+            LoweringDispatchTrace.ExpectedTableOrder,
+            PhysicalLoweringDispatchFacade.TableLoweringDescriptorNames.ToArray()
+        );
     }
 
     [TestMethod]
@@ -46,8 +63,9 @@ public sealed class FinalArchitectureBoundaryTests
         var coordinators = assembly
             .GetTypes()
             .Where(static type =>
-                type.Namespace?.StartsWith("Musoq.Evaluator.IR.Execution.Lowering", StringComparison.Ordinal) == true &&
-                type.MetadataName.Contains("Lowerer", StringComparison.Ordinal))
+                type.Namespace?.StartsWith("Musoq.Evaluator.IR.Execution.Lowering", StringComparison.Ordinal) == true
+                && type.MetadataName.Contains("Lowerer", StringComparison.Ordinal)
+            )
             .ToArray();
 
         Assert.IsNotEmpty(coordinators);
@@ -56,15 +74,19 @@ public sealed class FinalArchitectureBoundaryTests
         var builderType = CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder));
         var nestedLowerers = builderType
             .GetNestedTypes(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(static type => type.MetadataName.Contains("Lower", StringComparison.Ordinal) ||
-                                  type.MetadataName.Contains("Coordinator", StringComparison.Ordinal))
+            .Where(static type =>
+                type.MetadataName.Contains("Lower", StringComparison.Ordinal)
+                || type.MetadataName.Contains("Coordinator", StringComparison.Ordinal)
+            )
             .ToArray();
         Assert.IsEmpty(nestedLowerers.Select(static type => type.FullName).ToArray());
 
         var forbiddenBuilderDependencies = coordinators
-            .SelectMany(type => GetDirectMemberTypes(type)
-                .Where(memberType => SymbolEqualityComparer.Default.Equals(memberType, builderType))
-                .Select(_ => type.FullName!))
+            .SelectMany(type =>
+                GetDirectMemberTypes(type)
+                    .Where(memberType => SymbolEqualityComparer.Default.Equals(memberType, builderType))
+                    .Select(_ => type.FullName!)
+            )
             .Distinct(StringComparer.Ordinal)
             .ToArray();
         Assert.IsEmpty(forbiddenBuilderDependencies);
@@ -77,28 +99,28 @@ public sealed class FinalArchitectureBoundaryTests
         var lowererTypes = new[]
         {
             CompilerContractSymbols.For(typeof(AggregatePlanLowerer)),
-            CompilerContractSymbols.For(typeof(WindowPlanLowerer))
+            CompilerContractSymbols.For(typeof(WindowPlanLowerer)),
         };
 
         var dependencies = lowererTypes
-            .SelectMany(type => GetDirectMemberTypes(type)
-                .Where(memberType => SymbolEqualityComparer.Default.Equals(memberType, engineType))
-                .Select(_ => type.FullName!))
+            .SelectMany(type =>
+                GetDirectMemberTypes(type)
+                    .Where(memberType => SymbolEqualityComparer.Default.Equals(memberType, engineType))
+                    .Select(_ => type.FullName!)
+            )
             .ToArray();
 
         Assert.IsEmpty(dependencies);
-        Assert.IsNull(engineType.GetMethod(
-            "BuildAggregateOnlyPipeline",
-            BindingFlags.Instance | BindingFlags.NonPublic));
-        Assert.IsNull(engineType.GetMethod(
-            "BuildSingleKeyAggregatePipeline",
-            BindingFlags.Instance | BindingFlags.NonPublic));
-        Assert.IsNull(engineType.GetMethod(
-            "BuildValueTupleAggregatePipeline",
-            BindingFlags.Instance | BindingFlags.NonPublic));
-        Assert.IsNull(engineType.GetMethod(
-            "BuildWindowPipeline",
-            BindingFlags.Instance | BindingFlags.NonPublic));
+        Assert.IsNull(
+            engineType.GetMethod("BuildAggregateOnlyPipeline", BindingFlags.Instance | BindingFlags.NonPublic)
+        );
+        Assert.IsNull(
+            engineType.GetMethod("BuildSingleKeyAggregatePipeline", BindingFlags.Instance | BindingFlags.NonPublic)
+        );
+        Assert.IsNull(
+            engineType.GetMethod("BuildValueTupleAggregatePipeline", BindingFlags.Instance | BindingFlags.NonPublic)
+        );
+        Assert.IsNull(engineType.GetMethod("BuildWindowPipeline", BindingFlags.Instance | BindingFlags.NonPublic));
     }
 
     [TestMethod]
@@ -111,23 +133,31 @@ public sealed class FinalArchitectureBoundaryTests
             CompilerContractSymbols.For(typeof(CtePlanLowerer)),
             CompilerContractSymbols.For(typeof(PipelinePlanLowerer)),
             CompilerContractSymbols.For(typeof(MultiStatementPlanLowerer)),
-            CompilerContractSymbols.For(typeof(DescPlanLowerer))
+            CompilerContractSymbols.For(typeof(DescPlanLowerer)),
         };
 
         var directDependencies = lowererTypes
-            .SelectMany(type => GetDirectMemberTypes(type)
-                .Where(memberType => SymbolEqualityComparer.Default.Equals(memberType, engineType) || memberType.IsAssignableTo(CompilerContractSymbols.For(typeof(Delegate))))
-                .Select(_ => type.FullName!))
+            .SelectMany(type =>
+                GetDirectMemberTypes(type)
+                    .Where(memberType =>
+                        SymbolEqualityComparer.Default.Equals(memberType, engineType)
+                        || memberType.IsAssignableTo(CompilerContractSymbols.For(typeof(Delegate)))
+                    )
+                    .Select(_ => type.FullName!)
+            )
             .Distinct(StringComparer.Ordinal)
             .ToArray();
 
         Assert.IsEmpty(directDependencies);
-        Assert.IsTrue(lowererTypes.All(static type =>
-            type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Single()
-                .GetParameters()
-                .Single()
-                .ParameterType.IsInterface));
+        Assert.IsTrue(
+            lowererTypes.All(static type =>
+                type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Single()
+                    .GetParameters()
+                    .Single()
+                    .ParameterType.IsInterface
+            )
+        );
     }
 
     [TestMethod]
@@ -158,16 +188,20 @@ public sealed class FinalArchitectureBoundaryTests
         var forbidden = assembly
             .GetTypes()
             .Where(static type =>
-                type.Namespace?.StartsWith("Musoq.Targets.CSharpClr", StringComparison.Ordinal) == true)
-            .SelectMany(type => GetDirectMemberTypes(type)
-                .Where(IsPlanningOrLoweringType)
-                .Select(memberType => $"{type.FullName} -> {memberType.FullName}"))
+                type.Namespace?.StartsWith("Musoq.Targets.CSharpClr", StringComparison.Ordinal) == true
+            )
+            .SelectMany(type =>
+                GetDirectMemberTypes(type)
+                    .Where(IsPlanningOrLoweringType)
+                    .Select(memberType => $"{type.FullName} -> {memberType.FullName}")
+            )
             .Distinct(StringComparer.Ordinal)
             .ToArray();
 
         Assert.IsEmpty(
             forbidden,
-            "C# rendering must consume execution contracts, not planning or lowering implementation types.");
+            "C# rendering must consume execution contracts, not planning or lowering implementation types."
+        );
     }
 
     [TestMethod]
@@ -183,32 +217,44 @@ public sealed class FinalArchitectureBoundaryTests
 
         CollectionAssert.AreEqual(
             definitionTypes,
-            ExecutionNodeRegistry.Descriptors.Select(static descriptor => descriptor.NodeType).ToArray());
+            ExecutionNodeRegistry.Descriptors.Select(static descriptor => descriptor.NodeType).ToArray()
+        );
         CollectionAssert.AreEqual(
             definitions.Select(static definition => definition.RendererFamily).ToArray(),
-            ExecutionNodeRegistry.Descriptors.Select(static descriptor => descriptor.RendererFamily).ToArray());
-        CollectionAssert.AreEquivalent(
-            definitionTypes,
-            ExecutionOperationCatalog.RegisteredNodeTypes.ToArray());
+            ExecutionNodeRegistry.Descriptors.Select(static descriptor => descriptor.RendererFamily).ToArray()
+        );
+        CollectionAssert.AreEquivalent(definitionTypes, ExecutionOperationCatalog.RegisteredNodeTypes.ToArray());
     }
 
     [TestMethod]
     public void PortableExecutionContracts_ShouldNotExposeClrReflectionOrObjectSidecars()
     {
-        Assert.IsNull(CompilerContractSymbols.For(typeof(ExecutionTypeRef)).GetProperty("ClrType", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
-        Assert.IsNull(CompilerContractSymbols.For(typeof(ExecutionCallableRef)).GetProperty("ClrMethod", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
+        Assert.IsNull(
+            CompilerContractSymbols
+                .For(typeof(ExecutionTypeRef))
+                .GetProperty("ClrType", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+        );
+        Assert.IsNull(
+            CompilerContractSymbols
+                .For(typeof(ExecutionCallableRef))
+                .GetProperty("ClrMethod", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+        );
 
         var forbidden = new[]
         {
             CompilerContractSymbols.For(typeof(ExecutionPlan)),
             CompilerContractSymbols.For(typeof(ExecutionNode)),
-            CompilerContractSymbols.For(typeof(ExecutionExpression))
+            CompilerContractSymbols.For(typeof(ExecutionExpression)),
         }
-        .SelectMany(type => type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-            .SelectMany(property => ExpandType(property.PropertyType)
-                .Where(IsClrSidecarType)
-                .Select(memberType => $"{type.FullName}.{property.MetadataName}: {memberType.FullName}")))
-        .ToArray();
+            .SelectMany(type =>
+                type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                    .SelectMany(property =>
+                        ExpandType(property.PropertyType)
+                            .Where(IsClrSidecarType)
+                            .Select(memberType => $"{type.FullName}.{property.MetadataName}: {memberType.FullName}")
+                    )
+            )
+            .ToArray();
 
         Assert.IsEmpty(forbidden);
     }
@@ -218,41 +264,79 @@ public sealed class FinalArchitectureBoundaryTests
     {
         var cacheFields = new[]
         {
-            CompilerContractSymbols.For(typeof(EvaluationHelper)).GetField("XmlDocCache", BindingFlags.Static | BindingFlags.NonPublic),
-            CompilerContractSymbols.For(typeof(EvaluationHelper)).GetField("CastableTypeCache", BindingFlags.Static | BindingFlags.NonPublic),
-            CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitorUtilities)).GetField("HasIndexerCache", BindingFlags.Static | BindingFlags.NonPublic),
-            CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitorUtilities)).GetField("IsIndexableCache", BindingFlags.Static | BindingFlags.NonPublic),
-            CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitorUtilities)).GetField("TypeHintAttributeCache", BindingFlags.Static | BindingFlags.NonPublic)
+            CompilerContractSymbols
+                .For(typeof(EvaluationHelper))
+                .GetField("XmlDocCache", BindingFlags.Static | BindingFlags.NonPublic),
+            CompilerContractSymbols
+                .For(typeof(EvaluationHelper))
+                .GetField("CastableTypeCache", BindingFlags.Static | BindingFlags.NonPublic),
+            CompilerContractSymbols
+                .For(typeof(BuildMetadataAndInferTypesVisitorUtilities))
+                .GetField("HasIndexerCache", BindingFlags.Static | BindingFlags.NonPublic),
+            CompilerContractSymbols
+                .For(typeof(BuildMetadataAndInferTypesVisitorUtilities))
+                .GetField("IsIndexableCache", BindingFlags.Static | BindingFlags.NonPublic),
+            CompilerContractSymbols
+                .For(typeof(BuildMetadataAndInferTypesVisitorUtilities))
+                .GetField("TypeHintAttributeCache", BindingFlags.Static | BindingFlags.NonPublic),
         };
 
-        Assert.IsTrue(cacheFields.All(static field =>
-            field is not null &&
-            field.FieldType.IsGenericType &&
-            (SymbolEqualityComparer.Default.Equals(field.FieldType.GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(BoundedRuntimeCache<,>))) ||
-             SymbolEqualityComparer.Default.Equals(field.FieldType.GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>))))));
+        Assert.IsTrue(
+            cacheFields.All(static field =>
+                field is not null
+                && field.FieldType.IsGenericType
+                && (
+                    SymbolEqualityComparer.Default.Equals(
+                        field.FieldType.GetGenericTypeDefinition(),
+                        CompilerContractSymbols.For(typeof(BoundedRuntimeCache<,>))
+                    )
+                    || SymbolEqualityComparer.Default.Equals(
+                        field.FieldType.GetGenericTypeDefinition(),
+                        CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>))
+                    )
+                )
+            )
+        );
 
-        var metadataCacheField = CompilerContractSymbols.For(typeof(DefaultMetadataReferenceCache)).GetField(
-            "_cache",
-            BindingFlags.Instance | BindingFlags.NonPublic);
+        var metadataCacheField = CompilerContractSymbols
+            .For(typeof(DefaultMetadataReferenceCache))
+            .GetField("_cache", BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.IsNotNull(metadataCacheField);
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(BoundedRuntimeCache<,>)), metadataCacheField!.FieldType.GetGenericTypeDefinition()));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(BoundedRuntimeCache<,>)),
+                metadataCacheField!.FieldType.GetGenericTypeDefinition()
+            )
+        );
     }
 
     private static IEnumerable<ITypeSymbol> GetDirectMemberTypes(ITypeSymbol type)
     {
-        foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+        foreach (
+            var field in type.GetFields(
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
+            )
+        )
         {
             foreach (var memberType in ExpandType(field.FieldType))
                 yield return memberType;
         }
 
-        foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+        foreach (
+            var property in type.GetProperties(
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
+            )
+        )
         {
             foreach (var memberType in ExpandType(property.PropertyType))
                 yield return memberType;
         }
 
-        foreach (var constructor in type.GetConstructors(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+        foreach (
+            var constructor in type.GetConstructors(
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
+            )
+        )
         {
             foreach (var parameter in constructor.GetParameters())
             {
@@ -261,7 +345,11 @@ public sealed class FinalArchitectureBoundaryTests
             }
         }
 
-        foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+        foreach (
+            var method in type.GetMethods(
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic
+            )
+        )
         {
             foreach (var memberType in ExpandType(method.ReturnType))
                 yield return memberType;
@@ -296,15 +384,15 @@ public sealed class FinalArchitectureBoundaryTests
 
     private static bool IsPlanningOrLoweringType(ITypeSymbol type)
     {
-        return type.Namespace?.StartsWith("Musoq.Evaluator.IR.Planning", StringComparison.Ordinal) == true ||
-               type.Namespace?.StartsWith("Musoq.Evaluator.IR.Execution.Lowering", StringComparison.Ordinal) == true;
+        return type.Namespace?.StartsWith("Musoq.Evaluator.IR.Planning", StringComparison.Ordinal) == true
+            || type.Namespace?.StartsWith("Musoq.Evaluator.IR.Execution.Lowering", StringComparison.Ordinal) == true;
     }
 
     private static bool IsClrSidecarType(ITypeSymbol type)
     {
-        return SymbolEqualityComparer.Default.Equals(type, CompilerContractSymbols.For(typeof(Type))) ||
-               SymbolEqualityComparer.Default.Equals(type, CompilerContractSymbols.For(typeof(object))) ||
-               CompilerContractSymbols.For(typeof(MemberInfo)).IsAssignableFrom(type) ||
-               CompilerContractSymbols.For(typeof(Assembly)).IsAssignableFrom(type);
+        return SymbolEqualityComparer.Default.Equals(type, CompilerContractSymbols.For(typeof(Type)))
+            || SymbolEqualityComparer.Default.Equals(type, CompilerContractSymbols.For(typeof(object)))
+            || CompilerContractSymbols.For(typeof(MemberInfo)).IsAssignableFrom(type)
+            || CompilerContractSymbols.For(typeof(Assembly)).IsAssignableFrom(type);
     }
 }

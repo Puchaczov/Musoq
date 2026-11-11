@@ -9,8 +9,10 @@ public static class ExecutionSettings
     public static CompilationOptions Create(Scenario scenario, int inputCount = FixtureData.TestSize)
     {
         var requirements = FixtureCatalog.GetRequirements(scenario, inputCount);
-        var options = new CompilationOptions(usePrimitiveTypeValidation: requirements.ValidatePrimitiveTypes,
-            maxDegreeOfParallelismOverride: Environment.ProcessorCount);
+        var options = new CompilationOptions(
+            usePrimitiveTypeValidation: requirements.ValidatePrimitiveTypes,
+            maxDegreeOfParallelismOverride: Environment.ProcessorCount
+        );
         return requirements.RecursiveMaxIterations is { } iterations
             ? options.WithRecursiveCteLimits(new RecursiveCteExecutionLimits(maxIterations: iterations))
             : options;
@@ -27,7 +29,7 @@ public static class ExecutionSettings
             ["maxDegreeOfParallelism"] = Environment.ProcessorCount.ToString(CultureInfo.InvariantCulture),
             ["structuralMaxDepth"] = structuralLimits.MaxDepth.ToString(CultureInfo.InvariantCulture),
             ["structuralMaxNodes"] = structuralLimits.MaxNodes.ToString(CultureInfo.InvariantCulture),
-            ["structuralMaxStringBytes"] = structuralLimits.MaxStringBytes.ToString(CultureInfo.InvariantCulture)
+            ["structuralMaxStringBytes"] = structuralLimits.MaxStringBytes.ToString(CultureInfo.InvariantCulture),
         };
         if (scenario.FixtureId != "standard" || scenario.DataProfileId != "default")
         {

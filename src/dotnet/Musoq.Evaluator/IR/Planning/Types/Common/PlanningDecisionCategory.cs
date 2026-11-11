@@ -24,5 +24,5 @@ internal enum PlanningDecisionCategory
     RowWidthPruning,
     ParallelEligibility,
     CteSidecarIndexStrategy,
-    Materialization
+    Materialization,
 }

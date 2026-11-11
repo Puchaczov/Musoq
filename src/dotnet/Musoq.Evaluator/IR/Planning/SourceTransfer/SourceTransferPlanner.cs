@@ -14,7 +14,8 @@ internal static class SourceTransferPlanner
     public static SourceTransferPlanningResult Plan(
         PlanningContext context,
         SourcePlanningFacts sourcePlanning,
-        IReadOnlyDictionary<string, SourceComputedTransferPlan>? computedTransfers = null)
+        IReadOnlyDictionary<string, SourceComputedTransferPlan>? computedTransfers = null
+    )
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(sourcePlanning);
@@ -25,7 +26,8 @@ internal static class SourceTransferPlanner
         var usageResult = SourceTransferUsagePlanner.Plan(
             context.LogicalPlan,
             sourcePlanning,
-            context.CancellationToken);
+            context.CancellationToken
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(usageResult.Decisions);
 
@@ -34,14 +36,22 @@ internal static class SourceTransferPlanner
             context.CancellationToken.ThrowIfCancellationRequested();
             var usage = usageResult.PlansBySourceId[source.SourceContextId];
             var computed = computedTransfers?.GetValueOrDefault(source.SourceContextId);
-            var accepted = sourcePlanning.SourcePlanResultsBySourceId.GetValueOrDefault(source.SourceContextId)
-                ?.AcceptedComputedProjections.Count ?? 0;
+            var accepted =
+                sourcePlanning
+                    .SourcePlanResultsBySourceId.GetValueOrDefault(source.SourceContextId)
+                    ?.AcceptedComputedProjections.Count
+                ?? 0;
             if (accepted != (computed?.Bindings.Count ?? 0))
-                throw new SourcePlanContractException("Accepted computed projections lost their planner bindings.", TextSpan.Empty);
+                throw new SourcePlanContractException(
+                    "Accepted computed projections lost their planner bindings.",
+                    TextSpan.Empty
+                );
             var plan = PlanSource(context, sourcePlanning, source, usage, computed);
-            if (plan.Mode != SourceTransferMode.QueryScopedRows &&
-                accepted > 0)
-                throw new SourcePlanContractException("Accepted computed projections require query-scoped row transfer.", TextSpan.Empty);
+            if (plan.Mode != SourceTransferMode.QueryScopedRows && accepted > 0)
+                throw new SourcePlanContractException(
+                    "Accepted computed projections require query-scoped row transfer.",
+                    TextSpan.Empty
+                );
             plans[source.SourceContextId] = plan;
             decisions.Add(CreateDecision(source, plan));
         }
@@ -55,7 +65,8 @@ internal static class SourceTransferPlanner
         SourcePlanningFacts sourcePlanning,
         SourcePlanProperties source,
         SourceTransferUsagePlan usage,
-        SourceComputedTransferPlan? computed)
+        SourceComputedTransferPlan? computed
+    )
     {
         if (!sourcePlanning.SourceDescriptorsBySourceId.TryGetValue(source.SourceContextId, out var descriptor))
             return SourceTransferStrategyPlan.DeclaredRows(source.SourceContextId, "source descriptor was unavailable");
@@ -65,18 +76,21 @@ internal static class SourceTransferPlanner
             sourcePlanning,
             source,
             descriptor,
-            context.CancellationToken);
+            context.CancellationToken
+        );
         if (logicalEnumColumn != null)
         {
-            var required = SourceTransferCapabilities.QueryScopedRows |
-                           SourceTransferCapabilities.LogicalScalarReads;
-            if ((descriptor.TransferCapabilities & required) != required ||
-                (context.TargetSourceTransferCapabilities & required) != required)
+            var required = SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads;
+            if (
+                (descriptor.TransferCapabilities & required) != required
+                || (context.TargetSourceTransferCapabilities & required) != required
+            )
             {
                 throw new EnumSourceCapabilityException(
                     $"{descriptor.Identity.SchemaName}.{descriptor.Identity.MethodName}",
                     logicalEnumColumn.ColumnName,
-                    ResolveColumnSpan(sourcePlanning, source.SourceContextId, logicalEnumColumn.ColumnName));
+                    ResolveColumnSpan(sourcePlanning, source.SourceContextId, logicalEnumColumn.ColumnName)
+                );
             }
         }
 
@@ -84,58 +98,70 @@ internal static class SourceTransferPlanner
         {
             return SourceTransferStrategyPlan.DeclaredRows(
                 source.SourceContextId,
-                "source did not advertise query-scoped rows");
+                "source did not advertise query-scoped rows"
+            );
         }
 
         if (!context.TargetSourceTransferCapabilities.HasFlag(SourceTransferCapabilities.QueryScopedRows))
         {
             return SourceTransferStrategyPlan.DeclaredRows(
                 source.SourceContextId,
-                "selected execution target does not support query-scoped rows");
+                "selected execution target does not support query-scoped rows"
+            );
         }
 
         if (usage.RowRequirement == SourceRowRequirement.DeclaredEntity)
             return SourceTransferStrategyPlan.DeclaredRows(source.SourceContextId, usage.RowRequirementReason);
 
         context.CancellationToken.ThrowIfCancellationRequested();
-        if (!TryCreateShape(
+        if (
+            !TryCreateShape(
                 sourcePlanning,
                 source,
                 descriptor,
                 computed,
                 context.CancellationToken,
                 out var shape,
-                out var shapeReason))
+                out var shapeReason
+            )
+        )
         {
             if (descriptor.RowType == typeof(QueryScopedRowContract))
                 throw new SourcePlanContractException(
-                    $"Native source '{source.SourceContextId}' cannot bind its concrete row shape: {shapeReason}.", TextSpan.Empty);
+                    $"Native source '{source.SourceContextId}' cannot bind its concrete row shape: {shapeReason}.",
+                    TextSpan.Empty
+                );
             return SourceTransferStrategyPlan.DeclaredRows(source.SourceContextId, shapeReason);
         }
 
         context.CancellationToken.ThrowIfCancellationRequested();
         var estimatedPayload = SourceRowPayload.Estimate(shape, context.CancellationToken);
-        var carrier = estimatedPayload <= SourceRowPayload.StructCarrierLimit && usage.Lifetime == SourceRowLifetime.ScanLocal
-            ? SourceQueryRowCarrier.ReadonlyStruct
-            : SourceQueryRowCarrier.SealedClass;
+        var carrier =
+            estimatedPayload <= SourceRowPayload.StructCarrierLimit && usage.Lifetime == SourceRowLifetime.ScanLocal
+                ? SourceQueryRowCarrier.ReadonlyStruct
+                : SourceQueryRowCarrier.SealedClass;
         var carrierName = carrier == SourceQueryRowCarrier.ReadonlyStruct ? "readonly struct" : "sealed class";
         var reason = string.Create(
             CultureInfo.InvariantCulture,
-            $"query-scoped rows selected with {carrierName} carrier; lifetime={usage.Lifetime}; shape={shape.Fingerprint}; estimated payload={estimatedPayload} bytes; {usage.LifetimeReason}");
+            $"query-scoped rows selected with {carrierName} carrier; lifetime={usage.Lifetime}; shape={shape.Fingerprint}; estimated payload={estimatedPayload} bytes; {usage.LifetimeReason}"
+        );
         if (computed is { UnusedSourceColumns.Count: > 0 })
-            reason += $"; dropped provider-only inputs: {string.Join(", ", computed.UnusedSourceColumns.Order(StringComparer.Ordinal))}";
+            reason +=
+                $"; dropped provider-only inputs: {string.Join(", ", computed.UnusedSourceColumns.Order(StringComparer.Ordinal))}";
 
         return new SourceTransferStrategyPlan(
             source.SourceContextId,
             SourceTransferMode.QueryScopedRows,
             carrier,
             shape,
-            reason)
+            reason
+        )
         {
             ComputedProjections = computed?.Bindings ?? [],
-            Lifetime = usage.Lifetime == SourceRowLifetime.ScanLocal
-                ? SourceQueryRowLifetime.ScanLocal
-                : SourceQueryRowLifetime.EscapesScan
+            Lifetime =
+                usage.Lifetime == SourceRowLifetime.ScanLocal
+                    ? SourceQueryRowLifetime.ScanLocal
+                    : SourceQueryRowLifetime.EscapesScan,
         };
     }
 
@@ -146,16 +172,11 @@ internal static class SourceTransferPlanner
         SourceComputedTransferPlan? computed,
         CancellationToken cancellationToken,
         out QueryRowShape shape,
-        out string reason)
+        out string reason
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!TryResolveColumns(
-                sourcePlanning,
-                source,
-                descriptor,
-                cancellationToken,
-                out var columns,
-                out reason))
+        if (!TryResolveColumns(sourcePlanning, source, descriptor, cancellationToken, out var columns, out reason))
         {
             shape = null!;
             return false;
@@ -174,7 +195,8 @@ internal static class SourceTransferPlanner
         if (volatileColumn != null)
         {
             shape = null!;
-            reason = $"query-row transfer would freeze volatile column '{volatileColumn.ColumnName}'; retained declared-row fallback";
+            reason =
+                $"query-row transfer would freeze volatile column '{volatileColumn.ColumnName}'; retained declared-row fallback";
             return false;
         }
 
@@ -236,16 +258,19 @@ internal static class SourceTransferPlanner
 
             if (computed?.UnusedSourceColumns.Contains(column.ColumnName) == true)
                 continue;
-            fields.Add(new QueryRowField(
-                fields.Count,
-                column.ColumnIndex,
-                column.ColumnName,
-                column.ColumnType,
-                column.SourceReadType,
-                column.EnumType,
-                IsNullable(column.ColumnType),
-                column.ReadModifiers,
-                column.Stability));
+            fields.Add(
+                new QueryRowField(
+                    fields.Count,
+                    column.ColumnIndex,
+                    column.ColumnName,
+                    column.ColumnType,
+                    column.SourceReadType,
+                    column.EnumType,
+                    IsNullable(column.ColumnType),
+                    column.ReadModifiers,
+                    column.Stability
+                )
+            );
         }
 
         if (computed is not null)
@@ -263,7 +288,8 @@ internal static class SourceTransferPlanner
         SourceDescriptor descriptor,
         CancellationToken cancellationToken,
         out ISchemaColumn[] columns,
-        out string reason)
+        out string reason
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (source.QueryRowProjection.State == SourceProjectionState.Exact)
@@ -274,8 +300,10 @@ internal static class SourceTransferPlanner
             return true;
         }
 
-        if (sourcePlanning.ProjectedSchemaColumnsBySourceId.TryGetValue(source.SourceContextId, out var projected) &&
-            projected.Length > 0)
+        if (
+            sourcePlanning.ProjectedSchemaColumnsBySourceId.TryGetValue(source.SourceContextId, out var projected)
+            && projected.Length > 0
+        )
         {
             columns = projected;
             reason = string.Empty;
@@ -291,8 +319,10 @@ internal static class SourceTransferPlanner
             return true;
         }
 
-        if (sourcePlanning.SourceInteractionPlansBySourceId.TryGetValue(source.SourceContextId, out var interaction) &&
-            interaction.QuerySourceColumns.Length > 0)
+        if (
+            sourcePlanning.SourceInteractionPlansBySourceId.TryGetValue(source.SourceContextId, out var interaction)
+            && interaction.QuerySourceColumns.Length > 0
+        )
         {
             columns = interaction.QuerySourceColumns;
             reason = string.Empty;
@@ -318,8 +348,7 @@ internal static class SourceTransferPlanner
 
         var describedByName = describedColumns
             .Select(static column => column.ColumnName)
-            .ToHashSet(
-            StringComparer.Ordinal);
+            .ToHashSet(StringComparer.Ordinal);
         cancellationToken.ThrowIfCancellationRequested();
         var missing = new List<string>();
         foreach (var required in source.RequiredColumns)
@@ -329,11 +358,13 @@ internal static class SourceTransferPlanner
                 missing.Add(required);
         }
 
-        missing.Sort((left, right) =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return StringComparer.Ordinal.Compare(left, right);
-        });
+        missing.Sort(
+            (left, right) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return StringComparer.Ordinal.Compare(left, right);
+            }
+        );
         if (missing.Count > 0)
         {
             columns = [];
@@ -359,7 +390,8 @@ internal static class SourceTransferPlanner
     private static bool HasAmbiguousMetadata(
         ISchemaColumn[] columns,
         CancellationToken cancellationToken,
-        out string reason)
+        out string reason
+    )
     {
         var names = new HashSet<string>(StringComparer.Ordinal);
         var ordinals = new HashSet<int>();
@@ -402,16 +434,11 @@ internal static class SourceTransferPlanner
         SourcePlanningFacts sourcePlanning,
         SourcePlanProperties source,
         SourceDescriptor descriptor,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (TryResolveColumns(
-                sourcePlanning,
-                source,
-                descriptor,
-                cancellationToken,
-                out var resolvedColumns,
-                out _))
+        if (TryResolveColumns(sourcePlanning, source, descriptor, cancellationToken, out var resolvedColumns, out _))
         {
             foreach (var column in resolvedColumns)
             {
@@ -468,60 +495,66 @@ internal static class SourceTransferPlanner
     private static TextSpan ResolveColumnSpan(
         SourcePlanningFacts sourcePlanning,
         string sourceContextId,
-        string columnName)
+        string columnName
+    )
     {
-        return sourcePlanning.SourceContractDiagnosticLocationsBySourceId.TryGetValue(sourceContextId, out var locations) &&
-               locations.TryGetColumnSpan(columnName, out var span)
+        return
+            sourcePlanning.SourceContractDiagnosticLocationsBySourceId.TryGetValue(sourceContextId, out var locations)
+            && locations.TryGetColumnSpan(columnName, out var span)
             ? span
             : TextSpan.Empty;
     }
 
     private static IReadOnlyList<SourcePlanProperties> GetOrderedSources(
         IEnumerable<SourcePlanProperties> sources,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var ordered = sources.ToList();
         cancellationToken.ThrowIfCancellationRequested();
-        ordered.Sort((left, right) =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return StringComparer.Ordinal.Compare(left.SourceContextId, right.SourceContextId);
-        });
+        ordered.Sort(
+            (left, right) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return StringComparer.Ordinal.Compare(left.SourceContextId, right.SourceContextId);
+            }
+        );
         cancellationToken.ThrowIfCancellationRequested();
         return ordered;
     }
 
     private static IReadOnlyList<ISchemaColumn> GetOrderedColumns(
         IEnumerable<ISchemaColumn> columns,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var ordered = columns.ToList();
         cancellationToken.ThrowIfCancellationRequested();
-        ordered.Sort((left, right) =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return left.ColumnIndex.CompareTo(right.ColumnIndex);
-        });
+        ordered.Sort(
+            (left, right) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return left.ColumnIndex.CompareTo(right.ColumnIndex);
+            }
+        );
         cancellationToken.ThrowIfCancellationRequested();
         return ordered;
     }
 
-    private static PlanningDecision CreateDecision(
-        SourcePlanProperties source,
-        SourceTransferStrategyPlan plan)
+    private static PlanningDecision CreateDecision(SourcePlanProperties source, SourceTransferStrategyPlan plan)
     {
         var outcome = plan.Mode == SourceTransferMode.QueryScopedRows ? "Selected" : "Fallback";
-        var confidence = plan.Mode == SourceTransferMode.QueryScopedRows
-            ? PlanningConfidence.High
-            : PlanningConfidence.Medium;
+        var confidence =
+            plan.Mode == SourceTransferMode.QueryScopedRows ? PlanningConfidence.High : PlanningConfidence.Medium;
         return new PlanningDecision(
             PlanningDecisionCategory.SourcePlanning,
             "SourceTransfer",
             source.SourceContextId,
             outcome,
             confidence,
-            plan.Reason);
+            plan.Reason
+        );
     }
 }

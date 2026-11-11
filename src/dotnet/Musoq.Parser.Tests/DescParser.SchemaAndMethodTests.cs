@@ -5,7 +5,6 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Parser.Tests;
 
-
 [TestClass]
 public class DescParserSchemaAndMethodTests : DescParserTestBase
 {
@@ -72,11 +71,13 @@ public class DescParserSchemaAndMethodTests : DescParserTestBase
     [TestMethod]
     public void DescWithComment_ShouldParse()
     {
-        var query = @"
-            -- This is a comment
-            desc #schema.method()
-            -- Another comment
-        ";
+        var query = (
+            "\n"
+            + "            -- This is a comment\n"
+            + "            desc #schema.method()\n"
+            + "            -- Another comment\n"
+            + "        "
+        );
 
         var desc = ParseDescNode(query);
         var source = GetSchemaFromNode(desc);
@@ -102,10 +103,7 @@ public class DescParserSchemaAndMethodTests : DescParserTestBase
     [TestMethod]
     public void DescWithMultilineFormat_ShouldParse()
     {
-        var query = @"
-            desc
-                #schema.method()
-        ";
+        var query = ("\n" + "            desc\n" + "                #schema.method()\n" + "        ");
 
         var desc = ParseDescNode(query);
         var source = GetSchemaFromNode(desc);
@@ -299,5 +297,4 @@ public class DescParserSchemaAndMethodTests : DescParserTestBase
         Assert.HasCount(1, source.Parameters.Args);
         Assert.AreEqual("GetValue()", source.Parameters.ToString());
     }
-
 }

@@ -12,7 +12,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateGenericBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [GenericContainer.Interpret(i.Content) -> cRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [GenericContainer.Interpret(i.Content) -> cRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Items.Data:", result.ExecutionPlanText);
         AssertExecutionPlanContains("EnumerableSource [ic.c.Items.Data -> dRows]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -23,16 +26,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateGenericBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "generic",
                     Line = "INFO generic",
                     Numbers = [],
-                    Content = CreateGenericPacketContent()
-                }
-            ]));
+                    Content = CreateGenericPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -50,7 +53,8 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains(
             "InterpretSource [NestedGenericContainer.Interpret(i.Content) -> cRows]",
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("Items.Data:", result.ExecutionPlanText);
         AssertExecutionPlanContains("EnumerableSource [ic.c.Items.Data -> pRows]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -61,16 +65,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateNestedGenericBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "nested-generic",
                     Line = "INFO nested generic",
                     Numbers = [],
-                    Content = CreateNestedGenericPacketContent()
-                }
-            ]));
+                    Content = CreateNestedGenericPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -85,17 +89,25 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderInheritedBinaryInterpretSource_ShouldUseExecutionBackend()
     {
-        var result = Inspect(@"
-                binary BaseHeader {
-                    Version: byte
-                };
-                binary ExtendedHeader extends BaseHeader {
-                    Payload: byte[2]
-                };
-                select i.Name, h.Version from #apply.items() i cross apply Interpret<ExtendedHeader>(i.Content) h", CreateApplyCandidateSchemaProvider());
+        var result = Inspect(
+            (
+                "\n"
+                + "                binary BaseHeader {\n"
+                + "                    Version: byte\n"
+                + "                };\n"
+                + "                binary ExtendedHeader extends BaseHeader {\n"
+                + "                    Payload: byte[2]\n"
+                + "                };\n"
+                + "                select i.Name, h.Version from #apply.items() i cross apply Interpret<ExtendedHeader>(i.Content) h"
+            ),
+            CreateApplyCandidateSchemaProvider()
+        );
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [ExtendedHeader.Interpret(i.Content) -> hRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [ExtendedHeader.Interpret(i.Content) -> hRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Version: byte <- field Version", result.ExecutionPlanText);
         Assert.Contains("Payload: byte[] <- property Payload", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
@@ -106,23 +118,26 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderInheritedBinaryInterpretSource_ShouldRunExecutableQuery()
     {
         var compiled = CompileForExecution(
-            @"
-                binary BaseHeader {
-                    Version: byte
-                };
-                binary ExtendedHeader extends BaseHeader {
-                    Payload: byte[2]
-                };
-                select i.Name, h.Version from #apply.items() i cross apply Interpret<ExtendedHeader>(i.Content) h", new ApplyCandidateSchemaProvider(
-            [
+            (
+                "\n"
+                + "                binary BaseHeader {\n"
+                + "                    Version: byte\n"
+                + "                };\n"
+                + "                binary ExtendedHeader extends BaseHeader {\n"
+                + "                    Payload: byte[2]\n"
+                + "                };\n"
+                + "                select i.Name, h.Version from #apply.items() i cross apply Interpret<ExtendedHeader>(i.Content) h"
+            ),
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "packet",
                     Line = "INFO packet",
                     Numbers = [],
-                    Content = [7, 0xAA, 0xBB]
-                }
-            ]));
+                    Content = [7, 0xAA, 0xBB],
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -130,5 +145,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual("packet", table[0].ReadValue(0));
         Assert.AreEqual((byte)7, table[0].ReadValue(1));
     }
-
 }

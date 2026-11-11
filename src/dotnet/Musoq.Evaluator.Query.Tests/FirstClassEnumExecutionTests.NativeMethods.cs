@@ -13,8 +13,10 @@ public sealed partial class FirstClassEnumExecutionTests
     public void NativeMethodEnumName_ShouldReturnDeclaredName()
     {
         const string query = "select EnumName(e.GetStatus()) from #schema.first() e";
-        using var compiled = CreateAndRunVirtualMachine<NativeMethodEntity, NativeMethodLibrary>(query,
-            [new NativeMethodEntity { Id = 1 }]);
+        using var compiled = CreateAndRunVirtualMachine<NativeMethodEntity, NativeMethodLibrary>(
+            query,
+            [new NativeMethodEntity { Id = 1 }]
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(typeof(string), result.Columns.ElementAt(0).ColumnType);
         TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { "Ready" });
@@ -23,13 +25,26 @@ public sealed partial class FirstClassEnumExecutionTests
     [TestMethod]
     public void NullableAndFlagsNativeMethods_ShouldUsePrimitiveCarriers()
     {
-        const string query = "select EnumName(e.GetNullableStatus()) as Name, EnumName(e.GetNullStatus()) as NullName, IsDefined(e.GetNullStatus()) as NullDefined, IsDefined(e.GetUndefinedStatus()) as Undefined, EnumValue(e.GetStatus()) as Value, HasAllFlags(e.GetAccess(), 'Read', 'Write') as Both from #schema.first() e";
-        using var compiled = CreateAndRunVirtualMachine<NativeMethodEntity, NativeMethodLibrary>(query,
-            [new NativeMethodEntity { Id = 1 }]);
+        const string query =
+            "select EnumName(e.GetNullableStatus()) as Name, EnumName(e.GetNullStatus()) as NullName, IsDefined(e.GetNullStatus()) as NullDefined, IsDefined(e.GetUndefinedStatus()) as Undefined, EnumValue(e.GetStatus()) as Value, HasAllFlags(e.GetAccess(), 'Read', 'Write') as Both from #schema.first() e";
+        using var compiled = CreateAndRunVirtualMachine<NativeMethodEntity, NativeMethodLibrary>(
+            query,
+            [new NativeMethodEntity { Id = 1 }]
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(result, ("Name", typeof(string)), ("NullName", typeof(string)),
-            ("NullDefined", typeof(bool)), ("Undefined", typeof(bool)), ("Value", typeof(short)), ("Both", typeof(bool)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { "Ready", null, false, false, (short)20, true });
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Name", typeof(string)),
+            ("NullName", typeof(string)),
+            ("NullDefined", typeof(bool)),
+            ("Undefined", typeof(bool)),
+            ("Value", typeof(short)),
+            ("Both", typeof(bool))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
+            new object?[] { "Ready", null, false, false, (short)20, true }
+        );
     }
 
     public sealed class NativeMethodEntity
@@ -39,14 +54,14 @@ public sealed partial class FirstClassEnumExecutionTests
 
     public enum NativeMethodStatus : short
     {
-        Ready = 20
+        Ready = 20,
     }
 
     [Flags]
     public enum NativeMethodAccess : byte
     {
         Read = 1,
-        Write = 2
+        Write = 2,
     }
 
     public sealed class NativeMethodLibrary : LibraryBase
@@ -69,7 +84,7 @@ public sealed partial class FirstClassEnumExecutionTests
 
     public enum MinimalNativeMethodStatus
     {
-        Ready
+        Ready,
     }
 
     public sealed class MinimalNativeMethodEntity;
@@ -87,7 +102,8 @@ public sealed partial class FirstClassEnumExecutionTests
         const string query = "select EnumName(GetStatus()) from #schema.first()";
         using var compiled = CreateAndRunVirtualMachine<MinimalNativeMethodEntity, MinimalNativeMethodLibrary>(
             query,
-            [new MinimalNativeMethodEntity()]);
+            [new MinimalNativeMethodEntity()]
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -96,6 +112,7 @@ public sealed partial class FirstClassEnumExecutionTests
         var column = System.Linq.Enumerable.Single(table.Columns);
         Assert.AreEqual(typeof(string), column.ColumnType);
     }
+
     [TestMethod]
     [TestProperty("CandidateId", "PROMOTED-EnumNameCompilesForNativeClrEnumMethodWithEmptySource")]
     public void EnumNameCompilesForNativeClrEnumMethodWithEmptySource()
@@ -103,13 +120,15 @@ public sealed partial class FirstClassEnumExecutionTests
         const string query = "select EnumName(GetStatus()) from #schema.first()";
         using var compiled = CreateAndRunVirtualMachine<MinimalNativeMethodEntity, MinimalNativeMethodLibrary>(
             query,
-            System.Array.Empty<MinimalNativeMethodEntity>());
+            System.Array.Empty<MinimalNativeMethodEntity>()
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(0, table.Count);
         var column = System.Linq.Enumerable.Single(table.Columns);
         Assert.AreEqual(typeof(string), column.ColumnType);
     }
+
     [TestMethod]
     [TestProperty("CandidateId", "PROMOTED-IsDefinedReturnsBooleanForNativeClrEnumMethodWithEmptySource")]
     public void IsDefinedReturnsBooleanForNativeClrEnumMethodWithEmptySource()
@@ -117,7 +136,8 @@ public sealed partial class FirstClassEnumExecutionTests
         const string query = "select IsDefined(GetStatus()) from #schema.first()";
         using var compiled = CreateAndRunVirtualMachine<MinimalNativeMethodEntity, MinimalNativeMethodLibrary>(
             query,
-            System.Array.Empty<MinimalNativeMethodEntity>());
+            System.Array.Empty<MinimalNativeMethodEntity>()
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(0, table.Count);

@@ -6,4 +6,5 @@ namespace Musoq.Schema.Optimization;
 public sealed record SourcePredicateFlags(
     SourcePredicateExpression Expression,
     SourcePredicateEnumLiteral Mask,
-    SourcePredicateFlagsMatchMode MatchMode) : SourcePredicateExpression;
+    SourcePredicateFlagsMatchMode MatchMode
+) : SourcePredicateExpression;

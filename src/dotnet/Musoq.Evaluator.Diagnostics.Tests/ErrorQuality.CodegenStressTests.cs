@@ -22,8 +22,8 @@ public class ErrorQualityCodegenStressTests : BasicEntityTestBase
     [TestMethod]
     public void E_BINGEN_01_ManyFieldsBinarySchema()
     {
-
-        var query = @"binary WideFormat {
+        var query =
+            @"binary WideFormat {
     F1: byte,
     F2: byte,
     F3: short le,
@@ -44,11 +44,14 @@ public class ErrorQualityCodegenStressTests : BasicEntityTestBase
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -58,8 +61,8 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_02_DeeplyNestedBinarySchemas()
     {
-
-        var query = @"binary Inner {
+        var query =
+            @"binary Inner {
     Value: int le
 };
 binary Middle {
@@ -74,11 +77,14 @@ binary Outer {
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -88,8 +94,8 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_03_AllPrimitiveTypes()
     {
-
-        var query = @"binary AllTypes {
+        var query =
+            @"binary AllTypes {
     A: byte,
     B: sbyte,
     C: short le,
@@ -104,11 +110,14 @@ select 1 from #A.Entities()";
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -118,8 +127,8 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_04_MixedEndianness()
     {
-
-        var query = @"binary MixedEndian {
+        var query =
+            @"binary MixedEndian {
     LittleInt: int le,
     BigInt: int be,
     LittleShort: short le,
@@ -128,11 +137,14 @@ select 1 from #A.Entities()";
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -142,8 +154,8 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_05_StringAndByteArrayFields()
     {
-
-        var query = @"binary FileHeader {
+        var query =
+            @"binary FileHeader {
     Magic: byte[4],
     NameLength: int le,
     Name: string[16] utf8,
@@ -152,11 +164,14 @@ select 1 from #A.Entities()";
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -166,8 +181,8 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_06_ConditionalWhenClause()
     {
-
-        var query = @"binary Packet {
+        var query =
+            @"binary Packet {
     Type: byte,
     Size: int le when Type = 1,
     Data: byte[4] when Type = 2
@@ -175,11 +190,14 @@ select 1 from #A.Entities()";
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -189,8 +207,8 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_07_AtOffsetPositioning()
     {
-
-        var query = @"binary FixedLayout {
+        var query =
+            @"binary FixedLayout {
     Magic: int le at 0,
     Version: short le at 4,
     Flags: byte at 6
@@ -198,11 +216,14 @@ select 1 from #A.Entities()";
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -212,19 +233,22 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_08_BitsFields()
     {
-
-        var query = @"binary Flags {
+        var query =
+            @"binary Flags {
     HighNibble: bits[4],
     LowNibble: bits[4]
 };
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -236,7 +260,8 @@ select 1 from #A.Entities()";
     {
         // Arrange — schema name that is also a SQL keyword
         var analyzer = CreateAnalyzer();
-        var query = @"binary Select {
+        var query =
+            @"binary Select {
     Value: int le
 };
 select 1 from #A.Entities()";
@@ -245,8 +270,10 @@ select 1 from #A.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — keyword as schema name is now allowed (context is unambiguous)
-        Assert.IsTrue(result is { HasErrors: false, IsParsed: true },
-            "SQL keyword as schema name should parse successfully in schema context");
+        Assert.IsTrue(
+            result is { HasErrors: false, IsParsed: true },
+            "SQL keyword as schema name should parse successfully in schema context"
+        );
     }
 
     #endregion
@@ -256,15 +283,14 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_10_FieldNameCollisionWithKeyword()
     {
-
         var analyzer = CreateAnalyzer();
-        var query = @"binary Header {
+        var query =
+            @"binary Header {
     from: int le
 };
 select 1 from #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
-
 
         Assert.IsTrue(result.IsParsed);
         DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_BINGEN_10_FieldNameCollisionWithKeyword));
@@ -281,8 +307,8 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_01_ManyFieldsTextSchema()
     {
-
-        var query = @"text LogLine {
+        var query =
+            @"text LogLine {
     Field1: until ' ',
     Field2: until ' ',
     Field3: until ' ',
@@ -295,11 +321,14 @@ select 1 from #A.Entities()";
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -309,8 +338,8 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_02_AllExtractionMethods()
     {
-
-        var query = @"text CompleteLine {
+        var query =
+            @"text CompleteLine {
     Prefix: chars[5],
     Sep1: whitespace,
     Middle: until ':',
@@ -320,11 +349,14 @@ select 1 from #A.Entities()";
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -334,19 +366,22 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_03_LiteralField()
     {
-
-        var query = @"text FixedFormat {
+        var query =
+            @"text FixedFormat {
     Marker: literal 'START',
     Data: rest
 };
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -356,19 +391,22 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_04_PatternField()
     {
-
-        var query = @"text LogEntry {
+        var query =
+            @"text LogEntry {
     Timestamp: pattern '\d{4}-\d{2}-\d{2}',
     Rest: rest
 };
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -378,19 +416,22 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_05_TokenField()
     {
-
-        var query = @"text SimpleLine {
+        var query =
+            @"text SimpleLine {
     Word: token,
     Remainder: rest
 };
 select 1 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -402,7 +443,8 @@ select 1 from #A.Entities()";
     {
         // Arrange — schema named 'Where' (SQL keyword)
         var analyzer = CreateAnalyzer();
-        var query = @"text Where {
+        var query =
+            @"text Where {
     Data: rest
 };
 select 1 from #A.Entities()";
@@ -411,8 +453,10 @@ select 1 from #A.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — keyword as text schema name is now allowed (context is unambiguous)
-        Assert.IsTrue(result is { HasErrors: false, IsParsed: true },
-            "SQL keyword as text schema name should parse successfully in schema context");
+        Assert.IsTrue(
+            result is { HasErrors: false, IsParsed: true },
+            "SQL keyword as text schema name should parse successfully in schema context"
+        );
     }
 
     #endregion
@@ -422,15 +466,14 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_07_FieldNameCollisionWithKeyword()
     {
-
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
+        var query =
+            @"text LogLine {
     select: rest
 };
 select 1 from #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
-
 
         Assert.IsTrue(result.IsParsed);
         DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_TEXTGEN_07_FieldNameCollisionWithKeyword));
@@ -447,8 +490,8 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_MIXQUERY_01_BinarySchemaWithCte()
     {
-
-        var query = @"binary Header {
+        var query =
+            @"binary Header {
     Magic: int le,
     Version: short le
 };
@@ -458,11 +501,14 @@ with source as (
 select s.Name from source s";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -472,19 +518,22 @@ select s.Name from source s";
     [TestMethod]
     public void E_MIXQUERY_02_TextSchemaWithGroupBy()
     {
-
-        var query = @"text LogLine {
+        var query =
+            @"text LogLine {
     Level: until ' ',
     Message: rest
 };
 select City, Count(1) as Cnt from #A.Entities() group by City";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -494,8 +543,8 @@ select City, Count(1) as Cnt from #A.Entities() group by City";
     [TestMethod]
     public void E_MIXQUERY_03_MultipleSchemasWithJoin()
     {
-
-        var query = @"binary Header {
+        var query =
+            @"binary Header {
     Magic: int le
 };
 text LogLine {
@@ -504,11 +553,14 @@ text LogLine {
 select a.Name, b.Name from #A.Entities() a inner join #B.Entities() b on a.City = b.City";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(0, table.Count);
-
-
     }
 
     #endregion
@@ -518,8 +570,8 @@ select a.Name, b.Name from #A.Entities() a inner join #B.Entities() b on a.City 
     [TestMethod]
     public void E_MIXQUERY_04_SchemaWithUnion()
     {
-
-        var query = @"binary Header {
+        var query =
+            @"binary Header {
     Magic: int le
 };
 select Name from #A.Entities()
@@ -527,11 +579,14 @@ union (Name)
 select Name from #B.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -541,18 +596,21 @@ select Name from #B.Entities()";
     [TestMethod]
     public void E_MIXQUERY_05_SchemaWithOrderBySkipTake()
     {
-
-        var query = @"text LogLine {
+        var query =
+            @"text LogLine {
     Data: rest
 };
 select Name, Population from #A.Entities() order by Population desc skip 0 take 10";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -562,8 +620,8 @@ select Name, Population from #A.Entities() order by Population desc skip 0 take 
     [TestMethod]
     public void E_MIXQUERY_06_SchemaWithCaseExpression()
     {
-
-        var query = @"binary Header {
+        var query =
+            @"binary Header {
     Magic: int le
 };
 select
@@ -571,11 +629,14 @@ select
 from #A.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -585,18 +646,21 @@ from #A.Entities()";
     [TestMethod]
     public void E_MIXQUERY_07_SchemaWithHaving()
     {
-
-        var query = @"text LogLine {
+        var query =
+            @"text LogLine {
     Data: rest
 };
 select City, Count(1) as Cnt from #A.Entities() group by City having Count(1) > 0";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-
-
     }
 
     #endregion
@@ -608,7 +672,7 @@ select City, Count(1) as Cnt from #A.Entities() group by City having Count(1) > 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }

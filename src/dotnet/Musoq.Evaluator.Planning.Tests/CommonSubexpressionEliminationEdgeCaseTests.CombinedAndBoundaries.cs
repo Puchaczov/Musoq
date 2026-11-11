@@ -13,20 +13,22 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenComplexQueryWithMultipleCsePatterns_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Name,
-                Length(Name) as Len,
-                ToUpper(Name) as Upper,
-                CASE
-                    WHEN Length(Name) > 4 THEN 'Very Long'
-                    WHEN Length(Name) > 2 THEN 'Long'
-                    ELSE 'Short'
-                END as Category,
-                Length(Name) * 10 as LenTimes10
-            FROM #A.Entities()
-            WHERE Length(Name) >= 2 AND ToUpper(Name) LIKE 'A%'
-            ORDER BY Length(Name) DESC";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Name,\n"
+            + "                Length(Name) as Len,\n"
+            + "                ToUpper(Name) as Upper,\n"
+            + "                CASE\n"
+            + "                    WHEN Length(Name) > 4 THEN 'Very Long'\n"
+            + "                    WHEN Length(Name) > 2 THEN 'Long'\n"
+            + "                    ELSE 'Short'\n"
+            + "                END as Category,\n"
+            + "                Length(Name) * 10 as LenTimes10\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) >= 2 AND ToUpper(Name) LIKE 'A%'\n"
+            + "            ORDER BY Length(Name) DESC"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -37,17 +39,15 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
                     new BasicEntity("ab"),
                     new BasicEntity("Xyz"),
                     new BasicEntity("Abcdef"),
-                    new BasicEntity("ABC")
+                    new BasicEntity("ABC"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(3, table.Count);
-
 
         Assert.AreEqual("Abcdef", table[0].ReadValue(0));
         Assert.AreEqual(6, Convert.ToInt32(table[0].ReadValue(1)));
@@ -55,13 +55,11 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         Assert.AreEqual("Very Long", table[0].ReadValue(3));
         Assert.AreEqual(60, Convert.ToInt32(table[0].ReadValue(4)));
 
-
         Assert.AreEqual("ABC", table[1].ReadValue(0));
         Assert.AreEqual(3, Convert.ToInt32(table[1].ReadValue(1)));
         Assert.AreEqual("ABC", table[1].ReadValue(2));
         Assert.AreEqual("Long", table[1].ReadValue(3));
         Assert.AreEqual(30, Convert.ToInt32(table[1].ReadValue(4)));
-
 
         Assert.AreEqual("ab", table[2].ReadValue(0));
         Assert.AreEqual(2, Convert.ToInt32(table[2].ReadValue(1)));
@@ -73,21 +71,16 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenSubqueryWithSameCsePattern_ShouldIsolateCorrectly()
     {
-        const string query = @"
-            SELECT Name, Length(Name) as Len
-            FROM #A.Entities()
-            WHERE Length(Name) > 2";
+        const string query = (
+            "\n"
+            + "            SELECT Name, Length(Name) as Len\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) > 2"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABCD"),
-                    new BasicEntity("XY")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABCD"), new BasicEntity("XY")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -105,31 +98,30 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenExpressionReturnsEmptyString_ShouldHandleCorrectly()
     {
-        const string query = @"
-            SELECT
-                Name,
-                Length(Name) as Len,
-                Length(Name) * 2 as DoubleLlen
-            FROM #A.Entities()
-            WHERE Length(Name) >= 0";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Name,\n"
+            + "                Length(Name) as Len,\n"
+            + "                Length(Name) * 2 as DoubleLlen\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) >= 0"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity(""),
-                    new BasicEntity("A"),
-                    new BasicEntity("ABC")
-                ]
-            }
+            { "#A", [new BasicEntity(""), new BasicEntity("A"), new BasicEntity("ABC")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.Any(row => row.ReadValue(0) is string text && text.Length == 0 && Convert.ToInt32(row.ReadValue(1)) == 0));
+        Assert.IsTrue(
+            table.Any(row =>
+                row.ReadValue(0) is string text && text.Length == 0 && Convert.ToInt32(row.ReadValue(1)) == 0
+            )
+        );
         Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "A" && Convert.ToInt32(row.ReadValue(1)) == 1));
         Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "ABC" && Convert.ToInt32(row.ReadValue(1)) == 3));
     }
@@ -137,21 +129,16 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenExpressionWithLargeValues_ShouldHandleCorrectly()
     {
-        const string query = @"
-            SELECT Population, Population * Population as Squared
-            FROM #A.Entities()
-            WHERE Population * Population > 1000000";
+        const string query = (
+            "\n"
+            + "            SELECT Population, Population * Population as Squared\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Population * Population > 1000000"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 100),
-                    new BasicEntity("B", 1000),
-                    new BasicEntity("C", 10000)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 100), new BasicEntity("B", 1000), new BasicEntity("C", 10000)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

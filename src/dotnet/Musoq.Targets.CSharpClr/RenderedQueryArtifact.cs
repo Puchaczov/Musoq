@@ -7,16 +7,9 @@ internal sealed record CSharpRenderedQueryArtifact(
     CSharpCompilation Compilation,
     string AccessToClassPath,
     QueryMethodRenderMetadata QueryMethodRenderMetadata,
-    OptimizationTrace? OptimizationTrace) : RenderedQueryArtifact(ExecutionTargetIds.CSharpClr)
+    OptimizationTrace? OptimizationTrace
+) : RenderedQueryArtifact(ExecutionTargetIds.CSharpClr)
 {
-    public CSharpRenderedQueryArtifact(
-        CSharpCompilation compilation,
-        string accessToClassPath)
-        : this(
-            compilation,
-            accessToClassPath,
-            QueryMethodRenderMetadata.Unknown,
-            null)
-    {
-    }
+    public CSharpRenderedQueryArtifact(CSharpCompilation compilation, string accessToClassPath)
+        : this(compilation, accessToClassPath, QueryMethodRenderMetadata.Unknown, null) { }
 }

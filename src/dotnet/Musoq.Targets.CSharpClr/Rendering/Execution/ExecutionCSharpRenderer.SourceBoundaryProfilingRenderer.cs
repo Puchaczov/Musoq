@@ -10,16 +10,23 @@ public sealed partial class ExecutionCSharpRenderer
     private static LocalDeclarationStatementSyntax CreateSourceProfileRecorderDeclaration(
         string sourceProfileName,
         string sourceName,
-        bool useAdaptiveTiming)
+        bool useAdaptiveTiming
+    )
     {
         var invocation = SyntaxFactory.ConditionalAccessExpression(
             SyntaxFactory.IdentifierName(ProfileRecorderVariableName),
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberBindingExpression(
-                        SyntaxFactory.IdentifierName(useAdaptiveTiming
-                            ? nameof(QueryProfileRecorder.CreateAdaptiveSourceRecorder)
-                            : nameof(QueryProfileRecorder.CreateSourceRecorder))))
-                .WithArgumentList(CreateArgumentList(CreateStringLiteral(sourceName))));
+                        SyntaxFactory.IdentifierName(
+                            useAdaptiveTiming
+                                ? nameof(QueryProfileRecorder.CreateAdaptiveSourceRecorder)
+                                : nameof(QueryProfileRecorder.CreateSourceRecorder)
+                        )
+                    )
+                )
+                .WithArgumentList(CreateArgumentList(CreateStringLiteral(sourceName)))
+        );
 
         return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), sourceProfileName, invocation);
     }
@@ -30,39 +37,50 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.EqualsExpression,
                 SyntaxFactory.IdentifierName(sourceProfileName),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+            ),
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName(nameof(SourceDiagnostics)),
-                SyntaxFactory.IdentifierName(nameof(SourceDiagnostics.None))),
+                SyntaxFactory.IdentifierName(nameof(SourceDiagnostics.None))
+            ),
             SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(sourceProfileName),
-                    SyntaxFactory.IdentifierName(nameof(SourceProfileRecorder.CreateDiagnostics)))));
+                    SyntaxFactory.IdentifierName(nameof(SourceProfileRecorder.CreateDiagnostics))
+                )
+            )
+        );
     }
-
-
 
     private static ConditionalExpressionSyntax CreateProfiledChunksExpression(
         ExpressionSyntax chunks,
         string sourceProfileName,
-        TypeSyntax rowType)
+        TypeSyntax rowType
+    )
     {
         return SyntaxFactory.ConditionalExpression(
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.EqualsExpression,
                 SyntaxFactory.IdentifierName(sourceProfileName),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+            ),
             chunks,
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.GenericName(nameof(ProfiledChunkedEnumerable<object>))
-                            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList(rowType))),
-                        SyntaxFactory.IdentifierName(nameof(ProfiledChunkedEnumerable<object>.Create))))
-                .WithArgumentList(CreateArgumentList(chunks, SyntaxFactory.IdentifierName(sourceProfileName))));
+                        SyntaxFactory
+                            .GenericName(nameof(ProfiledChunkedEnumerable<object>))
+                            .WithTypeArgumentList(
+                                SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(rowType))
+                            ),
+                        SyntaxFactory.IdentifierName(nameof(ProfiledChunkedEnumerable<object>.Create))
+                    )
+                )
+                .WithArgumentList(CreateArgumentList(chunks, SyntaxFactory.IdentifierName(sourceProfileName)))
+        );
     }
 
     private static string CreateSourceProfileRecorderVariableName(string rowsVariableName)

@@ -18,7 +18,8 @@ internal static class ExecutionSourceCodeGenerationPolicy
     public static IReadOnlyList<Violation> FindViolations(
         Scope scope,
         IEnumerable<SchemaFromNode> sourceNodes,
-        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> usedColumns)
+        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> usedColumns
+    )
     {
         ArgumentNullException.ThrowIfNull(scope);
         ArgumentNullException.ThrowIfNull(sourceNodes);
@@ -38,9 +39,7 @@ internal static class ExecutionSourceCodeGenerationPolicy
             if (!TryResolveEntityType(scope, source.Alias, out var entityType))
                 continue;
 
-            var used = usedColumns.TryGetValue(source, out var columns)
-                ? columns
-                : Array.Empty<ISchemaColumn>();
+            var used = usedColumns.TryGetValue(source, out var columns) ? columns : Array.Empty<ISchemaColumn>();
 
             var reason = GetEntityContractViolation(entityType);
             if (reason != null)
@@ -54,11 +53,19 @@ internal static class ExecutionSourceCodeGenerationPolicy
                 if (CanReferenceType(column.ColumnType))
                     continue;
 
-                AddViolation(source, entityType, column.ColumnName,
-                    $"column '{column.ColumnName}' reaches non-referenceable type '{column.ColumnType.FullName ?? column.ColumnType.Name}'");
+                AddViolation(
+                    source,
+                    entityType,
+                    column.ColumnName,
+                    $"column '{column.ColumnName}' reaches non-referenceable type '{column.ColumnType.FullName ?? column.ColumnType.Name}'"
+                );
             }
 
-            if (entityType == typeof(QueryScopedRowContract) || IsSupportedDictionary(entityType) || IsSupportedDynamicObject(entityType))
+            if (
+                entityType == typeof(QueryScopedRowContract)
+                || IsSupportedDictionary(entityType)
+                || IsSupportedDynamicObject(entityType)
+            )
                 continue;
 
             // A coupled/table source supplies a generated column contract rather than
@@ -115,8 +122,8 @@ internal static class ExecutionSourceCodeGenerationPolicy
 
         if (type.IsGenericType)
         {
-            return CanReferencePublicType(type.GetGenericTypeDefinition()) &&
-                   type.GetGenericArguments().All(CanReferenceType);
+            return CanReferencePublicType(type.GetGenericTypeDefinition())
+                && type.GetGenericArguments().All(CanReferenceType);
         }
 
         return CanReferencePublicType(type);
@@ -124,22 +131,26 @@ internal static class ExecutionSourceCodeGenerationPolicy
 
     public static bool IsSupportedDictionary(Type type)
     {
-        return type == DynamicEntityBoundary.ExpandoType ||
-               DynamicEntityBoundary.IsAssignableToStringObjectDictionary(type) ||
-               type.GetInterfaces().Prepend(type).Any(candidate =>
-                   candidate.IsGenericType &&
-                   (candidate.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>) ||
-                    candidate.GetGenericTypeDefinition() == typeof(IDictionary<,>)) &&
-                   candidate.GetGenericArguments()[0] == typeof(string) &&
-                   ConcreteValueShape.FindUnresolvedValueType(candidate.GetGenericArguments()[1]) is null);
+        return type == DynamicEntityBoundary.ExpandoType
+            || DynamicEntityBoundary.IsAssignableToStringObjectDictionary(type)
+            || type.GetInterfaces()
+                .Prepend(type)
+                .Any(candidate =>
+                    candidate.IsGenericType
+                    && (
+                        candidate.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)
+                        || candidate.GetGenericTypeDefinition() == typeof(IDictionary<,>)
+                    )
+                    && candidate.GetGenericArguments()[0] == typeof(string)
+                    && ConcreteValueShape.FindUnresolvedValueType(candidate.GetGenericArguments()[1]) is null
+                );
     }
 
     public static bool IsSupportedDynamicObject(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        return DynamicEntityBoundary.IsDynamicObject(type) &&
-               !IsSupportedDictionary(type);
+        return DynamicEntityBoundary.IsDynamicObject(type) && !IsSupportedDictionary(type);
     }
 
     private static string? GetEntityContractViolation(Type entityType)
@@ -147,8 +158,7 @@ internal static class ExecutionSourceCodeGenerationPolicy
         if (entityType == typeof(object))
             return "the source metadata is object-typed";
 
-        if (DynamicEntityBoundary.IsDynamicMetaObjectProvider(entityType) &&
-            !IsSupportedDynamicObject(entityType))
+        if (DynamicEntityBoundary.IsDynamicMetaObjectProvider(entityType) && !IsSupportedDynamicObject(entityType))
         {
             return "the source entity is a custom runtime-dynamic type";
         }
@@ -167,14 +177,14 @@ internal static class ExecutionSourceCodeGenerationPolicy
     private static bool IsSupportedScalarEntity(Type entityType)
     {
         var scalarType = Nullable.GetUnderlyingType(entityType) ?? entityType;
-        return scalarType.IsPrimitive ||
-               scalarType.IsEnum ||
-               scalarType == typeof(string) ||
-               scalarType == typeof(decimal) ||
-               scalarType == typeof(DateTime) ||
-               scalarType == typeof(DateTimeOffset) ||
-               scalarType == typeof(TimeSpan) ||
-               scalarType == typeof(Guid);
+        return scalarType.IsPrimitive
+            || scalarType.IsEnum
+            || scalarType == typeof(string)
+            || scalarType == typeof(decimal)
+            || scalarType == typeof(DateTime)
+            || scalarType == typeof(DateTimeOffset)
+            || scalarType == typeof(TimeSpan)
+            || scalarType == typeof(Guid);
     }
 
     private static bool TryValidateMemberPath(Type rootType, string path, out string? reason)
@@ -197,21 +207,22 @@ internal static class ExecutionSourceCodeGenerationPolicy
 
             if (segment.Length != 0)
             {
-                var member = currentType.GetMember(
-                        segment,
-                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
-                    .FirstOrDefault(candidate => candidate switch
-                    {
-                        PropertyInfo property => property.GetMethod is { IsPublic: true },
-                        FieldInfo field => field.IsPublic,
-                        _ => false
-                    });
+                var member = currentType
+                    .GetMember(segment, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
+                    .FirstOrDefault(candidate =>
+                        candidate switch
+                        {
+                            PropertyInfo property => property.GetMethod is { IsPublic: true },
+                            FieldInfo field => field.IsPublic,
+                            _ => false,
+                        }
+                    );
 
                 currentType = member switch
                 {
                     PropertyInfo property => property.PropertyType,
                     FieldInfo field => field.FieldType,
-                    _ => null!
+                    _ => null!,
                 };
 
                 if (currentType == null)
@@ -233,7 +244,8 @@ internal static class ExecutionSourceCodeGenerationPolicy
 
             if (!CanReferenceType(currentType))
             {
-                reason = $"member path '{path}' reaches non-referenceable type '{currentType.FullName ?? currentType.Name}'";
+                reason =
+                    $"member path '{path}' reaches non-referenceable type '{currentType.FullName ?? currentType.Name}'";
                 return false;
             }
         }
@@ -276,24 +288,27 @@ internal static class ExecutionSourceCodeGenerationPolicy
 
     private static bool IsGeneratedInterpretationSource(SchemaFromNode source)
     {
-        return source.Method.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
-               source.Method.Equals("Parse", StringComparison.OrdinalIgnoreCase) ||
-               source.Method.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) ||
-               source.Method.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase) ||
-               source.Method.Equals("TryParse", StringComparison.OrdinalIgnoreCase) ||
-               source.Method.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase) ||
-               source.Method.Equals("PartialParse", StringComparison.OrdinalIgnoreCase);
+        return source.Method.Equals("Interpret", StringComparison.OrdinalIgnoreCase)
+            || source.Method.Equals("Parse", StringComparison.OrdinalIgnoreCase)
+            || source.Method.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase)
+            || source.Method.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase)
+            || source.Method.Equals("TryParse", StringComparison.OrdinalIgnoreCase)
+            || source.Method.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase)
+            || source.Method.Equals("PartialParse", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void FindTableSymbol(
         Scope scope,
         string alias,
         ref TableSymbol? firstMatch,
-        ref TableSymbol? firstTypedMatch)
+        ref TableSymbol? firstTypedMatch
+    )
     {
-        if (scope.ScopeSymbolTable.TryGetSymbol(alias, out TableSymbol? tableSymbol) &&
-            tableSymbol != null &&
-            tableSymbol.ContainsAlias(alias))
+        if (
+            scope.ScopeSymbolTable.TryGetSymbol(alias, out TableSymbol? tableSymbol)
+            && tableSymbol != null
+            && tableSymbol.ContainsAlias(alias)
+        )
         {
             firstMatch ??= tableSymbol;
             var (_, table, _) = tableSymbol.GetTableByAlias(alias);
@@ -310,13 +325,8 @@ internal static class ExecutionSourceCodeGenerationPolicy
         if (!type.IsNested)
             return type.IsPublic;
 
-        return type is { IsNestedPublic: true, DeclaringType: not null } &&
-               CanReferencePublicType(type.DeclaringType);
+        return type is { IsNestedPublic: true, DeclaringType: not null } && CanReferencePublicType(type.DeclaringType);
     }
 
-    internal sealed record Violation(
-        SchemaFromNode Source,
-        Type EntityType,
-        string MemberPath,
-        string Reason);
+    internal sealed record Violation(SchemaFromNode Source, Type EntityType, string MemberPath, string Reason);
 }

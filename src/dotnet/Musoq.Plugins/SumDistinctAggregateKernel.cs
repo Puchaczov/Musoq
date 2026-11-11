@@ -16,12 +16,11 @@ public static class SumDistinctAggregateKernel<T>
         public HashSet<T>? Values;
     }
 
-    public static void Set(ref State state, T? value)
-        => AggregateCollectionCore.AddNullableDistinct(ref state.Values, value);
+    public static void Set(ref State state, T? value) =>
+        AggregateCollectionCore.AddNullableDistinct(ref state.Values, value);
 
-    public static T? Get(in State state)
-        => AggregateCollectionCore.SumDistinct(state.Values);
+    public static T? Get(in State state) => AggregateCollectionCore.SumDistinct(state.Values);
 
-    public static void Merge(ref State target, in State source)
-        => AggregateCollectionCore.MergeDistinct(ref target.Values, source.Values);
+    public static void Merge(ref State target, in State source) =>
+        AggregateCollectionCore.MergeDistinct(ref target.Values, source.Values);
 }

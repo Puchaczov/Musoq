@@ -8,7 +8,7 @@ public enum StructuralTypeSyntaxKind
 {
     Scalar,
     Record,
-    Collection
+    Collection,
 }
 
 /// <summary>
@@ -23,7 +23,8 @@ public sealed class StructuralTypeSyntaxNode : Node
         IReadOnlyList<StructuralTypeFieldSyntax>? fields,
         StructuralTypeSyntaxNode? elementType,
         bool isNullable,
-        TextSpan span)
+        TextSpan span
+    )
     {
         Kind = kind;
         ScalarName = scalarName;
@@ -58,7 +59,8 @@ public sealed class StructuralTypeSyntaxNode : Node
     public static StructuralTypeSyntaxNode Record(
         IReadOnlyList<StructuralTypeFieldSyntax> fields,
         TextSpan span,
-        bool isNullable = false)
+        bool isNullable = false
+    )
     {
         ArgumentNullException.ThrowIfNull(fields);
         return new StructuralTypeSyntaxNode(StructuralTypeSyntaxKind.Record, null, fields, null, isNullable, span);
@@ -67,15 +69,30 @@ public sealed class StructuralTypeSyntaxNode : Node
     public static StructuralTypeSyntaxNode Collection(
         StructuralTypeSyntaxNode elementType,
         TextSpan span,
-        bool isNullable = false)
+        bool isNullable = false
+    )
     {
         ArgumentNullException.ThrowIfNull(elementType);
-        return new StructuralTypeSyntaxNode(StructuralTypeSyntaxKind.Collection, null, null, elementType, isNullable, span);
+        return new StructuralTypeSyntaxNode(
+            StructuralTypeSyntaxKind.Collection,
+            null,
+            null,
+            elementType,
+            isNullable,
+            span
+        );
     }
 
     public StructuralTypeSyntaxNode WithNullable(TextSpan span)
     {
-        return new StructuralTypeSyntaxNode(Kind, ScalarName, Fields, ElementType, true, Span.IsEmpty ? span : Span.Through(span));
+        return new StructuralTypeSyntaxNode(
+            Kind,
+            ScalarName,
+            Fields,
+            ElementType,
+            true,
+            Span.IsEmpty ? span : Span.Through(span)
+        );
     }
 
     public override Type? ReturnType => null;
@@ -95,9 +112,10 @@ public sealed class StructuralTypeSyntaxNode : Node
         var text = Kind switch
         {
             StructuralTypeSyntaxKind.Scalar => ScalarName!,
-            StructuralTypeSyntaxKind.Record => $"({string.Join(", ", Fields.Select(static field => field.ToString()))})",
+            StructuralTypeSyntaxKind.Record =>
+                $"({string.Join(", ", Fields.Select(static field => field.ToString()))})",
             StructuralTypeSyntaxKind.Collection => $"{ElementType!.ToString()}[]",
-            _ => throw new InvalidOperationException($"Unknown structural type kind {Kind}.")
+            _ => throw new InvalidOperationException($"Unknown structural type kind {Kind}."),
         };
         return IsNullable ? $"{text}?" : text;
     }
@@ -110,9 +128,12 @@ public sealed class StructuralTypeFieldSyntax
         StructuralTypeSyntaxNode type,
         Node? defaultValue,
         TextSpan nameSpan,
-        TextSpan span)
+        TextSpan span
+    )
     {
-        Name = string.IsNullOrWhiteSpace(name) ? throw new ArgumentException("Field name cannot be empty.", nameof(name)) : name;
+        Name = string.IsNullOrWhiteSpace(name)
+            ? throw new ArgumentException("Field name cannot be empty.", nameof(name))
+            : name;
         Type = type ?? throw new ArgumentNullException(nameof(type));
         DefaultValue = defaultValue;
         NameSpan = nameSpan;

@@ -17,22 +17,24 @@ internal static partial class EvaluatorSampleFixtures
             PerformanceInspection(
                 "Q227_PerformanceJoinAggregate",
                 EvaluatorPerformanceQueries.Q227,
-                CreatePerformanceJoinSchemaProvider),
+                CreatePerformanceJoinSchemaProvider
+            ),
             PerformanceInspection(
                 "Q228_PerformanceWideCorrelatedSubquery",
                 EvaluatorPerformanceQueries.Q228,
-                CreateBasicSchemaProvider),
+                CreateBasicSchemaProvider
+            ),
             PerformanceInspection(
                 "Q229_PerformanceWindowCteSetOperation",
                 EvaluatorPerformanceQueries.Q229,
-                CreateBasicSchemaProvider),
+                CreateBasicSchemaProvider
+            ),
             PerformanceInspection(
                 "Q230_PerformanceTableProjection",
                 EvaluatorPerformanceQueries.Q230,
                 CreateBasicSchemaProvider,
-                new CompilationOptions()
-                    .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse())
+                new CompilationOptions().WithTableResultMaterialization().WithStabilityAwareScalarReuse()
+            ),
         ];
     }
 
@@ -40,7 +42,8 @@ internal static partial class EvaluatorSampleFixtures
         string name,
         string query,
         Func<ISchemaProvider> createSchemaProvider,
-        CompilationOptions? compilationOptions = null)
+        CompilationOptions? compilationOptions = null
+    )
     {
         return new GeneratedCodeSample
         {
@@ -50,7 +53,7 @@ internal static partial class EvaluatorSampleFixtures
             Category = "Performance",
             Format = GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode,
             CreateSchemaProvider = createSchemaProvider,
-            CompilationOptions = compilationOptions ?? new CompilationOptions().WithStabilityAwareScalarReuse()
+            CompilationOptions = compilationOptions ?? new CompilationOptions().WithStabilityAwareScalarReuse(),
         };
     }
 
@@ -62,12 +65,14 @@ internal static partial class EvaluatorSampleFixtures
                 ["A"] = [],
                 ["#A"] = [],
                 ["B"] = [],
-                ["#B"] = []
-            });
+                ["#B"] = [],
+            }
+        );
     }
 
     private sealed class PerformanceJoinSchemaProvider(
-        IReadOnlyDictionary<string, IReadOnlyList<PerformanceJoinEntity>> rowsBySchema) : ISchemaProvider
+        IReadOnlyDictionary<string, IReadOnlyList<PerformanceJoinEntity>> rowsBySchema
+    ) : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
@@ -78,14 +83,14 @@ internal static partial class EvaluatorSampleFixtures
         }
     }
 
-    private sealed class PerformanceJoinSchema(
-        string name,
-        IReadOnlyList<PerformanceJoinEntity> rows) : SchemaBase(name, CreatePerformanceLibrary())
+    private sealed class PerformanceJoinSchema(string name, IReadOnlyList<PerformanceJoinEntity> rows)
+        : SchemaBase(name, CreatePerformanceLibrary())
     {
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
                 return new PerformanceJoinTable();
@@ -96,12 +101,11 @@ internal static partial class EvaluatorSampleFixtures
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
-                return EnsureSourceType<T, PerformanceJoinEntity>(
-                    name,
-                    new PerformanceJoinRowSource(rows));
+                return EnsureSourceType<T, PerformanceJoinEntity>(name, new PerformanceJoinRowSource(rows));
 
             throw new NotSupportedException(name);
         }
@@ -115,7 +119,7 @@ internal static partial class EvaluatorSampleFixtures
             new SchemaColumn(nameof(PerformanceJoinEntity.Name), 1, typeof(string)),
             new SchemaColumn(nameof(PerformanceJoinEntity.City), 2, typeof(string)),
             new SchemaColumn(nameof(PerformanceJoinEntity.Country), 3, typeof(string)),
-            new SchemaColumn(nameof(PerformanceJoinEntity.Population), 4, typeof(int))
+            new SchemaColumn(nameof(PerformanceJoinEntity.Population), 4, typeof(int)),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(PerformanceJoinEntity));
@@ -131,8 +135,8 @@ internal static partial class EvaluatorSampleFixtures
         }
     }
 
-    private sealed class PerformanceJoinRowSource(
-        IReadOnlyList<PerformanceJoinEntity> rows) : RowSourceBase<PerformanceJoinEntity>
+    private sealed class PerformanceJoinRowSource(IReadOnlyList<PerformanceJoinEntity> rows)
+        : RowSourceBase<PerformanceJoinEntity>
     {
         protected override void CollectChunks(IChunkWriter<PerformanceJoinEntity> writer)
         {

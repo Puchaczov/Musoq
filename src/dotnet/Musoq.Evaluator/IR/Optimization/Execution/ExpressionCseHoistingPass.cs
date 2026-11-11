@@ -18,27 +18,31 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
         {
             return OptimizationResult<ExecutionPlan>.NoChange(
                 plan,
-                "Expression CSE discovery is disabled by compilation options.");
+                "Expression CSE discovery is disabled by compilation options."
+            );
         }
 
         var skipDiagnostics = ExpressionCseSkipDiagnostics.Analyze(plan);
         var rewriter = new ExpressionCseRewriter(
             IsCrossNodeExpressionCseEnabled(context) || context.Options.StabilityAwareScalarReuseEnabled,
             context.Options.ExpressionCseEnabled,
-            context.Options.StabilityAwareScalarReuseEnabled);
+            context.Options.StabilityAwareScalarReuseEnabled
+        );
         var optimized = rewriter.RewritePlan(plan);
         if (ReferenceEquals(optimized, plan))
         {
             return OptimizationResult<ExecutionPlan>.NoChange(
                 plan,
-                "No repeated deterministic expressions were found in supported append values." +
-                FormatSkippedDiagnostics(skipDiagnostics));
+                "No repeated deterministic expressions were found in supported append values."
+                    + FormatSkippedDiagnostics(skipDiagnostics)
+            );
         }
 
         return OptimizationResult<ExecutionPlan>.Changed(
             optimized,
-            $"Inserted {rewriter.InsertedLets} expression CSE hoist(s) in {rewriter.RewrittenNodes} Execution IR node(s){FormatHelperRewriteCount(rewriter)}." +
-            FormatSkippedDiagnostics(skipDiagnostics));
+            $"Inserted {rewriter.InsertedLets} expression CSE hoist(s) in {rewriter.RewrittenNodes} Execution IR node(s){FormatHelperRewriteCount(rewriter)}."
+                + FormatSkippedDiagnostics(skipDiagnostics)
+        );
     }
 
     private static bool IsExpressionCseEnabled(OptimizationContext context)
@@ -68,7 +72,8 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
     private sealed partial class ExpressionCseRewriter(
         bool enableCrossNodeCse,
         bool enableExpressionCse,
-        bool enableStabilityAwareRegionReuse) : ExecutionIrRewriter
+        bool enableStabilityAwareRegionReuse
+    ) : ExecutionIrRewriter
     {
         private readonly Stack<HashSet<string>> _visibleNameScopes = new();
         private int _helperBodyDepth;
@@ -149,9 +154,10 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
 
         private HashSet<string> CreateUsedNameScope(ExecutionBlock block)
         {
-            var usedNames = _visibleNameScopes.Count == 0
-                ? new HashSet<string>(StringComparer.Ordinal)
-                : new HashSet<string>(_visibleNameScopes.Peek(), StringComparer.Ordinal);
+            var usedNames =
+                _visibleNameScopes.Count == 0
+                    ? new HashSet<string>(StringComparer.Ordinal)
+                    : new HashSet<string>(_visibleNameScopes.Peek(), StringComparer.Ordinal);
 
             foreach (var name in ExecutionIrAnalysis.CollectDeclaredVariableNames(block))
                 usedNames.Add(name);
@@ -172,35 +178,41 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
             }
         }
 
-        protected override ExecutionNode RewriteParallelSingleKeyAggregateLoop(ExecutionParallelSingleKeyAggregateLoop node)
+        protected override ExecutionNode RewriteParallelSingleKeyAggregateLoop(
+            ExecutionParallelSingleKeyAggregateLoop node
+        )
         {
             var sourceRows = RewriteExpression(node.SourceRows);
             var key = RewriteExpression(node.Key);
             var aggregateBody = RewriteBlock(node.AggregateBody);
 
-            return ReferenceEquals(sourceRows, node.SourceRows) &&
-                   ReferenceEquals(key, node.Key) &&
-                   ReferenceEquals(aggregateBody, node.AggregateBody)
+            return
+                ReferenceEquals(sourceRows, node.SourceRows)
+                && ReferenceEquals(key, node.Key)
+                && ReferenceEquals(aggregateBody, node.AggregateBody)
                 ? node
                 : node with
                 {
                     SourceRows = sourceRows,
                     Key = key,
-                    AggregateBody = aggregateBody
+                    AggregateBody = aggregateBody,
                 };
         }
 
         private (ExecutionNode RewrittenNode, HoistedNode Hoisted) RewriteNodeWithHoisting(
             ExecutionNode node,
-            HashSet<string> usedNames)
+            HashSet<string> usedNames
+        )
         {
-            if (enableCrossNodeCse &&
-                node is ExecutionIf branch)
+            if (enableCrossNodeCse && node is ExecutionIf branch)
             {
                 var condition = RewriteExpression(branch.Condition);
                 var branchWithCondition = ReferenceEquals(condition, branch.Condition)
                     ? branch
-                    : branch with { Condition = condition };
+                    : branch with
+                    {
+                        Condition = condition,
+                    };
                 var hoisted = TryHoistExpressionsSharedWithCondition(branchWithCondition, usedNames);
                 var hoistedBranch = (ExecutionIf)hoisted.Node;
                 var conditionHoisted = TryHoistConditionExpressions(hoistedBranch, usedNames);
@@ -209,7 +221,11 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
                 var rewrittenBranch = TrySplitShortCircuitConditionAroundBodyLet(
                     ReferenceEquals(body, conditionHoistedBranch.Body)
                         ? conditionHoistedBranch
-                        : conditionHoistedBranch with { Body = body });
+                        : conditionHoistedBranch with
+                        {
+                            Body = body,
+                        }
+                );
                 var lets = CombineLets(hoisted.Lets, conditionHoisted.Lets);
 
                 return (rewrittenBranch, new HoistedNode(lets, rewrittenBranch));
@@ -230,32 +246,31 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
 
             var plan = ExpressionHoistPlanner.Create(
                 expressions.SelectMany(static value => ExecutionExpressionCseFacts.CollectHoistableOccurrences(value)),
-                usedNames);
+                usedNames
+            );
             if (plan.Lets.Count == 0)
                 return new HoistedNode([], node);
 
-            var rewritten = ExpressionCseSubstitution.ReplaceSupportedNodeExpressions(
-                node,
-                plan.VariablesBySignature);
+            var rewritten = ExpressionCseSubstitution.ReplaceSupportedNodeExpressions(node, plan.VariablesBySignature);
 
             return new HoistedNode(plan.Lets, rewritten);
         }
 
         private static IReadOnlyList<ExecutionLet> CombineLets(
             IReadOnlyList<ExecutionLet> first,
-            IReadOnlyList<ExecutionLet> second)
+            IReadOnlyList<ExecutionLet> second
+        )
         {
-            return first.Count == 0
-                ? second
-                : second.Count == 0
-                    ? first
-                    : [..first, ..second];
+            return first.Count == 0 ? second
+                : second.Count == 0 ? first
+                : [.. first, .. second];
         }
 
         private static HoistedBlock TryHoistBlockExpressions(
             ExecutionBlock block,
             HashSet<string> usedNames,
-            bool enableStabilityAwareRegionReuse)
+            bool enableStabilityAwareRegionReuse
+        )
         {
             var isAggregateBlock = IsAggregateAccumulationBlock(block);
             if (!isAggregateBlock && (!enableStabilityAwareRegionReuse || !IsStableScalarReuseRegion(block)))
@@ -269,9 +284,7 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
             var occurrences = enableStabilityAwareRegionReuse
                 ? ExecutionExpressionCseFacts.CollectStableScalarReuseOccurrences(hoistRegion)
                 : ExecutionExpressionCseFacts.CollectHoistableOccurrences(hoistRegion);
-            var plan = ExpressionHoistPlanner.Create(
-                occurrences,
-                usedNames);
+            var plan = ExpressionHoistPlanner.Create(occurrences, usedNames);
             if (plan.Lets.Count == 0)
                 return new HoistedBlock([], block);
 
@@ -279,27 +292,25 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
                 usedNames.Add(let.Variable.Name);
 
             var rewritten = isAggregateBlock
-                ? ExpressionCseSubstitution.ReplaceAggregateBlockExpressions(
-                    hoistRegion,
-                    plan.VariablesBySignature)
-                : new ExecutionBlock(hoistRegion.Nodes
-                    .Select(node => ExpressionCseSubstitution.ReplaceSupportedNodeExpressions(
-                        node,
-                        plan.VariablesBySignature))
-                    .ToArray());
-            return new HoistedBlock(
-                plan.Lets,
-                block with { Nodes = [..prefix, ..plan.Lets, ..rewritten.Nodes] });
+                ? ExpressionCseSubstitution.ReplaceAggregateBlockExpressions(hoistRegion, plan.VariablesBySignature)
+                : new ExecutionBlock(
+                    hoistRegion
+                        .Nodes.Select(node =>
+                            ExpressionCseSubstitution.ReplaceSupportedNodeExpressions(node, plan.VariablesBySignature)
+                        )
+                        .ToArray()
+                );
+            return new HoistedBlock(plan.Lets, block with { Nodes = [.. prefix, .. plan.Lets, .. rewritten.Nodes] });
         }
 
-        private static HoistedNode TryHoistExpressionsSharedWithCondition(
-            ExecutionIf branch,
-            HashSet<string> usedNames)
+        private static HoistedNode TryHoistExpressionsSharedWithCondition(ExecutionIf branch, HashSet<string> usedNames)
         {
             if (!CanHoistAcrossConditionBody(branch.Body))
                 return new HoistedNode([], branch);
 
-            var conditionOccurrences = ExecutionExpressionCseFacts.CollectHoistableOccurrences(branch.Condition).ToArray();
+            var conditionOccurrences = ExecutionExpressionCseFacts
+                .CollectHoistableOccurrences(branch.Condition)
+                .ToArray();
             if (conditionOccurrences.Length == 0)
                 return new HoistedNode([], branch);
 
@@ -317,32 +328,39 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
             var plan = ExpressionHoistPlanner.Create(
                 conditionOccurrences.Concat(blockOccurrences),
                 usedNames,
-                conditionSignatures);
+                conditionSignatures
+            );
             if (plan.Lets.Count == 0)
                 return new HoistedNode([], branch);
 
             var rewritten = branch with
             {
                 Condition = ExpressionCseSubstitution.Replace(branch.Condition, plan.VariablesBySignature),
-                Body = ExpressionCseSubstitution.ReplaceAggregateBlockExpressions(branch.Body, plan.VariablesBySignature)
+                Body = ExpressionCseSubstitution.ReplaceAggregateBlockExpressions(
+                    branch.Body,
+                    plan.VariablesBySignature
+                ),
             };
 
             return new HoistedNode(plan.Lets, rewritten);
         }
 
-        private static HoistedNode TryHoistConditionExpressions(
-            ExecutionIf branch,
-            HashSet<string> usedNames)
+        private static HoistedNode TryHoistConditionExpressions(ExecutionIf branch, HashSet<string> usedNames)
         {
             var plan = ExpressionHoistPlanner.Create(
                 ExecutionExpressionCseFacts.CollectHoistableOccurrences(branch.Condition),
-                usedNames);
+                usedNames
+            );
             if (plan.Lets.Count == 0)
                 return new HoistedNode([], branch);
 
             return new HoistedNode(
                 plan.Lets,
-                branch with { Condition = ExpressionCseSubstitution.Replace(branch.Condition, plan.VariablesBySignature) });
+                branch with
+                {
+                    Condition = ExpressionCseSubstitution.Replace(branch.Condition, plan.VariablesBySignature),
+                }
+            );
         }
 
         private static bool CanHoistAcrossConditionBody(ExecutionBlock body)
@@ -371,30 +389,30 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
 
         private static bool IsStableScalarReuseRegion(ExecutionBlock block)
         {
-            var regionNodes = block.Nodes
-                .SkipWhile(IsPrologueNode)
-                .ToArray();
-            return regionNodes.Length > 1 &&
-                   regionNodes.All(static node => node is
-                       ExecutionAppendRow or
-                       ExecutionAppendRecord or
-                       ExecutionCreateGeneratedRow or
-                       ExecutionCreateHashPayload or
-                       ExecutionHashAdd or
-                       ExecutionHashProbe or
-                       ExecutionKeySetAdd or
-                       ExecutionKeySetProbe or
-                       ExecutionGetOrAddSingleKeyAggregateGroup or
-                       ExecutionGetOrAddValueTupleAggregateGroup or
-                       ExecutionAggregateSet or
-                       ExecutionAggregateCapturedValueSet or
-                       ExecutionComputeRankingWindow or
-                       ExecutionComputeOffsetWindow or
-                       ExecutionComputePluginWindow or
-                       ExecutionWindowAggregateKernel or
-                       ExecutionCreateRangeIndex or
-                       ExecutionRangeProbe or
-                       ExecutionRecursiveCteAppend);
+            var regionNodes = block.Nodes.SkipWhile(IsPrologueNode).ToArray();
+            return regionNodes.Length > 1
+                && regionNodes.All(static node =>
+                    node
+                        is ExecutionAppendRow
+                            or ExecutionAppendRecord
+                            or ExecutionCreateGeneratedRow
+                            or ExecutionCreateHashPayload
+                            or ExecutionHashAdd
+                            or ExecutionHashProbe
+                            or ExecutionKeySetAdd
+                            or ExecutionKeySetProbe
+                            or ExecutionGetOrAddSingleKeyAggregateGroup
+                            or ExecutionGetOrAddValueTupleAggregateGroup
+                            or ExecutionAggregateSet
+                            or ExecutionAggregateCapturedValueSet
+                            or ExecutionComputeRankingWindow
+                            or ExecutionComputeOffsetWindow
+                            or ExecutionComputePluginWindow
+                            or ExecutionWindowAggregateKernel
+                            or ExecutionCreateRangeIndex
+                            or ExecutionRangeProbe
+                            or ExecutionRecursiveCteAppend
+                );
         }
 
         private static int FindStableScalarReuseInsertionIndex(ExecutionBlock block)
@@ -410,10 +428,11 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
 
         private static bool IsPrologueNode(ExecutionNode node)
         {
-            return node is ExecutionLet or
-                ExecutionMethodTargetDeclarationCandidate or
-                ExecutionCreateGeneratedRow or
-                ExecutionCreateAsOfIndex;
+            return node
+                is ExecutionLet
+                    or ExecutionMethodTargetDeclarationCandidate
+                    or ExecutionCreateGeneratedRow
+                    or ExecutionCreateAsOfIndex;
         }
 
         private static int FindAggregateHoistInsertionIndex(ExecutionBlock block)
@@ -429,11 +448,12 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
 
         private static bool IsAggregateAccumulationNode(ExecutionNode node)
         {
-            return node is ExecutionEnsureAggregateGroup or
-                ExecutionGetOrAddSingleKeyAggregateGroup or
-                ExecutionGetOrAddValueTupleAggregateGroup or
-                ExecutionAggregateSet or
-                ExecutionAggregateCapturedValueSet;
+            return node
+                is ExecutionEnsureAggregateGroup
+                    or ExecutionGetOrAddSingleKeyAggregateGroup
+                    or ExecutionGetOrAddValueTupleAggregateGroup
+                    or ExecutionAggregateSet
+                    or ExecutionAggregateCapturedValueSet;
         }
 
         private IReadOnlyList<ExecutionExpression> GetSupportedNodeExpressions(ExecutionNode node)
@@ -446,13 +466,15 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
                 ExecutionHashProbe hashProbe => [hashProbe.Key],
                 ExecutionKeySetAdd keySetAdd => [keySetAdd.Key],
                 ExecutionKeySetProbe keySetProbe => [keySetProbe.Key],
-                ExecutionComputeRankingWindow or
-                    ExecutionComputeOffsetWindow or
-                    ExecutionComputePluginWindow or
-                    ExecutionWindowAggregateKernel => ExecutionExpressionCseFacts.GetWindowHelperIndependentExpressions(node),
+                ExecutionComputeRankingWindow
+                or ExecutionComputeOffsetWindow
+                or ExecutionComputePluginWindow
+                or ExecutionWindowAggregateKernel => ExecutionExpressionCseFacts.GetWindowHelperIndependentExpressions(
+                    node
+                ),
                 _ when !enableStabilityAwareRegionReuse => [],
-                ExecutionCreateGeneratedRow createRow => createRow.Values
-                    .Select(static value => value.Value)
+                ExecutionCreateGeneratedRow createRow => createRow
+                    .Values.Select(static value => value.Value)
                     .Concat(createRow.Contexts)
                     .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(createRow.ContextLayout))
                     .ToArray(),
@@ -460,29 +482,25 @@ internal sealed partial class ExpressionCseHoistingPass : IExecutionIrOptimizati
                 ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd => [getOrAdd.Key],
                 ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => getOrAdd.Keys,
                 ExecutionAggregateSet { FilterPredicate: not null } aggregateSet => [aggregateSet.FilterPredicate],
-                ExecutionAggregateSet aggregateSet => aggregateSet.Arguments
-                    .Concat(aggregateSet.FilterPredicate == null ? [] : [aggregateSet.FilterPredicate])
+                ExecutionAggregateSet aggregateSet => aggregateSet
+                    .Arguments.Concat(aggregateSet.FilterPredicate == null ? [] : [aggregateSet.FilterPredicate])
                     .Concat(aggregateSet.AccumulatorInput == null ? [] : [aggregateSet.AccumulatorInput])
                     .ToArray(),
                 ExecutionAggregateCapturedValueSet capturedValueSet => [capturedValueSet.Value],
-                ExecutionCreateRangeIndex or
-                    ExecutionRangeProbe => ExecutionNodeFacts.GetLocalExpressions(node).ToArray(),
-                ExecutionRecursiveCteAppend append => append.AppendRow.Values
-                    .Select(static value => value.Value)
+                ExecutionCreateRangeIndex or ExecutionRangeProbe => ExecutionNodeFacts
+                    .GetLocalExpressions(node)
+                    .ToArray(),
+                ExecutionRecursiveCteAppend append => append
+                    .AppendRow.Values.Select(static value => value.Value)
                     .Concat(append.AppendRow.Contexts)
                     .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(append.AppendRow.ContextLayout))
                     .ToArray(),
-                _ => []
+                _ => [],
             };
         }
-
     }
 
-    private sealed record HoistedNode(
-        IReadOnlyList<ExecutionLet> Lets,
-        ExecutionNode Node);
+    private sealed record HoistedNode(IReadOnlyList<ExecutionLet> Lets, ExecutionNode Node);
 
-    private sealed record HoistedBlock(
-        IReadOnlyList<ExecutionLet> Lets,
-        ExecutionBlock Block);
+    private sealed record HoistedBlock(IReadOnlyList<ExecutionLet> Lets, ExecutionBlock Block);
 }

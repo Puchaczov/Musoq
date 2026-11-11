@@ -14,15 +14,13 @@ public sealed class RecursiveGraphFixtureTests
     [TestMethod]
     public void GraphSources_WhenQueriedDirectly_ShouldReturnRowsAndRecordLifecycle()
     {
-        var provider = new RecursiveGraphSchemaProvider(new RecursiveGraphData
-        {
-            Roots = [new RecursiveGraphRoot(1)],
-            Edges =
-            [
-                new RecursiveGraphEdge(1, 2, 1m, "one-two"),
-                new RecursiveGraphEdge(2, 3, 2m, "two-three")
-            ]
-        });
+        var provider = new RecursiveGraphSchemaProvider(
+            new RecursiveGraphData
+            {
+                Roots = [new RecursiveGraphRoot(1)],
+                Edges = [new RecursiveGraphEdge(1, 2, 1m, "one-two"), new RecursiveGraphEdge(2, 3, 2m, "two-three")],
+            }
+        );
 
         var roots = Execute("select RootId from #graph.roots()", provider);
         var edges = Execute("select SourceId, TargetId from #graph.edges() order by SourceId", provider);
@@ -45,7 +43,8 @@ public sealed class RecursiveGraphFixtureTests
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
         return TableMaterializationTestHelper.Materialize(queryInstance.Run());
     }

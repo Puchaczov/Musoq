@@ -6,7 +6,7 @@ internal enum RLikeLiteralMatchKind
     Exact,
     Prefix,
     Suffix,
-    Contains
+    Contains,
 }
 
 internal enum RLikeLiteralAnchorKind
@@ -14,27 +14,29 @@ internal enum RLikeLiteralAnchorKind
     None,
     Start,
     End,
-    StartAndEnd
+    StartAndEnd,
 }
 
 internal enum RLikeLiteralRejectionReason
 {
     None,
     RegexMetacharacter,
-    UnsupportedEscape
+    UnsupportedEscape,
 }
 
 internal readonly record struct RLikeLiteralClassification(
     RLikeLiteralMatchKind Kind,
     RLikeLiteralAnchorKind Anchors,
     int LiteralStart,
-    int LiteralLength);
+    int LiteralLength
+);
 
 internal readonly record struct RLikeLiteralClassificationResult
 {
     private RLikeLiteralClassificationResult(
         RLikeLiteralClassification? classification,
-        RLikeLiteralRejectionReason rejectionReason)
+        RLikeLiteralRejectionReason rejectionReason
+    )
     {
         Classification = classification;
         RejectionReason = rejectionReason;
@@ -48,8 +50,12 @@ internal readonly record struct RLikeLiteralClassificationResult
         RLikeLiteralMatchKind kind,
         RLikeLiteralAnchorKind anchors,
         int literalStart,
-        int literalLength) =>
-        new(new RLikeLiteralClassification(kind, anchors, literalStart, literalLength), RLikeLiteralRejectionReason.None);
+        int literalLength
+    ) =>
+        new(
+            new RLikeLiteralClassification(kind, anchors, literalStart, literalLength),
+            RLikeLiteralRejectionReason.None
+        );
 
     public static RLikeLiteralClassificationResult Rejected(RLikeLiteralRejectionReason reason)
     {
@@ -88,23 +94,19 @@ internal static class RLikeLiteralPatternClassifier
             (true, true) => RLikeLiteralAnchorKind.StartAndEnd,
             (true, false) => RLikeLiteralAnchorKind.Start,
             (false, true) => RLikeLiteralAnchorKind.End,
-            _ => RLikeLiteralAnchorKind.None
+            _ => RLikeLiteralAnchorKind.None,
         };
         var kind = anchors switch
         {
             RLikeLiteralAnchorKind.StartAndEnd => RLikeLiteralMatchKind.Exact,
             RLikeLiteralAnchorKind.Start => RLikeLiteralMatchKind.Prefix,
             RLikeLiteralAnchorKind.End => RLikeLiteralMatchKind.Suffix,
-            _ => RLikeLiteralMatchKind.Contains
+            _ => RLikeLiteralMatchKind.Contains,
         };
 
-        return RLikeLiteralClassificationResult.Accepted(
-            kind,
-            anchors,
-            literalStart,
-            literalEnd - literalStart);
+        return RLikeLiteralClassificationResult.Accepted(kind, anchors, literalStart, literalEnd - literalStart);
     }
 
-    private static bool IsRegexMetacharacter(char character) => character is
-        '^' or '$' or '.' or '|' or '?' or '*' or '+' or '(' or ')' or '[' or ']' or '{' or '}';
+    private static bool IsRegexMetacharacter(char character) =>
+        character is '^' or '$' or '.' or '|' or '?' or '*' or '+' or '(' or ')' or '[' or ']' or '{' or '}';
 }

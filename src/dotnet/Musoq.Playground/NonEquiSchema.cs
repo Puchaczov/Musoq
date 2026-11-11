@@ -7,12 +7,20 @@ namespace Musoq.Playground;
 internal sealed class NonEquiSchema(IReadOnlyList<NonEquiEntity> entities, int simulatedWorkIterations = 0)
     : SchemaBase("test", CreateLibrary())
 {
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return new NonEquiTable();
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments parameters
+    )
     {
         return EnsureSourceType<T, NonEquiEntity>(name, new ExpensiveRowSource(entities, simulatedWorkIterations));
     }

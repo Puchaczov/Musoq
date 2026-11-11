@@ -210,5 +210,5 @@ public enum TokenType : short
 
     // Error token for recovery mode
     Error, // Invalid/unrecognized token
-    StringConcatenation // SQL || operator
+    StringConcatenation, // SQL || operator
 }

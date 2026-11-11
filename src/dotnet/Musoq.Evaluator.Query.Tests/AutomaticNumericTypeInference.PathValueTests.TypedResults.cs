@@ -10,18 +10,19 @@ public partial class AutomaticNumericTypeInferencePathValueTests
     [TestMethod]
     public void WhenMixingIntLongDoubleInArithmetic_ShouldPreserveTypedResults()
     {
-        const string query = "table Items {" +
-                             "  Path: string," +
-                             "  Value: double?" +
-                             "};" +
-                             "couple #schema.first with table Items as Items; " +
-                             "select Path, Value * 2 from Items()";
+        const string query =
+            "table Items {"
+            + "  Path: string,"
+            + "  Value: double?"
+            + "};"
+            + "couple #schema.first with table Items as Items; "
+            + "select Path, Value * 2 from Items()";
 
         var entities = new List<PathValueEntity>
         {
             new() { Path = "int", Value = 5 },
             new() { Path = "long", Value = 10L },
-            new() { Path = "double", Value = 8.2 }
+            new() { Path = "double", Value = 8.2 },
         };
 
         var table = RunNativeNumericQuery<double>(query, entities);
@@ -38,5 +39,4 @@ public partial class AutomaticNumericTypeInferencePathValueTests
         var doubleRow = table.First(r => (string)r.ReadValue(0) == "double");
         Assert.AreEqual(16.4, (double)doubleRow.ReadValue(1), 0.001);
     }
-
 }

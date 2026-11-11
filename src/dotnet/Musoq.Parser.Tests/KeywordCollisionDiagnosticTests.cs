@@ -22,7 +22,9 @@ public sealed class KeywordCollisionDiagnosticTests
 
             if (result.Diagnostics.Count != 1)
             {
-                failures.Add($"{keyword}: expected one diagnostic, got {result.Diagnostics.Count} ({result.FormatDiagnostics()})");
+                failures.Add(
+                    $"{keyword}: expected one diagnostic, got {result.Diagnostics.Count} ({result.FormatDiagnostics()})"
+                );
                 continue;
             }
 
@@ -44,7 +46,8 @@ public sealed class KeywordCollisionDiagnosticTests
         foreach (var keyword in KeywordCollisionCatalog.ReservedSqlIdentifiers)
         {
             var result = ParseWithDiagnostics(
-                $"select Name + {keyword} from #some.files(); select Name from #some.files()");
+                $"select Name + {keyword} from #some.files(); select Name from #some.files()"
+            );
 
             var expectedCode = IsMissingOperandBoundary(keyword)
                 ? DiagnosticCode.MQ2020_MissingOperand
@@ -64,9 +67,26 @@ public sealed class KeywordCollisionDiagnosticTests
 
     private static bool IsMissingOperandBoundary(string keyword)
     {
-        return keyword is "from" or "where" or "group" or "having" or "order" or "take" or "skip"
-            or "and" or "or" or "as" or "union" or "except" or "intersect" or "on" or "when"
-            or "then" or "else" or "end" or "window";
+        return keyword
+            is "from"
+                or "where"
+                or "group"
+                or "having"
+                or "order"
+                or "take"
+                or "skip"
+                or "and"
+                or "or"
+                or "as"
+                or "union"
+                or "except"
+                or "intersect"
+                or "on"
+                or "when"
+                or "then"
+                or "else"
+                or "end"
+                or "window";
     }
 
     private static ParseResult ParseWithDiagnostics(string query)

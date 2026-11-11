@@ -5,10 +5,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static partial class ExecutionIrAnalysis
 {
-    internal static bool IsVariableUsedAfter(
-        IReadOnlyList<ExecutionNode> nodes,
-        int index,
-        string variableName)
+    internal static bool IsVariableUsedAfter(IReadOnlyList<ExecutionNode> nodes, int index, string variableName)
     {
         for (var nextIndex = index + 1; nextIndex < nodes.Count; nextIndex++)
         {
@@ -71,23 +68,21 @@ internal static partial class ExecutionIrAnalysis
             ExecutionVariableRead variableRead => HasName(variableRead.Variable, variableName),
             ExecutionRowStream rows => HasName(rows.Variable, variableName),
             ExecutionScalarRowStream rows => HasName(rows.Variable, variableName),
-            ExecutionMethodCall methodCall => methodCall.Target != null && HasName(methodCall.Target, variableName) ||
-                                              methodCall.Cache != null && HasName(methodCall.Cache, variableName),
+            ExecutionMethodCall methodCall => methodCall.Target != null && HasName(methodCall.Target, variableName)
+                || methodCall.Cache != null && HasName(methodCall.Cache, variableName),
             ExecutionMethodTargetReuseCandidate candidate => ExpressionUsesVariable(candidate.MethodCall, variableName),
             ExecutionStrictCast strictCast => strictCast.Target != null && HasName(strictCast.Target, variableName),
-            ExecutionIndexedHashRowCreate indexedCreate =>
-                HasName(indexedCreate.Row, variableName) ||
-                HasName(indexedCreate.Index, variableName),
+            ExecutionIndexedHashRowCreate indexedCreate => HasName(indexedCreate.Row, variableName)
+                || HasName(indexedCreate.Index, variableName),
             ExecutionIndexedHashRowRowRead rowRead => HasName(rowRead.IndexedRow, variableName),
             ExecutionIndexedHashRowIndexRead indexRead => HasName(indexRead.IndexedRow, variableName),
             ExecutionRowContextsRead rowContexts => HasName(rowContexts.Row, variableName),
-            ExecutionWindowValueRead windowValue =>
-                HasName(windowValue.Results, variableName) ||
-                HasName(windowValue.Index, variableName),
+            ExecutionWindowValueRead windowValue => HasName(windowValue.Results, variableName)
+                || HasName(windowValue.Index, variableName),
             ExecutionAggregateCall aggregateCall => HasName(aggregateCall.Group, variableName),
             ExecutionGroupKeyRead groupKey => HasName(groupKey.Group, variableName),
             ExecutionAggregateCapturedValueRead capturedValue => HasName(capturedValue.Group, variableName),
-            _ => false
+            _ => false,
         };
     }
 

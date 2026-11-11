@@ -17,7 +17,8 @@ internal static class BuildItemKeys
     public const string AssemblyName = "ASSEMBLY_NAME";
     public const string SchemaProvider = "SCHEMA_PROVIDER";
     public const string SourceRuntimeSettingsBySourceContextId = "SOURCE_RUNTIME_SETTINGS_BY_SOURCE_CONTEXT_ID";
-    public const string SourceRuntimeSettingDescriptionsBySourceContextId = "SOURCE_RUNTIME_SETTING_DESCRIPTIONS_BY_SOURCE_CONTEXT_ID";
+    public const string SourceRuntimeSettingDescriptionsBySourceContextId =
+        "SOURCE_RUNTIME_SETTING_DESCRIPTIONS_BY_SOURCE_CONTEXT_ID";
     public const string HasDeclaredSourceRuntimeSettings = "HAS_DECLARED_SOURCE_RUNTIME_SETTINGS";
     public const string HasSourceRuntimeSettingValues = "HAS_SOURCE_RUNTIME_SETTING_VALUES";
     public const string RenderingArtifact = "RENDERING_ARTIFACT";

@@ -7,14 +7,19 @@ internal static partial class SourcePredicateConjunctMatcher
 {
     private static IReadOnlyList<IrExpression> MatchWholeAcceptedPredicate(
         SourcePredicateExpression acceptedPredicate,
-        SourcePredicatePlan sourcePredicatePlan)
+        SourcePredicatePlan sourcePredicatePlan
+    )
     {
         foreach (var pushedPredicate in sourcePredicatePlan.PushedPredicates)
         {
-            if (!SourcePredicateExpressionConverter.TryConvertPredicate(
+            if (
+                !SourcePredicateExpressionConverter.TryConvertPredicate(
                     pushedPredicate,
                     sourcePredicatePlan.Alias,
-                    out var sourcePredicate, sourcePredicatePlan.RegexMatchTimeout))
+                    out var sourcePredicate,
+                    sourcePredicatePlan.RegexMatchTimeout
+                )
+            )
             {
                 continue;
             }

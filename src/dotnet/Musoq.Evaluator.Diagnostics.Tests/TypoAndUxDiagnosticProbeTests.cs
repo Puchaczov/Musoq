@@ -19,12 +19,10 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     // Users frequently misspell SQL keywords.
     // ========================================================================
 
-
     [TestMethod]
     public void WhenSelectMisspelledAsSelct_ShouldGiveHelpfulError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELCT Name FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELCT Name FROM #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         // Should suggest SELECT
@@ -34,8 +32,7 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     [TestMethod]
     public void WhenSelectMisspelledAsSeleect_ShouldGiveHelpfulError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELEECT Name FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELEECT Name FROM #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "SELECT");
@@ -44,8 +41,7 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     [TestMethod]
     public void WhenFromMisspelledAsFrm_ShouldGiveHelpfulError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FRM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FRM #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2004_MissingFromClause, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "FROM");
@@ -54,8 +50,7 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     [TestMethod]
     public void WhenFromMisspelledAsFomr_ShouldGiveHelpfulError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FOMR #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FOMR #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2004_MissingFromClause, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "FROM");
@@ -65,7 +60,8 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     public void WhenWhereMisspelledAsWher_ShouldGiveHelpfulError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHER Age > 30"));
+            CompileQuery("SELECT Name FROM #test.people() WHER Age > 30")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "WHERE");
@@ -75,7 +71,8 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     public void WhenWhereMisspelledAsWheer_ShouldGiveHelpfulError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHEER Age > 30"));
+            CompileQuery("SELECT Name FROM #test.people() WHEER Age > 30")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "WHERE");
@@ -85,7 +82,8 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     public void WhenGroupByMisspelledAsGruopBy_ShouldGiveHelpfulError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT City, Count(City) FROM #test.people() GRUOP BY City"));
+            CompileQuery("SELECT City, Count(City) FROM #test.people() GRUOP BY City")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "GROUP");
@@ -94,8 +92,7 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     [TestMethod]
     public void WhenOrderByMisspelledAsOrdrBy_ShouldGiveHelpfulError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() ORDR BY Name"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.people() ORDR BY Name"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "ORDER");
@@ -108,7 +105,8 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
         // The error comes from the leftover tokens (e.g., the LeftParenthesis from Count(...)).
         // A more specific HAVING suggestion would require alias-keyword conflict detection.
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT City, Count(City) FROM #test.people() GROUP BY City HAVIG Count(City) > 1"));
+            CompileQuery("SELECT City, Count(City) FROM #test.people() GROUP BY City HAVIG Count(City) > 1")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);
@@ -117,28 +115,26 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     [TestMethod]
     public void WhenJoinMisspelledAsJion_ShouldGiveHelpfulError()
     {
-        // "INNER JION" — INNER is not a standalone keyword token, so it reaches 
+        // "INNER JION" — INNER is not a standalone keyword token, so it reaches
         // ComposeStatement as an Identifier. The enhancer maps it to itself (distance 0)
         // so no "Did you mean" is produced, but a clear error is still thrown.
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT a.Name FROM #test.people() a INNER JION #test.orders() b ON a.Id = b.PersonId"));
+            CompileQuery("SELECT a.Name FROM #test.people() a INNER JION #test.orders() b ON a.Id = b.PersonId")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "Identifier");
     }
-
 
     // ========================================================================
     // CATEGORY 2: SQL dialect confusion
     // Users coming from MySQL, PostgreSQL, etc. use keywords Musoq doesn't support.
     // ========================================================================
 
-
     [TestMethod]
     public void WhenUsingLimitInsteadOfTake_ShouldSuggestTake()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() LIMIT 5"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.people() LIMIT 5"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "TAKE");
@@ -147,8 +143,7 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     [TestMethod]
     public void WhenUsingTopInsteadOfTake_ShouldSuggestTake()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT TOP 5 Name FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT TOP 5 Name FROM #test.people()"));
 
         // TOP is now detected as a dialect keyword at the semantic level
         AssertMessageContains(ex, "TAKE");
@@ -157,8 +152,7 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     [TestMethod]
     public void WhenUsingOffsetInsteadOfSkip_ShouldSuggestSkip()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() OFFSET 2"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.people() OFFSET 2"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "SKIP");
@@ -168,17 +162,15 @@ public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
     public void WhenUsingIlikeInsteadOfLike_ShouldSuggestLike()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE Name ILIKE '%alice%'"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE Name ILIKE '%alice%'")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "LIKE");
     }
 
-
     // ========================================================================
     // CATEGORY 3: Column name typos
     // Users misspell column/property names.
     // ========================================================================
-
-
 }

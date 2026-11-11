@@ -17,7 +17,8 @@ public sealed record ExecutionAsOfProbe : ExecutionNode
         ExecutionBlock? NoMatchBody = null,
         ExecutionVariable? Index = null,
         ExecutionTypeRef? ComparisonKeyType = null,
-        ExecutionAsOfTieBreak? TieBreak = null)
+        ExecutionAsOfTieBreak? TieBreak = null
+    )
     {
         this.Match = Match;
         this.Candidate = Candidate;
@@ -60,7 +61,8 @@ public sealed record ExecutionAsOfProbe : ExecutionNode
         ExecutionBlock? noMatchBody,
         ExecutionVariable? index,
         Type comparisonKeyType,
-        ExecutionAsOfTieBreak? tieBreak = null)
+        ExecutionAsOfTieBreak? tieBreak = null
+    )
         : this(
             match,
             candidate,
@@ -73,7 +75,6 @@ public sealed record ExecutionAsOfProbe : ExecutionNode
             noMatchBody,
             index,
             ExecutionClrBindingFactory.FromClr(comparisonKeyType),
-            tieBreak)
-    {
-    }
+            tieBreak
+        ) { }
 }

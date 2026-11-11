@@ -98,8 +98,7 @@ public partial class TextInterpreterBaseTests
     public void ReadUntil_DelimiterNotFound_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadUntil("hello world".AsSpan(), ","));
+        Assert.Throws<ParseException>(() => interpreter.TestReadUntil("hello world".AsSpan(), ","));
     }
 
     [TestMethod]
@@ -144,24 +143,21 @@ public partial class TextInterpreterBaseTests
     public void ReadBetween_MissingOpen_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadBetween("content]".AsSpan(), "[", "]"));
+        Assert.Throws<ParseException>(() => interpreter.TestReadBetween("content]".AsSpan(), "[", "]"));
     }
 
     [TestMethod]
     public void ReadBetween_MissingClose_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadBetween("[content".AsSpan(), "[", "]"));
+        Assert.Throws<ParseException>(() => interpreter.TestReadBetween("[content".AsSpan(), "[", "]"));
     }
 
     [TestMethod]
     public void ReadBetween_NestedMissingClose_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadBetween("[[content]".AsSpan(), "[", "]", true));
+        Assert.Throws<ParseException>(() => interpreter.TestReadBetween("[[content]".AsSpan(), "[", "]", true));
     }
 
     [TestMethod]
@@ -227,7 +223,8 @@ public partial class TextInterpreterBaseTests
     {
         var interpreter = new TestTextInterpreter();
         Assert.Throws<ParseException>(() =>
-            interpreter.TestReadBetween("[content\\]".AsSpan(), "[", "]", escaped: true));
+            interpreter.TestReadBetween("[content\\]".AsSpan(), "[", "]", escaped: true)
+        );
     }
 
     #endregion
@@ -271,16 +268,14 @@ public partial class TextInterpreterBaseTests
     public void ReadChars_NegativeCount_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadChars("hello".AsSpan(), -1));
+        Assert.Throws<ParseException>(() => interpreter.TestReadChars("hello".AsSpan(), -1));
     }
 
     [TestMethod]
     public void ReadChars_ExceedsLength_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadChars("hi".AsSpan(), 10));
+        Assert.Throws<ParseException>(() => interpreter.TestReadChars("hi".AsSpan(), 10));
     }
 
     #endregion

@@ -15,12 +15,13 @@ internal static class ProjectionPolicy
                     yield return member;
     }
 
-    internal static ITypeSymbol ValueType(ISymbol member) => member switch
-    {
-        IPropertySymbol property => property.Type,
-        IFieldSymbol field => field.Type,
-        _ => throw new InvalidOperationException("Only readable properties and fields have projection policies.")
-    };
+    internal static ITypeSymbol ValueType(ISymbol member) =>
+        member switch
+        {
+            IPropertySymbol property => property.Type,
+            IFieldSymbol field => field.Type,
+            _ => throw new InvalidOperationException("Only readable properties and fields have projection policies."),
+        };
 
     internal static string? Exclusion(ISymbol member)
     {
@@ -38,15 +39,17 @@ internal static class ProjectionPolicy
             "Musoq.Parser.Nodes.Node.HasSpan" => "Source-range presence.",
             "Musoq.Parser.Nodes.From.AliasedFromNode.InSourcePosition" => "Source position.",
             "Musoq.Parser.Nodes.From.SchemaFromNode.QueryId" => "Generated query identity.",
-            "Musoq.Parser.Nodes.DiagnosticCommandNode.CommandStart" or
-            "Musoq.Parser.Nodes.DiagnosticCommandNode.InnerStart" or
-            "Musoq.Parser.Nodes.DiagnosticCommandNode.InnerEnd" => "Diagnostic source positions.",
+            "Musoq.Parser.Nodes.DiagnosticCommandNode.CommandStart"
+            or "Musoq.Parser.Nodes.DiagnosticCommandNode.InnerStart"
+            or "Musoq.Parser.Nodes.DiagnosticCommandNode.InnerEnd" => "Diagnostic source positions.",
             "Musoq.Parser.Nodes.SkipNode.Value" or "Musoq.Parser.Nodes.TakeNode.Value" =>
                 "Computed paging value; its Expression is projected.",
-            _ => null
+            _ => null,
         };
     }
 
-    private static bool Readable(ISymbol member) => member.DeclaredAccessibility == Accessibility.Public && !member.IsStatic &&
-        member is IPropertySymbol { GetMethod.DeclaredAccessibility: Accessibility.Public } or IFieldSymbol;
+    private static bool Readable(ISymbol member) =>
+        member.DeclaredAccessibility == Accessibility.Public
+        && !member.IsStatic
+        && member is IPropertySymbol { GetMethod.DeclaredAccessibility: Accessibility.Public } or IFieldSymbol;
 }

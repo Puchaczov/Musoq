@@ -20,8 +20,10 @@ public partial class BuildMetadataAndInferTypesVisitor
         var scope = _sourceBinding.CurrentScope;
         while (scope != null)
         {
-            if (scope.Name == "CTE" &&
-                scope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(identifier.Name, out var symbol))
+            if (
+                scope.Name == "CTE"
+                && scope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(identifier.Name, out var symbol)
+            )
             {
                 var table = symbol.GetTableByAlias(identifier.Name).Table;
                 if (table.Columns.Length == 0)

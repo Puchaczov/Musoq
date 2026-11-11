@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-
 namespace Musoq.Evaluator.Tests;
 
 public partial class CrossApplyUnusedAliasTests
@@ -9,7 +8,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_FollowedByJoin_WithUnusedMiddleAlias_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, c.Country
             from #schema.first() a
             cross apply #schema.second(a.Country) t
@@ -17,34 +17,40 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var thirdSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 5000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 5000,
+                Month = "March",
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource,
-            secondSource,
-            thirdSource);
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource, thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["City1", "Country1"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1", "Country1"]);
     }
 
     /// <summary>
@@ -53,7 +59,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_FollowedByJoin_AllAliasesUsed_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, t.Money, c.Month
             from #schema.first() a
             cross apply #schema.second(a.Country) t
@@ -61,24 +68,35 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var thirdSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 5000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 5000,
+                Month = "March",
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource,
-            secondSource,
-            thirdSource);
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource, thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -86,10 +104,9 @@ public partial class CrossApplyUnusedAliasTests
             table,
             ("City", typeof(string)),
             ("Money", typeof(decimal)),
-            ("Month", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["City1", 1000m, "March"]);
+            ("Month", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1", 1000m, "March"]);
     }
 
     /// <summary>
@@ -98,7 +115,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_FollowedByLeftOuterJoin_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, t.Money, c.Month
             from #schema.first() a
             cross apply #schema.second(a.Country) t
@@ -106,26 +124,47 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "NoMatch", Population = 200 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "NoMatch",
+                Population = 200,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "NoMatch", Money = 2000, Month = "February" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "NoMatch",
+                Money = 2000,
+                Month = "February",
+            },
         }.ToArray();
 
         var thirdSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 5000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 5000,
+                Month = "March",
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource,
-            secondSource,
-            thirdSource);
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource, thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -133,13 +172,15 @@ public partial class CrossApplyUnusedAliasTests
             table,
             ("City", typeof(string)),
             ("Money", typeof(decimal)),
-            ("Month", typeof(string)));
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["City1", 1000m, "March"],
             ["City1", 2000m, "March"],
             ["City2", 1000m, null],
-            ["City2", 2000m, null]);
+            ["City2", 2000m, null]
+        );
     }
 
     /// <summary>
@@ -148,7 +189,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_FollowedByRightOuterJoin_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, t.Money, c.Month
             from #schema.first() a
             cross apply #schema.second(a.Country) t
@@ -156,25 +198,41 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var thirdSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 5000, Month = "March" },
-            new() { Country = "NoMatch", Money = 6000, Month = "April" }
+            new()
+            {
+                Country = "Country1",
+                Money = 5000,
+                Month = "March",
+            },
+            new()
+            {
+                Country = "NoMatch",
+                Money = 6000,
+                Month = "April",
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource,
-            secondSource,
-            thirdSource);
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource, thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -182,11 +240,9 @@ public partial class CrossApplyUnusedAliasTests
             table,
             ("City", typeof(string)),
             ("Money", typeof(decimal?)),
-            ("Month", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["City1", 1000m, "March"],
-            [null, null, "April"]);
+            ("Month", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["City1", 1000m, "March"], [null, null, "April"]);
     }
 
     /// <summary>
@@ -195,7 +251,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void OuterApply_FollowedByInnerJoin_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, t.Money, c.Month
             from #schema.first() a
             outer apply #schema.second(a.Country) t
@@ -203,24 +260,35 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var thirdSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 5000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 5000,
+                Month = "March",
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource,
-            secondSource,
-            thirdSource);
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource, thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -228,10 +296,8 @@ public partial class CrossApplyUnusedAliasTests
             table,
             ("City", typeof(string)),
             ("Money", typeof(decimal?)),
-            ("Month", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["City1", 1000m, "March"]);
+            ("Month", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1", 1000m, "March"]);
     }
-
 }

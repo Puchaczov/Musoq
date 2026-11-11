@@ -41,13 +41,17 @@ public sealed class ProfilingApiBoundaryTests
     {
         var factoryCalls = 0;
         var enumeratedRows = 0;
-        var query = new CompiledQuery(new ProfiledDeferredRunnable((_, token, recorder) =>
-        {
-            using var scope = recorder.BeginOperator("op1", "FakeOperator");
-            recorder.AddOperatorOutputRows("op1", 2);
+        var query = new CompiledQuery(
+            new ProfiledDeferredRunnable(
+                (_, token, recorder) =>
+                {
+                    using var scope = recorder.BeginOperator("op1", "FakeOperator");
+                    recorder.AddOperatorOutputRows("op1", 2);
 
-            return QueryRows.DeferredTable("result", Columns, Rows, token);
-        }));
+                    return QueryRows.DeferredTable("result", Columns, Rows, token);
+                }
+            )
+        );
 
         var profileResult = query.RunWithProfile(CancellationToken.None, emitTelemetry: false);
 
@@ -92,12 +96,9 @@ public sealed class ProfilingApiBoundaryTests
     [TestMethod]
     public void ExplainAnalyzeTextPrinter_WhenPlanHasOperatorIds_ShouldAnnotateMatchingLines()
     {
-        const string plan = """
-                            Physical plan
-                              [op1] SourceScan people
-                              [op2] AppendShape result
-                              Constant line
-                            """;
+        const string plan = (
+            "Physical plan\n" + "  [op1] SourceScan people\n" + "  [op2] AppendShape result\n" + "  Constant line"
+        );
 
         var text = ExplainAnalyzeTextPrinter.Print(plan, CreateProfileSnapshot());
 
@@ -126,44 +127,39 @@ public sealed class ProfilingApiBoundaryTests
                     0,
                     null,
                     null,
-                    SourceProfileDiagnosis.SourceBound)
+                    SourceProfileDiagnosis.SourceBound
+                )
                 {
                     RowsProduced = 3,
                     BytesRead = 128,
-                    Metrics = new Dictionary<string, long>(StringComparer.Ordinal)
-                    {
-                        ["pages"] = 2
-                    },
-                    IsTimingEstimated = true
-                }
+                    Metrics = new Dictionary<string, long>(StringComparer.Ordinal) { ["pages"] = 2 },
+                    IsTimingEstimated = true,
+                },
             ],
             [
-                new OperatorProfileSnapshot(
-                    "op1",
-                    "SourceScan",
-                    0,
-                    5,
-                    TimeSpan.FromMilliseconds(3)),
-                new OperatorProfileSnapshot(
-                    "op2",
-                    "AppendShape",
-                    5,
-                    3,
-                    TimeSpan.FromMilliseconds(1))
-            ]);
+                new OperatorProfileSnapshot("op1", "SourceScan", 0, 5, TimeSpan.FromMilliseconds(3)),
+                new OperatorProfileSnapshot("op2", "AppendShape", 5, 3, TimeSpan.FromMilliseconds(1)),
+            ]
+        );
 
     private sealed class PlainRunnable : ITableRunnable
     {
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
-            = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
+            new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
-            = new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+            new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
-        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
-            = new Dictionary<string, SourceExecutionPlan>();
+        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
+            new Dictionary<string, SourceExecutionPlan>();
 
         public ILogger Logger { get; set; } = NullLogger.Instance;
 
@@ -186,19 +182,25 @@ public sealed class ProfilingApiBoundaryTests
     }
 
     private sealed class ProfiledDeferredRunnable(
-        Func<ProfiledDeferredRunnable, CancellationToken, QueryProfileRecorder, Table> run)
-        : ITableRunnable, IProfiledRunnable
+        Func<ProfiledDeferredRunnable, CancellationToken, QueryProfileRecorder, Table> run
+    ) : ITableRunnable, IProfiledRunnable
     {
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
-            = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
+            new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
-            = new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+            new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
-        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
-            = new Dictionary<string, SourceExecutionPlan>();
+        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
+            new Dictionary<string, SourceExecutionPlan>();
 
         public ILogger Logger { get; set; } = NullLogger.Instance;
 
@@ -227,12 +229,10 @@ public sealed class ProfilingApiBoundaryTests
 
     private sealed class TestRow(string value) : Row
     {
-        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
-            => TypedColumnVisit.Apply(0, value, ref visitor);
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor) =>
+            TypedColumnVisit.Apply(0, value, ref visitor);
 
         public override int Count => 1;
-
-
     }
 
     private sealed class ThrowingSchemaProvider : ISchemaProvider

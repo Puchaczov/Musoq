@@ -15,13 +15,15 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private static IEnumerable<ExecutionParallelSingleKeyAggregateLoop> CollectParallelSingleKeyAggregateLoops(
-        ExecutionBlock block)
+        ExecutionBlock block
+    )
     {
         return ExecutionIrAnalysis.CollectNodes<ExecutionParallelSingleKeyAggregateLoop>(block);
     }
 
     private static IEnumerable<ExecutionParallelFilterProjectLoop> CollectParallelFilterProjectLoops(
-        ExecutionBlock block)
+        ExecutionBlock block
+    )
     {
         return ExecutionIrAnalysis.CollectNodes<ExecutionParallelFilterProjectLoop>(block);
     }
@@ -30,7 +32,6 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return ExecutionIrAnalysis.CollectNodes<ExecutionParallelBlock>(block);
     }
-
 
     private static IEnumerable<ExecutionConstantInSet> CollectConstantInSets(ExecutionBlock block)
     {
@@ -45,5 +46,4 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return ExecutionIrAnalysis.GetContextLayoutExpressions(contextLayout);
     }
-
 }

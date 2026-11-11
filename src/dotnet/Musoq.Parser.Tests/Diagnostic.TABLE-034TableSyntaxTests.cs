@@ -14,18 +14,20 @@ public sealed class DiagnosticTable034TableSyntaxTests
     public void TableDefinition_ShouldPreserveColumnOrderNullabilityAndModifierSpans()
     {
         const string query =
-            "table Contract { First: int?, Second: System.String encoding 'utf-8' trim, " +
-            "Payload: string source Codec 'base64' source Mode 'strict', };";
+            "table Contract { First: int?, Second: System.String encoding 'utf-8' trim, "
+            + "Payload: string source Codec 'base64' source Mode 'strict', };";
 
         var table = ParseTable(query);
 
         Assert.AreEqual("Contract", table.Name);
         CollectionAssert.AreEqual(
             new[] { "First", "Second", "Payload" },
-            table.Columns.Select(static column => column.ColumnName).ToArray());
+            table.Columns.Select(static column => column.ColumnName).ToArray()
+        );
         CollectionAssert.AreEqual(
             new[] { "int?", "System.String", "string" },
-            table.Columns.Select(static column => column.TypeName).ToArray());
+            table.Columns.Select(static column => column.TypeName).ToArray()
+        );
 
         var first = table.Columns[0];
         Assert.AreEqual(SpanOf(query, "First: int?"), first.Span);
@@ -34,14 +36,18 @@ public sealed class DiagnosticTable034TableSyntaxTests
         var second = table.Columns[1];
         Assert.AreEqual(SpanOf(query, "Second: System.String encoding 'utf-8' trim"), second.Span);
         Assert.AreEqual(SpanOf(query, "Second"), second.ColumnNameSpan);
-        Assert.AreEqual(new TextSpan(SpanOf(query, "encoding 'utf-8'").Start, "encoding 'utf-8'".Length),
-            second.ReadModifierSpans["encoding"]);
+        Assert.AreEqual(
+            new TextSpan(SpanOf(query, "encoding 'utf-8'").Start, "encoding 'utf-8'".Length),
+            second.ReadModifierSpans["encoding"]
+        );
         Assert.AreEqual(SpanOf(query, "trim"), second.ReadModifierSpans["trim"]);
 
         var payload = table.Columns[2];
         Assert.AreEqual(SpanOf(query, "Payload: string source Codec 'base64' source Mode 'strict'"), payload.Span);
-        CollectionAssert.AreEqual(new[] { "source.codec", "source.mode" },
-            payload.ReadModifiers.Select(static modifier => modifier.Key).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "source.codec", "source.mode" },
+            payload.ReadModifiers.Select(static modifier => modifier.Key).ToArray()
+        );
         Assert.AreEqual("base64", payload.ReadModifiers[0].Value);
         Assert.AreEqual("strict", payload.ReadModifiers[1].Value);
         Assert.AreEqual(SpanOf(query, "source Codec 'base64'"), payload.ReadModifierSpans["source.codec"]);
@@ -50,7 +56,8 @@ public sealed class DiagnosticTable034TableSyntaxTests
         Assert.AreEqual(new TextSpan(0, query.IndexOf('}') + 1), table.Span);
         Assert.AreEqual(
             "table Contract { First: int?, Second: System.String encoding 'utf-8' trim, Payload: string source codec 'base64' source mode 'strict' };",
-            table.ToString());
+            table.ToString()
+        );
     }
 
     [TestMethod]
@@ -66,8 +73,7 @@ public sealed class DiagnosticTable034TableSyntaxTests
     [TestMethod]
     public void TableDefinition_DuplicateSourceModifierKey_ShouldReportTheDuplicateModifierSpan()
     {
-        const string query =
-            "table Contract { Payload: string source codec 'base64' source CODEC 'hex' };";
+        const string query = "table Contract { Payload: string source codec 'base64' source CODEC 'hex' };";
 
         var result = ParseWithDiagnostics(query);
 
@@ -90,10 +96,7 @@ public sealed class DiagnosticTable034TableSyntaxTests
     {
         const string query = "table Contract { , First: int };";
 
-        AssertParseDiagnostic(
-            query,
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            SpanOf(query, ","));
+        AssertParseDiagnostic(query, DiagnosticCode.MQ2001_UnexpectedToken, SpanOf(query, ","));
     }
 
     [TestMethod]
@@ -101,10 +104,7 @@ public sealed class DiagnosticTable034TableSyntaxTests
     {
         const string query = "table Contract { First: int";
 
-        AssertParseDiagnostic(
-            query,
-            DiagnosticCode.MQ2017_UnexpectedEndOfFile,
-            new TextSpan(query.Length, 0));
+        AssertParseDiagnostic(query, DiagnosticCode.MQ2017_UnexpectedEndOfFile, new TextSpan(query.Length, 0));
     }
 
     private static CreateTableNode ParseTable(string query)

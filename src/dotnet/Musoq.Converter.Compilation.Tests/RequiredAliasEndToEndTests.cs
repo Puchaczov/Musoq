@@ -16,8 +16,7 @@ namespace Musoq.Converter.Tests;
 [TestClass]
 public sealed class RequiredAliasEndToEndTests
 {
-    private const string MissingAliasQuery =
-        "select 1 from #system.dual() source cross apply source.Column take 10";
+    private const string MissingAliasQuery = "select 1 from #system.dual() source cross apply source.Column take 10";
 
     private readonly TestsLoggerResolver _loggerResolver = new();
 
@@ -41,7 +40,8 @@ public sealed class RequiredAliasEndToEndTests
             $"RequiredAliasStop_{Guid.NewGuid():N}",
             buildProvider,
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertRequiredAliasDiagnostic(build.Errors, MissingAliasQuery);
         Assert.IsFalse(build.Succeeded);
@@ -59,26 +59,31 @@ public sealed class RequiredAliasEndToEndTests
             MissingAliasQuery,
             $"RequiredAliasDefault_{Guid.NewGuid():N}",
             new CountingSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         var optionsBuild = InstanceCreator.CompileWithDiagnostics(
             MissingAliasQuery,
             $"RequiredAliasOptions_{Guid.NewGuid():N}",
             new CountingSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         var asyncBuild = await InstanceCreator.CompileWithDiagnosticsAsync(
             MissingAliasQuery,
             $"RequiredAliasAsync_{Guid.NewGuid():N}",
             new CountingSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions());
-        var analyzeException = Assert.Throws<AstValidationException>(
-            () => InstanceCreator.CreateForAnalyze(
+            new CompilationOptions()
+        );
+        var analyzeException = Assert.Throws<AstValidationException>(() =>
+            InstanceCreator.CreateForAnalyze(
                 MissingAliasQuery,
                 $"RequiredAliasAnalyze_{Guid.NewGuid():N}",
                 new CountingSchemaProvider(),
                 _loggerResolver,
-                new CompilationOptions()));
+                new CompilationOptions()
+            )
+        );
         var analyzeSyntaxException = analyzeException.InnerException as SyntaxException;
         Assert.IsNotNull(analyzeSyntaxException, analyzeException.ToString());
         var analyzeDiagnostic = analyzeSyntaxException.ToDiagnostic(new SourceText(MissingAliasQuery));
@@ -97,12 +102,14 @@ public sealed class RequiredAliasEndToEndTests
     [TestMethod]
     public void CompileForExecution_WhenRequiredAliasIsMissing_ShouldPreserveTheExistingExceptionSurface()
     {
-        var exception = Assert.Throws<MusoqQueryException>(
-            () => InstanceCreator.CompileForExecution(
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            InstanceCreator.CompileForExecution(
                 MissingAliasQuery,
                 $"RequiredAliasExecution_{Guid.NewGuid():N}",
                 new CountingSchemaProvider(),
-                _loggerResolver));
+                _loggerResolver
+            )
+        );
 
         Assert.HasCount(1, exception.Envelopes);
         Assert.AreEqual(DiagnosticCode.MQ2035_MissingRequiredAlias, exception.PrimaryEnvelope.Code);
@@ -113,13 +120,15 @@ public sealed class RequiredAliasEndToEndTests
     [TestMethod]
     public void CompileForInspection_WhenRequiredAliasIsMissing_ShouldPreserveTheSyntaxDiagnosticBeforePlanning()
     {
-        var exception = Assert.Throws<AstValidationException>(
-            () => InstanceCreator.CompileForInspection(
+        var exception = Assert.Throws<AstValidationException>(() =>
+            InstanceCreator.CompileForInspection(
                 MissingAliasQuery,
                 $"RequiredAliasInspectionFailure_{Guid.NewGuid():N}",
                 new CountingSchemaProvider(),
                 _loggerResolver,
-                new CompilationOptions()));
+                new CompilationOptions()
+            )
+        );
         var syntaxException = exception.InnerException as SyntaxException;
         Assert.IsNotNull(syntaxException, exception.ToString());
 
@@ -135,13 +144,15 @@ public sealed class RequiredAliasEndToEndTests
             $"RequiredAliasCache_{Guid.NewGuid():N}",
             new CountingSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         var second = InstanceCreator.CompileWithDiagnostics(
             MissingAliasQuery,
             $"RequiredAliasCache_{Guid.NewGuid():N}",
             new CountingSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertRequiredAliasDiagnostic(first.Errors, MissingAliasQuery);
         AssertRequiredAliasDiagnostic(second.Errors, MissingAliasQuery);
@@ -162,12 +173,14 @@ public sealed class RequiredAliasEndToEndTests
                 $"RequiredAliasValid_{testCase.Name}_{Guid.NewGuid():N}",
                 testCase.ProviderFactory(),
                 _loggerResolver,
-                new CompilationOptions());
+                new CompilationOptions()
+            );
 
             Assert.IsTrue(build.Succeeded, FormatDiagnostics(build.Diagnostics, testCase.Query));
-            Assert.IsFalse(build.Errors.Any(static diagnostic =>
-                diagnostic.Code == DiagnosticCode.MQ2035_MissingRequiredAlias),
-                FormatDiagnostics(build.Diagnostics, testCase.Query));
+            Assert.IsFalse(
+                build.Errors.Any(static diagnostic => diagnostic.Code == DiagnosticCode.MQ2035_MissingRequiredAlias),
+                FormatDiagnostics(build.Diagnostics, testCase.Query)
+            );
             Assert.IsNotNull(build.CompiledQuery);
 
             using var table = build.CompiledQuery.Run();
@@ -183,7 +196,7 @@ public sealed class RequiredAliasEndToEndTests
         {
             "select i.Name, n.Value from #apply.items() i cross apply i.Numbers n order by i.Name, n.Value",
             "select i.Name, n.Value from #apply.items() i cross apply i.Numbers AS n order by i.Name, n.Value",
-            "select i.Name, n.Value from #apply.items() i cross apply i.Numbers [n] order by i.Name, n.Value"
+            "select i.Name, n.Value from #apply.items() i cross apply i.Numbers [n] order by i.Name, n.Value",
         };
 
         foreach (var query in queries)
@@ -197,13 +210,15 @@ public sealed class RequiredAliasEndToEndTests
                 $"RequiredAliasCorrected_{Guid.NewGuid():N}",
                 CreateApplyProvider(),
                 _loggerResolver,
-                new CompilationOptions());
+                new CompilationOptions()
+            );
             var inspection = InstanceCreator.CompileForInspection(
                 query,
                 $"RequiredAliasInspection_{Guid.NewGuid():N}",
                 CreateApplyProvider(),
                 _loggerResolver,
-                new CompilationOptions());
+                new CompilationOptions()
+            );
 
             Assert.IsTrue(build.Succeeded, FormatDiagnostics(build.Diagnostics, query));
             Assert.IsEmpty(build.Diagnostics, FormatDiagnostics(build.Diagnostics, query));
@@ -213,7 +228,8 @@ public sealed class RequiredAliasEndToEndTests
             using var table = build.CompiledQuery!.Run();
             CollectionAssert.AreEqual(
                 new[] { "left:1", "left:2", "right:3" },
-                table.Select(row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray());
+                table.Select(row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray()
+            );
         }
     }
 
@@ -221,39 +237,126 @@ public sealed class RequiredAliasEndToEndTests
     {
         return
         [
-            new("inner-join", "select a.Dummy from #system.dual() a inner join #system.dual() b on a.Dummy = b.Dummy", static () => new SystemSchemaProvider()),
-            new("left-join", "select a.Dummy from #system.dual() a left outer join #system.dual() b on a.Dummy = b.Dummy", static () => new SystemSchemaProvider()),
-            new("right-join", "select a.Dummy from #system.dual() a right outer join #system.dual() b on a.Dummy = b.Dummy", static () => new SystemSchemaProvider()),
-            new("full-join", "select a.Dummy from #system.dual() a full outer join #system.dual() b on a.Dummy = b.Dummy", static () => new SystemSchemaProvider()),
-            new("cross-join", "select a.Dummy from #system.dual() a cross join #system.dual() b", static () => new SystemSchemaProvider()),
-            new("semi-join", "select a.Dummy from #system.dual() a semi join #system.dual() b on a.Dummy = b.Dummy", static () => new SystemSchemaProvider()),
-            new("anti-join", "select a.Dummy from #system.dual() a anti join #system.dual() b on a.Dummy = b.Dummy", static () => new SystemSchemaProvider()),
-            new("asof-join", "select a.Dummy from #system.dual() a asof join #system.dual() b on a.Dummy >= b.Dummy", static () => new SystemSchemaProvider()),
-            new("asof-left-join", "select a.Dummy from #system.dual() a asof left join #system.dual() b on a.Dummy >= b.Dummy", static () => new SystemSchemaProvider()),
-            new("cross-apply-property", "select i.Name, n.Value from #apply.items() i cross apply i.Numbers n", CreateApplyProvider),
-            new("outer-apply-property", "select i.Name, n.Value from #apply.items() i outer apply i.Numbers n", CreateApplyProvider),
-            new("cross-apply-schema", "select i.Name, r.Line from #apply.items() i cross apply #apply.related(i.Name) r", CreateApplyProvider),
-            new("outer-apply-schema", "select i.Name, r.Line from #apply.items() i outer apply #apply.related(i.Numbers) r", CreateApplyProvider),
-            new("apply-with-ordinality", "select i.Name, n.Value, n.Ordinal from #apply.items() i cross apply i.Numbers n with ordinality", CreateApplyProvider),
-            new("function-apply", @"
-                text LogLine {
-                    Level: until ' ',
-                    Message: rest
-                };
-                select i.Name, l.Level from #apply.items() i cross apply Parse<LogLine>(i.Line) l", CreateApplyProvider),
-            new("derived-and-values", "select sub.Dummy, marker.Label from (select d.Dummy from #system.dual() d) sub cross join values { ( Label: 'x' ) } marker", static () => new SystemSchemaProvider()),
-            new("values-and-schema", "select seed.Value, d.Dummy from values { ( Value: 1 ) } seed cross join #system.dual() d", static () => new SystemSchemaProvider()),
-            new("natural-cte", "with source as (select d.Dummy from #system.dual() d) select source.Dummy, rightSource.Dummy from source cross join #system.dual() rightSource", static () => new SystemSchemaProvider()),
-            new("chained-apply", "select i.Name, n.Value, m.Value from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m", CreateApplyProvider)
+            new(
+                "inner-join",
+                "select a.Dummy from #system.dual() a inner join #system.dual() b on a.Dummy = b.Dummy",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "left-join",
+                "select a.Dummy from #system.dual() a left outer join #system.dual() b on a.Dummy = b.Dummy",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "right-join",
+                "select a.Dummy from #system.dual() a right outer join #system.dual() b on a.Dummy = b.Dummy",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "full-join",
+                "select a.Dummy from #system.dual() a full outer join #system.dual() b on a.Dummy = b.Dummy",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "cross-join",
+                "select a.Dummy from #system.dual() a cross join #system.dual() b",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "semi-join",
+                "select a.Dummy from #system.dual() a semi join #system.dual() b on a.Dummy = b.Dummy",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "anti-join",
+                "select a.Dummy from #system.dual() a anti join #system.dual() b on a.Dummy = b.Dummy",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "asof-join",
+                "select a.Dummy from #system.dual() a asof join #system.dual() b on a.Dummy >= b.Dummy",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "asof-left-join",
+                "select a.Dummy from #system.dual() a asof left join #system.dual() b on a.Dummy >= b.Dummy",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "cross-apply-property",
+                "select i.Name, n.Value from #apply.items() i cross apply i.Numbers n",
+                CreateApplyProvider
+            ),
+            new(
+                "outer-apply-property",
+                "select i.Name, n.Value from #apply.items() i outer apply i.Numbers n",
+                CreateApplyProvider
+            ),
+            new(
+                "cross-apply-schema",
+                "select i.Name, r.Line from #apply.items() i cross apply #apply.related(i.Name) r",
+                CreateApplyProvider
+            ),
+            new(
+                "outer-apply-schema",
+                "select i.Name, r.Line from #apply.items() i outer apply #apply.related(i.Numbers) r",
+                CreateApplyProvider
+            ),
+            new(
+                "apply-with-ordinality",
+                "select i.Name, n.Value, n.Ordinal from #apply.items() i cross apply i.Numbers n with ordinality",
+                CreateApplyProvider
+            ),
+            new(
+                "function-apply",
+                (
+                    "\n"
+                    + "                text LogLine {\n"
+                    + "                    Level: until ' ',\n"
+                    + "                    Message: rest\n"
+                    + "                };\n"
+                    + "                select i.Name, l.Level from #apply.items() i cross apply Parse<LogLine>(i.Line) l"
+                ),
+                CreateApplyProvider
+            ),
+            new(
+                "derived-and-values",
+                "select sub.Dummy, marker.Label from (select d.Dummy from #system.dual() d) sub cross join values { ( Label: 'x' ) } marker",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "values-and-schema",
+                "select seed.Value, d.Dummy from values { ( Value: 1 ) } seed cross join #system.dual() d",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "natural-cte",
+                "with source as (select d.Dummy from #system.dual() d) select source.Dummy, rightSource.Dummy from source cross join #system.dual() rightSource",
+                static () => new SystemSchemaProvider()
+            ),
+            new(
+                "chained-apply",
+                "select i.Name, n.Value, m.Value from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m",
+                CreateApplyProvider
+            ),
         ];
     }
 
     private static ISchemaProvider CreateApplyProvider()
     {
-        return new ApplyCandidateSchemaProvider(
-        [
-            new ApplyCandidateEntity { Name = "left", Line = "INFO ready", Numbers = [1, 2] },
-            new ApplyCandidateEntity { Name = "right", Line = "WARN retry", Numbers = [3] }
+        return new ApplyCandidateSchemaProvider([
+            new ApplyCandidateEntity
+            {
+                Name = "left",
+                Line = "INFO ready",
+                Numbers = [1, 2],
+            },
+            new ApplyCandidateEntity
+            {
+                Name = "right",
+                Line = "WARN retry",
+                Numbers = [3],
+            },
         ]);
     }
 
@@ -271,8 +374,11 @@ public sealed class RequiredAliasEndToEndTests
         Assert.AreEqual(sourceEnd, diagnostic.Location.Offset);
         Assert.AreEqual(sourceEnd, diagnostic.EndLocation.Offset);
         Assert.AreEqual(0, diagnostic.Span.Length);
-        Assert.IsFalse(materialized.Any(static item =>
-            item.Code is DiagnosticCode.MQ2001_UnexpectedToken or DiagnosticCode.MQ2030_UnsupportedSyntax));
+        Assert.IsFalse(
+            materialized.Any(static item =>
+                item.Code is DiagnosticCode.MQ2001_UnexpectedToken or DiagnosticCode.MQ2030_UnsupportedSyntax
+            )
+        );
     }
 
     private static void AssertEquivalent(Diagnostic expected, Diagnostic actual)
@@ -292,10 +398,7 @@ public sealed class RequiredAliasEndToEndTests
         return $"{query}{Environment.NewLine}{string.Join(Environment.NewLine, diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()))}";
     }
 
-    private sealed record ValidAliasCase(
-        string Name,
-        string Query,
-        Func<ISchemaProvider> ProviderFactory);
+    private sealed record ValidAliasCase(string Name, string Query, Func<ISchemaProvider> ProviderFactory);
 
     private sealed class CountingSchemaProvider : ISchemaProvider
     {

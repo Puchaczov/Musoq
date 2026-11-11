@@ -21,7 +21,8 @@ internal static class GeneratedRowTableShapes
                 case ExecutionMaterializeRecordListToTable materialize:
                     result[materialize.Target.Name] = materialize.RowShape;
                     break;
-                case ExecutionDistinctTable distinct when result.TryGetValue(distinct.Source.Name, out var distinctShape):
+                case ExecutionDistinctTable distinct
+                    when result.TryGetValue(distinct.Source.Name, out var distinctShape):
                     result[distinct.Target.Name] = distinctShape;
                     break;
                 case ExecutionSortTable sort when result.TryGetValue(sort.Source.Name, out var sortShape):
@@ -30,7 +31,8 @@ internal static class GeneratedRowTableShapes
                 case ExecutionTopNTable topN when result.TryGetValue(topN.Source.Name, out var topNShape):
                     result[topN.Target.Name] = topNShape;
                     break;
-                case ExecutionTopOffsetTable topOffset when result.TryGetValue(topOffset.Source.Name, out var topOffsetShape):
+                case ExecutionTopOffsetTable topOffset
+                    when result.TryGetValue(topOffset.Source.Name, out var topOffsetShape):
                     result[topOffset.Target.Name] = topOffsetShape;
                     break;
                 case ExecutionSkipTable skip when result.TryGetValue(skip.Source.Name, out var skipShape):
@@ -42,7 +44,8 @@ internal static class GeneratedRowTableShapes
                 case ExecutionSliceTable slice when result.TryGetValue(slice.Source.Name, out var sliceShape):
                     result[slice.Target.Name] = sliceShape;
                     break;
-                case ExecutionSetOperation setOperation when result.TryGetValue(setOperation.Left.Name, out var setOperationShape):
+                case ExecutionSetOperation setOperation
+                    when result.TryGetValue(setOperation.Left.Name, out var setOperationShape):
                     result[setOperation.Target.Name] = setOperationShape;
                     break;
             }
@@ -50,5 +53,4 @@ internal static class GeneratedRowTableShapes
 
         return result;
     }
-
 }

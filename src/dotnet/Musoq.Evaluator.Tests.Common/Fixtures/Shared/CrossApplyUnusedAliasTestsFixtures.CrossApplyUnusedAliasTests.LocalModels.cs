@@ -1,4 +1,3 @@
-
 namespace Musoq.Evaluator.Tests;
 
 public partial class CrossApplyUnusedAliasTestsFixtures
@@ -42,5 +41,4 @@ public partial class CrossApplyUnusedAliasTestsFixtures
     {
         public int Value { get; set; }
     }
-
 }

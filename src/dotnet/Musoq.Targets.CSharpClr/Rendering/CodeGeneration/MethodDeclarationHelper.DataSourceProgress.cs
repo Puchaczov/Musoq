@@ -14,16 +14,17 @@ public static partial class MethodDeclarationHelper
     /// <returns>Event field declaration for DataSourceProgress</returns>
     public static EventFieldDeclarationSyntax CreateDataSourceProgressEvent()
     {
-        return SyntaxFactory.EventFieldDeclaration(
-                SyntaxFactory.VariableDeclaration(
-                        SyntaxFactory.IdentifierName(nameof(DataSourceEventHandler)))
+        return SyntaxFactory
+            .EventFieldDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.IdentifierName(nameof(DataSourceEventHandler)))
                     .WithVariables(
                         SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier("DataSourceProgress")))))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
+                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("DataSourceProgress"))
+                        )
+                    )
+            )
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
     }
 
     /// <summary>
@@ -37,45 +38,65 @@ public static partial class MethodDeclarationHelper
             SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.ConditionalAccessExpression(
                     SyntaxFactory.IdentifierName("DataSourceProgress"),
-                    SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberBindingExpression(
-                                SyntaxFactory.IdentifierName("Invoke")))
+                    SyntaxFactory
+                        .InvocationExpression(
+                            SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName("Invoke"))
+                        )
                         .WithArgumentList(
                             SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SeparatedList(
-                                [
+                                SyntaxFactory.SeparatedList([
                                     SyntaxFactory.Argument(SyntaxFactory.ThisExpression()),
-                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("e"))
-                                ]))))));
+                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("e")),
+                                ])
+                            )
+                        )
+                )
+            )
+        );
 
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                SyntaxFactory.Identifier("OnDataSourceProgress"))
+                SyntaxFactory.Identifier("OnDataSourceProgress")
+            )
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(
                 SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("sender"))
+                    SyntaxFactory.SeparatedList([
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("sender"))
                             .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))),
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("e"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(DataSourceEventArgs)))
-                    ])))
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("e"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(DataSourceEventArgs))),
+                    ])
+                )
+            )
             .WithBody(body);
     }
 
     private static AttributeListSyntax CreateAggressiveInliningAttribute()
     {
-        return SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(
-            SyntaxFactory.Attribute(SyntaxFactory.ParseName("System.Runtime.CompilerServices.MethodImpl"))
-                .WithArgumentList(SyntaxFactory.AttributeArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.AttributeArgument(SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.ParseName("System.Runtime.CompilerServices.MethodImplOptions"),
-                        SyntaxFactory.IdentifierName("AggressiveInlining"))))))));
+        return SyntaxFactory.AttributeList(
+            SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory
+                    .Attribute(SyntaxFactory.ParseName("System.Runtime.CompilerServices.MethodImpl"))
+                    .WithArgumentList(
+                        SyntaxFactory.AttributeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.AttributeArgument(
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.ParseName("System.Runtime.CompilerServices.MethodImplOptions"),
+                                        SyntaxFactory.IdentifierName("AggressiveInlining")
+                                    )
+                                )
+                            )
+                        )
+                    )
+            )
+        );
     }
 
     #endregion

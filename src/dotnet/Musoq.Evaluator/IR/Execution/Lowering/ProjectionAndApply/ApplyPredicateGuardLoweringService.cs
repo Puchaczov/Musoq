@@ -10,7 +10,8 @@ namespace Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 
 internal sealed record ApplyPredicateGuardLoweringResult(
     IReadOnlyList<ExecutionNode> GuardNodes,
-    IReadOnlyList<ApplyPredicateMovementPlan> LoweredPlans)
+    IReadOnlyList<ApplyPredicateMovementPlan> LoweredPlans
+)
 {
     public static ApplyPredicateGuardLoweringResult Empty { get; } = new([], []);
 }
@@ -19,7 +20,8 @@ internal static class ApplyPredicateGuardLoweringService
 {
     public static ApplyPredicateGuardLoweringResult Lower(
         IReadOnlyList<ApplyPredicateMovementPlan> plans,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         if (plans.Count == 0)
             return ApplyPredicateGuardLoweringResult.Empty;
@@ -31,14 +33,14 @@ internal static class ApplyPredicateGuardLoweringService
             try
             {
                 var condition = OuterApplyNullSubstitutionService.NormalizeBooleanOperand(
-                    ExecutionExpressionConverter.Convert(plan.Predicate, sourceLookup));
+                    ExecutionExpressionConverter.Convert(plan.Predicate, sourceLookup)
+                );
                 if (!condition.IsBuilt)
                     continue;
 
-                nodes.Add(new ExecutionContinueIf(new ExecutionUnary(
-                    UnaryOpKind.Not,
-                    condition.RequireValue(),
-                    typeof(bool))));
+                nodes.Add(
+                    new ExecutionContinueIf(new ExecutionUnary(UnaryOpKind.Not, condition.RequireValue(), typeof(bool)))
+                );
                 lowered.Add(plan);
             }
             catch (NotSupportedException)
@@ -52,7 +54,8 @@ internal static class ApplyPredicateGuardLoweringService
 
     public static PhysicalFilterNode? RemoveLoweredPredicates(
         PhysicalFilterNode? filter,
-        IReadOnlyList<ApplyPredicateMovementPlan> loweredPlans)
+        IReadOnlyList<ApplyPredicateMovementPlan> loweredPlans
+    )
     {
         if (filter == null || loweredPlans.Count == 0)
             return filter;
@@ -81,7 +84,8 @@ internal static class ApplyPredicateGuardLoweringService
 
     public static PhysicalNode RemoveLoweredPredicatesFromStatement(
         PhysicalNode statement,
-        IReadOnlyList<ApplyPredicateMovementPlan> loweredPlans)
+        IReadOnlyList<ApplyPredicateMovementPlan> loweredPlans
+    )
     {
         if (loweredPlans.Count == 0)
             return statement;
@@ -90,7 +94,7 @@ internal static class ApplyPredicateGuardLoweringService
         {
             return multiStatement with
             {
-                Statements = [RemoveLoweredPredicatesFromStatement(multiStatement.Statements[0], loweredPlans)]
+                Statements = [RemoveLoweredPredicatesFromStatement(multiStatement.Statements[0], loweredPlans)],
             };
         }
 
@@ -99,20 +103,17 @@ internal static class ApplyPredicateGuardLoweringService
 
     private static PhysicalNode RemoveLoweredFilters(
         PhysicalNode node,
-        IReadOnlyList<ApplyPredicateMovementPlan> loweredPlans)
+        IReadOnlyList<ApplyPredicateMovementPlan> loweredPlans
+    )
     {
         if (node is PhysicalFilterNode filter)
         {
             var input = RemoveLoweredFilters(filter.Input, loweredPlans);
-            var residual = RemoveLoweredPredicates(
-                new PhysicalFilterNode(filter.Predicate, input),
-                loweredPlans);
+            var residual = RemoveLoweredPredicates(new PhysicalFilterNode(filter.Predicate, input), loweredPlans);
             return residual ?? input;
         }
 
-        return PhysicalPlanRewriter.RewriteChildren(
-            node,
-            child => RemoveLoweredFilters(child, loweredPlans));
+        return PhysicalPlanRewriter.RewriteChildren(node, child => RemoveLoweredFilters(child, loweredPlans));
     }
 
     public static IReadOnlyList<string> CollectCteNames(PhysicalNode node)

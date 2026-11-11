@@ -23,5 +23,4 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
             metadataVisitor.SourceArgumentContext = previous;
         }
     }
-
 }

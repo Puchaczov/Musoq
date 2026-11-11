@@ -8,16 +8,15 @@ public sealed partial class JoinSemiAntiCrossJoinTests
     [TestMethod]
     public void CrossJoin_WhenFiltered_ShouldProduceCartesianRowsBeforeWhere()
     {
-        var query = @"
-select a.Name, b.Name
-from #A.entities() a
-cross join #B.entities() b
-where b.Id = 1";
+        var query = (
+            "\n"
+            + "select a.Name, b.Name\n"
+            + "from #A.entities() a\n"
+            + "cross join #B.entities() b\n"
+            + "where b.Id = 1"
+        );
         var table = RunJoinQuery(query);
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", "B1"],
@@ -25,7 +24,8 @@ where b.Id = 1";
             ["A2", "B1"],
             ["A2", "B1Duplicate"],
             ["A3", "B1"],
-            ["A3", "B1Duplicate"]);
+            ["A3", "B1Duplicate"]
+        );
     }
 
     [TestMethod]
@@ -33,8 +33,10 @@ where b.Id = 1";
     {
         var sources = CreateJoinSources([]);
         var table = CreateAndRunVirtualMachine<BasicEntity>(
-            "select a.Name from #A.entities() a cross join #B.entities() b",
-            sources).Run(TokenSource.Token);
+                "select a.Name from #A.entities() a cross join #B.entities() b",
+                sources
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
@@ -43,22 +45,26 @@ where b.Id = 1";
     [TestMethod]
     public void CrossJoin_WhenFollowedByInnerJoin_ShouldPreserveAliasesAndRows()
     {
-        var query = @"
-select a.Name, b.Name, c.Name
-from #A.entities() a
-cross join #B.entities() b
-join #C.entities() c on b.Id = c.Id
-where a.Id = 1";
+        var query = (
+            "\n"
+            + "select a.Name, b.Name, c.Name\n"
+            + "from #A.entities() a\n"
+            + "cross join #B.entities() b\n"
+            + "join #C.entities() c on b.Id = c.Id\n"
+            + "where a.Id = 1"
+        );
         var table = CreateAndRunVirtualMachine<BasicEntity>(query, CreateThreeWayJoinSources()).Run(TokenSource.Token);
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
             ("Name", typeof(string)),
-            ("Name", typeof(string)));
+            ("Name", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A1", "B1", "C1"],
             ["A1", "B1Duplicate", "C1"],
-            ["A1", "B3", "C3"]);
+            ["A1", "B3", "C3"]
+        );
     }
 }

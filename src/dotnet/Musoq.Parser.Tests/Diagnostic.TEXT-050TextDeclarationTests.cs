@@ -17,7 +17,8 @@ public sealed class DiagnosticText050TextDeclarationTests : SchemaParserTestsBas
             schema,
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
             SpanOf(schema, @"'(?<word>[a-z]+)\k<word>'"),
-            () => ParseTextSchema(schema));
+            () => ParseTextSchema(schema)
+        );
     }
 
     [TestMethod]
@@ -29,7 +30,8 @@ public sealed class DiagnosticText050TextDeclarationTests : SchemaParserTestsBas
             schema,
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
             SpanOf(schema, "'(?<word>[a-z]+'"),
-            () => ParseTextSchema(schema));
+            () => ParseTextSchema(schema)
+        );
     }
 
     [TestMethod]
@@ -41,14 +43,16 @@ public sealed class DiagnosticText050TextDeclarationTests : SchemaParserTestsBas
             schema,
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
             SpanOf(schema, "'(?<word>[a-z]+)'"),
-            () => ParseTextSchema(schema));
+            () => ParseTextSchema(schema)
+        );
     }
 
     private static void AssertExactSchemaDiagnostic(
         string schema,
         DiagnosticCode expectedCode,
         TextSpan expectedSpan,
-        Action parse)
+        Action parse
+    )
     {
         var exception = Assert.ThrowsExactly<SyntaxException>(parse);
 

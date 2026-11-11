@@ -3,15 +3,18 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
-using static Musoq.Evaluator.Visitors.SqlFunctionCallBinding;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
+using static Musoq.Evaluator.Visitors.SqlFunctionCallBinding;
 
 namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private static (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(AccessMethodNode node, ArgsListNode args,
-        MethodResolutionContext context)
+    private static (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(
+        AccessMethodNode node,
+        ArgsListNode args,
+        MethodResolutionContext context
+    )
     {
         var argTypes = GetArgumentTypes(args);
 
@@ -19,7 +22,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (node.IsDistinct)
         {
             var distinctMethodName = $"{node.Name}Distinct";
-            if (TryResolveAggregateDeclarationMethod(distinctMethodName, argTypes, args, context, out var distinctDeclaration))
+            if (
+                TryResolveAggregateDeclarationMethod(
+                    distinctMethodName,
+                    argTypes,
+                    args,
+                    context,
+                    out var distinctDeclaration
+                )
+            )
                 return (RequireCallableDeclaration(node, distinctDeclaration), false);
 
             throw CallableResolutionDiagnostics.CreateException(
@@ -28,7 +39,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 argTypes,
                 context.EntityType,
                 node.SpanOrEmpty(),
-                args.Args);
+                args.Args
+            );
         }
 
         if (TryResolveAggregateDeclarationMethod(methodName, argTypes, args, context, out var declaration))
@@ -39,7 +51,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (method.GetCustomAttribute<AggregateFunctionAttribute>() is not null)
                 throw new CannotResolveMethodException(
                     $"Aggregate method {methodName} must declare a typed AggregateFunctionAttribute and a valid non-negative literal parent depth.",
-                    node.SpanOrEmpty());
+                    node.SpanOrEmpty()
+                );
 
             return (RequireCallableDeclaration(node, method), false);
         }
@@ -49,10 +62,11 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (IsInterpretOrParseFunction(methodName))
             throw new CannotResolveMethodException(
-                $"'{methodName}' can only be used inside CROSS APPLY or OUTER APPLY, not in SELECT or WHERE. " +
-                $"Example: ... CROSS APPLY {methodName}<SchemaName>(source) alias",
+                $"'{methodName}' can only be used inside CROSS APPLY or OUTER APPLY, not in SELECT or WHERE. "
+                    + $"Example: ... CROSS APPLY {methodName}<SchemaName>(source) alias",
                 DiagnosticCode.MQ3033_InterpretFunctionOutsideApply,
-                node.Span);
+                node.Span
+            );
 
         throw CallableResolutionDiagnostics.CreateException(
             context.SchemaTablePair.Schema,
@@ -60,7 +74,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             argTypes,
             context.EntityType,
             node.SpanOrEmpty(),
-            args.Args);
+            args.Args
+        );
     }
-
 }

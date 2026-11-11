@@ -7,13 +7,13 @@ namespace Musoq.Targets.Abstractions;
 public sealed record ExecutionPortableTypeDescriptor(
     ExecutionPortableTypeKind Kind,
     string StableName,
-    string DisplayName)
+    string DisplayName
+)
 {
     private IReadOnlyList<ExecutionPortableTypeDescriptor> _arguments = [];
     private IReadOnlyList<ExecutionPortableRowFieldDescriptor> _fields = [];
 
-    public ExecutionPortableSymbolPortability Portability { get; init; } =
-        ExecutionPortableSymbolPortability.ClrOnly;
+    public ExecutionPortableSymbolPortability Portability { get; init; } = ExecutionPortableSymbolPortability.ClrOnly;
 
     public string PortabilityReason { get; init; } = "No portable catalog entry.";
 

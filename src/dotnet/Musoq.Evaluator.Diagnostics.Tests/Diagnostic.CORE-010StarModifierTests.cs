@@ -16,20 +16,22 @@ public sealed partial class DiagnosticCore010StarModifierTests : BasicEntityTest
     public void FullModifierChain_ShouldApplyInOrderAndPreserveReplacementPosition()
     {
         const string query =
-            "select * like '%o%' exclude (country) replace (Population * 3 as population) " +
-            "rename (population as Population3x) from #A.Entities()";
+            "select * like '%o%' exclude (country) replace (Population * 3 as population) "
+            + "rename (population as Population3x) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
-                [new BasicEntity
-                {
-                    Country = "UK",
-                    Population = 100m,
-                    Money = 25m,
-                    Month = "january"
-                }]
-            }
+                [
+                    new BasicEntity
+                    {
+                        Country = "UK",
+                        Population = 100m,
+                        Money = 25m,
+                        Month = "january",
+                    },
+                ]
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
@@ -38,7 +40,8 @@ public sealed partial class DiagnosticCore010StarModifierTests : BasicEntityTest
             table,
             ("Population3x", typeof(decimal)),
             ("Money", typeof(decimal)),
-            ("Month", typeof(string)));
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [300m, 25m, "january"]);
     }
 
@@ -46,18 +49,18 @@ public sealed partial class DiagnosticCore010StarModifierTests : BasicEntityTest
     public void QualifiedStar_ShouldMatchReplaceAndRenameTargetsCaseInsensitively()
     {
         const string query =
-            "select a.* replace (Population * 2 as population) rename (population as POP) " +
-            "from #A.Entities() a";
+            "select a.* replace (Population * 2 as population) rename (population as POP) " + "from #A.Entities() a";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Population = 100m }] }
+            { "#A", [new BasicEntity { Population = 100m }] },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
 
         CollectionAssert.AreEqual(
             new[] { "Name", "City", "Country", "POP", "Money", "Month", "Time", "Id", "NullableValue" },
-            table.Columns.Select(static column => column.ColumnName).ToArray());
+            table.Columns.Select(static column => column.ColumnName).ToArray()
+        );
         Assert.AreEqual(200m, table[0].ReadValues()[3]);
     }
 
@@ -65,10 +68,7 @@ public sealed partial class DiagnosticCore010StarModifierTests : BasicEntityTest
     public void NotLike_ShouldUseCaseInsensitiveSqlPatternMatching()
     {
         const string query = "select a.* not like '%ID' from #A.Entities() a";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity { Id = 42 }] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity { Id = 42 }] } };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
 
@@ -80,18 +80,11 @@ public sealed partial class DiagnosticCore010StarModifierTests : BasicEntityTest
     public void RenameCollision_ShouldExposeStructuredBindDiagnosticWithGuidance()
     {
         const string query = "select * rename (Name as City) from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("january", 50m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertSingleError(
-            exception,
-            DiagnosticCode.MQ3069_StarRenameDuplicateTarget,
-            DiagnosticPhase.Bind,
-            "City");
+        AssertSingleError(exception, DiagnosticCode.MQ3069_StarRenameDuplicateTarget, DiagnosticPhase.Bind, "City");
         AssertHasGuidance(exception);
         Assert.AreEqual(DiagnosticSourceKind.Query, exception.PrimaryEnvelope.SourceKind);
         Assert.IsTrue(exception.PrimaryEnvelope.Offset.HasValue);

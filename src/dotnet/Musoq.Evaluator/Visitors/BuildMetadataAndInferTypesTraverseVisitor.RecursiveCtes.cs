@@ -23,9 +23,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         RestoreScope();
     }
 
-    private void TraverseRecursiveCteDefinition(
-        CteInnerExpressionNode node,
-        RecursiveCteShapeDescriptor descriptor)
+    private void TraverseRecursiveCteDefinition(CteInnerExpressionNode node, RecursiveCteShapeDescriptor descriptor)
     {
         if (Visitor is not BuildMetadataAndInferTypesVisitor metadataVisitor)
             throw new InvalidOperationException("Recursive CTE binding requires the metadata inference visitor.");

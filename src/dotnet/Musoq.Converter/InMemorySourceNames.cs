@@ -8,9 +8,7 @@ internal static class InMemorySourceNames
             throw new ArgumentException("Schema name cannot be null or whitespace.", nameof(schemaName));
 
         var normalized = schemaName.Trim();
-        return normalized.StartsWith("#", StringComparison.Ordinal)
-            ? normalized[1..]
-            : normalized;
+        return normalized.StartsWith("#", StringComparison.Ordinal) ? normalized[1..] : normalized;
     }
 
     public static string NormalizeSourceName(string sourceName)
@@ -19,9 +17,7 @@ internal static class InMemorySourceNames
             throw new ArgumentException("Source name cannot be null or whitespace.", nameof(sourceName));
 
         var normalized = sourceName.Trim();
-        return normalized.EndsWith("()", StringComparison.Ordinal)
-            ? normalized[..^2]
-            : normalized;
+        return normalized.EndsWith("()", StringComparison.Ordinal) ? normalized[..^2] : normalized;
     }
 
     public static string CreateKey(string schemaName, string sourceName)

@@ -30,7 +30,8 @@ internal static class TargetArtifactPackageManifestSerializer
             Append(
                 builder,
                 $"source:{Encode(file.Path)}",
-                $"language={Encode(file.Language)};sha256={Hash(Encoding.UTF8.GetBytes(file.Content))}");
+                $"language={Encode(file.Language)};sha256={Hash(Encoding.UTF8.GetBytes(file.Content))}"
+            );
         }
 
         foreach (var blob in package.BinaryBlobs.OrderBy(static blob => blob.Name, StringComparer.Ordinal))
@@ -38,20 +39,22 @@ internal static class TargetArtifactPackageManifestSerializer
             Append(
                 builder,
                 $"blob:{Encode(blob.Name)}",
-                $"content-type={Encode(blob.ContentType)};sha256={Hash(blob.Content)}");
+                $"content-type={Encode(blob.ContentType)};sha256={Hash(blob.Content)}"
+            );
         }
 
-        foreach (var entrypoint in package.Entrypoints
-                     .OrderBy(static entrypoint => entrypoint.Name, StringComparer.Ordinal))
+        foreach (
+            var entrypoint in package.Entrypoints.OrderBy(static entrypoint => entrypoint.Name, StringComparer.Ordinal)
+        )
         {
             Append(
                 builder,
                 $"entrypoint:{Encode(entrypoint.Name)}",
-                $"kind={entrypoint.Kind};symbol={Encode(entrypoint.SymbolName)}");
+                $"kind={entrypoint.Kind};symbol={Encode(entrypoint.SymbolName)}"
+            );
         }
 
-        foreach (var service in package.RuntimeServices.Fulfillments
-                     .OrderBy(static pair => pair.Key))
+        foreach (var service in package.RuntimeServices.Fulfillments.OrderBy(static pair => pair.Key))
         {
             Append(builder, $"runtime-service:{service.Key}", service.Value.ToString());
         }
@@ -60,17 +63,20 @@ internal static class TargetArtifactPackageManifestSerializer
         {
             var attributes = string.Join(
                 ",",
-                import.Attributes
-                    .OrderBy(static pair => pair.Key, StringComparer.Ordinal)
-                    .Select(static pair => $"{Encode(pair.Key)}={Encode(pair.Value)}"));
+                import
+                    .Attributes.OrderBy(static pair => pair.Key, StringComparer.Ordinal)
+                    .Select(static pair => $"{Encode(pair.Key)}={Encode(pair.Value)}")
+            );
             Append(
                 builder,
                 $"abi:{import.Kind}:{Encode(import.Name)}",
-                $"contract={Encode(import.Contract)};version={import.ContractVersion.ToString(CultureInfo.InvariantCulture)};attributes={attributes}");
+                $"contract={Encode(import.Contract)};version={import.ContractVersion.ToString(CultureInfo.InvariantCulture)};attributes={attributes}"
+            );
             Append(
                 builder,
                 $"abi-definition:{import.Kind}:{Encode(import.Name)}",
-                Hash(Encoding.UTF8.GetBytes(import.CanonicalDefinition)));
+                Hash(Encoding.UTF8.GetBytes(import.CanonicalDefinition))
+            );
         }
 
         return builder.ToString();
@@ -81,9 +87,7 @@ internal static class TargetArtifactPackageManifestSerializer
         builder.Append(key).Append('=').AppendLine(Convert.ToString(value, CultureInfo.InvariantCulture));
     }
 
-    private static string Encode(string value) =>
-        Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+    private static string Encode(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
 
-    private static string Hash(byte[] content) =>
-        Convert.ToHexString(SHA256.HashData(content));
+    private static string Hash(byte[] content) => Convert.ToHexString(SHA256.HashData(content));
 }

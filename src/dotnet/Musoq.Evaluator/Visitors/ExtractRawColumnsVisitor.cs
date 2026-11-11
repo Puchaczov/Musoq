@@ -37,9 +37,8 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
 
             _cachedColumns = _columns.ToDictionary(
                 f => f.Key,
-                f => _completeSchemaColumnKeys.Contains(f.Key)
-                    ? []
-                    : f.Value.Distinct().ToArray());
+                f => _completeSchemaColumnKeys.Contains(f.Key) ? [] : f.Value.Distinct().ToArray()
+            );
             _columnsCacheValid = true;
             return _cachedColumns;
         }
@@ -72,13 +71,15 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
     public override void Visit(SchemaFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var alias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        var alias = AliasGenerator.CreateAliasIfEmpty(
+            node.Alias,
+            _generatedAliases,
+            _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        );
         _queryAlias = alias + _schemaFromKey;
 
         if (_columns.ContainsKey(_queryAlias))
-            throw new AliasAlreadyUsedException(
-                node,
-                string.IsNullOrWhiteSpace(node.Alias) ? _queryAlias : node.Alias);
+            throw new AliasAlreadyUsedException(node, string.IsNullOrWhiteSpace(node.Alias) ? _queryAlias : node.Alias);
 
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
@@ -88,7 +89,11 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
     public override void Visit(AliasedFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var alias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        var alias = AliasGenerator.CreateAliasIfEmpty(
+            node.Alias,
+            _generatedAliases,
+            _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        );
         _queryAlias = alias + _schemaFromKey;
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
@@ -98,7 +103,11 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
     public override void Visit(ValuesFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var alias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        var alias = AliasGenerator.CreateAliasIfEmpty(
+            node.Alias,
+            _generatedAliases,
+            _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        );
         _queryAlias = alias + _schemaFromKey;
 
         if (_columns.ContainsKey(_queryAlias))
@@ -190,13 +199,9 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
         InvalidateColumnsCache();
     }
 
-    public void SetScope(Scope scope)
-    {
-    }
+    public void SetScope(Scope scope) { }
 
-    public void SetQueryPart(QueryPart part)
-    {
-    }
+    public void SetQueryPart(QueryPart part) { }
 
     public void QueryBegins()
     {
@@ -211,29 +216,19 @@ public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExp
             return;
 
         _queryScopes.Pop();
-        _queryAlias = _queryScopes.Count == 0
-            ? string.Empty
-            : _queryScopes.Peek().QueryAlias;
+        _queryAlias = _queryScopes.Count == 0 ? string.Empty : _queryScopes.Peek().QueryAlias;
     }
 
-    public void SetTheMostInnerIdentifierOfDotNode(IdentifierNode? node)
-    {
-    }
+    public void SetTheMostInnerIdentifierOfDotNode(IdentifierNode? node) { }
 
-    public void InnerCteBegins()
-    {
-    }
+    public void InnerCteBegins() { }
 
-    public void InnerCteEnds()
-    {
-    }
+    public void InnerCteEnds() { }
 
     public bool IsCurrentContextColumn(string name)
     {
         return false;
     }
 
-    public void SetOperatorLeftFinished()
-    {
-    }
+    public void SetOperatorLeftFinished() { }
 }

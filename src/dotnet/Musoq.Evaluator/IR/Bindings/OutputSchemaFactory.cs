@@ -17,7 +17,8 @@ internal static class OutputSchemaFactory
                 i,
                 intendedTypeName: ResolveIntendedTypeName(fields[i].Expression),
                 sourceReadType: fields[i].Expression.ReturnType,
-                enumType: fields[i].Expression.EnumType);
+                enumType: fields[i].Expression.EnumType
+            );
 
         return new OutputSchema(columns);
     }
@@ -26,9 +27,11 @@ internal static class OutputSchemaFactory
     {
         if (expression is ColumnRef column)
             return column.GeneratedTypeName;
-        if (expression is ArrayAccess array &&
-            ResolveIntendedTypeName(array.Array) is { } arrayType &&
-            arrayType.EndsWith("[]", StringComparison.Ordinal))
+        if (
+            expression is ArrayAccess array
+            && ResolveIntendedTypeName(array.Array) is { } arrayType
+            && arrayType.EndsWith("[]", StringComparison.Ordinal)
+        )
             return arrayType[..^2];
         return null;
     }
@@ -51,25 +54,27 @@ internal static class OutputSchemaFactory
             {
                 if (Nullable.GetUnderlyingType(rightColumn.Type) != leftColumn.Type)
                     continue;
-                columns ??= [..left.Columns];
+                columns ??= [.. left.Columns];
                 columns[i] = leftColumn with { Type = rightColumn.Type, SourceReadType = rightColumn.Type };
                 continue;
             }
 
-            columns ??= [..left.Columns];
+            columns ??= [.. left.Columns];
             var carrierType = EnumScalarTypeFacts.GetCarrierType(enumType.UnderlyingKind);
-            var type = IsNullableValueType(leftColumn.Type) || IsNullableValueType(rightColumn.Type)
-                ? MakeNullable(carrierType)
-                : carrierType;
+            var type =
+                IsNullableValueType(leftColumn.Type) || IsNullableValueType(rightColumn.Type)
+                    ? MakeNullable(carrierType)
+                    : carrierType;
             columns[i] = new ColumnSchema(
                 leftColumn.Name,
                 type,
                 leftColumn.Index,
                 intendedTypeName: leftColumn.IntendedTypeName,
                 sourceReadType: type,
-                enumType: enumType)
+                enumType: enumType
+            )
             {
-                Stability = leftColumn.Stability
+                Stability = leftColumn.Stability,
             };
         }
 
@@ -99,7 +104,8 @@ internal static class OutputSchemaFactory
         IReadOnlyList<Type> groupKeyTypes,
         IReadOnlyList<IrExpression> groupKeys,
         IReadOnlyList<AggregateBinding> bindings,
-        AggregateOutputName aggregateOutputName)
+        AggregateOutputName aggregateOutputName
+    )
     {
         var columns = new ColumnSchema[groupKeyNames.Count + bindings.Count];
         var index = 0;
@@ -113,11 +119,16 @@ internal static class OutputSchemaFactory
                 index++,
                 intendedTypeName: null,
                 sourceReadType: groupKeyTypes[i],
-                enumType: groupKey.EnumType);
+                enumType: groupKey.EnumType
+            );
         }
 
         foreach (var binding in bindings)
-            columns[index] = new ColumnSchema(GetAggregateColumnName(binding, aggregateOutputName), binding.ReturnType, index++);
+            columns[index] = new ColumnSchema(
+                GetAggregateColumnName(binding, aggregateOutputName),
+                binding.ReturnType,
+                index++
+            );
 
         return new OutputSchema(columns);
     }
@@ -127,7 +138,8 @@ internal static class OutputSchemaFactory
         Type groupKeyType,
         IrExpression groupKey,
         IReadOnlyList<AggregateBinding> bindings,
-        AggregateOutputName aggregateOutputName)
+        AggregateOutputName aggregateOutputName
+    )
     {
         var columns = new ColumnSchema[1 + bindings.Count];
         columns[0] = new ColumnSchema(
@@ -136,33 +148,42 @@ internal static class OutputSchemaFactory
             0,
             intendedTypeName: null,
             sourceReadType: groupKeyType,
-            enumType: groupKey.EnumType);
+            enumType: groupKey.EnumType
+        );
 
         for (var i = 0; i < bindings.Count; i++)
-            columns[i + 1] = new ColumnSchema(GetAggregateColumnName(bindings[i], aggregateOutputName), bindings[i].ReturnType, i + 1);
+            columns[i + 1] = new ColumnSchema(
+                GetAggregateColumnName(bindings[i], aggregateOutputName),
+                bindings[i].ReturnType,
+                i + 1
+            );
 
         return new OutputSchema(columns);
     }
 
     public static OutputSchema ForAggregateOnly(
         IReadOnlyList<AggregateBinding> bindings,
-        AggregateOutputName aggregateOutputName)
+        AggregateOutputName aggregateOutputName
+    )
     {
         var columns = new ColumnSchema[bindings.Count];
 
         for (var i = 0; i < bindings.Count; i++)
-            columns[i] = new ColumnSchema(GetAggregateColumnName(bindings[i], aggregateOutputName), bindings[i].ReturnType, i);
+            columns[i] = new ColumnSchema(
+                GetAggregateColumnName(bindings[i], aggregateOutputName),
+                bindings[i].ReturnType,
+                i
+            );
 
         return new OutputSchema(columns);
     }
 
     public static OutputSchema ForStatements<TNode>(
         IReadOnlyList<TNode> statements,
-        Func<TNode, OutputSchema> getOutputSchema)
+        Func<TNode, OutputSchema> getOutputSchema
+    )
     {
-        return statements.Count == 0
-            ? OutputSchema.Empty
-            : getOutputSchema(statements[^1]);
+        return statements.Count == 0 ? OutputSchema.Empty : getOutputSchema(statements[^1]);
     }
 
     private static string GetAggregateColumnName(AggregateBinding binding, AggregateOutputName aggregateOutputName)
@@ -171,7 +192,7 @@ internal static class OutputSchemaFactory
         {
             AggregateOutputName.ColumnName => binding.ColumnName,
             AggregateOutputName.Identifier => binding.Identifier,
-            _ => throw new ArgumentOutOfRangeException(nameof(aggregateOutputName), aggregateOutputName, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(aggregateOutputName), aggregateOutputName, null),
         };
     }
 
@@ -179,8 +200,6 @@ internal static class OutputSchemaFactory
 
     private static Type MakeNullable(Type type)
     {
-        return IsNullableValueType(type) || !type.IsValueType
-            ? type
-            : typeof(Nullable<>).MakeGenericType(type);
+        return IsNullableValueType(type) || !type.IsValueType ? type : typeof(Nullable<>).MakeGenericType(type);
     }
 }

@@ -26,20 +26,35 @@ public partial class CteDependencyGraphBuilderTests
         // c depends on a and b
         var cteCFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var cteCJoinCond = new BooleanNode(true);
-        var cteCValue =
-            new JoinInMemoryWithSourceTableFromNode("cteA", cteCFromB, cteCJoinCond, JoinType.Inner, typeof(object));
+        var cteCValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            cteCFromB,
+            cteCJoinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         // f depends on d and e
         var cteFFromE = new InMemoryTableFromNode("cteE", "e", typeof(object));
         var cteFJoinCond = new BooleanNode(true);
-        var cteFValue =
-            new JoinInMemoryWithSourceTableFromNode("cteD", cteFFromE, cteFJoinCond, JoinType.Inner, typeof(object));
+        var cteFValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteD",
+            cteFFromE,
+            cteFJoinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         // g depends on c and f
         var cteGFromF = new InMemoryTableFromNode("cteF", "f", typeof(object));
         var cteGJoinCond = new BooleanNode(true);
-        var cteGValue =
-            new JoinInMemoryWithSourceTableFromNode("cteC", cteGFromF, cteGJoinCond, JoinType.Inner, typeof(object));
+        var cteGValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteC",
+            cteGFromF,
+            cteGJoinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteA = new CteInnerExpressionNode(cteAValue, "cteA");
         var cteB = new CteInnerExpressionNode(cteBValue, "cteB");
@@ -99,8 +114,13 @@ public partial class CteDependencyGraphBuilderTests
         // d depends on b and c
         var cteDFromC = new InMemoryTableFromNode("cteC", "c", typeof(object));
         var cteDJoinCond = new BooleanNode(true);
-        var cteDValue =
-            new JoinInMemoryWithSourceTableFromNode("cteB", cteDFromC, cteDJoinCond, JoinType.Inner, typeof(object));
+        var cteDValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteB",
+            cteDFromC,
+            cteDJoinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteEValue = new InMemoryTableFromNode("cteD", "d", typeof(object));
         var cteFValue = new InMemoryTableFromNode("cteD", "d", typeof(object));
@@ -108,8 +128,13 @@ public partial class CteDependencyGraphBuilderTests
         // g depends on e and f
         var cteGFromF = new InMemoryTableFromNode("cteF", "f", typeof(object));
         var cteGJoinCond = new BooleanNode(true);
-        var cteGValue =
-            new JoinInMemoryWithSourceTableFromNode("cteE", cteGFromF, cteGJoinCond, JoinType.Inner, typeof(object));
+        var cteGValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteE",
+            cteGFromF,
+            cteGJoinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteA = new CteInnerExpressionNode(cteAValue, "cteA");
         var cteB = new CteInnerExpressionNode(cteBValue, "cteB");
@@ -239,8 +264,13 @@ public partial class CteDependencyGraphBuilderTests
         // c depends on a and b
         var cteCFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var cteCJoinCond = new BooleanNode(true);
-        var cteCValue =
-            new JoinInMemoryWithSourceTableFromNode("cteA", cteCFromB, cteCJoinCond, JoinType.Inner, typeof(object));
+        var cteCValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            cteCFromB,
+            cteCJoinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteA = new CteInnerExpressionNode(cteAValue, "cteA");
         var cteB = new CteInnerExpressionNode(cteBValue, "cteB");
@@ -250,8 +280,13 @@ public partial class CteDependencyGraphBuilderTests
         // Outer query: c JOIN d
         var outerFromD = new InMemoryTableFromNode("cteD", "d", typeof(object));
         var outerJoinCond = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteC", outerFromD, outerJoinCond, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteC",
+            outerFromD,
+            outerJoinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB, cteC, cteD], outerQuery);
 
@@ -300,14 +335,24 @@ public partial class CteDependencyGraphBuilderTests
         // Level 2 - enriched_orders depends on clean_orders and clean_customers
         var enrichedFromCustomers = new InMemoryTableFromNode("clean_customers", "cc", typeof(object));
         var enrichedJoinCond = new BooleanNode(true);
-        var enrichedOrdersValue = new JoinInMemoryWithSourceTableFromNode("clean_orders", enrichedFromCustomers,
-            enrichedJoinCond, JoinType.Inner, typeof(object));
+        var enrichedOrdersValue = new JoinInMemoryWithSourceTableFromNode(
+            "clean_orders",
+            enrichedFromCustomers,
+            enrichedJoinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         // Level 3 - order_summary depends on enriched_orders and clean_products
         var summaryFromProducts = new InMemoryTableFromNode("clean_products", "cp", typeof(object));
         var summaryJoinCond = new BooleanNode(true);
-        var orderSummaryValue = new JoinInMemoryWithSourceTableFromNode("enriched_orders", summaryFromProducts,
-            summaryJoinCond, JoinType.Inner, typeof(object));
+        var orderSummaryValue = new JoinInMemoryWithSourceTableFromNode(
+            "enriched_orders",
+            summaryFromProducts,
+            summaryJoinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var rawOrders = new CteInnerExpressionNode(rawOrdersValue, "raw_orders");
         var rawCustomers = new CteInnerExpressionNode(rawCustomersValue, "raw_customers");
@@ -319,11 +364,19 @@ public partial class CteDependencyGraphBuilderTests
         var orderSummary = new CteInnerExpressionNode(orderSummaryValue, "order_summary");
 
         var outerQuery = new InMemoryTableFromNode("order_summary", "os", typeof(object));
-        var cteExpression = new CteExpressionNode([
-            rawOrders, rawCustomers, rawProducts,
-            cleanOrders, cleanCustomers, cleanProducts,
-            enrichedOrders, orderSummary
-        ], outerQuery);
+        var cteExpression = new CteExpressionNode(
+            [
+                rawOrders,
+                rawCustomers,
+                rawProducts,
+                cleanOrders,
+                cleanCustomers,
+                cleanProducts,
+                enrichedOrders,
+                orderSummary,
+            ],
+            outerQuery
+        );
 
         var builder = new CteDependencyGraphBuilder();
 

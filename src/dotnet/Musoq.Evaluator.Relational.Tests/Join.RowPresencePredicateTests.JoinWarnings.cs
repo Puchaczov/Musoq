@@ -19,25 +19,38 @@ public partial class JoinRowPresencePredicateTests
     [TestProperty("Phase", "4")]
     public void Current_P4_0035_JoinOnWarningDoesNotRejectMissingRow()
     {
-        const string query = "with MissingSide as (\r\n    select leftRow.Name as Name, rightRow is missing as RightMissing\r\n    from #A.Entities(true, 'Mira', 'Gdansk') leftRow\r\n    left outer join #A.Entities(false, 'unused', 'unused') rightRow\r\n        on leftRow.Name = rightRow.Name or rightRow.Name like '*.log'\r\n)\r\nselect projected.Name as Name, projected.RightMissing as RightMissing\r\nfrom MissingSide projected";
+        const string query =
+            "with MissingSide as (\r\n    select leftRow.Name as Name, rightRow is missing as RightMissing\r\n    from #A.Entities(true, 'Mira', 'Gdansk') leftRow\r\n    left outer join #A.Entities(false, 'unused', 'unused') rightRow\r\n        on leftRow.Name = rightRow.Name or rightRow.Name like '*.log'\r\n)\r\nselect projected.Name as Name, projected.RightMissing as RightMissing\r\nfrom MissingSide projected";
         var provider = new SpecStressAliasedCoupledSchemaProvider();
-        var build = InstanceCreator.CompileWithDiagnostics(query, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+        var build = InstanceCreator.CompileWithDiagnostics(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var diagnosticCompiled = build.CompiledQuery;
         Assert.IsTrue(build.Succeeded);
         Assert.AreEqual(1, build.Warnings.Count(warning => warning.CodeString == "MQ5016"));
-        Assert.IsTrue(build.Warnings.Single(warning => warning.CodeString == "MQ5016" ).IsWarning);
+        Assert.IsTrue(build.Warnings.Single(warning => warning.CodeString == "MQ5016").IsWarning);
         Assert.AreEqual(0, build.Warnings.Count(warning => warning.CodeString == "MQ5019"));
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
-            new object?[] { "Mira", true });
+        TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { "Mira", true });
         Assert.IsNotNull(diagnosticCompiled);
         using var diagnosticResult = diagnosticCompiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("Name", typeof(string)), ("RightMissing", typeof(bool)));
-        TableMaterializationTestHelper.AssertColumns(diagnosticResult,
-            ("Name", typeof(string)), ("RightMissing", typeof(bool)));
-        TableMaterializationTestHelper.AssertRowsUnordered(diagnosticResult,
-            new object?[] { "Mira", true });
+        TableMaterializationTestHelper.AssertColumns(result, ("Name", typeof(string)), ("RightMissing", typeof(bool)));
+        TableMaterializationTestHelper.AssertColumns(
+            diagnosticResult,
+            ("Name", typeof(string)),
+            ("RightMissing", typeof(bool))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(diagnosticResult, new object?[] { "Mira", true });
     }
 }

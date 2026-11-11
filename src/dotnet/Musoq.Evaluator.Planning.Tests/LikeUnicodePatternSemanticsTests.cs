@@ -28,20 +28,24 @@ public sealed class LikeUnicodePatternSemanticsTests
             ("Σ", "ς"),
             ("Kelvin", "k%"),
             ("é", "e\u0301"),
-            ("\uD83D\uDE00-smile", "\uD83D\uDE00%")
+            ("\uD83D\uDE00-smile", "\uD83D\uDE00%"),
         };
 
-        RunUnderCulture(cultureName, () =>
-        {
-            var operators = new Operators();
-            foreach (var (input, pattern) in cases)
+        RunUnderCulture(
+            cultureName,
+            () =>
             {
-                Assert.AreEqual(
-                    FreshHistoricalLike(input, pattern),
-                    operators.Like(input, pattern),
-                    $"Input '{Display(input)}', pattern '{Display(pattern)}', culture '{cultureName}'.");
+                var operators = new Operators();
+                foreach (var (input, pattern) in cases)
+                {
+                    Assert.AreEqual(
+                        FreshHistoricalLike(input, pattern),
+                        operators.Like(input, pattern),
+                        $"Input '{Display(input)}', pattern '{Display(pattern)}', culture '{cultureName}'."
+                    );
+                }
             }
-        });
+        );
     }
 
     [TestMethod]
@@ -51,37 +55,44 @@ public sealed class LikeUnicodePatternSemanticsTests
     [DataRow("tr-TR")]
     public void GeneratedUnicodePatternCorpus_ShouldMatchFreshHistoricalRegex(string cultureName)
     {
-        RunUnderCulture(cultureName, () =>
-        {
-            var operators = new Operators();
-            var random = new Random(cultureName switch
+        RunUnderCulture(
+            cultureName,
+            () =>
             {
-                "" => 0x51A7,
-                "en-US" => 0x51A8,
-                "pl-PL" => 0x51A9,
-                "tr-TR" => 0x51AA,
-                _ => throw new AssertFailedException($"Unexpected culture '{cultureName}'.")
-            });
-            for (var sample = 0; sample < 256; sample++)
-            {
-                var literal = CreateUnicodeLiteral(random, sample);
-                var pattern = (sample % 4) switch
+                var operators = new Operators();
+                var random = new Random(
+                    cultureName switch
+                    {
+                        "" => 0x51A7,
+                        "en-US" => 0x51A8,
+                        "pl-PL" => 0x51A9,
+                        "tr-TR" => 0x51AA,
+                        _ => throw new AssertFailedException($"Unexpected culture '{cultureName}'."),
+                    }
+                );
+                for (var sample = 0; sample < 256; sample++)
                 {
-                    0 => literal,
-                    1 => string.Concat(literal, "%"),
-                    2 => string.Concat("%", literal),
-                    _ => string.Concat("%", literal, "%")
-                };
-                var input = sample % 3 == 0
-                    ? string.Concat("head-", literal, "-tail")
-                    : CreateUnicodeLiteral(random, sample + 1_000);
+                    var literal = CreateUnicodeLiteral(random, sample);
+                    var pattern = (sample % 4) switch
+                    {
+                        0 => literal,
+                        1 => string.Concat(literal, "%"),
+                        2 => string.Concat("%", literal),
+                        _ => string.Concat("%", literal, "%"),
+                    };
+                    var input =
+                        sample % 3 == 0
+                            ? string.Concat("head-", literal, "-tail")
+                            : CreateUnicodeLiteral(random, sample + 1_000);
 
-                Assert.AreEqual(
-                    FreshHistoricalLike(input, pattern),
-                    operators.Like(input, pattern),
-                    $"Sample {sample}, input '{Display(input)}', pattern '{Display(pattern)}', culture '{cultureName}'.");
+                    Assert.AreEqual(
+                        FreshHistoricalLike(input, pattern),
+                        operators.Like(input, pattern),
+                        $"Sample {sample}, input '{Display(input)}', pattern '{Display(pattern)}', culture '{cultureName}'."
+                    );
+                }
             }
-        });
+        );
     }
 
     [TestMethod]
@@ -109,16 +120,15 @@ public sealed class LikeUnicodePatternSemanticsTests
 
     private static bool FreshHistoricalLike(string input, string pattern)
     {
-        var escaped = Regex.Escape(pattern)
+        var escaped = Regex
+            .Escape(pattern)
             .Replace("_", ".", StringComparison.Ordinal)
             .Replace("%", ".*", StringComparison.Ordinal);
         var regex = new Regex(
             string.Concat(@"\A", escaped, @"\z"),
-            RegexOptions.Singleline |
-            RegexOptions.IgnoreCase |
-            RegexOptions.Compiled |
-            RegexOptions.NonBacktracking,
-            TimeSpan.FromSeconds(5));
+            RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.NonBacktracking,
+            TimeSpan.FromSeconds(5)
+        );
         return regex.IsMatch(input);
     }
 

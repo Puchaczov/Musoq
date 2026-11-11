@@ -7,5 +7,5 @@ public enum SourceRuntimeSettingPhase
     Metadata = 1,
     Planning = 2,
     Execution = 4,
-    All = Metadata | Planning | Execution
+    All = Metadata | Planning | Execution,
 }

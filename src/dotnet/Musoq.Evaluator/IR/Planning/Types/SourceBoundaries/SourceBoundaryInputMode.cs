@@ -4,5 +4,5 @@ internal enum SourceBoundaryInputMode
 {
     Independent,
     Correlated,
-    Unknown
+    Unknown,
 }

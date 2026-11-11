@@ -17,15 +17,25 @@ public sealed partial class LibraryFunctionCatalogQueryTests : GenericEntityTest
     {
         const string query = "desc functions #schema";
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var signatures = result.Select(static row => (string)row.ReadValue(0)).ToArray();
 
-        Assert.IsTrue(signatures.Any(static signature => signature.Contains("RowNumber(") && signature.Contains("OVER (...)")));
+        Assert.IsTrue(
+            signatures.Any(static signature => signature.Contains("RowNumber(") && signature.Contains("OVER (...)"))
+        );
         Assert.IsTrue(signatures.Any(static signature => signature.Contains("PositiveTotal(")));
-        var implementationSignatures = signatures.Where(static signature => signature.Contains("__ScalarSubquery") ||
-            signature.Contains("__CorrelatedScalar") || signature.Contains("WindowRowNumber") ||
-            signature.Contains("IWindowFunction") || signature.Contains("Kernel")).ToArray();
+        var implementationSignatures = signatures
+            .Where(static signature =>
+                signature.Contains("__ScalarSubquery")
+                || signature.Contains("__CorrelatedScalar")
+                || signature.Contains("WindowRowNumber")
+                || signature.Contains("IWindowFunction")
+                || signature.Contains("Kernel")
+            )
+            .ToArray();
         Assert.IsEmpty(implementationSignatures, string.Join("; ", implementationSignatures));
     }
 
@@ -35,7 +45,11 @@ public sealed partial class LibraryFunctionCatalogQueryTests : GenericEntityTest
         const string query = "select CompilerValue() from #schema.first()";
 
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<LibraryExecutionEntity, CatalogLibrary>(query, LibraryExecutionFixture.CreateRows()));
+            CreateAndRunVirtualMachine<LibraryExecutionEntity, CatalogLibrary>(
+                query,
+                LibraryExecutionFixture.CreateRows()
+            )
+        );
 
         Assert.Contains("cannot be called from user SQL", error.ToString());
     }
@@ -45,7 +59,9 @@ public sealed partial class LibraryFunctionCatalogQueryTests : GenericEntityTest
     {
         const string query = "select InvoiceTotal(Amount, 2) as Total from #schema.first()";
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, CatalogLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(result, ("Total", typeof(decimal?)));
@@ -58,7 +74,11 @@ public sealed partial class LibraryFunctionCatalogQueryTests : GenericEntityTest
         const string query = "select Calculate(Amount, 2) from #schema.first()";
 
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<LibraryExecutionEntity, CatalogLibrary>(query, LibraryExecutionFixture.CreateRows()));
+            CreateAndRunVirtualMachine<LibraryExecutionEntity, CatalogLibrary>(
+                query,
+                LibraryExecutionFixture.CreateRows()
+            )
+        );
 
         Assert.Contains("cannot be called from user SQL", error.ToString());
     }
@@ -68,7 +88,9 @@ public sealed partial class LibraryFunctionCatalogQueryTests : GenericEntityTest
     {
         const string query = "select Both(Amount) as Total from #schema.first()";
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, CatalogLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(result, ("Total", typeof(decimal?)));
@@ -80,7 +102,9 @@ public sealed partial class LibraryFunctionCatalogQueryTests : GenericEntityTest
     {
         const string query = "select Prefix(Partition) as Value from #schema.first() where Position = 1";
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, DescendantLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(result, ("Value", typeof(string)));
@@ -90,19 +114,20 @@ public sealed partial class LibraryFunctionCatalogQueryTests : GenericEntityTest
     [TestMethod]
     public void CorrelatedAggregate_WhenCompilerHelpersAreHidden_ShouldStillExecutePerSourceRow()
     {
-        const string query = """
-            select a.Position,
-                   (select Sum(b.Amount) from #schema.first() b
-                    where b.Partition = a.Partition) as Total
-            from #schema.first() a order by a.Position
-            """;
+        const string query = (
+            "select a.Position,\n"
+            + "       (select Sum(b.Amount) from #schema.first() b\n"
+            + "        where b.Partition = a.Partition) as Total\n"
+            + "from #schema.first() a order by a.Position"
+        );
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)), ("Total", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(result,
-            [1, 4m], [2, 4m], [3, 4m], [4, 2m], [5, 2m]);
+        TableMaterializationTestHelper.AssertRowsInOrder(result, [1, 4m], [2, 4m], [3, 4m], [4, 2m], [5, 2m]);
     }
 
     [TestMethod]
@@ -120,14 +145,15 @@ public sealed partial class LibraryFunctionCatalogQueryTests : GenericEntityTest
     [TestMethod]
     public void PublicDecimalConversion_WhenUsedInFilterAndProjection_ShouldProduceNullableDecimals()
     {
-        const string query = "select Id, ToDecimal(Amount) as Converted from #schema.first() " +
-                             "where ToDecimal(Amount) > 100.50d order by Id";
+        const string query =
+            "select Id, ToDecimal(Amount) as Converted from #schema.first() "
+            + "where ToDecimal(Amount) > 100.50d order by Id";
         RuntimeV2RegressionEntity[] rows =
         [
             new() { Id = 1, Amount = 101d },
             new() { Id = 2, Amount = 100 },
             new() { Id = 3, Amount = null },
-            new() { Id = 4, Amount = 102d }
+            new() { Id = 4, Amount = 102d },
         ];
         using var compiled = CreateAndRunVirtualMachine<RuntimeV2RegressionEntity, LibraryBase>(query, rows);
         using var result = compiled.Run(TestContext.CancellationToken);
@@ -145,8 +171,10 @@ public sealed partial class LibraryFunctionCatalogQueryTests : GenericEntityTest
         public decimal? Calculate(decimal? value, int factor) => AggregateFunction.NotInvoked<decimal?>();
 
         [AggregateFunction(typeof(LibraryExecutionLibrary.PositiveTotalKernel))]
-        [WindowFunction(KernelType = typeof(LibraryExecutionLibrary.PositiveTotalKernel),
-            Modes = WindowEvaluationModes.Running)]
+        [WindowFunction(
+            KernelType = typeof(LibraryExecutionLibrary.PositiveTotalKernel),
+            Modes = WindowEvaluationModes.Running
+        )]
         public decimal? Both(decimal? value) => AggregateFunction.NotInvoked<decimal?>();
     }
 

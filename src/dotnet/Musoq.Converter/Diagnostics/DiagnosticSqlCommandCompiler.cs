@@ -16,7 +16,8 @@ internal static class DiagnosticSqlCommandCompiler
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions,
         CancellationToken cancellationToken,
-        out BuildResult? result)
+        out BuildResult? result
+    )
     {
         result = null;
         cancellationToken.ThrowIfCancellationRequested();
@@ -43,7 +44,8 @@ internal static class DiagnosticSqlCommandCompiler
             loggerResolver,
             innerOptions,
             requireExecutionPlan: command.Kind == DiagnosticSqlCommandKind.ExplainAnalyze,
-            cancellationToken);
+            cancellationToken
+        );
 
         if (!innerBuild.Succeeded)
         {
@@ -52,29 +54,28 @@ internal static class DiagnosticSqlCommandCompiler
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        var operatorCatalog = command.Kind == DiagnosticSqlCommandKind.ExplainAnalyze
-            ? CreateOperatorCatalog(innerBuild.BuildItems)
-            : null;
+        var operatorCatalog =
+            command.Kind == DiagnosticSqlCommandKind.ExplainAnalyze
+                ? CreateOperatorCatalog(innerBuild.BuildItems)
+                : null;
 
         cancellationToken.ThrowIfCancellationRequested();
         var runnable = new DiagnosticSqlCommandRunnable(command.Kind, innerBuild.CompiledQuery, operatorCatalog);
         cancellationToken.ThrowIfCancellationRequested();
-        result = BuildResult.Success(
-            new CompiledQuery(runnable),
-            innerBuild.Diagnostics.ToArray(),
-            script);
+        result = BuildResult.Success(new CompiledQuery(runnable), innerBuild.Diagnostics.ToArray(), script);
         return true;
     }
 
     private static CompilationOptions CreateDiagnosticCompilationOptions(
         CompilationOptions options,
-        DiagnosticSqlCommandKind kind)
+        DiagnosticSqlCommandKind kind
+    )
     {
         return kind == DiagnosticSqlCommandKind.ExplainAnalyze
-            ? options.WithInstrumentationMode(QueryInstrumentationMode.Full)
+                ? options.WithInstrumentationMode(QueryInstrumentationMode.Full)
             : options.InstrumentationMode == QueryInstrumentationMode.Disabled
                 ? options.WithInstrumentationMode(QueryInstrumentationMode.SourceBoundaries)
-                : options;
+            : options;
     }
 
     private static ExecutionPlanOperatorCatalog CreateOperatorCatalog(BuildItems? buildItems)
@@ -87,5 +88,4 @@ internal static class DiagnosticSqlCommandCompiler
 
         throw new InvalidOperationException("EXPLAIN ANALYZE compilation did not produce an execution plan.");
     }
-
 }

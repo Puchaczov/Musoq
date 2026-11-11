@@ -8,7 +8,8 @@ public static partial class ExecutionExpressionConverter
 {
     private static ExecutionExpression ConvertRowPresence(
         RowPresence rowPresence,
-        IReadOnlyDictionary<string, RowShape> sourceShapes)
+        IReadOnlyDictionary<string, RowShape> sourceShapes
+    )
     {
         if (TryCreateDirectPresenceSource(rowPresence.Alias, sourceShapes, out var directSource))
             return new ExecutionRowPresence(rowPresence.Alias, rowPresence.IsPresent, directSource);
@@ -19,25 +20,33 @@ public static partial class ExecutionExpressionConverter
         return new ExecutionRowPresence(
             rowPresence.Alias,
             rowPresence.IsPresent,
-            new ExecutionVariableRead(new ExecutionVariable(rowPresence.Alias, typeof(object))));
+            new ExecutionVariableRead(new ExecutionVariable(rowPresence.Alias, typeof(object)))
+        );
     }
 
     private static bool TryCreateDirectPresenceSource(
         string alias,
         IReadOnlyDictionary<string, RowShape> sourceShapes,
-        out ExecutionExpression source)
+        out ExecutionExpression source
+    )
     {
-        if (sourceShapes.TryGetValue(alias, out var shape) &&
-            RowShapeLookup.TryResolveSourceAlias(shape, out var sourceAlias) &&
-            string.Equals(sourceAlias, alias, StringComparison.OrdinalIgnoreCase))
+        if (
+            sourceShapes.TryGetValue(alias, out var shape)
+            && RowShapeLookup.TryResolveSourceAlias(shape, out var sourceAlias)
+            && string.Equals(sourceAlias, alias, StringComparison.OrdinalIgnoreCase)
+        )
         {
-            if (shape is SourceEntityShape scalar &&
-                scalar.Fields.Any(static field => field.AccessStrategy is DirectScalarValueAccess))
+            if (
+                shape is SourceEntityShape scalar
+                && scalar.Fields.Any(static field => field.AccessStrategy is DirectScalarValueAccess)
+            )
             {
                 source = new ExecutionLiteral(true, typeof(bool));
                 return true;
             }
-            source = new ExecutionVariableRead(new ExecutionVariable(alias, RowShapeLookup.ResolveSourceRuntimeType(shape)));
+            source = new ExecutionVariableRead(
+                new ExecutionVariable(alias, RowShapeLookup.ResolveSourceRuntimeType(shape))
+            );
             return true;
         }
 
@@ -48,19 +57,24 @@ public static partial class ExecutionExpressionConverter
     private static bool TryCreateTableContextPresenceSource(
         string alias,
         IReadOnlyDictionary<string, RowShape> sourceShapes,
-        out ExecutionExpression source)
+        out ExecutionExpression source
+    )
     {
         foreach (var tableRow in sourceShapes.Values.OfType<TableRowShape>())
         {
             var context = tableRow.Contexts.FirstOrDefault(candidate =>
-                string.Equals(candidate.Name, alias, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(candidate.QualifiedName, alias, StringComparison.OrdinalIgnoreCase));
+                string.Equals(candidate.Name, alias, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(candidate.QualifiedName, alias, StringComparison.OrdinalIgnoreCase)
+            );
             if (context == null)
                 continue;
 
-            var ordinal = IsScalarPresenceContext(context.Type) ? tableRow.Fields.FirstOrDefault(field =>
-                string.Equals(field.Name, $"{alias}.Ordinal", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(field.QualifiedName, $"{alias}.Ordinal", StringComparison.OrdinalIgnoreCase)) : null;
+            var ordinal = IsScalarPresenceContext(context.Type)
+                ? tableRow.Fields.FirstOrDefault(field =>
+                    string.Equals(field.Name, $"{alias}.Ordinal", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(field.QualifiedName, $"{alias}.Ordinal", StringComparison.OrdinalIgnoreCase)
+                )
+                : null;
             if (ordinal != null)
             {
                 if (Nullable.GetUnderlyingType(ordinal.Type.ResolveClrType()) == null)
@@ -87,7 +101,10 @@ public static partial class ExecutionExpressionConverter
     {
         var scalar = type.ResolveClrType();
         scalar = Nullable.GetUnderlyingType(scalar) ?? scalar;
-        return scalar.IsPrimitive || scalar == typeof(string) || scalar == typeof(decimal) ||
-               scalar == typeof(DateTime) || scalar == typeof(Guid);
+        return scalar.IsPrimitive
+            || scalar == typeof(string)
+            || scalar == typeof(decimal)
+            || scalar == typeof(DateTime)
+            || scalar == typeof(Guid);
     }
 }

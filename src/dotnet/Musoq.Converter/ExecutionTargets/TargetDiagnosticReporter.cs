@@ -7,9 +7,7 @@ namespace Musoq.Converter.Build;
 
 internal static class TargetDiagnosticReporter
 {
-    public static void Report(
-        IEnumerable<TargetDiagnostic> targetDiagnostics,
-        DiagnosticContext context)
+    public static void Report(IEnumerable<TargetDiagnostic> targetDiagnostics, DiagnosticContext context)
     {
         ArgumentNullException.ThrowIfNull(targetDiagnostics);
         ArgumentNullException.ThrowIfNull(context);
@@ -29,10 +27,8 @@ internal static class TargetDiagnosticReporter
             diagnostic.SourceSnippet,
             phase: DiagnosticPhase.CodeGeneration,
             sourceKind: DiagnosticSourceKind.GeneratedSource,
-            arguments:
-            [
-                new KeyValuePair<string, string>("targetCode", diagnostic.Code)
-            ]);
+            arguments: [new KeyValuePair<string, string>("targetCode", diagnostic.Code)]
+        );
     }
 
     private static (SourceLocation Start, SourceLocation End) ResolveLocations(TargetDiagnostic diagnostic)
@@ -41,24 +37,12 @@ internal static class TargetDiagnosticReporter
             return (SourceLocation.None, SourceLocation.None);
 
         var sourceName = diagnostic.SourceName ?? "<generated>";
-        var start = CreateLocation(
-            range.Start,
-            range.StartLine,
-            range.StartColumn,
-            sourceName);
-        var end = CreateLocation(
-            range.End,
-            range.EndLine,
-            range.EndColumn,
-            sourceName);
+        var start = CreateLocation(range.Start, range.StartLine, range.StartColumn, sourceName);
+        var end = CreateLocation(range.End, range.EndLine, range.EndColumn, sourceName);
         return (start, end);
     }
 
-    private static SourceLocation CreateLocation(
-        int offset,
-        int? line,
-        int? column,
-        string sourceName)
+    private static SourceLocation CreateLocation(int offset, int? line, int? column, string sourceName)
     {
         if (line is { } knownLine && column is { } knownColumn)
             return new SourceLocation(offset, knownLine, knownColumn, sourceName);
@@ -75,7 +59,7 @@ internal static class TargetDiagnosticReporter
             TargetDiagnosticSeverity.Info => DiagnosticSeverity.Info,
             TargetDiagnosticSeverity.Warning => DiagnosticSeverity.Warning,
             TargetDiagnosticSeverity.Error => DiagnosticSeverity.Error,
-            _ => DiagnosticSeverity.Error
+            _ => DiagnosticSeverity.Error,
         };
     }
 }

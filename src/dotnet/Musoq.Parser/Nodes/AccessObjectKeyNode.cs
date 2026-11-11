@@ -9,7 +9,7 @@ public class AccessObjectKeyNode(KeyAccessToken token) : IdentifierNode(token.Na
     public enum Destination
     {
         Constant,
-        Variable
+        Variable,
     }
 
     public AccessObjectKeyNode(KeyAccessToken token, PropertyInfo? propertyInfo)
@@ -54,10 +54,13 @@ public class AccessObjectKeyNode(KeyAccessToken token) : IdentifierNode(token.Na
             if (indexableType == null)
                 return null;
 
-            return (from propertyInfo in indexableType.GetProperties()
-                where propertyInfo.GetIndexParameters() is [{ ParameterType: var parameterType }] &&
-                      parameterType == typeof(string)
-                select propertyInfo.PropertyType).FirstOrDefault();
+            return (
+                from propertyInfo in indexableType.GetProperties()
+                where
+                    propertyInfo.GetIndexParameters() is [{ ParameterType: var parameterType }]
+                    && parameterType == typeof(string)
+                select propertyInfo.PropertyType
+            ).FirstOrDefault();
         }
     }
 
@@ -65,9 +68,8 @@ public class AccessObjectKeyNode(KeyAccessToken token) : IdentifierNode(token.Na
 
     public PropertyInfo? PropertyInfo { get; }
 
-    public Destination DestinationKind { get; set; } = token.Value.StartsWith('\'') && token.Value.EndsWith('\'')
-        ? Destination.Constant
-        : Destination.Variable;
+    public Destination DestinationKind { get; set; } =
+        token.Value.StartsWith('\'') && token.Value.EndsWith('\'') ? Destination.Constant : Destination.Variable;
 
     public override void Accept(IExpressionVisitor visitor)
     {

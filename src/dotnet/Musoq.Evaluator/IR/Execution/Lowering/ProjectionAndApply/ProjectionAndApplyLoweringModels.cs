@@ -4,9 +4,7 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 
-internal sealed record ProjectionFieldCollectionResult(
-    bool IsBuilt,
-    string UnsupportedReason)
+internal sealed record ProjectionFieldCollectionResult(bool IsBuilt, string UnsupportedReason)
 {
     public static ProjectionFieldCollectionResult Success()
     {
@@ -25,7 +23,8 @@ internal sealed record NullExtendedProjectionContext(
     ProjectedField[] Fields,
     IReadOnlyDictionary<string, RowShape> SourceLookup,
     string NullAlias,
-    IReadOnlyDictionary<string, ExecutionExpression>? NullAliasFieldDefaults = null);
+    IReadOnlyDictionary<string, ExecutionExpression>? NullAliasFieldDefaults = null
+);
 
 internal sealed record NullExtendedProjectedValue(
     string OutputName,
@@ -34,21 +33,30 @@ internal sealed record NullExtendedProjectedValue(
     FieldNullability Nullability,
     EnumTypeDescriptor? EnumType,
     ExecutionExpression MatchedValue,
-    ExecutionExpression UnmatchedValue);
+    ExecutionExpression UnmatchedValue
+);
 
 internal sealed record NullExtendedProjectionBuildResult(
     bool IsBuilt,
     GeneratedRowShape ResultShape,
     ExecutionAppendRow MatchedAppendRow,
     ExecutionAppendRow UnmatchedAppendRow,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static NullExtendedProjectionBuildResult Success(
         GeneratedRowShape resultShape,
         ExecutionAppendRow matchedAppendRow,
-        ExecutionAppendRow unmatchedAppendRow)
+        ExecutionAppendRow unmatchedAppendRow
+    )
     {
-        return new NullExtendedProjectionBuildResult(true, resultShape, matchedAppendRow, unmatchedAppendRow, string.Empty);
+        return new NullExtendedProjectionBuildResult(
+            true,
+            resultShape,
+            matchedAppendRow,
+            unmatchedAppendRow,
+            string.Empty
+        );
     }
 
     public static NullExtendedProjectionBuildResult Unsupported(string reason)
@@ -69,7 +77,8 @@ internal sealed record FullOuterNullExtendedProjectedValue(
     EnumTypeDescriptor? EnumType,
     ExecutionExpression MatchedValue,
     ExecutionExpression LeftOnlyValue,
-    ExecutionExpression RightOnlyValue);
+    ExecutionExpression RightOnlyValue
+);
 
 internal sealed record FullOuterNullExtendedProjectionBuildResult(
     bool IsBuilt,
@@ -77,13 +86,15 @@ internal sealed record FullOuterNullExtendedProjectionBuildResult(
     ExecutionAppendRow MatchedAppendRow,
     ExecutionAppendRow LeftOnlyAppendRow,
     ExecutionAppendRow RightOnlyAppendRow,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static FullOuterNullExtendedProjectionBuildResult Success(
         GeneratedRowShape resultShape,
         ExecutionAppendRow matchedAppendRow,
         ExecutionAppendRow leftOnlyAppendRow,
-        ExecutionAppendRow rightOnlyAppendRow)
+        ExecutionAppendRow rightOnlyAppendRow
+    )
     {
         return new FullOuterNullExtendedProjectionBuildResult(
             true,
@@ -91,7 +102,8 @@ internal sealed record FullOuterNullExtendedProjectionBuildResult(
             matchedAppendRow,
             leftOnlyAppendRow,
             rightOnlyAppendRow,
-            string.Empty);
+            string.Empty
+        );
     }
 
     public static FullOuterNullExtendedProjectionBuildResult Unsupported(string reason)
@@ -100,7 +112,14 @@ internal sealed record FullOuterNullExtendedProjectionBuildResult(
         var emptyShape = new GeneratedRowShape(string.Empty, []);
         var emptyAppendRow = new ExecutionAppendRow(emptyTable, emptyShape, []);
 
-        return new FullOuterNullExtendedProjectionBuildResult(false, emptyShape, emptyAppendRow, emptyAppendRow, emptyAppendRow, reason);
+        return new FullOuterNullExtendedProjectionBuildResult(
+            false,
+            emptyShape,
+            emptyAppendRow,
+            emptyAppendRow,
+            emptyAppendRow,
+            reason
+        );
     }
 }
 
@@ -108,11 +127,13 @@ internal sealed record OuterApplyFilterBuildResult(
     bool IsBuilt,
     ExecutionBlock MatchedAppendBlock,
     ExecutionBlock UnmatchedAppendBlock,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static OuterApplyFilterBuildResult Success(
         ExecutionBlock matchedAppendBlock,
-        ExecutionBlock unmatchedAppendBlock)
+        ExecutionBlock unmatchedAppendBlock
+    )
     {
         return new OuterApplyFilterBuildResult(true, matchedAppendBlock, unmatchedAppendBlock, string.Empty);
     }
@@ -127,7 +148,8 @@ internal sealed record OuterApplyNullSubstitutionResult(
     bool IsBuilt,
     bool IsUnknown,
     ExecutionExpression Expression,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static OuterApplyNullSubstitutionResult Known(ExecutionExpression expression)
     {
@@ -136,7 +158,12 @@ internal sealed record OuterApplyNullSubstitutionResult(
 
     public static OuterApplyNullSubstitutionResult Unknown()
     {
-        return new OuterApplyNullSubstitutionResult(true, true, new ExecutionLiteral(false, typeof(bool)), string.Empty);
+        return new OuterApplyNullSubstitutionResult(
+            true,
+            true,
+            new ExecutionLiteral(false, typeof(bool)),
+            string.Empty
+        );
     }
 
     public static OuterApplyNullSubstitutionResult Unsupported(string reason)
@@ -149,11 +176,13 @@ internal sealed record OuterApplyArgumentSubstitutionResult(
     bool IsBuilt,
     IReadOnlyList<ExecutionExpression> Expressions,
     bool HasUnknown,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static OuterApplyArgumentSubstitutionResult Success(
         IReadOnlyList<ExecutionExpression> expressions,
-        bool hasUnknown)
+        bool hasUnknown
+    )
     {
         return new OuterApplyArgumentSubstitutionResult(true, expressions, hasUnknown, string.Empty);
     }
@@ -168,7 +197,8 @@ internal sealed record OuterApplyCaseElseSubstitutionResult(
     bool IsBuilt,
     bool IsUnknown,
     ExecutionExpression? Expression,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static OuterApplyCaseElseSubstitutionResult Known(ExecutionExpression? expression)
     {

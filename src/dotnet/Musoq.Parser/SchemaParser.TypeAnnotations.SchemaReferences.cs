@@ -55,10 +55,11 @@ public partial class SchemaParser
             schemaSpan = schemaSpan.Through(closingSpan);
         }
 
-        var schemaRef = (SchemaReferenceTypeNode)new SchemaReferenceTypeNode(schemaName, typeArguments)
-            .WithSpan(schemaSpan);
+        var schemaRef = (SchemaReferenceTypeNode)
+            new SchemaReferenceTypeNode(schemaName, typeArguments).WithSpan(schemaSpan);
 
-        if (Current.TokenType == TokenType.LeftSquareBracket) return ComposeArrayOfType(schemaRef);
+        if (Current.TokenType == TokenType.LeftSquareBracket)
+            return ComposeArrayOfType(schemaRef);
 
         return schemaRef;
     }
@@ -134,8 +135,15 @@ public partial class SchemaParser
         if (!string.Equals(Current.Value, "eof", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        return PeekNextTokenType() is TokenType.Comma or TokenType.RBracket or TokenType.RightParenthesis or TokenType.EndOfFile
-            or TokenType.At or TokenType.When or TokenType.Check
-            or TokenType.Identifier or TokenType.Word;
+        return PeekNextTokenType()
+            is TokenType.Comma
+                or TokenType.RBracket
+                or TokenType.RightParenthesis
+                or TokenType.EndOfFile
+                or TokenType.At
+                or TokenType.When
+                or TokenType.Check
+                or TokenType.Identifier
+                or TokenType.Word;
     }
 }

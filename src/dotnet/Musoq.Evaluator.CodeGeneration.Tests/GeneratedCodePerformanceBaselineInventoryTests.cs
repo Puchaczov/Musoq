@@ -16,13 +16,14 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
         "GetNestedValueAccessor",
         "GetRequiredType",
         "GetRowSourceChunks",
-        "System.Reflection"
+        "System.Reflection",
     ];
 
     [TestMethod]
     public void CurrentCorpus_ContainsExpectedSnapshotsAndNoGeneratedReflection()
     {
-        var files = global::Musoq.Tests.Common.RequiredSourceInventory.Files(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
+        var files = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
             .ToArray();
 
         Assert.AreEqual(GeneratedCodeSamplesCatalog.ExpectedSampleCount, files.Length);
@@ -73,7 +74,7 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
             "Q267_RecursiveStableScalarInvariant.cs",
             "Q324_EnumQueryScopedRows.cs",
             "Q58_BinaryGenericInterpret.cs",
-            "Q59_BinaryNestedGenericInterpret.cs"
+            "Q59_BinaryNestedGenericInterpret.cs",
         };
 
         var actualFiles = files.Select(Path.GetFileName).ToArray();
@@ -88,8 +89,13 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
             "dotnet",
             "Musoq.Targets.CSharpClr",
             "Rendering",
-            "Execution");
-        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(rendererDirectory, "*.cs", SearchOption.AllDirectories);
+            "Execution"
+        );
+        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+            rendererDirectory,
+            "*.cs",
+            SearchOption.AllDirectories
+        );
         var rendererOffenders = FindTokenOffenders(rendererFiles, ForbiddenGeneratedExecutionTokens[..^1]);
         Assert.IsEmpty(rendererOffenders, FormatOffenders(rendererOffenders));
     }
@@ -97,9 +103,9 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     [TestMethod]
     public void Q228_WideCorrelation_UsesNestedTypedTupleKeys()
     {
-        var source = File.ReadAllText(Path.Combine(
-            GeneratedCodeSampleArtifacts.SamplesDirectory,
-            "Q228_PerformanceWideCorrelatedSubquery.cs"));
+        var source = File.ReadAllText(
+            Path.Combine(GeneratedCodeSampleArtifacts.SamplesDirectory, "Q228_PerformanceWideCorrelatedSubquery.cs")
+        );
 
         Assert.IsFalse(source.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
         Assert.Contains("ValueTuple<", source);
@@ -109,9 +115,9 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     [TestMethod]
     public void Q229_WindowSet_UsesTypedGlobalSortCarrierAndTypedCteRows()
     {
-        var source = File.ReadAllText(Path.Combine(
-            GeneratedCodeSampleArtifacts.SamplesDirectory,
-            "Q229_PerformanceWindowCteSetOperation.cs"));
+        var source = File.ReadAllText(
+            Path.Combine(GeneratedCodeSampleArtifacts.SamplesDirectory, "Q229_PerformanceWindowCteSetOperation.cs")
+        );
 
         Assert.Contains("private sealed class LeftShape0", source);
         Assert.IsFalse(source.Contains("ResultShape0", StringComparison.Ordinal));
@@ -128,9 +134,9 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     [TestMethod]
     public void Q230_TableProjection_ProjectsFinalRowsDirectly()
     {
-        var source = File.ReadAllText(Path.Combine(
-            GeneratedCodeSampleArtifacts.SamplesDirectory,
-            "Q230_PerformanceTableProjection.cs"));
+        var source = File.ReadAllText(
+            Path.Combine(GeneratedCodeSampleArtifacts.SamplesDirectory, "Q230_PerformanceTableProjection.cs")
+        );
 
         var generatedCode = source[source.IndexOf("// === Generated C# ===", StringComparison.Ordinal)..];
 
@@ -143,7 +149,8 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
 
     private static Dictionary<string, string[]> FindTokenOffenders(
         IEnumerable<string> files,
-        IEnumerable<string> tokens)
+        IEnumerable<string> tokens
+    )
     {
         var tokenArray = tokens.ToArray();
         return files
@@ -152,7 +159,7 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
                 FileName = Path.GetRelativePath(RepositoryRoot(), path),
                 Tokens = tokenArray
                     .Where(token => File.ReadAllText(path).Contains(token, StringComparison.Ordinal))
-                    .ToArray()
+                    .ToArray(),
             })
             .Where(item => item.Tokens.Length > 0)
             .ToDictionary(item => item.FileName, item => item.Tokens, StringComparer.Ordinal);
@@ -162,7 +169,8 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     {
         return string.Join(
             Environment.NewLine,
-            offenders.Select(item => $"{item.Key}: {string.Join(", ", item.Value)}"));
+            offenders.Select(item => $"{item.Key}: {string.Join(", ", item.Value)}")
+        );
     }
 
     private static string RepositoryRoot() => RepositorySourceScan.RepositoryRoot();

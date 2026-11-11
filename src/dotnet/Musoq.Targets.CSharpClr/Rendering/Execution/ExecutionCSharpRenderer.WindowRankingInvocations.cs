@@ -10,14 +10,16 @@ public sealed partial class ExecutionCSharpRenderer
     private static void AddFusedIntOrderPartitionDeclarations(
         List<StatementSyntax> statements,
         ExecutionComputeRankingWindow ranking,
-        ExecutionVariable builder)
+        ExecutionVariable builder
+    )
     {
         AddFusedIntOrderPartitionDeclarations(
             statements,
             ranking.Partitions,
             ranking.SortedPartitions,
             builder,
-            ranking.OrderKeys[0].Descending);
+            ranking.OrderKeys[0].Descending
+        );
     }
 
     private static void AddFusedIntOrderPartitionDeclarations(
@@ -25,17 +27,21 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionWindowPartitionSet? partitions,
         ExecutionWindowPartitionSet? sortedPartitions,
         ExecutionVariable builder,
-        bool descending)
+        bool descending
+    )
     {
         string? createdPartitionVariableName = null;
 
         if (partitions is { ShouldCreate: true })
         {
             createdPartitionVariableName = partitions.Variable.Name;
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                createdPartitionVariableName,
-                CreateFusedIntSortedPartitionSetInvocation(builder, descending)));
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    createdPartitionVariableName,
+                    CreateFusedIntSortedPartitionSetInvocation(builder, descending)
+                )
+            );
         }
 
         if (sortedPartitions is not { ShouldCreate: true })
@@ -45,24 +51,30 @@ public sealed partial class ExecutionCSharpRenderer
         if (string.Equals(createdPartitionVariableName, sortedPartitionVariableName, StringComparison.Ordinal))
             return;
 
-        statements.Add(CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            sortedPartitionVariableName,
-            createdPartitionVariableName == null
-                ? CreateFusedIntSortedPartitionSetInvocation(builder, descending)
-                : SyntaxFactory.IdentifierName(createdPartitionVariableName)));
+        statements.Add(
+            CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                sortedPartitionVariableName,
+                createdPartitionVariableName == null
+                    ? CreateFusedIntSortedPartitionSetInvocation(builder, descending)
+                    : SyntaxFactory.IdentifierName(createdPartitionVariableName)
+            )
+        );
     }
 
     private static InvocationExpressionSyntax CreateFusedIntSortedPartitionSetInvocation(
         ExecutionVariable builder,
-        bool descending)
+        bool descending
+    )
     {
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(builder.Name),
-                    SyntaxFactory.IdentifierName(nameof(WindowIntOrderBuilder.ToSortedPartitionSet))))
+                    SyntaxFactory.IdentifierName(nameof(WindowIntOrderBuilder.ToSortedPartitionSet))
+                )
+            )
             .WithArgumentList(CreateArgumentList(CreateBooleanLiteral(descending)));
     }
-
 }

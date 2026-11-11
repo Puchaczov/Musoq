@@ -15,11 +15,19 @@ public sealed record QueryRowField
         string name,
         Type fieldType,
         bool isNullable,
-        IReadOnlyDictionary<string, string>? readModifiers = null)
-        : this(slot, sourceColumnIndex, name, fieldType, fieldType, null, isNullable, readModifiers,
-            ColumnStability.Stable)
-    {
-    }
+        IReadOnlyDictionary<string, string>? readModifiers = null
+    )
+        : this(
+            slot,
+            sourceColumnIndex,
+            name,
+            fieldType,
+            fieldType,
+            null,
+            isNullable,
+            readModifiers,
+            ColumnStability.Stable
+        ) { }
 
     public QueryRowField(
         int slot,
@@ -28,10 +36,9 @@ public sealed record QueryRowField
         Type fieldType,
         bool isNullable,
         IReadOnlyDictionary<string, string>? readModifiers,
-        ColumnStability stability)
-        : this(slot, sourceColumnIndex, name, fieldType, fieldType, null, isNullable, readModifiers, stability)
-    {
-    }
+        ColumnStability stability
+    )
+        : this(slot, sourceColumnIndex, name, fieldType, fieldType, null, isNullable, readModifiers, stability) { }
 
     public QueryRowField(
         int slot,
@@ -42,19 +49,42 @@ public sealed record QueryRowField
         EnumTypeDescriptor? enumType,
         bool isNullable,
         IReadOnlyDictionary<string, string>? readModifiers,
-        ColumnStability stability)
-        : this(slot, sourceColumnIndex, name, fieldType, sourceReadType, enumType, isNullable, readModifiers, stability, null)
-    {
-    }
+        ColumnStability stability
+    )
+        : this(
+            slot,
+            sourceColumnIndex,
+            name,
+            fieldType,
+            sourceReadType,
+            enumType,
+            isNullable,
+            readModifiers,
+            stability,
+            null
+        ) { }
 
-    private QueryRowField(int slot, int sourceColumnIndex, string name, Type fieldType, Type sourceReadType,
-        EnumTypeDescriptor? enumType, bool isNullable, IReadOnlyDictionary<string, string>? readModifiers,
-        ColumnStability stability, SourceComputedProjection? computedProjection)
+    private QueryRowField(
+        int slot,
+        int sourceColumnIndex,
+        string name,
+        Type fieldType,
+        Type sourceReadType,
+        EnumTypeDescriptor? enumType,
+        bool isNullable,
+        IReadOnlyDictionary<string, string>? readModifiers,
+        ColumnStability stability,
+        SourceComputedProjection? computedProjection
+    )
     {
         if (slot < 0)
             throw new ArgumentOutOfRangeException(nameof(slot), slot, "A query row slot cannot be negative.");
         if (sourceColumnIndex < 0 && computedProjection is null)
-            throw new ArgumentOutOfRangeException(nameof(sourceColumnIndex), sourceColumnIndex, "A source column index cannot be negative.");
+            throw new ArgumentOutOfRangeException(
+                nameof(sourceColumnIndex),
+                sourceColumnIndex,
+                "A source column index cannot be negative."
+            );
 
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(fieldType);
@@ -63,13 +93,15 @@ public sealed record QueryRowField
         {
             throw new ArgumentException(
                 $"Field type '{fieldType}' cannot be used in a query-scoped row.",
-                nameof(fieldType));
+                nameof(fieldType)
+            );
         }
         if (!IsSupportedFieldType(sourceReadType))
         {
             throw new ArgumentException(
                 $"Source-read type '{sourceReadType}' cannot be used in a query-scoped row.",
-                nameof(sourceReadType));
+                nameof(sourceReadType)
+            );
         }
 
         ValidateEnumContract(fieldType, sourceReadType, enumType);
@@ -93,10 +125,9 @@ public sealed record QueryRowField
         Type fieldType,
         bool isNullable,
         ColumnStability stability,
-        IReadOnlyDictionary<string, string>? readModifiers = null)
-        : this(slot, sourceColumnIndex, name, fieldType, fieldType, null, isNullable, readModifiers, stability)
-    {
-    }
+        IReadOnlyDictionary<string, string>? readModifiers = null
+    )
+        : this(slot, sourceColumnIndex, name, fieldType, fieldType, null, isNullable, readModifiers, stability) { }
 
     public int Slot { get; }
 
@@ -118,16 +149,34 @@ public sealed record QueryRowField
 
     public SourceComputedProjection? ComputedProjection { get; }
 
-    public QueryRowFieldOrigin Origin => ComputedProjection is null ? QueryRowFieldOrigin.SourceColumn : QueryRowFieldOrigin.ComputedProjection;
+    public QueryRowFieldOrigin Origin =>
+        ComputedProjection is null ? QueryRowFieldOrigin.SourceColumn : QueryRowFieldOrigin.ComputedProjection;
 
     public static QueryRowField ForComputedProjection(int slot, SourceComputedProjection projection)
     {
         ArgumentNullException.ThrowIfNull(projection);
-        if (!SourceComputedProjectionFacts.CanProviderEvaluate(projection, SourceComputedProjectionCapabilities.AllPortable))
-            throw new ArgumentException("A computed query-row field requires a stable expression with an exact concrete result type.", nameof(projection));
-        return new(slot, -1, projection.Name, projection.ResultType, projection.ResultType, null,
+        if (
+            !SourceComputedProjectionFacts.CanProviderEvaluate(
+                projection,
+                SourceComputedProjectionCapabilities.AllPortable
+            )
+        )
+            throw new ArgumentException(
+                "A computed query-row field requires a stable expression with an exact concrete result type.",
+                nameof(projection)
+            );
+        return new(
+            slot,
+            -1,
+            projection.Name,
+            projection.ResultType,
+            projection.ResultType,
+            null,
             !projection.ResultType.IsValueType || Nullable.GetUnderlyingType(projection.ResultType) is not null,
-            null, ColumnStability.Stable, projection);
+            null,
+            ColumnStability.Stable,
+            projection
+        );
     }
 
     /// <summary>
@@ -139,17 +188,16 @@ public sealed record QueryRowField
     {
         ArgumentNullException.ThrowIfNull(fieldType);
 
-        return fieldType != typeof(void) &&
-               !fieldType.IsFunctionPointer &&
-               !fieldType.IsByRef &&
-               !fieldType.IsPointer &&
-               !fieldType.IsByRefLike &&
-               !fieldType.ContainsGenericParameters &&
-               fieldType.IsVisible;
+        return fieldType != typeof(void)
+            && !fieldType.IsFunctionPointer
+            && !fieldType.IsByRef
+            && !fieldType.IsPointer
+            && !fieldType.IsByRefLike
+            && !fieldType.ContainsGenericParameters
+            && fieldType.IsVisible;
     }
 
-    private static IReadOnlyDictionary<string, string> FreezeModifiers(
-        IReadOnlyDictionary<string, string>? modifiers)
+    private static IReadOnlyDictionary<string, string> FreezeModifiers(IReadOnlyDictionary<string, string>? modifiers)
     {
         if (modifiers == null || modifiers.Count == 0)
             return new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(StringComparer.Ordinal));
@@ -165,15 +213,14 @@ public sealed record QueryRowField
         return new ReadOnlyDictionary<string, string>(copy);
     }
 
-    private static void ValidateEnumContract(
-        Type fieldType,
-        Type sourceReadType,
-        EnumTypeDescriptor? enumType)
+    private static void ValidateEnumContract(Type fieldType, Type sourceReadType, EnumTypeDescriptor? enumType)
     {
         if (enumType == null)
         {
             if (fieldType != sourceReadType)
-                throw new ArgumentException("Ordinary query-row fields must use identical field and source-read types.");
+                throw new ArgumentException(
+                    "Ordinary query-row fields must use identical field and source-read types."
+                );
             return;
         }
 
@@ -186,8 +233,10 @@ public sealed record QueryRowField
         var primitiveSource = nullableSource ?? sourceReadType;
         if (primitiveSource.IsEnum)
         {
-            if (Enum.GetUnderlyingType(primitiveSource) != primitiveCarrier ||
-                (nullableCarrier == null) != (nullableSource == null))
+            if (
+                Enum.GetUnderlyingType(primitiveSource) != primitiveCarrier
+                || (nullableCarrier == null) != (nullableSource == null)
+            )
                 throw new ArgumentException("The query-row native enum source type does not match its carrier.");
 
             var nativeDescriptor = EnumTypeDescriptor.FromClrEnum(primitiveSource);
@@ -197,7 +246,8 @@ public sealed record QueryRowField
         else if (sourceReadType != fieldType)
         {
             throw new ArgumentException(
-                "A query-row enum source type must be either its carrier or a matching native CLR enum.");
+                "A query-row enum source type must be either its carrier or a matching native CLR enum."
+            );
         }
     }
 }

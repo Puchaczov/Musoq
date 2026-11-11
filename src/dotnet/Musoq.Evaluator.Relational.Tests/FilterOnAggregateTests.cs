@@ -12,7 +12,8 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     [TestMethod]
     public void FilteredAggregateValues_ShouldExcludeRowsRatherThanSubstituteNull()
     {
-        const string query = "select AggregateValues(Name) filter (where Name = 'a') as Value from values { (Name: 'a'), (Name: 'b') } v";
+        const string query =
+            "select AggregateValues(Name) filter (where Name = 'a') as Value from values { (Name: 'a'), (Name: 'b') } v";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -25,10 +26,14 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     [DataRow(true)]
     public void FilteredAggregate_ShouldNotEvaluateExcludedFailingArgument(bool stabilityAwareReuse)
     {
-        const string query = "select Sum(TextValue::int) filter (where Admit) as Value from values { (TextValue: '7', Admit: true), (TextValue: 'invalid', Admit: false) } v";
+        const string query =
+            "select Sum(TextValue::int) filter (where Admit) as Value from values { (TextValue: '7', Admit: true), (TextValue: 'invalid', Admit: false) } v";
 
-        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>(),
-            TestCompilationOptions.WithStabilityAwareScalarReuse(stabilityAwareReuse));
+        using var compiled = CreateAndRunVirtualMachine(
+            query,
+            new Dictionary<string, IEnumerable<BasicEntity>>(),
+            TestCompilationOptions.WithStabilityAwareScalarReuse(stabilityAwareReuse)
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [7]);
@@ -38,7 +43,8 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     [TestMethod]
     public void FilteredAggregate_NullPredicate_ShouldNotEvaluateArgument()
     {
-        const string query = "select Sum(TextValue::int) filter (where TextValue = null) as Value from values { (TextValue: 'invalid') } v";
+        const string query =
+            "select Sum(TextValue::int) filter (where TextValue = null) as Value from values { (TextValue: 'invalid') } v";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -49,7 +55,8 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     [TestMethod]
     public void FilteredWindowAggregate_ShouldNotEvaluateExcludedFailingArgument()
     {
-        const string query = "select Sum(TextValue::int) filter (where Admit) over () as Value from values { (TextValue: '7', Admit: true), (TextValue: 'invalid', Admit: false) } v";
+        const string query =
+            "select Sum(TextValue::int) filter (where Admit) over () as Value from values { (TextValue: '7', Admit: true), (TextValue: 'invalid', Admit: false) } v";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -61,7 +68,8 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     [TestProperty("CandidateId", "P1-090")]
     public void FilteredCount_InlineValues_ShouldCountMatchingRowsAsInt64()
     {
-        const string query = "select Count(N) filter (where N > 1) as FilteredCount from values { (N: 1), (N: 2), (N: 3) } v";
+        const string query =
+            "select Count(N) filter (where N > 1) as FilteredCount from values { (N: 1), (N: 2), (N: 3) } v";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -70,22 +78,22 @@ public class FilterOnAggregateTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertRowsUnordered(table, [2L]);
     }
 
-
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateCitySources()
     {
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Warsaw", "Poland", 500),
                     new BasicEntity("Cracow", "Poland", 300),
                     new BasicEntity("Gdansk", "Poland", 100),
                     new BasicEntity("Berlin", "Germany", 400),
                     new BasicEntity("Munich", "Germany", 200),
                     new BasicEntity("Paris", "France", 600),
-                    new BasicEntity("Lyon", "France", 150)
+                    new BasicEntity("Lyon", "France", 150),
                 ]
-            }
+            },
         };
     }
 
@@ -187,15 +195,8 @@ public class FilterOnAggregateTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Country", typeof(string)),
-            ("C", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Poland", 2L],
-            ["Germany", 1L],
-            ["France", 1L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland", 2L], ["Germany", 1L], ["France", 1L]);
     }
 
     [TestMethod]
@@ -214,11 +215,13 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     [TestMethod]
     public void WhenEquivalentCountFilterForms_ShouldReturnSameCount()
     {
-        var query = @"select
-            Count() filter (where Population > 200) as CountNoArgs,
-            Count(*) filter (where Population > 200) as CountStar,
-            Count(City) filter (where Population > 200) as CountCity
-            from #A.Entities()";
+        var query = (
+            "select\n"
+            + "            Count() filter (where Population > 200) as CountNoArgs,\n"
+            + "            Count(*) filter (where Population > 200) as CountStar,\n"
+            + "            Count(City) filter (where Population > 200) as CountCity\n"
+            + "            from #A.Entities()"
+        );
         var sources = CreateCitySources();
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -228,7 +231,8 @@ public class FilterOnAggregateTests : BasicEntityTestBase
             table,
             ("CountNoArgs", typeof(long)),
             ("CountStar", typeof(long)),
-            ("CountCity", typeof(long)));
+            ("CountCity", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, [4L, 4L, 4L]);
     }
 
@@ -300,50 +304,45 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     [TestMethod]
     public void WhenFilterWithGroupBy_ShouldFilterWithinEachGroup()
     {
-        var query = "select Country, Count(City) filter (where Population > 200) as C from #A.Entities() group by Country";
+        var query =
+            "select Country, Count(City) filter (where Population > 200) as C from #A.Entities() group by Country";
         var sources = CreateCitySources();
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Country", typeof(string)),
-            ("C", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Poland", 2L],
-            ["Germany", 1L],
-            ["France", 1L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland", 2L], ["Germany", 1L], ["France", 1L]);
     }
 
     [TestMethod]
     public void WhenFilterWithGroupByAndSum_ShouldSumFilteredWithinEachGroup()
     {
-        var query = "select Country, Sum(Population) filter (where Population > 200) as S from #A.Entities() group by Country";
+        var query =
+            "select Country, Sum(Population) filter (where Population > 200) as S from #A.Entities() group by Country";
         var sources = CreateCitySources();
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Country", typeof(string)),
-            ("S", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("S", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Poland", 800m],
             ["Germany", 400m],
-            ["France", 600m]);
+            ["France", 600m]
+        );
     }
 
     [TestMethod]
     public void WhenMultipleFiltersInSameSelect_ShouldApplyEachIndependently()
     {
-        var query = @"select
-            Count(City) filter (where Country = 'Poland') as PolandCount,
-            Count(City) filter (where Country = 'Germany') as GermanyCount
-            from #A.Entities()";
+        var query = (
+            "select\n"
+            + "            Count(City) filter (where Country = 'Poland') as PolandCount,\n"
+            + "            Count(City) filter (where Country = 'Germany') as GermanyCount\n"
+            + "            from #A.Entities()"
+        );
         var sources = CreateCitySources();
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -352,26 +351,26 @@ public class FilterOnAggregateTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("PolandCount", typeof(long)),
-            ("GermanyCount", typeof(long)));
+            ("GermanyCount", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, [3L, 2L]);
     }
 
     [TestMethod]
     public void WhenMixedFilteredAndUnfilteredAggregates_ShouldWorkCorrectly()
     {
-        var query = @"select
-            Count(City) as TotalCount,
-            Count(City) filter (where Population > 300) as LargeCount
-            from #A.Entities()";
+        var query = (
+            "select\n"
+            + "            Count(City) as TotalCount,\n"
+            + "            Count(City) filter (where Population > 300) as LargeCount\n"
+            + "            from #A.Entities()"
+        );
         var sources = CreateCitySources();
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("TotalCount", typeof(long)),
-            ("LargeCount", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(table, ("TotalCount", typeof(long)), ("LargeCount", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [7L, 3L]);
     }
 
@@ -404,7 +403,8 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     [TestMethod]
     public void WhenFilterWithOrCondition_ShouldApplyEitherCondition()
     {
-        var query = "select Count(City) filter (where Country = 'Poland' or Country = 'France') as C from #A.Entities()";
+        var query =
+            "select Count(City) filter (where Country = 'Poland' or Country = 'France') as C from #A.Entities()";
         var sources = CreateCitySources();
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -417,33 +417,34 @@ public class FilterOnAggregateTests : BasicEntityTestBase
     [TestMethod]
     public void WhenFilterWithHaving_ShouldFilterThenHaving()
     {
-        var query = @"select Country, Count(City) filter (where Population > 200) as C
-                      from #A.Entities()
-                      group by Country
-                      having Count(City) filter (where Population > 200) >= 2";
+        var query = (
+            "select Country, Count(City) filter (where Population > 200) as C\n"
+            + "                      from #A.Entities()\n"
+            + "                      group by Country\n"
+            + "                      having Count(City) filter (where Population > 200) >= 2"
+        );
         var sources = CreateCitySources();
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Country", typeof(string)),
-            ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("C", typeof(long)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland", 2L]);
     }
 
     [TestMethod]
     public void WhenFilterWithGroupByAndMixedAggregates_ShouldWorkCorrectly()
     {
-        var query = @"select
-            Country,
-            Count(City) as TotalCities,
-            Count(City) filter (where Population > 200) as LargeCities,
-            Sum(Population) as TotalPop,
-            Sum(Population) filter (where Population > 200) as LargePop
-            from #A.Entities()
-            group by Country";
+        var query = (
+            "select\n"
+            + "            Country,\n"
+            + "            Count(City) as TotalCities,\n"
+            + "            Count(City) filter (where Population > 200) as LargeCities,\n"
+            + "            Sum(Population) as TotalPop,\n"
+            + "            Sum(Population) filter (where Population > 200) as LargePop\n"
+            + "            from #A.Entities()\n"
+            + "            group by Country"
+        );
         var sources = CreateCitySources();
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -455,12 +456,14 @@ public class FilterOnAggregateTests : BasicEntityTestBase
             ("TotalCities", typeof(long)),
             ("LargeCities", typeof(long)),
             ("TotalPop", typeof(decimal?)),
-            ("LargePop", typeof(decimal?)));
+            ("LargePop", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Poland", 3L, 2L, 900m, 800m],
             ["Germany", 2L, 1L, 600m, 400m],
-            ["France", 2L, 1L, 750m, 600m]);
+            ["France", 2L, 1L, 750m, 600m]
+        );
     }
 
     [TestMethod]

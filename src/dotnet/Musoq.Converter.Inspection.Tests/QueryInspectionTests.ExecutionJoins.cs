@@ -11,8 +11,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForInnerJoin_ShouldEmitExecutionHashJoinCode()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
-            new CompilationOptions());
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanContains("CreateHash [eHash: string -> DualEntity]", result.ExecutionPlanText);
         Assert.Contains("new Dictionary<string, HashJoinBucket<", result.GeneratedCSharpCode);
@@ -27,7 +29,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderInnerHashJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy"
+        );
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("CreateHash [eHash: string -> DualEntity]", result.ExecutionPlanText);
@@ -39,7 +43,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderLeftOuterHashJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy"
+        );
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("CreateHash [eHash: string -> DualEntity]", result.ExecutionPlanText);
@@ -54,7 +60,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderRightOuterHashJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d right outer join #system.dual() e on d.Dummy = e.Dummy");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d right outer join #system.dual() e on d.Dummy = e.Dummy"
+        );
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("CreateHash [dHash: string -> DualEntity]", result.ExecutionPlanText);
@@ -69,13 +77,20 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderCompositeOuterHashJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy and d.Dummy = e.Dummy");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy and d.Dummy = e.Dummy"
+        );
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("CreateHash [eHash: ValueTuple<string, string> -> DualEntity]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "CreateHash [eHash: ValueTuple<string, string> -> DualEntity]",
+            result.ExecutionPlanText
+        );
         AssertExecutionPlanContains("Let [dummy: string = d.Dummy]", result.ExecutionPlanText);
         AssertExecutionPlanContains("HashProbe [eHash[(dummy, dummy)] -> eHashMatches]", result.ExecutionPlanText);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.CreateNullableHashJoinKey", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.CreateNullableHashJoinKey", StringComparison.Ordinal)
+        );
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetColumnValue", result.GeneratedCSharpCode);
     }
@@ -83,12 +98,16 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderFilteredOuterHashJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy where e.Dummy is not null");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy where e.Dummy is not null"
+        );
 
         AssertUsesExecutionBackend(result);
         Assert.Contains("HashProbeNoMatch", result.ExecutionPlanText);
         Assert.Contains("If [dummy IS NOT NULL]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal)
+        );
         AssertGeneratedCSharpContains("eHash.TryGetValue", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetColumnValue", result.GeneratedCSharpCode);
@@ -97,11 +116,19 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderResidualOuterHashJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy and e.Dummy = 'missing'");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy and e.Dummy = 'missing'"
+        );
 
-        Assert.Contains("PhysicalHashJoin [LeftOuter] [build: e.Dummy] [probe: d.Dummy] [residual: (e.Dummy = 'missing')]", result.PhysicalPlanText);
+        Assert.Contains(
+            "PhysicalHashJoin [LeftOuter] [build: e.Dummy] [probe: d.Dummy] [residual: (e.Dummy = 'missing')]",
+            result.PhysicalPlanText
+        );
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("HashProbe [eHash[d.Dummy] -> eHashMatches] [match: eHashHasMatch]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "HashProbe [eHash[d.Dummy] -> eHashMatches] [match: eHashHasMatch]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("If [(dummy = 'missing')]", result.ExecutionPlanText);
         AssertExecutionPlanContains("Assign [eHashHasMatch = TRUE]", result.ExecutionPlanText);
         Assert.Contains("HashProbeNoMatch", result.ExecutionPlanText);
@@ -112,7 +139,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     [DataRow("select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy")]
     [DataRow("select d.Dummy, e.Dummy from #system.dual() d right outer join #system.dual() e on d.Dummy = e.Dummy")]
-    public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderSimpleOuterHashJoin_ShouldRunExecutableQuery(string query)
+    public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderSimpleOuterHashJoin_ShouldRunExecutableQuery(
+        string query
+    )
     {
         var compiled = CompileForExecution(query);
 
@@ -126,7 +155,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenResidualOuterHashJoinRejectsOnlyBucketCandidate_ShouldReturnNullExtendedRow()
     {
-        var compiled = CompileForExecution("select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy and e.Dummy = 'missing'");
+        var compiled = CompileForExecution(
+            "select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy and e.Dummy = 'missing'"
+        );
 
         var table = compiled.Run();
 
@@ -138,7 +169,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenResidualOuterHashJoinMatchesButWhereRejectsMatchedRow_ShouldNotEmitNullFallback()
     {
-        var compiled = CompileForExecution("select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy and e.Dummy = 'single' where e.Dummy is null");
+        var compiled = CompileForExecution(
+            "select d.Dummy, e.Dummy from #system.dual() d left outer join #system.dual() e on d.Dummy = e.Dummy and e.Dummy = 'single' where e.Dummy is null"
+        );
 
         var table = compiled.Run();
 
@@ -153,11 +186,19 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
         Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        AssertExecutionPlanContains("StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
-        AssertExecutionPlanContains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]",
+            result.ExecutionPlanText
+        );
+        AssertExecutionPlanContains(
+            "LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]",
+            result.ExecutionPlanText
+        );
         AssertExecutionPlanContains("HashProbe [rHash[l.Dummy] -> rHashMatches]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: l.Dummy, Dummy: r.Dummy)]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal)
+        );
         AssertGeneratedCSharpContains("rHash.TryGetValue", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -179,13 +220,25 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(CreateCteBackedResidualOuterHashJoinQuery());
 
-        Assert.Contains("PhysicalHashJoin [LeftOuter] [build: r.Dummy] [probe: l.Dummy] [residual: (r.Dummy = 'missing')]", result.PhysicalPlanText);
+        Assert.Contains(
+            "PhysicalHashJoin [LeftOuter] [build: r.Dummy] [probe: l.Dummy] [residual: (r.Dummy = 'missing')]",
+            result.PhysicalPlanText
+        );
         AssertUsesExecutionBackend(result);
         Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
         Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        AssertExecutionPlanContains("StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
-        AssertExecutionPlanContains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
-        AssertExecutionPlanContains("HashProbe [rHash[l.Dummy] -> rHashMatches] [match: rHashHasMatch]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]",
+            result.ExecutionPlanText
+        );
+        AssertExecutionPlanContains(
+            "LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]",
+            result.ExecutionPlanText
+        );
+        AssertExecutionPlanContains(
+            "HashProbe [rHash[l.Dummy] -> rHashMatches] [match: rHashHasMatch]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("If [(dummy = 'missing')]", result.ExecutionPlanText);
         Assert.Contains("HashProbeNoMatch", result.ExecutionPlanText);
         AssertGeneratedCSharpContains("if (!rHashHasMatch)", result.GeneratedCSharpCode);
@@ -210,10 +263,16 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateResidualOuterHashJoinFeedingHashJoinQuery());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("HashProbe [eHash[d.Dummy] -> eHashMatches] [match: eHashHasMatch]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "HashProbe [eHash[d.Dummy] -> eHashMatches] [match: eHashHasMatch]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("HashProbeNoMatch", result.ExecutionPlanText);
         Assert.Contains("StoreTable [statement0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        AssertExecutionPlanContains("CreateHash [deHash: string -> Row; capacity: _cteRowResults.Slot0.Count]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "CreateHash [deHash: string -> Row; capacity: _cteRowResults.Slot0.Count]",
+            result.ExecutionPlanText
+        );
         AssertExecutionPlanContains("HashAdd [deHash[de.d.Dummy] += de]", result.ExecutionPlanText);
         AssertExecutionPlanContains("HashProbe [deHash[f.Dummy] -> deHashMatches]", result.ExecutionPlanText);
         AssertGeneratedCSharpContains("deHash.TryGetValue", result.GeneratedCSharpCode);
@@ -248,7 +307,9 @@ public partial class QueryInspectionTests
         Assert.Contains("Let [dummy1: string = r.Dummy]", result.ExecutionPlanText);
         Assert.Contains("If [(dummy <> dummy1)]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: dummy, Dummy: dummy1)]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal)
+        );
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -292,7 +353,9 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderInnerNestedLoopJoin_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy != e.Dummy");
+        var result = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy != e.Dummy"
+        );
 
         AssertUsesExecutionBackend(result);
         Assert.Contains("PhysicalNestedLoopJoin [Inner]", result.PhysicalPlanText);
@@ -308,7 +371,9 @@ public partial class QueryInspectionTests
     public void CompileForInspection_WhenSemanticNestedLoopJoinIsRequired_ShouldNotWarn()
     {
         var cross = Inspect("select d.Dummy, e.Dummy from #system.dual() d cross join #system.dual() e");
-        var asof = Inspect("select d.Dummy, e.Dummy from #system.dual() d asof join #system.dual() e on d.Dummy >= e.Dummy");
+        var asof = Inspect(
+            "select d.Dummy, e.Dummy from #system.dual() d asof join #system.dual() e on d.Dummy >= e.Dummy"
+        );
 
         Assert.Contains("PhysicalNestedLoopJoin [Cross]", cross.PhysicalPlanText);
         Assert.Contains("PhysicalNestedLoopJoin [AsofInner]", asof.PhysicalPlanText);
@@ -321,7 +386,8 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy != e.Dummy",
-            new CompilationOptions(useHashJoin: false, useSortMergeJoin: false));
+            new CompilationOptions(useHashJoin: false, useSortMergeJoin: false)
+        );
 
         Assert.Contains("PhysicalNestedLoopJoin [Inner]", result.PhysicalPlanText);
         Assert.Contains("Hash and sort-merge joins are disabled by compilation options.", result.PlanningText);
@@ -333,7 +399,8 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select l.Name, r.Name from #dynamic.all() l inner join #dynamic.all() r on l.Team = r.Team",
-            CreateDynamicRowsSchemaProvider());
+            CreateDynamicRowsSchemaProvider()
+        );
 
         Assert.Contains("PhysicalHashJoin [Inner]", result.PhysicalPlanText);
         Assert.Contains("query-scoped rows selected", result.PlanningText);
@@ -343,20 +410,22 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderInnerNestedLoopJoin_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy != e.Dummy");
+        var compiled = CompileForExecution(
+            "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy != e.Dummy"
+        );
 
         var table = compiled.Run();
 
         Assert.AreEqual(0, table.Count);
     }
 
-
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForInnerJoin_ShouldRunExecutableQuery()
     {
         var compiled = CompileForExecution(
             "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -364,5 +433,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual("single", table[0].ReadValue(0));
         Assert.AreEqual("single", table[0].ReadValue(1));
     }
-
 }

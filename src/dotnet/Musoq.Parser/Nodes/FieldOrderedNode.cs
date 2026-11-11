@@ -1,13 +1,22 @@
 namespace Musoq.Parser.Nodes;
 
-public class FieldOrderedNode(Node expression, int fieldOrder, string? fieldName, bool hasExplicitFieldName, Order order, NullOrdering nullOrdering = NullOrdering.Default)
-    : FieldNode(expression,
-        fieldOrder, fieldName, hasExplicitFieldName)
+public class FieldOrderedNode(
+    Node expression,
+    int fieldOrder,
+    string? fieldName,
+    bool hasExplicitFieldName,
+    Order order,
+    NullOrdering nullOrdering = NullOrdering.Default
+) : FieldNode(expression, fieldOrder, fieldName, hasExplicitFieldName)
 {
-    public FieldOrderedNode(Node expression, int fieldOrder, string? fieldName, Order order, NullOrdering nullOrdering = NullOrdering.Default) : this(expression,
-        fieldOrder, fieldName, !string.IsNullOrEmpty(fieldName), order, nullOrdering)
-    {
-    }
+    public FieldOrderedNode(
+        Node expression,
+        int fieldOrder,
+        string? fieldName,
+        Order order,
+        NullOrdering nullOrdering = NullOrdering.Default
+    )
+        : this(expression, fieldOrder, fieldName, !string.IsNullOrEmpty(fieldName), order, nullOrdering) { }
 
     public Order Order { get; } = order;
 
@@ -28,7 +37,7 @@ public class FieldOrderedNode(Node expression, int fieldOrder, string? fieldName
         {
             NullOrdering.First => " nulls first",
             NullOrdering.Last => " nulls last",
-            _ => string.Empty
+            _ => string.Empty,
         };
 
         return $"{Expression.ToString()}{order}{nulls}";

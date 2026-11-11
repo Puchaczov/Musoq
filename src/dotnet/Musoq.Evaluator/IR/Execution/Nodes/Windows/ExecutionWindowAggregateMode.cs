@@ -4,5 +4,5 @@ public enum ExecutionWindowAggregateMode
 {
     WholePartition,
     Running,
-    BoundedRows
+    BoundedRows,
 }

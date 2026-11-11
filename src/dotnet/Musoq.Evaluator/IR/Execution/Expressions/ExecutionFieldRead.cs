@@ -7,7 +7,8 @@ public sealed record ExecutionFieldRead(
     string FieldName,
     ExecutionTypeRef ReturnType,
     FieldAccessStrategy? AccessStrategy = null,
-    string? GeneratedTypeName = null) : ExecutionExpression(ReturnType)
+    string? GeneratedTypeName = null
+) : ExecutionExpression(ReturnType)
 {
     public ColumnStability Stability { get; init; } = ColumnStability.Stable;
 
@@ -19,8 +20,7 @@ public sealed record ExecutionFieldRead(
         string? alias,
         string fieldName,
         Type returnType,
-        FieldAccessStrategy? accessStrategy = null)
-        : this(alias, fieldName, ExecutionClrBindingFactory.FromClr(returnType), accessStrategy)
-    {
-    }
+        FieldAccessStrategy? accessStrategy = null
+    )
+        : this(alias, fieldName, ExecutionClrBindingFactory.FromClr(returnType), accessStrategy) { }
 }

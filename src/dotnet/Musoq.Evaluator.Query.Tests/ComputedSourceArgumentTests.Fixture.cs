@@ -19,10 +19,21 @@ public sealed partial class ComputedSourceArgumentTests
     private static readonly CompilationOptions Options = new(parallelizationMode: ParallelizationMode.None);
 
     private static CompiledQuery Compile(string sql, CapturingProvider provider) =>
-        GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(), Options);
+        GeneratedExecutionIlInspection.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            Options
+        );
 
     private static void Set(CompiledQuery query, string name, object? value) =>
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, name, value);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            name,
+            value
+        );
 
     public sealed class ArgumentRow
     {
@@ -38,6 +49,7 @@ public sealed partial class ComputedSourceArgumentTests
         internal int OpenCount { get; set; }
         internal bool RequiresMetadataValue { get; init; }
         internal string? TraceId { get; init; }
+
         public ISchema GetSchema(string schema) => new CapturingSchema(this);
     }
 
@@ -45,13 +57,25 @@ public sealed partial class ComputedSourceArgumentTests
     {
         private static readonly SchemaMethodInfo[] Constructors =
         [
-            new("echo", new Musoq.Schema.Reflection.ConstructorInfo(typeof(Signature).GetConstructors().Single(), false,
-                ("path", typeof(string)), ("suffix", typeof(string)), ("number", typeof(int?))))
+            new(
+                "echo",
+                new Musoq.Schema.Reflection.ConstructorInfo(
+                    typeof(Signature).GetConstructors().Single(),
+                    false,
+                    ("path", typeof(string)),
+                    ("suffix", typeof(string)),
+                    ("number", typeof(int?))
+                )
+            ),
         ];
 
         public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext context) => Constructors;
 
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext context, params object?[] arguments)
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext context,
+            params object?[] arguments
+        )
         {
             if (name == "echo")
             {
@@ -62,25 +86,37 @@ public sealed partial class ComputedSourceArgumentTests
             return new GenericEntityTable<ArgumentRow>();
         }
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext context, TArguments arguments)
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext context,
+            TArguments arguments
+        )
         {
             owner.OpenCount++;
             ArgumentRow[] rows;
-            if (name == "seed") rows = [new() { Path = "a", Number = 1 }, new() { Path = "b", Number = 2 }];
+            if (name == "seed")
+                rows = [new() { Path = "a", Number = 1 }, new() { Path = "b", Number = 2 }];
             else
             {
                 var row = new ArgumentRow
                 {
                     Path = arguments.GetValue<string>(0),
                     Suffix = arguments.GetValue<string>(1),
-                    Number = arguments.GetValue<int?>(2)
+                    Number = arguments.GetValue<int?>(2),
                 };
                 owner.Opened.Add(row);
-                if (owner.TraceId is { } id) ArgumentLibrary.Record(id, "open");
+                if (owner.TraceId is { } id)
+                    ArgumentLibrary.Record(id, "open");
                 rows = [row];
             }
-            return EnsureSourceType<T, ArgumentRow>(name, new GenericChunkSource<ArgumentRow>(rows,
-                GenericEntityTable<ArgumentRow>.NameToIndexMap, GenericEntityTable<ArgumentRow>.IndexToObjectAccessMap));
+            return EnsureSourceType<T, ArgumentRow>(
+                name,
+                new GenericChunkSource<ArgumentRow>(
+                    rows,
+                    GenericEntityTable<ArgumentRow>.NameToIndexMap,
+                    GenericEntityTable<ArgumentRow>.IndexToObjectAccessMap
+                )
+            );
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -99,8 +135,11 @@ public sealed partial class ComputedSourceArgumentTests
     public sealed class ArgumentLibrary : LibraryBase
     {
         private static readonly ConcurrentDictionary<string, ConcurrentQueue<string>> Traces = new();
+
         internal static void Start(string id) => Traces[id] = new ConcurrentQueue<string>();
+
         internal static void Record(string id, string label) => Traces[id].Enqueue(label);
+
         internal static string[] End(string id) => Traces.TryRemove(id, out var trace) ? trace.ToArray() : [];
 
         [BindableMethod]

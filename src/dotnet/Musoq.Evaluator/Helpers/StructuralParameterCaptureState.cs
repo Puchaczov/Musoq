@@ -12,9 +12,7 @@ public sealed class StructuralParameterCaptureState
     private int _maxDepth;
 
     /// <summary>Creates a capture state using the global structural input limits.</summary>
-    public StructuralParameterCaptureState(
-        CancellationToken cancellationToken,
-        StructuralInputLimits? limits = null)
+    public StructuralParameterCaptureState(CancellationToken cancellationToken, StructuralInputLimits? limits = null)
     {
         CancellationToken = cancellationToken;
         _limits = limits ?? StructuralInputLimits.Default;
@@ -31,13 +29,11 @@ public sealed class StructuralParameterCaptureState
     {
         CancellationToken.ThrowIfCancellationRequested();
         if (depth <= 0 || depth > _limits.MaxDepth)
-            throw new InvalidOperationException(
-                $"Structural input exceeds maximum depth {_limits.MaxDepth}.");
+            throw new InvalidOperationException($"Structural input exceeds maximum depth {_limits.MaxDepth}.");
 
         _nodes = checked(_nodes + 1);
         if (_nodes > _limits.MaxNodes)
-            throw new InvalidOperationException(
-                $"Structural input exceeds maximum value nodes {_limits.MaxNodes}.");
+            throw new InvalidOperationException($"Structural input exceeds maximum value nodes {_limits.MaxNodes}.");
         if (depth > _maxDepth)
             _maxDepth = depth;
     }
@@ -50,18 +46,17 @@ public sealed class StructuralParameterCaptureState
             throw new ArgumentOutOfRangeException(nameof(rootDepth));
         var maxDepth = checked(rootDepth + Math.Max(0, metrics.MaxDepth) - 1);
         if (maxDepth > _limits.MaxDepth)
-            throw new InvalidOperationException(
-                $"Structural input exceeds maximum depth {_limits.MaxDepth}.");
+            throw new InvalidOperationException($"Structural input exceeds maximum depth {_limits.MaxDepth}.");
         if (metrics.NodeCount < 0 || metrics.StringBytes < 0)
             throw new ArgumentOutOfRangeException(nameof(metrics));
         _nodes = checked(_nodes + metrics.NodeCount);
         _stringBytes = checked(_stringBytes + metrics.StringBytes);
         if (_nodes > _limits.MaxNodes)
-            throw new InvalidOperationException(
-                $"Structural input exceeds maximum value nodes {_limits.MaxNodes}.");
+            throw new InvalidOperationException($"Structural input exceeds maximum value nodes {_limits.MaxNodes}.");
         if (_stringBytes > _limits.MaxStringBytes)
             throw new InvalidOperationException(
-                $"Structural input exceeds maximum string payload {_limits.MaxStringBytes} bytes.");
+                $"Structural input exceeds maximum string payload {_limits.MaxStringBytes} bytes."
+            );
         if (maxDepth > _maxDepth)
             _maxDepth = maxDepth;
     }
@@ -90,12 +85,13 @@ public sealed class StructuralParameterCaptureState
         {
             throw new InvalidOperationException(
                 "Structural input string payload overflowed the configured limit.",
-                exception);
+                exception
+            );
         }
 
         if (_stringBytes > _limits.MaxStringBytes)
             throw new InvalidOperationException(
-                $"Structural input exceeds maximum string payload {_limits.MaxStringBytes} bytes.");
+                $"Structural input exceeds maximum string payload {_limits.MaxStringBytes} bytes."
+            );
     }
-
 }

@@ -13,8 +13,14 @@ public class SchemaFromNode : FromNode
         Id = $"{nameof(SchemaFromNode)}{schema}{method}{paramsId}{Alias}";
     }
 
-    public SchemaFromNode(string schema, string method, ArgsListNode parameters, string alias, Type returnType,
-        int queryId)
+    public SchemaFromNode(
+        string schema,
+        string method,
+        ArgsListNode parameters,
+        string alias,
+        Type returnType,
+        int queryId
+    )
         : base(alias, returnType)
     {
         ArgumentNullException.ThrowIfNull(parameters);
@@ -42,9 +48,17 @@ public class SchemaFromNode : FromNode
 
     public override string Id { get; }
 
-    public SchemaFromNode WithSchemaSpan(TextSpan span) { SchemaSpan = span; return this; }
+    public SchemaFromNode WithSchemaSpan(TextSpan span)
+    {
+        SchemaSpan = span;
+        return this;
+    }
 
-    public SchemaFromNode WithMethodSpan(TextSpan span) { MethodSpan = span; return this; }
+    public SchemaFromNode WithMethodSpan(TextSpan span)
+    {
+        MethodSpan = span;
+        return this;
+    }
 
     public override void Accept(IExpressionVisitor visitor)
     {

@@ -15,7 +15,9 @@ public sealed class SchemaTextValidationBoundaryTests : SchemaParserTestsBase
     [DataRow("repeat Child upper")]
     public void InvalidModifiers_ShouldFailRecursively(string type)
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseTextSchema($"text Invalid {{ Value: {type} }}"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseTextSchema($"text Invalid {{ Value: {type} }}")
+        );
         Assert.AreEqual(DiagnosticCode.MQ4002_InvalidTextSchemaField, exception.Code);
     }
 
@@ -26,7 +28,9 @@ public sealed class SchemaTextValidationBoundaryTests : SchemaParserTestsBase
     [DataRow("repeat pattern '(?<Name>a)' capture (Name, Name)")]
     public void InvalidPatterns_ShouldFailBeforeAnyInput(string type)
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseTextSchema($"text Unused {{ Value: {type} }}"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseTextSchema($"text Unused {{ Value: {type} }}")
+        );
         Assert.AreEqual(DiagnosticCode.MQ4002_InvalidTextSchemaField, exception.Code);
     }
 }

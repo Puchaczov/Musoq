@@ -49,15 +49,27 @@ internal sealed class QueryLayout
         var keyword = _context.Tokens.Of(first.Token);
         return ClauseType(first) switch
         {
-            TokenType.Select or TokenType.GroupBy or TokenType.OrderBy or TokenType.PartitionBy => Document.Group(Document.Concat(keyword,
-                Document.Indent(Document.Concat(Document.Break(), _expressions.Lists.Build(body))))),
-            TokenType.Where or TokenType.Having or TokenType.Qualify => Document.Concat(keyword,
-                Document.Indent(Document.Concat(Document.Line, Sequence(body)))),
+            TokenType.Select or TokenType.GroupBy or TokenType.OrderBy or TokenType.PartitionBy => Document.Group(
+                Document.Concat(
+                    keyword,
+                    Document.Indent(Document.Concat(Document.Break(), _expressions.Lists.Build(body)))
+                )
+            ),
+            TokenType.Where or TokenType.Having or TokenType.Qualify => Document.Concat(
+                keyword,
+                Document.Indent(Document.Concat(Document.Line, Sequence(body)))
+            ),
             TokenType.On => Document.Indent(Document.Concat(keyword, Document.Text(" "), Sequence(body))),
-            TokenType.Window => Document.Concat(keyword,
-                Document.Indent(Document.Concat(Document.Line, _expressions.Lists.Build(body, Document.Line)))),
-            TokenType.With => Document.Concat(keyword, Document.Text(" "), _expressions.Lists.Build(body, Document.Blank)),
-            _ => Document.Concat(keyword, Document.Text(" "), Sequence(body))
+            TokenType.Window => Document.Concat(
+                keyword,
+                Document.Indent(Document.Concat(Document.Line, _expressions.Lists.Build(body, Document.Line)))
+            ),
+            TokenType.With => Document.Concat(
+                keyword,
+                Document.Text(" "),
+                _expressions.Lists.Build(body, Document.Blank)
+            ),
+            _ => Document.Concat(keyword, Document.Text(" "), Sequence(body)),
         };
     }
 
@@ -68,11 +80,30 @@ internal sealed class QueryLayout
         return element.Token.TokenType;
     }
 
-    private bool IsClause(LayoutElement element) => element.IsKeyword && ClauseType(element) is
-        TokenType.Select or TokenType.From or TokenType.Where or TokenType.GroupBy or TokenType.Having or TokenType.OrderBy
-        or TokenType.Window or TokenType.Qualify or TokenType.Skip or TokenType.Take or TokenType.On
-        or TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossJoin or TokenType.AsOfJoin or TokenType.SemiJoin
-        or TokenType.AntiJoin or TokenType.CrossApply or TokenType.OuterApply or TokenType.Union or TokenType.UnionAll
-        or TokenType.Except or TokenType.Intersect;
-
+    private bool IsClause(LayoutElement element) =>
+        element.IsKeyword
+        && ClauseType(element)
+            is TokenType.Select
+                or TokenType.From
+                or TokenType.Where
+                or TokenType.GroupBy
+                or TokenType.Having
+                or TokenType.OrderBy
+                or TokenType.Window
+                or TokenType.Qualify
+                or TokenType.Skip
+                or TokenType.Take
+                or TokenType.On
+                or TokenType.InnerJoin
+                or TokenType.OuterJoin
+                or TokenType.CrossJoin
+                or TokenType.AsOfJoin
+                or TokenType.SemiJoin
+                or TokenType.AntiJoin
+                or TokenType.CrossApply
+                or TokenType.OuterApply
+                or TokenType.Union
+                or TokenType.UnionAll
+                or TokenType.Except
+                or TokenType.Intersect;
 }

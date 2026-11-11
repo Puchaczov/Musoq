@@ -18,7 +18,12 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingParameterizedRunnable();
         using var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "value",
+            1
+        );
 
         var firstRun = StartLongRunning(() => query.Run());
         try
@@ -55,7 +60,12 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingParameterizedRunnable();
         var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "value",
+            3
+        );
 
         var run = StartLongRunning(() => query.Run());
         try
@@ -84,7 +94,12 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingContextualRunnable();
         using var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "value",
+            1
+        );
 
         var firstRun = StartLongRunning(() => query.Run());
         try
@@ -116,7 +131,10 @@ public sealed class CompiledQueryRuntimeStateTests
         var firstResult = await firstRun;
         var secondResult = await secondRun;
 
-        CollectionAssert.AreEquivalent(new[] { 1, 2 }, new[] { firstResult[0].ReadValue(0), secondResult[0].ReadValue(0) });
+        CollectionAssert.AreEquivalent(
+            new[] { 1, 2 },
+            new[] { firstResult[0].ReadValue(0), secondResult[0].ReadValue(0) }
+        );
     }
 
     [TestMethod]
@@ -124,7 +142,12 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingContextualRunnable();
         var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "value",
+            3
+        );
 
         var firstRun = StartLongRunning(() => query.Run());
         try
@@ -151,20 +174,16 @@ public sealed class CompiledQueryRuntimeStateTests
     }
 
     private static Task<T> StartLongRunning<T>(Func<T> function) =>
-        Task.Factory.StartNew(
-            function,
-            CancellationToken.None,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+        Task.Factory.StartNew(function, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
     private static Task StartLongRunning(Action action) =>
-        Task.Factory.StartNew(
-            action,
-            CancellationToken.None,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+        Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
-    private sealed class BlockingParameterizedRunnable : ITableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable, IDisposable
+    private sealed class BlockingParameterizedRunnable
+        : ITableRunnable,
+            IParameterizedRunnable,
+            ITypedParameterizedRunnable,
+            IDisposable
     {
         internal readonly ManualResetEventSlim FirstRunStarted = new(false);
         internal readonly ManualResetEventSlim Release = new(false);
@@ -173,10 +192,16 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
@@ -198,8 +223,7 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public bool IsDisposed { get; private set; }
 
-        public bool DisposeObservedActiveRun =>
-            Volatile.Read(ref _disposeObservedActiveRun) != 0;
+        public bool DisposeObservedActiveRun => Volatile.Read(ref _disposeObservedActiveRun) != 0;
 
         public Table Run(CancellationToken token)
         {
@@ -236,12 +260,10 @@ public sealed class CompiledQueryRuntimeStateTests
 
         private sealed class ValueRow(int value) : Row
         {
-            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
-                => TypedColumnVisit.Apply(0, value, ref visitor);
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor) =>
+                TypedColumnVisit.Apply(0, value, ref visitor);
 
             public override int Count => 1;
-
-
         }
 
         private sealed class ThrowingSchemaProvider : ISchemaProvider
@@ -251,7 +273,11 @@ public sealed class CompiledQueryRuntimeStateTests
         }
     }
 
-    private sealed class BlockingContextualRunnable : IContextTableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable, IDisposable
+    private sealed class BlockingContextualRunnable
+        : IContextTableRunnable,
+            IParameterizedRunnable,
+            ITypedParameterizedRunnable,
+            IDisposable
     {
         private int _activeRuns;
         private int _maximumConcurrentRuns;
@@ -263,10 +289,16 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
@@ -288,8 +320,7 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public bool IsDisposed { get; private set; }
 
-        public bool DisposeObservedActiveRun =>
-            Volatile.Read(ref _disposeObservedActiveRun) != 0;
+        public bool DisposeObservedActiveRun => Volatile.Read(ref _disposeObservedActiveRun) != 0;
 
         public int MaximumConcurrentRuns => Volatile.Read(ref _maximumConcurrentRuns);
 
@@ -333,19 +364,20 @@ public sealed class CompiledQueryRuntimeStateTests
             while (true)
             {
                 var current = Volatile.Read(ref _maximumConcurrentRuns);
-                if (active <= current || Interlocked.CompareExchange(ref _maximumConcurrentRuns, active, current) == current)
+                if (
+                    active <= current
+                    || Interlocked.CompareExchange(ref _maximumConcurrentRuns, active, current) == current
+                )
                     return;
             }
         }
 
         private sealed class ValueRow(int value) : Row
         {
-            public override void VisitColumns<TVisitor>(ref TVisitor visitor)
-                => TypedColumnVisit.Apply(0, value, ref visitor);
+            public override void VisitColumns<TVisitor>(ref TVisitor visitor) =>
+                TypedColumnVisit.Apply(0, value, ref visitor);
 
             public override int Count => 1;
-
-
         }
 
         private sealed class ThrowingSchemaProvider : ISchemaProvider

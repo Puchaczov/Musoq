@@ -27,30 +27,38 @@ public partial class BugProbeTextSwitchFieldTests
     [TestMethod]
     public void Text_SwitchField_ShouldDispatchByPattern()
     {
-        var query = @"
-            text Comment { _: literal '#', Text: rest };
-            text KeyValue { Key: until '=', Value: rest };
-            text ConfigLine {
-                Content: switch {
-                    pattern '#' => Comment,
-                    _ => KeyValue
-                }
-            };
-            select d.Content.Key from #test.lines() l
-            cross apply Parse<ConfigLine>(l.Line) d
-            where d.Content.Key is not null";
+        var query = (
+            "\n"
+            + "            text Comment { _: literal '#', Text: rest };\n"
+            + "            text KeyValue { Key: until '=', Value: rest };\n"
+            + "            text ConfigLine {\n"
+            + "                Content: switch {\n"
+            + "                    pattern '#' => Comment,\n"
+            + "                    _ => KeyValue\n"
+            + "                }\n"
+            + "            };\n"
+            + "            select d.Content.Key from #test.lines() l\n"
+            + "            cross apply Parse<ConfigLine>(l.Line) d\n"
+            + "            where d.Content.Key is not null"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "1.txt", Text = "host=localhost" },
             new TextEntity { Name = "2.txt", Text = "#comment line" },
-            new TextEntity { Name = "3.txt", Text = "port=8080" }
+            new TextEntity { Name = "3.txt", Text = "port=8080" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);

@@ -16,8 +16,10 @@ internal static class TableViaRowsResultInfoResolver
         }
 
         // Plans are immutable. Identity-based storage also keeps record copies with a new body independent.
-        renderPlan = Plans.GetValue(plan, key =>
-            new TableViaRowsRenderPlan(resultInfo, FinalProjectionSinkPlanner.Plan(key, resultInfo)));
+        renderPlan = Plans.GetValue(
+            plan,
+            key => new TableViaRowsRenderPlan(resultInfo, FinalProjectionSinkPlanner.Plan(key, resultInfo))
+        );
         return true;
     }
 
@@ -34,7 +36,8 @@ internal static class TableViaRowsResultInfoResolver
             plan.FinalResult.Shape.TypeName,
             FinalSelectShapeNaming.CreateTypeName(plan.FinalResult),
             plan.FinalResult.Shape.Fields,
-            plan.FinalResult.ColumnMetadata.Fields);
+            plan.FinalResult.ColumnMetadata.Fields
+        );
         return true;
     }
 }

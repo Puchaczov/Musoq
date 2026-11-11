@@ -37,13 +37,10 @@ public sealed class BitsOperationsBranchCoverageTests : PluginsTestBase
                     $"{FormatMethodName(method)}_Valid_ReturnsExpected",
                     method,
                     [typedValue, ShiftAmount],
-                    CreateShiftExpected(operationName, value, method.ReturnType));
+                    CreateShiftExpected(operationName, value, method.ReturnType)
+                );
 
-                yield return Case(
-                    $"{FormatMethodName(method)}_Null_ReturnsNull",
-                    method,
-                    [null, ShiftAmount],
-                    null);
+                yield return Case($"{FormatMethodName(method)}_Null_ReturnsNull", method, [null, ShiftAmount], null);
             }
         }
     }
@@ -63,19 +60,21 @@ public sealed class BitsOperationsBranchCoverageTests : PluginsTestBase
                 $"{FormatMethodName(method)}_Valid_ReturnsExpected",
                 method,
                 [CreateTypedValue(NotValue, method.GetParameters()[0].ParameterType)],
-                CreateNotExpected(method.ReturnType));
+                CreateNotExpected(method.ReturnType)
+            );
 
-            yield return Case(
-                $"{FormatMethodName(method)}_Null_ReturnsNull",
-                method,
-                [null],
-                null);
+            yield return Case($"{FormatMethodName(method)}_Null_ReturnsNull", method, [null], null);
         }
     }
 
     [TestMethod]
     [DynamicData(nameof(BinaryOperationCases))]
-    public void BinaryOperation_Cases_ReturnExpected(string name, MethodInfo method, object?[] arguments, object? expected)
+    public void BinaryOperation_Cases_ReturnExpected(
+        string name,
+        MethodInfo method,
+        object?[] arguments,
+        object? expected
+    )
     {
         Assert.AreEqual(expected, method.Invoke(Library, arguments), name);
     }
@@ -94,19 +93,12 @@ public sealed class BitsOperationsBranchCoverageTests : PluginsTestBase
                     $"{FormatMethodName(method)}_Valid_ReturnsExpected",
                     method,
                     [left, right],
-                    CreateBinaryExpected(operationName, method.ReturnType));
+                    CreateBinaryExpected(operationName, method.ReturnType)
+                );
 
-                yield return Case(
-                    $"{FormatMethodName(method)}_LeftNull_ReturnsNull",
-                    method,
-                    [null, right],
-                    null);
+                yield return Case($"{FormatMethodName(method)}_LeftNull_ReturnsNull", method, [null, right], null);
 
-                yield return Case(
-                    $"{FormatMethodName(method)}_RightNull_ReturnsNull",
-                    method,
-                    [left, null],
-                    null);
+                yield return Case($"{FormatMethodName(method)}_RightNull_ReturnsNull", method, [left, null], null);
             }
         }
     }
@@ -127,7 +119,7 @@ public sealed class BitsOperationsBranchCoverageTests : PluginsTestBase
         {
             "ShiftLeft" => value << ShiftAmount,
             "ShiftRight" => value >> ShiftAmount,
-            _ => throw new InvalidOperationException($"Unsupported shift operation: {operationName}.")
+            _ => throw new InvalidOperationException($"Unsupported shift operation: {operationName}."),
         };
 
         return CreateTypedValue(result, returnType);
@@ -140,7 +132,7 @@ public sealed class BitsOperationsBranchCoverageTests : PluginsTestBase
             "And" => BinaryLeftValue & BinaryRightValue,
             "Or" => BinaryLeftValue | BinaryRightValue,
             "Xor" => BinaryLeftValue ^ BinaryRightValue,
-            _ => throw new InvalidOperationException($"Unsupported binary operation: {operationName}.")
+            _ => throw new InvalidOperationException($"Unsupported binary operation: {operationName}."),
         };
 
         return CreateTypedValue(result, returnType);
@@ -181,7 +173,8 @@ public sealed class BitsOperationsBranchCoverageTests : PluginsTestBase
 
     private static string FormatMethodName(MethodInfo method)
     {
-        var parameterTypes = method.GetParameters()
+        var parameterTypes = method
+            .GetParameters()
             .Select(static parameter => GetUnderlyingType(parameter.ParameterType).Name);
 
         return $"{method.Name}_{string.Join('_', parameterTypes)}";

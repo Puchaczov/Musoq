@@ -19,26 +19,28 @@ public class TypesEntity
         { nameof(DateTimeCol), 9 },
         { nameof(DateTimeOffsetCol), 10 },
         { nameof(GuidCol), 11 },
-        { nameof(NullableIntCol), 12 }
+        { nameof(NullableIntCol), 12 },
     };
 
-    public static readonly IReadOnlyDictionary<int, Func<TypesEntity, object?>> IndexToObjectAccessMap =
-        new Dictionary<int, Func<TypesEntity, object?>>
-        {
-            { 0, entity => entity.IntCol },
-            { 1, entity => entity.LongCol },
-            { 2, entity => entity.ShortCol },
-            { 3, entity => entity.ByteCol },
-            { 4, entity => entity.DecimalCol },
-            { 5, entity => entity.DoubleCol },
-            { 6, entity => entity.FloatCol },
-            { 7, entity => entity.BoolCol },
-            { 8, entity => entity.StringCol },
-            { 9, entity => entity.DateTimeCol },
-            { 10, entity => entity.DateTimeOffsetCol },
-            { 11, entity => entity.GuidCol },
-            { 12, entity => entity.NullableIntCol }
-        };
+    public static readonly IReadOnlyDictionary<int, Func<TypesEntity, object?>> IndexToObjectAccessMap = new Dictionary<
+        int,
+        Func<TypesEntity, object?>
+    >
+    {
+        { 0, entity => entity.IntCol },
+        { 1, entity => entity.LongCol },
+        { 2, entity => entity.ShortCol },
+        { 3, entity => entity.ByteCol },
+        { 4, entity => entity.DecimalCol },
+        { 5, entity => entity.DoubleCol },
+        { 6, entity => entity.FloatCol },
+        { 7, entity => entity.BoolCol },
+        { 8, entity => entity.StringCol },
+        { 9, entity => entity.DateTimeCol },
+        { 10, entity => entity.DateTimeOffsetCol },
+        { 11, entity => entity.GuidCol },
+        { 12, entity => entity.NullableIntCol },
+    };
 
     public int IntCol { get; set; }
 

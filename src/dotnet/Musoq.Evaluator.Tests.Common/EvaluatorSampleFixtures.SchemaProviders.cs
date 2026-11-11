@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 
 internal static partial class EvaluatorSampleFixtures
 {
-
     internal static BasicSchemaProvider<BasicEntity> CreateBasicSchemaProvider()
     {
         return new BasicSchemaProvider<BasicEntity>(
@@ -20,24 +19,16 @@ internal static partial class EvaluatorSampleFixtures
             {
                 { "#A", Array.Empty<BasicEntity>() },
                 { "#B", Array.Empty<BasicEntity>() },
-                { "#C", Array.Empty<BasicEntity>() }
-            });
+                { "#C", Array.Empty<BasicEntity>() },
+            }
+        );
     }
 
     private static GeneratedApplySampleSchemaProvider CreateGeneratedApplySchemaProvider()
     {
-        return new GeneratedApplySampleSchemaProvider(
-        [
-            new GeneratedApplySampleEntity
-            {
-                Name = "left",
-                Numbers = [1, 2]
-            },
-            new GeneratedApplySampleEntity
-            {
-                Name = "right",
-                Numbers = [3]
-            }
+        return new GeneratedApplySampleSchemaProvider([
+            new GeneratedApplySampleEntity { Name = "left", Numbers = [1, 2] },
+            new GeneratedApplySampleEntity { Name = "right", Numbers = [3] },
         ]);
     }
 
@@ -68,18 +59,9 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedApplySampleSchemaProvider CreateMixedDistinctGeneratedApplySchemaProvider()
     {
-        return new GeneratedApplySampleSchemaProvider(
-        [
-            new GeneratedApplySampleEntity
-            {
-                Name = "left",
-                Numbers = [1, 1, 4]
-            },
-            new GeneratedApplySampleEntity
-            {
-                Name = "right",
-                Numbers = [3]
-            }
+        return new GeneratedApplySampleSchemaProvider([
+            new GeneratedApplySampleEntity { Name = "left", Numbers = [1, 1, 4] },
+            new GeneratedApplySampleEntity { Name = "right", Numbers = [3] },
         ]);
     }
 
@@ -90,28 +72,29 @@ internal static partial class EvaluatorSampleFixtures
             {
                 ["Team"] = typeof(string),
                 ["Name"] = typeof(string),
-                ["Score"] = typeof(int)
+                ["Score"] = typeof(int),
             },
             [
                 new Dictionary<string, object>
                 {
                     ["Team"] = "red",
                     ["Name"] = "ada",
-                    ["Score"] = 2
+                    ["Score"] = 2,
                 },
                 new Dictionary<string, object>
                 {
                     ["Team"] = "blue",
                     ["Name"] = "bea",
-                    ["Score"] = 1
+                    ["Score"] = 1,
                 },
                 new Dictionary<string, object>
                 {
                     ["Team"] = "red",
                     ["Name"] = "cid",
-                    ["Score"] = 3
-                }
-            ]);
+                    ["Score"] = 3,
+                },
+            ]
+        );
     }
 
     private sealed class GeneratedApplySampleSchemaProvider(IReadOnlyList<GeneratedApplySampleEntity> rows)
@@ -119,8 +102,10 @@ internal static partial class EvaluatorSampleFixtures
     {
         public ISchema GetSchema(string schema)
         {
-            if (!string.Equals(schema, "apply", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(schema, "#apply", StringComparison.OrdinalIgnoreCase))
+            if (
+                !string.Equals(schema, "apply", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(schema, "#apply", StringComparison.OrdinalIgnoreCase)
+            )
                 throw new NotSupportedException(schema);
 
             return new GeneratedApplySampleSchema(rows);
@@ -133,7 +118,8 @@ internal static partial class EvaluatorSampleFixtures
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
                 return new GeneratedApplySampleTable();
@@ -141,7 +127,11 @@ internal static partial class EvaluatorSampleFixtures
             throw new NotSupportedException(name);
         }
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext executionContext,
+            TArguments nativeArguments
+        )
         {
             if (string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
                 return EnsureSourceType<T, GeneratedApplySampleEntity>(name, new GeneratedApplySampleRowSource(rows));
@@ -162,7 +152,7 @@ internal static partial class EvaluatorSampleFixtures
         public ISchemaColumn[] Columns { get; } =
         [
             new SchemaColumn(nameof(GeneratedApplySampleEntity.Name), 0, typeof(string)),
-            new SchemaColumn(nameof(GeneratedApplySampleEntity.Numbers), 1, typeof(int[]))
+            new SchemaColumn(nameof(GeneratedApplySampleEntity.Numbers), 1, typeof(int[])),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(GeneratedApplySampleEntity));
@@ -189,8 +179,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private sealed class DynamicSampleSchemaProvider(
         IReadOnlyDictionary<string, Type> columns,
-        IReadOnlyList<IReadOnlyDictionary<string, object>> rows)
-        : ISchemaProvider
+        IReadOnlyList<IReadOnlyDictionary<string, object>> rows
+    ) : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
@@ -203,21 +193,18 @@ internal static partial class EvaluatorSampleFixtures
         public static ISchemaProvider CreateBinary()
         {
             return new BinarySchemaProvider(
-                new Dictionary<string, IEnumerable<BinaryEntity>>
-                {
-                    { "#test", Array.Empty<BinaryEntity>() }
-                });
+                new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", Array.Empty<BinaryEntity>() } }
+            );
         }
 
         public static ISchemaProvider CreateText()
         {
             return new TextSchemaProvider(
-                new Dictionary<string, IEnumerable<TextEntity>>
-                {
-                    { "#test", Array.Empty<TextEntity>() }
-                });
+                new Dictionary<string, IEnumerable<TextEntity>> { { "#test", Array.Empty<TextEntity>() } }
+            );
         }
     }
+
     private sealed class BenchmarkSampleSchemaProvider(int inputCount) : ISchemaProvider
     {
         private readonly BenchmarkSampleSchema _schema = new(inputCount);
@@ -234,7 +221,8 @@ internal static partial class EvaluatorSampleFixtures
     {
         private readonly Dictionary<string, BenchmarkSampleRows> _sources;
 
-        public BenchmarkSampleSchema(int inputCount) : base("bench", CreateSampleLibrary())
+        public BenchmarkSampleSchema(int inputCount)
+            : base("bench", CreateSampleLibrary())
         {
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(inputCount);
             var rows = Enumerable.Range(0, inputCount).Select(CreateBenchmarkRow).ToArray();
@@ -243,21 +231,26 @@ internal static partial class EvaluatorSampleFixtures
             {
                 ["rows"] = new(rows),
                 ["lookup"] = new(rows.Take(3).ToArray()),
-                ["stream"] = new([rows[0] with { Payload = stream }])
+                ["stream"] = new([rows[0] with { Payload = stream }]),
             };
         }
 
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext context,
-            params object?[] parameters)
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext context,
+            params object?[] parameters
+        )
         {
             if (!_sources.ContainsKey(name))
                 throw new InvalidOperationException($"Unknown sample source '{name}'.");
             return new BenchmarkSampleTable();
         }
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name,
-            SourceExecutionContext context, TArguments arguments) =>
-            EnsureSourceType<T, BenchmarkSampleRow>(name, _sources[name]);
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext context,
+            TArguments arguments
+        ) => EnsureSourceType<T, BenchmarkSampleRow>(name, _sources[name]);
 
         private static MethodsAggregator CreateSampleLibrary()
         {
@@ -275,14 +268,23 @@ internal static partial class EvaluatorSampleFixtures
         payload[5] = 2;
         payload[6] = 10;
         payload[7] = 11;
-        return new BenchmarkSampleRow(index, index % 4, index + 1, $"item-{index % 4}",
-            index % 3 == 0 ? null : index, [index, index + 1], payload,
-            $"INFO|{index}|item-{index % 4}", payload[..3]);
+        return new BenchmarkSampleRow(
+            index,
+            index % 4,
+            index + 1,
+            $"item-{index % 4}",
+            index % 3 == 0 ? null : index,
+            [index, index + 1],
+            payload,
+            $"INFO|{index}|item-{index % 4}",
+            payload[..3]
+        );
     }
 
     private sealed class BenchmarkSampleTable : ISchemaTable
     {
-        public ISchemaColumn[] Columns { get; } = [
+        public ISchemaColumn[] Columns { get; } =
+        [
             new SchemaColumn(nameof(BenchmarkSampleRow.Id), 0, typeof(int)),
             new SchemaColumn(nameof(BenchmarkSampleRow.Key), 1, typeof(int)),
             new SchemaColumn(nameof(BenchmarkSampleRow.Amount), 2, typeof(decimal)),
@@ -291,11 +293,13 @@ internal static partial class EvaluatorSampleFixtures
             new SchemaColumn(nameof(BenchmarkSampleRow.Items), 5, typeof(int[])),
             new SchemaColumn(nameof(BenchmarkSampleRow.Payload), 6, typeof(byte[])),
             new SchemaColumn(nameof(BenchmarkSampleRow.Text), 7, typeof(string)),
-            new SchemaColumn(nameof(BenchmarkSampleRow.Truncated), 8, typeof(byte[]))
+            new SchemaColumn(nameof(BenchmarkSampleRow.Truncated), 8, typeof(byte[])),
         ];
         public SchemaTableMetadata Metadata { get; } = new(typeof(BenchmarkSampleRow));
+
         public ISchemaColumn? GetColumnByName(string name) =>
             Columns.FirstOrDefault(column => column.ColumnName == name);
+
         public ISchemaColumn[] GetColumnsByName(string name) =>
             Columns.Where(column => column.ColumnName == name).ToArray();
     }
@@ -314,8 +318,18 @@ public sealed class ScriptParameterSampleEntity
     public string Value { get; init; } = string.Empty;
 }
 
-public sealed record BenchmarkSampleRow(int Id, int Key, decimal Amount, string Name, int? Optional,
-    int[] Items, byte[] Payload, string Text, byte[] Truncated);
+public sealed record BenchmarkSampleRow(
+    int Id,
+    int Key,
+    decimal Amount,
+    string Name,
+    int? Optional,
+    int[] Items,
+    byte[] Payload,
+    string Text,
+    byte[] Truncated
+);
 
 public readonly record struct BenchmarkProjectionOutput(int Id, string Name);
+
 public readonly record struct BenchmarkWindowOutput(int Id, decimal? Total, decimal? First);

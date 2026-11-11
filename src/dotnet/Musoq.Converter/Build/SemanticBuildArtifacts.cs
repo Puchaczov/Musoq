@@ -25,16 +25,25 @@ internal sealed record SemanticBuildArtifacts
 
     public required IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> SourcePlanRequestsPerSchema { get; init; }
 
-    public IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap> SourceContractDiagnosticLocationsPerSchema { get; init; } =
+    public IReadOnlyDictionary<
+        SchemaFromNode,
+        SourceContractDiagnosticLocationMap
+    > SourceContractDiagnosticLocationsPerSchema { get; init; } =
         new Dictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>();
 
     public required IReadOnlyList<ScriptParameterDefinition> ScriptParameterDefinitions { get; init; }
 
     public required IReadOnlyList<ScriptVariableDefinition> ScriptVariableDefinitions { get; init; }
 
-    public required IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; init; }
+    public required IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > SourceRuntimeSettingsBySourceContextId { get; init; }
 
-    public required IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; init; }
+    public required IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId { get; init; }
 
     public required bool HasDeclaredSourceRuntimeSettings { get; init; }
 

@@ -8,8 +8,10 @@ internal static class HashBuildAliasUsage
 {
     public static bool BuildKeysReferenceAlias(PhysicalHashJoinNode hashJoin, string alias)
     {
-        return hashJoin.BuildKeys.Any(key => ColumnRefExtractor
-            .Extract(key)
-            .Any(column => string.Equals(column.Alias, alias, StringComparison.OrdinalIgnoreCase)));
+        return hashJoin.BuildKeys.Any(key =>
+            ColumnRefExtractor
+                .Extract(key)
+                .Any(column => string.Equals(column.Alias, alias, StringComparison.OrdinalIgnoreCase))
+        );
     }
 }

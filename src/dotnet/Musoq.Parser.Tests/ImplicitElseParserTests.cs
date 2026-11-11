@@ -34,10 +34,14 @@ public sealed class ImplicitElseParserTests : SchemaParserTestsBase
         var outer = ParseCase(sql);
         var inner = (CaseNode)((ThenNode)outer.WhenThenPairs[0].Then).Expression;
 
-        Assert.AreEqual(new TextSpan(sql.IndexOf("end", StringComparison.Ordinal), 0),
-            ((ElseNode)inner.Else).Expression.Span);
-        Assert.AreEqual(new TextSpan(sql.LastIndexOf("end", StringComparison.Ordinal), 0),
-            ((ElseNode)outer.Else).Expression.Span);
+        Assert.AreEqual(
+            new TextSpan(sql.IndexOf("end", StringComparison.Ordinal), 0),
+            ((ElseNode)inner.Else).Expression.Span
+        );
+        Assert.AreEqual(
+            new TextSpan(sql.LastIndexOf("end", StringComparison.Ordinal), 0),
+            ((ElseNode)outer.Else).Expression.Span
+        );
     }
 
     [TestMethod]

@@ -8,9 +8,7 @@ internal sealed class ReferenceComparer<T> : IEqualityComparer<T>
 {
     public static readonly ReferenceComparer<T> Instance = new();
 
-    private ReferenceComparer()
-    {
-    }
+    private ReferenceComparer() { }
 
     public bool Equals(T? left, T? right)
     {

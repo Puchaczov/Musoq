@@ -2,7 +2,8 @@ namespace Musoq.Parser.Nodes;
 
 public class LeftShiftNode : BinaryNode
 {
-    public LeftShiftNode(Node left, Node right) : base(left, right)
+    public LeftShiftNode(Node left, Node right)
+        : base(left, right)
     {
         Id = CalculateId(this);
     }

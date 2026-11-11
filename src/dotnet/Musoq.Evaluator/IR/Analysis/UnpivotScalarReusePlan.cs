@@ -12,12 +12,13 @@ namespace Musoq.Evaluator.IR.Analysis;
 internal sealed record UnpivotScalarReusePlan(
     IReadOnlyList<string> StableKeepFingerprints,
     IReadOnlyList<string> EntrySpecificFingerprints,
-    bool HasVolatileKeepValues)
+    bool HasVolatileKeepValues
+)
 {
     public bool CanHoistKeep(string fingerprint, ColumnStability stability)
     {
-        return stability == ColumnStability.Stable &&
-               StableKeepFingerprints.Contains(fingerprint, StringComparer.Ordinal);
+        return stability == ColumnStability.Stable
+            && StableKeepFingerprints.Contains(fingerprint, StringComparer.Ordinal);
     }
 
     public bool KeepsEntryEvaluationLocal(string fingerprint) =>

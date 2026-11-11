@@ -35,21 +35,22 @@ public partial class SchemaParser
                 "A binary switch must declare at least one case.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
-                closingToken.Span);
+                closingToken.Span
+            );
 
         ValidateBinarySwitchCases(cases);
 
-        return (BinarySwitchTypeNode)new BinarySwitchTypeNode(selector, cases.ToArray(), selectorSpan)
-            .WithSpan(switchToken.Span.Through(closingToken.Span));
+        return (BinarySwitchTypeNode)
+            new BinarySwitchTypeNode(selector, cases.ToArray(), selectorSpan).WithSpan(
+                switchToken.Span.Through(closingToken.Span)
+            );
     }
 
     private BinarySwitchCaseNode ComposeBinarySwitchCase()
     {
         var caseLabelStart = Current.Span;
         var caseValue = ComposeBinarySwitchCaseLabel();
-        var caseLabelSpan = caseValue?.Span is { IsEmpty: false } valueSpan
-            ? valueSpan
-            : caseLabelStart;
+        var caseLabelSpan = caseValue?.Span is { IsEmpty: false } valueSpan ? valueSpan : caseLabelStart;
 
         Consume(TokenType.FatArrow);
 
@@ -68,21 +69,35 @@ public partial class SchemaParser
             branchType,
             caseLabelSpan,
             branchAliasSpan,
-            branchTypeSpan);
+            branchTypeSpan
+        );
     }
 
     private Node? ComposeBinarySwitchCaseLabel()
     {
-        if (Current.TokenType == TokenType.Underscore ||
-            ((Current.TokenType is TokenType.Word or TokenType.Identifier) && Current.Value == "_"))
+        if (
+            Current.TokenType == TokenType.Underscore
+            || ((Current.TokenType is TokenType.Word or TokenType.Identifier) && Current.Value == "_")
+        )
         {
             Consume(Current.TokenType);
             return null;
         }
 
-        if (Current.TokenType is not (TokenType.Integer or TokenType.HexadecimalInteger or
-            TokenType.BinaryInteger or TokenType.OctalInteger or TokenType.Decimal or
-            TokenType.StringLiteral or TokenType.True or TokenType.False or TokenType.Hyphen))
+        if (
+            Current.TokenType
+            is not (
+                TokenType.Integer
+                or TokenType.HexadecimalInteger
+                or TokenType.BinaryInteger
+                or TokenType.OctalInteger
+                or TokenType.Decimal
+                or TokenType.StringLiteral
+                or TokenType.True
+                or TokenType.False
+                or TokenType.Hyphen
+            )
+        )
             throw InvalidSwitchCaseLabel(Current.Span);
 
         var label = ComposePrimaryExpression();
@@ -92,5 +107,4 @@ public partial class SchemaParser
 
         return label;
     }
-
 }

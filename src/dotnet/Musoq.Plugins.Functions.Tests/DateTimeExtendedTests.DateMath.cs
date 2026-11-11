@@ -24,8 +24,6 @@ public partial class DateTimeExtendedTests
         Assert.AreEqual(59, result.Value.Minute);
     }
 
-
-
     [TestMethod]
     public void IsWeekend_NullDateTimeOffset_ReturnsNull()
     {
@@ -68,11 +66,10 @@ public partial class DateTimeExtendedTests
     {
         var result = Library.DateDiffInDays(
             new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 6, 20, 0, 0, 0, TimeSpan.Zero));
+            new DateTimeOffset(2024, 6, 20, 0, 0, 0, TimeSpan.Zero)
+        );
         Assert.AreEqual(5, result);
     }
-
-
 
     [TestMethod]
     public void DateDiffInHours_NullStartDateTime_ReturnsNull()
@@ -98,11 +95,10 @@ public partial class DateTimeExtendedTests
     {
         var result = Library.DateDiffInHours(
             new DateTimeOffset(2024, 6, 15, 10, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 6, 15, 12, 0, 0, TimeSpan.Zero));
+            new DateTimeOffset(2024, 6, 15, 12, 0, 0, TimeSpan.Zero)
+        );
         Assert.AreEqual(2, result);
     }
-
-
 
     [TestMethod]
     public void DateDiffInMinutes_NullStartDateTime_ReturnsNull()
@@ -113,8 +109,10 @@ public partial class DateTimeExtendedTests
     [TestMethod]
     public void DateDiffInMinutes_ValidDates_ReturnsDifference()
     {
-        var result =
-            Library.DateDiffInMinutes(new DateTime(2024, 6, 15, 10, 0, 0), new DateTime(2024, 6, 15, 10, 30, 0));
+        var result = Library.DateDiffInMinutes(
+            new DateTime(2024, 6, 15, 10, 0, 0),
+            new DateTime(2024, 6, 15, 10, 30, 0)
+        );
         Assert.AreEqual(30, result);
     }
 
@@ -129,11 +127,10 @@ public partial class DateTimeExtendedTests
     {
         var result = Library.DateDiffInMinutes(
             new DateTimeOffset(2024, 6, 15, 10, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 6, 15, 10, 30, 0, TimeSpan.Zero));
+            new DateTimeOffset(2024, 6, 15, 10, 30, 0, TimeSpan.Zero)
+        );
         Assert.AreEqual(30, result);
     }
-
-
 
     [TestMethod]
     public void DateDiffInSeconds_NullStartDateTime_ReturnsNull()
@@ -144,8 +141,10 @@ public partial class DateTimeExtendedTests
     [TestMethod]
     public void DateDiffInSeconds_ValidDates_ReturnsDifference()
     {
-        var result =
-            Library.DateDiffInSeconds(new DateTime(2024, 6, 15, 10, 0, 0), new DateTime(2024, 6, 15, 10, 0, 45));
+        var result = Library.DateDiffInSeconds(
+            new DateTime(2024, 6, 15, 10, 0, 0),
+            new DateTime(2024, 6, 15, 10, 0, 45)
+        );
         Assert.AreEqual(45, result);
     }
 
@@ -160,11 +159,10 @@ public partial class DateTimeExtendedTests
     {
         var result = Library.DateDiffInSeconds(
             new DateTimeOffset(2024, 6, 15, 10, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 6, 15, 10, 0, 45, TimeSpan.Zero));
+            new DateTimeOffset(2024, 6, 15, 10, 0, 45, TimeSpan.Zero)
+        );
         Assert.AreEqual(45, result);
     }
-
-
 
     [TestMethod]
     public void WeekOfYear_ValidDateTime_ReturnsWeek()
@@ -187,8 +185,6 @@ public partial class DateTimeExtendedTests
         Assert.IsNotNull(result);
         Assert.IsTrue(result is >= 1 and <= 53);
     }
-
-
 
     [TestMethod]
     public void Quarter_January_ReturnsQ1()
@@ -226,8 +222,6 @@ public partial class DateTimeExtendedTests
         Assert.AreEqual(1, Library.Quarter(new DateTimeOffset(2024, 1, 15, 0, 0, 0, TimeSpan.Zero)));
     }
 
-
-
     [TestMethod]
     public void DayOfYear_ValidDateTime_ReturnsDayOfYear()
     {
@@ -247,12 +241,9 @@ public partial class DateTimeExtendedTests
         Assert.AreEqual(1, Library.DayOfYear(new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero)));
     }
 
-
-
     [TestMethod]
     public void IsLeapYear_2024_ReturnsTrue()
     {
         Assert.IsTrue(Library.IsLeapYear(new DateTime(2024, 1, 1)));
     }
-
 }

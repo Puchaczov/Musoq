@@ -11,10 +11,7 @@ internal static class PathColumnAdvisoryAnalyzer
         Visit(context, context.Query, new HashSet<Node>(ReferenceEqualityComparer.Instance));
     }
 
-    private static void Visit(
-        SemanticAdvisoryContext context,
-        Node node,
-        HashSet<Node> visited)
+    private static void Visit(SemanticAdvisoryContext context, Node node, HashSet<Node> visited)
     {
         if (!visited.Add(node))
             return;
@@ -39,10 +36,7 @@ internal static class PathColumnAdvisoryAnalyzer
             Visit(context, child, visited);
     }
 
-    private static void AnalyzeColumnLiteralPair(
-        SemanticAdvisoryContext context,
-        Node left,
-        Node right)
+    private static void AnalyzeColumnLiteralPair(SemanticAdvisoryContext context, Node left, Node right)
     {
         if (IsPathStringColumn(left))
         {
@@ -54,9 +48,7 @@ internal static class PathColumnAdvisoryAnalyzer
             ReportLiteral(context, left);
     }
 
-    private static void AnalyzeInArguments(
-        SemanticAdvisoryContext context,
-        InNode @in)
+    private static void AnalyzeInArguments(SemanticAdvisoryContext context, InNode @in)
     {
         if (!IsPathStringColumn(@in.Left) || @in.Right is not ArgsListNode arguments)
             return;
@@ -67,25 +59,26 @@ internal static class PathColumnAdvisoryAnalyzer
 
     private static bool IsPathStringColumn(Node node)
     {
-        return node is AccessColumnNode column &&
-               column.ReturnType == typeof(string) &&
-               SuspiciousOrdinaryStringEscapeDiagnostics.IsPathSensitiveName(column.Name);
+        return node is AccessColumnNode column
+            && column.ReturnType == typeof(string)
+            && SuspiciousOrdinaryStringEscapeDiagnostics.IsPathSensitiveName(column.Name);
     }
 
-    private static void ReportLiteral(
-        SemanticAdvisoryContext context,
-        Node literal)
+    private static void ReportLiteral(SemanticAdvisoryContext context, Node literal)
     {
         if (!context.Literals.TryResolve(literal, out var origin) || origin.IsRaw)
             return;
 
-        if (StringEscapeRiskDetector.Find(origin.Content, origin.ContentStart) is not
-            { IsRootedPath: false, HasNonEscapeContent: true } risk)
+        if (
+            StringEscapeRiskDetector.Find(origin.Content, origin.ContentStart)
+            is not { IsRootedPath: false, HasNonEscapeContent: true } risk
+        )
             return;
 
         context.Report(
             DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape,
             ErrorCatalog.GetMessage(DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, risk.EscapeText),
-            risk.Span);
+            risk.Span
+        );
     }
 }

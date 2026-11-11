@@ -18,7 +18,11 @@ internal static class IrExpressionDeterminism
         return expressions.All(IsDeterministic);
     }
 
-    public static bool TryGetFirstBlockedReason(IrExpression expression, out string reason, string subject = "Expression")
+    public static bool TryGetFirstBlockedReason(
+        IrExpression expression,
+        out string reason,
+        string subject = "Expression"
+    )
     {
         var reasons = new List<string>();
         AddBlockedReasons(expression, reasons, subject);
@@ -32,7 +36,11 @@ internal static class IrExpressionDeterminism
         return true;
     }
 
-    public static void AddBlockedReasons(IrExpression expression, ICollection<string> reasons, string subject = "Expression")
+    public static void AddBlockedReasons(
+        IrExpression expression,
+        ICollection<string> reasons,
+        string subject = "Expression"
+    )
     {
         switch (expression)
         {

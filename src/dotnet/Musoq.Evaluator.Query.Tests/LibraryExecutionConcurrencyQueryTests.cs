@@ -10,7 +10,6 @@ using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionConcurrencyQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -25,16 +24,35 @@ public sealed partial class LibraryExecutionConcurrencyQueryTests : MSTestContex
     [DataRow(false, true)]
     [DataRow(true, false)]
     [DataRow(true, true)]
-    public void ScalarQuery_WhenPermissionsIntersect_ShouldUseOnlyAuthorizedConcurrency(bool sourceAllowed, bool functionAllowed)
+    public void ScalarQuery_WhenPermissionsIntersect_ShouldUseOnlyAuthorizedConcurrency(
+        bool sourceAllowed,
+        bool functionAllowed
+    )
     {
         var concurrent = sourceAllowed && functionAllowed;
         using var probe = new ConcurrencyProbe(concurrent);
         var provider = CreateProvider(probe, sourceAllowed);
         var function = functionAllowed ? "PermittedWork" : "SerialWork";
         var query = $"select Position, {function}(Probe, Position) as Value from #schema.first()";
-        var inspection = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
-        Assert.AreEqual(concurrent, inspection.GeneratedCSharpCode.Contains("ProjectChunkedRowsParallel<", StringComparison.Ordinal), inspection.PlanningText);
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
+        Assert.AreEqual(
+            concurrent,
+            inspection.GeneratedCSharpCode.Contains("ProjectChunkedRowsParallel<", StringComparison.Ordinal),
+            inspection.PlanningText
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 

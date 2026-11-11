@@ -11,9 +11,7 @@ internal static partial class SourcePredicateCapabilityNegotiator
         return result;
     }
 
-    private static void AddConjuncts(
-        SourcePredicateExpression predicate,
-        ICollection<SourcePredicateExpression> result)
+    private static void AddConjuncts(SourcePredicateExpression predicate, ICollection<SourcePredicateExpression> result)
     {
         if (predicate is SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical)
         {
@@ -33,10 +31,7 @@ internal static partial class SourcePredicateCapabilityNegotiator
         var result = predicates[0];
         for (var index = 1; index < predicates.Count; index++)
         {
-            result = new SourcePredicateLogical(
-                SourcePredicateLogicalOperator.And,
-                result,
-                predicates[index]);
+            result = new SourcePredicateLogical(SourcePredicateLogicalOperator.And, result, predicates[index]);
         }
 
         return result;

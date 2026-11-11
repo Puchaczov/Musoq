@@ -14,7 +14,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private IReadOnlyList<ExpressionSyntax> CreateParallelRunnerConstructorArguments(
         IReadOnlyList<CapturedLocal> captures,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var arguments = new List<ExpressionSyntax>
         {
@@ -25,7 +26,7 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName("token"),
             SyntaxFactory.IdentifierName("__musoqProgressContext"),
             SyntaxFactory.IdentifierName("OnDataSourceProgress"),
-            SyntaxFactory.IdentifierName("OnQueryProgress")
+            SyntaxFactory.IdentifierName("OnQueryProgress"),
         };
 
         arguments.Add(SyntaxFactory.IdentifierName("OnPhaseChanged"));
@@ -48,36 +49,43 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IReadOnlyList<ParameterSyntax> CreateParallelRunnerConstructorParameters(
         IReadOnlyList<CapturedLocal> captures,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        return [
-            ..CreateParallelRunnerRuntimeMembers(context)
+        return
+        [
+            .. CreateParallelRunnerRuntimeMembers(context)
                 .Select(static member => CreateParameter(member.ParameterName, member.Type)),
-            ..captures.Select(CreateCapturedLocalParameter)
+            .. captures.Select(CreateCapturedLocalParameter),
         ];
     }
 
     private ParameterListSyntax CreateParallelTaskParameterList(
         IReadOnlyList<CapturedLocal> captures,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
-        [
-            ..CreateParallelRunnerRuntimeMembers(context)
-                .Select(static member => CreateParameter(member.ParameterName, member.Type)),
-            ..captures.Select(CreateCapturedLocalParameter)
-        ]));
+        return SyntaxFactory.ParameterList(
+            SyntaxFactory.SeparatedList([
+                .. CreateParallelRunnerRuntimeMembers(context)
+                    .Select(static member => CreateParameter(member.ParameterName, member.Type)),
+                .. captures.Select(CreateCapturedLocalParameter),
+            ])
+        );
     }
 
     private IReadOnlyList<ExpressionSyntax> CreateParallelRunnerStaticTaskArguments(
         IReadOnlyList<CapturedLocal> captures,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        return [
-            ..CreateParallelRunnerRuntimeMembers(context)
+        return
+        [
+            .. CreateParallelRunnerRuntimeMembers(context)
                 .Select(static member => (ExpressionSyntax)SyntaxFactory.IdentifierName(member.FieldName)),
-            ..captures.Select(capture => (ExpressionSyntax)SyntaxFactory.IdentifierName(
-                CreateParallelRunnerCapturedFieldName(capture)))
+            .. captures.Select(capture =>
+                (ExpressionSyntax)SyntaxFactory.IdentifierName(CreateParallelRunnerCapturedFieldName(capture))
+            ),
         ];
     }
 
@@ -87,7 +95,8 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private IReadOnlyList<ParallelRunnerRuntimeMember> CreateParallelRunnerRuntimeMembers(
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var members = new List<ParallelRunnerRuntimeMember>
         {
@@ -95,42 +104,67 @@ public sealed partial class ExecutionCSharpRenderer
             new(
                 "sourceRuntimeSettingsBySourceContextId",
                 "_sourceRuntimeSettingsBySourceContextId",
-                SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>")),
+                SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>")
+            ),
             new(
                 "sourceExecutionPlans",
                 "_sourceExecutionPlans",
-                SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, SourceExecutionPlan>")),
+                SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, SourceExecutionPlan>")
+            ),
             new("logger", "_logger", CreateTypeSyntax(typeof(ILogger))),
             new("token", "_token", CreateTypeSyntax(typeof(CancellationToken))),
             new("__musoqProgressContext", "_musoqProgressContext", SyntaxFactory.ParseTypeName("QueryRunContext?")),
             new("OnDataSourceProgress", "_onDataSourceProgress", CreateTypeSyntax(typeof(DataSourceEventHandler))),
             new("OnQueryProgress", "_onQueryProgress", CreateTypeSyntax(typeof(QueryProgressEventHandler))),
-            new("OnPhaseChanged", "_onPhaseChanged", SyntaxFactory.ParseTypeName("Action<string, QueryPhase>"))
+            new("OnPhaseChanged", "_onPhaseChanged", SyntaxFactory.ParseTypeName("Action<string, QueryPhase>")),
         };
 
         if (IsInstrumentationEnabled)
         {
-            members.Add(new ParallelRunnerRuntimeMember(
-                ProfileRecorderVariableName,
-                $"_{ProfileRecorderVariableName}",
-                CreateTypeSyntax(typeof(QueryProfileRecorder))));
+            members.Add(
+                new ParallelRunnerRuntimeMember(
+                    ProfileRecorderVariableName,
+                    $"_{ProfileRecorderVariableName}",
+                    CreateTypeSyntax(typeof(QueryProfileRecorder))
+                )
+            );
         }
 
         if (context.Session.IncludeTableResults)
         {
-            members.Add(new ParallelRunnerRuntimeMember("_tableResults", "_tableResults", SyntaxFactory.ArrayType(CreateTypeSyntax(typeof(Table)))
-                .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                    SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                        SyntaxFactory.OmittedArraySizeExpression()))))));
+            members.Add(
+                new ParallelRunnerRuntimeMember(
+                    "_tableResults",
+                    "_tableResults",
+                    SyntaxFactory
+                        .ArrayType(CreateTypeSyntax(typeof(Table)))
+                        .WithRankSpecifiers(
+                            SyntaxFactory.SingletonList(
+                                SyntaxFactory.ArrayRankSpecifier(
+                                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                        SyntaxFactory.OmittedArraySizeExpression()
+                                    )
+                                )
+                            )
+                        )
+                )
+            );
         }
 
         if (context.Session.IncludeCteRowResults)
-            members.Add(new ParallelRunnerRuntimeMember("_cteRowResults", "_cteRowResults", CreateCteRowResultsTypeSyntax()));
+            members.Add(
+                new ParallelRunnerRuntimeMember("_cteRowResults", "_cteRowResults", CreateCteRowResultsTypeSyntax())
+            );
 
         if (context.Session.IncludeCteIndexResults)
-            members.Add(new ParallelRunnerRuntimeMember("_cteIndexResults", "_cteIndexResults", CreateCteIndexResultsTypeSyntax()));
+            members.Add(
+                new ParallelRunnerRuntimeMember(
+                    "_cteIndexResults",
+                    "_cteIndexResults",
+                    CreateCteIndexResultsTypeSyntax()
+                )
+            );
 
         return members;
     }
-
 }

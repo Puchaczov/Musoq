@@ -7,7 +7,8 @@ public sealed record ExecutionKeySetProbe(
     ExecutionBlock Body,
     ExecutionBlock? NoMatchBody = null,
     ExecutionVariable? MatchFound = null,
-    string? KeyVariableName = null) : ExecutionNode
+    string? KeyVariableName = null
+) : ExecutionNode
 {
     internal ExecutionKeySetProbe(
         ExecutionVariable set,
@@ -16,8 +17,8 @@ public sealed record ExecutionKeySetProbe(
         ExecutionBlock body,
         ExecutionBlock? noMatchBody = null,
         ExecutionVariable? matchFound = null,
-        string? keyVariableName = null)
+        string? keyVariableName = null
+    )
         : this(set, key, ExecutionClrBindingFactory.FromClr(keyType), body, noMatchBody, matchFound, keyVariableName)
-    {
-    }
+    { }
 }

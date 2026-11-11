@@ -12,7 +12,8 @@ public sealed class DiagnosticRelatedLocation
         SourceLocation location,
         SourceLocation? endLocation = null,
         string? message = null,
-        DiagnosticSourceKind sourceKind = DiagnosticSourceKind.Query)
+        DiagnosticSourceKind sourceKind = DiagnosticSourceKind.Query
+    )
     {
         Location = location;
         EndLocation = endLocation ?? location;

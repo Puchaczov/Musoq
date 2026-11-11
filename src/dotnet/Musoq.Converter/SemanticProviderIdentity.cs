@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -29,7 +29,11 @@ internal static class SemanticProviderIdentity
         if (value is null || depth > 8 || !visited.Add(value))
             return;
         if (value is ISchemaProvider or ISchema or ISchemaTable)
-            result.Append(Identities.GetValue(value, static _ => new Identity(Interlocked.Increment(ref _nextIdentity))).Value).Append(';');
+            result
+                .Append(
+                    Identities.GetValue(value, static _ => new Identity(Interlocked.Increment(ref _nextIdentity))).Value
+                )
+                .Append(';');
         if (value is IDictionary dictionary)
         {
             foreach (DictionaryEntry entry in dictionary)
@@ -44,7 +48,11 @@ internal static class SemanticProviderIdentity
         }
         if (value is not ISchemaProvider and not ISchema)
             return;
-        foreach (var field in Fields.GetValue(value.GetType(), static type => new CapturedFields(FindCapturedFields(type))).Value)
+        foreach (
+            var field in Fields
+                .GetValue(value.GetType(), static type => new CapturedFields(FindCapturedFields(type)))
+                .Value
+        )
             Append(field.GetValue(value), result, visited, depth + 1);
     }
 
@@ -52,18 +60,30 @@ internal static class SemanticProviderIdentity
     {
         var result = new List<FieldInfo>();
         for (var current = type; current is not null; current = current.BaseType)
-            result.AddRange(current.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
-                .Where(static field => CanContainContract(field.FieldType)));
+            result.AddRange(
+                current
+                    .GetFields(
+                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly
+                    )
+                    .Where(static field => CanContainContract(field.FieldType))
+            );
         return result.ToArray();
     }
 
-    private static bool CanContainContract(Type type)
-        => type == typeof(object) || typeof(ISchemaProvider).IsAssignableFrom(type) ||
-           typeof(ISchema).IsAssignableFrom(type) || typeof(ISchemaTable).IsAssignableFrom(type) ||
-           typeof(IDictionary).IsAssignableFrom(type) || typeof(ITuple).IsAssignableFrom(type) ||
-           type.GetInterfaces().Append(type).Any(static candidate => candidate.IsGenericType &&
-               candidate.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>));
+    private static bool CanContainContract(Type type) =>
+        type == typeof(object)
+        || typeof(ISchemaProvider).IsAssignableFrom(type)
+        || typeof(ISchema).IsAssignableFrom(type)
+        || typeof(ISchemaTable).IsAssignableFrom(type)
+        || typeof(IDictionary).IsAssignableFrom(type)
+        || typeof(ITuple).IsAssignableFrom(type)
+        || type.GetInterfaces()
+            .Append(type)
+            .Any(static candidate =>
+                candidate.IsGenericType && candidate.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)
+            );
 
     private sealed record CapturedFields(FieldInfo[] Value);
+
     private sealed record Identity(long Value);
 }

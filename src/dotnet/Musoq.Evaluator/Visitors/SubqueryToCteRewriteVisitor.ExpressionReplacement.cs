@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
+
 public partial class SubqueryToCteRewriteVisitor
 {
     private static void CollectPredicateSubqueries(Node node, List<SubqueryInfo> result)
@@ -39,21 +40,25 @@ public partial class SubqueryToCteRewriteVisitor
         if (!target.IsNegated && ReferenceEquals(expression, target.PredicateNode))
             return replacement;
 
-        if (target.IsNegated &&
-            expression is NotNode { Expression: var nested } &&
-            ReferenceEquals(nested, target.PredicateNode))
+        if (
+            target.IsNegated
+            && expression is NotNode { Expression: var nested }
+            && ReferenceEquals(nested, target.PredicateNode)
+        )
             return replacement;
 
         return expression switch
         {
             AndNode and => new AndNode(
                 ReplacePredicateSubqueryNode(and.Left, target, replacement),
-                ReplacePredicateSubqueryNode(and.Right, target, replacement)),
+                ReplacePredicateSubqueryNode(and.Right, target, replacement)
+            ),
             OrNode or => new OrNode(
                 ReplacePredicateSubqueryNode(or.Left, target, replacement),
-                ReplacePredicateSubqueryNode(or.Right, target, replacement)),
+                ReplacePredicateSubqueryNode(or.Right, target, replacement)
+            ),
             NotNode not => new NotNode(ReplacePredicateSubqueryNode(not.Expression, target, replacement)),
-            _ => expression
+            _ => expression,
         };
     }
 }

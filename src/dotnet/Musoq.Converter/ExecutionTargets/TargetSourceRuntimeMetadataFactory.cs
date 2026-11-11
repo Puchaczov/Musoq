@@ -8,12 +8,14 @@ internal static class TargetSourceRuntimeMetadataFactory
 {
     public static IReadOnlyList<TargetSourceRuntimeMetadata> Create(
         SemanticBuildArtifacts semantic,
-        PlanningBuildArtifacts planning)
+        PlanningBuildArtifacts planning
+    )
     {
-        var plannedSources = planning.PlanningResult?.Properties.SourcePlanResultsBySourceId ??
-                             new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal);
-        var sourceContextIds = plannedSources.Keys
-            .Concat(semantic.SourceRuntimeSettingDescriptionsBySourceContextId.Keys)
+        var plannedSources =
+            planning.PlanningResult?.Properties.SourcePlanResultsBySourceId
+            ?? new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal);
+        var sourceContextIds = plannedSources
+            .Keys.Concat(semantic.SourceRuntimeSettingDescriptionsBySourceContextId.Keys)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(static sourceContextId => sourceContextId, StringComparer.Ordinal);
 
@@ -23,14 +25,19 @@ internal static class TargetSourceRuntimeMetadataFactory
                 plannedSources.TryGetValue(sourceContextId, out var sourcePlan)
                     ? GetAcceptedOperations(sourcePlan)
                     : [],
-                semantic.SourceRuntimeSettingDescriptionsBySourceContextId.TryGetValue(sourceContextId, out var descriptions)
+                semantic.SourceRuntimeSettingDescriptionsBySourceContextId.TryGetValue(
+                    sourceContextId,
+                    out var descriptions
+                )
                     ? descriptions.Select(static description => new TargetRuntimeSettingAbiContract(
                         description.Name,
                         description.Required,
                         description.Phases.ToString(),
                         description.Status.ToString(),
-                        description.Secret ? string.Empty : description.Description))
-                    : []))
+                        description.Secret ? string.Empty : description.Description
+                    ))
+                    : []
+            ))
             .ToArray();
     }
 

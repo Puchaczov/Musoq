@@ -9,8 +9,8 @@ public class GenericChunkSource<T>(
     IReadOnlyList<T> entities,
     IReadOnlyDictionary<string, int> entityNameToIndexMap,
     IReadOnlyDictionary<int, Func<T, object?>> entityIndexToObjectAccessMap,
-    Func<T, bool>? filterEntity = null)
-    : RowSourceBase<T>
+    Func<T, bool>? filterEntity = null
+) : RowSourceBase<T>
 {
     protected override void CollectChunks(IChunkWriter<T> writer)
     {

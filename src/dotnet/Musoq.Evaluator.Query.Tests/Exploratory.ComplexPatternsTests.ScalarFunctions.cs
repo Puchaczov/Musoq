@@ -8,38 +8,44 @@ public partial class ExploratoryComplexPatternsTests
     [TestMethod]
     public void Explore87_CastFunction_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                ToDecimal(p.Age) * 1.5 as AgeMultiplied
-            from #schema.first() p";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                ToDecimal(p.Age) * 1.5 as AgeMultiplied\n"
+            + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("AgeMultiplied", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("AgeMultiplied", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 45m]);
     }
-
-
 
     [TestMethod]
     public void Explore88_SubstringFunction_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                Substring(p.Name, 0, 2) as FirstTwo
-            from #schema.first() p";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                Substring(p.Name, 0, 2) as FirstTwo\n"
+            + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -49,48 +55,51 @@ public partial class ExploratoryComplexPatternsTests
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "Jo"]);
     }
 
-
-
     [TestMethod]
     public void Explore89_ReplaceFunction_ShouldWork()
     {
-        const string query = @"
-            select
-                t.Value,
-                Replace(t.Value, 'a', 'X') as Replaced
-            from #schema.first() p
-            cross apply p.Tags t";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                t.Value,\n"
+            + "                Replace(t.Value, 'a', 'X') as Replaced\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["apple", "banana"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["apple", "banana"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)), ("Replaced", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["apple", "Xpple"], ["banana", "bXnXnX"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["apple", "Xpple"], ["banana", "bXnXnX"]);
     }
-
-
 
     [TestMethod]
     public void Explore90_TrimFunctions_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                Trim(p.Name) as Trimmed,
-                TrimStart(p.Name) as LeftTrimmed,
-                TrimEnd(p.Name) as RightTrimmed
-            from #schema.first() p";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                Trim(p.Name) as Trimmed,\n"
+            + "                TrimStart(p.Name) as LeftTrimmed,\n"
+            + "                TrimEnd(p.Name) as RightTrimmed\n"
+            + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "  John  ", Age = 30 }
+            new() { Name = "  John  ", Age = 30 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -98,9 +107,11 @@ public partial class ExploratoryComplexPatternsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Trimmed", typeof(string)),
-            ("LeftTrimmed", typeof(string)), ("RightTrimmed", typeof(string)));
+            ("Name", typeof(string)),
+            ("Trimmed", typeof(string)),
+            ("LeftTrimmed", typeof(string)),
+            ("RightTrimmed", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["  John  ", "John", "John  ", "  John"]);
     }
-
 }

@@ -17,18 +17,20 @@ public partial class AsOfJoinTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] }
+            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] },
         };
 
         var result = InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
-            LoggerResolver);
+            LoggerResolver
+        );
 
         Assert.Contains(
             "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool>",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
     }
 
     [TestMethod]
@@ -40,21 +42,39 @@ public partial class AsOfJoinTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90, Money = 1m }] }
+            {
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Population = 90,
+                        Money = 1m,
+                    },
+                ]
+            },
         };
 
         var result = InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
-            LoggerResolver);
+            LoggerResolver
+        );
 
         Assert.Contains(
             "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool, decimal>",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         Assert.IsFalse(
-            result.GeneratedCSharpCode.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool, object>", StringComparison.Ordinal),
-            result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
+            result.GeneratedCSharpCode.Contains(
+                "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool, object>",
+                StringComparison.Ordinal
+            ),
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal)
+        );
     }
 }

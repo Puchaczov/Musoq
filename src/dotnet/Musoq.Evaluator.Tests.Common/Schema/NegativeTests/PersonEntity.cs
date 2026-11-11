@@ -14,7 +14,7 @@ public class PersonEntity
         { nameof(Salary), 4 },
         { nameof(BirthDate), 5 },
         { nameof(ManagerId), 6 },
-        { nameof(Email), 7 }
+        { nameof(Email), 7 },
     };
 
     public static readonly IReadOnlyDictionary<int, Func<PersonEntity, object?>> IndexToObjectAccessMap =
@@ -27,7 +27,7 @@ public class PersonEntity
             { 4, entity => entity.Salary },
             { 5, entity => entity.BirthDate },
             { 6, entity => entity.ManagerId },
-            { 7, entity => entity.Email }
+            { 7, entity => entity.Email },
         };
 
     public int Id { get; set; }

@@ -15,20 +15,15 @@ internal static partial class EvaluatorSampleFixtures
     {
         public ISchema GetSchema(string schema)
         {
-            if (!string.Equals(schema, "applyempty", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(schema, "#applyempty", StringComparison.OrdinalIgnoreCase))
+            if (
+                !string.Equals(schema, "applyempty", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(schema, "#applyempty", StringComparison.OrdinalIgnoreCase)
+            )
             {
                 throw new NotSupportedException(schema);
             }
 
-            return new GeneratedApplySampleSchema(
-            [
-                new GeneratedApplySampleEntity
-                {
-                    Name = "empty",
-                    Numbers = []
-                }
-            ]);
+            return new GeneratedApplySampleSchema([new GeneratedApplySampleEntity { Name = "empty", Numbers = [] }]);
         }
     }
 }

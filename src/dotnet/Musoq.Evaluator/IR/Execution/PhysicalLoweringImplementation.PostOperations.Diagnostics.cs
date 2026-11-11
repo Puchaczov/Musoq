@@ -11,25 +11,31 @@ internal sealed partial class PhysicalLoweringImplementation
         if (ContainsNode<PhysicalWindowNode>(node))
         {
             return ExecutionPlanBuildResult.CreateUnsupported(
-                $"Execution IR window lowering currently supports RowNumber, Rank, DenseRank, Ntile, Lag, Lead, resolved plugin window factories, and the built-in Sum, Count, Avg, Min, Max, FirstValue, LastValue, and NthValue helpers over materialized schema, CTE, dynamic, and decomposed join sources with optional PARTITION BY and QUALIFY. Found {FormatPhysicalShape(node)}.");
+                $"Execution IR window lowering currently supports RowNumber, Rank, DenseRank, Ntile, Lag, Lead, resolved plugin window factories, and the built-in Sum, Count, Avg, Min, Max, FirstValue, LastValue, and NthValue helpers over materialized schema, CTE, dynamic, and decomposed join sources with optional PARTITION BY and QUALIFY. Found {FormatPhysicalShape(node)}."
+            );
         }
 
-        if (ContainsNode<PhysicalAggregateOnlyNode>(node) ||
-            ContainsNode<PhysicalSingleKeyAggregateNode>(node) ||
-            ContainsNode<PhysicalValueTupleAggregateNode>(node))
+        if (
+            ContainsNode<PhysicalAggregateOnlyNode>(node)
+            || ContainsNode<PhysicalSingleKeyAggregateNode>(node)
+            || ContainsNode<PhysicalValueTupleAggregateNode>(node)
+        )
         {
             return ExecutionPlanBuildResult.CreateUnsupported(
-                $"Execution IR aggregate lowering currently supports direct aggregate-only projections and direct grouped aggregate projections with optional HAVING and projected aggregate ORDER BY keys. Found {FormatPhysicalShape(node)}.");
+                $"Execution IR aggregate lowering currently supports direct aggregate-only projections and direct grouped aggregate projections with optional HAVING and projected aggregate ORDER BY keys. Found {FormatPhysicalShape(node)}."
+            );
         }
 
         if (ContainsNode<PhysicalSetOperationNode>(node))
         {
             return ExecutionPlanBuildResult.CreateUnsupported(
-                "Execution IR set-operation lowering supports arms that lower through supported table-producing Execution IR paths with optional Sort/Skip/Take wrappers; one or more arms still contained unsupported physical shapes.");
+                "Execution IR set-operation lowering supports arms that lower through supported table-producing Execution IR paths with optional Sort/Skip/Take wrappers; one or more arms still contained unsupported physical shapes."
+            );
         }
 
         return ExecutionPlanBuildResult.CreateUnsupported(
-            $"Execution IR lowering currently supports Project -> Filter? -> (SchemaScan|CteRef|flat inner Join), aggregate-only direct projections, simple set-operation arms, optional Sort/Skip/Take wrappers, and simple CTE definitions. Found {node.GetType().Name}.");
+            $"Execution IR lowering currently supports Project -> Filter? -> (SchemaScan|CteRef|flat inner Join), aggregate-only direct projections, simple set-operation arms, optional Sort/Skip/Take wrappers, and simple CTE definitions. Found {node.GetType().Name}."
+        );
     }
 
     private static bool ContainsNode<TNode>(PhysicalNode node)

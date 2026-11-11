@@ -13,7 +13,10 @@ public partial class SchemaParser
         Consume(TokenType.RightSquareBracket);
 
         if (IsNegativeConstantSizeExpression(sizeExpr, out var negativeValue))
-            throw InvalidBinarySchemaField($"byte[] size must be non-negative, but got {negativeValue}.", sizeExpr.Span);
+            throw InvalidBinarySchemaField(
+                $"byte[] size must be non-negative, but got {negativeValue}.",
+                sizeExpr.Span
+            );
 
         if (Current.TokenType is TokenType.LittleEndian or TokenType.BigEndian)
             throw InvalidBinarySchemaEndianness("byte[] does not accept an endianness specifier", Current.Span);
@@ -31,21 +34,21 @@ public partial class SchemaParser
         if (!TryParseBinaryIntegerLiteral(countToken, out var bitCount))
             throw InvalidBinarySchemaField(
                 "bits[] requires a constant integer for bit count",
-                GetBinaryIntegerLiteralSpan(countToken));
+                GetBinaryIntegerLiteralSpan(countToken)
+            );
 
         Consume(countToken.TokenType);
 
         if (Current.TokenType != TokenType.RightSquareBracket)
-            throw InvalidBinarySchemaField(
-                "bits[] requires a single constant integer for bit count",
-                Current.Span);
+            throw InvalidBinarySchemaField("bits[] requires a single constant integer for bit count", Current.Span);
 
         Consume(TokenType.RightSquareBracket);
 
         if (bitCount is < 1 or > 64)
             throw InvalidBinarySchemaField(
                 $"bits[] count must be between 1 and 64, but got {bitCount}.",
-                GetBinaryIntegerLiteralSpan(countToken));
+                GetBinaryIntegerLiteralSpan(countToken)
+            );
 
         return new BitsTypeNode(bitCount);
     }
@@ -59,21 +62,24 @@ public partial class SchemaParser
         if (!TryParseBinaryIntegerLiteral(bitsToken, out var alignmentBits))
             throw InvalidBinarySchemaField(
                 "align[] requires a constant integer for alignment bits",
-                GetBinaryIntegerLiteralSpan(bitsToken));
+                GetBinaryIntegerLiteralSpan(bitsToken)
+            );
 
         Consume(bitsToken.TokenType);
 
         if (Current.TokenType != TokenType.RightSquareBracket)
             throw InvalidBinarySchemaField(
                 "align[] requires a single constant integer for alignment bits",
-                Current.Span);
+                Current.Span
+            );
 
         Consume(TokenType.RightSquareBracket);
 
         if (alignmentBits < 1)
             throw InvalidBinarySchemaField(
                 $"align[] boundary must be at least 1 bit, but got {alignmentBits}.",
-                GetBinaryIntegerLiteralSpan(bitsToken));
+                GetBinaryIntegerLiteralSpan(bitsToken)
+            );
 
         return new AlignmentNode(alignmentBits);
     }
@@ -81,8 +87,16 @@ public partial class SchemaParser
     private static bool TryParseBinaryIntegerLiteral(Token token, out int value)
     {
         value = 0;
-        if (token.TokenType is not (TokenType.Integer or TokenType.HexadecimalInteger or
-            TokenType.BinaryInteger or TokenType.OctalInteger or TokenType.Word))
+        if (
+            token.TokenType
+            is not (
+                TokenType.Integer
+                or TokenType.HexadecimalInteger
+                or TokenType.BinaryInteger
+                or TokenType.OctalInteger
+                or TokenType.Word
+            )
+        )
             return false;
 
         var text = token.Value.Trim();
@@ -119,9 +133,7 @@ public partial class SchemaParser
             if (magnitude > 2_147_483_648UL)
                 return false;
 
-            value = magnitude == 2_147_483_648UL
-                ? int.MinValue
-                : -(int)magnitude;
+            value = magnitude == 2_147_483_648UL ? int.MinValue : -(int)magnitude;
             return true;
         }
 
@@ -142,7 +154,7 @@ public partial class SchemaParser
                 >= '0' and <= '9' => character - '0',
                 >= 'a' and <= 'f' => character - 'a' + 10,
                 >= 'A' and <= 'F' => character - 'A' + 10,
-                _ => -1
+                _ => -1,
             };
 
             if (digit < 0 || digit >= numberBase || value > (ulong.MaxValue - (uint)digit) / (uint)numberBase)

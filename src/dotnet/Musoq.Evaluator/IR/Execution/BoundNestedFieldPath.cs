@@ -37,9 +37,12 @@ internal static class BoundNestedFieldPath
     {
         internal NestedRootField? Match(string path, string prefix, NestedRootField? previous)
         {
-            if (prefix.Length == 0 || path.Length <= prefix.Length ||
-                !path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
-                path[prefix.Length] is not ('.' or '['))
+            if (
+                prefix.Length == 0
+                || path.Length <= prefix.Length
+                || !path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+                || path[prefix.Length] is not ('.' or '[')
+            )
                 return previous;
 
             var memberPath = path[prefix.Length..];
@@ -57,9 +60,11 @@ internal static class BoundNestedFieldPath
 
         private bool IsLegacyScalarReference(string memberPath)
         {
-            if (Field.GeneratedTypeName is not null ||
-                Field.GeneratedMemberTypeNames.ContainsKey(memberPath) ||
-                !string.Equals(memberPath, Field.Name, StringComparison.OrdinalIgnoreCase))
+            if (
+                Field.GeneratedTypeName is not null
+                || Field.GeneratedMemberTypeNames.ContainsKey(memberPath)
+                || !string.Equals(memberPath, Field.Name, StringComparison.OrdinalIgnoreCase)
+            )
                 return false;
 
             var type = Field.Type.ResolveClrType();

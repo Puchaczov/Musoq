@@ -12,5 +12,5 @@ public enum AggregateEmptyResultBehavior
     Zero,
 
     /// <summary>The aggregate returns null for empty input.</summary>
-    Null
+    Null,
 }

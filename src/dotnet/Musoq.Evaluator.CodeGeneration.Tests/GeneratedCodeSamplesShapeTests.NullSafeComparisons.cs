@@ -14,8 +14,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("IS NOT DISTINCT FROM", sample.Content);
         Assert.Contains(" != ", sample.Content);
         Assert.Contains(" == ", sample.Content);
-        Assert.IsFalse(sample.Content.Contains("InternalIsDistinctFromOperator", StringComparison.Ordinal), sample.FileName);
-        Assert.IsFalse(sample.Content.Contains("InternalIsNotDistinctFromOperator", StringComparison.Ordinal), sample.FileName);
+        Assert.IsFalse(
+            sample.Content.Contains("InternalIsDistinctFromOperator", StringComparison.Ordinal),
+            sample.FileName
+        );
+        Assert.IsFalse(
+            sample.Content.Contains("InternalIsNotDistinctFromOperator", StringComparison.Ordinal),
+            sample.FileName
+        );
         Assert.IsFalse(sample.Content.Contains("System.Reflection", StringComparison.Ordinal), sample.FileName);
     }
 }

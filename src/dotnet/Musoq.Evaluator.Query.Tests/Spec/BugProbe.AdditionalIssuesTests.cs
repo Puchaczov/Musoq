@@ -28,18 +28,29 @@ public class BugProbeAdditionalIssuesTests
     [TestMethod]
     public void Binary_BitsTypeShouldReturnULongPerSpec()
     {
-        var query = @"
-            binary Data { Flags: bits[8] };
-            select d.Flags from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Flags: bits[8] };\n"
+            + "            select d.Flags from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var testData = new byte[] { 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -56,22 +67,30 @@ public class BugProbeAdditionalIssuesTests
     [TestMethod]
     public void Text_PatternWithCapture_ShouldExposeNamedGroups()
     {
-        var query = @"
-            text Data {
-                Coords: pattern '(?<Lat>-?\d+\.\d+),(?<Lon>-?\d+\.\d+)' capture (Lat, Lon)
-            };
-            select d.Coords.Lat, d.Coords.Lon from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Coords: pattern '(?<Lat>-?\\d+\\.\\d+),(?<Lon>-?\\d+\\.\\d+)' capture (Lat, Lon)\n"
+            + "            };\n"
+            + "            select d.Coords.Lat, d.Coords.Lon from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "52.5200,13.4050" }
+            new TextEntity { Name = "1.txt", Text = "52.5200,13.4050" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -86,24 +105,32 @@ public class BugProbeAdditionalIssuesTests
     [TestMethod]
     public void Binary_OuterApplyWithTryInterpret_ShouldProduceNullRow()
     {
-        var query = @"
-            binary Packet { Magic: int le check Magic = 0xDEADBEEF, Value: byte };
-            select b.Name, d.Value from #test.files() b
-            outer apply TryInterpret<Packet>(b.Content) d
-            order by b.Name asc";
+        var query = (
+            "\n"
+            + "            binary Packet { Magic: int le check Magic = 0xDEADBEEF, Value: byte };\n"
+            + "            select b.Name, d.Value from #test.files() b\n"
+            + "            outer apply TryInterpret<Packet>(b.Content) d\n"
+            + "            order by b.Name asc"
+        );
 
         var valid = new byte[] { 0xEF, 0xBE, 0xAD, 0xDE, 0x42 }; // valid
         var invalid = new byte[] { 0x00, 0x00, 0x00, 0x00, 0xFF }; // invalid magic
         var entities = new[]
         {
             new BinaryEntity { Name = "a_valid.bin", Content = valid },
-            new BinaryEntity { Name = "b_invalid.bin", Content = invalid }
+            new BinaryEntity { Name = "b_invalid.bin", Content = invalid },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -121,23 +148,34 @@ public class BugProbeAdditionalIssuesTests
     [TestMethod]
     public void Binary_ByteArrayWithExpressionSize_ShouldComputeCorrectly()
     {
-        var query = @"
-            binary Data {
-                Count: byte,
-                Payload: byte[Count * 2],
-                Trailer: byte
-            };
-            select d.Count, d.Trailer from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Count: byte,\n"
+            + "                Payload: byte[Count * 2],\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select d.Count, d.Trailer from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // Count=2, Payload=4 bytes (2*2), Trailer=0xFF
         var testData = new byte[] { 0x02, 0xAA, 0xBB, 0xCC, 0xDD, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -152,18 +190,29 @@ public class BugProbeAdditionalIssuesTests
     [TestMethod]
     public void Binary_SchemaNamedRecord_ShouldNotConflict()
     {
-        var query = @"
-            binary Record { Id: int le, Value: byte };
-            select r.Id, r.Value from #test.files() b
-            cross apply Interpret<Record>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Record { Id: int le, Value: byte };\n"
+            + "            select r.Id, r.Value from #test.files() b\n"
+            + "            cross apply Interpret<Record>(b.Content) r"
+        );
 
         var testData = new byte[] { 0x01, 0x00, 0x00, 0x00, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -178,28 +227,36 @@ public class BugProbeAdditionalIssuesTests
     [TestMethod]
     public void Binary_ConditionalDiscardField_ShouldSkipWhenTrue()
     {
-        var query = @"
-            binary Data {
-                HasPadding: byte,
-                _: byte[4] when HasPadding <> 0,
-                Value: short le
-            };
-            select d.HasPadding, d.Value from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d
-            order by d.HasPadding asc";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                HasPadding: byte,\n"
+            + "                _: byte[4] when HasPadding <> 0,\n"
+            + "                Value: short le\n"
+            + "            };\n"
+            + "            select d.HasPadding, d.Value from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d\n"
+            + "            order by d.HasPadding asc"
+        );
 
         var entities = new[]
         {
             // No padding: HasPadding=0, Value=0x0064 (100)
             new BinaryEntity { Name = "no_pad.bin", Data = "\u0000d\u0000"u8.ToArray() },
             // With padding: HasPadding=1, skip 4 bytes, Value=0x00C8 (200)
-            new BinaryEntity { Name = "with_pad.bin", Data = [0x01, 0x00, 0x00, 0x00, 0x00, 0xC8, 0x00] }
+            new BinaryEntity { Name = "with_pad.bin", Data = [0x01, 0x00, 0x00, 0x00, 0x00, 0xC8, 0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);

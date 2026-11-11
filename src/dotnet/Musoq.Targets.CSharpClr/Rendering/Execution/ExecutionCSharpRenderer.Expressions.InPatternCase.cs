@@ -5,26 +5,30 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-
     private ExpressionSyntax RenderInCheck(ExecutionInCheck inCheck, ExecutionRenderContext context) =>
         new ExecutionMembershipSyntaxFactory(
             expression => RenderExpression(expression, context),
             set => TryGetConstantInSetFieldName(set, context, out var name) ? name : null,
-            RenderLiteral, ++_membershipExpressionSequence).Render(inCheck);
+            RenderLiteral,
+            ++_membershipExpressionSequence
+        ).Render(inCheck);
 
     private InvocationExpressionSyntax RenderPatternMatch(
         ExecutionPatternMatch patternMatch,
-        ExecutionRenderContext context)
-        => ExecutionLikeSyntaxFactory.Render(
+        ExecutionRenderContext context
+    ) =>
+        ExecutionLikeSyntaxFactory.Render(
             patternMatch,
             expression => RenderExpression(expression, context),
-            context.Session.RegexMatchTimeout);
+            context.Session.RegexMatchTimeout
+        );
 
     private ExpressionSyntax RenderCaseWhen(ExecutionCaseWhen caseWhen, ExecutionRenderContext context)
     {
-        var fallback = caseWhen.ElseExpression == null
-            ? CreateMissingCaseElseExpression(caseWhen.ReturnType.RequireClrType())
-            : CastIfNeeded(RenderExpression(caseWhen.ElseExpression, context), caseWhen.ReturnType);
+        var fallback =
+            caseWhen.ElseExpression == null
+                ? CreateMissingCaseElseExpression(caseWhen.ReturnType.RequireClrType())
+                : CastIfNeeded(RenderExpression(caseWhen.ElseExpression, context), caseWhen.ReturnType);
 
         for (var index = caseWhen.Branches.Count - 1; index >= 0; index--)
         {
@@ -33,7 +37,9 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.ConditionalExpression(
                     this.RenderBooleanCondition(branch.Condition, context),
                     CastIfNeeded(RenderExpression(branch.Result, context), caseWhen.ReturnType),
-                    fallback));
+                    fallback
+                )
+            );
         }
 
         return fallback;
@@ -51,7 +57,8 @@ public sealed partial class ExecutionCSharpRenderer
             current = SyntaxFactory.BinaryExpression(
                 SyntaxKind.CoalesceExpression,
                 RenderExpression(coalesce.Expressions[index], context),
-                current);
+                current
+            );
         }
 
         return SyntaxFactory.ParenthesizedExpression(current);
@@ -63,7 +70,8 @@ public sealed partial class ExecutionCSharpRenderer
         {
             return SyntaxFactory.CastExpression(
                 CreateTypeSyntax(returnType),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+            );
         }
 
         return SyntaxFactory.DefaultExpression(CreateTypeSyntax(returnType));

@@ -14,26 +14,34 @@ namespace Musoq.Converter.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DirectTypedProfilingTests
 {
-
     [TestMethod]
     public void RunWithProfile_WhenDirectQueryRunsRepeatedly_ShouldUseIndependentParameters()
     {
         var query = Compile(
-            "param(expected: string) select d.Dummy as Name from #system.dual() d where d.Dummy = $expected");
+            "param(expected: string) select d.Dummy as Name from #system.dual() d where d.Dummy = $expected"
+        );
 
         var first = query
-            .RunWithProfile(new TypedQueryRunOptions(
-                CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["expected"] = "single" })))
-            .Rows
-            .Select(static row => row.Name)
+            .RunWithProfile(
+                new TypedQueryRunOptions(
+                    CancellationToken.None,
+                    global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                        new Dictionary<string, object?> { ["expected"] = "single" }
+                    )
+                )
+            )
+            .Rows.Select(static row => row.Name)
             .ToArray();
         var second = query
-            .RunWithProfile(new TypedQueryRunOptions(
-                CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["expected"] = "missing" })))
-            .Rows
-            .Select(static row => row.Name)
+            .RunWithProfile(
+                new TypedQueryRunOptions(
+                    CancellationToken.None,
+                    global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                        new Dictionary<string, object?> { ["expected"] = "missing" }
+                    )
+                )
+            )
+            .Rows.Select(static row => row.Name)
             .ToArray();
 
         CollectionAssert.AreEqual(new[] { "single" }, first);
@@ -44,24 +52,37 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
     public async Task RunWithProfile_WhenDirectQueryRunsConcurrently_ShouldUseIndependentCallbacks()
     {
         var query = Compile(
-            "param(expected: string) select d.Dummy as Name from #system.dual() d where d.Dummy = $expected order by d.Dummy");
+            "param(expected: string) select d.Dummy as Name from #system.dual() d where d.Dummy = $expected order by d.Dummy"
+        );
         var firstPhaseCount = 0;
         var secondPhaseCount = 0;
 
-        var firstTask = Task.Run(() => query
-            .RunWithProfile(new TypedQueryRunOptions(
-                CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["expected"] = "single" }),
-                (_, _) => Interlocked.Increment(ref firstPhaseCount)))
-            .Rows
-            .ToArray());
-        var secondTask = Task.Run(() => query
-            .RunWithProfile(new TypedQueryRunOptions(
-                CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["expected"] = "missing" }),
-                (_, _) => Interlocked.Increment(ref secondPhaseCount)))
-            .Rows
-            .ToArray());
+        var firstTask = Task.Run(() =>
+            query
+                .RunWithProfile(
+                    new TypedQueryRunOptions(
+                        CancellationToken.None,
+                        global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                            new Dictionary<string, object?> { ["expected"] = "single" }
+                        ),
+                        (_, _) => Interlocked.Increment(ref firstPhaseCount)
+                    )
+                )
+                .Rows.ToArray()
+        );
+        var secondTask = Task.Run(() =>
+            query
+                .RunWithProfile(
+                    new TypedQueryRunOptions(
+                        CancellationToken.None,
+                        global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                            new Dictionary<string, object?> { ["expected"] = "missing" }
+                        ),
+                        (_, _) => Interlocked.Increment(ref secondPhaseCount)
+                    )
+                )
+                .Rows.ToArray()
+        );
 
         var results = await Task.WhenAll(firstTask, secondTask).ConfigureAwait(false);
 
@@ -75,14 +96,16 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
     public void RunWithProfile_WhenOptionsInputChangesAfterCapture_ShouldUseSnapshot()
     {
         var query = Compile(
-            "param(expected: string) select d.Dummy as Name from #system.dual() d where d.Dummy = $expected order by d.Dummy");
+            "param(expected: string) select d.Dummy as Name from #system.dual() d where d.Dummy = $expected order by d.Dummy"
+        );
         var parameters = new Dictionary<string, object?> { ["expected"] = "single" };
         var firstPhaseCount = 0;
         var secondPhaseCount = 0;
         var options = new TypedQueryRunOptions(
             CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters),
-            (_, _) => Interlocked.Increment(ref firstPhaseCount));
+            global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters),
+            (_, _) => Interlocked.Increment(ref firstPhaseCount)
+        );
         parameters["expected"] = "missing";
 
         var result = query.RunWithProfile(options);
@@ -99,16 +122,16 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters),
     public void RunWithProfile_WhenObjectInitializerOptionsInputChangesAfterCapture_ShouldUseSnapshot()
     {
         var query = Compile(
-            "param(expected: string) select d.Dummy as Name from #system.dual() d where d.Dummy = $expected");
+            "param(expected: string) select d.Dummy as Name from #system.dual() d where d.Dummy = $expected"
+        );
         var parameters = new Dictionary<string, object?> { ["expected"] = "single" };
-        var options = new TypedQueryRunOptions { TypedParameters = global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters) };
+        var options = new TypedQueryRunOptions
+        {
+            TypedParameters = global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters),
+        };
         parameters["expected"] = "missing";
 
-        var rows = query
-            .RunWithProfile(options)
-            .Rows
-            .Select(static row => row.Name)
-            .ToArray();
+        var rows = query.RunWithProfile(options).Rows.Select(static row => row.Name).ToArray();
 
         CollectionAssert.AreEqual(new[] { "single" }, rows);
     }
@@ -119,7 +142,7 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters),
             query,
             Guid.NewGuid().ToString("N"),
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
     }
-
 }

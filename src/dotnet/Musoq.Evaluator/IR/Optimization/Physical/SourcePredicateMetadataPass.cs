@@ -17,13 +17,20 @@ internal sealed class SourcePredicateMetadataPass : IPhysicalOptimizationPass
 
         return ReferenceEquals(plan, rewritten)
             ? OptimizationResult<PhysicalNode>.NoChange(plan, "No source predicate metadata was applied.")
-            : OptimizationResult<PhysicalNode>.Changed(rewritten, "Applied source predicate metadata to physical scans.");
+            : OptimizationResult<PhysicalNode>.Changed(
+                rewritten,
+                "Applied source predicate metadata to physical scans."
+            );
     }
 
     private static IrExpression[] ResolvePredicates(PhysicalSchemaScanNode scan, PhysicalOptimizationState state)
     {
-        return !string.IsNullOrWhiteSpace(scan.SourceContextId) &&
-               state.Facts.SourceRewrite.PushedPredicatesBySourceId.TryGetValue(scan.SourceContextId, out var predicates)
+        return
+            !string.IsNullOrWhiteSpace(scan.SourceContextId)
+            && state.Facts.SourceRewrite.PushedPredicatesBySourceId.TryGetValue(
+                scan.SourceContextId,
+                out var predicates
+            )
             ? predicates
             : [];
     }
@@ -31,19 +38,20 @@ internal sealed class SourcePredicateMetadataPass : IPhysicalOptimizationPass
     internal static PhysicalNode Rewrite(
         PhysicalNode node,
         PhysicalOptimizationState state,
-        Func<PhysicalSchemaScanNode, PhysicalOptimizationState, IrExpression[]> resolvePredicates)
+        Func<PhysicalSchemaScanNode, PhysicalOptimizationState, IrExpression[]> resolvePredicates
+    )
     {
         if (node is PhysicalSchemaScanNode scan)
         {
             var predicates = resolvePredicates(scan, state);
             return predicates.Length == 0 && scan.PushedPredicates.Length == 0
                 ? scan
-                : scan with { PushedPredicates = predicates };
+                : scan with
+                {
+                    PushedPredicates = predicates,
+                };
         }
 
-        return PhysicalPlanRewriter.RewriteChildren(
-            node,
-            child => Rewrite(child, state, resolvePredicates));
+        return PhysicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, state, resolvePredicates));
     }
 }
-

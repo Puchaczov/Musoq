@@ -10,12 +10,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_HasEqualityCorrelation_ShouldUseLeftSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateCorrelatedInSources()).Run(TestContext.CancellationToken);
 
@@ -30,12 +32,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenNotInSubquery_HasEqualityCorrelation_ShouldUseLeftAntiSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City NOT IN (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City NOT IN (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateCorrelatedInSources()).Run(TestContext.CancellationToken);
 
@@ -49,12 +53,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_HasNonEquiCorrelation_ShouldUsePartitionedRangeSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Population < a.Population
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Population < a.Population\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateCorrelatedInSources()).Run(TestContext.CancellationToken);
 
@@ -70,15 +76,17 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenCorrelatedInSubquery_IsInsideCteBody_ShouldCorrelateToCteBodyQuery()
     {
-        const string query = @"
-            WITH filtered AS (
-                SELECT a.City FROM #A.entities() a
-                WHERE a.City IN (
-                    SELECT b.City FROM #B.entities() b
-                    WHERE b.Country = a.Country
-                )
-            )
-            SELECT f.City FROM filtered f";
+        const string query = (
+            "\n"
+            + "            WITH filtered AS (\n"
+            + "                SELECT a.City FROM #A.entities() a\n"
+            + "                WHERE a.City IN (\n"
+            + "                    SELECT b.City FROM #B.entities() b\n"
+            + "                    WHERE b.Country = a.Country\n"
+            + "                )\n"
+            + "            )\n"
+            + "            SELECT f.City FROM filtered f"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateCorrelatedInSources()).Run(TestContext.CancellationToken);
 
@@ -89,15 +97,17 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenNestedInSubquery_CorrelatesToParentSubquery_ShouldDecorrelateBothLevels()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country IN (
-                    SELECT c.Country FROM #C.entities() c
-                    WHERE c.City = b.City
-                )
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country IN (\n"
+            + "                    SELECT c.Country FROM #C.entities() c\n"
+            + "                    WHERE c.City = b.City\n"
+            + "                )\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateCorrelatedInSources()).Run(TestContext.CancellationToken);
 
@@ -113,12 +123,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_ShadowsOuterAlias_ShouldRemainUncorrelated()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (
-                SELECT a.City FROM #B.entities() a
-                WHERE a.Country = 'POLAND'
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (\n"
+            + "                SELECT a.City FROM #B.entities() a\n"
+            + "                WHERE a.Country = 'POLAND'\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateCorrelatedInSources()).Run(TestContext.CancellationToken);
 
@@ -135,26 +147,23 @@ public partial class SubqueryTests
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("PARIS", "FRANCE", 300)
+                    new BasicEntity("PARIS", "FRANCE", 300),
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity("WARSAW", "POLAND", 100),
                     new BasicEntity("WARSAW", "GERMANY", 100),
                     new BasicEntity("BERLIN", "POLAND", 200),
-                    new BasicEntity("PARIS", "FRANCE", 450)
+                    new BasicEntity("PARIS", "FRANCE", 450),
                 ]
             },
-            {
-                "#C", [
-                    new BasicEntity("WARSAW", "POLAND", 10),
-                    new BasicEntity("PARIS", "FRANCE", 20)
-                ]
-            }
+            { "#C", [new BasicEntity("WARSAW", "POLAND", 10), new BasicEntity("PARIS", "FRANCE", 20)] },
         };
     }
 }

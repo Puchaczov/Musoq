@@ -94,9 +94,8 @@ public sealed class WindowPartitionBuilder<T>(int rowCount, bool nullPartitionFi
         for (var rowIndex = 0; rowIndex < rowCount; rowIndex++)
         {
             var partitionIndex = _rowPartitions[rowIndex];
-            var targetPartition = partitionIndex == NullPartition
-                ? nullPartitionIndex
-                : partitionIndex + nonNullPartitionOffset;
+            var targetPartition =
+                partitionIndex == NullPartition ? nullPartitionIndex : partitionIndex + nonNullPartitionOffset;
             indices[positions[targetPartition]++] = rowIndex;
         }
     }

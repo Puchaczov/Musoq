@@ -49,12 +49,10 @@ public class TypeConversionNodeFactory
         var args = new ArgsListNode([stringLiteralNode]);
         var method = _methodResolver.ResolveMethod(methodName, [typeof(string)]);
 
-        return new AccessMethodNode(
-            functionToken,
-            args,
-            ArgsListNode.Empty,
-            false,
-            method) { IsCompilerGenerated = true };
+        return new AccessMethodNode(functionToken, args, ArgsListNode.Empty, false, method)
+        {
+            IsCompilerGenerated = true,
+        };
     }
 
     /// <summary>
@@ -72,12 +70,10 @@ public class TypeConversionNodeFactory
         var args = new ArgsListNode([left, right]);
         var method = _methodResolver.ResolveMethod(methodName, [typeof(object), typeof(object)]);
 
-        return new AccessMethodNode(
-            functionToken,
-            args,
-            ArgsListNode.Empty,
-            false,
-            method) { IsCompilerGenerated = true };
+        return new AccessMethodNode(functionToken, args, ArgsListNode.Empty, false, method)
+        {
+            IsCompilerGenerated = true,
+        };
     }
 
     /// <summary>
@@ -89,8 +85,12 @@ public class TypeConversionNodeFactory
     /// <param name="isObjectType">True if source is System.Object type.</param>
     /// <param name="operationContext">The semantic context of the binary operation.</param>
     /// <returns>AccessMethodNode wrapping the conversion method call.</returns>
-    public AccessMethodNode CreateNumericConversionNode(Node sourceNode, Type targetType, bool isObjectType,
-        BinaryOperationContext operationContext)
+    public AccessMethodNode CreateNumericConversionNode(
+        Node sourceNode,
+        Type targetType,
+        bool isObjectType,
+        BinaryOperationContext operationContext
+    )
     {
         ArgumentNullException.ThrowIfNull(sourceNode);
         string methodName;
@@ -119,12 +119,10 @@ public class TypeConversionNodeFactory
         var args = new ArgsListNode([sourceNode]);
         var method = _methodResolver.ResolveMethod(methodName, parameterTypes);
 
-        return new AccessMethodNode(
-            functionToken,
-            args,
-            ArgsListNode.Empty,
-            false,
-            method) { IsCompilerGenerated = true };
+        return new AccessMethodNode(functionToken, args, ArgsListNode.Empty, false, method)
+        {
+            IsCompilerGenerated = true,
+        };
     }
 
     /// <summary>
@@ -134,7 +132,8 @@ public class TypeConversionNodeFactory
     /// <typeparam name="T">Type of binary operator node.</typeparam>
     /// <param name="nodeFactory">Factory function that creates the operator node.</param>
     /// <returns>Name of the runtime operator method (e.g., "InternalApplyMultiplyOperator"), or null if not supported.</returns>
-    public string? GetRuntimeOperatorMethodName<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    public string? GetRuntimeOperatorMethodName<T>(Func<Node, Node, T> nodeFactory)
+        where T : Node
     {
         ArgumentNullException.ThrowIfNull(nodeFactory);
         var dummyLeft = new IntegerNode("0", "s");
@@ -157,7 +156,7 @@ public class TypeConversionNodeFactory
             IsDistinctFromNode node => node.IsNegated
                 ? nameof(LibraryBase.InternalIsNotDistinctFromOperator)
                 : nameof(LibraryBase.InternalIsDistinctFromOperator),
-            _ => null
+            _ => null,
         };
     }
 
@@ -168,9 +167,12 @@ public class TypeConversionNodeFactory
     /// <returns>True if type is DateTime, DateTimeOffset, TimeSpan, or their nullable versions.</returns>
     public static bool IsDateTimeType(Type? type)
     {
-        return type == typeof(DateTime) || type == typeof(DateTime?) ||
-               type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?) ||
-               type == typeof(TimeSpan) || type == typeof(TimeSpan?);
+        return type == typeof(DateTime)
+            || type == typeof(DateTime?)
+            || type == typeof(DateTimeOffset)
+            || type == typeof(DateTimeOffset?)
+            || type == typeof(TimeSpan)
+            || type == typeof(TimeSpan?);
     }
 
     /// <summary>

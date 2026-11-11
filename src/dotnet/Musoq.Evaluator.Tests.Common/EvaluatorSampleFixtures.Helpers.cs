@@ -2,7 +2,6 @@ namespace Musoq.Evaluator.Tests;
 
 internal static partial class EvaluatorSampleFixtures
 {
-
     private static GeneratedCodeSample Basic(string name, string category, string query)
     {
         return new GeneratedCodeSample
@@ -12,7 +11,7 @@ internal static partial class EvaluatorSampleFixtures
             Query = query,
             Category = category,
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateBasicSchemaProvider
+            CreateSchemaProvider = CreateBasicSchemaProvider,
         };
     }
 
@@ -20,11 +19,9 @@ internal static partial class EvaluatorSampleFixtures
         string name,
         string category,
         string query,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions
+    )
     {
-        return Basic(name, category, query) with
-        {
-            CompilationOptions = compilationOptions
-        };
+        return Basic(name, category, query) with { CompilationOptions = compilationOptions };
     }
 }

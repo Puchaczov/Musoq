@@ -9,14 +9,18 @@ internal sealed partial class PhysicalLoweringImplementation
     private static LoweringAttempt<ExecutionExpression> ConvertWindowFunctionRef(
         WindowFunctionRef windowRef,
         IReadOnlyDictionary<int, ExecutionVariable> windowResults,
-        ExecutionVariable windowIndex)
+        ExecutionVariable windowIndex
+    )
     {
         if (!windowResults.TryGetValue(windowRef.WindowIndex, out var results))
         {
             return LoweringAttempt<ExecutionExpression>.Unsupported(
-                $"Execution IR window lowering cannot bind window reference {windowRef.WindowIndex.ToString(CultureInfo.InvariantCulture)} to a supported registration.");
+                $"Execution IR window lowering cannot bind window reference {windowRef.WindowIndex.ToString(CultureInfo.InvariantCulture)} to a supported registration."
+            );
         }
 
-        return LoweringAttempt<ExecutionExpression>.Built(new ExecutionWindowValueRead(results, windowIndex, windowRef.ReturnType));
+        return LoweringAttempt<ExecutionExpression>.Built(
+            new ExecutionWindowValueRead(results, windowIndex, windowRef.ReturnType)
+        );
     }
 }

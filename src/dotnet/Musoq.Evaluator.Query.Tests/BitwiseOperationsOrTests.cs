@@ -30,8 +30,6 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
         TestMethodTemplate<int?>("Or(1b, 1us)", 1);
     }
 
-
-
     [TestMethod]
     public void WhenBitwiseOrBetweenSbyteAndUint_ShouldBeEvaluated()
     {

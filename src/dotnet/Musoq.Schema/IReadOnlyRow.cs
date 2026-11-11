@@ -6,5 +6,4 @@ public interface IReadOnlyRow
     T GetValue<T>(int columnIndex);
     void VisitColumns<TVisitor>(ref TVisitor visitor)
         where TVisitor : IColumnValueVisitor, allows ref struct;
-
 }

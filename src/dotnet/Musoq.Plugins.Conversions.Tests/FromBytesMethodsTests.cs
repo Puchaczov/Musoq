@@ -221,5 +221,4 @@ public partial class FromBytesMethodsTests : PluginsTestBase
         Assert.IsTrue(result.HasValue);
         Assert.IsTrue(double.IsNaN(result.GetValueOrDefault()));
     }
-
 }

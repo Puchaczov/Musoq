@@ -16,48 +16,43 @@ internal static partial class LogicalPlanRewriter
                     aggregate.GroupKeyNames,
                     aggregate.GroupKeyTypes,
                     aggregate.Bindings,
-                    input),
-                aggregate),
+                    input
+                ),
+                aggregate
+            ),
             FilterNode filter => RewriteInput(
                 filter.Input,
                 rewriteNode,
                 input => new FilterNode(filter.Predicate, input),
-                filter),
+                filter
+            ),
             HavingFilterNode having => RewriteInput(
                 having.Input,
                 rewriteNode,
                 input => new HavingFilterNode(having.Predicate, input),
-                having),
+                having
+            ),
             ProjectNode project => RewriteInput(
                 project.Input,
                 rewriteNode,
                 input => new ProjectNode(project.Fields, input) { IsDistinct = project.IsDistinct },
-                project),
+                project
+            ),
             QualifyFilterNode qualify => RewriteInput(
                 qualify.Input,
                 rewriteNode,
                 input => new QualifyFilterNode(qualify.Predicate, input),
-                qualify),
-            SkipNode skip => RewriteInput(
-                skip.Input,
-                rewriteNode,
-                input => new SkipNode(skip.Count, input),
-                skip),
-            SortNode sort => RewriteInput(
-                sort.Input,
-                rewriteNode,
-                input => new SortNode(sort.Keys, input),
-                sort),
-            TakeNode take => RewriteInput(
-                take.Input,
-                rewriteNode,
-                input => new TakeNode(take.Count, input),
-                take),
+                qualify
+            ),
+            SkipNode skip => RewriteInput(skip.Input, rewriteNode, input => new SkipNode(skip.Count, input), skip),
+            SortNode sort => RewriteInput(sort.Input, rewriteNode, input => new SortNode(sort.Keys, input), sort),
+            TakeNode take => RewriteInput(take.Input, rewriteNode, input => new TakeNode(take.Count, input), take),
             WindowNode window => RewriteInput(
                 window.Input,
                 rewriteNode,
                 input => new WindowNode(window.Registrations, input),
-                window),
+                window
+            ),
             UnpivotNode unpivot => RewriteInput(
                 unpivot.Source,
                 rewriteNode,
@@ -68,41 +63,50 @@ internal static partial class LogicalPlanRewriter
                     unpivot.Entries,
                     unpivot.KeepFields,
                     input,
-                    unpivot.OutputSchema),
-                unpivot),
+                    unpivot.OutputSchema
+                ),
+                unpivot
+            ),
             ApplyNode apply => RewritePair(
                 apply.Left,
                 apply.Right,
                 rewriteNode,
                 (left, right) => new ApplyNode(apply.Kind, left, right, apply.WithOrdinality),
-                apply),
+                apply
+            ),
             JoinNode join => RewritePair(
                 join.Left,
                 join.Right,
                 rewriteNode,
-                (left, right) => new JoinNode(join.Kind, join.OnPredicate, left, right, join.TieBreak, join.WithOrdinality),
-                join),
+                (left, right) =>
+                    new JoinNode(join.Kind, join.OnPredicate, left, right, join.TieBreak, join.WithOrdinality),
+                join
+            ),
             SetOperationNode setOperation => RewritePair(
                 setOperation.Left,
                 setOperation.Right,
                 rewriteNode,
                 (left, right) => new SetOperationNode(setOperation.Kind, left, right, setOperation.Keys),
-                setOperation),
+                setOperation
+            ),
             RecursiveCteNode recursiveCte => RewritePair(
                 recursiveCte.Anchor,
                 recursiveCte.RecursiveMember,
                 rewriteNode,
-                (anchor, member) => new RecursiveCteNode(
-                    recursiveCte.Name,
-                    anchor,
-                    member,
-                    recursiveCte.UnionKind,
-                    recursiveCte.Keys,
-                    recursiveCte.IdentityFieldIndexes),
-                recursiveCte),
+                (anchor, member) =>
+                    new RecursiveCteNode(
+                        recursiveCte.Name,
+                        anchor,
+                        member,
+                        recursiveCte.UnionKind,
+                        recursiveCte.Keys,
+                        recursiveCte.IdentityFieldIndexes
+                    ),
+                recursiveCte
+            ),
             CteNode cte => RewriteCte(cte, rewriteNode),
             MultiStatementNode multiStatement => RewriteMultiStatement(multiStatement, rewriteNode),
-            _ => node
+            _ => node,
         };
     }
 
@@ -110,12 +114,11 @@ internal static partial class LogicalPlanRewriter
         LogicalNode input,
         Func<LogicalNode, LogicalNode> rewriteNode,
         Func<LogicalNode, LogicalNode> createNode,
-        LogicalNode originalNode)
+        LogicalNode originalNode
+    )
     {
         var rewrittenInput = rewriteNode(input);
-        return ReferenceEquals(rewrittenInput, input)
-            ? originalNode
-            : createNode(rewrittenInput);
+        return ReferenceEquals(rewrittenInput, input) ? originalNode : createNode(rewrittenInput);
     }
 
     private static LogicalNode RewritePair(
@@ -123,7 +126,8 @@ internal static partial class LogicalPlanRewriter
         LogicalNode right,
         Func<LogicalNode, LogicalNode> rewriteNode,
         Func<LogicalNode, LogicalNode, LogicalNode> createNode,
-        LogicalNode originalNode)
+        LogicalNode originalNode
+    )
     {
         var rewrittenLeft = rewriteNode(left);
         var rewrittenRight = rewriteNode(right);
@@ -141,9 +145,7 @@ internal static partial class LogicalPlanRewriter
         {
             var definition = cte.Definitions[index];
             var plan = rewriteNode(definition.Plan);
-            definitions[index] = ReferenceEquals(plan, definition.Plan)
-                ? definition
-                : definition with { Plan = plan };
+            definitions[index] = ReferenceEquals(plan, definition.Plan) ? definition : definition with { Plan = plan };
             changed |= !ReferenceEquals(definitions[index], definition);
         }
 
@@ -155,7 +157,8 @@ internal static partial class LogicalPlanRewriter
 
     private static MultiStatementNode RewriteMultiStatement(
         MultiStatementNode multiStatement,
-        Func<LogicalNode, LogicalNode> rewriteNode)
+        Func<LogicalNode, LogicalNode> rewriteNode
+    )
     {
         var statements = new LogicalNode[multiStatement.Statements.Length];
         var changed = false;
@@ -166,6 +169,8 @@ internal static partial class LogicalPlanRewriter
             changed |= !ReferenceEquals(statements[index], multiStatement.Statements[index]);
         }
 
-        return changed ? new MultiStatementNode(statements) { IntermediateProducers = multiStatement.IntermediateProducers } : multiStatement;
+        return changed
+            ? new MultiStatementNode(statements) { IntermediateProducers = multiStatement.IntermediateProducers }
+            : multiStatement;
     }
 }

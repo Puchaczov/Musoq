@@ -1,9 +1,9 @@
-using Microsoft.CodeAnalysis;
-using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -64,7 +64,8 @@ public sealed class AstVisitorCoverageTests
             CompilerContractSymbols.For(typeof(TryParseCallNode)),
             CompilerContractSymbols.For(typeof(PartialInterpretCallNode)),
             CompilerContractSymbols.For(typeof(PartialParseCallNode)),
-            CompilerContractSymbols.For(typeof(InterpretAtCallNode)));
+            CompilerContractSymbols.For(typeof(InterpretAtCallNode))
+        );
     }
 
     [TestMethod]
@@ -86,7 +87,8 @@ public sealed class AstVisitorCoverageTests
             CompilerContractSymbols.For(typeof(BitsTypeNode)),
             CompilerContractSymbols.For(typeof(AlignmentNode)),
             CompilerContractSymbols.For(typeof(RepeatUntilTypeNode)),
-            CompilerContractSymbols.For(typeof(InlineSchemaTypeNode)));
+            CompilerContractSymbols.For(typeof(InlineSchemaTypeNode))
+        );
     }
 
     [TestMethod]
@@ -110,20 +112,24 @@ public sealed class AstVisitorCoverageTests
             CompilerContractSymbols.For(typeof(ExceptNode)),
             CompilerContractSymbols.For(typeof(IntersectNode)),
             CompilerContractSymbols.For(typeof(CteExpressionNode)),
-                CompilerContractSymbols.For(typeof(CteInnerExpressionNode)));
+            CompilerContractSymbols.For(typeof(CteInnerExpressionNode))
+        );
     }
 
     private static void AssertDeclaresVisitMethods(ITypeSymbol visitorType)
     {
         var declaredVisitTypes = visitorType
-            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+            .GetMethods(
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly
+            )
             .Where(method => method.MetadataName == nameof(IExpressionVisitor.Visit))
             .Select(method => method.GetParameters())
             .Where(parameters => parameters.Length == 1)
             .Select(parameters => parameters[0].ParameterType)
             .ToHashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
 
-        var missing = CompilerContractSymbols.For(typeof(IExpressionVisitor))
+        var missing = CompilerContractSymbols
+            .For(typeof(IExpressionVisitor))
             .GetMethods()
             .Where(method => method.MetadataName == nameof(IExpressionVisitor.Visit))
             .Select(method => method.GetParameters())
@@ -137,14 +143,17 @@ public sealed class AstVisitorCoverageTests
 
         Assert.IsEmpty(
             missing,
-            $"{visitorType.Name} must explicitly handle every node in {nameof(IExpressionVisitor)}: " +
-            string.Join(", ", missing));
+            $"{visitorType.Name} must explicitly handle every node in {nameof(IExpressionVisitor)}: "
+                + string.Join(", ", missing)
+        );
     }
 
     private static void AssertDeclaresVisitMethods(ITypeSymbol visitorType, params ITypeSymbol[] expectedNodeTypes)
     {
         var declaredVisitTypes = visitorType
-            .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
+            .GetMethods(
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly
+            )
             .Where(method => method.MetadataName == nameof(IExpressionVisitor.Visit))
             .Select(method => method.GetParameters())
             .Where(parameters => parameters.Length == 1)
@@ -159,7 +168,7 @@ public sealed class AstVisitorCoverageTests
 
         Assert.IsEmpty(
             missing,
-            $"{visitorType.Name} must explicitly keep the expected domain visit methods: " +
-            string.Join(", ", missing));
+            $"{visitorType.Name} must explicitly keep the expected domain visit methods: " + string.Join(", ", missing)
+        );
     }
 }

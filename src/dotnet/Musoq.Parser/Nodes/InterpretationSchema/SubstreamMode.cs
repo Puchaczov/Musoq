@@ -20,5 +20,5 @@ public enum SubstreamMode
     ///     Parses the bounded slice with the target type and permits unconsumed trailing
     ///     bytes inside the substream.
     /// </summary>
-    Lax
+    Lax,
 }

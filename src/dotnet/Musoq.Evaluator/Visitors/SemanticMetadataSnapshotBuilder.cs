@@ -25,23 +25,28 @@ internal sealed class SemanticMetadataSnapshotBuilder
             UsedColumns = MetadataSnapshotContractsFreezer.FreezeSchemaColumns(input.UsedColumns),
             UsedWhereNodes = SemanticMetadataSnapshotFreezer.FreezeDictionary(input.UsedWhereNodes),
             SourcePlanRequestsPerSchema = MetadataSnapshotContractsFreezer.FreezeSourcePlanRequests(
-                input.SourcePlanRequestsPerSchema),
+                input.SourcePlanRequestsPerSchema
+            ),
             SourceContractDiagnosticLocationsPerSchema = SemanticMetadataSnapshotFreezer.FreezeDictionary(
-                input.SourceContractDiagnosticLocationsPerSchema),
+                input.SourceContractDiagnosticLocationsPerSchema
+            ),
             SourceContracts = MetadataSnapshotContractsFreezer.FreezeSourceContracts(input.SourceContracts),
             ScriptParameterDefinitions = SemanticMetadataSnapshotFreezer.FreezeList(input.ScriptParameterDefinitions),
             ScriptVariableDefinitions = SemanticMetadataSnapshotFreezer.FreezeList(input.ScriptVariableDefinitions),
             SourceRuntimeSettingsBySourceContextId = SemanticMetadataSnapshotFreezer.FreezeRuntimeSettings(
-                input.SourceRuntimeSettingsBySourceContextId),
-            SourceRuntimeSettingDescriptionsBySourceContextId = SemanticMetadataSnapshotFreezer.FreezeRuntimeSettingDescriptions(
-                input.SourceRuntimeSettingDescriptionsBySourceContextId),
+                input.SourceRuntimeSettingsBySourceContextId
+            ),
+            SourceRuntimeSettingDescriptionsBySourceContextId =
+                SemanticMetadataSnapshotFreezer.FreezeRuntimeSettingDescriptions(
+                    input.SourceRuntimeSettingDescriptionsBySourceContextId
+                ),
             HasDeclaredSourceRuntimeSettings = input.HasDeclaredSourceRuntimeSettings,
             HasSourceRuntimeSettingValues = input.HasSourceRuntimeSettingValues,
             Assemblies = SemanticMetadataSnapshotFreezer.FreezeList(input.Assemblies),
             QueryLocalEnumTypes = SemanticMetadataSnapshotFreezer.FreezeDictionary(input.QueryLocalEnumTypes),
             SetOperatorFieldPositions = SemanticMetadataSnapshotFreezer.FreezeArrays(input.SetOperatorFieldPositions),
             SetOperatorFieldTypes = SemanticMetadataSnapshotFreezer.FreezeArrays(input.SetOperatorFieldTypes),
-            ResultShape = SemanticMetadataSnapshotFreezer.BuildResultShape(input.ResultShape)
+            ResultShape = SemanticMetadataSnapshotFreezer.BuildResultShape(input.ResultShape),
         };
     }
 }
@@ -60,8 +65,10 @@ internal sealed record SemanticMetadataSnapshotInput
 
     public required IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> SourcePlanRequestsPerSchema { get; init; }
 
-    public required IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>
-        SourceContractDiagnosticLocationsPerSchema { get; init; }
+    public required IReadOnlyDictionary<
+        SchemaFromNode,
+        SourceContractDiagnosticLocationMap
+    > SourceContractDiagnosticLocationsPerSchema { get; init; }
 
     public required IEnumerable<BoundSourceContract> SourceContracts { get; init; }
 
@@ -69,11 +76,15 @@ internal sealed record SemanticMetadataSnapshotInput
 
     public required IReadOnlyList<ScriptVariableDefinition> ScriptVariableDefinitions { get; init; }
 
-    public required IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>
-        SourceRuntimeSettingsBySourceContextId { get; init; }
+    public required IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > SourceRuntimeSettingsBySourceContextId { get; init; }
 
-    public required IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>
-        SourceRuntimeSettingDescriptionsBySourceContextId { get; init; }
+    public required IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId { get; init; }
 
     public required bool HasDeclaredSourceRuntimeSettings { get; init; }
 

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Converter.Tests.Schema;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Converter.Tests.Schema;
 
 namespace Musoq.Converter.Tests;
 
@@ -25,18 +25,20 @@ public sealed class WideQueryRowsSchema : SchemaBase, IQueryScopedRowSourceSchem
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return base.DescribeSource(name, context, parameters) with
         {
-            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows
+            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
         };
     }
 
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
@@ -53,9 +55,11 @@ public sealed class WideQueryRowsSchema : SchemaBase, IQueryScopedRowSourceSchem
 
 public sealed class WideQueryRowsTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns { get; } = Enumerable.Range(0, 5)
-        .Select(index => (ISchemaColumn)new SchemaColumn($"G{index}", index, typeof(Guid)))
-        .ToArray();
+    public ISchemaColumn[] Columns { get; } =
+        Enumerable
+            .Range(0, 5)
+            .Select(index => (ISchemaColumn)new SchemaColumn($"G{index}", index, typeof(Guid)))
+            .ToArray();
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(WideQueryRowsEntity));
 

@@ -21,15 +21,29 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var keepFields = PopUnpivotKeepFields(node);
         var entries = PopUnpivotEntries(node);
-        var source = SafeCast<FromNode>(PopSemanticNode("Visit(UnpivotFromNode).Source"), "Visit(UnpivotFromNode).Source");
+        var source = SafeCast<FromNode>(
+            PopSemanticNode("Visit(UnpivotFromNode).Source"),
+            "Visit(UnpivotFromNode).Source"
+        );
 
-        var valueType = ResolveUnpivotValueColumnType(node.ValueColumn, entries.Select(entry => entry.Expression).ToArray(), node);
+        var valueType = ResolveUnpivotValueColumnType(
+            node.ValueColumn,
+            entries.Select(entry => entry.Expression).ToArray(),
+            node
+        );
         entries = RetypeUnpivotNulls(entries, valueType);
         var columns = CreateUnpivotColumns(node, keepFields, valueType);
 
         RegisterUnpivotSource(node, columns);
 
-        var unpivot = new UnpivotFromNode(source, node.NameColumn, node.ValueColumn, entries, keepFields, typeof(object));
+        var unpivot = new UnpivotFromNode(
+            source,
+            node.NameColumn,
+            node.ValueColumn,
+            entries,
+            keepFields,
+            typeof(object)
+        );
         if (node.HasSpan)
             unpivot.WithSpan(node.Span);
         if (!node.FullSpan.IsEmpty)
@@ -45,7 +59,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             keepFields[index] = SafeCast<FieldNode>(
                 PopSemanticNode("Visit(UnpivotFromNode).KeepField"),
-                "Visit(UnpivotFromNode).KeepField");
+                "Visit(UnpivotFromNode).KeepField"
+            );
         }
 
         return keepFields;
@@ -60,7 +75,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             entries[index] = new UnpivotEntryNode(
                 PopSemanticNode("Visit(UnpivotFromNode).Entry"),
                 sourceEntry.NameValue,
-                sourceEntry.NameValueSpan);
+                sourceEntry.NameValueSpan
+            );
         }
 
         return entries;
@@ -69,16 +85,16 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static ISchemaColumn[] CreateUnpivotColumns(
         UnpivotFromNode node,
         IReadOnlyList<FieldNode> keepFields,
-        Type valueType)
+        Type valueType
+    )
     {
         var columns = new List<ISchemaColumn>(keepFields.Count + 2);
 
         foreach (var keepField in keepFields)
         {
-            columns.Add(new SchemaColumn(
-                keepField.FieldName,
-                columns.Count,
-                keepField.Expression.ReturnType ?? typeof(object)));
+            columns.Add(
+                new SchemaColumn(keepField.FieldName, columns.Count, keepField.Expression.ReturnType ?? typeof(object))
+            );
         }
 
         columns.Add(new SchemaColumn(node.NameColumn, columns.Count, typeof(string)));
@@ -105,7 +121,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         var tableSymbol = new TableSymbol(_sourceBinding.QueryAlias, schema, table, false);
 
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(_sourceBinding.QueryAlias, tableSymbol);
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_sourceBinding.QueryAlias);
+        _sourceBinding
+            .CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases)
+            .AddAlias(_sourceBinding.QueryAlias);
         _sourceBinding.CurrentScope[node.Id] = _sourceBinding.QueryAlias;
         _sourceBinding.AliasMapToInMemoryTableMap.Add(_sourceBinding.QueryAlias, _sourceBinding.QueryAlias);
         _sourceBinding.InferredColumnsByAlias[_sourceBinding.QueryAlias] = columns;
@@ -133,13 +151,15 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static Type ResolveUnpivotValueColumnType(
         string columnName,
         IReadOnlyList<Node> expressions,
-        UnpivotFromNode node)
+        UnpivotFromNode node
+    )
     {
         return CommonColumnTypeResolver.Resolve(
             columnName,
             expressions,
             GetUnpivotExpressionSpan(expressions, node),
-            CommonColumnTypeDiagnosticKind.Unpivot);
+            CommonColumnTypeDiagnosticKind.Unpivot
+        );
     }
 
     private static TextSpan GetUnpivotExpressionSpan(IReadOnlyList<Node> expressions, UnpivotFromNode node)

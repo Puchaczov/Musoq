@@ -15,15 +15,17 @@ public class InterpretPipelineIntegrationTests : BinaryOrTextualEvaluatorTestBas
     [TestMethod]
     public void WhenBinaryInterpretCrossApplyQuery_ShouldProduceInterpretSourceInBothPlans()
     {
-        const string query = @"
-            binary Header {
-                Magic: byte
-            };
-            select
-                f.Name,
-                h.Magic
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) h";
+        const string query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Magic: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                f.Name,\n"
+            + "                h.Magic\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h"
+        );
 
         var buildItems = InstanceCreator.CreateForAnalyze(
             query,
@@ -31,9 +33,11 @@ public class InterpretPipelineIntegrationTests : BinaryOrTextualEvaluatorTestBas
             new BinarySchemaProvider(
                 new Dictionary<string, IEnumerable<BinaryEntity>>
                 {
-                    ["#test"] = [new BinaryEntity { Name = "header.bin", Content = [0x2A] }]
-                }),
-            LoggerResolver);
+                    ["#test"] = [new BinaryEntity { Name = "header.bin", Content = [0x2A] }],
+                }
+            ),
+            LoggerResolver
+        );
 
         Assert.IsNotNull(buildItems.RequireLogicalPlan());
         Assert.IsNotNull(buildItems.RequirePhysicalPlan());
@@ -78,13 +82,15 @@ public class InterpretPipelineIntegrationTests : BinaryOrTextualEvaluatorTestBas
     [TestMethod]
     public void WhenBinaryInterpretCrossApplyQuery_ShouldUseScalarRowStreamInExecutionPlan()
     {
-        const string query = @"
-            binary Header {
-                Magic: byte
-            };
-            select h.Magic
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) h";
+        const string query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Magic: byte\n"
+            + "            };\n"
+            + "            select h.Magic\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h"
+        );
 
         var buildItems = InstanceCreator.CreateForAnalyze(
             query,
@@ -92,9 +98,11 @@ public class InterpretPipelineIntegrationTests : BinaryOrTextualEvaluatorTestBas
             new BinarySchemaProvider(
                 new Dictionary<string, IEnumerable<BinaryEntity>>
                 {
-                    ["#test"] = [new BinaryEntity { Name = "header.bin", Content = [0x2A] }]
-                }),
-            LoggerResolver);
+                    ["#test"] = [new BinaryEntity { Name = "header.bin", Content = [0x2A] }],
+                }
+            ),
+            LoggerResolver
+        );
 
         var executionPlanText = buildItems.RequireExecutionPlanText();
 
@@ -105,19 +113,21 @@ public class InterpretPipelineIntegrationTests : BinaryOrTextualEvaluatorTestBas
     [TestMethod]
     public void WhenTextTryParseOuterApplyQuery_ShouldPreserveTryParseSemanticsInBothPlans()
     {
-        const string query = @"
-            text LogEntry {
-                Timestamp: between '[' ']',
-                _: literal ' ',
-                Level: until ':',
-                _: literal ' ',
-                Message: rest
-            };
-            select
-                f.Name,
-                log.Level
-            from #test.lines() f
-            outer apply TryParse<LogEntry>(f.Text) log";
+        const string query = (
+            "\n"
+            + "            text LogEntry {\n"
+            + "                Timestamp: between '[' ']',\n"
+            + "                _: literal ' ',\n"
+            + "                Level: until ':',\n"
+            + "                _: literal ' ',\n"
+            + "                Message: rest\n"
+            + "            };\n"
+            + "            select\n"
+            + "                f.Name,\n"
+            + "                log.Level\n"
+            + "            from #test.lines() f\n"
+            + "            outer apply TryParse<LogEntry>(f.Text) log"
+        );
 
         var buildItems = InstanceCreator.CreateForAnalyze(
             query,
@@ -125,9 +135,11 @@ public class InterpretPipelineIntegrationTests : BinaryOrTextualEvaluatorTestBas
             new TextSchemaProvider(
                 new Dictionary<string, IEnumerable<TextEntity>>
                 {
-                    ["#test"] = [new TextEntity { Name = "app.log", Text = "[2026-03-09] INFO: booted" }]
-                }),
-            LoggerResolver);
+                    ["#test"] = [new TextEntity { Name = "app.log", Text = "[2026-03-09] INFO: booted" }],
+                }
+            ),
+            LoggerResolver
+        );
 
         Assert.IsNotNull(buildItems.RequireLogicalPlan());
         Assert.IsNotNull(buildItems.RequirePhysicalPlan());
@@ -170,17 +182,19 @@ public class InterpretPipelineIntegrationTests : BinaryOrTextualEvaluatorTestBas
     [TestMethod]
     public void WhenBinaryInterpretAsTextProjectionUsesNestedMember_ShouldPreserveFullColumnPathInFinalProjection()
     {
-        const string query = @"
-            text Data {
-                Content: rest
-            };
-            binary Packet {
-                Len: byte,
-                Text: string[Len] utf8 as Data,
-                Trailer: byte
-            };
-            select p.Len, p.Text.Content, p.Trailer from #test.files() f
-            cross apply Interpret<Packet>(f.Content) p";
+        const string query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Content: rest\n"
+            + "            };\n"
+            + "            binary Packet {\n"
+            + "                Len: byte,\n"
+            + "                Text: string[Len] utf8 as Data,\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select p.Len, p.Text.Content, p.Trailer from #test.files() f\n"
+            + "            cross apply Interpret<Packet>(f.Content) p"
+        );
 
         var buildItems = InstanceCreator.CreateForAnalyze(
             query,
@@ -188,15 +202,18 @@ public class InterpretPipelineIntegrationTests : BinaryOrTextualEvaluatorTestBas
             new BinarySchemaProvider(
                 new Dictionary<string, IEnumerable<BinaryEntity>>
                 {
-                    ["#test"] = [new BinaryEntity { Name = "test.bin", Content = [0x00, 0xFF] }]
-                }),
-            LoggerResolver);
+                    ["#test"] = [new BinaryEntity { Name = "test.bin", Content = [0x00, 0xFF] }],
+                }
+            ),
+            LoggerResolver
+        );
 
         var logicalProject = (ProjectNode)PipelinePlanAssertions.UnwrapMultiStatement(buildItems.RequireLogicalPlan());
         var logicalContentField = logicalProject.Fields[1];
         Assert.AreEqual("p.Text.Content", IrExpressionPrinter.Print(logicalContentField.Expression));
 
-        var physicalProject = (PhysicalProjectNode)PipelinePlanAssertions.UnwrapPhysicalMultiStatement(buildItems.RequirePhysicalPlan());
+        var physicalProject = (PhysicalProjectNode)
+            PipelinePlanAssertions.UnwrapPhysicalMultiStatement(buildItems.RequirePhysicalPlan());
         var physicalContentField = physicalProject.Fields[1];
         Assert.AreEqual("p.Text.Content", IrExpressionPrinter.Print(physicalContentField.Expression));
     }

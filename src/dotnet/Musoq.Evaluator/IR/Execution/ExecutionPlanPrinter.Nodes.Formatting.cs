@@ -5,7 +5,8 @@ using System.Text;
 namespace Musoq.Evaluator.IR.Execution;
 
 public static partial class ExecutionPlanPrinter
-{    private static string FormatRowValues(IReadOnlyList<ExecutionRowValue> values)
+{
+    private static string FormatRowValues(IReadOnlyList<ExecutionRowValue> values)
     {
         var builder = new StringBuilder();
 
@@ -24,11 +25,10 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatAsOfPredicate(ExecutionAsOfProbe asOfProbe)
     {
-        var predicates = asOfProbe.EqualityKeys
-            .Select(key => $"{FormatExpression(key.Left)} = {FormatExpression(key.Right)}")
-            .Concat(
-            [
-                $"{FormatExpression(asOfProbe.ProbeKey)} {FormatBinaryOperator(asOfProbe.ComparisonKind)} {FormatExpression(asOfProbe.CandidateKey)}"
+        var predicates = asOfProbe
+            .EqualityKeys.Select(key => $"{FormatExpression(key.Left)} = {FormatExpression(key.Right)}")
+            .Concat([
+                $"{FormatExpression(asOfProbe.ProbeKey)} {FormatBinaryOperator(asOfProbe.ComparisonKind)} {FormatExpression(asOfProbe.CandidateKey)}",
             ]);
 
         var predicate = string.Join(" and ", predicates);
@@ -39,21 +39,17 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatAsOfIndexKey(ExecutionCreateAsOfIndex createIndex)
     {
-        var predicates = createIndex.EqualityKeys
-            .Select(key => FormatExpression(key.Right))
+        var predicates = createIndex
+            .EqualityKeys.Select(key => FormatExpression(key.Right))
             .Concat([FormatExpression(createIndex.CandidateKey)]);
 
         var key = string.Join(", ", predicates);
-        return createIndex.TieBreak == null
-            ? key
-            : $"{key}; tie {FormatAsOfTieBreak(createIndex.TieBreak)}";
+        return createIndex.TieBreak == null ? key : $"{key}; tie {FormatAsOfTieBreak(createIndex.TieBreak)}";
     }
 
     private static string FormatAsOfIndex(ExecutionAsOfProbe asOfProbe)
     {
-        return asOfProbe.Index == null
-            ? string.Empty
-            : $" using {asOfProbe.Index.Name}";
+        return asOfProbe.Index == null ? string.Empty : $" using {asOfProbe.Index.Name}";
     }
 
     private static string FormatAsOfTieBreak(ExecutionAsOfTieBreak tieBreak)
@@ -63,9 +59,6 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatSetOperationStrategy(ExecutionSetOperationStrategy strategy)
     {
-        return strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop
-            ? string.Empty
-            : $", {strategy}";
+        return strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop ? string.Empty : $", {strategy}";
     }
-
 }

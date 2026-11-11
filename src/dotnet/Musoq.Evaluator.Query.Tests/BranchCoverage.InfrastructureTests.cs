@@ -221,7 +221,10 @@ public partial class BranchCoverageImprovementTests
     {
         var dict = new Dictionary<string, int> { ["hello"] = 42 };
 
-        var result = Helpers.SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, int>, string, int>(dict, "hello");
+        var result = Helpers.SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, int>, string, int>(
+            dict,
+            "hello"
+        );
 
         Assert.AreEqual(42, result);
     }
@@ -231,7 +234,10 @@ public partial class BranchCoverageImprovementTests
     {
         var dict = new Dictionary<string, int> { ["hello"] = 42 };
 
-        var result = Helpers.SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, int>, string, int>(dict, "missing");
+        var result = Helpers.SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, int>, string, int>(
+            dict,
+            "missing"
+        );
 
         Assert.AreEqual(0, result);
     }
@@ -370,7 +376,8 @@ public partial class BranchCoverageImprovementTests
         var propInfo = new ExpandoObjectPropertyInfo("TestProp", typeof(int));
 
         Assert.Throws<NotSupportedException>(() =>
-            propInfo.SetValue(null, null, System.Reflection.BindingFlags.Default, null, null, null));
+            propInfo.SetValue(null, null, System.Reflection.BindingFlags.Default, null, null, null)
+        );
     }
 
     #endregion
@@ -439,5 +446,4 @@ public partial class BranchCoverageImprovementTests
     }
 
     #endregion
-
 }

@@ -28,7 +28,8 @@ public sealed class ScalarReuseModelTests
             ScalarEvaluationRegionKind.Unconditional,
             true,
             true,
-            owner);
+            owner
+        );
         var candidate = new ScalarReuseCandidate(
             "field:a.Value",
             typeof(int),
@@ -38,7 +39,8 @@ public sealed class ScalarReuseModelTests
             owner,
             1,
             3,
-            4);
+            4
+        );
 
         Assert.IsTrue(candidate.CanMoveTo(descendant));
         Assert.IsTrue(candidate.IsRepeated);
@@ -58,12 +60,13 @@ public sealed class ScalarReuseModelTests
             region,
             4,
             4,
-            4);
+            4
+        );
         var variableCandidate = volatileCandidate with
         {
             Fingerprint = "variable",
             Stability = ColumnStability.Stable,
-            IsVariableOnly = true
+            IsVariableOnly = true,
         };
 
         Assert.IsFalse(model.ShouldMaterialize(volatileCandidate, 128, 4));
@@ -80,10 +83,9 @@ public sealed class ScalarReuseModelTests
             "item",
             [],
             [],
-            new OutputSchema([new ColumnSchema("Id", typeof(int), 0)]));
-        var compute = new PhysicalComputeNode(
-            input,
-            [new ProjectedField("Computed", new Literal(1, typeof(int)), 1)]);
+            new OutputSchema([new ColumnSchema("Id", typeof(int), 0)])
+        );
+        var compute = new PhysicalComputeNode(input, [new ProjectedField("Computed", new Literal(1, typeof(int)), 1)]);
 
         Assert.AreEqual(2, compute.OutputSchema.Columns.Length);
         Assert.AreEqual("Id", compute.OutputSchema.Columns[0].Name);
@@ -101,10 +103,9 @@ public sealed class ScalarReuseModelTests
             "item",
             [],
             [],
-            new OutputSchema([new ColumnSchema("Id", typeof(int), 0)]));
-        var compute = new PhysicalComputeNode(
-            input,
-            [new ProjectedField("Computed", new Literal(1, typeof(int)), 1)]);
+            new OutputSchema([new ColumnSchema("Id", typeof(int), 0)])
+        );
+        var compute = new PhysicalComputeNode(input, [new ProjectedField("Computed", new Literal(1, typeof(int)), 1)]);
 
         var rewritten = PhysicalPlanRewriter.RewriteChildren(compute, static child => child);
 
@@ -128,10 +129,18 @@ public sealed class ScalarReuseModelTests
     {
         var region = ScalarEvaluationRegion.Root("outer");
         var stable = new ScalarReuseCandidate(
-            "stable", typeof(int), ColumnStability.Stable, ["field:a.Value"], "outer", region, 3, 2, 4);
+            "stable",
+            typeof(int),
+            ColumnStability.Stable,
+            ["field:a.Value"],
+            "outer",
+            region,
+            3,
+            2,
+            4
+        );
         var volatileCandidate = stable with { Fingerprint = "volatile", Stability = ColumnStability.Volatile };
-        var boundary = new ScalarReuseBoundary(
-            ScalarReuseBoundaryKind.Projection, "outer", true, true, false);
+        var boundary = new ScalarReuseBoundary(ScalarReuseBoundaryKind.Projection, "outer", true, true, false);
 
         Assert.IsTrue(boundary.CanCarry(stable));
         Assert.IsFalse(boundary.CanCarry(volatileCandidate));
@@ -154,7 +163,13 @@ public sealed class ScalarReuseModelTests
     public void SpecializedJoinKeysRespectOwningSideAndStability()
     {
         var key = new JoinKeyReuseFact(
-            SpecializedJoinKeyKind.AsOfProbe, "probe", ColumnStability.Stable, false, true, "key");
+            SpecializedJoinKeyKind.AsOfProbe,
+            "probe",
+            ColumnStability.Stable,
+            false,
+            true,
+            "key"
+        );
         var innerDependent = key with { DependsOnInnerRow = true };
         var volatileKey = key with { Stability = ColumnStability.Volatile };
 
@@ -202,19 +217,15 @@ public sealed class ScalarReuseModelTests
     {
         var frontier = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "r" };
         var stable = RecursiveScalarInvariantFacts.Classify(
-            new BinaryOp(
-                BinaryOpKind.Add,
-                new Literal(1, typeof(int)),
-                new Literal(2, typeof(int)),
-                typeof(int)),
-            frontier);
+            new BinaryOp(BinaryOpKind.Add, new Literal(1, typeof(int)), new Literal(2, typeof(int)), typeof(int)),
+            frontier
+        );
         var frontierValue = RecursiveScalarInvariantFacts.Classify(
             new ColumnRef("r", "Value", typeof(int)),
             frontier,
-            isAnchorInvariant: false);
-        var aggregate = RecursiveScalarInvariantFacts.Classify(
-            new AggregateRef("sum", typeof(int)),
-            frontier);
+            isAnchorInvariant: false
+        );
+        var aggregate = RecursiveScalarInvariantFacts.Classify(new AggregateRef("sum", typeof(int)), frontier);
 
         Assert.IsTrue(stable.CanHoist);
         Assert.AreEqual(RecursiveScalarInvariantKind.FrontierDependent, frontierValue.Kind);
@@ -229,19 +240,18 @@ public sealed class ScalarReuseModelTests
         var frontier = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         Assert.AreEqual(
             RecursiveScalarInvariantKind.Volatile,
-            RecursiveScalarInvariantFacts.Classify(
-                new MethodCall(
-                    ((Func<int>)VolatileValue).Method,
-                    [],
-                    null,
-                    typeof(int)),
-                frontier).Kind);
+            RecursiveScalarInvariantFacts
+                .Classify(new MethodCall(((Func<int>)VolatileValue).Method, [], null, typeof(int)), frontier)
+                .Kind
+        );
         Assert.AreEqual(
             RecursiveScalarInvariantKind.Stream,
-            RecursiveScalarInvariantFacts.Classify(new CteTableRef("rows"), frontier).Kind);
+            RecursiveScalarInvariantFacts.Classify(new CteTableRef("rows"), frontier).Kind
+        );
         Assert.AreEqual(
             RecursiveScalarInvariantKind.Window,
-            RecursiveScalarInvariantFacts.Classify(new WindowFunctionRef(0, typeof(int)), frontier).Kind);
+            RecursiveScalarInvariantFacts.Classify(new WindowFunctionRef(0, typeof(int)), frontier).Kind
+        );
     }
 
     [NonDeterministic]

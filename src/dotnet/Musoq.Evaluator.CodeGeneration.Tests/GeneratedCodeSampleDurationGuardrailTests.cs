@@ -24,13 +24,13 @@ public sealed class GeneratedCodeSampleDurationGuardrailTests
         "GeneratedCodeSamplesShapeTests.RuntimeV2ProjectionAndCorpusGuards.cs",
         "GeneratedCodeSamplesShapeTests.SampleAccess.cs",
         "GeneratedCodeSamplesShapeTests.WindowsCtesOrderingAndAggregates.cs",
-        "GeneratedCodeSamplesShapeTests.WindowsNoBoxing.cs"
+        "GeneratedCodeSamplesShapeTests.WindowsNoBoxing.cs",
     ];
 
     private static readonly string[] UncachedGenerationAllowList =
     [
         "GeneratedCodeSampleArtifacts.cs",
-        "GeneratedCodeSamplesManifestTests.cs"
+        "GeneratedCodeSamplesManifestTests.cs",
     ];
 
     [TestMethod]
@@ -38,7 +38,8 @@ public sealed class GeneratedCodeSampleDurationGuardrailTests
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var snapshotDirectory = GeneratedCodeSampleArtifacts.SamplesDirectory;
-        var snapshotFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(snapshotDirectory, "*.cs")
+        var snapshotFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(snapshotDirectory, "*.cs")
             .Select(Path.GetFileName)
             .OrderBy(static fileName => fileName, StringComparer.Ordinal)
             .ToArray();
@@ -50,7 +51,9 @@ public sealed class GeneratedCodeSampleDurationGuardrailTests
             repositoryRoot,
             "src",
             "dotnet",
-            "Musoq.Evaluator.CodeGeneration.Tests", "GeneratedCodeSamplesManifest.txt");
+            "Musoq.Evaluator.CodeGeneration.Tests",
+            "GeneratedCodeSamplesManifest.txt"
+        );
         var trackedManifest = File.ReadAllLines(manifestPath)
             .Where(static line => !string.IsNullOrWhiteSpace(line))
             .Where(static line => !line.StartsWith("#", StringComparison.Ordinal))
@@ -66,7 +69,8 @@ public sealed class GeneratedCodeSampleDurationGuardrailTests
     {
         var sourceFiles = GetEvaluatorTestSourceFiles();
         var artifactFile = sourceFiles.Single(static file =>
-            Path.GetFileName(file).Equals("GeneratedCodeSampleArtifacts.cs", StringComparison.Ordinal));
+            Path.GetFileName(file).Equals("GeneratedCodeSampleArtifacts.cs", StringComparison.Ordinal)
+        );
         var artifactSource = File.ReadAllText(artifactFile);
 
         Assert.Contains("Cache.GetOrAdd(", artifactSource);
@@ -81,7 +85,8 @@ public sealed class GeneratedCodeSampleDurationGuardrailTests
 
         Assert.IsEmpty(
             directFactoryCalls,
-            $"Tests must call the cached Generate path, not the generation factory: {string.Join(", ", directFactoryCalls)}");
+            $"Tests must call the cached Generate path, not the generation factory: {string.Join(", ", directFactoryCalls)}"
+        );
     }
 
     [TestMethod]
@@ -101,9 +106,7 @@ public sealed class GeneratedCodeSampleDurationGuardrailTests
     public void ReadAllSamples_ShouldRemainLimitedToCorpusWideTests()
     {
         var token = "Read" + "AllSamples";
-        var pattern = new Regex(
-            Regex.Escape(token) + @"\s*\(",
-            RegexOptions.CultureInvariant);
+        var pattern = new Regex(Regex.Escape(token) + @"\s*\(", RegexOptions.CultureInvariant);
         var actual = GetShapeTestSourceFiles()
             .Where(file => pattern.IsMatch(File.ReadAllText(file)))
             .Select(Path.GetFileName)
@@ -120,9 +123,7 @@ public sealed class GeneratedCodeSampleDurationGuardrailTests
 
     private static string[] GetShapeTestSourceFiles()
     {
-        return Directory
-            .EnumerateFiles(GetEvaluatorTestDirectory(), "GeneratedCodeSamplesShapeTests*.cs")
-            .ToArray();
+        return Directory.EnumerateFiles(GetEvaluatorTestDirectory(), "GeneratedCodeSamplesShapeTests*.cs").ToArray();
     }
 
     private static string GetEvaluatorTestDirectory()

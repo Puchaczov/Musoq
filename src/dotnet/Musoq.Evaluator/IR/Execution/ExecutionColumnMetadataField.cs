@@ -11,7 +11,8 @@ public sealed record ExecutionColumnMetadataField
         ExecutionTypeRef type,
         IReadOnlyDictionary<string, string>? readModifiers = null,
         ExecutionTypeRef? sourceReadType = null,
-        EnumTypeDescriptor? enumType = null)
+        EnumTypeDescriptor? enumType = null
+    )
     {
         Name = name;
         Index = index;
@@ -27,16 +28,16 @@ public sealed record ExecutionColumnMetadataField
         Type type,
         IReadOnlyDictionary<string, string>? readModifiers = null,
         Type? sourceReadType = null,
-        EnumTypeDescriptor? enumType = null)
+        EnumTypeDescriptor? enumType = null
+    )
         : this(
             name,
             index,
             ExecutionClrBindingFactory.FromClr(type),
             readModifiers,
             ExecutionClrBindingFactory.FromOptionalClr(sourceReadType),
-            enumType)
-    {
-    }
+            enumType
+        ) { }
 
     public string? GeneratedTypeName { get; init; }
 

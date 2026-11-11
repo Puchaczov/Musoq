@@ -23,14 +23,17 @@ public partial class InterpreterCodeGenerator
     private string NextStatusName(string prefix)
     {
         string name;
-        do { name = prefix + _statusReadIndex++; }
-        while (!_statusNames.Add(name));
+        do
+        {
+            name = prefix + _statusReadIndex++;
+        } while (!_statusNames.Add(name));
         return name;
     }
 
-    private string StatusFailure(string error) => _statusFailureLabel is { } label
-        ? $"goto {label};"
-        : $"return global::Musoq.Schema.Interpreters.ParseAttempt<{_statusResultType}>.Failed(__parsedValue, {error});";
+    private string StatusFailure(string error) =>
+        _statusFailureLabel is { } label
+            ? $"goto {label};"
+            : $"return global::Musoq.Schema.Interpreters.ParseAttempt<{_statusResultType}>.Failed(__parsedValue, {error});";
 
     private string StatusCheck(string expression)
     {
@@ -41,9 +44,9 @@ public partial class InterpreterCodeGenerator
     private string StatusRead(string variable, string expression)
     {
         var result = NextStatusName("__musoqReadResult");
-        return $"var {result} = {expression};\n" +
-               $"if (!{result}.Succeeded) {{ {StatusFailure(result + ".Failure!")} }}\n" +
-               $"var {variable} = {result}.Value!;\n";
+        return $"var {result} = {expression};\n"
+            + $"if (!{result}.Succeeded) {{ {StatusFailure(result + ".Failure!")} }}\n"
+            + $"var {variable} = {result}.Value!;\n";
     }
 
     private string TextStatusRead(string variable, string expression, bool discard)
@@ -51,7 +54,7 @@ public partial class InterpreterCodeGenerator
         if (!discard)
             return StatusRead(variable, expression);
         var result = NextStatusName("__musoqReadResult");
-        return $"var {result} = {expression};\n" +
-               $"if (!{result}.Succeeded) {{ {StatusFailure(result + ".Failure!")} }}\n";
+        return $"var {result} = {expression};\n"
+            + $"if (!{result}.Succeeded) {{ {StatusFailure(result + ".Failure!")} }}\n";
     }
 }

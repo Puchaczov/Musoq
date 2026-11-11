@@ -34,11 +34,15 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
     [TestMethod]
     public void Stage5_NoRoslynErrorsForValidQueries()
     {
-
         var query = "SELECT Name, City, Population FROM #A.Entities() WHERE Population > 50";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice", "Warsaw", 100m]);
@@ -54,7 +58,7 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
 
     #region Stage 6: Runtime Execution
 
-    // Note: Runtime errors (file not found, permission denied, etc.) 
+    // Note: Runtime errors (file not found, permission denied, etc.)
     // occur during query execution, not during analysis.
     // The QueryAnalyzer only performs static analysis, so runtime
     // errors are tested in execution tests, not here.
@@ -84,7 +88,7 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Name = "Alice", Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Name = "Bob", Money = 2000.75m }] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Name = "Bob", Money = 2000.75m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -94,15 +98,17 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
         return new QueryAnalyzer(CreateSchemaProvider());
     }
 
-    private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string? context = null)
+    private static void AssertHasErrorCode(
+        QueryAnalysisResult result,
+        DiagnosticCode expectedCode,
+        string? context = null
+    )
     {
         var contextInfo = context != null ? $" ({context})" : "";
         DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, contextInfo);
     }
 
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -110,7 +116,8 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
     private static void AssertHasExactlyOneErrorCode(
         QueryAnalysisResult result,
         string context,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -124,7 +131,6 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
         }
     }
 
-
     #endregion
 
     // ============================================================================
@@ -137,8 +143,8 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
     [TestMethod]
     public void Stage4_CodeGeneration_ComplexQuery()
     {
-
-        var query = @"
+        var query =
+            @"
             WITH cte AS (
                 SELECT Name, City, Population 
                 FROM #A.Entities() 
@@ -149,7 +155,12 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
             ORDER BY Name ASC";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice", "Warsaw"]);
@@ -158,19 +169,23 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
     [TestMethod]
     public void Stage4_CodeGeneration_SetOperator()
     {
-
-        var query = @"
+        var query =
+            @"
             SELECT Name FROM #A.Entities()
             UNION ALL (Name)
             SELECT Name FROM #B.Entities()";
 
         using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
-            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+            query,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice"], ["Bob"]);
     }
 
     #endregion
-
 }

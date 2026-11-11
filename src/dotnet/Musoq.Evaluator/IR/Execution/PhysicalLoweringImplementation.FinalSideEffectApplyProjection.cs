@@ -13,7 +13,8 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (multiStatement.Statements.Length < 2)
             return null;
@@ -24,9 +25,11 @@ internal sealed partial class PhysicalLoweringImplementation
             return null;
 
         var finalPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(multiStatement.Statements[^1]));
-        if (finalPipeline is not { Source: PhysicalCteRefNode cteRef, Filter: null } ||
-            finalPipeline.PostOperations.Count != 0 ||
-            !string.Equals(cteRef.CteName, producerCteName, StringComparison.OrdinalIgnoreCase))
+        if (
+            finalPipeline is not { Source: PhysicalCteRefNode cteRef, Filter: null }
+            || finalPipeline.PostOperations.Count != 0
+            || !string.Equals(cteRef.CteName, producerCteName, StringComparison.OrdinalIgnoreCase)
+        )
         {
             return null;
         }
@@ -35,11 +38,15 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!CanFuseFinalSideEffectApplyProjectionCte(producerCteName, classifications))
             return null;
 
-        var producerPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(multiStatement.Statements[producerIndex]));
-        if (producerPipeline == null ||
-            producerPipeline.Filter != null ||
-            producerPipeline.PostOperations.Count != 0 ||
-            !CanInlineSideEffectApplyProjectionSource(producerPipeline.Source))
+        var producerPipeline = DecomposeSupportedPipeline(
+            UnwrapSingleStatement(multiStatement.Statements[producerIndex])
+        );
+        if (
+            producerPipeline == null
+            || producerPipeline.Filter != null
+            || producerPipeline.PostOperations.Count != 0
+            || !CanInlineSideEffectApplyProjectionSource(producerPipeline.Source)
+        )
         {
             return null;
         }
@@ -48,16 +55,12 @@ internal sealed partial class PhysicalLoweringImplementation
             finalPipeline.Project,
             finalPipeline.Filter,
             producerPipeline.Project,
-            cteRef);
+            cteRef
+        );
         if (rewrite == null)
             return null;
 
-        var prefix = BuildMultiStatementPrefix(
-            multiStatement,
-            producerIndex,
-            indexes,
-            scopeAggregateVariables,
-            scope);
+        var prefix = BuildMultiStatementPrefix(multiStatement, producerIndex, indexes, scopeAggregateVariables, scope);
         if (!prefix.IsBuilt)
             return TableBuildResult.Unsupported(prefix.UnsupportedReason);
 
@@ -65,14 +68,15 @@ internal sealed partial class PhysicalLoweringImplementation
             producerPipeline with
             {
                 Project = rewrite.Project,
-                Filter = rewrite.Filter
+                Filter = rewrite.Filter,
             },
             resultTableName,
             resultShapeName,
             indexes.CteIndexes,
             indexes.CteShapesByName,
             schemaFromIndex: DefaultSchemaFromIndex,
-            scope: scope);
+            scope: scope
+        );
         if (!result.IsBuilt)
             return result;
 
@@ -80,14 +84,16 @@ internal sealed partial class PhysicalLoweringImplementation
         if (tableIndex < 0)
         {
             return TableBuildResult.Unsupported(
-                $"Execution IR final APPLY projection fusion cannot resolve table storage slot for statement {producerIndex.ToString(CultureInfo.InvariantCulture)}.");
+                $"Execution IR final APPLY projection fusion cannot resolve table storage slot for statement {producerIndex.ToString(CultureInfo.InvariantCulture)}."
+            );
         }
 
         return TableBuildResult.Success(
-            [..prefix.Shapes, ..result.Shapes],
-            [..prefix.Nodes, CreateSingleUsePipelineFusionCandidate(tableIndex, result.Nodes)],
+            [.. prefix.Shapes, .. result.Shapes],
+            [.. prefix.Nodes, CreateSingleUsePipelineFusionCandidate(tableIndex, result.Nodes)],
             result.Table,
-            result.RowShape);
+            result.RowShape
+        );
     }
 
     private CteDefinitionPrefixBuildResult BuildMultiStatementPrefix(
@@ -95,13 +101,12 @@ internal sealed partial class PhysicalLoweringImplementation
         int exclusiveEndIndex,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
-        var prefixSession = scope.DirectTableSink == null
-            ? scope
-            : scope.WithoutDirectTableSink();
+        var prefixSession = scope.DirectTableSink == null ? scope : scope.WithoutDirectTableSink();
 
         for (var index = 0; index < exclusiveEndIndex; index++)
         {
@@ -111,7 +116,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 CreateStatementShapeName(indexes.StatementNamePrefix, index),
                 indexes,
                 scopeAggregateVariables,
-                prefixSession);
+                prefixSession
+            );
             if (!result.IsBuilt)
                 return CteDefinitionPrefixBuildResult.Unsupported(result.UnsupportedReason);
 
@@ -122,7 +128,8 @@ internal sealed partial class PhysicalLoweringImplementation
             if (tableIndex < 0)
             {
                 return CteDefinitionPrefixBuildResult.Unsupported(
-                    $"Execution IR multi-statement prefix lowering cannot resolve table storage slot for statement {index.ToString(CultureInfo.InvariantCulture)}.");
+                    $"Execution IR multi-statement prefix lowering cannot resolve table storage slot for statement {index.ToString(CultureInfo.InvariantCulture)}."
+                );
             }
 
             var cteName = ResolveStatementCteName(index, indexes);
@@ -137,29 +144,29 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool CanFuseFinalSideEffectApplyProjectionCte(
         string cteName,
-        IReadOnlyDictionary<string, CteReferenceClassification> classifications)
+        IReadOnlyDictionary<string, CteReferenceClassification> classifications
+    )
     {
-        return classifications.TryGetValue(cteName, out var classification) &&
-               classification.ReferenceCount == 1 &&
-               !classification.Flags.HasFlag(CteOutputFlags.OrderSensitive) &&
-               !classification.Flags.HasFlag(CteOutputFlags.Aggregate) &&
-               !classification.Flags.HasFlag(CteOutputFlags.Window) &&
-               !classification.Flags.HasFlag(CteOutputFlags.SetOperation);
+        return classifications.TryGetValue(cteName, out var classification)
+            && classification.ReferenceCount == 1
+            && !classification.Flags.HasFlag(CteOutputFlags.OrderSensitive)
+            && !classification.Flags.HasFlag(CteOutputFlags.Aggregate)
+            && !classification.Flags.HasFlag(CteOutputFlags.Window)
+            && !classification.Flags.HasFlag(CteOutputFlags.SetOperation);
     }
 
     private static bool CanInlineSideEffectApplyProjectionSource(PhysicalNode source)
     {
         return source switch
         {
-            PhysicalNestedLoopApplyNode apply =>
-                CanInlineSideEffectApplyProjectionSource(apply.Left) &&
-                CanInlineSideEffectApplyProjectionSource(apply.Right),
+            PhysicalNestedLoopApplyNode apply => CanInlineSideEffectApplyProjectionSource(apply.Left)
+                && CanInlineSideEffectApplyProjectionSource(apply.Right),
             PhysicalSchemaScanNode { Arguments.Length: 0 } => true,
             PhysicalCteRefNode => true,
             PhysicalInterpretSourceNode => true,
             PhysicalPropertySourceNode => true,
             PhysicalAccessMethodSourceNode => true,
-            _ => false
+            _ => false,
         };
     }
 }

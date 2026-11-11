@@ -8,7 +8,8 @@ internal static partial class PlanningTextPrinter
     private static void AppendSourceInteractionPlan(
         StringBuilder builder,
         SourcePlanningFacts sourcePlanning,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         if (!sourcePlanning.SourceInteractionPlansBySourceId.TryGetValue(sourceContextId, out var plan))
         {
@@ -16,17 +17,33 @@ internal static partial class PlanningTextPrinter
             return;
         }
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      interaction shape: {plan.ShapeKind} ({plan.Confidence}) - {plan.ShapeReason}");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      interaction columns: {plan.ColumnContract} [{FormatColumnNames(plan.QuerySourceColumns)}] - {plan.ColumnReason}");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      interaction predicate: {plan.PredicateContract} - {plan.PredicateReason}");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      interaction source request: orderBy={plan.SourcePlanRequest.OrderBy.Count}, skip={FormatHintValue(plan.SourcePlanRequest.Skip)}, take={FormatHintValue(plan.SourcePlanRequest.Take)} - {plan.SourcePlanRequestReason}");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      interaction arguments: {plan.ArgumentMode} - {plan.ArgumentReason}");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      interaction shape: {plan.ShapeKind} ({plan.Confidence}) - {plan.ShapeReason}"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      interaction columns: {plan.ColumnContract} [{FormatColumnNames(plan.QuerySourceColumns)}] - {plan.ColumnReason}"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      interaction predicate: {plan.PredicateContract} - {plan.PredicateReason}"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      interaction source request: orderBy={plan.SourcePlanRequest.OrderBy.Count}, skip={FormatHintValue(plan.SourcePlanRequest.Skip)}, take={FormatHintValue(plan.SourcePlanRequest.Take)} - {plan.SourcePlanRequestReason}"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      interaction arguments: {plan.ArgumentMode} - {plan.ArgumentReason}"
+        );
     }
 
     private static void AppendSourcePlanResult(
         StringBuilder builder,
         SourcePlanningFacts sourcePlanning,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         if (!sourcePlanning.SourcePlanResultsBySourceId.TryGetValue(sourceContextId, out var plan))
         {
@@ -36,58 +53,86 @@ internal static partial class PlanningTextPrinter
 
         if (sourcePlanning.SourcePlanRequestsBySourceId.TryGetValue(sourceContextId, out var request))
         {
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source plan requested: columns={FormatColumnRefs(request.RequiredColumns)}, orderBy={request.OrderBy.Count}, skip={FormatHintValue(request.Skip)}, take={FormatHintValue(request.Take)}, predicate={FormatPredicate(request.Predicate)}");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"      source plan requested: columns={FormatColumnRefs(request.RequiredColumns)}, orderBy={request.OrderBy.Count}, skip={FormatHintValue(request.Skip)}, take={FormatHintValue(request.Take)}, predicate={FormatPredicate(request.Predicate)}"
+            );
             AppendSourceCapabilityDiagnostics(builder, request, plan);
             if (sourcePlanning.SourceDescriptorsBySourceId.TryGetValue(sourceContextId, out var descriptor))
                 AppendSourceStringMatchDiagnostics(builder, request.Predicate, plan, descriptor.PredicateCapabilities);
         }
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source plan accepted: columns={FormatColumnRefs(plan.AcceptedColumns)}, orderBy={plan.AcceptedOrderBy.Count}, skip={FormatHintValue(plan.AcceptedSkip)}, take={FormatHintValue(plan.AcceptedTake)}, predicate={FormatPredicate(plan.AcceptedPredicate)}");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source plan residual: orderBy={plan.ResidualOrderBy.Count}, skip={FormatHintValue(plan.ResidualSkip)}, take={FormatHintValue(plan.ResidualTake)}, predicate={FormatPredicate(plan.ResidualPredicate)}");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      source plan accepted: columns={FormatColumnRefs(plan.AcceptedColumns)}, orderBy={plan.AcceptedOrderBy.Count}, skip={FormatHintValue(plan.AcceptedSkip)}, take={FormatHintValue(plan.AcceptedTake)}, predicate={FormatPredicate(plan.AcceptedPredicate)}"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      source plan residual: orderBy={plan.ResidualOrderBy.Count}, skip={FormatHintValue(plan.ResidualSkip)}, take={FormatHintValue(plan.ResidualTake)}, predicate={FormatPredicate(plan.ResidualPredicate)}"
+        );
 
         if (plan.Cardinality != null)
         {
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source plan cardinality: {plan.Cardinality.Kind}, exact={FormatHintValue(plan.Cardinality.ExactRows)}, lower={FormatHintValue(plan.Cardinality.LowerBound)}, upper={FormatHintValue(plan.Cardinality.UpperBound)}, confidence={plan.Cardinality.Confidence}, reason={FormatReason(plan.Cardinality.Reason)}");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"      source plan cardinality: {plan.Cardinality.Kind}, exact={FormatHintValue(plan.Cardinality.ExactRows)}, lower={FormatHintValue(plan.Cardinality.LowerBound)}, upper={FormatHintValue(plan.Cardinality.UpperBound)}, confidence={plan.Cardinality.Confidence}, reason={FormatReason(plan.Cardinality.Reason)}"
+            );
             AppendCardinalityCapability(builder, plan.Cardinality);
         }
 
         foreach (var diagnostic in plan.Diagnostics)
         {
-            var origin = string.IsNullOrWhiteSpace(diagnostic.Origin)
-                ? string.Empty
-                : $" [{diagnostic.Origin}]";
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source plan diagnostic{origin}: {diagnostic.Severity} - {diagnostic.Message}");
+            var origin = string.IsNullOrWhiteSpace(diagnostic.Origin) ? string.Empty : $" [{diagnostic.Origin}]";
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"      source plan diagnostic{origin}: {diagnostic.Severity} - {diagnostic.Message}"
+            );
         }
 
         foreach (var diagnostic in plan.ContractDiagnostics)
         {
-            var origin = string.IsNullOrWhiteSpace(diagnostic.Origin)
-                ? string.Empty
-                : $" [{diagnostic.Origin}]";
-            var code = string.IsNullOrWhiteSpace(diagnostic.Code)
-                ? string.Empty
-                : $" {diagnostic.Code}";
+            var origin = string.IsNullOrWhiteSpace(diagnostic.Origin) ? string.Empty : $" [{diagnostic.Origin}]";
+            var code = string.IsNullOrWhiteSpace(diagnostic.Code) ? string.Empty : $" {diagnostic.Code}";
             var details = FormatContractDiagnosticDetails(diagnostic);
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source contract diagnostic{origin}: {diagnostic.Severity}{code} - {diagnostic.Message}{details}");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"      source contract diagnostic{origin}: {diagnostic.Severity}{code} - {diagnostic.Message}{details}"
+            );
         }
     }
 
     private static void AppendSourceCapabilityDiagnostics(
         StringBuilder builder,
         SourcePlanRequest request,
-        SourcePlanResult plan)
+        SourcePlanResult plan
+    )
     {
         var projectionResidual = Math.Max(0, request.RequiredColumns.Count - plan.AcceptedColumns.Count);
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source capability projection: requested={request.RequiredColumns.Count}, accepted={plan.AcceptedColumns.Count}, residual={projectionResidual} -> {ResolveCapabilityStatus(request.RequiredColumns.Count, plan.AcceptedColumns.Count, projectionResidual)}");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      source capability projection: requested={request.RequiredColumns.Count}, accepted={plan.AcceptedColumns.Count}, residual={projectionResidual} -> {ResolveCapabilityStatus(request.RequiredColumns.Count, plan.AcceptedColumns.Count, projectionResidual)}"
+        );
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source capability predicate: requested={FormatPredicate(request.Predicate)}, accepted={FormatPredicate(plan.AcceptedPredicate)}, residual={FormatPredicate(plan.ResidualPredicate)} -> {ResolvePredicateStatus(request, plan)}");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source capability ordering: requested={request.OrderBy.Count}, accepted={plan.AcceptedOrderBy.Count}, residual={plan.ResidualOrderBy.Count} -> {ResolveCapabilityStatus(request.OrderBy.Count, plan.AcceptedOrderBy.Count, plan.ResidualOrderBy.Count)}");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source capability slicing: requested=skip={FormatHintValue(request.Skip)}, take={FormatHintValue(request.Take)}, accepted=skip={FormatHintValue(plan.AcceptedSkip)}, take={FormatHintValue(plan.AcceptedTake)}, residual=skip={FormatHintValue(plan.ResidualSkip)}, take={FormatHintValue(plan.ResidualTake)} -> {ResolveSliceStatus(request, plan)}");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      source capability predicate: requested={FormatPredicate(request.Predicate)}, accepted={FormatPredicate(plan.AcceptedPredicate)}, residual={FormatPredicate(plan.ResidualPredicate)} -> {ResolvePredicateStatus(request, plan)}"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      source capability ordering: requested={request.OrderBy.Count}, accepted={plan.AcceptedOrderBy.Count}, residual={plan.ResidualOrderBy.Count} -> {ResolveCapabilityStatus(request.OrderBy.Count, plan.AcceptedOrderBy.Count, plan.ResidualOrderBy.Count)}"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      source capability slicing: requested=skip={FormatHintValue(request.Skip)}, take={FormatHintValue(request.Take)}, accepted=skip={FormatHintValue(plan.AcceptedSkip)}, take={FormatHintValue(plan.AcceptedTake)}, residual=skip={FormatHintValue(plan.ResidualSkip)}, take={FormatHintValue(plan.ResidualTake)} -> {ResolveSliceStatus(request, plan)}"
+        );
     }
 
     private static void AppendCardinalityCapability(StringBuilder builder, CardinalityEstimate cardinality)
     {
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source capability cardinality: {cardinality.Kind} confidence={cardinality.Confidence} usableForHashBuild={FormatYesNo(IsUsableHashBuildCardinality(cardinality))} reason={FormatReason(cardinality.Reason)}");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"      source capability cardinality: {cardinality.Kind} confidence={cardinality.Confidence} usableForHashBuild={FormatYesNo(IsUsableHashBuildCardinality(cardinality))} reason={FormatReason(cardinality.Reason)}"
+        );
     }
 
     private static string ResolveCapabilityStatus(int requested, int accepted, int residual)
@@ -132,7 +177,7 @@ internal static partial class PlanningTextPrinter
         {
             CardinalityKind.Exact => cardinality.ExactRows is >= 0,
             CardinalityKind.Bounded => cardinality is { Confidence: >= 0.8d, UpperBound: >= 0 },
-            _ => false
+            _ => false,
         };
     }
 
@@ -164,11 +209,11 @@ internal static partial class PlanningTextPrinter
         var parts = new[]
         {
             string.IsNullOrWhiteSpace(diagnostic.ColumnName) ? null : $"column={diagnostic.ColumnName}",
-            string.IsNullOrWhiteSpace(diagnostic.ModifierKey) ? null : $"modifier={diagnostic.ModifierKey}"
-        }.Where(static part => part != null).ToArray();
+            string.IsNullOrWhiteSpace(diagnostic.ModifierKey) ? null : $"modifier={diagnostic.ModifierKey}",
+        }
+            .Where(static part => part != null)
+            .ToArray();
 
-        return parts.Length == 0
-            ? string.Empty
-            : $" ({string.Join(", ", parts)})";
+        return parts.Length == 0 ? string.Empty : $" ({string.Join(", ", parts)})";
     }
 }

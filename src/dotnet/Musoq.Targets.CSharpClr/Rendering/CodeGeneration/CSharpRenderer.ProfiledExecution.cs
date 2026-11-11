@@ -14,11 +14,13 @@ public sealed partial class CSharpRenderer
         FinalOutputPlan output,
         bool useQueryRunContext,
         out MethodDeclarationSyntax rowsAdapterMethod,
-        out QueryMethodRenderMetadata metadata)
+        out QueryMethodRenderMetadata metadata
+    )
     {
         if (_context.InstrumentationMode == QueryInstrumentationMode.Disabled)
         {
-            if (!TryCreateTableShapeStreamingMethod(
+            if (
+                !TryCreateTableShapeStreamingMethod(
                     plan,
                     unprofiledRenderer,
                     queryIdentifier,
@@ -29,7 +31,9 @@ public sealed partial class CSharpRenderer
                     includeProfileRecorderParameter: false,
                     out var shapeRowsMethod,
                     out rowsAdapterMethod,
-                    out metadata))
+                    out metadata
+                )
+            )
             {
                 return false;
             }
@@ -39,7 +43,8 @@ public sealed partial class CSharpRenderer
             return true;
         }
 
-        if (!TryCreateTableShapeStreamingMethod(
+        if (
+            !TryCreateTableShapeStreamingMethod(
                 plan,
                 unprofiledRenderer,
                 queryIdentifier,
@@ -50,14 +55,17 @@ public sealed partial class CSharpRenderer
                 includeProfileRecorderParameter: false,
                 out var unprofiledShapeRowsMethod,
                 out rowsAdapterMethod,
-                out metadata))
+                out metadata
+            )
+        )
         {
             return false;
         }
 
         var profiledShapeRowsMethodName = QueryMethodNameResolver.ResolveProfiled(shapeRowsMethodName);
         var profiledRowsMethodName = QueryMethodNameResolver.ResolveProfiled(rowsMethodName);
-        if (!TryCreateTableShapeStreamingMethod(
+        if (
+            !TryCreateTableShapeStreamingMethod(
                 plan,
                 profiledRenderer,
                 queryIdentifier,
@@ -68,7 +76,9 @@ public sealed partial class CSharpRenderer
                 includeProfileRecorderParameter: true,
                 out var profiledShapeRowsMethod,
                 out var profiledRowsAdapterMethod,
-                out _))
+                out _
+            )
+        )
         {
             return false;
         }

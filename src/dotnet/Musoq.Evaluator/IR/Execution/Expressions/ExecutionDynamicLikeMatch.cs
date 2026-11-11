@@ -7,7 +7,8 @@ public sealed record ExecutionDynamicLikeMatch : ExecutionExpression
         ExecutionExpression pattern,
         ExecutionExpression cacheSlot,
         ExecutionStringMatchComparison comparison,
-        ExecutionTypeRef returnType)
+        ExecutionTypeRef returnType
+    )
         : base(returnType)
     {
         Input = input ?? throw new ArgumentNullException(nameof(input));

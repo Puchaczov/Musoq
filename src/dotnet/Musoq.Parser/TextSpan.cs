@@ -53,8 +53,10 @@ public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     /// <returns>A new span covering both spans.</returns>
     public TextSpan Through(TextSpan other)
     {
-        if (IsEmpty) return other;
-        if (other.IsEmpty) return this;
+        if (IsEmpty)
+            return other;
+        if (other.IsEmpty)
+            return this;
 
         var start = Math.Min(Start, other.Start);
         var end = Math.Max(End, other.End);
@@ -218,7 +220,8 @@ public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
         if (obj == null)
             return false;
 
-        if (obj is TextSpan span) return span.Start == Start && span.Length == Length;
+        if (obj is TextSpan span)
+            return span.Start == Start && span.Length == Length;
 
         return base.Equals(obj);
     }

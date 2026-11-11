@@ -15,36 +15,46 @@ public sealed class DiagnosticRework079StatementParameterContractTests : Environ
         "param(author: string); params(limit: int); select 1 from #EnvironmentVariables.All()",
         "params(limit: int)",
         DiagnosticCode.MQ3056_DuplicateScriptParameterBlock,
-        "Only one parameter block is allowed")]
+        "Only one parameter block is allowed"
+    )]
     [DataRow(
         "select 1 from #EnvironmentVariables.All(); param(author: string)",
         "param(author: string)",
         DiagnosticCode.MQ3057_ScriptParameterBlockAfterStatement,
-        "must appear before all query statements")]
+        "must appear before all query statements"
+    )]
     [DataRow(
         "let value: int = 1; params(author: string); select $value from #EnvironmentVariables.All()",
         "params(author: string)",
         DiagnosticCode.MQ3057_ScriptParameterBlockAfterStatement,
-        "must appear before all query statements")]
+        "must appear before all query statements"
+    )]
     [DataRow(
         "param(author: string, author: int); select 1 from #EnvironmentVariables.All()",
         "author: int",
         DiagnosticCode.MQ3058_DuplicateScriptParameterName,
-        "declared more than once")]
+        "declared more than once"
+    )]
     public void ParameterPlacementAndUniqueness_ShouldExposeExactBindEnvelopes(
         string query,
         string diagnosticText,
         DiagnosticCode expectedCode,
-        string expectedMessage)
+        string expectedMessage
+    )
     {
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
-            LoggerResolver);
+            LoggerResolver
+        );
         var envelopes = result.ToEnvelopes().ToArray();
 
-        Assert.HasCount(1, envelopes, string.Join(Environment.NewLine, envelopes.Select(static envelope => envelope.Message)));
+        Assert.HasCount(
+            1,
+            envelopes,
+            string.Join(Environment.NewLine, envelopes.Select(static envelope => envelope.Message))
+        );
         var envelope = envelopes.Single();
         Assert.AreEqual(expectedCode, envelope.Code);
         Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);

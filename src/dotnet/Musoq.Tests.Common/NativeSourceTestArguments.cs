@@ -16,6 +16,7 @@ public static class NativeSourceTestArguments
     private readonly struct FixtureVisitor(object?[] values) : IColumnValueVisitor
     {
         public object?[] Values => values;
+
         public void Visit<T>(int columnIndex, in T value) => values[columnIndex] = value;
     }
 }

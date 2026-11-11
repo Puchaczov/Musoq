@@ -14,7 +14,8 @@ public sealed partial class ExecutionCSharpRendererTests
             "Q_DirectProjection",
             "Name",
             typeof(string),
-            new ExecutionFieldRead("p", "Name", typeof(string)));
+            new ExecutionFieldRead("p", "Name", typeof(string))
+        );
 
         var sinkPlan = AnalyzeDirectProjection(plan);
 
@@ -41,11 +42,7 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void FinalProjectionSinkPlanner_WhenProjectionHasMethodTargetSetup_ShouldAcceptSetupNode()
     {
-        var plan = CreateProjectionPlan(
-            "Q_MethodTargetSetup",
-            "Name",
-            typeof(string),
-            CreateToUpperNameCall());
+        var plan = CreateProjectionPlan("Q_MethodTargetSetup", "Name", typeof(string), CreateToUpperNameCall());
 
         var sinkPlan = AnalyzeDirectProjection(plan);
 
@@ -128,17 +125,15 @@ public sealed partial class ExecutionCSharpRendererTests
             "Q_UnsupportedExtraNode",
             "Name",
             typeof(string),
-            new ExecutionFieldRead("p", "Name", typeof(string)));
+            new ExecutionFieldRead("p", "Name", typeof(string))
+        );
         var unsupported = new ExecutionLet(
             new ExecutionVariable("__extra", typeof(int)),
-            new ExecutionLiteral(1, typeof(int)));
+            new ExecutionLiteral(1, typeof(int))
+        );
         plan = plan with
         {
-            Body = new ExecutionBlock([
-                .. plan.Body.Nodes.Take(2),
-                unsupported,
-                .. plan.Body.Nodes.Skip(2)
-            ])
+            Body = new ExecutionBlock([.. plan.Body.Nodes.Take(2), unsupported, .. plan.Body.Nodes.Skip(2)]),
         };
 
         var sinkPlan = AnalyzeDirectProjection(plan);
@@ -153,10 +148,8 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var plan = CreatePlan();
         var staleTable = new ExecutionVariable("staleResult", typeof(object));
-        var nodes = plan.Body.Nodes
-            .Select(node => node is ExecutionReturnTable
-                ? new ExecutionReturnTable(staleTable)
-                : node)
+        var nodes = plan
+            .Body.Nodes.Select(node => node is ExecutionReturnTable ? new ExecutionReturnTable(staleTable) : node)
             .ToArray();
         var rewritten = plan with { Body = new ExecutionBlock(nodes) };
 
@@ -180,7 +173,8 @@ public sealed partial class ExecutionCSharpRendererTests
         return FinalProjectionSinkPlanner.AnalyzeDirectProjection(
             plan,
             ResolveResultInfo(plan),
-            FinalProjectionSinkTarget.TableRows);
+            FinalProjectionSinkTarget.TableRows
+        );
     }
 
     private static FinalProjectionSinkPlan AnalyzePostOperations(ExecutionPlan plan)
@@ -188,7 +182,8 @@ public sealed partial class ExecutionCSharpRendererTests
         return FinalProjectionSinkPlanner.AnalyzePostOperations(
             plan,
             ResolveResultInfo(plan),
-            FinalProjectionSinkTarget.TypedRows);
+            FinalProjectionSinkTarget.TypedRows
+        );
     }
 
     private static TableViaRowsResultInfo ResolveResultInfo(ExecutionPlan plan)
@@ -218,18 +213,21 @@ public sealed partial class ExecutionCSharpRendererTests
     private static ExecutionPlan CreateHiddenSortProjectionPostOperationPlan()
     {
         var plan = CreateProjectionPostOperationPlan();
-        var nodes = plan.Body.Nodes
-            .Select(static node => node is ExecutionSortTable sort
-                ? sort with { RenumberFieldIndexes = [0] }
-                : node)
+        var nodes = plan
+            .Body.Nodes.Select(static node =>
+                node is ExecutionSortTable sort ? sort with { RenumberFieldIndexes = [0] } : node
+            )
             .ToArray();
 
-        return plan with { Body = new ExecutionBlock(nodes) };
+        return plan with
+        {
+            Body = new ExecutionBlock(nodes),
+        };
     }
 
     private static ExecutionPlan CreateMultipleSourceScanProjectionPlan()
     {
         var plan = CreatePlan();
-        return plan with { Body = new ExecutionBlock([plan.Body.Nodes[0], ..plan.Body.Nodes]) };
+        return plan with { Body = new ExecutionBlock([plan.Body.Nodes[0], .. plan.Body.Nodes]) };
     }
 }

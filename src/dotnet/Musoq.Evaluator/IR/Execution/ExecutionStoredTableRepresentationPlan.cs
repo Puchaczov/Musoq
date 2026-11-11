@@ -6,7 +6,7 @@ namespace Musoq.Evaluator.IR.Execution;
 public enum ExecutionStoredTableRepresentationKind
 {
     GeneratedRowList,
-    GeneratedColumnarBuffer
+    GeneratedColumnarBuffer,
 }
 
 /// <summary>
@@ -20,7 +20,8 @@ public sealed record ExecutionStoredTableRepresentationPlan
         GeneratedRowShape rowShape,
         ExecutionStoredTableRepresentationKind kind = ExecutionStoredTableRepresentationKind.GeneratedRowList,
         ExecutionStructuralOwnershipMode ownership = ExecutionStructuralOwnershipMode.ConstructFresh,
-        ExecutionStructuralPreparationLifetime lifetime = ExecutionStructuralPreparationLifetime.Execution)
+        ExecutionStructuralPreparationLifetime lifetime = ExecutionStructuralPreparationLifetime.Execution
+    )
     {
         if (tableIndex < 0)
             throw new ArgumentOutOfRangeException(nameof(tableIndex));
@@ -43,8 +44,8 @@ public sealed record ExecutionStoredTableRepresentationPlan
     public ExecutionStructuralPreparationLifetime Lifetime { get; }
 
     public string Fingerprint =>
-        $"table={TableIndex};kind={Kind};row={RowShape.TypeName};" +
-        $"fields={string.Join(',', RowShape.Fields.Select(static rowField =>
-            $"{rowField.Name}:{rowField.Type.StableId}:{rowField.Nullability}:{rowField.AccessStrategy}"))};" +
-        $"ownership={Ownership};lifetime={Lifetime}";
+        $"table={TableIndex};kind={Kind};row={RowShape.TypeName};"
+        + $"fields={string.Join(',', RowShape.Fields.Select(static rowField =>
+            $"{rowField.Name}:{rowField.Type.StableId}:{rowField.Nullability}:{rowField.AccessStrategy}"))};"
+        + $"ownership={Ownership};lifetime={Lifetime}";
 }

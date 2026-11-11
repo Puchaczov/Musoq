@@ -16,8 +16,12 @@ public class MethodsMetadataTests
 
         methodsManager.RegisterLibraries(new TestLibraryBase());
 
-        methodsManager.TryGetMethod(nameof(TestLibraryBase.TestMethod1), [typeof(string)], typeof(TestEntity),
-            out var method);
+        methodsManager.TryGetMethod(
+            nameof(TestLibraryBase.TestMethod1),
+            [typeof(string)],
+            typeof(TestEntity),
+            out var method
+        );
 
         Assert.IsNotNull(method);
 
@@ -35,12 +39,24 @@ public class MethodsMetadataTests
 
         methodsManager.RegisterLibraries(new DerivedTestLibraryBase());
 
-        var hasDerivedMethod = methodsManager.TryGetMethod(nameof(DerivedTestLibraryBase.DerivedMethod),
-            [typeof(string)], null, out _);
-        var hasIntermediateMethod = methodsManager.TryGetMethod(nameof(IntermediateTestLibraryBase.IntermediateMethod),
-            [typeof(int)], null, out _);
-        var hasLibraryBaseMethod = methodsManager.TryGetMethod(nameof(LibraryBase.GetTypeName), [typeof(object)], null,
-            out _);
+        var hasDerivedMethod = methodsManager.TryGetMethod(
+            nameof(DerivedTestLibraryBase.DerivedMethod),
+            [typeof(string)],
+            null,
+            out _
+        );
+        var hasIntermediateMethod = methodsManager.TryGetMethod(
+            nameof(IntermediateTestLibraryBase.IntermediateMethod),
+            [typeof(int)],
+            null,
+            out _
+        );
+        var hasLibraryBaseMethod = methodsManager.TryGetMethod(
+            nameof(LibraryBase.GetTypeName),
+            [typeof(object)],
+            null,
+            out _
+        );
 
         Assert.IsTrue(hasDerivedMethod);
         Assert.IsTrue(hasIntermediateMethod);
@@ -54,8 +70,12 @@ public class MethodsMetadataTests
 
         methodsManager.RegisterLibraries(new DerivedTestLibraryBase());
 
-        var hasSiblingMethod = methodsManager.TryGetMethod(nameof(SiblingTestLibraryBase.SiblingMethod), [typeof(int)],
-            null, out _);
+        var hasSiblingMethod = methodsManager.TryGetMethod(
+            nameof(SiblingTestLibraryBase.SiblingMethod),
+            [typeof(int)],
+            null,
+            out _
+        );
 
         Assert.IsFalse(hasSiblingMethod);
     }

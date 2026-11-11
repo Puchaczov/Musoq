@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class DistinctTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void DistinctToGroupByVisitor_TransformsQueryCorrectly()
     {
@@ -20,7 +19,6 @@ public class DistinctTests : BasicEntityTestBase
         var lexer = new Lexer(query, true);
         var parser = new Musoq.Parser.Parser(lexer);
         var root = parser.ComposeAll();
-
 
         var statementsArray = root.Expression as StatementsArrayNode;
         Assert.IsNotNull(statementsArray, "Root.Expression should be StatementsArrayNode");
@@ -40,23 +38,27 @@ public class DistinctTests : BasicEntityTestBase
         root.Accept(traverser);
         var transformedRoot = traverser.Root;
 
-
         var transformedStatementsArray = transformedRoot.Expression as StatementsArrayNode;
         Assert.IsNotNull(transformedStatementsArray, "Transformed Root.Expression should be StatementsArrayNode");
         Assert.HasCount(1, transformedStatementsArray.Statements, "Should still have one statement");
-
 
         QueryNode? queryNode = null;
         var statementNode = transformedStatementsArray.Statements[0].Node;
         if (statementNode is SingleSetNode transformedSingleSet)
             queryNode = transformedSingleSet.Query;
-        else if (statementNode is QueryNode qn) queryNode = qn;
+        else if (statementNode is QueryNode qn)
+            queryNode = qn;
 
-        Assert.IsNotNull(queryNode,
-            $"Could not find QueryNode in transformed tree. StatementNode type: {statementNode?.GetType().Name ?? "null"}");
+        Assert.IsNotNull(
+            queryNode,
+            $"Could not find QueryNode in transformed tree. StatementNode type: {statementNode?.GetType().Name ?? "null"}"
+        );
         var requiredQueryNode = queryNode ?? throw new AssertFailedException("Expected a query node.");
         Assert.IsNotNull(requiredQueryNode.GroupBy, "DISTINCT should have been converted to GROUP BY");
-        Assert.IsTrue(requiredQueryNode.Select.IsDistinct, "IsDistinct flag should be preserved for optimization hints");
+        Assert.IsTrue(
+            requiredQueryNode.Select.IsDistinct,
+            "IsDistinct flag should be preserved for optimization hints"
+        );
         Assert.HasCount(1, requiredQueryNode.GroupBy.Fields, "GROUP BY should have one field matching SELECT");
     }
 
@@ -67,15 +69,16 @@ public class DistinctTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
-                    new BasicEntity("CECCA")
+                    new BasicEntity("CECCA"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -94,19 +97,19 @@ public class DistinctTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("cracow", "Poland", 1),
                     new BasicEntity("cracow", "Poland", 2),
                     new BasicEntity("warsaw", "Poland", 3),
                     new BasicEntity("cracow", "Germany", 4),
-                    new BasicEntity("warsaw", "Poland", 5)
+                    new BasicEntity("warsaw", "Poland", 5),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(3, table.Count);
     }
@@ -117,14 +120,7 @@ public class DistinctTests : BasicEntityTestBase
         var query = "select distinct Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("A"),
-                    new BasicEntity("B"),
-                    new BasicEntity("C"),
-                    new BasicEntity("D")
-                ]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -140,13 +136,9 @@ public class DistinctTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("SAME"),
-                    new BasicEntity("SAME"),
-                    new BasicEntity("SAME"),
-                    new BasicEntity("SAME")
-                ]
-            }
+                "#A",
+                [new BasicEntity("SAME"), new BasicEntity("SAME"), new BasicEntity("SAME"), new BasicEntity("SAME")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -163,14 +155,15 @@ public class DistinctTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("cracow", "jan", 150m) { Population = 200 },
                     new BasicEntity("cracow", "jan", 150m) { Population = 300 },
                     new BasicEntity("warsaw", "jan", 150m) { Population = 50 },
                     new BasicEntity("warsaw", "jan", 150m) { Population = 400 },
-                    new BasicEntity("lodz", "jan", 150m) { Population = 80 }
+                    new BasicEntity("lodz", "jan", 150m) { Population = 80 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -189,14 +182,15 @@ public class DistinctTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("ABBA"),
                     new BasicEntity("CECCA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
-                    new BasicEntity("BABBA")
+                    new BasicEntity("BABBA"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -215,18 +209,13 @@ public class DistinctTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("abba"),
-                    new BasicEntity("ABBA"),
-                    new BasicEntity("Abba"),
-                    new BasicEntity("babba")
-                ]
-            }
+                "#A",
+                [new BasicEntity("abba"), new BasicEntity("ABBA"), new BasicEntity("Abba"), new BasicEntity("babba")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(2, table.Count);
     }
@@ -238,13 +227,9 @@ public class DistinctTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("ABBA"),
-                    new BasicEntity("ABBA"),
-                    new BasicEntity("BABBA"),
-                    new BasicEntity("ABBA")
-                ]
-            }
+                "#A",
+                [new BasicEntity("ABBA"), new BasicEntity("ABBA"), new BasicEntity("BABBA"), new BasicEntity("ABBA")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -259,12 +244,7 @@ public class DistinctTests : BasicEntityTestBase
         var query = "select distinct Name from #A.Entities() where 1 = 0";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("ABBA"),
-                    new BasicEntity("BABBA")
-                ]
-            }
+            { "#A", [new BasicEntity("ABBA"), new BasicEntity("BABBA")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -277,14 +257,7 @@ public class DistinctTests : BasicEntityTestBase
     public void SelectDistinct_SingleRow_ReturnsSingleRow()
     {
         var query = "select distinct Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("ONLY")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("ONLY")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -300,14 +273,15 @@ public class DistinctTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Population = 100 },
                     new BasicEntity { Population = 200 },
                     new BasicEntity { Population = 100 },
                     new BasicEntity { Population = 300 },
-                    new BasicEntity { Population = 200 }
+                    new BasicEntity { Population = 200 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -323,14 +297,15 @@ public class DistinctTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
                     new BasicEntity("CECCA"),
                     new BasicEntity("ABBA"),
-                    new BasicEntity("DEDDA")
+                    new BasicEntity("DEDDA"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -347,13 +322,7 @@ public class DistinctTests : BasicEntityTestBase
         var query = "SELECT DISTINCT Name FROM #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("ABBA"),
-                    new BasicEntity("ABBA"),
-                    new BasicEntity("BABBA")
-                ]
-            }
+            { "#A", [new BasicEntity("ABBA"), new BasicEntity("ABBA"), new BasicEntity("BABBA")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -368,13 +337,7 @@ public class DistinctTests : BasicEntityTestBase
         var query = "from #A.Entities() select distinct Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("ABBA"),
-                    new BasicEntity("ABBA"),
-                    new BasicEntity("BABBA")
-                ]
-            }
+            { "#A", [new BasicEntity("ABBA"), new BasicEntity("ABBA"), new BasicEntity("BABBA")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

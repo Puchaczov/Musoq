@@ -23,9 +23,7 @@ public partial class LibraryBase
 
         foreach (var @byte in bytes)
         {
-            var binaryRepresentation = Convert
-                .ToString(@byte, 2)
-                .PadLeft(8, '0');
+            var binaryRepresentation = Convert.ToString(@byte, 2).PadLeft(8, '0');
 
             builder.Append(binaryRepresentation);
             builder.Append(delimiter);
@@ -41,7 +39,8 @@ public partial class LibraryBase
     /// <returns>Binary representation of a given bytes</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public string ToBin<T>(T value) where T : IConvertible
+    public string ToBin<T>(T value)
+        where T : IConvertible
     {
         return ToBase(value, 2);
     }
@@ -53,7 +52,8 @@ public partial class LibraryBase
     /// <returns>Hex representation of a given bytes</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public string ToOcta<T>(T value) where T : IConvertible
+    public string ToOcta<T>(T value)
+        where T : IConvertible
     {
         return ToBase(value, 8);
     }
@@ -65,7 +65,8 @@ public partial class LibraryBase
     /// <returns>Decimal representation of a given value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public string ToDec<T>(T value) where T : IConvertible
+    public string ToDec<T>(T value)
+        where T : IConvertible
     {
         return ToBase(value, 10);
     }
@@ -197,7 +198,6 @@ public partial class LibraryBase
 
         var cleanValue = value.Trim();
 
-
         if (cleanValue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             cleanValue = cleanValue.Substring(2);
 
@@ -224,7 +224,6 @@ public partial class LibraryBase
             return null;
 
         var cleanValue = value.Trim();
-
 
         if (cleanValue.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
             cleanValue = cleanValue.Substring(2);
@@ -253,7 +252,6 @@ public partial class LibraryBase
 
         var cleanValue = value.Trim();
 
-
         if (cleanValue.StartsWith("0o", StringComparison.OrdinalIgnoreCase))
             cleanValue = cleanValue.Substring(2);
 
@@ -267,7 +265,8 @@ public partial class LibraryBase
         }
     }
 
-    private static string ToBase<T>(T value, int baseNumber) where T : IConvertible
+    private static string ToBase<T>(T value, int baseNumber)
+        where T : IConvertible
     {
         return Type.GetTypeCode(typeof(T)) switch
         {
@@ -278,7 +277,9 @@ public partial class LibraryBase
             TypeCode.DBNull => "CONVERSION_NOT_SUPPORTED",
             TypeCode.Decimal => "CONVERSION_NOT_SUPPORTED",
             TypeCode.Double => Convert.ToString(
-                BitConverter.DoubleToInt64Bits(value.ToDouble(CultureInfo.CurrentCulture)), baseNumber),
+                BitConverter.DoubleToInt64Bits(value.ToDouble(CultureInfo.CurrentCulture)),
+                baseNumber
+            ),
             TypeCode.Empty => "CONVERSION_NOT_SUPPORTED",
             TypeCode.Int16 => Convert.ToString(value.ToInt16(CultureInfo.CurrentCulture), baseNumber),
             TypeCode.Int32 => Convert.ToString(value.ToInt32(CultureInfo.CurrentCulture), baseNumber),
@@ -290,7 +291,7 @@ public partial class LibraryBase
             TypeCode.UInt16 => Convert.ToString(value.ToUInt16(CultureInfo.CurrentCulture), baseNumber),
             TypeCode.UInt32 => Convert.ToString(value.ToUInt32(CultureInfo.CurrentCulture), baseNumber),
             TypeCode.UInt64 => "CONVERSION_NOT_SUPPORTED",
-            _ => "CONVERSION_NOT_SUPPORTED"
+            _ => "CONVERSION_NOT_SUPPORTED",
         };
     }
 }

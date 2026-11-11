@@ -10,15 +10,17 @@ internal static partial class PredicatePlacementPlanner
     private static bool IsPushedPredicate(
         string sourceContextId,
         string predicateText,
-        IReadOnlyDictionary<string, IReadOnlySet<string>> pushedPredicatesBySourceId)
+        IReadOnlyDictionary<string, IReadOnlySet<string>> pushedPredicatesBySourceId
+    )
     {
-        return pushedPredicatesBySourceId.TryGetValue(sourceContextId, out var pushedPredicates) &&
-               pushedPredicates.Contains(predicateText);
+        return pushedPredicatesBySourceId.TryGetValue(sourceContextId, out var pushedPredicates)
+            && pushedPredicates.Contains(predicateText);
     }
 
     private static SourcePlanProperties? TryResolveUniqueSource(
         IReadOnlyDictionary<string, SourcePlanProperties[]> sourcesByAlias,
-        string alias)
+        string alias
+    )
     {
         if (!sourcesByAlias.TryGetValue(alias, out var sources) || sources.Length != 1)
             return null;
@@ -28,7 +30,8 @@ internal static partial class PredicatePlacementPlanner
 
     private static bool HasAmbiguousSourceAlias(
         IReadOnlyDictionary<string, SourcePlanProperties[]> sourcesByAlias,
-        string alias)
+        string alias
+    )
     {
         return sourcesByAlias.TryGetValue(alias, out var sources) && sources.Length > 1;
     }

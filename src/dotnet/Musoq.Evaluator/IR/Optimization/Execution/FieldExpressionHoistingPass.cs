@@ -24,12 +24,14 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
             {
                 return OptimizationResult<ExecutionPlan>.NoChange(
                     plan,
-                    "Field-read discovery is disabled by compilation options and no hoist candidates were present.");
+                    "Field-read discovery is disabled by compilation options and no hoist candidates were present."
+                );
             }
 
             return OptimizationResult<ExecutionPlan>.Changed(
                 candidateOptimized,
-                $"{candidateText}Field-read discovery is disabled by compilation options.");
+                $"{candidateText}Field-read discovery is disabled by compilation options."
+            );
         }
 
         var rewriter = new FieldReadHoistingRewriter();
@@ -38,12 +40,14 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
         {
             return OptimizationResult<ExecutionPlan>.NoChange(
                 plan,
-                $"{candidateText}No repeated source-qualified field reads were found in supported local or nested append nodes.");
+                $"{candidateText}No repeated source-qualified field reads were found in supported local or nested append nodes."
+            );
         }
 
         return OptimizationResult<ExecutionPlan>.Changed(
             optimized,
-            $"{candidateText}Inserted {rewriter.InsertedLets} local or nested field-read hoist(s) in {rewriter.RewrittenNodes} Execution IR node(s).");
+            $"{candidateText}Inserted {rewriter.InsertedLets} local or nested field-read hoist(s) in {rewriter.RewrittenNodes} Execution IR node(s)."
+        );
     }
 
     private static bool IsFieldReadDiscoveryEnabled(OptimizationContext context)
@@ -95,7 +99,8 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
         public override ExecutionBlock RewriteBlock(ExecutionBlock block)
         {
             var includeAppendContexts = _blockDepth == 0;
-            var usedNames = _usedNames ?? ExecutionIrAnalysis.CollectDeclaredVariableNames(block).ToHashSet(StringComparer.Ordinal);
+            var usedNames =
+                _usedNames ?? ExecutionIrAnalysis.CollectDeclaredVariableNames(block).ToHashSet(StringComparer.Ordinal);
             var builder = new ExecutionBlockRewriteBuilder(block);
 
             _blockDepth++;
@@ -136,7 +141,8 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
         private static HoistedNode TryHoistFieldReads(
             ExecutionNode node,
             HashSet<string> usedNames,
-            bool includeAppendContexts)
+            bool includeAppendContexts
+        )
         {
             var reads = CollectSupportedFieldReads(node, includeAppendContexts)
                 .Where(static read => !string.IsNullOrWhiteSpace(read.Alias))
@@ -150,10 +156,13 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
 
             var variables = reads.ToDictionary(
                 static read => read,
-                read => new ExecutionVariable(CreateHoistedVariableName(read, usedNames), read.ReturnType, ExecutionGeneratedTypeName.For(read)));
-            var lets = reads
-                .Select(read => new ExecutionLet(variables[read], read))
-                .ToArray();
+                read => new ExecutionVariable(
+                    CreateHoistedVariableName(read, usedNames),
+                    read.ReturnType,
+                    ExecutionGeneratedTypeName.For(read)
+                )
+            );
+            var lets = reads.Select(read => new ExecutionLet(variables[read], read)).ToArray();
             var rewritten = ReplaceSupportedFieldReads(node, variables, includeAppendContexts);
 
             return new HoistedNode(lets, rewritten);
@@ -161,21 +170,25 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
 
         private static IEnumerable<ExecutionFieldRead> CollectSupportedFieldReads(
             ExecutionNode node,
-            bool includeAppendContexts)
+            bool includeAppendContexts
+        )
         {
             return node switch
             {
-                ExecutionAppendRow appendRow => appendRow.Values
-                    .SelectMany(static value => CollectHoistableFieldReads(value.Value))
-                    .Concat(includeAppendContexts
-                        ? appendRow.Contexts.SelectMany(CollectHoistableFieldReads)
-                        : [])
-                    .Concat(includeAppendContexts && appendRow.ContextLayout != null
-                        ? appendRow.ContextLayout.Segments.SelectMany(static segment => CollectHoistableFieldReads(segment.Value))
-                        : []),
-                ExecutionAppendRecord appendRecord => appendRecord.Values
-                    .SelectMany(static value => CollectHoistableFieldReads(value.Value)),
-                _ => []
+                ExecutionAppendRow appendRow => appendRow
+                    .Values.SelectMany(static value => CollectHoistableFieldReads(value.Value))
+                    .Concat(includeAppendContexts ? appendRow.Contexts.SelectMany(CollectHoistableFieldReads) : [])
+                    .Concat(
+                        includeAppendContexts && appendRow.ContextLayout != null
+                            ? appendRow.ContextLayout.Segments.SelectMany(static segment =>
+                                CollectHoistableFieldReads(segment.Value)
+                            )
+                            : []
+                    ),
+                ExecutionAppendRecord appendRecord => appendRecord.Values.SelectMany(static value =>
+                    CollectHoistableFieldReads(value.Value)
+                ),
+                _ => [],
             };
         }
 
@@ -205,13 +218,14 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
         private static ExecutionNode ReplaceSupportedFieldReads(
             ExecutionNode node,
             IReadOnlyDictionary<ExecutionFieldRead, ExecutionVariable> variablesByRead,
-            bool includeAppendContexts)
+            bool includeAppendContexts
+        )
         {
             var rewriter = new ExecutionExpressionSubstitutionRewriter(expression =>
-                expression is ExecutionFieldRead fieldRead &&
-                variablesByRead.TryGetValue(fieldRead, out var variable)
+                expression is ExecutionFieldRead fieldRead && variablesByRead.TryGetValue(fieldRead, out var variable)
                     ? new ExecutionVariableRead(variable) { InterpretationShape = fieldRead.InterpretationShape }
-                    : null);
+                    : null
+            );
 
             return includeAppendContexts || node is not ExecutionAppendRow appendRow
                 ? rewriter.RewriteNode(node)
@@ -220,17 +234,17 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
 
         private static ExecutionNode RewriteAppendRowValuesOnly(
             ExecutionAppendRow appendRow,
-            ExecutionExpressionSubstitutionRewriter rewriter)
+            ExecutionExpressionSubstitutionRewriter rewriter
+        )
         {
             var values = rewriter.RewriteRows(appendRow.Values);
-            return ReferenceEquals(values, appendRow.Values)
-                ? appendRow
-                : appendRow with { Values = values };
+            return ReferenceEquals(values, appendRow.Values) ? appendRow : appendRow with { Values = values };
         }
 
         private static string CreateHoistedVariableName(ExecutionFieldRead read, ISet<string> usedNames)
         {
-            var candidate = read.FieldName.Split('.').LastOrDefault(static part => !string.IsNullOrWhiteSpace(part)) ?? "field";
+            var candidate =
+                read.FieldName.Split('.').LastOrDefault(static part => !string.IsNullOrWhiteSpace(part)) ?? "field";
             candidate = ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(candidate, usedNames.Count);
             candidate = char.ToLowerInvariant(candidate[0]) + candidate[1..];
 
@@ -244,10 +258,7 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
 
             return variableName;
         }
-
     }
 
-    private sealed record HoistedNode(
-        IReadOnlyList<ExecutionLet> Lets,
-        ExecutionNode Node);
+    private sealed record HoistedNode(IReadOnlyList<ExecutionLet> Lets, ExecutionNode Node);
 }

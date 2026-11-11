@@ -4,12 +4,12 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Schema;
 using Musoq.Tests.Common;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -65,11 +65,22 @@ internal static class GeneratedExecutionIlInspection
         return null;
     }
 
-    internal static CompiledQuery CompileForExecution(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions? compilationOptions = null)
+    internal static CompiledQuery CompileForExecution(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions = null
+    )
     {
         using var capture = new GeneratedAssemblyCapture();
-        var result = InstanceCreator.CompileWithDiagnostics(script, assemblyName, schemaProvider, loggerResolver, compilationOptions);
+        var result = InstanceCreator.CompileWithDiagnostics(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions
+        );
         if (!result.Succeeded)
             throw result.CaughtException is { } cause
                 ? new MusoqQueryException(result.ToEnvelopes(), cause)
@@ -78,34 +89,63 @@ internal static class GeneratedExecutionIlInspection
         return result.CompiledQuery;
     }
 
-    internal static CompiledQuery CompileForExecution(string script, string assemblyName,
-        ISchemaProvider provider, ILoggerResolver logger, Func<BuildChain> createChain, Action<BuildItems> modify)
+    internal static CompiledQuery CompileForExecution(
+        string script,
+        string assemblyName,
+        ISchemaProvider provider,
+        ILoggerResolver logger,
+        Func<BuildChain> createChain,
+        Action<BuildItems> modify
+    )
     {
         using var capture = new GeneratedAssemblyCapture();
         BuildItems? capturedItems = null;
-        var query = InstanceCreator.CompileForExecution(script, assemblyName, provider, logger, createChain, items =>
-        {
-            capturedItems = items;
-            modify(items);
-        });
-        RecordCompilation(query, capturedItems ?? throw new InvalidOperationException("Build artifacts were not captured."), capture);
+        var query = InstanceCreator.CompileForExecution(
+            script,
+            assemblyName,
+            provider,
+            logger,
+            createChain,
+            items =>
+            {
+                capturedItems = items;
+                modify(items);
+            }
+        );
+        RecordCompilation(
+            query,
+            capturedItems ?? throw new InvalidOperationException("Build artifacts were not captured."),
+            capture
+        );
         return query;
     }
 
     internal static IEnumerable<MethodInfo> GetGeneratedComputeMethods(CompiledQuery query)
     {
-        var runnableType = GeneratedTypes.GetValue(query,
-            static _ => throw new InvalidOperationException("No generated assembly receipt was retained for this query."));
-        var methods = runnableType.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+        var runnableType = GeneratedTypes.GetValue(
+            query,
+            static _ =>
+                throw new InvalidOperationException("No generated assembly receipt was retained for this query.")
+        );
+        var methods = runnableType
+            .GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
             .Where(static method => method.Name.StartsWith("Compute", StringComparison.Ordinal))
-            .Concat(runnableType.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)
-                .Where(static type => type.Name.StartsWith("<Compute", StringComparison.Ordinal))
-                .SelectMany(static type => type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                .Where(static method => method.Name == "MoveNext"))
+            .Concat(
+                runnableType
+                    .GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)
+                    .Where(static type => type.Name.StartsWith("<Compute", StringComparison.Ordinal))
+                    .SelectMany(static type =>
+                        type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    )
+                    .Where(static method => method.Name == "MoveNext")
+            )
             .ToArray();
         Assert.IsNotEmpty(methods, "IL inspection must include actual compute or streaming iterator methods.");
         var reflectionCalls = methods.SelectMany(GetReflectionExecutionCalls).ToArray();
-        Assert.IsEmpty(reflectionCalls, "Generated execution must not invoke runtime reflection: " + string.Join(", ", reflectionCalls));
+        Assert.IsEmpty(
+            reflectionCalls,
+            "Generated execution must not invoke runtime reflection: " + string.Join(", ", reflectionCalls)
+        );
         return methods;
     }
 
@@ -114,13 +154,16 @@ internal static class GeneratedExecutionIlInspection
         var bytes = method.GetMethodBody()?.GetILAsByteArray();
         if (bytes is null)
             yield break;
-        for (var position = 0; position < bytes.Length;)
+        for (var position = 0; position < bytes.Length; )
         {
             var operation = ReadOpCode(bytes, ref position);
             if (operation.OperandType == OperandType.InlineMethod)
             {
-                var called = method.Module.ResolveMethod(BitConverter.ToInt32(bytes, position),
-                    method.DeclaringType?.GetGenericArguments(), method.GetGenericArguments());
+                var called = method.Module.ResolveMethod(
+                    BitConverter.ToInt32(bytes, position),
+                    method.DeclaringType?.GetGenericArguments(),
+                    method.GetGenericArguments()
+                );
                 if (called is not null && IsReflectionExecutionOperation(called))
                     yield return method.Name + " -> " + called;
             }
@@ -139,8 +182,8 @@ internal static class GeneratedExecutionIlInspection
             return method.Name == "DynamicInvoke";
         if (owner == typeof(Activator))
             return method.Name == "CreateInstance";
-        return (typeof(PropertyInfo).IsAssignableFrom(owner) || typeof(FieldInfo).IsAssignableFrom(owner)) &&
-               method.Name is "GetValue" or "SetValue";
+        return (typeof(PropertyInfo).IsAssignableFrom(owner) || typeof(FieldInfo).IsAssignableFrom(owner))
+            && method.Name is "GetValue" or "SetValue";
     }
 
     internal static bool ContainsBoxOpcode(MethodInfo method)
@@ -149,7 +192,7 @@ internal static class GeneratedExecutionIlInspection
         if (il == null || il.Length == 0)
             return false;
 
-        for (var index = 0; index < il.Length;)
+        for (var index = 0; index < il.Length; )
         {
             var opCode = ReadOpCode(il, ref index);
             if (opCode == OpCodes.Box)
@@ -177,13 +220,18 @@ internal static class GeneratedExecutionIlInspection
             OperandType.InlineNone => 0,
             OperandType.ShortInlineBrTarget or OperandType.ShortInlineI or OperandType.ShortInlineVar => 1,
             OperandType.InlineVar => 2,
-            OperandType.InlineBrTarget or OperandType.InlineField or OperandType.InlineI or OperandType.InlineMethod
-                or OperandType.InlineSig or OperandType.InlineString or OperandType.InlineTok or OperandType.InlineType
-                => 4,
+            OperandType.InlineBrTarget
+            or OperandType.InlineField
+            or OperandType.InlineI
+            or OperandType.InlineMethod
+            or OperandType.InlineSig
+            or OperandType.InlineString
+            or OperandType.InlineTok
+            or OperandType.InlineType => 4,
             OperandType.InlineI8 or OperandType.InlineR => 8,
             OperandType.ShortInlineR => 4,
             OperandType.InlineSwitch => 4 + (BitConverter.ToInt32(il, operandIndex) * 4),
-            _ => throw new ArgumentOutOfRangeException(nameof(operandType), operandType, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(operandType), operandType, null),
         };
     }
 }

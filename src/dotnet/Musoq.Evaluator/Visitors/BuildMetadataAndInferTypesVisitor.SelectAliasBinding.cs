@@ -100,12 +100,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (tableSymbol.GetColumnByAliasAndName(identifier, name) != null)
                 return true;
         }
-        catch (KeyNotFoundException)
-        {
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        catch (KeyNotFoundException) { }
+        catch (InvalidOperationException) { }
 
         try
         {

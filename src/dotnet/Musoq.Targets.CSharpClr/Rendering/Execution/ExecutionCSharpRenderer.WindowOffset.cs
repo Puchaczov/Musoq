@@ -25,85 +25,99 @@ public sealed partial class ExecutionCSharpRenderer
         var extractionStatements = new List<StatementSyntax>();
         var statements = new List<StatementSyntax>();
 
-        extractionStatements.AddRange(CreateIndexedItemDeclarations(
-            offset.Item,
-            offset.Buffer,
-            index,
-            offset.RowAccessMode));
+        extractionStatements.AddRange(
+            CreateIndexedItemDeclarations(offset.Item, offset.Buffer, index, offset.RowAccessMode)
+        );
 
         if (partitionKeys is { ShouldExtract: true })
         {
-            extractionStatements.Add(CreateWindowKeyArrayAssignment(
-                partitionKeys,
-                index.Name,
-                CreateWindowPartitionKeyExpression(partitionKeys, offset.PartitionKey!)));
+            extractionStatements.Add(
+                CreateWindowKeyArrayAssignment(
+                    partitionKeys,
+                    index.Name,
+                    CreateWindowPartitionKeyExpression(partitionKeys, offset.PartitionKey!)
+                )
+            );
         }
 
         if (orderKeys.ShouldExtract)
         {
-            extractionStatements.Add(CreateWindowKeyArrayAssignment(
-                orderKeys,
-                index.Name,
-                CreateWindowOrderKeyExpression(orderKeys, offset.OrderKeys)));
+            extractionStatements.Add(
+                CreateWindowKeyArrayAssignment(
+                    orderKeys,
+                    index.Name,
+                    CreateWindowOrderKeyExpression(orderKeys, offset.OrderKeys)
+                )
+            );
         }
 
-        extractionStatements.Add(CreateArrayAssignment(
-            values.Name,
-            index.Name,
-            RenderExpression(offset.Value),
-            valueElementType));
+        extractionStatements.Add(
+            CreateArrayAssignment(values.Name, index.Name, RenderExpression(offset.Value), valueElementType)
+        );
 
         if (!useScalarOffsetArguments)
         {
-            extractionStatements.Add(CreateIntArrayAssignment(offsets!.Name, index.Name, RenderExpression(offset.Offset)));
-            extractionStatements.Add(CreateArrayAssignment(defaultValues!.Name, index.Name, RenderExpression(offset.DefaultValue), resultElementType));
+            extractionStatements.Add(
+                CreateIntArrayAssignment(offsets!.Name, index.Name, RenderExpression(offset.Offset))
+            );
+            extractionStatements.Add(
+                CreateArrayAssignment(
+                    defaultValues!.Name,
+                    index.Name,
+                    RenderExpression(offset.DefaultValue),
+                    resultElementType
+                )
+            );
         }
 
         if (ShouldMaterializeWindowKeyArray(partitionKeys))
         {
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                partitionKeys.Variable.Name,
-                CreateWindowKeyArrayCreation(partitionKeys, CreateBufferCountExpression(offset.Buffer))));
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    partitionKeys.Variable.Name,
+                    CreateWindowKeyArrayCreation(partitionKeys, CreateBufferCountExpression(offset.Buffer))
+                )
+            );
         }
 
         if (orderKeys.ShouldExtract)
         {
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                orderKeys.Variable.Name,
-                CreateWindowKeyArrayCreation(orderKeys, CreateBufferCountExpression(offset.Buffer))));
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    orderKeys.Variable.Name,
+                    CreateWindowKeyArrayCreation(orderKeys, CreateBufferCountExpression(offset.Buffer))
+                )
+            );
         }
 
-        statements.AddRange(
-        [
+        statements.AddRange([
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 values.Name,
-                CreateSizedArrayCreation(valueElementType, CreateBufferCountExpression(offset.Buffer))),
+                CreateSizedArrayCreation(valueElementType, CreateBufferCountExpression(offset.Buffer))
+            ),
         ]);
 
         if (!useScalarOffsetArguments)
         {
-            statements.AddRange(
-            [
+            statements.AddRange([
                 CreateLocalDeclaration(
                     SyntaxFactory.IdentifierName("var"),
                     offsets!.Name,
-                    CreateSizedArrayCreation("int", CreateBufferCountExpression(offset.Buffer))),
+                    CreateSizedArrayCreation("int", CreateBufferCountExpression(offset.Buffer))
+                ),
                 CreateLocalDeclaration(
                     SyntaxFactory.IdentifierName("var"),
                     defaultValues!.Name,
-                    CreateSizedArrayCreation(resultElementType, CreateBufferCountExpression(offset.Buffer)))
+                    CreateSizedArrayCreation(resultElementType, CreateBufferCountExpression(offset.Buffer))
+                ),
             ]);
         }
 
-        statements.AddRange(
-        [
-            CreateIndexedForLoop(
-                index.Name,
-                offset.Buffer,
-                StatementEmitter.CreateBlock(extractionStatements)),
+        statements.AddRange([
+            CreateIndexedForLoop(index.Name, offset.Buffer, StatementEmitter.CreateBlock(extractionStatements)),
         ]);
 
         var offsetPartitions = offset.Partitions;
@@ -111,33 +125,29 @@ public sealed partial class ExecutionCSharpRenderer
         {
             offsetPartitions = new ExecutionWindowPartitionSet(
                 new ExecutionVariable($"{offset.Results.Name}Partitions", typeof(Evaluator.Helpers.WindowPartitionSet)),
-                true);
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                offsetPartitions.Variable.Name,
-                CreateWindowPartitionSetInvocation(offset.Buffer, partitionKeys?.Variable)));
+                true
+            );
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    offsetPartitions.Variable.Name,
+                    CreateWindowPartitionSetInvocation(offset.Buffer, partitionKeys?.Variable)
+                )
+            );
         }
         else
         {
             AddWindowPartitionDeclarations(statements, offsetPartitions, partitionKeys?.Variable, offset.Buffer);
         }
 
-        var offsetSortedPartitions = offset.SortedPartitions ??
-                                     new ExecutionWindowPartitionSet(offsetPartitions.Variable, true, true);
-        AddWindowSortedPartitionDeclarations(
-            statements,
-            offsetSortedPartitions,
-            offsetPartitions,
-            orderKeys);
+        var offsetSortedPartitions =
+            offset.SortedPartitions ?? new ExecutionWindowPartitionSet(offsetPartitions.Variable, true, true);
+        AddWindowSortedPartitionDeclarations(statements, offsetSortedPartitions, offsetPartitions, orderKeys);
 
-        statements.AddRange(CreateOffsetKernelStatements(
-            offset,
-            values,
-            offsets,
-            defaultValues,
-            offsetSortedPartitions));
+        statements.AddRange(
+            CreateOffsetKernelStatements(offset, values, offsets, defaultValues, offsetSortedPartitions)
+        );
 
         return statements;
     }
-
 }

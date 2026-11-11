@@ -69,9 +69,7 @@ public class LogicalPlanRewriterTests
         var definitionPlan = CreateScan("definition");
         var replacement = CreateScan("replacement");
         var query = new CteRefNode("items", "i", CreateSchema(("Id", typeof(int))));
-        var cte = new CteNode(
-            [new CteDefinition("items", definitionPlan)],
-            query);
+        var cte = new CteNode([new CteDefinition("items", definitionPlan)], query);
 
         var rewritten = RewriteReplacing(cte, definitionPlan, replacement);
 
@@ -104,32 +102,24 @@ public class LogicalPlanRewriterTests
         var literal = new Literal(1, typeof(int));
         var replacement = new Literal(2, typeof(int));
         var column = new ColumnRef("t", "Id", typeof(int));
-        var fields = new[]
-        {
-            new ProjectedField("One", literal, 0),
-            new ProjectedField("Id", column, 1)
-        };
+        var fields = new[] { new ProjectedField("One", literal, 0), new ProjectedField("Id", column, 1) };
 
         var rewritten = LogicalPlanRewriter.RewriteProjectedFields(
             fields,
             expression => ReferenceEquals(expression, literal) ? replacement : expression,
-            out var changed);
+            out var changed
+        );
 
         Assert.IsTrue(changed);
         Assert.AreSame(replacement, rewritten[0].Expression);
         Assert.AreSame(fields[1], rewritten[1]);
     }
 
-    private static LogicalNode RewriteReplacing(
-        LogicalNode node,
-        LogicalNode target,
-        LogicalNode replacement)
+    private static LogicalNode RewriteReplacing(LogicalNode node, LogicalNode target, LogicalNode replacement)
     {
         return ReferenceEquals(node, target)
             ? replacement
-            : LogicalPlanRewriter.RewriteChildren(
-                node,
-                child => RewriteReplacing(child, target, replacement));
+            : LogicalPlanRewriter.RewriteChildren(node, child => RewriteReplacing(child, target, replacement));
     }
 
     private static OutputSchema CreateSchema(params (string Name, Type Type)[] columns)
@@ -142,9 +132,7 @@ public class LogicalPlanRewriterTests
         return new OutputSchema(schemas);
     }
 
-    private static SchemaScanNode CreateScan(
-        string alias = "t",
-        params (string Name, Type Type)[] columns)
+    private static SchemaScanNode CreateScan(string alias = "t", params (string Name, Type Type)[] columns)
     {
         if (columns.Length == 0)
             columns = [("Id", typeof(int))];
@@ -158,6 +146,7 @@ public class LogicalPlanRewriterTests
             BinaryOpKind.GreaterThan,
             new ColumnRef(alias, "Id", typeof(int)),
             new Literal(0, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
     }
 }

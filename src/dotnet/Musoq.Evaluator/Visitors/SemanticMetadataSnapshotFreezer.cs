@@ -16,18 +16,23 @@ internal static class SemanticMetadataSnapshotFreezer
                 input.GeneratedColumns.ToDictionary(
                     pair => pair.Key,
                     pair => (IReadOnlyList<FieldNode>)Array.AsReadOnly(pair.Value.ToArray()),
-                    StringComparer.Ordinal)),
+                    StringComparer.Ordinal
+                )
+            ),
             SelectFieldAliases = new ReadOnlyDictionary<string, Node>(
                 input.SelectFieldAliases.ToDictionary(
                     pair => pair.Key,
                     pair => pair.Value,
-                    StringComparer.OrdinalIgnoreCase)),
-            TheMostInnerIdentifier = input.TheMostInnerIdentifier
+                    StringComparer.OrdinalIgnoreCase
+                )
+            ),
+            TheMostInnerIdentifier = input.TheMostInnerIdentifier,
         };
     }
 
     public static IReadOnlyDictionary<TKey, TValue> FreezeDictionary<TKey, TValue>(
-        IReadOnlyDictionary<TKey, TValue> values)
+        IReadOnlyDictionary<TKey, TValue> values
+    )
         where TKey : notnull
     {
         return new ReadOnlyDictionary<TKey, TValue>(values.ToDictionary(pair => pair.Key, pair => pair.Value));
@@ -39,36 +44,47 @@ internal static class SemanticMetadataSnapshotFreezer
     }
 
     public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> FreezeRuntimeSettings(
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> values)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> values
+    )
     {
         var copied = values.ToDictionary(
             pair => pair.Key,
-            pair => (IReadOnlyDictionary<string, string>)new ReadOnlyDictionary<string, string>(
-                pair.Value.ToDictionary(setting => setting.Key, setting => setting.Value)),
-            StringComparer.Ordinal);
+            pair =>
+                (IReadOnlyDictionary<string, string>)
+                    new ReadOnlyDictionary<string, string>(
+                        pair.Value.ToDictionary(setting => setting.Key, setting => setting.Value)
+                    ),
+            StringComparer.Ordinal
+        );
 
         return new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(copied);
     }
 
-    public static IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>
-        FreezeRuntimeSettingDescriptions(
-            IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> values)
+    public static IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > FreezeRuntimeSettingDescriptions(
+        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> values
+    )
     {
         var copied = values.ToDictionary(
             pair => pair.Key,
             pair => (IReadOnlyList<SourceRuntimeSettingDescription>)Array.AsReadOnly(pair.Value.ToArray()),
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
 
         return new ReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>(copied);
     }
 
     public static IReadOnlyDictionary<string, IReadOnlyList<T>> FreezeArrays<T>(
-        IEnumerable<KeyValuePair<string, T[]>> values)
+        IEnumerable<KeyValuePair<string, T[]>> values
+    )
     {
         var copied = values.ToDictionary(
             pair => pair.Key,
             pair => (IReadOnlyList<T>)Array.AsReadOnly(pair.Value.ToArray()),
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
 
         return new ReadOnlyDictionary<string, IReadOnlyList<T>>(copied);
     }

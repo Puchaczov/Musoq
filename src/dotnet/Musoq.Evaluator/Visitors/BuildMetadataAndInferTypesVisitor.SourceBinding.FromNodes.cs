@@ -43,18 +43,22 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.QueryAlias = string.IsNullOrEmpty(node.Alias) ? node.VariableName : node.Alias;
         var hasExplicitAlias = !string.IsNullOrEmpty(node.Alias);
 
-        if (HasAlreadyUsedAlias(_sourceBinding.QueryAlias) &&
-            TryReportDuplicateAlias(node, _sourceBinding.QueryAlias, node))
+        if (
+            HasAlreadyUsedAlias(_sourceBinding.QueryAlias)
+            && TryReportDuplicateAlias(node, _sourceBinding.QueryAlias, node)
+        )
             return;
 
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
         TableSymbol? tableSymbol;
 
-        var parentScope = _sourceBinding.CurrentScope.Parent ??
-                          throw new VisitorException(
-                              VisitorName,
-                              "VisitInMemoryTableFromNode",
-                              "In-memory table source requires a parent scope.");
+        var parentScope =
+            _sourceBinding.CurrentScope.Parent
+            ?? throw new VisitorException(
+                VisitorName,
+                "VisitInMemoryTableFromNode",
+                "In-memory table source requires a parent scope."
+            );
 
         if (parentScope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(node.VariableName, out var parentTableSymbol))
         {
@@ -64,7 +68,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var scope = _sourceBinding.CurrentScope;
 
-            while (scope != null && scope.Name != "CTE") scope = scope.Parent;
+            while (scope != null && scope.Name != "CTE")
+                scope = scope.Parent;
 
             if (scope is null)
                 throw new TableIsNotDefinedException(node.VariableName, node.SpanOrEmpty());
@@ -76,16 +81,21 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new TableIsNotDefinedException(node.VariableName, node.SpanOrEmpty());
 
         var tableSchemaPair = tableSymbol.GetTableByAlias(node.VariableName);
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(_sourceBinding.QueryAlias,
-            new TableSymbol(_sourceBinding.QueryAlias, tableSchemaPair.Schema, tableSchemaPair.Table, hasExplicitAlias));
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_sourceBinding.QueryAlias);
+        _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(
+            _sourceBinding.QueryAlias,
+            new TableSymbol(_sourceBinding.QueryAlias, tableSchemaPair.Schema, tableSchemaPair.Table, hasExplicitAlias)
+        );
+        _sourceBinding
+            .CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases)
+            .AddAlias(_sourceBinding.QueryAlias);
         _sourceBinding.CurrentScope[node.Id] = _sourceBinding.QueryAlias;
         if (Array.Exists(tableSchemaPair.Table.Columns, static column => column.EnumType != null))
             _sourceBinding.InferredColumnsByAlias.TryAdd(_sourceBinding.QueryAlias, tableSchemaPair.Table.Columns);
 
         _sourceBinding.AliasMapToInMemoryTableMap.Add(_sourceBinding.QueryAlias, node.VariableName);
         _sourceBinding.UsedSchemasQuantity += 1;
-        if (_diagnosticRecoveryCteNames.Contains(node.VariableName)) _diagnosticRecoveryAliases.Add(_sourceBinding.QueryAlias);
+        if (_diagnosticRecoveryCteNames.Contains(node.VariableName))
+            _diagnosticRecoveryAliases.Add(_sourceBinding.QueryAlias);
 
         PushSemanticNode(new Parser.InMemoryTableFromNode(node.VariableName, _sourceBinding.QueryAlias));
     }
@@ -95,8 +105,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var appliedTable = (FromNode)PopSemanticNode();
         var source = (FromNode)PopSemanticNode();
-        var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType, node.WithOrdinality)
-            .CopySpansFrom(node);
+        var appliedFrom = new Parser.ApplyFromNode(
+            source,
+            appliedTable,
+            node.ApplyType,
+            node.WithOrdinality
+        ).CopySpansFrom(node);
         _sourceBinding.Identifier = appliedFrom.Alias;
         PushSemanticNode(appliedFrom);
     }
@@ -107,7 +121,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.Identifier = from.Alias;
         PushSemanticNode(new Parser.ExpressionFromNode(from).CopySpansFrom(node));
 
-        var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
+        var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(
+            _sourceBinding.Identifier
+        );
 
         foreach (var tableAlias in tableSymbol.CompoundTables)
         {
@@ -137,8 +153,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             schemaName = pcn.SchemaName;
         else if (interpretCall is InterpretAtCallNode iacn)
             schemaName = iacn.SchemaName;
-        else if (interpretCall is ArgsListNode argsNode) schemaName = ExtractSchemaNameFromArgs(argsNode);
-
+        else if (interpretCall is ArgsListNode argsNode)
+            schemaName = ExtractSchemaNameFromArgs(argsNode);
 
         if (schemaName != null && SchemaRegistry != null)
         {
@@ -163,22 +179,33 @@ public partial class BuildMetadataAndInferTypesVisitor
             );
 
             _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(node.Alias, interpretTableSymbol);
-            _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
+            _sourceBinding
+                .CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases)
+                .AddAlias(node.Alias);
 
-            var newInterpretFromNode = new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType,
-                returnType ?? node.ReturnType).CopySpansFrom(node);
+            var newInterpretFromNode = new Parser.InterpretFromNode(
+                node.Alias,
+                interpretCall,
+                node.ApplyType,
+                returnType ?? node.ReturnType
+            ).CopySpansFrom(node);
             _sourceBinding.CurrentScope[newInterpretFromNode.Id] = node.Alias;
             PushSemanticNode(newInterpretFromNode);
         }
         else
         {
-            var newInterpretFromNode =
-                new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType).CopySpansFrom(node);
+            var newInterpretFromNode = new Parser.InterpretFromNode(
+                node.Alias,
+                interpretCall,
+                node.ApplyType,
+                node.ReturnType
+            ).CopySpansFrom(node);
             _sourceBinding.CurrentScope[newInterpretFromNode.Id] = node.Alias;
             PushSemanticNode(newInterpretFromNode);
         }
 
-        if (node.ReturnType != null) AddAssembly(node.ReturnType.Assembly);
+        if (node.ReturnType != null)
+            AddAssembly(node.ReturnType.Assembly);
     }
 
     public override void Visit(JoinInMemoryWithSourceTableFromNode node)
@@ -188,7 +215,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         var exp = PopSemanticNode();
         var from = (FromNode)PopSemanticNode();
         PushSemanticNode(
-            new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType, tieBreak: tieBreak));
+            new Parser.JoinInMemoryWithSourceTableFromNode(
+                node.InMemoryTableAlias,
+                from,
+                exp,
+                node.JoinType,
+                tieBreak: tieBreak
+            )
+        );
     }
 
     public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
@@ -196,6 +230,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var from = (FromNode)PopSemanticNode();
         PushSemanticNode(
-            new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType, node.WithOrdinality));
+            new Parser.ApplyInMemoryWithSourceTableFromNode(
+                node.InMemoryTableAlias,
+                from,
+                node.ApplyType,
+                node.WithOrdinality
+            )
+        );
     }
 }

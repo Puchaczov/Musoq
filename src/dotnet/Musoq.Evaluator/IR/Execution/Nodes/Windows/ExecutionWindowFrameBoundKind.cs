@@ -6,5 +6,5 @@ public enum ExecutionWindowFrameBoundKind
     UnboundedFollowing,
     CurrentRow,
     OffsetPreceding,
-    OffsetFollowing
+    OffsetFollowing,
 }

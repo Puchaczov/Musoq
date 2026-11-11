@@ -8,7 +8,7 @@ public partial class SubqueryToCteRewriteVisitor
     private enum PredicateSubqueryKind
     {
         In,
-        Exists
+        Exists,
     }
 
     private sealed record SubqueryInfo(
@@ -17,21 +17,28 @@ public partial class SubqueryToCteRewriteVisitor
         ExistsQueryNode? ExistsQueryNode,
         bool IsNegated,
         bool RequiresLeftJoin = false,
-        SubqueryCorrelationInfo? Correlation = null)
+        SubqueryCorrelationInfo? Correlation = null
+    )
     {
-        public Node PredicateNode => Kind switch
-        {
-            PredicateSubqueryKind.In => InQueryNode ?? throw new InvalidOperationException("IN subquery metadata requires an IN node."),
-            PredicateSubqueryKind.Exists => ExistsQueryNode ?? throw new InvalidOperationException("EXISTS subquery metadata requires an EXISTS node."),
-            _ => throw new InvalidOperationException($"Unsupported predicate subquery kind: {Kind}.")
-        };
+        public Node PredicateNode =>
+            Kind switch
+            {
+                PredicateSubqueryKind.In => InQueryNode
+                    ?? throw new InvalidOperationException("IN subquery metadata requires an IN node."),
+                PredicateSubqueryKind.Exists => ExistsQueryNode
+                    ?? throw new InvalidOperationException("EXISTS subquery metadata requires an EXISTS node."),
+                _ => throw new InvalidOperationException($"Unsupported predicate subquery kind: {Kind}."),
+            };
 
-        public Node Subquery => Kind switch
-        {
-            PredicateSubqueryKind.In => InQueryNode?.Subquery ?? throw new InvalidOperationException("IN subquery metadata requires an IN node."),
-            PredicateSubqueryKind.Exists => ExistsQueryNode?.Subquery ?? throw new InvalidOperationException("EXISTS subquery metadata requires an EXISTS node."),
-            _ => throw new InvalidOperationException($"Unsupported predicate subquery kind: {Kind}.")
-        };
+        public Node Subquery =>
+            Kind switch
+            {
+                PredicateSubqueryKind.In => InQueryNode?.Subquery
+                    ?? throw new InvalidOperationException("IN subquery metadata requires an IN node."),
+                PredicateSubqueryKind.Exists => ExistsQueryNode?.Subquery
+                    ?? throw new InvalidOperationException("EXISTS subquery metadata requires an EXISTS node."),
+                _ => throw new InvalidOperationException($"Unsupported predicate subquery kind: {Kind}."),
+            };
 
         public bool IsIn => Kind == PredicateSubqueryKind.In;
 

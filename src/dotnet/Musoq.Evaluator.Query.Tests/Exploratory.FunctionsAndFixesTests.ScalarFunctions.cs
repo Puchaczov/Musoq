@@ -10,17 +10,24 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore99_StartsWithEndsWith_ShouldWork()
     {
-        const string query = @"
-            select
-                t.Value,
-                StartsWith(t.Value, 'a') as StartsWithA,
-                EndsWith(t.Value, 'le') as EndsWithLE
-            from #schema.first() p
-            cross apply p.Tags t";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                t.Value,\n"
+            + "                StartsWith(t.Value, 'a') as StartsWithA,\n"
+            + "                EndsWith(t.Value, 'le') as EndsWithLE\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["apple", "banana", "able"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["apple", "banana", "able"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -37,15 +44,17 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore100_ConcatFunction_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                Concat(p.Name, '-', ToString(p.Age)) as Combined
-            from #schema.first() p";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                Concat(p.Name, '-', ToString(p.Age)) as Combined\n"
+            + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -62,16 +71,28 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore101_IsNullCheck_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                p.Tags is null as HasNoTags
-            from #schema.first() p";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                p.Tags is null as HasNoTags\n"
+            + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = null },
-            new() { Name = "Jane", Age = 25, Tags = ["a"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = null,
+            },
+            new()
+            {
+                Name = "Jane",
+                Age = 25,
+                Tags = ["a"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -88,16 +109,28 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore102_IsNotNullCheck_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name
-            from #schema.first() p
-            where p.Tags is not null";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name\n"
+            + "            from #schema.first() p\n"
+            + "            where p.Tags is not null"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = null },
-            new() { Name = "Jane", Age = 25, Tags = ["a"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = null,
+            },
+            new()
+            {
+                Name = "Jane",
+                Age = 25,
+                Tags = ["a"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -115,16 +148,18 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore104_AbsFunction_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Age,
-                Abs(p.Age - 35) as DistanceFrom35
-            from #schema.first() p";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Age,\n"
+            + "                Abs(p.Age - 35) as DistanceFrom35\n"
+            + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "John", Age = 30 },
-            new() { Name = "Jane", Age = 40 }
+            new() { Name = "Jane", Age = 40 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -141,13 +176,15 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore105_RoundFunction_ShouldWork()
     {
-        const string query = @"
-            select
-                i.ProductName,
-                i.Price,
-                Round(i.Price, 0) as RoundedPrice
-            from #schema.first() o
-            cross apply o.Items i";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                i.ProductName,\n"
+            + "                i.Price,\n"
+            + "                Round(i.Price, 0) as RoundedPrice\n"
+            + "            from #schema.first() o\n"
+            + "            cross apply o.Items i"
+        );
 
         var source = new List<Order>
         {
@@ -156,10 +193,20 @@ public partial class ExploratoryFunctionsAndFixesTests
                 OrderId = 1,
                 Items =
                 [
-                    new OrderItem { ProductName = "A", Price = 10.49m, Quantity = 1 },
-                    new OrderItem { ProductName = "B", Price = 10.51m, Quantity = 1 }
-                ]
-            }
+                    new OrderItem
+                    {
+                        ProductName = "A",
+                        Price = 10.49m,
+                        Quantity = 1,
+                    },
+                    new OrderItem
+                    {
+                        ProductName = "B",
+                        Price = 10.51m,
+                        Quantity = 1,
+                    },
+                ],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -176,21 +223,31 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore106_Floor_ShouldWork()
     {
-        const string query = @"
-            select
-                i.ProductName,
-                i.Price,
-                Floor(i.Price) as FloorPrice
-            from #schema.first() o
-            cross apply o.Items i";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                i.ProductName,\n"
+            + "                i.Price,\n"
+            + "                Floor(i.Price) as FloorPrice\n"
+            + "            from #schema.first() o\n"
+            + "            cross apply o.Items i"
+        );
 
         var source = new List<Order>
         {
             new()
             {
                 OrderId = 1,
-                Items = [new OrderItem { ProductName = "A", Price = 10.5m, Quantity = 1 }]
-            }
+                Items =
+                [
+                    new OrderItem
+                    {
+                        ProductName = "A",
+                        Price = 10.5m,
+                        Quantity = 1,
+                    },
+                ],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);

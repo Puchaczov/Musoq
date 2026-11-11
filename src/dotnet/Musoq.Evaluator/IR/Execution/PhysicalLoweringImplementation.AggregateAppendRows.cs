@@ -12,37 +12,49 @@ internal sealed partial class PhysicalLoweringImplementation
     private static TableBuildResult CompleteAggregateTableBuild(AggregateTableCompletion completion)
     {
         var nodes = new List<ExecutionNode>(
-            completion.SourceSetup.Count +
-            completion.Aggregate.LibraryNodes.Count +
-            AggregateTableCompletionNodeCount);
+            completion.SourceSetup.Count + completion.Aggregate.LibraryNodes.Count + AggregateTableCompletionNodeCount
+        );
         nodes.AddRange(completion.SourceSetup);
         nodes.AddRange(completion.Aggregate.LibraryNodes);
         nodes.Add(CreateTable(completion.ResultTable, completion.ResultShape));
         nodes.Add(completion.ContextCreation);
         nodes.Add(completion.Accumulation);
-        nodes.Add(new ExecutionEnsureTableCapacity(
-            completion.ResultTable,
-            ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(
+        nodes.Add(
+            new ExecutionEnsureTableCapacity(
                 completion.ResultTable,
-                completion.GroupsToFinalize)));
-        nodes.Add(new ExecutionForEach(
-            completion.FinalGroup,
-            new ExecutionVariableRead(completion.GroupsToFinalize),
-            completion.FinalBlock));
+                ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(
+                    completion.ResultTable,
+                    completion.GroupsToFinalize
+                )
+            )
+        );
+        nodes.Add(
+            new ExecutionForEach(
+                completion.FinalGroup,
+                new ExecutionVariableRead(completion.GroupsToFinalize),
+                completion.FinalBlock
+            )
+        );
 
         return CompleteTableBuild(
-            CreateAggregateResultShapes(completion.SourceShapes, completion.Aggregate.Group.Plan, completion.ResultShape),
+            CreateAggregateResultShapes(
+                completion.SourceShapes,
+                completion.Aggregate.Group.Plan,
+                completion.ResultShape
+            ),
             nodes,
             completion.ResultTable,
             completion.ResultShape,
             completion.PostOperations,
-            completion.IsDistinct);
+            completion.IsDistinct
+        );
     }
 
     private ExecutionBlock CreateAggregateAccumulationBlock(
         PhysicalFilterNode? filter,
         RowShape sourceShape,
-        ExecutionBlock body)
+        ExecutionBlock body
+    )
     {
         if (filter == null)
             return body;
@@ -54,7 +66,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private ExecutionBlock CreateAggregateAccumulationBlock(
         PhysicalFilterNode? filter,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        ExecutionBlock body)
+        ExecutionBlock body
+    )
     {
         if (filter == null)
             return body;
@@ -67,7 +80,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,
-        AggregateFinalizationContext context)
+        AggregateFinalizationContext context
+    )
     {
         var values = new List<ExecutionRowValue>();
 
@@ -76,25 +90,23 @@ internal sealed partial class PhysicalLoweringImplementation
             var value = ConvertAggregateFinalProjectionExpression(field.Expression, context);
             if (!value.IsBuilt)
                 return LoweringAttempt<ExecutionAppendRow>.Unsupported(
-                    $"Execution IR aggregate-only lowering cannot convert projection {field.OutputName}={IrExpressionPrinter.Print(field.Expression)}. {value.UnsupportedReason}");
+                    $"Execution IR aggregate-only lowering cannot convert projection {field.OutputName}={IrExpressionPrinter.Print(field.Expression)}. {value.UnsupportedReason}"
+                );
 
-            values.Add(new ExecutionRowValue(
-                field.OutputName,
-                value.Value));
+            values.Add(new ExecutionRowValue(field.OutputName, value.Value));
         }
 
-        return LoweringAttempt<ExecutionAppendRow>.Built(new ExecutionAppendRow(
-            resultTable,
-            resultShape,
-            values,
-            SerialAppendMode));
+        return LoweringAttempt<ExecutionAppendRow>.Built(
+            new ExecutionAppendRow(resultTable, resultShape, values, SerialAppendMode)
+        );
     }
 
     private static LoweringAttempt<ExecutionAppendRow> CreateGroupedAggregateAppendRow(
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,
-        AggregateFinalizationContext context)
+        AggregateFinalizationContext context
+    )
     {
         var values = new List<ExecutionRowValue>(fields.Length);
 
@@ -103,18 +115,14 @@ internal sealed partial class PhysicalLoweringImplementation
             var value = ConvertAggregateFinalProjectionExpression(field.Expression, context);
             if (!value.IsBuilt)
                 return LoweringAttempt<ExecutionAppendRow>.Unsupported(
-                    $"Execution IR grouped aggregate lowering cannot convert projection {field.OutputName}={IrExpressionPrinter.Print(field.Expression)}. {value.UnsupportedReason}");
+                    $"Execution IR grouped aggregate lowering cannot convert projection {field.OutputName}={IrExpressionPrinter.Print(field.Expression)}. {value.UnsupportedReason}"
+                );
 
-            values.Add(new ExecutionRowValue(
-                field.OutputName,
-                value.Value));
+            values.Add(new ExecutionRowValue(field.OutputName, value.Value));
         }
 
-        return LoweringAttempt<ExecutionAppendRow>.Built(new ExecutionAppendRow(
-            resultTable,
-            resultShape,
-            values,
-            SerialAppendMode));
+        return LoweringAttempt<ExecutionAppendRow>.Built(
+            new ExecutionAppendRow(resultTable, resultShape, values, SerialAppendMode)
+        );
     }
-
 }

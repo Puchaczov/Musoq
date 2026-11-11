@@ -10,9 +10,7 @@ internal static class CaseSetIntegrity
     public static string[] FindFailures()
     {
         var caseIds = CaseCatalog.Ids.ToArray();
-        return ValidateCaseCount(caseIds)
-            .Concat(ValidateCases(caseIds))
-            .ToArray();
+        return ValidateCaseCount(caseIds).Concat(ValidateCases(caseIds)).ToArray();
     }
 
     private static IEnumerable<string> ValidateCaseCount(IReadOnlyCollection<string> caseIds)
@@ -51,10 +49,12 @@ internal static class CaseSetIntegrity
     private static IEnumerable<string> ValidateAssertionMappings(string id, JsonElement test)
     {
         var assertionCount = test.GetProperty("assertions").GetArrayLength();
-        var mappedAssertionIndices = test.GetProperty("queries").EnumerateArray()
+        var mappedAssertionIndices = test.GetProperty("queries")
+            .EnumerateArray()
             .Where(query => query.TryGetProperty("assertionIndices", out _))
-            .SelectMany(query => query.GetProperty("assertionIndices").EnumerateArray()
-                .Select(index => index.GetInt32()))
+            .SelectMany(query =>
+                query.GetProperty("assertionIndices").EnumerateArray().Select(index => index.GetInt32())
+            )
             .OrderBy(index => index);
         if (!Enumerable.Range(0, assertionCount).SequenceEqual(mappedAssertionIndices))
             yield return $"Assertions are not mapped exactly once for '{id}'.";

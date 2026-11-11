@@ -12,25 +12,20 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class ReorderedSyntaxCteTests : BasicEntityTestBase
 {
-
-
     [TestMethod]
     public void CteWithReorderedInnerQuery_BasicSelect_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                from #A.Entities() select City, Country
-            )
-            select City, Country from cte";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                from #A.Entities() select City, Country\n"
+            + "            )\n"
+            + "            select City, Country from cte"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("BERLIN", "GERMANY", 250)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -43,83 +38,54 @@ public partial class ReorderedSyntaxCteTests : BasicEntityTestBase
     [TestMethod]
     public void CteWithReorderedInnerQuery_WithWhere_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                from #A.Entities() where Country = 'POLAND' select City, Country
-            )
-            select City, Country from cte";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                from #A.Entities() where Country = 'POLAND' select City, Country\n"
+            + "            )\n"
+            + "            select City, Country from cte"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
+                    new BasicEntity("BERLIN", "GERMANY", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["WARSAW", "POLAND"], ["CZESTOCHOWA", "POLAND"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"], ["CZESTOCHOWA", "POLAND"]);
     }
 
     [TestMethod]
     public void CteWithReorderedInnerQuery_WithGroupBy_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                from #A.Entities() group by Country select Country, Sum(Population) as TotalPop
-            )
-            select Country, TotalPop from cte";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                from #A.Entities() group by Country select Country, Sum(Population) as TotalPop\n"
+            + "            )\n"
+            + "            select Country, TotalPop from cte"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("TotalPop", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["POLAND", 900m], ["GERMANY", 250m]);
-    }
-
-    [TestMethod]
-    public void CteWithReorderedInnerQuery_WithJoin_ShouldWork()
-    {
-        var query = @"
-            with cte as (
-                from #A.Entities() a 
-                inner join #B.Entities() b on a.Country = b.Country 
-                select a.City as City, a.Country as Country, b.Population as OtherPop
-            )
-            select City, Country, OtherPop from cte";
-
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
+                    new BasicEntity("BERLIN", "GERMANY", 250),
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("KRAKOW", "POLAND", 300)
-                ]
-            }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -127,28 +93,64 @@ public partial class ReorderedSyntaxCteTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("City", typeof(string)), ("Country", typeof(string)), ("OtherPop", typeof(decimal)));
+            ("Country", typeof(string)),
+            ("TotalPop", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["POLAND", 900m], ["GERMANY", 250m]);
+    }
+
+    [TestMethod]
+    public void CteWithReorderedInnerQuery_WithJoin_ShouldWork()
+    {
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                from #A.Entities() a \n"
+            + "                inner join #B.Entities() b on a.Country = b.Country \n"
+            + "                select a.City as City, a.Country as Country, b.Population as OtherPop\n"
+            + "            )\n"
+            + "            select City, Country, OtherPop from cte"
+        );
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("BERLIN", "GERMANY", 250)] },
+            { "#B", [new BasicEntity("KRAKOW", "POLAND", 300)] },
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("OtherPop", typeof(decimal))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND", 300m]);
     }
 
     [TestMethod]
     public void CteWithReorderedInnerQuery_WithOrderBy_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                from #A.Entities() select City, Population order by Population desc
-            )
-            select City, Population from cte";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                from #A.Entities() select City, Population order by Population desc\n"
+            + "            )\n"
+            + "            select City, Population from cte"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("KATOWICE", "POLAND", 250)
+                    new BasicEntity("KATOWICE", "POLAND", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -157,27 +159,33 @@ public partial class ReorderedSyntaxCteTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["WARSAW", 500m], ["CZESTOCHOWA", 400m], ["KATOWICE", 250m]);
+            ["WARSAW", 500m],
+            ["CZESTOCHOWA", 400m],
+            ["KATOWICE", 250m]
+        );
     }
 
     [TestMethod]
     public void CteWithReorderedInnerQuery_WithSkipTake_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                from #A.Entities() select City, Population order by Population desc skip 1 take 1
-            )
-            select City, Population from cte";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                from #A.Entities() select City, Population order by Population desc skip 1 take 1\n"
+            + "            )\n"
+            + "            select City, Population from cte"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("KATOWICE", "POLAND", 250)
+                    new BasicEntity("KATOWICE", "POLAND", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -187,25 +195,20 @@ public partial class ReorderedSyntaxCteTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["CZESTOCHOWA", 400m]);
     }
 
-
-
     [TestMethod]
     public void CteWithReorderedOuterQuery_BasicSelect_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                select City, Country from #A.Entities()
-            )
-            from cte select City, Country";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select City, Country from #A.Entities()\n"
+            + "            )\n"
+            + "            from cte select City, Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("BERLIN", "GERMANY", 250)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -218,77 +221,88 @@ public partial class ReorderedSyntaxCteTests : BasicEntityTestBase
     [TestMethod]
     public void CteWithReorderedOuterQuery_WithWhere_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                select City, Country, Population from #A.Entities()
-            )
-            from cte where Population > 300 select City, Country";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select City, Country, Population from #A.Entities()\n"
+            + "            )\n"
+            + "            from cte where Population > 300 select City, Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("KATOWICE", "POLAND", 250)
+                    new BasicEntity("KATOWICE", "POLAND", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["WARSAW", "POLAND"], ["CZESTOCHOWA", "POLAND"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"], ["CZESTOCHOWA", "POLAND"]);
     }
 
     [TestMethod]
     public void CteWithReorderedOuterQuery_WithGroupBy_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                select City, Country, Population from #A.Entities()
-            )
-            from cte group by Country select Country, Sum(Population) as TotalPop";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select City, Country, Population from #A.Entities()\n"
+            + "            )\n"
+            + "            from cte group by Country select Country, Sum(Population) as TotalPop"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
+                    new BasicEntity("BERLIN", "GERMANY", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("TotalPop", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("TotalPop", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["POLAND", 900m], ["GERMANY", 250m]);
     }
 
     [TestMethod]
     public void CteWithReorderedOuterQuery_WithOrderBy_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                select City, Population from #A.Entities()
-            )
-            from cte select City, Population order by Population asc";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select City, Population from #A.Entities()\n"
+            + "            )\n"
+            + "            from cte select City, Population order by Population asc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("KATOWICE", "POLAND", 250)
+                    new BasicEntity("KATOWICE", "POLAND", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -297,39 +311,40 @@ public partial class ReorderedSyntaxCteTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Population", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["KATOWICE", 250m], ["CZESTOCHOWA", 400m], ["WARSAW", 500m]);
+            ["KATOWICE", 250m],
+            ["CZESTOCHOWA", 400m],
+            ["WARSAW", 500m]
+        );
     }
-
-
 
     [TestMethod]
     public void BothCteAndOuterQueryReordered_ShouldWork()
     {
-        var query = @"
-            with cte as (
-                from #A.Entities() where Country = 'POLAND' select City, Country, Population
-            )
-            from cte where Population > 300 select City, Population";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                from #A.Entities() where Country = 'POLAND' select City, Country, Population\n"
+            + "            )\n"
+            + "            from cte where Population > 300 select City, Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
-                    new BasicEntity("BERLIN", "GERMANY", 600)
+                    new BasicEntity("BERLIN", "GERMANY", 600),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Population", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["WARSAW", 500m], ["CZESTOCHOWA", 400m]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", 500m], ["CZESTOCHOWA", 400m]);
     }
-
 }

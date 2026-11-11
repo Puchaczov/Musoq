@@ -9,22 +9,14 @@ public class CreateTableNode : Node
     public CreateTableNode(string name, (string ColumnName, string TypeName)[] tableTypePairs)
         : this(
             name,
-            tableTypePairs
-                .Select(pair => new CreateTableColumnDefinition(
-                    pair.ColumnName,
-                    pair.TypeName,
-                    []))
-                .ToArray())
-    {
-    }
+            tableTypePairs.Select(pair => new CreateTableColumnDefinition(pair.ColumnName, pair.TypeName, [])).ToArray()
+        ) { }
 
     public CreateTableNode(string name, IReadOnlyList<CreateTableColumnDefinition> columns)
     {
         Name = name;
         Columns = columns.ToArray();
-        TableTypePairs = Columns
-            .Select(column => (column.ColumnName, column.TypeName))
-            .ToArray();
+        TableTypePairs = Columns.Select(column => (column.ColumnName, column.TypeName)).ToArray();
         Id = $"{nameof(CreateTableNode)}{name}";
     }
 

@@ -14,8 +14,7 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
     [TestMethod]
     public void UnknownSourceInKnownSchema_ReportsUnknownSourceWithFacts()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select * from #test.missing()"));
+        var exception = Assert.Throws<MusoqQueryException>(() => CompileQuery("select * from #test.missing()"));
 
         AssertSingleError(exception, DiagnosticCode.MQ3085_UnknownSource, DiagnosticPhase.Bind, "missing");
         AssertHasGuidance(exception);
@@ -26,8 +25,7 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
     [TestMethod]
     public void UnknownSchema_RemainsSchemaResolutionError()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select * from #absent.people()"));
+        var exception = Assert.Throws<MusoqQueryException>(() => CompileQuery("select * from #absent.people()"));
 
         AssertSingleError(exception, DiagnosticCode.MQ3010_UnknownSchema, DiagnosticPhase.Bind, "#absent");
     }
@@ -35,8 +33,7 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
     [TestMethod]
     public void UndefinedCteReference_ReportsTableDefinitionError()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select * from MissingCte"));
+        var exception = Assert.Throws<MusoqQueryException>(() => CompileQuery("select * from MissingCte"));
 
         AssertSingleError(exception, DiagnosticCode.MQ3023_TableNotDefined, DiagnosticPhase.Bind, "MissingCte");
     }
@@ -45,7 +42,8 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
     public void UnknownQualifiedAlias_ReportsAliasErrorOnly()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select missing.Name from #test.people() people"));
+            CompileQuery("select missing.Name from #test.people() people")
+        );
 
         AssertSingleError(exception, DiagnosticCode.MQ3015_UnknownAlias, DiagnosticPhase.Bind, "missing");
     }
@@ -61,7 +59,12 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
         var aliasStart = query.IndexOf("peple", StringComparison.Ordinal);
         var aliasSpan = new TextSpan(aliasStart, "peple".Length);
 
-        AssertSingleError(exception, DiagnosticCode.MQ3015_UnknownAlias, DiagnosticPhase.Bind, "Did you mean 'people'?");
+        AssertSingleError(
+            exception,
+            DiagnosticCode.MQ3015_UnknownAlias,
+            DiagnosticPhase.Bind,
+            "Did you mean 'people'?"
+        );
         Assert.AreEqual(aliasStart, envelope.Offset);
         Assert.AreEqual(aliasSpan.Length, envelope.Length);
         Assert.AreEqual("peple", query.Substring(envelope.Offset!.Value, envelope.Length!.Value));
@@ -75,7 +78,8 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
         Assert.AreEqual(aliasSpan, action.TextEdit!.Span);
         Assert.AreEqual("people", action.TextEdit.NewText);
 
-        var repairedQuery = query.Remove(action.TextEdit.Span.Start, action.TextEdit.Span.Length)
+        var repairedQuery = query
+            .Remove(action.TextEdit.Span.Start, action.TextEdit.Span.Length)
             .Insert(action.TextEdit.Span.Start, action.TextEdit.NewText);
         CompileQuery(repairedQuery);
     }
@@ -84,7 +88,8 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
     public void UnknownColumnOnKnownAlias_ReportsColumnError()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select people.Amount from #test.people() people"));
+            CompileQuery("select people.Amount from #test.people() people")
+        );
 
         AssertSingleError(exception, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "Amount");
     }
@@ -93,7 +98,8 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
     public void UnknownPropertyOnKnownObject_ReportsPropertyError()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select Info.Missing from #test.nested()"));
+            CompileQuery("select Info.Missing from #test.nested()")
+        );
 
         AssertSingleError(exception, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Missing");
     }
@@ -102,17 +108,19 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
     public void UnknownSource_DoesNotCreateDependentColumnCascade()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select source.Name from #test.missing() source"));
+            CompileQuery("select source.Name from #test.missing() source")
+        );
 
         AssertSingleError(exception, DiagnosticCode.MQ3085_UnknownSource, DiagnosticPhase.Bind, "missing");
-        Assert.IsFalse(exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ3027_InvalidExpressionType));
+        Assert.IsFalse(
+            exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ3027_InvalidExpressionType)
+        );
     }
 
     [TestMethod]
     public void CteNameInNestedQuery_IsBoundInItsOwnScope()
     {
-        var query = "with people_cte as (select Name from #test.people()) " +
-                    "select people_cte.Name from people_cte";
+        var query = "with people_cte as (select Name from #test.people()) " + "select people_cte.Name from people_cte";
 
         var compiled = CompileQuery(query);
         var result = compiled.Run(TokenSource.Token);
@@ -131,7 +139,9 @@ public sealed class MultiSchemaSymbolResolutionDiagnosticsTests : Schema.Multi.M
             CreateAndRunVirtualMachine(
                 "select FirstItem from #schema.first() first inner join #schema.second() second on first.FirstItem = second.FirstItem",
                 [new Schema.Multi.First.FirstEntity()],
-                [new Schema.Multi.Second.SecondEntity()]));
+                [new Schema.Multi.Second.SecondEntity()]
+            )
+        );
 
         AssertSingleError(exception, DiagnosticCode.MQ3002_AmbiguousColumn, DiagnosticPhase.Bind, "FirstItem");
     }

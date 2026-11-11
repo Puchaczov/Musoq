@@ -27,21 +27,32 @@ public class BugProbeStringEncodingTests
     [TestMethod]
     public void Binary_Latin1Encoding_ShouldDecodeProperly()
     {
-        var query = @"
-            binary Data {
-                Name: string[5] latin1
-            };
-            select d.Name from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Name: string[5] latin1\n"
+            + "            };\n"
+            + "            select d.Name from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // "Hello" in ISO-8859-1
         var testData = "Hello"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -55,21 +66,32 @@ public class BugProbeStringEncodingTests
     [TestMethod]
     public void Binary_Latin1ExtendedChars_ShouldDecodeCorrectly()
     {
-        var query = @"
-            binary Data {
-                Name: string[4] latin1
-            };
-            select d.Name from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Name: string[4] latin1\n"
+            + "            };\n"
+            + "            select d.Name from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // "café" in ISO-8859-1: c=0x63, a=0x61, f=0x66, é=0xE9
         var testData = new byte[] { 0x63, 0x61, 0x66, 0xE9 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -84,21 +106,32 @@ public class BugProbeStringEncodingTests
     [TestMethod]
     public void Binary_Utf16LeEncoding_ShouldDecodeProperly()
     {
-        var query = @"
-            binary Data {
-                Name: string[8] utf16le
-            };
-            select d.Name from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Name: string[8] utf16le\n"
+            + "            };\n"
+            + "            select d.Name from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // "Test" in UTF-16LE: T=0x54,0x00 e=0x65,0x00 s=0x73,0x00 t=0x74,0x00
         var testData = Encoding.Unicode.GetBytes("Test");
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -112,21 +145,32 @@ public class BugProbeStringEncodingTests
     [TestMethod]
     public void Binary_Utf16BeEncoding_ShouldDecodeProperly()
     {
-        var query = @"
-            binary Data {
-                Name: string[6] utf16be
-            };
-            select d.Name from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Name: string[6] utf16be\n"
+            + "            };\n"
+            + "            select d.Name from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // "Hi!" in UTF-16BE: H=0x00,0x48 i=0x00,0x69 !=0x00,0x21
         var testData = Encoding.BigEndianUnicode.GetBytes("Hi!");
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

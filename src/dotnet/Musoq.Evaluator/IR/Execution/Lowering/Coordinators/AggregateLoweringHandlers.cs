@@ -13,19 +13,35 @@ internal interface IAggregateLoweringService
     ValueTupleAggregatePipeline? DecomposeRawValueTupleAggregatePipeline(PhysicalNode node);
     LoweringAttempt<ExecutionPlan> CreatePlanResult(string identifier, LoweringAttempt<LoweredTable> table);
     LoweringAttempt<LoweredTable> BuildAggregateOnlyTable(
-        AggregateOnlyPipeline pipeline, string resultTableName, string resultShapeName,
-        IReadOnlyDictionary<string, int> cteIndexes, IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex, bool scopeAggregateVariables, LoweringScope scope);
+        AggregateOnlyPipeline pipeline,
+        string resultTableName,
+        string resultShapeName,
+        IReadOnlyDictionary<string, int> cteIndexes,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
+        int schemaFromIndex,
+        bool scopeAggregateVariables,
+        LoweringScope scope
+    );
     LoweringAttempt<LoweredTable> BuildSingleKeyAggregateTable(
-        AggregateSingleKeyPipeline pipeline, string resultTableName, string resultShapeName,
-        IReadOnlyDictionary<string, int> cteIndexes, IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex, bool scopeAggregateVariables, LoweringScope scope);
+        AggregateSingleKeyPipeline pipeline,
+        string resultTableName,
+        string resultShapeName,
+        IReadOnlyDictionary<string, int> cteIndexes,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
+        int schemaFromIndex,
+        bool scopeAggregateVariables,
+        LoweringScope scope
+    );
     LoweringAttempt<LoweredTable> BuildValueTupleAggregateTable(
-        ValueTupleAggregatePipeline pipeline, string resultTableName, string resultShapeName,
-        IReadOnlyDictionary<string, int> cteIndexes, IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex, bool scopeAggregateVariables, LoweringScope scope);
+        ValueTupleAggregatePipeline pipeline,
+        string resultTableName,
+        string resultShapeName,
+        IReadOnlyDictionary<string, int> cteIndexes,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
+        int schemaFromIndex,
+        bool scopeAggregateVariables,
+        LoweringScope scope
+    );
 }
 
-internal interface IAggregateLoweringOperations : IAggregateLoweringService
-{
-}
+internal interface IAggregateLoweringOperations : IAggregateLoweringService { }

@@ -121,9 +121,17 @@ public class MethodNameNormalizerTests
         const int iterations = 1000;
         var results = new string[iterations];
 
-        Parallel.For(0, iterations, i => { results[i] = MethodNameNormalizer.Normalize(input); });
+        Parallel.For(
+            0,
+            iterations,
+            i =>
+            {
+                results[i] = MethodNameNormalizer.Normalize(input);
+            }
+        );
 
-        foreach (var result in results) Assert.AreEqual("concurrenttestmethod", result);
+        foreach (var result in results)
+            Assert.AreEqual("concurrenttestmethod", result);
     }
 
     [TestMethod]
@@ -133,25 +141,30 @@ public class MethodNameNormalizerTests
         const int iterations = 10;
         var inputs = new List<string>();
 
-        for (var i = 0; i < distinctInputs; i++) inputs.Add($"Method_{i}_Name");
+        for (var i = 0; i < distinctInputs; i++)
+            inputs.Add($"Method_{i}_Name");
 
         var results = new Dictionary<string, string>();
         var lockObj = new object();
 
-        Parallel.For(0, distinctInputs * iterations, i =>
-        {
-            var input = inputs[i % distinctInputs];
-            var result = MethodNameNormalizer.Normalize(input);
-            Assert.AreEqual($"method{i % distinctInputs}name", result);
-
-            lock (lockObj)
+        Parallel.For(
+            0,
+            distinctInputs * iterations,
+            i =>
             {
-                if (results.TryGetValue(input, out var existing))
-                    Assert.AreEqual(existing, result, $"Inconsistent result for input '{input}'");
-                else
-                    results[input] = result;
+                var input = inputs[i % distinctInputs];
+                var result = MethodNameNormalizer.Normalize(input);
+                Assert.AreEqual($"method{i % distinctInputs}name", result);
+
+                lock (lockObj)
+                {
+                    if (results.TryGetValue(input, out var existing))
+                        Assert.AreEqual(existing, result, $"Inconsistent result for input '{input}'");
+                    else
+                        results[input] = result;
+                }
             }
-        });
+        );
 
         Assert.HasCount(distinctInputs, results.Keys);
     }

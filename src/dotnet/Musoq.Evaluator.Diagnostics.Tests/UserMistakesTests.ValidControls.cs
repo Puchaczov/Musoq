@@ -108,5 +108,4 @@ public partial class UserMistakesTests
         Assert.IsTrue(result.IsParsed);
         AssertNoErrors(result);
     }
-
 }

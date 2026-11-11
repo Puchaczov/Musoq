@@ -25,7 +25,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         InnerJoinFullFileName,
         GroupBySingleFullFileName,
         OrderBySkipTakeFullFileName,
-        ParallelCteFullFileName
+        ParallelCteFullFileName,
     ];
 
     private static readonly string[] RegularProfiledSelectSampleFileNames =
@@ -35,12 +35,13 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         InnerJoinFullFileName,
         GroupBySingleFullFileName,
         OrderBySkipTakeFullFileName,
-        ParallelCteFullFileName
+        ParallelCteFullFileName,
     ];
 
     private static readonly Regex OperatorScopePattern = new(
         @"\bvar __op\d+Scope = profileRecorder\?\.BeginOperatorValue\(__op\d+Handle\) \?\? OperatorProfileValueScope\.None",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled
+    );
 
     private static readonly string[] SourceBoundaryMarkers =
     [
@@ -48,7 +49,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         "CreateAdaptiveSourceRecorder",
         "CreateDiagnostics",
         "SourceDiagnostics.None",
-        "ProfiledChunkedEnumerable"
+        "ProfiledChunkedEnumerable",
     ];
 
     private static readonly string[] FullSourceBoundaryMarkers =
@@ -57,7 +58,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         "CreateSourceRecorder",
         "CreateDiagnostics",
         "SourceDiagnostics.None",
-        "ProfiledChunkedEnumerable"
+        "ProfiledChunkedEnumerable",
     ];
 
     private static readonly string[] FullOperatorMarkers =
@@ -66,21 +67,17 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         "OperatorProfileHandle.None",
         "BeginOperatorValue",
         "OperatorProfileValueScope.None",
-        "AddOperatorOutputRows"
+        "AddOperatorOutputRows",
     ];
 
     private static readonly string[] ProfileExceptionBoundaryMarkers =
     [
         "GetCurrentOperatorScopeDepth",
         "RecordActiveOperatorException",
-        "DisposeActiveOperatorScopes"
+        "DisposeActiveOperatorScopes",
     ];
 
-    private static readonly string[] PerOperatorExceptionMarkers =
-    [
-        "catch (Exception __op",
-        "RecordException("
-    ];
+    private static readonly string[] PerOperatorExceptionMarkers = ["catch (Exception __op", "RecordException("];
 
     private static readonly string[] DisabledProfilingMarkers =
     [
@@ -94,7 +91,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         "AddOperatorInputRows",
         "AddOperatorOutputRows",
         "AddInputRows",
-        "AddOutputRows"
+        "AddOutputRows",
     ];
 
     private static readonly string[] SourceBoundariesOnlyAbsentMarkers =
@@ -106,7 +103,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         "AddOperatorInputRows",
         "AddOperatorOutputRows",
         "AddInputRows",
-        "AddOutputRows"
+        "AddOutputRows",
     ];
 
     private static readonly string[] RetiredHelperPatterns =
@@ -114,7 +111,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         "EvaluationHelper.GetColumnValue(",
         "EvaluationHelper.SmartForEach(",
         "EvaluationHelper.ConvertTableToSource(",
-        "TableRowSource"
+        "TableRowSource",
     ];
 
     [TestMethod]
@@ -150,17 +147,21 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         AssertContainsAll(sample, FullOperatorMarkers, FullSimpleSelectWhereFileName);
         AssertContainsAll(
             sample,
-            [
-                "ProfiledOperatorEnumerable<ResultRow0>.Create",
-                "profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0"
-            ],
-            FullSimpleSelectWhereFileName);
+            ["ProfiledOperatorEnumerable<ResultRow0>.Create", "profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0"],
+            FullSimpleSelectWhereFileName
+        );
         AssertDoesNotContainAny(sample, PerOperatorExceptionMarkers, FullSimpleSelectWhereFileName);
         Assert.IsTrue(
             OperatorScopePattern.IsMatch(sample),
-            $"{FullSimpleSelectWhereFileName} should contain generated __op...Scope variables.");
+            $"{FullSimpleSelectWhereFileName} should contain generated __op...Scope variables."
+        );
 
-        var appendRow = ResolveOperator(sample, FullSimpleSelectWhereFileName, "AppendShape", "ResultRow0(Name: ko3iko.Name");
+        var appendRow = ResolveOperator(
+            sample,
+            FullSimpleSelectWhereFileName,
+            "AppendShape",
+            "ResultRow0(Name: ko3iko.Name"
+        );
         var loop = ResolveOperator(sample, FullSimpleSelectWhereFileName, "ChunkedForEach", "ko3iko in ko3ikoRows");
         var let = ResolveOperator(sample, FullSimpleSelectWhereFileName, "Let", "population: decimal");
         var branch = ResolveOperator(sample, FullSimpleSelectWhereFileName, "If", "population > 0");
@@ -180,20 +181,19 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
 
         AssertContainsAll(
             sourceBoundaries,
-            [
-                "yield return new ResultRow0(ko3iko.Name, population);",
-                "yield return __musoqShapeRow;"
-            ],
-            SourceBoundariesSimpleSelectWhereFileName);
+            ["yield return new ResultRow0(ko3iko.Name, population);", "yield return __musoqShapeRow;"],
+            SourceBoundariesSimpleSelectWhereFileName
+        );
         AssertDoesNotContainAny(
             sourceBoundaries,
             [
                 "var __musoqFinalShapeRows = new List<ResultRow0>();",
                 "__musoqFinalShapeRows.Add(",
                 "return __musoqFinalShapeRows;",
-                "ProfiledOperatorEnumerable<ResultRow0>.Create"
+                "ProfiledOperatorEnumerable<ResultRow0>.Create",
             ],
-            SourceBoundariesSimpleSelectWhereFileName);
+            SourceBoundariesSimpleSelectWhereFileName
+        );
 
         AssertContainsAll(
             full,
@@ -201,18 +201,20 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "ProfiledOperatorEnumerable<ResultRow0>.Create",
                 "profileRecorder?.GetCurrentOperatorScopeDepth() ?? 0",
                 "yield return new ResultRow0(ko3iko.Name, population);",
-                "yield return __musoqShapeRow;"
+                "yield return __musoqShapeRow;",
             ],
-            FullSimpleSelectWhereFileName);
+            FullSimpleSelectWhereFileName
+        );
         AssertDoesNotContainAny(
             full,
             [
                 "var __musoqFinalShapeRows = new List<ResultRow0>();",
                 "__musoqFinalShapeRows.Add(",
                 "return __musoqFinalShapeRows;",
-                "catch (Exception __profileException)when"
+                "catch (Exception __profileException)when",
             ],
-            FullSimpleSelectWhereFileName);
+            FullSimpleSelectWhereFileName
+        );
     }
 
     [TestMethod]
@@ -233,23 +235,21 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                     "ComputeShapeRows_compiled_0(",
                     "CancellationToken token, QueryProfileRecorder profileRecorder",
                     "foreach (var __musoqShapeRow in",
-                    "private sealed class ResultRow0"
+                    "private sealed class ResultRow0",
                 ],
-                sample.FileName);
+                sample.FileName
+            );
 
             Assert.IsTrue(
                 Regex.IsMatch(generatedCode, @"yield return (?:__musoqShapeRow;|new ResultRow0\()"),
-                sample.FileName);
+                sample.FileName
+            );
 
             AssertDoesNotContainAny(
                 generatedCode,
-                [
-                    "ComputeTable_compiled_0",
-                    "private Table",
-                    "new Table(\"result\"",
-                    "result.AddDirect("
-                ],
-                sample.FileName);
+                ["ComputeTable_compiled_0", "private Table", "new Table(\"result\"", "result.AddDirect("],
+                sample.FileName
+            );
         }
     }
 
@@ -261,23 +261,20 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         Assert.Contains(
             "SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>",
             sample,
-            FullSimpleSelectWhereFileName);
+            FullSimpleSelectWhereFileName
+        );
         Assert.Contains(
             "var ko3ikoRows = ko3ikoRowsProfile == null ? __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>",
             sample,
-            FullSimpleSelectWhereFileName);
+            FullSimpleSelectWhereFileName
+        );
         Assert.Contains(
             ": ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Create",
             sample,
-            FullSimpleSelectWhereFileName);
-        Assert.Contains(
-            "yield return new ResultRow0(ko3iko.Name, population);",
-            sample,
-            FullSimpleSelectWhereFileName);
-        Assert.Contains(
-            "yield return __musoqShapeRow;",
-            sample,
-            FullSimpleSelectWhereFileName);
+            FullSimpleSelectWhereFileName
+        );
+        Assert.Contains("yield return new ResultRow0(ko3iko.Name, population);", sample, FullSimpleSelectWhereFileName);
+        Assert.Contains("yield return __musoqShapeRow;", sample, FullSimpleSelectWhereFileName);
         AssertDoesNotContainAny(sample, RetiredHelperPatterns, FullSimpleSelectWhereFileName);
     }
 
@@ -290,10 +287,22 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         Assert.DoesNotContain("private void OnQueryProgress(", generatedCode);
         Assert.Contains("__musoqProgressContext?.CompleteQueryProgress();", generatedCode);
 
-        var beginIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Begin);", StringComparison.Ordinal);
-        var fromIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.From);", StringComparison.Ordinal);
-        var whereIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Where);", StringComparison.Ordinal);
-        var selectIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Select);", StringComparison.Ordinal);
+        var beginIndex = generatedCode.IndexOf(
+            "OnPhaseChanged(\"compiled\", QueryPhase.Begin);",
+            StringComparison.Ordinal
+        );
+        var fromIndex = generatedCode.IndexOf(
+            "OnPhaseChanged(\"compiled\", QueryPhase.From);",
+            StringComparison.Ordinal
+        );
+        var whereIndex = generatedCode.IndexOf(
+            "OnPhaseChanged(\"compiled\", QueryPhase.Where);",
+            StringComparison.Ordinal
+        );
+        var selectIndex = generatedCode.IndexOf(
+            "OnPhaseChanged(\"compiled\", QueryPhase.Select);",
+            StringComparison.Ordinal
+        );
         var loopIndex = generatedCode.IndexOf("foreach (var ko3ikoChunk in ko3ikoRows)", StringComparison.Ordinal);
 
         Assert.IsLessThan(fromIndex, beginIndex);
@@ -306,18 +315,21 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
     public void FullSimpleSelectWhereSample_WhenCheckedIn_ShouldBatchCounterOnlyRows()
     {
         var sample = ReadProfiledSample(FullSimpleSelectWhereFileName);
-        var appendRow = ResolveOperator(sample, FullSimpleSelectWhereFileName, "AppendShape", "ResultRow0(Name: ko3iko.Name");
+        var appendRow = ResolveOperator(
+            sample,
+            FullSimpleSelectWhereFileName,
+            "AppendShape",
+            "ResultRow0(Name: ko3iko.Name"
+        );
         var loop = ResolveOperator(sample, FullSimpleSelectWhereFileName, "ChunkedForEach", "ko3iko in ko3ikoRows");
 
         AssertContainsLoopRowCounters(sample, FullSimpleSelectWhereFileName, loop);
         AssertContainsCounterOutputRows(sample, FullSimpleSelectWhereFileName, appendRow, "1");
         AssertDoesNotContainAny(
             sample,
-            [
-                $"{CreateScopePrefix(appendRow)}Scope",
-                $"{CreateScopePrefix(appendRow)}Scope.AddOutputRows(1)"
-            ],
-            FullSimpleSelectWhereFileName);
+            [$"{CreateScopePrefix(appendRow)}Scope", $"{CreateScopePrefix(appendRow)}Scope.AddOutputRows(1)"],
+            FullSimpleSelectWhereFileName
+        );
     }
 
     [TestMethod]
@@ -333,7 +345,8 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             AssertDoesNotContainAny(sample.Content, PerOperatorExceptionMarkers, sample.FileName);
             Assert.IsTrue(
                 OperatorScopePattern.IsMatch(sample.Content),
-                $"{sample.FileName} should contain generated __op...Scope variables.");
+                $"{sample.FileName} should contain generated __op...Scope variables."
+            );
         }
     }
 
@@ -357,9 +370,10 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "foreach (var b in bHashMatches)",
                 "__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));",
                 "CancellationToken token",
-                "token.ThrowIfCancellationRequested();"
+                "token.ThrowIfCancellationRequested();",
             ],
-            InnerJoinFullFileName);
+            InnerJoinFullFileName
+        );
         AssertContainsCounterOutputRows(sample, InnerJoinFullFileName, hashAdd, "1");
         AssertContainsCounterInputRows(sample, InnerJoinFullFileName, hashProbe, "1");
         AssertContainsCounterLoopRows(sample, InnerJoinFullFileName, matchLoop);
@@ -381,7 +395,8 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         var shapeRowsMethod = ExtractMethod(
             sample,
             InnerJoinFullFileName,
-            "private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0_Profiled(");
+            "private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0_Profiled("
+        );
 
         AssertContainsCounterOutputRows(shapeRowsMethod, InnerJoinFullFileName, hashAdd, "1");
         AssertContainsCounterInputRows(shapeRowsMethod, InnerJoinFullFileName, hashProbe, "1");
@@ -392,18 +407,34 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             [
                 "private Table ComputeTable_compiled_0(",
                 "private static void BuildBHash(",
-                "private static void AppendHashJoinRows("
+                "private static void AppendHashJoinRows(",
             ],
-            InnerJoinFullFileName);
+            InnerJoinFullFileName
+        );
     }
 
     [TestMethod]
     public void GroupBySingleFullSample_WhenCheckedIn_ShouldShowAggregateProfiling()
     {
         var sample = ReadProfiledSample(GroupBySingleFullFileName);
-        var aggregateContext = ResolveOperator(sample, GroupBySingleFullFileName, "CreateSingleKeyAggregateContext", "groups: string");
-        var aggregateLoop = ResolveOperator(sample, GroupBySingleFullFileName, "ParallelSingleKeyAggregateLoop", "ko3iko in ko3ikoRows");
-        var aggregateSet = ResolveOperator(sample, GroupBySingleFullFileName, "TypedAggregateSet", "Set(group.__agg0, city)");
+        var aggregateContext = ResolveOperator(
+            sample,
+            GroupBySingleFullFileName,
+            "CreateSingleKeyAggregateContext",
+            "groups: string"
+        );
+        var aggregateLoop = ResolveOperator(
+            sample,
+            GroupBySingleFullFileName,
+            "ParallelSingleKeyAggregateLoop",
+            "ko3iko in ko3ikoRows"
+        );
+        var aggregateSet = ResolveOperator(
+            sample,
+            GroupBySingleFullFileName,
+            "TypedAggregateSet",
+            "Set(group.__agg0, city)"
+        );
 
         AssertContainsAll(
             sample,
@@ -413,9 +444,10 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]",
                 "ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group ResultAggregateGroup]",
                 "TypedAggregateSet [Set(group.__agg0, city)]",
-                "ParallelSingleKeyAggregate_0(ko3ikoRows, 24, token);"
+                "ParallelSingleKeyAggregate_0(ko3ikoRows, 24, token);",
             ],
-            GroupBySingleFullFileName);
+            GroupBySingleFullFileName
+        );
         Assert.DoesNotContain("SerialSingleKeyAggregate", sample);
         AssertContainsBeginOperator(sample, GroupBySingleFullFileName, aggregateContext);
         AssertContainsBeginOperator(sample, GroupBySingleFullFileName, aggregateLoop);
@@ -427,8 +459,18 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
     public void OrderBySkipTakeFullSample_WhenCheckedIn_ShouldShowTopOffsetProfiling()
     {
         var sample = ReadProfiledSample(OrderBySkipTakeFullFileName);
-        var boundedList = ResolveOperator(sample, OrderBySkipTakeFullFileName, "CreateBoundedRecordList", "resultOrderRecords");
-        var materialize = ResolveOperator(sample, OrderBySkipTakeFullFileName, "MaterializeRecordListToShapeRows", "resultOrderRecords -> result");
+        var boundedList = ResolveOperator(
+            sample,
+            OrderBySkipTakeFullFileName,
+            "CreateBoundedRecordList",
+            "resultOrderRecords"
+        );
+        var materialize = ResolveOperator(
+            sample,
+            OrderBySkipTakeFullFileName,
+            "MaterializeRecordListToShapeRows",
+            "resultOrderRecords -> result"
+        );
 
         AssertContainsAll(
             sample,
@@ -436,9 +478,10 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "PhysicalTopOffset [skip 2, take 5] [ko3iko.Population DESC]",
                 "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Population DESC, skip 2, take 5]",
                 "MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1]",
-                "new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(2, 5, ResultRow0WithSortKeysComparer.Instance)"
+                "new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(2, 5, ResultRow0WithSortKeysComparer.Instance)",
             ],
-            OrderBySkipTakeFullFileName);
+            OrderBySkipTakeFullFileName
+        );
         AssertContainsBeginOperator(sample, OrderBySkipTakeFullFileName, boundedList);
         AssertContainsBeginOperator(sample, OrderBySkipTakeFullFileName, materialize);
         AssertContainsInputRows(sample, OrderBySkipTakeFullFileName, materialize, "resultOrderRecords.Count");
@@ -471,9 +514,10 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "var __storedTable0Rows = _cteRowResults.Slot0;",
                 "var qHash = _cteIndexResults.Slot0;",
                 "CreateSourceRecorder(\"ko3iko\")",
-                "CreateSourceRecorder(\"vo04qt\")"
+                "CreateSourceRecorder(\"vo04qt\")",
             ],
-            ParallelCteFullFileName);
+            ParallelCteFullFileName
+        );
 
         AssertDoesNotContainAny(
             sample,
@@ -487,9 +531,10 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "CastGeneratedRows<Cte0Row0>(_tableResults[0].Rows)",
                 "CastGeneratedRows<Cte1Row0>(_tableResults[1].Rows)",
                 "_cteRowResults.Slot1",
-                "var __storedTable1Rows = _cteRowResults.Slot1;"
+                "var __storedTable1Rows = _cteRowResults.Slot1;",
             ],
-            ParallelCteFullFileName);
+            ParallelCteFullFileName
+        );
     }
 
     [TestMethod]
@@ -503,9 +548,10 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             [
                 "LoadCteIndex [qHash <- _cteIndexResults.Slot0 Hash: string]",
                 "HashProbe [qHash[p.Name] -> qHashMatches]",
-                "var qHash = _cteIndexResults.Slot0;"
+                "var qHash = _cteIndexResults.Slot0;",
             ],
-            ParallelCteFullFileName);
+            ParallelCteFullFileName
+        );
         AssertContainsCounterInputRows(sample, ParallelCteFullFileName, hashProbe, "1");
         AssertDoesNotContainBeginOperator(sample, ParallelCteFullFileName, hashProbe);
     }
@@ -525,11 +571,11 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
     {
         var loggerResolver = new TestsLoggerResolver();
 
-        return GeneratedCodeProfiledSamplesCatalog.Samples
-            .ToDictionary(
-                static sample => sample.FileName,
-                sample => GeneratedCodeSampleArtifacts.Generate(sample, loggerResolver),
-                StringComparer.Ordinal);
+        return GeneratedCodeProfiledSamplesCatalog.Samples.ToDictionary(
+            static sample => sample.FileName,
+            sample => GeneratedCodeSampleArtifacts.Generate(sample, loggerResolver),
+            StringComparer.Ordinal
+        );
     }
 
     private static string ExtractGeneratedCodeSection(string sample)
@@ -541,45 +587,33 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
 
     private static (string FileName, string Content)[] ReadProfiledSamples(IEnumerable<string> fileNames)
     {
-        return fileNames
-            .Select(fileName => (fileName, ReadProfiledSample(fileName)))
-            .ToArray();
+        return fileNames.Select(fileName => (fileName, ReadProfiledSample(fileName))).ToArray();
     }
 
     private static void AssertContainsAll(string sample, IEnumerable<string> markers, string fileName)
     {
-        var missingMarkers = markers
-            .Where(marker => !sample.Contains(marker, StringComparison.Ordinal))
-            .ToArray();
+        var missingMarkers = markers.Where(marker => !sample.Contains(marker, StringComparison.Ordinal)).ToArray();
 
         Assert.IsEmpty(missingMarkers, $"{fileName} is missing markers: {string.Join(", ", missingMarkers)}");
     }
 
     private static void AssertDoesNotContainAny(string sample, IEnumerable<string> markers, string fileName)
     {
-        var presentMarkers = markers
-            .Where(marker => sample.Contains(marker, StringComparison.Ordinal))
-            .ToArray();
+        var presentMarkers = markers.Where(marker => sample.Contains(marker, StringComparison.Ordinal)).ToArray();
 
         Assert.IsEmpty(presentMarkers, $"{fileName} contains unexpected markers: {string.Join(", ", presentMarkers)}");
     }
 
     private static void AssertContainsTryFinallyOperatorScope(string sample, string fileName, string scopePrefix)
     {
-        AssertContainsAll(
-            sample,
-            [
-                "try",
-                "finally",
-                $"{scopePrefix}Scope.Dispose();"
-            ],
-            fileName);
+        AssertContainsAll(sample, ["try", "finally", $"{scopePrefix}Scope.Dispose();"], fileName);
     }
 
     private static void AssertContainsBeginOperator(
         string sample,
         string fileName,
-        ExecutionPlanOperatorDescriptor descriptor)
+        ExecutionPlanOperatorDescriptor descriptor
+    )
     {
         var scopePrefix = CreateScopePrefix(descriptor);
 
@@ -587,56 +621,53 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             sample,
             [
                 $"var {scopePrefix}Handle = profileRecorder?.GetOperatorHandle(\"{descriptor.Id}\", \"{descriptor.NodeKind}\") ?? OperatorProfileHandle.None;",
-                $"BeginOperatorValue({scopePrefix}Handle)"
+                $"BeginOperatorValue({scopePrefix}Handle)",
             ],
-            fileName);
+            fileName
+        );
     }
 
     private static void AssertDoesNotContainBeginOperator(
         string sample,
         string fileName,
-        ExecutionPlanOperatorDescriptor descriptor)
+        ExecutionPlanOperatorDescriptor descriptor
+    )
     {
         var scopePrefix = CreateScopePrefix(descriptor);
 
         AssertDoesNotContainAny(
             sample,
-            [
-                $"BeginOperatorValue({scopePrefix}Handle)",
-                $"var {scopePrefix}Scope ="
-            ],
-            fileName);
+            [$"BeginOperatorValue({scopePrefix}Handle)", $"var {scopePrefix}Scope ="],
+            fileName
+        );
     }
 
     private static void AssertContainsInputRows(
         string sample,
         string fileName,
         ExecutionPlanOperatorDescriptor descriptor,
-        string expression)
+        string expression
+    )
     {
-        Assert.Contains(
-            $"{CreateScopePrefix(descriptor)}Scope.AddInputRows({expression})",
-            sample,
-            fileName);
+        Assert.Contains($"{CreateScopePrefix(descriptor)}Scope.AddInputRows({expression})", sample, fileName);
     }
 
     private static void AssertContainsOutputRows(
         string sample,
         string fileName,
         ExecutionPlanOperatorDescriptor descriptor,
-        string expression)
+        string expression
+    )
     {
-        Assert.Contains(
-            $"{CreateScopePrefix(descriptor)}Scope.AddOutputRows({expression})",
-            sample,
-            fileName);
+        Assert.Contains($"{CreateScopePrefix(descriptor)}Scope.AddOutputRows({expression})", sample, fileName);
     }
 
     private static void AssertContainsCounterInputRows(
         string sample,
         string fileName,
         ExecutionPlanOperatorDescriptor descriptor,
-        string expression)
+        string expression
+    )
     {
         var scopePrefix = CreateScopePrefix(descriptor);
 
@@ -645,16 +676,18 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             [
                 $"long {scopePrefix}InputRows = 0L;",
                 $"{scopePrefix}InputRows += {expression};",
-                $"profileRecorder?.AddOperatorInputRows({scopePrefix}Handle, {scopePrefix}InputRows);"
+                $"profileRecorder?.AddOperatorInputRows({scopePrefix}Handle, {scopePrefix}InputRows);",
             ],
-            fileName);
+            fileName
+        );
     }
 
     private static void AssertContainsCounterOutputRows(
         string sample,
         string fileName,
         ExecutionPlanOperatorDescriptor descriptor,
-        string expression)
+        string expression
+    )
     {
         var scopePrefix = CreateScopePrefix(descriptor);
 
@@ -663,15 +696,17 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             [
                 $"long {scopePrefix}OutputRows = 0L;",
                 $"{scopePrefix}OutputRows += {expression};",
-                $"profileRecorder?.AddOperatorOutputRows({scopePrefix}Handle, {scopePrefix}OutputRows);"
+                $"profileRecorder?.AddOperatorOutputRows({scopePrefix}Handle, {scopePrefix}OutputRows);",
             ],
-            fileName);
+            fileName
+        );
     }
 
     private static void AssertContainsLoopRowCounters(
         string sample,
         string fileName,
-        ExecutionPlanOperatorDescriptor descriptor)
+        ExecutionPlanOperatorDescriptor descriptor
+    )
     {
         var scopePrefix = CreateScopePrefix(descriptor);
 
@@ -683,22 +718,22 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 $"{scopePrefix}InputRows++;",
                 $"{scopePrefix}OutputRows++;",
                 $"{scopePrefix}Scope.AddInputRows({scopePrefix}InputRows);",
-                $"{scopePrefix}Scope.AddOutputRows({scopePrefix}OutputRows);"
+                $"{scopePrefix}Scope.AddOutputRows({scopePrefix}OutputRows);",
             ],
-            fileName);
+            fileName
+        );
         AssertDoesNotContainAny(
             sample,
-            [
-                $"{scopePrefix}Scope.AddInputRows(1);",
-                $"{scopePrefix}Scope.AddOutputRows(1);"
-            ],
-            fileName);
+            [$"{scopePrefix}Scope.AddInputRows(1);", $"{scopePrefix}Scope.AddOutputRows(1);"],
+            fileName
+        );
     }
 
     private static void AssertContainsCounterLoopRows(
         string sample,
         string fileName,
-        ExecutionPlanOperatorDescriptor descriptor)
+        ExecutionPlanOperatorDescriptor descriptor
+    )
     {
         var scopePrefix = CreateScopePrefix(descriptor);
 
@@ -710,9 +745,10 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 $"{scopePrefix}InputRows++;",
                 $"{scopePrefix}OutputRows++;",
                 $"profileRecorder?.AddOperatorInputRows({scopePrefix}Handle, {scopePrefix}InputRows);",
-                $"profileRecorder?.AddOperatorOutputRows({scopePrefix}Handle, {scopePrefix}OutputRows);"
+                $"profileRecorder?.AddOperatorOutputRows({scopePrefix}Handle, {scopePrefix}OutputRows);",
             ],
-            fileName);
+            fileName
+        );
     }
 
     private static ExecutionPlanOperatorDescriptor ResolveOperator(
@@ -720,19 +756,22 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         string fileName,
         string nodeKind,
         string displayNameFragment,
-        int occurrence = 0)
+        int occurrence = 0
+    )
     {
         var catalog = ExecutionPlanOperatorCatalog.Create(ExtractIntermediateRepresentation(sample, fileName));
-        var matches = catalog.Operators
-            .Where(operation =>
-                operation.NodeKind.Equals(nodeKind, StringComparison.Ordinal) &&
-                operation.DisplayName.Contains(displayNameFragment, StringComparison.Ordinal))
+        var matches = catalog
+            .Operators.Where(operation =>
+                operation.NodeKind.Equals(nodeKind, StringComparison.Ordinal)
+                && operation.DisplayName.Contains(displayNameFragment, StringComparison.Ordinal)
+            )
             .ToArray();
 
         Assert.IsLessThan(
             matches.Length,
             occurrence,
-            $"{fileName} should contain operator {nodeKind} with text '{displayNameFragment}'.");
+            $"{fileName} should contain operator {nodeKind} with text '{displayNameFragment}'."
+        );
 
         return matches[occurrence];
     }
@@ -759,7 +798,11 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         Assert.AreNotEqual(-1, signatureIndex, $"{fileName} should contain method '{methodSignaturePrefix}'.");
 
         var openingBraceIndex = sample.IndexOf('{', signatureIndex);
-        Assert.AreNotEqual(-1, openingBraceIndex, $"{fileName} should contain a body for method '{methodSignaturePrefix}'.");
+        Assert.AreNotEqual(
+            -1,
+            openingBraceIndex,
+            $"{fileName} should contain a body for method '{methodSignaturePrefix}'."
+        );
 
         var depth = 0;
         for (var index = openingBraceIndex; index < sample.Length; index++)

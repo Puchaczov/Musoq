@@ -17,10 +17,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (slots.Count == 0)
             return [];
 
-        return
-        [
-            CreateCteIndexResultsClass(slots)
-        ];
+        return [CreateCteIndexResultsClass(slots)];
     }
 
     private static IReadOnlyList<CteIndexSlotDescriptor> CollectCteIndexSlots(ExecutionBlock block)
@@ -36,14 +33,16 @@ public sealed partial class ExecutionCSharpRenderer
                     store.Kind,
                     store.KeyType.RequireClrType(),
                     store.RowType.RequireOptionalClrType(),
-                    store.GeneratedRowTypeName),
+                    store.GeneratedRowTypeName
+                ),
                 ExecutionLoadCteIndex load => new CteIndexSlotDescriptor(
                     load.IndexSlot,
                     load.Kind,
                     load.KeyType.RequireClrType(),
                     load.RowType.RequireOptionalClrType(),
-                    load.GeneratedRowTypeName),
-                _ => null
+                    load.GeneratedRowTypeName
+                ),
+                _ => null,
             };
 
             if (descriptor == null)
@@ -63,39 +62,51 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static void ValidateCteIndexSlotDescriptor(
         CteIndexSlotDescriptor existing,
-        CteIndexSlotDescriptor candidate)
+        CteIndexSlotDescriptor candidate
+    )
     {
-        if (existing.Kind == candidate.Kind &&
-            existing.KeyType == candidate.KeyType &&
-            existing.RowType == candidate.RowType &&
-            string.Equals(existing.GeneratedRowTypeName, candidate.GeneratedRowTypeName, StringComparison.Ordinal))
+        if (
+            existing.Kind == candidate.Kind
+            && existing.KeyType == candidate.KeyType
+            && existing.RowType == candidate.RowType
+            && string.Equals(existing.GeneratedRowTypeName, candidate.GeneratedRowTypeName, StringComparison.Ordinal)
+        )
         {
             return;
         }
 
         throw new InvalidOperationException(
-            $"CTE sidecar index slot {existing.Slot.ToString(CultureInfo.InvariantCulture)} has inconsistent generated types.");
+            $"CTE sidecar index slot {existing.Slot.ToString(CultureInfo.InvariantCulture)} has inconsistent generated types."
+        );
     }
 
     private static ClassDeclarationSyntax CreateCteIndexResultsClass(IReadOnlyList<CteIndexSlotDescriptor> slots)
     {
-        return SyntaxFactory.ClassDeclaration(CteIndexResultsTypeName)
-            .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.SealedKeyword)))
+        return SyntaxFactory
+            .ClassDeclaration(CteIndexResultsTypeName)
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
+                    SyntaxFactory.Token(SyntaxKind.SealedKeyword)
+                )
+            )
             .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(slots.Select(CreateCteIndexSlotField)));
     }
 
     private static FieldDeclarationSyntax CreateCteIndexSlotField(CteIndexSlotDescriptor slot)
     {
-        return SyntaxFactory.FieldDeclaration(
-                SyntaxFactory.VariableDeclaration(CreateCteIndexTypeSyntax(
-                        slot.Kind,
-                        slot.KeyType,
-                        slot.RowType,
-                        slot.GeneratedRowTypeName))
-                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(CreateCteIndexSlotFieldName(slot.Slot)))))
+        return SyntaxFactory
+            .FieldDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(
+                        CreateCteIndexTypeSyntax(slot.Kind, slot.KeyType, slot.RowType, slot.GeneratedRowTypeName)
+                    )
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(CreateCteIndexSlotFieldName(slot.Slot))
+                        )
+                    )
+            )
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
     }
 
@@ -109,7 +120,8 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(CteIndexResultsFieldName),
-            SyntaxFactory.IdentifierName(CreateCteIndexSlotFieldName(slot)));
+            SyntaxFactory.IdentifierName(CreateCteIndexSlotFieldName(slot))
+        );
     }
 
     private static string CreateCteIndexSlotFieldName(int slot)
@@ -122,5 +134,6 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionCteSidecarIndexKind Kind,
         Type KeyType,
         Type? RowType,
-        string? GeneratedRowTypeName);
+        string? GeneratedRowTypeName
+    );
 }

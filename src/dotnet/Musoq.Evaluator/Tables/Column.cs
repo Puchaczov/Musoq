@@ -5,19 +5,22 @@ using Musoq.Schema;
 namespace Musoq.Evaluator.Tables;
 
 [DebuggerDisplay("{ColumnIndex}. {ColumnName}: {ColumnType.Name}")]
-public class Column(string name, Type columnType,
+public class Column(
+    string name,
+    Type columnType,
     int columnOrder,
     Type? sourceReadType = null,
-    EnumTypeDescriptor? enumType = null) : IEquatable<Column>, ISchemaColumn
+    EnumTypeDescriptor? enumType = null
+) : IEquatable<Column>, ISchemaColumn
 {
     public bool Equals(Column? other)
     {
-        return other != null &&
-               ColumnName == other.ColumnName &&
-               EqualityComparer<Type>.Default.Equals(ColumnType, other.ColumnType) &&
-               EqualityComparer<Type>.Default.Equals(SourceReadType, other.SourceReadType) &&
-               EqualityComparer<EnumTypeDescriptor?>.Default.Equals(EnumType, other.EnumType) &&
-               ColumnIndex == other.ColumnIndex;
+        return other != null
+            && ColumnName == other.ColumnName
+            && EqualityComparer<Type>.Default.Equals(ColumnType, other.ColumnType)
+            && EqualityComparer<Type>.Default.Equals(SourceReadType, other.SourceReadType)
+            && EqualityComparer<EnumTypeDescriptor?>.Default.Equals(EnumType, other.EnumType)
+            && ColumnIndex == other.ColumnIndex;
     }
 
     public string ColumnName { get; } = name;

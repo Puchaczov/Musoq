@@ -16,7 +16,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
 {
-
     [TestMethod]
     public void WhenScriptHasNoParameterBlock_ShouldExposeEmptyParameterMetadata()
     {
@@ -62,7 +61,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         Assert.AreEqual("key", vm.RequiredParameters[0].Name);
         Assert.AreEqual(typeof(string), vm.ParameterDefinitions[0].ParameterType);
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_2"
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -76,7 +80,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(value: string) select $value from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "Ada");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "value",
+            "Ada"
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -90,8 +99,18 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string, Key: string) select $key, $Key from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "lower");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "upper");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "lower"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "Key",
+            "upper"
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -123,7 +142,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         Assert.HasCount(7, vm.ParameterContracts);
         CollectionAssert.AreEqual(
             vm.ParameterDefinitions.Select(static definition => definition.Contract).ToArray(),
-            vm.ParameterContracts.ToArray());
+            vm.ParameterContracts.ToArray()
+        );
 
         AssertContract(
             vm.ParameterContracts.Single(static contract => contract.Name == "id"),
@@ -135,7 +155,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             null,
             null,
             ScriptParameterDefaultKind.Literal,
-            Guid.Parse(guidText));
+            Guid.Parse(guidText)
+        );
         AssertContract(
             vm.ParameterContracts.Single(static contract => contract.Name == "created"),
             "datetimeoffset",
@@ -146,7 +167,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             null,
             null,
             ScriptParameterDefaultKind.Literal,
-            DateTimeOffset.Parse(dateTimeOffsetText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
+            DateTimeOffset.Parse(dateTimeOffsetText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind)
+        );
         AssertContract(
             vm.ParameterContracts.Single(static contract => contract.Name == "delay"),
             "timespan",
@@ -157,7 +179,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             null,
             null,
             ScriptParameterDefaultKind.Literal,
-            TimeSpan.Parse(timeSpanText, CultureInfo.InvariantCulture));
+            TimeSpan.Parse(timeSpanText, CultureInfo.InvariantCulture)
+        );
         AssertContract(
             vm.ParameterContracts.Single(static contract => contract.Name == "price"),
             "money",
@@ -168,7 +191,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             null,
             null,
             ScriptParameterDefaultKind.Literal,
-            12.34m);
+            12.34m
+        );
         AssertContract(
             vm.ParameterContracts.Single(static contract => contract.Name == "flag"),
             "bit",
@@ -179,7 +203,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             null,
             null,
             ScriptParameterDefaultKind.Literal,
-            true);
+            true
+        );
         AssertContract(
             vm.ParameterContracts.Single(static contract => contract.Name == "maybeCount"),
             "INT?",
@@ -190,7 +215,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             null,
             null,
             ScriptParameterDefaultKind.Null,
-            null);
+            null
+        );
         AssertContract(
             vm.ParameterContracts.Single(static contract => contract.Name == "ids"),
             "guid[]",
@@ -201,7 +227,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             typeof(Guid),
             "guid",
             ScriptParameterDefaultKind.None,
-            null);
+            null
+        );
     }
 
     [TestMethod]
@@ -230,7 +257,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(key: string = 'KEY_1') select Key, Value from #EnvironmentVariables.All() where Key = $key";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_2"
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -249,7 +281,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
-            "Required script parameter 'key' was not provided.");
+            "Required script parameter 'key' was not provided."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -264,7 +297,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
-            "Required script parameter 'unused' was not provided.");
+            "Required script parameter 'unused' was not provided."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -274,13 +308,19 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string) select Key, Value from #Parameterized.Items() where Key = $key";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "Key",
+            "KEY_1"
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
-            "Required script parameter 'key' was not provided.");
+            "Required script parameter 'key' was not provided."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -290,14 +330,25 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string) select Key, Value from #Parameterized.Items() where Key = $key";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "extra",
+            "ignored"
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7006_UnknownScriptParameter,
-            "Script parameter 'extra' was provided but is not declared.");
+            "Script parameter 'extra' was provided but is not declared."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -307,29 +358,42 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "extra",
+            "ignored"
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7006_UnknownScriptParameter,
-            "Script parameter 'extra' was provided but is not declared.");
+            "Script parameter 'extra' was provided but is not declared."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void WhenOptionalScriptParameterIsProvidedWithWrongCase_ShouldThrowUnknownBeforeOpeningSource()
     {
-        const string query = "param(key: string = 'KEY_1') select Key, Value from #Parameterized.Items() where Key = $key";
+        const string query =
+            "param(key: string = 'KEY_1') select Key, Value from #Parameterized.Items() where Key = $key";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "Key",
+            "KEY_2"
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7006_UnknownScriptParameter,
-            "Script parameter 'Key' was provided but is not declared.");
+            "Script parameter 'Key' was provided but is not declared."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -339,13 +403,19 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(limit: int) select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "100");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "limit",
+            "100"
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            "Script parameter 'limit' expected a value of type 'int' but received 'string'.");
+            "Script parameter 'limit' expected a value of type 'int' but received 'string'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -355,13 +425,19 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(limit: int) select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "limit",
+            null
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed,
-            "Script parameter 'limit' expected a non-null value of type 'int'.");
+            "Script parameter 'limit' expected a non-null value of type 'int'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -371,24 +447,34 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(limit: int = 10) select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "10");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "limit",
+            "10"
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            "Script parameter 'limit' expected a value of type 'int' but received 'string'.");
+            "Script parameter 'limit' expected a value of type 'int' but received 'string'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void WhenDefaultedScriptParameterIsUsedAsSourceArgument_ShouldCompileAndRun()
     {
-        const string query =
-            "param(key: string = 'KEY_2') select Key, Value from #Parameterized.Items($key)";
+        const string query = "param(key: string = 'KEY_2') select Key, Value from #Parameterized.Items($key)";
         var vm = CompileWithProvider(query, new ParameterizedEnvironmentSchemaProvider());
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -399,12 +485,16 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
     [TestMethod]
     public void WhenRequiredScriptParameterIsUsedAsSourceArgument_ShouldCompileAndPassRuntimeValue()
     {
-        const string query =
-            "param(key: string) select Key, Value from #Parameterized.Items($key)";
+        const string query = "param(key: string) select Key, Value from #Parameterized.Items($key)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_2"
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -416,8 +506,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
     [TestMethod]
     public void WhenRequiredSourceParameterIsMissing_ShouldFailBeforeOpeningSource()
     {
-        const string query =
-            "param(key: string) select Key, Value from #Parameterized.Items($key)";
+        const string query = "param(key: string) select Key, Value from #Parameterized.Items($key)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
@@ -426,76 +515,106 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
-            "Required script parameter 'key' was not provided.");
+            "Required script parameter 'key' was not provided."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void WhenRequiredSourceParameterIsNull_ShouldFailBeforeOpeningSource()
     {
-        const string query =
-            "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
+        const string query = "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "limit",
+            null
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed,
-            "Script parameter 'limit' expected a non-null value of type 'int'.");
+            "Script parameter 'limit' expected a non-null value of type 'int'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void WhenRequiredSourceParameterHasWrongType_ShouldFailBeforeOpeningSource()
     {
-        const string query =
-            "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
+        const string query = "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "42");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "limit",
+            "42"
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            "Script parameter 'limit' expected a value of type 'int' but received 'string'.");
+            "Script parameter 'limit' expected a value of type 'int' but received 'string'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void WhenUnknownParameterIsProvidedForRequiredSourceParameter_ShouldFailBeforeOpeningSource()
     {
-        const string query =
-            "param(key: string) select Key, Value from #Parameterized.Items($key)";
+        const string query = "param(key: string) select Key, Value from #Parameterized.Items($key)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "extra",
+            "ignored"
+        );
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             ex,
             DiagnosticCode.MQ7006_UnknownScriptParameter,
-            "Script parameter 'extra' was provided but is not declared.");
+            "Script parameter 'extra' was provided but is not declared."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void WhenRequiredSourceParameterIsRebound_ShouldUseCurrentValueOnEachExecution()
     {
-        const string query =
-            "param(key: string) select Key, Value from #Parameterized.Items($key)";
+        const string query = "param(key: string) select Key, Value from #Parameterized.Items($key)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
         var first = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_2"
+        );
         var second = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
 
         Assert.AreEqual("KEY_1", first[0].ReadValue(0));
@@ -508,8 +627,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
     [TestMethod]
     public void WhenDefaultedScriptParameterIsUsedAsSourceArgumentWithoutOverride_ShouldUseDefault()
     {
-        const string query =
-            "param(key: string = 'KEY_2') select Key, Value from #Parameterized.Items($key)";
+        const string query = "param(key: string = 'KEY_2') select Key, Value from #Parameterized.Items($key)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
@@ -527,10 +645,20 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string) select Key, Value from #EnvironmentVariables.All() where Key = $key";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
         var firstTable = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_2"
+        );
         var secondTable = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
 
         Assert.AreEqual(1, firstTable.Count);
@@ -581,28 +709,28 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string dateTimeOffsetText = "2024-01-02T03:04:05+02:00";
         const string timeSpanText = "01:30:00";
         const string query =
-            "param(" +
-            "intValue: int = 10, " +
-            "uintValue: uint = 11ui, " +
-            "longValue: long = 12l, " +
-            "ulongValue: ulong = 13ul, " +
-            "shortValue: short = 14s, " +
-            "ushortValue: ushort = 15us, " +
-            "sbyteValue: sbyte = 16b, " +
-            "byteValue: byte = 17ub, " +
-            "floatValue: float = 18.5, " +
-            "doubleValue: double = 19.5, " +
-            "decimalValue: decimal = 20.5d, " +
-            "flag: bool = true, " +
-            "code: char = 'x', " +
-            "text: string = 'hello', " +
-            "id: guid = '2ffcf6fa-3369-4300-946a-bb131a037985', " +
-            "created: datetime = '2024-01-02T03:04:05.0000000Z', " +
-            "seen: datetimeoffset = '2024-01-02T03:04:05+02:00', " +
-            "elapsed: timespan = '01:30:00') " +
-            "select $intValue, $uintValue, $longValue, $ulongValue, $shortValue, $ushortValue, " +
-            "$sbyteValue, $byteValue, $floatValue, $doubleValue, $decimalValue, $flag, $code, $text, " +
-            "$id, $created, $seen, $elapsed from #EnvironmentVariables.All()";
+            "param("
+            + "intValue: int = 10, "
+            + "uintValue: uint = 11ui, "
+            + "longValue: long = 12l, "
+            + "ulongValue: ulong = 13ul, "
+            + "shortValue: short = 14s, "
+            + "ushortValue: ushort = 15us, "
+            + "sbyteValue: sbyte = 16b, "
+            + "byteValue: byte = 17ub, "
+            + "floatValue: float = 18.5, "
+            + "doubleValue: double = 19.5, "
+            + "decimalValue: decimal = 20.5d, "
+            + "flag: bool = true, "
+            + "code: char = 'x', "
+            + "text: string = 'hello', "
+            + "id: guid = '2ffcf6fa-3369-4300-946a-bb131a037985', "
+            + "created: datetime = '2024-01-02T03:04:05.0000000Z', "
+            + "seen: datetimeoffset = '2024-01-02T03:04:05+02:00', "
+            + "elapsed: timespan = '01:30:00') "
+            + "select $intValue, $uintValue, $longValue, $ulongValue, $shortValue, $ushortValue, "
+            + "$sbyteValue, $byteValue, $floatValue, $doubleValue, $decimalValue, $flag, $code, $text, "
+            + "$id, $created, $seen, $elapsed from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -625,10 +753,12 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         Assert.AreEqual(Guid.Parse(guidText), table[0].ReadValue(14));
         Assert.AreEqual(
             DateTime.Parse(dateTimeText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0].ReadValue(15));
+            table[0].ReadValue(15)
+        );
         Assert.AreEqual(
             DateTimeOffset.Parse(dateTimeOffsetText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0].ReadValue(16));
+            table[0].ReadValue(16)
+        );
         Assert.AreEqual(TimeSpan.Parse(timeSpanText, CultureInfo.InvariantCulture), table[0].ReadValue(17));
     }
 
@@ -638,13 +768,15 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             query,
             Guid.NewGuid().ToString(),
             provider,
-            LoggerResolver);
+            LoggerResolver
+        );
     }
 
     private static void AssertRuntimeEnvelope(
         QueryExecutionException exception,
         DiagnosticCode expectedCode,
-        string expectedMessage)
+        string expectedMessage
+    )
     {
         Assert.IsNotNull(exception.Envelope);
         Assert.AreEqual(expectedCode, exception.Envelope.Code);
@@ -678,7 +810,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         Type? elementClrType,
         string? elementCanonicalTypeName,
         ScriptParameterDefaultKind defaultKind,
-        object? defaultValue)
+        object? defaultValue
+    )
     {
         Assert.AreEqual(declaredTypeName, contract.DeclaredTypeName);
         Assert.AreEqual(canonicalTypeName, contract.CanonicalTypeName);
@@ -698,11 +831,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         {
             {
                 "*",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
-                ]
-            }
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_1"), new EnvironmentVariableEntity("KEY_2", "VALUE_2")]
+            },
         };
     }
 
@@ -722,7 +852,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new EnvironmentVariableEntityTable();
         }
@@ -730,18 +861,19 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             onOpen();
             var key = parameters.Length > 0 ? parameters[0] as string : null;
-            var rows = (key == null
-                ? CreateEnvironmentVariableSources()["*"]
-                : CreateEnvironmentVariableSources()["*"].Where(entity => entity.Key == key)).ToArray();
+            var rows = (
+                key == null
+                    ? CreateEnvironmentVariableSources()["*"]
+                    : CreateEnvironmentVariableSources()["*"].Where(entity => entity.Key == key)
+            ).ToArray();
 
-            return EnsureSourceType<T, EnvironmentVariableEntity>(
-                name,
-                new ParameterizedEnvironmentSource(rows));
+            return EnsureSourceType<T, EnvironmentVariableEntity>(name, new ParameterizedEnvironmentSource(rows));
         }
     }
 

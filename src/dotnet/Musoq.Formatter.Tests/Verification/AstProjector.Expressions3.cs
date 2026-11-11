@@ -67,7 +67,10 @@ internal sealed partial class AstProjector
         Member(nameof(value.Args));
         Sequence(value.Args, static (writer, item) => writer.Write(item));
         Member(nameof(value.ArgumentNames));
-        Sequence(value.ArgumentNames, static (writer, item) => writer.Optional(item, static (writer, item) => writer.Write(item)));
+        Sequence(
+            value.ArgumentNames,
+            static (writer, item) => writer.Optional(item, static (writer, item) => writer.Write(item))
+        );
         Member(nameof(value.HasNamedArguments));
         Write(value.HasNamedArguments);
     }

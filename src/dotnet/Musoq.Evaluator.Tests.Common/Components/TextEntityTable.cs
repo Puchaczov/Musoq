@@ -9,11 +9,11 @@ namespace Musoq.Evaluator.Tests.Components;
 public class TextEntityTable : ISchemaTable
 {
     public ISchemaColumn[] Columns =>
-    [
-        new SchemaColumn(nameof(TextEntity.Name), 0, typeof(string)),
-        new SchemaColumn(nameof(TextEntity.Text), 1, typeof(string)),
-        new SchemaColumn(nameof(TextEntity.Line), 1, typeof(string))
-    ];
+        [
+            new SchemaColumn(nameof(TextEntity.Name), 0, typeof(string)),
+            new SchemaColumn(nameof(TextEntity.Text), 1, typeof(string)),
+            new SchemaColumn(nameof(TextEntity.Line), 1, typeof(string)),
+        ];
 
     public SchemaTableMetadata Metadata => new(typeof(TextEntity));
 

@@ -13,13 +13,22 @@ public class SystemSchema() : SchemaBase(System, CreateLibrary())
     private const string Dual = "dual";
     private const string System = "system";
 
-    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-        => base.DescribeSource(name, context, parameters) with
+    public override SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters
+    ) =>
+        base.DescribeSource(name, context, parameters) with
         {
-            ExecutionPermissions = SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing
+            ExecutionPermissions =
+                SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing,
         };
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         switch (name.ToLowerInvariant())
         {
@@ -30,7 +39,11 @@ public class SystemSchema() : SchemaBase(System, CreateLibrary())
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         switch (name.ToLowerInvariant())
         {

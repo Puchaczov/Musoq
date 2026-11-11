@@ -1,23 +1,32 @@
-using GenericLibrary = Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.GenericLibrary;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures;
+using GenericLibrary = Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.GenericLibrary;
 
 namespace Musoq.Evaluator.Tests;
 
 public sealed partial class LibraryExecutionNativeGenericQueryTests
 {
     [TestMethod]
-    [DataRow("param(items: (Label: string)[]) select UnmanagedElements($items) as Value from #schema.first()", "contains managed fields")]
-    [DataRow("param(items: (Value: int)?[]) select StructElements($items) as Value from #schema.first()", "non-nullable value type")]
-    [DataRow("select ReferenceValue((Value: Position)) as Value from #schema.first()", "generated record carrier is a value type")]
+    [DataRow(
+        "param(items: (Label: string)[]) select UnmanagedElements($items) as Value from #schema.first()",
+        "contains managed fields"
+    )]
+    [DataRow(
+        "param(items: (Value: int)?[]) select StructElements($items) as Value from #schema.first()",
+        "non-nullable value type"
+    )]
+    [DataRow(
+        "select ReferenceValue((Value: Position)) as Value from #schema.first()",
+        "generated record carrier is a value type"
+    )]
     public void GeneratedRecordConstraints_ShouldRejectTheActualCarrierShape(string sql, string reason)
     {
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<Input, GenericLibrary>(sql, [new(1)]));
+            CreateAndRunVirtualMachine<Input, GenericLibrary>(sql, [new(1)])
+        );
         Assert.AreEqual(DiagnosticCode.MQ3088_NoMatchingCallableOverload, error.PrimaryEnvelope.Code);
         Assert.Contains(reason, error.Message);
     }
@@ -25,7 +34,8 @@ public sealed partial class LibraryExecutionNativeGenericQueryTests
     [TestMethod]
     public void DescribeGeneratedGenericResult_ShouldHideCompilationConstraintWitnesses()
     {
-        const string sql = "param(items: (Value: int)[]) desc query (select StructEcho($items) as Echo from #schema.first())";
+        const string sql =
+            "param(items: (Value: int)[]) desc query (select StructEcho($items) as Echo from #schema.first())";
         using var query = CreateAndRunVirtualMachine<Input, GenericLibrary>(sql, [new(1)]);
         using var table = query.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
@@ -34,7 +44,12 @@ public sealed partial class LibraryExecutionNativeGenericQueryTests
         var text = rows[0].GetValue<string>(2);
         Assert.DoesNotContain("GeneratedRecordConstraintWitness", text);
         Assert.AreEqual("(Value: int32)[]", text);
-        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Index", typeof(int)), ("Type", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Index", typeof(int)),
+            ("Type", typeof(string))
+        );
     }
 
     [TestMethod]

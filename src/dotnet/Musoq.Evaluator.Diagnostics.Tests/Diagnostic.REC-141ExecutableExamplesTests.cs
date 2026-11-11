@@ -18,7 +18,8 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
     [TestMethod]
     public void CoreAppendixExamples_ShouldExecuteDocumentedCaseCastAndGroupingResults()
     {
-        var query = @"
+        var query =
+            @"
             select
                 case
                     when Population >= 1000 then 'large'
@@ -37,8 +38,8 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
                 new BasicEntity("large") { Population = 1000m },
                 new BasicEntity("medium") { Population = 500m },
                 new BasicEntity("small") { Population = 100m },
-                new BasicEntity("tiny") { Population = 50m }
-            ]
+                new BasicEntity("tiny") { Population = 50m },
+            ],
         };
 
         using var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
@@ -61,12 +62,11 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
             [
                 new BasicEntity("Warsaw") { City = "Warsaw" },
                 new BasicEntity("Warsaw") { City = "Warsaw" },
-                new BasicEntity("Krakow") { City = "Krakow" }
-            ]
+                new BasicEntity("Krakow") { City = "Krakow" },
+            ],
         };
 
-        const string ordinalQuery =
-            "select City, Count(*) from #A.entities() group by 1 order by City";
+        const string ordinalQuery = "select City, Count(*) from #A.entities() group by 1 order by City";
         using var ordinalTable = CreateAndRunVirtualMachine(ordinalQuery, sources).Run(TokenSource.Token);
         Assert.AreEqual(2, ordinalTable.Count);
         Assert.AreEqual("Krakow", ordinalTable[0].ReadValue(0));
@@ -74,8 +74,7 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
         Assert.AreEqual("Warsaw", ordinalTable[1].ReadValue(0));
         Assert.AreEqual(2L, ordinalTable[1].ReadValue(1));
 
-        const string aliasQuery =
-            "select City as c, Count(*) from #A.entities() group by c order by c";
+        const string aliasQuery = "select City as c, Count(*) from #A.entities() group by c order by c";
         using var aliasTable = CreateAndRunVirtualMachine(aliasQuery, sources).Run(TokenSource.Token);
         Assert.AreEqual(2, aliasTable.Count);
         Assert.AreEqual("Krakow", aliasTable[0].ReadValue(0));
@@ -91,7 +90,7 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
         var cases = new[]
         {
             (Query: @"select r'C:\new\test' from #A.entities()", Expected: @"C:\new\test"),
-            (Query: @"select 'C:\\new\\test' from #A.entities()", Expected: @"C:\new\test")
+            (Query: @"select 'C:\\new\\test' from #A.entities()", Expected: @"C:\new\test"),
         };
 
         foreach (var (query, expected) in cases)
@@ -101,7 +100,8 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
                 $"REC141_String_{Guid.NewGuid():N}",
                 provider,
                 LoggerResolver,
-                TestCompilationOptions);
+                TestCompilationOptions
+            );
             Assert.IsTrue(build.Succeeded, Format(build.Diagnostics));
             Assert.IsNotNull(build.CompiledQuery);
             using var table = build.CompiledQuery!.Run(TokenSource.Token);
@@ -113,8 +113,7 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
     public void CoreAppendixCaseNegative_ShouldAssertMissingResultAndRunCorrectedCase()
     {
         var provider = CreateCoreProvider([new BasicEntity("fixture") { Population = 1m }]);
-        const string invalidQuery =
-            "select case when Population > 0 then end from #A.entities()";
+        const string invalidQuery = "select case when Population > 0 then end from #A.entities()";
         var invalid = new QueryAnalyzer(provider).Analyze(invalidQuery);
 
         Assert.IsTrue(invalid.HasErrors, Format(invalid.Diagnostics));
@@ -128,18 +127,21 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
         const string correctedQuery =
             "select case when Population > 0 then 'positive' else 'non-positive' end from #A.entities()";
         using var table = CreateAndRunVirtualMachine(
-            correctedQuery,
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [new BasicEntity("fixture") { Population = 1m }]
-            }).Run(TokenSource.Token);
+                correctedQuery,
+                new Dictionary<string, IEnumerable<BasicEntity>>
+                {
+                    ["#A"] = [new BasicEntity("fixture") { Population = 1m }],
+                }
+            )
+            .Run(TokenSource.Token);
         Assert.AreEqual("positive", table[0].ReadValue(0));
     }
 
     [TestMethod]
     public void TableCoupleExample_ShouldExecuteWithAnExplicitRepositoryFixtureMapping()
     {
-        const string query = @"
+        const string query =
+            @"
             table DummyTable {
                 Name: string
             };
@@ -147,7 +149,7 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
             select Name from SourceOfDummyRows();";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = [new BasicEntity("Alice"), new BasicEntity("Bob")]
+            ["#A"] = [new BasicEntity("Alice"), new BasicEntity("Bob")],
         };
 
         using var table = CreateAndRunVirtualMachine(query, sources).Run(TokenSource.Token);
@@ -173,18 +175,18 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
         StringAssert.Contains(diagnostic.Message, "missing");
 
         using var corrected = CreateAndRunVirtualMachine(
-            "select Name from #A.entities()",
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [new BasicEntity("fixture")]
-            }).Run(TokenSource.Token);
+                "select Name from #A.entities()",
+                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity("fixture")] }
+            )
+            .Run(TokenSource.Token);
         Assert.AreEqual("fixture", corrected[0].ReadValue(0));
     }
 
     private static BasicSchemaProvider<BasicEntity> CreateCoreProvider(IEnumerable<BasicEntity> entities)
     {
         return new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = entities });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = entities }
+        );
     }
 
     private static string Format(IEnumerable<Diagnostic> diagnostics)
@@ -207,19 +209,15 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
             couple #readmods.records with table DataTable as Countries;
             select Country, Population from Countries() where Population > 100;
             """;
-        var provider = new ReadModifiersSchemaProvider(
-        [
+        var provider = new ReadModifiersSchemaProvider([
             Row(("Country", "Poland"), ("Population", "38000000")),
             Row(("Country", "Vatican"), ("Population", "800")),
-            Row(("Country", "Nauru"), ("Population", "10"))
+            Row(("Country", "Nauru"), ("Population", "10")),
         ]);
 
         using var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Poland", 38000000m],
-            ["Vatican", 800m]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland", 38000000m], ["Vatican", 800m]);
     }
 
     [TestMethod]
@@ -240,18 +238,14 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
             from Source1() s1
             inner join Source2() s2 on s1.Country = s2.Name;
             """;
-        var provider = new ReadModifiersSchemaProvider(
-        [
+        var provider = new ReadModifiersSchemaProvider([
             Row(("Country", "Poland"), ("Name", "Poland"), ("Population", "38000000")),
-            Row(("Country", "Nauru"), ("Name", "Nauru"), ("Population", "10"))
+            Row(("Country", "Nauru"), ("Name", "Nauru"), ("Population", "10")),
         ]);
 
         using var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Poland", "Poland"],
-            ["Nauru", "Nauru"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland", "Poland"], ["Nauru", "Nauru"]);
     }
 
     [TestMethod]
@@ -265,8 +259,7 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
             couple #readmods.records with table Parameters as Config;
             select Parameter0, Parameter1 from Config(true, 'test');
             """;
-        var provider = new ReadModifiersSchemaProvider(
-        [Row(("Parameter0", true), ("Parameter1", "test"))]);
+        var provider = new ReadModifiersSchemaProvider([Row(("Parameter0", true), ("Parameter1", "test"))]);
 
         using var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run(TokenSource.Token);
 
@@ -302,47 +295,51 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
             couple #readmods.records with table AllTypes as TypedData;
             select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol, FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, CharCol, StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ConcreteCol from TypedData();
             """;
-        const string explicitProjection = "select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol, FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, CharCol, StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ConcreteCol from TypedData();";
+        const string explicitProjection =
+            "select ByteCol, SByteCol, ShortCol, IntCol, LongCol, UShortCol, UIntCol, ULongCol, FloatCol, DoubleCol, DecimalCol, MoneyCol, BoolCol, CharCol, StringCol, DateTimeCol, DateTimeOffsetCol, TimeSpanCol, GuidCol, ConcreteCol from TypedData();";
         var dateTime = new DateTime(2026, 7, 17, 12, 0, 0);
         var dateTimeOffset = new DateTimeOffset(dateTime, TimeSpan.Zero);
         var guid = Guid.Parse("b7f0d48f-e2d0-4a8e-8c12-0e44cf3a3d0a");
         var timeSpan = TimeSpan.FromMinutes(5);
-        var provider = new ReadModifiersSchemaProvider(
-        [Row(
-            ("ByteCol", (byte)1),
-            ("SByteCol", (sbyte)-2),
-            ("ShortCol", (short)-3),
-            ("IntCol", 4),
-            ("LongCol", 5L),
-            ("UShortCol", (ushort)6),
-            ("UIntCol", 7U),
-            ("ULongCol", 8UL),
-            ("FloatCol", 1.5f),
-            ("DoubleCol", 2.5d),
-            ("DecimalCol", 3.5m),
-            ("MoneyCol", 4.5m),
-            ("BoolCol", true),
-            ("CharCol", 'Z'),
-            ("StringCol", "text"),
-            ("DateTimeCol", dateTime),
-            ("DateTimeOffsetCol", dateTimeOffset),
-            ("TimeSpanCol", timeSpan),
-            ("GuidCol", guid),
-            ("ConcreteCol", "object")
-        )]);
+        var provider = new ReadModifiersSchemaProvider([
+            Row(
+                ("ByteCol", (byte)1),
+                ("SByteCol", (sbyte)-2),
+                ("ShortCol", (short)-3),
+                ("IntCol", 4),
+                ("LongCol", 5L),
+                ("UShortCol", (ushort)6),
+                ("UIntCol", 7U),
+                ("ULongCol", 8UL),
+                ("FloatCol", 1.5f),
+                ("DoubleCol", 2.5d),
+                ("DecimalCol", 3.5m),
+                ("MoneyCol", 4.5m),
+                ("BoolCol", true),
+                ("CharCol", 'Z'),
+                ("StringCol", "text"),
+                ("DateTimeCol", dateTime),
+                ("DateTimeOffsetCol", dateTimeOffset),
+                ("TimeSpanCol", timeSpan),
+                ("GuidCol", guid),
+                ("ConcreteCol", "object")
+            ),
+        ]);
 
         var publishedQuery = query.Replace(explicitProjection, "select * from TypedData();", StringComparison.Ordinal);
-        using var publishedTable = CreateAndRunVirtualMachine(
-            publishedQuery,
-            schemaProvider: provider).Run(TokenSource.Token);
+        using var publishedTable = CreateAndRunVirtualMachine(publishedQuery, schemaProvider: provider)
+            .Run(TokenSource.Token);
         Assert.AreEqual(18, publishedTable.Columns.Count());
-        Assert.IsFalse(publishedTable.Columns.Any(column =>
-            column.ColumnName is "TimeSpanCol" or "GuidCol"));
+        Assert.IsFalse(publishedTable.Columns.Any(column => column.ColumnName is "TimeSpanCol" or "GuidCol"));
 
         using var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(20, table.Columns.Count(), string.Join(", ", table.Columns.Select(column => column.ColumnName)));
+        Assert.AreEqual(
+            20,
+            table.Columns.Count(),
+            string.Join(", ", table.Columns.Select(column => column.ColumnName))
+        );
         var row = table[0];
         Assert.AreEqual((byte)1, row.ReadValue(0));
         Assert.AreEqual((sbyte)-2, row.ReadValue(1));
@@ -378,8 +375,7 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
             couple #readmods.records with table NullableExample as Data;
             select Id, Name, IsActive from Data();
             """;
-        var provider = new ReadModifiersSchemaProvider(
-        [Row(("Id", 1), ("Name", "Test"), ("IsActive", true))]);
+        var provider = new ReadModifiersSchemaProvider([Row(("Id", 1), ("Name", "Test"), ("IsActive", true))]);
 
         using var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run(TokenSource.Token);
 
@@ -404,12 +400,9 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
         var provider = new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(declareRequirement: true);
         var resolver = new REC141ProfileResolver();
         var options = new CompilationOptions(sourceRuntimeSettingsResolver: resolver);
-        using var table = InstanceCreator.CompileForExecution(
-            query,
-            Guid.NewGuid().ToString(),
-            provider,
-            LoggerResolver,
-            options).Run(TokenSource.Token);
+        using var table = InstanceCreator
+            .CompileForExecution(query, Guid.NewGuid().ToString(), provider, LoggerResolver, options)
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["prod-token", "staging-token"]);
         CollectionAssert.AreEquivalent(new[] { "prod", "staging" }, resolver.Profiles.ToArray());
@@ -432,18 +425,20 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
             from Invoices('legacy-invoices.csv');
             """;
         var provider = new ReadModifiersSchemaProvider(
-            [Row(
-                ("InvoiceNo", "  FV-001  "),
-                ("CustomerName", "  Jan Kowalski  "),
-                ("Total", "1 234,56"),
-                ("Attachment", "cGF5bG9hZA=="))],
-            ReadModifiersValidationMode.LenientUnsupportedModifiers);
+            [
+                Row(
+                    ("InvoiceNo", "  FV-001  "),
+                    ("CustomerName", "  Jan Kowalski  "),
+                    ("Total", "1 234,56"),
+                    ("Attachment", "cGF5bG9hZA==")
+                ),
+            ],
+            ReadModifiersValidationMode.LenientUnsupportedModifiers
+        );
 
         using var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["FV-001", "Jan Kowalski", 1234.56m, "payload"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["FV-001", "Jan Kowalski", 1234.56m, "payload"]);
     }
 
     private static IReadOnlyDictionary<string, object?> Row(params (string Name, object? Value)[] values)
@@ -458,10 +453,7 @@ public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
         public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
         {
             Profiles.Add(request.ProfileName);
-            return new Dictionary<string, string>
-            {
-                ["TOKEN"] = $"{request.ProfileName}-token"
-            };
+            return new Dictionary<string, string> { ["TOKEN"] = $"{request.ProfileName}-token" };
         }
     }
 }
@@ -472,7 +464,8 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
     [TestMethod]
     public void BinaryPngExample_ShouldExecuteWithExplicitFixtureProviderMapping()
     {
-        var query = @"
+        var query =
+            @"
             binary PngSignature {
                 Signature: byte[8] magic [0x89, 0x50, 0x4E, 0x47,
                                           0x0D, 0x0A, 0x1A, 0x0A]
@@ -503,26 +496,54 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
             where chunk.ChunkType = 'IHDR'";
         var content = new byte[]
         {
-            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-            0x00, 0x00, 0x00, 0x0D,
-            0x49, 0x48, 0x44, 0x52,
-            0x00, 0x00, 0x03, 0x00,
-            0x00, 0x00, 0x02, 0x00,
-            0x08, 0x06, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00
+            0x89,
+            0x50,
+            0x4E,
+            0x47,
+            0x0D,
+            0x0A,
+            0x1A,
+            0x0A,
+            0x00,
+            0x00,
+            0x00,
+            0x0D,
+            0x49,
+            0x48,
+            0x44,
+            0x52,
+            0x00,
+            0x00,
+            0x03,
+            0x00,
+            0x00,
+            0x00,
+            0x02,
+            0x00,
+            0x08,
+            0x06,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
         };
         var provider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
             {
-                ["#test"] = [new BinaryEntity { Name = "image.png", Content = content }]
-            });
+                ["#test"] = [new BinaryEntity { Name = "image.png", Content = content }],
+            }
+        );
 
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -536,23 +557,21 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
     [TestMethod]
     public void BinaryPngPublishedExample_ShouldExposeTheCheckListCorrection()
     {
-        const string invalidQuery = @"
+        const string invalidQuery =
+            @"
             binary PngSignature {
                 Signature: byte[8] check Signature = [0x89, 0x50, 0x4E, 0x47,
                                                        0x0D, 0x0A, 0x1A, 0x0A]
             }
             select 1 from #test.files()";
-        var provider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>>
-            {
-                ["#test"] = []
-            });
+        var provider = new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>> { ["#test"] = [] });
 
         var result = new QueryAnalyzer(provider).Analyze(invalidQuery);
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ2001_UnexpectedToken,
-            "REC-141 PNG byte-list CHECK example");
+            "REC-141 PNG byte-list CHECK example"
+        );
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual("[", invalidQuery.Substring(diagnostic.Span.Start, diagnostic.Span.Length));
@@ -569,15 +588,14 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("/missing", table[0].ReadValue(0));
         Assert.AreEqual(1L, table[0].ReadValue(1));
-        Assert.AreEqual(
-            new DateTimeOffset(2026, 7, 17, 12, 34, 56, TimeSpan.Zero),
-            table[0].ReadValue(2));
+        Assert.AreEqual(new DateTimeOffset(2026, 7, 17, 12, 34, 56, TimeSpan.Zero), table[0].ReadValue(2));
     }
 
     [TestMethod]
@@ -589,7 +607,8 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
             Guid.NewGuid().ToString(),
             CreateApacheProvider(),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var exception = Assert.ThrowsExactly<RuntimeParseException>(() =>
         {
@@ -608,13 +627,15 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
 
         var query = ApacheCorrectedQuery.Replace(
             "MaxDateTimeOffset(ToDateTimeOffsetWithFormat(log.Timestamp, 'dd/MMM/yyyy:HH:mm:ss zzz'))",
-            "Max(log.Timestamp)");
+            "Max(log.Timestamp)"
+        );
         using var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             CreateApacheProvider(),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
@@ -639,16 +660,18 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
                 ["#test"] =
                 [
                     new BinaryEntity { Name = "command.bin", Content = CreateMessageFrame(commandPayload, 0x01) },
-                    new BinaryEntity { Name = "telemetry.bin", Content = CreateMessageFrame(telemetryPayload, 0x02) }
-                ]
-            });
+                    new BinaryEntity { Name = "telemetry.bin", Content = CreateMessageFrame(telemetryPayload, 0x02) },
+                ],
+            }
+        );
 
         var published = CompileGeneratedQuery(
             MixedPublishedQuery,
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var publishedException = Assert.ThrowsExactly<RuntimeParseException>(() =>
         {
             using var publishedTable = published.Run(CancellationToken.None);
@@ -662,7 +685,8 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -680,7 +704,8 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             published,
             DiagnosticCode.MQ3086_UnknownCallable,
-            "REC-141 COBOL ParseDate example");
+            "REC-141 COBOL ParseDate example"
+        );
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         StringAssert.Contains(diagnostic.Message, "ParseDate");
 
@@ -689,7 +714,8 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -703,17 +729,14 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
     [TestMethod]
     public void InventedMixedSamplesExample_ShouldPreserveDefinitionAndOffsetDiagnostics()
     {
-        byte[] data =
-        [
-            3, 0, 0, 1, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0,
-            7, 3, 0, 116, 111, 121
-        ];
+        byte[] data = [3, 0, 0, 1, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 7, 3, 0, 116, 111, 121];
 
         var provider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
             {
-                ["#test"] = [new BinaryEntity { Name = "invented-samples", Content = data }]
-            });
+                ["#test"] = [new BinaryEntity { Name = "invented-samples", Content = data }],
+            }
+        );
 
         var publishedException = Assert.ThrowsExactly<MusoqQueryException>(() =>
             CompileGeneratedQuery(
@@ -721,7 +744,9 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
                 Guid.NewGuid().ToString(),
                 provider,
                 LoggerResolver,
-                TestCompilationOptions));
+                TestCompilationOptions
+            )
+        );
         StringAssert.Contains(publishedException.Message, "MQ2030");
 
         var offsetException = Assert.ThrowsExactly<MusoqQueryException>(() =>
@@ -729,11 +754,14 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
                 ToySamplesCorrectedQuery.Replace(
                     "ToInt32(parameters.SampleStart) ?? 0",
                     "parameters.SampleStart",
-                    StringComparison.Ordinal),
+                    StringComparison.Ordinal
+                ),
                 Guid.NewGuid().ToString(),
                 provider,
                 LoggerResolver,
-                TestCompilationOptions));
+                TestCompilationOptions
+            )
+        );
         Assert.AreEqual(DiagnosticCode.MQ3005_TypeMismatch, offsetException.PrimaryEnvelope.Code);
 
         var compiled = CompileGeneratedQuery(
@@ -741,7 +769,8 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -969,12 +998,14 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
             "30-001".PadRight(10),
             "000000123456".PadRight(12),
             "A",
-            "20260717");
+            "20260717"
+        );
         return new TextSchemaProvider(
             new Dictionary<string, IEnumerable<TextEntity>>
             {
-                ["#test"] = [new TextEntity { Name = "CUSTMAST.DAT", Text = line }]
-            });
+                ["#test"] = [new TextEntity { Name = "CUSTMAST.DAT", Text = line }],
+            }
+        );
     }
 
     private static byte[] CreateMessageFrame(byte[] payload, byte messageType)
@@ -1060,7 +1091,8 @@ public sealed class DiagnosticREC141BinaryExamplesTests : BinaryOrTextualEvaluat
         return new TextSchemaProvider(
             new Dictionary<string, IEnumerable<TextEntity>>
             {
-                ["#test"] = [new TextEntity { Name = "access.log", Text = line }]
-            });
+                ["#test"] = [new TextEntity { Name = "access.log", Text = line }],
+            }
+        );
     }
 }

@@ -11,7 +11,8 @@ public partial class SubqueryToCteRewriteVisitor
         string cteName,
         string keyColumnName,
         string valueColumnName,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var valueExpression = query.Select.Fields[0].Expression;
         if (RequiresResultMaterialization(query))
@@ -21,16 +22,14 @@ public partial class SubqueryToCteRewriteVisitor
                 cteName,
                 keyColumnName,
                 valueColumnName,
-                cteInnerExpressions);
+                cteInnerExpressions
+            );
         }
 
         var fields = new[]
         {
             new FieldNode(new IntegerNode(1), 0, keyColumnName),
-            new FieldNode(
-                CreateDeferredScalarAggregate(valueExpression),
-                1,
-                valueColumnName)
+            new FieldNode(CreateDeferredScalarAggregate(valueExpression), 1, valueColumnName),
         };
 
         var rewritten = new QueryNode(
@@ -43,11 +42,13 @@ public partial class SubqueryToCteRewriteVisitor
             query.Take,
             query.Window,
             query.Qualify,
-            default);
+            default
+        );
 
         return new ScalarSubqueryRewrite(
             rewritten,
-            new EqualityNode(new IntegerNode(1), new AccessColumnNode(keyColumnName, cteName, default)));
+            new EqualityNode(new IntegerNode(1), new AccessColumnNode(keyColumnName, cteName, default))
+        );
     }
 
     private ScalarSubqueryRewrite RewriteMaterializedUncorrelatedScalarSubquery(
@@ -55,7 +56,8 @@ public partial class SubqueryToCteRewriteVisitor
         string cteName,
         string keyColumnName,
         string valueColumnName,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var materializedCteName = CreateScalarMaterializationCteName(cteName);
         var materializedValueColumnName = GeneratedSubqueryContract.CreateValueColumnName(materializedCteName);
@@ -66,7 +68,8 @@ public partial class SubqueryToCteRewriteVisitor
             cteName,
             keyColumnName,
             valueColumnName,
-            cteInnerExpressions);
+            cteInnerExpressions
+        );
     }
 
     private ScalarSubqueryRewrite RewriteMaterializedUncorrelatedScalarSubquery(
@@ -75,7 +78,8 @@ public partial class SubqueryToCteRewriteVisitor
         string cteName,
         string keyColumnName,
         string valueColumnName,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var materializedCteName = CreateScalarMaterializationCteName(cteName);
         cteInnerExpressions.Add(new CteInnerExpressionNode(materializedBody, materializedCteName));
@@ -85,7 +89,8 @@ public partial class SubqueryToCteRewriteVisitor
             new FieldNode(
                 CreateScalarAggregate(new AccessColumnNode(materializedValueColumnName, materializedCteName, default)),
                 1,
-                valueColumnName)
+                valueColumnName
+            ),
         };
 
         var rewritten = new QueryNode(
@@ -98,11 +103,13 @@ public partial class SubqueryToCteRewriteVisitor
             null,
             null,
             null,
-            default);
+            default
+        );
 
         return new ScalarSubqueryRewrite(
             rewritten,
-            new EqualityNode(new IntegerNode(1), new AccessColumnNode(keyColumnName, cteName, default)));
+            new EqualityNode(new IntegerNode(1), new AccessColumnNode(keyColumnName, cteName, default))
+        );
     }
 
     private string CreateScalarMaterializationCteName(string cteName) =>

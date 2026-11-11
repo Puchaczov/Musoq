@@ -14,7 +14,8 @@ public sealed partial class ExecutionCSharpRenderer
     private BlockSyntax CreateProfileExceptionBoundaryBlock(
         IEnumerable<StatementSyntax> statements,
         ExecutionRenderContext context,
-        bool includeExceptionBoundary = true)
+        bool includeExceptionBoundary = true
+    )
     {
         var renderedStatements = statements.ToArray();
         if (!IsOperatorProfilingEnabledFor(context) || !includeExceptionBoundary)
@@ -22,12 +23,14 @@ public sealed partial class ExecutionCSharpRenderer
 
         return StatementEmitter.CreateBlock(
             CreateProfileScopeDepthDeclaration(),
-            CreateProfileExceptionBoundary(renderedStatements));
+            CreateProfileExceptionBoundary(renderedStatements)
+        );
     }
 
     private BlockSyntax CreateProfiledHelperBody(
         IEnumerable<StatementSyntax> statements,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var helperStatements = statements.ToArray();
         var usage = CollectOperatorProfileUsage(helperStatements);
@@ -38,14 +41,16 @@ public sealed partial class ExecutionCSharpRenderer
 
         return CreateProfileExceptionBoundaryBlock(
             AddOperatorCounterFlushesBeforeTopLevelReturns(renderedStatements, usage, context, appendAtEnd: true),
-            context);
+            context
+        );
     }
 
     private IEnumerable<StatementSyntax> AddOperatorCounterFlushesBeforeTopLevelReturns(
         IReadOnlyList<StatementSyntax> statements,
         OperatorProfileUsage usage,
         ExecutionRenderContext context,
-        bool appendAtEnd)
+        bool appendAtEnd
+    )
     {
         var hasReturn = false;
 
@@ -79,24 +84,38 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(ProfileRecorderVariableName),
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberBindingExpression(
-                            SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.GetCurrentOperatorScopeDepth))))),
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(0))));
+                            SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.GetCurrentOperatorScopeDepth))
+                        )
+                    )
+                ),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+            )
+        );
     }
 
     private static TryStatementSyntax CreateProfileExceptionBoundary(IReadOnlyList<StatementSyntax> statements)
     {
-        return SyntaxFactory.TryStatement()
+        return SyntaxFactory
+            .TryStatement()
             .WithBlock(StatementEmitter.CreateBlock(statements))
-            .WithCatches(SyntaxFactory.SingletonList(
-                SyntaxFactory.CatchClause()
-                    .WithDeclaration(SyntaxFactory.CatchDeclaration(CreateTypeSyntax(typeof(Exception)))
-                        .WithIdentifier(SyntaxFactory.Identifier(ProfileExceptionVariableName)))
-                    .WithFilter(SyntaxFactory.CatchFilterClause(CreateProfileExceptionFilter()))
-                    .WithBlock(StatementEmitter.CreateBlock(
-                        CreateDisposeActiveOperatorScopesStatement(),
-                        SyntaxFactory.ThrowStatement()))));
+            .WithCatches(
+                SyntaxFactory.SingletonList(
+                    SyntaxFactory
+                        .CatchClause()
+                        .WithDeclaration(
+                            SyntaxFactory
+                                .CatchDeclaration(CreateTypeSyntax(typeof(Exception)))
+                                .WithIdentifier(SyntaxFactory.Identifier(ProfileExceptionVariableName))
+                        )
+                        .WithFilter(SyntaxFactory.CatchFilterClause(CreateProfileExceptionFilter()))
+                        .WithBlock(
+                            StatementEmitter.CreateBlock(
+                                CreateDisposeActiveOperatorScopesStatement(),
+                                SyntaxFactory.ThrowStatement()
+                            )
+                        )
+                )
+            );
     }
 
     private static ExpressionSyntax CreateProfileExceptionFilter()
@@ -106,26 +125,37 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.NotEqualsExpression,
                 SyntaxFactory.IdentifierName(ProfileRecorderVariableName),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-            SyntaxFactory.InvocationExpression(
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+            ),
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(ProfileRecorderVariableName),
-                        SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.RecordActiveOperatorException))))
-                .WithArgumentList(CreateArgumentList(
-                    SyntaxFactory.IdentifierName(ProfileExceptionVariableName),
-                    SyntaxFactory.IdentifierName(ProfileScopeDepthVariableName))));
+                        SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.RecordActiveOperatorException))
+                    )
+                )
+                .WithArgumentList(
+                    CreateArgumentList(
+                        SyntaxFactory.IdentifierName(ProfileExceptionVariableName),
+                        SyntaxFactory.IdentifierName(ProfileScopeDepthVariableName)
+                    )
+                )
+        );
     }
 
     private static StatementSyntax CreateDisposeActiveOperatorScopesStatement()
     {
         return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(ProfileRecorderVariableName),
-                        SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.DisposeActiveOperatorScopes))))
-                .WithArgumentList(CreateArgumentList(
-                    SyntaxFactory.IdentifierName(ProfileScopeDepthVariableName))));
+                        SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.DisposeActiveOperatorScopes))
+                    )
+                )
+                .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(ProfileScopeDepthVariableName)))
+        );
     }
 }

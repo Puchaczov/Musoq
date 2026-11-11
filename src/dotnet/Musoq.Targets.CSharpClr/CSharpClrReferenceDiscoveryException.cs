@@ -9,15 +9,15 @@ internal sealed class CSharpClrReferenceDiscoveryException : Exception
         string assemblyIdentity,
         string requirementDetail,
         string reason,
-        Exception innerException)
+        Exception innerException
+    )
         : base(
-            $"Required CLR assembly '{assemblyIdentity}' for execution requirement " +
-            $"'{requirementDetail}' could not be referenced: {reason}.",
-            innerException)
+            $"Required CLR assembly '{assemblyIdentity}' for execution requirement "
+                + $"'{requirementDetail}' could not be referenced: {reason}.",
+            innerException
+        )
     {
-        AssemblyIdentity = string.IsNullOrWhiteSpace(assemblyIdentity)
-            ? "<unknown>"
-            : assemblyIdentity;
+        AssemblyIdentity = string.IsNullOrWhiteSpace(assemblyIdentity) ? "<unknown>" : assemblyIdentity;
         RequirementDetail = string.IsNullOrWhiteSpace(requirementDetail)
             ? "<unknown execution requirement>"
             : requirementDetail;
@@ -33,7 +33,8 @@ internal sealed class CSharpClrReferenceDiscoveryException : Exception
     internal static CSharpClrReferenceDiscoveryException ForMetadataReference(
         Assembly assembly,
         string requirementDetail,
-        Exception exception)
+        Exception exception
+    )
     {
         ArgumentNullException.ThrowIfNull(assembly);
         ArgumentNullException.ThrowIfNull(exception);
@@ -42,7 +43,8 @@ internal sealed class CSharpClrReferenceDiscoveryException : Exception
             assembly.FullName ?? assembly.GetName().Name ?? "<unknown>",
             requirementDetail,
             GetStableReason(exception),
-            exception);
+            exception
+        );
     }
 
     internal static string GetStableReason(Exception exception)
@@ -58,7 +60,7 @@ internal sealed class CSharpClrReferenceDiscoveryException : Exception
             ArgumentException => "the assembly metadata reference could not be created",
             InvalidOperationException or NotSupportedException or TypeLoadException =>
                 "the CLR descriptor could not be resolved",
-            _ => exception.Message
+            _ => exception.Message,
         };
     }
 }

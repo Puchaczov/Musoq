@@ -9,9 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void RuntimeV2CastGroupingFeatureSamples_WhenCheckedIn_ShouldExistAsContiguousBlock()
     {
-        var featureFiles = RuntimeV2CastGroupingFeatureSampleFileNames
-            .OrderBy(static fileName => fileName)
-            .ToArray();
+        var featureFiles = RuntimeV2CastGroupingFeatureSampleFileNames.OrderBy(static fileName => fileName).ToArray();
 
         CollectionAssert.AreEqual(RuntimeV2CastGroupingFeatureSampleFileNames, featureFiles);
     }
@@ -36,7 +34,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "System.Convert.To",
             "(object)(ko3iko.Population == null",
             "(object)(ko3iko.Amount == null",
-            "__agg0Input = (object)"
+            "__agg0Input = (object)",
         };
 
         foreach (var sample in samples.Values)
@@ -46,7 +44,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             {
                 Assert.IsFalse(
                     sample.Contains(pattern, StringComparison.Ordinal),
-                    $"{pattern} leaked into {sample[..Math.Min(sample.Length, 80)]}");
+                    $"{pattern} leaked into {sample[..Math.Min(sample.Length, 80)]}"
+                );
             }
         }
     }
@@ -61,7 +60,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("SELECT Population::Int32 as PopulationInt", projection);
         Assert.Contains("SourceScan [ko3iko: RuntimeV2CastGroupingFeatureEntity] -> ko3ikoRows", projection);
-        Assert.Contains("SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2CastGroupingFeatureEntity>", projection);
+        Assert.Contains(
+            "SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2CastGroupingFeatureEntity>",
+            projection
+        );
         Assert.DoesNotContain("CreateObject [__resultLibraryBase0: LibraryBase]", projection);
         Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population)", projection);
         Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount)", projection);
@@ -69,22 +71,40 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("SELECT (Quantity + 1)::Int64 as QuantityNext", expressions);
         Assert.DoesNotContain("CreateObject [__resultOrderRecordsLibraryBase0: LibraryBase]", expressions);
-        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt64((ko3iko.Quantity + 1))", expressions);
+        Assert.Contains(
+            "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt64((ko3iko.Quantity + 1))",
+            expressions
+        );
         Assert.Contains("Let [populationInt32: int? = population::Int32]", expressions);
-        Assert.Contains("int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);", expressions);
+        Assert.Contains(
+            "int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);",
+            expressions
+        );
         Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToString(populationInt32)", expressions);
-        Assert.DoesNotContain("StrictCastRuntime.ToString(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(", expressions);
+        Assert.DoesNotContain(
+            "StrictCastRuntime.ToString(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(",
+            expressions
+        );
         Assert.AreEqual(3, CountOccurrences(expressions, "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32("));
-        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDateTimeOffset(ko3iko.CreatedAt)", expressions);
+        Assert.Contains(
+            "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDateTimeOffset(ko3iko.CreatedAt)",
+            expressions
+        );
         Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount)", expressions);
 
         Assert.Contains("Sum(Amount::Decimal) as TotalAmount", aggregate);
         Assert.DoesNotContain("CreateAggregateLibrary [libraryBase0: LibraryBase]", aggregate);
         Assert.Contains("Let [amountDecimal: decimal? = amount::Decimal]", aggregate);
         Assert.Contains("TypedAggregateSet [Set(group.__agg0, amountDecimal)]", aggregate);
-        Assert.Contains("decimal? amountDecimal = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount);", aggregate);
+        Assert.Contains(
+            "decimal? amountDecimal = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount);",
+            aggregate
+        );
         Assert.Contains("var __agg0Input = (decimal?)amountDecimal;", aggregate);
-        Assert.AreEqual(1, CountOccurrences(aggregate, "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount)"));
+        Assert.AreEqual(
+            1,
+            CountOccurrences(aggregate, "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount)")
+        );
         Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(\"10.00\")", aggregate);
     }
 
@@ -106,12 +126,21 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("GROUP BY ALL", groupByAll);
         Assert.Contains("Aggregate [keys: ko3iko.City, ko3iko.Population::Int32] [aggs: Count(*)]", groupByAll);
-        Assert.Contains("CreateValueTupleAggregateContext [groups: (string, int?) -> ResultAggregateGroup]", groupByAll);
-        Assert.Contains("int? groupKey1 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population);", groupByAll);
+        Assert.Contains(
+            "CreateValueTupleAggregateContext [groups: (string, int?) -> ResultAggregateGroup]",
+            groupByAll
+        );
+        Assert.Contains(
+            "int? groupKey1 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population);",
+            groupByAll
+        );
 
         Assert.Contains("WHERE c <> ''", alias);
         Assert.Contains("Filter [(ko3iko.City <> '')]", alias);
-        Assert.Contains("GetOrAddSingleKeyAggregateGroup [group = groups[city] by c; typed: ResultAggregateGroup]", alias);
+        Assert.Contains(
+            "GetOrAddSingleKeyAggregateGroup [group = groups[city] by c; typed: ResultAggregateGroup]",
+            alias
+        );
         Assert.Contains("string city = ko3iko.City;", alias);
 
         Assert.Contains("HAVING cnt > 1", havingAlias);
@@ -119,24 +148,42 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("if ((finalGroup.__agg0.Count > 1))", havingAlias);
 
         Assert.Contains("SELECT City as Department, Department as SourceDepartment", conflict);
-        Assert.Contains("GetOrAddValueTupleAggregateGroup [group = groups[(ko3iko.Department, ko3iko.City)] by Department, City; typed: ResultAggregateGroup]", conflict);
+        Assert.Contains(
+            "GetOrAddValueTupleAggregateGroup [group = groups[(ko3iko.Department, ko3iko.City)] by Department, City; typed: ResultAggregateGroup]",
+            conflict
+        );
         Assert.Contains("string groupKey0 = ko3iko.Department;", conflict);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(finalGroup.__key1, finalGroup.__key0, finalGroup.__agg0.Count));", conflict);
+        Assert.Contains(
+            "__musoqFinalShapeRows.Add(new ResultRow0(finalGroup.__key1, finalGroup.__key0, finalGroup.__agg0.Count));",
+            conflict
+        );
 
         Assert.Contains("GROUP BY ALL", combined);
         Assert.Contains("HAVING cnt > 1 AND total > '10.00'::Decimal", combined);
         Assert.Contains("CreateValueTupleAggregateContext [groups: (string, int?) -> ResultAggregateGroup]", combined);
         Assert.Contains("Dictionary<(string, int?), ResultAggregateGroup>", combined);
-        Assert.Contains("int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);", combined);
+        Assert.Contains(
+            "int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);",
+            combined
+        );
         Assert.Contains("int? groupKey1 = populationInt32;", combined);
-        Assert.AreEqual(3, CountOccurrences(combined, "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population)"));
+        Assert.AreEqual(
+            3,
+            CountOccurrences(combined, "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population)")
+        );
         Assert.Contains("finalGroup.__agg1.Count > 1", combined);
-        Assert.Contains("result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.Count", combined);
+        Assert.Contains(
+            "result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.Count",
+            combined
+        );
         Assert.Contains("result.Sort(Comparer<ResultShape0>.Create", combined);
         Assert.Contains("return result;", combined);
     }
 
-    private static System.Collections.Generic.IReadOnlyDictionary<string, string> ReadRuntimeV2CastGroupingFeatureSamples()
+    private static System.Collections.Generic.IReadOnlyDictionary<
+        string,
+        string
+    > ReadRuntimeV2CastGroupingFeatureSamples()
     {
         var samples = ReadNamedSamples(RuntimeV2CastGroupingFeatureSampleFileNames)
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
@@ -155,8 +202,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         {
             if (line.TrimStart().StartsWith("foreach (", StringComparison.Ordinal))
                 loopDepths.Push(depth);
-            Assert.IsFalse(loopDepths.Count > 0 && line.Contains("new Musoq.Plugins.LibraryBase()", StringComparison.Ordinal), "LibraryBase allocation leaked inside a foreach loop.");
-            depth += line.Count(static character => character == '{') - line.Count(static character => character == '}');
+            Assert.IsFalse(
+                loopDepths.Count > 0 && line.Contains("new Musoq.Plugins.LibraryBase()", StringComparison.Ordinal),
+                "LibraryBase allocation leaked inside a foreach loop."
+            );
+            depth +=
+                line.Count(static character => character == '{') - line.Count(static character => character == '}');
             while (loopDepths.Count > 0 && depth <= loopDepths.Peek())
                 loopDepths.Pop();
         }

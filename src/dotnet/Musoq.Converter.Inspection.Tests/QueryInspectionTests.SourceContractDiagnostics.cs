@@ -27,7 +27,10 @@ public partial class QueryInspectionTests
         Assert.Contains("column=Name", warning.Message);
         Assert.Contains("modifier=encoding", warning.Message);
         Assert.AreEqual(expectedSpan, warning.Span);
-        Assert.Contains("source contract diagnostic [DescribeSource]: Warning UnsupportedEncoding", inspection.PlanningText);
+        Assert.Contains(
+            "source contract diagnostic [DescribeSource]: Warning UnsupportedEncoding",
+            inspection.PlanningText
+        );
     }
 
     [TestMethod]
@@ -38,7 +41,8 @@ public partial class QueryInspectionTests
             CreateContractQuery("Name: string encoding 'windows-1250'"),
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var error = result.Errors.Single(item => item.Code == DiagnosticCode.MQ3071_SourceContractError);
 
@@ -57,7 +61,8 @@ public partial class QueryInspectionTests
             query,
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var error = result.Errors.Single(item => item.Code == DiagnosticCode.MQ3071_SourceContractError);
         var expectedSpan = CreateExpectedSpan(query, "Amount: decimal");
@@ -77,7 +82,8 @@ public partial class QueryInspectionTests
             CreateContractQuery("Name: string"),
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
@@ -92,7 +98,8 @@ public partial class QueryInspectionTests
             "select 1 from #contract.items()",
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning);
 
@@ -106,10 +113,9 @@ public partial class QueryInspectionTests
 
     private static string CreateContractQuery(string columns, string projection = "Name")
     {
-        return
-            $"table LegacyRecord {{ Id: int, {columns} }};" +
-            "couple #contract.items with table LegacyRecord as Records;" +
-            $"select {projection} from Records()";
+        return $"table LegacyRecord {{ Id: int, {columns} }};"
+            + "couple #contract.items with table LegacyRecord as Records;"
+            + $"select {projection} from Records()";
     }
 
     private static TextSpan CreateExpectedSpan(string query, string text)
@@ -126,15 +132,17 @@ public partial class QueryInspectionTests
         RequireAmountString,
         GenericWarning,
         GenericError,
-        BothOrigin
+        BothOrigin,
     }
 
     private sealed class ContractDiagnosticSchemaProvider(ContractDiagnosticMode mode) : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
-            if (!string.Equals(schema, "contract", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(schema, "#contract", StringComparison.OrdinalIgnoreCase))
+            if (
+                !string.Equals(schema, "contract", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(schema, "#contract", StringComparison.OrdinalIgnoreCase)
+            )
             {
                 throw new NotSupportedException(schema);
             }
@@ -144,12 +152,14 @@ public partial class QueryInspectionTests
     }
 
     private sealed class ContractDiagnosticSchema(ContractDiagnosticMode mode)
-        : SchemaBase("contract", CreateLibrary()), IQueryScopedRowSourceSchema
+        : SchemaBase("contract", CreateLibrary()),
+            IQueryScopedRowSourceSchema
     {
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (!string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
                 throw new NotSupportedException(name);
@@ -160,42 +170,50 @@ public partial class QueryInspectionTests
         public override SourceDescriptor DescribeSource(
             string name,
             SourceDescribeContext context,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
-            var descriptor = base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
+            var descriptor = base.DescribeSource(name, context, parameters) with
+            {
+                TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
+            };
             var diagnostics = CreateDescriptorDiagnostics(context.MetadataContext.AllColumns);
             return diagnostics.Length == 0
                 ? descriptor
-                : descriptor with { ContractDiagnostics = descriptor.ContractDiagnostics.Concat(diagnostics).ToArray() };
+                : descriptor with
+                {
+                    ContractDiagnostics = descriptor.ContractDiagnostics.Concat(diagnostics).ToArray(),
+                };
         }
 
         public override SourcePlanResult TryPlanSource(
             string name,
             SourcePlanRequest request,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             var result = SourcePlanResult.AcceptAll(request);
             var diagnostics = CreatePlanDiagnostics(request.RequiredColumns);
-            return diagnostics.Length == 0
-                ? result
-                : result with { ContractDiagnostics = diagnostics };
+            return diagnostics.Length == 0 ? result : result with { ContractDiagnostics = diagnostics };
         }
 
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
-            return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(
-                name,
-                new EmptyContractRowSource());
+            return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(name, new EmptyContractRowSource());
         }
 
         public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
-            string name, QueryScopedRowSourceRequest request, TArguments parameters)
+            string name,
+            QueryScopedRowSourceRequest request,
+            TArguments parameters
+        )
             where TMaterializer : struct, IQueryRowMaterializer<TRow>
-            where TArguments : struct, ISourceArguments
-            => new global::Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>([], request.Shape.Fields);
+            where TArguments : struct, ISourceArguments =>
+            new global::Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>([], request.Shape.Fields);
 
         private SourceContractDiagnostic[] CreateDescriptorDiagnostics(IReadOnlyCollection<ISchemaColumn> columns)
         {
@@ -205,7 +223,8 @@ public partial class QueryInspectionTests
                 [
                     SourceContractDiagnostic.Warning(
                         "The source reported a contract diagnostic without table-origin metadata.",
-                        "GenericContractWarning")
+                        "GenericContractWarning"
+                    ),
                 ];
             }
 
@@ -215,53 +234,63 @@ public partial class QueryInspectionTests
                 [
                     SourceContractDiagnostic.Error(
                         "The source reported an error without table-origin metadata.",
-                        "GenericContractError")
+                        "GenericContractError"
+                    ),
                 ];
             }
 
-            if (mode == ContractDiagnosticMode.BothOrigin &&
-                TryFindEncodingColumn(columns, out var bothOriginColumn, out var bothOriginEncoding))
+            if (
+                mode == ContractDiagnosticMode.BothOrigin
+                && TryFindEncodingColumn(columns, out var bothOriginColumn, out var bothOriginEncoding)
+            )
             {
                 return
                 [
                     SourceContractDiagnostic.Warning(
                         $"Encoding modifier '{bothOriginEncoding}' requires a table-origin precedence check.",
-                        "BothOrigin") with
+                        "BothOrigin"
+                    ) with
                     {
                         ColumnName = bothOriginColumn.ColumnName,
-                        ModifierKey = ColumnReadModifiers.Encoding
-                    }
+                        ModifierKey = ColumnReadModifiers.Encoding,
+                    },
                 ];
             }
 
-            if (mode == ContractDiagnosticMode.WarnUnsupportedEncoding &&
-                TryFindEncodingColumn(columns, out var warningColumn, out var warningEncoding))
+            if (
+                mode == ContractDiagnosticMode.WarnUnsupportedEncoding
+                && TryFindEncodingColumn(columns, out var warningColumn, out var warningEncoding)
+            )
             {
                 return
                 [
                     SourceContractDiagnostic.Warning(
                         $"Encoding modifier '{warningEncoding}' is ignored by the source.",
-                        "UnsupportedEncoding") with
+                        "UnsupportedEncoding"
+                    ) with
                     {
                         ColumnName = warningColumn.ColumnName,
-                        ModifierKey = ColumnReadModifiers.Encoding
-                    }
+                        ModifierKey = ColumnReadModifiers.Encoding,
+                    },
                 ];
             }
 
-            if (mode == ContractDiagnosticMode.RequireAmountString &&
-                columns.SingleOrDefault(static column => column.ColumnName == "Amount") is { } amountColumn &&
-                amountColumn.ColumnType != typeof(string))
+            if (
+                mode == ContractDiagnosticMode.RequireAmountString
+                && columns.SingleOrDefault(static column => column.ColumnName == "Amount") is { } amountColumn
+                && amountColumn.ColumnType != typeof(string)
+            )
             {
                 var declaredType = Nullable.GetUnderlyingType(amountColumn.ColumnType) ?? amountColumn.ColumnType;
                 return
                 [
                     SourceContractDiagnostic.Error(
                         $"Source column 'Amount' is text, but the table contract declares {declaredType.Name}.",
-                        "ColumnKindMismatch") with
+                        "ColumnKindMismatch"
+                    ) with
                     {
-                        ColumnName = amountColumn.ColumnName
-                    }
+                        ColumnName = amountColumn.ColumnName,
+                    },
                 ];
             }
 
@@ -270,9 +299,11 @@ public partial class QueryInspectionTests
 
         private SourceContractDiagnostic[] CreatePlanDiagnostics(IReadOnlyList<SourceColumnRef> requiredColumns)
         {
-            if (mode != ContractDiagnosticMode.RequireUtf8Encoding ||
-                !TryFindEncodingColumn(requiredColumns, out var column, out var encoding) ||
-                string.Equals(encoding, "utf-8", StringComparison.OrdinalIgnoreCase))
+            if (
+                mode != ContractDiagnosticMode.RequireUtf8Encoding
+                || !TryFindEncodingColumn(requiredColumns, out var column, out var encoding)
+                || string.Equals(encoding, "utf-8", StringComparison.OrdinalIgnoreCase)
+            )
             {
                 return [];
             }
@@ -281,18 +312,20 @@ public partial class QueryInspectionTests
             [
                 SourceContractDiagnostic.Error(
                     $"Only utf-8 encoding is supported, but column '{column.Name}' requested '{encoding}'.",
-                    "UnsupportedEncoding") with
+                    "UnsupportedEncoding"
+                ) with
                 {
                     ColumnName = column.Name,
-                    ModifierKey = ColumnReadModifiers.Encoding
-                }
+                    ModifierKey = ColumnReadModifiers.Encoding,
+                },
             ];
         }
 
         private static bool TryFindEncodingColumn(
             IEnumerable<ISchemaColumn> columns,
             out ISchemaColumn column,
-            out string encoding)
+            out string encoding
+        )
         {
             foreach (var candidate in columns)
             {
@@ -311,7 +344,8 @@ public partial class QueryInspectionTests
         private static bool TryFindEncodingColumn(
             IEnumerable<SourceColumnRef> columns,
             out SourceColumnRef column,
-            out string encoding)
+            out string encoding
+        )
         {
             foreach (var candidate in columns)
             {
@@ -339,7 +373,9 @@ public partial class QueryInspectionTests
 
         public ISchemaColumn? GetColumnByName(string name)
         {
-            return Columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            return Columns.SingleOrDefault(column =>
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+            );
         }
 
         public ISchemaColumn[] GetColumnsByName(string name)
@@ -349,7 +385,8 @@ public partial class QueryInspectionTests
                 .ToArray();
         }
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+        public SchemaTableMetadata Metadata { get; } =
+            new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
     private sealed class EmptyContractRowSource : RowSourceBase<IReadOnlyDictionary<string, object?>>

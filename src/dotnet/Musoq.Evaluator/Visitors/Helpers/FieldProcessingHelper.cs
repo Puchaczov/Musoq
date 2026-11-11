@@ -28,7 +28,8 @@ public static class FieldProcessingHelper
 
         if (nodes.Count < oldFields.Length)
             throw new InvalidOperationException(
-                $"Stack must contain at least {oldFields.Length} nodes for field creation");
+                $"Stack must contain at least {oldFields.Length} nodes for field creation"
+            );
 
         var reorderedList = new FieldNode[oldFields.Length];
         var fields = new List<FieldNode>(reorderedList.Length);
@@ -38,7 +39,8 @@ public static class FieldProcessingHelper
             var poppedNode = nodes.Pop();
             if (!(poppedNode is FieldNode fieldNode))
                 throw new ArgumentException(
-                    $"Node at stack position {i} must be a FieldNode, but was {poppedNode?.GetType().Name ?? "null"}");
+                    $"Node at stack position {i} must be a FieldNode, but was {poppedNode?.GetType().Name ?? "null"}"
+                );
             reorderedList[i] = fieldNode;
         }
 
@@ -46,12 +48,11 @@ public static class FieldProcessingHelper
         {
             var field = reorderedList[i];
 
-
             if (field == null)
                 throw new ArgumentException($"Field at index {i} cannot be null");
 
-            if (field.Expression is AllColumnsNode) continue;
-
+            if (field.Expression is AllColumnsNode)
+                continue;
 
             if (field.Expression == null)
                 throw new ArgumentException($"Field expression at index {i} cannot be null", nameof(oldFields));
@@ -81,7 +82,8 @@ public static class FieldProcessingHelper
         string rAlias,
         Func<string, string, string> createLeftAndRightFieldName,
         Func<AccessColumnNode, bool>? includeKnownColumn = null,
-        int startAt = 0)
+        int startAt = 0
+    )
     {
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
@@ -97,7 +99,8 @@ public static class FieldProcessingHelper
             (name, _) => name,
             (name, _) => name,
             includeKnownColumn,
-            startAt);
+            startAt
+        );
     }
 
     /// <summary>
@@ -125,7 +128,8 @@ public static class FieldProcessingHelper
         Func<string, string, string> createLeftColumnName,
         Func<string, string, string> createRightColumnName,
         Func<AccessColumnNode, bool>? isKnownColumn = null,
-        int startAt = 0)
+        int startAt = 0
+    )
     {
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
@@ -145,7 +149,8 @@ public static class FieldProcessingHelper
                 leftAlias,
                 column.ColumnType,
                 TextSpan.Empty,
-                column.IntendedTypeName);
+                column.IntendedTypeName
+            );
 
             if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
                 continue;
@@ -161,13 +166,13 @@ public static class FieldProcessingHelper
                 rightAlias,
                 column.ColumnType,
                 TextSpan.Empty,
-                column.IntendedTypeName);
+                column.IntendedTypeName
+            );
 
             if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
                 continue;
 
-            fields.Add(
-                new FieldNode(accessColumnNode, i++, createRightFieldName(column.ColumnName, compoundTable)));
+            fields.Add(new FieldNode(accessColumnNode, i++, createRightFieldName(column.ColumnName, compoundTable)));
         }
 
         return fields.ToArray();
@@ -181,8 +186,11 @@ public static class FieldProcessingHelper
     /// <param name="useOuterFields">Whether to create outer fields.</param>
     /// <returns>Array of split fields: [aggregate, outer, raw aggregate].</returns>
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
-    public static FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit,
-        FieldNode[] groupByFields, bool useOuterFields)
+    public static FieldNode[][] SplitBetweenAggregateAndNonAggregate(
+        FieldNode[] fieldsToSplit,
+        FieldNode[] groupByFields,
+        bool useOuterFields
+    )
     {
         ArgumentNullException.ThrowIfNull(fieldsToSplit);
         var nestedFields = new List<FieldNode>();
@@ -268,12 +276,13 @@ public static class FieldProcessingHelper
 
     private static string GetAggregateFieldName(AccessMethodNode aggregateMethod)
     {
-        if (aggregateMethod.Arguments.Args.Length > 0 &&
-            aggregateMethod.Arguments.Args[0] is AggregateIdentifierNode aggregateIdentifier)
+        if (
+            aggregateMethod.Arguments.Args.Length > 0
+            && aggregateMethod.Arguments.Args[0] is AggregateIdentifierNode aggregateIdentifier
+        )
             return aggregateIdentifier.DisplayName;
 
-        if (aggregateMethod.Arguments.Args.Length > 0 &&
-            aggregateMethod.Arguments.Args[0] is WordNode nameArg)
+        if (aggregateMethod.Arguments.Args.Length > 0 && aggregateMethod.Arguments.Args[0] is WordNode nameArg)
             return nameArg.Value;
 
         return aggregateMethod.ToString();
@@ -286,8 +295,10 @@ public static class FieldProcessingHelper
     /// <param name="groupByFields">The group by fields.</param>
     /// <returns>The processed ordered fields.</returns>
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
-    public static FieldOrderedNode[] CreateAfterGroupByOrderByAccessFields(FieldOrderedNode[] fieldsToSplit,
-        FieldNode[] groupByFields)
+    public static FieldOrderedNode[] CreateAfterGroupByOrderByAccessFields(
+        FieldOrderedNode[] fieldsToSplit,
+        FieldNode[] groupByFields
+    )
     {
         ArgumentNullException.ThrowIfNull(fieldsToSplit);
         var outerFields = new List<FieldOrderedNode>();

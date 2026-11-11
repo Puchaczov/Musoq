@@ -14,7 +14,8 @@ public sealed class OperatorProfileScope : IDisposable
         OperatorProfileRecorder recorder,
         QueryProfileRecorder owner,
         int frameIndex,
-        int frameToken)
+        int frameToken
+    )
     {
         _recorder = recorder;
         _owner = owner;
@@ -22,9 +23,7 @@ public sealed class OperatorProfileScope : IDisposable
         _frameToken = frameToken;
     }
 
-    private OperatorProfileScope()
-    {
-    }
+    private OperatorProfileScope() { }
 
     public static OperatorProfileScope None { get; } = new();
 
@@ -48,8 +47,6 @@ public sealed class OperatorProfileScope : IDisposable
 
         _owner?.AddOperatorFrameOutputRows(_frameIndex, _frameToken, count);
     }
-
-
 
     public void Dispose()
     {

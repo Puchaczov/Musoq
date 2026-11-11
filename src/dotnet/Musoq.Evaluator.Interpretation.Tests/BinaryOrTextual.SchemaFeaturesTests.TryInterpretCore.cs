@@ -13,38 +13,43 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectTryInterpret_WithValidData_ShouldReturnResult()
     {
         // Arrange: TryInterpret with valid data
-        var query = @"
-            binary SimpleHeader {
-                Magic: int le,
-                Version: byte
-            };
-            select
-                d.Magic,
-                d.Version
-            from #test.files() f
-            cross apply TryInterpret<SimpleHeader>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary SimpleHeader {\n"
+            + "                Magic: int le,\n"
+            + "                Version: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                d.Magic,\n"
+            + "                d.Version\n"
+            + "            from #test.files() f\n"
+            + "            cross apply TryInterpret<SimpleHeader>(f.Content) d"
+        );
 
         var testData = new byte[5];
         BitConverter.GetBytes(0x12345678).CopyTo(testData, 0); // Magic
         testData[4] = 1; // Version
-        var entities = new[] { new BinaryEntity { Name = "valid.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "valid.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Magic", typeof(int)),
-            ("Version", typeof(byte)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Magic", typeof(int)), ("Version", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [0x12345678, (byte)1]);
     }
 
@@ -53,36 +58,41 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     {
         // Arrange: TryInterpret with insufficient data returns null for field values
         // Using OUTER APPLY, the row is preserved with null values for the parsed fields
-        var query = @"
-            binary SimpleValue {
-                Value: int le
-            };
-            select
-                f.Name,
-                d.Value
-            from #test.files() f
-            outer apply TryInterpret<SimpleValue>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary SimpleValue {\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                f.Name,\n"
+            + "                d.Value\n"
+            + "            from #test.files() f\n"
+            + "            outer apply TryInterpret<SimpleValue>(f.Content) d"
+        );
 
         // This data is invalid - only 2 bytes for a 4-byte int
         var testData = new byte[] { 0x01, 0x02 };
-        var entities = new[] { new BinaryEntity { Name = "invalid.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "invalid.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "invalid.bin", null });
     }
 
@@ -91,15 +101,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     {
         // Arrange: Mix of valid and invalid files
         // With TryInterpret + CROSS APPLY, failed parses (null result) are excluded from results
-        var query = @"
-            binary MagicHeader {
-                Magic: int le
-            };
-            select
-                f.Name,
-                d.Magic
-            from #test.files() f
-            cross apply TryInterpret<MagicHeader>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary MagicHeader {\n"
+            + "                Magic: int le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                f.Name,\n"
+            + "                d.Magic\n"
+            + "            from #test.files() f\n"
+            + "            cross apply TryInterpret<MagicHeader>(f.Content) d"
+        );
 
         var validData = new byte[4];
         BitConverter.GetBytes(0xDEADBEEF).CopyTo(validData, 0);
@@ -108,25 +120,25 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var entities = new[]
         {
             new BinaryEntity { Name = "valid.bin", Content = validData },
-            new BinaryEntity { Name = "invalid.bin", Content = invalidData }
+            new BinaryEntity { Name = "invalid.bin", Content = invalidData },
         };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Magic", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Magic", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["valid.bin", unchecked((int)0xDEADBEEF)]);
     }
 
@@ -135,16 +147,18 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     {
         // Arrange: Mix of valid and invalid files
         // With TryInterpret + OUTER APPLY, failed parses return rows with null field values
-        var query = @"
-            binary MagicHeader {
-                Magic: int le
-            };
-            select
-                f.Name,
-                d.Magic
-            from #test.files() f
-            outer apply TryInterpret<MagicHeader>(f.Content) d
-            order by f.Name asc";
+        var query = (
+            "\n"
+            + "            binary MagicHeader {\n"
+            + "                Magic: int le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                f.Name,\n"
+            + "                d.Magic\n"
+            + "            from #test.files() f\n"
+            + "            outer apply TryInterpret<MagicHeader>(f.Content) d\n"
+            + "            order by f.Name asc"
+        );
 
         var validData = new byte[4];
         BitConverter.GetBytes(0xDEADBEEF).CopyTo(validData, 0);
@@ -153,29 +167,30 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var entities = new[]
         {
             new BinaryEntity { Name = "invalid.bin", Content = invalidData },
-            new BinaryEntity { Name = "valid.bin", Content = validData }
+            new BinaryEntity { Name = "valid.bin", Content = validData },
         };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Magic", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Magic", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             new object?[] { "invalid.bin", null },
-            ["valid.bin", unchecked((int)0xDEADBEEF)]);
+            ["valid.bin", unchecked((int)0xDEADBEEF)]
+        );
     }
 
     /// <summary>
@@ -184,29 +199,37 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_TryInterpret_WithEmptyData_ShouldReturnNull()
     {
-        var query = @"
-            binary Header {
-                Magic: int le
-            };
-            select
-                f.Name,
-                d.Magic
-            from #test.files() f
-            outer apply TryInterpret<Header>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Magic: int le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                f.Name,\n"
+            + "                d.Magic\n"
+            + "            from #test.files() f\n"
+            + "            outer apply TryInterpret<Header>(f.Content) d"
+        );
 
         var emptyData = Array.Empty<byte>();
-        var entities = new[] { new BinaryEntity { Name = "empty.bin", Content = emptyData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "empty.bin", Content = emptyData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Magic", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Magic", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "empty.bin", null });
     }
 
@@ -216,24 +239,32 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_TryInterpret_AllInvalid_CrossApply_ReturnsNoRows()
     {
-        var query = @"
-            binary Header {
-                Value: int le
-            };
-            select d.Value
-            from #test.files() f
-            cross apply TryInterpret<Header>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            select d.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply TryInterpret<Header>(f.Content) d"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "a.bin", Content = [0x01] },
-            new BinaryEntity { Name = "b.bin", Content = [0x02, 0x03] }
+            new BinaryEntity { Name = "b.bin", Content = [0x02, 0x03] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
@@ -246,26 +277,34 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_TryInterpret_CountValidAndInvalid_ShouldCountCorrectly()
     {
-        var query = @"
-            binary Header {
-                Value: short le
-            };
-            select
-                Count(d.Value) as ValidCount
-            from #test.files() f
-            outer apply TryInterpret<Header>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Value: short le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                Count(d.Value) as ValidCount\n"
+            + "            from #test.files() f\n"
+            + "            outer apply TryInterpret<Header>(f.Content) d"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "valid1.bin", Content = [0x01, 0x00] },
             new BinaryEntity { Name = "valid2.bin", Content = [0x02, 0x00] },
-            new BinaryEntity { Name = "invalid.bin", Content = [0x01] }
+            new BinaryEntity { Name = "invalid.bin", Content = [0x01] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(table, ("ValidCount", typeof(long)));

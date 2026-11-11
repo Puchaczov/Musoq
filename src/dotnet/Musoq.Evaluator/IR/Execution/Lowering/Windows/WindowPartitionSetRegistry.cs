@@ -6,10 +6,7 @@ internal sealed class WindowPartitionSetRegistry
 {
     private readonly Dictionary<string, ExecutionVariable> _variables = new(StringComparer.Ordinal);
 
-    public ExecutionWindowPartitionSet GetOrAdd(
-        string signature,
-        ExecutionVariable candidate,
-        bool sortInPlace = false)
+    public ExecutionWindowPartitionSet GetOrAdd(string signature, ExecutionVariable candidate, bool sortInPlace = false)
     {
         if (_variables.TryGetValue(signature, out var variable))
             return new ExecutionWindowPartitionSet(variable, false, sortInPlace);

@@ -19,8 +19,10 @@ internal static class ByteBufferDemandPreimage
             if (program.Inputs[step.Argument] is not Literal { Value: int count })
                 return ByteBufferRequirement.Complete;
             var bounded = Math.Max(0, count);
-            prefix = step.Kind == ByteBufferStepKind.Take
-                ? Math.Min(prefix, bounded) : (int)Math.Min(int.MaxValue, (long)prefix + bounded);
+            prefix =
+                step.Kind == ByteBufferStepKind.Take
+                    ? Math.Min(prefix, bounded)
+                    : (int)Math.Min(int.MaxValue, (long)prefix + bounded);
         }
         return new(prefix, true, false);
     }

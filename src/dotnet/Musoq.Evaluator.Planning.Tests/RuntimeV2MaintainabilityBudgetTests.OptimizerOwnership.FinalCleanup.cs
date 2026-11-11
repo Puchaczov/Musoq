@@ -13,9 +13,12 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var files = EnumeratePhysicalBuilderLowererRendererFiles(repositoryRoot)
-            .Concat(global::Musoq.Tests.Common.RequiredSourceInventory.Files(
-                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter", "Build"),
-                "TransformTree*.cs"))
+            .Concat(
+                global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+                    Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter", "Build"),
+                    "TransformTree*.cs"
+                )
+            )
             .ToArray();
         string[] markers =
         [
@@ -23,15 +26,16 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "ProjectionPruningRewriter",
             "PlanningDecisionCategory.ProjectionPruning",
             "RequiredColumnMappingPlan",
-            "CreateRequiredColumnMappingPlans"
+            "CreateRequiredColumnMappingPlans",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, files, markers);
 
         Assert.IsEmpty(
             offenders,
-            "Projection pruning and required-column mapping decisions must stay in planning/physical optimizer passes: " +
-            string.Join(", ", offenders));
+            "Projection pruning and required-column mapping decisions must stay in planning/physical optimizer passes: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -44,39 +48,37 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "new BoundaryRowShapePlan(",
             "new RowWidthPruningPlan(",
             "BoundaryRowShapePlanner.Plan(",
-            "RowWidthPruningPlanner.Plan("
+            "RowWidthPruningPlanner.Plan(",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, files, markers);
 
         Assert.IsEmpty(
             offenders,
-            "Boundary row-shape and row-width pruning decisions must be created by planning and then consumed by lowerers: " +
-            string.Join(", ", offenders));
+            "Boundary row-shape and row-width pruning decisions must be created by planning and then consumed by lowerers: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void OptimizerOwnership_Renderers_ShouldNotOwnRowWidthPruning()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+        var rendererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"),
-                "ExecutionCSharpRenderer*.cs")
+                "ExecutionCSharpRenderer*.cs"
+            )
             .ToArray();
-        string[] markers =
-        [
-            "RowWidthPruning",
-            "BoundaryRowShape",
-            "FutureDroppableColumns",
-            "BoundaryOnlyColumns"
-        ];
+        string[] markers = ["RowWidthPruning", "BoundaryRowShape", "FutureDroppableColumns", "BoundaryOnlyColumns"];
 
         var offenders = FindFilesContainingAny(repositoryRoot, rendererFiles, markers);
 
         Assert.IsEmpty(
             offenders,
-            "Renderers must faithfully emit optimized Execution IR and must not make row-width pruning decisions: " +
-            string.Join(", ", offenders));
+            "Renderers must faithfully emit optimized Execution IR and must not make row-width pruning decisions: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -87,50 +89,57 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         [
             "src/dotnet/Musoq.Evaluator/IR/Optimization/Logical/PreLogicalNormalizer.cs",
             "src/dotnet/Musoq.Evaluator/IR/Optimization/Logical/DistinctToGroupByNormalizationPass.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/Logical/SubqueryToCteNormalizationPass.cs"
+            "src/dotnet/Musoq.Evaluator/IR/Optimization/Logical/SubqueryToCteNormalizationPass.cs",
         ];
         var files = EnumerateProductionSourceFiles(repositoryRoot)
-            .Where(file => !allowedPaths.Contains(
-                Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'),
-                StringComparer.Ordinal))
+            .Where(file =>
+                !allowedPaths.Contains(
+                    Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'),
+                    StringComparer.Ordinal
+                )
+            )
             .ToArray();
         string[] markers =
         [
             "new DistinctToGroupByVisitor(",
             "new DistinctToGroupByTraverseVisitor(",
             "new SubqueryToCteRewriteVisitor(",
-            "new SubqueryToCteRewriteTraverseVisitor("
+            "new SubqueryToCteRewriteTraverseVisitor(",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, files, markers);
 
         Assert.IsEmpty(
             offenders,
-            "Pre-logical AST normalization visitors must be invoked only by PreLogicalNormalizer: " +
-            string.Join(", ", offenders));
+            "Pre-logical AST normalization visitors must be invoked only by PreLogicalNormalizer: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void OptimizerOwnership_Renderers_ShouldNotOwnHelperExtractionReadability()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+        var rendererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"),
-                "ExecutionCSharpRenderer*.cs")
+                "ExecutionCSharpRenderer*.cs"
+            )
             .ToArray();
         string[] markers =
         [
             "HelperExtractionReadabilityPass",
             "HelperExtractionAnnotationKind",
-            "Musoq.HelperExtractionReadability"
+            "Musoq.HelperExtractionReadability",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, rendererFiles, markers);
 
         Assert.IsEmpty(
             offenders,
-            "Renderers may emit helper extraction candidate metadata, but readability approval belongs to CodegenReadabilityGroup: " +
-            string.Join(", ", offenders));
+            "Renderers may emit helper extraction candidate metadata, but readability approval belongs to CodegenReadabilityGroup: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -141,11 +150,14 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         {
             "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/HelperExtractionReadabilityPass.cs",
             "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/HelperExtractionReadabilityApproval.cs",
-            "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/ExecutionCodegenOptimizationPass.cs"
+            "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/ExecutionCodegenOptimizationPass.cs",
         };
         var files = EnumerateProductionSourceFiles(repositoryRoot)
-            .Where(file => !allowedPaths.Contains(
-                Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/')))
+            .Where(file =>
+                !allowedPaths.Contains(
+                    Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/')
+                )
+            )
             .ToArray();
         string[] markers =
         [
@@ -154,15 +166,16 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "CreateHelperAnnotation(",
             "CreateHelperCallAnnotation(",
             "TryExtractInlineBlock(",
-            "CreateInlineHelper("
+            "CreateInlineHelper(",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, files, markers);
 
         Assert.IsEmpty(
             offenders,
-            "Helper extraction approval and inline helper creation must stay in CodegenReadabilityGroup passes: " +
-            string.Join(", ", offenders));
+            "Helper extraction approval and inline helper creation must stay in CodegenReadabilityGroup passes: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -181,15 +194,16 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "RowWidthPruningPlanner.Plan(",
             "BoundaryRowShapePlanner.Plan(",
             "PredicateMovementPlanner.Plan(",
-            "PredicatePlacementPlanner.Plan("
+            "PredicatePlacementPlanner.Plan(",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, executionFiles, markers);
 
         Assert.IsEmpty(
             offenders,
-            "Execution lowerers and renderers must consume optimized IR or planner metadata, not run rule-based optimizer passes: " +
-            string.Join(", ", offenders));
+            "Execution lowerers and renderers must consume optimized IR or planner metadata, not run rule-based optimizer passes: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -202,8 +216,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         Assert.IsEmpty(
             offenders,
-            "Source capability decisions must stay in source planning and physical source rewrite passes, not renderers or Execution IR lowerers: " +
-            string.Join(", ", offenders));
+            "Source capability decisions must stay in source planning and physical source rewrite passes, not renderers or Execution IR lowerers: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -212,14 +227,18 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var samplesDirectory = GeneratedCodeSnapshotText.SamplesDirectory;
         var sampleFiles = Musoq.Evaluator.Tests.Architecture.RepositorySourceScan.FilesUnder(
-            repositoryRoot, Path.GetRelativePath(repositoryRoot, samplesDirectory), "*.cs");
+            repositoryRoot,
+            Path.GetRelativePath(repositoryRoot, samplesDirectory),
+            "*.cs"
+        );
 
         var offenders = FindFilesContainingAny(repositoryRoot, sampleFiles.ToArray(), SourceCapabilityDecisionMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Generated C# must consume immutable source execution plans only; source capability negotiation must not be synthesized in generated helpers: " +
-            string.Join(", ", offenders));
+            "Generated C# must consume immutable source execution plans only; source capability negotiation must not be synthesized in generated helpers: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -228,7 +247,10 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var samplesDirectory = GeneratedCodeSnapshotText.SamplesDirectory;
         var sampleFiles = Musoq.Evaluator.Tests.Architecture.RepositorySourceScan.FilesUnder(
-            repositoryRoot, Path.GetRelativePath(repositoryRoot, samplesDirectory), "*.cs");
+            repositoryRoot,
+            Path.GetRelativePath(repositoryRoot, samplesDirectory),
+            "*.cs"
+        );
         string[] markers =
         [
             "ProjectionPruningPhysicalPass",
@@ -237,22 +259,25 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "PredicatePlacementPlanner",
             "ExpressionCseHoistingPass",
             "SingleUsePipelineFusionPass",
-            "HelperExtractionReadabilityPass"
+            "HelperExtractionReadabilityPass",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, sampleFiles.ToArray(), markers);
 
         Assert.IsEmpty(
             offenders,
-            "Generated C# samples must contain query output and inspection text, not optimizer implementation type names: " +
-            string.Join(", ", offenders));
+            "Generated C# samples must contain query output and inspection text, not optimizer implementation type names: "
+                + string.Join(", ", offenders)
+        );
     }
 
     private static string[] EnumeratePhysicalBuilderLowererRendererFiles(string repositoryRoot)
     {
         var builders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
             Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Physical"),
-            "PhysicalPlanBuilder*.cs", SearchOption.AllDirectories);
+            "PhysicalPlanBuilder*.cs",
+            SearchOption.AllDirectories
+        );
         return builders.Concat(EnumerateExecutionLowererAndRendererFiles(repositoryRoot)).ToArray();
     }
 
@@ -260,10 +285,14 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var lowerers = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
             Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"),
-            "PhysicalLoweringImplementation*.cs", SearchOption.AllDirectories);
+            "PhysicalLoweringImplementation*.cs",
+            SearchOption.AllDirectories
+        );
         var renderers = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
             Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"),
-            "*.cs", SearchOption.AllDirectories);
+            "*.cs",
+            SearchOption.AllDirectories
+        );
         return lowerers.Concat(renderers).ToArray();
     }
 
@@ -280,6 +309,6 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         "ResidualTake",
         "SourcePlanRequest",
         "SourcePlanResult",
-        "TryPlanSource("
+        "TryPlanSource(",
     ];
 }

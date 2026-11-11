@@ -54,13 +54,19 @@ public sealed partial class StructuralInputBindingTests
     private CompiledQuery CompileNullableConstructorInput(string query)
     {
         return InstanceCreator.CompileForExecution(
-            query, Guid.NewGuid().ToString(), new NullableDefaultSchemaProvider(),
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false),
-            TestContext.CancellationToken);
+            query,
+            Guid.NewGuid().ToString(),
+            new NullableDefaultSchemaProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false),
+            TestContext.CancellationToken
+        );
     }
 
     public readonly record struct NullableDefaultInput(string? Mode = "constructor-default");
+
     public readonly record struct NullableNumberDefaultInput(int? Value = 7);
+
     public readonly record struct NullableDefaultRow(bool IsNull);
 
     private sealed class NullableDefaultSchemaProvider : ISchemaProvider
@@ -76,7 +82,8 @@ public sealed partial class StructuralInputBindingTests
 
     private sealed class NullableDefaultSchema : SchemaBase
     {
-        public NullableDefaultSchema() : base("specstressnullable", new MethodsAggregator(new MethodsManager()))
+        public NullableDefaultSchema()
+            : base("specstressnullable", new MethodsAggregator(new MethodsManager()))
         {
             AddTable<StructuredInputTable<NullableDefaultRow>>("probe");
             AddTypedSource<NullableDefaultSource>("probe");

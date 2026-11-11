@@ -6,7 +6,8 @@ public sealed record ExecutionDynamicRLikeMatch : ExecutionExpression
         ExecutionExpression input,
         ExecutionExpression pattern,
         ExecutionExpression cacheSlot,
-        ExecutionTypeRef returnType)
+        ExecutionTypeRef returnType
+    )
         : base(returnType)
     {
         Input = input ?? throw new ArgumentNullException(nameof(input));

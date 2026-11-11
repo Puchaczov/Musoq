@@ -34,10 +34,15 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenAdjacentStringConstantsAfterVariable_ShouldMerge()
     {
-        var source = new[] { new FoldEntity { Name = "hello", Value = 1 } };
+        var source = new[]
+        {
+            new FoldEntity { Name = "hello", Value = 1 },
+        };
 
         var vm = CreateAndRunVirtualMachine(
-            "select 'prefix:' + Name + ' - suffix' + 'More' from #schema.first()", source);
+            "select 'prefix:' + Name + ' - suffix' + 'More' from #schema.first()",
+            source
+        );
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -47,10 +52,12 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenAdjacentConstantsOnBothSides_ShouldMergeOnRight()
     {
-        var source = new[] { new FoldEntity { Name = "x", Value = 1 } };
+        var source = new[]
+        {
+            new FoldEntity { Name = "x", Value = 1 },
+        };
 
-        var vm = CreateAndRunVirtualMachine(
-            "select 'aaa' + Name + 'bbb' + 'ccc' from #schema.first()", source);
+        var vm = CreateAndRunVirtualMachine("select 'aaa' + Name + 'bbb' + 'ccc' from #schema.first()", source);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -60,10 +67,12 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenThreeAdjacentConstants_ShouldMergeAllOnRight()
     {
-        var source = new[] { new FoldEntity { Name = "X", Value = 1 } };
+        var source = new[]
+        {
+            new FoldEntity { Name = "X", Value = 1 },
+        };
 
-        var vm = CreateAndRunVirtualMachine(
-            "select Name + 'a' + 'b' + 'c' from #schema.first()", source);
+        var vm = CreateAndRunVirtualMachine("select Name + 'a' + 'b' + 'c' from #schema.first()", source);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -73,10 +82,12 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenVariableSurroundedByConstants_ShouldPreserveCorrectly()
     {
-        var source = new[] { new FoldEntity { Name = "World", Value = 1 } };
+        var source = new[]
+        {
+            new FoldEntity { Name = "World", Value = 1 },
+        };
 
-        var vm = CreateAndRunVirtualMachine(
-            "select 'Hello ' + Name + '!' from #schema.first()", source);
+        var vm = CreateAndRunVirtualMachine("select 'Hello ' + Name + '!' from #schema.first()", source);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -86,10 +97,12 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenMultipleVariablesWithConstants_ShouldOnlyFoldAdjacentConstants()
     {
-        var source = new[] { new FoldEntity { Name = "A", Value = 42 } };
+        var source = new[]
+        {
+            new FoldEntity { Name = "A", Value = 42 },
+        };
 
-        var vm = CreateAndRunVirtualMachine(
-            "select Name + ':' + ':' + Name from #schema.first()", source);
+        var vm = CreateAndRunVirtualMachine("select Name + ':' + ':' + Name from #schema.first()", source);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -104,7 +117,9 @@ public partial class ConstantFoldingTests
     public void WhenAndWithFalse_ShouldFoldToFalse()
     {
         var vm = CreateAndRunVirtualMachine(
-            "select Name from #schema.first() where true and false", SingleEntitySource);
+            "select Name from #schema.first() where true and false",
+            SingleEntitySource
+        );
         var table = vm.Run();
 
         Assert.AreEqual(0, table.Count);
@@ -113,8 +128,7 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenOrWithTrue_ShouldFoldToTrue()
     {
-        var vm = CreateAndRunVirtualMachine(
-            "select Name from #schema.first() where false or true", SingleEntitySource);
+        var vm = CreateAndRunVirtualMachine("select Name from #schema.first() where false or true", SingleEntitySource);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -123,8 +137,7 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenAndWithTrue_ShouldFoldToTrue()
     {
-        var vm = CreateAndRunVirtualMachine(
-            "select Name from #schema.first() where true and true", SingleEntitySource);
+        var vm = CreateAndRunVirtualMachine("select Name from #schema.first() where true and true", SingleEntitySource);
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
@@ -134,7 +147,9 @@ public partial class ConstantFoldingTests
     public void WhenOrWithFalse_ShouldFoldToFalse()
     {
         var vm = CreateAndRunVirtualMachine(
-            "select Name from #schema.first() where false or false", SingleEntitySource);
+            "select Name from #schema.first() where false or false",
+            SingleEntitySource
+        );
         var table = vm.Run();
 
         Assert.AreEqual(0, table.Count);

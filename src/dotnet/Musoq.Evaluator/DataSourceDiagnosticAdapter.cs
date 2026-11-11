@@ -13,8 +13,14 @@ internal static class DataSourceDiagnosticAdapter
         var visited = new HashSet<Exception>();
         for (var current = exception; current != null && visited.Add(current); current = current.InnerException)
         {
-            if (current is AggregateException) break;
-            if (current is Musoq.Schema.Exceptions.DataSourceLifecycleException { Code: Musoq.Parser.Diagnostics.DiagnosticCode.MQ7020_ReportedDataSourceFailure } lifecycle)
+            if (current is AggregateException)
+                break;
+            if (
+                current is Musoq.Schema.Exceptions.DataSourceLifecycleException
+                {
+                    Code: Musoq.Parser.Diagnostics.DiagnosticCode.MQ7020_ReportedDataSourceFailure
+                } lifecycle
+            )
             {
                 diagnostic = lifecycle;
                 return true;
@@ -31,7 +37,8 @@ internal static class DataSourceDiagnosticAdapter
                 MapReason(inputFailure.Reason),
                 DiagnosticSourceKind.DataSource,
                 MapLocation(inputFailure.Location),
-                inputFailure);
+                inputFailure
+            );
             return true;
         }
 
@@ -51,7 +58,11 @@ internal static class DataSourceDiagnosticAdapter
             DataSourceInputFailureReason.MalformedInput => RuntimeInputFailureReason.MalformedInput,
             DataSourceInputFailureReason.UnterminatedQuotedField => RuntimeInputFailureReason.UnterminatedQuotedField,
             DataSourceInputFailureReason.MalformedJson => RuntimeInputFailureReason.MalformedJson,
-            _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown datasource input failure reason.")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(reason),
+                reason,
+                "Unknown datasource input failure reason."
+            ),
         };
     }
 
@@ -64,6 +75,7 @@ internal static class DataSourceDiagnosticAdapter
                 location.Column,
                 location.ByteOffset,
                 location.CharacterOffset,
-                location.BytePositionInLine);
+                location.BytePositionInLine
+            );
     }
 }

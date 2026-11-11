@@ -10,16 +10,18 @@ internal sealed partial class PhysicalLoweringImplementation
         string payloadAlias,
         GeneratedRowShape rowShape,
         IReadOnlyList<ExecutionRowValue> rowValues,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         var fieldMap = CreatePayloadFieldValueMap(rowShape.Fields, rowValues);
-        return TryRewritePayloadKeyToProducerKey(expression, payloadAlias, fieldMap, out rewritten) &&
-               !ReferencesExecutionAlias(rewritten, payloadAlias);
+        return TryRewritePayloadKeyToProducerKey(expression, payloadAlias, fieldMap, out rewritten)
+            && !ReferencesExecutionAlias(rewritten, payloadAlias);
     }
 
     private static Dictionary<string, ExecutionExpression> CreatePayloadFieldValueMap(
         IReadOnlyList<FieldBinding> fields,
-        IReadOnlyList<ExecutionRowValue> payloadValues)
+        IReadOnlyList<ExecutionRowValue> payloadValues
+    )
     {
         var map = new Dictionary<string, ExecutionExpression>(StringComparer.OrdinalIgnoreCase);
         for (var index = 0; index < fields.Count && index < payloadValues.Count; index++)
@@ -38,7 +40,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static void AddPayloadFieldValue(
         IDictionary<string, ExecutionExpression> map,
         string key,
-        ExecutionExpression value)
+        ExecutionExpression value
+    )
     {
         if (!string.IsNullOrWhiteSpace(key))
             map.TryAdd(key, value);
@@ -48,7 +51,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionExpression expression,
         string payloadAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         switch (expression)
         {
@@ -73,7 +77,14 @@ internal sealed partial class PhysicalLoweringImplementation
             case ExecutionIsNullCheck isNull:
                 return TryRewriteIsNullPayloadKey(isNull, payloadAlias, fieldMap, out rewritten);
             case ExecutionStringConcatenation concatenation:
-                if (!TryRewritePayloadKeyExpressions(concatenation.Expressions, payloadAlias, fieldMap, out var operands))
+                if (
+                    !TryRewritePayloadKeyExpressions(
+                        concatenation.Expressions,
+                        payloadAlias,
+                        fieldMap,
+                        out var operands
+                    )
+                )
                 {
                     rewritten = null;
                     return false;
@@ -93,10 +104,13 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool TryRewritePayloadFieldRead(
         ExecutionFieldRead fieldRead,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
-        if (fieldRead.AccessStrategy is GeneratedFieldAccess generated &&
-            fieldMap.TryGetValue(generated.FieldName, out rewritten))
+        if (
+            fieldRead.AccessStrategy is GeneratedFieldAccess generated
+            && fieldMap.TryGetValue(generated.FieldName, out rewritten)
+        )
         {
             return true;
         }
@@ -112,10 +126,13 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionBinary binary,
         string payloadAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
-        if (!TryRewritePayloadKeyToProducerKey(binary.Left, payloadAlias, fieldMap, out var left) ||
-            !TryRewritePayloadKeyToProducerKey(binary.Right, payloadAlias, fieldMap, out var right))
+        if (
+            !TryRewritePayloadKeyToProducerKey(binary.Left, payloadAlias, fieldMap, out var left)
+            || !TryRewritePayloadKeyToProducerKey(binary.Right, payloadAlias, fieldMap, out var right)
+        )
         {
             rewritten = null;
             return false;
@@ -129,7 +146,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionUnary unary,
         string payloadAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         if (!TryRewritePayloadKeyToProducerKey(unary.Operand, payloadAlias, fieldMap, out var operand))
         {
@@ -145,7 +163,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionMethodCall method,
         string payloadAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         if (!TryRewritePayloadKeyExpressions(method.Arguments, payloadAlias, fieldMap, out var arguments))
         {
@@ -154,18 +173,16 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         ExecutionExpression? injectedSource = null;
-        if (method.InjectedSource != null &&
-            !TryRewritePayloadKeyToProducerKey(method.InjectedSource, payloadAlias, fieldMap, out injectedSource))
+        if (
+            method.InjectedSource != null
+            && !TryRewritePayloadKeyToProducerKey(method.InjectedSource, payloadAlias, fieldMap, out injectedSource)
+        )
         {
             rewritten = null;
             return false;
         }
 
-        rewritten = method with
-        {
-            Arguments = arguments,
-            InjectedSource = injectedSource
-        };
+        rewritten = method with { Arguments = arguments, InjectedSource = injectedSource };
         return true;
     }
 
@@ -173,7 +190,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionStrictCast strictCast,
         string payloadAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         if (!TryRewritePayloadKeyToProducerKey(strictCast.Expression, payloadAlias, fieldMap, out var expression))
         {
@@ -189,7 +207,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionIsNullCheck isNull,
         string payloadAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         if (!TryRewritePayloadKeyToProducerKey(isNull.Expression, payloadAlias, fieldMap, out var expression))
         {
@@ -205,7 +224,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionValueTupleKey valueTupleKey,
         string payloadAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         if (!TryRewritePayloadKeyExpressions(valueTupleKey.Parts, payloadAlias, fieldMap, out var parts))
         {
@@ -221,12 +241,20 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyList<ExecutionExpression> expressions,
         string payloadAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out IReadOnlyList<ExecutionExpression>? rewritten)
+        [NotNullWhen(true)] out IReadOnlyList<ExecutionExpression>? rewritten
+    )
     {
         var values = new ExecutionExpression[expressions.Count];
         for (var index = 0; index < expressions.Count; index++)
         {
-            if (!TryRewritePayloadKeyToProducerKey(expressions[index], payloadAlias, fieldMap, out var rewrittenExpression))
+            if (
+                !TryRewritePayloadKeyToProducerKey(
+                    expressions[index],
+                    payloadAlias,
+                    fieldMap,
+                    out var rewrittenExpression
+                )
+            )
             {
                 rewritten = null;
                 return false;

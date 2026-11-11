@@ -61,14 +61,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CrossApplyPredicatePruningSamples_WhenCheckedIn_ShouldExposeContinueGuards()
     {
-        foreach (var fileName in new[]
-                 {
-                     CrossApplyWhereLeftGuardSampleFileName,
-                     ChainedCrossApplyScopedGuardsSampleFileName,
-                     ChainedCrossApplyResidualPredicateSampleFileName,
-                     OuterApplyWhereLeftGuardSampleFileName,
-                     CrossApplyMethodWhereLeftGuardSampleFileName
-                 })
+        foreach (
+            var fileName in new[]
+            {
+                CrossApplyWhereLeftGuardSampleFileName,
+                ChainedCrossApplyScopedGuardsSampleFileName,
+                ChainedCrossApplyResidualPredicateSampleFileName,
+                OuterApplyWhereLeftGuardSampleFileName,
+                CrossApplyMethodWhereLeftGuardSampleFileName,
+            }
+        )
         {
             var sample = ReadSample(fileName).Content;
             Assert.Contains("continue;", sample, fileName);

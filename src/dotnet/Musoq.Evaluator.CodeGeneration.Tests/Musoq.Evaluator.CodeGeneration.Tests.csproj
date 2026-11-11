@@ -1,209 +1,209 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-    <LangVersion>preview</LangVersion>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsTestProject>true</IsTestProject>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="Moq" />
-    <PackageReference Include="MSTest.TestAdapter" />
-    <PackageReference Include="MSTest.TestFramework" />
-    <PackageReference Include="coverlet.collector">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Fixtures\**" />
-    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Musoq.Evaluator.Tests.Common.csproj" />
-    <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
-    <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
-    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
-    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
-    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
-    <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" />
-    <ProjectReference Include="..\Musoq.Targets.CSharpClr\Musoq.Targets.CSharpClr.csproj" />
-    <ProjectReference Include="..\Musoq.Targets.Execution.Analysis\Musoq.Targets.Execution.Analysis.csproj" />
-    <ProjectReference Include="..\\Musoq.Tests.Common\\Musoq.Tests.Common.csproj" />
-    <ProjectReference Include="..\\examples\\data-sources\\structured-inputs\\Musoq.Examples.DataSources.StructuredInputs.csproj" />
-    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalContracts\Musoq.Evaluator.Tests.External.Contracts.csproj" />
-    <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalRows\Musoq.Evaluator.Tests.External.Rows.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="GeneratedCodeSamplesShapeTests.ApplyAggregateTransitions.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.ApplyOrdinality.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.ApplyTransitions.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.BudgetsAndInterpretation.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.CollectionParameters.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.Constants.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.CorpusAndRuntime.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.CteSidecarIndexes.Assertions.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.CteSidecarIndexes.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.CteSidecarIndexes.Helpers.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.CteSidecarIndexes.Parallel.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.CtesSetsAndJoins.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.DescQuery.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.DirectJoins.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.FailureCollectors.AggregatesAndRetired.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.FailureCollectors.ChainedApply.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.FailureCollectors.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.JoinsAndAsOf.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.NullCoalescing.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.NullOrdering.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.NullSafeComparisons.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.OperatorBudgets.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.OrderingAndAggregateLowering.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.Pivot.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.Records.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.RuntimeHotPathClosure.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.RuntimeV2CastGrouping.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.RuntimeV2FastPathSamples.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.RuntimeV2ProjectionAndCorpusGuards.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.SampleAccess.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.Scanners.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.ScriptVariables.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.ShapeAssertions.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.ShapeBudgets.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.StarRename.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.Subqueries.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.Unpivot.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.ValuesStaticInputs.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.WindowsCtesOrderingAndAggregates.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="GeneratedCodeSamplesShapeTests.WindowsNoBoxing.cs">
-      <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="InterpreterCodeGenTests.Binary.cs">
-      <DependentUpon>InterpreterCodeGenTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="InterpreterCodeGenTests.Text.cs">
-      <DependentUpon>InterpreterCodeGenTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.CoreBlocks.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.Expressions.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.HashPayloads.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.AsOfAndAggregates.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.Core.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.Expressions.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.ProjectionsAndDynamic.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.ScriptParameters.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.Support.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.Windows.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.ScriptParameters.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.StaticMetadata.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.WindowsRowsAndAdapters.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.CSharpRendererTableViaRowsTests.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\ExecutionCSharpRendererTests.FinalProjectionSinkPlannerTests.cs">
-      <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
-    </Compile>
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <LangVersion>preview</LangVersion>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="Moq" />
+        <PackageReference Include="MSTest.TestAdapter" />
+        <PackageReference Include="MSTest.TestFramework" />
+        <PackageReference Include="coverlet.collector">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="Fixtures\**" />
+        <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Musoq.Evaluator.Tests.Common.csproj" />
+        <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
+        <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
+        <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+        <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
+        <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+        <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" />
+        <ProjectReference Include="..\Musoq.Targets.CSharpClr\Musoq.Targets.CSharpClr.csproj" />
+        <ProjectReference Include="..\Musoq.Targets.Execution.Analysis\Musoq.Targets.Execution.Analysis.csproj" />
+        <ProjectReference Include="..\\Musoq.Tests.Common\\Musoq.Tests.Common.csproj" />
+        <ProjectReference Include="..\\examples\\data-sources\\structured-inputs\\Musoq.Examples.DataSources.StructuredInputs.csproj" />
+        <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalContracts\Musoq.Evaluator.Tests.External.Contracts.csproj" />
+        <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Fixtures\ExternalRows\Musoq.Evaluator.Tests.External.Rows.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Update="GeneratedCodeSamplesShapeTests.ApplyAggregateTransitions.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.ApplyOrdinality.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.ApplyTransitions.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.BudgetsAndInterpretation.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.CollectionParameters.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.Constants.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.CorpusAndRuntime.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.CteSidecarIndexes.Assertions.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.CteSidecarIndexes.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.CteSidecarIndexes.Helpers.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.CteSidecarIndexes.Parallel.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.CtesSetsAndJoins.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.DescQuery.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.DirectJoins.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.FailureCollectors.AggregatesAndRetired.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.FailureCollectors.ChainedApply.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.FailureCollectors.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.JoinsAndAsOf.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.NullCoalescing.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.NullOrdering.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.NullSafeComparisons.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.OperatorBudgets.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.OrderingAndAggregateLowering.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.Pivot.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.Records.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.RuntimeHotPathClosure.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.RuntimeV2CastGrouping.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.RuntimeV2FastPathSamples.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.RuntimeV2ProjectionAndCorpusGuards.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.SampleAccess.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.Scanners.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.ScriptVariables.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.ShapeAssertions.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.ShapeBudgets.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.StarRename.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.Subqueries.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.Unpivot.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.ValuesStaticInputs.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.WindowsCtesOrderingAndAggregates.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="GeneratedCodeSamplesShapeTests.WindowsNoBoxing.cs">
+            <DependentUpon>GeneratedCodeSamplesShapeTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="InterpreterCodeGenTests.Binary.cs">
+            <DependentUpon>InterpreterCodeGenTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="InterpreterCodeGenTests.Text.cs">
+            <DependentUpon>InterpreterCodeGenTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.CoreBlocks.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.Expressions.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.HashPayloads.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.AsOfAndAggregates.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.Core.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.Expressions.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.ProjectionsAndDynamic.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.ScriptParameters.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.Support.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.PlanBuilders.Windows.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.ScriptParameters.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.StaticMetadata.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.WindowsRowsAndAdapters.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.CSharpRendererTableViaRowsTests.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="IR\ExecutionCSharpRendererTests.FinalProjectionSinkPlannerTests.cs">
+            <DependentUpon>ExecutionCSharpRendererTests.cs</DependentUpon>
+        </Compile>
+    </ItemGroup>
 </Project>

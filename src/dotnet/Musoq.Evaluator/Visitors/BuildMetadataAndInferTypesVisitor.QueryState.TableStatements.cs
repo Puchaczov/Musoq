@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -61,34 +61,47 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        if (node.TableName != null &&
-            !_sourceBinding.ExplicitlyDefinedTables.Keys.Any(
-                tableName => string.Equals(tableName, node.TableName, StringComparison.Ordinal)))
+        if (
+            node.TableName != null
+            && !_sourceBinding.ExplicitlyDefinedTables.Keys.Any(tableName =>
+                string.Equals(tableName, node.TableName, StringComparison.Ordinal)
+            )
+        )
         {
             var undefinedTable = new TableIsNotDefinedException(node.TableName, node.SpanOrEmpty());
             TryReportException(undefinedTable, node);
         }
 
-        if (_sourceBinding.ExplicitlyCoupledSources.Keys.Any(
-                alias => string.Equals(alias, node.MappedSchemaName, StringComparison.OrdinalIgnoreCase)))
+        if (
+            _sourceBinding.ExplicitlyCoupledSources.Keys.Any(alias =>
+                string.Equals(alias, node.MappedSchemaName, StringComparison.OrdinalIgnoreCase)
+            )
+        )
         {
             var duplicateAlias = new VisitorException(
                 nameof(BuildMetadataAndInferTypesVisitor),
                 "ValidateCoupleDefinition",
                 $"COUPLE alias '{node.MappedSchemaName}' is already defined in this query batch.",
                 DiagnosticCode.MQ3021_DuplicateAlias,
-                node.SpanOrEmpty());
+                node.SpanOrEmpty()
+            );
             TryReportException(duplicateAlias, node);
         }
 
-        if (!_sourceBinding.ExplicitlyCoupledSources.Keys.Any(
-                alias => string.Equals(alias, node.MappedSchemaName, StringComparison.OrdinalIgnoreCase)))
+        if (
+            !_sourceBinding.ExplicitlyCoupledSources.Keys.Any(alias =>
+                string.Equals(alias, node.MappedSchemaName, StringComparison.OrdinalIgnoreCase)
+            )
+        )
             _sourceBinding.ExplicitlyCoupledSources.Add(
                 node.MappedSchemaName,
-                new CoupledSourceDefinition(node.SchemaMethodNode, node.TableName, node.ProfileName));
-        PushSemanticNode(((CoupleNode)new CoupleNode(node.SchemaMethodNode, node.TableName, node.ProfileName, node.MappedSchemaName))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+                new CoupledSourceDefinition(node.SchemaMethodNode, node.TableName, node.ProfileName)
+            );
+        PushSemanticNode(
+            ((CoupleNode)new CoupleNode(node.SchemaMethodNode, node.TableName, node.ProfileName, node.MappedSchemaName))
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(StatementsArrayNode node)
@@ -106,10 +119,10 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (root.Expression is not StatementsArrayNode statements)
             return;
 
-        var orderedStatements = statements.Statements
-            .OrderBy(static statement => GetStatementSpan(statement).IsEmpty
-                ? int.MaxValue
-                : GetStatementSpan(statement).Start)
+        var orderedStatements = statements
+            .Statements.OrderBy(static statement =>
+                GetStatementSpan(statement).IsEmpty ? int.MaxValue : GetStatementSpan(statement).Start
+            )
             .ToArray();
         var declaredTables = orderedStatements
             .Select(static statement => statement.Node)
@@ -125,25 +138,30 @@ public partial class BuildMetadataAndInferTypesVisitor
                 case CreateTableNode table when phase != 0:
                     throw CreateStatementOrderException(
                         $"TABLE '{table.Name}' must appear before COUPLE statements and executable queries.",
-                        table);
+                        table
+                    );
                 case CreateTableNode:
                     break;
                 case EnumDeclarationNode declaration when phase != 0:
                     throw CreateStatementOrderException(
                         $"ENUM '{declaration.Name}' must appear before COUPLE statements and executable queries.",
-                        declaration);
+                        declaration
+                    );
                 case EnumDeclarationNode:
                     break;
                 case CoupleNode couple when phase >= 2:
                     throw CreateStatementOrderException(
                         $"COUPLE '{couple.MappedSchemaName}' must appear before CTEs and executable queries.",
-                        couple);
-                case CoupleNode couple when couple.TableName != null &&
-                    declaredTables.Contains(couple.TableName) &&
-                    !TableWasDeclaredBefore(orderedStatements, statement, couple.TableName):
+                        couple
+                    );
+                case CoupleNode couple
+                    when couple.TableName != null
+                        && declaredTables.Contains(couple.TableName)
+                        && !TableWasDeclaredBefore(orderedStatements, statement, couple.TableName):
                     throw CreateStatementOrderException(
                         $"TABLE '{couple.TableName}' must be declared before its COUPLE statement.",
-                        couple);
+                        couple
+                    );
                 case CoupleNode:
                     phase = 1;
                     break;
@@ -173,8 +191,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var typeName = column.TypeName.EndsWith("?", StringComparison.Ordinal)
                     ? column.TypeName[..^1]
                     : column.TypeName;
-                if (!enumPositions.TryGetValue(typeName, out var declarationIndex) ||
-                    declarationIndex < statementIndex)
+                if (!enumPositions.TryGetValue(typeName, out var declarationIndex) || declarationIndex < statementIndex)
                     continue;
 
                 var span = column.Span.IsEmpty ? table.SpanOrEmpty() : column.Span;
@@ -183,7 +200,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     "ValidateEnumDeclarationVisibility",
                     $"Enum type '{typeName}' must be declared before TABLE '{table.Name}' uses it. Enum declarations are visible only to following statements.",
                     DiagnosticCode.MQ3107_UnknownEnumType,
-                    span);
+                    span
+                );
             }
         }
     }
@@ -191,23 +209,25 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static bool TableWasDeclaredBefore(
         IReadOnlyList<StatementNode> statements,
         StatementNode current,
-        string tableName)
+        string tableName
+    )
     {
         foreach (var statement in statements)
         {
             if (ReferenceEquals(statement, current))
                 return false;
 
-            if (statement.Node is CreateTableNode table &&
-                string.Equals(table.Name, tableName, StringComparison.Ordinal))
+            if (
+                statement.Node is CreateTableNode table
+                && string.Equals(table.Name, tableName, StringComparison.Ordinal)
+            )
                 return true;
         }
 
         return false;
     }
 
-    private static TextSpan GetStatementSpan(StatementNode statement)
-        => GetNodeSpan(statement.Node);
+    private static TextSpan GetStatementSpan(StatementNode statement) => GetNodeSpan(statement.Node);
 
     private static TextSpan GetNodeSpan(Node node)
     {
@@ -231,7 +251,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             "ValidateStatementOrder",
             message,
             DiagnosticCode.MQ3102_InvalidStatementOrder,
-            node.SpanOrEmpty());
+            node.SpanOrEmpty()
+        );
 
     public override void Visit(StatementNode node)
     {

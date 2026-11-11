@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class CrossApplySelfPropertyTests : GenericEntityTestBase
 {
-
     [TestMethod]
     public void CrossApplyProperty_NoMatch_ShouldPass()
     {
@@ -18,20 +17,14 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Values = [] }
+            new() { City = "City1", Values = [] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Value", typeof(double)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Value", typeof(double)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -44,20 +37,14 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         {
             new() { City = "City1", Values = [1] },
             new() { City = "City2", Values = [2, 3] },
-            new() { City = "City3", Values = [4, 5, 6] }
+            new() { City = "City3", Values = [4, 5, 6] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Value", typeof(double)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Value", typeof(double)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", 1d],
@@ -65,7 +52,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             ["City2", 3d],
             ["City3", 4d],
             ["City3", 5d],
-            ["City3", 6d]);
+            ["City3", 6d]
+        );
     }
 
     [TestMethod]
@@ -77,20 +65,14 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         {
             new() { City = "City1", Values = [1] },
             new() { City = "City2", Values = [2, 3] },
-            new() { City = "City3", Values = [4, 5, 6] }
+            new() { City = "City3", Values = [4, 5, 6] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Value", typeof(double)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Value", typeof(double)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", 1d],
@@ -98,7 +80,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             ["City2", 3d],
             ["City3", 4d],
             ["City3", 5d],
-            ["City3", 6d]);
+            ["City3", 6d]
+        );
     }
 
     [TestMethod]
@@ -115,8 +98,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
                 Values =
                 [
                     new ComplexType1 { Value1 = "Value2", Value2 = 2 },
-                    new ComplexType1 { Value1 = "Value3", Value2 = 3 }
-                ]
+                    new ComplexType1 { Value1 = "Value3", Value2 = 3 },
+                ],
             },
             new()
             {
@@ -125,15 +108,12 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
                 [
                     new ComplexType1 { Value1 = "Value4", Value2 = 4 },
                     new ComplexType1 { Value1 = "Value5", Value2 = 5 },
-                    new ComplexType1 { Value1 = "Value6", Value2 = 6 }
-                ]
-            }
+                    new ComplexType1 { Value1 = "Value6", Value2 = 6 },
+                ],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -141,7 +121,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             table,
             ("City", typeof(string)),
             ("Value1", typeof(string)),
-            ("Value2", typeof(int)));
+            ("Value2", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Value1", 1],
@@ -149,7 +130,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             ["City2", "Value3", 3],
             ["City3", "Value4", 4],
             ["City3", "Value5", 5],
-            ["City3", "Value6", 6]);
+            ["City3", "Value6", 6]
+        );
     }
 
     [TestMethod]
@@ -166,8 +148,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
                 Values =
                 [
                     new ComplexType1 { Value1 = "Value2", Value2 = 2 },
-                    new ComplexType1 { Value1 = "Value3", Value2 = 3 }
-                ]
+                    new ComplexType1 { Value1 = "Value3", Value2 = 3 },
+                ],
             },
             new()
             {
@@ -176,15 +158,12 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
                 [
                     new ComplexType1 { Value1 = "Value4", Value2 = 4 },
                     new ComplexType1 { Value1 = "Value5", Value2 = 5 },
-                    new ComplexType1 { Value1 = "Value6", Value2 = 6 }
-                ]
-            }
+                    new ComplexType1 { Value1 = "Value6", Value2 = 6 },
+                ],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -192,7 +171,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             table,
             ("City", typeof(string)),
             ("Value1", typeof(string)),
-            ("Value2", typeof(int)));
+            ("Value2", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Value1", 1],
@@ -200,7 +180,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             ["City2", "Value3", 3],
             ["City3", "Value4", 4],
             ["City3", "Value5", 5],
-            ["City3", "Value6", 6]);
+            ["City3", "Value6", 6]
+        );
     }
 
     [TestMethod]
@@ -211,30 +192,50 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass5>
         {
-            new() { City = "City1", Values1 = [1], Values2 = [1.1] },
-            new() { City = "City2", Values1 = [2, 3], Values2 = [2.1, 2.2, 3.3] },
-            new() { City = "City3", Values1 = [4, 5, 6], Values2 = [4.1, 5.1, 6.1] }
+            new()
+            {
+                City = "City1",
+                Values1 = [1],
+                Values2 = [1.1],
+            },
+            new()
+            {
+                City = "City2",
+                Values1 = [2, 3],
+                Values2 = [2.1, 2.2, 3.3],
+            },
+            new()
+            {
+                City = "City3",
+                Values1 = [4, 5, 6],
+                Values2 = [4.1, 5.1, 6.1],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Value", typeof(double)),
-            ("Value", typeof(double)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(double)), ("Value", typeof(double)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [1d, 1.1d],
-            [2d, 2.1d], [2d, 2.2d], [2d, 3.3d],
-            [3d, 2.1d], [3d, 2.2d], [3d, 3.3d],
-            [4d, 4.1d], [4d, 5.1d], [4d, 6.1d],
-            [5d, 4.1d], [5d, 5.1d], [5d, 6.1d],
-            [6d, 4.1d], [6d, 5.1d], [6d, 6.1d]);
+            [2d, 2.1d],
+            [2d, 2.2d],
+            [2d, 3.3d],
+            [3d, 2.1d],
+            [3d, 2.2d],
+            [3d, 3.3d],
+            [4d, 4.1d],
+            [4d, 5.1d],
+            [4d, 6.1d],
+            [5d, 4.1d],
+            [5d, 5.1d],
+            [5d, 6.1d],
+            [6d, 4.1d],
+            [6d, 5.1d],
+            [6d, 6.1d]
+        );
     }
 
     [TestMethod]
@@ -255,64 +256,79 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
                         {
                             new ComplexType3
                             {
-                                Values = { new ComplexType4 { Value = "Value1" }, new ComplexType4 { Value = "Value2" } }
+                                Values =
+                                {
+                                    new ComplexType4 { Value = "Value1" },
+                                    new ComplexType4 { Value = "Value2" },
+                                },
                             },
                             new ComplexType3
                             {
-                                Values = { new ComplexType4 { Value = "Value3" }, new ComplexType4 { Value = "Value4" } }
-                            }
-                        }
+                                Values =
+                                {
+                                    new ComplexType4 { Value = "Value3" },
+                                    new ComplexType4 { Value = "Value4" },
+                                },
+                            },
+                        },
                     },
-
                     new ComplexType2
                     {
                         Values =
                         {
                             new ComplexType3
                             {
-                                Values = { new ComplexType4 { Value = "Value5" }, new ComplexType4 { Value = "Value6" } }
+                                Values =
+                                {
+                                    new ComplexType4 { Value = "Value5" },
+                                    new ComplexType4 { Value = "Value6" },
+                                },
                             },
                             new ComplexType3
                             {
-                                Values = { new ComplexType4 { Value = "Value7" }, new ComplexType4 { Value = "Value8" } }
-                            }
-                        }
-                    }
-                }
-            }
+                                Values =
+                                {
+                                    new ComplexType4 { Value = "Value7" },
+                                    new ComplexType4 { Value = "Value8" },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Value1"], ["Value2"], ["Value3"], ["Value4"],
-            ["Value5"], ["Value6"], ["Value7"], ["Value8"]);
+            ["Value1"],
+            ["Value2"],
+            ["Value3"],
+            ["Value4"],
+            ["Value5"],
+            ["Value6"],
+            ["Value7"],
+            ["Value8"]
+        );
     }
 
     [TestMethod]
     public void CrossApplyProperty_AliasMatchingUnusedCte_ShouldPass()
     {
-        const string query =
-            """
-            with a as (
-                select 1 from #schema.first()
-            )
-            select d.Value from #schema.first() a cross apply a.Values as b cross apply b.Values as c cross apply c.Values as d
-            """;
+        const string query = (
+            "with a as (\n"
+            + "    select 1 from #schema.first()\n"
+            + ")\n"
+            + "select d.Value from #schema.first() a cross apply a.Values as b cross apply b.Values as c cross apply c.Values as d"
+        );
 
         var firstSource = new List<CrossApplyClass6>().ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -323,28 +339,16 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenApplyChainedProperty_WithPrimitiveList_ShouldPass()
     {
-        const string query = """
-                             select
-                                b.Value
-                             from #schema.first() a
-                             cross apply a.ComplexType.PrimitiveValues as b
-                             """;
+        const string query = (
+            "select\n" + "   b.Value\n" + "from #schema.first() a\n" + "cross apply a.ComplexType.PrimitiveValues as b"
+        );
 
         var firstSource = new List<CrossApplyClass7>
         {
-            new()
-            {
-                ComplexType = new ComplexType5
-                {
-                    PrimitiveValues = { 1, 2 }
-                }
-            }
+            new() { ComplexType = new ComplexType5 { PrimitiveValues = { 1, 2 } } },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -355,12 +359,9 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenApplyChainedProperty_WithComplexList_ShouldPass()
     {
-        const string query = """
-                             select
-                                b.Value
-                             from #schema.first() a
-                             cross apply a.ComplexType.ComplexValues as b
-                             """;
+        const string query = (
+            "select\n" + "   b.Value\n" + "from #schema.first() a\n" + "cross apply a.ComplexType.ComplexValues as b"
+        );
 
         var firstSource = new List<CrossApplyClass7>
         {
@@ -368,15 +369,16 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             {
                 ComplexType = new ComplexType5
                 {
-                    ComplexValues = { new ComplexType6 { Value = 1 }, new ComplexType6 { Value = 2 } }
-                }
-            }
+                    ComplexValues =
+                    {
+                        new ComplexType6 { Value = 1 },
+                        new ComplexType6 { Value = 2 },
+                    },
+                },
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -387,14 +389,14 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenGroupByAndOrderByWithAccessMethod_ShouldPass()
     {
-        const string query = """
-                             select
-                                b.GetTypeName(b.Value)
-                             from #schema.first() a
-                             cross apply a.ComplexType.ComplexValues as b
-                             group by b.GetTypeName(b.Value)
-                             order by b.GetTypeName(b.Value)
-                             """;
+        const string query = (
+            "select\n"
+            + "   b.GetTypeName(b.Value)\n"
+            + "from #schema.first() a\n"
+            + "cross apply a.ComplexType.ComplexValues as b\n"
+            + "group by b.GetTypeName(b.Value)\n"
+            + "order by b.GetTypeName(b.Value)"
+        );
 
         var firstSource = new List<CrossApplyClass7>
         {
@@ -402,15 +404,16 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             {
                 ComplexType = new ComplexType5
                 {
-                    ComplexValues = { new ComplexType6 { Value = 1 }, new ComplexType6 { Value = 2 } }
-                }
-            }
+                    ComplexValues =
+                    {
+                        new ComplexType6 { Value = 1 },
+                        new ComplexType6 { Value = 2 },
+                    },
+                },
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -444,14 +447,16 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     {
         public string City { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public ComplexType1[] Values { get; set; } = [];
+        [BindablePropertyAsTable]
+        public ComplexType1[] Values { get; set; } = [];
     }
 
     public sealed class CrossApplyClass4
     {
         public string City { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public List<ComplexType1> Values { get; set; } = [];
+        [BindablePropertyAsTable]
+        public List<ComplexType1> Values { get; set; } = [];
     }
 
     public sealed class CrossApplyClass5
@@ -475,12 +480,14 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     // ReSharper disable once MemberCanBePrivate.Global
     public class ComplexType2
     {
-        [BindablePropertyAsTable] public List<ComplexType3> Values { get; } = [];
+        [BindablePropertyAsTable]
+        public List<ComplexType3> Values { get; } = [];
     }
 
     public sealed class CrossApplyClass6
     {
-        [BindablePropertyAsTable] public List<ComplexType2> Values { get; set; } = [];
+        [BindablePropertyAsTable]
+        public List<ComplexType2> Values { get; set; } = [];
     }
 
     public sealed class CrossApplyClass7
@@ -490,9 +497,11 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
     public class ComplexType5
     {
-        [BindablePropertyAsTable] public List<int> PrimitiveValues { get; } = [];
+        [BindablePropertyAsTable]
+        public List<int> PrimitiveValues { get; } = [];
 
-        [BindablePropertyAsTable] public List<ComplexType6> ComplexValues { get; } = [];
+        [BindablePropertyAsTable]
+        public List<ComplexType6> ComplexValues { get; } = [];
     }
 
     public class ComplexType6

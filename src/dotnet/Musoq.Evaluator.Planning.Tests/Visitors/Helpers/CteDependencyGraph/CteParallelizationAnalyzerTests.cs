@@ -15,14 +15,13 @@ public class CteParallelizationAnalyzerTests
     public void CreatePlan_WhenPreCancelled_ShouldThrowOriginalCancellation()
     {
         var cte = new CteInnerExpressionNode(new IntegerNode("1"), "cte");
-        var expression = new CteExpressionNode(
-            [cte],
-            new InMemoryTableFromNode("cte", "c", typeof(object)));
+        var expression = new CteExpressionNode([cte], new InMemoryTableFromNode("cte", "c", typeof(object)));
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
         var exception = Assert.Throws<OperationCanceledException>(() =>
-            CteParallelizationAnalyzer.CreatePlan(expression, cancellation.Token));
+            CteParallelizationAnalyzer.CreatePlan(expression, cancellation.Token)
+        );
 
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
     }
@@ -42,8 +41,13 @@ public class CteParallelizationAnalyzerTests
 
         var outerFromC = new InMemoryTableFromNode("cteC", "c", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteB", outerFromC, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteB",
+            outerFromC,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB, cteC], outerQuery);
 
@@ -94,8 +98,13 @@ public class CteParallelizationAnalyzerTests
 
         var outerFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteA", outerFromB, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            outerFromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB], outerQuery);
 
@@ -158,8 +167,13 @@ public class CteParallelizationAnalyzerTests
 
         var outerFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteA", outerFromB, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            outerFromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB], outerQuery);
 
@@ -219,8 +233,13 @@ public class CteParallelizationAnalyzerTests
 
         var cteDFromC = new InMemoryTableFromNode("cteC", "c", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var cteDValue =
-            new JoinInMemoryWithSourceTableFromNode("cteB", cteDFromC, joinCondition, JoinType.Inner, typeof(object));
+        var cteDValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteB",
+            cteDFromC,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteA = new CteInnerExpressionNode(cteAValue, "cteA");
         var cteB = new CteInnerExpressionNode(cteBValue, "cteB");
@@ -310,8 +329,13 @@ public class CteParallelizationAnalyzerTests
 
         var outerFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteA", outerFromB, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            outerFromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB], outerQuery);
 
@@ -416,8 +440,13 @@ public class CteParallelizationAnalyzerTests
 
         var fromD = new InMemoryTableFromNode("cteD", "d", typeof(object));
         var joinCond = new BooleanNode(true);
-        var cteEValue =
-            new JoinInMemoryWithSourceTableFromNode("cteC", fromD, joinCond, JoinType.Inner, typeof(object));
+        var cteEValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteC",
+            fromD,
+            joinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteA = new CteInnerExpressionNode(cteAValue, "cteA");
         var cteB = new CteInnerExpressionNode(cteBValue, "cteB");

@@ -11,7 +11,8 @@ public class TextSchemaProvider(IDictionary<string, IEnumerable<TextEntity>> val
 {
     public ISchema GetSchema(string schema)
     {
-        if (values.TryGetValue(schema, out var entities)) return new TextSchema(entities);
+        if (values.TryGetValue(schema, out var entities))
+            return new TextSchema(entities);
         throw new InvalidOperationException($"Schema '{schema}' not found");
     }
 }

@@ -21,7 +21,12 @@ public sealed partial class IsDistinctFromTests
 
         var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, EmptySources()));
 
-        MusoqExceptionAssertions.AssertSingleError(exception, DiagnosticCode.MQ2022_InvalidAlias, DiagnosticPhase.Parse, "alias");
+        MusoqExceptionAssertions.AssertSingleError(
+            exception,
+            DiagnosticCode.MQ2022_InvalidAlias,
+            DiagnosticPhase.Parse,
+            "alias"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(exception);
         Assert.AreEqual(17, exception.PrimaryEnvelope.Offset);
         Assert.AreEqual(4, exception.PrimaryEnvelope.Length);
@@ -34,7 +39,12 @@ public sealed partial class IsDistinctFromTests
 
         var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, EmptySources()));
 
-        MusoqExceptionAssertions.AssertSingleError(exception, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "field name");
+        MusoqExceptionAssertions.AssertSingleError(
+            exception,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            DiagnosticPhase.Parse,
+            "field name"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(exception);
         Assert.AreEqual(160, exception.PrimaryEnvelope.Offset);
         Assert.AreEqual(4, exception.PrimaryEnvelope.Length);
@@ -43,19 +53,27 @@ public sealed partial class IsDistinctFromTests
     [TestMethod]
     public void ProjectedStringDistinctnessWithQuotedCaseIdentifiers_ShouldMatchNullSafeTruthTable()
     {
-        var query = "select p.Case as [Case], " + StringPairComparisons +
-                    StringPairsSource.Replace("(Case:", "([Case]:", StringComparison.Ordinal);
+        var query =
+            "select p.Case as [Case], "
+            + StringPairComparisons
+            + StringPairsSource.Replace("(Case:", "([Case]:", StringComparison.Ordinal);
         using var compiled = CreateAndRunVirtualMachine(query, EmptySources());
 
         using var result = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("Case", typeof(string)), ("IsDistinct", typeof(bool)), ("IsNotDistinct", typeof(bool)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Case", typeof(string)),
+            ("IsDistinct", typeof(bool)),
+            ("IsNotDistinct", typeof(bool))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
             ["null-null", false, true],
             ["null-value", true, false],
             ["value-null", true, false],
             ["same-value", false, true],
-            ["different-value", true, false]);
+            ["different-value", true, false]
+        );
     }
 }

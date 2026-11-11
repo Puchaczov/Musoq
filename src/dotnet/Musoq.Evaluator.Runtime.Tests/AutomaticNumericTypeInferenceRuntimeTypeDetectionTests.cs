@@ -13,12 +13,13 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     [TestMethod]
     public void WhenDeclaredColumnContainsByte_AndComparingToInt_ShouldWork()
     {
-        const string query = "table Items {" +
-                             "  Value: byte," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value > 100";
+        const string query =
+            "table Items {"
+            + "  Value: byte,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value > 100";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (object)(byte)50;
@@ -44,12 +45,13 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     [TestMethod]
     public void WhenDeclaredColumnContainsLong_AndComparingToInt_ShouldWork()
     {
-        const string query = "table Items {" +
-                             "  Value: long," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value > 1000";
+        const string query =
+            "table Items {"
+            + "  Value: long,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value > 1000";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (object)500L;
@@ -75,12 +77,13 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     [TestMethod]
     public void WhenDeclaredColumnContainsDouble_AndComparingToDecimal_ShouldWork()
     {
-        const string query = "table Items {" +
-                             "  Price: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Price > 25.00";
+        const string query =
+            "table Items {"
+            + "  Price: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Price > 25.00";
 
         dynamic item1 = new ExpandoObject();
         item1.Price = (object)19.99;
@@ -106,12 +109,13 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     [TestMethod]
     public void WhenDeclaredColumnContainsDecimal_AndComparingToDecimal_ShouldWork()
     {
-        const string query = "table Items {" +
-                             "  Price: decimal," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Price = 30.50";
+        const string query =
+            "table Items {"
+            + "  Price: decimal,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Price = 30.50";
 
         dynamic item1 = new ExpandoObject();
         item1.Price = (object)19.99m;
@@ -135,12 +139,13 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     [TestMethod]
     public void WhenDeclaredDecimalColumnContainsMixedValues_ShouldPreserveComparisonResults()
     {
-        const string query = "table Items {" +
-                             "  Value: decimal," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value > 100";
+        const string query =
+            "table Items {"
+            + "  Value: decimal,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value > 100";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = 50m;
@@ -165,7 +170,6 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3, item4, item5]);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(4, table.Count);
         var results = table.Select(row => row.ReadValues()[0]).Cast<string>().OrderBy(x => x).ToList();
         CollectionAssert.Contains(results, "Int150");
@@ -177,12 +181,13 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     [TestMethod]
     public void WhenDeclaredColumnContainsFloat_AndComparingToInt_ShouldWork()
     {
-        const string query = "table Items {" +
-                             "  Value: float," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value > 100";
+        const string query =
+            "table Items {"
+            + "  Value: float,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value > 100";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (object)50.5f;
@@ -208,12 +213,13 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     [TestMethod]
     public void WhenDeclaredColumnContainsShort_AndComparingToInt_ShouldWork()
     {
-        const string query = "table Items {" +
-                             "  Value: short," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value = 150";
+        const string query =
+            "table Items {"
+            + "  Value: short,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = 150";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (object)(short)50;
@@ -233,7 +239,6 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Medium", table[0].ReadValues()[0]);
     }
-
 
     #endregion
 }

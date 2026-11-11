@@ -14,11 +14,7 @@ public sealed class ExpressionStabilityAnalyzerTests
     public void StableColumnAndCompositionAreStable()
     {
         var column = new ColumnRef("a", "Value", typeof(int));
-        var expression = new BinaryOp(
-            BinaryOpKind.Add,
-            column,
-            new Literal(1, typeof(int)),
-            typeof(int));
+        var expression = new BinaryOp(BinaryOpKind.Add, column, new Literal(1, typeof(int)), typeof(int));
 
         Assert.IsTrue(ExpressionStabilityAnalyzer.IsStable(column));
         Assert.IsTrue(ExpressionStabilityAnalyzer.IsStable(expression));
@@ -28,15 +24,8 @@ public sealed class ExpressionStabilityAnalyzerTests
     [TestMethod]
     public void VolatileColumnTaintsCompositionAndCseFacts()
     {
-        var column = new ColumnRef("a", "Value", typeof(int))
-        {
-            Stability = ColumnStability.Volatile
-        };
-        var expression = new BinaryOp(
-            BinaryOpKind.Add,
-            column,
-            new Literal(1, typeof(int)),
-            typeof(int));
+        var column = new ColumnRef("a", "Value", typeof(int)) { Stability = ColumnStability.Volatile };
+        var expression = new BinaryOp(BinaryOpKind.Add, column, new Literal(1, typeof(int)), typeof(int));
 
         Assert.IsFalse(ExpressionStabilityAnalyzer.IsStable(expression));
         Assert.IsFalse(IrExpressionDeterminism.IsDeterministic(expression));
@@ -48,15 +37,23 @@ public sealed class ExpressionStabilityAnalyzerTests
     public void NonDeterministicMethodAndInjectedContextAreUnstable()
     {
         var volatileCall = new MethodCall(
-            typeof(StabilityFixture).GetMethod(nameof(StabilityFixture.Volatile), BindingFlags.Public | BindingFlags.Static)!,
+            typeof(StabilityFixture).GetMethod(
+                nameof(StabilityFixture.Volatile),
+                BindingFlags.Public | BindingFlags.Static
+            )!,
             [],
             null,
-            typeof(int));
+            typeof(int)
+        );
         var injectedCall = new MethodCall(
-            typeof(StabilityFixture).GetMethod(nameof(StabilityFixture.WithStats), BindingFlags.Public | BindingFlags.Static)!,
+            typeof(StabilityFixture).GetMethod(
+                nameof(StabilityFixture.WithStats),
+                BindingFlags.Public | BindingFlags.Static
+            )!,
             [],
             null,
-            typeof(int));
+            typeof(int)
+        );
 
         Assert.IsFalse(ExpressionStabilityAnalyzer.IsStable(volatileCall));
         Assert.IsFalse(ExpressionStabilityAnalyzer.IsStable(injectedCall));

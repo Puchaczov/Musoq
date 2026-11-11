@@ -18,7 +18,8 @@ internal static partial class SourcePlanningPlanner
         PlanningContext context,
         IReadOnlyList<SchemaScanNode> scans,
         IReadOnlyDictionary<string, RequiredColumnUsage[]> requiredColumnUsagesBySourceId,
-        IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlansBySourceId)
+        IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlansBySourceId
+    )
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(scans);
@@ -28,7 +29,8 @@ internal static partial class SourcePlanningPlanner
         var sourceLocalRequests = BuildSourceLocalRequests(
             context,
             requiredColumnUsagesBySourceId,
-            sourcePredicatePlansBySourceId);
+            sourcePredicatePlansBySourceId
+        );
         var requests = new Dictionary<string, SourcePlanRequest>(StringComparer.Ordinal);
         var results = new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal);
         var descriptors = new Dictionary<string, SourceDescriptor>(StringComparer.Ordinal);
@@ -42,14 +44,23 @@ internal static partial class SourcePlanningPlanner
                 continue;
 
             var sourceNode = ResolveSourceNode(context, scan);
-            var identity = sourceNode != null
-                ? SourceIdentityFactory.Create(sourceNode)
-                : new SourceIdentity(scan.SchemaName, scan.MethodName, scan.SourceContextId, scan.Alias);
+            var identity =
+                sourceNode != null
+                    ? SourceIdentityFactory.Create(sourceNode)
+                    : new SourceIdentity(scan.SchemaName, scan.MethodName, scan.SourceContextId, scan.Alias);
             var request = sourceLocalRequests.TryGetValue(scan.SourceContextId, out var sourceLocalRequest)
                 ? sourceLocalRequest
-                : CreateEmptyRequest(context, identity, scan, requiredColumnUsagesBySourceId, sourcePredicatePlansBySourceId);
+                : CreateEmptyRequest(
+                    context,
+                    identity,
+                    scan,
+                    requiredColumnUsagesBySourceId,
+                    sourcePredicatePlansBySourceId
+                );
             request = request with { CancellationToken = context.CancellationToken };
-            var usages = requiredColumnUsagesBySourceId.TryGetValue(scan.SourceContextId, out var required) ? required : [];
+            var usages = requiredColumnUsagesBySourceId.TryGetValue(scan.SourceContextId, out var required)
+                ? required
+                : [];
             var sourcePlan = PlanSource(context, scan, sourceNode, request, usages);
 
             request = sourcePlan.Request;
@@ -57,15 +68,25 @@ internal static partial class SourcePlanningPlanner
             results[scan.SourceContextId] = sourcePlan.Result;
             descriptors[scan.SourceContextId] = sourcePlan.Descriptor;
             decisions.Add(CreateDecision(scan, request, sourcePlan.Result));
-            if (sourcePlan.Computed.ResolveValidatedAcceptance(sourcePlan.Result, context.CancellationToken) is { } transfer)
+            if (
+                sourcePlan.Computed.ResolveValidatedAcceptance(sourcePlan.Result, context.CancellationToken) is
+                { } transfer
+            )
             {
                 computedTransfers ??= new Dictionary<string, SourceComputedTransferPlan>(StringComparer.Ordinal);
                 computedTransfers.Add(scan.SourceContextId, transfer);
             }
             if (sourcePlan.Computed.DeclinedForTransferCost > 0)
-                decisions.Add(new PlanningDecision(PlanningDecisionCategory.SourcePlanning, "ComputedProjectionTransferCost",
-                    scan.SourceContextId, "RetainedInCore", PlanningConfidence.Medium,
-                    $"Kept {sourcePlan.Computed.DeclinedForTransferCost} portable projection(s) in Core because the estimated transfer growth exceeded scalar reuse benefits."));
+                decisions.Add(
+                    new PlanningDecision(
+                        PlanningDecisionCategory.SourcePlanning,
+                        "ComputedProjectionTransferCost",
+                        scan.SourceContextId,
+                        "RetainedInCore",
+                        PlanningConfidence.Medium,
+                        $"Kept {sourcePlan.Computed.DeclinedForTransferCost} portable projection(s) in Core because the estimated transfer growth exceeded scalar reuse benefits."
+                    )
+                );
         }
 
         return new SourcePlanningResult(requests, results, descriptors, decisions, computedTransfers);
@@ -74,7 +95,8 @@ internal static partial class SourcePlanningPlanner
     private static Dictionary<string, SourcePlanRequest> BuildSourceLocalRequests(
         PlanningContext context,
         IReadOnlyDictionary<string, RequiredColumnUsage[]> requiredColumnUsagesBySourceId,
-        IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlansBySourceId)
+        IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlansBySourceId
+    )
     {
         var result = new Dictionary<string, SourcePlanRequest>(StringComparer.Ordinal);
 
@@ -83,7 +105,8 @@ internal static partial class SourcePlanningPlanner
             context,
             requiredColumnUsagesBySourceId,
             sourcePredicatePlansBySourceId,
-            result);
+            result
+        );
 
         return result;
     }
@@ -93,16 +116,20 @@ internal static partial class SourcePlanningPlanner
         PlanningContext context,
         IReadOnlyDictionary<string, RequiredColumnUsage[]> requiredColumnUsagesBySourceId,
         IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlansBySourceId,
-        IDictionary<string, SourcePlanRequest> requests)
+        IDictionary<string, SourcePlanRequest> requests
+    )
     {
         context.CancellationToken.ThrowIfCancellationRequested();
-        if (TryBuildSourceLocalRequest(
+        if (
+            TryBuildSourceLocalRequest(
                 node,
                 context,
                 requiredColumnUsagesBySourceId,
                 sourcePredicatePlansBySourceId,
                 out var sourceContextId,
-                out var request))
+                out var request
+            )
+        )
         {
             requests[sourceContextId] = request;
             return;
@@ -116,7 +143,8 @@ internal static partial class SourcePlanningPlanner
                 context,
                 requiredColumnUsagesBySourceId,
                 sourcePredicatePlansBySourceId,
-                requests);
+                requests
+            );
         }
     }
 
@@ -126,7 +154,8 @@ internal static partial class SourcePlanningPlanner
         IReadOnlyDictionary<string, RequiredColumnUsage[]> requiredColumnUsagesBySourceId,
         IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlansBySourceId,
         out string sourceContextId,
-        [NotNullWhen(true)] out SourcePlanRequest? request)
+        [NotNullWhen(true)] out SourcePlanRequest? request
+    )
     {
         var orderFields = Array.Empty<OrderField>();
         long? skip = null;
@@ -162,8 +191,10 @@ internal static partial class SourcePlanningPlanner
                     current = project.Input;
                     continue;
                 case SchemaScanNode scan when !string.IsNullOrWhiteSpace(scan.SourceContextId):
-                    if (!CanTraverseSourceLocalFilters(filterPredicates, scan) ||
-                        !TryConvertOrderBy(orderFields, scan, context.CancellationToken, out var orderBy))
+                    if (
+                        !CanTraverseSourceLocalFilters(filterPredicates, scan)
+                        || !TryConvertOrderBy(orderFields, scan, context.CancellationToken, out var orderBy)
+                    )
                     {
                         sourceContextId = string.Empty;
                         request = null;
@@ -179,7 +210,7 @@ internal static partial class SourcePlanningPlanner
                         Predicate = ResolvePredicate(scan, sourcePredicatePlansBySourceId, context.CancellationToken),
                         OrderBy = orderBy,
                         Skip = skip,
-                        Take = take
+                        Take = take,
                     };
                     return true;
                 default:
@@ -193,11 +224,14 @@ internal static partial class SourcePlanningPlanner
     private static SourcePredicateExpression? ResolvePredicate(
         SchemaScanNode scan,
         IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlansBySourceId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        if (string.IsNullOrWhiteSpace(scan.SourceContextId) ||
-            !sourcePredicatePlansBySourceId.TryGetValue(scan.SourceContextId, out var plan) ||
-            plan.PushedPredicates.Length == 0)
+        if (
+            string.IsNullOrWhiteSpace(scan.SourceContextId)
+            || !sourcePredicatePlansBySourceId.TryGetValue(scan.SourceContextId, out var plan)
+            || plan.PushedPredicates.Length == 0
+        )
         {
             return null;
         }
@@ -207,7 +241,14 @@ internal static partial class SourcePlanningPlanner
         foreach (var predicate in plan.PushedPredicates)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (SourcePredicateExpressionConverter.TryConvertPredicate(predicate, scan.Alias, out var sourcePredicate, plan.RegexMatchTimeout))
+            if (
+                SourcePredicateExpressionConverter.TryConvertPredicate(
+                    predicate,
+                    scan.Alias,
+                    out var sourcePredicate,
+                    plan.RegexMatchTimeout
+                )
+            )
                 predicates.Add(sourcePredicate);
         }
 
@@ -215,8 +256,9 @@ internal static partial class SourcePlanningPlanner
         {
             0 => null,
             1 => predicates[0],
-            _ => predicates.Aggregate(static (left, right) =>
-                new SourcePredicateLogical(SourcePredicateLogicalOperator.And, left, right))
+            _ => predicates.Aggregate(
+                static (left, right) => new SourcePredicateLogical(SourcePredicateLogicalOperator.And, left, right)
+            ),
         };
         return SourcePredicateGraphValidator.IsValid(result, cancellationToken) ? result : null;
     }
@@ -225,7 +267,8 @@ internal static partial class SourcePlanningPlanner
         OrderField[] fields,
         SchemaScanNode scan,
         CancellationToken cancellationToken,
-        out OrderByExpression[] orderBy)
+        out OrderByExpression[] orderBy
+    )
     {
         if (fields.Length == 0)
         {
@@ -233,25 +276,31 @@ internal static partial class SourcePlanningPlanner
             return true;
         }
 
-        var sourceColumns = scan.OutputSchema.Columns
-            .Select(static column => column.Name)
+        var sourceColumns = scan
+            .OutputSchema.Columns.Select(static column => column.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var result = new List<OrderByExpression>(fields.Length);
 
         foreach (var field in fields)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (field.NullOrdering != NullOrdering.Default || field.Expression is not ColumnRef columnRef ||
-                !string.Equals(columnRef.Alias, scan.Alias, StringComparison.OrdinalIgnoreCase) ||
-                !sourceColumns.Contains(columnRef.ColumnName))
+            if (
+                field.NullOrdering != NullOrdering.Default
+                || field.Expression is not ColumnRef columnRef
+                || !string.Equals(columnRef.Alias, scan.Alias, StringComparison.OrdinalIgnoreCase)
+                || !sourceColumns.Contains(columnRef.ColumnName)
+            )
             {
                 orderBy = [];
                 return false;
             }
 
-            result.Add(new OrderByExpression(
-                new SourceColumnRef(columnRef.ColumnName),
-                field.Descending ? OrderDirection.Descending : OrderDirection.Ascending));
+            result.Add(
+                new OrderByExpression(
+                    new SourceColumnRef(columnRef.ColumnName),
+                    field.Descending ? OrderDirection.Descending : OrderDirection.Ascending
+                )
+            );
         }
 
         orderBy = result.ToArray();
@@ -304,18 +353,28 @@ internal static partial class SourcePlanningPlanner
     private static PlanningDecision CreateDecision(
         SchemaScanNode scan,
         SourcePlanRequest request,
-        SourcePlanResult result)
+        SourcePlanResult result
+    )
     {
-        var requested = $"columns={request.RequiredColumns.Count}, predicate={FormatPredicate(request.Predicate)}, orderBy={request.OrderBy.Count}, skip={FormatValue(request.Skip)}, take={FormatValue(request.Take)}";
-        var accepted = $"columns={result.AcceptedColumns.Count}, predicate={FormatPredicate(result.AcceptedPredicate)}, orderBy={result.AcceptedOrderBy.Count}, skip={FormatValue(result.AcceptedSkip)}, take={FormatValue(result.AcceptedTake)}";
-        var residual = $"predicate={FormatPredicate(result.ResidualPredicate)}, orderBy={result.ResidualOrderBy.Count}, skip={FormatValue(result.ResidualSkip)}, take={FormatValue(result.ResidualTake)}";
+        var requested =
+            $"columns={request.RequiredColumns.Count}, predicate={FormatPredicate(request.Predicate)}, orderBy={request.OrderBy.Count}, skip={FormatValue(request.Skip)}, take={FormatValue(request.Take)}";
+        var accepted =
+            $"columns={result.AcceptedColumns.Count}, predicate={FormatPredicate(result.AcceptedPredicate)}, orderBy={result.AcceptedOrderBy.Count}, skip={FormatValue(result.AcceptedSkip)}, take={FormatValue(result.AcceptedTake)}";
+        var residual =
+            $"predicate={FormatPredicate(result.ResidualPredicate)}, orderBy={result.ResidualOrderBy.Count}, skip={FormatValue(result.ResidualSkip)}, take={FormatValue(result.ResidualTake)}";
         if (request.RequestedComputedProjections.Count > 0)
         {
             requested += $", computed={request.RequestedComputedProjections.Count}";
             accepted += $", computed={result.AcceptedComputedProjections.Count}";
             residual += $", computed={result.ResidualComputedProjections.Count}";
         }
-        var acceptedAny = result.AcceptedComputedProjections.Count > 0 || result.AcceptedColumns.Count > 0 || result.AcceptedPredicate != null || result.AcceptedOrderBy.Count > 0 || result.AcceptedSkip.HasValue || result.AcceptedTake.HasValue;
+        var acceptedAny =
+            result.AcceptedComputedProjections.Count > 0
+            || result.AcceptedColumns.Count > 0
+            || result.AcceptedPredicate != null
+            || result.AcceptedOrderBy.Count > 0
+            || result.AcceptedSkip.HasValue
+            || result.AcceptedTake.HasValue;
 
         return new PlanningDecision(
             PlanningDecisionCategory.SourcePlanning,
@@ -323,10 +382,12 @@ internal static partial class SourcePlanningPlanner
             scan.SourceContextId ?? scan.Alias,
             acceptedAny ? "PartiallyAccepted" : "Rejected",
             PlanningConfidence.Medium,
-            $"Requested {requested}; accepted {accepted}; residual {residual}.");
+            $"Requested {requested}; accepted {accepted}; residual {residual}."
+        );
     }
 
-    private static string FormatValue(long? value) => value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null";
+    private static string FormatValue(long? value) =>
+        value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null";
 
     private static string FormatPredicate(SourcePredicateExpression? predicate) => predicate == null ? "none" : "yes";
 }

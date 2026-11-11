@@ -7,8 +7,13 @@ internal static class ExecutionRuntimeIdentifierFacts
 {
     private static readonly FrozenSet<string> Names = new[]
     {
-        "token", "provider", "logger", "queryContext", "sourceExecutionPlans",
-        "sourceRuntimeSettingsBySourceContextId", "queryProgressContext"
+        "token",
+        "provider",
+        "logger",
+        "queryContext",
+        "sourceExecutionPlans",
+        "sourceRuntimeSettingsBySourceContextId",
+        "queryProgressContext",
     }.ToFrozenSet(StringComparer.Ordinal);
 
     public static bool Contains(string name) => Names.Contains(name);

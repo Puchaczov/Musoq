@@ -15,134 +15,112 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
     [TestMethod]
     public void InnerJoin_ShorthandWithArithmeticPredicate_ShouldReturnOnlyMatches()
     {
-        const string query = """
-            select a.Name, b.Name
-            from #A.Entities() a
-            join #B.Entities() b on a.Id = b.Id + 1
-            """;
+        const string query = (
+            "select a.Name, b.Name\n" + "from #A.Entities() a\n" + "join #B.Entities() b on a.Id = b.Id + 1"
+        );
 
-        var table = Run(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new BasicEntity { Id = 2, Name = "A2" },
-                new BasicEntity { Id = 9, Name = "A9" }
-            ],
-            ["#B"] =
-            [
-                new BasicEntity { Id = 1, Name = "B1" },
-                new BasicEntity { Id = 2, Name = "B2" }
-            ]
-        });
+        var table = Run(
+            query,
+            new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] = [new BasicEntity { Id = 2, Name = "A2" }, new BasicEntity { Id = 9, Name = "A9" }],
+                ["#B"] = [new BasicEntity { Id = 1, Name = "B1" }, new BasicEntity { Id = 2, Name = "B2" }],
+            }
+        );
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A2", "B1"]);
     }
 
     [TestMethod]
     public void MultipleInnerJoins_ShouldChainFromThePreviousJoinedSource()
     {
-        const string query = """
-            select a.Name, b.Name, c.Name
-            from #A.Entities() a
-            inner join #B.Entities() b on a.Id = b.Id
-            inner join #C.Entities() c on b.Id = c.Id
-            """;
+        const string query = (
+            "select a.Name, b.Name, c.Name\n"
+            + "from #A.Entities() a\n"
+            + "inner join #B.Entities() b on a.Id = b.Id\n"
+            + "inner join #C.Entities() c on b.Id = c.Id"
+        );
 
-        var table = Run(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new BasicEntity { Id = 1, Name = "A1" },
-                new BasicEntity { Id = 2, Name = "A2" }
-            ],
-            ["#B"] =
-            [
-                new BasicEntity { Id = 1, Name = "B1" },
-                new BasicEntity { Id = 3, Name = "B3" }
-            ],
-            ["#C"] =
-            [
-                new BasicEntity { Id = 1, Name = "C1" },
-                new BasicEntity { Id = 4, Name = "C4" }
-            ]
-        });
+        var table = Run(
+            query,
+            new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] = [new BasicEntity { Id = 1, Name = "A1" }, new BasicEntity { Id = 2, Name = "A2" }],
+                ["#B"] = [new BasicEntity { Id = 1, Name = "B1" }, new BasicEntity { Id = 3, Name = "B3" }],
+                ["#C"] = [new BasicEntity { Id = 1, Name = "C1" }, new BasicEntity { Id = 4, Name = "C4" }],
+            }
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
             ("Name", typeof(string)),
-            ("Name", typeof(string)));
+            ("Name", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1", "C1"]);
     }
 
     [TestMethod]
     public void LeftJoin_ShouldNullExtendOnlyTheUnmatchedRightRows()
     {
-        const string query = """
-            select a.Id, b.Id, b.NullableValue
-            from #A.Entities() a
-            left join #B.Entities() b on a.Id = b.Id
-            """;
+        const string query = (
+            "select a.Id, b.Id, b.NullableValue\n"
+            + "from #A.Entities() a\n"
+            + "left join #B.Entities() b on a.Id = b.Id"
+        );
 
-        var table = Run(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new BasicEntity { Id = 1 },
-                new BasicEntity { Id = 2 }
-            ],
-            ["#B"] =
-            [
-                new BasicEntity { Id = 1, NullableValue = null }
-            ]
-        });
+        var table = Run(
+            query,
+            new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] = [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+                ["#B"] = [new BasicEntity { Id = 1, NullableValue = null }],
+            }
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Id", typeof(int)),
             ("Id", typeof(int?)),
-            ("NullableValue", typeof(int?)));
+            ("NullableValue", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { 1, 1, null },
-            new object?[] { 2, null, null });
+            new object?[] { 2, null, null }
+        );
     }
 
     [TestMethod]
     public void RightJoin_ShouldNullExtendOnlyTheUnmatchedLeftRows()
     {
-        const string query = """
-            select a.Id, b.Id, a.NullableValue
-            from #A.Entities() a
-            right outer join #B.Entities() b on a.Id = b.Id
-            """;
+        const string query = (
+            "select a.Id, b.Id, a.NullableValue\n"
+            + "from #A.Entities() a\n"
+            + "right outer join #B.Entities() b on a.Id = b.Id"
+        );
 
-        var table = Run(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new BasicEntity { Id = 1, NullableValue = null }
-            ],
-            ["#B"] =
-            [
-                new BasicEntity { Id = 1 },
-                new BasicEntity { Id = 2 }
-            ]
-        });
+        var table = Run(
+            query,
+            new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] = [new BasicEntity { Id = 1, NullableValue = null }],
+                ["#B"] = [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+            }
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Id", typeof(int?)),
             ("Id", typeof(int)),
-            ("NullableValue", typeof(int?)));
+            ("NullableValue", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { 1, 1, null },
-            new object?[] { null, 2, null });
+            new object?[] { null, 2, null }
+        );
     }
 
     [TestMethod]
@@ -150,79 +128,59 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
     [DataRow("full join")]
     public void FullJoin_Synonyms_ShouldReturnMatchedAndBothUnmatchedRows(string joinOperator)
     {
-        var query = $"""
-            select a.Id, b.Id
-            from #A.Entities() a
-            {joinOperator} #B.Entities() b on a.Id = b.Id
-            """;
+        var query = $"select a.Id, b.Id\nfrom #A.Entities() a\n{joinOperator} #B.Entities() b on a.Id = b.Id";
 
-        var table = Run(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new BasicEntity { Id = 1 },
-                new BasicEntity { Id = 2 }
-            ],
-            ["#B"] =
-            [
-                new BasicEntity { Id = 2 },
-                new BasicEntity { Id = 3 }
-            ]
-        });
+        var table = Run(
+            query,
+            new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] = [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+                ["#B"] = [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }],
+            }
+        );
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Id", typeof(int?)),
-            ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int?)), ("Id", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { 1, null },
             new object?[] { 2, 2 },
-            new object?[] { null, 3 });
+            new object?[] { null, 3 }
+        );
     }
 
     [TestMethod]
     public void CrossJoin_ShouldBuildCartesianProductBeforeWhereFiltering()
     {
-        const string query = """
-            select a.Id, b.Id
-            from #A.Entities() a
-            cross join #B.Entities() b
-            where a.Id = 1 or b.Id = 20
-            """;
+        const string query = (
+            "select a.Id, b.Id\n"
+            + "from #A.Entities() a\n"
+            + "cross join #B.Entities() b\n"
+            + "where a.Id = 1 or b.Id = 20"
+        );
 
-        var table = Run(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new BasicEntity { Id = 1 },
-                new BasicEntity { Id = 2 }
-            ],
-            ["#B"] =
-            [
-                new BasicEntity { Id = 10 },
-                new BasicEntity { Id = 20 }
-            ]
-        });
+        var table = Run(
+            query,
+            new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] = [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+                ["#B"] = [new BasicEntity { Id = 10 }, new BasicEntity { Id = 20 }],
+            }
+        );
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Id", typeof(int)),
-            ("Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { 1, 10 },
             new object?[] { 1, 20 },
-            new object?[] { 2, 20 });
+            new object?[] { 2, 20 }
+        );
     }
 
     [TestMethod]
     public void RequiredJoinAliases_ShouldReportExactFirstAndRightSourceContracts()
     {
-        const string firstSourceQuery =
-            "select 1 from #A.Entities() inner join #B.Entities() b on 1 = 1";
-        const string rightSourceQuery =
-            "select 1 from #A.Entities() a inner join #B.Entities() where 1 = 1";
+        const string firstSourceQuery = "select 1 from #A.Entities() inner join #B.Entities() b on 1 = 1";
+        const string rightSourceQuery = "select 1 from #A.Entities() a inner join #B.Entities() where 1 = 1";
 
         AssertRequiredAliasDiagnostic(
             firstSourceQuery,
@@ -230,21 +188,22 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
             firstSourceQuery.IndexOf("#A.Entities()", StringComparison.Ordinal) + "#A.Entities()".Length,
             "INNER JOIN",
             "INNER JOIN",
-            isFirstSource: true);
+            isFirstSource: true
+        );
         AssertRequiredAliasDiagnostic(
             rightSourceQuery,
             "The INNER JOIN source requires an alias before WHERE.",
             rightSourceQuery.IndexOf("#B.Entities()", StringComparison.Ordinal) + "#B.Entities()".Length,
             "INNER JOIN",
             "WHERE",
-            isFirstSource: false);
+            isFirstSource: false
+        );
     }
 
     [TestMethod]
     public void CrossJoinWithOn_ShouldReportExactUnexpectedTokenContract()
     {
-        const string query =
-            "select 1 from #A.Entities() a cross join #B.Entities() b on a.Id = b.Id";
+        const string query = "select 1 from #A.Entities() a cross join #B.Entities() b on a.Id = b.Id";
 
         AssertParserDiagnosticContract(
             query,
@@ -256,15 +215,15 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
             "Core Spec - Statement Structure",
             [
                 "Check for missing keywords, commas, or parentheses near this location.",
-                "Verify the query follows Musoq SQL syntax."
-            ]);
+                "Verify the query follows Musoq SQL syntax.",
+            ]
+        );
     }
 
     [TestMethod]
     public void ConditionalJoinWithoutOn_ShouldReportExactJoinConditionContract()
     {
-        const string query =
-            "select 1 from #A.Entities() a inner join #B.Entities() b where 1 = 1";
+        const string query = "select 1 from #A.Entities() a inner join #B.Entities() b where 1 = 1";
 
         AssertParserDiagnosticContract(
             query,
@@ -276,8 +235,9 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
             "Core Spec - JOIN Clause",
             [
                 "Add an ON clause with a comparison between the joined sources.",
-                "Make sure the ON expression evaluates to a boolean value."
-            ]);
+                "Make sure the ON expression evaluates to a boolean value.",
+            ]
+        );
     }
 
     [TestMethod]
@@ -289,7 +249,11 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck);
-        var expectedStart = query.IndexOf("Name", query.IndexOf("where", StringComparison.Ordinal), StringComparison.Ordinal);
+        var expectedStart = query.IndexOf(
+            "Name",
+            query.IndexOf("where", StringComparison.Ordinal),
+            StringComparison.Ordinal
+        );
 
         AssertWarningContract(
             warning,
@@ -300,8 +264,9 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
             "A nullable column from an optional outer-join side can be NULL both when its row is missing and when a present row contains NULL.",
             [
                 "Use the table alias IS PRESENT or IS MISSING predicate to test row existence.",
-                "Check a source column that is non-nullable when a present row is required."
-            ]);
+                "Check a source column that is non-nullable when a present row is required.",
+            ]
+        );
     }
 
     [TestMethod]
@@ -313,7 +278,11 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter);
-        var expectedStart = query.IndexOf("Name", query.IndexOf("where", StringComparison.Ordinal), StringComparison.Ordinal);
+        var expectedStart = query.IndexOf(
+            "Name",
+            query.IndexOf("where", StringComparison.Ordinal),
+            StringComparison.Ordinal
+        );
 
         AssertWarningContract(
             warning,
@@ -324,8 +293,9 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
             "A WHERE predicate is false or UNKNOWN for the NULL-extended row of an outer join, so unmatched rows cannot survive.",
             [
                 "Move the restriction into the JOIN ON clause when it is part of matching.",
-                "Use an explicit row-presence predicate when removing unmatched rows is intentional."
-            ]);
+                "Use an explicit row-presence predicate when removing unmatched rows is intentional.",
+            ]
+        );
     }
 
     private Table Run(string query, IDictionary<string, IEnumerable<BasicEntity>> sources)
@@ -341,8 +311,9 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
             {
                 ["#A"] = [],
                 ["#B"] = [],
-                ["#C"] = []
-            });
+                ["#C"] = [],
+            }
+        );
         return new QueryAnalyzer(provider).Analyze(query);
     }
 
@@ -352,7 +323,8 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
         int expectedSourceEnd,
         string expectedOperator,
         string expectedBoundary,
-        bool isFirstSource)
+        bool isFirstSource
+    )
     {
         var result = Analyze(query);
         Assert.IsFalse(result.IsSuccess, FormatDiagnostics(result));
@@ -384,18 +356,23 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
         Assert.AreEqual(0, envelope.Length);
         Assert.AreEqual(
             "A source in a multi-source query needs a stable alias so JOIN and APPLY expressions can address it reliably. Derived tables and VALUES sources always require an alias.",
-            envelope.Explanation);
+            envelope.Explanation
+        );
         Assert.AreEqual("Core Spec - Aliasing", envelope.DocsReference);
         CollectionAssert.AreEqual(
             new[]
             {
                 "Add an alias immediately after the source, for example: FROM #schema.items() items.",
-                "Use AS for clarity, or bracket an alias that is also a SQL keyword."
+                "Use AS for clarity, or bracket an alias that is also a SQL keyword.",
             },
-            envelope.SuggestedFixes.ToArray());
+            envelope.SuggestedFixes.ToArray()
+        );
         Assert.HasCount(2, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
     }
 
     private static void AssertParserDiagnosticContract(
@@ -406,7 +383,8 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
         int expectedLength,
         string expectedExplanation,
         string expectedDocsReference,
-        string[] expectedFixes)
+        string[] expectedFixes
+    )
     {
         var result = Analyze(query);
         Assert.IsFalse(result.IsSuccess, FormatDiagnostics(result));
@@ -435,8 +413,11 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
         Assert.AreEqual(expectedDocsReference, envelope.DocsReference);
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
     }
 
     private static void AssertWarningContract(
@@ -446,7 +427,8 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
         int expectedLength,
         string expectedMessage,
         string expectedExplanation,
-        string[] expectedFixes)
+        string[] expectedFixes
+    )
     {
         Assert.AreEqual(DiagnosticSeverity.Warning, warning.Severity);
         Assert.AreEqual(DiagnosticPhase.Bind, warning.Phase);
@@ -468,13 +450,18 @@ public sealed class Core016JoinSemanticsTests : BasicEntityTestBase
         Assert.AreEqual("Core Spec - Outer Joins", envelope.DocsReference);
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
     }
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code}: {diagnostic.Message}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic => $"{diagnostic.Code}: {diagnostic.Message}")
+        );
     }
 }

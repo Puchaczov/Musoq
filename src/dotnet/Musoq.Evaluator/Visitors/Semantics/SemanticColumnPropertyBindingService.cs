@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Collections.Generic;
 using System.Reflection;
 using Musoq.Evaluator.Utils.Symbols;
-using Musoq.Parser.Nodes;
 using Musoq.Parser;
+using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -14,15 +14,16 @@ namespace Musoq.Evaluator.Visitors;
 
 internal sealed class SemanticColumnPropertyBindingService(
     SourceBindingState sourceBinding,
-    ResultShapeState resultShape)
+    ResultShapeState resultShape
+)
 {
     public SemanticIdentifierBinding ResolveIdentifier(
         TableSymbol tableSymbol,
         string identifierName,
-        TextSpan? span = null)
+        TextSpan? span = null
+    )
     {
-        if (!string.IsNullOrEmpty(sourceBinding.Identifier) &&
-            !tableSymbol.ContainsAlias(sourceBinding.Identifier))
+        if (!string.IsNullOrEmpty(sourceBinding.Identifier) && !tableSymbol.ContainsAlias(sourceBinding.Identifier))
             return SemanticIdentifierBinding.ForUnknownAlias(sourceBinding.Identifier, tableSymbol.CompoundTables);
 
         ISchemaColumn? column;
@@ -47,8 +48,10 @@ internal sealed class SemanticColumnPropertyBindingService(
                 return SemanticIdentifierBinding.ForColumn(singleColumn, sourceAlias);
             }
 
-            if (identifierName != sourceBinding.Identifier &&
-                TryResolveSingleColumnAlias(tableSymbol, identifierName, out var aliasBinding))
+            if (
+                identifierName != sourceBinding.Identifier
+                && TryResolveSingleColumnAlias(tableSymbol, identifierName, out var aliasBinding)
+            )
             {
                 return aliasBinding;
             }
@@ -64,7 +67,8 @@ internal sealed class SemanticColumnPropertyBindingService(
         Type parentType,
         string propertyName,
         Type mostInnerIdentifierType,
-        Type fallbackType)
+        Type fallbackType
+    )
     {
         foreach (var typeHint in GetCachedTypeHintAttributes(parentType))
         {
@@ -79,8 +83,9 @@ internal sealed class SemanticColumnPropertyBindingService(
         Type type;
         try
         {
-            type = parentType.GetProperty(propertyName)?.PropertyType ?? ResolveDynamicFallback(propertyName,
-                mostInnerIdentifierType, fallbackType);
+            type =
+                parentType.GetProperty(propertyName)?.PropertyType
+                ?? ResolveDynamicFallback(propertyName, mostInnerIdentifierType, fallbackType);
         }
         catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
         {
@@ -96,12 +101,15 @@ internal sealed class SemanticColumnPropertyBindingService(
         {
             error = null;
             var property = parentType.GetProperty(propertyName);
-            if (property is not null) return property;
+            if (property is not null)
+                return property;
             foreach (var contract in parentType.GetInterfaces().Prepend(parentType))
             {
-                if (!contract.IsGenericType) continue;
+                if (!contract.IsGenericType)
+                    continue;
                 var definition = contract.GetGenericTypeDefinition();
-                if (definition != typeof(IReadOnlyDictionary<,>) && definition != typeof(IDictionary<,>)) continue;
+                if (definition != typeof(IReadOnlyDictionary<,>) && definition != typeof(IDictionary<,>))
+                    continue;
                 var arguments = contract.GetGenericArguments();
                 if (arguments[0] == typeof(string) && ConcreteValueShape.FindUnresolvedValueType(arguments[1]) is null)
                     return new ExpandoObjectPropertyInfo(propertyName, arguments[1]);
@@ -118,11 +126,11 @@ internal sealed class SemanticColumnPropertyBindingService(
     public bool HasTypedParentForArrayAccess(Node? parentNode)
     {
         var parentType = parentNode?.ReturnType;
-        return parentNode != null &&
-               parentType != null &&
-               !parentType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
-               !IsRowSourceType(parentType) &&
-               !IsPrimitiveType(parentType);
+        return parentNode != null
+            && parentType != null
+            && !parentType.IsAssignableTo(typeof(IDynamicMetaObjectProvider))
+            && !IsRowSourceType(parentType)
+            && !IsPrimitiveType(parentType);
     }
 
     public bool CanUseAsArrayOrIndexer(PropertyInfo? propertyInfo)
@@ -139,7 +147,8 @@ internal sealed class SemanticColumnPropertyBindingService(
         TableSymbol? tableSymbol,
         string alias,
         AccessObjectArrayNode node,
-        string? resultTableAlias = null)
+        string? resultTableAlias = null
+    )
     {
         var column = tableSymbol?.GetColumnByAliasAndName(alias, node.ObjectName);
         if (column == null || !IsIndexableType(column.ColumnType))
@@ -160,7 +169,8 @@ internal sealed class SemanticColumnPropertyBindingService(
     public AccessObjectKeyNode? TryCreateColumnKeyAccess(
         TableSymbol? tableSymbol,
         string alias,
-        AccessObjectKeyNode node)
+        AccessObjectKeyNode node
+    )
     {
         var column = tableSymbol?.GetColumnByAliasAndName(alias, node.ObjectName, node.SpanOrEmpty());
         if (column == null)
@@ -168,7 +178,7 @@ internal sealed class SemanticColumnPropertyBindingService(
 
         var access = new AccessObjectKeyNode(node.Token, column.ColumnType, alias)
         {
-            DestinationKind = node.DestinationKind
+            DestinationKind = node.DestinationKind,
         };
         if (access.ReturnType == null)
             return null;
@@ -179,9 +189,7 @@ internal sealed class SemanticColumnPropertyBindingService(
     public DotNode CreateObjectBackedDotNode(Node root, Node expression, DotNode original)
     {
         var expressionNode = expression is IdentifierNode identNode
-            ? new PropertyValueNode(
-                identNode.Name,
-                new ExpandoObjectPropertyInfo(identNode.Name, typeof(object)))
+            ? new PropertyValueNode(identNode.Name, new ExpandoObjectPropertyInfo(identNode.Name, typeof(object)))
             : expression;
 
         return new DotNode(root, expressionNode, original.IsTheMostInner, string.Empty, expressionNode.ReturnType);
@@ -190,7 +198,8 @@ internal sealed class SemanticColumnPropertyBindingService(
     private static AccessObjectArrayNode CreateColumnArrayAccess(
         AccessObjectArrayNode node,
         ISchemaColumn column,
-        string? tableAlias)
+        string? tableAlias
+    )
     {
         var elementIntendedTypeName = GetArrayElementIntendedTypeName(column.IntendedTypeName);
         return new AccessObjectArrayNode(node.Token, column.ColumnType, tableAlias, elementIntendedTypeName);
@@ -199,7 +208,8 @@ internal sealed class SemanticColumnPropertyBindingService(
     private bool TryResolveSingleColumnAlias(
         TableSymbol tableSymbol,
         string identifierName,
-        out SemanticIdentifierBinding binding)
+        out SemanticIdentifierBinding binding
+    )
     {
         binding = default;
         if (!tableSymbol.ContainsAlias(identifierName))
@@ -217,9 +227,7 @@ internal sealed class SemanticColumnPropertyBindingService(
 
     private Type ResolveDynamicFallback(string propertyName, Type mostInnerIdentifierType, Type fallbackType)
     {
-        return resultShape.TheMostInnerIdentifier?.Name == propertyName
-            ? mostInnerIdentifierType
-            : fallbackType;
+        return resultShape.TheMostInnerIdentifier?.Name == propertyName ? mostInnerIdentifierType : fallbackType;
     }
 
     private static bool IsRowSourceType(Type? type)
@@ -242,17 +250,12 @@ internal readonly record struct SemanticIdentifierBinding(
     string? SourceAlias,
     ISchemaColumn[] AvailableColumns,
     string? UnknownAlias,
-    string[] AvailableAliases)
+    string[] AvailableAliases
+)
 {
     public static SemanticIdentifierBinding ForColumn(ISchemaColumn column, string sourceAlias)
     {
-        return new SemanticIdentifierBinding(
-            SemanticIdentifierBindingKind.Column,
-            column,
-            sourceAlias,
-            [],
-            null,
-            []);
+        return new SemanticIdentifierBinding(SemanticIdentifierBindingKind.Column, column, sourceAlias, [], null, []);
     }
 
     public static SemanticIdentifierBinding ForIdentifier()
@@ -262,7 +265,14 @@ internal readonly record struct SemanticIdentifierBinding(
 
     public static SemanticIdentifierBinding ForUnknown(ISchemaColumn[] availableColumns)
     {
-        return new SemanticIdentifierBinding(SemanticIdentifierBindingKind.Unknown, null, null, availableColumns, null, []);
+        return new SemanticIdentifierBinding(
+            SemanticIdentifierBindingKind.Unknown,
+            null,
+            null,
+            availableColumns,
+            null,
+            []
+        );
     }
 
     public static SemanticIdentifierBinding ForUnknownAlias(string alias, string[] availableAliases)
@@ -273,7 +283,8 @@ internal readonly record struct SemanticIdentifierBinding(
             null,
             [],
             alias,
-            availableAliases);
+            availableAliases
+        );
     }
 }
 
@@ -282,5 +293,5 @@ internal enum SemanticIdentifierBindingKind
     Unknown,
     UnknownAlias,
     Identifier,
-    Column
+    Column,
 }

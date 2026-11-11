@@ -6,12 +6,11 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class ReorderedSyntaxCteTests
 {
-
-
     [TestMethod]
     public void MixedSyntax_ReorderedCteStandardOuter_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             with cte as (
                 from #A.Entities() where Population > 300 select City, Country, Population
             )
@@ -20,12 +19,13 @@ public partial class ReorderedSyntaxCteTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("KATOWICE", "POLAND", 250)
+                    new BasicEntity("KATOWICE", "POLAND", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -38,7 +38,8 @@ public partial class ReorderedSyntaxCteTests
     [TestMethod]
     public void MixedSyntax_MultipleCtesMixedStyles_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             with
                 cte1 as (
                     from #A.Entities() where Country = 'POLAND' select City, Country
@@ -52,18 +53,8 @@ public partial class ReorderedSyntaxCteTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("MUNICH", "GERMANY", 350),
-                    new BasicEntity("KRAKOW", "POLAND", 300)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("BERLIN", "GERMANY", 250)] },
+            { "#B", [new BasicEntity("MUNICH", "GERMANY", 350), new BasicEntity("KRAKOW", "POLAND", 300)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -76,23 +67,16 @@ public partial class ReorderedSyntaxCteTests
     [TestMethod]
     public void MixedSyntax_SetOperatorMixedStyles_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             from #A.Entities() select City, Country
             union (City, Country)
             select City, Country from #B.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("BERLIN", "GERMANY", 250)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
+            { "#B", [new BasicEntity("BERLIN", "GERMANY", 250)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -105,7 +89,8 @@ public partial class ReorderedSyntaxCteTests
     [TestMethod]
     public void MixedSyntax_CteChainMixedStyles_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             with
                 first as (
                     from #A.Entities() select City, Country, Population
@@ -121,28 +106,32 @@ public partial class ReorderedSyntaxCteTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
-                    new BasicEntity("BERLIN", "GERMANY", 350)
+                    new BasicEntity("BERLIN", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("TotalPop", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("TotalPop", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["POLAND", 900m], ["GERMANY", 350m]);
     }
-
-
 
     [TestMethod]
     public void NestedCtes_ReferencingOtherCtes_AllReordered_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             with
                 base as (
                     from #A.Entities() select City, Country, Population
@@ -158,13 +147,14 @@ public partial class ReorderedSyntaxCteTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
-                    new BasicEntity("BERLIN", "GERMANY", 350)
+                    new BasicEntity("BERLIN", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -177,7 +167,8 @@ public partial class ReorderedSyntaxCteTests
     [TestMethod]
     public void ComplexQuery_CteReorderedJoinGroupByOrderBy_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             with
                 cities as (
                     from #A.Entities() a
@@ -192,18 +183,14 @@ public partial class ReorderedSyntaxCteTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
+                    new BasicEntity("BERLIN", "GERMANY", 250),
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("KRAKOW", "POLAND", 300),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
-                ]
-            }
+            { "#B", [new BasicEntity("KRAKOW", "POLAND", 300), new BasicEntity("MUNICH", "GERMANY", 350)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -211,16 +198,18 @@ public partial class ReorderedSyntaxCteTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Country", typeof(string)), ("TotalPop", typeof(decimal?)), ("CityCount", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["POLAND", 900m, 2L], ["GERMANY", 250m, 1L]);
+            ("Country", typeof(string)),
+            ("TotalPop", typeof(decimal?)),
+            ("CityCount", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["POLAND", 900m, 2L], ["GERMANY", 250m, 1L]);
     }
 
     [TestMethod]
     public void ComplexQuery_MultipleCtesDifferentOperations_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             with
                 polish as (
                     from #A.Entities() where Country = 'POLAND' select City, Country, Population
@@ -241,28 +230,32 @@ public partial class ReorderedSyntaxCteTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("TotalPop", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("TotalPop", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["POLAND", 900m], ["GERMANY", 600m]);
     }
-
-
 
     [TestMethod]
     public void ReorderedQuery_WithDistinct_InCte_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             with cte as (
                 from #A.Entities() select distinct Country
             )
@@ -271,12 +264,13 @@ public partial class ReorderedSyntaxCteTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
+                    new BasicEntity("BERLIN", "GERMANY", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -285,5 +279,4 @@ public partial class ReorderedSyntaxCteTests
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["POLAND"], ["GERMANY"]);
     }
-
 }

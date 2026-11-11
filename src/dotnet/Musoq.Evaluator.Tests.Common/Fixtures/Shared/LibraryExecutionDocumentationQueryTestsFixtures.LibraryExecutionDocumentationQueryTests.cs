@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionDocumentationQueryTestsFixtures
 {
-
     internal static GroupedTotalVisitor VisitGroupedTotals(Row[] rows)
     {
         var visitor = new GroupedTotalVisitor();
@@ -39,10 +38,7 @@ public partial class LibraryExecutionDocumentationQueryTestsFixtures
     }
 
     public sealed record Invoice(int Position, string Customer, decimal? Amount, int? Quantity);
-    public static Invoice[] Rows() =>
-    [
-        new(1, "A", 1.25m, 1), new(2, "A", 2.5m, 2),
-        new(3, "A", null, null), new(4, "B", -1m, 4)
-    ];
 
+    public static Invoice[] Rows() =>
+        [new(1, "A", 1.25m, 1), new(2, "A", 2.5m, 2), new(3, "A", null, null), new(4, "B", -1m, 4)];
 }

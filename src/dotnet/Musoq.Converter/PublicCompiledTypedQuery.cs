@@ -11,9 +11,7 @@ internal sealed class PublicCompiledTypedQuery<TOut> : ICompiledTypedQuery<TOut>
     private readonly InMemorySourceBinding _sourceBinding;
     private readonly TypedRunState _runState;
 
-    public PublicCompiledTypedQuery(
-        TypedRunnableFactory<TOut> factory,
-        InMemorySourceBinding sourceBinding)
+    public PublicCompiledTypedQuery(TypedRunnableFactory<TOut> factory, InMemorySourceBinding sourceBinding)
     {
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         _sourceBinding = sourceBinding ?? throw new ArgumentNullException(nameof(sourceBinding));

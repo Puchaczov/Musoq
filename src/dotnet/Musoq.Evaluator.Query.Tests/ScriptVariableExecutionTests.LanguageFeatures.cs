@@ -12,10 +12,10 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableIsUsedInProjectionAliasAndMethodArgument_ShouldResolveEveryUse()
     {
         const string query =
-            "let key: string = 'KEY_1'; " +
-            "let word: string = 'value_1'; " +
-            "select ToUpper($word) as UpperWord, $word + '_' + Key as Label " +
-            "from #EnvironmentVariables.All() where Key = $key";
+            "let key: string = 'KEY_1'; "
+            + "let word: string = 'value_1'; "
+            + "select ToUpper($word) as UpperWord, $word + '_' + Key as Label "
+            + "from #EnvironmentVariables.All() where Key = $key";
         var vm = CreateAndRunVirtualMachine(query, CreateExtendedEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -29,12 +29,12 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableIsUsedInGroupByAndHaving_ShouldFilterAggregatedGroups()
     {
         const string query =
-            "let suffix: string = '_group'; " +
-            "let minCount: int = 2; " +
-            "select Value + $suffix as GroupKey, Count(Key) as KeyCount " +
-            "from #EnvironmentVariables.All() " +
-            "group by Value + $suffix " +
-            "having Count(Key) >= $minCount";
+            "let suffix: string = '_group'; "
+            + "let minCount: int = 2; "
+            + "select Value + $suffix as GroupKey, Count(Key) as KeyCount "
+            + "from #EnvironmentVariables.All() "
+            + "group by Value + $suffix "
+            + "having Count(Key) >= $minCount";
         var vm = CreateAndRunVirtualMachine(query, CreateGroupedEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -48,10 +48,10 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableIsUsedInJoinCondition_ShouldConstrainJoinedRows()
     {
         const string query =
-            "let value: string = 'VALUE_2'; " +
-            "select a.Key, b.Value " +
-            "from #EnvironmentVariables.All() a " +
-            "inner join #EnvironmentVariables.All() b on a.Key = b.Key and b.Value = $value";
+            "let value: string = 'VALUE_2'; "
+            + "select a.Key, b.Value "
+            + "from #EnvironmentVariables.All() a "
+            + "inner join #EnvironmentVariables.All() b on a.Key = b.Key and b.Value = $value";
         var vm = CreateAndRunVirtualMachine(query, CreateExtendedEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -65,10 +65,10 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableIsUsedInCtePredicate_ShouldApplyInsideCte()
     {
         const string query =
-            "let key: string = 'KEY_3'; " +
-            "with filtered as (" +
-            "select Key, Value from #EnvironmentVariables.All() where Key = $key" +
-            ") select Key, Value from filtered";
+            "let key: string = 'KEY_3'; "
+            + "with filtered as ("
+            + "select Key, Value from #EnvironmentVariables.All() where Key = $key"
+            + ") select Key, Value from filtered";
         var vm = CreateAndRunVirtualMachine(query, CreateUnionEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -82,11 +82,11 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableIsUsedInUnionBranches_ShouldApplyToBothQueries()
     {
         const string query =
-            "let firstKey: string = 'KEY_1'; " +
-            "let secondValue: string = 'VALUE_3'; " +
-            "select Key from #EnvironmentVariables.All() where Key = $firstKey " +
-            "union all (Key) " +
-            "select Key from #EnvironmentVariables.All() where Value = $secondValue";
+            "let firstKey: string = 'KEY_1'; "
+            + "let secondValue: string = 'VALUE_3'; "
+            + "select Key from #EnvironmentVariables.All() where Key = $firstKey "
+            + "union all (Key) "
+            + "select Key from #EnvironmentVariables.All() where Value = $secondValue";
         var vm = CreateAndRunVirtualMachine(query, CreateExtendedEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -99,8 +99,8 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableIsUsedInOrderByExpression_ShouldSortByComputedKey()
     {
         const string query =
-            "let suffix: string = '_ordered'; " +
-            "select Key from #EnvironmentVariables.All() order by Key + $suffix desc";
+            "let suffix: string = '_ordered'; "
+            + "select Key from #EnvironmentVariables.All() order by Key + $suffix desc";
         var vm = CreateAndRunVirtualMachine(query, CreateExtendedEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -114,9 +114,9 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableIsUsedInCaseExpression_ShouldEvaluateBranchesCorrectly()
     {
         const string query =
-            "let selected: string = 'KEY_2'; " +
-            "select Key, case when Key = $selected then 'hit' else 'miss' end as Status " +
-            "from #EnvironmentVariables.All() order by Key";
+            "let selected: string = 'KEY_2'; "
+            + "select Key, case when Key = $selected then 'hit' else 'miss' end as Status "
+            + "from #EnvironmentVariables.All() order by Key";
         var vm = CreateAndRunVirtualMachine(query, CreateExtendedEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -130,12 +130,12 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableIsUsedInWindowPartitionAndOrder_ShouldCaptureVariableInWindowHelper()
     {
         const string query =
-            "let groupValue: string = 'VALUE_A'; " +
-            "let suffix: string = '_rank'; " +
-            "select Key, RowNumber() over (" +
-            "partition by case when Value = $groupValue then $groupValue else Value end " +
-            "order by Key + $suffix) as RowNumber " +
-            "from #EnvironmentVariables.All()";
+            "let groupValue: string = 'VALUE_A'; "
+            + "let suffix: string = '_rank'; "
+            + "select Key, RowNumber() over ("
+            + "partition by case when Value = $groupValue then $groupValue else Value end "
+            + "order by Key + $suffix) as RowNumber "
+            + "from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateGroupedEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -153,9 +153,9 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableCoexistsWithParameter_ShouldExposeOnlyParameterMetadata()
     {
         const string query =
-            "param(key: string = 'KEY_1') " +
-            "let label: string = 'constant'; " +
-            "select $key, $label from #EnvironmentVariables.All() where Key = $key";
+            "param(key: string = 'KEY_1') "
+            + "let label: string = 'constant'; "
+            + "select $key, $label from #EnvironmentVariables.All() where Key = $key";
         var vm = CreateAndRunVirtualMachine(query, CreateExtendedEnvironmentVariableSources());
 
         Assert.HasCount(1, vm.ParameterDefinitions);
@@ -187,13 +187,13 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenManyScriptVariablesAreDeclared_ShouldResolveEachValueConsistently()
     {
         const string query =
-            "let first: int = 1; " +
-            "let second: int = $first + 1; " +
-            "let third: int = $second + 1; " +
-            "let fourth: int = $third + 1; " +
-            "let fifth: int = $fourth + 1; " +
-            "select $first, $second, $third, $fourth, $fifth, $fifth + $first " +
-            "from #EnvironmentVariables.All() where Key = 'KEY_1'";
+            "let first: int = 1; "
+            + "let second: int = $first + 1; "
+            + "let third: int = $second + 1; "
+            + "let fourth: int = $third + 1; "
+            + "let fifth: int = $fourth + 1; "
+            + "select $first, $second, $third, $fourth, $fifth, $fifth + $first "
+            + "from #EnvironmentVariables.All() where Key = 'KEY_1'";
         var vm = CreateAndRunVirtualMachine(query, CreateExtendedEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -228,13 +228,10 @@ public sealed partial class ScriptVariableExecutionTests
         {
             new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
             new EnvironmentVariableEntity("KEY_2", "VALUE_2"),
-            new EnvironmentVariableEntity("KEY_3", "VALUE_3")
+            new EnvironmentVariableEntity("KEY_3", "VALUE_3"),
         };
 
-        return new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
-        {
-            { "*", rows }
-        };
+        return new Dictionary<string, IEnumerable<EnvironmentVariableEntity>> { { "*", rows } };
     }
 
     private static Dictionary<string, IEnumerable<EnvironmentVariableEntity>> CreateGroupedEnvironmentVariableSources()
@@ -246,9 +243,9 @@ public sealed partial class ScriptVariableExecutionTests
                 [
                     new EnvironmentVariableEntity("KEY_1", "VALUE_A"),
                     new EnvironmentVariableEntity("KEY_2", "VALUE_A"),
-                    new EnvironmentVariableEntity("KEY_3", "VALUE_B")
+                    new EnvironmentVariableEntity("KEY_3", "VALUE_B"),
                 ]
-            }
+            },
         };
     }
 

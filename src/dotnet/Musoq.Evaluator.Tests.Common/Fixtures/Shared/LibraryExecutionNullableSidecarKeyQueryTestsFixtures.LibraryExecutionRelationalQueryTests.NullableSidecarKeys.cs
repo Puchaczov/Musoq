@@ -9,7 +9,5 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionNullableSidecarKeyQueryTestsFixtures
 {
-
     public sealed record NullableKeyInput(int Position, int Key, int? NullableKey, string Tag);
-
 }

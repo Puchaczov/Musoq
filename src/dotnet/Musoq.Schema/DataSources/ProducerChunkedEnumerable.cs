@@ -28,14 +28,21 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
         Action<TWriter> collectChunks,
         Func<bool>? isExternalCancellationRequested = null,
         IChunkPipelineMetrics? metrics = null,
-        TimeSpan? producerShutdownWait = null)
+        TimeSpan? producerShutdownWait = null
+    )
     {
         if (capacityInChunks <= 0)
-            throw new ArgumentOutOfRangeException(nameof(capacityInChunks), "Chunk capacity must be greater than zero.");
+            throw new ArgumentOutOfRangeException(
+                nameof(capacityInChunks),
+                "Chunk capacity must be greater than zero."
+            );
 
         var shutdownWait = producerShutdownWait ?? DefaultProducerShutdownWait;
         if (shutdownWait < TimeSpan.Zero)
-            throw new ArgumentOutOfRangeException(nameof(producerShutdownWait), "Producer shutdown wait cannot be negative.");
+            throw new ArgumentOutOfRangeException(
+                nameof(producerShutdownWait),
+                "Producer shutdown wait cannot be negative."
+            );
 
         _capacityInChunks = capacityInChunks;
         _createCancellation = createCancellation ?? throw new ArgumentNullException(nameof(createCancellation));
@@ -58,7 +65,8 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
             session.CancellationToken,
             session.Dispose,
             session.ThrowIfProducerFailed,
-            _metrics);
+            _metrics
+        );
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -76,17 +84,14 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
         var chunks = new BlockingCollection<IReadOnlyList<T>>(_capacityInChunks);
         var cancellation = _createCancellation(chunks);
         var writer = _createWriter(chunks, cancellation.Token);
-        var session = new ProducerSession(
-            chunks,
-            cancellation,
-            _metrics,
-            _producerShutdownWait);
+        var session = new ProducerSession(chunks, cancellation, _metrics, _producerShutdownWait);
 
         var producerTask = Task.Factory.StartNew(
             () => RunProducer(chunks, cancellation, writer, session),
             CancellationToken.None,
             TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach,
-            TaskScheduler.Default);
+            TaskScheduler.Default
+        );
 
         session.SetProducerTask(producerTask);
         return session;
@@ -96,7 +101,8 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
         BlockingCollection<IReadOnlyList<T>> chunks,
         CancellationTokenSource cancellation,
         TWriter writer,
-        ProducerSession? session)
+        ProducerSession? session
+    )
     {
         try
         {
@@ -128,12 +134,8 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
             if (!chunks.IsAddingCompleted)
                 chunks.CompleteAdding();
         }
-        catch (ObjectDisposedException)
-        {
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     private sealed class ProducerSession : IDisposable
@@ -150,7 +152,8 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
             BlockingCollection<IReadOnlyList<T>> chunks,
             CancellationTokenSource cancellation,
             IChunkPipelineMetrics? metrics,
-            TimeSpan producerShutdownWait)
+            TimeSpan producerShutdownWait
+        )
         {
             Chunks = chunks;
             _cancellation = cancellation;
@@ -185,8 +188,7 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
 
             var producerTask = Volatile.Read(ref _producerTask);
 
-            if (producerTask != null &&
-                !producerTask.IsCompleted)
+            if (producerTask != null && !producerTask.IsCompleted)
             {
                 _cancellation.Cancel();
                 CompleteAdding(Chunks);
@@ -232,7 +234,8 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
                 this,
                 CancellationToken.None,
                 TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
+                TaskScheduler.Default
+            );
         }
 
         private void DisposeResources()

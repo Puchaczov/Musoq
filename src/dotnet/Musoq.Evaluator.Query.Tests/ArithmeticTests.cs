@@ -114,7 +114,8 @@ public class ArithmeticTests : BasicEntityTestBase
     {
         TestMethodTemplate(
             "(((((1 + (6 * 2)) + 4 + 4 + 4 + 2 + 8 + 1 + 4 + 1 + 1 + 1 + 1 + 1 + 1 + 32 + 1 + 4 + 4 + 4 + 1 + 4 + 4 + 1 + (6 * 4) + 1 + 1 + 1 + 1 + 32 + 1) + 4) + 1 + 1) + 4 + 4) + 4 + 4 + 4",
-            188);
+            188
+        );
     }
 
     [TestMethod]

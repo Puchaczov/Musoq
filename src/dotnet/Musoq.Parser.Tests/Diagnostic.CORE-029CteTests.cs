@@ -12,9 +12,9 @@ public sealed class DiagnosticCore029CteTests
     public void CteDeclarations_ShouldPreserveDeclarationOrderAndOutputNameList()
     {
         const string query =
-            "with first (CityName) as (select City from #A.Entities()), " +
-            "second (PlaceName) as (select CityName from first) " +
-            "select PlaceName from second";
+            "with first (CityName) as (select City from #A.Entities()), "
+            + "second (PlaceName) as (select CityName from first) "
+            + "select PlaceName from second";
 
         var cte = ParseCte(query);
 
@@ -26,18 +26,18 @@ public sealed class DiagnosticCore029CteTests
         CollectionAssert.AreEqual(new[] { "PlaceName" }, cte.InnerExpression[1].ColumnNames);
         Assert.AreEqual(
             new TextSpan(query.IndexOf("CityName", StringComparison.Ordinal), "CityName".Length),
-            cte.InnerExpression[0].Columns[0].Span);
+            cte.InnerExpression[0].Columns[0].Span
+        );
         Assert.AreEqual(
             new TextSpan(query.IndexOf("PlaceName", StringComparison.Ordinal), "PlaceName".Length),
-            cte.InnerExpression[1].Columns[0].Span);
+            cte.InnerExpression[1].Columns[0].Span
+        );
     }
 
     [TestMethod]
     public void CteDeclarationBoundary_ShouldKeepTheOuterQueryOutsideTheDefinitionList()
     {
-        const string query =
-            "with source as (select City from #A.Entities()) " +
-            "select City from source";
+        const string query = "with source as (select City from #A.Entities()) " + "select City from source";
         var cte = ParseCte(query);
 
         Assert.IsInstanceOfType(cte.OuterExpression, typeof(SingleSetNode));

@@ -44,8 +44,9 @@ public sealed class ExecutionStrategyPlannerTests
     {
         var project = CreateMethodProject(CreateScan(), nameof(StableMethod));
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => Plan(project, CreateShapeResolver(typeof(IReadOnlyDictionary<string, object>))));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            Plan(project, CreateShapeResolver(typeof(IReadOnlyDictionary<string, object>)))
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }
@@ -56,7 +57,8 @@ public sealed class ExecutionStrategyPlannerTests
         var project = CreateMethodProject(CreateScan(), nameof(StableMethod));
         var sort = new PhysicalSortNode(
             [new OrderField(new ColumnRef(string.Empty, "Name", typeof(string)), Descending: false)],
-            project);
+            project
+        );
 
         var result = Plan(sort);
 
@@ -92,7 +94,8 @@ public sealed class ExecutionStrategyPlannerTests
         var scan = CreateScan();
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            scan);
+            scan
+        );
 
         var result = Plan(project);
 
@@ -121,8 +124,10 @@ public sealed class ExecutionStrategyPlannerTests
                 BinaryOpKind.GreaterThan,
                 new AggregateRef("p.Count", typeof(long)),
                 new Literal(0, typeof(int)),
-                typeof(bool)),
-            aggregate);
+                typeof(bool)
+            ),
+            aggregate
+        );
         var project = CreateAggregateProject(having);
 
         var result = Plan(project);
@@ -139,8 +144,10 @@ public sealed class ExecutionStrategyPlannerTests
                 BinaryOpKind.GreaterThan,
                 new ColumnRef("p", "Age", typeof(int)),
                 new Literal(18, typeof(int)),
-                typeof(bool)),
-            CreateScan());
+                typeof(bool)
+            ),
+            CreateScan()
+        );
         var aggregate = CreateSingleKeyAggregate(filter);
         var project = CreateAggregateProject(aggregate);
 
@@ -157,12 +164,24 @@ public sealed class ExecutionStrategyPlannerTests
 
     private static ExecutionStrategyPlanningResult Plan(PhysicalNode node, CompilationOptions options)
     {
-        return ExecutionStrategyPlanner.Plan(node, options, null, CreatePlanningShapeResolver(typeof(Person)), AuthorizedSourcePlanningFixture.Describe(node));
+        return ExecutionStrategyPlanner.Plan(
+            node,
+            options,
+            null,
+            CreatePlanningShapeResolver(typeof(Person)),
+            AuthorizedSourcePlanningFixture.Describe(node)
+        );
     }
 
     private static ExecutionStrategyPlanningResult Plan(PhysicalNode node, ExecutionShapeResolver shapeResolver)
     {
-        return ExecutionStrategyPlanner.Plan(node, new CompilationOptions(), null, new ExecutionPlanningShapeResolverAdapter(shapeResolver), AuthorizedSourcePlanningFixture.Describe(node));
+        return ExecutionStrategyPlanner.Plan(
+            node,
+            new CompilationOptions(),
+            null,
+            new ExecutionPlanningShapeResolverAdapter(shapeResolver),
+            AuthorizedSourcePlanningFixture.Describe(node)
+        );
     }
 
     private static IPlanningShapeResolver CreatePlanningShapeResolver(Type entityType)
@@ -170,20 +189,14 @@ public sealed class ExecutionStrategyPlannerTests
         return new ExecutionPlanningShapeResolverAdapter(CreateShapeResolver(entityType));
     }
 
-    private static void AssertOutcome(
-        ExecutionStrategyPlanningResult result,
-        string ruleName,
-        string expectedOutcome)
+    private static void AssertOutcome(ExecutionStrategyPlanningResult result, string ruleName, string expectedOutcome)
     {
         var decision = FindDecision(result, ruleName);
 
         Assert.AreEqual(expectedOutcome, decision.Outcome);
     }
 
-    private static void AssertReason(
-        ExecutionStrategyPlanningResult result,
-        string ruleName,
-        string expectedReasonPart)
+    private static void AssertReason(ExecutionStrategyPlanningResult result, string ruleName, string expectedReasonPart)
     {
         var decision = FindDecision(result, ruleName);
 
@@ -197,11 +210,7 @@ public sealed class ExecutionStrategyPlannerTests
 
     private static ExecutionShapeResolver CreateShapeResolver(Type entityType)
     {
-        return new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["p"] = entityType
-            });
+        return new ExecutionShapeResolver(entityTypesByAlias: new Dictionary<string, Type> { ["p"] = entityType });
     }
 
     private static PhysicalSchemaScanNode CreateScan()
@@ -213,11 +222,9 @@ public sealed class ExecutionStrategyPlannerTests
             "p",
             [],
             [],
-            new OutputSchema(
-            [
-                new ColumnSchema("Name", typeof(string), 0),
-                new ColumnSchema("Age", typeof(int), 1)
-            ]), SourceContextId: "p");
+            new OutputSchema([new ColumnSchema("Name", typeof(string), 0), new ColumnSchema("Age", typeof(int), 1)]),
+            SourceContextId: "p"
+        );
     }
 
     private static PhysicalProjectNode CreateMethodProject(PhysicalNode input, string methodName)
@@ -227,23 +234,32 @@ public sealed class ExecutionStrategyPlannerTests
                 BinaryOpKind.GreaterThan,
                 new ColumnRef("p", "Age", typeof(int)),
                 new Literal(18, typeof(int)),
-                typeof(bool)),
-            input);
+                typeof(bool)
+            ),
+            input
+        );
 
         return new PhysicalProjectNode(
             [
                 new ProjectedField(
                     "Name",
-                    new MethodCall(ResolveMethod(methodName), [new ColumnRef("p", "Name", typeof(string))], null, typeof(string)),
-                    0)
+                    new MethodCall(
+                        ResolveMethod(methodName),
+                        [new ColumnRef("p", "Name", typeof(string))],
+                        null,
+                        typeof(string)
+                    ),
+                    0
+                ),
             ],
-            filter);
+            filter
+        );
     }
 
     private static MethodInfo ResolveMethod(string methodName)
     {
-        return typeof(ExecutionStrategyPlannerTests).GetMethod(methodName, BindingFlags.Public | BindingFlags.Static) ??
-               throw new InvalidOperationException($"Method {methodName} was not found.");
+        return typeof(ExecutionStrategyPlannerTests).GetMethod(methodName, BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException($"Method {methodName} was not found.");
     }
 
     private static PhysicalSingleKeyAggregateNode CreateSingleKeyAggregate(PhysicalNode input)
@@ -253,7 +269,8 @@ public sealed class ExecutionStrategyPlannerTests
             "p.Name",
             typeof(string),
             [CreateCountBinding()],
-            input);
+            input
+        );
     }
 
     private static PhysicalProjectNode CreateAggregateProject(PhysicalNode input)
@@ -261,16 +278,17 @@ public sealed class ExecutionStrategyPlannerTests
         return new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1)
+                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1),
             ],
-            input);
+            input
+        );
     }
 
     private static AggregateBinding CreateCountBinding()
     {
-        var getMethod = typeof(LibraryBase).GetMethod(
-            nameof(LibraryBase.Count),
-            [typeof(int?), typeof(int)]) ?? throw new InvalidOperationException("Count aggregate declaration was not found.");
+        var getMethod =
+            typeof(LibraryBase).GetMethod(nameof(LibraryBase.Count), [typeof(int?), typeof(int)])
+            ?? throw new InvalidOperationException("Count aggregate declaration was not found.");
 
         return new AggregateBinding(
             "p.Count",
@@ -280,7 +298,8 @@ public sealed class ExecutionStrategyPlannerTests
             getMethod,
             [],
             typeof(long),
-            AggregateKernelDescriptor.Create(getMethod));
+            AggregateKernelDescriptor.Create(getMethod)
+        );
     }
 
     [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]

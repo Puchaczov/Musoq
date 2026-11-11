@@ -48,7 +48,8 @@ public partial class Parser
                     "A structural record type must contain at least one named field.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
-                    Current.Span);
+                    Current.Span
+                );
 
             while (true)
             {
@@ -57,7 +58,8 @@ public partial class Parser
                         "A structural type field must start with a field name.",
                         _lexer.AlreadyResolvedQueryPart,
                         DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
-                        Current.Span);
+                        Current.Span
+                    );
 
                 var name = ConsumeAndGetToken(Current.TokenType);
                 Consume(TokenType.Colon);
@@ -70,12 +72,15 @@ public partial class Parser
                 }
 
                 var fieldEnd = defaultValue?.Span ?? fieldType.Span;
-                fields.Add(new StructuralTypeFieldSyntax(
-                    name.Value,
-                    fieldType,
-                    defaultValue,
-                    name.Span,
-                    name.Span.Through(fieldEnd)));
+                fields.Add(
+                    new StructuralTypeFieldSyntax(
+                        name.Value,
+                        fieldType,
+                        defaultValue,
+                        name.Span,
+                        name.Span.Through(fieldEnd)
+                    )
+                );
 
                 if (Current.TokenType != TokenType.Comma)
                     break;
@@ -93,10 +98,7 @@ public partial class Parser
         return StructuralTypeSyntaxNode.Scalar(token.Value, token.Span);
     }
 
-    private static bool TryGetLegacyTypeParts(
-        StructuralTypeSyntaxNode type,
-        out string typeName,
-        out bool isNullable)
+    private static bool TryGetLegacyTypeParts(StructuralTypeSyntaxNode type, out string typeName, out bool isNullable)
     {
         if (type.Kind == StructuralTypeSyntaxKind.Scalar)
         {
@@ -105,8 +107,10 @@ public partial class Parser
             return true;
         }
 
-        if (type.Kind == StructuralTypeSyntaxKind.Collection &&
-            type.ElementType is { Kind: StructuralTypeSyntaxKind.Scalar, IsNullable: false } element)
+        if (
+            type.Kind == StructuralTypeSyntaxKind.Collection
+            && type.ElementType is { Kind: StructuralTypeSyntaxKind.Scalar, IsNullable: false } element
+        )
         {
             typeName = $"{element.ScalarName}[]";
             isNullable = type.IsNullable;

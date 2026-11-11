@@ -12,9 +12,14 @@ public static partial class PhysicalPlanPrinter
         PhysicalJoinCandidateNode joinCandidate,
         StringBuilder sb,
         string prefix,
-        int indent)
+        int indent
+    )
     {
-        sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalJoinCandidate [{joinCandidate.Kind}] [");
+        sb.Append(prefix)
+            .Append(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"PhysicalJoinCandidate [{joinCandidate.Kind}] ["
+            );
         sb.Append(IrExpressionPrinter.Print(joinCandidate.OnPredicate));
         sb.Append(']');
         AppendTieBreak(sb, joinCandidate.TieBreak);

@@ -36,7 +36,8 @@ public sealed class RawStringLiteralDiagnosticsTests
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(
             new TextSpan(query.IndexOf(invalidEscape, System.StringComparison.Ordinal), invalidEscape.Length),
-            diagnostic.Span);
+            diagnostic.Span
+        );
         Assert.AreEqual($"Invalid escape sequence '{invalidEscape}'.", diagnostic.Message);
     }
 
@@ -47,7 +48,8 @@ public sealed class RawStringLiteralDiagnosticsTests
         string source,
         int expectedStart,
         int expectedLength,
-        string invalidEscape)
+        string invalidEscape
+    )
     {
         var lexer = new Lexer(source, true, true);
 
@@ -83,8 +85,9 @@ public sealed class RawStringLiteralDiagnosticsTests
 
         Assert.AreEqual(TokenType.StringLiteral, token.TokenType);
         Assert.AreEqual(@"\u123\x1\q\", token.Value);
-        Assert.IsFalse(lexer.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ1004_InvalidEscapeSequence));
+        Assert.IsFalse(
+            lexer.Diagnostics.Any(diagnostic => diagnostic.Code == DiagnosticCode.MQ1004_InvalidEscapeSequence)
+        );
     }
 
     [TestMethod]
@@ -95,9 +98,12 @@ public sealed class RawStringLiteralDiagnosticsTests
         Assert.IsNotNull(metadata);
         Assert.Contains("malformed", metadata.Explanation, System.StringComparison.OrdinalIgnoreCase);
         Assert.Contains("unknown escapes", metadata.Explanation, System.StringComparison.OrdinalIgnoreCase);
-        Assert.IsTrue(metadata.SuggestedFixes.Any(fix =>
-            fix.Contains("raw literal", System.StringComparison.OrdinalIgnoreCase) &&
-            fix.Contains("double", System.StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            metadata.SuggestedFixes.Any(fix =>
+                fix.Contains("raw literal", System.StringComparison.OrdinalIgnoreCase)
+                && fix.Contains("double", System.StringComparison.OrdinalIgnoreCase)
+            )
+        );
     }
 
     [TestMethod]
@@ -114,9 +120,7 @@ public sealed class RawStringLiteralDiagnosticsTests
     [DataRow("""'\u0041'""", "A")]
     [DataRow("""'\x4A'""", "J")]
     [DataRow("""'\q'""", @"\q")]
-    public void OrdinaryStringLiteral_EscapeCompatibility_ShouldRemainUnchanged(
-        string source,
-        string expected)
+    public void OrdinaryStringLiteral_EscapeCompatibility_ShouldRemainUnchanged(string source, string expected)
     {
         var token = new Lexer(source, true).Next();
 

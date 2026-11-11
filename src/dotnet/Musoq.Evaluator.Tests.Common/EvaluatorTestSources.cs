@@ -18,7 +18,7 @@ internal static class EvaluatorTestSources
         "Musoq.Evaluator.Interpretation.Tests",
         "Musoq.Evaluator.Diagnostics.Tests",
         "Musoq.Evaluator.CodeGeneration.Tests",
-        "Musoq.Evaluator.Runtime.Tests"
+        "Musoq.Evaluator.Runtime.Tests",
     ];
 
     public static IReadOnlyList<string> Directories()
@@ -43,7 +43,9 @@ internal static class EvaluatorTestSources
             .ToArray();
 
         if (matches.Length != 1)
-            throw new FileNotFoundException($"Expected one evaluator source for {relativePath}, found {matches.Length}.");
+            throw new FileNotFoundException(
+                $"Expected one evaluator source for {relativePath}, found {matches.Length}."
+            );
 
         return matches[0];
     }
@@ -83,7 +85,12 @@ internal static class EvaluatorTestSources
 
     private static bool TryGetRelativeFamilyPath(string directory, out string relative)
     {
-        var originalRoot = Path.Combine(RepositorySourceScan.RepositoryRoot(), "src", "dotnet", "Musoq.Evaluator.Tests");
+        var originalRoot = Path.Combine(
+            RepositorySourceScan.RepositoryRoot(),
+            "src",
+            "dotnet",
+            "Musoq.Evaluator.Tests"
+        );
         relative = Path.GetRelativePath(originalRoot, directory);
         return relative == "." || !relative.StartsWith("..", StringComparison.Ordinal);
     }

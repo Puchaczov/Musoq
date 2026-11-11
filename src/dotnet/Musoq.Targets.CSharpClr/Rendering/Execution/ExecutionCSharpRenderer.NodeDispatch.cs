@@ -7,7 +7,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private IEnumerable<StatementSyntax> RenderPhaseBoundary(
         ExecutionPhaseBoundary boundary,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var queryIdentifier = context.Session.QueryIdentifier + boundary.QueryIdSuffix;
         return [QueryEmitter.GeneratePhaseChangeStatement(queryIdentifier, boundary.Phase)];

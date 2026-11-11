@@ -32,7 +32,8 @@ public sealed class EnumDeclarationTraversalTests
         Assert.AreEqual("State", clonedDeclaration.Name);
         CollectionAssert.AreEqual(
             new ulong[] { 1, 2 },
-            clonedDeclaration.Members.Select(static member => member.RawValue).ToArray());
+            clonedDeclaration.Members.Select(static member => member.RawValue).ToArray()
+        );
     }
 
     private sealed class CollectingVisitor : NoOpExpressionVisitor

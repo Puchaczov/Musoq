@@ -3,5 +3,5 @@
 public enum ApplyType
 {
     Cross,
-    Outer
+    Outer,
 }

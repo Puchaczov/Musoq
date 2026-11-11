@@ -11,5 +11,5 @@ internal enum BoundaryRowShapeKind
     Window,
     HashJoinBuild,
     HashJoinProbe,
-    CteMaterialization
+    CteMaterialization,
 }

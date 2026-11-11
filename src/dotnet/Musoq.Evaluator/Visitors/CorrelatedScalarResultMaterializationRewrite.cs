@@ -16,7 +16,8 @@ public partial class SubqueryToCteRewriteVisitor
         string cteName,
         string valueColumnName,
         ScalarSubqueryNode node,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var where = query.Where;
         if (where == null)
@@ -40,19 +41,22 @@ public partial class SubqueryToCteRewriteVisitor
             query,
             projections,
             materializedValueColumnName,
-            local);
+            local
+        );
         cteInnerExpressions.Add(new CteInnerExpressionNode(materializedQuery, materializedCteName));
 
         var rewritten = CreateCorrelatedScalarCarrierQuery(
             materializedCteName,
             projections,
             materializedValueColumnName,
-            valueColumnName);
+            valueColumnName
+        );
         var joinPredicate = RewriteCorrelatedPredicatesForJoin(
             correlated,
             projections,
             correlation.LocalAliases,
-            cteName);
+            cteName
+        );
 
         return new ScalarSubqueryRewrite(rewritten, joinPredicate);
     }
@@ -61,7 +65,8 @@ public partial class SubqueryToCteRewriteVisitor
         string materializedCteName,
         IReadOnlyList<CorrelationProjection> projections,
         string materializedValueColumnName,
-        string valueColumnName)
+        string valueColumnName
+    )
     {
         var fields = new FieldNode[projections.Count + 1];
         var groupByFields = new FieldNode[projections.Count];
@@ -72,22 +77,22 @@ public partial class SubqueryToCteRewriteVisitor
                 materializedCteName,
                 projections[i].ReturnType ?? typeof(object),
                 projections[i].Span,
-                projections[i].IntendedTypeName);
+                projections[i].IntendedTypeName
+            );
             fields[i] = new FieldNode(key, i, projections[i].CteColumnName);
             groupByFields[i] = new FieldNode(key, i, string.Empty);
         }
 
         fields[^1] = new FieldNode(
-            CreateDeferredCorrelatedScalarAggregate(new AccessColumnNode(
-                materializedValueColumnName,
-                materializedCteName,
-                default)),
+            CreateDeferredCorrelatedScalarAggregate(
+                new AccessColumnNode(materializedValueColumnName, materializedCteName, default)
+            ),
             fields.Length - 1,
-            valueColumnName);
+            valueColumnName
+        );
         return new QueryNode(
             new SelectNode(fields),
-            new Parser.ExpressionFromNode(
-                new Parser.InMemoryTableFromNode(materializedCteName, materializedCteName)),
+            new Parser.ExpressionFromNode(new Parser.InMemoryTableFromNode(materializedCteName, materializedCteName)),
             null,
             new GroupByNode(groupByFields, null),
             null,
@@ -95,14 +100,16 @@ public partial class SubqueryToCteRewriteVisitor
             null,
             null,
             null,
-            default);
+            default
+        );
     }
 
     private static QueryNode CreateCorrelatedScalarMaterializationQuery(
         QueryNode query,
         IReadOnlyList<CorrelationProjection> projections,
         string materializedValueColumnName,
-        IReadOnlyList<Node> localPredicates)
+        IReadOnlyList<Node> localPredicates
+    )
     {
         var fields = new FieldNode[projections.Count + 1];
         var partitionFields = new FieldNode[projections.Count];
@@ -114,7 +121,8 @@ public partial class SubqueryToCteRewriteVisitor
                 projection.Alias,
                 projection.ReturnType ?? typeof(object),
                 projection.Span,
-                projection.IntendedTypeName);
+                projection.IntendedTypeName
+            );
             fields[i] = new FieldNode(key, i, projection.CteColumnName);
             partitionFields[i] = new FieldNode(key, i, string.Empty);
         }
@@ -123,7 +131,8 @@ public partial class SubqueryToCteRewriteVisitor
         fields[^1] = new FieldNode(
             windowRewriter.Rewrite(query.Select.Fields[0].Expression),
             fields.Length - 1,
-            materializedValueColumnName);
+            materializedValueColumnName
+        );
         var groupBy = CreateCorrelatedScalarGroupBy(query.GroupBy, partitionFields, windowRewriter);
         var orderBy = query.OrderBy == null ? null : windowRewriter.Rewrite(query.OrderBy);
         var qualify = query.Qualify == null ? null : windowRewriter.Rewrite(query.Qualify);
@@ -132,12 +141,14 @@ public partial class SubqueryToCteRewriteVisitor
             partitionFields,
             orderBy?.Fields ?? [],
             query.Skip?.Value ?? 0L,
-            query.Take?.Value);
+            query.Take?.Value
+        );
         if (sliceQualify != null)
         {
-            qualify = qualify == null
-                ? sliceQualify
-                : new QualifyNode(new AndNode(qualify.Expression, sliceQualify.Expression));
+            qualify =
+                qualify == null
+                    ? sliceQualify
+                    : new QualifyNode(new AndNode(qualify.Expression, sliceQualify.Expression));
         }
 
         return new QueryNode(
@@ -150,13 +161,15 @@ public partial class SubqueryToCteRewriteVisitor
             null,
             window,
             qualify,
-            default);
+            default
+        );
     }
 
     private static GroupByNode? CreateCorrelatedScalarGroupBy(
         GroupByNode? groupBy,
         FieldNode[] partitionFields,
-        CorrelationWindowPartitionRewriter windowRewriter)
+        CorrelationWindowPartitionRewriter windowRewriter
+    )
     {
         if (groupBy == null)
             return null;
@@ -177,41 +190,48 @@ public partial class SubqueryToCteRewriteVisitor
         FieldNode[] partitionFields,
         FieldOrderedNode[] orderByFields,
         long skip,
-        long? take)
+        long? take
+    )
     {
         if (skip == 0 && take == null)
             return null;
 
-        Node? predicate = skip > 0
-            ? new GreaterNode(CreatePartitionRowNumber(partitionFields, orderByFields), new IntegerNode(skip))
-            : null;
+        Node? predicate =
+            skip > 0
+                ? new GreaterNode(CreatePartitionRowNumber(partitionFields, orderByFields), new IntegerNode(skip))
+                : null;
         if (take is { } limit)
         {
             var upperBound = limit > long.MaxValue - skip ? long.MaxValue : skip + limit;
-            predicate = skip > 0
-                ? new BetweenNode(
-                    CreatePartitionRowNumber(partitionFields, orderByFields),
-                    new IntegerNode(skip + 1),
-                    new IntegerNode(upperBound))
-                : new LessOrEqualNode(
-                    CreatePartitionRowNumber(partitionFields, orderByFields),
-                    new IntegerNode(upperBound));
+            predicate =
+                skip > 0
+                    ? new BetweenNode(
+                        CreatePartitionRowNumber(partitionFields, orderByFields),
+                        new IntegerNode(skip + 1),
+                        new IntegerNode(upperBound)
+                    )
+                    : new LessOrEqualNode(
+                        CreatePartitionRowNumber(partitionFields, orderByFields),
+                        new IntegerNode(upperBound)
+                    );
         }
 
-        return new QualifyNode(predicate ?? throw new InvalidOperationException(
-            "Partitioned scalar slicing requires an offset or limit predicate."));
+        return new QualifyNode(
+            predicate
+                ?? throw new InvalidOperationException(
+                    "Partitioned scalar slicing requires an offset or limit predicate."
+                )
+        );
     }
 
     private static WindowFunctionNode CreatePartitionRowNumber(
         FieldNode[] partitionFields,
-        FieldOrderedNode[] orderByFields)
+        FieldOrderedNode[] orderByFields
+    )
     {
         return new WindowFunctionNode(
-            new AccessMethodNode(
-                new FunctionToken("RowNumber", default),
-                new ArgsListNode([]),
-                null,
-                false),
-            new WindowSpecificationNode(partitionFields, orderByFields));
+            new AccessMethodNode(new FunctionToken("RowNumber", default), new ArgsListNode([]), null, false),
+            new WindowSpecificationNode(partitionFields, orderByFields)
+        );
     }
 }

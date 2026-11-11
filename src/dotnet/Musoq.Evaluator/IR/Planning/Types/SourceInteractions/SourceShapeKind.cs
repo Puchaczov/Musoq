@@ -6,5 +6,5 @@ internal enum SourceShapeKind
     InferredMetadata,
     ExternallyProvidedType,
     Dynamic,
-    Unknown
+    Unknown,
 }

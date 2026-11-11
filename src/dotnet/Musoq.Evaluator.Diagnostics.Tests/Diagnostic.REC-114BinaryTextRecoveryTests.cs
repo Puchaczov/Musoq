@@ -22,93 +22,116 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
     private static readonly IReadOnlyList<RecoveryCandidate> CandidateCases =
     [
         SchemaInvalid(
-            "A01", "BINARY_SCHEMA",
+            "A01",
+            "BINARY_SCHEMA",
             "binary Packet { Value: int le }",
             "binary Packet { Value: int }",
             DiagnosticCode.MQ4005_InvalidEndianness,
             "endianness",
             "missing multi-byte endianness",
-            "4.2 Primitive Types"),
+            "4.2 Primitive Types"
+        ),
         SchemaInvalid(
-            "A02", "BINARY_SCHEMA",
+            "A02",
+            "BINARY_SCHEMA",
             "binary Packet { Value: int le }",
             "binary Packet { Value: int middle }",
             DiagnosticCode.MQ4005_InvalidEndianness,
             "middle",
             "invalid multi-byte endianness",
-            "4.2 Primitive Types"),
+            "4.2 Primitive Types"
+        ),
         SchemaInvalid(
-            "A03", "BINARY_SCHEMA",
+            "A03",
+            "BINARY_SCHEMA",
             "binary Packet { Value: byte }",
             "binary Packet { Value: byte le }",
             DiagnosticCode.MQ4005_InvalidEndianness,
             "le",
             "endianness on a single-byte field",
-            "4.2 Primitive Types"),
+            "4.2 Primitive Types"
+        ),
         SchemaInvalid(
-            "A04", "BINARY_SCHEMA",
+            "A04",
+            "BINARY_SCHEMA",
             "binary Packet { Value: string[4] utf8 }",
             "binary Packet { Value: string[-5] utf8 }",
             DiagnosticCode.MQ4001_InvalidBinarySchemaField,
             "-5",
             "negative fixed string size",
-            "4.2.4 String Types"),
+            "4.2.4 String Types"
+        ),
         SchemaValid(
-            "A05", "BINARY_SCHEMA",
+            "A05",
+            "BINARY_SCHEMA",
             "binary Packet { Value: bits[64] }",
             "maximum-width bit field",
-            "4.7 Bit Fields"),
+            "4.7 Bit Fields"
+        ),
         SchemaValid(
-            "A06", "BINARY_SCHEMA",
+            "A06",
+            "BINARY_SCHEMA",
             "binary Packet { Value: byte[2] const [1, 2] }",
             "valid constant byte-list constraint",
-            "4.9.1 Field Value Validations"),
-
+            "4.9.1 Field Value Validations"
+        ),
         SchemaInvalid(
-            "B01", "TEXT_SCHEMA",
+            "B01",
+            "TEXT_SCHEMA",
             "text Log { Value: rest }",
             "text Log { Content: switch { } }",
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
             "switch",
             "empty text alternative",
-            "5.10 Alternatives (Switch)"),
+            "5.10 Alternatives (Switch)"
+        ),
         SchemaInvalid(
-            "B02", "TEXT_SCHEMA",
+            "B02",
+            "TEXT_SCHEMA",
             "text Log { Content: switch { pattern 'X' => Payload, _ => Fallback } }",
             "text Log { Content: switch { _ => Fallback, pattern 'X' => Payload } }",
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
             "pattern",
             "default branch must be last",
-            "5.10 Alternatives (Switch)"),
+            "5.10 Alternatives (Switch)"
+        ),
         SchemaInvalid(
-            "B03", "TEXT_SCHEMA",
+            "B03",
+            "TEXT_SCHEMA",
             "text Log { Content: switch { pattern 'X' => Payload, _ => Fallback } }",
             "text Log { Content: switch { pattern 'X' => Payload, _ => Fallback, _ => Other } }",
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
             "_",
             "duplicate text default branch",
-            "5.10 Alternatives (Switch)"),
+            "5.10 Alternatives (Switch)"
+        ),
         SchemaInvalid(
-            "B04", "TEXT_SCHEMA",
+            "B04",
+            "TEXT_SCHEMA",
             "text Log { Value: between '[' ']' escaped '~' }",
             "text Log { Value: between '[' ']' escaped 'ab' }",
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
             "ab",
             "multi-character escape modifier",
-            "5.4.3 Escaped Content"),
+            "5.4.3 Escaped Content"
+        ),
         SchemaValid(
-            "B05", "TEXT_SCHEMA",
+            "B05",
+            "TEXT_SCHEMA",
             "text Log { Value: between '[' ']' escaped '~' }",
             "valid custom escaped delimiter",
-            "5.4.3 Escaped Content"),
+            "5.4.3 Escaped Content"
+        ),
         SchemaValid(
-            "B06", "TEXT_SCHEMA",
+            "B06",
+            "TEXT_SCHEMA",
             "text Log { Value: chars[3] trim }",
             "valid fixed-width text modifier",
-            "5.5 Fixed-Width Fields"),
-
+            "5.5 Fixed-Width Fields"
+        ),
         BinaryRuntime(
-            "C01", "BINARY_SUBSTRATE",
+            "C01",
+            "BINARY_SUBSTRATE",
             "binary Header { Magic: byte, Value: int le }",
             "Header",
             [1, 2, 0, 0, 0],
@@ -116,9 +139,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.InsufficientData,
             "Value",
             "truncated multi-byte value",
-            "4.2 Primitive Types"),
+            "4.2 Primitive Types"
+        ),
         BinaryRuntime(
-            "C02", "BINARY_SUBSTRATE",
+            "C02",
+            "BINARY_SUBSTRATE",
             "binary Header { Magic: byte check Magic = 0x7F }",
             "Header",
             [0x7F],
@@ -126,9 +151,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.ValidationFailed,
             "Magic",
             "failed field validation",
-            "4.9 Validation Constraints"),
+            "4.9 Validation Constraints"
+        ),
         BinaryRuntime(
-            "C03", "BINARY_SUBSTRATE",
+            "C03",
+            "BINARY_SUBSTRATE",
             "binary Header { Value: string[2] utf8 }",
             "Header",
             [(byte)'O', (byte)'K'],
@@ -136,9 +163,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.EncodingError,
             "Value",
             "invalid UTF-8 substrate",
-            "9.2 Error Categories"),
+            "9.2 Error Categories"
+        ),
         BinaryRuntime(
-            "C04", "BINARY_SUBSTRATE",
+            "C04",
+            "BINARY_SUBSTRATE",
             "binary Header { Offset: int le, Value: byte at Offset }",
             "Header",
             [0, 0, 0, 0, 0xAA],
@@ -146,9 +175,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.InvalidPosition,
             "",
             "negative runtime position",
-            "4.8 Absolute Positioning"),
+            "4.8 Absolute Positioning"
+        ),
         BinaryRuntime(
-            "C05", "BINARY_SUBSTRATE",
+            "C05",
+            "BINARY_SUBSTRATE",
             "binary Header { Length: sbyte, Payload: byte[Length] }",
             "Header",
             [2, 0xAA, 0xBB],
@@ -156,9 +187,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.InvalidSize,
             "Payload",
             "negative dynamic payload size",
-            "4.2.3 Byte Arrays"),
+            "4.2.3 Byte Arrays"
+        ),
         BinaryRuntime(
-            "C06", "BINARY_SUBSTRATE",
+            "C06",
+            "BINARY_SUBSTRATE",
             "binary Header { Length: byte, Payload: byte[Length] }",
             "Header",
             [2, 0xAA, 0xBB],
@@ -166,10 +199,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             null,
             "",
             "valid dynamic payload boundary",
-            "4.2.3 Byte Arrays"),
-
+            "4.2.3 Byte Arrays"
+        ),
         TextRuntime(
-            "D01", "TEXT_SUBSTRATE",
+            "D01",
+            "TEXT_SUBSTRATE",
             "text Record { Value: pattern '\\d+' }",
             "Record",
             "123",
@@ -177,9 +211,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.PatternMismatch,
             "Value",
             "pattern mismatch at current position",
-            "5.2 Pattern Matching"),
+            "5.2 Pattern Matching"
+        ),
         TextRuntime(
-            "D02", "TEXT_SUBSTRATE",
+            "D02",
+            "TEXT_SUBSTRATE",
             "text Record { Value: literal 'OK' }",
             "Record",
             "OK",
@@ -187,9 +223,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.LiteralMismatch,
             "Value",
             "literal mismatch at current position",
-            "5.3 Literal Matching"),
+            "5.3 Literal Matching"
+        ),
         TextRuntime(
-            "D03", "TEXT_SUBSTRATE",
+            "D03",
+            "TEXT_SUBSTRATE",
             "text Record { Value: until ':' }",
             "Record",
             "name:value",
@@ -197,9 +235,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.DelimiterNotFound,
             "Value",
             "missing until delimiter",
-            "5.4.1 Until Delimiter"),
+            "5.4.1 Until Delimiter"
+        ),
         TextRuntime(
-            "D04", "TEXT_SUBSTRATE",
+            "D04",
+            "TEXT_SUBSTRATE",
             "text Record { Value: between '[' ']' }",
             "Record",
             "[value]",
@@ -207,9 +247,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.ExpectedDelimiter,
             "Value",
             "missing opening delimiter",
-            "5.4.2 Between Delimiters"),
+            "5.4.2 Between Delimiters"
+        ),
         TextRuntime(
-            "D05", "TEXT_SUBSTRATE",
+            "D05",
+            "TEXT_SUBSTRATE",
             "text Record { Value: chars[3] }",
             "Record",
             "abc",
@@ -217,9 +259,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.InsufficientData,
             "Value",
             "truncated fixed-width text",
-            "5.5 Fixed-Width Fields"),
+            "5.5 Fixed-Width Fields"
+        ),
         TextRuntime(
-            "D06", "TEXT_SUBSTRATE",
+            "D06",
+            "TEXT_SUBSTRATE",
             "text Record { Value: rest trim }",
             "Record",
             " value ",
@@ -227,56 +271,68 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             null,
             "",
             "valid rest capture with modifier",
-            "5.7 Rest of Input"),
-
+            "5.7 Rest of Input"
+        ),
         SchemaInvalid(
-            "E01", "REFERENCE_AND_BRANCH",
+            "E01",
+            "REFERENCE_AND_BRANCH",
             "binary Packet { Type: byte, Payload: switch Type { 1 => Login: byte } }",
             "binary Packet { Type: byte, Payload: switch Missing { 1 => Login: byte } }",
             DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField,
             "Missing",
             "switch selector forward or unknown reference",
-            "4.12.4 Diagnostics"),
+            "4.12.4 Diagnostics"
+        ),
         SchemaInvalid(
-            "E02", "REFERENCE_AND_BRANCH",
+            "E02",
+            "REFERENCE_AND_BRANCH",
             "binary Packet { Type: byte, Payload: switch Type { 1 => Same: byte } }",
             "binary Packet { Type: byte, Payload: switch Type { 1 => Same: byte, 2 => same: byte } }",
             DiagnosticCode.MQ4012_DuplicateSwitchBranchAlias,
             "same",
             "duplicate switch branch alias",
-            "4.12.4 Diagnostics"),
+            "4.12.4 Diagnostics"
+        ),
         SchemaInvalid(
-            "E03", "REFERENCE_AND_BRANCH",
+            "E03",
+            "REFERENCE_AND_BRANCH",
             "binary Packet { Type: byte, Payload: switch Type { 1 => Login: byte } }",
             "binary Packet { Type: byte, Payload: switch Type { 'login' => Login: byte } }",
             DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
             "login",
             "case label incompatible with selector",
-            "4.12.4 Diagnostics"),
+            "4.12.4 Diagnostics"
+        ),
         SchemaInvalid(
-            "E04", "REFERENCE_AND_BRANCH",
+            "E04",
+            "REFERENCE_AND_BRANCH",
             "binary Packet { Type: byte, Payload: switch Type { 1 => Login: byte, _ => Raw: byte[1] } }",
             "binary Packet { Type: byte, Payload: switch Type { _ => Raw: byte[1], 1 => Login: byte } }",
             DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
             "_",
             "switch default branch must be last",
-            "4.12.3 Default and No-Match Behavior"),
+            "4.12.3 Default and No-Match Behavior"
+        ),
         SchemaInvalid(
-            "E05", "REFERENCE_AND_BRANCH",
+            "E05",
+            "REFERENCE_AND_BRANCH",
             "text Config { Content: switch { pattern 'X' => Payload, _ => Fallback } }",
             "text Config { Content: switch { _ => Fallback, pattern 'X' => Payload } }",
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
             "pattern",
             "text default branch must be last",
-            "5.10 Alternatives (Switch)"),
+            "5.10 Alternatives (Switch)"
+        ),
         SchemaValid(
-            "E06", "REFERENCE_AND_BRANCH",
+            "E06",
+            "REFERENCE_AND_BRANCH",
             "binary Packet { Type: byte, Payload: switch Type { 1 => Login: byte, _ => Raw: byte[1] } }",
             "valid selector, branch and default boundary",
-            "4.12 Switch (Tagged Union) Payloads"),
-
+            "4.12 Switch (Tagged Union) Payloads"
+        ),
         BinaryRuntime(
-            "F01", "REPETITION_PROGRESS",
+            "F01",
+            "REPETITION_PROGRESS",
             "binary Stream { Items: byte repeat until eof }",
             "Stream",
             [],
@@ -284,9 +340,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             null,
             "",
             "zero-length EOF repetition is an empty result",
-            "4.10 Repetition Until Condition"),
+            "4.10 Repetition Until Condition"
+        ),
         BinaryRuntime(
-            "F02", "REPETITION_PROGRESS",
+            "F02",
+            "REPETITION_PROGRESS",
             "binary Stream { Items: byte repeat until eof }",
             "Stream",
             [1, 2, 3],
@@ -294,9 +352,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             null,
             "",
             "EOF repetition consumes each byte",
-            "4.10 Repetition Until Condition"),
+            "4.10 Repetition Until Condition"
+        ),
         BinaryRuntime(
-            "F03", "REPETITION_PROGRESS",
+            "F03",
+            "REPETITION_PROGRESS",
             "binary Stream { Items: byte[0] repeat until eof }",
             "Stream",
             [],
@@ -304,9 +364,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.MaxIterationsExceeded,
             "Items",
             "zero-progress binary repetition",
-            "4.10 Repetition Until Condition"),
+            "4.10 Repetition Until Condition"
+        ),
         TextRuntimeWithFixture(
-            "F04", "REPETITION_PROGRESS",
+            "F04",
+            "REPETITION_PROGRESS",
             "text Empty { }; text Container { Items: repeat Empty }",
             "Container",
             "TEXT_ZERO_PROGRESS",
@@ -315,9 +377,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.MaxIterationsExceeded,
             "Items",
             "zero-progress text repetition",
-            "5.9 Repetition"),
+            "5.9 Repetition"
+        ),
         BinaryRuntime(
-            "F05", "REPETITION_PROGRESS",
+            "F05",
+            "REPETITION_PROGRESS",
             "binary Stream { Items: byte[2] repeat until eof }",
             "Stream",
             [1, 2, 3, 4],
@@ -325,9 +389,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             ParseErrorCode.InsufficientData,
             "Items",
             "truncated repeated binary element",
-            "4.10 Repetition Until Condition"),
+            "4.10 Repetition Until Condition"
+        ),
         BinaryRuntime(
-            "F06", "REPETITION_PROGRESS",
+            "F06",
+            "REPETITION_PROGRESS",
             "binary Stream { Items: byte repeat until eof }",
             "Stream",
             [1, 2],
@@ -335,10 +401,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             null,
             "",
             "valid repeated binary elements",
-            "4.10 Repetition Until Condition"),
-
+            "4.10 Repetition Until Condition"
+        ),
         BinaryRuntimeWithFixture(
-            "G01", "BOUNDED_SUBSTREAM",
+            "G01",
+            "BOUNDED_SUBSTREAM",
             "binary Body { A: byte, B: byte }; binary Packet { Length: byte, Payload: substream[Length] as Body exact, Tail: byte }",
             "Packet",
             "EXACT",
@@ -346,9 +413,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             [1, 0xAA, 0xCC],
             ParseErrorCode.InsufficientData,
             "",
-            "nested parser overread is bounded"),
+            "nested parser overread is bounded"
+        ),
         BinaryRuntimeWithFixture(
-            "G02", "BOUNDED_SUBSTREAM",
+            "G02",
+            "BOUNDED_SUBSTREAM",
             "binary Body { A: byte, B: byte }; binary Packet { Length: byte, Payload: substream[Length] as Body exact, Tail: byte }",
             "Packet",
             "EXACT",
@@ -356,9 +425,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             [3, 0xAA, 0xBB, 0xCC],
             ParseErrorCode.ValidationFailed,
             "Payload",
-            "exact substream rejects under-consumption"),
+            "exact substream rejects under-consumption"
+        ),
         BinaryRuntimeWithFixture(
-            "G03", "BOUNDED_SUBSTREAM",
+            "G03",
+            "BOUNDED_SUBSTREAM",
             "binary Packet { Length: byte, Payload: substream[Length] raw, Tail: byte }",
             "Packet",
             "RAW",
@@ -366,9 +437,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             [4, 0xAA, 0xBB, 0xCC],
             ParseErrorCode.InsufficientData,
             "Payload",
-            "raw substream length cannot overrun input"),
+            "raw substream length cannot overrun input"
+        ),
         BinaryRuntimeWithFixture(
-            "G04", "BOUNDED_SUBSTREAM",
+            "G04",
+            "BOUNDED_SUBSTREAM",
             "binary Packet { Length: sbyte, Payload: substream[Length] raw }",
             "Packet",
             "NEGATIVE",
@@ -376,9 +449,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             [0xFF],
             ParseErrorCode.InvalidSize,
             "Payload",
-            "negative substream length"),
+            "negative substream length"
+        ),
         BinaryRuntimeWithFixture(
-            "G05", "BOUNDED_SUBSTREAM",
+            "G05",
+            "BOUNDED_SUBSTREAM",
             "binary Body { A: byte, B: byte }; binary Packet { Length: byte, Payload: substream[Length] as Body exact, Tail: byte }",
             "Packet",
             "EXACT",
@@ -386,9 +461,11 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             [2, 0x10, 0x20, 0x30],
             null,
             "",
-            "valid exact bounded payload"),
+            "valid exact bounded payload"
+        ),
         BinaryRuntimeWithFixture(
-            "G06", "BOUNDED_SUBSTREAM",
+            "G06",
+            "BOUNDED_SUBSTREAM",
             "binary Body { A: byte, B: byte }; binary Packet { Length: byte, Payload: substream[Length] as Body lax, Tail: byte }",
             "Packet",
             "LAX",
@@ -396,44 +473,56 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             [3, 0x11, 0x22, 0x33, 0x44],
             null,
             "",
-            "valid lax bounded payload resumes parent cursor"),
-
+            "valid lax bounded payload resumes parent cursor"
+        ),
         SchemaInvalid(
-            "H01", "DOMAIN_BOUNDARY",
+            "H01",
+            "DOMAIN_BOUNDARY",
             "binary Packet { Value: int le }",
             "binary Packet { Value: int }",
             DiagnosticCode.MQ4005_InvalidEndianness,
             "Value",
             "schema failure remains compile-time MQ diagnostic",
-            "9.1 Parse Error Structure"),
+            "9.1 Parse Error Structure"
+        ),
         SchemaInvalid(
-            "H02", "DOMAIN_BOUNDARY",
+            "H02",
+            "DOMAIN_BOUNDARY",
             "text Log { Value: pattern '[A-Z]+' }",
             "text Log { Value: pattern '(?=abc)abc' }",
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
             "(?=abc)",
             "unsupported pattern construct remains schema diagnostic",
-            "9.2 Error Categories"),
+            "9.2 Error Categories"
+        ),
         SchemaValid(
-            "H03", "DOMAIN_BOUNDARY",
+            "H03",
+            "DOMAIN_BOUNDARY",
             "binary Packet { Flags: bits[3], _: align[8], Value: byte }",
             "valid binary alignment schema",
-            "4.7 Bit Fields"),
+            "4.7 Bit Fields"
+        ),
         SchemaValid(
-            "H04", "DOMAIN_BOUNDARY",
+            "H04",
+            "DOMAIN_BOUNDARY",
             "text Record { Code: chars[4] trim upper, Tail: rest }",
             "valid text modifier schema",
-            "5.12 Text Field Modifiers"),
+            "5.12 Text Field Modifiers"
+        ),
         SchemaValid(
-            "H05", "DOMAIN_BOUNDARY",
+            "H05",
+            "DOMAIN_BOUNDARY",
             "binary Packet { Flag: byte, Payload: byte when Flag = 1 }",
             "valid conditional binary schema",
-            "4.5 Conditional Fields"),
+            "4.5 Conditional Fields"
+        ),
         SchemaValid(
-            "H06", "DOMAIN_BOUNDARY",
+            "H06",
+            "DOMAIN_BOUNDARY",
             "text Record { Value: rest }",
             "valid text substrate boundary",
-            "9.3 Error Behavior")
+            "9.3 Error Behavior"
+        ),
     ];
 
     [TestMethod]
@@ -441,7 +530,9 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
     {
         Assert.HasCount(48, CandidateCases);
         Assert.HasCount(8, CandidateCases.GroupBy(static candidate => candidate.Family));
-        Assert.IsTrue(CandidateCases.GroupBy(static candidate => candidate.Family).All(static group => group.Count() == 6));
+        Assert.IsTrue(
+            CandidateCases.GroupBy(static candidate => candidate.Family).All(static group => group.Count() == 6)
+        );
         Assert.AreEqual(32, CandidateCases.Count(static candidate => candidate.IsInvalid));
         Assert.AreEqual(16, CandidateCases.Count(static candidate => !candidate.IsInvalid));
 
@@ -491,7 +582,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         var substreamCandidate = Candidate("G02");
         var substreamException = InvokeBinaryFailure(
             CompileBinaryCandidate(substreamCandidate),
-            substreamCandidate.Bytes!);
+            substreamCandidate.Bytes!
+        );
 
         Assert.AreEqual(ParseErrorCode.ValidationFailed, substreamException.ErrorCode);
         Assert.AreEqual("Payload", substreamException.FieldName);
@@ -500,7 +592,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         var repetitionCandidate = Candidate("F03");
         var repetitionException = InvokeBinaryFailure(
             CompileBinaryCandidate(repetitionCandidate),
-            repetitionCandidate.Bytes!);
+            repetitionCandidate.Bytes!
+        );
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, repetitionException.ErrorCode);
         Assert.AreEqual("Items", repetitionException.FieldName);
@@ -603,9 +696,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         registry.Register("Empty", new TextSchemaNode("Empty", []));
         registry.Register(
             "Container",
-            new TextSchemaNode(
-                "Container",
-                [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Empty")]));
+            new TextSchemaNode("Container", [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Empty")])
+        );
         return registry;
     }
 
@@ -624,54 +716,66 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         {
             case "EXACT":
             case "LAX":
-                registry.Register("Body", new BinarySchemaNode(
+                registry.Register(
                     "Body",
-                    [
-                        new FieldDefinitionNode("A", byteType),
-                        new FieldDefinitionNode("B", byteType)
-                    ]));
+                    new BinarySchemaNode(
+                        "Body",
+                        [new FieldDefinitionNode("A", byteType), new FieldDefinitionNode("B", byteType)]
+                    )
+                );
                 var mode = fixtureKey == "LAX" ? SubstreamMode.Lax : SubstreamMode.Exact;
-                registry.Register("Packet", new BinarySchemaNode(
+                registry.Register(
                     "Packet",
-                    [
-                        new FieldDefinitionNode("Length", byteType),
-                        new FieldDefinitionNode(
-                            "Payload",
-                            new SubstreamTypeNode(
-                                new IdentifierNode("Length"),
-                                mode,
-                                new SchemaReferenceTypeNode("Body"))),
-                        new FieldDefinitionNode("Tail", byteType)
-                    ]));
+                    new BinarySchemaNode(
+                        "Packet",
+                        [
+                            new FieldDefinitionNode("Length", byteType),
+                            new FieldDefinitionNode(
+                                "Payload",
+                                new SubstreamTypeNode(
+                                    new IdentifierNode("Length"),
+                                    mode,
+                                    new SchemaReferenceTypeNode("Body")
+                                )
+                            ),
+                            new FieldDefinitionNode("Tail", byteType),
+                        ]
+                    )
+                );
                 return registry;
             case "RAW":
-                registry.Register("Packet", new BinarySchemaNode(
+                registry.Register(
                     "Packet",
-                    [
-                        new FieldDefinitionNode("Length", byteType),
-                        new FieldDefinitionNode(
-                            "Payload",
-                            new SubstreamTypeNode(
-                                new IdentifierNode("Length"),
-                                SubstreamMode.Raw,
-                                null)),
-                        new FieldDefinitionNode("Tail", byteType)
-                    ]));
+                    new BinarySchemaNode(
+                        "Packet",
+                        [
+                            new FieldDefinitionNode("Length", byteType),
+                            new FieldDefinitionNode(
+                                "Payload",
+                                new SubstreamTypeNode(new IdentifierNode("Length"), SubstreamMode.Raw, null)
+                            ),
+                            new FieldDefinitionNode("Tail", byteType),
+                        ]
+                    )
+                );
                 return registry;
             case "NEGATIVE":
-                registry.Register("Packet", new BinarySchemaNode(
+                registry.Register(
                     "Packet",
-                    [
-                        new FieldDefinitionNode(
-                            "Length",
-                            new PrimitiveTypeNode(PrimitiveTypeName.SByte, Endianness.NotApplicable)),
-                        new FieldDefinitionNode(
-                            "Payload",
-                            new SubstreamTypeNode(
-                                new IdentifierNode("Length"),
-                                SubstreamMode.Raw,
-                                null))
-                    ]));
+                    new BinarySchemaNode(
+                        "Packet",
+                        [
+                            new FieldDefinitionNode(
+                                "Length",
+                                new PrimitiveTypeNode(PrimitiveTypeName.SByte, Endianness.NotApplicable)
+                            ),
+                            new FieldDefinitionNode(
+                                "Payload",
+                                new SubstreamTypeNode(new IdentifierNode("Length"), SubstreamMode.Raw, null)
+                            ),
+                        ]
+                    )
+                );
                 return registry;
             default:
                 throw new InvalidOperationException($"Unknown REC-114 fixture '{fixtureKey}'.");
@@ -688,8 +792,7 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         return Assert.ThrowsExactly<RuntimeParseException>(() => InvokeParse(interpreter, data));
     }
 
-    private static void InvokeParse(object interpreter, string data) =>
-        ((ICompiledTextFixture)interpreter).Parse(data);
+    private static void InvokeParse(object interpreter, string data) => ((ICompiledTextFixture)interpreter).Parse(data);
 
     private static string ParseErrorName(RuntimeParseException exception)
     {
@@ -714,7 +817,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         DiagnosticCode code,
         string messageToken,
         string rootCause,
-        string authoritySection)
+        string authoritySection
+    )
     {
         return new RecoveryCandidate(
             id,
@@ -736,7 +840,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             "",
             rootCause,
             authoritySection,
-            "");
+            ""
+        );
     }
 
     private static RecoveryCandidate SchemaValid(
@@ -744,7 +849,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         string family,
         string schema,
         string rootCause,
-        string authoritySection)
+        string authoritySection
+    )
     {
         return new RecoveryCandidate(
             id,
@@ -766,7 +872,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             "",
             rootCause,
             authoritySection,
-            "");
+            ""
+        );
     }
 
     private static RecoveryCandidate BinaryRuntime(
@@ -779,7 +886,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         ParseErrorCode? code,
         string expectedField,
         string rootCause,
-        string authoritySection)
+        string authoritySection
+    )
     {
         var seedMarker = $"substrate:{Convert.ToHexString(seed)}";
         var dataMarker = $"substrate:{Convert.ToHexString(data)}";
@@ -803,7 +911,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             expectedField,
             rootCause,
             authoritySection,
-            "");
+            ""
+        );
     }
 
     private static RecoveryCandidate BinaryRuntimeWithFixture(
@@ -816,7 +925,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         byte[] data,
         ParseErrorCode? code,
         string expectedField,
-        string rootCause)
+        string rootCause
+    )
     {
         var seedMarker = $"substrate:{Convert.ToHexString(seed)}";
         var dataMarker = $"substrate:{Convert.ToHexString(data)}";
@@ -840,7 +950,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             expectedField,
             rootCause,
             "4.13 Substream (Length-Bounded) Payloads",
-            fixtureKey);
+            fixtureKey
+        );
     }
 
     private static RecoveryCandidate TextRuntime(
@@ -853,7 +964,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         ParseErrorCode? code,
         string expectedField,
         string rootCause,
-        string authoritySection)
+        string authoritySection
+    )
     {
         var seedMarker = $"substrate:{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(seed))}";
         var dataMarker = $"substrate:{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(data))}";
@@ -877,7 +989,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             expectedField,
             rootCause,
             authoritySection,
-            "");
+            ""
+        );
     }
 
     private static RecoveryCandidate TextRuntimeWithFixture(
@@ -891,7 +1004,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         ParseErrorCode? code,
         string expectedField,
         string rootCause,
-        string authoritySection)
+        string authoritySection
+    )
     {
         var seedMarker = $"substrate:{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(seed))}";
         var dataMarker = $"substrate:{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(data))}";
@@ -915,7 +1029,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
             expectedField,
             rootCause,
             authoritySection,
-            fixtureKey);
+            fixtureKey
+        );
     }
 
     private static string Describe(string schema, string marker)
@@ -927,16 +1042,14 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
     {
         var tokens = schema.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var index = Array.FindIndex(tokens, static token => token is "binary" or "text");
-        return index >= 0 && index + 1 < tokens.Length
-            ? tokens[index + 1]
-            : "Schema";
+        return index >= 0 && index + 1 < tokens.Length ? tokens[index + 1] : "Schema";
     }
 
     private enum CandidateKind
     {
         Schema,
         BinaryRuntime,
-        TextRuntime
+        TextRuntime,
     }
 
     private sealed record RecoveryCandidate(
@@ -959,7 +1072,8 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         string ExpectedField,
         string RootCause,
         string AuthoritySection,
-        string FixtureKey)
+        string FixtureKey
+    )
     {
         public bool IsInvalid => ExpectedMqCode is not null || ExpectedRuntimeCode is not null;
     }

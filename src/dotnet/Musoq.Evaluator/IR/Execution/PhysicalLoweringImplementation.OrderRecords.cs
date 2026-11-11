@@ -16,7 +16,8 @@ internal sealed partial class PhysicalLoweringImplementation
         RowShape sourceShape,
         int schemaFromIndex,
         LoweringScope scope,
-        out TableBuildResult result)
+        out TableBuildResult result
+    )
     {
         result = TableBuildResult.Unsupported(string.Empty);
 
@@ -29,7 +30,8 @@ internal sealed partial class PhysicalLoweringImplementation
             publicShape,
             pipeline.Project.Fields,
             pipeline.PostOperations,
-            sourceLookup);
+            sourceLookup
+        );
         if (!hiddenFields.IsBuilt)
         {
             result = TableBuildResult.Unsupported(hiddenFields.UnsupportedReason);
@@ -46,14 +48,26 @@ internal sealed partial class PhysicalLoweringImplementation
         var workingShape = CreateGeneratedShape(
             PostOperationProjectionPlanner.CreateSortWorkingShapeName(resultShapeName),
             materializedFields,
-            sourceLookup);
+            sourceLookup
+        );
         var recordShape = CreateOrderRecordShape(workingShape, IsBoundedOrderPostOperation(pipeline.PostOperations[0]));
 
         if (!CanUseTypedOrderRecordShape(recordShape))
             return false;
 
-        var postOperations = PostOperationProjectionPlanner.ReplaceSortProjectedFields(pipeline.PostOperations, materializedFields);
-        if (!TryCreateOrderRecordOperation(postOperations[0], workingShape, out var orderFields, out var selection, out var unsupportedReason))
+        var postOperations = PostOperationProjectionPlanner.ReplaceSortProjectedFields(
+            pipeline.PostOperations,
+            materializedFields
+        );
+        if (
+            !TryCreateOrderRecordOperation(
+                postOperations[0],
+                workingShape,
+                out var orderFields,
+                out var selection,
+                out var unsupportedReason
+            )
+        )
         {
             if (!string.IsNullOrWhiteSpace(unsupportedReason))
             {
@@ -66,8 +80,22 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var sourceRowsScope = CreateSourceRowsScope(resultTableName);
         var source = CreateSourceVariable(pipeline.Source, sourceShape, cteShapesByName);
-        var sourceSetup = CreateSourceSetup(pipeline.Source, sourceShape, source, schemaFromIndex, cteIndexes, sourceRowsScope);
-        var sourceRows = CreateSourceRowsExpression(pipeline.Source, sourceShape, cteIndexes, cteShapesByName, sourceRowsScope, scope);
+        var sourceSetup = CreateSourceSetup(
+            pipeline.Source,
+            sourceShape,
+            source,
+            schemaFromIndex,
+            cteIndexes,
+            sourceRowsScope
+        );
+        var sourceRows = CreateSourceRowsExpression(
+            pipeline.Source,
+            sourceShape,
+            cteIndexes,
+            cteShapesByName,
+            sourceRowsScope,
+            scope
+        );
         var recordList = new ExecutionVariable(CreateOrderRecordListName(resultTableName), typeof(object));
         var appendValues = materializedFields
             .Select(field => new ExecutionRowValue(field.OutputName, ConvertProjectedExpression(field, sourceLookup)))
@@ -81,34 +109,41 @@ internal sealed partial class PhysicalLoweringImplementation
         var boundedSelection = IsBoundedOrderSelection(selection);
         ExecutionCapacityHint? materializeCapacityHint = selection switch
         {
-            ExecutionTakeOrderRecordSelection take => ExecutionCapacityHintCandidates.CreateConstantCandidate(finalTable, take.Count),
-            ExecutionSkipTakeOrderRecordSelection skipTake => ExecutionCapacityHintCandidates.CreateConstantCandidate(finalTable, skipTake.TakeCount),
-            _ => ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(finalTable, recordList)
+            ExecutionTakeOrderRecordSelection take => ExecutionCapacityHintCandidates.CreateConstantCandidate(
+                finalTable,
+                take.Count
+            ),
+            ExecutionSkipTakeOrderRecordSelection skipTake => ExecutionCapacityHintCandidates.CreateConstantCandidate(
+                finalTable,
+                skipTake.TakeCount
+            ),
+            _ => ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(finalTable, recordList),
         };
 
         var nodes = new List<ExecutionNode>(sourceSetup.Count + 4);
         nodes.AddRange(sourceSetup);
-        nodes.Add(boundedSelection
-            ? new ExecutionCreateBoundedRecordList(recordList, recordShape, orderFields, selection)
-            : new ExecutionCreateRecordList(recordList, recordShape));
+        nodes.Add(
+            boundedSelection
+                ? new ExecutionCreateBoundedRecordList(recordList, recordShape, orderFields, selection)
+                : new ExecutionCreateRecordList(recordList, recordShape)
+        );
         nodes.Add(loop);
         if (!boundedSelection)
             nodes.Add(new ExecutionOrderRecordList(recordList, recordShape, orderFields, selection));
-        nodes.Add(new ExecutionMaterializeRecordListToTable(
-            recordList,
-            finalTable,
-            recordShape,
-            publicShape,
-            Enumerable.Range(0, pipeline.Project.Fields.Length).ToArray(),
-            renumberFieldIndexes,
-            materializeCapacityHint,
-            SerialAppendMode));
+        nodes.Add(
+            new ExecutionMaterializeRecordListToTable(
+                recordList,
+                finalTable,
+                recordShape,
+                publicShape,
+                Enumerable.Range(0, pipeline.Project.Fields.Length).ToArray(),
+                renumberFieldIndexes,
+                materializeCapacityHint,
+                SerialAppendMode
+            )
+        );
 
-        result = TableBuildResult.Success(
-            [sourceShape, recordShape, publicShape],
-            nodes,
-            finalTable,
-            publicShape);
+        result = TableBuildResult.Success([sourceShape, recordShape, publicShape], nodes, finalTable, publicShape);
         return true;
     }
 
@@ -121,7 +156,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private bool CanPruneHiddenSortFields(
         IReadOnlyList<PostOperation> postOperations,
         IReadOnlyList<ProjectedField> hiddenFields,
-        out string unsupportedReason)
+        out string unsupportedReason
+    )
     {
         unsupportedReason = string.Empty;
 
@@ -131,15 +167,19 @@ internal sealed partial class PhysicalLoweringImplementation
         var kind = ResolveOrderedBoundaryKind(postOperations);
         if (kind is null)
         {
-            unsupportedReason = "Execution IR row-width pruning requires an ordered boundary strategy before hidden order keys can be pruned.";
+            unsupportedReason =
+                "Execution IR row-width pruning requires an ordered boundary strategy before hidden order keys can be pruned.";
             return false;
         }
 
-        if (!ExecutionStrategies.HasRowWidthPruningPlan(kind.Value) ||
-            ExecutionStrategies.GetAppliedRowWidthPruning(kind.Value) != null)
+        if (
+            !ExecutionStrategies.HasRowWidthPruningPlan(kind.Value)
+            || ExecutionStrategies.GetAppliedRowWidthPruning(kind.Value) != null
+        )
             return true;
 
-        unsupportedReason = $"Execution IR row-width pruning requires an applied RowWidthPruningPlan for {kind.Value} before hidden order keys can be pruned.";
+        unsupportedReason =
+            $"Execution IR row-width pruning requires an applied RowWidthPruningPlan for {kind.Value} before hidden order keys can be pruned.";
         return false;
     }
 
@@ -152,7 +192,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 SortOperation => BoundaryRowShapeKind.Sort,
                 TopNOperation => BoundaryRowShapeKind.TopN,
                 TopOffsetOperation => BoundaryRowShapeKind.TopOffset,
-                _ => null
+                _ => null,
             };
 
             if (kind != null)
@@ -165,29 +205,33 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool CanUseTypedOrderPipeline(
         CteSupportedPipeline pipeline,
         string resultTableName,
-        RowShape sourceShape)
+        RowShape sourceShape
+    )
     {
         if (!string.Equals(resultTableName, "result", StringComparison.Ordinal))
             return false;
 
-        if (pipeline.Project.IsDistinct ||
-            pipeline.PostOperations.Count != 1 ||
-            pipeline.PostOperations[0] is not (SortOperation or TopNOperation or TopOffsetOperation))
+        if (
+            pipeline.Project.IsDistinct
+            || pipeline.PostOperations.Count != 1
+            || pipeline.PostOperations[0] is not (SortOperation or TopNOperation or TopOffsetOperation)
+        )
         {
             return false;
         }
 
-        return sourceShape is SourceEntityShape source &&
-               source.EntityType.ResolveClrType() != typeof(object) &&
-               RowShapeLookup.CanReferenceType(source.EntityType.ResolveClrType()) &&
-               !RowShapeLookup.UsesReflectedMemberAccess(source);
+        return sourceShape is SourceEntityShape source
+            && source.EntityType.ResolveClrType() != typeof(object)
+            && RowShapeLookup.CanReferenceType(source.EntityType.ResolveClrType())
+            && !RowShapeLookup.UsesReflectedMemberAccess(source);
     }
 
     private static bool CanUseTypedOrderRecordShape(GeneratedRecordShape recordShape)
     {
         return recordShape.Fields.All(static field =>
-            field.Type.ResolveClrType() != typeof(object) &&
-            RowShapeLookup.CanReferenceType(field.Type.ResolveClrType()));
+            field.Type.ResolveClrType() != typeof(object)
+            && RowShapeLookup.CanReferenceType(field.Type.ResolveClrType())
+        );
     }
 
     private static GeneratedRecordShape CreateOrderRecordShape(GeneratedRowShape workingShape, bool emitAsValueType)
@@ -198,11 +242,10 @@ internal sealed partial class PhysicalLoweringImplementation
             workingShape.Fields.Count,
             typeof(int),
             FieldNullability.NotNullable,
-            new GeneratedFieldAccess("__ordinal"));
+            new GeneratedFieldAccess("__ordinal")
+        );
 
-        return new GeneratedRecordShape(
-            workingShape.TypeName,
-            [..workingShape.Fields, ordinal], emitAsValueType);
+        return new GeneratedRecordShape(workingShape.TypeName, [.. workingShape.Fields, ordinal], emitAsValueType);
     }
 
     private static bool TryCreateOrderRecordOperation(
@@ -210,7 +253,8 @@ internal sealed partial class PhysicalLoweringImplementation
         GeneratedRowShape workingShape,
         out IReadOnlyList<ExecutionOrderField> orderFields,
         out ExecutionOrderRecordSelection selection,
-        out string unsupportedReason)
+        out string unsupportedReason
+    )
     {
         orderFields = [];
         selection = new ExecutionFullOrderRecordSelection();
@@ -227,14 +271,17 @@ internal sealed partial class PhysicalLoweringImplementation
             var field = RowShapeLookup.ResolveProjectedField(workingShape, key, projectedFields);
             if (field == null)
             {
-                unsupportedReason = $"Execution IR typed order lowering cannot resolve order key '{IrExpressionPrinter.Print(key.Expression)}' in projected fields.";
+                unsupportedReason =
+                    $"Execution IR typed order lowering cannot resolve order key '{IrExpressionPrinter.Print(key.Expression)}' in projected fields.";
                 return false;
             }
 
             if (!IsSupportedTypedOrderKeyType(field.Type.ResolveClrType()))
                 return false;
 
-            fields.Add(new ExecutionOrderField(field.Name, field.OutputIndex, field.Type, key.Descending, key.NullOrdering));
+            fields.Add(
+                new ExecutionOrderField(field.Name, field.OutputIndex, field.Type, key.Descending, key.NullOrdering)
+            );
         }
 
         orderFields = fields;
@@ -242,8 +289,11 @@ internal sealed partial class PhysicalLoweringImplementation
         {
             SortOperation => new ExecutionFullOrderRecordSelection(),
             TopNOperation topN => new ExecutionTakeOrderRecordSelection(topN.Count),
-            TopOffsetOperation topOffset => new ExecutionSkipTakeOrderRecordSelection(topOffset.SkipCount, topOffset.TakeCount),
-            _ => throw UnsupportedShape.Of($"Typed ORDER BY operation '{operation.GetType().Name}'")
+            TopOffsetOperation topOffset => new ExecutionSkipTakeOrderRecordSelection(
+                topOffset.SkipCount,
+                topOffset.TakeCount
+            ),
+            _ => throw UnsupportedShape.Of($"Typed ORDER BY operation '{operation.GetType().Name}'"),
         };
         return true;
     }
@@ -255,7 +305,7 @@ internal sealed partial class PhysicalLoweringImplementation
             SortOperation sort => sort.Keys,
             TopNOperation topN => topN.Keys,
             TopOffsetOperation topOffset => topOffset.Keys,
-            _ => []
+            _ => [],
         };
     }
 
@@ -266,7 +316,7 @@ internal sealed partial class PhysicalLoweringImplementation
             SortOperation sort => sort.ProjectedFields,
             TopNOperation topN => topN.ProjectedFields,
             TopOffsetOperation topOffset => topOffset.ProjectedFields,
-            _ => []
+            _ => [],
         };
     }
 
@@ -274,14 +324,13 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         type = Nullable.GetUnderlyingType(type) ?? type;
 
-        return type == typeof(string) ||
-               type == typeof(decimal) ||
-               type == typeof(DateTime) ||
-               type == typeof(DateTimeOffset) ||
-               type == typeof(Guid) ||
-               type.IsPrimitive;
+        return type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(DateTime)
+            || type == typeof(DateTimeOffset)
+            || type == typeof(Guid)
+            || type.IsPrimitive;
     }
 
-    private static string CreateOrderRecordListName(string resultTableName) =>
-        $"{resultTableName}OrderRecords";
+    private static string CreateOrderRecordListName(string resultTableName) => $"{resultTableName}OrderRecords";
 }

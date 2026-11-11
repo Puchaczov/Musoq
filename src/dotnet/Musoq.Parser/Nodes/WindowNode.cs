@@ -8,9 +8,7 @@ public class WindowNode : Node
     {
         ArgumentNullException.ThrowIfNull(definitions);
         Definitions = definitions;
-        var defsId = definitions.Length == 0
-            ? string.Empty
-            : string.Concat(definitions.Select(d => d.Id));
+        var defsId = definitions.Length == 0 ? string.Empty : string.Concat(definitions.Select(d => d.Id));
         Id = $"{nameof(WindowNode)}{defsId}";
     }
 

@@ -17,33 +17,26 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 {
-    private static readonly CompiledQueryBatchRepository<string> RecursiveSampleQueries =
-        new(CreateRecursiveSampleQueries);
+    private static readonly CompiledQueryBatchRepository<string> RecursiveSampleQueries = new(
+        CreateRecursiveSampleQueries
+    );
 
-
-    public static IEnumerable<object[]> RecursiveSampleData => RecursiveCteSupportedCaseCatalog.Cases
-        .Where(static item => item.GeneratedSampleName != null)
-        .Select(static item => new object[] { item });
+    public static IEnumerable<object[]> RecursiveSampleData =>
+        RecursiveCteSupportedCaseCatalog
+            .Cases.Where(static item => item.GeneratedSampleName != null)
+            .Select(static item => new object[] { item });
 
     [TestMethod]
     public void OrdinaryCteColumnListSample_WhenExecuted_ShouldReturnExportedColumnsAndRows()
     {
         var provider = CreateBasicProvider(
-        [
-            new BasicEntity { City = "Warsaw", Country = "PL" },
-            new BasicEntity { City = "Berlin", Country = "DE" }
-        ], []);
-        var table = CompileSample("Q187_CteColumnListOrdinary.cs", provider)
-            .Run(TestContext.CancellationToken);
+            [new BasicEntity { City = "Warsaw", Country = "PL" }, new BasicEntity { City = "Berlin", Country = "DE" }],
+            []
+        );
+        var table = CompileSample("Q187_CteColumnListOrdinary.cs", provider).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Nation", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Warsaw", "PL"],
-            ["Berlin", "DE"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Nation", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Warsaw", "PL"], ["Berlin", "DE"]);
     }
 
     [TestMethod]
@@ -53,15 +46,16 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         using var measurement = EvaluatorTestCaseMeasurement.Begin(
             nameof(RecursiveSample_WhenExecuted_ShouldReturnItsCatalogResult),
             testCase.GeneratedSampleName ?? testCase.Name,
-            testCase.GeneratedSampleName ?? testCase.Name);
-        using var vm = measurement.MeasureCompilation(() =>
-            RecursiveSampleQueries.Take(testCase.GeneratedSampleName!));
+            testCase.GeneratedSampleName ?? testCase.Name
+        );
+        using var vm = measurement.MeasureCompilation(() => RecursiveSampleQueries.Take(testCase.GeneratedSampleName!));
         using var table = measurement.MeasureExecution(() => vm.Run(TestContext.CancellationToken));
         measurement.MeasureMaterialization(() => TableMaterializationTestHelper.Materialize(table));
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            testCase.ExpectedColumns.Select(static column => (column.Name, column.ClrType)).ToArray());
+            testCase.ExpectedColumns.Select(static column => (column.Name, column.ClrType)).ToArray()
+        );
         if (testCase.Ordered)
             TableMaterializationTestHelper.AssertRowsInOrder(table, testCase.ExpectedRows.ToArray());
         else
@@ -79,20 +73,29 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     {
         var vm = CompileSample(
             "Q123_ScriptParameterGroupByHelperCapture.cs",
-            CreateBasicProvider(CreateLargeCountryRows(), []));
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-large");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2500);
+            CreateBasicProvider(CreateLargeCountryRows(), [])
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "suffix",
+            "-large"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "minCount",
+            2500
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("CountryKey", typeof(string)),
-            ("NameCount", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["PL-large", 2500L],
-            ["DE-large", 2500L]);
+            ("NameCount", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PL-large", 2500L], ["DE-large", 2500L]);
     }
 
     [TestMethod]
@@ -100,22 +103,31 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     {
         var vm = CompileSample(
             "Q124_ScriptParameterJoinHelperCapture.cs",
-            CreateBasicProvider(CreateBasicRows(), CreateTargetRows()));
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-match");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "fallback", "missing");
+            CreateBasicProvider(CreateBasicRows(), CreateTargetRows())
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "suffix",
+            "-match"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "fallback",
+            "missing"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("MatchedName", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("MatchedName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "TargetWarsaw-match"],
             ["Bob", "TargetBerlin-match"],
             ["Cara", "-match"],
-            ["Dora", "-match"]);
+            ["Dora", "-match"]
+        );
     }
 
     [TestMethod]
@@ -123,7 +135,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     {
         var vm = CompileSample(
             "Q03_InnerJoin.cs",
-            CreateBasicProvider(CreateLargeCountryRows(), CreateLargeCountryRows()));
+            CreateBasicProvider(CreateLargeCountryRows(), CreateLargeCountryRows())
+        );
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -139,24 +152,16 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
                 [
                     new BasicEntity { Name = "Alice" },
                     new BasicEntity { Name = "Bob" },
-                    new BasicEntity { Name = "Cara" }
-                ],
-                [
-                    new BasicEntity { Name = "Bob" },
                     new BasicEntity { Name = "Cara" },
-                    new BasicEntity { Name = "Dora" }
-                ]));
+                ],
+                [new BasicEntity { Name = "Bob" }, new BasicEntity { Name = "Cara" }, new BasicEntity { Name = "Dora" }]
+            )
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Bob", "Bob"],
-            ["Cara", "Cara"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Bob", "Bob"], ["Cara", "Cara"]);
     }
 
     [TestMethod]
@@ -164,19 +169,23 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     {
         var vm = CompileSample(
             "Q125_ScriptParameterCteHelperCapture.cs",
-            CreateBasicProvider(CreateBasicRows(), CreateTargetRows()));
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+            CreateBasicProvider(CreateBasicRows(), CreateTargetRows())
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "country",
+            "PL"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("RequestedCountry", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", "PL"],
-            ["Cara", "PL"]);
+            ("RequestedCountry", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", "PL"], ["Cara", "PL"]);
     }
 
     [TestMethod]
@@ -184,9 +193,20 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     {
         var vm = CompileSample(
             "Q126_ScriptParameterWindowHelperCapture.cs",
-            CreateBasicProvider(CreateBasicRows(), CreateTargetRows()));
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "-window");
+            CreateBasicProvider(CreateBasicRows(), CreateTargetRows())
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "label",
+            "-window"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -194,13 +214,15 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("rn", typeof(long)),
-            ("WindowLabel", typeof(string)));
+            ("WindowLabel", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 1L, "-window"],
             ["Bob", 1L, "-window"],
             ["Cara", 2L, "-window"],
-            ["Dora", 1L, "-window"]);
+            ["Dora", 1L, "-window"]
+        );
     }
 
     [TestMethod]
@@ -213,14 +235,25 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            sample.CompilationOptions);
+            sample.CompilationOptions
+        );
 
         Assert.Contains("EvaluationHelper.ProjectRowsParallel", inspection.GeneratedCSharpCode);
         Assert.Contains("QueryRows.FromRowShards", inspection.GeneratedCSharpCode);
 
         var vm = CompileSample(sample.FileName, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "threshold", 4990);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "hot");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "threshold",
+            4990
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "label",
+            "hot"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -228,7 +261,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("Label", typeof(string)),
-            ("Heavy", typeof(int)));
+            ("Heavy", typeof(int))
+        );
         var expectedRows = new List<object[]>();
         for (var value = 4991; value <= 4999; value++)
             expectedRows.Add([$"Row{value}", "hot", value * 5]);
@@ -246,29 +280,33 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            options);
+            options
+        );
     }
 
     private static IReadOnlyDictionary<string, CompiledQuery> CreateRecursiveSampleQueries()
     {
-        var cases = RecursiveCteSupportedCaseCatalog.Cases
-            .Where(static item => item.GeneratedSampleName != null)
+        var cases = RecursiveCteSupportedCaseCatalog
+            .Cases.Where(static item => item.GeneratedSampleName != null)
             .ToArray();
         var requests = cases
-            .Select((testCase, index) =>
-            {
-                var sample = GeneratedCodeSamplesCatalog.GetByFileName($"{testCase.GeneratedSampleName}.cs");
-                return new ExecutionBatchCompilationRequest(
-                    testCase.GeneratedSampleName!,
-                    sample.Query,
-                    $"RecursiveSampleBatch_{index}",
-                    testCase.CreateSchemaProvider?.Invoke() ?? CreateBasicProvider([], []),
-                    new TestsLoggerResolver(),
-                    sample.CompilationOptions ?? TestCompilationOptions,
-                    ConsumerFamily: "recursive-generated-samples",
-                    ConsumerTestName: testCase.GeneratedSampleName,
-                    BatchOrigin: "recursive-generated-samples");
-            })
+            .Select(
+                (testCase, index) =>
+                {
+                    var sample = GeneratedCodeSamplesCatalog.GetByFileName($"{testCase.GeneratedSampleName}.cs");
+                    return new ExecutionBatchCompilationRequest(
+                        testCase.GeneratedSampleName!,
+                        sample.Query,
+                        $"RecursiveSampleBatch_{index}",
+                        testCase.CreateSchemaProvider?.Invoke() ?? CreateBasicProvider([], []),
+                        new TestsLoggerResolver(),
+                        sample.CompilationOptions ?? TestCompilationOptions,
+                        ConsumerFamily: "recursive-generated-samples",
+                        ConsumerTestName: testCase.GeneratedSampleName,
+                        BatchOrigin: "recursive-generated-samples"
+                    );
+                }
+            )
             .ToArray();
 
         var results = InstanceCreator.CompileForExecutionBatch(requests);
@@ -280,7 +318,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
                 if (!result.Result.Succeeded)
                     throw new InvalidOperationException(
                         $"Recursive generated-sample '{result.Key}' failed to compile.",
-                        result.Result.CaughtException);
+                        result.Result.CaughtException
+                    );
 
                 queries.Add(result.Key, result.Result.CompiledQuery);
             }
@@ -294,8 +333,7 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         }
     }
 
-    private static void DisposeSuccessfulBatchResults(
-        IReadOnlyList<ExecutionBatchCompilationResult> results)
+    private static void DisposeSuccessfulBatchResults(IReadOnlyList<ExecutionBatchCompilationResult> results)
     {
         foreach (var result in results)
         {
@@ -306,25 +344,51 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 
     private static BasicSchemaProvider<BasicEntity> CreateBasicProvider(
         IEnumerable<BasicEntity> aRows,
-        IEnumerable<BasicEntity> bRows)
+        IEnumerable<BasicEntity> bRows
+    )
     {
         return new BasicSchemaProvider<BasicEntity>(
             new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 ["#A"] = aRows,
                 ["#B"] = bRows,
-                ["#C"] = []
-            });
+                ["#C"] = [],
+            }
+        );
     }
 
     private static IReadOnlyList<BasicEntity> CreateBasicRows()
     {
         return
         [
-            new BasicEntity { Name = "Alice", Country = "PL", City = "Warsaw", Population = 120m },
-            new BasicEntity { Name = "Bob", Country = "DE", City = "Berlin", Population = 80m },
-            new BasicEntity { Name = "Cara", Country = "PL", City = "Krakow", Population = 200m },
-            new BasicEntity { Name = "Dora", Country = "FR", City = "Paris", Population = 50m }
+            new BasicEntity
+            {
+                Name = "Alice",
+                Country = "PL",
+                City = "Warsaw",
+                Population = 120m,
+            },
+            new BasicEntity
+            {
+                Name = "Bob",
+                Country = "DE",
+                City = "Berlin",
+                Population = 80m,
+            },
+            new BasicEntity
+            {
+                Name = "Cara",
+                Country = "PL",
+                City = "Krakow",
+                Population = 200m,
+            },
+            new BasicEntity
+            {
+                Name = "Dora",
+                Country = "FR",
+                City = "Paris",
+                Population = 50m,
+            },
         ];
     }
 
@@ -332,27 +396,39 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     {
         return
         [
-            new BasicEntity { Name = "TargetWarsaw", Country = "PL", City = "Warsaw" },
-            new BasicEntity { Name = "TargetBerlin", Country = "DE", City = "Berlin" }
+            new BasicEntity
+            {
+                Name = "TargetWarsaw",
+                Country = "PL",
+                City = "Warsaw",
+            },
+            new BasicEntity
+            {
+                Name = "TargetBerlin",
+                Country = "DE",
+                City = "Berlin",
+            },
         ];
     }
 
     private static BasicEntity[] CreateLargeCountryRows()
     {
-        return Enumerable.Range(0, 5000)
+        return Enumerable
+            .Range(0, 5000)
             .Select(index => new BasicEntity
             {
                 Name = $"Name{index}",
                 Country = index % 2 == 0 ? "PL" : "DE",
                 City = index % 2 == 0 ? "Warsaw" : "Berlin",
-                Population = index
+                Population = index,
             })
             .ToArray();
     }
 
     private static RuntimeV2RegressionEntity[] CreateRuntimeV2Rows()
     {
-        return Enumerable.Range(0, 5000)
+        return Enumerable
+            .Range(0, 5000)
             .Select(index => new RuntimeV2RegressionEntity
             {
                 Id = index,
@@ -360,7 +436,7 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
                 Value = index,
                 Category = index % 2 == 0 ? "A" : "B",
                 Department = index % 3 == 0 ? "Engineering" : "Support",
-                Salary = index
+                Salary = index,
             })
             .ToArray();
     }
@@ -377,16 +453,21 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
     private sealed class DirectRuntimeV2RegressionSchema(IReadOnlyList<RuntimeV2RegressionEntity> rows)
         : SchemaBase("test", CreateLibrary())
     {
-        public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-            => base.DescribeSource(name, context, parameters) with
+        public override SourceDescriptor DescribeSource(
+            string name,
+            SourceDescribeContext context,
+            params object?[] parameters
+        ) =>
+            base.DescribeSource(name, context, parameters) with
             {
-                ExecutionPermissions = SourceExecutionPermissions.ConcurrentRowProcessing
+                ExecutionPermissions = SourceExecutionPermissions.ConcurrentRowProcessing,
             };
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new RuntimeV2RegressionTable();
         }
@@ -394,11 +475,10 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
-            return EnsureSourceType<T, RuntimeV2RegressionEntity>(
-                name,
-                new DirectRuntimeV2RegressionRowSource(rows));
+            return EnsureSourceType<T, RuntimeV2RegressionEntity>(name, new DirectRuntimeV2RegressionRowSource(rows));
         }
 
         private static MethodsAggregator CreateLibrary()

@@ -10,15 +10,14 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal static partial class SourcePredicatePlanner
 {
-    private sealed record PredicateConversionResult(
-        IrExpression[] PushedPredicates,
-        string? UnsupportedReason);
+    private sealed record PredicateConversionResult(IrExpression[] PushedPredicates, string? UnsupportedReason);
 
     public static SourcePredicatePlanningResult Plan(
         IReadOnlyDictionary<SchemaFromNode, WhereNode> rawWhereNodes,
         IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns,
         Musoq.Evaluator.IR.Logical.LogicalNode? logicalPlan = null,
-        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? sourceColumns = null)
+        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? sourceColumns = null
+    )
     {
         ArgumentNullException.ThrowIfNull(rawWhereNodes);
         ArgumentNullException.ThrowIfNull(inferredColumns);
@@ -27,7 +26,8 @@ internal static partial class SourcePredicatePlanner
             return new SourcePredicatePlanningResult(
                 new Dictionary<string, SourcePredicatePlan>(StringComparer.Ordinal),
                 new Dictionary<string, IrExpression[]>(StringComparer.Ordinal),
-                []);
+                []
+            );
         }
 
         var boundaries = SourcePredicateTransferBoundaryPlanner.Plan(logicalPlan);
@@ -46,16 +46,27 @@ internal static partial class SourcePredicatePlanner
             var pushedWhereNode = CreatePushedWhereNode(sourceNode, rawWhereNode);
             PredicateConversionResult conversionResult;
             if (boundaries.TryGetValue(sourceNode.Id, out var boundary))
-                conversionResult = new PredicateConversionResult([], $"{boundary.Origin} predicate remains after null extension on {boundary.JoinKind} {boundary.Side} input.");
+                conversionResult = new PredicateConversionResult(
+                    [],
+                    $"{boundary.Origin} predicate remains after null extension on {boundary.JoinKind} {boundary.Side} input."
+                );
             else
-                conversionResult = CreatePushedPredicates(converter, pushedWhereNode.Expression,
-                    rawWhereNode.Expression, new SourcePredicateTransferContext(
-                        sourceNode.Alias, scopedColumns, regexSources.Contains(sourceNode.Id)));
+                conversionResult = CreatePushedPredicates(
+                    converter,
+                    pushedWhereNode.Expression,
+                    rawWhereNode.Expression,
+                    new SourcePredicateTransferContext(
+                        sourceNode.Alias,
+                        scopedColumns,
+                        regexSources.Contains(sourceNode.Id)
+                    )
+                );
             var reason = CreatePredicateReason(
                 rawWhereNode,
                 pushedWhereNode,
                 conversionResult.PushedPredicates,
-                conversionResult.UnsupportedReason);
+                conversionResult.UnsupportedReason
+            );
             var confidence = ResolveConfidence(conversionResult);
 
             plans[sourceNode.Id] = new SourcePredicatePlan(
@@ -64,16 +75,20 @@ internal static partial class SourcePredicatePlanner
                 pushedWhereNode,
                 conversionResult.PushedPredicates,
                 reason,
-                confidence);
+                confidence
+            );
             pushedPredicates[sourceNode.Id] = conversionResult.PushedPredicates;
 
-            decisions.Add(new PlanningDecision(
-                PlanningDecisionCategory.PredicatePushdown,
-                "SourcePredicatePlan",
-                sourceNode.Id,
-                conversionResult.PushedPredicates.Length == 0 ? "RetainedRuntimeOnly" : "Pushed",
-                confidence,
-                reason));
+            decisions.Add(
+                new PlanningDecision(
+                    PlanningDecisionCategory.PredicatePushdown,
+                    "SourcePredicatePlan",
+                    sourceNode.Id,
+                    conversionResult.PushedPredicates.Length == 0 ? "RetainedRuntimeOnly" : "Pushed",
+                    confidence,
+                    reason
+                )
+            );
         }
 
         return new SourcePredicatePlanningResult(plans, pushedPredicates, decisions);
@@ -93,19 +108,38 @@ internal static partial class SourcePredicatePlanner
         ExpressionConverter converter,
         Node expression,
         Node originalExpression,
-        SourcePredicateTransferContext context)
+        SourcePredicateTransferContext context
+    )
     {
         try
         {
             if (!IsSourceTransferSafe(converter.Convert(originalExpression), context))
-                return new PredicateConversionResult([], "The complete WHERE predicate is unstable or potentially throwing; its evaluation boundary is retained.");
+                return new PredicateConversionResult(
+                    [],
+                    "The complete WHERE predicate is unstable or potentially throwing; its evaluation boundary is retained."
+                );
             var predicate = converter.Convert(expression);
-            return new PredicateConversionResult(ExtractNonNeutralPredicates(predicate).Where(candidate =>
-                IsSourceTransferSafe(candidate, context) &&
-                ColumnRefExtractor.Extract(candidate).All(column =>
-                    string.Equals(column.Alias, context.Alias, StringComparison.OrdinalIgnoreCase) &&
-                    context.Columns.TryGetValue(context.Alias, out var columns) && columns.Any(binding =>
-                        string.Equals(binding.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase)))).ToArray(), null);
+            return new PredicateConversionResult(
+                ExtractNonNeutralPredicates(predicate)
+                    .Where(candidate =>
+                        IsSourceTransferSafe(candidate, context)
+                        && ColumnRefExtractor
+                            .Extract(candidate)
+                            .All(column =>
+                                string.Equals(column.Alias, context.Alias, StringComparison.OrdinalIgnoreCase)
+                                && context.Columns.TryGetValue(context.Alias, out var columns)
+                                && columns.Any(binding =>
+                                    string.Equals(
+                                        binding.ColumnName,
+                                        column.ColumnName,
+                                        StringComparison.OrdinalIgnoreCase
+                                    )
+                                )
+                            )
+                    )
+                    .ToArray(),
+                null
+            );
         }
         catch (NotSupportedException ex)
         {
@@ -156,7 +190,7 @@ internal static partial class SourcePredicatePlanner
             double literal => Math.Abs(literal - 1d) < double.Epsilon,
             decimal literal => literal == 1m,
             string literal => string.Equals(literal, "1", StringComparison.Ordinal),
-            _ => false
+            _ => false,
         };
     }
 
@@ -164,7 +198,8 @@ internal static partial class SourcePredicatePlanner
         WhereNode rawWhereNode,
         WhereNode pushedWhereNode,
         IrExpression[] pushedPredicates,
-        string? unsupportedReason)
+        string? unsupportedReason
+    )
     {
         if (!string.IsNullOrWhiteSpace(unsupportedReason))
             return unsupportedReason;
@@ -172,7 +207,11 @@ internal static partial class SourcePredicatePlanner
         if (pushedPredicates.Length > 0)
             return $"Pushed {pushedPredicates.Length} source-local predicate(s); runtime filter remains for full predicate semantics.";
 
-        return string.Equals(rawWhereNode.Expression.ToString(), pushedWhereNode.Expression.ToString(), StringComparison.Ordinal)
+        return string.Equals(
+            rawWhereNode.Expression.ToString(),
+            pushedWhereNode.Expression.ToString(),
+            StringComparison.Ordinal
+        )
             ? "No non-neutral source-local predicate was available for pushdown."
             : "Predicate was retained for runtime because source-local rewrite produced a neutral predicate.";
     }
@@ -182,8 +221,6 @@ internal static partial class SourcePredicatePlanner
         if (!string.IsNullOrWhiteSpace(conversionResult.UnsupportedReason))
             return PlanningConfidence.Low;
 
-        return conversionResult.PushedPredicates.Length == 0
-            ? PlanningConfidence.Medium
-            : PlanningConfidence.High;
+        return conversionResult.PushedPredicates.Length == 0 ? PlanningConfidence.Medium : PlanningConfidence.High;
     }
 }

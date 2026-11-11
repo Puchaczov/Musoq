@@ -13,7 +13,8 @@ public sealed partial class ExecutionCSharpRenderer
     private MemberDeclarationSyntax RenderGeneratedRowClass(
         GeneratedRowShape shape,
         IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (TryGetColumnarStoredTableResultForRowShape(shape.TypeName, context, out var columnarResult))
             return ColumnarStoredTableSyntaxFactory.CreateRowView(shape, columnarResult.TableIndex);
@@ -22,7 +23,8 @@ public sealed partial class ExecutionCSharpRenderer
             shape,
             ResolveGeneratedRowCarrierBoundary(shape, context),
             ResolveGeneratedRowContextCarrierKind(shape, usedConstructors, context),
-            context.Session.GeneratedRowTypesRequiringRowBase.Contains(shape.TypeName));
+            context.Session.GeneratedRowTypesRequiringRowBase.Contains(shape.TypeName)
+        );
 
         if (!shape.RequiresRowBase && shape.EmitAsValueType)
             return RenderRowCarrierStruct(shape.TypeName, shape.Fields, GetGeneratedFieldName);
@@ -31,21 +33,30 @@ public sealed partial class ExecutionCSharpRenderer
             return RenderGeneratedRowCarrierClass(shape, usedConstructors);
 
         var members = new List<MemberDeclarationSyntax>();
-        members.AddRange(shape.Fields.Select(field => CreateRowCarrierProperty(
-            field,
-            GetGeneratedFieldName,
-            includePrivateSetter: true)));
+        members.AddRange(
+            shape.Fields.Select(field =>
+                CreateRowCarrierProperty(field, GetGeneratedFieldName, includePrivateSetter: true)
+            )
+        );
         members.AddRange(CreateGeneratedRowContextFields(usedConstructors, shape.Contexts));
-        members.AddRange(CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts));
+        members.AddRange(
+            CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts)
+        );
         members.AddRange(CreateResultRowContractMembers(shape.Fields));
         return CreateResultRowClass(shape.TypeName, members);
     }
 
-    private static IEnumerable<MemberDeclarationSyntax> CreateResultRowContractMembers(IReadOnlyList<FieldBinding> fields)
+    private static IEnumerable<MemberDeclarationSyntax> CreateResultRowContractMembers(
+        IReadOnlyList<FieldBinding> fields
+    )
     {
         yield return CreateGeneratedRowCountProperty(fields.Count);
         yield return GeneratedRowColumnVisitation.Create(fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax);
-        yield return GeneratedRowColumnVisitation.CreateRead(fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax);
+        yield return GeneratedRowColumnVisitation.CreateRead(
+            fields,
+            GetGeneratedFieldName,
+            CreateGeneratedFieldTypeSyntax
+        );
         if (RequiresWideGeneratedRowColumnMap(fields))
         {
             foreach (var member in CreateWideGeneratedRowColumnMapMembers(fields))
@@ -57,17 +68,28 @@ public sealed partial class ExecutionCSharpRenderer
             yield return CreateGeneratedRowHasColumnMethod(fields);
         }
 
-        yield return GeneratedRowColumnVisitation.CreateWrite(fields, GetGeneratedFieldName, CreateGeneratedFieldTypeSyntax);
+        yield return GeneratedRowColumnVisitation.CreateWrite(
+            fields,
+            GetGeneratedFieldName,
+            CreateGeneratedFieldTypeSyntax
+        );
     }
 
-    private static ClassDeclarationSyntax CreateResultRowClass(string typeName, IEnumerable<MemberDeclarationSyntax> members)
+    private static ClassDeclarationSyntax CreateResultRowClass(
+        string typeName,
+        IEnumerable<MemberDeclarationSyntax> members
+    )
     {
-        return SyntaxFactory.ClassDeclaration(typeName)
-            .AddModifiers(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.SealedKeyword))
-            .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
-                SyntaxFactory.SimpleBaseType(SyntaxFactory.IdentifierName(nameof(Row))))))
+        return SyntaxFactory
+            .ClassDeclaration(typeName)
+            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.SealedKeyword))
+            .WithBaseList(
+                SyntaxFactory.BaseList(
+                    SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
+                        SyntaxFactory.SimpleBaseType(SyntaxFactory.IdentifierName(nameof(Row)))
+                    )
+                )
+            )
             .WithMembers(SyntaxFactory.List(members));
     }
 
@@ -78,7 +100,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private GeneratedRowCarrierBoundary ResolveGeneratedRowCarrierBoundary(
         GeneratedRowShape shape,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (shape.IsQueryScopedRow)
             return GeneratedRowCarrierBoundary.Internal;
@@ -90,42 +113,48 @@ public sealed partial class ExecutionCSharpRenderer
             return GeneratedRowCarrierBoundary.Internal;
 
         return context.Session.TypedStoredTableResults.Values.Any(result =>
-            string.Equals(result.RowShape.TypeName, shape.TypeName, StringComparison.Ordinal))
-                ? GeneratedRowCarrierBoundary.Internal
-                : GeneratedRowCarrierBoundary.Public;
+            string.Equals(result.RowShape.TypeName, shape.TypeName, StringComparison.Ordinal)
+        )
+            ? GeneratedRowCarrierBoundary.Internal
+            : GeneratedRowCarrierBoundary.Public;
     }
 
     private GeneratedRowContextCarrierKind ResolveGeneratedRowContextCarrierKind(
         GeneratedRowShape shape,
         IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (context.Session.GeneratedRowTypesUsedAsRowContexts.Contains(shape.TypeName))
             return GeneratedRowContextCarrierKind.RequiresRowContexts;
 
         var constructors = GetGeneratedRowConstructors(usedConstructors);
-        return constructors.All(static constructor => constructor is
-            GeneratedRowContextConstructor.NoContext or
-            GeneratedRowContextConstructor.SingleContext or
-            GeneratedRowContextConstructor.SingleContexts or
-            GeneratedRowContextConstructor.TwoSingleContexts)
-                ? GeneratedRowContextCarrierKind.DirectFields
-                : GeneratedRowContextCarrierKind.RequiresRowContexts;
+        return constructors.All(static constructor =>
+            constructor
+                is GeneratedRowContextConstructor.NoContext
+                    or GeneratedRowContextConstructor.SingleContext
+                    or GeneratedRowContextConstructor.SingleContexts
+                    or GeneratedRowContextConstructor.TwoSingleContexts
+        )
+            ? GeneratedRowContextCarrierKind.DirectFields
+            : GeneratedRowContextCarrierKind.RequiresRowContexts;
     }
 
     private static ClassDeclarationSyntax RenderGeneratedRowCarrierClass(
         GeneratedRowShape shape,
-        IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors)
+        IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors
+    )
     {
         var members = new List<MemberDeclarationSyntax>();
         members.AddRange(shape.Fields.Select(field => CreateRowCarrierProperty(field, GetGeneratedFieldName)));
         members.AddRange(CreateGeneratedRowContextFields(usedConstructors, shape.Contexts));
-        members.AddRange(CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts));
+        members.AddRange(
+            CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts)
+        );
 
-        return SyntaxFactory.ClassDeclaration(shape.TypeName)
-            .AddModifiers(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.SealedKeyword))
+        return SyntaxFactory
+            .ClassDeclaration(shape.TypeName)
+            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.SealedKeyword))
             .WithMembers(SyntaxFactory.List(members));
     }
 }

@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionProviderQueryTestsFixtures
 {
-
     internal sealed class SecretSettingsResolver : ISourceRuntimeSettingsResolver
     {
         public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request) =>
@@ -20,6 +19,7 @@ public partial class LibraryExecutionProviderQueryTestsFixtures
     internal struct DiagnosticColumnTypes : IColumnValueVisitor
     {
         public int Count;
+
         public void Visit<T>(int index, in T value)
         {
             var expectedType = index == 0 ? typeof(int) : typeof(string);
@@ -33,6 +33,7 @@ public partial class LibraryExecutionProviderQueryTestsFixtures
     {
         public int Count;
         public bool ExposedSecret;
+
         public void Visit<T>(int index, in T value)
         {
             var expectedType = index is 1 or 2 ? typeof(bool) : typeof(string);
@@ -47,5 +48,4 @@ public partial class LibraryExecutionProviderQueryTestsFixtures
             }
         }
     }
-
 }

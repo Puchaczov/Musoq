@@ -34,7 +34,8 @@ public class UnknownTokenException : LexerException
         : base(
             $"Token '{character}' that starts at position {position} was unrecognized. Rest of the unparsed query is '{remainingInput}'",
             position,
-            DiagnosticCode.MQ1001_UnknownToken)
+            DiagnosticCode.MQ1001_UnknownToken
+        )
     {
         Character = character;
         RemainingInput = remainingInput;

@@ -21,14 +21,13 @@ public sealed class RawStringLiteralSchema : SchemaBase
     private const string Files = "files";
 
     public RawStringLiteralSchema()
-        : base("raw", CreateLibrary())
-    {
-    }
+        : base("raw", CreateLibrary()) { }
 
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         if (string.Equals(name, Files, StringComparison.OrdinalIgnoreCase))
             return new RawFilesTable();
@@ -39,13 +38,15 @@ public sealed class RawStringLiteralSchema : SchemaBase
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         if (string.Equals(name, Files, StringComparison.OrdinalIgnoreCase))
         {
             return EnsureSourceType<T, RawFilesEntity>(
                 name,
-                new RawFilesRowSource(nativeArguments.GetValue<string>(0), nativeArguments.GetValue<bool>(1)));
+                new RawFilesRowSource(nativeArguments.GetValue<string>(0), nativeArguments.GetValue<bool>(1))
+            );
         }
 
         throw new NotSupportedException(name);
@@ -56,13 +57,9 @@ public sealed class RawStringLiteralSchema : SchemaBase
         return TypeHelper.GetSchemaMethodInfosForType<RawFilesRowSource>(Files);
     }
 
-    public override SchemaMethodInfo[] GetRawConstructors(
-        string methodName,
-        SourceMetadataContext metadataContext)
+    public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
     {
-        return string.Equals(methodName, Files, StringComparison.OrdinalIgnoreCase)
-            ? GetConstructors()
-            : [];
+        return string.Equals(methodName, Files, StringComparison.OrdinalIgnoreCase) ? GetConstructors() : [];
     }
 
     private static MethodsAggregator CreateLibrary()
@@ -78,7 +75,7 @@ public sealed class RawFilesTable : ISchemaTable
     public ISchemaColumn[] Columns { get; } =
     [
         new SchemaColumn(nameof(RawFilesEntity.Path), 0, typeof(string)),
-        new SchemaColumn(nameof(RawFilesEntity.Recursive), 1, typeof(bool))
+        new SchemaColumn(nameof(RawFilesEntity.Recursive), 1, typeof(bool)),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(RawFilesEntity));

@@ -6,8 +6,12 @@ public sealed partial class Lexer
     {
         return value is >= '0' and <= '9' or >= 'a' and <= 'f' or >= 'A' and <= 'F';
     }
-    private static bool TryFindInvalidEscapeSequence(ReadOnlySpan<char> value, out string invalidEscape,
-        out TextSpan span)
+
+    private static bool TryFindInvalidEscapeSequence(
+        ReadOnlySpan<char> value,
+        out string invalidEscape,
+        out TextSpan span
+    )
     {
         for (var i = 0; i < value.Length; i++)
         {
@@ -45,8 +49,13 @@ public sealed partial class Lexer
         return false;
     }
 
-    private static bool TryValidateFixedLengthEscape(ReadOnlySpan<char> value, int start, int digitsLength,
-        out string invalidEscape, out TextSpan span)
+    private static bool TryValidateFixedLengthEscape(
+        ReadOnlySpan<char> value,
+        int start,
+        int digitsLength,
+        out string invalidEscape,
+        out TextSpan span
+    )
     {
         var availableDigits = Math.Min(digitsLength, value.Length - (start + 2));
         if (availableDigits < digitsLength)

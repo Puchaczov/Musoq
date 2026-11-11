@@ -47,6 +47,7 @@ internal sealed class CompactCompletionSet(ParserCompletionLayout layout) : ISet
     }
 
     void ICollection<string>.Add(string item) => Add(item);
+
     public bool Contains(string item)
     {
         var index = layout.IndexOf(item);
@@ -96,6 +97,7 @@ internal sealed class CompactCompletionSet(ParserCompletionLayout layout) : ISet
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     public void CopyTo(string[] array, int arrayIndex)
     {
         ArgumentNullException.ThrowIfNull(array);
@@ -105,25 +107,35 @@ internal sealed class CompactCompletionSet(ParserCompletionLayout layout) : ISet
         foreach (var item in this)
             array[arrayIndex++] = item;
     }
+
     private HashSet<string> AsSet() => new(this, StringComparer.Ordinal);
+
     public bool IsProperSubsetOf(IEnumerable<string> other) => AsSet().IsProperSubsetOf(other);
+
     public bool IsProperSupersetOf(IEnumerable<string> other) => AsSet().IsProperSupersetOf(other);
+
     public bool IsSubsetOf(IEnumerable<string> other) => AsSet().IsSubsetOf(other);
+
     public bool IsSupersetOf(IEnumerable<string> other) => AsSet().IsSupersetOf(other);
+
     public bool Overlaps(IEnumerable<string> other) => AsSet().Overlaps(other);
+
     public bool SetEquals(IEnumerable<string> other) => AsSet().SetEquals(other);
+
     public void UnionWith(IEnumerable<string> other)
     {
         ArgumentNullException.ThrowIfNull(other);
         foreach (var item in other)
             Add(item);
     }
+
     public void ExceptWith(IEnumerable<string> other)
     {
         ArgumentNullException.ThrowIfNull(other);
         foreach (var item in other.ToArray())
             Remove(item);
     }
+
     public void IntersectWith(IEnumerable<string> other)
     {
         var keep = new HashSet<string>(other, StringComparer.Ordinal);
@@ -131,6 +143,7 @@ internal sealed class CompactCompletionSet(ParserCompletionLayout layout) : ISet
             if (!keep.Contains(item))
                 Remove(item);
     }
+
     public void SymmetricExceptWith(IEnumerable<string> other)
     {
         foreach (var item in new HashSet<string>(other, StringComparer.Ordinal))

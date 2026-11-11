@@ -57,6 +57,12 @@ jobs:
       - name: Restore
         run: dotnet restore src/dotnet/Musoq.sln
 
+      - name: Restore development tools
+        run: dotnet tool restore
+
+      - name: Check code formatting
+        run: dotnet csharpier check .
+
       - name: Build
         run: dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore
 

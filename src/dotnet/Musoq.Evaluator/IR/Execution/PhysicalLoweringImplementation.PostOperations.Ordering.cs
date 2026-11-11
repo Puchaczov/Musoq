@@ -8,7 +8,8 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static IReadOnlyList<int> ResolveRenumberFieldIndexes(
         IReadOnlyList<ProjectedField> projectedFields,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         return PostOperationPlanner.ResolveRenumberFieldIndexes(projectedFields, rowShape);
     }

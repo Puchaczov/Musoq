@@ -152,10 +152,7 @@ public sealed class OverloadSource : RowSource<OverloadRow>
 
     public override IEnumerable<IReadOnlyList<OverloadRow>> Chunks
     {
-        get
-        {
-            yield return [_row];
-        }
+        get { yield return [_row]; }
     }
 }
 
@@ -173,10 +170,7 @@ public sealed class DefaultConflictSource : RowSource<DefaultConflictRow>
 
     public override IEnumerable<IReadOnlyList<DefaultConflictRow>> Chunks
     {
-        get
-        {
-            yield return [_row];
-        }
+        get { yield return [_row]; }
     }
 }
 
@@ -194,10 +188,7 @@ public sealed class ContextProbeSource : RowSource<ContextProbeRow>
 
     public override IEnumerable<IReadOnlyList<ContextProbeRow>> Chunks
     {
-        get
-        {
-            yield return [_row];
-        }
+        get { yield return [_row]; }
     }
 }
 
@@ -292,10 +283,7 @@ public sealed class AmbiguousSource : RowSource<OverloadRow>
 
     public override IEnumerable<IReadOnlyList<OverloadRow>> Chunks
     {
-        get
-        {
-            yield return [_row];
-        }
+        get { yield return [_row]; }
     }
 }
 

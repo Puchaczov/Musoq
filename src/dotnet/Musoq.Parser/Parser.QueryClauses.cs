@@ -24,7 +24,8 @@ public partial class Parser
                 "Cannot recognize if query is regular or reordered.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2030_UnsupportedSyntax,
-                Current.Span);
+                Current.Span
+            );
         return query;
     }
 
@@ -38,18 +39,24 @@ public partial class Parser
             var selectNode = ComposeSelectNode();
             if (Current.TokenType != TokenType.From)
             {
-                var code = Current.TokenType is TokenType.GroupBy or
-                    TokenType.Having or TokenType.OrderBy or TokenType.Take or TokenType.Skip or
-                    TokenType.RightParenthesis or TokenType.Comma
+                var code = Current.TokenType
+                    is TokenType.GroupBy
+                        or TokenType.Having
+                        or TokenType.OrderBy
+                        or TokenType.Take
+                        or TokenType.Skip
+                        or TokenType.RightParenthesis
+                        or TokenType.Comma
                     ? DiagnosticCode.MQ2001_UnexpectedToken
                     : DiagnosticCode.MQ2004_MissingFromClause;
                 throw new SyntaxException(
                     Current.TokenType == TokenType.RightParenthesis
                         ? "Unexpected RightParenthesis while parsing the SELECT projection."
-                    : "A regular SELECT query must contain a FROM clause.",
+                        : "A regular SELECT query must contain a FROM clause.",
                     _lexer.AlreadyResolvedQueryPart,
                     code,
-                    KeywordMisspellingFacts.GetFromDiagnosticSpan(Current, _lexer.Input));
+                    KeywordMisspellingFacts.GetFromDiagnosticSpan(Current, _lexer.Input)
+                );
             }
 
             var fromNode = ComposeFrom();
@@ -58,7 +65,18 @@ public partial class Parser
             var groupBy = ComposeGroupByNode();
             var window = ComposeWindowClause();
             var qualify = ComposeQualify();
-            return new QueryNode(selectNode, fromExpression, whereNode, groupBy, null, null, null, window, qualify, default);
+            return new QueryNode(
+                selectNode,
+                fromExpression,
+                whereNode,
+                groupBy,
+                null,
+                null,
+                null,
+                window,
+                qualify,
+                default
+            );
         }
         finally
         {
@@ -80,7 +98,18 @@ public partial class Parser
             var window = ComposeWindowClause();
             var selectNode = ComposeSelectNode();
             var qualify = ComposeQualify();
-            return new QueryNode(selectNode, fromExpression, whereNode, groupBy, null, null, null, window, qualify, default);
+            return new QueryNode(
+                selectNode,
+                fromExpression,
+                whereNode,
+                groupBy,
+                null,
+                null,
+                null,
+                window,
+                qualify,
+                default
+            );
         }
         finally
         {
@@ -91,7 +120,8 @@ public partial class Parser
     private OrderByNode? ComposeOrderBy()
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.OrderByClause, Current);
-        if (Current.TokenType != TokenType.OrderBy) return null;
+        if (Current.TokenType != TokenType.OrderBy)
+            return null;
 
         Consume(TokenType.OrderBy);
         return new OrderByNode(ComposeOrderedFields());
@@ -126,30 +156,42 @@ public partial class Parser
     private GroupByNode? ComposeGroupByNode()
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.GroupByClause, Current);
-        if (Current.TokenType != TokenType.GroupBy) return null;
+        if (Current.TokenType != TokenType.GroupBy)
+            return null;
         Consume(TokenType.GroupBy);
         if (Current.TokenType == TokenType.Comma)
-            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.",
-                _lexer.AlreadyResolvedQueryPart);
-        if (Current.TokenType == TokenType.All) return ComposeGroupByAllNode();
-        if (Current.TokenType == TokenType.Having) throw ParserDiagnosticFacts.MissingGroupByColumn(_lexer.AlreadyResolvedQueryPart, Current.Span);
+            throw new SyntaxException(
+                "Unnecessary comma found after GROUP BY clause.",
+                _lexer.AlreadyResolvedQueryPart
+            );
+        if (Current.TokenType == TokenType.All)
+            return ComposeGroupByAllNode();
+        if (Current.TokenType == TokenType.Having)
+            throw ParserDiagnosticFacts.MissingGroupByColumn(_lexer.AlreadyResolvedQueryPart, Current.Span);
 
         var fields = ComposeFields();
         foreach (var field in fields)
-            if (field.Expression is IdentifierNode identifier && identifier.Name.Equals("all", StringComparison.OrdinalIgnoreCase))
+            if (
+                field.Expression is IdentifierNode identifier
+                && identifier.Name.Equals("all", StringComparison.OrdinalIgnoreCase)
+            )
                 throw GroupByAllWithExplicitFields(field.Expression.SpanOrEmpty());
 
         if (Previous?.TokenType == TokenType.Comma && Current.TokenType == TokenType.EndOfFile)
-            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.",
-                _lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException(
+                "Unnecessary comma found after GROUP BY clause.",
+                _lexer.AlreadyResolvedQueryPart
+            );
 
         if (fields.Length == 0)
             throw new SyntaxException(
                 "GROUP BY requires at least one field.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2006_MissingGroupByColumn,
-                Current.Span);
-        if (Current.TokenType != TokenType.Having) return new GroupByNode(fields, null);
+                Current.Span
+            );
+        if (Current.TokenType != TokenType.Having)
+            return new GroupByNode(fields, null);
 
         Consume(TokenType.Having);
 

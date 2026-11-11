@@ -22,7 +22,8 @@ public sealed class RecursiveGraphSourceRecorder
 
     public int RowsYielded(string sourceName) => Read(_rows, sourceName);
 
-    internal void SourceCreated(string sourceName) => _created.AddOrUpdate(sourceName, 1, static (_, count) => count + 1);
+    internal void SourceCreated(string sourceName) =>
+        _created.AddOrUpdate(sourceName, 1, static (_, count) => count + 1);
 
     internal void EnumerationStarted(string sourceName) =>
         _enumerated.AddOrUpdate(sourceName, 1, static (_, count) => count + 1);

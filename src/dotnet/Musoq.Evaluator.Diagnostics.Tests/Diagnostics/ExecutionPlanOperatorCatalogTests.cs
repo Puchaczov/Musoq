@@ -14,13 +14,14 @@ public sealed class ExecutionPlanOperatorCatalogTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(
                     new ExecutionVariable("results", typeof(Table)),
-                    new GeneratedRowShape("ResultRow", [])),
-                new ExecutionReturnTable(new ExecutionVariable("results", typeof(Table)))
-            ]));
+                    new GeneratedRowShape("ResultRow", [])
+                ),
+                new ExecutionReturnTable(new ExecutionVariable("results", typeof(Table))),
+            ])
+        );
 
         var catalog = ExecutionPlanOperatorCatalog.Create(plan);
 
@@ -36,7 +37,8 @@ public sealed class ExecutionPlanOperatorCatalogTests
     {
         var first = new ExecutionCreateTable(
             new ExecutionVariable("results", typeof(Table)),
-            new GeneratedRowShape("ResultRow", []));
+            new GeneratedRowShape("ResultRow", [])
+        );
         var second = new ExecutionReturnTable(new ExecutionVariable("results", typeof(Table)));
         var plan = new ExecutionPlan("structured", [], new ExecutionBlock([first, second]));
 
@@ -54,16 +56,14 @@ public sealed class ExecutionPlanOperatorCatalogTests
     [TestMethod]
     public void Create_WhenPlanContainsBlankLines_DoesNotAssignIdsToBlankLines()
     {
-        var catalog = ExecutionPlanOperatorCatalog.Create("""
-            ExecutionPlan [compiled]
-
-              Body
-                ReturnTable [results]
-            """);
+        var catalog = ExecutionPlanOperatorCatalog.Create(
+            ("ExecutionPlan [compiled]\n" + "\n" + "  Body\n" + "    ReturnTable [results]")
+        );
 
         Assert.AreEqual(3, catalog.Operators.Count);
         CollectionAssert.AreEqual(
             new[] { "op1", "op2", "op3" },
-            catalog.Operators.Select(static descriptor => descriptor.Id).ToArray());
+            catalog.Operators.Select(static descriptor => descriptor.Id).ToArray()
+        );
     }
 }

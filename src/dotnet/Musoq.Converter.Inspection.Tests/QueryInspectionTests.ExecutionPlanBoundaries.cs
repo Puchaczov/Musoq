@@ -10,7 +10,8 @@ public partial class QueryInspectionTests
         var result = CreateInspection();
 
         AssertTextEquals(
-            string.Join("\n",
+            string.Join(
+                "\n",
                 "ExecutionPlan [compiled]",
                 "  Shapes",
                 "    SourceEntity [d: DualEntity]",
@@ -26,7 +27,9 @@ public partial class QueryInspectionTests
                 "    PhaseBoundary [Select]",
                 "    ChunkedForEach [d in dRows]",
                 "      AppendShape [result <- ResultRow0(Dummy: d.Dummy)]",
-                "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"),
-            result.ExecutionPlanText);
+                "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+            ),
+            result.ExecutionPlanText
+        );
     }
 }

@@ -6,5 +6,5 @@ namespace Musoq.Schema.Optimization;
 public enum SourcePredicateFlagsMatchMode : byte
 {
     Any,
-    All
+    All,
 }

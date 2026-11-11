@@ -1,7 +1,7 @@
-using Musoq.Parser.Nodes;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
+using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -38,7 +38,8 @@ public static class RecursiveCtePrevalidator
         throw new RecursiveCteValidationException(
             DiagnosticCode.MQ3016_CircularReference,
             "Reachable CTE definitions contain a circular dependency.",
-            cte.Span);
+            cte.Span
+        );
     }
 
     private static void ValidateColumnNames(CteExpressionNode cte)
@@ -51,7 +52,8 @@ public static class RecursiveCtePrevalidator
             throw new CteColumnListValidationException(
                 DiagnosticCode.MQ3078_DuplicateCteColumnName,
                 failure.Message,
-                failure.Span);
+                failure.Span
+            );
         }
     }
 }

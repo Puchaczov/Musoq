@@ -17,10 +17,11 @@ internal static class ExecutionStructuralShapeFactory
                 ExecutionClrBindingFactory.FromClr(GetClrType(descriptor)),
                 null,
                 null,
-                descriptor.IsNullable),
+                descriptor.IsNullable
+            ),
             StructuralTypeKind.Record => CreateRecord(descriptor),
             StructuralTypeKind.Collection => CreateCollection(descriptor),
-            _ => throw new InvalidOperationException($"Unknown structural type '{descriptor.Kind}'.")
+            _ => throw new InvalidOperationException($"Unknown structural type '{descriptor.Kind}'."),
         };
     }
 
@@ -34,7 +35,8 @@ internal static class ExecutionStructuralShapeFactory
             field.Required,
             field.HasDefault,
             field.Default.CanonicalText,
-            Create(field.Type));
+            Create(field.Type)
+        );
     }
 
     private static ExecutionStructuralShape CreateRecord(StructuralTypeDescriptor descriptor)
@@ -43,25 +45,22 @@ internal static class ExecutionStructuralShapeFactory
         foreach (var field in descriptor.Fields)
             fields.Add(CreateFieldPlan(field));
 
-        return new ExecutionStructuralShape(
-            StructuralTypeKind.Record,
-            null,
-            fields,
-            null,
-            descriptor.IsNullable);
+        return new ExecutionStructuralShape(StructuralTypeKind.Record, null, fields, null, descriptor.IsNullable);
     }
 
     private static ExecutionStructuralShape CreateCollection(StructuralTypeDescriptor descriptor)
     {
-        var element = descriptor.ElementType ?? throw new InvalidOperationException(
-            "A structural collection descriptor must have an element type.");
+        var element =
+            descriptor.ElementType
+            ?? throw new InvalidOperationException("A structural collection descriptor must have an element type.");
         return new ExecutionStructuralShape(
             StructuralTypeKind.Collection,
             null,
             null,
             ExecutionClrBindingFactory.FromClr(GetClrType(element)),
             descriptor.IsNullable,
-            Create(element));
+            Create(element)
+        );
     }
 
     private static Type GetClrType(StructuralTypeDescriptor descriptor)

@@ -34,27 +34,35 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithBigEndianInt_ShouldParseBigEndian()
     {
         // Arrange: Big-endian integer
-        var query = @"
-            binary BigEndianData {
-                Value: int be
-            };
-            select h.Value
-            from #test.files() f
-            cross apply Interpret<BigEndianData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary BigEndianData {\n"
+            + "                Value: int be\n"
+            + "            };\n"
+            + "            select h.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<BigEndianData>(f.Content) h"
+        );
 
         // 0x12345678 in big-endian byte order
         var testData = new byte[] { 0x12, 0x34, 0x56, 0x78 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -67,40 +75,56 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithMixedEndianness_ShouldParseEachCorrectly()
     {
         // Arrange: Mix of big and little endian fields
-        var query = @"
-            binary MixedEndian {
-                LittleInt: int le,
-                BigInt: int be,
-                LittleShort: short le,
-                BigShort: short be
-            };
-            select
-                h.LittleInt,
-                h.BigInt,
-                h.LittleShort,
-                h.BigShort
-            from #test.files() f
-            cross apply Interpret<MixedEndian>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary MixedEndian {\n"
+            + "                LittleInt: int le,\n"
+            + "                BigInt: int be,\n"
+            + "                LittleShort: short le,\n"
+            + "                BigShort: short be\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.LittleInt,\n"
+            + "                h.BigInt,\n"
+            + "                h.LittleShort,\n"
+            + "                h.BigShort\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<MixedEndian>(f.Content) h"
+        );
 
         // LittleInt=0x12345678, BigInt=0xAABBCCDD, LittleShort=0x0102, BigShort=0x0304
         var testData = new byte[]
         {
-            0x78, 0x56, 0x34, 0x12, // LittleInt
-            0xAA, 0xBB, 0xCC, 0xDD, // BigInt
-            0x02, 0x01, // LittleShort (0x0102)
-            0x03, 0x04 // BigShort (0x0304)
+            0x78,
+            0x56,
+            0x34,
+            0x12, // LittleInt
+            0xAA,
+            0xBB,
+            0xCC,
+            0xDD, // BigInt
+            0x02,
+            0x01, // LittleShort (0x0102)
+            0x03,
+            0x04, // BigShort (0x0304)
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -116,27 +140,35 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithBigEndianLong_ShouldParseBigEndian()
     {
         // Arrange: Big-endian long
-        var query = @"
-            binary BigEndianLongData {
-                Value: long be
-            };
-            select h.Value
-            from #test.files() f
-            cross apply Interpret<BigEndianLongData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary BigEndianLongData {\n"
+            + "                Value: long be\n"
+            + "            };\n"
+            + "            select h.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<BigEndianLongData>(f.Content) h"
+        );
 
         // 0x0102030405060708 in big-endian
         var testData = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -153,27 +185,35 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithUnsignedShort_ShouldParseCorrectly()
     {
         // Arrange: Unsigned short (ushort)
-        var query = @"
-            binary UnsignedData {
-                Value: ushort le
-            };
-            select h.Value
-            from #test.files() f
-            cross apply Interpret<UnsignedData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary UnsignedData {\n"
+            + "                Value: ushort le\n"
+            + "            };\n"
+            + "            select h.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<UnsignedData>(f.Content) h"
+        );
 
         // 0xFFFF = 65535 as unsigned
         var testData = new byte[] { 0xFF, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -186,27 +226,35 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithUnsignedInt_ShouldParseCorrectly()
     {
         // Arrange: Unsigned int (uint)
-        var query = @"
-            binary UnsignedIntData {
-                Value: uint le
-            };
-            select h.Value
-            from #test.files() f
-            cross apply Interpret<UnsignedIntData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary UnsignedIntData {\n"
+            + "                Value: uint le\n"
+            + "            };\n"
+            + "            select h.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<UnsignedIntData>(f.Content) h"
+        );
 
         // 0xFFFFFFFF = 4294967295 as unsigned
         var testData = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -219,27 +267,35 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithUnsignedLong_ShouldParseCorrectly()
     {
         // Arrange: Unsigned long (ulong)
-        var query = @"
-            binary UnsignedLongData {
-                Value: ulong le
-            };
-            select h.Value
-            from #test.files() f
-            cross apply Interpret<UnsignedLongData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary UnsignedLongData {\n"
+            + "                Value: ulong le\n"
+            + "            };\n"
+            + "            select h.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<UnsignedLongData>(f.Content) h"
+        );
 
         // Large unsigned value
         var testData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80 }; // 2^63
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -252,27 +308,35 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithSignedByte_ShouldParseCorrectly()
     {
         // Arrange: Signed byte (sbyte)
-        var query = @"
-            binary SignedByteData {
-                Value: sbyte
-            };
-            select h.Value
-            from #test.files() f
-            cross apply Interpret<SignedByteData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary SignedByteData {\n"
+            + "                Value: sbyte\n"
+            + "            };\n"
+            + "            select h.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<SignedByteData>(f.Content) h"
+        );
 
         // 0xFF = -1 as signed byte
         var testData = new byte[] { 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -288,29 +352,35 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     [TestMethod]
     public void Query_SelectInterpret_WithFloatLittleEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary FloatData {
-                Value: float le
-            };
-            select h.Value
-            from #test.files() f
-            cross apply Interpret<FloatData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary FloatData {\n"
+            + "                Value: float le\n"
+            + "            };\n"
+            + "            select h.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<FloatData>(f.Content) h"
+        );
 
         var testData = BitConverter.GetBytes(3.14159f);
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
-
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(3.14159f, (float)table[0].ReadValue(0), 0.00001f);
@@ -319,29 +389,35 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     [TestMethod]
     public void Query_SelectInterpret_WithDoubleLittleEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary DoubleData {
-                Value: double le
-            };
-            select h.Value
-            from #test.files() f
-            cross apply Interpret<DoubleData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary DoubleData {\n"
+            + "                Value: double le\n"
+            + "            };\n"
+            + "            select h.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<DoubleData>(f.Content) h"
+        );
 
         var testData = BitConverter.GetBytes(3.141592653589793);
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
-
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(3.141592653589793, (double)table[0].ReadValue(0), 0.0000000001);
@@ -351,13 +427,15 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithFloatBigEndian_ShouldParseCorrectly()
     {
         // Arrange: Float big-endian
-        var query = @"
-            binary FloatBigEndian {
-                Value: float be
-            };
-            select h.Value
-            from #test.files() f
-            cross apply Interpret<FloatBigEndian>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary FloatBigEndian {\n"
+            + "                Value: float be\n"
+            + "            };\n"
+            + "            select h.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<FloatBigEndian>(f.Content) h"
+        );
 
         // 3.14159f in big-endian
         var leBytes = BitConverter.GetBytes(3.14159f);
@@ -366,17 +444,23 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
         beBytes[1] = leBytes[2];
         beBytes[2] = leBytes[1];
         beBytes[3] = leBytes[0];
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = beBytes } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = beBytes },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 

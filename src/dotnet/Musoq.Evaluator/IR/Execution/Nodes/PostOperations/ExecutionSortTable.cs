@@ -11,7 +11,8 @@ public sealed record ExecutionSortTable : ExecutionNode
         IReadOnlyList<int> renumberFieldIndexes,
         ExecutionCapacityHint? capacityHint = null,
         ExecutionAppendMode appendMode = ExecutionAppendMode.Checked,
-        ExecutionColumnMetadata? columnMetadata = null)
+        ExecutionColumnMetadata? columnMetadata = null
+    )
     {
         Source = source;
         Target = target;
@@ -33,8 +34,7 @@ public sealed record ExecutionSortTable : ExecutionNode
     public ExecutionSortTable(
         ExecutionVariable source,
         ExecutionVariable target,
-        IReadOnlyList<ExecutionOrderField> keys)
-        : this(source, target, keys, [])
-    {
-    }
+        IReadOnlyList<ExecutionOrderField> keys
+    )
+        : this(source, target, keys, []) { }
 }

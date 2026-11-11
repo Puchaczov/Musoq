@@ -10,9 +10,14 @@ internal static class UnreferencedRowDeclarationCleanup
 {
     public static CompilationUnitSyntax Apply(CompilationUnitSyntax unit)
     {
-        var candidates = unit.DescendantNodes().OfType<ClassDeclarationSyntax>()
-            .Where(static type => type.Modifiers.Any(SyntaxKind.PrivateKeyword) &&
-                type.BaseList?.Types.Any(static parent => parent.Type is IdentifierNameSyntax { Identifier.ValueText: "Row" }) == true)
+        var candidates = unit.DescendantNodes()
+            .OfType<ClassDeclarationSyntax>()
+            .Where(static type =>
+                type.Modifiers.Any(SyntaxKind.PrivateKeyword)
+                && type.BaseList?.Types.Any(static parent =>
+                    parent.Type is IdentifierNameSyntax { Identifier.ValueText: "Row" }
+                ) == true
+            )
             .GroupBy(static type => type.Identifier.ValueText, StringComparer.Ordinal)
             .Where(static group => group.Count() == 1)
             .ToDictionary(static group => group.Key, static group => group.Single(), StringComparer.Ordinal);
@@ -24,8 +29,10 @@ internal static class UnreferencedRowDeclarationCleanup
         {
             foreach (var candidate in candidates)
             {
-                if (token.ValueText.Contains(candidate.Key, StringComparison.Ordinal) &&
-                    token.Parent?.FirstAncestorOrSelf<ClassDeclarationSyntax>() != candidate.Value)
+                if (
+                    token.ValueText.Contains(candidate.Key, StringComparison.Ordinal)
+                    && token.Parent?.FirstAncestorOrSelf<ClassDeclarationSyntax>() != candidate.Value
+                )
                     used.Add(candidate.Key);
             }
         }

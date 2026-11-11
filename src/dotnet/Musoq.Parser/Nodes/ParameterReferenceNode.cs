@@ -3,9 +3,7 @@ namespace Musoq.Parser.Nodes;
 public class ParameterReferenceNode : Node
 {
     public ParameterReferenceNode(string name, Type? returnType = null)
-        : this(name, returnType, default)
-    {
-    }
+        : this(name, returnType, default) { }
 
     public ParameterReferenceNode(string name, Type? returnType, TextSpan span)
     {

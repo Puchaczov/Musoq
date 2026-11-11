@@ -17,9 +17,10 @@ public static partial class MethodDeclarationHelper
         return SyntaxFactory.Parameter(
             [],
             SyntaxTokenList.Create(new SyntaxToken()),
-            SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("provider"), null);
+            SyntaxFactory.IdentifierName(nameof(ISchemaProvider)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+            SyntaxFactory.Identifier("provider"),
+            null
+        );
     }
 
     private static ParameterSyntax CreateSourceRuntimeSettingsBySourceContextIdParameter()
@@ -27,15 +28,16 @@ public static partial class MethodDeclarationHelper
         return SyntaxFactory.Parameter(
             [],
             SyntaxTokenList.Create(new SyntaxToken()),
-            CreateSourceRuntimeSettingsBySourceContextIdType()
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("sourceRuntimeSettingsBySourceContextId"), null);
+            CreateSourceRuntimeSettingsBySourceContextIdType().WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+            SyntaxFactory.Identifier("sourceRuntimeSettingsBySourceContextId"),
+            null
+        );
     }
 
     private static ParameterSyntax CreateSourceExecutionPlansParameter()
     {
-        return SyntaxFactory.Parameter(
-                SyntaxFactory.Identifier("sourceExecutionPlans"))
+        return SyntaxFactory
+            .Parameter(SyntaxFactory.Identifier("sourceExecutionPlans"))
             .WithType(CreateSourceExecutionPlansType());
     }
 
@@ -44,9 +46,10 @@ public static partial class MethodDeclarationHelper
         return SyntaxFactory.Parameter(
             [],
             SyntaxTokenList.Create(new SyntaxToken()),
-            SyntaxFactory.IdentifierName(nameof(ILogger))
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("logger"), null);
+            SyntaxFactory.IdentifierName(nameof(ILogger)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+            SyntaxFactory.Identifier("logger"),
+            null
+        );
     }
 
     private static ParameterSyntax CreateTokenParameter()
@@ -54,53 +57,63 @@ public static partial class MethodDeclarationHelper
         return SyntaxFactory.Parameter(
             [],
             SyntaxTokenList.Create(new SyntaxToken()),
-            SyntaxFactory.IdentifierName(nameof(CancellationToken))
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("token"), null);
+            SyntaxFactory.IdentifierName(nameof(CancellationToken)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+            SyntaxFactory.Identifier("token"),
+            null
+        );
     }
 
     private static GenericNameSyntax CreateSourceRuntimeSettingsBySourceContextIdType()
     {
-        return SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("IReadOnlyDictionary"))
+        return SyntaxFactory
+            .GenericName(SyntaxFactory.Identifier("IReadOnlyDictionary"))
             .WithTypeArgumentList(
                 SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SeparatedList<TypeSyntax>(
                         new SyntaxNodeOrToken[]
                         {
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.GenericName(
-                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
+                            SyntaxFactory
+                                .GenericName(SyntaxFactory.Identifier("IReadOnlyDictionary"))
                                 .WithTypeArgumentList(
                                     SyntaxFactory.TypeArgumentList(
                                         SyntaxFactory.SeparatedList<TypeSyntax>(
                                             new SyntaxNodeOrToken[]
                                             {
                                                 SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)
+                                                ),
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                 SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                                            })))
-                        })));
+                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)
+                                                ),
+                                            }
+                                        )
+                                    )
+                                ),
+                        }
+                    )
+                )
+            );
     }
 
     private static GenericNameSyntax CreateSourceExecutionPlansType()
     {
-        return SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("IReadOnlyDictionary"))
+        return SyntaxFactory
+            .GenericName(SyntaxFactory.Identifier("IReadOnlyDictionary"))
             .WithTypeArgumentList(
                 SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SeparatedList<TypeSyntax>(
                         new SyntaxNodeOrToken[]
                         {
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.IdentifierName("SourceExecutionPlan")
-                        })));
+                            SyntaxFactory.IdentifierName("SourceExecutionPlan"),
+                        }
+                    )
+                )
+            );
     }
 
     #endregion

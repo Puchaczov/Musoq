@@ -13,7 +13,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var aggregateSource = BuildAggregateSource(
             pipeline.Source.Source,
@@ -22,7 +23,8 @@ internal sealed partial class PhysicalLoweringImplementation
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
             "aggregate-only",
-            scope);
+            scope
+        );
         if (!aggregateSource.IsBuilt)
             return TableBuildResult.Unsupported(aggregateSource.UnsupportedReason);
 
@@ -33,7 +35,8 @@ internal sealed partial class PhysicalLoweringImplementation
         var outputFields = SelectAggregateOutputFields(pipeline.Project.Fields, pipeline.Bindings);
         if (outputFields == null)
             return TableBuildResult.Unsupported(
-                $"Execution IR aggregate-only lowering cannot match {pipeline.Project.Fields.Length.ToString(CultureInfo.InvariantCulture)} projected fields to {pipeline.Bindings.Length.ToString(CultureInfo.InvariantCulture)} aggregate bindings.");
+                $"Execution IR aggregate-only lowering cannot match {pipeline.Project.Fields.Length.ToString(CultureInfo.InvariantCulture)} projected fields to {pipeline.Bindings.Length.ToString(CultureInfo.InvariantCulture)} aggregate bindings."
+            );
 
         var resultShape = CreateGeneratedShape(resultShapeName, outputFields);
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
@@ -44,18 +47,21 @@ internal sealed partial class PhysicalLoweringImplementation
         var groups = CreateAggregateGroupVariable(aggregateScopeName, "groupsToFinalize");
         var finalGroup = CreateAggregateGroupVariable(aggregateScopeName, "finalGroup");
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(sourceShape);
-        var aggregateResources = CreateAggregateLoweringResources(new AggregateLoweringResourceRequest(
-            resultTableName,
-            aggregateScopeName,
-            pipeline.Bindings,
-            outputFields,
-            pipeline.HavingPredicate,
-            pipeline.PostOperations,
-            finalizationGroupKeys,
-            currentGroup,
-            finalGroup,
-            sourceLookup,
-            "aggregate-only"));
+        var aggregateResources = CreateAggregateLoweringResources(
+            new AggregateLoweringResourceRequest(
+                resultTableName,
+                aggregateScopeName,
+                pipeline.Bindings,
+                outputFields,
+                pipeline.HavingPredicate,
+                pipeline.PostOperations,
+                finalizationGroupKeys,
+                currentGroup,
+                finalGroup,
+                sourceLookup,
+                "aggregate-only"
+            )
+        );
         if (!aggregateResources.IsBuilt)
             return TableBuildResult.Unsupported(aggregateResources.UnsupportedReason);
 
@@ -63,38 +69,41 @@ internal sealed partial class PhysicalLoweringImplementation
         var accumulationBlock = CreateAggregateAccumulationBlock(
             pipeline.Source.Filter,
             sourceShape,
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionEnsureAggregateGroup(rootGroup, currentGroup, groups, aggregate.Group.Plan),
-                ..aggregate.SetNodes.Nodes,
-                ..aggregate.ValueCapture.Nodes
-            ]));
+                .. aggregate.SetNodes.Nodes,
+                .. aggregate.ValueCapture.Nodes,
+            ])
+        );
         var loop = CreateSourceLoop(sourceShape, sourceRows, source, accumulationBlock);
-        var appendRow = CreateAggregateAppendRow(
-            resultTable,
-            resultShape,
-            outputFields,
-            aggregate.FinalizationContext);
+        var appendRow = CreateAggregateAppendRow(resultTable, resultShape, outputFields, aggregate.FinalizationContext);
 
         if (!appendRow.IsBuilt)
             return TableBuildResult.Unsupported(appendRow.UnsupportedReason);
 
-        var finalBlock = CreateAggregateFinalBlock(pipeline.HavingPredicate, aggregate.FinalizationContext, appendRow.Value);
+        var finalBlock = CreateAggregateFinalBlock(
+            pipeline.HavingPredicate,
+            aggregate.FinalizationContext,
+            appendRow.Value
+        );
         if (!finalBlock.IsBuilt)
             return TableBuildResult.Unsupported(finalBlock.UnsupportedReason);
 
-        return CompleteAggregateTableBuild(new AggregateTableCompletion(
-            aggregateSource.Source.Shapes,
-            sourceSetup,
-            aggregate,
-            resultTable,
-            resultShape,
-            new ExecutionCreateAggregateContext(rootGroup, currentGroup, groups, aggregate.Group.Plan),
-            loop,
-            groups,
-            finalGroup,
-            finalBlock.Value,
-            pipeline.PostOperations,
-            pipeline.Project.IsDistinct));
+        return CompleteAggregateTableBuild(
+            new AggregateTableCompletion(
+                aggregateSource.Source.Shapes,
+                sourceSetup,
+                aggregate,
+                resultTable,
+                resultShape,
+                new ExecutionCreateAggregateContext(rootGroup, currentGroup, groups, aggregate.Group.Plan),
+                loop,
+                groups,
+                finalGroup,
+                finalBlock.Value,
+                pipeline.PostOperations,
+                pipeline.Project.IsDistinct
+            )
+        );
     }
 }

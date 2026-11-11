@@ -11,7 +11,7 @@ public class UsedColumnsOrUsedWhereEntity
         { nameof(City), 11 },
         { nameof(Country), 12 },
         { nameof(Population), 13 },
-        { nameof(Month), 14 }
+        { nameof(Month), 14 },
     };
 
     public static readonly IDictionary<int, Func<UsedColumnsOrUsedWhereEntity, object?>> TestIndexToObjectAccessMap =
@@ -21,12 +21,10 @@ public class UsedColumnsOrUsedWhereEntity
             { 11, arg => arg.City },
             { 12, arg => arg.Country },
             { 13, arg => arg.Population },
-            { 14, arg => arg.Month }
+            { 14, arg => arg.Month },
         };
 
-    public UsedColumnsOrUsedWhereEntity()
-    {
-    }
+    public UsedColumnsOrUsedWhereEntity() { }
 
     public UsedColumnsOrUsedWhereEntity(string name)
     {

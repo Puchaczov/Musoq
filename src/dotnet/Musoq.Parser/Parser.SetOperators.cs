@@ -32,23 +32,21 @@ public partial class Parser
             {
                 TokenType.Except => new ExceptNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery)
                 {
-                    KeySpans = keySpans
+                    KeySpans = keySpans,
                 },
                 TokenType.Union => new UnionNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery)
                 {
-                    KeySpans = keySpans
+                    KeySpans = keySpans,
                 },
-                TokenType.UnionAll => new UnionAllNode(string.Empty, keys, node, nextSet, nestingLevel != 0,
-                    isQuery)
+                TokenType.UnionAll => new UnionAllNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery)
                 {
-                    KeySpans = keySpans
+                    KeySpans = keySpans,
                 },
-                TokenType.Intersect => new IntersectNode(string.Empty, keys, node, nextSet, nestingLevel != 0,
-                    isQuery)
+                TokenType.Intersect => new IntersectNode(string.Empty, keys, node, nextSet, nestingLevel != 0, isQuery)
                 {
-                    KeySpans = keySpans
+                    KeySpans = keySpans,
                 },
-                _ => node
+                _ => node,
             };
         }
 
@@ -72,17 +70,17 @@ public partial class Parser
             take,
             query.Window,
             query.Qualify,
-            default);
-        return nestingLevel == 0
-            ? new SingleSetNode(completedQuery)
-            : completedQuery;
+            default
+        );
+        return nestingLevel == 0 ? new SingleSetNode(completedQuery) : completedQuery;
     }
 
     private static SetOperatorNode AttachResultModifiers(
         SetOperatorNode node,
         OrderByNode? orderBy,
         SkipNode? skip,
-        TakeNode? take)
+        TakeNode? take
+    )
     {
         return node switch
         {
@@ -95,9 +93,10 @@ public partial class Parser
                 node.IsTheLastOne,
                 orderBy,
                 skip,
-                take)
+                take
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
             UnionAllNode => new UnionAllNode(
                 node.ResultTableName,
@@ -108,9 +107,10 @@ public partial class Parser
                 node.IsTheLastOne,
                 orderBy,
                 skip,
-                take)
+                take
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
             ExceptNode => new ExceptNode(
                 node.ResultTableName,
@@ -121,9 +121,10 @@ public partial class Parser
                 node.IsTheLastOne,
                 orderBy,
                 skip,
-                take)
+                take
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
             IntersectNode => new IntersectNode(
                 node.ResultTableName,
@@ -134,11 +135,12 @@ public partial class Parser
                 node.IsTheLastOne,
                 orderBy,
                 skip,
-                take)
+                take
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
-            _ => throw new NotSupportedException($"Set operator '{node.GetType().Name}' is not supported.")
+            _ => throw new NotSupportedException($"Set operator '{node.GetType().Name}' is not supported."),
         };
     }
 
@@ -146,5 +148,4 @@ public partial class Parser
     {
         return Array.IndexOf(SetOperators, currentTokenType) >= 0;
     }
-
 }

@@ -3,9 +3,7 @@ namespace Musoq.Parser.Nodes;
 public sealed class ScriptVariableReferenceNode : Node
 {
     public ScriptVariableReferenceNode(string name, Type returnType)
-        : this(name, returnType, default)
-    {
-    }
+        : this(name, returnType, default) { }
 
     public ScriptVariableReferenceNode(string name, Type returnType, TextSpan span)
     {

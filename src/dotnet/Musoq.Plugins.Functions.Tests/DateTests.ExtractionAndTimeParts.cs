@@ -21,8 +21,7 @@ public partial class DateTests
 
     #endregion
 
-    private static readonly DateTimeOffset FixedLocalDateTime =
-        new(2031, 7, 8, 9, 10, 11, TimeSpan.FromHours(2));
+    private static readonly DateTimeOffset FixedLocalDateTime = new(2031, 7, 8, 9, 10, 11, TimeSpan.FromHours(2));
 
     protected override LibraryBase CreateLibrary() => new FixedClockLibrary();
 

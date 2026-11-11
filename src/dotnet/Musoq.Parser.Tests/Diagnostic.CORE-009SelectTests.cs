@@ -56,10 +56,12 @@ public sealed class DiagnosticCore009SelectTests
         var fields = GetQuery(result.Root!).Select.Fields;
         CollectionAssert.AreEqual(
             new[] { "FullName", "ImplicitName", "Full Name", "1", "Name", "Count(Name)" },
-            fields.Select(field => field.FieldName).ToArray());
+            fields.Select(field => field.FieldName).ToArray()
+        );
         CollectionAssert.AreEqual(
             new[] { true, true, true, false, false, false },
-            fields.Select(field => field.HasExplicitFieldName).ToArray());
+            fields.Select(field => field.HasExplicitFieldName).ToArray()
+        );
     }
 
     private static QueryNode GetQuery(RootNode root)

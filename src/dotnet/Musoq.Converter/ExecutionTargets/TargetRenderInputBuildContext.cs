@@ -14,7 +14,8 @@ internal sealed record TargetRenderInputBuildContext
         TargetRenderOptions options,
         TargetRenderPurpose purpose,
         TargetRenderProfile profile,
-        TargetRenderInputCompilerState compilerState)
+        TargetRenderInputCompilerState compilerState
+    )
         : this(
             CancellationToken.None,
             compilationOptions,
@@ -24,9 +25,8 @@ internal sealed record TargetRenderInputBuildContext
             options,
             purpose,
             profile,
-            compilerState)
-    {
-    }
+            compilerState
+        ) { }
 
     public TargetRenderInputBuildContext(
         CancellationToken cancellationToken,
@@ -37,7 +37,8 @@ internal sealed record TargetRenderInputBuildContext
         TargetRenderOptions options,
         TargetRenderPurpose purpose,
         TargetRenderProfile profile,
-        TargetRenderInputCompilerState compilerState)
+        TargetRenderInputCompilerState compilerState
+    )
     {
         CancellationToken = cancellationToken;
         CompilationOptions = compilationOptions ?? throw new ArgumentNullException(nameof(compilationOptions));

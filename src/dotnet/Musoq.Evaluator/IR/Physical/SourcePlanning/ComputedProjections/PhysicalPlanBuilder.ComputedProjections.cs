@@ -12,22 +12,37 @@ public sealed partial class PhysicalPlanBuilder
         var transfer = ResolveSourceTransferStrategy(scan.SourceContextId);
         if (transfer is null || transfer.ComputedProjections.Count == 0)
             return scan.OutputSchema;
-        return new OutputSchema([.. scan.OutputSchema.Columns, .. transfer.ComputedProjections.Select((binding, index) =>
-            new ColumnSchema(binding.Projection.Name, binding.Projection.ResultType, scan.OutputSchema.Columns.Length + index))]);
+        return new OutputSchema([
+            .. scan.OutputSchema.Columns,
+            .. transfer.ComputedProjections.Select(
+                (binding, index) =>
+                    new ColumnSchema(
+                        binding.Projection.Name,
+                        binding.Projection.ResultType,
+                        scan.OutputSchema.Columns.Length + index
+                    )
+            ),
+        ]);
     }
 
     private ProjectedField[] ResolveProjectedFields(ProjectNode project)
     {
-        if (project.Input is not SchemaScanNode scan ||
-            ResolveSourceTransferStrategy(scan.SourceContextId) is not { ComputedProjections.Count: > 0 } transfer)
+        if (
+            project.Input is not SchemaScanNode scan
+            || ResolveSourceTransferStrategy(scan.SourceContextId) is not { ComputedProjections.Count: > 0 } transfer
+        )
             return project.Fields;
-        return project.Fields.Select(field =>
-        {
-            var binding = transfer.ComputedProjections.FirstOrDefault(item => item.Expression == field.Expression);
-            return binding is null ? field : field with
+        return project
+            .Fields.Select(field =>
             {
-                Expression = new ColumnRef(scan.Alias, binding.Projection.Name, binding.Projection.ResultType)
-            };
-        }).ToArray();
+                var binding = transfer.ComputedProjections.FirstOrDefault(item => item.Expression == field.Expression);
+                return binding is null
+                    ? field
+                    : field with
+                    {
+                        Expression = new ColumnRef(scan.Alias, binding.Projection.Name, binding.Projection.ResultType),
+                    };
+            })
+            .ToArray();
     }
 }

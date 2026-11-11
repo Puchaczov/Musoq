@@ -9,26 +9,28 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ExecutionCreateTable CreateTable(
         ExecutionVariable table,
         GeneratedRowShape rowShape,
-        ExecutionCapacityHint? capacityHint = null)
+        ExecutionCapacityHint? capacityHint = null
+    )
     {
         return new ExecutionCreateTable(
             table,
             rowShape,
             capacityHint,
-            CreateColumnMetadata(table.Name, rowShape.Fields, ExecutionColumnMetadataKind.TableColumns));
+            CreateColumnMetadata(table.Name, rowShape.Fields, ExecutionColumnMetadataKind.TableColumns)
+        );
     }
 
     private static ExecutionColumnMetadata CreateColumnMetadata(
         string referenceName,
         IReadOnlyList<FieldBinding> fields,
-        ExecutionColumnMetadataKind kind)
+        ExecutionColumnMetadataKind kind
+    )
     {
         return new ExecutionColumnMetadata(
             referenceName,
-            fields
-                .Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field))
-                .ToArray(),
-            kind);
+            fields.Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field)).ToArray(),
+            kind
+        );
     }
 
     private static Dictionary<string, int> CreateCteIndexes(PhysicalCteNode cte)

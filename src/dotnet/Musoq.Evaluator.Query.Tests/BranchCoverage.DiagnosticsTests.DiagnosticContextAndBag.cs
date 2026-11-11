@@ -104,7 +104,7 @@ public partial class BranchCoverageImprovementTests
         var diagnostics = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error1", new TextSpan(0, 5)),
-            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning1", new TextSpan(5, 3))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning1", new TextSpan(5, 3)),
         };
 
         ctx.AddRange(diagnostics);
@@ -532,7 +532,7 @@ public partial class BranchCoverageImprovementTests
         {
             Diagnostic.Error(DiagnosticCode.MQ3001_UnknownColumn, "err1", new TextSpan(0, 1)),
             Diagnostic.Error(DiagnosticCode.MQ3001_UnknownColumn, "err2", new TextSpan(1, 2)),
-            Diagnostic.Error(DiagnosticCode.MQ3001_UnknownColumn, "err3", new TextSpan(2, 3))
+            Diagnostic.Error(DiagnosticCode.MQ3001_UnknownColumn, "err3", new TextSpan(2, 3)),
         };
 
         bag.AddRange(diags);

@@ -14,19 +14,24 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     internal void BeginSetResultModifierBinding()
     {
-        var setOperator = PeekSemanticNode() as SetOperatorNode
-                          ?? throw new VisitorException(
-                              VisitorName,
-                              nameof(BeginSetResultModifierBinding),
-                              "Expected a semantic set operator before binding result modifiers.");
-        var leftQuery = setOperator.Left as QueryNode
-                        ?? throw new VisitorException(
-                            VisitorName,
-                            nameof(BeginSetResultModifierBinding),
-                            "Expected the left set operand to expose the combined result columns.");
+        var setOperator =
+            PeekSemanticNode() as SetOperatorNode
+            ?? throw new VisitorException(
+                VisitorName,
+                nameof(BeginSetResultModifierBinding),
+                "Expected a semantic set operator before binding result modifiers."
+            );
+        var leftQuery =
+            setOperator.Left as QueryNode
+            ?? throw new VisitorException(
+                VisitorName,
+                nameof(BeginSetResultModifierBinding),
+                "Expected the left set operand to expose the combined result columns."
+            );
         var previousAliases = new Dictionary<string, Node>(
             _resultShape.SelectFieldAliases,
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
         _setResultModifierBindings.Push(new SetResultModifierBindingState(previousAliases, _queryState.QueryPart));
 
         _resultShape.SelectFieldAliases.Clear();
@@ -41,7 +46,9 @@ public partial class BuildMetadataAndInferTypesVisitor
                     field.FieldName,
                     string.Empty,
                     field.Expression.ReturnType ?? typeof(object),
-                    field.Span));
+                    field.Span
+                )
+            );
         }
 
         _queryState.QueryPart = QueryPart.OrderBy;
@@ -52,11 +59,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         var take = syntaxNode.ResultTake != null ? PopSemanticNode() as TakeNode : null;
         var skip = syntaxNode.ResultSkip != null ? PopSemanticNode() as SkipNode : null;
         var orderBy = syntaxNode.ResultOrderBy != null ? PopSemanticNode() as OrderByNode : null;
-        var setOperator = PopSemanticNode() as SetOperatorNode
-                          ?? throw new VisitorException(
-                              VisitorName,
-                              nameof(AttachSetResultModifiers),
-                              "Expected a semantic set operator below its result modifiers.");
+        var setOperator =
+            PopSemanticNode() as SetOperatorNode
+            ?? throw new VisitorException(
+                VisitorName,
+                nameof(AttachSetResultModifiers),
+                "Expected a semantic set operator below its result modifiers."
+            );
 
         if (orderBy != null)
             foreach (var field in orderBy.Fields)
@@ -65,15 +74,18 @@ public partial class BuildMetadataAndInferTypesVisitor
                 ValidateExpressionIsPrimitive(field.Expression, "set result ORDER BY");
             }
 
-        PushSemanticNode(CreateSetOperatorNode(
-            GetSetOperatorName(setOperator),
-            setOperator,
-            setOperator.Keys,
-            setOperator.Left,
-            setOperator.Right,
-            orderBy,
-            skip,
-            take));
+        PushSemanticNode(
+            CreateSetOperatorNode(
+                GetSetOperatorName(setOperator),
+                setOperator,
+                setOperator.Keys,
+                setOperator.Left,
+                setOperator.Right,
+                orderBy,
+                skip,
+                take
+            )
+        );
     }
 
     internal void EndSetResultModifierBinding()
@@ -97,18 +109,19 @@ public partial class BuildMetadataAndInferTypesVisitor
             return true;
         }
 
-        if (_resultShape.SelectFieldAliases.TryGetValue(name, out var expression) &&
-            expression is AccessColumnNode column)
+        if (
+            _resultShape.SelectFieldAliases.TryGetValue(name, out var expression)
+            && expression is AccessColumnNode column
+        )
         {
             PushSemanticNode(new AccessColumnNode(column.Name, string.Empty, column.ReturnType, node.Span));
             return true;
         }
 
-        var availableColumns = _resultShape.SelectFieldAliases
-            .Select(static pair => (ISchemaColumn)new SchemaColumn(
-                pair.Key,
-                0,
-                pair.Value.ReturnType ?? typeof(object)))
+        var availableColumns = _resultShape
+            .SelectFieldAliases.Select(static pair =>
+                (ISchemaColumn)new SchemaColumn(pair.Key, 0, pair.Value.ReturnType ?? typeof(object))
+            )
             .ToArray();
         TryReportOrThrowUnknownColumn(name, availableColumns, node);
         PushSemanticNode(new AccessColumnNode(name, string.Empty, typeof(object), node.Span));
@@ -123,34 +136,72 @@ public partial class BuildMetadataAndInferTypesVisitor
         Node right,
         OrderByNode? resultOrderBy = null,
         SkipNode? resultSkip = null,
-        TakeNode? resultTake = null)
+        TakeNode? resultTake = null
+    )
     {
         return setOperatorName switch
         {
-            "Union" => new UnionNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne,
-                resultOrderBy, resultSkip, resultTake)
+            "Union" => new UnionNode(
+                node.ResultTableName,
+                keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                resultOrderBy,
+                resultSkip,
+                resultTake
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
-            "UnionAll" => new UnionAllNode(node.ResultTableName, keys, left, right, node.IsNested,
-                node.IsTheLastOne, resultOrderBy, resultSkip, resultTake)
+            "UnionAll" => new UnionAllNode(
+                node.ResultTableName,
+                keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                resultOrderBy,
+                resultSkip,
+                resultTake
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
-            "Except" => new ExceptNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne,
-                resultOrderBy, resultSkip, resultTake)
+            "Except" => new ExceptNode(
+                node.ResultTableName,
+                keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                resultOrderBy,
+                resultSkip,
+                resultTake
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
-            "Intersect" => new IntersectNode(node.ResultTableName, keys, left, right, node.IsNested,
-                node.IsTheLastOne, resultOrderBy, resultSkip, resultTake)
+            "Intersect" => new IntersectNode(
+                node.ResultTableName,
+                keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                resultOrderBy,
+                resultSkip,
+                resultTake
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
             _ => throw new VisitorException(
                 VisitorName,
                 nameof(CreateSetOperatorNode),
-                $"Set operator '{setOperatorName}' is not supported.")
+                $"Set operator '{setOperatorName}' is not supported."
+            ),
         };
     }
 
@@ -165,11 +216,13 @@ public partial class BuildMetadataAndInferTypesVisitor
             _ => throw new VisitorException(
                 VisitorName,
                 nameof(GetSetOperatorName),
-                $"Set operator '{node.GetType().Name}' is not supported.")
+                $"Set operator '{node.GetType().Name}' is not supported."
+            ),
         };
     }
 
     private sealed record SetResultModifierBindingState(
         IReadOnlyDictionary<string, Node> SelectFieldAliases,
-        QueryPart QueryPart);
+        QueryPart QueryPart
+    );
 }

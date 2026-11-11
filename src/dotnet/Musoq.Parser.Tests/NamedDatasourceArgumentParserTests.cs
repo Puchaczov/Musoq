@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
-using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser.Tests;
 
@@ -15,8 +15,7 @@ public sealed class NamedDatasourceArgumentParserTests
     [TestMethod]
     public void DirectSchemaCall_ParsesReorderedAndMixedArguments()
     {
-        var source = GetSchemaSource(
-            "select a.Value from #schema.method('first', middle: 2, THIRD: 3) a");
+        var source = GetSchemaSource("select a.Value from #schema.method('first', middle: 2, THIRD: 3) a");
 
         Assert.IsTrue(source.Parameters.HasNamedArguments);
         Assert.AreEqual("'first', middle: 2, THIRD: 3", source.Parameters.ToString());
@@ -29,7 +28,8 @@ public sealed class NamedDatasourceArgumentParserTests
     public void SchemaCall_RejectsPositionalArgumentAfterNamedArgument()
     {
         var exception = Assert.Throws<SyntaxException>(() =>
-            new Parser(new Lexer("select a.Value from #schema.method(first: 1, 2) a", true)).ComposeAll());
+            new Parser(new Lexer("select a.Value from #schema.method(first: 1, 2) a", true)).ComposeAll()
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ2034_InvalidNamedSourceArgument, exception.Code);
     }
@@ -39,8 +39,7 @@ public sealed class NamedDatasourceArgumentParserTests
     {
         const string validQuery = "select a.Value from #schema.method('first', middle: 2, third: 3) a";
         var query = validQuery.Replace("third: 3", "3", StringComparison.Ordinal);
-        var exception = Assert.Throws<SyntaxException>(() =>
-            new Parser(new Lexer(query, true)).ComposeAll());
+        var exception = Assert.Throws<SyntaxException>(() => new Parser(new Lexer(query, true)).ComposeAll());
         var envelope = MusoqErrorEnvelope.FromException(exception, query);
         var argumentSpan = new TextSpan(query.LastIndexOf('3'), 1);
 
@@ -58,7 +57,8 @@ public sealed class NamedDatasourceArgumentParserTests
     public void ScalarFunctionCall_RejectsNamedArguments()
     {
         var exception = Assert.Throws<SyntaxException>(() =>
-            new Parser(new Lexer("select Length(value: 1) from #system.dual() d", true)).ComposeAll());
+            new Parser(new Lexer("select Length(value: 1) from #system.dual() d", true)).ComposeAll()
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ2034_InvalidNamedSourceArgument, exception.Code);
     }
@@ -67,8 +67,10 @@ public sealed class NamedDatasourceArgumentParserTests
     public void RowAccessMethodInApply_RejectsNamedArguments()
     {
         var exception = Assert.Throws<SyntaxException>(() =>
-            new Parser(new Lexer(
-                "select b.Value from #schema.first() a cross apply a.Split(value: 'x') b", true)).ComposeAll());
+            new Parser(
+                new Lexer("select b.Value from #schema.first() a cross apply a.Split(value: 'x') b", true)
+            ).ComposeAll()
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ2034_InvalidNamedSourceArgument, exception.Code);
     }
@@ -77,7 +79,8 @@ public sealed class NamedDatasourceArgumentParserTests
     public void DescFunctions_RejectsNamedArguments()
     {
         var exception = Assert.Throws<SyntaxException>(() =>
-            new Parser(new Lexer("desc functions #schema.method(value: 1)", true)).ComposeAll());
+            new Parser(new Lexer("desc functions #schema.method(value: 1)", true)).ComposeAll()
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ2034_InvalidNamedSourceArgument, exception.Code);
     }
@@ -86,8 +89,7 @@ public sealed class NamedDatasourceArgumentParserTests
     public void NamedArgument_MissingValueReportsParserDiagnostic()
     {
         const string query = "select 1 from #schema.method(value: )";
-        var exception = Assert.Throws<SyntaxException>(() =>
-            new Parser(new Lexer(query, true)).ComposeAll());
+        var exception = Assert.Throws<SyntaxException>(() => new Parser(new Lexer(query, true)).ComposeAll());
         var envelope = MusoqErrorEnvelope.FromException(exception, query);
 
         Assert.AreEqual(DiagnosticCode.MQ2034_InvalidNamedSourceArgument, exception.Code);
@@ -100,8 +102,7 @@ public sealed class NamedDatasourceArgumentParserTests
     [TestMethod]
     public void NamedArguments_AllowCommentsAndMultilineWhitespace()
     {
-        var source = GetSchemaSource(
-            "select 1 from #schema.method(\n  /* first */ value: 1,\n  other: 2\n) a");
+        var source = GetSchemaSource("select 1 from #schema.method(\n  /* first */ value: 1,\n  other: 2\n) a");
 
         Assert.IsTrue(source.Parameters.HasNamedArguments);
         Assert.AreEqual("value", source.Parameters.ArgumentNames[0]!.Value.Name);

@@ -17,18 +17,17 @@ internal enum RecursiveScalarInvariantKind
     Stream,
     Aggregate,
     Window,
-    Unknown
+    Unknown,
 }
 
 internal sealed record RecursiveScalarInvariantFact(
     RecursiveScalarInvariantKind Kind,
     bool IsAnchorInvariant,
     bool IsStable,
-    string Reason)
+    string Reason
+)
 {
-    public bool CanHoist => Kind == RecursiveScalarInvariantKind.FrontierIndependent &&
-                           IsAnchorInvariant &&
-                           IsStable;
+    public bool CanHoist => Kind == RecursiveScalarInvariantKind.FrontierIndependent && IsAnchorInvariant && IsStable;
 }
 
 internal static class RecursiveScalarInvariantFacts
@@ -36,7 +35,8 @@ internal static class RecursiveScalarInvariantFacts
     public static RecursiveScalarInvariantFact Classify(
         IrExpression expression,
         IReadOnlySet<string> frontierAliases,
-        bool isAnchorInvariant = true)
+        bool isAnchorInvariant = true
+    )
     {
         ArgumentNullException.ThrowIfNull(expression);
         ArgumentNullException.ThrowIfNull(frontierAliases);
@@ -47,7 +47,8 @@ internal static class RecursiveScalarInvariantFacts
                 RecursiveScalarInvariantKind.Aggregate,
                 isAnchorInvariant,
                 false,
-                "Aggregate values belong to the current recursive iteration.");
+                "Aggregate values belong to the current recursive iteration."
+            );
         }
 
         if (expression is WindowFunctionRef)
@@ -56,7 +57,8 @@ internal static class RecursiveScalarInvariantFacts
                 RecursiveScalarInvariantKind.Window,
                 isAnchorInvariant,
                 false,
-                "Window values belong to the current recursive iteration.");
+                "Window values belong to the current recursive iteration."
+            );
         }
 
         if (expression is CteTableRef or CteCollectionInput)
@@ -65,7 +67,8 @@ internal static class RecursiveScalarInvariantFacts
                 RecursiveScalarInvariantKind.Stream,
                 isAnchorInvariant,
                 false,
-                "Row streams cannot cross a recursive fixpoint boundary.");
+                "Row streams cannot cross a recursive fixpoint boundary."
+            );
         }
 
         if (AliasRefExtractor.Extract(expression).Any(frontierAliases.Contains))
@@ -74,7 +77,8 @@ internal static class RecursiveScalarInvariantFacts
                 RecursiveScalarInvariantKind.FrontierDependent,
                 false,
                 false,
-                "The scalar depends on the current recursive frontier row.");
+                "The scalar depends on the current recursive frontier row."
+            );
         }
 
         if (!ExpressionStabilityAnalyzer.IsStable(expression))
@@ -83,19 +87,21 @@ internal static class RecursiveScalarInvariantFacts
                 RecursiveScalarInvariantKind.Volatile,
                 isAnchorInvariant,
                 false,
-                "The scalar is volatile or has an unknown evaluation contract.");
+                "The scalar is volatile or has an unknown evaluation contract."
+            );
         }
 
         return new(
             RecursiveScalarInvariantKind.FrontierIndependent,
             isAnchorInvariant,
             true,
-            "The scalar is stable and independent of the recursive frontier.");
+            "The scalar is stable and independent of the recursive frontier."
+        );
     }
 
     public static bool CanHoist(
         IrExpression expression,
         IReadOnlySet<string> frontierAliases,
-        bool isAnchorInvariant = true) =>
-        Classify(expression, frontierAliases, isAnchorInvariant).CanHoist;
+        bool isAnchorInvariant = true
+    ) => Classify(expression, frontierAliases, isAnchorInvariant).CanHoist;
 }

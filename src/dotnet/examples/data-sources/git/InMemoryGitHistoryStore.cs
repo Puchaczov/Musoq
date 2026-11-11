@@ -6,13 +6,12 @@ public sealed class InMemoryGitHistoryStore : IGitHistoryStore
     private readonly IReadOnlyDictionary<string, GitCommitStats> _statsBySha;
 
     public InMemoryGitHistoryStore(IEnumerable<GitCommitRecord> commits)
-        : this(commits, new Dictionary<string, GitCommitStats>())
-    {
-    }
+        : this(commits, new Dictionary<string, GitCommitStats>()) { }
 
     public InMemoryGitHistoryStore(
         IEnumerable<GitCommitRecord> commits,
-        IReadOnlyDictionary<string, GitCommitStats> statsBySha)
+        IReadOnlyDictionary<string, GitCommitStats> statsBySha
+    )
     {
         ArgumentNullException.ThrowIfNull(commits);
         ArgumentNullException.ThrowIfNull(statsBySha);
@@ -33,9 +32,7 @@ public sealed class InMemoryGitHistoryStore : IGitHistoryStore
 
     public GitCommitStats GetStats(string sha)
     {
-        return _statsBySha.TryGetValue(sha, out var stats)
-            ? stats
-            : GitCommitStats.Empty;
+        return _statsBySha.TryGetValue(sha, out var stats) ? stats : GitCommitStats.Empty;
     }
 
     public static InMemoryGitHistoryStore CreateDefault()
@@ -52,7 +49,8 @@ public sealed class InMemoryGitHistoryStore : IGitHistoryStore
                 "Add runtime planner",
                 "Add the first source planning pass for runtime v2.",
                 false,
-                new GitCommitStats(5, 240, 31)),
+                new GitCommitStats(5, 240, 31)
+            ),
             CreateCommit(
                 "musoq",
                 "main",
@@ -63,7 +61,8 @@ public sealed class InMemoryGitHistoryStore : IGitHistoryStore
                 "Tune evaluator",
                 "Tune evaluator code generation for planned sources.",
                 false,
-                new GitCommitStats(3, 80, 20)),
+                new GitCommitStats(3, 80, 20)
+            ),
             CreateCommit(
                 "musoq",
                 "runtime-v2",
@@ -74,7 +73,8 @@ public sealed class InMemoryGitHistoryStore : IGitHistoryStore
                 "Merge runtime v2",
                 "Merge runtime v2 planning work back into main.",
                 true,
-                new GitCommitStats(8, 160, 100)),
+                new GitCommitStats(8, 160, 100)
+            ),
             CreateCommit(
                 "docs",
                 "main",
@@ -85,7 +85,8 @@ public sealed class InMemoryGitHistoryStore : IGitHistoryStore
                 "Document query samples",
                 "Document basic query samples for new users.",
                 false,
-                new GitCommitStats(2, 60, 4)),
+                new GitCommitStats(2, 60, 4)
+            ),
             CreateCommit(
                 "docs",
                 "main",
@@ -96,12 +97,14 @@ public sealed class InMemoryGitHistoryStore : IGitHistoryStore
                 "Refresh runtime docs",
                 "Refresh runtime v2 docs after the planning cleanup.",
                 false,
-                new GitCommitStats(4, 120, 12))
+                new GitCommitStats(4, 120, 12)
+            ),
         };
 
         return new InMemoryGitHistoryStore(
             commits.Select(static commit => commit.Record),
-            commits.ToDictionary(static commit => commit.Record.Sha, static commit => commit.Stats));
+            commits.ToDictionary(static commit => commit.Record.Sha, static commit => commit.Stats)
+        );
     }
 
     private static (GitCommitRecord Record, GitCommitStats Stats) CreateCommit(
@@ -114,7 +117,8 @@ public sealed class InMemoryGitHistoryStore : IGitHistoryStore
         string subject,
         string message,
         bool isMerge,
-        GitCommitStats stats)
+        GitCommitStats stats
+    )
     {
         return (
             new GitCommitRecord(
@@ -126,7 +130,9 @@ public sealed class InMemoryGitHistoryStore : IGitHistoryStore
                 authoredAt,
                 subject,
                 message,
-                isMerge),
-            stats);
+                isMerge
+            ),
+            stats
+        );
     }
 }

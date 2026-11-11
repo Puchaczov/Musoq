@@ -4,5 +4,5 @@ internal enum SourceCacheability
 {
     CacheCandidate,
     NotCacheable,
-    Unknown
+    Unknown,
 }

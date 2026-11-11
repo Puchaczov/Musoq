@@ -13,9 +13,13 @@ internal static class ProjectionAudit
 
     internal static void Verify(CSharpCompilation compilation, IEnumerable<string> required)
     {
-        var projector = compilation.GetTypeByMetadataName(Projector) ?? throw new InvalidOperationException("Missing typed projector.");
+        var projector =
+            compilation.GetTypeByMetadataName(Projector)
+            ?? throw new InvalidOperationException("Missing typed projector.");
         var handlers = projector.GetMembers("Project").OfType<IMethodSymbol>().ToArray();
-        var types = handlers.Select(method => VerificationCompiler.Key((INamedTypeSymbol)method.Parameters.Single().Type)).ToHashSet(StringComparer.Ordinal);
+        var types = handlers
+            .Select(method => VerificationCompiler.Key((INamedTypeSymbol)method.Parameters.Single().Type))
+            .ToHashSet(StringComparer.Ordinal);
         var missing = required.Except(types).ToArray();
         if (missing.Length != 0)
             throw new InvalidOperationException("Missing typed handlers: " + string.Join(", ", missing));
@@ -38,12 +42,22 @@ internal static class ProjectionAudit
             var model = compilation.GetSemanticModel(syntax.SyntaxTree);
             foreach (var call in syntax.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                if (model.GetSymbolInfo(call).Symbol is not IMethodSymbol { Name: "ProjectNode" or "ProjectValue" } method || method.TypeArguments.Length != 1)
+                if (
+                    model.GetSymbolInfo(call).Symbol
+                        is not IMethodSymbol { Name: "ProjectNode" or "ProjectValue" } method
+                    || method.TypeArguments.Length != 1
+                )
                     continue;
                 var type = method.TypeArguments[0];
-                var nested = call.ArgumentList.Arguments.Last().DescendantNodes().OfType<InvocationExpressionSyntax>()
-                    .Select(invocation => model.GetSymbolInfo(invocation).Symbol).OfType<IMethodSymbol>()
-                    .SingleOrDefault(candidate => candidate.Name == "Project" && candidate.ContainingType.Name == "AstProjector");
+                var nested = call
+                    .ArgumentList.Arguments.Last()
+                    .DescendantNodes()
+                    .OfType<InvocationExpressionSyntax>()
+                    .Select(invocation => model.GetSymbolInfo(invocation).Symbol)
+                    .OfType<IMethodSymbol>()
+                    .SingleOrDefault(candidate =>
+                        candidate.Name == "Project" && candidate.ContainingType.Name == "AstProjector"
+                    );
                 if (nested == null || !SymbolEqualityComparer.Default.Equals(nested.Parameters.Single().Type, type))
                     throw new InvalidOperationException("Dispatch must invoke the matching typed projection.");
                 var identity = model.GetConstantValue(call.ArgumentList.Arguments[1].Expression);
@@ -59,8 +73,13 @@ internal static class ProjectionAudit
     {
         var declaration = (MethodDeclarationSyntax)handler.DeclaringSyntaxReferences.Single().GetSyntax();
         var model = compilation.GetSemanticModel(declaration.SyntaxTree);
-        var statements = declaration.Body?.Statements ?? throw new InvalidOperationException("Projection must have an explicit body.");
-        var members = ProjectionPolicy.Members(type).Where(member => ProjectionPolicy.Exclusion(member) == null).ToArray();
+        var statements =
+            declaration.Body?.Statements
+            ?? throw new InvalidOperationException("Projection must have an explicit body.");
+        var members = ProjectionPolicy
+            .Members(type)
+            .Where(member => ProjectionPolicy.Exclusion(member) == null)
+            .ToArray();
         if (statements.Count != members.Length * 2)
             throw new InvalidOperationException("Incomplete member projection: " + type.Name);
         var covered = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
@@ -76,24 +95,35 @@ internal static class ProjectionAudit
             if (member == null || !members.Contains(member, SymbolEqualityComparer.Default) || !covered.Add(member))
                 throw new InvalidOperationException("Unknown, duplicate or excluded member accessor: " + expression);
             RequireReceiver(expression, handler.Parameters.Single().Name);
-            ProjectionValueAudit.Verify(model, Invocation(statements[index + 1]), ProjectionPolicy.ValueType(member), expression.ToString());
+            ProjectionValueAudit.Verify(
+                model,
+                Invocation(statements[index + 1]),
+                ProjectionPolicy.ValueType(member),
+                expression.ToString()
+            );
         }
     }
 
     internal static InvocationExpressionSyntax Invocation(StatementSyntax statement) =>
-        (statement as ExpressionStatementSyntax)?.Expression as InvocationExpressionSyntax ??
-        throw new InvalidOperationException("Expected a direct projection invocation.");
+        (statement as ExpressionStatementSyntax)?.Expression as InvocationExpressionSyntax
+        ?? throw new InvalidOperationException("Expected a direct projection invocation.");
 
     internal static void RequireMethod(SemanticModel model, InvocationExpressionSyntax call, string name)
     {
-        if (model.GetSymbolInfo(call).Symbol is not IMethodSymbol method || method.Name != name ||
-            method.ContainingType.ToDisplayString() != Projector)
+        if (
+            model.GetSymbolInfo(call).Symbol is not IMethodSymbol method
+            || method.Name != name
+            || method.ContainingType.ToDisplayString() != Projector
+        )
             throw new InvalidOperationException("Expected typed projector operation: " + name);
     }
 
     private static void RequireReceiver(ExpressionSyntax expression, string parameter)
     {
-        if (expression is not MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax receiver } || receiver.Identifier.ValueText != parameter)
+        if (
+            expression is not MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax receiver }
+            || receiver.Identifier.ValueText != parameter
+        )
             throw new InvalidOperationException("Accessor must read the projected instance directly.");
     }
 }

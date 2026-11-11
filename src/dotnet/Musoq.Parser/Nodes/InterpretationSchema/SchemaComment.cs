@@ -1,4 +1,3 @@
-
 namespace Musoq.Parser.Nodes.InterpretationSchema;
 
 /// <summary>

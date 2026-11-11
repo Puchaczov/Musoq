@@ -21,7 +21,8 @@ internal static class GitCommitPlan
 
         return new PredicatePlan(
             CombineAnd(left.AcceptedPredicate, right.AcceptedPredicate),
-            CombineAnd(left.ResidualPredicate, right.ResidualPredicate));
+            CombineAnd(left.ResidualPredicate, right.ResidualPredicate)
+        );
     }
 
     public static bool CanReadColumns(IEnumerable<SourceColumnRef> columns)
@@ -36,23 +37,17 @@ internal static class GitCommitPlan
             null => true,
             SourcePredicateColumn column => CanPushDownColumn(column.Column.Name),
             SourcePredicateLiteral => true,
-            SourcePredicateComparison comparison =>
-                CanEvaluatePredicate(comparison.Left) &&
-                CanEvaluatePredicate(comparison.Right),
-            SourcePredicateLogical logical =>
-                CanEvaluatePredicate(logical.Left) &&
-                CanEvaluatePredicate(logical.Right),
-            SourcePredicateIn inPredicate =>
-                CanEvaluatePredicate(inPredicate.Expression) &&
-                inPredicate.Values.All(CanEvaluatePredicate),
+            SourcePredicateComparison comparison => CanEvaluatePredicate(comparison.Left)
+                && CanEvaluatePredicate(comparison.Right),
+            SourcePredicateLogical logical => CanEvaluatePredicate(logical.Left) && CanEvaluatePredicate(logical.Right),
+            SourcePredicateIn inPredicate => CanEvaluatePredicate(inPredicate.Expression)
+                && inPredicate.Values.All(CanEvaluatePredicate),
             SourcePredicateNullCheck nullCheck => CanEvaluatePredicate(nullCheck.Expression),
-            _ => false
+            _ => false,
         };
     }
 
-    public static IEnumerable<GitCommitRow> Apply(
-        IEnumerable<GitCommitRow> rows,
-        SourceExecutionPlan plan)
+    public static IEnumerable<GitCommitRow> Apply(IEnumerable<GitCommitRow> rows, SourceExecutionPlan plan)
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(plan);
@@ -91,17 +86,14 @@ internal static class GitCommitPlan
             null => false,
             SourcePredicateColumn column => IsExpensiveColumn(column.Column.Name),
             SourcePredicateLiteral => false,
-            SourcePredicateComparison comparison =>
-                ReferencesExpensiveColumn(comparison.Left) ||
-                ReferencesExpensiveColumn(comparison.Right),
-            SourcePredicateLogical logical =>
-                ReferencesExpensiveColumn(logical.Left) ||
-                ReferencesExpensiveColumn(logical.Right),
-            SourcePredicateIn inPredicate =>
-                ReferencesExpensiveColumn(inPredicate.Expression) ||
-                inPredicate.Values.Any(ReferencesExpensiveColumn),
+            SourcePredicateComparison comparison => ReferencesExpensiveColumn(comparison.Left)
+                || ReferencesExpensiveColumn(comparison.Right),
+            SourcePredicateLogical logical => ReferencesExpensiveColumn(logical.Left)
+                || ReferencesExpensiveColumn(logical.Right),
+            SourcePredicateIn inPredicate => ReferencesExpensiveColumn(inPredicate.Expression)
+                || inPredicate.Values.Any(ReferencesExpensiveColumn),
             SourcePredicateNullCheck nullCheck => ReferencesExpensiveColumn(nullCheck.Expression),
-            _ => false
+            _ => false,
         };
     }
 
@@ -112,14 +104,15 @@ internal static class GitCommitPlan
 
     private static SourcePredicateExpression? CombineAnd(
         SourcePredicateExpression? left,
-        SourcePredicateExpression? right)
+        SourcePredicateExpression? right
+    )
     {
         return (left, right) switch
         {
             (null, null) => null,
             (not null, null) => left,
             (null, not null) => right,
-            _ => new SourcePredicateLogical(SourcePredicateLogicalOperator.And, left, right)
+            _ => new SourcePredicateLogical(SourcePredicateLogicalOperator.And, left, right),
         };
     }
 
@@ -128,15 +121,20 @@ internal static class GitCommitPlan
         return predicate switch
         {
             SourcePredicateComparison comparison => EvaluateComparison(comparison, row),
-            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical =>
-                EvaluatePredicate(logical.Left, row) && EvaluatePredicate(logical.Right, row),
-            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.Or } logical =>
-                EvaluatePredicate(logical.Left, row) || EvaluatePredicate(logical.Right, row),
+            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical => EvaluatePredicate(
+                logical.Left,
+                row
+            ) && EvaluatePredicate(logical.Right, row),
+            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.Or } logical => EvaluatePredicate(
+                logical.Left,
+                row
+            ) || EvaluatePredicate(logical.Right, row),
             SourcePredicateIn inPredicate => EvaluateIn(inPredicate, row),
-            SourcePredicateNullCheck nullCheck =>
-                (EvaluateValue(nullCheck.Expression, row) == null) ^ nullCheck.IsNegated,
+            SourcePredicateNullCheck nullCheck => (EvaluateValue(nullCheck.Expression, row) == null)
+                ^ nullCheck.IsNegated,
             _ => throw new InvalidOperationException(
-                $"Git commit source cannot evaluate predicate '{predicate.GetType().Name}'.")
+                $"Git commit source cannot evaluate predicate '{predicate.GetType().Name}'."
+            ),
         };
     }
 
@@ -155,7 +153,8 @@ internal static class GitCommitPlan
             SourcePredicateComparisonOperator.LessThan => valueComparison < 0,
             SourcePredicateComparisonOperator.LessOrEqual => valueComparison <= 0,
             _ => throw new InvalidOperationException(
-                $"Git commit source cannot evaluate comparison '{comparison.Operator}'.")
+                $"Git commit source cannot evaluate comparison '{comparison.Operator}'."
+            ),
         };
     }
 
@@ -173,7 +172,8 @@ internal static class GitCommitPlan
             SourcePredicateColumn column => CreateValueSelector(column.Column.Name)(row),
             SourcePredicateLiteral literal => literal.Value,
             _ => throw new InvalidOperationException(
-                $"Git commit source cannot evaluate value expression '{expression.GetType().Name}'.")
+                $"Git commit source cannot evaluate value expression '{expression.GetType().Name}'."
+            ),
         };
     }
 
@@ -184,9 +184,7 @@ internal static class GitCommitPlan
             : throw new InvalidOperationException($"Git commit source has no column '{columnName}'.");
     }
 
-    private static bool TryGetValueSelector(
-        string columnName,
-        out Func<GitCommitRow, object?> selector)
+    private static bool TryGetValueSelector(string columnName, out Func<GitCommitRow, object?> selector)
     {
         if (GitCommitColumnCatalog.TryGetColumn(columnName, out var column))
         {
@@ -207,8 +205,8 @@ internal static class GitCommitPlan
             return false;
 
         if (IsNumber(left) && IsNumber(right))
-            return Convert.ToDecimal(left, CultureInfo.InvariantCulture) ==
-                Convert.ToDecimal(right, CultureInfo.InvariantCulture);
+            return Convert.ToDecimal(left, CultureInfo.InvariantCulture)
+                == Convert.ToDecimal(right, CultureInfo.InvariantCulture);
 
         return Equals(left, right);
     }
@@ -242,8 +240,7 @@ internal static class GitCommitPlan
         return value is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
     }
 
-    private sealed class GitCommitRowComparer(IReadOnlyList<OrderByExpression> orderBy)
-        : IComparer<GitCommitRow>
+    private sealed class GitCommitRowComparer(IReadOnlyList<OrderByExpression> orderBy) : IComparer<GitCommitRow>
     {
         public int Compare(GitCommitRow? x, GitCommitRow? y)
         {
@@ -260,14 +257,13 @@ internal static class GitCommitPlan
             {
                 var comparison = CompareValues(
                     CreateValueSelector(order.Column.Name)(x),
-                    CreateValueSelector(order.Column.Name)(y));
+                    CreateValueSelector(order.Column.Name)(y)
+                );
 
                 if (comparison == 0)
                     continue;
 
-                return order.Direction == OrderDirection.Descending
-                    ? -comparison
-                    : comparison;
+                return order.Direction == OrderDirection.Descending ? -comparison : comparison;
             }
 
             return string.Compare(x.Sha, y.Sha, StringComparison.Ordinal);
@@ -277,7 +273,8 @@ internal static class GitCommitPlan
 
 internal sealed record PredicatePlan(
     SourcePredicateExpression? AcceptedPredicate,
-    SourcePredicateExpression? ResidualPredicate)
+    SourcePredicateExpression? ResidualPredicate
+)
 {
     public static PredicatePlan Empty { get; } = new(null, null);
 }

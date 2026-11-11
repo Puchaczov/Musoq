@@ -2,8 +2,7 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class WindowFunctionHelpers
 {
-    public static WindowPartitionSet ResolvePartitionSet(int rowCount)
-        => WindowPartitionSet.Sequential(rowCount);
+    public static WindowPartitionSet ResolvePartitionSet(int rowCount) => WindowPartitionSet.Sequential(rowCount);
 
     public static WindowPartitionSet ResolvePartitionSet<T>(int rowCount, T[]? partitionKeys)
     {

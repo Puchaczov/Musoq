@@ -16,9 +16,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CorrelatedScalarSubqueryResultExtractor.GetValue", sample);
         Assert.IsFalse(
             sample.Contains("CorrelatedScalarSubqueryResult<string>?", StringComparison.Ordinal),
-            "Q141 should not wrap the missing-safe carrier in Nullable<T>.");
+            "Q141 should not wrap the missing-safe carrier in Nullable<T>."
+        );
         Assert.IsFalse(
             sample.Contains("__compiled2LibraryBase", StringComparison.Ordinal),
-            "Q141 should not allocate a LibraryBase target while building the scalar hash key.");
+            "Q141 should not allocate a LibraryBase target while building the scalar hash key."
+        );
     }
 }

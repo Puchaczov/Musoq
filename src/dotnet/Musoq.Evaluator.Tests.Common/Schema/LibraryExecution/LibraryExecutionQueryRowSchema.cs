@@ -15,26 +15,44 @@ public sealed class LibraryExecutionQueryRowProvider : ISchemaProvider
 
 public sealed class LibraryExecutionQueryRowSchema : SchemaBase, IQueryScopedRowSourceSchema
 {
-    public LibraryExecutionQueryRowSchema() : base("typedrows", CreateMethods()) { }
+    public LibraryExecutionQueryRowSchema()
+        : base("typedrows", CreateMethods()) { }
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext context, params object?[] parameters)
-        => new Musoq.Evaluator.Tests.Schema.QueryRows.GeneratedQueryRowSampleTable(
-            [new SchemaColumn("Id", 0, typeof(int)), new SchemaColumn("Amount", 1, typeof(decimal?))]);
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext context,
+        params object?[] parameters
+    ) =>
+        new Musoq.Evaluator.Tests.Schema.QueryRows.GeneratedQueryRowSampleTable([
+            new SchemaColumn("Id", 0, typeof(int)),
+            new SchemaColumn("Amount", 1, typeof(decimal?)),
+        ]);
 
-    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-        => base.DescribeSource(name, context, parameters) with
+    public override SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters
+    ) =>
+        base.DescribeSource(name, context, parameters) with
         {
-            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads
+            TransferCapabilities =
+                SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads,
         };
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext context, TArguments parameters)
-        => throw new InvalidOperationException("Typed provider must not use legacy row transfer.");
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext context,
+        TArguments parameters
+    ) => throw new InvalidOperationException("Typed provider must not use legacy row transfer.");
 
-    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(string name,
-        QueryScopedRowSourceRequest request, TArguments parameters)
+    public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
+        string name,
+        QueryScopedRowSourceRequest request,
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
-        where TArguments : struct, global::Musoq.Schema.ISourceArguments
-        => new Source<TRow, TMaterializer>(request.Shape);
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments =>
+        new Source<TRow, TMaterializer>(request.Shape);
 
     private static MethodsAggregator CreateMethods()
     {

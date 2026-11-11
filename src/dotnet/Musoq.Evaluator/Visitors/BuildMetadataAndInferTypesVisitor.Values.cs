@@ -32,7 +32,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         var tableSymbol = new TableSymbol(_sourceBinding.QueryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
 
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(_sourceBinding.QueryAlias, tableSymbol);
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_sourceBinding.QueryAlias);
+        _sourceBinding
+            .CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases)
+            .AddAlias(_sourceBinding.QueryAlias);
         _sourceBinding.CurrentScope[node.Id] = _sourceBinding.QueryAlias;
         _sourceBinding.AliasMapToInMemoryTableMap.Add(_sourceBinding.QueryAlias, _sourceBinding.QueryAlias);
         _sourceBinding.InferredColumnsByAlias[_sourceBinding.QueryAlias] = columns;
@@ -46,5 +48,4 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         PushSemanticNode(valuesFromNode);
     }
-
 }

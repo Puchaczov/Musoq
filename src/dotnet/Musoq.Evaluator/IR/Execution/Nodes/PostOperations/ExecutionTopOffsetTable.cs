@@ -5,14 +5,29 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionTopOffsetTable : ExecutionNode
 {
     public ExecutionTopOffsetTable(
-        ExecutionVariable source, ExecutionVariable target, IReadOnlyList<ExecutionOrderField> keys,
-        int skipCount, int takeCount, IReadOnlyList<int> renumberFieldIndexes,
+        ExecutionVariable source,
+        ExecutionVariable target,
+        IReadOnlyList<ExecutionOrderField> keys,
+        int skipCount,
+        int takeCount,
+        IReadOnlyList<int> renumberFieldIndexes,
         ExecutionTopOffsetStrategy strategy,
-        ExecutionCapacityHint? capacityHint = null, ExecutionAppendMode appendMode = ExecutionAppendMode.Checked,
-        ExecutionColumnMetadata? columnMetadata = null)
-        : this(source, target, keys, (PagingCount)skipCount, (PagingCount)takeCount, renumberFieldIndexes, strategy, capacityHint, appendMode, columnMetadata)
-    {
-    }
+        ExecutionCapacityHint? capacityHint = null,
+        ExecutionAppendMode appendMode = ExecutionAppendMode.Checked,
+        ExecutionColumnMetadata? columnMetadata = null
+    )
+        : this(
+            source,
+            target,
+            keys,
+            (PagingCount)skipCount,
+            (PagingCount)takeCount,
+            renumberFieldIndexes,
+            strategy,
+            capacityHint,
+            appendMode,
+            columnMetadata
+        ) { }
 
     public ExecutionTopOffsetTable(
         ExecutionVariable source,
@@ -24,7 +39,8 @@ public sealed record ExecutionTopOffsetTable : ExecutionNode
         ExecutionTopOffsetStrategy strategy,
         ExecutionCapacityHint? capacityHint = null,
         ExecutionAppendMode appendMode = ExecutionAppendMode.Checked,
-        ExecutionColumnMetadata? columnMetadata = null)
+        ExecutionColumnMetadata? columnMetadata = null
+    )
     {
         Source = source;
         Target = target;

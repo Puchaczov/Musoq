@@ -13,7 +13,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             UseQueryRunContext = useQueryRunContext,
             ValueCaptureScope = plan.Body,
-            RegexMatchTimeout = plan.RegexMatchTimeout
+            RegexMatchTimeout = plan.RegexMatchTimeout,
         };
         var context = new ExecutionRenderContext(_renderOptions, session);
         EnsureConstantInSetFields(plan, context);

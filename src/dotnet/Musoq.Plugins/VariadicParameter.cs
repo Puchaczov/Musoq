@@ -10,8 +10,8 @@ public static class VariadicParameter
     public static bool IsVariadic(ParameterInfo parameter)
     {
         ArgumentNullException.ThrowIfNull(parameter);
-        return parameter.IsDefined(typeof(ParamArrayAttribute), false) ||
-               parameter.IsDefined(typeof(ParamCollectionAttribute), false);
+        return parameter.IsDefined(typeof(ParamArrayAttribute), false)
+            || parameter.IsDefined(typeof(ParamCollectionAttribute), false);
     }
 
     /// <summary>Identifies a concrete or generic read-only span.</summary>

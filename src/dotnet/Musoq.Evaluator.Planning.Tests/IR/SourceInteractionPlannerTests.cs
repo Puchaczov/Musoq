@@ -28,12 +28,19 @@ public class SourceInteractionPlannerTests
         var context = CreatePlanningContext(scan, sourceNode);
         var sources = CreateSourceProperties(scan);
 
-        var result = SourceInteractionPlanner.Plan(context, [scan], sources, new Dictionary<string, SourcePredicatePlan>());
+        var result = SourceInteractionPlanner.Plan(
+            context,
+            [scan],
+            sources,
+            new Dictionary<string, SourcePredicatePlan>()
+        );
 
         var plan = result.PlansBySourceId[sourceContextId];
         Assert.AreEqual(SourceShapeKind.Unknown, plan.ShapeKind);
         Assert.Contains("unavailable", plan.ShapeReason);
-        Assert.IsTrue(result.Decisions.Any(static decision => decision.Category == PlanningDecisionCategory.SourceInteraction));
+        Assert.IsTrue(
+            result.Decisions.Any(static decision => decision.Category == PlanningDecisionCategory.SourceInteraction)
+        );
     }
 
     [TestMethod]
@@ -46,7 +53,12 @@ public class SourceInteractionPlannerTests
         var context = CreatePlanningContext(scan, sourceNode);
         var sources = CreateSourceProperties(scan);
 
-        var result = SourceInteractionPlanner.Plan(context, [scan], sources, new Dictionary<string, SourcePredicatePlan>());
+        var result = SourceInteractionPlanner.Plan(
+            context,
+            [scan],
+            sources,
+            new Dictionary<string, SourcePredicatePlan>()
+        );
 
         var plan = result.PlansBySourceId[sourceContextId];
         Assert.AreEqual(SourceArgumentMode.CorrelatedArguments, plan.ArgumentMode);
@@ -60,11 +72,14 @@ public class SourceInteractionPlannerTests
         var scan = CreateScan("t", sourceContextId);
         var sourceNode = CreateSourceNode("t", 0);
         var context = CreatePlanningContext(scan, sourceNode);
-        var sources = CreateSourceProperties(
-            scan,
-            SourceQueryRowProjection.Exact([], "no fields are required"));
+        var sources = CreateSourceProperties(scan, SourceQueryRowProjection.Exact([], "no fields are required"));
 
-        var result = SourceInteractionPlanner.Plan(context, [scan], sources, new Dictionary<string, SourcePredicatePlan>());
+        var result = SourceInteractionPlanner.Plan(
+            context,
+            [scan],
+            sources,
+            new Dictionary<string, SourcePredicatePlan>()
+        );
 
         var plan = result.PlansBySourceId[sourceContextId];
         Assert.AreEqual(SourceColumnContract.ProjectedColumns, plan.ColumnContract);
@@ -80,26 +95,25 @@ public class SourceInteractionPlannerTests
             new LogicalPlanningArtifacts(scan, scan, new OptimizationTrace()),
             new CompilationOptions(),
             new ThrowingSchemaProvider(),
-            new Dictionary<ParserSchemaFromNode, ISchemaColumn[]>
-            {
-                [sourceNode] = usedColumns
-            },
+            new Dictionary<ParserSchemaFromNode, ISchemaColumn[]> { [sourceNode] = usedColumns },
             new Dictionary<ParserSchemaFromNode, WhereNode>(),
             new Dictionary<ParserSchemaFromNode, SourcePlanRequest>
             {
-                [sourceNode] = SourcePlanRequest.Empty(SourceIdentityFactory.Create(sourceNode))
+                [sourceNode] = SourcePlanRequest.Empty(SourceIdentityFactory.Create(sourceNode)),
             },
             new Dictionary<string, ISchemaColumn[]>(StringComparer.OrdinalIgnoreCase),
             new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
             null,
             null,
             new ExecutionPlanningShapeResolverAdapter(new ExecutionShapeResolver()),
-            null);
+            null
+        );
     }
 
     private static Dictionary<string, SourcePlanProperties> CreateSourceProperties(
         SchemaScanNode scan,
-        SourceQueryRowProjection? queryRowProjection = null)
+        SourceQueryRowProjection? queryRowProjection = null
+    )
     {
         return new Dictionary<string, SourcePlanProperties>(StringComparer.Ordinal)
         {
@@ -114,19 +128,14 @@ public class SourceInteractionPlannerTests
                 [],
                 queryRowProjection ?? SourceQueryRowProjection.Unavailable("test metadata is unavailable"),
                 PlanningConfidence.Low,
-                "Source entity type could not be resolved from metadata.")
+                "Source entity type could not be resolved from metadata."
+            ),
         };
     }
 
     private static Parser.SchemaFromNode CreateSourceNode(string alias, int sourcePosition)
     {
-        return new Parser.SchemaFromNode(
-            "test",
-            "data",
-            ArgsListNode.Empty,
-            alias,
-            sourcePosition,
-            false);
+        return new Parser.SchemaFromNode("test", "data", ArgsListNode.Empty, alias, sourcePosition, false);
     }
 
     private static SchemaScanNode CreateScan(string alias, string sourceContextId, params IrExpression[] arguments)
@@ -137,7 +146,8 @@ public class SourceInteractionPlannerTests
             arguments,
             alias,
             CreateSchema(("Name", typeof(string))),
-            sourceContextId);
+            sourceContextId
+        );
     }
 
     private static OutputSchema CreateSchema(params (string Name, Type Type)[] columns)

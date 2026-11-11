@@ -17,7 +17,8 @@ public sealed class SyntaxDiagnosticFactoryTests
             "Unexpected token.",
             new TextSpan(0, 5),
             currentToken: null,
-            source);
+            source
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ2001_UnexpectedToken, diagnostic.Code);
         Assert.AreEqual(0, diagnostic.Location.Offset);
@@ -38,7 +39,8 @@ public sealed class SyntaxDiagnosticFactoryTests
             "Unknown token.",
             new TextSpan(0, 1),
             source,
-            new[] { "near SELECT" });
+            new[] { "near SELECT" }
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ1001_UnknownToken, diagnostic.Code);
         Assert.AreEqual(1, diagnostic.EndLocation.Offset);

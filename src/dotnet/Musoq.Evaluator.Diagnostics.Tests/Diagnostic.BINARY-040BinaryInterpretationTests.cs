@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,32 +13,34 @@ public sealed class DiagnosticBinary040BinaryInterpretationTests : BinaryOrTextu
     [TestMethod]
     public void BinaryInterpretation_AllPrimitiveTypes_WithBothByteOrders_ShouldDecode()
     {
-        const string query = @"
-            binary PrimitiveRecord {
-                ByteValue: byte,
-                SByteValue: sbyte,
-                ShortValue: short be,
-                UShortValue: ushort le,
-                IntValue: int be,
-                UIntValue: uint le,
-                LongValue: long be,
-                ULongValue: ulong le,
-                FloatValue: float be,
-                DoubleValue: double le
-            };
-            select
-                r.ByteValue,
-                r.SByteValue,
-                r.ShortValue,
-                r.UShortValue,
-                r.IntValue,
-                r.UIntValue,
-                r.LongValue,
-                r.ULongValue,
-                r.FloatValue,
-                r.DoubleValue
-            from #test.files() f
-            cross apply Interpret<PrimitiveRecord>(f.Content) r";
+        const string query = (
+            "\n"
+            + "            binary PrimitiveRecord {\n"
+            + "                ByteValue: byte,\n"
+            + "                SByteValue: sbyte,\n"
+            + "                ShortValue: short be,\n"
+            + "                UShortValue: ushort le,\n"
+            + "                IntValue: int be,\n"
+            + "                UIntValue: uint le,\n"
+            + "                LongValue: long be,\n"
+            + "                ULongValue: ulong le,\n"
+            + "                FloatValue: float be,\n"
+            + "                DoubleValue: double le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                r.ByteValue,\n"
+            + "                r.SByteValue,\n"
+            + "                r.ShortValue,\n"
+            + "                r.UShortValue,\n"
+            + "                r.IntValue,\n"
+            + "                r.UIntValue,\n"
+            + "                r.LongValue,\n"
+            + "                r.ULongValue,\n"
+            + "                r.FloatValue,\n"
+            + "                r.DoubleValue\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<PrimitiveRecord>(f.Content) r"
+        );
 
         var data = new byte[42];
         var offset = 0;
@@ -63,12 +65,15 @@ public sealed class DiagnosticBinary040BinaryInterpretationTests : BinaryOrTextu
         var table = CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
-                new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-                {
-                    ["#test"] = [new BinaryEntity { Name = "primitive.bin", Content = data }]
-                }),
+                new BinarySchemaProvider(
+                    new Dictionary<string, IEnumerable<BinaryEntity>>
+                    {
+                        ["#test"] = [new BinaryEntity { Name = "primitive.bin", Content = data }],
+                    }
+                ),
                 LoggerResolver,
-                TestCompilationOptions)
+                TestCompilationOptions
+            )
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -89,38 +94,40 @@ public sealed class DiagnosticBinary040BinaryInterpretationTests : BinaryOrTextu
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        const string query = @"
-            binary Framed {
-                Length: byte,
-                Payload: byte[Length],
-                Utf8Value: string[5] utf8,
-                Utf16LeValue: string[4] utf16le,
-                Utf16BeValue: string[4] utf16be,
-                AsciiValue: string[3] ascii,
-                Latin1Value: string[4] latin1,
-                EbcdicValue: string[4] ebcdic,
-                TrimmedValue: string[8] ascii trim,
-                LeftTrimmedValue: string[7] ascii ltrim,
-                RightTrimmedValue: string[7] ascii rtrim,
-                NullTerminatedValue: string[8] ascii nullterm,
-                Tail: byte
-            };
-            select
-                r.Length,
-                r.Payload,
-                r.Utf8Value,
-                r.Utf16LeValue,
-                r.Utf16BeValue,
-                r.AsciiValue,
-                r.Latin1Value,
-                r.EbcdicValue,
-                r.TrimmedValue,
-                r.LeftTrimmedValue,
-                r.RightTrimmedValue,
-                r.NullTerminatedValue,
-                r.Tail
-            from #test.files() f
-            cross apply Interpret<Framed>(f.Content) r";
+        const string query = (
+            "\n"
+            + "            binary Framed {\n"
+            + "                Length: byte,\n"
+            + "                Payload: byte[Length],\n"
+            + "                Utf8Value: string[5] utf8,\n"
+            + "                Utf16LeValue: string[4] utf16le,\n"
+            + "                Utf16BeValue: string[4] utf16be,\n"
+            + "                AsciiValue: string[3] ascii,\n"
+            + "                Latin1Value: string[4] latin1,\n"
+            + "                EbcdicValue: string[4] ebcdic,\n"
+            + "                TrimmedValue: string[8] ascii trim,\n"
+            + "                LeftTrimmedValue: string[7] ascii ltrim,\n"
+            + "                RightTrimmedValue: string[7] ascii rtrim,\n"
+            + "                NullTerminatedValue: string[8] ascii nullterm,\n"
+            + "                Tail: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                r.Length,\n"
+            + "                r.Payload,\n"
+            + "                r.Utf8Value,\n"
+            + "                r.Utf16LeValue,\n"
+            + "                r.Utf16BeValue,\n"
+            + "                r.AsciiValue,\n"
+            + "                r.Latin1Value,\n"
+            + "                r.EbcdicValue,\n"
+            + "                r.TrimmedValue,\n"
+            + "                r.LeftTrimmedValue,\n"
+            + "                r.RightTrimmedValue,\n"
+            + "                r.NullTerminatedValue,\n"
+            + "                r.Tail\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Framed>(f.Content) r"
+        );
 
         var data = new List<byte> { 3, 0xAA, 0xBB, 0xCC };
         data.AddRange("Hello"u8.ToArray());
@@ -138,12 +145,15 @@ public sealed class DiagnosticBinary040BinaryInterpretationTests : BinaryOrTextu
         var table = CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
-                new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-                {
-                    ["#test"] = [new BinaryEntity { Name = "strings.bin", Content = data.ToArray() }]
-                }),
+                new BinarySchemaProvider(
+                    new Dictionary<string, IEnumerable<BinaryEntity>>
+                    {
+                        ["#test"] = [new BinaryEntity { Name = "strings.bin", Content = data.ToArray() }],
+                    }
+                ),
                 LoggerResolver,
-                TestCompilationOptions)
+                TestCompilationOptions
+            )
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -165,24 +175,29 @@ public sealed class DiagnosticBinary040BinaryInterpretationTests : BinaryOrTextu
     [TestMethod]
     public void BinaryInterpretation_ZeroLengthByteArray_ShouldPreserveFollowingFieldBoundary()
     {
-        const string query = @"
-            binary EmptyPayload {
-                Payload: byte[0],
-                Tail: byte
-            };
-            select r.Payload, r.Tail
-            from #test.files() f
-            cross apply Interpret<EmptyPayload>(f.Content) r";
+        const string query = (
+            "\n"
+            + "            binary EmptyPayload {\n"
+            + "                Payload: byte[0],\n"
+            + "                Tail: byte\n"
+            + "            };\n"
+            + "            select r.Payload, r.Tail\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<EmptyPayload>(f.Content) r"
+        );
 
         var table = CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
-                new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-                {
-                    ["#test"] = [new BinaryEntity { Name = "empty.bin", Content = [0x5A] }]
-                }),
+                new BinarySchemaProvider(
+                    new Dictionary<string, IEnumerable<BinaryEntity>>
+                    {
+                        ["#test"] = [new BinaryEntity { Name = "empty.bin", Content = [0x5A] }],
+                    }
+                ),
                 LoggerResolver,
-                TestCompilationOptions)
+                TestCompilationOptions
+            )
             .Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

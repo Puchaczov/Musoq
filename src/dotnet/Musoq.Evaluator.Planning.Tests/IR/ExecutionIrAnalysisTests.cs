@@ -12,12 +12,8 @@ public sealed class ExecutionIrAnalysisTests
     [TestMethod]
     public void CollectNodes_WhenBlockContainsNestedNodes_ShouldReturnNestedNodesInTraversalOrder()
     {
-        var let = new ExecutionLet(
-            new ExecutionVariable("value", typeof(int)),
-            new ExecutionLiteral(1, typeof(int)));
-        var branch = new ExecutionIf(
-            new ExecutionLiteral(true, typeof(bool)),
-            new ExecutionBlock([let]));
+        var let = new ExecutionLet(new ExecutionVariable("value", typeof(int)), new ExecutionLiteral(1, typeof(int)));
+        var branch = new ExecutionIf(new ExecutionLiteral(true, typeof(bool)), new ExecutionBlock([let]));
         var block = new ExecutionBlock([branch]);
 
         var nodeNames = ExecutionIrAnalysis
@@ -25,44 +21,50 @@ public sealed class ExecutionIrAnalysisTests
             .Select(static node => node.GetType().Name)
             .ToArray();
 
-        CollectionAssert.AreEqual(
-            new[] { nameof(ExecutionIf), nameof(ExecutionLet) },
-            nodeNames);
+        CollectionAssert.AreEqual(new[] { nameof(ExecutionIf), nameof(ExecutionLet) }, nodeNames);
     }
 
     [TestMethod]
     public void FlattenExpressions_WhenBlockContainsNestedNodeExpressions_ShouldReturnAllNodeAndChildExpressions()
     {
         var sourceRows = new ExecutionStoredTableRows(7);
-        var constantSet = new ExecutionConstantInSet(
-            typeof(int),
-            [1, 2],
-            ExecutionConstantInSetKind.Array);
+        var constantSet = new ExecutionConstantInSet(typeof(int), [1, 2], ExecutionConstantInSetKind.Array);
         var predicate = new ExecutionInCheck(
             new ExecutionVariableRead(new ExecutionVariable("item", typeof(int))),
             [new ExecutionLiteral(1, typeof(int))],
             typeof(bool),
-            constantSet);
+            constantSet
+        );
         var contextParameter = new ExecutionScriptParameterRead("context", typeof(string));
         var rowShape = new GeneratedRowShape(
             "ResultRow0",
-            [new FieldBinding("Value", "Value", 0, typeof(bool), FieldNullability.Unknown, new GeneratedFieldAccess("Value"))]);
+            [
+                new FieldBinding(
+                    "Value",
+                    "Value",
+                    0,
+                    typeof(bool),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Value")
+                ),
+            ]
+        );
         var appendRow = new ExecutionAppendRow(
             new ExecutionVariable("result", typeof(object)),
             rowShape,
             [new ExecutionRowValue("Value", predicate)],
             [new ExecutionRowContextsRead(new ExecutionVariable("row", typeof(object)))],
             ExecutionAppendMode.Checked,
-            new ExecutionContextLayout(
-            [
-                new ExecutionContextSegment(ExecutionContextSegmentKind.Single, contextParameter, 1)
-            ]));
-        var block = new ExecutionBlock(
-        [
+            new ExecutionContextLayout([
+                new ExecutionContextSegment(ExecutionContextSegmentKind.Single, contextParameter, 1),
+            ])
+        );
+        var block = new ExecutionBlock([
             new ExecutionForEach(
                 new ExecutionVariable("item", typeof(int)),
                 sourceRows,
-                new ExecutionBlock([appendRow]))
+                new ExecutionBlock([appendRow])
+            ),
         ]);
 
         var expressions = ExecutionIrAnalysis.FlattenExpressions(block).ToArray();
@@ -70,12 +72,11 @@ public sealed class ExecutionIrAnalysisTests
         Assert.IsTrue(expressions.Contains(sourceRows));
         Assert.IsTrue(expressions.Contains(predicate));
         Assert.IsTrue(expressions.Contains(contextParameter));
-        Assert.AreEqual(
-            7,
-            ExecutionIrAnalysis.CollectExpressions<ExecutionStoredTableRows>(block).Single().TableIndex);
+        Assert.AreEqual(7, ExecutionIrAnalysis.CollectExpressions<ExecutionStoredTableRows>(block).Single().TableIndex);
         Assert.AreSame(
             constantSet,
-            ExecutionIrAnalysis.CollectExpressions<ExecutionInCheck>(block).Single().ConstantSet);
+            ExecutionIrAnalysis.CollectExpressions<ExecutionInCheck>(block).Single().ConstantSet
+        );
     }
 
     [TestMethod]
@@ -106,8 +107,7 @@ public sealed class ExecutionIrAnalysisTests
         var rangeIndex = Var("rangeIndex");
         var rangeProbeKey = Var("rangeProbeKey", typeof(int));
         var rangeBodyTable = Var("rangeBodyTable");
-        var block = new ExecutionBlock(
-        [
+        var block = new ExecutionBlock([
             new ExecutionHashProbe(
                 hash,
                 hashMatches,
@@ -116,14 +116,16 @@ public sealed class ExecutionIrAnalysisTests
                 typeof(object),
                 new ExecutionBlock([new ExecutionReturnTable(hashBodyTable)]),
                 new ExecutionBlock([new ExecutionReturnTable(hashMissTable)]),
-                hashFound),
+                hashFound
+            ),
             new ExecutionKeySetProbe(
                 keySet,
                 Read(keySetKey),
                 typeof(int),
                 new ExecutionBlock([new ExecutionReturnTable(keySetBodyTable)]),
                 new ExecutionBlock([new ExecutionReturnTable(keySetMissTable)]),
-                keySetFound),
+                keySetFound
+            ),
             new ExecutionAsOfProbe(
                 asOfMatch,
                 asOfCandidate,
@@ -134,13 +136,15 @@ public sealed class ExecutionIrAnalysisTests
                 BinaryOpKind.GreaterOrEqual,
                 new ExecutionBlock([new ExecutionReturnTable(asOfBodyTable)]),
                 new ExecutionBlock([new ExecutionReturnTable(asOfMissTable)]),
-                asOfIndex),
+                asOfIndex
+            ),
             new ExecutionRangeProbe(
                 rangeMatch,
                 rangeIndex,
                 Read(rangeProbeKey),
                 typeof(int),
-                new ExecutionBlock([new ExecutionReturnTable(rangeBodyTable)]))
+                new ExecutionBlock([new ExecutionReturnTable(rangeBodyTable)])
+            ),
         ]);
 
         AssertUses(
@@ -168,7 +172,8 @@ public sealed class ExecutionIrAnalysisTests
             rangeMatch,
             rangeIndex,
             rangeProbeKey,
-            rangeBodyTable);
+            rangeBodyTable
+        );
         AssertDoesNotUse(block, asOfCandidate);
         AssertDoesNotUse(block, Var("missing"));
     }
@@ -185,27 +190,26 @@ public sealed class ExecutionIrAnalysisTests
         var appendValue = Var("appendValue");
         var appendContextRow = Var("appendContextRow");
         var appendLayout = Var("appendLayout");
-        var block = new ExecutionBlock(
-        [
+        var block = new ExecutionBlock([
             new ExecutionCreateGeneratedRow(
                 generatedRow,
                 rowShape,
                 [new ExecutionRowValue("Value", Read(generatedValue))],
                 [new ExecutionRowContextsRead(generatedContextRow)],
-                new ExecutionContextLayout(
-                [
-                    new ExecutionContextSegment(ExecutionContextSegmentKind.Single, Read(generatedLayout), 1)
-                ])),
+                new ExecutionContextLayout([
+                    new ExecutionContextSegment(ExecutionContextSegmentKind.Single, Read(generatedLayout), 1),
+                ])
+            ),
             new ExecutionAppendRow(
                 table,
                 rowShape,
                 [new ExecutionRowValue("Value", Read(appendValue))],
                 [new ExecutionRowContextsRead(appendContextRow)],
                 ExecutionAppendMode.Checked,
-                new ExecutionContextLayout(
-                [
-                    new ExecutionContextSegment(ExecutionContextSegmentKind.Single, Read(appendLayout), 1)
-                ]))
+                new ExecutionContextLayout([
+                    new ExecutionContextSegment(ExecutionContextSegmentKind.Single, Read(appendLayout), 1),
+                ])
+            ),
         ]);
 
         AssertUses(
@@ -217,7 +221,8 @@ public sealed class ExecutionIrAnalysisTests
             table,
             appendValue,
             appendContextRow,
-            appendLayout);
+            appendLayout
+        );
     }
 
     [TestMethod]
@@ -231,15 +236,15 @@ public sealed class ExecutionIrAnalysisTests
         var nullGroup = Var("nullGroup");
         var group = Var("group");
         var key = Var("key", typeof(int));
-        var block = new ExecutionBlock(
-        [
+        var block = new ExecutionBlock([
             new ExecutionCreateSingleKeyAggregateContext(
                 rootGroup,
                 groups,
                 groupsToFinalize,
                 nullGroup,
                 typeof(int),
-                plan),
+                plan
+            ),
             new ExecutionGetOrAddSingleKeyAggregateGroup(
                 rootGroup,
                 groups,
@@ -249,7 +254,8 @@ public sealed class ExecutionIrAnalysisTests
                 "Key",
                 typeof(int),
                 nullGroup,
-                plan)
+                plan
+            ),
         ]);
 
         AssertUses(block, rootGroup, groups, groupsToFinalize, nullGroup, group, key);
@@ -272,7 +278,8 @@ public sealed class ExecutionIrAnalysisTests
                 2,
                 [],
                 ExecutionTopOffsetStrategy.OrderedSlice,
-                new ExecutionSkipTakeCapacityHint(capacityCollection, 1, 2))
+                new ExecutionSkipTakeCapacityHint(capacityCollection, 1, 2)
+            ),
         };
         var block = new ExecutionBlock(nodes);
 
@@ -295,17 +302,33 @@ public sealed class ExecutionIrAnalysisTests
     {
         return new GeneratedRowShape(
             "ResultRow0",
-            [new FieldBinding("Value", "Value", 0, typeof(object), FieldNullability.Unknown, new GeneratedFieldAccess("Value"))]);
+            [
+                new FieldBinding(
+                    "Value",
+                    "Value",
+                    0,
+                    typeof(object),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Value")
+                ),
+            ]
+        );
     }
 
     private static void AssertUses(ExecutionBlock block, params ExecutionVariable[] variables)
     {
         foreach (var variable in variables)
-            Assert.IsTrue(ExecutionIrAnalysis.ContainsVariableUse(block, variable.Name), $"Expected {variable.Name} to be used.");
+            Assert.IsTrue(
+                ExecutionIrAnalysis.ContainsVariableUse(block, variable.Name),
+                $"Expected {variable.Name} to be used."
+            );
     }
 
     private static void AssertDoesNotUse(ExecutionBlock block, ExecutionVariable variable)
     {
-        Assert.IsFalse(ExecutionIrAnalysis.ContainsVariableUse(block, variable.Name), $"Expected {variable.Name} to be unused.");
+        Assert.IsFalse(
+            ExecutionIrAnalysis.ContainsVariableUse(block, variable.Name),
+            $"Expected {variable.Name} to be unused."
+        );
     }
 }

@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Analysis;
+using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
@@ -15,7 +15,8 @@ internal static partial class RecursiveCteInvariantPlanner
 {
     public static PhysicalRecursiveCteNode Plan(
         PhysicalRecursiveCteNode recursive,
-        IReadOnlyDictionary<string, OutputSchema> externalCteSchemas)
+        IReadOnlyDictionary<string, OutputSchema> externalCteSchemas
+    )
     {
         if (recursive.Invariants.Length != 0)
             return recursive;
@@ -33,7 +34,8 @@ internal static partial class RecursiveCteInvariantPlanner
             externalCteSchemas,
             selfAliases,
             referencedColumns,
-            definitions);
+            definitions
+        );
         transitionCteNames.UnionWith(definitions.Select(static definition => definition.Name));
         member = Extract(
             member,
@@ -42,7 +44,8 @@ internal static partial class RecursiveCteInvariantPlanner
             transitionCteNames,
             referencedColumns,
             definitions,
-            externalCteSchemas);
+            externalCteSchemas
+        );
         if (definitions.Count == 0)
             return recursive;
 
@@ -52,7 +55,7 @@ internal static partial class RecursiveCteInvariantPlanner
         return recursive with
         {
             RecursiveMember = member,
-            Invariants = definitions.ToArray()
+            Invariants = definitions.ToArray(),
         };
     }
 
@@ -62,19 +65,22 @@ internal static partial class RecursiveCteInvariantPlanner
         IReadOnlyDictionary<string, OutputSchema> externalCteSchemas,
         HashSet<string> selfAliases,
         IReadOnlyDictionary<string, HashSet<string>> referencedColumns,
-        List<PhysicalRecursiveCteInvariantDefinition> definitions)
+        List<PhysicalRecursiveCteInvariantDefinition> definitions
+    )
     {
         if (member is not PhysicalMultiStatementNode multiStatement || multiStatement.Statements.Length < 2)
             return member;
 
-        var producerNames = IntermediateSourceProducers.Resolve(multiStatement)
+        var producerNames = IntermediateSourceProducers
+            .Resolve(multiStatement)
             .ToDictionary(static producer => producer.Value, static producer => producer.Key);
         if (producerNames.Count == 0)
             return member;
 
         var statements = multiStatement.Statements.ToList();
         var retainedIndexes = Enumerable.Range(0, statements.Count).ToList();
-        var referencesByName = statements.SelectMany(EnumerateCteReferences)
+        var referencesByName = statements
+            .SelectMany(EnumerateCteReferences)
             .ToLookup(static reference => reference.CteName, StringComparer.Ordinal);
         var removed = 0;
         foreach (var (originalIndex, producerName) in producerNames.OrderBy(static pair => pair.Key))
@@ -84,11 +90,7 @@ internal static partial class RecursiveCteInvariantPlanner
                 continue;
 
             var statement = statements[index];
-            if (!CanExtract(
-                    statement,
-                    recursiveName,
-                    selfAliases,
-                    FrozenSet<string>.Empty))
+            if (!CanExtract(statement, recursiveName, selfAliases, FrozenSet<string>.Empty))
             {
                 foreach (var reference in referencesByName[producerName])
                     selfAliases.Add(reference.Alias);
@@ -96,14 +98,18 @@ internal static partial class RecursiveCteInvariantPlanner
             }
 
             var producerReference = referencesByName[producerName].FirstOrDefault();
-            if (producerReference == null || !TryCreateTransitionDefinition(
+            if (
+                producerReference == null
+                || !TryCreateTransitionDefinition(
                     statement,
                     producerName,
                     producerReference.Alias,
                     definitions.Count,
                     referencedColumns,
                     externalCteSchemas,
-                    out var definition))
+                    out var definition
+                )
+            )
             {
                 continue;
             }
@@ -114,19 +120,17 @@ internal static partial class RecursiveCteInvariantPlanner
             removed++;
             for (var rewriteIndex = index; rewriteIndex < statements.Count; rewriteIndex++)
             {
-                statements[rewriteIndex] = RewriteCteReference(
-                    statements[rewriteIndex],
-                    producerName,
-                    definition);
+                statements[rewriteIndex] = RewriteCteReference(statements[rewriteIndex], producerName, definition);
             }
         }
 
         return statements.Count == multiStatement.Statements.Length
             ? member
             : new PhysicalMultiStatementNode(statements.ToArray())
-            { IntermediateProducers = IntermediateSourceProducers.Remap(multiStatement, retainedIndexes) };
+            {
+                IntermediateProducers = IntermediateSourceProducers.Remap(multiStatement, retainedIndexes),
+            };
     }
-
 
     private static bool TryCreateTransitionDefinition(
         PhysicalNode statement,
@@ -135,7 +139,8 @@ internal static partial class RecursiveCteInvariantPlanner
         int ordinal,
         IReadOnlyDictionary<string, HashSet<string>> referencedColumns,
         IReadOnlyDictionary<string, OutputSchema> externalCteSchemas,
-        out PhysicalRecursiveCteInvariantDefinition definition)
+        out PhysicalRecursiveCteInvariantDefinition definition
+    )
     {
         var project = UnwrapProject(statement);
         if (project == null)
@@ -144,19 +149,17 @@ internal static partial class RecursiveCteInvariantPlanner
             return false;
         }
 
-        var referenced = referencedColumns.TryGetValue(producerAlias, out var names)
-            ? names
-            : null;
-        var selectedFields = project.Fields
-            .Where(field => referenced == null || referenced.Count == 0 ||
-                            referenced.Contains(field.OutputName))
+        var referenced = referencedColumns.TryGetValue(producerAlias, out var names) ? names : null;
+        var selectedFields = project
+            .Fields.Where(field => referenced == null || referenced.Count == 0 || referenced.Contains(field.OutputName))
             .Select((field, index) => field with { OutputIndex = index })
             .ToArray();
         if (selectedFields.Length == 0)
             selectedFields = project.Fields.Select((field, index) => field with { OutputIndex = index }).ToArray();
 
         TryCollectSources(project.Input, externalCteSchemas, out var sources);
-        var sourceAliases = sources.Select(static source => source.Alias)
+        var sourceAliases = sources
+            .Select(static source => source.Alias)
             .Append(producerAlias)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -169,7 +172,8 @@ internal static partial class RecursiveCteInvariantPlanner
             selectedFields,
             PhysicalRecursiveCteInvariantStorageKind.Snapshot,
             [],
-            []);
+            []
+        );
         return true;
     }
 
@@ -183,19 +187,18 @@ internal static partial class RecursiveCteInvariantPlanner
     private static PhysicalNode RewriteCteReference(
         PhysicalNode node,
         string producerName,
-        PhysicalRecursiveCteInvariantDefinition definition)
+        PhysicalRecursiveCteInvariantDefinition definition
+    )
     {
-        if (node is PhysicalCteRefNode cteRef && string.Equals(
-                cteRef.CteName,
-                producerName,
-                StringComparison.Ordinal))
+        if (node is PhysicalCteRefNode cteRef && string.Equals(cteRef.CteName, producerName, StringComparison.Ordinal))
         {
             return new PhysicalCteRefNode(definition.Name, cteRef.Alias, definition.OutputSchema);
         }
 
         return PhysicalPlanRewriter.RewriteChildren(
             node,
-            child => RewriteCteReference(child, producerName, definition));
+            child => RewriteCteReference(child, producerName, definition)
+        );
     }
 
     private static IEnumerable<PhysicalCteRefNode> EnumerateCteReferences(PhysicalNode node)
@@ -218,18 +221,22 @@ internal static partial class RecursiveCteInvariantPlanner
         IReadOnlySet<string> transitionCteNames,
         IReadOnlyDictionary<string, HashSet<string>> referencedColumns,
         List<PhysicalRecursiveCteInvariantDefinition> definitions,
-        IReadOnlyDictionary<string, OutputSchema> externalCteSchemas)
+        IReadOnlyDictionary<string, OutputSchema> externalCteSchemas
+    )
     {
-        if (CanExtract(node, recursiveName, selfAliases, transitionCteNames) &&
-            TryCollectSources(node, externalCteSchemas, out var sources) &&
-            sources.Count > 0)
+        if (
+            CanExtract(node, recursiveName, selfAliases, transitionCteNames)
+            && TryCollectSources(node, externalCteSchemas, out var sources)
+            && sources.Count > 0
+        )
         {
             var ordinal = definitions.Count;
             var name = CreateInvariantName(recursiveName, ordinal);
             var fields = CreateFields(sources, referencedColumns);
             if (fields.Length > 0)
             {
-                var aliases = sources.Select(static source => source.Alias)
+                var aliases = sources
+                    .Select(static source => source.Alias)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToArray();
                 var existingRows = node is PhysicalCteRefNode;
@@ -244,11 +251,10 @@ internal static partial class RecursiveCteInvariantPlanner
                         ? PhysicalRecursiveCteInvariantStorageKind.ExistingRows
                         : PhysicalRecursiveCteInvariantStorageKind.Snapshot,
                     [],
-                    [])
+                    []
+                )
                 {
-                    ExistingCteName = node is PhysicalCteRefNode existingRef
-                        ? existingRef.CteName
-                        : null
+                    ExistingCteName = node is PhysicalCteRefNode existingRef ? existingRef.CteName : null,
                 };
                 definitions.Add(definition);
                 return new PhysicalCteRefNode(name, alias, definition.OutputSchema);
@@ -257,25 +263,31 @@ internal static partial class RecursiveCteInvariantPlanner
 
         return PhysicalPlanRewriter.RewriteChildren(
             node,
-            child => Extract(
-                child,
-                recursiveName,
-                selfAliases,
-                transitionCteNames,
-                referencedColumns,
-                definitions,
-                externalCteSchemas));
+            child =>
+                Extract(
+                    child,
+                    recursiveName,
+                    selfAliases,
+                    transitionCteNames,
+                    referencedColumns,
+                    definitions,
+                    externalCteSchemas
+                )
+        );
     }
 
     private static bool CanExtract(
         PhysicalNode node,
         string recursiveName,
         IReadOnlySet<string> selfAliases,
-        IReadOnlySet<string> transitionCteNames)
+        IReadOnlySet<string> transitionCteNames
+    )
     {
-        if (!IsSupportedInvariantRelation(node) ||
-            ContainsRecursiveReference(node, recursiveName) ||
-            node is PhysicalCteRefNode cteRef && transitionCteNames.Contains(cteRef.CteName))
+        if (
+            !IsSupportedInvariantRelation(node)
+            || ContainsRecursiveReference(node, recursiveName)
+            || node is PhysicalCteRefNode cteRef && transitionCteNames.Contains(cteRef.CteName)
+        )
             return false;
 
         foreach (var expression in EnumerateExpressionsRecursively(node))
@@ -320,24 +332,28 @@ internal static partial class RecursiveCteInvariantPlanner
     {
         return node switch
         {
-            PhysicalSchemaScanNode or PhysicalValuesScanNode or PhysicalInterpretSourceNode or
-                PhysicalAccessMethodSourceNode or PhysicalPropertySourceNode or PhysicalCteRefNode => true,
+            PhysicalSchemaScanNode
+            or PhysicalValuesScanNode
+            or PhysicalInterpretSourceNode
+            or PhysicalAccessMethodSourceNode
+            or PhysicalPropertySourceNode
+            or PhysicalCteRefNode => true,
             PhysicalProjectNode project when !project.IsDistinct => IsSupportedInvariantRelation(project.Input),
             PhysicalFilterNode filter => IsSupportedInvariantRelation(filter.Input),
-            PhysicalHashJoinNode { Kind: JoinKind.Inner } join =>
-                IsSupportedInvariantRelation(join.Left) && IsSupportedInvariantRelation(join.Right),
-            PhysicalNestedLoopJoinNode { Kind: JoinKind.Inner or JoinKind.Cross } join =>
-                IsSupportedInvariantRelation(join.Left) && IsSupportedInvariantRelation(join.Right),
+            PhysicalHashJoinNode { Kind: JoinKind.Inner } join => IsSupportedInvariantRelation(join.Left)
+                && IsSupportedInvariantRelation(join.Right),
+            PhysicalNestedLoopJoinNode { Kind: JoinKind.Inner or JoinKind.Cross } join => IsSupportedInvariantRelation(
+                join.Left
+            ) && IsSupportedInvariantRelation(join.Right),
             PhysicalNestedLoopApplyNode { Kind: ApplyKind.Cross or ApplyKind.Outer } apply =>
                 IsSupportedInvariantRelation(apply.Left) && IsSupportedInvariantRelation(apply.Right),
-            _ => false
+            _ => false,
         };
     }
 
     private static bool ContainsRecursiveReference(PhysicalNode node, string recursiveName)
     {
-        if (node is PhysicalCteRefNode cteRef &&
-            string.Equals(cteRef.CteName, recursiveName, StringComparison.Ordinal))
+        if (node is PhysicalCteRefNode cteRef && string.Equals(cteRef.CteName, recursiveName, StringComparison.Ordinal))
         {
             return true;
         }
@@ -345,9 +361,7 @@ internal static partial class RecursiveCteInvariantPlanner
         return node.Children.Any(child => ContainsRecursiveReference(child, recursiveName));
     }
 
-    private static bool ContainsCorrelatedSourceAlias(
-        PhysicalNode node,
-        IReadOnlySet<string> selfAliases)
+    private static bool ContainsCorrelatedSourceAlias(PhysicalNode node, IReadOnlySet<string> selfAliases)
     {
         if (node is PhysicalCteRefNode cteRef && selfAliases.Contains(cteRef.Alias))
             return true;
@@ -368,8 +382,7 @@ internal static partial class RecursiveCteInvariantPlanner
 
     private static void CollectSelfAliases(PhysicalNode node, string recursiveName, ISet<string> aliases)
     {
-        if (node is PhysicalCteRefNode cteRef &&
-            string.Equals(cteRef.CteName, recursiveName, StringComparison.Ordinal))
+        if (node is PhysicalCteRefNode cteRef && string.Equals(cteRef.CteName, recursiveName, StringComparison.Ordinal))
         {
             aliases.Add(cteRef.Alias);
         }
@@ -401,14 +414,16 @@ internal static partial class RecursiveCteInvariantPlanner
 
     private static ProjectedField[] CreateFields(
         IReadOnlyList<InvariantSource> sources,
-        IReadOnlyDictionary<string, HashSet<string>> referencedColumns)
+        IReadOnlyDictionary<string, HashSet<string>> referencedColumns
+    )
     {
         var selected = new List<(string Alias, ColumnSchema Column)>();
         foreach (var source in sources)
         {
-            var columns = referencedColumns.TryGetValue(source.Alias, out var referenced) && referenced.Count > 0
-                ? source.Schema.Columns.Where(column => referenced.Contains(column.Name)).ToArray()
-                : source.Schema.Columns;
+            var columns =
+                referencedColumns.TryGetValue(source.Alias, out var referenced) && referenced.Count > 0
+                    ? source.Schema.Columns.Where(column => referenced.Contains(column.Name)).ToArray()
+                    : source.Schema.Columns;
             selected.AddRange(columns.Select(column => (source.Alias, column)));
         }
 
@@ -417,24 +432,31 @@ internal static partial class RecursiveCteInvariantPlanner
             .Where(static group => group.Count() > 1)
             .Select(static group => group.Key)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var qualify = sources.Select(static source => source.Alias)
+        var qualify = sources
+            .Select(static source => source.Alias)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Skip(1)
             .Any();
 
-        return selected.Select((item, index) => new ProjectedField(
-                qualify || duplicateNames.Contains(item.Column.Name)
-                    ? $"{item.Alias}.{item.Column.Name}"
-                    : item.Column.Name,
-                new ColumnRef(item.Alias, item.Column.Name, item.Column.Type),
-                index))
+        return selected
+            .Select(
+                (item, index) =>
+                    new ProjectedField(
+                        qualify || duplicateNames.Contains(item.Column.Name)
+                            ? $"{item.Alias}.{item.Column.Name}"
+                            : item.Column.Name,
+                        new ColumnRef(item.Alias, item.Column.Name, item.Column.Type),
+                        index
+                    )
+            )
             .ToArray();
     }
 
     private static bool TryCollectSources(
         PhysicalNode node,
         IReadOnlyDictionary<string, OutputSchema> externalCteSchemas,
-        out List<InvariantSource> sources)
+        out List<InvariantSource> sources
+    )
     {
         sources = [];
         CollectSources(node, externalCteSchemas, sources);
@@ -444,7 +466,8 @@ internal static partial class RecursiveCteInvariantPlanner
     private static void CollectSources(
         PhysicalNode node,
         IReadOnlyDictionary<string, OutputSchema> externalCteSchemas,
-        ICollection<InvariantSource> sources)
+        ICollection<InvariantSource> sources
+    )
     {
         switch (node)
         {
@@ -464,9 +487,10 @@ internal static partial class RecursiveCteInvariantPlanner
                 sources.Add(new InvariantSource(source.Alias, source.OutputSchema));
                 return;
             case PhysicalCteRefNode source:
-                var schema = source.OutputSchema.Columns.Length > 0
-                    ? source.OutputSchema
-                    : externalCteSchemas.GetValueOrDefault(source.CteName, source.OutputSchema);
+                var schema =
+                    source.OutputSchema.Columns.Length > 0
+                        ? source.OutputSchema
+                        : externalCteSchemas.GetValueOrDefault(source.CteName, source.OutputSchema);
                 sources.Add(new InvariantSource(source.Alias, schema));
                 return;
         }
@@ -474,5 +498,4 @@ internal static partial class RecursiveCteInvariantPlanner
         foreach (var child in node.Children)
             CollectSources(child, externalCteSchemas, sources);
     }
-
 }

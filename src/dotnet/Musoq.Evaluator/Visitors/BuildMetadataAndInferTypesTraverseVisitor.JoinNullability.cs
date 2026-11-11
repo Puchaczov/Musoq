@@ -6,17 +6,22 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 {
     private static void EnsureSupportedJoinType(JoinType joinType)
     {
-        if (joinType is not (JoinType.Inner
-            or JoinType.AsOf
-            or JoinType.AsOfLeft
-            or JoinType.Cross
-            or JoinType.LeftSemi
-            or JoinType.LeftAntiSemi
-            or JoinType.LeftMark
-            or JoinType.LeftSingle
-            or JoinType.OuterLeft
-            or JoinType.OuterRight
-            or JoinType.OuterFull))
+        if (
+            joinType
+            is not (
+                JoinType.Inner
+                or JoinType.AsOf
+                or JoinType.AsOfLeft
+                or JoinType.Cross
+                or JoinType.LeftSemi
+                or JoinType.LeftAntiSemi
+                or JoinType.LeftMark
+                or JoinType.LeftSingle
+                or JoinType.OuterLeft
+                or JoinType.OuterRight
+                or JoinType.OuterFull
+            )
+        )
         {
             throw new InvalidOperationException($"Unsupported join type '{joinType}'.");
         }
@@ -29,6 +34,11 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
     private static bool MakesRightSideNullable(JoinType joinType)
     {
-        return joinType is JoinType.OuterLeft or JoinType.AsOfLeft or JoinType.OuterFull or JoinType.LeftMark or JoinType.LeftSingle;
+        return joinType
+            is JoinType.OuterLeft
+                or JoinType.AsOfLeft
+                or JoinType.OuterFull
+                or JoinType.LeftMark
+                or JoinType.LeftSingle;
     }
 }

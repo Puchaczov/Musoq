@@ -17,30 +17,29 @@ public partial class CteTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Country", typeof(string)),
-            ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["POLAND", "WARSAW"],
             ["POLAND", "CZESTOCHOWA"],
             ["POLAND", "KATOWICE"],
             ["GERMANY", "BERLIN"],
-            ["GERMANY", "MUNICH"]);
+            ["GERMANY", "MUNICH"]
+        );
     }
 
     [TestMethod]
@@ -51,49 +50,48 @@ public partial class CteTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["WARSAW", "POLAND"],
             ["CZESTOCHOWA", "POLAND"],
             ["KATOWICE", "POLAND"],
             ["BERLIN", "GERMANY"],
-            ["MUNICH", "GERMANY"]);
+            ["MUNICH", "GERMANY"]
+        );
     }
 
     [TestMethod]
     public void SimpleCteWithGroupingTest()
     {
-        var query =
-            "with p as (select Country, Sum(Population) from #A.entities() group by Country) select * from p";
+        var query = "with p as (select Country, Sum(Population) from #A.entities() group by Country) select * from p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -102,25 +100,17 @@ public partial class CteTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Country", typeof(string)),
-            ("Sum(Population)", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["POLAND", 1150m],
-            ["GERMANY", 600m]);
+            ("Sum(Population)", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["POLAND", 1150m], ["GERMANY", 600m]);
     }
 
     [TestMethod]
     public void WhenSameAliasesUsedWithinCteInnerExpression_ShouldThrow()
     {
-        var query =
-            "with p as (select 1 from #A.entities() a inner join #A.entities() a on 1 = 1) select * from p";
+        var query = "with p as (select 1 from #A.entities() a inner join #A.entities() a on 1 = 1) select * from p";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -131,27 +121,29 @@ public partial class CteTests
     [TestMethod]
     public void SimpleCteWithGrouping2Test()
     {
-        var query =
-            @"
-with p as (
-    select
-        Population,
-        Country
-    from #A.entities()
-)
-select Country, Sum(Population) from p group by Country";
+        var query = (
+            "\n"
+            + "with p as (\n"
+            + "    select\n"
+            + "        Population,\n"
+            + "        Country\n"
+            + "    from #A.entities()\n"
+            + ")\n"
+            + "select Country, Sum(Population) from p group by Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -160,10 +152,8 @@ select Country, Sum(Population) from p group by Country";
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Country", typeof(string)),
-            ("Sum(Population)", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["POLAND", 1150m],
-            ["GERMANY", 600m]);
+            ("Sum(Population)", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["POLAND", 1150m], ["GERMANY", 600m]);
     }
 }

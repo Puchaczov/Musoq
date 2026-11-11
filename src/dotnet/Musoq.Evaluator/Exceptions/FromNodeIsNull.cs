@@ -5,16 +5,12 @@ namespace Musoq.Evaluator.Exceptions;
 
 public class FromNodeIsNull : Exception, IDiagnosticException
 {
-
     public FromNodeIsNull(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public FromNodeIsNull(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
+
     public FromNodeIsNull()
         : base("FROM clause is missing. Every SELECT query requires a FROM clause specifying the data source.")
     {

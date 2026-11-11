@@ -37,24 +37,27 @@ public partial class Parser
     private Node ComposeArithmeticExpression(int minPrecedence, bool allowPostfixCasts = true)
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Expression, Current);
-        var left = allowPostfixCasts
-            ? ComposePostfixExpression(minPrecedence)
-            : ComposeBaseTypes(minPrecedence);
+        var left = allowPostfixCasts ? ComposePostfixExpression(minPrecedence) : ComposeBaseTypes(minPrecedence);
         if (IsNumericToken(Current) && !IsAttachedSignedNumeric(Current))
         {
-            if (IsNumericPropertyAccess(Current) ||
-                DialectSyntaxFacts.IsUnsupportedNumericPrefix(left, Current, _lexer.AlreadyResolvedQueryPart))
+            if (
+                IsNumericPropertyAccess(Current)
+                || DialectSyntaxFacts.IsUnsupportedNumericPrefix(left, Current, _lexer.AlreadyResolvedQueryPart)
+            )
                 left = new AddNode(left, ComposePostfixExpression(minPrecedence));
             else
                 throw new SyntaxException(
                     "Two operands must be separated by an operator.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2018_MissingOperator,
-                    new TextSpan(Current.Span.Start, 0));
+                    new TextSpan(Current.Span.Start, 0)
+                );
         }
 
-        while (GetArithmeticPrecedence(Current.TokenType) >= minPrecedence ||
-               allowPostfixCasts && Current.TokenType == TokenType.DoubleColon)
+        while (
+            GetArithmeticPrecedence(Current.TokenType) >= minPrecedence
+            || allowPostfixCasts && Current.TokenType == TokenType.DoubleColon
+        )
         {
             if (Current.TokenType == TokenType.DoubleColon)
             {
@@ -67,17 +70,22 @@ public partial class Parser
             var nextMinPrecedence = curr.TokenType == TokenType.NullCoalescing ? precedence : precedence + 1;
             Consume(Current.TokenType);
 
-            if (GetArithmeticPrecedence(Current.TokenType) >= 0 &&
-                Current.TokenType is not TokenType.Hyphen and not TokenType.Plus)
+            if (
+                GetArithmeticPrecedence(Current.TokenType) >= 0
+                && Current.TokenType is not TokenType.Hyphen and not TokenType.Plus
+            )
                 throw new SyntaxException(
                     "An operator cannot be followed by another operator.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2019_InvalidOperator,
-                    Current.Span);
+                    Current.Span
+                );
 
             ThrowIfMissingRightOperand(curr.Value);
-            if (curr.TokenType == TokenType.Dot &&
-                SqlKeywordTokenFacts.CanRepresentQualifiedIdentifier(Current.TokenType))
+            if (
+                curr.TokenType == TokenType.Dot
+                && SqlKeywordTokenFacts.CanRepresentQualifiedIdentifier(Current.TokenType)
+            )
                 ReplaceCurrentToken(new ColumnToken(Current.Value, Current.Span));
 
             var right = ComposeArithmeticExpression(nextMinPrecedence, curr.TokenType != TokenType.Dot);
@@ -93,9 +101,11 @@ public partial class Parser
             return false;
 
         var sign = token.Value[0];
-        if (sign is not ('-' or '+') ||
-            token.Span.Start >= _lexer.Input.Length ||
-            _lexer.Input[token.Span.Start] != sign)
+        if (
+            sign is not ('-' or '+')
+            || token.Span.Start >= _lexer.Input.Length
+            || _lexer.Input[token.Span.Start] != sign
+        )
             return false;
 
         // The lexer may attach a sign to a numeric token.  That is a unary
@@ -108,14 +118,29 @@ public partial class Parser
             return true;
 
         var previous = _lexer.Input[previousIndex];
-        return char.IsWhiteSpace(previous) || previous is '(' or '[' or ',' or ':' or
-            '+' or '-' or '*' or '/' or '%' or '^' or '&' or '|' or '?' or '<' or '>' or '=';
+        return char.IsWhiteSpace(previous)
+            || previous
+                is '('
+                    or '['
+                    or ','
+                    or ':'
+                    or '+'
+                    or '-'
+                    or '*'
+                    or '/'
+                    or '%'
+                    or '^'
+                    or '&'
+                    or '|'
+                    or '?'
+                    or '<'
+                    or '>'
+                    or '=';
     }
 
     private bool IsNumericPropertyAccess(Token token)
     {
-        return token.Value.Length > 0 && token.Value[0] == '.' ||
-            token.Span.Start > 0 && _lexer.Input[token.Span.Start - 1] == '.';
+        return token.Value.Length > 0 && token.Value[0] == '.'
+            || token.Span.Start > 0 && _lexer.Input[token.Span.Start - 1] == '.';
     }
-
 }

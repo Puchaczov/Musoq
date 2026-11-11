@@ -4,7 +4,8 @@ internal sealed record PostOperationResult(
     bool IsBuilt,
     ExecutionNode Node,
     ExecutionVariable Target,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static PostOperationResult Success(ExecutionNode node, ExecutionVariable target)
     {

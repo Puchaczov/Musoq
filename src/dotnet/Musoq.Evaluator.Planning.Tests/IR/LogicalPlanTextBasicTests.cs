@@ -18,15 +18,18 @@ public sealed class LogicalPlanTextBasicTests : BasicEntityTestBase
             PlanTextAssertions.FromLines(
                 "MultiStatement",
                 "  Project [e.Name as Name]",
-                "    SchemaScan [#A.Entities() as e]"),
-            planText);
+                "    SchemaScan [#A.Entities() as e]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenSelectWithCompoundWhereQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select e.Name from #A.Entities() e where e.Population > 100 and e.NullableValue is not null");
+            "select e.Name from #A.Entities() e where e.Population > 100 and e.NullableValue is not null"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -35,15 +38,18 @@ public sealed class LogicalPlanTextBasicTests : BasicEntityTestBase
                 "MultiStatement",
                 "  Project [e.Name as Name]",
                 "    Filter [((e.Population > 100) AND e.NullableValue IS NOT NULL)]",
-                "      SchemaScan [#A.Entities() as e]"),
-            planText);
+                "      SchemaScan [#A.Entities() as e]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenOrderSkipTakeQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select e.Name from #A.Entities() e order by e.Name desc skip 5 take 10");
+            "select e.Name from #A.Entities() e order by e.Name desc skip 5 take 10"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -54,7 +60,9 @@ public sealed class LogicalPlanTextBasicTests : BasicEntityTestBase
                 "    Skip [5]",
                 "      Sort [e.Name DESC]",
                 "        Project [e.Name as Name]",
-                "          SchemaScan [#A.Entities() as e]"),
-            planText);
+                "          SchemaScan [#A.Entities() as e]"
+            ),
+            planText
+        );
     }
 }

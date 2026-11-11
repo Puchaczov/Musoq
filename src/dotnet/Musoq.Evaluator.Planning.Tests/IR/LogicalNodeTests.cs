@@ -196,7 +196,8 @@ public partial class LogicalNodeTests
             "c",
             typeof(object),
             ApplyKind.Cross,
-            schema);
+            schema
+        );
 
         Assert.IsEmpty(node.Children);
         Assert.AreEqual("csv", node.SchemaName);

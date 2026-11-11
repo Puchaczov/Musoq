@@ -15,7 +15,7 @@ public static partial class ExecutionPlanPrinter
             ExecutionRankingWindowFunction.DenseRank => "ComputeDenseRankWindow",
             ExecutionRankingWindowFunction.PercentRank => "ComputePercentRankWindow",
             ExecutionRankingWindowFunction.CumeDist => "ComputeCumeDistWindow",
-            _ => $"ComputeUnknownRankingWindow({function})"
+            _ => $"ComputeUnknownRankingWindow({function})",
         };
     }
 
@@ -27,7 +27,7 @@ public static partial class ExecutionPlanPrinter
             ExecutionWindowKernelPlanStrategy.HashPartitionPerPartitionSort => "hash partition/per-partition sort",
             ExecutionWindowKernelPlanStrategy.GlobalSort => "global sort",
             ExecutionWindowKernelPlanStrategy.AlreadySortedSource => "already-sorted source",
-            _ => strategy.ToString()
+            _ => strategy.ToString(),
         };
     }
 
@@ -40,7 +40,12 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatWindowOrderKeys(IReadOnlyList<ExecutionWindowOrderKey> orderKeys)
     {
-        return string.Join(", ", orderKeys.Select(key => $"{FormatExpression(key.Expression)}{FormatDirection(key.Descending)}{FormatNullOrdering(key.NullOrdering)}"));
+        return string.Join(
+            ", ",
+            orderKeys.Select(key =>
+                $"{FormatExpression(key.Expression)}{FormatDirection(key.Descending)}{FormatNullOrdering(key.NullOrdering)}"
+            )
+        );
     }
 
     private static string FormatOffsetNodeName(ExecutionOffsetWindowFunction function)
@@ -49,7 +54,7 @@ public static partial class ExecutionPlanPrinter
         {
             ExecutionOffsetWindowFunction.Lag => "ComputeLagWindow",
             ExecutionOffsetWindowFunction.Lead => "ComputeLeadWindow",
-            _ => $"ComputeUnknownOffsetWindow({function})"
+            _ => $"ComputeUnknownOffsetWindow({function})",
         };
     }
 
@@ -58,8 +63,7 @@ public static partial class ExecutionPlanPrinter
         return $"Compute{NormalizeWindowFunctionName(functionName)}Window";
     }
 
-    private static string FormatWindowAggregateKernelNodeName(
-        ExecutionWindowAggregateKernelDescriptor descriptor)
+    private static string FormatWindowAggregateKernelNodeName(ExecutionWindowAggregateKernelDescriptor descriptor)
     {
         return $"Compute{descriptor.LibraryKernel?.FunctionName ?? descriptor.Function.ToString()}WindowKernel[{descriptor.Mode}]";
     }
@@ -71,16 +75,12 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatOptionalWindowOrderKeys(IReadOnlyList<ExecutionWindowOrderKey> orderKeys)
     {
-        return orderKeys.Count == 0
-            ? string.Empty
-            : $" order by {FormatWindowOrderKeys(orderKeys)}";
+        return orderKeys.Count == 0 ? string.Empty : $" order by {FormatWindowOrderKeys(orderKeys)}";
     }
 
     private static string FormatPluginArguments(IReadOnlyList<ExecutionExpression> arguments)
     {
-        return arguments.Count == 0
-            ? string.Empty
-            : $" args {string.Join(", ", arguments.Select(FormatExpression))}";
+        return arguments.Count == 0 ? string.Empty : $" args {string.Join(", ", arguments.Select(FormatExpression))}";
     }
 
     private static string FormatWindowFrame(ExecutionWindowFrame? frame)
@@ -96,7 +96,7 @@ public static partial class ExecutionPlanPrinter
         {
             ExecutionWindowFrameKind.Rows => "rows",
             ExecutionWindowFrameKind.Range => "range",
-            _ => kind.ToString()
+            _ => kind.ToString(),
         };
     }
 
@@ -107,9 +107,11 @@ public static partial class ExecutionPlanPrinter
             ExecutionWindowFrameBoundKind.UnboundedPreceding => "unbounded preceding",
             ExecutionWindowFrameBoundKind.UnboundedFollowing => "unbounded following",
             ExecutionWindowFrameBoundKind.CurrentRow => "current row",
-            ExecutionWindowFrameBoundKind.OffsetPreceding => $"{bound.Offset.ToString(CultureInfo.InvariantCulture)} preceding",
-            ExecutionWindowFrameBoundKind.OffsetFollowing => $"{bound.Offset.ToString(CultureInfo.InvariantCulture)} following",
-            _ => throw new ArgumentOutOfRangeException(nameof(bound), bound, null)
+            ExecutionWindowFrameBoundKind.OffsetPreceding =>
+                $"{bound.Offset.ToString(CultureInfo.InvariantCulture)} preceding",
+            ExecutionWindowFrameBoundKind.OffsetFollowing =>
+                $"{bound.Offset.ToString(CultureInfo.InvariantCulture)} following",
+            _ => throw new ArgumentOutOfRangeException(nameof(bound), bound, null),
         };
     }
 
@@ -127,5 +129,4 @@ public static partial class ExecutionPlanPrinter
     {
         return variable == null ? string.Empty : $" [match: {variable.Name}]";
     }
-
 }

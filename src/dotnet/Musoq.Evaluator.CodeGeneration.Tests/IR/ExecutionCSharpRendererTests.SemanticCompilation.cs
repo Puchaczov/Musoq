@@ -28,7 +28,10 @@ public sealed partial class ExecutionCSharpRendererTests
     [DataRow("matchesBucket", "matchesBucket")]
     [DataRow("d", "key")]
     [DataRow("d", "dHash")]
-    public void GeneratedCode_WhenHashBucketCollidesWithExistingLocal_ShouldCompile(string payloadAlias, string? bucketName)
+    public void GeneratedCode_WhenHashBucketCollidesWithExistingLocal_ShouldCompile(
+        string payloadAlias,
+        string? bucketName
+    )
     {
         AssertGeneratedCodeCompiles(CreateCompilableHashPayloadPlan(payloadAlias, bucketName));
     }
@@ -62,14 +65,16 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         AssertGeneratedCodeCompiles(
             CreateProjectionPostOperationPlan(),
-            instrumentationMode: QueryInstrumentationMode.Full);
+            instrumentationMode: QueryInstrumentationMode.Full
+        );
     }
 
     private static void AssertGeneratedCodeCompiles(
         ExecutionPlan plan,
         QueryInstrumentationMode instrumentationMode = QueryInstrumentationMode.Disabled,
         int inMemoryTableCount = 0,
-        int cteIndexResultCount = 0)
+        int cteIndexResultCount = 0
+    )
     {
         using var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
@@ -77,7 +82,9 @@ public sealed partial class ExecutionCSharpRendererTests
             generator,
             new RenderContextOptions(
                 AssemblyName: "Query.Compiled_SemanticCompilation",
-                InstrumentationMode: instrumentationMode));
+                InstrumentationMode: instrumentationMode
+            )
+        );
         var renderer = new CSharpRenderer(context);
         const string queryIdentifier = "compiled";
 
@@ -85,10 +92,9 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.IsTrue(outcome.IsSupported, outcome.UnsupportedReason);
         context.AddClassMember(outcome.Method!.Value.MethodDeclaration);
-        GeneratedCodeCompilationAssert.Succeeds(renderer.RenderCompilationUnit(
-            queryIdentifier,
-            inMemoryTableCount,
-            cteIndexResultCount));
+        GeneratedCodeCompilationAssert.Succeeds(
+            renderer.RenderCompilationUnit(queryIdentifier, inMemoryTableCount, cteIndexResultCount)
+        );
     }
 
     private static ExecutionPlan CreateCteIndexPlan()
@@ -101,33 +107,35 @@ public sealed partial class ExecutionCSharpRendererTests
         return CreateFinalResultPlan(
             "Q_CteIndex",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateKeySet(index, typeof(int)),
                 new ExecutionKeySetAdd(
                     index,
                     new ExecutionLiteral(1, typeof(int)),
                     ExecutionClrBindingFactory.FromClr(typeof(int)),
-                    KeyVariableName: "cteBuildKey"),
+                    KeyVariableName: "cteBuildKey"
+                ),
                 new ExecutionStoreCteIndex(index, 0, ExecutionCteSidecarIndexKind.KeySet, typeof(int)),
                 new ExecutionLoadCteIndex(loadedIndex, 0, ExecutionCteSidecarIndexKind.KeySet, typeof(int)),
                 new ExecutionKeySetProbe(
                     loadedIndex,
                     new ExecutionLiteral(1, typeof(int)),
                     ExecutionClrBindingFactory.FromClr(typeof(int)),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,
-                            [new ExecutionRowValue("Name", new ExecutionLiteral("matched", typeof(string)))])
+                            [new ExecutionRowValue("Name", new ExecutionLiteral("matched", typeof(string)))]
+                        ),
                     ]),
-                    KeyVariableName: "cteProbeKey"),
-                new ExecutionReturnTable(resultTable)
+                    KeyVariableName: "cteProbeKey"
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateKeySetPlan()
@@ -139,31 +147,33 @@ public sealed partial class ExecutionCSharpRendererTests
         return CreateFinalResultPlan(
             "Q_KeySet",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateKeySet(keySet, typeof(int)),
                 new ExecutionKeySetAdd(
                     keySet,
                     new ExecutionLiteral(10, typeof(int)),
                     ExecutionClrBindingFactory.FromClr(typeof(int)),
-                    KeyVariableName: "buildKey"),
+                    KeyVariableName: "buildKey"
+                ),
                 new ExecutionKeySetProbe(
                     keySet,
                     new ExecutionLiteral(10, typeof(int)),
                     ExecutionClrBindingFactory.FromClr(typeof(int)),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,
-                            [new ExecutionRowValue("Name", new ExecutionLiteral("hit", typeof(string)))])
+                            [new ExecutionRowValue("Name", new ExecutionLiteral("hit", typeof(string)))]
+                        ),
                     ]),
-                    KeyVariableName: "probeKey"),
-                new ExecutionReturnTable(resultTable)
+                    KeyVariableName: "probeKey"
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateStrictCastPlan()
@@ -177,16 +187,17 @@ public sealed partial class ExecutionCSharpRendererTests
                     0,
                     typeof(int?),
                     FieldNullability.Unknown,
-                    new GeneratedFieldAccess("Number"))
-            ]);
+                    new GeneratedFieldAccess("Number")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var library = new ExecutionVariable("libraryBase0", typeof(LibraryBase));
 
         return CreateFinalResultPlan(
             "Q_StrictCast",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateObject(library),
                 new ExecutionAppendRow(
@@ -199,12 +210,16 @@ public sealed partial class ExecutionCSharpRendererTests
                                 new ExecutionLiteral("42", typeof(string)),
                                 "Int32",
                                 typeof(int?),
-                                library))
-                    ]),
-                new ExecutionReturnTable(resultTable)
+                                library
+                            )
+                        ),
+                    ]
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateCompilableHashPayloadPlan(string payloadAlias = "d", string? bucketName = null)
@@ -212,9 +227,24 @@ public sealed partial class ExecutionCSharpRendererTests
         var payloadShape = new HashPayloadShape(
             "DHashPayload0",
             [
-                new FieldBinding("b.City", "b.City", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("b_City")),
-                new FieldBinding("b.Country", "b.Country", 1, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("b_Country"))
-            ]);
+                new FieldBinding(
+                    "b.City",
+                    "b.City",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("b_City")
+                ),
+                new FieldBinding(
+                    "b.Country",
+                    "b.Country",
+                    1,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("b_Country")
+                ),
+            ]
+        );
         var resultShape = CreateSingleNameShape();
         var resultTable = new ExecutionVariable("result", typeof(object));
         var hash = new ExecutionVariable("dHash", typeof(object));
@@ -224,22 +254,23 @@ public sealed partial class ExecutionCSharpRendererTests
         return CreateFinalResultPlan(
             "Q_CompilableHashPayload",
             [payloadShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateHash(
                     hash,
                     ExecutionClrBindingFactory.FromClr(typeof(int)),
                     ExecutionClrBindingFactory.FromClr(typeof(object)),
-                    GeneratedRowTypeName: payloadShape.TypeName),
+                    GeneratedRowTypeName: payloadShape.TypeName
+                ),
                 new ExecutionCreateObject(b),
                 new ExecutionCreateHashPayload(
                     d,
                     payloadShape,
                     [
                         new ExecutionRowValue("b.City", new ExecutionFieldRead("b", "City", typeof(string))),
-                        new ExecutionRowValue("b.Country", new ExecutionFieldRead("b", "Country", typeof(string)))
-                    ]),
+                        new ExecutionRowValue("b.Country", new ExecutionFieldRead("b", "Country", typeof(string))),
+                    ]
+                ),
                 new ExecutionHashAdd(
                     hash,
                     new ExecutionLiteral(1, typeof(int)),
@@ -247,11 +278,13 @@ public sealed partial class ExecutionCSharpRendererTests
                     typeof(int),
                     typeof(object),
                     payloadShape.TypeName,
-                    bucketVariableName: bucketName),
-                new ExecutionReturnTable(resultTable)
+                    bucketVariableName: bucketName
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateSetOperationPlan()
@@ -264,18 +297,19 @@ public sealed partial class ExecutionCSharpRendererTests
         return CreateFinalResultPlan(
             "Q_SetOperation",
             [rowShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(left, rowShape),
                 new ExecutionAppendRow(
                     left,
                     rowShape,
-                    [new ExecutionRowValue("Name", new ExecutionLiteral("left", typeof(string)))]),
+                    [new ExecutionRowValue("Name", new ExecutionLiteral("left", typeof(string)))]
+                ),
                 new ExecutionCreateTable(right, rowShape),
                 new ExecutionAppendRow(
                     right,
                     rowShape,
-                    [new ExecutionRowValue("Name", new ExecutionLiteral("right", typeof(string)))]),
+                    [new ExecutionRowValue("Name", new ExecutionLiteral("right", typeof(string)))]
+                ),
                 new ExecutionSetOperation(
                     result,
                     left,
@@ -283,11 +317,13 @@ public sealed partial class ExecutionCSharpRendererTests
                     SetOpKind.UnionAll,
                     [0],
                     [typeof(string)],
-                    ExecutionSetOperationStrategy.AppendLoop),
-                new ExecutionReturnTable(result)
+                    ExecutionSetOperationStrategy.AppendLoop
+                ),
+                new ExecutionReturnTable(result),
             ]),
             result,
-            rowShape);
+            rowShape
+        );
     }
 
     private static GeneratedRowShape CreateSingleNameShape()
@@ -301,7 +337,9 @@ public sealed partial class ExecutionCSharpRendererTests
                     0,
                     typeof(string),
                     FieldNullability.Unknown,
-                    new GeneratedFieldAccess("Name"))
-            ]);
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
     }
 }

@@ -7,7 +7,8 @@ internal sealed record RowWidthPruningPlan(
     string[] CandidateColumns,
     string[] PrunedColumns,
     PlanningConfidence Confidence,
-    string Reason)
+    string Reason
+)
 {
     public string[] RetainedColumns { get; init; } = [];
 }

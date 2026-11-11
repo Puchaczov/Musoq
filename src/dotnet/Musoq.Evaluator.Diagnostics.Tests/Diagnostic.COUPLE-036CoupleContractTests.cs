@@ -15,14 +15,12 @@ public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBa
     public void TableCoupleAndCteNames_ShouldUseTheirOwnSourcePositions()
     {
         const string query =
-            "table Rows { Value: int };" +
-            "couple test.whatever with table Rows as Rows;" +
-            "with Rows as (select 9 as Value from test.whatever()) " +
-            "select c.Value, t.Value from Rows c cross join rOwS() t;";
+            "table Rows { Value: int };"
+            + "couple test.whatever with table Rows as Rows;"
+            + "with Rows as (select 9 as Value from test.whatever()) "
+            + "select c.Value, t.Value from Rows c cross join rOwS() t;";
 
-        var table = CreateAndRunVirtualMachine(
-                query,
-                [new Dictionary<string, object?> { ["Value"] = 7 }])
+        var table = CreateAndRunVirtualMachine(query, [new Dictionary<string, object?> { ["Value"] = 7 }])
             .Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [9, 7]);
@@ -32,16 +30,17 @@ public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBa
     public void CoupleTableOnly_ShouldUseTheDeclaredTableShape()
     {
         const string query =
-            "table Shape { Token: string };" +
-            "couple #settings.items with table Shape as Source;" +
-            "select Token from Source();";
+            "table Shape { Token: string };"
+            + "couple #settings.items with table Shape as Source;"
+            + "select Token from Source();";
 
         var compiled = InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(declareRequirement: false),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var table = compiled.Run(TestContext.CancellationToken);
 
@@ -61,7 +60,8 @@ public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBa
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            options);
+            options
+        );
 
         var table = compiled.Run(TestContext.CancellationToken);
 
@@ -73,13 +73,13 @@ public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBa
     [TestMethod]
     [DataRow(
         "table Shape { Token: string }; couple #settings.items with table Shape and settings blue as Source;",
-        "blue")]
+        "blue"
+    )]
     [DataRow(
         "table Shape { Token: string }; couple #settings.items with settings red and table Shape as Source;",
-        "red")]
-    public void CoupleTableAndSettings_BothOptionOrders_ShouldUseShapeAndProfile(
-        string prefix,
-        string expectedProfile)
+        "red"
+    )]
+    public void CoupleTableAndSettings_BothOptionOrders_ShouldUseShapeAndProfile(string prefix, string expectedProfile)
     {
         var provider = new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(declareRequirement: true);
         var resolver = new Couple036ProfileResolver();
@@ -90,7 +90,8 @@ public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBa
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            options);
+            options
+        );
 
         var table = compiled.Run(TestContext.CancellationToken);
 
@@ -103,14 +104,12 @@ public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBa
     public void CoupleBeforeCteAndQuery_ShouldPreserveTheDeclaredSourceColumns()
     {
         const string query =
-            "table Shape { Value: int };" +
-            "couple #test.whatever with table Shape as Source;" +
-            "with Filtered as (select Value from Source())" +
-            "select Value from Filtered;";
+            "table Shape { Value: int };"
+            + "couple #test.whatever with table Shape as Source;"
+            + "with Filtered as (select Value from Source())"
+            + "select Value from Filtered;";
 
-        var table = CreateAndRunVirtualMachine(
-                query,
-                [new Dictionary<string, object?> { ["Value"] = 7 }])
+        var table = CreateAndRunVirtualMachine(query, [new Dictionary<string, object?> { ["Value"] = 7 }])
             .Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
@@ -121,67 +120,70 @@ public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBa
     public void CoupleAliases_ShouldBeUniqueIgnoringCaseAndHighlightTheDuplicateDefinition()
     {
         const string query =
-            "table Shape { Value: int };" +
-            "couple #test.whatever with table Shape as Source;" +
-            "couple #test.whatever with table Shape as source;" +
-            "select 1 from #test.whatever();";
+            "table Shape { Value: int };"
+            + "couple #test.whatever with table Shape as Source;"
+            + "couple #test.whatever with table Shape as source;"
+            + "select 1 from #test.whatever();";
 
         AssertCoupleDiagnostic(
             query,
             DiagnosticCode.MQ3021_DuplicateAlias,
             SpanOf(query, "couple #test.whatever with table Shape as source"),
-            "duplicate COUPLE alias");
+            "duplicate COUPLE alias"
+        );
     }
 
     [TestMethod]
     public void CoupledAliasUsedBeforeItsCouple_ShouldReportInvalidStatementOrder()
     {
-        const string query =
-            "select 1 from Source();" +
-            "couple #test.whatever with settings profile as Source;";
+        const string query = "select 1 from Source();" + "couple #test.whatever with settings profile as Source;";
 
         AssertCoupleDiagnostic(
             query,
             DiagnosticCode.MQ3102_InvalidStatementOrder,
             SpanOf(query, "couple #test.whatever with settings profile as Source"),
-            "alias visibility");
+            "alias visibility"
+        );
     }
 
     [TestMethod]
     public void CoupleAfterCte_ShouldReportInvalidStatementOrder()
     {
         const string query =
-            "with Data as (select 1 from #test.whatever()) select 1 from Data;" +
-            "couple #test.whatever with settings profile as Source;" +
-            "select 1 from #test.whatever();";
+            "with Data as (select 1 from #test.whatever()) select 1 from Data;"
+            + "couple #test.whatever with settings profile as Source;"
+            + "select 1 from #test.whatever();";
 
         AssertCoupleDiagnostic(
             query,
             DiagnosticCode.MQ3102_InvalidStatementOrder,
             SpanOf(query, "couple #test.whatever with settings profile as Source"),
-            "COUPLE after CTE");
+            "COUPLE after CTE"
+        );
     }
 
     [TestMethod]
     public void TableAfterCouple_ShouldReportInvalidStatementOrder()
     {
         const string query =
-            "couple #test.whatever with settings profile as Source;" +
-            "table Later { Value: int };" +
-            "select 1 from #test.whatever();";
+            "couple #test.whatever with settings profile as Source;"
+            + "table Later { Value: int };"
+            + "select 1 from #test.whatever();";
 
         AssertCoupleDiagnostic(
             query,
             DiagnosticCode.MQ3102_InvalidStatementOrder,
             SpanOf(query, "table Later { Value: int }"),
-            "TABLE after COUPLE");
+            "TABLE after COUPLE"
+        );
     }
 
     private static void AssertCoupleDiagnostic(
         string query,
         DiagnosticCode expectedCode,
         TextSpan expectedSpan,
-        string context)
+        string context
+    )
     {
         var result = Analyze(query);
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
@@ -200,9 +202,9 @@ public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBa
     private static QueryAnalysisResult Analyze(string query)
     {
         return new QueryAnalyzer(
-                new UnknownSchemaProvider(Array.Empty<dynamic>()),
-                compilationOptions: new CompilationOptions(usePrimitiveTypeValidation: false))
-            .Analyze(query);
+            new UnknownSchemaProvider(Array.Empty<dynamic>()),
+            compilationOptions: new CompilationOptions(usePrimitiveTypeValidation: false)
+        ).Analyze(query);
     }
 
     private static TextSpan SpanOf(string query, string text)
@@ -219,10 +221,7 @@ public sealed class DiagnosticCouple036CoupleContractTests : UnknownQueryTestsBa
         public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
         {
             ProfileNames.Add(request.ProfileName);
-            return new Dictionary<string, string>
-            {
-                ["TOKEN"] = $"{request.ProfileName}-token"
-            };
+            return new Dictionary<string, string> { ["TOKEN"] = $"{request.ProfileName}-token" };
         }
     }
 }

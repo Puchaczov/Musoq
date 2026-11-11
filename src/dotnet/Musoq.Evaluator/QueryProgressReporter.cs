@@ -23,7 +23,8 @@ internal sealed class QueryProgressReporter
         string queryId,
         object sender,
         QueryProgressEventHandler handler,
-        QueryProgressOptions options)
+        QueryProgressOptions options
+    )
     {
         ArgumentNullException.ThrowIfNull(sender);
         ArgumentNullException.ThrowIfNull(handler);
@@ -33,7 +34,8 @@ internal sealed class QueryProgressReporter
         _sender = sender;
         _handler = handler;
         _options = options;
-        _timeProvider = options.TimeProvider ?? throw new ArgumentException("A time provider is required.", nameof(options));
+        _timeProvider =
+            options.TimeProvider ?? throw new ArgumentException("A time provider is required.", nameof(options));
     }
 
     public QueryProgressSourceReporter CreateSource(string sourceContextId)
@@ -127,13 +129,8 @@ internal sealed class QueryProgressReporter
         var sequence = checked(++_sequence);
         _handler(
             _sender,
-            new QueryProgressEventArgs(
-                _queryId,
-                sourceContextId,
-                _queryRows,
-                sourceRowsProcessed,
-                sequence,
-                isFinal));
+            new QueryProgressEventArgs(_queryId, sourceContextId, _queryRows, sourceRowsProcessed, sequence, isFinal)
+        );
     }
 
     internal sealed class QueryProgressSourceReporter
@@ -145,10 +142,7 @@ internal sealed class QueryProgressReporter
         private int _activeWriters;
         private int _closed;
 
-        internal QueryProgressSourceReporter(
-            QueryProgressReporter owner,
-            string sourceContextId,
-            long initialTimestamp)
+        internal QueryProgressSourceReporter(QueryProgressReporter owner, string sourceContextId, long initialTimestamp)
         {
             _owner = owner;
             _sourceContextId = sourceContextId;
@@ -176,11 +170,8 @@ internal sealed class QueryProgressReporter
 
                 var pending = Interlocked.Add(ref _pending, rows);
                 var now = _owner._timeProvider.GetTimestamp();
-                var elapsed = _owner._timeProvider.GetElapsedTime(
-                    Volatile.Read(ref _lastPublishedTimestamp),
-                    now);
-                if (pending >= _owner._options.RowsPerUpdate ||
-                    elapsed >= _owner._options.MinimumInterval)
+                var elapsed = _owner._timeProvider.GetElapsedTime(Volatile.Read(ref _lastPublishedTimestamp), now);
+                if (pending >= _owner._options.RowsPerUpdate || elapsed >= _owner._options.MinimumInterval)
                 {
                     // Flush happens after the writer leaves the completion
                     // barrier. The pending counter is atomic, so a concurrent
@@ -226,8 +217,10 @@ internal sealed class QueryProgressReporter
             while (true)
             {
                 var previous = Volatile.Read(ref _lastPublishedTimestamp);
-                if (timestamp <= previous ||
-                    Interlocked.CompareExchange(ref _lastPublishedTimestamp, timestamp, previous) == previous)
+                if (
+                    timestamp <= previous
+                    || Interlocked.CompareExchange(ref _lastPublishedTimestamp, timestamp, previous) == previous
+                )
                     return;
             }
         }
@@ -243,17 +236,17 @@ internal sealed class QueryProgressReporter
             while (Volatile.Read(ref _activeWriters) != 0)
                 spinner.SpinOnce();
         }
-
     }
 }
 
 internal sealed class QueryProgressChunkEnumerable<T>(
     IEnumerable<IReadOnlyList<T>> source,
-    QueryProgressReporter.QueryProgressSourceReporter reporter)
-    : IEnumerable<IReadOnlyList<T>>
+    QueryProgressReporter.QueryProgressSourceReporter reporter
+) : IEnumerable<IReadOnlyList<T>>
 {
     private readonly IEnumerable<IReadOnlyList<T>> _source = source ?? throw new ArgumentNullException(nameof(source));
-    private readonly QueryProgressReporter.QueryProgressSourceReporter _reporter = reporter ?? throw new ArgumentNullException(nameof(reporter));
+    private readonly QueryProgressReporter.QueryProgressSourceReporter _reporter =
+        reporter ?? throw new ArgumentNullException(nameof(reporter));
 
     public IEnumerator<IReadOnlyList<T>> GetEnumerator()
     {
@@ -272,8 +265,8 @@ internal sealed class QueryProgressChunkEnumerable<T>(
 
     private sealed class Enumerator(
         IEnumerator<IReadOnlyList<T>> inner,
-        QueryProgressReporter.QueryProgressSourceReporter reporter)
-        : IEnumerator<IReadOnlyList<T>>
+        QueryProgressReporter.QueryProgressSourceReporter reporter
+    ) : IEnumerator<IReadOnlyList<T>>
     {
         private int _disposed;
 

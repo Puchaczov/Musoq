@@ -7,16 +7,12 @@ namespace Musoq.Converter;
 
 internal static class DiagnosticReplay
 {
-    internal static void AddMissing(
-        DiagnosticContext context,
-        IEnumerable<Diagnostic> diagnostics)
+    internal static void AddMissing(DiagnosticContext context, IEnumerable<Diagnostic> diagnostics)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(diagnostics);
 
-        var existing = context.Diagnostics
-            .Select(CreateKey)
-            .ToHashSet();
+        var existing = context.Diagnostics.Select(CreateKey).ToHashSet();
         foreach (var diagnostic in diagnostics)
         {
             if (existing.Add(CreateKey(diagnostic)))
@@ -31,7 +27,8 @@ internal static class DiagnosticReplay
             diagnostic.Severity,
             diagnostic.Message,
             diagnostic.Location.Offset,
-            diagnostic.EndLocation.Offset);
+            diagnostic.EndLocation.Offset
+        );
     }
 
     private readonly record struct DiagnosticKey(
@@ -39,5 +36,6 @@ internal static class DiagnosticReplay
         DiagnosticSeverity Severity,
         string Message,
         int Start,
-        int End);
+        int End
+    );
 }

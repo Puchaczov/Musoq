@@ -17,10 +17,7 @@ internal static class OrderingSlicingAdvisoryAnalyzer
         Visit(context, context.SourceQuery.Expression, outerOrdering: false);
     }
 
-    private static void Visit(
-        SemanticAdvisoryContext context,
-        Node node,
-        bool outerOrdering)
+    private static void Visit(SemanticAdvisoryContext context, Node node, bool outerOrdering)
     {
         switch (node)
         {
@@ -62,10 +59,11 @@ internal static class OrderingSlicingAdvisoryAnalyzer
         {
             ParameterReferenceNode parameter => parameter.Name,
             ScriptVariableReferenceNode variable => variable.Name,
-            _ => null
+            _ => null,
         };
         var definition = context.Metadata.ScriptVariableDefinitions.FirstOrDefault(variable => variable.Name == name);
-        return definition == null || Convert.ToDecimal(definition.Value, System.Globalization.CultureInfo.InvariantCulture) != 0;
+        return definition == null
+            || Convert.ToDecimal(definition.Value, System.Globalization.CultureInfo.InvariantCulture) != 0;
     }
 
     private static void ReportUnorderedSkip(SemanticAdvisoryContext context, SkipNode? skip, OrderByNode? orderBy)
@@ -76,13 +74,11 @@ internal static class OrderingSlicingAdvisoryAnalyzer
         context.Report(
             DiagnosticCode.MQ5021_UnorderedSkip,
             ErrorCatalog.GetMessage(DiagnosticCode.MQ5021_UnorderedSkip, skip.Expression.ToString()),
-            skip.SpanOrEmpty());
+            skip.SpanOrEmpty()
+        );
     }
 
-    private static void VisitQuery(
-        SemanticAdvisoryContext context,
-        QueryNode query,
-        bool outerOrdering)
+    private static void VisitQuery(SemanticAdvisoryContext context, QueryNode query, bool outerOrdering)
     {
         ReportUnorderedSkip(context, query.Skip, query.OrderBy);
 
@@ -120,7 +116,7 @@ internal static class OrderingSlicingAdvisoryAnalyzer
         {
             QueryNode query => query.OrderBy != null,
             SingleSetNode singleSet => singleSet.Query.OrderBy != null,
-            _ => false
+            _ => false,
         };
     }
 }

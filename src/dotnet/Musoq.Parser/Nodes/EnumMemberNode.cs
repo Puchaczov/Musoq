@@ -11,7 +11,8 @@ public sealed class EnumMemberNode : Node
         string literalText,
         TextSpan nameSpan,
         TextSpan valueSpan,
-        TextSpan span)
+        TextSpan span
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(literalText);

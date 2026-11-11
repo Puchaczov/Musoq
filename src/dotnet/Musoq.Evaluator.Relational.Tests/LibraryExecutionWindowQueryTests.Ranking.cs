@@ -2,7 +2,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -22,8 +21,13 @@ public sealed partial class LibraryExecutionWindowQueryTests
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)), ("Score", typeof(decimal)),
-            ("Rank", typeof(long)), ("Dense", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Position", typeof(int)),
+            ("Score", typeof(decimal)),
+            ("Rank", typeof(long)),
+            ("Dense", typeof(long))
+        );
         Assert.HasCount(3, rows);
         decimal[] scores = [101.5m, 103.5m, 103.5m];
         long[] ranks = [1L, 2L, 2L];

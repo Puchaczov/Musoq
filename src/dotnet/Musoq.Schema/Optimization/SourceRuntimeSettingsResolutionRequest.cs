@@ -7,7 +7,8 @@ public sealed record SourceRuntimeSettingsResolutionRequest(
     SourceIdentity Identity,
     string? ProfileName,
     IReadOnlyList<SourceRuntimeSettingRequirement> Requirements,
-    object?[] Parameters)
+    object?[] Parameters
+)
 {
     /// <summary>
     /// Gets the cooperative cancellation token for this transient resolution request.

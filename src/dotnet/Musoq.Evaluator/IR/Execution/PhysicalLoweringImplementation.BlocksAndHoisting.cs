@@ -9,7 +9,8 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalFilterNode? filter,
         ExecutionAppendRow appendRow,
         RowShape sourceShape,
-        StreamingSlice? streamingSlice = null)
+        StreamingSlice? streamingSlice = null
+    )
     {
         if (filter == null)
             return CreateAppendBlock(appendRow, streamingSlice);
@@ -22,7 +23,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private ExecutionBlock CreateLoopBody(
         PhysicalFilterNode? filter,
         ExecutionAppendRecord appendRecord,
-        RowShape sourceShape)
+        RowShape sourceShape
+    )
     {
         if (filter == null)
             return CreateAppendBlock(appendRecord);
@@ -35,7 +37,8 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalFilterNode? filter,
         ExecutionAppendRow appendRow,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        StreamingSlice? streamingSlice = null)
+        StreamingSlice? streamingSlice = null
+    )
     {
         if (filter == null)
             return CreateAppendBlock(appendRow, streamingSlice);
@@ -48,21 +51,18 @@ internal sealed partial class PhysicalLoweringImplementation
     private ExecutionBlock CreateFilteredAppendBlock(
         ExecutionExpression condition,
         ExecutionAppendRow appendRow,
-        StreamingSlice? streamingSlice = null)
+        StreamingSlice? streamingSlice = null
+    )
     {
         return new ExecutionBlock([new ExecutionIf(condition, CreateAppendBlock(appendRow, streamingSlice))]);
     }
 
-    private ExecutionBlock CreateFilteredAppendBlock(
-        ExecutionExpression condition,
-        ExecutionAppendRecord appendRecord)
+    private ExecutionBlock CreateFilteredAppendBlock(ExecutionExpression condition, ExecutionAppendRecord appendRecord)
     {
         return new ExecutionBlock([new ExecutionIf(condition, CreateAppendBlock(appendRecord))]);
     }
 
-    private ExecutionBlock CreateAppendBlock(
-        ExecutionAppendRow appendRow,
-        StreamingSlice? streamingSlice = null)
+    private ExecutionBlock CreateAppendBlock(ExecutionAppendRow appendRow, StreamingSlice? streamingSlice = null)
     {
         var nodes = new ExecutionNode[] { appendRow };
 
@@ -75,5 +75,4 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return new ExecutionBlock([appendRecord]);
     }
-
 }

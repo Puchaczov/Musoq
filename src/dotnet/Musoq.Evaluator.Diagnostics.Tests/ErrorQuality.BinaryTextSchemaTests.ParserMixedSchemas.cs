@@ -12,11 +12,13 @@ public partial class ErrorQualityBinaryTextSchemaTests
     {
         // Arrange — binary field uses 'as NonExistentText'
         var analyzer = CreateAnalyzer();
-        var query = @"binary Packet {
-    Version: byte,
-    Payload: string[20] utf8 as NonExistentFormat
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary Packet {\n"
+            + "    Version: byte,\n"
+            + "    Payload: string[20] utf8 as NonExistentFormat\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -35,13 +37,15 @@ select 1 from #A.Entities()";
     {
         // Arrange — both binary and text schemas named 'MyFormat'
         var analyzer = CreateAnalyzer();
-        var query = @"binary MyFormat {
-    Value: int le
-};
-text MyFormat {
-    Data: rest
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary MyFormat {\n"
+            + "    Value: int le\n"
+            + "};\n"
+            + "text MyFormat {\n"
+            + "    Data: rest\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -61,13 +65,15 @@ select 1 from #A.Entities()";
     {
         // Arrange — two binary schemas with same name
         var analyzer = CreateAnalyzer();
-        var query = @"binary Header {
-    Magic: int le
-};
-binary Header {
-    Version: short le
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary Header {\n"
+            + "    Magic: int le\n"
+            + "};\n"
+            + "binary Header {\n"
+            + "    Version: short le\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -87,9 +93,7 @@ select 1 from #A.Entities()";
     {
         // Arrange — only schema definition, no SELECT
         var analyzer = CreateAnalyzer();
-        var query = @"binary Header {
-    Magic: int le
-};";
+        var query = ("binary Header {\n" + "    Magic: int le\n" + "};");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -108,16 +112,22 @@ select 1 from #A.Entities()";
     {
         // Arrange — schema is 'Header' but query references 'HeaderFormat'
         var analyzer = CreateAnalyzer();
-        var query = @"binary Header {
-    Magic: int le
-};
-select h.Magic from #A.Entities() a cross apply Interpret<HeaderFormat>(a.Name) h";
+        var query = (
+            "binary Header {\n"
+            + "    Magic: int le\n"
+            + "};\n"
+            + "select h.Magic from #A.Entities() a cross apply Interpret<HeaderFormat>(a.Name) h"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
 
         // Assert — wrong schema name in Interpret() should produce semantic error
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3010_UnknownSchema, "Interpret() referencing wrong schema name");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3010_UnknownSchema,
+            "Interpret() referencing wrong schema name"
+        );
     }
 
     #endregion

@@ -18,7 +18,7 @@ public sealed class FixturePreparationTests
             "0;0;1;item-0;NULL;0,1;0001000000020A0B;INFO|0|item-0;0;Queued;000100",
             "1;1;2;item-1;1;1,2;0102000000020A0B;INFO|1|item-1;1;Running;010200",
             "2;2;3;item-2;2;2,3;0203000000020A0B;INFO|2|item-2;2;Queued;020300",
-            "3;3;4;item-3;NULL;3,4;0304000000020A0B;INFO|3|item-3;3;Running;030400"
+            "3;3;4;item-3;NULL;3,4;0304000000020A0B;INFO|3|item-3;3;Running;030400",
         ];
         CollectionAssert.AreEqual(expected, ReadRows(fixture.CreateSchemaProvider()).Select(Snapshot).ToArray());
     }
@@ -56,7 +56,8 @@ public sealed class FixturePreparationTests
     {
         var provider = FixtureCatalog.Prepare(ScenarioCatalog.Get("B01_Scan"), 0).CreateSchemaProvider();
         var actual = new[] { "rows", "skewed", "planned", "lookup", "reconcile", "twice", "empty", "stream" }
-            .Select(name => ReadRows(provider, name).Length).ToArray();
+            .Select(name => ReadRows(provider, name).Length)
+            .ToArray();
         CollectionAssert.AreEqual(new[] { 0, 0, 0, 3, 4, 6, 0, 1 }, actual);
     }
 
@@ -64,8 +65,10 @@ public sealed class FixturePreparationTests
     public void PreparedStream_PreservesPacketBytesAndMalformedTail()
     {
         var provider = FixtureCatalog.Prepare(ScenarioCatalog.Get("X09_RecursiveChunks"), 2).CreateSchemaProvider();
-        CollectionAssert.AreEqual(Convert.FromHexString("0001000000020A0B0102000000020A0B000100"),
-            ReadRows(provider, "stream").Single().Payload);
+        CollectionAssert.AreEqual(
+            Convert.FromHexString("0001000000020A0B0102000000020A0B000100"),
+            ReadRows(provider, "stream").Single().Payload
+        );
     }
 
     [TestMethod]
@@ -73,11 +76,22 @@ public sealed class FixturePreparationTests
     {
         (string, Type)[] expected =
         [
-            ("Id", typeof(int)), ("Key", typeof(int)), ("Amount", typeof(decimal)), ("Name", typeof(string)),
-            ("Optional", typeof(int?)), ("Items", typeof(int[])), ("Payload", typeof(byte[])),
-            ("Text", typeof(string)), ("Time", typeof(DateTime)), ("State", typeof(JobState)), ("Truncated", typeof(byte[]))
+            ("Id", typeof(int)),
+            ("Key", typeof(int)),
+            ("Amount", typeof(decimal)),
+            ("Name", typeof(string)),
+            ("Optional", typeof(int?)),
+            ("Items", typeof(int[])),
+            ("Payload", typeof(byte[])),
+            ("Text", typeof(string)),
+            ("Time", typeof(DateTime)),
+            ("State", typeof(JobState)),
+            ("Truncated", typeof(byte[])),
         ];
-        CollectionAssert.AreEqual(expected, FixtureTable.Rows().Columns.Select(column => (column.ColumnName, column.SourceReadType)).ToArray());
+        CollectionAssert.AreEqual(
+            expected,
+            FixtureTable.Rows().Columns.Select(column => (column.ColumnName, column.SourceReadType)).ToArray()
+        );
     }
 
     [TestMethod]
@@ -93,7 +107,10 @@ public sealed class FixturePreparationTests
     public void ExplicitStructuredColumns_PreserveOrderAndTypes()
     {
         (string, Type)[] expected = [("Id", typeof(int)), ("Amount", typeof(decimal))];
-        CollectionAssert.AreEqual(expected, FixtureTable.NumberInput().Columns.Select(column => (column.ColumnName, column.ColumnType)).ToArray());
+        CollectionAssert.AreEqual(
+            expected,
+            FixtureTable.NumberInput().Columns.Select(column => (column.ColumnName, column.ColumnType)).ToArray()
+        );
     }
 
     [TestMethod]
@@ -135,20 +152,35 @@ public sealed class FixturePreparationTests
     {
         using var cancellation = new CancellationTokenSource();
         var context = Context(cancellation.Token);
-        return provider.GetSchema("bench").GetRowSource<FixtureRow, EmptySourceArguments>(name, context, SourceArguments.Empty)
-            .Chunks.SelectMany(chunk => chunk).ToArray();
+        return provider
+            .GetSchema("bench")
+            .GetRowSource<FixtureRow, EmptySourceArguments>(name, context, SourceArguments.Empty)
+            .Chunks.SelectMany(chunk => chunk)
+            .ToArray();
     }
 
     private static int[] ReadChunkSizes(ISchemaProvider provider)
     {
         using var cancellation = new CancellationTokenSource();
-        return provider.GetSchema("bench").GetRowSource<FixtureRow, EmptySourceArguments>("rows", Context(cancellation.Token), SourceArguments.Empty)
-            .Chunks.Select(chunk => chunk.Count).ToArray();
+        return provider
+            .GetSchema("bench")
+            .GetRowSource<FixtureRow, EmptySourceArguments>("rows", Context(cancellation.Token), SourceArguments.Empty)
+            .Chunks.Select(chunk => chunk.Count)
+            .ToArray();
     }
 
-    private static SourceExecutionContext Context(CancellationToken token) => new("fixture-test",
-        SourceExecutionPlan.Empty(SourceIdentity.Empty), token, [], new Dictionary<string, string>(), NullLogger.Instance);
+    private static SourceExecutionContext Context(CancellationToken token) =>
+        new(
+            "fixture-test",
+            SourceExecutionPlan.Empty(SourceIdentity.Empty),
+            token,
+            [],
+            new Dictionary<string, string>(),
+            NullLogger.Instance
+        );
 
-    internal static string Snapshot(FixtureRow row) => FormattableString.Invariant(
-        $"{row.Id};{row.Key};{row.Amount};{row.Name};{row.Optional?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "NULL"};{string.Join(',', row.Items)};{Convert.ToHexString(row.Payload)};{row.Text};{(row.Time - new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds};{row.State};{Convert.ToHexString(row.Truncated)}");
+    internal static string Snapshot(FixtureRow row) =>
+        FormattableString.Invariant(
+            $"{row.Id};{row.Key};{row.Amount};{row.Name};{row.Optional?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "NULL"};{string.Join(',', row.Items)};{Convert.ToHexString(row.Payload)};{row.Text};{(row.Time - new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds};{row.State};{Convert.ToHexString(row.Truncated)}"
+        );
 }

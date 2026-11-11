@@ -11,25 +11,31 @@ public partial class CloneQueryVisitor
         for (var index = members.Length - 1; index >= 0; index--)
             members[index] = (EnumMemberNode)Nodes.Pop();
 
-        Nodes.Push(new EnumDeclarationNode(
-            node.Name,
-            node.UnderlyingTypeName,
-            node.IsFlags,
-            members,
-            node.NameSpan,
-            node.UnderlyingTypeSpan,
-            node.Span).WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            new EnumDeclarationNode(
+                node.Name,
+                node.UnderlyingTypeName,
+                node.IsFlags,
+                members,
+                node.NameSpan,
+                node.UnderlyingTypeSpan,
+                node.Span
+            ).WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(EnumMemberNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new EnumMemberNode(
-            node.Name,
-            node.RawValue,
-            node.LiteralText,
-            node.NameSpan,
-            node.ValueSpan,
-            node.Span).WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            new EnumMemberNode(
+                node.Name,
+                node.RawValue,
+                node.LiteralText,
+                node.NameSpan,
+                node.ValueSpan,
+                node.Span
+            ).WithFullSpan(node.FullSpan)
+        );
     }
 }

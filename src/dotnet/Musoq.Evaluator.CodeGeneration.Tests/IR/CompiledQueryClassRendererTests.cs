@@ -43,9 +43,7 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
     [TestMethod]
     public void WhenRenderingClassShell_ShouldContainCompiledQueryBoilerplate()
     {
-        var context = new RenderContext(
-            _generator,
-            new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
+        var context = new RenderContext(_generator, new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
         var renderer = new CompiledQueryClassRenderer(context);
 
         var result = renderer.Render("ab");
@@ -54,15 +52,27 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
         StringAssert.Contains(code, "namespace Query.Compiled_Test");
         StringAssert.Contains(code, "using System.Threading;");
         StringAssert.Contains(code, "using Musoq.Evaluator.Tables;");
-        StringAssert.Contains(code, "public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable");
+        StringAssert.Contains(
+            code,
+            "public sealed class CompiledQuery : BaseOperations, ITableRunnable, IQueryProgressSource, IParameterizedRunnable"
+        );
         Assert.IsFalse(code.Contains("_tableResults", StringComparison.Ordinal));
-        StringAssert.Contains(code, "public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;");
+        StringAssert.Contains(
+            code,
+            "public TypedParameterSnapshot TypedParameters { get; set; } = TypedParameterSnapshot.Empty;"
+        );
         Assert.DoesNotContain("IDictionary<string, System.Object> Parameters", code);
-        StringAssert.Contains(code, "public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();");
+        StringAssert.Contains(
+            code,
+            "public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = Array.Empty<ScriptParameterDefinition>();"
+        );
         StringAssert.Contains(code, "public event QueryPhaseEventHandler PhaseChanged;");
         StringAssert.Contains(code, "public event DataSourceEventHandler DataSourceProgress;");
         StringAssert.Contains(code, "public Table Run(CancellationToken token)");
-        StringAssert.Contains(code, "return ComputeTable_ab_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);");
+        StringAssert.Contains(
+            code,
+            "return ComputeTable_ab_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);"
+        );
         StringAssert.Contains(code, "private Table ComputeTable_ab_0(");
         StringAssert.Contains(code, "throw new NotImplementedException();");
     }
@@ -72,23 +82,23 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
     {
         var context = new RenderContext(
             _generator,
-            new RenderContextOptions(
-                AssemblyName: "Query.Compiled_Test",
-                EnableContextualExecution: true));
+            new RenderContextOptions(AssemblyName: "Query.Compiled_Test", EnableContextualExecution: true)
+        );
         var renderer = new CompiledQueryClassRenderer(context);
 
         var code = Normalize(renderer.Render("ab"));
 
-        StringAssert.Contains(code, "ITableRunnable, IContextTableRunnable, IQueryProgressSource, IParameterizedRunnable");
+        StringAssert.Contains(
+            code,
+            "ITableRunnable, IContextTableRunnable, IQueryProgressSource, IParameterizedRunnable"
+        );
         StringAssert.Contains(code, "public Table Run(QueryRunContext queryContext)");
     }
 
     [TestMethod]
     public void WhenRenderingClassShell_ShouldOrderMembersByVisibilityGroup()
     {
-        var context = new RenderContext(
-            _generator,
-            new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
+        var context = new RenderContext(_generator, new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
         context.AddClassMember(SyntaxFactory.ParseMemberDeclaration("private static void StaticHelper() { }")!);
         context.AddClassMember(SyntaxFactory.ParseMemberDeclaration("protected void ProtectedHook() { }")!);
         context.AddClassMember(SyntaxFactory.ParseMemberDeclaration("private sealed class Nested { }")!);
@@ -105,7 +115,8 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
             "protected void ProtectedHook()",
             "private Table ComputeTable_ab_0(",
             "private static void StaticHelper()",
-            "private sealed class Nested");
+            "private sealed class Nested"
+        );
     }
 
     [TestMethod]
@@ -118,19 +129,39 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
                 ScriptParameterDefinitions:
                 [
                     new ScriptParameterDefinition("author", typeof(string), false, null),
-                    new ScriptParameterDefinition("limit", typeof(int), true, 100)
-                ]));
+                    new ScriptParameterDefinition("limit", typeof(int), true, 100),
+                ]
+            )
+        );
         var renderer = new CompiledQueryClassRenderer(context);
 
         var result = renderer.Render("ab");
         var code = Normalize(result);
 
-        StringAssert.Contains(code, "public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = new ScriptParameterDefinition[]");
-        StringAssert.Contains(code, "public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = new ScriptParameterContract[]");
-        StringAssert.Contains(code, "new ScriptParameterDefinition(new ScriptParameterContract(\"author\", \"string\", \"string\", typeof(string), false, false, null, null, false, ScriptParameterDefaultKind.None, null))");
-        StringAssert.Contains(code, "new ScriptParameterDefinition(new ScriptParameterContract(\"limit\", \"int\", \"int\", typeof(int), false, false, null, null, true, ScriptParameterDefaultKind.Literal, 100))");
-        StringAssert.Contains(code, "new ScriptParameterContract(\"author\", \"string\", \"string\", typeof(string), false, false, null, null, false, ScriptParameterDefaultKind.None, null)");
-        StringAssert.Contains(code, "new ScriptParameterContract(\"limit\", \"int\", \"int\", typeof(int), false, false, null, null, true, ScriptParameterDefaultKind.Literal, 100)");
+        StringAssert.Contains(
+            code,
+            "public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = new ScriptParameterDefinition[]"
+        );
+        StringAssert.Contains(
+            code,
+            "public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = new ScriptParameterContract[]"
+        );
+        StringAssert.Contains(
+            code,
+            "new ScriptParameterDefinition(new ScriptParameterContract(\"author\", \"string\", \"string\", typeof(string), false, false, null, null, false, ScriptParameterDefaultKind.None, null))"
+        );
+        StringAssert.Contains(
+            code,
+            "new ScriptParameterDefinition(new ScriptParameterContract(\"limit\", \"int\", \"int\", typeof(int), false, false, null, null, true, ScriptParameterDefaultKind.Literal, 100))"
+        );
+        StringAssert.Contains(
+            code,
+            "new ScriptParameterContract(\"author\", \"string\", \"string\", typeof(string), false, false, null, null, false, ScriptParameterDefaultKind.None, null)"
+        );
+        StringAssert.Contains(
+            code,
+            "new ScriptParameterContract(\"limit\", \"int\", \"int\", typeof(int), false, false, null, null, true, ScriptParameterDefaultKind.Literal, 100)"
+        );
     }
 
     [TestMethod]
@@ -150,18 +181,35 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
                     new ScriptParameterDefinition("id", typeof(Guid), true, guid),
                     new ScriptParameterDefinition("created", typeof(DateTime), true, dateTime),
                     new ScriptParameterDefinition("seen", typeof(DateTimeOffset), true, dateTimeOffset),
-                    new ScriptParameterDefinition("elapsed", typeof(TimeSpan), true, timeSpan)
-                ]));
+                    new ScriptParameterDefinition("elapsed", typeof(TimeSpan), true, timeSpan),
+                ]
+            )
+        );
         var renderer = new CompiledQueryClassRenderer(context);
 
         var result = renderer.Render("ab");
         var code = Normalize(result);
 
-        StringAssert.Contains(code, "new ScriptParameterDefinition(new ScriptParameterContract(\"code\", \"char\", \"char\", typeof(char), false, false, null, null, true, ScriptParameterDefaultKind.Literal, 'x'))");
-        StringAssert.Contains(code, "new ScriptParameterDefinition(new ScriptParameterContract(\"id\", \"guid\", \"guid\", typeof(Guid), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new Guid(\"2ffcf6fa-3369-4300-946a-bb131a037985\")))");
-        StringAssert.Contains(code, $"new ScriptParameterDefinition(new ScriptParameterContract(\"created\", \"datetime\", \"datetime\", typeof(DateTime), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new DateTime({dateTime.Ticks}L, DateTimeKind.Utc)))");
-        StringAssert.Contains(code, $"new ScriptParameterDefinition(new ScriptParameterContract(\"seen\", \"datetimeoffset\", \"datetimeoffset\", typeof(DateTimeOffset), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new DateTimeOffset({dateTimeOffset.Ticks}L, new TimeSpan({dateTimeOffset.Offset.Ticks}L))))");
-        StringAssert.Contains(code, $"new ScriptParameterDefinition(new ScriptParameterContract(\"elapsed\", \"timespan\", \"timespan\", typeof(TimeSpan), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new TimeSpan({timeSpan.Ticks}L)))");
+        StringAssert.Contains(
+            code,
+            "new ScriptParameterDefinition(new ScriptParameterContract(\"code\", \"char\", \"char\", typeof(char), false, false, null, null, true, ScriptParameterDefaultKind.Literal, 'x'))"
+        );
+        StringAssert.Contains(
+            code,
+            "new ScriptParameterDefinition(new ScriptParameterContract(\"id\", \"guid\", \"guid\", typeof(Guid), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new Guid(\"2ffcf6fa-3369-4300-946a-bb131a037985\")))"
+        );
+        StringAssert.Contains(
+            code,
+            $"new ScriptParameterDefinition(new ScriptParameterContract(\"created\", \"datetime\", \"datetime\", typeof(DateTime), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new DateTime({dateTime.Ticks}L, DateTimeKind.Utc)))"
+        );
+        StringAssert.Contains(
+            code,
+            $"new ScriptParameterDefinition(new ScriptParameterContract(\"seen\", \"datetimeoffset\", \"datetimeoffset\", typeof(DateTimeOffset), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new DateTimeOffset({dateTimeOffset.Ticks}L, new TimeSpan({dateTimeOffset.Offset.Ticks}L))))"
+        );
+        StringAssert.Contains(
+            code,
+            $"new ScriptParameterDefinition(new ScriptParameterContract(\"elapsed\", \"timespan\", \"timespan\", typeof(TimeSpan), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new TimeSpan({timeSpan.Ticks}L)))"
+        );
     }
 
     [TestMethod]
@@ -171,15 +219,17 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
 
         var context = new RenderContext(
             _generator,
-            new RenderContextOptions(
-                Scope: scope,
-                AssemblyName: "Query.Compiled_Test"));
+            new RenderContextOptions(Scope: scope, AssemblyName: "Query.Compiled_Test")
+        );
         var renderer = new CompiledQueryClassRenderer(context);
 
         var result = renderer.Render("ab");
         var code = Normalize(result);
 
-        StringAssert.Contains(code, "return ComputeTable_scope_7(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);");
+        StringAssert.Contains(
+            code,
+            "return ComputeTable_scope_7(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);"
+        );
         StringAssert.Contains(code, "private Table ComputeTable_scope_7(");
         Assert.IsFalse(code.Contains("ComputeTable_ab_0", StringComparison.Ordinal));
     }
@@ -191,9 +241,8 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
 
         var context = new RenderContext(
             _generator,
-            new RenderContextOptions(
-                Scope: scope,
-                AssemblyName: "Query.Compiled_Test"));
+            new RenderContextOptions(Scope: scope, AssemblyName: "Query.Compiled_Test")
+        );
         context.AddClassMember(CreateExistingComputeMethod("ComputeTable_existing_2"));
 
         var renderer = new CompiledQueryClassRenderer(context);
@@ -208,9 +257,7 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
     [TestMethod]
     public void WhenUsingCSharpRendererFacade_ShouldRenderCompilationUnit()
     {
-        var context = new RenderContext(
-            _generator,
-            new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
+        var context = new RenderContext(_generator, new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
         var renderer = new CSharpRenderer(context);
 
         var result = renderer.RenderCompilationUnit("facade");
@@ -222,8 +269,8 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
 
     private static MethodDeclarationSyntax CreateExistingComputeMethod(string methodName)
     {
-        var exception = SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.IdentifierName(nameof(InvalidOperationException)))
+        var exception = SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(InvalidOperationException)))
             .WithArgumentList(SyntaxFactory.ArgumentList());
         var body = StatementEmitter.CreateBlock(StatementEmitter.CreateThrow(exception));
 

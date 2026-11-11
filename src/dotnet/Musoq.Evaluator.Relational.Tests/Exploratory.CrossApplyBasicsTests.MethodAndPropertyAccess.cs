@@ -10,14 +10,21 @@ public partial class ExploratoryCrossApplyBasicsTests
     [TestMethod]
     public void Explore1_CrossApply_MethodCallThenProperty_ShouldWork()
     {
-        const string query = @"
-            select p.Name, t.Value
-            from #schema.first() p
-            cross apply p.Split(p.Name, ' ') t";
+        const string query = (
+            "\n"
+            + "            select p.Name, t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Split(p.Name, ' ') t"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John Doe", Age = 30, Tags = ["a", "b"] }
+            new()
+            {
+                Name = "John Doe",
+                Age = 30,
+                Tags = ["a", "b"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -30,38 +37,51 @@ public partial class ExploratoryCrossApplyBasicsTests
     [TestMethod]
     public void Explore1_CrossApply_PropertyThenMethodCall_ShouldWork()
     {
-        const string query = @"
-            select t.Value, s.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            cross apply p.Split(t.Value, '-') s";
+        const string query = (
+            "\n"
+            + "            select t.Value, s.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            cross apply p.Split(t.Value, '-') s"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "Test", Age = 30, Tags = ["a-b", "c-d"] }
+            new()
+            {
+                Name = "Test",
+                Age = 30,
+                Tags = ["a-b", "c-d"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)), ("Value", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["a-b", "a"], ["a-b", "b"], ["c-d", "c"], ["c-d", "d"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["a-b", "a"], ["a-b", "b"], ["c-d", "c"], ["c-d", "d"]);
     }
 
     [TestMethod]
     public void Explore1_ThreeCrossApplies_DifferentTypes_ShouldWork()
     {
-        const string query = @"
-            select p.Name, t.Value, s.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            cross apply p.Scores s";
+        const string query = (
+            "\n"
+            + "            select p.Name, t.Value, s.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            cross apply p.Scores s"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "Test", Age = 30, Tags = ["a", "b"], Scores = [1, 2, 3] }
+            new()
+            {
+                Name = "Test",
+                Age = 30,
+                Tags = ["a", "b"],
+                Scores = [1, 2, 3],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -69,11 +89,19 @@ public partial class ExploratoryCrossApplyBasicsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Value", typeof(string)), ("Value", typeof(int)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)),
+            ("Value", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Test", "a", 1], ["Test", "a", 2], ["Test", "a", 3],
-            ["Test", "b", 1], ["Test", "b", 2], ["Test", "b", 3]);
+            ["Test", "a", 1],
+            ["Test", "a", 2],
+            ["Test", "a", 3],
+            ["Test", "b", 1],
+            ["Test", "b", 2],
+            ["Test", "b", 3]
+        );
     }
 
     #endregion
@@ -83,10 +111,12 @@ public partial class ExploratoryCrossApplyBasicsTests
     [TestMethod]
     public void Explore2_CrossApply_NestedObjectProperty_ShouldWork()
     {
-        const string query = @"
-            select p.Name, a.City
-            from #schema.first() p
-            cross apply p.Addresses a";
+        const string query = (
+            "\n"
+            + "            select p.Name, a.City\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Addresses a"
+        );
 
         var source = new List<Person>
         {
@@ -94,8 +124,8 @@ public partial class ExploratoryCrossApplyBasicsTests
             {
                 Name = "John",
                 Age = 30,
-                Addresses = [new Address { City = "NYC", Street = "Broadway" }]
-            }
+                Addresses = [new Address { City = "NYC", Street = "Broadway" }],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -108,11 +138,13 @@ public partial class ExploratoryCrossApplyBasicsTests
     [TestMethod]
     public void Explore2_CrossApply_NestedObjectThenArray_ShouldWork()
     {
-        const string query = @"
-            select p.Name, a.City, ph.Value
-            from #schema.first() p
-            cross apply p.Addresses a
-            cross apply a.PhoneNumbers ph";
+        const string query = (
+            "\n"
+            + "            select p.Name, a.City, ph.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Addresses a\n"
+            + "            cross apply a.PhoneNumbers ph"
+        );
 
         var source = new List<Person>
         {
@@ -122,10 +154,20 @@ public partial class ExploratoryCrossApplyBasicsTests
                 Age = 30,
                 Addresses =
                 [
-                    new Address { City = "NYC", Street = "Broadway", PhoneNumbers = ["111", "222"] },
-                    new Address { City = "LA", Street = "Hollywood", PhoneNumbers = ["333"] }
-                ]
-            }
+                    new Address
+                    {
+                        City = "NYC",
+                        Street = "Broadway",
+                        PhoneNumbers = ["111", "222"],
+                    },
+                    new Address
+                    {
+                        City = "LA",
+                        Street = "Hollywood",
+                        PhoneNumbers = ["333"],
+                    },
+                ],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -133,20 +175,28 @@ public partial class ExploratoryCrossApplyBasicsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("City", typeof(string)), ("Value", typeof(string)));
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Value", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["John", "NYC", "111"], ["John", "NYC", "222"], ["John", "LA", "333"]);
+            ["John", "NYC", "111"],
+            ["John", "NYC", "222"],
+            ["John", "LA", "333"]
+        );
     }
 
     [TestMethod]
     public void Explore2_CrossApply_ThreeLevelNesting_ShouldWork()
     {
-        const string query = @"
-            select root.Value, c.Value, gc.Value
-            from #schema.first() root
-            cross apply root.Children c
-            cross apply c.Children gc";
+        const string query = (
+            "\n"
+            + "            select root.Value, c.Value, gc.Value\n"
+            + "            from #schema.first() root\n"
+            + "            cross apply root.Children c\n"
+            + "            cross apply c.Children gc"
+        );
 
         var source = new List<TreeNode>
         {
@@ -160,10 +210,10 @@ public partial class ExploratoryCrossApplyBasicsTests
                     {
                         Id = 2,
                         Value = "Child1",
-                        Children = [new TreeNode { Id = 3, Value = "Grandchild1" }]
-                    }
-                ]
-            }
+                        Children = [new TreeNode { Id = 3, Value = "Grandchild1" }],
+                    },
+                ],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -171,7 +221,10 @@ public partial class ExploratoryCrossApplyBasicsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Value", typeof(string)), ("Value", typeof(string)), ("Value", typeof(string)));
+            ("Value", typeof(string)),
+            ("Value", typeof(string)),
+            ("Value", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Root", "Child1", "Grandchild1"]);
     }
 
@@ -182,17 +235,24 @@ public partial class ExploratoryCrossApplyBasicsTests
     [TestMethod]
     public void Explore10_CrossApply_WithComplexSelectExpressions_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name + ' - ' + t.Value as Combined,
-                Length(t.Value) as TagLength,
-                p.Age * 2 as DoubleAge
-            from #schema.first() p
-            cross apply p.Tags t";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name + ' - ' + t.Value as Combined,\n"
+            + "                Length(t.Value) as TagLength,\n"
+            + "                p.Age * 2 as DoubleAge\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["hello"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["hello"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -200,55 +260,68 @@ public partial class ExploratoryCrossApplyBasicsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Combined", typeof(string)), ("TagLength", typeof(int?)), ("DoubleAge", typeof(int)));
+            ("Combined", typeof(string)),
+            ("TagLength", typeof(int?)),
+            ("DoubleAge", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John - hello", 5, 60]);
     }
 
     [TestMethod]
     public void Explore10_CrossApply_WithCaseWhen_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                case when s.Value > 50 then 'High' else 'Low' end as ScoreLevel
-            from #schema.first() p
-            cross apply p.Scores s";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                case when s.Value > 50 then 'High' else 'Low' end as ScoreLevel\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Scores s"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Scores = [25, 75] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Scores = [25, 75],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)), ("ScoreLevel", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("ScoreLevel", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "Low"], ["John", "High"]);
     }
 
     [TestMethod]
     public void Explore10_CrossApply_WithCoalesce_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                Coalesce(t.Value, 'NoTag') as TagOrDefault
-            from #schema.first() p
-            outer apply p.Tags t";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                Coalesce(t.Value, 'NoTag') as TagOrDefault\n"
+            + "            from #schema.first() p\n"
+            + "            outer apply p.Tags t"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = [] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = [],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)), ("TagOrDefault", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("TagOrDefault", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "NoTag"]);
     }
 

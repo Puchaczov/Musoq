@@ -3,9 +3,7 @@ namespace Musoq.Parser.Nodes.From;
 public class UnpivotEntryNode(Node expression, string nameValue, TextSpan nameValueSpan)
 {
     public UnpivotEntryNode(Node expression, string nameValue)
-        : this(expression, nameValue, TextSpan.Empty)
-    {
-    }
+        : this(expression, nameValue, TextSpan.Empty) { }
 
     public Node Expression { get; } = expression ?? throw new ArgumentNullException(nameof(expression));
 

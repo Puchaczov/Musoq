@@ -16,8 +16,12 @@ internal interface IExecutionExpressionVisitor
 /// <summary>Preorder traversal with borrowed child cursors and unboxed, caller-owned visitor state.</summary>
 internal static partial class ExecutionIrTraversal
 {
-    internal static bool VisitNodes<TVisitor>(ExecutionBlock block, ref TVisitor visitor,
-        CancellationToken cancellationToken = default) where TVisitor : struct, IExecutionNodeVisitor
+    internal static bool VisitNodes<TVisitor>(
+        ExecutionBlock block,
+        ref TVisitor visitor,
+        CancellationToken cancellationToken = default
+    )
+        where TVisitor : struct, IExecutionNodeVisitor
     {
         cancellationToken.ThrowIfCancellationRequested();
         for (var index = 0; index < block.Nodes.Count; index++)
@@ -26,8 +30,12 @@ internal static partial class ExecutionIrTraversal
         return true;
     }
 
-    internal static bool VisitNode<TVisitor>(ExecutionNode node, ref TVisitor visitor,
-        CancellationToken cancellationToken = default) where TVisitor : struct, IExecutionNodeVisitor
+    internal static bool VisitNode<TVisitor>(
+        ExecutionNode node,
+        ref TVisitor visitor,
+        CancellationToken cancellationToken = default
+    )
+        where TVisitor : struct, IExecutionNodeVisitor
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!visitor.Visit(node))
@@ -39,8 +47,12 @@ internal static partial class ExecutionIrTraversal
         return true;
     }
 
-    internal static bool VisitExpressions<TVisitor>(ExecutionExpression? expression, ref TVisitor visitor,
-        CancellationToken cancellationToken = default) where TVisitor : struct, IExecutionExpressionVisitor
+    internal static bool VisitExpressions<TVisitor>(
+        ExecutionExpression? expression,
+        ref TVisitor visitor,
+        CancellationToken cancellationToken = default
+    )
+        where TVisitor : struct, IExecutionExpressionVisitor
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (expression is null)
@@ -54,8 +66,12 @@ internal static partial class ExecutionIrTraversal
         return true;
     }
 
-    internal static bool VisitExpressions<TVisitor>(ExecutionBlock block, ref TVisitor visitor,
-        CancellationToken cancellationToken = default) where TVisitor : struct, IExecutionExpressionVisitor
+    internal static bool VisitExpressions<TVisitor>(
+        ExecutionBlock block,
+        ref TVisitor visitor,
+        CancellationToken cancellationToken = default
+    )
+        where TVisitor : struct, IExecutionExpressionVisitor
     {
         cancellationToken.ThrowIfCancellationRequested();
         for (var index = 0; index < block.Nodes.Count; index++)
@@ -64,8 +80,12 @@ internal static partial class ExecutionIrTraversal
         return true;
     }
 
-    private static bool VisitNodeExpressions<TVisitor>(ExecutionNode node, ref TVisitor visitor,
-        CancellationToken cancellationToken) where TVisitor : struct, IExecutionExpressionVisitor
+    private static bool VisitNodeExpressions<TVisitor>(
+        ExecutionNode node,
+        ref TVisitor visitor,
+        CancellationToken cancellationToken
+    )
+        where TVisitor : struct, IExecutionExpressionVisitor
     {
         cancellationToken.ThrowIfCancellationRequested();
         var expressions = new ExecutionLocalExpressionCursor(node);

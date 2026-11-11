@@ -9,7 +9,6 @@ namespace Musoq.Parser;
 /// </summary>
 public partial class SchemaParser
 {
-
     private string ComposeIdentifierOrWord()
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
@@ -27,7 +26,8 @@ public partial class SchemaParser
 
         throw new SyntaxException(
             $"Expected identifier but found '{Current.TokenType}' ({Current.Value})",
-            _lexer.AlreadyResolvedQueryPart);
+            _lexer.AlreadyResolvedQueryPart
+        );
     }
 
     private string ComposeStringLiteral()
@@ -35,15 +35,18 @@ public partial class SchemaParser
         if (Current.TokenType != TokenType.Word && Current.TokenType != TokenType.StringLiteral)
             throw new SyntaxException(
                 $"Expected string literal but found '{Current.TokenType}'",
-                _lexer.AlreadyResolvedQueryPart);
+                _lexer.AlreadyResolvedQueryPart
+            );
 
         var token = ConsumeAndGetToken(Current.TokenType);
 
         var value = token.Value;
 
-        if (token.TokenType == TokenType.Word &&
-            ((value.StartsWith('\'') && value.EndsWith('\'')) ||
-             (value.StartsWith('"') && value.EndsWith('"'))) && value.Length >= 2)
+        if (
+            token.TokenType == TokenType.Word
+            && ((value.StartsWith('\'') && value.EndsWith('\'')) || (value.StartsWith('"') && value.EndsWith('"')))
+            && value.Length >= 2
+        )
             value = value[1..^1];
 
         return token.TokenType == TokenType.StringLiteral ? value : UnescapeString(value);
@@ -69,7 +72,8 @@ public partial class SchemaParser
         if (!Current.TokenType.Equals(tokenType))
             throw new SyntaxException(
                 $"Expected token '{tokenType}' but found '{Current.TokenType}' ({Current.Value})",
-                _lexer.AlreadyResolvedQueryPart);
+                _lexer.AlreadyResolvedQueryPart
+            );
 
         _tokens.Advance();
     }

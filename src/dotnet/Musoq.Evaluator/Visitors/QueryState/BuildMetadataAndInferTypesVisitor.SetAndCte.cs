@@ -11,16 +11,11 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private readonly Dictionary<string, ISchemaColumn[]> _provisionalRecursiveCteColumns =
-        new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ISchemaColumn[]> _provisionalRecursiveCteColumns = new(StringComparer.Ordinal);
 
-    public override void Visit(TranslatedSetTreeNode node)
-    {
-    }
+    public override void Visit(TranslatedSetTreeNode node) { }
 
-    public override void Visit(TranslatedSetOperatorNode node)
-    {
-    }
+    public override void Visit(TranslatedSetOperatorNode node) { }
 
     public override void Visit(UnionNode node)
     {
@@ -79,7 +74,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var set = PopSemanticNode();
-        if (DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, node.Value)) _diagnosticRecoveryCteNames.Add(node.Name);
+        if (DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, node.Value))
+            _diagnosticRecoveryCteNames.Add(node.Name);
         var collector = new GetSelectFieldsVisitor(ResolveEnumTypeOrNull, IsNullableInterpretationExpression);
         var traverser = new GetSelectFieldsTraverseVisitor(collector);
 
@@ -90,18 +86,20 @@ public partial class BuildMetadataAndInferTypesVisitor
         var exportedColumns = hasProvisionalColumns
             ? provisionalColumns!
             : ResolveCteOutputColumns(node, projectedColumns);
-        var exportedSet = hasProvisionalColumns || exportedColumns == projectedColumns
-            ? set
-            : RenameCteOutputColumns(set, exportedColumns);
+        var exportedSet =
+            hasProvisionalColumns || exportedColumns == projectedColumns
+                ? set
+                : RenameCteOutputColumns(set, exportedColumns);
         var table = new VariableTable(exportedColumns);
-        var parentScope = _sourceBinding.CurrentScope.Parent ??
-                          throw new VisitorException(
-                              VisitorName,
-                              "VisitCteInnerExpressionNode",
-                              "CTE binding requires a parent scope.");
+        var parentScope =
+            _sourceBinding.CurrentScope.Parent
+            ?? throw new VisitorException(
+                VisitorName,
+                "VisitCteInnerExpressionNode",
+                "CTE binding requires a parent scope."
+            );
 
-        if (!hasProvisionalColumns &&
-            parentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(node.Name))
+        if (!hasProvisionalColumns && parentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(node.Name))
             throw new AliasAlreadyUsedException(node.Name, node.SpanOrEmpty());
 
         var tableSymbol = new TableSymbol(node.Name, new TransitionSchema(node.Name, table), table, false);
@@ -114,22 +112,23 @@ public partial class BuildMetadataAndInferTypesVisitor
             foreach (var fieldInfo in exportedColumns)
                 if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(fieldInfo.ColumnType))
                 {
-                    var fieldNode = new FieldNode(new IntegerNode("0", "s"), fieldInfo.ColumnIndex,
-                        fieldInfo.ColumnName);
-                    if (TryReportInvalidExpressionType(fieldNode, fieldInfo.ColumnType, $"CTE '{node.Name}'",
-                            fieldNode))
+                    var fieldNode = new FieldNode(
+                        new IntegerNode("0", "s"),
+                        fieldInfo.ColumnIndex,
+                        fieldInfo.ColumnName
+                    );
+                    if (
+                        TryReportInvalidExpressionType(fieldNode, fieldInfo.ColumnType, $"CTE '{node.Name}'", fieldNode)
+                    )
                         continue;
                     throw new InvalidQueryExpressionTypeException(
                         fieldNode,
                         fieldInfo.ColumnType,
-                        $"CTE '{node.Name}'");
+                        $"CTE '{node.Name}'"
+                    );
                 }
 
-        PushSemanticNode(new CteInnerExpressionNode(
-            exportedSet,
-            node.Name,
-            node.Columns,
-            hasProvisionalColumns));
+        PushSemanticNode(new CteInnerExpressionNode(exportedSet, node.Name, node.Columns, hasProvisionalColumns));
     }
 
     internal void PrepareRecursiveCteAnchor(CteInnerExpressionNode definition)
@@ -141,9 +140,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var projectedColumns = collector.CollectedFieldNames;
         var exportedColumns = ResolveCteOutputColumns(definition, projectedColumns);
-        var exportedAnchor = exportedColumns == projectedColumns
-            ? anchor
-            : RenameCteOutputColumns(anchor, exportedColumns);
+        var exportedAnchor =
+            exportedColumns == projectedColumns ? anchor : RenameCteOutputColumns(anchor, exportedColumns);
         PushSemanticNode(exportedAnchor);
 
         var cteScope = _sourceBinding.CurrentScope;
@@ -154,22 +152,18 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new VisitorException(
                 VisitorName,
                 nameof(PrepareRecursiveCteAnchor),
-                "Recursive CTE anchor binding requires an enclosing CTE scope.");
+                "Recursive CTE anchor binding requires an enclosing CTE scope."
+            );
 
         var table = new VariableTable(exportedColumns);
         cteScope.ScopeSymbolTable.AddSymbol(
             definition.Name,
-            new TableSymbol(
-                definition.Name,
-                new TransitionSchema(definition.Name, table),
-                table,
-                false));
+            new TableSymbol(definition.Name, new TransitionSchema(definition.Name, table), table, false)
+        );
         _provisionalRecursiveCteColumns.Add(definition.Name, exportedColumns);
     }
 
-    private ISchemaColumn[] ResolveCteOutputColumns(
-        CteInnerExpressionNode node,
-        ISchemaColumn[] projectedColumns)
+    private ISchemaColumn[] ResolveCteOutputColumns(CteInnerExpressionNode node, ISchemaColumn[] projectedColumns)
     {
         if (node.Columns.Length == 0)
             return projectedColumns;
@@ -180,11 +174,13 @@ public partial class BuildMetadataAndInferTypesVisitor
                 DiagnosticCode.MQ3077_CteColumnListCountMismatch,
                 node.Name,
                 node.Columns.Length,
-                projectedColumns.Length);
+                projectedColumns.Length
+            );
             ReportOrThrowCteColumnListError(
                 DiagnosticCode.MQ3077_CteColumnListCountMismatch,
                 message,
-                node.Columns.Length > 0 ? node.Columns[0].Span : node.SpanOrEmpty());
+                node.Columns.Length > 0 ? node.Columns[0].Span : node.SpanOrEmpty()
+            );
             return projectedColumns;
         }
 
@@ -193,7 +189,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportOrThrowCteColumnListError(
                 DiagnosticCode.MQ3078_DuplicateCteColumnName,
                 failure.Message,
-                failure.Span);
+                failure.Span
+            );
             return projectedColumns;
         }
 
@@ -212,10 +209,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         return TryGetEnumExpressionType(node, out var descriptor) ? descriptor : null;
     }
 
-    private void ReportOrThrowCteColumnListError(
-        DiagnosticCode code,
-        string message,
-        TextSpan span)
+    private void ReportOrThrowCteColumnListError(DiagnosticCode code, string message, TextSpan span)
     {
         if (DiagnosticContext != null)
         {
@@ -240,9 +234,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 union.IsTheLastOne,
                 union.ResultOrderBy,
                 union.ResultSkip,
-                union.ResultTake)
+                union.ResultTake
+            )
             {
-                KeySpans = union.KeySpans
+                KeySpans = union.KeySpans,
             },
             UnionAllNode unionAll => new UnionAllNode(
                 unionAll.ResultTableName,
@@ -253,9 +248,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 unionAll.IsTheLastOne,
                 unionAll.ResultOrderBy,
                 unionAll.ResultSkip,
-                unionAll.ResultTake)
+                unionAll.ResultTake
+            )
             {
-                KeySpans = unionAll.KeySpans
+                KeySpans = unionAll.KeySpans,
             },
             ExceptNode except => new ExceptNode(
                 except.ResultTableName,
@@ -266,9 +262,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 except.IsTheLastOne,
                 except.ResultOrderBy,
                 except.ResultSkip,
-                except.ResultTake)
+                except.ResultTake
+            )
             {
-                KeySpans = except.KeySpans
+                KeySpans = except.KeySpans,
             },
             IntersectNode intersect => new IntersectNode(
                 intersect.ResultTableName,
@@ -279,11 +276,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                 intersect.IsTheLastOne,
                 intersect.ResultOrderBy,
                 intersect.ResultSkip,
-                intersect.ResultTake)
+                intersect.ResultTake
+            )
             {
-                KeySpans = intersect.KeySpans
+                KeySpans = intersect.KeySpans,
             },
-            _ => node
+            _ => node,
         };
     }
 
@@ -298,7 +296,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 field.FieldOrder,
                 columns[index].ColumnName,
                 true,
-                field.Span);
+                field.Span
+            );
         }
 
         var select = new SelectNode(fields, query.Select.IsDistinct, query.Select.Span);
@@ -312,6 +311,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             query.Take,
             query.Window,
             query.Qualify,
-            query.Span);
+            query.Span
+        );
     }
 }

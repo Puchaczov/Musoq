@@ -11,5 +11,5 @@ internal enum ConstantOperatorKind
     BitwiseOr,
     BitwiseXor,
     LeftShift,
-    RightShift
+    RightShift,
 }

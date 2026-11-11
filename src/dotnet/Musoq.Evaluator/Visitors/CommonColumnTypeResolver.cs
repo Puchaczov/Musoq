@@ -13,9 +13,12 @@ internal static class CommonColumnTypeResolver
         string columnName,
         IReadOnlyList<Node> expressions,
         TextSpan errorSpan,
-        CommonColumnTypeDiagnosticKind diagnosticKind)
+        CommonColumnTypeDiagnosticKind diagnosticKind
+    )
     {
-        var hasNull = expressions.Any(expression => IsExplicitNullType(expression.ReturnType) || IsNullableValueType(expression.ReturnType));
+        var hasNull = expressions.Any(expression =>
+            IsExplicitNullType(expression.ReturnType) || IsNullableValueType(expression.ReturnType)
+        );
         var nonNullTypes = expressions
             .Select(expression => expression.ReturnType)
             .Where(type => !IsExplicitNullType(type))
@@ -46,25 +49,25 @@ internal static class CommonColumnTypeResolver
                 nonNullTypes,
                 typeErrorSpan,
                 diagnosticKind,
-                "incompatible-types");
+                "incompatible-types"
+            );
         }
 
-        return hasNull && columnType.IsValueType
-            ? MakeTypeNullable(columnType)
-            : columnType;
+        return hasNull && columnType.IsValueType ? MakeTypeNullable(columnType) : columnType;
     }
 
     public static bool IsExplicitNullType(Type? type)
     {
-        return type is NullNode.NullType ||
-               string.Equals(type?.FullName, typeof(NullNode.NullType).FullName, StringComparison.Ordinal);
+        return type is NullNode.NullType
+            || string.Equals(type?.FullName, typeof(NullNode.NullType).FullName, StringComparison.Ordinal);
     }
 
     private static Type ResolveNumericColumnType(
         string columnName,
         IReadOnlyList<Type> types,
         TextSpan errorSpan,
-        CommonColumnTypeDiagnosticKind diagnosticKind)
+        CommonColumnTypeDiagnosticKind diagnosticKind
+    )
     {
         if (types.Contains(typeof(decimal)))
         {
@@ -75,7 +78,8 @@ internal static class CommonColumnTypeResolver
                     types,
                     errorSpan,
                     diagnosticKind,
-                    "decimal-floating-point-mix");
+                    "decimal-floating-point-mix"
+                );
 
             return typeof(decimal);
         }
@@ -88,14 +92,19 @@ internal static class CommonColumnTypeResolver
 
         if (types.Contains(typeof(ulong)))
         {
-            if (types.Any(type => type == typeof(sbyte) || type == typeof(short) || type == typeof(int) || type == typeof(long)))
+            if (
+                types.Any(type =>
+                    type == typeof(sbyte) || type == typeof(short) || type == typeof(int) || type == typeof(long)
+                )
+            )
                 throw CreateTypeFailure(
                     CreateUlongSignedMessage(columnName, diagnosticKind),
                     columnName,
                     types,
                     errorSpan,
                     diagnosticKind,
-                    "ulong-signed-mix");
+                    "ulong-signed-mix"
+                );
 
             return typeof(ulong);
         }
@@ -120,7 +129,8 @@ internal static class CommonColumnTypeResolver
         IReadOnlyList<Type> types,
         TextSpan span,
         CommonColumnTypeDiagnosticKind diagnosticKind,
-        string constraint)
+        string constraint
+    )
     {
         return diagnosticKind == CommonColumnTypeDiagnosticKind.Values
             ? ValuesSourceDiagnostics.Error(
@@ -128,14 +138,16 @@ internal static class CommonColumnTypeResolver
                 span,
                 ("constraint", constraint),
                 ("field", columnName),
-                ("actualTypes", string.Join(", ", types.Select(static type => type.Name))))
+                ("actualTypes", string.Join(", ", types.Select(static type => type.Name)))
+            )
             : new ValuesSourceException(message, span);
     }
 
     private static TextSpan FindTypeErrorSpan(
         IReadOnlyList<Node> expressions,
         IReadOnlyList<Type> nonNullTypes,
-        TextSpan fallback)
+        TextSpan fallback
+    )
     {
         if (nonNullTypes.Count < 2)
             return fallback;
@@ -157,7 +169,8 @@ internal static class CommonColumnTypeResolver
     private static string CreateIncompatibleTypesMessage(
         string columnName,
         IReadOnlyList<Type> types,
-        CommonColumnTypeDiagnosticKind diagnosticKind)
+        CommonColumnTypeDiagnosticKind diagnosticKind
+    )
     {
         var typeNames = string.Join(", ", types.Select(type => type.Name));
         return diagnosticKind switch
@@ -166,13 +179,14 @@ internal static class CommonColumnTypeResolver
                 $"VALUES field '{columnName}' mixes incompatible types: {typeNames}. Use consistent literal types or explicit conversion functions.",
             CommonColumnTypeDiagnosticKind.Unpivot =>
                 $"UNPIVOT value column '{columnName}' mixes incompatible types: {typeNames}. Use consistent expression types or explicit conversion functions.",
-            _ => throw new ArgumentOutOfRangeException(nameof(diagnosticKind), diagnosticKind, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(diagnosticKind), diagnosticKind, null),
         };
     }
 
     private static string CreateDecimalFloatingPointMessage(
         string columnName,
-        CommonColumnTypeDiagnosticKind diagnosticKind)
+        CommonColumnTypeDiagnosticKind diagnosticKind
+    )
     {
         return diagnosticKind switch
         {
@@ -180,13 +194,11 @@ internal static class CommonColumnTypeResolver
                 $"VALUES field '{columnName}' cannot mix decimal with floating point values. Use decimal literals consistently or convert values explicitly.",
             CommonColumnTypeDiagnosticKind.Unpivot =>
                 $"UNPIVOT value column '{columnName}' cannot mix decimal with floating point values. Use consistent numeric types or convert values explicitly.",
-            _ => throw new ArgumentOutOfRangeException(nameof(diagnosticKind), diagnosticKind, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(diagnosticKind), diagnosticKind, null),
         };
     }
 
-    private static string CreateUlongSignedMessage(
-        string columnName,
-        CommonColumnTypeDiagnosticKind diagnosticKind)
+    private static string CreateUlongSignedMessage(string columnName, CommonColumnTypeDiagnosticKind diagnosticKind)
     {
         return diagnosticKind switch
         {
@@ -194,7 +206,7 @@ internal static class CommonColumnTypeResolver
                 $"VALUES field '{columnName}' cannot safely mix ulong with signed integer values. Use consistent unsigned suffixes or convert values explicitly.",
             CommonColumnTypeDiagnosticKind.Unpivot =>
                 $"UNPIVOT value column '{columnName}' cannot safely mix ulong with signed integer values. Use consistent unsigned values or convert values explicitly.",
-            _ => throw new ArgumentOutOfRangeException(nameof(diagnosticKind), diagnosticKind, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(diagnosticKind), diagnosticKind, null),
         };
     }
 }

@@ -18,20 +18,19 @@ internal static class PlanTextAssertions
         if (!allowUnknownNodes)
             Assert.IsFalse(
                 normalizedActual.Contains("Unknown [", StringComparison.Ordinal),
-                $"Plan text contains an unhandled node:{Environment.NewLine}{normalizedActual}");
+                $"Plan text contains an unhandled node:{Environment.NewLine}{normalizedActual}"
+            );
 
         Assert.AreEqual(
             normalizedExpected,
             normalizedActual,
-            $"Expected plan:{Environment.NewLine}{normalizedExpected}{Environment.NewLine}{Environment.NewLine}Actual plan:{Environment.NewLine}{normalizedActual}");
+            $"Expected plan:{Environment.NewLine}{normalizedExpected}{Environment.NewLine}{Environment.NewLine}Actual plan:{Environment.NewLine}{normalizedActual}"
+        );
     }
 
     private static string Normalize(string text)
     {
-        var lines = text
-            .Replace("\r\n", "\n")
-            .Trim('\n')
-            .Split('\n');
+        var lines = text.Replace("\r\n", "\n").Trim('\n').Split('\n');
 
         var indentation = GetCommonIndentation(lines);
 

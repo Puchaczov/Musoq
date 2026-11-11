@@ -9,7 +9,8 @@ public sealed record PhysicalSetOperationNode(
     PhysicalNode Left,
     PhysicalNode Right,
     int[] FieldIndexes,
-    Type[] FieldTypes) : PhysicalNode(OutputSchemaFactory.ForSetOperation(Left.OutputSchema, Right.OutputSchema))
+    Type[] FieldTypes
+) : PhysicalNode(OutputSchemaFactory.ForSetOperation(Left.OutputSchema, Right.OutputSchema))
 {
     public bool ResultIsDistinct => Kind is SetOpKind.Union;
 

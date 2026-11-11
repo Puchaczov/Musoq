@@ -19,24 +19,27 @@ public sealed class LikeStrategyLoweringPassTests
         var inner = Var("m2", typeof(object));
         var first = Match(Field("m2", "Value"), Field("m1", "Pattern"));
         var second = Match(Field("m2", "OtherValue"), Field("m1", "Pattern"));
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock(
-            [
-                new ExecutionEnumerableSource(
-                    Var("innerRows", typeof(object)),
-                    new ExecutionMemberRead(new ExecutionVariableRead(outer), "Children", typeof(object), false),
-                    typeof(object)),
-                new ExecutionForEach(
-                    inner,
-                    new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                    new ExecutionBlock(
-                    [
-                        new ExecutionLet(Var("first", typeof(bool)), first),
-                        new ExecutionLet(Var("second", typeof(bool)), second)
-                    ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionEnumerableSource(
+                        Var("innerRows", typeof(object)),
+                        new ExecutionMemberRead(new ExecutionVariableRead(outer), "Children", typeof(object), false),
+                        typeof(object)
+                    ),
+                    new ExecutionForEach(
+                        inner,
+                        new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                        new ExecutionBlock([
+                            new ExecutionLet(Var("first", typeof(bool)), first),
+                            new ExecutionLet(Var("second", typeof(bool)), second),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
         var optimizedOuter = Assert.IsInstanceOfType<ExecutionForEach>(result.Plan.Body.Nodes.Single());
@@ -56,21 +59,24 @@ public sealed class LikeStrategyLoweringPassTests
     {
         var outer = Var("m1", typeof(object));
         var inner = Var("m2", typeof(object));
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock(
-            [
-                new ExecutionForEach(
-                    inner,
-                    new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                    new ExecutionBlock(
-                    [
-                        new ExecutionLet(
-                            Var("matched", typeof(bool)),
-                            Match(Field("m1", "Value"), Field("m2", "Pattern")))
-                    ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionForEach(
+                        inner,
+                        new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                        new ExecutionBlock([
+                            new ExecutionLet(
+                                Var("matched", typeof(bool)),
+                                Match(Field("m1", "Value"), Field("m2", "Pattern"))
+                            ),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -84,29 +90,33 @@ public sealed class LikeStrategyLoweringPassTests
         var outer = Var("m1", typeof(object));
         var inner = Var("m2", typeof(object));
         var pattern = Var("outerPattern", typeof(string));
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock(
-            [
-                new ExecutionLet(pattern, Field("m1", "Pattern")),
-                new ExecutionForEach(
-                    inner,
-                    new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                    new ExecutionBlock(
-                    [
-                        new ExecutionLet(
-                            Var("matched", typeof(bool)),
-                            Match(Field("m2", "Value"), new ExecutionVariableRead(pattern)))
-                    ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionLet(pattern, Field("m1", "Pattern")),
+                    new ExecutionForEach(
+                        inner,
+                        new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                        new ExecutionBlock([
+                            new ExecutionLet(
+                                Var("matched", typeof(bool)),
+                                Match(Field("m2", "Value"), new ExecutionVariableRead(pattern))
+                            ),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
         var optimizedOuter = Assert.IsInstanceOfType<ExecutionForEach>(result.Plan.Body.Nodes.Single());
 
         Assert.AreSame(pattern, Assert.IsInstanceOfType<ExecutionLet>(optimizedOuter.Body.Nodes[0]).Variable);
         Assert.IsInstanceOfType<ExecutionPrepareLikeMatcher>(
-            Assert.IsInstanceOfType<ExecutionLet>(optimizedOuter.Body.Nodes[1]).Value);
+            Assert.IsInstanceOfType<ExecutionLet>(optimizedOuter.Body.Nodes[1]).Value
+        );
         Assert.IsInstanceOfType<ExecutionForEach>(optimizedOuter.Body.Nodes[2]);
     }
 
@@ -114,17 +124,18 @@ public sealed class LikeStrategyLoweringPassTests
     public void Optimize_WhenPatternIsScriptParameter_ShouldPrepareAtExecutionRoot()
     {
         var row = Var("row", typeof(object));
-        var plan = Plan(new ExecutionForEach(
-            row,
-            new ExecutionVariableRead(Var("rows", typeof(object))),
-            new ExecutionBlock(
-            [
-                new ExecutionLet(
-                    Var("matched", typeof(bool)),
-                    Match(
-                        Field("row", "Value"),
-                        new ExecutionScriptParameterRead("pattern", typeof(string))))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                row,
+                new ExecutionVariableRead(Var("rows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionLet(
+                        Var("matched", typeof(bool)),
+                        Match(Field("row", "Value"), new ExecutionScriptParameterRead("pattern", typeof(string)))
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -138,26 +149,29 @@ public sealed class LikeStrategyLoweringPassTests
     {
         var outer = Var("m1", typeof(object));
         var inner = Var("m2", typeof(object));
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock(
-            [
-                new ExecutionIf(
-                    new ExecutionLiteral(true, typeof(bool)),
-                    new ExecutionBlock(
-                    [
-                        new ExecutionForEach(
-                            inner,
-                            new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                            new ExecutionBlock(
-                            [
-                                new ExecutionLet(
-                                    Var("matched", typeof(bool)),
-                                    Match(Field("m2", "Value"), Field("m1", "Pattern")))
-                            ]))
-                    ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionIf(
+                        new ExecutionLiteral(true, typeof(bool)),
+                        new ExecutionBlock([
+                            new ExecutionForEach(
+                                inner,
+                                new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                                new ExecutionBlock([
+                                    new ExecutionLet(
+                                        Var("matched", typeof(bool)),
+                                        Match(Field("m2", "Value"), Field("m1", "Pattern"))
+                                    ),
+                                ])
+                            ),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -170,24 +184,28 @@ public sealed class LikeStrategyLoweringPassTests
     {
         var outer = Var("m1", typeof(object));
         var inner = Var("m2", typeof(object));
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock(
-            [
-                new ExecutionScopedBlock(new ExecutionBlock(
-                [
-                    new ExecutionForEach(
-                        inner,
-                        new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                        new ExecutionBlock(
-                        [
-                            new ExecutionLet(
-                                Var("matched", typeof(bool)),
-                                Match(Field("m2", "Value"), Field("m1", "Pattern")))
-                        ]))
-                ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionScopedBlock(
+                        new ExecutionBlock([
+                            new ExecutionForEach(
+                                inner,
+                                new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                                new ExecutionBlock([
+                                    new ExecutionLet(
+                                        Var("matched", typeof(bool)),
+                                        Match(Field("m2", "Value"), Field("m1", "Pattern"))
+                                    ),
+                                ])
+                            ),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -201,21 +219,24 @@ public sealed class LikeStrategyLoweringPassTests
         var outer = Var("m1", typeof(object));
         var inner = Var("m2", typeof(object));
         var volatilePattern = Field("m1", "Pattern") with { Stability = ColumnStability.Volatile };
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock(
-            [
-                new ExecutionForEach(
-                    inner,
-                    new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                    new ExecutionBlock(
-                    [
-                        new ExecutionLet(
-                            Var("matched", typeof(bool)),
-                            Match(Field("m2", "Value"), volatilePattern))
-                    ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionForEach(
+                        inner,
+                        new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                        new ExecutionBlock([
+                            new ExecutionLet(
+                                Var("matched", typeof(bool)),
+                                Match(Field("m2", "Value"), volatilePattern)
+                            ),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -230,21 +251,21 @@ public sealed class LikeStrategyLoweringPassTests
         var inner = Var("m2", typeof(object));
         var holder = new ExecutionFieldRead("m1", "Holder", typeof(PatternHolder));
         var pattern = new ExecutionMemberRead(holder, nameof(PatternHolder.Pattern), typeof(string), false);
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock(
-            [
-                new ExecutionForEach(
-                    inner,
-                    new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                    new ExecutionBlock(
-                    [
-                        new ExecutionLet(
-                            Var("matched", typeof(bool)),
-                            Match(Field("m2", "Value"), pattern))
-                    ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionForEach(
+                        inner,
+                        new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                        new ExecutionBlock([
+                            new ExecutionLet(Var("matched", typeof(bool)), Match(Field("m2", "Value"), pattern)),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -255,16 +276,15 @@ public sealed class LikeStrategyLoweringPassTests
     private static OptimizationResult<ExecutionPlan> Optimize(ExecutionPlan plan) =>
         new LikeStrategyLoweringPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
-    private static ExecutionPlan Plan(ExecutionNode node) =>
-        new("compiled", [], new ExecutionBlock([node]));
+    private static ExecutionPlan Plan(ExecutionNode node) => new("compiled", [], new ExecutionBlock([node]));
 
     private static ExecutionPatternMatch Match(ExecutionExpression input, ExecutionExpression pattern) =>
         new(input, pattern, PatternKind.Like, typeof(bool));
 
-    private static ExecutionFieldRead Field(string alias, string name) =>
-        new(alias, name, typeof(string));
+    private static ExecutionFieldRead Field(string alias, string name) => new(alias, name, typeof(string));
 
     private static ExecutionVariable Var(string name, Type type) => new(name, type);
 

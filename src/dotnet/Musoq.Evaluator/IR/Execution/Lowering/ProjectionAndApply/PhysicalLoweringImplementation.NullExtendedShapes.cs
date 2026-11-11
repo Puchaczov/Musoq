@@ -9,23 +9,33 @@ internal sealed partial class PhysicalLoweringImplementation
         string typeName,
         IReadOnlyList<NullExtendedProjectedValue> fields,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        string nullAlias)
+        string nullAlias
+    )
     {
         var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
 
         return new GeneratedRowShape(
             typeName,
-            fields.Select(field => new FieldBinding(
-                field.OutputName,
-                field.OutputName,
-                field.OutputIndex,
-                field.ResultType,
-                field.Nullability,
-                new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
-                sourceReadType: field.ResultType,
-                enumType: field.EnumType)
-            { GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup), InterpretationShape = field.MatchedValue.InterpretationShape }).ToArray(),
-            CreateContextBindings(sourceLookup, [nullAlias]));
+            fields
+                .Select(field => new FieldBinding(
+                    field.OutputName,
+                    field.OutputName,
+                    field.OutputIndex,
+                    field.ResultType,
+                    field.Nullability,
+                    new GeneratedFieldAccess(
+                        CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)
+                    ),
+                    sourceReadType: field.ResultType,
+                    enumType: field.EnumType
+                )
+                {
+                    GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup),
+                    InterpretationShape = field.MatchedValue.InterpretationShape,
+                })
+                .ToArray(),
+            CreateContextBindings(sourceLookup, [nullAlias])
+        );
     }
 
     private static GeneratedRowShape CreateFullOuterNullExtendedGeneratedShape(
@@ -33,22 +43,32 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyList<FullOuterNullExtendedProjectedValue> fields,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         string leftAlias,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
 
         return new GeneratedRowShape(
             typeName,
-            fields.Select(field => new FieldBinding(
-                field.OutputName,
-                field.OutputName,
-                field.OutputIndex,
-                field.ResultType,
-                field.Nullability,
-                new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
-                sourceReadType: field.ResultType,
-                enumType: field.EnumType)
-            { GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup), InterpretationShape = field.MatchedValue.InterpretationShape }).ToArray(),
-            CreateContextBindings(sourceLookup, [leftAlias, rightAlias]));
+            fields
+                .Select(field => new FieldBinding(
+                    field.OutputName,
+                    field.OutputName,
+                    field.OutputIndex,
+                    field.ResultType,
+                    field.Nullability,
+                    new GeneratedFieldAccess(
+                        CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)
+                    ),
+                    sourceReadType: field.ResultType,
+                    enumType: field.EnumType
+                )
+                {
+                    GeneratedTypeName = TryResolveGeneratedTypeName(field.MatchedValue, sourceLookup),
+                    InterpretationShape = field.MatchedValue.InterpretationShape,
+                })
+                .ToArray(),
+            CreateContextBindings(sourceLookup, [leftAlias, rightAlias])
+        );
     }
 }

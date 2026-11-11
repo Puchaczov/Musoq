@@ -9,12 +9,17 @@ public sealed record PhysicalSingleKeyAggregateNode(
     string GroupKeyName,
     Type GroupKeyType,
     AggregateBinding[] Bindings,
-    PhysicalNode Input) : PhysicalNode(OutputSchemaFactory.ForSingleKeyAggregate(
-        GroupKeyName,
-        GroupKeyType,
-        GroupKey,
-        Bindings,
-        AggregateOutputName.Identifier))
+    PhysicalNode Input
+)
+    : PhysicalNode(
+        OutputSchemaFactory.ForSingleKeyAggregate(
+            GroupKeyName,
+            GroupKeyType,
+            GroupKey,
+            Bindings,
+            AggregateOutputName.Identifier
+        )
+    )
 {
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Input];
 }

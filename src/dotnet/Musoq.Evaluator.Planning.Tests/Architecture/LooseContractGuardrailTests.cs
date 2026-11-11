@@ -3,10 +3,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Optimization;
-using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.IR.Optimization.Physical;
+using Musoq.Targets.CSharpClr.Optimization.Codegen;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 
@@ -27,11 +27,15 @@ public sealed class LooseContractGuardrailTests
     private const int UnsupportedShapeDiagnosticCeiling = 26;
 
     private static readonly Regex UpperSnakeStringLiteral = new("\"[A-Z][A-Z0-9_]{2,}\"", RegexOptions.Compiled);
-    private static readonly Regex RawDictionaryAccess = new("\\b\\w+\\[\"[A-Z][A-Z0-9_]{2,}\"\\]", RegexOptions.Compiled);
+    private static readonly Regex RawDictionaryAccess = new(
+        "\\b\\w+\\[\"[A-Z][A-Z0-9_]{2,}\"\\]",
+        RegexOptions.Compiled
+    );
     private static readonly Regex OptimizationContextProperties = new("context\\.Properties", RegexOptions.Compiled);
     private static readonly Regex DynamicObjectBoundary = new(
         "ExpandoObject|System\\.Dynamic|IDictionary<string, ?object>|IReadOnlyDictionary<string, ?object>",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled
+    );
     private static readonly Regex NotSupportedException = new("NotSupportedException", RegexOptions.Compiled);
 
     [TestMethod]
@@ -41,15 +45,17 @@ public sealed class LooseContractGuardrailTests
         var buildItemsFiles = RepositorySourceScan.FilesUnder(
             repositoryRoot,
             "src/dotnet/Musoq.Converter/Build",
-            "BuildItems*.cs");
+            "BuildItems*.cs"
+        );
 
         var distinctKeys = RepositorySourceScan.DistinctMatchCount(buildItemsFiles, UpperSnakeStringLiteral);
 
         Assert.IsLessThanOrEqualTo(
             BuildItemsInlineKeyCeiling,
             distinctKeys,
-            $"Inline BuildItems string keys grew to {distinctKeys} (ceiling {BuildItemsInlineKeyCeiling}). " +
-            "New build artifacts must flow through the centralized key registry instead of inline literals.");
+            $"Inline BuildItems string keys grew to {distinctKeys} (ceiling {BuildItemsInlineKeyCeiling}). "
+                + "New build artifacts must flow through the centralized key registry instead of inline literals."
+        );
     }
 
     [TestMethod]
@@ -65,8 +71,9 @@ public sealed class LooseContractGuardrailTests
         Assert.IsLessThanOrEqualTo(
             ExternalRawBuildItemAccessCeiling,
             accessSites,
-            $"Direct dictionary access against build artifacts grew to {accessSites} site(s) " +
-            $"(ceiling {ExternalRawBuildItemAccessCeiling}). Use typed BuildItems accessors instead.");
+            $"Direct dictionary access against build artifacts grew to {accessSites} site(s) "
+                + $"(ceiling {ExternalRawBuildItemAccessCeiling}). Use typed BuildItems accessors instead."
+        );
     }
 
     [TestMethod]
@@ -80,8 +87,9 @@ public sealed class LooseContractGuardrailTests
         Assert.IsLessThanOrEqualTo(
             OptimizationContextPropertiesUsageCeiling,
             usages,
-            $"Stringly-typed OptimizationContext.Properties reads grew to {usages} (ceiling " +
-            $"{OptimizationContextPropertiesUsageCeiling}). Move pass options into typed optimizer context state.");
+            $"Stringly-typed OptimizationContext.Properties reads grew to {usages} (ceiling "
+                + $"{OptimizationContextPropertiesUsageCeiling}). Move pass options into typed optimizer context state."
+        );
     }
 
     [TestMethod]
@@ -95,8 +103,9 @@ public sealed class LooseContractGuardrailTests
         Assert.IsLessThanOrEqualTo(
             ExecutionIrDynamicObjectBoundaryCeiling,
             boundaries,
-            $"Dynamic/object boundary checks in IR grew to {boundaries} (ceiling " +
-            $"{ExecutionIrDynamicObjectBoundaryCeiling}). Route new boundary checks through the boundary classifier.");
+            $"Dynamic/object boundary checks in IR grew to {boundaries} (ceiling "
+                + $"{ExecutionIrDynamicObjectBoundaryCeiling}). Route new boundary checks through the boundary classifier."
+        );
     }
 
     [TestMethod]
@@ -105,18 +114,22 @@ public sealed class LooseContractGuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var files = RepositorySourceScan
             .FilesUnder(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution", "*.cs")
-            .Concat(RepositorySourceScan.FilesUnder(
-                repositoryRoot,
-                "src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration",
-                "*.cs"));
+            .Concat(
+                RepositorySourceScan.FilesUnder(
+                    repositoryRoot,
+                    "src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration",
+                    "*.cs"
+                )
+            );
 
         var diagnostics = RepositorySourceScan.CountMatchingLines(files, NotSupportedException);
 
         Assert.IsLessThanOrEqualTo(
             UnsupportedShapeDiagnosticCeiling,
             diagnostics,
-            $"Scattered unsupported-shape NotSupportedException sites grew to {diagnostics} (ceiling " +
-            $"{UnsupportedShapeDiagnosticCeiling}). Route unsupported-shape reporting through shared helpers.");
+            $"Scattered unsupported-shape NotSupportedException sites grew to {diagnostics} (ceiling "
+                + $"{UnsupportedShapeDiagnosticCeiling}). Route unsupported-shape reporting through shared helpers."
+        );
     }
 
     [TestMethod]
@@ -125,16 +138,16 @@ public sealed class LooseContractGuardrailTests
         AssertPassOrder(
             PreLogicalNormalizationGroup.Passes,
             "DistinctToGroupByNormalizationPass",
-            "SubqueryToCteNormalizationPass");
+            "SubqueryToCteNormalizationPass"
+        );
 
         AssertPassOrder(
             LogicalNormalizationGroup.Passes,
             "LogicalConstantFoldingPass",
-            "LogicalSourceAliasAnalysisPass");
+            "LogicalSourceAliasAnalysisPass"
+        );
 
-        AssertPassOrder(
-            LogicalOptimizationGroup.Passes,
-            "DeadCteEliminationLogicalPass");
+        AssertPassOrder(LogicalOptimizationGroup.Passes, "DeadCteEliminationLogicalPass");
 
         AssertPassOrder(
             PhysicalOptimizationGroup.Passes,
@@ -148,7 +161,8 @@ public sealed class LooseContractGuardrailTests
             "WindowMaterializationPass",
             "SourcePredicatePhysicalRewritePass",
             "SourcePlanPhysicalRewritePass",
-            "RecursiveCteInvariantPlanningPass");
+            "RecursiveCteInvariantPlanningPass"
+        );
 
         AssertPassOrder(
             ExecutionIrOptimizationGroup.Passes,
@@ -161,7 +175,8 @@ public sealed class LooseContractGuardrailTests
             "FieldExpressionHoistingPass",
             "ExpressionCseHoistingPass",
             "CapacityHintPass",
-            "MethodTargetReusePass");
+            "MethodTargetReusePass"
+        );
 
         AssertPassOrder(
             CodegenReadabilityGroup.Passes,
@@ -170,31 +185,36 @@ public sealed class LooseContractGuardrailTests
             "DeadTemporaryCleanupPass",
             "ControlFlowNormalizationPass",
             "HelperExtractionReadabilityPass",
-            "ReadabilityDecisionTracePass");
+            "ReadabilityDecisionTracePass"
+        );
     }
 
     [TestMethod]
     public void ExecutionIrOptimizationGroup_ShouldRunMethodTargetReuseExactlyTwice()
     {
-        var methodTargetReuseRuns = ExecutionIrOptimizationGroup.Passes
-            .Count(pass => pass.GetType().Name == "MethodTargetReusePass");
+        var methodTargetReuseRuns = ExecutionIrOptimizationGroup.Passes.Count(pass =>
+            pass.GetType().Name == "MethodTargetReusePass"
+        );
 
         Assert.AreEqual(
             2,
             methodTargetReuseRuns,
-            "MethodTargetReusePass is intentionally run twice: once before CSE/capacity rewrites and once after " +
-            "so reusable targets cover expressions those rewrites introduce. Keep both runs intentional.");
+            "MethodTargetReusePass is intentionally run twice: once before CSE/capacity rewrites and once after "
+                + "so reusable targets cover expressions those rewrites introduce. Keep both runs intentional."
+        );
     }
 
     private static void AssertPassOrder<TPlan>(
         IReadOnlyList<IPlanOptimizationPass<TPlan>> passes,
-        params string[] expectedTypeNames)
+        params string[] expectedTypeNames
+    )
     {
         var actual = passes.Select(pass => pass.GetType().Name).ToArray();
         CollectionAssert.AreEqual(
             expectedTypeNames,
             actual,
-            $"Optimizer pass ordering changed. Expected [{string.Join(", ", expectedTypeNames)}] " +
-            $"but found [{string.Join(", ", actual)}].");
+            $"Optimizer pass ordering changed. Expected [{string.Join(", ", expectedTypeNames)}] "
+                + $"but found [{string.Join(", ", actual)}]."
+        );
     }
 }

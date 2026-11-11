@@ -19,12 +19,27 @@ public sealed class DiagnosticREC105InterpretationEnumExclusionTests
     public static IEnumerable<object[]> DirectEnumAnnotationCases()
     {
         yield return ["REC-105-I01", "binary Packet { Status: JobStatus }", DiagnosticCode.MQ2030_UnsupportedSyntax];
-        yield return ["REC-105-I02", "text Packet { Status: JobStatus }", DiagnosticCode.MQ4003_UndefinedSchemaReference];
+        yield return
+        [
+            "REC-105-I02",
+            "text Packet { Status: JobStatus }",
+            DiagnosticCode.MQ4003_UndefinedSchemaReference,
+        ];
         yield return ["REC-105-I03", "binary Packet { Status: jobstatus }", DiagnosticCode.MQ2030_UnsupportedSyntax];
-        yield return ["REC-105-I04", "text Packet { Status: jobstatus }", DiagnosticCode.MQ4003_UndefinedSchemaReference];
+        yield return
+        [
+            "REC-105-I04",
+            "text Packet { Status: jobstatus }",
+            DiagnosticCode.MQ4003_UndefinedSchemaReference,
+        ];
         yield return ["REC-105-I05", "binary Packet { Status: enum JobStatus }", DiagnosticCode.MQ2001_UnexpectedToken];
         yield return ["REC-105-I06", "text Packet { Status: enum JobStatus }", DiagnosticCode.MQ2001_UnexpectedToken];
-        yield return ["REC-105-I07", "binary Packet { Access: flags FileAccess }", DiagnosticCode.MQ2001_UnexpectedToken];
+        yield return
+        [
+            "REC-105-I07",
+            "binary Packet { Access: flags FileAccess }",
+            DiagnosticCode.MQ2001_UnexpectedToken,
+        ];
         yield return ["REC-105-I08", "text Packet { Access: flags FileAccess }", DiagnosticCode.MQ2001_UnexpectedToken];
     }
 
@@ -33,7 +48,8 @@ public sealed class DiagnosticREC105InterpretationEnumExclusionTests
     public void DirectEnumAnnotations_ShouldRemainInterpretationSchemaReferencesOrSyntaxErrors(
         string caseId,
         string schema,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         Assert.IsFalse(string.IsNullOrWhiteSpace(caseId));
 
@@ -47,8 +63,7 @@ public sealed class DiagnosticREC105InterpretationEnumExclusionTests
         var node = ParseSchema(schema);
         var registry = new SchemaRegistry();
         var visitor = new SchemaDefinitionVisitor(registry);
-        var exception = Assert.ThrowsExactly<QuerySyntaxException>(() =>
-            node.Accept(visitor));
+        var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => node.Accept(visitor));
 
         Assert.AreEqual(expectedCode, exception.Code, caseId);
         Assert.IsTrue(exception.Span.HasValue, caseId);
@@ -70,9 +85,7 @@ public sealed class DiagnosticREC105InterpretationEnumExclusionTests
     [TestMethod]
     public void InterpretationEnumBoundary_Control_ShouldKeepTableEnumSyntaxSeparate()
     {
-        var lexer = new Lexer(
-            "enum JobStatus : short { Running = 20s }; table Jobs { Status: JobStatus };",
-            true);
+        var lexer = new Lexer("enum JobStatus : short { Running = 20s }; table Jobs { Status: JobStatus };", true);
         var parser = new Musoq.Parser.Parser(lexer);
         var root = parser.ComposeAll();
 
@@ -85,11 +98,19 @@ public sealed class DiagnosticREC105InterpretationEnumExclusionTests
     {
         var cases = new List<object[]>(DirectEnumAnnotationCases());
         Assert.HasCount(8, cases);
-        Assert.AreEqual(8, cases.Select(static values => (string)values[0])
-            .Distinct(StringComparer.Ordinal).Count());
-        Assert.HasCount(4, cases.Where(static values => ((DiagnosticCode)values[2]) == DiagnosticCode.MQ2001_UnexpectedToken));
-        Assert.HasCount(4, cases.Where(static values => ((string)values[1]).StartsWith("binary", StringComparison.Ordinal)));
-        Assert.HasCount(4, cases.Where(static values => ((string)values[1]).StartsWith("text", StringComparison.Ordinal)));
+        Assert.AreEqual(8, cases.Select(static values => (string)values[0]).Distinct(StringComparer.Ordinal).Count());
+        Assert.HasCount(
+            4,
+            cases.Where(static values => ((DiagnosticCode)values[2]) == DiagnosticCode.MQ2001_UnexpectedToken)
+        );
+        Assert.HasCount(
+            4,
+            cases.Where(static values => ((string)values[1]).StartsWith("binary", StringComparison.Ordinal))
+        );
+        Assert.HasCount(
+            4,
+            cases.Where(static values => ((string)values[1]).StartsWith("text", StringComparison.Ordinal))
+        );
     }
 
     private static Node ParseSchema(string schema)

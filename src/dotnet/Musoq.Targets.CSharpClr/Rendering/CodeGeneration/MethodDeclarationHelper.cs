@@ -25,8 +25,9 @@ public static partial class MethodDeclarationHelper
                 CreateSourceRuntimeSettingsBySourceContextIdParameter(),
                 CreateSourceExecutionPlansParameter(),
                 CreateLoggerParameter(),
-                CreateTokenParameter()
-            ]));
+                CreateTokenParameter(),
+            ])
+        );
     }
 
     /// <summary>
@@ -44,7 +45,8 @@ public static partial class MethodDeclarationHelper
         return SyntaxFactory.MethodDeclaration(
             [],
             SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)
+            ),
             SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
             null,
             SyntaxFactory.Identifier(methodName),
@@ -52,7 +54,8 @@ public static partial class MethodDeclarationHelper
             CreateStandardParameterList(),
             [],
             body,
-            null);
+            null
+        );
     }
 
     /// <summary>
@@ -71,19 +74,24 @@ public static partial class MethodDeclarationHelper
         return SyntaxFactory.PropertyDeclaration(
             [],
             SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)
+            ),
             SyntaxFactory.IdentifierName(typeName).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
             null,
             SyntaxFactory.Identifier(propertyName),
             SyntaxFactory.AccessorList(
                 SyntaxFactory.List([
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                    SyntaxFactory
+                        .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                ])),
+                    SyntaxFactory
+                        .AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                ])
+            ),
             null,
-            null);
+            null
+        );
     }
 
     /// <summary>
@@ -92,20 +100,24 @@ public static partial class MethodDeclarationHelper
     /// <returns>SourceExecutionPlans property declaration</returns>
     public static PropertyDeclarationSyntax CreateSourceExecutionPlansProperty()
     {
-        return SyntaxFactory.PropertyDeclaration(
+        return SyntaxFactory
+            .PropertyDeclaration(
                 CreateSourceExecutionPlansType(),
-                SyntaxFactory.Identifier(nameof(IQueryRunnable.SourceExecutionPlans)))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                SyntaxFactory.Identifier(nameof(IQueryRunnable.SourceExecutionPlans))
+            )
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithAccessorList(
                 SyntaxFactory.AccessorList(
                     SyntaxFactory.List([
-                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                        SyntaxFactory
+                            .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                        SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                    ])));
+                        SyntaxFactory
+                            .AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                    ])
+                )
+            );
     }
 
     /// <summary>
@@ -116,11 +128,14 @@ public static partial class MethodDeclarationHelper
     public static MethodDeclarationSyntax CreateRunMethod(string methodCallExpression)
     {
         if (string.IsNullOrWhiteSpace(methodCallExpression))
-            throw new ArgumentException("Method call expression cannot be null or whitespace",
-                nameof(methodCallExpression));
+            throw new ArgumentException(
+                "Method call expression cannot be null or whitespace",
+                nameof(methodCallExpression)
+            );
 
         return CreateRunMethodWithBody(
-            SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {methodCallExpression};")));
+            SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {methodCallExpression};"))
+        );
     }
 
     public static MethodDeclarationSyntax CreateRunMethodWithBody(BlockSyntax body)
@@ -129,7 +144,8 @@ public static partial class MethodDeclarationHelper
         return SyntaxFactory.MethodDeclaration(
             [],
             SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)
+            ),
             SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
             null,
             SyntaxFactory.Identifier(nameof(ITableRunnable.Run)),
@@ -139,37 +155,51 @@ public static partial class MethodDeclarationHelper
                     SyntaxFactory.Parameter(
                         [],
                         SyntaxTokenList.Create(new SyntaxToken()),
-                        SyntaxFactory.IdentifierName(nameof(CancellationToken))
+                        SyntaxFactory
+                            .IdentifierName(nameof(CancellationToken))
                             .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-                        SyntaxFactory.Identifier("token"), null)
-                ])),
+                        SyntaxFactory.Identifier("token"),
+                        null
+                    ),
+                ])
+            ),
             [],
             body,
-            null);
+            null
+        );
     }
 
     internal static MethodDeclarationSyntax CreateProfiledRunMethod(string methodCallExpression)
     {
         if (string.IsNullOrWhiteSpace(methodCallExpression))
-            throw new ArgumentException("Method call expression cannot be null or whitespace", nameof(methodCallExpression));
+            throw new ArgumentException(
+                "Method call expression cannot be null or whitespace",
+                nameof(methodCallExpression)
+            );
 
         var body = SyntaxFactory.Block(
             SyntaxFactory.ParseStatement("ArgumentNullException.ThrowIfNull(profileRecorder);"),
-            SyntaxFactory.ParseStatement($"return {methodCallExpression};"));
+            SyntaxFactory.ParseStatement($"return {methodCallExpression};")
+        );
 
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.IdentifierName(nameof(Table)),
-                SyntaxFactory.Identifier(nameof(IProfiledRunnable.RunWithProfile)))
+                SyntaxFactory.Identifier(nameof(IProfiledRunnable.RunWithProfile))
+            )
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(
                 SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
+                    SyntaxFactory.SeparatedList([
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("token"))
                             .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken))),
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("profileRecorder"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder)))
-                    ])))
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("profileRecorder"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder))),
+                    ])
+                )
+            )
             .WithBody(body);
     }
 }

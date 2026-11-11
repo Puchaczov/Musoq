@@ -4,5 +4,5 @@ public enum ExecutionContextSegmentKind
 {
     Single,
     Array,
-    Row
+    Row,
 }

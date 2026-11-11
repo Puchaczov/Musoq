@@ -21,8 +21,7 @@ public partial class BytesInterpreterBaseTests
     public void ReadByte_EmptyData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadByte(Array.Empty<byte>()));
+        Assert.Throws<ParseException>(() => interpreter.TestReadByte(Array.Empty<byte>()));
     }
 
     [TestMethod]
@@ -30,8 +29,7 @@ public partial class BytesInterpreterBaseTests
     {
         var interpreter = new TestBytesInterpreter();
         interpreter.SetPosition(5);
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadByte("BC"u8.ToArray()));
+        Assert.Throws<ParseException>(() => interpreter.TestReadByte("BC"u8.ToArray()));
     }
 
     #endregion
@@ -58,8 +56,7 @@ public partial class BytesInterpreterBaseTests
     public void ReadSByte_EmptyData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadSByte(Array.Empty<byte>()));
+        Assert.Throws<ParseException>(() => interpreter.TestReadSByte(Array.Empty<byte>()));
     }
 
     #endregion
@@ -87,8 +84,7 @@ public partial class BytesInterpreterBaseTests
     public void ReadInt16LE_InsufficientData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadInt16Le([0x01]));
+        Assert.Throws<ParseException>(() => interpreter.TestReadInt16Le([0x01]));
     }
 
     #endregion
@@ -136,8 +132,7 @@ public partial class BytesInterpreterBaseTests
     public void ReadInt32LE_InsufficientData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadInt32Le([0x01, 0x02]));
+        Assert.Throws<ParseException>(() => interpreter.TestReadInt32Le([0x01, 0x02]));
     }
 
     #endregion
@@ -185,8 +180,7 @@ public partial class BytesInterpreterBaseTests
     public void ReadInt64LE_InsufficientData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadInt64Le([0x01, 0x02, 0x03, 0x04]));
+        Assert.Throws<ParseException>(() => interpreter.TestReadInt64Le([0x01, 0x02, 0x03, 0x04]));
     }
 
     #endregion
@@ -236,8 +230,7 @@ public partial class BytesInterpreterBaseTests
     public void ReadSingleLE_InsufficientData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadSingleLe("\u0000\u0000"u8.ToArray()));
+        Assert.Throws<ParseException>(() => interpreter.TestReadSingleLe("\u0000\u0000"u8.ToArray()));
     }
 
     #endregion
@@ -267,8 +260,7 @@ public partial class BytesInterpreterBaseTests
     public void ReadDoubleLE_InsufficientData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadDoubleLe("\u0000\u0000\u0000\u0000"u8.ToArray()));
+        Assert.Throws<ParseException>(() => interpreter.TestReadDoubleLe("\u0000\u0000\u0000\u0000"u8.ToArray()));
     }
 
     #endregion

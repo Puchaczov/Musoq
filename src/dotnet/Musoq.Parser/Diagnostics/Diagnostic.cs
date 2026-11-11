@@ -30,7 +30,8 @@ public sealed class Diagnostic
         DiagnosticSourceKind? sourceKind = null,
         IEnumerable<KeyValuePair<string, string>>? arguments = null,
         IEnumerable<DiagnosticRelatedLocation>? relatedLocations = null,
-        string? correlationId = null)
+        string? correlationId = null
+    )
         : this(
             code,
             severity,
@@ -47,9 +48,8 @@ public sealed class Diagnostic
             arguments,
             relatedLocations,
             correlationId,
-            null)
-    {
-    }
+            null
+        ) { }
 
     private Diagnostic(
         DiagnosticCode code,
@@ -67,7 +67,8 @@ public sealed class Diagnostic
         IEnumerable<KeyValuePair<string, string>>? arguments,
         IEnumerable<DiagnosticRelatedLocation>? relatedLocations,
         string? correlationId,
-        DiagnosticInputLocation? inputLocation)
+        DiagnosticInputLocation? inputLocation
+    )
     {
         Code = code;
         Severity = severity;
@@ -75,16 +76,13 @@ public sealed class Diagnostic
         Location = location;
         EndLocation = endLocation ?? location;
         ContextSnippet = contextSnippet;
-        _relatedInfo = relatedInfo != null ? [..relatedInfo] : [];
-        _suggestedFixes = suggestedFixes != null
-            ? [..suggestedFixes]
-            : [];
-        _arguments = arguments != null
-            ? new Dictionary<string, string>(arguments, StringComparer.Ordinal)
-            : new Dictionary<string, string>(StringComparer.Ordinal);
-        _relatedLocations = relatedLocations != null
-            ? [..relatedLocations]
-            : [];
+        _relatedInfo = relatedInfo != null ? [.. relatedInfo] : [];
+        _suggestedFixes = suggestedFixes != null ? [.. suggestedFixes] : [];
+        _arguments =
+            arguments != null
+                ? new Dictionary<string, string>(arguments, StringComparer.Ordinal)
+                : new Dictionary<string, string>(StringComparer.Ordinal);
+        _relatedLocations = relatedLocations != null ? [.. relatedLocations] : [];
         Explanation = explanation;
         DocsReference = docsReference;
         _phase = phase ?? DiagnosticPhaseMapping.FromCode(code);
@@ -246,18 +244,16 @@ public sealed class Diagnostic
     /// </summary>
     public Diagnostic WithSourceContext(SourceText? sourceText, TextSpan span)
     {
-        var locations = sourceText != null
-            ? sourceText.GetLocations(span)
-            : (Start: new SourceLocation(span.Start, 1, span.Start + 1),
-                End: new SourceLocation(span.End, 1, span.End + 1));
-        var contextSnippet = sourceText != null && locations.Start.IsValid
-            ? sourceText.GetContextSnippet(span)
-            : null;
+        var locations =
+            sourceText != null
+                ? sourceText.GetLocations(span)
+                : (
+                    Start: new SourceLocation(span.Start, 1, span.Start + 1),
+                    End: new SourceLocation(span.End, 1, span.End + 1)
+                );
+        var contextSnippet = sourceText != null && locations.Start.IsValid ? sourceText.GetContextSnippet(span) : null;
 
-        return Copy(
-            location: locations.Start,
-            endLocation: locations.End,
-            contextSnippet: contextSnippet);
+        return Copy(location: locations.Start, endLocation: locations.End, contextSnippet: contextSnippet);
     }
 
     /// <summary>
@@ -267,10 +263,7 @@ public sealed class Diagnostic
     {
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(value);
-        var arguments = new Dictionary<string, string>(_arguments, StringComparer.Ordinal)
-        {
-            [name] = value
-        };
+        var arguments = new Dictionary<string, string>(_arguments, StringComparer.Ordinal) { [name] = value };
         return Copy(arguments: arguments);
     }
 
@@ -303,7 +296,8 @@ public sealed class Diagnostic
             _arguments,
             _relatedLocations,
             CorrelationId,
-            inputLocation);
+            inputLocation
+        );
     }
 
     /// <summary>
@@ -323,7 +317,7 @@ public sealed class Diagnostic
         var lines = new List<string>
         {
             $"{FormatSeverity(Severity)} {CodeString}: {DiagnosticSafety.SanitizeMessage(this)}",
-            $"  --> {Location}"
+            $"  --> {Location}",
         };
 
         var safeSnippet = DiagnosticSafety.GetSafeSnippet(this);
@@ -345,7 +339,9 @@ public sealed class Diagnostic
             lines.Add($"  = note: {DiagnosticSafety.SanitizeForDisplay(DiagnosticSafety.SanitizeText(info, this))}");
 
         foreach (var fix in _suggestedFixes)
-            lines.Add($"  = help: {DiagnosticSafety.SanitizeForDisplay(DiagnosticSafety.SanitizeText(fix.Title, this))}");
+            lines.Add(
+                $"  = help: {DiagnosticSafety.SanitizeForDisplay(DiagnosticSafety.SanitizeText(fix.Title, this))}"
+            );
 
         return string.Join(Environment.NewLine, lines);
     }
@@ -359,7 +355,8 @@ public sealed class Diagnostic
         string? explanation = null,
         string? docsReference = null,
         IEnumerable<KeyValuePair<string, string>>? arguments = null,
-        IEnumerable<DiagnosticRelatedLocation>? relatedLocations = null)
+        IEnumerable<DiagnosticRelatedLocation>? relatedLocations = null
+    )
     {
         return new Diagnostic(
             Code,
@@ -377,7 +374,8 @@ public sealed class Diagnostic
             arguments ?? _arguments,
             relatedLocations ?? _relatedLocations,
             CorrelationId,
-            InputLocation);
+            InputLocation
+        );
     }
 
     private static string FormatSeverity(DiagnosticSeverity severity)
@@ -388,7 +386,7 @@ public sealed class Diagnostic
             DiagnosticSeverity.Warning => "warning",
             DiagnosticSeverity.Info => "info",
             DiagnosticSeverity.Hint => "hint",
-            _ => severity.ToString()
+            _ => severity.ToString(),
         };
     }
 
@@ -401,17 +399,12 @@ public sealed class Diagnostic
         DiagnosticCode code,
         string message,
         TextSpan span,
-        DiagnosticSourceKind? sourceKind = null)
+        DiagnosticSourceKind? sourceKind = null
+    )
     {
         var location = new SourceLocation(span.Start, 1, span.Start + 1);
         var endLocation = new SourceLocation(span.End, 1, span.End + 1);
-        return new Diagnostic(
-            code,
-            DiagnosticSeverity.Error,
-            message,
-            location,
-            endLocation,
-            sourceKind: sourceKind);
+        return new Diagnostic(code, DiagnosticSeverity.Error, message, location, endLocation, sourceKind: sourceKind);
     }
 
     /// <summary>
@@ -422,15 +415,10 @@ public sealed class Diagnostic
         string message,
         SourceLocation location,
         SourceLocation? endLocation = null,
-        DiagnosticSourceKind? sourceKind = null)
+        DiagnosticSourceKind? sourceKind = null
+    )
     {
-        return new Diagnostic(
-            code,
-            DiagnosticSeverity.Error,
-            message,
-            location,
-            endLocation,
-            sourceKind: sourceKind);
+        return new Diagnostic(code, DiagnosticSeverity.Error, message, location, endLocation, sourceKind: sourceKind);
     }
 
     /// <summary>
@@ -440,7 +428,8 @@ public sealed class Diagnostic
     public static Diagnostic ErrorUnknownLocation(
         DiagnosticCode code,
         string message,
-        DiagnosticSourceKind? sourceKind = null)
+        DiagnosticSourceKind? sourceKind = null
+    )
     {
         return new Diagnostic(
             code,
@@ -448,7 +437,8 @@ public sealed class Diagnostic
             message,
             SourceLocation.None,
             SourceLocation.None,
-            sourceKind: sourceKind);
+            sourceKind: sourceKind
+        );
     }
 
     /// <summary>
@@ -458,17 +448,12 @@ public sealed class Diagnostic
         DiagnosticCode code,
         string message,
         TextSpan span,
-        DiagnosticSourceKind? sourceKind = null)
+        DiagnosticSourceKind? sourceKind = null
+    )
     {
         var location = new SourceLocation(span.Start, 1, span.Start + 1);
         var endLocation = new SourceLocation(span.End, 1, span.End + 1);
-        return new Diagnostic(
-            code,
-            DiagnosticSeverity.Warning,
-            message,
-            location,
-            endLocation,
-            sourceKind: sourceKind);
+        return new Diagnostic(code, DiagnosticSeverity.Warning, message, location, endLocation, sourceKind: sourceKind);
     }
 
     /// <summary>
@@ -479,15 +464,10 @@ public sealed class Diagnostic
         string message,
         SourceLocation location,
         SourceLocation? endLocation = null,
-        DiagnosticSourceKind? sourceKind = null)
+        DiagnosticSourceKind? sourceKind = null
+    )
     {
-        return new Diagnostic(
-            code,
-            DiagnosticSeverity.Warning,
-            message,
-            location,
-            endLocation,
-            sourceKind: sourceKind);
+        return new Diagnostic(code, DiagnosticSeverity.Warning, message, location, endLocation, sourceKind: sourceKind);
     }
 
     /// <summary>
@@ -497,17 +477,12 @@ public sealed class Diagnostic
         DiagnosticCode code,
         string message,
         TextSpan span,
-        DiagnosticSourceKind? sourceKind = null)
+        DiagnosticSourceKind? sourceKind = null
+    )
     {
         var location = new SourceLocation(span.Start, 1, span.Start + 1);
         var endLocation = new SourceLocation(span.End, 1, span.End + 1);
-        return new Diagnostic(
-            code,
-            DiagnosticSeverity.Info,
-            message,
-            location,
-            endLocation,
-            sourceKind: sourceKind);
+        return new Diagnostic(code, DiagnosticSeverity.Info, message, location, endLocation, sourceKind: sourceKind);
     }
 
     /// <summary>
@@ -518,15 +493,10 @@ public sealed class Diagnostic
         string message,
         SourceLocation location,
         SourceLocation? endLocation = null,
-        DiagnosticSourceKind? sourceKind = null)
+        DiagnosticSourceKind? sourceKind = null
+    )
     {
-        return new Diagnostic(
-            code,
-            DiagnosticSeverity.Info,
-            message,
-            location,
-            endLocation,
-            sourceKind: sourceKind);
+        return new Diagnostic(code, DiagnosticSeverity.Info, message, location, endLocation, sourceKind: sourceKind);
     }
 
     /// <summary>
@@ -536,17 +506,12 @@ public sealed class Diagnostic
         DiagnosticCode code,
         string message,
         TextSpan span,
-        DiagnosticSourceKind? sourceKind = null)
+        DiagnosticSourceKind? sourceKind = null
+    )
     {
         var location = new SourceLocation(span.Start, 1, span.Start + 1);
         var endLocation = new SourceLocation(span.End, 1, span.End + 1);
-        return new Diagnostic(
-            code,
-            DiagnosticSeverity.Hint,
-            message,
-            location,
-            endLocation,
-            sourceKind: sourceKind);
+        return new Diagnostic(code, DiagnosticSeverity.Hint, message, location, endLocation, sourceKind: sourceKind);
     }
 
     /// <summary>
@@ -557,14 +522,9 @@ public sealed class Diagnostic
         string message,
         SourceLocation location,
         SourceLocation? endLocation = null,
-        DiagnosticSourceKind? sourceKind = null)
+        DiagnosticSourceKind? sourceKind = null
+    )
     {
-        return new Diagnostic(
-            code,
-            DiagnosticSeverity.Hint,
-            message,
-            location,
-            endLocation,
-            sourceKind: sourceKind);
+        return new Diagnostic(code, DiagnosticSeverity.Hint, message, location, endLocation, sourceKind: sourceKind);
     }
 }

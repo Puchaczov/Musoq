@@ -15,36 +15,45 @@ internal static class BinaryCompositionTypes
             SubstreamTypeNode { Target: { } target } => Enumerate(name, target),
             BinarySwitchTypeNode choice => EnumerateBranches(name, choice),
             InlineSchemaTypeNode inline => EnumerateFields(inline.Fields, name),
-            _ => []
+            _ => [],
         };
         foreach (var child in children)
             yield return child;
     }
 
-    internal static IEnumerable<(string Name, TypeAnnotationNode Type)> EnumerateFields(IEnumerable<SchemaFieldNode> fields, string? prefix = null)
+    internal static IEnumerable<(string Name, TypeAnnotationNode Type)> EnumerateFields(
+        IEnumerable<SchemaFieldNode> fields,
+        string? prefix = null
+    )
     {
         foreach (var field in fields)
             if (field is FieldDefinitionNode parsed)
-                foreach (var type in Enumerate(prefix == null ? field.Name : $"{prefix}_{field.Name}", parsed.TypeAnnotation))
+                foreach (
+                    var type in Enumerate(prefix == null ? field.Name : $"{prefix}_{field.Name}", parsed.TypeAnnotation)
+                )
                     yield return type;
     }
 
-    private static IEnumerable<(string Name, TypeAnnotationNode Type)> EnumerateBranches(string name, BinarySwitchTypeNode choice)
+    private static IEnumerable<(string Name, TypeAnnotationNode Type)> EnumerateBranches(
+        string name,
+        BinarySwitchTypeNode choice
+    )
     {
         foreach (var branch in choice.Cases)
-            foreach (var type in Enumerate($"{name}_{branch.BranchAlias}", branch.BranchType))
-                yield return type;
+        foreach (var type in Enumerate($"{name}_{branch.BranchAlias}", branch.BranchType))
+            yield return type;
     }
 
-    internal static string? IntendedTypeName(string name, TypeAnnotationNode type) => type switch
-    {
-        InlineSchemaTypeNode => $"Musoq.Generated.Interpreters.Inline_{name}",
-        BinarySwitchTypeNode => $"Musoq.Generated.Interpreters.Switch_{name}",
-        SubstreamTypeNode { Target: { } target } => IntendedTypeName(name, target),
-        ArrayTypeNode array => ArrayName(name, array.ElementType),
-        RepeatUntilTypeNode repeat => ArrayName(name, repeat.ElementType),
-        _ => null
-    };
+    internal static string? IntendedTypeName(string name, TypeAnnotationNode type) =>
+        type switch
+        {
+            InlineSchemaTypeNode => $"Musoq.Generated.Interpreters.Inline_{name}",
+            BinarySwitchTypeNode => $"Musoq.Generated.Interpreters.Switch_{name}",
+            SubstreamTypeNode { Target: { } target } => IntendedTypeName(name, target),
+            ArrayTypeNode array => ArrayName(name, array.ElementType),
+            RepeatUntilTypeNode repeat => ArrayName(name, repeat.ElementType),
+            _ => null,
+        };
 
     private static string? ArrayName(string name, TypeAnnotationNode element) =>
         IntendedTypeName(name, element) is { } intended ? $"{intended}[]" : null;

@@ -1,13 +1,11 @@
-using System.Collections.Immutable;
 using System.Collections.Generic;
-
+using System.Collections.Immutable;
 using Musoq.Evaluator.IR.Bindings;
 
 namespace Musoq.Evaluator.IR.Physical.Nodes;
 
-public sealed record PhysicalMultiStatementNode(
-    PhysicalNode[] Statements) : PhysicalNode(
-        OutputSchemaFactory.ForStatements(Statements, static statement => statement.OutputSchema))
+public sealed record PhysicalMultiStatementNode(PhysicalNode[] Statements)
+    : PhysicalNode(OutputSchemaFactory.ForStatements(Statements, static statement => statement.OutputSchema))
 {
     internal ImmutableArray<IntermediateSourceProducer> IntermediateProducers { get; init; } = [];
 

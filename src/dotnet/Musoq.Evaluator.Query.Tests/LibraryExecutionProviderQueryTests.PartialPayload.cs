@@ -1,14 +1,12 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
 public sealed partial class LibraryExecutionProviderQueryTests
 {
-
     [TestMethod]
     public void TypedPartialPayload_WhenTheLastFieldFails_ShouldRetainConcreteValuesAndCompletionState()
     {
@@ -17,8 +15,13 @@ public sealed partial class LibraryExecutionProviderQueryTests
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         var payloadType = PartialPayloadAssertions.ColumnType(table, "Packet");
-        TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)),
-            ("ParsedFields", payloadType), ("ErrorField", typeof(string)), ("BytesConsumed", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Position", typeof(int)),
+            ("ParsedFields", payloadType),
+            ("ErrorField", typeof(string)),
+            ("BytesConsumed", typeof(int))
+        );
         Assert.AreEqual(typeof(int), payloadType.GetProperty("Amount")!.PropertyType);
         Assert.AreEqual(typeof(byte), payloadType.GetProperty("Currency")!.PropertyType);
         Assert.HasCount(2, rows);
@@ -31,16 +34,20 @@ public sealed partial class LibraryExecutionProviderQueryTests
         Assert.AreEqual((byte)7, complete["Currency"]);
         Assert.AreEqual(42, failed["Amount"]);
         Assert.IsFalse(failed.ContainsKey("Currency"));
-        CollectionAssert.AreEqual(new string?[] { null, "Currency" }, rows.Select(row => row.GetValue<string?>(2)).ToArray());
+        CollectionAssert.AreEqual(
+            new string?[] { null, "Currency" },
+            rows.Select(row => row.GetValue<string?>(2)).ToArray()
+        );
         CollectionAssert.AreEqual(new[] { 5, 4 }, rows.Select(row => row.GetValue<int>(3)).ToArray());
     }
 
     [TestMethod]
     public void PartialPayloadJsonQuery_ShouldSerializeOnlyCompletedConcreteFields()
     {
-        const string query = "binary Packet { Amount: int le, Currency: byte }; " +
-            "select s.Position as Position, ToJson(p.ParsedFields) as Json from #schema.first() s " +
-            "cross apply PartialInterpret<Packet>(s.Data) p order by s.Position";
+        const string query =
+            "binary Packet { Amount: int le, Currency: byte }; "
+            + "select s.Position as Position, ToJson(p.ParsedFields) as Json from #schema.first() s "
+            + "cross apply PartialInterpret<Packet>(s.Data) p order by s.Position";
         PartialBytes[] input = [new(1, [42, 0, 0, 0, 7]), new(2, [42, 0, 0, 0])];
         using var compiled = CreateAndRunVirtualMachine<PartialBytes, LibraryBase>(query, input);
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -56,8 +63,9 @@ public sealed partial class LibraryExecutionProviderQueryTests
     [TestMethod]
     public void PayloadJsonQuery_WhenFieldNamesMatchWriterLocals_ShouldReadTheNativeFields()
     {
-        const string query = "binary Packet { fieldValue: int le, options: byte }; " +
-            "select ToJson(p.ParsedFields) as Json from #schema.first() s cross apply PartialInterpret<Packet>(s.Data) p";
+        const string query =
+            "binary Packet { fieldValue: int le, options: byte }; "
+            + "select ToJson(p.ParsedFields) as Json from #schema.first() s cross apply PartialInterpret<Packet>(s.Data) p";
         using var compiled = CreateAndRunVirtualMachine<PartialBytes, LibraryBase>(query, [new(1, [42, 0, 0, 0, 7])]);
         using var table = compiled.Run(TestContext.CancellationToken);
         var row = table.Single();

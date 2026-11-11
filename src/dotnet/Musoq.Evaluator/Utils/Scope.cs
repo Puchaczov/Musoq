@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace Musoq.Evaluator.Utils;
 
@@ -34,9 +34,10 @@ public class Scope
 
     public string this[string key]
     {
-        get => _attributes.TryGetValue(key, out var value)
-            ? value
-            : Parent?[key] ?? throw new KeyNotFoundException($"Scope attribute '{key}' was not found.");
+        get =>
+            _attributes.TryGetValue(key, out var value)
+                ? value
+                : Parent?[key] ?? throw new KeyNotFoundException($"Scope attribute '{key}' was not found.");
         set => _attributes[key] = value;
     }
 
@@ -55,14 +56,16 @@ public class Scope
     public bool IsInsideNamedScope(string name)
     {
         var scope = this;
-        while (scope != null && scope.Name != name) scope = scope.Parent;
+        while (scope != null && scope.Name != name)
+            scope = scope.Parent;
         return scope != null && scope.Name == name;
     }
 
     internal IReadOnlyDictionary<string, string> SnapshotAttributes()
     {
         return new ReadOnlyDictionary<string, string>(
-            new Dictionary<string, string>(_attributes, StringComparer.Ordinal));
+            new Dictionary<string, string>(_attributes, StringComparer.Ordinal)
+        );
     }
 
     internal ScopeSnapshot Snapshot()

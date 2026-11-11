@@ -29,7 +29,8 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         CSharpClrExecutionBindingContext bindingContext,
         IReadOnlySet<string> preloadedAssemblyPaths,
         IEnumerable<Assembly> semanticReferences,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         _bindingContext = bindingContext ?? throw new ArgumentNullException(nameof(bindingContext));
@@ -62,7 +63,8 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         IEnumerable<Type> additionalReferenceTypes,
         Type? outputType,
         IReadOnlySet<string> preloadedAssemblyPaths,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(compatibilityReport);
         ArgumentNullException.ThrowIfNull(semanticReferences);
@@ -75,7 +77,8 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             bindingContext,
             preloadedAssemblyPaths,
             semanticAssemblyArray,
-            cancellationToken);
+            cancellationToken
+        );
 
         foreach (var assembly in semanticAssemblyArray)
         {
@@ -126,22 +129,28 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             VisitDescriptor(field.Type, requirementDetail);
         }
 
-        if (descriptor.Kind is ExecutionPortableTypeKind.Primitive or
-            ExecutionPortableTypeKind.GenericParameter or
-            ExecutionPortableTypeKind.GeneratedRow)
+        if (
+            descriptor.Kind
+            is ExecutionPortableTypeKind.Primitive
+                or ExecutionPortableTypeKind.GenericParameter
+                or ExecutionPortableTypeKind.GeneratedRow
+        )
         {
             return;
         }
 
-        if (descriptor.Kind is ExecutionPortableTypeKind.Nullable or
-            ExecutionPortableTypeKind.Array or
-            ExecutionPortableTypeKind.Sequence or
-            ExecutionPortableTypeKind.List or
-            ExecutionPortableTypeKind.Map or
-            ExecutionPortableTypeKind.Set or
-            ExecutionPortableTypeKind.Pair or
-            ExecutionPortableTypeKind.ByRef ||
-            IsDescriptorAssemblyPreloaded(descriptor))
+        if (
+            descriptor.Kind
+                is ExecutionPortableTypeKind.Nullable
+                    or ExecutionPortableTypeKind.Array
+                    or ExecutionPortableTypeKind.Sequence
+                    or ExecutionPortableTypeKind.List
+                    or ExecutionPortableTypeKind.Map
+                    or ExecutionPortableTypeKind.Set
+                    or ExecutionPortableTypeKind.Pair
+                    or ExecutionPortableTypeKind.ByRef
+            || IsDescriptorAssemblyPreloaded(descriptor)
+        )
         {
             return;
         }
@@ -177,16 +186,17 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             VisitDescriptor(parameterType, requirementDetail);
         }
 
-        if (descriptor.DeclaringType is { } preloadedDeclaringType &&
-            IsDescriptorPreloaded(preloadedDeclaringType) &&
-            (descriptor.ReturnType is null || IsDescriptorPreloaded(descriptor.ReturnType)) &&
-            AreDescriptorsPreloaded(descriptor.ParameterTypes))
+        if (
+            descriptor.DeclaringType is { } preloadedDeclaringType
+            && IsDescriptorPreloaded(preloadedDeclaringType)
+            && (descriptor.ReturnType is null || IsDescriptorPreloaded(descriptor.ReturnType))
+            && AreDescriptorsPreloaded(descriptor.ParameterTypes)
+        )
         {
             return;
         }
 
-        if (descriptor.DeclaringType is { } seededDeclaringType &&
-            IsDescriptorAssemblySeeded(seededDeclaringType))
+        if (descriptor.DeclaringType is { } seededDeclaringType && IsDescriptorAssemblySeeded(seededDeclaringType))
         {
             return;
         }
@@ -201,11 +211,7 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             throw CreateFailure(descriptor.StableName, requirementDetail, exception);
         }
 
-        AddAssembly(
-            method.Module.Assembly,
-            skipPreloaded: true,
-            required: true,
-            requirementDetail);
+        AddAssembly(method.Module.Assembly, skipPreloaded: true, required: true, requirementDetail);
         if (method.DeclaringType is { } runtimeDeclaringType)
             VisitRuntimeType(runtimeDeclaringType, requirementDetail);
         VisitRuntimeType(method.ReturnType, requirementDetail);
@@ -302,7 +308,8 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         Assembly assembly,
         bool skipPreloaded,
         bool required = false,
-        string? requirementDetail = null)
+        string? requirementDetail = null
+    )
     {
         _cancellationToken.ThrowIfCancellationRequested();
         var location = GetNormalizedAssemblyPath(assembly);
@@ -315,7 +322,8 @@ internal sealed class CSharpClrReferenceAssemblyCollector
                     GetAssemblyIdentity(assembly),
                     requirementDetail ?? "execution-plan CLR reference",
                     "the assembly has no file-backed location",
-                    new InvalidOperationException("The required CLR assembly has no file-backed location."));
+                    new InvalidOperationException("The required CLR assembly has no file-backed location.")
+                );
             }
 
             return;
@@ -333,7 +341,8 @@ internal sealed class CSharpClrReferenceAssemblyCollector
                 GetAssemblyIdentity(assembly),
                 requirementDetail ?? "execution-plan CLR reference",
                 $"the assembly file '{location}' does not exist",
-                new FileNotFoundException("The required CLR assembly file does not exist.", location));
+                new FileNotFoundException("The required CLR assembly file does not exist.", location)
+            );
         }
 
         var identity = GetAssemblyIdentity(assembly);
@@ -345,9 +354,7 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         _assemblies.Add(assembly);
     }
 
-    private static IReadOnlySet<string> NormalizePaths(
-        IEnumerable<string> paths,
-        CancellationToken cancellationToken)
+    private static IReadOnlySet<string> NormalizePaths(IEnumerable<string> paths, CancellationToken cancellationToken)
     {
         var normalized = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in paths)
@@ -369,9 +376,7 @@ internal sealed class CSharpClrReferenceAssemblyCollector
 
         try
         {
-            path = string.IsNullOrWhiteSpace(assembly.Location)
-                ? null
-                : NormalizePath(assembly.Location);
+            path = string.IsNullOrWhiteSpace(assembly.Location) ? null : NormalizePath(assembly.Location);
         }
         catch (Exception exception) when (exception is ArgumentException or IOException)
         {
@@ -380,7 +385,8 @@ internal sealed class CSharpClrReferenceAssemblyCollector
                     GetAssemblyIdentity(assembly),
                     "execution-plan CLR reference",
                     "the assembly location could not be normalized",
-                    exception);
+                    exception
+                );
 
             path = null;
         }
@@ -411,21 +417,27 @@ internal sealed class CSharpClrReferenceAssemblyCollector
     private bool IsDescriptorPreloaded(ExecutionPortableTypeDescriptor descriptor)
     {
         _cancellationToken.ThrowIfCancellationRequested();
-        if (descriptor.Kind is ExecutionPortableTypeKind.Primitive or
-            ExecutionPortableTypeKind.GenericParameter or
-            ExecutionPortableTypeKind.GeneratedRow)
+        if (
+            descriptor.Kind
+            is ExecutionPortableTypeKind.Primitive
+                or ExecutionPortableTypeKind.GenericParameter
+                or ExecutionPortableTypeKind.GeneratedRow
+        )
         {
             return true;
         }
 
-        if (descriptor.Kind is ExecutionPortableTypeKind.Nullable or
-            ExecutionPortableTypeKind.Array or
-            ExecutionPortableTypeKind.Sequence or
-            ExecutionPortableTypeKind.List or
-            ExecutionPortableTypeKind.Map or
-            ExecutionPortableTypeKind.Set or
-            ExecutionPortableTypeKind.Pair or
-            ExecutionPortableTypeKind.ByRef)
+        if (
+            descriptor.Kind
+            is ExecutionPortableTypeKind.Nullable
+                or ExecutionPortableTypeKind.Array
+                or ExecutionPortableTypeKind.Sequence
+                or ExecutionPortableTypeKind.List
+                or ExecutionPortableTypeKind.Map
+                or ExecutionPortableTypeKind.Set
+                or ExecutionPortableTypeKind.Pair
+                or ExecutionPortableTypeKind.ByRef
+        )
         {
             return AreDescriptorsPreloaded(descriptor.Arguments);
         }
@@ -455,10 +467,7 @@ internal sealed class CSharpClrReferenceAssemblyCollector
         return IsStableAssemblyNameInSet(stableName, separator, _seededAssemblyNames);
     }
 
-    private static bool IsStableAssemblyNameInSet(
-        string stableName,
-        int separator,
-        IReadOnlySet<string> assemblyNames)
+    private static bool IsStableAssemblyNameInSet(string stableName, int separator, IReadOnlySet<string> assemblyNames)
     {
         var end = stableName.IndexOf('<', separator + 1);
         var length = (end < 0 ? stableName.Length : end) - separator - 1;
@@ -473,18 +482,20 @@ internal sealed class CSharpClrReferenceAssemblyCollector
     }
 
     private static bool IsExpectedBindingFailure(Exception exception) =>
-        exception is ArgumentException or
-            BadImageFormatException or
-            FileLoadException or
-            FileNotFoundException or
-            InvalidOperationException or
-            NotSupportedException or
-            TypeLoadException;
+        exception
+            is ArgumentException
+                or BadImageFormatException
+                or FileLoadException
+                or FileNotFoundException
+                or InvalidOperationException
+                or NotSupportedException
+                or TypeLoadException;
 
     private static CSharpClrReferenceDiscoveryException CreateFailure(
         string assemblyIdentity,
         string requirementDetail,
-        Exception exception)
+        Exception exception
+    )
     {
         var reason = exception switch
         {
@@ -493,22 +504,18 @@ internal sealed class CSharpClrReferenceAssemblyCollector
             FileLoadException => "the assembly file could not be loaded",
             InvalidOperationException or NotSupportedException or TypeLoadException or ArgumentException =>
                 "the CLR descriptor could not be resolved",
-            _ => exception.Message
+            _ => exception.Message,
         };
 
-        return new CSharpClrReferenceDiscoveryException(
-            assemblyIdentity,
-            requirementDetail,
-            reason,
-            exception);
+        return new CSharpClrReferenceDiscoveryException(assemblyIdentity, requirementDetail, reason, exception);
     }
 
     private static CSharpClrReferenceDiscoveryException CreateFailure(
         string assemblyIdentity,
         string requirementDetail,
         string reason,
-        Exception exception) =>
-        new(assemblyIdentity, requirementDetail, reason, exception);
+        Exception exception
+    ) => new(assemblyIdentity, requirementDetail, reason, exception);
 
     private static string GetAssemblyIdentity(Assembly assembly) =>
         assembly.FullName ?? assembly.GetName().Name ?? assembly.ToString();

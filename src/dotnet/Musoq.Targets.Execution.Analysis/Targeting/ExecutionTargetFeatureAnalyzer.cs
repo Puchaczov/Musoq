@@ -17,10 +17,18 @@ internal static class ExecutionTargetFeatureAnalyzer
         foreach (var shape in ExecutionSubqueryPlans.SelfAndDescendants(plan).SelectMany(static scope => scope.Shapes))
             AddShape(shape, sink);
 
-        foreach (var node in ExecutionSubqueryPlans.SelfAndDescendants(plan).SelectMany(static scope => ExecutionIrAnalysis.FlattenNodes(scope.Body)))
+        foreach (
+            var node in ExecutionSubqueryPlans
+                .SelfAndDescendants(plan)
+                .SelectMany(static scope => ExecutionIrAnalysis.FlattenNodes(scope.Body))
+        )
             AddNode(node, sink);
 
-        foreach (var expression in ExecutionSubqueryPlans.SelfAndDescendants(plan).SelectMany(static scope => ExecutionIrAnalysis.FlattenExpressions(scope.Body)))
+        foreach (
+            var expression in ExecutionSubqueryPlans
+                .SelfAndDescendants(plan)
+                .SelectMany(static scope => ExecutionIrAnalysis.FlattenExpressions(scope.Body))
+        )
             AddExpression(expression, sink);
 
         return new ExecutionTargetFeatureReport(sink.Features);
@@ -45,7 +53,8 @@ internal static class ExecutionTargetFeatureAnalyzer
                     sink.Add(
                         ExecutionTargetFeatureKind.QueryRowSourceAccess,
                         $"query-row-source:{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}",
-                        $"{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}");
+                        $"{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}"
+                    );
                     foreach (var field in transfer.Fields)
                     {
                         sink.AddType(field.FieldType.Descriptor);
@@ -95,14 +104,22 @@ internal static class ExecutionTargetFeatureAnalyzer
         switch (expression)
         {
             case ExecutionLiteral literal:
-                sink.Add(ExecutionTargetFeatureKind.ConstantKind, ConstantId(literal.Value.Kind), literal.Value.Kind.ToString());
+                sink.Add(
+                    ExecutionTargetFeatureKind.ConstantKind,
+                    ConstantId(literal.Value.Kind),
+                    literal.Value.Kind.ToString()
+                );
                 if (literal.Value.EnumType != null)
                     sink.AddType(literal.Value.EnumType.Descriptor);
                 if (literal.Value.ClrOnlyType != null)
                     sink.AddType(literal.Value.ClrOnlyType.Descriptor);
                 break;
             case ExecutionStringConcatenation:
-                sink.Add(ExecutionTargetFeatureKind.BinaryOperation, BinaryId(BinaryOpKind.SqlStringConcatenate), BinaryOpKind.SqlStringConcatenate.ToString());
+                sink.Add(
+                    ExecutionTargetFeatureKind.BinaryOperation,
+                    BinaryId(BinaryOpKind.SqlStringConcatenate),
+                    BinaryOpKind.SqlStringConcatenate.ToString()
+                );
                 break;
             case ExecutionBinary binary:
                 sink.Add(ExecutionTargetFeatureKind.BinaryOperation, BinaryId(binary.Kind), binary.Kind.ToString());
@@ -114,7 +131,8 @@ internal static class ExecutionTargetFeatureAnalyzer
                 sink.Add(
                     ExecutionTargetFeatureKind.StrictCastTarget,
                     $"strict-cast:{cast.ReturnType.Descriptor.StableName}",
-                    cast.TargetTypeName);
+                    cast.TargetTypeName
+                );
                 break;
             case ExecutionMethodCall methodCall:
                 sink.AddCallable(methodCall.Method.Descriptor);
@@ -126,11 +144,13 @@ internal static class ExecutionTargetFeatureAnalyzer
                 sink.Add(
                     ExecutionTargetFeatureKind.StringMatchKind,
                     $"string-match-kind:{ToStableToken(stringMatch.Kind.ToString())}",
-                    stringMatch.Kind.ToString());
+                    stringMatch.Kind.ToString()
+                );
                 sink.Add(
                     ExecutionTargetFeatureKind.StringMatchComparison,
                     $"string-match-comparison:{ToStableToken(stringMatch.Comparison.ToString())}",
-                    stringMatch.Comparison.ToString());
+                    stringMatch.Comparison.ToString()
+                );
                 break;
             case ExecutionPrepareLikeMatcher prepareLike:
                 AddLikeMatcherStrategy(sink, "prepare", "Prepare");
@@ -167,13 +187,12 @@ internal static class ExecutionTargetFeatureAnalyzer
     private static void AddRLikeMatcherStrategy(FeatureSink sink, string stableToken, string detail) =>
         sink.Add(ExecutionTargetFeatureKind.RLikeMatcherStrategy, $"rlike-matcher-strategy:{stableToken}", detail);
 
-    private static void AddStringMatchComparison(
-        FeatureSink sink,
-        ExecutionStringMatchComparison comparison) =>
+    private static void AddStringMatchComparison(FeatureSink sink, ExecutionStringMatchComparison comparison) =>
         sink.Add(
             ExecutionTargetFeatureKind.StringMatchComparison,
             $"string-match-comparison:{ToStableToken(comparison.ToString())}",
-            comparison.ToString());
+            comparison.ToString()
+        );
 
     private static string ConstantId(ExecutionConstantKind kind) => $"constant:{ToStableToken(kind.ToString())}";
 
@@ -183,10 +202,14 @@ internal static class ExecutionTargetFeatureAnalyzer
 
     private static string ToStableToken(string value)
     {
-        return string.Concat(value.Select((character, index) =>
-            index > 0 && char.IsUpper(character)
-                ? $"-{char.ToLowerInvariant(character)}"
-                : char.ToLowerInvariant(character).ToString()));
+        return string.Concat(
+            value.Select(
+                (character, index) =>
+                    index > 0 && char.IsUpper(character)
+                        ? $"-{char.ToLowerInvariant(character)}"
+                        : char.ToLowerInvariant(character).ToString()
+            )
+        );
     }
 
     private sealed class FeatureSink
@@ -217,7 +240,8 @@ internal static class ExecutionTargetFeatureAnalyzer
             Add(
                 ExecutionTargetFeatureKind.CallableKind,
                 $"callable-kind:{ToStableToken(callable.Kind.ToString())}",
-                callable.Kind.ToString());
+                callable.Kind.ToString()
+            );
             if (callable.DeclaringType != null)
                 AddType(callable.DeclaringType);
             if (callable.ReturnType != null)
@@ -231,13 +255,15 @@ internal static class ExecutionTargetFeatureAnalyzer
             Add(
                 ExecutionTargetFeatureKind.TypePortability,
                 $"type-portability:{ToStableToken(type.Portability.ToString())}",
-                type.Portability.ToString());
+                type.Portability.ToString()
+            );
             if (type.Container != null)
             {
                 Add(
                     ExecutionTargetFeatureKind.Container,
                     $"container:{ToStableToken(type.Container.Kind.ToString())}",
-                    type.Container.Kind.ToString());
+                    type.Container.Kind.ToString()
+                );
             }
 
             if (string.Equals(type.StableName, "host-opaque:dynamic-object", StringComparison.Ordinal))

@@ -67,7 +67,9 @@ public sealed partial class RewriteQueryVisitor
             return;
         }
 
-        if (IsInterpretAtFunctionCall(functionName, typeParameter, args, out schemaName, out dataSource, out var offset))
+        if (
+            IsInterpretAtFunctionCall(functionName, typeParameter, args, out schemaName, out dataSource, out var offset)
+        )
         {
             Nodes.Push(new InterpretAtCallNode(dataSource, offset, schemaName, null).CopySpansFrom(node));
             return;
@@ -100,8 +102,13 @@ public sealed partial class RewriteQueryVisitor
         Nodes.Push(AccessMethodCallRewriter.Rewrite(node, args, filterExpression));
     }
 
-    private static bool IsInterpretFunctionCall(string functionName, string? typeParameter, ArgsListNode? args,
-        out string schemaName, [NotNullWhen(true)] out Node? dataSource)
+    private static bool IsInterpretFunctionCall(
+        string functionName,
+        string? typeParameter,
+        ArgsListNode? args,
+        out string schemaName,
+        [NotNullWhen(true)] out Node? dataSource
+    )
     {
         schemaName = string.Empty;
         dataSource = null;
@@ -120,8 +127,13 @@ public sealed partial class RewriteQueryVisitor
         return false;
     }
 
-    private static bool IsParseFunctionCall(string functionName, string? typeParameter, ArgsListNode? args,
-        out string schemaName, [NotNullWhen(true)] out Node? dataSource)
+    private static bool IsParseFunctionCall(
+        string functionName,
+        string? typeParameter,
+        ArgsListNode? args,
+        out string schemaName,
+        [NotNullWhen(true)] out Node? dataSource
+    )
     {
         schemaName = string.Empty;
         dataSource = null;
@@ -140,8 +152,14 @@ public sealed partial class RewriteQueryVisitor
         return false;
     }
 
-    private static bool IsInterpretAtFunctionCall(string functionName, string? typeParameter, ArgsListNode? args,
-        out string schemaName, [NotNullWhen(true)] out Node? dataSource, [NotNullWhen(true)] out Node? offset)
+    private static bool IsInterpretAtFunctionCall(
+        string functionName,
+        string? typeParameter,
+        ArgsListNode? args,
+        out string schemaName,
+        [NotNullWhen(true)] out Node? dataSource,
+        [NotNullWhen(true)] out Node? offset
+    )
     {
         schemaName = string.Empty;
         dataSource = null;
@@ -162,8 +180,13 @@ public sealed partial class RewriteQueryVisitor
         return false;
     }
 
-    private static bool IsTryInterpretFunctionCall(string functionName, string? typeParameter, ArgsListNode? args,
-        out string schemaName, [NotNullWhen(true)] out Node? dataSource)
+    private static bool IsTryInterpretFunctionCall(
+        string functionName,
+        string? typeParameter,
+        ArgsListNode? args,
+        out string schemaName,
+        [NotNullWhen(true)] out Node? dataSource
+    )
     {
         schemaName = string.Empty;
         dataSource = null;
@@ -182,8 +205,13 @@ public sealed partial class RewriteQueryVisitor
         return false;
     }
 
-    private static bool IsTryParseFunctionCall(string functionName, string? typeParameter, ArgsListNode? args,
-        out string schemaName, [NotNullWhen(true)] out Node? dataSource)
+    private static bool IsTryParseFunctionCall(
+        string functionName,
+        string? typeParameter,
+        ArgsListNode? args,
+        out string schemaName,
+        [NotNullWhen(true)] out Node? dataSource
+    )
     {
         schemaName = string.Empty;
         dataSource = null;
@@ -202,8 +230,13 @@ public sealed partial class RewriteQueryVisitor
         return false;
     }
 
-    private static bool IsPartialInterpretFunctionCall(string functionName, string? typeParameter, ArgsListNode? args,
-        out string schemaName, [NotNullWhen(true)] out Node? dataSource)
+    private static bool IsPartialInterpretFunctionCall(
+        string functionName,
+        string? typeParameter,
+        ArgsListNode? args,
+        out string schemaName,
+        [NotNullWhen(true)] out Node? dataSource
+    )
     {
         schemaName = string.Empty;
         dataSource = null;
@@ -222,8 +255,13 @@ public sealed partial class RewriteQueryVisitor
         return false;
     }
 
-    private static bool IsPartialParseFunctionCall(string functionName, string? typeParameter, ArgsListNode? args,
-        out string schemaName, [NotNullWhen(true)] out Node? dataSource)
+    private static bool IsPartialParseFunctionCall(
+        string functionName,
+        string? typeParameter,
+        ArgsListNode? args,
+        out string schemaName,
+        [NotNullWhen(true)] out Node? dataSource
+    )
     {
         schemaName = string.Empty;
         dataSource = null;
@@ -252,7 +290,7 @@ public sealed partial class RewriteQueryVisitor
         {
             StringNode sn => sn.Value,
             WordNode wn => wn.Value,
-            _ => null
+            _ => null,
         };
 
         if (schemaName == null)
@@ -260,7 +298,8 @@ public sealed partial class RewriteQueryVisitor
 
         throw new QuerySyntaxException(
             $"The syntax '{functionName}(data, ''{schemaName}'')' is no longer supported. Use '{functionName}<{schemaName}>(data)' instead.",
-            args.Span);
+            args.Span
+        );
     }
 
     private static void ThrowIfOldInterpretAtSyntax(ArgsListNode? args)
@@ -273,7 +312,7 @@ public sealed partial class RewriteQueryVisitor
         {
             StringNode sn => sn.Value,
             WordNode wn => wn.Value,
-            _ => null
+            _ => null,
         };
 
         if (schemaName == null)
@@ -281,6 +320,7 @@ public sealed partial class RewriteQueryVisitor
 
         throw new QuerySyntaxException(
             $"The syntax 'InterpretAt(data, offset, ''{schemaName}'')' is no longer supported. Use 'InterpretAt<{schemaName}>(data, offset)' instead.",
-            args.Span);
+            args.Span
+        );
     }
 }

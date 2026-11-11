@@ -11,7 +11,7 @@ internal enum SpecializedJoinKeyKind
     AsOfEquality,
     AsOfTieBreak,
     RangePartition,
-    RangeProbe
+    RangeProbe,
 }
 
 /// <summary>
@@ -25,10 +25,9 @@ internal sealed record JoinKeyReuseFact(
     ColumnStability Stability,
     bool DependsOnInnerRow,
     bool IsNullable,
-    string Fingerprint)
+    string Fingerprint
+)
 {
     public bool CanReuse =>
-        Stability == ColumnStability.Stable &&
-        !DependsOnInnerRow &&
-        !string.IsNullOrWhiteSpace(Fingerprint);
+        Stability == ColumnStability.Stable && !DependsOnInnerRow && !string.IsNullOrWhiteSpace(Fingerprint);
 }

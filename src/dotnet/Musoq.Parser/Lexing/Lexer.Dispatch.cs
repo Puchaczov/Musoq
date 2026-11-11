@@ -9,7 +9,6 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public sealed partial class Lexer
 {
-
     private Token NextInternal()
     {
         if (Position >= Input.Length)
@@ -33,7 +32,7 @@ public sealed partial class Lexer
             FastCharacterClassifier.CharCategory.Colon => ScanColon(),
             FastCharacterClassifier.CharCategory.Dollar => ScanParameterReference(),
             FastCharacterClassifier.CharCategory.QuestionMark => ScanQuestionMark(),
-            _ => ScanUnknown()
+            _ => ScanUnknown(),
         };
     }
 

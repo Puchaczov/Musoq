@@ -8,7 +8,11 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal sealed partial class ByteBufferFlowPlanner
 {
-    private ByteBufferFlowBindings AnalyzeOrdinary(PhysicalNode node, FlowScope scope, ByteBufferFlowBindings correlated)
+    private ByteBufferFlowBindings AnalyzeOrdinary(
+        PhysicalNode node,
+        FlowScope scope,
+        ByteBufferFlowBindings correlated
+    )
     {
         if (node is PhysicalInterpretSourceNode interpret)
             return AnalyzeInterpret(interpret, correlated);
@@ -27,10 +31,12 @@ internal sealed partial class ByteBufferFlowPlanner
             PhysicalSortNode sort => sort.Keys.Select(key => key.Expression),
             PhysicalTopNNode top => top.Keys.Select(key => key.Expression),
             PhysicalTopOffsetNode top => top.Keys.Select(key => key.Expression),
-            PhysicalHashJoinNode join => join.BuildKeys.Concat(join.ProbeKeys).Concat(join.Residual is { } residual ? [residual] : []),
+            PhysicalHashJoinNode join => join
+                .BuildKeys.Concat(join.ProbeKeys)
+                .Concat(join.Residual is { } residual ? [residual] : []),
             PhysicalNestedLoopJoinNode join => join.OnPredicate is { } predicate ? [predicate] : [],
             PhysicalSkipNode or PhysicalTakeNode or PhysicalMaterializeNode => [],
-            _ => null as System.Collections.Generic.IEnumerable<IrExpression>
+            _ => null as System.Collections.Generic.IEnumerable<IrExpression>,
         };
         if (expressions is null)
         {
@@ -45,11 +51,20 @@ internal sealed partial class ByteBufferFlowPlanner
 
     private ByteBufferFlowBindings AnalyzeInterpret(PhysicalInterpretSourceNode source, ByteBufferFlowBindings input)
     {
-        if (source.Arguments[0] is ColumnRef buffer && buffer.ReturnType == typeof(byte[]) &&
-            source.Kind is not (InterpretSourceKind.Parse or InterpretSourceKind.TryParse or InterpretSourceKind.PartialParse))
+        if (
+            source.Arguments[0] is ColumnRef buffer
+            && buffer.ReturnType == typeof(byte[])
+            && source.Kind
+                is not (InterpretSourceKind.Parse or InterpretSourceKind.TryParse or InterpretSourceKind.PartialParse)
+        )
         {
-            var maximum = source.Kind == InterpretSourceKind.InterpretAt ? null : bounds?.MaximumBytes(source.SchemaName);
-            Require(buffer, input, maximum.HasValue ? ByteBufferRequirement.Prefix(maximum.Value) : ByteBufferRequirement.Complete);
+            var maximum =
+                source.Kind == InterpretSourceKind.InterpretAt ? null : bounds?.MaximumBytes(source.SchemaName);
+            Require(
+                buffer,
+                input,
+                maximum.HasValue ? ByteBufferRequirement.Prefix(maximum.Value) : ByteBufferRequirement.Complete
+            );
         }
         else
             Observe(source.Arguments[0], input);

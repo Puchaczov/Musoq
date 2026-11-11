@@ -44,7 +44,7 @@ public class ParseResultFormattingTests
         var root = ParseQuery(sourceText.Text);
         var errors = new[]
         {
-            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "test error", new TextSpan(0, 5))
+            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "test error", new TextSpan(0, 5)),
         };
         var parseResult = new ParseResult(root, sourceText, errors);
 
@@ -60,7 +60,7 @@ public class ParseResultFormattingTests
         var root = ParseQuery(sourceText.Text);
         var warnings = new[]
         {
-            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "test warning", new TextSpan(0, 5))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "test warning", new TextSpan(0, 5)),
         };
         var parseResult = new ParseResult(root, sourceText, warnings);
 
@@ -78,7 +78,7 @@ public class ParseResultFormattingTests
         var diagnostics = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 5)),
-            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(5, 3))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(5, 3)),
         };
         var parseResult = new ParseResult(root, sourceText, diagnostics);
 
@@ -96,7 +96,7 @@ public class ParseResultFormattingTests
         var diagnostics = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 5)),
-            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(5, 3))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warning", new TextSpan(5, 3)),
         };
         var parseResult = new ParseResult(root, sourceText, diagnostics);
 
@@ -112,7 +112,7 @@ public class ParseResultFormattingTests
         var sourceText = new SourceText("invalid");
         var errors = new[]
         {
-            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "parse failed", new TextSpan(0, 7))
+            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "parse failed", new TextSpan(0, 7)),
         };
 
         var result = ParseResult.Failed(sourceText, errors);
@@ -129,7 +129,7 @@ public class ParseResultFormattingTests
         var diagnostics = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "second", new TextSpan(10, 5)),
-            Diagnostic.Error(DiagnosticCode.MQ2002_MissingToken, "first", new TextSpan(0, 5))
+            Diagnostic.Error(DiagnosticCode.MQ2002_MissingToken, "first", new TextSpan(0, 5)),
         };
         var parseResult = new ParseResult(null, sourceText, diagnostics);
 
@@ -145,7 +145,7 @@ public class ParseResultFormattingTests
         var sourceText = new SourceText("select 1 from #system.dual()");
         var diagnostics = new[]
         {
-            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "at position", new TextSpan(5, 3))
+            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "at position", new TextSpan(5, 3)),
         };
         var parseResult = new ParseResult(null, sourceText, diagnostics);
 
@@ -160,7 +160,7 @@ public class ParseResultFormattingTests
         var sourceText = new SourceText("select 1 from #system.dual()");
         var diagnostics = new[]
         {
-            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "at position", new TextSpan(5, 3))
+            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "at position", new TextSpan(5, 3)),
         };
         var parseResult = new ParseResult(null, sourceText, diagnostics);
 
@@ -179,7 +179,8 @@ public class ParseResultFormattingTests
                 DiagnosticCode.MQ2001_UnexpectedToken,
                 "error on line 2",
                 new SourceLocation(7, 2, 1),
-                new SourceLocation(11, 2, 5))
+                new SourceLocation(11, 2, 5)
+            ),
         };
         var parseResult = new ParseResult(null, sourceText, diagnostics);
 
@@ -205,7 +206,7 @@ public class ParseResultFormattingTests
         var sourceText = new SourceText("select 1 from #system.dual()");
         var diagnostics = new[]
         {
-            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "some error", new TextSpan(0, 5))
+            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "some error", new TextSpan(0, 5)),
         };
         var parseResult = new ParseResult(null, sourceText, diagnostics);
 
@@ -229,7 +230,7 @@ public class ParseResultFormattingTests
         var sourceText = new SourceText("select 1 from #system.dual()");
         var diagnostics = new[]
         {
-            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "fatal error", new TextSpan(0, 5))
+            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "fatal error", new TextSpan(0, 5)),
         };
         var parseResult = new ParseResult(null, sourceText, diagnostics);
 
@@ -246,7 +247,7 @@ public class ParseResultFormattingTests
         var diagnostics = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error 1", new TextSpan(0, 5)),
-            Diagnostic.Error(DiagnosticCode.MQ2002_MissingToken, "error 2", new TextSpan(5, 3))
+            Diagnostic.Error(DiagnosticCode.MQ2002_MissingToken, "error 2", new TextSpan(5, 3)),
         };
 
         var exception = new ParseException("Parse failed", diagnostics);
@@ -267,7 +268,8 @@ public class ParseResultFormattingTests
             DiagnosticCode.MQ2001_UnexpectedToken,
             "test error",
             new SourceLocation(5, 2, 3, "test.sql"),
-            new SourceLocation(10, 2, 8));
+            new SourceLocation(10, 2, 8)
+        );
 
         var result = formatter.Format(diagnostic);
 
@@ -279,10 +281,7 @@ public class ParseResultFormattingTests
     public void DiagnosticFormatter_Format_WithoutFilePath_ShouldUseParentheses()
     {
         var formatter = new DiagnosticFormatter();
-        var diagnostic = Diagnostic.Error(
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            "test error",
-            new TextSpan(0, 5));
+        var diagnostic = Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "test error", new TextSpan(0, 5));
 
         var result = formatter.Format(diagnostic);
 
@@ -294,10 +293,7 @@ public class ParseResultFormattingTests
     public void DiagnosticFormatter_Format_WithColor_ShouldIncludeAnsiCodes()
     {
         var formatter = new DiagnosticFormatter { UseColor = true };
-        var diagnostic = Diagnostic.Error(
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            "test error",
-            new TextSpan(0, 5));
+        var diagnostic = Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "test error", new TextSpan(0, 5));
 
         var result = formatter.Format(diagnostic);
 
@@ -309,10 +305,7 @@ public class ParseResultFormattingTests
     public void DiagnosticFormatter_Format_WithoutContextSnippet_ShouldOmitSnippet()
     {
         var formatter = new DiagnosticFormatter { IncludeContextSnippet = false };
-        var diagnostic = Diagnostic.Error(
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            "test error",
-            new TextSpan(0, 5));
+        var diagnostic = Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "test error", new TextSpan(0, 5));
 
         var result = formatter.Format(diagnostic);
 
@@ -329,7 +322,8 @@ public class ParseResultFormattingTests
             "test error",
             new SourceLocation(0, 1, 1),
             new SourceLocation(5, 1, 6),
-            "SELECT * FROM table");
+            "SELECT * FROM table"
+        );
 
         var result = formatter.Format(diagnostic);
 
@@ -342,10 +336,8 @@ public class ParseResultFormattingTests
     {
         var formatter = new DiagnosticFormatter();
         var fix = DiagnosticAction.QuickFix("Add missing semicolon", new TextSpan(5, 1), ";");
-        var diagnostic = Diagnostic.Error(
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            "missing semicolon",
-            new TextSpan(0, 5))
+        var diagnostic = Diagnostic
+            .Error(DiagnosticCode.MQ2001_UnexpectedToken, "missing semicolon", new TextSpan(0, 5))
             .WithSuggestedFix(fix);
 
         var result = formatter.Format(diagnostic);
@@ -361,7 +353,8 @@ public class ParseResultFormattingTests
         var diagnostic = Diagnostic.Warning(
             DiagnosticCode.MQ5003_ImplicitTypeConversion,
             "unused alias",
-            new TextSpan(0, 5));
+            new TextSpan(0, 5)
+        );
 
         var result = formatter.Format(diagnostic);
 
@@ -376,7 +369,8 @@ public class ParseResultFormattingTests
             DiagnosticCode.MQ2001_UnexpectedToken,
             "test error",
             new SourceLocation(0, 1, 1),
-            new SourceLocation(5, 1, 6));
+            new SourceLocation(5, 1, 6)
+        );
 
         var result = formatter.FormatAsJson(diagnostic);
 
@@ -394,7 +388,8 @@ public class ParseResultFormattingTests
         var diagnostic = Diagnostic.Error(
             DiagnosticCode.MQ2001_UnexpectedToken,
             "error with \"quotes\" and\nnewline",
-            new TextSpan(0, 5));
+            new TextSpan(0, 5)
+        );
 
         var result = formatter.FormatAsJson(diagnostic);
 
@@ -412,7 +407,8 @@ public class ParseResultFormattingTests
             "test warning",
             new SourceLocation(0, 1, 1),
             new SourceLocation(5, 1, 6),
-            "SELECT bad syntax");
+            "SELECT bad syntax"
+        );
 
         var result = formatter.Format(diagnostic);
 

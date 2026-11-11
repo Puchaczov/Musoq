@@ -18,7 +18,11 @@ public partial class MathExtendedTests
 
     [TestMethod]
     [DynamicData(nameof(AdditionalDecimalCases))]
-    public void AdditionalDecimal_Cases_ReturnExpected(string name, Func<LibraryBase, decimal?> execute, decimal expected)
+    public void AdditionalDecimal_Cases_ReturnExpected(
+        string name,
+        Func<LibraryBase, decimal?> execute,
+        decimal expected
+    )
     {
         var result = execute(Library);
 

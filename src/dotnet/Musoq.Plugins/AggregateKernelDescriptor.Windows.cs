@@ -11,13 +11,22 @@ public sealed partial record AggregateKernelDescriptor
         ArgumentNullException.ThrowIfNull(declaration);
         var window = declaration.GetCustomAttribute<WindowFunctionAttribute>();
         if (window?.KernelType is null || window.RankingKind == WindowRankingKind.None)
-            throw CreateInvalidKernelException(declaration, "Ranking declaration must register its KernelType and RankingKind.");
+            throw CreateInvalidKernelException(
+                declaration,
+                "Ranking declaration must register its KernelType and RankingKind."
+            );
         if (!window.RequiresPeerMetadata && window.RankingKind != WindowRankingKind.RowNumber)
             throw CreateInvalidKernelException(declaration, "Only an ordinal ranking contract can omit peer metadata.");
 
-        if (window.SupportsOrdinalUpperBound && window.RankingKind is not
-            (WindowRankingKind.RowNumber or WindowRankingKind.Rank or WindowRankingKind.DenseRank))
-            throw CreateInvalidKernelException(declaration, "Ordinal upper bounds require an ordinal ranking contract.");
+        if (
+            window.SupportsOrdinalUpperBound
+            && window.RankingKind
+                is not (WindowRankingKind.RowNumber or WindowRankingKind.Rank or WindowRankingKind.DenseRank)
+        )
+            throw CreateInvalidKernelException(
+                declaration,
+                "Ordinal upper bounds require an ordinal ranking contract."
+            );
         var kernel = ResolveKernelType(window.KernelType, declaration);
         ValidateKernelState(kernel, typeof(WindowRankingContext), declaration);
         return ResolveGetMethod(kernel, typeof(WindowRankingContext), declaration);
@@ -31,12 +40,19 @@ public sealed partial record AggregateKernelDescriptor
         if (window?.KernelType is null)
             throw CreateInvalidKernelException(declaration, "Window declaration must register a concrete KernelType.");
 
-        return Create(declaration, new AggregateFunctionAttribute(window.KernelType)
-        {
-            Name = window.Name,
-            StateType = window.StateType,
-            EmptyResultBehavior = window.EmptyResultBehavior,
-            ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(declaration, SqlFunctionKind.Window, window)
-        });
+        return Create(
+            declaration,
+            new AggregateFunctionAttribute(window.KernelType)
+            {
+                Name = window.Name,
+                StateType = window.StateType,
+                EmptyResultBehavior = window.EmptyResultBehavior,
+                ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(
+                    declaration,
+                    SqlFunctionKind.Window,
+                    window
+                ),
+            }
+        );
     }
 }

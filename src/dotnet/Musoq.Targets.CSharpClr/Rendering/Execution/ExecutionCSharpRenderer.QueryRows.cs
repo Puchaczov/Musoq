@@ -11,7 +11,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private static IEnumerable<MemberDeclarationSyntax> CreateQueryRowShapeFields(ExecutionBlock body)
     {
-        return ExecutionIrAnalysis.FlattenNodes(body)
+        return ExecutionIrAnalysis
+            .FlattenNodes(body)
             .OfType<ExecutionSourceScan>()
             .Select(static scan => scan.Binding.QueryRowSourceTransfer)
             .Where(static transfer => transfer != null)
@@ -19,25 +20,39 @@ public sealed partial class ExecutionCSharpRenderer
             .Select(static group => RenderQueryRowShapeField(group.First()!));
     }
 
-    private static MemberDeclarationSyntax RenderQueryRowShapeField(
-        ExecutionQueryRowSourceTransfer transfer)
+    private static MemberDeclarationSyntax RenderQueryRowShapeField(ExecutionQueryRowSourceTransfer transfer)
     {
-        return SyntaxFactory.FieldDeclaration(
-                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName(nameof(QueryRowShape)))
-                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(EscapeIdentifier(
-                                QueryRowSourceNaming.CreateShapeFieldName(transfer.ShapeFingerprint)))
-                            .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                CreateQueryRowShapeExpression(transfer))))))
-            .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword),
-                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)));
+        return SyntaxFactory
+            .FieldDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.IdentifierName(nameof(QueryRowShape)))
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory
+                                .VariableDeclarator(
+                                    EscapeIdentifier(
+                                        QueryRowSourceNaming.CreateShapeFieldName(transfer.ShapeFingerprint)
+                                    )
+                                )
+                                .WithInitializer(
+                                    SyntaxFactory.EqualsValueClause(CreateQueryRowShapeExpression(transfer))
+                                )
+                        )
+                    )
+            )
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
+                    SyntaxFactory.Token(SyntaxKind.StaticKeyword),
+                    SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
+                )
+            );
     }
 
     private static IEnumerable<MemberDeclarationSyntax> CreateQueryRowMaterializers(ExecutionBlock body)
     {
-        return ExecutionIrAnalysis.FlattenNodes(body)
+        return ExecutionIrAnalysis
+            .FlattenNodes(body)
             .OfType<ExecutionSourceScan>()
             .Select(static scan => scan.Binding.QueryRowSourceTransfer)
             .Where(static transfer => transfer != null)
@@ -45,18 +60,21 @@ public sealed partial class ExecutionCSharpRenderer
             .Select(static group => RenderQueryRowMaterializer(group.First()!));
     }
 
-    private static MemberDeclarationSyntax RenderQueryRowMaterializer(
-        ExecutionQueryRowSourceTransfer transfer)
+    private static MemberDeclarationSyntax RenderQueryRowMaterializer(ExecutionQueryRowSourceTransfer transfer)
     {
         var carrierTypeName = QueryRowSourceNaming.CreateCarrierTypeName(transfer.ShapeFingerprint, transfer.Carrier);
-        var materializerTypeName = QueryRowSourceNaming.CreateMaterializerTypeName(transfer.ShapeFingerprint, transfer.Carrier);
-        var arguments = transfer.Fields
-            .OrderBy(static field => field.Slot)
+        var materializerTypeName = QueryRowSourceNaming.CreateMaterializerTypeName(
+            transfer.ShapeFingerprint,
+            transfer.Carrier
+        );
+        var arguments = transfer
+            .Fields.OrderBy(static field => field.Slot)
             .Select(QueryRowMaterializerSyntax.CreateReadExpression)
             .ToArray();
-        var construction = arguments.Length == 0
-            ? $"new {carrierTypeName}()"
-            : $"new {carrierTypeName}({string.Join(", ", arguments)})";
+        var construction =
+            arguments.Length == 0
+                ? $"new {carrierTypeName}()"
+                : $"new {carrierTypeName}({string.Join(", ", arguments)})";
 
         var source = new StringBuilder()
             .Append("private readonly struct ")
@@ -78,31 +96,36 @@ public sealed partial class ExecutionCSharpRenderer
             .ToString();
 
         return SyntaxFactory.ParseMemberDeclaration(source)
-               ?? throw new InvalidOperationException(
-                   $"Could not render query-row materializer '{materializerTypeName}'.");
+            ?? throw new InvalidOperationException(
+                $"Could not render query-row materializer '{materializerTypeName}'."
+            );
     }
 
-    private static ExpressionSyntax CreateQueryRowShapeExpression(
-        ExecutionQueryRowSourceTransfer transfer)
+    private static ExpressionSyntax CreateQueryRowShapeExpression(ExecutionQueryRowSourceTransfer transfer)
     {
-        var fields = transfer.Fields
-            .OrderBy(static field => field.Slot)
+        var fields = transfer
+            .Fields.OrderBy(static field => field.Slot)
             .Select(CreateQueryRowFieldExpression)
             .ToArray();
-        return CreateObjectCreation(
-            nameof(QueryRowShape),
-            CreateArrayCreation(nameof(QueryRowField), fields));
+        return CreateObjectCreation(nameof(QueryRowShape), CreateArrayCreation(nameof(QueryRowField), fields));
     }
 
     private static ExpressionSyntax CreateQueryRowFieldExpression(ExecutionQueryRowField field)
     {
         if (field.ComputedProjection is { } computed)
-            return SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression("QueryRowField.ForComputedProjection"))
-                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[]
-                {
-                    SyntaxFactory.Argument(CreateIntLiteral(field.Slot)),
-                    SyntaxFactory.Argument(CreateComputedProjectionMetadata(computed))
-                })));
+            return SyntaxFactory
+                .InvocationExpression(SyntaxFactory.ParseExpression("QueryRowField.ForComputedProjection"))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            new[]
+                            {
+                                SyntaxFactory.Argument(CreateIntLiteral(field.Slot)),
+                                SyntaxFactory.Argument(CreateComputedProjectionMetadata(computed)),
+                            }
+                        )
+                    )
+                );
         var arguments = new List<ExpressionSyntax>
         {
             CreateIntLiteral(field.Slot),
@@ -121,11 +144,16 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (field.EnumType != null || field.SourceReadType.StableId != field.FieldType.StableId)
         {
-            arguments.Add(field.ReadModifiers.Count > 0
-                ? CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers)
-                : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
-            arguments.Add(SyntaxFactory.ParseExpression(
-                $"global::Musoq.Schema.{nameof(ColumnStability)}.{nameof(ColumnStability.Stable)}"));
+            arguments.Add(
+                field.ReadModifiers.Count > 0
+                    ? CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers)
+                    : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+            );
+            arguments.Add(
+                SyntaxFactory.ParseExpression(
+                    $"global::Musoq.Schema.{nameof(ColumnStability)}.{nameof(ColumnStability.Stable)}"
+                )
+            );
         }
         else if (field.ReadModifiers.Count > 0)
         {

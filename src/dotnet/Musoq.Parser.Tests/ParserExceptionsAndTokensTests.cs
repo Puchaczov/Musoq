@@ -231,10 +231,6 @@ public class ParserExceptionsAndTokensTests
         Assert.IsTrue(span1 != span2);
     }
 
-
-
-
-
     [TestMethod]
     public void TextSpan_GetHashCode_DifferentValues_ShouldDiffer()
     {
@@ -399,5 +395,4 @@ public class ParserExceptionsAndTokensTests
     }
 
     #endregion
-
 }

@@ -9,7 +9,19 @@ namespace Musoq.Parser.Diagnostics;
 /// </summary>
 internal static partial class SyntaxDiagnosticEnhancer
 {
-    private static readonly string[] DialectKeywords = ["LIMIT", "OFFSET", "TOP", "FIRST", "FETCH", "ROWS", "NEXT", "ONLY", "ILIKE", "CAST"];
+    private static readonly string[] DialectKeywords =
+    [
+        "LIMIT",
+        "OFFSET",
+        "TOP",
+        "FIRST",
+        "FETCH",
+        "ROWS",
+        "NEXT",
+        "ONLY",
+        "ILIKE",
+        "CAST",
+    ];
 
     private static (SourceLocation Start, SourceLocation End) GetLocations(SourceText? sourceText, TextSpan span)
     {
@@ -28,8 +40,7 @@ internal static partial class SyntaxDiagnosticEnhancer
         if (string.IsNullOrWhiteSpace(candidate))
             return null;
 
-        if (!IsWordLike(candidate) ||
-            sourceText != null && IsNamedFieldLabel(sourceText.Text, span))
+        if (!IsWordLike(candidate) || sourceText != null && IsNamedFieldLabel(sourceText.Text, span))
             return null;
 
         if (DialectKeywordHelpMap.ContainsKey(candidate))
@@ -84,8 +95,13 @@ internal static partial class SyntaxDiagnosticEnhancer
         if (sourceText != null && IsUnsupportedAsOfRight(sourceText.Text, span))
             return AsOfRightJoinHelp;
 
-        if (sourceText != null && span.Length > 0 && span.Start >= 0 && span.End <= sourceText.Text.Length &&
-            IsWholeWordAt(sourceText.Text, span.Start, span.Length))
+        if (
+            sourceText != null
+            && span.Length > 0
+            && span.Start >= 0
+            && span.End <= sourceText.Text.Length
+            && IsWholeWordAt(sourceText.Text, span.Start, span.Length)
+        )
         {
             var spanText = sourceText.Text.Substring(span.Start, span.Length);
             foreach (var keyword in DialectKeywords)
@@ -112,16 +128,18 @@ internal static partial class SyntaxDiagnosticEnhancer
                 return nearbyHelp;
         }
 
-        return IsCastKeywordContext(currentToken, sourceText?.Text, span.Start)
-            ? DialectKeywordHelpMap["CAST"]
-            : null;
+        return IsCastKeywordContext(currentToken, sourceText?.Text, span.Start) ? DialectKeywordHelpMap["CAST"] : null;
     }
 
     private static bool IsUnsupportedAsOfRight(string text, TextSpan span)
     {
-        if (span.Length != 4 || span.Start < 0 || span.End > text.Length ||
-            !string.Equals(text.Substring(span.Start, span.Length), "asof", StringComparison.OrdinalIgnoreCase) ||
-            !IsWholeWordAt(text, span.Start, span.Length))
+        if (
+            span.Length != 4
+            || span.Start < 0
+            || span.End > text.Length
+            || !string.Equals(text.Substring(span.Start, span.Length), "asof", StringComparison.OrdinalIgnoreCase)
+            || !IsWholeWordAt(text, span.Start, span.Length)
+        )
             return false;
 
         var position = SkipWhiteSpace(text, span.End);
@@ -137,9 +155,10 @@ internal static partial class SyntaxDiagnosticEnhancer
 
     private static bool IsWordAt(string text, int position, string word)
     {
-        return position >= 0 && position + word.Length <= text.Length &&
-               string.Equals(text.Substring(position, word.Length), word, StringComparison.OrdinalIgnoreCase) &&
-               IsWholeWordAt(text, position, word.Length);
+        return position >= 0
+            && position + word.Length <= text.Length
+            && string.Equals(text.Substring(position, word.Length), word, StringComparison.OrdinalIgnoreCase)
+            && IsWholeWordAt(text, position, word.Length);
     }
 
     private static DialectKeywordHelp? GetNearbyDialectKeywordHelp(string text, int diagnosticStart)
@@ -167,8 +186,12 @@ internal static partial class SyntaxDiagnosticEnhancer
     {
         const int maxDistance = 96;
 
-        if (position < 0 || diagnosticStart <= position || diagnosticStart - position > maxDistance ||
-            (position > 0 && !char.IsWhiteSpace(text[position - 1])))
+        if (
+            position < 0
+            || diagnosticStart <= position
+            || diagnosticStart - position > maxDistance
+            || (position > 0 && !char.IsWhiteSpace(text[position - 1]))
+        )
             return false;
 
         var afterKeyword = position + keyword.Length;
@@ -176,17 +199,19 @@ internal static partial class SyntaxDiagnosticEnhancer
             return false;
 
         var nextToken = SkipWhiteSpace(text, afterKeyword);
-        return keyword is "LIMIT" or "OFFSET"
-            ? nextToken < text.Length && IsNumericOrParameterStart(text[nextToken])
+        return keyword is "LIMIT" or "OFFSET" ? nextToken < text.Length && IsNumericOrParameterStart(text[nextToken])
             : keyword == "FETCH"
-                ? IsWholeWordAt(text, nextToken, "NEXT".Length) &&
-                  string.Equals(text.Substring(nextToken, "NEXT".Length), "NEXT", StringComparison.OrdinalIgnoreCase)
-                : keyword is "NEXT" or "ONLY"
-                    ? FindLastWholeWordBefore(text, "FETCH", position) >= 0
-                    : keyword == "ROWS"
-                        ? FindLastWholeWordBefore(text, "FETCH", position) >= 0 ||
-                          FindLastWholeWordBefore(text, "OFFSET", position) >= 0
-                        : keyword == "ILIKE";
+                ? IsWholeWordAt(text, nextToken, "NEXT".Length)
+                    && string.Equals(
+                        text.Substring(nextToken, "NEXT".Length),
+                        "NEXT",
+                        StringComparison.OrdinalIgnoreCase
+                    )
+            : keyword is "NEXT" or "ONLY" ? FindLastWholeWordBefore(text, "FETCH", position) >= 0
+            : keyword == "ROWS"
+                ? FindLastWholeWordBefore(text, "FETCH", position) >= 0
+                    || FindLastWholeWordBefore(text, "OFFSET", position) >= 0
+            : keyword == "ILIKE";
     }
 
     private static int SkipWhiteSpace(string text, int position)
@@ -232,8 +257,10 @@ internal static partial class SyntaxDiagnosticEnhancer
             return false;
 
         var openingParenthesis = text.IndexOf('(', overPosition + 4, rowsPosition - overPosition - 4);
-        if (openingParenthesis < 0 ||
-            text.IndexOf(')', openingParenthesis + 1, rowsPosition - openingParenthesis - 1) >= 0)
+        if (
+            openingParenthesis < 0
+            || text.IndexOf(')', openingParenthesis + 1, rowsPosition - openingParenthesis - 1) >= 0
+        )
             return false;
 
         return text.IndexOf(')', rowsPosition + 4, diagnosticStart - rowsPosition - 4) < 0;
@@ -263,19 +290,31 @@ internal static partial class SyntaxDiagnosticEnhancer
 
     private static bool IsCastKeywordContext(Token? currentToken, string? text, int position)
     {
-        if (currentToken == null || currentToken.TokenType != TokenType.As || string.IsNullOrEmpty(text) || position <= 0)
+        if (
+            currentToken == null
+            || currentToken.TokenType != TokenType.As
+            || string.IsNullOrEmpty(text)
+            || position <= 0
+        )
             return false;
 
         var searchFrom = 0;
         while (searchFrom < position)
         {
-            var castPosition = text.IndexOf("CAST", searchFrom, position - searchFrom, StringComparison.OrdinalIgnoreCase);
+            var castPosition = text.IndexOf(
+                "CAST",
+                searchFrom,
+                position - searchFrom,
+                StringComparison.OrdinalIgnoreCase
+            );
             if (castPosition < 0)
                 return false;
 
             var afterCast = castPosition + 4;
-            if ((castPosition == 0 || !char.IsLetterOrDigit(text[castPosition - 1])) &&
-                (afterCast >= text.Length || !char.IsLetterOrDigit(text[afterCast])))
+            if (
+                (castPosition == 0 || !char.IsLetterOrDigit(text[castPosition - 1]))
+                && (afterCast >= text.Length || !char.IsLetterOrDigit(text[afterCast]))
+            )
             {
                 while (afterCast < position && char.IsWhiteSpace(text[afterCast]))
                     afterCast++;

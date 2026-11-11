@@ -12,7 +12,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         IEnumerable<T> candidates,
         Func<T, TKey> keySelector,
         BinaryOpKind comparisonKind,
-        IComparer<TKey> comparer)
+        IComparer<TKey> comparer
+    )
     {
         var entries = new List<AsOfJoinEntry>();
         var ordinal = 0;
@@ -34,14 +35,16 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             comparisonKind,
             comparer,
             AsOfJoinBucket.Create(entries, comparer),
-            null);
+            null
+        );
     }
 
     private static AsOfJoinIndex<T, TKey, TEquality> CreateSingleBucketFromChunks(
         IEnumerable<IReadOnlyList<T>> candidateChunks,
         Func<T, TKey> keySelector,
         BinaryOpKind comparisonKind,
-        IComparer<TKey> comparer)
+        IComparer<TKey> comparer
+    )
     {
         var entries = new List<AsOfJoinEntry>();
         var ordinal = 0;
@@ -71,7 +74,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             comparisonKind,
             comparer,
             AsOfJoinBucket.Create(entries, comparer),
-            null);
+            null
+        );
     }
 
     private static AsOfJoinIndex<T, TKey, TEquality> CreateSingleBucket<TTie>(
@@ -80,7 +84,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         BinaryOpKind comparisonKind,
         IComparer<TKey> comparer,
         Func<T, TTie> tieBreakKeySelector,
-        IComparer<TTie> tieBreakComparer)
+        IComparer<TTie> tieBreakComparer
+    )
     {
         var entries = new List<AsOfJoinTieEntry<TTie>>();
         var ordinal = 0;
@@ -102,7 +107,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             comparisonKind,
             comparer,
             AsOfJoinTieBucket<TTie>.Create(entries, comparer, tieBreakComparer),
-            null);
+            null
+        );
     }
 
     private static AsOfJoinIndex<T, TKey, TEquality> CreateSingleBucketFromChunks<TTie>(
@@ -111,7 +117,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         BinaryOpKind comparisonKind,
         IComparer<TKey> comparer,
         Func<T, TTie> tieBreakKeySelector,
-        IComparer<TTie> tieBreakComparer)
+        IComparer<TTie> tieBreakComparer
+    )
     {
         var entries = new List<AsOfJoinTieEntry<TTie>>();
         var ordinal = 0;
@@ -141,7 +148,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             comparisonKind,
             comparer,
             AsOfJoinTieBucket<TTie>.Create(entries, comparer, tieBreakComparer),
-            null);
+            null
+        );
     }
 
     private static AsOfJoinIndex<T, TKey, TEquality> CreatePartitionedBuckets(
@@ -149,7 +157,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         Func<T, NativeEqualityKey<TEquality>> equalityKeySelector,
         Func<T, TKey> keySelector,
         BinaryOpKind comparisonKind,
-        IComparer<TKey> comparer)
+        IComparer<TKey> comparer
+    )
     {
         var entriesByEqualityKey = new Dictionary<TEquality, List<AsOfJoinEntry>>();
         var ordinal = 0;
@@ -185,7 +194,9 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             null,
             entriesByEqualityKey.ToDictionary(
                 static pair => pair.Key,
-                pair => (IAsOfJoinBucket)AsOfJoinBucket.Create(pair.Value, comparer)));
+                pair => (IAsOfJoinBucket)AsOfJoinBucket.Create(pair.Value, comparer)
+            )
+        );
     }
 
     private static AsOfJoinIndex<T, TKey, TEquality> CreatePartitionedBucketsFromChunks(
@@ -193,7 +204,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         Func<T, NativeEqualityKey<TEquality>> equalityKeySelector,
         Func<T, TKey> keySelector,
         BinaryOpKind comparisonKind,
-        IComparer<TKey> comparer)
+        IComparer<TKey> comparer
+    )
     {
         var entriesByEqualityKey = new Dictionary<TEquality, List<AsOfJoinEntry>>();
         var ordinal = 0;
@@ -236,7 +248,9 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             null,
             entriesByEqualityKey.ToDictionary(
                 static pair => pair.Key,
-                pair => (IAsOfJoinBucket)AsOfJoinBucket.Create(pair.Value, comparer)));
+                pair => (IAsOfJoinBucket)AsOfJoinBucket.Create(pair.Value, comparer)
+            )
+        );
     }
 
     private static AsOfJoinIndex<T, TKey, TEquality> CreatePartitionedBuckets<TTie>(
@@ -246,7 +260,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         BinaryOpKind comparisonKind,
         IComparer<TKey> comparer,
         Func<T, TTie> tieBreakKeySelector,
-        IComparer<TTie> tieBreakComparer)
+        IComparer<TTie> tieBreakComparer
+    )
     {
         var entriesByEqualityKey = new Dictionary<TEquality, List<AsOfJoinTieEntry<TTie>>>();
         var ordinal = 0;
@@ -280,11 +295,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         foreach (var pair in entriesByEqualityKey)
             buckets.Add(pair.Key, AsOfJoinTieBucket<TTie>.Create(pair.Value, comparer, tieBreakComparer));
 
-        return new AsOfJoinIndex<T, TKey, TEquality>(
-            comparisonKind,
-            comparer,
-            null,
-            buckets);
+        return new AsOfJoinIndex<T, TKey, TEquality>(comparisonKind, comparer, null, buckets);
     }
 
     private static AsOfJoinIndex<T, TKey, TEquality> CreatePartitionedBucketsFromChunks<TTie>(
@@ -294,7 +305,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         BinaryOpKind comparisonKind,
         IComparer<TKey> comparer,
         Func<T, TTie> tieBreakKeySelector,
-        IComparer<TTie> tieBreakComparer)
+        IComparer<TTie> tieBreakComparer
+    )
     {
         var entriesByEqualityKey = new Dictionary<TEquality, List<AsOfJoinTieEntry<TTie>>>();
         var ordinal = 0;
@@ -335,11 +347,6 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         foreach (var pair in entriesByEqualityKey)
             buckets.Add(pair.Key, AsOfJoinTieBucket<TTie>.Create(pair.Value, comparer, tieBreakComparer));
 
-        return new AsOfJoinIndex<T, TKey, TEquality>(
-            comparisonKind,
-            comparer,
-            null,
-            buckets);
+        return new AsOfJoinIndex<T, TKey, TEquality>(comparisonKind, comparer, null, buckets);
     }
-
 }

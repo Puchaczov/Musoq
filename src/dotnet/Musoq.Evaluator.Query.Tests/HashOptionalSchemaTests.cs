@@ -18,7 +18,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var query = "select Name from A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -36,7 +36,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var query = "select Name from A.Entities() where Name = 'Test1'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -50,10 +50,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
     public void HashOptional_SelectWithArithmetic_ShouldWork()
     {
         var query = "select 1 + 2 * 3 from A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
@@ -68,7 +65,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var query = "select Name from A.Entities() order by Name desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("A"), new BasicEntity("C"), new BasicEntity("B")] }
+            { "#A", [new BasicEntity("A"), new BasicEntity("C"), new BasicEntity("B")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -86,7 +83,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var query = "from A.Entities() select Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -102,12 +99,13 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { City = "Warsaw" },
                     new BasicEntity { City = "Warsaw" },
-                    new BasicEntity { City = "London" }
+                    new BasicEntity { City = "London" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -120,10 +118,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
     public void HashOptional_WithAlias_ShouldWork()
     {
         var query = "select a.Name from A.Entities() a";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Test1")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Test1")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
@@ -138,14 +133,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var query = "select Name from A.Entities() order by Name skip 1 take 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("A"),
-                    new BasicEntity("B"),
-                    new BasicEntity("C"),
-                    new BasicEntity("D")
-                ]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -163,7 +151,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Common"), new BasicEntity("OnlyA")] },
-            { "#B", [new BasicEntity("Common"), new BasicEntity("OnlyB")] }
+            { "#B", [new BasicEntity("Common"), new BasicEntity("OnlyB")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -180,7 +168,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Common"), new BasicEntity("OnlyA")] },
-            { "#B", [new BasicEntity("Common"), new BasicEntity("OnlyB")] }
+            { "#B", [new BasicEntity("Common"), new BasicEntity("OnlyB")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -196,7 +184,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -211,13 +199,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var query = "select distinct Name from A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Test"),
-                    new BasicEntity("Test"),
-                    new BasicEntity("Other")
-                ]
-            }
+            { "#A", [new BasicEntity("Test"), new BasicEntity("Test"), new BasicEntity("Other")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -233,7 +215,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("First")] },
-            { "#B", [new BasicEntity("Second")] }
+            { "#B", [new BasicEntity("Second")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -248,7 +230,7 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var query = "with cte as (select Name, City from A.Entities()) select Name from cte";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test") { City = "Warsaw" }] }
+            { "#A", [new BasicEntity("Test") { City = "Warsaw" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

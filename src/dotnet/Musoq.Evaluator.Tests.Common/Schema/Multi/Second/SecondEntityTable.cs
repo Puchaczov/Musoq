@@ -6,10 +6,10 @@ namespace Musoq.Evaluator.Tests.Schema.Multi.Second;
 public class SecondEntityTable : ISchemaTable
 {
     public ISchemaColumn[] Columns =>
-    [
-        new SchemaColumn(nameof(SecondEntity.ZeroItem), 0, typeof(string)),
-        new SchemaColumn(nameof(SecondEntity.FirstItem), 1, typeof(string))
-    ];
+        [
+            new SchemaColumn(nameof(SecondEntity.ZeroItem), 0, typeof(string)),
+            new SchemaColumn(nameof(SecondEntity.FirstItem), 1, typeof(string)),
+        ];
 
     public ISchemaColumn? GetColumnByName(string name)
     {
@@ -19,10 +19,7 @@ public class SecondEntityTable : ISchemaTable
     public ISchemaColumn[] GetColumnsByName(string name)
     {
         if (SecondEntity.TestNameToIndexMap.TryGetValue(name, out var index))
-            return
-            [
-                Columns[index]
-            ];
+            return [Columns[index]];
 
         return [];
     }

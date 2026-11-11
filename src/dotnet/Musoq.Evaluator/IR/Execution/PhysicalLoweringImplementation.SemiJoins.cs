@@ -15,9 +15,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var resultShape = CreateGeneratedShape(context.ResultShapeName, context.Pipeline.Project.Fields, outputLookup);
         var resultTable = new ExecutionVariable(context.ResultTableName, typeof(object));
         var appendRow = CreateAppendRow(resultTable, resultShape, context.Pipeline.Project.Fields, outputLookup);
-        var hasMatch = isAntiSemiJoin
-            ? new ExecutionVariable($"{context.Hash.Name}HasMatch", typeof(bool))
-            : null;
+        var hasMatch = isAntiSemiJoin ? new ExecutionVariable($"{context.Hash.Name}HasMatch", typeof(bool)) : null;
         var matchedBody = isAntiSemiJoin
             ? CreateSemiJoinMarkMatchedBody(context.Join.Residual, hasMatch!, context.ConversionLookup)
             : CreateSemiJoinAppendMatchedBody(
@@ -25,13 +23,13 @@ internal sealed partial class PhysicalLoweringImplementation
                 context.Pipeline.Filter,
                 appendRow,
                 context.ConversionLookup,
-                outputLookup);
-        var noMatchBody = isAntiSemiJoin
-            ? CreateLoopBody(context.Pipeline.Filter, appendRow, outputLookup)
-            : null;
+                outputLookup
+            );
+        var noMatchBody = isAntiSemiJoin ? CreateLoopBody(context.Pipeline.Filter, appendRow, outputLookup) : null;
         return CompleteHashJoinTableBuild(
             context,
-            new HashJoinTableLowering(resultTable, resultShape, matchedBody, noMatchBody, hasMatch));
+            new HashJoinTableLowering(resultTable, resultShape, matchedBody, noMatchBody, hasMatch)
+        );
     }
 
     private TableBuildResult BuildSemiNestedLoopJoinTable(
@@ -40,7 +38,8 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultTableName,
         string resultShapeName,
         JoinSources joinSources,
-        bool isAntiSemiJoin)
+        bool isAntiSemiJoin
+    )
     {
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(joinSources.Left.Shape, joinSources.Right.Shape);
         var outputLookup = RowShapeLookup.CreateSourceShapeLookup(joinSources.Left.Shape);
@@ -48,29 +47,39 @@ internal sealed partial class PhysicalLoweringImplementation
         var resultShape = CreateGeneratedShape(resultShapeName, pipeline.Project.Fields, outputLookup);
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
         var appendRow = CreateAppendRow(resultTable, resultShape, pipeline.Project.Fields, outputLookup);
-        var hasMatch = isAntiSemiJoin
-            ? new ExecutionVariable($"{resultTableName}HasMatch", typeof(bool))
-            : null;
+        var hasMatch = isAntiSemiJoin ? new ExecutionVariable($"{resultTableName}HasMatch", typeof(bool)) : null;
         var matchedBody = isAntiSemiJoin
             ? CreateSemiJoinMarkMatchedBody(join.OnPredicate, hasMatch!, conversionLookup)
-            : CreateSemiJoinAppendMatchedBody(join.OnPredicate, pipeline.Filter, appendRow, conversionLookup, outputLookup);
+            : CreateSemiJoinAppendMatchedBody(
+                join.OnPredicate,
+                pipeline.Filter,
+                appendRow,
+                conversionLookup,
+                outputLookup
+            );
         var nodes = CreateJoinPrelude(joinSources, resultTable, resultShape);
         var rightRows = CreateNestedLoopInnerRows(joinSources.Right, nodes);
         var rightLoop = CreateSourceLoop(joinSources.Right.Shape, rightRows, joinSources.Right.Variable, matchedBody);
         var leftBody = isAntiSemiJoin
             ? CreateAntiSemiNestedLoopBody(hasMatch!, rightLoop, pipeline.Filter, appendRow, outputLookup)
             : new ExecutionBlock([rightLoop]);
-        var leftLoop = CreateSourceLoop(joinSources.Left.Shape, joinSources.Left.Rows, joinSources.Left.Variable, leftBody);
+        var leftLoop = CreateSourceLoop(
+            joinSources.Left.Shape,
+            joinSources.Left.Rows,
+            joinSources.Left.Variable,
+            leftBody
+        );
 
         nodes.Add(leftLoop);
 
         return CompleteTableBuild(
-            [..joinSources.Left.Shapes, ..joinSources.Right.Shapes, resultShape],
+            [.. joinSources.Left.Shapes, .. joinSources.Right.Shapes, resultShape],
             nodes,
             resultTable,
             resultShape,
             pipeline.PostOperations,
-            pipeline.Project.IsDistinct);
+            pipeline.Project.IsDistinct
+        );
     }
 
     private ExecutionBlock CreateSemiJoinAppendMatchedBody(
@@ -78,10 +87,11 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalFilterNode? filter,
         ExecutionAppendRow appendRow,
         IReadOnlyDictionary<string, RowShape> joinLookup,
-        IReadOnlyDictionary<string, RowShape> outputLookup)
+        IReadOnlyDictionary<string, RowShape> outputLookup
+    )
     {
         var appendBlock = CreateLoopBody(filter, appendRow, outputLookup);
-        var matchedBlock = new ExecutionBlock([..appendBlock.Nodes, new ExecutionBreak()]);
+        var matchedBlock = new ExecutionBlock([.. appendBlock.Nodes, new ExecutionBreak()]);
 
         return CreateConditionalJoinBlock(joinCondition, joinLookup, matchedBlock);
     }
@@ -89,12 +99,12 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ExecutionBlock CreateSemiJoinMarkMatchedBody(
         IrExpression? joinCondition,
         ExecutionVariable hasMatch,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
-        var matchedBlock = new ExecutionBlock(
-        [
+        var matchedBlock = new ExecutionBlock([
             new ExecutionAssign(hasMatch, new ExecutionLiteral(true, typeof(bool))),
-            new ExecutionBreak()
+            new ExecutionBreak(),
         ]);
 
         return CreateConditionalJoinBlock(joinCondition, sourceLookup, matchedBlock);
@@ -105,20 +115,18 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionNode rightLoop,
         PhysicalFilterNode? filter,
         ExecutionAppendRow appendRow,
-        IReadOnlyDictionary<string, RowShape> outputLookup)
+        IReadOnlyDictionary<string, RowShape> outputLookup
+    )
     {
         var unmatchedAppend = CreateLoopBody(filter, appendRow, outputLookup);
 
-        return new ExecutionBlock(
-        [
+        return new ExecutionBlock([
             new ExecutionLet(hasMatch, new ExecutionLiteral(false, typeof(bool))),
             rightLoop,
             new ExecutionIf(
-                new ExecutionUnary(
-                    UnaryOpKind.Not,
-                    new ExecutionVariableRead(hasMatch),
-                    typeof(bool)),
-                unmatchedAppend)
+                new ExecutionUnary(UnaryOpKind.Not, new ExecutionVariableRead(hasMatch), typeof(bool)),
+                unmatchedAppend
+            ),
         ]);
     }
 }

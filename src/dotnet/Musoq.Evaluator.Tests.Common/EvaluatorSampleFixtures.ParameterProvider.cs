@@ -17,13 +17,13 @@ internal static partial class EvaluatorSampleFixtures
         }
     }
 
-    private sealed class ScriptParameterSampleSchema()
-        : SchemaBase("parameterized", CreateLibrary())
+    private sealed class ScriptParameterSampleSchema() : SchemaBase("parameterized", CreateLibrary())
     {
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new ScriptParameterSampleTable();
         }
@@ -31,11 +31,10 @@ internal static partial class EvaluatorSampleFixtures
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
-            return EnsureSourceType<T, ScriptParameterSampleEntity>(
-                name,
-                new ScriptParameterSampleRowSource([]));
+            return EnsureSourceType<T, ScriptParameterSampleEntity>(name, new ScriptParameterSampleRowSource([]));
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -51,7 +50,7 @@ internal static partial class EvaluatorSampleFixtures
         public ISchemaColumn[] Columns { get; } =
         [
             new SchemaColumn(nameof(ScriptParameterSampleEntity.Key), 0, typeof(string)),
-            new SchemaColumn(nameof(ScriptParameterSampleEntity.Value), 1, typeof(string))
+            new SchemaColumn(nameof(ScriptParameterSampleEntity.Value), 1, typeof(string)),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(ScriptParameterSampleEntity));
@@ -75,5 +74,4 @@ internal static partial class EvaluatorSampleFixtures
             writer.Write(rows.ToArray());
         }
     }
-
 }

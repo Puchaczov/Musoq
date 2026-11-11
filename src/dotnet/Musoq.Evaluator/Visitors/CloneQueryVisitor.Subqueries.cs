@@ -1,5 +1,5 @@
-using Musoq.Parser.Nodes;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 

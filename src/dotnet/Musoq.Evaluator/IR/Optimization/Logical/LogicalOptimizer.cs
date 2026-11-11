@@ -18,25 +18,18 @@ internal sealed class LogicalOptimizer
         ArgumentNullException.ThrowIfNull(initialPlan);
 
         var trace = new OptimizationTrace();
-        var options = new OptimizationOptions
-        {
-            ConstantFoldingEnabled = _enableConstantFolding
-        };
-        var state = new OptimizationContextState
-        {
-            DiagnosticContext = _diagnosticContext
-        };
+        var options = new OptimizationOptions { ConstantFoldingEnabled = _enableConstantFolding };
+        var state = new OptimizationContextState { DiagnosticContext = _diagnosticContext };
         var analysisFacts = new OptimizationAnalysisFactSet();
-        var normalizationResult = new PlanOptimizationRunner<LogicalNode>(
-            LogicalNormalizationGroup.Pipeline).Run(
+        var normalizationResult = new PlanOptimizationRunner<LogicalNode>(LogicalNormalizationGroup.Pipeline).Run(
             initialPlan,
-            new OptimizationContext(OptimizationStage.LogicalNormalization, trace, options, state, analysisFacts));
-        var optimizationResult = new PlanOptimizationRunner<LogicalNode>(
-            LogicalOptimizationGroup.Pipeline).Run(
+            new OptimizationContext(OptimizationStage.LogicalNormalization, trace, options, state, analysisFacts)
+        );
+        var optimizationResult = new PlanOptimizationRunner<LogicalNode>(LogicalOptimizationGroup.Pipeline).Run(
             normalizationResult.Plan,
-            new OptimizationContext(OptimizationStage.LogicalOptimization, trace, options, state, analysisFacts));
+            new OptimizationContext(OptimizationStage.LogicalOptimization, trace, options, state, analysisFacts)
+        );
 
         return new LogicalOptimizationResult(initialPlan, optimizationResult.Plan, trace);
     }
 }
-

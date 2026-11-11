@@ -31,9 +31,15 @@ public sealed class AllocationVariableUseTests
     public void NodeVariableUse_ShouldMatchPreviousAnalysis(Type type, bool includeOptional)
     {
         var node = (ExecutionNode)new AllocationTraversalFixtures(includeOptional).Create(type);
-        var names = PreviousExecutionNodeFacts.GetDirectVariableReferences(node).Select(variable => variable.Name)
-            .Concat(PreviousExecutionIrAnalysis.FlattenExpressions(new ExecutionBlock([node])).SelectMany(VariableNames))
-            .Append("absent").Distinct(StringComparer.Ordinal).ToArray();
+        var names = PreviousExecutionNodeFacts
+            .GetDirectVariableReferences(node)
+            .Select(variable => variable.Name)
+            .Concat(
+                PreviousExecutionIrAnalysis.FlattenExpressions(new ExecutionBlock([node])).SelectMany(VariableNames)
+            )
+            .Append("absent")
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
         var expected = names.Select(name => PreviousExecutionIrAnalysis.ContainsVariableUse(node, name)).ToArray();
 
         var actual = names.Select(name => ExecutionIrAnalysis.ContainsVariableUse(node, name)).ToArray();
@@ -46,8 +52,15 @@ public sealed class AllocationVariableUseTests
     public void ExpressionVariableUse_ShouldMatchPreviousAnalysis(Type type, bool includeOptional)
     {
         var expression = (ExecutionExpression)new AllocationTraversalFixtures(includeOptional).Create(type);
-        var names = PreviousExecutionIrAnalysis.FlattenExpressions(expression).SelectMany(VariableNames).Append("absent").Distinct().ToArray();
-        var expected = names.Select(name => PreviousExecutionIrAnalysis.ContainsVariableUse(expression, name)).ToArray();
+        var names = PreviousExecutionIrAnalysis
+            .FlattenExpressions(expression)
+            .SelectMany(VariableNames)
+            .Append("absent")
+            .Distinct()
+            .ToArray();
+        var expected = names
+            .Select(name => PreviousExecutionIrAnalysis.ContainsVariableUse(expression, name))
+            .ToArray();
 
         var actual = names.Select(name => ExecutionIrAnalysis.ContainsVariableUse(expression, name)).ToArray();
 
@@ -80,8 +93,12 @@ public sealed class AllocationVariableUseTests
         throw new InvalidOperationException("Variable-use analysis enumerated beyond its first match.");
     }
 
-    private static IEnumerable<string> VariableNames(ExecutionExpression expression) => expression.GetType()
-        .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-        .Where(property => property.PropertyType == typeof(ExecutionVariable))
-        .Select(property => property.GetValue(expression)).OfType<ExecutionVariable>().Select(variable => variable.Name);
+    private static IEnumerable<string> VariableNames(ExecutionExpression expression) =>
+        expression
+            .GetType()
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            .Where(property => property.PropertyType == typeof(ExecutionVariable))
+            .Select(property => property.GetValue(expression))
+            .OfType<ExecutionVariable>()
+            .Select(variable => variable.Name);
 }

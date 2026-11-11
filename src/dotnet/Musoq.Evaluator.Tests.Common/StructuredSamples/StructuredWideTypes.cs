@@ -144,7 +144,8 @@ public sealed class StructuredWideInput
         int F62 = 0,
         int F63 = 0,
         int F64 = 0,
-        int F65 = 0)
+        int F65 = 0
+    )
     {
         this.F01 = F01;
         this.F02 = F02;
@@ -213,6 +214,7 @@ public sealed class StructuredWideInput
         this.F65 = F65;
     }
 }
+
 public sealed class StructuredWideSource : RowSource<StructuredWideRow>
 {
     private readonly IReadOnlyList<StructuredWideInput> _items;

@@ -13,32 +13,39 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialInterpret_CrossApplyValidData_ShouldReturnPartialResultShape()
     {
-        var query = @"
-            binary DebugPacket {
-                Magic: int le,
-                Version: byte
-            };
-            select
-                p.ParsedFields,
-                p.ErrorField,
-                p.ErrorMessage,
-                p.BytesConsumed
-            from #test.files() f
-            cross apply PartialInterpret<DebugPacket>(f.Content) p";
+        var query = (
+            "\n"
+            + "            binary DebugPacket {\n"
+            + "                Magic: int le,\n"
+            + "                Version: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                p.ParsedFields,\n"
+            + "                p.ErrorField,\n"
+            + "                p.ErrorMessage,\n"
+            + "                p.BytesConsumed\n"
+            + "            from #test.files() f\n"
+            + "            cross apply PartialInterpret<DebugPacket>(f.Content) p"
+        );
 
         var data = new byte[5];
         BitConverter.GetBytes(0x12345678).CopyTo(data, 0);
         data[4] = 7;
-        var entities = new[] { new BinaryEntity { Name = "valid.bin", Content = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "valid.bin", Content = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -46,7 +53,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("ParsedFields", PartialPayloadAssertions.ColumnType(table, "DebugPacket")),
             ("ErrorField", typeof(string)),
             ("ErrorMessage", typeof(string)),
-            ("BytesConsumed", typeof(int)));
+            ("BytesConsumed", typeof(int))
+        );
         Assert.AreEqual(1, table.Count);
         var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual(0x12345678, parsedFields["Magic"]);
@@ -59,30 +67,37 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialInterpret_CrossApplyMalformedData_ShouldReturnErrorMetadata()
     {
-        var query = @"
-            binary DebugPacket {
-                Magic: int le,
-                Version: byte
-            };
-            select
-                p.ParsedFields,
-                p.ErrorField,
-                p.ErrorMessage,
-                p.BytesConsumed
-            from #test.files() f
-            cross apply PartialInterpret<DebugPacket>(f.Content) p";
+        var query = (
+            "\n"
+            + "            binary DebugPacket {\n"
+            + "                Magic: int le,\n"
+            + "                Version: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                p.ParsedFields,\n"
+            + "                p.ErrorField,\n"
+            + "                p.ErrorMessage,\n"
+            + "                p.BytesConsumed\n"
+            + "            from #test.files() f\n"
+            + "            cross apply PartialInterpret<DebugPacket>(f.Content) p"
+        );
 
         var data = BitConverter.GetBytes(0x12345678);
-        var entities = new[] { new BinaryEntity { Name = "truncated.bin", Content = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "truncated.bin", Content = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -90,7 +105,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("ParsedFields", PartialPayloadAssertions.ColumnType(table, "DebugPacket")),
             ("ErrorField", typeof(string)),
             ("ErrorMessage", typeof(string)),
-            ("BytesConsumed", typeof(int)));
+            ("BytesConsumed", typeof(int))
+        );
         Assert.AreEqual(1, table.Count);
         var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual(0x12345678, parsedFields["Magic"]);
@@ -103,16 +119,22 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialInterpret_OutsideApply_ShouldReportInterpretFunctionOutsideApply()
     {
-        var query = @"
-            binary DebugPacket {
-                Magic: int le
-            };
-            select PartialInterpret<DebugPacket>(f.Content)
-            from #test.files() f";
+        var query = (
+            "\n"
+            + "            binary DebugPacket {\n"
+            + "                Magic: int le\n"
+            + "            };\n"
+            + "            select PartialInterpret<DebugPacket>(f.Content)\n"
+            + "            from #test.files() f"
+        );
 
-        var entities = new[] { new BinaryEntity { Name = "valid.bin", Content = BitConverter.GetBytes(1) } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "valid.bin", Content = BitConverter.GetBytes(1) },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileGeneratedQuery(
@@ -120,7 +142,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                 Guid.NewGuid().ToString(),
                 schemaProvider,
                 LoggerResolver,
-                TestCompilationOptions));
+                TestCompilationOptions
+            )
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3033_InterpretFunctionOutsideApply, DiagnosticPhase.Bind);
     }

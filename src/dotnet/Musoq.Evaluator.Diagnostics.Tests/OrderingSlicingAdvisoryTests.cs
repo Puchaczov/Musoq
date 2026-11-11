@@ -21,32 +21,43 @@ public sealed class OrderingSlicingAdvisoryTests
         var result = Analyze(query);
 
         AssertNoErrors(result);
-        Assert.IsFalse(result.Warnings.Any(static warning =>
-            warning.Code is DiagnosticCode.MQ5020_SetOperationOrderByScope or
-                DiagnosticCode.MQ5026_SetOperationSliceScope),
-            string.Join(" | ", result.Diagnostics));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning =>
+                warning.Code
+                    is DiagnosticCode.MQ5020_SetOperationOrderByScope
+                        or DiagnosticCode.MQ5026_SetOperationSliceScope
+            ),
+            string.Join(" | ", result.Diagnostics)
+        );
     }
 
     [TestMethod]
     public void SetOperation_Chain_DoesNotReportRetiredScopeWarnings()
     {
         var result = Analyze(
-            "select Name from #A.Entities() union select Name from #A.Entities() union all select Name from #A.Entities() order by Name skip 1 take 2");
+            "select Name from #A.Entities() union select Name from #A.Entities() union all select Name from #A.Entities() order by Name skip 1 take 2"
+        );
 
         AssertNoErrors(result);
-        Assert.IsFalse(result.Warnings.Any(static warning =>
-                warning.Code is DiagnosticCode.MQ5020_SetOperationOrderByScope or
-                    DiagnosticCode.MQ5026_SetOperationSliceScope),
-            string.Join(" | ", result.Diagnostics));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning =>
+                warning.Code
+                    is DiagnosticCode.MQ5020_SetOperationOrderByScope
+                        or DiagnosticCode.MQ5026_SetOperationSliceScope
+            ),
+            string.Join(" | ", result.Diagnostics)
+        );
     }
 
     [TestMethod]
     public void SetOperation_ResultOrderBy_ShouldRejectRightOperandAliasAndSourceQualifier()
     {
         var rightAlias = Analyze(
-            "select Name as Result from #A.Entities() union select City as Other from #A.Entities() order by Other");
+            "select Name as Result from #A.Entities() union select City as Other from #A.Entities() order by Other"
+        );
         var sourceQualifier = Analyze(
-            "select a.Name as Result from #A.Entities() a union select b.City from #A.Entities() b order by b.City");
+            "select a.Name as Result from #A.Entities() a union select b.City from #A.Entities() b order by b.City"
+        );
 
         Assert.IsTrue(rightAlias.HasErrors);
         Assert.IsTrue(rightAlias.Errors.Any(static error => error.Code == DiagnosticCode.MQ3001_UnknownColumn));
@@ -58,26 +69,33 @@ public sealed class OrderingSlicingAdvisoryTests
     public void ExplicitCteOperand_PreservesBranchLocalSliceWithoutMigrationWarning()
     {
         var result = Analyze(
-            "with sliced as (select Name from #A.Entities() order by Name take 1) select Name from #A.Entities() union select Name from sliced");
+            "with sliced as (select Name from #A.Entities() order by Name take 1) select Name from #A.Entities() union select Name from sliced"
+        );
 
         AssertNoErrors(result);
-        Assert.IsFalse(result.Warnings.Any(static warning =>
-            warning.Code is DiagnosticCode.MQ5020_SetOperationOrderByScope or
-                DiagnosticCode.MQ5026_SetOperationSliceScope),
-            string.Join(" | ", result.Diagnostics));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning =>
+                warning.Code
+                    is DiagnosticCode.MQ5020_SetOperationOrderByScope
+                        or DiagnosticCode.MQ5026_SetOperationSliceScope
+            ),
+            string.Join(" | ", result.Diagnostics)
+        );
     }
 
     [TestMethod]
     public void PositiveSkipWithoutOrderBy_ReportsOneWarningPerQuery()
     {
         var result = Analyze(
-            "with first_slice as (select Name from #A.Entities() skip 2), second_slice as (select Name from #A.Entities() skip 3) select Name from first_slice union select Name from second_slice");
+            "with first_slice as (select Name from #A.Entities() skip 2), second_slice as (select Name from #A.Entities() skip 3) select Name from first_slice union select Name from second_slice"
+        );
 
         AssertNoErrors(result);
         Assert.AreEqual(
             2,
             result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5021_UnorderedSkip),
-            string.Join(" | ", result.Diagnostics));
+            string.Join(" | ", result.Diagnostics)
+        );
     }
 
     [TestMethod]
@@ -98,21 +116,19 @@ public sealed class OrderingSlicingAdvisoryTests
     [TestMethod]
     public void NestedOrderedQuery_AndAliasOrdering_DoNotActivateDormantWarning()
     {
-        var result = Analyze(
-            "select Name as Label from #A.Entities() order by Label");
+        var result = Analyze("select Name as Label from #A.Entities() order by Label");
 
         AssertNoErrors(result);
-        Assert.IsFalse(result.Warnings.Any(static warning =>
-            warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5020_SetOperationOrderByScope)
+        );
     }
 
     private static QueryAnalysisResult Analyze(string query)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = []
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }
+        );
         return new QueryAnalyzer(provider).Analyze(query);
     }
 

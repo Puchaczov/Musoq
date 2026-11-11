@@ -12,20 +12,22 @@ namespace Musoq.Evaluator.Tests.Runtime;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
 {
-
     [TestMethod]
     public void TypedProjectionRows_ProjectValuesSerial_WhenCancelled_ShouldThrow()
     {
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
-        Assert.Throws<OperationCanceledException>(() => TypedProjectionRows
-            .ProjectValuesSerial(
-                Enumerable.Range(0, 10),
-                static _ => true,
-                static value => value,
-                cancellation.Token)
-            .ToArray());
+        Assert.Throws<OperationCanceledException>(() =>
+            TypedProjectionRows
+                .ProjectValuesSerial(
+                    Enumerable.Range(0, 10),
+                    static _ => true,
+                    static value => value,
+                    cancellation.Token
+                )
+                .ToArray()
+        );
     }
 
     [TestMethod]
@@ -34,13 +36,16 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
-        Assert.Throws<OperationCanceledException>(() => TableProjectionRows
-            .ProjectRowsSerial(
-                Enumerable.Range(0, 10),
-                static _ => true,
-                static value => new TestRow([value]),
-                cancellation.Token)
-            .ToArray());
+        Assert.Throws<OperationCanceledException>(() =>
+            TableProjectionRows
+                .ProjectRowsSerial(
+                    Enumerable.Range(0, 10),
+                    static _ => true,
+                    static value => new TestRow([value]),
+                    cancellation.Token
+                )
+                .ToArray()
+        );
     }
 
     [TestMethod]
@@ -53,16 +58,11 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
             maxDegreeOfParallelism: 4,
             static value => value % 3 == 0,
             static value => new TestRow([value * 2]),
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
-        var projected = QueryRows
-            .FromRowShards(shards)
-            .Select(static row => (int)row.ReadValue(0))
-            .ToArray();
-        var expected = rows
-            .Where(static value => value % 3 == 0)
-            .Select(static value => value * 2)
-            .ToArray();
+        var projected = QueryRows.FromRowShards(shards).Select(static row => (int)row.ReadValue(0)).ToArray();
+        var expected = rows.Where(static value => value % 3 == 0).Select(static value => value * 2).ToArray();
 
         CollectionAssert.AreEqual(expected, projected);
     }
@@ -73,7 +73,7 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
         IReadOnlyList<IReadOnlyList<int>> chunks =
         [
             Enumerable.Range(0, 2_048).ToArray(),
-            Enumerable.Range(2_048, 2_048).ToArray()
+            Enumerable.Range(2_048, 2_048).ToArray(),
         ];
 
         var rows = EvaluationHelper.GetParallelProjectionRowsOrEmpty(chunks, threshold: 4_096);
@@ -108,7 +108,8 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
             maxDegreeOfParallelism: 4,
             static _ => false,
             static value => new TestRow([value]),
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
         Assert.HasCount(1, shards);
         Assert.AreEqual(0, shards[0].Count);
@@ -121,12 +122,10 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
             [1, 2, 3],
             maxDegreeOfParallelism: 4,
             static value => value == 2 ? null! : new TestRow([value]),
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
-        var projected = QueryRows
-            .FromRowShards(shards)
-            .Select(static row => (int)row.ReadValue(0))
-            .ToArray();
+        var projected = QueryRows.FromRowShards(shards).Select(static row => (int)row.ReadValue(0)).ToArray();
 
         CollectionAssert.AreEqual(new[] { 1, 3 }, projected);
     }
@@ -139,7 +138,8 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
             maxDegreeOfParallelism: 4,
             static _ => true,
             static value => value,
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
         Assert.AreEqual(0, shards.Length);
     }
@@ -152,7 +152,8 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
         using var bothWorkersStarted = new CountdownEvent(2);
         var startedWorkers = 0;
 
-        var projected = TypedProjectionRows.ProjectChunkedValuesParallel(
+        var projected = TypedProjectionRows
+            .ProjectChunkedValuesParallel(
                 CreateRangeChunks(2_048, 0, 2_048),
                 maxDegreeOfParallelism: 2,
                 static _ => true,
@@ -167,7 +168,8 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
 
                     return value;
                 },
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .Take(2)
             .ToArray();
 
@@ -181,7 +183,8 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
         var callerThread = Environment.CurrentManagedThreadId;
         var projectionThreads = new ConcurrentQueue<int>();
 
-        var projected = TypedProjectionRows.ProjectChunkedValuesParallel(
+        var projected = TypedProjectionRows
+            .ProjectChunkedValuesParallel(
                 CreateSingleValueChunks(0, 1, 2),
                 maxDegreeOfParallelism: 4,
                 static _ => true,
@@ -190,7 +193,8 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
                     projectionThreads.Enqueue(Environment.CurrentManagedThreadId);
                     return value;
                 },
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .ToArray();
 
         CollectionAssert.AreEqual(new[] { 0, 1, 2 }, projected);
@@ -204,7 +208,8 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
     {
         using var secondChunkStarted = new ManualResetEventSlim();
 
-        var projected = TypedProjectionRows.ProjectChunkedValuesParallel(
+        var projected = TypedProjectionRows
+            .ProjectChunkedValuesParallel(
                 CreateRangeChunks(2_048, 0, 2_048),
                 maxDegreeOfParallelism: 2,
                 static _ => true,
@@ -218,7 +223,8 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
 
                     return value;
                 },
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .ToArray();
 
         CollectionAssert.AreEqual(Enumerable.Range(0, 4_096).ToArray(), projected);
@@ -228,12 +234,14 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
     public void ProjectChunkedValuesParallel_WhenConsumerStopsEarly_ShouldDisposeSourceEnumerator()
     {
         var chunks = new TrackingChunkEnumerable();
-        using var enumerator = TypedProjectionRows.ProjectChunkedValuesParallel(
+        using var enumerator = TypedProjectionRows
+            .ProjectChunkedValuesParallel(
                 chunks,
                 maxDegreeOfParallelism: 2,
                 static _ => true,
                 static value => value,
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .GetEnumerator();
 
         Assert.IsTrue(enumerator.MoveNext());
@@ -249,14 +257,17 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
     {
         var expected = new InvalidOperationException("projection failed");
 
-        var actual = Assert.Throws<InvalidOperationException>(() => TypedProjectionRows
-            .ProjectChunkedValuesParallel(
-                CreateSingleValueChunks(0, 1),
-                maxDegreeOfParallelism: 2,
-                static _ => true,
-                value => value == 1 ? throw expected : value,
-                CancellationToken.None)
-            .ToArray());
+        var actual = Assert.Throws<InvalidOperationException>(() =>
+            TypedProjectionRows
+                .ProjectChunkedValuesParallel(
+                    CreateSingleValueChunks(0, 1),
+                    maxDegreeOfParallelism: 2,
+                    static _ => true,
+                    value => value == 1 ? throw expected : value,
+                    CancellationToken.None
+                )
+                .ToArray()
+        );
 
         Assert.AreSame(expected, actual);
     }
@@ -266,14 +277,17 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
     {
         var expected = new InvalidOperationException("source failed");
 
-        var actual = Assert.Throws<InvalidOperationException>(() => TypedProjectionRows
-            .ProjectChunkedValuesParallel(
-                ThrowingChunks(expected),
-                maxDegreeOfParallelism: 2,
-                static _ => true,
-                static value => value,
-                CancellationToken.None)
-            .ToArray());
+        var actual = Assert.Throws<InvalidOperationException>(() =>
+            TypedProjectionRows
+                .ProjectChunkedValuesParallel(
+                    ThrowingChunks(expected),
+                    maxDegreeOfParallelism: 2,
+                    static _ => true,
+                    static value => value,
+                    CancellationToken.None
+                )
+                .ToArray()
+        );
 
         Assert.AreSame(expected, actual);
     }
@@ -281,18 +295,14 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
     [TestMethod]
     public void ProjectChunkedValuesParallel_WhenRowsAreRejectedOrChunksAreEmpty_ShouldReturnAcceptedRows()
     {
-        var projected = TypedProjectionRows.ProjectChunkedValuesParallel(
-                new IReadOnlyList<int>[]
-                {
-                    Array.Empty<int>(),
-                    new[] { 0, 1, 2 },
-                    Array.Empty<int>(),
-                    new[] { 3, 4 }
-                },
+        var projected = TypedProjectionRows
+            .ProjectChunkedValuesParallel(
+                new IReadOnlyList<int>[] { Array.Empty<int>(), new[] { 0, 1, 2 }, Array.Empty<int>(), new[] { 3, 4 } },
                 maxDegreeOfParallelism: 2,
                 static value => value % 2 == 0,
                 static value => value * 10,
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .ToArray();
 
         CollectionAssert.AreEqual(new[] { 0, 20, 40 }, projected);
@@ -301,12 +311,14 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
     [TestMethod]
     public void ProjectChunkedRowsParallel_ShouldProjectTableRowsInSourceOrder()
     {
-        var projected = EvaluationHelper.ProjectChunkedRowsParallel<int, TestRow>(
+        var projected = EvaluationHelper
+            .ProjectChunkedRowsParallel<int, TestRow>(
                 CreateSingleValueChunks(0, 1, 2, 3),
                 maxDegreeOfParallelism: 2,
                 static value => value % 2 == 1,
                 static value => new TestRow([value * 10]),
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .Select(static row => (int)row.ReadValue(0))
             .ToArray();
 

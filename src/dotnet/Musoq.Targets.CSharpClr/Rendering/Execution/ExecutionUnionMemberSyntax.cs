@@ -11,7 +11,10 @@ public sealed partial class ExecutionCSharpRenderer
         var receiver = RenderExpression(member.Receiver, context);
         var type = member.InterpretationShape?.TypeName ?? CreateTypeSyntax(member.ReturnType).ToString();
         var cases = member.Cases.Select(arm =>
-            $"{arm.TypeName} __unionMember => ({type})__unionMember.{EscapeIdentifier(arm.MemberName)}");
-        return SyntaxFactory.ParseExpression($"(({receiver}) switch {{ {string.Join(", ", cases)}, _ => ({type})null }})");
+            $"{arm.TypeName} __unionMember => ({type})__unionMember.{EscapeIdentifier(arm.MemberName)}"
+        );
+        return SyntaxFactory.ParseExpression(
+            $"(({receiver}) switch {{ {string.Join(", ", cases)}, _ => ({type})null }})"
+        );
     }
 }

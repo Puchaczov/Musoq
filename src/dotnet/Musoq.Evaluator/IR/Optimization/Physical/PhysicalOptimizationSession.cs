@@ -10,7 +10,8 @@ internal sealed class PhysicalOptimizationSession
     public PhysicalOptimizationSession(
         PlanProperties properties,
         CompilationOptions compilationOptions,
-        IPlanningShapeResolver shapeResolver)
+        IPlanningShapeResolver shapeResolver
+    )
     {
         ArgumentNullException.ThrowIfNull(properties);
         ArgumentNullException.ThrowIfNull(compilationOptions);
@@ -40,4 +41,3 @@ internal sealed class PhysicalOptimizationSession
         _decisions.Add(decision);
     }
 }
-

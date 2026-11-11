@@ -20,9 +20,12 @@ public sealed class DiagnosticText051TextSchemaCompositionTests
         var visitor = new SchemaDefinitionVisitor(registry);
 
         visitor.Visit(new TextSchemaNode("Item", [new TextFieldDefinitionNode("Value", TextFieldType.Rest)]));
-        visitor.Visit(new TextSchemaNode(
-            "Container",
-            [new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Item")]));
+        visitor.Visit(
+            new TextSchemaNode(
+                "Container",
+                [new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Item")]
+            )
+        );
 
         Assert.AreEqual(2, registry.Count);
     }
@@ -32,10 +35,10 @@ public sealed class DiagnosticText051TextSchemaCompositionTests
     {
         var registry = new SchemaRegistry();
         var visitor = new SchemaDefinitionVisitor(registry);
-        var field = (TextFieldDefinitionNode)new TextFieldDefinitionNode(
-            "Header",
-            TextFieldType.SchemaReference,
-            "Missing").WithSpan(new TextSpan(20, 6));
+        var field = (TextFieldDefinitionNode)
+            new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Missing").WithSpan(
+                new TextSpan(20, 6)
+            );
 
         var schema = new TextSchemaNode("Container", [field]);
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(schema));
@@ -51,7 +54,8 @@ public sealed class DiagnosticText051TextSchemaCompositionTests
         var visitor = new SchemaDefinitionVisitor(registry);
         var schema = new TextSchemaNode(
             "Container",
-            [new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Item")]);
+            [new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Item")]
+        );
 
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(schema));
 
@@ -67,7 +71,8 @@ public sealed class DiagnosticText051TextSchemaCompositionTests
         visitor.Visit(new BinarySchemaNode("Binary", []));
         var schema = new TextSchemaNode(
             "Container",
-            [new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Binary")]);
+            [new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Binary")]
+        );
 
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(schema));
 
@@ -81,7 +86,8 @@ public sealed class DiagnosticText051TextSchemaCompositionTests
         var visitor = new SchemaDefinitionVisitor(registry);
         var schema = new TextSchemaNode(
             "Container",
-            [new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Container")]);
+            [new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Container")]
+        );
 
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(schema));
 
@@ -95,10 +101,9 @@ public sealed class DiagnosticText051TextSchemaCompositionTests
         var visitor = new SchemaDefinitionVisitor(registry);
         visitor.Visit(new TextSchemaNode("Base", [new TextFieldDefinitionNode("Prefix", TextFieldType.Literal, "X")]));
 
-        visitor.Visit(new TextSchemaNode(
-            "Derived",
-            [new TextFieldDefinitionNode("Suffix", TextFieldType.Rest)],
-            "Base"));
+        visitor.Visit(
+            new TextSchemaNode("Derived", [new TextFieldDefinitionNode("Suffix", TextFieldType.Rest)], "Base")
+        );
 
         Assert.AreEqual(2, registry.Count);
     }
@@ -119,10 +124,14 @@ public sealed class DiagnosticText051TextSchemaCompositionTests
     [TestMethod]
     public void DependencyGraph_DirectTextReference_ShouldKeepReferencedSchema()
     {
-        var queryTree = ParseQuery(@"
-            text Item { Value: rest };
-            text Container { Header: Item };
-            select c from #system.dual() d cross apply Parse<Container>(d.Dummy) c");
+        var queryTree = ParseQuery(
+            (
+                "\n"
+                + "            text Item { Value: rest };\n"
+                + "            text Container { Header: Item };\n"
+                + "            select c from #system.dual() d cross apply Parse<Container>(d.Dummy) c"
+            )
+        );
 
         var registry = new SchemaRegistry();
         var definitionVisitor = new SchemaDefinitionVisitor(registry);

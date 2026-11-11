@@ -11,9 +11,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var source = ReadSample("Q231_PublicDynamicRootConstant.cs").Content;
         var generated = GeneratedSection(source);
 
-        Assert.Contains(
-            "SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>",
-            generated);
+        Assert.Contains("SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>", generated);
         Assert.DoesNotContain("SourceInvocation<object>", generated);
         Assert.DoesNotContain("SourceInvocation<dynamic>", generated);
         Assert.DoesNotContain("((dynamic)", generated);
@@ -27,9 +25,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var source = ReadSample("Q232_PublicDynamicRootFilterProjection.cs").Content;
         var generated = GeneratedSection(source);
 
-        Assert.Contains(
-            "SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>",
-            generated);
+        Assert.Contains("SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>", generated);
         Assert.DoesNotContain("((dynamic)", generated);
         Assert.Contains(".RuntimeKey", generated);
         Assert.Contains(".Enabled", generated);
@@ -67,12 +63,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var source = ReadSample("Q234_PublicDynamicJoinMethod.cs").Content;
         var generated = GeneratedSection(source);
 
-        Assert.Contains(
-            "SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>",
-            generated);
+        Assert.Contains("SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>", generated);
         Assert.Contains(
             "SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicLookupRow>",
-            generated);
+            generated
+        );
         Assert.Contains("Scale(", generated);
         Assert.DoesNotContain("dynamic).Scale", generated);
         Assert.DoesNotContain("GetMember", generated);

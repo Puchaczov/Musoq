@@ -5,7 +5,8 @@ internal sealed record CteSidecarIndexSpec(
     CteSidecarIndexKind Kind,
     string[] KeyColumns,
     Type KeyType,
-    int IndexSlot)
+    int IndexSlot
+)
 {
     public string StableKey => CteSidecarIndexPlanner.CreateStableKey(CteName, Kind, KeyColumns);
 }

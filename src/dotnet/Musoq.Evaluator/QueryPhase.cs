@@ -33,5 +33,5 @@ public enum QueryPhase
     /// <summary>
     ///     The query scope has terminated.
     /// </summary>
-    End
+    End,
 }

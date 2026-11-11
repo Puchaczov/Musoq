@@ -12,7 +12,8 @@ internal static partial class EvaluatorSampleFixtures
                 @"unpivot #A.entities() s
                   on Metric in (s.Population as Population, s.Money as Money)
                   using Amount
-                  keep s.Country as Country"),
+                  keep s.Country as Country"
+            ),
             Basic(
                 "Q160_UnpivotCteNullableOrdering",
                 "Unpivot",
@@ -26,7 +27,8 @@ internal static partial class EvaluatorSampleFixtures
                   from u
                   order by Label, Metric
                   skip 1
-                  take 5"),
+                  take 5"
+            ),
             Basic(
                 "Q161_UnpivotSetOperator",
                 "Unpivot",
@@ -39,7 +41,8 @@ internal static partial class EvaluatorSampleFixtures
                   on Metric in (s.Money as Money)
                   using Amount
                   keep s.Name as Name
-                  order by Name")
+                  order by Name"
+            ),
         ];
     }
 }

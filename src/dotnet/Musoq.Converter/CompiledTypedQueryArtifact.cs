@@ -24,9 +24,13 @@ public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
         QueryResultMode resultMode,
         Type outputType,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId,
-        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> sourceRuntimeSettingDescriptionsBySourceContextId,
+        IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > sourceRuntimeSettingDescriptionsBySourceContextId,
         IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans,
-        IReadOnlyList<ScriptParameterDefinition> parameterDefinitions)
+        IReadOnlyList<ScriptParameterDefinition> parameterDefinitions
+    )
         : this(
             dllFile,
             pdbFile,
@@ -37,9 +41,8 @@ public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
             sourceRuntimeSettingDescriptionsBySourceContextId,
             sourceExecutionPlans,
             parameterDefinitions,
-            [])
-    {
-    }
+            []
+        ) { }
 
     internal CompiledTypedQueryArtifact(
         byte[] dllFile,
@@ -48,10 +51,14 @@ public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
         QueryResultMode resultMode,
         Type outputType,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId,
-        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> sourceRuntimeSettingDescriptionsBySourceContextId,
+        IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > sourceRuntimeSettingDescriptionsBySourceContextId,
         IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans,
         IReadOnlyList<ScriptParameterDefinition> parameterDefinitions,
-        IReadOnlyList<InMemorySourceSlot> inMemorySourceSlots)
+        IReadOnlyList<InMemorySourceSlot> inMemorySourceSlots
+    )
     {
         _dllFile = CopyBytes(dllFile ?? throw new ArgumentNullException(nameof(dllFile)));
         _pdbFile = CopyBytesOrNull(pdbFile);
@@ -62,25 +69,31 @@ public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
         OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
         OutputTypeName = outputType.AssemblyQualifiedName ?? outputType.FullName ?? outputType.Name;
         SourceRuntimeSettingsBySourceContextId = ArtifactMetadataSnapshot.CopySourceRuntimeSettings(
-            sourceRuntimeSettingsBySourceContextId ??
-            throw new ArgumentNullException(nameof(sourceRuntimeSettingsBySourceContextId)));
-        SourceRuntimeSettingDescriptionsBySourceContextId = ArtifactMetadataSnapshot.CopySourceRuntimeSettingDescriptions(
-            sourceRuntimeSettingDescriptionsBySourceContextId ??
-            throw new ArgumentNullException(nameof(sourceRuntimeSettingDescriptionsBySourceContextId)));
+            sourceRuntimeSettingsBySourceContextId
+                ?? throw new ArgumentNullException(nameof(sourceRuntimeSettingsBySourceContextId))
+        );
+        SourceRuntimeSettingDescriptionsBySourceContextId =
+            ArtifactMetadataSnapshot.CopySourceRuntimeSettingDescriptions(
+                sourceRuntimeSettingDescriptionsBySourceContextId
+                    ?? throw new ArgumentNullException(nameof(sourceRuntimeSettingDescriptionsBySourceContextId))
+            );
         SourceExecutionPlans = ArtifactMetadataSnapshot.CopySourceExecutionPlans(
-            sourceExecutionPlans ?? throw new ArgumentNullException(nameof(sourceExecutionPlans)));
-        ParameterDefinitions = (parameterDefinitions ?? throw new ArgumentNullException(nameof(parameterDefinitions))).ToArray();
-        ParameterContracts = ParameterDefinitions
-            .Select(static definition => definition.Contract)
-            .ToArray();
-        InMemorySourceSlots = (inMemorySourceSlots ?? throw new ArgumentNullException(nameof(inMemorySourceSlots))).ToArray();
+            sourceExecutionPlans ?? throw new ArgumentNullException(nameof(sourceExecutionPlans))
+        );
+        ParameterDefinitions = (
+            parameterDefinitions ?? throw new ArgumentNullException(nameof(parameterDefinitions))
+        ).ToArray();
+        ParameterContracts = ParameterDefinitions.Select(static definition => definition.Contract).ToArray();
+        InMemorySourceSlots = (
+            inMemorySourceSlots ?? throw new ArgumentNullException(nameof(inMemorySourceSlots))
+        ).ToArray();
         ArtifactVersion = CurrentArtifactVersion;
         EngineVersion = CurrentEngineVersion;
         RuntimeVersion = CurrentRuntimeVersion;
         RuntimeContractSignature = RuntimeV2Contract.ContractSignature;
-        _sourceSlotIdentities = Array.AsReadOnly(InMemorySourceSlots
-            .Select(TypedArtifactSourceSlotIdentity.FromSlot)
-            .ToArray());
+        _sourceSlotIdentities = Array.AsReadOnly(
+            InMemorySourceSlots.Select(TypedArtifactSourceSlotIdentity.FromSlot).ToArray()
+        );
     }
 
     public int ArtifactVersion { get; }
@@ -103,9 +116,15 @@ public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
 
     public string OutputTypeName { get; }
 
-    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; }
+    public IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > SourceRuntimeSettingsBySourceContextId { get; }
 
-    public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; }
+    public IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId { get; }
 
     public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; }
 

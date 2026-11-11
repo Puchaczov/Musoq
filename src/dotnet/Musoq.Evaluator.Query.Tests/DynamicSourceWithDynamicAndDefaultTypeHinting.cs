@@ -11,19 +11,12 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBase
 {
-
     [TestMethod]
     public void WithDynamicSource_AccessComplexObjectProperties_ShouldPass()
     {
         const string query = "select Multiform.AsInt, Multiform.AsDouble from #dynamic.all()";
-        var sources = new List<dynamic>
-        {
-            CreateExpandoObject(new MultiformType(2.99d))
-        };
-        var schema = new Dictionary<string, Type>
-        {
-            { "Multiform", typeof(MultiformType) }
-        };
+        var sources = new List<dynamic> { CreateExpandoObject(new MultiformType(2.99d)) };
+        var schema = new Dictionary<string, Type> { { "Multiform", typeof(MultiformType) } };
 
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
 

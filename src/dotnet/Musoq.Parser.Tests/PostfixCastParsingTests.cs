@@ -47,8 +47,7 @@ public class PostfixCastParsingTests
     [TestMethod]
     public void PostfixCast_OnWindowMethodCall_ShouldWrapWindowFunction()
     {
-        var query = ParseSingleQuery(
-            "select RowNumber() over (order by A)::int from schema.method()");
+        var query = ParseSingleQuery("select RowNumber() over (order by A)::int from schema.method()");
 
         var cast = AssertExpression<CastNode>(query, 0);
 

@@ -16,20 +16,20 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q223_RecursiveUncorrelatedApplySnapshot.cs",
         "Q224_RecursiveCompositeInvariantSubplan.cs",
         "Q225_RecursiveMutableSourceValueSnapshot.cs",
-        "Q226_RecursiveSnapshotLimitCodeShape.cs"
+        "Q226_RecursiveSnapshotLimitCodeShape.cs",
     ];
 
     private static readonly string[] RecursiveCorrelatedApplySampleFileNames =
     [
         "Q200_RecursiveCrossApplyNeighbors.cs",
-        "Q201_RecursiveOuterApplyNeighbors.cs"
+        "Q201_RecursiveOuterApplyNeighbors.cs",
     ];
 
     private static readonly string[] RecursiveWaveFiveSampleFileNames =
     [
         .. RecursiveSnapshotSampleFileNames,
         .. RecursiveCorrelatedApplySampleFileNames,
-        "Q204_RecursivePriorValuesCteEdges.cs"
+        "Q204_RecursivePriorValuesCteEdges.cs",
     ];
 
     public static IEnumerable<object[]> RecursiveSnapshotSampleData =>
@@ -50,7 +50,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var memberIndex = execution.IndexOf(
             "  RecursiveMember",
             setupIndex + "  InvariantSetup".Length,
-            StringComparison.Ordinal);
+            StringComparison.Ordinal
+        );
         var createIndex = execution.IndexOf("Create", setupIndex, StringComparison.Ordinal);
         var carrierIndex = code.IndexOf("private readonly struct Cte0Invariant0Row0", StringComparison.Ordinal);
 
@@ -67,7 +68,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.AreEqual(
             CountText(code, "MQ7009_RecursiveCteSnapshotLimitExceeded"),
             CountText(code, "__cte0SnapshotRows++;"),
-            fileName);
+            fileName
+        );
         Assert.AreEqual(1, CountText(code, "while (cte0CurrentFrontier.Count > 0)"), fileName);
         Assert.IsFalse(execution.Contains("MaterializeChunked [", StringComparison.Ordinal), fileName);
         Assert.IsFalse(code.Contains("MaterializeChunkedRows", StringComparison.Ordinal), fileName);
@@ -83,14 +85,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var memberIndex = execution.IndexOf(
             "  RecursiveMember",
             setupIndex + "  InvariantSetup".Length,
-            StringComparison.Ordinal);
+            StringComparison.Ordinal
+        );
         var hashPlanIndex = execution.IndexOf("CreateHash [", setupIndex, StringComparison.Ordinal);
         var hashCodeIndex = code.IndexOf(
             "var cte0Invariant0Hash = new Dictionary<int, HashJoinBucket<Cte0Invariant0Row0>>",
-            StringComparison.Ordinal);
-        var loopCodeIndex = sample.Content.IndexOf(
-            "while (cte0CurrentFrontier.Count > 0)",
-            StringComparison.Ordinal);
+            StringComparison.Ordinal
+        );
+        var loopCodeIndex = sample.Content.IndexOf("while (cte0CurrentFrontier.Count > 0)", StringComparison.Ordinal);
 
         Assert.IsGreaterThan(setupIndex, hashPlanIndex);
         Assert.IsGreaterThan(hashPlanIndex, memberIndex);
@@ -98,13 +100,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsGreaterThan(hashCodeIndex, loopCodeIndex);
         Assert.IsGreaterThan(
             code.IndexOf("if (__cte0SnapshotRows >= 10000000)", StringComparison.Ordinal),
-            code.IndexOf("__cte0SnapshotRows++;", StringComparison.Ordinal));
+            code.IndexOf("__cte0SnapshotRows++;", StringComparison.Ordinal)
+        );
         Assert.IsGreaterThan(
             code.IndexOf("__cte0SnapshotRows++;", StringComparison.Ordinal),
-            code.IndexOf("Cte0Invariant0Row0 cte0Invariant0Row", StringComparison.Ordinal));
+            code.IndexOf("Cte0Invariant0Row0 cte0Invariant0Row", StringComparison.Ordinal)
+        );
         Assert.AreEqual(1, CountText(code, "var cte0Invariant0Hash = new Dictionary<"));
-        Assert.IsFalse(
-            execution[memberIndex..].Contains("CreateHash [cte0Invariant0Hash", StringComparison.Ordinal));
+        Assert.IsFalse(execution[memberIndex..].Contains("CreateHash [cte0Invariant0Hash", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -115,13 +118,23 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var execution = ReadExecutionPlan(fileName);
         var code = ReadGeneratedCode(fileName);
         var memberIndex = execution.IndexOf("  RecursiveMember", StringComparison.Ordinal);
-        var sourceIndex = execution.IndexOf("SourceScan [e: RecursiveGraphEdge]", memberIndex, StringComparison.Ordinal);
+        var sourceIndex = execution.IndexOf(
+            "SourceScan [e: RecursiveGraphEdge]",
+            memberIndex,
+            StringComparison.Ordinal
+        );
 
         Assert.IsFalse(execution.Contains("  InvariantSetup", StringComparison.Ordinal), fileName);
         Assert.IsGreaterThanOrEqualTo(0, memberIndex, fileName);
         Assert.IsGreaterThan(memberIndex, sourceIndex, fileName);
-        Assert.IsFalse(execution.Contains("CreateTable [cte0NextFrontier_statement", StringComparison.Ordinal), fileName);
-        Assert.IsFalse(execution.Contains("StoreTable [cte0NextFrontier_statement", StringComparison.Ordinal), fileName);
+        Assert.IsFalse(
+            execution.Contains("CreateTable [cte0NextFrontier_statement", StringComparison.Ordinal),
+            fileName
+        );
+        Assert.IsFalse(
+            execution.Contains("StoreTable [cte0NextFrontier_statement", StringComparison.Ordinal),
+            fileName
+        );
         Assert.IsFalse(code.Contains("_tableResults[", StringComparison.Ordinal), fileName);
         Assert.IsFalse(execution.Contains("NextFrontierStatement", StringComparison.Ordinal), fileName);
     }
@@ -153,7 +166,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             Assert.IsFalse(
                 code.Replace("Action<string, QueryPhase> OnPhaseChanged", string.Empty, StringComparison.Ordinal)
                     .Contains("Action<", StringComparison.Ordinal),
-                fileName);
+                fileName
+            );
             Assert.IsFalse(code.Contains("Func<", StringComparison.Ordinal), fileName);
         }
     }

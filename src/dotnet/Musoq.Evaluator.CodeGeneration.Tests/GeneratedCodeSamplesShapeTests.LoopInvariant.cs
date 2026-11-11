@@ -12,9 +12,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         StringAssert.Contains(generated, "int aValue =");
         Assert.IsTrue(
-            generated.Contains("int abaValue =", StringComparison.Ordinal) ||
-            generated.Contains("int abValue =", StringComparison.Ordinal),
-            "The middle-loop stable value should be represented by an eager local.");
+            generated.Contains("int abaValue =", StringComparison.Ordinal)
+                || generated.Contains("int abValue =", StringComparison.Ordinal),
+            "The middle-loop stable value should be represented by an eager local."
+        );
         StringAssert.Contains(generated, "c.Value");
         AssertNoLazyHoistingGuard(generated);
     }

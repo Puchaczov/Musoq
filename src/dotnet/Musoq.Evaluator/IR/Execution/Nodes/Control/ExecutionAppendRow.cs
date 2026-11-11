@@ -10,7 +10,8 @@ public sealed record ExecutionAppendRow : ExecutionNode
         IReadOnlyList<ExecutionRowValue> values,
         IReadOnlyList<ExecutionExpression> contexts,
         ExecutionAppendMode appendMode = ExecutionAppendMode.Checked,
-        ExecutionContextLayout? contextLayout = null)
+        ExecutionContextLayout? contextLayout = null
+    )
     {
         Table = table;
         RowShape = rowShape;
@@ -30,17 +31,15 @@ public sealed record ExecutionAppendRow : ExecutionNode
     public ExecutionAppendRow(
         ExecutionVariable table,
         GeneratedRowShape rowShape,
-        IReadOnlyList<ExecutionRowValue> values)
-        : this(table, rowShape, values, [])
-    {
-    }
+        IReadOnlyList<ExecutionRowValue> values
+    )
+        : this(table, rowShape, values, []) { }
 
     public ExecutionAppendRow(
         ExecutionVariable table,
         GeneratedRowShape rowShape,
         IReadOnlyList<ExecutionRowValue> values,
-        ExecutionAppendMode appendMode)
-        : this(table, rowShape, values, [], appendMode)
-    {
-    }
+        ExecutionAppendMode appendMode
+    )
+        : this(table, rowShape, values, [], appendMode) { }
 }

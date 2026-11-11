@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Reflection;
-using Musoq.Plugins.Attributes;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser.Nodes;
+using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -12,16 +12,18 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ExecutionExpression ConvertWindowInputExpression(
         IrExpression expression,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        IReadOnlyDictionary<string, string> aggregateSourceFields)
+        IReadOnlyDictionary<string, string> aggregateSourceFields
+    )
     {
-        return ResolveWindowAggregateSourceRead(expression, sourceLookup, aggregateSourceFields) ??
-               ExecutionExpressionConverter.Convert(expression, sourceLookup);
+        return ResolveWindowAggregateSourceRead(expression, sourceLookup, aggregateSourceFields)
+            ?? ExecutionExpressionConverter.Convert(expression, sourceLookup);
     }
 
     private static PluginWindowArgumentsBuildResult CreatePluginWindowArguments(
         WindowRegistration registration,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        IReadOnlyDictionary<string, string> aggregateSourceFields)
+        IReadOnlyDictionary<string, string> aggregateSourceFields
+    )
     {
         ExecutionExpression value = new ExecutionLiteral(1, typeof(int));
         if (registration.ValueArguments.Length > 0)
@@ -30,7 +32,11 @@ internal sealed partial class PhysicalLoweringImplementation
         var rowScopedArguments = new List<bool>(Math.Max(0, registration.ValueArguments.Length - 1));
         for (var index = 1; index < registration.ValueArguments.Length; index++)
         {
-            var argument = ConvertWindowInputExpression(registration.ValueArguments[index], sourceLookup, aggregateSourceFields);
+            var argument = ConvertWindowInputExpression(
+                registration.ValueArguments[index],
+                sourceLookup,
+                aggregateSourceFields
+            );
             arguments.Add(argument);
             rowScopedArguments.Add(ContainsRowScopedRead(argument));
         }
@@ -43,7 +49,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 if (!parameters[index].HasDefaultValue)
                     throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
                         $"Window '{registration.FunctionName}' is missing required argument '{parameters[index].Name}'.",
-                        Musoq.Parser.TextSpan.Empty);
+                        Musoq.Parser.TextSpan.Empty
+                    );
                 arguments.Add(new ExecutionLiteral(parameters[index].DefaultValue, parameters[index].ParameterType));
                 rowScopedArguments.Add(false);
             }
@@ -67,7 +74,8 @@ internal sealed partial class PhysicalLoweringImplementation
             : new ExecutionWindowFrame(
                 CreateWindowFrameKind(frame.FrameType),
                 CreateWindowFrameBound(frame.Start),
-                CreateWindowFrameBound(frame.End));
+                CreateWindowFrameBound(frame.End)
+            );
     }
 
     private static ExecutionWindowFrameKind CreateWindowFrameKind(WindowFrameType frameType)
@@ -76,7 +84,7 @@ internal sealed partial class PhysicalLoweringImplementation
         {
             WindowFrameType.Rows => ExecutionWindowFrameKind.Rows,
             WindowFrameType.Range => ExecutionWindowFrameKind.Range,
-            _ => throw new ArgumentOutOfRangeException(nameof(frameType), frameType, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(frameType), frameType, null),
         };
     }
 
@@ -94,31 +102,34 @@ internal sealed partial class PhysicalLoweringImplementation
             WindowFrameBoundType.CurrentRow => ExecutionWindowFrameBoundKind.CurrentRow,
             WindowFrameBoundType.OffsetPreceding => ExecutionWindowFrameBoundKind.OffsetPreceding,
             WindowFrameBoundType.OffsetFollowing => ExecutionWindowFrameBoundKind.OffsetFollowing,
-            _ => throw new ArgumentOutOfRangeException(nameof(boundType), boundType, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(boundType), boundType, null),
         };
     }
 
     private static OffsetWindowArgumentsBuildResult CreateOffsetWindowArguments(
         WindowRegistration registration,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        IReadOnlyDictionary<string, string> aggregateSourceFields)
+        IReadOnlyDictionary<string, string> aggregateSourceFields
+    )
     {
         var value = ConvertWindowInputExpression(registration.ValueArguments[0], sourceLookup, aggregateSourceFields);
-        var offset = registration.ValueArguments.Length > 1
-            ? ConvertWindowInputExpression(registration.ValueArguments[1], sourceLookup, aggregateSourceFields)
-            : new ExecutionLiteral(1, typeof(int));
+        var offset =
+            registration.ValueArguments.Length > 1
+                ? ConvertWindowInputExpression(registration.ValueArguments[1], sourceLookup, aggregateSourceFields)
+                : new ExecutionLiteral(1, typeof(int));
 
         if (offset.ReturnType.ResolveClrType() != typeof(int))
         {
             return OffsetWindowArgumentsBuildResult.Unsupported(
-                $"Execution IR offset window lowering requires an int offset. Found {offset.ReturnType.ResolveClrType().Name}.");
+                $"Execution IR offset window lowering requires an int offset. Found {offset.ReturnType.ResolveClrType().Name}."
+            );
         }
 
-        var defaultValue = registration.ValueArguments.Length > 2
-            ? ConvertWindowInputExpression(registration.ValueArguments[2], sourceLookup, aggregateSourceFields)
-            : new ExecutionLiteral(null, typeof(object));
+        var defaultValue =
+            registration.ValueArguments.Length > 2
+                ? ConvertWindowInputExpression(registration.ValueArguments[2], sourceLookup, aggregateSourceFields)
+                : new ExecutionLiteral(null, typeof(object));
 
         return OffsetWindowArgumentsBuildResult.Success(value, offset, defaultValue);
     }
-
 }

@@ -45,7 +45,7 @@ public sealed class StructuredInputCornerCasePopulationTests
         "invalid|record-missing-colon",
         "invalid|parameter-missing-colon",
         "invalid|desc-keyword-typo",
-        "invalid|unterminated-string"
+        "invalid|unterminated-string",
     ];
 
     [TestMethod]
@@ -59,13 +59,12 @@ public sealed class StructuredInputCornerCasePopulationTests
 
         for (var index = 0; index < CaseCount; index++)
         {
-            var caseData = index % 5 == 0
-                ? CreateMalformedCase(index, random)
-                : CreateValidCase(index, random);
+            var caseData = index % 5 == 0 ? CreateMalformedCase(index, random) : CreateValidCase(index, random);
 
             Assert.IsTrue(
                 normalizedHashes.Add(HashNormalizedQuery(caseData.Query)),
-                $"Population case {caseData.CaseId} duplicated a normalized query.");
+                $"Population case {caseData.CaseId} duplicated a normalized query."
+            );
             coverageCells.Add(caseData.CoverageCell);
 
             if (caseData.ExpectedDiagnostic is { } expectation)
@@ -83,8 +82,10 @@ public sealed class StructuredInputCornerCasePopulationTests
             }
             catch (Exception exception)
             {
-                var shrunk = ShrinkFailingQuery(caseData.Query, static candidate =>
-                    !ParseWithDiagnostics(candidate).Success);
+                var shrunk = ShrinkFailingQuery(
+                    caseData.Query,
+                    static candidate => !ParseWithDiagnostics(candidate).Success
+                );
                 WriteShrinkCandidate(caseData.CaseId, shrunk);
                 Assert.Fail($"Valid case {caseData.CaseId} threw while parsing. Shrunk query: {shrunk}. {exception}");
             }
@@ -92,10 +93,21 @@ public sealed class StructuredInputCornerCasePopulationTests
 
         Assert.AreEqual(1_600, valid);
         Assert.AreEqual(400, invalid);
-        Assert.AreEqual(CaseCount, normalizedHashes.Count, "Every generated case must have a distinct normalized query hash.");
-        Assert.IsGreaterThanOrEqualTo(MinimumCoverageCells, coverageCells.Count, "The population must exercise independent grammar coverage cells.");
+        Assert.AreEqual(
+            CaseCount,
+            normalizedHashes.Count,
+            "Every generated case must have a distinct normalized query hash."
+        );
+        Assert.IsGreaterThanOrEqualTo(
+            MinimumCoverageCells,
+            coverageCells.Count,
+            "The population must exercise independent grammar coverage cells."
+        );
         foreach (var requiredCell in RequiredCoverageCells)
-            Assert.IsTrue(coverageCells.Contains(requiredCell), $"Required coverage cell '{requiredCell}' was not exercised.");
+            Assert.IsTrue(
+                coverageCells.Contains(requiredCell),
+                $"Required coverage cell '{requiredCell}' was not exercised."
+            );
     }
 
     [TestMethod]
@@ -108,15 +120,20 @@ public sealed class StructuredInputCornerCasePopulationTests
         {
             var suffix = index.ToString(System.Globalization.CultureInfo.InvariantCulture);
             var fieldCase = index % 2 == 0 ? "Id" : "id";
-            var query = $"from values /* {index} */ {{ ({fieldCase}: 'todo-{suffix}', Value: (({index} + 1) * 2)), (Value: ({index} + 2), {fieldCase}: 'fixme-{suffix}') }} valuesSource select valuesSource.{fieldCase}";
+            var query =
+                $"from values /* {index} */ {{ ({fieldCase}: 'todo-{suffix}', Value: (({index} + 1) * 2)), (Value: ({index} + 2), {fieldCase}: 'fixme-{suffix}') }} valuesSource select valuesSource.{fieldCase}";
             var root = new Parser(new Lexer(query, true)).ComposeAll();
             Assert.IsNotNull(root, query);
             Assert.IsTrue(hashes.Add(HashNormalizedQuery(query)), $"Metamorphic VALUES case {index} was not unique.");
 
-            var arrayQuery = $"select n.Value from #inputs.numbers(values: array /* {random.Next()} */ {{ ({index} + 1), {index + 2}, }}) n";
+            var arrayQuery =
+                $"select n.Value from #inputs.numbers(values: array /* {random.Next()} */ {{ ({index} + 1), {index + 2}, }}) n";
             var arrayRoot = new Parser(new Lexer(arrayQuery, true)).ComposeAll();
             Assert.IsNotNull(arrayRoot, arrayQuery);
-            Assert.IsTrue(hashes.Add(HashNormalizedQuery(arrayQuery)), $"Metamorphic array case {index} was not unique.");
+            Assert.IsTrue(
+                hashes.Add(HashNormalizedQuery(arrayQuery)),
+                $"Metamorphic array case {index} was not unique."
+            );
         }
 
         Assert.AreEqual(256, hashes.Count);
@@ -130,7 +147,7 @@ public sealed class StructuredInputCornerCasePopulationTests
         {
             0 => "Id",
             1 => "id",
-            _ => "ID"
+            _ => "ID",
         };
 
         return (index % 14) switch
@@ -138,59 +155,73 @@ public sealed class StructuredInputCornerCasePopulationTests
             0 => new GeneratedCase(
                 $"valid-{index}",
                 $"from values {comment} {{ ({idField}: 'todo-{id}', Value: (({index} + 1) * 2)), (Value: {index + 2}, {idField}: 'fixme-{id}',) }} rows select rows.{idField}",
-                "valid|values|from-first"),
+                "valid|values|from-first"
+            ),
             1 => new GeneratedCase(
                 $"valid-{index}",
                 $"select rows.[Label] from values {comment} {{ ([Label]: 'quoted ({id})', [Value]: ({index} + 1) * 3), ([Value]: {index}, [Label]: 'quoted {{ {id} }}') }} rows",
-                "valid|values|select-first"),
+                "valid|values|select-first"
+            ),
             2 => new GeneratedCase(
                 $"valid-{index}",
                 $"select rows.[ΔField{id}] from values {{ ([ΔField{id}]: 'unicode-{id}') }} rows",
-                "valid|values|bracketed-unicode"),
+                "valid|values|bracketed-unicode"
+            ),
             3 => new GeneratedCase(
                 $"valid-{index}",
                 $"select rows.Value from values {{ (Value: (({index} + 1) * 2)) }} rows",
-                "valid|values|grouped-expression"),
+                "valid|values|grouped-expression"
+            ),
             4 => new GeneratedCase(
                 $"valid-{index}",
                 $"select n.Value from #inputs.numbers(values: array {comment} {{ {index}, {index + 1}, {index + 1}, }}) n",
-                "valid|array|primitive"),
+                "valid|array|primitive"
+            ),
             5 => new GeneratedCase(
                 $"valid-{index}",
                 $"select m.Value from #inputs.matrix(values: array {{ array {{ {index}, {index + 1} }}, array {{ {index + 2} }}, array {{ }}, }}) m",
-                "valid|array|nested"),
+                "valid|array|nested"
+            ),
             6 => new GeneratedCase(
                 $"valid-{index}",
                 $"select n.Value from #inputs.numbers(values: array {{ {index}, {index + 1}, }}) n",
-                "valid|array|trailing-comma"),
+                "valid|array|trailing-comma"
+            ),
             7 => new GeneratedCase(
                 $"valid-{index}",
                 $"select c.Enabled from #inputs.configure(options: (Enabled: true, Codes: array {{ {index}, {index + 1} }}, Window: (Before: {index % 4}, After: {index % 5}))) c",
-                "valid|record|nested"),
+                "valid|record|nested"
+            ),
             8 => new GeneratedCase(
                 $"valid-{index}",
                 $"let todo = (Id: 'todo-{id}', Pattern: 'TODO'); let items = array {{ $todo, (Pattern: 'FIXME', Id: 'fixme-{random.Next(1, 100_000)}') }}; select 1 from #system.dual()",
-                "valid|let|inferred"),
+                "valid|let|inferred"
+            ),
             9 => new GeneratedCase(
                 $"valid-{index}",
                 $"let items: (Id: string, Pattern: string, Mode: string = 'literal')[] = array {{ (Id: 'todo-{id}', Pattern: 'TODO') }}; select 1 from #system.dual()",
-                "valid|let|annotated"),
+                "valid|let|annotated"
+            ),
             10 => new GeneratedCase(
                 $"valid-{index}",
                 $"param(values: int[] = array {{ {index}, {index + 1} }}) select 1 from #system.dual()",
-                "valid|param|param"),
+                "valid|param|param"
+            ),
             11 => new GeneratedCase(
                 $"valid-{index}",
                 $"params(values: int?[] = array {{ {index}, null, }}) select 1 from #system.dual()",
-                "valid|param|params"),
+                "valid|param|params"
+            ),
             12 => new GeneratedCase(
                 $"valid-{index}",
                 $"desc arguments #inputs.match('TODO-{id}', patterns: array {{ (Id: 'todo', Pattern: 'TODO') }})",
-                "valid|desc|arguments"),
+                "valid|desc|arguments"
+            ),
             _ => new GeneratedCase(
                 $"valid-{index}",
                 $"select * from values valuesSource{index}",
-                "valid|identifier|values")
+                "valid|identifier|values"
+            ),
         };
     }
 
@@ -205,7 +236,7 @@ public sealed class StructuredInputCornerCasePopulationTests
                 Code = DiagnosticCode.MQ2001_UnexpectedToken,
                 Message = "Expected token is LeftParenthesis",
                 Needle = "{ Id",
-                Cell = "legacy-values-row"
+                Cell = "legacy-values-row",
             },
             1 => new
             {
@@ -213,7 +244,7 @@ public sealed class StructuredInputCornerCasePopulationTests
                 Code = DiagnosticCode.MQ2001_UnexpectedToken,
                 Message = "Expected token is LeftParenthesis",
                 Needle = "{ Id",
-                Cell = "mixed-values-row"
+                Cell = "mixed-values-row",
             },
             2 => new
             {
@@ -221,7 +252,7 @@ public sealed class StructuredInputCornerCasePopulationTests
                 Code = DiagnosticCode.MQ2001_UnexpectedToken,
                 Message = "cannot be used here",
                 Needle = ",,",
-                Cell = "array-doubled-comma"
+                Cell = "array-doubled-comma",
             },
             3 => new
             {
@@ -229,7 +260,7 @@ public sealed class StructuredInputCornerCasePopulationTests
                 Code = DiagnosticCode.MQ2001_UnexpectedToken,
                 Message = "cannot be used here",
                 Needle = "{ ",
-                Cell = "array-missing-keyword"
+                Cell = "array-missing-keyword",
             },
             4 => new
             {
@@ -237,7 +268,7 @@ public sealed class StructuredInputCornerCasePopulationTests
                 Code = DiagnosticCode.MQ2010_MissingClosingParenthesis,
                 Message = "missing its closing parenthesis",
                 Needle = "options",
-                Cell = "record-missing-colon"
+                Cell = "record-missing-colon",
             },
             5 => new
             {
@@ -245,7 +276,7 @@ public sealed class StructuredInputCornerCasePopulationTests
                 Code = DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
                 Message = "Invalid script parameter declaration",
                 Needle = "items",
-                Cell = "parameter-missing-colon"
+                Cell = "parameter-missing-colon",
             },
             6 => new
             {
@@ -253,7 +284,7 @@ public sealed class StructuredInputCornerCasePopulationTests
                 Code = DiagnosticCode.MQ2001_UnexpectedToken,
                 Message = "Cannot compose statement",
                 Needle = "argumentz",
-                Cell = "desc-keyword-typo"
+                Cell = "desc-keyword-typo",
             },
             _ => new
             {
@@ -261,8 +292,8 @@ public sealed class StructuredInputCornerCasePopulationTests
                 Code = DiagnosticCode.MQ1002_UnterminatedString,
                 Message = "Unterminated string literal",
                 Needle = "'unterminated",
-                Cell = "unterminated-string"
-            }
+                Cell = "unterminated-string",
+            },
         };
 
         return new GeneratedCase(
@@ -275,7 +306,9 @@ public sealed class StructuredInputCornerCasePopulationTests
                 DiagnosticSourceKind.Query,
                 malformed.Message,
                 malformed.Query.IndexOf(malformed.Needle, StringComparison.Ordinal),
-                MinimumSuggestedFixes: 1));
+                MinimumSuggestedFixes: 1
+            )
+        );
     }
 
     private static void AssertMalformedCase(GeneratedCase caseData, DiagnosticExpectation expectation)
@@ -293,25 +326,37 @@ public sealed class StructuredInputCornerCasePopulationTests
             Assert.AreEqual(expectation.SourceKind, diagnostic.SourceKind, caseData.CaseId);
             StringAssert.Contains(diagnostic.Message, expectation.MessageFragment, caseData.CaseId);
             Assert.IsTrue(
-                diagnostic.Span.Start >= expectation.MinimumSpanStart &&
-                diagnostic.Span.End <= caseData.Query.Length,
-                $"{caseData.CaseId} produced out-of-range span {diagnostic.Span.Start}:{diagnostic.Span.Length}.");
+                diagnostic.Span.Start >= expectation.MinimumSpanStart && diagnostic.Span.End <= caseData.Query.Length,
+                $"{caseData.CaseId} produced out-of-range span {diagnostic.Span.Start}:{diagnostic.Span.Length}."
+            );
             Assert.IsTrue(diagnostic.Arguments is not null, $"{caseData.CaseId} lost diagnostic facts.");
-            Assert.IsGreaterThanOrEqualTo(expectation.MinimumSuggestedFixes, diagnostic.SuggestedFixes.Count, caseData.CaseId);
+            Assert.IsGreaterThanOrEqualTo(
+                expectation.MinimumSuggestedFixes,
+                diagnostic.SuggestedFixes.Count,
+                caseData.CaseId
+            );
             foreach (var action in diagnostic.SuggestedFixes)
             {
-                Assert.IsFalse(string.IsNullOrWhiteSpace(action.Title), $"{caseData.CaseId} has an untitled diagnostic action.");
+                Assert.IsFalse(
+                    string.IsNullOrWhiteSpace(action.Title),
+                    $"{caseData.CaseId} has an untitled diagnostic action."
+                );
                 if (action.TextEdit is { } edit)
                 {
-                    Assert.IsTrue(edit.Span.Start >= 0 && edit.Span.End <= caseData.Query.Length, $"{caseData.CaseId} has an invalid edit span.");
+                    Assert.IsTrue(
+                        edit.Span.Start >= 0 && edit.Span.End <= caseData.Query.Length,
+                        $"{caseData.CaseId} has an invalid edit span."
+                    );
                     Assert.IsNotNull(edit.NewText, $"{caseData.CaseId} has a null edit payload.");
                 }
             }
         }
         catch (AssertFailedException exception)
         {
-            var shrunk = ShrinkFailingQuery(caseData.Query, static candidate =>
-                !ParseWithDiagnostics(candidate).Success);
+            var shrunk = ShrinkFailingQuery(
+                caseData.Query,
+                static candidate => !ParseWithDiagnostics(candidate).Success
+            );
             WriteShrinkCandidate(caseData.CaseId, shrunk);
             Assert.Fail($"{exception.Message} Shrunk query: {shrunk}");
         }
@@ -391,7 +436,9 @@ public sealed class StructuredInputCornerCasePopulationTests
     {
         var directory = Path.Combine(AppContext.BaseDirectory, "TestResults", "StructuredInputShrinks");
         Directory.CreateDirectory(directory);
-        var safeId = string.Concat(caseId.Select(static character => char.IsLetterOrDigit(character) ? character : '_'));
+        var safeId = string.Concat(
+            caseId.Select(static character => char.IsLetterOrDigit(character) ? character : '_')
+        );
         File.WriteAllText(Path.Combine(directory, safeId + ".sql"), query, Encoding.UTF8);
     }
 
@@ -399,7 +446,8 @@ public sealed class StructuredInputCornerCasePopulationTests
         string CaseId,
         string Query,
         string CoverageCell,
-        DiagnosticExpectation? ExpectedDiagnostic = null);
+        DiagnosticExpectation? ExpectedDiagnostic = null
+    );
 
     private readonly record struct DiagnosticExpectation(
         DiagnosticCode Code,
@@ -407,5 +455,6 @@ public sealed class StructuredInputCornerCasePopulationTests
         DiagnosticSourceKind SourceKind,
         string MessageFragment,
         int MinimumSpanStart,
-        int MinimumSuggestedFixes);
+        int MinimumSuggestedFixes
+    );
 }

@@ -15,20 +15,16 @@ public static partial class ExecutionPlanPrinter
         if (desc.Type == Logical.Nodes.DescType.Query)
             return "query Query";
 
-        var schemaName = string.IsNullOrWhiteSpace(desc.SchemaName)
-            ? "#?"
-            : desc.SchemaName.StartsWith('#')
-                ? desc.SchemaName
-                : $"#{desc.SchemaName}";
-        var methodName = string.IsNullOrWhiteSpace(desc.MethodName)
-            ? string.Empty
-            : $".{desc.MethodName}()";
-        var column = string.IsNullOrWhiteSpace(desc.Column)
-            ? string.Empty
-            : $" column {desc.Column}";
-        var arguments = desc.Arguments.Count == 0
-            ? string.Empty
-            : $" args ({string.Join(", ", desc.Arguments.Select(FormatExpression))})";
+        var schemaName =
+            string.IsNullOrWhiteSpace(desc.SchemaName) ? "#?"
+            : desc.SchemaName.StartsWith('#') ? desc.SchemaName
+            : $"#{desc.SchemaName}";
+        var methodName = string.IsNullOrWhiteSpace(desc.MethodName) ? string.Empty : $".{desc.MethodName}()";
+        var column = string.IsNullOrWhiteSpace(desc.Column) ? string.Empty : $" column {desc.Column}";
+        var arguments =
+            desc.Arguments.Count == 0
+                ? string.Empty
+                : $" args ({string.Join(", ", desc.Arguments.Select(FormatExpression))})";
 
         return $"{schemaName}{methodName} {desc.Type}{column}{arguments}";
     }
@@ -61,8 +57,9 @@ public static partial class ExecutionPlanPrinter
         {
             ExecutionFullOrderRecordSelection => string.Empty,
             ExecutionTakeOrderRecordSelection take => $", take {take.Count.ToString(CultureInfo.InvariantCulture)}",
-            ExecutionSkipTakeOrderRecordSelection skipTake => $", skip {skipTake.SkipCount.ToString(CultureInfo.InvariantCulture)}, take {skipTake.TakeCount.ToString(CultureInfo.InvariantCulture)}",
-            _ => $", {selection.GetType().Name}"
+            ExecutionSkipTakeOrderRecordSelection skipTake =>
+                $", skip {skipTake.SkipCount.ToString(CultureInfo.InvariantCulture)}, take {skipTake.TakeCount.ToString(CultureInfo.InvariantCulture)}",
+            _ => $", {selection.GetType().Name}",
         };
     }
 
@@ -105,6 +102,6 @@ public static partial class ExecutionPlanPrinter
         [typeof(decimal)] = "decimal",
         [typeof(char)] = "char",
         [typeof(string)] = "string",
-        [typeof(object)] = "object"
+        [typeof(object)] = "object",
     }.ToFrozenDictionary();
 }

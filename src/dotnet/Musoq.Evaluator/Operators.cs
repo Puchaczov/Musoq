@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-
 using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator;
@@ -11,21 +10,21 @@ namespace Musoq.Evaluator;
 public partial class Operators
 {
     private const int ScalarAsciiProbeLimit = 8;
-    private static readonly BoundedRuntimeCache<LikeMatcherCacheKey, PreparedLikeMatcher> LikeMatcherCache =
-        new(RuntimeCacheOptions.PatternCacheSize);
-    private static readonly BoundedRuntimeCache<LikeMatcherCacheKey, Func<string, bool>> LegacyLikeMatcherCache =
-        new(RuntimeCacheOptions.PatternCacheSize);
-    private static readonly BoundedRuntimeCache<RLikeMatcherCacheKey, Regex> RLikePatternCache =
-        new(RuntimeCacheOptions.PatternCacheSize);
+    private static readonly BoundedRuntimeCache<LikeMatcherCacheKey, PreparedLikeMatcher> LikeMatcherCache = new(
+        RuntimeCacheOptions.PatternCacheSize
+    );
+    private static readonly BoundedRuntimeCache<LikeMatcherCacheKey, Func<string, bool>> LegacyLikeMatcherCache = new(
+        RuntimeCacheOptions.PatternCacheSize
+    );
+    private static readonly BoundedRuntimeCache<RLikeMatcherCacheKey, Regex> RLikePatternCache = new(
+        RuntimeCacheOptions.PatternCacheSize
+    );
     private static LegacyLikeMatcherFrontEntry? _legacyLikeMatcherFrontEntry;
 
     /// <summary>
     ///     Applies a typed comparison only when both operands are non-null, preserving SQL UNKNOWN otherwise.
     /// </summary>
-    public static bool? SqlCompare<TLeft, TRight>(
-        TLeft left,
-        TRight right,
-        Func<TLeft, TRight, bool?> comparison)
+    public static bool? SqlCompare<TLeft, TRight>(TLeft left, TRight right, Func<TLeft, TRight, bool?> comparison)
     {
         if (left is null || right is null)
             return null;
@@ -53,7 +52,10 @@ public partial class Operators
             return false;
 
         var key = CreateLikeMatcherCacheKey(searchFor, timeout);
-        var matcher = LikeMatcherCache.GetOrAdd(key, static cacheKey => CreateLikeMatcher(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks)));
+        var matcher = LikeMatcherCache.GetOrAdd(
+            key,
+            static cacheKey => CreateLikeMatcher(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks))
+        );
         return matcher.IsMatch(content);
     }
 
@@ -75,7 +77,10 @@ public partial class Operators
         if (classification.Classification is { Domain: LikePatternCharacterDomain.Ascii })
             return CreateLikeMatcher(pattern, classification, timeout);
 
-        return LikeMatcherCache.GetOrAdd(key, static cacheKey => CreateLikeMatcher(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks)));
+        return LikeMatcherCache.GetOrAdd(
+            key,
+            static cacheKey => CreateLikeMatcher(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks))
+        );
     }
 
     /// <summary>Matches a value using an already prepared LIKE matcher.</summary>
@@ -105,8 +110,7 @@ public partial class Operators
         if (ordinalCompatible && string.Equals(content, literal, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        return (!ordinalCompatible || !IsAscii(content.AsSpan())) &&
-               LikeLegacyRegexExact(content, literal, literal);
+        return (!ordinalCompatible || !IsAscii(content.AsSpan())) && LikeLegacyRegexExact(content, literal, literal);
     }
 
     /// <summary>Matches one non-null value against an ASCII LIKE prefix.</summary>
@@ -119,8 +123,8 @@ public partial class Operators
         if (ordinalCompatible && content.StartsWith(literal, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        return (!ordinalCompatible || !IsAscii(content.AsSpan(0, literal.Length))) &&
-               LikeLegacyRegexPrefix(content, string.Concat(literal, "%"), literal);
+        return (!ordinalCompatible || !IsAscii(content.AsSpan(0, literal.Length)))
+            && LikeLegacyRegexPrefix(content, string.Concat(literal, "%"), literal);
     }
 
     /// <summary>Matches one non-null value against an ASCII LIKE suffix.</summary>
@@ -133,8 +137,8 @@ public partial class Operators
         if (ordinalCompatible && content.EndsWith(literal, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        return (!ordinalCompatible || !IsAscii(content.AsSpan(content.Length - literal.Length, literal.Length))) &&
-               LikeLegacyRegexSuffix(content, string.Concat("%", literal), literal);
+        return (!ordinalCompatible || !IsAscii(content.AsSpan(content.Length - literal.Length, literal.Length)))
+            && LikeLegacyRegexSuffix(content, string.Concat("%", literal), literal);
     }
 
     /// <summary>Matches one non-null value against an ASCII LIKE contains literal.</summary>
@@ -149,8 +153,8 @@ public partial class Operators
         if (ordinalCompatible && content.Contains(literal, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        return (!ordinalCompatible || !IsAscii(content.AsSpan())) &&
-               LikeLegacyRegexContains(content, string.Concat("%", literal, "%"), literal);
+        return (!ordinalCompatible || !IsAscii(content.AsSpan()))
+            && LikeLegacyRegexContains(content, string.Concat("%", literal, "%"), literal);
     }
 
     /// <summary>Matches a value with the historical regular-expression LIKE semantics.</summary>
@@ -170,11 +174,14 @@ public partial class Operators
 
         var cultureName = culture.Name;
         var key = new LikeMatcherCacheKey(pattern, cultureName, timeout.Ticks);
-        var matcher = LegacyLikeMatcherCache
-            .GetOrAdd(key, static cacheKey => CreateLegacyLikeMatcher(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks)));
+        var matcher = LegacyLikeMatcherCache.GetOrAdd(
+            key,
+            static cacheKey => CreateLegacyLikeMatcher(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks))
+        );
         Volatile.Write(
             ref _legacyLikeMatcherFrontEntry,
-            new LegacyLikeMatcherFrontEntry(pattern, culture, timeout.Ticks, matcher));
+            new LegacyLikeMatcherFrontEntry(pattern, culture, timeout.Ticks, matcher)
+        );
         return matcher(content);
     }
 
@@ -188,16 +195,15 @@ public partial class Operators
 
     /// <summary>Runs the legacy one-code-unit prefix matcher after a conservative casing rejection check.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool LikeLegacyRegexSingleAsciiPrefix(
-        string? content,
-        string? pattern,
-        string? literal) =>
+    public static bool LikeLegacyRegexSingleAsciiPrefix(string? content, string? pattern, string? literal) =>
         LikeLegacyRegexSingleAsciiPrefix(content, pattern, literal, RuntimeCacheOptions.DefaultRegexTimeout);
 
     public static bool LikeLegacyRegexSingleAsciiPrefix(
         string? content,
         string? pattern,
-        string? literal, TimeSpan timeout)
+        string? literal,
+        TimeSpan timeout
+    )
     {
         RegexMatchTimeoutPolicy.Validate(timeout);
         if (content is null || pattern is null || literal is null || content.Length == 0 || literal.Length != 1)
@@ -205,14 +211,10 @@ public partial class Operators
 
         var expected = literal[0];
         var mayMatch = expected is 'I' or 'i'
-            ? MayMatchAsciiCharacterUnderRegexCasing(
-                content[0],
-                expected,
-                CultureInfo.CurrentCulture.TextInfo)
+            ? MayMatchAsciiCharacterUnderRegexCasing(content[0], expected, CultureInfo.CurrentCulture.TextInfo)
             : MayMatchInvariantAsciiCharacter(content[0], expected);
 
-        return mayMatch &&
-               LikeLegacyRegex(content, pattern, timeout);
+        return mayMatch && LikeLegacyRegex(content, pattern, timeout);
     }
 
     /// <summary>Runs the legacy suffix matcher after a conservative culture-aware rejection check.</summary>
@@ -228,20 +230,21 @@ public partial class Operators
         ReadOnlySpan<char> content,
         ReadOnlySpan<char> literal,
         LikePatternMatchKind kind,
-        TextInfo textInfo)
+        TextInfo textInfo
+    )
     {
         ArgumentNullException.ThrowIfNull(textInfo);
 
         return kind switch
         {
-            LikePatternMatchKind.Exact => content.Length == literal.Length &&
-                                          MayEqualUnderRegexCasing(content, literal, textInfo),
-            LikePatternMatchKind.Prefix => content.Length >= literal.Length &&
-                                           MayEqualUnderRegexCasing(content[..literal.Length], literal, textInfo),
-            LikePatternMatchKind.Suffix => content.Length >= literal.Length &&
-                                           MayEqualUnderRegexCasing(content[^literal.Length..], literal, textInfo),
+            LikePatternMatchKind.Exact => content.Length == literal.Length
+                && MayEqualUnderRegexCasing(content, literal, textInfo),
+            LikePatternMatchKind.Prefix => content.Length >= literal.Length
+                && MayEqualUnderRegexCasing(content[..literal.Length], literal, textInfo),
+            LikePatternMatchKind.Suffix => content.Length >= literal.Length
+                && MayEqualUnderRegexCasing(content[^literal.Length..], literal, textInfo),
             LikePatternMatchKind.Contains => MayContainUnderRegexCasing(content, literal, textInfo),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown LIKE match kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown LIKE match kind."),
         };
     }
 
@@ -306,7 +309,11 @@ public partial class Operators
         if (content is null || pattern is null)
             return false;
 
-        return RegexMatchExecutor.IsMatch(GetOrCreateRLikeRegex(pattern, CultureInfo.CurrentCulture, timeout), content, "RLIKE");
+        return RegexMatchExecutor.IsMatch(
+            GetOrCreateRLikeRegex(pattern, CultureInfo.CurrentCulture, timeout),
+            content,
+            "RLIKE"
+        );
     }
 
     /// <summary>Matches a value against a runtime RLIKE pattern using an execution-local cache.</summary>
@@ -337,10 +344,11 @@ public partial class Operators
     private static PreparedLikeMatcher CreateLikeMatcher(
         string pattern,
         LikePatternClassificationResult result,
-        TimeSpan timeout)
+        TimeSpan timeout
+    )
     {
-        var requiresPreparedLegacyMatcher = result.Classification is not { } match ||
-                                            match.Domain == LikePatternCharacterDomain.Unicode;
+        var requiresPreparedLegacyMatcher =
+            result.Classification is not { } match || match.Domain == LikePatternCharacterDomain.Unicode;
         var legacyMatcher = requiresPreparedLegacyMatcher ? CreateLegacyLikeMatcher(pattern, timeout) : null;
         return new PreparedLikeMatcher(pattern, result, legacyMatcher, CultureInfo.CurrentCulture, timeout);
     }
@@ -351,8 +359,10 @@ public partial class Operators
     private static Regex GetOrCreateRLikeRegex(string pattern, CultureInfo culture, TimeSpan timeout)
     {
         var key = new RLikeMatcherCacheKey(pattern, culture.Name, timeout.Ticks);
-        return RLikePatternCache.GetOrAdd(key, static cacheKey =>
-            CreateRLikeRegex(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks)));
+        return RLikePatternCache.GetOrAdd(
+            key,
+            static cacheKey => CreateRLikeRegex(cacheKey.Pattern, TimeSpan.FromTicks(cacheKey.TimeoutTicks))
+        );
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -360,24 +370,26 @@ public partial class Operators
         string? content,
         string? pattern,
         string? literal,
-        LikePatternMatchKind kind)
+        LikePatternMatchKind kind
+    )
     {
         if (content is null || pattern is null || literal is null)
             return false;
 
         return MayMatchAsciiLiteralUnderCulture(
-                   content.AsSpan(),
-                   literal.AsSpan(),
-                   kind,
-                   CultureInfo.CurrentCulture.TextInfo) &&
-               LikeLegacyRegex(content, pattern);
+                content.AsSpan(),
+                literal.AsSpan(),
+                kind,
+                CultureInfo.CurrentCulture.TextInfo
+            ) && LikeLegacyRegex(content, pattern);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool MayContainUnderRegexCasing(
         ReadOnlySpan<char> content,
         ReadOnlySpan<char> literal,
-        TextInfo textInfo)
+        TextInfo textInfo
+    )
     {
         if (literal.Length == 0)
             return true;
@@ -395,7 +407,8 @@ public partial class Operators
     private static bool MayEqualUnderRegexCasing(
         ReadOnlySpan<char> content,
         ReadOnlySpan<char> literal,
-        TextInfo textInfo)
+        TextInfo textInfo
+    )
     {
         for (var index = 0; index < literal.Length; index++)
         {
@@ -413,17 +426,14 @@ public partial class Operators
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool MayMatchAsciiCharacterUnderRegexCasing(
-        char actual,
-        char expected,
-        TextInfo textInfo)
+    private static bool MayMatchAsciiCharacterUnderRegexCasing(char actual, char expected, TextInfo textInfo)
     {
         if (actual == expected)
             return true;
         if (expected is 'I' or 'i')
         {
-            return textInfo.ToLower(actual) == textInfo.ToLower(expected) ||
-                   textInfo.ToUpper(actual) == textInfo.ToUpper(expected);
+            return textInfo.ToLower(actual) == textInfo.ToLower(expected)
+                || textInfo.ToUpper(actual) == textInfo.ToUpper(expected);
         }
 
         return MayMatchInvariantAsciiCharacter(actual, expected);
@@ -446,7 +456,7 @@ public partial class Operators
         {
             'k' => actual == '\u212A',
             's' => actual == '\u017F',
-            _ => false
+            _ => false,
         };
     }
 
@@ -456,8 +466,10 @@ public partial class Operators
         var options = RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled;
         Regex regex;
         var classification = LikePatternClassifier.Classify(pattern).Classification;
-        if (CanUseTimeoutBoundedBacktrackingMatcher(pattern) &&
-            classification is { Domain: LikePatternCharacterDomain.Ascii })
+        if (
+            CanUseTimeoutBoundedBacktrackingMatcher(pattern)
+            && classification is { Domain: LikePatternCharacterDomain.Ascii }
+        )
         {
             regex = new Regex(regexPattern, options, timeout);
             return input => RegexMatchExecutor.IsMatch(regex, input, "LIKE");
@@ -465,10 +477,7 @@ public partial class Operators
 
         try
         {
-            regex = new Regex(
-                regexPattern,
-                options | RegexOptions.NonBacktracking,
-                timeout);
+            regex = new Regex(regexPattern, options | RegexOptions.NonBacktracking, timeout);
         }
         catch (NotSupportedException)
         {
@@ -494,7 +503,7 @@ public partial class Operators
             LikePatternMatchKind.Exact => 0,
             LikePatternMatchKind.Prefix or LikePatternMatchKind.Suffix => 1,
             LikePatternMatchKind.Contains => 2,
-            _ => throw new ArgumentOutOfRangeException(nameof(pattern), match.Kind, "Unknown LIKE match kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(pattern), match.Kind, "Unknown LIKE match kind."),
         };
         return pattern.Length == match.LiteralLength + boundaryWildcardCount;
     }
@@ -511,9 +520,7 @@ public partial class Operators
         if (match.Kind is LikePatternMatchKind.Exact or LikePatternMatchKind.Prefix)
             builder.Append(@"\A");
 
-        AppendEscapedRegexLiteral(
-            builder,
-            pattern.AsSpan(match.LiteralStart, match.LiteralLength));
+        AppendEscapedRegexLiteral(builder, pattern.AsSpan(match.LiteralStart, match.LiteralLength));
 
         if (match.Kind is LikePatternMatchKind.Exact or LikePatternMatchKind.Suffix)
             builder.Append(@"\z");
@@ -590,7 +597,8 @@ public partial class Operators
     internal static Func<string, bool> CreateLegacyLikeMatcherUnderCulture(
         string pattern,
         CultureInfo culture,
-        TimeSpan timeout)
+        TimeSpan timeout
+    )
     {
         ArgumentNullException.ThrowIfNull(pattern);
         ArgumentNullException.ThrowIfNull(culture);
@@ -630,7 +638,7 @@ public partial class Operators
             6 => (value[0] | value[1] | value[2] | value[3] | value[4] | value[5]) <= 127,
             7 => (value[0] | value[1] | value[2] | value[3] | value[4] | value[5] | value[6]) <= 127,
             8 => (value[0] | value[1] | value[2] | value[3] | value[4] | value[5] | value[6] | value[7]) <= 127,
-            _ => false
+            _ => false,
         };
     }
 
@@ -642,13 +650,15 @@ public partial class Operators
         string Pattern,
         CultureInfo Culture,
         long TimeoutTicks,
-        Func<string, bool> Matcher)
+        Func<string, bool> Matcher
+    )
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Matches(string pattern, CultureInfo culture, TimeSpan timeout) =>
-            TimeoutTicks == timeout.Ticks &&
-            (ReferenceEquals(Pattern, pattern) || string.Equals(Pattern, pattern, StringComparison.Ordinal)) &&
-            (ReferenceEquals(Culture, culture) ||
-             string.Equals(Culture.Name, culture.Name, StringComparison.Ordinal));
+            TimeoutTicks == timeout.Ticks
+            && (ReferenceEquals(Pattern, pattern) || string.Equals(Pattern, pattern, StringComparison.Ordinal))
+            && (
+                ReferenceEquals(Culture, culture) || string.Equals(Culture.Name, culture.Name, StringComparison.Ordinal)
+            );
     }
 }

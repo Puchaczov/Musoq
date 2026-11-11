@@ -22,8 +22,16 @@ internal static class TableMaterializationTestHelper
 
         for (var index = 0; index < expected.Length; index++)
         {
-            Assert.AreEqual(expected[index].Name, columns[index].ColumnName, $"Unexpected column name at index {index}.");
-            Assert.AreEqual(expected[index].Type, columns[index].ColumnType, $"Unexpected column type at index {index}.");
+            Assert.AreEqual(
+                expected[index].Name,
+                columns[index].ColumnName,
+                $"Unexpected column name at index {index}."
+            );
+            Assert.AreEqual(
+                expected[index].Type,
+                columns[index].ColumnType,
+                $"Unexpected column type at index {index}."
+            );
         }
     }
 
@@ -49,7 +57,8 @@ internal static class TableMaterializationTestHelper
 
             if (matchIndex < 0)
                 Assert.Fail(
-                    $"Expected row was not found: {FormatRow(expectedRow)}. Actual rows: {string.Join(", ", remaining.Select(FormatRow))}");
+                    $"Expected row was not found: {FormatRow(expectedRow)}. Actual rows: {string.Join(", ", remaining.Select(FormatRow))}"
+                );
 
             remaining.RemoveAt(matchIndex);
         }
@@ -62,13 +71,13 @@ internal static class TableMaterializationTestHelper
         for (var index = 0; index < expected.Length; index++)
             Assert.IsTrue(
                 ValuesEqual(expected[index], actual[index]),
-                $"{message} Unexpected value at column {index}. Expected: {FormatValue(expected[index])}; actual: {FormatValue(actual[index])}.");
+                $"{message} Unexpected value at column {index}. Expected: {FormatValue(expected[index])}; actual: {FormatValue(actual[index])}."
+            );
     }
 
     private static bool RowEquals(object?[] expected, object?[] actual)
     {
-        return expected.Length == actual.Length &&
-               expected.Zip(actual, ValuesEqual).All(static result => result);
+        return expected.Length == actual.Length && expected.Zip(actual, ValuesEqual).All(static result => result);
     }
 
     private static bool ValuesEqual(object? expected, object? actual)
@@ -84,8 +93,8 @@ internal static class TableMaterializationTestHelper
             var expectedItems = expectedSequence.Cast<object?>().ToArray();
             var actualItems = actualSequence.Cast<object?>().ToArray();
 
-            return expectedItems.Length == actualItems.Length &&
-                   expectedItems.Zip(actualItems, ValuesEqual).All(static result => result);
+            return expectedItems.Length == actualItems.Length
+                && expectedItems.Zip(actualItems, ValuesEqual).All(static result => result);
         }
 
         if (expected is IStructuralEquatable structural)
@@ -105,8 +114,9 @@ internal static class TableMaterializationTestHelper
         {
             null => "<null>",
             string text => $"\"{text}\"",
-            IEnumerable enumerable when value is not string => $"[{string.Join(", ", enumerable.Cast<object?>().Select(FormatValue))}]",
-            _ => $"{value} ({value.GetType().Name})"
+            IEnumerable enumerable when value is not string =>
+                $"[{string.Join(", ", enumerable.Cast<object?>().Select(FormatValue))}]",
+            _ => $"{value} ({value.GetType().Name})",
         };
     }
 }

@@ -15,8 +15,7 @@ internal abstract record TargetHostAbiImportDetails
 
     internal abstract string CanonicalDefinition { get; }
 
-    protected static IReadOnlyDictionary<string, string> BuildAttributes(
-        params (string Key, object? Value)[] values)
+    protected static IReadOnlyDictionary<string, string> BuildAttributes(params (string Key, object? Value)[] values)
     {
         var attributes = new Dictionary<string, string>(values.Length, StringComparer.Ordinal);
         foreach (var (key, value) in values)
@@ -34,9 +33,7 @@ internal abstract record TargetHostAbiImportDetails
 
     protected static int RequireNonNegative(int value, string parameterName)
     {
-        return value < 0
-            ? throw new ArgumentOutOfRangeException(parameterName, "Value cannot be negative.")
-            : value;
+        return value < 0 ? throw new ArgumentOutOfRangeException(parameterName, "Value cannot be negative.") : value;
     }
 
     protected static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values)
@@ -44,9 +41,7 @@ internal abstract record TargetHostAbiImportDetails
         return Array.AsReadOnly(values?.ToArray() ?? []);
     }
 
-    protected static string CreateCanonicalDefinition(
-        string kind,
-        Action<StringBuilder> append)
+    protected static string CreateCanonicalDefinition(string kind, Action<StringBuilder> append)
     {
         ArgumentNullException.ThrowIfNull(append);
         var builder = new StringBuilder();
@@ -63,7 +58,8 @@ internal abstract record TargetHostAbiImportDetails
     protected static void AppendDictionary(
         StringBuilder builder,
         string name,
-        IReadOnlyDictionary<string, string> values)
+        IReadOnlyDictionary<string, string> values
+    )
     {
         AppendScalar(builder, name, "dictionary");
         var entries = values.OrderBy(static pair => pair.Key, StringComparer.Ordinal).ToArray();
@@ -75,10 +71,7 @@ internal abstract record TargetHostAbiImportDetails
         }
     }
 
-    protected static void AppendType(
-        StringBuilder builder,
-        string name,
-        ExecutionPortableTypeDescriptor? descriptor)
+    protected static void AppendType(StringBuilder builder, string name, ExecutionPortableTypeDescriptor? descriptor)
     {
         AppendScalar(builder, name + ".present", descriptor is not null);
         if (descriptor is null)
@@ -103,7 +96,11 @@ internal abstract record TargetHostAbiImportDetails
 
         AppendScalar(builder, name + ".arguments.count", descriptor.Arguments.Count);
         for (var index = 0; index < descriptor.Arguments.Count; index++)
-            AppendType(builder, name + ".arguments." + index.ToString(CultureInfo.InvariantCulture), descriptor.Arguments[index]);
+            AppendType(
+                builder,
+                name + ".arguments." + index.ToString(CultureInfo.InvariantCulture),
+                descriptor.Arguments[index]
+            );
 
         AppendScalar(builder, name + ".fields.count", descriptor.Fields.Count);
         for (var index = 0; index < descriptor.Fields.Count; index++)
@@ -116,10 +113,7 @@ internal abstract record TargetHostAbiImportDetails
         }
     }
 
-    protected static void AppendEnumType(
-        StringBuilder builder,
-        string name,
-        TargetEnumTypeAbiContract? descriptor)
+    protected static void AppendEnumType(StringBuilder builder, string name, TargetEnumTypeAbiContract? descriptor)
     {
         AppendScalar(builder, name + ".present", descriptor is not null);
         if (descriptor is null)
@@ -156,7 +150,7 @@ internal abstract record TargetHostAbiImportDetails
             bool boolean => boolean ? "true" : "false",
             Enum enumValue => enumValue.ToString(),
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture) ?? string.Empty,
-            _ => value.ToString() ?? string.Empty
+            _ => value.ToString() ?? string.Empty,
         };
     }
 
@@ -168,7 +162,7 @@ internal abstract record TargetHostAbiImportDetails
             bool boolean => boolean ? "true" : "false",
             Enum enumValue => enumValue.ToString(),
             IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
-            _ => value.ToString() ?? string.Empty
+            _ => value.ToString() ?? string.Empty,
         };
     }
 }
@@ -177,20 +171,21 @@ internal sealed record TargetCustomAbiImportDetails : TargetHostAbiImportDetails
 {
     public TargetCustomAbiImportDetails(
         TargetHostAbiImportKind kind,
-        IReadOnlyDictionary<string, string>? rawAttributes)
+        IReadOnlyDictionary<string, string>? rawAttributes
+    )
     {
         Kind = kind;
         Attributes = new ReadOnlyDictionary<string, string>(
             rawAttributes is null
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(rawAttributes, StringComparer.Ordinal));
+                : new Dictionary<string, string>(rawAttributes, StringComparer.Ordinal)
+        );
     }
 
     public override TargetHostAbiImportKind Kind { get; }
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder => AppendDictionary(builder, "attributes", Attributes));
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(Kind.ToString(), builder => AppendDictionary(builder, "attributes", Attributes));
 
     public override IReadOnlyDictionary<string, string> Attributes { get; }
 }
@@ -202,12 +197,10 @@ internal enum TargetSourcePlanOperation
     OrderBy = 2,
     Skip = 3,
     Take,
-    ComputedProjection = 4
+    ComputedProjection = 4,
 }
 
-internal sealed record TargetSourceArgumentAbiContract(
-    int Position,
-    ExecutionPortableTypeDescriptor TypeSymbol);
+internal sealed record TargetSourceArgumentAbiContract(int Position, ExecutionPortableTypeDescriptor TypeSymbol);
 
 internal sealed record TargetEnumMemberAbiContract
 {
@@ -218,7 +211,10 @@ internal sealed record TargetEnumMemberAbiContract
             : name;
         RawValue = rawValue;
         CanonicalName = string.IsNullOrWhiteSpace(canonicalName)
-            ? throw new ArgumentException("Canonical enum member name cannot be null or whitespace.", nameof(canonicalName))
+            ? throw new ArgumentException(
+                "Canonical enum member name cannot be null or whitespace.",
+                nameof(canonicalName)
+            )
             : canonicalName;
     }
 
@@ -237,31 +233,45 @@ internal sealed record TargetEnumTypeAbiContract
         string underlyingKind,
         bool isFlags,
         string fingerprint,
-        IEnumerable<TargetEnumMemberAbiContract>? members)
+        IEnumerable<TargetEnumMemberAbiContract>? members
+    )
     {
         DisplayName = RequireText(displayName, nameof(displayName));
         Origin = RequireText(origin, nameof(origin));
         UnderlyingKind = RequireText(underlyingKind, nameof(underlyingKind));
         IsFlags = isFlags;
-        if (string.IsNullOrWhiteSpace(fingerprint) || fingerprint.Length != 64 ||
-            fingerprint.Any(static character => !Uri.IsHexDigit(character)))
+        if (
+            string.IsNullOrWhiteSpace(fingerprint)
+            || fingerprint.Length != 64
+            || fingerprint.Any(static character => !Uri.IsHexDigit(character))
+        )
         {
             throw new ArgumentException(
                 "An enum fingerprint must be a 64-character hexadecimal digest.",
-                nameof(fingerprint));
+                nameof(fingerprint)
+            );
         }
 
         Fingerprint = fingerprint.ToUpperInvariant();
         var values = Freeze(members).ToArray();
-        if (values.Select(static member => member.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() != values.Length)
+        if (
+            values.Select(static member => member.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count()
+            != values.Length
+        )
             throw new ArgumentException("Enum member names must be unique ignoring case.", nameof(members));
-        if (values.Any(member => !values.Any(candidate =>
-                string.Equals(candidate.Name, member.CanonicalName, StringComparison.Ordinal) &&
-                candidate.RawValue == member.RawValue)))
+        if (
+            values.Any(member =>
+                !values.Any(candidate =>
+                    string.Equals(candidate.Name, member.CanonicalName, StringComparison.Ordinal)
+                    && candidate.RawValue == member.RawValue
+                )
+            )
+        )
         {
             throw new ArgumentException(
                 "Every enum member must reference a declared canonical member with the same value.",
-                nameof(members));
+                nameof(members)
+            );
         }
 
         Members = Array.AsReadOnly(values);
@@ -284,8 +294,7 @@ internal sealed record TargetEnumTypeAbiContract
             ? throw new ArgumentException("Value cannot be null or whitespace.", parameterName)
             : value;
 
-    private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values) =>
-        Array.AsReadOnly(values?.ToArray() ?? []);
+    private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values) => Array.AsReadOnly(values?.ToArray() ?? []);
 }
 
 internal sealed record TargetSourceFieldAbiContract
@@ -296,10 +305,9 @@ internal sealed record TargetSourceFieldAbiContract
         ExecutionPortableTypeDescriptor type,
         ExecutionPortableTypeDescriptor publicType,
         string nullability,
-        IReadOnlyDictionary<string, string>? readModifiers)
-        : this(index, name, type, publicType, publicType, null, nullability, readModifiers)
-    {
-    }
+        IReadOnlyDictionary<string, string>? readModifiers
+    )
+        : this(index, name, type, publicType, publicType, null, nullability, readModifiers) { }
 
     public TargetSourceFieldAbiContract(
         int index,
@@ -309,7 +317,8 @@ internal sealed record TargetSourceFieldAbiContract
         ExecutionPortableTypeDescriptor sourceReadType,
         TargetEnumTypeAbiContract? enumType,
         string nullability,
-        IReadOnlyDictionary<string, string>? readModifiers)
+        IReadOnlyDictionary<string, string>? readModifiers
+    )
     {
         Index = RequireNonNegative(index, nameof(index));
         Name = RequireText(name, nameof(name));
@@ -321,7 +330,8 @@ internal sealed record TargetSourceFieldAbiContract
         ReadModifiers = new ReadOnlyDictionary<string, string>(
             readModifiers is null
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
+                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal)
+        );
     }
 
     public int Index { get; }
@@ -346,9 +356,7 @@ internal sealed record TargetSourceFieldAbiContract
             : value;
 
     private static int RequireNonNegative(int value, string parameterName) =>
-        value < 0
-            ? throw new ArgumentOutOfRangeException(parameterName, "Value cannot be negative.")
-            : value;
+        value < 0 ? throw new ArgumentOutOfRangeException(parameterName, "Value cannot be negative.") : value;
 }
 
 internal sealed record TargetRuntimeSettingAbiContract
@@ -358,7 +366,8 @@ internal sealed record TargetRuntimeSettingAbiContract
         bool required,
         string phases,
         string status,
-        string? nonSecretDescription)
+        string? nonSecretDescription
+    )
     {
         Key = string.IsNullOrWhiteSpace(key)
             ? throw new ArgumentException("Setting key cannot be null or whitespace.", nameof(key))
@@ -394,7 +403,8 @@ internal sealed record TargetSourceAccessAbiDetails : TargetHostAbiImportDetails
         IEnumerable<TargetSourceArgumentAbiContract>? arguments,
         IEnumerable<TargetSourceFieldAbiContract>? fields,
         IEnumerable<TargetSourcePlanOperation>? acceptedOperations,
-        IEnumerable<TargetRuntimeSettingAbiContract>? runtimeSettings)
+        IEnumerable<TargetRuntimeSettingAbiContract>? runtimeSettings
+    )
     {
         SourceKind = RequireText(sourceKind, nameof(sourceKind));
         SourceContextId = RequireText(sourceContextId, nameof(sourceContextId));
@@ -405,23 +415,38 @@ internal sealed record TargetSourceAccessAbiDetails : TargetHostAbiImportDetails
         SourceType = sourceType ?? string.Empty;
         SourcePortability = sourcePortability;
         var argumentValues = Freeze(arguments).OrderBy(static argument => argument.Position).ToArray();
-        if (argumentValues.Any(static argument => argument.Position < 0) ||
-            argumentValues.Select(static argument => argument.Position).Distinct().Count() != argumentValues.Length)
+        if (
+            argumentValues.Any(static argument => argument.Position < 0)
+            || argumentValues.Select(static argument => argument.Position).Distinct().Count() != argumentValues.Length
+        )
         {
-            throw new ArgumentException("Source argument positions must be unique and non-negative.", nameof(arguments));
+            throw new ArgumentException(
+                "Source argument positions must be unique and non-negative.",
+                nameof(arguments)
+            );
         }
 
-        var fieldValues = Freeze(fields).OrderBy(static field => field.Index).ThenBy(static field => field.Name, StringComparer.Ordinal).ToArray();
+        var fieldValues = Freeze(fields)
+            .OrderBy(static field => field.Index)
+            .ThenBy(static field => field.Name, StringComparer.Ordinal)
+            .ToArray();
         if (fieldValues.Select(static field => field.Index).Distinct().Count() != fieldValues.Length)
             throw new ArgumentException("Source field indices must be unique.", nameof(fields));
 
-        var runtimeSettingValues = Freeze(runtimeSettings).OrderBy(static setting => setting.Key, StringComparer.Ordinal).ToArray();
-        if (runtimeSettingValues.Select(static setting => setting.Key).Distinct(StringComparer.Ordinal).Count() != runtimeSettingValues.Length)
+        var runtimeSettingValues = Freeze(runtimeSettings)
+            .OrderBy(static setting => setting.Key, StringComparer.Ordinal)
+            .ToArray();
+        if (
+            runtimeSettingValues.Select(static setting => setting.Key).Distinct(StringComparer.Ordinal).Count()
+            != runtimeSettingValues.Length
+        )
             throw new ArgumentException("Runtime setting keys must be unique.", nameof(runtimeSettings));
 
         Arguments = Array.AsReadOnly(argumentValues);
         Fields = Array.AsReadOnly(fieldValues);
-        AcceptedOperations = Array.AsReadOnly(Freeze(acceptedOperations).Distinct().OrderBy(static operation => operation).ToArray());
+        AcceptedOperations = Array.AsReadOnly(
+            Freeze(acceptedOperations).Distinct().OrderBy(static operation => operation).ToArray()
+        );
         RuntimeSettings = Array.AsReadOnly(runtimeSettingValues);
         Attributes = BuildAttributes(
             ("kind", SourceKind),
@@ -435,57 +460,60 @@ internal sealed record TargetSourceAccessAbiDetails : TargetHostAbiImportDetails
             ("argumentCount", Arguments.Count),
             ("fieldCount", Fields.Count),
             ("acceptedOperations", string.Join(",", AcceptedOperations)),
-            ("runtimeSettingKeys", string.Join(",", RuntimeSettings.Select(static setting => setting.Key))));
+            ("runtimeSettingKeys", string.Join(",", RuntimeSettings.Select(static setting => setting.Key)))
+        );
     }
 
     public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.SourceAccess;
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendScalar(builder, "sourceKind", SourceKind);
-            AppendScalar(builder, "sourceContextId", SourceContextId);
-            AppendScalar(builder, "schemaName", SchemaName);
-            AppendScalar(builder, "methodName", MethodName);
-            AppendScalar(builder, "rowsType", RowsType);
-            AppendScalar(builder, "rowsPortability", RowsPortability);
-            AppendScalar(builder, "sourceType", SourceType);
-            AppendScalar(builder, "sourcePortability", SourcePortability);
-            AppendScalar(builder, "arguments.count", Arguments.Count);
-            foreach (var argument in Arguments)
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
             {
-                AppendScalar(builder, "arguments.position", argument.Position);
-                AppendType(builder, "arguments.type", argument.TypeSymbol);
-            }
+                AppendScalar(builder, "sourceKind", SourceKind);
+                AppendScalar(builder, "sourceContextId", SourceContextId);
+                AppendScalar(builder, "schemaName", SchemaName);
+                AppendScalar(builder, "methodName", MethodName);
+                AppendScalar(builder, "rowsType", RowsType);
+                AppendScalar(builder, "rowsPortability", RowsPortability);
+                AppendScalar(builder, "sourceType", SourceType);
+                AppendScalar(builder, "sourcePortability", SourcePortability);
+                AppendScalar(builder, "arguments.count", Arguments.Count);
+                foreach (var argument in Arguments)
+                {
+                    AppendScalar(builder, "arguments.position", argument.Position);
+                    AppendType(builder, "arguments.type", argument.TypeSymbol);
+                }
 
-            AppendScalar(builder, "fields.count", Fields.Count);
-            foreach (var sourceField in Fields)
-            {
-                AppendScalar(builder, "fields.index", sourceField.Index);
-                AppendScalar(builder, "fields.name", sourceField.Name);
-                AppendType(builder, "fields.type", sourceField.TypeSymbol);
-                AppendType(builder, "fields.publicType", sourceField.PublicTypeSymbol);
-                AppendType(builder, "fields.sourceReadType", sourceField.SourceReadTypeSymbol);
-                AppendEnumType(builder, "fields.enumType", sourceField.EnumType);
-                AppendScalar(builder, "fields.nullability", sourceField.Nullability);
-                AppendDictionary(builder, "fields.readModifiers", sourceField.ReadModifiers);
-            }
+                AppendScalar(builder, "fields.count", Fields.Count);
+                foreach (var sourceField in Fields)
+                {
+                    AppendScalar(builder, "fields.index", sourceField.Index);
+                    AppendScalar(builder, "fields.name", sourceField.Name);
+                    AppendType(builder, "fields.type", sourceField.TypeSymbol);
+                    AppendType(builder, "fields.publicType", sourceField.PublicTypeSymbol);
+                    AppendType(builder, "fields.sourceReadType", sourceField.SourceReadTypeSymbol);
+                    AppendEnumType(builder, "fields.enumType", sourceField.EnumType);
+                    AppendScalar(builder, "fields.nullability", sourceField.Nullability);
+                    AppendDictionary(builder, "fields.readModifiers", sourceField.ReadModifiers);
+                }
 
-            AppendScalar(builder, "acceptedOperations.count", AcceptedOperations.Count);
-            foreach (var operation in AcceptedOperations)
-                AppendScalar(builder, "acceptedOperations.item", operation);
+                AppendScalar(builder, "acceptedOperations.count", AcceptedOperations.Count);
+                foreach (var operation in AcceptedOperations)
+                    AppendScalar(builder, "acceptedOperations.item", operation);
 
-            AppendScalar(builder, "runtimeSettings.count", RuntimeSettings.Count);
-            foreach (var setting in RuntimeSettings)
-            {
-                AppendScalar(builder, "runtimeSettings.key", setting.Key);
-                AppendScalar(builder, "runtimeSettings.required", setting.Required);
-                AppendScalar(builder, "runtimeSettings.phases", setting.Phases);
-                AppendScalar(builder, "runtimeSettings.status", setting.Status);
-                AppendScalar(builder, "runtimeSettings.description", setting.NonSecretDescription);
+                AppendScalar(builder, "runtimeSettings.count", RuntimeSettings.Count);
+                foreach (var setting in RuntimeSettings)
+                {
+                    AppendScalar(builder, "runtimeSettings.key", setting.Key);
+                    AppendScalar(builder, "runtimeSettings.required", setting.Required);
+                    AppendScalar(builder, "runtimeSettings.phases", setting.Phases);
+                    AppendScalar(builder, "runtimeSettings.status", setting.Status);
+                    AppendScalar(builder, "runtimeSettings.description", setting.NonSecretDescription);
+                }
             }
-        });
+        );
 
     public string SourceKind { get; }
 
@@ -525,7 +553,8 @@ internal sealed record TargetQueryRowSourceAccessAbiDetails : TargetHostAbiImpor
         string carrier,
         string lifetime,
         string shapeFingerprint,
-        IEnumerable<TargetQueryRowFieldAbiContract>? fields)
+        IEnumerable<TargetQueryRowFieldAbiContract>? fields
+    )
     {
         SourceContextId = RequireText(sourceContextId, nameof(sourceContextId));
         SchemaName = RequireText(schemaName, nameof(schemaName));
@@ -537,13 +566,20 @@ internal sealed record TargetQueryRowSourceAccessAbiDetails : TargetHostAbiImpor
         if (Lifetime is not ("ScanLocal" or "EscapesScan"))
             throw new ArgumentException($"Unknown query-row lifetime '{Lifetime}'.", nameof(lifetime));
         if (Carrier == "ReadonlyStruct" && Lifetime != "ScanLocal")
-            throw new ArgumentException("A readonly-struct query-row carrier must remain scan-local.", nameof(lifetime));
-        if (string.IsNullOrWhiteSpace(shapeFingerprint) || shapeFingerprint.Length != 64 ||
-            shapeFingerprint.Any(static character => !Uri.IsHexDigit(character)))
+            throw new ArgumentException(
+                "A readonly-struct query-row carrier must remain scan-local.",
+                nameof(lifetime)
+            );
+        if (
+            string.IsNullOrWhiteSpace(shapeFingerprint)
+            || shapeFingerprint.Length != 64
+            || shapeFingerprint.Any(static character => !Uri.IsHexDigit(character))
+        )
         {
             throw new ArgumentException(
                 "A query-row shape fingerprint must be a 64-character hexadecimal digest.",
-                nameof(shapeFingerprint));
+                nameof(shapeFingerprint)
+            );
         }
 
         ShapeFingerprint = shapeFingerprint.ToUpperInvariant();
@@ -554,7 +590,13 @@ internal sealed record TargetQueryRowSourceAccessAbiDetails : TargetHostAbiImpor
                 throw new ArgumentException("Query-row field slots must be dense and zero-based.", nameof(fields));
         }
 
-        if (values.Where(static field => field.ComputedExpressionIdentity is null).Select(static field => field.SourceColumnIndex).Distinct().Count() != values.Count(static field => field.ComputedExpressionIdentity is null))
+        if (
+            values
+                .Where(static field => field.ComputedExpressionIdentity is null)
+                .Select(static field => field.SourceColumnIndex)
+                .Distinct()
+                .Count() != values.Count(static field => field.ComputedExpressionIdentity is null)
+        )
             throw new ArgumentException("Query-row source ordinals must be unique.", nameof(fields));
 
         Fields = Array.AsReadOnly(values);
@@ -565,7 +607,8 @@ internal sealed record TargetQueryRowSourceAccessAbiDetails : TargetHostAbiImpor
             ("carrier", Carrier),
             ("lifetime", Lifetime),
             ("shapeFingerprint", ShapeFingerprint),
-            ("fieldCount", Fields.Count));
+            ("fieldCount", Fields.Count)
+        );
     }
 
     public string SourceContextId { get; }
@@ -586,31 +629,33 @@ internal sealed record TargetQueryRowSourceAccessAbiDetails : TargetHostAbiImpor
 
     public override IReadOnlyDictionary<string, string> Attributes { get; }
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendField(builder, "sourceContextId", SourceContextId);
-            AppendField(builder, "schemaName", SchemaName);
-            AppendField(builder, "methodName", MethodName);
-            AppendField(builder, "carrier", Carrier);
-            AppendField(builder, "lifetime", Lifetime);
-            AppendField(builder, "shapeFingerprint", ShapeFingerprint);
-            AppendField(builder, "fields.count", Fields.Count);
-            foreach (var rowField in Fields)
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
             {
-                AppendField(builder, "fields.slot", rowField.Slot);
-                AppendField(builder, "fields.sourceColumnIndex", rowField.SourceColumnIndex);
-                AppendField(builder, "fields.name", rowField.Name);
-                AppendType(builder, "fields.type", rowField.TypeSymbol);
-                AppendType(builder, "fields.sourceReadType", rowField.SourceReadTypeSymbol);
-                AppendEnumType(builder, "fields.enumType", rowField.EnumType);
-                AppendField(builder, "fields.nullable", rowField.IsNullable);
-                if (rowField.ComputedExpressionIdentity is { } identity)
-                    AppendField(builder, "fields.computedExpression", identity);
-                AppendDictionary(builder, "fields.readModifiers", rowField.ReadModifiers);
+                AppendField(builder, "sourceContextId", SourceContextId);
+                AppendField(builder, "schemaName", SchemaName);
+                AppendField(builder, "methodName", MethodName);
+                AppendField(builder, "carrier", Carrier);
+                AppendField(builder, "lifetime", Lifetime);
+                AppendField(builder, "shapeFingerprint", ShapeFingerprint);
+                AppendField(builder, "fields.count", Fields.Count);
+                foreach (var rowField in Fields)
+                {
+                    AppendField(builder, "fields.slot", rowField.Slot);
+                    AppendField(builder, "fields.sourceColumnIndex", rowField.SourceColumnIndex);
+                    AppendField(builder, "fields.name", rowField.Name);
+                    AppendType(builder, "fields.type", rowField.TypeSymbol);
+                    AppendType(builder, "fields.sourceReadType", rowField.SourceReadTypeSymbol);
+                    AppendEnumType(builder, "fields.enumType", rowField.EnumType);
+                    AppendField(builder, "fields.nullable", rowField.IsNullable);
+                    if (rowField.ComputedExpressionIdentity is { } identity)
+                        AppendField(builder, "fields.computedExpression", identity);
+                    AppendDictionary(builder, "fields.readModifiers", rowField.ReadModifiers);
+                }
             }
-        });
+        );
 }
 
 internal sealed record TargetQueryRowFieldAbiContract
@@ -621,10 +666,9 @@ internal sealed record TargetQueryRowFieldAbiContract
         string name,
         ExecutionPortableTypeDescriptor typeSymbol,
         bool isNullable,
-        IReadOnlyDictionary<string, string>? readModifiers)
-        : this(slot, sourceColumnIndex, name, typeSymbol, typeSymbol, null, isNullable, readModifiers)
-    {
-    }
+        IReadOnlyDictionary<string, string>? readModifiers
+    )
+        : this(slot, sourceColumnIndex, name, typeSymbol, typeSymbol, null, isNullable, readModifiers) { }
 
     public TargetQueryRowFieldAbiContract(
         int slot,
@@ -635,14 +679,14 @@ internal sealed record TargetQueryRowFieldAbiContract
         TargetEnumTypeAbiContract? enumType,
         bool isNullable,
         IReadOnlyDictionary<string, string>? readModifiers,
-        string? computedExpressionIdentity = null)
+        string? computedExpressionIdentity = null
+    )
     {
-        Slot = slot < 0
-            ? throw new ArgumentOutOfRangeException(nameof(slot))
-            : slot;
-        SourceColumnIndex = sourceColumnIndex < 0 && (sourceColumnIndex != -1 || string.IsNullOrWhiteSpace(computedExpressionIdentity))
-            ? throw new ArgumentOutOfRangeException(nameof(sourceColumnIndex))
-            : sourceColumnIndex;
+        Slot = slot < 0 ? throw new ArgumentOutOfRangeException(nameof(slot)) : slot;
+        SourceColumnIndex =
+            sourceColumnIndex < 0 && (sourceColumnIndex != -1 || string.IsNullOrWhiteSpace(computedExpressionIdentity))
+                ? throw new ArgumentOutOfRangeException(nameof(sourceColumnIndex))
+                : sourceColumnIndex;
         Name = string.IsNullOrWhiteSpace(name)
             ? throw new ArgumentException("Value cannot be null or whitespace.", nameof(name))
             : name;
@@ -654,7 +698,8 @@ internal sealed record TargetQueryRowFieldAbiContract
         ReadModifiers = new ReadOnlyDictionary<string, string>(
             readModifiers is null
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
+                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal)
+        );
     }
 
     public string? ComputedExpressionIdentity { get; }
@@ -682,29 +727,34 @@ internal sealed record TargetPluginInvocationAbiDetails(
     ExecutionPortableSymbolPortability CallablePortability,
     string MethodName,
     string DeclaringType,
-    int ParameterCount) : TargetHostAbiImportDetails
+    int ParameterCount
+) : TargetHostAbiImportDetails
 {
     public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.PluginInvocation;
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendScalar(builder, "detail", Detail);
-            AppendScalar(builder, "callable", Callable);
-            AppendScalar(builder, "callablePortability", CallablePortability);
-            AppendScalar(builder, "methodName", MethodName);
-            AppendScalar(builder, "declaringType", DeclaringType);
-            AppendScalar(builder, "parameterCount", ParameterCount);
-        });
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
+            {
+                AppendScalar(builder, "detail", Detail);
+                AppendScalar(builder, "callable", Callable);
+                AppendScalar(builder, "callablePortability", CallablePortability);
+                AppendScalar(builder, "methodName", MethodName);
+                AppendScalar(builder, "declaringType", DeclaringType);
+                AppendScalar(builder, "parameterCount", ParameterCount);
+            }
+        );
 
-    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
-        ("detail", RequireText(Detail, nameof(Detail))),
-        ("callable", RequireText(Callable, nameof(Callable))),
-        ("callablePortability", CallablePortability),
-        ("methodName", RequireText(MethodName, nameof(MethodName))),
-        ("declaringType", DeclaringType ?? string.Empty),
-        ("parameterCount", RequireNonNegative(ParameterCount, nameof(ParameterCount))));
+    public override IReadOnlyDictionary<string, string> Attributes { get; } =
+        BuildAttributes(
+            ("detail", RequireText(Detail, nameof(Detail))),
+            ("callable", RequireText(Callable, nameof(Callable))),
+            ("callablePortability", CallablePortability),
+            ("methodName", RequireText(MethodName, nameof(MethodName))),
+            ("declaringType", DeclaringType ?? string.Empty),
+            ("parameterCount", RequireNonNegative(ParameterCount, nameof(ParameterCount)))
+        );
 }
 
 internal sealed record TargetRowShapeTransferAbiDetails(
@@ -712,140 +762,165 @@ internal sealed record TargetRowShapeTransferAbiDetails(
     string Name,
     string TypeName,
     ExecutionPortableSymbolPortability? TypePortability,
-    int FieldCount) : TargetHostAbiImportDetails
+    int FieldCount
+) : TargetHostAbiImportDetails
 {
     public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.RowShapeTransfer;
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendScalar(builder, "rowKind", RowKind);
-            AppendScalar(builder, "name", Name);
-            AppendScalar(builder, "typeName", TypeName);
-            AppendScalar(builder, "typePortability", TypePortability);
-            AppendScalar(builder, "fieldCount", FieldCount);
-        });
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
+            {
+                AppendScalar(builder, "rowKind", RowKind);
+                AppendScalar(builder, "name", Name);
+                AppendScalar(builder, "typeName", TypeName);
+                AppendScalar(builder, "typePortability", TypePortability);
+                AppendScalar(builder, "fieldCount", FieldCount);
+            }
+        );
 
-    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
-        ("kind", RequireText(RowKind, nameof(RowKind))),
-        ("name", RequireText(Name, nameof(Name))),
-        ("type", TypeName ?? string.Empty),
-        ("typePortability", (object?)TypePortability),
-        ("fieldCount", RequireNonNegative(FieldCount, nameof(FieldCount))));
+    public override IReadOnlyDictionary<string, string> Attributes { get; } =
+        BuildAttributes(
+            ("kind", RequireText(RowKind, nameof(RowKind))),
+            ("name", RequireText(Name, nameof(Name))),
+            ("type", TypeName ?? string.Empty),
+            ("typePortability", (object?)TypePortability),
+            ("fieldCount", RequireNonNegative(FieldCount, nameof(FieldCount)))
+        );
 }
 
 internal sealed record TargetNullTypeCoercionAbiDetails(
     string Semantics,
     bool UsesNullableValueTypes,
     bool UsesObjectNulls,
-    bool UsesFieldNullabilityMetadata) : TargetHostAbiImportDetails
+    bool UsesFieldNullabilityMetadata
+) : TargetHostAbiImportDetails
 {
     public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.NullTypeCoercion;
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendScalar(builder, "semantics", Semantics);
-            AppendScalar(builder, "usesNullableValueTypes", UsesNullableValueTypes);
-            AppendScalar(builder, "usesObjectNulls", UsesObjectNulls);
-            AppendScalar(builder, "usesFieldNullabilityMetadata", UsesFieldNullabilityMetadata);
-        });
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
+            {
+                AppendScalar(builder, "semantics", Semantics);
+                AppendScalar(builder, "usesNullableValueTypes", UsesNullableValueTypes);
+                AppendScalar(builder, "usesObjectNulls", UsesObjectNulls);
+                AppendScalar(builder, "usesFieldNullabilityMetadata", UsesFieldNullabilityMetadata);
+            }
+        );
 
-    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
-        ("semantics", RequireText(Semantics, nameof(Semantics))),
-        ("usesNullableValueTypes", UsesNullableValueTypes),
-        ("usesObjectNulls", UsesObjectNulls),
-        ("usesFieldNullabilityMetadata", UsesFieldNullabilityMetadata));
+    public override IReadOnlyDictionary<string, string> Attributes { get; } =
+        BuildAttributes(
+            ("semantics", RequireText(Semantics, nameof(Semantics))),
+            ("usesNullableValueTypes", UsesNullableValueTypes),
+            ("usesObjectNulls", UsesObjectNulls),
+            ("usesFieldNullabilityMetadata", UsesFieldNullabilityMetadata)
+        );
 }
 
-internal sealed record TargetCancellationAbiDetails(
-    bool RequiresCancellationToken,
-    bool RequiresParallelCancellation) : TargetHostAbiImportDetails
+internal sealed record TargetCancellationAbiDetails(bool RequiresCancellationToken, bool RequiresParallelCancellation)
+    : TargetHostAbiImportDetails
 {
     public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.Cancellation;
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendScalar(builder, "requiresCancellationToken", RequiresCancellationToken);
-            AppendScalar(builder, "requiresParallelCancellation", RequiresParallelCancellation);
-        });
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
+            {
+                AppendScalar(builder, "requiresCancellationToken", RequiresCancellationToken);
+                AppendScalar(builder, "requiresParallelCancellation", RequiresParallelCancellation);
+            }
+        );
 
-    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
-        ("requiresCancellationToken", RequiresCancellationToken),
-        ("requiresParallelCancellation", RequiresParallelCancellation));
+    public override IReadOnlyDictionary<string, string> Attributes { get; } =
+        BuildAttributes(
+            ("requiresCancellationToken", RequiresCancellationToken),
+            ("requiresParallelCancellation", RequiresParallelCancellation)
+        );
 }
 
 internal sealed record TargetDiagnosticsAbiDetails(
     bool RequiresBuildDiagnostics,
     bool RequiresSourceDiagnostics,
-    bool RequiresRuntimeExceptionDiagnostics) : TargetHostAbiImportDetails
+    bool RequiresRuntimeExceptionDiagnostics
+) : TargetHostAbiImportDetails
 {
     public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.Diagnostics;
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendScalar(builder, "requiresBuildDiagnostics", RequiresBuildDiagnostics);
-            AppendScalar(builder, "requiresSourceDiagnostics", RequiresSourceDiagnostics);
-            AppendScalar(builder, "requiresRuntimeExceptionDiagnostics", RequiresRuntimeExceptionDiagnostics);
-        });
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
+            {
+                AppendScalar(builder, "requiresBuildDiagnostics", RequiresBuildDiagnostics);
+                AppendScalar(builder, "requiresSourceDiagnostics", RequiresSourceDiagnostics);
+                AppendScalar(builder, "requiresRuntimeExceptionDiagnostics", RequiresRuntimeExceptionDiagnostics);
+            }
+        );
 
-    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
-        ("requiresBuildDiagnostics", RequiresBuildDiagnostics),
-        ("requiresSourceDiagnostics", RequiresSourceDiagnostics),
-        ("requiresRuntimeExceptionDiagnostics", RequiresRuntimeExceptionDiagnostics));
+    public override IReadOnlyDictionary<string, string> Attributes { get; } =
+        BuildAttributes(
+            ("requiresBuildDiagnostics", RequiresBuildDiagnostics),
+            ("requiresSourceDiagnostics", RequiresSourceDiagnostics),
+            ("requiresRuntimeExceptionDiagnostics", RequiresRuntimeExceptionDiagnostics)
+        );
 }
 
 internal sealed record TargetProfilingAbiDetails(
     bool SupportsSourceBoundaryProfiling,
     bool SupportsOperatorProfiling,
     int SourceBoundaryCount,
-    int OperatorCount) : TargetHostAbiImportDetails
+    int OperatorCount
+) : TargetHostAbiImportDetails
 {
     public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.Profiling;
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendScalar(builder, "supportsSourceBoundaryProfiling", SupportsSourceBoundaryProfiling);
-            AppendScalar(builder, "supportsOperatorProfiling", SupportsOperatorProfiling);
-            AppendScalar(builder, "sourceBoundaryCount", SourceBoundaryCount);
-            AppendScalar(builder, "operatorCount", OperatorCount);
-        });
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
+            {
+                AppendScalar(builder, "supportsSourceBoundaryProfiling", SupportsSourceBoundaryProfiling);
+                AppendScalar(builder, "supportsOperatorProfiling", SupportsOperatorProfiling);
+                AppendScalar(builder, "sourceBoundaryCount", SourceBoundaryCount);
+                AppendScalar(builder, "operatorCount", OperatorCount);
+            }
+        );
 
-    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
-        ("supportsSourceBoundaryProfiling", SupportsSourceBoundaryProfiling),
-        ("supportsOperatorProfiling", SupportsOperatorProfiling),
-        ("sourceBoundaryCount", RequireNonNegative(SourceBoundaryCount, nameof(SourceBoundaryCount))),
-        ("operatorCount", RequireNonNegative(OperatorCount, nameof(OperatorCount))));
+    public override IReadOnlyDictionary<string, string> Attributes { get; } =
+        BuildAttributes(
+            ("supportsSourceBoundaryProfiling", SupportsSourceBoundaryProfiling),
+            ("supportsOperatorProfiling", SupportsOperatorProfiling),
+            ("sourceBoundaryCount", RequireNonNegative(SourceBoundaryCount, nameof(SourceBoundaryCount))),
+            ("operatorCount", RequireNonNegative(OperatorCount, nameof(OperatorCount)))
+        );
 }
 
-internal sealed record TargetLikeMatcherAbiDetails(
-    int CacheCapacity,
-    string Comparison,
-    bool CultureAware) : TargetHostAbiImportDetails
+internal sealed record TargetLikeMatcherAbiDetails(int CacheCapacity, string Comparison, bool CultureAware)
+    : TargetHostAbiImportDetails
 {
     public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.LikeMatcher;
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendScalar(builder, "cacheCapacity", CacheCapacity);
-            AppendScalar(builder, "comparison", Comparison);
-            AppendScalar(builder, "cultureAware", CultureAware);
-        });
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
+            {
+                AppendScalar(builder, "cacheCapacity", CacheCapacity);
+                AppendScalar(builder, "comparison", Comparison);
+                AppendScalar(builder, "cultureAware", CultureAware);
+            }
+        );
 
-    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
-        ("cache-capacity", RequirePositive(CacheCapacity)),
-        ("comparison", RequireText(Comparison, nameof(Comparison))),
-        ("culture-aware", CultureAware));
+    public override IReadOnlyDictionary<string, string> Attributes { get; } =
+        BuildAttributes(
+            ("cache-capacity", RequirePositive(CacheCapacity)),
+            ("comparison", RequireText(Comparison, nameof(Comparison))),
+            ("culture-aware", CultureAware)
+        );
 
     private static int RequirePositive(int value) =>
         value > 0
@@ -853,29 +928,29 @@ internal sealed record TargetLikeMatcherAbiDetails(
             : throw new ArgumentOutOfRangeException(nameof(CacheCapacity), "Cache capacity must be positive.");
 }
 
-internal sealed record TargetRLikeMatcherAbiDetails(
-    int CacheCapacity,
-    bool CultureAware,
-    int TimeoutMilliseconds) : TargetHostAbiImportDetails
+internal sealed record TargetRLikeMatcherAbiDetails(int CacheCapacity, bool CultureAware, int TimeoutMilliseconds)
+    : TargetHostAbiImportDetails
 {
     public override TargetHostAbiImportKind Kind => TargetHostAbiImportKind.RLikeMatcher;
 
-    internal override string CanonicalDefinition => CreateCanonicalDefinition(
-        Kind.ToString(),
-        builder =>
-        {
-            AppendScalar(builder, "cacheCapacity", CacheCapacity);
-            AppendScalar(builder, "cultureAware", CultureAware);
-            AppendScalar(builder, "timeoutMilliseconds", TimeoutMilliseconds);
-        });
+    internal override string CanonicalDefinition =>
+        CreateCanonicalDefinition(
+            Kind.ToString(),
+            builder =>
+            {
+                AppendScalar(builder, "cacheCapacity", CacheCapacity);
+                AppendScalar(builder, "cultureAware", CultureAware);
+                AppendScalar(builder, "timeoutMilliseconds", TimeoutMilliseconds);
+            }
+        );
 
-    public override IReadOnlyDictionary<string, string> Attributes { get; } = BuildAttributes(
-        ("cache-capacity", RequirePositive(CacheCapacity, nameof(CacheCapacity))),
-        ("culture-aware", CultureAware),
-        ("timeout-milliseconds", RequirePositive(TimeoutMilliseconds, nameof(TimeoutMilliseconds))));
+    public override IReadOnlyDictionary<string, string> Attributes { get; } =
+        BuildAttributes(
+            ("cache-capacity", RequirePositive(CacheCapacity, nameof(CacheCapacity))),
+            ("culture-aware", CultureAware),
+            ("timeout-milliseconds", RequirePositive(TimeoutMilliseconds, nameof(TimeoutMilliseconds)))
+        );
 
     private static int RequirePositive(int value, string parameterName) =>
-        value > 0
-            ? value
-            : throw new ArgumentOutOfRangeException(parameterName, "Value must be positive.");
+        value > 0 ? value : throw new ArgumentOutOfRangeException(parameterName, "Value must be positive.");
 }

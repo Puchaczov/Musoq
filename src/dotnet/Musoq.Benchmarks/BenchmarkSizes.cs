@@ -17,19 +17,27 @@ public static class BenchmarkSizes
         }
     }
 
-    public static int Count(string size) => size switch
-    {
-        "Small" => BenchmarkInputSizes.Small,
-        "Medium" => BenchmarkInputSizes.Medium,
-        "Large" => BenchmarkInputSizes.Large,
-        _ when size.StartsWith("Custom-", StringComparison.Ordinal) => Parse(size[7..]),
-        _ => throw new ArgumentException($"Unknown execution size '{size}'.")
-    };
+    public static int Count(string size) =>
+        size switch
+        {
+            "Small" => BenchmarkInputSizes.Small,
+            "Medium" => BenchmarkInputSizes.Medium,
+            "Large" => BenchmarkInputSizes.Large,
+            _ when size.StartsWith("Custom-", StringComparison.Ordinal) => Parse(size[7..]),
+            _ => throw new ArgumentException($"Unknown execution size '{size}'."),
+        };
 
     public static int Parse(string value)
     {
-        if (!int.TryParse(value.Replace("_", "", StringComparison.Ordinal), NumberStyles.None,
-                CultureInfo.InvariantCulture, out var count) || count <= 0)
+        if (
+            !int.TryParse(
+                value.Replace("_", "", StringComparison.Ordinal),
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out var count
+            )
+            || count <= 0
+        )
             throw new ArgumentException("Size must be a positive integer, for example 1_000.");
         return count;
     }

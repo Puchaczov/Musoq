@@ -9,7 +9,8 @@ public class CteReadOnceFusionDeterminismTests : BasicEntityTestBase
     [TestMethod]
     public void CteReadOnceFusion_WhenNonDeterministicProjectionIsReadTwice_ShouldMaterializeProducerValue()
     {
-        const string query = @"
+        const string query =
+            @"
             with p as (select NextTestValue() as r from #A.Entities())
             select p.r, p.r as again from p";
 
@@ -19,7 +20,8 @@ public class CteReadOnceFusionDeterminismTests : BasicEntityTestBase
     [TestMethod]
     public void CteReadOnceFusion_WhenNonDeterministicAliasIsComparedWithItself_ShouldMaterializeBeforeFiltering()
     {
-        const string query = @"
+        const string query =
+            @"
             with p as (select NextTestValue() as r from #A.Entities())
             select p.r from p where p.r = p.r";
 
@@ -29,7 +31,8 @@ public class CteReadOnceFusionDeterminismTests : BasicEntityTestBase
     [TestMethod]
     public void CteReadOnceFusion_WhenNonDeterministicFilteredColumnIsPruned_ShouldMaterializeBeforeFiltering()
     {
-        const string query = @"
+        const string query =
+            @"
             with p as (select NextTestValue() as r, Name from #A.Entities())
             select p.Name from p where p.r = p.r";
 

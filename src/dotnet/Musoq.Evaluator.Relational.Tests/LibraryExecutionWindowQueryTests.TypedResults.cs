@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -20,8 +19,13 @@ public sealed partial class LibraryExecutionWindowQueryTests
                 rows between 1 preceding and current row) as Total
             from #schema.first() order by Position
             """;
-        var compiled = InstanceCreator.CompileForTypedProfile<WindowOutput>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver, new CompilationOptions(instrumentationMode: mode));
+        var compiled = InstanceCreator.CompileForTypedProfile<WindowOutput>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver,
+            new CompilationOptions(instrumentationMode: mode)
+        );
         var result = compiled.RunWithProfile(TestContext.CancellationToken);
         var rows = result.Rows.ToArray();
 
@@ -38,8 +42,12 @@ public sealed partial class LibraryExecutionWindowQueryTests
             from #schema.first() qualify RowNumber() over (order by Position) > 1
             order by Position desc skip 1 take 3
             """;
-        var compiled = InstanceCreator.CompileForTypedExecution<WindowOutput>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        var compiled = InstanceCreator.CompileForTypedExecution<WindowOutput>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         var rows = compiled.Run(TestContext.CancellationToken).ToArray();
 
         Assert.HasCount(3, rows);
@@ -56,8 +64,12 @@ public sealed partial class LibraryExecutionWindowQueryTests
                 rows between unbounded preceding and current row) as Total
             from #schema.first() order by Position
             """;
-        var compiled = InstanceCreator.CompileForTypedExecution<SeededWindowOutput>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(), LoggerResolver);
+        var compiled = InstanceCreator.CompileForTypedExecution<SeededWindowOutput>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(),
+            LoggerResolver
+        );
         SeededWindowOutput[] expected = [new(1, 101.25m), new(2, 104m), new(3, 104m), new(4, 97m), new(5, 102m)];
         for (var iteration = 0; iteration < 5; iteration++)
         {

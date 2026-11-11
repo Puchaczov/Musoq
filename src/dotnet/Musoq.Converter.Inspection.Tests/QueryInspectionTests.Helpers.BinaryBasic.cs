@@ -6,12 +6,14 @@ public partial class QueryInspectionTests
 {
     private static string CreateConditionalBinaryInterpretQuery()
     {
-        return @"
-            binary OptionalPacket {
-                HasValue: byte,
-                Value: int le when HasValue = 1
-            };
-            select i.Name, p.HasValue, p.Value from #apply.items() i cross apply Interpret<OptionalPacket>(i.Content) p";
+        return (
+            "\n"
+            + "            binary OptionalPacket {\n"
+            + "                HasValue: byte,\n"
+            + "                Value: int le when HasValue = 1\n"
+            + "            };\n"
+            + "            select i.Name, p.HasValue, p.Value from #apply.items() i cross apply Interpret<OptionalPacket>(i.Content) p"
+        );
     }
 
     private static byte[] CreateOptionalPacketContent(int? value)
@@ -27,14 +29,16 @@ public partial class QueryInspectionTests
 
     private static string CreateConstrainedOffsetBinaryInterpretQuery()
     {
-        return @"
-            binary IndexedPacket {
-                Magic: int le check Magic = 0x46495845,
-                HeaderSize: int le,
-                DataOffset: int le,
-                Data: int le at DataOffset
-            };
-            select i.Name, p.HeaderSize, p.DataOffset, p.Data from #apply.items() i cross apply Interpret<IndexedPacket>(i.Content) p";
+        return (
+            "\n"
+            + "            binary IndexedPacket {\n"
+            + "                Magic: int le check Magic = 0x46495845,\n"
+            + "                HeaderSize: int le,\n"
+            + "                DataOffset: int le,\n"
+            + "                Data: int le at DataOffset\n"
+            + "            };\n"
+            + "            select i.Name, p.HeaderSize, p.DataOffset, p.Data from #apply.items() i cross apply Interpret<IndexedPacket>(i.Content) p"
+        );
     }
 
     private const int IndexedPacketHeaderSize = 12;
@@ -54,13 +58,15 @@ public partial class QueryInspectionTests
 
     private static string CreateComputedBinaryInterpretQuery()
     {
-        return @"
-            binary Rectangle {
-                Width: int le,
-                Height: int le,
-                Area: Width * Height
-            };
-            select i.Name, r.Width, r.Height, r.Area from #apply.items() i cross apply Interpret<Rectangle>(i.Content) r";
+        return (
+            "\n"
+            + "            binary Rectangle {\n"
+            + "                Width: int le,\n"
+            + "                Height: int le,\n"
+            + "                Area: Width * Height\n"
+            + "            };\n"
+            + "            select i.Name, r.Width, r.Height, r.Area from #apply.items() i cross apply Interpret<Rectangle>(i.Content) r"
+        );
     }
 
     private static byte[] CreateRectangleContent(int width, int height)
@@ -73,16 +79,18 @@ public partial class QueryInspectionTests
 
     private static string CreateNestedBinaryInterpretQuery()
     {
-        return @"
-            binary Point {
-                X: float le,
-                Y: float le
-            };
-            binary Vertex {
-                Id: int le,
-                Position: Point
-            };
-            select i.Name, v.Id, v.Position.X as X, v.Position.Y as Y from #apply.items() i cross apply Interpret<Vertex>(i.Content) v";
+        return (
+            "\n"
+            + "            binary Point {\n"
+            + "                X: float le,\n"
+            + "                Y: float le\n"
+            + "            };\n"
+            + "            binary Vertex {\n"
+            + "                Id: int le,\n"
+            + "                Position: Point\n"
+            + "            };\n"
+            + "            select i.Name, v.Id, v.Position.X as X, v.Position.Y as Y from #apply.items() i cross apply Interpret<Vertex>(i.Content) v"
+        );
     }
 
     private static byte[] CreateVertexContent(int id, float x, float y)
@@ -96,15 +104,17 @@ public partial class QueryInspectionTests
 
     private static string CreateInlineBinaryInterpretQuery()
     {
-        return @"
-            binary InlinePacket {
-                Header: {
-                    Magic: int le,
-                    Version: short le
-                },
-                Payload: byte
-            };
-            select i.Name, p.Header.Magic as Magic, p.Header.Version as Version, p.Payload from #apply.items() i cross apply Interpret<InlinePacket>(i.Content) p";
+        return (
+            "\n"
+            + "            binary InlinePacket {\n"
+            + "                Header: {\n"
+            + "                    Magic: int le,\n"
+            + "                    Version: short le\n"
+            + "                },\n"
+            + "                Payload: byte\n"
+            + "            };\n"
+            + "            select i.Name, p.Header.Magic as Magic, p.Header.Version as Version, p.Payload from #apply.items() i cross apply Interpret<InlinePacket>(i.Content) p"
+        );
     }
 
     private static byte[] CreateInlinePacketContent(int magic, short version, byte payload)
@@ -118,24 +128,18 @@ public partial class QueryInspectionTests
 
     private static string CreateStringBinaryInterpretQuery()
     {
-        return @"
-            binary TextPacket {
-                Length: byte,
-                Text: string[Length] ascii trim
-            };
-            select i.Name, p.Length, p.Text from #apply.items() i cross apply Interpret<TextPacket>(i.Content) p";
+        return (
+            "\n"
+            + "            binary TextPacket {\n"
+            + "                Length: byte,\n"
+            + "                Text: string[Length] ascii trim\n"
+            + "            };\n"
+            + "            select i.Name, p.Length, p.Text from #apply.items() i cross apply Interpret<TextPacket>(i.Content) p"
+        );
     }
 
     private static byte[] CreateTextPacketContent()
     {
-        return
-        [
-            5,
-            (byte)'A',
-            (byte)'d',
-            (byte)'a',
-            (byte)' ',
-            (byte)' '
-        ];
+        return [5, (byte)'A', (byte)'d', (byte)'a', (byte)' ', (byte)' '];
     }
 }

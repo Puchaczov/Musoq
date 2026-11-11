@@ -1,7 +1,7 @@
 using System;
-using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
@@ -23,9 +23,7 @@ public partial class SchemaExtendedTests
     public void DiagnosticChunkedRowSource_WhenEnumerated_ReportsChunksRowsAndBacklog()
     {
         var sink = new CapturingChunkDiagnosticsSink();
-        var source = new ReportingDiagnosticChunkedSource(
-            CreateSourceContext(new SourceDiagnostics(sink)),
-            "items");
+        var source = new ReportingDiagnosticChunkedSource(CreateSourceContext(new SourceDiagnostics(sink)), "items");
 
         var rows = source.Chunks.SelectMany(static chunk => chunk).ToArray();
 
@@ -41,9 +39,7 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void DiagnosticChunkedRowSource_WhenEnumeratedTwice_ShouldStartFreshProducerEachTime()
     {
-        var source = new ReportingDiagnosticChunkedSource(
-            CreateSourceContext(SourceDiagnostics.None),
-            "items");
+        var source = new ReportingDiagnosticChunkedSource(CreateSourceContext(SourceDiagnostics.None), "items");
         var rows = source.Chunks;
 
         CollectionAssert.AreEqual(new[] { 1, 2, 3 }, rows.SelectMany(static chunk => chunk).ToArray());
@@ -53,9 +49,7 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void DiagnosticChunkedRowSource_WhenProducerFailsBeforeFirstRow_ShouldSurfaceException()
     {
-        var source = new FailingDiagnosticChunkedSource(
-            CreateSourceContext(SourceDiagnostics.None),
-            "items");
+        var source = new FailingDiagnosticChunkedSource(CreateSourceContext(SourceDiagnostics.None), "items");
 
         var exception = Assert.Throws<InvalidOperationException>(() => source.Chunks.ToArray());
         StringAssert.Contains(exception.Message, "producer failed");
@@ -64,9 +58,7 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void DiagnosticChunkedRowSource_WhenConsumerDisposesEarly_ShouldCancelProducer()
     {
-        var source = new WaitingDiagnosticChunkedSource(
-            CreateSourceContext(SourceDiagnostics.None),
-            "items");
+        var source = new WaitingDiagnosticChunkedSource(CreateSourceContext(SourceDiagnostics.None), "items");
 
         using (var enumerator = source.Chunks.GetEnumerator())
         {
@@ -88,7 +80,8 @@ public partial class SchemaExtendedTests
             columns,
             new Dictionary<string, string>(),
             NullLogger.Instance,
-            sourceDiagnostics: diagnostics);
+            sourceDiagnostics: diagnostics
+        );
     }
 
     private static void AssertMetric(CapturingChunkDiagnosticsSink sink, string name, long expected)
@@ -197,9 +190,7 @@ public partial class SchemaExtendedTests
             }
         }
 
-        public void AddBytesRead(long bytes)
-        {
-        }
+        public void AddBytesRead(long bytes) { }
 
         public void AddMetric(string name, long value)
         {
@@ -212,8 +203,6 @@ public partial class SchemaExtendedTests
 
     private sealed class NoOpDisposable : IDisposable
     {
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 }

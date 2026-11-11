@@ -11,43 +11,59 @@ public partial class Parser
     private StatementNode ComposeStatement()
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Statement, Current);
-        if (TryComposeEnumDeclarationStatement(out var enumStatement)) return enumStatement;
+        if (TryComposeEnumDeclarationStatement(out var enumStatement))
+            return enumStatement;
 
         if (IsParameterBlockStart())
             return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeParameterBlock()), TokenType.Semicolon);
 
         if (IsScriptVariableDeclarationStart())
-            return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeScriptVariableDeclaration()), TokenType.Semicolon);
+            return ComposeAndSkipIfPresent(
+                p => new StatementNode(p.ComposeScriptVariableDeclaration()),
+                TokenType.Semicolon
+            );
 
-        if (Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function &&
-            Current.Value.Equals("def", StringComparison.OrdinalIgnoreCase))
+        if (
+            Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function
+            && Current.Value.Equals("def", StringComparison.OrdinalIgnoreCase)
+        )
         {
             throw new SyntaxException(
                 "Python-style function declarations are not supported for script parameters. Use Musoq syntax: param(author: string) select ...",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
-                Current.Span);
+                Current.Span
+            );
         }
 
-        if (Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function &&
-            Current.Value.Equals("declare", StringComparison.OrdinalIgnoreCase))
+        if (
+            Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function
+            && Current.Value.Equals("declare", StringComparison.OrdinalIgnoreCase)
+        )
         {
             throw new SyntaxException(
                 "SQL variable declarations are not supported for script parameters. Use Musoq syntax: param(author: string) select ...",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
-                Current.Span);
+                Current.Span
+            );
         }
 
         if (IsDiagnosticCommandStart())
             return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeDiagnosticCommand()), TokenType.Semicolon);
-        if (Current.TokenType == TokenType.Identifier &&
-            (Current.Value.Equals("binary", StringComparison.OrdinalIgnoreCase) ||
-             Current.Value.Equals("text", StringComparison.OrdinalIgnoreCase)))
+        if (
+            Current.TokenType == TokenType.Identifier
+            && (
+                Current.Value.Equals("binary", StringComparison.OrdinalIgnoreCase)
+                || Current.Value.Equals("text", StringComparison.OrdinalIgnoreCase)
+            )
+        )
         {
             _lexer.IsSchemaContext = true;
-            return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeInterpretationSchema()),
-                TokenType.Semicolon);
+            return ComposeAndSkipIfPresent(
+                p => new StatementNode(p.ComposeInterpretationSchema()),
+                TokenType.Semicolon
+            );
         }
 
         switch (Current.TokenType)
@@ -70,38 +86,49 @@ public partial class Parser
                 return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeCouple()), TokenType.Semicolon);
             case TokenType.Binary:
             case TokenType.Text:
-                return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeInterpretationSchema()),
-                    TokenType.Semicolon);
+                return ComposeAndSkipIfPresent(
+                    p => new StatementNode(p.ComposeInterpretationSchema()),
+                    TokenType.Semicolon
+                );
 
             default:
-                if (_fromPosition == 0 &&
-                    Current.TokenType is TokenType.Integer or TokenType.Decimal or TokenType.HexadecimalInteger or
-                    TokenType.BinaryInteger or TokenType.OctalInteger or TokenType.StringLiteral or
-                    TokenType.LeftParenthesis)
+                if (
+                    _fromPosition == 0
+                    && Current.TokenType
+                        is TokenType.Integer
+                            or TokenType.Decimal
+                            or TokenType.HexadecimalInteger
+                            or TokenType.BinaryInteger
+                            or TokenType.OctalInteger
+                            or TokenType.StringLiteral
+                            or TokenType.LeftParenthesis
+                )
                     throw new SyntaxException(
                         "A SELECT keyword is required before a projection expression.",
                         _lexer.AlreadyResolvedQueryPart,
                         DiagnosticCode.MQ2025_MissingSelectKeyword,
-                        Current.Span);
+                        Current.Span
+                    );
 
                 throw new SyntaxException(
                     $"Cannot compose statement, {Current.TokenType} is not expected here",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2001_UnexpectedToken,
-                    Current.Span);
+                    Current.Span
+                );
         }
     }
 
-
-    private Node ComposeInterpretationSchema() => new SchemaParser(_lexer, _sourceCapture).ParseSchemaFromCurrentPosition();
-
+    private Node ComposeInterpretationSchema() =>
+        new SchemaParser(_lexer, _sourceCapture).ParseSchemaFromCurrentPosition();
 
     private CteExpressionNode ComposeCteExpression()
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Cte, Current);
         var withToken = ConsumeAndGetToken(TokenType.With);
         var recursiveToken = IsContextualRecursiveKeyword() ? ConsumeAndGetToken() : null;
-        var isRecursive = recursiveToken != null && Current.TokenType is not TokenType.As and not TokenType.LeftParenthesis;
+        var isRecursive =
+            recursiveToken != null && Current.TokenType is not TokenType.As and not TokenType.LeftParenthesis;
 
         if (isRecursive && recursiveToken != null)
             _sourceCapture?.Mark(recursiveToken, Syntax.SyntaxTokenRole.Keyword);
@@ -110,10 +137,15 @@ public partial class Parser
         {
             var expressions = new List<CteInnerExpressionNode>();
 
-            var col = recursiveToken != null && !isRecursive ? new IdentifierNode(recursiveToken.Value, null, recursiveToken.Span) : ComposeBaseTypes() as IdentifierNode;
+            var col =
+                recursiveToken != null && !isRecursive
+                    ? new IdentifierNode(recursiveToken.Value, null, recursiveToken.Span)
+                    : ComposeBaseTypes() as IdentifierNode;
             if (col == null)
-                throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
-                    _lexer.AlreadyResolvedQueryPart);
+                throw new SyntaxException(
+                    $"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
+                    _lexer.AlreadyResolvedQueryPart
+                );
 
             RegisterFromAlias(col.Name);
             var columns = ComposeOptionalCteColumnList();
@@ -122,8 +154,12 @@ public partial class Parser
             Consume(TokenType.LeftParenthesis);
             var innerSets = ComposeSetOperators(0);
             var closingParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
-            expressions.Add((CteInnerExpressionNode)new CteInnerExpressionNode(innerSets, col.Name, columns)
-                .WithSpan(col.Span.Through(closingParenthesis.Span)));
+            expressions.Add(
+                (CteInnerExpressionNode)
+                    new CteInnerExpressionNode(innerSets, col.Name, columns).WithSpan(
+                        col.Span.Through(closingParenthesis.Span)
+                    )
+            );
 
             while (Current.TokenType == TokenType.Comma)
             {
@@ -132,7 +168,8 @@ public partial class Parser
                 if (ComposeBaseTypes() is not IdentifierNode nextColumn)
                     throw new SyntaxException(
                         $"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
-                        _lexer.AlreadyResolvedQueryPart);
+                        _lexer.AlreadyResolvedQueryPart
+                    );
 
                 RegisterFromAlias(nextColumn.Name);
                 columns = ComposeOptionalCteColumnList();
@@ -142,16 +179,20 @@ public partial class Parser
                 Consume(TokenType.LeftParenthesis);
                 innerSets = ComposeSetOperators(0);
                 closingParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
-                expressions.Add((CteInnerExpressionNode)new CteInnerExpressionNode(
-                        innerSets,
-                        nextColumn.Name,
-                        columns)
-                    .WithSpan(nextColumn.Span.Through(closingParenthesis.Span)));
+                expressions.Add(
+                    (CteInnerExpressionNode)
+                        new CteInnerExpressionNode(innerSets, nextColumn.Name, columns).WithSpan(
+                            nextColumn.Span.Through(closingParenthesis.Span)
+                        )
+                );
             }
 
             var outerSets = ComposeSetOperators(0);
 
-            return (CteExpressionNode)new CteExpressionNode(expressions.ToArray(), outerSets, isRecursive).WithSpan(withToken.Span.Through(outerSets.Span));
+            return (CteExpressionNode)
+                new CteExpressionNode(expressions.ToArray(), outerSets, isRecursive).WithSpan(
+                    withToken.Span.Through(outerSets.Span)
+                );
         }
         finally
         {
@@ -169,14 +210,22 @@ public partial class Parser
 
         while (true)
         {
-            if (columns.Count == 0 && Current.TokenType is TokenType.Select or TokenType.From or
-                TokenType.Pivot or TokenType.Unpivot or TokenType.With)
+            if (
+                columns.Count == 0
+                && Current.TokenType
+                    is TokenType.Select
+                        or TokenType.From
+                        or TokenType.Pivot
+                        or TokenType.Unpivot
+                        or TokenType.With
+            )
             {
                 throw new SyntaxException(
                     $"Expected token is {TokenType.As} but received {openingParenthesis.TokenType}.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2001_UnexpectedToken,
-                    openingParenthesis.Span);
+                    openingParenthesis.Span
+                );
             }
 
             if (ComposeBaseTypes() is not IdentifierNode column)
@@ -184,7 +233,8 @@ public partial class Parser
                     $"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2013_InvalidCTE,
-                    Current.Span);
+                    Current.Span
+                );
 
             columns.Add(new CteColumnName(column.Name, column.Span));
 
@@ -200,8 +250,7 @@ public partial class Parser
 
     private bool IsContextualRecursiveKeyword()
     {
-        return Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function &&
-               Current.Value.Equals("recursive", StringComparison.OrdinalIgnoreCase);
+        return Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function
+            && Current.Value.Equals("recursive", StringComparison.OrdinalIgnoreCase);
     }
-
 }

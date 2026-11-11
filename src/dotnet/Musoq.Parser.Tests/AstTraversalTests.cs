@@ -24,19 +24,19 @@ public sealed class AstTraversalTests
 
         CollectionAssert.AreEqual(
             new[] { "Select", "From", "Where" },
-            children.Select(static child => child.Path).ToArray());
+            children.Select(static child => child.Path).ToArray()
+        );
         CollectionAssert.AreEqual(
             new Node[] { select, from, where },
-            children.Select(static child => child.Node).ToArray());
+            children.Select(static child => child.Node).ToArray()
+        );
     }
 
     [TestMethod]
     public void AstChildren_ShouldDescendThroughNodeLikeContainers()
     {
         var expression = new IntegerNode(42);
-        var values = new ValuesFromNode(
-            [new ValuesRowNode([new ValuesFieldNode("answer", expression)])],
-            "v");
+        var values = new ValuesFromNode([new ValuesRowNode([new ValuesFieldNode("answer", expression)])], "v");
 
         var children = AstChildren.Of(values);
 
@@ -55,14 +55,15 @@ public sealed class AstTraversalTests
 
         CollectionAssert.AreEqual(
             new[] { nameof(RootNode), nameof(AddNode), nameof(IntegerNode), nameof(IntegerNode) },
-            walker.VisitedTypes.ToArray());
+            walker.VisitedTypes.ToArray()
+        );
     }
 
     [TestMethod]
     public void AstChildren_ShouldExposeTraversalMetadataForEveryConcreteNodeType()
     {
-        var concreteNodeTypes = typeof(Node).Assembly
-            .GetTypes()
+        var concreteNodeTypes = typeof(Node)
+            .Assembly.GetTypes()
             .Where(static type => type is { IsClass: true, IsAbstract: false } && typeof(Node).IsAssignableFrom(type))
             .OrderBy(static type => type.FullName, StringComparer.Ordinal)
             .ToArray();
@@ -75,18 +76,20 @@ public sealed class AstTraversalTests
 
         Assert.IsEmpty(
             missingTraversalMetadata,
-            "Every concrete parser node with node-like public members should have AstChildren traversal metadata: " +
-            string.Join(", ", missingTraversalMetadata));
+            "Every concrete parser node with node-like public members should have AstChildren traversal metadata: "
+                + string.Join(", ", missingTraversalMetadata)
+        );
     }
 
     private static bool HasPublicNodeLikeMembers(Type type)
     {
-        return type
-            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+        return type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .Where(static property => property.GetIndexParameters().Length == 0)
-            .Any(static property => typeof(Node).IsAssignableFrom(property.PropertyType) ||
-                                    property.PropertyType != typeof(string) &&
-                                    typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType));
+            .Any(static property =>
+                typeof(Node).IsAssignableFrom(property.PropertyType)
+                || property.PropertyType != typeof(string)
+                    && typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType)
+            );
     }
 
     private sealed class RecordingWalker : AstWalker
@@ -99,5 +102,4 @@ public sealed class AstTraversalTests
             return true;
         }
     }
-
 }

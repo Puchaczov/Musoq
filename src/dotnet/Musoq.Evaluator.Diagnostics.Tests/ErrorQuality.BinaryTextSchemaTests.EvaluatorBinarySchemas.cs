@@ -12,11 +12,9 @@ public partial class ErrorQualityBinaryTextSchemaTests
     {
         // Arrange — binary schema references itself
         var analyzer = CreateAnalyzer();
-        var query = @"binary SelfRef {
-    Inner: SelfRef,
-    Data: byte
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary SelfRef {\n" + "    Inner: SelfRef,\n" + "    Data: byte\n" + "};\n" + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -34,11 +32,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — references undefined 'Payload' schema
         var analyzer = CreateAnalyzer();
-        var query = @"binary Packet {
-    Header: int le,
-    Data: Payload
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary Packet {\n"
+            + "    Header: int le,\n"
+            + "    Data: Payload\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -56,10 +56,12 @@ select 1 from #A.Entities()";
     {
         // Arrange — Interpret() called on string column instead of byte[]
         var analyzer = CreateAnalyzer();
-        var query = @"binary Header {
-    Magic: int le
-};
-select h.Magic from #A.Entities() a cross apply Interpret<Header>(a.Name) h";
+        var query = (
+            "binary Header {\n"
+            + "    Magic: int le\n"
+            + "};\n"
+            + "select h.Magic from #A.Entities() a cross apply Interpret<Header>(a.Name) h"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -77,10 +79,12 @@ select h.Magic from #A.Entities() a cross apply Interpret<Header>(a.Name) h";
     {
         // Arrange — Interpret<Header>() with 2 args (normally 1)
         var analyzer = CreateAnalyzer();
-        var query = @"binary Header {
-    Magic: int le
-};
-select h.Magic from #A.Entities() a cross apply Interpret<Header>(a.Name, 'extra') h";
+        var query = (
+            "binary Header {\n"
+            + "    Magic: int le\n"
+            + "};\n"
+            + "select h.Magic from #A.Entities() a cross apply Interpret<Header>(a.Name, 'extra') h"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -98,10 +102,12 @@ select h.Magic from #A.Entities() a cross apply Interpret<Header>(a.Name, 'extra
     {
         // Arrange — schema defines Magic but query accesses Version
         var analyzer = CreateAnalyzer();
-        var query = @"binary Header {
-    Magic: int le
-};
-select h.Version from #A.Entities() a cross apply Interpret<Header>(a.Name) h";
+        var query = (
+            "binary Header {\n"
+            + "    Magic: int le\n"
+            + "};\n"
+            + "select h.Version from #A.Entities() a cross apply Interpret<Header>(a.Name) h"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -119,17 +125,23 @@ select h.Version from #A.Entities() a cross apply Interpret<Header>(a.Name) h";
     {
         // Arrange — conditional field references unknown earlier field
         var analyzer = CreateAnalyzer();
-        var query = @"binary Packet {
-    Type: byte,
-    Data: int le when UnknownField = 1
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary Packet {\n"
+            + "    Type: byte,\n"
+            + "    Data: int le when UnknownField = 1\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
 
         // Assert — 'when' referencing unknown field should error
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "when condition referencing unknown field");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2030_UnsupportedSyntax,
+            "when condition referencing unknown field"
+        );
     }
 
     #endregion

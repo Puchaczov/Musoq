@@ -32,7 +32,8 @@ public partial class SubqueryTests
     [TestMethod]
     public void DerivedTableExplicitOuterAlias_ShouldPreserveExportedColumnAndValue()
     {
-        const string query = "select q.Exposed as Exposed from (select p.Value as Exposed from values { (Value: 7) } p) q";
+        const string query =
+            "select q.Exposed as Exposed from (select p.Value as Exposed from values { (Value: 7) } p) q";
         AssertDerivedProjectionNameAndValue(query);
     }
 
@@ -43,5 +44,4 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertColumns(result, (outputName, typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { 7 });
     }
-
 }

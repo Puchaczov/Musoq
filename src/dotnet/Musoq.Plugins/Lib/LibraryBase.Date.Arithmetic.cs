@@ -29,6 +29,7 @@ public partial class LibraryBase
     {
         return date?.AddDays(days);
     }
+
     /// <summary>
     ///     Adds months to the date
     /// </summary>

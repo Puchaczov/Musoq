@@ -1,19 +1,29 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Collections.Immutable;
 using Musoq.Plugins;
 
 namespace Musoq.Schema.Managers;
 
 public class MethodsAggregator(MethodsManager methodsManager)
 {
-    public bool TryResolveMethod(string name, Type[] types, Type? entityType, [NotNullWhen(true)] out MethodInfo? method)
+    public bool TryResolveMethod(
+        string name,
+        Type[] types,
+        Type? entityType,
+        [NotNullWhen(true)] out MethodInfo? method
+    )
     {
         return methodsManager.TryGetMethod(name, types, entityType, out method);
     }
 
-    public bool TryResolveAggregationMethod(string name, Type[] types, Type? entityType, [NotNullWhen(true)] out MethodInfo? method)
+    public bool TryResolveAggregationMethod(
+        string name,
+        Type[] types,
+        Type? entityType,
+        [NotNullWhen(true)] out MethodInfo? method
+    )
     {
         return methodsManager.TryGetAggregationMethod(name, types, entityType, out method);
     }
@@ -23,7 +33,8 @@ public class MethodsAggregator(MethodsManager methodsManager)
         Type[] types,
         Type? entityType,
         Func<MethodInfo, bool> methodFilter,
-        [NotNullWhen(true)] out MethodInfo? method)
+        [NotNullWhen(true)] out MethodInfo? method
+    )
     {
         return methodsManager.TryGetAggregationMethod(name, types, entityType, methodFilter, out method);
     }
@@ -38,8 +49,11 @@ public class MethodsAggregator(MethodsManager methodsManager)
         return methodsManager.TryGetWindowFunction(sqlName, out method);
     }
 
-    public bool TryResolveWindowFunction(string sqlName, Type[] argumentTypes, [NotNullWhen(true)] out MethodInfo? method)
-        => methodsManager.TryGetWindowFunction(sqlName, argumentTypes, out method);
+    public bool TryResolveWindowFunction(
+        string sqlName,
+        Type[] argumentTypes,
+        [NotNullWhen(true)] out MethodInfo? method
+    ) => methodsManager.TryGetWindowFunction(sqlName, argumentTypes, out method);
 
     /// <summary>
     ///     Gets all registered methods with their metadata.

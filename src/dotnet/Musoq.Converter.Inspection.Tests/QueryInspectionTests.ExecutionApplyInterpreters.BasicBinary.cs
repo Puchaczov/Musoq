@@ -9,12 +9,17 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderCrossApplyInterpretSource_ShouldUseExecutionBackend()
     {
-        var result = Inspect(@"
-                text LogLine {
-                    Level: until ' ',
-                    Message: rest
-                };
-                select i.Name, l.Level, l.Message from #apply.items() i cross apply Parse<LogLine>(i.Line) l", CreateApplyCandidateSchemaProvider());
+        var result = Inspect(
+            (
+                "\n"
+                + "                text LogLine {\n"
+                + "                    Level: until ' ',\n"
+                + "                    Message: rest\n"
+                + "                };\n"
+                + "                select i.Name, l.Level, l.Message from #apply.items() i cross apply Parse<LogLine>(i.Line) l"
+            ),
+            CreateApplyCandidateSchemaProvider()
+        );
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("InterpretSource [LogLine.Parse(i.Line) -> lRows]", result.ExecutionPlanText);
@@ -25,12 +30,17 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderCrossApplyInterpretSource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                text LogLine {
-                    Level: until ' ',
-                    Message: rest
-                };
-                select i.Name, l.Level, l.Message from #apply.items() i cross apply Parse<LogLine>(i.Line) l", CreateApplyCandidateSchemaProvider());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                text LogLine {\n"
+                + "                    Level: until ' ',\n"
+                + "                    Message: rest\n"
+                + "                };\n"
+                + "                select i.Name, l.Level, l.Message from #apply.items() i cross apply Parse<LogLine>(i.Line) l"
+            ),
+            CreateApplyCandidateSchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -43,12 +53,17 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderTryParseInterpretSource_ShouldUseExecutionBackend()
     {
-        var result = Inspect(@"
-                text InfoLine {
-                    _: literal 'INFO: ',
-                    Message: rest
-                };
-                select i.Name, l.Message from #apply.items() i outer apply TryParse<InfoLine>(i.Line) l", CreateApplyCandidateSchemaProvider());
+        var result = Inspect(
+            (
+                "\n"
+                + "                text InfoLine {\n"
+                + "                    _: literal 'INFO: ',\n"
+                + "                    Message: rest\n"
+                + "                };\n"
+                + "                select i.Name, l.Message from #apply.items() i outer apply TryParse<InfoLine>(i.Line) l"
+            ),
+            CreateApplyCandidateSchemaProvider()
+        );
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("InterpretSource [InfoLine.TryParse(i.Line) -> lRows]", result.ExecutionPlanText);
@@ -59,26 +74,30 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderTryParseOuterApply_ShouldPreserveInvalidRowsAsNull()
     {
-        var compiled = CompileForExecution(@"
-                text InfoLine {
-                    _: literal 'INFO: ',
-                    Message: rest
-                };
-                select i.Name, l.Message from #apply.items() i outer apply TryParse<InfoLine>(i.Line) l", new ApplyCandidateSchemaProvider(
-            [
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                text InfoLine {\n"
+                + "                    _: literal 'INFO: ',\n"
+                + "                    Message: rest\n"
+                + "                };\n"
+                + "                select i.Name, l.Message from #apply.items() i outer apply TryParse<InfoLine>(i.Line) l"
+            ),
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "valid",
                     Line = "INFO: ready",
-                    Numbers = []
+                    Numbers = [],
                 },
                 new ApplyCandidateEntity
                 {
                     Name = "invalid",
                     Line = "WARN: nope",
-                    Numbers = []
-                }
-            ]));
+                    Numbers = [],
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -95,7 +114,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateConditionalBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [OptionalPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [OptionalPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Value: int? <- field Value", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -108,23 +130,23 @@ public partial class QueryInspectionTests
 
         var compiled = CompileForExecution(
             CreateConditionalBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "present",
                     Line = "INFO present",
                     Numbers = [],
-                    Content = CreateOptionalPacketContent(expectedPacketValue)
+                    Content = CreateOptionalPacketContent(expectedPacketValue),
                 },
                 new ApplyCandidateEntity
                 {
                     Name = "missing",
                     Line = "INFO missing",
                     Numbers = [],
-                    Content = CreateOptionalPacketContent(null)
-                }
-            ]));
+                    Content = CreateOptionalPacketContent(null),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -143,7 +165,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateConstrainedOffsetBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [IndexedPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [IndexedPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Magic: int <- property Magic", result.ExecutionPlanText);
         Assert.Contains("Data: int <- field Data", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
@@ -157,16 +182,16 @@ public partial class QueryInspectionTests
 
         var compiled = CompileForExecution(
             CreateConstrainedOffsetBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "indexed",
                     Line = "INFO indexed",
                     Numbers = [],
-                    Content = CreateIndexedPacketContent(expectedData)
-                }
-            ]));
+                    Content = CreateIndexedPacketContent(expectedData),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -183,7 +208,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateComputedBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [Rectangle.Interpret(i.Content) -> rRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [Rectangle.Interpret(i.Content) -> rRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Area:", result.ExecutionPlanText);
         Assert.IsTrue(result.GeneratedCSharpCode.Contains("r.Area", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -194,16 +222,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateComputedBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "rectangle",
                     Line = "INFO rectangle",
                     Numbers = [],
-                    Content = CreateRectangleContent(10, 5)
-                }
-            ]));
+                    Content = CreateRectangleContent(10, 5),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -232,16 +260,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateNestedBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "vertex",
                     Line = "INFO vertex",
                     Numbers = [],
-                    Content = CreateVertexContent(7, 1.5f, 2.5f)
-                }
-            ]));
+                    Content = CreateVertexContent(7, 1.5f, 2.5f),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -258,7 +286,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateInlineBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [InlinePacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [InlinePacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Header.Magic:", result.ExecutionPlanText);
         Assert.Contains("Magic: p.Header.Magic", result.ExecutionPlanText);
         Assert.Contains("p.Header.Magic", result.GeneratedCSharpCode);
@@ -270,16 +301,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateInlineBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "inline",
                     Line = "INFO inline",
                     Numbers = [],
-                    Content = CreateInlinePacketContent(0x12345678, 258, 0xFF)
-                }
-            ]));
+                    Content = CreateInlinePacketContent(0x12345678, 258, 0xFF),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -296,7 +327,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateStringBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [TextPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [TextPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Text: string <- field Text", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -307,16 +341,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateStringBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "text",
                     Line = "INFO text",
                     Numbers = [],
-                    Content = CreateTextPacketContent()
-                }
-            ]));
+                    Content = CreateTextPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -325,5 +359,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual((byte)5, table[0].ReadValue(1));
         Assert.AreEqual("Ada", table[0].ReadValue(2));
     }
-
 }

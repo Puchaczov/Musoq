@@ -17,8 +17,9 @@ public class BasicEntityTestBase : MSTestContextTestBase
 {
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
 
-    protected static readonly CompilationOptions ValidationEnabledCompilationOptions =
-        new(usePrimitiveTypeValidation: true);
+    protected static readonly CompilationOptions ValidationEnabledCompilationOptions = new(
+        usePrimitiveTypeValidation: true
+    );
 
     protected CancellationTokenSource TokenSource { get; } = new();
 
@@ -34,21 +35,22 @@ public class BasicEntityTestBase : MSTestContextTestBase
             Guid.NewGuid().ToString(),
             typeof(T) == typeof(UsedColumnsOrUsedWhereEntity)
                 ? new UsedColumnsOrUsedWhereSchemaProvider<UsedColumnsOrUsedWhereEntity>(
-                    CreateMockObjectFor<UsedColumnsOrUsedWhereEntity>())
+                    CreateMockObjectFor<UsedColumnsOrUsedWhereEntity>()
+                )
                 : new MockBasedSchemaProvider(CreateMockObjectFor<BasicEntity>()),
-            LoggerResolver);
+            LoggerResolver
+        );
     }
 
-    protected CompiledQuery CreateAndRunVirtualMachine<T>(
-        string script,
-        IDictionary<string, IEnumerable<T>> sources)
+    protected CompiledQuery CreateAndRunVirtualMachine<T>(string script, IDictionary<string, IEnumerable<T>> sources)
         where T : BasicEntity
     {
         var result = StableTypedExecutionCompilationCoordinator.Submit(
             script,
             new BasicSchemaProvider<T>(sources),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         if (!result.Result.Succeeded)
         {
@@ -83,7 +85,8 @@ public class BasicEntityTestBase : MSTestContextTestBase
     protected CompiledQuery CreateAndRunVirtualMachine<T>(
         string script,
         IDictionary<string, IEnumerable<T>> sources,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions
+    )
         where T : BasicEntity
     {
         return GeneratedExecutionIlInspection.CompileForExecution(
@@ -91,20 +94,23 @@ public class BasicEntityTestBase : MSTestContextTestBase
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<T>(sources),
             LoggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? SourceRuntimeSettingsBySourceContextId = null,
-        ISchemaProvider? schemaProvider = null)
+        ISchemaProvider? schemaProvider = null
+    )
     {
         return GeneratedExecutionIlInspection.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             schemaProvider ?? throw new ArgumentNullException(nameof(schemaProvider)),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 
     protected void TestMethodTemplate<TResult>(string operation, TResult score)
@@ -122,17 +128,11 @@ public class BasicEntityTestBase : MSTestContextTestBase
         ArgumentNullException.ThrowIfNull(cases);
         Assert.IsNotEmpty(cases);
 
-        var projection = string.Join(
-            ", ",
-            cases.Select((item, index) => $"{item.Operation} as Result{index}"));
+        var projection = string.Join(", ", cases.Select((item, index) => $"{item.Operation} as Result{index}"));
         var query = $"select {projection} from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("ABCAACBA")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("ABCAACBA")] } };
 
-        var table = TableMaterializationTestHelper.Materialize(
-            CreateAndRunVirtualMachine(query, sources).Run());
+        var table = TableMaterializationTestHelper.Materialize(CreateAndRunVirtualMachine(query, sources).Run());
 
         Assert.AreEqual(1, table.Count);
         Assert.HasCount(cases.Length, table.Columns);
@@ -144,8 +144,7 @@ public class BasicEntityTestBase : MSTestContextTestBase
         }
     }
 
-    protected static IDictionary<string, IEnumerable<BasicEntity>> CreateSingleSource(
-        params BasicEntity[] entities)
+    protected static IDictionary<string, IEnumerable<BasicEntity>> CreateSingleSource(params BasicEntity[] entities)
     {
         return new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities } };
     }
@@ -160,10 +159,7 @@ public class BasicEntityTestBase : MSTestContextTestBase
     protected Table TestResultMethodTemplate(string operation)
     {
         var query = $"select {operation} from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("ABCAACBA")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("ABCAACBA")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         return TableMaterializationTestHelper.Materialize(vm.Run());
@@ -182,8 +178,11 @@ public class BasicEntityTestBase : MSTestContextTestBase
     {
         public override ISchema GetSchema(string schema)
         {
-            return new GenericSchema<BasicEntity, BasicEntityTable>(Values[schema], BasicEntity.TestNameToIndexMap,
-                BasicEntity.TestIndexToObjectAccessMap);
+            return new GenericSchema<BasicEntity, BasicEntityTable>(
+                Values[schema],
+                BasicEntity.TestNameToIndexMap,
+                BasicEntity.TestIndexToObjectAccessMap
+            );
         }
     }
 }

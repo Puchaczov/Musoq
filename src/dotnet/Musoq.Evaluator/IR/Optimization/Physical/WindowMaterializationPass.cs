@@ -16,7 +16,10 @@ internal sealed class WindowMaterializationPass : IPhysicalOptimizationPass
 
         return ReferenceEquals(plan, rewritten)
             ? OptimizationResult<PhysicalNode>.NoChange(plan, "No window inputs required materialization changes.")
-            : OptimizationResult<PhysicalNode>.Changed(rewritten, "Inserted required window materialization boundaries.");
+            : OptimizationResult<PhysicalNode>.Changed(
+                rewritten,
+                "Inserted required window materialization boundaries."
+            );
     }
 
     private static PhysicalNode Rewrite(PhysicalNode node, PhysicalOptimizationState state)
@@ -24,27 +27,33 @@ internal sealed class WindowMaterializationPass : IPhysicalOptimizationPass
         if (node is PhysicalWindowNode window)
             return RewriteWindow(window, state);
 
-        return PhysicalPlanRewriter.RewriteChildren(
-            node,
-            child => Rewrite(child, state));
+        return PhysicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, state));
     }
 
     private static PhysicalNode RewriteWindow(PhysicalWindowNode window, PhysicalOptimizationState state)
     {
         var input = Rewrite(window.Input, state);
         var registrations = WindowExecutionStrategy.Select(window.Registrations);
-        state.AddDecision(new PlanningDecision(
-            PlanningDecisionCategory.WindowStrategy,
-            "WindowMaterialization",
-            "window",
-            "MaterializeInput",
-            PlanningConfidence.High,
-            "Window computation requires a materialized input boundary."));
+        state.AddDecision(
+            new PlanningDecision(
+                PlanningDecisionCategory.WindowStrategy,
+                "WindowMaterialization",
+                "window",
+                "MaterializeInput",
+                PlanningConfidence.High,
+                "Window computation requires a materialized input boundary."
+            )
+        );
 
-        if (ReferenceEquals(registrations, window.Registrations) && ReferenceEquals(input, window.Input) &&
-            input is PhysicalMaterializeNode)
+        if (
+            ReferenceEquals(registrations, window.Registrations)
+            && ReferenceEquals(input, window.Input)
+            && input is PhysicalMaterializeNode
+        )
             return window;
-        return new PhysicalWindowNode(registrations,
-            input is PhysicalMaterializeNode ? input : new PhysicalMaterializeNode(input));
+        return new PhysicalWindowNode(
+            registrations,
+            input is PhysicalMaterializeNode ? input : new PhysicalMaterializeNode(input)
+        );
     }
 }

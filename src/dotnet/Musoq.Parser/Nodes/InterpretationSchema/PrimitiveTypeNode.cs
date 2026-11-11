@@ -29,39 +29,41 @@ public class PrimitiveTypeNode : TypeAnnotationNode
     public Endianness Endianness { get; }
 
     /// <inheritdoc />
-    public override Type ClrType => TypeName switch
-    {
-        PrimitiveTypeName.Byte => typeof(byte),
-        PrimitiveTypeName.SByte => typeof(sbyte),
-        PrimitiveTypeName.Short => typeof(short),
-        PrimitiveTypeName.UShort => typeof(ushort),
-        PrimitiveTypeName.Int => typeof(int),
-        PrimitiveTypeName.UInt => typeof(uint),
-        PrimitiveTypeName.Long => typeof(long),
-        PrimitiveTypeName.ULong => typeof(ulong),
-        PrimitiveTypeName.Float => typeof(float),
-        PrimitiveTypeName.Double => typeof(double),
-        _ => throw new InvalidOperationException($"Unknown primitive type: {TypeName}")
-    };
+    public override Type ClrType =>
+        TypeName switch
+        {
+            PrimitiveTypeName.Byte => typeof(byte),
+            PrimitiveTypeName.SByte => typeof(sbyte),
+            PrimitiveTypeName.Short => typeof(short),
+            PrimitiveTypeName.UShort => typeof(ushort),
+            PrimitiveTypeName.Int => typeof(int),
+            PrimitiveTypeName.UInt => typeof(uint),
+            PrimitiveTypeName.Long => typeof(long),
+            PrimitiveTypeName.ULong => typeof(ulong),
+            PrimitiveTypeName.Float => typeof(float),
+            PrimitiveTypeName.Double => typeof(double),
+            _ => throw new InvalidOperationException($"Unknown primitive type: {TypeName}"),
+        };
 
     /// <inheritdoc />
     public override bool IsFixedSize => true;
 
     /// <inheritdoc />
-    public override int? FixedSizeBytes => TypeName switch
-    {
-        PrimitiveTypeName.Byte => 1,
-        PrimitiveTypeName.SByte => 1,
-        PrimitiveTypeName.Short => 2,
-        PrimitiveTypeName.UShort => 2,
-        PrimitiveTypeName.Int => 4,
-        PrimitiveTypeName.UInt => 4,
-        PrimitiveTypeName.Long => 8,
-        PrimitiveTypeName.ULong => 8,
-        PrimitiveTypeName.Float => 4,
-        PrimitiveTypeName.Double => 8,
-        _ => throw new InvalidOperationException($"Unknown primitive type: {TypeName}")
-    };
+    public override int? FixedSizeBytes =>
+        TypeName switch
+        {
+            PrimitiveTypeName.Byte => 1,
+            PrimitiveTypeName.SByte => 1,
+            PrimitiveTypeName.Short => 2,
+            PrimitiveTypeName.UShort => 2,
+            PrimitiveTypeName.Int => 4,
+            PrimitiveTypeName.UInt => 4,
+            PrimitiveTypeName.Long => 8,
+            PrimitiveTypeName.ULong => 8,
+            PrimitiveTypeName.Float => 4,
+            PrimitiveTypeName.Double => 8,
+            _ => throw new InvalidOperationException($"Unknown primitive type: {TypeName}"),
+        };
 
     /// <inheritdoc />
     public override Type ReturnType => ClrType;
@@ -84,7 +86,7 @@ public class PrimitiveTypeNode : TypeAnnotationNode
         {
             Endianness.LittleEndian => $"{typeName} le",
             Endianness.BigEndian => $"{typeName} be",
-            _ => typeName
+            _ => typeName,
         };
     }
 
@@ -102,7 +104,7 @@ public class PrimitiveTypeNode : TypeAnnotationNode
             PrimitiveTypeName.ULong => "ulong",
             PrimitiveTypeName.Float => "float",
             PrimitiveTypeName.Double => "double",
-            _ => typeName.ToString()
+            _ => typeName.ToString(),
         };
     }
 }

@@ -42,16 +42,36 @@ internal static partial class BoundaryRowShapePlanner
                     VisitOrderedBoundary(topN.Input, topN.Keys, BoundaryRowShapeKind.TopN, requiredAfter);
                     return;
                 case PhysicalTopOffsetNode topOffset:
-                    VisitOrderedBoundary(topOffset.Input, topOffset.Keys, BoundaryRowShapeKind.TopOffset, requiredAfter);
+                    VisitOrderedBoundary(
+                        topOffset.Input,
+                        topOffset.Keys,
+                        BoundaryRowShapeKind.TopOffset,
+                        requiredAfter
+                    );
                     return;
                 case PhysicalAggregateOnlyNode aggregateOnly:
-                    VisitAggregate(aggregateOnly.Input, aggregateOnly.OutputSchema, CollectAggregateColumns(aggregateOnly.Bindings), requiredAfter);
+                    VisitAggregate(
+                        aggregateOnly.Input,
+                        aggregateOnly.OutputSchema,
+                        CollectAggregateColumns(aggregateOnly.Bindings),
+                        requiredAfter
+                    );
                     return;
                 case PhysicalSingleKeyAggregateNode singleKeyAggregate:
-                    VisitAggregate(singleKeyAggregate.Input, singleKeyAggregate.OutputSchema, CollectAggregateColumns(singleKeyAggregate.GroupKey, singleKeyAggregate.Bindings), requiredAfter);
+                    VisitAggregate(
+                        singleKeyAggregate.Input,
+                        singleKeyAggregate.OutputSchema,
+                        CollectAggregateColumns(singleKeyAggregate.GroupKey, singleKeyAggregate.Bindings),
+                        requiredAfter
+                    );
                     return;
                 case PhysicalValueTupleAggregateNode valueTupleAggregate:
-                    VisitAggregate(valueTupleAggregate.Input, valueTupleAggregate.OutputSchema, CollectAggregateColumns(valueTupleAggregate.GroupKeys, valueTupleAggregate.Bindings), requiredAfter);
+                    VisitAggregate(
+                        valueTupleAggregate.Input,
+                        valueTupleAggregate.OutputSchema,
+                        CollectAggregateColumns(valueTupleAggregate.GroupKeys, valueTupleAggregate.Bindings),
+                        requiredAfter
+                    );
                     return;
                 case PhysicalWindowNode window:
                     VisitWindow(window, requiredAfter);
@@ -82,8 +102,8 @@ internal static partial class BoundaryRowShapePlanner
 
         private void VisitProject(PhysicalProjectNode project, IReadOnlyList<string> requiredAfter)
         {
-            var requiredFields = project.Fields
-                .Where(field => requiredAfter.Count == 0 || ContainsColumn(requiredAfter, field.OutputName))
+            var requiredFields = project
+                .Fields.Where(field => requiredAfter.Count == 0 || ContainsColumn(requiredAfter, field.OutputName))
                 .ToArray();
             var fields = requiredFields.Length == 0 ? project.Fields : requiredFields;
             var childRequired = CollectColumns(fields.Select(static field => field.Expression));
@@ -99,7 +119,8 @@ internal static partial class BoundaryRowShapePlanner
                     distinctOutputColumns,
                     ResolveNeededAfter(requiredAfter),
                     distinctOutputColumns,
-                    "Distinct materialization keeps all key columns for duplicate removal; post-distinct row-width pruning may drop columns unused downstream.");
+                    "Distinct materialization keeps all key columns for duplicate removal; post-distinct row-width pruning may drop columns unused downstream."
+                );
                 Visit(project.Input, distinctInputRequired);
                 return;
             }
@@ -111,7 +132,8 @@ internal static partial class BoundaryRowShapePlanner
             PhysicalNode input,
             IReadOnlyList<OrderField> keys,
             BoundaryRowShapeKind kind,
-            IReadOnlyList<string> requiredAfter)
+            IReadOnlyList<string> requiredAfter
+        )
         {
             var operationColumns = CollectOrderColumns(keys);
             var neededAfter = ResolveNeededAfter(requiredAfter);
@@ -121,7 +143,8 @@ internal static partial class BoundaryRowShapePlanner
                 input,
                 neededAfter,
                 operationColumns,
-                $"{kind} boundary uses ordering columns but keeps the current row shape unchanged; no physical pruning was applied.");
+                $"{kind} boundary uses ordering columns but keeps the current row shape unchanged; no physical pruning was applied."
+            );
 
             Visit(input, Merge(neededAfter, operationColumns));
         }
@@ -130,14 +153,16 @@ internal static partial class BoundaryRowShapePlanner
             PhysicalNode input,
             OutputSchema outputSchema,
             IReadOnlyList<string> operationColumns,
-            IReadOnlyList<string> requiredAfter)
+            IReadOnlyList<string> requiredAfter
+        )
         {
             AddPlan(
                 BoundaryRowShapeKind.Aggregate,
                 input,
                 Merge(SchemaColumns(outputSchema), requiredAfter),
                 operationColumns,
-                "Aggregate boundary separates input columns from aggregate output columns; no physical pruning was applied.");
+                "Aggregate boundary separates input columns from aggregate output columns; no physical pruning was applied."
+            );
 
             Visit(input, operationColumns);
         }
@@ -153,7 +178,8 @@ internal static partial class BoundaryRowShapePlanner
                 input,
                 neededAfter,
                 operationColumns,
-                "Window boundary uses partition/order/value columns but keeps the current row shape unchanged; no physical pruning was applied.");
+                "Window boundary uses partition/order/value columns but keeps the current row shape unchanged; no physical pruning was applied."
+            );
 
             Visit(window.Input, Merge(neededAfter, operationColumns));
         }
@@ -172,7 +198,8 @@ internal static partial class BoundaryRowShapePlanner
                 inputColumns,
                 ResolveNeededAfter(requiredAfter),
                 operationColumns,
-                "Set operation boundary compares key columns while preserving the current row shape; no physical pruning was applied.");
+                "Set operation boundary compares key columns while preserving the current row shape; no physical pruning was applied."
+            );
 
             Visit(setOperation.Left, Merge(requiredAfter, leftOperationColumns));
             Visit(setOperation.Right, Merge(requiredAfter, rightOperationColumns));
@@ -190,7 +217,8 @@ internal static partial class BoundaryRowShapePlanner
                     ResolveAvailableColumns(definition.Plan),
                     FilterColumnsForCte(definition.Name, queryColumns),
                     [],
-                    "CTE materialization stores the current definition row shape; no physical pruning was applied.");
+                    "CTE materialization stores the current definition row shape; no physical pruning was applied."
+                );
 
                 Visit(definition.Plan, SchemaColumns(definition.Plan.OutputSchema));
             }
@@ -203,7 +231,8 @@ internal static partial class BoundaryRowShapePlanner
             PhysicalNode input,
             IReadOnlyList<string> neededAfter,
             IReadOnlyList<string> operationColumns,
-            string reason)
+            string reason
+        )
         {
             AddPlan(
                 CreateBoundaryId(kind),
@@ -211,7 +240,8 @@ internal static partial class BoundaryRowShapePlanner
                 ResolveAvailableColumns(input),
                 neededAfter,
                 operationColumns,
-                reason);
+                reason
+            );
         }
 
         private void AddPlan(
@@ -220,35 +250,45 @@ internal static partial class BoundaryRowShapePlanner
             IReadOnlyList<string> inputColumns,
             IReadOnlyList<string> neededAfter,
             IReadOnlyList<string> operationColumns,
-            string reason)
+            string reason
+        )
         {
             var orderedInputColumns = OrderColumns(inputColumns);
             var neededAfterColumns = OrderColumns(neededAfter);
-            var operationOnlyColumns = kind == BoundaryRowShapeKind.HashJoinBuild
-                ? OrderColumns(operationColumns)
-                : OrderColumns(operationColumns.Where(column => !ContainsColumn(neededAfterColumns, column)));
+            var operationOnlyColumns =
+                kind == BoundaryRowShapeKind.HashJoinBuild
+                    ? OrderColumns(operationColumns)
+                    : OrderColumns(operationColumns.Where(column => !ContainsColumn(neededAfterColumns, column)));
             var unusedInputColumns = orderedInputColumns.Where(column =>
-                !ContainsColumn(neededAfterColumns, column) &&
-                !ContainsColumn(operationColumns, column) &&
-                !_usageIndex.IsRequired(column));
+                !ContainsColumn(neededAfterColumns, column)
+                && !ContainsColumn(operationColumns, column)
+                && !_usageIndex.IsRequired(column)
+            );
             var droppableColumns = OrderColumns(operationOnlyColumns.Concat(unusedInputColumns));
-            var retainedColumns = OrderColumns(orderedInputColumns.Where(column => !ContainsColumn(droppableColumns, column)));
+            var retainedColumns = OrderColumns(
+                orderedInputColumns.Where(column => !ContainsColumn(droppableColumns, column))
+            );
             var blockedColumns = IsCurrentlyPrunableBoundary(kind) ? [] : droppableColumns;
-            _plans.Add(new BoundaryRowShapePlan(
-                boundaryId,
-                kind,
-                orderedInputColumns,
-                neededAfterColumns,
-                operationOnlyColumns,
-                droppableColumns,
-                operationOnlyColumns.Length == 0 && droppableColumns.Length == 0 ? PlanningConfidence.Low : PlanningConfidence.Medium,
-                reason)
-            {
-                SemanticColumns = neededAfterColumns,
-                RetainedExecutionColumns = retainedColumns,
-                CandidateColumns = droppableColumns,
-                BlockedColumns = blockedColumns
-            });
+            _plans.Add(
+                new BoundaryRowShapePlan(
+                    boundaryId,
+                    kind,
+                    orderedInputColumns,
+                    neededAfterColumns,
+                    operationOnlyColumns,
+                    droppableColumns,
+                    operationOnlyColumns.Length == 0 && droppableColumns.Length == 0
+                        ? PlanningConfidence.Low
+                        : PlanningConfidence.Medium,
+                    reason
+                )
+                {
+                    SemanticColumns = neededAfterColumns,
+                    RetainedExecutionColumns = retainedColumns,
+                    CandidateColumns = droppableColumns,
+                    BlockedColumns = blockedColumns,
+                }
+            );
         }
 
         private string CreateBoundaryId(BoundaryRowShapeKind kind)

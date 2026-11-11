@@ -16,8 +16,7 @@ public sealed class CompilationOptionsLoopInvariantTests
     [TestMethod]
     public void WithLoopInvariantCodeMotionIsIndependentFromCse()
     {
-        var options = new CompilationOptions(useCommonSubexpressionElimination: false)
-            .WithLoopInvariantCodeMotion();
+        var options = new CompilationOptions(useCommonSubexpressionElimination: false).WithLoopInvariantCodeMotion();
 
         Assert.IsTrue(options.UseLoopInvariantCodeMotion);
         Assert.IsFalse(options.UseCommonSubexpressionElimination);
@@ -31,7 +30,8 @@ public sealed class CompilationOptionsLoopInvariantTests
 
         Assert.AreNotEqual(
             CompilationOptionsFingerprint.Compute(disabled),
-            CompilationOptionsFingerprint.Compute(enabled));
+            CompilationOptionsFingerprint.Compute(enabled)
+        );
         Assert.IsFalse(disabled.UseLoopInvariantCodeMotion);
     }
 
@@ -39,9 +39,7 @@ public sealed class CompilationOptionsLoopInvariantTests
     public void StabilityAwareScalarReuseIsEnabledByDefaultAndIndependentFromLoopInvariantCodeMotion()
     {
         var defaults = new CompilationOptions();
-        var disabled = defaults
-            .WithStabilityAwareScalarReuse(false)
-            .WithLoopInvariantCodeMotion(false);
+        var disabled = defaults.WithStabilityAwareScalarReuse(false).WithLoopInvariantCodeMotion(false);
 
         Assert.IsTrue(defaults.UseStabilityAwareScalarReuse);
         Assert.IsFalse(disabled.UseStabilityAwareScalarReuse);
@@ -49,7 +47,8 @@ public sealed class CompilationOptionsLoopInvariantTests
         Assert.IsTrue(disabled.UseCommonSubexpressionElimination);
         Assert.AreNotEqual(
             CompilationOptionsFingerprint.Compute(defaults),
-            CompilationOptionsFingerprint.Compute(disabled));
+            CompilationOptionsFingerprint.Compute(disabled)
+        );
     }
 
     [TestMethod]

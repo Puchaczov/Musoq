@@ -11,31 +11,32 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenCteSidecarIndexesAreEnabledForAsOfBackwardLookupWithPartition_ShouldReturnNearestMatch()
     {
         var compiled = CompileForExecution(
-            """
-            with trades as (
-                select 0 as Value from #system.dual()
-                union all (Value) select 1 as Value from #system.dual()
-                union all (Value) select 2 as Value from #system.dual()
+            (
+                "with trades as (\n"
+                + "    select 0 as Value from #system.dual()\n"
+                + "    union all (Value) select 1 as Value from #system.dual()\n"
+                + "    union all (Value) select 2 as Value from #system.dual()\n"
+                + "),\n"
+                + "quotes as (\n"
+                + "    select 0 as Value from #system.dual()\n"
+                + "    union all (Value) select 1 as Value from #system.dual()\n"
+                + "    union all (Value) select 2 as Value from #system.dual()\n"
+                + "    union all (Value) select 3 as Value from #system.dual()\n"
+                + "    union all (Value) select 4 as Value from #system.dual()\n"
+                + ")\n"
+                + "select\n"
+                + "    case when t.Value = 2 then 'B' else 'A' end as Symbol,\n"
+                + "    case when t.Value = 0 then 10 when t.Value = 1 then 15 else 12 end as TradeTime,\n"
+                + "    case when q.Value = 0 then 8 when q.Value = 1 then 14 when q.Value = 2 then 16 when q.Value = 3 then 10 else 13 end as QuoteTime,\n"
+                + "    case when q.Value = 0 then 101 when q.Value = 1 then 102 when q.Value = 2 then 103 when q.Value = 3 then 201 else 202 end as Price\n"
+                + "from trades t\n"
+                + "asof join quotes q\n"
+                + "    on case when t.Value = 2 then 'B' else 'A' end = case when q.Value >= 3 then 'B' else 'A' end\n"
+                + "    and case when t.Value = 0 then 10 when t.Value = 1 then 15 else 12 end >= case when q.Value = 0 then 8 when q.Value = 1 then 14 when q.Value = 2 then 16 when q.Value = 3 then 10 else 13 end\n"
+                + "order by Symbol, TradeTime"
             ),
-            quotes as (
-                select 0 as Value from #system.dual()
-                union all (Value) select 1 as Value from #system.dual()
-                union all (Value) select 2 as Value from #system.dual()
-                union all (Value) select 3 as Value from #system.dual()
-                union all (Value) select 4 as Value from #system.dual()
-            )
-            select
-                case when t.Value = 2 then 'B' else 'A' end as Symbol,
-                case when t.Value = 0 then 10 when t.Value = 1 then 15 else 12 end as TradeTime,
-                case when q.Value = 0 then 8 when q.Value = 1 then 14 when q.Value = 2 then 16 when q.Value = 3 then 10 else 13 end as QuoteTime,
-                case when q.Value = 0 then 101 when q.Value = 1 then 102 when q.Value = 2 then 103 when q.Value = 3 then 201 else 202 end as Price
-            from trades t
-            asof join quotes q
-                on case when t.Value = 2 then 'B' else 'A' end = case when q.Value >= 3 then 'B' else 'A' end
-                and case when t.Value = 0 then 10 when t.Value = 1 then 15 else 12 end >= case when q.Value = 0 then 8 when q.Value = 1 then 14 when q.Value = 2 then 16 when q.Value = 3 then 10 else 13 end
-            order by Symbol, TradeTime
-            """,
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         var table = compiled.Run();
 
@@ -58,27 +59,28 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenCteSidecarIndexesAreEnabledForAsOfForwardLookup_ShouldReturnNextMatch()
     {
         var compiled = CompileForExecution(
-            """
-            with events as (
-                select 0 as Value from #system.dual()
-                union all (Value) select 1 as Value from #system.dual()
-                union all (Value) select 2 as Value from #system.dual()
+            (
+                "with events as (\n"
+                + "    select 0 as Value from #system.dual()\n"
+                + "    union all (Value) select 1 as Value from #system.dual()\n"
+                + "    union all (Value) select 2 as Value from #system.dual()\n"
+                + "),\n"
+                + "statuses as (\n"
+                + "    select 0 as Value from #system.dual()\n"
+                + "    union all (Value) select 1 as Value from #system.dual()\n"
+                + "    union all (Value) select 2 as Value from #system.dual()\n"
+                + ")\n"
+                + "select\n"
+                + "    case when c.Value = 0 then 10 when c.Value = 1 then 15 else 20 end as EventTime,\n"
+                + "    case when s.Value = 0 then 12 when s.Value = 1 then 20 else 25 end as StatusTime,\n"
+                + "    case when s.Value = 0 then 'warmup' when s.Value = 1 then 'ready' else 'done' end as Status\n"
+                + "from events c\n"
+                + "asof join statuses s\n"
+                + "    on case when c.Value = 0 then 10 when c.Value = 1 then 15 else 20 end <= case when s.Value = 0 then 12 when s.Value = 1 then 20 else 25 end\n"
+                + "order by EventTime"
             ),
-            statuses as (
-                select 0 as Value from #system.dual()
-                union all (Value) select 1 as Value from #system.dual()
-                union all (Value) select 2 as Value from #system.dual()
-            )
-            select
-                case when c.Value = 0 then 10 when c.Value = 1 then 15 else 20 end as EventTime,
-                case when s.Value = 0 then 12 when s.Value = 1 then 20 else 25 end as StatusTime,
-                case when s.Value = 0 then 'warmup' when s.Value = 1 then 'ready' else 'done' end as Status
-            from events c
-            asof join statuses s
-                on case when c.Value = 0 then 10 when c.Value = 1 then 15 else 20 end <= case when s.Value = 0 then 12 when s.Value = 1 then 20 else 25 end
-            order by EventTime
-            """,
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         var table = compiled.Run();
 
@@ -98,20 +100,21 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenCteSidecarIndexesAreEnabledForAsOfLeftNoMatch_ShouldNullExtendRightSide()
     {
         var compiled = CompileForExecution(
-            """
-            with trades as (
-                select 5 as TradeTime from #system.dual()
-                union all (TradeTime) select 10 as TradeTime from #system.dual()
+            (
+                "with trades as (\n"
+                + "    select 5 as TradeTime from #system.dual()\n"
+                + "    union all (TradeTime) select 10 as TradeTime from #system.dual()\n"
+                + "),\n"
+                + "quotes as (\n"
+                + "    select 8 as QuoteTime, 101 as Price from #system.dual()\n"
+                + ")\n"
+                + "select t.TradeTime as TradeTime, q.QuoteTime as QuoteTime, q.Price as Price\n"
+                + "from trades t\n"
+                + "asof left join quotes q on t.TradeTime >= q.QuoteTime\n"
+                + "order by t.TradeTime"
             ),
-            quotes as (
-                select 8 as QuoteTime, 101 as Price from #system.dual()
-            )
-            select t.TradeTime as TradeTime, q.QuoteTime as QuoteTime, q.Price as Price
-            from trades t
-            asof left join quotes q on t.TradeTime >= q.QuoteTime
-            order by t.TradeTime
-            """,
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         var table = compiled.Run();
 
@@ -128,14 +131,15 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenCteSidecarIndexesAreEnabledForAsOfTieBreak_ShouldChooseDeterministicCandidate()
     {
         var compiled = CompileForExecution(
-            """
-            select a.Name, b.Name
-            from #A.entities() a
-            asof join #B.entities() b on a.Population >= b.Population
-            tie break by b.Name desc
-            """,
+            (
+                "select a.Name, b.Name\n"
+                + "from #A.entities() a\n"
+                + "asof join #B.entities() b on a.Population >= b.Population\n"
+                + "tie break by b.Name desc"
+            ),
             CreateAsOfTieBreakSchemaProvider(),
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         var table = compiled.Run();
 
@@ -163,14 +167,35 @@ public partial class QueryInspectionTests
             {
                 ["#A"] =
                 [
-                    new EntitySetEntity { Name = "A1", Country = "PL", Population = 100 }
+                    new EntitySetEntity
+                    {
+                        Name = "A1",
+                        Country = "PL",
+                        Population = 100,
+                    },
                 ],
                 ["#B"] =
                 [
-                    new EntitySetEntity { Name = "B-Zulu", Country = "PL", Population = 90 },
-                    new EntitySetEntity { Name = "B-Alpha", Country = "PL", Population = 90 },
-                    new EntitySetEntity { Name = "B-Older", Country = "PL", Population = 50 }
-                ]
-            });
+                    new EntitySetEntity
+                    {
+                        Name = "B-Zulu",
+                        Country = "PL",
+                        Population = 90,
+                    },
+                    new EntitySetEntity
+                    {
+                        Name = "B-Alpha",
+                        Country = "PL",
+                        Population = 90,
+                    },
+                    new EntitySetEntity
+                    {
+                        Name = "B-Older",
+                        Country = "PL",
+                        Population = 50,
+                    },
+                ],
+            }
+        );
     }
 }

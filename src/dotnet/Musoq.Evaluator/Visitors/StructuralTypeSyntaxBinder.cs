@@ -12,7 +12,8 @@ internal static class StructuralTypeSyntaxBinder
     public static bool TryBind(
         StructuralTypeSyntaxNode syntax,
         out StructuralTypeDescriptor descriptor,
-        out string error)
+        out string error
+    )
     {
         ArgumentNullException.ThrowIfNull(syntax);
         return TryBindCore(syntax, out descriptor, out error);
@@ -21,7 +22,8 @@ internal static class StructuralTypeSyntaxBinder
     private static bool TryBindCore(
         StructuralTypeSyntaxNode syntax,
         out StructuralTypeDescriptor descriptor,
-        out string error)
+        out string error
+    )
     {
         error = string.Empty;
         descriptor = null!;
@@ -29,8 +31,10 @@ internal static class StructuralTypeSyntaxBinder
         switch (syntax.Kind)
         {
             case StructuralTypeSyntaxKind.Scalar:
-                if (!ScriptParameterTypeCatalog.TryResolveScalar(syntax.ScalarName!, out var scalar) ||
-                    !PrimitiveTypeResolver.IsValidQueryExpressionType(scalar.ClrType))
+                if (
+                    !ScriptParameterTypeCatalog.TryResolveScalar(syntax.ScalarName!, out var scalar)
+                    || !PrimitiveTypeResolver.IsValidQueryExpressionType(scalar.ClrType)
+                )
                 {
                     error = $"Structural type '{syntax.ScalarName}' is not a supported Core scalar type.";
                     return false;
@@ -38,7 +42,8 @@ internal static class StructuralTypeSyntaxBinder
 
                 descriptor = StructuralTypeDescriptor.Scalar(
                     scalar.ClrType,
-                    syntax.IsNullable || !scalar.ClrType.IsValueType);
+                    syntax.IsNullable || !scalar.ClrType.IsValueType
+                );
                 return true;
 
             case StructuralTypeSyntaxKind.Record:
@@ -51,7 +56,8 @@ internal static class StructuralTypeSyntaxBinder
                 descriptor = StructuralTypeDescriptor.Collection(
                     element.CoreValueType.MakeArrayType(),
                     element,
-                    syntax.IsNullable);
+                    syntax.IsNullable
+                );
                 return true;
 
             default:
@@ -63,7 +69,8 @@ internal static class StructuralTypeSyntaxBinder
     private static bool TryBindRecord(
         StructuralTypeSyntaxNode syntax,
         out StructuralTypeDescriptor descriptor,
-        out string error)
+        out string error
+    )
     {
         var fields = new List<StructuralFieldDescriptor>(syntax.Fields.Count);
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -93,15 +100,14 @@ internal static class StructuralTypeSyntaxBinder
                     return false;
                 }
 
-                var rawValue = field.DefaultValue is NullNode
-                    ? null
-                    : ((ConstantValueNode)field.DefaultValue).ObjValue;
+                var rawValue = field.DefaultValue is NullNode ? null : ((ConstantValueNode)field.DefaultValue).ObjValue;
                 var conversion = ScriptValueConverter.ConvertValue(
                     "Structural field",
                     field.Name,
                     fieldType.ToCanonicalSql(),
                     fieldType.CoreValueType,
-                    rawValue);
+                    rawValue
+                );
                 if (!conversion.Success)
                 {
                     descriptor = null!;
@@ -109,22 +115,13 @@ internal static class StructuralTypeSyntaxBinder
                     return false;
                 }
 
-                fieldDefault = StructuralDefaultDescriptor.Create(
-                    conversion.Value,
-                    field.DefaultValue.ToString());
+                fieldDefault = StructuralDefaultDescriptor.Create(conversion.Value, field.DefaultValue.ToString());
             }
 
-            fields.Add(new StructuralFieldDescriptor(
-                field.Name,
-                fieldType,
-                !field.HasDefault,
-                fieldDefault));
+            fields.Add(new StructuralFieldDescriptor(field.Name, fieldType, !field.HasDefault, fieldDefault));
         }
 
-        descriptor = StructuralTypeDescriptor.Record(
-            typeof(StructuralValue),
-            fields,
-            syntax.IsNullable);
+        descriptor = StructuralTypeDescriptor.Record(typeof(StructuralValue), fields, syntax.IsNullable);
         error = string.Empty;
         return true;
     }

@@ -13,25 +13,30 @@ namespace Musoq.Evaluator.Tests.Build;
 [TestClass]
 public sealed class InterpreterCompilationUnitIsolationTests
 {
-    private const string ValidSource = """
-                                       namespace Musoq.Generated.Interpreters
-                                       {
-                                           public sealed class TestSchema
-                                           {
-                                           }
-
-                                           public sealed class GenericSchema<T>
-                                           {
-                                           }
-                                       }
-                                       """;
+    private const string ValidSource = (
+        "namespace Musoq.Generated.Interpreters\n"
+        + "{\n"
+        + "    public sealed class TestSchema\n"
+        + "    {\n"
+        + "    }\n"
+        + "\n"
+        + "    public sealed class GenericSchema<T>\n"
+        + "    {\n"
+        + "    }\n"
+        + "}"
+    );
 
     [TestMethod]
     public void Compile_WhenSourceHasErrors_ShouldExposeDiagnosticsAndSkipAssemblyLoad()
     {
         var references = new EmptyInterpreterReferenceProvider();
         var loader = new TrackingAssemblyLoader();
-        using var unit = CreateUnit("broken", "namespace Musoq.Generated.Interpreters { public sealed class Broken {", references, loader);
+        using var unit = CreateUnit(
+            "broken",
+            "namespace Musoq.Generated.Interpreters { public sealed class Broken {",
+            references,
+            loader
+        );
 
         var succeeded = unit.Compile();
 
@@ -41,7 +46,9 @@ public sealed class InterpreterCompilationUnitIsolationTests
         Assert.IsNull(unit.GetAssemblyBytes());
         Assert.AreEqual(1, references.CallCount);
         Assert.AreEqual(0, loader.LoadCallCount);
-        Assert.IsTrue(unit.GetErrorMessages().Any(static message => message.Contains("error", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            unit.GetErrorMessages().Any(static message => message.Contains("error", StringComparison.OrdinalIgnoreCase))
+        );
     }
 
     [TestMethod]
@@ -65,7 +72,12 @@ public sealed class InterpreterCompilationUnitIsolationTests
     [TestMethod]
     public void GetInterpreterType_WhenGenericTypeExists_ShouldReturnGenericDefinition()
     {
-        using var unit = CreateUnit("generic", ValidSource, new EmptyInterpreterReferenceProvider(), new TrackingAssemblyLoader());
+        using var unit = CreateUnit(
+            "generic",
+            ValidSource,
+            new EmptyInterpreterReferenceProvider(),
+            new TrackingAssemblyLoader()
+        );
 
         Assert.IsTrue(unit.Compile());
 
@@ -79,7 +91,12 @@ public sealed class InterpreterCompilationUnitIsolationTests
     [TestMethod]
     public void GetInterpreterType_WhenTypeDoesNotExist_ShouldReturnNull()
     {
-        using var unit = CreateUnit("missing", ValidSource, new EmptyInterpreterReferenceProvider(), new TrackingAssemblyLoader());
+        using var unit = CreateUnit(
+            "missing",
+            ValidSource,
+            new EmptyInterpreterReferenceProvider(),
+            new TrackingAssemblyLoader()
+        );
 
         Assert.IsTrue(unit.Compile());
 
@@ -134,14 +151,10 @@ public sealed class InterpreterCompilationUnitIsolationTests
         string assemblyName,
         string sourceCode,
         IInterpreterReferenceProvider references,
-        IAssemblyLoader loader)
+        IAssemblyLoader loader
+    )
     {
-        return new InterpreterCompilationUnit(
-            assemblyName,
-            sourceCode,
-            CreateCompilationFactory(),
-            references,
-            loader);
+        return new InterpreterCompilationUnit(assemblyName, sourceCode, CreateCompilationFactory(), references, loader);
     }
 
     private static ICSharpCompilationFactory CreateCompilationFactory()
@@ -186,5 +199,4 @@ public sealed class InterpreterCompilationUnitIsolationTests
             throw new InvalidOperationException("load failed");
         }
     }
-
 }

@@ -14,11 +14,13 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (pipeline.GroupKeys.Length <= 1)
             return TableBuildResult.Unsupported(
-                $"Execution IR value-tuple aggregate lowering supports at least 2 group keys. Found {pipeline.GroupKeys.Length.ToString(CultureInfo.InvariantCulture)} keys.");
+                $"Execution IR value-tuple aggregate lowering supports at least 2 group keys. Found {pipeline.GroupKeys.Length.ToString(CultureInfo.InvariantCulture)} keys."
+            );
 
         var aggregateSource = BuildAggregateSource(
             pipeline.Source.Source,
@@ -27,14 +29,15 @@ internal sealed partial class PhysicalLoweringImplementation
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
             "value-tuple aggregate",
-            scope);
+            scope
+        );
         if (!aggregateSource.IsBuilt)
             return TableBuildResult.Unsupported(aggregateSource.UnsupportedReason);
 
         var sourceShape = aggregateSource.Source.Shape;
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(sourceShape);
-        var groupKeys = pipeline.GroupKeys
-            .Select(key => ExecutionExpressionConverter.Convert(key, sourceLookup))
+        var groupKeys = pipeline
+            .GroupKeys.Select(key => ExecutionExpressionConverter.Convert(key, sourceLookup))
             .ToArray();
         if (CanUseLeanDistinct(pipeline))
         {
@@ -42,10 +45,14 @@ internal sealed partial class PhysicalLoweringImplementation
                 sourceLookup,
                 aggregateSource.Source.Shapes,
                 aggregateSource.Source.Setup,
-                body => CreateSourceLoop(sourceShape, aggregateSource.Source.Rows, aggregateSource.Source.Variable, body));
+                body =>
+                    CreateSourceLoop(sourceShape, aggregateSource.Source.Rows, aggregateSource.Source.Variable, body)
+            );
             var groupKeyTypes = groupKeys.Select(static key => key.ReturnType.ResolveClrType()).ToArray();
             if (!ValueTupleTypeShape.TryCreate(groupKeyTypes, out var groupKeyType))
-                return TableBuildResult.Unsupported("Execution IR value-tuple aggregate lowering could not construct a typed group key.");
+                return TableBuildResult.Unsupported(
+                    "Execution IR value-tuple aggregate lowering could not construct a typed group key."
+                );
 
             var distinctKey = new ExecutionValueTupleKey(groupKeys, groupKeyType);
 
@@ -57,7 +64,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 distinctKey,
                 resultTableName,
                 resultShapeName,
-                scopeAggregateVariables);
+                scopeAggregateVariables
+            );
         }
 
         var aggregateScopeName = CreateAggregateScopeName(resultTableName, scopeAggregateVariables);
@@ -68,19 +76,26 @@ internal sealed partial class PhysicalLoweringImplementation
         var rootGroup = CreateAggregateGroupVariable(aggregateScopeName, "rootGroup");
         var groupsToFinalize = CreateAggregateGroupVariable(aggregateScopeName, "groupsToFinalize");
         var finalGroup = CreateAggregateGroupVariable(aggregateScopeName, "finalGroup");
-        var finalizationGroupKeys = new AggregateFinalizationGroupKeys(pipeline.GroupKeys, pipeline.GroupKeyNames, pipeline.GroupKeyTypes);
-        var aggregateResources = CreateAggregateLoweringResources(new AggregateLoweringResourceRequest(
-            resultTableName,
-            aggregateScopeName,
-            pipeline.Bindings,
-            outputFields,
-            pipeline.HavingPredicate,
-            pipeline.PostOperations,
-            finalizationGroupKeys,
-            currentGroup,
-            finalGroup,
-            sourceLookup,
-            "value-tuple aggregate"));
+        var finalizationGroupKeys = new AggregateFinalizationGroupKeys(
+            pipeline.GroupKeys,
+            pipeline.GroupKeyNames,
+            pipeline.GroupKeyTypes
+        );
+        var aggregateResources = CreateAggregateLoweringResources(
+            new AggregateLoweringResourceRequest(
+                resultTableName,
+                aggregateScopeName,
+                pipeline.Bindings,
+                outputFields,
+                pipeline.HavingPredicate,
+                pipeline.PostOperations,
+                finalizationGroupKeys,
+                currentGroup,
+                finalGroup,
+                sourceLookup,
+                "value-tuple aggregate"
+            )
+        );
         if (!aggregateResources.IsBuilt)
             return TableBuildResult.Unsupported(aggregateResources.UnsupportedReason);
 
@@ -90,8 +105,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var accumulationBlock = CreateAggregateAccumulationBlock(
             pipeline.Source.Filter,
             sourceShape,
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionGetOrAddValueTupleAggregateGroup(
                     rootGroup,
                     groupDictionaries,
@@ -100,10 +114,12 @@ internal sealed partial class PhysicalLoweringImplementation
                     groupKeys,
                     pipeline.GroupKeyNames,
                     pipeline.GroupKeyTypes,
-                    aggregate.Group.Plan),
-                ..aggregate.SetNodes.Nodes,
-                ..aggregate.ValueCapture.Nodes
-            ]));
+                    aggregate.Group.Plan
+                ),
+                .. aggregate.SetNodes.Nodes,
+                .. aggregate.ValueCapture.Nodes,
+            ])
+        );
         var source = aggregateSource.Source.Variable;
         var sourceSetup = aggregateSource.Source.Setup;
         var sourceRows = aggregateSource.Source.Rows;
@@ -112,32 +128,41 @@ internal sealed partial class PhysicalLoweringImplementation
             resultTable,
             resultShape,
             outputFields,
-            aggregate.FinalizationContext);
+            aggregate.FinalizationContext
+        );
 
         if (!appendRow.IsBuilt)
             return TableBuildResult.Unsupported(appendRow.UnsupportedReason);
 
-        var finalBlock = CreateAggregateFinalBlock(pipeline.HavingPredicate, aggregate.FinalizationContext, appendRow.Value);
+        var finalBlock = CreateAggregateFinalBlock(
+            pipeline.HavingPredicate,
+            aggregate.FinalizationContext,
+            appendRow.Value
+        );
         if (!finalBlock.IsBuilt)
             return TableBuildResult.Unsupported(finalBlock.UnsupportedReason);
 
-        return CompleteAggregateTableBuild(new AggregateTableCompletion(
-            aggregateSource.Source.Shapes,
-            sourceSetup,
-            aggregate,
-            resultTable,
-            resultShape,
-            new ExecutionCreateValueTupleAggregateContext(
-                rootGroup,
-                groupDictionaries,
+        return CompleteAggregateTableBuild(
+            new AggregateTableCompletion(
+                aggregateSource.Source.Shapes,
+                sourceSetup,
+                aggregate,
+                resultTable,
+                resultShape,
+                new ExecutionCreateValueTupleAggregateContext(
+                    rootGroup,
+                    groupDictionaries,
+                    groupsToFinalize,
+                    pipeline.GroupKeyTypes,
+                    aggregate.Group.Plan
+                ),
+                loop,
                 groupsToFinalize,
-                pipeline.GroupKeyTypes,
-                aggregate.Group.Plan),
-            loop,
-            groupsToFinalize,
-            finalGroup,
-            finalBlock.Value,
-            pipeline.PostOperations,
-            pipeline.Project.IsDistinct));
+                finalGroup,
+                finalBlock.Value,
+                pipeline.PostOperations,
+                pipeline.Project.IsDistinct
+            )
+        );
     }
 }

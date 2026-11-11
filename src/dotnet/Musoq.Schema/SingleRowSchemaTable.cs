@@ -4,10 +4,7 @@ namespace Musoq.Schema;
 
 public class SingleRowSchemaTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns =>
-    [
-        new SimpleColumn()
-    ];
+    public ISchemaColumn[] Columns => [new SimpleColumn()];
 
     public ISchemaColumn? GetColumnByName(string name)
     {

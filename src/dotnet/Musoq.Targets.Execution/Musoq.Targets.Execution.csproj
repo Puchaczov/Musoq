@@ -1,33 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Version>$(MusoqConverterVersion)</Version>
-    <IsPackable>false</IsPackable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
-    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
-    <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="Musoq.Converter" />
-    <InternalsVisibleTo Include="Musoq.Converter.Compilation.Tests" />
-    <InternalsVisibleTo Include="Musoq.Converter.Targets.Tests" />
-    <InternalsVisibleTo Include="Musoq.Converter.Inspection.Tests" />
-    <InternalsVisibleTo Include="Musoq.Converter.Tests.Common" />
-    <InternalsVisibleTo Include="Musoq.Evaluator.CodeGeneration.Tests" />
-    <InternalsVisibleTo Include="Musoq.Evaluator.Planning.Tests" />
-    <InternalsVisibleTo Include="Musoq.Evaluator.Relational.Tests" />
-    <InternalsVisibleTo Include="Musoq.Evaluator.Query.Tests" />
-    <InternalsVisibleTo Include="Musoq.Evaluator.Runtime.Tests" />
-    <InternalsVisibleTo Include="Musoq.Evaluator.Diagnostics.Tests" />
-    <InternalsVisibleTo Include="Musoq.Evaluator.Interpretation.Tests" />
-    <InternalsVisibleTo Include="Musoq.Evaluator.Tests.Common" />
-    <InternalsVisibleTo Include="Musoq.Targets.Execution.Analysis" />
-    <InternalsVisibleTo Include="Musoq.Targets.CSharpClr" />
-    <InternalsVisibleTo Include="Musoq.Targets.TestPortable" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Version>$(MusoqConverterVersion)</Version>
+        <IsPackable>false</IsPackable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
+        <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+        <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="Musoq.Converter" />
+        <InternalsVisibleTo Include="Musoq.Converter.Compilation.Tests" />
+        <InternalsVisibleTo Include="Musoq.Converter.Targets.Tests" />
+        <InternalsVisibleTo Include="Musoq.Converter.Inspection.Tests" />
+        <InternalsVisibleTo Include="Musoq.Converter.Tests.Common" />
+        <InternalsVisibleTo Include="Musoq.Evaluator.CodeGeneration.Tests" />
+        <InternalsVisibleTo Include="Musoq.Evaluator.Planning.Tests" />
+        <InternalsVisibleTo Include="Musoq.Evaluator.Relational.Tests" />
+        <InternalsVisibleTo Include="Musoq.Evaluator.Query.Tests" />
+        <InternalsVisibleTo Include="Musoq.Evaluator.Runtime.Tests" />
+        <InternalsVisibleTo Include="Musoq.Evaluator.Diagnostics.Tests" />
+        <InternalsVisibleTo Include="Musoq.Evaluator.Interpretation.Tests" />
+        <InternalsVisibleTo Include="Musoq.Evaluator.Tests.Common" />
+        <InternalsVisibleTo Include="Musoq.Targets.Execution.Analysis" />
+        <InternalsVisibleTo Include="Musoq.Targets.CSharpClr" />
+        <InternalsVisibleTo Include="Musoq.Targets.TestPortable" />
+    </ItemGroup>
 </Project>

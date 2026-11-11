@@ -17,7 +17,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -36,7 +36,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Name = 'Test1'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -50,10 +50,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
     public void QueryPipeline_SelectWithArithmetic_ShouldWork()
     {
         var query = "select 1 + 2 * 3 from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
@@ -68,7 +65,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() order by Name desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("A"), new BasicEntity("C"), new BasicEntity("B")] }
+            { "#A", [new BasicEntity("A"), new BasicEntity("C"), new BasicEntity("B")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -86,7 +83,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Name like 'Test%'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Other"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Other"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -101,7 +98,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Name in ('Test1', 'Test2')";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Other"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Other"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -116,7 +113,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() order by Name skip 1 take 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -133,7 +130,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name + ' - ' + City from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "Test", City = "NYC" }] }
+            { "#A", [new BasicEntity { Name = "Test", City = "NYC" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -149,7 +146,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name + City from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "Test", City = "NYC" }] }
+            { "#A", [new BasicEntity { Name = "Test", City = "NYC" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -165,7 +162,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Name <> 'Test1'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -181,13 +178,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Population from #A.Entities() where Population > 100 and Population < 300";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("A", 50),
-                    new BasicEntity("B", 200),
-                    new BasicEntity("C", 400)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 50), new BasicEntity("B", 200), new BasicEntity("C", 400)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -204,11 +195,9 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("HasValue") { NullableValue = 5 },
-                    new BasicEntity("NoValue") { NullableValue = null }
-                ]
-            }
+                "#A",
+                [new BasicEntity("HasValue") { NullableValue = 5 }, new BasicEntity("NoValue") { NullableValue = null }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -224,11 +213,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Coalesce(NullableValue, 0) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Test") { NullableValue = null }
-                ]
-            }
+            { "#A", [new BasicEntity("Test") { NullableValue = null }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

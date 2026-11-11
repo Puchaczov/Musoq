@@ -18,23 +18,28 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var samples = ReadAllSamples();
         var legacyContractSamples = samples
-            .Where(static sample => sample.Content.Contains("BaseOperations, IRunnable, IParameterizedRunnable", StringComparison.Ordinal))
+            .Where(static sample =>
+                sample.Content.Contains("BaseOperations, IRunnable, IParameterizedRunnable", StringComparison.Ordinal)
+            )
             .Select(static sample => sample.FileName)
             .ToArray();
         var missingTableContractSamples = samples
-            .Where(static sample => !HasDeclaredResultContract(sample.FileName, sample.Content) ||
-                !sample.Content.Contains("IQueryProgressSource", StringComparison.Ordinal))
+            .Where(static sample =>
+                !HasDeclaredResultContract(sample.FileName, sample.Content)
+                || !sample.Content.Contains("IQueryProgressSource", StringComparison.Ordinal)
+            )
             .Select(static sample => sample.FileName)
             .ToArray();
 
         Assert.IsEmpty(
             legacyContractSamples,
-            $"Generated samples should not declare IRunnable: {string.Join(", ", legacyContractSamples)}");
+            $"Generated samples should not declare IRunnable: {string.Join(", ", legacyContractSamples)}"
+        );
         Assert.IsEmpty(
             missingTableContractSamples,
-            $"Generated samples should declare ITableRunnable: {string.Join(", ", missingTableContractSamples)}");
+            $"Generated samples should declare ITableRunnable: {string.Join(", ", missingTableContractSamples)}"
+        );
     }
-
 
     [TestMethod]
     public void InClauseSamples_WhenCheckedIn_ShouldStayWithinInlineArrayAllocationBudget()
@@ -47,7 +52,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsLessThanOrEqualTo(
             InlineInArrayAllocationBudget,
             offenders.Length,
-            $"Inline per-row IN array allocations exceeded budget. Offenders: {string.Join(", ", offenders)}");
+            $"Inline per-row IN array allocations exceeded budget. Offenders: {string.Join(", ", offenders)}"
+        );
     }
 
     [TestMethod]
@@ -92,22 +98,24 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SourceScans_WhenCheckedIn_ShouldSplitDirectRowSourceRows()
     {
-        var samples = ReadNamedSamples(
-                "Q01_SimpleSelectWhere.cs",
-                InnerJoinSampleFileName)
+        var samples = ReadNamedSamples("Q01_SimpleSelectWhere.cs", InnerJoinSampleFileName)
             .ToDictionary(static sample => sample.FileName);
-        var inlineRowSourceReads = samples.Values
-            .SelectMany(static sample => sample.Content
-                .Split(["\r\n", "\n"], StringSplitOptions.None)
-                .Where(static line =>
-                    line.Contains(".SourceInvocation<", StringComparison.Ordinal) &&
-                    line.Contains(").Chunks;", StringComparison.Ordinal))
-                .Select(line => $"{sample.FileName}: {line.Trim()}"))
+        var inlineRowSourceReads = samples
+            .Values.SelectMany(static sample =>
+                sample
+                    .Content.Split(["\r\n", "\n"], StringSplitOptions.None)
+                    .Where(static line =>
+                        line.Contains(".SourceInvocation<", StringComparison.Ordinal)
+                        && line.Contains(").Chunks;", StringComparison.Ordinal)
+                    )
+                    .Select(line => $"{sample.FileName}: {line.Trim()}")
+            )
             .ToArray();
 
         Assert.IsEmpty(
             inlineRowSourceReads,
-            $"Direct source scans should split SourceInvocation<T>() from .Chunks: {string.Join(Environment.NewLine, inlineRowSourceReads)}");
+            $"Direct source scans should split SourceInvocation<T>() from .Chunks: {string.Join(Environment.NewLine, inlineRowSourceReads)}"
+        );
 
         var simpleSelect = samples["Q01_SimpleSelectWhere.cs"].Content;
         Assert.Contains("var ko3ikoRowsSource = SourceInvocation<", simpleSelect);
@@ -139,18 +147,17 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(",
             "private void OnDataSourceProgress",
             "private void OnPhaseChanged",
-            "private sealed class ResultRow0");
+            "private sealed class ResultRow0"
+        );
         Assert.DoesNotContain("private sealed class ResultShape0", sample);
         Assert.IsTrue(
-            Regex.IsMatch(
-                sample,
-                Regex.Escape(aggressiveInliningAttribute) + @"\s+private void OnDataSourceProgress"),
-            "OnDataSourceProgress should be aggressively inlined.");
+            Regex.IsMatch(sample, Regex.Escape(aggressiveInliningAttribute) + @"\s+private void OnDataSourceProgress"),
+            "OnDataSourceProgress should be aggressively inlined."
+        );
         Assert.IsTrue(
-            Regex.IsMatch(
-                sample,
-                Regex.Escape(aggressiveInliningAttribute) + @"\s+private void OnPhaseChanged"),
-            "OnPhaseChanged should be aggressively inlined.");
+            Regex.IsMatch(sample, Regex.Escape(aggressiveInliningAttribute) + @"\s+private void OnPhaseChanged"),
+            "OnPhaseChanged should be aggressively inlined."
+        );
     }
 
     [TestMethod]
@@ -164,12 +171,24 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("__musoqProgressContext?.CompleteQueryProgress();", generatedCode);
         Assert.Contains("__musoqProgressContext != null ? QueryProgressRuntime.WrapChunks", generatedCode);
 
-        var beginIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Begin);", StringComparison.Ordinal);
-        var fromIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.From);", StringComparison.Ordinal);
+        var beginIndex = generatedCode.IndexOf(
+            "OnPhaseChanged(\"compiled\", QueryPhase.Begin);",
+            StringComparison.Ordinal
+        );
+        var fromIndex = generatedCode.IndexOf(
+            "OnPhaseChanged(\"compiled\", QueryPhase.From);",
+            StringComparison.Ordinal
+        );
         var sourceIndex = generatedCode.IndexOf("var __ko3ikoSchema = provider.GetSchema", StringComparison.Ordinal);
         var rowsIndex = generatedCode.IndexOf("var ko3ikoRows =", StringComparison.Ordinal);
-        var whereIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Where);", StringComparison.Ordinal);
-        var selectIndex = generatedCode.IndexOf("OnPhaseChanged(\"compiled\", QueryPhase.Select);", StringComparison.Ordinal);
+        var whereIndex = generatedCode.IndexOf(
+            "OnPhaseChanged(\"compiled\", QueryPhase.Where);",
+            StringComparison.Ordinal
+        );
+        var selectIndex = generatedCode.IndexOf(
+            "OnPhaseChanged(\"compiled\", QueryPhase.Select);",
+            StringComparison.Ordinal
+        );
         var loopIndex = generatedCode.IndexOf("foreach (var ko3ikoChunk in ko3ikoRows)", StringComparison.Ordinal);
 
         Assert.IsGreaterThanOrEqualTo(0, beginIndex);
@@ -189,7 +208,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 ScriptParameterPrimitiveDefaultsSampleFileName,
                 ScriptParameterSourceArgumentSampleFileName,
                 ScriptParameterTypedComparisonSampleFileName,
-                ScriptParameterNumericWideningComparisonSampleFileName)
+                ScriptParameterNumericWideningComparisonSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName);
         var whereSelect = samples[ScriptParametersWhereSelectSampleFileName].Content;
         var primitiveDefaults = samples[ScriptParameterPrimitiveDefaultsSampleFileName].Content;
@@ -199,46 +219,65 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains(
             "var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");",
-            whereSelect);
+            whereSelect
+        );
         Assert.Contains(
             "var paramMinPopulation = ScriptParameterBinder.GetOptional<int>(__musoqExecutionState, \"minPopulation\", 100);",
-            whereSelect);
+            whereSelect
+        );
         Assert.AreEqual(2, CountOccurrences(whereSelect, "ScriptParameterBinder.Get"));
         Assert.Contains("Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry", whereSelect);
         Assert.Contains("yield return new ResultRow0(ko3iko.Name, population, paramCountry);", whereSelect);
         Assert.Contains("yield return __musoqShapeRow;", whereSelect);
 
-        Assert.Contains("var paramFlag = ScriptParameterBinder.GetOptional<bool>(__musoqExecutionState, \"flag\", true);", primitiveDefaults);
-        Assert.Contains("var paramCode = ScriptParameterBinder.GetOptional<char>(__musoqExecutionState, \"code\", 'x');", primitiveDefaults);
+        Assert.Contains(
+            "var paramFlag = ScriptParameterBinder.GetOptional<bool>(__musoqExecutionState, \"flag\", true);",
+            primitiveDefaults
+        );
+        Assert.Contains(
+            "var paramCode = ScriptParameterBinder.GetOptional<char>(__musoqExecutionState, \"code\", 'x');",
+            primitiveDefaults
+        );
         Assert.Contains(
             "var paramLimit = ScriptParameterBinder.GetOptionalNullable<int>(__musoqExecutionState, \"limit\", default(int?));",
-            primitiveDefaults);
+            primitiveDefaults
+        );
         Assert.Contains(
             "var paramId = ScriptParameterBinder.GetOptional<Guid>(__musoqExecutionState, \"id\", new Guid(\"2ffcf6fa-3369-4300-946a-bb131a037985\"));",
-            primitiveDefaults);
+            primitiveDefaults
+        );
         Assert.Contains(
             "var paramCreated = ScriptParameterBinder.GetOptional<DateTime>(__musoqExecutionState, \"created\", new DateTime(638397614450000000L, DateTimeKind.Utc));",
-            primitiveDefaults);
+            primitiveDefaults
+        );
         Assert.AreEqual(5, CountOccurrences(primitiveDefaults, "ScriptParameterBinder.Get"));
-        Assert.Contains(
-            "new ResultRow0(paramFlag, paramCode, paramLimit, paramId, paramCreated)",
-            primitiveDefaults);
+        Assert.Contains("new ResultRow0(paramFlag, paramCode, paramLimit, paramId, paramCreated)", primitiveDefaults);
 
-        Assert.Contains("var paramKey = ScriptParameterBinder.GetOptional<string>(__musoqExecutionState, \"key\", \"KEY_1\");", sourceArgument);
+        Assert.Contains(
+            "var paramKey = ScriptParameterBinder.GetOptional<string>(__musoqExecutionState, \"key\", \"KEY_1\");",
+            sourceArgument
+        );
         Assert.AreEqual(1, CountOccurrences(sourceArgument, "ScriptParameterBinder.Get"));
-        Assert.Contains("global::Musoq.Schema.SourceArguments.Create(paramKey, global::Musoq.Schema.SourceArguments.Empty)", sourceArgument);
+        Assert.Contains(
+            "global::Musoq.Schema.SourceArguments.Create(paramKey, global::Musoq.Schema.SourceArguments.Empty)",
+            sourceArgument
+        );
         var parameterBindingIndex = sourceArgument.IndexOf("var paramKey = ", StringComparison.Ordinal);
         var sourceRowsIndex = sourceArgument.IndexOf("var __ko3ikoSchema = ", StringComparison.Ordinal);
         Assert.IsLessThan(sourceRowsIndex, parameterBindingIndex);
 
-        Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");", typedComparison);
+        Assert.Contains(
+            "var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");",
+            typedComparison
+        );
         Assert.AreEqual(1, CountOccurrences(typedComparison, "ScriptParameterBinder.Get"));
         Assert.Contains("if ((Operators.SqlCompare<string, string>(country, paramCountry", typedComparison);
         Assert.DoesNotContain("TryConvertTo", typedComparison);
 
         Assert.Contains(
             "var paramMinPopulation = ScriptParameterBinder.GetRequired<int>(__musoqExecutionState, \"minPopulation\");",
-            numericWidening);
+            numericWidening
+        );
         Assert.AreEqual(1, CountOccurrences(numericWidening, "ScriptParameterBinder.Get"));
         Assert.Contains("if ((population >= paramMinPopulation))", numericWidening);
         Assert.DoesNotContain("TryConvertTo", numericWidening);
@@ -246,7 +285,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ScriptParameterNumericWideningComparisonSampleFileName,
             numericWidening,
             "var paramMinPopulation = ",
-            "var __ko3ikoSchema = ");
+            "var __ko3ikoSchema = "
+        );
     }
 
     [TestMethod]
@@ -257,7 +297,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 ScriptParameterJoinHelperCaptureSampleFileName,
                 ScriptParameterCteHelperCaptureSampleFileName,
                 ScriptParameterWindowHelperCaptureSampleFileName,
-                ScriptParameterParallelHelperCaptureSampleFileName)
+                ScriptParameterParallelHelperCaptureSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName);
         var groupBy = samples[ScriptParameterGroupByHelperCaptureSampleFileName].Content;
         var join = samples[ScriptParameterJoinHelperCaptureSampleFileName].Content;
@@ -275,10 +316,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ScriptParameterGroupByHelperCaptureSampleFileName,
             groupBy,
             "var paramSuffix = ",
-            "ParallelSingleKeyAggregate_0(");
+            "ParallelSingleKeyAggregate_0("
+        );
 
         AssertScriptParameterBinderCount(ScriptParameterJoinHelperCaptureSampleFileName, join, 2);
-        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, paramSuffix);", join);
+        Assert.Contains(
+            "_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, paramSuffix);",
+            join
+        );
         Assert.Contains("CteRowResults _cteRowResults, string paramSuffix)", join);
         Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", join);
         Assert.Contains("Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];", join);
@@ -288,50 +333,82 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ScriptParameterJoinHelperCaptureSampleFileName,
             join,
             "var paramSuffix = ",
-            "_cteRowResults.Slot0 = BuildCte0(");
+            "_cteRowResults.Slot0 = BuildCte0("
+        );
 
         AssertScriptParameterBinderCount(ScriptParameterCteHelperCaptureSampleFileName, cte, 1);
-        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults, paramCountry);", cte);
+        Assert.Contains(
+            "_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, _cteIndexResults, paramCountry);",
+            cte
+        );
         Assert.Contains("CteRowResults _cteRowResults, CteIndexResults _cteIndexResults, string paramCountry)", cte);
         Assert.Contains("if ((Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry", cte);
         AssertTopLevelBindingBefore(
             ScriptParameterCteHelperCaptureSampleFileName,
             cte,
             "var paramCountry = ",
-            "_cteRowResults.Slot0 = BuildCte0(");
+            "_cteRowResults.Slot0 = BuildCte0("
+        );
 
         AssertScriptParameterBinderCount(ScriptParameterWindowHelperCaptureSampleFileName, window, 2);
-        Assert.Contains("ExtractResultRowNumbersWindowKeys(resultWindowRows, resultRowNumbersPartitionKeys, resultRowNumbersOrderKeys, paramCountry, paramLabel);", window);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(ko3iko.Name, (long)resultRowNumbers[windowIndex], paramLabel));", window);
-        Assert.IsFalse(window.Contains("AppendResultWindowRows(resultWindowRows, result, resultRowNumbers, paramLabel);", StringComparison.Ordinal));
-        Assert.Contains("WindowResultRowNumbersOrderKeysKey[] resultRowNumbersOrderKeys, string paramCountry, string paramLabel)", window);
-        Assert.Contains("resultRowNumbersOrderKeys[windowIndex] = new WindowResultRowNumbersOrderKeysKey((ko3iko.Name + paramLabel));", window);
+        Assert.Contains(
+            "ExtractResultRowNumbersWindowKeys(resultWindowRows, resultRowNumbersPartitionKeys, resultRowNumbersOrderKeys, paramCountry, paramLabel);",
+            window
+        );
+        Assert.Contains(
+            "__musoqFinalShapeRows.Add(new ResultRow0(ko3iko.Name, (long)resultRowNumbers[windowIndex], paramLabel));",
+            window
+        );
+        Assert.IsFalse(
+            window.Contains(
+                "AppendResultWindowRows(resultWindowRows, result, resultRowNumbers, paramLabel);",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.Contains(
+            "WindowResultRowNumbersOrderKeysKey[] resultRowNumbersOrderKeys, string paramCountry, string paramLabel)",
+            window
+        );
+        Assert.Contains(
+            "resultRowNumbersOrderKeys[windowIndex] = new WindowResultRowNumbersOrderKeysKey((ko3iko.Name + paramLabel));",
+            window
+        );
         AssertTopLevelBindingBefore(
             ScriptParameterWindowHelperCaptureSampleFileName,
             window,
             "var paramCountry = ",
-            "ExtractResultRowNumbersWindowKeys(");
+            "ExtractResultRowNumbersWindowKeys("
+        );
 
         AssertScriptParameterBinderCount(ScriptParameterParallelHelperCaptureSampleFileName, parallel, 2);
         Assert.Contains(ParallelFilterProjectLoopPattern, parallel);
-        Assert.Contains("EvaluationHelper.ProjectRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>", parallel);
+        Assert.Contains(
+            "EvaluationHelper.ProjectRowsParallel<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionEntity, ResultRow0>",
+            parallel
+        );
         Assert.Contains("QueryRows.FromRowShards(", parallel);
         Assert.Contains("(ko3iko) => (ko3iko.Value > paramThreshold)", parallel);
-        Assert.Contains("new ResultRow0(ko3iko.Name, paramLabel, (int)__resultRuntimeV2RegressionLibrary0.HeavyComputation(ko3iko.Value))", parallel);
+        Assert.Contains(
+            "new ResultRow0(ko3iko.Name, paramLabel, (int)__resultRuntimeV2RegressionLibrary0.HeavyComputation(ko3iko.Value))",
+            parallel
+        );
         AssertTopLevelBindingBefore(
             ScriptParameterParallelHelperCaptureSampleFileName,
             parallel,
             "var paramThreshold = ",
-            "var __musoqTableParallelRows = ");
+            "var __musoqTableParallelRows = "
+        );
 
-        foreach (var sample in new[]
-                 {
-                     samples[ScriptParameterGroupByHelperCaptureSampleFileName],
-                     samples[ScriptParameterJoinHelperCaptureSampleFileName],
-                     samples[ScriptParameterCteHelperCaptureSampleFileName],
-                     samples[ScriptParameterWindowHelperCaptureSampleFileName],
-                     samples[ScriptParameterParallelHelperCaptureSampleFileName]
-                 })
+        foreach (
+            var sample in new[]
+            {
+                samples[ScriptParameterGroupByHelperCaptureSampleFileName],
+                samples[ScriptParameterJoinHelperCaptureSampleFileName],
+                samples[ScriptParameterCteHelperCaptureSampleFileName],
+                samples[ScriptParameterWindowHelperCaptureSampleFileName],
+                samples[ScriptParameterParallelHelperCaptureSampleFileName],
+            }
+        )
         {
             AssertStaticHelpersDoNotReadRuntimeParameters(sample.FileName, sample.Content);
             AssertRowLoopsDoNotReadRuntimeParameters(sample.FileName, sample.Content);
@@ -350,5 +427,4 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             previousIndex = index;
         }
     }
-
 }

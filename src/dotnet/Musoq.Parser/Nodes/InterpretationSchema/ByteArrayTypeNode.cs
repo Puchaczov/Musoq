@@ -29,9 +29,10 @@ public class ByteArrayTypeNode : TypeAnnotationNode
     public override bool IsFixedSize => SizeExpression is IntegerNode;
 
     /// <inheritdoc />
-    public override int? FixedSizeBytes => SizeExpression is IntegerNode intNode
-        ? int.Parse(intNode.ObjValue.ToString()!, System.Globalization.CultureInfo.InvariantCulture)
-        : null;
+    public override int? FixedSizeBytes =>
+        SizeExpression is IntegerNode intNode
+            ? int.Parse(intNode.ObjValue.ToString()!, System.Globalization.CultureInfo.InvariantCulture)
+            : null;
 
     /// <inheritdoc />
     public override Type ReturnType => ClrType;

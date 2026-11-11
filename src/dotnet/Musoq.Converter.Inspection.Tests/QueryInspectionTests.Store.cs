@@ -12,7 +12,8 @@ public partial class QueryInspectionTests
             "select 1 from #system.dual()",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsGreaterThan(0, result.DllFile.Length);
     }

@@ -15,21 +15,25 @@ public partial class ScriptParameterExecutionTests
     [DataRow("literal", "qualify")]
     [DataRow("literal", "cte")]
     public void WhenSourceInputIsCombinedWithWindowRanking_ShouldReturnEquivalentEvidence(
-        string inputKind, string queryShape)
+        string inputKind,
+        string queryShape
+    )
     {
         var declaration = inputKind switch
         {
             "param" => "param(key: string = 'KEY_1')",
             "let" => "let key: string = 'KEY_1'",
-            _ => ""
+            _ => "",
         };
         var argument = inputKind == "literal" ? "'KEY_1'" : "$key";
-        var ranking = $"select m.Key as Topic, n.Key as Evidence, RowNumber() over (partition by m.Key order by n.Key) as Position from #Parameterized.Items({argument}) m cross join #Parameterized.Items() n";
+        var ranking =
+            $"select m.Key as Topic, n.Key as Evidence, RowNumber() over (partition by m.Key order by n.Key) as Position from #Parameterized.Items({argument}) m cross join #Parameterized.Items() n";
         var query = queryShape switch
         {
             "qualify" => $"{ranking} qualify Position <= 1 order by Position",
-            "cte" => $"with ranked as ({ranking}) select Topic, Evidence, Position from ranked where Position <= 1 order by Position",
-            _ => $"{ranking} order by Position"
+            "cte" =>
+                $"with ranked as ({ranking}) select Topic, Evidence, Position from ranked where Position <= 1 order by Position",
+            _ => $"{ranking} order by Position",
         };
         var vm = CompileWithProvider($"{declaration} {query}", new ParameterizedEnvironmentSchemaProvider());
         var table = vm.Run(TestContext.CancellationToken);
@@ -47,7 +51,12 @@ public partial class ScriptParameterExecutionTests
 
         if (inputKind == "param")
         {
-            global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+            global::Musoq.Tests.Common.NativeParameterFixture.Set(
+                vm.TypedParameters,
+                vm.ParameterDefinitions,
+                "key",
+                "KEY_2"
+            );
             var rebound = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(table.Count, rebound.Count);
             Assert.AreEqual("KEY_2", rebound[0].ReadValue(0));

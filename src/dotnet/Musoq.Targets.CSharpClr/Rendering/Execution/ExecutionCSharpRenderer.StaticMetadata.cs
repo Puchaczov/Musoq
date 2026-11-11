@@ -22,7 +22,10 @@ public sealed partial class ExecutionCSharpRenderer
             if (TryGetConstantInSetFieldName(constantSet, context, out _))
                 continue;
 
-            var fieldName = CreateIdentifierCandidate($"__inSet_{plan.Identifier}_{session.ConstantInSetFields.Count}", 0);
+            var fieldName = CreateIdentifierCandidate(
+                $"__inSet_{plan.Identifier}_{session.ConstantInSetFields.Count}",
+                0
+            );
             session.ConstantInSetFieldNames.Add(constantSet, fieldName);
             session.ConstantInSetFields.Add(new ConstantInSetField(fieldName, constantSet));
         }
@@ -31,7 +34,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static bool TryGetConstantInSetFieldName(
         ExecutionConstantInSet constantSet,
         ExecutionRenderContext context,
-        out string fieldName)
+        out string fieldName
+    )
     {
         if (context.Session.ConstantInSetFieldNames.TryGetValue(constantSet, out fieldName!))
             return true;
@@ -49,13 +53,11 @@ public sealed partial class ExecutionCSharpRenderer
         return false;
     }
 
-    private static bool ConstantInSetMatches(
-        ExecutionConstantInSet left,
-        ExecutionConstantInSet right)
+    private static bool ConstantInSetMatches(ExecutionConstantInSet left, ExecutionConstantInSet right)
     {
-        return left.Kind == right.Kind &&
-               left.ElementType == right.ElementType &&
-               left.Values.SequenceEqual(right.Values);
+        return left.Kind == right.Kind
+            && left.ElementType == right.ElementType
+            && left.Values.SequenceEqual(right.Values);
     }
 
     private void EnsureStaticMetadataFields(ExecutionPlan plan, ExecutionRenderContext context)
@@ -67,19 +69,19 @@ public sealed partial class ExecutionCSharpRenderer
     private void EnsureStaticMetadataField(
         string planIdentifier,
         ExecutionColumnMetadata metadata,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var session = context.Session;
         var key = StaticColumnMetadataIdentity.CreateKey(metadata);
         if (session.StaticMetadataFieldNames.ContainsKey(key))
             return;
 
-        var prefix = metadata.Kind == ExecutionColumnMetadataKind.TableColumns
-            ? "__columns"
-            : "__schemaColumns";
+        var prefix = metadata.Kind == ExecutionColumnMetadataKind.TableColumns ? "__columns" : "__schemaColumns";
         var fieldName = CreateIdentifierCandidate(
             $"{prefix}_{planIdentifier}_{metadata.ReferenceName}_{session.StaticMetadataFields.Count}",
-            0);
+            0
+        );
 
         session.StaticMetadataFieldNames.Add(key, fieldName);
         session.StaticMetadataFields.Add(new StaticMetadataField(fieldName, metadata));
@@ -88,18 +90,21 @@ public sealed partial class ExecutionCSharpRenderer
     private static bool TryGetStaticMetadataFieldName(
         ExecutionColumnMetadata metadata,
         ExecutionRenderContext context,
-        out string fieldName)
+        out string fieldName
+    )
     {
         return context.Session.StaticMetadataFieldNames.TryGetValue(
             StaticColumnMetadataIdentity.CreateKey(metadata),
-            out fieldName!);
+            out fieldName!
+        );
     }
 
     internal bool TryGetTableColumnMetadataFieldName(
         ExecutionPlan plan,
         string referenceName,
         IReadOnlyList<ExecutionColumnMetadataField> fields,
-        out string fieldName)
+        out string fieldName
+    )
     {
         var context = InitializeRenderContext(plan);
         return TryGetTableColumnMetadataFieldName(referenceName, fields, context, out fieldName);
@@ -109,12 +114,14 @@ public sealed partial class ExecutionCSharpRenderer
         string referenceName,
         IReadOnlyList<ExecutionColumnMetadataField> fields,
         ExecutionRenderContext context,
-        out string fieldName)
+        out string fieldName
+    )
     {
         return TryGetStaticMetadataFieldName(
             new ExecutionColumnMetadata(referenceName, fields, ExecutionColumnMetadataKind.TableColumns),
             context,
-            out fieldName);
+            out fieldName
+        );
     }
 
     private static IEnumerable<ExecutionColumnMetadata> CollectStaticMetadata(ExecutionBlock block)
@@ -133,56 +140,63 @@ public sealed partial class ExecutionCSharpRenderer
                     yield return CreateColumnMetadata(
                         materialize.Target.Name,
                         materialize.RowShape.Fields,
-                        ExecutionColumnMetadataKind.TableColumns);
+                        ExecutionColumnMetadataKind.TableColumns
+                    );
                     break;
                 case ExecutionProjectTable project:
                     yield return CreateColumnMetadata(
                         project.Target.Name,
                         project.RowShape.Fields,
-                        ExecutionColumnMetadataKind.TableColumns);
+                        ExecutionColumnMetadataKind.TableColumns
+                    );
                     break;
-                case var tableOperation when
-                    ExecutionNodeFacts.TryGetTablePostOperation(tableOperation, out var operation) &&
-                    operation.ColumnMetadata != null:
+                case var tableOperation
+                    when ExecutionNodeFacts.TryGetTablePostOperation(tableOperation, out var operation)
+                        && operation.ColumnMetadata != null:
                     yield return operation.ColumnMetadata;
                     break;
-                case ExecutionReturnDesc { Type: Evaluator.IR.Logical.Nodes.DescType.Query, QueryColumnMetadata: not null } desc:
+                case ExecutionReturnDesc
+                {
+                    Type: Evaluator.IR.Logical.Nodes.DescType.Query,
+                    QueryColumnMetadata: not null
+                } desc:
                     yield return desc.QueryColumnMetadata;
                     break;
             }
         }
     }
 
-
     private static ExecutionColumnMetadata ResolveSourceSchemaColumnMetadata(ExecutionSourceScan sourceScan)
     {
         return sourceScan.Binding.InferredColumnsMetadata
-               ?? CreateColumnMetadata(
-                   CreateSourceScanLocalName(sourceScan),
-                   sourceScan.Binding.Fields,
-                   ExecutionColumnMetadataKind.SourceSchemaColumns);
+            ?? CreateColumnMetadata(
+                CreateSourceScanLocalName(sourceScan),
+                sourceScan.Binding.Fields,
+                ExecutionColumnMetadataKind.SourceSchemaColumns
+            );
     }
 
     private static ExecutionColumnMetadata ResolveTableColumnMetadata(ExecutionCreateTable createTable)
     {
         return createTable.ColumnMetadata
-               ?? CreateColumnMetadata(
-                   createTable.Table.Name,
-                   createTable.RowShape.Fields,
-                   ExecutionColumnMetadataKind.TableColumns);
+            ?? CreateColumnMetadata(
+                createTable.Table.Name,
+                createTable.RowShape.Fields,
+                ExecutionColumnMetadataKind.TableColumns
+            );
     }
 
     private static ExecutionColumnMetadata CreateColumnMetadata(
         string referenceName,
         IReadOnlyList<FieldBinding> fields,
-        ExecutionColumnMetadataKind kind)
+        ExecutionColumnMetadataKind kind
+    )
     {
         return new ExecutionColumnMetadata(
             referenceName,
-            fields
-                .Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field))
-                .ToArray(),
-            kind);
+            fields.Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field)).ToArray(),
+            kind
+        );
     }
 
     private static FieldDeclarationSyntax CreateConstantInSetField(ConstantInSetField field)
@@ -191,15 +205,25 @@ public sealed partial class ExecutionCSharpRenderer
         var fieldType = CreateConstantInSetFieldType(constantSet);
         var initializer = CreateConstantInSetFieldInitializer(constantSet);
 
-        return SyntaxFactory.FieldDeclaration(
-            SyntaxFactory.VariableDeclaration(fieldType)
-                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(EscapeIdentifier(field.Name))
-                            .WithInitializer(SyntaxFactory.EqualsValueClause(initializer)))))
-            .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword),
-                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)));
+        return SyntaxFactory
+            .FieldDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(fieldType)
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory
+                                .VariableDeclarator(EscapeIdentifier(field.Name))
+                                .WithInitializer(SyntaxFactory.EqualsValueClause(initializer))
+                        )
+                    )
+            )
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
+                    SyntaxFactory.Token(SyntaxKind.StaticKeyword),
+                    SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
+                )
+            );
     }
 
     private static TypeSyntax CreateConstantInSetFieldType(ExecutionConstantInSet constantSet)
@@ -209,7 +233,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             ExecutionConstantInSetKind.HashSet => CreateTypeSyntax(typeof(HashSet<>).MakeGenericType(elementType)),
             ExecutionConstantInSetKind.FrozenSet => CreateTypeSyntax(typeof(FrozenSet<>).MakeGenericType(elementType)),
-            _ => CreateTypeSyntax(elementType.MakeArrayType())
+            _ => CreateTypeSyntax(elementType.MakeArrayType()),
         };
     }
 
@@ -219,79 +243,95 @@ public sealed partial class ExecutionCSharpRenderer
         {
             ExecutionConstantInSetKind.HashSet => CreateConstantHashSetCreation(constantSet),
             ExecutionConstantInSetKind.FrozenSet => CreateConstantFrozenSetCreation(constantSet),
-            _ => CreateConstantArrayCreation(constantSet)
+            _ => CreateConstantArrayCreation(constantSet),
         };
     }
 
     private static FieldDeclarationSyntax CreateStaticMetadataField(StaticMetadataField field)
     {
-        var fieldType = field.Metadata.Kind == ExecutionColumnMetadataKind.TableColumns
-            ? SyntaxFactory.ParseTypeName("Column[]")
-            : SyntaxFactory.ParseTypeName("IReadOnlyCollection<ISchemaColumn>");
-        ExpressionSyntax initializer = field.Metadata.Kind == ExecutionColumnMetadataKind.TableColumns
-            ? CreateColumnArrayCreation(field.Metadata.Fields)
-            : CreateReadOnlySchemaColumnsCreation(field.Metadata.Fields);
+        var fieldType =
+            field.Metadata.Kind == ExecutionColumnMetadataKind.TableColumns
+                ? SyntaxFactory.ParseTypeName("Column[]")
+                : SyntaxFactory.ParseTypeName("IReadOnlyCollection<ISchemaColumn>");
+        ExpressionSyntax initializer =
+            field.Metadata.Kind == ExecutionColumnMetadataKind.TableColumns
+                ? CreateColumnArrayCreation(field.Metadata.Fields)
+                : CreateReadOnlySchemaColumnsCreation(field.Metadata.Fields);
 
-        return SyntaxFactory.FieldDeclaration(
-                SyntaxFactory.VariableDeclaration(fieldType)
-                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(EscapeIdentifier(field.Name))
-                            .WithInitializer(SyntaxFactory.EqualsValueClause(initializer)))))
-            .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword),
-                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)));
+        return SyntaxFactory
+            .FieldDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(fieldType)
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory
+                                .VariableDeclarator(EscapeIdentifier(field.Name))
+                                .WithInitializer(SyntaxFactory.EqualsValueClause(initializer))
+                        )
+                    )
+            )
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
+                    SyntaxFactory.Token(SyntaxKind.StaticKeyword),
+                    SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
+                )
+            );
     }
 
     private static InvocationExpressionSyntax CreateReadOnlySchemaColumnsCreation(
-        IReadOnlyList<ExecutionColumnMetadataField> fields)
+        IReadOnlyList<ExecutionColumnMetadataField> fields
+    )
     {
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(Array)),
-                    SyntaxFactory.IdentifierName(nameof(Array.AsReadOnly))))
+                    SyntaxFactory.IdentifierName(nameof(Array.AsReadOnly))
+                )
+            )
             .WithArgumentList(CreateArgumentList(CreateSchemaColumnArrayCreation(fields)));
     }
 
     private static ArrayCreationExpressionSyntax CreateSchemaColumnArrayCreation(
-        IReadOnlyList<ExecutionColumnMetadataField> fields)
+        IReadOnlyList<ExecutionColumnMetadataField> fields
+    )
     {
-        return CreateArrayCreation(
-            nameof(ISchemaColumn),
-            fields.Select(CreateSchemaColumnCreation));
+        return CreateArrayCreation(nameof(ISchemaColumn), fields.Select(CreateSchemaColumnCreation));
     }
 
     private static ArrayCreationExpressionSyntax CreateColumnArrayCreation(
-        IReadOnlyList<ExecutionColumnMetadataField> fields)
+        IReadOnlyList<ExecutionColumnMetadataField> fields
+    )
     {
-        return CreateArrayCreation(
-            nameof(Column),
-            fields.Select(CreateColumnCreation));
+        return CreateArrayCreation(nameof(Column), fields.Select(CreateColumnCreation));
     }
 
     private static ObjectCreationExpressionSyntax CreateConstantHashSetCreation(ExecutionConstantInSet constantSet)
     {
         var hashSetType = typeof(HashSet<>).MakeGenericType(constantSet.ElementType.RequireClrType());
 
-        return SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(hashSetType))
+        return SyntaxFactory
+            .ObjectCreationExpression(CreateTypeSyntax(hashSetType))
             .WithArgumentList(CreateArgumentList(CreateConstantArrayCreation(constantSet)));
     }
 
     private static InvocationExpressionSyntax CreateConstantFrozenSetCreation(ExecutionConstantInSet constantSet)
     {
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     CreateConstantArrayCreation(constantSet),
-                    SyntaxFactory.IdentifierName(nameof(FrozenSet.ToFrozenSet))))
+                    SyntaxFactory.IdentifierName(nameof(FrozenSet.ToFrozenSet))
+                )
+            )
             .WithArgumentList(SyntaxFactory.ArgumentList());
     }
 
     private static ArrayCreationExpressionSyntax CreateConstantArrayCreation(ExecutionConstantInSet constantSet)
     {
-        return CreateArrayCreation(
-            constantSet.ElementType,
-            constantSet.Values.Select(RenderLiteral));
+        return CreateArrayCreation(constantSet.ElementType, constantSet.Values.Select(RenderLiteral));
     }
 }

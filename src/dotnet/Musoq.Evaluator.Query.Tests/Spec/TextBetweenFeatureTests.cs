@@ -25,19 +25,30 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_EmptyContent_ShouldReturnEmpty()
     {
-        var query = @"
-            text Data { 
-                Content: between '(' ')'
-            };
-            select d.Content from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Content: between '(' ')'\n"
+            + "            };\n"
+            + "            select d.Content from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "()" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "()" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -54,20 +65,31 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_MultipleBetweenFields_ShouldParseSequentially()
     {
-        var query = @"
-            text Data { 
-                First: between '[' ']',
-                Second: between '(' ')'
-            };
-            select d.First, d.Second from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                First: between '[' ']',\n"
+            + "                Second: between '(' ')'\n"
+            + "            };\n"
+            + "            select d.First, d.Second from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "[alpha](beta)" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "[alpha](beta)" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -85,25 +107,33 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_InWhereClause_ShouldFilter()
     {
-        var query = @"
-            text Tag { 
-                Name: between '<' '>'
-            };
-            select t.Name from #test.lines() l
-            cross apply Parse<Tag>(l.Line) t
-            where t.Name = 'div'";
+        var query = (
+            "\n"
+            + "            text Tag { \n"
+            + "                Name: between '<' '>'\n"
+            + "            };\n"
+            + "            select t.Name from #test.lines() l\n"
+            + "            cross apply Parse<Tag>(l.Line) t\n"
+            + "            where t.Name = 'div'"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "line1", Text = "<div>" },
             new TextEntity { Name = "line2", Text = "<span>" },
-            new TextEntity { Name = "line3", Text = "<div>" }
+            new TextEntity { Name = "line3", Text = "<div>" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -121,19 +151,30 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_MultiCharDelimiters_ShouldCapture()
     {
-        var query = @"
-            text Comment { 
-                Content: between '/*' '*/'
-            };
-            select c.Content from #test.lines() l
-            cross apply Parse<Comment>(l.Line) c";
+        var query = (
+            "\n"
+            + "            text Comment { \n"
+            + "                Content: between '/*' '*/'\n"
+            + "            };\n"
+            + "            select c.Content from #test.lines() l\n"
+            + "            cross apply Parse<Comment>(l.Line) c"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "/* this is a comment */" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "/* this is a comment */" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -150,24 +191,32 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_LogTimestamp_ShouldCapture()
     {
-        var query = @"
-            text LogLine { 
-                Timestamp: between '[' ']',
-                Message: rest trim
-            };
-            select l.Timestamp, l.Message from #test.lines() f
-            cross apply Parse<LogLine>(f.Line) l";
+        var query = (
+            "\n"
+            + "            text LogLine { \n"
+            + "                Timestamp: between '[' ']',\n"
+            + "                Message: rest trim\n"
+            + "            };\n"
+            + "            select l.Timestamp, l.Message from #test.lines() f\n"
+            + "            cross apply Parse<LogLine>(f.Line) l"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "line1", Text = "[2024-01-15 10:30:00] Application started" },
-            new TextEntity { Name = "line2", Text = "[2024-01-15 10:30:05] Connected to database" }
+            new TextEntity { Name = "line2", Text = "[2024-01-15 10:30:05] Connected to database" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -189,19 +238,30 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_Brackets_ShouldCapture()
     {
-        var query = @"
-            text Data { 
-                Content: between '[' ']'
-            };
-            select d.Content from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Content: between '[' ']'\n"
+            + "            };\n"
+            + "            select d.Content from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "[hello world]" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "[hello world]" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -214,19 +274,30 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_Parentheses_ShouldCapture()
     {
-        var query = @"
-            text Data { 
-                Args: between '(' ')'
-            };
-            select d.Args from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Args: between '(' ')'\n"
+            + "            };\n"
+            + "            select d.Args from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "(arg1, arg2)" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "(arg1, arg2)" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -239,19 +310,30 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_Quotes_ShouldCapture()
     {
-        var query = @"
-            text Data { 
-                Quoted: between '""' '""'
-            };
-            select d.Quoted from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Quoted: between '\"' '\"'\n"
+            + "            };\n"
+            + "            select d.Quoted from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "\"quoted text\"" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "\"quoted text\"" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -268,19 +350,30 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_AngleBrackets_ShouldCapture()
     {
-        var query = @"
-            text Tag { 
-                Name: between '<' '>'
-            };
-            select t.Name from #test.lines() l
-            cross apply Parse<Tag>(l.Line) t";
+        var query = (
+            "\n"
+            + "            text Tag { \n"
+            + "                Name: between '<' '>'\n"
+            + "            };\n"
+            + "            select t.Name from #test.lines() l\n"
+            + "            cross apply Parse<Tag>(l.Line) t"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "<html>" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "<html>" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -293,19 +386,30 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_CurlyBraces_ShouldCapture()
     {
-        var query = @"
-            text Placeholder { 
-                Name: between '{' '}'
-            };
-            select p.Name from #test.lines() l
-            cross apply Parse<Placeholder>(l.Line) p";
+        var query = (
+            "\n"
+            + "            text Placeholder { \n"
+            + "                Name: between '{' '}'\n"
+            + "            };\n"
+            + "            select p.Name from #test.lines() l\n"
+            + "            cross apply Parse<Placeholder>(l.Line) p"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "{username}" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "{username}" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -322,21 +426,32 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_WithPrefix_ShouldCapture()
     {
-        var query = @"
-            text Data { 
-                Prefix: until '[',
-                Content: between '[' ']'
-            };
-            select d.Prefix, d.Content from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Prefix: until '[',\n"
+            + "                Content: between '[' ']'\n"
+            + "            };\n"
+            + "            select d.Prefix, d.Content from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         // until consumes its delimiter; the second '[' is the opening delimiter for between.
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "prefix[[content]" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "prefix[[content]" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -350,20 +465,31 @@ public class TextBetweenFeatureTests
     [TestMethod]
     public void Text_Between_WithSuffix_ShouldCapture()
     {
-        var query = @"
-            text Data { 
-                Content: between '[' ']',
-                Suffix: rest
-            };
-            select d.Content, d.Suffix from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Content: between '[' ']',\n"
+            + "                Suffix: rest\n"
+            + "            };\n"
+            + "            select d.Content, d.Suffix from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "[content]suffix" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "[content]suffix" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

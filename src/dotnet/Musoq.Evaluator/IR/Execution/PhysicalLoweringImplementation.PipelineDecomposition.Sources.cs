@@ -22,14 +22,15 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static ProjectedField[] CreateProjectedFields(OutputSchema outputSchema)
     {
-        return outputSchema.Columns
-            .Select(column => new ProjectedField(
+        return outputSchema
+            .Columns.Select(column => new ProjectedField(
                 column.Name,
                 new ColumnRef(string.Empty, column.Name, column.Type, column.IntendedTypeName)
                 {
-                    Stability = column.Stability
+                    Stability = column.Stability,
                 },
-                column.Index))
+                column.Index
+            ))
             .ToArray();
     }
 
@@ -42,7 +43,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static LoweringSourcePipeline? DecomposeWindowSourcePipeline(PhysicalNode input)
     {
-        return DecomposeSourcePipeline(input) ??
-               (IsAggregateSource(input) ? new LoweringSourcePipeline(input, null) : null);
+        return DecomposeSourcePipeline(input)
+            ?? (IsAggregateSource(input) ? new LoweringSourcePipeline(input, null) : null);
     }
 }

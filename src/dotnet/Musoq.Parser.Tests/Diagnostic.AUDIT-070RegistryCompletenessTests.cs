@@ -11,26 +11,23 @@ public sealed class DiagnosticAudit070RegistryCompletenessTests
     [TestMethod]
     public void ActiveRegistry_ShouldCoverEveryEnumCodeWithCoherentMetadataAndActions()
     {
-        var codes = Enum.GetValues<DiagnosticCode>()
-            .Distinct()
-            .OrderBy(static code => (int)code)
-            .ToArray();
+        var codes = Enum.GetValues<DiagnosticCode>().Distinct().OrderBy(static code => (int)code).ToArray();
         var descriptors = DiagnosticDescriptorRegistry.All.ToArray();
         var metadata = ErrorMetadataCatalog.All.ToArray();
 
         Assert.IsEmpty(
-            codes.GroupBy(static code => (int)code)
+            codes
+                .GroupBy(static code => (int)code)
                 .Where(static group => group.Count() > 1)
                 .Select(static group => group.Key.ToString()),
-            "Diagnostic numeric values must not have aliases.");
+            "Diagnostic numeric values must not have aliases."
+        );
         Assert.HasCount(codes.Length, descriptors);
         Assert.HasCount(codes.Length, metadata);
         Assert.AreEqual(codes.Length, descriptors.Select(static descriptor => descriptor.Code).Distinct().Count());
         Assert.AreEqual(codes.Length, metadata.Select(static entry => entry.Code).Distinct().Count());
 
-        var missingDescriptors = codes
-            .Except(descriptors.Select(static descriptor => descriptor.Code))
-            .ToArray();
+        var missingDescriptors = codes.Except(descriptors.Select(static descriptor => descriptor.Code)).ToArray();
         Assert.IsEmpty(missingDescriptors, "Missing diagnostic descriptors: " + string.Join(", ", missingDescriptors));
 
         var orphanedMetadata = metadata
@@ -70,8 +67,6 @@ public sealed class DiagnosticAudit070RegistryCompletenessTests
 
     private static DiagnosticSeverity ExpectedSeverity(DiagnosticCode code)
     {
-        return (int)code is >= 5000 and < 6000
-            ? DiagnosticSeverity.Warning
-            : DiagnosticSeverity.Error;
+        return (int)code is >= 5000 and < 6000 ? DiagnosticSeverity.Warning : DiagnosticSeverity.Error;
     }
 }

@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class GroupByTests
 {
-
     [TestMethod]
     public void SimpleRowNumberForGroupByTest()
     {
@@ -14,16 +13,17 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
                     new BasicEntity("CECCA"),
-                    new BasicEntity("ABBA")
+                    new BasicEntity("ABBA"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -31,10 +31,11 @@ public partial class GroupByTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Count(Name)", typeof(long)), ("RowNumber()", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["ABBA", 4L, 1], ["BABBA", 2L, 2], ["CECCA", 1L, 3]);
+            ("Name", typeof(string)),
+            ("Count(Name)", typeof(long)),
+            ("RowNumber()", typeof(int))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["ABBA", 4L, 1], ["BABBA", 2L, 2], ["CECCA", 1L, 3]);
     }
 
     [TestMethod]
@@ -46,14 +47,15 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -61,13 +63,19 @@ public partial class GroupByTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Country", typeof(string)), ("City", typeof(string)),
-            ("Count(City, 1)", typeof(long)), ("CountOfCities", typeof(long)));
+            ("Country", typeof(string)),
+            ("City", typeof(string)),
+            ("Count(City, 1)", typeof(long)),
+            ("CountOfCities", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["POLAND", "WARSAW", 3L, 1L], ["POLAND", "CZESTOCHOWA", 3L, 1L],
-            ["POLAND", "KATOWICE", 3L, 1L], ["GERMANY", "BERLIN", 2L, 1L],
-            ["GERMANY", "MUNICH", 2L, 1L]);
+            ["POLAND", "WARSAW", 3L, 1L],
+            ["POLAND", "CZESTOCHOWA", 3L, 1L],
+            ["POLAND", "KATOWICE", 3L, 1L],
+            ["GERMANY", "BERLIN", 2L, 1L],
+            ["GERMANY", "MUNICH", 2L, 1L]
+        );
     }
 
     [TestMethod]
@@ -78,14 +86,15 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -103,14 +112,15 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -118,7 +128,9 @@ public partial class GroupByTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Count(Country)", typeof(long)), ("Sum(Population)", typeof(decimal?)));
+            ("Count(Country)", typeof(long)),
+            ("Sum(Population)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [5L, 1750m]);
     }
 
@@ -130,14 +142,15 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -145,7 +158,9 @@ public partial class GroupByTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Count(Country)", typeof(long)), ("RowNumber()", typeof(int)));
+            ("Count(Country)", typeof(long)),
+            ("RowNumber()", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [5L, 1]);
     }
 
@@ -157,14 +172,15 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -173,5 +189,4 @@ public partial class GroupByTests
         TableMaterializationTestHelper.AssertColumns(table, ("Sum(Population)", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1750m]);
     }
-
 }

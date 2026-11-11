@@ -1,5 +1,8 @@
 <Project>
-    <Import Project="$(MSBuildThisFileDirectory)scripts\Versions.props" Condition="Exists('$(MSBuildThisFileDirectory)scripts\Versions.props')" />
+    <Import
+        Project="$(MSBuildThisFileDirectory)scripts\Versions.props"
+        Condition="Exists('$(MSBuildThisFileDirectory)scripts\Versions.props')"
+    />
     <PropertyGroup>
         <Authors>Jakub Puchała</Authors>
         <Product>Musoq</Product>

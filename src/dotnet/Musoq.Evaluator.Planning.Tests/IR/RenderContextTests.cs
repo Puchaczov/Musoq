@@ -64,7 +64,9 @@ public sealed class RenderContextTests : IDisposable
                 AssemblyName: "Query.Compiled_Test",
                 ResultMode: QueryResultMode.TypedEnumerable,
                 OutputType: typeof(string),
-                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable));
+                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable
+            )
+        );
 
         Assert.AreSame(scope, context.Scope);
         Assert.AreEqual("Query.Compiled_Test", context.AssemblyName);

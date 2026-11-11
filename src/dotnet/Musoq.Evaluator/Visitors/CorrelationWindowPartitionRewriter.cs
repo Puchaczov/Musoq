@@ -6,10 +6,10 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class SubqueryToCteRewriteVisitor
 {
-    private sealed class CorrelationWindowPartitionRewriter(FieldNode[] correlationFields)
-        : CloneQueryVisitor
+    private sealed class CorrelationWindowPartitionRewriter(FieldNode[] correlationFields) : CloneQueryVisitor
     {
-        public T Rewrite<T>(T node) where T : Node
+        public T Rewrite<T>(T node)
+            where T : Node
         {
             node.Accept(new CorrelationWindowPartitionTraverser(this));
             return (T)Nodes.Pop();
@@ -17,19 +17,19 @@ public partial class SubqueryToCteRewriteVisitor
 
         public override void Visit(WindowFunctionNode node)
         {
-            var specification = node.WindowSpecification != null
-                ? (WindowSpecificationNode)Nodes.Pop()
-                : null;
+            var specification = node.WindowSpecification != null ? (WindowSpecificationNode)Nodes.Pop() : null;
             var functionCall = (AccessMethodNode)Nodes.Pop();
             var rewritten = node.IsNamedWindowReference
                 ? new WindowFunctionNode(
                     functionCall,
-                    node.WindowName ?? throw new InvalidOperationException(
-                        "Named window reference requires a window name."))
+                    node.WindowName
+                        ?? throw new InvalidOperationException("Named window reference requires a window name.")
+                )
                 : new WindowFunctionNode(
                     functionCall,
-                    specification ?? throw new InvalidOperationException(
-                        "Window function requires a window specification."));
+                    specification
+                        ?? throw new InvalidOperationException("Window function requires a window specification.")
+                );
 
             if (node.ReturnType is { } returnType && returnType != typeof(void))
                 rewritten.SetReturnType(returnType);
@@ -54,12 +54,13 @@ public partial class SubqueryToCteRewriteVisitor
         {
             var existing = new HashSet<string>(
                 originalFields.Select(static field => field.Expression.ToString()),
-                StringComparer.OrdinalIgnoreCase);
+                StringComparer.OrdinalIgnoreCase
+            );
             var missing = correlationFields
                 .Where(field => !existing.Contains(field.Expression.ToString()))
                 .Select(CloneCorrelationField)
                 .ToArray();
-            return [..missing, ..originalFields];
+            return [.. missing, .. originalFields];
         }
 
         private static FieldNode CloneCorrelationField(FieldNode field)
@@ -73,9 +74,11 @@ public partial class SubqueryToCteRewriteVisitor
                     access.Alias,
                     access.ReturnType,
                     access.Span,
-                    access.IntendedTypeName),
+                    access.IntendedTypeName
+                ),
                 field.FieldOrder,
-                string.Empty);
+                string.Empty
+            );
         }
     }
 

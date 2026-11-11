@@ -25,22 +25,33 @@ public class BinaryComputedFeatureTests
     [TestMethod]
     public void Binary_ComputedField_ChainedComputation_ShouldCalculate()
     {
-        var query = @"
-            binary Data { 
-                Base: int le,
-                Step1: = Base * 2,
-                Step2: = Step1 + 10
-            };
-            select d.Base, d.Step1, d.Step2 from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Base: int le,\n"
+            + "                Step1: = Base * 2,\n"
+            + "                Step2: = Step1 + 10\n"
+            + "            };\n"
+            + "            select d.Base, d.Step1, d.Step2 from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var data = new byte[] { 0x05, 0x00, 0x00, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -59,14 +70,16 @@ public class BinaryComputedFeatureTests
     [TestMethod]
     public void Binary_ComputedField_InWhereClause_ShouldFilter()
     {
-        var query = @"
-            binary Data { 
-                Value: int le,
-                Category: = Value / 10
-            };
-            select d.Value, d.Category from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d
-            where d.Category = 2";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Value: int le,\n"
+            + "                Category: = Value / 10\n"
+            + "            };\n"
+            + "            select d.Value, d.Category from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d\n"
+            + "            where d.Category = 2"
+        );
 
         var data1 = new byte[] { 0x0F, 0x00, 0x00, 0x00 };
         var data2 = new byte[] { 0x19, 0x00, 0x00, 0x00 };
@@ -75,13 +88,19 @@ public class BinaryComputedFeatureTests
         {
             new BinaryEntity { Name = "1.bin", Data = data1 },
             new BinaryEntity { Name = "2.bin", Data = data2 },
-            new BinaryEntity { Name = "3.bin", Data = data3 }
+            new BinaryEntity { Name = "3.bin", Data = data3 },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -99,21 +118,32 @@ public class BinaryComputedFeatureTests
     [TestMethod]
     public void Binary_ComputedField_StringExpression_ShouldWork()
     {
-        var query = @"
-            binary Header { 
-                Version: byte,
-                VersionLabel: = 'v' + ToString(Version)
-            };
-            select h.Version, h.VersionLabel from #test.bytes() b
-            cross apply Interpret<Header>(b.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header { \n"
+            + "                Version: byte,\n"
+            + "                VersionLabel: = 'v' + ToString(Version)\n"
+            + "            };\n"
+            + "            select h.Version, h.VersionLabel from #test.bytes() b\n"
+            + "            cross apply Interpret<Header>(b.Content) h"
+        );
 
         var data = new byte[] { 0x02 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -131,21 +161,32 @@ public class BinaryComputedFeatureTests
     [TestMethod]
     public void Binary_ComputedField_ConditionalExpression_ShouldWork()
     {
-        var query = @"
-            binary Data { 
-                Value: int le,
-                IsPositive: = Value > 0
-            };
-            select d.Value, d.IsPositive from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Value: int le,\n"
+            + "                IsPositive: = Value > 0\n"
+            + "            };\n"
+            + "            select d.Value, d.IsPositive from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var data = "\n\u0000\u0000\u0000"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -163,21 +204,32 @@ public class BinaryComputedFeatureTests
     [TestMethod]
     public void Binary_ComputedField_Constant_ShouldReturnValue()
     {
-        var query = @"
-            binary Data { 
-                Value: int le,
-                Constant: = 42
-            };
-            select d.Value, d.Constant from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Value: int le,\n"
+            + "                Constant: = 42\n"
+            + "            };\n"
+            + "            select d.Value, d.Constant from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var data = new byte[] { 0x01, 0x00, 0x00, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -191,21 +243,32 @@ public class BinaryComputedFeatureTests
     [TestMethod]
     public void Binary_ComputedField_FromField_ShouldCalculate()
     {
-        var query = @"
-            binary Data { 
-                Value: int le,
-                Doubled: = Value * 2
-            };
-            select d.Value, d.Doubled from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Value: int le,\n"
+            + "                Doubled: = Value * 2\n"
+            + "            };\n"
+            + "            select d.Value, d.Doubled from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var data = "\n\u0000\u0000\u0000"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -219,27 +282,34 @@ public class BinaryComputedFeatureTests
     [TestMethod]
     public void Binary_ComputedField_FromMultipleFields_ShouldCalculate()
     {
-        var query = @"
-            binary Data { 
-                A: int le,
-                B: int le,
-                Sum: = A + B,
-                Product: = A * B
-            };
-            select d.A, d.B, d.Sum, d.Product from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                A: int le,\n"
+            + "                B: int le,\n"
+            + "                Sum: = A + B,\n"
+            + "                Product: = A * B\n"
+            + "            };\n"
+            + "            select d.A, d.B, d.Sum, d.Product from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
-        var data = new byte[]
+        var data = new byte[] { 0x05, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00 };
+        var entities = new[]
         {
-            0x05, 0x00, 0x00, 0x00,
-            0x03, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Data = data },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -259,26 +329,33 @@ public class BinaryComputedFeatureTests
     [TestMethod]
     public void Binary_ComputedField_ShouldNotConsumeInput()
     {
-        var query = @"
-            binary Data { 
-                First: int le,
-                Computed: = First * 10,
-                Second: int le
-            };
-            select d.First, d.Computed, d.Second from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                First: int le,\n"
+            + "                Computed: = First * 10,\n"
+            + "                Second: int le\n"
+            + "            };\n"
+            + "            select d.First, d.Computed, d.Second from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
-        var data = new byte[]
+        var data = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00 };
+        var entities = new[]
         {
-            0x01, 0x00, 0x00, 0x00,
-            0x02, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Data = data },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -293,24 +370,35 @@ public class BinaryComputedFeatureTests
     [TestMethod]
     public void Binary_ComputedField_InterspersedWithRegular_ShouldWork()
     {
-        var query = @"
-            binary Data { 
-                A: byte,
-                ComputedA: = A * 2,
-                B: byte,
-                ComputedB: = B * 3,
-                Sum: = ComputedA + ComputedB
-            };
-            select d.A, d.ComputedA, d.B, d.ComputedB, d.Sum from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                A: byte,\n"
+            + "                ComputedA: = A * 2,\n"
+            + "                B: byte,\n"
+            + "                ComputedB: = B * 3,\n"
+            + "                Sum: = ComputedA + ComputedB\n"
+            + "            };\n"
+            + "            select d.A, d.ComputedA, d.B, d.ComputedB, d.Sum from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var data = new byte[] { 0x04, 0x05 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

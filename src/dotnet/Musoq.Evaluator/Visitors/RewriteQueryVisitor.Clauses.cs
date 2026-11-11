@@ -10,17 +10,29 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(FieldNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder,
-            QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName),
-            node.HasExplicitFieldName).CopySpansFrom(node));
+        Nodes.Push(
+            new FieldNode(
+                Nodes.Pop(),
+                node.FieldOrder,
+                QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName),
+                node.HasExplicitFieldName
+            ).CopySpansFrom(node)
+        );
     }
 
     public void Visit(FieldOrderedNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder,
-            QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName),
-            node.HasExplicitFieldName, node.Order, node.NullOrdering).CopySpansFrom(node));
+        Nodes.Push(
+            new FieldOrderedNode(
+                Nodes.Pop(),
+                node.FieldOrder,
+                QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName),
+                node.HasExplicitFieldName,
+                node.Order,
+                node.NullOrdering
+            ).CopySpansFrom(node)
+        );
     }
 
     public void Visit(SelectNode node)
@@ -31,9 +43,7 @@ public sealed partial class RewriteQueryVisitor
         Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct).CopySpansFrom(node));
     }
 
-    public void Visit(GroupSelectNode node)
-    {
-    }
+    public void Visit(GroupSelectNode node) { }
 
     public void Visit(ArgsListNode node)
     {

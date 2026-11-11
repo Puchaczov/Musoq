@@ -23,5 +23,4 @@ public abstract partial class Row : IEquatable<Row>, IReadOnlyRow
     }
 
     public override int GetHashCode() => TypedRowEquality.Hash(this);
-
 }

@@ -14,66 +14,69 @@ internal sealed record ExecutionTargetCapabilities(
     IReadOnlySet<ExecutionOperationId> SupportedOperations,
     IReadOnlySet<int> SupportedSemanticsVersions,
     IReadOnlySet<string> SupportedSemanticsFingerprints,
-    IReadOnlySet<ExecutionTargetFeatureKind> SupportedFeatureKinds)
+    IReadOnlySet<ExecutionTargetFeatureKind> SupportedFeatureKinds
+)
 {
     private static readonly ExecutionPortableSymbolPortability[] PortableTargetSymbolPortabilities =
     [
         ExecutionPortableSymbolPortability.Portable,
-        ExecutionPortableSymbolPortability.HostImport
+        ExecutionPortableSymbolPortability.HostImport,
     ];
 
     private static readonly ExecutionPortableSymbolPortability[] CSharpClrSymbolPortabilities =
     [
         ExecutionPortableSymbolPortability.Portable,
         ExecutionPortableSymbolPortability.HostImport,
-        ExecutionPortableSymbolPortability.ClrOnly
+        ExecutionPortableSymbolPortability.ClrOnly,
     ];
 
-    public static ExecutionTargetCapabilities CSharpClr { get; } = Create(
-        [
-            ExecutionTargetRequirementKind.ClrTypeUsage,
-            ExecutionTargetRequirementKind.MethodInfoCall,
-            ExecutionTargetRequirementKind.SchemaProviderBinding,
-            ExecutionTargetRequirementKind.GeneratedClrRow,
-            ExecutionTargetRequirementKind.PluginInvocation,
-            ExecutionTargetRequirementKind.HostSourceAccess,
-            ExecutionTargetRequirementKind.QueryRowSourceAccess,
-            ExecutionTargetRequirementKind.NullTypeCoercion,
-            ExecutionTargetRequirementKind.ProfilingDiagnostics,
-            ExecutionTargetRequirementKind.Cancellation,
-            ExecutionTargetRequirementKind.ClrOnlyConstant
-        ],
-        [
-            ExecutionTargetRequirementKind.HostSourceAccess,
-            ExecutionTargetRequirementKind.QueryRowSourceAccess,
-            ExecutionTargetRequirementKind.GeneratedClrRow,
-            ExecutionTargetRequirementKind.PluginInvocation,
-            ExecutionTargetRequirementKind.NullTypeCoercion,
-            ExecutionTargetRequirementKind.Cancellation,
-            ExecutionTargetRequirementKind.ProfilingDiagnostics
-        ],
-        CSharpClrSymbolPortabilities,
-        CSharpClrSymbolPortabilities,
-        ExecutionOperationCatalog.CSharpClrSupportedOperationIds,
-        [ExecutionSemanticsContract.Current.Version],
-        [
-            ExecutionTargetFeatureKind.ConstantKind,
-            ExecutionTargetFeatureKind.BinaryOperation,
-            ExecutionTargetFeatureKind.UnaryOperation,
-            ExecutionTargetFeatureKind.StrictCastTarget,
-            ExecutionTargetFeatureKind.Callable,
-            ExecutionTargetFeatureKind.CallableKind,
-            ExecutionTargetFeatureKind.SourceKind,
-            ExecutionTargetFeatureKind.ReadModifier,
-            ExecutionTargetFeatureKind.TypePortability,
-            ExecutionTargetFeatureKind.Container,
-            ExecutionTargetFeatureKind.DynamicValue,
-            ExecutionTargetFeatureKind.QueryRowSourceAccess,
-            ExecutionTargetFeatureKind.StringMatchKind,
-            ExecutionTargetFeatureKind.StringMatchComparison,
-            ExecutionTargetFeatureKind.LikeMatcherStrategy,
-            ExecutionTargetFeatureKind.RLikeMatcherStrategy
-        ]);
+    public static ExecutionTargetCapabilities CSharpClr { get; } =
+        Create(
+            [
+                ExecutionTargetRequirementKind.ClrTypeUsage,
+                ExecutionTargetRequirementKind.MethodInfoCall,
+                ExecutionTargetRequirementKind.SchemaProviderBinding,
+                ExecutionTargetRequirementKind.GeneratedClrRow,
+                ExecutionTargetRequirementKind.PluginInvocation,
+                ExecutionTargetRequirementKind.HostSourceAccess,
+                ExecutionTargetRequirementKind.QueryRowSourceAccess,
+                ExecutionTargetRequirementKind.NullTypeCoercion,
+                ExecutionTargetRequirementKind.ProfilingDiagnostics,
+                ExecutionTargetRequirementKind.Cancellation,
+                ExecutionTargetRequirementKind.ClrOnlyConstant,
+            ],
+            [
+                ExecutionTargetRequirementKind.HostSourceAccess,
+                ExecutionTargetRequirementKind.QueryRowSourceAccess,
+                ExecutionTargetRequirementKind.GeneratedClrRow,
+                ExecutionTargetRequirementKind.PluginInvocation,
+                ExecutionTargetRequirementKind.NullTypeCoercion,
+                ExecutionTargetRequirementKind.Cancellation,
+                ExecutionTargetRequirementKind.ProfilingDiagnostics,
+            ],
+            CSharpClrSymbolPortabilities,
+            CSharpClrSymbolPortabilities,
+            ExecutionOperationCatalog.CSharpClrSupportedOperationIds,
+            [ExecutionSemanticsContract.Current.Version],
+            [
+                ExecutionTargetFeatureKind.ConstantKind,
+                ExecutionTargetFeatureKind.BinaryOperation,
+                ExecutionTargetFeatureKind.UnaryOperation,
+                ExecutionTargetFeatureKind.StrictCastTarget,
+                ExecutionTargetFeatureKind.Callable,
+                ExecutionTargetFeatureKind.CallableKind,
+                ExecutionTargetFeatureKind.SourceKind,
+                ExecutionTargetFeatureKind.ReadModifier,
+                ExecutionTargetFeatureKind.TypePortability,
+                ExecutionTargetFeatureKind.Container,
+                ExecutionTargetFeatureKind.DynamicValue,
+                ExecutionTargetFeatureKind.QueryRowSourceAccess,
+                ExecutionTargetFeatureKind.StringMatchKind,
+                ExecutionTargetFeatureKind.StringMatchComparison,
+                ExecutionTargetFeatureKind.LikeMatcherStrategy,
+                ExecutionTargetFeatureKind.RLikeMatcherStrategy,
+            ]
+        );
 
     public static ExecutionTargetCapabilities Create(params ExecutionTargetRequirementKind[] supportedRequirementKinds)
     {
@@ -87,12 +90,14 @@ internal sealed record ExecutionTargetCapabilities(
             Array.Empty<ExecutionOperationId>().ToFrozenSet(),
             Array.Empty<int>().ToFrozenSet(),
             Array.Empty<string>().ToFrozenSet(StringComparer.Ordinal),
-            Array.Empty<ExecutionTargetFeatureKind>().ToFrozenSet());
+            Array.Empty<ExecutionTargetFeatureKind>().ToFrozenSet()
+        );
     }
 
     public static ExecutionTargetCapabilities Create(
         IEnumerable<ExecutionTargetRequirementKind> supportedRequirementKinds,
-        IEnumerable<ExecutionTargetRequirementKind> supportedRuntimeRequirementKinds)
+        IEnumerable<ExecutionTargetRequirementKind> supportedRuntimeRequirementKinds
+    )
     {
         ArgumentNullException.ThrowIfNull(supportedRequirementKinds);
         ArgumentNullException.ThrowIfNull(supportedRuntimeRequirementKinds);
@@ -105,7 +110,8 @@ internal sealed record ExecutionTargetCapabilities(
             Array.Empty<ExecutionOperationId>().ToFrozenSet(),
             Array.Empty<int>().ToFrozenSet(),
             Array.Empty<string>().ToFrozenSet(StringComparer.Ordinal),
-            Array.Empty<ExecutionTargetFeatureKind>().ToFrozenSet());
+            Array.Empty<ExecutionTargetFeatureKind>().ToFrozenSet()
+        );
     }
 
     public static ExecutionTargetCapabilities Create(
@@ -115,7 +121,8 @@ internal sealed record ExecutionTargetCapabilities(
         IEnumerable<ExecutionPortableSymbolPortability> supportedCallableSymbolPortabilities,
         IEnumerable<ExecutionOperationId>? supportedOperations = null,
         IEnumerable<int>? supportedSemanticsVersions = null,
-        IEnumerable<ExecutionTargetFeatureKind>? supportedFeatureKinds = null)
+        IEnumerable<ExecutionTargetFeatureKind>? supportedFeatureKinds = null
+    )
     {
         ArgumentNullException.ThrowIfNull(supportedRequirementKinds);
         ArgumentNullException.ThrowIfNull(supportedRuntimeRequirementKinds);
@@ -130,19 +137,26 @@ internal sealed record ExecutionTargetCapabilities(
             (supportedOperations ?? []).ToFrozenSet(),
             (supportedSemanticsVersions ?? []).ToFrozenSet(),
             CreateKnownSemanticsFingerprints(supportedSemanticsVersions),
-            (supportedFeatureKinds ?? []).ToFrozenSet());
+            (supportedFeatureKinds ?? []).ToFrozenSet()
+        );
     }
 
-    public static ExecutionTargetCapabilities CreateForSemantics(
-        IEnumerable<int> supportedSemanticsVersions) =>
-        Create([], [], PortableTargetSymbolPortabilities, PortableTargetSymbolPortabilities, [], supportedSemanticsVersions);
+    public static ExecutionTargetCapabilities CreateForSemantics(IEnumerable<int> supportedSemanticsVersions) =>
+        Create(
+            [],
+            [],
+            PortableTargetSymbolPortabilities,
+            PortableTargetSymbolPortabilities,
+            [],
+            supportedSemanticsVersions
+        );
 
     public ExecutionTargetCapabilityValidationResult Validate(ExecutionTargetOperationReport report)
     {
         ArgumentNullException.ThrowIfNull(report);
 
-        var unsupported = report.Operations
-            .Where(usage => !SupportedOperations.Contains(usage.OperationId))
+        var unsupported = report
+            .Operations.Where(usage => !SupportedOperations.Contains(usage.OperationId))
             .Select(static usage => usage.OperationId)
             .ToArray();
 
@@ -165,9 +179,7 @@ internal sealed record ExecutionTargetCapabilities(
     {
         ArgumentNullException.ThrowIfNull(report);
 
-        var unsupported = FindUnsupportedRequirements(
-            report.Requirements,
-            SupportedRequirementKinds);
+        var unsupported = FindUnsupportedRequirements(report.Requirements, SupportedRequirementKinds);
 
         return new ExecutionTargetCapabilityValidationResult(unsupported, [], [], [], []);
     }
@@ -178,21 +190,22 @@ internal sealed record ExecutionTargetCapabilities(
 
         var unsupported = FindUnsupportedRequirements(
             ExecutionTargetRuntimeRequirementAnalyzer.Analyze(contract),
-            SupportedRuntimeRequirementKinds);
+            SupportedRuntimeRequirementKinds
+        );
 
         return new ExecutionTargetCapabilityValidationResult(unsupported, [], [], [], []);
     }
 
     public ExecutionTargetCapabilityValidationResult Validate(
         ExecutionTargetCompatibilityReport report,
-        TargetRuntimeContract contract)
+        TargetRuntimeContract contract
+    )
     {
         ArgumentNullException.ThrowIfNull(report);
         ArgumentNullException.ThrowIfNull(contract);
 
         var unsupported = Validate(report)
-            .UnsupportedRequirements
-            .Concat(Validate(contract).UnsupportedRequirements)
+            .UnsupportedRequirements.Concat(Validate(contract).UnsupportedRequirements)
             .OrderBy(static requirement => requirement.Kind)
             .ThenBy(static requirement => requirement.Detail, StringComparer.Ordinal)
             .ToArray();
@@ -204,9 +217,7 @@ internal sealed record ExecutionTargetCapabilities(
     {
         ArgumentNullException.ThrowIfNull(report);
 
-        var unsupported = report.Features
-            .Where(feature => !SupportedFeatureKinds.Contains(feature.Kind))
-            .ToArray();
+        var unsupported = report.Features.Where(feature => !SupportedFeatureKinds.Contains(feature.Kind)).ToArray();
 
         return new ExecutionTargetCapabilityValidationResult([], [], [], [], unsupported);
     }
@@ -216,7 +227,8 @@ internal sealed record ExecutionTargetCapabilities(
         ExecutionSemanticsContract semanticsContract,
         ExecutionTargetCompatibilityReport report,
         TargetRuntimeContract contract,
-        ExecutionTargetFeatureReport featureReport)
+        ExecutionTargetFeatureReport featureReport
+    )
     {
         ArgumentNullException.ThrowIfNull(operationReport);
         ArgumentNullException.ThrowIfNull(semanticsContract);
@@ -231,12 +243,14 @@ internal sealed record ExecutionTargetCapabilities(
             Validate(operationReport).UnsupportedOperations,
             Validate(semanticsContract).UnsupportedSemanticsVersions,
             Validate(semanticsContract).UnsupportedSemanticsFingerprints,
-            Validate(featureReport).UnsupportedFeatures);
+            Validate(featureReport).UnsupportedFeatures
+        );
     }
 
     private IReadOnlyList<ExecutionTargetRequirement> FindUnsupportedRequirements(
         IEnumerable<ExecutionTargetRequirement> requirements,
-        IReadOnlySet<ExecutionTargetRequirementKind> supportedKinds)
+        IReadOnlySet<ExecutionTargetRequirementKind> supportedKinds
+    )
     {
         var unsupported = new List<ExecutionTargetRequirement>();
         foreach (var requirement in requirements)
@@ -247,48 +261,46 @@ internal sealed record ExecutionTargetCapabilities(
                 continue;
             }
 
-            if (requirement.TypeSymbol is { } typeSymbol &&
-                !SupportedTypeSymbolPortabilities.Contains(typeSymbol.Portability))
+            if (
+                requirement.TypeSymbol is { } typeSymbol
+                && !SupportedTypeSymbolPortabilities.Contains(typeSymbol.Portability)
+            )
             {
-                unsupported.Add(requirement with
-                {
-                    Detail = FormatUnsupportedSymbol(requirement.Detail, typeSymbol)
-                });
+                unsupported.Add(requirement with { Detail = FormatUnsupportedSymbol(requirement.Detail, typeSymbol) });
             }
 
-            if (requirement.CallableSymbol is { } callableSymbol &&
-                !SupportedCallableSymbolPortabilities.Contains(callableSymbol.Portability))
+            if (
+                requirement.CallableSymbol is { } callableSymbol
+                && !SupportedCallableSymbolPortabilities.Contains(callableSymbol.Portability)
+            )
             {
-                unsupported.Add(requirement with
-                {
-                    Detail = FormatUnsupportedSymbol(requirement.Detail, callableSymbol)
-                });
+                unsupported.Add(
+                    requirement with
+                    {
+                        Detail = FormatUnsupportedSymbol(requirement.Detail, callableSymbol),
+                    }
+                );
             }
         }
 
         return unsupported;
     }
 
-    private static string FormatUnsupportedSymbol(
-        string requirementDetail,
-        ExecutionPortableTypeDescriptor symbol)
+    private static string FormatUnsupportedSymbol(string requirementDetail, ExecutionPortableTypeDescriptor symbol)
     {
         return $"{requirementDetail} -> {symbol.StableName} [{symbol.Portability}] {symbol.PortabilityReason}";
     }
 
-    private static string FormatUnsupportedSymbol(
-        string requirementDetail,
-        ExecutionPortableCallableDescriptor symbol)
+    private static string FormatUnsupportedSymbol(string requirementDetail, ExecutionPortableCallableDescriptor symbol)
     {
         return $"{requirementDetail} -> {symbol.StableName} [{symbol.Portability}] {symbol.PortabilityReason}";
     }
 
-    private static IReadOnlySet<string> CreateKnownSemanticsFingerprints(
-        IEnumerable<int>? supportedSemanticsVersions)
+    private static IReadOnlySet<string> CreateKnownSemanticsFingerprints(IEnumerable<int>? supportedSemanticsVersions)
     {
         var versions = (supportedSemanticsVersions ?? []).ToHashSet();
-        return ExecutionSemanticsContract.KnownContracts
-            .Where(contract => versions.Contains(contract.Version))
+        return ExecutionSemanticsContract
+            .KnownContracts.Where(contract => versions.Contains(contract.Version))
             .Select(static contract => contract.Fingerprint)
             .ToFrozenSet(StringComparer.Ordinal);
     }

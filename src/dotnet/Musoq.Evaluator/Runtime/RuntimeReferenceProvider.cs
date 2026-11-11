@@ -27,7 +27,7 @@ internal sealed class RuntimeReferenceProvider : IRuntimeReferenceProvider
         "System.Memory.dll",
         "System.ObjectModel.dll",
         "System.Dynamic.Runtime.dll",
-        "System.ComponentModel.Primitives.dll"
+        "System.ComponentModel.Primitives.dll",
     ];
 
     private readonly IMetadataReferenceCache _referenceCache;
@@ -36,21 +36,19 @@ internal sealed class RuntimeReferenceProvider : IRuntimeReferenceProvider
     private readonly Lazy<MetadataReference[]> _references;
 
     public RuntimeReferenceProvider(IMetadataReferenceCache referenceCache)
-        : this(referenceCache, GetDefaultRuntimeDirectory, DefaultEssentialAssemblyNames)
-    {
-    }
+        : this(referenceCache, GetDefaultRuntimeDirectory, DefaultEssentialAssemblyNames) { }
 
     internal RuntimeReferenceProvider(
         IMetadataReferenceCache referenceCache,
         Func<string?> runtimeDirectoryProvider,
-        IEnumerable<string>? essentialAssemblyNames = null)
+        IEnumerable<string>? essentialAssemblyNames = null
+    )
     {
         _referenceCache = referenceCache ?? throw new ArgumentNullException(nameof(referenceCache));
-        _runtimeDirectoryProvider = runtimeDirectoryProvider ?? throw new ArgumentNullException(nameof(runtimeDirectoryProvider));
+        _runtimeDirectoryProvider =
+            runtimeDirectoryProvider ?? throw new ArgumentNullException(nameof(runtimeDirectoryProvider));
         _essentialAssemblyNames = (essentialAssemblyNames ?? DefaultEssentialAssemblyNames).ToArray();
-        _references = new Lazy<MetadataReference[]>(
-            LoadReferences,
-            LazyThreadSafetyMode.ExecutionAndPublication);
+        _references = new Lazy<MetadataReference[]>(LoadReferences, LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
     public MetadataReference[] References
@@ -84,15 +82,9 @@ internal sealed class RuntimeReferenceProvider : IRuntimeReferenceProvider
             {
                 references.Add(_referenceCache.GetOrCreate(file.FullName));
             }
-            catch (FileNotFoundException)
-            {
-            }
-            catch (BadImageFormatException)
-            {
-            }
-            catch (FileLoadException)
-            {
-            }
+            catch (FileNotFoundException) { }
+            catch (BadImageFormatException) { }
+            catch (FileLoadException) { }
         }
 
         return references.ToArray();

@@ -33,11 +33,19 @@ public sealed class ComputedSourceProjectionTests
         using var table = query.Run();
         CollectionAssert.AreEqual(new long?[] { null, 8, -2 }, table.Select(row => row.GetValue<long?>(1)).ToArray());
         Assert.AreEqual(accepted * 3, provider.Source.ComputedReads);
-        Assert.AreEqual(accepted, provider.Source.Shape?.Fields.Count(field => field.Origin == QueryRowFieldOrigin.ComputedProjection) ?? 0);
+        Assert.AreEqual(
+            accepted,
+            provider.Source.Shape?.Fields.Count(field => field.Origin == QueryRowFieldOrigin.ComputedProjection) ?? 0
+        );
         if (accepted > 0)
         {
-            CollectionAssert.AreEqual(new[] { "Id" }, provider.Source.Shape!.Fields
-                .Where(field => field.Origin == QueryRowFieldOrigin.SourceColumn).Select(field => field.Name).ToArray());
+            CollectionAssert.AreEqual(
+                new[] { "Id" },
+                provider
+                    .Source.Shape!.Fields.Where(field => field.Origin == QueryRowFieldOrigin.SourceColumn)
+                    .Select(field => field.Name)
+                    .ToArray()
+            );
             Assert.IsTrue(provider.Source.Request!.RequiredColumns.Any(column => column.Name == "Optional"));
         }
     }
@@ -46,21 +54,32 @@ public sealed class ComputedSourceProjectionTests
     public void PartialAcceptance_LeavesTheSecondExpressionInCore()
     {
         var provider = new ComputedSourceProvider(ComputedSourceBehavior.Partial);
-        using var query = Compile("select r.Optional::long + 2 as First, -(r.Id::long) as Second from #computedtest.rows() r", provider);
+        using var query = Compile(
+            "select r.Optional::long + 2 as First, -(r.Id::long) as Second from #computedtest.rows() r",
+            provider
+        );
         using var table = query.Run();
         CollectionAssert.AreEqual(new long?[] { null, 6, 1 }, table.Select(row => row.GetValue<long?>(0)).ToArray());
         CollectionAssert.AreEqual(new long?[] { 2, 0, -3 }, table.Select(row => row.GetValue<long?>(1)).ToArray());
         Assert.AreEqual(2, provider.Source.Request!.RequestedComputedProjections.Count);
         Assert.AreEqual(3, provider.Source.ComputedReads);
-        CollectionAssert.AreEqual(new[] { "Id" }, provider.Source.Shape!.Fields
-            .Where(field => field.Origin == QueryRowFieldOrigin.SourceColumn).Select(field => field.Name).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "Id" },
+            provider
+                .Source.Shape!.Fields.Where(field => field.Origin == QueryRowFieldOrigin.SourceColumn)
+                .Select(field => field.Name)
+                .ToArray()
+        );
     }
 
     [TestMethod]
     public void RepeatedAcceptedExpression_TransfersOneValueWithoutItsInputs()
     {
         var provider = new ComputedSourceProvider();
-        using var query = Compile("select r.Optional::long + 2 as First, r.Optional::long + 2 as Second from #computedtest.rows() r", provider);
+        using var query = Compile(
+            "select r.Optional::long + 2 as First, r.Optional::long + 2 as Second from #computedtest.rows() r",
+            provider
+        );
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [null, null], [6L, 6L], [1L, 1L]);
 
@@ -86,7 +105,10 @@ public sealed class ComputedSourceProjectionTests
     public void PortableCoalesce_PreservesNullableFallback()
     {
         var provider = new ComputedSourceProvider();
-        using var query = Compile("select (r.Optional::long ?? r.Id::long) as Value from #computedtest.rows() r", provider);
+        using var query = Compile(
+            "select (r.Optional::long ?? r.Id::long) as Value from #computedtest.rows() r",
+            provider
+        );
         using var table = query.Run();
         CollectionAssert.AreEqual(new long?[] { -2, 4, -1 }, table.Select(row => row.GetValue<long?>(0)).ToArray());
         Assert.AreEqual(3, provider.Source.ComputedReads);
@@ -110,7 +132,10 @@ public sealed class ComputedSourceProjectionTests
         var provider = new ComputedSourceProvider(behavior);
         using var query = Compile("select r.Optional > 0 or r.Id > 0 as Value from #computedtest.rows() r", provider);
         using var table = query.Run();
-        CollectionAssert.AreEqual(new bool?[] { null, true, true }, table.Select(row => row.GetValue<bool?>(0)).ToArray());
+        CollectionAssert.AreEqual(
+            new bool?[] { null, true, true },
+            table.Select(row => row.GetValue<bool?>(0)).ToArray()
+        );
         Assert.AreEqual(reads, provider.Source.ComputedReads);
     }
 
@@ -156,7 +181,7 @@ public sealed class ComputedSourceProjectionTests
         var descriptor = new SourceDescriptor
         {
             Identity = SourceIdentity.Empty,
-            Columns = [new SchemaColumn("Id", 0, typeof(int), intendedTypeName: "Missing.Provider.Type")]
+            Columns = [new SchemaColumn("Id", 0, typeof(int), intendedTypeName: "Missing.Provider.Type")],
         };
         var scan = new SchemaScanNode("computedtest", "rows", [], "r", new OutputSchema([]));
         Assert.IsNull(SourceScalarProjectionConverter.Convert(new ColumnRef("r", "Id", typeof(int)), scan, descriptor));
@@ -194,17 +219,26 @@ public sealed class ComputedSourceProjectionTests
         Assert.AreEqual(0, provider.Source.ComputedReads);
     }
 
-    private static CompiledQuery Compile(string sql, ComputedSourceProvider provider)
-        => InstanceCreator.CompileForExecution(sql, "computedtest", provider, new TestsLoggerResolver());
+    private static CompiledQuery Compile(string sql, ComputedSourceProvider provider) =>
+        InstanceCreator.CompileForExecution(sql, "computedtest", provider, new TestsLoggerResolver());
 
     [TestMethod]
     public void CompiledArtifactRoundTrip_PreservesAcceptedSourceExecutionMetadata()
     {
-        var artifact = InstanceCreator.CompileArtifactWithDiagnostics(Query, "computedartifact",
-            new ComputedSourceProvider(), new TestsLoggerResolver());
+        var artifact = InstanceCreator.CompileArtifactWithDiagnostics(
+            Query,
+            "computedartifact",
+            new ComputedSourceProvider(),
+            new TestsLoggerResolver()
+        );
         Assert.IsTrue(artifact.Succeeded);
         var provider = new ComputedSourceProvider();
-        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(Query, artifact.Artifact!, provider, new TestsLoggerResolver());
+        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            Query,
+            artifact.Artifact!,
+            provider,
+            new TestsLoggerResolver()
+        );
         Assert.IsTrue(loaded.Succeeded, string.Join("; ", loaded.Diagnostics.Select(item => item.Message)));
         using var query = loaded.CompiledQuery!;
         using var table = query.Run();
@@ -215,12 +249,22 @@ public sealed class ComputedSourceProjectionTests
     [TestMethod]
     public void ArtifactAcceptanceChange_InvalidatesItsSemanticIdentity()
     {
-        var artifact = InstanceCreator.CompileArtifactWithDiagnostics(Query, "computedartifact",
-            new ComputedSourceProvider(), new TestsLoggerResolver());
+        var artifact = InstanceCreator.CompileArtifactWithDiagnostics(
+            Query,
+            "computedartifact",
+            new ComputedSourceProvider(),
+            new TestsLoggerResolver()
+        );
         Assert.IsTrue(artifact.Succeeded);
-        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(Query, artifact.Artifact!,
-            new ComputedSourceProvider(ComputedSourceBehavior.Reject), new TestsLoggerResolver());
+        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            Query,
+            artifact.Artifact!,
+            new ComputedSourceProvider(ComputedSourceBehavior.Reject),
+            new TestsLoggerResolver()
+        );
         Assert.IsFalse(loaded.Succeeded);
-        Assert.IsTrue(loaded.Diagnostics.Any(item => item.Message.Contains("semantic", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            loaded.Diagnostics.Any(item => item.Message.Contains("semantic", StringComparison.OrdinalIgnoreCase))
+        );
     }
 }

@@ -10,15 +10,16 @@ public static partial class MethodDeclarationHelper
     internal static ParameterListSyntax CreateTypedRunContextParameterList()
     {
         return SyntaxFactory.ParameterList(
-            SyntaxFactory.SeparatedList(
-            [
+            SyntaxFactory.SeparatedList([
                 CreateProviderParameter(),
                 CreateSourceRuntimeSettingsBySourceContextIdParameter(),
                 CreateSourceExecutionPlansParameter(),
                 CreateLoggerParameter(),
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier("queryContext"))
-                    .WithType(SyntaxFactory.IdentifierName(nameof(QueryRunContext)))
-            ]));
+                SyntaxFactory
+                    .Parameter(SyntaxFactory.Identifier("queryContext"))
+                    .WithType(SyntaxFactory.IdentifierName(nameof(QueryRunContext))),
+            ])
+        );
     }
 
     internal static MethodDeclarationSyntax CreateTypedRunOptionsMethodWithBody(Type outputType, BlockSyntax body)
@@ -26,18 +27,29 @@ public static partial class MethodDeclarationHelper
         ArgumentNullException.ThrowIfNull(outputType);
         ArgumentNullException.ThrowIfNull(body);
 
-        return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.GenericName(nameof(IEnumerable<object>))
-                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)))),
-                SyntaxFactory.Identifier(nameof(ITypedRunnable<object>.Run)))
+        return SyntaxFactory
+            .MethodDeclaration(
+                SyntaxFactory
+                    .GenericName(nameof(IEnumerable<object>))
+                    .WithTypeArgumentList(
+                        SyntaxFactory.TypeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)
+                            )
+                        )
+                    ),
+                SyntaxFactory.Identifier(nameof(ITypedRunnable<object>.Run))
+            )
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(
                 SyntaxFactory.ParameterList(
                     SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("options"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(TypedQueryRunOptions))))))
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("options"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(TypedQueryRunOptions)))
+                    )
+                )
+            )
             .WithBody(body);
     }
 
@@ -45,33 +57,78 @@ public static partial class MethodDeclarationHelper
     {
         ArgumentNullException.ThrowIfNull(outputType);
 
-        var body = SyntaxFactory.Block(SyntaxFactory.ReturnStatement(
-            SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(nameof(ITypedRunnable<object>.Run)))
-                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(SyntaxFactory.ObjectCreationExpression(
-                            SyntaxFactory.IdentifierName(nameof(TypedQueryRunOptions)))
-                        .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                        [
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(ITypedParameterizedRunnable.TypedParameters))),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.PhaseChanged))),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.DataSourceProgress))),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("QueryProgress")),
-                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
-                        ])))))))));
+        var body = SyntaxFactory.Block(
+            SyntaxFactory.ReturnStatement(
+                SyntaxFactory
+                    .InvocationExpression(SyntaxFactory.IdentifierName(nameof(ITypedRunnable<object>.Run)))
+                    .WithArgumentList(
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory
+                                        .ObjectCreationExpression(
+                                            SyntaxFactory.IdentifierName(nameof(TypedQueryRunOptions))
+                                        )
+                                        .WithArgumentList(
+                                            SyntaxFactory.ArgumentList(
+                                                SyntaxFactory.SeparatedList([
+                                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.IdentifierName(
+                                                            nameof(ITypedParameterizedRunnable.TypedParameters)
+                                                        )
+                                                    ),
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.IdentifierName(
+                                                            nameof(IQueryRunnable.PhaseChanged)
+                                                        )
+                                                    ),
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.IdentifierName(
+                                                            nameof(IQueryRunnable.DataSourceProgress)
+                                                        )
+                                                    ),
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.IdentifierName("QueryProgress")
+                                                    ),
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.LiteralExpression(
+                                                            SyntaxKind.NullLiteralExpression
+                                                        )
+                                                    ),
+                                                ])
+                                            )
+                                        )
+                                )
+                            )
+                        )
+                    )
+            )
+        );
 
-        return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.GenericName(nameof(IEnumerable<object>))
-                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)))),
-                SyntaxFactory.Identifier(nameof(ITypedRunnable<object>.Run)))
+        return SyntaxFactory
+            .MethodDeclaration(
+                SyntaxFactory
+                    .GenericName(nameof(IEnumerable<object>))
+                    .WithTypeArgumentList(
+                        SyntaxFactory.TypeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)
+                            )
+                        )
+                    ),
+                SyntaxFactory.Identifier(nameof(ITypedRunnable<object>.Run))
+            )
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(
                 SyntaxFactory.ParameterList(
                     SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken))))))
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("token"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken)))
+                    )
+                )
+            )
             .WithBody(body);
     }
 }

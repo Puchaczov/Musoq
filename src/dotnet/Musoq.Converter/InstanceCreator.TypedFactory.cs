@@ -14,7 +14,8 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions,
         IReadOnlyList<Type> additionalReferenceTypes,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var items = BuildTypedItems<TOut>(
             script,
@@ -24,7 +25,8 @@ public static partial class InstanceCreator
             compilationOptions,
             additionalReferenceTypes,
             CreateExecutableBuildChain,
-            cancellationToken: cancellationToken);
+            cancellationToken: cancellationToken
+        );
 
         using var loadedRunnableType = LoadRunnableTypeWithLifetime(items);
         cancellationToken.ThrowIfCancellationRequested();

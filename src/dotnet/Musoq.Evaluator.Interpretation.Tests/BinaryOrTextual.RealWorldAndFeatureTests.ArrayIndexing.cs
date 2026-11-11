@@ -17,17 +17,19 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_WhereClause_WithByteArrayIndexing_ShouldFilter()
     {
-        var query = @"
-            binary MagicHeader {
-                Magic: byte[4],
-                Version: int le
-            };
-            select
-                f.Name,
-                h.Version
-            from #test.files() f
-            cross apply Interpret<MagicHeader>(f.Content) h
-            where h.Magic[0] = 0x7F and h.Magic[1] = 0x45";
+        var query = (
+            "\n"
+            + "            binary MagicHeader {\n"
+            + "                Magic: byte[4],\n"
+            + "                Version: int le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                f.Name,\n"
+            + "                h.Version\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<MagicHeader>(f.Content) h\n"
+            + "            where h.Magic[0] = 0x7F and h.Magic[1] = 0x45"
+        );
 
         using var ms1 = new MemoryStream();
         using var bw1 = new BinaryWriter(ms1);
@@ -48,16 +50,21 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
         {
             new BinaryEntity { Name = "elf.bin", Content = ms1.ToArray() },
             new BinaryEntity { Name = "mz.bin", Content = ms2.ToArray() },
-            new BinaryEntity { Name = "custom.bin", Content = ms3.ToArray() }
+            new BinaryEntity { Name = "custom.bin", Content = ms3.ToArray() },
         };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
-
 
         Assert.AreEqual(2, table.Count);
         var names = table.Select(r => (string)r.ReadValue(0)).OrderBy(n => n).ToList();
@@ -71,31 +78,42 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_SelectClause_WithByteArrayIndexing_ShouldExtractElements()
     {
-        var query = @"
-            binary MagicHeader {
-                Magic: byte[4],
-                Version: int le
-            };
-            select
-                h.Magic[0],
-                h.Magic[1],
-                h.Magic[2],
-                h.Magic[3],
-                h.Version
-            from #test.files() f
-            cross apply Interpret<MagicHeader>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary MagicHeader {\n"
+            + "                Magic: byte[4],\n"
+            + "                Version: int le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Magic[0],\n"
+            + "                h.Magic[1],\n"
+            + "                h.Magic[2],\n"
+            + "                h.Magic[3],\n"
+            + "                h.Version\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<MagicHeader>(f.Content) h"
+        );
 
         using var ms = new MemoryStream();
         using var bw = new BinaryWriter(ms);
         bw.Write(new byte[] { 0x7F, 0x45, 0x4C, 0x46 });
         bw.Write(42);
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = ms.ToArray() } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = ms.ToArray() },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

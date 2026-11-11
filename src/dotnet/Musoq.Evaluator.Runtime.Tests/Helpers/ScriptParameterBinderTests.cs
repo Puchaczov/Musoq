@@ -37,7 +37,8 @@ public sealed class ScriptParameterBinderTests
         var parameters = Capture(static _ => { });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
-            ScriptParameterBinder.GetRequired<string>(parameters, "author"));
+            ScriptParameterBinder.GetRequired<string>(parameters, "author")
+        );
         Assert.AreEqual(DiagnosticCode.MQ7003_RequiredScriptParameterMissing, ex.Code);
         StringAssert.Contains(ex.Message, "author");
     }
@@ -74,7 +75,8 @@ public sealed class ScriptParameterBinderTests
         });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
-            ScriptParameterBinder.GetRequired<int>(parameters, "limit"));
+            ScriptParameterBinder.GetRequired<int>(parameters, "limit")
+        );
         Assert.AreEqual(DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed, ex.Code);
         StringAssert.Contains(ex.Message, "limit");
     }
@@ -114,7 +116,8 @@ public sealed class ScriptParameterBinderTests
         });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
-            ScriptParameterBinder.GetRequired<int>(parameters, "limit"));
+            ScriptParameterBinder.GetRequired<int>(parameters, "limit")
+        );
         Assert.AreEqual(DiagnosticCode.MQ7004_ScriptParameterTypeMismatch, ex.Code);
         StringAssert.Contains(ex.Message, "limit");
     }
@@ -173,7 +176,8 @@ public sealed class ScriptParameterBinderTests
         });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
-            ScriptParameterBinder.GetRequiredCollection<int>(parameters, "ids"));
+            ScriptParameterBinder.GetRequiredCollection<int>(parameters, "ids")
+        );
         Assert.AreEqual(DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed, ex.Code);
         StringAssert.Contains(ex.Message, "ids");
     }
@@ -187,7 +191,8 @@ public sealed class ScriptParameterBinderTests
         });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
-            ScriptParameterBinder.GetRequiredCollection<int>(parameters, "ids"));
+            ScriptParameterBinder.GetRequiredCollection<int>(parameters, "ids")
+        );
         Assert.AreEqual(DiagnosticCode.MQ7004_ScriptParameterTypeMismatch, ex.Code);
         StringAssert.Contains(ex.Message, "ids");
     }
@@ -201,7 +206,8 @@ public sealed class ScriptParameterBinderTests
         });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
-            ScriptParameterBinder.GetOptional(parameters, "limit", 100));
+            ScriptParameterBinder.GetOptional(parameters, "limit", 100)
+        );
         Assert.AreEqual(DiagnosticCode.MQ7004_ScriptParameterTypeMismatch, ex.Code);
         StringAssert.Contains(ex.Message, "int");
     }
@@ -216,11 +222,13 @@ public sealed class ScriptParameterBinderTests
         });
 
         var ex = Assert.Throws<ScriptParameterBindingException>(() =>
-            ScriptParameterBinder.ValidateNoUnknownParameters(parameters, ["limit"]));
+            ScriptParameterBinder.ValidateNoUnknownParameters(parameters, ["limit"])
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ7006_UnknownScriptParameter, ex.Code);
         Assert.AreEqual("Script parameter 'extra' was provided but is not declared.", ex.Message);
     }
+
     private static ExecutionState Capture(Action<TypedParameterValues> configure)
     {
         var slots = new TypedParameterValues();

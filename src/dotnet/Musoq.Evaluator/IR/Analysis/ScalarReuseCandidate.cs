@@ -16,7 +16,8 @@ internal sealed record ScalarReuseCandidate(
     int UseCount,
     int EstimatedRepeatCount,
     int EstimatedPayloadBytes,
-    bool IsVariableOnly = false)
+    bool IsVariableOnly = false
+)
 {
     public bool IsStable => Stability == ColumnStability.Stable;
 
@@ -26,9 +27,6 @@ internal sealed record ScalarReuseCandidate(
     {
         ArgumentNullException.ThrowIfNull(targetRegion);
 
-        return IsStable &&
-               Region.AllowsHoisting &&
-               targetRegion.AllowsHoisting &&
-               targetRegion.IsDescendantOf(Region);
+        return IsStable && Region.AllowsHoisting && targetRegion.AllowsHoisting && targetRegion.IsDescendantOf(Region);
     }
 }

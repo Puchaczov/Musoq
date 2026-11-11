@@ -18,7 +18,8 @@ public sealed class RegexMatchBudgetTests
     [DataRow(21474836460001L)]
     public void InvalidBudget_ShouldFailBeforeCompilation(long ticks) =>
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new CompilationOptions().WithRegexMatchTimeout(TimeSpan.FromTicks(ticks)));
+            new CompilationOptions().WithRegexMatchTimeout(TimeSpan.FromTicks(ticks))
+        );
 
     [TestMethod]
     [DataRow(10000L)]
@@ -35,9 +36,12 @@ public sealed class RegexMatchBudgetTests
     {
         var options = new CompilationOptions().WithRegexMatchTimeout(TimeSpan.FromMilliseconds(321));
 
-        var clone = options.WithInstrumentationMode(QueryInstrumentationMode.Full)
-            .WithTableResultMaterialization().WithLoopInvariantCodeMotion(false)
-            .WithStabilityAwareScalarReuse(false).WithRecursiveCteLimits(new(2, 3));
+        var clone = options
+            .WithInstrumentationMode(QueryInstrumentationMode.Full)
+            .WithTableResultMaterialization()
+            .WithLoopInvariantCodeMotion(false)
+            .WithStabilityAwareScalarReuse(false)
+            .WithRecursiveCteLimits(new(2, 3));
 
         Assert.AreEqual(options.RegexMatchTimeout, clone.RegexMatchTimeout);
     }
@@ -49,8 +53,10 @@ public sealed class RegexMatchBudgetTests
         var second = first.WithRegexMatchTimeout(TimeSpan.FromSeconds(3));
 
         Assert.AreNotEqual(CompilationOptionsFingerprint.Compute(first), CompilationOptionsFingerprint.Compute(second));
-        Assert.AreEqual(CompilationOptionsFingerprint.Compute(first),
-            CompilationOptionsFingerprint.Compute(first.WithTableResultMaterialization(false)));
+        Assert.AreEqual(
+            CompilationOptionsFingerprint.Compute(first),
+            CompilationOptionsFingerprint.Compute(first.WithTableResultMaterialization(false))
+        );
     }
 
     [TestMethod]
@@ -74,7 +80,10 @@ public sealed class RegexMatchBudgetTests
         var first = Operators.PrepareRLike("v.lue", TimeSpan.FromSeconds(1))!;
         var second = Operators.PrepareRLike("v.lue", TimeSpan.FromSeconds(3))!;
 
-        var results = await Task.WhenAll(Task.Run(() => first.IsMatch("value")), Task.Run(() => second.IsMatch("value")));
+        var results = await Task.WhenAll(
+            Task.Run(() => first.IsMatch("value")),
+            Task.Run(() => second.IsMatch("value"))
+        );
 
         CollectionAssert.AreEqual(new[] { true, true }, results);
         Assert.AreNotSame(first.ResolvedRegex, second.ResolvedRegex);

@@ -5,9 +5,7 @@ namespace Musoq.Examples.DataSources.Csv;
 public sealed class CsvFileTable : ISchemaTable
 {
     public CsvFileTable()
-        : this(Array.Empty<ISchemaColumn>())
-    {
-    }
+        : this(Array.Empty<ISchemaColumn>()) { }
 
     public CsvFileTable(string path)
         : this(Array.Empty<ISchemaColumn>())
@@ -40,16 +38,14 @@ public sealed class CsvFileTable : ISchemaTable
     }
 
     internal CsvFileTable(ISchemaColumn[] columns)
-        : this(columns, typeof(QueryScopedRowContract))
-    {
-    }
+        : this(columns, typeof(QueryScopedRowContract)) { }
 
     internal CsvFileTable(ISchemaColumn[] columns, Type rowType)
     {
         Columns = columns ?? throw new ArgumentNullException(nameof(columns));
         Metadata = new SchemaTableMetadata(rowType ?? throw new ArgumentNullException(nameof(rowType)))
         {
-            TypeOrigin = TableSchemaTypeOrigin.TableDefined
+            TypeOrigin = TableSchemaTypeOrigin.TableDefined,
         };
     }
 
@@ -60,7 +56,8 @@ public sealed class CsvFileTable : ISchemaTable
     public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)

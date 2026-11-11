@@ -7,7 +7,8 @@ public sealed record ExecutionWindowKernelPlan : ExecutionNode
     public ExecutionWindowKernelPlan(
         string signature,
         ExecutionWindowKernelPlanStrategy strategy,
-        IReadOnlyList<ExecutionNode> kernels)
+        IReadOnlyList<ExecutionNode> kernels
+    )
     {
         Signature = signature;
         Strategy = strategy;

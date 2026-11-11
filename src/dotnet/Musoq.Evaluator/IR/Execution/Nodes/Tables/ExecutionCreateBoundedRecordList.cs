@@ -8,7 +8,8 @@ public sealed record ExecutionCreateBoundedRecordList : ExecutionNode
         ExecutionVariable list,
         GeneratedRecordShape recordShape,
         IReadOnlyList<ExecutionOrderField> keys,
-        ExecutionOrderRecordSelection selection)
+        ExecutionOrderRecordSelection selection
+    )
     {
         List = list;
         RecordShape = recordShape;

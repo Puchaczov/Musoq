@@ -14,25 +14,44 @@ internal static partial class PredicateMovementPlanner
         LogicalNode node,
         PredicateMovementSide side,
         string alias,
-        IrExpression predicate)
+        IrExpression predicate
+    )
     {
         switch (node)
         {
             case SchemaScanNode scan:
-                if (string.Equals(scan.Alias, alias, StringComparison.OrdinalIgnoreCase) &&
-                    ColumnRefExtractor.Extract(predicate).All(column =>
-                        string.Equals(column.Alias, scan.Alias, StringComparison.OrdinalIgnoreCase) &&
-                        scan.OutputSchema.Columns.Any(binding =>
-                            string.Equals(binding.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(binding.Name, $"{scan.Alias}.{column.ColumnName}", StringComparison.OrdinalIgnoreCase))))
-                    return SideResolution.Eligible(side, $"The {alias} source is directly available below the join side.");
+                if (
+                    string.Equals(scan.Alias, alias, StringComparison.OrdinalIgnoreCase)
+                    && ColumnRefExtractor
+                        .Extract(predicate)
+                        .All(column =>
+                            string.Equals(column.Alias, scan.Alias, StringComparison.OrdinalIgnoreCase)
+                            && scan.OutputSchema.Columns.Any(binding =>
+                                string.Equals(binding.Name, column.ColumnName, StringComparison.OrdinalIgnoreCase)
+                                || string.Equals(
+                                    binding.Name,
+                                    $"{scan.Alias}.{column.ColumnName}",
+                                    StringComparison.OrdinalIgnoreCase
+                                )
+                            )
+                        )
+                )
+                    return SideResolution.Eligible(
+                        side,
+                        $"The {alias} source is directly available below the join side."
+                    );
 
                 return SideResolution.NotEligible($"The {alias} source is not the direct scan for this join side.");
             case ValuesScanNode values:
                 if (string.Equals(values.Alias, alias, StringComparison.OrdinalIgnoreCase))
-                    return SideResolution.Eligible(side, $"The {alias} values source is directly available below the join side.");
+                    return SideResolution.Eligible(
+                        side,
+                        $"The {alias} values source is directly available below the join side."
+                    );
 
-                return SideResolution.NotEligible($"The {alias} source is not the direct values source for this join side.");
+                return SideResolution.NotEligible(
+                    $"The {alias} source is not the direct values source for this join side."
+                );
             case FilterNode filter:
                 return ResolveSidePlacement(filter.Input, side, alias, predicate);
             case SortNode sort:
@@ -42,26 +61,28 @@ internal static partial class PredicateMovementPlanner
                 return ResolveSidePlacement(project.Input, side, alias, predicate)
                     .AddReason("Predicate can move through a transparent direct-column project boundary.");
             case ProjectNode:
-                return SideResolution.NotEligible($"The {alias} side contains a project that does not preserve every predicate column directly.");
+                return SideResolution.NotEligible(
+                    $"The {alias} side contains a project that does not preserve every predicate column directly."
+                );
             default:
-                return SideResolution.NotEligible($"The {alias} side contains {node.GetType().Name}, so movement stays conservative.");
+                return SideResolution.NotEligible(
+                    $"The {alias} side contains {node.GetType().Name}, so movement stays conservative."
+                );
         }
     }
 
     private static bool ProjectPreservesPredicateColumns(ProjectNode project, IrExpression predicate)
     {
         var refs = ColumnRefExtractor.Extract(predicate);
-        return refs.Count > 0 &&
-               refs.All(column => ProjectPreservesColumn(project.Fields, column));
+        return refs.Count > 0 && refs.All(column => ProjectPreservesColumn(project.Fields, column));
     }
 
-    private static bool ProjectPreservesColumn(
-        IReadOnlyList<ProjectedField> fields,
-        ColumnRef column)
+    private static bool ProjectPreservesColumn(IReadOnlyList<ProjectedField> fields, ColumnRef column)
     {
         return fields.Any(field =>
-            field.Expression is ColumnRef projected &&
-            string.Equals(projected.Alias, column.Alias, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(projected.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase));
+            field.Expression is ColumnRef projected
+            && string.Equals(projected.Alias, column.Alias, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(projected.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase)
+        );
     }
 }

@@ -15,35 +15,42 @@ public sealed class CorrelatedSubqueryStrategyPlannerTests
     [TestMethod]
     public void Plan_DirectPredicateFilters_ShouldSelectSemiAndAntiHashStrategies()
     {
-        var decisions = Plan("""
-            select a.City
-            from #A.entities() a
-            where exists (
-                select b.City from #B.entities() b
-                where b.Country = a.Country
-            ) and not exists (
-                select c.City from #C.entities() c
-                where c.Country = a.Country
+        var decisions = Plan(
+            (
+                "select a.City\n"
+                + "from #A.entities() a\n"
+                + "where exists (\n"
+                + "    select b.City from #B.entities() b\n"
+                + "    where b.Country = a.Country\n"
+                + ") and not exists (\n"
+                + "    select c.City from #C.entities() c\n"
+                + "    where c.Country = a.Country\n"
+                + ")"
             )
-            """);
+        );
 
         Assert.HasCount(2, decisions);
         Assert.AreEqual(CorrelatedSubqueryStrategyKind.HashSemiJoin, decisions[0].Strategy);
         Assert.AreEqual(CorrelatedSubqueryStrategyKind.HashAntiJoin, decisions[1].Strategy);
-        Assert.IsTrue(decisions.All(static decision => decision.Request.EvaluationPhase == SubqueryEvaluationPhase.Filter));
+        Assert.IsTrue(
+            decisions.All(static decision => decision.Request.EvaluationPhase == SubqueryEvaluationPhase.Filter)
+        );
         Assert.IsTrue(decisions.All(static decision => decision.Request.IsDirectFilter));
     }
 
     [TestMethod]
     public void Plan_PredicateUsedAsProjection_ShouldSelectHashMarkAtProjectionPhase()
     {
-        var decision = Plan("""
-            select exists (
-                select b.City from #B.entities() b
-                where b.Country = a.Country
-            ) as HasMatch
-            from #A.entities() a
-            """).Single();
+        var decision = Plan(
+                (
+                    "select exists (\n"
+                    + "    select b.City from #B.entities() b\n"
+                    + "    where b.Country = a.Country\n"
+                    + ") as HasMatch\n"
+                    + "from #A.entities() a"
+                )
+            )
+            .Single();
 
         Assert.AreEqual(CorrelatedSubqueryStrategyKind.HashMarkJoin, decision.Strategy);
         Assert.AreEqual(SubqueryEvaluationPhase.Projection, decision.Request.EvaluationPhase);
@@ -53,13 +60,16 @@ public sealed class CorrelatedSubqueryStrategyPlannerTests
     [TestMethod]
     public void Plan_ScalarSubquery_ShouldSelectHashSingle()
     {
-        var decision = Plan("""
-            select (
-                select b.City from #B.entities() b
-                where b.Country = a.Country
-            ) as MatchCity
-            from #A.entities() a
-            """).Single();
+        var decision = Plan(
+                (
+                    "select (\n"
+                    + "    select b.City from #B.entities() b\n"
+                    + "    where b.Country = a.Country\n"
+                    + ") as MatchCity\n"
+                    + "from #A.entities() a"
+                )
+            )
+            .Single();
 
         Assert.AreEqual(CorrelatedSubqueryStrategyKind.HashSingleJoin, decision.Strategy);
         Assert.AreEqual(SubqueryEvaluationPhase.Projection, decision.Request.EvaluationPhase);
@@ -68,15 +78,18 @@ public sealed class CorrelatedSubqueryStrategyPlannerTests
     [TestMethod]
     public void Plan_SlicedScalarSubquery_ShouldSelectPartitionedTopOffset()
     {
-        var decision = Plan("""
-            select (
-                select b.City from #B.entities() b
-                where b.Country = a.Country
-                order by b.City
-                skip 1 take 1
-            ) as MatchCity
-            from #A.entities() a
-            """).Single();
+        var decision = Plan(
+                (
+                    "select (\n"
+                    + "    select b.City from #B.entities() b\n"
+                    + "    where b.Country = a.Country\n"
+                    + "    order by b.City\n"
+                    + "    skip 1 take 1\n"
+                    + ") as MatchCity\n"
+                    + "from #A.entities() a"
+                )
+            )
+            .Single();
 
         Assert.AreEqual(CorrelatedSubqueryStrategyKind.PartitionedTopOffset, decision.Strategy);
     }
@@ -84,13 +97,16 @@ public sealed class CorrelatedSubqueryStrategyPlannerTests
     [TestMethod]
     public void Plan_ResidualOnlyCorrelation_ShouldNotChooseImplicitPerRowApply()
     {
-        var decision = Plan("""
-            select (
-                select b.City from #B.entities() b
-                where b.Score > a.Score
-            ) as MatchCity
-            from #A.entities() a
-            """).Single();
+        var decision = Plan(
+                (
+                    "select (\n"
+                    + "    select b.City from #B.entities() b\n"
+                    + "    where b.Score > a.Score\n"
+                    + ") as MatchCity\n"
+                    + "from #A.entities() a"
+                )
+            )
+            .Single();
 
         Assert.AreEqual(CorrelatedSubqueryStrategyKind.Unsupported, decision.Strategy);
         Assert.Contains("not selected implicitly", decision.Reason);
@@ -99,16 +115,18 @@ public sealed class CorrelatedSubqueryStrategyPlannerTests
     [TestMethod]
     public void Plan_NestedCorrelations_ShouldUseTheNearestEvaluationPhase()
     {
-        var decisions = Plan("""
-            select (
-                select b.City from #B.entities() b
-                where b.Country = a.Country and exists (
-                    select c.City from #C.entities() c
-                    where c.City = b.City
-                )
-            ) as MatchCity
-            from #A.entities() a
-            """);
+        var decisions = Plan(
+            (
+                "select (\n"
+                + "    select b.City from #B.entities() b\n"
+                + "    where b.Country = a.Country and exists (\n"
+                + "        select c.City from #C.entities() c\n"
+                + "        where c.City = b.City\n"
+                + "    )\n"
+                + ") as MatchCity\n"
+                + "from #A.entities() a"
+            )
+        );
 
         var scalar = decisions.Single(static decision => decision.Request.IsScalar);
         var predicate = decisions.Single(static decision => decision.Request.IsPredicate);
@@ -122,22 +140,27 @@ public sealed class CorrelatedSubqueryStrategyPlannerTests
     [TestMethod]
     public void Normalize_ShouldPublishPhaseAwareDecisionsAsSidecarFacts()
     {
-        var root = Parse("""
-            select a.City
-            from #A.entities() a
-            where exists (
-                select b.City from #B.entities() b
-                where b.Country = a.Country
+        var root = Parse(
+            (
+                "select a.City\n"
+                + "from #A.entities() a\n"
+                + "where exists (\n"
+                + "    select b.City from #B.entities() b\n"
+                + "    where b.Country = a.Country\n"
+                + ")"
             )
-            """);
+        );
 
         var result = new PreLogicalNormalizer().Normalize(root);
         var decision = result.CorrelatedSubqueryDecisions.Single();
 
         Assert.AreEqual(CorrelatedSubqueryStrategyKind.HashSemiJoin, decision.Strategy);
         Assert.AreEqual(SubqueryEvaluationPhase.Filter, decision.Request.EvaluationPhase);
-        Assert.IsTrue(result.Trace.Entries.Single(static entry =>
-            entry.PassName == "SubqueryToCteNormalization").Reason.Contains("recomputed 2"));
+        Assert.IsTrue(
+            result
+                .Trace.Entries.Single(static entry => entry.PassName == "SubqueryToCteNormalization")
+                .Reason.Contains("recomputed 2")
+        );
     }
 
     private static IReadOnlyList<CorrelatedSubqueryDecision> Plan(string query)

@@ -1,7 +1,7 @@
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Globalization;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Musoq.Parser.Diagnostics;
 
@@ -32,9 +32,10 @@ internal static class RuntimeExpressionFailureDiagnostic
         var code = exception switch
         {
             InvalidRuntimeRegexException => DiagnosticCode.MQ7015_InvalidRuntimeRegex,
-            Musoq.Plugins.ScalarSubqueryCardinalityException => DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation,
+            Musoq.Plugins.ScalarSubqueryCardinalityException =>
+                DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation,
             OverflowException => DiagnosticCode.MQ7018_NumericOverflow,
-            _ => (DiagnosticCode?)null
+            _ => (DiagnosticCode?)null,
         };
         if (!code.HasValue)
             return null;
@@ -44,18 +45,21 @@ internal static class RuntimeExpressionFailureDiagnostic
             DiagnosticSeverity.Error,
             ErrorCatalog.GetMessage(code.Value),
             SourceLocation.None,
-            SourceLocation.None);
+            SourceLocation.None
+        );
     }
 
-    private static Diagnostic CreateRegexTimeout(string patternOperator, string engine, TimeSpan matchTimeout) => new(
-        DiagnosticCode.MQ7017_RegexMatchTimeout,
-        DiagnosticSeverity.Error,
-        ErrorCatalog.GetMessage(DiagnosticCode.MQ7017_RegexMatchTimeout),
-        SourceLocation.None,
-        arguments: new Dictionary<string, string>
-        {
-            ["operator"] = patternOperator,
-            ["engine"] = engine,
-            ["timeoutMilliseconds"] = matchTimeout.TotalMilliseconds.ToString(CultureInfo.InvariantCulture)
-        });
+    private static Diagnostic CreateRegexTimeout(string patternOperator, string engine, TimeSpan matchTimeout) =>
+        new(
+            DiagnosticCode.MQ7017_RegexMatchTimeout,
+            DiagnosticSeverity.Error,
+            ErrorCatalog.GetMessage(DiagnosticCode.MQ7017_RegexMatchTimeout),
+            SourceLocation.None,
+            arguments: new Dictionary<string, string>
+            {
+                ["operator"] = patternOperator,
+                ["engine"] = engine,
+                ["timeoutMilliseconds"] = matchTimeout.TotalMilliseconds.ToString(CultureInfo.InvariantCulture),
+            }
+        );
 }

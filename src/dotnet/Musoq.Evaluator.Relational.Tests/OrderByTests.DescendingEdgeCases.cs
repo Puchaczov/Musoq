@@ -15,24 +15,29 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { NullableValue = 3 },
                     new BasicEntity("b") { NullableValue = null },
                     new BasicEntity("c") { NullableValue = 1 },
                     new BasicEntity("d") { NullableValue = null },
-                    new BasicEntity("e") { NullableValue = 2 }
+                    new BasicEntity("e") { NullableValue = 2 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Name", typeof(string)), ("NullableValue", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "a", 3 }, new object?[] { "e", 2 },
-            new object?[] { "c", 1 }, new object?[] { "b", null }, new object?[] { "d", null });
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("NullableValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "a", 3 },
+            new object?[] { "e", 2 },
+            new object?[] { "c", 1 },
+            new object?[] { "b", null },
+            new object?[] { "d", null }
+        );
     }
 
     [TestMethod]
@@ -43,25 +48,29 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a", "jan", 100m),
                     new BasicEntity("b", "feb", -50m),
                     new BasicEntity("c", "mar", 0m),
                     new BasicEntity("d", "apr", -100m),
-                    new BasicEntity("e", "may", 50m)
+                    new BasicEntity("e", "may", 50m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Money", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "a", 100m }, new object?[] { "e", 50m },
-            new object?[] { "c", 0m }, new object?[] { "b", -50m },
-            new object?[] { "d", -100m });
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "a", 100m },
+            new object?[] { "e", 50m },
+            new object?[] { "c", 0m },
+            new object?[] { "b", -50m },
+            new object?[] { "d", -100m }
+        );
     }
 
     [TestMethod]
@@ -72,23 +81,29 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alpha"),
                     new BasicEntity("Zulu"),
                     new BasicEntity("Charlie"),
                     new BasicEntity("Bravo"),
-                    new BasicEntity("Delta")
+                    new BasicEntity("Delta"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Zulu" }, new object?[] { "Delta" },
-            new object?[] { "Charlie" }, new object?[] { "Bravo" }, new object?[] { "Alpha" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Zulu" },
+            new object?[] { "Delta" },
+            new object?[] { "Charlie" },
+            new object?[] { "Bravo" },
+            new object?[] { "Alpha" }
+        );
     }
 
     [TestMethod]
@@ -104,115 +119,137 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity(date1) { City = "a" },
                     new BasicEntity(date2) { City = "b" },
                     new BasicEntity(date3) { City = "c" },
-                    new BasicEntity(date4) { City = "d" }
+                    new BasicEntity(date4) { City = "d" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Time", typeof(DateTime)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "d", date4 }, new object?[] { "b", date2 },
-            new object?[] { "a", date1 }, new object?[] { "c", date3 });
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Time", typeof(DateTime)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "d", date4 },
+            new object?[] { "b", date2 },
+            new object?[] { "a", date1 },
+            new object?[] { "c", date3 }
+        );
     }
 
     [TestMethod]
     public void WhenOrderByDescWithSubquery_ShouldWork()
     {
-        var query = @"
-            select City, Money from
-            (select City, Money from #A.Entities() order by Money desc) q
-            order by City desc";
+        var query = (
+            "\n"
+            + "            select City, Money from\n"
+            + "            (select City, Money from #A.Entities() order by Money desc) q\n"
+            + "            order by City desc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("katowice", "jan", 300m),
                     new BasicEntity("czestochowa", "feb", 400m),
-                    new BasicEntity("cracow", "mar", 200m)
+                    new BasicEntity("cracow", "mar", 200m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Money", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { "katowice", 300m },
             new object?[] { "czestochowa", 400m },
-            new object?[] { "cracow", 200m });
+            new object?[] { "cracow", 200m }
+        );
     }
 
     [TestMethod]
     public void WhenOrderByDescAfterUnion_ShouldOrderTheCombinedResult()
     {
-        var query = @"
-            select City from #A.Entities() where Money > 200
-            union (City)
-            select City from #A.Entities() where Money <= 200
-            order by City desc";
+        var query = (
+            "\n"
+            + "            select City from #A.Entities() where Money > 200\n"
+            + "            union (City)\n"
+            + "            select City from #A.Entities() where Money <= 200\n"
+            + "            order by City desc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("alpha", "jan", 300m),
                     new BasicEntity("beta", "feb", 100m),
                     new BasicEntity("gamma", "mar", 400m),
-                    new BasicEntity("delta", "apr", 150m)
+                    new BasicEntity("delta", "apr", 150m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "gamma" }, new object?[] { "delta" },
-            new object?[] { "beta" }, new object?[] { "alpha" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "gamma" },
+            new object?[] { "delta" },
+            new object?[] { "beta" },
+            new object?[] { "alpha" }
+        );
     }
 
     [TestMethod]
     public void WhenGlobalOrderByDescIsNeededAfterUnion_ShouldUseDerivedTable()
     {
-        var query = @"
-            select u.City from (
-                select City from #A.Entities() where Money > 200
-                union (City)
-                select City from #A.Entities() where Money <= 200
-            ) u
-            order by u.City desc";
+        var query = (
+            "\n"
+            + "            select u.City from (\n"
+            + "                select City from #A.Entities() where Money > 200\n"
+            + "                union (City)\n"
+            + "                select City from #A.Entities() where Money <= 200\n"
+            + "            ) u\n"
+            + "            order by u.City desc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("alpha", "jan", 300m),
                     new BasicEntity("beta", "feb", 100m),
                     new BasicEntity("gamma", "mar", 400m),
-                    new BasicEntity("delta", "apr", 150m)
+                    new BasicEntity("delta", "apr", 150m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "gamma" }, new object?[] { "delta" },
-            new object?[] { "beta" }, new object?[] { "alpha" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "gamma" },
+            new object?[] { "delta" },
+            new object?[] { "beta" },
+            new object?[] { "alpha" }
+        );
     }
 
     [TestMethod]
@@ -223,53 +260,63 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("city1", "Poland", 100),
                     new BasicEntity("city2", "Germany", 200),
                     new BasicEntity("city3", "Poland", 150),
                     new BasicEntity("city4", "France", 300),
-                    new BasicEntity("city5", "Germany", 250)
+                    new BasicEntity("city5", "Germany", 250),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Poland" }, new object?[] { "Germany" }, new object?[] { "France" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Poland" },
+            new object?[] { "Germany" },
+            new object?[] { "France" }
+        );
     }
 
     [TestMethod]
     public void WhenOrderByDescWithComplexWhereClause_ShouldWork()
     {
-        var query = @"
-            select City, Money from #A.Entities()
-            where Money > 100 and Money < 500
-            order by Money desc";
+        var query = (
+            "\n"
+            + "            select City, Money from #A.Entities()\n"
+            + "            where Money > 100 and Money < 500\n"
+            + "            order by Money desc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a", "jan", 50m),
                     new BasicEntity("b", "feb", 300m),
                     new BasicEntity("c", "mar", 200m),
                     new BasicEntity("d", "apr", 600m),
-                    new BasicEntity("e", "may", 400m)
+                    new BasicEntity("e", "may", 400m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Money", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "e", 400m }, new object?[] { "b", 300m },
-            new object?[] { "c", 200m });
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "e", 400m },
+            new object?[] { "b", 300m },
+            new object?[] { "c", 200m }
+        );
     }
 
     [TestMethod]
@@ -280,22 +327,25 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a", "jan", 100m),
                     new BasicEntity("b", "feb", 300m),
-                    new BasicEntity("c", "mar", 200m)
+                    new BasicEntity("c", "mar", 200m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("CityName", typeof(string)), ("Amount", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "b", 300m }, new object?[] { "c", 200m },
-            new object?[] { "a", 100m });
+        TableMaterializationTestHelper.AssertColumns(table, ("CityName", typeof(string)), ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "b", 300m },
+            new object?[] { "c", 200m },
+            new object?[] { "a", 100m }
+        );
     }
 
     [TestMethod]
@@ -306,22 +356,29 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a", "jan", 100m),
                     new BasicEntity("b", "feb", 300m),
-                    new BasicEntity("c", "mar", 200m)
+                    new BasicEntity("c", "mar", 200m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("DoubledMoney", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "b", 600m }, new object?[] { "c", 400m },
-            new object?[] { "a", 200m });
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("DoubledMoney", typeof(decimal))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "b", 600m },
+            new object?[] { "c", 400m },
+            new object?[] { "a", 200m }
+        );
     }
 
     [TestMethod]
@@ -332,22 +389,27 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("apple"),
                     new BasicEntity("Zebra"),
                     new BasicEntity("banana"),
-                    new BasicEntity("Cherry")
+                    new BasicEntity("Cherry"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Zebra" }, new object?[] { "Cherry" },
-            new object?[] { "banana" }, new object?[] { "apple" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Zebra" },
+            new object?[] { "Cherry" },
+            new object?[] { "banana" },
+            new object?[] { "apple" }
+        );
     }
 
     [TestMethod]
@@ -357,19 +419,13 @@ public partial class OrderByTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("a", "jan", 100m),
-                    new BasicEntity("b", "feb", 200m)
-                ]
-            }
+            { "#A", [new BasicEntity("a", "jan", 100m), new BasicEntity("b", "feb", 200m)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Money", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
@@ -380,18 +436,13 @@ public partial class OrderByTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("a", "jan", 100m)
-                ]
-            }
+            { "#A", [new BasicEntity("a", "jan", 100m)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Money", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "a", 100m });
     }
 
@@ -403,21 +454,24 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a", "jan", 200m),
                     new BasicEntity("b", "feb", 200m),
-                    new BasicEntity("c", "mar", 200m)
+                    new BasicEntity("c", "mar", 200m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Money", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "a", 200m }, new object?[] { "b", 200m },
-            new object?[] { "c", 200m });
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "a", 200m },
+            new object?[] { "b", 200m },
+            new object?[] { "c", 200m }
+        );
     }
 }

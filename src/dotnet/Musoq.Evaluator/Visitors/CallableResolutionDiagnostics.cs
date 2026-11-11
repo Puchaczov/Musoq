@@ -27,7 +27,8 @@ internal static class CallableResolutionDiagnostics
         Type? entityType,
         TextSpan span,
         IReadOnlyList<Node>? argumentNodes = null,
-        Func<MethodInfo, bool>? methodFilter = null)
+        Func<MethodInfo, bool>? methodFilter = null
+    )
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(callableName);
@@ -44,7 +45,8 @@ internal static class CallableResolutionDiagnostics
         Type? entityType,
         TextSpan span,
         IReadOnlyList<Node>? argumentNodes,
-        Func<MethodInfo, bool>? methodFilter)
+        Func<MethodInfo, bool>? methodFilter
+    )
     {
         var allMethods = schema.GetAllLibraryMethods();
         var normalizedName = MethodNameNormalizer.Normalize(callableName);
@@ -63,21 +65,11 @@ internal static class CallableResolutionDiagnostics
                     ? $"Unknown callable {DiagnosticSafety.QuoteForDisplay(callableName)}. Possible matches: {FormatCandidates(closeCandidates)}."
                     : $"Unknown callable {DiagnosticSafety.QuoteForDisplay(callableName)}."
                 : $"Unknown callable {DiagnosticSafety.QuoteForDisplay(callableName)}. Did you mean {DiagnosticSafety.QuoteForDisplay(suggestion)}?";
-            var arguments = Facts(
-                callableName,
-                argumentTypes,
-                [],
-                null,
-                closeCandidates,
-                allMethods.Keys);
+            var arguments = Facts(callableName, argumentTypes, [], null, closeCandidates, allMethods.Keys);
             if (!string.IsNullOrWhiteSpace(suggestion))
                 arguments["suggestion"] = suggestion;
 
-            return new CallableResolutionFailure(
-                DiagnosticCode.MQ3086_UnknownCallable,
-                message,
-                span,
-                arguments);
+            return new CallableResolutionFailure(DiagnosticCode.MQ3086_UnknownCallable, message, span, arguments);
         }
 
         var applicableMethods = namedMethods
@@ -90,7 +82,8 @@ internal static class CallableResolutionDiagnostics
                 DiagnosticCode.MQ3086_UnknownCallable,
                 $"Unknown callable {DiagnosticSafety.QuoteForDisplay(callableName)} for the selected callable kind.",
                 span,
-                Facts(callableName, argumentTypes, namedMethods));
+                Facts(callableName, argumentTypes, namedMethods)
+            );
         }
 
         var arityCandidates = applicableMethods
@@ -103,7 +96,8 @@ internal static class CallableResolutionDiagnostics
                 DiagnosticCode.MQ3087_InvalidCallableArity,
                 $"Callable {DiagnosticSafety.QuoteForDisplay(callableName)} does not accept {argumentTypes.Count} argument(s); expected {FormatExpectedCounts(applicableMethods)}.",
                 span,
-                Facts(callableName, argumentTypes, applicableMethods, FormatExpectedCounts(applicableMethods)));
+                Facts(callableName, argumentTypes, applicableMethods, FormatExpectedCounts(applicableMethods))
+            );
         }
 
         var typeCandidates = arityCandidates
@@ -118,16 +112,20 @@ internal static class CallableResolutionDiagnostics
                 AddParameterGuidance(
                     $"No overload of callable {DiagnosticSafety.QuoteForDisplay(callableName)} accepts argument types ({FormatTypes(argumentTypes)}).",
                     argumentNodes,
-                    arityCandidates.Select(static candidate => candidate.Method)),
+                    arityCandidates.Select(static candidate => candidate.Method)
+                ),
                 span,
-                Facts(callableName, argumentTypes, arityCandidates.Select(static candidate => candidate.Method)));
+                Facts(callableName, argumentTypes, arityCandidates.Select(static candidate => candidate.Method))
+            );
         }
 
         var bestScore = typeCandidates[0].score;
         var best = typeCandidates
             .Where(item => item.score == bestScore)
-            .Where(item => GetResolutionPriority(item.candidate.Method) ==
-                           GetResolutionPriority(typeCandidates[0].candidate.Method))
+            .Where(item =>
+                GetResolutionPriority(item.candidate.Method)
+                == GetResolutionPriority(typeCandidates[0].candidate.Method)
+            )
             .ToArray();
         if (best.Length > 1)
         {
@@ -135,7 +133,8 @@ internal static class CallableResolutionDiagnostics
                 DiagnosticCode.MQ3089_AmbiguousCallableOverload,
                 $"Callable {DiagnosticSafety.QuoteForDisplay(callableName)} is ambiguous for argument types ({FormatTypes(argumentTypes)}).",
                 span,
-                Facts(callableName, argumentTypes, best.Select(static item => item.candidate.Method)));
+                Facts(callableName, argumentTypes, best.Select(static item => item.candidate.Method))
+            );
         }
 
         // This method is called only after the schema's normal resolver failed.
@@ -147,9 +146,11 @@ internal static class CallableResolutionDiagnostics
             AddParameterGuidance(
                 $"No overload of callable {DiagnosticSafety.QuoteForDisplay(callableName)} accepts argument types ({FormatTypes(argumentTypes)}).",
                 argumentNodes,
-                typeCandidates.Select(static item => item.candidate.Method)),
+                typeCandidates.Select(static item => item.candidate.Method)
+            ),
             span,
-            Facts(callableName, argumentTypes, typeCandidates.Select(static item => item.candidate.Method)));
+            Facts(callableName, argumentTypes, typeCandidates.Select(static item => item.candidate.Method))
+        );
     }
 
     private static Dictionary<string, string> Facts(
@@ -158,7 +159,8 @@ internal static class CallableResolutionDiagnostics
         IEnumerable<MethodInfo> methods,
         string? expectedCounts = null,
         IEnumerable<string>? candidateCallables = null,
-        IEnumerable<string>? availableCallables = null)
+        IEnumerable<string>? availableCallables = null
+    )
     {
         var candidates = methods
             .Select(FormatSignature)
@@ -170,7 +172,7 @@ internal static class CallableResolutionDiagnostics
         {
             ["callable"] = callableName,
             ["actualTypes"] = FormatTypes(argumentTypes),
-            ["candidateSignatures"] = string.Join("; ", candidates)
+            ["candidateSignatures"] = string.Join("; ", candidates),
         };
         if (expectedCounts != null)
             facts["expectedCounts"] = expectedCounts;
@@ -190,13 +192,12 @@ internal static class CallableResolutionDiagnostics
             if (string.IsNullOrWhiteSpace(name))
                 continue;
 
-            if (!canonicalNames.TryGetValue(name, out var existing) ||
-                string.CompareOrdinal(name, existing) < 0)
+            if (!canonicalNames.TryGetValue(name, out var existing) || string.CompareOrdinal(name, existing) < 0)
                 canonicalNames[name] = name;
         }
 
-        return canonicalNames.Values
-            .OrderBy(static name => name, StringComparer.Ordinal)
+        return canonicalNames
+            .Values.OrderBy(static name => name, StringComparer.Ordinal)
             .Take(CandidateLimit)
             .ToArray();
     }
@@ -214,8 +215,8 @@ internal static class CallableResolutionDiagnostics
             {
                 var required = parameters.Count(parameter => !parameter.IsOptional);
                 var hasParams = parameters.LastOrDefault()?.IsParams == true;
-                return hasParams ? $"{required}+" : required == parameters.Length
-                    ? required.ToString()
+                return hasParams ? $"{required}+"
+                    : required == parameters.Length ? required.ToString()
                     : $"{required}..{parameters.Length}";
             })
             .Distinct(StringComparer.Ordinal)
@@ -248,7 +249,8 @@ internal static class CallableResolutionDiagnostics
     private static string AddParameterGuidance(
         string message,
         IReadOnlyList<Node>? argumentNodes,
-        IEnumerable<MethodInfo> methods)
+        IEnumerable<MethodInfo> methods
+    )
     {
         if (argumentNodes == null)
             return message;
@@ -261,36 +263,35 @@ internal static class CallableResolutionDiagnostics
         if (parameters.Length == 0)
             return message;
 
-        var overloads = methods
-            .Select(FormatSignature)
-            .Distinct(StringComparer.Ordinal)
-            .Take(CandidateLimit)
-            .ToArray();
-        var overloadGuidance = overloads.Length == 0
-            ? string.Empty
-            : $" Expected overloads include: {string.Join(", ", overloads)}.";
-        return message +
-               $" Script parameter argument(s) {string.Join(", ", parameters)} use their declared types during method resolution." +
-               overloadGuidance +
-               " Declare the parameter with a compatible type or use an explicit conversion.";
+        var overloads = methods.Select(FormatSignature).Distinct(StringComparer.Ordinal).Take(CandidateLimit).ToArray();
+        var overloadGuidance =
+            overloads.Length == 0 ? string.Empty : $" Expected overloads include: {string.Join(", ", overloads)}.";
+        return message
+            + $" Script parameter argument(s) {string.Join(", ", parameters)} use their declared types during method resolution."
+            + overloadGuidance
+            + " Declare the parameter with a compatible type or use an explicit conversion.";
     }
 
     private static Parameter[] GetParameters(MethodInfo method)
     {
-        return method.GetParameters()
+        return method
+            .GetParameters()
             .Where(static parameter => !IsInjected(parameter))
             .Select(static parameter => new Parameter(
                 parameter.ParameterType,
                 parameter.IsOptional && parameter.HasDefaultValue,
-                global::Musoq.Plugins.VariadicParameter.IsVariadic(parameter)))
+                global::Musoq.Plugins.VariadicParameter.IsVariadic(parameter)
+            ))
             .ToArray();
     }
 
     private static bool IsInjected(ParameterInfo parameter)
     {
-        return parameter.GetCustomAttributes()
-            .Any(static attribute => attribute is InjectTypeAttribute ||
-                                     attribute.GetType().Name == "InjectSourceAttribute");
+        return parameter
+            .GetCustomAttributes()
+            .Any(static attribute =>
+                attribute is InjectTypeAttribute || attribute.GetType().Name == "InjectSourceAttribute"
+            );
     }
 
     private static bool IsEntityCompatible(MethodInfo method, Type? entityType)
@@ -300,11 +301,8 @@ internal static class CallableResolutionDiagnostics
 
         foreach (var parameter in method.GetParameters())
         {
-            var attribute = parameter.GetCustomAttributes()
-                .OfType<InjectSpecificSourceAttribute>()
-                .FirstOrDefault();
-            if (attribute != null && attribute.InjectType != null &&
-                !entityType.IsAssignableTo(attribute.InjectType))
+            var attribute = parameter.GetCustomAttributes().OfType<InjectSpecificSourceAttribute>().FirstOrDefault();
+            if (attribute != null && attribute.InjectType != null && !entityType.IsAssignableTo(attribute.InjectType))
                 return false;
         }
 
@@ -318,9 +316,8 @@ internal static class CallableResolutionDiagnostics
 
     private sealed record Parameter(Type ParameterType, bool IsOptional, bool IsParams)
     {
-        public Type EffectiveParameterType => IsParams
-            ? ParameterType.GetElementType() ?? ParameterType
-            : ParameterType;
+        public Type EffectiveParameterType =>
+            IsParams ? ParameterType.GetElementType() ?? ParameterType : ParameterType;
     }
 
     private sealed class Candidate(MethodInfo method, Parameter[] parameters)
@@ -347,12 +344,9 @@ internal static class CallableResolutionDiagnostics
             var score = 0;
             for (var index = 0; index < argumentTypes.Count; index++)
             {
-                var parameter = index < fixedCount
-                    ? Parameters[index]
-                    : Parameters[^1];
-                var targetType = index < fixedCount || !hasParams
-                    ? parameter.ParameterType
-                    : parameter.EffectiveParameterType;
+                var parameter = index < fixedCount ? Parameters[index] : Parameters[^1];
+                var targetType =
+                    index < fixedCount || !hasParams ? parameter.ParameterType : parameter.EffectiveParameterType;
                 var argumentType = argumentTypes[index];
                 var conversionScore = GetConversionScore(argumentType, targetType);
                 if (conversionScore == int.MaxValue)
@@ -380,10 +374,13 @@ internal static class CallableResolutionDiagnostics
             return 10 + GetInheritanceDistance(argument, parameter);
         if (IsImplicitNumericConversion(argument, parameter))
             return 100;
-        if (parameter.IsArray && argument.IsArray &&
-            parameter.GetElementType() is { } parameterElement &&
-            argument.GetElementType() is { } argumentElement &&
-            GetConversionScore(argumentElement, parameterElement) != int.MaxValue)
+        if (
+            parameter.IsArray
+            && argument.IsArray
+            && parameter.GetElementType() is { } parameterElement
+            && argument.GetElementType() is { } argumentElement
+            && GetConversionScore(argumentElement, parameterElement) != int.MaxValue
+        )
             return 120;
 
         return int.MaxValue;
@@ -413,24 +410,41 @@ internal static class CallableResolutionDiagnostics
             return false;
 
         if (from == typeof(byte))
-            return to == typeof(short) || to == typeof(ushort) || to == typeof(int) || to == typeof(uint) ||
-                   to == typeof(long) || to == typeof(ulong) || to == typeof(float) || to == typeof(double) ||
-                   to == typeof(decimal);
+            return to == typeof(short)
+                || to == typeof(ushort)
+                || to == typeof(int)
+                || to == typeof(uint)
+                || to == typeof(long)
+                || to == typeof(ulong)
+                || to == typeof(float)
+                || to == typeof(double)
+                || to == typeof(decimal);
 
         if (from == typeof(short))
-            return to == typeof(int) || to == typeof(uint) || to == typeof(long) || to == typeof(ulong) ||
-                   to == typeof(float) || to == typeof(double) || to == typeof(decimal);
+            return to == typeof(int)
+                || to == typeof(uint)
+                || to == typeof(long)
+                || to == typeof(ulong)
+                || to == typeof(float)
+                || to == typeof(double)
+                || to == typeof(decimal);
 
         if (from == typeof(int))
-            return to == typeof(long) || to == typeof(ulong) || to == typeof(float) || to == typeof(double) ||
-                   to == typeof(decimal);
+            return to == typeof(long)
+                || to == typeof(ulong)
+                || to == typeof(float)
+                || to == typeof(double)
+                || to == typeof(decimal);
 
         if (from == typeof(long))
             return to == typeof(float) || to == typeof(double) || to == typeof(decimal);
 
         if (from == typeof(uint))
-            return to == typeof(long) || to == typeof(ulong) || to == typeof(float) || to == typeof(double) ||
-                   to == typeof(decimal);
+            return to == typeof(long)
+                || to == typeof(ulong)
+                || to == typeof(float)
+                || to == typeof(double)
+                || to == typeof(decimal);
 
         if (from == typeof(ulong))
             return to == typeof(float) || to == typeof(double) || to == typeof(decimal);
@@ -442,7 +456,8 @@ internal static class CallableResolutionDiagnostics
         DiagnosticCode Code,
         string Message,
         TextSpan Span,
-        IReadOnlyDictionary<string, string> Arguments);
+        IReadOnlyDictionary<string, string> Arguments
+    );
 
     private sealed class MethodInfoIdentityComparer : IEqualityComparer<MethodInfo>
     {

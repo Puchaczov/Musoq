@@ -10,13 +10,15 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenCompositeExistsSubqueryUsesReferenceAndValueKeys_ShouldUseTypedHashKeyAndPreserveNullSemantics()
     {
-        const string query = @"
-            SELECT a.Name FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.Name FROM #B.entities() b
-                WHERE b.Country = a.Country
-                  AND b.Population = a.Population
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name FROM #A.entities() a\n"
+            + "            WHERE EXISTS (\n"
+            + "                SELECT b.Name FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "                  AND b.Population = a.Population\n"
+            + "            )"
+        );
         var sources = CreateCompositeKeySources();
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
         var inspection = CompileSubqueryForInspection(query);
@@ -25,19 +27,23 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["match"]);
         Assert.Contains("ValueTuple<int, string, decimal>", inspection.ExecutionPlanText);
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("Dictionary<object, HashJoinBucket<", StringComparison.Ordinal));
+        Assert.IsFalse(
+            inspection.GeneratedCSharpCode.Contains("Dictionary<object, HashJoinBucket<", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void WhenCompositeNotExistsSubqueryUsesReferenceAndValueKeys_ShouldTreatNullProbeAsNoMatch()
     {
-        const string query = @"
-            SELECT a.Name FROM #A.entities() a
-            WHERE NOT EXISTS (
-                SELECT b.Name FROM #B.entities() b
-                WHERE b.Country = a.Country
-                  AND b.Population = a.Population
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name FROM #A.entities() a\n"
+            + "            WHERE NOT EXISTS (\n"
+            + "                SELECT b.Name FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "                  AND b.Population = a.Population\n"
+            + "            )"
+        );
         var table = CreateAndRunVirtualMachine(query, CreateCompositeKeySources()).Run(TestContext.CancellationToken);
         var inspection = CompileSubqueryForInspection(query);
 
@@ -47,18 +53,44 @@ public partial class SubqueryTests
         Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", inspection.PhysicalPlanText);
     }
 
-    private static Dictionary<string, IEnumerable<BasicEntity>> CreateCompositeKeySources() => new()
-    {
-        ["#A"] =
-        [
-            new BasicEntity { Name = "match", Country = "PL", Population = 10m },
-            new BasicEntity { Name = "left-null", Country = null, Population = 20m },
-            new BasicEntity { Name = "no-match", Country = "DE", Population = 30m }
-        ],
-        ["#B"] =
-        [
-            new BasicEntity { Name = "right-match", Country = "PL", Population = 10m },
-            new BasicEntity { Name = "right-null", Country = null, Population = 20m }
-        ]
-    };
+    private static Dictionary<string, IEnumerable<BasicEntity>> CreateCompositeKeySources() =>
+        new()
+        {
+            ["#A"] =
+            [
+                new BasicEntity
+                {
+                    Name = "match",
+                    Country = "PL",
+                    Population = 10m,
+                },
+                new BasicEntity
+                {
+                    Name = "left-null",
+                    Country = null,
+                    Population = 20m,
+                },
+                new BasicEntity
+                {
+                    Name = "no-match",
+                    Country = "DE",
+                    Population = 30m,
+                },
+            ],
+            ["#B"] =
+            [
+                new BasicEntity
+                {
+                    Name = "right-match",
+                    Country = "PL",
+                    Population = 10m,
+                },
+                new BasicEntity
+                {
+                    Name = "right-null",
+                    Country = null,
+                    Population = 20m,
+                },
+            ],
+        };
 }

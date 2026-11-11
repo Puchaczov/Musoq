@@ -2,7 +2,12 @@ namespace Musoq.Parser.Nodes.From;
 
 public class ApplyInMemoryWithSourceTableFromNode : FromNode
 {
-    internal ApplyInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, ApplyType applyType, bool withOrdinality = false)
+    internal ApplyInMemoryWithSourceTableFromNode(
+        string inMemoryTableAlias,
+        FromNode sourceTable,
+        ApplyType applyType,
+        bool withOrdinality = false
+    )
         : base(CreateAlias(inMemoryTableAlias, sourceTable))
     {
         Id =
@@ -13,8 +18,13 @@ public class ApplyInMemoryWithSourceTableFromNode : FromNode
         WithOrdinality = withOrdinality;
     }
 
-    public ApplyInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, ApplyType applyType,
-        Type returnType, bool withOrdinality = false)
+    public ApplyInMemoryWithSourceTableFromNode(
+        string inMemoryTableAlias,
+        FromNode sourceTable,
+        ApplyType applyType,
+        Type returnType,
+        bool withOrdinality = false
+    )
         : base(CreateAlias(inMemoryTableAlias, sourceTable), returnType)
     {
         ArgumentNullException.ThrowIfNull(sourceTable);

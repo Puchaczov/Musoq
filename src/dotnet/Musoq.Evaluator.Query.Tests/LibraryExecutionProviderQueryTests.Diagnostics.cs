@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
 using Musoq.Schema;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -18,16 +17,27 @@ public sealed partial class LibraryExecutionProviderQueryTests
     [DataRow("param(value: int) profile select $value from #typedrows.rows()", "Musoq query profile")]
     public void DiagnosticSql_WhenFullyConsumed_ShouldExposeConcreteColumns(string query, string heading)
     {
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new LibraryExecutionQueryRowProvider(), LoggerResolver);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new LibraryExecutionQueryRowProvider(),
+            LoggerResolver
+        );
         if (query.StartsWith("param", StringComparison.Ordinal))
-            global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", 42);
+            global::Musoq.Tests.Common.NativeParameterFixture.Set(
+                compiled.TypedParameters,
+                compiled.ParameterDefinitions,
+                "value",
+                42
+            );
         var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         TableMaterializationTestHelper.AssertColumns(table, ("LineNumber", typeof(int)), ("Text", typeof(string)));
         Assert.IsGreaterThan(0, rows.Length);
-        CollectionAssert.AreEqual(Enumerable.Range(1, rows.Length).ToArray(),
-            rows.Select(row => row.GetValue<int>(0)).ToArray());
+        CollectionAssert.AreEqual(
+            Enumerable.Range(1, rows.Length).ToArray(),
+            rows.Select(row => row.GetValue<int>(0)).ToArray()
+        );
         var text = string.Join("\n", rows.Select(row => row.GetValue<string>(1)));
         Assert.Contains(heading, text);
         foreach (var row in rows)
@@ -41,13 +51,24 @@ public sealed partial class LibraryExecutionProviderQueryTests
     [TestMethod]
     public void DescSettings_WhenFullyConsumed_ShouldVisitConcreteValuesAndKeepSecretsRedacted()
     {
-        using var compiled = InstanceCreator.CompileForExecution("desc settings #settings.items()",
-            Guid.NewGuid().ToString(), new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(true),
-            LoggerResolver, new CompilationOptions(sourceRuntimeSettingsResolver: new SecretSettingsResolver()));
+        using var compiled = InstanceCreator.CompileForExecution(
+            "desc settings #settings.items()",
+            Guid.NewGuid().ToString(),
+            new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(true),
+            LoggerResolver,
+            new CompilationOptions(sourceRuntimeSettingsResolver: new SecretSettingsResolver())
+        );
         var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Required", typeof(bool)),
-            ("Secret", typeof(bool)), ("Phases", typeof(string)), ("Status", typeof(string)), ("Description", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Required", typeof(bool)),
+            ("Secret", typeof(bool)),
+            ("Phases", typeof(string)),
+            ("Status", typeof(string)),
+            ("Description", typeof(string))
+        );
         Assert.HasCount(2, rows);
         var token = rows.Single(row => row.GetValue<string>(0) == "TOKEN");
         Assert.IsTrue(token.GetValue<bool>(1));

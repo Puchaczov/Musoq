@@ -9,7 +9,8 @@ public sealed record ExecutionCreateHashPayload : ExecutionNode
     public ExecutionCreateHashPayload(
         ExecutionVariable payload,
         HashPayloadShape payloadShape,
-        IReadOnlyList<ExecutionRowValue> values)
+        IReadOnlyList<ExecutionRowValue> values
+    )
     {
         Payload = payload;
         PayloadShape = payloadShape;

@@ -40,8 +40,14 @@ internal static class WindowRegistrationLoweringHelpers
                 "|",
                 registration.OrderKeys.Select(key =>
                     string.Concat(
-                        key.Descending ? "D:" : "A:", key.NullOrdering, ":",
-                        ExecutionExpressionFingerprint.ForWindowExpression(key.Expression)))));
+                        key.Descending ? "D:" : "A:",
+                        key.NullOrdering,
+                        ":",
+                        ExecutionExpressionFingerprint.ForWindowExpression(key.Expression)
+                    )
+                )
+            )
+        );
     }
 
     internal static string CreateWindowPartitionListSignature(WindowRegistration registration)
@@ -61,8 +67,11 @@ internal static class WindowRegistrationLoweringHelpers
 
     private static bool IsSafeTypedWindowKeyElement(Type type)
     {
-        if (type.IsGenericType && type.Namespace == typeof(ValueTuple).Namespace &&
-            type.Name.StartsWith("ValueTuple`", StringComparison.Ordinal))
+        if (
+            type.IsGenericType
+            && type.Namespace == typeof(ValueTuple).Namespace
+            && type.Name.StartsWith("ValueTuple`", StringComparison.Ordinal)
+        )
         {
             return type.GetGenericArguments().All(IsSafeTypedWindowKeyElement);
         }
@@ -70,21 +79,20 @@ internal static class WindowRegistrationLoweringHelpers
         if (Nullable.GetUnderlyingType(type) is { } underlyingType)
             return IsSafeTypedWindowKeyElement(underlyingType);
 
-        return type == typeof(string) ||
-               type == typeof(decimal) ||
-               type == typeof(DateTime) ||
-               type == typeof(bool) ||
-               type == typeof(char) ||
-               type == typeof(byte) ||
-               type == typeof(sbyte) ||
-               type == typeof(short) ||
-               type == typeof(ushort) ||
-               type == typeof(int) ||
-               type == typeof(uint) ||
-               type == typeof(long) ||
-               type == typeof(ulong) ||
-               type == typeof(float) ||
-               type == typeof(double);
+        return type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(DateTime)
+            || type == typeof(bool)
+            || type == typeof(char)
+            || type == typeof(byte)
+            || type == typeof(sbyte)
+            || type == typeof(short)
+            || type == typeof(ushort)
+            || type == typeof(int)
+            || type == typeof(uint)
+            || type == typeof(long)
+            || type == typeof(ulong)
+            || type == typeof(float)
+            || type == typeof(double);
     }
-
 }

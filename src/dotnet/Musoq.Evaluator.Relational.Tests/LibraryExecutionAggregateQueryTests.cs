@@ -3,7 +3,6 @@ using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionAggregateQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -11,17 +10,38 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityTestBase
 {
-    [TestMethod] public void ByteAggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<byte, decimal>(1.5m);
-    [TestMethod] public void SByteAggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<sbyte, decimal>(1.5m);
-    [TestMethod] public void Int16Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<short, decimal>(1.5m);
-    [TestMethod] public void UInt16Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<ushort, decimal>(1.5m);
-    [TestMethod] public void Int32Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<int, decimal>(1.5m);
-    [TestMethod] public void UInt32Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<uint, decimal>(1.5m);
-    [TestMethod] public void Int64Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<long, decimal>(1.5m);
-    [TestMethod] public void UInt64Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<ulong, decimal>(1.5m);
-    [TestMethod] public void DecimalAggregates_ShouldPreserveTheirConcreteResult() => AssertNumeric<decimal, decimal>(1.5m);
-    [TestMethod] public void SingleAggregates_ShouldPreserveTheirConcreteResult() => AssertNumeric<float, float>(1.5f);
-    [TestMethod] public void DoubleAggregates_ShouldPreserveTheirConcreteResult() => AssertNumeric<double, double>(1.5d);
+    [TestMethod]
+    public void ByteAggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<byte, decimal>(1.5m);
+
+    [TestMethod]
+    public void SByteAggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<sbyte, decimal>(1.5m);
+
+    [TestMethod]
+    public void Int16Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<short, decimal>(1.5m);
+
+    [TestMethod]
+    public void UInt16Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<ushort, decimal>(1.5m);
+
+    [TestMethod]
+    public void Int32Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<int, decimal>(1.5m);
+
+    [TestMethod]
+    public void UInt32Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<uint, decimal>(1.5m);
+
+    [TestMethod]
+    public void Int64Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<long, decimal>(1.5m);
+
+    [TestMethod]
+    public void UInt64Aggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<ulong, decimal>(1.5m);
+
+    [TestMethod]
+    public void DecimalAggregates_ShouldPreserveTheirConcreteResult() => AssertNumeric<decimal, decimal>(1.5m);
+
+    [TestMethod]
+    public void SingleAggregates_ShouldPreserveTheirConcreteResult() => AssertNumeric<float, float>(1.5f);
+
+    [TestMethod]
+    public void DoubleAggregates_ShouldPreserveTheirConcreteResult() => AssertNumeric<double, double>(1.5d);
 
     [TestMethod]
     public void IntegralAverage_WhenInputSumExceedsInt32_ShouldAccumulateInDecimal()
@@ -32,7 +52,11 @@ public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityT
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Average", typeof(decimal?)), ("UniqueAverage", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Average", typeof(decimal?)),
+            ("UniqueAverage", typeof(decimal?))
+        );
         Assert.HasCount(1, rows);
         Assert.AreEqual((decimal)int.MaxValue, rows[0].GetValue<decimal?>(0));
         Assert.AreEqual((decimal)int.MaxValue, rows[0].GetValue<decimal?>(1));
@@ -45,8 +69,10 @@ public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityT
             select Partition, SeededTotal(Amount) as Total, PositiveCount(Amount) as Positive
             from #schema.first() group by Partition order by Partition
             """;
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
 
         AssertSeededGroups(compiled.Run(TestContext.CancellationToken));
         AssertSeededGroups(compiled.Run(TestContext.CancellationToken));
@@ -72,8 +98,10 @@ public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityT
             select (select SeededTotal(Amount) from #schema.first() where Position < 0) as Total
             from #schema.first() where Position = 1
             """;
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
@@ -89,8 +117,10 @@ public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityT
             select Partition, ReferencePositiveCount(Amount) as Positive
             from #schema.first() group by Partition order by Partition
             """;
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
@@ -105,13 +135,20 @@ public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityT
     [TestMethod]
     public void GenericCustomKernel_WhenDeclarationIsConcretized_ShouldReturnTypedTotals()
     {
-        const string query = "select GenericTotal(Integral) as Integers, GenericTotal(Amount) as Decimals from #schema.first()";
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        const string query =
+            "select GenericTotal(Integral) as Integers, GenericTotal(Amount) as Decimals from #schema.first()";
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Integers", typeof(int?)), ("Decimals", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Integers", typeof(int?)),
+            ("Decimals", typeof(decimal?))
+        );
         Assert.HasCount(1, rows);
         Assert.AreEqual(5, rows[0].GetValue<int?>(0));
         Assert.AreEqual(6m, rows[0].GetValue<decimal?>(1));
@@ -121,12 +158,18 @@ public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityT
     public void DerivedLibrary_WhenAggregateSignatureIsOverridden_ShouldUseItsKernelAndInheritOtherOverloads()
     {
         const string query = "select Sum(Amount) as Positive, Sum(Integral) as Integers from #schema.first()";
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, PositiveSumLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, PositiveSumLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Positive", typeof(decimal?)), ("Integers", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Positive", typeof(decimal?)),
+            ("Integers", typeof(int?))
+        );
         Assert.HasCount(1, rows);
         Assert.AreEqual(9m, rows[0].GetValue<decimal?>(0));
         Assert.AreEqual(5, rows[0].GetValue<int?>(1));
@@ -142,13 +185,20 @@ public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityT
                 Count(*) filter (where Position < 0) as Rows
             from #schema.first()
             """;
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Total", typeof(decimal?)), ("Average", typeof(decimal?)),
-            ("Values", typeof(long)), ("Rows", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Total", typeof(decimal?)),
+            ("Average", typeof(decimal?)),
+            ("Values", typeof(long)),
+            ("Rows", typeof(long))
+        );
         Assert.HasCount(1, rows);
         Assert.IsNull(rows[0].GetValue<decimal?>(0));
         Assert.IsNull(rows[0].GetValue<decimal?>(1));
@@ -172,9 +222,18 @@ public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityT
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Total", typeof(T?)), ("NullableTotal", typeof(T?)),
-            ("Average", typeof(TResult?)), ("Minimum", typeof(T?)), ("Maximum", typeof(T?)), ("Values", typeof(long)),
-            ("Rows", typeof(long)), ("UniqueValues", typeof(long)), ("UniqueAverage", typeof(TResult?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Total", typeof(T?)),
+            ("NullableTotal", typeof(T?)),
+            ("Average", typeof(TResult?)),
+            ("Minimum", typeof(T?)),
+            ("Maximum", typeof(T?)),
+            ("Values", typeof(long)),
+            ("Rows", typeof(long)),
+            ("UniqueValues", typeof(long)),
+            ("UniqueAverage", typeof(TResult?))
+        );
         Assert.HasCount(1, rows);
         Assert.AreEqual(T.CreateChecked(3), rows[0].GetValue<T?>(0));
         Assert.AreEqual(T.One, rows[0].GetValue<T?>(1));
@@ -205,9 +264,17 @@ public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityT
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Total", typeof(T?)), ("Average", typeof(TResult?)),
-            ("Minimum", typeof(T?)), ("Maximum", typeof(T?)), ("Values", typeof(long)), ("Rows", typeof(long)),
-            ("UniqueValues", typeof(long)), ("UniqueAverage", typeof(TResult?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Total", typeof(T?)),
+            ("Average", typeof(TResult?)),
+            ("Minimum", typeof(T?)),
+            ("Maximum", typeof(T?)),
+            ("Values", typeof(long)),
+            ("Rows", typeof(long)),
+            ("UniqueValues", typeof(long)),
+            ("UniqueAverage", typeof(TResult?))
+        );
         Assert.HasCount(1, rows);
         Assert.IsNull(rows[0].GetValue<T?>(0));
         Assert.IsNull(rows[0].GetValue<TResult?>(1));

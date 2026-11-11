@@ -15,7 +15,8 @@ public sealed class TypedQueryProfileResult<TOut>
         IEnumerable<TOut> rows,
         QueryProfileSnapshot profile,
         string profileText,
-        bool isSourceExecutionComplete = false)
+        bool isSourceExecutionComplete = false
+    )
     {
         ArgumentNullException.ThrowIfNull(rows);
         _profile = profile ?? throw new ArgumentNullException(nameof(profile));
@@ -64,12 +65,13 @@ public sealed class TypedQueryProfileResult<TOut>
     private void ThrowIfNotFinalized()
     {
         if (!IsFinalized)
-            throw new InvalidOperationException("Typed query profile is available only after row enumeration completes, is disposed, or fails.");
+            throw new InvalidOperationException(
+                "Typed query profile is available only after row enumeration completes, is disposed, or fails."
+            );
     }
 
-    private sealed class FinalizingEnumerable(
-        IEnumerable<TOut> source,
-        TypedQueryProfileResult<TOut> owner) : IEnumerable<TOut>
+    private sealed class FinalizingEnumerable(IEnumerable<TOut> source, TypedQueryProfileResult<TOut> owner)
+        : IEnumerable<TOut>
     {
         private int _started;
 
@@ -87,9 +89,8 @@ public sealed class TypedQueryProfileResult<TOut>
         }
     }
 
-    private sealed class FinalizingEnumerator(
-        IEnumerator<TOut> source,
-        TypedQueryProfileResult<TOut> owner) : IEnumerator<TOut>
+    private sealed class FinalizingEnumerator(IEnumerator<TOut> source, TypedQueryProfileResult<TOut> owner)
+        : IEnumerator<TOut>
     {
         private bool _completed;
         private int _disposed;

@@ -15,5 +15,5 @@ public enum ExecutionConstantKind
     Guid = 10,
     TimeSpan = 11,
     Enum = 12,
-    ClrOnly = 13
+    ClrOnly = 13,
 }

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Parser.Nodes;
-using System.Globalization;
 using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Visitors;
@@ -16,21 +16,24 @@ internal static class SchemaArgumentBinder
         IReadOnlyDictionary<string, ScriptParameterDefinition>? scriptParameters = null,
         IReadOnlyDictionary<string, ScriptVariableDefinition>? scriptVariables = null,
         BoundSchemaInvocation? invocation = null,
-        bool useConstantFolding = true)
+        bool useConstantFolding = true
+    )
     {
         if (args == null || args.Args.Length == 0)
         {
             if (invocation == null)
                 return [];
 
-            return invocation.Arguments
-                .Where(static argument => argument.UsesDefault)
+            return invocation
+                .Arguments.Where(static argument => argument.UsesDefault)
                 .Select(argument => argument.DefaultValue)
                 .ToArray();
         }
 
         var evaluation = new StaticArgumentEvaluation(
-            SourceArgumentStaticValues.Create(scriptParameters, scriptVariables), useConstantFolding);
+            SourceArgumentStaticValues.Create(scriptParameters, scriptVariables),
+            useConstantFolding
+        );
         var values = new List<object?>(invocation?.Arguments.Length ?? args.Args.Length);
 
         if (invocation == null)
@@ -64,7 +67,12 @@ internal static class SchemaArgumentBinder
                 break;
             }
 
-            values.Add(ConvertStaticArgument(value, invocation.Signature.Parameters[boundArgument.ParameterIndex].ParameterType));
+            values.Add(
+                ConvertStaticArgument(
+                    value,
+                    invocation.Signature.Parameters[boundArgument.ParameterIndex].ParameterType
+                )
+            );
         }
 
         return values.ToArray();
@@ -76,14 +84,19 @@ internal static class SchemaArgumentBinder
         if (value is null || targetType.IsInstanceOfType(value))
             return value;
         if (value is IConvertible && SchemaConversionClassifier.TryGetCost(value.GetType(), parameterType, out _))
-            return Convert.ChangeType(value is char character ? (ushort)character : value, targetType, CultureInfo.InvariantCulture);
+            return Convert.ChangeType(
+                value is char character ? (ushort)character : value,
+                targetType,
+                CultureInfo.InvariantCulture
+            );
         return value;
     }
 
     private static bool TryBindStaticArgument(
         Node arg,
         StaticArgumentEvaluation evaluation,
-        [MaybeNullWhen(false)] out object? value)
+        [MaybeNullWhen(false)] out object? value
+    )
     {
         switch (arg)
         {
@@ -127,7 +140,8 @@ internal static class SchemaArgumentBinder
     private static bool TryBindStaticExpression(
         Node arg,
         StaticArgumentEvaluation evaluation,
-        [MaybeNullWhen(false)] out object? value)
+        [MaybeNullWhen(false)] out object? value
+    )
     {
         var result = ScriptVariableInitializerEvaluator.EvaluateStaticExpression(arg, evaluation.Values);
         value = result.Value;
@@ -145,5 +159,6 @@ internal static class SchemaArgumentBinder
 
     private readonly record struct StaticArgumentEvaluation(
         IReadOnlyDictionary<string, ScriptVariableDefinition> Values,
-        bool UseConstantFolding);
+        bool UseConstantFolding
+    );
 }

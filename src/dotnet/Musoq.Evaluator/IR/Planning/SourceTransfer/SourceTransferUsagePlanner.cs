@@ -1,16 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical;
-using System.Threading;
 
 namespace Musoq.Evaluator.IR.Planning;
 
 internal static class SourceTransferUsagePlanner
 {
-    public static SourceTransferUsagePlanningResult Plan(
-        LogicalNode logicalPlan,
-        SourcePlanningFacts sourcePlanning)
+    public static SourceTransferUsagePlanningResult Plan(LogicalNode logicalPlan, SourcePlanningFacts sourcePlanning)
     {
         return Plan(logicalPlan, sourcePlanning, CancellationToken.None);
     }
@@ -18,7 +16,8 @@ internal static class SourceTransferUsagePlanner
     public static SourceTransferUsagePlanningResult Plan(
         LogicalNode logicalPlan,
         SourcePlanningFacts sourcePlanning,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(logicalPlan);
         ArgumentNullException.ThrowIfNull(sourcePlanning);
@@ -34,13 +33,16 @@ internal static class SourceTransferUsagePlanner
         var sourceReferences = SourceReferenceIndex.Create(logicalPlan, cancellationToken);
         var lifetimePlans = SourceTransferLifetimePlanner.Plan(logicalPlan, cancellationToken);
 
-        foreach (var expression in LogicalExpressionTraversal.SelfAndDescendantExpressions(
-                     logicalPlan,
-                     cancellationToken))
+        foreach (
+            var expression in LogicalExpressionTraversal.SelfAndDescendantExpressions(logicalPlan, cancellationToken)
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            foreach (var methodCall in IrExpressionTraversal.SelfAndDescendants(expression, cancellationToken)
-                         .OfType<MethodCall>())
+            foreach (
+                var methodCall in IrExpressionTraversal
+                    .SelfAndDescendants(expression, cancellationToken)
+                    .OfType<MethodCall>()
+            )
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 RecordDeclaredEntityUsage(
@@ -48,7 +50,8 @@ internal static class SourceTransferUsagePlanner
                     sourcePlanning,
                     sourceReferences,
                     reasonsBySourceId,
-                    cancellationToken);
+                    cancellationToken
+                );
             }
         }
 
@@ -66,13 +69,15 @@ internal static class SourceTransferUsagePlanner
                 ? lifetimePlan
                 : SourceTransferLifetimePlan.Escapes(
                     source.SourceContextId,
-                    "No logical lifetime path was available for the source.");
+                    "No logical lifetime path was available for the source."
+                );
             var plan = new SourceTransferUsagePlan(
                 source.SourceContextId,
                 requiresDeclaredEntity ? SourceRowRequirement.DeclaredEntity : SourceRowRequirement.ColumnValuesOnly,
                 lifetime.Lifetime,
                 reason,
-                lifetime.Reason);
+                lifetime.Reason
+            );
             plans[source.SourceContextId] = plan;
             decisions.Add(CreateDecision(plan));
         }
@@ -86,7 +91,8 @@ internal static class SourceTransferUsagePlanner
         SourcePlanningFacts sourcePlanning,
         SourceReferenceIndex sourceReferences,
         IReadOnlyDictionary<string, HashSet<string>> reasonsBySourceId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var parameter = SourceInjectionMethodFacts.FindInjectedSourceParameter(methodCall.Method);
@@ -110,7 +116,8 @@ internal static class SourceTransferUsagePlanner
             AddReasonToAllSources(
                 $"Method '{methodCall.Method.Name}' targets unresolved alias '{methodCall.Alias}', so declared entities are retained conservatively.",
                 reasonsBySourceId,
-                cancellationToken);
+                cancellationToken
+            );
             return;
         }
 
@@ -148,17 +155,21 @@ internal static class SourceTransferUsagePlanner
             AddReasonToAllSources(
                 $"Method '{methodCall.Method.Name}' has an unaliased source injection with incomplete row metadata.",
                 reasonsBySourceId,
-                cancellationToken);
+                cancellationToken
+            );
         }
     }
 
     private static bool CanSupplyInjectedSource(
         SourcePlanProperties source,
         Type parameterType,
-        SourcePlanningFacts sourcePlanning)
+        SourcePlanningFacts sourcePlanning
+    )
     {
-        if (!sourcePlanning.SourceDescriptorsBySourceId.TryGetValue(source.SourceContextId, out var descriptor) ||
-            descriptor.RowType == null)
+        if (
+            !sourcePlanning.SourceDescriptorsBySourceId.TryGetValue(source.SourceContextId, out var descriptor)
+            || descriptor.RowType == null
+        )
         {
             return false;
         }
@@ -169,10 +180,13 @@ internal static class SourceTransferUsagePlanner
     private static void AddReason(
         string? sourceContextId,
         string reason,
-        IReadOnlyDictionary<string, HashSet<string>> reasonsBySourceId)
+        IReadOnlyDictionary<string, HashSet<string>> reasonsBySourceId
+    )
     {
-        if (string.IsNullOrWhiteSpace(sourceContextId) ||
-            !reasonsBySourceId.TryGetValue(sourceContextId, out var reasons))
+        if (
+            string.IsNullOrWhiteSpace(sourceContextId)
+            || !reasonsBySourceId.TryGetValue(sourceContextId, out var reasons)
+        )
         {
             return;
         }
@@ -183,7 +197,8 @@ internal static class SourceTransferUsagePlanner
     private static void AddReasonToAllSources(
         string reason,
         IReadOnlyDictionary<string, HashSet<string>> reasonsBySourceId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         foreach (var reasons in reasonsBySourceId.Values)
         {
@@ -194,16 +209,19 @@ internal static class SourceTransferUsagePlanner
 
     private static IReadOnlyList<SourcePlanProperties> GetOrderedSources(
         IEnumerable<SourcePlanProperties> sources,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var ordered = sources.ToList();
         cancellationToken.ThrowIfCancellationRequested();
-        ordered.Sort((left, right) =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return StringComparer.Ordinal.Compare(left.SourceContextId, right.SourceContextId);
-        });
+        ordered.Sort(
+            (left, right) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return StringComparer.Ordinal.Compare(left.SourceContextId, right.SourceContextId);
+            }
+        );
         cancellationToken.ThrowIfCancellationRequested();
         return ordered;
     }
@@ -217,6 +235,7 @@ internal static class SourceTransferUsagePlanner
             plan.SourceContextId,
             declaredEntity ? "DeclaredEntity" : "ColumnValuesOnly",
             PlanningConfidence.High,
-            $"{plan.RowRequirementReason} {plan.LifetimeReason}");
+            $"{plan.RowRequirementReason} {plan.LifetimeReason}"
+        );
     }
 }

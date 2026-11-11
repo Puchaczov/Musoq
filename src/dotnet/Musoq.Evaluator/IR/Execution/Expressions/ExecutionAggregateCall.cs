@@ -13,7 +13,8 @@ public sealed record ExecutionAggregateCall : ExecutionExpression
         IReadOnlyList<ExecutionExpression> arguments,
         ExecutionTypeRef returnType,
         AggregateAccumulatorField accumulator,
-        string? displayName = null)
+        string? displayName = null
+    )
         : base(returnType)
     {
         Group = group;
@@ -46,8 +47,14 @@ public sealed record ExecutionAggregateCall : ExecutionExpression
         IReadOnlyList<ExecutionExpression> arguments,
         Type returnType,
         AggregateAccumulatorField accumulator,
-        string? displayName = null)
-        : this(group, ExecutionClrBindingFactory.FromClr(method), arguments, ExecutionClrBindingFactory.FromClr(returnType), accumulator, displayName)
-    {
-    }
+        string? displayName = null
+    )
+        : this(
+            group,
+            ExecutionClrBindingFactory.FromClr(method),
+            arguments,
+            ExecutionClrBindingFactory.FromClr(returnType),
+            accumulator,
+            displayName
+        ) { }
 }

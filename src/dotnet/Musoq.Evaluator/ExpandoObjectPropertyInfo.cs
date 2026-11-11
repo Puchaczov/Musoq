@@ -1,6 +1,6 @@
-﻿using System.Dynamic;
+﻿using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace Musoq.Evaluator;
@@ -54,21 +54,35 @@ internal sealed class ExpandoObjectPropertyInfo(string name, Type propertyType) 
         return null!;
     }
 
-    public override object GetValue(object? obj, BindingFlags invokeAttr, Binder? binder, object?[]? index,
-        CultureInfo? culture)
+    public override object GetValue(
+        object? obj,
+        BindingFlags invokeAttr,
+        Binder? binder,
+        object?[]? index,
+        CultureInfo? culture
+    )
     {
         if (index is { Length: > 0 })
-            throw new TargetParameterCountException("Expando object metadata properties do not support index parameters.");
+            throw new TargetParameterCountException(
+                "Expando object metadata properties do not support index parameters."
+            );
 
         if (obj is IDictionary<string, object?> values)
             return values.TryGetValue(Name, out var value) ? value! : null!;
 
         throw new TargetException(
-            $"Expando object metadata property '{Name}' can only read values from dictionary-backed expando rows.");
+            $"Expando object metadata property '{Name}' can only read values from dictionary-backed expando rows."
+        );
     }
 
-    public override void SetValue(object? obj, object? value, BindingFlags invokeAttr, Binder? binder, object?[]? index,
-        CultureInfo? culture)
+    public override void SetValue(
+        object? obj,
+        object? value,
+        BindingFlags invokeAttr,
+        Binder? binder,
+        object?[]? index,
+        CultureInfo? culture
+    )
     {
         throw new NotSupportedException($"Expando object metadata property '{Name}' is read-only.");
     }

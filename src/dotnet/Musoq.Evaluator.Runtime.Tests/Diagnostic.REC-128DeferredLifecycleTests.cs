@@ -85,46 +85,91 @@ public sealed class REC128DeferredLifecycleTests
         switch (caseId)
         {
             case "OC-S-SCHEMA":
-                AssertCancellation(() => DataSourceLifecycle.OpenSchema(
-                    new CancellingProvider(), SchemaName, SourceName, Alias, ContextId));
+                AssertCancellation(() =>
+                    DataSourceLifecycle.OpenSchema(new CancellingProvider(), SchemaName, SourceName, Alias, ContextId)
+                );
                 return;
             case "OC-S-WRAPPED-SCHEMA":
-                AssertCancellation(() => DataSourceLifecycle.WrapProvider(new CancellingProvider())
-                    .GetSchema(SchemaName));
+                AssertCancellation(() =>
+                    DataSourceLifecycle.WrapProvider(new CancellingProvider()).GetSchema(SchemaName)
+                );
                 return;
             case "OC-S-ROW":
-                AssertCancellation(() => DataSourceLifecycle.OpenRowSource<int, EmptySourceArguments>(
-                    new CancellingSchema(), SourceName, CreateContext(), SourceArguments.Empty, SchemaName, Alias, ContextId));
+                AssertCancellation(() =>
+                    DataSourceLifecycle.OpenRowSource<int, EmptySourceArguments>(
+                        new CancellingSchema(),
+                        SourceName,
+                        CreateContext(),
+                        SourceArguments.Empty,
+                        SchemaName,
+                        Alias,
+                        ContextId
+                    )
+                );
                 return;
             case "OC-S-WRAPPED-ROW":
             {
                 var schema = DataSourceLifecycle.OpenSchema(
-                    new StaticProvider(new CancellingSchema()), SchemaName, SourceName, Alias, ContextId);
-                AssertCancellation(() => global::Musoq.Schema.SourceInvocation<int>.Open(schema, SourceName, CreateContext(), global::Musoq.Schema.SourceArguments.Empty));
+                    new StaticProvider(new CancellingSchema()),
+                    SchemaName,
+                    SourceName,
+                    Alias,
+                    ContextId
+                );
+                AssertCancellation(() =>
+                    global::Musoq.Schema.SourceInvocation<int>.Open(
+                        schema,
+                        SourceName,
+                        CreateContext(),
+                        global::Musoq.Schema.SourceArguments.Empty
+                    )
+                );
                 return;
             }
             case "OC-S-QUERY-ROW":
-                AssertCancellation(() => DataSourceLifecycle.OpenQueryScopedRowSource<int, EmptyMaterializer, EmptySourceArguments>(
-                    new CancellingSchema(), SourceName, CreateQueryScopedRequest(), SourceArguments.Empty,
-                    SchemaName, Alias, ContextId));
+                AssertCancellation(() =>
+                    DataSourceLifecycle.OpenQueryScopedRowSource<int, EmptyMaterializer, EmptySourceArguments>(
+                        new CancellingSchema(),
+                        SourceName,
+                        CreateQueryScopedRequest(),
+                        SourceArguments.Empty,
+                        SchemaName,
+                        Alias,
+                        ContextId
+                    )
+                );
                 return;
             case "OC-S-WRAPPED-QUERY-ROW":
             {
                 var schema = DataSourceLifecycle.OpenSchema(
-                    new StaticProvider(new CancellingSchema()), SchemaName, SourceName, Alias, ContextId);
+                    new StaticProvider(new CancellingSchema()),
+                    SchemaName,
+                    SourceName,
+                    Alias,
+                    ContextId
+                );
                 var queryScoped = (IQueryScopedRowSourceSchema)schema;
-                AssertCancellation(() => global::Musoq.Schema.QuerySourceInvocation<int, EmptyMaterializer>.Open(queryScoped, SourceName, CreateQueryScopedRequest(), global::Musoq.Schema.SourceArguments.Empty));
+                AssertCancellation(() =>
+                    global::Musoq.Schema.QuerySourceInvocation<int, EmptyMaterializer>.Open(
+                        queryScoped,
+                        SourceName,
+                        CreateQueryScopedRequest(),
+                        global::Musoq.Schema.SourceArguments.Empty
+                    )
+                );
                 return;
             }
         }
 
-        if (caseId.StartsWith("FR-", StringComparison.Ordinal) ||
-            caseId.StartsWith("LR-", StringComparison.Ordinal) ||
-            caseId.StartsWith("DP-", StringComparison.Ordinal) ||
-            caseId.StartsWith("RC-", StringComparison.Ordinal) ||
-            caseId.StartsWith("DS-", StringComparison.Ordinal) ||
-            caseId.StartsWith("RD-", StringComparison.Ordinal) ||
-            caseId.StartsWith("CL-", StringComparison.Ordinal))
+        if (
+            caseId.StartsWith("FR-", StringComparison.Ordinal)
+            || caseId.StartsWith("LR-", StringComparison.Ordinal)
+            || caseId.StartsWith("DP-", StringComparison.Ordinal)
+            || caseId.StartsWith("RC-", StringComparison.Ordinal)
+            || caseId.StartsWith("DS-", StringComparison.Ordinal)
+            || caseId.StartsWith("RD-", StringComparison.Ordinal)
+            || caseId.StartsWith("CL-", StringComparison.Ordinal)
+        )
         {
             if (caseId.Length > 3 && caseId[3] == 'A')
                 await AssertAsyncCase(caseId);
@@ -141,10 +186,10 @@ public sealed class REC128DeferredLifecycleTests
 
     private static void AssertSyncCase(string caseId)
     {
-        var cancellation = caseId.StartsWith("RD-", StringComparison.Ordinal) ||
-                           caseId.StartsWith("CL-S-", StringComparison.Ordinal)
-            ? new OperationCanceledException($"{caseId}-cancellation")
-            : null;
+        var cancellation =
+            caseId.StartsWith("RD-", StringComparison.Ordinal) || caseId.StartsWith("CL-S-", StringComparison.Ordinal)
+                ? new OperationCanceledException($"{caseId}-cancellation")
+                : null;
         var plan = CreateSyncPlan(caseId, cancellation);
         var observed = CaptureSync(plan);
 
@@ -162,20 +207,23 @@ public sealed class REC128DeferredLifecycleTests
             return;
         }
 
-        AssertLifecycleFailure(observed.Exception, caseId, caseId.StartsWith("DS-", StringComparison.Ordinal)
-            ? DiagnosticCode.MQ7012_DataSourceCleanupFailed
-            : DiagnosticCode.MQ7011_DataSourceReadFailed,
-            caseId.StartsWith("RC-", StringComparison.Ordinal) ||
-            caseId == "DP-S-CURRENT-CLEANUP");
+        AssertLifecycleFailure(
+            observed.Exception,
+            caseId,
+            caseId.StartsWith("DS-", StringComparison.Ordinal)
+                ? DiagnosticCode.MQ7012_DataSourceCleanupFailed
+                : DiagnosticCode.MQ7011_DataSourceReadFailed,
+            caseId.StartsWith("RC-", StringComparison.Ordinal) || caseId == "DP-S-CURRENT-CLEANUP"
+        );
         Assert.AreEqual(caseId is "FR-S-GET" or "DP-S-CHUNKS" ? 0 : 1, observed.DisposeCount, caseId);
     }
 
     private static async Task AssertAsyncCase(string caseId)
     {
-        var cancellation = caseId.StartsWith("RD-", StringComparison.Ordinal) ||
-                           caseId is "CL-A-NORMAL" or "CL-A-READ"
-            ? new OperationCanceledException($"{caseId}-cancellation")
-            : null;
+        var cancellation =
+            caseId.StartsWith("RD-", StringComparison.Ordinal) || caseId is "CL-A-NORMAL" or "CL-A-READ"
+                ? new OperationCanceledException($"{caseId}-cancellation")
+                : null;
         var plan = CreateAsyncPlan(caseId, cancellation);
         var observed = await CaptureAsync(plan);
 
@@ -200,11 +248,14 @@ public sealed class REC128DeferredLifecycleTests
             return;
         }
 
-        AssertLifecycleFailure(observed.Exception, caseId, caseId.StartsWith("DS-", StringComparison.Ordinal)
-            ? DiagnosticCode.MQ7012_DataSourceCleanupFailed
-            : DiagnosticCode.MQ7011_DataSourceReadFailed,
-            caseId.StartsWith("RC-", StringComparison.Ordinal) ||
-            caseId == "DP-A-CURRENT-CLEANUP");
+        AssertLifecycleFailure(
+            observed.Exception,
+            caseId,
+            caseId.StartsWith("DS-", StringComparison.Ordinal)
+                ? DiagnosticCode.MQ7012_DataSourceCleanupFailed
+                : DiagnosticCode.MQ7011_DataSourceReadFailed,
+            caseId.StartsWith("RC-", StringComparison.Ordinal) || caseId == "DP-A-CURRENT-CLEANUP"
+        );
         Assert.AreEqual(caseId == "FR-A-GET" || caseId == "DP-A-CHUNKS" ? 0 : 1, observed.DisposeCount, caseId);
     }
 
@@ -212,22 +263,32 @@ public sealed class REC128DeferredLifecycleTests
         Exception? exception,
         string caseId,
         DiagnosticCode expectedCode,
-        bool expectRelatedCleanup)
+        bool expectRelatedCleanup
+    )
     {
         var lifecycle = exception as DataSourceLifecycleException;
         Assert.IsNotNull(lifecycle, caseId);
         Assert.AreEqual(expectedCode, lifecycle!.Code, caseId);
-        Assert.AreEqual(expectedCode == DiagnosticCode.MQ7012_DataSourceCleanupFailed ? "cleanup" : "read",
+        Assert.AreEqual(
+            expectedCode == DiagnosticCode.MQ7012_DataSourceCleanupFailed ? "cleanup" : "read",
             lifecycle.Operation,
-            caseId);
+            caseId
+        );
         Assert.IsNotNull(lifecycle.InnerException, caseId);
         Assert.DoesNotContain(Secret, lifecycle.Message, caseId);
-        Assert.IsFalse(lifecycle.ToDiagnostic().Arguments.Values.Any(value => value.Contains(Secret, StringComparison.Ordinal)), caseId);
+        Assert.IsFalse(
+            lifecycle.ToDiagnostic().Arguments.Values.Any(value => value.Contains(Secret, StringComparison.Ordinal)),
+            caseId
+        );
 
         if (expectRelatedCleanup)
         {
             Assert.IsTrue(lifecycle.ToDiagnostic().Arguments.ContainsKey("relatedCauseType"), caseId);
-            Assert.AreEqual(typeof(IOException).FullName, lifecycle.ToDiagnostic().Arguments["relatedCauseType"], caseId);
+            Assert.AreEqual(
+                typeof(IOException).FullName,
+                lifecycle.ToDiagnostic().Arguments["relatedCauseType"],
+                caseId
+            );
         }
         else
             Assert.IsFalse(lifecycle.ToDiagnostic().Arguments.ContainsKey("relatedCauseType"), caseId);
@@ -247,21 +308,23 @@ public sealed class REC128DeferredLifecycleTests
         {
             "FR-S-MOVE" or "RC-S-FIRST" or "RD-S-FIRST" => readFailure,
             "LR-S-MOVE" or "RC-S-LATER" or "RD-S-LATER" => readFailure,
-            _ => null
+            _ => null,
         };
         var currentThrow = caseId switch
         {
-            "FR-S-CURRENT" or "DP-S-CURRENT" or "DP-S-CURRENT-CLEANUP" or "RC-S-CURRENT" or "RD-S-CURRENT" => readFailure,
+            "FR-S-CURRENT" or "DP-S-CURRENT" or "DP-S-CURRENT-CLEANUP" or "RC-S-CURRENT" or "RD-S-CURRENT" =>
+                readFailure,
             "LR-S-CURRENT" or "LR-S-DEFERRED" => readFailure,
-            _ => null
+            _ => null,
         };
         var getThrow = caseId == "FR-S-GET" ? readFailure : null;
         Exception? disposeThrow = caseId switch
         {
             "RC-S-FIRST" or "RC-S-LATER" or "RC-S-CURRENT" or "DP-S-CURRENT-CLEANUP" => cleanupFailure,
             "DS-S-EARLY" or "DS-S-NORMAL" => cleanupFailure,
-            "CL-S-NORMAL" or "CL-S-READ" or "CL-S-EARLY" => cancellation ?? new OperationCanceledException($"{caseId}-cancellation"),
-            _ => null
+            "CL-S-NORMAL" or "CL-S-READ" or "CL-S-EARLY" => cancellation
+                ?? new OperationCanceledException($"{caseId}-cancellation"),
+            _ => null,
         };
         var laterRead = caseId is "LR-S-MOVE" or "LR-S-DEFERRED" or "LR-S-CURRENT" or "RC-S-LATER" or "RD-S-LATER";
         var currentOnSecond = caseId is "LR-S-CURRENT";
@@ -270,12 +333,21 @@ public sealed class REC128DeferredLifecycleTests
         var earlyDispose = caseId == "DS-S-EARLY" || caseId == "CL-S-EARLY";
 
         return new SyncPlan(
-            new ScriptedEnumerable(getThrow, moveNextThrow, currentThrow, disposeThrow, laterRead, currentOnSecond, twoChunks),
+            new ScriptedEnumerable(
+                getThrow,
+                moveNextThrow,
+                currentThrow,
+                disposeThrow,
+                laterRead,
+                currentOnSecond,
+                twoChunks
+            ),
             readFailure,
             cleanupFailure,
             normal,
             earlyDispose,
-            caseId == "DP-S-CHUNKS");
+            caseId == "DP-S-CHUNKS"
+        );
     }
 
     private static AsyncPlan CreateAsyncPlan(string caseId, OperationCanceledException? cancellation)
@@ -286,13 +358,14 @@ public sealed class REC128DeferredLifecycleTests
         {
             "FR-A-MOVE" or "RC-A-FIRST" or "RD-A-FIRST" => readFailure,
             "LR-A-MOVE" or "RC-A-LATER" or "RD-A-LATER" => readFailure,
-            _ => null
+            _ => null,
         };
         var currentThrow = caseId switch
         {
-            "FR-A-CURRENT" or "DP-A-CURRENT" or "DP-A-CURRENT-CLEANUP" or "RC-A-CURRENT" or "RD-A-CURRENT" => readFailure,
+            "FR-A-CURRENT" or "DP-A-CURRENT" or "DP-A-CURRENT-CLEANUP" or "RC-A-CURRENT" or "RD-A-CURRENT" =>
+                readFailure,
             "LR-A-CURRENT" or "LR-A-DEFERRED" => readFailure,
-            _ => null
+            _ => null,
         };
         var getThrow = caseId is "FR-A-GET" or "DP-A-CHUNKS" ? readFailure : null;
         Exception? disposeThrow = caseId switch
@@ -301,7 +374,7 @@ public sealed class REC128DeferredLifecycleTests
             "DS-A-EARLY" or "DS-A-NORMAL" => cleanupFailure,
             "CL-A-NORMAL" or "CL-A-READ" => cancellation ?? new OperationCanceledException($"{caseId}-cancellation"),
             "CL-A-TOKEN" => cleanupFailure,
-            _ => null
+            _ => null,
         };
         var laterRead = caseId is "LR-A-MOVE" or "LR-A-DEFERRED" or "RC-A-LATER" or "RD-A-LATER";
         var currentOnSecond = caseId is "LR-A-CURRENT";
@@ -313,12 +386,21 @@ public sealed class REC128DeferredLifecycleTests
             cancelToken.Cancel();
 
         return new AsyncPlan(
-            new ScriptedAsyncEnumerable(getThrow, moveNextThrow, currentThrow, disposeThrow, laterRead, currentOnSecond, twoChunks),
+            new ScriptedAsyncEnumerable(
+                getThrow,
+                moveNextThrow,
+                currentThrow,
+                disposeThrow,
+                laterRead,
+                currentOnSecond,
+                twoChunks
+            ),
             readFailure,
             cleanupFailure,
             normal,
             earlyDispose,
-            cancelToken);
+            cancelToken
+        );
     }
 
     private static Observed CaptureSync(SyncPlan plan)
@@ -327,8 +409,14 @@ public sealed class REC128DeferredLifecycleTests
         try
         {
             var enumerable = plan.Chunks;
-            using var enumerator = DataSourceLifecycle.Read(
-                    new TestRowSource(enumerable, plan.ChunksPropertyThrows), SchemaName, SourceName, Alias, ContextId)
+            using var enumerator = DataSourceLifecycle
+                .Read(
+                    new TestRowSource(enumerable, plan.ChunksPropertyThrows),
+                    SchemaName,
+                    SourceName,
+                    Alias,
+                    ContextId
+                )
                 .GetEnumerator();
             if (plan.EarlyDispose)
             {
@@ -355,18 +443,32 @@ public sealed class REC128DeferredLifecycleTests
             var enumerable = plan.Chunks;
             if (plan.EarlyDispose)
             {
-                await using var enumerator = DataSourceLifecycle.ReadAsync(
-                        enumerable, SchemaName, SourceName, Alias, ContextId,
-                        plan.Cancellation?.Token ?? default)
+                await using var enumerator = DataSourceLifecycle
+                    .ReadAsync(
+                        enumerable,
+                        SchemaName,
+                        SourceName,
+                        Alias,
+                        ContextId,
+                        plan.Cancellation?.Token ?? default
+                    )
                     .GetAsyncEnumerator(plan.Cancellation?.Token ?? default);
                 _ = await enumerator.MoveNextAsync();
                 return new Observed(null, enumerable.DisposeCount);
             }
 
-            await using (var enumerator = DataSourceLifecycle.ReadAsync(
-                             enumerable, SchemaName, SourceName, Alias, ContextId,
-                             plan.Cancellation?.Token ?? default)
-                         .GetAsyncEnumerator(plan.Cancellation?.Token ?? default))
+            await using (
+                var enumerator = DataSourceLifecycle
+                    .ReadAsync(
+                        enumerable,
+                        SchemaName,
+                        SourceName,
+                        Alias,
+                        ContextId,
+                        plan.Cancellation?.Token ?? default
+                    )
+                    .GetAsyncEnumerator(plan.Cancellation?.Token ?? default)
+            )
             {
                 while (await enumerator.MoveNextAsync())
                     _ = enumerator.Current;
@@ -388,7 +490,8 @@ public sealed class REC128DeferredLifecycleTests
             CancellationToken.None,
             [],
             new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
     }
 
     private static QueryScopedRowSourceRequest CreateQueryScopedRequest() =>
@@ -400,7 +503,8 @@ public sealed class REC128DeferredLifecycleTests
         Exception CleanupFailure,
         bool Normal,
         bool EarlyDispose,
-        bool ChunksPropertyThrows);
+        bool ChunksPropertyThrows
+    );
 
     private sealed record AsyncPlan(
         ScriptedAsyncEnumerable Chunks,
@@ -408,15 +512,15 @@ public sealed class REC128DeferredLifecycleTests
         Exception CleanupFailure,
         bool Normal,
         bool EarlyDispose,
-        CancellationTokenSource? Cancellation);
+        CancellationTokenSource? Cancellation
+    );
 
     private sealed record Observed(Exception? Exception, int DisposeCount);
 
     private sealed class TestRowSource(ScriptedEnumerable chunks, bool throwOnChunks) : RowSource<int>
     {
-        public override IEnumerable<IReadOnlyList<int>> Chunks => throwOnChunks
-            ? throw new InvalidOperationException($"{Secret}-chunks")
-            : chunks;
+        public override IEnumerable<IReadOnlyList<int>> Chunks =>
+            throwOnChunks ? throw new InvalidOperationException($"{Secret}-chunks") : chunks;
     }
 
     private sealed class ScriptedEnumerable(
@@ -426,7 +530,8 @@ public sealed class REC128DeferredLifecycleTests
         Exception? disposeThrow,
         bool laterRead,
         bool currentOnSecond,
-        bool twoChunks) : IEnumerable<IReadOnlyList<int>>
+        bool twoChunks
+    ) : IEnumerable<IReadOnlyList<int>>
     {
         public int DisposeCount { get; private set; }
 
@@ -435,7 +540,15 @@ public sealed class REC128DeferredLifecycleTests
             if (getEnumeratorThrow != null)
                 throw getEnumeratorThrow;
 
-            return new ScriptedEnumerator(this, moveNextThrow, currentThrow, disposeThrow, laterRead, currentOnSecond, twoChunks);
+            return new ScriptedEnumerator(
+                this,
+                moveNextThrow,
+                currentThrow,
+                disposeThrow,
+                laterRead,
+                currentOnSecond,
+                twoChunks
+            );
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -447,7 +560,8 @@ public sealed class REC128DeferredLifecycleTests
             Exception? disposeThrow,
             bool laterRead,
             bool currentOnSecond,
-            bool twoChunks) : IEnumerator<IReadOnlyList<int>>
+            bool twoChunks
+        ) : IEnumerator<IReadOnlyList<int>>
         {
             private int _moveNextCount;
             private int _currentCount;
@@ -458,8 +572,7 @@ public sealed class REC128DeferredLifecycleTests
                 get
                 {
                     _currentCount++;
-                    var shouldThrow = currentThrow != null &&
-                                      (!currentOnSecond || _currentCount == 2);
+                    var shouldThrow = currentThrow != null && (!currentOnSecond || _currentCount == 2);
                     if (shouldThrow)
                         throw currentThrow!;
 
@@ -472,8 +585,10 @@ public sealed class REC128DeferredLifecycleTests
             public bool MoveNext()
             {
                 _moveNextCount++;
-                if (moveNextThrow != null &&
-                    ((!laterRead && _moveNextCount == 1) || (laterRead && _moveNextCount == 2)))
+                if (
+                    moveNextThrow != null
+                    && ((!laterRead && _moveNextCount == 1) || (laterRead && _moveNextCount == 2))
+                )
                     throw moveNextThrow;
 
                 _hasCurrent = _moveNextCount <= (twoChunks ? 2 : 1);
@@ -502,7 +617,8 @@ public sealed class REC128DeferredLifecycleTests
         Exception? disposeThrow,
         bool laterRead,
         bool currentOnSecond,
-        bool twoChunks) : IAsyncEnumerable<IReadOnlyList<int>>
+        bool twoChunks
+    ) : IAsyncEnumerable<IReadOnlyList<int>>
     {
         public int DisposeCount { get; private set; }
 
@@ -511,7 +627,15 @@ public sealed class REC128DeferredLifecycleTests
             if (getEnumeratorThrow != null)
                 throw getEnumeratorThrow;
 
-            return new ScriptedAsyncEnumerator(this, moveNextThrow, currentThrow, disposeThrow, laterRead, currentOnSecond, twoChunks);
+            return new ScriptedAsyncEnumerator(
+                this,
+                moveNextThrow,
+                currentThrow,
+                disposeThrow,
+                laterRead,
+                currentOnSecond,
+                twoChunks
+            );
         }
 
         private sealed class ScriptedAsyncEnumerator(
@@ -521,7 +645,8 @@ public sealed class REC128DeferredLifecycleTests
             Exception? disposeThrow,
             bool laterRead,
             bool currentOnSecond,
-            bool twoChunks) : IAsyncEnumerator<IReadOnlyList<int>>
+            bool twoChunks
+        ) : IAsyncEnumerator<IReadOnlyList<int>>
         {
             private int _moveNextCount;
             private int _currentCount;
@@ -532,8 +657,7 @@ public sealed class REC128DeferredLifecycleTests
                 get
                 {
                     _currentCount++;
-                    var shouldThrow = currentThrow != null &&
-                                      (!currentOnSecond || _currentCount == 2);
+                    var shouldThrow = currentThrow != null && (!currentOnSecond || _currentCount == 2);
                     if (shouldThrow)
                         throw currentThrow!;
 
@@ -544,8 +668,10 @@ public sealed class REC128DeferredLifecycleTests
             public ValueTask<bool> MoveNextAsync()
             {
                 _moveNextCount++;
-                if (moveNextThrow != null &&
-                    ((!laterRead && _moveNextCount == 1) || (laterRead && _moveNextCount == 2)))
+                if (
+                    moveNextThrow != null
+                    && ((!laterRead && _moveNextCount == 1) || (laterRead && _moveNextCount == 2))
+                )
                     return ValueTask.FromException<bool>(moveNextThrow);
 
                 _hasCurrent = _moveNextCount <= (twoChunks ? 2 : 1);
@@ -559,9 +685,7 @@ public sealed class REC128DeferredLifecycleTests
 
                 owner.DisposeCount++;
                 _hasCurrent = false;
-                return disposeThrow == null
-                    ? ValueTask.CompletedTask
-                    : ValueTask.FromException(disposeThrow);
+                return disposeThrow == null ? ValueTask.CompletedTask : ValueTask.FromException(disposeThrow);
             }
         }
     }
@@ -580,48 +704,75 @@ public sealed class REC128DeferredLifecycleTests
     {
         public string Name => SchemaName;
 
-        public ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters) =>
-            throw new NotSupportedException();
+        public ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters
+        ) => throw new NotSupportedException();
 
-        public SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters) =>
-            throw new NotSupportedException();
+        public SourceDescriptor DescribeSource(
+            string name,
+            SourceDescribeContext context,
+            params object?[] parameters
+        ) => throw new NotSupportedException();
 
         public IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
             string name,
             SourceRuntimeSettingsDescribeContext context,
-            params object?[] parameters) => [];
+            params object?[] parameters
+        ) => [];
 
         public SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters) =>
             SourcePlanResult.RejectAll(request);
 
-        public RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments =>
+        public RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext executionContext,
+            TArguments parameters
+        )
+            where TArguments : struct, global::Musoq.Schema.ISourceArguments =>
             throw new OperationCanceledException("rec128-row-open-cancellation");
 
         public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
             string name,
             QueryScopedRowSourceRequest request,
-            TArguments parameters)
+            TArguments parameters
+        )
             where TMaterializer : struct, IQueryRowMaterializer<TRow>
-        where TArguments : struct, global::Musoq.Schema.ISourceArguments =>
+            where TArguments : struct, global::Musoq.Schema.ISourceArguments =>
             throw new OperationCanceledException("rec128-query-row-open-cancellation");
 
         public SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext) => [];
 
         public SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext) => [];
 
-        public bool TryResolveMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo)
+        public bool TryResolveMethod(
+            string method,
+            Type[] parameters,
+            Type? entityType,
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
         }
 
-        public bool TryResolveRawMethod(string method, Type[] parameters, [NotNullWhen(true)] out MethodInfo? methodInfo)
+        public bool TryResolveRawMethod(
+            string method,
+            Type[] parameters,
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
         }
 
-        public bool TryResolveAggregationMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo)
+        public bool TryResolveAggregationMethod(
+            string method,
+            Type[] parameters,
+            Type? entityType,
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
@@ -632,7 +783,8 @@ public sealed class REC128DeferredLifecycleTests
             Type[] parameters,
             Type? entityType,
             Func<MethodInfo, bool> methodFilter,
-            [NotNullWhen(true)] out MethodInfo? methodInfo)
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;

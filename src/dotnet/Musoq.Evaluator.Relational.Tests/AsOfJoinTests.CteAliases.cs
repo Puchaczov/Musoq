@@ -18,48 +18,53 @@ public partial class AsOfJoinTests
     [TestProperty("Phase", "4")]
     public void StrictBackwardAsofJoinComposesWithMultipleCtesAndPostJoinFilter()
     {
-        const string query = """
-            with
-                Events as (
-                    select v.EventId as EventId, v.MatchTime as MatchTime
-                    from values {
-                        (EventId: 'B', MatchTime: 10),
-                        (EventId: 'A', MatchTime: 10),
-                        (EventId: 'C', MatchTime: 20),
-                        (EventId: 'D', MatchTime: 35)
-                    } v
-                ),
-                States as (
-                    select v.StateId as StateId, v.MatchTime as MatchTime, v.Accepted as Accepted
-                    from values {
-                        (StateId: 's5', MatchTime: 5, Accepted: true),
-                        (StateId: 's10', MatchTime: 10, Accepted: true),
-                        (StateId: 's15', MatchTime: 15, Accepted: false),
-                        (StateId: 's20', MatchTime: 20, Accepted: true),
-                        (StateId: 's25', MatchTime: 25, Accepted: true),
-                        (StateId: 's35', MatchTime: 35, Accepted: false)
-                    } v
-                )
-            select e.EventId as EventId,
-                   e.MatchTime as EventTime,
-                   s.StateId as StateId,
-                   s.MatchTime as StateTime
-            from Events e
-            asof join States s on e.MatchTime > s.MatchTime
-            where s.Accepted = true
-            order by EventTime desc, EventId asc
-            """;
+        const string query = (
+            "with\n"
+            + "    Events as (\n"
+            + "        select v.EventId as EventId, v.MatchTime as MatchTime\n"
+            + "        from values {\n"
+            + "            (EventId: 'B', MatchTime: 10),\n"
+            + "            (EventId: 'A', MatchTime: 10),\n"
+            + "            (EventId: 'C', MatchTime: 20),\n"
+            + "            (EventId: 'D', MatchTime: 35)\n"
+            + "        } v\n"
+            + "    ),\n"
+            + "    States as (\n"
+            + "        select v.StateId as StateId, v.MatchTime as MatchTime, v.Accepted as Accepted\n"
+            + "        from values {\n"
+            + "            (StateId: 's5', MatchTime: 5, Accepted: true),\n"
+            + "            (StateId: 's10', MatchTime: 10, Accepted: true),\n"
+            + "            (StateId: 's15', MatchTime: 15, Accepted: false),\n"
+            + "            (StateId: 's20', MatchTime: 20, Accepted: true),\n"
+            + "            (StateId: 's25', MatchTime: 25, Accepted: true),\n"
+            + "            (StateId: 's35', MatchTime: 35, Accepted: false)\n"
+            + "        } v\n"
+            + "    )\n"
+            + "select e.EventId as EventId,\n"
+            + "       e.MatchTime as EventTime,\n"
+            + "       s.StateId as StateId,\n"
+            + "       s.MatchTime as StateTime\n"
+            + "from Events e\n"
+            + "asof join States s on e.MatchTime > s.MatchTime\n"
+            + "where s.Accepted = true\n"
+            + "order by EventTime desc, EventId asc"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>();
         using var compiled = CreateAndRunVirtualMachine(query, sources);
         using var result = TableMaterializationTestHelper.Materialize(compiled.Run());
 
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("EventId", typeof(string)), ("EventTime", typeof(int)),
-            ("StateId", typeof(string)), ("StateTime", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("EventId", typeof(string)),
+            ("EventTime", typeof(int)),
+            ("StateId", typeof(string)),
+            ("StateTime", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             result,
             new object?[] { "D", 35, "s25", 25 },
             new object?[] { "A", 10, "s5", 5 },
-            new object?[] { "B", 10, "s5", 5 });
+            new object?[] { "B", 10, "s5", 5 }
+        );
     }
 }

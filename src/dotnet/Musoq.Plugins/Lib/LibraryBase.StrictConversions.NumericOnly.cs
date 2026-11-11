@@ -4,7 +4,6 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-
     /// <summary>
     ///     Smart numeric conversion that automatically selects the appropriate target type (Int32, Int64, or Decimal)
     ///     based on the actual value. Tries Int32 first, then Int64, then Decimal, returning the first successful conversion

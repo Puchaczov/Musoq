@@ -1,6 +1,6 @@
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Text.RegularExpressions;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -8,11 +8,13 @@ internal static class NullSafeIndexedPathSyntax
 {
     private static readonly Regex PathSegments = new(
         @"(?<member>[A-Za-z_]\w*)|\[(?<index>-?\d+)\]",
-        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        RegexOptions.CultureInvariant | RegexOptions.Compiled
+    );
 
     internal static ExpressionSyntax Render(ExpressionSyntax receiver, string path)
     {
-        var members = path.TrimStart('.').Replace(".", "?.", StringComparison.Ordinal)
+        var members = path.TrimStart('.')
+            .Replace(".", "?.", StringComparison.Ordinal)
             .Replace("[", "?[", StringComparison.Ordinal);
         var separator = members.StartsWith("?[", StringComparison.Ordinal) ? string.Empty : "?.";
         var guarded = GuardReceiver(SyntaxFactory.ParseExpression(receiver.ToString()));
@@ -35,10 +37,12 @@ internal static class NullSafeIndexedPathSyntax
             {
                 var index = segment.Groups["index"].Value;
                 var indexedValue = SyntaxFactory.ParseExpression(
-                    $"global::Musoq.Evaluator.Helpers.SafeArrayAccess.GetArrayElement({current}, {index})");
-                current = isNullSafe && !sawIndex
-                    ? SyntaxFactory.ParseExpression($"({current}) is null ? null : {indexedValue}")
-                    : indexedValue;
+                    $"global::Musoq.Evaluator.Helpers.SafeArrayAccess.GetArrayElement({current}, {index})"
+                );
+                current =
+                    isNullSafe && !sawIndex
+                        ? SyntaxFactory.ParseExpression($"({current}) is null ? null : {indexedValue}")
+                        : indexedValue;
                 sawIndex = true;
                 continue;
             }
@@ -64,13 +68,22 @@ internal static class NullSafeIndexedPathSyntax
         return SyntaxFactory.ParseExpression($"({receiver}){separator}{normalized}");
     }
 
-    private static ExpressionSyntax GuardReceiver(ExpressionSyntax receiver) => receiver switch
-    {
-        ParenthesizedExpressionSyntax parenthesized => parenthesized.WithExpression(GuardReceiver(parenthesized.Expression)),
-        CastExpressionSyntax cast => cast.WithExpression(SyntaxFactory.ParenthesizedExpression(GuardReceiver(cast.Expression))),
-        MemberAccessExpressionSyntax { Expression: MemberAccessExpressionSyntax } member =>
-            SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ConditionalAccessExpression(
-                SyntaxFactory.ParenthesizedExpression(GuardReceiver(member.Expression)), SyntaxFactory.MemberBindingExpression(member.Name))),
-        _ => receiver
-    };
+    private static ExpressionSyntax GuardReceiver(ExpressionSyntax receiver) =>
+        receiver switch
+        {
+            ParenthesizedExpressionSyntax parenthesized => parenthesized.WithExpression(
+                GuardReceiver(parenthesized.Expression)
+            ),
+            CastExpressionSyntax cast => cast.WithExpression(
+                SyntaxFactory.ParenthesizedExpression(GuardReceiver(cast.Expression))
+            ),
+            MemberAccessExpressionSyntax { Expression: MemberAccessExpressionSyntax } member =>
+                SyntaxFactory.ParenthesizedExpression(
+                    SyntaxFactory.ConditionalAccessExpression(
+                        SyntaxFactory.ParenthesizedExpression(GuardReceiver(member.Expression)),
+                        SyntaxFactory.MemberBindingExpression(member.Name)
+                    )
+                ),
+            _ => receiver,
+        };
 }

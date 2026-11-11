@@ -3,9 +3,7 @@
 public class IdentifierNode : Node
 {
     public IdentifierNode(string name, Type? returnType = null)
-        : this(name, returnType, default)
-    {
-    }
+        : this(name, returnType, default) { }
 
     public IdentifierNode(string name, Type? returnType, TextSpan span)
     {

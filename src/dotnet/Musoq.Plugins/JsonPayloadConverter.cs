@@ -4,7 +4,8 @@ using System.Text.Json.Serialization;
 namespace Musoq.Plugins;
 
 /// <summary>Writes generated interpretation payloads through their declared field contract.</summary>
-public sealed class JsonPayloadConverter<T> : JsonConverter<T> where T : IJsonPayload
+public sealed class JsonPayloadConverter<T> : JsonConverter<T>
+    where T : IJsonPayload
 {
     /// <inheritdoc />
     public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>

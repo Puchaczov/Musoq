@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class SetsOperatorsTests
 {
-
     [TestMethod]
     public void MixedSourcesExceptUnionScenarioTest()
     {
@@ -21,7 +20,7 @@ select Name from #C.Entities()";
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
             { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
-            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -31,12 +30,11 @@ select Name from #C.Entities()";
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"], ["001"]);
     }
 
-
-
     [TestMethod]
     public void MixedSourcesWithSkipExceptUnionWithConditionsScenarioTest()
     {
-        var query = @"
+        var query =
+            @"
 with first_slice as (select Name from #A.Entities() skip 1),
 second_slice as (select Name from #B.Entities() skip 2),
 third_slice as (select Name from #C.Entities() skip 3)
@@ -48,7 +46,7 @@ union (Name) select Name from third_slice";
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
             { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
-            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -61,7 +59,8 @@ union (Name) select Name from third_slice";
     [TestMethod]
     public void MixedSourcesWithSkipIntersectUnionScenarioTest()
     {
-        var query = @"
+        var query =
+            @"
 with first_slice as (select Name from #A.Entities() skip 1),
 second_slice as (select Name from #B.Entities() skip 2),
 third_slice as (select Name from #C.Entities() skip 3)
@@ -73,12 +72,7 @@ union (Name) select Name from third_slice";
         {
             { "#A", [new BasicEntity("002"), new BasicEntity("001")] },
             { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
-            {
-                "#C",
-                [
-                    new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("003"), new BasicEntity("006")
-                ]
-            }
+            { "#C", [new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("003"), new BasicEntity("006")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -102,20 +96,14 @@ select Name, Population from #C.Entities()";
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
             { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
-            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Population", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["002", 0m],
-            ["001", 0m]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["002", 0m], ["001", 0m]);
     }
 
     [TestMethod]
@@ -131,13 +119,8 @@ select City, Sum(Population) from #C.Entities() group by City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)] },
-            {
-                "#B",
-                [
-                    new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
-                ]
-            },
-            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
+            { "#B", [new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)] },
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -146,12 +129,9 @@ select City, Sum(Population) from #C.Entities() group by City";
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("Sum(Population)", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", 200m],
-            ["003", 39m],
-            ["002", 28m]);
+            ("Sum(Population)", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", 200m], ["003", 39m], ["002", 28m]);
     }
 
     [TestMethod]
@@ -167,13 +147,8 @@ select City, Sum(Population) from #C.Entities() group by City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)] },
-            {
-                "#B",
-                [
-                    new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
-                ]
-            },
-            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
+            { "#B", [new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)] },
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -182,12 +157,8 @@ select City, Sum(Population) from #C.Entities() group by City";
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("Sum(Population)", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", 200m],
-            ["003", 39m],
-            ["002", 28m]);
+            ("Sum(Population)", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", 200m], ["003", 39m], ["002", 28m]);
     }
-
 }

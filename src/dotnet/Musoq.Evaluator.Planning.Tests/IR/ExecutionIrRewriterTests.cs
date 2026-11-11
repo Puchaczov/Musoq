@@ -12,15 +12,9 @@ public sealed class ExecutionIrRewriterTests
     public void RewritePlan_WhenNoChanges_ShouldPreserveExistingReferences()
     {
         var literal = new ExecutionLiteral(1, typeof(int));
-        var append = new ExecutionAppendRow(
-            Var("result"),
-            CreateRowShape(),
-            [new ExecutionRowValue("Value", literal)]);
+        var append = new ExecutionAppendRow(Var("result"), CreateRowShape(), [new ExecutionRowValue("Value", literal)]);
         var innerBlock = new ExecutionBlock([append]);
-        var forEach = new ExecutionForEach(
-            Var("item", typeof(int)),
-            new ExecutionStoredTableRows(7),
-            innerBlock);
+        var forEach = new ExecutionForEach(Var("item", typeof(int)), new ExecutionStoredTableRows(7), innerBlock);
         var block = new ExecutionBlock([forEach]);
         var plan = new ExecutionPlan("compiled", [], block);
 
@@ -49,14 +43,14 @@ public sealed class ExecutionIrRewriterTests
                         BinaryOpKind.Add,
                         new ExecutionLiteral(1, typeof(int)),
                         new ExecutionLiteral(2, typeof(int)),
-                        typeof(int)))
+                        typeof(int)
+                    )
+                ),
             ],
             [],
             ExecutionAppendMode.Checked,
-            new ExecutionContextLayout(
-            [
-                new ExecutionContextSegment(ExecutionContextSegmentKind.Single, context, 1)
-            ]));
+            new ExecutionContextLayout([new ExecutionContextSegment(ExecutionContextSegmentKind.Single, context, 1)])
+        );
         var innerBlock = new ExecutionBlock([append]);
         var forEach = new ExecutionForEach(Var("item", typeof(int)), source, innerBlock);
         var block = new ExecutionBlock([forEach]);
@@ -72,9 +66,7 @@ public sealed class ExecutionIrRewriterTests
         Assert.AreSame(source, rewrittenForEach.Source);
         Assert.AreEqual(2, ((ExecutionLiteral)rewrittenBinary.Left).Value.ToClrValue());
         Assert.AreEqual(3, ((ExecutionLiteral)rewrittenBinary.Right).Value.ToClrValue());
-        Assert.AreEqual(
-            4,
-            ((ExecutionLiteral)rewrittenAppend.ContextLayout!.Segments[0].Value).Value.ToClrValue());
+        Assert.AreEqual(4, ((ExecutionLiteral)rewrittenAppend.ContextLayout!.Segments[0].Value).Value.ToClrValue());
     }
 
     [TestMethod]
@@ -89,7 +81,8 @@ public sealed class ExecutionIrRewriterTests
             typeof(int),
             typeof(object),
             changedBody,
-            unchangedNoMatchBody);
+            unchangedNoMatchBody
+        );
         var block = new ExecutionBlock([probe]);
         var plan = new ExecutionPlan("compiled", [], block);
 
@@ -112,7 +105,8 @@ public sealed class ExecutionIrRewriterTests
             hash,
             typeof(int),
             typeof(object),
-            new ExecutionRowsCapacityHintCandidate(hash, new ExecutionStoredTableRows(3)));
+            new ExecutionRowsCapacityHintCandidate(hash, new ExecutionStoredTableRows(3))
+        );
         var block = new ExecutionBlock([createHash]);
         var plan = new ExecutionPlan("compiled", [], block);
 
@@ -133,15 +127,14 @@ public sealed class ExecutionIrRewriterTests
             BinaryOpKind.Add,
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(2, typeof(int)),
-            typeof(int));
-        var append = new ExecutionAppendRow(
-            Var("result"),
-            CreateRowShape(),
-            [new ExecutionRowValue("Value", binary)]);
+            typeof(int)
+        );
+        var append = new ExecutionAppendRow(Var("result"), CreateRowShape(), [new ExecutionRowValue("Value", binary)]);
         var plan = new ExecutionPlan("compiled", [], new ExecutionBlock([append]));
         var replacement = new ExecutionLiteral(10, typeof(int));
         var rewriter = new ExecutionExpressionSubstitutionRewriter(expression =>
-            ReferenceEquals(expression, binary) ? replacement : null);
+            ReferenceEquals(expression, binary) ? replacement : null
+        );
 
         var rewritten = rewriter.RewritePlan(plan);
 
@@ -158,7 +151,17 @@ public sealed class ExecutionIrRewriterTests
     {
         return new GeneratedRowShape(
             "ResultRow0",
-            [new FieldBinding("Value", "Value", 0, typeof(int), FieldNullability.Unknown, new GeneratedFieldAccess("Value"))]);
+            [
+                new FieldBinding(
+                    "Value",
+                    "Value",
+                    0,
+                    typeof(int),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Value")
+                ),
+            ]
+        );
     }
 
     private sealed class NoOpRewriter : ExecutionIrRewriter;
@@ -178,7 +181,10 @@ public sealed class ExecutionIrRewriterTests
         protected override ExecutionNode RewriteReturnTable(ExecutionReturnTable node)
         {
             return node.Table.Name == "old"
-                ? node with { Table = new ExecutionVariable("new", node.Table.Type) }
+                ? node with
+                {
+                    Table = new ExecutionVariable("new", node.Table.Type),
+                }
                 : node;
         }
     }

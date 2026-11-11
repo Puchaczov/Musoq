@@ -2,7 +2,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -15,7 +14,8 @@ public sealed partial class LibraryExecutionWindowQueryTests
     public void BoundedWindow_WhenArgumentsAreVolatile_ShouldCaptureEachEligibleRowOnce(bool filtered)
     {
         var filter = filtered ? "filter (where AcceptRow())" : string.Empty;
-        var query = $"select Position, Sum(NextValue()) {filter} over (order by Position rows between 2 preceding and current row) as Total from #schema.first() order by Position";
+        var query =
+            $"select Position, Sum(NextValue()) {filter} over (order by Position rows between 2 preceding and current row) as Total from #schema.first() order by Position";
         VolatileWindowRow[] input = [new(1), new(2), new(3), new(4)];
         using var compiled = CreateAndRunVirtualMachine<VolatileWindowRow, VolatileWindowLibrary>(query, input);
         using var result = compiled.Run(TestContext.CancellationToken);

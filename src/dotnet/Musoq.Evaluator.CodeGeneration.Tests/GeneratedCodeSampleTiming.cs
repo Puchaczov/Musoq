@@ -14,7 +14,8 @@ internal static class GeneratedCodeSampleTiming
         GeneratedCodeSample sample,
         DateTimeOffset startedUtc,
         DateTimeOffset finishedUtc,
-        TimeSpan duration)
+        TimeSpan duration
+    )
     {
         var timingEvent = new GeneratedCodeSampleTimingEvent(
             "generation",
@@ -22,7 +23,8 @@ internal static class GeneratedCodeSampleTiming
             sample.Category.ToString(),
             startedUtc,
             finishedUtc,
-            duration.TotalMilliseconds);
+            duration.TotalMilliseconds
+        );
         Events.Enqueue(timingEvent);
         WriteEvent(timingEvent);
     }
@@ -36,7 +38,8 @@ internal static class GeneratedCodeSampleTiming
             sample.Category,
             now,
             now,
-            0);
+            0
+        );
         Events.Enqueue(timingEvent);
         WriteEvent(timingEvent);
     }
@@ -46,7 +49,8 @@ internal static class GeneratedCodeSampleTiming
         int degreeOfParallelism,
         DateTimeOffset startedUtc,
         DateTimeOffset finishedUtc,
-        TimeSpan duration)
+        TimeSpan duration
+    )
     {
         var timingEvent = new GeneratedCodeSampleTimingEvent(
             "corpus-setup",
@@ -56,28 +60,24 @@ internal static class GeneratedCodeSampleTiming
             finishedUtc,
             duration.TotalMilliseconds,
             sampleCount,
-            degreeOfParallelism);
+            degreeOfParallelism
+        );
         Events.Enqueue(timingEvent);
         WriteEvent(timingEvent);
     }
 
     private static void WriteEvent(GeneratedCodeSampleTimingEvent timingEvent)
     {
-
         var outputDirectory = Environment.GetEnvironmentVariable("MUSOQ_EVALUATOR_TIMING_DIRECTORY");
         if (string.IsNullOrWhiteSpace(outputDirectory))
             return;
 
         Directory.CreateDirectory(outputDirectory);
-        var path = Path.Combine(
-            outputDirectory,
-            $"generated-code-sample-timing-{Environment.ProcessId}.jsonl");
+        var path = Path.Combine(outputDirectory, $"generated-code-sample-timing-{Environment.ProcessId}.jsonl");
 
         lock (FileGate)
         {
-            File.AppendAllText(
-                path,
-                JsonSerializer.Serialize(timingEvent) + Environment.NewLine);
+            File.AppendAllText(path, JsonSerializer.Serialize(timingEvent) + Environment.NewLine);
         }
     }
 
@@ -89,5 +89,6 @@ internal static class GeneratedCodeSampleTiming
         DateTimeOffset FinishedUtc,
         double DurationMilliseconds,
         int? SampleCount = null,
-        int? DegreeOfParallelism = null);
+        int? DegreeOfParallelism = null
+    );
 }

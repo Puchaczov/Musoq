@@ -14,34 +14,77 @@ public static class BenchmarkMeasurement
         try
         {
             // Scope BenchmarkDotNet project discovery away from retained workspaces.
-            Environment.CurrentDirectory = Path.Combine(ProvenanceCollector.RepositoryRoot(),
-                "src", "dotnet", "Musoq.Benchmarks");
-            using var run = new BenchmarkRunInfo([item.Benchmark], item.Benchmark.Descriptor.Type, item.Benchmark.Config);
+            Environment.CurrentDirectory = Path.Combine(
+                ProvenanceCollector.RepositoryRoot(),
+                "src",
+                "dotnet",
+                "Musoq.Benchmarks"
+            );
+            using var run = new BenchmarkRunInfo(
+                [item.Benchmark],
+                item.Benchmark.Descriptor.Type,
+                item.Benchmark.Config
+            );
             var summary = BenchmarkRunner.Run(run);
             var reports = CopyReports(summary, store, attempt);
             var report = summary.Reports.SingleOrDefault();
-            if (report is not { Success: true, ResultStatistics: { } statistics } || statistics.N == 0 || !double.IsFinite(statistics.Mean) || statistics.Mean <= 0)
-                return new Measurement(item.Definition.Id, started, DateTimeOffset.UtcNow, "failed",
-                    string.Join("\n", summary.ValidationErrors.Select(error => error.Message)) + "\nBenchmarkDotNet produced no successful samples; inspect raw reports.", RawReports: reports);
+            if (
+                report is not { Success: true, ResultStatistics: { } statistics }
+                || statistics.N == 0
+                || !double.IsFinite(statistics.Mean)
+                || statistics.Mean <= 0
+            )
+                return new Measurement(
+                    item.Definition.Id,
+                    started,
+                    DateTimeOffset.UtcNow,
+                    "failed",
+                    string.Join("\n", summary.ValidationErrors.Select(error => error.Message))
+                        + "\nBenchmarkDotNet produced no successful samples; inspect raw reports.",
+                    RawReports: reports
+                );
             CampaignIntegrity.ValidateProcesses(store.RawDirectory(attempt), store.Manifest, item.Definition);
             var memory = item.Definition.Phase != "compilation-cold" && report.GcStats.TotalOperations > 0;
             long? allocatedBytes = null;
             if (memory)
                 allocatedBytes = report.GcStats.GetBytesAllocatedPerOperation(item.Benchmark);
-            return new Measurement(item.Definition.Id, started, DateTimeOffset.UtcNow, "complete", null,
-                statistics.Mean, statistics.Median, statistics.StandardDeviation,
-                Finite(statistics.ConfidenceInterval.Lower), Finite(statistics.ConfidenceInterval.Upper), statistics.N,
+            return new Measurement(
+                item.Definition.Id,
+                started,
+                DateTimeOffset.UtcNow,
+                "complete",
+                null,
+                statistics.Mean,
+                statistics.Median,
+                statistics.StandardDeviation,
+                Finite(statistics.ConfidenceInterval.Lower),
+                Finite(statistics.ConfidenceInterval.Upper),
+                statistics.N,
                 allocatedBytes,
-                memory ? report.GcStats.Gen0Collections : null, memory ? report.GcStats.Gen1Collections : null,
-                memory ? report.GcStats.Gen2Collections : null, memory ? report.GcStats.TotalOperations : null, reports);
+                memory ? report.GcStats.Gen0Collections : null,
+                memory ? report.GcStats.Gen1Collections : null,
+                memory ? report.GcStats.Gen2Collections : null,
+                memory ? report.GcStats.TotalOperations : null,
+                reports
+            );
         }
         catch (Exception exception)
         {
             var directory = store.RawDirectory(attempt);
             string[] reports = [];
             if (Directory.Exists(directory))
-                reports = Directory.GetFiles(directory, "*.json").Select(path => Path.GetRelativePath(store.DirectoryPath, path).Replace('\\', '/')).ToArray();
-            return new Measurement(item.Definition.Id, started, DateTimeOffset.UtcNow, "failed", exception.ToString(), RawReports: reports);
+                reports = Directory
+                    .GetFiles(directory, "*.json")
+                    .Select(path => Path.GetRelativePath(store.DirectoryPath, path).Replace('\\', '/'))
+                    .ToArray();
+            return new Measurement(
+                item.Definition.Id,
+                started,
+                DateTimeOffset.UtcNow,
+                "failed",
+                exception.ToString(),
+                RawReports: reports
+            );
         }
         finally
         {
@@ -61,8 +104,11 @@ public static class BenchmarkMeasurement
             File.Copy(source, destination, overwrite: false);
             results.Add(Path.GetRelativePath(store.DirectoryPath, destination).Replace('\\', '/'));
         }
-        results.AddRange(Directory.GetFiles(target, "measured-process-*.json")
-            .Select(path => Path.GetRelativePath(store.DirectoryPath, path).Replace('\\', '/')));
+        results.AddRange(
+            Directory
+                .GetFiles(target, "measured-process-*.json")
+                .Select(path => Path.GetRelativePath(store.DirectoryPath, path).Replace('\\', '/'))
+        );
         return results.Order(StringComparer.Ordinal).ToArray();
     }
 

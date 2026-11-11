@@ -15,34 +15,37 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (_semanticPhaseCompleted)
             throw new InvalidOperationException("The semantic analysis phase has already been completed.");
 
-        var snapshot = _metadataSnapshotBuilder.Build(new SemanticMetadataSnapshotInput
-        {
-            Root = Root,
-            InferredColumns = _sourceBinding.InferredColumns.Select(ToReadOnlyColumnEntry),
-            InferredColumnsByAlias = _sourceBinding.InferredColumnsByAlias.Select(ToReadOnlyColumnEntry),
-            UsedColumns = _sourceBinding.UsedColumns.Select(ToReadOnlyColumnEntry),
-            UsedWhereNodes = _sourceBinding.UsedWhereNodes,
-            SourcePlanRequestsPerSchema = _sourceBinding.SourcePlanRequestsPerSchema,
-            SourceContractDiagnosticLocationsPerSchema = _sourceBinding.SourceContractDiagnosticLocationsPerSchema,
-            SourceContracts = CreateSourceContracts(),
-            ScriptParameterDefinitions = _scriptParameters.DefinitionsForSnapshot,
-            ScriptVariableDefinitions = _scriptVariables.DefinitionsForSnapshot,
-            SourceRuntimeSettingsBySourceContextId = InternalSourceRuntimeSettingsBySourceContextId,
-            SourceRuntimeSettingDescriptionsBySourceContextId = InternalSourceRuntimeSettingDescriptionsBySourceContextId,
-            HasDeclaredSourceRuntimeSettings = HasDeclaredSourceRuntimeSettings,
-            HasSourceRuntimeSettingValues = HasSourceRuntimeSettingValues,
-            Assemblies = _methodResolution.Assemblies,
-            QueryLocalEnumTypes = _enumBinding.QueryLocalTypes,
-            SetOperatorFieldPositions = _queryState.SetOperatorFieldPositions,
-            SetOperatorFieldTypes = _queryState.SetOperatorFieldTypes,
-            ResultShape = new SemanticResultShapeSnapshotInput
+        var snapshot = _metadataSnapshotBuilder.Build(
+            new SemanticMetadataSnapshotInput
             {
-                GeneratedAliases = _resultShape.GeneratedAliases,
-                GeneratedColumns = _resultShape.GeneratedColumns,
-                SelectFieldAliases = _resultShape.SelectFieldAliases,
-                TheMostInnerIdentifier = _resultShape.TheMostInnerIdentifier
+                Root = Root,
+                InferredColumns = _sourceBinding.InferredColumns.Select(ToReadOnlyColumnEntry),
+                InferredColumnsByAlias = _sourceBinding.InferredColumnsByAlias.Select(ToReadOnlyColumnEntry),
+                UsedColumns = _sourceBinding.UsedColumns.Select(ToReadOnlyColumnEntry),
+                UsedWhereNodes = _sourceBinding.UsedWhereNodes,
+                SourcePlanRequestsPerSchema = _sourceBinding.SourcePlanRequestsPerSchema,
+                SourceContractDiagnosticLocationsPerSchema = _sourceBinding.SourceContractDiagnosticLocationsPerSchema,
+                SourceContracts = CreateSourceContracts(),
+                ScriptParameterDefinitions = _scriptParameters.DefinitionsForSnapshot,
+                ScriptVariableDefinitions = _scriptVariables.DefinitionsForSnapshot,
+                SourceRuntimeSettingsBySourceContextId = InternalSourceRuntimeSettingsBySourceContextId,
+                SourceRuntimeSettingDescriptionsBySourceContextId =
+                    InternalSourceRuntimeSettingDescriptionsBySourceContextId,
+                HasDeclaredSourceRuntimeSettings = HasDeclaredSourceRuntimeSettings,
+                HasSourceRuntimeSettingValues = HasSourceRuntimeSettingValues,
+                Assemblies = _methodResolution.Assemblies,
+                QueryLocalEnumTypes = _enumBinding.QueryLocalTypes,
+                SetOperatorFieldPositions = _queryState.SetOperatorFieldPositions,
+                SetOperatorFieldTypes = _queryState.SetOperatorFieldTypes,
+                ResultShape = new SemanticResultShapeSnapshotInput
+                {
+                    GeneratedAliases = _resultShape.GeneratedAliases,
+                    GeneratedColumns = _resultShape.GeneratedColumns,
+                    SelectFieldAliases = _resultShape.SelectFieldAliases,
+                    TheMostInnerIdentifier = _resultShape.TheMostInnerIdentifier,
+                },
             }
-        });
+        );
         _semanticPhaseCompleted = true;
         return snapshot;
     }
@@ -53,12 +56,14 @@ public partial class BuildMetadataAndInferTypesVisitor
     internal IdentifierNode? SemanticMostInnerIdentifier => _resultShape.TheMostInnerIdentifier;
 
     private static KeyValuePair<TKey, IEnumerable<ISchemaColumn>> ToReadOnlyColumnEntry<TKey>(
-        KeyValuePair<TKey, ISchemaColumn[]> entry) where TKey : notnull =>
-        new(entry.Key, entry.Value);
+        KeyValuePair<TKey, ISchemaColumn[]> entry
+    )
+        where TKey : notnull => new(entry.Key, entry.Value);
 
     private static KeyValuePair<TKey, IEnumerable<ISchemaColumn>> ToReadOnlyColumnEntry<TKey>(
-        KeyValuePair<TKey, List<ISchemaColumn>> entry) where TKey : notnull =>
-        new(entry.Key, entry.Value);
+        KeyValuePair<TKey, List<ISchemaColumn>> entry
+    )
+        where TKey : notnull => new(entry.Key, entry.Value);
 
     private IReadOnlyList<BoundSourceContract> CreateSourceContracts()
     {
@@ -77,23 +82,32 @@ public partial class BuildMetadataAndInferTypesVisitor
             var columns = entry.Value.Select(BoundSchemaColumn.Capture).ToArray();
             var requiredMembers = columns
                 .Select(static column =>
-                    $"{column.ColumnName}:{column.ColumnType.AssemblyQualifiedName ?? column.ColumnType.FullName}:{column.IsNullable}:{column.Stability}")
+                    $"{column.ColumnName}:{column.ColumnType.AssemblyQualifiedName ?? column.ColumnType.FullName}:{column.IsNullable}:{column.Stability}"
+                )
                 .ToArray();
             var methodSignature = string.Concat(
                 source.Schema,
                 ".",
                 source.Method,
                 "(",
-                string.Join(",", source.Parameters.Args.Select(static argument =>
-                    argument.ReturnType?.AssemblyQualifiedName ?? argument.ReturnType?.FullName ?? "object")),
-                ")");
+                string.Join(
+                    ",",
+                    source.Parameters.Args.Select(static argument =>
+                        argument.ReturnType?.AssemblyQualifiedName ?? argument.ReturnType?.FullName ?? "object"
+                    )
+                ),
+                ")"
+            );
 
-            contracts.Add(new BoundSourceContract(
-                source.Id,
-                identity,
-                Array.AsReadOnly(columns),
-                Array.AsReadOnly(requiredMembers),
-                methodSignature));
+            contracts.Add(
+                new BoundSourceContract(
+                    source.Id,
+                    identity,
+                    Array.AsReadOnly(columns),
+                    Array.AsReadOnly(requiredMembers),
+                    methodSignature
+                )
+            );
         }
 
         return contracts;

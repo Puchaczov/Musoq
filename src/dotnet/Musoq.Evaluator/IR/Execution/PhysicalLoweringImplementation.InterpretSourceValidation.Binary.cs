@@ -10,18 +10,21 @@ internal sealed partial class PhysicalLoweringImplementation
         return ValidateBinaryInterpretSource(
             binary,
             new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-            BinarySchemaGenericResolver.CreateEmptyBindings());
+            BinarySchemaGenericResolver.CreateEmptyBindings()
+        );
     }
 
     private InterpretSourceValidationResult ValidateBinaryInterpretSource(
         BinarySchemaNode binary,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         if (binary.IsGeneric && genericBindings.Count == 0)
         {
             return InterpretSourceValidationResult.Unsupported(
-                $"Execution IR binary interpret-source lowering does not support generic binary schema '{binary.Name}'.");
+                $"Execution IR binary interpret-source lowering does not support generic binary schema '{binary.Name}'."
+            );
         }
 
         var schemaKey = BinarySchemaGenericResolver.CreateSchemaKey(binary, genericBindings);
@@ -30,18 +33,22 @@ internal sealed partial class PhysicalLoweringImplementation
 
         if (!string.IsNullOrWhiteSpace(binary.Extends))
         {
-            if (_schemaRegistry == null ||
-                !_schemaRegistry.TryGetSchema(binary.Extends, out var parentRegistration) ||
-                parentRegistration?.Node is not BinarySchemaNode parent)
+            if (
+                _schemaRegistry == null
+                || !_schemaRegistry.TryGetSchema(binary.Extends, out var parentRegistration)
+                || parentRegistration?.Node is not BinarySchemaNode parent
+            )
             {
                 return InterpretSourceValidationResult.Unsupported(
-                    $"Execution IR binary interpret-source lowering cannot resolve parent schema '{binary.Extends}' for schema '{binary.Name}'.");
+                    $"Execution IR binary interpret-source lowering cannot resolve parent schema '{binary.Extends}' for schema '{binary.Name}'."
+                );
             }
 
             var parentResult = ValidateBinaryInterpretSource(
                 parent,
                 validatedSchemas,
-                BinarySchemaGenericResolver.CreateEmptyBindings());
+                BinarySchemaGenericResolver.CreateEmptyBindings()
+            );
             if (!parentResult.IsBuilt)
                 return parentResult;
         }
@@ -59,7 +66,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private InterpretSourceValidationResult ValidateBinaryField(
         SchemaFieldNode field,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         var nameResult = ValidateBinaryFieldName(field);
         if (!nameResult.IsBuilt)
@@ -71,10 +79,12 @@ internal sealed partial class PhysicalLoweringImplementation
                 definition.TypeAnnotation,
                 definition.Name,
                 validatedSchemas,
-                genericBindings),
+                genericBindings
+            ),
             ComputedFieldNode => InterpretSourceValidationResult.Success(),
             _ => InterpretSourceValidationResult.Unsupported(
-                $"Execution IR binary interpret-source lowering does not support field node '{field.GetType().Name}' on field '{field.Name}'.")
+                $"Execution IR binary interpret-source lowering does not support field node '{field.GetType().Name}' on field '{field.Name}'."
+            ),
         };
     }
 

@@ -18,7 +18,8 @@ internal sealed partial class PhysicalLoweringImplementation
         int schemaFromIndex,
         string? sourceRowsScope,
         LoweringScope scope,
-        bool disableCteFusion = false)
+        bool disableCteFusion = false
+    )
     {
         var leftSource = BuildJoinSource(
             left,
@@ -27,7 +28,8 @@ internal sealed partial class PhysicalLoweringImplementation
             schemaFromIndex,
             sourceRowsScope,
             scope,
-            disableCteFusion);
+            disableCteFusion
+        );
         if (!leftSource.IsBuilt)
             return JoinSourcesBuildResult.Unsupported(leftSource.UnsupportedReason);
 
@@ -38,7 +40,8 @@ internal sealed partial class PhysicalLoweringImplementation
             schemaFromIndex + leftSource.Source.SchemaSourceCount,
             sourceRowsScope,
             scope,
-            disableCteFusion);
+            disableCteFusion
+        );
         if (!rightSource.IsBuilt)
             return JoinSourcesBuildResult.Unsupported(rightSource.UnsupportedReason);
 
@@ -52,11 +55,14 @@ internal sealed partial class PhysicalLoweringImplementation
         int schemaFromIndex,
         string? sourceRowsScope,
         LoweringScope scope,
-        bool disableCteFusion = false)
+        bool disableCteFusion = false
+    )
     {
-        if (source is PhysicalCteRefNode cteRef &&
-            !disableCteFusion &&
-            TryBuildFusedCteHashBuildJoinSource(cteRef, cteIndexes, cteShapesByName, scope, out var fusedSource))
+        if (
+            source is PhysicalCteRefNode cteRef
+            && !disableCteFusion
+            && TryBuildFusedCteHashBuildJoinSource(cteRef, cteIndexes, cteShapesByName, scope, out var fusedSource)
+        )
         {
             return SourceBuildResult.Success(fusedSource);
         }
@@ -69,7 +75,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 schemaFromIndex,
                 sourceRowsScope,
                 scope,
-                disableCteFusion);
+                disableCteFusion
+            );
 
         if (source is PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode)
             return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex, scope);
@@ -77,28 +84,34 @@ internal sealed partial class PhysicalLoweringImplementation
         if (source is not (PhysicalSchemaScanNode or PhysicalCteRefNode or PhysicalValuesScanNode))
         {
             return SourceBuildResult.Unsupported(
-                $"Execution IR join lowering currently supports flat schema-scan, CTE-ref, values, or nested join inputs. Found {source.GetType().Name}.");
+                $"Execution IR join lowering currently supports flat schema-scan, CTE-ref, values, or nested join inputs. Found {source.GetType().Name}."
+            );
         }
 
         var shape = ResolveSourceShape(source, cteIndexes, cteShapesByName);
         if (shape == null)
-            return SourceBuildResult.Unsupported($"Execution IR join lowering cannot resolve source shape for {source.GetType().Name}.");
+            return SourceBuildResult.Unsupported(
+                $"Execution IR join lowering cannot resolve source shape for {source.GetType().Name}."
+            );
 
         var variable = CreateSourceVariable(source, shape, cteShapesByName);
         var setup = CreateSourceSetup(source, shape, variable, schemaFromIndex, cteIndexes, sourceRowsScope);
         var rows = CreateSourceRowsExpression(source, shape, cteIndexes, cteShapesByName, sourceRowsScope, scope);
 
-        return SourceBuildResult.Success(new JoinSource(
-            source,
-            shape,
-            variable,
-            setup,
-            rows,
-            [shape],
-            source is PhysicalSchemaScanNode ? 1 : 0,
-            GeneratedRowShape: source is PhysicalCteRefNode cteSource
-                ? ResolveCteGeneratedRowShape(cteSource, cteShapesByName)
-                : SourceGeneratedRowShapeResolver.Resolve(shape)));
+        return SourceBuildResult.Success(
+            new JoinSource(
+                source,
+                shape,
+                variable,
+                setup,
+                rows,
+                [shape],
+                source is PhysicalSchemaScanNode ? 1 : 0,
+                GeneratedRowShape: source is PhysicalCteRefNode cteSource
+                    ? ResolveCteGeneratedRowShape(cteSource, cteShapesByName)
+                    : SourceGeneratedRowShapeResolver.Resolve(shape)
+            )
+        );
     }
 
     private SourceBuildResult BuildFilteredJoinSource(
@@ -108,7 +121,8 @@ internal sealed partial class PhysicalLoweringImplementation
         int schemaFromIndex,
         string? sourceRowsScope,
         LoweringScope scope,
-        bool disableCteFusion)
+        bool disableCteFusion
+    )
     {
         var filterSource = CollectFilterPredicate(filter);
         var baseSource = BuildJoinSource(
@@ -118,34 +132,39 @@ internal sealed partial class PhysicalLoweringImplementation
             schemaFromIndex,
             sourceRowsScope,
             scope,
-            disableCteFusion);
+            disableCteFusion
+        );
         if (!baseSource.IsBuilt)
             return baseSource;
 
-
-
         var filteredRows = CreateMaterializedRowsBufferVariable(
             CreateIdentifierCandidate($"{baseSource.Source.Variable.Name}PrefilteredRows", 0),
-            baseSource.Source.GeneratedRowShape);
+            baseSource.Source.GeneratedRowShape
+        );
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(baseSource.Source.Shape);
         var filterPredicate = ExecutionExpressionConverter.Convert(filterSource.Predicate, sourceLookup);
         var setup = new List<ExecutionNode>(baseSource.Source.Setup.Count + 1);
 
         setup.AddRange(baseSource.Source.Setup);
-        setup.Add(CreateMaterializeFilteredListNode(
-            baseSource.Source.Rows,
-            filteredRows,
-            baseSource.Source.Variable,
-            ExecutionRowAccessMode.Direct,
-            filterPredicate,
-            baseSource.Source.GeneratedRowShape));
+        setup.Add(
+            CreateMaterializeFilteredListNode(
+                baseSource.Source.Rows,
+                filteredRows,
+                baseSource.Source.Variable,
+                ExecutionRowAccessMode.Direct,
+                filterPredicate,
+                baseSource.Source.GeneratedRowShape
+            )
+        );
 
-        return SourceBuildResult.Success(baseSource.Source with
-        {
-            Node = filter,
-            Setup = setup,
-            Rows = new ExecutionVariableRead(filteredRows)
-        });
+        return SourceBuildResult.Success(
+            baseSource.Source with
+            {
+                Node = filter,
+                Setup = setup,
+                Rows = new ExecutionVariableRead(filteredRows),
+            }
+        );
     }
 
     private static FilteredSource CollectFilterPredicate(PhysicalFilterNode filter)
@@ -167,7 +186,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var projection = CreateNestedSourceProjectionFields(join, cteIndexes, cteShapesByName);
         if (!projection.IsBuilt)
@@ -178,14 +198,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var shapeName = CreateNestedSourceShapeName(sourceAlias);
         var project = new PhysicalProjectNode(projection.Value, join);
         var pipeline = new CteSupportedPipeline(project, join, null, []);
-        var table = BuildJoinTable(
-            pipeline,
-            tableName,
-            shapeName,
-            cteIndexes,
-            cteShapesByName,
-            schemaFromIndex,
-            scope);
+        var table = BuildJoinTable(pipeline, tableName, shapeName, cteIndexes, cteShapesByName, schemaFromIndex, scope);
 
         if (!table.IsBuilt)
             return SourceBuildResult.Unsupported(table.UnsupportedReason);
@@ -195,24 +208,21 @@ internal sealed partial class PhysicalLoweringImplementation
         var rows = new ExecutionRowStream(
             table.Table,
             ExecutionRowStreamKind.Rows,
-            ExecutionRowStreamRowsAccess.TableRows);
+            ExecutionRowStreamRowsAccess.TableRows
+        );
         var shapes = table.Shapes.Concat([transitionShape]).ToArray();
 
-        return SourceBuildResult.Success(new JoinSource(
-            join,
-            transitionShape,
-            source,
-            table.Nodes.ToList(),
-            rows,
-            shapes,
-            CountSchemaScans(join)));
+        return SourceBuildResult.Success(
+            new JoinSource(join, transitionShape, source, table.Nodes.ToList(), rows, shapes, CountSchemaScans(join))
+        );
     }
 
     private static List<ExecutionNode> CreateJoinPrelude(
         JoinSources sources,
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
-        ExecutionCapacityHint? capacityHint = null)
+        ExecutionCapacityHint? capacityHint = null
+    )
     {
         var nodes = new List<ExecutionNode>(sources.Left.Setup.Count + sources.Right.Setup.Count + 1);
 
@@ -223,16 +233,15 @@ internal sealed partial class PhysicalLoweringImplementation
         return nodes;
     }
 
-    private static ExecutionExpression CreateNestedLoopInnerRows(
-        JoinSource inner,
-        List<ExecutionNode> nodes)
+    private static ExecutionExpression CreateNestedLoopInnerRows(JoinSource inner, List<ExecutionNode> nodes)
     {
         if (!ExecutionRowStreams.IsChunked(inner.Rows))
             return inner.Rows;
 
         var buffer = CreateMaterializedRowsBufferVariable(
             CreateIdentifierCandidate($"{inner.Variable.Name}RowsBuffer", 0),
-            inner.GeneratedRowShape);
+            inner.GeneratedRowShape
+        );
 
         nodes.Add(CreateMaterializeListNode(inner.Rows, buffer, inner.GeneratedRowShape));
 
@@ -256,14 +265,16 @@ internal sealed partial class PhysicalLoweringImplementation
     private static TableBuildResult UnsupportedJoinKind(JoinKind kind)
     {
         return TableBuildResult.Unsupported(
-            $"Execution IR join lowering currently supports inner, outer, and semi joins. Found {kind}.");
+            $"Execution IR join lowering currently supports inner, outer, and semi joins. Found {kind}."
+        );
     }
 
     private static ExecutionSourceLoop CreateSourceLoop(
         RowShape sourceShape,
         ExecutionExpression sourceRows,
         ExecutionVariable source,
-        ExecutionBlock loopBody)
+        ExecutionBlock loopBody
+    )
     {
         return ExecutionRowStreams.CreateForEach(sourceShape, sourceRows, source, loopBody);
     }
@@ -273,9 +284,9 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionExpression sourceRows,
         ExecutionVariable source,
         ExecutionVariable ordinal,
-        ExecutionBlock loopBody)
+        ExecutionBlock loopBody
+    )
     {
         return ExecutionRowStreams.CreateForEachWithOrdinality(sourceShape, sourceRows, source, ordinal, loopBody);
     }
-
 }

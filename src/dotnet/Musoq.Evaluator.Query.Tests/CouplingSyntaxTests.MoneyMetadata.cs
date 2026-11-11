@@ -12,14 +12,25 @@ public partial class CouplingSyntaxTests
     [TestProperty("CandidateId", "P3-016")]
     public void MoneyTableColumnOnTypedProvider_ShouldAdvertiseProviderDecimal()
     {
-        const string query = "table Amounts { Value: money }; couple test.Entities with table Amounts as Source; select a.Value as Value from Source() a";
+        const string query =
+            "table Amounts { Value: money }; couple test.Entities with table Amounts as Source; select a.Value as Value from Source() a";
         var entity = new DeclaredAmountEntity { Value = 12.5m };
-        var schema = new GenericSchema<LibraryBase>(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
-            ["Entities"] = (new GenericEntityTable<DeclaredAmountEntity>(),
-                new GenericChunkSource<DeclaredAmountEntity>([entity], GenericEntityTable<DeclaredAmountEntity>.NameToIndexMap, GenericEntityTable<DeclaredAmountEntity>.IndexToObjectAccessMap))
-        });
-        var provider = new GenericSchemaProvider(new Dictionary<string, ISchema> { ["test"] = schema, ["#test"] = schema });
+        var schema = new GenericSchema<LibraryBase>(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
+            {
+                ["Entities"] = (
+                    new GenericEntityTable<DeclaredAmountEntity>(),
+                    new GenericChunkSource<DeclaredAmountEntity>(
+                        [entity],
+                        GenericEntityTable<DeclaredAmountEntity>.NameToIndexMap,
+                        GenericEntityTable<DeclaredAmountEntity>.IndexToObjectAccessMap
+                    )
+                ),
+            }
+        );
+        var provider = new GenericSchemaProvider(
+            new Dictionary<string, ISchema> { ["test"] = schema, ["#test"] = schema }
+        );
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: provider);
         using var result = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { 12.5m });

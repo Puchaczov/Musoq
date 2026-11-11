@@ -11,38 +11,33 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class DistinctComprehensiveTests
 {
-
     [TestMethod]
     public void Distinct_OnJoinResult_ShouldDeduplicateJoinedRows()
     {
-        var query = @"
-            select distinct a.Country
-            from #A.Entities() a
-            inner join #B.Entities() b on a.Country = b.Country";
+        var query = (
+            "\n"
+            + "            select distinct a.Country\n"
+            + "            from #A.Entities() a\n"
+            + "            inner join #B.Entities() b on a.Country = b.Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Warsaw", "Poland", 500),
                     new BasicEntity("Krakow", "Poland", 400),
-                    new BasicEntity("Berlin", "Germany", 350)
+                    new BasicEntity("Berlin", "Germany", 350),
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("Poznan", "Poland", 300),
-                    new BasicEntity("Munich", "Germany", 400)
-                ]
-            }
+            { "#B", [new BasicEntity("Poznan", "Poland", 300), new BasicEntity("Munich", "Germany", 400)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Germany"], ["Poland"]);
     }
-
 }

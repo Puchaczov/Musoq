@@ -2,8 +2,7 @@ using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Planning;
 
-internal sealed class ApplyPredicateAliasRewriter(
-    Func<ColumnRef, ColumnRef?> rewriteColumn) : ExpressionArrayRewriter
+internal sealed class ApplyPredicateAliasRewriter(Func<ColumnRef, ColumnRef?> rewriteColumn) : ExpressionArrayRewriter
 {
     public IrExpression Rewrite(IrExpression expression) => Visit(expression);
 
@@ -23,23 +22,22 @@ internal sealed class ApplyPredicateAliasRewriter(
         var right = Visit(node.Right);
         return ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right)
             ? node
-            : new BinaryOp(node.Kind, left, right, node.ReturnType) { UsesSqlNullSemantics = node.UsesSqlNullSemantics };
+            : new BinaryOp(node.Kind, left, right, node.ReturnType)
+            {
+                UsesSqlNullSemantics = node.UsesSqlNullSemantics,
+            };
     }
 
     protected override IrExpression VisitUnaryOp(UnaryOp node)
     {
         var operand = Visit(node.Operand);
-        return ReferenceEquals(operand, node.Operand)
-            ? node
-            : new UnaryOp(node.Kind, operand, node.ReturnType);
+        return ReferenceEquals(operand, node.Operand) ? node : new UnaryOp(node.Kind, operand, node.ReturnType);
     }
 
     protected override IrExpression VisitMethodCall(MethodCall node)
     {
         var arguments = RewriteExpressions(node.Arguments, out var changed);
-        return changed
-            ? node with { Arguments = arguments }
-            : node;
+        return changed ? node with { Arguments = arguments } : node;
     }
 
     protected override IrExpression VisitIsNullCheck(IsNullCheck node)
@@ -73,9 +71,10 @@ internal sealed class ApplyPredicateAliasRewriter(
         var expression = Visit(node.Expression);
         var low = Visit(node.Low);
         var high = Visit(node.High);
-        return ReferenceEquals(expression, node.Expression) &&
-               ReferenceEquals(low, node.Low) &&
-               ReferenceEquals(high, node.High)
+        return
+            ReferenceEquals(expression, node.Expression)
+            && ReferenceEquals(low, node.Low)
+            && ReferenceEquals(high, node.High)
             ? node
             : new Between(expression, low, high, node.ReturnType);
     }

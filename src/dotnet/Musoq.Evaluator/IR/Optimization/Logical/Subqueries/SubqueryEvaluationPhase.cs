@@ -10,5 +10,5 @@ internal enum SubqueryEvaluationPhase
     Qualify,
     Projection,
     Ordering,
-    RowLimit
+    RowLimit,
 }

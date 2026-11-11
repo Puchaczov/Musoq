@@ -11,7 +11,8 @@ internal static partial class ScriptVariableInitializerEvaluator
         RecordLiteralNode record,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
         IReadOnlyDictionary<string, ScriptParameterDefinition>? parameters,
-        string ownerName)
+        string ownerName
+    )
     {
         var fields = new List<KeyValuePair<string, StructuralValue>>(record.Fields.Count);
         foreach (var field in record.Fields)
@@ -20,22 +21,22 @@ internal static partial class ScriptVariableInitializerEvaluator
             if (!evaluation.Success)
                 return evaluation;
 
-            fields.Add(new KeyValuePair<string, StructuralValue>(
-                field.Name,
-                ToStructuralValue(evaluation.Value)));
+            fields.Add(new KeyValuePair<string, StructuralValue>(field.Name, ToStructuralValue(evaluation.Value)));
         }
 
         try
         {
             return ScriptConstantEvaluationResult.Evaluated(
                 StructuralValue.FromRecord(fields),
-                typeof(StructuralValue));
+                typeof(StructuralValue)
+            );
         }
         catch (ArgumentException exception)
         {
             return ScriptConstantEvaluationResult.Failed(
                 DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
-                $"Script variable '{ownerName}' contains an invalid record: {exception.Message}");
+                $"Script variable '{ownerName}' contains an invalid record: {exception.Message}"
+            );
         }
     }
 
@@ -43,7 +44,8 @@ internal static partial class ScriptVariableInitializerEvaluator
         ArrayLiteralNode array,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
         IReadOnlyDictionary<string, ScriptParameterDefinition>? parameters,
-        string ownerName)
+        string ownerName
+    )
     {
         var elements = new StructuralValue[array.Elements.Count];
         for (var index = 0; index < array.Elements.Count; index++)
@@ -57,7 +59,8 @@ internal static partial class ScriptVariableInitializerEvaluator
 
         return ScriptConstantEvaluationResult.Evaluated(
             StructuralValue.FromCollection(elements),
-            typeof(StructuralValue[]));
+            typeof(StructuralValue[])
+        );
     }
 
     private static StructuralValue ToStructuralValue(object? value)

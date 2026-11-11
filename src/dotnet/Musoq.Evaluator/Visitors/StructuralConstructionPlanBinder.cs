@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Schema.StructuralInputs;
 using Musoq.Schema.Managers;
+using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -12,7 +12,8 @@ internal static class StructuralConstructionPlanBinder
         StructuralTypeDescriptor input,
         StructuralTypeDescriptor receiver,
         out StructuralConstructionPlan plan,
-        out string error)
+        out string error
+    )
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(receiver);
@@ -37,9 +38,7 @@ internal static class StructuralConstructionPlanBinder
         {
             var constructor = StructuralInputMetadata.SelectConstructor(receiver.ClrType);
             var constructorDescriptor = new StructuralConstructorDescriptor(constructor, receiver.Fields);
-            var indexes = receiver.Fields
-                .Select(field => FindFieldIndex(input.Fields, field.Name))
-                .ToArray();
+            var indexes = receiver.Fields.Select(field => FindFieldIndex(input.Fields, field.Name)).ToArray();
             plan = new StructuralConstructionPlan(receiver.ClrType, constructorDescriptor, indexes);
             return true;
         }
@@ -53,7 +52,8 @@ internal static class StructuralConstructionPlanBinder
     internal static bool TryValidateCompatibility(
         StructuralTypeDescriptor input,
         StructuralTypeDescriptor receiver,
-        out string error)
+        out string error
+    )
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(receiver);
@@ -83,17 +83,20 @@ internal static class StructuralConstructionPlanBinder
                     return true;
                 }
 
-                error = $"Structural scalar '{input.ToCanonicalSql()}' is incompatible with receiver '{receiver.ToCanonicalSql()}'.";
+                error =
+                    $"Structural scalar '{input.ToCanonicalSql()}' is incompatible with receiver '{receiver.ToCanonicalSql()}'.";
                 return false;
             default:
                 error = $"Structural kind '{input.Kind}' is not supported.";
                 return false;
         }
     }
+
     private static bool TryValidateRecord(
         StructuralTypeDescriptor input,
         StructuralTypeDescriptor receiver,
-        out string error)
+        out string error
+    )
     {
         foreach (var inputField in input.Fields)
         {
@@ -106,7 +109,8 @@ internal static class StructuralConstructionPlanBinder
 
             if (!CanAssign(inputField.Type, receiverField.Type))
             {
-                error = $"Structural field '{inputField.Name}' has type '{inputField.Type.ToCanonicalSql()}', but the receiver expects '{receiverField.Type.ToCanonicalSql()}'.";
+                error =
+                    $"Structural field '{inputField.Name}' has type '{inputField.Type.ToCanonicalSql()}', but the receiver expects '{receiverField.Type.ToCanonicalSql()}'.";
                 return false;
             }
         }
@@ -124,9 +128,7 @@ internal static class StructuralConstructionPlanBinder
         return true;
     }
 
-    private static bool CanAssign(
-        StructuralTypeDescriptor input,
-        StructuralTypeDescriptor receiver)
+    private static bool CanAssign(StructuralTypeDescriptor input, StructuralTypeDescriptor receiver)
     {
         if (input.Kind != receiver.Kind)
             return false;
@@ -139,13 +141,11 @@ internal static class StructuralConstructionPlanBinder
             StructuralTypeKind.Scalar => CanAssignScalar(input.ScalarType!, receiver.ScalarType!),
             StructuralTypeKind.Record => CanAssignRecord(input, receiver),
             StructuralTypeKind.Collection => CanAssign(input.ElementType!, receiver.ElementType!),
-            _ => false
+            _ => false,
         };
     }
 
-    private static bool CanAssignRecord(
-        StructuralTypeDescriptor input,
-        StructuralTypeDescriptor receiver)
+    private static bool CanAssignRecord(StructuralTypeDescriptor input, StructuralTypeDescriptor receiver)
     {
         foreach (var inputField in input.Fields)
         {
@@ -155,7 +155,8 @@ internal static class StructuralConstructionPlanBinder
         }
 
         return receiver.Fields.All(receiverField =>
-            FindField(input.Fields, receiverField.Name) != null || !receiverField.Required);
+            FindField(input.Fields, receiverField.Name) != null || !receiverField.Required
+        );
     }
 
     private static bool CanAssignScalar(Type input, Type receiver)
@@ -163,17 +164,12 @@ internal static class StructuralConstructionPlanBinder
         return SchemaConversionClassifier.TryGetCost(input, receiver, out _);
     }
 
-    private static StructuralFieldDescriptor? FindField(
-        IReadOnlyList<StructuralFieldDescriptor> fields,
-        string name)
+    private static StructuralFieldDescriptor? FindField(IReadOnlyList<StructuralFieldDescriptor> fields, string name)
     {
-        return fields.FirstOrDefault(field =>
-            string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase));
+        return fields.FirstOrDefault(field => string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static int FindFieldIndex(
-        IReadOnlyList<StructuralFieldDescriptor> fields,
-        string name)
+    private static int FindFieldIndex(IReadOnlyList<StructuralFieldDescriptor> fields, string name)
     {
         for (var index = 0; index < fields.Count; index++)
             if (string.Equals(fields[index].Name, name, StringComparison.OrdinalIgnoreCase))

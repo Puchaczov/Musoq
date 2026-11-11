@@ -35,7 +35,8 @@ public static partial class EvaluationHelper
         IEnumerable<Row> rows,
         int skipCount,
         int takeCount,
-        IReadOnlyList<RowOrderKey> orderKeys)
+        IReadOnlyList<RowOrderKey> orderKeys
+    )
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(orderKeys);
@@ -58,7 +59,8 @@ public static partial class EvaluationHelper
         Table target,
         int skipCount,
         int takeCount,
-        IReadOnlyList<RowOrderKey> orderKeys)
+        IReadOnlyList<RowOrderKey> orderKeys
+    )
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(target);
@@ -80,10 +82,7 @@ public static partial class EvaluationHelper
         AppendSelectedTopOffsetRowsDirect(queue, target, skipCount, takeCount);
     }
 
-    public static List<T> SelectTopRecords<T>(
-        List<T> rows,
-        int takeCount,
-        IComparer<T> comparer)
+    public static List<T> SelectTopRecords<T>(List<T> rows, int takeCount, IComparer<T> comparer)
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(comparer);
@@ -100,11 +99,7 @@ public static partial class EvaluationHelper
         return CopySelectedTopOffsetRecords(queue, 0, takeCount);
     }
 
-    public static List<T> SelectTopOffsetRecords<T>(
-        List<T> rows,
-        int skipCount,
-        int takeCount,
-        IComparer<T> comparer)
+    public static List<T> SelectTopOffsetRecords<T>(List<T> rows, int skipCount, int takeCount, IComparer<T> comparer)
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(comparer);
@@ -124,5 +119,4 @@ public static partial class EvaluationHelper
         var queue = CollectTopOffsetCandidates(rows, limit, comparer);
         return CopySelectedTopOffsetRecords(queue, skipCount, takeCount);
     }
-
 }

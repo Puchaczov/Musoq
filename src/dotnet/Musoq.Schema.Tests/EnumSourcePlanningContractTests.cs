@@ -11,25 +11,29 @@ public sealed class EnumSourcePlanningContractTests
     [TestMethod]
     public void EnumLiteral_ShouldCarryValueTypeBitsAndPortableFingerprintOnly()
     {
-        var literal = new SourcePredicateEnumLiteral(
-            EnumScalarValue.FromUInt64(ulong.MaxValue),
-            new string('a', 64));
+        var literal = new SourcePredicateEnumLiteral(EnumScalarValue.FromUInt64(ulong.MaxValue), new string('a', 64));
 
         Assert.AreEqual(EnumScalarValue.FromUInt64(ulong.MaxValue), literal.Value);
         Assert.AreEqual(new string('A', 64), literal.EnumFingerprint);
-        Assert.AreEqual(typeof(EnumScalarValue),
-            typeof(SourcePredicateEnumLiteral).GetProperty(nameof(SourcePredicateEnumLiteral.Value))!.PropertyType);
-        Assert.IsFalse(typeof(SourcePredicateEnumLiteral)
-            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Any(static property => property.PropertyType == typeof(object) || property.PropertyType == typeof(Type)));
+        Assert.AreEqual(
+            typeof(EnumScalarValue),
+            typeof(SourcePredicateEnumLiteral).GetProperty(nameof(SourcePredicateEnumLiteral.Value))!.PropertyType
+        );
+        Assert.IsFalse(
+            typeof(SourcePredicateEnumLiteral)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Any(static property =>
+                    property.PropertyType == typeof(object) || property.PropertyType == typeof(Type)
+                )
+        );
     }
 
     [TestMethod]
     public void EnumLiteral_WhenFingerprintIsMalformed_ShouldRejectIt()
     {
-        Assert.Throws<ArgumentException>(() => new SourcePredicateEnumLiteral(
-            EnumScalarValue.FromInt32(1),
-            "not-a-fingerprint"));
+        Assert.Throws<ArgumentException>(() =>
+            new SourcePredicateEnumLiteral(EnumScalarValue.FromInt32(1), "not-a-fingerprint")
+        );
     }
 
     [TestMethod]

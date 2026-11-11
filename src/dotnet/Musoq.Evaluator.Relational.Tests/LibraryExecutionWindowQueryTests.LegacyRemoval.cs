@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -14,7 +13,8 @@ public sealed partial class LibraryExecutionWindowQueryTests
     [TestMethod]
     public void TypedStateKernel_WhenRangeKeysAreVolatile_ShouldReuseTheSortingCapture()
     {
-        const string query = "select Position, Sum(Value) over (order by CaptureOrderKey(Position) range between 1 preceding and current row) as Total from #schema.first() order by Position";
+        const string query =
+            "select Position, Sum(Value) over (order by CaptureOrderKey(Position) range between 1 preceding and current row) as Total from #schema.first() order by Position";
         NumericRow<int>[] input = [new(3, 30), new(1, 10), new(2, 20)];
         CleanupLibrary.OrderKeyCalls = 0;
         using var compiled = CreateAndRunVirtualMachine<NumericRow<int>, CleanupLibrary>(query, input);
@@ -32,7 +32,8 @@ public sealed partial class LibraryExecutionWindowQueryTests
     {
         const string query = "select WindowSum() from #schema.first()";
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<NumericRow<int>, CleanupLibrary>(query, [new(1, 1)]));
+            CreateAndRunVirtualMachine<NumericRow<int>, CleanupLibrary>(query, [new(1, 1)])
+        );
         Assert.Contains("WindowSum", error.ToString());
     }
 

@@ -14,14 +14,16 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(EnumMemberNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        PushSemanticNode(new EnumMemberNode(
+        PushSemanticNode(
+            new EnumMemberNode(
                 node.Name,
                 node.RawValue,
                 node.LiteralText,
                 node.NameSpan,
                 node.ValueSpan,
-                node.Span)
-            .WithFullSpan(node.FullSpan));
+                node.Span
+            ).WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(EnumDeclarationNode node)
@@ -32,15 +34,16 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var index = members.Length - 1; index >= 0; index--)
             members[index] = (EnumMemberNode)PopSemanticNode("Visit(EnumDeclarationNode).Member");
 
-        var declaration = (EnumDeclarationNode)new EnumDeclarationNode(
+        var declaration = (EnumDeclarationNode)
+            new EnumDeclarationNode(
                 node.Name,
                 node.UnderlyingTypeName,
                 node.IsFlags,
                 members,
                 node.NameSpan,
                 node.UnderlyingTypeSpan,
-                node.Span)
-            .WithFullSpan(node.FullSpan);
+                node.Span
+            ).WithFullSpan(node.FullSpan);
 
         if (_enumBinding.QueryLocalTypes.ContainsKey(node.Name))
         {
@@ -50,7 +53,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 "BindEnumDeclaration",
                 $"Enum type '{node.Name}' is already declared in this query batch. Enum type names are case-insensitive.",
                 DiagnosticCode.MQ3106_DuplicateEnumType,
-                span);
+                span
+            );
 
             if (DiagnosticContext != null)
                 DiagnosticContext.ReportException(exception, span);
@@ -66,11 +70,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var index = 0; index < members.Length; index++)
             descriptors[index] = new EnumMemberDescriptor(
                 members[index].Name,
-                EnumScalarValue.FromRaw(kind, members[index].RawValue));
+                EnumScalarValue.FromRaw(kind, members[index].RawValue)
+            );
 
         _enumBinding.QueryLocalTypes.Add(
             node.Name,
-            new EnumTypeDescriptor(node.Name, EnumTypeOrigin.QueryLocal, kind, node.IsFlags, descriptors));
+            new EnumTypeDescriptor(node.Name, EnumTypeOrigin.QueryLocal, kind, node.IsFlags, descriptors)
+        );
         PushSemanticNode(declaration);
     }
 
@@ -87,7 +93,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             "long" => EnumUnderlyingKind.Int64,
             "ulong" => EnumUnderlyingKind.UInt64,
             _ => throw new InvalidOperationException(
-                $"Parser accepted unsupported enum backing type '{underlyingTypeName}'.")
+                $"Parser accepted unsupported enum backing type '{underlyingTypeName}'."
+            ),
         };
     }
 

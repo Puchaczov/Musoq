@@ -12,5 +12,5 @@ public enum BinaryOperationContext
     RelationalComparison,
 
     /// <summary>Arithmetic operations (+, -, *, /, %, bitwise) that use numeric-only conversion for object types.</summary>
-    ArithmeticOperation
+    ArithmeticOperation,
 }

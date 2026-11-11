@@ -17,11 +17,5 @@ internal sealed class DescriptionConstructorRow(RowLayout layout, string[] value
         TypedColumnVisit.Apply(columnIndex, _values[columnIndex], ref visitor);
     }
 
-
-
-
-
     public override bool HasColumn(string name) => _layout.HasColumn(name);
-
-
 }

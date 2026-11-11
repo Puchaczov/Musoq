@@ -10,7 +10,9 @@ public static class CampaignCli
         {
             if (arguments.Length == 0 || arguments.Contains("--help", StringComparer.Ordinal))
             {
-                Console.WriteLine("--action Run|List|Status|Verify|Latest --mode Local|Official --filter <glob> --size <count> --job Short|Dry|Default --machine-profile <name> --output <directory> --resume <directory> --run-directory <directory> --history-root <directory> --json --include-retired (Local measurement or List) --in-process (local Dry only)");
+                Console.WriteLine(
+                    "--action Run|List|Status|Verify|Latest --mode Local|Official --filter <glob> --size <count> --job Short|Dry|Default --machine-profile <name> --output <directory> --resume <directory> --run-directory <directory> --history-root <directory> --json --include-retired (Local measurement or List) --in-process (local Dry only)"
+                );
                 return 0;
             }
             return Dispatch(CampaignOptions.Parse(arguments), output);
@@ -22,15 +24,26 @@ public static class CampaignCli
                 CampaignCompatibilityException => 3,
                 InvalidDataException or System.Text.Json.JsonException or IOException => 4,
                 ArgumentException => 5,
-                _ => 1
+                _ => 1,
             };
             if (json)
-                Write(output, new { Outcome = "error", ExitCode = code, Error = exception.Message });
+                Write(
+                    output,
+                    new
+                    {
+                        Outcome = "error",
+                        ExitCode = code,
+                        Error = exception.Message,
+                    }
+                );
             else
                 Console.Error.WriteLine(exception);
             return code;
         }
-        finally { Console.SetOut(output); }
+        finally
+        {
+            Console.SetOut(output);
+        }
     }
 
     private static int Dispatch(CampaignOptions options, TextWriter output)
@@ -39,7 +52,12 @@ public static class CampaignCli
             return ListCases(options, output);
         if (options.Action == "Latest")
         {
-            Write(output, CampaignInspection.Latest(options.HistoryRoot ?? Path.Combine(ProvenanceCollector.RepositoryRoot(), "benchmarks", "history")));
+            Write(
+                output,
+                CampaignInspection.Latest(
+                    options.HistoryRoot ?? Path.Combine(ProvenanceCollector.RepositoryRoot(), "benchmarks", "history")
+                )
+            );
             return 0;
         }
         CampaignReceipt receipt;
@@ -47,7 +65,7 @@ public static class CampaignCli
             receipt = options.Action switch
             {
                 "Status" => CampaignInspection.Status(options.RunDirectory!),
-                _ => CampaignInspection.Verify(options.RunDirectory!)
+                _ => CampaignInspection.Verify(options.RunDirectory!),
             };
         else
         {
@@ -59,7 +77,8 @@ public static class CampaignCli
         return receipt.Status == "complete" ? 0 : 2;
     }
 
-    private static void Write<T>(TextWriter output, T value) => output.WriteLine(System.Text.Json.JsonSerializer.Serialize(value, ArtifactJson.Options));
+    private static void Write<T>(TextWriter output, T value) =>
+        output.WriteLine(System.Text.Json.JsonSerializer.Serialize(value, ArtifactJson.Options));
 
     private static int ListCases(CampaignOptions options, TextWriter output)
     {
@@ -70,11 +89,18 @@ public static class CampaignCli
         {
             var canonical = CampaignCases.CreateComplete(options with { Size = null }, Path.GetTempPath());
             var catalog = CaseLifecycleCatalog.Load(canonical.Select(item => item.Definition.Id));
-            var listings = cases.Select(item =>
-            {
-                var retired = catalog.Retirement(item.Definition.Id);
-                return new CaseListing(item.Definition, retired is null ? "active" : "retired", retired?.Reason, retired?.ReplacementCaseId);
-            }).ToArray();
+            var listings = cases
+                .Select(item =>
+                {
+                    var retired = catalog.Retirement(item.Definition.Id);
+                    return new CaseListing(
+                        item.Definition,
+                        retired is null ? "active" : "retired",
+                        retired?.Reason,
+                        retired?.ReplacementCaseId
+                    );
+                })
+                .ToArray();
             if (options.Json)
                 Write(output, listings);
             else
@@ -87,9 +113,10 @@ public static class CampaignCli
         else
         {
             foreach (var item in cases)
-                output.WriteLine($"{item.Definition.Id}: {item.Definition.InputCount} {item.Definition.InputUnit}; {item.Definition.Phase}; {item.Definition.ResultApi}");
+                output.WriteLine(
+                    $"{item.Definition.Id}: {item.Definition.InputCount} {item.Definition.InputUnit}; {item.Definition.Phase}; {item.Definition.ResultApi}"
+                );
         }
         return 0;
     }
-
 }

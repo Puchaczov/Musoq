@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionNativeVariadicQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -12,14 +11,17 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class LibraryExecutionNativeVariadicQueryTests : GenericEntityTestBase
 {
-
     [TestMethod]
     public void NativeVariadicQuery_ShouldBindConcreteSpanAndConsumeExpectedResults()
     {
         using var query = CreateAndRunVirtualMachine<Input, SpanLibrary>(Query, [new(1, 10), new(2, -20)]);
         using var table = query.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Position", typeof(int)), ("Total", typeof(int)), ("Repeated", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Position", typeof(int)),
+            ("Total", typeof(int)),
+            ("Repeated", typeof(string))
+        );
         var rows = table.Select(row => (row.GetValue<int>(0), row.GetValue<int>(1), row.GetValue<string>(2))).ToArray();
         CollectionAssert.AreEqual(new[] { (1, 25, "111111"), (2, -5, "222222") }, rows);
     }
@@ -29,7 +31,8 @@ public sealed class LibraryExecutionNativeVariadicQueryTests : GenericEntityTest
     {
         const string sql = "select OldArrayTotal(Value, 1) as Total from #schema.first()";
         var error = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<Input, SpanLibrary>(sql, [new(1, 10)]));
+            CreateAndRunVirtualMachine<Input, SpanLibrary>(sql, [new(1, 10)])
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.PrimaryEnvelope.Code);
         Assert.Contains("params ReadOnlySpan<T>", error.Message);
     }
@@ -39,8 +42,12 @@ public sealed class LibraryExecutionNativeVariadicQueryTests : GenericEntityTest
     {
         const string sql = "select NativeNumberTotal('text', 'other') as Total from #schema.first()";
         var error = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<Input, SpanLibrary>(sql, [new(1, 10)]));
-        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3088_NoMatchingCallableOverload, error.PrimaryEnvelope.Code);
+            CreateAndRunVirtualMachine<Input, SpanLibrary>(sql, [new(1, 10)])
+        );
+        Assert.AreEqual(
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            error.PrimaryEnvelope.Code
+        );
     }
 
     [TestMethod]

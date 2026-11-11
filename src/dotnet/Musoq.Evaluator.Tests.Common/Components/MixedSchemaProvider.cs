@@ -9,8 +9,8 @@ namespace Musoq.Evaluator.Tests.Components;
 /// </summary>
 public class MixedSchemaProvider(
     IDictionary<string, IEnumerable<BinaryEntity>> binaryValues,
-    IDictionary<string, IEnumerable<TextEntity>> textValues)
-    : ISchemaProvider
+    IDictionary<string, IEnumerable<TextEntity>> textValues
+) : ISchemaProvider
 {
     public ISchema GetSchema(string schema)
     {

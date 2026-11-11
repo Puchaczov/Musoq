@@ -22,8 +22,8 @@ public static class AggregateValuesStringDelimitedKernel
             AggregateCollectionCore.AddOrdered(ref state.Values, value);
     }
 
-    public static string Get(in State state)
-        => AggregateCollectionCore.Join(state.Values, state.Delimiter ?? string.Empty);
+    public static string Get(in State state) =>
+        AggregateCollectionCore.Join(state.Values, state.Delimiter ?? string.Empty);
 
     public static void Merge(ref State target, in State source)
     {

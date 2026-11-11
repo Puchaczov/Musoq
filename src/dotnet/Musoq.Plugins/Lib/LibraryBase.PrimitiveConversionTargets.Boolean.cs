@@ -11,9 +11,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public bool? ToBoolean(string? value)
     {
-        return bool.TryParse(value, out var result)
-            ? result
-            : null;
+        return bool.TryParse(value, out var result) ? result : null;
     }
 
     [BindableMethod]

@@ -4,9 +4,7 @@ using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
-internal abstract record SidecarJoinRuntimeOperation(
-    IReadOnlySet<string> RequiredAliases,
-    int Ordinal);
+internal abstract record SidecarJoinRuntimeOperation(IReadOnlySet<string> RequiredAliases, int Ordinal);
 
 internal sealed record SidecarJoinRuntimeStep(
     PhysicalHashJoinNode Join,
@@ -20,10 +18,12 @@ internal sealed record SidecarJoinRuntimeStep(
     IReadOnlyDictionary<string, RowShape> SourceLookup,
     IReadOnlySet<string> RequiredAliases,
     IReadOnlySet<string> IntroducedAliases,
-    int Ordinal) : SidecarJoinRuntimeOperation(RequiredAliases, Ordinal);
+    int Ordinal
+) : SidecarJoinRuntimeOperation(RequiredAliases, Ordinal);
 
 internal sealed record SidecarJoinRuntimeGuard(
     IrExpression Predicate,
     IReadOnlyDictionary<string, RowShape> SourceLookup,
     IReadOnlySet<string> RequiredAliases,
-    int Ordinal) : SidecarJoinRuntimeOperation(RequiredAliases, Ordinal);
+    int Ordinal
+) : SidecarJoinRuntimeOperation(RequiredAliases, Ordinal);

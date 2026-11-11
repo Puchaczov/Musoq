@@ -12,14 +12,16 @@ public sealed class PhysicalToExecutionPlanBuilder
         ExecutionPlanningArtifacts executionArtifacts,
         SchemaRegistry? schemaRegistry = null,
         CompilationOptions? compilationOptions = null,
-        CteExecutionPlan? cteExecutionPlan = null)
+        CteExecutionPlan? cteExecutionPlan = null
+    )
     {
         _physicalLoweringFacade = new PhysicalLoweringFacade(
             shapeResolver,
             executionArtifacts,
             schemaRegistry,
             compilationOptions,
-            cteExecutionPlan);
+            cteExecutionPlan
+        );
     }
 
     internal PhysicalToExecutionPlanBuilder(
@@ -27,19 +29,18 @@ public sealed class PhysicalToExecutionPlanBuilder
         SchemaRegistry? schemaRegistry,
         CompilationOptions? compilationOptions,
         CteExecutionPlan? cteExecutionPlan,
-        ExecutionPlanningArtifacts executionArtifacts)
+        ExecutionPlanningArtifacts executionArtifacts
+    )
     {
         _physicalLoweringFacade = new PhysicalLoweringFacade(
             shapeResolver,
             schemaRegistry,
             compilationOptions,
             cteExecutionPlan,
-            executionArtifacts);
+            executionArtifacts
+        );
     }
 
-    public ExecutionPlanBuildResult Build(
-        PhysicalNode physicalPlan,
-        string identifier = "compiled") =>
+    public ExecutionPlanBuildResult Build(PhysicalNode physicalPlan, string identifier = "compiled") =>
         ByteBufferViewShape.Add(_physicalLoweringFacade.Build(physicalPlan, identifier));
-
 }

@@ -13,7 +13,8 @@ public sealed record ExecutionCreateAsOfIndex : ExecutionNode
         ExecutionExpression CandidateKey,
         BinaryOpKind ComparisonKind,
         ExecutionTypeRef ComparisonKeyType,
-        ExecutionAsOfTieBreak? TieBreak = null)
+        ExecutionAsOfTieBreak? TieBreak = null
+    )
     {
         this.Index = Index;
         this.Candidate = Candidate;
@@ -44,8 +45,16 @@ public sealed record ExecutionCreateAsOfIndex : ExecutionNode
         ExecutionExpression candidateKey,
         BinaryOpKind comparisonKind,
         Type comparisonKeyType,
-        ExecutionAsOfTieBreak? tieBreak = null)
-        : this(index, candidate, candidates, equalityKeys, candidateKey, comparisonKind, ExecutionClrBindingFactory.FromClr(comparisonKeyType), tieBreak)
-    {
-    }
+        ExecutionAsOfTieBreak? tieBreak = null
+    )
+        : this(
+            index,
+            candidate,
+            candidates,
+            equalityKeys,
+            candidateKey,
+            comparisonKind,
+            ExecutionClrBindingFactory.FromClr(comparisonKeyType),
+            tieBreak
+        ) { }
 }

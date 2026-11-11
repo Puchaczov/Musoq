@@ -24,7 +24,8 @@ public abstract partial class TextInterpreterBase<TOut>
             SchemaName,
             fieldName,
             ParsePosition,
-            $"Repeat field '{fieldName}' exceeded the maximum of {maxIterations} iterations.");
+            $"Repeat field '{fieldName}' exceeded the maximum of {maxIterations} iterations."
+        );
     }
 
     /// <summary>
@@ -40,6 +41,7 @@ public abstract partial class TextInterpreterBase<TOut>
             SchemaName,
             fieldName,
             ParsePosition,
-            $"Repeat field '{fieldName}' made no progress reading an element; the element type consumes zero characters.");
+            $"Repeat field '{fieldName}' made no progress reading an element; the element type consumes zero characters."
+        );
     }
 }

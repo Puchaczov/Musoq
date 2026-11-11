@@ -18,7 +18,8 @@ public sealed class NamedDatasourceArgumentFoundationTests
             constructor,
             false,
             ("required", typeof(string)),
-            ("optional", typeof(int)));
+            ("optional", typeof(int))
+        );
 
         var signature = SchemaSourceSignature.Create(new SchemaMethodInfo("items", metadata));
 
@@ -32,10 +33,7 @@ public sealed class NamedDatasourceArgumentFoundationTests
     public void SchemaSourceSignature_ExcludesInjectedExecutionContextBeforeMatchingDefaults()
     {
         var constructor = typeof(ContextSource).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
-        var metadata = new SchemaConstructorInfo(
-            constructor,
-            true,
-            ("value", typeof(string)));
+        var metadata = new SchemaConstructorInfo(constructor, true, ("value", typeof(string)));
 
         var signature = SchemaSourceSignature.Create(new SchemaMethodInfo("items", metadata));
 
@@ -49,9 +47,8 @@ public sealed class NamedDatasourceArgumentFoundationTests
     public void SchemaSourceSignature_WithoutOriginConstructor_TreatsArgumentsAsRequired()
     {
         var signature = SchemaSourceSignature.Create(
-            new SchemaMethodInfo(
-                "items",
-                new SchemaConstructorInfo(null, false, ("value", typeof(string)))));
+            new SchemaMethodInfo("items", new SchemaConstructorInfo(null, false, ("value", typeof(string))))
+        );
 
         Assert.HasCount(1, signature.Parameters);
         Assert.IsTrue(signature.Parameters[0].IsRequired);
@@ -60,15 +57,11 @@ public sealed class NamedDatasourceArgumentFoundationTests
 
     private sealed class OptionalSource
     {
-        public OptionalSource(string required, int optional = 7)
-        {
-        }
+        public OptionalSource(string required, int optional = 7) { }
     }
 
     private sealed class ContextSource
     {
-        public ContextSource(SourceExecutionContext context, string value = "fallback")
-        {
-        }
+        public ContextSource(SourceExecutionContext context, string value = "fallback") { }
     }
 }

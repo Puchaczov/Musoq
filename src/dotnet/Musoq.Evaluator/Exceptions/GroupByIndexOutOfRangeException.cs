@@ -9,18 +9,12 @@ namespace Musoq.Evaluator.Exceptions;
 public class GroupByIndexOutOfRangeException : Exception, IDiagnosticException
 {
     public GroupByIndexOutOfRangeException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public GroupByIndexOutOfRangeException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public GroupByIndexOutOfRangeException()
-    {
-    }
+    public GroupByIndexOutOfRangeException() { }
 
     public GroupByIndexOutOfRangeException(int ordinal, int selectFields)
         : base($"GROUP BY position {ordinal} is out of range. SELECT projection contains {selectFields} field(s).")

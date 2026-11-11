@@ -6,21 +6,15 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-
-
     internal RenderContextScope EnterTypedSinkRenderContext(ExecutionPlan plan)
     {
         return EnterTypedSinkRenderContext(plan, useQueryRunContext: false);
     }
 
-    internal RenderContextScope EnterTypedSinkRenderContext(
-        ExecutionPlan plan,
-        bool useQueryRunContext)
+    internal RenderContextScope EnterTypedSinkRenderContext(ExecutionPlan plan, bool useQueryRunContext)
     {
         return new RenderContextScope(new TypedSinkRenderingScope(this, plan, useQueryRunContext));
     }
-
-
 
     internal RenderContextScope EnterQueryRunContextRenderContext()
     {
@@ -31,7 +25,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionPlan plan,
         IEnumerable<ExecutionSourceScan> sourceScans,
         IEnumerable<ExecutionNode> setupNodes,
-        bool useQueryRunContext)
+        bool useQueryRunContext
+    )
     {
         using var renderingScope = EnterTypedSinkRenderContext(plan, useQueryRunContext);
         var context = renderingScope.Context;
@@ -55,12 +50,13 @@ public sealed partial class ExecutionCSharpRenderer
 
     internal IReadOnlyList<StatementSyntax> CreateTypedSinkEntryStatements(
         ExecutionPlan plan,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var statements = new List<StatementSyntax>();
-        statements.AddRange(CreateQueryRunContextAliasStatements(
-            context.Session.UseQueryRunContext,
-            queryIdentifier: plan.Identifier));
+        statements.AddRange(
+            CreateQueryRunContextAliasStatements(context.Session.UseQueryRunContext, queryIdentifier: plan.Identifier)
+        );
 
         statements.AddRange(CreateExecutionStateDeclarations(plan, context));
         if (!_renderOptions.IsMetadataOnly)
@@ -69,15 +65,17 @@ public sealed partial class ExecutionCSharpRenderer
             statements.AddRange(CreateScriptVariableBindingStatements());
         }
         statements.AddRange(CreateLikeMatcherStateDeclarations(plan, context));
-        statements.AddRange(CollectMethodCallCaches(plan.Body)
-            .Select(cache => RenderCreateObject(new ExecutionCreateObject(cache))));
+        statements.AddRange(
+            CollectMethodCallCaches(plan.Body).Select(cache => RenderCreateObject(new ExecutionCreateObject(cache)))
+        );
 
         return statements;
     }
 
     internal ExpressionSyntax RenderExpressionForTypedSink(
         ExecutionExpression expression,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return RenderExpression(expression, context);
     }
@@ -87,17 +85,15 @@ public sealed partial class ExecutionCSharpRenderer
         return RenderFinalSinkExpression(expression, CreateIsolatedRenderContext());
     }
 
-    internal ExpressionSyntax RenderFinalSinkExpression(
-        ExecutionExpression expression,
-        ExecutionRenderContext context)
+    internal ExpressionSyntax RenderFinalSinkExpression(ExecutionExpression expression, ExecutionRenderContext context)
     {
         return RenderExpression(expression, context);
     }
 
     internal ExpressionSyntax RenderPredicateExpression(
         ExecutionExpression expression,
-        ExecutionRenderContext? context = null) =>
-        this.RenderBooleanCondition(expression, context ?? CreateIsolatedRenderContext());
+        ExecutionRenderContext? context = null
+    ) => this.RenderBooleanCondition(expression, context ?? CreateIsolatedRenderContext());
 
     internal IReadOnlyList<StatementSyntax> RenderSourceScanForTypedSink(ExecutionSourceScan sourceScan)
     {
@@ -106,19 +102,23 @@ public sealed partial class ExecutionCSharpRenderer
 
     internal IReadOnlyList<StatementSyntax> RenderSourceScanForTypedSink(
         ExecutionSourceScan sourceScan,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return RenderSourceScan(sourceScan, context);
     }
 
     internal IReadOnlyList<StatementSyntax> RenderSetupNodeForTypedSink(
         ExecutionNode node,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return node switch
         {
             ExecutionCreateObject createObject => [RenderCreateObject(createObject)],
-            _ => throw new InvalidOperationException($"Setup node '{node.GetType().Name}' is not supported by typed sink rendering.")
+            _ => throw new InvalidOperationException(
+                $"Setup node '{node.GetType().Name}' is not supported by typed sink rendering."
+            ),
         };
     }
 
@@ -129,7 +129,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     internal ObjectCreationExpressionSyntax RenderFinalSinkGeneratedRowCreation(
         ExecutionAppendRow appendRow,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateGeneratedRowCreation(appendRow, context);
     }
@@ -137,13 +138,15 @@ public sealed partial class ExecutionCSharpRenderer
     internal ParenthesizedLambdaExpressionSyntax RenderFinalSinkOptionalGeneratedRowProjection(
         ExecutionBlock optionalProjectionBody,
         ExecutionVariable source,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateOptionalProjectionProjector(
             optionalProjectionBody,
             source,
             appendRow => RenderFinalSinkGeneratedRowCreation(appendRow, context),
-            context);
+            context
+        );
     }
 
     internal sealed class RenderContextScope : IDisposable
@@ -171,10 +174,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private sealed class TypedSinkRenderingScope : IRenderContextScope
     {
-        public TypedSinkRenderingScope(
-            ExecutionCSharpRenderer renderer,
-            ExecutionPlan plan,
-            bool useQueryRunContext)
+        public TypedSinkRenderingScope(ExecutionCSharpRenderer renderer, ExecutionPlan plan, bool useQueryRunContext)
         {
             Context = renderer.InitializeRenderContext(plan, useQueryRunContext);
             var session = Context.Session;
@@ -182,16 +182,26 @@ public sealed partial class ExecutionCSharpRenderer
             session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
             session.ColumnarStoredTableResultsByTableName = CreateColumnarStoredTableResultsByTableName(
                 plan,
-                session.TypedStoredTableResults);
+                session.TypedStoredTableResults
+            );
             session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
             session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
             session.IncludeTableResults = PlanUsesTableResults(plan, session.TypedStoredTableResults);
-            session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(plan.Body, session.TypedStoredTableResults);
-            session.GeneratedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(plan.Body, session.TypedStoredTableResults);
+            session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(
+                plan.Body,
+                session.TypedStoredTableResults
+            );
+            session.GeneratedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(
+                plan.Body,
+                session.TypedStoredTableResults
+            );
             session.StoredRowsCacheNames = CreateStoredRowsCacheNames(plan.Body);
             session.DeclaredStoredRowsCaches = [];
             session.TableRowShapesByVariableName = CreateTableRowShapeMap(plan.Body);
-            session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(plan.Body, session.TypedStoredTableResults);
+            session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(
+                plan.Body,
+                session.TypedStoredTableResults
+            );
             session.StoredGeneratedRowsLoopNameCounts = [];
             session.TypedRowBufferVariables = CreateTypedRowBufferVariables(plan.Body);
             session.RegexMatchTimeout = plan.RegexMatchTimeout;
@@ -201,9 +211,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         public ExecutionRenderContext Context { get; }
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 
     private sealed class QueryRunContextRenderingScope : IRenderContextScope
@@ -216,8 +224,6 @@ public sealed partial class ExecutionCSharpRenderer
 
         public ExecutionRenderContext Context { get; }
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 }

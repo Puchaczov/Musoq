@@ -19,7 +19,7 @@ public sealed class EnumColumnContractTests
             (typeof(Int32Status), typeof(int), EnumUnderlyingKind.Int32),
             (typeof(UInt32Status), typeof(uint), EnumUnderlyingKind.UInt32),
             (typeof(Int64Status), typeof(long), EnumUnderlyingKind.Int64),
-            (typeof(UInt64Status), typeof(ulong), EnumUnderlyingKind.UInt64)
+            (typeof(UInt64Status), typeof(ulong), EnumUnderlyingKind.UInt64),
         ];
 
         foreach (var item in cases)
@@ -68,8 +68,7 @@ public sealed class EnumColumnContractTests
     [TestMethod]
     public void SchemaColumn_OrdinaryColumnShouldRejectDifferentSourceReadType()
     {
-        Assert.Throws<ArgumentException>(() =>
-            new SchemaColumn("Value", 0, typeof(int), typeof(long), null));
+        Assert.Throws<ArgumentException>(() => new SchemaColumn("Value", 0, typeof(int), typeof(long), null));
     }
 
     [TestMethod]
@@ -78,14 +77,14 @@ public sealed class EnumColumnContractTests
         var wrongDescriptor = EnumTypeDescriptor.FromClrEnum(typeof(OtherStatus));
 
         Assert.Throws<ArgumentException>(() =>
-            new SchemaColumn("Status", 0, typeof(short), typeof(NativeStatus), wrongDescriptor));
+            new SchemaColumn("Status", 0, typeof(short), typeof(NativeStatus), wrongDescriptor)
+        );
     }
 
     [TestMethod]
     public void SchemaColumn_NativeEnumShouldRejectIntendedGeneratedTypeName()
     {
-        Assert.Throws<ArgumentException>(() =>
-            new SchemaColumn("Status", 0, typeof(NativeStatus), "Generated.Status"));
+        Assert.Throws<ArgumentException>(() => new SchemaColumn("Status", 0, typeof(NativeStatus), "Generated.Status"));
     }
 
     [TestMethod]
@@ -101,7 +100,8 @@ public sealed class EnumColumnContractTests
             descriptor,
             false,
             null,
-            ColumnStability.Stable);
+            ColumnStability.Stable
+        );
 
         Assert.AreEqual(typeof(short), field.FieldType);
         Assert.AreEqual(typeof(NativeStatus), field.SourceReadType);
@@ -123,13 +123,15 @@ public sealed class EnumColumnContractTests
     [TestMethod]
     public void LogicalScalarReads_ShouldHaveStableIndependentCapabilityBit()
     {
-        var logicalScalarReads = Enum.Parse<SourceTransferCapabilities>(nameof(SourceTransferCapabilities.LogicalScalarReads));
-        var queryScopedRows = Enum.Parse<SourceTransferCapabilities>(nameof(SourceTransferCapabilities.QueryScopedRows));
+        var logicalScalarReads = Enum.Parse<SourceTransferCapabilities>(
+            nameof(SourceTransferCapabilities.LogicalScalarReads)
+        );
+        var queryScopedRows = Enum.Parse<SourceTransferCapabilities>(
+            nameof(SourceTransferCapabilities.QueryScopedRows)
+        );
 
         Assert.AreEqual((SourceTransferCapabilities)2, logicalScalarReads);
-        Assert.AreEqual(
-            (SourceTransferCapabilities)3,
-            queryScopedRows | logicalScalarReads);
+        Assert.AreEqual((SourceTransferCapabilities)3, queryScopedRows | logicalScalarReads);
     }
 
     [TestMethod]
@@ -139,7 +141,8 @@ public sealed class EnumColumnContractTests
         Assert.AreEqual("3", ReadRuntimeContractConstant(nameof(RuntimeV2Contract.SchemaContractVersion)));
         Assert.AreEqual(
             "runtime-v2=3;schema=3;parameters=2",
-            ReadRuntimeContractConstant(nameof(RuntimeV2Contract.ContractSignature)));
+            ReadRuntimeContractConstant(nameof(RuntimeV2Contract.ContractSignature))
+        );
     }
 
     private static QueryRowShape CreateShape(Type sourceReadType, EnumTypeDescriptor descriptor)
@@ -154,7 +157,8 @@ public sealed class EnumColumnContractTests
                 descriptor,
                 false,
                 null,
-                ColumnStability.Stable)
+                ColumnStability.Stable
+            ),
         ]);
     }
 
@@ -165,7 +169,8 @@ public sealed class EnumColumnContractTests
             EnumTypeOrigin.QueryLocal,
             EnumUnderlyingKind.Int16,
             false,
-            [new EnumMemberDescriptor("Queued", EnumScalarValue.FromInt16(10))]);
+            [new EnumMemberDescriptor("Queued", EnumScalarValue.FromInt16(10))]
+        );
     }
 
     private static string ReadRuntimeContractConstant(string name)
@@ -176,28 +181,52 @@ public sealed class EnumColumnContractTests
     public enum NativeStatus : short
     {
         Queued = 10,
-        Running = 20
+        Running = 20,
     }
 
     public enum OtherStatus : short
     {
         Queued = 10,
-        Running = 20
+        Running = 20,
     }
 
-    public enum ByteStatus : byte { Value = 1 }
+    public enum ByteStatus : byte
+    {
+        Value = 1,
+    }
 
-    public enum SByteStatus : sbyte { Value = -1 }
+    public enum SByteStatus : sbyte
+    {
+        Value = -1,
+    }
 
-    public enum Int16Status : short { Value = -1 }
+    public enum Int16Status : short
+    {
+        Value = -1,
+    }
 
-    public enum UInt16Status : ushort { Value = 1 }
+    public enum UInt16Status : ushort
+    {
+        Value = 1,
+    }
 
-    public enum Int32Status : int { Value = -1 }
+    public enum Int32Status : int
+    {
+        Value = -1,
+    }
 
-    public enum UInt32Status : uint { Value = 1 }
+    public enum UInt32Status : uint
+    {
+        Value = 1,
+    }
 
-    public enum Int64Status : long { Value = -1 }
+    public enum Int64Status : long
+    {
+        Value = -1,
+    }
 
-    public enum UInt64Status : ulong { Value = 1 }
+    public enum UInt64Status : ulong
+    {
+        Value = 1,
+    }
 }

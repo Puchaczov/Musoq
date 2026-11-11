@@ -38,7 +38,8 @@ public partial class SchemaParser
                 $"Expected a generic type parameter identifier but found '{Current.TokenType}' ({Current.Value})",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-                Current.Span);
+                Current.Span
+            );
 
         var token = ConsumeAndGetToken(Current.TokenType);
         if (!names.Add(token.Value))
@@ -46,7 +47,8 @@ public partial class SchemaParser
                 $"Generic type parameter '{token.Value}' is declared more than once.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-                token.Span);
+                token.Span
+            );
 
         typeParams.Add(token.Value);
     }

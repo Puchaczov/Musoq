@@ -5,11 +5,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Optimization;
-using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using PlanProperties = Musoq.Evaluator.IR.Planning.PlanProperties;
 
 namespace Musoq.Evaluator.Tests.IR;
@@ -26,21 +26,19 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
             "City",
             typeof(string),
             Array.Empty<AggregateBinding>(),
-            scan);
+            scan
+        );
         var project = new PhysicalProjectNode(
-            [
-                new ProjectedField(
-                    "City",
-                    new ColumnRef("aggregate", "City", typeof(string)),
-                    0)
-            ],
-            aggregate);
+            [new ProjectedField("City", new ColumnRef("aggregate", "City", typeof(string)), 0)],
+            aggregate
+        );
 
         var result = new PhysicalOptimizer().Optimize(
             project,
             CreateEmptyProperties(),
             new CompilationOptions(),
-            ConservativeTestPlanningShapeResolver.Instance);
+            ConservativeTestPlanningShapeResolver.Instance
+        );
         var projectionTrace = result.Trace.Entries.Single(static entry => entry.PassName == "ProjectionPruning");
 
         Assert.AreSame(project, result.OptimizedPlan);
@@ -51,8 +49,7 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
     [TestMethod]
     public void RowWidthPruning_WhenDistinctAndSetBoundariesHaveCandidates_ShouldApplyBoth()
     {
-        var result = RowWidthPruningPlanner.Plan(
-        [
+        var result = RowWidthPruningPlanner.Plan([
             new BoundaryRowShapePlan(
                 "distinct:0",
                 BoundaryRowShapeKind.Distinct,
@@ -61,7 +58,8 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
                 [],
                 ["e.Payload"],
                 PlanningConfidence.Medium,
-                "Distinct boundary has a future payload pruning opportunity."),
+                "Distinct boundary has a future payload pruning opportunity."
+            ),
             new BoundaryRowShapePlan(
                 "set:0",
                 BoundaryRowShapeKind.SetOperation,
@@ -70,7 +68,8 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
                 [],
                 ["left.Payload", "right.Payload"],
                 PlanningConfidence.Medium,
-                "Set operation boundary has a future symmetric pruning opportunity.")
+                "Set operation boundary has a future symmetric pruning opportunity."
+            ),
         ]);
 
         var distinct = result.Plans.Single(static plan => plan.Kind == BoundaryRowShapeKind.Distinct);
@@ -88,7 +87,8 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
     public void PlanningText_WhenAggregateBoundaryHasDroppableColumns_ShouldExposeAppliedRowWidth()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select e.City, Count(e.Name) as NameCount from #A.Entities() e group by e.City order by NameCount desc");
+            "select e.City, Count(e.Name) as NameCount from #A.Entities() e group by e.City order by NameCount desc"
+        );
         var planningText = buildItems.RequirePlanningText();
 
         Assert.Contains("BoundaryRowShapes", planningText);
@@ -102,23 +102,24 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
     public void PlanningText_WhenSubqueryRequiresOuterJoinFallback_ShouldExposeSkippedNormalizationFamily()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            """
-            WITH matched AS (
-                SELECT a.City, a.Country,
-                       CASE
-                           WHEN EXISTS (
-                               SELECT b.City FROM #B.entities() b
-                               WHERE b.Country = a.Country
-                           )
-                           THEN 'Y'
-                           ELSE 'N'
-                       END AS HasMatch
-                FROM #A.entities() a
+            (
+                "WITH matched AS (\n"
+                + "    SELECT a.City, a.Country,\n"
+                + "           CASE\n"
+                + "               WHEN EXISTS (\n"
+                + "                   SELECT b.City FROM #B.entities() b\n"
+                + "                   WHERE b.Country = a.Country\n"
+                + "               )\n"
+                + "               THEN 'Y'\n"
+                + "               ELSE 'N'\n"
+                + "           END AS HasMatch\n"
+                + "    FROM #A.entities() a\n"
+                + ")\n"
+                + "SELECT m.City, m.HasMatch\n"
+                + "FROM matched m\n"
+                + "ORDER BY m.City"
             )
-            SELECT m.City, m.HasMatch
-            FROM matched m
-            ORDER BY m.City
-            """);
+        );
         var planningText = buildItems.RequirePlanningText();
 
         Assert.Contains("SubqueryStrategy", planningText);
@@ -129,22 +130,25 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
     public void HelperExtractionReadability_WhenInlineBlockHasNoMetadata_ShouldRemainNoOp()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { var value = 1; if (value > 0) { value = value + 1; value = value + 2; } System.Console.WriteLine(value); } }");
+            "public class Generated { public void Run() { var value = 1; if (value > 0) { value = value + 1; value = value + 2; } System.Console.WriteLine(value); } }"
+        );
 
         var result = new HelperExtractionReadabilityPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsFalse(result.IsChanged);
         Assert.AreEqual(initial.ToFullString(), result.Plan.ToFullString());
         Assert.Contains("No metadata-approved helper extraction candidates", result.Reason);
-        Assert.IsFalse(result.Plan.DescendantNodes().Any(static node =>
-            node.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)));
+        Assert.IsFalse(
+            result
+                .Plan.DescendantNodes()
+                .Any(static node => node.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind))
+        );
     }
 
-    private static PhysicalValuesScanNode CreateValuesScan(
-        string alias,
-        params (string Name, Type Type)[] columns)
+    private static PhysicalValuesScanNode CreateValuesScan(string alias, params (string Name, Type Type)[] columns)
     {
         var schemaColumns = new ColumnSchema[columns.Length];
 

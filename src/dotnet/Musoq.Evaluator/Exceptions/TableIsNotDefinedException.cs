@@ -9,15 +9,11 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class TableIsNotDefinedException : Exception, IDiagnosticException
 {
-
     public TableIsNotDefinedException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
-    public TableIsNotDefinedException()
-    {
-    }
+    public TableIsNotDefinedException() { }
+
     /// <summary>
     ///     Initializes a new instance with table name.
     /// </summary>
@@ -61,10 +57,7 @@ public class TableIsNotDefinedException : Exception, IDiagnosticException
     {
         var arguments = string.IsNullOrWhiteSpace(TableName)
             ? null
-            : new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["table"] = TableName
-            };
+            : new Dictionary<string, string>(StringComparer.Ordinal) { ["table"] = TableName };
         return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText, arguments);
     }
 }

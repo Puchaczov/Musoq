@@ -10,16 +10,19 @@ public static class SqlFunctionSignature
     public static string Format(SqlFunctionDescriptor function)
     {
         ArgumentNullException.ThrowIfNull(function);
-        var arguments = string.Join(", ", function.Parameters.Select(static parameter =>
-            $"{FormatArgumentType(parameter.Type)} {parameter.Name}"));
+        var arguments = string.Join(
+            ", ",
+            function.Parameters.Select(static parameter => $"{FormatArgumentType(parameter.Type)} {parameter.Name}")
+        );
         var genericParameters = function.Declaration.IsGenericMethodDefinition
             ? $"<{string.Join(", ", function.Declaration.GetGenericArguments().Select(static type => type.Name))}>"
             : string.Empty;
         var suffix = function.Kind == SqlFunctionKind.Window ? " OVER (...)" : string.Empty;
         return $"{CSharpTypeNameHelper.GetCSharpTypeName(function.ResultType)} {function.Name}{genericParameters}({arguments}){suffix}";
     }
-    private static string FormatArgumentType(Type type)
-        => VariadicParameter.IsNativeSpan(type)
+
+    private static string FormatArgumentType(Type type) =>
+        VariadicParameter.IsNativeSpan(type)
             ? CSharpTypeNameHelper.GetCSharpTypeName(VariadicParameter.ElementType(type)!) + "..."
             : CSharpTypeNameHelper.GetCSharpTypeName(type);
 }

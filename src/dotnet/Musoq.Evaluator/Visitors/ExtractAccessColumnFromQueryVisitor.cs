@@ -70,8 +70,15 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         _accessColumns.TryAdd(node.SourceAlias, []);
-        _accessColumns[node.SourceAlias].Add(
-            new AccessColumnNode(node.FirstProperty.PropertyName, node.SourceAlias, node.ReturnType ?? typeof(object), TextSpan.Empty));
+        _accessColumns[node.SourceAlias]
+            .Add(
+                new AccessColumnNode(
+                    node.FirstProperty.PropertyName,
+                    node.SourceAlias,
+                    node.ReturnType ?? typeof(object),
+                    TextSpan.Empty
+                )
+            );
         _accessColumns.TryAdd(node.Alias, []);
 
         base.Visit(node);
@@ -96,11 +103,16 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
             if (_accessColumns.TryGetValue(alias, out var list))
             {
                 if (!list.Any(f => f.Name == columnName))
-                    list.Add(new AccessColumnNode(columnName, alias, node.ColumnType ?? typeof(object), TextSpan.Empty));
+                    list.Add(
+                        new AccessColumnNode(columnName, alias, node.ColumnType ?? typeof(object), TextSpan.Empty)
+                    );
             }
             else
             {
-                _accessColumns.Add(alias, [new AccessColumnNode(columnName, alias, node.ColumnType ?? typeof(object), TextSpan.Empty)]);
+                _accessColumns.Add(
+                    alias,
+                    [new AccessColumnNode(columnName, alias, node.ColumnType ?? typeof(object), TextSpan.Empty)]
+                );
             }
         }
 

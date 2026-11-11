@@ -8,9 +8,9 @@ internal sealed class DescriptionSourceRuntimeSettingRow(
     bool secret,
     string phases,
     string status,
-    string description) : Row
+    string description
+) : Row
 {
-
     public string Name { get; } = name;
 
     public bool Required { get; } = required;
@@ -31,22 +31,29 @@ internal sealed class DescriptionSourceRuntimeSettingRow(
     {
         switch (columnIndex)
         {
-            case 0: TypedColumnVisit.Apply(columnIndex, Name, ref visitor); return;
-            case 1: TypedColumnVisit.Apply(columnIndex, Required, ref visitor); return;
-            case 2: TypedColumnVisit.Apply(columnIndex, Secret, ref visitor); return;
-            case 3: TypedColumnVisit.Apply(columnIndex, Phases, ref visitor); return;
-            case 4: TypedColumnVisit.Apply(columnIndex, Status, ref visitor); return;
-            case 5: TypedColumnVisit.Apply(columnIndex, Description, ref visitor); return;
-            default: throw new ArgumentOutOfRangeException(nameof(columnIndex));
+            case 0:
+                TypedColumnVisit.Apply(columnIndex, Name, ref visitor);
+                return;
+            case 1:
+                TypedColumnVisit.Apply(columnIndex, Required, ref visitor);
+                return;
+            case 2:
+                TypedColumnVisit.Apply(columnIndex, Secret, ref visitor);
+                return;
+            case 3:
+                TypedColumnVisit.Apply(columnIndex, Phases, ref visitor);
+                return;
+            case 4:
+                TypedColumnVisit.Apply(columnIndex, Status, ref visitor);
+                return;
+            case 5:
+                TypedColumnVisit.Apply(columnIndex, Description, ref visitor);
+                return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(columnIndex));
         }
     }
 
-
-
-
-
     public override bool HasColumn(string name) =>
         name is "Name" or "Required" or "Secret" or "Phases" or "Status" or "Description";
-
-
 }

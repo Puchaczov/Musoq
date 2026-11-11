@@ -18,7 +18,11 @@ internal static class StandardFixture
     {
         var requirements = Requirements(scenario, count);
         var inputs = FixtureInputs.Create(count, profile: StandardDataProfiles.Get(scenario.DataProfileId));
-        return new(scenario, count, requirements,
-            () => new FixtureProvider(new FixtureSchema(inputs, requirements.StructuralLimits)));
+        return new(
+            scenario,
+            count,
+            requirements,
+            () => new FixtureProvider(new FixtureSchema(inputs, requirements.StructuralLimits))
+        );
     }
 }

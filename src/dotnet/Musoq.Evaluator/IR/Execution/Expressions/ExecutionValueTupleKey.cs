@@ -6,9 +6,7 @@ public sealed record ExecutionValueTupleKey : ExecutionExpression
 {
     private IReadOnlyList<ExecutionExpression> _parts = [];
 
-    public ExecutionValueTupleKey(
-        IReadOnlyList<ExecutionExpression> parts,
-        ExecutionTypeRef returnType)
+    public ExecutionValueTupleKey(IReadOnlyList<ExecutionExpression> parts, ExecutionTypeRef returnType)
         : base(returnType)
     {
         Parts = parts;
@@ -24,7 +22,5 @@ public sealed record ExecutionValueTupleKey : ExecutionExpression
     public override ExecutionTypeRef ReturnType { get; init; }
 
     internal ExecutionValueTupleKey(IReadOnlyList<ExecutionExpression> parts, Type returnType)
-        : this(parts, ExecutionClrBindingFactory.FromClr(returnType))
-    {
-    }
+        : this(parts, ExecutionClrBindingFactory.FromClr(returnType)) { }
 }

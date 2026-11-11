@@ -10,8 +10,8 @@ public sealed class SourcePlanningRowSource(
     IReadOnlyList<SourcePlanningEntity> rows,
     SourceExecutionPlan plan,
     SourcePlanningRecorder recorder,
-    Func<Exception>? failureFactory = null)
-    : RowSourceBase<SourcePlanningEntity>
+    Func<Exception>? failureFactory = null
+) : RowSourceBase<SourcePlanningEntity>
 {
     private const string StrategyProperty = "TestSourcePlanningStrategy";
 
@@ -27,7 +27,8 @@ public sealed class SourcePlanningRowSource(
     private static IEnumerable<SourcePlanningEntity> ApplyPlan(
         IEnumerable<SourcePlanningEntity> sourceRows,
         SourceExecutionPlan executionPlan,
-        SourcePlanningRecorder recorder)
+        SourcePlanningRecorder recorder
+    )
     {
         foreach (var application in executionPlan.PredicateApplications)
         {
@@ -36,14 +37,16 @@ public sealed class SourcePlanningRowSource(
             var matcher = Operators.PrepareRLike(regex.Pattern, regex.MatchTimeout);
             var selector = CreateKeySelector(regex.Column.Name);
             sourceRows = sourceRows.Where(row =>
-                Operators.RLikePrepared((string?)selector(row), matcher) != regex.IsNegated);
+                Operators.RLikePrepared((string?)selector(row), matcher) != regex.IsNegated
+            );
         }
 
         var remainingPlan = executionPlan with
         {
             AcceptedPredicate = RemoveRegexConjuncts(executionPlan.AcceptedPredicate),
-            PredicateApplications = executionPlan.PredicateApplications
-                .Where(application => application.Predicate is not SourcePredicateRegexMatch).ToArray()
+            PredicateApplications = executionPlan
+                .PredicateApplications.Where(application => application.Predicate is not SourcePredicateRegexMatch)
+                .ToArray(),
         };
         return SourcePlanningRowExecution.ApplyPlan(
             sourceRows,
@@ -52,7 +55,9 @@ public sealed class SourcePlanningRowSource(
                 StrategyProperty,
                 CreateKeySelector,
                 static row => row.Id,
-                (rows, plan) => RecordSourceComputations(rows, plan, recorder)));
+                (rows, plan) => RecordSourceComputations(rows, plan, recorder)
+            )
+        );
     }
 
     private static SourcePredicateExpression? RemoveRegexConjuncts(SourcePredicateExpression? predicate)
@@ -73,7 +78,8 @@ public sealed class SourcePlanningRowSource(
     private static IEnumerable<SourcePlanningEntity> RecordSourceComputations(
         IEnumerable<SourcePlanningEntity> sourceRows,
         SourceExecutionPlan executionPlan,
-        SourcePlanningRecorder recorder)
+        SourcePlanningRecorder recorder
+    )
     {
         return SourcePlanningRowExecution.ApplyAcceptedColumnWork(
             sourceRows,
@@ -83,7 +89,8 @@ public sealed class SourcePlanningRowSource(
             {
                 recorder.RecordExpensivePayloadComputed();
                 _ = row.ExpensivePayload;
-            });
+            }
+        );
     }
 
     private static Func<SourcePlanningEntity, object?> CreateKeySelector(string columnName)
@@ -97,8 +104,7 @@ public sealed class SourcePlanningRowSource(
             nameof(SourcePlanningEntity.CreatedAt) => static entity => entity.CreatedAt,
             nameof(SourcePlanningEntity.JoinKey) => static entity => entity.JoinKey,
             nameof(SourcePlanningEntity.ExpensivePayload) => static entity => entity.ExpensivePayload,
-            _ => throw new InvalidOperationException($"Unsupported source-planning order column '{columnName}'.")
+            _ => throw new InvalidOperationException($"Unsupported source-planning order column '{columnName}'."),
         };
     }
-
 }

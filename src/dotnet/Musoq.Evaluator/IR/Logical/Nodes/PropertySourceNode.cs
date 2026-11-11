@@ -11,7 +11,8 @@ public sealed record PropertySourceNode(
     int ColumnIndex,
     Type ResultType,
     ApplyKind ApplyKind,
-    OutputSchema OutputSchema) : LogicalNode(OutputSchema)
+    OutputSchema OutputSchema
+) : LogicalNode(OutputSchema)
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = Array.Empty<LogicalNode>();
 }

@@ -27,7 +27,10 @@ internal sealed partial class BinarySchemaReadBounds(SchemaRegistry registry, Ca
             return null;
         try
         {
-            if (!registry.TryGetSchema(name, out var registration) || registration?.Node is not BinarySchemaNode { IsGeneric: false } schema)
+            if (
+                !registry.TryGetSchema(name, out var registration)
+                || registration?.Node is not BinarySchemaNode { IsGeneric: false } schema
+            )
                 return null;
             var result = FieldsBytes(schema.Fields, schema.Extends);
             _bounds[name] = result;
@@ -54,8 +57,11 @@ internal sealed partial class BinarySchemaReadBounds(SchemaRegistry registry, Ca
         foreach (var source in fields)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (source is not FieldDefinitionNode field || field.Constraint is not null ||
-                field.WhenCondition is not null && !IsValueExpression(field.WhenCondition))
+            if (
+                source is not FieldDefinitionNode field
+                || field.Constraint is not null
+                || field.WhenCondition is not null && !IsValueExpression(field.WhenCondition)
+            )
                 return null;
             if (field.AtOffset is not null)
             {
@@ -80,31 +86,40 @@ internal sealed partial class BinarySchemaReadBounds(SchemaRegistry registry, Ca
         return (bits + 7) / 8;
     }
 
-    private static long PrimitiveMaximum(PrimitiveTypeName type) => type switch
-    {
-        PrimitiveTypeName.Byte => byte.MaxValue,
-        PrimitiveTypeName.SByte => sbyte.MaxValue,
-        PrimitiveTypeName.Short => short.MaxValue,
-        PrimitiveTypeName.UShort => ushort.MaxValue,
-        PrimitiveTypeName.Int => int.MaxValue,
-        PrimitiveTypeName.UInt => uint.MaxValue,
-        _ => long.MaxValue
-    };
+    private static long PrimitiveMaximum(PrimitiveTypeName type) =>
+        type switch
+        {
+            PrimitiveTypeName.Byte => byte.MaxValue,
+            PrimitiveTypeName.SByte => sbyte.MaxValue,
+            PrimitiveTypeName.Short => short.MaxValue,
+            PrimitiveTypeName.UShort => ushort.MaxValue,
+            PrimitiveTypeName.Int => int.MaxValue,
+            PrimitiveTypeName.UInt => uint.MaxValue,
+            _ => long.MaxValue,
+        };
 
-    private static long? Maximum(Node expression, IReadOnlyDictionary<string, long> values) => expression switch
-    {
-        IntegerNode integer when long.TryParse(Convert.ToString(integer.ObjValue, CultureInfo.InvariantCulture),
-            NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) && value >= 0 => value,
-        IdentifierNode identifier when values.TryGetValue(identifier.Name, out var maximum) => maximum,
-        AccessColumnNode column when values.TryGetValue(column.Name, out var maximum) => maximum,
-        _ => null
-    };
+    private static long? Maximum(Node expression, IReadOnlyDictionary<string, long> values) =>
+        expression switch
+        {
+            IntegerNode integer
+                when long.TryParse(
+                    Convert.ToString(integer.ObjValue, CultureInfo.InvariantCulture),
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,
+                    out var value
+                )
+                    && value >= 0 => value,
+            IdentifierNode identifier when values.TryGetValue(identifier.Name, out var maximum) => maximum,
+            AccessColumnNode column when values.TryGetValue(column.Name, out var maximum) => maximum,
+            _ => null,
+        };
 
-    private static bool IsValueExpression(Node expression) => expression switch
-    {
-        IntegerNode or BooleanNode or IdentifierNode or AccessColumnNode => true,
-        BinaryNode binary => IsValueExpression(binary.Left) && IsValueExpression(binary.Right),
-        NotNode not => IsValueExpression(not.Expression),
-        _ => false
-    };
+    private static bool IsValueExpression(Node expression) =>
+        expression switch
+        {
+            IntegerNode or BooleanNode or IdentifierNode or AccessColumnNode => true,
+            BinaryNode binary => IsValueExpression(binary.Left) && IsValueExpression(binary.Right),
+            NotNode not => IsValueExpression(not.Expression),
+            _ => false,
+        };
 }

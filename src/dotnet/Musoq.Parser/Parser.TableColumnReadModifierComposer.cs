@@ -45,13 +45,15 @@ public partial class Parser
             usedKeys,
             $"source.{sourceName.Value.ToLowerInvariant()}",
             valueToken.Value,
-            sourceToken.Span.Through(valueToken.Span));
+            sourceToken.Span.Through(valueToken.Span)
+        );
     }
 
     private CreateTableColumnModifier ReadStringTableColumnModifier(
         string columnName,
         HashSet<string> usedKeys,
-        string key)
+        string key
+    )
     {
         var modifierToken = ConsumeAndGetToken(Current.TokenType);
         var valueToken = ConsumeAndGetToken(TokenType.StringLiteral);
@@ -60,7 +62,8 @@ public partial class Parser
             usedKeys,
             key,
             valueToken.Value,
-            modifierToken.Span.Through(valueToken.Span));
+            modifierToken.Span.Through(valueToken.Span)
+        );
     }
 
     private CreateTableColumnModifier CreateTableColumnModifier(
@@ -68,7 +71,8 @@ public partial class Parser
         HashSet<string> usedKeys,
         string key,
         string value,
-        TextSpan span)
+        TextSpan span
+    )
     {
         if (!usedKeys.Add(key))
         {
@@ -76,7 +80,8 @@ public partial class Parser
                 $"Duplicate read modifier '{key}' for column '{columnName}'.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-                span);
+                span
+            );
         }
 
         return new CreateTableColumnModifier(key, value, span);
@@ -90,7 +95,8 @@ public partial class Parser
                 $"Expected {expected} but received {Current.TokenType}.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-                Current.Span);
+                Current.Span
+            );
         }
 
         return ConsumeAndGetToken(Current.TokenType);
@@ -98,12 +104,14 @@ public partial class Parser
 
     private static bool IsTableColumnReadModifierStart(Token token)
     {
-        return IsTableColumnModifierToken(token) &&
-               (token.Value.Equals("encoding", StringComparison.OrdinalIgnoreCase) ||
-                token.Value.Equals("culture", StringComparison.OrdinalIgnoreCase) ||
-                token.Value.Equals("format", StringComparison.OrdinalIgnoreCase) ||
-                token.Value.Equals("trim", StringComparison.OrdinalIgnoreCase) ||
-                token.Value.Equals("source", StringComparison.OrdinalIgnoreCase));
+        return IsTableColumnModifierToken(token)
+            && (
+                token.Value.Equals("encoding", StringComparison.OrdinalIgnoreCase)
+                || token.Value.Equals("culture", StringComparison.OrdinalIgnoreCase)
+                || token.Value.Equals("format", StringComparison.OrdinalIgnoreCase)
+                || token.Value.Equals("trim", StringComparison.OrdinalIgnoreCase)
+                || token.Value.Equals("source", StringComparison.OrdinalIgnoreCase)
+            );
     }
 
     private static bool IsTableColumnModifierToken(Token token)

@@ -150,6 +150,4 @@ public sealed partial class WindowPartitionCountBuilder<TPartition>
             ? GetOrAddReferencePartition(partitionKey)
             : GetOrAddStructuralPartition(partitionKey);
     }
-
-
 }

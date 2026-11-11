@@ -11,11 +11,16 @@ public sealed class RuntimeInputDiagnosticException : Exception, IDiagnosticExce
         RuntimeInputFailureReason reason,
         DiagnosticSourceKind sourceKind = DiagnosticSourceKind.Runtime,
         DiagnosticInputLocation? inputLocation = null,
-        Exception? innerException = null)
+        Exception? innerException = null
+    )
         : base(GetSafeMessage(reason), innerException)
     {
         if (sourceKind is not DiagnosticSourceKind.Runtime and not DiagnosticSourceKind.DataSource)
-            throw new ArgumentOutOfRangeException(nameof(sourceKind), sourceKind, "Runtime input diagnostics must originate from runtime or data-source input.");
+            throw new ArgumentOutOfRangeException(
+                nameof(sourceKind),
+                sourceKind,
+                "Runtime input diagnostics must originate from runtime or data-source input."
+            );
 
         Reason = reason;
         SourceKind = sourceKind;
@@ -42,10 +47,8 @@ public sealed class RuntimeInputDiagnosticException : Exception, IDiagnosticExce
             SourceLocation.None,
             phase: DiagnosticPhase.Runtime,
             sourceKind: SourceKind,
-            arguments:
-            [
-                new KeyValuePair<string, string>("inputReason", GetReasonCode(Reason))
-            ]).WithInputLocation(InputLocation);
+            arguments: [new KeyValuePair<string, string>("inputReason", GetReasonCode(Reason))]
+        ).WithInputLocation(InputLocation);
     }
 
     /// <summary>Returns the fixed public summary associated with a controlled input failure reason.</summary>
@@ -53,10 +56,12 @@ public sealed class RuntimeInputDiagnosticException : Exception, IDiagnosticExce
     {
         return reason switch
         {
-            RuntimeInputFailureReason.MalformedInput => ErrorCatalog.GetMessage(DiagnosticCode.MQ7014_MalformedRuntimeInput),
+            RuntimeInputFailureReason.MalformedInput => ErrorCatalog.GetMessage(
+                DiagnosticCode.MQ7014_MalformedRuntimeInput
+            ),
             RuntimeInputFailureReason.UnterminatedQuotedField => "The final quoted field is not terminated.",
             RuntimeInputFailureReason.MalformedJson => "Runtime JSON input is malformed.",
-            _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown runtime input failure reason.")
+            _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown runtime input failure reason."),
         };
     }
 
@@ -68,7 +73,7 @@ public sealed class RuntimeInputDiagnosticException : Exception, IDiagnosticExce
             RuntimeInputFailureReason.MalformedInput => "malformed-input",
             RuntimeInputFailureReason.UnterminatedQuotedField => "unterminated-quoted-field",
             RuntimeInputFailureReason.MalformedJson => "malformed-json",
-            _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown runtime input failure reason.")
+            _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown runtime input failure reason."),
         };
     }
 }

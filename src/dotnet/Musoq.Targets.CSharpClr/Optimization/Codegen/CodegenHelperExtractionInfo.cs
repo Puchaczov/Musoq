@@ -11,4 +11,5 @@ internal sealed record CodegenHelperExtractionInfo(
     string QueryStatisticsBoundary,
     string CaptureBoundary,
     string ReturnBoundary,
-    string OrderingKey);
+    string OrderingKey
+);

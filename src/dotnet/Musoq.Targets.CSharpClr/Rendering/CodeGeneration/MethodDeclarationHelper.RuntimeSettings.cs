@@ -12,37 +12,47 @@ public static partial class MethodDeclarationHelper
         return SyntaxFactory.PropertyDeclaration(
             [],
             SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-            CreateSourceRuntimeSettingsBySourceContextIdType()
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)
+            ),
+            CreateSourceRuntimeSettingsBySourceContextIdType().WithTrailingTrivia(SyntaxHelper.WhiteSpace),
             null,
             SyntaxFactory.Identifier(nameof(IQueryRunnable.SourceRuntimeSettingsBySourceContextId)),
             SyntaxFactory.AccessorList(
                 SyntaxFactory.List([
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                    SyntaxFactory
+                        .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                ])),
+                    SyntaxFactory
+                        .AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                ])
+            ),
             null,
-            null);
+            null
+        );
     }
 
     public static PropertyDeclarationSyntax CreateSourceRuntimeSettingDescriptionsBySourceContextIdProperty()
     {
-        return SyntaxFactory.PropertyDeclaration(
-                SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>"),
-                nameof(IQueryRunnable.SourceRuntimeSettingDescriptionsBySourceContextId))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+        return SyntaxFactory
+            .PropertyDeclaration(
+                SyntaxFactory.ParseTypeName(
+                    "IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>"
+                ),
+                nameof(IQueryRunnable.SourceRuntimeSettingDescriptionsBySourceContextId)
+            )
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithAccessorList(
                 SyntaxFactory.AccessorList(
                     SyntaxFactory.List([
-                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                        SyntaxFactory
+                            .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                        SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                    ])));
+                        SyntaxFactory
+                            .AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                    ])
+                )
+            );
     }
 }

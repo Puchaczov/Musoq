@@ -51,8 +51,21 @@ public class PhysicalNodeTests
     [TestMethod]
     public void PhysicalSchemaScan_WhenPushedPredicates_ShouldStorePredicates()
     {
-        var pred = new BinaryOp(BinaryOpKind.Equal, new ColumnRef("t", "Id", typeof(int)), new Literal(1, typeof(int)), typeof(bool));
-        var scan = new PhysicalSchemaScanNode("test", "data", [], "t", [pred], ["Id"], CreateSchema(("Id", typeof(int))));
+        var pred = new BinaryOp(
+            BinaryOpKind.Equal,
+            new ColumnRef("t", "Id", typeof(int)),
+            new Literal(1, typeof(int)),
+            typeof(bool)
+        );
+        var scan = new PhysicalSchemaScanNode(
+            "test",
+            "data",
+            [],
+            "t",
+            [pred],
+            ["Id"],
+            CreateSchema(("Id", typeof(int)))
+        );
 
         Assert.HasCount(1, scan.PushedPredicates);
         Assert.HasCount(1, scan.ProjectedColumns);
@@ -69,7 +82,8 @@ public class PhysicalNodeTests
             "b",
             typeof(object),
             ApplyKind.Cross,
-            CreateSchema(("Data", typeof(byte[]))));
+            CreateSchema(("Data", typeof(byte[])))
+        );
 
         Assert.IsEmpty(node.Children);
         Assert.AreEqual("binary", node.SchemaName);
@@ -106,7 +120,12 @@ public class PhysicalNodeTests
     public void PhysicalFilter_WhenConstructed_ShouldPreserveInputSchema()
     {
         var scan = CreateScan();
-        var pred = new BinaryOp(BinaryOpKind.GreaterThan, new ColumnRef("t", "Id", typeof(int)), new Literal(5, typeof(int)), typeof(bool));
+        var pred = new BinaryOp(
+            BinaryOpKind.GreaterThan,
+            new ColumnRef("t", "Id", typeof(int)),
+            new Literal(5, typeof(int)),
+            typeof(bool)
+        );
         var filter = new PhysicalFilterNode(pred, scan);
 
         Assert.HasCount(1, filter.Children);
@@ -207,10 +226,16 @@ public class PhysicalNodeTests
         var keys = new IrExpression[]
         {
             new ColumnRef("t", "Name", typeof(string)),
-            new ColumnRef("t", "Id", typeof(int))
+            new ColumnRef("t", "Id", typeof(int)),
         };
         var binding = CreateAggBinding();
-        var agg = new PhysicalValueTupleAggregateNode(keys, ["Name", "Id"], [typeof(string), typeof(int)], [binding], scan);
+        var agg = new PhysicalValueTupleAggregateNode(
+            keys,
+            ["Name", "Id"],
+            [typeof(string), typeof(int)],
+            [binding],
+            scan
+        );
 
         Assert.HasCount(1, agg.Children);
         Assert.HasCount(3, agg.OutputSchema.Columns);
@@ -257,7 +282,12 @@ public class PhysicalNodeTests
     {
         var left = CreateScan("a", ("Id", typeof(int)));
         var right = CreateScan("b", ("Value", typeof(string)));
-        var pred = new BinaryOp(BinaryOpKind.GreaterThan, new ColumnRef("a", "Id", typeof(int)), new ColumnRef("b", "Value", typeof(string)), typeof(bool));
+        var pred = new BinaryOp(
+            BinaryOpKind.GreaterThan,
+            new ColumnRef("a", "Id", typeof(int)),
+            new ColumnRef("b", "Value", typeof(string)),
+            typeof(bool)
+        );
 
         var join = new PhysicalNestedLoopJoinNode(JoinKind.LeftOuter, pred, left, right);
 
@@ -357,9 +387,7 @@ public class PhysicalNodeTests
     {
         var defPlan = CreateScan("inner");
         var queryPlan = new PhysicalCteRefNode("MyCte", "c", CreateSchema(("Id", typeof(int))));
-        var cte = new PhysicalCteNode(
-            [new PhysicalCteDefinition("MyCte", defPlan)],
-            queryPlan);
+        var cte = new PhysicalCteNode([new PhysicalCteDefinition("MyCte", defPlan)], queryPlan);
 
         Assert.HasCount(2, cte.Children);
         Assert.HasCount(1, cte.Definitions);
@@ -393,14 +421,20 @@ public class PhysicalNodeTests
 
         PlanTextAssertions.AreEqual(
             "PhysicalProject [t.Name as Name]\r\n  PhysicalSchemaScan [#test.data() as t]",
-            output);
+            output
+        );
     }
 
     [TestMethod]
     public void Printer_WhenFilterBetweenScanAndProject_ShouldProduceExpectedOutput()
     {
         var scan = CreateScan();
-        var pred = new BinaryOp(BinaryOpKind.GreaterThan, new ColumnRef("t", "Id", typeof(int)), new Literal(5, typeof(int)), typeof(bool));
+        var pred = new BinaryOp(
+            BinaryOpKind.GreaterThan,
+            new ColumnRef("t", "Id", typeof(int)),
+            new Literal(5, typeof(int)),
+            typeof(bool)
+        );
         var filter = new PhysicalFilterNode(pred, scan);
         var fields = new[] { new ProjectedField("Id", new ColumnRef("t", "Id", typeof(int)), 0) };
         var project = new PhysicalProjectNode(fields, filter);
@@ -409,7 +443,8 @@ public class PhysicalNodeTests
 
         PlanTextAssertions.AreEqual(
             "PhysicalProject [t.Id as Id]\r\n  PhysicalFilter [(t.Id > 5)]\r\n    PhysicalSchemaScan [#test.data() as t]",
-            output);
+            output
+        );
     }
 
     [TestMethod]
@@ -417,13 +452,21 @@ public class PhysicalNodeTests
     {
         var left = CreateScan("a", ("Id", typeof(int)));
         var right = CreateScan("b", ("UserId", typeof(int)));
-        var join = new PhysicalHashJoinNode(JoinKind.Inner, [new ColumnRef("a", "Id", typeof(int))], [new ColumnRef("b", "UserId", typeof(int))], null, left, right);
+        var join = new PhysicalHashJoinNode(
+            JoinKind.Inner,
+            [new ColumnRef("a", "Id", typeof(int))],
+            [new ColumnRef("b", "UserId", typeof(int))],
+            null,
+            left,
+            right
+        );
 
         var output = PhysicalPlanPrinter.Print(join);
 
         PlanTextAssertions.AreEqual(
             "PhysicalHashJoin [Inner] [build: a.Id] [probe: b.UserId]\r\n  PhysicalSchemaScan [#test.data() as a]\r\n  PhysicalSchemaScan [#test.data() as b]",
-            output);
+            output
+        );
     }
 
     [TestMethod]
@@ -438,7 +481,8 @@ public class PhysicalNodeTests
 
         PlanTextAssertions.AreEqual(
             "PhysicalSingleKeyAggregate [key: Name (String)] [aggs: Count]\r\n  PhysicalSchemaScan [#test.data() as t]",
-            output);
+            output
+        );
     }
 
     [TestMethod]
@@ -454,7 +498,8 @@ public class PhysicalNodeTests
 
         PlanTextAssertions.AreEqual(
             "PhysicalWindow [ToUpper(idx:0)]\r\n  PhysicalMaterialize\r\n    PhysicalSchemaScan [#test.data() as t]",
-            output);
+            output
+        );
     }
 
     [TestMethod]
@@ -466,9 +511,7 @@ public class PhysicalNodeTests
 
         var output = PhysicalPlanPrinter.Print(topN);
 
-        PlanTextAssertions.AreEqual(
-            "PhysicalTopN [10] [t.Name]\r\n  PhysicalSchemaScan [#test.data() as t]",
-            output);
+        PlanTextAssertions.AreEqual("PhysicalTopN [10] [t.Name]\r\n  PhysicalSchemaScan [#test.data() as t]", output);
     }
 
     [TestMethod]
@@ -484,7 +527,8 @@ public class PhysicalNodeTests
 
         PlanTextAssertions.AreEqual(
             "PhysicalCte\r\n  Definition [MyCte]\r\n    PhysicalProject [inner.Id as Id]\r\n      PhysicalSchemaScan [#test.data() as inner]\r\n  Query\r\n    PhysicalCteRef [MyCte as c]",
-            output);
+            output
+        );
     }
 
     #endregion

@@ -4,7 +4,6 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-
     /// <summary>
     ///     Runtime addition operator that handles object + object with type-preserving conversion.
     ///     Automatically selects the appropriate numeric type (long, double, or decimal) based on operand types.

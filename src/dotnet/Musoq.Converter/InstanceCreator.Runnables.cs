@@ -18,11 +18,10 @@ public static partial class InstanceCreator
             items.DllFile,
             items.PdbFile,
             () => items.AccessToClassPath,
-            () => CreateMissingRunnableDllMessage(items));
+            () => CreateMissingRunnableDllMessage(items)
+        );
         var activator = ExecutionTargetCatalog.ResolveActivator(executable.TargetId);
-        return activator.ActivateTable(
-            executable,
-            CreateRuntimeBinding(items));
+        return activator.ActivateTable(executable, CreateRuntimeBinding(items));
     }
 
     private static ITableRunnable CreateRunnable(BuildItems items, Func<Assembly> createAssembly)
@@ -32,24 +31,18 @@ public static partial class InstanceCreator
             items.DllFile,
             items.PdbFile,
             () => items.AccessToClassPath,
-            () => CreateMissingRunnableDllMessage(items));
+            () => CreateMissingRunnableDllMessage(items)
+        );
         var clrActivator = RequireClrActivator(executable.TargetId);
-        return clrActivator.ActivateTable(
-            executable,
-            CreateRuntimeBinding(items),
-            createAssembly);
+        return clrActivator.ActivateTable(executable, CreateRuntimeBinding(items), createAssembly);
     }
 
     private static ITableRunnable CreateRunnable(CachedExecutionCompilation cachedCompilation, BuildItems items)
     {
         var executable = cachedCompilation.Template.ExecutableArtifact;
         var activator = ExecutionTargetCatalog.ResolveActivator(executable.TargetId);
-        return activator.ActivateTable(
-            executable,
-            CreateRuntimeBinding(items));
+        return activator.ActivateTable(executable, CreateRuntimeBinding(items));
     }
-
-
 
     private static Type LoadRunnableType(BuildItems items)
     {
@@ -58,19 +51,20 @@ public static partial class InstanceCreator
             items.DllFile,
             items.PdbFile,
             () => items.AccessToClassPath,
-            () => CreateMissingRunnableDllMessage(items));
+            () => CreateMissingRunnableDllMessage(items)
+        );
         return RequireClrActivator(executable.TargetId).LoadRunnableType(executable);
     }
 
-    private static ClrAssemblyExecutableActivator.ClrLoadedRunnableType LoadRunnableTypeWithLifetime(
-        BuildItems items)
+    private static ClrAssemblyExecutableActivator.ClrLoadedRunnableType LoadRunnableTypeWithLifetime(BuildItems items)
     {
         var executable = GetExecutableArtifact(
             items.ExecutableArtifact,
             items.DllFile,
             items.PdbFile,
             () => items.AccessToClassPath,
-            () => CreateMissingRunnableDllMessage(items));
+            () => CreateMissingRunnableDllMessage(items)
+        );
         return RequireClrActivator(executable.TargetId).LoadRunnableTypeWithLifetime(executable);
     }
 
@@ -102,7 +96,8 @@ public static partial class InstanceCreator
             items.SchemaProvider,
             items.SourceRuntimeSettingsBySourceContextId,
             items.SourceRuntimeSettingDescriptionsBySourceContextId,
-            CreateSourceExecutionPlans(items));
+            CreateSourceExecutionPlans(items)
+        );
     }
 
     private static ExecutableQueryArtifact GetExecutableArtifact(
@@ -110,7 +105,8 @@ public static partial class InstanceCreator
         byte[]? dllFile,
         byte[]? pdbFile,
         Func<string> accessToClassPath,
-        Func<string> missingRunnableDllMessage)
+        Func<string> missingRunnableDllMessage
+    )
     {
         if (executableArtifact is { } executable)
             return executable;
@@ -119,16 +115,18 @@ public static partial class InstanceCreator
             return CSharpClrArtifactCompatibility.CreateAssemblyExecutable(
                 runnableDllFile,
                 pdbFile,
-                accessToClassPath());
+                accessToClassPath()
+            );
 
         throw new InvalidOperationException(missingRunnableDllMessage());
     }
 
     private static ClrAssemblyExecutableActivator RequireClrActivator(ExecutionTargetId TargetId)
     {
-        return ExecutionTargetCatalog.ResolveActivator(TargetId) as ClrAssemblyExecutableActivator ??
-               throw new InvalidOperationException(
-                   $"Execution target '{TargetId}' does not expose a CLR assembly activator.");
+        return ExecutionTargetCatalog.ResolveActivator(TargetId) as ClrAssemblyExecutableActivator
+            ?? throw new InvalidOperationException(
+                $"Execution target '{TargetId}' does not expose a CLR assembly activator."
+            );
     }
 
     private static IReadOnlyDictionary<string, SourceExecutionPlan> CreateSourceExecutionPlans(BuildItems items)
@@ -139,8 +137,7 @@ public static partial class InstanceCreator
         foreach (var requestEntry in requests)
         {
             result[requestEntry.Key.Id] =
-                plannedSources != null &&
-                plannedSources.TryGetValue(requestEntry.Key.Id, out var plannedSource)
+                plannedSources != null && plannedSources.TryGetValue(requestEntry.Key.Id, out var plannedSource)
                     ? plannedSource.ExecutionPlan
                     : SourceExecutionPlan.Empty(requestEntry.Value.Identity);
         }

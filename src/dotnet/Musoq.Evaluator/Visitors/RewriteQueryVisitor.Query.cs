@@ -22,7 +22,8 @@ public sealed partial class RewriteQueryVisitor
             context.OrderBy,
             context.GroupBy,
             context.Window,
-            context.Qualify);
+            context.Qualify
+        );
         context.PreserveDirectApplyChain = ShouldPreserveDirectApplyChain(directApplyCandidate);
 
         SplitJoinChainIfNeeded(node, context);
@@ -61,26 +62,29 @@ public sealed partial class RewriteQueryVisitor
             Take = take,
             Where = where,
             ScoreWhere = where,
-            ScoreOrderBy = orderBy
+            ScoreOrderBy = orderBy,
         };
     }
 
     private void LoadRefreshMethods(QueryRewriteContext context)
     {
-        if (!Scope.ScopeSymbolTable.SymbolIsOfType<RefreshMethodsSymbol>(
-                context.From.Alias.ToRefreshMethodsSymbolName()))
+        if (
+            !Scope.ScopeSymbolTable.SymbolIsOfType<RefreshMethodsSymbol>(
+                context.From.Alias.ToRefreshMethodsSymbolName()
+            )
+        )
         {
             return;
         }
 
-        context.UsedRefreshMethods = Scope.ScopeSymbolTable
-            .GetSymbol<RefreshMethodsSymbol>(context.From.Alias.ToRefreshMethodsSymbolName())
+        context.UsedRefreshMethods = Scope
+            .ScopeSymbolTable.GetSymbol<RefreshMethodsSymbol>(context.From.Alias.ToRefreshMethodsSymbolName())
             .RefreshMethods;
     }
 
     private static bool ShouldSplitGroupedQuery(QueryRewriteContext context)
     {
-        return context.GroupBy != null &&
-               (!context.PreserveDirectApplyChain || context.Window != null || context.Qualify != null);
+        return context.GroupBy != null
+            && (!context.PreserveDirectApplyChain || context.Window != null || context.Qualify != null);
     }
 }

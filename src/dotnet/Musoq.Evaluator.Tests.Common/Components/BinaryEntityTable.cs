@@ -9,11 +9,11 @@ namespace Musoq.Evaluator.Tests.Components;
 public class BinaryEntityTable : ISchemaTable
 {
     public ISchemaColumn[] Columns =>
-    [
-        new SchemaColumn(nameof(BinaryEntity.Name), 0, typeof(string)),
-        new SchemaColumn(nameof(BinaryEntity.Content), 1, typeof(byte[])),
-        new SchemaColumn(nameof(BinaryEntity.Data), 1, typeof(byte[]))
-    ];
+        [
+            new SchemaColumn(nameof(BinaryEntity.Name), 0, typeof(string)),
+            new SchemaColumn(nameof(BinaryEntity.Content), 1, typeof(byte[])),
+            new SchemaColumn(nameof(BinaryEntity.Data), 1, typeof(byte[])),
+        ];
 
     public SchemaTableMetadata Metadata => new(typeof(BinaryEntity));
 

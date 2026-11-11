@@ -15,7 +15,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 CompilationSimpleSelectSampleFileName,
                 RuntimeV2CseNoDuplicateRegressionSampleFileName,
                 RuntimeV2StringFilterSampleFileName,
-                RuntimeV2ParallelFilterProjectSampleFileName)
+                RuntimeV2ParallelFilterProjectSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName);
         var simpleSelect = samples["Q01_SimpleSelectWhere.cs"].Content;
         var largeInClause = samples[LargeInClauseSampleFileName].Content;

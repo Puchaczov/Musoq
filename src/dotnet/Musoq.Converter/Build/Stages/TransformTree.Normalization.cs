@@ -6,12 +6,8 @@ namespace Musoq.Converter.Build;
 
 public partial class TransformTree
 {
-    private static PreLogicalNormalizationResult? NormalizeQuery(
-        RootNode queryTree,
-        DiagnosticContext diagnostics)
+    private static PreLogicalNormalizationResult? NormalizeQuery(RootNode queryTree, DiagnosticContext diagnostics)
     {
-        return new PreLogicalNormalizer().TryNormalize(queryTree, diagnostics, out var result)
-            ? result
-            : null;
+        return new PreLogicalNormalizer().TryNormalize(queryTree, diagnostics, out var result) ? result : null;
     }
 }

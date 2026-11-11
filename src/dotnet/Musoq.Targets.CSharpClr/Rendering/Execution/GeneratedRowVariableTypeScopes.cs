@@ -8,13 +8,15 @@ public sealed partial class ExecutionCSharpRenderer
     private static IDisposable EnterGeneratedRowVariableType(
         ExecutionRenderContext context,
         string variableName,
-        string generatedRowTypeName)
+        string generatedRowTypeName
+    )
     {
         var previous = context.Session.GeneratedRowVariableTypeNamesByName;
         var current = previous.ToDictionary(
             static pair => pair.Key,
             static pair => new HashSet<string>(pair.Value, StringComparer.Ordinal),
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
 
         if (!current.TryGetValue(variableName, out var typeNames))
         {
@@ -29,7 +31,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private sealed class GeneratedRowVariableTypeScope(
         ExecutionRenderSession session,
-        IReadOnlyDictionary<string, HashSet<string>> previous) : IDisposable
+        IReadOnlyDictionary<string, HashSet<string>> previous
+    ) : IDisposable
     {
         public void Dispose()
         {

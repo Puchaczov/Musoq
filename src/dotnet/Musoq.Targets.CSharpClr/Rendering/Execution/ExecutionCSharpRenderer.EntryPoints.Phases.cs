@@ -6,7 +6,10 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    internal static IEnumerable<StatementSyntax> CreateOpeningPhaseStatements(ExecutionBlock block, string queryIdentifier)
+    internal static IEnumerable<StatementSyntax> CreateOpeningPhaseStatements(
+        ExecutionBlock block,
+        string queryIdentifier
+    )
     {
         if (ContainsInjectQueryStatsMethodCall(block))
             yield return CreateStatsDeclaration();
@@ -17,11 +20,16 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             StatsVariableName,
-            SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(typeof(AmendableQueryStats)))
-                .WithArgumentList(SyntaxFactory.ArgumentList()));
+            SyntaxFactory
+                .ObjectCreationExpression(CreateTypeSyntax(typeof(AmendableQueryStats)))
+                .WithArgumentList(SyntaxFactory.ArgumentList())
+        );
     }
 
-    internal static IEnumerable<StatementSyntax> CreateClosingPhaseStatements(ExecutionBlock block, string queryIdentifier)
+    internal static IEnumerable<StatementSyntax> CreateClosingPhaseStatements(
+        ExecutionBlock block,
+        string queryIdentifier
+    )
     {
         yield return QueryEmitter.GenerateCompletionAndEndStatement(queryIdentifier);
     }

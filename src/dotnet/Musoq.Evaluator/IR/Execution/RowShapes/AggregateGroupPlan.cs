@@ -4,9 +4,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record AggregateGroupPlan
 {
-    public AggregateGroupPlan(
-        AggregateGroupShape leafShape,
-        IReadOnlyList<AggregateGroupLevelPlan> levels)
+    public AggregateGroupPlan(AggregateGroupShape leafShape, IReadOnlyList<AggregateGroupLevelPlan> levels)
     {
         LeafShape = leafShape;
         Levels = ExecutionIrCollections.Freeze(levels);

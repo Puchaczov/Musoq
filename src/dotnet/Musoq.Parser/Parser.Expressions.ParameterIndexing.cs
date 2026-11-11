@@ -12,8 +12,7 @@ public partial class Parser
             Consume(TokenType.LeftSquareBracket);
             var index = ComposeOperations();
             var closing = ConsumeAndGetToken(TokenType.RightSquareBracket);
-            expression = new ArrayIndexNode(expression, index)
-                .WithSpan(expression.Span.Through(closing.Span));
+            expression = new ArrayIndexNode(expression, index).WithSpan(expression.Span.Through(closing.Span));
         }
         return expression;
     }

@@ -8,7 +8,8 @@ public sealed partial class ExecutionCSharpRenderer
     internal static ExpressionSyntax CreateWindowAggregateFrameStartExpression(
         ExecutionWindowFrameBound bound,
         string partitionIndexName,
-        string partitionCountName)
+        string partitionCountName
+    )
     {
         return bound.Kind switch
         {
@@ -16,7 +17,8 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionWindowFrameBoundKind.UnboundedFollowing => SyntaxFactory.BinaryExpression(
                 SyntaxKind.SubtractExpression,
                 SyntaxFactory.IdentifierName(partitionCountName),
-                CreateIntLiteral(1)),
+                CreateIntLiteral(1)
+            ),
             ExecutionWindowFrameBoundKind.CurrentRow => SyntaxFactory.IdentifierName(partitionIndexName),
             ExecutionWindowFrameBoundKind.OffsetPreceding => CreateMathInvocation(
                 nameof(Math.Max),
@@ -24,27 +26,33 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.SubtractExpression,
                     SyntaxFactory.IdentifierName(partitionIndexName),
-                    CreateIntLiteral(bound.Offset))),
+                    CreateIntLiteral(bound.Offset)
+                )
+            ),
             ExecutionWindowFrameBoundKind.OffsetFollowing => CreateMathInvocation(
                 nameof(Math.Min),
                 SyntaxFactory.IdentifierName(partitionCountName),
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.AddExpression,
                     SyntaxFactory.IdentifierName(partitionIndexName),
-                    CreateIntLiteral(bound.Offset))),
-            _ => throw new ArgumentOutOfRangeException(nameof(bound), bound, null)
+                    CreateIntLiteral(bound.Offset)
+                )
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(bound), bound, null),
         };
     }
 
     internal static ExpressionSyntax CreateWindowAggregateFrameEndExpression(
         ExecutionWindowFrameBound bound,
         string partitionIndexName,
-        string partitionCountName)
+        string partitionCountName
+    )
     {
         var lastIndex = SyntaxFactory.BinaryExpression(
             SyntaxKind.SubtractExpression,
             SyntaxFactory.IdentifierName(partitionCountName),
-            CreateIntLiteral(1));
+            CreateIntLiteral(1)
+        );
 
         return bound.Kind switch
         {
@@ -57,16 +65,19 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.SubtractExpression,
                     SyntaxFactory.IdentifierName(partitionIndexName),
-                    CreateIntLiteral(bound.Offset))),
+                    CreateIntLiteral(bound.Offset)
+                )
+            ),
             ExecutionWindowFrameBoundKind.OffsetFollowing => CreateMathInvocation(
                 nameof(Math.Min),
                 lastIndex,
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.AddExpression,
                     SyntaxFactory.IdentifierName(partitionIndexName),
-                    CreateIntLiteral(bound.Offset))),
-            _ => throw new ArgumentOutOfRangeException(nameof(bound), bound, null)
+                    CreateIntLiteral(bound.Offset)
+                )
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(bound), bound, null),
         };
     }
-
 }

@@ -30,8 +30,7 @@ public sealed class TableRows<TRow> : ITableRowBatchSource<TRow>, ITableMaterial
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(columns);
 
-        if (string.Equals(_table.Name, name, StringComparison.Ordinal) &&
-            ColumnsMatch(_table, columns))
+        if (string.Equals(_table.Name, name, StringComparison.Ordinal) && ColumnsMatch(_table, columns))
         {
             table = _table;
             return true;
@@ -54,9 +53,7 @@ public sealed class TableRows<TRow> : ITableRowBatchSource<TRow>, ITableMaterial
 
     private static bool ColumnsMatch(Table table, IReadOnlyList<Column> columns)
     {
-        var tableColumns = table.Columns
-            .OrderBy(static column => column.ColumnIndex)
-            .ToArray();
+        var tableColumns = table.Columns.OrderBy(static column => column.ColumnIndex).ToArray();
 
         if (tableColumns.Length != columns.Count)
             return false;

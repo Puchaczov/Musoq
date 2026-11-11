@@ -2,7 +2,13 @@ namespace Musoq.Parser.Nodes.From;
 
 public class AliasedFromNode : FromNode
 {
-    internal AliasedFromNode(string identifier, ArgsListNode args, string alias, int inSourcePosition, string? typeParameter = null)
+    internal AliasedFromNode(
+        string identifier,
+        ArgsListNode args,
+        string alias,
+        int inSourcePosition,
+        string? typeParameter = null
+    )
         : base(alias)
     {
         Identifier = identifier;
@@ -11,7 +17,14 @@ public class AliasedFromNode : FromNode
         TypeParameter = typeParameter;
     }
 
-    public AliasedFromNode(string identifier, ArgsListNode args, string alias, Type returnType, int inSourcePosition, string? typeParameter = null)
+    public AliasedFromNode(
+        string identifier,
+        ArgsListNode args,
+        string alias,
+        Type returnType,
+        int inSourcePosition,
+        string? typeParameter = null
+    )
         : base(alias, returnType)
     {
         Identifier = identifier;

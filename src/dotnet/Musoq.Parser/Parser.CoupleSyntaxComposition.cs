@@ -21,7 +21,8 @@ public partial class Parser
                         "Duplicate table option in couple statement.",
                         _lexer.AlreadyResolvedQueryPart,
                         DiagnosticCode.MQ2001_UnexpectedToken,
-                        Current.Span);
+                        Current.Span
+                    );
 
                 Consume(TokenType.Table);
                 tableName = ComposeCoupleOptionName("table");
@@ -33,7 +34,8 @@ public partial class Parser
                         "Duplicate settings option in couple statement.",
                         _lexer.AlreadyResolvedQueryPart,
                         DiagnosticCode.MQ2001_UnexpectedToken,
-                        Current.Span);
+                        Current.Span
+                    );
 
                 _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
                 Consume(Current.TokenType);
@@ -44,7 +46,8 @@ public partial class Parser
                     "Expected table or settings option in couple statement.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2001_UnexpectedToken,
-                    Current.Span);
+                    Current.Span
+                );
 
             if (Current.TokenType != TokenType.And)
                 break;
@@ -63,7 +66,8 @@ public partial class Parser
                 $"Expected {optionName} name in couple statement.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2001_UnexpectedToken,
-                Current.Span);
+                Current.Span
+            );
 
         var name = Current.Value;
         Consume(Current.TokenType);

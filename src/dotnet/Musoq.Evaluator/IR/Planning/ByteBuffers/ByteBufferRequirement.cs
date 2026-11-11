@@ -15,6 +15,9 @@ internal readonly record struct ByteBufferRequirement(int PrefixBytes, bool Obse
     internal int? MaximumReadBytes => RequiresCompleteArray ? null : PrefixBytes;
 
     internal ByteBufferRequirement Combine(ByteBufferRequirement other) =>
-        new(Math.Max(PrefixBytes, other.PrefixBytes), ObservesLength || other.ObservesLength,
-            RequiresCompleteArray || other.RequiresCompleteArray);
+        new(
+            Math.Max(PrefixBytes, other.PrefixBytes),
+            ObservesLength || other.ObservesLength,
+            RequiresCompleteArray || other.RequiresCompleteArray
+        );
 }

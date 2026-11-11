@@ -14,8 +14,7 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInterpretationTestBase
 {
-    private static readonly CompilationOptions CompilationOptions =
-        new(usePrimitiveTypeValidation: false);
+    private static readonly CompilationOptions CompilationOptions = new(usePrimitiveTypeValidation: false);
 
     [TestMethod]
     public void BinaryInterpretation_AlignmentToNonByteBoundary_ShouldUseAbsoluteBitPosition()
@@ -25,7 +24,7 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
             new FieldDefinitionNode("Prefix", new BitsTypeNode(4)),
             new FieldDefinitionNode("_align", new AlignmentNode(3)),
             new FieldDefinitionNode("Value", new BitsTypeNode(2)),
-            new FieldDefinitionNode("Tail", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))
+            new FieldDefinitionNode("Tail", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)),
         };
         var registry = new SchemaRegistry();
         registry.Register("Packet", new BinarySchemaNode("Packet", fields));
@@ -44,7 +43,7 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
         var fields = new SchemaFieldNode[]
         {
             new FieldDefinitionNode("_align", new AlignmentNode(128)),
-            new FieldDefinitionNode("Value", new BitsTypeNode(1))
+            new FieldDefinitionNode("Value", new BitsTypeNode(1)),
         };
         var registry = new SchemaRegistry();
         registry.Register("WideBoundary", new BinarySchemaNode("WideBoundary", fields));
@@ -63,7 +62,7 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
             new FieldDefinitionNode("Prefix", new BitsTypeNode(3)),
             new FieldDefinitionNode("Reread", new BitsTypeNode(3), null, new IntegerNode(1)),
             new FieldDefinitionNode("_align", new AlignmentNode(8)),
-            new FieldDefinitionNode("Tail", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))
+            new FieldDefinitionNode("Tail", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)),
         };
         var registry = new SchemaRegistry();
         registry.Register("PositionedBits", new BinarySchemaNode("PositionedBits", fields));
@@ -83,13 +82,13 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
             "Value",
             new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
             null,
-            new IntegerNode(-1));
+            new IntegerNode(-1)
+        );
         var registry = new SchemaRegistry();
         registry.Register("InvalidPosition", new BinarySchemaNode("InvalidPosition", [field]));
 
         var interpreter = CompileInterpreter(registry, "InvalidPosition");
-        var exception = Assert.ThrowsExactly<BinaryParseException>(
-            () => InvokeInterpret(interpreter, [0x01]));
+        var exception = Assert.ThrowsExactly<BinaryParseException>(() => InvokeInterpret(interpreter, [0x01]));
 
         Assert.AreEqual(ParseErrorCode.InvalidPosition, exception.ErrorCode);
         Assert.AreEqual("InvalidPosition", exception.SchemaName);
@@ -101,12 +100,12 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
     [TestMethod]
     public void BinaryInterpretation_CheckConstraint_ShouldValidateAfterCurrentFieldRead()
     {
-        var check = new FieldConstraintNode(
-            new GreaterNode(new IdentifierNode("Value"), new IntegerNode(0)));
+        var check = new FieldConstraintNode(new GreaterNode(new IdentifierNode("Value"), new IntegerNode(0)));
         var field = new FieldDefinitionNode(
             "Value",
             new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
-            check);
+            check
+        );
         var registry = new SchemaRegistry();
         registry.Register("Checked", new BinarySchemaNode("Checked", [field]));
 
@@ -114,8 +113,7 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
         var result = InvokeInterpret(interpreter, [0x01]);
         Assert.AreEqual((byte)1, GetPropertyValue<byte>(result, "Value"));
 
-        var exception = Assert.ThrowsExactly<BinaryParseException>(
-            () => InvokeInterpret(interpreter, [0x00]));
+        var exception = Assert.ThrowsExactly<BinaryParseException>(() => InvokeInterpret(interpreter, [0x00]));
         Assert.AreEqual(ParseErrorCode.ValidationFailed, exception.ErrorCode);
         Assert.AreEqual("Checked", exception.SchemaName);
         Assert.AreEqual("Value", exception.FieldName);
@@ -128,14 +126,16 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
     {
         var interpreter = CompileFromSchemaText(
             "binary Trimmed { Value: string[4] ascii trim const 'OK', Tail: byte }",
-            "Trimmed");
+            "Trimmed"
+        );
 
         var result = InvokeInterpret(interpreter, [0x4F, 0x4B, 0x20, 0x20, 0xA5]);
         Assert.AreEqual("OK", GetPropertyValue<string>(result, "Value"));
         Assert.AreEqual((byte)0xA5, GetPropertyValue<byte>(result, "Tail"));
 
-        var exception = Assert.ThrowsExactly<BinaryParseException>(
-            () => InvokeInterpret(interpreter, [0x4E, 0x4F, 0x20, 0x20, 0xA5]));
+        var exception = Assert.ThrowsExactly<BinaryParseException>(() =>
+            InvokeInterpret(interpreter, [0x4E, 0x4F, 0x20, 0x20, 0xA5])
+        );
         Assert.AreEqual(ParseErrorCode.ValidationFailed, exception.ErrorCode);
     }
 
@@ -144,19 +144,22 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
     {
         var interpreter = CompileFromSchemaText(
             "binary Header { Signature: byte[2] magic [0xAA, 0x55], Kind: byte oneOf [1, 2] }",
-            "Header");
+            "Header"
+        );
 
         var valid = InvokeInterpret(interpreter, [0xAA, 0x55, 0x02]);
         Assert.AreEqual((byte)2, GetPropertyValue<byte>(valid, "Kind"));
 
-        var signatureException = Assert.ThrowsExactly<BinaryParseException>(
-            () => InvokeInterpret(interpreter, [0xAA, 0x54, 0x02]));
+        var signatureException = Assert.ThrowsExactly<BinaryParseException>(() =>
+            InvokeInterpret(interpreter, [0xAA, 0x54, 0x02])
+        );
         Assert.AreEqual(ParseErrorCode.ValidationFailed, signatureException.ErrorCode);
         Assert.AreEqual("Signature", signatureException.FieldName);
         Assert.AreEqual(2, signatureException.Position);
 
-        var kindException = Assert.ThrowsExactly<BinaryParseException>(
-            () => InvokeInterpret(interpreter, [0xAA, 0x55, 0x03]));
+        var kindException = Assert.ThrowsExactly<BinaryParseException>(() =>
+            InvokeInterpret(interpreter, [0xAA, 0x55, 0x03])
+        );
         Assert.AreEqual(ParseErrorCode.ValidationFailed, kindException.ErrorCode);
         Assert.AreEqual("Kind", kindException.FieldName);
         Assert.AreEqual(3, kindException.Position);
@@ -165,15 +168,14 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
     [TestMethod]
     public void BinarySchema_NonBooleanCheck_ShouldReportExactStructuredMq4006()
     {
-        const string query =
-            "binary Packet { Value: byte check Value };" +
-            "select 1 from #test.files();";
+        const string query = "binary Packet { Value: byte check Value };" + "select 1 from #test.files();";
 
         var result = Analyze(query);
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ4006_InvalidFieldConstraint,
-            "non-boolean current-field check expression");
+            "non-boolean current-field check expression"
+        );
         var expectedStart = query.LastIndexOf("Value", StringComparison.Ordinal);
 
         Assert.AreEqual(new TextSpan(expectedStart, "Value".Length), diagnostic.Span);
@@ -191,15 +193,14 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
     [TestMethod]
     public void BinarySchema_UnknownCheckReference_ShouldReportExactStructuredMq2030()
     {
-        const string query =
-            "binary Packet { Value: byte check Missing > 0 };" +
-            "select 1 from #test.files();";
+        const string query = "binary Packet { Value: byte check Missing > 0 };" + "select 1 from #test.files();";
 
         var result = Analyze(query);
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            "unknown check field reference");
+            "unknown check field reference"
+        );
         var expectedStart = query.IndexOf("Missing", StringComparison.Ordinal);
 
         Assert.AreEqual(new TextSpan(expectedStart, "Missing".Length), diagnostic.Span);
@@ -227,8 +228,8 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
     private static QueryAnalysisResult Analyze(string query)
     {
         return new QueryAnalyzer(
-                new UnknownSchemaProvider(Array.Empty<dynamic>()),
-                compilationOptions: CompilationOptions)
-            .Analyze(query);
+            new UnknownSchemaProvider(Array.Empty<dynamic>()),
+            compilationOptions: CompilationOptions
+        ).Analyze(query);
     }
 }

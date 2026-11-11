@@ -15,55 +15,21 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class ErrorQualityBinaryTextSchemaTests : BasicEntityTestBase
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
     // ============================================================================
     // P-MIX: Mixed Binary/Text Interaction Parse Errors
     // ============================================================================
-
-
-
-
-
 
     // ============================================================================
     // E-BIN: Binary Schema Semantic/Evaluation Errors (via Analyze())
     // ============================================================================
 
-
-
-
-
-
-
     // ============================================================================
     // E-TEXT: Text Schema Semantic/Evaluation Errors (via Analyze())
     // ============================================================================
 
-
-
-
-
-
-
     // ============================================================================
     // Well-formed binary/text schemas that SHOULD succeed (positive baselines)
     // ============================================================================
-
-
-
-
 
     #region Test Setup
 
@@ -72,7 +38,7 @@ public partial class ErrorQualityBinaryTextSchemaTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -82,8 +48,7 @@ public partial class ErrorQualityBinaryTextSchemaTests : BasicEntityTestBase
         return new QueryAnalyzer(CreateSchemaProvider());
     }
 
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -100,8 +65,7 @@ public partial class ErrorQualityBinaryTextSchemaTests : BasicEntityTestBase
     private static void AssertParseOrSemanticFailure(QueryAnalysisResult result, string context)
     {
         var errors = result.Errors.ToList();
-        Assert.IsNotEmpty(errors,
-            $"Expected parse or semantic error ({context}) but no diagnostics were reported.");
+        Assert.IsNotEmpty(errors, $"Expected parse or semantic error ({context}) but no diagnostics were reported.");
 
         if (errors.Any(e => string.IsNullOrWhiteSpace(e.Message)))
             Assert.Fail($"Expected actionable diagnostics ({context}) but one or more errors had empty messages.");
@@ -112,5 +76,4 @@ public partial class ErrorQualityBinaryTextSchemaTests : BasicEntityTestBase
     // ============================================================================
     // P-BIN: Binary Schema Parse-Level Errors
     // ============================================================================
-
 }

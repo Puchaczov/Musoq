@@ -9,12 +9,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithIntLiteral_UsingGreaterThan_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size > 1000";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size > 1000";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
         var table = vm.Run(TestContext.CancellationToken);
@@ -28,12 +29,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithIntLiteral_UsingLessThan_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size < 1000";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size < 1000";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
         var table = vm.Run(TestContext.CancellationToken);
@@ -45,12 +47,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithIntLiteral_UsingEquals_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size = 1500";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size = 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
         var table = vm.Run(TestContext.CancellationToken);
@@ -62,12 +65,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithIntLiteral_UsingNotEquals_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size <> 1500";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size <> 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
         var table = vm.Run(TestContext.CancellationToken);
@@ -81,12 +85,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithIntLiteral_UsingGreaterOrEqual_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size >= 1500";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size >= 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
         var table = vm.Run(TestContext.CancellationToken);
@@ -100,12 +105,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithIntLiteral_UsingLessOrEqual_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size <= 1500";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size <= 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
         var table = vm.Run(TestContext.CancellationToken);
@@ -116,17 +122,16 @@ public partial class AutomaticNumericTypeInferenceTests
         CollectionAssert.Contains(results, "Medium");
     }
 
-
-
     [TestMethod]
     public void WhenComparingDeclaredNumericColumnWithIntLiteral_UsingGreaterThan_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value > 1000";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value > 1000";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithDoubleValues());
         var table = vm.Run(TestContext.CancellationToken);
@@ -140,12 +145,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingDeclaredNumericColumnWithIntLiteral_UsingEquals_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value = 1500";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = 1500";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithDoubleValues());
         var table = vm.Run(TestContext.CancellationToken);
@@ -157,12 +163,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingDeclaredNumericColumnWithZero_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Count: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Count = 0";
+        const string query =
+            "table Items {"
+            + "  Count: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Count = 0";
 
         dynamic item1 = new ExpandoObject();
         item1.Count = (double)(0);
@@ -179,21 +186,19 @@ public partial class AutomaticNumericTypeInferenceTests
         Assert.AreEqual("Zero", table[0].ReadValues()[0]);
     }
 
-
-
     [TestMethod]
     public void WhenComparingDeclaredNumericColumnWithDecimalLiteral_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Price: decimal," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Price < 19.99";
+        const string query =
+            "table Items {"
+            + "  Price: decimal,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Price < 19.99";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithDecimalPriceColumn());
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(0, table.Count);
     }
@@ -201,12 +206,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingDeclaredNumericColumnWithDecimalLiteral_UsingEquals_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Price: decimal," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Price = 30.00";
+        const string query =
+            "table Items {"
+            + "  Price: decimal,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Price = 30.00";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithDecimalPriceColumn());
         var table = vm.Run(TestContext.CancellationToken);
@@ -215,17 +221,16 @@ public partial class AutomaticNumericTypeInferenceTests
         Assert.AreEqual("Item C", table[0].ReadValues()[0]);
     }
 
-
-
     [TestMethod]
     public void WhenComparingDecodedDoubleWithIntLiteral_WithPrecisionLoss_ShouldNotMatch()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value = 100";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = 100";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (double)(100.5);
@@ -238,7 +243,6 @@ public partial class AutomaticNumericTypeInferenceTests
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Int", table[0].ReadValues()[0]);
     }
@@ -246,31 +250,30 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingDeclaredDecimalPriceWithDecimalLiteral_ShouldAllowConversion()
     {
-        const string query = "table Items {" +
-                             "  Price: decimal," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Price >= 19.99";
+        const string query =
+            "table Items {"
+            + "  Price: decimal,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Price >= 19.99";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithDecimalPriceColumn());
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(3, table.Count);
     }
-
-
 
     [TestMethod]
     public void WhenComparingIntLiteralWithStringColumn_Reversed_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where 1000 < Size";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where 1000 < Size";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
         var table = vm.Run(TestContext.CancellationToken);
@@ -284,12 +287,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingIntLiteralWithDeclaredNumericColumn_Reversed_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where 1500 = Value";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where 1500 = Value";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithDoubleValues());
         var table = vm.Run(TestContext.CancellationToken);
@@ -297,6 +301,4 @@ public partial class AutomaticNumericTypeInferenceTests
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Medium", table[0].ReadValues()[0]);
     }
-
-
 }

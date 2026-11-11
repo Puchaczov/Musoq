@@ -5,6 +5,7 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using ColumnRefExtractor = Musoq.Evaluator.IR.Expressions.ColumnRefExtractor;
+
 namespace Musoq.Evaluator.IR.Planning;
 
 internal static partial class BoundaryRowShapePlanner
@@ -17,7 +18,9 @@ internal static partial class BoundaryRowShapePlanner
         {
             var index = new ColumnUsageIndex();
 
-            foreach (var usage in requiredColumns.RequiredColumnUsagesBySourceId.Values.SelectMany(static usages => usages))
+            foreach (
+                var usage in requiredColumns.RequiredColumnUsagesBySourceId.Values.SelectMany(static usages => usages)
+            )
                 index.AddUsage(usage);
 
             return index;
@@ -49,9 +52,10 @@ internal static partial class BoundaryRowShapePlanner
 
     private static PlanningDecision CreateDecision(BoundaryRowShapePlan plan)
     {
-        var outcome = plan.BoundaryOnlyColumns.Length == 0 && plan.FutureDroppableColumns.Length == 0
-            ? "NoOpportunity"
-            : "PhysicalRewriteCandidate";
+        var outcome =
+            plan.BoundaryOnlyColumns.Length == 0 && plan.FutureDroppableColumns.Length == 0
+                ? "NoOpportunity"
+                : "PhysicalRewriteCandidate";
 
         return new PlanningDecision(
             PlanningDecisionCategory.BoundaryRowShape,
@@ -59,7 +63,8 @@ internal static partial class BoundaryRowShapePlanner
             plan.BoundaryId,
             outcome,
             plan.Confidence,
-            plan.Reason);
+            plan.Reason
+        );
     }
 
     private static PhysicalNode ResolveBuildSide(PhysicalHashJoinNode hashJoin)
@@ -83,7 +88,7 @@ internal static partial class BoundaryRowShapePlanner
             PhysicalCteRefNode cteRef => string.Equals(cteRef.Alias, alias, StringComparison.OrdinalIgnoreCase),
             PhysicalValuesScanNode values => string.Equals(values.Alias, alias, StringComparison.OrdinalIgnoreCase),
             PhysicalUnpivotNode unpivot => string.Equals(unpivot.Alias, alias, StringComparison.OrdinalIgnoreCase),
-            _ => node.Children.Any(child => ProducesAlias(child, alias))
+            _ => node.Children.Any(child => ProducesAlias(child, alias)),
         };
     }
 
@@ -98,37 +103,44 @@ internal static partial class BoundaryRowShapePlanner
     private static string[] ResolveSetOperationColumns(PhysicalNode input, IReadOnlyList<int> indexes)
     {
         var columns = ResolveAvailableColumns(input);
-        return indexes
-            .Where(index => index >= 0 && index < columns.Length)
-            .Select(index => columns[index])
-            .ToArray();
+        return indexes.Where(index => index >= 0 && index < columns.Length).Select(index => columns[index]).ToArray();
     }
 
     private static PhysicalNode UnwrapMaterialize(PhysicalNode node)
     {
         return node is PhysicalMaterializeNode materialize ? materialize.Input : node;
     }
+
     private static string[] ResolveAvailableColumns(PhysicalNode node)
     {
         return node switch
         {
             PhysicalSchemaScanNode scan => ResolveSchemaScanColumns(scan),
-            PhysicalCteRefNode cteRef => cteRef.OutputSchema.Columns.Select(column => Qualify(cteRef.Alias, column.Name)).ToArray(),
-            PhysicalValuesScanNode values => values.OutputSchema.Columns.Select(column => Qualify(values.Alias, column.Name)).ToArray(),
-            PhysicalUnpivotNode unpivot => unpivot.OutputSchema.Columns.Select(column => Qualify(unpivot.Alias, column.Name)).ToArray(),
+            PhysicalCteRefNode cteRef => cteRef
+                .OutputSchema.Columns.Select(column => Qualify(cteRef.Alias, column.Name))
+                .ToArray(),
+            PhysicalValuesScanNode values => values
+                .OutputSchema.Columns.Select(column => Qualify(values.Alias, column.Name))
+                .ToArray(),
+            PhysicalUnpivotNode unpivot => unpivot
+                .OutputSchema.Columns.Select(column => Qualify(unpivot.Alias, column.Name))
+                .ToArray(),
             PhysicalProjectNode project => project.Fields.Select(static field => field.OutputName).ToArray(),
             PhysicalMaterializeNode materialize => ResolveAvailableColumns(materialize.Input),
-            _ => SchemaColumns(node.OutputSchema)
+            _ => SchemaColumns(node.OutputSchema),
         };
     }
+
     private static string[] ResolveSchemaScanColumns(PhysicalSchemaScanNode scan)
     {
-        var columns = scan.ProjectedColumns.Length == 0
-            ? scan.OutputSchema.Columns.Select(static column => column.Name)
-            : scan.ProjectedColumns;
+        var columns =
+            scan.ProjectedColumns.Length == 0
+                ? scan.OutputSchema.Columns.Select(static column => column.Name)
+                : scan.ProjectedColumns;
 
         return columns.Select(column => Qualify(scan.Alias, column)).ToArray();
     }
+
     private static string[] CollectWindowColumns(IReadOnlyList<WindowRegistration> registrations)
     {
         return registrations
@@ -136,14 +148,20 @@ internal static partial class BoundaryRowShapePlanner
                 CollectColumns(registration.PartitionKeys)
                     .Concat(CollectOrderColumns(registration.OrderKeys))
                     .Concat(CollectColumns(registration.ValueArguments))
-                    .Concat(OptionalColumns(registration.FilterPredicate)))
+                    .Concat(OptionalColumns(registration.FilterPredicate))
+            )
             .ToArray();
     }
+
     private static string[] CollectAggregateColumns(IrExpression groupKey, IReadOnlyList<AggregateBinding> bindings)
     {
         return CollectColumns([groupKey]).Concat(CollectAggregateColumns(bindings)).ToArray();
     }
-    private static string[] CollectAggregateColumns(IReadOnlyList<IrExpression> groupKeys, IReadOnlyList<AggregateBinding> bindings)
+
+    private static string[] CollectAggregateColumns(
+        IReadOnlyList<IrExpression> groupKeys,
+        IReadOnlyList<AggregateBinding> bindings
+    )
     {
         return CollectColumns(groupKeys).Concat(CollectAggregateColumns(bindings)).ToArray();
     }
@@ -151,9 +169,11 @@ internal static partial class BoundaryRowShapePlanner
     private static string[] CollectAggregateColumns(IReadOnlyList<AggregateBinding> bindings)
     {
         return bindings
-            .SelectMany(binding => CollectColumns(binding.SetArguments)
-                .Concat(OptionalColumns(binding.FilterPredicate))
-                .Concat(CollectColumns(binding.GetArguments)))
+            .SelectMany(binding =>
+                CollectColumns(binding.SetArguments)
+                    .Concat(OptionalColumns(binding.FilterPredicate))
+                    .Concat(CollectColumns(binding.GetArguments))
+            )
             .ToArray();
     }
 
@@ -241,8 +261,9 @@ internal static partial class BoundaryRowShapePlanner
     private static bool ContainsColumn(IReadOnlyList<string> columns, string column)
     {
         return columns.Any(candidate =>
-            string.Equals(candidate, column, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(GetColumnName(candidate), GetColumnName(column), StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate, column, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(GetColumnName(candidate), GetColumnName(column), StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     private static string GetAlias(string column)
@@ -261,14 +282,17 @@ internal static partial class BoundaryRowShapePlanner
     {
         return kind switch
         {
-            BoundaryRowShapeKind.Sort => "sort", BoundaryRowShapeKind.Aggregate => "aggregate",
+            BoundaryRowShapeKind.Sort => "sort",
+            BoundaryRowShapeKind.Aggregate => "aggregate",
             BoundaryRowShapeKind.TopN => "top-n",
             BoundaryRowShapeKind.TopOffset => "top-offset",
-            BoundaryRowShapeKind.Distinct => "distinct", BoundaryRowShapeKind.Window => "window",
+            BoundaryRowShapeKind.Distinct => "distinct",
+            BoundaryRowShapeKind.Window => "window",
             BoundaryRowShapeKind.SetOperation => "setoperation",
-            BoundaryRowShapeKind.HashJoinBuild => "hash-join-build", BoundaryRowShapeKind.HashJoinProbe => "hash-join-probe",
+            BoundaryRowShapeKind.HashJoinBuild => "hash-join-build",
+            BoundaryRowShapeKind.HashJoinProbe => "hash-join-probe",
             BoundaryRowShapeKind.CteMaterialization => "cte",
-            _ => kind.ToString()
+            _ => kind.ToString(),
         };
     }
 }

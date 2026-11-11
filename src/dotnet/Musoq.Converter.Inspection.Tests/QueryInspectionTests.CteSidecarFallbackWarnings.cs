@@ -37,18 +37,18 @@ public partial class QueryInspectionTests
 
     private static string CreateCteSidecarIneligibleBuildKeyQuery()
     {
-        return """
-            with leftCte as (
-                select d.Dummy as Dummy
-                from #system.dual() d
-            ),
-            rightCte as (
-                select e.Dummy as Dummy
-                from #system.dual() e
-            )
-            select l.Dummy, r.Dummy
-            from leftCte l
-            inner join rightCte r on l.Dummy = r.Dummy + ''
-            """;
+        return (
+            "with leftCte as (\n"
+            + "    select d.Dummy as Dummy\n"
+            + "    from #system.dual() d\n"
+            + "),\n"
+            + "rightCte as (\n"
+            + "    select e.Dummy as Dummy\n"
+            + "    from #system.dual() e\n"
+            + ")\n"
+            + "select l.Dummy, r.Dummy\n"
+            + "from leftCte l\n"
+            + "inner join rightCte r on l.Dummy = r.Dummy + ''"
+        );
     }
 }

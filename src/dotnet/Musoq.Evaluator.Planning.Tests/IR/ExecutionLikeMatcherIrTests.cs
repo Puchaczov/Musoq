@@ -9,8 +9,12 @@ namespace Musoq.Evaluator.Tests.IR;
 [TestClass]
 public sealed class ExecutionLikeMatcherIrTests
 {
-    private static readonly ExecutionTypeRef MatcherType = ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher));
-    private static readonly ExecutionTypeRef CacheSlotType = ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot));
+    private static readonly ExecutionTypeRef MatcherType = ExecutionClrBindingFactory.FromClr(
+        typeof(PreparedLikeMatcher)
+    );
+    private static readonly ExecutionTypeRef CacheSlotType = ExecutionClrBindingFactory.FromClr(
+        typeof(LikeMatcherCacheSlot)
+    );
     private static readonly ExecutionTypeRef BooleanType = ExecutionClrBindingFactory.FromClr(typeof(bool));
 
     [TestMethod]
@@ -20,18 +24,21 @@ public sealed class ExecutionLikeMatcherIrTests
         var prepared = new ExecutionPreparedLikeMatch(
             new ExecutionLiteral("alpha", typeof(string)),
             prepare,
-            BooleanType);
+            BooleanType
+        );
         var cacheSlot = new ExecutionLikeMatcherCacheSlot(CacheSlotType);
         var dynamic = new ExecutionDynamicLikeMatch(
             new ExecutionLiteral("alpha", typeof(string)),
             new ExecutionLiteral("a%", typeof(string)),
             cacheSlot,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            BooleanType);
+            BooleanType
+        );
 
         CollectionAssert.AreEqual(
             new ExecutionExpression[] { prepare.Pattern },
-            ExecutionIrAnalysis.GetChildExpressions(prepare).ToArray());
+            ExecutionIrAnalysis.GetChildExpressions(prepare).ToArray()
+        );
         Assert.HasCount(2, ExecutionIrAnalysis.GetChildExpressions(prepared).ToArray());
         Assert.HasCount(3, ExecutionIrAnalysis.GetChildExpressions(dynamic).ToArray());
         Assert.IsEmpty(ExecutionIrAnalysis.GetChildExpressions(cacheSlot).ToArray());
@@ -56,14 +63,16 @@ public sealed class ExecutionLikeMatcherIrTests
         var prepared = new ExecutionPreparedLikeMatch(
             new ExecutionLiteral("alpha", typeof(string)),
             prepare,
-            BooleanType);
+            BooleanType
+        );
         var cacheSlot = new ExecutionLikeMatcherCacheSlot(CacheSlotType);
         var dynamic = new ExecutionDynamicLikeMatch(
             new ExecutionLiteral("alpha", typeof(string)),
             new ExecutionLiteral("a%", typeof(string)),
             cacheSlot,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            BooleanType);
+            BooleanType
+        );
 
         Assert.IsTrue(ExpressionStabilityAnalyzer.IsStable(prepare));
         Assert.IsTrue(ExpressionStabilityAnalyzer.IsStable(prepared));
@@ -89,7 +98,8 @@ public sealed class ExecutionLikeMatcherIrTests
             "a",
             ExecutionStringMatchKind.Prefix,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            BooleanType);
+            BooleanType
+        );
         var replacement = new ExecutionVariable("sharedMatch", typeof(bool));
         var cacheSlot = new ExecutionLikeMatcherCacheSlot(CacheSlotType);
         var dynamic = new ExecutionDynamicLikeMatch(
@@ -97,13 +107,16 @@ public sealed class ExecutionLikeMatcherIrTests
             new ExecutionLiteral("a%", typeof(string)),
             cacheSlot,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            BooleanType);
-        var replaced = (ExecutionDynamicLikeMatch)ExpressionCseSubstitution.Replace(
-            dynamic,
-            new System.Collections.Generic.Dictionary<string, ExecutionVariable>
-            {
-                [ExecutionExpressionFingerprint.ForHoist(input)] = replacement
-            });
+            BooleanType
+        );
+        var replaced = (ExecutionDynamicLikeMatch)
+            ExpressionCseSubstitution.Replace(
+                dynamic,
+                new System.Collections.Generic.Dictionary<string, ExecutionVariable>
+                {
+                    [ExecutionExpressionFingerprint.ForHoist(input)] = replacement,
+                }
+            );
         var matcherVariable = new ExecutionVariable("matcher", MatcherType);
         var cacheVariable = new ExecutionVariable("likeCache", CacheSlotType);
         var plan = new ExecutionPlan(
@@ -117,7 +130,9 @@ public sealed class ExecutionLikeMatcherIrTests
                     new ExecutionPreparedLikeMatch(
                         new ExecutionLiteral("alpha", typeof(string)),
                         new ExecutionVariableRead(matcherVariable),
-                        BooleanType)),
+                        BooleanType
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("dynamicResult", typeof(bool)),
                     new ExecutionDynamicLikeMatch(
@@ -125,8 +140,11 @@ public sealed class ExecutionLikeMatcherIrTests
                         new ExecutionLiteral("a%", typeof(string)),
                         new ExecutionVariableRead(cacheVariable),
                         ExecutionStringMatchComparison.LikeIgnoreCase,
-                        BooleanType))
-            ]));
+                        BooleanType
+                    )
+                ),
+            ])
+        );
         var text = ExecutionPlanPrinter.Print(plan);
 
         Assert.AreSame(replacement, ((ExecutionVariableRead)replaced.Input).Variable);

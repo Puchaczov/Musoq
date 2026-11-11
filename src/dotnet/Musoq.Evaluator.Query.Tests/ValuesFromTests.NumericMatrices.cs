@@ -12,38 +12,40 @@ public partial class ValuesFromTests
     [TestMethod]
     public void ValuesSource_WithCompatibleNumericRows_ShouldInferPromotedTypes()
     {
-        const string query = @"
-select numbers.SmallSigned,
-       numbers.IntLong,
-       numbers.IntUInt,
-       numbers.UIntLong,
-       numbers.UIntULong,
-       numbers.IntDecimal,
-       numbers.HexInt,
-       numbers.NullUInt
-from values {
-    (
-        SmallSigned: 1b,
-        IntLong: 1,
-        IntUInt: 1,
-        UIntLong: 1ui,
-        UIntULong: 1ui,
-        IntDecimal: 1,
-        HexInt: 0x10,
-        NullUInt: null
-    ),
-    (
-        SmallSigned: 2s,
-        IntLong: 2l,
-        IntUInt: 2ui,
-        UIntLong: 2l,
-        UIntULong: 2ul,
-        IntDecimal: 2d,
-        HexInt: 2,
-        NullUInt: 3ui
-    )
-} numbers
-order by numbers.IntLong";
+        const string query = (
+            "\n"
+            + "select numbers.SmallSigned,\n"
+            + "       numbers.IntLong,\n"
+            + "       numbers.IntUInt,\n"
+            + "       numbers.UIntLong,\n"
+            + "       numbers.UIntULong,\n"
+            + "       numbers.IntDecimal,\n"
+            + "       numbers.HexInt,\n"
+            + "       numbers.NullUInt\n"
+            + "from values {\n"
+            + "    (\n"
+            + "        SmallSigned: 1b,\n"
+            + "        IntLong: 1,\n"
+            + "        IntUInt: 1,\n"
+            + "        UIntLong: 1ui,\n"
+            + "        UIntULong: 1ui,\n"
+            + "        IntDecimal: 1,\n"
+            + "        HexInt: 0x10,\n"
+            + "        NullUInt: null\n"
+            + "    ),\n"
+            + "    (\n"
+            + "        SmallSigned: 2s,\n"
+            + "        IntLong: 2l,\n"
+            + "        IntUInt: 2ui,\n"
+            + "        UIntLong: 2l,\n"
+            + "        UIntULong: 2ul,\n"
+            + "        IntDecimal: 2d,\n"
+            + "        HexInt: 2,\n"
+            + "        NullUInt: 3ui\n"
+            + "    )\n"
+            + "} numbers\n"
+            + "order by numbers.IntLong"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -81,28 +83,26 @@ order by numbers.IntLong";
     {
         var pairs = new List<(string Column, string LeftLiteral, string RightLiteral, Type ExpectedType)>();
         foreach (var left in NumericLiteralCases())
-            foreach (var right in NumericLiteralCases())
-            {
-                if (!TryResolveExpectedValuesNumericColumnType(left.Type, right.Type, out var expectedType))
-                    continue;
+        foreach (var right in NumericLiteralCases())
+        {
+            if (!TryResolveExpectedValuesNumericColumnType(left.Type, right.Type, out var expectedType))
+                continue;
 
-                pairs.Add(($"{left.Name}_{right.Name}", left.Literal, right.Literal,
-                    expectedType ?? throw new AssertFailedException("Expected a numeric promotion type.")));
-            }
+            pairs.Add(
+                (
+                    $"{left.Name}_{right.Name}",
+                    left.Literal,
+                    right.Literal,
+                    expectedType ?? throw new AssertFailedException("Expected a numeric promotion type.")
+                )
+            );
+        }
 
         var selectList = string.Join(",\n       ", pairs.Select(pair => $"numbers.{pair.Column}"));
         var firstRowFields = string.Join(",\n        ", pairs.Select(pair => $"{pair.Column}: {pair.LeftLiteral}"));
         var secondRowFields = string.Join(",\n        ", pairs.Select(pair => $"{pair.Column}: {pair.RightLiteral}"));
-        var query = $@"
-select {selectList}
-from values {{
-    (
-        {firstRowFields}
-    ),
-    (
-        {secondRowFields}
-    )
-}} numbers";
+        var query =
+            $"\nselect {selectList}\nfrom values {{\n    (\n        {firstRowFields}\n    ),\n    (\n        {secondRowFields}\n    )\n}} numbers";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -120,17 +120,12 @@ from values {{
         var cases = NumericLiteralCases();
         var selectList = string.Join(",\n       ", cases.Select(testCase => $"numbers.Null_{testCase.Name}"));
         var nullFields = string.Join(",\n        ", cases.Select(testCase => $"Null_{testCase.Name}: null"));
-        var numericFields = string.Join(",\n        ", cases.Select(testCase => $"Null_{testCase.Name}: {testCase.Literal}"));
-        var query = $@"
-select {selectList}
-from values {{
-    (
-        {nullFields}
-    ),
-    (
-        {numericFields}
-    )
-}} numbers";
+        var numericFields = string.Join(
+            ",\n        ",
+            cases.Select(testCase => $"Null_{testCase.Name}: {testCase.Literal}")
+        );
+        var query =
+            $"\nselect {selectList}\nfrom values {{\n    (\n        {nullFields}\n    ),\n    (\n        {numericFields}\n    )\n}} numbers";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -149,12 +144,14 @@ from values {{
     [TestMethod]
     public void ValuesSource_WithULongAndSignedInteger_ShouldThrow()
     {
-        const string query = @"
-from values {
-    ( Value: 1ul ),
-    ( Value: 2 )
-} numbers
-select numbers.Value";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Value: 1ul ),\n"
+            + "    ( Value: 2 )\n"
+            + "} numbers\n"
+            + "select numbers.Value"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, EmptySources()));
 
@@ -162,7 +159,8 @@ select numbers.Value";
             ex,
             DiagnosticCode.MQ3055_InvalidValuesSource,
             DiagnosticPhase.Bind,
-            "cannot safely mix ulong with signed integer values");
+            "cannot safely mix ulong with signed integer values"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(ex);
     }
 
@@ -179,12 +177,8 @@ select numbers.Value";
         Assert.IsNotEmpty(unsafePairs, "The signed/ulong rejection matrix must contain cases.");
         foreach (var pair in unsafePairs)
         {
-            var query = $@"
-from values {{
-    ( Value: {pair.Left.Literal} ),
-    ( Value: {pair.Right.Literal} )
-}} numbers
-select numbers.Value";
+            var query =
+                $"\nfrom values {{\n    ( Value: {pair.Left.Literal} ),\n    ( Value: {pair.Right.Literal} )\n}} numbers\nselect numbers.Value";
 
             var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, EmptySources()));
 
@@ -192,7 +186,8 @@ select numbers.Value";
                 ex,
                 DiagnosticCode.MQ3055_InvalidValuesSource,
                 DiagnosticPhase.Bind,
-                "cannot safely mix ulong with signed integer values");
+                "cannot safely mix ulong with signed integer values"
+            );
             MusoqExceptionAssertions.AssertHasGuidance(ex);
         }
     }

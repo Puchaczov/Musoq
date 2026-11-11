@@ -18,7 +18,9 @@ public sealed class ParameterizedPagingTests
         var root = new Parser(lexer, lexer.Diagnostics).ComposeAll();
         var statements = (StatementsArrayNode)root.Expression;
         var query = ((SingleSetNode)statements.Statements[0].Node).Query;
-        var reference = (ParameterReferenceNode)(query.Skip!.Expression is ParameterReferenceNode ? query.Skip.Expression : query.Take!.Expression);
+        var reference = (ParameterReferenceNode)(
+            query.Skip!.Expression is ParameterReferenceNode ? query.Skip.Expression : query.Take!.Expression
+        );
         Assert.AreEqual(name, reference.Name);
         Assert.AreEqual(new TextSpan(sql.IndexOf('$', StringComparison.Ordinal), name.Length + 1), reference.Span);
     }

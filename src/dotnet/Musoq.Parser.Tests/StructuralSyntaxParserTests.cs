@@ -12,7 +12,8 @@ public sealed class StructuralSyntaxParserTests
     [TestMethod]
     public void ArrayAndRecordLiterals_ShouldParseAndPrintCanonically()
     {
-        const string query = "select x.Value from #inputs.numbers(values: array { (Id: 'todo'), (Pattern: 'FIXME', Id: 'fixme'), }) x";
+        const string query =
+            "select x.Value from #inputs.numbers(values: array { (Id: 'todo'), (Pattern: 'FIXME', Id: 'fixme'), }) x";
         var root = new Parser(new Lexer(query, true)).ComposeAll();
         var text = root.ToString();
 
@@ -40,7 +41,8 @@ public sealed class StructuralSyntaxParserTests
     [TestMethod]
     public void InferredAndRecursiveDeclarations_ShouldPreserveTypeSyntax()
     {
-        const string query = "let todo = (Id: 'todo', Pattern: 'TODO'); let patterns: (Id: string, Pattern: string, Mode: string = 'literal')[] = array { $todo }; select 1 from #test.rows()";
+        const string query =
+            "let todo = (Id: 'todo', Pattern: 'TODO'); let patterns: (Id: string, Pattern: string, Mode: string = 'literal')[] = array { $todo }; select 1 from #test.rows()";
         var root = new Parser(new Lexer(query, true)).ComposeAll();
         var statements = (StatementsArrayNode)root.Expression;
         var inferred = (ScriptVariableDeclarationNode)statements.Statements[0].Node;
@@ -56,14 +58,17 @@ public sealed class StructuralSyntaxParserTests
     [TestMethod]
     public void RecursiveParameterSuffixes_ShouldPrintWithCorrectNullabilityPlacement()
     {
-        const string query = "params(a: int?[], b: int[]?, c: int[][], d: (Id: string)?[]? = null) select 1 from #test.rows()";
+        const string query =
+            "params(a: int?[], b: int[]?, c: int[][], d: (Id: string)?[]? = null) select 1 from #test.rows()";
         var root = new Parser(new Lexer(query, true)).ComposeAll();
         var block = (ParameterBlockNode)((StatementsArrayNode)root.Expression).Statements[0].Node;
 
         CollectionAssert.AreEqual(
             new[] { "int?[]", "int[]?", "int[][]", "(Id: string)?[]?" },
-            block.Parameters.Select(static parameter => parameter.DeclaredTypeName).ToArray());
+            block.Parameters.Select(static parameter => parameter.DeclaredTypeName).ToArray()
+        );
     }
+
     [TestMethod]
     public void StructuralLookahead_ShouldSkipCommentsWithoutAdvancingTheLexer()
     {
@@ -85,9 +90,9 @@ public sealed class StructuralSyntaxParserTests
         var root = new Parser(new Lexer(query, true)).ComposeAll();
         var statements = (StatementsArrayNode)root.Expression;
         var queryNode = ((SingleSetNode)statements.Statements[0].Node).Query;
-        var values = (ValuesFromNode)(queryNode.From is ExpressionFromNode expressionFrom
-            ? expressionFrom.Expression
-            : queryNode.From);
+        var values = (ValuesFromNode)(
+            queryNode.From is ExpressionFromNode expressionFrom ? expressionFrom.Expression : queryNode.From
+        );
 
         Assert.AreEqual("rows", values.Rows[0].Fields[0].Name);
 
@@ -99,4 +104,5 @@ public sealed class StructuralSyntaxParserTests
         var record = (RecordLiteralNode)array.Elements[0];
 
         Assert.AreEqual("rows", record.Fields[0].Name);
-    }}
+    }
+}

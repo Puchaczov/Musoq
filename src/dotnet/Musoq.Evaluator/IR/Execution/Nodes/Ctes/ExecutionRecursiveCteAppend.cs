@@ -7,4 +7,5 @@ public sealed record ExecutionRecursiveCteAppend(
     ExecutionVariable? Seen,
     int[] IdentityFieldIndexes,
     int MaxRows,
-    ExecutionAppendRow AppendRow) : ExecutionNode;
+    ExecutionAppendRow AppendRow
+) : ExecutionNode;

@@ -13,10 +13,17 @@ public sealed partial class StructuralInputFailureTests
     [TestMethod]
     public void NativeCollectionSnapshot_ShouldOwnTheValuesConsumedBySql()
     {
-        const string sql = "param(values: int[]) select Position from #schema.first() where Position in $values order by Position";
-        using var compiled = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString("N"),
-            LibraryExecutionFixture.CreateProvider(new[] { new SnapshotRow(7), new SnapshotRow(9), new SnapshotRow(70), new SnapshotRow(90) }),
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+        const string sql =
+            "param(values: int[]) select Position from #schema.first() where Position in $values order by Position";
+        using var compiled = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString("N"),
+            LibraryExecutionFixture.CreateProvider(
+                new[] { new SnapshotRow(7), new SnapshotRow(9), new SnapshotRow(70), new SnapshotRow(90) }
+            ),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         var values = new List<int> { 7, 9 };
         compiled.TypedParameters.SetCollection("values", values);
         var snapshot = compiled.TypedParameters.Capture(TestContext.CancellationToken);

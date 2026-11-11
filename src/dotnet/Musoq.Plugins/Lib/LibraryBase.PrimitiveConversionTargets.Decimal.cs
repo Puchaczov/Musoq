@@ -161,7 +161,12 @@ public partial class LibraryBase
     /// <returns>Converted to Decimal value</returns>
     [BindableMethod(ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations)]
     [MethodCategory(MethodCategories.Conversion)]
-    public decimal? ToDecimal(bool? value) => value.HasValue ? value.Value ? 1m : 0m : null;
+    public decimal? ToDecimal(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? 1m
+                : 0m
+            : null;
 
     /// <summary>
     ///     Converts given value to Decimal

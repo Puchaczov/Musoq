@@ -18,15 +18,14 @@ public sealed partial class ScriptVariableExecutionTests
     public void WhenScriptVariableInitializerUsesConstantOperators_ShouldEvaluateConsistently(
         string typeName,
         string expression,
-        string expectedText)
+        string expectedText
+    )
     {
         var query = $"let result: {typeName} = {expression}; select $result from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(
-            expectedText,
-            Convert.ToString(table[0].ReadValue(0), CultureInfo.InvariantCulture));
+        Assert.AreEqual(expectedText, Convert.ToString(table[0].ReadValue(0), CultureInfo.InvariantCulture));
     }
 }

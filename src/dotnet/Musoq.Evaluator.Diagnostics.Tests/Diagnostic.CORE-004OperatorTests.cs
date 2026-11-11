@@ -20,6 +20,7 @@ public sealed class DiagnosticCore004OperatorTests : BasicEntityTestBase
             ("not false", true),
             ("not (true or false)", false),
             ("null ?? null ?? 'fallback'", "fallback"),
-            ("5 between 1 and 10", true));
+            ("5 between 1 and 10", true)
+        );
     }
 }

@@ -12,11 +12,34 @@ internal static class IrExpressionTraversal
 
         return expression switch
         {
-            SubqueryExpression or SubqueryParameterRef or ColumnRef or Literal or WildcardLiteral or ScriptParameterRef or ScriptVariableRef or RowPresence or
-                AggregateRef or WindowFunctionRef or CteTableRef or CteCollectionInput or BinaryOp or UnaryOp or ArrayAccess or
-                IsNullCheck or InCheck or CollectionInCheck or PatternMatch or Between or CaseWhen or Coalesce or
-                MethodCall or StrictCast or StructuralRecordLiteral or StructuralArrayLiteral or StructuralConversion => true,
-            _ => false
+            SubqueryExpression
+            or SubqueryParameterRef
+            or ColumnRef
+            or Literal
+            or WildcardLiteral
+            or ScriptParameterRef
+            or ScriptVariableRef
+            or RowPresence
+            or AggregateRef
+            or WindowFunctionRef
+            or CteTableRef
+            or CteCollectionInput
+            or BinaryOp
+            or UnaryOp
+            or ArrayAccess
+            or IsNullCheck
+            or InCheck
+            or CollectionInCheck
+            or PatternMatch
+            or Between
+            or CaseWhen
+            or Coalesce
+            or MethodCall
+            or StrictCast
+            or StructuralRecordLiteral
+            or StructuralArrayLiteral
+            or StructuralConversion => true,
+            _ => false,
         };
     }
 
@@ -105,7 +128,8 @@ internal static class IrExpressionTraversal
 
     public static IEnumerable<IrExpression> SelfAndDescendants(
         IrExpression? expression,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (expression == null)
             yield break;

@@ -27,14 +27,16 @@ public class BugProbeBinaryTextCompositionTests
     [TestMethod]
     public void Binary_StringAsTextSchema_ShouldParseIntoStructured()
     {
-        var query = @"
-            text KeyValue { Key: until '=', Value: rest };
-            binary Config {
-                Len: byte,
-                Data: string[Len] utf8 as KeyValue
-            };
-            select c.Data.Key, c.Data.Value from #test.files() b
-            cross apply Interpret<Config>(b.Content) c";
+        var query = (
+            "\n"
+            + "            text KeyValue { Key: until '=', Value: rest };\n"
+            + "            binary Config {\n"
+            + "                Len: byte,\n"
+            + "                Data: string[Len] utf8 as KeyValue\n"
+            + "            };\n"
+            + "            select c.Data.Key, c.Data.Value from #test.files() b\n"
+            + "            cross apply Interpret<Config>(b.Content) c"
+        );
 
         var payload = "host=local"u8.ToArray();
         var testData = new[] { (byte)payload.Length };
@@ -42,12 +44,21 @@ public class BugProbeBinaryTextCompositionTests
         Buffer.BlockCopy(testData, 0, combined, 0, testData.Length);
         Buffer.BlockCopy(payload, 0, combined, testData.Length, payload.Length);
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = combined } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = combined },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

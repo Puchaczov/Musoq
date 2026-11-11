@@ -11,10 +11,8 @@ namespace Musoq.Evaluator.Visitors;
 /// </summary>
 public static partial class BuildMetadataAndInferTypesVisitorUtilities
 {
-    private static readonly WeakTypeRuntimeCache<bool> HasIndexerCache =
-        new(RuntimeCacheOptions.HasIndexerCacheSize);
-    private static readonly WeakTypeRuntimeCache<bool> IsIndexableCache =
-        new(RuntimeCacheOptions.IsIndexableCacheSize);
+    private static readonly WeakTypeRuntimeCache<bool> HasIndexerCache = new(RuntimeCacheOptions.HasIndexerCacheSize);
+    private static readonly WeakTypeRuntimeCache<bool> IsIndexableCache = new(RuntimeCacheOptions.IsIndexableCacheSize);
 
     internal static void ClearTypeInspectionCaches()
     {
@@ -39,7 +37,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         Type? currentSecond = second;
         while (currentSecond != null)
         {
-            if (type1Ancestors.Contains(currentSecond)) return currentSecond;
+            if (type1Ancestors.Contains(currentSecond))
+                return currentSecond;
 
             currentSecond = currentSecond.BaseType;
         }
@@ -72,10 +71,13 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
     /// </summary>
     public static bool HasIndexer(Type? type)
     {
-        if (type is null) return false;
+        if (type is null)
+            return false;
 
-        return HasIndexerCache.GetOrAdd(type, static t =>
-            t.GetProperties().Any(f => f.GetIndexParameters().Length > 0));
+        return HasIndexerCache.GetOrAdd(
+            type,
+            static t => t.GetProperties().Any(f => f.GetIndexParameters().Length > 0)
+        );
     }
 
     /// <summary>
@@ -83,25 +85,29 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
     /// </summary>
     public static bool IsIndexableType(Type? type)
     {
-        if (type == null) return false;
+        if (type == null)
+            return false;
 
-        return IsIndexableCache.GetOrAdd(type, static t =>
-        {
-            try
+        return IsIndexableCache.GetOrAdd(
+            type,
+            static t =>
             {
-                if (t.IsArray)
-                    return true;
+                try
+                {
+                    if (t.IsArray)
+                        return true;
 
-                if (t == typeof(string))
-                    return true;
+                    if (t == typeof(string))
+                        return true;
 
-                return t.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
+                    return t.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
+                }
+                catch (Exception ex) when (ex is NotSupportedException || ex is TypeLoadException)
+                {
+                    return false;
+                }
             }
-            catch (Exception ex) when (ex is NotSupportedException || ex is TypeLoadException)
-            {
-                return false;
-            }
-        });
+        );
     }
 
     /// <summary>
@@ -109,7 +115,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
     /// </summary>
     public static bool IsPrimitiveType(Type? type)
     {
-        if (type == null) return false;
+        if (type == null)
+            return false;
 
         return PrimitiveTypeResolver.IsPrimitiveType(type);
     }
@@ -123,9 +130,12 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
     /// </summary>
     public static bool IsValidQueryExpressionType(Type? type)
     {
-        if (type == null) return false;
+        if (type == null)
+            return false;
 
-        return PrimitiveTypeResolver.IsValidQueryExpressionType(type) || (Nullable.GetUnderlyingType(type) ?? type) is { IsGenericType: true } candidate && candidate.GetGenericTypeDefinition() == typeof(Plugins.CorrelatedScalarSubqueryResult<>);
+        return PrimitiveTypeResolver.IsValidQueryExpressionType(type)
+            || (Nullable.GetUnderlyingType(type) ?? type) is { IsGenericType: true } candidate
+                && candidate.GetGenericTypeDefinition() == typeof(Plugins.CorrelatedScalarSubqueryResult<>);
     }
 
     /// <summary>
@@ -139,7 +149,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
     /// </summary>
     public static bool ShouldIncludeColumnInStarExpansion(Type? columnType)
     {
-        if (columnType == null) return false;
+        if (columnType == null)
+            return false;
 
         if (columnType.IsArray)
             return false;
@@ -156,14 +167,15 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
     {
         elementType = null;
 
-        if (type == null || !type.IsGenericType) return false;
+        if (type == null || !type.IsGenericType)
+            return false;
 
         var interfaces = type.GetInterfaces().Concat([type]);
 
         foreach (var interfaceType in interfaces)
         {
-            if (!interfaceType.IsGenericType ||
-                interfaceType.GetGenericTypeDefinition() != typeof(IEnumerable<>)) continue;
+            if (!interfaceType.IsGenericType || interfaceType.GetGenericTypeDefinition() != typeof(IEnumerable<>))
+                continue;
 
             elementType = interfaceType.GetGenericArguments()[0];
             return true;
@@ -179,7 +191,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
     {
         elementType = null;
 
-        if (type == null || !type.IsArray) return false;
+        if (type == null || !type.IsArray)
+            return false;
 
         elementType = type.GetElementType();
         return elementType != null;

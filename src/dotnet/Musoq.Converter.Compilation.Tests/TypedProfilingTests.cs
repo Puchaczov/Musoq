@@ -7,21 +7,19 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using MusoqTypedProfileFixtures;
+using static Musoq.Converter.Tests.TwoModeTestFixtures;
 using MusoqApi = Musoq.Converter.Musoq;
 using NameDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameDto;
-using static Musoq.Converter.Tests.TwoModeTestFixtures;
 
 namespace Musoq.Converter.Tests;
 
 [global::Musoq.Tests.Common.CultureTestClass]
 public class TypedProfilingTests
 {
-
     [TestMethod]
     public void RunWithProfile_WhenRowsAreFullyEnumerated_ShouldFinalizeCompleteProfile()
     {
-        var result = CreateProfileQuery<NameDto>()
-            .RunWithProfile(CancellationToken.None, CreatePeopleSource());
+        var result = CreateProfileQuery<NameDto>().RunWithProfile(CancellationToken.None, CreatePeopleSource());
 
         Assert.IsTrue(result.IsSourceExecutionComplete);
         Assert.Throws<InvalidOperationException>(() => _ = result.Profile);
@@ -41,15 +39,19 @@ public class TypedProfilingTests
     public void RunWithProfile_WithQueryProgressOptions_ShouldPublishFinalSnapshot()
     {
         var snapshots = new List<QueryProgressEventArgs>();
-        var result = CreateProfileQuery<NameDto>().RunWithProfile(new TypedQueryRunOptions
-        {
-            QueryProgress = (_, args) => snapshots.Add(args),
-            QueryProgressOptions = new QueryProgressOptions
-            {
-                RowsPerUpdate = 1,
-                MinimumInterval = TimeSpan.FromDays(1)
-            }
-        }, CreatePeopleSource());
+        var result = CreateProfileQuery<NameDto>()
+            .RunWithProfile(
+                new TypedQueryRunOptions
+                {
+                    QueryProgress = (_, args) => snapshots.Add(args),
+                    QueryProgressOptions = new QueryProgressOptions
+                    {
+                        RowsPerUpdate = 1,
+                        MinimumInterval = TimeSpan.FromDays(1),
+                    },
+                },
+                CreatePeopleSource()
+            );
 
         _ = result.Rows.ToArray();
 
@@ -61,8 +63,7 @@ public class TypedProfilingTests
     [TestMethod]
     public void RunWithProfile_WhenTakeStopsEarly_ShouldFinalizeIncompleteProfile()
     {
-        var result = CreateProfileQuery<NameDto>()
-            .RunWithProfile(CancellationToken.None, CreatePeopleSource());
+        var result = CreateProfileQuery<NameDto>().RunWithProfile(CancellationToken.None, CreatePeopleSource());
 
         Assert.IsTrue(result.IsSourceExecutionComplete);
         var rows = result.Rows.Take(1).ToArray();
@@ -78,8 +79,7 @@ public class TypedProfilingTests
     [TestMethod]
     public void RunWithProfile_WhenEnumeratorIsDisposedEarly_ShouldFinalizeIncompleteProfile()
     {
-        var result = CreateProfileQuery<NameDto>()
-            .RunWithProfile(CancellationToken.None, CreatePeopleSource());
+        var result = CreateProfileQuery<NameDto>().RunWithProfile(CancellationToken.None, CreatePeopleSource());
 
         Assert.IsTrue(result.IsSourceExecutionComplete);
         using (var enumerator = result.Rows.GetEnumerator())
@@ -98,8 +98,7 @@ public class TypedProfilingTests
     [TestMethod]
     public void RunWithProfile_WhenProjectionThrows_ShouldFinalizeWithException()
     {
-        var result = CreateProfileQuery<ThrowingDto>()
-            .RunWithProfile(CancellationToken.None, CreatePeopleSource());
+        var result = CreateProfileQuery<ThrowingDto>().RunWithProfile(CancellationToken.None, CreatePeopleSource());
 
         Assert.IsTrue(result.IsSourceExecutionComplete);
         var exception = Assert.Throws<InvalidOperationException>(() => result.Rows.ToArray());
@@ -115,11 +114,15 @@ public class TypedProfilingTests
     [TestMethod]
     public void RunWithProfile_WhenSourceThrows_ShouldPropagateSourceException()
     {
-        var source = MusoqApi.Source("#A", "entities", new ThrowOnSecondMoveEnumerable<ProfilePerson>(
-            new[] { new ProfilePerson("Alice", 35) }));
+        var source = MusoqApi.Source(
+            "#A",
+            "entities",
+            new ThrowOnSecondMoveEnumerable<ProfilePerson>(new[] { new ProfilePerson("Alice", 35) })
+        );
 
-        Assert.Throws<InvalidOperationException>(() => CreateProfileQuery<NameDto>()
-            .RunWithProfile(CancellationToken.None, source));
+        Assert.Throws<InvalidOperationException>(() =>
+            CreateProfileQuery<NameDto>().RunWithProfile(CancellationToken.None, source)
+        );
     }
 
     [TestMethod]
@@ -128,8 +131,9 @@ public class TypedProfilingTests
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
-        Assert.Throws<OperationCanceledException>(() => CreateProfileQuery<NameDto>()
-            .RunWithProfile(cancellation.Token, CreatePeopleSource()));
+        Assert.Throws<OperationCanceledException>(() =>
+            CreateProfileQuery<NameDto>().RunWithProfile(cancellation.Token, CreatePeopleSource())
+        );
     }
 
     [TestMethod]
@@ -157,13 +161,11 @@ public class TypedProfilingTests
 
         var first = query
             .RunWithProfile(CancellationToken.None, CreatePeopleSource(new ProfilePerson("Alice", 35)))
-            .Rows
-            .Select(static row => row.Name)
+            .Rows.Select(static row => row.Name)
             .ToArray();
         var second = query
             .RunWithProfile(CancellationToken.None, CreatePeopleSource(new ProfilePerson("Bob", 20)))
-            .Rows
-            .Select(static row => row.Name)
+            .Rows.Select(static row => row.Name)
             .ToArray();
 
         CollectionAssert.AreEqual(new[] { "Alice" }, first);
@@ -180,9 +182,7 @@ public class TypedProfilingTests
 
     private static MusoqSourceRows CreatePeopleSource()
     {
-        return CreatePeopleSource(
-            new ProfilePerson("Bob", 20),
-            new ProfilePerson("Alice", 35));
+        return CreatePeopleSource(new ProfilePerson("Bob", 20), new ProfilePerson("Alice", 35));
     }
 
     private static MusoqSourceRows CreatePeopleSource(params ProfilePerson[] people)

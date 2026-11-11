@@ -6,8 +6,10 @@ namespace Musoq.Evaluator.IR.Execution;
 internal sealed record ScalarSubqueryEmptyResultSpec(
     string CteName,
     string ValueColumnName,
-    AggregateKernelDescriptor Kernel);
+    AggregateKernelDescriptor Kernel
+);
 
 internal sealed record ScalarSubqueryEmptyResultLowering(
     ExecutionExpression Value,
-    IReadOnlyList<ExecutionNode> PreludeNodes);
+    IReadOnlyList<ExecutionNode> PreludeNodes
+);

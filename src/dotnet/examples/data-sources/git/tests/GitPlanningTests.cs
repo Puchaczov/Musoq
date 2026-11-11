@@ -16,10 +16,7 @@ public sealed class GitPlanningTests : GitExampleTestBase
     {
         var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
         {
-            RequiredColumns =
-            [
-                new SourceColumnRef(nameof(GitCommitRow.Additions))
-            ]
+            RequiredColumns = [new SourceColumnRef(nameof(GitCommitRow.Additions))],
         };
 
         var result = new GitSchema().TryPlanSource(GitSchema.Commits, request);
@@ -36,23 +33,22 @@ public sealed class GitPlanningTests : GitExampleTestBase
         var predicate = new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.AuthorName))),
-            new SourcePredicateLiteral("Bob Evaluator"));
+            new SourcePredicateLiteral("Bob Evaluator")
+        );
         var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
         {
             RequiredColumns =
             [
                 new SourceColumnRef(nameof(GitCommitRow.ShortSha)),
-                new SourceColumnRef(nameof(GitCommitRow.AuthorName))
+                new SourceColumnRef(nameof(GitCommitRow.AuthorName)),
             ],
             Predicate = predicate,
             OrderBy =
             [
-                new OrderByExpression(
-                    new SourceColumnRef(nameof(GitCommitRow.AuthoredAt)),
-                    OrderDirection.Descending)
+                new OrderByExpression(new SourceColumnRef(nameof(GitCommitRow.AuthoredAt)), OrderDirection.Descending),
             ],
             Skip = 0,
-            Take = 1
+            Take = 1,
         };
 
         var result = new GitSchema().TryPlanSource(GitSchema.Commits, request);
@@ -72,11 +68,7 @@ public sealed class GitPlanningTests : GitExampleTestBase
     public void Planning_WhenPredicateIsUnsupported_ShouldLeaveItResidual()
     {
         var predicate = new UnsupportedPredicateExpression();
-        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
-        {
-            Predicate = predicate,
-            Take = 2
-        };
+        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { Predicate = predicate, Take = 2 };
 
         var result = new GitSchema().TryPlanSource(GitSchema.Commits, request);
 
@@ -92,19 +84,18 @@ public sealed class GitPlanningTests : GitExampleTestBase
         var cheapPredicate = new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.AuthorName))),
-            new SourcePredicateLiteral("Bob Evaluator"));
+            new SourcePredicateLiteral("Bob Evaluator")
+        );
         var statsPredicate = new SourcePredicateComparison(
             SourcePredicateComparisonOperator.GreaterThan,
             new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.Additions))),
-            new SourcePredicateLiteral(100));
-        var predicate = new SourcePredicateLogical(
-            SourcePredicateLogicalOperator.And,
-            cheapPredicate,
-            statsPredicate);
+            new SourcePredicateLiteral(100)
+        );
+        var predicate = new SourcePredicateLogical(SourcePredicateLogicalOperator.And, cheapPredicate, statsPredicate);
         var request = SourcePlanRequest.Empty(new SourceIdentity("#git", GitSchema.Commits, "source-id", "g")) with
         {
             Predicate = predicate,
-            Take = 1
+            Take = 1,
         };
 
         var result = new GitSchema().TryPlanSource(GitSchema.Commits, request);
@@ -125,15 +116,15 @@ public sealed class GitPlanningTests : GitExampleTestBase
             new SourcePredicateComparison(
                 SourcePredicateComparisonOperator.Equal,
                 new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.AuthorName))),
-                new SourcePredicateLiteral("Bob Evaluator")),
+                new SourcePredicateLiteral("Bob Evaluator")
+            ),
             new SourcePredicateComparison(
                 SourcePredicateComparisonOperator.Equal,
                 new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.AuthorName))),
-                new SourcePredicateLiteral("Alice Runtime")));
-        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
-        {
-            Predicate = predicate
-        };
+                new SourcePredicateLiteral("Alice Runtime")
+            )
+        );
+        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { Predicate = predicate };
 
         var result = new GitSchema().TryPlanSource(GitSchema.Commits, request);
 
@@ -149,15 +140,15 @@ public sealed class GitPlanningTests : GitExampleTestBase
             new SourcePredicateComparison(
                 SourcePredicateComparisonOperator.Equal,
                 new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.AuthorName))),
-                new SourcePredicateLiteral("Bob Evaluator")),
+                new SourcePredicateLiteral("Bob Evaluator")
+            ),
             new SourcePredicateComparison(
                 SourcePredicateComparisonOperator.GreaterThan,
                 new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.Additions))),
-                new SourcePredicateLiteral(100)));
-        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
-        {
-            Predicate = predicate
-        };
+                new SourcePredicateLiteral(100)
+            )
+        );
+        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { Predicate = predicate };
 
         var result = new GitSchema().TryPlanSource(GitSchema.Commits, request);
 
@@ -172,22 +163,22 @@ public sealed class GitPlanningTests : GitExampleTestBase
         [
             new SourcePredicateIn(
                 new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.Branch))),
-                [new SourcePredicateLiteral("main")]),
+                [new SourcePredicateLiteral("main")]
+            ),
             new SourcePredicateIn(
                 new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.AuthorName))),
                 [new SourcePredicateLiteral("Alice Runtime")],
-                IsNegated: true),
+                IsNegated: true
+            ),
             new SourcePredicateNullCheck(
                 new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.Message))),
-                IsNegated: true)
+                IsNegated: true
+            ),
         ];
 
         foreach (var predicate in predicates)
         {
-            var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
-            {
-                Predicate = predicate
-            };
+            var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { Predicate = predicate };
 
             var result = new GitSchema().TryPlanSource(GitSchema.Commits, request);
 
@@ -203,11 +194,9 @@ public sealed class GitPlanningTests : GitExampleTestBase
         var predicate = new SourcePredicateComparison(
             SourcePredicateComparisonOperator.GreaterThan,
             new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.Additions))),
-            new SourcePredicateLiteral(100));
-        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
-        {
-            Predicate = predicate
-        };
+            new SourcePredicateLiteral(100)
+        );
+        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { Predicate = predicate };
 
         var result = new GitSchema(store).TryPlanSource(GitSchema.Commits, request);
 
@@ -225,15 +214,9 @@ public sealed class GitPlanningTests : GitExampleTestBase
         var store = new TrackingGitHistoryStore();
         var orderBy = new[]
         {
-            new OrderByExpression(
-                new SourceColumnRef(nameof(GitCommitRow.Churn)),
-                OrderDirection.Descending)
+            new OrderByExpression(new SourceColumnRef(nameof(GitCommitRow.Churn)), OrderDirection.Descending),
         };
-        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
-        {
-            OrderBy = orderBy,
-            Take = 2
-        };
+        var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { OrderBy = orderBy, Take = 2 };
 
         var result = new GitSchema(store).TryPlanSource(GitSchema.Commits, request);
 
@@ -252,17 +235,16 @@ public sealed class GitPlanningTests : GitExampleTestBase
         var predicate = new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             new SourcePredicateColumn(new SourceColumnRef(nameof(GitCommitRow.AuthorName))),
-            new SourcePredicateLiteral("Bob Evaluator"));
+            new SourcePredicateLiteral("Bob Evaluator")
+        );
         var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
         {
             Predicate = predicate,
             OrderBy =
             [
-                new OrderByExpression(
-                    new SourceColumnRef(nameof(GitCommitRow.AuthoredAt)),
-                    OrderDirection.Descending)
+                new OrderByExpression(new SourceColumnRef(nameof(GitCommitRow.AuthoredAt)), OrderDirection.Descending),
             ],
-            Take = 1
+            Take = 1,
         };
 
         var result = new GitSchema().TryPlanSource(GitSchema.Commits, request);
@@ -270,9 +252,9 @@ public sealed class GitPlanningTests : GitExampleTestBase
         Assert.IsNotNull(result.Cardinality);
         Assert.AreEqual(CardinalityKind.Exact, result.Cardinality.Kind);
         Assert.AreEqual(1, result.Cardinality.ExactRows);
-        Assert.IsTrue(result.ExecutionPlan.Properties.TryGetValue(
-            GitSourcePlanProperties.PlanningNotes,
-            out var planningNotes));
+        Assert.IsTrue(
+            result.ExecutionPlan.Properties.TryGetValue(GitSourcePlanProperties.PlanningNotes, out var planningNotes)
+        );
         StringAssert.Contains((string)planningNotes!, "accepted predicate");
         StringAssert.Contains((string)planningNotes!, "accepted order");
         StringAssert.Contains((string)planningNotes!, "accepted slice");
@@ -283,10 +265,7 @@ public sealed class GitPlanningTests : GitExampleTestBase
     {
         var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
         {
-            SourceRuntimeSettings = new Dictionary<string, string>
-            {
-                [GitSchema.RepositoryRuntimeSetting] = "docs"
-            }
+            SourceRuntimeSettings = new Dictionary<string, string> { [GitSchema.RepositoryRuntimeSetting] = "docs" },
         };
 
         var runtimeResult = new GitSchema().TryPlanSource(GitSchema.Commits, request);

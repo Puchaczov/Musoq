@@ -13,8 +13,9 @@ internal static partial class SemanticErrorMetadataCatalog
             [
                 "Expose a public CLR entity contract with public instance members.",
                 "Use native query-scoped rows with authoritative concrete column types.",
-                "Resolve dynamic schemas before compilation and decode directly into typed carriers."
+                "Resolve dynamic schemas before compilation and decode directly into typed carriers.",
             ],
-            "Generated Execution - Source Entity Contracts");
+            "Generated Execution - Source Entity Contracts"
+        );
     }
 }

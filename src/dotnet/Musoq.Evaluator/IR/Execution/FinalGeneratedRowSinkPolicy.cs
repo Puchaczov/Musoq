@@ -6,8 +6,10 @@ internal static class FinalGeneratedRowSinkPolicy
 {
     public static bool CanUse(ExecutionPlan plan, string finalTableName)
     {
-        if (plan.FinalResult == null ||
-            !string.Equals(plan.FinalResult.TableName, finalTableName, StringComparison.Ordinal))
+        if (
+            plan.FinalResult == null
+            || !string.Equals(plan.FinalResult.TableName, finalTableName, StringComparison.Ordinal)
+        )
         {
             return false;
         }
@@ -15,17 +17,20 @@ internal static class FinalGeneratedRowSinkPolicy
         if (CanUseSingleSerialDynamicLikeProjection(plan, finalTableName))
             return true;
 
-        var finalSetOperations = plan.Body.Nodes
-            .OfType<ExecutionSetOperation>()
+        var finalSetOperations = plan
+            .Body.Nodes.OfType<ExecutionSetOperation>()
             .Where(operation => string.Equals(operation.Target.Name, finalTableName, StringComparison.Ordinal))
             .ToArray();
         if (finalSetOperations.Length != 1 || finalSetOperations[0].Kind != Logical.Nodes.SetOpKind.Union)
             return false;
 
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionComputeRankingWindow>(plan.Body).Count() != 2 ||
-            plan.Body.Nodes.OfType<ExecutionSourceScan>().Count() != 2 ||
-            !ExecutionIrAnalysis.CollectNodes<ExecutionMaterializeList>(plan.Body)
-                .Any(materialize => materialize.Source is ExecutionStoredTableRows))
+        if (
+            ExecutionIrAnalysis.CollectNodes<ExecutionComputeRankingWindow>(plan.Body).Count() != 2
+            || plan.Body.Nodes.OfType<ExecutionSourceScan>().Count() != 2
+            || !ExecutionIrAnalysis
+                .CollectNodes<ExecutionMaterializeList>(plan.Body)
+                .Any(materialize => materialize.Source is ExecutionStoredTableRows)
+        )
         {
             return false;
         }
@@ -33,20 +38,27 @@ internal static class FinalGeneratedRowSinkPolicy
         return !plan.Body.Nodes.Any(node =>
             node switch
             {
-                ExecutionDistinctTable distinct => string.Equals(distinct.Target.Name, finalTableName, StringComparison.Ordinal),
+                ExecutionDistinctTable distinct => string.Equals(
+                    distinct.Target.Name,
+                    finalTableName,
+                    StringComparison.Ordinal
+                ),
                 ExecutionSortTable sort => string.Equals(sort.Target.Name, finalTableName, StringComparison.Ordinal),
                 ExecutionTopNTable topN => string.Equals(topN.Target.Name, finalTableName, StringComparison.Ordinal),
-                ExecutionTopOffsetTable topOffset => string.Equals(topOffset.Target.Name, finalTableName, StringComparison.Ordinal),
+                ExecutionTopOffsetTable topOffset => string.Equals(
+                    topOffset.Target.Name,
+                    finalTableName,
+                    StringComparison.Ordinal
+                ),
                 ExecutionSkipTable skip => string.Equals(skip.Target.Name, finalTableName, StringComparison.Ordinal),
                 ExecutionTakeTable take => string.Equals(take.Target.Name, finalTableName, StringComparison.Ordinal),
                 ExecutionSliceTable slice => string.Equals(slice.Target.Name, finalTableName, StringComparison.Ordinal),
-                _ => false
-            });
+                _ => false,
+            }
+        );
     }
 
-    private static bool CanUseSingleSerialDynamicLikeProjection(
-        ExecutionPlan plan,
-        string finalTableName)
+    private static bool CanUseSingleSerialDynamicLikeProjection(ExecutionPlan plan, string finalTableName)
     {
         var sourceLoopCount = 0;
         foreach (var node in plan.Body.Nodes)
@@ -54,7 +66,8 @@ internal static class FinalGeneratedRowSinkPolicy
             if (node is ExecutionSourceLoop)
                 sourceLoopCount++;
 
-            if (node switch
+            if (
+                node switch
                 {
                     ExecutionSetOperation operation => IsFinalTarget(operation.Target),
                     ExecutionDistinctTable distinct => IsFinalTarget(distinct.Target),
@@ -66,8 +79,9 @@ internal static class FinalGeneratedRowSinkPolicy
                     ExecutionSliceTable slice => IsFinalTarget(slice.Target),
                     ExecutionProjectTable project => IsFinalTarget(project.Target),
                     ExecutionMaterializeRecordListToTable materialize => IsFinalTarget(materialize.Target),
-                    _ => false
-                })
+                    _ => false,
+                }
+            )
             {
                 return false;
             }
@@ -80,8 +94,10 @@ internal static class FinalGeneratedRowSinkPolicy
         var containsLikeMatch = false;
         foreach (var node in ExecutionIrAnalysis.FlattenNodes(plan.Body))
         {
-            if (node is ExecutionParallelFilterProjectLoop or ExecutionParallelBlock ||
-                node is ExecutionAppendExistingRow existing && IsFinalTarget(existing.Table))
+            if (
+                node is ExecutionParallelFilterProjectLoop or ExecutionParallelBlock
+                || node is ExecutionAppendExistingRow existing && IsFinalTarget(existing.Table)
+            )
             {
                 return false;
             }
@@ -99,8 +115,11 @@ internal static class FinalGeneratedRowSinkPolicy
 
             foreach (var expression in ExecutionIrAnalysis.GetNodeExpressions(node))
             {
-                if (ExecutionIrAnalysis.FlattenExpressions(expression).Any(static current =>
-                        current is ExecutionDynamicLikeMatch or ExecutionDynamicRLikeMatch))
+                if (
+                    ExecutionIrAnalysis
+                        .FlattenExpressions(expression)
+                        .Any(static current => current is ExecutionDynamicLikeMatch or ExecutionDynamicRLikeMatch)
+                )
                 {
                     containsLikeMatch = true;
                     break;
@@ -108,12 +127,9 @@ internal static class FinalGeneratedRowSinkPolicy
             }
         }
 
-        return containsLikeMatch &&
-               finalAppend != null &&
-               string.Equals(
-                   finalAppend.RowShape.TypeName,
-                   plan.FinalResult!.Shape.TypeName,
-                   StringComparison.Ordinal);
+        return containsLikeMatch
+            && finalAppend != null
+            && string.Equals(finalAppend.RowShape.TypeName, plan.FinalResult!.Shape.TypeName, StringComparison.Ordinal);
 
         bool IsFinalTarget(ExecutionVariable target) =>
             string.Equals(target.Name, finalTableName, StringComparison.Ordinal);

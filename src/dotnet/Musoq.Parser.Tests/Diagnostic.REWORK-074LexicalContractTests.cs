@@ -53,9 +53,7 @@ public sealed class DiagnosticRework074LexicalContractTests
     [DataRow("uNpIvOt", TokenType.Unpivot)]
     [DataRow("dEsC", TokenType.Desc)]
     [DataRow("aSc", TokenType.Asc)]
-    public void SingleWordKeywords_ShouldBeCaseInsensitiveAndSpanOriginalText(
-        string keyword,
-        TokenType expectedType)
+    public void SingleWordKeywords_ShouldBeCaseInsensitiveAndSpanOriginalText(string keyword, TokenType expectedType)
     {
         var lexer = new Lexer(keyword, true);
 
@@ -80,9 +78,7 @@ public sealed class DiagnosticRework074LexicalContractTests
     [DataRow("OuTeR ApPlY", TokenType.OuterApply)]
     [DataRow("aSoF JoIn", TokenType.AsOfJoin)]
     [DataRow("cUrReNt\tRoW", TokenType.CurrentRow)]
-    public void MultiWordKeywords_ShouldBeCaseInsensitiveAndPreservePhraseSpan(
-        string phrase,
-        TokenType expectedType)
+    public void MultiWordKeywords_ShouldBeCaseInsensitiveAndPreservePhraseSpan(string phrase, TokenType expectedType)
     {
         var lexer = new Lexer(phrase, true);
 
@@ -209,7 +205,10 @@ public sealed class DiagnosticRework074LexicalContractTests
         Assert.AreEqual("-- trailing", lexer.Comments[2].Value);
         Assert.AreEqual(new TextSpan(0, 10), lexer.Comments[0].Span);
         Assert.AreEqual(new TextSpan(query.IndexOf("/*", StringComparison.Ordinal), 25), lexer.Comments[1].Span);
-        Assert.AreEqual(new TextSpan(query.IndexOf("-- trailing", StringComparison.Ordinal), 11), lexer.Comments[2].Span);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf("-- trailing", StringComparison.Ordinal), 11),
+            lexer.Comments[2].Span
+        );
     }
 
     [TestMethod]
@@ -249,8 +248,10 @@ public sealed class DiagnosticRework074LexicalContractTests
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
         var diagnostic = result.Diagnostics[0];
         Assert.AreEqual(DiagnosticCode.MQ1001_UnknownToken, diagnostic.Code);
-        Assert.AreEqual("Unknown token '@'. Remove the unsupported character or rewrite this part using valid Musoq syntax.",
-            diagnostic.Message);
+        Assert.AreEqual(
+            "Unknown token '@'. Remove the unsupported character or rewrite this part using valid Musoq syntax.",
+            diagnostic.Message
+        );
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
@@ -258,7 +259,8 @@ public sealed class DiagnosticRework074LexicalContractTests
         Assert.AreEqual("Core Spec - Lexical Structure", diagnostic.DocsReference);
         Assert.AreEqual(
             "The lexer encountered a character that is not part of Musoq SQL syntax.",
-            diagnostic.Explanation);
+            diagnostic.Explanation
+        );
         Assert.HasCount(2, diagnostic.SuggestedFixes);
         Assert.IsTrue(diagnostic.SuggestedFixes[0].Kind == DiagnosticActionKind.Suggestion);
         Assert.IsNull(diagnostic.SuggestedFixes[0].TextEdit);
@@ -278,8 +280,10 @@ public sealed class DiagnosticRework074LexicalContractTests
         var diagnostic = result.Diagnostics[0];
         var commentStart = query.IndexOf("/*", StringComparison.Ordinal);
         Assert.AreEqual(DiagnosticCode.MQ1005_UnterminatedBlockComment, diagnostic.Code);
-        Assert.AreEqual("Unterminated block comment. Expected closing '*/' but reached end of input.",
-            diagnostic.Message);
+        Assert.AreEqual(
+            "Unterminated block comment. Expected closing '*/' but reached end of input.",
+            diagnostic.Message
+        );
         Assert.AreEqual(new TextSpan(commentStart, query.Length - commentStart), diagnostic.Span);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);

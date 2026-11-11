@@ -12,7 +12,8 @@ internal sealed record ApplyPredicateMovementPlan(
     IrExpression Predicate,
     string PredicateText,
     PlanningConfidence Confidence,
-    string Reason)
+    string Reason
+)
 {
     public string ResidualPredicateText { get; init; } = PredicateText;
 }

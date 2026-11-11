@@ -13,9 +13,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .Distinct()
             .OrderBy(static category => category)
             .ToArray();
-        var budgetCategories = OperatorFamilyBudgets.Keys
-            .OrderBy(static category => category)
-            .ToArray();
+        var budgetCategories = OperatorFamilyBudgets.Keys.OrderBy(static category => category).ToArray();
 
         CollectionAssert.AreEqual(budgetCategories, actualCategories);
     }

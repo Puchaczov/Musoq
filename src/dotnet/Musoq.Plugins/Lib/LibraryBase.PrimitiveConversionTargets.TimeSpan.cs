@@ -17,9 +17,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(value))
             return null;
 
-        return TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out var result)
-            ? result
-            : null;
+        return TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out var result) ? result : null;
     }
 
     /// <summary>

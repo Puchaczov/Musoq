@@ -11,7 +11,8 @@ namespace Musoq.Evaluator.IR.Execution;
 internal sealed partial class PhysicalLoweringImplementation
 {
     private static Dictionary<string, IrExpression> CreateProducerProjectionExpressionMap(
-        IReadOnlyList<ProjectedField> fields)
+        IReadOnlyList<ProjectedField> fields
+    )
     {
         var expressions = new Dictionary<string, IrExpression>(StringComparer.OrdinalIgnoreCase);
         var ambiguousNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -19,8 +20,18 @@ internal sealed partial class PhysicalLoweringImplementation
         foreach (var field in fields)
         {
             AddProducerProjectionExpression(expressions, ambiguousNames, field.OutputName, field.Expression);
-            AddProducerProjectionExpression(expressions, ambiguousNames, GetUnqualifiedProjectionName(field.OutputName), field.Expression);
-            AddProducerProjectionExpression(expressions, ambiguousNames, IrExpressionPrinter.Print(field.Expression), field.Expression);
+            AddProducerProjectionExpression(
+                expressions,
+                ambiguousNames,
+                GetUnqualifiedProjectionName(field.OutputName),
+                field.Expression
+            );
+            AddProducerProjectionExpression(
+                expressions,
+                ambiguousNames,
+                IrExpressionPrinter.Print(field.Expression),
+                field.Expression
+            );
 
             if (field.Expression is ColumnRef columnRef)
             {
@@ -28,7 +39,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     expressions,
                     ambiguousNames,
                     CreateQualifiedColumnName(columnRef),
-                    field.Expression);
+                    field.Expression
+                );
             }
         }
 
@@ -39,7 +51,8 @@ internal sealed partial class PhysicalLoweringImplementation
         Dictionary<string, IrExpression> expressions,
         HashSet<string> ambiguousNames,
         string name,
-        IrExpression expression)
+        IrExpression expression
+    )
     {
         if (string.IsNullOrWhiteSpace(name) || ambiguousNames.Contains(name))
             return;
@@ -54,7 +67,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return;
 
         expressions.Remove(name);
-            ambiguousNames.Add(name);
+        ambiguousNames.Add(name);
     }
 
     private static string GetUnqualifiedProjectionName(string fieldName)
@@ -66,7 +79,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static IrExpression? RewriteFinalJoinExpression(
         IrExpression expression,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         return expression switch
         {
@@ -83,14 +97,15 @@ internal sealed partial class PhysicalLoweringImplementation
             CaseWhen caseWhen => RewriteCaseWhenFinalJoinExpression(caseWhen, projectedExpressions, cteRef),
             Coalesce coalesce => RewriteCoalesceFinalJoinExpression(coalesce, projectedExpressions, cteRef),
             ArrayAccess arrayAccess => RewriteArrayAccessFinalJoinExpression(arrayAccess, projectedExpressions, cteRef),
-            _ => null
+            _ => null,
         };
     }
 
     private static IrExpression? RewriteFinalJoinColumnRef(
         ColumnRef columnRef,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var qualifiedName = CreateQualifiedColumnName(columnRef);
         if (projectedExpressions.TryGetValue(qualifiedName, out var qualifiedExpression))
@@ -111,28 +126,28 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool IsCteColumnRef(ColumnRef columnRef, PhysicalCteRefNode cteRef)
     {
-        return string.IsNullOrWhiteSpace(columnRef.Alias) ||
-               string.Equals(columnRef.Alias, cteRef.Alias, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(columnRef.Alias, cteRef.CteName, StringComparison.OrdinalIgnoreCase);
+        return string.IsNullOrWhiteSpace(columnRef.Alias)
+            || string.Equals(columnRef.Alias, cteRef.Alias, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(columnRef.Alias, cteRef.CteName, StringComparison.OrdinalIgnoreCase);
     }
 
     private static IrExpression? RewriteBinaryFinalJoinExpression(
         BinaryOp binary,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var left = RewriteFinalJoinExpression(binary.Left, projectedExpressions, cteRef);
         var right = RewriteFinalJoinExpression(binary.Right, projectedExpressions, cteRef);
 
-        return left == null || right == null
-            ? null
-            : binary with { Left = left, Right = right };
+        return left == null || right == null ? null : binary with { Left = left, Right = right };
     }
 
     private static IrExpression? RewriteUnaryFinalJoinExpression(
         UnaryOp unary,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var operand = RewriteFinalJoinExpression(unary.Operand, projectedExpressions, cteRef);
 
@@ -142,7 +157,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static IrExpression? RewriteStrictCastFinalJoinExpression(
         StrictCast strictCast,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var expression = RewriteFinalJoinExpression(strictCast.Expression, projectedExpressions, cteRef);
 
@@ -152,18 +168,25 @@ internal sealed partial class PhysicalLoweringImplementation
     private static IrExpression? RewriteMethodFinalJoinExpression(
         MethodCall methodCall,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var arguments = RewriteFinalJoinExpressions(methodCall.Arguments, projectedExpressions, cteRef);
 
-        return arguments == null ? null : ByteBufferPlanRewrite.Projection(methodCall, arguments,
-            input => RewriteFinalJoinExpression(input, projectedExpressions, cteRef));
+        return arguments == null
+            ? null
+            : ByteBufferPlanRewrite.Projection(
+                methodCall,
+                arguments,
+                input => RewriteFinalJoinExpression(input, projectedExpressions, cteRef)
+            );
     }
 
     private static IrExpression? RewriteIsNullFinalJoinExpression(
         IsNullCheck isNull,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var expression = RewriteFinalJoinExpression(isNull.Expression, projectedExpressions, cteRef);
 
@@ -173,33 +196,38 @@ internal sealed partial class PhysicalLoweringImplementation
     private static IrExpression? RewriteInFinalJoinExpression(
         InCheck inCheck,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var expression = RewriteFinalJoinExpression(inCheck.Expression, projectedExpressions, cteRef);
         var values = RewriteFinalJoinExpressions(inCheck.Values, projectedExpressions, cteRef);
 
-        return expression == null || values == null
-            ? null
-            : inCheck with { Expression = expression, Values = values };
+        return expression == null || values == null ? null : inCheck with { Expression = expression, Values = values };
     }
 
     private static IrExpression? RewritePatternFinalJoinExpression(
         PatternMatch pattern,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var expression = RewriteFinalJoinExpression(pattern.Expression, projectedExpressions, cteRef);
         var patternExpression = RewriteFinalJoinExpression(pattern.Pattern, projectedExpressions, cteRef);
 
         return expression == null || patternExpression == null
             ? null
-            : pattern with { Expression = expression, Pattern = patternExpression };
+            : pattern with
+            {
+                Expression = expression,
+                Pattern = patternExpression,
+            };
     }
 
     private static IrExpression? RewriteBetweenFinalJoinExpression(
         Between between,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var expression = RewriteFinalJoinExpression(between.Expression, projectedExpressions, cteRef);
         var low = RewriteFinalJoinExpression(between.Low, projectedExpressions, cteRef);
@@ -207,13 +235,19 @@ internal sealed partial class PhysicalLoweringImplementation
 
         return expression == null || low == null || high == null
             ? null
-            : between with { Expression = expression, Low = low, High = high };
+            : between with
+            {
+                Expression = expression,
+                Low = low,
+                High = high,
+            };
     }
 
     private static IrExpression? RewriteCaseWhenFinalJoinExpression(
         CaseWhen caseWhen,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var branches = new CaseWhenBranch[caseWhen.Branches.Length];
         for (var index = 0; index < caseWhen.Branches.Length; index++)
@@ -231,40 +265,37 @@ internal sealed partial class PhysicalLoweringImplementation
             return caseWhen with { Branches = branches };
 
         var elseExpression = RewriteFinalJoinExpression(caseWhen.ElseExpression, projectedExpressions, cteRef);
-        return elseExpression == null
-            ? null
-            : caseWhen with { Branches = branches, ElseExpression = elseExpression };
+        return elseExpression == null ? null : caseWhen with { Branches = branches, ElseExpression = elseExpression };
     }
 
     private static IrExpression? RewriteCoalesceFinalJoinExpression(
         Coalesce coalesce,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var expressions = RewriteFinalJoinExpressions(coalesce.Expressions, projectedExpressions, cteRef);
 
-        return expressions == null
-            ? null
-            : coalesce with { Expressions = expressions.ToArray() };
+        return expressions == null ? null : coalesce with { Expressions = expressions.ToArray() };
     }
 
     private static IrExpression? RewriteArrayAccessFinalJoinExpression(
         ArrayAccess arrayAccess,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var array = RewriteFinalJoinExpression(arrayAccess.Array, projectedExpressions, cteRef);
         var index = RewriteFinalJoinExpression(arrayAccess.Index, projectedExpressions, cteRef);
 
-        return array == null || index == null
-            ? null
-            : arrayAccess with { Array = array, Index = index };
+        return array == null || index == null ? null : arrayAccess with { Array = array, Index = index };
     }
 
     private static IrExpression[]? RewriteFinalJoinExpressions(
         IReadOnlyList<IrExpression> expressions,
         IReadOnlyDictionary<string, IrExpression> projectedExpressions,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var rewritten = new IrExpression[expressions.Count];
         for (var index = 0; index < expressions.Count; index++)

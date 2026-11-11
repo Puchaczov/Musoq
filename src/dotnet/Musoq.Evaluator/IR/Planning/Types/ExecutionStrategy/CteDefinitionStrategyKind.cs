@@ -5,5 +5,5 @@ internal enum CteDefinitionStrategyKind
     Unreferenced,
     FuseReadOnce,
     MaterializeSingleUse,
-    MaterializeReuse
+    MaterializeReuse,
 }

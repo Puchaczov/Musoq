@@ -11,15 +11,9 @@ namespace Musoq.Evaluator.Exceptions;
 internal sealed class QuerySyntaxException : Exception, IDiagnosticException
 {
     public QuerySyntaxException(string message, TextSpan? span, Exception? innerException = null)
-        : this(message, span, DiagnosticCode.MQ2030_UnsupportedSyntax, innerException)
-    {
-    }
+        : this(message, span, DiagnosticCode.MQ2030_UnsupportedSyntax, innerException) { }
 
-    public QuerySyntaxException(
-        string message,
-        TextSpan? span,
-        DiagnosticCode code,
-        Exception? innerException = null)
+    public QuerySyntaxException(string message, TextSpan? span, DiagnosticCode code, Exception? innerException = null)
         : base(message, innerException)
     {
         Code = code;

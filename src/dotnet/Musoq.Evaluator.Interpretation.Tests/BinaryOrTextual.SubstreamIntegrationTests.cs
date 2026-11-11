@@ -12,19 +12,21 @@ public class BinaryOrTextualSubstreamIntegrationTests : BinaryOrTextualEvaluator
     [TestMethod]
     public void Query_LengthPrefixedFrame_WithUIntLeLength_ShouldParseBodyAndAdvanceToTrailer()
     {
-        var query = @"
-            binary Body {
-                A: byte,
-                B: byte
-            };
-            binary Frame {
-                Kind: byte,
-                Length: uint le,
-                Payload: substream[Length] as Body,
-                Trailer: byte
-            };
-            select f.Kind, f.Payload.A, f.Payload.B, f.Trailer from #test.files() src
-            cross apply Interpret<Frame>(src.Content) f";
+        var query = (
+            "\n"
+            + "            binary Body {\n"
+            + "                A: byte,\n"
+            + "                B: byte\n"
+            + "            };\n"
+            + "            binary Frame {\n"
+            + "                Kind: byte,\n"
+            + "                Length: uint le,\n"
+            + "                Payload: substream[Length] as Body,\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select f.Kind, f.Payload.A, f.Payload.B, f.Trailer from #test.files() src\n"
+            + "            cross apply Interpret<Frame>(src.Content) f"
+        );
 
         var data = new byte[] { 0x07, 0x02, 0x00, 0x00, 0x00, 0x0A, 0x0B, 0x99 };
         var table = RunQuery(query, data);
@@ -39,22 +41,24 @@ public class BinaryOrTextualSubstreamIntegrationTests : BinaryOrTextualEvaluator
     [TestMethod]
     public void Query_NestedSubstream_OuterFramesInnerFrame_ShouldParseBothLevels()
     {
-        var query = @"
-            binary Inner {
-                X: byte
-            };
-            binary Outer {
-                InnerLength: byte,
-                Inner: substream[InnerLength] as Inner,
-                Tag: byte
-            };
-            binary Envelope {
-                OuterLength: byte,
-                Outer: substream[OuterLength] as Outer,
-                Footer: byte
-            };
-            select e.Outer.Inner.X, e.Outer.Tag, e.Footer from #test.files() src
-            cross apply Interpret<Envelope>(src.Content) e";
+        var query = (
+            "\n"
+            + "            binary Inner {\n"
+            + "                X: byte\n"
+            + "            };\n"
+            + "            binary Outer {\n"
+            + "                InnerLength: byte,\n"
+            + "                Inner: substream[InnerLength] as Inner,\n"
+            + "                Tag: byte\n"
+            + "            };\n"
+            + "            binary Envelope {\n"
+            + "                OuterLength: byte,\n"
+            + "                Outer: substream[OuterLength] as Outer,\n"
+            + "                Footer: byte\n"
+            + "            };\n"
+            + "            select e.Outer.Inner.X, e.Outer.Tag, e.Footer from #test.files() src\n"
+            + "            cross apply Interpret<Envelope>(src.Content) e"
+        );
 
         var data = new byte[] { 0x03, 0x01, 0x2A, 0x55, 0x7E };
         var table = RunQuery(query, data);
@@ -68,15 +72,17 @@ public class BinaryOrTextualSubstreamIntegrationTests : BinaryOrTextualEvaluator
     [TestMethod]
     public void Query_RawSubstreamFrame_ShouldExposePayloadBytesAndContinueParsing()
     {
-        var query = @"
-            binary Record {
-                Type: byte,
-                Length: byte,
-                Value: substream[Length] raw,
-                Next: byte
-            };
-            select r.Type, r.Value, r.Next from #test.files() src
-            cross apply Interpret<Record>(src.Content) r";
+        var query = (
+            "\n"
+            + "            binary Record {\n"
+            + "                Type: byte,\n"
+            + "                Length: byte,\n"
+            + "                Value: substream[Length] raw,\n"
+            + "                Next: byte\n"
+            + "            };\n"
+            + "            select r.Type, r.Value, r.Next from #test.files() src\n"
+            + "            cross apply Interpret<Record>(src.Content) r"
+        );
 
         var data = new byte[] { 0x10, 0x04, 0xDE, 0xAD, 0xBE, 0xEF, 0x20 };
         var table = RunQuery(query, data);
@@ -89,16 +95,21 @@ public class BinaryOrTextualSubstreamIntegrationTests : BinaryOrTextualEvaluator
 
     private Table RunQuery(string query, byte[] content)
     {
-        var entities = new[] { new BinaryEntity { Name = "frame.bin", Content = content } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "frame.bin", Content = content },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         return TableMaterializationTestHelper.Materialize(vm.Run(CancellationToken.None));
     }

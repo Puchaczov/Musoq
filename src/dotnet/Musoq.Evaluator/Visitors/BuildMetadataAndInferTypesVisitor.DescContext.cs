@@ -17,12 +17,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         _descTypes.Pop();
     }
 
-    private bool IsDescribingSourceRuntimeSettings =>
-        _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Settings;
+    private bool IsDescribingSourceRuntimeSettings => _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Settings;
 
-    private bool IsDescribingConstructors =>
-        _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Constructors;
+    private bool IsDescribingConstructors => _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Constructors;
 
-    private bool IsDescribingArguments =>
-        _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Arguments;
+    private bool IsDescribingArguments => _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Arguments;
 }

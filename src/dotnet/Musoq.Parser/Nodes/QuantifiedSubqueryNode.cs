@@ -10,5 +10,6 @@ public sealed class QuantifiedSubqueryNode(Node left, TokenType comparison, Toke
     public TokenType Quantifier { get; } = quantifier;
     public override Type ReturnType => typeof(bool?);
     public override string Id { get; } = $"Quantified:{left.Id}:{comparison}:{quantifier}:{subquery.Id}";
+
     public override string ToString() => $"{Left} {Comparison} {Quantifier} ({Subquery})";
 }

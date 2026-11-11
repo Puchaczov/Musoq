@@ -6,7 +6,8 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Schema.DataSourceProgress;
 
-public class ReportingSchema<T> : SchemaBase where T : BasicEntity
+public class ReportingSchema<T> : SchemaBase
+    where T : BasicEntity
 {
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
     private readonly string _schemaName;
@@ -20,14 +21,22 @@ public class ReportingSchema<T> : SchemaBase where T : BasicEntity
         AddTable<BasicEntityTable>("entities");
     }
 
-    public override RowSource<TRow> GetRowSource<TRow, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<TRow> GetRowSource<TRow, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
-        return EnsureSourceType<TRow, BasicEntity>(name, new ReportingEntitySource<BasicEntity>(
-            _sources,
-            BasicEntity.TestNameToIndexMap,
-            BasicEntity.TestIndexToObjectAccessMap,
-            executionContext,
-            $"{_schemaName}.{name}"));
+        return EnsureSourceType<TRow, BasicEntity>(
+            name,
+            new ReportingEntitySource<BasicEntity>(
+                _sources,
+                BasicEntity.TestNameToIndexMap,
+                BasicEntity.TestIndexToObjectAccessMap,
+                executionContext,
+                $"{_schemaName}.{name}"
+            )
+        );
     }
 
     private static MethodsAggregator CreateLibrary()

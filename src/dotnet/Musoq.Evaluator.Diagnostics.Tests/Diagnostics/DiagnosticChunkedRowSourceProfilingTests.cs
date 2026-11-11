@@ -29,10 +29,13 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
                 Assert.IsTrue(source.ProducerStarted.Wait(TimeSpan.FromSeconds(5)));
                 var moveNext = ThreadPoolMoveNext(enumerator);
 
-                Assert.IsTrue(metricSignal.WaitFor(
-                    ChunkMetric("slow", DiagnosticChunkMetricNames.ConsumerWaitOnEmptyCount),
-                    1,
-                    TimeSpan.FromSeconds(5)));
+                Assert.IsTrue(
+                    metricSignal.WaitFor(
+                        ChunkMetric("slow", DiagnosticChunkMetricNames.ConsumerWaitOnEmptyCount),
+                        1,
+                        TimeSpan.FromSeconds(5)
+                    )
+                );
                 source.AllowProduce.Set();
 
                 Assert.IsTrue(moveNext.Wait(TimeSpan.FromSeconds(5)));
@@ -43,7 +46,11 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
                 var snapshot = recorder.CreateSnapshot();
 
                 Assert.AreEqual(SourceProfileDiagnosis.SourceBound, snapshot.Diagnosis);
-                AssertMetricAtLeast(snapshot, ChunkMetric("slow", DiagnosticChunkMetricNames.ConsumerWaitOnEmptyCount), 1);
+                AssertMetricAtLeast(
+                    snapshot,
+                    ChunkMetric("slow", DiagnosticChunkMetricNames.ConsumerWaitOnEmptyCount),
+                    1
+                );
                 AssertMetric(snapshot, ChunkMetric("slow", DiagnosticChunkMetricNames.ChunksProduced), 1);
                 AssertMetric(snapshot, ChunkMetric("slow", DiagnosticChunkMetricNames.RowsConsumed), 1);
             }
@@ -64,17 +71,23 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
 
         using var enumerator = ProfiledChunkedEnumerable<int>.Create(chunks, recorder).GetEnumerator();
         Assert.IsTrue(source.BeforeSecondWrite.Wait(TimeSpan.FromSeconds(5)));
-        Assert.IsTrue(metricSignal.WaitFor(
-            ChunkMetric("fast", DiagnosticChunkMetricNames.ProducerWaitOnFullCount),
-            1,
-            TimeSpan.FromSeconds(5)));
+        Assert.IsTrue(
+            metricSignal.WaitFor(
+                ChunkMetric("fast", DiagnosticChunkMetricNames.ProducerWaitOnFullCount),
+                1,
+                TimeSpan.FromSeconds(5)
+            )
+        );
 
         Assert.IsTrue(enumerator.MoveNext());
         CollectionAssert.AreEqual(new[] { 1 }, enumerator.Current.ToArray());
-        Assert.IsTrue(metricSignal.WaitFor(
-            ChunkMetric("fast", DiagnosticChunkMetricNames.ProducerWaitOnFullCount),
-            2,
-            TimeSpan.FromSeconds(5)));
+        Assert.IsTrue(
+            metricSignal.WaitFor(
+                ChunkMetric("fast", DiagnosticChunkMetricNames.ProducerWaitOnFullCount),
+                2,
+                TimeSpan.FromSeconds(5)
+            )
+        );
         Assert.IsTrue(enumerator.MoveNext());
         CollectionAssert.AreEqual(new[] { 2 }, enumerator.Current.ToArray());
         Assert.IsTrue(source.SecondWriteCompleted.Wait(TimeSpan.FromSeconds(5)));
@@ -93,7 +106,8 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
 
     private static SourceExecutionContext CreateContext(
         SourceProfileRecorder recorder,
-        MetricSignal? metricSignal = null)
+        MetricSignal? metricSignal = null
+    )
     {
         ISchemaColumn[] columns = [new SchemaColumn("Value", 0, typeof(int))];
         var diagnostics = recorder.CreateDiagnostics();
@@ -107,7 +121,8 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
             columns,
             new Dictionary<string, string>(),
             NullLogger.Instance,
-            sourceDiagnostics: diagnostics);
+            sourceDiagnostics: diagnostics
+        );
     }
 
     private static MoveNextResult ThreadPoolMoveNext(IEnumerator<IReadOnlyList<int>> enumerator)
@@ -144,12 +159,10 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
     private static string ChunkMetric(string sourceName, string metricName) =>
         DiagnosticChunkMetricNames.ForSource(sourceName, metricName);
 
-    private sealed class SignalingDiagnosticsSink(
-        SourceDiagnostics inner,
-        MetricSignal metricSignal) : ISourceDiagnosticsSink
+    private sealed class SignalingDiagnosticsSink(SourceDiagnostics inner, MetricSignal metricSignal)
+        : ISourceDiagnosticsSink
     {
-        public IDisposable Measure(string name, SourceDiagnosticOperation operation) =>
-            inner.Measure(name, operation);
+        public IDisposable Measure(string name, SourceDiagnosticOperation operation) => inner.Measure(name, operation);
 
         public void AddRowsProduced(long count) => inner.AddRowsProduced(count);
 

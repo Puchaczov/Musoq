@@ -13,12 +13,13 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingCaseWhenWithStringColumnInCondition_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select case when Size > 1000 then 'Large' else 'Small' end as Category from Items()";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select case when Size > 1000 then 'Large' else 'Small' end as Category from Items()";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "1500";
@@ -40,16 +41,17 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingMultipleCaseWhenWithStringColumns_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select case " +
-                             "  when Size < 1000 then 'Small' " +
-                             "  when Size < 2000 then 'Medium' " +
-                             "  else 'Large' " +
-                             "end as Category from Items()";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select case "
+            + "  when Size < 1000 then 'Small' "
+            + "  when Size < 2000 then 'Medium' "
+            + "  else 'Large' "
+            + "end as Category from Items()";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "500";
@@ -77,15 +79,16 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingCaseWhenWithBetweenSimulation_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select case " +
-                             "  when Size >= 1000 and Size <= 2000 then 'InRange' " +
-                             "  else 'OutOfRange' " +
-                             "end as RangeCheck from Items()";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select case "
+            + "  when Size >= 1000 and Size <= 2000 then 'InRange' "
+            + "  else 'OutOfRange' "
+            + "end as RangeCheck from Items()";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "1500";
@@ -107,17 +110,18 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingCaseWhenWithMultipleStringColumnsInConditions_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Price: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select case " +
-                             "  when Size > 1000 and Price < 50 then 'LargeAndCheap' " +
-                             "  when Size > 1000 then 'LargeAndExpensive' " +
-                             "  else 'Small' " +
-                             "end as Classification from Items()";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Price: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select case "
+            + "  when Size > 1000 and Price < 50 then 'LargeAndCheap' "
+            + "  when Size > 1000 then 'LargeAndExpensive' "
+            + "  else 'Small' "
+            + "end as Classification from Items()";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "1500";
@@ -147,13 +151,14 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingCaseWhenInWhereClause_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() " +
-                             "where case when Size > 1000 then 1 else 0 end = 1";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() "
+            + "where case when Size > 1000 then 1 else 0 end = 1";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "1500";
@@ -173,18 +178,19 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingNestedCaseWhenWithStringColumn_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select case " +
-                             "  when Size > 2000 then 'VeryLarge' " +
-                             "  else case " +
-                             "    when Size > 1000 then 'Large' " +
-                             "    else 'Small' " +
-                             "  end " +
-                             "end as Category from Items()";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select case "
+            + "  when Size > 2000 then 'VeryLarge' "
+            + "  else case "
+            + "    when Size > 1000 then 'Large' "
+            + "    else 'Small' "
+            + "  end "
+            + "end as Category from Items()";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "2500";
@@ -207,7 +213,6 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         CollectionAssert.Contains(results, "Large");
         CollectionAssert.Contains(results, "Small");
     }
-
 
     #endregion
 }

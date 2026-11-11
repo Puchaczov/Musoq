@@ -8,7 +8,7 @@ public enum PhysicalRecursiveCteInvariantStorageKind
     Snapshot,
     HashIndex,
     ExistingRows,
-    ExistingHashIndex
+    ExistingHashIndex,
 }
 
 public sealed record PhysicalRecursiveCteInvariantDefinition(
@@ -19,7 +19,8 @@ public sealed record PhysicalRecursiveCteInvariantDefinition(
     ProjectedField[] Fields,
     PhysicalRecursiveCteInvariantStorageKind StorageKind,
     IrExpression[] HashKeys,
-    IrExpression[] HashProbeKeys)
+    IrExpression[] HashProbeKeys
+)
 {
     public OutputSchema OutputSchema { get; } = OutputSchemaFactory.ForProjection(Fields);
 

@@ -40,20 +40,26 @@ internal sealed class RedundantParenthesisRewriter : CSharpSyntaxRewriter
         // Cast expressions don't need outer parentheses in most contexts,
         // but MUST keep them when the parent applies postfix operators (member access, indexing, invocation)
         // because the dot/bracket binds tighter than a cast: ((T)x).Prop ≠ (T)x.Prop
-        if (inner is CastExpressionSyntax &&
-            parent is not BinaryExpressionSyntax
-                and not PrefixUnaryExpressionSyntax
-                and not MemberAccessExpressionSyntax
-                and not ElementAccessExpressionSyntax
-                and not InvocationExpressionSyntax
-                and not ConditionalAccessExpressionSyntax)
+        if (
+            inner is CastExpressionSyntax
+            && parent
+                is not BinaryExpressionSyntax
+                    and not PrefixUnaryExpressionSyntax
+                    and not MemberAccessExpressionSyntax
+                    and not ElementAccessExpressionSyntax
+                    and not InvocationExpressionSyntax
+                    and not ConditionalAccessExpressionSyntax
+        )
             return true;
 
-        if (inner is ConditionalExpressionSyntax &&
-            parent is ArgumentSyntax
-                or EqualsValueClauseSyntax
-                or ReturnStatementSyntax
-                or ArrowExpressionClauseSyntax)
+        if (
+            inner is ConditionalExpressionSyntax
+            && parent
+                is ArgumentSyntax
+                    or EqualsValueClauseSyntax
+                    or ReturnStatementSyntax
+                    or ArrowExpressionClauseSyntax
+        )
             return true;
 
         return false;
@@ -61,16 +67,16 @@ internal sealed class RedundantParenthesisRewriter : CSharpSyntaxRewriter
 
     private static bool IsSimpleExpression(ExpressionSyntax expression)
     {
-        return expression is
-            LiteralExpressionSyntax or
-            IdentifierNameSyntax or
-            MemberAccessExpressionSyntax or
-            InvocationExpressionSyntax or
-            ElementAccessExpressionSyntax or
-            ThisExpressionSyntax or
-            BaseExpressionSyntax or
-            TypeOfExpressionSyntax or
-            DefaultExpressionSyntax or
-            ObjectCreationExpressionSyntax;
+        return expression
+            is LiteralExpressionSyntax
+                or IdentifierNameSyntax
+                or MemberAccessExpressionSyntax
+                or InvocationExpressionSyntax
+                or ElementAccessExpressionSyntax
+                or ThisExpressionSyntax
+                or BaseExpressionSyntax
+                or TypeOfExpressionSyntax
+                or DefaultExpressionSyntax
+                or ObjectCreationExpressionSyntax;
     }
 }

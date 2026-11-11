@@ -14,8 +14,12 @@ public class StringTypeNode : TypeAnnotationNode
     /// <param name="encoding">The character encoding.</param>
     /// <param name="modifiers">Optional string processing modifiers.</param>
     /// <param name="asTextSchemaName">Optional text schema name for Binary-Text composition.</param>
-    public StringTypeNode(Node sizeExpression, StringEncoding encoding, StringModifier modifiers = StringModifier.None,
-        string? asTextSchemaName = null)
+    public StringTypeNode(
+        Node sizeExpression,
+        StringEncoding encoding,
+        StringModifier modifiers = StringModifier.None,
+        string? asTextSchemaName = null
+    )
     {
         SizeExpression = sizeExpression ?? throw new ArgumentNullException(nameof(sizeExpression));
         Encoding = encoding;
@@ -53,9 +57,10 @@ public class StringTypeNode : TypeAnnotationNode
     public override bool IsFixedSize => SizeExpression is IntegerNode;
 
     /// <inheritdoc />
-    public override int? FixedSizeBytes => SizeExpression is IntegerNode intNode
-        ? int.Parse(intNode.ObjValue.ToString()!, System.Globalization.CultureInfo.InvariantCulture)
-        : null;
+    public override int? FixedSizeBytes =>
+        SizeExpression is IntegerNode intNode
+            ? int.Parse(intNode.ObjValue.ToString()!, System.Globalization.CultureInfo.InvariantCulture)
+            : null;
 
     /// <inheritdoc />
     public override Type ReturnType => ClrType;
@@ -108,7 +113,7 @@ public class StringTypeNode : TypeAnnotationNode
             StringEncoding.Ascii => "ascii",
             StringEncoding.Latin1 => "latin1",
             StringEncoding.Ebcdic => "ebcdic",
-            _ => encoding.ToString()
+            _ => encoding.ToString(),
         };
     }
 }

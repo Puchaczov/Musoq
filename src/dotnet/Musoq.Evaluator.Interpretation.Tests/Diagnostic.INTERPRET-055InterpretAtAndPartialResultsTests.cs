@@ -11,34 +11,35 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_InterpretAt_ValidOffset_ShouldPreserveFieldTypesAndValues()
     {
-        var query = @"
-            binary PositionedPacket {
-                Magic: int le,
-                Version: byte
-            };
-            select p.Magic, p.Version
-            from #test.files() f
-            cross apply InterpretAt<PositionedPacket>(f.Content, 3) p";
+        var query = (
+            "\n"
+            + "            binary PositionedPacket {\n"
+            + "                Magic: int le,\n"
+            + "                Version: byte\n"
+            + "            };\n"
+            + "            select p.Magic, p.Version\n"
+            + "            from #test.files() f\n"
+            + "            cross apply InterpretAt<PositionedPacket>(f.Content, 3) p"
+        );
 
         var data = new byte[] { 0xAA, 0xBB, 0xCC, 0x78, 0x56, 0x34, 0x12, 0x09 };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
             {
-                { "#test", [new BinaryEntity { Name = "positioned.bin", Content = data }] }
-            });
+                { "#test", [new BinaryEntity { Name = "positioned.bin", Content = data }] },
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Magic", typeof(int)),
-            ("Version", typeof(byte)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Magic", typeof(int)), ("Version", typeof(byte)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [0x12345678, (byte)9]);
     }
 
@@ -65,20 +66,22 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialInterpret_Failure_ShouldRetainFieldsBeforeFailure()
     {
-        var query = @"
-            binary DebugPacket {
-                Magic: int le,
-                Version: byte
-            };
-            select
-                f.Name,
-                p.ParsedFields,
-                p.ErrorField,
-                p.ErrorMessage,
-                p.BytesConsumed
-            from #test.files() f
-            cross apply PartialInterpret<DebugPacket>(f.Content) p
-            order by f.Name";
+        var query = (
+            "\n"
+            + "            binary DebugPacket {\n"
+            + "                Magic: int le,\n"
+            + "                Version: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                f.Name,\n"
+            + "                p.ParsedFields,\n"
+            + "                p.ErrorField,\n"
+            + "                p.ErrorMessage,\n"
+            + "                p.BytesConsumed\n"
+            + "            from #test.files() f\n"
+            + "            cross apply PartialInterpret<DebugPacket>(f.Content) p\n"
+            + "            order by f.Name"
+        );
 
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
@@ -86,26 +89,20 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                 {
                     "#test",
                     [
-                        new BinaryEntity
-                        {
-                            Name = "01-valid.bin",
-                            Content = [0x78, 0x56, 0x34, 0x12, 0x07]
-                        },
-                        new BinaryEntity
-                        {
-                            Name = "02-truncated.bin",
-                            Content = [0x78, 0x56, 0x34, 0x12]
-                        }
+                        new BinaryEntity { Name = "01-valid.bin", Content = [0x78, 0x56, 0x34, 0x12, 0x07] },
+                        new BinaryEntity { Name = "02-truncated.bin", Content = [0x78, 0x56, 0x34, 0x12] },
                     ]
-                }
-            });
+                },
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -127,20 +124,22 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialParse_Failure_ShouldRetainFieldsBeforeFailure()
     {
-        var query = @"
-            text KeyValue {
-                Key: until '=',
-                Value: chars[5]
-            };
-            select
-                f.Name,
-                p.ParsedFields,
-                p.ErrorField,
-                p.ErrorMessage,
-                p.BytesConsumed
-            from #test.lines() f
-            cross apply PartialParse<KeyValue>(f.Text) p
-            order by f.Name";
+        var query = (
+            "\n"
+            + "            text KeyValue {\n"
+            + "                Key: until '=',\n"
+            + "                Value: chars[5]\n"
+            + "            };\n"
+            + "            select\n"
+            + "                f.Name,\n"
+            + "                p.ParsedFields,\n"
+            + "                p.ErrorField,\n"
+            + "                p.ErrorMessage,\n"
+            + "                p.BytesConsumed\n"
+            + "            from #test.lines() f\n"
+            + "            cross apply PartialParse<KeyValue>(f.Text) p\n"
+            + "            order by f.Name"
+        );
 
         var schemaProvider = new TextSchemaProvider(
             new Dictionary<string, IEnumerable<TextEntity>>
@@ -149,17 +148,19 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                     "#test",
                     [
                         new TextEntity { Name = "01-valid.txt", Text = "host=abcde" },
-                        new TextEntity { Name = "02-truncated.txt", Text = "host=" }
+                        new TextEntity { Name = "02-truncated.txt", Text = "host=" },
                     ]
-                }
-            });
+                },
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -181,31 +182,35 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialInterpret_NestedFailure_ShouldReportQualifiedFieldPath()
     {
-        var query = @"
-            binary InnerPacket {
-                Value: int le
-            };
-            binary OuterPacket {
-                Header: byte,
-                Payload: InnerPacket,
-                Tail: byte
-            };
-            select p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed
-            from #test.files() f
-            cross apply PartialInterpret<OuterPacket>(f.Content) p";
+        var query = (
+            "\n"
+            + "            binary InnerPacket {\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            binary OuterPacket {\n"
+            + "                Header: byte,\n"
+            + "                Payload: InnerPacket,\n"
+            + "                Tail: byte\n"
+            + "            };\n"
+            + "            select p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed\n"
+            + "            from #test.files() f\n"
+            + "            cross apply PartialInterpret<OuterPacket>(f.Content) p"
+        );
 
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
             {
-                { "#test", [new BinaryEntity { Name = "nested.bin", Content = [0x07, 0x2A] }] }
-            });
+                { "#test", [new BinaryEntity { Name = "nested.bin", Content = [0x07, 0x2A] }] },
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -221,32 +226,36 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialParse_NestedFailure_ShouldReportQualifiedFieldPath()
     {
-        var query = @"
-            text InnerText {
-                Key: until ':',
-                Value: chars[3]
-            };
-            text OuterText {
-                Prefix: until '|',
-                Payload: InnerText,
-                Tail: rest
-            };
-            select p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed
-            from #test.lines() f
-            cross apply PartialParse<OuterText>(f.Text) p";
+        var query = (
+            "\n"
+            + "            text InnerText {\n"
+            + "                Key: until ':',\n"
+            + "                Value: chars[3]\n"
+            + "            };\n"
+            + "            text OuterText {\n"
+            + "                Prefix: until '|',\n"
+            + "                Payload: InnerText,\n"
+            + "                Tail: rest\n"
+            + "            };\n"
+            + "            select p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed\n"
+            + "            from #test.lines() f\n"
+            + "            cross apply PartialParse<OuterText>(f.Text) p"
+        );
 
         var schemaProvider = new TextSchemaProvider(
             new Dictionary<string, IEnumerable<TextEntity>>
             {
-                { "#test", [new TextEntity { Name = "nested.txt", Text = "root|k:ab" }] }
-            });
+                { "#test", [new TextEntity { Name = "nested.txt", Text = "root|k:ab" }] },
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -261,25 +270,22 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
     private ParseException ExecuteInterpretAtWithOffset(int offset, byte[] data)
     {
-        var query = $@"
-            binary PositionedPacket {{
-                Value: int le
-            }};
-            select p.Value
-            from #test.files() f
-            cross apply InterpretAt<PositionedPacket>(f.Content, {offset}) p";
+        var query =
+            $"\n            binary PositionedPacket {{\n                Value: int le\n            }};\n            select p.Value\n            from #test.files() f\n            cross apply InterpretAt<PositionedPacket>(f.Content, {offset}) p";
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
             {
-                { "#test", [new BinaryEntity { Name = "invalid-offset.bin", Content = data }] }
-            });
+                { "#test", [new BinaryEntity { Name = "invalid-offset.bin", Content = data }] },
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         return Assert.ThrowsExactly<ParseException>(() =>
         {
             var table = vm.Run(CancellationToken.None);

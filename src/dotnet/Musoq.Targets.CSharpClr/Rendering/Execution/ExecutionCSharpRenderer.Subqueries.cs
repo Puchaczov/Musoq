@@ -10,9 +10,11 @@ public sealed partial class ExecutionCSharpRenderer
 {
     internal IEnumerable<MemberDeclarationSyntax> RenderSubqueryMembers(ExecutionPlan owner)
     {
-        var subqueries = ExecutionSubqueryPlans.SelfAndDescendants(owner)
+        var subqueries = ExecutionSubqueryPlans
+            .SelfAndDescendants(owner)
             .SelectMany(static plan => ExecutionIrAnalysis.FlattenExpressions(plan.Body))
-            .OfType<ExecutionSubquery>().DistinctBy(static query => query.Identifier);
+            .OfType<ExecutionSubquery>()
+            .DistinctBy(static query => query.Identifier);
         foreach (var query in subqueries)
         {
             var final = query.Plan.FinalResult!;
@@ -30,39 +32,66 @@ public sealed partial class ExecutionCSharpRenderer
             context.Session.IsSubqueryHelper = true;
             MethodDeclarationSyntax method;
             if (nativeRows)
-                method = RenderFinalShapeRowsMethod(query.Plan, SubqueryMethodName(query.Identifier), query.Identifier,
-                    final.TableName, shapeName, final.Shape.Fields, isSubqueryHelper: true);
+                method = RenderFinalShapeRowsMethod(
+                    query.Plan,
+                    SubqueryMethodName(query.Identifier),
+                    query.Identifier,
+                    final.TableName,
+                    shapeName,
+                    final.Shape.Fields,
+                    isSubqueryHelper: true
+                );
             else
                 method = RenderMethod(query.Plan, SubqueryMethodName(query.Identifier), query.Identifier, context);
-            method = method.WithModifiers(CreatePrivateStaticModifiers())
-                .WithParameterList(CreateRuntimeHelperParameterList(SubqueryScriptCaptures(query.Plan), SubqueryRuntimeContext()));
-            var parameters = query.Bindings.Select((binding, index) =>
-                CreateParameter($"__outer{index}", CreateTypeSyntax(binding.ReturnType))).ToArray();
-            yield return (MethodDeclarationSyntax)names.Visit(method.AddParameterListParameters(parameters)
-                .AddParameterListParameters(query.CteBindings.Select(binding => CreateParameter(binding.ParameterName,
-                    SyntaxFactory.ParseTypeName($"IReadOnlyList<{binding.Shape.TypeName}>"))).ToArray()))!;
+            method = method
+                .WithModifiers(CreatePrivateStaticModifiers())
+                .WithParameterList(
+                    CreateRuntimeHelperParameterList(SubqueryScriptCaptures(query.Plan), SubqueryRuntimeContext())
+                );
+            var parameters = query
+                .Bindings.Select(
+                    (binding, index) => CreateParameter($"__outer{index}", CreateTypeSyntax(binding.ReturnType))
+                )
+                .ToArray();
+            yield return (MethodDeclarationSyntax)
+                names.Visit(
+                    method
+                        .AddParameterListParameters(parameters)
+                        .AddParameterListParameters(
+                            query
+                                .CteBindings.Select(binding =>
+                                    CreateParameter(
+                                        binding.ParameterName,
+                                        SyntaxFactory.ParseTypeName($"IReadOnlyList<{binding.Shape.TypeName}>")
+                                    )
+                                )
+                                .ToArray()
+                        )
+                )!;
         }
     }
 
     private ExpressionSyntax RenderSubquery(ExecutionSubquery query, ExecutionRenderContext context)
     {
-        var final = query.Plan.FinalResult ?? throw new InvalidOperationException("Subquery has no final result shape.");
+        var final =
+            query.Plan.FinalResult ?? throw new InvalidOperationException("Subquery has no final result shape.");
         if (!TableViaRowsResultInfoResolver.TryResolveRenderPlan(query.Plan, out var output))
             throw new NotSupportedException("Subquery result does not expose a native row result.");
         var nativeRows = HasNativeSubqueryRows(query.Plan);
-        var rowType = nativeRows
-            ? output.FinalSinkPlans.TableOutput.RowTypeName
-            : "global::Musoq.Evaluator.Tables.Row";
+        var rowType = nativeRows ? output.FinalSinkPlans.TableOutput.RowTypeName : "global::Musoq.Evaluator.Tables.Row";
         var arguments = new List<ExpressionSyntax>(CreateRuntimeHelperArguments(SubqueryRuntimeContext()));
         arguments.AddRange(SubqueryScriptCaptures(query.Plan).Select(CreateCapturedLocalArgument));
         arguments.AddRange(query.Bindings.Select(binding => RenderExpression(binding, context)));
         arguments.AddRange(query.CapturedCteValues.Select(value => RenderExpression(value, context)));
-        var table = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(SubqueryMethodName(query.Identifier)))
+        var table = SyntaxFactory
+            .InvocationExpression(SyntaxFactory.IdentifierName(SubqueryMethodName(query.Identifier)))
             .WithArgumentList(CreateArgumentList(arguments));
         ExpressionSyntax rows = table;
         if (!nativeRows)
-            rows = SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression(
-                    "global::Musoq.Evaluator.Runtime.SubqueryExecution.Rows"))
+            rows = SyntaxFactory
+                .InvocationExpression(
+                    SyntaxFactory.ParseExpression("global::Musoq.Evaluator.Runtime.SubqueryExecution.Rows")
+                )
                 .WithArgumentList(CreateArgumentList(table));
         var typeArguments = new List<string> { rowType };
         var callArguments = new List<ExpressionSyntax>();
@@ -86,29 +115,52 @@ public sealed partial class ExecutionCSharpRenderer
                 callArguments.Add(RenderSubqueryComparison(query, valueType, context));
         }
         callArguments.Add(SyntaxFactory.IdentifierName("token"));
-        return SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression(
-                $"global::Musoq.Evaluator.Runtime.SubqueryExecution.{query.Kind}<{string.Join(", ", typeArguments)}>"))
+        return SyntaxFactory
+            .InvocationExpression(
+                SyntaxFactory.ParseExpression(
+                    $"global::Musoq.Evaluator.Runtime.SubqueryExecution.{query.Kind}<{string.Join(", ", typeArguments)}>"
+                )
+            )
             .WithArgumentList(CreateArgumentList(callArguments));
     }
 
-    private ExpressionSyntax RenderSubqueryComparison(ExecutionSubquery query, ExecutionTypeRef rightType, ExecutionRenderContext context)
+    private ExpressionSyntax RenderSubqueryComparison(
+        ExecutionSubquery query,
+        ExecutionTypeRef rightType,
+        ExecutionRenderContext context
+    )
     {
-        var comparison = new ExecutionBinary(query.Comparison,
+        var comparison = new ExecutionBinary(
+            query.Comparison,
             new ExecutionVariableRead(new ExecutionVariable("left", query.Operand!.ReturnType)),
-            new ExecutionVariableRead(new ExecutionVariable("right", rightType)), typeof(bool?)) { UsesSqlNullSemantics = true };
+            new ExecutionVariableRead(new ExecutionVariable("right", rightType)),
+            typeof(bool?)
+        )
+        {
+            UsesSqlNullSemantics = true,
+        };
         var body = RenderBinary(comparison, context);
-        return SyntaxFactory.ParenthesizedLambdaExpression(
-            SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(new[]
-            {
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier("left")),
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier("right"))
-            })), body).WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.StaticKeyword)));
+        return SyntaxFactory
+            .ParenthesizedLambdaExpression(
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList(
+                        new[]
+                        {
+                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("left")),
+                            SyntaxFactory.Parameter(SyntaxFactory.Identifier("right")),
+                        }
+                    )
+                ),
+                body
+            )
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.StaticKeyword)));
     }
 
     private static string SubqueryMethodName(string identifier) => $"__Execute{identifier}";
 
     private static bool HasNativeSubqueryRows(ExecutionPlan plan) =>
-        TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var output) && output.FinalSinkPlans.TableOutput.IsSupported;
+        TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var output)
+        && output.FinalSinkPlans.TableOutput.IsSupported;
 
     private ExecutionRenderContext SubqueryRuntimeContext()
     {
@@ -119,12 +171,19 @@ public sealed partial class ExecutionCSharpRenderer
         return context;
     }
 
-    private CapturedLocal[] SubqueryScriptCaptures(ExecutionPlan plan) => ExecutionSubqueryPlans.SelfAndDescendants(plan)
-        .SelectMany(static scope => ExecutionIrAnalysis.FlattenExpressions(scope.Body))
-        .Select(expression => expression switch
-        {
-            ExecutionScriptParameterRead parameter => CreateCapturedLocal(parameter),
-            ExecutionScriptVariableRead variable => CreateCapturedLocal(variable),
-            _ => null
-        }).OfType<CapturedLocal>().DistinctBy(static capture => capture.Name).ToArray();
+    private CapturedLocal[] SubqueryScriptCaptures(ExecutionPlan plan) =>
+        ExecutionSubqueryPlans
+            .SelfAndDescendants(plan)
+            .SelectMany(static scope => ExecutionIrAnalysis.FlattenExpressions(scope.Body))
+            .Select(expression =>
+                expression switch
+                {
+                    ExecutionScriptParameterRead parameter => CreateCapturedLocal(parameter),
+                    ExecutionScriptVariableRead variable => CreateCapturedLocal(variable),
+                    _ => null,
+                }
+            )
+            .OfType<CapturedLocal>()
+            .DistinctBy(static capture => capture.Name)
+            .ToArray();
 }

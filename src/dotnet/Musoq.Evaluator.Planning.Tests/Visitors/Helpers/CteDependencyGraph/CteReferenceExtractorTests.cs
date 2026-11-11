@@ -163,8 +163,13 @@ public class CteReferenceExtractorTests
         var extractor = new CteReferenceExtractor(["cteA", "cteB"]);
         var right = new InMemoryTableFromNode("other", "r", typeof(object));
         var condition = new BooleanNode(true);
-        var node = new JoinInMemoryWithSourceTableFromNode("unknownCte", right, condition, JoinType.Inner,
-            typeof(object));
+        var node = new JoinInMemoryWithSourceTableFromNode(
+            "unknownCte",
+            right,
+            condition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         // Act
         extractor.Visit(node);
@@ -198,8 +203,13 @@ public class CteReferenceExtractorTests
 
         var right = new InMemoryTableFromNode("other", "r", typeof(object));
         var condition = new BooleanNode(true);
-        var joinNode =
-            new JoinInMemoryWithSourceTableFromNode("cteB", right, condition, JoinType.Inner, typeof(object));
+        var joinNode = new JoinInMemoryWithSourceTableFromNode(
+            "cteB",
+            right,
+            condition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var sourceTable = new InMemoryTableFromNode("another", "l", typeof(object));
         var applyNode = new ApplyInMemoryWithSourceTableFromNode("cteC", sourceTable, ApplyType.Outer, typeof(object));
@@ -274,8 +284,13 @@ public class CteReferenceExtractorTests
         var extractor = new CteReferenceExtractor(["cteA"]);
         var right = new InMemoryTableFromNode("other", "r", typeof(object));
         var condition = new BooleanNode(true);
-        var node = new JoinInMemoryWithSourceTableFromNode("cteA", right, condition, JoinType.OuterLeft,
-            typeof(object));
+        var node = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            right,
+            condition,
+            JoinType.OuterLeft,
+            typeof(object)
+        );
 
         // Act
         extractor.Visit(node);
@@ -291,8 +306,13 @@ public class CteReferenceExtractorTests
         var extractor = new CteReferenceExtractor(["cteA"]);
         var right = new InMemoryTableFromNode("other", "r", typeof(object));
         var condition = new BooleanNode(true);
-        var node = new JoinInMemoryWithSourceTableFromNode("cteA", right, condition, JoinType.OuterRight,
-            typeof(object));
+        var node = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            right,
+            condition,
+            JoinType.OuterRight,
+            typeof(object)
+        );
 
         // Act
         extractor.Visit(node);
@@ -313,7 +333,8 @@ public class CteReferenceExtractorTests
             new ArgsListNode([new IdentifierNode("patterns")]),
             "m",
             typeof(object),
-            0);
+            0
+        );
 
         extractor.Visit(source);
 
@@ -327,16 +348,14 @@ public class CteReferenceExtractorTests
         var source = new SchemaFromNode(
             "inputs",
             "match",
-            new ArgsListNode([
-                new AccessColumnNode("Pattern", "p", typeof(string), default)
-            ]),
+            new ArgsListNode([new AccessColumnNode("Pattern", "p", typeof(string), default)]),
             "m",
             typeof(object),
-            0);
+            0
+        );
 
         extractor.Visit(source);
 
         Assert.DoesNotContain("patterns", extractor.FoundReferences);
     }
-
 }

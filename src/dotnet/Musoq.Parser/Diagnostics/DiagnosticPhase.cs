@@ -37,5 +37,5 @@ public enum DiagnosticPhase
     Schema = 7,
 
     /// <summary>Internal engine phase.</summary>
-    Internal = 8
+    Internal = 8,
 }

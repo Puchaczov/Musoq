@@ -17,21 +17,24 @@ internal static class ExecutionTargetRuntimeRequirementAnalyzer
     }
 
     private static IEnumerable<ExecutionTargetRequirement> CreateRuntimeContractRequirements(
-        TargetRuntimeContract runtimeContract)
+        TargetRuntimeContract runtimeContract
+    )
     {
         foreach (var source in runtimeContract.SourceAccess)
         {
             yield return new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.HostSourceAccess,
                 $"{source.Kind}:{source.SourceContextId}:{source.SchemaName}.{source.MethodName}",
-                source.SourceType ?? source.RowsType);
+                source.SourceType ?? source.RowsType
+            );
         }
 
         foreach (var source in runtimeContract.QueryRowSourceAccess)
         {
             yield return new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.QueryRowSourceAccess,
-                $"{source.SourceContextId}:{source.SchemaName}.{source.MethodName}:{source.ShapeFingerprint}");
+                $"{source.SourceContextId}:{source.SchemaName}.{source.MethodName}:{source.ShapeFingerprint}"
+            );
         }
 
         foreach (var rowShape in runtimeContract.RowShapes)
@@ -42,7 +45,8 @@ internal static class ExecutionTargetRuntimeRequirementAnalyzer
             yield return new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.GeneratedClrRow,
                 rowShape.Name,
-                rowShape.TypeSymbol);
+                rowShape.TypeSymbol
+            );
         }
 
         foreach (var pluginInvocation in runtimeContract.PluginInvocations)
@@ -50,16 +54,20 @@ internal static class ExecutionTargetRuntimeRequirementAnalyzer
             yield return new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.PluginInvocation,
                 pluginInvocation.Detail,
-                CallableSymbol: pluginInvocation.Callable);
+                CallableSymbol: pluginInvocation.Callable
+            );
         }
 
-        if (runtimeContract.NullBehavior.UsesNullableValueTypes ||
-            runtimeContract.NullBehavior.UsesObjectNulls ||
-            runtimeContract.NullBehavior.UsesFieldNullabilityMetadata)
+        if (
+            runtimeContract.NullBehavior.UsesNullableValueTypes
+            || runtimeContract.NullBehavior.UsesObjectNulls
+            || runtimeContract.NullBehavior.UsesFieldNullabilityMetadata
+        )
         {
             yield return new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.NullTypeCoercion,
-                CreateNullBehaviorDetail(runtimeContract.NullBehavior));
+                CreateNullBehaviorDetail(runtimeContract.NullBehavior)
+            );
         }
 
         if (runtimeContract.Cancellation.RequiresCancellationToken)
@@ -68,18 +76,22 @@ internal static class ExecutionTargetRuntimeRequirementAnalyzer
                 ExecutionTargetRequirementKind.Cancellation,
                 runtimeContract.Cancellation.RequiresParallelCancellation
                     ? "cancellation-token+parallel-cancellation"
-                    : "cancellation-token");
+                    : "cancellation-token"
+            );
         }
 
-        if (runtimeContract.Diagnostics.RequiresBuildDiagnostics ||
-            runtimeContract.Diagnostics.RequiresSourceDiagnostics ||
-            runtimeContract.Diagnostics.RequiresRuntimeExceptionDiagnostics ||
-            runtimeContract.Profiling.SupportsSourceBoundaryProfiling ||
-            runtimeContract.Profiling.SupportsOperatorProfiling)
+        if (
+            runtimeContract.Diagnostics.RequiresBuildDiagnostics
+            || runtimeContract.Diagnostics.RequiresSourceDiagnostics
+            || runtimeContract.Diagnostics.RequiresRuntimeExceptionDiagnostics
+            || runtimeContract.Profiling.SupportsSourceBoundaryProfiling
+            || runtimeContract.Profiling.SupportsOperatorProfiling
+        )
         {
             yield return new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.ProfilingDiagnostics,
-                CreateDiagnosticsProfilingDetail(runtimeContract));
+                CreateDiagnosticsProfilingDetail(runtimeContract)
+            );
         }
     }
 

@@ -80,10 +80,6 @@ public partial class StringCultureConsistencyTests
         Assert.AreEqual("hello", Library.RemovePrefix("hello", "xyz"));
     }
 
-
-
-
-
     [TestMethod]
     public void RemovePrefix_EmptyPrefix_ReturnsSame()
     {
@@ -123,10 +119,6 @@ public partial class StringCultureConsistencyTests
     {
         Assert.AreEqual("hello", Library.RemoveSuffix("hello", "xyz"));
     }
-
-
-
-
 
     [TestMethod]
     public void RemoveSuffix_EmptySuffix_ReturnsSame()
@@ -186,8 +178,7 @@ public partial class StringCultureConsistencyTests
     public void ToUpper_GermanCharacters_ReturnsUppercase()
     {
         var result = Library.ToUpper("straße");
-        Assert.IsTrue(result == "STRASSE" || result == "STRAßE",
-            $"Expected STRASSE or STRAßE but got {result}");
+        Assert.IsTrue(result == "STRASSE" || result == "STRAßE", $"Expected STRASSE or STRAßE but got {result}");
     }
 
     [TestMethod]

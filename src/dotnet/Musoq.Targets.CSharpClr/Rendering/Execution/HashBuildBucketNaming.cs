@@ -10,7 +10,7 @@ internal static class HashBuildBucketNaming
         {
             hashAdd.Row.Name,
             hashAdd.Hash.Name,
-            hashAdd.KeyVariableName ?? "key"
+            hashAdd.KeyVariableName ?? "key",
         };
         if (hashAdd.PrecomputedKey is { } key)
             reservedNames.Add(key.Name);

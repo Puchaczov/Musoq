@@ -14,7 +14,7 @@ public enum QueryRowLifecycleReaderStyle
 {
     Ordinal,
     Property,
-    Path
+    Path,
 }
 
 public enum QueryRowLifecycleEvent
@@ -27,7 +27,7 @@ public enum QueryRowLifecycleEvent
     Failure,
     Cancellation,
     End,
-    Dispose
+    Dispose,
 }
 
 public sealed class QueryRowLifecycleRecorder
@@ -143,7 +143,8 @@ public sealed class QueryRowLifecycleRawRow
         string category,
         int? maybeNumber,
         string? maybeText,
-        bool omitNullableFields = false)
+        bool omitNullableFields = false
+    )
     {
         Id = id;
         OrdinalValues = [id, label, category, maybeNumber, maybeText];
@@ -152,13 +153,13 @@ public sealed class QueryRowLifecycleRawRow
         {
             ["id"] = id,
             ["label"] = label,
-            ["category"] = category
+            ["category"] = category,
         };
         var paths = new Dictionary<string, object?>(StringComparer.Ordinal)
         {
             ["/row/@id"] = id,
             ["/row/label"] = label,
-            ["/row/category"] = category
+            ["/row/category"] = category,
         };
 
         if (!omitNullableFields)
@@ -188,8 +189,10 @@ public sealed class QueryRowLifecycleSchemaProvider(QueryRowLifecycleScenario sc
 
     public ISchema GetSchema(string schema)
     {
-        if (string.Equals(schema, "lifecycle", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(schema, "#lifecycle", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(schema, "lifecycle", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(schema, "#lifecycle", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return _schema;
         }
@@ -213,18 +216,16 @@ public sealed class QueryRowLifecycleSchema : SchemaBase, IQueryScopedRowSourceS
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return base.DescribeSource(name, context, parameters) with
         {
-            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows
+            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
         };
     }
 
-    public override SourcePlanResult TryPlanSource(
-        string name,
-        SourcePlanRequest request,
-        params object?[] parameters)
+    public override SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
     {
         var acceptedPredicate = _scenario.AcceptPredicate ? request.Predicate : null;
         var acceptedTake = _scenario.AcceptTake ? request.Take : null;
@@ -233,7 +234,7 @@ public sealed class QueryRowLifecycleSchema : SchemaBase, IQueryScopedRowSourceS
             Identity = request.Identity,
             AcceptedColumns = request.RequiredColumns,
             AcceptedPredicate = acceptedPredicate,
-            AcceptedTake = acceptedTake
+            AcceptedTake = acceptedTake,
         };
 
         return new SourcePlanResult
@@ -245,14 +246,15 @@ public sealed class QueryRowLifecycleSchema : SchemaBase, IQueryScopedRowSourceS
             ResidualOrderBy = request.OrderBy,
             ResidualSkip = request.Skip,
             AcceptedTake = acceptedTake,
-            ResidualTake = acceptedTake.HasValue ? null : request.Take
+            ResidualTake = acceptedTake.HasValue ? null : request.Take,
         };
     }
 
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
@@ -281,7 +283,7 @@ public sealed class QueryRowLifecycleTable : ISchemaTable
         new SchemaColumn(nameof(QueryRowLifecycleDeclaredRow.Label), 1, typeof(string)),
         new SchemaColumn(nameof(QueryRowLifecycleDeclaredRow.Category), 2, typeof(string)),
         new SchemaColumn(nameof(QueryRowLifecycleDeclaredRow.MaybeNumber), 3, typeof(int?)),
-        new SchemaColumn(nameof(QueryRowLifecycleDeclaredRow.MaybeText), 4, typeof(string))
+        new SchemaColumn(nameof(QueryRowLifecycleDeclaredRow.MaybeText), 4, typeof(string)),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(QueryRowLifecycleDeclaredRow));
@@ -289,13 +291,15 @@ public sealed class QueryRowLifecycleTable : ISchemaTable
     public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)
     {
-        return Columns.Where(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+        return Columns
+            .Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
     }
 }
 
@@ -304,7 +308,8 @@ public sealed record QueryRowLifecycleDeclaredRow(
     string Label,
     string Category,
     int? MaybeNumber,
-    string? MaybeText);
+    string? MaybeText
+);
 
 public sealed class QueryRowLifecycleLegacySource : RowSource<QueryRowLifecycleDeclaredRow>
 {

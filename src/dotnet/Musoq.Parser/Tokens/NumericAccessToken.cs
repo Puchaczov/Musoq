@@ -21,8 +21,14 @@ public class NumericAccessToken : Token
     internal NumericAccessToken(string name, string value, TextSpan span, bool allowOutOfRange)
         : base(value, TokenType.NumericAccess, span)
     {
-        if (int.TryParse(value, System.Globalization.NumberStyles.Integer,
-                System.Globalization.CultureInfo.InvariantCulture, out var index))
+        if (
+            int.TryParse(
+                value,
+                System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var index
+            )
+        )
         {
             Index = index;
         }

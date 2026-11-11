@@ -21,12 +21,19 @@ public sealed class DiagnosticContractOracleTests
     {
         var result = Analyze("select Missing(Name) from #A.Entities()");
 
-        var diagnostic = AssertSingle(result, DiagnosticCode.MQ3086_UnknownCallable,
-            DiagnosticSeverity.Error, DiagnosticPhase.Bind, "Missing");
+        var diagnostic = AssertSingle(
+            result,
+            DiagnosticCode.MQ3086_UnknownCallable,
+            DiagnosticSeverity.Error,
+            DiagnosticPhase.Bind,
+            "Missing"
+        );
 
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
-        Assert.IsTrue(diagnostic.Arguments.ContainsKey("callable"),
-            "Callable diagnostics must identify the unresolved symbol.");
+        Assert.IsTrue(
+            diagnostic.Arguments.ContainsKey("callable"),
+            "Callable diagnostics must identify the unresolved symbol."
+        );
     }
 
     [TestMethod]
@@ -38,8 +45,13 @@ public sealed class DiagnosticContractOracleTests
         Assert.IsFalse(result.HasErrors);
         Assert.IsTrue(result.IsSuccess);
 
-        var diagnostic = AssertSingle(result, DiagnosticCode.MQ5024_NullSensitiveNotIn,
-            DiagnosticSeverity.Warning, DiagnosticPhase.Bind, "NULL");
+        var diagnostic = AssertSingle(
+            result,
+            DiagnosticCode.MQ5024_NullSensitiveNotIn,
+            DiagnosticSeverity.Warning,
+            DiagnosticPhase.Bind,
+            "NULL"
+        );
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
     }
 
@@ -49,13 +61,17 @@ public sealed class DiagnosticContractOracleTests
         var result = Analyze("select Unknown1, Unknown2, Unknown3 from #A.Entities()");
         var diagnostics = result.Errors.ToList();
 
-        Assert.HasCount(3, diagnostics,
-            $"Expected three independent roots, got: {Format(diagnostics)}");
-        Assert.IsTrue(diagnostics.All(static item => item.Code == DiagnosticCode.MQ3001_UnknownColumn),
-            Format(diagnostics));
-        Assert.IsTrue(diagnostics.Zip(diagnostics.Skip(1),
-                static (left, right) => left.Location.Offset < right.Location.Offset)
-            .All(static ordered => ordered), Format(diagnostics));
+        Assert.HasCount(3, diagnostics, $"Expected three independent roots, got: {Format(diagnostics)}");
+        Assert.IsTrue(
+            diagnostics.All(static item => item.Code == DiagnosticCode.MQ3001_UnknownColumn),
+            Format(diagnostics)
+        );
+        Assert.IsTrue(
+            diagnostics
+                .Zip(diagnostics.Skip(1), static (left, right) => left.Location.Offset < right.Location.Offset)
+                .All(static ordered => ordered),
+            Format(diagnostics)
+        );
     }
 
     [TestMethod]
@@ -67,7 +83,7 @@ public sealed class DiagnosticContractOracleTests
             "select * from #A.Missing()",
             "select Name from #A.Entities() cross apply #A.Entities()",
             "select Name from #A.Entities() where Name + true",
-            "select Name from #A.Entities() where Name not in ()"
+            "select Name from #A.Entities() where Name not in ()",
         };
 
         foreach (var query in queries)
@@ -101,7 +117,8 @@ public sealed class DiagnosticContractOracleTests
         DiagnosticCode expectedCode,
         DiagnosticSeverity expectedSeverity,
         DiagnosticPhase expectedPhase,
-        string messageFragment)
+        string messageFragment
+    )
     {
         var diagnostics = result.Diagnostics.ToList();
         Assert.HasCount(1, diagnostics, Format(diagnostics));
@@ -123,16 +140,18 @@ public sealed class DiagnosticContractOracleTests
     private static QueryAnalysisResult Analyze(string query)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = []
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }
+        );
         return new QueryAnalyzer(provider).Analyze(query);
     }
 
     private static string Format(IEnumerable<Diagnostic> diagnostics)
     {
-        return string.Join(" | ", diagnostics.Select(static item =>
-            $"{item.Code} {item.Severity}/{item.Phase} at {item.Span}: {item.Message}"));
+        return string.Join(
+            " | ",
+            diagnostics.Select(static item =>
+                $"{item.Code} {item.Severity}/{item.Phase} at {item.Span}: {item.Message}"
+            )
+        );
     }
 }

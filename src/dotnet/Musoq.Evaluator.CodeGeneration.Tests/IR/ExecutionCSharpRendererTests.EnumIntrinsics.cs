@@ -16,12 +16,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var expression = CreateEnumIntrinsicCall(
             EnumIntrinsicKind.EnumName,
             new ExecutionFieldRead("p", "Status", typeof(int?)),
-            descriptor);
+            descriptor
+        );
 
-        var code = new ExecutionCSharpRenderer()
-            .RenderExpression(expression)
-            .NormalizeWhitespace()
-            .ToFullString();
+        var code = new ExecutionCSharpRenderer().RenderExpression(expression).NormalizeWhitespace().ToFullString();
 
         Assert.Contains("p.Status switch", code);
         Assert.Contains("10 => \"Queued\"", code);
@@ -39,12 +37,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var expression = CreateEnumIntrinsicCall(
             EnumIntrinsicKind.IsDefined,
             new ExecutionFieldRead("p", "Status", typeof(int?)),
-            descriptor);
+            descriptor
+        );
 
-        var code = new ExecutionCSharpRenderer()
-            .RenderExpression(expression)
-            .NormalizeWhitespace()
-            .ToFullString();
+        var code = new ExecutionCSharpRenderer().RenderExpression(expression).NormalizeWhitespace().ToFullString();
 
         Assert.Contains("10 or 20", code);
         Assert.Contains("=> true", code);
@@ -62,12 +58,10 @@ public sealed partial class ExecutionCSharpRendererTests
             EnumIntrinsicKind.HasAllFlags,
             new ExecutionFieldRead("p", "Access", typeof(uint?)),
             descriptor,
-            EnumScalarValue.FromUInt32(3));
+            EnumScalarValue.FromUInt32(3)
+        );
 
-        var code = new ExecutionCSharpRenderer()
-            .RenderExpression(expression)
-            .NormalizeWhitespace()
-            .ToFullString();
+        var code = new ExecutionCSharpRenderer().RenderExpression(expression).NormalizeWhitespace().ToFullString();
 
         Assert.Contains("p.Access switch", code);
         Assert.Contains("uint __enumValue0", code);
@@ -86,12 +80,10 @@ public sealed partial class ExecutionCSharpRendererTests
             EnumIntrinsicKind.HasAnyFlags,
             new ExecutionFieldRead("p", "Access", typeof(uint?)),
             descriptor,
-            EnumScalarValue.FromUInt32(0));
+            EnumScalarValue.FromUInt32(0)
+        );
 
-        var code = new ExecutionCSharpRenderer()
-            .RenderExpression(expression)
-            .NormalizeWhitespace()
-            .ToFullString();
+        var code = new ExecutionCSharpRenderer().RenderExpression(expression).NormalizeWhitespace().ToFullString();
 
         Assert.Contains("(__enumValue0 & 0u) != 0u", code);
         AssertEnumIntrinsicHotPathIsPrimitive(code);
@@ -101,22 +93,25 @@ public sealed partial class ExecutionCSharpRendererTests
         EnumIntrinsicKind kind,
         ExecutionExpression operand,
         EnumTypeDescriptor descriptor,
-        EnumScalarValue? mask = null)
+        EnumScalarValue? mask = null
+    )
     {
-        var arguments = mask == null
-            ? new ExecutionExpression[] { operand }
-            : [operand, new ExecutionLiteral(mask.Value.AsUInt32(), typeof(uint))];
+        var arguments =
+            mask == null
+                ? new ExecutionExpression[] { operand }
+                : [operand, new ExecutionLiteral(mask.Value.AsUInt32(), typeof(uint))];
         var returnType = kind == EnumIntrinsicKind.EnumName ? typeof(string) : typeof(bool);
 
         return new ExecutionMethodCall(
             EnumIntrinsicMethodFacts.Bind(kind, operand.ReturnType.ResolveClrType()),
             arguments,
             null,
-            returnType)
+            returnType
+        )
         {
             EnumIntrinsic = kind,
             OperandEnumType = descriptor,
-            EnumMask = mask
+            EnumMask = mask,
         };
     }
 
@@ -130,8 +125,9 @@ public sealed partial class ExecutionCSharpRendererTests
             [
                 new EnumMemberDescriptor("Queued", EnumScalarValue.FromInt32(10)),
                 new EnumMemberDescriptor("Running", EnumScalarValue.FromInt32(20)),
-                new EnumMemberDescriptor("Active", EnumScalarValue.FromInt32(20))
-            ]);
+                new EnumMemberDescriptor("Active", EnumScalarValue.FromInt32(20)),
+            ]
+        );
     }
 
     private static EnumTypeDescriptor CreateAccessDescriptor()
@@ -145,8 +141,9 @@ public sealed partial class ExecutionCSharpRendererTests
                 new EnumMemberDescriptor("None", EnumScalarValue.FromUInt32(0)),
                 new EnumMemberDescriptor("Read", EnumScalarValue.FromUInt32(1)),
                 new EnumMemberDescriptor("Write", EnumScalarValue.FromUInt32(2)),
-                new EnumMemberDescriptor("ReadWrite", EnumScalarValue.FromUInt32(3))
-            ]);
+                new EnumMemberDescriptor("ReadWrite", EnumScalarValue.FromUInt32(3)),
+            ]
+        );
     }
 
     private static void AssertEnumIntrinsicHotPathIsPrimitive(string code)

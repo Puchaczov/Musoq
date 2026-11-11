@@ -21,7 +21,9 @@ public sealed class SchemaParserBinaryExpressionPostfixTests : SchemaParserTests
     [TestMethod]
     public void StrictCast_ShouldBindBeforeArithmeticAndAllowChaining()
     {
-        var schema = ParseBinarySchema("binary Rec { F: float le, Sum: F::Decimal + 0.5, Chain: (F + F)::Decimal::Double }");
+        var schema = ParseBinarySchema(
+            "binary Rec { F: float le, Sum: F::Decimal + 0.5, Chain: (F + F)::Decimal::Double }"
+        );
         var addition = (AddNode)((ComputedFieldNode)schema.Fields[1]).Expression;
         Assert.AreEqual("Decimal", ((CastNode)addition.Left).TargetTypeName);
         var outer = (CastNode)((ComputedFieldNode)schema.Fields[2]).Expression;

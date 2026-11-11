@@ -15,8 +15,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string CteBackedAggregateOverHashJoinSampleFileName = "Q66_CteBackedAggregateOverHashJoin.cs";
     private const string DynamicCteBackedAsOfJoinSampleFileName = "Q67_DynamicCteBackedAsOfJoin.cs";
     private const string CteWithJoinSampleFileName = "Q15_CteWithJoin.cs";
-    private const string ChainedApplyGroupedAggregateWindowSampleFileName =
-        "Q61_ChainedApplyGroupedAggregateWindow.cs";
+    private const string ChainedApplyGroupedAggregateWindowSampleFileName = "Q61_ChainedApplyGroupedAggregateWindow.cs";
     private const string ChainedApplyWindowSampleFileName = "Q68_ChainedApplyWindow.cs";
     private const string ChainedApplyMixedDistinctAggregateSortSampleFileName =
         "Q69_ChainedApplyMixedDistinctAggregateSort.cs";
@@ -28,14 +27,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q72_ChainedApplyMixedDistinctMinMaxAggregateWindow.cs";
     private const string ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName =
         "Q73_ChainedApplyMixedDistinctAvgAggregateWindow.cs";
-    private const string ChainedApplyQualifyWindowSampleFileName =
-        "Q74_ChainedApplyQualifyWindow.cs";
+    private const string ChainedApplyQualifyWindowSampleFileName = "Q74_ChainedApplyQualifyWindow.cs";
     private const string ChainedApplyGroupedAggregateQualifyWindowSampleFileName =
         "Q75_ChainedApplyGroupedAggregateQualifyWindow.cs";
     private const string ApplyWithOrdinalitySampleFileName = "Q173_ApplyWithOrdinality.cs";
     private const string CrossApplyWhereLeftGuardSampleFileName = "Q243_CrossApplyWhereLeftGuard.cs";
     private const string ChainedCrossApplyScopedGuardsSampleFileName = "Q244_ChainedCrossApplyScopedGuards.cs";
-    private const string ChainedCrossApplyResidualPredicateSampleFileName = "Q245_ChainedCrossApplyResidualPredicate.cs";
+    private const string ChainedCrossApplyResidualPredicateSampleFileName =
+        "Q245_ChainedCrossApplyResidualPredicate.cs";
     private const string OuterApplyWhereLeftGuardSampleFileName = "Q246_OuterApplyWhereLeftGuard.cs";
     private const string CrossApplyMethodWhereLeftGuardSampleFileName = "Q247_CrossApplyMethodWhereLeftGuard.cs";
     private const string NullableProviderMethodLeftJoinSampleFileName = "Q235_NullableProviderMethodLeftJoin.cs";
@@ -73,14 +72,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string CompositeHashJoinSampleFileName = "Q83_CompositeHashJoin.cs";
     private const string RepeatedCteSelfJoinSampleFileName = "Q84_RepeatedCteSelfJoin.cs";
     private const string OrderByTakeSampleFileName = "Q85_OrderByTake.cs";
-    private const string WindowRunningProductFramedPluginSampleFileName =
-        "Q86_WindowRunningProductFramedPlugin.cs";
-    private const string IsDistinctFromNullSafeComparisonSampleFileName =
-        "Q168_IsDistinctFromNullSafeComparison.cs";
-    private const string NullsFirstLastOrderingSampleFileName =
-        "Q169_NullsFirstLastOrdering.cs";
-    private const string SelectStarRenameSampleFileName =
-        "Q170_SelectStarRename.cs";
+    private const string WindowRunningProductFramedPluginSampleFileName = "Q86_WindowRunningProductFramedPlugin.cs";
+    private const string IsDistinctFromNullSafeComparisonSampleFileName = "Q168_IsDistinctFromNullSafeComparison.cs";
+    private const string NullsFirstLastOrderingSampleFileName = "Q169_NullsFirstLastOrdering.cs";
+    private const string SelectStarRenameSampleFileName = "Q170_SelectStarRename.cs";
     private const string DescQuerySampleFileName = "Q175_DescQuery.cs";
     private const string CompilationSimpleSelectSampleFileName = "Q87_CompilationSimpleSelect.cs";
     private const string CompilationComplexGroupedSortSampleFileName = "Q88_CompilationComplexGroupedSort.cs";
@@ -90,26 +85,17 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string OrderByMultipleKeysSampleFileName = "Q92_OrderByMultipleKeys.cs";
     private const string OrderByAliasSampleFileName = "Q93_OrderByAlias.cs";
     private const string OrderByHiddenComputedKeySampleFileName = "Q94_OrderByHiddenComputedKey.cs";
-    private const string RuntimeV2CseNoDuplicateRegressionSampleFileName =
-        "Q100_RuntimeV2CseNoDuplicateRegression.cs";
-    private const string RuntimeV2WindowRunningSumSampleFileName =
-        "Q101_RuntimeV2WindowRunningSum.cs";
-    private const string RuntimeV2WindowQualifyRankSampleFileName =
-        "Q102_RuntimeV2WindowQualifyRank.cs";
-    private const string RuntimeV2SkipTakeNoOrderSampleFileName =
-        "Q103_RuntimeV2SkipTakeNoOrder.cs";
-    private const string RuntimeV2StringFilterSampleFileName =
-        "Q104_RuntimeV2StringFilter.cs";
-    private const string RuntimeV2DeterministicMethodCseSampleFileName =
-        "Q105_RuntimeV2DeterministicMethodCse.cs";
+    private const string RuntimeV2CseNoDuplicateRegressionSampleFileName = "Q100_RuntimeV2CseNoDuplicateRegression.cs";
+    private const string RuntimeV2WindowRunningSumSampleFileName = "Q101_RuntimeV2WindowRunningSum.cs";
+    private const string RuntimeV2WindowQualifyRankSampleFileName = "Q102_RuntimeV2WindowQualifyRank.cs";
+    private const string RuntimeV2SkipTakeNoOrderSampleFileName = "Q103_RuntimeV2SkipTakeNoOrder.cs";
+    private const string RuntimeV2StringFilterSampleFileName = "Q104_RuntimeV2StringFilter.cs";
+    private const string RuntimeV2DeterministicMethodCseSampleFileName = "Q105_RuntimeV2DeterministicMethodCse.cs";
     private const string RuntimeV2DeterministicMethodCseDisabledSampleFileName =
         "Q105_RuntimeV2DeterministicMethodCseDisabled.cs";
-    private const string RuntimeV2ParallelFilterProjectSampleFileName =
-        "Q106_RuntimeV2ParallelFilterProject.cs";
-    private const string RuntimeV2LexerManyColumnsSampleFileName =
-        "Q107_RuntimeV2LexerManyColumns.cs";
-    private const string RuntimeV2DecimalConversionSampleFileName =
-        "Q108_RuntimeV2DecimalConversion.cs";
+    private const string RuntimeV2ParallelFilterProjectSampleFileName = "Q106_RuntimeV2ParallelFilterProject.cs";
+    private const string RuntimeV2LexerManyColumnsSampleFileName = "Q107_RuntimeV2LexerManyColumns.cs";
+    private const string RuntimeV2DecimalConversionSampleFileName = "Q108_RuntimeV2DecimalConversion.cs";
     private const string RuntimeV2CompositeRegressionCanarySampleFileName =
         "Q109_RuntimeV2CompositeRegressionCanary.cs";
     private const string RuntimeV2WindowBenchmarkRowNumberNoPartitionSampleFileName =
@@ -145,31 +131,25 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string ValuesRowLiteralsSampleFileName = "Q117_ValuesRowLiterals.cs";
     private const string ValuesCteReuseSampleFileName = "Q118_ValuesCteReuse.cs";
     private const string ValuesNumericLiteralsSampleFileName = "Q119_ValuesNumericLiterals.cs";
-    private const string ValuesStaticParametersAndLetsSampleFileName =
-        "Q171_ValuesStaticParametersAndLets.cs";
-    private const string CollectionParameterInMembershipSampleFileName =
-        "Q172_CollectionParameterInMembership.cs";
+    private const string ValuesStaticParametersAndLetsSampleFileName = "Q171_ValuesStaticParametersAndLets.cs";
+    private const string CollectionParameterInMembershipSampleFileName = "Q172_CollectionParameterInMembership.cs";
     private const string ScriptParametersWhereSelectSampleFileName = "Q120_ScriptParametersWhereSelect.cs";
     private const string ScriptParameterPrimitiveDefaultsSampleFileName = "Q121_ScriptParameterPrimitiveDefaults.cs";
     private const string ScriptParameterSourceArgumentSampleFileName = "Q122_ScriptParameterSourceArgument.cs";
     private const string ScriptParameterGroupByHelperCaptureSampleFileName =
         "Q123_ScriptParameterGroupByHelperCapture.cs";
-    private const string ScriptParameterJoinHelperCaptureSampleFileName =
-        "Q124_ScriptParameterJoinHelperCapture.cs";
-    private const string ScriptParameterCteHelperCaptureSampleFileName =
-        "Q125_ScriptParameterCteHelperCapture.cs";
+    private const string ScriptParameterJoinHelperCaptureSampleFileName = "Q124_ScriptParameterJoinHelperCapture.cs";
+    private const string ScriptParameterCteHelperCaptureSampleFileName = "Q125_ScriptParameterCteHelperCapture.cs";
     private const string ScriptParameterWindowHelperCaptureSampleFileName =
         "Q126_ScriptParameterWindowHelperCapture.cs";
     private const string ScriptParameterParallelHelperCaptureSampleFileName =
         "Q127_ScriptParameterParallelHelperCapture.cs";
-    private const string ScriptParameterTypedComparisonSampleFileName =
-        "Q128_ScriptParameterTypedComparison.cs";
+    private const string ScriptParameterTypedComparisonSampleFileName = "Q128_ScriptParameterTypedComparison.cs";
     private const string ScriptParameterNumericWideningComparisonSampleFileName =
         "Q129_ScriptParameterNumericWideningComparison.cs";
     private const string CorrelatedInSubquerySampleFileName = "Q138_CorrelatedInSubquery.cs";
     private const string CorrelatedNotExistsSubquerySampleFileName = "Q139_CorrelatedNotExistsSubquery.cs";
-    private const string CorrelatedScalarAggregateSubquerySampleFileName =
-        "Q140_CorrelatedScalarAggregateSubquery.cs";
+    private const string CorrelatedScalarAggregateSubquerySampleFileName = "Q140_CorrelatedScalarAggregateSubquery.cs";
     private const string ScalarSubqueryJoinOnSampleFileName = "Q141_ScalarSubqueryJoinOn.cs";
     private const string CorrelatedAllSubquerySampleFileName = "Q142_CorrelatedAllSubquery.cs";
     private const string CorrelatedApplyDerivedTableSampleFileName = "Q143_CorrelatedApplyDerivedTable.cs";
@@ -177,38 +157,27 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q144_CorrelatedCompositeValueTypeSubquery.cs";
     private const string CorrelatedApplySelectiveDerivedTableSampleFileName =
         "Q145_CorrelatedApplySelectiveDerivedTable.cs";
-    private const string CorrelatedCompositeRangeMarkSampleFileName =
-        "Q186_CorrelatedCompositeRangeMark.cs";
+    private const string CorrelatedCompositeRangeMarkSampleFileName = "Q186_CorrelatedCompositeRangeMark.cs";
     private const string CteSidecarHashJoinSampleFileName = "Q146_CteSidecarHashJoin.cs";
     private const string CteSidecarKeySetSemiJoinSampleFileName = "Q147_CteSidecarKeySetSemiJoin.cs";
     private const string CteSidecarFanoutThreeHashesSampleFileName = "Q148_CteSidecarFanoutThreeHashes.cs";
     private const string CteSidecarStagedGraphMixedSampleFileName = "Q149_CteSidecarStagedGraphMixed.cs";
-    private const string RuntimeV2CastProjectionSampleFileName =
-        "Q150_RuntimeV2CastProjection.cs";
-    private const string RuntimeV2CastExpressionsSampleFileName =
-        "Q151_RuntimeV2CastExpressions.cs";
-    private const string RuntimeV2CastAggregateGroupingSampleFileName =
-        "Q152_RuntimeV2CastAggregateGrouping.cs";
-    private const string RuntimeV2GroupByOrdinalSampleFileName =
-        "Q153_RuntimeV2GroupByOrdinal.cs";
-    private const string RuntimeV2GroupByAllCastsSampleFileName =
-        "Q154_RuntimeV2GroupByAllCasts.cs";
-    private const string RuntimeV2AliasWhereGroupBySampleFileName =
-        "Q155_RuntimeV2AliasWhereGroupBy.cs";
-    private const string RuntimeV2HavingAggregateAliasSampleFileName =
-        "Q156_RuntimeV2HavingAggregateAlias.cs";
-    private const string RuntimeV2AliasSourceConflictSampleFileName =
-        "Q157_RuntimeV2AliasSourceConflict.cs";
-    private const string RuntimeV2CombinedGroupingSampleFileName =
-        "Q158_RuntimeV2CombinedGrouping.cs";
+    private const string RuntimeV2CastProjectionSampleFileName = "Q150_RuntimeV2CastProjection.cs";
+    private const string RuntimeV2CastExpressionsSampleFileName = "Q151_RuntimeV2CastExpressions.cs";
+    private const string RuntimeV2CastAggregateGroupingSampleFileName = "Q152_RuntimeV2CastAggregateGrouping.cs";
+    private const string RuntimeV2GroupByOrdinalSampleFileName = "Q153_RuntimeV2GroupByOrdinal.cs";
+    private const string RuntimeV2GroupByAllCastsSampleFileName = "Q154_RuntimeV2GroupByAllCasts.cs";
+    private const string RuntimeV2AliasWhereGroupBySampleFileName = "Q155_RuntimeV2AliasWhereGroupBy.cs";
+    private const string RuntimeV2HavingAggregateAliasSampleFileName = "Q156_RuntimeV2HavingAggregateAlias.cs";
+    private const string RuntimeV2AliasSourceConflictSampleFileName = "Q157_RuntimeV2AliasSourceConflict.cs";
+    private const string RuntimeV2CombinedGroupingSampleFileName = "Q158_RuntimeV2CombinedGrouping.cs";
     private const string UnpivotBasicStreamingSampleFileName = "Q159_UnpivotBasicStreaming.cs";
     private const string UnpivotCteNullableOrderingSampleFileName = "Q160_UnpivotCteNullableOrdering.cs";
     private const string UnpivotSetOperatorSampleFileName = "Q161_UnpivotSetOperator.cs";
     private const string PivotGroupedSingleMeasureSampleFileName = "Q162_PivotGroupedSingleMeasure.cs";
     private const string PivotMultipleMeasuresSampleFileName = "Q163_PivotMultipleMeasures.cs";
     private const string PivotCteNoGroupBySampleFileName = "Q164_PivotCteNoGroupBy.cs";
-    private const string RuntimeV2WeatherSingleAggregateSampleFileName =
-        "Q185_RuntimeV2WeatherSingleAggregate.cs";
+    private const string RuntimeV2WeatherSingleAggregateSampleFileName = "Q185_RuntimeV2WeatherSingleAggregate.cs";
     private const string ExceptWithGroupBySidesSampleFileName = "Q99_ExceptWithGroupBySides.cs";
     private const string Union3WithGroupBySidesSampleFileName = "Q99_Union3WithGroupBySides.cs";
     private const string UnionWithGroupBySidesSampleFileName = "Q99_UnionWithGroupBySides.cs";
@@ -226,7 +195,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q51_BinaryConditionalInterpret.cs",
         "Q52_BinaryStringInterpret.cs",
         "Q53_BinaryComputedInterpret.cs",
-        "Q54_BinaryNestedInterpret.cs"
+        "Q54_BinaryNestedInterpret.cs",
     ];
     private static readonly string[] NestedInterpretationExpansionSampleFileNames =
     [
@@ -235,12 +204,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q57_BinaryInlineRepeatUntilInterpret.cs",
         "Q58_BinaryGenericInterpret.cs",
         "Q59_BinaryNestedGenericInterpret.cs",
-        "Q60_BinaryBitsRepeatUntilInterpret.cs"
+        "Q60_BinaryBitsRepeatUntilInterpret.cs",
     ];
     private static readonly string[] BenchmarkInterpretationMaterializedSampleFileNames =
     [
         BenchmarkInterpretationMultipleFilesMaterializedSampleFileName,
-        BenchmarkInterpretationHighThroughputMaterializedSampleFileName
+        BenchmarkInterpretationHighThroughputMaterializedSampleFileName,
     ];
     private static readonly string[] BenchmarkMaterializedSampleFileNames =
     [
@@ -250,7 +219,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         BenchmarkOptimizedHeavyMixedMaterializedSampleFileName,
         BenchmarkOptimizedMixedColumnMethodMaterializedSampleFileName,
         BenchmarkCompilationSimpleMaterializedSampleFileName,
-        BenchmarkCompilationComplexMaterializedSampleFileName
+        BenchmarkCompilationComplexMaterializedSampleFileName,
     ];
     private static readonly string[] RuntimeV2CastGroupingFeatureSampleFileNames =
     [
@@ -262,24 +231,25 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         RuntimeV2AliasWhereGroupBySampleFileName,
         RuntimeV2HavingAggregateAliasSampleFileName,
         RuntimeV2AliasSourceConflictSampleFileName,
-        RuntimeV2CombinedGroupingSampleFileName
+        RuntimeV2CombinedGroupingSampleFileName,
     ];
     private static readonly string[] UnpivotSampleFileNames =
     [
         UnpivotBasicStreamingSampleFileName,
         UnpivotCteNullableOrderingSampleFileName,
-        UnpivotSetOperatorSampleFileName
+        UnpivotSetOperatorSampleFileName,
     ];
     private static readonly string[] PivotSampleFileNames =
     [
         PivotGroupedSingleMeasureSampleFileName,
         PivotMultipleMeasuresSampleFileName,
-        PivotCteNoGroupBySampleFileName
+        PivotCteNoGroupBySampleFileName,
     ];
 
     private const string GetColumnValuePattern = "EvaluationHelper.GetColumnValue(";
     private const string ConvertTableToSourcePattern = "EvaluationHelper.ConvertTableToSource(";
-    private const string ConvertTableToSourceWithDiscardedContextsPattern = "EvaluationHelper.ConvertTableToSourceWithDiscardedContexts(";
+    private const string ConvertTableToSourceWithDiscardedContextsPattern =
+        "EvaluationHelper.ConvertTableToSourceWithDiscardedContexts(";
     private const string TableRowSourcePattern = "TableRowSource";
     private const string ObjectResolverPattern = "IObjectResolver";
     private const string SmartForEachPattern = "EvaluationHelper.SmartForEach(";
@@ -289,8 +259,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string HashSetPattern = "HashSet<";
     private const string StaticColumnMetadataPattern = "private static readonly Column[]";
     private const string StaticSchemaMetadataPattern = "private static readonly IReadOnlyCollection<ISchemaColumn>";
-    private static readonly Regex MutableDynamicDictionaryPattern =
-        new(@"\b(?:I)?Dictionary<string, object>");
+    private static readonly Regex MutableDynamicDictionaryPattern = new(@"\b(?:I)?Dictionary<string, object>");
     private const string ParallelFilterProjectLoopPattern = "ParallelFilterProjectLoop [";
     private const string ParallelProjectionRowsPattern = "EvaluationHelper.GetParallelProjectionRowsOrEmpty<";
     private const string ParallelProjectRowsPattern = "TypedProjectionRows.Project";
@@ -304,18 +273,17 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string HashJoinSingleLookupAddPattern =
         "System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault";
     private const string HashJoinDoubleLookupAddPattern = ".Add(key, new HashJoinBucket<";
-    private static readonly Regex GeneratedLocalFunctionPattern =
-        new(@"^\s{12}(?:void|[A-Za-z_][A-Za-z0-9_.<>?]*(?:\s*\[\])?)\s+(?:BuildCte|Populate|Finalize|RunCte)[A-Za-z0-9_]*\s*\(",
-            RegexOptions.Multiline);
-    private static readonly Regex GeneratedRowCastPattern =
-        new(@"\(\((?<rowType>[A-Za-z_][A-Za-z0-9_]*Row\d+)\)(?<sourceName>[A-Za-z_][A-Za-z0-9_]*)\)");
+    private static readonly Regex GeneratedLocalFunctionPattern = new(
+        @"^\s{12}(?:void|[A-Za-z_][A-Za-z0-9_.<>?]*(?:\s*\[\])?)\s+(?:BuildCte|Populate|Finalize|RunCte)[A-Za-z0-9_]*\s*\(",
+        RegexOptions.Multiline
+    );
+    private static readonly Regex GeneratedRowCastPattern = new(
+        @"\(\((?<rowType>[A-Za-z_][A-Za-z0-9_]*Row\d+)\)(?<sourceName>[A-Za-z_][A-Za-z0-9_]*)\)"
+    );
 
     // These generated-row casts are intrinsic to the documented anti-semi join and
     // are kept as explicit, single-sample exceptions to the corpus-wide guard.
-    private static readonly string[] IntentionalGeneratedRowCastSampleFileNames =
-    [
-        "Q272_SpecCoreNotInSetSubquery.cs"
-    ];
+    private static readonly string[] IntentionalGeneratedRowCastSampleFileNames = ["Q272_SpecCoreNotInSetSubquery.cs"];
 
     // Set-branch slicing and a CTE-backed TABLE/COUPLE argument intentionally
     // materialize typed rows before their consumer can proceed.
@@ -327,10 +295,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q340_StructuredSharedCteArgument.cs",
         "Q341_StructuredSortedCteArgument.cs",
         "Q344_StructuredSetCteArgument.cs",
-        "Q345_StructuredPagedCteArgument.cs"
+        "Q345_StructuredPagedCteArgument.cs",
     ];
 
     private const string ObjectsRowValueArrayCreationPattern = "new ObjectsRow(new object[]";
     private const int RetiredGeneratedCodePatternBudget = 0;
-
 }

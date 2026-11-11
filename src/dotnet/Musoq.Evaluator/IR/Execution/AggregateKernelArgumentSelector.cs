@@ -4,8 +4,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class AggregateKernelArgumentSelector
 {
-    public static TArgument[] SelectValueArgumentsAfterGroup<TArgument>(
-        IReadOnlyList<TArgument> arguments)
+    public static TArgument[] SelectValueArgumentsAfterGroup<TArgument>(IReadOnlyList<TArgument> arguments)
     {
         if (arguments.Count <= 1)
             return [];

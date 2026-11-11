@@ -10,7 +10,8 @@ public partial class Parser
     private WindowNode? ComposeWindowClause()
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.WindowClause, Current);
-        if (Current.TokenType != TokenType.Window) return null;
+        if (Current.TokenType != TokenType.Window)
+            return null;
 
         var windowToken = ConsumeAndGetToken(TokenType.Window);
 
@@ -29,14 +30,15 @@ public partial class Parser
             Consume(TokenType.As);
 
             var spec = ComposeWindowSpecification();
-            definitions.Add((WindowDefinitionNode)new WindowDefinitionNode(windowName, spec)
-                .WithSpan(nameToken.Span.Through(spec.Span)));
+            definitions.Add(
+                (WindowDefinitionNode)
+                    new WindowDefinitionNode(windowName, spec).WithSpan(nameToken.Span.Through(spec.Span))
+            );
         } while (Current.TokenType == TokenType.Comma);
 
-        return (WindowNode)new WindowNode(definitions.ToArray())
-            .WithSpan(windowToken.Span.Through(definitions[^1].Span));
+        return (WindowNode)
+            new WindowNode(definitions.ToArray()).WithSpan(windowToken.Span.Through(definitions[^1].Span));
     }
-
 
     private WindowSpecificationNode ComposeWindowSpecification()
     {
@@ -62,15 +64,17 @@ public partial class Parser
 
         var closingToken = ConsumeAndGetToken(TokenType.RightParenthesis);
 
-        return (WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, frame)
-            .WithSpan(openingToken.Span.Through(closingToken.Span));
+        return (WindowSpecificationNode)
+            new WindowSpecificationNode(partitionFields, orderByFields, frame).WithSpan(
+                openingToken.Span.Through(closingToken.Span)
+            );
     }
-
 
     private QualifyNode? ComposeQualify()
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.QualifyClause, Current);
-        if (!IsContextualKeyword("qualify")) return null;
+        if (!IsContextualKeyword("qualify"))
+            return null;
 
         _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
         Consume(Current.TokenType);
@@ -78,16 +82,13 @@ public partial class Parser
         return new QualifyNode(ComposeOperations());
     }
 
-
     private WindowFrameNode? ComposeWindowFrame()
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.WindowFrame, Current);
         if (!IsContextualKeyword("rows") && !IsContextualKeyword("range"))
             return null;
 
-        var frameType = IsContextualKeyword("rows")
-            ? WindowFrameType.Rows
-            : WindowFrameType.Range;
+        var frameType = IsContextualKeyword("rows") ? WindowFrameType.Rows : WindowFrameType.Range;
 
         Consume(Current.TokenType);
 
@@ -109,7 +110,6 @@ public partial class Parser
         return new WindowFrameNode(frameType, singleBound, implicitEnd);
     }
 
-
     private WindowFrameBoundNode ComposeWindowFrameBound()
     {
         if (IsContextualKeyword("unbounded"))
@@ -126,8 +126,10 @@ public partial class Parser
                 return new WindowFrameBoundNode(WindowFrameBoundType.UnboundedFollowing);
             }
 
-            throw new SyntaxException("Expected 'PRECEDING' or 'FOLLOWING' after 'UNBOUNDED'.",
-                _lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException(
+                "Expected 'PRECEDING' or 'FOLLOWING' after 'UNBOUNDED'.",
+                _lexer.AlreadyResolvedQueryPart
+            );
         }
 
         if (Current.TokenType == TokenType.CurrentRow)
@@ -162,20 +164,22 @@ public partial class Parser
                 return new WindowFrameBoundNode(WindowFrameBoundType.OffsetFollowing, offset);
             }
 
-            throw new SyntaxException("Expected 'PRECEDING' or 'FOLLOWING' after integer offset.",
-                _lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException(
+                "Expected 'PRECEDING' or 'FOLLOWING' after integer offset.",
+                _lexer.AlreadyResolvedQueryPart
+            );
         }
 
-        throw new SyntaxException("Expected window frame bound (UNBOUNDED PRECEDING/FOLLOWING, CURRENT ROW, or N PRECEDING/FOLLOWING).",
-            _lexer.AlreadyResolvedQueryPart);
+        throw new SyntaxException(
+            "Expected window frame bound (UNBOUNDED PRECEDING/FOLLOWING, CURRENT ROW, or N PRECEDING/FOLLOWING).",
+            _lexer.AlreadyResolvedQueryPart
+        );
     }
-
 
     private bool IsContextualKeyword(string keyword)
     {
         return Current.Value?.Equals(keyword, StringComparison.OrdinalIgnoreCase) == true;
     }
-
 
     private Node TryComposeWindowFunction(AccessMethodNode methodNode)
     {
@@ -186,26 +190,31 @@ public partial class Parser
             if (Current.TokenType == TokenType.LeftParenthesis)
             {
                 var spec = ComposeWindowSpecification();
-                return ((WindowFunctionNode)new WindowFunctionNode(methodNode, spec))
-                    .WithSpan(methodNode.Span.Through(spec.Span));
+                return ((WindowFunctionNode)new WindowFunctionNode(methodNode, spec)).WithSpan(
+                    methodNode.Span.Through(spec.Span)
+                );
             }
 
             _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Identifier);
             var windowNameToken = ConsumeAndGetToken(Current.TokenType);
-            return ((WindowFunctionNode)new WindowFunctionNode(methodNode, windowNameToken.Value))
-                .WithSpan(methodNode.Span.Through(windowNameToken.Span));
+            return ((WindowFunctionNode)new WindowFunctionNode(methodNode, windowNameToken.Value)).WithSpan(
+                methodNode.Span.Through(windowNameToken.Span)
+            );
         }
 
-        if (Current is FunctionToken { Value: var funcName } && funcName.Equals("over", StringComparison.OrdinalIgnoreCase))
+        if (
+            Current is FunctionToken { Value: var funcName }
+            && funcName.Equals("over", StringComparison.OrdinalIgnoreCase)
+        )
         {
             _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
             Consume(TokenType.Function);
             var spec = ComposeWindowSpecification();
-            return ((WindowFunctionNode)new WindowFunctionNode(methodNode, spec))
-                .WithSpan(methodNode.Span.Through(spec.Span));
+            return ((WindowFunctionNode)new WindowFunctionNode(methodNode, spec)).WithSpan(
+                methodNode.Span.Through(spec.Span)
+            );
         }
 
         return methodNode;
     }
-
 }

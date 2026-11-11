@@ -11,7 +11,8 @@ public partial class GroupByTests
     [TestProperty("CandidateId", "P1-037")]
     public void StringMaximum_ShouldProduceOneLargestNamePerBucket()
     {
-        const string query = "select Bucket, Max(Name) as Largest from values { (Bucket: 'A', Name: 'a'), (Bucket: 'A', Name: 'z'), (Bucket: 'B', Name: 'b') } v group by Bucket order by Bucket";
+        const string query =
+            "select Bucket, Max(Name) as Largest from values { (Bucket: 'A', Name: 'a'), (Bucket: 'A', Name: 'z'), (Bucket: 'B', Name: 'b') } v group by Bucket order by Bucket";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);

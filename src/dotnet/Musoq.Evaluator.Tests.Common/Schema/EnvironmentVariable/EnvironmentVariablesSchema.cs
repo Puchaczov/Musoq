@@ -17,7 +17,11 @@ public class EnvironmentVariablesSchema : SchemaBase
         AddSource<EnvironmentVariablesSource>("all");
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, EnvironmentVariableEntity>(name, new EnvironmentVariablesSource(executionContext));
     }
@@ -33,12 +37,17 @@ public class EnvironmentVariablesSchema : SchemaBase
         return new MethodsAggregator(methodManager);
     }
 
-    private sealed class EnvironmentVariablesSource(SourceExecutionContext runtimeContext) : RowSource<EnvironmentVariableEntity>
+    private sealed class EnvironmentVariablesSource(SourceExecutionContext runtimeContext)
+        : RowSource<EnvironmentVariableEntity>
     {
         public override IEnumerable<IReadOnlyList<EnvironmentVariableEntity>> Chunks =>
-        [
-            runtimeContext.SourceRuntimeSettings.Select(variable =>
-                new EnvironmentVariableEntity(variable.Key, variable.Value)).ToArray()
-        ];
+            [
+                runtimeContext
+                    .SourceRuntimeSettings.Select(variable => new EnvironmentVariableEntity(
+                        variable.Key,
+                        variable.Value
+                    ))
+                    .ToArray(),
+            ];
     }
 }

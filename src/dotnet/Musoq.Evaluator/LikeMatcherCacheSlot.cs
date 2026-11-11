@@ -20,9 +20,7 @@ public sealed class LikeMatcherCacheSlot
 
     /// <summary>Initializes an empty two-entry matcher cache.</summary>
     public LikeMatcherCacheSlot()
-        : this(false)
-    {
-    }
+        : this(false) { }
 
     /// <summary>
     ///     Initializes an empty two-entry matcher cache, optionally isolating entries by parallel worker thread.
@@ -32,34 +30,26 @@ public sealed class LikeMatcherCacheSlot
     ///     otherwise, to use one serial state.
     /// </param>
     public LikeMatcherCacheSlot(bool workerLocal)
-        : this(workerLocal, Runtime.RuntimeCacheOptions.DefaultRegexTimeout)
-    {
-    }
+        : this(workerLocal, Runtime.RuntimeCacheOptions.DefaultRegexTimeout) { }
 
     /// <summary>Initializes an execution-local matcher cache with a finite per-match budget.</summary>
     public LikeMatcherCacheSlot(bool workerLocal, TimeSpan timeout)
-        : this(workerLocal, CreateMatcherFactory(timeout))
-    {
-    }
+        : this(workerLocal, CreateMatcherFactory(timeout)) { }
 
-    internal LikeMatcherCacheSlot(
-        bool workerLocal,
-        Func<string, PreparedLikeMatcher> matcherFactory)
+    internal LikeMatcherCacheSlot(bool workerLocal, Func<string, PreparedLikeMatcher> matcherFactory)
     {
         _matcherFactory = matcherFactory ?? throw new ArgumentNullException(nameof(matcherFactory));
         _serialState = new SlotState(_matcherFactory);
         _workerStates = workerLocal ? new ConcurrentDictionary<int, SlotState>() : null;
     }
 
-    internal int Count => _workerStates is null
-        ? _serialState.Count
-        : _workerStates.Values.Sum(static state => state.Count);
+    internal int Count =>
+        _workerStates is null ? _serialState.Count : _workerStates.Values.Sum(static state => state.Count);
 
-    internal int MatcherConstructionCount => _workerStates is null
-        ? _serialState.MatcherConstructionCount
-        : _workerStates.Values.Sum(static state => state.MatcherConstructionCount);
-
-
+    internal int MatcherConstructionCount =>
+        _workerStates is null
+            ? _serialState.MatcherConstructionCount
+            : _workerStates.Values.Sum(static state => state.MatcherConstructionCount);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool IsMatch(string content, string pattern)
@@ -67,20 +57,21 @@ public sealed class LikeMatcherCacheSlot
         return GetState().IsMatch(content, pattern);
     }
 
-
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private SlotState GetState() => _workerStates is null
-        ? _serialState
-        : _workerStates.GetOrAdd(
-            Environment.CurrentManagedThreadId,
-            static (_, factory) => new SlotState(factory),
-            _matcherFactory);
+    private SlotState GetState() =>
+        _workerStates is null
+            ? _serialState
+            : _workerStates.GetOrAdd(
+                Environment.CurrentManagedThreadId,
+                static (_, factory) => new SlotState(factory),
+                _matcherFactory
+            );
 
     private static Func<string, PreparedLikeMatcher> CreateMatcherFactory(TimeSpan timeout)
     {
         Runtime.RegexMatchTimeoutPolicy.Validate(timeout);
-        return pattern => Operators.PrepareLike(pattern, timeout)
+        return pattern =>
+            Operators.PrepareLike(pattern, timeout)
             ?? throw new InvalidOperationException("A non-null LIKE pattern did not produce a matcher.");
     }
 
@@ -176,16 +167,19 @@ public sealed class LikeMatcherCacheSlot
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Matches(string pattern, CultureInfo culture)
         {
-            var patternMatches = ReferenceEquals(Pattern, pattern) ||
-                                 Pattern.Length == pattern.Length &&
-                                 (pattern.Length == 2
-                                     ? Pattern[0] == pattern[0] && Pattern[1] == pattern[1]
-                                     : string.Equals(Pattern, pattern, StringComparison.Ordinal));
+            var patternMatches =
+                ReferenceEquals(Pattern, pattern)
+                || Pattern.Length == pattern.Length
+                    && (
+                        pattern.Length == 2
+                            ? Pattern[0] == pattern[0] && Pattern[1] == pattern[1]
+                            : string.Equals(Pattern, pattern, StringComparison.Ordinal)
+                    );
             if (!patternMatches)
                 return false;
 
-            return ReferenceEquals(Culture, culture) ||
-                   string.Equals(Culture.Name, culture.Name, StringComparison.Ordinal);
+            return ReferenceEquals(Culture, culture)
+                || string.Equals(Culture.Name, culture.Name, StringComparison.Ordinal);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -201,8 +195,7 @@ public sealed class LikeMatcherCacheSlot
                 return true;
 
             var foldedActual = (uint)(actual | 0x20);
-            return foldedActual == (uint)(_singleAsciiPrefix | 0x20) &&
-                   foldedActual - 'a' <= 'z' - 'a';
+            return foldedActual == (uint)(_singleAsciiPrefix | 0x20) && foldedActual - 'a' <= 'z' - 'a';
         }
     }
 }

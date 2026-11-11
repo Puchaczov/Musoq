@@ -27,10 +27,9 @@ public sealed class GeneratedCodeSpecificationExecutionTests
             ("Second", typeof(int)),
             ("Value", typeof(int)),
             ("First", typeof(string)),
-            ("Second", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [1, "parameter", 4, 1, "positional", 7]);
+            ("Second", typeof(int))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "parameter", 4, 1, "positional", 7]);
     }
 
     [TestMethod]
@@ -47,10 +46,9 @@ public sealed class GeneratedCodeSpecificationExecutionTests
             ("Second", typeof(int)),
             ("First", typeof(string)),
             ("Second", typeof(int)),
-            ("Text", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["positional", 7, "parameter", 4, "cte"]);
+            ("Text", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["positional", 7, "parameter", 4, "cte"]);
     }
 
     [TestMethod]
@@ -65,10 +63,9 @@ public sealed class GeneratedCodeSpecificationExecutionTests
             table,
             ("Token", typeof(string)),
             ("Token", typeof(string)),
-            ("Token", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["blue-token", "red-token", "green-token"]);
+            ("Token", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["blue-token", "red-token", "green-token"]);
     }
 
     [TestMethod]
@@ -81,12 +78,10 @@ public sealed class GeneratedCodeSpecificationExecutionTests
                 ["InvoiceNo"] = Encoding.UTF8.GetBytes(" INV-1 "),
                 ["CustomerName"] = " Jane ",
                 ["Total"] = "1 234,50",
-                ["Attachment"] = Convert.ToBase64String(Encoding.UTF8.GetBytes("document"))
-            }
+                ["Attachment"] = Convert.ToBase64String(Encoding.UTF8.GetBytes("document")),
+            },
         };
-        var provider = new ReadModifiersSchemaProvider(
-            rows,
-            ReadModifiersValidationMode.LenientUnsupportedModifiers);
+        var provider = new ReadModifiersSchemaProvider(rows, ReadModifiersValidationMode.LenientUnsupportedModifiers);
         var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q320_SpecTableReadModifiers.cs");
         using var compiled = Compile(sample, provider);
 
@@ -97,10 +92,9 @@ public sealed class GeneratedCodeSpecificationExecutionTests
             ("InvoiceNo", typeof(string)),
             ("CustomerName", typeof(string)),
             ("Total", typeof(decimal?)),
-            ("Attachment", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["INV-1", "Jane", 1234.50m, "document"]);
+            ("Attachment", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["INV-1", "Jane", 1234.50m, "document"]);
     }
 
     [TestMethod]
@@ -111,14 +105,8 @@ public sealed class GeneratedCodeSpecificationExecutionTests
 
         using var table = compiled.Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Total", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["alpha", 10m],
-            ["beta", 20m]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["alpha", 10m], ["beta", 20m]);
     }
 
     private static CompiledQuery Compile(GeneratedCodeSample sample, ISchemaProvider provider)
@@ -128,6 +116,7 @@ public sealed class GeneratedCodeSpecificationExecutionTests
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            sample.CompilationOptions);
+            sample.CompilationOptions
+        );
     }
 }

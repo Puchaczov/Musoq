@@ -11,7 +11,8 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
     public void Print_WhenInnerEquiJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.City from #A.Entities() a join #B.Entities() b on a.Id = b.Id");
+            "select a.Name, b.City from #A.Entities() a join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -23,15 +24,18 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
                 "  Project [a.Name as Name, b.City as City]",
-                "    CteRef [ab as ab]"),
-            planText);
+                "    CteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenRightOuterJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a right outer join #B.Entities() b on a.Id = b.Id");
+            "select a.Name, b.Name from #A.Entities() a right outer join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -43,15 +47,18 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
                 "  Project [a.Name as Name, b.Name as Name]",
-                "    CteRef [ab as ab]"),
-            planText);
+                "    CteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenFullOuterJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = PlanOnlyBuildItems.Create(
-            "select a.Name, b.Name from #A.Entities() a full outer join #B.Entities() b on a.Id = b.Id");
+            "select a.Name, b.Name from #A.Entities() a full outer join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -63,15 +70,18 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
                 "  Project [a.Name as Name, b.Name as Name]",
-                "    CteRef [ab as ab]"),
-            planText);
+                "    CteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenNonEquiJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a join #B.Entities() b on a.Population > b.Population");
+            "select a.Name, b.Name from #A.Entities() a join #B.Entities() b on a.Population > b.Population"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -83,15 +93,18 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
                 "  Project [a.Name as Name, b.Name as Name]",
-                "    CteRef [ab as ab]"),
-            planText);
+                "    CteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenAsofJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b on a.Country = b.Country and a.Population >= b.Population");
+            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b on a.Country = b.Country and a.Population >= b.Population"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -103,15 +116,18 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
                 "  Project [a.Name as Name, b.Name as Name]",
-                "    CteRef [ab as ab]"),
-            planText);
+                "    CteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenSemiJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name from #A.Entities() a semi join #B.Entities() b on a.Id = b.Id");
+            "select a.Name from #A.Entities() a semi join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -121,15 +137,18 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "  Project [a.Name as Name]",
                 "    Join [LeftSemi] [(a.Id = b.Id)]",
                 "      SchemaScan [#A.Entities() as a]",
-                "      SchemaScan [#B.Entities() as b]"),
-            planText);
+                "      SchemaScan [#B.Entities() as b]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenAntiJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name from #A.Entities() a anti join #B.Entities() b on a.Id = b.Id");
+            "select a.Name from #A.Entities() a anti join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -139,15 +158,18 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "  Project [a.Name as Name]",
                 "    Join [LeftAntiSemi] [(a.Id = b.Id)]",
                 "      SchemaScan [#A.Entities() as a]",
-                "      SchemaScan [#B.Entities() as b]"),
-            planText);
+                "      SchemaScan [#B.Entities() as b]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenCrossJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.City from #A.Entities() a cross join #B.Entities() b");
+            "select a.Name, b.City from #A.Entities() a cross join #B.Entities() b"
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -159,7 +181,9 @@ public sealed class LogicalPlanTextJoinTests : BasicEntityTestBase
                 "      SchemaScan [#A.Entities() as a]",
                 "      SchemaScan [#B.Entities() as b]",
                 "  Project [a.Name as Name, b.City as City]",
-                "    CteRef [ab as ab]"),
-            planText);
+                "    CteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 }

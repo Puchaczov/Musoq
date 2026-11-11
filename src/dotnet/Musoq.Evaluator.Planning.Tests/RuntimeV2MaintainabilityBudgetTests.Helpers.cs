@@ -11,8 +11,14 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class RuntimeV2MaintainabilityBudgetTests
 {
-    private static int CountBudgetedLines(string filePath) => File.ReadLines(filePath)
-        .Count(static line => !line.TrimStart().StartsWith("ArgumentNullException.ThrowIfNull(", StringComparison.Ordinal));
+    private static int CountBudgetedLines(string filePath) =>
+        CSharpierLineBudgetBaseline.Apply(
+            File.ReadLines(filePath)
+                .Count(static line =>
+                    !line.TrimStart().StartsWith("ArgumentNullException.ThrowIfNull(", StringComparison.Ordinal)
+                ),
+            CSharpierLineBudgetBaseline.Lines(filePath)
+        );
 
     private static string[] EnumerateProductionSourceFiles(string repositoryRoot)
     {
@@ -21,8 +27,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
     private static int CountOccurrences(string filePath, string pattern)
     {
-        return File.ReadLines(filePath)
-            .Count(line => line.Contains(pattern, StringComparison.Ordinal));
+        return File.ReadLines(filePath).Count(line => line.Contains(pattern, StringComparison.Ordinal));
     }
 
     private static string ToAbsolutePath(string repositoryRoot, string relativePath)
@@ -49,19 +54,25 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         string name,
         Type returnType,
         string category,
-        params Type[] parameterTypes)
+        params Type[] parameterTypes
+    )
     {
         var method = typeof(LibraryBase)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
             .SingleOrDefault(candidate =>
-                candidate.Name == name &&
-                !candidate.IsGenericMethodDefinition &&
-                candidate.ReturnType == returnType &&
-                candidate.GetParameters()
+                candidate.Name == name
+                && !candidate.IsGenericMethodDefinition
+                && candidate.ReturnType == returnType
+                && candidate
+                    .GetParameters()
                     .Select(static parameter => parameter.ParameterType)
-                    .SequenceEqual(parameterTypes));
+                    .SequenceEqual(parameterTypes)
+            );
 
-        Assert.IsNotNull(method, $"Missing LibraryBase overload {name}({string.Join(", ", parameterTypes.Select(static type => type.Name))}).");
+        Assert.IsNotNull(
+            method,
+            $"Missing LibraryBase overload {name}({string.Join(", ", parameterTypes.Select(static type => type.Name))})."
+        );
         AssertBindableCategory(method, category);
         return method;
     }
@@ -69,19 +80,25 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     private static MethodInfo AssertConcreteLibraryMethodSignature(
         string name,
         Type returnType,
-        params Type[] parameterTypes)
+        params Type[] parameterTypes
+    )
     {
         var method = typeof(LibraryBase)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
             .SingleOrDefault(candidate =>
-                candidate.Name == name &&
-                !candidate.IsGenericMethodDefinition &&
-                candidate.ReturnType == returnType &&
-                candidate.GetParameters()
+                candidate.Name == name
+                && !candidate.IsGenericMethodDefinition
+                && candidate.ReturnType == returnType
+                && candidate
+                    .GetParameters()
                     .Select(static parameter => parameter.ParameterType)
-                    .SequenceEqual(parameterTypes));
+                    .SequenceEqual(parameterTypes)
+            );
 
-        Assert.IsNotNull(method, $"Missing LibraryBase overload {name}({string.Join(", ", parameterTypes.Select(static type => type.Name))}).");
+        Assert.IsNotNull(
+            method,
+            $"Missing LibraryBase overload {name}({string.Join(", ", parameterTypes.Select(static type => type.Name))})."
+        );
         return method;
     }
 
@@ -90,43 +107,49 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var method = typeof(LibraryBase)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
             .SingleOrDefault(candidate =>
-                candidate.Name == name &&
-                candidate.IsGenericMethodDefinition &&
-                candidate.GetGenericArguments().Length == 1 &&
-                candidate.GetParameters().Length == parameterCount);
+                candidate.Name == name
+                && candidate.IsGenericMethodDefinition
+                && candidate.GetGenericArguments().Length == 1
+                && candidate.GetParameters().Length == parameterCount
+            );
 
         Assert.IsNotNull(method, $"Missing generic LibraryBase overload {name} with {parameterCount} parameter(s).");
         AssertBindableCategory(method, category);
     }
 
-    private static void AssertBindableMethod(
-        string name,
-        Type returnType,
-        params Type[] parameterTypes)
+    private static void AssertBindableMethod(string name, Type returnType, params Type[] parameterTypes)
     {
         var method = typeof(LibraryBase)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static)
             .SingleOrDefault(candidate =>
-                candidate.Name == name &&
-                !candidate.IsGenericMethodDefinition &&
-                candidate.ReturnType == returnType &&
-                candidate.GetParameters()
+                candidate.Name == name
+                && !candidate.IsGenericMethodDefinition
+                && candidate.ReturnType == returnType
+                && candidate
+                    .GetParameters()
                     .Select(static parameter => parameter.ParameterType)
-                    .SequenceEqual(parameterTypes));
+                    .SequenceEqual(parameterTypes)
+            );
 
-        Assert.IsNotNull(method, $"Missing LibraryBase overload {name}({string.Join(", ", parameterTypes.Select(static type => type.Name))}).");
+        Assert.IsNotNull(
+            method,
+            $"Missing LibraryBase overload {name}({string.Join(", ", parameterTypes.Select(static type => type.Name))})."
+        );
         Assert.IsNotNull(
             method.GetCustomAttributes(typeof(BindableMethodAttribute), inherit: false).SingleOrDefault(),
-            $"Missing BindableMethodAttribute on {method}.");
+            $"Missing BindableMethodAttribute on {method}."
+        );
     }
 
     private static void AssertBindableCategory(MethodInfo method, string category)
     {
         Assert.IsNotNull(
             method.GetCustomAttributes(typeof(BindableMethodAttribute), inherit: false).SingleOrDefault(),
-            $"Missing BindableMethodAttribute on {method}.");
+            $"Missing BindableMethodAttribute on {method}."
+        );
 
-        var methodCategory = method.GetCustomAttributes(typeof(MethodCategoryAttribute), inherit: false)
+        var methodCategory = method
+            .GetCustomAttributes(typeof(MethodCategoryAttribute), inherit: false)
             .Cast<MethodCategoryAttribute>()
             .SingleOrDefault();
         Assert.IsNotNull(methodCategory, $"Missing MethodCategoryAttribute on {method}.");

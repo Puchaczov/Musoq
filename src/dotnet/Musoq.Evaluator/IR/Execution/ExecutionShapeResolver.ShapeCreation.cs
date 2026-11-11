@@ -8,25 +8,20 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionShapeResolver
 {
-    private static RowShape CreateSourceShape(
-        string alias,
-        Type entityType,
-        IReadOnlyList<ColumnSchema> columns)
+    private static RowShape CreateSourceShape(string alias, Type entityType, IReadOnlyList<ColumnSchema> columns)
     {
         var resolvedColumns = ResolveColumns(entityType, columns);
 
         if (DynamicEntityBoundary.IsNameIndexedSource(entityType))
             throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
                 $"Source '{alias}' requires native query-scoped rows; erased dictionary transfer is unsupported.",
-                Musoq.Parser.TextSpan.Empty);
+                Musoq.Parser.TextSpan.Empty
+            );
 
         if (!CanUseSourceEntityShape(entityType))
             return CreateReflectedSourceShape(alias, entityType, resolvedColumns);
 
-        var fields = CreateFieldBindings(
-            alias,
-            resolvedColumns,
-            column => ResolveAccessStrategy(entityType, column));
+        var fields = CreateFieldBindings(alias, resolvedColumns, column => ResolveAccessStrategy(entityType, column));
         return new SourceEntityShape(alias, entityType, fields);
     }
 
@@ -34,25 +29,29 @@ public sealed partial class ExecutionShapeResolver
         string alias,
         IReadOnlyList<ColumnSchema> columns,
         string? generatedTypeName = null,
-        Func<string, string?>? generatedFieldTypeNameResolver = null)
+        Func<string, string?>? generatedFieldTypeNameResolver = null
+    )
     {
         var resolvedColumns = ResolveColumns(typeof(object), columns);
         var fields = CreateFieldBindings(
             alias,
             resolvedColumns,
-            static column => column.ColumnName.Contains('.', StringComparison.Ordinal)
-                ? new NestedClrPropertyAccess(column.ColumnName)
-                : new ClrPropertyAccess(column.ColumnName));
+            static column =>
+                column.ColumnName.Contains('.', StringComparison.Ordinal)
+                    ? new NestedClrPropertyAccess(column.ColumnName)
+                    : new ClrPropertyAccess(column.ColumnName)
+        );
 
         if (generatedFieldTypeNameResolver != null)
         {
             fields = fields
-                .Select(field => field with
-                {
-                    GeneratedTypeName = generatedFieldTypeNameResolver(field.Name) ?? field.GeneratedTypeName
-                })
+                .Select(field =>
+                    field with
+                    {
+                        GeneratedTypeName = generatedFieldTypeNameResolver(field.Name) ?? field.GeneratedTypeName,
+                    }
+                )
                 .ToArray();
-
         }
 
         return new SourceEntityShape(alias, typeof(object), fields, generatedTypeName);
@@ -61,12 +60,10 @@ public sealed partial class ExecutionShapeResolver
     private static SourceEntityShape CreateReflectedSourceShape(
         string alias,
         Type entityType,
-        IReadOnlyList<ISchemaColumn> columns)
+        IReadOnlyList<ISchemaColumn> columns
+    )
     {
-        var fields = CreateFieldBindings(
-            alias,
-            columns,
-            column => new ReflectedMemberAccess(column.ColumnName));
+        var fields = CreateFieldBindings(alias, columns, column => new ReflectedMemberAccess(column.ColumnName));
 
         return new SourceEntityShape(alias, entityType, fields);
     }
@@ -74,7 +71,8 @@ public sealed partial class ExecutionShapeResolver
     private static SourceEntityShape? CreateDirectScalarSourceShapeOrNull(
         string alias,
         Type elementType,
-        IReadOnlyList<ColumnSchema> columns)
+        IReadOnlyList<ColumnSchema> columns
+    )
     {
         var resolvedColumns = ResolveColumns(elementType, columns);
         return CreateDirectScalarSourceShapeOrNull(alias, elementType, resolvedColumns);
@@ -83,26 +81,24 @@ public sealed partial class ExecutionShapeResolver
     private static SourceEntityShape? CreateDirectScalarSourceShapeOrNull(
         string alias,
         Type elementType,
-        IReadOnlyList<ISchemaColumn> resolvedColumns)
+        IReadOnlyList<ISchemaColumn> resolvedColumns
+    )
     {
         if (!CanUseDirectScalarSourceShape(elementType, resolvedColumns))
             return null;
 
-        var fields = CreateFieldBindings(
-            alias,
-            resolvedColumns,
-            static _ => new DirectScalarValueAccess());
+        var fields = CreateFieldBindings(alias, resolvedColumns, static _ => new DirectScalarValueAccess());
         return new SourceEntityShape(alias, elementType, fields);
     }
 
-    private static bool CanUseDirectScalarSourceShape(
-        Type elementType,
-        IReadOnlyList<ISchemaColumn> columns)
+    private static bool CanUseDirectScalarSourceShape(Type elementType, IReadOnlyList<ISchemaColumn> columns)
     {
-        return CanUseSourceEntityShape(elementType) &&
-               columns.Count == 1 &&
-               string.Equals(columns[0].ColumnName, nameof(PrimitiveTypeEntity<object>.Value), StringComparison.Ordinal);
+        return CanUseSourceEntityShape(elementType)
+            && columns.Count == 1
+            && string.Equals(
+                columns[0].ColumnName,
+                nameof(PrimitiveTypeEntity<object>.Value),
+                StringComparison.Ordinal
+            );
     }
-
-
 }

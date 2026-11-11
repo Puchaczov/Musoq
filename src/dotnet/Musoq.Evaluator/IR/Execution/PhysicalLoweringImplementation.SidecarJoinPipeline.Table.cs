@@ -16,7 +16,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (stages.Count == 0)
             return UnsupportedSidecarJoinPipeline("no stages");
@@ -33,31 +34,36 @@ internal sealed partial class PhysicalLoweringImplementation
         for (var stageIndex = 0; stageIndex < stages.Count; stageIndex++)
         {
             var stage = stages[stageIndex];
-            if (TryApplySidecarJoinProjectionStage(
+            if (
+                TryApplySidecarJoinProjectionStage(
                     stage,
                     currentProjectionMap,
                     activeLookup,
                     runtimeOperations,
                     ref finalFields,
                     ref finalOutputLookup,
-                    out var projectedMap))
+                    out var projectedMap
+                )
+            )
             {
                 currentProjectionMap = projectedMap;
                 continue;
             }
 
-            if (stage.Pipeline.Source is not PhysicalHashJoinNode join ||
-                stage.Pipeline.Project.IsDistinct ||
-                stage.Pipeline.PostOperations.Count != 0 ||
-                !TryResolveSidecarBuildCteRef(join, out var buildCteRef, out var sidecar) ||
-                !IsSupportedSidecarPipelineJoin(join, sidecar))
+            if (
+                stage.Pipeline.Source is not PhysicalHashJoinNode join
+                || stage.Pipeline.Project.IsDistinct
+                || stage.Pipeline.PostOperations.Count != 0
+                || !TryResolveSidecarBuildCteRef(join, out var buildCteRef, out var sidecar)
+                || !IsSupportedSidecarPipelineJoin(join, sidecar)
+            )
             {
-                return UnsupportedSidecarJoinPipeline($"stage {stageIndex} is not a supported sidecar hash/keyset join");
+                return UnsupportedSidecarJoinPipeline(
+                    $"stage {stageIndex} is not a supported sidecar hash/keyset join"
+                );
             }
 
-            var probeSourceNode = ReferenceEquals(join.Left, buildCteRef)
-                ? join.Right
-                : join.Left;
+            var probeSourceNode = ReferenceEquals(join.Left, buildCteRef) ? join.Right : join.Left;
             PhysicalCteRefNode? probeCteRef = null;
 
             if (stage.ExpectedInputCteName == null)
@@ -71,7 +77,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     cteShapesByName,
                     schemaFromIndex,
                     CreateSourceRowsScope(resultTableName),
-                    scope);
+                    scope
+                );
                 if (!source.IsBuilt)
                     return TableBuildResult.Unsupported(source.UnsupportedReason);
 
@@ -82,11 +89,15 @@ internal sealed partial class PhysicalLoweringImplementation
             }
             else
             {
-                if (probeSourceNode is not PhysicalCteRefNode cteRef ||
-                    !string.Equals(cteRef.CteName, stage.ExpectedInputCteName, StringComparison.OrdinalIgnoreCase) ||
-                    currentProjectionMap == null)
+                if (
+                    probeSourceNode is not PhysicalCteRefNode cteRef
+                    || !string.Equals(cteRef.CteName, stage.ExpectedInputCteName, StringComparison.OrdinalIgnoreCase)
+                    || currentProjectionMap == null
+                )
                 {
-                    return UnsupportedSidecarJoinPipeline($"stage {stageIndex} probe source is not the expected projected CTE");
+                    return UnsupportedSidecarJoinPipeline(
+                        $"stage {stageIndex} probe source is not the expected projected CTE"
+                    );
                 }
 
                 probeCteRef = cteRef;
@@ -98,7 +109,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 cteShapesByName,
                 schemaFromIndex,
                 CreateSourceRowsScope(resultTableName),
-                scope);
+                scope
+            );
             if (!buildSource.IsBuilt)
                 return TableBuildResult.Unsupported(buildSource.UnsupportedReason);
 
@@ -125,13 +137,12 @@ internal sealed partial class PhysicalLoweringImplementation
             if (stage.Pipeline.Filter != null && rewrittenFilter == null)
                 return UnsupportedSidecarJoinPipeline($"stage {stageIndex} could not rewrite filter");
 
-            var outputLookup = join.Kind == JoinKind.Inner
-                ? stepLookup
-                : JoinSourceLookupBuilder.Clone(activeLookup);
+            var outputLookup = join.Kind == JoinKind.Inner ? stepLookup : JoinSourceLookupBuilder.Clone(activeLookup);
             var rewrittenFields = RewriteSidecarJoinProjectedFields(
                 stage.Pipeline.Project.Fields,
                 currentProjectionMap,
-                probeCteRef);
+                probeCteRef
+            );
             if (rewrittenFields == null)
                 return UnsupportedSidecarJoinPipeline($"stage {stageIndex} could not rewrite projected fields");
 
@@ -140,40 +151,49 @@ internal sealed partial class PhysicalLoweringImplementation
                 stage.OutputCteName,
                 buildSource.Source.Variable.Name,
                 sidecar.Kind,
-                stageIndex);
-            var matchesVariable = sidecar.Kind == CteSidecarIndexKind.Hash
-                ? new ExecutionVariable($"{indexVariable.Name}Matches", typeof(object))
-                : null;
+                stageIndex
+            );
+            var matchesVariable =
+                sidecar.Kind == CteSidecarIndexKind.Hash
+                    ? new ExecutionVariable($"{indexVariable.Name}Matches", typeof(object))
+                    : null;
             var introducedAliases = CreateSidecarJoinIntroducedAliases(sidecar, buildSource.Source.Shape);
             var stepFilter = rewrittenFilter;
             SidecarJoinRuntimeGuard? filterGuard = null;
-            if (rewrittenFilter != null &&
-                TryCreateSidecarJoinRuntimeGuard(
+            if (
+                rewrittenFilter != null
+                && TryCreateSidecarJoinRuntimeGuard(
                     rewrittenFilter.Predicate,
                     outputLookup,
                     runtimeOperations.Count + 1,
-                    out filterGuard))
+                    out filterGuard
+                )
+            )
             {
                 stepFilter = null;
             }
 
             nodes.Add(CreateSidecarJoinIndexLoad(indexVariable, buildSource.Source, sidecar));
-            runtimeOperations.Add(new SidecarJoinRuntimeStep(
-                join,
-                sidecar,
-                buildSource.Source,
-                indexVariable,
-                matchesVariable,
-                rewrittenProbeKeys,
-                rewrittenResidual,
-                stepFilter,
-                stepLookup,
-                CreateSidecarJoinRequiredAliases(
+            runtimeOperations.Add(
+                new SidecarJoinRuntimeStep(
+                    join,
+                    sidecar,
+                    buildSource.Source,
+                    indexVariable,
+                    matchesVariable,
+                    rewrittenProbeKeys,
+                    rewrittenResidual,
+                    stepFilter,
                     stepLookup,
+                    CreateSidecarJoinRequiredAliases(
+                        stepLookup,
+                        introducedAliases,
+                        [.. rewrittenProbeKeys, rewrittenResidual, stepFilter?.Predicate]
+                    ),
                     introducedAliases,
-                    [..rewrittenProbeKeys, rewrittenResidual, stepFilter?.Predicate]),
-                introducedAliases,
-                runtimeOperations.Count));
+                    runtimeOperations.Count
+                )
+            );
             if (filterGuard != null)
                 runtimeOperations.Add(filterGuard);
 
@@ -195,24 +215,16 @@ internal sealed partial class PhysicalLoweringImplementation
         var resultShape = CreateGeneratedShape(resultShapeName, finalFields, finalOutputLookup);
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
         var appendRow = CreateSidecarJoinAppendRow(resultTable, resultShape, finalFields, finalOutputLookup);
-        var body = CreateSidecarJoinRuntimeBody(
-            runtimeOperations,
-            baseSource.Shape,
-            new ExecutionBlock([appendRow]));
+        var body = CreateSidecarJoinRuntimeBody(runtimeOperations, baseSource.Shape, new ExecutionBlock([appendRow]));
 
         nodes.InsertRange(
             baseSource.Setup.Count,
-            [CreateTable(resultTable, resultShape, CreateJoinResultCapacityCandidate(resultTable, baseSource))]);
+            [CreateTable(resultTable, resultShape, CreateJoinResultCapacityCandidate(resultTable, baseSource))]
+        );
         nodes.Add(CreateSourceLoop(baseSource.Shape, baseSource.Rows, baseSource.Variable, body));
 
         shapes.Add(resultShape);
-        return CompleteTableBuild(
-            shapes,
-            nodes,
-            resultTable,
-            resultShape,
-            [],
-            isDistinct: false);
+        return CompleteTableBuild(shapes, nodes, resultTable, resultShape, [], isDistinct: false);
     }
 
     private static TableBuildResult UnsupportedSidecarJoinPipeline(string reason)
@@ -224,7 +236,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var values = fields
             .Select(field => new ExecutionRowValue(field.OutputName, ConvertProjectedExpression(field, sourceLookup)))
@@ -239,18 +252,13 @@ internal sealed partial class PhysicalLoweringImplementation
                 values,
                 CreateContextValues(sourceLookup),
                 SerialAppendMode,
-                CreateContextLayout(sourceLookup));
+                CreateContextLayout(sourceLookup)
+            );
         }
 
         if (contextSegments.Count == 0)
         {
-            return new ExecutionAppendRow(
-                resultTable,
-                resultShape,
-                values,
-                [],
-                SerialAppendMode,
-                null);
+            return new ExecutionAppendRow(resultTable, resultShape, values, [], SerialAppendMode, null);
         }
 
         var contextArray = new ExecutionContextArray(contextSegments);
@@ -260,17 +268,15 @@ internal sealed partial class PhysicalLoweringImplementation
             values,
             [contextArray],
             SerialAppendMode,
-            new ExecutionContextLayout(
-            [
-                new ExecutionContextSegment(
-                    ExecutionContextSegmentKind.Array,
-                    contextArray,
-                    1)
-            ]));
+            new ExecutionContextLayout([
+                new ExecutionContextSegment(ExecutionContextSegmentKind.Array, contextArray, 1),
+            ])
+        );
     }
 
     private static IReadOnlyList<ExecutionContextSegment>? CreateSidecarJoinContextSegments(
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var segments = new List<ExecutionContextSegment>(sourceLookup.Count);
 

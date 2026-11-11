@@ -6,8 +6,10 @@ public partial class Operators
     public static bool? SqlIn<T>(T value, Func<T, bool> contains, bool hasNull)
     {
         ArgumentNullException.ThrowIfNull(contains);
-        if (value is null) return null;
-        if (contains(value)) return true;
+        if (value is null)
+            return null;
+        if (contains(value))
+            return true;
         return hasNull ? null : false;
     }
 }

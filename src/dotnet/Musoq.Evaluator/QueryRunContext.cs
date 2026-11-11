@@ -18,11 +18,15 @@ public sealed class QueryRunContext
         string? queryId = null,
         ISchemaProvider? provider = null,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? sourceRuntimeSettingsBySourceContextId = null,
-        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>? sourceRuntimeSettingDescriptionsBySourceContextId = null,
+        IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        >? sourceRuntimeSettingDescriptionsBySourceContextId = null,
         IReadOnlyDictionary<string, SourceExecutionPlan>? sourceExecutionPlans = null,
         ILogger? logger = null,
         QueryProgressEventHandler? queryProgress = null,
-        QueryProgressOptions? queryProgressOptions = null)
+        QueryProgressOptions? queryProgressOptions = null
+    )
     {
         CancellationToken = cancellationToken;
         _typedParameters = parameters ?? TypedParameterSnapshot.Empty;
@@ -33,10 +37,11 @@ public sealed class QueryRunContext
         Sender = sender ?? this;
         QueryId = queryId ?? string.Empty;
         _provider = provider;
-        SourceRuntimeSettingsBySourceContextId = sourceRuntimeSettingsBySourceContextId ??
-            new Dictionary<string, IReadOnlyDictionary<string, string>>();
-        SourceRuntimeSettingDescriptionsBySourceContextId = sourceRuntimeSettingDescriptionsBySourceContextId ??
-            new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
+        SourceRuntimeSettingsBySourceContextId =
+            sourceRuntimeSettingsBySourceContextId ?? new Dictionary<string, IReadOnlyDictionary<string, string>>();
+        SourceRuntimeSettingDescriptionsBySourceContextId =
+            sourceRuntimeSettingDescriptionsBySourceContextId
+            ?? new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
         SourceExecutionPlans = sourceExecutionPlans ?? new Dictionary<string, SourceExecutionPlan>();
         Logger = logger;
     }
@@ -45,7 +50,11 @@ public sealed class QueryRunContext
 
     /// <summary>Gets the execution's concrete parameter slots.</summary>
     private TypedParameterSnapshot _typedParameters = TypedParameterSnapshot.Empty;
-    public TypedParameterSnapshot TypedParameters { get => _typedParameters; init => _typedParameters = value; }
+    public TypedParameterSnapshot TypedParameters
+    {
+        get => _typedParameters;
+        init => _typedParameters = value;
+    }
 
     public QueryPhaseEventHandler? PhaseChanged { get; }
 
@@ -65,28 +74,34 @@ public sealed class QueryRunContext
     {
         get
         {
-            if (_provider is null) return null;
+            if (_provider is null)
+                return null;
             var existing = Volatile.Read(ref _reportingProvider);
-            if (existing is not null) return existing;
-            return Interlocked.CompareExchange(ref _reportingProvider, DataSourceWarnings.WrapProvider(_provider), null) ?? _reportingProvider;
+            if (existing is not null)
+                return existing;
+            return Interlocked.CompareExchange(ref _reportingProvider, DataSourceWarnings.WrapProvider(_provider), null)
+                ?? _reportingProvider;
         }
     }
 
     /// <summary>Warnings are isolated to this query execution.</summary>
     public Musoq.Schema.Diagnostics.DataSourceWarningCollector DataSourceWarnings { get; init; } = new();
 
-    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; }
+    public IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > SourceRuntimeSettingsBySourceContextId { get; }
 
-    public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; }
+    public IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId { get; }
 
     public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; }
 
     public ILogger? Logger { get; }
 
-    public static QueryRunContext Capture(
-        TypedQueryRunOptions options,
-        object? sender = null,
-        string? queryId = null)
+    public static QueryRunContext Capture(TypedQueryRunOptions options, object? sender = null, string? queryId = null)
     {
         ArgumentNullException.ThrowIfNull(options);
 
@@ -103,7 +118,8 @@ public sealed class QueryRunContext
                 options.QueryProgressOptions,
                 sender,
                 queryId ?? runnable.GetType().FullName ?? string.Empty,
-                options.DataSourceWarnings);
+                options.DataSourceWarnings
+            );
             captured._typedParameters = options.TypedParameters;
             return captured;
         }
@@ -116,10 +132,11 @@ public sealed class QueryRunContext
             sender,
             queryId,
             queryProgress: options.QueryProgress,
-            queryProgressOptions: options.QueryProgressOptions)
+            queryProgressOptions: options.QueryProgressOptions
+        )
         {
             TypedParameters = options.TypedParameters,
-            DataSourceWarnings = options.DataSourceWarnings ?? new()
+            DataSourceWarnings = options.DataSourceWarnings ?? new(),
         };
     }
 
@@ -133,7 +150,8 @@ public sealed class QueryRunContext
         QueryProgressOptions? queryProgressOptions,
         object sender,
         string queryId,
-        Musoq.Schema.Diagnostics.DataSourceWarningCollector? dataSourceWarnings = null)
+        Musoq.Schema.Diagnostics.DataSourceWarningCollector? dataSourceWarnings = null
+    )
     {
         ArgumentNullException.ThrowIfNull(binding);
         ArgumentNullException.ThrowIfNull(parameters);
@@ -153,8 +171,11 @@ public sealed class QueryRunContext
             binding.SourceExecutionPlans,
             binding.Logger,
             queryProgress,
-            queryProgressOptions)
-        { DataSourceWarnings = dataSourceWarnings ?? new() };
+            queryProgressOptions
+        )
+        {
+            DataSourceWarnings = dataSourceWarnings ?? new(),
+        };
     }
 
     public void ThrowIfCancellationRequested()
@@ -193,14 +214,16 @@ public sealed class QueryRunContext
 
     internal IEnumerable<IReadOnlyList<T>> CreateProgressChunks<T>(
         IEnumerable<IReadOnlyList<T>> chunks,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         if (QueryProgress is not { } handler)
             return chunks;
 
         return new QueryProgressChunkEnumerable<T>(
             chunks,
-            GetOrCreateProgressReporter(handler).CreateSource(sourceContextId));
+            GetOrCreateProgressReporter(handler).CreateSource(sourceContextId)
+        );
     }
 
     private QueryProgressReporter GetOrCreateProgressReporter(QueryProgressEventHandler handler)

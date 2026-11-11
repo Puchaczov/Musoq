@@ -4,4 +4,5 @@ internal sealed record ExecutionTargetReadinessIssue(
     ExecutionTargetRuntimeFamily RuntimeFamily,
     ExecutionTargetReadinessCategory Category,
     ExecutionTargetRequirement Requirement,
-    string Diagnostic);
+    string Diagnostic
+);

@@ -35,12 +35,13 @@ public sealed class LikeLongPatternRegressionTests : BasicEntityTestBase
             ["#A"] =
             [
                 new BasicEntity { Name = value, City = value },
-                new BasicEntity { Name = value + "-miss", City = value }
-            ]
+                new BasicEntity { Name = value + "-miss", City = value },
+            ],
         };
         using var query = CreateAndRunVirtualMachine(
             "select e.Name from #A.Entities() e where e.Name like e.City order by e.Name",
-            sources);
+            sources
+        );
 
         var result = query.Run(TestContext.CancellationToken);
 

@@ -20,10 +20,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         {
             Assert.IsFalse(
                 result.Diagnostics.Any(static diagnostic => diagnostic.IsError),
-                string.Join(Environment.NewLine, result.Diagnostics));
+                string.Join(Environment.NewLine, result.Diagnostics)
+            );
         }
 
-        StringAssert.Contains(declared.GeneratedCSharpCode, "SourceInvocation<Musoq.Evaluator.Tests.Schema.QueryRows.DeclaredQueryRowSample>");
+        StringAssert.Contains(
+            declared.GeneratedCSharpCode,
+            "SourceInvocation<Musoq.Evaluator.Tests.Schema.QueryRows.DeclaredQueryRowSample>"
+        );
         Assert.IsFalse(declared.GeneratedCSharpCode.Contains("QuerySourceInvocation<", StringComparison.Ordinal));
 
         StringAssert.Contains(narrow.GeneratedCSharpCode, "private readonly struct QueryRow_");
@@ -63,7 +67,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             (QueryRowSealedClassSampleFileName, 1),
             (QueryRowZeroFieldSampleFileName, 1),
             (QueryRowSpecialNamesSampleFileName, 1),
-            (QueryRowLifetimeBoundarySampleFileName, 2)
+            (QueryRowLifetimeBoundarySampleFileName, 2),
         ];
 
         foreach (var expectation in expectations)
@@ -83,11 +87,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             QueryRowSealedClassSampleFileName,
             QueryRowZeroFieldSampleFileName,
             QueryRowSpecialNamesSampleFileName,
-            QueryRowLifetimeBoundarySampleFileName);
+            QueryRowLifetimeBoundarySampleFileName
+        );
 
         Assert.IsTrue(samples.All(static sample => sample.Category == "QueryScopedRows"));
-        Assert.IsTrue(samples.All(static sample => sample.Content.Contains(
-            "// === Generated C# ===",
-            StringComparison.Ordinal)));
+        Assert.IsTrue(
+            samples.All(static sample => sample.Content.Contains("// === Generated C# ===", StringComparison.Ordinal))
+        );
     }
 }

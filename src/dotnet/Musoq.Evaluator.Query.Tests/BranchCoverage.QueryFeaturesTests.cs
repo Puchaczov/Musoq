@@ -11,11 +11,16 @@ public partial class BranchCoverageImprovementTests
     [TestMethod]
     public void WhenUnion_WithDuplicates_ShouldRemoveDuplicates()
     {
-        var source = new SimpleEntity[] { new() { Name = "a" }, new() { Name = "b" } };
+        var source = new SimpleEntity[]
+        {
+            new() { Name = "a" },
+            new() { Name = "b" },
+        };
 
         var vm = CreateAndRunVirtualMachine(
             "select Name from #schema.first() union (Name) select Name from #schema.first()",
-            source);
+            source
+        );
         var result = vm.Run();
 
         Assert.AreEqual(2, result.Count);
@@ -24,11 +29,16 @@ public partial class BranchCoverageImprovementTests
     [TestMethod]
     public void WhenUnionAll_ShouldKeepAllRows()
     {
-        var source = new SimpleEntity[] { new() { Name = "a" }, new() { Name = "b" } };
+        var source = new SimpleEntity[]
+        {
+            new() { Name = "a" },
+            new() { Name = "b" },
+        };
 
         var vm = CreateAndRunVirtualMachine(
             "select Name from #schema.first() union all (Name) select Name from #schema.first()",
-            source);
+            source
+        );
         var result = vm.Run();
 
         Assert.AreEqual(4, result.Count);
@@ -37,12 +47,19 @@ public partial class BranchCoverageImprovementTests
     [TestMethod]
     public void WhenExcept_ShouldRemoveMatchingRows()
     {
-        var source1 = new SimpleEntity[] { new() { Name = "a" }, new() { Name = "b" }, new() { Name = "c" } };
+        var source1 = new SimpleEntity[]
+        {
+            new() { Name = "a" },
+            new() { Name = "b" },
+            new() { Name = "c" },
+        };
         var source2 = new SimpleEntity[] { new() { Name = "b" } };
 
         var vm = CreateAndRunVirtualMachine(
             "select Name from #schema.first() except (Name) select Name from #schema.second()",
-            source1, source2);
+            source1,
+            source2
+        );
         var result = vm.Run();
 
         Assert.AreEqual(2, result.Count);
@@ -53,12 +70,24 @@ public partial class BranchCoverageImprovementTests
     [TestMethod]
     public void WhenIntersect_ShouldKeepOnlyCommonRows()
     {
-        var source1 = new SimpleEntity[] { new() { Name = "a" }, new() { Name = "b" }, new() { Name = "c" } };
-        var source2 = new SimpleEntity[] { new() { Name = "b" }, new() { Name = "c" }, new() { Name = "d" } };
+        var source1 = new SimpleEntity[]
+        {
+            new() { Name = "a" },
+            new() { Name = "b" },
+            new() { Name = "c" },
+        };
+        var source2 = new SimpleEntity[]
+        {
+            new() { Name = "b" },
+            new() { Name = "c" },
+            new() { Name = "d" },
+        };
 
         var vm = CreateAndRunVirtualMachine(
             "select Name from #schema.first() intersect (Name) select Name from #schema.second()",
-            source1, source2);
+            source1,
+            source2
+        );
         var result = vm.Run();
 
         Assert.AreEqual(2, result.Count);
@@ -178,7 +207,7 @@ public partial class BranchCoverageImprovementTests
         {
             new() { Name = "Charlie" },
             new() { Name = "Alice" },
-            new() { Name = "Bob" }
+            new() { Name = "Bob" },
         };
 
         var vm = CreateAndRunVirtualMachine("select Name from #schema.first() order by Name asc", source);
@@ -196,7 +225,7 @@ public partial class BranchCoverageImprovementTests
         {
             new() { Name = "Alice" },
             new() { Name = "Charlie" },
-            new() { Name = "Bob" }
+            new() { Name = "Bob" },
         };
 
         var vm = CreateAndRunVirtualMachine("select Name from #schema.first() order by Name desc", source);
@@ -214,11 +243,13 @@ public partial class BranchCoverageImprovementTests
         {
             new() { Name = "B", City = "Y" },
             new() { Name = "A", City = "Z" },
-            new() { Name = "A", City = "X" }
+            new() { Name = "A", City = "X" },
         };
 
         var vm = CreateAndRunVirtualMachine(
-            "select Name, City from #schema.first() order by Name asc, City asc", source);
+            "select Name, City from #schema.first() order by Name asc, City asc",
+            source
+        );
         var result = vm.Run();
 
         Assert.AreEqual("A", result[0].ReadValue(0));
@@ -235,11 +266,13 @@ public partial class BranchCoverageImprovementTests
         {
             new() { Name = "A", City = "X" },
             new() { Name = "A", City = "Z" },
-            new() { Name = "B", City = "Y" }
+            new() { Name = "B", City = "Y" },
         };
 
         var vm = CreateAndRunVirtualMachine(
-            "select Name, City from #schema.first() order by Name asc, City desc", source);
+            "select Name, City from #schema.first() order by Name asc, City desc",
+            source
+        );
         var result = vm.Run();
 
         Assert.AreEqual("A", result[0].ReadValue(0));

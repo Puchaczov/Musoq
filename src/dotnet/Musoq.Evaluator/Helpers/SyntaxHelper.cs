@@ -18,8 +18,10 @@ public static class SyntaxHelper
         SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
         SyntaxFactory.SingletonList(
             SyntaxFactory.ArrayRankSpecifier(
-                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                    SyntaxFactory.OmittedArraySizeExpression()))));
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())
+            )
+        )
+    );
 
     public static SyntaxTrivia WhiteSpace => SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
@@ -31,9 +33,12 @@ public static class SyntaxHelper
                 SyntaxFactory.IdentifierName("Array"),
                 SyntaxFactory.GenericName(
                     SyntaxFactory.Identifier("Empty"),
-                        SyntaxFactory.TypeArgumentList(
-                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            SyntaxFactory.ParseTypeName(typeName))))));
+                    SyntaxFactory.TypeArgumentList(
+                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(SyntaxFactory.ParseTypeName(typeName))
+                    )
+                )
+            )
+        );
     }
 
     public static InvocationExpressionSyntax CreateEmptyColumnArray()
@@ -42,11 +47,16 @@ public static class SyntaxHelper
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName("Array"),
-                SyntaxFactory.GenericName(
-                        SyntaxFactory.Identifier("Empty"))
+                SyntaxFactory
+                    .GenericName(SyntaxFactory.Identifier("Empty"))
                     .WithTypeArgumentList(
                         SyntaxFactory.TypeArgumentList(
                             SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                SyntaxFactory.IdentifierName("ISchemaColumn"))))));
+                                SyntaxFactory.IdentifierName("ISchemaColumn")
+                            )
+                        )
+                    )
+            )
+        );
     }
 }

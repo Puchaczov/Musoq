@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -16,14 +15,24 @@ public sealed partial class LibraryExecutionWindowQueryTests
                 rows between 64 preceding and current row) as Total
             from #schema.first() order by Position
             """;
-        var input = Enumerable.Range(0, 500).Select(static position => new BatchDecimalRow(position, position % 8,
-            position % 8 == 7 || position % 11 == 0 ? null : new decimal(position % 97 + 1, 0, 0, false, 2))).ToArray();
+        var input = Enumerable
+            .Range(0, 500)
+            .Select(static position => new BatchDecimalRow(
+                position,
+                position % 8,
+                position % 8 == 7 || position % 11 == 0 ? null : new decimal(position % 97 + 1, 0, 0, false, 2)
+            ))
+            .ToArray();
         using var compiled = CreateAndRunVirtualMachine(query, input);
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)), ("Partition", typeof(int)),
-            ("Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Position", typeof(int)),
+            ("Partition", typeof(int)),
+            ("Total", typeof(decimal?))
+        );
         Assert.HasCount(500, rows);
         foreach (var partition in input.GroupBy(static row => row.Partition))
         {
@@ -55,7 +64,14 @@ public sealed partial class LibraryExecutionWindowQueryTests
             select Position, Sum(Value) over (order by Position rows between current row and current row) as Total
             from #schema.first() order by Position
             """;
-        NumericRow<decimal>[] input = [new(1, 1.00m), new(2, 2.0m), new(3, -3m), new(4, decimal.MaxValue), new(5, null)];
+        NumericRow<decimal>[] input =
+        [
+            new(1, 1.00m),
+            new(2, 2.0m),
+            new(3, -3m),
+            new(4, decimal.MaxValue),
+            new(5, null),
+        ];
         using var compiled = CreateAndRunVirtualMachine(query, input);
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();

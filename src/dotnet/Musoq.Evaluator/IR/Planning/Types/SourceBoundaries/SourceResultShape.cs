@@ -4,5 +4,5 @@ internal enum SourceResultShape
 {
     Declared,
     Dynamic,
-    Unknown
+    Unknown,
 }

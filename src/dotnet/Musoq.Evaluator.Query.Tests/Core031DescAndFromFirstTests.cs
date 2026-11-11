@@ -16,8 +16,9 @@ public sealed class Core031DescAndFromFirstTests : BasicEntityTestBase
         const string query = "desc #A.entities() column Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
-        var exception = Assert.Throws<ColumnMustBeAnArrayOrImplementIEnumerableException>(
-            () => vm.Run(TestContext.CancellationToken));
+        var exception = Assert.Throws<ColumnMustBeAnArrayOrImplementIEnumerableException>(() =>
+            vm.Run(TestContext.CancellationToken)
+        );
         var envelope = MusoqErrorEnvelope.FromException(exception, query);
 
         Assert.AreEqual(DiagnosticCode.MQ3025_ColumnMustBeArray, envelope.Code);
@@ -38,8 +39,7 @@ public sealed class Core031DescAndFromFirstTests : BasicEntityTestBase
         const string query = "desc #A.entities() column Self.MissingProperty";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
-        var exception = Assert.Throws<UnknownColumnOrAliasException>(
-            () => vm.Run(TestContext.CancellationToken));
+        var exception = Assert.Throws<UnknownColumnOrAliasException>(() => vm.Run(TestContext.CancellationToken));
         var envelope = MusoqErrorEnvelope.FromException(exception, query);
 
         Assert.AreEqual(DiagnosticCode.MQ3001_UnknownColumn, envelope.Code);
@@ -49,7 +49,8 @@ public sealed class Core031DescAndFromFirstTests : BasicEntityTestBase
         Assert.AreEqual(query.IndexOf("MissingProperty", StringComparison.Ordinal), envelope.Offset);
         Assert.AreEqual(
             query.IndexOf("MissingProperty", StringComparison.Ordinal) + "MissingProperty".Length,
-            envelope.EndOffset);
+            envelope.EndOffset
+        );
         Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Snippet));
         Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Explanation));
         Assert.IsNotEmpty(envelope.SuggestedFixes);
@@ -65,16 +66,16 @@ public sealed class Core031DescAndFromFirstTests : BasicEntityTestBase
             [
                 new BasicEntity("Warsaw", "Poland", 500),
                 new BasicEntity("Berlin", "Germany", 250),
-                new BasicEntity("Krakow", "Poland", 300)
-            ]
+                new BasicEntity("Krakow", "Poland", 300),
+            ],
         };
 
         const string standard =
-            "select Country, Sum(Population) as Total from #A.entities() " +
-            "where Population > 0 group by Country order by Total desc skip 0 take 1";
+            "select Country, Sum(Population) as Total from #A.entities() "
+            + "where Population > 0 group by Country order by Total desc skip 0 take 1";
         const string fromFirst =
-            "from #A.entities() where Population > 0 group by Country " +
-            "select Country, Sum(Population) as Total order by Total desc skip 0 take 1";
+            "from #A.entities() where Population > 0 group by Country "
+            + "select Country, Sum(Population) as Total order by Total desc skip 0 take 1";
 
         var standardVm = CreateAndRunVirtualMachine(standard, sources);
         var fromFirstVm = CreateAndRunVirtualMachine(fromFirst, sources);
@@ -84,11 +85,13 @@ public sealed class Core031DescAndFromFirstTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             standardTable,
             ("Country", typeof(string)),
-            ("Total", typeof(decimal?)));
+            ("Total", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertColumns(
             fromFirstTable,
             ("Country", typeof(string)),
-            ("Total", typeof(decimal?)));
+            ("Total", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(standardTable, ["Poland", 800m]);
         TableMaterializationTestHelper.AssertRowsInOrder(fromFirstTable, ["Poland", 800m]);
     }

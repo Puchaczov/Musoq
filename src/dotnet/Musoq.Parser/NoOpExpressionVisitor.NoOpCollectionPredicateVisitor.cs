@@ -4,7 +4,5 @@ namespace Musoq.Parser;
 
 public abstract partial class NoOpExpressionVisitor
 {
-    public virtual void Visit(CollectionInNode node)
-    {
-    }
+    public virtual void Visit(CollectionInNode node) { }
 }

@@ -32,19 +32,20 @@ public class Library : LibraryBase
     }
 
     [BindableMethod]
-    public string[] MethodArrayOfStrings([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, string name1,
-        string name2)
+    public string[] MethodArrayOfStrings(
+        [InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity,
+        string name1,
+        string name2
+    )
     {
-        return
-        [
-            name1,
-            name2
-        ];
+        return [name1, name2];
     }
 
     [BindableMethod]
-    public string TestMethodWithInjectEntityAndParameter([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity,
-        string name)
+    public string TestMethodWithInjectEntityAndParameter(
+        [InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity,
+        string name
+    )
     {
         return name;
     }
@@ -52,11 +53,7 @@ public class Library : LibraryBase
     [BindableMethod]
     public string[] JustReturnArrayOfString()
     {
-        return
-        [
-            "1",
-            "2"
-        ];
+        return ["1", "2"];
     }
 
     [BindableMethod]
@@ -82,7 +79,8 @@ public class Library : LibraryBase
     [AggregateFunction(
         typeof(CustomRowCountAggregateKernel),
         Name = nameof(CustomRowCount),
-        EmptyResultBehavior = AggregateEmptyResultBehavior.Zero)]
+        EmptyResultBehavior = AggregateEmptyResultBehavior.Zero
+    )]
     public long CustomRowCount()
     {
         return AggregateFunction.NotInvoked<long>();
@@ -201,8 +199,10 @@ public class Library : LibraryBase
     }
 
     [BindableMethod]
-    public string? GetCountryOrDefaultGeneric<TColumn>([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity,
-        TColumn @default)
+    public string? GetCountryOrDefaultGeneric<TColumn>(
+        [InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity,
+        TColumn @default
+    )
     {
         return entity.Country ?? @default?.ToString();
     }
@@ -213,19 +213,29 @@ public class Library : LibraryBase
         throw new MethodCallThrownException();
     }
 
-    [WindowFunction(typeof(RunningProductKernel), WindowEvaluationModes.Running | WindowEvaluationModes.WholePartition | WindowEvaluationModes.RecomputeFrames, AggregateEmptyResultBehavior.Zero,
-        Name = "RunningProduct")]
+    [WindowFunction(
+        typeof(RunningProductKernel),
+        WindowEvaluationModes.Running | WindowEvaluationModes.WholePartition | WindowEvaluationModes.RecomputeFrames,
+        AggregateEmptyResultBehavior.Zero,
+        Name = "RunningProduct"
+    )]
     public decimal RunningProduct(decimal? value) => AggregateFunction.NotInvoked<decimal>();
 
     public static class RunningProductKernel
     {
-        public struct State { public decimal Product; }
+        public struct State
+        {
+            public decimal Product;
+        }
+
         public static void Reset(ref State state) => state.Product = 1m;
+
         public static void Set(ref State state, decimal? value)
         {
             if (value.HasValue)
                 state.Product *= value.Value;
         }
+
         public static decimal Get(in State state) => state.Product;
     }
 

@@ -9,14 +9,16 @@ internal static class ScriptValueConverter
         string name,
         string declaredTypeName,
         Type targetType,
-        object? rawValue)
+        object? rawValue
+    )
     {
         if (rawValue == null)
         {
             return CanAcceptNull(targetType)
                 ? ScriptValueConversionResult.Converted(null)
                 : ScriptValueConversionResult.Failed(
-                    $"{symbolKind} '{name}' has a null value but type '{declaredTypeName}' is not nullable.");
+                    $"{symbolKind} '{name}' has a null value but type '{declaredTypeName}' is not nullable."
+                );
         }
 
         var conversionType = Nullable.GetUnderlyingType(targetType) ?? targetType;
@@ -26,7 +28,8 @@ internal static class ScriptValueConverter
         if (!TryConvert(rawValue, conversionType, out var converted))
         {
             return ScriptValueConversionResult.Failed(
-                $"{symbolKind} '{name}' value '{rawValue}' cannot be converted to '{declaredTypeName}'.");
+                $"{symbolKind} '{name}' value '{rawValue}' cannot be converted to '{declaredTypeName}'."
+            );
         }
 
         return ScriptValueConversionResult.Converted(converted);
@@ -84,22 +87,30 @@ internal static class ScriptValueConverter
             return true;
         }
 
-        if (targetType == typeof(DateTime) &&
-            DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateTime))
+        if (
+            targetType == typeof(DateTime)
+            && DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateTime)
+        )
         {
             converted = dateTime;
             return true;
         }
 
-        if (targetType == typeof(DateTimeOffset) &&
-            DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateTimeOffset))
+        if (
+            targetType == typeof(DateTimeOffset)
+            && DateTimeOffset.TryParse(
+                value,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.RoundtripKind,
+                out var dateTimeOffset
+            )
+        )
         {
             converted = dateTimeOffset;
             return true;
         }
 
-        if (targetType == typeof(TimeSpan) &&
-            TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out var timeSpan))
+        if (targetType == typeof(TimeSpan) && TimeSpan.TryParse(value, CultureInfo.InvariantCulture, out var timeSpan))
         {
             converted = timeSpan;
             return true;
@@ -111,15 +122,15 @@ internal static class ScriptValueConverter
     private static bool IsNumericType(Type type)
     {
         return type == typeof(byte)
-               || type == typeof(sbyte)
-               || type == typeof(short)
-               || type == typeof(ushort)
-               || type == typeof(int)
-               || type == typeof(uint)
-               || type == typeof(long)
-               || type == typeof(ulong)
-               || type == typeof(float)
-               || type == typeof(double)
-               || type == typeof(decimal);
+            || type == typeof(sbyte)
+            || type == typeof(short)
+            || type == typeof(ushort)
+            || type == typeof(int)
+            || type == typeof(uint)
+            || type == typeof(long)
+            || type == typeof(ulong)
+            || type == typeof(float)
+            || type == typeof(double)
+            || type == typeof(decimal);
     }
 }

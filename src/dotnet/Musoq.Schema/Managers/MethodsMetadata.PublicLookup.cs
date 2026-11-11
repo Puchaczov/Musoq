@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Collections.Immutable;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Exceptions;
@@ -27,8 +27,10 @@ public partial class MethodsMetadata
         if (methodArgs == null)
             throw SchemaArgumentException.ForNullArgument(nameof(methodArgs), "resolving a method");
 
-        if (!TryGetAnnotatedMethod(name, methodArgs, entityType, out var index, out var actualMethodName) ||
-            actualMethodName is null)
+        if (
+            !TryGetAnnotatedMethod(name, methodArgs, entityType, out var index, out var actualMethodName)
+            || actualMethodName is null
+        )
         {
             var availableSignatures = GetAvailableMethodSignatures(name);
             var providedTypes = methodArgs.Select(arg => arg?.Name ?? "null").ToArray();
@@ -47,10 +49,17 @@ public partial class MethodsMetadata
     /// <param name="entityType">The type of entity.</param>
     /// <param name="result">Method metadata of founded method.</param>
     /// <returns>True if method exists, otherwise false.</returns>
-    public bool TryGetMethod(string name, Type[] methodArgs, Type? entityType, [NotNullWhen(true)] out MethodInfo? result)
+    public bool TryGetMethod(
+        string name,
+        Type[] methodArgs,
+        Type? entityType,
+        [NotNullWhen(true)] out MethodInfo? result
+    )
     {
-        if (!TryGetAnnotatedMethod(name, methodArgs, entityType, out var index, out var actualMethodName) ||
-            actualMethodName is null)
+        if (
+            !TryGetAnnotatedMethod(name, methodArgs, entityType, out var index, out var actualMethodName)
+            || actualMethodName is null
+        )
         {
             result = null;
             return false;
@@ -60,22 +69,31 @@ public partial class MethodsMetadata
         return true;
     }
 
-    public bool TryGetAggregationMethod(string name, Type[] methodArgs, Type? entityType,
-        [NotNullWhen(true)] out MethodInfo? result)
+    public bool TryGetAggregationMethod(
+        string name,
+        Type[] methodArgs,
+        Type? entityType,
+        [NotNullWhen(true)] out MethodInfo? result
+    )
     {
         var argTypesArray = methodArgs as Type[] ?? CopyToArray(methodArgs);
         var cacheKey = new MethodResolutionKey(name, argTypesArray, entityType);
 
         if (!_aggregationMethodCache.TryGetValue(cacheKey, out var cached))
         {
-            var found = TryGetMethodWithNormalization(name, out var index, out var actualMethodName,
+            var found = TryGetMethodWithNormalization(
+                name,
+                out var index,
+                out var actualMethodName,
                 (string exactName, out int idx) =>
                     TryGetAnnotatedMethodByExactName(
                         exactName,
                         methodArgs,
                         entityType,
                         static method => method.GetCustomAttribute<AggregateFunctionAttribute>() != null,
-                        out idx));
+                        out idx
+                    )
+            );
 
             cached = (found, index, actualMethodName);
             _aggregationMethodCache.TryAdd(cacheKey, cached);
@@ -96,17 +114,19 @@ public partial class MethodsMetadata
         Type[] methodArgs,
         Type? entityType,
         Func<MethodInfo, bool> methodFilter,
-        out MethodInfo? result)
+        out MethodInfo? result
+    )
     {
-        if (!TryGetAnnotatedMethod(
+        if (
+            !TryGetAnnotatedMethod(
                 name,
                 methodArgs,
                 entityType,
-                method => method.GetCustomAttribute<AggregateFunctionAttribute>() != null &&
-                          methodFilter(method),
+                method => method.GetCustomAttribute<AggregateFunctionAttribute>() != null && methodFilter(method),
                 out var index,
-                out var actualMethodName) ||
-            actualMethodName is null)
+                out var actualMethodName
+            ) || actualMethodName is null
+        )
         {
             result = null;
             return false;
@@ -125,8 +145,7 @@ public partial class MethodsMetadata
     /// <returns>True if some method fits, else false.</returns>
     public bool TryGetRawMethod(string name, Type[] methodArgs, [NotNullWhen(true)] out MethodInfo? result)
     {
-        if (!TryGetRawMethod(name, methodArgs, out var index, out var actualMethodName) ||
-            actualMethodName is null)
+        if (!TryGetRawMethod(name, methodArgs, out var index, out var actualMethodName) || actualMethodName is null)
         {
             result = null;
             return false;
@@ -145,17 +164,20 @@ public partial class MethodsMetadata
         ArgumentNullException.ThrowIfNull(methodInfo);
         RegisterMethod(methodInfo.Name, methodInfo);
     }
+
     private string[] GetAvailableMethodSignatures(string methodName)
     {
         if (!_methods.TryGetValue(methodName, out var methods))
             return [];
 
-        return methods.Select(m =>
-        {
-            var parameters = GetCachedParameters(m);
-            var paramTypes = parameters.Select(p => p.ParameterType.Name).ToArray();
-            return $"{methodName}({string.Join(", ", paramTypes)})";
-        }).ToArray();
+        return methods
+            .Select(m =>
+            {
+                var parameters = GetCachedParameters(m);
+                var paramTypes = parameters.Select(p => p.ParameterType.Name).ToArray();
+                return $"{methodName}({string.Join(", ", paramTypes)})";
+            })
+            .ToArray();
     }
 
     /// <summary>
@@ -164,9 +186,7 @@ public partial class MethodsMetadata
     /// <returns>Dictionary of method names to their MethodInfo list.</returns>
     public IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllMethods()
     {
-        return _methods.ToDictionary(
-            kvp => kvp.Key, IReadOnlyList<MethodInfo> (kvp) => kvp.Value.AsReadOnly()
-        );
+        return _methods.ToDictionary(kvp => kvp.Key, IReadOnlyList<MethodInfo> (kvp) => kvp.Value.AsReadOnly());
     }
 
     /// <summary>Gets SQL declarations independently from their CLR implementation names.</summary>
@@ -175,8 +195,11 @@ public partial class MethodsMetadata
         if (!_functions.IsDefault)
             return _functions;
 
-        _functions = _methods.Values.SelectMany(static methods => methods).Distinct()
-            .SelectMany(static method => SqlFunctionDeclarations.Read(method)).ToImmutableArray();
+        _functions = _methods
+            .Values.SelectMany(static methods => methods)
+            .Distinct()
+            .SelectMany(static method => SqlFunctionDeclarations.Read(method))
+            .ToImmutableArray();
         return _functions;
     }
 
@@ -191,8 +214,11 @@ public partial class MethodsMetadata
 
         foreach (var function in GetAllFunctions())
         {
-            if (function.Kind == SqlFunctionKind.Window && function.Visibility == FunctionVisibility.Public &&
-                MethodNameNormalizer.Normalize(function.Name) == normalizedSqlName)
+            if (
+                function.Kind == SqlFunctionKind.Window
+                && function.Visibility == FunctionVisibility.Public
+                && MethodNameNormalizer.Normalize(function.Name) == normalizedSqlName
+            )
             {
                 result = function.Declaration;
                 return true;

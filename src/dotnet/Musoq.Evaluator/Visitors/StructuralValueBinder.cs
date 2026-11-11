@@ -12,7 +12,8 @@ internal static class StructuralValueBinder
         StructuralTypeDescriptor descriptor,
         string valueName,
         out object? normalizedValue,
-        out string error)
+        out string error
+    )
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentException.ThrowIfNullOrWhiteSpace(valueName);
@@ -59,19 +60,22 @@ internal static class StructuralValueBinder
         StructuralTypeDescriptor descriptor,
         string valueName,
         out StructuralValue tree,
-        out string error)
+        out string error
+    )
     {
         if (descriptor.Kind == StructuralTypeKind.Scalar)
         {
-            var scalarValue = rawValue is StructuralValue scalarTree && scalarTree.Kind == StructuralTypeKind.Scalar
-                ? scalarTree.Scalar
-                : rawValue;
+            var scalarValue =
+                rawValue is StructuralValue scalarTree && scalarTree.Kind == StructuralTypeKind.Scalar
+                    ? scalarTree.Scalar
+                    : rawValue;
             var conversion = ScriptValueConverter.ConvertValue(
                 "Structural value",
                 valueName,
                 descriptor.ToCanonicalSql(),
                 descriptor.CoreValueType,
-                scalarValue);
+                scalarValue
+            );
             if (!conversion.Success)
             {
                 tree = null!;
@@ -89,7 +93,8 @@ internal static class StructuralValueBinder
             if (!descriptor.IsNullable)
             {
                 tree = null!;
-                error = $"Structural value '{valueName}' is null but type '{descriptor.ToCanonicalSql()}' is not nullable.";
+                error =
+                    $"Structural value '{valueName}' is null but type '{descriptor.ToCanonicalSql()}' is not nullable.";
                 return false;
             }
 
@@ -109,9 +114,9 @@ internal static class StructuralValueBinder
         StructuralTypeDescriptor descriptor,
         string valueName,
         out StructuralValue tree,
-        out string error)
+        out string error
+    )
     {
-
         if (rawValue is not StructuralValue { Kind: StructuralTypeKind.Record } record)
         {
             tree = null!;
@@ -123,7 +128,8 @@ internal static class StructuralValueBinder
         foreach (var suppliedField in record.Fields)
         {
             var field = descriptor.Fields.FirstOrDefault(candidate =>
-                string.Equals(candidate.Name, suppliedField.Key, StringComparison.OrdinalIgnoreCase));
+                string.Equals(candidate.Name, suppliedField.Key, StringComparison.OrdinalIgnoreCase)
+            );
             if (field == null)
             {
                 tree = null!;
@@ -131,12 +137,15 @@ internal static class StructuralValueBinder
                 return false;
             }
 
-            if (!TryNormalizeTree(
+            if (
+                !TryNormalizeTree(
                     suppliedField.Value,
                     field.Type,
                     $"{valueName}.{field.Name}",
                     out var fieldTree,
-                    out error))
+                    out error
+                )
+            )
             {
                 tree = null!;
                 return false;
@@ -160,12 +169,15 @@ internal static class StructuralValueBinder
             if (!field.HasDefault)
                 continue;
 
-            if (!TryNormalizeTree(
+            if (
+                !TryNormalizeTree(
                     field.Default.Value,
                     field.Type,
                     $"{valueName}.{field.Name}",
                     out var defaultTree,
-                    out error))
+                    out error
+                )
+            )
             {
                 tree = null!;
                 return false;
@@ -184,7 +196,8 @@ internal static class StructuralValueBinder
         StructuralTypeDescriptor descriptor,
         string valueName,
         out StructuralValue tree,
-        out string error)
+        out string error
+    )
     {
         if (rawValue is not StructuralValue { Kind: StructuralTypeKind.Collection } collection)
         {
@@ -196,12 +209,15 @@ internal static class StructuralValueBinder
         var elements = new StructuralValue[collection.Elements.Count];
         for (var index = 0; index < collection.Elements.Count; index++)
         {
-            if (!TryNormalizeTree(
+            if (
+                !TryNormalizeTree(
                     collection.Elements[index],
                     descriptor.ElementType!,
                     $"{valueName}[{index}]",
                     out elements[index],
-                    out error))
+                    out error
+                )
+            )
             {
                 tree = null!;
                 return false;
@@ -213,11 +229,10 @@ internal static class StructuralValueBinder
         return true;
     }
 
-    private static Array MaterializeCollection(
-        StructuralValue tree,
-        StructuralTypeDescriptor descriptor)
+    private static Array MaterializeCollection(StructuralValue tree, StructuralTypeDescriptor descriptor)
     {
-        var elementType = descriptor.ElementType ?? throw new InvalidOperationException("Collection element type is missing.");
+        var elementType =
+            descriptor.ElementType ?? throw new InvalidOperationException("Collection element type is missing.");
         var array = Array.CreateInstance(elementType.CoreValueType, tree.Elements.Count);
         for (var index = 0; index < tree.Elements.Count; index++)
         {
@@ -229,7 +244,7 @@ internal static class StructuralValueBinder
                 StructuralTypeKind.Collection => element.Kind == StructuralTypeKind.Scalar
                     ? null
                     : MaterializeCollection(element, elementType),
-                _ => throw new InvalidOperationException("Unknown collection element kind.")
+                _ => throw new InvalidOperationException("Unknown collection element kind."),
             };
             array.SetValue(value, index);
         }

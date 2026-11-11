@@ -3,9 +3,7 @@
 public class WhereNode : Node
 {
     public WhereNode(Node expression)
-        : this(expression, default)
-    {
-    }
+        : this(expression, default) { }
 
     public WhereNode(Node expression, TextSpan span)
     {

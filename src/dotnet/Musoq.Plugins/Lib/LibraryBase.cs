@@ -8,8 +8,11 @@ namespace Musoq.Plugins;
 /// </summary>
 [BindableClass]
 [LibraryExecutionDefaults(
-    AggregatePermissions = FunctionExecutionPermissions.ConcurrentInvocations | FunctionExecutionPermissions.IndependentGroups,
-    WindowPermissions = FunctionExecutionPermissions.ConcurrentInvocations | FunctionExecutionPermissions.IndependentPartitions)]
+    AggregatePermissions = FunctionExecutionPermissions.ConcurrentInvocations
+        | FunctionExecutionPermissions.IndependentGroups,
+    WindowPermissions = FunctionExecutionPermissions.ConcurrentInvocations
+        | FunctionExecutionPermissions.IndependentPartitions
+)]
 [SuppressMessage("ReSharper", "UnusedMember.Global")]
 [SuppressMessage("ReSharper", "UnusedParameter.Global")]
 public partial class LibraryBase
@@ -51,6 +54,7 @@ public partial class LibraryBase
     {
         return obj?.GetType().FullName;
     }
+
     /// <summary>Returns the concrete type name without boxing a value-type argument.</summary>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
@@ -68,7 +72,6 @@ public partial class LibraryBase
     /// <summary>Returns the underlying type name for a present nullable value.</summary>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
-    public string? GetTypeName<T>(T? value) where T : struct
-        => value.HasValue ? typeof(T).FullName : null;
-
+    public string? GetTypeName<T>(T? value)
+        where T : struct => value.HasValue ? typeof(T).FullName : null;
 }

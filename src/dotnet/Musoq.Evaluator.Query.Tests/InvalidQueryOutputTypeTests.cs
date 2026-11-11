@@ -13,7 +13,8 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
 {
     private CompiledQuery CreateAndRunVirtualMachineWithValidation<T>(
         string script,
-        IDictionary<string, IEnumerable<T>> sources)
+        IDictionary<string, IEnumerable<T>> sources
+    )
         where T : BasicEntity
     {
         return CreateAndRunVirtualMachine(script, sources, ValidationEnabledCompilationOptions);
@@ -24,14 +25,10 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     {
         // Arrange - Self returns BasicEntity which is a complex type
         var query = "select Self from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
@@ -41,14 +38,10 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     {
         // Arrange - Array returns int[] which is not allowed
         var query = "select Array from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Array");
     }
@@ -58,14 +51,10 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     {
         // Arrange - Dictionary returns Dictionary<string,string> which is a complex type
         var query = "select Dictionary from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Dictionary");
     }
@@ -75,14 +64,10 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     {
         // Arrange - Other returns BasicEntity which is a complex type
         var query = "select Other from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Other");
     }
@@ -92,14 +77,10 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     {
         // Arrange
         var query = @"select Self from #A.Entities() union (Self) select Self from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
@@ -109,14 +90,10 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     {
         // Arrange
         var query = @"select Self from #A.Entities() union all (Self) select Self from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
@@ -126,14 +103,10 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     {
         // Arrange
         var query = @"select Self from #A.Entities() except (Self) select Self from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
@@ -143,14 +116,10 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     {
         // Arrange
         var query = @"select Self from #A.Entities() intersect (Self) select Self from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
@@ -159,19 +128,13 @@ public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
     public void WhenCteWithComplexType_ShouldThrowInvalidQueryExpressionTypeException()
     {
         // Arrange
-        var query = @"
-with cte as (
-    select Self from #A.Entities()
-)
-select Self from cte";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var query = (
+            "\n" + "with cte as (\n" + "    select Self from #A.Entities()\n" + ")\n" + "select Self from cte"
+        );
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
@@ -180,19 +143,13 @@ select Self from cte";
     public void WhenCteWithArrayType_ShouldThrowInvalidQueryExpressionTypeException()
     {
         // Arrange
-        var query = @"
-with cte as (
-    select Array from #A.Entities()
-)
-select Array from cte";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var query = (
+            "\n" + "with cte as (\n" + "    select Array from #A.Entities()\n" + ")\n" + "select Array from cte"
+        );
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Array");
     }
@@ -202,14 +159,10 @@ select Array from cte";
     {
         // Arrange - Name is valid but Self is not
         var query = "select Name, Self from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
@@ -218,35 +171,29 @@ select Array from cte";
     public void WhenNestedCteWithComplexType_ShouldThrowInvalidQueryExpressionTypeException()
     {
         // Arrange
-        var query = @"
-with cte1 as (
-    select Self from #A.Entities()
-),
-cte2 as (
-    select Self from cte1
-)
-select Self from cte2";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var query = (
+            "\n"
+            + "with cte1 as (\n"
+            + "    select Self from #A.Entities()\n"
+            + "),\n"
+            + "cte2 as (\n"
+            + "    select Self from cte1\n"
+            + ")\n"
+            + "select Self from cte2"
+        );
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         // Act & Assert
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachineWithValidation(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
-
 
     [TestMethod]
     public void WhenSelectStringType_ShouldSucceed()
     {
         var query = "select Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -259,10 +206,7 @@ select Self from cte2";
     public void WhenSelectDecimalType_ShouldSucceed()
     {
         var query = "select Money from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Jan", 100.5m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Jan", 100.5m)] } };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -276,10 +220,7 @@ select Self from cte2";
     {
         var query = "select Time from #A.Entities()";
         var now = new DateTime(2024, 2, 29, 12, 34, 56, DateTimeKind.Utc);
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity(now)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity(now)] } };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -287,5 +228,4 @@ select Self from cte2";
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(now, table[0].ReadValue(0));
     }
-
 }

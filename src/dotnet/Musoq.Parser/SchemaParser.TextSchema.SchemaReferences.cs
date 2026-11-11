@@ -16,10 +16,9 @@ public partial class SchemaParser
         var schemaName = ComposeIdentifierOrWord();
         var modifiers = ComposeTextFieldModifiers();
 
-        return (TextFieldDefinitionNode)new TextFieldDefinitionNode(
-            name,
-            TextFieldType.SchemaReference,
-            schemaName,
-            modifiers: modifiers).WithSpan(schemaToken.Span);
+        return (TextFieldDefinitionNode)
+            new TextFieldDefinitionNode(name, TextFieldType.SchemaReference, schemaName, modifiers: modifiers).WithSpan(
+                schemaToken.Span
+            );
     }
 }

@@ -11,10 +11,12 @@ public sealed record SourceExecutionPlan
 
     private IReadOnlyList<SourceColumnRef> _acceptedColumns = [];
     private IReadOnlyList<OrderByExpression> _acceptedOrderBy = [];
-    private IReadOnlyList<SourcePredicateApplication> _predicateApplications =
-        Array.AsReadOnly(Array.Empty<SourcePredicateApplication>());
-    private IReadOnlyDictionary<string, object?> _properties =
-        new ReadOnlyDictionary<string, object?>(new Dictionary<string, object?>(StringComparer.Ordinal));
+    private IReadOnlyList<SourcePredicateApplication> _predicateApplications = Array.AsReadOnly(
+        Array.Empty<SourcePredicateApplication>()
+    );
+    private IReadOnlyDictionary<string, object?> _properties = new ReadOnlyDictionary<string, object?>(
+        new Dictionary<string, object?>(StringComparer.Ordinal)
+    );
 
     public IReadOnlyList<SourceColumnRef> AcceptedColumns
     {
@@ -68,8 +70,7 @@ public sealed record SourceExecutionPlan
         return Array.AsReadOnly(values.ToArray());
     }
 
-    private static IReadOnlyDictionary<string, object?> FreezeProperties(
-        IReadOnlyDictionary<string, object?> values)
+    private static IReadOnlyDictionary<string, object?> FreezeProperties(IReadOnlyDictionary<string, object?> values)
     {
         ArgumentNullException.ThrowIfNull(values);
 
@@ -80,9 +81,10 @@ public sealed record SourceExecutionPlan
             {
                 IReadOnlyDictionary<string, object?> nested => FreezeProperties(nested),
                 IReadOnlyDictionary<string, string> strings => new ReadOnlyDictionary<string, string>(
-                    new Dictionary<string, string>(strings, StringComparer.Ordinal)),
+                    new Dictionary<string, string>(strings, StringComparer.Ordinal)
+                ),
                 Array array => array.Clone(),
-                _ => pair.Value
+                _ => pair.Value,
             };
         }
 

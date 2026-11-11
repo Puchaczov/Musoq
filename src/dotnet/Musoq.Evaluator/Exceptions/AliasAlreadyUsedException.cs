@@ -9,20 +9,14 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class AliasAlreadyUsedException : Exception, IDiagnosticException
 {
-
     public AliasAlreadyUsedException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public AliasAlreadyUsedException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public AliasAlreadyUsedException()
-    {
-    }
+    public AliasAlreadyUsedException() { }
+
     /// <summary>
     ///     Initializes a new instance with node and alias.
     /// </summary>
@@ -69,5 +63,4 @@ public class AliasAlreadyUsedException : Exception, IDiagnosticException
         var span = Span ?? TextSpan.Empty;
         return Diagnostic.Error(Code, Message, span);
     }
-
 }

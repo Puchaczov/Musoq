@@ -9,7 +9,6 @@ namespace Musoq.Plugins.Tests;
 /// </summary>
 public partial class StringMethodsExtendedTests
 {
-
     [TestMethod]
     public void IsNumeric_ContainsLetter_ReturnsFalse()
     {
@@ -129,5 +128,4 @@ public partial class StringMethodsExtendedTests
     {
         Assert.AreEqual(string.Empty, Library.RemoveWhitespace("   \t\n  "));
     }
-
 }

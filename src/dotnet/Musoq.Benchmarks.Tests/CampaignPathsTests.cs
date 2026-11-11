@@ -11,7 +11,13 @@ public sealed class CampaignPathsTests
     public void EntireCatalog_FitsCompactDefaultLayout()
     {
         var cases = CampaignCases.CreateComplete(new CampaignOptions(), Path.GetTempPath());
-        var directory = Path.Combine(Repository, "benchmarks", "history", "engine-v3", "20261028T235933572Z-507c7340ade4");
+        var directory = Path.Combine(
+            Repository,
+            "benchmarks",
+            "history",
+            "engine-v3",
+            "20261028T235933572Z-507c7340ade4"
+        );
         CampaignPaths.Validate(Repository, directory, cases);
         Assert.AreEqual(279, cases.Length);
     }
@@ -20,7 +26,9 @@ public sealed class CampaignPathsTests
     public void RelativePathBudget_AcceptsBoundaryAndRejectsOneMoreCharacter()
     {
         CampaignPaths.ValidateFile(Repository, Path.Combine(Repository, new string('a', 180)));
-        Assert.Throws<ArgumentException>(() => CampaignPaths.ValidateFile(Repository, Path.Combine(Repository, new string('a', 181))));
+        Assert.Throws<ArgumentException>(() =>
+            CampaignPaths.ValidateFile(Repository, Path.Combine(Repository, new string('a', 181)))
+        );
     }
 
     [TestMethod]
@@ -29,7 +37,9 @@ public sealed class CampaignPathsTests
         var outside = Path.Combine(Path.GetPathRoot(Repository)!, "outside");
         var suffixLength = 203 - outside.Length - 1;
         CampaignPaths.ValidateFile(Repository, Path.Combine(outside, new string('a', suffixLength)));
-        Assert.Throws<ArgumentException>(() => CampaignPaths.ValidateFile(Repository, Path.Combine(outside, new string('a', suffixLength + 1))));
+        Assert.Throws<ArgumentException>(() =>
+            CampaignPaths.ValidateFile(Repository, Path.Combine(outside, new string('a', suffixLength + 1)))
+        );
     }
 
     [TestMethod]
@@ -37,8 +47,21 @@ public sealed class CampaignPathsTests
     {
         var output = Path.Combine(Repository, new string('a', 210));
         Assert.IsFalse(Directory.Exists(output));
-        Assert.AreEqual(5, CampaignCli.Run(["--job", "Dry", "--filter", "*B01_Scan-execution-Table*",
-            "--output", output, "--size", "7", "--in-process", "--json"]));
+        Assert.AreEqual(
+            5,
+            CampaignCli.Run([
+                "--job",
+                "Dry",
+                "--filter",
+                "*B01_Scan-execution-Table*",
+                "--output",
+                output,
+                "--size",
+                "7",
+                "--in-process",
+                "--json",
+            ])
+        );
         Assert.IsFalse(Directory.Exists(output));
     }
 

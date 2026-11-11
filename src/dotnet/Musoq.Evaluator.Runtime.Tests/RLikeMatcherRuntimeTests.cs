@@ -72,11 +72,14 @@ public sealed class RLikeMatcherRuntimeTests
     public void DynamicMatcher_ShouldRetainTwoEntriesAndEvictInFifoOrder()
     {
         var constructions = new ConcurrentDictionary<string, int>(StringComparer.Ordinal);
-        var slot = new RLikeMatcherCacheSlot(false, pattern =>
-        {
-            constructions.AddOrUpdate(pattern, 1, static (_, count) => count + 1);
-            return CreateMatcher(pattern);
-        });
+        var slot = new RLikeMatcherCacheSlot(
+            false,
+            pattern =>
+            {
+                constructions.AddOrUpdate(pattern, 1, static (_, count) => count + 1);
+                return CreateMatcher(pattern);
+            }
+        );
 
         Assert.IsTrue(Operators.RLikeDynamic("alpha", "alpha", slot));
         Assert.IsTrue(Operators.RLikeDynamic("beta", "beta", slot));
@@ -111,15 +114,21 @@ public sealed class RLikeMatcherRuntimeTests
     {
         var matcherConstructions = 0;
         var regexConstructions = 0;
-        var slot = new RLikeMatcherCacheSlot(false, pattern =>
-        {
-            matcherConstructions++;
-            return new PreparedRLikeMatcher(pattern, (value, _) =>
+        var slot = new RLikeMatcherCacheSlot(
+            false,
+            pattern =>
             {
-                regexConstructions++;
-                return new Regex(value, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout);
-            });
-        });
+                matcherConstructions++;
+                return new PreparedRLikeMatcher(
+                    pattern,
+                    (value, _) =>
+                    {
+                        regexConstructions++;
+                        return new Regex(value, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout);
+                    }
+                );
+            }
+        );
 
         Assert.IsTrue(Operators.RLikeDynamic("head-alpha-tail", "alpha", slot));
         Assert.IsTrue(Operators.RLikeDynamic("alpha", "alpha", slot));
@@ -133,11 +142,14 @@ public sealed class RLikeMatcherRuntimeTests
     public void PreparedGenericMatcher_ShouldUseConfiguredRegexTimeout()
     {
         Regex? created = null;
-        var matcher = new PreparedRLikeMatcher("v.lue", (pattern, _) =>
-        {
-            created = new Regex(pattern, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout);
-            return created;
-        });
+        var matcher = new PreparedRLikeMatcher(
+            "v.lue",
+            (pattern, _) =>
+            {
+                created = new Regex(pattern, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout);
+                return created;
+            }
+        );
 
         Assert.IsTrue(matcher.IsMatch("value"));
         Assert.IsNotNull(created);
@@ -154,7 +166,6 @@ public sealed class RLikeMatcherRuntimeTests
         Assert.AreEqual(Operators.RLikeDynamic("alphabet", null), operators.RLike("alphabet", null));
     }
 
-    private static PreparedRLikeMatcher CreateMatcher(string pattern) => new(
-        pattern,
-        static (value, _) => new Regex(value, RegexOptions.None, RuntimeCacheOptions.DefaultRegexTimeout));
+    private static PreparedRLikeMatcher CreateMatcher(string pattern) =>
+        new(pattern, static (value, _) => new Regex(value, RegexOptions.None, RuntimeCacheOptions.DefaultRegexTimeout));
 }

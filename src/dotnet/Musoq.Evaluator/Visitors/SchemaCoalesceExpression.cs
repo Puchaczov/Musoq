@@ -9,7 +9,11 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class SchemaCoalesceExpression
 {
-    internal static Type Resolve(CoalesceNode expression, IReadOnlyList<SchemaFieldNode> fields, SchemaRegistry? registry)
+    internal static Type Resolve(
+        CoalesceNode expression,
+        IReadOnlyList<SchemaFieldNode> fields,
+        SchemaRegistry? registry
+    )
     {
         var left = BinarySchemaExpressionTypes.Resolve(expression.Left, fields, registry);
         var right = BinarySchemaExpressionTypes.Resolve(expression.Right, fields, registry);
@@ -23,14 +27,25 @@ internal static class SchemaCoalesceExpression
         if (leftValue != rightValue)
             common = CallableOverloadPreference.FindCommonNumericType(leftValue, rightValue);
         if (common is null)
-            throw new QuerySyntaxException("Operator ?? requires compatible lossless operand types.", expression.SpanOrEmpty(), DiagnosticCode.MQ4006_InvalidFieldConstraint);
-        return BinarySchemaExpressionTypes.Lift(common,
-            BinarySchemaExpressionTypes.MayBeNull(expression.Left, fields, registry) &&
-            BinarySchemaExpressionTypes.MayBeNull(expression.Right, fields, registry));
+            throw new QuerySyntaxException(
+                "Operator ?? requires compatible lossless operand types.",
+                expression.SpanOrEmpty(),
+                DiagnosticCode.MQ4006_InvalidFieldConstraint
+            );
+        return BinarySchemaExpressionTypes.Lift(
+            common,
+            BinarySchemaExpressionTypes.MayBeNull(expression.Left, fields, registry)
+                && BinarySchemaExpressionTypes.MayBeNull(expression.Right, fields, registry)
+        );
     }
 
-    internal static string Emit(CoalesceNode expression, IReadOnlyList<SchemaFieldNode> fields, SchemaRegistry registry,
-        Func<Node, string> emit, Func<Type, string> typeName)
+    internal static string Emit(
+        CoalesceNode expression,
+        IReadOnlyList<SchemaFieldNode> fields,
+        SchemaRegistry registry,
+        Func<Node, string> emit,
+        Func<Type, string> typeName
+    )
     {
         var type = Resolve(expression, fields, registry);
         var value = BinarySchemaExpressionTypes.Unwrap(type);

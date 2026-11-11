@@ -11,7 +11,13 @@ public class ApplyFromNode : BinaryFromNode
         FullSpan = Span;
     }
 
-    public ApplyFromNode(FromNode source, FromNode with, ApplyType applyType, Type returnType, bool withOrdinality = false)
+    public ApplyFromNode(
+        FromNode source,
+        FromNode with,
+        ApplyType applyType,
+        Type returnType,
+        bool withOrdinality = false
+    )
         : base(source, with, CreateAlias(source, with), returnType)
     {
         ApplyType = applyType;
@@ -24,7 +30,8 @@ public class ApplyFromNode : BinaryFromNode
 
     public bool WithOrdinality { get; }
 
-    public override string Id => $"{nameof(ApplyFromNode)}{Source.Id}{With.Id}{(WithOrdinality ? "WithOrdinality" : string.Empty)}";
+    public override string Id =>
+        $"{nameof(ApplyFromNode)}{Source.Id}{With.Id}{(WithOrdinality ? "WithOrdinality" : string.Empty)}";
 
     public override void Accept(IExpressionVisitor visitor)
     {

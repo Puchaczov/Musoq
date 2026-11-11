@@ -12,15 +12,14 @@ public sealed class CteColumnListParserTests
     {
         var lexer = new Lexer(
             "with places (Name, Nation) as (select City, Country from #A.entities()) select Name from places",
-            true);
+            true
+        );
         var root = new Parser(lexer).ComposeAll();
 
         var statements = (StatementsArrayNode)((RootNode)root).Expression;
         var cte = (CteExpressionNode)statements.Statements[0].Node;
 
-        CollectionAssert.AreEqual(
-            new[] { "Name", "Nation" },
-            cte.InnerExpression[0].ColumnNames);
+        CollectionAssert.AreEqual(new[] { "Name", "Nation" }, cte.InnerExpression[0].ColumnNames);
         StringAssert.Contains(cte.ToString(), "places (Name, Nation) as");
     }
 
@@ -28,11 +27,12 @@ public sealed class CteColumnListParserTests
     public void WithRecursive_ShouldBeRetainedAsContextualCteModifier()
     {
         var lexer = new Lexer(
-            "with recursive counter (Value) as (" +
-            "select Value from values {( Value: 1 )} seed " +
-            "union all select c.Value + 1 from counter c where c.Value < 3) " +
-            "select Value from counter",
-            true);
+            "with recursive counter (Value) as ("
+                + "select Value from values {( Value: 1 )} seed "
+                + "union all select c.Value + 1 from counter c where c.Value < 3) "
+                + "select Value from counter",
+            true
+        );
         var root = new Parser(lexer).ComposeAll();
 
         var statements = (StatementsArrayNode)((RootNode)root).Expression;
@@ -46,9 +46,9 @@ public sealed class CteColumnListParserTests
     public void Recursive_WhenFollowedByAs_ShouldRemainAnOrdinaryCteName()
     {
         var lexer = new Lexer(
-            "with recursive as (select Value from values {( Value: 1 )} seed) " +
-            "select Value from recursive",
-            true);
+            "with recursive as (select Value from values {( Value: 1 )} seed) " + "select Value from recursive",
+            true
+        );
         var root = new Parser(lexer).ComposeAll();
 
         var statements = (StatementsArrayNode)((RootNode)root).Expression;
@@ -62,9 +62,10 @@ public sealed class CteColumnListParserTests
     public void Recursive_WhenFollowedByColumnList_ShouldRemainAnOrdinaryCteName()
     {
         var lexer = new Lexer(
-            "with recursive (Exported) as (select Value from values {( Value: 1 )} seed) " +
-            "select Exported from recursive",
-            true);
+            "with recursive (Exported) as (select Value from values {( Value: 1 )} seed) "
+                + "select Exported from recursive",
+            true
+        );
         var root = new Parser(lexer).ComposeAll();
 
         var statements = (StatementsArrayNode)((RootNode)root).Expression;

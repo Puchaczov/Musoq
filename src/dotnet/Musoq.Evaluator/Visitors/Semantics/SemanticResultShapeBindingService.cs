@@ -12,7 +12,8 @@ internal sealed class SemanticResultShapeBindingService(ResultShapeState resultS
         return AliasGenerator.CreateAliasIfEmpty(
             alias,
             resultShape.GeneratedAliases,
-            schemaFromKey.ToString(CultureInfo.InvariantCulture));
+            schemaFromKey.ToString(CultureInfo.InvariantCulture)
+        );
     }
 
     public void RegisterAlias(string alias)
@@ -24,7 +25,8 @@ internal sealed class SemanticResultShapeBindingService(ResultShapeState resultS
         SourceBindingState sourceBinding,
         List<FieldNode> fields,
         AllColumnsNode allColumnsNode,
-        ref int positionCounter)
+        ref int positionCounter
+    )
     {
         var identifier = !string.IsNullOrWhiteSpace(allColumnsNode.Alias)
             ? allColumnsNode.Alias
@@ -52,9 +54,12 @@ internal sealed class SemanticResultShapeBindingService(ResultShapeState resultS
     private static void AppendGeneratedColumns(
         List<FieldNode> fields,
         List<FieldNode> generatedColumns,
-        ref int positionCounter)
+        ref int positionCounter
+    )
     {
         foreach (var column in generatedColumns)
-            fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName, column.HasExplicitFieldName));
+            fields.Add(
+                new FieldNode(column.Expression, positionCounter++, column.FieldName, column.HasExplicitFieldName)
+            );
     }
 }

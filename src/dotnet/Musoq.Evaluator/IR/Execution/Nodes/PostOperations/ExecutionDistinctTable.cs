@@ -1,8 +1,6 @@
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionDistinctTable(
-    ExecutionVariable Source,
-    ExecutionVariable Target) : ExecutionNode
+public sealed record ExecutionDistinctTable(ExecutionVariable Source, ExecutionVariable Target) : ExecutionNode
 {
     private System.Collections.Generic.IReadOnlyList<FieldBinding> _keyFields = [];
     public System.Collections.Generic.IReadOnlyList<FieldBinding> KeyFields

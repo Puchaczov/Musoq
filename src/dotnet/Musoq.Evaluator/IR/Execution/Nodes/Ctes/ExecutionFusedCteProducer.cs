@@ -4,9 +4,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionFusedCteProducer : ExecutionNode
 {
-    public ExecutionFusedCteProducer(
-        IReadOnlyList<ExecutionFusedCteOutput> outputs,
-        ExecutionBlock body)
+    public ExecutionFusedCteProducer(IReadOnlyList<ExecutionFusedCteOutput> outputs, ExecutionBlock body)
     {
         Outputs = ExecutionIrCollections.Freeze(outputs);
         Body = body;

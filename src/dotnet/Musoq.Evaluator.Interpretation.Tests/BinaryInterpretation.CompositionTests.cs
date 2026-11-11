@@ -16,10 +16,13 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
     {
         var registry = new SchemaRegistry();
 
-        var textSchema = new TextSchemaNode("KeyValue", [
-            new TextFieldDefinitionNode("Key", TextFieldType.Until, ":", null, TextFieldModifier.Trim),
-            new TextFieldDefinitionNode("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim)
-        ]);
+        var textSchema = new TextSchemaNode(
+            "KeyValue",
+            [
+                new TextFieldDefinitionNode("Key", TextFieldType.Until, ":", null, TextFieldModifier.Trim),
+                new TextFieldDefinitionNode("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim),
+            ]
+        );
         registry.Register("KeyValue", textSchema);
 
         var sizeExpr = new IntegerNode("20");
@@ -46,9 +49,7 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
     {
         var registry = new SchemaRegistry();
 
-        var textSchema = new TextSchemaNode("SimpleText", [
-            new TextFieldDefinitionNode("Content", TextFieldType.Rest)
-        ]);
+        var textSchema = new TextSchemaNode("SimpleText", [new TextFieldDefinitionNode("Content", TextFieldType.Rest)]);
         registry.Register("SimpleText", textSchema);
 
         var sizeExpr = new IntegerNode("30");
@@ -74,10 +75,13 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
     {
         var registry = new SchemaRegistry();
 
-        var textSchema = new TextSchemaNode("KeyValue", [
-            new TextFieldDefinitionNode("Key", TextFieldType.Until, "=", null, TextFieldModifier.Trim),
-            new TextFieldDefinitionNode("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim)
-        ]);
+        var textSchema = new TextSchemaNode(
+            "KeyValue",
+            [
+                new TextFieldDefinitionNode("Key", TextFieldType.Until, "=", null, TextFieldModifier.Trim),
+                new TextFieldDefinitionNode("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim),
+            ]
+        );
         registry.Register("KeyValue", textSchema);
 
         var versionField = CreatePrimitiveField("Version", PrimitiveTypeName.Byte, Endianness.NotApplicable);
@@ -85,8 +89,7 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Ascii, StringModifier.Trim, "KeyValue");
         var configField = new FieldDefinitionNode("Config", stringType);
         var checksumField = CreatePrimitiveField("Checksum", PrimitiveTypeName.Byte, Endianness.NotApplicable);
-        var binarySchema =
-            new BinarySchemaNode("Packet", [versionField, configField, checksumField]);
+        var binarySchema = new BinarySchemaNode("Packet", [versionField, configField, checksumField]);
         registry.Register("Packet", binarySchema);
 
         var interpreter = CompileInterpreter(registry, "Packet");
@@ -112,10 +115,13 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
     {
         var registry = new SchemaRegistry();
 
-        var textSchema = new TextSchemaNode("KeyValue", [
-            new TextFieldDefinitionNode("Key", TextFieldType.Until, ":"),
-            new TextFieldDefinitionNode("Value", TextFieldType.Rest)
-        ]);
+        var textSchema = new TextSchemaNode(
+            "KeyValue",
+            [
+                new TextFieldDefinitionNode("Key", TextFieldType.Until, ":"),
+                new TextFieldDefinitionNode("Value", TextFieldType.Rest),
+            ]
+        );
         registry.Register("KeyValue", textSchema);
 
         var sizeExpr = new IntegerNode("20");
@@ -129,7 +135,8 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
         var data = new byte[20];
         "Host:localhost"u8.ToArray().CopyTo(data, 0);
         data[14] = 0x00;
-        for (var i = 15; i < 20; i++) data[i] = 0xFF;
+        for (var i = 15; i < 20; i++)
+            data[i] = 0xFF;
 
         var result = InvokeInterpret(interpreter, data);
         var parsedData = GetPropertyValue<object>(result, "Data");
@@ -182,8 +189,7 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
 
         var footerField = CreatePrimitiveField("Footer", PrimitiveTypeName.Byte, Endianness.NotApplicable);
 
-        var binarySchema =
-            new BinarySchemaNode("Packet", [preambleField, headerField, footerField]);
+        var binarySchema = new BinarySchemaNode("Packet", [preambleField, headerField, footerField]);
         registry.Register("Packet", binarySchema);
 
         var interpreter = CompileInterpreter(registry, "Packet");
@@ -268,8 +274,7 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
 
         var trailerField = CreatePrimitiveField("Trailer", PrimitiveTypeName.Byte, Endianness.NotApplicable);
 
-        var binarySchema =
-            new BinarySchemaNode("Packet", [markerField, emptyField, trailerField]);
+        var binarySchema = new BinarySchemaNode("Packet", [markerField, emptyField, trailerField]);
         registry.Register("Packet", binarySchema);
 
         var interpreter = CompileInterpreter(registry, "Packet");
@@ -290,8 +295,10 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Interpret_Int64_MaxValue_ShouldParseCorrectly()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreatePrimitiveField("Value", PrimitiveTypeName.Long, Endianness.LittleEndian));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreatePrimitiveField("Value", PrimitiveTypeName.Long, Endianness.LittleEndian)
+        );
 
         var data = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F };
 
@@ -304,9 +311,11 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Interpret_ExactSizedInput_NoExtraBytes_ShouldWork()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
             CreatePrimitiveField("A", PrimitiveTypeName.Byte, Endianness.NotApplicable),
-            CreatePrimitiveField("B", PrimitiveTypeName.Byte, Endianness.NotApplicable));
+            CreatePrimitiveField("B", PrimitiveTypeName.Byte, Endianness.NotApplicable)
+        );
 
         var data = new byte[] { 0x12, 0x34 };
 
@@ -319,8 +328,10 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Interpret_ExtraTrailingBytes_ShouldIgnoreThem()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreatePrimitiveField("Value", PrimitiveTypeName.Short, Endianness.LittleEndian));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreatePrimitiveField("Value", PrimitiveTypeName.Short, Endianness.LittleEndian)
+        );
 
         var data = new byte[] { 0x34, 0x12, 0xFF, 0xFF, 0xFF, 0xFF };
 
@@ -336,10 +347,7 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(0);
         var byteArrayType = new ByteArrayTypeNode(sizeExpr);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("EmptyPayload", byteArrayType)
-        };
+        var fields = new[] { new FieldDefinitionNode("EmptyPayload", byteArrayType) };
         var schema = new BinarySchemaNode("TestSchema", [.. fields]);
         registry.Register("TestSchema", schema);
 
@@ -356,17 +364,14 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Interpret_BigEndian_AllIntegerTypes_ShouldWork()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
             CreatePrimitiveField("Short", PrimitiveTypeName.Short, Endianness.BigEndian),
             CreatePrimitiveField("Int", PrimitiveTypeName.Int, Endianness.BigEndian),
-            CreatePrimitiveField("Long", PrimitiveTypeName.Long, Endianness.BigEndian));
+            CreatePrimitiveField("Long", PrimitiveTypeName.Long, Endianness.BigEndian)
+        );
 
-        var data = new byte[]
-        {
-            0x12, 0x34,
-            0x12, 0x34, 0x56, 0x78,
-            0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0
-        };
+        var data = new byte[] { 0x12, 0x34, 0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0 };
 
         var result = InvokeInterpret(interpreter, data);
 
@@ -386,15 +391,25 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
         var mask1 = new IntegerNode(1);
         var andExpr1 = new BitwiseAndNode(flagsRef1, mask1);
         var condition1 = new DiffNode(andExpr1, new IntegerNode(0));
-        var fieldA = new FieldDefinitionNode("A",
-            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable), null, null, condition1);
+        var fieldA = new FieldDefinitionNode(
+            "A",
+            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
+            null,
+            null,
+            condition1
+        );
 
         var flagsRef2 = new IdentifierNode("Flags");
         var mask2 = new IntegerNode(2);
         var andExpr2 = new BitwiseAndNode(flagsRef2, mask2);
         var condition2 = new DiffNode(andExpr2, new IntegerNode(0));
-        var fieldB = new FieldDefinitionNode("B",
-            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable), null, null, condition2);
+        var fieldB = new FieldDefinitionNode(
+            "B",
+            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
+            null,
+            null,
+            condition2
+        );
 
         var schema = new BinarySchemaNode("TestSchema", [flagsField, fieldA, fieldB]);
         registry.Register("TestSchema", schema);
@@ -421,15 +436,25 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
         var mask1 = new IntegerNode(1);
         var andExpr1 = new BitwiseAndNode(flagsRef1, mask1);
         var condition1 = new DiffNode(andExpr1, new IntegerNode(0));
-        var fieldA = new FieldDefinitionNode("A",
-            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable), null, null, condition1);
+        var fieldA = new FieldDefinitionNode(
+            "A",
+            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
+            null,
+            null,
+            condition1
+        );
 
         var flagsRef2 = new IdentifierNode("Flags");
         var mask2 = new IntegerNode(2);
         var andExpr2 = new BitwiseAndNode(flagsRef2, mask2);
         var condition2 = new DiffNode(andExpr2, new IntegerNode(0));
-        var fieldB = new FieldDefinitionNode("B",
-            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable), null, null, condition2);
+        var fieldB = new FieldDefinitionNode(
+            "B",
+            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
+            null,
+            null,
+            condition2
+        );
 
         var schema = new BinarySchemaNode("TestSchema", [flagsField, fieldA, fieldB]);
         registry.Register("TestSchema", schema);

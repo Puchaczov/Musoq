@@ -20,7 +20,8 @@ internal sealed record TargetRuntimeContract
         TargetLikeMatcherContract? likeMatcher = null,
         TargetRLikeMatcherContract? rLikeMatcher = null,
         bool requiresByteBufferSnapshots = false,
-        bool requiresInterpretationStatus = false)
+        bool requiresInterpretationStatus = false
+    )
     {
         PlanIdentifier = planIdentifier;
         SourceAccess = Freeze(sourceAccess);
@@ -67,15 +68,9 @@ internal sealed record TargetRuntimeContract
     }
 }
 
-internal sealed record TargetLikeMatcherContract(
-    int CacheCapacity,
-    string Comparison,
-    bool CultureAware);
+internal sealed record TargetLikeMatcherContract(int CacheCapacity, string Comparison, bool CultureAware);
 
-internal sealed record TargetRLikeMatcherContract(
-    int CacheCapacity,
-    bool CultureAware,
-    int TimeoutMilliseconds);
+internal sealed record TargetRLikeMatcherContract(int CacheCapacity, bool CultureAware, int TimeoutMilliseconds);
 
 internal sealed record TargetQueryRowSourceAccessContract
 {
@@ -86,7 +81,8 @@ internal sealed record TargetQueryRowSourceAccessContract
         ExecutionQueryRowCarrier carrier,
         ExecutionQueryRowLifetime lifetime,
         string shapeFingerprint,
-        IReadOnlyList<TargetQueryRowFieldContract>? fields)
+        IReadOnlyList<TargetQueryRowFieldContract>? fields
+    )
     {
         SourceContextId = string.IsNullOrWhiteSpace(sourceContextId)
             ? throw new ArgumentException("Source context id cannot be empty.", nameof(sourceContextId))
@@ -102,12 +98,16 @@ internal sealed record TargetQueryRowSourceAccessContract
         if (lifetime is not (ExecutionQueryRowLifetime.ScanLocal or ExecutionQueryRowLifetime.EscapesScan))
             throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, "Unknown query-row lifetime.");
         if (carrier == ExecutionQueryRowCarrier.ReadonlyStruct && lifetime != ExecutionQueryRowLifetime.ScanLocal)
-            throw new ArgumentException("A readonly-struct query-row carrier must remain scan-local.", nameof(lifetime));
+            throw new ArgumentException(
+                "A readonly-struct query-row carrier must remain scan-local.",
+                nameof(lifetime)
+            );
         if (!IsShapeFingerprint(shapeFingerprint))
         {
             throw new ArgumentException(
                 "A query-row shape fingerprint must be a 64-character hexadecimal digest.",
-                nameof(shapeFingerprint));
+                nameof(shapeFingerprint)
+            );
         }
 
         var fieldValues = (fields ?? []).OrderBy(static field => field.Slot).ToArray();
@@ -117,7 +117,13 @@ internal sealed record TargetQueryRowSourceAccessContract
                 throw new ArgumentException("Query-row field slots must be dense and zero-based.", nameof(fields));
         }
 
-        if (fieldValues.Where(static field => field.ComputedExpressionIdentity is null).Select(static field => field.SourceColumnIndex).Distinct().Count() != fieldValues.Count(static field => field.ComputedExpressionIdentity is null))
+        if (
+            fieldValues
+                .Where(static field => field.ComputedExpressionIdentity is null)
+                .Select(static field => field.SourceColumnIndex)
+                .Distinct()
+                .Count() != fieldValues.Count(static field => field.ComputedExpressionIdentity is null)
+        )
             throw new ArgumentException("Query-row source ordinals must be unique.", nameof(fields));
 
         Carrier = carrier;
@@ -142,9 +148,9 @@ internal sealed record TargetQueryRowSourceAccessContract
 
     private static bool IsShapeFingerprint(string value)
     {
-        return !string.IsNullOrWhiteSpace(value) &&
-               value.Length == 64 &&
-               value.All(static character => Uri.IsHexDigit(character));
+        return !string.IsNullOrWhiteSpace(value)
+            && value.Length == 64
+            && value.All(static character => Uri.IsHexDigit(character));
     }
 }
 
@@ -156,10 +162,9 @@ internal sealed record TargetQueryRowFieldContract
         string name,
         ExecutionPortableTypeDescriptor type,
         bool isNullable,
-        IReadOnlyDictionary<string, string>? readModifiers)
-        : this(slot, sourceColumnIndex, name, type, type, null, isNullable, readModifiers)
-    {
-    }
+        IReadOnlyDictionary<string, string>? readModifiers
+    )
+        : this(slot, sourceColumnIndex, name, type, type, null, isNullable, readModifiers) { }
 
     public TargetQueryRowFieldContract(
         int slot,
@@ -170,7 +175,8 @@ internal sealed record TargetQueryRowFieldContract
         TargetEnumTypeAbiContract? enumType,
         bool isNullable,
         IReadOnlyDictionary<string, string>? readModifiers,
-        string? computedExpressionIdentity = null)
+        string? computedExpressionIdentity = null
+    )
     {
         if (slot < 0)
             throw new ArgumentOutOfRangeException(nameof(slot));
@@ -190,7 +196,8 @@ internal sealed record TargetQueryRowFieldContract
         ReadModifiers = new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(
             readModifiers is null
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
+                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal)
+        );
     }
 
     public string? ComputedExpressionIdentity { get; }
@@ -221,10 +228,9 @@ internal sealed record TargetSourceAccessContract
         string methodName,
         ExecutionPortableTypeDescriptor rowsType,
         ExecutionPortableTypeDescriptor? sourceType,
-        IReadOnlyList<TargetFieldContract>? fields)
-        : this(kind, sourceContextId, schemaName, methodName, rowsType, sourceType, [], fields, [], [])
-    {
-    }
+        IReadOnlyList<TargetFieldContract>? fields
+    )
+        : this(kind, sourceContextId, schemaName, methodName, rowsType, sourceType, [], fields, [], []) { }
 
     public TargetSourceAccessContract(
         string kind,
@@ -236,7 +242,8 @@ internal sealed record TargetSourceAccessContract
         IReadOnlyList<ExecutionPortableTypeDescriptor>? argumentTypes,
         IReadOnlyList<TargetFieldContract>? fields,
         IReadOnlyList<TargetSourcePlanOperation>? acceptedOperations,
-        IReadOnlyList<TargetRuntimeSettingAbiContract>? runtimeSettings)
+        IReadOnlyList<TargetRuntimeSettingAbiContract>? runtimeSettings
+    )
     {
         Kind = kind;
         SourceContextId = sourceContextId;
@@ -276,9 +283,7 @@ internal sealed record TargetSourceAccessContract
     }
 }
 
-internal sealed record TargetPluginInvocationContract(
-    string Detail,
-    ExecutionPortableCallableDescriptor Callable);
+internal sealed record TargetPluginInvocationContract(string Detail, ExecutionPortableCallableDescriptor Callable);
 
 internal sealed record TargetRowShapeContract
 {
@@ -286,7 +291,8 @@ internal sealed record TargetRowShapeContract
         string kind,
         string name,
         ExecutionPortableTypeDescriptor? typeSymbol,
-        IReadOnlyList<TargetFieldContract>? fields)
+        IReadOnlyList<TargetFieldContract>? fields
+    )
     {
         Kind = kind;
         Name = name;
@@ -315,10 +321,9 @@ internal sealed record TargetFieldContract
         string qualifiedName,
         ExecutionPortableTypeDescriptor type,
         ExecutionPortableTypeDescriptor publicType,
-        string nullability)
-        : this(0, name, qualifiedName, type, publicType, nullability, null)
-    {
-    }
+        string nullability
+    )
+        : this(0, name, qualifiedName, type, publicType, nullability, null) { }
 
     public TargetFieldContract(
         int index,
@@ -327,10 +332,9 @@ internal sealed record TargetFieldContract
         ExecutionPortableTypeDescriptor type,
         ExecutionPortableTypeDescriptor publicType,
         string nullability,
-        IReadOnlyDictionary<string, string>? readModifiers)
-        : this(index, name, qualifiedName, type, publicType, publicType, null, nullability, readModifiers)
-    {
-    }
+        IReadOnlyDictionary<string, string>? readModifiers
+    )
+        : this(index, name, qualifiedName, type, publicType, publicType, null, nullability, readModifiers) { }
 
     public TargetFieldContract(
         int index,
@@ -341,7 +345,8 @@ internal sealed record TargetFieldContract
         ExecutionPortableTypeDescriptor sourceReadType,
         TargetEnumTypeAbiContract? enumType,
         string nullability,
-        IReadOnlyDictionary<string, string>? readModifiers)
+        IReadOnlyDictionary<string, string>? readModifiers
+    )
     {
         Index = index;
         Name = name;
@@ -354,7 +359,8 @@ internal sealed record TargetFieldContract
         ReadModifiers = new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(
             readModifiers is null
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
+                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal)
+        );
     }
 
     public int Index { get; }
@@ -381,13 +387,16 @@ internal sealed record TargetSourceRuntimeMetadata
     public TargetSourceRuntimeMetadata(
         string sourceContextId,
         IEnumerable<TargetSourcePlanOperation>? acceptedOperations,
-        IEnumerable<TargetRuntimeSettingAbiContract>? runtimeSettings)
+        IEnumerable<TargetRuntimeSettingAbiContract>? runtimeSettings
+    )
     {
         SourceContextId = sourceContextId;
         AcceptedOperations = Array.AsReadOnly(
-            (acceptedOperations ?? []).Distinct().OrderBy(static operation => operation).ToArray());
+            (acceptedOperations ?? []).Distinct().OrderBy(static operation => operation).ToArray()
+        );
         RuntimeSettings = Array.AsReadOnly(
-            (runtimeSettings ?? []).OrderBy(static setting => setting.Key, StringComparer.Ordinal).ToArray());
+            (runtimeSettings ?? []).OrderBy(static setting => setting.Key, StringComparer.Ordinal).ToArray()
+        );
     }
 
     public string SourceContextId { get; }
@@ -401,19 +410,20 @@ internal sealed record TargetNullBehaviorContract(
     bool UsesNullableValueTypes,
     bool UsesObjectNulls,
     bool UsesFieldNullabilityMetadata,
-    string Semantics);
+    string Semantics
+);
 
-internal sealed record TargetCancellationContract(
-    bool RequiresCancellationToken,
-    bool RequiresParallelCancellation);
+internal sealed record TargetCancellationContract(bool RequiresCancellationToken, bool RequiresParallelCancellation);
 
 internal sealed record TargetDiagnosticsContract(
     bool RequiresBuildDiagnostics,
     bool RequiresSourceDiagnostics,
-    bool RequiresRuntimeExceptionDiagnostics);
+    bool RequiresRuntimeExceptionDiagnostics
+);
 
 internal sealed record TargetProfilingContract(
     bool SupportsSourceBoundaryProfiling,
     bool SupportsOperatorProfiling,
     int SourceBoundaryCount,
-    int OperatorCount);
+    int OperatorCount
+);

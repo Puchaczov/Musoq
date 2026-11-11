@@ -8,10 +8,8 @@ namespace Musoq.Parser.Exceptions;
 /// </summary>
 public class ParserValidationException : ArgumentException, IDiagnosticException
 {
+    public ParserValidationException() { }
 
-    public ParserValidationException()
-    {
-    }
     /// <summary>
     ///     Initializes a new instance of ParserValidationException.
     /// </summary>

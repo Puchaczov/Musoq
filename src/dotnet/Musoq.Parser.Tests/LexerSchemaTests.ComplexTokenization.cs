@@ -79,7 +79,6 @@ public partial class LexerSchemaTests
         lexer.Next();
         Assert.AreEqual(TokenType.Colon, lexer.Current().TokenType);
 
-
         lexer.Next();
         Assert.AreEqual(TokenType.StringType, lexer.Current().TokenType, "Expected StringType token");
 
@@ -123,7 +122,6 @@ public partial class LexerSchemaTests
         lexer.Next();
         lexer.Next();
         lexer.Next();
-
 
         lexer.Next();
         Assert.AreEqual(TokenType.ByteType, lexer.Current().TokenType);
@@ -177,7 +175,10 @@ public partial class LexerSchemaTests
     [TestMethod]
     public void BinarySchemaWithCheck_ShouldTokenizeCorrectly()
     {
-        var lexer = new Lexer("binary Header { Magic: int le check Magic = 0xDEADBEEF }", true) { IsSchemaContext = true };
+        var lexer = new Lexer("binary Header { Magic: int le check Magic = 0xDEADBEEF }", true)
+        {
+            IsSchemaContext = true,
+        };
 
         lexer.Next();
         lexer.Next();
@@ -210,7 +211,6 @@ public partial class LexerSchemaTests
         lexer.Next();
         lexer.Next();
 
-
         lexer.Next();
         Assert.AreEqual(TokenType.StringType, lexer.Current().TokenType, "Expected StringType token");
 
@@ -236,7 +236,10 @@ public partial class LexerSchemaTests
     [TestMethod]
     public void SchemaWithExtends_ShouldTokenizeCorrectly()
     {
-        var lexer = new Lexer("binary TextMessage extends BaseMessage { Content: string[Length] utf8 }", true) { IsSchemaContext = true };
+        var lexer = new Lexer("binary TextMessage extends BaseMessage { Content: string[Length] utf8 }", true)
+        {
+            IsSchemaContext = true,
+        };
 
         lexer.Next();
         Assert.AreEqual(TokenType.Binary, lexer.Current().TokenType);

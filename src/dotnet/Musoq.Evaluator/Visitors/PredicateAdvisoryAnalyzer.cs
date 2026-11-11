@@ -11,10 +11,17 @@ internal static partial class PredicateAdvisoryAnalyzer
     public static void Analyze(SemanticAdvisoryContext context)
     {
         var resolver = new PredicateConstantResolver(context.Query);
-        var variables = context.Metadata.ScriptVariableDefinitions
-            .ToDictionary(static definition => definition.Name, StringComparer.Ordinal);
-        VisitStructure(context, resolver, variables, context.Query,
-            new HashSet<Node>(ReferenceEqualityComparer.Instance));
+        var variables = context.Metadata.ScriptVariableDefinitions.ToDictionary(
+            static definition => definition.Name,
+            StringComparer.Ordinal
+        );
+        VisitStructure(
+            context,
+            resolver,
+            variables,
+            context.Query,
+            new HashSet<Node>(ReferenceEqualityComparer.Instance)
+        );
     }
 
     private static void VisitStructure(
@@ -22,7 +29,8 @@ internal static partial class PredicateAdvisoryAnalyzer
         PredicateConstantResolver resolver,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
         Node node,
-        HashSet<Node> visited)
+        HashSet<Node> visited
+    )
     {
         if (!visited.Add(node))
             return;
@@ -61,7 +69,8 @@ internal static partial class PredicateAdvisoryAnalyzer
         PredicateConstantResolver resolver,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
         JoinType joinType,
-        Node predicate)
+        Node predicate
+    )
     {
         if (joinType == JoinType.Cross)
             return;
@@ -74,7 +83,8 @@ internal static partial class PredicateAdvisoryAnalyzer
         PredicateConstantResolver resolver,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
         Node predicate,
-        string clauseName)
+        string clauseName
+    )
     {
         var analyzed = new HashSet<Node>(ReferenceEqualityComparer.Instance);
         AnalyzePredicateNode(context, resolver, variables, predicate, analyzed, true, clauseName);
@@ -87,7 +97,8 @@ internal static partial class PredicateAdvisoryAnalyzer
         Node node,
         HashSet<Node> analyzed,
         bool reportGeneric,
-        string clauseName)
+        string clauseName
+    )
     {
         if (!analyzed.Add(node))
             return;
@@ -98,14 +109,17 @@ internal static partial class PredicateAdvisoryAnalyzer
         if (reportGeneric && TryReportSelfComparison(context, node))
             return;
 
-        if (reportGeneric &&
-            node is IsNullNode { IsNegated: false, Expression: AccessColumnNode column } &&
-            IsStaticallyNonNullable(column.ReturnType))
+        if (
+            reportGeneric
+            && node is IsNullNode { IsNegated: false, Expression: AccessColumnNode column }
+            && IsStaticallyNonNullable(column.ReturnType)
+        )
         {
             context.Report(
                 DiagnosticCode.MQ5011_ContradictoryCondition,
                 "Predicate checks IS NULL on a statically non-nullable column and can never be true.",
-                node.Span);
+                node.Span
+            );
             return;
         }
 
@@ -138,7 +152,8 @@ internal static partial class PredicateAdvisoryAnalyzer
     private static bool TryReportNullComparison(
         SemanticAdvisoryContext context,
         PredicateConstantResolver resolver,
-        Node node)
+        Node node
+    )
     {
         if (!IsComparison(node) || !TryFindNullOperand(resolver, node, out var nullOperand))
             return false;
@@ -148,7 +163,8 @@ internal static partial class PredicateAdvisoryAnalyzer
         context.Report(
             DiagnosticCode.MQ5017_NullComparison,
             ErrorCatalog.GetMessage(DiagnosticCode.MQ5017_NullComparison, symbol),
-            span);
+            span
+        );
         return true;
     }
 
@@ -156,7 +172,8 @@ internal static partial class PredicateAdvisoryAnalyzer
         SemanticAdvisoryContext context,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
         Node node,
-        string clauseName)
+        string clauseName
+    )
     {
         if (ContainsNullComparison(node, variables))
             return;
@@ -165,9 +182,7 @@ internal static partial class PredicateAdvisoryAnalyzer
         if (!result.Success || result.Value is not bool value)
             return;
 
-        var code = value
-            ? DiagnosticCode.MQ5010_TautologicalCondition
-            : DiagnosticCode.MQ5011_ContradictoryCondition;
+        var code = value ? DiagnosticCode.MQ5010_TautologicalCondition : DiagnosticCode.MQ5011_ContradictoryCondition;
         var message = value
             ? $"{clauseName} clause always evaluates to true and has no effect."
             : $"{clauseName} clause always evaluates to false; no rows will be returned.";
@@ -176,7 +191,8 @@ internal static partial class PredicateAdvisoryAnalyzer
 
     private static bool ContainsNullComparison(
         Node node,
-        IReadOnlyDictionary<string, ScriptVariableDefinition> variables)
+        IReadOnlyDictionary<string, ScriptVariableDefinition> variables
+    )
     {
         if (IsComparison(node) && HasNullConstant(node, variables))
             return true;
@@ -191,19 +207,20 @@ internal static partial class PredicateAdvisoryAnalyzer
         return false;
     }
 
-    private static bool IsComparison(Node node) => node is EqualityNode or DiffNode or GreaterNode or
-        GreaterOrEqualNode or LessNode or LessOrEqualNode;
+    private static bool IsComparison(Node node) =>
+        node is EqualityNode or DiffNode or GreaterNode or GreaterOrEqualNode or LessNode or LessOrEqualNode;
 
-    private static string GetComparisonSymbol(Node node) => node switch
-    {
-        EqualityNode => "=",
-        DiffNode => "<>",
-        GreaterNode => ">",
-        GreaterOrEqualNode => ">=",
-        LessNode => "<",
-        LessOrEqualNode => "<=",
-        _ => "comparison"
-    };
+    private static string GetComparisonSymbol(Node node) =>
+        node switch
+        {
+            EqualityNode => "=",
+            DiffNode => "<>",
+            GreaterNode => ">",
+            GreaterOrEqualNode => ">=",
+            LessNode => "<",
+            LessOrEqualNode => "<=",
+            _ => "comparison",
+        };
 
     private static bool IsStaticallyNonNullable(Type? type)
     {

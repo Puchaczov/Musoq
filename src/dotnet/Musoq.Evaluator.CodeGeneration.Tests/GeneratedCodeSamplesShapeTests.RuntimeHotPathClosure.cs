@@ -19,7 +19,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 IntersectSampleFileName,
                 InSubqueryBasicSampleFileName,
                 InnerJoinSampleFileName,
-                CteSidecarHashJoinSampleFileName)
+                CteSidecarHashJoinSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         var distinct = samples["Q08_Distinct.cs"];
@@ -36,7 +37,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         var directJoin = samples[InnerJoinSampleFileName];
         Assert.Contains("CreateHash [bHash: int -> BasicEntity]", directJoin);
-        Assert.Contains("new Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>>()", directJoin);
+        Assert.Contains(
+            "new Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>>()",
+            directJoin
+        );
 
         var sidecar = samples[CteSidecarHashJoinSampleFileName];
         Assert.Contains("CreateHash [cte0HashSidecar0Id: int -> Row]", sidecar);
@@ -50,7 +54,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             CteSidecarHashJoinSampleFileName,
             CteSidecarKeySetSemiJoinSampleFileName,
             CteSidecarFanoutThreeHashesSampleFileName,
-            CteSidecarStagedGraphMixedSampleFileName);
+            CteSidecarStagedGraphMixedSampleFileName
+        );
 
         Assert.HasCount(4, samples);
 
@@ -59,10 +64,22 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             var generatedCode = ExtractGeneratedCodeSection(sample.Content);
             AssertSampleUsesTypedCteIndexResults(sample.Content);
             AssertSampleDoesNotUseCteRowResults(sample.Content);
-            Assert.IsFalse(generatedCode.Contains("Musoq.Evaluator.Tables.Table BuildCte", StringComparison.Ordinal), sample.FileName);
-            Assert.IsFalse(generatedCode.Contains("ContextMaterializer.Merge", StringComparison.Ordinal), sample.FileName);
-            Assert.IsFalse(generatedCode.Contains("object[] _cteIndexResults", StringComparison.Ordinal), sample.FileName);
-            Assert.IsFalse(generatedCode.Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal), sample.FileName);
+            Assert.IsFalse(
+                generatedCode.Contains("Musoq.Evaluator.Tables.Table BuildCte", StringComparison.Ordinal),
+                sample.FileName
+            );
+            Assert.IsFalse(
+                generatedCode.Contains("ContextMaterializer.Merge", StringComparison.Ordinal),
+                sample.FileName
+            );
+            Assert.IsFalse(
+                generatedCode.Contains("object[] _cteIndexResults", StringComparison.Ordinal),
+                sample.FileName
+            );
+            Assert.IsFalse(
+                generatedCode.Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal),
+                sample.FileName
+            );
             Assert.IsFalse(generatedCode.Contains("_tableResults[", StringComparison.Ordinal), sample.FileName);
         }
     }
@@ -70,18 +87,42 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChunkedSourceSamples_WhenCheckedIn_ShouldUseCachedCountLoopsAndCancellationChecks()
     {
-        var simpleSelect = ReadSample("Q01_SimpleSelectWhere.cs")
-            .Content;
+        var simpleSelect = ReadSample("Q01_SimpleSelectWhere.cs").Content;
 
         Assert.Contains("foreach (var ko3ikoChunk in ko3ikoRows)", simpleSelect);
-        Assert.IsFalse(simpleSelect.Contains("ko3ikoChunk is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[]", StringComparison.Ordinal));
-        Assert.IsFalse(simpleSelect.Contains("ko3ikoChunk is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>", StringComparison.Ordinal));
-        Assert.Contains("if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)", simpleSelect);
-        Assert.Contains("if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)", simpleSelect);
-        Assert.Contains("if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)", simpleSelect);
+        Assert.IsFalse(
+            simpleSelect.Contains(
+                "ko3ikoChunk is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[]",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.IsFalse(
+            simpleSelect.Contains(
+                "ko3ikoChunk is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.Contains(
+            "if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)",
+            simpleSelect
+        );
+        Assert.Contains(
+            "if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)",
+            simpleSelect
+        );
+        Assert.Contains(
+            "if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)",
+            simpleSelect
+        );
         Assert.Contains("int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;", simpleSelect);
-        Assert.Contains("for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)", simpleSelect);
-        Assert.Contains("for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)", simpleSelect);
+        Assert.Contains(
+            "for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)",
+            simpleSelect
+        );
+        Assert.Contains(
+            "for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)",
+            simpleSelect
+        );
         Assert.Contains("if ((ko3ikoIndex & 1023) == 0)", simpleSelect);
         Assert.Contains("token.ThrowIfCancellationRequested();", simpleSelect);
     }
@@ -92,7 +133,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var samples = ReadNamedSamples(CteBackedAsOfJoinSampleFileName, InnerJoinSampleFileName)
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var cteGeneratedCode = ExtractGeneratedCodeSection(samples[CteBackedAsOfJoinSampleFileName]);
-        var cteMethod = CSharpSyntaxTree.ParseText(cteGeneratedCode)
+        var cteMethod = CSharpSyntaxTree
+            .ParseText(cteGeneratedCode)
             .GetRoot()
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
@@ -104,8 +146,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             Regex.IsMatch(
                 cteMethodBody,
                 @"if \(\([A-Za-z0-9_]+Index & 1023\) == 0\).*?token\.ThrowIfCancellationRequested\(\);",
-                RegexOptions.Singleline),
-            cteMethodBody);
+                RegexOptions.Singleline
+            ),
+            cteMethodBody
+        );
 
         var hashJoinComputeMethod = GetComputeMethod(samples[InnerJoinSampleFileName]);
         Assert.Contains("foreach (var bChunk in bRows)", hashJoinComputeMethod);
@@ -119,10 +163,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var samples = ReadAllSamples();
 
-        Assert.IsFalse(samples.Any(static sample =>
-            sample.Content.Contains("EvaluationHelper.ConvertEnumerableToChunks", StringComparison.Ordinal)));
-        Assert.IsTrue(samples.Any(static sample =>
-            sample.Content.Contains("EvaluationHelper.ConvertEnumerableOutputToChunks", StringComparison.Ordinal)));
+        Assert.IsFalse(
+            samples.Any(static sample =>
+                sample.Content.Contains("EvaluationHelper.ConvertEnumerableToChunks", StringComparison.Ordinal)
+            )
+        );
+        Assert.IsTrue(
+            samples.Any(static sample =>
+                sample.Content.Contains("EvaluationHelper.ConvertEnumerableOutputToChunks", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -132,7 +182,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .SelectMany(static sample =>
             {
                 var generatedCode = ExtractGeneratedCodeSection(sample.Content);
-                return CSharpSyntaxTree.ParseText(generatedCode)
+                return CSharpSyntaxTree
+                    .ParseText(generatedCode)
                     .GetRoot()
                     .DescendantNodes()
                     .OfType<ForEachStatementSyntax>()
@@ -143,6 +194,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             offenders,
-            $"Generated foreach statements must use braces: {string.Join(Environment.NewLine, offenders)}");
+            $"Generated foreach statements must use braces: {string.Join(Environment.NewLine, offenders)}"
+        );
     }
 }

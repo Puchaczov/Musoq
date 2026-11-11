@@ -1,6 +1,6 @@
 namespace Musoq.Evaluator.IR.Execution.Lowering;
-internal sealed class PipelinePlanLowerer(
-    IPipelineLoweringService service)
+
+internal sealed class PipelinePlanLowerer(IPipelineLoweringService service)
 {
     public LoweringAttempt<ExecutionPlan> TryBuildPipelinePlan(PhysicalToExecutionLoweringContext context)
     {
@@ -30,7 +30,8 @@ internal sealed class PipelinePlanLowerer(
                 context.CteIndexes,
                 context.CteShapesByName,
                 context.SchemaFromIndex,
-                context.Scope);
+                context.Scope
+            );
     }
 
     public LoweringAttempt<LoweredTable> TryBuildSetOperationTable(PhysicalToExecutionTableLoweringContext context)
@@ -45,6 +46,7 @@ internal sealed class PipelinePlanLowerer(
                 context.CteIndexes,
                 context.CteShapesByName,
                 context.SchemaFromIndex,
-                context.Scope);
+                context.Scope
+            );
     }
 }

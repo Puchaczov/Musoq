@@ -6,7 +6,8 @@ internal static partial class SourcePredicateConjunctMatcher
 {
     public static bool TryCollectSourceAndConjuncts(
         SourcePredicateExpression acceptedPredicate,
-        out IReadOnlyList<SourcePredicateExpression> conjuncts)
+        out IReadOnlyList<SourcePredicateExpression> conjuncts
+    )
     {
         var result = new List<SourcePredicateExpression>();
         if (!TryAddSourceAndConjuncts(acceptedPredicate, result))
@@ -21,15 +22,15 @@ internal static partial class SourcePredicateConjunctMatcher
 
     private static bool TryAddSourceAndConjuncts(
         SourcePredicateExpression predicate,
-        ICollection<SourcePredicateExpression> conjuncts)
+        ICollection<SourcePredicateExpression> conjuncts
+    )
     {
         if (predicate is SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.Or })
             return false;
 
         if (predicate is SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } and)
         {
-            return TryAddSourceAndConjuncts(and.Left, conjuncts) &&
-                   TryAddSourceAndConjuncts(and.Right, conjuncts);
+            return TryAddSourceAndConjuncts(and.Left, conjuncts) && TryAddSourceAndConjuncts(and.Right, conjuncts);
         }
 
         conjuncts.Add(predicate);

@@ -48,11 +48,14 @@ public sealed partial class ExecutionShapeResolver
         Scope scope,
         string alias,
         ref TableSymbol? firstMatch,
-        ref TableSymbol? firstTypedMatch)
+        ref TableSymbol? firstTypedMatch
+    )
     {
-        if (scope.ScopeSymbolTable.TryGetSymbol(alias, out TableSymbol? tableSymbol) &&
-            tableSymbol is not null &&
-            tableSymbol.ContainsAlias(alias))
+        if (
+            scope.ScopeSymbolTable.TryGetSymbol(alias, out TableSymbol? tableSymbol)
+            && tableSymbol is not null
+            && tableSymbol.ContainsAlias(alias)
+        )
         {
             firstMatch ??= tableSymbol;
 
@@ -91,10 +94,10 @@ public sealed partial class ExecutionShapeResolver
         type = Nullable.GetUnderlyingType(type) ?? type;
 
         return type.IsPrimitive
-               || type == typeof(string)
-               || type == typeof(decimal)
-               || type == typeof(DateTime)
-               || type == typeof(Guid);
+            || type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(DateTime)
+            || type == typeof(Guid);
     }
 
     private static bool IsRowSourceType(Type type)

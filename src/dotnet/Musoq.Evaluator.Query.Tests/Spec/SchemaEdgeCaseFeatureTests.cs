@@ -26,20 +26,31 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_ZeroLengthArray_ShouldProduceNoElements()
     {
-        var query = @"
-            binary Item { Value: byte };
-            binary Container { Count: byte, Items: Item[Count] };
-            select i.Value from #test.files() b
-            cross apply Interpret<Container>(b.Content) c
-            cross apply c.Items i";
+        var query = (
+            "\n"
+            + "            binary Item { Value: byte };\n"
+            + "            binary Container { Count: byte, Items: Item[Count] };\n"
+            + "            select i.Value from #test.files() b\n"
+            + "            cross apply Interpret<Container>(b.Content) c\n"
+            + "            cross apply c.Items i"
+        );
 
         var testData = new byte[] { 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(0, table.Count);
@@ -55,18 +66,29 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_SingleByteSchema_ShouldParseMinimalData()
     {
-        var query = @"
-            binary Minimal { Value: byte };
-            select d.Value from #test.files() b
-            cross apply Interpret<Minimal>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Minimal { Value: byte };\n"
+            + "            select d.Value from #test.files() b\n"
+            + "            cross apply Interpret<Minimal>(b.Content) d"
+        );
 
         var testData = new byte[] { 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -83,27 +105,33 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_MaxValues_ShouldParseCorrectly()
     {
-        var query = @"
-            binary MaxTypes { 
-                MaxByte: byte,
-                MaxShort: short le,
-                MaxInt: int le
-            };
-            select d.MaxByte, d.MaxShort, d.MaxInt from #test.files() b
-            cross apply Interpret<MaxTypes>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary MaxTypes { \n"
+            + "                MaxByte: byte,\n"
+            + "                MaxShort: short le,\n"
+            + "                MaxInt: int le\n"
+            + "            };\n"
+            + "            select d.MaxByte, d.MaxShort, d.MaxInt from #test.files() b\n"
+            + "            cross apply Interpret<MaxTypes>(b.Content) d"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0xFF, 0xFF, 0x7F, 0xFF, 0xFF, 0xFF, 0x7F };
+        var entities = new[]
         {
-            0xFF,
-            0xFF, 0x7F,
-            0xFF, 0xFF, 0xFF, 0x7F
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -122,22 +150,33 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_ZeroValues_ShouldParseAsZero()
     {
-        var query = @"
-            binary ZeroData { 
-                A: byte,
-                B: short le,
-                C: int le
-            };
-            select d.A, d.B, d.C from #test.files() b
-            cross apply Interpret<ZeroData>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary ZeroData { \n"
+            + "                A: byte,\n"
+            + "                B: short le,\n"
+            + "                C: int le\n"
+            + "            };\n"
+            + "            select d.A, d.B, d.C from #test.files() b\n"
+            + "            cross apply Interpret<ZeroData>(b.Content) d"
+        );
 
         var testData = "\u0000\u0000\u0000\u0000\u0000\u0000\u0000"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -156,25 +195,33 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_ConditionalBothBranches_ShouldHandleEach()
     {
-        var query = @"
-            binary Data { 
-                HasPayload: byte,
-                Payload: int le when HasPayload <> 0
-            };
-            select d.HasPayload, d.Payload from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d
-            order by d.HasPayload asc";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                HasPayload: byte,\n"
+            + "                Payload: int le when HasPayload <> 0\n"
+            + "            };\n"
+            + "            select d.HasPayload, d.Payload from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d\n"
+            + "            order by d.HasPayload asc"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "with.bin", Data = [0x01, 0x2A, 0x00, 0x00, 0x00] },
-            new BinaryEntity { Name = "without.bin", Data = [0x00] }
+            new BinaryEntity { Name = "without.bin", Data = [0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -194,22 +241,33 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_ZeroLengthString_ShouldReturnEmpty()
     {
-        var query = @"
-            binary Data { 
-                Len: byte,
-                Text: string[Len] utf8,
-                Suffix: byte
-            };
-            select d.Text, d.Suffix from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Len: byte,\n"
+            + "                Text: string[Len] utf8,\n"
+            + "                Suffix: byte\n"
+            + "            };\n"
+            + "            select d.Text, d.Suffix from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var testData = new byte[] { 0x00, 0xAB };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -227,15 +285,17 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_TryInterpretMixedFiles_ShouldFilterInvalid()
     {
-        var query = @"
-            binary Packet { 
-                Magic: short le check Magic = 0x1234,
-                Data: byte
-            };
-            select b.Name, d.Data from #test.files() b
-            cross apply TryInterpret<Packet>(b.Content) d
-            where d.Data is not null
-            order by d.Data asc";
+        var query = (
+            "\n"
+            + "            binary Packet { \n"
+            + "                Magic: short le check Magic = 0x1234,\n"
+            + "                Data: byte\n"
+            + "            };\n"
+            + "            select b.Name, d.Data from #test.files() b\n"
+            + "            cross apply TryInterpret<Packet>(b.Content) d\n"
+            + "            where d.Data is not null\n"
+            + "            order by d.Data asc"
+        );
 
         var valid1 = new byte[] { 0x34, 0x12, 0x0A };
         var invalid = new byte[] { 0x00, 0x00, 0x0B };
@@ -244,13 +304,19 @@ public class SchemaEdgeCaseFeatureTests
         {
             new BinaryEntity { Name = "a.bin", Content = valid1 },
             new BinaryEntity { Name = "b.bin", Content = invalid },
-            new BinaryEntity { Name = "c.bin", Content = valid2 }
+            new BinaryEntity { Name = "c.bin", Content = valid2 },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -268,27 +334,35 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Text_TryParseMixedLines_ShouldReturnOnlyMatching()
     {
-        var query = @"
-            text Config { 
-                _: literal '[',
-                Section: between '[' ']'
-            };
-            select d.Section from #test.lines() l
-            cross apply TryParse<Config>(l.Line) d
-            where d.Section is not null
-            order by d.Section asc";
+        var query = (
+            "\n"
+            + "            text Config { \n"
+            + "                _: literal '[',\n"
+            + "                Section: between '[' ']'\n"
+            + "            };\n"
+            + "            select d.Section from #test.lines() l\n"
+            + "            cross apply TryParse<Config>(l.Line) d\n"
+            + "            where d.Section is not null\n"
+            + "            order by d.Section asc"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "1.txt", Text = "[[database]]" },
             new TextEntity { Name = "2.txt", Text = "key=value" },
-            new TextEntity { Name = "3.txt", Text = "[[server]]" }
+            new TextEntity { Name = "3.txt", Text = "[[server]]" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -306,20 +380,31 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_SingleItemArray_ShouldParseOneElement()
     {
-        var query = @"
-            binary Item { Value: short le };
-            binary Container { Count: byte, Items: Item[Count] };
-            select i.Value from #test.files() b
-            cross apply Interpret<Container>(b.Content) c
-            cross apply c.Items i";
+        var query = (
+            "\n"
+            + "            binary Item { Value: short le };\n"
+            + "            binary Container { Count: byte, Items: Item[Count] };\n"
+            + "            select i.Value from #test.files() b\n"
+            + "            cross apply Interpret<Container>(b.Content) c\n"
+            + "            cross apply c.Items i"
+        );
 
         var testData = new byte[] { 0x01, 0x2A, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -336,27 +421,33 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_NegativeValues_ShouldParseCorrectly()
     {
-        var query = @"
-            binary SignedData { 
-                SignedByte: sbyte,
-                SignedShort: short le,
-                SignedInt: int le
-            };
-            select d.SignedByte, d.SignedShort, d.SignedInt from #test.files() b
-            cross apply Interpret<SignedData>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary SignedData { \n"
+            + "                SignedByte: sbyte,\n"
+            + "                SignedShort: short le,\n"
+            + "                SignedInt: int le\n"
+            + "            };\n"
+            + "            select d.SignedByte, d.SignedShort, d.SignedInt from #test.files() b\n"
+            + "            cross apply Interpret<SignedData>(b.Content) d"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x80, 0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF };
+        var entities = new[]
         {
-            0x80,
-            0x00, 0x80,
-            0xFF, 0xFF, 0xFF, 0xFF
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -375,20 +466,28 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Text_EmptyRest_ShouldReturnEmptyString()
     {
-        var query = @"
-            text Data { Prefix: until ':', Suffix: rest };
-            select d.Prefix, d.Suffix from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { Prefix: until ':', Suffix: rest };\n"
+            + "            select d.Prefix, d.Suffix from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "test.txt", Text = "end:" }
+            new TextEntity { Name = "test.txt", Text = "end:" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -406,25 +505,32 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_BigEndianVariousTypes_ShouldParseCorrectly()
     {
-        var query = @"
-            binary NetworkPacket { 
-                ShortBE: short be,
-                IntBE: int be
-            };
-            select n.ShortBE, n.IntBE from #test.files() b
-            cross apply Interpret<NetworkPacket>(b.Content) n";
+        var query = (
+            "\n"
+            + "            binary NetworkPacket { \n"
+            + "                ShortBE: short be,\n"
+            + "                IntBE: int be\n"
+            + "            };\n"
+            + "            select n.ShortBE, n.IntBE from #test.files() b\n"
+            + "            cross apply Interpret<NetworkPacket>(b.Content) n"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x00, 0x50, 0x00, 0x00, 0x00, 0xC8 };
+        var entities = new[]
         {
-            0x00, 0x50,
-            0x00, 0x00, 0x00, 0xC8
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -442,27 +548,35 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_OnlyComputedAfterFirst_ShouldCalculateAll()
     {
-        var query = @"
-            binary Data { 
-                Raw: byte,
-                TimesTwo: = Raw * 2,
-                PlusTen: = Raw + 10,
-                IsHigh: = Raw > 100
-            };
-            select d.Raw, d.TimesTwo, d.PlusTen, d.IsHigh from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d
-            order by d.Raw asc";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Raw: byte,\n"
+            + "                TimesTwo: = Raw * 2,\n"
+            + "                PlusTen: = Raw + 10,\n"
+            + "                IsHigh: = Raw > 100\n"
+            + "            };\n"
+            + "            select d.Raw, d.TimesTwo, d.PlusTen, d.IsHigh from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d\n"
+            + "            order by d.Raw asc"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = [0xC8] },
-            new BinaryEntity { Name = "2.bin", Data = [0x32] }
+            new BinaryEntity { Name = "2.bin", Data = [0x32] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -480,27 +594,33 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_UnsignedMaxBoundary_ShouldParseCorrectly()
     {
-        var query = @"
-            binary UnsignedMax { 
-                UByte: byte,
-                UShortVal: ushort le,
-                UIntVal: uint le
-            };
-            select d.UByte, d.UShortVal, d.UIntVal from #test.files() b
-            cross apply Interpret<UnsignedMax>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary UnsignedMax { \n"
+            + "                UByte: byte,\n"
+            + "                UShortVal: ushort le,\n"
+            + "                UIntVal: uint le\n"
+            + "            };\n"
+            + "            select d.UByte, d.UShortVal, d.UIntVal from #test.files() b\n"
+            + "            cross apply Interpret<UnsignedMax>(b.Content) d"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+        var entities = new[]
         {
-            0xFF,
-            0xFF, 0xFF,
-            0xFF, 0xFF, 0xFF, 0xFF
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -519,22 +639,33 @@ public class SchemaEdgeCaseFeatureTests
     [TestMethod]
     public void Binary_ZeroLengthByteArray_ShouldReturnEmpty()
     {
-        var query = @"
-            binary Data { 
-                Len: byte,
-                Payload: byte[Len],
-                Trailer: byte
-            };
-            select d.Len, d.Trailer from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Len: byte,\n"
+            + "                Payload: byte[Len],\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select d.Len, d.Trailer from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var testData = new byte[] { 0x00, 0xAA };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

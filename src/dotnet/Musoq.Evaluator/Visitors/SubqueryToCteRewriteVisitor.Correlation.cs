@@ -16,13 +16,17 @@ public partial class SubqueryToCteRewriteVisitor
 
     private static (Node? RemainingExpression, List<SubqueryInfo> Subqueries) AttachCorrelation(
         (Node? RemainingExpression, List<SubqueryInfo> Subqueries) extracted,
-        SubqueryCorrelationAnalysis analysis)
+        SubqueryCorrelationAnalysis analysis
+    )
     {
         ValidateSubqueryAnalysis(analysis);
 
-        return (extracted.RemainingExpression, extracted.Subqueries
-            .Select(info => info with { Correlation = FindCorrelation(info.PredicateNode, analysis) })
-            .ToList());
+        return (
+            extracted.RemainingExpression,
+            extracted
+                .Subqueries.Select(info => info with { Correlation = FindCorrelation(info.PredicateNode, analysis) })
+                .ToList()
+        );
     }
 
     private static void ValidateSubqueryAnalysis(SubqueryCorrelationAnalysis analysis)
@@ -36,7 +40,8 @@ public partial class SubqueryToCteRewriteVisitor
     private static CorrelatedSubqueryRewrite RewriteCorrelatedSubqueryIfNeeded(
         QueryNode query,
         SubqueryInfo subqueryInfo,
-        string cteName)
+        string cteName
+    )
     {
         var correlation = subqueryInfo.Correlation;
         if (correlation is not { IsCorrelated: true })
@@ -52,26 +57,20 @@ public partial class SubqueryToCteRewriteVisitor
         if (correlated.Length == 0)
             ThrowUnsupportedCorrelation(subqueryInfo);
 
-        var local = conjuncts
-            .Where(predicate => !correlated.Contains(predicate))
-            .ToArray();
+        var local = conjuncts.Where(predicate => !correlated.Contains(predicate)).ToArray();
         var projections = CollectCorrelationProjections(correlated, correlation.LocalAliases, cteName);
-        var rewrittenQuery = AddCorrelationProjectionFields(
-            query,
-            projections,
-            CombineConjuncts(local));
+        var rewrittenQuery = AddCorrelationProjectionFields(query, projections, CombineConjuncts(local));
         var joinPredicate = RewriteCorrelatedPredicatesForJoin(
             correlated,
             projections,
             correlation.LocalAliases,
-            cteName);
+            cteName
+        );
 
         return new CorrelatedSubqueryRewrite(rewrittenQuery, joinPredicate);
     }
 
-    private static SubqueryCorrelationInfo? FindCorrelation(
-        Node node,
-        SubqueryCorrelationAnalysis analysis)
+    private static SubqueryCorrelationInfo? FindCorrelation(Node node, SubqueryCorrelationAnalysis analysis)
     {
         return analysis.Subqueries.FirstOrDefault(info => ReferenceEquals(info.Node, node));
     }
@@ -79,7 +78,8 @@ public partial class SubqueryToCteRewriteVisitor
     private static QueryNode AddCorrelationProjectionFields(
         QueryNode query,
         CorrelationProjection[] projections,
-        Node? localWhere)
+        Node? localWhere
+    )
     {
         if (projections.Length == 0 && ReferenceEquals(localWhere, query.Where?.Expression))
             return query;
@@ -96,9 +96,11 @@ public partial class SubqueryToCteRewriteVisitor
                     projection.Alias,
                     projection.ReturnType,
                     projection.Span,
-                    projection.IntendedTypeName),
+                    projection.IntendedTypeName
+                ),
                 query.Select.Fields.Length + i,
-                projection.CteColumnName);
+                projection.CteColumnName
+            );
         }
 
         return new QueryNode(
@@ -111,7 +113,8 @@ public partial class SubqueryToCteRewriteVisitor
             query.Take,
             query.Window,
             query.Qualify,
-            default);
+            default
+        );
     }
 
     [DoesNotReturn]
@@ -121,7 +124,8 @@ public partial class SubqueryToCteRewriteVisitor
         throw SubqueryDiagnosticFactory.InvalidSubquery(
             $"correlated {predicateName} rewrite",
             $"Correlated {predicateName} subqueries must place outer references in the subquery WHERE clause.",
-            info.PredicateNode);
+            info.PredicateNode
+        );
     }
 
     private sealed record CorrelatedSubqueryRewrite(QueryNode Query, Node? JoinPredicate);

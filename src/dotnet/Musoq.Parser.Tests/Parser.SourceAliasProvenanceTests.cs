@@ -39,7 +39,8 @@ public sealed class ParserSourceAliasProvenanceTests
     public void CteReference_ShouldProvideANaturalApplyAddress()
     {
         var query = ParseSingleQuery(
-            "with cteName as (select 1 from #schema.items()) select item.Value from cteName cross apply cteName.Column item");
+            "with cteName as (select 1 from #schema.items()) select item.Value from cteName cross apply cteName.Column item"
+        );
         var apply = GetApply(query);
 
         var source = Assert.IsInstanceOfType<InMemoryTableFromNode>(apply.Source);
@@ -51,7 +52,8 @@ public sealed class ParserSourceAliasProvenanceTests
     public void NewlyAliasedApplySource_ShouldAddressAChainedApply()
     {
         var query = ParseSingleQuery(
-            "select item2.Value from source cross apply source.Column item cross apply item.Next item2");
+            "select item2.Value from source cross apply source.Column item cross apply item.Next item2"
+        );
         var outerApply = GetApply(query);
 
         var innerApply = Assert.IsInstanceOfType<ApplyFromNode>(outerApply.Source);
@@ -66,7 +68,8 @@ public sealed class ParserSourceAliasProvenanceTests
     public void NestedQuerySourceScopes_ShouldRemainIndependent()
     {
         var query = ParseSingleQuery(
-            "select outerItem.Value from outerSource cross apply (select innerSource.Value from innerSource) outerItem");
+            "select outerItem.Value from outerSource cross apply (select innerSource.Value from innerSource) outerItem"
+        );
 
         var apply = GetApply(query);
         var outerSource = Assert.IsInstanceOfType<InMemoryTableFromNode>(apply.Source);

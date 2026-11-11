@@ -12,7 +12,8 @@ public sealed record ExecutionSetOperation : ExecutionNode
         SetOpKind kind,
         IReadOnlyList<int> fieldIndexes,
         IReadOnlyList<ExecutionTypeRef> fieldTypes,
-        ExecutionSetOperationStrategy strategy = ExecutionSetOperationStrategy.GeneratedEqualityLoop)
+        ExecutionSetOperationStrategy strategy = ExecutionSetOperationStrategy.GeneratedEqualityLoop
+    )
     {
         Target = target;
         Left = left;
@@ -42,8 +43,8 @@ public sealed record ExecutionSetOperation : ExecutionNode
         SetOpKind kind,
         IReadOnlyList<int> fieldIndexes,
         IReadOnlyList<Type> fieldTypes,
-        ExecutionSetOperationStrategy strategy = ExecutionSetOperationStrategy.GeneratedEqualityLoop)
+        ExecutionSetOperationStrategy strategy = ExecutionSetOperationStrategy.GeneratedEqualityLoop
+    )
         : this(target, left, right, kind, fieldIndexes, ExecutionClrBindingFactory.FromClrTypes(fieldTypes), strategy)
-    {
-    }
+    { }
 }

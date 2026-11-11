@@ -26,8 +26,8 @@ public sealed class RecursiveCteShapeAnalyzer
     /// <summary>
     ///     Retained for callers that do not distinguish validation stages.
     /// </summary>
-    public IReadOnlyDictionary<string, RecursiveCteShapeDescriptor> Analyze(CteExpressionNode cte)
-        => AnalyzeRawSyntax(cte);
+    public IReadOnlyDictionary<string, RecursiveCteShapeDescriptor> Analyze(CteExpressionNode cte) =>
+        AnalyzeRawSyntax(cte);
 
     private static IReadOnlyDictionary<string, RecursiveCteShapeDescriptor> AnalyzeCore(CteExpressionNode cte)
     {
@@ -53,7 +53,8 @@ public sealed class RecursiveCteShapeAnalyzer
                     DiagnosticCode.MQ3074_InvalidRecursiveCteReference,
                     $"CTE '{definition.Name}' references forward CTE '{reference}'.",
                     FindFirstReference(definition.Value, reference) ?? definition,
-                    definition);
+                    definition
+                );
             }
 
             var selfReferenceCount = references.GetValueOrDefault(definition.Name);
@@ -64,11 +65,10 @@ public sealed class RecursiveCteShapeAnalyzer
             {
                 Throw(
                     DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword,
-                    ErrorCatalog.GetMessage(
-                        DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword,
-                        definition.Name),
+                    ErrorCatalog.GetMessage(DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword, definition.Name),
                     FindFirstReference(definition.Value, definition.Name) ?? definition,
-                    definition);
+                    definition
+                );
             }
 
             descriptors.Add(definition.Name, AnalyzeDefinition(definition));
@@ -84,7 +84,8 @@ public sealed class RecursiveCteShapeAnalyzer
             Throw(
                 DiagnosticCode.MQ3073_InvalidRecursiveCteShape,
                 $"CTE '{definition.Name}' must have one top-level UNION boundary.",
-                definition);
+                definition
+            );
         }
 
         var boundary = (SetOperatorNode)definition.Value;
@@ -93,7 +94,8 @@ public sealed class RecursiveCteShapeAnalyzer
             Throw(
                 DiagnosticCode.MQ3073_InvalidRecursiveCteShape,
                 $"CTE '{definition.Name}' must have exactly one anchor query and one recursive member.",
-                boundary);
+                boundary
+            );
             throw new InvalidOperationException("Unreachable recursive CTE shape validation path.");
         }
 
@@ -104,7 +106,8 @@ public sealed class RecursiveCteShapeAnalyzer
                 DiagnosticCode.MQ3074_InvalidRecursiveCteReference,
                 $"The anchor of recursive CTE '{definition.Name}' cannot reference itself.",
                 anchorReferences.FirstReference ?? anchor,
-                anchor);
+                anchor
+            );
         }
 
         var recursiveReferences = ScanReferences(recursiveMember, definition.Name);
@@ -114,7 +117,8 @@ public sealed class RecursiveCteShapeAnalyzer
                 DiagnosticCode.MQ3074_InvalidRecursiveCteReference,
                 $"The recursive member of CTE '{definition.Name}' must reference itself exactly once; found {recursiveReferences.Count}.",
                 recursiveReferences.FirstReference ?? recursiveMember,
-                recursiveMember);
+                recursiveMember
+            );
         }
 
         if (recursiveReferences.HasNestedReference)
@@ -123,7 +127,8 @@ public sealed class RecursiveCteShapeAnalyzer
                 DiagnosticCode.MQ3074_InvalidRecursiveCteReference,
                 $"The self-reference of recursive CTE '{definition.Name}' cannot appear in a nested query.",
                 recursiveReferences.FirstReference ?? recursiveMember,
-                recursiveMember);
+                recursiveMember
+            );
         }
 
         if (boundary is UnionAllNode && boundary.Keys.Length > 0)
@@ -143,16 +148,10 @@ public sealed class RecursiveCteShapeAnalyzer
             UnionAllNode => RecursiveCteUnionKind.All,
             UnionNode when boundary.Keys.Length == 0 => RecursiveCteUnionKind.FullRow,
             UnionNode => RecursiveCteUnionKind.Keyed,
-            _ => throw new InvalidOperationException("Unsupported recursive CTE union boundary.")
+            _ => throw new InvalidOperationException("Unsupported recursive CTE union boundary."),
         };
 
-        return new RecursiveCteShapeDescriptor(
-            definition,
-            anchor,
-            recursiveMember,
-            boundary,
-            unionKind,
-            boundary.Keys);
+        return new RecursiveCteShapeDescriptor(definition, anchor, recursiveMember, boundary, unionKind, boundary.Keys);
     }
 
     private static void ValidateRecursiveMemberOperators(QueryNode member)
@@ -185,9 +184,15 @@ public sealed class RecursiveCteShapeAnalyzer
 
         if (!ReferenceEquals(node, rootMember) && node is QueryNode nestedQuery)
         {
-            if (nestedQuery.GroupBy != null || nestedQuery.OrderBy != null || nestedQuery.Window != null ||
-                nestedQuery.Qualify != null || nestedQuery.Skip != null || nestedQuery.Take != null ||
-                nestedQuery.Select.IsDistinct)
+            if (
+                nestedQuery.GroupBy != null
+                || nestedQuery.OrderBy != null
+                || nestedQuery.Window != null
+                || nestedQuery.Qualify != null
+                || nestedQuery.Skip != null
+                || nestedQuery.Take != null
+                || nestedQuery.Select.IsDistinct
+            )
             {
                 ThrowUnsupported("nested query operator", nestedQuery);
             }
@@ -198,8 +203,7 @@ public sealed class RecursiveCteShapeAnalyzer
             case JoinFromNode join when join.JoinType is not (JoinType.Inner or JoinType.Cross):
                 ThrowUnsupported($"{join.JoinType} join", join);
                 break;
-            case JoinInMemoryWithSourceTableFromNode join
-                when join.JoinType is not (JoinType.Inner or JoinType.Cross):
+            case JoinInMemoryWithSourceTableFromNode join when join.JoinType is not (JoinType.Inner or JoinType.Cross):
                 ThrowUnsupported($"{join.JoinType} join", join);
                 break;
             case UnpivotFromNode:
@@ -219,10 +223,7 @@ public sealed class RecursiveCteShapeAnalyzer
         return references;
     }
 
-    private static void CountReferences(
-        Node node,
-        IReadOnlySet<string> knownNames,
-        IDictionary<string, int> references)
+    private static void CountReferences(Node node, IReadOnlySet<string> knownNames, IDictionary<string, int> references)
     {
         var name = GetReferencedCteName(node);
         if (name != null && knownNames.Contains(name))
@@ -242,12 +243,7 @@ public sealed class RecursiveCteShapeAnalyzer
         return scan;
     }
 
-    private static void ScanReferences(
-        Node node,
-        string cteName,
-        ReferenceScan scan,
-        int queryDepth,
-        bool isRoot)
+    private static void ScanReferences(Node node, string cteName, ReferenceScan scan, int queryDepth, bool isRoot)
     {
         if (!isRoot && node is QueryNode)
             queryDepth++;
@@ -270,7 +266,7 @@ public sealed class RecursiveCteShapeAnalyzer
             InMemoryTableFromNode source => source.VariableName,
             JoinInMemoryWithSourceTableFromNode join => join.InMemoryTableAlias,
             ApplyInMemoryWithSourceTableFromNode apply => apply.InMemoryTableAlias,
-            _ => null
+            _ => null,
         };
     }
 
@@ -308,11 +304,10 @@ public sealed class RecursiveCteShapeAnalyzer
     {
         Throw(
             DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator,
-            ErrorCatalog.GetMessage(
-                DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator,
-                operatorName),
+            ErrorCatalog.GetMessage(DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator, operatorName),
             node,
-            fallback);
+            fallback
+        );
     }
 
     private static void Throw(DiagnosticCode code, string message, Node node, Node? fallback = null)

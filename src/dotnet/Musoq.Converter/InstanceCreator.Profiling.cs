@@ -11,7 +11,8 @@ public static partial class InstanceCreator
         string script,
         string assemblyName,
         ISchemaProvider schemaProvider,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver
+    )
     {
         return Profile(script, assemblyName, schemaProvider, loggerResolver, null, CancellationToken.None);
     }
@@ -21,7 +22,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         return Profile(script, assemblyName, schemaProvider, loggerResolver, null, token);
     }
@@ -31,9 +33,17 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CompilationOptions? compilationOptions)
+        CompilationOptions? compilationOptions
+    )
     {
-        return Profile(script, assemblyName, schemaProvider, loggerResolver, compilationOptions, CancellationToken.None);
+        return Profile(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            CancellationToken.None
+        );
     }
 
     public static QueryProfileResult Profile(
@@ -42,7 +52,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         return CompileForProfile(script, assemblyName, schemaProvider, loggerResolver, compilationOptions, token)
             .RunWithProfile(token);
@@ -52,7 +63,8 @@ public static partial class InstanceCreator
         string script,
         string assemblyName,
         ISchemaProvider schemaProvider,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver
+    )
     {
         return CompileForProfile(script, assemblyName, schemaProvider, loggerResolver, null, CancellationToken.None);
     }
@@ -62,7 +74,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CompileForProfile(script, assemblyName, schemaProvider, loggerResolver, null, cancellationToken);
     }
@@ -72,7 +85,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CompilationOptions? compilationOptions)
+        CompilationOptions? compilationOptions
+    )
     {
         return CompileForProfile(
             script,
@@ -80,7 +94,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             compilationOptions,
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     public static CompiledQuery CompileForProfile(
@@ -89,7 +104,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CompileForExecution(
             script,
@@ -97,7 +113,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             CreateProfileCompilationOptions(compilationOptions),
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     private static CompilationOptions CreateProfileCompilationOptions(CompilationOptions? compilationOptions)

@@ -20,14 +20,15 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_DifferentColumnsCanUseDifferentEncodings()
     {
         const string query =
-            "table RecordsShape { Utf8Name: string encoding 'utf-8', Utf16Name: string encoding 'utf-16le' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Utf8Name, Utf16Name from Records()";
+            "table RecordsShape { Utf8Name: string encoding 'utf-8', Utf16Name: string encoding 'utf-16le' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Utf8Name, Utf16Name from Records()";
         var rows = new[]
         {
             Row(
                 ("Utf8Name", Encoding.UTF8.GetBytes("Za\u017c\u00f3\u0142\u0107")),
-                ("Utf16Name", Encoding.Unicode.GetBytes("\u0141\u00f3d\u017a")))
+                ("Utf16Name", Encoding.Unicode.GetBytes("\u0141\u00f3d\u017a"))
+            ),
         };
 
         var table = Run(query, rows);
@@ -35,28 +36,26 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Utf8Name", typeof(string)),
-            ("Utf16Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Za\u017c\u00f3\u0142\u0107", "\u0141\u00f3d\u017a"]);
+            ("Utf16Name", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Za\u017c\u00f3\u0142\u0107", "\u0141\u00f3d\u017a"]
+        );
     }
 
     [TestMethod]
     public void ReadModifiers_TrimAffectsStringsAndParsedNumericValues()
     {
         const string query =
-            "table RecordsShape { Name: string trim, Amount: decimal trim };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Name, Amount from Records()";
-        var rows = new[]
-        {
-            Row(("Name", "  Ada  "), ("Amount", "  12.50  "))
-        };
+            "table RecordsShape { Name: string trim, Amount: decimal trim };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Name, Amount from Records()";
+        var rows = new[] { Row(("Name", "  Ada  "), ("Amount", "  12.50  ")) };
 
         var table = Run(query, rows);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Amount", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Amount", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Ada", 12.50m]);
     }
 
@@ -64,39 +63,33 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_CultureParsesDecimalForWhereOrderByAndProjection()
     {
         const string query =
-            "table RecordsShape { Name: string, Amount: decimal culture 'pl-PL' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Name, Amount from Records() where Amount > 2 order by Amount";
+            "table RecordsShape { Name: string, Amount: decimal culture 'pl-PL' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Name, Amount from Records() where Amount > 2 order by Amount";
         var rows = new[]
         {
             Row(("Name", "Low"), ("Amount", "1,20")),
             Row(("Name", "High"), ("Amount", "10,50")),
-            Row(("Name", "Mid"), ("Amount", "2,40"))
+            Row(("Name", "Mid"), ("Amount", "2,40")),
         };
 
         var table = Run(query, rows);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Amount", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Mid", 2.40m],
-            ["High", 10.50m]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Amount", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Mid", 2.40m], ["High", 10.50m]);
     }
 
     [TestMethod]
     public void ReadModifiers_FormatParsesDateValuesForOrderingAndProjection()
     {
         const string query =
-            "table RecordsShape { Label: string, EventDate: datetime format 'dd.MM.yyyy' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Label, EventDate from Records() order by EventDate";
+            "table RecordsShape { Label: string, EventDate: datetime format 'dd.MM.yyyy' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Label, EventDate from Records() order by EventDate";
         var rows = new[]
         {
             Row(("Label", "Newer"), ("EventDate", "02.01.2024")),
-            Row(("Label", "Older"), ("EventDate", "31.12.2023"))
+            Row(("Label", "Older"), ("EventDate", "31.12.2023")),
         };
 
         var table = Run(query, rows);
@@ -104,20 +97,22 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Label", typeof(string)),
-            ("EventDate", typeof(DateTime?)));
+            ("EventDate", typeof(DateTime?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Older", new DateTime(2023, 12, 31)],
-            ["Newer", new DateTime(2024, 1, 2)]);
+            ["Newer", new DateTime(2024, 1, 2)]
+        );
     }
 
     [TestMethod]
     public void ReadModifiers_SourceCodecBase64DecodesPayloadText()
     {
         const string query =
-            "table RecordsShape { Payload: string source codec 'base64' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Payload from Records()";
+            "table RecordsShape { Payload: string source codec 'base64' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Payload from Records()";
         var payload = Convert.ToBase64String(Encoding.UTF8.GetBytes("payload text"));
         var rows = new[] { Row(("Payload", payload)) };
 
@@ -131,9 +126,9 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_MissingModifiersUseDatasourceDefaultsAndEmitNoContractDiagnostics()
     {
         const string query =
-            "table RecordsShape { Name: string };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Name from Records()";
+            "table RecordsShape { Name: string };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Name from Records()";
         var rows = new[] { Row(("Name", Encoding.UTF8.GetBytes("Default text"))) };
         var provider = new ReadModifiersSchemaProvider(rows);
 
@@ -142,7 +137,8 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = result.CompiledQuery!.Run();
 
         Assert.IsTrue(result.Succeeded);
@@ -156,15 +152,12 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_LenientUnsupportedEncodingReportsWarningAndCompileSucceeds()
     {
         const string query =
-            "table RecordsShape { Name: string encoding 'windows-1250' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Name from Records()";
+            "table RecordsShape { Name: string encoding 'windows-1250' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Name from Records()";
         var rows = new[] { Row(("Name", Encoding.UTF8.GetBytes("Lenient text"))) };
 
-        var result = CompileWithDiagnostics(
-            query,
-            rows,
-            ReadModifiersValidationMode.LenientUnsupportedModifiers);
+        var result = CompileWithDiagnostics(query, rows, ReadModifiersValidationMode.LenientUnsupportedModifiers);
 
         var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning);
         Assert.IsTrue(result.Succeeded);
@@ -183,15 +176,12 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_StrictUtf8EncodingReportsErrorForDifferentEncoding()
     {
         const string query =
-            "table RecordsShape { Name: string encoding 'utf-16le' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Name from Records()";
+            "table RecordsShape { Name: string encoding 'utf-16le' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Name from Records()";
         var rows = new[] { Row(("Name", Encoding.Unicode.GetBytes("Strict text"))) };
 
-        var result = CompileWithDiagnostics(
-            query,
-            rows,
-            ReadModifiersValidationMode.StrictUtf8Encoding);
+        var result = CompileWithDiagnostics(query, rows, ReadModifiersValidationMode.StrictUtf8Encoding);
 
         var error = result.Errors.Single(item => item.Code == DiagnosticCode.MQ3071_SourceContractError);
         Assert.IsFalse(result.Succeeded);
@@ -206,20 +196,16 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_SourceKindConflictReportsColumnError()
     {
         const string query =
-            "table RecordsShape { Amount: decimal };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Amount from Records()";
+            "table RecordsShape { Amount: decimal };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Amount from Records()";
         var rows = new[] { Row(("Amount", "12.50")) };
         var sourceKinds = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Amount"] = typeof(string)
+            ["Amount"] = typeof(string),
         };
 
-        var result = CompileWithDiagnostics(
-            query,
-            rows,
-            ReadModifiersValidationMode.ValidateSourceKinds,
-            sourceKinds);
+        var result = CompileWithDiagnostics(query, rows, ReadModifiersValidationMode.ValidateSourceKinds, sourceKinds);
 
         var error = result.Errors.Single(item => item.Code == DiagnosticCode.MQ3071_SourceContractError);
         Assert.IsFalse(result.Succeeded);
@@ -233,9 +219,9 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_InfoDiagnosticsAppearOnlyInPlanningText()
     {
         const string query =
-            "table RecordsShape { Name: string };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Name from Records()";
+            "table RecordsShape { Name: string };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Name from Records()";
         var rows = new[] { Row(("Name", "Info text")) };
         var provider = new ReadModifiersSchemaProvider(rows, ReadModifiersValidationMode.ReportInfo);
 
@@ -244,7 +230,8 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var result = CompileWithDiagnostics(query, rows, ReadModifiersValidationMode.ReportInfo);
 
         Assert.IsFalse(result.Warnings.Any(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
@@ -257,18 +244,15 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_DuplicateDescriptorAndPlanDiagnosticsAreDeduplicated()
     {
         const string query =
-            "table RecordsShape { Name: string encoding 'windows-1250' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Name from Records()";
+            "table RecordsShape { Name: string encoding 'windows-1250' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Name from Records()";
         var rows = new[] { Row(("Name", Encoding.UTF8.GetBytes("Duplicate text"))) };
 
-        var result = CompileWithDiagnostics(
-            query,
-            rows,
-            ReadModifiersValidationMode.LenientUnsupportedModifiers);
+        var result = CompileWithDiagnostics(query, rows, ReadModifiersValidationMode.LenientUnsupportedModifiers);
 
-        var warnings = result.Warnings
-            .Where(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        var warnings = result
+            .Warnings.Where(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
             .ToArray();
         Assert.AreEqual(1, warnings.Length);
         Assert.Contains("origin=DescribeSource", warnings[0].Message);
@@ -278,19 +262,16 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_TwoAliasesUsingSameTableMapDiagnosticsToTableModifierSpan()
     {
         const string query =
-            "table RecordsShape { Name: string encoding 'windows-1250' };" +
-            "couple #readmods.records with table RecordsShape as FirstRecords;" +
-            "couple #readmods.records with table RecordsShape as SecondRecords;" +
-            "select a.Name, b.Name from FirstRecords() a inner join SecondRecords() b on 1 = 1";
+            "table RecordsShape { Name: string encoding 'windows-1250' };"
+            + "couple #readmods.records with table RecordsShape as FirstRecords;"
+            + "couple #readmods.records with table RecordsShape as SecondRecords;"
+            + "select a.Name, b.Name from FirstRecords() a inner join SecondRecords() b on 1 = 1";
         var rows = new[] { Row(("Name", Encoding.UTF8.GetBytes("Alias text"))) };
 
-        var result = CompileWithDiagnostics(
-            query,
-            rows,
-            ReadModifiersValidationMode.LenientUnsupportedModifiers);
+        var result = CompileWithDiagnostics(query, rows, ReadModifiersValidationMode.LenientUnsupportedModifiers);
 
-        var warnings = result.Warnings
-            .Where(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        var warnings = result
+            .Warnings.Where(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
             .OrderBy(item => item.Message, StringComparer.Ordinal)
             .ToArray();
         var expectedSpan = CreateExpectedSpan(query, "encoding 'windows-1250'");
@@ -306,27 +287,31 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_SourceApisSeeSameModifierMap()
     {
         const string query =
-            "table RecordsShape { Name: string encoding 'utf-8' trim, Payload: string source codec 'base64' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Name, Payload from Records()";
-        var rows = new[]
-        {
-            Row(("Name", Encoding.UTF8.GetBytes("  API text  ")), ("Payload", "cGF5bG9hZA=="))
-        };
+            "table RecordsShape { Name: string encoding 'utf-8' trim, Payload: string source codec 'base64' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Name, Payload from Records()";
+        var rows = new[] { Row(("Name", Encoding.UTF8.GetBytes("  API text  ")), ("Payload", "cGF5bG9hZA==")) };
         var provider = new ReadModifiersSchemaProvider(rows);
 
         var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Payload", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Payload", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["API text", "payload"]);
         AssertColumnModifier(provider.Recorder.GetTableColumns.Last(), "Name", ColumnReadModifiers.Encoding, "utf-8");
         AssertColumnModifier(provider.Recorder.GetTableColumns.Last(), "Name", ColumnReadModifiers.Trim, "true");
         AssertColumnModifier(provider.Recorder.DescriptorColumns.Single(), "Payload", "source.codec", "base64");
-        AssertColumnRefModifier(provider.Recorder.PlanRequests.Single().RequiredColumns, "Name", ColumnReadModifiers.Encoding, "utf-8");
-        AssertColumnRefModifier(provider.Recorder.PlanRequests.Single().RequiredColumns, "Payload", "source.codec", "base64");
+        AssertColumnRefModifier(
+            provider.Recorder.PlanRequests.Single().RequiredColumns,
+            "Name",
+            ColumnReadModifiers.Encoding,
+            "utf-8"
+        );
+        AssertColumnRefModifier(
+            provider.Recorder.PlanRequests.Single().RequiredColumns,
+            "Payload",
+            "source.codec",
+            "base64"
+        );
         AssertColumnModifier(provider.Recorder.ExecutionColumns.Single(), "Name", ColumnReadModifiers.Trim, "true");
         AssertColumnModifier(provider.Recorder.ExecutionColumns.Single(), "Payload", "source.codec", "base64");
     }
@@ -335,12 +320,12 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_RequiredColumnPruningKeepsOnlyRequestedColumnModifiers()
     {
         const string query =
-            "table RecordsShape { Name: string encoding 'utf-8', Payload: string source codec 'base64', Amount: decimal culture 'pl-PL' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "select Name from Records()";
+            "table RecordsShape { Name: string encoding 'utf-8', Payload: string source codec 'base64', Amount: decimal culture 'pl-PL' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "select Name from Records()";
         var rows = new[]
         {
-            Row(("Name", Encoding.UTF8.GetBytes("Name only")), ("Payload", "cGF5bG9hZA=="), ("Amount", "1,20"))
+            Row(("Name", Encoding.UTF8.GetBytes("Name only")), ("Payload", "cGF5bG9hZA=="), ("Amount", "1,20")),
         };
         var provider = new ReadModifiersSchemaProvider(rows);
 
@@ -360,52 +345,55 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     public void ReadModifiers_CteJoinGroupingSortingAndPredicatesKeepModifiersBeforeSourceExecution()
     {
         const string query =
-            "table RecordsShape { Id: int, Category: string encoding 'utf-8' trim, Amount: decimal culture 'pl-PL' trim };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "with filtered as (select Id, Category, Amount from Records() where Amount > 1) " +
-            "select f.Category, Count(r.Id) as C from filtered f inner join Records() r on f.Category = r.Category " +
-            "group by f.Category order by f.Category";
+            "table RecordsShape { Id: int, Category: string encoding 'utf-8' trim, Amount: decimal culture 'pl-PL' trim };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "with filtered as (select Id, Category, Amount from Records() where Amount > 1) "
+            + "select f.Category, Count(r.Id) as C from filtered f inner join Records() r on f.Category = r.Category "
+            + "group by f.Category order by f.Category";
         var rows = new[]
         {
             Row(("Id", 1), ("Category", Encoding.UTF8.GetBytes(" A ")), ("Amount", " 1,20 ")),
             Row(("Id", 2), ("Category", Encoding.UTF8.GetBytes(" A ")), ("Amount", " 2,40 ")),
-            Row(("Id", 3), ("Category", Encoding.UTF8.GetBytes(" B ")), ("Amount", " 3,50 "))
+            Row(("Id", 3), ("Category", Encoding.UTF8.GetBytes(" B ")), ("Amount", " 3,50 ")),
         };
         var provider = new ReadModifiersSchemaProvider(rows);
 
         var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run();
-        var requiredColumns = provider.Recorder.PlanRequests.SelectMany(static request => request.RequiredColumns).ToArray();
+        var requiredColumns = provider
+            .Recorder.PlanRequests.SelectMany(static request => request.RequiredColumns)
+            .ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Category", typeof(string)),
-            ("C", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["A", 4L],
-            ["B", 1L]);
-        Assert.IsTrue(requiredColumns.Any(column =>
-            column.Name == "Amount" &&
-            column.ReadModifiers.TryGetValue(ColumnReadModifiers.Culture, out var culture) &&
-            culture == "pl-PL"));
-        Assert.IsTrue(requiredColumns
-            .Where(static column => column.Name == "Category")
-            .All(static column => column.ReadModifiers.ContainsKey(ColumnReadModifiers.Encoding)));
-        Assert.IsTrue(provider.Recorder.ExecutionColumns
-            .SelectMany(static columns => columns)
-            .Where(static column => column.ColumnName == "Category")
-            .All(static column => column.ReadModifiers.ContainsKey(ColumnReadModifiers.Trim)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Category", typeof(string)), ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A", 4L], ["B", 1L]);
+        Assert.IsTrue(
+            requiredColumns.Any(column =>
+                column.Name == "Amount"
+                && column.ReadModifiers.TryGetValue(ColumnReadModifiers.Culture, out var culture)
+                && culture == "pl-PL"
+            )
+        );
+        Assert.IsTrue(
+            requiredColumns
+                .Where(static column => column.Name == "Category")
+                .All(static column => column.ReadModifiers.ContainsKey(ColumnReadModifiers.Encoding))
+        );
+        Assert.IsTrue(
+            provider
+                .Recorder.ExecutionColumns.SelectMany(static columns => columns)
+                .Where(static column => column.ColumnName == "Category")
+                .All(static column => column.ReadModifiers.ContainsKey(ColumnReadModifiers.Trim))
+        );
     }
 
     [TestMethod]
     public void ReadModifiers_GeneratedMetadataKeysIncludeReadModifiers()
     {
         const string query =
-            "table Utf8Shape { Name: string encoding 'utf-8' };" +
-            "table Utf16Shape { Name: string encoding 'utf-16le' };" +
-            "couple #readmods.records with table Utf8Shape as Utf8Records;" +
-            "couple #readmods.records with table Utf16Shape as Utf16Records;" +
-            "select a.Name, b.Name from Utf8Records() a inner join Utf16Records() b on 1 = 1";
+            "table Utf8Shape { Name: string encoding 'utf-8' };"
+            + "table Utf16Shape { Name: string encoding 'utf-16le' };"
+            + "couple #readmods.records with table Utf8Shape as Utf8Records;"
+            + "couple #readmods.records with table Utf16Shape as Utf16Records;"
+            + "select a.Name, b.Name from Utf8Records() a inner join Utf16Records() b on 1 = 1";
         var provider = new ReadModifiersSchemaProvider([Row(("Name", Encoding.UTF8.GetBytes("Name")))]);
 
         var inspection = InstanceCreator.CompileForInspection(
@@ -413,7 +401,8 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         Assert.IsTrue(CountOccurrences(inspection.GeneratedCSharpCode, "\"utf-8\"") >= 1);
         Assert.IsTrue(CountOccurrences(inspection.GeneratedCSharpCode, "\"utf-16le\"") >= 1);
@@ -424,7 +413,7 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
     {
         var modifiers = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            [ColumnReadModifiers.Encoding] = "utf-8"
+            [ColumnReadModifiers.Encoding] = "utf-8",
         };
 
         var schemaColumn = new SchemaColumn("Name", 0, typeof(string), modifiers);
@@ -438,35 +427,33 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         Assert.IsFalse(sourceColumnRef.ReadModifiers.ContainsKey(ColumnReadModifiers.Trim));
     }
 
-    private Tables.Table Run(
-        string query,
-        IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
+    private Tables.Table Run(string query, IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
-        return CreateAndRunVirtualMachine(
-                query,
-                schemaProvider: new ReadModifiersSchemaProvider(rows))
-            .Run();
+        return CreateAndRunVirtualMachine(query, schemaProvider: new ReadModifiersSchemaProvider(rows)).Run();
     }
 
     private BuildResult CompileWithDiagnostics(
         string query,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows,
         ReadModifiersValidationMode validationMode,
-        IReadOnlyDictionary<string, Type>? sourceKinds = null)
+        IReadOnlyDictionary<string, Type>? sourceKinds = null
+    )
     {
         return InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             new ReadModifiersSchemaProvider(rows, validationMode, sourceKinds),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 
     private static void AssertColumnModifier(
         IReadOnlyCollection<ISchemaColumn> columns,
         string columnName,
         string key,
-        string value)
+        string value
+    )
     {
         Assert.AreEqual(value, columns.Single(column => column.ColumnName == columnName).ReadModifiers[key]);
     }
@@ -475,7 +462,8 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         IReadOnlyList<SourceColumnRef> columns,
         string columnName,
         string key,
-        string value)
+        string value
+    )
     {
         Assert.AreEqual(value, columns.Single(column => column.Name == columnName).ReadModifiers[key]);
     }
@@ -501,12 +489,8 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         return new TextSpan(start, text.Length);
     }
 
-    private static IReadOnlyDictionary<string, object?> Row(
-        params (string Name, object? Value)[] values)
+    private static IReadOnlyDictionary<string, object?> Row(params (string Name, object? Value)[] values)
     {
-        return values.ToDictionary(
-            static value => value.Name,
-            static value => value.Value,
-            StringComparer.Ordinal);
+        return values.ToDictionary(static value => value.Name, static value => value.Value, StringComparer.Ordinal);
     }
 }

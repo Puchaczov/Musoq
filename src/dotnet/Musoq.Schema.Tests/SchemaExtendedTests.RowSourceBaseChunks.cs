@@ -116,7 +116,8 @@ public partial class SchemaExtendedTests
 
         Assert.IsTrue(
             source.ProducerExited.Wait(TimeSpan.FromSeconds(30)),
-            "The non-cooperative producer did not exit after it was released.");
+            "The non-cooperative producer did not exit after it was released."
+        );
     }
 
     private sealed class StartTrackingChunkedSource : RowSourceBase<int>

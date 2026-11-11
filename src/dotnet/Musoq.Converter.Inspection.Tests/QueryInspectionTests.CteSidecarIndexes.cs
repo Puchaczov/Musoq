@@ -14,7 +14,10 @@ public partial class QueryInspectionTests
         Assert.IsFalse(result.PlanningText.Contains("CteSidecarIndexStrategy", StringComparison.Ordinal));
         AssertExecutionPlanDoesNotContain("StoreCteIndex [", result.ExecutionPlanText);
         AssertExecutionPlanDoesNotContain("LoadCteIndex [", result.ExecutionPlanText);
-        AssertExecutionPlanContains("CreateHash [rHash: string -> Row; capacity: _cteRowResults.Slot1.Count]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "CreateHash [rHash: string -> Row; capacity: _cteRowResults.Slot1.Count]",
+            result.ExecutionPlanText
+        );
         AssertExecutionPlanContains("HashAdd [rHash[r.Dummy] += r]", result.ExecutionPlanText);
     }
 
@@ -36,15 +39,17 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenSameCteKeyIsUsedByMultipleHashBuildConsumers_ShouldReuseOneHashSidecar()
     {
-        const string query = @"
-with indexed as (
-    select d.Dummy as Dummy
-    from #system.dual() d
-)
-select l.Dummy, r.Dummy, s.Dummy
-from indexed l
-inner join indexed r on l.Dummy = r.Dummy
-inner join indexed s on l.Dummy = s.Dummy";
+        const string query = (
+            "\n"
+            + "with indexed as (\n"
+            + "    select d.Dummy as Dummy\n"
+            + "    from #system.dual() d\n"
+            + ")\n"
+            + "select l.Dummy, r.Dummy, s.Dummy\n"
+            + "from indexed l\n"
+            + "inner join indexed r on l.Dummy = r.Dummy\n"
+            + "inner join indexed s on l.Dummy = s.Dummy"
+        );
 
         var result = Inspect(query, CreateCteSidecarOptions());
 
@@ -59,15 +64,17 @@ inner join indexed s on l.Dummy = s.Dummy";
     [TestMethod]
     public void CompileForInspection_WhenSameCteUsesDifferentHashKeys_ShouldBuildDistinctSidecars()
     {
-        const string query = @"
-with indexed as (
-    select d.Dummy as FirstKey, d.Dummy as SecondKey
-    from #system.dual() d
-)
-select d.Dummy, r.FirstKey, s.SecondKey
-from #system.dual() d
-inner join indexed r on d.Dummy = r.FirstKey
-inner join indexed s on d.Dummy = s.SecondKey";
+        const string query = (
+            "\n"
+            + "with indexed as (\n"
+            + "    select d.Dummy as FirstKey, d.Dummy as SecondKey\n"
+            + "    from #system.dual() d\n"
+            + ")\n"
+            + "select d.Dummy, r.FirstKey, s.SecondKey\n"
+            + "from #system.dual() d\n"
+            + "inner join indexed r on d.Dummy = r.FirstKey\n"
+            + "inner join indexed s on d.Dummy = s.SecondKey"
+        );
 
         var result = Inspect(query, CreateCteSidecarOptions());
 
@@ -82,22 +89,27 @@ inner join indexed s on d.Dummy = s.SecondKey";
     [TestMethod]
     public void CompileForInspection_WhenSameCteHasHashAndKeySetConsumers_ShouldBuildDistinctKinds()
     {
-        const string query = @"
-with indexed as (
-    select d.Dummy as Dummy
-    from #system.dual() d
-)
-select d.Dummy, r.Dummy
-from #system.dual() d
-inner join indexed r on d.Dummy = r.Dummy
-semi join indexed s on d.Dummy = s.Dummy";
+        const string query = (
+            "\n"
+            + "with indexed as (\n"
+            + "    select d.Dummy as Dummy\n"
+            + "    from #system.dual() d\n"
+            + ")\n"
+            + "select d.Dummy, r.Dummy\n"
+            + "from #system.dual() d\n"
+            + "inner join indexed r on d.Dummy = r.Dummy\n"
+            + "semi join indexed s on d.Dummy = s.Dummy"
+        );
 
         var result = Inspect(query, CreateCteSidecarOptions());
 
         Assert.Contains("-> Hash", result.PlanningText);
         Assert.Contains("-> KeySet", result.PlanningText);
         Assert.AreEqual(2, CountOccurrences(result.ExecutionPlanText, "StoreCteIndex ["));
-        AssertExecutionPlanContains("LoadCteIndex [join_1_d_rTableRHash <- _cteIndexResults.Slot", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "LoadCteIndex [join_1_d_rTableRHash <- _cteIndexResults.Slot",
+            result.ExecutionPlanText
+        );
         AssertExecutionPlanContains("LoadCteIndex [sKeys <- _cteIndexResults.Slot", result.ExecutionPlanText);
         AssertExecutionPlanDoesNotContain("HashAdd [join_1_d_rTableRHash", result.ExecutionPlanText);
         AssertExecutionPlanDoesNotContain("KeySetAdd [sKeys", result.ExecutionPlanText);
@@ -106,32 +118,34 @@ semi join indexed s on d.Dummy = s.Dummy";
     [TestMethod]
     public void CompileForInspection_WhenKeySetSidecarOnlyDependsOnProbeAlias_ShouldScheduleItBeforeHashFanout()
     {
-        const string query = @"
-with raw as (
-    select r.Dummy as Dummy
-    from #system.dual() r
-),
-firstCte as (
-    select Dummy
-    from raw
-),
-secondCte as (
-    select Dummy
-    from raw
-),
-eligible as (
-    select Dummy
-    from raw
-),
-joined as (
-    select d.Dummy as Dummy, f.Dummy as FirstDummy, s.Dummy as SecondDummy
-    from #system.dual() d
-    inner join firstCte f on d.Dummy = f.Dummy
-    inner join secondCte s on d.Dummy = s.Dummy
-)
-select j.Dummy, j.FirstDummy, j.SecondDummy
-from joined j
-semi join eligible e on j.Dummy = e.Dummy";
+        const string query = (
+            "\n"
+            + "with raw as (\n"
+            + "    select r.Dummy as Dummy\n"
+            + "    from #system.dual() r\n"
+            + "),\n"
+            + "firstCte as (\n"
+            + "    select Dummy\n"
+            + "    from raw\n"
+            + "),\n"
+            + "secondCte as (\n"
+            + "    select Dummy\n"
+            + "    from raw\n"
+            + "),\n"
+            + "eligible as (\n"
+            + "    select Dummy\n"
+            + "    from raw\n"
+            + "),\n"
+            + "joined as (\n"
+            + "    select d.Dummy as Dummy, f.Dummy as FirstDummy, s.Dummy as SecondDummy\n"
+            + "    from #system.dual() d\n"
+            + "    inner join firstCte f on d.Dummy = f.Dummy\n"
+            + "    inner join secondCte s on d.Dummy = s.Dummy\n"
+            + ")\n"
+            + "select j.Dummy, j.FirstDummy, j.SecondDummy\n"
+            + "from joined j\n"
+            + "semi join eligible e on j.Dummy = e.Dummy"
+        );
 
         var result = Inspect(query, CreateCteSidecarOptions());
 
@@ -139,27 +153,30 @@ semi join eligible e on j.Dummy = e.Dummy";
         AssertExecutionPlanContains("KeySetProbe [eKeys[d.Dummy]]", result.ExecutionPlanText);
         AssertTextBefore("KeySetProbe [eKeys[d.Dummy]]", "HashProbe [dfFHash[d.Dummy]", result.ExecutionPlanText);
         Assert.IsTrue(
-            result.GeneratedCSharpCode.IndexOf("if (eKeys.Contains(", StringComparison.Ordinal) <
-            result.GeneratedCSharpCode.IndexOf(".TryGetValue(", StringComparison.Ordinal),
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode.IndexOf("if (eKeys.Contains(", StringComparison.Ordinal)
+                < result.GeneratedCSharpCode.IndexOf(".TryGetValue(", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
     }
 
     [TestMethod]
     public void CompileForInspection_WhenCteIsConsumedByLaterCteAndOuterQuery_ShouldReuseOneSidecar()
     {
-        const string query = @"
-with indexed as (
-    select d.Dummy as Dummy
-    from #system.dual() d
-),
-later as (
-    select d.Dummy as Dummy
-    from #system.dual() d
-    inner join indexed i on d.Dummy = i.Dummy
-)
-select l.Dummy, i.Dummy
-from later l
-inner join indexed i on l.Dummy = i.Dummy";
+        const string query = (
+            "\n"
+            + "with indexed as (\n"
+            + "    select d.Dummy as Dummy\n"
+            + "    from #system.dual() d\n"
+            + "),\n"
+            + "later as (\n"
+            + "    select d.Dummy as Dummy\n"
+            + "    from #system.dual() d\n"
+            + "    inner join indexed i on d.Dummy = i.Dummy\n"
+            + ")\n"
+            + "select l.Dummy, i.Dummy\n"
+            + "from later l\n"
+            + "inner join indexed i on l.Dummy = i.Dummy"
+        );
 
         var result = Inspect(query, CreateCteSidecarOptions());
 
@@ -201,18 +218,20 @@ inner join indexed i on l.Dummy = i.Dummy";
     [TestMethod]
     public void CompileForInspection_WhenSemiJoinHasResidualPredicate_ShouldUseHashSidecar()
     {
-        const string query = @"
-with leftCte as (
-    select d.Dummy as Dummy
-    from #system.dual() d
-),
-rightCte as (
-    select e.Dummy as Dummy
-    from #system.dual() e
-)
-select l.Dummy
-from leftCte l
-semi join rightCte r on l.Dummy = r.Dummy and r.Dummy like 'single%'";
+        const string query = (
+            "\n"
+            + "with leftCte as (\n"
+            + "    select d.Dummy as Dummy\n"
+            + "    from #system.dual() d\n"
+            + "),\n"
+            + "rightCte as (\n"
+            + "    select e.Dummy as Dummy\n"
+            + "    from #system.dual() e\n"
+            + ")\n"
+            + "select l.Dummy\n"
+            + "from leftCte l\n"
+            + "semi join rightCte r on l.Dummy = r.Dummy and r.Dummy like 'single%'"
+        );
 
         var result = Inspect(query, CreateCteSidecarOptions());
 
@@ -225,18 +244,20 @@ semi join rightCte r on l.Dummy = r.Dummy and r.Dummy like 'single%'";
     [TestMethod]
     public void CompileForInspection_WhenCteBuildKeyIsNotSimpleOutputColumn_ShouldSkipSidecar()
     {
-        const string query = @"
-with leftCte as (
-    select d.Dummy as Dummy
-    from #system.dual() d
-),
-rightCte as (
-    select e.Dummy as Dummy
-    from #system.dual() e
-)
-select l.Dummy, r.Dummy
-from leftCte l
-inner join rightCte r on l.Dummy = r.Dummy + ''";
+        const string query = (
+            "\n"
+            + "with leftCte as (\n"
+            + "    select d.Dummy as Dummy\n"
+            + "    from #system.dual() d\n"
+            + "),\n"
+            + "rightCte as (\n"
+            + "    select e.Dummy as Dummy\n"
+            + "    from #system.dual() e\n"
+            + ")\n"
+            + "select l.Dummy, r.Dummy\n"
+            + "from leftCte l\n"
+            + "inner join rightCte r on l.Dummy = r.Dummy + ''"
+        );
 
         var result = Inspect(query, CreateCteSidecarOptions());
 
@@ -260,14 +281,16 @@ inner join rightCte r on l.Dummy = r.Dummy + ''";
     [TestMethod]
     public void CompileForInspection_WhenJoinIsSortMerge_ShouldSkipSidecar()
     {
-        const string query = @"
-with rightCte as (
-    select e.Dummy as Dummy
-    from #system.dual() e
-)
-select d.Dummy, r.Dummy
-from #system.dual() d
-inner join rightCte r on d.Dummy > r.Dummy";
+        const string query = (
+            "\n"
+            + "with rightCte as (\n"
+            + "    select e.Dummy as Dummy\n"
+            + "    from #system.dual() e\n"
+            + ")\n"
+            + "select d.Dummy, r.Dummy\n"
+            + "from #system.dual() d\n"
+            + "inner join rightCte r on d.Dummy > r.Dummy"
+        );
 
         var result = Inspect(
             query,
@@ -275,7 +298,9 @@ inner join rightCte r on d.Dummy > r.Dummy";
                 parallelizationMode: ParallelizationMode.None,
                 useHashJoin: true,
                 useSortMergeJoin: true,
-                useCteSidecarIndexes: true));
+                useCteSidecarIndexes: true
+            )
+        );
 
         Assert.Contains("CteSidecarIndexStrategy", result.PlanningText);
         Assert.Contains("Sort-merge joins keep their existing range/order-oriented lowering.", result.PlanningText);
@@ -286,14 +311,16 @@ inner join rightCte r on d.Dummy > r.Dummy";
     [TestMethod]
     public void CompileForInspection_WhenCteOutputRequiresFinalRewrite_ShouldSkipSidecar()
     {
-        const string query = @"
-with rightCte as (
-    select distinct e.Dummy as Dummy
-    from #system.dual() e
-)
-select d.Dummy, r.Dummy
-from #system.dual() d
-inner join rightCte r on d.Dummy = r.Dummy";
+        const string query = (
+            "\n"
+            + "with rightCte as (\n"
+            + "    select distinct e.Dummy as Dummy\n"
+            + "    from #system.dual() e\n"
+            + ")\n"
+            + "select d.Dummy, r.Dummy\n"
+            + "from #system.dual() d\n"
+            + "inner join rightCte r on d.Dummy = r.Dummy"
+        );
 
         var result = Inspect(query, CreateCteSidecarOptions());
 
@@ -306,15 +333,17 @@ inner join rightCte r on d.Dummy = r.Dummy";
     [TestMethod]
     public void CompileForInspection_WhenCteOutputHasPostOperationRewrite_ShouldSkipSidecar()
     {
-        const string query = @"
-with rightCte as (
-    select e.Dummy as Dummy
-    from #system.dual() e
-    order by e.Dummy
-)
-select d.Dummy, r.Dummy
-from #system.dual() d
-inner join rightCte r on d.Dummy = r.Dummy";
+        const string query = (
+            "\n"
+            + "with rightCte as (\n"
+            + "    select e.Dummy as Dummy\n"
+            + "    from #system.dual() e\n"
+            + "    order by e.Dummy\n"
+            + ")\n"
+            + "select d.Dummy, r.Dummy\n"
+            + "from #system.dual() d\n"
+            + "inner join rightCte r on d.Dummy = r.Dummy"
+        );
 
         var result = Inspect(query, CreateCteSidecarOptions());
 
@@ -327,7 +356,8 @@ inner join rightCte r on d.Dummy = r.Dummy";
     [TestMethod]
     public void CompileForExecution_WhenCteHashSidecarIsEnabled_ShouldMatchDefaultExecution()
     {
-        var baseline = CompileForExecution(CreateCteBackedInnerHashJoinQuery(), CreateCteSidecarDisabledOptions()).Run();
+        var baseline = CompileForExecution(CreateCteBackedInnerHashJoinQuery(), CreateCteSidecarDisabledOptions())
+            .Run();
         var optimized = CompileForExecution(CreateCteBackedInnerHashJoinQuery(), CreateCteSidecarOptions()).Run();
 
         Assert.AreEqual(baseline.Count, optimized.Count);
@@ -338,8 +368,13 @@ inner join rightCte r on d.Dummy = r.Dummy";
     [TestMethod]
     public void CompileForExecution_WhenCteResidualOuterHashSidecarIsEnabled_ShouldMatchDefaultExecution()
     {
-        var baseline = CompileForExecution(CreateCteBackedResidualOuterHashJoinQuery(), CreateCteSidecarDisabledOptions()).Run();
-        var optimized = CompileForExecution(CreateCteBackedResidualOuterHashJoinQuery(), CreateCteSidecarOptions()).Run();
+        var baseline = CompileForExecution(
+                CreateCteBackedResidualOuterHashJoinQuery(),
+                CreateCteSidecarDisabledOptions()
+            )
+            .Run();
+        var optimized = CompileForExecution(CreateCteBackedResidualOuterHashJoinQuery(), CreateCteSidecarOptions())
+            .Run();
 
         Assert.AreEqual(baseline.Count, optimized.Count);
         Assert.AreEqual(baseline[0].ReadValue(0), optimized[0].ReadValue(0));
@@ -351,7 +386,8 @@ inner join rightCte r on d.Dummy = r.Dummy";
     {
         var semiBaseline = CompileForExecution(CreateCteBackedSemiJoinQuery(), CreateCteSidecarDisabledOptions()).Run();
         var semiOptimized = CompileForExecution(CreateCteBackedSemiJoinQuery(), CreateCteSidecarOptions()).Run();
-        var antiBaseline = CompileForExecution(CreateCteBackedAntiSemiJoinQuery(), CreateCteSidecarDisabledOptions()).Run();
+        var antiBaseline = CompileForExecution(CreateCteBackedAntiSemiJoinQuery(), CreateCteSidecarDisabledOptions())
+            .Run();
         var antiOptimized = CompileForExecution(CreateCteBackedAntiSemiJoinQuery(), CreateCteSidecarOptions()).Run();
 
         Assert.AreEqual(semiBaseline.Count, semiOptimized.Count);
@@ -366,7 +402,8 @@ inner join rightCte r on d.Dummy = r.Dummy";
             useHashJoin: true,
             useSortMergeJoin: false,
             useCteParallelization: false,
-            useCteSidecarIndexes: true);
+            useCteSidecarIndexes: true
+        );
     }
 
     private static CompilationOptions CreateCteSidecarDisabledOptions()
@@ -376,7 +413,8 @@ inner join rightCte r on d.Dummy = r.Dummy";
             useHashJoin: true,
             useSortMergeJoin: false,
             useCteParallelization: false,
-            useCteSidecarIndexes: false);
+            useCteSidecarIndexes: false
+        );
     }
 
     private static void AssertGeneratedCSharpUsesTypedCteIndexResults(string generatedCSharpCode)
@@ -385,8 +423,14 @@ inner join rightCte r on d.Dummy = r.Dummy";
         AssertGeneratedCSharpContains("private sealed class CteIndexResults", generatedCSharpCode);
         AssertGeneratedCSharpContains("var _cteRowResults = new CteRowResults();", generatedCSharpCode);
         AssertGeneratedCSharpContains("private sealed class CteRowResults", generatedCSharpCode);
-        AssertGeneratedCSharpDoesNotContain("private readonly CteIndexResults _cteIndexResults = new CteIndexResults();", generatedCSharpCode);
-        AssertGeneratedCSharpDoesNotContain("private readonly CteRowResults _cteRowResults = new CteRowResults();", generatedCSharpCode);
+        AssertGeneratedCSharpDoesNotContain(
+            "private readonly CteIndexResults _cteIndexResults = new CteIndexResults();",
+            generatedCSharpCode
+        );
+        AssertGeneratedCSharpDoesNotContain(
+            "private readonly CteRowResults _cteRowResults = new CteRowResults();",
+            generatedCSharpCode
+        );
         AssertGeneratedCSharpDoesNotContain("_cteIndexResults = new object[", generatedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("object[] _cteIndexResults", generatedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("Musoq.Evaluator.Tables.Table BuildCte", generatedCSharpCode);

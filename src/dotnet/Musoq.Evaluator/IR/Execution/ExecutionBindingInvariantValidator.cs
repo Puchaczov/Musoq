@@ -15,19 +15,24 @@ internal static class ExecutionBindingInvariantValidator
     {
         ArgumentNullException.ThrowIfNull(plan);
 
-        var shapesByAlias = plan.Shapes
-            .Select(static shape => (Shape: shape, HasAlias: RowShapeLookup.TryResolveSourceAlias(shape, out var alias), Alias: alias))
+        var shapesByAlias = plan
+            .Shapes.Select(static shape =>
+                (Shape: shape, HasAlias: RowShapeLookup.TryResolveSourceAlias(shape, out var alias), Alias: alias)
+            )
             .Where(static item => item.HasAlias)
             .GroupBy(static item => item.Alias, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(
                 static group => group.Key,
                 static group => group.Select(static item => item.Shape).ToArray(),
-                StringComparer.OrdinalIgnoreCase);
+                StringComparer.OrdinalIgnoreCase
+            );
 
         foreach (var fieldRead in ExecutionIrAnalysis.CollectExpressions<ExecutionFieldRead>(plan.Body))
         {
-            if (string.IsNullOrWhiteSpace(fieldRead.Alias) ||
-                !shapesByAlias.TryGetValue(fieldRead.Alias, out var shapes))
+            if (
+                string.IsNullOrWhiteSpace(fieldRead.Alias)
+                || !shapesByAlias.TryGetValue(fieldRead.Alias, out var shapes)
+            )
                 continue;
 
             var accessStrategy = fieldRead.AccessStrategy;
@@ -36,9 +41,10 @@ internal static class ExecutionBindingInvariantValidator
                 if (shapes.Any(shape => IsUnresolvedIndexedField(shape, fieldRead.FieldName)))
                 {
                     throw new InvalidOperationException(
-                        $"Execution binding invariant violated: field '{fieldRead.Alias}.{fieldRead.FieldName}' " +
-                        "belongs to a known row carrier but has no access strategy. Lowering must resolve the " +
-                        "carrier-specific binding before rendering.");
+                        $"Execution binding invariant violated: field '{fieldRead.Alias}.{fieldRead.FieldName}' "
+                            + "belongs to a known row carrier but has no access strategy. Lowering must resolve the "
+                            + "carrier-specific binding before rendering."
+                    );
                 }
 
                 continue;
@@ -46,13 +52,16 @@ internal static class ExecutionBindingInvariantValidator
 
             foreach (var shape in shapes)
             {
-                if (TryFindField(shape, fieldRead.FieldName, out var field) &&
-                    !IsCompatible(field.AccessStrategy, accessStrategy))
+                if (
+                    TryFindField(shape, fieldRead.FieldName, out var field)
+                    && !IsCompatible(field.AccessStrategy, accessStrategy)
+                )
                 {
                     throw new InvalidOperationException(
-                        $"Execution binding invariant violated: field '{fieldRead.Alias}.{fieldRead.FieldName}' " +
-                        $"uses '{accessStrategy.GetType().Name}' for carrier '{shape.GetType().Name}', " +
-                        $"but its declared binding is '{field.AccessStrategy.GetType().Name}'.");
+                        $"Execution binding invariant violated: field '{fieldRead.Alias}.{fieldRead.FieldName}' "
+                            + $"uses '{accessStrategy.GetType().Name}' for carrier '{shape.GetType().Name}', "
+                            + $"but its declared binding is '{field.AccessStrategy.GetType().Name}'."
+                    );
                 }
             }
         }
@@ -68,15 +77,17 @@ internal static class ExecutionBindingInvariantValidator
 
     private static void ValidateQueryRowTransfer(
         ExecutionSourceScan sourceScan,
-        ExecutionQueryRowSourceTransfer transfer)
+        ExecutionQueryRowSourceTransfer transfer
+    )
     {
         var sourceId = sourceScan.Binding.RuntimeContextId;
         var shapeFields = new List<QueryRowField>(transfer.Fields.Count);
         if (sourceScan.Binding.Fields.Count != transfer.Fields.Count)
         {
             throw new InvalidOperationException(
-                $"Execution query-row transfer for source '{sourceId}' has {transfer.Fields.Count} fields, " +
-                $"but its generated source binding has {sourceScan.Binding.Fields.Count} fields.");
+                $"Execution query-row transfer for source '{sourceId}' has {transfer.Fields.Count} fields, "
+                    + $"but its generated source binding has {sourceScan.Binding.Fields.Count} fields."
+            );
         }
 
         for (var slot = 0; slot < transfer.Fields.Count; slot++)
@@ -85,7 +96,8 @@ internal static class ExecutionBindingInvariantValidator
             if (transferField.Slot != slot)
             {
                 throw new InvalidOperationException(
-                    $"Execution query-row transfer for source '{sourceId}' has non-dense field slots.");
+                    $"Execution query-row transfer for source '{sourceId}' has non-dense field slots."
+                );
             }
 
             Type fieldType;
@@ -99,42 +111,54 @@ internal static class ExecutionBindingInvariantValidator
             {
                 throw new InvalidOperationException(
                     $"Execution query-row transfer field '{sourceId}.{transferField.Name}' has no usable CLR binding.",
-                    exception);
+                    exception
+                );
             }
 
             if (fieldType == typeof(object) || !QueryRowField.IsSupportedFieldType(fieldType))
             {
                 throw new InvalidOperationException(
-                    $"Execution query-row transfer field '{sourceId}.{transferField.Name}' has unsupported CLR type '{fieldType}'.");
+                    $"Execution query-row transfer field '{sourceId}.{transferField.Name}' has unsupported CLR type '{fieldType}'."
+                );
             }
 
             var binding = sourceScan.Binding.Fields[slot];
             var expectedAccess = QueryRowSourceNaming.CreateFieldName(slot);
-            if (binding.OutputIndex != slot ||
-                !string.Equals(binding.Name, transferField.Name, StringComparison.Ordinal) ||
-                !string.Equals(binding.Type.StableId, transferField.FieldType.StableId, StringComparison.Ordinal) ||
-                !string.Equals(binding.SourceReadType.StableId, transferField.SourceReadType.StableId, StringComparison.Ordinal) ||
-                !EnumTypesMatch(binding.EnumType, transferField.EnumType) ||
-                binding.AccessStrategy is not GeneratedFieldAccess generatedAccess ||
-                !string.Equals(generatedAccess.FieldName, expectedAccess, StringComparison.Ordinal) ||
-                !ReadModifiersMatch(binding.ReadModifiers, transferField.ReadModifiers))
+            if (
+                binding.OutputIndex != slot
+                || !string.Equals(binding.Name, transferField.Name, StringComparison.Ordinal)
+                || !string.Equals(binding.Type.StableId, transferField.FieldType.StableId, StringComparison.Ordinal)
+                || !string.Equals(
+                    binding.SourceReadType.StableId,
+                    transferField.SourceReadType.StableId,
+                    StringComparison.Ordinal
+                )
+                || !EnumTypesMatch(binding.EnumType, transferField.EnumType)
+                || binding.AccessStrategy is not GeneratedFieldAccess generatedAccess
+                || !string.Equals(generatedAccess.FieldName, expectedAccess, StringComparison.Ordinal)
+                || !ReadModifiersMatch(binding.ReadModifiers, transferField.ReadModifiers)
+            )
             {
                 throw new InvalidOperationException(
-                    $"Execution query-row transfer field '{sourceId}.{transferField.Name}' is incompatible with its generated source binding at slot {slot}.");
+                    $"Execution query-row transfer field '{sourceId}.{transferField.Name}' is incompatible with its generated source binding at slot {slot}."
+                );
             }
 
-            shapeFields.Add(transferField.ComputedProjection is { } computed
-                ? QueryRowField.ForComputedProjection(transferField.Slot, computed.ToSchema())
-                : new QueryRowField(
-                transferField.Slot,
-                transferField.SourceColumnIndex,
-                transferField.Name,
-                fieldType,
-                sourceReadType,
-                transferField.EnumType,
-                transferField.IsNullable,
-                transferField.ReadModifiers,
-                ColumnStability.Stable));
+            shapeFields.Add(
+                transferField.ComputedProjection is { } computed
+                    ? QueryRowField.ForComputedProjection(transferField.Slot, computed.ToSchema())
+                    : new QueryRowField(
+                        transferField.Slot,
+                        transferField.SourceColumnIndex,
+                        transferField.Name,
+                        fieldType,
+                        sourceReadType,
+                        transferField.EnumType,
+                        transferField.IsNullable,
+                        transferField.ReadModifiers,
+                        ColumnStability.Stable
+                    )
+            );
             if (transferField.ComputedProjection is not null && shapeFields[^1].IsNullable != transferField.IsNullable)
                 throw new InvalidOperationException("Computed source field has inconsistent nullability.");
         }
@@ -143,7 +167,8 @@ internal static class ExecutionBindingInvariantValidator
         if (!string.Equals(expectedFingerprint, transfer.ShapeFingerprint, StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                $"Execution query-row transfer for source '{sourceId}' has a shape fingerprint that does not match its fields.");
+                $"Execution query-row transfer for source '{sourceId}' has a shape fingerprint that does not match its fields."
+            );
         }
     }
 
@@ -156,20 +181,24 @@ internal static class ExecutionBindingInvariantValidator
 
     private static bool ReadModifiersMatch(
         IReadOnlyDictionary<string, string> left,
-        IReadOnlyDictionary<string, string> right)
+        IReadOnlyDictionary<string, string> right
+    )
     {
-        return left.Count == right.Count && left.All(pair =>
-            right.TryGetValue(pair.Key, out var value) && string.Equals(pair.Value, value, StringComparison.Ordinal));
+        return left.Count == right.Count
+            && left.All(pair =>
+                right.TryGetValue(pair.Key, out var value) && string.Equals(pair.Value, value, StringComparison.Ordinal)
+            );
     }
 
     private static bool TryFindField(RowShape shape, string fieldName, out FieldBinding field)
     {
         var candidates = shape.Fields.Concat(shape is TableRowShape table ? table.Contexts : []);
         field = candidates.FirstOrDefault(candidate =>
-            string.Equals(candidate.Name, fieldName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, fieldName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.Name, GetUnqualifiedName(fieldName), StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, GetUnqualifiedName(fieldName), StringComparison.OrdinalIgnoreCase))!;
+            string.Equals(candidate.Name, fieldName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(candidate.QualifiedName, fieldName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(candidate.Name, GetUnqualifiedName(fieldName), StringComparison.OrdinalIgnoreCase)
+            || string.Equals(candidate.QualifiedName, GetUnqualifiedName(fieldName), StringComparison.OrdinalIgnoreCase)
+        )!;
         return field != null;
     }
 
@@ -178,20 +207,20 @@ internal static class ExecutionBindingInvariantValidator
         if (TryFindField(shape, fieldName, out var field))
             return field.AccessStrategy is PositionalAccess or NestedPositionalAccess;
 
-        return !fieldName.Contains('.', StringComparison.Ordinal) &&
-               !fieldName.Contains('[', StringComparison.Ordinal) &&
-               shape.Fields.Any(static candidate => candidate.AccessStrategy is PositionalAccess);
+        return !fieldName.Contains('.', StringComparison.Ordinal)
+            && !fieldName.Contains('[', StringComparison.Ordinal)
+            && shape.Fields.Any(static candidate => candidate.AccessStrategy is PositionalAccess);
     }
 
     private static bool IsCompatible(FieldAccessStrategy declared, FieldAccessStrategy actual)
     {
         return declared switch
         {
-            PositionalAccess => actual is not
-                (ClrPropertyAccess or ReflectedMemberAccess or RuntimeDynamicMemberAccess),
-            NestedPositionalAccess => actual is not
-                (NestedClrPropertyAccess or ReflectedMemberAccess or RuntimeDynamicMemberAccess),
-            _ => true
+            PositionalAccess => actual
+                is not (ClrPropertyAccess or ReflectedMemberAccess or RuntimeDynamicMemberAccess),
+            NestedPositionalAccess => actual
+                is not (NestedClrPropertyAccess or ReflectedMemberAccess or RuntimeDynamicMemberAccess),
+            _ => true,
         };
     }
 

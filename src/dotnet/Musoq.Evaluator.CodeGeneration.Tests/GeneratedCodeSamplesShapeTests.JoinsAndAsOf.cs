@@ -18,7 +18,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("HashProbeNoMatch", result.ExecutionPlanText);
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
@@ -43,14 +44,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ForEach [ab in _tableResults[0].Rows]", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("new Statement0Row0", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_tableResults[0] = statement0", StringComparison.Ordinal));
         Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("result.AddDirect(new ResultRow0", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("result.AddDirect(new ResultRow0", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -63,7 +68,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.End);", sample);
         Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));", sample);
         Assert.IsFalse(sample.Contains("AppendHashJoinRows(aRows, bHash, result, token);", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("result.AddDirect(new ResultRow0(a.Name, b.Country));", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains("result.AddDirect(new ResultRow0(a.Name, b.Country));", StringComparison.Ordinal)
+        );
         Assert.IsFalse(sample.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("private Table[] _tableResults", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("_tableResults[0]", StringComparison.Ordinal));
@@ -80,7 +87,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CreateHash [bHash: int -> BasicEntity]", sample);
         Assert.Contains(
             "new Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>>()",
-            sample);
+            sample
+        );
         Assert.Contains("foreach (var bChunk in bRows)", computeMethod);
         Assert.Contains("foreach (var aChunk in aRows)", computeMethod);
         Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Country));", computeMethod);
@@ -112,7 +120,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .SelectMany(static sample => GetSimpleOuterHashJoinShapeFailures(sample.FileName, sample.Content))
             .ToArray();
 
-        Assert.IsEmpty(failures, $"Simple outer hash join samples have stale resolver shape: {string.Join(", ", failures)}");
+        Assert.IsEmpty(
+            failures,
+            $"Simple outer hash join samples have stale resolver shape: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -128,9 +139,15 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("token.ThrowIfCancellationRequested();", sample);
         Assert.AreEqual(
             0,
-            Regex.Matches(
-                sample,
-                Regex.Escape("[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]") + @"\s+private static ").Count);
+            Regex
+                .Matches(
+                    sample,
+                    Regex.Escape(
+                        "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]"
+                    ) + @"\s+private static "
+                )
+                .Count
+        );
     }
 
     [TestMethod]
@@ -140,10 +157,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("AsOfProbe [b <-", result.ExecutionPlanText);
-        Assert.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool>", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
+        Assert.Contains(
+            "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool>",
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal)
+        );
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, ConvertTableToSourcePattern));
@@ -174,13 +197,17 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("AsOfProbe [b <-", result.ExecutionPlanText);
         Assert.Contains(
             "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool, decimal>",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         Assert.Contains("Musoq.Evaluator.IR.Bindings.NullOrdering.Last", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal)
+        );
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, ConvertTableToSourcePattern));
@@ -201,7 +228,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var sample = ReadSample(AsOfTieBreakSampleFileName);
         var failures = GetAsOfTieBreakShapeFailures(sample.Content);
 
-        Assert.IsEmpty(failures, $"{AsOfTieBreakSampleFileName} has stale tie-break shape: {string.Join(", ", failures)}");
+        Assert.IsEmpty(
+            failures,
+            $"{AsOfTieBreakSampleFileName} has stale tie-break shape: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -211,11 +241,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]", result.ExecutionPlanText);
         Assert.Contains("AsOfProbe [r <- _cteRowResults.Slot0", result.ExecutionPlanText);
         Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, decimal, bool>", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal)
+        );
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, ConvertTableToSourcePattern));
@@ -238,7 +271,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"{CteBackedAsOfJoinSampleFileName} has stale table-backed ASOF shape: {string.Join(", ", failures)}");
+            $"{CteBackedAsOfJoinSampleFileName} has stale table-backed ASOF shape: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -248,7 +282,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("SourceScan [d: QueryRow_", result.ExecutionPlanText);
         Assert.DoesNotContain("ExpandoAdapter", result.ExecutionPlanText);
         Assert.Contains("SourceScan [l: QueryRow_", result.ExecutionPlanText);
@@ -257,7 +292,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("EvaluationHelper.CreateAsOfIndex<Cte0Row0, int, string>", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_tableResults[0]", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("new Table(\"cte0\"", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal)
+        );
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, ConvertTableToSourcePattern));
@@ -286,6 +323,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"{DynamicCteBackedAsOfJoinSampleFileName} has stale dynamic typed ASOF shape: {string.Join(", ", failures)}");
+            $"{DynamicCteBackedAsOfJoinSampleFileName} has stale dynamic typed ASOF shape: {string.Join(", ", failures)}"
+        );
     }
 }

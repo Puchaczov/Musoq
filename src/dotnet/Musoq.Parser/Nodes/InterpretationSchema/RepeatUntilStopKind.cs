@@ -15,5 +15,5 @@ public enum RepeatUntilStopKind
     ///     Stop when the current interpreter input span is exhausted.
     ///     Zero or more elements are read (while semantics); an empty input yields an empty array.
     /// </summary>
-    EndOfInput
+    EndOfInput,
 }

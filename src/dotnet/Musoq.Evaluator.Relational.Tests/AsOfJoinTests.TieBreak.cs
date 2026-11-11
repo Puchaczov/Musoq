@@ -12,131 +12,135 @@ public partial class AsOfJoinTests
     [TestMethod]
     public void WhenAsOfJoinTieBreakAscending_ShouldPickLowestTieKey()
     {
-        const string query = @"
-select a.Name, b.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population
-tie break by b.Name asc";
+        const string query = (
+            "\n"
+            + "select a.Name, b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population\n"
+            + "tie break by b.Name asc"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateTieBreakSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Alpha"]);
     }
 
     [TestMethod]
     public void WhenAsOfJoinTieBreakDescending_ShouldPickHighestTieKey()
     {
-        const string query = @"
-select a.Name, b.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population
-tie break by b.Name desc";
+        const string query = (
+            "\n"
+            + "select a.Name, b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population\n"
+            + "tie break by b.Name desc"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateTieBreakSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Zulu"]);
     }
 
     [TestMethod]
     public void WhenAsOfJoinTieBreakNullsLast_ShouldUseExplicitNullOrdering()
     {
-        const string query = @"
-select a.Name, b.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population
-tie break by b.NullableValue asc nulls last";
+        const string query = (
+            "\n"
+            + "select a.Name, b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population\n"
+            + "tie break by b.NullableValue asc nulls last"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             {
-                "#B", [
-                    new BasicEntity { Name = "B-Null", Population = 90, NullableValue = null },
-                    new BasicEntity { Name = "B-Value", Population = 90, NullableValue = 5 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B-Null",
+                        Population = 90,
+                        NullableValue = null,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B-Value",
+                        Population = 90,
+                        NullableValue = 5,
+                    },
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Value"]);
     }
 
     [TestMethod]
     public void WhenAsOfLeftJoinTieBreakDescending_ShouldTieBreakMatchesAndNullExtendMisses()
     {
-        const string query = @"
-select a.Name, b.Name
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= b.Population
-tie break by b.Name desc
-order by a.Name";
+        const string query = (
+            "\n"
+            + "select a.Name, b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= b.Population\n"
+            + "tie break by b.Name desc\n"
+            + "order by a.Name"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 },
-                    new BasicEntity { Name = "A2", Population = 10 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 10 }]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B-Alpha", Population = 90 },
-                    new BasicEntity { Name = "B-Zulu", Population = 90 }
+                    new BasicEntity { Name = "B-Zulu", Population = 90 },
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["A1", "B-Zulu"],
-            new object?[] { "A2", null });
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B-Zulu"], new object?[] { "A2", null });
     }
 
     [TestMethod]
     public void WhenAsOfJoinWithoutTieBreak_ShouldKeepFirstDuplicateRightRow()
     {
-        const string query = @"
-select a.Name, b.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population";
+        const string query = (
+            "\n"
+            + "select a.Name, b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateTieBreakSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Zulu"]);
     }
 
     [TestMethod]
     public void WhenAsOfJoinTieBreakReferencesLeftSide_ShouldThrow()
     {
-        const string query = @"
-select a.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population
-tie break by a.Name";
+        const string query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population\n"
+            + "tie break by a.Name"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateTieBreakSources()));
 
@@ -144,7 +148,8 @@ tie break by a.Name";
             ex,
             DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides,
             DiagnosticPhase.Bind,
-            "right-side");
+            "right-side"
+        );
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateTieBreakSources()
@@ -153,12 +158,13 @@ tie break by a.Name";
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B-Zulu", Population = 90 },
                     new BasicEntity { Name = "B-Alpha", Population = 90 },
-                    new BasicEntity { Name = "B-Older", Population = 50 }
+                    new BasicEntity { Name = "B-Older", Population = 50 },
                 ]
-            }
+            },
         };
     }
 }

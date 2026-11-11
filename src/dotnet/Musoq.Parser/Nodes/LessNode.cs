@@ -2,7 +2,8 @@ namespace Musoq.Parser.Nodes;
 
 public class LessNode : BinaryNode
 {
-    public LessNode(Node left, Node right) : base(left, right)
+    public LessNode(Node left, Node right)
+        : base(left, right)
     {
         Id = CalculateId(this);
     }

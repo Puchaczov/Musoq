@@ -12,7 +12,12 @@ internal static class ParserDiagnosticFacts
         new(message, queryPart, DiagnosticCode.MQ2002_MissingToken, span);
 
     public static SyntaxException MissingLeftOperand(string queryPart, TextSpan span) =>
-        new("A comparison operator is missing its left operand.", queryPart, DiagnosticCode.MQ2020_MissingOperand, span);
+        new(
+            "A comparison operator is missing its left operand.",
+            queryPart,
+            DiagnosticCode.MQ2020_MissingOperand,
+            span
+        );
 
     public static SyntaxException MissingGroupByColumn(string queryPart, TextSpan span) =>
         new("GROUP BY requires at least one field.", queryPart, DiagnosticCode.MQ2006_MissingGroupByColumn, span);
@@ -22,57 +27,92 @@ internal static class ParserDiagnosticFacts
 
     public static void ThrowIfMissingRightOperand(Token currentToken, string operatorText, string queryPart)
     {
-        if (currentToken.TokenType is not (TokenType.EndOfFile or TokenType.Semicolon or TokenType.RightParenthesis or TokenType.Comma or
-            TokenType.From or TokenType.Where or TokenType.GroupBy or TokenType.Having or TokenType.OrderBy or TokenType.Take or
-            TokenType.Skip or TokenType.Window or TokenType.Qualify or TokenType.Union or TokenType.UnionAll or TokenType.Except or
-            TokenType.Intersect or TokenType.And or TokenType.Or or TokenType.Then or TokenType.Else or TokenType.End or TokenType.When or
-            TokenType.On or TokenType.As or TokenType.InnerJoin or TokenType.OuterJoin or TokenType.SemiJoin or TokenType.AntiJoin or
-            TokenType.CrossJoin or TokenType.CrossApply or TokenType.OuterApply or TokenType.AsOfJoin))
+        if (
+            currentToken.TokenType
+            is not (
+                TokenType.EndOfFile
+                or TokenType.Semicolon
+                or TokenType.RightParenthesis
+                or TokenType.Comma
+                or TokenType.From
+                or TokenType.Where
+                or TokenType.GroupBy
+                or TokenType.Having
+                or TokenType.OrderBy
+                or TokenType.Take
+                or TokenType.Skip
+                or TokenType.Window
+                or TokenType.Qualify
+                or TokenType.Union
+                or TokenType.UnionAll
+                or TokenType.Except
+                or TokenType.Intersect
+                or TokenType.And
+                or TokenType.Or
+                or TokenType.Then
+                or TokenType.Else
+                or TokenType.End
+                or TokenType.When
+                or TokenType.On
+                or TokenType.As
+                or TokenType.InnerJoin
+                or TokenType.OuterJoin
+                or TokenType.SemiJoin
+                or TokenType.AntiJoin
+                or TokenType.CrossJoin
+                or TokenType.CrossApply
+                or TokenType.OuterApply
+                or TokenType.AsOfJoin
+            )
+        )
             return;
 
-        throw new SyntaxException($"Operator '{operatorText}' is missing its right operand.", queryPart,
-            DiagnosticCode.MQ2020_MissingOperand, new TextSpan(currentToken.Span.Start, 0));
+        throw new SyntaxException(
+            $"Operator '{operatorText}' is missing its right operand.",
+            queryPart,
+            DiagnosticCode.MQ2020_MissingOperand,
+            new TextSpan(currentToken.Span.Start, 0)
+        );
     }
 
     public static IReadOnlyDictionary<string, string> PositionalAfterNamed(int argumentIndex) =>
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["argumentKind"] = "positional-after-named",
-            ["argumentIndex"] = argumentIndex.ToString(CultureInfo.InvariantCulture)
+            ["argumentIndex"] = argumentIndex.ToString(CultureInfo.InvariantCulture),
         };
 
     public static IReadOnlyDictionary<string, string> NamedOutsideDatasource(string argument) =>
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["argumentKind"] = "named-outside-datasource",
-            ["argument"] = argument
+            ["argument"] = argument,
         };
 
     public static IReadOnlyDictionary<string, string> InvalidArgumentName(string argument) =>
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["argumentKind"] = "invalid-name",
-            ["argument"] = argument
+            ["argument"] = argument,
         };
 
     public static IReadOnlyDictionary<string, string> MissingArgumentValue(string argument) =>
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["argumentKind"] = "missing-value",
-            ["argument"] = argument
+            ["argument"] = argument,
         };
 
     public static IReadOnlyDictionary<string, string> AliasSyntax(
         AliasParseResult result,
         AliasContext context,
-        string token)
+        string token
+    )
     {
         var arguments = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["aliasKind"] = result.State == AliasParseState.MissingAfterAs
-                ? "missing-after-as"
-                : "invalid-after-as",
-            ["context"] = AliasTokenFacts.GetContextName(context)
+            ["aliasKind"] = result.State == AliasParseState.MissingAfterAs ? "missing-after-as" : "invalid-after-as",
+            ["context"] = AliasTokenFacts.GetContextName(context),
         };
 
         if (!string.IsNullOrWhiteSpace(token))
@@ -85,24 +125,26 @@ internal static class ParserDiagnosticFacts
         SourceKind sourceKind,
         string operatorText,
         string boundary,
-        bool isFirstSource) =>
+        bool isFirstSource
+    ) =>
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["aliasKind"] = "required-source-alias",
             ["sourceKind"] = sourceKind.ToString().ToLowerInvariant(),
             ["operator"] = operatorText,
             ["boundary"] = boundary,
-            ["isFirstSource"] = isFirstSource ? "true" : "false"
+            ["isFirstSource"] = isFirstSource ? "true" : "false",
         };
 
     public static IReadOnlyDictionary<string, string> RequiredAliasAfterDelimiter(
         string sourceKind,
-        string delimiter) =>
+        string delimiter
+    ) =>
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["aliasKind"] = "required-source-alias",
             ["sourceKind"] = sourceKind,
-            ["boundary"] = delimiter
+            ["boundary"] = delimiter,
         };
 
     public static Diagnostic ApplyExceptionPayload(Diagnostic diagnostic, SyntaxException exception)

@@ -5,7 +5,10 @@ namespace Musoq.Evaluator.IR.Logical.Rewriting;
 
 internal static partial class LogicalPlanRewriter
 {
-    public static LogicalNode RewriteLocalExpressions(LogicalNode node, Func<IrExpression, IrExpression> rewriteExpression)
+    public static LogicalNode RewriteLocalExpressions(
+        LogicalNode node,
+        Func<IrExpression, IrExpression> rewriteExpression
+    )
     {
         return node switch
         {
@@ -23,22 +26,36 @@ internal static partial class LogicalPlanRewriter
             UnpivotNode unpivot => RewriteUnpivot(unpivot, rewriteExpression),
             ValuesScanNode values => RewriteValues(values, rewriteExpression),
             WindowNode window => RewriteWindow(window, rewriteExpression),
-            _ => node
+            _ => node,
         };
     }
 
-    private static LogicalNode RewriteAccessMethod(AccessMethodSourceNode node, Func<IrExpression, IrExpression> rewriteExpression)
+    private static LogicalNode RewriteAccessMethod(
+        AccessMethodSourceNode node,
+        Func<IrExpression, IrExpression> rewriteExpression
+    )
     {
         var expression = rewriteExpression(node.MethodCallExpression);
         return ReferenceEquals(expression, node.MethodCallExpression)
             ? node
-            : node with { MethodCallExpression = expression };
+            : node with
+            {
+                MethodCallExpression = expression,
+            };
     }
 
     private static LogicalNode RewriteAggregate(AggregateNode node, Func<IrExpression, IrExpression> rewriteExpression)
     {
-        var groupKeys = LogicalPlanRewriter.RewriteExpressions(node.GroupKeys, rewriteExpression, out var groupKeysChanged);
-        var bindings = LogicalPlanRewriter.RewriteAggregateBindings(node.Bindings, rewriteExpression, out var bindingsChanged);
+        var groupKeys = LogicalPlanRewriter.RewriteExpressions(
+            node.GroupKeys,
+            rewriteExpression,
+            out var groupKeysChanged
+        );
+        var bindings = LogicalPlanRewriter.RewriteAggregateBindings(
+            node.Bindings,
+            rewriteExpression,
+            out var bindingsChanged
+        );
 
         return !groupKeysChanged && !bindingsChanged
             ? node
@@ -54,20 +71,19 @@ internal static partial class LogicalPlanRewriter
     private static LogicalNode RewriteFilter(FilterNode node, Func<IrExpression, IrExpression> rewriteExpression)
     {
         var predicate = rewriteExpression(node.Predicate);
-        return ReferenceEquals(predicate, node.Predicate)
-            ? node
-            : new FilterNode(predicate, node.Input);
+        return ReferenceEquals(predicate, node.Predicate) ? node : new FilterNode(predicate, node.Input);
     }
 
     private static LogicalNode RewriteHaving(HavingFilterNode node, Func<IrExpression, IrExpression> rewriteExpression)
     {
         var predicate = rewriteExpression(node.Predicate);
-        return ReferenceEquals(predicate, node.Predicate)
-            ? node
-            : new HavingFilterNode(predicate, node.Input);
+        return ReferenceEquals(predicate, node.Predicate) ? node : new HavingFilterNode(predicate, node.Input);
     }
 
-    private static LogicalNode RewriteInterpret(InterpretSourceNode node, Func<IrExpression, IrExpression> rewriteExpression)
+    private static LogicalNode RewriteInterpret(
+        InterpretSourceNode node,
+        Func<IrExpression, IrExpression> rewriteExpression
+    )
     {
         var arguments = LogicalPlanRewriter.RewriteExpressions(node.Arguments, rewriteExpression, out var changed);
         return changed ? node with { Arguments = arguments } : node;
@@ -84,8 +100,7 @@ internal static partial class LogicalPlanRewriter
                 tieBreak = tieBreak with { Expression = tieBreakExpression };
         }
 
-        return ReferenceEquals(predicate, node.OnPredicate) &&
-               ReferenceEquals(tieBreak, node.TieBreak)
+        return ReferenceEquals(predicate, node.OnPredicate) && ReferenceEquals(tieBreak, node.TieBreak)
             ? node
             : new JoinNode(node.Kind, predicate, node.Left, node.Right, tieBreak, node.WithOrdinality);
     }
@@ -93,20 +108,22 @@ internal static partial class LogicalPlanRewriter
     private static LogicalNode RewriteProject(ProjectNode node, Func<IrExpression, IrExpression> rewriteExpression)
     {
         var fields = LogicalPlanRewriter.RewriteProjectedFields(node.Fields, rewriteExpression, out var fieldsChanged);
-        return !fieldsChanged
-            ? node
-            : new ProjectNode(fields, node.Input) { IsDistinct = node.IsDistinct };
+        return !fieldsChanged ? node : new ProjectNode(fields, node.Input) { IsDistinct = node.IsDistinct };
     }
 
-    private static LogicalNode RewriteQualify(QualifyFilterNode node, Func<IrExpression, IrExpression> rewriteExpression)
+    private static LogicalNode RewriteQualify(
+        QualifyFilterNode node,
+        Func<IrExpression, IrExpression> rewriteExpression
+    )
     {
         var predicate = rewriteExpression(node.Predicate);
-        return ReferenceEquals(predicate, node.Predicate)
-            ? node
-            : new QualifyFilterNode(predicate, node.Input);
+        return ReferenceEquals(predicate, node.Predicate) ? node : new QualifyFilterNode(predicate, node.Input);
     }
 
-    private static LogicalNode RewriteSchemaScan(SchemaScanNode node, Func<IrExpression, IrExpression> rewriteExpression)
+    private static LogicalNode RewriteSchemaScan(
+        SchemaScanNode node,
+        Func<IrExpression, IrExpression> rewriteExpression
+    )
     {
         var arguments = LogicalPlanRewriter.RewriteExpressions(node.Arguments, rewriteExpression, out var changed);
         return changed ? node with { Arguments = arguments } : node;
@@ -115,9 +132,7 @@ internal static partial class LogicalPlanRewriter
     private static LogicalNode RewriteSort(SortNode node, Func<IrExpression, IrExpression> rewriteExpression)
     {
         var keys = LogicalPlanRewriter.RewriteOrderFields(node.Keys, rewriteExpression, out var keysChanged);
-        return !keysChanged
-            ? node
-            : new SortNode(keys, node.Input);
+        return !keysChanged ? node : new SortNode(keys, node.Input);
     }
 
     private static LogicalNode RewriteValues(ValuesScanNode node, Func<IrExpression, IrExpression> rewriteExpression)
@@ -131,9 +146,8 @@ internal static partial class LogicalPlanRewriter
         var registrations = LogicalPlanRewriter.RewriteWindowRegistrations(
             node.Registrations,
             rewriteExpression,
-            out var registrationsChanged);
-        return !registrationsChanged
-            ? node
-            : new WindowNode(registrations, node.Input);
+            out var registrationsChanged
+        );
+        return !registrationsChanged ? node : new WindowNode(registrations, node.Input);
     }
 }

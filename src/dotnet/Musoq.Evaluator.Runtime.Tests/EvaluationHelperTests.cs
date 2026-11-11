@@ -33,7 +33,8 @@ public class EvaluationHelperTests
             rows,
             1,
             2,
-            [new RowOrderKey(static row => (int)row.ReadValue(0), Descending: false)]);
+            [new RowOrderKey(static row => (int)row.ReadValue(0), Descending: false)]
+        );
 
         CollectionAssert.AreEqual(new Row[] { firstTie, secondTie }, selected.ToArray());
     }
@@ -46,16 +47,15 @@ public class EvaluationHelperTests
         var secondTie = new TestRow([1, "second"]);
         var high = new TestRow([2, "high"]);
         Row[] rows = [firstTie, high, secondTie, low];
-        var target = new Table(
-            "result",
-            [new Column("Score", typeof(int), 0), new Column("Name", typeof(string), 1)]);
+        var target = new Table("result", [new Column("Score", typeof(int), 0), new Column("Name", typeof(string), 1)]);
 
         EvaluationHelper.AppendTopOffsetRowsDirect(
             rows,
             target,
             1,
             2,
-            [new RowOrderKey(static row => (int)row.ReadValue(0), Descending: false)]);
+            [new RowOrderKey(static row => (int)row.ReadValue(0), Descending: false)]
+        );
 
         CollectionAssert.AreEqual(new Row[] { firstTie, secondTie }, target.Rows.ToArray());
     }
@@ -68,9 +68,11 @@ public class EvaluationHelperTests
         var high = new TestRow(["B", "high"]);
         Row[] rows = [low, nullRow, high];
 
-        var ordered = EvaluationHelper.OrderRows(
-            rows,
-            [new RowOrderKey(static row => (string?)row.ReadValue(0)!, Descending: true, NullOrdering: 1)])
+        var ordered = EvaluationHelper
+            .OrderRows(
+                rows,
+                [new RowOrderKey(static row => (string?)row.ReadValue(0)!, Descending: true, NullOrdering: 1)]
+            )
             .ToArray();
 
         CollectionAssert.AreEqual(new Row[] { nullRow, high, low }, ordered);
@@ -79,18 +81,12 @@ public class EvaluationHelperTests
     [TestMethod]
     public void EntitySource_Chunks_ShouldReturnRowChunkOverOriginalListBackedInput()
     {
-        var entities = new[]
-        {
-            new TypedRowSourceEntity(1),
-            new TypedRowSourceEntity(2)
-        };
+        var entities = new[] { new TypedRowSourceEntity(1), new TypedRowSourceEntity(2) };
         var source = new EntitySource<TypedRowSourceEntity>(
             [entities],
             new Dictionary<string, int> { [nameof(TypedRowSourceEntity.Id)] = 0 },
-            new Dictionary<int, Func<TypedRowSourceEntity, object?>>
-            {
-                [0] = static entity => entity.Id
-            });
+            new Dictionary<int, Func<TypedRowSourceEntity, object?>> { [0] = static entity => entity.Id }
+        );
 
         var chunk = (RowChunk<TypedRowSourceEntity>)source.Chunks.Single();
 
@@ -120,8 +116,7 @@ public class EvaluationHelperTests
     [TestMethod]
     public void ConvertEnumerableOutputToChunks_WhenEnumerableIsStreaming_ShouldBufferIntoArrayChunks()
     {
-        var rows = Enumerable.Range(0, EvaluationHelper.DefaultSourceChunkSize + 1)
-            .Where(static _ => true);
+        var rows = Enumerable.Range(0, EvaluationHelper.DefaultSourceChunkSize + 1).Where(static _ => true);
 
         var chunks = EvaluationHelper.ConvertEnumerableOutputToChunks(rows).ToArray();
 
@@ -135,7 +130,9 @@ public class EvaluationHelperTests
     [TestMethod]
     public void ConvertEnumerableOutputToChunks_WhenReadOnlyListIsUnknown_ShouldBufferIntoArrayChunks()
     {
-        var rows = new UnknownReadOnlyList<int>(Enumerable.Range(0, EvaluationHelper.DefaultSourceChunkSize + 1).ToArray());
+        var rows = new UnknownReadOnlyList<int>(
+            Enumerable.Range(0, EvaluationHelper.DefaultSourceChunkSize + 1).ToArray()
+        );
 
         var chunks = EvaluationHelper.ConvertEnumerableOutputToChunks(rows).ToArray();
 
@@ -149,18 +146,12 @@ public class EvaluationHelperTests
     [TestMethod]
     public void GetRowSourceChunks_ShouldRetainConcreteChunkAndEntityIdentity()
     {
-        var entities = new[]
-        {
-            new TypedRowSourceEntity(1),
-            new TypedRowSourceEntity(2)
-        };
+        var entities = new[] { new TypedRowSourceEntity(1), new TypedRowSourceEntity(2) };
         var source = new EntitySource<TypedRowSourceEntity>(
             [entities],
             new Dictionary<string, int> { [nameof(TypedRowSourceEntity.Id)] = 0 },
-            new Dictionary<int, Func<TypedRowSourceEntity, object?>>
-            {
-                [0] = static entity => entity.Id
-            });
+            new Dictionary<int, Func<TypedRowSourceEntity, object?>> { [0] = static entity => entity.Id }
+        );
         var schema = new ReflectedChunkSchema(source);
         var executionContext = new SourceExecutionContext(
             "queryId",
@@ -168,13 +159,17 @@ public class EvaluationHelperTests
             CancellationToken.None,
             [],
             new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
 
-        var chunks = EvaluationHelper.GetRowSourceChunks<TypedRowSourceEntity, EmptySourceArguments>(
-            schema,
-            "items",
-            executionContext,
-            SourceArguments.Empty).ToArray();
+        var chunks = EvaluationHelper
+            .GetRowSourceChunks<TypedRowSourceEntity, EmptySourceArguments>(
+                schema,
+                "items",
+                executionContext,
+                SourceArguments.Empty
+            )
+            .ToArray();
 
         Assert.HasCount(1, chunks);
         Assert.IsInstanceOfType<IReadOnlyList<TypedRowSourceEntity>>(chunks[0]);
@@ -190,20 +185,22 @@ public class EvaluationHelperTests
     public void CreateAsOfIndex_WhenProbed_ShouldReturnClosestMatchingCandidate(
         BinaryOpKind comparisonKind,
         int probe,
-        string expectedName)
+        string expectedName
+    )
     {
         var rows = new[]
         {
             new AsOfIndexTestRow("High90", "A", 90),
             new AsOfIndexTestRow("Low10", "A", 10),
             new AsOfIndexTestRow("Exact50", "A", 50),
-            new AsOfIndexTestRow("Exact50Later", "A", 50)
+            new AsOfIndexTestRow("Exact50Later", "A", 50),
         };
         var index = EvaluationHelper.CreateAsOfIndex<AsOfIndexTestRow, int, bool>(
             rows,
             null,
             static row => row.Score,
-            comparisonKind);
+            comparisonKind
+        );
 
         var match = index.Find(default, probe);
 
@@ -219,13 +216,14 @@ public class EvaluationHelperTests
             new AsOfIndexTestRow("A90", "A", 90),
             new AsOfIndexTestRow("B80", "B", 80),
             new AsOfIndexTestRow("A20", "A", 20),
-            new AsOfIndexTestRow("NoTeam", null, 99)
+            new AsOfIndexTestRow("NoTeam", null, 99),
         };
         var index = EvaluationHelper.CreateAsOfIndex(
             rows,
             static row => new NativeEqualityKey<string>(row.Team != null, row.Team!),
             static row => row.Score,
-            BinaryOpKind.GreaterOrEqual);
+            BinaryOpKind.GreaterOrEqual
+        );
 
         Assert.AreEqual("A90", index.Find(new NativeEqualityKey<string>(true, "A"), 100)?.Name);
         Assert.AreEqual("B80", index.Find(new NativeEqualityKey<string>(true, "B"), 100)?.Name);
@@ -247,23 +245,19 @@ public class EvaluationHelperTests
     {
         var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("Test", typeof(TestClass)).ToArray();
 
-
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test" && pair.Type == typeof(TestClass)));
 
-
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.Test" && pair.Type == typeof(TestClass)));
-        Assert.IsTrue(typeDescriptions.Any(pair =>
-            pair.FieldName == "Test.SubClass" && pair.Type == typeof(TestSubClass)));
-
+        Assert.IsTrue(
+            typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass" && pair.Type == typeof(TestSubClass))
+        );
 
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeInt" && pair.Type == typeof(int)));
-        Assert.IsTrue(typeDescriptions.Any(pair =>
-            pair.FieldName == "Test.SomeString" && pair.Type == typeof(string)));
-        Assert.IsTrue(typeDescriptions.Any(pair =>
-            pair.FieldName == "Test.SomeObject" && pair.Type == typeof(object)));
-        Assert.IsTrue(typeDescriptions.Any(pair =>
-            pair.FieldName == "Test.SubClass.SomeInt" && pair.Type == typeof(int)));
-
+        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeString" && pair.Type == typeof(string)));
+        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeObject" && pair.Type == typeof(object)));
+        Assert.IsTrue(
+            typeDescriptions.Any(pair => pair.FieldName == "Test.SubClass.SomeInt" && pair.Type == typeof(int))
+        );
 
         Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName.StartsWith("Test.SomeInt.")));
         Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName.StartsWith("Test.SomeString.")));
@@ -327,8 +321,10 @@ public class EvaluationHelperTests
         Assert.AreEqual(typeof(decimal?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Decimal"));
         Assert.AreEqual(typeof(object), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Object"));
         Assert.AreEqual(typeof(DateTime?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.DateTime"));
-        Assert.AreEqual(typeof(DateTimeOffset?),
-            EvaluationHelper.RemapPrimitiveTypeAsNullable("System.DateTimeOffset"));
+        Assert.AreEqual(
+            typeof(DateTimeOffset?),
+            EvaluationHelper.RemapPrimitiveTypeAsNullable("System.DateTimeOffset")
+        );
         Assert.AreEqual(typeof(TimeSpan?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.TimeSpan"));
         Assert.AreEqual(typeof(Guid?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Guid"));
     }
@@ -418,7 +414,8 @@ public class EvaluationHelperTests
         var table = new BasicEntityTable();
 
         var exception = Assert.Throws<UnknownColumnOrAliasException>(() =>
-            EvaluationHelper.GetSpecificColumnDescription(table, "NonExistent"));
+            EvaluationHelper.GetSpecificColumnDescription(table, "NonExistent")
+        );
 
         Assert.Contains("NonExistent", exception.Message, "Exception message should contain the column name");
     }
@@ -439,40 +436,39 @@ public class EvaluationHelperTests
     {
         var table = new BasicEntityTable();
 
-
         Assert.Throws<ColumnMustBeAnArrayOrImplementIEnumerableException>(() =>
-            EvaluationHelper.GetSpecificColumnDescription(table, "Name"));
+            EvaluationHelper.GetSpecificColumnDescription(table, "Name")
+        );
     }
 
     [TestMethod]
     public void CreateComplexTypeDescription_WithArrayProperty_ShouldNotExplodeArray()
     {
-        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("Entity", typeof(TestClassWithArray))
+        var typeDescriptions = EvaluationHelper
+            .CreateTypeComplexDescription("Entity", typeof(TestClassWithArray))
             .ToArray();
 
-
         Assert.IsTrue(
-            typeDescriptions.Any(pair => pair.FieldName == "Entity" && pair.Type == typeof(TestClassWithArray)));
-
+            typeDescriptions.Any(pair => pair.FieldName == "Entity" && pair.Type == typeof(TestClassWithArray))
+        );
 
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Entity.Id" && pair.Type == typeof(int)));
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Entity.Name" && pair.Type == typeof(string)));
 
-
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Entity.Numbers" && pair.Type == typeof(int[])));
-        Assert.IsTrue(typeDescriptions.Any(pair =>
-            pair.FieldName == "Entity.Items" && pair.Type == typeof(TestSubClass[])));
-
+        Assert.IsTrue(
+            typeDescriptions.Any(pair => pair.FieldName == "Entity.Items" && pair.Type == typeof(TestSubClass[]))
+        );
 
         Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName.StartsWith("Entity.Numbers.")));
         Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName.StartsWith("Entity.Items.")));
 
-
-        Assert.IsTrue(typeDescriptions.Any(pair =>
-            pair.FieldName == "Entity.SubClass" && pair.Type == typeof(TestSubClass)));
-        Assert.IsTrue(typeDescriptions.Any(pair =>
-            pair.FieldName == "Entity.SubClass.SomeInt" && pair.Type == typeof(int)));
-
+        Assert.IsTrue(
+            typeDescriptions.Any(pair => pair.FieldName == "Entity.SubClass" && pair.Type == typeof(TestSubClass))
+        );
+        Assert.IsTrue(
+            typeDescriptions.Any(pair => pair.FieldName == "Entity.SubClass.SomeInt" && pair.Type == typeof(int))
+        );
 
         // Note: This is different from arrays - Lists have Count, Capacity, etc.
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Entity.StringList"));
@@ -501,15 +497,13 @@ public class EvaluationHelperTests
         public ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             throw new NotSupportedException();
         }
 
-        public SourceDescriptor DescribeSource(
-            string name,
-            SourceDescribeContext context,
-            params object?[] parameters)
+        public SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
         {
             throw new NotSupportedException();
         }
@@ -517,15 +511,13 @@ public class EvaluationHelperTests
         public IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
             string name,
             SourceRuntimeSettingsDescribeContext context,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             throw new NotSupportedException();
         }
 
-        public SourcePlanResult TryPlanSource(
-            string name,
-            SourcePlanRequest request,
-            params object?[] parameters)
+        public SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
         {
             throw new NotSupportedException();
         }
@@ -533,7 +525,9 @@ public class EvaluationHelperTests
         public RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments
+            TArguments parameters
+        )
+            where TArguments : struct, global::Musoq.Schema.ISourceArguments
         {
             return (RowSource<T>)(object)source;
         }
@@ -543,9 +537,7 @@ public class EvaluationHelperTests
             throw new NotSupportedException();
         }
 
-        public SchemaMethodInfo[] GetRawConstructors(
-            string methodName,
-            SourceMetadataContext metadataContext)
+        public SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
         {
             throw new NotSupportedException();
         }
@@ -554,8 +546,8 @@ public class EvaluationHelperTests
             string method,
             Type[] parameters,
             Type? entityType,
-            [NotNullWhen(true)]
-            out MethodInfo? methodInfo)
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
@@ -564,8 +556,8 @@ public class EvaluationHelperTests
         public bool TryResolveRawMethod(
             string method,
             Type[] parameters,
-            [NotNullWhen(true)]
-            out MethodInfo? methodInfo)
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
@@ -575,8 +567,8 @@ public class EvaluationHelperTests
             string method,
             Type[] parameters,
             Type? entityType,
-            [NotNullWhen(true)]
-            out MethodInfo? methodInfo)
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
@@ -587,16 +579,14 @@ public class EvaluationHelperTests
             Type[] parameters,
             Type? entityType,
             Func<MethodInfo, bool> methodFilter,
-            [NotNullWhen(true)]
-            out MethodInfo? methodInfo)
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        )
         {
             methodInfo = null;
             return false;
         }
 
-        public bool TryResolveWindowFunction(
-            string method,
-            [NotNullWhen(true)] out MethodInfo? methodInfo)
+        public bool TryResolveWindowFunction(string method, [NotNullWhen(true)] out MethodInfo? methodInfo)
         {
             methodInfo = null;
             return false;

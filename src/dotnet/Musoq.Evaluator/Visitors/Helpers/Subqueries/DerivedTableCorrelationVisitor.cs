@@ -45,7 +45,8 @@ internal sealed class DerivedTableCorrelationVisitor : NoOpExpressionVisitor
 
     private DerivedTableCorrelationAnalyzer RequireAnalyzer()
     {
-        return _analyzer ?? throw new InvalidOperationException("Derived table correlation visitor must be bound before use.");
+        return _analyzer
+            ?? throw new InvalidOperationException("Derived table correlation visitor must be bound before use.");
     }
 
     private static bool TryGetRootAlias(DotNode node, [NotNullWhen(true)] out string? alias)

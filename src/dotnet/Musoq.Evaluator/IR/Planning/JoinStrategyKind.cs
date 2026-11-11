@@ -4,5 +4,5 @@ internal enum JoinStrategyKind
 {
     HashJoin,
     SortMergeJoin,
-    NestedLoop
+    NestedLoop,
 }

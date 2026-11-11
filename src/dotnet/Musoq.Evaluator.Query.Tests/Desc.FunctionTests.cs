@@ -17,14 +17,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -40,15 +33,22 @@ public partial class DescStatementTests
         var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods like 'Trim'");
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Substring(")),
-            "Should contain library methods like 'Substring'");
+        Assert.IsTrue(
+            methodSignatures.Any(m => m.Contains("Substring(")),
+            "Should contain library methods like 'Substring'"
+        );
 
         foreach (var signature in methodSignatures)
         {
-            Assert.IsTrue(signature.Contains('(') && signature.Contains(')'),
-                $"Method signature should include parentheses: {signature}");
-            Assert.Contains(" ",
-                signature, $"Method signature should include return type and method name: {signature}");
+            Assert.IsTrue(
+                signature.Contains('(') && signature.Contains(')'),
+                $"Method signature should include parentheses: {signature}"
+            );
+            Assert.Contains(
+                " ",
+                signature,
+                $"Method signature should include return type and method name: {signature}"
+            );
         }
 
         foreach (var row in table)
@@ -67,14 +67,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -92,14 +85,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A;";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -113,14 +99,7 @@ public partial class DescStatementTests
     {
         var query = "DESC FUNCTIONS #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -133,12 +112,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -154,16 +128,8 @@ public partial class DescStatementTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("testA")
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("testB")
-                ]
-            }
+            { "#A", [new BasicEntity("testA")] },
+            { "#B", [new BasicEntity("testB")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -178,14 +144,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -201,66 +160,103 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplyAddOperator))),
-            $"Should not show {nameof(LibraryBase.InternalApplyAddOperator)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplySubtractOperator))),
-            $"Should not show {nameof(LibraryBase.InternalApplySubtractOperator)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplyMultiplyOperator))),
-            $"Should not show {nameof(LibraryBase.InternalApplyMultiplyOperator)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplyDivideOperator))),
-            $"Should not show {nameof(LibraryBase.InternalApplyDivideOperator)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplyModuloOperator))),
-            $"Should not show {nameof(LibraryBase.InternalApplyModuloOperator)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalGreaterThanOperator))),
-            $"Should not show {nameof(LibraryBase.InternalGreaterThanOperator)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalLessThanOperator))),
-            $"Should not show {nameof(LibraryBase.InternalLessThanOperator)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalEqualOperator))),
-            $"Should not show {nameof(LibraryBase.InternalEqualOperator)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalNotEqualOperator))),
-            $"Should not show {nameof(LibraryBase.InternalNotEqualOperator)}");
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplyAddOperator))),
+            $"Should not show {nameof(LibraryBase.InternalApplyAddOperator)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplySubtractOperator))),
+            $"Should not show {nameof(LibraryBase.InternalApplySubtractOperator)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplyMultiplyOperator))),
+            $"Should not show {nameof(LibraryBase.InternalApplyMultiplyOperator)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplyDivideOperator))),
+            $"Should not show {nameof(LibraryBase.InternalApplyDivideOperator)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalApplyModuloOperator))),
+            $"Should not show {nameof(LibraryBase.InternalApplyModuloOperator)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalGreaterThanOperator))),
+            $"Should not show {nameof(LibraryBase.InternalGreaterThanOperator)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalLessThanOperator))),
+            $"Should not show {nameof(LibraryBase.InternalLessThanOperator)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalEqualOperator))),
+            $"Should not show {nameof(LibraryBase.InternalEqualOperator)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.InternalNotEqualOperator))),
+            $"Should not show {nameof(LibraryBase.InternalNotEqualOperator)}"
+        );
 
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt32Strict))),
-            $"Should not show {nameof(LibraryBase.TryConvertToInt32Strict)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt64Strict))),
-            $"Should not show {nameof(LibraryBase.TryConvertToInt64Strict)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToDecimalStrict))),
-            $"Should not show {nameof(LibraryBase.TryConvertToDecimalStrict)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt32Comparison))),
-            $"Should not show {nameof(LibraryBase.TryConvertToInt32Comparison)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt64Comparison))),
-            $"Should not show {nameof(LibraryBase.TryConvertToInt64Comparison)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToDecimalComparison))),
-            $"Should not show {nameof(LibraryBase.TryConvertToDecimalComparison)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertNumericOnly))),
-            $"Should not show {nameof(LibraryBase.TryConvertNumericOnly)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt32NumericOnly))),
-            $"Should not show {nameof(LibraryBase.TryConvertToInt32NumericOnly)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt64NumericOnly))),
-            $"Should not show {nameof(LibraryBase.TryConvertToInt64NumericOnly)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToDecimalNumericOnly))),
-            $"Should not show {nameof(LibraryBase.TryConvertToDecimalNumericOnly)}");
-        Assert.IsFalse(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToDoubleNumericOnly))),
-            $"Should not show {nameof(LibraryBase.TryConvertToDoubleNumericOnly)}");
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt32Strict))),
+            $"Should not show {nameof(LibraryBase.TryConvertToInt32Strict)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt64Strict))),
+            $"Should not show {nameof(LibraryBase.TryConvertToInt64Strict)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToDecimalStrict))),
+            $"Should not show {nameof(LibraryBase.TryConvertToDecimalStrict)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt32Comparison))),
+            $"Should not show {nameof(LibraryBase.TryConvertToInt32Comparison)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt64Comparison))),
+            $"Should not show {nameof(LibraryBase.TryConvertToInt64Comparison)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToDecimalComparison))),
+            $"Should not show {nameof(LibraryBase.TryConvertToDecimalComparison)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertNumericOnly))),
+            $"Should not show {nameof(LibraryBase.TryConvertNumericOnly)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt32NumericOnly))),
+            $"Should not show {nameof(LibraryBase.TryConvertToInt32NumericOnly)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToInt64NumericOnly))),
+            $"Should not show {nameof(LibraryBase.TryConvertToInt64NumericOnly)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToDecimalNumericOnly))),
+            $"Should not show {nameof(LibraryBase.TryConvertToDecimalNumericOnly)}"
+        );
+        Assert.IsFalse(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.TryConvertToDoubleNumericOnly))),
+            $"Should not show {nameof(LibraryBase.TryConvertToDoubleNumericOnly)}"
+        );
 
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.Trim) + "(")),
-            $"Should still show public methods like {nameof(LibraryBase.Trim)}");
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains(nameof(LibraryBase.Substring) + "(")),
-            $"Should still show public methods like {nameof(LibraryBase.Substring)}");
+        Assert.IsTrue(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.Trim) + "(")),
+            $"Should still show public methods like {nameof(LibraryBase.Trim)}"
+        );
+        Assert.IsTrue(
+            methodSignatures.Any(m => m.Contains(nameof(LibraryBase.Substring) + "(")),
+            $"Should still show public methods like {nameof(LibraryBase.Substring)}"
+        );
 
         var maxMethod = methodSignatures.FirstOrDefault(m => m.Contains(nameof(LibraryBase.Max) + "("));
         if (maxMethod != null)
@@ -276,34 +272,38 @@ public partial class DescStatementTests
         {
             { "Id", typeof(int) },
             { "Name", typeof(string) },
-            { "Value", typeof(decimal) }
+            { "Value", typeof(decimal) },
         };
 
         var values = new List<dynamic>
         {
             CreateDynamicObject(1, "First", 10.5m),
-            CreateDynamicObject(2, "Second", 20.5m)
+            CreateDynamicObject(2, "Second", 20.5m),
         };
 
         var schemaProvider = new AnySchemaNameProvider(
             new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
             {
-                { "dynamic", (schema, values) }
-            }, _ =>
-            [
-                new SchemaMethodInfo("method1", ConstructorInfo.Empty()),
-                new SchemaMethodInfo("method2", ConstructorInfo.Empty())
-            ]);
+                { "dynamic", (schema, values) },
+            },
+            _ =>
+                [
+                    new SchemaMethodInfo("method1", ConstructorInfo.Empty()),
+                    new SchemaMethodInfo("method2", ConstructorInfo.Empty()),
+                ]
+        );
 
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count(),
-            "Should have exactly 4 columns: Method, Description, Category, and Source");
+        Assert.AreEqual(
+            4,
+            table.Columns.Count(),
+            "Should have exactly 4 columns: Method, Description, Category, and Source"
+        );
         Assert.IsGreaterThan(0, table.Count, "Should return library methods");
 
         var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
-
 
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods");
 
@@ -323,14 +323,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A.entities";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -344,8 +337,10 @@ public partial class DescStatementTests
         Assert.IsGreaterThan(0, table.Count, "Should return at least one library method");
 
         var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")),
-            "Should contain library methods");
+        Assert.IsTrue(
+            methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")),
+            "Should contain library methods"
+        );
     }
 
     [TestMethod]
@@ -353,14 +348,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -374,8 +362,10 @@ public partial class DescStatementTests
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
 
         var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")),
-            "Should contain library methods");
+        Assert.IsTrue(
+            methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")),
+            "Should contain library methods"
+        );
     }
 
     [TestMethod]
@@ -383,14 +373,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A.entities('filter')";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -399,21 +382,16 @@ public partial class DescStatementTests
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
 
         var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")),
-            "Should contain library methods");
+        Assert.IsTrue(
+            methodSignatures.Any(m => m.Contains("Trim(") || m.Contains("Substring(")),
+            "Should contain library methods"
+        );
     }
 
     [TestMethod]
     public void DescFunctionsSchemaMethod_ShouldReturnSameResultAsDescFunctionsSchema()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vmFunctionsOnly = CreateAndRunVirtualMachine("desc functions #A", sources);
         var tableFunctionsOnly = vmFunctionsOnly.Run(TestContext.CancellationToken);
@@ -421,28 +399,30 @@ public partial class DescStatementTests
         var vmFunctionsWithMethod = CreateAndRunVirtualMachine("desc functions #A.entities()", sources);
         var tableFunctionsWithMethod = vmFunctionsWithMethod.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(tableFunctionsOnly.Columns.Count(), tableFunctionsWithMethod.Columns.Count(),
-            "desc functions #A.entities() should have same column count as desc functions #A");
-        Assert.AreEqual(tableFunctionsOnly.Count, tableFunctionsWithMethod.Count,
-            "desc functions #A.entities() should have same row count as desc functions #A");
+        Assert.AreEqual(
+            tableFunctionsOnly.Columns.Count(),
+            tableFunctionsWithMethod.Columns.Count(),
+            "desc functions #A.entities() should have same column count as desc functions #A"
+        );
+        Assert.AreEqual(
+            tableFunctionsOnly.Count,
+            tableFunctionsWithMethod.Count,
+            "desc functions #A.entities() should have same row count as desc functions #A"
+        );
 
         for (var i = 0; i < tableFunctionsOnly.Count; i++)
         for (var j = 0; j < tableFunctionsOnly.Columns.Count(); j++)
-            Assert.AreEqual(tableFunctionsOnly[i].ReadValue(j), tableFunctionsWithMethod[i].ReadValue(j),
-                $"Row {i}, Col {j}: desc functions #A.entities() should produce identical output to desc functions #A");
+            Assert.AreEqual(
+                tableFunctionsOnly[i].ReadValue(j),
+                tableFunctionsWithMethod[i].ReadValue(j),
+                $"Row {i}, Col {j}: desc functions #A.entities() should produce identical output to desc functions #A"
+            );
     }
 
     [TestMethod]
     public void DescFunctionsSchemaMethodWithArgs_ShouldReturnSameResultAsDescFunctionsSchema()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vmFunctionsOnly = CreateAndRunVirtualMachine("desc functions #A", sources);
         var tableFunctionsOnly = vmFunctionsOnly.Run(TestContext.CancellationToken);
@@ -450,10 +430,16 @@ public partial class DescStatementTests
         var vmFunctionsWithMethod = CreateAndRunVirtualMachine("desc functions #A.entities('filter')", sources);
         var tableFunctionsWithMethod = vmFunctionsWithMethod.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(tableFunctionsOnly.Columns.Count(), tableFunctionsWithMethod.Columns.Count(),
-            "desc functions #A.entities('filter') should have same column count as desc functions #A");
-        Assert.AreEqual(tableFunctionsOnly.Count, tableFunctionsWithMethod.Count,
-            "desc functions #A.entities('filter') should have same row count as desc functions #A");
+        Assert.AreEqual(
+            tableFunctionsOnly.Columns.Count(),
+            tableFunctionsWithMethod.Columns.Count(),
+            "desc functions #A.entities('filter') should have same column count as desc functions #A"
+        );
+        Assert.AreEqual(
+            tableFunctionsOnly.Count,
+            tableFunctionsWithMethod.Count,
+            "desc functions #A.entities('filter') should have same row count as desc functions #A"
+        );
     }
 
     [TestMethod]
@@ -461,14 +447,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -477,18 +456,26 @@ public partial class DescStatementTests
 
         foreach (var signature in methodSignatures)
         {
-            Assert.DoesNotContain("Nullable`1",
-                signature, $"Signature should not contain 'Nullable`1', but got: {signature}");
-            Assert.DoesNotContain("Nullable<",
-                signature, $"Signature should use '?' instead of 'Nullable<', but got: {signature}");
+            Assert.DoesNotContain(
+                "Nullable`1",
+                signature,
+                $"Signature should not contain 'Nullable`1', but got: {signature}"
+            );
+            Assert.DoesNotContain(
+                "Nullable<",
+                signature,
+                $"Signature should use '?' instead of 'Nullable<', but got: {signature}"
+            );
         }
 
         var nullableSignatures = methodSignatures.Where(m => m.Contains('?')).ToList();
         Assert.IsGreaterThan(0, nullableSignatures.Count, "Should have methods with nullable parameters");
 
         var sampleNullableMethod = nullableSignatures.FirstOrDefault(m => m.Contains("int?") || m.Contains("decimal?"));
-        Assert.IsNotNull(sampleNullableMethod,
-            "Should have at least one method with properly formatted nullable type (e.g., 'int?' or 'decimal?')");
+        Assert.IsNotNull(
+            sampleNullableMethod,
+            "Should have at least one method with properly formatted nullable type (e.g., 'int?' or 'decimal?')"
+        );
     }
 
     [TestMethod]
@@ -496,14 +483,7 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -511,8 +491,10 @@ public partial class DescStatementTests
         var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         foreach (var signature in methodSignatures)
-            Assert.IsFalse(signature.Contains("`1") || signature.Contains("`2") || signature.Contains("`3"),
-                $"Signature should not contain backtick notation like `1, but got: {signature}");
+            Assert.IsFalse(
+                signature.Contains("`1") || signature.Contains("`2") || signature.Contains("`3"),
+                $"Signature should not contain backtick notation like `1, but got: {signature}"
+            );
 
         var genericSignatures = methodSignatures.Where(m => m.Contains('<') && m.Contains('>')).ToList();
         Assert.IsGreaterThan(0, genericSignatures.Count, "Should have generic methods");
@@ -520,8 +502,11 @@ public partial class DescStatementTests
         foreach (var signature in genericSignatures)
         {
             var genericPart = signature.Substring(signature.IndexOf('<'));
-            Assert.DoesNotContain("System.",
-                genericPart, $"Generic parameters should not include System. prefix: {signature}");
+            Assert.DoesNotContain(
+                "System.",
+                genericPart,
+                $"Generic parameters should not include System. prefix: {signature}"
+            );
         }
     }
 
@@ -530,33 +515,21 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
 
-        Assert.IsTrue(methodSignatures.Any(m => m.Contains("string ")),
-            "Should use 'string' instead of 'String'");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("string ")), "Should use 'string' instead of 'String'");
 
         foreach (var signature in methodSignatures)
         {
-            Assert.DoesNotContain("Int32 ",
-                signature, $"Should use 'int' instead of 'Int32': {signature}");
-            Assert.DoesNotContain("Boolean ",
-                signature, $"Should use 'bool' instead of 'Boolean': {signature}");
-            Assert.DoesNotContain("String ",
-                signature, $"Should use 'string' instead of 'String': {signature}");
-            Assert.DoesNotContain("Decimal ",
-                signature, $"Should use 'decimal' instead of 'Decimal': {signature}");
+            Assert.DoesNotContain("Int32 ", signature, $"Should use 'int' instead of 'Int32': {signature}");
+            Assert.DoesNotContain("Boolean ", signature, $"Should use 'bool' instead of 'Boolean': {signature}");
+            Assert.DoesNotContain("String ", signature, $"Should use 'string' instead of 'String': {signature}");
+            Assert.DoesNotContain("Decimal ", signature, $"Should use 'decimal' instead of 'Decimal': {signature}");
         }
     }
 }

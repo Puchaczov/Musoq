@@ -26,9 +26,7 @@ public sealed class CompilationContextManager
     /// </summary>
     /// <param name="initialCompilation">The initial compilation to build upon.</param>
     public CompilationContextManager(CSharpCompilation initialCompilation)
-        : this(initialCompilation, null, CancellationToken.None)
-    {
-    }
+        : this(initialCompilation, null, CancellationToken.None) { }
 
     /// <summary>
     ///     Creates a compilation context owned by an explicit evaluator runtime environment.
@@ -37,10 +35,9 @@ public sealed class CompilationContextManager
     /// <param name="runtimeEnvironment">The evaluator runtime environment used for shared references.</param>
     public CompilationContextManager(
         CSharpCompilation initialCompilation,
-        EvaluatorRuntimeEnvironment? runtimeEnvironment)
-        : this(initialCompilation, runtimeEnvironment, CancellationToken.None)
-    {
-    }
+        EvaluatorRuntimeEnvironment? runtimeEnvironment
+    )
+        : this(initialCompilation, runtimeEnvironment, CancellationToken.None) { }
 
     /// <summary>
     ///     Creates a compilation context owned by an explicit evaluator runtime environment.
@@ -48,15 +45,17 @@ public sealed class CompilationContextManager
     public CompilationContextManager(
         CSharpCompilation initialCompilation,
         EvaluatorRuntimeEnvironment? runtimeEnvironment,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         _compilation = initialCompilation ?? throw new ArgumentNullException(nameof(initialCompilation));
         _runtimeEnvironment = runtimeEnvironment;
         _cancellationToken = cancellationToken;
 
-        foreach (var path in _runtimeEnvironment?.PreloadedAssemblyPaths ??
-                             GetPreloadedAssemblyPaths(initialCompilation))
+        foreach (
+            var path in _runtimeEnvironment?.PreloadedAssemblyPaths ?? GetPreloadedAssemblyPaths(initialCompilation)
+        )
         {
             _cancellationToken.ThrowIfCancellationRequested();
             _loadedAssemblies.Add(path);
@@ -101,7 +100,8 @@ public sealed class CompilationContextManager
                 throw CSharpClrReferenceDiscoveryException.ForMetadataReference(
                     assembly,
                     "execution-plan CLR reference",
-                    exception);
+                    exception
+                );
             }
 
             _loadedAssemblies.Add(assembly.Location);
@@ -118,19 +118,22 @@ public sealed class CompilationContextManager
     public void TrackNamespace(string ns)
     {
         _cancellationToken.ThrowIfCancellationRequested();
-        if (!string.IsNullOrEmpty(ns)) _namespaces.Add(ns);
+        if (!string.IsNullOrEmpty(ns))
+            _namespaces.Add(ns);
     }
 
     public void TrackNamespace(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
-        if (type.Namespace != null) TrackNamespace(type.Namespace);
+        if (type.Namespace != null)
+            TrackNamespace(type.Namespace);
     }
 
     public void TrackNamespaces(params Type[] types)
     {
         ArgumentNullException.ThrowIfNull(types);
-        foreach (var type in types) TrackNamespace(type);
+        foreach (var type in types)
+            TrackNamespace(type);
         _cancellationToken.ThrowIfCancellationRequested();
     }
 
@@ -163,8 +166,7 @@ public sealed class CompilationContextManager
             return;
 
         _loadedAssemblies.Add(assemblyPath);
-        _compilation = _compilation.AddReferences(
-            GetMetadataReference(assemblyPath));
+        _compilation = _compilation.AddReferences(GetMetadataReference(assemblyPath));
         _cancellationToken.ThrowIfCancellationRequested();
     }
 
@@ -186,7 +188,8 @@ public sealed class CompilationContextManager
             newReferences.Add(GetMetadataReference(assembly.Location));
         }
 
-        if (newReferences.Count > 0) _compilation = _compilation.AddReferences(newReferences);
+        if (newReferences.Count > 0)
+            _compilation = _compilation.AddReferences(newReferences);
         _cancellationToken.ThrowIfCancellationRequested();
     }
 
@@ -204,14 +207,14 @@ public sealed class CompilationContextManager
         if (!_loadedAssemblies.Add(assembly.Location))
             return;
 
-        _compilation = _compilation.AddReferences(
-            GetMetadataReference(assembly.Location));
+        _compilation = _compilation.AddReferences(GetMetadataReference(assembly.Location));
     }
 
     private MetadataReference GetMetadataReference(string assemblyPath)
     {
-        var reference = _runtimeEnvironment?.GetOrCreateMetadataReference(assemblyPath) ??
-                        MetadataReference.CreateFromFile(assemblyPath);
+        var reference =
+            _runtimeEnvironment?.GetOrCreateMetadataReference(assemblyPath)
+            ?? MetadataReference.CreateFromFile(assemblyPath);
         return reference;
     }
 
@@ -226,17 +229,18 @@ public sealed class CompilationContextManager
     }
 
     private static bool IsMetadataReferenceFailure(Exception exception) =>
-        exception is ArgumentException or
-            BadImageFormatException or
-            FileLoadException or
-            FileNotFoundException or
-            IOException or
-            UnauthorizedAccessException;
+        exception
+            is ArgumentException
+                or BadImageFormatException
+                or FileLoadException
+                or FileNotFoundException
+                or IOException
+                or UnauthorizedAccessException;
 
     private static IEnumerable<string> GetPreloadedAssemblyPaths(CSharpCompilation compilation)
     {
-        return compilation.References
-            .OfType<PortableExecutableReference>()
+        return compilation
+            .References.OfType<PortableExecutableReference>()
             .Select(static reference => reference.FilePath)
             .Where(static path => !string.IsNullOrWhiteSpace(path))
             .Select(static path => path!);

@@ -16,7 +16,8 @@ public sealed record SchemaScanNode(
     bool SourceConstructionSupportsContext = false,
     string? SourceConstructorStableId = null,
     ExecutionCallableRef? SourceConstructor = null,
-    IReadOnlyList<ExecutionStructuralLimitPlan?>? StructuralArgumentLimits = null) : LogicalNode(OutputSchema)
+    IReadOnlyList<ExecutionStructuralLimitPlan?>? StructuralArgumentLimits = null
+) : LogicalNode(OutputSchema)
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = Array.Empty<LogicalNode>();
 }

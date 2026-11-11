@@ -12,7 +12,8 @@ public class UnpivotFromNode : FromNode
         string nameColumn,
         string valueColumn,
         IReadOnlyList<UnpivotEntryNode> entries,
-        IReadOnlyList<FieldNode> keepFields)
+        IReadOnlyList<FieldNode> keepFields
+    )
         : base(DefaultAlias)
     {
         Source = source ?? throw new ArgumentNullException(nameof(source));
@@ -28,7 +29,8 @@ public class UnpivotFromNode : FromNode
         string valueColumn,
         IReadOnlyList<UnpivotEntryNode> entries,
         IReadOnlyList<FieldNode> keepFields,
-        Type returnType)
+        Type returnType
+    )
         : base(DefaultAlias, returnType)
     {
         Source = source ?? throw new ArgumentNullException(nameof(source));
@@ -48,7 +50,8 @@ public class UnpivotFromNode : FromNode
 
     public IReadOnlyList<FieldNode> KeepFields { get; }
 
-    public override string Id => $"{nameof(UnpivotFromNode)}{Source.Id}{NameColumn}{ValueColumn}{string.Join(string.Empty, Entries.Select(entry => entry.Id))}{string.Join(string.Empty, KeepFields.Select(keepField => keepField.Id))}";
+    public override string Id =>
+        $"{nameof(UnpivotFromNode)}{Source.Id}{NameColumn}{ValueColumn}{string.Join(string.Empty, Entries.Select(entry => entry.Id))}{string.Join(string.Empty, KeepFields.Select(keepField => keepField.Id))}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
@@ -58,7 +61,10 @@ public class UnpivotFromNode : FromNode
 
     public override string ToString()
     {
-        var keep = KeepFields.Count == 0 ? string.Empty : $" keep {string.Join(", ", KeepFields.Select(field => field.ToString()))}";
+        var keep =
+            KeepFields.Count == 0
+                ? string.Empty
+                : $" keep {string.Join(", ", KeepFields.Select(field => field.ToString()))}";
         return $"{Source} unpivot on {NameColumn} in ({string.Join(", ", Entries.Select(entry => entry.ToString()))}) using {ValueColumn}{keep}";
     }
 }

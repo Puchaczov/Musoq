@@ -4,7 +4,6 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-
 namespace Musoq.Evaluator.IR.Physical;
 
 public sealed partial class PhysicalPlanBuilder
@@ -23,7 +22,8 @@ public sealed partial class PhysicalPlanBuilder
             node.GroupKeyNames,
             node.GroupKeyTypes,
             node.Bindings,
-            input);
+            input
+        );
     }
 
     private PhysicalNode LowerJoin(JoinNode node, PhysicalStrategyPlan strategyPlan)
@@ -38,10 +38,13 @@ public sealed partial class PhysicalPlanBuilder
             ResolvePredicateMovements(node, PredicateMovementSide.Left),
             ResolvePredicateMovements(node, PredicateMovementSide.Right),
             node.TieBreak,
-            node.WithOrdinality);
+            node.WithOrdinality
+        );
     }
+
     private static Dictionary<JoinNode, PredicateMovementPlan[]> CreatePredicateMovementsByJoin(
-        IReadOnlyList<PredicateMovementPlan>? predicateMovementPlans)
+        IReadOnlyList<PredicateMovementPlan>? predicateMovementPlans
+    )
     {
         if (predicateMovementPlans is null || predicateMovementPlans.Count == 0)
             return new Dictionary<JoinNode, PredicateMovementPlan[]>(ReferenceComparer<JoinNode>.Instance);
@@ -51,7 +54,8 @@ public sealed partial class PhysicalPlanBuilder
             .ToDictionary(
                 static group => group.Key,
                 static group => group.OrderBy(static plan => plan.MovementId, StringComparer.Ordinal).ToArray(),
-                ReferenceComparer<JoinNode>.Instance);
+                ReferenceComparer<JoinNode>.Instance
+            );
     }
 
     private IrExpression[] ResolvePredicateMovements(JoinNode join, PredicateMovementSide side)
@@ -71,5 +75,4 @@ public sealed partial class PhysicalPlanBuilder
 
         return [.. predicates];
     }
-
 }

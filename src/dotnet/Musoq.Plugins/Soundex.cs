@@ -30,14 +30,10 @@ internal sealed partial class Soundex
         var soundexCode = new StringBuilder();
         var previousWasHorW = false;
 
-
-        word = PunctuationRegex().Replace(
-            word == null ? string.Empty : word.ToUpperInvariant(),
-            string.Empty);
+        word = PunctuationRegex().Replace(word == null ? string.Empty : word.ToUpperInvariant(), string.Empty);
 
         if (string.IsNullOrEmpty(word))
             return string.Empty.PadRight(maxSoundexCodeLength, '0');
-
 
         soundexCode.Append(word.First());
 
@@ -45,19 +41,13 @@ internal sealed partial class Soundex
         {
             var numberCharForCurrentLetter = GetCharNumberForLetter(word[i]);
 
-
-            if (i == 1 &&
-                numberCharForCurrentLetter == GetCharNumberForLetter(soundexCode[0]))
+            if (i == 1 && numberCharForCurrentLetter == GetCharNumberForLetter(soundexCode[0]))
                 continue;
 
-
-            if (soundexCode.Length > 2 && previousWasHorW &&
-                numberCharForCurrentLetter == soundexCode[^2])
+            if (soundexCode.Length > 2 && previousWasHorW && numberCharForCurrentLetter == soundexCode[^2])
                 continue;
 
-
-            if (soundexCode.Length > 0 &&
-                numberCharForCurrentLetter == soundexCode[^1])
+            if (soundexCode.Length > 0 && numberCharForCurrentLetter == soundexCode[^1])
                 continue;
 
             soundexCode.Append(numberCharForCurrentLetter);
@@ -74,12 +64,18 @@ internal sealed partial class Soundex
 
     private static char GetCharNumberForLetter(char letter)
     {
-        if ("BFPV".Contains(letter, StringComparison.Ordinal)) return '1';
-        if ("CGJKQSXZ".Contains(letter, StringComparison.Ordinal)) return '2';
-        if ("DT".Contains(letter, StringComparison.Ordinal)) return '3';
-        if ('L' == letter) return '4';
-        if ("MN".Contains(letter, StringComparison.Ordinal)) return '5';
-        if ('R' == letter) return '6';
+        if ("BFPV".Contains(letter, StringComparison.Ordinal))
+            return '1';
+        if ("CGJKQSXZ".Contains(letter, StringComparison.Ordinal))
+            return '2';
+        if ("DT".Contains(letter, StringComparison.Ordinal))
+            return '3';
+        if ('L' == letter)
+            return '4';
+        if ("MN".Contains(letter, StringComparison.Ordinal))
+            return '5';
+        if ('R' == letter)
+            return '6';
 
         return '0';
     }

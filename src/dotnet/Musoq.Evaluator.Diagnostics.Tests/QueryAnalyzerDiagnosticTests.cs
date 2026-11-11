@@ -21,10 +21,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
 
     private static BasicSchemaProvider<BasicEntity> CreateSchemaProvider()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
 
@@ -57,7 +54,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Arrange
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
-        var query = @"
+        var query =
+            @"
             WITH cte AS (SELECT Name FROM #A.Entities())
             SELECT UnknownColumn FROM cte";
 
@@ -78,7 +76,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
         // Use same alias twice
-        var query = @"
+        var query =
+            @"
             SELECT a.Name, b.Name 
             FROM #A.Entities() a 
             INNER JOIN #A.Entities() a ON a.Name = a.Name";
@@ -187,7 +186,11 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(syntaxErrorQuery);
 
-        var error = DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ2005_InvalidSelectList, syntaxErrorQuery);
+        var error = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            DiagnosticCode.MQ2005_InvalidSelectList,
+            syntaxErrorQuery
+        );
         Assert.AreEqual(7, error.Span.Start);
         Assert.AreEqual(4, error.Span.Length);
         Assert.IsEmpty(result.Warnings);
@@ -216,10 +219,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
     public void UnknownColumn_ThrowingMode_ThrowsException()
     {
         // Arrange - Throwing mode (traditional path)
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         // Act & Assert - Traditional path should throw
         try
@@ -269,7 +269,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
         // Self-join without qualification can create ambiguous reference
-        var query = @"
+        var query =
+            @"
             SELECT Name 
             FROM #A.Entities() a 
             INNER JOIN #A.Entities() b ON a.Name = b.Name";
@@ -290,7 +291,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Arrange
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
-        var query = @"
+        var query =
+            @"
             SELECT Name FROM #A.Entities()
             UNION
             SELECT Name, City FROM #A.Entities()";
@@ -307,7 +309,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Arrange
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
-        var query = @"
+        var query =
+            @"
             SELECT Name FROM #A.Entities()
             UNION
             SELECT Population FROM #A.Entities()";
@@ -417,7 +420,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Arrange
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
-        var query = @"
+        var query =
+            @"
             SELECT * FROM (
                 SELECT Name FROM #A.Entities()
             ) subquery";
@@ -429,7 +433,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         Assert.IsTrue(result.IsParsed);
         Assert.IsFalse(
             result.HasErrors,
-            string.Join(Environment.NewLine, result.Diagnostics.Select(diagnostic => diagnostic.Message)));
+            string.Join(Environment.NewLine, result.Diagnostics.Select(diagnostic => diagnostic.Message))
+        );
     }
 
     [TestMethod]
@@ -438,7 +443,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Arrange
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
-        var query = @"
+        var query =
+            @"
             SELECT a.Name, b.City, c.Country 
             FROM #A.Entities() a 
             LEFT JOIN #A.Entities() b ON a.Name = b.Name
@@ -506,11 +512,12 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Arrange
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "Alice" }] }
+            { "#A", [new BasicEntity { Name = "Alice" }] },
         };
 
         // Query that should work - self join with qualified names
-        var query = @"
+        var query =
+            @"
             SELECT a.Name 
             FROM #A.Entities() a 
             INNER JOIN #A.Entities() b ON a.Name = b.Name";
@@ -528,16 +535,19 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Arrange
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city", "country", 0)] }
+            { "#A", [new BasicEntity("city", "country", 0)] },
         };
 
         // Act & Assert - Union requires matching projection width, and we test that exception is thrown
         try
         {
-            CreateAndRunVirtualMachine(@"
+            CreateAndRunVirtualMachine(
+                @"
                 SELECT Name FROM #A.Entities()
                 UNION
-                SELECT Name, City FROM #A.Entities()", sources);
+                SELECT Name, City FROM #A.Entities()",
+                sources
+            );
             Assert.Fail("Should have thrown exception for column count mismatch");
         }
         catch (MusoqQueryException)
@@ -563,7 +573,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
             DiagnosticCode.MQ3001_UnknownColumn,
             DiagnosticSeverity.Error,
             "Test error",
-            location);
+            location
+        );
 
         // Assert - cover all property branches
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
@@ -583,7 +594,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
             DiagnosticCode.MQ5003_ImplicitTypeConversion,
             DiagnosticSeverity.Warning,
             "Test warning",
-            location);
+            location
+        );
 
         // Assert
         Assert.AreEqual(DiagnosticSeverity.Warning, diagnostic.Severity);
@@ -600,7 +612,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
             DiagnosticCode.MQ5003_ImplicitTypeConversion, // Reuse warning code for test
             DiagnosticSeverity.Info,
             "Test info",
-            location);
+            location
+        );
 
         // Assert
         Assert.AreEqual(DiagnosticSeverity.Info, diagnostic.Severity);

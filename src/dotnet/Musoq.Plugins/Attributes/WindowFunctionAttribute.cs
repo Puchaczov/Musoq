@@ -12,8 +12,11 @@ public sealed class WindowFunctionAttribute : BindableMethodAttribute
     public WindowFunctionAttribute() { }
 
     /// <summary>Registers a typed kernel with explicitly selected evaluation modes and empty behavior.</summary>
-    public WindowFunctionAttribute(Type kernelType, WindowEvaluationModes modes,
-        AggregateEmptyResultBehavior emptyResultBehavior)
+    public WindowFunctionAttribute(
+        Type kernelType,
+        WindowEvaluationModes modes,
+        AggregateEmptyResultBehavior emptyResultBehavior
+    )
     {
         KernelType = kernelType;
         Modes = modes;
@@ -61,5 +64,4 @@ public sealed class WindowFunctionAttribute : BindableMethodAttribute
 
     /// <summary>Gets or sets the result behavior of an empty frame.</summary>
     public AggregateEmptyResultBehavior EmptyResultBehavior { get; set; } = AggregateEmptyResultBehavior.Custom;
-
 }

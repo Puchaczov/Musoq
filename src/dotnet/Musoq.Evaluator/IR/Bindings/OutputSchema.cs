@@ -26,9 +26,10 @@ public sealed record OutputSchema(ColumnSchema[] Columns)
                 index++,
                 col.IntendedTypeName,
                 col.SourceReadType,
-                col.EnumType)
+                col.EnumType
+            )
             {
-                Stability = col.Stability
+                Stability = col.Stability,
             };
 
         foreach (var col in other.Columns)
@@ -38,9 +39,10 @@ public sealed record OutputSchema(ColumnSchema[] Columns)
                 index++,
                 col.IntendedTypeName,
                 col.SourceReadType,
-                col.EnumType)
+                col.EnumType
+            )
             {
-                Stability = col.Stability
+                Stability = col.Stability,
             };
 
         return new OutputSchema(merged);

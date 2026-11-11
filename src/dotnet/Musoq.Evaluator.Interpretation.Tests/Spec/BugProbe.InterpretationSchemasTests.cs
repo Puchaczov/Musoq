@@ -9,7 +9,4 @@ public partial class BugProbeInterpretationSchemasTests
 {
     private static readonly ILoggerResolver LoggerResolver = new TestsLoggerResolver();
     private static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
-
-
-
 }

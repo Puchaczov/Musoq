@@ -11,15 +11,21 @@ public sealed partial class ExecutionCSharpRenderer
     private static LocalDeclarationStatementSyntax CreateEnumerableChunksDeclaration(
         string rowsVariableName,
         ExpressionSyntax sourceExpression,
-        TypeSyntax elementType)
+        TypeSyntax elementType
+    )
     {
-        var invocation = SyntaxFactory.InvocationExpression(
+        var invocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.GenericName(nameof(EvaluationHelper.ConvertEnumerableOutputToChunks))
-                        .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(elementType)))))
+                    SyntaxFactory
+                        .GenericName(nameof(EvaluationHelper.ConvertEnumerableOutputToChunks))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(elementType))
+                        )
+                )
+            )
             .WithArgumentList(CreateArgumentList(sourceExpression));
 
         return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, invocation);
@@ -30,7 +36,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExpressionSyntax sourceExpression,
         Type enumerableType,
         ExecutionEnumerableChunkMode chunkMode,
-        string? enumerableTypeName = null)
+        string? enumerableTypeName = null
+    )
     {
         var generatedElementTypeName = ResolveGeneratedEnumerableElementTypeName(enumerableTypeName);
         if (!string.IsNullOrWhiteSpace(generatedElementTypeName))
@@ -38,7 +45,8 @@ public sealed partial class ExecutionCSharpRenderer
             return CreateEnumerableChunksDeclaration(
                 rowsVariableName,
                 sourceExpression,
-                SyntaxFactory.ParseTypeName(generatedElementTypeName));
+                SyntaxFactory.ParseTypeName(generatedElementTypeName)
+            );
         }
 
         var elementType = ResolveEnumerableElementType(enumerableType);
@@ -47,22 +55,32 @@ public sealed partial class ExecutionCSharpRenderer
             ExpressionSyntax rows = sourceExpression;
             if (!enumerableType.IsValueType)
             {
-                rows = SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression,
+                rows = SyntaxFactory.BinaryExpression(
+                    SyntaxKind.CoalesceExpression,
                     SyntaxFactory.CastExpression(
                         SyntaxFactory.ParseTypeName($"IEnumerable<{CreateTypeSyntax(elementType)}>"),
-                        SyntaxFactory.ParenthesizedExpression(sourceExpression)),
-                    SyntaxFactory.ParseExpression($"Array.Empty<{CreateTypeSyntax(elementType)}>()"));
+                        SyntaxFactory.ParenthesizedExpression(sourceExpression)
+                    ),
+                    SyntaxFactory.ParseExpression($"Array.Empty<{CreateTypeSyntax(elementType)}>()")
+                );
             }
             return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, rows);
         }
 
-        var invocation = SyntaxFactory.InvocationExpression(
+        var invocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.GenericName(ResolveTypedChunksMethodName(elementType))
-                        .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(CreateTypeSyntax(elementType))))))
+                    SyntaxFactory
+                        .GenericName(ResolveTypedChunksMethodName(elementType))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(CreateTypeSyntax(elementType))
+                            )
+                        )
+                )
+            )
             .WithArgumentList(CreateArgumentList(sourceExpression));
 
         return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, invocation);
@@ -78,22 +96,23 @@ public sealed partial class ExecutionCSharpRenderer
             return typeName[..^2];
 
         const string enumerablePrefix = "System.Collections.Generic.IEnumerable<";
-        if (typeName.StartsWith(enumerablePrefix, StringComparison.Ordinal) &&
-            typeName.EndsWith(">", StringComparison.Ordinal))
+        if (
+            typeName.StartsWith(enumerablePrefix, StringComparison.Ordinal)
+            && typeName.EndsWith(">", StringComparison.Ordinal)
+        )
         {
             return typeName[enumerablePrefix.Length..^1];
         }
 
-        return ResolveEnumerableElementTypeNameFromAlias(typeName, "IEnumerable") ??
-               ResolveEnumerableElementTypeNameFromAlias(typeName, "IReadOnlyList") ??
-               typeName;
+        return ResolveEnumerableElementTypeNameFromAlias(typeName, "IEnumerable")
+            ?? ResolveEnumerableElementTypeNameFromAlias(typeName, "IReadOnlyList")
+            ?? typeName;
     }
 
     private static string? ResolveEnumerableElementTypeNameFromAlias(string typeName, string alias)
     {
         var prefix = $"{alias}<";
-        return typeName.StartsWith(prefix, StringComparison.Ordinal) &&
-               typeName.EndsWith(">", StringComparison.Ordinal)
+        return typeName.StartsWith(prefix, StringComparison.Ordinal) && typeName.EndsWith(">", StringComparison.Ordinal)
             ? typeName[prefix.Length..^1]
             : null;
     }
@@ -130,10 +149,10 @@ public sealed partial class ExecutionCSharpRenderer
     {
         elementType = Nullable.GetUnderlyingType(elementType) ?? elementType;
 
-        return elementType.IsPrimitive ||
-               elementType == typeof(string) ||
-               elementType == typeof(decimal) ||
-               elementType == typeof(DateTime) ||
-               elementType == typeof(Guid);
+        return elementType.IsPrimitive
+            || elementType == typeof(string)
+            || elementType == typeof(decimal)
+            || elementType == typeof(DateTime)
+            || elementType == typeof(Guid);
     }
 }

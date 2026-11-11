@@ -5,12 +5,12 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Converter.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Diagnostics;
+using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Diagnostics;
 using Musoq.Evaluator.Tables;
-using Musoq.Converter.Tests.Schema;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -35,9 +35,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenSourceBoundaryInstrumentationIsEnabled_ShouldWrapSourceRows()
     {
-        var result = Inspect(
-            "select d.Dummy from #system.dual() d",
-            CreateSourceBoundaryProfileOptions());
+        var result = Inspect("select d.Dummy from #system.dual() d", CreateSourceBoundaryProfileOptions());
 
         AssertGeneratedCSharpContains("IProfiledRunnable", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("QueryProfileRecorder", result.GeneratedCSharpCode);
@@ -53,7 +51,8 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy from #system.dual() d",
-            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full));
+            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full)
+        );
 
         AssertGeneratedCSharpContains("BeginOperatorValue", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("AddOutputRows", result.GeneratedCSharpCode);
@@ -64,18 +63,22 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy from #system.dual() d",
-            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full));
-        var methods = CSharpSyntaxTree.ParseText(result.GeneratedCSharpCode)
+            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full)
+        );
+        var methods = CSharpSyntaxTree
+            .ParseText(result.GeneratedCSharpCode)
             .GetRoot()
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
             .ToArray();
         var normalShapeMethod = methods.Single(method =>
-            method.Identifier.ValueText.StartsWith("ComputeShapeRows_", StringComparison.Ordinal) &&
-            !method.Identifier.ValueText.EndsWith("_Profiled", StringComparison.Ordinal));
+            method.Identifier.ValueText.StartsWith("ComputeShapeRows_", StringComparison.Ordinal)
+            && !method.Identifier.ValueText.EndsWith("_Profiled", StringComparison.Ordinal)
+        );
         var profiledShapeMethod = methods.Single(method =>
-            method.Identifier.ValueText.StartsWith("ComputeShapeRows_", StringComparison.Ordinal) &&
-            method.Identifier.ValueText.EndsWith("_Profiled", StringComparison.Ordinal));
+            method.Identifier.ValueText.StartsWith("ComputeShapeRows_", StringComparison.Ordinal)
+            && method.Identifier.ValueText.EndsWith("_Profiled", StringComparison.Ordinal)
+        );
 
         Assert.IsFalse(normalShapeMethod.ToFullString().Contains("profileRecorder", StringComparison.Ordinal));
         Assert.IsFalse(normalShapeMethod.ToFullString().Contains("QueryProfileRecorder", StringComparison.Ordinal));
@@ -97,7 +100,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "select d.Dummy from #system.dual() d",
-            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full));
+            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full)
+        );
 
         var table = compiled.Run();
 
@@ -114,7 +118,8 @@ public partial class QueryInspectionTests
             query,
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var normalTable = normal.Run();
         var profileResult = profiled.RunWithProfile();
@@ -142,9 +147,17 @@ public partial class QueryInspectionTests
         {
             ("select", "select d.Dummy from #system.dual() d", null),
             ("aggregate", "select Count(d.Dummy) as Count from #system.dual() d", null),
-            ("join", "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy", null),
+            (
+                "join",
+                "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
+                null
+            ),
             ("cte", "with x as (select d.Dummy from #system.dual() d) select x.Dummy from x", null),
-            ("parallel", "with a as (select d.Dummy from #system.dual() d), b as (select e.Dummy from #system.dual() e) select a.Dummy from a inner join b on a.Dummy = b.Dummy", new CompilationOptions(useCteParallelization: true))
+            (
+                "parallel",
+                "with a as (select d.Dummy from #system.dual() d), b as (select e.Dummy from #system.dual() e) select a.Dummy from a inner join b on a.Dummy = b.Dummy",
+                new CompilationOptions(useCteParallelization: true)
+            ),
         };
 
         foreach (var testCase in cases)
@@ -154,7 +167,8 @@ public partial class QueryInspectionTests
                 Guid.NewGuid().ToString(),
                 _schemaProvider,
                 _loggerResolver,
-                testCase.Options);
+                testCase.Options
+            );
 
             Assert.IsGreaterThanOrEqualTo(1, result.Result.Count, testCase.Name);
             Assert.IsGreaterThanOrEqualTo(1, result.Profile.Sources.Count, testCase.Name);
@@ -171,9 +185,15 @@ public partial class QueryInspectionTests
             "param(expected: string) select d.Dummy from #system.dual() d where d.Dummy = $expected",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "expected", "single");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "expected",
+            "single"
+        );
 
         var result = compiled.RunWithProfile();
 
@@ -189,7 +209,8 @@ public partial class QueryInspectionTests
             "select d.Dummy from #system.dual() d",
             Guid.NewGuid().ToString(),
             new ReportingSystemSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         var queryPhases = new List<QueryPhase>();
         var dataSourcePhases = new List<DataSourcePhase>();
 
@@ -216,7 +237,8 @@ public partial class QueryInspectionTests
             "select d.Dummy from #system.dual() d",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.AreEqual(1, result.Result.Count);
         Assert.IsGreaterThanOrEqualTo(1, result.Profile.Operators.Count);
@@ -230,28 +252,37 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void DiagnosticSqlCommandParser_ShouldClassifyProfileExplainAnalyzeAndNormalScripts()
     {
-        Assert.IsTrue(DiagnosticSqlCommandParser.TryParse(
-            "profile select d.Dummy from #system.dual() d",
-            out var profileCommand,
-            out var profileDiagnostics));
+        Assert.IsTrue(
+            DiagnosticSqlCommandParser.TryParse(
+                "profile select d.Dummy from #system.dual() d",
+                out var profileCommand,
+                out var profileDiagnostics
+            )
+        );
         Assert.IsNotNull(profileCommand);
         Assert.IsNull(profileDiagnostics);
         Assert.AreEqual(DiagnosticSqlCommandKind.Profile, profileCommand.Kind);
         Assert.AreEqual("select d.Dummy from #system.dual() d", profileCommand.InnerScript);
 
-        Assert.IsTrue(DiagnosticSqlCommandParser.TryParse(
-            "EXPLAIN ANALYZE select d.Dummy from #system.dual() d",
-            out var explainCommand,
-            out var explainDiagnostics));
+        Assert.IsTrue(
+            DiagnosticSqlCommandParser.TryParse(
+                "EXPLAIN ANALYZE select d.Dummy from #system.dual() d",
+                out var explainCommand,
+                out var explainDiagnostics
+            )
+        );
         Assert.IsNotNull(explainCommand);
         Assert.IsNull(explainDiagnostics);
         Assert.AreEqual(DiagnosticSqlCommandKind.ExplainAnalyze, explainCommand.Kind);
         Assert.AreEqual("select d.Dummy from #system.dual() d", explainCommand.InnerScript);
 
-        Assert.IsFalse(DiagnosticSqlCommandParser.TryParse(
-            "select d.Dummy from #system.dual() d",
-            out var normalCommand,
-            out var normalDiagnostics));
+        Assert.IsFalse(
+            DiagnosticSqlCommandParser.TryParse(
+                "select d.Dummy from #system.dual() d",
+                out var normalCommand,
+                out var normalDiagnostics
+            )
+        );
         Assert.IsNull(normalCommand);
         Assert.IsNull(normalDiagnostics);
     }
@@ -259,48 +290,57 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void DiagnosticSqlCommandParser_ShouldSkipRuntimePreambleStatements()
     {
-        var cases = new (string Name, string Script, DiagnosticSqlCommandKind ExpectedKind, string ExpectedInnerScript)[]
+        var cases = new (
+            string Name,
+            string Script,
+            DiagnosticSqlCommandKind ExpectedKind,
+            string ExpectedInnerScript
+        )[]
         {
             (
                 "param",
                 "param(expected: string); PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected",
                 DiagnosticSqlCommandKind.Profile,
-                "param(expected: string); select d.Dummy from #system.dual() d where d.Dummy = $expected"),
+                "param(expected: string); select d.Dummy from #system.dual() d where d.Dummy = $expected"
+            ),
             (
                 "let",
                 "let expected: string = 'single'; PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected",
                 DiagnosticSqlCommandKind.Profile,
-                "let expected: string = 'single'; select d.Dummy from #system.dual() d where d.Dummy = $expected"),
+                "let expected: string = 'single'; select d.Dummy from #system.dual() d where d.Dummy = $expected"
+            ),
             (
                 "table",
                 "table Items { Name: string }; PROFILE select d.Dummy from #system.dual() d",
                 DiagnosticSqlCommandKind.Profile,
-                "table Items { Name: string }; select d.Dummy from #system.dual() d"),
+                "table Items { Name: string }; select d.Dummy from #system.dual() d"
+            ),
             (
                 "table-couple",
                 "table Items { Name: string }; couple #test.whatever with table Items as Items; EXPLAIN ANALYZE select d.Dummy from #system.dual() d",
                 DiagnosticSqlCommandKind.ExplainAnalyze,
-                "table Items { Name: string }; couple #test.whatever with table Items as Items; select d.Dummy from #system.dual() d"),
+                "table Items { Name: string }; couple #test.whatever with table Items as Items; select d.Dummy from #system.dual() d"
+            ),
             (
                 "binary-schema",
                 "binary Rec { Len: byte }; PROFILE select d.Dummy from #system.dual() d",
                 DiagnosticSqlCommandKind.Profile,
-                "binary Rec { Len: byte }; select d.Dummy from #system.dual() d"),
+                "binary Rec { Len: byte }; select d.Dummy from #system.dual() d"
+            ),
             (
                 "text-schema",
                 "text Data { Content: rest }; EXPLAIN ANALYZE select d.Dummy from #system.dual() d",
                 DiagnosticSqlCommandKind.ExplainAnalyze,
-                "text Data { Content: rest }; select d.Dummy from #system.dual() d")
+                "text Data { Content: rest }; select d.Dummy from #system.dual() d"
+            ),
         };
 
         foreach (var testCase in cases)
         {
             Assert.IsTrue(
-                DiagnosticSqlCommandParser.TryParse(
-                    testCase.Script,
-                    out var command,
-                    out var diagnostics),
-                testCase.Name);
+                DiagnosticSqlCommandParser.TryParse(testCase.Script, out var command, out var diagnostics),
+                testCase.Name
+            );
             Assert.IsNotNull(command, testCase.Name);
             Assert.IsNull(diagnostics, testCase.Name);
             Assert.AreEqual(testCase.ExpectedKind, command.Kind, testCase.Name);
@@ -311,10 +351,13 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void DiagnosticSqlCommandParser_WhenResultProducingStatementComesFirst_ShouldNotClassify()
     {
-        Assert.IsFalse(DiagnosticSqlCommandParser.TryParse(
-            "select d.Dummy from #system.dual() d; PROFILE select e.Dummy from #system.dual() e",
-            out var command,
-            out var diagnostics));
+        Assert.IsFalse(
+            DiagnosticSqlCommandParser.TryParse(
+                "select d.Dummy from #system.dual() d; PROFILE select e.Dummy from #system.dual() e",
+                out var command,
+                out var diagnostics
+            )
+        );
         Assert.IsNull(command);
         Assert.IsNull(diagnostics);
     }
@@ -322,10 +365,13 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void DiagnosticSqlCommandParser_WhenDiagnosticFormIsInvalid_ShouldReturnDiagnostics()
     {
-        Assert.IsTrue(DiagnosticSqlCommandParser.TryParse(
-            "explain select d.Dummy from #system.dual() d",
-            out var command,
-            out var diagnostics));
+        Assert.IsTrue(
+            DiagnosticSqlCommandParser.TryParse(
+                "explain select d.Dummy from #system.dual() d",
+                out var command,
+                out var diagnostics
+            )
+        );
 
         Assert.IsNull(command);
         Assert.IsNotNull(diagnostics);
@@ -340,9 +386,15 @@ public partial class QueryInspectionTests
             "param(expected: string) select d.Dummy from #system.dual() d where d.Dummy = $expected",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "expected", "single");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "expected",
+            "single"
+        );
 
         var result = compiled.Run();
 
@@ -361,7 +413,8 @@ public partial class QueryInspectionTests
             "select d.Dummy from #system.dual() d",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
         cancellation.Cancel();
 
         Assert.Throws<OperationCanceledException>(() => compiled.Run(cancellation.Token));
@@ -376,7 +429,8 @@ public partial class QueryInspectionTests
             "select d.Dummy from #system.dual() d",
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.Throws<OperationCanceledException>(() => compiled.Run(cancellation.Token));
         Assert.IsTrue(provider.TokenReachedSource);
@@ -389,7 +443,8 @@ public partial class QueryInspectionTests
             "select d.Dummy from #system.dual() d",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
         var appendRow = AssertActualOperator(select, "AppendShape");
         var forEach = AssertActualOperator(select, "ChunkedForEach");
 
@@ -401,7 +456,8 @@ public partial class QueryInspectionTests
             "select d.Dummy from #system.dual() d order by d.Dummy skip 0 take 1",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
         var appendRecord = AssertActualOperator(ordered, "AppendRecord");
         var materializeRecords = AssertActualOperator(ordered, "MaterializeRecordListToShapeRows");
 
@@ -417,11 +473,13 @@ public partial class QueryInspectionTests
             "select d.Dummy from #system.dual() d where false",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var forEach = AssertActualOperator(result, "ChunkedForEach");
-        var appendRow = result.Profile.Operators.FirstOrDefault(
-            static operation => operation.Name.Equals("AppendShape", StringComparison.Ordinal));
+        var appendRow = result.Profile.Operators.FirstOrDefault(static operation =>
+            operation.Name.Equals("AppendShape", StringComparison.Ordinal)
+        );
 
         Assert.AreEqual(0, result.Result.Count);
         Assert.AreEqual(1, result.Profile.Sources.Single().RowsRead);
@@ -438,17 +496,22 @@ public partial class QueryInspectionTests
             "with x as (select d.Dummy from #system.dual() d) select x.Dummy from x",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
-        var forEachLoops = result.Profile.Operators
-            .Where(static operation =>
-                operation.Name.Equals("ForEach", StringComparison.Ordinal) ||
-                operation.Name.Equals("ChunkedForEach", StringComparison.Ordinal))
+        var forEachLoops = result
+            .Profile.Operators.Where(static operation =>
+                operation.Name.Equals("ForEach", StringComparison.Ordinal)
+                || operation.Name.Equals("ChunkedForEach", StringComparison.Ordinal)
+            )
             .ToArray();
 
         Assert.IsTrue(
-            forEachLoops.Any(static operation => operation.HasActualStats && operation.InputRows == 1 && operation.OutputRows == 1),
-            result.ExplainAnalyzeText);
+            forEachLoops.Any(static operation =>
+                operation.HasActualStats && operation.InputRows == 1 && operation.OutputRows == 1
+            ),
+            result.ExplainAnalyzeText
+        );
     }
 
     [TestMethod]
@@ -458,7 +521,8 @@ public partial class QueryInspectionTests
             "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
         var hashAdd = AssertActualOperator(join, "HashAdd");
         var hashProbe = AssertActualOperator(join, "HashProbe");
 
@@ -469,7 +533,8 @@ public partial class QueryInspectionTests
             "select d.Dummy as Dummy, Count(1) as Count from #system.dual() d group by d.Dummy",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertActualOperator(aggregate, "ParallelSingleKeyAggregateLoop");
 
@@ -477,7 +542,8 @@ public partial class QueryInspectionTests
             "with p as (select d.Dummy as Dummy from #system.dual() d), q as (select Dummy from p), r as (select Dummy from p) select q.Dummy, r.Dummy from q inner join r on q.Dummy = r.Dummy",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         StringAssert.Contains(cte.ExecutionPlanText, "PhaseBoundary [Begin:cte0]");
         AssertActualOperator(cte, "CreateTable");
@@ -491,7 +557,8 @@ public partial class QueryInspectionTests
             "select d.Dummy as Dummy, Count(1) as Count from #system.dual() d group by d.Dummy",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var lookup = AssertActualOperator(result, "AppendShape");
 
@@ -506,9 +573,17 @@ public partial class QueryInspectionTests
         var cases = new (string Name, string Query, CompilationOptions? Options)[]
         {
             ("aggregate", "select Count(d.Dummy) as Count from #system.dual() d", null),
-            ("join", "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy", null),
+            (
+                "join",
+                "select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
+                null
+            ),
             ("cte", "with x as (select d.Dummy from #system.dual() d) select x.Dummy from x", null),
-            ("parallel", "with a as (select d.Dummy from #system.dual() d), b as (select e.Dummy from #system.dual() e) select a.Dummy from a inner join b on a.Dummy = b.Dummy", new CompilationOptions(useCteParallelization: true))
+            (
+                "parallel",
+                "with a as (select d.Dummy from #system.dual() d), b as (select e.Dummy from #system.dual() e) select a.Dummy from a inner join b on a.Dummy = b.Dummy",
+                new CompilationOptions(useCteParallelization: true)
+            ),
         };
 
         foreach (var testCase in cases)
@@ -518,7 +593,8 @@ public partial class QueryInspectionTests
                 Guid.NewGuid().ToString(),
                 _schemaProvider,
                 _loggerResolver,
-                testCase.Options);
+                testCase.Options
+            );
 
             Assert.IsGreaterThanOrEqualTo(1, result.Result.Count, testCase.Name);
             Assert.IsGreaterThanOrEqualTo(2, result.Profile.Operators.Count, testCase.Name);
@@ -535,7 +611,8 @@ public partial class QueryInspectionTests
             "select d.Dummy from #system.dual() d",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsGreaterThanOrEqualTo(1, result.Profile.Sources.Count);
         StringAssert.Contains(result.ExplainAnalyzeText, "Source boundary stats:");
@@ -556,7 +633,9 @@ public partial class QueryInspectionTests
                 Guid.NewGuid().ToString(),
                 _schemaProvider,
                 _loggerResolver,
-                cancellation.Token));
+                cancellation.Token
+            )
+        );
     }
 
     [TestMethod]
@@ -571,7 +650,9 @@ public partial class QueryInspectionTests
                 Guid.NewGuid().ToString(),
                 _schemaProvider,
                 _loggerResolver,
-                cancellation.Token));
+                cancellation.Token
+            )
+        );
     }
 
     [TestMethod]
@@ -586,7 +667,9 @@ public partial class QueryInspectionTests
                 Guid.NewGuid().ToString(),
                 provider,
                 _loggerResolver,
-                cancellation.Token));
+                cancellation.Token
+            )
+        );
 
         Assert.IsTrue(provider.TokenReachedSource);
     }
@@ -603,7 +686,9 @@ public partial class QueryInspectionTests
                 Guid.NewGuid().ToString(),
                 provider,
                 _loggerResolver,
-                cancellation.Token));
+                cancellation.Token
+            )
+        );
 
         Assert.IsTrue(provider.TokenReachedSource);
     }
@@ -620,14 +705,11 @@ public partial class QueryInspectionTests
             Guid.NewGuid().ToString(),
             baselineProvider,
             _loggerResolver,
-            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full));
+            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full)
+        );
         baseline.RunWithProfile();
 
-        InstanceCreator.ExplainAnalyze(
-            query,
-            Guid.NewGuid().ToString(),
-            explainAnalyzeProvider,
-            _loggerResolver);
+        InstanceCreator.ExplainAnalyze(query, Guid.NewGuid().ToString(), explainAnalyzeProvider, _loggerResolver);
 
         Assert.AreEqual(baselineProvider.GetSchemaCalls, explainAnalyzeProvider.GetSchemaCalls);
     }
@@ -660,9 +742,15 @@ public partial class QueryInspectionTests
     public void DiagnosticSqlCommand_WhenParameterized_ShouldUseOuterParameters()
     {
         var query = CompileForExecution(
-            "param(expected: string) PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected");
+            "param(expected: string) PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected"
+        );
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "expected", "single");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "expected",
+            "single"
+        );
 
         var table = query.Run();
         var text = ReadDiagnosticsText(table);
@@ -675,7 +763,8 @@ public partial class QueryInspectionTests
     public void DiagnosticSqlCommand_WhenLetPreambleBeforeProfile_ShouldReturnDiagnosticsTextTable()
     {
         var table = CompileForExecution(
-            "let expected: string = 'single'; PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected")
+                "let expected: string = 'single'; PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected"
+            )
             .Run();
         var text = ReadDiagnosticsText(table);
 
@@ -689,7 +778,8 @@ public partial class QueryInspectionTests
     public void DiagnosticSqlCommand_WhenLetPreambleBeforeExplainAnalyze_ShouldReturnDiagnosticsTextTable()
     {
         var table = CompileForExecution(
-            "let expected: string = 'single'; EXPLAIN ANALYZE select d.Dummy from #system.dual() d where d.Dummy = $expected")
+                "let expected: string = 'single'; EXPLAIN ANALYZE select d.Dummy from #system.dual() d where d.Dummy = $expected"
+            )
             .Run();
         var text = ReadDiagnosticsText(table);
 
@@ -704,9 +794,15 @@ public partial class QueryInspectionTests
     public void DiagnosticSqlCommand_WhenParamAndLetPreambleBeforeProfile_ShouldUseBothPreambles()
     {
         var query = CompileForExecution(
-            "param(expected: string); let marker: string = 'single'; PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected and d.Dummy = $marker");
+            "param(expected: string); let marker: string = 'single'; PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected and d.Dummy = $marker"
+        );
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "expected", "single");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "expected",
+            "single"
+        );
 
         var table = query.Run();
         var text = ReadDiagnosticsText(table);
@@ -729,14 +825,16 @@ public partial class QueryInspectionTests
             Guid.NewGuid().ToString(),
             baselineProvider,
             _loggerResolver,
-            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full));
+            new CompilationOptions(instrumentationMode: QueryInstrumentationMode.Full)
+        );
         baseline.RunWithProfile();
 
         var command = InstanceCreator.CompileForExecution(
             "EXPLAIN ANALYZE " + query,
             Guid.NewGuid().ToString(),
             commandProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
         command.Run();
 
         Assert.AreEqual(baselineProvider.GetSchemaCalls, commandProvider.GetSchemaCalls);
@@ -751,7 +849,8 @@ public partial class QueryInspectionTests
             "profile select d.Dummy from #system.dual() d",
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.Throws<OperationCanceledException>(() => command.Run(cancellation.Token));
         Assert.IsTrue(provider.TokenReachedSource);
@@ -764,7 +863,8 @@ public partial class QueryInspectionTests
             "explain select d.Dummy from #system.dual() d",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(result.Succeeded);
         Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, result.Errors[0].Code);
@@ -778,7 +878,8 @@ public partial class QueryInspectionTests
             "analyze select d.Dummy from #system.dual() d",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(result.Succeeded);
         Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, result.Errors[0].Code);
@@ -792,7 +893,8 @@ public partial class QueryInspectionTests
             "profile table temp {Name: string}",
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(result.Succeeded);
         Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, result.Errors[0].Code);
@@ -847,8 +949,9 @@ public partial class QueryInspectionTests
 
     private static OperatorProfileSnapshot AssertActualOperator(ExplainAnalyzeResult result, string name)
     {
-        var operation = result.Profile.Operators.FirstOrDefault(
-            op => op.HasActualStats && op.Name.Equals(name, StringComparison.Ordinal));
+        var operation = result.Profile.Operators.FirstOrDefault(op =>
+            op.HasActualStats && op.Name.Equals(name, StringComparison.Ordinal)
+        );
 
         Assert.IsNotNull(operation, $"Expected actual operator stats for {name}.\n{result.ExplainAnalyzeText}");
         return operation;
@@ -882,10 +985,14 @@ public partial class QueryInspectionTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             return name.Equals("dual", StringComparison.OrdinalIgnoreCase)
-                ? EnsureSourceType<T, DualEntity>(name, new CancellingDualRowSource(executionContext, cancel, tokenReachedSource))
+                ? EnsureSourceType<T, DualEntity>(
+                    name,
+                    new CancellingDualRowSource(executionContext, cancel, tokenReachedSource)
+                )
                 : base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments);
         }
     }
@@ -893,7 +1000,8 @@ public partial class QueryInspectionTests
     private sealed class CancellingDualRowSource(
         SourceExecutionContext context,
         Action cancel,
-        Action tokenReachedSource) : RowSource<DualEntity>
+        Action tokenReachedSource
+    ) : RowSource<DualEntity>
     {
         public override IEnumerable<IReadOnlyList<DualEntity>> Chunks
         {
@@ -914,7 +1022,8 @@ public partial class QueryInspectionTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             return name.Equals("dual", StringComparison.OrdinalIgnoreCase)
                 ? EnsureSourceType<T, DualEntity>(name, new ReportingDualRowSource(executionContext))

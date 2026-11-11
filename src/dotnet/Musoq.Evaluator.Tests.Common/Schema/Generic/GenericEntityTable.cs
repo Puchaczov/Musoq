@@ -31,8 +31,11 @@ public class GenericEntityTable<TTableEntity> : ISchemaTable
     public GenericEntityTable()
     {
         Columns = NameToIndexMap
-            .Select(pair =>
-                new SchemaColumn(pair.Key, pair.Value, typeof(TTableEntity).GetProperty(pair.Key)!.PropertyType))
+            .Select(pair => new SchemaColumn(
+                pair.Key,
+                pair.Value,
+                typeof(TTableEntity).GetProperty(pair.Key)!.PropertyType
+            ))
             .Cast<ISchemaColumn>()
             .ToArray();
     }
@@ -51,10 +54,7 @@ public class GenericEntityTable<TTableEntity> : ISchemaTable
     public ISchemaColumn[] GetColumnsByName(string name)
     {
         if (NameToIndexMap.TryGetValue(name, out var index))
-            return
-            [
-                Columns[index]
-            ];
+            return [Columns[index]];
 
         return [];
     }

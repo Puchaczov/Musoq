@@ -13,22 +13,25 @@ public sealed class CsvSourcePlanningTests
             new SourcePredicateComparison(
                 SourcePredicateComparisonOperator.GreaterOrEqual,
                 new SourcePredicateColumn(new SourceColumnRef("Amount")),
-                new SourcePredicateLiteral(10m)),
+                new SourcePredicateLiteral(10m)
+            ),
             new SourcePredicateIn(
                 new SourcePredicateColumn(new SourceColumnRef("Status")),
-                [new SourcePredicateLiteral("Open"), new SourcePredicateLiteral("Closed")]));
+                [new SourcePredicateLiteral("Open"), new SourcePredicateLiteral("Closed")]
+            )
+        );
         var request = SourcePlanRequest.Empty(new SourceIdentity("#csv", "file", "source-id", "Rows")) with
         {
             RequiredColumns =
             [
                 new SourceColumnRef("Name"),
                 new SourceColumnRef("Amount"),
-                new SourceColumnRef("Status")
+                new SourceColumnRef("Status"),
             ],
             Predicate = predicate,
             OrderBy = [new OrderByExpression(new SourceColumnRef("Name"), OrderDirection.Descending)],
             Skip = 1,
-            Take = 2
+            Take = 2,
         };
 
         var result = CsvSourcePlan.Create(request);
@@ -49,7 +52,8 @@ public sealed class CsvSourcePlanningTests
         var accepted = new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             new SourcePredicateColumn(new SourceColumnRef("Name")),
-            new SourcePredicateLiteral("Ada"));
+            new SourcePredicateLiteral("Ada")
+        );
         var residual = new UnsupportedPredicateExpression();
         var request = SourcePlanRequest.Empty(new SourceIdentity("#csv", "file", "source-id", "Rows")) with
         {
@@ -57,7 +61,7 @@ public sealed class CsvSourcePlanningTests
             Predicate = new SourcePredicateLogical(SourcePredicateLogicalOperator.And, accepted, residual),
             OrderBy = [new OrderByExpression(new SourceColumnRef("Name"), OrderDirection.Ascending)],
             Skip = 1,
-            Take = 2
+            Take = 2,
         };
 
         var result = CsvSourcePlan.Create(request);
@@ -79,12 +83,14 @@ public sealed class CsvSourcePlanningTests
             new SourcePredicateComparison(
                 SourcePredicateComparisonOperator.Equal,
                 new SourcePredicateColumn(new SourceColumnRef("Status")),
-                new SourcePredicateLiteral("Open")),
-            new SourcePredicateNullCheck(new SourcePredicateColumn(new SourceColumnRef("Status"))));
+                new SourcePredicateLiteral("Open")
+            ),
+            new SourcePredicateNullCheck(new SourcePredicateColumn(new SourceColumnRef("Status")))
+        );
         var request = SourcePlanRequest.Empty(new SourceIdentity("#csv", "file", "source-id", "Rows")) with
         {
             RequiredColumns = [new SourceColumnRef("Status")],
-            Predicate = predicate
+            Predicate = predicate,
         };
 
         var result = CsvSourcePlan.Create(request);
@@ -100,7 +106,7 @@ public sealed class CsvSourcePlanningTests
         {
             RequiredColumns = [new SourceColumnRef("Name")],
             OrderBy = [new OrderByExpression(new SourceColumnRef("Missing"), OrderDirection.Ascending)],
-            Take = 1
+            Take = 1,
         };
 
         var result = CsvSourcePlan.Create(request);

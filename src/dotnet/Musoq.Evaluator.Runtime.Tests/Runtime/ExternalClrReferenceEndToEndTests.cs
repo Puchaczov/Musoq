@@ -14,8 +14,8 @@ using Musoq.Evaluator.Tests.External.Rows;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using MusoqApi = Musoq.Converter.Musoq;
 using DataSourceSchemaColumn = Musoq.Schema.DataSources.SchemaColumn;
+using MusoqApi = Musoq.Converter.Musoq;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
@@ -27,8 +27,7 @@ public sealed class ExternalClrReferenceEndToEndTests
     [TestMethod]
     public void ExternalConcreteRow_InheritedInterfaceAndNestedPath_CompilesAndRunsEmptyAndOneRow()
     {
-        const string query =
-            "select r.InheritedName, r.Marker, r.Payload.Nested.Value from #external.rows() r";
+        const string query = "select r.InheritedName, r.Marker, r.Payload.Nested.Value from #external.rows() r";
 
         using (var empty = Compile(query, []))
         using (var emptyTable = empty.Run())
@@ -37,7 +36,8 @@ public sealed class ExternalClrReferenceEndToEndTests
                 emptyTable,
                 ("InheritedName", typeof(string)),
                 ("Marker", typeof(string)),
-                ("r.Payload.Nested.Value", typeof(int)));
+                ("r.Payload.Nested.Value", typeof(int))
+            );
             TableMaterializationTestHelper.AssertRowsInOrder(emptyTable);
         }
 
@@ -46,35 +46,31 @@ public sealed class ExternalClrReferenceEndToEndTests
         using var table = compiled.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            [row.InheritedName, row.Marker, row.Payload.Nested.Value]);
+            [row.InheritedName, row.Marker, row.Payload.Nested.Value]
+        );
         AssertFixtureReferenceDelta(query, [typeof(ExternalRow).Assembly, typeof(ExternalPayload).Assembly]);
     }
 
     [TestMethod]
     public void ExternalNestedFrameworkPropertyPath_AddsIntermediateUriAssembly()
     {
-        const string query =
-            "select r.Payload.ExternalUri.AbsoluteUri from #external.rows() r";
+        const string query = "select r.Payload.ExternalUri.AbsoluteUri from #external.rows() r";
 
         using var compiled = Compile(query, [CreateRow()]);
         using var table = compiled.Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("r.Payload.ExternalUri.AbsoluteUri", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["https://example.invalid/"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("r.Payload.ExternalUri.AbsoluteUri", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["https://example.invalid/"]);
         AssertFixtureReferenceDelta(
             query,
-            [typeof(ExternalRow).Assembly, typeof(ExternalPayload).Assembly, typeof(Uri).Assembly]);
+            [typeof(ExternalRow).Assembly, typeof(ExternalPayload).Assembly, typeof(Uri).Assembly]
+        );
     }
 
     [TestMethod]
     public void ExternalShapes_ArrayNullableEnumNestedGenericAndConstraint_CompileAndRun()
     {
-        const string query =
-            "select r.Payload.Nested.Value, r.Payload.Leaves, r.Status from #external.rows() r";
+        const string query = "select r.Payload.Nested.Value, r.Payload.Leaves, r.Status from #external.rows() r";
 
         using var compiled = Compile(query, [CreateRow()]);
         using var table = compiled.Run();
@@ -83,7 +79,8 @@ public sealed class ExternalClrReferenceEndToEndTests
             table,
             ("r.Payload.Nested.Value", typeof(int)),
             ("r.Payload.Leaves", typeof(ExternalLeaf[])),
-            ("Status", typeof(int?)));
+            ("Status", typeof(int?))
+        );
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(7, table[0].ReadValues()[0]);
         Assert.AreEqual((int)ExternalStatus.Ready, table[0].ReadValues()[2]);
@@ -92,17 +89,15 @@ public sealed class ExternalClrReferenceEndToEndTests
         Assert.HasCount(1, leaves);
         Assert.AreEqual(11, leaves[0].Value);
 
-        var genericProvider = CreateSchemaProvider(
-            [CreateRow()],
-            useGenericRow: true);
-        const string genericQuery =
-            "select r.Payload.Nested.Value from #external.generic() r";
+        var genericProvider = CreateSchemaProvider([CreateRow()], useGenericRow: true);
+        const string genericQuery = "select r.Payload.Nested.Value from #external.generic() r";
         using var genericCompiled = InstanceCreator.CompileForExecution(
             genericQuery,
             Guid.NewGuid().ToString(),
             genericProvider,
             _loggerResolver,
-            CreateOptions());
+            CreateOptions()
+        );
         using var genericTable = genericCompiled.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(genericTable, [7]);
         var genericItems = InstanceCreator.CreateForAnalyze(
@@ -110,10 +105,12 @@ public sealed class ExternalClrReferenceEndToEndTests
             Guid.NewGuid().ToString(),
             genericProvider,
             _loggerResolver,
-            CreateOptions());
+            CreateOptions()
+        );
         AssertFixtureReferenceDelta(
             genericItems,
-            [typeof(GenericExternalRow<ExternalPayload>).Assembly, typeof(ExternalPayload).Assembly]);
+            [typeof(GenericExternalRow<ExternalPayload>).Assembly, typeof(ExternalPayload).Assembly]
+        );
     }
 
     [TestMethod]
@@ -130,7 +127,8 @@ public sealed class ExternalClrReferenceEndToEndTests
             ("GetContractNumber(r.Payload)", typeof(int)),
             ("GetContractNumber(Echo(r.Payload))", typeof(int)),
             ("GetLeaf(r.Payload)", typeof(ExternalLeaf)),
-            ("GetMarker(r.Payload)", typeof(string)));
+            ("GetMarker(r.Payload)", typeof(string))
+        );
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(42, table[0].ReadValues()[0]);
         Assert.AreEqual(42, table[0].ReadValues()[1]);
@@ -151,23 +149,22 @@ public sealed class ExternalClrReferenceEndToEndTests
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            CreateOptions());
+            CreateOptions()
+        );
         var generated = InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            CreateOptions());
-        StringAssert.Contains(generated.GeneratedCSharpCode, "SourceInvocation<Musoq.Evaluator.Tests.External.Rows.ExternalRow>");
-        AssertFixtureReferenceDelta(
-            inspection,
-            [typeof(ExternalRow).Assembly, typeof(ExternalPayload).Assembly]);
+            CreateOptions()
+        );
+        StringAssert.Contains(
+            generated.GeneratedCSharpCode,
+            "SourceInvocation<Musoq.Evaluator.Tests.External.Rows.ExternalRow>"
+        );
+        AssertFixtureReferenceDelta(inspection, [typeof(ExternalRow).Assembly, typeof(ExternalPayload).Assembly]);
 
-        var stored = InstanceCreator.CompileForStore(
-            query,
-            Guid.NewGuid().ToString(),
-            provider,
-            _loggerResolver);
+        var stored = InstanceCreator.CompileForStore(query, Guid.NewGuid().ToString(), provider, _loggerResolver);
         Assert.IsTrue(stored.DllFile.Length > 0);
 
         var chunks = new[] { new[] { CreateRow() } };
@@ -179,9 +176,7 @@ public sealed class ExternalClrReferenceEndToEndTests
 
         var artifact = builder.CompileArtifact<ExternalProjection>();
         var loaded = MusoqApi.Load<ExternalProjection>(artifact);
-        var result = loaded
-            .Run(CancellationToken.None, MusoqApi.Source("#fixture", "rows", chunks))
-            .ToArray();
+        var result = loaded.Run(CancellationToken.None, MusoqApi.Source("#fixture", "rows", chunks)).ToArray();
         Assert.HasCount(1, result);
         Assert.AreEqual(new ExternalProjection(42, "inherited"), result[0]);
     }
@@ -197,38 +192,45 @@ public sealed class ExternalClrReferenceEndToEndTests
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            CreateOptions());
+            CreateOptions()
+        );
         var second = InstanceCreator.CreateForAnalyze(
             query,
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            CreateOptions());
+            CreateOptions()
+        );
         Assert.AreSame(
             GetReference(first, typeof(ExternalPayload).Assembly),
-            GetReference(second, typeof(ExternalPayload).Assembly));
+            GetReference(second, typeof(ExternalPayload).Assembly)
+        );
 
         var cacheIneligible = InstanceCreator.CreateForAnalyze(
             query,
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            new CompilationOptions(sourceRuntimeSettingsResolver: new StaticSettingsResolver()));
-        AssertFixtureReferenceDelta(
-            cacheIneligible,
-            [typeof(ExternalRow).Assembly, typeof(ExternalPayload).Assembly]);
+            new CompilationOptions(sourceRuntimeSettingsResolver: new StaticSettingsResolver())
+        );
+        AssertFixtureReferenceDelta(cacheIneligible, [typeof(ExternalRow).Assembly, typeof(ExternalPayload).Assembly]);
 
         var results = new string[4][];
-        Parallel.For(0, results.Length, index =>
-        {
-            var items = InstanceCreator.CreateForAnalyze(
-                query,
-                Guid.NewGuid().ToString(),
-                provider,
-                _loggerResolver,
-                CreateOptions());
-            results[index] = GetReferenceFileNames(items);
-        });
+        Parallel.For(
+            0,
+            results.Length,
+            index =>
+            {
+                var items = InstanceCreator.CreateForAnalyze(
+                    query,
+                    Guid.NewGuid().ToString(),
+                    provider,
+                    _loggerResolver,
+                    CreateOptions()
+                );
+                results[index] = GetReferenceFileNames(items);
+            }
+        );
 
         for (var index = 1; index < results.Length; index++)
             CollectionAssert.AreEqual(results[0], results[index]);
@@ -241,37 +243,36 @@ public sealed class ExternalClrReferenceEndToEndTests
             Guid.NewGuid().ToString(),
             CreateSchemaProvider(rows),
             _loggerResolver,
-            CreateOptions());
+            CreateOptions()
+        );
     }
 
-    private void AssertFixtureReferenceDelta(
-        string query,
-        IReadOnlyList<Assembly> expectedAssemblies)
+    private void AssertFixtureReferenceDelta(string query, IReadOnlyList<Assembly> expectedAssemblies)
     {
         var items = InstanceCreator.CreateForAnalyze(
             query,
             Guid.NewGuid().ToString(),
             CreateSchemaProvider([CreateRow()]),
             _loggerResolver,
-            CreateOptions());
+            CreateOptions()
+        );
         AssertFixtureReferenceDelta(items, expectedAssemblies);
     }
 
     private void AssertFixtureReferenceDelta(
         Musoq.Converter.Build.BuildItems items,
-        IReadOnlyList<Assembly> expectedAssemblies)
+        IReadOnlyList<Assembly> expectedAssemblies
+    )
     {
         var baseline = InstanceCreator.CreateForAnalyze(
             "select 1 from #primitive.values()",
             Guid.NewGuid().ToString(),
             CreatePrimitiveSchemaProvider(),
             _loggerResolver,
-            CreateOptions());
+            CreateOptions()
+        );
         var expected = expectedAssemblies
-            .SelectMany(static assembly => new[]
-            {
-                Path.GetFileName(assembly.Location)!
-            })
+            .SelectMany(static assembly => new[] { Path.GetFileName(assembly.Location)! })
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(static name => name, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -288,8 +289,8 @@ public sealed class ExternalClrReferenceEndToEndTests
 
     private static string[] GetReferenceFileNames(Musoq.Converter.Build.BuildItems items)
     {
-        return items.RenderingArtifacts.Compilation.References
-            .OfType<PortableExecutableReference>()
+        return items
+            .RenderingArtifacts.Compilation.References.OfType<PortableExecutableReference>()
             .Select(static reference => Path.GetFileName(reference.FilePath))
             .Where(static name => name is not null)
             .Select(static name => name!)
@@ -298,24 +299,22 @@ public sealed class ExternalClrReferenceEndToEndTests
             .ToArray();
     }
 
-    private static PortableExecutableReference GetReference(
-        Musoq.Converter.Build.BuildItems items,
-        Assembly assembly)
+    private static PortableExecutableReference GetReference(Musoq.Converter.Build.BuildItems items, Assembly assembly)
     {
-        return items.RenderingArtifacts.Compilation.References
-            .OfType<PortableExecutableReference>()
-            .Single(reference => string.Equals(
-                Path.GetFileName(reference.FilePath),
-                Path.GetFileName(assembly.Location),
-                StringComparison.OrdinalIgnoreCase));
+        return items
+            .RenderingArtifacts.Compilation.References.OfType<PortableExecutableReference>()
+            .Single(reference =>
+                string.Equals(
+                    Path.GetFileName(reference.FilePath),
+                    Path.GetFileName(assembly.Location),
+                    StringComparison.OrdinalIgnoreCase
+                )
+            );
     }
 
-    private static CompilationOptions CreateOptions() =>
-        new(usePrimitiveTypeValidation: false);
+    private static CompilationOptions CreateOptions() => new(usePrimitiveTypeValidation: false);
 
-    private static ISchemaProvider CreateSchemaProvider(
-        IReadOnlyList<ExternalRow> rows,
-        bool useGenericRow = false)
+    private static ISchemaProvider CreateSchemaProvider(IReadOnlyList<ExternalRow> rows, bool useGenericRow = false)
     {
         var schema = new GenericSchema<ExternalLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
@@ -323,15 +322,16 @@ public sealed class ExternalClrReferenceEndToEndTests
                 {
                     useGenericRow ? "generic" : "rows",
                     useGenericRow
-                        ? (new ExternalTable(typeof(GenericExternalRow<ExternalPayload>)), new GenericExternalRowSource(rows))
+                        ? (
+                            new ExternalTable(typeof(GenericExternalRow<ExternalPayload>)),
+                            new GenericExternalRowSource(rows)
+                        )
                         : (new ExternalTable(typeof(ExternalRow)), new ExternalRowSource(rows))
-                }
-            });
+                },
+            }
+        );
 
-        return new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            { "#external", schema }
-        });
+        return new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#external", schema } });
     }
 
     private static ISchemaProvider CreatePrimitiveSchemaProvider()
@@ -339,13 +339,11 @@ public sealed class ExternalClrReferenceEndToEndTests
         var schema = new GenericSchema<GenericLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                { "values", (new PrimitiveTable(), new EmptyPrimitiveRowSource()) }
-            });
+                { "values", (new PrimitiveTable(), new EmptyPrimitiveRowSource()) },
+            }
+        );
 
-        return new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            { "#primitive", schema }
-        });
+        return new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#primitive", schema } });
     }
 
     private static ExternalRow CreateRow() =>
@@ -359,10 +357,10 @@ public sealed class ExternalClrReferenceEndToEndTests
                 Status = ExternalStatus.Ready,
                 NullableStatus = ExternalStatus.Ready,
                 Nested = new ExternalLeaf { Value = 7, Label = "nested" },
-                Leaves = [new ExternalLeaf { Value = 11, Label = "array" }]
+                Leaves = [new ExternalLeaf { Value = 11, Label = "array" }],
             },
             Status = ExternalStatus.Ready,
-            Leaves = [new ExternalLeaf { Value = 11, Label = "array" }]
+            Leaves = [new ExternalLeaf { Value = 11, Label = "array" }],
         };
 
     private sealed class ExternalTable(Type rowType) : ISchemaTable
@@ -374,13 +372,19 @@ public sealed class ExternalClrReferenceEndToEndTests
             new DataSourceSchemaColumn(nameof(ExternalRow.Payload), 2, typeof(ExternalPayload)),
             new DataSourceSchemaColumn(nameof(ExternalRow.Status), 3, typeof(ExternalStatus?)),
             new DataSourceSchemaColumn(nameof(ExternalRow.Leaves), 4, typeof(ExternalLeaf[])),
-            new DataSourceSchemaColumn(nameof(ExternalRow.NestedValues), 5, typeof(List<Dictionary<string, ExternalLeaf>>))
+            new DataSourceSchemaColumn(
+                nameof(ExternalRow.NestedValues),
+                5,
+                typeof(List<Dictionary<string, ExternalLeaf>>)
+            ),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(rowType);
 
         public ISchemaColumn? GetColumnByName(string name) =>
-            Columns.FirstOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            Columns.FirstOrDefault(column =>
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+            );
 
         public ISchemaColumn[] GetColumnsByName(string name)
         {
@@ -399,18 +403,20 @@ public sealed class ExternalClrReferenceEndToEndTests
     {
         protected override void CollectChunks(IChunkWriter<GenericExternalRow<ExternalPayload>> writer)
         {
-            writer.Write(rows.Select(row => new GenericExternalRow<ExternalPayload>
-            {
-                InheritedName = row.InheritedName,
-                Payload = row.Payload
-            }).ToArray());
+            writer.Write(
+                rows.Select(row => new GenericExternalRow<ExternalPayload>
+                    {
+                        InheritedName = row.InheritedName,
+                        Payload = row.Payload,
+                    })
+                    .ToArray()
+            );
         }
     }
 
     private sealed class PrimitiveTable : ISchemaTable
     {
-        public ISchemaColumn[] Columns { get; } =
-        [new DataSourceSchemaColumn("Value", 0, typeof(int))];
+        public ISchemaColumn[] Columns { get; } = [new DataSourceSchemaColumn("Value", 0, typeof(int))];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(int));
 
@@ -426,9 +432,7 @@ public sealed class ExternalClrReferenceEndToEndTests
 
     private sealed class EmptyPrimitiveRowSource : RowSourceBase<int>
     {
-        protected override void CollectChunks(IChunkWriter<int> writer)
-        {
-        }
+        protected override void CollectChunks(IChunkWriter<int> writer) { }
     }
 
     private sealed class StaticSettingsResolver : ISourceRuntimeSettingsResolver

@@ -17,11 +17,23 @@ public sealed class RLikeRuntimeDiagnosticTests : BasicEntityTestBase
     public void ParameterPattern_AfterInvalidRun_ShouldAcceptAValidReplacement()
     {
         using var compiled = CreateAndRunVirtualMachine(ParameterQuery, Rows());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "pattern", "[secret-rec129(");
-        var failure = Assert.Throws<QueryExecutionException>(() => _ = compiled.Run(TestContext.CancellationToken).Count);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "pattern",
+            "[secret-rec129("
+        );
+        var failure = Assert.Throws<QueryExecutionException>(() =>
+            _ = compiled.Run(TestContext.CancellationToken).Count
+        );
         AssertPatternEnvelope(failure);
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "pattern", "^Alpha$");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "pattern",
+            "^Alpha$"
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(true, result[0].ReadValues()[0]);
     }
@@ -30,7 +42,12 @@ public sealed class RLikeRuntimeDiagnosticTests : BasicEntityTestBase
     public async Task ParameterPattern_RunAsync_ShouldReportSpecificRuntimeError()
     {
         using var compiled = CreateAndRunVirtualMachine(ParameterQuery, Rows());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "pattern", "[secret-rec129(");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "pattern",
+            "[secret-rec129("
+        );
         var failure = await Assert.ThrowsAsync<QueryExecutionException>(async () =>
         {
             using var result = await compiled.RunAsync(TestContext.CancellationToken);
@@ -45,15 +62,24 @@ public sealed class RLikeRuntimeDiagnosticTests : BasicEntityTestBase
     public void DynamicPattern_ShouldCompileAndFailOnlyAtExecution(string query)
     {
         using var compiled = CreateAndRunVirtualMachine(query, Rows());
-        AssertPatternEnvelope(Assert.Throws<QueryExecutionException>(() => _ = compiled.Run(TestContext.CancellationToken).Count));
+        AssertPatternEnvelope(
+            Assert.Throws<QueryExecutionException>(() => _ = compiled.Run(TestContext.CancellationToken).Count)
+        );
     }
 
     [TestMethod]
     public void ParameterPattern_WhenNoRowsAreEvaluated_ShouldNotValidateRegex()
     {
-        using var compiled = CreateAndRunVirtualMachine(ParameterQuery,
-            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] });
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "pattern", "[");
+        using var compiled = CreateAndRunVirtualMachine(
+            ParameterQuery,
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "pattern",
+            "["
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(0, result.Count);
     }

@@ -10,5 +10,5 @@ public enum DescForType
     FunctionsForSchema,
     SpecificColumn,
     Settings,
-    Query
+    Query,
 }

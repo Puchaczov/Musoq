@@ -17,7 +17,8 @@ public sealed record ExecutionReturnDesc : ExecutionNode
         int schemaFromIndex,
         ExecutionColumnMetadata? queryColumnMetadata = null,
         TextSpan? columnSpan = null,
-        IReadOnlyList<StructuralArgumentDescription>? argumentDescriptions = null)
+        IReadOnlyList<StructuralArgumentDescription>? argumentDescriptions = null
+    )
     {
         SchemaName = schemaName;
         MethodName = methodName;
@@ -28,9 +29,8 @@ public sealed record ExecutionReturnDesc : ExecutionNode
         SchemaFromIndex = schemaFromIndex;
         QueryColumnMetadata = queryColumnMetadata;
         ColumnSpan = columnSpan;
-        ArgumentDescriptions = argumentDescriptions == null
-            ? null
-            : ExecutionIrCollections.Freeze(argumentDescriptions);
+        ArgumentDescriptions =
+            argumentDescriptions == null ? null : ExecutionIrCollections.Freeze(argumentDescriptions);
     }
 
     /// <summary>Gets prebound native result descriptions without compiler-only CLR type witnesses.</summary>

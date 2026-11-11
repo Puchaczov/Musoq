@@ -90,10 +90,12 @@ public class SchemaParserFieldValidationTests : SchemaParserTestsBase
     [TestMethod]
     public void RawSubstreamMagic_ShouldParse()
     {
-        var schema = @"binary Packet {
-            Length: uint le,
-            Payload: substream[Length] raw magic [0x01, 0x02]
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Length: uint le,\n"
+            + "            Payload: substream[Length] raw magic [0x01, 0x02]\n"
+            + "        }"
+        );
 
         var result = ParseBinarySchema(schema);
         var payload = (FieldDefinitionNode)result.Fields[1];
@@ -139,8 +141,9 @@ public class SchemaParserFieldValidationTests : SchemaParserTestsBase
     [TestMethod]
     public void DuplicateValidationModifier_ShouldReportInvalidFieldConstraint()
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(
-            () => ParseBinarySchema("binary T { F: byte const 1 const 2 }"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseBinarySchema("binary T { F: byte const 1 const 2 }")
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4006_InvalidFieldConstraint, exception.Code);
     }
@@ -148,8 +151,9 @@ public class SchemaParserFieldValidationTests : SchemaParserTestsBase
     [TestMethod]
     public void ByteValueOutOfRange_ShouldReportInvalidFieldConstraint()
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(
-            () => ParseBinarySchema("binary T { F: byte[1] const [256] }"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseBinarySchema("binary T { F: byte[1] const [256] }")
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4006_InvalidFieldConstraint, exception.Code);
     }
@@ -157,8 +161,7 @@ public class SchemaParserFieldValidationTests : SchemaParserTestsBase
     [TestMethod]
     public void EmptyOneOf_ShouldReportInvalidFieldConstraint()
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(
-            () => ParseBinarySchema("binary T { F: byte oneOf [] }"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema("binary T { F: byte oneOf [] }"));
 
         Assert.AreEqual(DiagnosticCode.MQ4006_InvalidFieldConstraint, exception.Code);
     }
@@ -166,8 +169,9 @@ public class SchemaParserFieldValidationTests : SchemaParserTestsBase
     [TestMethod]
     public void ScalarConst_OnByteArray_ShouldReportInvalidFieldConstraint()
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(
-            () => ParseBinarySchema("binary T { F: byte[4] const 5 }"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseBinarySchema("binary T { F: byte[4] const 5 }")
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4006_InvalidFieldConstraint, exception.Code);
     }
@@ -175,8 +179,9 @@ public class SchemaParserFieldValidationTests : SchemaParserTestsBase
     [TestMethod]
     public void ByteListConst_OnPrimitive_ShouldReportInvalidFieldConstraint()
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(
-            () => ParseBinarySchema("binary T { F: int le const [1, 2] }"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseBinarySchema("binary T { F: int le const [1, 2] }")
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4006_InvalidFieldConstraint, exception.Code);
     }
@@ -184,8 +189,9 @@ public class SchemaParserFieldValidationTests : SchemaParserTestsBase
     [TestMethod]
     public void OneOf_OnByteArray_ShouldReportInvalidFieldConstraint()
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(
-            () => ParseBinarySchema("binary T { F: byte[4] oneOf [1, 2] }"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseBinarySchema("binary T { F: byte[4] oneOf [1, 2] }")
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4006_InvalidFieldConstraint, exception.Code);
     }
@@ -193,8 +199,9 @@ public class SchemaParserFieldValidationTests : SchemaParserTestsBase
     [TestMethod]
     public void Validation_OnSchemaReference_ShouldReportInvalidFieldConstraint()
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(
-            () => ParseBinarySchema("binary T { F: OtherSchema const 1 }"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseBinarySchema("binary T { F: OtherSchema const 1 }")
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4006_InvalidFieldConstraint, exception.Code);
     }

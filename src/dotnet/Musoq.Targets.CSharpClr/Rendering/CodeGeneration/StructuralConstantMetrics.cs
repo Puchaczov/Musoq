@@ -7,18 +7,13 @@ namespace Musoq.Targets.CSharpClr;
 /// <summary>Measures compile-time structural defaults before emitting concrete storage.</summary>
 internal static class StructuralConstantMetrics
 {
-    internal static StructuralInputMetrics MeasureConstant(
-        object? value,
-        StructuralTypeDescriptor descriptor)
+    internal static StructuralInputMetrics MeasureConstant(object? value, StructuralTypeDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return MeasureConstant(value, descriptor, 1);
     }
 
-    private static StructuralInputMetrics MeasureConstant(
-        object? value,
-        StructuralTypeDescriptor descriptor,
-        int depth)
+    private static StructuralInputMetrics MeasureConstant(object? value, StructuralTypeDescriptor descriptor, int depth)
     {
         var metrics = new StructuralInputMetrics(depth, 1, 0);
         if (value is StructuralValue scalar && scalar.Kind == StructuralTypeKind.Scalar)
@@ -33,8 +28,10 @@ internal static class StructuralConstantMetrics
         if (value == null)
             return metrics;
 
-        if (descriptor.Kind == StructuralTypeKind.Record &&
-            value is StructuralValue { Kind: StructuralTypeKind.Record } record)
+        if (
+            descriptor.Kind == StructuralTypeKind.Record
+            && value is StructuralValue { Kind: StructuralTypeKind.Record } record
+        )
         {
             foreach (var field in descriptor.Fields)
             {
@@ -56,7 +53,8 @@ internal static class StructuralConstantMetrics
                 elements = array.Cast<object?>();
             else
                 elements = [];
-            var elementType = descriptor.ElementType ?? throw new InvalidOperationException("Collection element type is missing.");
+            var elementType =
+                descriptor.ElementType ?? throw new InvalidOperationException("Collection element type is missing.");
             foreach (var element in elements)
                 metrics = Merge(metrics, MeasureConstant(element, elementType, depth + 1));
         }
@@ -64,12 +62,10 @@ internal static class StructuralConstantMetrics
         return metrics;
     }
 
-    private static StructuralInputMetrics Merge(
-        StructuralInputMetrics left,
-        StructuralInputMetrics right) =>
+    private static StructuralInputMetrics Merge(StructuralInputMetrics left, StructuralInputMetrics right) =>
         new(
             Math.Max(left.MaxDepth, right.MaxDepth),
             checked(left.NodeCount + right.NodeCount),
-            checked(left.StringBytes + right.StringBytes));
-
+            checked(left.StringBytes + right.StringBytes)
+        );
 }

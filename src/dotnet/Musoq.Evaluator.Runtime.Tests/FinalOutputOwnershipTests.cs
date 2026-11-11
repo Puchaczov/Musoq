@@ -21,15 +21,22 @@ public sealed class FinalOutputOwnershipTests : GenericEntityTestBase
     {
         var entity = new OutputEntity { Id = 1 };
         using var query = CreateAndRunVirtualMachine<OutputEntity, OutputLibrary>(
-            "param(offset: int = 10) select a.Id, a.Next() + $offset as First, a.Next() as Second, " +
-            $"a.Optional {source}", [entity]);
+            "param(offset: int = 10) select a.Id, a.Next() + $offset as First, a.Next() as Second, "
+                + $"a.Optional {source}",
+            [entity]
+        );
 
         using var first = query.Run(TestContext.CancellationToken);
         Assert.AreEqual(0, entity.Calls);
         TableMaterializationTestHelper.AssertRowsInOrder(first, [1, 11, 2, null]);
         Assert.AreEqual(2, entity.Calls);
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 20);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "offset",
+            20
+        );
         using var second = query.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertRowsInOrder(second, [1, 23, 4, null]);
         TableMaterializationTestHelper.AssertRowsInOrder(first, [1, 11, 2, null]);
@@ -41,11 +48,16 @@ public sealed class FinalOutputOwnershipTests : GenericEntityTestBase
     {
         using var query = CreateAndRunVirtualMachine(
             "select Id as _, Id as TypedColumnRead, Id as TypedColumnVisit from #schema.first()",
-            [new OutputEntity { Id = 7 }]);
+            [new OutputEntity { Id = 7 }]
+        );
         using var table = query.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
-        TableMaterializationTestHelper.AssertColumns(table, ("_", typeof(int)), ("TypedColumnRead", typeof(int)),
-            ("TypedColumnVisit", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("_", typeof(int)),
+            ("TypedColumnRead", typeof(int)),
+            ("TypedColumnVisit", typeof(int))
+        );
         for (var index = 0; index < 3; index++)
         {
             Assert.AreEqual(7, table[0].GetValue<int>(index));
@@ -58,7 +70,9 @@ public sealed class FinalOutputOwnershipTests : GenericEntityTestBase
     public void TypedResultMutation_ShouldRejectDifferentTypesAndPreserveAssignedValues()
     {
         using var query = CreateAndRunVirtualMachine(
-            "select a.Id, a.Optional from #schema.first() a", [new OutputEntity { Id = 1, Optional = 7 }]);
+            "select a.Id, a.Optional from #schema.first() a",
+            [new OutputEntity { Id = 1, Optional = 7 }]
+        );
         using var table = query.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
         TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Optional", typeof(int?)));
@@ -76,7 +90,9 @@ public sealed class FinalOutputOwnershipTests : GenericEntityTestBase
     {
         var entity = new OutputEntity { Id = 1, Optional = 7 };
         using var query = CreateAndRunVirtualMachine(
-            "select a.Id, a.Optional from #schema.first() a where a.Id > 0", new[] { entity, entity });
+            "select a.Id, a.Optional from #schema.first() a where a.Id > 0",
+            new[] { entity, entity }
+        );
         using var first = query.Run(TestContext.CancellationToken);
         first[0].AssignValue(0, 99);
 
@@ -93,7 +109,9 @@ public sealed class FinalOutputOwnershipTests : GenericEntityTestBase
     {
         var entity = new OutputEntity { Id = 1 };
         using var query = CreateAndRunVirtualMachine<OutputEntity, OutputLibrary>(
-            $"select a.Id, a.Next() {source}", [entity]);
+            $"select a.Id, a.Next() {source}",
+            [entity]
+        );
         using var cancellation = new CancellationTokenSource();
         using var table = query.Run(cancellation.Token);
         cancellation.Cancel();
@@ -109,7 +127,9 @@ public sealed class FinalOutputOwnershipTests : GenericEntityTestBase
     {
         var entity = new OutputEntity { Id = 1 };
         using var query = CreateAndRunVirtualMachine<OutputEntity, OutputLibrary>(
-            $"select a.Id, a.Next() {source}", [entity]);
+            $"select a.Id, a.Next() {source}",
+            [entity]
+        );
 
         query.Run(TestContext.CancellationToken).Dispose();
 
@@ -121,6 +141,7 @@ public sealed class FinalOutputOwnershipTests : GenericEntityTestBase
         public int Id { get; init; }
         public int? Optional { get; init; }
         public int Calls { get; private set; }
+
         public int Next() => ++Calls;
     }
 

@@ -14,7 +14,8 @@ internal static class SourceTransferLifetimePlanner
 
     public static IReadOnlyDictionary<string, SourceTransferLifetimePlan> Plan(
         LogicalNode logicalPlan,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(logicalPlan);
         cancellationToken.ThrowIfCancellationRequested();
@@ -37,7 +38,8 @@ internal static class SourceTransferLifetimePlanner
     private static SourceTransferLifetimePlan Classify(
         SchemaScanNode scan,
         IReadOnlyDictionary<LogicalNode, List<LogicalNode>> parents,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         LogicalNode current = scan;
         var visited = new HashSet<LogicalNode>(ReferenceEqualityComparer.Instance);
@@ -48,14 +50,16 @@ internal static class SourceTransferLifetimePlanner
             {
                 return SourceTransferLifetimePlan.Escapes(
                     scan.SourceContextId!,
-                    "The source row reaches a plan root before a row-shape replacement.");
+                    "The source row reaches a plan root before a row-shape replacement."
+                );
             }
 
             if (currentParents.Count > 1)
             {
                 return SourceTransferLifetimePlan.Escapes(
                     scan.SourceContextId!,
-                    "The source row has multiple logical consumers before a row-shape replacement.");
+                    "The source row has multiple logical consumers before a row-shape replacement."
+                );
             }
 
             var parent = currentParents[0];
@@ -63,14 +67,16 @@ internal static class SourceTransferLifetimePlanner
             {
                 return SourceTransferLifetimePlan.ScanLocal(
                     scan.SourceContextId!,
-                    "Projection replaces the source carrier before any retaining boundary.");
+                    "Projection replaces the source carrier before any retaining boundary."
+                );
             }
 
             if (parent is AggregateNode)
             {
                 return SourceTransferLifetimePlan.ScanLocal(
                     scan.SourceContextId!,
-                    "Aggregation replaces the source carrier before any retaining boundary.");
+                    "Aggregation replaces the source carrier before any retaining boundary."
+                );
             }
 
             if (IsStreamingTransparent(parent))
@@ -81,13 +87,15 @@ internal static class SourceTransferLifetimePlanner
 
             return SourceTransferLifetimePlan.Escapes(
                 scan.SourceContextId!,
-                $"{parent.GetType().Name} retains or crosses the source row before a row-shape replacement.");
+                $"{parent.GetType().Name} retains or crosses the source row before a row-shape replacement."
+            );
         }
 
         cancellationToken.ThrowIfCancellationRequested();
         return SourceTransferLifetimePlan.Escapes(
             scan.SourceContextId!,
-            "A logical-plan cycle was encountered before a row-shape replacement.");
+            "A logical-plan cycle was encountered before a row-shape replacement."
+        );
     }
 
     private static bool IsStreamingTransparent(LogicalNode node)
@@ -97,7 +105,8 @@ internal static class SourceTransferLifetimePlanner
 
     private static Dictionary<LogicalNode, List<LogicalNode>> CreateParentIndex(
         LogicalNode root,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var parents = new Dictionary<LogicalNode, List<LogicalNode>>(ReferenceEqualityComparer.Instance);
         var visited = new HashSet<LogicalNode>(ReferenceEqualityComparer.Instance);
@@ -110,7 +119,8 @@ internal static class SourceTransferLifetimePlanner
         LogicalNode node,
         IDictionary<LogicalNode, List<LogicalNode>> parents,
         ISet<LogicalNode> visited,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!visited.Add(node))
@@ -130,9 +140,7 @@ internal static class SourceTransferLifetimePlanner
         }
     }
 
-    private static IEnumerable<SchemaScanNode> FindSchemaScans(
-        LogicalNode node,
-        CancellationToken cancellationToken)
+    private static IEnumerable<SchemaScanNode> FindSchemaScans(LogicalNode node, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (node is SchemaScanNode scan)
@@ -150,10 +158,7 @@ internal static class SourceTransferLifetimePlanner
     }
 }
 
-internal sealed record SourceTransferLifetimePlan(
-    string SourceContextId,
-    SourceRowLifetime Lifetime,
-    string Reason)
+internal sealed record SourceTransferLifetimePlan(string SourceContextId, SourceRowLifetime Lifetime, string Reason)
 {
     public static SourceTransferLifetimePlan ScanLocal(string sourceContextId, string reason)
     {

@@ -12,13 +12,14 @@ public static class MinStringAggregateKernel
         public string? Value;
     }
 
-    public static void Set(ref State state, string? value)
-        => ReferenceAggregateCore.SetBest(ref state.Value, value,
-            static (current, best) => string.CompareOrdinal(current, best) < 0);
+    public static void Set(ref State state, string? value) =>
+        ReferenceAggregateCore.SetBest(
+            ref state.Value,
+            value,
+            static (current, best) => string.CompareOrdinal(current, best) < 0
+        );
 
-    public static string? Get(in State state)
-        => state.Value;
+    public static string? Get(in State state) => state.Value;
 
-    public static void Merge(ref State target, in State source)
-        => Set(ref target, source.Value);
+    public static void Merge(ref State target, in State source) => Set(ref target, source.Value);
 }

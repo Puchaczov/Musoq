@@ -13,29 +13,24 @@ public sealed class ValuesSourceException : Exception, IDiagnosticException
         string message,
         TextSpan span,
         IReadOnlyDictionary<string, string>? arguments = null,
-        IReadOnlyList<DiagnosticAction>? suggestedFixes = null)
+        IReadOnlyList<DiagnosticAction>? suggestedFixes = null
+    )
         : base(message)
     {
         Span = span;
         Arguments = arguments is null
             ? new Dictionary<string, string>(StringComparer.Ordinal)
             : new Dictionary<string, string>(arguments, StringComparer.Ordinal);
-        SuggestedFixes = suggestedFixes is null ? [] : [..suggestedFixes];
+        SuggestedFixes = suggestedFixes is null ? [] : [.. suggestedFixes];
     }
 
     public ValuesSourceException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public ValuesSourceException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public ValuesSourceException()
-    {
-    }
+    public ValuesSourceException() { }
 
     public DiagnosticCode Code { get; } = DiagnosticCode.MQ3055_InvalidValuesSource;
 
@@ -58,7 +53,8 @@ public sealed class ValuesSourceException : Exception, IDiagnosticException
             Message,
             location,
             endLocation,
-            sourceText?.GetContextSnippet(span));
+            sourceText?.GetContextSnippet(span)
+        );
         foreach (var argument in Arguments)
             diagnostic = diagnostic.WithArgument(argument.Key, argument.Value);
         foreach (var suggestedFix in SuggestedFixes)

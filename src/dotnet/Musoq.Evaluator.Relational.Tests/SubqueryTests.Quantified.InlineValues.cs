@@ -12,7 +12,8 @@ public partial class SubqueryTests
     [DataRow("ALL")]
     public void WhenQuantifiedSourcesShareAColumnName_ShouldCompareOuterAndInnerValues(string quantifier)
     {
-        var query = $"select N from values {{ (N: 1), (N: 3) }} v where N > {quantifier} (select N from values {{ (N: 2) }} t)";
+        var query =
+            $"select N from values {{ (N: 1), (N: 3) }} v where N > {quantifier} (select N from values {{ (N: 2) }} t)";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -25,7 +26,8 @@ public partial class SubqueryTests
     [TestProperty("CandidateId", "P1-060")]
     public void WhenAnySubqueryUsesEmptyInlineValues_ShouldFilterEveryOuterRow()
     {
-        const string query = "select Number from values { (Number: 1), (Number: 2) } v where Number > any (select Threshold from values { (Threshold: 10) } t where Threshold < 10)";
+        const string query =
+            "select Number from values { (Number: 1), (Number: 2) } v where Number > any (select Threshold from values { (Threshold: 10) } t where Threshold < 10)";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -38,7 +40,8 @@ public partial class SubqueryTests
     [TestProperty("CandidateId", "P1-016")]
     public void WhenAllSubqueryUsesInlineValues_ShouldFilterUnqualifiedOuterRows()
     {
-        const string query = "select Number from values { (Number: 1), (Number: 2), (Number: 3), (Number: 4) } v where Number > all (select Threshold from values { (Threshold: 1), (Threshold: 2) } t)";
+        const string query =
+            "select Number from values { (Number: 1), (Number: 2), (Number: 3), (Number: 4) } v where Number > all (select Threshold from values { (Threshold: 1), (Threshold: 2) } t)";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);

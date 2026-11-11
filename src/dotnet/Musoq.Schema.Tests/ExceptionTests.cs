@@ -335,12 +335,7 @@ public class ExceptionTests
     [TestMethod]
     public void ParseException_BasicConstructor_ShouldSetAllProperties()
     {
-        var ex = new ParseException(
-            ParseErrorCode.InsufficientData,
-            "TestSchema",
-            "TestField",
-            42,
-            "Not enough bytes");
+        var ex = new ParseException(ParseErrorCode.InsufficientData, "TestSchema", "TestField", 42, "Not enough bytes");
 
         Assert.AreEqual(ParseErrorCode.InsufficientData, ex.ErrorCode);
         Assert.AreEqual("TestSchema", ex.SchemaName);
@@ -352,12 +347,7 @@ public class ExceptionTests
     [TestMethod]
     public void ParseException_FormattedErrorCode_ShouldFormatCorrectly()
     {
-        var ex = new ParseException(
-            ParseErrorCode.InsufficientData,
-            "Schema",
-            null,
-            0,
-            "details");
+        var ex = new ParseException(ParseErrorCode.InsufficientData, "Schema", null, 0, "details");
 
         Assert.AreEqual("ISE0001", ex.FormattedErrorCode);
     }
@@ -381,7 +371,7 @@ public class ExceptionTests
             (ParseErrorCode.NoAlternativeMatched, "ISE0012"),
             (ParseErrorCode.InvalidSchemaReference, "ISE0013"),
             (ParseErrorCode.FieldReferenceError, "ISE0014"),
-            (ParseErrorCode.GeneralError, "ISE0015")
+            (ParseErrorCode.GeneralError, "ISE0015"),
         };
 
         foreach (var (code, expected) in testCases)
@@ -399,11 +389,13 @@ public class ExceptionTests
             "BinaryHeader",
             "MagicNumber",
             16,
-            "Expected 0x4D5A but found 0x0000");
+            "Expected 0x4D5A but found 0x0000"
+        );
 
         Assert.AreEqual(
             "ISE0003: Error parsing BinaryHeader.MagicNumber at position 16: Input did not match the expected pattern.",
-            ex.Message);
+            ex.Message
+        );
         Assert.AreEqual("Expected 0x4D5A but found 0x0000", ex.Details);
         Assert.DoesNotContain("0x0000", ex.Message);
     }
@@ -411,28 +403,16 @@ public class ExceptionTests
     [TestMethod]
     public void ParseException_WithNullFieldName_ShouldNotIncludeFieldPart()
     {
-        var ex = new ParseException(
-            ParseErrorCode.InvalidSize,
-            "TestSchema",
-            null,
-            0,
-            "Size was negative");
+        var ex = new ParseException(ParseErrorCode.InvalidSize, "TestSchema", null, 0, "Size was negative");
 
-        Assert.AreEqual(
-            "ISE0007: Error at position 0: The interpretation produced an invalid size.",
-            ex.Message);
+        Assert.AreEqual("ISE0007: Error at position 0: The interpretation produced an invalid size.", ex.Message);
         Assert.IsNull(ex.FieldName);
     }
 
     [TestMethod]
     public void ParseException_WithFieldName_ShouldIncludeFieldPart()
     {
-        var ex = new ParseException(
-            ParseErrorCode.InvalidSize,
-            "TestSchema",
-            "Length",
-            0,
-            "Size was negative");
+        var ex = new ParseException(ParseErrorCode.InvalidSize, "TestSchema", "Length", 0, "Size was negative");
 
         Assert.AreEqual("Length", ex.FieldName);
         Assert.Contains("Error parsing TestSchema.Length at position 0", ex.Message);
@@ -448,7 +428,8 @@ public class ExceptionTests
             "Content",
             100,
             "UTF-8 decoding failed",
-            innerException);
+            innerException
+        );
 
         Assert.IsNotNull(ex.InnerException);
         Assert.IsInstanceOfType<InvalidOperationException>(ex.InnerException);
@@ -458,12 +439,7 @@ public class ExceptionTests
     [TestMethod]
     public void ParseException_IsException()
     {
-        var ex = new ParseException(
-            ParseErrorCode.GeneralError,
-            "Schema",
-            null,
-            0,
-            "General error");
+        var ex = new ParseException(ParseErrorCode.GeneralError, "Schema", null, 0, "General error");
 
         Assert.IsInstanceOfType<Exception>(ex);
     }
@@ -480,7 +456,8 @@ public class ExceptionTests
                 "LogSchema",
                 "Timestamp",
                 0,
-                "Expected ':' delimiter");
+                "Expected ':' delimiter"
+            );
         }
         catch (Exception ex)
         {
@@ -494,12 +471,7 @@ public class ExceptionTests
     [TestMethod]
     public void ParseException_Position_CanBeZero()
     {
-        var ex = new ParseException(
-            ParseErrorCode.InsufficientData,
-            "Schema",
-            null,
-            0,
-            "Empty input");
+        var ex = new ParseException(ParseErrorCode.InsufficientData, "Schema", null, 0, "Empty input");
 
         Assert.AreEqual(0, ex.Position);
     }
@@ -512,7 +484,8 @@ public class ExceptionTests
             "Schema",
             null,
             1_000_000,
-            "Unexpected end of file");
+            "Unexpected end of file"
+        );
 
         Assert.AreEqual(1_000_000, ex.Position);
     }
@@ -541,7 +514,8 @@ public class ExceptionTests
             "TextSchema",
             "Gap",
             5,
-            "private input detail");
+            "private input detail"
+        );
         var wrapped = new InvalidOperationException("wrapper text", exception);
         var envelope = MusoqErrorEnvelope.FromException(wrapped);
 
@@ -586,7 +560,8 @@ public class ExceptionTests
             "BinarySchema",
             "Payload",
             3,
-            "private binary detail");
+            "private binary detail"
+        );
 
         var diagnostic = exception.ToDiagnostic();
 

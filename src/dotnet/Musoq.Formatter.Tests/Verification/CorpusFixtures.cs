@@ -12,9 +12,15 @@ internal static class CorpusFixtures
 
     internal static IReadOnlyList<Fixture> Load() => Cases.Value;
 
-    private static Fixture[] Read() => new[] { "SpecificationCorpus.json", "LanguageCoverage.json" }
-        .SelectMany(name => JsonSerializer.Deserialize<Fixture[]>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", name)),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!).ToArray();
+    private static Fixture[] Read() =>
+        new[] { "SpecificationCorpus.json", "LanguageCoverage.json" }
+            .SelectMany(name =>
+                JsonSerializer.Deserialize<Fixture[]>(
+                    File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", name)),
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                )!
+            )
+            .ToArray();
 
     internal sealed record Fixture(string Id, string Source);
 }

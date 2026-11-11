@@ -23,11 +23,12 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
         var firstPlan = CreatePlan("apply-1", firstApply, "a.Name = 'keep'", "a");
         var secondPlan = CreatePlan("apply-2", secondApply, "b.X = 1", "b");
 
-        var physical = (PhysicalNestedLoopApplyNode)new PhysicalPlanBuilder(
-            predicateMovementPlans: null,
-            strategyPlan: new PhysicalStrategyPlan(),
-            applyPredicateMovementPlans: [secondPlan, firstPlan])
-            .Lower(secondApply);
+        var physical = (PhysicalNestedLoopApplyNode)
+            new PhysicalPlanBuilder(
+                predicateMovementPlans: null,
+                strategyPlan: new PhysicalStrategyPlan(),
+                applyPredicateMovementPlans: [secondPlan, firstPlan]
+            ).Lower(secondApply);
 
         var physicalFirstApply = (PhysicalNestedLoopApplyNode)physical.Left;
         Assert.AreSame(firstPlan, physicalFirstApply.ApplyPredicateMovementPlans[0]);
@@ -43,11 +44,12 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
         var first = CreatePlan("apply-1", apply, "a.Name = 'keep'", "a");
         var duplicate = CreatePlan("apply-2", apply, "a.Name = 'keep'", "a");
 
-        var physical = (PhysicalNestedLoopApplyNode)new PhysicalPlanBuilder(
-            predicateMovementPlans: null,
-            strategyPlan: new PhysicalStrategyPlan(),
-            applyPredicateMovementPlans: [duplicate, first])
-            .Lower(apply);
+        var physical = (PhysicalNestedLoopApplyNode)
+            new PhysicalPlanBuilder(
+                predicateMovementPlans: null,
+                strategyPlan: new PhysicalStrategyPlan(),
+                applyPredicateMovementPlans: [duplicate, first]
+            ).Lower(apply);
 
         Assert.AreEqual(1, physical.ApplyPredicateMovementPlans.Count);
         Assert.AreSame(first, physical.ApplyPredicateMovementPlans[0]);
@@ -58,19 +60,17 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
     {
         var left = CreatePhysicalScan("a");
         var right = CreatePhysicalScan("b");
-        var logicalApply = new ApplyNode(
-            ApplyKind.Cross,
-            CreateLogicalScan("a"),
-            CreateLogicalScan("b"));
+        var logicalApply = new ApplyNode(ApplyKind.Cross, CreateLogicalScan("a"), CreateLogicalScan("b"));
         var plan = CreatePlan("apply-1", logicalApply, "a.Name = 'keep'", "a");
         var apply = new PhysicalNestedLoopApplyNode(ApplyKind.Cross, left, right)
         {
-            ApplyPredicateMovementPlans = [plan]
+            ApplyPredicateMovementPlans = [plan],
         };
 
         var rewritten = PhysicalPlanRewriter.RewriteChildren(
             apply,
-            node => ReferenceEquals(node, left) ? left with { Alias = "rewritten" } : node);
+            node => ReferenceEquals(node, left) ? left with { Alias = "rewritten" } : node
+        );
 
         var rewrittenApply = (PhysicalNestedLoopApplyNode)rewritten;
         Assert.AreSame(plan, rewrittenApply.ApplyPredicateMovementPlans[0]);
@@ -80,14 +80,8 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
     [TestMethod]
     public void ApplyChainSourceCollector_ShouldKeepGuardsWithTheirFlattenedRightBoundary()
     {
-        var firstApply = new ApplyNode(
-            ApplyKind.Cross,
-            CreateLogicalScan("a"),
-            CreateLogicalScan("b"));
-        var secondApply = new ApplyNode(
-            ApplyKind.Cross,
-            firstApply,
-            CreateLogicalScan("c"));
+        var firstApply = new ApplyNode(ApplyKind.Cross, CreateLogicalScan("a"), CreateLogicalScan("b"));
+        var secondApply = new ApplyNode(ApplyKind.Cross, firstApply, CreateLogicalScan("c"));
         var firstPlan = CreatePlan("apply-1", firstApply, "a.Name = 'keep'", "a");
         var secondPlan = CreatePlan("apply-2", secondApply, "b.X = 1", "b");
         var left = CreatePhysicalScan("a");
@@ -95,11 +89,11 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
         var right = CreatePhysicalScan("c");
         var nested = new PhysicalNestedLoopApplyNode(ApplyKind.Cross, left, middle)
         {
-            ApplyPredicateMovementPlans = [firstPlan]
+            ApplyPredicateMovementPlans = [firstPlan],
         };
         var root = new PhysicalNestedLoopApplyNode(ApplyKind.Cross, nested, right)
         {
-            ApplyPredicateMovementPlans = [secondPlan]
+            ApplyPredicateMovementPlans = [secondPlan],
         };
 
         var collector = new ApplyChainSourceCollector();
@@ -112,10 +106,7 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
     [TestMethod]
     public void Print_WhenApplyHasMovementPlans_ShouldIncludeGuardPlacementAndPredicate()
     {
-        var apply = new PhysicalNestedLoopApplyNode(
-            ApplyKind.Cross,
-            CreatePhysicalScan("a"),
-            CreatePhysicalScan("b"))
+        var apply = new PhysicalNestedLoopApplyNode(ApplyKind.Cross, CreatePhysicalScan("a"), CreatePhysicalScan("b"))
         {
             ApplyPredicateMovementPlans =
             [
@@ -123,8 +114,9 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
                     "apply-1",
                     new ApplyNode(ApplyKind.Cross, CreateLogicalScan("a"), CreateLogicalScan("b")),
                     "a.Name = 'keep'",
-                    "a")
-            ]
+                    "a"
+                ),
+            ],
         };
 
         var text = PhysicalPlanPrinter.Print(apply);
@@ -136,7 +128,8 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
         string movementId,
         ApplyNode apply,
         string predicateText,
-        string alias)
+        string alias
+    )
     {
         return new ApplyPredicateMovementPlan(
             movementId,
@@ -148,10 +141,12 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
                 BinaryOpKind.Equal,
                 new ColumnRef(alias, "Name", typeof(string)),
                 new Literal("keep", typeof(string)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             predicateText,
             PlanningConfidence.High,
-            "test movement plan");
+            "test movement plan"
+        );
     }
 
     private static SchemaScanNode CreateLogicalScan(string alias)
@@ -161,7 +156,8 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
             "items",
             [],
             alias,
-            new OutputSchema([new ColumnSchema("Name", typeof(string), 0)]));
+            new OutputSchema([new ColumnSchema("Name", typeof(string), 0)])
+        );
     }
 
     private static PhysicalSchemaScanNode CreatePhysicalScan(string alias)
@@ -173,6 +169,7 @@ public sealed class ApplyPredicateMovementPhysicalPlanTests
             alias,
             [],
             [],
-            new OutputSchema([new ColumnSchema("Name", typeof(string), 0)]));
+            new OutputSchema([new ColumnSchema("Name", typeof(string), 0)])
+        );
     }
 }

@@ -18,11 +18,14 @@ public sealed class DiagnosticCore027SetOperationTests
     public void SetOperator_AllForms_ShouldParseWithOptionalKeyLists(string setOperator, Type expectedType)
     {
         var omitted = ParseSetOperator(
-            $"select Col from schemaA.methodA() {setOperator} select Col from schemaB.methodB()");
+            $"select Col from schemaA.methodA() {setOperator} select Col from schemaB.methodB()"
+        );
         var empty = ParseSetOperator(
-            $"select Col from schemaA.methodA() {setOperator} () select Col from schemaB.methodB()");
+            $"select Col from schemaA.methodA() {setOperator} () select Col from schemaB.methodB()"
+        );
         var explicitKeys = ParseSetOperator(
-            $"select Col1, Col2 from schemaA.methodA() {setOperator} (Col1, Col2) select Col1, Col2 from schemaB.methodB()");
+            $"select Col1, Col2 from schemaA.methodA() {setOperator} (Col1, Col2) select Col1, Col2 from schemaB.methodB()"
+        );
 
         Assert.IsInstanceOfType(omitted, expectedType);
         Assert.IsInstanceOfType(empty, expectedType);
@@ -38,7 +41,8 @@ public sealed class DiagnosticCore027SetOperationTests
     [TestMethod]
     public void SetOperator_ExplicitKeys_ShouldPreserveIdentifierSpansThroughResultModifiers()
     {
-        const string query = "select Col1, Col2 from schemaA.methodA() union (Col1, schemaB.Col2) select Col1, Col2 from schemaB.methodB() order by Col1";
+        const string query =
+            "select Col1, Col2 from schemaA.methodA() union (Col1, schemaB.Col2) select Col1, Col2 from schemaB.methodB() order by Col1";
         var node = ParseSetOperator(query);
         var keyListStart = query.IndexOf("(Col1, schemaB.Col2)", StringComparison.Ordinal);
 
@@ -47,16 +51,18 @@ public sealed class DiagnosticCore027SetOperationTests
             new[]
             {
                 new TextSpan(keyListStart + 1, "Col1".Length),
-                new TextSpan(keyListStart + 7, "schemaB.Col2".Length)
+                new TextSpan(keyListStart + 7, "schemaB.Col2".Length),
             },
-            node.KeySpans.ToArray());
+            node.KeySpans.ToArray()
+        );
         Assert.IsNotNull(node.ResultOrderBy);
     }
 
     [TestMethod]
     public void SetOperator_ChainedOperators_ShouldKeepRootModifiersAndEachKeySpan()
     {
-        const string query = "select Col from schemaA.methodA() union (Col) select Col from schemaB.methodB() except () select Col from schemaC.methodC() intersect (schemaD.Col) select Col from schemaD.methodD() order by Col take 1";
+        const string query =
+            "select Col from schemaA.methodA() union (Col) select Col from schemaB.methodB() except () select Col from schemaC.methodC() intersect (schemaD.Col) select Col from schemaD.methodD() order by Col take 1";
         var root = ParseSetOperator(query);
         var except = Assert.IsInstanceOfType<ExceptNode>(root.Right);
         var intersect = Assert.IsInstanceOfType<IntersectNode>(except.Right);
@@ -81,7 +87,8 @@ public sealed class DiagnosticCore027SetOperationTests
             query,
             DiagnosticCode.MQ2014_TrailingComma,
             "Set operator key list has a trailing comma. Add another key or remove the comma.",
-            new TextSpan(query.IndexOf(",)", StringComparison.Ordinal) + 1, 1));
+            new TextSpan(query.IndexOf(",)", StringComparison.Ordinal) + 1, 1)
+        );
     }
 
     [TestMethod]
@@ -93,14 +100,16 @@ public sealed class DiagnosticCore027SetOperationTests
             query,
             DiagnosticCode.MQ2015_LeadingComma,
             "Set operator key list has a leading comma. Add a key before the comma or remove it.",
-            new TextSpan(query.IndexOf(",", StringComparison.Ordinal), 1));
+            new TextSpan(query.IndexOf(",", StringComparison.Ordinal), 1)
+        );
     }
 
     private static void AssertParseDiagnostic(
         string query,
         DiagnosticCode expectedCode,
         string expectedMessage,
-        TextSpan expectedSpan)
+        TextSpan expectedSpan
+    )
     {
         var lexer = new Lexer(query, true, recoverOnError: true);
         var result = new Parser(lexer, lexer.Diagnostics).ParseWithDiagnostics();

@@ -37,6 +37,7 @@ internal sealed partial class SubqueryCorrelationAnalyzer
 
         return aliases;
     }
+
     private static HashSet<string> CollectAliases(FromNode node)
     {
         var aliases = CreateAliasSet();
@@ -122,8 +123,10 @@ internal sealed partial class SubqueryCorrelationAnalyzer
 
     private static HashSet<string> CreateAliasSet(IEnumerable<string> values)
     {
-        return new HashSet<string>(values.Where(value => !string.IsNullOrWhiteSpace(value)),
-            StringComparer.OrdinalIgnoreCase);
+        return new HashSet<string>(
+            values.Where(value => !string.IsNullOrWhiteSpace(value)),
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
     private static HashSet<string> CopyAliasSet(IEnumerable<string> values)

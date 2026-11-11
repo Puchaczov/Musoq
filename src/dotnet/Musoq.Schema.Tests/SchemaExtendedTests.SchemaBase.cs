@@ -45,8 +45,7 @@ public partial class SchemaExtendedTests
         var schema = new TestSchemaWithTable();
         var ctx = CreateTestRuntimeContext();
 
-        var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.GetTableByName("", ctx));
+        var ex = Assert.Throws<SchemaArgumentException>(() => schema.GetTableByName("", ctx));
 
         Assert.Contains("empty", ex.Message);
     }
@@ -57,8 +56,7 @@ public partial class SchemaExtendedTests
         var schema = new TestSchemaWithTable();
         var ctx = CreateTestRuntimeContext();
 
-        var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.GetTableByName("   ", ctx));
+        var ex = Assert.Throws<SchemaArgumentException>(() => schema.GetTableByName("   ", ctx));
 
         Assert.Contains("empty", ex.Message);
     }
@@ -68,8 +66,7 @@ public partial class SchemaExtendedTests
     {
         var schema = new TestSchemaWithTable();
 
-        var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.GetTableByName("custom", null!));
+        var ex = Assert.Throws<SchemaArgumentException>(() => schema.GetTableByName("custom", null!));
 
         Assert.Contains("null", ex.Message);
     }
@@ -80,8 +77,7 @@ public partial class SchemaExtendedTests
         var schema = new TestSchemaWithTable();
         var ctx = CreateTestRuntimeContext();
 
-        var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.GetTableByName("unknowntable", ctx));
+        var ex = Assert.Throws<SchemaArgumentException>(() => schema.GetTableByName("unknowntable", ctx));
 
         Assert.IsTrue(ex.Message.Contains("unknowntable") || ex.Message.Contains("Invalid"));
     }
@@ -93,7 +89,8 @@ public partial class SchemaExtendedTests
         var ctx = CreateTestRuntimeContext();
 
         var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.GetRowSource<string, EmptySourceArguments>("", ctx, SourceArguments.Empty));
+            schema.GetRowSource<string, EmptySourceArguments>("", ctx, SourceArguments.Empty)
+        );
 
         Assert.Contains("empty", ex.Message);
     }
@@ -104,7 +101,8 @@ public partial class SchemaExtendedTests
         var schema = new TestSchemaWithTable();
 
         var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.GetRowSource<string, EmptySourceArguments>("custom", null!, SourceArguments.Empty));
+            schema.GetRowSource<string, EmptySourceArguments>("custom", null!, SourceArguments.Empty)
+        );
 
         Assert.Contains("null", ex.Message);
     }
@@ -116,7 +114,8 @@ public partial class SchemaExtendedTests
         var ctx = CreateTestRuntimeContext();
 
         var ex = Assert.Throws<NotSupportedException>(() =>
-            schema.GetRowSource<string, EmptySourceArguments>("unknownsource", ctx, SourceArguments.Empty));
+            schema.GetRowSource<string, EmptySourceArguments>("unknownsource", ctx, SourceArguments.Empty)
+        );
 
         Assert.IsTrue(ex.Message.Contains("unknownsource") || ex.Message.Contains("Invalid"));
     }
@@ -126,8 +125,7 @@ public partial class SchemaExtendedTests
     {
         var schema = new TestSchemaWithTable();
 
-        var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.AddTablePublic<SingleRowSchemaTable>(""));
+        var ex = Assert.Throws<SchemaArgumentException>(() => schema.AddTablePublic<SingleRowSchemaTable>(""));
 
         Assert.Contains("empty", ex.Message);
     }
@@ -137,8 +135,7 @@ public partial class SchemaExtendedTests
     {
         var schema = new TestSchemaWithTable();
 
-        var ex = Assert.Throws<SchemaArgumentException>(() =>
-            schema.AddSourcePublic<SingleRowSource>(""));
+        var ex = Assert.Throws<SchemaArgumentException>(() => schema.AddSourcePublic<SingleRowSource>(""));
 
         Assert.Contains("empty", ex.Message);
     }
@@ -209,8 +206,7 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void SchemaBase_Constructor_ThrowsForEmptyName()
     {
-        var ex = Assert.Throws<SchemaArgumentException>(() =>
-            new TestSchemaWithEmptyName(""));
+        var ex = Assert.Throws<SchemaArgumentException>(() => new TestSchemaWithEmptyName(""));
 
         Assert.IsTrue(ex.Message.Contains("empty") || ex.Message.Contains("name"));
     }
@@ -218,8 +214,7 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void SchemaBase_Constructor_ThrowsForNullAggregator()
     {
-        var ex = Assert.Throws<SchemaArgumentException>(() =>
-            new TestSchemaWithNullAggregator("valid", null!));
+        var ex = Assert.Throws<SchemaArgumentException>(() => new TestSchemaWithNullAggregator("valid", null!));
 
         Assert.Contains("null", ex.Message);
     }
@@ -229,12 +224,10 @@ public partial class SchemaExtendedTests
     {
         var schema = new TestSchemaWithTable();
 
-        var result = schema.TryResolveAggregationMethod("NonAggregation", Array.Empty<Type>(), typeof(object),
-            out _);
+        var result = schema.TryResolveAggregationMethod("NonAggregation", Array.Empty<Type>(), typeof(object), out _);
 
         Assert.IsFalse(result);
     }
 
     #endregion
-
 }

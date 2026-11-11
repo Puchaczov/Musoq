@@ -1,7 +1,7 @@
-using System.Linq;
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Bindings;
+using System.Linq;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.IR.Logical;
 
 public sealed partial class LogicalPlanBuilder
 {
-
     public void Visit(WhereNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -31,8 +30,11 @@ public sealed partial class LogicalPlanBuilder
         {
             groupKeys[i] = _converter.Convert(node.Fields[i].Expression);
             groupKeyNames[i] = node.Fields[i].FieldName;
-            groupKeyTypes[i] = node.Fields[i].ReturnType ??
-                               throw new InvalidOperationException($"GROUP BY field '{node.Fields[i].FieldName}' has no inferred return type.");
+            groupKeyTypes[i] =
+                node.Fields[i].ReturnType
+                ?? throw new InvalidOperationException(
+                    $"GROUP BY field '{node.Fields[i].FieldName}' has no inferred return type."
+                );
         }
 
         var source = _nodeStack.Pop();
@@ -75,18 +77,21 @@ public sealed partial class LogicalPlanBuilder
         if (node.Type == DescForType.Query)
         {
             var query = _nodeStack.Pop();
-            _nodeStack.Push(new IrNodes.DescNode(
-                string.Empty,
-                string.Empty,
-                IrNodes.DescType.Query,
-                null,
-                [],
-                string.Empty,
-                CreateDescriptionOutputSchema(),
-                query.OutputSchema)
-            {
-                QueryProjection = FindDescriptionProjection(query)
-            });
+            _nodeStack.Push(
+                new IrNodes.DescNode(
+                    string.Empty,
+                    string.Empty,
+                    IrNodes.DescType.Query,
+                    null,
+                    [],
+                    string.Empty,
+                    CreateDescriptionOutputSchema(),
+                    query.OutputSchema
+                )
+                {
+                    QueryProjection = FindDescriptionProjection(query),
+                }
+            );
             return;
         }
 
@@ -96,17 +101,17 @@ public sealed partial class LogicalPlanBuilder
         var column = node.Column?.ToString();
         var sourceContextId = from?.Id ?? string.Empty;
         var semanticSource = from as Musoq.Evaluator.Parser.SchemaFromNode;
-        var argumentDescriptions = node.Type == DescForType.Arguments &&
-                                      semanticSource?.BoundInvocation is { } descriptionInvocation
-            ? StructuralArgumentDescriptionFactory.Create(
-                descriptionInvocation.Signature,
-                descriptionInvocation.OverloadIndex)
-            : null;
-        var arguments = node.Type == DescForType.Arguments
-            ? []
-            : semanticSource?.BoundInvocation is { } invocation
-                ? ConvertArguments(from!.Parameters, invocation)
-                : from?.Parameters.Args.Select(_converter.Convert).ToArray() ?? [];
+        var argumentDescriptions =
+            node.Type == DescForType.Arguments && semanticSource?.BoundInvocation is { } descriptionInvocation
+                ? StructuralArgumentDescriptionFactory.Create(
+                    descriptionInvocation.Signature,
+                    descriptionInvocation.OverloadIndex
+                )
+                : null;
+        var arguments =
+            node.Type == DescForType.Arguments ? []
+            : semanticSource?.BoundInvocation is { } invocation ? ConvertArguments(from!.Parameters, invocation)
+            : from?.Parameters.Args.Select(_converter.Convert).ToArray() ?? [];
 
         var descType = node.Type switch
         {
@@ -116,19 +121,22 @@ public sealed partial class LogicalPlanBuilder
             DescForType.FunctionsForSchema => IrNodes.DescType.Functions,
             DescForType.SpecificColumn => IrNodes.DescType.Column,
             DescForType.Settings => IrNodes.DescType.Settings,
-            _ => IrNodes.DescType.Table
+            _ => IrNodes.DescType.Table,
         };
 
-        _nodeStack.Push(new IrNodes.DescNode(
-            schemaName,
-            methodName,
-            descType,
-            column,
-            arguments,
-            sourceContextId,
-            ResolveDescriptionOutputSchema(node.Type),
-            ColumnSpan: node.Column?.Span,
-            ArgumentDescriptions: argumentDescriptions));
+        _nodeStack.Push(
+            new IrNodes.DescNode(
+                schemaName,
+                methodName,
+                descType,
+                column,
+                arguments,
+                sourceContextId,
+                ResolveDescriptionOutputSchema(node.Type),
+                ColumnSpan: node.Column?.Span,
+                ArgumentDescriptions: argumentDescriptions
+            )
+        );
     }
 
     public void Visit(InternalQueryNode node)
@@ -136,9 +144,7 @@ public sealed partial class LogicalPlanBuilder
         FinalizeQueryNode();
     }
 
-    public void Visit(RootNode node)
-    {
-    }
+    public void Visit(RootNode node) { }
 
     public void Visit(SingleSetNode node) { }
 
@@ -176,8 +182,12 @@ public sealed partial class LogicalPlanBuilder
         var statements = new LogicalNode[produced];
         for (var i = produced - 1; i >= 0; i--)
             statements[i] = _nodeStack.Pop();
-        _nodeStack.Push(new IrNodes.MultiStatementNode(statements)
-        { IntermediateProducers = node is Parser.IntermediateStatementsNode bound ? bound.Producers : [] });
+        _nodeStack.Push(
+            new IrNodes.MultiStatementNode(statements)
+            {
+                IntermediateProducers = node is Parser.IntermediateStatementsNode bound ? bound.Producers : [],
+            }
+        );
     }
 
     internal void EnterMultiStatement() => _multiStatementBaseDepths.Push(_nodeStack.Count);
@@ -201,11 +211,11 @@ public sealed partial class LogicalPlanBuilder
             var unionKind = setOperation.Kind switch
             {
                 IrNodes.SetOpKind.UnionAll => IrNodes.RecursiveCteUnionKind.All,
-                IrNodes.SetOpKind.Union when setOperation.Keys.Length == 0 =>
-                    IrNodes.RecursiveCteUnionKind.FullRow,
+                IrNodes.SetOpKind.Union when setOperation.Keys.Length == 0 => IrNodes.RecursiveCteUnionKind.FullRow,
                 IrNodes.SetOpKind.Union => IrNodes.RecursiveCteUnionKind.Keyed,
                 _ => throw UnsupportedShape.Of(
-                    $"Recursive CTE '{node.Name}' has unsupported set operation '{setOperation.Kind}'.")
+                    $"Recursive CTE '{node.Name}' has unsupported set operation '{setOperation.Kind}'."
+                ),
             };
 
             plan = new IrNodes.RecursiveCteNode(
@@ -218,7 +228,9 @@ public sealed partial class LogicalPlanBuilder
                     node.Name,
                     unionKind,
                     setOperation.Keys,
-                    setOperation.Left.OutputSchema));
+                    setOperation.Left.OutputSchema
+                )
+            );
         }
 
         _cteDefinitions.Add(new IrNodes.CteDefinition(node.Name, plan));
@@ -228,7 +240,8 @@ public sealed partial class LogicalPlanBuilder
         string cteName,
         IrNodes.RecursiveCteUnionKind unionKind,
         IReadOnlyList<string> keys,
-        OutputSchema outputSchema)
+        OutputSchema outputSchema
+    )
     {
         if (unionKind != IrNodes.RecursiveCteUnionKind.Keyed)
             return [];
@@ -239,11 +252,13 @@ public sealed partial class LogicalPlanBuilder
             var key = keys[keyIndex];
             var fieldIndex = Array.FindIndex(
                 outputSchema.Columns,
-                column => string.Equals(column.Name, key, StringComparison.OrdinalIgnoreCase));
+                column => string.Equals(column.Name, key, StringComparison.OrdinalIgnoreCase)
+            );
             if (fieldIndex < 0)
             {
                 throw new InvalidOperationException(
-                    $"Recursive CTE '{cteName}' key '{key}' was not resolved during semantic binding.");
+                    $"Recursive CTE '{cteName}' key '{key}' was not resolved during semantic binding."
+                );
             }
 
             indexes[keyIndex] = fieldIndex;
@@ -273,11 +288,12 @@ public sealed partial class LogicalPlanBuilder
 
         if (node.ResultOrderBy != null)
         {
-            var orderFields = node.ResultOrderBy.Fields
-                .Select(field => new OrderField(
+            var orderFields = node
+                .ResultOrderBy.Fields.Select(field => new OrderField(
                     _converter.Convert(field.Expression),
                     field.Order == Order.Descending,
-                    ConvertNullOrdering(field.NullOrdering)))
+                    ConvertNullOrdering(field.NullOrdering)
+                ))
                 .ToArray();
             result = new IrNodes.SortNode(orderFields, result);
         }
@@ -295,7 +311,8 @@ public sealed partial class LogicalPlanBuilder
         IrNodes.SetOpKind kind,
         LogicalNode left,
         LogicalNode right,
-        string[] keys)
+        string[] keys
+    )
     {
         while (right is IrNodes.SetOperationNode rightSet)
         {
@@ -377,8 +394,7 @@ public sealed partial class LogicalPlanBuilder
 
     private static OutputSchema CreateArgumentDescriptionOutputSchema()
     {
-        return new OutputSchema(
-        [
+        return new OutputSchema([
             new ColumnSchema("Overload", typeof(int), 0),
             new ColumnSchema("Path", typeof(string), 1),
             new ColumnSchema("Kind", typeof(string), 2),
@@ -389,23 +405,24 @@ public sealed partial class LogicalPlanBuilder
             new ColumnSchema("Default", typeof(string), 7),
             new ColumnSchema("MaxDepth", typeof(int?), 8),
             new ColumnSchema("MaxNodes", typeof(int?), 9),
-            new ColumnSchema("MaxStringBytes", typeof(long?), 10)
+            new ColumnSchema("MaxStringBytes", typeof(long?), 10),
         ]);
     }
-    private static OutputSchema ResolveDescriptionOutputSchema(DescForType type) => type switch
-    {
-        DescForType.Arguments => CreateArgumentDescriptionOutputSchema(),
-        DescForType.FunctionsForSchema => FunctionDescriptionSchema.Create(),
-        _ => OutputSchema.Empty
-    };
+
+    private static OutputSchema ResolveDescriptionOutputSchema(DescForType type) =>
+        type switch
+        {
+            DescForType.Arguments => CreateArgumentDescriptionOutputSchema(),
+            DescForType.FunctionsForSchema => FunctionDescriptionSchema.Create(),
+            _ => OutputSchema.Empty,
+        };
 
     private static OutputSchema CreateDescriptionOutputSchema()
     {
-        return new OutputSchema(
-        [
+        return new OutputSchema([
             new ColumnSchema("Name", typeof(string), 0),
             new ColumnSchema("Index", typeof(int), 1),
-            new ColumnSchema("Type", typeof(string), 2)
+            new ColumnSchema("Type", typeof(string), 2),
         ]);
     }
 }

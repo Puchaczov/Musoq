@@ -12,81 +12,93 @@ public partial class BinaryRealWorldFormatTests
     //   Stream: Magic (uint le 'TLV\x01') then records repeat until eof.
     //   Each record: Type (byte oneOf [1,2,3]), Length (byte), Payload (substream[Length]).
     //   Payload may be read raw or interpreted with a nested schema.
-    private const string TlvPayloadSchemas = @"
-        binary TlvTextPayload {
-            Encoding: byte const 1,
-            TextLength: byte,
-            Text: string[TextLength] utf8
-        };
-        binary TlvMetricPayload {
-            MetricId: ushort le,
-            Value: int le
-        };";
+    private const string TlvPayloadSchemas = (
+        "\n"
+        + "        binary TlvTextPayload {\n"
+        + "            Encoding: byte const 1,\n"
+        + "            TextLength: byte,\n"
+        + "            Text: string[TextLength] utf8\n"
+        + "        };\n"
+        + "        binary TlvMetricPayload {\n"
+        + "            MetricId: ushort le,\n"
+        + "            Value: int le\n"
+        + "        };"
+    );
 
-    private const string TlvRawStreamSchema = TlvPayloadSchemas + @"
-        binary TlvRawRecord {
-            Type: byte oneOf [1, 2, 3],
-            Length: byte,
-            Payload: substream[Length] raw
-        };
-        binary TlvStream {
-            Magic: uint le magic 0x544C5601,
-            Records: TlvRawRecord repeat until eof
-        };";
+    private const string TlvRawStreamSchema =
+        TlvPayloadSchemas
+        + (
+            "\n"
+            + "        binary TlvRawRecord {\n"
+            + "            Type: byte oneOf [1, 2, 3],\n"
+            + "            Length: byte,\n"
+            + "            Payload: substream[Length] raw\n"
+            + "        };\n"
+            + "        binary TlvStream {\n"
+            + "            Magic: uint le magic 0x544C5601,\n"
+            + "            Records: TlvRawRecord repeat until eof\n"
+            + "        };"
+        );
 
-    private const string TlvTextRecordSchema = TlvPayloadSchemas + @"
-        binary TlvTextRecord {
-            Type: byte const 1,
-            Length: byte,
-            Payload: substream[Length] as TlvTextPayload
-        };";
+    private const string TlvTextRecordSchema =
+        TlvPayloadSchemas
+        + (
+            "\n"
+            + "        binary TlvTextRecord {\n"
+            + "            Type: byte const 1,\n"
+            + "            Length: byte,\n"
+            + "            Payload: substream[Length] as TlvTextPayload\n"
+            + "        };"
+        );
 
-    private const string TlvMetricRecordSchema = TlvPayloadSchemas + @"
-        binary TlvMetricRecord {
-            Type: byte const 2,
-            Length: byte,
-            Payload: substream[Length] as TlvMetricPayload
-        };";
+    private const string TlvMetricRecordSchema =
+        TlvPayloadSchemas
+        + (
+            "\n"
+            + "        binary TlvMetricRecord {\n"
+            + "            Type: byte const 2,\n"
+            + "            Length: byte,\n"
+            + "            Payload: substream[Length] as TlvMetricPayload\n"
+            + "        };"
+        );
 
-    private const string TlvMetricLaxRecordSchema = TlvPayloadSchemas + @"
-        binary TlvMetricLaxRecord {
-            Type: byte const 2,
-            Length: byte,
-            Payload: substream[Length] as TlvMetricPayload lax
-        };";
+    private const string TlvMetricLaxRecordSchema =
+        TlvPayloadSchemas
+        + (
+            "\n"
+            + "        binary TlvMetricLaxRecord {\n"
+            + "            Type: byte const 2,\n"
+            + "            Length: byte,\n"
+            + "            Payload: substream[Length] as TlvMetricPayload lax\n"
+            + "        };"
+        );
 
     private static ByteWriter TlvRecord(int type, byte[] payload)
     {
-        return Bytes()
-            .U8(type)
-            .U8(payload.Length)
-            .Raw(payload);
+        return Bytes().U8(type).U8(payload.Length).Raw(payload);
     }
 
     private static byte[] TlvTextPayload(string text)
     {
         var encoded = Encoding.UTF8.GetBytes(text);
-        return Bytes()
-            .U8(1)
-            .U8(encoded.Length)
-            .Raw(encoded)
-            .ToArray();
+        return Bytes().U8(1).U8(encoded.Length).Raw(encoded).ToArray();
     }
 
     private static byte[] TlvMetricPayload(int metricId, int value)
     {
-        return Bytes()
-            .U16Le(metricId)
-            .U32Le(value)
-            .ToArray();
+        return Bytes().U16Le(metricId).U32Le(value).ToArray();
     }
 
     [TestMethod]
     public void Interpret_TlvStreamWithThreeRawRecords_ShouldProjectRecordCount()
     {
-        var query = TlvRawStreamSchema + @"
-            select s.Records from #test.files() f
-            cross apply Interpret<TlvStream>(f.Content) s";
+        var query =
+            TlvRawStreamSchema
+            + (
+                "\n"
+                + "            select s.Records from #test.files() f\n"
+                + "            cross apply Interpret<TlvStream>(f.Content) s"
+            );
 
         var data = Bytes()
             .U32Le(0x544C5601)
@@ -104,12 +116,16 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_TlvRawRecord_ShouldProjectRawPayloadBytes()
     {
-        var query = TlvRawStreamSchema + @"
-            binary TlvRawFirst {
-                Record: TlvRawRecord
-            };
-            select r.Record.Payload from #test.files() f
-            cross apply Interpret<TlvRawFirst>(f.Content) r";
+        var query =
+            TlvRawStreamSchema
+            + (
+                "\n"
+                + "            binary TlvRawFirst {\n"
+                + "                Record: TlvRawRecord\n"
+                + "            };\n"
+                + "            select r.Record.Payload from #test.files() f\n"
+                + "            cross apply Interpret<TlvRawFirst>(f.Content) r"
+            );
 
         var data = TlvRecord(2, [0xDE, 0xAD, 0xBE]).ToArray();
         var table = RunQuery(query, data);
@@ -121,9 +137,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_TlvTextRecord_ShouldProjectInnerText()
     {
-        var query = TlvTextRecordSchema + @"
-            select t.Payload.Text from #test.files() f
-            cross apply Interpret<TlvTextRecord>(f.Content) t";
+        var query =
+            TlvTextRecordSchema
+            + (
+                "\n"
+                + "            select t.Payload.Text from #test.files() f\n"
+                + "            cross apply Interpret<TlvTextRecord>(f.Content) t"
+            );
 
         var payload = TlvTextPayload("hi");
         var data = TlvRecord(1, payload).ToArray();
@@ -136,9 +156,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_TlvMetricRecord_ShouldProjectNumericValue()
     {
-        var query = TlvMetricRecordSchema + @"
-            select m.Payload.MetricId, m.Payload.Value from #test.files() f
-            cross apply Interpret<TlvMetricRecord>(f.Content) m";
+        var query =
+            TlvMetricRecordSchema
+            + (
+                "\n"
+                + "            select m.Payload.MetricId, m.Payload.Value from #test.files() f\n"
+                + "            cross apply Interpret<TlvMetricRecord>(f.Content) m"
+            );
 
         var payload = TlvMetricPayload(0x1234, 1000);
         var data = TlvRecord(2, payload).ToArray();
@@ -152,18 +176,17 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_TlvMetricExactUnderConsumes_ShouldThrowParseException()
     {
-        var query = TlvMetricRecordSchema + @"
-            select m.Payload.Value from #test.files() f
-            cross apply Interpret<TlvMetricRecord>(f.Content) m";
+        var query =
+            TlvMetricRecordSchema
+            + (
+                "\n"
+                + "            select m.Payload.Value from #test.files() f\n"
+                + "            cross apply Interpret<TlvMetricRecord>(f.Content) m"
+            );
 
         var payload = TlvMetricPayload(0x1234, 1000);
         // Length claims 8 bytes but the metric payload only consumes 6 (exact mode rejects this).
-        var data = Bytes()
-            .U8(2)
-            .U8(8)
-            .Raw(payload)
-            .Raw([0x00, 0x00])
-            .ToArray();
+        var data = Bytes().U8(2).U8(8).Raw(payload).Raw([0x00, 0x00]).ToArray();
 
         Assert.Throws<ParseException>(() => RunQuery(query, data));
     }
@@ -171,18 +194,17 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_TlvMetricLaxAllowsTrailingBytes_ShouldProjectValue()
     {
-        var query = TlvMetricLaxRecordSchema + @"
-            select m.Payload.Value from #test.files() f
-            cross apply Interpret<TlvMetricLaxRecord>(f.Content) m";
+        var query =
+            TlvMetricLaxRecordSchema
+            + (
+                "\n"
+                + "            select m.Payload.Value from #test.files() f\n"
+                + "            cross apply Interpret<TlvMetricLaxRecord>(f.Content) m"
+            );
 
         var payload = TlvMetricPayload(0x1234, 4242);
         // Lax mode skips the 2 trailing bytes beyond the consumed metric payload.
-        var data = Bytes()
-            .U8(2)
-            .U8(8)
-            .Raw(payload)
-            .Raw([0x77, 0x88])
-            .ToArray();
+        var data = Bytes().U8(2).U8(8).Raw(payload).Raw([0x77, 0x88]).ToArray();
 
         var table = RunQuery(query, data);
 
@@ -193,12 +215,16 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_TlvBadRecordType_ShouldFailOneOf()
     {
-        var query = TlvRawStreamSchema + @"
-            binary TlvRawFirst {
-                Record: TlvRawRecord
-            };
-            select r.Record.Type from #test.files() f
-            cross apply Interpret<TlvRawFirst>(f.Content) r";
+        var query =
+            TlvRawStreamSchema
+            + (
+                "\n"
+                + "            binary TlvRawFirst {\n"
+                + "                Record: TlvRawRecord\n"
+                + "            };\n"
+                + "            select r.Record.Type from #test.files() f\n"
+                + "            cross apply Interpret<TlvRawFirst>(f.Content) r"
+            );
 
         var data = TlvRecord(9, [0x01]).ToArray();
 
@@ -208,12 +234,16 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void TryInterpret_TlvBadRecordType_ShouldReturnNull()
     {
-        var query = TlvRawStreamSchema + @"
-            binary TlvRawFirst {
-                Record: TlvRawRecord
-            };
-            select f.Name, r.Record from #test.files() f
-            outer apply TryInterpret<TlvRawFirst>(f.Content) r";
+        var query =
+            TlvRawStreamSchema
+            + (
+                "\n"
+                + "            binary TlvRawFirst {\n"
+                + "                Record: TlvRawRecord\n"
+                + "            };\n"
+                + "            select f.Name, r.Record from #test.files() f\n"
+                + "            outer apply TryInterpret<TlvRawFirst>(f.Content) r"
+            );
 
         var data = TlvRecord(9, [0x01]).ToArray();
         var table = RunQuery(query, data);

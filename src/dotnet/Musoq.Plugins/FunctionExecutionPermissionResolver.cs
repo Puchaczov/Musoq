@@ -7,8 +7,11 @@ namespace Musoq.Plugins;
 public static class FunctionExecutionPermissionResolver
 {
     /// <summary>Reads method permissions and exact declaring-library defaults.</summary>
-    public static FunctionExecutionPermissions Resolve(MethodInfo method, SqlFunctionKind kind,
-        BindableMethodAttribute declaration)
+    public static FunctionExecutionPermissions Resolve(
+        MethodInfo method,
+        SqlFunctionKind kind,
+        BindableMethodAttribute declaration
+    )
     {
         ArgumentNullException.ThrowIfNull(method);
         ArgumentNullException.ThrowIfNull(declaration);
@@ -22,7 +25,7 @@ public static class FunctionExecutionPermissionResolver
             SqlFunctionKind.Scalar => defaults.ScalarPermissions,
             SqlFunctionKind.Aggregate => defaults.AggregatePermissions,
             SqlFunctionKind.Window => defaults.WindowPermissions,
-            _ => FunctionExecutionPermissions.None
+            _ => FunctionExecutionPermissions.None,
         };
     }
 }

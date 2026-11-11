@@ -18,10 +18,7 @@ public class QueryAnalyzerTests : BasicEntityTestBase
 
     private static BasicSchemaProvider<BasicEntity> CreateSchemaProvider()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
 
@@ -213,8 +210,10 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // The error could be about the unknown column, OR about schema resolution
         // Both are valid semantic errors that should be caught
         var errors = result.Errors.ToList();
-        Assert.IsNotEmpty(errors,
-            $"Should report at least one error. Actual errors: {string.Join(", ", errors.Select(e => $"{e.Code}: {e.Message}"))}");
+        Assert.IsNotEmpty(
+            errors,
+            $"Should report at least one error. Actual errors: {string.Join(", ", errors.Select(e => $"{e.Code}: {e.Message}"))}"
+        );
     }
 
     [TestMethod]
@@ -243,8 +242,10 @@ public class QueryAnalyzerTests : BasicEntityTestBase
 
         var error = result.Errors.FirstOrDefault(e => e.Code == DiagnosticCode.MQ3028_UnknownProperty);
 
-        Assert.IsNotNull(error,
-            $"Expected unknown-property diagnostic. Actual errors: {string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}");
+        Assert.IsNotNull(
+            error,
+            $"Expected unknown-property diagnostic. Actual errors: {string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}"
+        );
         Assert.Contains("Unknown property", error.Message);
     }
 
@@ -310,7 +311,7 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // A simple query that should parse without issues
         var query = "SELECT 1 FROM #A.Entities()";
 
-        // Act  
+        // Act
         var result = analyzer.Analyze(query);
 
         // Assert
@@ -328,7 +329,8 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // Arrange
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
-        var query = @"
+        var query =
+            @"
             WITH cte AS (SELECT Name FROM #A.Entities())
             SELECT Name FROM cte";
 
@@ -345,7 +347,8 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // Arrange
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
-        var query = @"
+        var query =
+            @"
             SELECT a.Name, b.Name 
             FROM #A.Entities() a 
             INNER JOIN #A.Entities() b ON a.Name = b.Name";
@@ -378,7 +381,8 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // Arrange
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
-        var query = @"
+        var query =
+            @"
             SELECT Name FROM #A.Entities()
             UNION
             SELECT Name FROM #A.Entities()";
@@ -419,7 +423,9 @@ public class QueryAnalyzerTests : BasicEntityTestBase
     {
         var analyzer = new QueryAnalyzer(CreateSchemaProvider());
 
-        var failure = Assert.ThrowsExactly<ArgumentNullException>(() => analyzer.Analyze(null!, CancellationToken.None));
+        var failure = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            analyzer.Analyze(null!, CancellationToken.None)
+        );
 
         Assert.AreEqual("query", failure.ParamName);
     }
@@ -431,7 +437,9 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
-        var failure = Assert.ThrowsExactly<OperationCanceledException>(() => analyzer.Analyze(null!, cancellation.Token));
+        var failure = Assert.ThrowsExactly<OperationCanceledException>(() =>
+            analyzer.Analyze(null!, cancellation.Token)
+        );
 
         Assert.AreEqual(cancellation.Token, failure.CancellationToken);
     }

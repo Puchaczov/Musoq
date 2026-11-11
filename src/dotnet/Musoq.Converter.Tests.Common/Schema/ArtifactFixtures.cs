@@ -42,8 +42,8 @@ public sealed class TestCompiledQueryArtifact(
     string engineVersion,
     string artifactFormatVersion,
     string compilationOptionsSignature,
-    IReadOnlyDictionary<string, string> metadata)
-    : ICompiledQueryArtifact
+    IReadOnlyDictionary<string, string> metadata
+) : ICompiledQueryArtifact
 {
     public byte[] AssemblyBytes { get; } = assemblyBytes;
 
@@ -62,12 +62,20 @@ public sealed class TestCompiledQueryArtifact(
 
 public sealed class ArtifactSchema(string value) : SchemaBase("artifact", CreateLibrary())
 {
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return new ArtifactTable(typeof(ArtifactRow), typeof(string));
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource(value));
     }
@@ -86,12 +94,20 @@ public sealed class ArtifactSchema(string value) : SchemaBase("artifact", Create
 
 public sealed class ArtifactReadModifierSchema(string modifierValue) : SchemaBase("artifact", CreateLibrary())
 {
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return new ArtifactReadModifierTable(modifierValue);
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource("single"));
     }
@@ -110,12 +126,20 @@ public sealed class ArtifactReadModifierSchema(string modifierValue) : SchemaBas
 
 public sealed class ArtifactIntendedTypeSchema(string intendedTypeName) : SchemaBase("artifact", CreateLibrary())
 {
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return new ArtifactIntendedTypeTable(intendedTypeName);
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource("single"));
     }
@@ -134,12 +158,20 @@ public sealed class ArtifactIntendedTypeSchema(string intendedTypeName) : Schema
 
 public sealed class ArtifactIntSchema(int value) : SchemaBase("artifact", CreateLibrary())
 {
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return new ArtifactTable(typeof(ArtifactIntRow), typeof(int));
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, ArtifactIntRow>(name, new ArtifactIntRowSource(value));
     }
@@ -172,7 +204,11 @@ public sealed class SettingsArtifactSchema() : SchemaBase("settings", CreateLibr
 
     public int PlanCount { get; private set; }
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return new SettingsArtifactTable();
     }
@@ -180,7 +216,8 @@ public sealed class SettingsArtifactSchema() : SchemaBase("settings", CreateLibr
     public override IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
         string name,
         SourceRuntimeSettingsDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         DescribeRuntimeSettingsCount++;
         return
@@ -190,7 +227,8 @@ public sealed class SettingsArtifactSchema() : SchemaBase("settings", CreateLibr
                 Required: true,
                 Secret: false,
                 SourceRuntimeSettingPhase.All,
-                "Token used by artifact tests.")
+                "Token used by artifact tests."
+            ),
         ];
     }
 
@@ -200,7 +238,11 @@ public sealed class SettingsArtifactSchema() : SchemaBase("settings", CreateLibr
         return SourcePlanResult.RejectAll(request);
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         executionContext.SourceRuntimeSettings.TryGetValue("TOKEN", out var token);
         return EnsureSourceType<T, SettingsArtifactRow>(name, new SettingsArtifactRowSource(token ?? "<missing>"));
@@ -222,10 +264,7 @@ public sealed class TokenSettingsResolver(string token) : ISourceRuntimeSettings
 {
     public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
     {
-        return new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["TOKEN"] = token
-        };
+        return new Dictionary<string, string>(StringComparer.Ordinal) { ["TOKEN"] = token };
     }
 }
 
@@ -249,16 +288,14 @@ public sealed class ArtifactTable(Type rowType, Type columnType) : ISchemaTable
 public sealed class ArtifactReadModifierTable(string modifierValue) : ISchemaTable
 {
     public ISchemaColumn[] Columns =>
-    [
-        new SchemaColumn(
-            "Value",
-            0,
-            typeof(string),
-            new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["encoding"] = modifierValue
-            })
-    ];
+        [
+            new SchemaColumn(
+                "Value",
+                0,
+                typeof(string),
+                new Dictionary<string, string>(StringComparer.Ordinal) { ["encoding"] = modifierValue }
+            ),
+        ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(ArtifactRow));
 
@@ -331,7 +368,8 @@ public sealed class ArtifactRowSource() : RowSourceBase<ArtifactRow>
 {
     private readonly string _value = string.Empty;
 
-    public ArtifactRowSource(string value) : this()
+    public ArtifactRowSource(string value)
+        : this()
     {
         _value = value;
     }
@@ -346,7 +384,8 @@ public sealed class ArtifactIntRowSource() : RowSourceBase<ArtifactIntRow>
 {
     private readonly int _value;
 
-    public ArtifactIntRowSource(int value) : this()
+    public ArtifactIntRowSource(int value)
+        : this()
     {
         _value = value;
     }
@@ -361,7 +400,8 @@ public sealed class ArtifactObjectRowSource() : RowSourceBase<ArtifactObjectRow>
 {
     private readonly object _value = string.Empty;
 
-    public ArtifactObjectRowSource(object value) : this()
+    public ArtifactObjectRowSource(object value)
+        : this()
     {
         _value = value;
     }
@@ -376,7 +416,8 @@ public sealed class SettingsArtifactRowSource() : RowSourceBase<SettingsArtifact
 {
     private readonly string _token = string.Empty;
 
-    public SettingsArtifactRowSource(string token) : this()
+    public SettingsArtifactRowSource(string token)
+        : this()
     {
         _token = token;
     }

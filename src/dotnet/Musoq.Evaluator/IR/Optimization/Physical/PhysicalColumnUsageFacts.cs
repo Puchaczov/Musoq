@@ -11,15 +11,15 @@ namespace Musoq.Evaluator.IR.Optimization.Physical;
 
 internal static class PhysicalColumnUsageFacts
 {
-    public static HashSet<string> CollectAggregateRequiredNames(
-        IReadOnlyList<AggregateBinding> bindings)
+    public static HashSet<string> CollectAggregateRequiredNames(IReadOnlyList<AggregateBinding> bindings)
     {
         return CollectAggregateRequiredNames([], bindings);
     }
 
     public static HashSet<string> CollectAggregateRequiredNames(
         IReadOnlyList<IrExpression> groupKeys,
-        IReadOnlyList<AggregateBinding> bindings)
+        IReadOnlyList<AggregateBinding> bindings
+    )
     {
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -35,8 +35,7 @@ internal static class PhysicalColumnUsageFacts
         return names;
     }
 
-    public static HashSet<string> CollectReferencedNames(
-        IReadOnlyList<ProjectedField> fields)
+    public static HashSet<string> CollectReferencedNames(IReadOnlyList<ProjectedField> fields)
     {
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -48,16 +47,12 @@ internal static class PhysicalColumnUsageFacts
 
     public static ColumnRef[] CollectReferencedColumns(IReadOnlyList<ProjectedField> fields)
     {
-        return fields
-            .SelectMany(static field => ColumnRefExtractor.Extract(field.Expression))
-            .ToArray();
+        return fields.SelectMany(static field => ColumnRefExtractor.Extract(field.Expression)).ToArray();
     }
 
     public static ColumnRef[] CollectReferencedColumns(IReadOnlyList<IrExpression> expressions)
     {
-        return expressions
-            .SelectMany(ColumnRefExtractor.Extract)
-            .ToArray();
+        return expressions.SelectMany(ColumnRefExtractor.Extract).ToArray();
     }
 
     public static ColumnRef[] CollectReferencedColumns(IrExpression expression)
@@ -85,7 +80,8 @@ internal static class PhysicalColumnUsageFacts
 
     public static void AddWindowRegistrationColumns(
         HashSet<string> names,
-        IReadOnlyList<WindowRegistration> registrations)
+        IReadOnlyList<WindowRegistration> registrations
+    )
     {
         foreach (var registration in registrations)
         {
@@ -97,16 +93,13 @@ internal static class PhysicalColumnUsageFacts
         }
     }
 
-    public static HashSet<string> CollectRequiredNamesForSide(
-        PhysicalNode side,
-        IReadOnlyList<ColumnRef> columns)
+    public static HashSet<string> CollectRequiredNamesForSide(PhysicalNode side, IReadOnlyList<ColumnRef> columns)
     {
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var column in columns)
         {
-            if (string.IsNullOrWhiteSpace(column.Alias) ||
-                ProducesAlias(side, column.Alias))
+            if (string.IsNullOrWhiteSpace(column.Alias) || ProducesAlias(side, column.Alias))
             {
                 names.Add(column.ColumnName);
             }
@@ -125,21 +118,24 @@ internal static class PhysicalColumnUsageFacts
             PhysicalPropertySourceNode property => NameEquals(property.Alias, alias),
             PhysicalAccessMethodSourceNode method => NameEquals(method.Alias, alias),
             PhysicalInterpretSourceNode interpret => NameEquals(interpret.Alias, alias),
-            _ => node.Children.Any(child => ProducesAlias(child, alias))
+            _ => node.Children.Any(child => ProducesAlias(child, alias)),
         };
     }
 
     public static bool TrySelectSetOperationRetainedIndexes(
         PhysicalSetOperationNode setOperation,
         IReadOnlySet<string> requiredNames,
-        out int[] retainedIndexes)
+        out int[] retainedIndexes
+    )
     {
         retainedIndexes = [];
 
         var leftColumns = setOperation.Left.OutputSchema.Columns;
-        if (leftColumns.Length == 0 ||
-            requiredNames.Count == 0 ||
-            requiredNames.Any(name => !leftColumns.Any(column => NameEquals(column.Name, name))))
+        if (
+            leftColumns.Length == 0
+            || requiredNames.Count == 0
+            || requiredNames.Any(name => !leftColumns.Any(column => NameEquals(column.Name, name)))
+        )
         {
             return false;
         }
@@ -171,10 +167,11 @@ internal static class PhysicalColumnUsageFacts
 
     public static string[] CollectColumnNames(IrExpression expression)
     {
-        return ColumnRefExtractor.Extract(expression)
-            .Select(static column => string.IsNullOrWhiteSpace(column.Alias)
-                ? column.ColumnName
-                : $"{column.Alias}.{column.ColumnName}")
+        return ColumnRefExtractor
+            .Extract(expression)
+            .Select(static column =>
+                string.IsNullOrWhiteSpace(column.Alias) ? column.ColumnName : $"{column.Alias}.{column.ColumnName}"
+            )
             .ToArray();
     }
 
@@ -188,29 +185,24 @@ internal static class PhysicalColumnUsageFacts
     {
         return input switch
         {
-            PhysicalCteRefNode cteRef => cteRef.OutputSchema.Columns
-                .Select(column => $"{cteRef.Alias}.{column.Name}")
+            PhysicalCteRefNode cteRef => cteRef
+                .OutputSchema.Columns.Select(column => $"{cteRef.Alias}.{column.Name}")
                 .ToArray(),
-            PhysicalSchemaScanNode scan => scan.OutputSchema.Columns
-                .Select(column => $"{scan.Alias}.{column.Name}")
+            PhysicalSchemaScanNode scan => scan
+                .OutputSchema.Columns.Select(column => $"{scan.Alias}.{column.Name}")
                 .ToArray(),
-            PhysicalValuesScanNode values => values.OutputSchema.Columns
-                .Select(column => $"{values.Alias}.{column.Name}")
+            PhysicalValuesScanNode values => values
+                .OutputSchema.Columns.Select(column => $"{values.Alias}.{column.Name}")
                 .ToArray(),
-            PhysicalProjectNode project => project.OutputSchema.Columns
-                .Select(static column => column.Name)
-                .ToArray(),
-            _ => SchemaColumns(input.OutputSchema)
+            PhysicalProjectNode project => project.OutputSchema.Columns.Select(static column => column.Name).ToArray(),
+            _ => SchemaColumns(input.OutputSchema),
         };
     }
 
     public static string[] ResolveSetOperationColumns(PhysicalNode input, IReadOnlyList<int> indexes)
     {
         var columns = SchemaColumns(input.OutputSchema);
-        return indexes
-            .Where(index => index >= 0 && index < columns.Length)
-            .Select(index => columns[index])
-            .ToArray();
+        return indexes.Where(index => index >= 0 && index < columns.Length).Select(index => columns[index]).ToArray();
     }
 
     public static string[] SchemaColumns(OutputSchema schema)
@@ -241,8 +233,9 @@ internal static class PhysicalColumnUsageFacts
     public static bool ContainsColumn(IReadOnlyList<string> columns, string column)
     {
         return columns.Any(candidate =>
-            string.Equals(candidate, column, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(GetColumnName(candidate), GetColumnName(column), StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate, column, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(GetColumnName(candidate), GetColumnName(column), StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     private static string GetColumnName(string column)
@@ -251,4 +244,3 @@ internal static class PhysicalColumnUsageFacts
         return separatorIndex < 0 ? column : column[(separatorIndex + 1)..];
     }
 }
-

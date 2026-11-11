@@ -9,4 +9,5 @@ namespace Musoq.Plugins;
 public sealed record AggregateResultDescriptor(
     Type PublicResultType,
     Type UnderlyingResultType,
-    AggregateEmptyResultBehavior EmptyResultBehavior);
+    AggregateEmptyResultBehavior EmptyResultBehavior
+);

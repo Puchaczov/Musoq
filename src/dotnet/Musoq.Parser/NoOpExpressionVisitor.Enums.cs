@@ -4,11 +4,7 @@ namespace Musoq.Parser;
 
 public abstract partial class NoOpExpressionVisitor
 {
-    public virtual void Visit(EnumDeclarationNode node)
-    {
-    }
+    public virtual void Visit(EnumDeclarationNode node) { }
 
-    public virtual void Visit(EnumMemberNode node)
-    {
-    }
+    public virtual void Visit(EnumMemberNode node) { }
 }

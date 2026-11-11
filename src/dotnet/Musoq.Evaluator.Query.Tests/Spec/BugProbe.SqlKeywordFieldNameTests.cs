@@ -29,21 +29,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameCase_ShouldParse()
     {
-        var query = @"
-            binary Rec {
-                Case: byte,
-                Value: int le
-            };
-            select r.Case, r.Value from #test.files() b
-            cross apply Interpret<Rec>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Case: byte,\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            select r.Case, r.Value from #test.files() b\n"
+            + "            cross apply Interpret<Rec>(b.Content) r"
+        );
 
         var testData = new byte[] { 0x01, 0x0A, 0x00, 0x00, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -58,21 +69,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameDesc_ShouldParse()
     {
-        var query = @"
-            binary Rec {
-                Desc: byte,
-                Value: int le
-            };
-            select r.Desc, r.Value from #test.files() b
-            cross apply Interpret<Rec>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Desc: byte,\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            select r.Desc, r.Value from #test.files() b\n"
+            + "            cross apply Interpret<Rec>(b.Content) r"
+        );
 
         var testData = new byte[] { 0x02, 0x14, 0x00, 0x00, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -86,21 +108,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameAs_ShouldParse()
     {
-        var query = @"
-            binary Rec {
-                As: byte,
-                Value: byte
-            };
-            select r.As, r.Value from #test.files() b
-            cross apply Interpret<Rec>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                As: byte,\n"
+            + "                Value: byte\n"
+            + "            };\n"
+            + "            select r.As, r.Value from #test.files() b\n"
+            + "            cross apply Interpret<Rec>(b.Content) r"
+        );
 
         var testData = new byte[] { 0xAA, 0xBB };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -114,21 +147,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameIn_ShouldParse()
     {
-        var query = @"
-            binary Pkt {
-                In: short le,
-                Out: short le
-            };
-            select p.In, p.Out from #test.files() b
-            cross apply Interpret<Pkt>(b.Content) p";
+        var query = (
+            "\n"
+            + "            binary Pkt {\n"
+            + "                In: short le,\n"
+            + "                Out: short le\n"
+            + "            };\n"
+            + "            select p.In, p.Out from #test.files() b\n"
+            + "            cross apply Interpret<Pkt>(b.Content) p"
+        );
 
         var testData = new byte[] { 0x01, 0x00, 0x02, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -143,21 +187,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameOn_ShouldParse()
     {
-        var query = @"
-            binary Flags {
-                On: byte,
-                Off: byte
-            };
-            select f.On, f.Off from #test.files() b
-            cross apply Interpret<Flags>(b.Content) f";
+        var query = (
+            "\n"
+            + "            binary Flags {\n"
+            + "                On: byte,\n"
+            + "                Off: byte\n"
+            + "            };\n"
+            + "            select f.On, f.Off from #test.files() b\n"
+            + "            cross apply Interpret<Flags>(b.Content) f"
+        );
 
         var testData = new byte[] { 0x01, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -171,21 +226,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameNot_ShouldParse()
     {
-        var query = @"
-            binary Flags {
-                Not: byte,
-                Result: int le
-            };
-            select f.Not, f.Result from #test.files() b
-            cross apply Interpret<Flags>(b.Content) f";
+        var query = (
+            "\n"
+            + "            binary Flags {\n"
+            + "                Not: byte,\n"
+            + "                Result: int le\n"
+            + "            };\n"
+            + "            select f.Not, f.Result from #test.files() b\n"
+            + "            cross apply Interpret<Flags>(b.Content) f"
+        );
 
         var testData = new byte[] { 0xFF, 0x05, 0x00, 0x00, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -200,21 +266,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameNull_ShouldParse()
     {
-        var query = @"
-            binary Rec {
-                Null: byte,
-                Payload: int le
-            };
-            select r.Null, r.Payload from #test.files() b
-            cross apply Interpret<Rec>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Null: byte,\n"
+            + "                Payload: int le\n"
+            + "            };\n"
+            + "            select r.Null, r.Payload from #test.files() b\n"
+            + "            cross apply Interpret<Rec>(b.Content) r"
+        );
 
         var testData = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -228,21 +305,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameTrue_ShouldParse()
     {
-        var query = @"
-            binary Bits {
-                True: byte,
-                False: byte
-            };
-            select b.True, b.False from #test.files() f
-            cross apply Interpret<Bits>(f.Content) b";
+        var query = (
+            "\n"
+            + "            binary Bits {\n"
+            + "                True: byte,\n"
+            + "                False: byte\n"
+            + "            };\n"
+            + "            select b.True, b.False from #test.files() f\n"
+            + "            cross apply Interpret<Bits>(f.Content) b"
+        );
 
         var testData = new byte[] { 0x01, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -256,21 +344,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameSelect_ShouldParse()
     {
-        var query = @"
-            binary Rec {
-                Select: byte,
-                Data: byte
-            };
-            select r.Select, r.Data from #test.files() b
-            cross apply Interpret<Rec>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Select: byte,\n"
+            + "                Data: byte\n"
+            + "            };\n"
+            + "            select r.Select, r.Data from #test.files() b\n"
+            + "            cross apply Interpret<Rec>(b.Content) r"
+        );
 
         var testData = new byte[] { 0x0A, 0x0B };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -284,21 +383,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameWhere_ShouldParse()
     {
-        var query = @"
-            binary Rec {
-                Where: int le,
-                What: int le
-            };
-            select r.Where, r.What from #test.files() b
-            cross apply Interpret<Rec>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Where: int le,\n"
+            + "                What: int le\n"
+            + "            };\n"
+            + "            select r.Where, r.What from #test.files() b\n"
+            + "            cross apply Interpret<Rec>(b.Content) r"
+        );
 
         var testData = new byte[] { 0x0A, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -312,21 +422,32 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameAndOr_ShouldParse()
     {
-        var query = @"
-            binary Logic {
-                And: byte,
-                Or: byte
-            };
-            select l.And, l.Or from #test.files() b
-            cross apply Interpret<Logic>(b.Content) l";
+        var query = (
+            "\n"
+            + "            binary Logic {\n"
+            + "                And: byte,\n"
+            + "                Or: byte\n"
+            + "            };\n"
+            + "            select l.And, l.Or from #test.files() b\n"
+            + "            cross apply Interpret<Logic>(b.Content) l"
+        );
 
         var testData = new byte[] { 0x01, 0x02 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -340,20 +461,31 @@ public class BugProbeSqlKeywordFieldNameTests
     [TestMethod]
     public void Binary_FieldNameDistinct_ShouldParse()
     {
-        var query = @"
-            binary Rec {
-                Distinct: int le
-            };
-            select r.Distinct from #test.files() b
-            cross apply Interpret<Rec>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Distinct: int le\n"
+            + "            };\n"
+            + "            select r.Distinct from #test.files() b\n"
+            + "            cross apply Interpret<Rec>(b.Content) r"
+        );
 
         var testData = new byte[] { 0x07, 0x00, 0x00, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

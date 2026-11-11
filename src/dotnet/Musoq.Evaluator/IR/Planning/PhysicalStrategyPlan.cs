@@ -1,5 +1,3 @@
 namespace Musoq.Evaluator.IR.Planning;
 
-internal sealed class PhysicalStrategyPlan
-{
-}
+internal sealed class PhysicalStrategyPlan { }

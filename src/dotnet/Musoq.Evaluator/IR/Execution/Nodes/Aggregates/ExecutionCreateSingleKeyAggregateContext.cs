@@ -6,7 +6,8 @@ public sealed record ExecutionCreateSingleKeyAggregateContext(
     ExecutionVariable GroupsToFinalize,
     ExecutionVariable? NullGroup,
     ExecutionTypeRef KeyType,
-    AggregateGroupPlan GroupPlan) : ExecutionNode
+    AggregateGroupPlan GroupPlan
+) : ExecutionNode
 {
     internal ExecutionCreateSingleKeyAggregateContext(
         ExecutionVariable rootGroup,
@@ -14,10 +15,10 @@ public sealed record ExecutionCreateSingleKeyAggregateContext(
         ExecutionVariable groupsToFinalize,
         ExecutionVariable? nullGroup,
         Type keyType,
-        AggregateGroupPlan groupPlan)
+        AggregateGroupPlan groupPlan
+    )
         : this(rootGroup, groups, groupsToFinalize, nullGroup, ExecutionClrBindingFactory.FromClr(keyType), groupPlan)
-    {
-    }
+    { }
 
     public AggregateGroupShape GroupShape => GroupPlan.LeafShape;
 }

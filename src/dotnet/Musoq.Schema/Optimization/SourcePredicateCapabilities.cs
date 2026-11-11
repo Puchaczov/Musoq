@@ -9,11 +9,13 @@ public sealed record SourcePredicateCapabilities
     /// <summary>The current source predicate capability contract version.</summary>
     public const int CurrentContractVersion = 2;
 
-    private IReadOnlyList<SourceStringMatchCapability> _stringMatches =
-        Array.AsReadOnly(Array.Empty<SourceStringMatchCapability>());
+    private IReadOnlyList<SourceStringMatchCapability> _stringMatches = Array.AsReadOnly(
+        Array.Empty<SourceStringMatchCapability>()
+    );
 
-    private IReadOnlyList<SourceRegexMatchCapability> _regexMatches =
-        Array.AsReadOnly(Array.Empty<SourceRegexMatchCapability>());
+    private IReadOnlyList<SourceRegexMatchCapability> _regexMatches = Array.AsReadOnly(
+        Array.Empty<SourceRegexMatchCapability>()
+    );
 
     /// <summary>Gets the immutable regex capability declarations.</summary>
     public IReadOnlyList<SourceRegexMatchCapability> RegexMatches
@@ -42,17 +44,16 @@ public sealed record SourcePredicateCapabilities
     /// <param name="predicate">The typed predicate.</param>
     /// <param name="phase">The requested application phase.</param>
     /// <returns><see langword="true"/> when a known declaration advertises every required dimension.</returns>
-    public bool Supports(
-        SourcePredicatePatternMatch predicate,
-        SourcePredicateEvaluationPhase phase)
+    public bool Supports(SourcePredicatePatternMatch predicate, SourcePredicateEvaluationPhase phase)
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        return IsKnownVersion && predicate switch
-        {
-            SourcePredicateStringMatch match => StringMatches.Any(capability => capability.Supports(match, phase)),
-            SourcePredicateRegexMatch match => RegexMatches.Any(capability => capability.Supports(match, phase)),
-            _ => false
-        };
+        return IsKnownVersion
+            && predicate switch
+            {
+                SourcePredicateStringMatch match => StringMatches.Any(capability => capability.Supports(match, phase)),
+                SourcePredicateRegexMatch match => RegexMatches.Any(capability => capability.Supports(match, phase)),
+                _ => false,
+            };
     }
 
     /// <summary>Validates the capability declaration as a well-formed contract.</summary>
@@ -61,7 +62,11 @@ public sealed record SourcePredicateCapabilities
     public void Validate()
     {
         if (ContractVersion <= 0)
-            throw new ArgumentOutOfRangeException(nameof(ContractVersion), ContractVersion, "The contract version must be positive.");
+            throw new ArgumentOutOfRangeException(
+                nameof(ContractVersion),
+                ContractVersion,
+                "The contract version must be positive."
+            );
 
         ArgumentNullException.ThrowIfNull(RegexMatches);
         var regexColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -69,7 +74,10 @@ public sealed record SourcePredicateCapabilities
         {
             ArgumentNullException.ThrowIfNull(capability);
             if (!regexColumns.Add(capability.Column.Name))
-                throw new ArgumentException($"The regex capability for column '{capability.Column.Name}' is declared more than once.", nameof(RegexMatches));
+                throw new ArgumentException(
+                    $"The regex capability for column '{capability.Column.Name}' is declared more than once.",
+                    nameof(RegexMatches)
+                );
         }
 
         ArgumentNullException.ThrowIfNull(StringMatches);
@@ -81,13 +89,13 @@ public sealed record SourcePredicateCapabilities
             {
                 throw new ArgumentException(
                     $"The string-match capability for column '{capability.Column.Name}' is declared more than once.",
-                    nameof(StringMatches));
+                    nameof(StringMatches)
+                );
             }
         }
     }
 
-    private static IReadOnlyList<T> Freeze<T>(
-        IEnumerable<T> values)
+    private static IReadOnlyList<T> Freeze<T>(IEnumerable<T> values)
     {
         ArgumentNullException.ThrowIfNull(values);
         return Array.AsReadOnly(values.ToArray());

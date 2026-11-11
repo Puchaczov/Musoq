@@ -9,7 +9,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionCoalesce coalesce,
         string payloadAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         if (!TryRewritePayloadKeyExpressions(coalesce.Expressions, payloadAlias, fieldMap, out var expressions))
         {
@@ -20,5 +21,4 @@ internal sealed partial class PhysicalLoweringImplementation
         rewritten = coalesce with { Expressions = expressions };
         return true;
     }
-
 }

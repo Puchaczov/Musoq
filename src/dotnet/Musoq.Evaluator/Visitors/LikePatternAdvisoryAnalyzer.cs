@@ -36,8 +36,7 @@ internal static class LikePatternAdvisoryAnalyzer
         if (wildcard < 0)
         {
             wildcard = content.IndexOf('?');
-            if (wildcard < 0 ||
-                content.IndexOf('.') < 0 && content.IndexOf('/') < 0 && content.IndexOf('\\') < 0)
+            if (wildcard < 0 || content.IndexOf('.') < 0 && content.IndexOf('/') < 0 && content.IndexOf('\\') < 0)
             {
                 return;
             }
@@ -46,7 +45,8 @@ internal static class LikePatternAdvisoryAnalyzer
         context.Report(
             DiagnosticCode.MQ5016_GlobWildcardInLike,
             ErrorCatalog.GetMessage(DiagnosticCode.MQ5016_GlobWildcardInLike, content[wildcard].ToString()),
-            origin.ContentSpan(wildcard, 1));
+            origin.ContentSpan(wildcard, 1)
+        );
     }
 
     private static bool ContainsWhitespace(ReadOnlySpan<char> content)

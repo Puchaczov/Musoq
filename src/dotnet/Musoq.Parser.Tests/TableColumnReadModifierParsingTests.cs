@@ -14,7 +14,8 @@ public class TableColumnReadModifierParsingTests
     public void TableColumnReadModifiers_WhenValid_ShouldParse()
     {
         var table = ParseTable(
-            "table LegacyRecord { Id: int, Name: string encoding 'windows-1250' trim, Amount: decimal culture 'pl-PL' format '#,##0.00', Payload: string source codec 'base64' };");
+            "table LegacyRecord { Id: int, Name: string encoding 'windows-1250' trim, Amount: decimal culture 'pl-PL' format '#,##0.00', Payload: string source codec 'base64' };"
+        );
 
         Assert.AreEqual(4, table.Columns.Count);
 
@@ -72,7 +73,8 @@ public class TableColumnReadModifierParsingTests
     public void TableColumnReadModifiers_WhenDuplicated_ShouldFailWithInvalidSchemaDefinition()
     {
         var exception = Assert.Throws<SyntaxException>(() =>
-            ParseTable("table LegacyRecord { Name: string encoding 'utf-8' encoding 'windows-1250' };"));
+            ParseTable("table LegacyRecord { Name: string encoding 'utf-8' encoding 'windows-1250' };")
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ2012_InvalidSchemaDefinition, exception.Code);
     }
@@ -81,11 +83,13 @@ public class TableColumnReadModifierParsingTests
     public void TableColumnReadModifiers_ToString_ShouldIncludeNormalizedModifiers()
     {
         var table = ParseTable(
-            "table LegacyRecord { Name: string encoding 'windows-1250' trim, Payload: string source codec 'base64' };");
+            "table LegacyRecord { Name: string encoding 'windows-1250' trim, Payload: string source codec 'base64' };"
+        );
 
         Assert.AreEqual(
             "table LegacyRecord { Name: string encoding 'windows-1250' trim, Payload: string source codec 'base64' };",
-            table.ToString());
+            table.ToString()
+        );
     }
 
     private static CreateTableNode ParseTable(string query)

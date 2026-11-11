@@ -28,7 +28,7 @@ public class PrimitiveConversionSurfaceTests : PluginsTestBase
         "ToDateTime",
         "ToDateTimeOffset",
         "ToTimeSpan",
-        "ToGuid"
+        "ToGuid",
     ];
 
     [TestMethod]
@@ -120,5 +120,4 @@ public class PrimitiveConversionSurfaceTests : PluginsTestBase
         Assert.AreEqual(guid, Library.ToGuid((object)guid));
         Assert.AreEqual(guid, Library.ToGuid((object)guid.ToString()));
     }
-
 }

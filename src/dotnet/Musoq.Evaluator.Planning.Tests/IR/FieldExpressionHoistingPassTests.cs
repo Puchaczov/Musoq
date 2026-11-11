@@ -33,12 +33,15 @@ public sealed class FieldExpressionHoistingPassTests
     {
         var variable = new ExecutionVariable("name", typeof(string));
         var read = new ExecutionFieldRead("a", "Name", typeof(string));
-        var plan = CreatePlan(new ExecutionHoistCandidateLet(
-            variable,
-            read,
-            ExecutionHoistKind.FieldRead,
-            ExecutionHoistScope.AppendValues,
-            "field:a:Name"));
+        var plan = CreatePlan(
+            new ExecutionHoistCandidateLet(
+                variable,
+                read,
+                ExecutionHoistKind.FieldRead,
+                ExecutionHoistScope.AppendValues,
+                "field:a:Name"
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -53,9 +56,12 @@ public sealed class FieldExpressionHoistingPassTests
     [TestMethod]
     public void Optimize_WhenNoSupportedRepeatedReadsExist_ShouldLeavePlanUnchanged()
     {
-        var plan = CreatePlan(CreateAppendRow(
-            new ExecutionFieldRead("a", "Name", typeof(string)),
-            new ExecutionFieldRead("a", "City", typeof(string))));
+        var plan = CreatePlan(
+            CreateAppendRow(
+                new ExecutionFieldRead("a", "Name", typeof(string)),
+                new ExecutionFieldRead("a", "City", typeof(string))
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -67,9 +73,9 @@ public sealed class FieldExpressionHoistingPassTests
     public void Optimize_WhenRepeatedFieldReadsAreInsideNestedBlock_ShouldHoistInsideNestedBlock()
     {
         var read = new ExecutionFieldRead("a", "Name", typeof(string));
-        var plan = CreatePlan(new ExecutionIf(
-            new ExecutionLiteral(true, typeof(bool)),
-            new ExecutionBlock([CreateAppendRow(read, read)])));
+        var plan = CreatePlan(
+            new ExecutionIf(new ExecutionLiteral(true, typeof(bool)), new ExecutionBlock([CreateAppendRow(read, read)]))
+        );
 
         var result = Optimize(plan);
 
@@ -90,10 +96,13 @@ public sealed class FieldExpressionHoistingPassTests
     public void Optimize_WhenRepeatedFieldReadsAreInsideLoopBody_ShouldHoistInsideLoopBody()
     {
         var read = new ExecutionFieldRead("a", "Name", typeof(string));
-        var plan = CreatePlan(new ExecutionForEach(
-            new ExecutionVariable("item", typeof(object)),
-            new ExecutionRowStream(new ExecutionVariable("rows", typeof(object)), ExecutionRowStreamKind.Rows),
-            new ExecutionBlock([CreateAppendRow(read, read)])));
+        var plan = CreatePlan(
+            new ExecutionForEach(
+                new ExecutionVariable("item", typeof(object)),
+                new ExecutionRowStream(new ExecutionVariable("rows", typeof(object)), ExecutionRowStreamKind.Rows),
+                new ExecutionBlock([CreateAppendRow(read, read)])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -124,7 +133,8 @@ public sealed class FieldExpressionHoistingPassTests
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(null, typeof(string)),
             ExecutionOffsetWindowFunction.Lag,
-            new ExecutionVariable("lagValues", typeof(object)));
+            new ExecutionVariable("lagValues", typeof(object))
+        );
         var plan = CreatePlan(node);
 
         var result = Optimize(plan);
@@ -137,9 +147,12 @@ public sealed class FieldExpressionHoistingPassTests
     public void Optimize_WhenRepeatedFieldReadIsArrayAccessSource_ShouldNotHoistContainerRead()
     {
         var read = new ExecutionFieldRead("a", "Array", typeof(int));
-        var plan = CreatePlan(CreateAppendRow(
-            new ExecutionArrayAccess(read, new ExecutionLiteral(0, typeof(int)), typeof(int), typeof(int)),
-            new ExecutionArrayAccess(read, new ExecutionLiteral(1, typeof(int)), typeof(int), typeof(int))));
+        var plan = CreatePlan(
+            CreateAppendRow(
+                new ExecutionArrayAccess(read, new ExecutionLiteral(0, typeof(int)), typeof(int), typeof(int)),
+                new ExecutionArrayAccess(read, new ExecutionLiteral(1, typeof(int)), typeof(int), typeof(int))
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -151,9 +164,9 @@ public sealed class FieldExpressionHoistingPassTests
     public void Optimize_WhenFieldReadDiscoveryIsDisabled_ShouldLeaveRepeatedReadsUnchanged()
     {
         var read = new ExecutionFieldRead("a", "Name", typeof(string));
-        var plan = CreatePlan(new ExecutionIf(
-            new ExecutionLiteral(true, typeof(bool)),
-            new ExecutionBlock([CreateAppendRow(read, read)])));
+        var plan = CreatePlan(
+            new ExecutionIf(new ExecutionLiteral(true, typeof(bool)), new ExecutionBlock([CreateAppendRow(read, read)]))
+        );
 
         var result = Optimize(plan, enableFieldReadDiscovery: false);
 
@@ -162,13 +175,12 @@ public sealed class FieldExpressionHoistingPassTests
         Assert.Contains("disabled by compilation options", result.Reason);
     }
 
-    private static OptimizationResult<ExecutionPlan> Optimize(
-        ExecutionPlan plan,
-        bool? enableFieldReadDiscovery = null)
+    private static OptimizationResult<ExecutionPlan> Optimize(ExecutionPlan plan, bool? enableFieldReadDiscovery = null)
     {
-        var options = enableFieldReadDiscovery == null
-            ? OptimizationOptions.Default
-            : new OptimizationOptions { FieldReadDiscoveryEnabled = enableFieldReadDiscovery.Value };
+        var options =
+            enableFieldReadDiscovery == null
+                ? OptimizationOptions.Default
+                : new OptimizationOptions { FieldReadDiscoveryEnabled = enableFieldReadDiscovery.Value };
 
         return new FieldExpressionHoistingPass().Optimize(
             plan,
@@ -176,7 +188,9 @@ public sealed class FieldExpressionHoistingPassTests
                 OptimizationStage.ExecutionIrOptimization,
                 trace: null,
                 options,
-                OptimizationContextState.Empty));
+                OptimizationContextState.Empty
+            )
+        );
     }
 
     private static ExecutionPlan CreatePlan(ExecutionNode node)
@@ -184,17 +198,13 @@ public sealed class FieldExpressionHoistingPassTests
         return new ExecutionPlan("compiled", [], new ExecutionBlock([node]));
     }
 
-    private static ExecutionAppendRow CreateAppendRow(
-        ExecutionExpression first,
-        ExecutionExpression second)
+    private static ExecutionAppendRow CreateAppendRow(ExecutionExpression first, ExecutionExpression second)
     {
         return new ExecutionAppendRow(
             new ExecutionVariable("result", typeof(object)),
             CreateRowShape(),
-            [
-                new ExecutionRowValue("First", first),
-                new ExecutionRowValue("Second", second)
-            ]);
+            [new ExecutionRowValue("First", first), new ExecutionRowValue("Second", second)]
+        );
     }
 
     private static GeneratedRowShape CreateRowShape()
@@ -202,8 +212,23 @@ public sealed class FieldExpressionHoistingPassTests
         return new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("First", "First", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("First")),
-                new FieldBinding("Second", "Second", 1, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Second"))
-            ]);
+                new FieldBinding(
+                    "First",
+                    "First",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("First")
+                ),
+                new FieldBinding(
+                    "Second",
+                    "Second",
+                    1,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Second")
+                ),
+            ]
+        );
     }
 }

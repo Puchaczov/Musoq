@@ -93,8 +93,6 @@ public class EscapeHelpersExtendedTests
         Assert.AreEqual(@"\u12", result);
     }
 
-
-
     [TestMethod]
     public void Unescape_UnicodeInvalidHex_ReturnsOriginal()
     {

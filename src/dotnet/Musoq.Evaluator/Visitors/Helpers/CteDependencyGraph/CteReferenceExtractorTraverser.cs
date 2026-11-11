@@ -11,7 +11,5 @@ public class CteReferenceExtractorTraverser : RawTraverseVisitor<CteReferenceExt
     /// </summary>
     /// <param name="extractor">The CTE reference extractor to use.</param>
     public CteReferenceExtractorTraverser(CteReferenceExtractor extractor)
-        : base(extractor)
-    {
-    }
+        : base(extractor) { }
 }

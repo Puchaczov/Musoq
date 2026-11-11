@@ -31,10 +31,7 @@ public sealed class LikeSpecializationSemanticsTests
         AssertMatchesLegacy("Kelvin", "K%", Operators.LikePrefix("Kelvin", "K"));
         AssertMatchesLegacy("unit-K", "%K", Operators.LikeSuffix("unit-K", "K"));
         AssertMatchesLegacy("unit-K-value", "%K%", Operators.LikeContains("unit-K-value", "K"));
-        AssertMatchesLegacy(
-            "Kelvin",
-            "K%",
-            Operators.LikeLegacyRegexSingleAsciiPrefix("Kelvin", "K%", "K"));
+        AssertMatchesLegacy("Kelvin", "K%", Operators.LikeLegacyRegexSingleAsciiPrefix("Kelvin", "K%", "K"));
     }
 
     [TestMethod]
@@ -45,7 +42,11 @@ public sealed class LikeSpecializationSemanticsTests
         AssertMatchesLegacy(literal, literal, Operators.LikeExact(literal, literal));
         AssertMatchesLegacy(literal + "tail", literal + "%", Operators.LikePrefix(literal + "tail", literal));
         AssertMatchesLegacy("head" + literal, "%" + literal, Operators.LikeSuffix("head" + literal, literal));
-        AssertMatchesLegacy("head" + literal + "tail", "%" + literal + "%", Operators.LikeContains("head" + literal + "tail", literal));
+        AssertMatchesLegacy(
+            "head" + literal + "tail",
+            "%" + literal + "%",
+            Operators.LikeContains("head" + literal + "tail", literal)
+        );
     }
 
     [TestMethod]
@@ -78,7 +79,7 @@ public sealed class LikeSpecializationSemanticsTests
             CultureInfo.InvariantCulture,
             CultureInfo.GetCultureInfo("en-US"),
             CultureInfo.GetCultureInfo("pl-PL"),
-            CultureInfo.GetCultureInfo("tr-TR")
+            CultureInfo.GetCultureInfo("tr-TR"),
         };
         Span<char> input = stackalloc char[1];
         Span<char> literal = stackalloc char[1];
@@ -94,7 +95,8 @@ public sealed class LikeSpecializationSemanticsTests
                     var regex = new Regex(
                         string.Concat(@"\A", letter, @"\z"),
                         RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.NonBacktracking,
-                        TimeSpan.FromSeconds(5));
+                        TimeSpan.FromSeconds(5)
+                    );
 
                     for (var codeUnit = char.MinValue; ; codeUnit++)
                     {
@@ -105,7 +107,8 @@ public sealed class LikeSpecializationSemanticsTests
                             {
                                 Assert.IsTrue(
                                     letter is 'I' or 'K' or 'S',
-                                    $"Culture '{culture.Name}', ASCII '{letter}', code unit U+{(int)codeUnit:X4} has an unexpected non-ordinal regex fold.");
+                                    $"Culture '{culture.Name}', ASCII '{letter}', code unit U+{(int)codeUnit:X4} has an unexpected non-ordinal regex fold."
+                                );
                             }
 
                             Assert.IsTrue(
@@ -113,8 +116,10 @@ public sealed class LikeSpecializationSemanticsTests
                                     input,
                                     literal,
                                     LikePatternMatchKind.Exact,
-                                    culture.TextInfo),
-                                $"Culture '{culture.Name}', ASCII '{letter}', code unit U+{(int)codeUnit:X4}.");
+                                    culture.TextInfo
+                                ),
+                                $"Culture '{culture.Name}', ASCII '{letter}', code unit U+{(int)codeUnit:X4}."
+                            );
                         }
 
                         if (codeUnit == char.MaxValue)
@@ -183,13 +188,15 @@ public sealed class LikeSpecializationSemanticsTests
 
     private static bool LegacyLike(string input, string pattern)
     {
-        var escaped = Regex.Escape(pattern)
+        var escaped = Regex
+            .Escape(pattern)
             .Replace("_", ".", StringComparison.Ordinal)
             .Replace("%", ".*", StringComparison.Ordinal);
         return Regex.IsMatch(
             input,
             string.Concat(@"\A", escaped, @"\z"),
             RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.NonBacktracking,
-            TimeSpan.FromSeconds(5));
+            TimeSpan.FromSeconds(5)
+        );
     }
 }

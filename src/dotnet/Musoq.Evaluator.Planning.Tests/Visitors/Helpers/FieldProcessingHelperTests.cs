@@ -15,7 +15,7 @@ public class FieldProcessingHelperTests
         var oldFields = new[]
         {
             new FieldNode(new IntegerNode("1"), 0, "field1"),
-            new FieldNode(new IntegerNode("2"), 1, "field2")
+            new FieldNode(new IntegerNode("2"), 1, "field2"),
         };
 
         var nodes = new Stack<Node>();
@@ -35,10 +35,7 @@ public class FieldProcessingHelperTests
     public void CreateFields_WhenStackHasFewerItems_ShouldHandleGracefully()
     {
         // Arrange
-        var oldFields = new[]
-        {
-            new FieldNode(new IntegerNode("1"), 0, "field1")
-        };
+        var oldFields = new[] { new FieldNode(new IntegerNode("1"), 0, "field1") };
 
         var nodes = new Stack<Node>();
         nodes.Push(new FieldNode(new StringNode("test1"), 0, "newfield1"));
@@ -57,9 +54,7 @@ public class FieldProcessingHelperTests
         var oldFields = System.Array.Empty<FieldNode>();
         var nodes = new Stack<Node>();
 
-
         var result = FieldProcessingHelper.CreateFields(oldFields, nodes);
-
 
         Assert.IsEmpty(result);
     }

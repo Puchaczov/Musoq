@@ -15,49 +15,62 @@ public partial class SubqueryTests
     public void WhenPartitionedRangeMarkUsesComparator_ShouldNormalizeBoundaries(
         string predicate,
         bool expectedAbove,
-        bool expectedEqual)
+        bool expectedEqual
+    )
     {
-        var query = $@"
-            SELECT a.Name,
-                   CASE WHEN EXISTS (
-                       SELECT b.Name FROM #B.entities() b
-                       WHERE b.Country = a.Country AND {predicate}
-                   ) THEN 'Y' ELSE 'N' END AS HasMatch
-            FROM #A.entities() a
-            ORDER BY a.Name";
+        var query =
+            $"\n            SELECT a.Name,\n                   CASE WHEN EXISTS (\n                       SELECT b.Name FROM #B.entities() b\n                       WHERE b.Country = a.Country AND {predicate}\n                   ) THEN 'Y' ELSE 'N' END AS HasMatch\n            FROM #A.entities() a\n            ORDER BY a.Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] =
             [
-                new BasicEntity { Name = "ABOVE", Country = "P", Population = 110 },
-                new BasicEntity { Name = "EQUAL", Country = "P", Population = 100 }
+                new BasicEntity
+                {
+                    Name = "ABOVE",
+                    Country = "P",
+                    Population = 110,
+                },
+                new BasicEntity
+                {
+                    Name = "EQUAL",
+                    Country = "P",
+                    Population = 100,
+                },
             ],
-            ["#B"] = [new BasicEntity { Name = "BOUNDARY", Country = "P", Population = 100 }]
+            ["#B"] =
+            [
+                new BasicEntity
+                {
+                    Name = "BOUNDARY",
+                    Country = "P",
+                    Population = 100,
+                },
+            ],
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("HasMatch", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("HasMatch", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["ABOVE", expectedAbove ? "Y" : "N"],
-            ["EQUAL", expectedEqual ? "Y" : "N"]);
+            ["EQUAL", expectedEqual ? "Y" : "N"]
+        );
         AssertNoPerRowSubqueryExecution(CompileSubqueryForInspection(query));
     }
 
     [TestMethod]
     public void WhenNotExistsUsesEqualityAndRangeCorrelation_ShouldUseRangeAntiSemi()
     {
-        const string query = @"
-            SELECT a.Name FROM #A.entities() a
-            WHERE NOT EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-                  AND b.Population < a.Population
-            )
-            ORDER BY a.Name";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name FROM #A.entities() a\n"
+            + "            WHERE NOT EXISTS (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "                  AND b.Population < a.Population\n"
+            + "            )\n"
+            + "            ORDER BY a.Name"
+        );
         var sources = CreatePartitionedRangeSources();
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -74,18 +87,20 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenNestedExistsContainsPartitionedRangeCorrelation_ShouldRetainOuterRangeStrategyAndGuardInnerQuery()
     {
-        const string query = @"
-            SELECT a.Name FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-                  AND b.Population < a.Population
-                  AND EXISTS (
-                      SELECT c.City FROM #C.entities() c
-                      WHERE c.City = b.City
-                  )
-            )
-            ORDER BY a.Name";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name FROM #A.entities() a\n"
+            + "            WHERE EXISTS (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "                  AND b.Population < a.Population\n"
+            + "                  AND EXISTS (\n"
+            + "                      SELECT c.City FROM #C.entities() c\n"
+            + "                      WHERE c.City = b.City\n"
+            + "                  )\n"
+            + "            )\n"
+            + "            ORDER BY a.Name"
+        );
         var sources = CreatePartitionedRangeSources();
         sources["#C"] = [new BasicEntity { City = "P_SMALL" }];
 
@@ -107,19 +122,12 @@ public partial class SubqueryTests
     [DataRow("b.NullableValue >= a.NullableValue")]
     public void WhenRangeSemiUsesComparator_ShouldReturnExactBoundaryRows(string predicate)
     {
-        var query = $@"
-            SELECT a.Name FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country AND {predicate}
-            )
-            ORDER BY a.Name";
+        var query =
+            $"\n            SELECT a.Name FROM #A.entities() a\n            WHERE EXISTS (\n                SELECT b.City FROM #B.entities() b\n                WHERE b.Country = a.Country AND {predicate}\n            )\n            ORDER BY a.Name";
         var table = CreateAndRunVirtualMachine(query, CreateRangeMatrixSources()).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ExpectedRangeSemiRows(predicate));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ExpectedRangeSemiRows(predicate));
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PredicateRangeSemiJoin", inspection.PlanningText);
@@ -134,19 +142,12 @@ public partial class SubqueryTests
     [DataRow("b.NullableValue >= a.NullableValue")]
     public void WhenRangeAntiSemiUsesComparator_ShouldReturnExactNonMatchingRows(string predicate)
     {
-        var query = $@"
-            SELECT a.Name FROM #A.entities() a
-            WHERE NOT EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country AND {predicate}
-            )
-            ORDER BY a.Name";
+        var query =
+            $"\n            SELECT a.Name FROM #A.entities() a\n            WHERE NOT EXISTS (\n                SELECT b.City FROM #B.entities() b\n                WHERE b.Country = a.Country AND {predicate}\n            )\n            ORDER BY a.Name";
         var table = CreateAndRunVirtualMachine(query, CreateRangeMatrixSources()).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ExpectedRangeAntiRows(predicate));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ExpectedRangeAntiRows(predicate));
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PredicateRangeAntiSemiJoin", inspection.PlanningText);
@@ -161,22 +162,12 @@ public partial class SubqueryTests
     [DataRow("b.NullableValue >= a.NullableValue")]
     public void WhenRangeScalarUsesComparator_ShouldReturnExactValueOrNull(string predicate)
     {
-        var query = $@"
-            SELECT a.Name, (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country AND {predicate}
-            ) AS MatchCity
-            FROM #A.entities() a
-            ORDER BY a.Name";
+        var query =
+            $"\n            SELECT a.Name, (\n                SELECT b.City FROM #B.entities() b\n                WHERE b.Country = a.Country AND {predicate}\n            ) AS MatchCity\n            FROM #A.entities() a\n            ORDER BY a.Name";
         var table = CreateAndRunVirtualMachine(query, CreateRangeMatrixSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("MatchCity", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ExpectedRangeScalarRows(predicate));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("MatchCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ExpectedRangeScalarRows(predicate));
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("ScalarRangeSingle", inspection.PlanningText);
@@ -188,11 +179,25 @@ public partial class SubqueryTests
     {
         return predicate switch
         {
-            "b.NullableValue < a.NullableValue" => [["ABOVE"]],
-            "b.NullableValue <= a.NullableValue" => [["ABOVE"], ["EQUAL"]],
-            "b.NullableValue > a.NullableValue" => [["BELOW"]],
-            "b.NullableValue >= a.NullableValue" => [["BELOW"], ["EQUAL"]],
-            _ => throw new ArgumentOutOfRangeException(nameof(predicate), predicate, null)
+            "b.NullableValue < a.NullableValue" =>
+            [
+                ["ABOVE"],
+            ],
+            "b.NullableValue <= a.NullableValue" =>
+            [
+                ["ABOVE"],
+                ["EQUAL"],
+            ],
+            "b.NullableValue > a.NullableValue" =>
+            [
+                ["BELOW"],
+            ],
+            "b.NullableValue >= a.NullableValue" =>
+            [
+                ["BELOW"],
+                ["EQUAL"],
+            ],
+            _ => throw new ArgumentOutOfRangeException(nameof(predicate), predicate, null),
         };
     }
 
@@ -200,11 +205,37 @@ public partial class SubqueryTests
     {
         return predicate switch
         {
-            "b.NullableValue < a.NullableValue" => [["BELOW"], ["EMPTY"], ["EQUAL"], ["NULL_PART"], ["NULL_RANGE"]],
-            "b.NullableValue <= a.NullableValue" => [["BELOW"], ["EMPTY"], ["NULL_PART"], ["NULL_RANGE"]],
-            "b.NullableValue > a.NullableValue" => [["ABOVE"], ["EMPTY"], ["EQUAL"], ["NULL_PART"], ["NULL_RANGE"]],
-            "b.NullableValue >= a.NullableValue" => [["ABOVE"], ["EMPTY"], ["NULL_PART"], ["NULL_RANGE"]],
-            _ => throw new ArgumentOutOfRangeException(nameof(predicate), predicate, null)
+            "b.NullableValue < a.NullableValue" =>
+            [
+                ["BELOW"],
+                ["EMPTY"],
+                ["EQUAL"],
+                ["NULL_PART"],
+                ["NULL_RANGE"],
+            ],
+            "b.NullableValue <= a.NullableValue" =>
+            [
+                ["BELOW"],
+                ["EMPTY"],
+                ["NULL_PART"],
+                ["NULL_RANGE"],
+            ],
+            "b.NullableValue > a.NullableValue" =>
+            [
+                ["ABOVE"],
+                ["EMPTY"],
+                ["EQUAL"],
+                ["NULL_PART"],
+                ["NULL_RANGE"],
+            ],
+            "b.NullableValue >= a.NullableValue" =>
+            [
+                ["ABOVE"],
+                ["EMPTY"],
+                ["NULL_PART"],
+                ["NULL_RANGE"],
+            ],
+            _ => throw new ArgumentOutOfRangeException(nameof(predicate), predicate, null),
         };
     }
 
@@ -219,7 +250,7 @@ public partial class SubqueryTests
                 ["EMPTY", null],
                 ["EQUAL", null],
                 ["NULL_PART", null],
-                ["NULL_RANGE", null]
+                ["NULL_RANGE", null],
             ],
             "b.NullableValue <= a.NullableValue" =>
             [
@@ -228,7 +259,7 @@ public partial class SubqueryTests
                 ["EMPTY", null],
                 ["EQUAL", "BOUNDARY"],
                 ["NULL_PART", null],
-                ["NULL_RANGE", null]
+                ["NULL_RANGE", null],
             ],
             "b.NullableValue > a.NullableValue" =>
             [
@@ -237,7 +268,7 @@ public partial class SubqueryTests
                 ["EMPTY", null],
                 ["EQUAL", null],
                 ["NULL_PART", null],
-                ["NULL_RANGE", null]
+                ["NULL_RANGE", null],
             ],
             "b.NullableValue >= a.NullableValue" =>
             [
@@ -246,40 +277,115 @@ public partial class SubqueryTests
                 ["EMPTY", null],
                 ["EQUAL", "BOUNDARY"],
                 ["NULL_PART", null],
-                ["NULL_RANGE", null]
+                ["NULL_RANGE", null],
             ],
-            _ => throw new ArgumentOutOfRangeException(nameof(predicate), predicate, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(predicate), predicate, null),
         };
     }
 
-    private static Dictionary<string, IEnumerable<BasicEntity>> CreateRangeMatrixSources() => new()
-    {
-        ["#A"] =
-        [
-            new BasicEntity { Name = "ABOVE", Country = "P", NullableValue = 110 },
-            new BasicEntity { Name = "BELOW", Country = "P", NullableValue = 90 },
-            new BasicEntity { Name = "EMPTY", Country = "E", NullableValue = 100 },
-            new BasicEntity { Name = "EQUAL", Country = "P", NullableValue = 100 },
-            new BasicEntity { Name = "NULL_PART", Country = null, NullableValue = 100 },
-            new BasicEntity { Name = "NULL_RANGE", Country = "P", NullableValue = null }
-        ],
-        ["#B"] = [new BasicEntity { City = "BOUNDARY", Country = "P", NullableValue = 100 }]
-    };
+    private static Dictionary<string, IEnumerable<BasicEntity>> CreateRangeMatrixSources() =>
+        new()
+        {
+            ["#A"] =
+            [
+                new BasicEntity
+                {
+                    Name = "ABOVE",
+                    Country = "P",
+                    NullableValue = 110,
+                },
+                new BasicEntity
+                {
+                    Name = "BELOW",
+                    Country = "P",
+                    NullableValue = 90,
+                },
+                new BasicEntity
+                {
+                    Name = "EMPTY",
+                    Country = "E",
+                    NullableValue = 100,
+                },
+                new BasicEntity
+                {
+                    Name = "EQUAL",
+                    Country = "P",
+                    NullableValue = 100,
+                },
+                new BasicEntity
+                {
+                    Name = "NULL_PART",
+                    Country = null,
+                    NullableValue = 100,
+                },
+                new BasicEntity
+                {
+                    Name = "NULL_RANGE",
+                    Country = "P",
+                    NullableValue = null,
+                },
+            ],
+            ["#B"] =
+            [
+                new BasicEntity
+                {
+                    City = "BOUNDARY",
+                    Country = "P",
+                    NullableValue = 100,
+                },
+            ],
+        };
 
-    private static Dictionary<string, IEnumerable<BasicEntity>> CreatePartitionedRangeSources() => new()
-    {
-        ["#A"] =
-        [
-            new BasicEntity { Name = "PL_LOW", Country = "PL", Population = 50 },
-            new BasicEntity { Name = "PL_MATCH", Country = "PL", Population = 150 },
-            new BasicEntity { Name = "DE_MATCH", Country = "DE", Population = 150 },
-            new BasicEntity { Name = "NULL_PART", Country = null, Population = 150 }
-        ],
-        ["#B"] =
-        [
-            new BasicEntity { City = "P_SMALL", Country = "PL", Population = 100 },
-            new BasicEntity { City = "D_SMALL", Country = "DE", Population = 100 },
-            new BasicEntity { City = "NULL_SMALL", Country = null, Population = 100 }
-        ]
-    };
+    private static Dictionary<string, IEnumerable<BasicEntity>> CreatePartitionedRangeSources() =>
+        new()
+        {
+            ["#A"] =
+            [
+                new BasicEntity
+                {
+                    Name = "PL_LOW",
+                    Country = "PL",
+                    Population = 50,
+                },
+                new BasicEntity
+                {
+                    Name = "PL_MATCH",
+                    Country = "PL",
+                    Population = 150,
+                },
+                new BasicEntity
+                {
+                    Name = "DE_MATCH",
+                    Country = "DE",
+                    Population = 150,
+                },
+                new BasicEntity
+                {
+                    Name = "NULL_PART",
+                    Country = null,
+                    Population = 150,
+                },
+            ],
+            ["#B"] =
+            [
+                new BasicEntity
+                {
+                    City = "P_SMALL",
+                    Country = "PL",
+                    Population = 100,
+                },
+                new BasicEntity
+                {
+                    City = "D_SMALL",
+                    Country = "DE",
+                    Population = 100,
+                },
+                new BasicEntity
+                {
+                    City = "NULL_SMALL",
+                    Country = null,
+                    Population = 100,
+                },
+            ],
+        };
 }

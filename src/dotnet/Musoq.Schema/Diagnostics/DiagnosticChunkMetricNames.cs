@@ -34,7 +34,7 @@ public static class DiagnosticChunkMetricNames
             return false;
 
         var metricStart = fullMetricName.LastIndexOf('.');
-        return metricStart >= 0 &&
-               fullMetricName.AsSpan(metricStart + 1).Equals(metricName.AsSpan(), StringComparison.Ordinal);
+        return metricStart >= 0
+            && fullMetricName.AsSpan(metricStart + 1).Equals(metricName.AsSpan(), StringComparison.Ordinal);
     }
 }

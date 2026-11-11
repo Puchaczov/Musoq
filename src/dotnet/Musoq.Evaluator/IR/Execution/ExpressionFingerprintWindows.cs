@@ -18,6 +18,12 @@ internal static partial class ExecutionExpressionFingerprint
         var expressionText = IrExpressionPrinter.Print(expression);
         var returnType = expression.ReturnType.FullName ?? expression.ReturnType.Name;
 
-        return string.Concat(returnType, "#", expressionText.Length.ToString(CultureInfo.InvariantCulture), ":", expressionText);
+        return string.Concat(
+            returnType,
+            "#",
+            expressionText.Length.ToString(CultureInfo.InvariantCulture),
+            ":",
+            expressionText
+        );
     }
 }

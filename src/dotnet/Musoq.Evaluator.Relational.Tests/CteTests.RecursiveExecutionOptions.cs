@@ -16,7 +16,7 @@ public partial class CteTests
         new("source-instrumentation", InstrumentationMode: QueryInstrumentationMode.SourceBoundaries),
         new("full-instrumentation", InstrumentationMode: QueryInstrumentationMode.Full),
         new("cte-parallelization-disabled", UseCteParallelization: false),
-        new("sequential", ParallelizationMode: ParallelizationMode.None)
+        new("sequential", ParallelizationMode: ParallelizationMode.None),
     ];
 
     public static IEnumerable<object[]> RecursiveSupportedOptionCases =>
@@ -29,20 +29,14 @@ public partial class CteTests
     {
         var cases = RecursiveSupportedOptionCases.ToArray();
 
-        Assert.HasCount(
-            RecursiveOptionProfiles.Length * RecursiveCteSupportedCaseCatalog.Cases.Count,
-            cases);
+        Assert.HasCount(RecursiveOptionProfiles.Length * RecursiveCteSupportedCaseCatalog.Cases.Count, cases);
         for (var profileIndex = 0; profileIndex < RecursiveOptionProfiles.Length; profileIndex++)
         {
             var offset = profileIndex * RecursiveCteSupportedCaseCatalog.Cases.Count;
             for (var caseIndex = 0; caseIndex < RecursiveCteSupportedCaseCatalog.Cases.Count; caseIndex++)
             {
-                Assert.AreSame(
-                    RecursiveCteSupportedCaseCatalog.Cases[caseIndex],
-                    cases[offset + caseIndex][0]);
-                Assert.AreSame(
-                    RecursiveOptionProfiles[profileIndex],
-                    cases[offset + caseIndex][1]);
+                Assert.AreSame(RecursiveCteSupportedCaseCatalog.Cases[caseIndex], cases[offset + caseIndex][0]);
+                Assert.AreSame(RecursiveOptionProfiles[profileIndex], cases[offset + caseIndex][1]);
             }
         }
     }
@@ -51,22 +45,23 @@ public partial class CteTests
     [DynamicData(nameof(RecursiveSupportedOptionCases))]
     public void RecursiveSupportedCase_AcrossCompatibleOptimizerModes_ShouldReturnDeclaredResult(
         RecursiveCteSupportedCase testCase,
-        RecursiveOptionProfile profile)
+        RecursiveOptionProfile profile
+    )
     {
         using var measurement = EvaluatorTestCaseMeasurement.Begin(
             nameof(RecursiveSupportedCase_AcrossCompatibleOptimizerModes_ShouldReturnDeclaredResult),
             $"{testCase.Name}|{profile.Name}",
             testCase.Name,
-            profile.Name);
+            profile.Name
+        );
         using var vm = measurement.MeasureCompilation(() => GetRecursiveOptionQuery(testCase, profile));
         using var table = measurement.MeasureExecution(() => vm.Run(TestContext.CancellationToken));
         measurement.MeasureMaterialization(() => TableMaterializationTestHelper.Materialize(table));
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            testCase.ExpectedColumns
-                .Select(static column => (column.Name, column.ClrType))
-                .ToArray());
+            testCase.ExpectedColumns.Select(static column => (column.Name, column.ClrType)).ToArray()
+        );
 
         if (testCase.Ordered)
             TableMaterializationTestHelper.AssertRowsInOrder(table, testCase.ExpectedRows.ToArray());
@@ -74,24 +69,22 @@ public partial class CteTests
             TableMaterializationTestHelper.AssertRowsUnordered(table, testCase.ExpectedRows.ToArray());
     }
 
-    private static CompilationOptions ApplyProfile(
-        CompilationOptions baseline,
-        RecursiveOptionProfile profile)
+    private static CompilationOptions ApplyProfile(CompilationOptions baseline, RecursiveOptionProfile profile)
     {
         return new CompilationOptions(
-                profile.ParallelizationMode ?? baseline.ParallelizationMode,
-                profile.UseHashJoin ?? baseline.UseHashJoin,
-                profile.UseSortMergeJoin ?? baseline.UseSortMergeJoin,
-                profile.UseCommonSubexpressionElimination ?? baseline.UseCommonSubexpressionElimination,
-                baseline.UseConstantFolding,
-                baseline.UsePrimitiveTypeValidation,
-                profile.UseCteParallelization ?? baseline.UseCteParallelization,
-                profile.UseCteSidecarIndexes ?? baseline.UseCteSidecarIndexes,
-                baseline.SourceRuntimeSettingsResolver,
-                profile.InstrumentationMode ?? baseline.InstrumentationMode,
-                baseline.MaxDegreeOfParallelismOverride,
-                baseline.ForceTableResultMaterialization)
-            .WithRecursiveCteLimits(baseline.RecursiveCteLimits);
+            profile.ParallelizationMode ?? baseline.ParallelizationMode,
+            profile.UseHashJoin ?? baseline.UseHashJoin,
+            profile.UseSortMergeJoin ?? baseline.UseSortMergeJoin,
+            profile.UseCommonSubexpressionElimination ?? baseline.UseCommonSubexpressionElimination,
+            baseline.UseConstantFolding,
+            baseline.UsePrimitiveTypeValidation,
+            profile.UseCteParallelization ?? baseline.UseCteParallelization,
+            profile.UseCteSidecarIndexes ?? baseline.UseCteSidecarIndexes,
+            baseline.SourceRuntimeSettingsResolver,
+            profile.InstrumentationMode ?? baseline.InstrumentationMode,
+            baseline.MaxDegreeOfParallelismOverride,
+            baseline.ForceTableResultMaterialization
+        ).WithRecursiveCteLimits(baseline.RecursiveCteLimits);
     }
 
     public sealed record RecursiveOptionProfile(
@@ -102,7 +95,8 @@ public partial class CteTests
         bool? UseCommonSubexpressionElimination = null,
         bool? UseCteParallelization = null,
         bool? UseCteSidecarIndexes = null,
-        QueryInstrumentationMode? InstrumentationMode = null)
+        QueryInstrumentationMode? InstrumentationMode = null
+    )
     {
         public override string ToString() => Name;
     }

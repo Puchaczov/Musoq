@@ -42,8 +42,7 @@ public sealed class DiagnosticText049TextAlternativesTests : SchemaParserTestsBa
     [TestMethod]
     public void TextSchema_SwitchDefaultBeforePattern_ShouldReportInvalidTextFieldAtPattern()
     {
-        const string schemaText =
-            "text Invalid { Content: switch { _ => Fallback, pattern 'X' => Payload } }";
+        const string schemaText = "text Invalid { Content: switch { _ => Fallback, pattern 'X' => Payload } }";
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseTextSchema(schemaText));
 
@@ -55,8 +54,7 @@ public sealed class DiagnosticText049TextAlternativesTests : SchemaParserTestsBa
     [TestMethod]
     public void TextSchema_SwitchDuplicateDefault_ShouldReportInvalidTextFieldAtSecondDefault()
     {
-        const string schemaText =
-            "text Invalid { Content: switch { _ => First, _ => Second } }";
+        const string schemaText = "text Invalid { Content: switch { _ => First, _ => Second } }";
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseTextSchema(schemaText));
 
@@ -80,8 +78,7 @@ public sealed class DiagnosticText049TextAlternativesTests : SchemaParserTestsBa
     [TestMethod]
     public void TextSchema_OptionalRepeat_ShouldPreserveReferencedSchemaAndModifier()
     {
-        var schema = ParseTextSchema(
-            "text Envelope { Items: optional repeat Item until ',' } ");
+        var schema = ParseTextSchema("text Envelope { Items: optional repeat Item until ',' } ");
         var field = schema.Fields[0];
 
         Assert.AreEqual(TextFieldType.Repeat, field.FieldType);

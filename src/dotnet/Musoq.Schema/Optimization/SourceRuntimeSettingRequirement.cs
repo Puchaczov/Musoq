@@ -5,4 +5,5 @@ public sealed record SourceRuntimeSettingRequirement(
     bool Required,
     bool Secret,
     SourceRuntimeSettingPhase Phases,
-    string Description);
+    string Description
+);

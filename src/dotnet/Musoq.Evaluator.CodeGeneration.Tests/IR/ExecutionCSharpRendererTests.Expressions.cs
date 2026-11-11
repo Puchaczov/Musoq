@@ -28,7 +28,10 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
 
-        Assert.IsTrue(renderer.CanRender(CreateMethodCallPlan()), renderer.GetUnsupportedReason(CreateMethodCallPlan()));
+        Assert.IsTrue(
+            renderer.CanRender(CreateMethodCallPlan()),
+            renderer.GetUnsupportedReason(CreateMethodCallPlan())
+        );
     }
 
     [TestMethod]
@@ -38,9 +41,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateMethodCallPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains(
-            "result.Add(new ResultRow0((string)libraryBase0.ToUpper(p.Name)));",
-            code);
+        Assert.Contains("result.Add(new ResultRow0((string)libraryBase0.ToUpper(p.Name)));", code);
         Assert.Contains("var libraryBase0 = new Musoq.Plugins.LibraryBase();", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
     }
@@ -52,9 +53,7 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var resultType = typeof(CorrelatedScalarSubqueryResult<decimal?>?);
         var parameterType = nullableOverload ? resultType : typeof(CorrelatedScalarSubqueryResult<decimal?>);
-        var method = typeof(LibraryBase).GetMethod(
-            "__CorrelatedScalarSubqueryResult",
-            [parameterType])!;
+        var method = typeof(LibraryBase).GetMethod("__CorrelatedScalarSubqueryResult", [parameterType])!;
         var target = new ExecutionVariable("libraryBase0", typeof(LibraryBase));
         var call = new ExecutionMethodCall(
             method,
@@ -62,11 +61,15 @@ public sealed partial class ExecutionCSharpRendererTests
             null,
             typeof(decimal?),
             null,
-            target);
+            target
+        );
         var renderer = new ExecutionCSharpRenderer();
 
         var code = renderer
-            .RenderMethod(CreateProjectionPlan("Q_TypedNullMethodArgument", "Value", typeof(decimal?), call), "ExecutePlan")
+            .RenderMethod(
+                CreateProjectionPlan("Q_TypedNullMethodArgument", "Value", typeof(decimal?), call),
+                "ExecutePlan"
+            )
             .NormalizeWhitespace()
             .ToFullString();
 
@@ -77,10 +80,18 @@ public sealed partial class ExecutionCSharpRendererTests
     public void CanRender_WhenReusableMethodCallIsUnbound_ShouldReturnFalseWithClearReason()
     {
         var renderer = new ExecutionCSharpRenderer();
-        var plan = CreateProjectionPlan("Q_UnboundMethodCall", "UpperName", typeof(string), CreateUnboundToUpperNameCall());
+        var plan = CreateProjectionPlan(
+            "Q_UnboundMethodCall",
+            "UpperName",
+            typeof(string),
+            CreateUnboundToUpperNameCall()
+        );
 
         Assert.IsFalse(renderer.CanRender(plan));
-        Assert.Contains("requires a reusable target assigned by MethodTargetReusePass", renderer.GetUnsupportedReason(plan) ?? string.Empty);
+        Assert.Contains(
+            "requires a reusable target assigned by MethodTargetReusePass",
+            renderer.GetUnsupportedReason(plan) ?? string.Empty
+        );
     }
 
     [TestMethod]
@@ -99,9 +110,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateMethodCallInsideBinaryPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains(
-            "result.Add(new ResultRow0(((string)libraryBase0.ToUpper(p.Name) + \"!\")));",
-            code);
+        Assert.Contains("result.Add(new ResultRow0(((string)libraryBase0.ToUpper(p.Name) + \"!\")));", code);
         Assert.Contains("var libraryBase0 = new Musoq.Plugins.LibraryBase();", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
     }
@@ -122,9 +131,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateMethodCallInsideArithmeticBinaryPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains(
-            "result.Add(new ResultRow0((uint)((int)Math.Abs(1) + 1u)));",
-            code);
+        Assert.Contains("result.Add(new ResultRow0((uint)((int)Math.Abs(1) + 1u)));", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
     }
 
@@ -144,9 +151,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateMethodCallInsideUnaryPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains(
-            "result.Add(new ResultRow0((int)(-(int)Math.Abs(1))));",
-            code);
+        Assert.Contains("result.Add(new ResultRow0((int)(-(int)Math.Abs(1))));", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
     }
 
@@ -166,9 +171,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateNullableMethodCallInsideUnaryPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains(
-            "result.Add(new ResultRow0((float? )(-(float? )libraryBase0.ToFloat(1))));",
-            code);
+        Assert.Contains("result.Add(new ResultRow0((float? )(-(float? )libraryBase0.ToFloat(1))));", code);
         Assert.Contains("var libraryBase0 = new Musoq.Plugins.LibraryBase();", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
     }
@@ -189,9 +192,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateNullableMethodCallInsideBinaryPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains(
-            "result.Add(new ResultRow0((float)((float? )libraryBase0.ToFloat(1) + 1ul)));",
-            code);
+        Assert.Contains("result.Add(new ResultRow0((float)((float? )libraryBase0.ToFloat(1) + 1ul)));", code);
         Assert.Contains("var libraryBase0 = new Musoq.Plugins.LibraryBase();", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
     }
@@ -221,9 +222,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateNullableTemporalSubtractionPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains(
-            "result.Add(new ResultRow0((p.Start - p.End)));",
-            code);
+        Assert.Contains("result.Add(new ResultRow0((p.Start - p.End)));", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains(".GetValueOrDefault()", StringComparison.Ordinal));
     }
@@ -236,11 +235,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var classCode = string.Join(
             Environment.NewLine,
-            renderer.RenderClassMembers(plan).Select(member => member.NormalizeWhitespace().ToFullString()));
+            renderer.RenderClassMembers(plan).Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
-        Assert.Contains(
-            "result.Add(new ResultRow0(resultSourceRow.GetValue<string>(0)));",
-            methodCode);
+        Assert.Contains("result.Add(new ResultRow0(resultSourceRow.GetValue<string>(0)));", methodCode);
         Assert.IsFalse(methodCode.Contains("resultSourceRow.Contexts", StringComparison.Ordinal));
         Assert.IsFalse(classCode.Contains("object[] __contexts", StringComparison.Ordinal));
         Assert.IsFalse(classCode.Contains("public override object[] Contexts", StringComparison.Ordinal));
@@ -254,9 +252,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateCharStringEqualityPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains(
-            "result.Add(new ResultRow0(('A' == 'A')));",
-            code);
+        Assert.Contains("result.Add(new ResultRow0(('A' == 'A')));", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
     }
 
@@ -269,13 +265,11 @@ public sealed partial class ExecutionCSharpRendererTests
             "Google",
             ExecutionStringMatchKind.Prefix,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
         var plan = CreateProjectionPlan("Q_StringMatch", "Matches", typeof(bool), match);
 
-        var code = new ExecutionCSharpRenderer()
-            .RenderMethod(plan, "ExecutePlan")
-            .NormalizeWhitespace()
-            .ToFullString();
+        var code = new ExecutionCSharpRenderer().RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
 
         Assert.Contains("is string __musoqStringMatch1", code);
         Assert.Contains("__musoqStringMatch1.StartsWith(\"Google\", StringComparison.OrdinalIgnoreCase)", code);
@@ -291,7 +285,8 @@ public sealed partial class ExecutionCSharpRendererTests
     [DataRow("S%", "S")]
     public void RenderMethod_WhenStringMatchNeedleHasInvariantUnicodeFold_ShouldRetainFallback(
         string pattern,
-        string needle)
+        string needle
+    )
     {
         var match = new ExecutionStringMatch(
             new ExecutionFieldRead("p", "Name", typeof(string)),
@@ -299,19 +294,17 @@ public sealed partial class ExecutionCSharpRendererTests
             needle,
             ExecutionStringMatchKind.Prefix,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
         var plan = CreateProjectionPlan("Q_StringMatchUnicodeFold", "Matches", typeof(bool), match);
 
-        var code = new ExecutionCSharpRenderer()
-            .RenderMethod(plan, "ExecutePlan")
-            .NormalizeWhitespace()
-            .ToFullString();
+        var code = new ExecutionCSharpRenderer().RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
 
         Assert.Contains("[0] <= 127", code);
         Assert.Contains("Operators.LikeLegacyRegexSingleAsciiPrefix", code);
         Assert.IsTrue(
-            code.IndexOf("[0] ==", StringComparison.Ordinal) <
-            code.IndexOf("[0] <= 127", StringComparison.Ordinal));
+            code.IndexOf("[0] ==", StringComparison.Ordinal) < code.IndexOf("[0] <= 127", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -323,26 +316,29 @@ public sealed partial class ExecutionCSharpRendererTests
             "I",
             ExecutionStringMatchKind.Prefix,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
         var plan = CreateProjectionPlan("Q_StringMatchCulture", "Matches", typeof(bool), match);
 
-        var code = new ExecutionCSharpRenderer()
-            .RenderMethod(plan, "ExecutePlan")
-            .NormalizeWhitespace()
-            .ToFullString();
+        var code = new ExecutionCSharpRenderer().RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
 
         Assert.AreEqual(
             1,
-            code.Split("Operators.IsOrdinalIgnoreCaseLikeCompatible()", StringSplitOptions.None).Length - 1);
+            code.Split("Operators.IsOrdinalIgnoreCaseLikeCompatible()", StringSplitOptions.None).Length - 1
+        );
         Assert.Contains("?", code);
         Assert.Contains("__musoqStringMatch1[0] <= 127", code);
         Assert.Contains("__musoqStringMatch1[0] == 'I'", code);
         Assert.Contains("(__musoqStringMatch1[0]) | 32", code);
         Assert.DoesNotContain("Operators.IsAsciiLikeSpan(__musoqStringMatch1", code);
-        Assert.Contains("Operators.LikeLegacyRegexSingleAsciiPrefix(__musoqStringMatch1, \"I%\", \"I\", TimeSpan.FromTicks(20000000L))", code);
+        Assert.Contains(
+            "Operators.LikeLegacyRegexSingleAsciiPrefix(__musoqStringMatch1, \"I%\", \"I\", TimeSpan.FromTicks(20000000L))",
+            code
+        );
         Assert.IsTrue(
-            code.IndexOf("__musoqStringMatch1[0] == 'I'", StringComparison.Ordinal) <
-            code.IndexOf("__musoqStringMatch1[0] <= 127", StringComparison.Ordinal));
+            code.IndexOf("__musoqStringMatch1[0] == 'I'", StringComparison.Ordinal)
+                < code.IndexOf("__musoqStringMatch1[0] <= 127", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -354,14 +350,16 @@ public sealed partial class ExecutionCSharpRendererTests
             "A",
             ExecutionStringMatchKind.Prefix,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
         var second = new ExecutionStringMatch(
             new ExecutionFieldRead("p", "Name", typeof(string)),
             "%Z",
             "Z",
             ExecutionStringMatchKind.Suffix,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
         var both = new ExecutionBinary(BinaryOpKind.And, first, second, typeof(bool));
 
         var code = new ExecutionCSharpRenderer()
@@ -377,17 +375,30 @@ public sealed partial class ExecutionCSharpRendererTests
     public void RenderMethod_WhenFinalRowHasMultiplePatternColumns_ShouldUseDistinctPatternLocals()
     {
         var first = new ExecutionStringMatch(
-            new ExecutionFieldRead("p", "Name", typeof(string)), "A%", "A",
-            ExecutionStringMatchKind.Prefix, ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            new ExecutionFieldRead("p", "Name", typeof(string)),
+            "A%",
+            "A",
+            ExecutionStringMatchKind.Prefix,
+            ExecutionStringMatchComparison.LikeIgnoreCase,
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
         var second = new ExecutionStringMatch(
-            first.Input, "%Z", "Z", ExecutionStringMatchKind.Suffix, first.Comparison, first.ReturnType);
-        var plan = CreateProjectionPlan("Q_MultiplePatternColumns",
-            [("First", typeof(bool), first, null), ("Second", typeof(bool), second, null)]);
+            first.Input,
+            "%Z",
+            "Z",
+            ExecutionStringMatchKind.Suffix,
+            first.Comparison,
+            first.ReturnType
+        );
+        var plan = CreateProjectionPlan(
+            "Q_MultiplePatternColumns",
+            [("First", typeof(bool), first, null), ("Second", typeof(bool), second, null)]
+        );
 
         var method = new ExecutionCSharpRenderer().RenderMethod(plan, "ExecutePlan");
 
-        var names = method.DescendantNodes()
+        var names = method
+            .DescendantNodes()
             .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.SingleVariableDesignationSyntax>()
             .Select(static designation => designation.Identifier.ValueText)
             .Where(static name => name.StartsWith("__musoqStringMatch", StringComparison.Ordinal))
@@ -408,34 +419,40 @@ public sealed partial class ExecutionCSharpRendererTests
         var prepare = new ExecutionPrepareLikeMatcher(
             new ExecutionLiteral("a%", typeof(string)),
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            matcherType);
+            matcherType
+        );
         var prepared = new ExecutionPreparedLikeMatch(
             new ExecutionLiteral("alpha", typeof(string)),
             new ExecutionVariableRead(matcherVariable),
-            boolType);
+            boolType
+        );
         var dynamic = new ExecutionDynamicLikeMatch(
             new ExecutionLiteral("alpha", typeof(string)),
             new ExecutionLiteral("a%", typeof(string)),
             new ExecutionVariableRead(cacheVariable),
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            boolType);
+            boolType
+        );
         var cacheSlot = new ExecutionLikeMatcherCacheSlot(cacheSlotType);
 
         Assert.AreEqual("Operators.PrepareLike(\"a%\", TimeSpan.FromTicks(20000000L))", Render(prepare));
         Assert.AreEqual("Operators.LikePrepared(\"alpha\", matcher)", Render(prepared));
         Assert.AreEqual("Operators.LikeDynamic(\"alpha\", \"a%\", likeCache)", Render(dynamic));
-        Assert.AreEqual("new Musoq.Evaluator.LikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))", Render(cacheSlot));
+        Assert.AreEqual(
+            "new Musoq.Evaluator.LikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))",
+            Render(cacheSlot)
+        );
         Assert.AreEqual(
             "new Musoq.Evaluator.LikeMatcherCacheSlot(true, TimeSpan.FromTicks(20000000L))",
-            Render(new ExecutionLikeMatcherCacheSlot(true, cacheSlotType)));
+            Render(new ExecutionLikeMatcherCacheSlot(true, cacheSlotType))
+        );
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(prepare));
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(prepared));
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(dynamic));
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(cacheSlot));
 
-        string Render(ExecutionExpression expression) => renderer.RenderExpression(expression)
-            .NormalizeWhitespace()
-            .ToFullString();
+        string Render(ExecutionExpression expression) =>
+            renderer.RenderExpression(expression).NormalizeWhitespace().ToFullString();
     }
 
     [TestMethod]
@@ -447,18 +464,19 @@ public sealed partial class ExecutionCSharpRendererTests
             new ExecutionFieldRead("p", "Pattern", typeof(string)),
             new ExecutionVariableRead(new ExecutionVariable("likeCache", cacheSlotType)),
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
 
-        var code = new ExecutionCSharpRenderer()
-            .RenderExpression(dynamic)
-            .NormalizeWhitespace()
-            .ToFullString();
+        var code = new ExecutionCSharpRenderer().RenderExpression(dynamic).NormalizeWhitespace().ToFullString();
         var inputRead = "p.Input";
         var patternRead = "p.Pattern";
 
         Assert.HasCount(2, code.Split(inputRead, StringSplitOptions.None));
         Assert.HasCount(2, code.Split(patternRead, StringSplitOptions.None));
-        Assert.IsLessThan(code.IndexOf(patternRead, StringComparison.Ordinal), code.IndexOf(inputRead, StringComparison.Ordinal));
+        Assert.IsLessThan(
+            code.IndexOf(patternRead, StringComparison.Ordinal),
+            code.IndexOf(inputRead, StringComparison.Ordinal)
+        );
         Assert.AreEqual("Operators.LikeDynamic(p.Input, p.Pattern, likeCache)", code);
     }
 
@@ -471,35 +489,38 @@ public sealed partial class ExecutionCSharpRendererTests
         var matcherVariable = new ExecutionVariable("matcher", matcherType);
         var cacheVariable = new ExecutionVariable("rlikeCache", cacheSlotType);
         var renderer = new ExecutionCSharpRenderer();
-        var prepare = new ExecutionPrepareRLikeMatcher(
-            new ExecutionLiteral("^a", typeof(string)),
-            matcherType);
+        var prepare = new ExecutionPrepareRLikeMatcher(new ExecutionLiteral("^a", typeof(string)), matcherType);
         var prepared = new ExecutionPreparedRLikeMatch(
             new ExecutionLiteral("alpha", typeof(string)),
             new ExecutionVariableRead(matcherVariable),
-            boolType);
+            boolType
+        );
         var dynamic = new ExecutionDynamicRLikeMatch(
             new ExecutionLiteral("alpha", typeof(string)),
             new ExecutionLiteral("^a", typeof(string)),
             new ExecutionVariableRead(cacheVariable),
-            boolType);
+            boolType
+        );
         var cacheSlot = new ExecutionRLikeMatcherCacheSlot(cacheSlotType);
 
         Assert.AreEqual("Operators.PrepareRLike(\"^a\", TimeSpan.FromTicks(20000000L))", Render(prepare));
         Assert.AreEqual("Operators.RLikePrepared(\"alpha\", matcher)", Render(prepared));
         Assert.AreEqual("Operators.RLikeDynamic(\"alpha\", \"^a\", rlikeCache)", Render(dynamic));
-        Assert.AreEqual("new Musoq.Evaluator.RLikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))", Render(cacheSlot));
+        Assert.AreEqual(
+            "new Musoq.Evaluator.RLikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))",
+            Render(cacheSlot)
+        );
         Assert.AreEqual(
             "new Musoq.Evaluator.RLikeMatcherCacheSlot(true, TimeSpan.FromTicks(20000000L))",
-            Render(new ExecutionRLikeMatcherCacheSlot(true, cacheSlotType)));
+            Render(new ExecutionRLikeMatcherCacheSlot(true, cacheSlotType))
+        );
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(prepare));
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(prepared));
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(dynamic));
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderExpression(cacheSlot));
 
-        string Render(ExecutionExpression expression) => renderer.RenderExpression(expression)
-            .NormalizeWhitespace()
-            .ToFullString();
+        string Render(ExecutionExpression expression) =>
+            renderer.RenderExpression(expression).NormalizeWhitespace().ToFullString();
     }
 
     [TestMethod]
@@ -511,12 +532,10 @@ public sealed partial class ExecutionCSharpRendererTests
             "literal",
             ExecutionStringMatchKind.Exact,
             ExecutionStringMatchComparison.Ordinal,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
 
-        var code = new ExecutionCSharpRenderer()
-            .RenderExpression(match)
-            .NormalizeWhitespace()
-            .ToFullString();
+        var code = new ExecutionCSharpRenderer().RenderExpression(match).NormalizeWhitespace().ToFullString();
 
         Assert.Contains("string.Equals(__musoqStringMatch1, \"literal\", StringComparison.Ordinal)", code);
         Assert.IsFalse(code.Contains("__musoqStringMatch1.Length", StringComparison.Ordinal));

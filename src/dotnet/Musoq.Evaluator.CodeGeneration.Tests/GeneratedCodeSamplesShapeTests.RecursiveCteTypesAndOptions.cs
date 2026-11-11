@@ -56,7 +56,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var memberIndex = execution.IndexOf("RecursiveMember", setupIndex, StringComparison.Ordinal);
         var hashCodeIndex = code.IndexOf(
             "var cte1Invariant0Hash = new Dictionary<int, HashJoinBucket<Cte1Invariant0Row0>>",
-            StringComparison.Ordinal);
+            StringComparison.Ordinal
+        );
         var loopIndex = code.IndexOf("while (cte1CurrentFrontier.Count > 0)", StringComparison.Ordinal);
 
         Assert.IsGreaterThanOrEqualTo(0, setupIndex);
@@ -76,7 +77,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var execution = ReadExecutionPlan("Q222_RecursiveCteParallelSiblings.cs");
         var code = ReadGeneratedCode("Q222_RecursiveCteParallelSiblings.cs");
-        var parallelIndex = execution.IndexOf("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", StringComparison.Ordinal);
+        var parallelIndex = execution.IndexOf(
+            "ParallelBlock [cte-level-0, tasks 2, maxDegree 2]",
+            StringComparison.Ordinal
+        );
         var recursiveIndex = execution.IndexOf("RecursiveCte [reachable;", StringComparison.Ordinal);
         var invokeIndex = code.IndexOf("Parallel.Invoke(", StringComparison.Ordinal);
         var loopIndex = code.IndexOf("while (cte2CurrentFrontier.Count > 0)", StringComparison.Ordinal);
@@ -86,22 +90,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsGreaterThanOrEqualTo(0, invokeIndex);
         Assert.IsGreaterThan(invokeIndex, loopIndex);
         Assert.AreEqual(1, CountText(code, "while (cte2CurrentFrontier.Count > 0)"));
-        Assert.IsFalse(
-            execution[parallelIndex..recursiveIndex].Contains("RecursiveCte [", StringComparison.Ordinal));
+        Assert.IsFalse(execution[parallelIndex..recursiveIndex].Contains("RecursiveCte [", StringComparison.Ordinal));
     }
 
-    private static void AssertRecursiveLimits(
-        string fileName,
-        int maxIterations,
-        int maxRows,
-        int maxSnapshotRows)
+    private static void AssertRecursiveLimits(string fileName, int maxIterations, int maxRows, int maxSnapshotRows)
     {
         var execution = ReadExecutionPlan(fileName);
         var code = ReadGeneratedCode(fileName);
 
         Assert.Contains(
             $"max iterations {maxIterations}; max rows {maxRows}; max snapshot rows {maxSnapshotRows}",
-            execution);
+            execution
+        );
         Assert.Contains($"if (__cte0Iteration >= {maxIterations})", code);
         Assert.AreEqual(2, CountText(code, $">= {maxRows}"), fileName);
     }

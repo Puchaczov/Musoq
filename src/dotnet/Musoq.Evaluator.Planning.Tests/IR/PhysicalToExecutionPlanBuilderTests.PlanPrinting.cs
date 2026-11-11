@@ -14,6 +14,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             newline,
             printed
                 .Split(["\r\n", "\n"], StringSplitOptions.None)
-                .Where(static line => !line.TrimStart().StartsWith("PhaseBoundary [", StringComparison.Ordinal)));
+                .Where(static line => !line.TrimStart().StartsWith("PhaseBoundary [", StringComparison.Ordinal))
+        );
     }
 }

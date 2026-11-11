@@ -147,7 +147,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         "src/dotnet/Musoq.Evaluator.Interpretation.Tests/BinaryOrTextual.CoreBinaryTests.MixedComposition.cs",
         "src/dotnet/Musoq.Evaluator.Interpretation.Tests/BinaryOrTextual.CoreBinaryTests.NestedSchemas.cs",
         "src/dotnet/Musoq.Evaluator.Interpretation.Tests/BinaryOrTextual.SchemaFeaturesTests.AggregationAndGrouping.cs",
-        "src/dotnet/Musoq.Evaluator.Interpretation.Tests/BinaryOrTextual.AdvancedFormatsTests.RealWorldBinary.cs"
+        "src/dotnet/Musoq.Evaluator.Interpretation.Tests/BinaryOrTextual.AdvancedFormatsTests.RealWorldBinary.cs",
     ];
 
     [TestMethod]
@@ -175,16 +175,24 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "table[",
             "Assert.IsNotNull(table)",
             "Convert.",
-            "CollectionAssert"
+            "CollectionAssert",
         };
         var forbiddenRegexes = new[]
         {
-            new Regex(@"(?s)\btable\s*(?:\r?\n\s*)?\.\s*(?:Select|Where|Any|All|First|FirstOrDefault|ElementAt)\b", RegexOptions.Compiled),
-            new Regex(@"(?m)^\s*Assert\.(?:Contains|DoesNotContain)\s*\([^\r\n;]*(?:\btable\b|\brows\b|\bnames\b|\bvalues\b)", RegexOptions.Compiled)
+            new Regex(
+                @"(?s)\btable\s*(?:\r?\n\s*)?\.\s*(?:Select|Where|Any|All|First|FirstOrDefault|ElementAt)\b",
+                RegexOptions.Compiled
+            ),
+            new Regex(
+                @"(?m)^\s*Assert\.(?:Contains|DoesNotContain)\s*\([^\r\n;]*(?:\btable\b|\brows\b|\bnames\b|\bvalues\b)",
+                RegexOptions.Compiled
+            ),
         };
 
         var offenders = StrictComplexResultFiles
-            .Select(relativePath => (relativePath, text: File.ReadAllText(ToAbsolutePath(repositoryRoot, relativePath))))
+            .Select(relativePath =>
+                (relativePath, text: File.ReadAllText(ToAbsolutePath(repositoryRoot, relativePath)))
+            )
             .SelectMany(item =>
             {
                 var issues = new List<string>();
@@ -195,13 +203,17 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
                 if (!item.text.Contains("TableMaterializationTestHelper.AssertRows", StringComparison.Ordinal))
                     issues.Add("missing exact row assertion");
 
-                issues.AddRange(forbiddenPatterns
-                    .Where(pattern => item.text.Contains(pattern, StringComparison.Ordinal))
-                    .Select(pattern => $"contains '{pattern}'"));
+                issues.AddRange(
+                    forbiddenPatterns
+                        .Where(pattern => item.text.Contains(pattern, StringComparison.Ordinal))
+                        .Select(pattern => $"contains '{pattern}'")
+                );
 
-                issues.AddRange(forbiddenRegexes
-                    .Where(regex => regex.IsMatch(item.text))
-                    .Select(regex => $"matches partial-result pattern '{regex}'"));
+                issues.AddRange(
+                    forbiddenRegexes
+                        .Where(regex => regex.IsMatch(item.text))
+                        .Select(regex => $"matches partial-result pattern '{regex}'")
+                );
 
                 return issues.Select(issue => $"{item.relativePath}: {issue}");
             })
@@ -209,7 +221,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         Assert.IsEmpty(
             offenders,
-            "Strict complex-query result families must keep complete schema and row assertions: " +
-            string.Join(", ", offenders));
+            "Strict complex-query result families must keep complete schema and row assertions: "
+                + string.Join(", ", offenders)
+        );
     }
 }

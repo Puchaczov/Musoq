@@ -303,8 +303,10 @@ public class LexerTests
         while (lexer.Current().TokenType != TokenType.EndOfFile)
         {
             var token = lexer.Current();
-            if (token.TokenType == TokenType.LeftParenthesis) leftParenCount++;
-            if (token.TokenType == TokenType.RightParenthesis) rightParenCount++;
+            if (token.TokenType == TokenType.LeftParenthesis)
+                leftParenCount++;
+            if (token.TokenType == TokenType.RightParenthesis)
+                rightParenCount++;
             lexer.Next();
         }
 
@@ -322,10 +324,12 @@ public class LexerTests
         while (lexer.Current().TokenType != TokenType.EndOfFile)
         {
             var token = lexer.Current();
-            if (token.TokenType == TokenType.Plus ||
-                token.TokenType == TokenType.Hyphen ||
-                token.TokenType == TokenType.Star ||
-                token.TokenType == TokenType.FSlash)
+            if (
+                token.TokenType == TokenType.Plus
+                || token.TokenType == TokenType.Hyphen
+                || token.TokenType == TokenType.Star
+                || token.TokenType == TokenType.FSlash
+            )
                 operatorCount++;
             lexer.Next();
         }
@@ -346,16 +350,16 @@ public class LexerTests
             token = lexer.Next();
         }
 
-
         var tokenString = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
-
 
         var nonWhitespaceTokens = tokens.Where(t => t.TokenType != TokenType.WhiteSpace).ToList();
         Assert.HasCount(3, nonWhitespaceTokens, $"Expected 3 non-whitespace tokens, got: {tokenString}");
 
-
-        Assert.AreEqual(TokenType.Ampersand, nonWhitespaceTokens[1].TokenType,
-            $"Expected Ampersand but got {nonWhitespaceTokens[1].TokenType}:{nonWhitespaceTokens[1].Value}. All tokens: {tokenString}");
+        Assert.AreEqual(
+            TokenType.Ampersand,
+            nonWhitespaceTokens[1].TokenType,
+            $"Expected Ampersand but got {nonWhitespaceTokens[1].TokenType}:{nonWhitespaceTokens[1].Value}. All tokens: {tokenString}"
+        );
     }
 
     [TestMethod]
@@ -372,15 +376,22 @@ public class LexerTests
             token = lexer.Next();
         }
 
-
-        Assert.HasCount(5, tokens,
-            $"Expected 5 tokens but got {tokens.Count}: {string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"))}");
+        Assert.HasCount(
+            5,
+            tokens,
+            $"Expected 5 tokens but got {tokens.Count}: {string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"))}"
+        );
         Assert.AreEqual(TokenType.LeftParenthesis, tokens[0].TokenType);
 
-        Assert.IsTrue(tokens[1].TokenType == TokenType.Word || tokens[1].TokenType == TokenType.Identifier,
-            $"Expected Word or Identifier but got {tokens[1].TokenType}:{tokens[1].Value}");
-        Assert.AreEqual(TokenType.Ampersand, tokens[2].TokenType,
-            $"Expected Ampersand but got {tokens[2].TokenType}:{tokens[2].Value}");
+        Assert.IsTrue(
+            tokens[1].TokenType == TokenType.Word || tokens[1].TokenType == TokenType.Identifier,
+            $"Expected Word or Identifier but got {tokens[1].TokenType}:{tokens[1].Value}"
+        );
+        Assert.AreEqual(
+            TokenType.Ampersand,
+            tokens[2].TokenType,
+            $"Expected Ampersand but got {tokens[2].TokenType}:{tokens[2].Value}"
+        );
         Assert.AreEqual(TokenType.HexadecimalInteger, tokens[3].TokenType);
         Assert.AreEqual(TokenType.RightParenthesis, tokens[4].TokenType);
     }
@@ -398,34 +409,51 @@ public class LexerTests
             token = lexer.Next();
         }
 
-
         var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
 
-
         Assert.HasCount(7, tokens, $"Expected 7 tokens but got {tokens.Count}: {tokenStr}");
-        Assert.IsTrue(tokens[0].TokenType == TokenType.Word || tokens[0].TokenType == TokenType.Identifier,
-            $"Token 0: Expected Word or Identifier but got {tokens[0].TokenType}:{tokens[0].Value}");
+        Assert.IsTrue(
+            tokens[0].TokenType == TokenType.Word || tokens[0].TokenType == TokenType.Identifier,
+            $"Token 0: Expected Word or Identifier but got {tokens[0].TokenType}:{tokens[0].Value}"
+        );
         Assert.AreEqual("Wrapper", tokens[0].Value);
 
-        Assert.AreEqual(TokenType.Less, tokens[1].TokenType,
-            $"Token 1: Expected Less but got {tokens[1].TokenType}:{tokens[1].Value}");
+        Assert.AreEqual(
+            TokenType.Less,
+            tokens[1].TokenType,
+            $"Token 1: Expected Less but got {tokens[1].TokenType}:{tokens[1].Value}"
+        );
 
-        Assert.IsTrue(tokens[2].TokenType == TokenType.Word || tokens[2].TokenType == TokenType.Identifier,
-            $"Token 2: Expected Word or Identifier but got {tokens[2].TokenType}:{tokens[2].Value}");
+        Assert.IsTrue(
+            tokens[2].TokenType == TokenType.Word || tokens[2].TokenType == TokenType.Identifier,
+            $"Token 2: Expected Word or Identifier but got {tokens[2].TokenType}:{tokens[2].Value}"
+        );
         Assert.AreEqual("Data", tokens[2].Value);
 
-        Assert.AreEqual(TokenType.Greater, tokens[3].TokenType,
-            $"Token 3: Expected Greater but got {tokens[3].TokenType}:{tokens[3].Value}");
+        Assert.AreEqual(
+            TokenType.Greater,
+            tokens[3].TokenType,
+            $"Token 3: Expected Greater but got {tokens[3].TokenType}:{tokens[3].Value}"
+        );
 
-        Assert.AreEqual(TokenType.LeftSquareBracket, tokens[4].TokenType,
-            $"Token 4: Expected LeftSquareBracket but got {tokens[4].TokenType}:{tokens[4].Value}");
+        Assert.AreEqual(
+            TokenType.LeftSquareBracket,
+            tokens[4].TokenType,
+            $"Token 4: Expected LeftSquareBracket but got {tokens[4].TokenType}:{tokens[4].Value}"
+        );
 
-        Assert.AreEqual(TokenType.Integer, tokens[5].TokenType,
-            $"Token 5: Expected Integer but got {tokens[5].TokenType}:{tokens[5].Value}");
+        Assert.AreEqual(
+            TokenType.Integer,
+            tokens[5].TokenType,
+            $"Token 5: Expected Integer but got {tokens[5].TokenType}:{tokens[5].Value}"
+        );
         Assert.AreEqual("5", tokens[5].Value);
 
-        Assert.AreEqual(TokenType.RightSquareBracket, tokens[6].TokenType,
-            $"Token 6: Expected RightSquareBracket but got {tokens[6].TokenType}:{tokens[6].Value}");
+        Assert.AreEqual(
+            TokenType.RightSquareBracket,
+            tokens[6].TokenType,
+            $"Token 6: Expected RightSquareBracket but got {tokens[6].TokenType}:{tokens[6].Value}"
+        );
     }
 
     [TestMethod]
@@ -444,13 +472,22 @@ public class LexerTests
         var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}(type={t.GetType().Name})"));
 
         Assert.HasCount(3, tokens, $"Expected 3 tokens but got {tokens.Count}: {tokenStr}");
-        Assert.AreEqual(TokenType.LeftSquareBracket, tokens[0].TokenType,
-            $"Token 0: Expected LeftSquareBracket but got {tokens[0].TokenType}:{tokens[0].Value}");
-        Assert.AreEqual(TokenType.Integer, tokens[1].TokenType,
-            $"Token 1: Expected Integer but got {tokens[1].TokenType}:{tokens[1].Value}");
+        Assert.AreEqual(
+            TokenType.LeftSquareBracket,
+            tokens[0].TokenType,
+            $"Token 0: Expected LeftSquareBracket but got {tokens[0].TokenType}:{tokens[0].Value}"
+        );
+        Assert.AreEqual(
+            TokenType.Integer,
+            tokens[1].TokenType,
+            $"Token 1: Expected Integer but got {tokens[1].TokenType}:{tokens[1].Value}"
+        );
         Assert.AreEqual("5", tokens[1].Value);
-        Assert.AreEqual(TokenType.RightSquareBracket, tokens[2].TokenType,
-            $"Token 2: Expected RightSquareBracket but got {tokens[2].TokenType}:{tokens[2].Value}");
+        Assert.AreEqual(
+            TokenType.RightSquareBracket,
+            tokens[2].TokenType,
+            $"Token 2: Expected RightSquareBracket but got {tokens[2].TokenType}:{tokens[2].Value}"
+        );
     }
 
     [TestMethod]
@@ -467,7 +504,6 @@ public class LexerTests
         }
 
         var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
-
 
         Assert.HasCount(3, tokens, $"Expected 3 tokens but got {tokens.Count}: {tokenStr}");
         Assert.AreEqual(TokenType.Identifier, tokens[0].TokenType, $"Token 0: Expected Identifier but got {tokenStr}");
@@ -492,7 +528,6 @@ public class LexerTests
 
         var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
 
-
         Assert.HasCount(1, tokens, $"Expected 1 token but got {tokens.Count}: {tokenStr}");
     }
 
@@ -510,7 +545,6 @@ public class LexerTests
         }
 
         var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
-
 
         Assert.HasCount(6, tokens, $"Expected 6 tokens but got {tokens.Count}: {tokenStr}");
     }
@@ -530,10 +564,12 @@ public class LexerTests
 
         var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
 
-
         Assert.HasCount(1, tokens, $"Expected 1 token but got {tokens.Count}: {tokenStr}");
-        Assert.AreEqual(TokenType.QuestionMark, tokens[0].TokenType,
-            $"Token 0: Expected QuestionMark but got {tokenStr}");
+        Assert.AreEqual(
+            TokenType.QuestionMark,
+            tokens[0].TokenType,
+            $"Token 0: Expected QuestionMark but got {tokenStr}"
+        );
         Assert.AreEqual("?", tokens[0].Value, $"Token 0: Expected value '?' but got '{tokens[0].Value}'");
     }
 
@@ -552,11 +588,13 @@ public class LexerTests
 
         var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
 
-
         Assert.HasCount(2, tokens, $"Expected 2 tokens but got {tokens.Count}: {tokenStr}");
         Assert.AreEqual(TokenType.Whitespace, tokens[0].TokenType, $"Token 0: Expected Whitespace but got {tokenStr}");
-        Assert.AreEqual(TokenType.QuestionMark, tokens[1].TokenType,
-            $"Token 1: Expected QuestionMark but got {tokenStr}");
+        Assert.AreEqual(
+            TokenType.QuestionMark,
+            tokens[1].TokenType,
+            $"Token 1: Expected QuestionMark but got {tokenStr}"
+        );
         Assert.AreEqual("?", tokens[1].Value, $"Token 1: Expected value '?' but got '{tokens[1].Value}'");
     }
 
@@ -566,24 +604,33 @@ public class LexerTests
         var lexer = new Lexer("l.End.X", true);
 
         var token = lexer.Next();
-        Assert.AreEqual(TokenType.Identifier, token.TokenType,
-            $"First token should be Identifier, got {token.TokenType}");
+        Assert.AreEqual(
+            TokenType.Identifier,
+            token.TokenType,
+            $"First token should be Identifier, got {token.TokenType}"
+        );
         Assert.AreEqual("l", token.Value);
 
         token = lexer.Next();
         Assert.AreEqual(TokenType.Dot, token.TokenType, $"Second token should be Dot, got {token.TokenType}");
 
         token = lexer.Next();
-        Assert.AreEqual(TokenType.Property, token.TokenType,
-            $"Third token 'End' should be Property (not End keyword), got {token.TokenType}:{token.Value}");
+        Assert.AreEqual(
+            TokenType.Property,
+            token.TokenType,
+            $"Third token 'End' should be Property (not End keyword), got {token.TokenType}:{token.Value}"
+        );
         Assert.AreEqual("End", token.Value);
 
         token = lexer.Next();
         Assert.AreEqual(TokenType.Dot, token.TokenType, $"Fourth token should be Dot, got {token.TokenType}");
 
         token = lexer.Next();
-        Assert.AreEqual(TokenType.Property, token.TokenType,
-            $"Fifth token 'X' should be Property, got {token.TokenType}");
+        Assert.AreEqual(
+            TokenType.Property,
+            token.TokenType,
+            $"Fifth token 'X' should be Property, got {token.TokenType}"
+        );
         Assert.AreEqual("X", token.Value);
     }
 

@@ -23,18 +23,21 @@ public class TextSchemaNode : Node
     /// <param name="name">The schema name.</param>
     /// <param name="fields">The field definitions.</param>
     /// <param name="extends">Optional base schema name for inheritance.</param>
-    public TextSchemaNode(string name, TextFieldDefinitionNode[] fields, string? extends = null,
-        TextSpan extendsSpan = default, IReadOnlyList<SchemaComment>? comments = null)
+    public TextSchemaNode(
+        string name,
+        TextFieldDefinitionNode[] fields,
+        string? extends = null,
+        TextSpan extendsSpan = default,
+        IReadOnlyList<SchemaComment>? comments = null
+    )
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         Extends = extends;
         ExtendsSpan = extendsSpan;
-        Comments = comments != null ? [..comments] : [];
+        Comments = comments != null ? [.. comments] : [];
 
-        var fieldsId = fields.Length == 0
-            ? string.Empty
-            : string.Concat(fields.Select(f => f.Id));
+        var fieldsId = fields.Length == 0 ? string.Empty : string.Concat(fields.Select(f => f.Id));
         var extendsId = extends ?? string.Empty;
         Id = $"{nameof(TextSchemaNode)}{name}{extendsId}{fieldsId}";
     }
@@ -100,7 +103,8 @@ public class TextSchemaNode : Node
             builder.Append("    ");
             builder.Append(Fields[i].ToString());
 
-            if (i < Fields.Length - 1) builder.Append(',');
+            if (i < Fields.Length - 1)
+                builder.Append(',');
 
             builder.AppendLine();
         }

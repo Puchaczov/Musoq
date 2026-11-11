@@ -205,7 +205,8 @@ public class ParserSchemaAndClausesTests
     [TestMethod]
     public void SchemaWithoutHash_ComplexQuery_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             select a.Name, b.Value, Count(a.Name)
             from schema.entities() a
             inner join other.data() b on a.Id = b.Id
@@ -393,7 +394,8 @@ public class ParserSchemaAndClausesTests
     [TestMethod]
     public void Between_InCrossApply_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             select c.col1
             from #some.a() a
             cross apply #some.b(c.x) c
@@ -447,7 +449,8 @@ public class ParserSchemaAndClausesTests
     [TestMethod]
     public void CountDistinct_WithCrossApply_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             select Count(distinct t.Value) as UniqueTagCount
             from #some.a() p
             cross apply p.Tags t";

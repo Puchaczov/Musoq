@@ -8,48 +8,49 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class ValuesFromTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void ValuesSource_ProjectAndFilter_ShouldWork()
     {
-        const string query = @"
-from values {
-    ( Name: 'Newtonsoft.Json', Approved: true, Score: 10 ),
-    ( Name: 'Legacy.Package', Approved: false, Score: 20 )
-} packages
-where packages.Approved = false
-select packages.Name, packages.Score";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Name: 'Newtonsoft.Json', Approved: true, Score: 10 ),\n"
+            + "    ( Name: 'Legacy.Package', Approved: false, Score: 20 )\n"
+            + "} packages\n"
+            + "where packages.Approved = false\n"
+            + "select packages.Name, packages.Score"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Score", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Legacy.Package", 20]);
     }
 
     [TestMethod]
     public void ValuesSource_JoinWithSchemaSource_ShouldWork()
     {
-        const string query = @"
-select entity.Name, policy.Approved
-from #A.Entities() entity
-inner join values {
-    ( Name: 'Newtonsoft.Json', Approved: true ),
-    ( Name: 'Legacy.Package', Approved: false )
-} policy on entity.Name = policy.Name
-where policy.Approved = false";
+        const string query = (
+            "\n"
+            + "select entity.Name, policy.Approved\n"
+            + "from #A.Entities() entity\n"
+            + "inner join values {\n"
+            + "    ( Name: 'Newtonsoft.Json', Approved: true ),\n"
+            + "    ( Name: 'Legacy.Package', Approved: false )\n"
+            + "} policy on entity.Name = policy.Name\n"
+            + "where policy.Approved = false"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Newtonsoft.Json"),
                     new BasicEntity("Legacy.Package"),
-                    new BasicEntity("Other.Package")
+                    new BasicEntity("Other.Package"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -64,18 +65,20 @@ where policy.Approved = false";
     [TestMethod]
     public void ValuesSource_InCteCanBeReferencedMultipleTimes_ShouldWork()
     {
-        const string query = @"
-with policy as (
-    from values {
-        ( Name: 'Newtonsoft.Json', Approved: true ),
-        ( Name: 'Legacy.Package', Approved: false )
-    } p
-    select p.Name, p.Approved
-)
-select leftPolicy.Name, rightPolicy.Approved
-from policy leftPolicy
-inner join policy rightPolicy on leftPolicy.Name = rightPolicy.Name
-where rightPolicy.Approved = false";
+        const string query = (
+            "\n"
+            + "with policy as (\n"
+            + "    from values {\n"
+            + "        ( Name: 'Newtonsoft.Json', Approved: true ),\n"
+            + "        ( Name: 'Legacy.Package', Approved: false )\n"
+            + "    } p\n"
+            + "    select p.Name, p.Approved\n"
+            + ")\n"
+            + "select leftPolicy.Name, rightPolicy.Approved\n"
+            + "from policy leftPolicy\n"
+            + "inner join policy rightPolicy on leftPolicy.Name = rightPolicy.Name\n"
+            + "where rightPolicy.Approved = false"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -89,16 +92,18 @@ where rightPolicy.Approved = false";
     [TestMethod]
     public void ValuesSource_SelectFirstOrderBySkipTake_ShouldWork()
     {
-        const string query = @"
-select packages.Name, packages.Score
-from values {
-    ( Name: 'Newtonsoft.Json', Score: 10 ),
-    ( Name: 'Legacy.Package', Score: 20 ),
-    ( Name: 'Modern.Package', Score: 30 )
-} packages
-order by packages.Score desc
-skip 1
-take 1";
+        const string query = (
+            "\n"
+            + "select packages.Name, packages.Score\n"
+            + "from values {\n"
+            + "    ( Name: 'Newtonsoft.Json', Score: 10 ),\n"
+            + "    ( Name: 'Legacy.Package', Score: 20 ),\n"
+            + "    ( Name: 'Modern.Package', Score: 30 )\n"
+            + "} packages\n"
+            + "order by packages.Score desc\n"
+            + "skip 1\n"
+            + "take 1"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -111,13 +116,15 @@ take 1";
     [TestMethod]
     public void ValuesSource_WithNulls_ShouldInferNullableValueType()
     {
-        const string query = @"
-select packages.Name, packages.Score
-from values {
-    ( Name: 'Newtonsoft.Json', Score: null ),
-    ( Name: 'Legacy.Package', Score: 20 )
-} packages
-order by packages.Name";
+        const string query = (
+            "\n"
+            + "select packages.Name, packages.Score\n"
+            + "from values {\n"
+            + "    ( Name: 'Newtonsoft.Json', Score: null ),\n"
+            + "    ( Name: 'Legacy.Package', Score: 20 )\n"
+            + "} packages\n"
+            + "order by packages.Name"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -132,13 +139,15 @@ order by packages.Name";
     [TestMethod]
     public void ValuesSource_WithUnsignedIntegerSuffix_ShouldInferUInt()
     {
-        const string query = @"
-select scores.Name, scores.Score
-from values {
-    ( Name: 'first', Score: 10ui ),
-    ( Name: 'second', Score: 20ui )
-} scores
-order by scores.Score";
+        const string query = (
+            "\n"
+            + "select scores.Name, scores.Score\n"
+            + "from values {\n"
+            + "    ( Name: 'first', Score: 10ui ),\n"
+            + "    ( Name: 'second', Score: 20ui )\n"
+            + "} scores\n"
+            + "order by scores.Score"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
@@ -151,51 +160,53 @@ order by scores.Score";
     [TestMethod]
     public void ValuesSource_WithSupportedLiteralKinds_ShouldInferExactTypes()
     {
-        const string query = @"
-select literals.PlainInt,
-       literals.IntSuffix,
-       literals.UIntSuffix,
-       literals.LongSuffix,
-       literals.ULongSuffix,
-       literals.ShortSuffix,
-       literals.UShortSuffix,
-       literals.SByteSuffix,
-       literals.ByteSuffix,
-       literals.DecimalSuffix,
-       literals.DecimalPoint,
-       literals.DecimalPointSuffix,
-       literals.HexValue,
-       literals.BinaryValue,
-       literals.OctalValue,
-       literals.NegativeInt,
-       literals.NegativeDecimal,
-       literals.StringValue,
-       literals.BooleanValue,
-       literals.NullValue
-from values {
-    (
-        PlainInt: 10,
-        IntSuffix: 11i,
-        UIntSuffix: 12ui,
-        LongSuffix: 13l,
-        ULongSuffix: 14ul,
-        ShortSuffix: 15s,
-        UShortSuffix: 16us,
-        SByteSuffix: 17b,
-        ByteSuffix: 18ub,
-        DecimalSuffix: 19d,
-        DecimalPoint: 20.5,
-        DecimalPointSuffix: 21.5d,
-        HexValue: 0x10,
-        BinaryValue: 0b1010,
-        OctalValue: 0o17,
-        NegativeInt: -22,
-        NegativeDecimal: -23.5,
-        StringValue: 'literal',
-        BooleanValue: true,
-        NullValue: null
-    )
-} literals";
+        const string query = (
+            "\n"
+            + "select literals.PlainInt,\n"
+            + "       literals.IntSuffix,\n"
+            + "       literals.UIntSuffix,\n"
+            + "       literals.LongSuffix,\n"
+            + "       literals.ULongSuffix,\n"
+            + "       literals.ShortSuffix,\n"
+            + "       literals.UShortSuffix,\n"
+            + "       literals.SByteSuffix,\n"
+            + "       literals.ByteSuffix,\n"
+            + "       literals.DecimalSuffix,\n"
+            + "       literals.DecimalPoint,\n"
+            + "       literals.DecimalPointSuffix,\n"
+            + "       literals.HexValue,\n"
+            + "       literals.BinaryValue,\n"
+            + "       literals.OctalValue,\n"
+            + "       literals.NegativeInt,\n"
+            + "       literals.NegativeDecimal,\n"
+            + "       literals.StringValue,\n"
+            + "       literals.BooleanValue,\n"
+            + "       literals.NullValue\n"
+            + "from values {\n"
+            + "    (\n"
+            + "        PlainInt: 10,\n"
+            + "        IntSuffix: 11i,\n"
+            + "        UIntSuffix: 12ui,\n"
+            + "        LongSuffix: 13l,\n"
+            + "        ULongSuffix: 14ul,\n"
+            + "        ShortSuffix: 15s,\n"
+            + "        UShortSuffix: 16us,\n"
+            + "        SByteSuffix: 17b,\n"
+            + "        ByteSuffix: 18ub,\n"
+            + "        DecimalSuffix: 19d,\n"
+            + "        DecimalPoint: 20.5,\n"
+            + "        DecimalPointSuffix: 21.5d,\n"
+            + "        HexValue: 0x10,\n"
+            + "        BinaryValue: 0b1010,\n"
+            + "        OctalValue: 0o17,\n"
+            + "        NegativeInt: -22,\n"
+            + "        NegativeDecimal: -23.5,\n"
+            + "        StringValue: 'literal',\n"
+            + "        BooleanValue: true,\n"
+            + "        NullValue: null\n"
+            + "    )\n"
+            + "} literals"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);

@@ -11,57 +11,68 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     [TestMethod]
     public void Spec_SetOp_UnionAll()
     {
-        var query = @"
+        var query =
+            @"
             select Name from #A.Entities()
             union all (Name)
             select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob")] },
-            { "#B", [new BasicEntity("Bob"), new BasicEntity("Charlie")] }
+            { "#B", [new BasicEntity("Bob"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { "Alice" }, new object?[] { "Bob" },
-            new object?[] { "Bob" }, new object?[] { "Charlie" });
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { "Alice" },
+            new object?[] { "Bob" },
+            new object?[] { "Bob" },
+            new object?[] { "Charlie" }
+        );
     }
 
     [TestMethod]
     public void Spec_SetOp_Union_ShouldDedup()
     {
-        var query = @"
+        var query =
+            @"
             select Name from #A.Entities()
             union (Name)
             select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob")] },
-            { "#B", [new BasicEntity("Bob"), new BasicEntity("Charlie")] }
+            { "#B", [new BasicEntity("Bob"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { "Alice" }, new object?[] { "Bob" }, new object?[] { "Charlie" });
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { "Alice" },
+            new object?[] { "Bob" },
+            new object?[] { "Charlie" }
+        );
     }
 
     [TestMethod]
     public void Spec_SetOp_Except()
     {
-        var query = @"
+        var query =
+            @"
             select Name from #A.Entities()
             except (Name)
             select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob")] },
-            { "#B", [new BasicEntity("Bob"), new BasicEntity("Charlie")] }
+            { "#B", [new BasicEntity("Bob"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -74,14 +85,15 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     [TestMethod]
     public void Spec_SetOp_Intersect()
     {
-        var query = @"
+        var query =
+            @"
             select Name from #A.Entities()
             intersect (Name)
             select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob")] },
-            { "#B", [new BasicEntity("Bob"), new BasicEntity("Charlie")] }
+            { "#B", [new BasicEntity("Bob"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -101,21 +113,19 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() order by Name asc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Charlie"),
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob")
-                ]
-            }
+            { "#A", [new BasicEntity("Charlie"), new BasicEntity("Alice"), new BasicEntity("Bob")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Alice" }, new object?[] { "Bob" }, new object?[] { "Charlie" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Alice" },
+            new object?[] { "Bob" },
+            new object?[] { "Charlie" }
+        );
     }
 
     [TestMethod]
@@ -124,21 +134,19 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() order by Name desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob"),
-                    new BasicEntity("Charlie")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Charlie" }, new object?[] { "Bob" }, new object?[] { "Alice" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Charlie" },
+            new object?[] { "Bob" },
+            new object?[] { "Alice" }
+        );
     }
 
     [TestMethod]
@@ -147,13 +155,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob"),
-                    new BasicEntity("Charlie")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -169,21 +171,14 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() take 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob"),
-                    new BasicEntity("Charlie")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Alice" }, new object?[] { "Bob" });
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "Alice" }, new object?[] { "Bob" });
     }
 
     [TestMethod]
@@ -192,7 +187,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() skip 100";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob")] }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -208,13 +203,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() order by Name skip 1 take 1";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob"),
-                    new BasicEntity("Charlie")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -231,53 +220,50 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     [TestMethod]
     public void Spec_CTE_SimpleQuery()
     {
-        var query = @"
+        var query =
+            @"
             with p as (
                 select City, Country from #A.Entities()
             )
             select Country, City from p";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [new BasicEntity("a") { City = "WARSAW", Country = "POLAND" }]
-            }
+            { "#A", [new BasicEntity("a") { City = "WARSAW", Country = "POLAND" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Country", typeof(string)), ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "POLAND", "WARSAW" });
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "POLAND", "WARSAW" });
     }
 
     [TestMethod]
     public void Spec_CTE_StarExpansion()
     {
-        var query = @"
+        var query =
+            @"
             with p as (
                 select City, Country from #A.Entities()
             )
             select * from p";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("a") { City = "WARSAW", Country = "POLAND" }] }
+            { "#A", [new BasicEntity("a") { City = "WARSAW", Country = "POLAND" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "WARSAW", "POLAND" });
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "WARSAW", "POLAND" });
     }
 
     [TestMethod]
     public void Spec_CTE_WithJoin()
     {
-        var query = @"
+        var query =
+            @"
             with p as (select City, Country from #A.Entities())
             select p.City, b.Population
             from p
@@ -285,22 +271,21 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("a") { City = "NYC", Country = "USA" }] },
-            { "#B", [new BasicEntity("b") { City = "NYC", Population = 8000000m }] }
+            { "#B", [new BasicEntity("b") { City = "NYC", Population = 8000000m }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Population", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "NYC", 8000000m });
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "NYC", 8000000m });
     }
 
     [TestMethod]
     public void Spec_CTE_WithSetOperation()
     {
-        var query = @"
+        var query =
+            @"
             with combined as (
                 select Name from #A.Entities()
                 union all (Name)
@@ -310,15 +295,14 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Alice")] },
-            { "#B", [new BasicEntity("Bob")] }
+            { "#B", [new BasicEntity("Bob")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Alice" }, new object?[] { "Bob" });
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "Alice" }, new object?[] { "Bob" });
     }
 
     #endregion
@@ -331,16 +315,14 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var query = "from #A.Entities() select City, Country";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("a") { City = "WARSAW", Country = "POLAND" }] }
+            { "#A", [new BasicEntity("a") { City = "WARSAW", Country = "POLAND" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "WARSAW", "POLAND" });
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "WARSAW", "POLAND" });
     }
 
     [TestMethod]
@@ -350,20 +332,19 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { City = "WARSAW", Country = "POLAND" },
-                    new BasicEntity("b") { City = "BERLIN", Country = "GERMANY" }
+                    new BasicEntity("b") { City = "BERLIN", Country = "GERMANY" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "WARSAW", "POLAND" });
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "WARSAW", "POLAND" });
     }
 
     [TestMethod]
@@ -373,21 +354,28 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Country = "POLAND" },
                     new BasicEntity("b") { Country = "POLAND" },
-                    new BasicEntity("c") { Country = "GERMANY" }
+                    new BasicEntity("c") { Country = "GERMANY" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Country", typeof(string)), ("Count(Country)", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { "POLAND", 2L }, new object?[] { "GERMANY", 1L });
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Count(Country)", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { "POLAND", 2L },
+            new object?[] { "GERMANY", 1L }
+        );
     }
 
     #endregion
@@ -398,10 +386,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_Null_Propagation_AdditionWithNull()
     {
         var query = "select null + 1 as Value from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("a")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("a")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -414,10 +399,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_Null_Propagation_SubtractionWithNull()
     {
         var query = "select 10 - null as Value from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("a")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("a")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -430,10 +412,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_Null_Propagation_MultiplicationWithNull()
     {
         var query = "select null * 5 as Value from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("a")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("a")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -446,10 +425,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_Null_Propagation_DivisionWithNull()
     {
         var query = "select null / 2 as Value from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("a")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("a")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -462,10 +438,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_Null_Propagation_ModuloWithNull()
     {
         var query = "select null % 3 as Value from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("a")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("a")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -478,10 +451,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_Null_Propagation_NullPlusNull()
     {
         var query = "select null + null as Value from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("a")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("a")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -498,10 +468,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_ArrayIndexing_Basic()
     {
         var query = "select Array[0] from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("a")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("a")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -514,10 +481,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_ArrayIndexing_Negative_ShouldWrap()
     {
         var query = "select Array[-1] from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("a")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("a")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -530,10 +494,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_PropertyNavigation_SingleLevel()
     {
         var query = "select Self.Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Alice")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Alice")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -546,10 +507,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     public void Spec_PropertyNavigation_TwoLevels()
     {
         var query = "select Self.Self.Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Alice")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Alice")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -565,7 +523,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     [TestMethod]
     public void Spec_CaseWhen_MultiBranch_StringEquality()
     {
-        var query = @"
+        var query =
+            @"
             select
                 City,
                 case
@@ -577,29 +536,32 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Warsaw", "Poland", 1000),
                     new BasicEntity("Katowice", "Poland", 200),
-                    new BasicEntity("Radom", "Poland", 50)
+                    new BasicEntity("Radom", "Poland", 50),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Category", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Category", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { "Warsaw", "capital" },
             new object?[] { "Katowice", "silesia" },
-            new object?[] { "Radom", "other" });
+            new object?[] { "Radom", "other" }
+        );
     }
 
     [TestMethod]
     public void Spec_CaseWhen_SingleBranch_NumericComparison()
     {
-        var query = @"
+        var query =
+            @"
             select
                 Name,
                 case
@@ -609,28 +571,25 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
             from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Warsaw") { Id = 1000 },
-                    new BasicEntity("Radom") { Id = 50 }
-                ]
-            }
+            { "#A", [new BasicEntity("Warsaw") { Id = 1000 }, new BasicEntity("Radom") { Id = 50 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Name", typeof(string)), ("Category", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Category", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { "Warsaw", "large" },
-            new object?[] { "Radom", "small" });
+            new object?[] { "Radom", "small" }
+        );
     }
 
     [TestMethod]
     public void Spec_CaseWhen_MultiBranch_DecimalComparison()
     {
-        var query = @"
+        var query =
+            @"
             select
                 City,
                 case
@@ -642,26 +601,26 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Warsaw", "Poland", 1000),
                     new BasicEntity("Katowice", "Poland", 200),
-                    new BasicEntity("Radom", "Poland", 50)
+                    new BasicEntity("Radom", "Poland", 50),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("Category", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Category", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
             new object?[] { "Warsaw", "large" },
             new object?[] { "Katowice", "medium" },
-            new object?[] { "Radom", "small" });
+            new object?[] { "Radom", "small" }
+        );
     }
-
-
 
     #endregion
 }

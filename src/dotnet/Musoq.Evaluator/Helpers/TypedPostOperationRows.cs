@@ -20,7 +20,8 @@ public static class TypedPostOperationRows
 
     public static IOrderedEnumerable<TRow> Order<TRow>(
         IEnumerable<TRow> rows,
-        IReadOnlyList<TypedRowOrderKey<TRow>> orderKeys)
+        IReadOnlyList<TypedRowOrderKey<TRow>> orderKeys
+    )
         where TRow : Row
     {
         ArgumentNullException.ThrowIfNull(rows);
@@ -28,9 +29,7 @@ public static class TypedPostOperationRows
         return rows.OrderBy(static row => row, new TypedRowOrderComparer<TRow>(orderKeys));
     }
 
-    public static IEnumerable<TOut> Project<TRow, TOut>(
-        IEnumerable<TRow> rows,
-        Func<TRow, TOut> projector)
+    public static IEnumerable<TOut> Project<TRow, TOut>(IEnumerable<TRow> rows, Func<TRow, TOut> projector)
         where TRow : Row
     {
         ArgumentNullException.ThrowIfNull(rows);
@@ -59,7 +58,8 @@ public static class TypedPostOperationRows
                     key.Selector(left),
                     key.Selector(right),
                     key.Descending,
-                    key.NullOrdering);
+                    key.NullOrdering
+                );
                 if (comparison != 0)
                     return comparison;
             }

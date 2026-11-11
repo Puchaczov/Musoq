@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using Musoq.Plugins;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Optimization;
@@ -21,38 +21,60 @@ public interface ISchema
     IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
         string name,
         SourceRuntimeSettingsDescribeContext context,
-        params object?[] parameters);
+        params object?[] parameters
+    );
 
     SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters);
 
-    RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
+    RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments parameters
+    )
         where TArguments : struct, ISourceArguments;
 
     SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext);
 
     SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext);
 
-    bool TryResolveMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo);
+    bool TryResolveMethod(
+        string method,
+        Type[] parameters,
+        Type? entityType,
+        [NotNullWhen(true)] out MethodInfo? methodInfo
+    );
 
     bool TryResolveRawMethod(string method, Type[] parameters, [NotNullWhen(true)] out MethodInfo? methodInfo);
 
-    bool TryResolveAggregationMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo);
+    bool TryResolveAggregationMethod(
+        string method,
+        Type[] parameters,
+        Type? entityType,
+        [NotNullWhen(true)] out MethodInfo? methodInfo
+    );
 
     bool TryResolveAggregationMethod(
         string method,
         Type[] parameters,
         Type? entityType,
         Func<MethodInfo, bool> methodFilter,
-        [NotNullWhen(true)] out MethodInfo? methodInfo);
+        [NotNullWhen(true)] out MethodInfo? methodInfo
+    );
 
     bool TryResolveWindowFunction(string method, [NotNullWhen(true)] out MethodInfo? methodInfo);
 
-    bool TryResolveWindowFunction(string method, Type[] argumentTypes, [NotNullWhen(true)] out MethodInfo? methodInfo)
-        => TryResolveWindowFunction(method, out methodInfo);
+    bool TryResolveWindowFunction(
+        string method,
+        Type[] argumentTypes,
+        [NotNullWhen(true)] out MethodInfo? methodInfo
+    ) => TryResolveWindowFunction(method, out methodInfo);
 
     IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods();
 
-    ImmutableArray<SqlFunctionDescriptor> GetAllLibraryFunctions()
-        => GetAllLibraryMethods().Values.SelectMany(static methods => methods).Distinct()
-            .SelectMany(static method => SqlFunctionDeclarations.Read(method)).ToImmutableArray();
+    ImmutableArray<SqlFunctionDescriptor> GetAllLibraryFunctions() =>
+        GetAllLibraryMethods()
+            .Values.SelectMany(static methods => methods)
+            .Distinct()
+            .SelectMany(static method => SqlFunctionDeclarations.Read(method))
+            .ToImmutableArray();
 }

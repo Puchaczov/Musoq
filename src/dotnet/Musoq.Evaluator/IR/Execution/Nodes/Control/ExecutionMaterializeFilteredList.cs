@@ -6,4 +6,5 @@ public sealed record ExecutionMaterializeFilteredList(
     ExecutionVariable Item,
     ExecutionRowAccessMode RowAccessMode,
     ExecutionExpression Predicate,
-    GeneratedRowShape? GeneratedRowShape = null) : ExecutionNode;
+    GeneratedRowShape? GeneratedRowShape = null
+) : ExecutionNode;

@@ -9,19 +9,20 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTestsBase
 {
-
     [TestMethod]
     public void Explore51_TripleCrossApply_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                t.Value as Tag,
-                a.City
-            from #schema.first() p
-            cross apply p.Tags t
-            cross apply p.Addresses a
-            where t.Value = 'vip'";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                t.Value as Tag,\n"
+            + "                a.City\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            cross apply p.Addresses a\n"
+            + "            where t.Value = 'vip'"
+        );
 
         var source = new List<Person>
         {
@@ -30,8 +31,8 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
                 Name = "John",
                 Age = 30,
                 Tags = ["vip", "premium"],
-                Addresses = [new Address { City = "NYC" }, new Address { City = "LA" }]
-            }
+                Addresses = [new Address { City = "NYC" }, new Address { City = "LA" }],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -41,66 +42,66 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
             table,
             ("Name", typeof(string)),
             ("Tag", typeof(string)),
-            ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["John", "vip", "NYC"],
-            ["John", "vip", "LA"]);
+            ("City", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["John", "vip", "NYC"], ["John", "vip", "LA"]);
     }
-
-
 
     [TestMethod]
     public void Explore52_SameTableJoinedTwice_ShouldWork()
     {
-        const string query = @"
-            select
-                p1.Name as Name1,
-                p2.Name as Name2
-            from #schema.first() p1
-            inner join #schema.first() p2 on p1.Age = p2.Age
-            where p1.Name <> p2.Name";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p1.Name as Name1,\n"
+            + "                p2.Name as Name2\n"
+            + "            from #schema.first() p1\n"
+            + "            inner join #schema.first() p2 on p1.Age = p2.Age\n"
+            + "            where p1.Name <> p2.Name"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "John", Age = 30 },
             new() { Name = "Jane", Age = 30 },
-            new() { Name = "Bob", Age = 25 }
+            new() { Name = "Bob", Age = 25 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name1", typeof(string)),
-            ("Name2", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["John", "Jane"],
-            ["Jane", "John"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name1", typeof(string)), ("Name2", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["John", "Jane"], ["Jane", "John"]);
     }
-
-
 
     [TestMethod]
     public void Explore53_ArithmeticWithNullValues_ShouldWork()
     {
-        const string query = @"
-            select
-                i.ProductName,
-                i.Price + 0 as PricePlusZero,
-                i.Quantity * 1 as QuantityTimesOne
-            from #schema.first() o
-            cross apply o.Items i";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                i.ProductName,\n"
+            + "                i.Price + 0 as PricePlusZero,\n"
+            + "                i.Quantity * 1 as QuantityTimesOne\n"
+            + "            from #schema.first() o\n"
+            + "            cross apply o.Items i"
+        );
 
         var source = new List<Order>
         {
             new()
             {
                 OrderId = 1,
-                Items = [new OrderItem { ProductName = "Widget", Price = 10.50m, Quantity = 2 }]
-            }
+                Items =
+                [
+                    new OrderItem
+                    {
+                        ProductName = "Widget",
+                        Price = 10.50m,
+                        Quantity = 2,
+                    },
+                ],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -110,27 +111,26 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
             table,
             ("ProductName", typeof(string)),
             ("PricePlusZero", typeof(decimal)),
-            ("QuantityTimesOne", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Widget", 10.50m, 2]);
+            ("QuantityTimesOne", typeof(int))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Widget", 10.50m, 2]);
     }
-
-
 
     [TestMethod]
     public void Explore54_MultipleAggregatesWithCrossApply_ShouldWork()
     {
-        const string query = @"
-            select
-                o.OrderId,
-                Sum(i.Price) as TotalPrice,
-                Avg(i.Price) as AvgPrice,
-                Min(i.Price) as MinPrice,
-                Max(i.Price) as MaxPrice
-            from #schema.first() o
-            cross apply o.Items i
-            group by o.OrderId";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                o.OrderId,\n"
+            + "                Sum(i.Price) as TotalPrice,\n"
+            + "                Avg(i.Price) as AvgPrice,\n"
+            + "                Min(i.Price) as MinPrice,\n"
+            + "                Max(i.Price) as MaxPrice\n"
+            + "            from #schema.first() o\n"
+            + "            cross apply o.Items i\n"
+            + "            group by o.OrderId"
+        );
 
         var source = new List<Order>
         {
@@ -139,11 +139,26 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
                 OrderId = 1,
                 Items =
                 [
-                    new OrderItem { ProductName = "A", Price = 10m, Quantity = 1 },
-                    new OrderItem { ProductName = "B", Price = 20m, Quantity = 1 },
-                    new OrderItem { ProductName = "C", Price = 30m, Quantity = 1 }
-                ]
-            }
+                    new OrderItem
+                    {
+                        ProductName = "A",
+                        Price = 10m,
+                        Quantity = 1,
+                    },
+                    new OrderItem
+                    {
+                        ProductName = "B",
+                        Price = 20m,
+                        Quantity = 1,
+                    },
+                    new OrderItem
+                    {
+                        ProductName = "C",
+                        Price = 30m,
+                        Quantity = 1,
+                    },
+                ],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -155,55 +170,59 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
             ("TotalPrice", typeof(decimal?)),
             ("AvgPrice", typeof(decimal?)),
             ("MinPrice", typeof(decimal?)),
-            ("MaxPrice", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [1, 60m, 20m, 10m, 30m]);
+            ("MaxPrice", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 60m, 20m, 10m, 30m]);
     }
-
-
 
     [TestMethod]
     public void Explore55_CrossApply_EmptyArrayWithJoin_ShouldReturnNoRows()
     {
-        const string query = @"
-            select
-                p.Name,
-                t.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            inner join #schema.first() p2 on p.Age = p2.Age";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            inner join #schema.first() p2 on p.Age = p2.Age"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = [] },
-            new() { Name = "Jane", Age = 25, Tags = ["a"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = [],
+            },
+            new()
+            {
+                Name = "Jane",
+                Age = 25,
+                Tags = ["a"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Value", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Jane", "a"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Jane", "a"]);
     }
-
-
 
     [TestMethod]
     public void Explore56_WhereOnCrossAppliedProperty_ShouldWork()
     {
-        const string query = @"
-            select
-                o.OrderId,
-                i.ProductName
-            from #schema.first() o
-            cross apply o.Items i
-            where i.Price > 15";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                o.OrderId,\n"
+            + "                i.ProductName\n"
+            + "            from #schema.first() o\n"
+            + "            cross apply o.Items i\n"
+            + "            where i.Price > 15"
+        );
 
         var source = new List<Order>
         {
@@ -212,203 +231,192 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
                 OrderId = 1,
                 Items =
                 [
-                    new OrderItem { ProductName = "Cheap", Price = 5m, Quantity = 1 },
-                    new OrderItem { ProductName = "Expensive", Price = 50m, Quantity = 1 }
-                ]
-            }
+                    new OrderItem
+                    {
+                        ProductName = "Cheap",
+                        Price = 5m,
+                        Quantity = 1,
+                    },
+                    new OrderItem
+                    {
+                        ProductName = "Expensive",
+                        Price = 50m,
+                        Quantity = 1,
+                    },
+                ],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("OrderId", typeof(int)),
-            ("ProductName", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [1, "Expensive"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("OrderId", typeof(int)), ("ProductName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Expensive"]);
     }
-
-
 
     [TestMethod]
     public void Explore57_StringConcatenation_WithNulls_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name + ' - ' + ToString(p.Age) as NameAge
-            from #schema.first() p";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name + ' - ' + ToString(p.Age) as NameAge\n"
+            + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("NameAge", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["John - 30"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("NameAge", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John - 30"]);
     }
-
-
 
     [TestMethod]
     public void Explore58_DistinctWithGroupBy_ShouldWork()
     {
-        const string query = @"
-            select distinct p.Age, Count(p.Name) as NameCount
-            from #schema.first() p
-            group by p.Age";
+        const string query = (
+            "\n"
+            + "            select distinct p.Age, Count(p.Name) as NameCount\n"
+            + "            from #schema.first() p\n"
+            + "            group by p.Age"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "John", Age = 30 },
             new() { Name = "Jane", Age = 30 },
-            new() { Name = "Bob", Age = 25 }
+            new() { Name = "Bob", Age = 25 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Age", typeof(int)),
-            ("NameCount", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [30, 2L],
-            [25, 1L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Age", typeof(int)), ("NameCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [30, 2L], [25, 1L]);
     }
-
-
 
     [TestMethod]
     public void Explore59_NotEquals_WithCrossApply_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                t.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            where t.Value <> 'admin'";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            where t.Value <> 'admin'"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["admin", "user", "viewer"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["admin", "user", "viewer"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Value", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["John", "user"],
-            ["John", "viewer"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "user"], ["John", "viewer"]);
     }
-
-
 
     [TestMethod]
     public void Explore60_InClause_WithCrossApply_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                t.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            where t.Value in ('admin', 'superuser')";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            where t.Value in ('admin', 'superuser')"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["admin", "user", "viewer"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["admin", "user", "viewer"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Value", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["John", "admin"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "admin"]);
     }
-
-
 
     [TestMethod]
     public void Explore61_Like_WithCrossApply_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                t.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            where t.Value like 'admin%'";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            where t.Value like 'admin%'"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["admin", "administrator", "user"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["admin", "administrator", "user"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Value", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["John", "admin"],
-            ["John", "administrator"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "admin"], ["John", "administrator"]);
     }
-
-
 
     [TestMethod]
     public void Explore62_Contains_WithCrossApply_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                t.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            where Contains(t.Value, 'min')";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            where Contains(t.Value, 'min')"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["admin", "administrator", "user"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["admin", "administrator", "user"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Value", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["John", "admin"],
-            ["John", "administrator"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "admin"], ["John", "administrator"]);
     }
-
-
-
 }

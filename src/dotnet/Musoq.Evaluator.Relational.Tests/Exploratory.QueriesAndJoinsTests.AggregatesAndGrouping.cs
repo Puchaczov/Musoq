@@ -10,16 +10,24 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore29_CrossApply_GroupByMultipleColumns_ShouldWork()
     {
-        const string query = @"
-            select p.Name, s.Value, Count(1) as Cnt
-            from #schema.first() p
-            cross apply p.Scores s
-            cross apply p.Tags t
-            group by p.Name, s.Value";
+        const string query = (
+            "\n"
+            + "            select p.Name, s.Value, Count(1) as Cnt\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Scores s\n"
+            + "            cross apply p.Tags t\n"
+            + "            group by p.Name, s.Value"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Scores = [10, 20], Tags = ["a", "b"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Scores = [10, 20],
+                Tags = ["a", "b"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -29,11 +37,9 @@ public partial class ExploratoryQueriesAndJoinsTests
             table,
             ("Name", typeof(string)),
             ("Value", typeof(int)),
-            ("Cnt", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["John", 10, 2L],
-            ["John", 20, 2L]);
+            ("Cnt", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 10, 2L], ["John", 20, 2L]);
     }
 
     #endregion
@@ -43,29 +49,31 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore34_ConditionalCount_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                Count(case when s.Value > 50 then 1 else null end) as HighScoreCount
-            from #schema.first() p
-            cross apply p.Scores s
-            group by p.Name";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                Count(case when s.Value > 50 then 1 else null end) as HighScoreCount\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Scores s\n"
+            + "            group by p.Name"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Scores = [10, 60, 30, 70, 90] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Scores = [10, 60, 30, 70, 90],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("HighScoreCount", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["John", 3L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("HighScoreCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 3L]);
     }
 
     #endregion
@@ -75,20 +83,32 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore35_MultipleAggregatesInSingleQuery_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                Count(s.Value) as ScoreCount,
-                Sum(s.Value) as TotalScore,
-                Avg(s.Value) as AvgScore
-            from #schema.first() p
-            cross apply p.Scores s
-            group by p.Name";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                Count(s.Value) as ScoreCount,\n"
+            + "                Sum(s.Value) as TotalScore,\n"
+            + "                Avg(s.Value) as AvgScore\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Scores s\n"
+            + "            group by p.Name"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Scores = [10, 20, 30] },
-            new() { Name = "Jane", Age = 25, Scores = [5, 15, 25, 35] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Scores = [10, 20, 30],
+            },
+            new()
+            {
+                Name = "Jane",
+                Age = 25,
+                Scores = [5, 15, 25, 35],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -99,11 +119,9 @@ public partial class ExploratoryQueriesAndJoinsTests
             ("Name", typeof(string)),
             ("ScoreCount", typeof(long)),
             ("TotalScore", typeof(int?)),
-            ("AvgScore", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["John", 3L, 60, 20m],
-            ["Jane", 4L, 80, 20m]);
+            ("AvgScore", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 3L, 60, 20m], ["Jane", 4L, 80, 20m]);
     }
 
     #endregion
@@ -113,31 +131,38 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore46_CrossApply_GroupByHaving_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                Count(t.Value) as TagCount
-            from #schema.first() p
-            cross apply p.Tags t
-            group by p.Name
-            having Count(t.Value) > 1";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                Count(t.Value) as TagCount\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            group by p.Name\n"
+            + "            having Count(t.Value) > 1"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["a", "b", "c"] },
-            new() { Name = "Jane", Age = 25, Tags = ["x"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["a", "b", "c"],
+            },
+            new()
+            {
+                Name = "Jane",
+                Age = 25,
+                Tags = ["x"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("TagCount", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["John", 3L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("TagCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 3L]);
     }
 
     #endregion
@@ -147,28 +172,34 @@ public partial class ExploratoryQueriesAndJoinsTests
     [TestMethod]
     public void Explore47_CrossApply_Distinct_ShouldWork()
     {
-        const string query = @"
-            select distinct t.Value
-            from #schema.first() p
-            cross apply p.Tags t";
+        const string query = (
+            "\n"
+            + "            select distinct t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["a", "b", "a"] },
-            new() { Name = "Jane", Age = 25, Tags = ["b", "c"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["a", "b", "a"],
+            },
+            new()
+            {
+                Name = "Jane",
+                Age = 25,
+                Tags = ["b", "c"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Value", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["a"],
-            ["b"],
-            ["c"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["a"], ["b"], ["c"]);
     }
 
     #endregion

@@ -2,7 +2,8 @@ namespace Musoq.Parser.Nodes;
 
 public class GreaterOrEqualNode : BinaryNode
 {
-    public GreaterOrEqualNode(Node left, Node right) : base(left, right)
+    public GreaterOrEqualNode(Node left, Node right)
+        : base(left, right)
     {
         Id = CalculateId(this);
     }

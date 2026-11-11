@@ -59,9 +59,7 @@ public class SchemaRegistryTests
         var schema2 = CreateTestBinarySchemaNode("TestSchema");
         registry.Register("TestSchema", schema1);
 
-
-        Assert.Throws<InvalidOperationException>(() =>
-            registry.Register("TestSchema", schema2));
+        Assert.Throws<InvalidOperationException>(() => registry.Register("TestSchema", schema2));
     }
 
     [TestMethod]
@@ -70,7 +68,6 @@ public class SchemaRegistryTests
         // Arrange
         var registry = new SchemaRegistry();
         registry.Register("TestSchema", CreateTestBinarySchemaNode("TestSchema"));
-
 
         Assert.IsTrue(registry.ContainsSchema("TestSchema"));
         Assert.IsTrue(registry.ContainsSchema("testschema"));
@@ -100,9 +97,7 @@ public class SchemaRegistryTests
     {
         var registry = new SchemaRegistry();
 
-
-        Assert.Throws<KeyNotFoundException>(() =>
-            registry.GetSchema("NonExistent"));
+        Assert.Throws<KeyNotFoundException>(() => registry.GetSchema("NonExistent"));
     }
 
     [TestMethod]
@@ -126,9 +121,7 @@ public class SchemaRegistryTests
     {
         var registry = new SchemaRegistry();
 
-
         var found = registry.TryGetSchema("NonExistent", out var registration);
-
 
         Assert.IsFalse(found);
         Assert.IsNull(registration);
@@ -181,7 +174,6 @@ public class SchemaRegistryTests
         var node = CreateTestBinarySchemaNode("BinaryTest");
         var registration = new SchemaRegistration("BinaryTest", node);
 
-
         Assert.IsTrue(registration.IsBinarySchema);
         Assert.IsFalse(registration.IsTextSchema);
     }
@@ -191,7 +183,6 @@ public class SchemaRegistryTests
     {
         var node = CreateTestTextSchemaNode("TextTest");
         var registration = new SchemaRegistration("TextTest", node);
-
 
         Assert.IsFalse(registration.IsBinarySchema);
         Assert.IsTrue(registration.IsTextSchema);
@@ -263,19 +254,15 @@ public class SchemaRegistryTests
             [
                 new FieldDefinitionNode(
                     "TestField",
-                    new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian))
-            ]);
+                    new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian)
+                ),
+            ]
+        );
     }
 
     private static TextSchemaNode CreateTestTextSchemaNode(string name)
     {
-        return new TextSchemaNode(
-            name,
-            [
-                new TextFieldDefinitionNode(
-                    "TestField",
-                    TextFieldType.Rest)
-            ]);
+        return new TextSchemaNode(name, [new TextFieldDefinitionNode("TestField", TextFieldType.Rest)]);
     }
 
     #endregion

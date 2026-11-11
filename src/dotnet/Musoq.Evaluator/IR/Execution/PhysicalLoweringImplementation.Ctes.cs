@@ -7,59 +7,65 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private ExecutionPlanBuildResult BuildCte(
-        PhysicalCteNode cte,
-        string identifier,
-        LoweringScope scope)
+    private ExecutionPlanBuildResult BuildCte(PhysicalCteNode cte, string identifier, LoweringScope scope)
     {
         scope = scope.WithScalarSubqueryEmptyResults(
-            MergeScalarSubqueryEmptyResults(
-                scope.ScalarSubqueryEmptyResults,
-                CollectScalarSubqueryEmptyResults(cte)));
+            MergeScalarSubqueryEmptyResults(scope.ScalarSubqueryEmptyResults, CollectScalarSubqueryEmptyResults(cte))
+        );
         var cteIndexes = CreateCteIndexes(cte);
         var cteDefinitionNames = cte.Definitions.Select(static definition => definition.Name).ToArray();
         var containsRecursiveDefinition = cte.Definitions.Any(static definition =>
-            definition.Plan is PhysicalRecursiveCteNode);
-        var cteShapesByName = scope.SubqueryCtes.ToDictionary(static binding => binding.Name,
-            static binding => binding.Shape, StringComparer.OrdinalIgnoreCase);
+            definition.Plan is PhysicalRecursiveCteNode
+        );
+        var cteShapesByName = scope.SubqueryCtes.ToDictionary(
+            static binding => binding.Name,
+            static binding => binding.Shape,
+            StringComparer.OrdinalIgnoreCase
+        );
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
         var schemaFromIndexes = CreateCteDefinitionSchemaFromIndexes(cte);
-        var querySchemaFromIndex = schemaFromIndexes.Count == 0
-            ? DefaultSchemaFromIndex
-            : schemaFromIndexes.Values.Max() + CountSchemaScans(cte.Definitions[^1].Plan);
+        var querySchemaFromIndex =
+            schemaFromIndexes.Count == 0
+                ? DefaultSchemaFromIndex
+                : schemaFromIndexes.Values.Max() + CountSchemaScans(cte.Definitions[^1].Plan);
         var hasSubqueryFallback = NativeSubqueryBindings.Contains(cte.Query);
-        var fusedHashBuildSources = containsRecursiveDefinition || hasSubqueryFallback
-            ? new Dictionary<string, FusedCteHashBuildSource>(StringComparer.OrdinalIgnoreCase)
-            : TryPlanFusedCteHashBuildSources(
-                cte,
-                cteDefinitionNames,
-                cteIndexes,
-                cteShapesByName,
-                schemaFromIndexes,
-                scope);
-        var parallelLevels = fusedHashBuildSources.Count == 0
-            ? TryCreateParallelCteLevels(cte)
-            : null;
+        var fusedHashBuildSources =
+            containsRecursiveDefinition || hasSubqueryFallback
+                ? new Dictionary<string, FusedCteHashBuildSource>(StringComparer.OrdinalIgnoreCase)
+                : TryPlanFusedCteHashBuildSources(
+                    cte,
+                    cteDefinitionNames,
+                    cteIndexes,
+                    cteShapesByName,
+                    schemaFromIndexes,
+                    scope
+                );
+        var parallelLevels = fusedHashBuildSources.Count == 0 ? TryCreateParallelCteLevels(cte) : null;
         if (containsRecursiveDefinition && !CanUseParallelLevelsWithRecursiveDefinitions(parallelLevels))
             parallelLevels = null;
-        var pruningPlan = !hasSubqueryFallback && (containsRecursiveDefinition || _compilationOptions.UseCteSidecarIndexes)
-            ? CreateCteDefinitionPruningPlan(cte)
-            : CteDefinitionPruningPlan.Empty;
-        var cteReferenceClassifications = !containsRecursiveDefinition && _compilationOptions.UseCteSidecarIndexes
-            ? ClassifyCteReferences(cte)
-            : new Dictionary<string, CteReferenceClassification>(StringComparer.OrdinalIgnoreCase);
-        var readOnceProjection = hasSubqueryFallback ? null : TryBuildReadOnceCteProjectionTable(
-            cte,
-            "result",
-            scope.GeneratedTypePrefix + "ResultRow0",
-            cteIndexes,
-            cteDefinitionNames,
-            cteShapesByName,
-            schemaFromIndexes,
-            parallelLevels,
-            pruningPlan,
-            scope);
+        var pruningPlan =
+            !hasSubqueryFallback && (containsRecursiveDefinition || _compilationOptions.UseCteSidecarIndexes)
+                ? CreateCteDefinitionPruningPlan(cte)
+                : CteDefinitionPruningPlan.Empty;
+        var cteReferenceClassifications =
+            !containsRecursiveDefinition && _compilationOptions.UseCteSidecarIndexes
+                ? ClassifyCteReferences(cte)
+                : new Dictionary<string, CteReferenceClassification>(StringComparer.OrdinalIgnoreCase);
+        var readOnceProjection = hasSubqueryFallback
+            ? null
+            : TryBuildReadOnceCteProjectionTable(
+                cte,
+                "result",
+                scope.GeneratedTypePrefix + "ResultRow0",
+                cteIndexes,
+                cteDefinitionNames,
+                cteShapesByName,
+                schemaFromIndexes,
+                parallelLevels,
+                pruningPlan,
+                scope
+            );
         if (readOnceProjection != null)
         {
             if (!readOnceProjection.IsBuilt)
@@ -68,19 +74,21 @@ internal sealed partial class PhysicalLoweringImplementation
             return ExecutionPlanBuildResult.CreateSupported(CreateTableResultPlan(identifier, readOnceProjection));
         }
 
-        var readOnceSidecarJoin = containsRecursiveDefinition || hasSubqueryFallback
-            ? null
-            : TryBuildReadOnceCteSidecarJoinTable(
-                cte,
-                "result",
-                scope.GeneratedTypePrefix + "ResultRow0",
-                cteDefinitionNames,
-                cteIndexes,
-                cteShapesByName,
-                schemaFromIndexes,
-                parallelLevels,
-                pruningPlan,
-                scope);
+        var readOnceSidecarJoin =
+            containsRecursiveDefinition || hasSubqueryFallback
+                ? null
+                : TryBuildReadOnceCteSidecarJoinTable(
+                    cte,
+                    "result",
+                    scope.GeneratedTypePrefix + "ResultRow0",
+                    cteDefinitionNames,
+                    cteIndexes,
+                    cteShapesByName,
+                    schemaFromIndexes,
+                    parallelLevels,
+                    pruningPlan,
+                    scope
+                );
         if (readOnceSidecarJoin != null)
         {
             if (!readOnceSidecarJoin.IsBuilt)
@@ -91,14 +99,12 @@ internal sealed partial class PhysicalLoweringImplementation
 
         if (parallelLevels == null)
         {
-            for (var index = 0; index < cte.Definitions.Length;)
+            for (var index = 0; index < cte.Definitions.Length; )
             {
                 var definition = cte.Definitions[index];
                 if (definition.Plan is PhysicalRecursiveCteNode recursive)
                 {
-                    recursive = ApplyRecursiveCteDefinitionPruning(
-                        definition.Name, recursive,
-                        pruningPlan);
+                    recursive = ApplyRecursiveCteDefinitionPruning(definition.Name, recursive, pruningPlan);
                     var recursiveResult = BuildRecursiveCteDefinitionTable(
                         cte,
                         recursive,
@@ -107,7 +113,8 @@ internal sealed partial class PhysicalLoweringImplementation
                         cteIndexes,
                         cteShapesByName,
                         schemaFromIndexes[definition.Name],
-                        scope);
+                        scope
+                    );
                     if (!recursiveResult.IsBuilt)
                         return ExecutionPlanBuildResult.CreateUnsupported(recursiveResult.UnsupportedReason);
 
@@ -124,9 +131,15 @@ internal sealed partial class PhysicalLoweringImplementation
                     var fusedSidecarSpecs = ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name);
                     if (fusedSidecarSpecs.Count > 0)
                     {
-                        var slots = string.Join(", ", fusedSidecarSpecs.Select(static spec => spec.IndexSlot.ToString(CultureInfo.InvariantCulture)));
+                        var slots = string.Join(
+                            ", ",
+                            fusedSidecarSpecs.Select(static spec =>
+                                spec.IndexSlot.ToString(CultureInfo.InvariantCulture)
+                            )
+                        );
                         return ExecutionPlanBuildResult.CreateUnsupported(
-                            $"Execution IR CTE sidecar lowering cannot silently drop planner-selected sidecar index slot(s) [{slots}] for fused hash-build CTE '{definition.Name}'.");
+                            $"Execution IR CTE sidecar lowering cannot silently drop planner-selected sidecar index slot(s) [{slots}] for fused hash-build CTE '{definition.Name}'."
+                        );
                     }
 
                     cteShapesByName[definition.Name] = fused.RowShape;
@@ -147,20 +160,23 @@ internal sealed partial class PhysicalLoweringImplementation
                     cteReferenceClassifications,
                     fusedHashBuildSources,
                     scope,
-                    out var siblingUpdatedScope);
+                    out var siblingUpdatedScope
+                );
                 scope = siblingUpdatedScope;
                 if (siblingFusion != null)
                 {
                     foreach (var (name, rowShape) in siblingFusion.RowShapesByName)
                         cteShapesByName[name] = rowShape;
 
-                    var producer = CteSourceBackedSiblingFusion.TryRewrite(
-                        nodes,
-                        shapes,
-                        cteIndexes,
-                        cteReferenceClassifications,
-                        SourceInteractionPlans,
-                        siblingFusion.Producer) ?? siblingFusion.Producer;
+                    var producer =
+                        CteSourceBackedSiblingFusion.TryRewrite(
+                            nodes,
+                            shapes,
+                            cteIndexes,
+                            cteReferenceClassifications,
+                            SourceInteractionPlans,
+                            siblingFusion.Producer
+                        ) ?? siblingFusion.Producer;
                     shapes.AddRange(siblingFusion.Shapes);
                     nodes.Add(CreateCteFusedProducerCandidate(producer));
                     index += siblingFusion.DefinitionCount;
@@ -175,7 +191,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     cteShapesByName,
                     schemaFromIndexes[definition.Name],
                     pruningPlan,
-                    scope);
+                    scope
+                );
                 var sidecarSpecs = ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name);
                 result = ApplyCteSidecarOptimizations(
                     definition.Name,
@@ -185,17 +202,14 @@ internal sealed partial class PhysicalLoweringImplementation
                     result,
                     scope,
                     out var storage,
-                    out var sidecarUpdatedScope);
+                    out var sidecarUpdatedScope
+                );
                 scope = sidecarUpdatedScope;
 
                 if (!result.IsBuilt)
                     return ExecutionPlanBuildResult.CreateUnsupported(result.UnsupportedReason);
 
-                result = AddCteClauseBoundaries(
-                    definition,
-                    index,
-                    result,
-                    includeScopeBoundaries: !storage.StoreRows);
+                result = AddCteClauseBoundaries(definition, index, result, includeScopeBoundaries: !storage.StoreRows);
 
                 cteShapesByName[definition.Name] = result.RowShape;
                 shapes.AddRange(result.Shapes);
@@ -225,7 +239,8 @@ internal sealed partial class PhysicalLoweringImplementation
                         cteReferenceClassifications,
                         scope,
                         out var storeRows,
-                        out var singletonUpdatedScope);
+                        out var singletonUpdatedScope
+                    );
                     scope = singletonUpdatedScope;
 
                     if (!result.IsBuilt)
@@ -250,7 +265,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     pruningPlan,
                     cteReferenceClassifications,
                     scope,
-                    out var parallelUpdatedScope);
+                    out var parallelUpdatedScope
+                );
                 scope = parallelUpdatedScope;
 
                 if (!parallelResult.IsBuilt)
@@ -262,7 +278,8 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         var querySession = scope.WithFusedCteHashBuildSources(
-            MergeFusedCteHashBuildSources(scope.FusedCteHashBuildSources, fusedHashBuildSources));
+            MergeFusedCteHashBuildSources(scope.FusedCteHashBuildSources, fusedHashBuildSources)
+        );
         _shapeResolver.Subqueries.Register(cte.Query, cteIndexes, cteShapesByName, scope.SubqueryCtes);
         var queryResult = BuildPlanTable(
             cte.Query,
@@ -272,7 +289,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             querySchemaFromIndex,
             scopeAggregateVariables: true,
-            scope: querySession);
+            scope: querySession
+        );
 
         if (!queryResult.IsBuilt)
             return ExecutionPlanBuildResult.CreateUnsupported(queryResult.UnsupportedReason);
@@ -281,11 +299,8 @@ internal sealed partial class PhysicalLoweringImplementation
         nodes.AddRange(queryResult.Nodes);
         nodes.Add(new ExecutionReturnTable(queryResult.Table));
 
-        return ExecutionPlanBuildResult.CreateSupported(new ExecutionPlan(
-            identifier,
-            shapes,
-            new ExecutionBlock(nodes),
-            queryResult.FinalResult));
+        return ExecutionPlanBuildResult.CreateSupported(
+            new ExecutionPlan(identifier, shapes, new ExecutionBlock(nodes), queryResult.FinalResult)
+        );
     }
-
 }

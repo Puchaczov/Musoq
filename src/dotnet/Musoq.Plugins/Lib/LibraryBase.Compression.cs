@@ -5,7 +5,11 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-    private static string DecompressToString(byte[] data, Encoding encoding, Func<Stream, Stream> createDecompressionStream)
+    private static string DecompressToString(
+        byte[] data,
+        Encoding encoding,
+        Func<Stream, Stream> createDecompressionStream
+    )
     {
         using var inputStream = new MemoryStream(data);
         using var decompressionStream = createDecompressionStream(inputStream);

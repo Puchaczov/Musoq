@@ -7,20 +7,14 @@ namespace Musoq.Evaluator.Exceptions;
 
 public class AmbiguousMethodOwnerException : Exception, IDiagnosticException
 {
-
     public AmbiguousMethodOwnerException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public AmbiguousMethodOwnerException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public AmbiguousMethodOwnerException()
-    {
-    }
+    public AmbiguousMethodOwnerException() { }
+
     public AmbiguousMethodOwnerException(string methodCall, IReadOnlyCollection<string> candidateAliases)
         : base(CreateMessage(methodCall, candidateAliases))
     {

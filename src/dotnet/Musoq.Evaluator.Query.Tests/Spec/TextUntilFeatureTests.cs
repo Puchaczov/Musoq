@@ -25,20 +25,31 @@ public class TextUntilFeatureTests
     [TestMethod]
     public void Text_Until_DelimiterAtStart_ShouldReturnEmpty()
     {
-        var query = @"
-            text Data { 
-                Key: until '=',
-                Value: rest 
-            };
-            select d.Key, d.Value from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Key: until '=',\n"
+            + "                Value: rest \n"
+            + "            };\n"
+            + "            select d.Key, d.Value from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "=value" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "=value" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -56,26 +67,34 @@ public class TextUntilFeatureTests
     [TestMethod]
     public void Text_Until_InWhereClause_ShouldFilter()
     {
-        var query = @"
-            text KeyValue { 
-                Key: until '=',
-                Value: rest 
-            };
-            select k.Value from #test.lines() l
-            cross apply Parse<KeyValue>(l.Line) k
-            where k.Key = 'host'";
+        var query = (
+            "\n"
+            + "            text KeyValue { \n"
+            + "                Key: until '=',\n"
+            + "                Value: rest \n"
+            + "            };\n"
+            + "            select k.Value from #test.lines() l\n"
+            + "            cross apply Parse<KeyValue>(l.Line) k\n"
+            + "            where k.Key = 'host'"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "line1", Text = "host=localhost" },
             new TextEntity { Name = "line2", Text = "port=8080" },
-            new TextEntity { Name = "line3", Text = "host=example.com" }
+            new TextEntity { Name = "line3", Text = "host=example.com" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -91,26 +110,34 @@ public class TextUntilFeatureTests
     [TestMethod]
     public void Text_Until_MultipleRows_ShouldParseAll()
     {
-        var query = @"
-            text KeyValue { 
-                Key: until ':',
-                Value: rest trim
-            };
-            select k.Key, k.Value from #test.lines() l
-            cross apply Parse<KeyValue>(l.Line) k
-            order by k.Key";
+        var query = (
+            "\n"
+            + "            text KeyValue { \n"
+            + "                Key: until ':',\n"
+            + "                Value: rest trim\n"
+            + "            };\n"
+            + "            select k.Key, k.Value from #test.lines() l\n"
+            + "            cross apply Parse<KeyValue>(l.Line) k\n"
+            + "            order by k.Key"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "line1", Text = "alpha: one" },
             new TextEntity { Name = "line2", Text = "beta: two" },
-            new TextEntity { Name = "line3", Text = "gamma: three" }
+            new TextEntity { Name = "line3", Text = "gamma: three" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -130,20 +157,31 @@ public class TextUntilFeatureTests
     [TestMethod]
     public void Text_Until_BasicDelimiter_ShouldCapture()
     {
-        var query = @"
-            text KeyValue { 
-                Key: until ':',
-                Value: rest 
-            };
-            select k.Key, k.Value from #test.lines() l
-            cross apply Parse<KeyValue>(l.Line) k";
+        var query = (
+            "\n"
+            + "            text KeyValue { \n"
+            + "                Key: until ':',\n"
+            + "                Value: rest \n"
+            + "            };\n"
+            + "            select k.Key, k.Value from #test.lines() l\n"
+            + "            cross apply Parse<KeyValue>(l.Line) k"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "name:John" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "name:John" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -157,21 +195,32 @@ public class TextUntilFeatureTests
     [TestMethod]
     public void Text_Until_SpaceDelimiter_ShouldCapture()
     {
-        var query = @"
-            text Words { 
-                First: until ' ',
-                Second: until ' ',
-                Third: rest 
-            };
-            select w.First, w.Second, w.Third from #test.lines() l
-            cross apply Parse<Words>(l.Line) w";
+        var query = (
+            "\n"
+            + "            text Words { \n"
+            + "                First: until ' ',\n"
+            + "                Second: until ' ',\n"
+            + "                Third: rest \n"
+            + "            };\n"
+            + "            select w.First, w.Second, w.Third from #test.lines() l\n"
+            + "            cross apply Parse<Words>(l.Line) w"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "one two three" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "one two three" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -186,20 +235,31 @@ public class TextUntilFeatureTests
     [TestMethod]
     public void Text_Until_MultiCharDelimiter_ShouldCapture()
     {
-        var query = @"
-            text Data { 
-                Before: until '::',
-                After: rest 
-            };
-            select d.Before, d.After from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { \n"
+            + "                Before: until '::',\n"
+            + "                After: rest \n"
+            + "            };\n"
+            + "            select d.Before, d.After from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "header::body" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "header::body" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -217,23 +277,33 @@ public class TextUntilFeatureTests
     [TestMethod]
     public void Text_Until_MultipleFields_ShouldParseSequentially()
     {
-        var query = @"
-            text LogEntry { 
-                Date: until ' ',
-                Time: until ' ',
-                Level: until ':',
-                Message: rest 
-            };
-            select e.Date, e.Time, e.Level, e.Message from #test.lines() l
-            cross apply Parse<LogEntry>(l.Line) e";
+        var query = (
+            "\n"
+            + "            text LogEntry { \n"
+            + "                Date: until ' ',\n"
+            + "                Time: until ' ',\n"
+            + "                Level: until ':',\n"
+            + "                Message: rest \n"
+            + "            };\n"
+            + "            select e.Date, e.Time, e.Level, e.Message from #test.lines() l\n"
+            + "            cross apply Parse<LogEntry>(l.Line) e"
+        );
 
         var entities = new[]
-            { new TextEntity { Name = "test.txt", Text = "2024-01-15 10:30:00 INFO:Application started" } };
+        {
+            new TextEntity { Name = "test.txt", Text = "2024-01-15 10:30:00 INFO:Application started" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -249,21 +319,32 @@ public class TextUntilFeatureTests
     [TestMethod]
     public void Text_Until_CsvStyle_ShouldParseFields()
     {
-        var query = @"
-            text CsvRow { 
-                Col1: until ',',
-                Col2: until ',',
-                Col3: rest 
-            };
-            select c.Col1, c.Col2, c.Col3 from #test.lines() l
-            cross apply Parse<CsvRow>(l.Line) c";
+        var query = (
+            "\n"
+            + "            text CsvRow { \n"
+            + "                Col1: until ',',\n"
+            + "                Col2: until ',',\n"
+            + "                Col3: rest \n"
+            + "            };\n"
+            + "            select c.Col1, c.Col2, c.Col3 from #test.lines() l\n"
+            + "            cross apply Parse<CsvRow>(l.Line) c"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "apple,banana,cherry" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "apple,banana,cherry" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

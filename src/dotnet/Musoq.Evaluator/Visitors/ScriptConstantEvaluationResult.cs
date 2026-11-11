@@ -7,7 +7,8 @@ internal sealed record ScriptConstantEvaluationResult(
     object? Value,
     Type ReturnType,
     DiagnosticCode? ErrorCode,
-    string Error)
+    string Error
+)
 {
     public static ScriptConstantEvaluationResult Evaluated(object? value, Type returnType)
     {

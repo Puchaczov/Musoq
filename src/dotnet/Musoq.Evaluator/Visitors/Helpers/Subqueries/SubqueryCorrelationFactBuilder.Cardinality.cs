@@ -13,10 +13,7 @@ internal static partial class SubqueryCorrelationFactBuilder
             AddContext(contexts, SubqueryCardinalityContextKind.ScalarSubquery);
 
         CollectCardinalityContexts(body, contexts);
-        return contexts
-            .GroupBy(static context => context.Kind)
-            .Select(static group => group.First())
-            .ToArray();
+        return contexts.GroupBy(static context => context.Kind).Select(static group => group.First()).ToArray();
     }
 
     private static void CollectCardinalityContexts(Node node, List<SubqueryCardinalityContextFact> contexts)
@@ -80,8 +77,9 @@ internal static partial class SubqueryCorrelationFactBuilder
             SubqueryCardinalityContextKind.Take => "TAKE slices subquery rows and is cardinality-sensitive.",
             SubqueryCardinalityContextKind.Window => "WINDOW definitions are phase-sensitive inside the subquery.",
             SubqueryCardinalityContextKind.Qualify => "QUALIFY filters after windowing inside the subquery.",
-            SubqueryCardinalityContextKind.SetOperation => "Set operations impose arm and comparer cardinality semantics.",
-            _ => "Subquery context is cardinality-sensitive."
+            SubqueryCardinalityContextKind.SetOperation =>
+                "Set operations impose arm and comparer cardinality semantics.",
+            _ => "Subquery context is cardinality-sensitive.",
         };
     }
 }

@@ -3,16 +3,15 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
-using SkipNode = Musoq.Evaluator.IR.Logical.Nodes.SkipNode;
-using TakeNode = Musoq.Evaluator.IR.Logical.Nodes.TakeNode;
 using IrDescNode = Musoq.Evaluator.IR.Logical.Nodes.DescNode;
 using ParserDescNode = Musoq.Parser.Nodes.DescNode;
+using SkipNode = Musoq.Evaluator.IR.Logical.Nodes.SkipNode;
+using TakeNode = Musoq.Evaluator.IR.Logical.Nodes.TakeNode;
 
 namespace Musoq.Evaluator.Tests.IR;
 
 public partial class LogicalPlanBuilderTests
 {
-
     #region SchemaScan (FROM)
 
     [TestMethod]
@@ -40,9 +39,7 @@ public partial class LogicalPlanBuilderTests
     public void WhenSelectMultipleColumns_ShouldProjectAllFields()
     {
         var from = CreateSchemaFrom();
-        var select = CreateSelect(
-            Field(Column("Id"), 0, "Id"),
-            Field(Column("Name", "t", typeof(string)), 1, "Name"));
+        var select = CreateSelect(Field(Column("Id"), 0, "Id"), Field(Column("Name", "t", typeof(string)), 1, "Name"));
         var query = CreateQuery(select, from);
         var root = new RootNode(new SingleSetNode(query));
 
@@ -149,9 +146,7 @@ public partial class LogicalPlanBuilderTests
     {
         var from = CreateSchemaFrom();
         var select = CreateSelect(Field(Column("Id"), 0, "Id"));
-        var orderBy = new OrderByNode([
-            new FieldOrderedNode(Column("Id"), 0, "Id", Order.Ascending)
-        ]);
+        var orderBy = new OrderByNode([new FieldOrderedNode(Column("Id"), 0, "Id", Order.Ascending)]);
         var query = CreateQuery(select, from, orderBy: orderBy);
         var root = new RootNode(new SingleSetNode(query));
 
@@ -169,9 +164,7 @@ public partial class LogicalPlanBuilderTests
     {
         var from = CreateSchemaFrom();
         var select = CreateSelect(Field(Column("Id"), 0, "Id"));
-        var orderBy = new OrderByNode([
-            new FieldOrderedNode(Column("Id"), 0, "Id", Order.Descending)
-        ]);
+        var orderBy = new OrderByNode([new FieldOrderedNode(Column("Id"), 0, "Id", Order.Descending)]);
         var query = CreateQuery(select, from, orderBy: orderBy);
         var root = new RootNode(new SingleSetNode(query));
 
@@ -248,13 +241,11 @@ public partial class LogicalPlanBuilderTests
         var from = new SchemaFromNode(
             "test",
             "data",
-            new ArgsListNode([
-                new IntegerNode("7", "i"),
-                new StringNode("sample")
-            ]),
+            new ArgsListNode([new IntegerNode("7", "i"), new StringNode("sample")]),
             string.Empty,
             typeof(object),
-            0);
+            0
+        );
         var root = new RootNode(new ParserDescNode(from, DescForType.SpecificConstructor));
 
         var result = Build(root);
@@ -283,5 +274,4 @@ public partial class LogicalPlanBuilderTests
     }
 
     #endregion
-
 }

@@ -8,7 +8,8 @@ public sealed record SourcePredicateIn : SourcePredicateExpression
     public SourcePredicateIn(
         SourcePredicateExpression expression,
         IReadOnlyList<SourcePredicateExpression> values,
-        bool IsNegated = false)
+        bool IsNegated = false
+    )
     {
         Expression = expression;
         Values = Array.AsReadOnly(values.ToArray());
@@ -24,7 +25,8 @@ public sealed record SourcePredicateIn : SourcePredicateExpression
     public void Deconstruct(
         out SourcePredicateExpression expression,
         out IReadOnlyList<SourcePredicateExpression> values,
-        out bool IsNegated)
+        out bool IsNegated
+    )
     {
         expression = Expression;
         values = Values;

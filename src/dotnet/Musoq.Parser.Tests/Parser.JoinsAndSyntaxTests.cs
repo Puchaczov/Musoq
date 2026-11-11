@@ -82,8 +82,7 @@ public class ParserJoinsAndSyntaxTests
     [TestMethod]
     public void CheckRegularQueryWithShortInnerJoinUppercase_ShouldConstructQuery()
     {
-        var query =
-            "SELECT 1 FROM #some.a() S1 JOIN #some.b() S2 ON S1.COL = S2.COL";
+        var query = "SELECT 1 FROM #some.a() S1 JOIN #some.b() S2 ON S1.COL = S2.COL";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -94,8 +93,7 @@ public class ParserJoinsAndSyntaxTests
     [TestMethod]
     public void CheckRegularQueryWithShortLeftJoinUppercase_ShouldConstructQuery()
     {
-        var query =
-            "SELECT 1 FROM #some.a() S1 LEFT JOIN #some.b() S2 ON S1.COL = S2.COL";
+        var query = "SELECT 1 FROM #some.a() S1 LEFT JOIN #some.b() S2 ON S1.COL = S2.COL";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -106,8 +104,7 @@ public class ParserJoinsAndSyntaxTests
     [TestMethod]
     public void CheckRegularQueryWithShortFullJoinUppercase_ShouldConstructQuery()
     {
-        var query =
-            "SELECT 1 FROM #some.a() S1 FULL JOIN #some.b() S2 ON S1.COL = S2.COL";
+        var query = "SELECT 1 FROM #some.a() S1 FULL JOIN #some.b() S2 ON S1.COL = S2.COL";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -118,8 +115,7 @@ public class ParserJoinsAndSyntaxTests
     [TestMethod]
     public void CheckRegularQueryWithFullOuterJoinUppercase_ShouldConstructQuery()
     {
-        var query =
-            "SELECT 1 FROM #some.a() S1 FULL OUTER JOIN #some.b() S2 ON S1.COL = S2.COL";
+        var query = "SELECT 1 FROM #some.a() S1 FULL OUTER JOIN #some.b() S2 ON S1.COL = S2.COL";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -218,7 +214,8 @@ public class ParserJoinsAndSyntaxTests
     [TestMethod]
     public void RowPresencePredicates_ShouldConstructQuery()
     {
-        var query = @"
+        var query =
+            @"
 select
     case
         when s2 is missing then 'left-only'
@@ -404,5 +401,4 @@ full outer join #some.b() s2 on s1.col = s2.col";
 
         Assert.Throws<SyntaxException>(parser.ComposeAll);
     }
-
 }

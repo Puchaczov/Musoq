@@ -49,14 +49,13 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateBlockSignature(
         ExecutionBlock block,
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate
+    )
     {
         var builder = new StringBuilder();
         foreach (var node in block.Nodes)
         {
-            builder
-                .Append(CreateNodeSignature(node, parallelAggregate))
-                .Append('|');
+            builder.Append(CreateNodeSignature(node, parallelAggregate)).Append('|');
         }
 
         return builder.ToString();
@@ -64,22 +63,28 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateNodeSignature(
         ExecutionNode node,
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate
+    )
     {
         return node switch
         {
-            ExecutionLet let => $"let:{let.Variable.Name}:{ExecutionExpressionFingerprint.ForAggregateType(let.Variable.Type)}={ExecutionExpressionFingerprint.ForParallelAggregate(let.Value, parallelAggregate)}",
-            ExecutionAssign assign => $"assign:{AggregateVariableFingerprint.Create(assign.Variable, parallelAggregate)}={ExecutionExpressionFingerprint.ForParallelAggregate(assign.Value, parallelAggregate)}",
-            ExecutionIf branch => $"if:{ExecutionExpressionFingerprint.ForParallelAggregate(branch.Condition, parallelAggregate)}:{CreateBlockSignature(branch.Body, parallelAggregate)}",
+            ExecutionLet let =>
+                $"let:{let.Variable.Name}:{ExecutionExpressionFingerprint.ForAggregateType(let.Variable.Type)}={ExecutionExpressionFingerprint.ForParallelAggregate(let.Value, parallelAggregate)}",
+            ExecutionAssign assign =>
+                $"assign:{AggregateVariableFingerprint.Create(assign.Variable, parallelAggregate)}={ExecutionExpressionFingerprint.ForParallelAggregate(assign.Value, parallelAggregate)}",
+            ExecutionIf branch =>
+                $"if:{ExecutionExpressionFingerprint.ForParallelAggregate(branch.Condition, parallelAggregate)}:{CreateBlockSignature(branch.Body, parallelAggregate)}",
             ExecutionAggregateSet aggregateSet => CreateAggregateSetSignature(aggregateSet, parallelAggregate),
-            ExecutionAggregateCapturedValueSet capturedValueSet => $"captured-set:{AggregateVariableFingerprint.Create(capturedValueSet.Group, parallelAggregate)}:{capturedValueSet.CapturedField.FieldName}:{ExecutionExpressionFingerprint.ForParallelAggregate(capturedValueSet.Value, parallelAggregate)}",
-            _ => $"{node.GetType().FullName}:{node}"
+            ExecutionAggregateCapturedValueSet capturedValueSet =>
+                $"captured-set:{AggregateVariableFingerprint.Create(capturedValueSet.Group, parallelAggregate)}:{capturedValueSet.CapturedField.FieldName}:{ExecutionExpressionFingerprint.ForParallelAggregate(capturedValueSet.Value, parallelAggregate)}",
+            _ => $"{node.GetType().FullName}:{node}",
         };
     }
 
     private static string CreateAggregateSetSignature(
         ExecutionAggregateSet aggregateSet,
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate
+    )
     {
         var builder = new StringBuilder();
         builder
@@ -88,13 +93,17 @@ public sealed partial class ExecutionCSharpRenderer
             .Append(':');
         AggregateAccumulatorFingerprint.Append(builder, aggregateSet.Accumulator);
         builder.Append(":input=");
-        builder.Append(aggregateSet.AccumulatorInput is null
-            ? "<null>"
-            : ExecutionExpressionFingerprint.ForParallelAggregate(aggregateSet.AccumulatorInput, parallelAggregate));
+        builder.Append(
+            aggregateSet.AccumulatorInput is null
+                ? "<null>"
+                : ExecutionExpressionFingerprint.ForParallelAggregate(aggregateSet.AccumulatorInput, parallelAggregate)
+        );
         builder.Append(":filter=");
-        builder.Append(aggregateSet.FilterPredicate is null
-            ? "<null>"
-            : ExecutionExpressionFingerprint.ForParallelAggregate(aggregateSet.FilterPredicate, parallelAggregate));
+        builder.Append(
+            aggregateSet.FilterPredicate is null
+                ? "<null>"
+                : ExecutionExpressionFingerprint.ForParallelAggregate(aggregateSet.FilterPredicate, parallelAggregate)
+        );
         builder.Append(":args=");
         foreach (var argument in AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregateSet.Arguments))
         {

@@ -1,8 +1,8 @@
-using Musoq.Tests.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Tests.Common;
 
 namespace Musoq.Examples.DataSources.StructuredInputs.Tests;
 
@@ -19,13 +19,16 @@ public sealed class StructuredInputExecutionModeQualificationTests
         foreach (var mode in new[] { ParallelizationMode.None, ParallelizationMode.Full })
         {
             StructuredInputSourceCounters.Reset();
-            using var compiled = Compile(query, $"structured-mode-{mode}", new CompilationOptions(
-                parallelizationMode: mode,
-                useCteParallelization: mode == ParallelizationMode.Full));
+            using var compiled = Compile(
+                query,
+                $"structured-mode-{mode}",
+                new CompilationOptions(
+                    parallelizationMode: mode,
+                    useCteParallelization: mode == ParallelizationMode.Full
+                )
+            );
             using var table = compiled.Run();
-            results[mode] = table.Rows
-                .Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}")
-                .ToArray();
+            results[mode] = table.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
             Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
         }
 
@@ -36,21 +39,21 @@ public sealed class StructuredInputExecutionModeQualificationTests
     public void Sql_IndependentStructuredCtesRemainEquivalentWhenCteParallelizationChanges()
     {
         const string query =
-            "with leftRows as (select n.Value from #inputs.numbers(values: array { 1, 2, 2 }) n), " +
-            "rightRows as (select n.Value from #inputs.numbers(values: array { 3, 4 }) n) " +
-            "select l.Value, r.Value from leftRows l cross join rightRows r order by l.Value, r.Value";
+            "with leftRows as (select n.Value from #inputs.numbers(values: array { 1, 2, 2 }) n), "
+            + "rightRows as (select n.Value from #inputs.numbers(values: array { 3, 4 }) n) "
+            + "select l.Value, r.Value from leftRows l cross join rightRows r order by l.Value, r.Value";
 
         var results = new Dictionary<bool, string[]>(2);
         foreach (var enabled in new[] { false, true })
         {
             StructuredInputSourceCounters.Reset();
-            using var compiled = Compile(query, $"structured-cte-parallel-{enabled}", new CompilationOptions(
-                parallelizationMode: ParallelizationMode.Full,
-                useCteParallelization: enabled));
+            using var compiled = Compile(
+                query,
+                $"structured-cte-parallel-{enabled}",
+                new CompilationOptions(parallelizationMode: ParallelizationMode.Full, useCteParallelization: enabled)
+            );
             using var table = compiled.Run();
-            results[enabled] = table.Rows
-                .Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}")
-                .ToArray();
+            results[enabled] = table.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
             Assert.AreEqual(2, StructuredInputSourceCounters.NumbersConstructed);
         }
 
@@ -61,15 +64,17 @@ public sealed class StructuredInputExecutionModeQualificationTests
     public void Sql_ParallelCtesCanBePassedDirectlyToTypedSources()
     {
         const string query =
-            "with patterns as (select p1.Id, p1.Pattern from values { (Id: 'todo', Pattern: 'TODO'), (Id: 'fixme', Pattern: 'FIXME') } p1), " +
-            "numbers as (select p2.Value from values { (Value: 1), (Value: 2) } p2) " +
-            "select m.PatternId, n.Value from #inputs.match('TODO FIXME', patterns: patterns) m " +
-            "cross join #inputs.numbers(values: numbers) n";
+            "with patterns as (select p1.Id, p1.Pattern from values { (Id: 'todo', Pattern: 'TODO'), (Id: 'fixme', Pattern: 'FIXME') } p1), "
+            + "numbers as (select p2.Value from values { (Value: 1), (Value: 2) } p2) "
+            + "select m.PatternId, n.Value from #inputs.match('TODO FIXME', patterns: patterns) m "
+            + "cross join #inputs.numbers(values: numbers) n";
 
         StructuredInputSourceCounters.Reset();
-        using var compiled = Compile(query, "structured-parallel-cte-source", new CompilationOptions(
-            parallelizationMode: ParallelizationMode.Full,
-            useCteParallelization: true));
+        using var compiled = Compile(
+            query,
+            "structured-parallel-cte-source",
+            new CompilationOptions(parallelizationMode: ParallelizationMode.Full, useCteParallelization: true)
+        );
         using var table = compiled.Run();
 
         Assert.AreEqual(4, table.Rows.Count);
@@ -88,25 +93,41 @@ public sealed class StructuredInputExecutionModeQualificationTests
             new StructuredInputsSchemaProvider(),
             new NullLoggerResolver(),
             new CompilationOptions(ParallelizationMode.None),
-            CancellationToken.None);
+            CancellationToken.None
+        );
         StructuredInputSourceCounters.Reset();
 
         var results = Task.WhenAll(
-            Enumerable.Range(0, 4).Select(index => Task.Run(() =>
-            {
-                var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
-                {
-                    ["patterns"] = new[]
+            Enumerable
+                .Range(0, 4)
+                .Select(index =>
+                    Task.Run(() =>
                     {
-                        new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
+                        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
                         {
-                            ["Id"] = $"run-{index}",
-                            ["Pattern"] = index % 2 == 0 ? "TODO" : "FIXME"
-                        }
-                    }
-                };
-                return compiled.Run(new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters, compiled.ParameterDefinitions))).ToArray();
-            })));
+                            ["patterns"] = new[]
+                            {
+                                new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
+                                {
+                                    ["Id"] = $"run-{index}",
+                                    ["Pattern"] = index % 2 == 0 ? "TODO" : "FIXME",
+                                },
+                            },
+                        };
+                        return compiled
+                            .Run(
+                                new TypedQueryRunOptions(
+                                    CancellationToken.None,
+                                    global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                                        parameters,
+                                        compiled.ParameterDefinitions
+                                    )
+                                )
+                            )
+                            .ToArray();
+                    })
+                )
+        );
 
         foreach (var (result, index) in results.GetAwaiter().GetResult().Select((result, index) => (result, index)))
         {
@@ -125,8 +146,15 @@ public sealed class StructuredInputExecutionModeQualificationTests
             name,
             new StructuredInputsSchemaProvider(),
             new NullLoggerResolver(),
-            options);
-        Assert.IsTrue(build.Succeeded, string.Join(Environment.NewLine, build.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
+            options
+        );
+        Assert.IsTrue(
+            build.Succeeded,
+            string.Join(
+                Environment.NewLine,
+                build.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            )
+        );
         return build.CompiledQuery!;
     }
 

@@ -10,9 +10,11 @@ public sealed class RawStringLiteralSchemaTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySchema_RawLiteralInRepeatUntilCondition_ShouldPreserveBackslashes()
     {
-        const string schema = @"binary Stream {
-            Names: string[32] ascii repeat until Names = R'C:\new\test'
-        }";
+        const string schema = (
+            "binary Stream {\n"
+            + "            Names: string[32] ascii repeat until Names = R'C:\\new\\test'\n"
+            + "        }"
+        );
 
         var result = ParseBinarySchema(schema);
         var field = (FieldDefinitionNode)result.Fields[0];

@@ -2,9 +2,7 @@ namespace Musoq.Targets.CSharpClr;
 
 internal sealed class ExecutionRenderContext
 {
-    internal ExecutionRenderContext(
-        ExecutionRenderOptions options,
-        ExecutionRenderSession session)
+    internal ExecutionRenderContext(ExecutionRenderOptions options, ExecutionRenderSession session)
     {
         Options = options ?? throw new ArgumentNullException(nameof(options));
         Session = session ?? throw new ArgumentNullException(nameof(session));

@@ -19,9 +19,7 @@ internal sealed partial class LikeStrategyLoweringPass
             return RewriteWithMatcherHoistingDisabled(() =>
             {
                 var body = RewriteBlock(scopedBlock.Body);
-                return ReferenceEquals(body, scopedBlock.Body)
-                    ? scopedBlock
-                    : scopedBlock with { Body = body };
+                return ReferenceEquals(body, scopedBlock.Body) ? scopedBlock : scopedBlock with { Body = body };
             });
         }
 
@@ -35,7 +33,11 @@ internal sealed partial class LikeStrategyLoweringPass
                 var body = InsertMatcherPreparations(RewriteBlock(node.Body), frame.Region);
                 return ReferenceEquals(source, node.Source) && ReferenceEquals(body, node.Body)
                     ? node
-                    : node with { Source = source, Body = body };
+                    : node with
+                    {
+                        Source = source,
+                        Body = body,
+                    };
             }
             finally
             {
@@ -53,7 +55,11 @@ internal sealed partial class LikeStrategyLoweringPass
                 var body = InsertMatcherPreparations(RewriteBlock(node.Body), frame.Region);
                 return ReferenceEquals(source, node.Source) && ReferenceEquals(body, node.Body)
                     ? node
-                    : node with { Source = source, Body = body };
+                    : node with
+                    {
+                        Source = source,
+                        Body = body,
+                    };
             }
             finally
             {
@@ -93,7 +99,11 @@ internal sealed partial class LikeStrategyLoweringPass
                 var body = RewriteBlock(node.Body);
                 return ReferenceEquals(condition, node.Condition) && ReferenceEquals(body, node.Body)
                     ? node
-                    : node with { Condition = condition, Body = body };
+                    : node with
+                    {
+                        Condition = condition,
+                        Body = body,
+                    };
             }
             finally
             {
@@ -110,7 +120,6 @@ internal sealed partial class LikeStrategyLoweringPass
         protected override ExecutionNode RewriteMaterializeFilteredList(ExecutionMaterializeFilteredList node) =>
             RewriteWithMatcherHoistingDisabled(() => base.RewriteMaterializeFilteredList(node));
 
-
         protected override ExecutionNode RewriteWindowKernelPlan(ExecutionWindowKernelPlan node) =>
             RewriteWithMatcherHoistingDisabled(() => base.RewriteWindowKernelPlan(node));
 
@@ -118,12 +127,15 @@ internal sealed partial class LikeStrategyLoweringPass
             ExecutionExpression input,
             ExecutionExpression pattern,
             PatternKind kind,
-            out ExecutionVariableRead matcher)
+            out ExecutionVariableRead matcher
+        )
         {
             matcher = null!;
-            if (_matcherHoistingDisabledDepth != 0 ||
-                !IsEligibleStablePattern(pattern) ||
-                ContainsConditionalExpression(pattern))
+            if (
+                _matcherHoistingDisabledDepth != 0
+                || !IsEligibleStablePattern(pattern)
+                || ContainsConditionalExpression(pattern)
+            )
             {
                 return false;
             }
@@ -146,21 +158,25 @@ internal sealed partial class LikeStrategyLoweringPass
             }
 
             var signature = ExecutionExpressionFingerprint.ForHoist(pattern);
-            var loopInvariantMatchers = kind == PatternKind.Like
-                ? region.LoopInvariantLikeMatchers
-                : region.LoopInvariantRLikeMatchers;
+            var loopInvariantMatchers =
+                kind == PatternKind.Like ? region.LoopInvariantLikeMatchers : region.LoopInvariantRLikeMatchers;
             if (!loopInvariantMatchers.TryGetValue(signature, out var variable))
             {
                 variable = CreateVariable(
                     kind == PatternKind.Like ? "__likeMatcher" : "__rlikeMatcher",
-                    PreparedMatcherType(kind));
+                    PreparedMatcherType(kind)
+                );
                 loopInvariantMatchers.Add(signature, variable);
-                region.MatcherPreparations.Add(new MatcherPreparation(
-                    new ExecutionLet(
-                        variable,
-                        CreatePrepareMatcher(pattern, kind),
-                        ExecutionLetCacheMode.SuppressMethodCache),
-                    GetDependencyNames(pattern)));
+                region.MatcherPreparations.Add(
+                    new MatcherPreparation(
+                        new ExecutionLet(
+                            variable,
+                            CreatePrepareMatcher(pattern, kind),
+                            ExecutionLetCacheMode.SuppressMethodCache
+                        ),
+                        GetDependencyNames(pattern)
+                    )
+                );
             }
 
             matcher = new ExecutionVariableRead(variable);
@@ -174,9 +190,13 @@ internal sealed partial class LikeStrategyLoweringPass
             {
                 for (var index = _loopPath.Count - 1; index >= 0; index--)
                 {
-                    if (_loopPath[index].Names.Contains(dependency, StringComparer.OrdinalIgnoreCase) ||
-                        (_variableOwners.TryGetValue(dependency, out var owner) &&
-                         ReferenceEquals(owner, _loopPath[index])))
+                    if (
+                        _loopPath[index].Names.Contains(dependency, StringComparer.OrdinalIgnoreCase)
+                        || (
+                            _variableOwners.TryGetValue(dependency, out var owner)
+                            && ReferenceEquals(owner, _loopPath[index])
+                        )
+                    )
                     {
                         deepest = Math.Max(deepest, index);
                         break;
@@ -215,29 +235,36 @@ internal sealed partial class LikeStrategyLoweringPass
                 ExecutionScriptVariableRead => true,
                 ExecutionVariableRead => true,
                 ExecutionFieldRead { Stability: ColumnStability.Stable } => true,
-                ExecutionMemberRead { IsDynamic: false } memberRead =>
-                    ExpressionStabilityAnalyzer.IsStable(memberRead) && IsEligibleStablePattern(memberRead.Receiver),
-                _ => false
+                ExecutionMemberRead { IsDynamic: false } memberRead => ExpressionStabilityAnalyzer.IsStable(memberRead)
+                    && IsEligibleStablePattern(memberRead.Receiver),
+                _ => false,
             };
         }
 
         private static bool ContainsConditionalExpression(ExecutionExpression expression) =>
-            ExecutionIrAnalysis.FlattenExpressions(expression).Any(static current =>
-                current is ExecutionBinary { Kind: BinaryOpKind.And or BinaryOpKind.Or } or
-                    ExecutionCaseWhen or ExecutionCoalesce or ExecutionInCheck { UsesSqlNullSemantics: true });
+            ExecutionIrAnalysis
+                .FlattenExpressions(expression)
+                .Any(static current =>
+                    current
+                        is ExecutionBinary { Kind: BinaryOpKind.And or BinaryOpKind.Or }
+                            or ExecutionCaseWhen
+                            or ExecutionCoalesce
+                            or ExecutionInCheck { UsesSqlNullSemantics: true }
+                );
 
         private static ExecutionBlock InsertMatcherPreparations(ExecutionBlock body, Region region)
         {
             if (region.MatcherPreparations.Count == 0)
                 return body;
 
-            var localDeclarationIndexes = body.Nodes
-                .Select((node, index) => (node, index))
+            var localDeclarationIndexes = body
+                .Nodes.Select((node, index) => (node, index))
                 .Where(static item => item.node is ExecutionLet)
                 .ToDictionary(
                     static item => ((ExecutionLet)item.node).Variable.Name,
                     static item => item.index,
-                    StringComparer.OrdinalIgnoreCase);
+                    StringComparer.OrdinalIgnoreCase
+                );
             var minimumIndex = FindLoopPreludeInsertionIndex(body.Nodes);
             var preparationsByIndex = new SortedDictionary<int, List<ExecutionLet>>();
             foreach (var preparation in region.MatcherPreparations)
@@ -267,7 +294,10 @@ internal sealed partial class LikeStrategyLoweringPass
                     rewritten.Add(body.Nodes[index]);
             }
 
-            return body with { Nodes = rewritten };
+            return body with
+            {
+                Nodes = rewritten,
+            };
         }
 
         private static int FindLoopPreludeInsertionIndex(IReadOnlyList<ExecutionNode> nodes)
@@ -291,16 +321,15 @@ internal sealed partial class LikeStrategyLoweringPass
             }
         }
 
-        private sealed record MatcherPreparation(
-            ExecutionLet Let,
-            IReadOnlySet<string> Dependencies);
+        private sealed record MatcherPreparation(ExecutionLet Let, IReadOnlySet<string> Dependencies);
 
         private sealed class LoopFrame
         {
             public LoopFrame(
                 ExecutionVariable item,
                 ExecutionVariable? ordinal = null,
-                ExecutionVariable? source = null)
+                ExecutionVariable? source = null
+            )
             {
                 var names = new List<string> { item.Name };
                 if (ordinal != null)

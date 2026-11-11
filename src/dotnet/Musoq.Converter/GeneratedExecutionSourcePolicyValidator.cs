@@ -13,29 +13,33 @@ public partial class TransformTree
         RootNode queryTree,
         SemanticScopeArtifact scopeArtifact,
         SemanticMetadataSnapshot semanticMetadata,
-        SemanticBuildArtifacts semanticArtifacts)
+        SemanticBuildArtifacts semanticArtifacts
+    )
     {
         if (IsDescriptionQuery(queryTree))
             return true;
 
-        foreach (var violation in ExecutionSourceCodeGenerationPolicy.FindViolations(
-                     scopeArtifact.CreateScope(),
-                     semanticMetadata.InferredColumns.Keys,
-                     semanticArtifacts.UsedColumns))
+        foreach (
+            var violation in ExecutionSourceCodeGenerationPolicy.FindViolations(
+                scopeArtifact.CreateScope(),
+                semanticMetadata.InferredColumns.Keys,
+                semanticArtifacts.UsedColumns
+            )
+        )
         {
-            var member = string.IsNullOrWhiteSpace(violation.MemberPath)
-                ? "<source>"
-                : violation.MemberPath;
+            var member = string.IsNullOrWhiteSpace(violation.MemberPath) ? "<source>" : violation.MemberPath;
             var message = ErrorCatalog.GetMessage(
                 DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
                 violation.EntityType.FullName ?? violation.EntityType.Name,
                 violation.Source.Schema,
                 violation.Source.Method,
-                $"member '{member}' {violation.Reason}. Use a public CLR contract or native query-scoped rows with authoritative concrete columns.");
+                $"member '{member}' {violation.Reason}. Use a public CLR contract or native query-scoped rows with authoritative concrete columns."
+            );
             context.DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
                 message,
-                violation.Source.SpanOrEmpty());
+                violation.Source.SpanOrEmpty()
+            );
         }
 
         return !context.DiagnosticContext.HasErrors;
@@ -47,7 +51,7 @@ public partial class TransformTree
         {
             DescNode => true,
             StatementsArrayNode statements => statements.Statements.Any(statement => statement.Node is DescNode),
-            _ => false
+            _ => false,
         };
     }
 }

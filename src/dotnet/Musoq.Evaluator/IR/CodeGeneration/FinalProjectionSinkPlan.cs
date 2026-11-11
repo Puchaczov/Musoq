@@ -15,7 +15,8 @@ internal sealed record FinalProjectionSinkPlan
         QueryMethodRenderMetadata resultMetadata,
         IReadOnlyList<TypedPostOperation> postOperations,
         FinalProjectionSinkRejectionKind rejectionKind,
-        string? rejectionReason)
+        string? rejectionReason
+    )
     {
         IsAccepted = isAccepted;
         SourceScans = sourceScans.ToArray();
@@ -52,7 +53,8 @@ internal sealed record FinalProjectionSinkPlan
         ExecutionVariable appendTarget,
         QueryMethodRenderMetadata resultMetadata,
         IReadOnlyList<TypedPostOperation> postOperations,
-        IReadOnlyList<ExecutionNode>? setupNodes = null)
+        IReadOnlyList<ExecutionNode>? setupNodes = null
+    )
     {
         return new FinalProjectionSinkPlan(
             true,
@@ -63,7 +65,8 @@ internal sealed record FinalProjectionSinkPlan
             resultMetadata,
             postOperations,
             FinalProjectionSinkRejectionKind.None,
-            null);
+            null
+        );
     }
 
     public static FinalProjectionSinkPlan Rejected(string reason)
@@ -73,6 +76,16 @@ internal sealed record FinalProjectionSinkPlan
 
     public static FinalProjectionSinkPlan Rejected(FinalProjectionSinkRejectionKind kind, string reason)
     {
-        return new FinalProjectionSinkPlan(false, [], [], null, null, QueryMethodRenderMetadata.Unknown, [], kind, reason);
+        return new FinalProjectionSinkPlan(
+            false,
+            [],
+            [],
+            null,
+            null,
+            QueryMethodRenderMetadata.Unknown,
+            [],
+            kind,
+            reason
+        );
     }
 }

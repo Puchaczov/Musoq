@@ -16,13 +16,14 @@ internal sealed partial class PhysicalLoweringImplementation
             PhysicalHavingFilterNode { Input: PhysicalAggregateOnlyNode aggregate } having =>
                 CreateRawAggregateOnlyPipeline(aggregate, having.Predicate),
             PhysicalAggregateOnlyNode aggregate => CreateRawAggregateOnlyPipeline(aggregate, null),
-            _ => null
+            _ => null,
         };
     }
 
     private static AggregateOnlyPipeline? CreateRawAggregateOnlyPipeline(
         PhysicalAggregateOnlyNode aggregate,
-        IrExpression? havingPredicate)
+        IrExpression? havingPredicate
+    )
     {
         var source = DecomposeSourcePipeline(aggregate.Input);
         return source == null
@@ -32,7 +33,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 aggregate.Bindings,
                 source,
                 havingPredicate,
-                []);
+                []
+            );
     }
 
     private static PhysicalProjectNode CreateAggregateProjection(PhysicalAggregateOnlyNode aggregate)
@@ -47,13 +49,14 @@ internal sealed partial class PhysicalLoweringImplementation
             PhysicalHavingFilterNode { Input: PhysicalSingleKeyAggregateNode aggregate } having =>
                 CreateRawSingleKeyAggregatePipeline(aggregate, having.Predicate),
             PhysicalSingleKeyAggregateNode aggregate => CreateRawSingleKeyAggregatePipeline(aggregate, null),
-            _ => null
+            _ => null,
         };
     }
 
     private static AggregateSingleKeyPipeline? CreateRawSingleKeyAggregatePipeline(
         PhysicalSingleKeyAggregateNode aggregate,
-        IrExpression? havingPredicate)
+        IrExpression? havingPredicate
+    )
     {
         var source = DecomposeSourcePipeline(aggregate.Input);
         return source == null
@@ -67,14 +70,15 @@ internal sealed partial class PhysicalLoweringImplementation
                 aggregate.GroupKey,
                 aggregate.GroupKeyName,
                 aggregate.GroupKeyType,
-                []);
+                []
+            );
     }
 
     private static PhysicalProjectNode CreateAggregateProjection(PhysicalSingleKeyAggregateNode aggregate)
     {
         var fields = new List<ProjectedField>(aggregate.Bindings.Length + 1)
         {
-            new(aggregate.GroupKeyName, aggregate.GroupKey, 0)
+            new(aggregate.GroupKeyName, aggregate.GroupKey, 0),
         };
 
         fields.AddRange(CreateAggregateBindingFields(aggregate.Bindings, 1));
@@ -89,13 +93,14 @@ internal sealed partial class PhysicalLoweringImplementation
             PhysicalHavingFilterNode { Input: PhysicalValueTupleAggregateNode aggregate } having =>
                 CreateRawValueTupleAggregatePipeline(aggregate, having.Predicate),
             PhysicalValueTupleAggregateNode aggregate => CreateRawValueTupleAggregatePipeline(aggregate, null),
-            _ => null
+            _ => null,
         };
     }
 
     private static ValueTupleAggregatePipeline? CreateRawValueTupleAggregatePipeline(
         PhysicalValueTupleAggregateNode aggregate,
-        IrExpression? havingPredicate)
+        IrExpression? havingPredicate
+    )
     {
         var source = DecomposeSourcePipeline(aggregate.Input);
         return source == null
@@ -108,20 +113,23 @@ internal sealed partial class PhysicalLoweringImplementation
                 aggregate.GroupKeys,
                 aggregate.GroupKeyNames,
                 aggregate.GroupKeyTypes,
-                []);
+                []
+            );
     }
 
     private static PhysicalProjectNode CreateAggregateProjection(PhysicalValueTupleAggregateNode aggregate)
     {
         return new PhysicalProjectNode(
             CreateGroupedAggregateProjectionFields(aggregate.GroupKeys, aggregate.GroupKeyNames, aggregate.Bindings),
-            aggregate);
+            aggregate
+        );
     }
 
     private static ProjectedField[] CreateGroupedAggregateProjectionFields(
         IrExpression[] groupKeys,
         string[] groupKeyNames,
-        AggregateBinding[] bindings)
+        AggregateBinding[] bindings
+    )
     {
         var fields = new List<ProjectedField>(groupKeys.Length + bindings.Length);
 
@@ -133,9 +141,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return fields.ToArray();
     }
 
-    private static IEnumerable<ProjectedField> CreateAggregateBindingFields(
-        AggregateBinding[] bindings,
-        int startIndex)
+    private static IEnumerable<ProjectedField> CreateAggregateBindingFields(AggregateBinding[] bindings, int startIndex)
     {
         for (var index = 0; index < bindings.Length; index++)
         {
@@ -144,7 +150,8 @@ internal sealed partial class PhysicalLoweringImplementation
             yield return new ProjectedField(
                 binding.ColumnName,
                 new AggregateRef(binding.Identifier, binding.ReturnType, binding.DisplayName),
-                startIndex + index);
+                startIndex + index
+            );
         }
     }
 }

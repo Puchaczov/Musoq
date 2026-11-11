@@ -14,10 +14,19 @@ public sealed class OperatorProfileRecorderTests
     {
         var clock = new FakeProfileClock();
         var recorder = new QueryProfileRecorder(clock);
-        recorder.RegisterOperators(
-        [
-            new ExecutionPlanOperatorDescriptor("op2", "SortTable [x]", "SortTable", ExecutionPlanOperatorRowCountStrategy.TableTransform),
-            new ExecutionPlanOperatorDescriptor("op1", "SourceScan [x]", "SourceScan", ExecutionPlanOperatorRowCountStrategy.SourceBoundary)
+        recorder.RegisterOperators([
+            new ExecutionPlanOperatorDescriptor(
+                "op2",
+                "SortTable [x]",
+                "SortTable",
+                ExecutionPlanOperatorRowCountStrategy.TableTransform
+            ),
+            new ExecutionPlanOperatorDescriptor(
+                "op1",
+                "SourceScan [x]",
+                "SourceScan",
+                ExecutionPlanOperatorRowCountStrategy.SourceBoundary
+            ),
         ]);
 
         using (recorder.BeginOperator("op1", "SourceScan"))

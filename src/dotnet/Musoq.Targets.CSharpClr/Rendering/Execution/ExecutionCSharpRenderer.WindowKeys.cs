@@ -12,50 +12,69 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionWindowPartitionSet? partitions,
         ExecutionVariable? partitionKeys,
         ExecutionVariable buffer,
-        ExecutionVariable? partitionBuilder = null)
+        ExecutionVariable? partitionBuilder = null
+    )
     {
         if (partitions is not { ShouldCreate: true })
             return;
 
         if (partitionBuilder != null)
         {
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                partitions.Variable.Name,
-                SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(partitionBuilder.Name),
-                        SyntaxFactory.IdentifierName(nameof(WindowPartitionBuilder<object>.ToPartitionSet))))));
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    partitions.Variable.Name,
+                    SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(partitionBuilder.Name),
+                            SyntaxFactory.IdentifierName(nameof(WindowPartitionBuilder<object>.ToPartitionSet))
+                        )
+                    )
+                )
+            );
             return;
         }
 
-        statements.Add(CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            partitions.Variable.Name,
-            CreateWindowPartitionSetInvocation(buffer, partitionKeys)));
+        statements.Add(
+            CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                partitions.Variable.Name,
+                CreateWindowPartitionSetInvocation(buffer, partitionKeys)
+            )
+        );
     }
 
     private static InvocationExpressionSyntax CreateWindowPartitionSetInvocation(
-        ExecutionVariable buffer, ExecutionVariable? partitionKeys = null)
+        ExecutionVariable buffer,
+        ExecutionVariable? partitionKeys = null
+    )
     {
         if (partitionKeys is null)
-            return CreateWindowHelperInvocation(nameof(WindowFunctionHelpers.ResolvePartitionSet), CreateBufferCountExpression(buffer));
-        return CreateWindowHelperInvocation(nameof(WindowFunctionHelpers.ResolvePartitionSet),
-            CreateBufferCountExpression(buffer), CreatePartitionKeysArgument(partitionKeys));
+            return CreateWindowHelperInvocation(
+                nameof(WindowFunctionHelpers.ResolvePartitionSet),
+                CreateBufferCountExpression(buffer)
+            );
+        return CreateWindowHelperInvocation(
+            nameof(WindowFunctionHelpers.ResolvePartitionSet),
+            CreateBufferCountExpression(buffer),
+            CreatePartitionKeysArgument(partitionKeys)
+        );
     }
 
     private static void AddWindowMethodTargetDeclarations(
         List<StatementSyntax> statements,
-        IReadOnlyList<ExecutionVariable>? methodTargets)
+        IReadOnlyList<ExecutionVariable>? methodTargets
+    )
     {
         if (methodTargets == null)
             return;
 
         foreach (var target in methodTargets)
         {
-            statements.Add(RenderCreateAggregateLibrary(
-                new ExecutionCreateAggregateLibrary(target, target.Type.RequireClrType())));
+            statements.Add(
+                RenderCreateAggregateLibrary(new ExecutionCreateAggregateLibrary(target, target.Type.RequireClrType()))
+            );
         }
     }
 
@@ -63,7 +82,8 @@ public sealed partial class ExecutionCSharpRenderer
         List<StatementSyntax> statements,
         ExecutionWindowPartitionSet? sortedPartitions,
         ExecutionWindowPartitionSet? partitions,
-        ExecutionWindowKeyArray orderKeys)
+        ExecutionWindowKeyArray orderKeys
+    )
     {
         if (!HasGeneratedWindowKeyType(orderKeys))
             throw UnsupportedShape.Of("Sorted window partitions require a lowered concrete order carrier.");
@@ -74,7 +94,8 @@ public sealed partial class ExecutionCSharpRenderer
         List<StatementSyntax> statements,
         ExecutionWindowPartitionSet? sortedPartitions,
         ExecutionWindowPartitionSet? partitions,
-        ExecutionVariable orderKeys)
+        ExecutionVariable orderKeys
+    )
     {
         if (sortedPartitions is not { ShouldCreate: true })
             return;
@@ -89,7 +110,8 @@ public sealed partial class ExecutionCSharpRenderer
             helperName,
             SyntaxFactory.IdentifierName(partitions.Variable.Name),
             SyntaxFactory.IdentifierName(orderKeys.Name),
-            CreateBooleanLiteral(false));
+            CreateBooleanLiteral(false)
+        );
 
         if (sortedPartitions.SortInPlace)
         {
@@ -97,10 +119,8 @@ public sealed partial class ExecutionCSharpRenderer
             return;
         }
 
-        statements.Add(CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            sortedPartitions.Variable.Name,
-            invocation));
+        statements.Add(
+            CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), sortedPartitions.Variable.Name, invocation)
+        );
     }
-
 }

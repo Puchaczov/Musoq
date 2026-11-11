@@ -28,22 +28,29 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             AccessColumnNode column => column.Alias,
             AccessObjectArrayNode { IsColumnAccess: true } indexed => indexed.TableAlias,
-            _ => null
+            _ => null,
         };
         if (node.ReturnType is not { } type)
             return node;
         if (!IsNullableInterpretationExpression(node.Root))
         {
-            if (alias is null || !_binaryInterpretationAliases.TryGetValue(alias, out var schemaName) ||
-                SchemaRegistry?.TryGetSchema(schemaName, out var registration) != true || registration?.Node is not BinarySchemaNode schema)
+            if (
+                alias is null
+                || !_binaryInterpretationAliases.TryGetValue(alias, out var schemaName)
+                || SchemaRegistry?.TryGetSchema(schemaName, out var registration) != true
+                || registration?.Node is not BinarySchemaNode schema
+            )
                 return node;
-            if (!BinarySchemaExpressionTypes.IsNullable(type) &&
-                !BinarySchemaExpressionTypes.MayBeNull(node, GetAllBinarySchemaFields(schema), SchemaRegistry))
+            if (
+                !BinarySchemaExpressionTypes.IsNullable(type)
+                && !BinarySchemaExpressionTypes.MayBeNull(node, GetAllBinarySchemaFields(schema), SchemaRegistry)
+            )
                 return node;
         }
         type = BinarySchemaExpressionTypes.Lift(type, true);
         return new DotNode(node.Root, node.Expression, node.IsTheMostInner, node.Name, type, node.IntendedTypeName)
-        { IsNullSafePath = true }.CopySpansFrom(node);
+        {
+            IsNullSafePath = true,
+        }.CopySpansFrom(node);
     }
-
 }

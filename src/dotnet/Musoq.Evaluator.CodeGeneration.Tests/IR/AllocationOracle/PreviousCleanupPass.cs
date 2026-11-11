@@ -17,25 +17,25 @@ internal sealed class PreviousCleanupPass : ICodegenReadabilityOptimizationPass
 {
     public string Name => "ExecutionCodegenOptimization";
 
-    public OptimizationResult<CompilationUnitSyntax> Optimize(
-        CompilationUnitSyntax plan,
-        OptimizationContext context)
+    public OptimizationResult<CompilationUnitSyntax> Optimize(CompilationUnitSyntax plan, OptimizationContext context)
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(context);
 
         var rewriter = new ExecutionCodegenOptimizationRewriter();
         var optimized = (CompilationUnitSyntax)rewriter.Visit(plan)!;
-        var changed = rewriter.RemovedDeclarations > 0 ||
-                      rewriter.ApprovedHelpers > 0 ||
-                      rewriter.ApprovedCallSites > 0 ||
-                      rewriter.ExtractedInlineBlocks > 0;
+        var changed =
+            rewriter.RemovedDeclarations > 0
+            || rewriter.ApprovedHelpers > 0
+            || rewriter.ApprovedCallSites > 0
+            || rewriter.ExtractedInlineBlocks > 0;
 
-        var reason = $"Removed {rewriter.RemovedDeclarations} safe temporary declaration(s), " +
-                     $"approved {rewriter.ApprovedHelpers} helper(s) and {rewriter.ApprovedCallSites} call site(s), " +
-                     $"and extracted {rewriter.ExtractedInlineBlocks} inline helper block(s); " +
-                     $"skipped {rewriter.SkippedDeclarations} declaration(s) and " +
-                     $"{rewriter.SkippedInlineBlocks} inline block(s).";
+        var reason =
+            $"Removed {rewriter.RemovedDeclarations} safe temporary declaration(s), "
+            + $"approved {rewriter.ApprovedHelpers} helper(s) and {rewriter.ApprovedCallSites} call site(s), "
+            + $"and extracted {rewriter.ExtractedInlineBlocks} inline helper block(s); "
+            + $"skipped {rewriter.SkippedDeclarations} declaration(s) and "
+            + $"{rewriter.SkippedInlineBlocks} inline block(s).";
 
         return changed
             ? OptimizationResult<CompilationUnitSyntax>.Changed(optimized, reason)
@@ -72,8 +72,10 @@ internal sealed class PreviousCleanupPass : ICodegenReadabilityOptimizationPass
         public override SyntaxNode? VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             var visited = (MethodDeclarationSyntax)base.VisitMethodDeclaration(node)!;
-            if (!CodegenHelperExtractionMetadata.TryGetCandidate(visited, out var info) ||
-                visited.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind))
+            if (
+                !CodegenHelperExtractionMetadata.TryGetCandidate(visited, out var info)
+                || visited.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)
+            )
             {
                 return visited;
             }
@@ -85,8 +87,10 @@ internal sealed class PreviousCleanupPass : ICodegenReadabilityOptimizationPass
         public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
         {
             var visited = (InvocationExpressionSyntax)base.VisitInvocationExpression(node)!;
-            if (!CodegenHelperExtractionMetadata.TryGetCallSite(visited, out var info) ||
-                visited.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind))
+            if (
+                !CodegenHelperExtractionMetadata.TryGetCallSite(visited, out var info)
+                || visited.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)
+            )
             {
                 return visited;
             }
@@ -100,13 +104,17 @@ internal sealed class PreviousCleanupPass : ICodegenReadabilityOptimizationPass
             var visited = (BlockSyntax)base.VisitBlock(node)!;
             var statements = visited.Statements;
             var removed = RemoveUnusedDeclarations(statements);
-            var rewritten = removed.Count == 0
-                ? visited
-                : visited.WithStatements(SyntaxFactory.List(
-                    statements.Where((_, index) => !removed.Contains(index))));
+            var rewritten =
+                removed.Count == 0
+                    ? visited
+                    : visited.WithStatements(
+                        SyntaxFactory.List(statements.Where((_, index) => !removed.Contains(index)))
+                    );
 
-            if (!CodegenHelperExtractionMetadata.TryGetInlineCandidate(rewritten, out var info) ||
-                rewritten.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind))
+            if (
+                !CodegenHelperExtractionMetadata.TryGetInlineCandidate(rewritten, out var info)
+                || rewritten.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)
+            )
             {
                 return rewritten;
             }
@@ -129,8 +137,7 @@ internal sealed class PreviousCleanupPass : ICodegenReadabilityOptimizationPass
             for (var index = statements.Count - 1; index >= 0; index--)
             {
                 var statement = statements[index];
-                if (statement is LocalDeclarationStatementSyntax local &&
-                    CanRemove(local, usedLater))
+                if (statement is LocalDeclarationStatementSyntax local && CanRemove(local, usedLater))
                 {
                     removed.Add(index);
                     RemovedDeclarations++;
@@ -143,27 +150,30 @@ internal sealed class PreviousCleanupPass : ICodegenReadabilityOptimizationPass
             return removed;
         }
 
-        private bool CanRemove(
-            LocalDeclarationStatementSyntax local,
-            HashSet<string> usedLater)
+        private bool CanRemove(LocalDeclarationStatementSyntax local, HashSet<string> usedLater)
         {
-            if (local.UsingKeyword.RawKind != 0 ||
-                local.AwaitKeyword.RawKind != 0 ||
-                local.Declaration.Variables.Count == 0)
+            if (
+                local.UsingKeyword.RawKind != 0
+                || local.AwaitKeyword.RawKind != 0
+                || local.Declaration.Variables.Count == 0
+            )
             {
                 SkippedDeclarations++;
                 return false;
             }
 
-            var variableNames = local.Declaration.Variables
-                .Select(static variable => variable.Identifier.ValueText)
+            var variableNames = local
+                .Declaration.Variables.Select(static variable => variable.Identifier.ValueText)
                 .Where(static name => !string.IsNullOrWhiteSpace(name))
                 .ToArray();
 
-            if (variableNames.Length != local.Declaration.Variables.Count ||
-                local.Declaration.Variables.Any(static variable =>
-                    !CodegenReadabilitySyntaxFacts.IsSafelyRemovableInitializer(variable.Initializer)) ||
-                variableNames.Any(usedLater.Contains))
+            if (
+                variableNames.Length != local.Declaration.Variables.Count
+                || local.Declaration.Variables.Any(static variable =>
+                    !CodegenReadabilitySyntaxFacts.IsSafelyRemovableInitializer(variable.Initializer)
+                )
+                || variableNames.Any(usedLater.Contains)
+            )
             {
                 SkippedDeclarations++;
                 return false;

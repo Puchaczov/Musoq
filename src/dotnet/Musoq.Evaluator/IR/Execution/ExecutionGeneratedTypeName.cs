@@ -6,7 +6,10 @@ internal static class ExecutionGeneratedTypeName
     {
         if (expression.InterpretationShape is { } interpretation)
             return interpretation.TypeName;
-        if (ByteBufferViewShape.IsView(expression) || expression is ExecutionVariableRead { Variable.GeneratedRowTypeName: ByteBufferViewShape.TypeName })
+        if (
+            ByteBufferViewShape.IsView(expression)
+            || expression is ExecutionVariableRead { Variable.GeneratedRowTypeName: ByteBufferViewShape.TypeName }
+        )
             return ByteBufferViewShape.TypeName;
         if (!GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(expression.ReturnType.ResolveClrType()))
             return null;
@@ -18,7 +21,7 @@ internal static class ExecutionGeneratedTypeName
             ExecutionStructuralRecord record => record.GeneratedTypeName,
             ExecutionScriptParameterRead parameter => parameter.GeneratedTypeName,
             ExecutionScriptVariableRead variable => variable.GeneratedTypeName,
-            _ => null
+            _ => null,
         };
     }
 }

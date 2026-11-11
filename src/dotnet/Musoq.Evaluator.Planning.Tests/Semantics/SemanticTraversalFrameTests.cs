@@ -40,8 +40,7 @@ public sealed class SemanticTraversalFrameTests
     {
         var state = new SemanticAnalysisState();
 
-        var exception = Assert.ThrowsExactly<VisitorException>(() =>
-            state.Traversal.PopNode("Visitor", "pop"));
+        var exception = Assert.ThrowsExactly<VisitorException>(() => state.Traversal.PopNode("Visitor", "pop"));
 
         StringAssert.Contains(exception.Message, "pop");
     }
@@ -70,7 +69,8 @@ public sealed class SemanticTraversalFrameTests
         state.Traversal.PushNode(new StringNode("alpha"));
 
         var exception = Assert.ThrowsExactly<VisitorException>(() =>
-            state.Traversal.PopNode<RootNode>("Visitor", "typed-pop"));
+            state.Traversal.PopNode<RootNode>("Visitor", "typed-pop")
+        );
 
         StringAssert.Contains(exception.Message, "typed-pop");
         StringAssert.Contains(exception.Message, nameof(RootNode));

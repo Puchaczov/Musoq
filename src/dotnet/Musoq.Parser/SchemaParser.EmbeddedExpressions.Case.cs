@@ -6,11 +6,32 @@ namespace Musoq.Parser;
 
 public partial class SchemaParser
 {
-    private bool IsSchemaKeywordReference() => PeekNextTokenType() is
-        TokenType.Equality or TokenType.Diff or TokenType.Greater or TokenType.GreaterEqual or TokenType.Less or TokenType.LessEqual
-        or TokenType.StringConcatenation or TokenType.Plus or TokenType.Hyphen or TokenType.Star or TokenType.FSlash or TokenType.Mod or TokenType.Dot
-        or TokenType.And or TokenType.Or or TokenType.Comma or TokenType.RBracket or TokenType.RightParenthesis
-        or TokenType.NullCoalescing or TokenType.RightSquareBracket or TokenType.Check or TokenType.Then or TokenType.Else or TokenType.End;
+    private bool IsSchemaKeywordReference() =>
+        PeekNextTokenType()
+            is TokenType.Equality
+                or TokenType.Diff
+                or TokenType.Greater
+                or TokenType.GreaterEqual
+                or TokenType.Less
+                or TokenType.LessEqual
+                or TokenType.StringConcatenation
+                or TokenType.Plus
+                or TokenType.Hyphen
+                or TokenType.Star
+                or TokenType.FSlash
+                or TokenType.Mod
+                or TokenType.Dot
+                or TokenType.And
+                or TokenType.Or
+                or TokenType.Comma
+                or TokenType.RBracket
+                or TokenType.RightParenthesis
+                or TokenType.NullCoalescing
+                or TokenType.RightSquareBracket
+                or TokenType.Check
+                or TokenType.Then
+                or TokenType.Else
+                or TokenType.End;
 
     private Node ComposeSchemaCase()
     {

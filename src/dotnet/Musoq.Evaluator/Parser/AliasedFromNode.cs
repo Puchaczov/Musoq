@@ -8,6 +8,13 @@ public class AliasedFromNode(
     ArgsListNode args,
     string alias,
     int inSourcePosition,
-    string? typeParameter = null)
-    : Musoq.Parser.Nodes.From.AliasedFromNode(identifier, args, alias, typeof(RowSource<>), inSourcePosition,
-        typeParameter);
+    string? typeParameter = null
+)
+    : Musoq.Parser.Nodes.From.AliasedFromNode(
+        identifier,
+        args,
+        alias,
+        typeof(RowSource<>),
+        inSourcePosition,
+        typeParameter
+    );

@@ -17,9 +17,7 @@ public sealed class ParseResult
     ///     Creates a new parse result with a successful AST.
     /// </summary>
     public ParseResult(RootNode root, SourceText sourceText)
-        : this(root, sourceText, Array.Empty<Diagnostic>())
-    {
-    }
+        : this(root, sourceText, Array.Empty<Diagnostic>()) { }
 
     /// <summary>
     ///     Creates a new parse result with an AST and diagnostics.
@@ -110,8 +108,8 @@ public sealed class ParseResult
     public IEnumerable<Diagnostic> GetDiagnosticsAt(int offset, int tolerance = 0)
     {
         return _diagnostics.Where(d =>
-            offset >= d.Location.Offset - tolerance &&
-            offset <= d.EndLocation.Offset + tolerance);
+            offset >= d.Location.Offset - tolerance && offset <= d.EndLocation.Offset + tolerance
+        );
     }
 
     /// <summary>
@@ -139,6 +137,7 @@ public sealed class ParseResult
     /// </summary>
     public void ThrowIfErrors()
     {
-        if (HasErrors) throw new ParseException(FormatDiagnostics(), _diagnostics);
+        if (HasErrors)
+            throw new ParseException(FormatDiagnostics(), _diagnostics);
     }
 }

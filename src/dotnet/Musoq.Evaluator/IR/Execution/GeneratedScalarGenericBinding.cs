@@ -8,31 +8,44 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class GeneratedScalarGenericBinding
 {
-    internal static IReadOnlyDictionary<int, string> Resolve(MethodInfo method,
-        IReadOnlyList<ExecutionExpression> arguments)
+    internal static IReadOnlyDictionary<int, string> Resolve(
+        MethodInfo method,
+        IReadOnlyList<ExecutionExpression> arguments
+    )
     {
-        if (!method.IsConstructedGenericMethod ||
-            !method.GetGenericArguments().Any(RequiresGeneratedSpecialization))
+        if (!method.IsConstructedGenericMethod || !method.GetGenericArguments().Any(RequiresGeneratedSpecialization))
             return ImmutableDictionary<int, string>.Empty;
-        return ResolveNames(method, arguments.Select(static argument => argument switch
-        {
-            ExecutionFieldRead read => read.GeneratedTypeName,
-            ExecutionScriptParameterRead read => read.GeneratedTypeName,
-            ExecutionScriptVariableRead read => read.GeneratedTypeName,
-            ExecutionMethodCall call => call.GeneratedResultTypeName,
-            ExecutionStructuralRecord record => record.GeneratedTypeName,
-            ExecutionStructuralArray { GeneratedElementTypeName: { } elementName } => elementName + "[]",
-            _ => null
-        }).ToArray());
+        return ResolveNames(
+            method,
+            arguments
+                .Select(static argument =>
+                    argument switch
+                    {
+                        ExecutionFieldRead read => read.GeneratedTypeName,
+                        ExecutionScriptParameterRead read => read.GeneratedTypeName,
+                        ExecutionScriptVariableRead read => read.GeneratedTypeName,
+                        ExecutionMethodCall call => call.GeneratedResultTypeName,
+                        ExecutionStructuralRecord record => record.GeneratedTypeName,
+                        ExecutionStructuralArray { GeneratedElementTypeName: { } elementName } => elementName + "[]",
+                        _ => null,
+                    }
+                )
+                .ToArray()
+        );
     }
 
-    internal static IReadOnlyDictionary<int, string> ResolveNames(MethodInfo method,
-        IReadOnlyList<string?> argumentNames)
+    internal static IReadOnlyDictionary<int, string> ResolveNames(
+        MethodInfo method,
+        IReadOnlyList<string?> argumentNames
+    )
     {
         if (!method.IsConstructedGenericMethod)
             return ImmutableDictionary<int, string>.Empty;
-        var parameters = method.GetGenericMethodDefinition().GetParameters().Where(static parameter =>
-            parameter.GetCustomAttribute<InjectTypeAttribute>() == null).ToArray();
+        var parameters = method
+            .GetGenericMethodDefinition()
+            .GetParameters()
+            .Where(static parameter => parameter.GetCustomAttribute<InjectTypeAttribute>() == null)
+            .ToArray();
         var names = ImmutableDictionary.CreateBuilder<int, string>();
         for (var index = 0; index < parameters.Length && index < argumentNames.Count; index++)
             if (argumentNames[index] is { Length: > 0 } name)
@@ -42,24 +55,29 @@ internal static class GeneratedScalarGenericBinding
                 names.Remove(binding.Key);
         return names.ToImmutable();
     }
+
     internal static bool RequiresGeneratedSpecialization(Type type)
     {
-        if (type == typeof(object) || type == typeof(Musoq.Schema.StructuralInputs.StructuralValue) ||
-            type == typeof(Musoq.Schema.StructuralInputs.GeneratedRecordConstraintWitness))
+        if (
+            type == typeof(object)
+            || type == typeof(Musoq.Schema.StructuralInputs.StructuralValue)
+            || type == typeof(Musoq.Schema.StructuralInputs.GeneratedRecordConstraintWitness)
+        )
             return true;
         if (type.IsArray)
             return RequiresGeneratedSpecialization(type.GetElementType()!);
         return type.IsGenericType && type.GetGenericArguments().Any(RequiresGeneratedSpecialization);
     }
 
-    private static void BindGeneratedType(Type template, string name,
-        ImmutableDictionary<int, string>.Builder names)
+    private static void BindGeneratedType(Type template, string name, ImmutableDictionary<int, string>.Builder names)
     {
         if (template.IsGenericParameter)
         {
             var position = template.GenericParameterPosition;
             if (names.TryGetValue(position, out var existing) && existing != name)
-                throw new InvalidOperationException("A generic scalar parameter cannot erase different generated value shapes.");
+                throw new InvalidOperationException(
+                    "A generic scalar parameter cannot erase different generated value shapes."
+                );
             names[position] = name;
             return;
         }
@@ -84,7 +102,9 @@ internal static class GeneratedScalarGenericBinding
             return;
         var values = SplitTypeArguments(name[(opening + 1)..^1]);
         if (values.Count != parameters.Length)
-            throw new InvalidOperationException("Generated scalar generic arguments do not match their concrete shape.");
+            throw new InvalidOperationException(
+                "Generated scalar generic arguments do not match their concrete shape."
+            );
         for (var index = 0; index < parameters.Length; index++)
             BindGeneratedType(parameters[index], values[index], names);
     }
@@ -96,8 +116,10 @@ internal static class GeneratedScalarGenericBinding
         var start = 0;
         for (var index = 0; index < arguments.Length; index++)
         {
-            if (arguments[index] == '<') depth++;
-            else if (arguments[index] == '>') depth--;
+            if (arguments[index] == '<')
+                depth++;
+            else if (arguments[index] == '>')
+                depth--;
             else if (arguments[index] == ',' && depth == 0)
             {
                 result.Add(arguments[start..index].Trim());
@@ -120,15 +142,18 @@ internal static class GeneratedScalarGenericBinding
     {
         if (template.IsGenericParameter)
             return names.TryGetValue(template.GenericParameterPosition, out var name)
-                ? name : concrete[template.GenericParameterPosition].FullName!.Replace('+', '.');
+                ? name
+                : concrete[template.GenericParameterPosition].FullName!.Replace('+', '.');
         if (template.IsArray)
             return RenderType(template.GetElementType()!, concrete, names) + "[]";
         if (!template.IsGenericType)
             return template.FullName!.Replace('+', '.');
         var definitionName = template.GetGenericTypeDefinition().FullName!;
         var tick = definitionName.IndexOf('`');
-        return definitionName[..tick].Replace('+', '.') + "<" + string.Join(", ",
-            template.GetGenericArguments().Select(type => RenderType(type, concrete, names))) + ">";
+        return definitionName[..tick].Replace('+', '.')
+            + "<"
+            + string.Join(", ", template.GetGenericArguments().Select(type => RenderType(type, concrete, names)))
+            + ">";
     }
 
     internal static void AppendFingerprint(System.Text.StringBuilder builder, ExecutionMethodCall call)
@@ -137,5 +162,4 @@ internal static class GeneratedScalarGenericBinding
         foreach (var binding in call.GeneratedGenericArguments.OrderBy(static pair => pair.Key))
             builder.Append(":generated-type:").Append(binding.Key).Append('=').Append(binding.Value);
     }
-
 }

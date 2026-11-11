@@ -18,47 +18,52 @@ public partial class CteTests
     [TestProperty("Phase", "4")]
     public void UnionAllAcceptsCompatibleNullableAndNonNullableColumns()
     {
-        const string query = """
-            with Combined as (
-                select v.Bucket as Bucket, v.IncludeRow as IncludeRow, v.Score as Score
-                from values {
-                    (Bucket: 'A', IncludeRow: true, Score: 10),
-                    (Bucket: 'A', IncludeRow: false, Score: 1),
-                    (Bucket: 'B', IncludeRow: true, Score: null),
-                    (Bucket: 'C', IncludeRow: true, Score: 7),
-                    (Bucket: 'D', IncludeRow: null, Score: 9),
-                    (Bucket: 'E', IncludeRow: true, Score: 8)
-                } v
-                union all
-                select w.Bucket as Bucket, w.IncludeRow as IncludeRow, w.Score as Score
-                from values {
-                    (Bucket: 'A', IncludeRow: true, Score: 10),
-                    (Bucket: 'B', IncludeRow: false, Score: 5),
-                    (Bucket: 'C', IncludeRow: false, Score: 2),
-                    (Bucket: 'D', IncludeRow: false, Score: 99)
-                } w
-            )
-            select c.Bucket as Bucket,
-                   Count(*) as RowsInGroup,
-                   Count(c.Score) FILTER (WHERE c.IncludeRow = true) as IncludedScoreCount,
-                   Count(c.Score) FILTER (WHERE c.IncludeRow = false) as ExcludedScoreCount
-            from Combined c
-            group by c.Bucket
-            having Count(*) >= 2
-            order by RowsInGroup desc, Bucket asc
-            """;
+        const string query = (
+            "with Combined as (\n"
+            + "    select v.Bucket as Bucket, v.IncludeRow as IncludeRow, v.Score as Score\n"
+            + "    from values {\n"
+            + "        (Bucket: 'A', IncludeRow: true, Score: 10),\n"
+            + "        (Bucket: 'A', IncludeRow: false, Score: 1),\n"
+            + "        (Bucket: 'B', IncludeRow: true, Score: null),\n"
+            + "        (Bucket: 'C', IncludeRow: true, Score: 7),\n"
+            + "        (Bucket: 'D', IncludeRow: null, Score: 9),\n"
+            + "        (Bucket: 'E', IncludeRow: true, Score: 8)\n"
+            + "    } v\n"
+            + "    union all\n"
+            + "    select w.Bucket as Bucket, w.IncludeRow as IncludeRow, w.Score as Score\n"
+            + "    from values {\n"
+            + "        (Bucket: 'A', IncludeRow: true, Score: 10),\n"
+            + "        (Bucket: 'B', IncludeRow: false, Score: 5),\n"
+            + "        (Bucket: 'C', IncludeRow: false, Score: 2),\n"
+            + "        (Bucket: 'D', IncludeRow: false, Score: 99)\n"
+            + "    } w\n"
+            + ")\n"
+            + "select c.Bucket as Bucket,\n"
+            + "       Count(*) as RowsInGroup,\n"
+            + "       Count(c.Score) FILTER (WHERE c.IncludeRow = true) as IncludedScoreCount,\n"
+            + "       Count(c.Score) FILTER (WHERE c.IncludeRow = false) as ExcludedScoreCount\n"
+            + "from Combined c\n"
+            + "group by c.Bucket\n"
+            + "having Count(*) >= 2\n"
+            + "order by RowsInGroup desc, Bucket asc"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>();
         using var compiled = CreateAndRunVirtualMachine(query, sources);
         using var result = TableMaterializationTestHelper.Materialize(compiled.Run());
 
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("Bucket", typeof(string)), ("RowsInGroup", typeof(long)),
-            ("IncludedScoreCount", typeof(long)), ("ExcludedScoreCount", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Bucket", typeof(string)),
+            ("RowsInGroup", typeof(long)),
+            ("IncludedScoreCount", typeof(long)),
+            ("ExcludedScoreCount", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             result,
             new object?[] { "A", 3L, 2L, 1L },
             new object?[] { "B", 2L, 0L, 1L },
             new object?[] { "C", 2L, 1L, 1L },
-            new object?[] { "D", 2L, 0L, 1L });
+            new object?[] { "D", 2L, 0L, 1L }
+        );
     }
 }

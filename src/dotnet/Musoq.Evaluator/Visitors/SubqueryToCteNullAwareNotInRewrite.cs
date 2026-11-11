@@ -11,23 +11,25 @@ public partial class SubqueryToCteRewriteVisitor
         PredicateSubqueryJoin match,
         ref FromNode currentFrom,
         ref Node? remainingExpr,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
-        if (subqueryInfo.RequiresLeftJoin || !subqueryInfo.IsIn || !subqueryInfo.IsNegated ||
-            !TryCreateNullAwareNotInGuard(subqueryInfo, out var nullGuard))
+        if (
+            subqueryInfo.RequiresLeftJoin
+            || !subqueryInfo.IsIn
+            || !subqueryInfo.IsNegated
+            || !TryCreateNullAwareNotInGuard(subqueryInfo, out var nullGuard)
+        )
             return false;
 
-        currentFrom = new Parser.JoinFromNode(
-            currentFrom,
-            match.CteRef,
-            match.JoinExpression,
-            JoinType.LeftAntiSemi);
+        currentFrom = new Parser.JoinFromNode(currentFrom, match.CteRef, match.JoinExpression, JoinType.LeftAntiSemi);
         var nullJoin = PreparePredicateSubqueryJoin(nullGuard, cteInnerExpressions);
         currentFrom = new Parser.JoinFromNode(
             currentFrom,
             nullJoin.CteRef,
             nullJoin.JoinExpression,
-            JoinType.LeftAntiSemi);
+            JoinType.LeftAntiSemi
+        );
         remainingExpr = AddNotInOuterNullGuard(remainingExpr, subqueryInfo.InQueryNode!.Left);
         return true;
     }
@@ -38,15 +40,15 @@ public partial class SubqueryToCteRewriteVisitor
         return expression == null ? guard : new AndNode(expression, guard);
     }
 
-    private static bool TryCreateNullAwareNotInGuard(
-        SubqueryInfo subqueryInfo,
-        out SubqueryInfo nullGuard)
+    private static bool TryCreateNullAwareNotInGuard(SubqueryInfo subqueryInfo, out SubqueryInfo nullGuard)
     {
-        if (subqueryInfo.InQueryNode is not { Subquery: QueryNode query } ||
-            query.Select.Fields.Length != 1 ||
-            query.GroupBy != null ||
-            query.Window != null ||
-            query.Qualify != null)
+        if (
+            subqueryInfo.InQueryNode is not { Subquery: QueryNode query }
+            || query.Select.Fields.Length != 1
+            || query.GroupBy != null
+            || query.Window != null
+            || query.Qualify != null
+        )
         {
             nullGuard = null!;
             return false;
@@ -56,7 +58,7 @@ public partial class SubqueryToCteRewriteVisitor
         var guardedQuery = AddSubqueryWherePredicate(query, predicate);
         nullGuard = SubqueryInfo.CreateExists(new ExistsQueryNode(guardedQuery), true) with
         {
-            Correlation = subqueryInfo.Correlation
+            Correlation = subqueryInfo.Correlation,
         };
         return true;
     }
@@ -65,13 +67,16 @@ public partial class SubqueryToCteRewriteVisitor
         InQueryNode inQuery,
         SubqueryCorrelationAnalysis analysis,
         out SubqueryInfo matchInfo,
-        out SubqueryInfo nullInfo)
+        out SubqueryInfo nullInfo
+    )
     {
-        if (inQuery.Subquery is not QueryNode query ||
-            query.Select.Fields.Length != 1 ||
-            query.GroupBy != null ||
-            query.Window != null ||
-            query.Qualify != null)
+        if (
+            inQuery.Subquery is not QueryNode query
+            || query.Select.Fields.Length != 1
+            || query.GroupBy != null
+            || query.Window != null
+            || query.Qualify != null
+        )
         {
             matchInfo = null!;
             nullInfo = null!;
@@ -88,22 +93,21 @@ public partial class SubqueryToCteRewriteVisitor
         return true;
     }
 
-    private static SubqueryInfo CreateNullAwareNotInExists(
-        QueryNode query,
-        SubqueryCorrelationInfo? correlation)
+    private static SubqueryInfo CreateNullAwareNotInExists(QueryNode query, SubqueryCorrelationInfo? correlation)
     {
         return SubqueryInfo.CreateExists(new ExistsQueryNode(query), true) with
         {
             RequiresLeftJoin = true,
-            Correlation = correlation
+            Correlation = correlation,
         };
     }
 
     private static QueryNode AddSubqueryWherePredicate(QueryNode query, Node predicate)
     {
-        var where = query.Where == null
-            ? new WhereNode(predicate)
-            : new WhereNode(new AndNode(query.Where.Expression, predicate));
+        var where =
+            query.Where == null
+                ? new WhereNode(predicate)
+                : new WhereNode(new AndNode(query.Where.Expression, predicate));
 
         return new QueryNode(
             query.Select,
@@ -115,7 +119,8 @@ public partial class SubqueryToCteRewriteVisitor
             query.Take,
             query.Window,
             query.Qualify,
-            default);
+            default
+        );
     }
 
     private sealed partial class PredicateSubqueryExpressionRewriter
@@ -134,7 +139,8 @@ public partial class SubqueryToCteRewriteVisitor
 
             return new AndNode(
                 new IsNullNode(inQuery.Left, true),
-                new AndNode(match.Replacement, nullMatch.Replacement));
+                new AndNode(match.Replacement, nullMatch.Replacement)
+            );
         }
     }
 }

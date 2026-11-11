@@ -16,10 +16,7 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
         AnalyzeScriptVariables(context, source);
     }
 
-    private static void AnalyzeCteScopes(
-        SemanticAdvisoryContext context,
-        Node node,
-        HashSet<Node> visited)
+    private static void AnalyzeCteScopes(SemanticAdvisoryContext context, Node node, HashSet<Node> visited)
     {
         if (!visited.Add(node))
             return;
@@ -35,7 +32,8 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
                 context.Report(
                     DiagnosticCode.MQ5022_UnusedCte,
                     ErrorCatalog.GetMessage(DiagnosticCode.MQ5022_UnusedCte, deadCte.Name),
-                    GetDeclarationNameSpan(context, deadCte.Name, definition));
+                    GetDeclarationNameSpan(context, deadCte.Name, definition)
+                );
             }
         }
 
@@ -54,17 +52,14 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
         var dependencies = declarations.Keys.ToDictionary(
             static name => name,
             static _ => new HashSet<string>(StringComparer.Ordinal),
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
 
         foreach (var declaration in declarations.Values)
             CollectVariableReferences(declaration.Initializer, declarationNames, dependencies[declaration.Name]);
 
         var roots = new HashSet<string>(StringComparer.Ordinal);
-        CollectLiveReferences(
-            source,
-            declarationNames,
-            roots,
-            new HashSet<Node>(ReferenceEqualityComparer.Instance));
+        CollectLiveReferences(source, declarationNames, roots, new HashSet<Node>(ReferenceEqualityComparer.Instance));
 
         var live = new HashSet<string>(roots, StringComparer.Ordinal);
         var pending = new Stack<string>(roots);
@@ -86,14 +81,16 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
             context.Report(
                 DiagnosticCode.MQ5023_UnusedScriptVariable,
                 ErrorCatalog.GetMessage(DiagnosticCode.MQ5023_UnusedScriptVariable, name),
-                GetDeclarationNameSpan(context, declaration.Name, declaration));
+                GetDeclarationNameSpan(context, declaration.Name, declaration)
+            );
         }
     }
 
     private static void CollectDeclarations(
         Node node,
         IDictionary<string, ScriptVariableDeclarationNode> declarations,
-        HashSet<Node> visited)
+        HashSet<Node> visited
+    )
     {
         if (!visited.Add(node))
             return;
@@ -109,7 +106,8 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
         Node node,
         IReadOnlySet<string> declarationNames,
         ISet<string> references,
-        HashSet<Node> visited)
+        HashSet<Node> visited
+    )
     {
         if (!visited.Add(node))
             return;
@@ -142,7 +140,8 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
     private static void CollectVariableReferences(
         Node node,
         IReadOnlySet<string> declarationNames,
-        ISet<string> references)
+        ISet<string> references
+    )
     {
         if (node is ParameterReferenceNode parameter && declarationNames.Contains(parameter.Name))
             references.Add(parameter.Name);
@@ -153,10 +152,7 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
             CollectVariableReferences(child, declarationNames, references);
     }
 
-    private static TextSpan GetDeclarationNameSpan(
-        SemanticAdvisoryContext context,
-        string name,
-        Node declaration)
+    private static TextSpan GetDeclarationNameSpan(SemanticAdvisoryContext context, string name, Node declaration)
     {
         var sourceText = context.Diagnostics.SourceText?.Text;
         if (sourceText == null || !declaration.HasSpan)
@@ -165,8 +161,6 @@ internal static class UnusedDeclarationAdvisoryAnalyzer
         var start = Math.Max(0, declaration.Span.Start);
         var end = Math.Min(sourceText.Length, declaration.Span.End);
         var nameStart = sourceText.IndexOf(name, start, end - start, StringComparison.OrdinalIgnoreCase);
-        return nameStart >= 0
-            ? new TextSpan(nameStart, name.Length)
-            : declaration.Span;
+        return nameStart >= 0 ? new TextSpan(nameStart, name.Length) : declaration.Span;
     }
 }

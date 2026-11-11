@@ -7,10 +7,7 @@ namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed class SingleUseHashBuildFusionLowerer
 {
-    public delegate bool TryFindHashBuildCteRef(
-        PhysicalNode query,
-        string cteName,
-        out PhysicalCteRefNode cteRef);
+    public delegate bool TryFindHashBuildCteRef(PhysicalNode query, string cteName, out PhysicalCteRefNode cteRef);
 
     public delegate bool TryCreateFusedCteHashBuildSource(
         PhysicalCteDefinition definition,
@@ -21,9 +18,13 @@ internal sealed class SingleUseHashBuildFusionLowerer
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         int schemaFromIndex,
         LoweringScope scope,
-        out FusedCteHashBuildSource fusion);
+        out FusedCteHashBuildSource fusion
+    );
 
-    private readonly Func<PhysicalCteNode, IReadOnlyDictionary<string, CteReferenceClassification>> _classifyCteReferences;
+    private readonly Func<
+        PhysicalCteNode,
+        IReadOnlyDictionary<string, CteReferenceClassification>
+    > _classifyCteReferences;
     private readonly Func<string, IReadOnlyDictionary<string, CteReferenceClassification>, bool> _canFuseReadOnceCte;
     private readonly TryFindHashBuildCteRef _tryFindHashBuildCteRef;
     private readonly TryCreateFusedCteHashBuildSource _tryCreateFusedSource;
@@ -32,7 +33,8 @@ internal sealed class SingleUseHashBuildFusionLowerer
         Func<PhysicalCteNode, IReadOnlyDictionary<string, CteReferenceClassification>> classifyCteReferences,
         Func<string, IReadOnlyDictionary<string, CteReferenceClassification>, bool> canFuseReadOnceCte,
         TryFindHashBuildCteRef tryFindHashBuildCteRef,
-        TryCreateFusedCteHashBuildSource tryCreateFusedSource)
+        TryCreateFusedCteHashBuildSource tryCreateFusedSource
+    )
     {
         _classifyCteReferences = classifyCteReferences;
         _canFuseReadOnceCte = canFuseReadOnceCte;
@@ -46,7 +48,8 @@ internal sealed class SingleUseHashBuildFusionLowerer
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         IReadOnlyDictionary<string, int> schemaFromIndexes,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var classifications = _classifyCteReferences(cte);
         var fusions = new Dictionary<string, FusedCteHashBuildSource>(StringComparer.OrdinalIgnoreCase);
@@ -54,10 +57,11 @@ internal sealed class SingleUseHashBuildFusionLowerer
         for (var index = 0; index < cte.Definitions.Length; index++)
         {
             var definition = cte.Definitions[index];
-            if (!CanFuseGeneratedSubqueryHashBuild(definition.Name) ||
-                !_canFuseReadOnceCte(definition.Name, classifications) ||
-                !_tryFindHashBuildCteRef(cte.Query, definition.Name, out var cteRef) ||
-                !_tryCreateFusedSource(
+            if (
+                !CanFuseGeneratedSubqueryHashBuild(definition.Name)
+                || !_canFuseReadOnceCte(definition.Name, classifications)
+                || !_tryFindHashBuildCteRef(cte.Query, definition.Name, out var cteRef)
+                || !_tryCreateFusedSource(
                     definition,
                     index,
                     cteRef,
@@ -66,7 +70,9 @@ internal sealed class SingleUseHashBuildFusionLowerer
                     cteShapesByName,
                     schemaFromIndexes[definition.Name],
                     scope,
-                    out var fusion))
+                    out var fusion
+                )
+            )
             {
                 continue;
             }

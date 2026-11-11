@@ -8,19 +8,34 @@ namespace Musoq.Schema.Managers;
 
 public partial class MethodsMetadata
 {
-    internal static readonly FrozenDictionary<Type, FrozenSet<Type>> ValidImplicitConversions = new Dictionary<Type, Type[]>
+    internal static readonly FrozenDictionary<Type, FrozenSet<Type>> ValidImplicitConversions = new Dictionary<
+        Type,
+        Type[]
+    >
     {
-        [typeof(sbyte)] =
-            [typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
+        [typeof(sbyte)] = [typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
         [typeof(byte)] =
         [
-            typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float),
-            typeof(double), typeof(decimal)
+            typeof(short),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
         ],
         [typeof(short)] = [typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
         [typeof(ushort)] =
         [
-            typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
         ],
         [typeof(int)] = [typeof(long), typeof(double), typeof(decimal)],
         [typeof(uint)] = [typeof(long), typeof(ulong), typeof(double), typeof(decimal)],
@@ -29,9 +44,15 @@ public partial class MethodsMetadata
         [typeof(float)] = [typeof(double)],
         [typeof(char)] =
         [
-            typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double),
-            typeof(decimal)
-        ]
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
+        ],
     }.ToFrozenDictionary(static entry => entry.Key, static entry => entry.Value.ToFrozenSet());
 
     internal static readonly FrozenDictionary<(Type, Type), int> ConversionCosts = new Dictionary<(Type, Type), int>()
@@ -89,7 +110,7 @@ public partial class MethodsMetadata
         [(typeof(char), typeof(ulong))] = 3,
         [(typeof(char), typeof(float))] = 4,
         [(typeof(char), typeof(double))] = 5,
-        [(typeof(char), typeof(decimal))] = 6
+        [(typeof(char), typeof(decimal))] = 6,
     }.ToFrozenDictionary();
 
     private static bool CanSafelyPassNull(Type to, Type from)
@@ -97,8 +118,8 @@ public partial class MethodsMetadata
         if (!IsNullType(from))
             return false;
         return (to.IsGenericType && to.GetGenericTypeDefinition() == typeof(Nullable<>))
-               || to.IsGenericParameter
-               || !to.IsValueType;
+            || to.IsGenericParameter
+            || !to.IsValueType;
     }
 
     private static bool IsNullType(Type type)
@@ -109,32 +130,37 @@ public partial class MethodsMetadata
     private static bool TypeConformsToConstraints(Type genericType, Type type)
     {
         var effectiveType = Nullable.GetUnderlyingType(type) ?? type;
-        effectiveType = Musoq.Schema.StructuralInputs.GeneratedRecordConstraintWitness.Resolve(genericType, effectiveType);
+        effectiveType = Musoq.Schema.StructuralInputs.GeneratedRecordConstraintWitness.Resolve(
+            genericType,
+            effectiveType
+        );
 
-        var interfaces = genericType.GetGenericParameterConstraints()
-            .Where(t => t.IsInterface);
+        var interfaces = genericType.GetGenericParameterConstraints().Where(t => t.IsInterface);
 
-        if (interfaces.Any(@interface => !ConformsToConstructedConstraint(@interface, genericType, effectiveType))) return false;
+        if (interfaces.Any(@interface => !ConformsToConstructedConstraint(@interface, genericType, effectiveType)))
+            return false;
 
         var specialConstraints = genericType.GenericParameterAttributes;
 
-        if ((specialConstraints & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0
-            && !effectiveType.IsValueType)
+        if (
+            (specialConstraints & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0
+            && !effectiveType.IsValueType
+        )
             return false;
 
-        if ((specialConstraints & GenericParameterAttributes.ReferenceTypeConstraint) != 0
-            && effectiveType.IsValueType)
+        if ((specialConstraints & GenericParameterAttributes.ReferenceTypeConstraint) != 0 && effectiveType.IsValueType)
             return false;
 
-        var baseConstraint = genericType.GetGenericParameterConstraints()
-            .FirstOrDefault(t => !t.IsInterface);
+        var baseConstraint = genericType.GetGenericParameterConstraints().FirstOrDefault(t => !t.IsInterface);
         if (baseConstraint != null)
             if (!ConformsToConstructedConstraint(baseConstraint, genericType, effectiveType))
                 return false;
 
-        if ((specialConstraints & GenericParameterAttributes.DefaultConstructorConstraint) == 0) return true;
+        if ((specialConstraints & GenericParameterAttributes.DefaultConstructorConstraint) == 0)
+            return true;
 
-        if (effectiveType.IsValueType) return true;
+        if (effectiveType.IsValueType)
+            return true;
 
         var constructor = effectiveType.GetConstructor(Type.EmptyTypes);
 
@@ -153,5 +179,4 @@ public partial class MethodsMetadata
     {
         return ConversionCosts.TryGetValue((from, to), out var cost) ? cost : int.MaxValue;
     }
-
 }

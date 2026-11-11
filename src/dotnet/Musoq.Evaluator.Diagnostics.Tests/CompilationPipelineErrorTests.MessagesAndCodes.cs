@@ -21,7 +21,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class CompilationPipelineErrorTests
 {
-
     [TestMethod]
     public void ErrorMessage_UnknownColumn_ShouldSuggestSimilar()
     {
@@ -39,7 +38,8 @@ public partial class CompilationPipelineErrorTests
         var errorMessage = result.Errors.First(e => e.Code == DiagnosticCode.MQ3001_UnknownColumn).Message;
         Assert.IsTrue(
             errorMessage.Contains("Naem", StringComparison.OrdinalIgnoreCase),
-            $"Error message should mention 'Naem': {errorMessage}");
+            $"Error message should mention 'Naem': {errorMessage}"
+        );
     }
 
     [TestMethod]
@@ -56,9 +56,12 @@ public partial class CompilationPipelineErrorTests
 
         // Verify message mentions the function name
         var hasMethodInMessage = result.Errors.Any(e =>
-            e.Message.Contains("UnknownFunction", StringComparison.OrdinalIgnoreCase));
-        Assert.IsTrue(hasMethodInMessage,
-            $"Error message should mention 'UnknownFunction': {string.Join("; ", result.Errors.Select(e => e.Message))}");
+            e.Message.Contains("UnknownFunction", StringComparison.OrdinalIgnoreCase)
+        );
+        Assert.IsTrue(
+            hasMethodInMessage,
+            $"Error message should mention 'UnknownFunction': {string.Join("; ", result.Errors.Select(e => e.Message))}"
+        );
     }
 
     [TestMethod]
@@ -77,12 +80,13 @@ public partial class CompilationPipelineErrorTests
         // Verify no internal exception types exposed
         foreach (var error in result.Errors)
             Assert.IsFalse(
-                error.Message.Contains("NullReferenceException") ||
-                error.Message.Contains("KeyNotFoundException") ||
-                error.Message.Contains("StackTrace") ||
-                error.Message.Contains("at System.") ||
-                error.Message.Contains("at Musoq."),
-                $"Error message should not contain internal exception details: {error.Message}");
+                error.Message.Contains("NullReferenceException")
+                    || error.Message.Contains("KeyNotFoundException")
+                    || error.Message.Contains("StackTrace")
+                    || error.Message.Contains("at System.")
+                    || error.Message.Contains("at Musoq."),
+                $"Error message should not contain internal exception details: {error.Message}"
+            );
     }
 
     [TestMethod]
@@ -110,8 +114,7 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - Must be exactly MQ3001_UnknownColumn
-        AssertHasErrorCode(result, DiagnosticCode.MQ3001_UnknownColumn,
-            "column 'NonExistentColumn' doesn't exist");
+        AssertHasErrorCode(result, DiagnosticCode.MQ3001_UnknownColumn, "column 'NonExistentColumn' doesn't exist");
     }
 
     [TestMethod]
@@ -138,8 +141,6 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.Analyze(query);
 
         // Assert - unknown schema should map to MQ3010
-        AssertHasErrorCode(result, DiagnosticCode.MQ3010_UnknownSchema,
-            "schema 'nonexistent' not registered");
+        AssertHasErrorCode(result, DiagnosticCode.MQ3010_UnknownSchema, "schema 'nonexistent' not registered");
     }
-
 }

@@ -10,13 +10,13 @@ public static class MetadataReferenceCache
 {
     internal static IMetadataReferenceCache Default => RuntimeLibraries.MetadataReferences;
 
-    internal static IMetadataReferenceCache CreateScoped() =>
-        new DefaultMetadataReferenceCache();
+    internal static IMetadataReferenceCache CreateScoped() => new DefaultMetadataReferenceCache();
 
     /// <summary>
     ///     Gets the current number of cached references.
     /// </summary>
-    public static int Count => RuntimeLibraries.WithEnvironment(static environment => environment.MetadataReferenceCache.Count);
+    public static int Count =>
+        RuntimeLibraries.WithEnvironment(static environment => environment.MetadataReferenceCache.Count);
 
     /// <summary>
     ///     Gets or creates a MetadataReference for the given assembly path.

@@ -19,44 +19,71 @@ public sealed class RegexBudgetExecutionTests : BasicEntityTestBase
     [DataRow("p.Name like p.City", "value", "v_lue", 3000)]
     [DataRow("p.Name like 'k%'", "Kelvin", "unused", 3000)]
     public void TableExecution_ShouldCarryBudgetToMatchersAndUnicodeFallback(
-        string predicate, string name, string pattern, int milliseconds)
+        string predicate,
+        string name,
+        string pattern,
+        int milliseconds
+    )
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = new[] { new BasicEntity { Name = name, City = pattern } }
+            ["#A"] = new[]
+            {
+                new BasicEntity { Name = name, City = pattern },
+            },
         };
-        var options = new CompilationOptions(ParallelizationMode.None)
-            .WithRegexMatchTimeout(TimeSpan.FromMilliseconds(milliseconds));
+        var options = new CompilationOptions(ParallelizationMode.None).WithRegexMatchTimeout(
+            TimeSpan.FromMilliseconds(milliseconds)
+        );
         var query = $"select {predicate} as Match from #A.Entities() p";
         var provider = new BasicSchemaProvider<BasicEntity>(sources);
         var loggerResolver = new TestsLoggerResolver();
-        var result = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString(),
-            provider, loggerResolver, options);
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            provider, loggerResolver, options);
+        var result = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            loggerResolver,
+            options
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            loggerResolver,
+            options
+        );
 
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
         Assert.AreEqual(true, table[0].ReadValue(0));
         Assert.AreEqual(options.RegexMatchTimeout, result.ExecutionPlan!.RegexMatchTimeout);
-        StringAssert.Contains(result.GeneratedCSharpCode,
-            $"TimeSpan.FromTicks({options.RegexMatchTimeout.Ticks.ToString(CultureInfo.InvariantCulture)}L)");
+        StringAssert.Contains(
+            result.GeneratedCSharpCode,
+            $"TimeSpan.FromTicks({options.RegexMatchTimeout.Ticks.ToString(CultureInfo.InvariantCulture)}L)"
+        );
     }
 
     [TestMethod]
     [DataRow(ParallelizationMode.None, 1000)]
     [DataRow(ParallelizationMode.Full, 3000)]
-    public void DynamicPatterns_ShouldRetainBudgetInSerialAndParallelExecution(ParallelizationMode mode, int milliseconds)
+    public void DynamicPatterns_ShouldRetainBudgetInSerialAndParallelExecution(
+        ParallelizationMode mode,
+        int milliseconds
+    )
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = Enumerable.Range(0, 4096).Select(static _ => new BasicEntity { Name = "value", City = "v.lue" })
+            ["#A"] = Enumerable.Range(0, 4096).Select(static _ => new BasicEntity { Name = "value", City = "v.lue" }),
         };
-        var options = new CompilationOptions(mode, maxDegreeOfParallelismOverride: 2)
-            .WithRegexMatchTimeout(TimeSpan.FromMilliseconds(milliseconds));
+        var options = new CompilationOptions(mode, maxDegreeOfParallelismOverride: 2).WithRegexMatchTimeout(
+            TimeSpan.FromMilliseconds(milliseconds)
+        );
         using var query = CreateAndRunVirtualMachine(
-            "select p.Name from #A.Entities() p where p.Name rlike p.City", sources, options);
+            "select p.Name from #A.Entities() p where p.Name rlike p.City",
+            sources,
+            options
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -71,19 +98,36 @@ public sealed class RegexBudgetExecutionTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = new[] { new BasicEntity { Name = "Kelvin", Id = 1 } }
+            ["#A"] = new[]
+            {
+                new BasicEntity { Name = "Kelvin", Id = 1 },
+            },
         };
         var options = new CompilationOptions(ParallelizationMode.None).WithRegexMatchTimeout(TimeSpan.FromSeconds(3));
         var provider = new BasicSchemaProvider<BasicEntity>(sources);
         var loggerResolver = new TestsLoggerResolver();
-        var inspection = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString(), provider, loggerResolver, options);
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, loggerResolver, options);
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            loggerResolver,
+            options
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            loggerResolver,
+            options
+        );
 
         using var result = compiled.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, result);
         Assert.AreEqual(1, Convert.ToInt32(result[0].ReadValue(0), CultureInfo.InvariantCulture));
         StringAssert.Contains(inspection.GeneratedCSharpCode, "TimeSpan.FromTicks(30000000L)");
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("TimeSpan.FromTicks(20000000L)", StringComparison.Ordinal));
+        Assert.IsFalse(
+            inspection.GeneratedCSharpCode.Contains("TimeSpan.FromTicks(20000000L)", StringComparison.Ordinal)
+        );
     }
 }

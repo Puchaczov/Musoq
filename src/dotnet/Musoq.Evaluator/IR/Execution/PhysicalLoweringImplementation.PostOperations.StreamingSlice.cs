@@ -11,7 +11,8 @@ internal sealed partial class PhysicalLoweringImplementation
         bool isDistinct,
         TableProjection? finalProjection,
         IReadOnlyList<ProjectedField> projectedFields,
-        out IReadOnlyList<PostOperation> remainingPostOperations)
+        out IReadOnlyList<PostOperation> remainingPostOperations
+    )
     {
         return PostOperationPlanner.Default.TryCreateStreamingSlice(
             resultTableName,
@@ -19,12 +20,14 @@ internal sealed partial class PhysicalLoweringImplementation
             isDistinct,
             finalProjection,
             projectedFields,
-            out remainingPostOperations);
+            out remainingPostOperations
+        );
     }
 
     private static ExecutionCapacityHint? CreateStreamingSliceCapacityCandidate(
         ExecutionVariable target,
-        StreamingSlice? streamingSlice)
+        StreamingSlice? streamingSlice
+    )
     {
         return PostOperationPlanner.Default.CreateStreamingSliceCapacityCandidate(target, streamingSlice);
     }

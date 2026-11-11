@@ -20,17 +20,21 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         IReadOnlyDictionary<string, RowShape>? inheritedSourceLookup,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildApplyTable(
-            apply,
-            pipeline,
-            resultTableName,
-            resultShapeName,
-            cteIndexes,
-            cteShapesByName,
-            schemaFromIndex,
-            inheritedSourceLookup,
-            scope));
+        LoweringScope scope
+    ) =>
+        LoweringAttemptConversions.From(
+            BuildApplyTable(
+                apply,
+                pipeline,
+                resultTableName,
+                resultShapeName,
+                cteIndexes,
+                cteShapesByName,
+                schemaFromIndex,
+                inheritedSourceLookup,
+                scope
+            )
+        );
 
     LoweringAttempt<LoweredTable> IJoinLoweringService.BuildNestedLoopJoinTable(
         PhysicalNestedLoopJoinNode join,
@@ -40,16 +44,20 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildNestedLoopJoinTable(
-            join,
-            pipeline,
-            resultTableName,
-            resultShapeName,
-            cteIndexes,
-            cteShapesByName,
-            schemaFromIndex,
-            scope));
+        LoweringScope scope
+    ) =>
+        LoweringAttemptConversions.From(
+            BuildNestedLoopJoinTable(
+                join,
+                pipeline,
+                resultTableName,
+                resultShapeName,
+                cteIndexes,
+                cteShapesByName,
+                schemaFromIndex,
+                scope
+            )
+        );
 
     LoweringAttempt<LoweredTable> IJoinLoweringService.BuildHashJoinTable(
         PhysicalHashJoinNode join,
@@ -59,16 +67,20 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildHashJoinTable(
-            join,
-            pipeline,
-            resultTableName,
-            resultShapeName,
-            cteIndexes,
-            cteShapesByName,
-            schemaFromIndex,
-            scope));
+        LoweringScope scope
+    ) =>
+        LoweringAttemptConversions.From(
+            BuildHashJoinTable(
+                join,
+                pipeline,
+                resultTableName,
+                resultShapeName,
+                cteIndexes,
+                cteShapesByName,
+                schemaFromIndex,
+                scope
+            )
+        );
 
     LoweringAttempt<LoweredTable> IJoinLoweringService.BuildSortMergeJoinTable(
         PhysicalSortMergeJoinNode join,
@@ -78,16 +90,20 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildSortMergeJoinTable(
-            join,
-            pipeline,
-            resultTableName,
-            resultShapeName,
-            cteIndexes,
-            cteShapesByName,
-            schemaFromIndex,
-            scope));
+        LoweringScope scope
+    ) =>
+        LoweringAttemptConversions.From(
+            BuildSortMergeJoinTable(
+                join,
+                pipeline,
+                resultTableName,
+                resultShapeName,
+                cteIndexes,
+                cteShapesByName,
+                schemaFromIndex,
+                scope
+            )
+        );
 
     CteSupportedPipeline? IPipelineLoweringService.DecomposeSupportedPipeline(PhysicalNode node) =>
         DecomposeSupportedPipeline(node);
@@ -98,14 +114,14 @@ internal sealed partial class PhysicalLoweringImplementation
     LoweringAttempt<ExecutionPlan> IPipelineLoweringService.BuildPipeline(
         CteSupportedPipeline pipeline,
         string identifier,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildPipeline(pipeline, identifier, scope));
+        LoweringScope scope
+    ) => LoweringAttemptConversions.From(BuildPipeline(pipeline, identifier, scope));
 
     LoweringAttempt<ExecutionPlan> IPipelineLoweringService.BuildSetOperation(
         SetOperationPipeline pipeline,
         string identifier,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildSetOperation(pipeline, identifier, scope));
+        LoweringScope scope
+    ) => LoweringAttemptConversions.From(BuildSetOperation(pipeline, identifier, scope));
 
     LoweringAttempt<LoweredTable> IPipelineLoweringService.BuildTable(
         CteSupportedPipeline pipeline,
@@ -114,15 +130,11 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildTable(
-            pipeline,
-            resultTableName,
-            resultShapeName,
-            cteIndexes,
-            cteShapesByName,
-            schemaFromIndex,
-            scope));
+        LoweringScope scope
+    ) =>
+        LoweringAttemptConversions.From(
+            BuildTable(pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName, schemaFromIndex, scope)
+        );
 
     LoweringAttempt<LoweredTable> IPipelineLoweringService.BuildSetOperationTable(
         SetOperationPipeline pipeline,
@@ -131,42 +143,41 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildSetOperationTable(
-            pipeline,
-            resultTableName,
-            resultShapeName,
-            cteIndexes,
-            cteShapesByName,
-            schemaFromIndex,
-            scope));
+        LoweringScope scope
+    ) =>
+        LoweringAttemptConversions.From(
+            BuildSetOperationTable(
+                pipeline,
+                resultTableName,
+                resultShapeName,
+                cteIndexes,
+                cteShapesByName,
+                schemaFromIndex,
+                scope
+            )
+        );
 
     LoweringAttempt<ExecutionPlan> ICteLoweringService.BuildCte(
         PhysicalCteNode cte,
         string identifier,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildCte(cte, identifier, scope));
+        LoweringScope scope
+    ) => LoweringAttemptConversions.From(BuildCte(cte, identifier, scope));
 
     LoweringAttempt<ExecutionPlan> IMultiStatementLoweringService.BuildMultiStatement(
         PhysicalMultiStatementNode statement,
         string identifier,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildMultiStatement(statement, identifier, scope));
+        LoweringScope scope
+    ) => LoweringAttemptConversions.From(BuildMultiStatement(statement, identifier, scope));
 
-    bool IMultiStatementLoweringService.CanBuildTableProducingMultiStatement(
-        PhysicalMultiStatementNode statement) =>
+    bool IMultiStatementLoweringService.CanBuildTableProducingMultiStatement(PhysicalMultiStatementNode statement) =>
         CanBuildTableProducingMultiStatement(statement);
 
     MultiStatementIndexes IMultiStatementLoweringService.CreateMultiStatementIndexes(
         PhysicalMultiStatementNode statement,
         IReadOnlyDictionary<string, int>? existingCteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? existingCteShapesByName,
-        string? statementNamePrefix) =>
-        CreateMultiStatementIndexes(
-            statement,
-            existingCteIndexes,
-            existingCteShapesByName,
-            statementNamePrefix);
+        string? statementNamePrefix
+    ) => CreateMultiStatementIndexes(statement, existingCteIndexes, existingCteShapesByName, statementNamePrefix);
 
     LoweringAttempt<LoweredTable> IMultiStatementLoweringService.BuildMultiStatementTable(
         PhysicalMultiStatementNode statement,
@@ -174,17 +185,19 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope) =>
-        LoweringAttemptConversions.From(BuildMultiStatementTable(
-            statement,
-            resultTableName,
-            resultShapeName,
-            indexes,
-            scopeAggregateVariables,
-            scope));
+        LoweringScope scope
+    ) =>
+        LoweringAttemptConversions.From(
+            BuildMultiStatementTable(
+                statement,
+                resultTableName,
+                resultShapeName,
+                indexes,
+                scopeAggregateVariables,
+                scope
+            )
+        );
 
-    LoweringAttempt<ExecutionPlan> IDescLoweringService.BuildDesc(
-        PhysicalDescNode desc,
-        string identifier) =>
+    LoweringAttempt<ExecutionPlan> IDescLoweringService.BuildDesc(PhysicalDescNode desc, string identifier) =>
         LoweringAttemptConversions.From(BuildDesc(desc, identifier));
 }

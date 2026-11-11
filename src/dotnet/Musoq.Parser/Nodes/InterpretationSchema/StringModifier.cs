@@ -30,5 +30,5 @@ public enum StringModifier
     /// <summary>
     ///     String ends at first null character. Remaining bytes are consumed but ignored.
     /// </summary>
-    NullTerm = 8
+    NullTerm = 8,
 }

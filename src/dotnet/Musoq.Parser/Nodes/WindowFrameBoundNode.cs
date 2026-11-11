@@ -25,7 +25,7 @@ public class WindowFrameBoundNode(WindowFrameBoundType boundType, int offset = 0
             WindowFrameBoundType.CurrentRow => "current row",
             WindowFrameBoundType.OffsetPreceding => $"{Offset} preceding",
             WindowFrameBoundType.OffsetFollowing => $"{Offset} following",
-            _ => throw new InvalidOperationException($"Unknown bound type: {BoundType}")
+            _ => throw new InvalidOperationException($"Unknown bound type: {BoundType}"),
         };
     }
 }

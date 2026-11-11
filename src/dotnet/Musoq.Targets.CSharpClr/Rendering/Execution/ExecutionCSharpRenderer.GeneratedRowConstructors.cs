@@ -5,10 +5,13 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static Dictionary<string, IReadOnlySet<GeneratedRowContextConstructor>>
-        CollectGeneratedRowConstructorUsages(
-            ExecutionBlock block,
-            IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults = null)
+    private static Dictionary<
+        string,
+        IReadOnlySet<GeneratedRowContextConstructor>
+    > CollectGeneratedRowConstructorUsages(
+        ExecutionBlock block,
+        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults = null
+    )
     {
         var usages = new Dictionary<string, HashSet<GeneratedRowContextConstructor>>(StringComparer.Ordinal);
         var contextReadTypeNames = CollectGeneratedRowTypesWithContextReads(block, typedStoredTableResults);
@@ -20,7 +23,8 @@ public sealed partial class ExecutionCSharpRenderer
                 appendRow.RowShape.TypeName,
                 !contextReadTypeNames.Contains(appendRow.RowShape.TypeName)
                     ? GeneratedRowContextConstructor.NoContext
-                    : ResolveGeneratedRowContextConstructor(appendRow));
+                    : ResolveGeneratedRowContextConstructor(appendRow)
+            );
 
         foreach (var createRow in FlattenNodes(block).OfType<ExecutionCreateGeneratedRow>())
             AddGeneratedRowConstructorUsage(
@@ -28,38 +32,44 @@ public sealed partial class ExecutionCSharpRenderer
                 createRow.RowShape.TypeName,
                 !contextReadTypeNames.Contains(createRow.RowShape.TypeName)
                     ? GeneratedRowContextConstructor.NoContext
-                    : ResolveGeneratedRowContextConstructor(createRow.ContextLayout, createRow.Contexts.Count));
+                    : ResolveGeneratedRowContextConstructor(createRow.ContextLayout, createRow.Contexts.Count)
+            );
 
         foreach (var valuesRows in FlattenNodes(block).OfType<ExecutionCreateValuesRows>())
             AddGeneratedRowConstructorUsage(
                 usages,
                 valuesRows.RowShape.TypeName,
-                GeneratedRowContextConstructor.NoContext);
+                GeneratedRowContextConstructor.NoContext
+            );
 
         foreach (var materialize in FlattenNodes(block).OfType<ExecutionMaterializeRecordListToTable>())
             AddGeneratedRowConstructorUsage(
                 usages,
                 materialize.RowShape.TypeName,
-                GeneratedRowContextConstructor.NoContext);
+                GeneratedRowContextConstructor.NoContext
+            );
 
         foreach (var projectTable in FlattenNodes(block).OfType<ExecutionProjectTable>())
             AddGeneratedRowConstructorUsage(
                 usages,
                 projectTable.RowShape.TypeName,
-                projectTable.RowShape.Contexts.Count == 0 ||
-                !contextReadTypeNames.Contains(projectTable.RowShape.TypeName)
+                projectTable.RowShape.Contexts.Count == 0
+                || !contextReadTypeNames.Contains(projectTable.RowShape.TypeName)
                     ? GeneratedRowContextConstructor.NoContext
-                    : GeneratedRowContextConstructor.ContextArray);
+                    : GeneratedRowContextConstructor.ContextArray
+            );
 
         return usages.ToDictionary(
             static pair => pair.Key,
             static pair => (IReadOnlySet<GeneratedRowContextConstructor>)pair.Value,
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
     }
 
     private static HashSet<string> CollectGeneratedRowTypesWithContextReads(
         ExecutionBlock block,
-        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults)
+        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults
+    )
     {
         var variableTypeNamesByName = CollectGeneratedRowVariableTypeNames(block, typedStoredTableResults);
         var result = new HashSet<string>(StringComparer.Ordinal);
@@ -121,7 +131,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static void CollectGeneratedRowTypesUsedAsRowContexts(
         ExecutionContextLayout? contextLayout,
-        HashSet<string> rowTypeNames)
+        HashSet<string> rowTypeNames
+    )
     {
         if (contextLayout == null)
             return;
@@ -131,7 +142,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static void CollectGeneratedRowTypesUsedAsRowContexts(
         IEnumerable<ExecutionContextSegment> segments,
-        HashSet<string> rowTypeNames)
+        HashSet<string> rowTypeNames
+    )
     {
         foreach (var segment in segments)
         {
@@ -144,7 +156,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static void CollectGeneratedRowTypesUsedAsRowContexts(
         ExecutionExpression expression,
-        HashSet<string> rowTypeNames)
+        HashSet<string> rowTypeNames
+    )
     {
         switch (expression)
         {
@@ -160,7 +173,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static void AddGeneratedRowConstructorUsage(
         Dictionary<string, HashSet<GeneratedRowContextConstructor>> usages,
         string typeName,
-        GeneratedRowContextConstructor constructor)
+        GeneratedRowContextConstructor constructor
+    )
     {
         if (!usages.TryGetValue(typeName, out var constructors))
         {
@@ -171,9 +185,7 @@ public sealed partial class ExecutionCSharpRenderer
         constructors.Add(constructor);
     }
 
-    private static void AddGeneratedRowTypeName(
-        ExecutionExpression expression,
-        HashSet<string> rowTypeNames)
+    private static void AddGeneratedRowTypeName(ExecutionExpression expression, HashSet<string> rowTypeNames)
     {
         if (expression is ExecutionVariableRead variableRead)
             AddGeneratedRowTypeName(variableRead.Variable.GeneratedRowTypeName, rowTypeNames);
@@ -182,7 +194,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static void AddGeneratedRowTypeNames(
         string variableName,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
-        HashSet<string> rowTypeNames)
+        HashSet<string> rowTypeNames
+    )
     {
         if (!variableTypeNamesByName.TryGetValue(variableName, out var typeNames))
             return;
@@ -191,9 +204,7 @@ public sealed partial class ExecutionCSharpRenderer
             AddGeneratedRowTypeName(typeName, rowTypeNames);
     }
 
-    private static void AddGeneratedRowTypeName(
-        string? rowTypeName,
-        HashSet<string> rowTypeNames)
+    private static void AddGeneratedRowTypeName(string? rowTypeName, HashSet<string> rowTypeNames)
     {
         if (!string.IsNullOrWhiteSpace(rowTypeName))
             rowTypeNames.Add(rowTypeName);
@@ -206,7 +217,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static GeneratedRowContextConstructor ResolveGeneratedRowContextConstructor(
         ExecutionContextLayout? contextLayout,
-        int contextCount)
+        int contextCount
+    )
     {
         var layoutConstructor = ResolveContextLayoutConstructor(contextLayout, contextCount);
         if (layoutConstructor.HasValue)
@@ -219,11 +231,14 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static GeneratedRowContextConstructor? ResolveContextLayoutConstructor(
         ExecutionContextLayout? contextLayout,
-        int contextCount)
+        int contextCount
+    )
     {
-        if (contextLayout == null ||
-            contextLayout.Segments.Count == 0 ||
-            contextLayout.Segments.Sum(static segment => segment.Count) != contextCount)
+        if (
+            contextLayout == null
+            || contextLayout.Segments.Count == 0
+            || contextLayout.Segments.Sum(static segment => segment.Count) != contextCount
+        )
         {
             return null;
         }
@@ -236,9 +251,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (contextLayout.Segments.Count == 1)
             return ResolveSingleSegmentConstructor(contextLayout.Segments[0].Kind);
 
-        return ResolveTwoSegmentConstructor(
-            contextLayout.Segments[0].Kind,
-            contextLayout.Segments[1].Kind);
+        return ResolveTwoSegmentConstructor(contextLayout.Segments[0].Kind, contextLayout.Segments[1].Kind);
     }
 
     private static GeneratedRowContextConstructor? ResolveSingleSegmentConstructor(ExecutionContextSegmentKind kind)
@@ -248,13 +261,14 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionContextSegmentKind.Single => GeneratedRowContextConstructor.SingleContext,
             ExecutionContextSegmentKind.Array => GeneratedRowContextConstructor.ContextArray,
             ExecutionContextSegmentKind.Row => GeneratedRowContextConstructor.ContextRow,
-            _ => null
+            _ => null,
         };
     }
 
     private static GeneratedRowContextConstructor? ResolveTwoSegmentConstructor(
         ExecutionContextSegmentKind left,
-        ExecutionContextSegmentKind right)
+        ExecutionContextSegmentKind right
+    )
     {
         return (left, right) switch
         {
@@ -276,8 +290,7 @@ public sealed partial class ExecutionCSharpRenderer
                 GeneratedRowContextConstructor.ContextRowAndContextArray,
             (ExecutionContextSegmentKind.Array, ExecutionContextSegmentKind.Row) =>
                 GeneratedRowContextConstructor.ContextArrayAndContextRow,
-            _ => null
+            _ => null,
         };
     }
-
 }

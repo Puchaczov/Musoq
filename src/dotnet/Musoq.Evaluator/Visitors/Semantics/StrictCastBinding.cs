@@ -13,34 +13,49 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var expression = PopSemanticNode(nameof(Visit) + nameof(CastNode));
 
-        if (TryGetEnumExpressionType(expression, out var sourceEnum) ||
-            TryResolveEnumCastTarget(node.TargetTypeName, out sourceEnum))
+        if (
+            TryGetEnumExpressionType(expression, out var sourceEnum)
+            || TryResolveEnumCastTarget(node.TargetTypeName, out sourceEnum)
+        )
         {
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                 $"CAST is not supported for enum type '{sourceEnum.DisplayName}' in v1. Use EnumValue(...) to project its backing number.",
-                node);
+                node
+            );
             PushSemanticNode(new CastNode(expression, node.TargetTypeName, typeof(object)).WithSpan(node.Span));
             return;
         }
 
         if (!StrictCastRuntime.TryResolveTarget(node.TargetTypeName, out var canonicalTypeName, out var returnType))
         {
-            if (TryReportSemanticError<NotSupportedException>(
+            if (
+                TryReportSemanticError<NotSupportedException>(
                     DiagnosticCode.MQ3090_UnsupportedCastTarget,
                     StrictCastRuntime.CreateUnsupportedTargetMessage(node.TargetTypeName),
-                    node))
+                    node
+                )
+            )
             {
                 PushSemanticNode(new CastNode(expression, node.TargetTypeName, typeof(object)).WithSpan(node.Span));
                 return;
             }
         }
 
-        if (TryGetConstantValue(expression, out var constantValue) &&
-            !StrictCastRuntime.TryValidateConstant(canonicalTypeName, constantValue, out var failure))
+        if (
+            TryGetConstantValue(expression, out var constantValue)
+            && !StrictCastRuntime.TryValidateConstant(canonicalTypeName, constantValue, out var failure)
+        )
         {
-            var message = $"Constant value '{System.Convert.ToString(constantValue, System.Globalization.CultureInfo.InvariantCulture) ?? "null"}' cannot be cast to '{canonicalTypeName}': {failure}";
-            if (TryReportSemanticError<InvalidCastException>(DiagnosticCode.MQ3091_InvalidConstantCast, message, expression))
+            var message =
+                $"Constant value '{System.Convert.ToString(constantValue, System.Globalization.CultureInfo.InvariantCulture) ?? "null"}' cannot be cast to '{canonicalTypeName}': {failure}";
+            if (
+                TryReportSemanticError<InvalidCastException>(
+                    DiagnosticCode.MQ3091_InvalidConstantCast,
+                    message,
+                    expression
+                )
+            )
             {
                 PushSemanticNode(new CastNode(expression, canonicalTypeName, returnType).WithSpan(node.Span));
                 return;

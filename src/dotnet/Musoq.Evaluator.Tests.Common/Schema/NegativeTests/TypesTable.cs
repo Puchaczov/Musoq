@@ -21,7 +21,7 @@ public class TypesTable : ISchemaTable
         new SchemaColumn(nameof(TypesEntity.DateTimeCol), 9, typeof(DateTime)),
         new SchemaColumn(nameof(TypesEntity.DateTimeOffsetCol), 10, typeof(DateTimeOffset)),
         new SchemaColumn(nameof(TypesEntity.GuidCol), 11, typeof(Guid)),
-        new SchemaColumn(nameof(TypesEntity.NullableIntCol), 12, typeof(int?))
+        new SchemaColumn(nameof(TypesEntity.NullableIntCol), 12, typeof(int?)),
     ];
 
     public ISchemaColumn? GetColumnByName(string name)

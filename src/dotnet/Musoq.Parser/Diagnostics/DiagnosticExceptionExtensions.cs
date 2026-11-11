@@ -53,9 +53,7 @@ public static class DiagnosticExceptionExtensions
         return bag.Add(diagnostic);
     }
 
-    private static Diagnostic ConvertDiagnostic(
-        IDiagnosticException diagnosticException,
-        SourceText? sourceText)
+    private static Diagnostic ConvertDiagnostic(IDiagnosticException diagnosticException, SourceText? sourceText)
     {
         var diagnostic = diagnosticException.ToDiagnostic(sourceText);
 

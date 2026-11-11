@@ -9,5 +9,5 @@ public enum DescType
     Table,
     Column,
     Settings,
-    Query
+    Query,
 }

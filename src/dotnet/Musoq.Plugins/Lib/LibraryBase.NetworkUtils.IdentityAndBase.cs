@@ -58,7 +58,8 @@ public partial class LibraryBase
     private static string ConvertToBase(long number, int toBase)
     {
         const string chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        if (number == 0) return "0";
+        if (number == 0)
+            return "0";
 
         var negative = number < 0;
         number = Math.Abs(number);

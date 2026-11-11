@@ -22,7 +22,7 @@ public partial class ErrorQualityStructuralSyntaxTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -32,8 +32,7 @@ public partial class ErrorQualityStructuralSyntaxTests : BasicEntityTestBase
         return new QueryAnalyzer(CreateSchemaProvider());
     }
 
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -41,7 +40,8 @@ public partial class ErrorQualityStructuralSyntaxTests : BasicEntityTestBase
     private static void AssertHasExactlyOneErrorCode(
         QueryAnalysisResult result,
         string context,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -49,18 +49,25 @@ public partial class ErrorQualityStructuralSyntaxTests : BasicEntityTestBase
     private static void AssertHasExactDiagnosticCodes(
         QueryAnalysisResult result,
         string context,
-        params DiagnosticCode[] expectedCodes)
+        params DiagnosticCode[] expectedCodes
+    )
     {
         Assert.IsNotEmpty(result.Errors, $"Expected diagnostics ({context}) but query succeeded");
 
         var actual = result.Errors.ToArray();
-        Assert.HasCount(expectedCodes.Length, actual,
-            $"Expected [{string.Join(", ", expectedCodes)}] ({context}) but got: " +
-            string.Join("; ", actual.Select(e => $"[{e.Code}] {e.Message} at {e.Span}")));
+        Assert.HasCount(
+            expectedCodes.Length,
+            actual,
+            $"Expected [{string.Join(", ", expectedCodes)}] ({context}) but got: "
+                + string.Join("; ", actual.Select(e => $"[{e.Code}] {e.Message} at {e.Span}"))
+        );
 
         for (var index = 0; index < expectedCodes.Length; index++)
-            Assert.AreEqual(expectedCodes[index], actual[index].Code,
-                $"Diagnostic {index} ({context}) has code {actual[index].Code}, expected {expectedCodes[index]}.");
+            Assert.AreEqual(
+                expectedCodes[index],
+                actual[index].Code,
+                $"Diagnostic {index} ({context}) has code {actual[index].Code}, expected {expectedCodes[index]}."
+            );
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)
@@ -78,24 +85,19 @@ public partial class ErrorQualityStructuralSyntaxTests : BasicEntityTestBase
     // P-STRUCT: Missing clauses and misordering
     // ============================================================================
 
-
     // ============================================================================
     // P-CTE: CTE syntax errors
     // ============================================================================
-
 
     // ============================================================================
     // P-TC: TABLE/COUPLE syntax errors
     // ============================================================================
 
-
     // ============================================================================
     // P-EXPR: Expression/Operator Parse Errors
     // ============================================================================
 
-
     // ============================================================================
     // P-SCHEMA: Schema Reference Parse Errors
     // ============================================================================
-
 }

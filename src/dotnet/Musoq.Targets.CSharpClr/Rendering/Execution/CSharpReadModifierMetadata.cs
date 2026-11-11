@@ -8,24 +8,33 @@ namespace Musoq.Targets.CSharpClr;
 internal static class CSharpReadModifierMetadata
 {
     public static ObjectCreationExpressionSyntax CreateDictionaryCreation(
-        IReadOnlyDictionary<string, string> readModifiers)
+        IReadOnlyDictionary<string, string> readModifiers
+    )
     {
         var entries = readModifiers
             .OrderBy(static modifier => modifier.Key, StringComparer.Ordinal)
-            .Select(static modifier => SyntaxFactory.InitializerExpression(
-                SyntaxKind.ComplexElementInitializerExpression,
-                SyntaxFactory.SeparatedList<ExpressionSyntax>(new ExpressionSyntax[]
-                {
-                    CreateStringLiteral(modifier.Key),
-                    CreateStringLiteral(modifier.Value)
-                })));
+            .Select(static modifier =>
+                SyntaxFactory.InitializerExpression(
+                    SyntaxKind.ComplexElementInitializerExpression,
+                    SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                        new ExpressionSyntax[]
+                        {
+                            CreateStringLiteral(modifier.Key),
+                            CreateStringLiteral(modifier.Value),
+                        }
+                    )
+                )
+            );
 
-        return SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.ParseTypeName("Dictionary<string, string>"))
+        return SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.ParseTypeName("Dictionary<string, string>"))
             .WithArgumentList(SyntaxFactory.ArgumentList())
-            .WithInitializer(SyntaxFactory.InitializerExpression(
-                SyntaxKind.CollectionInitializerExpression,
-                SyntaxFactory.SeparatedList<ExpressionSyntax>(entries)));
+            .WithInitializer(
+                SyntaxFactory.InitializerExpression(
+                    SyntaxKind.CollectionInitializerExpression,
+                    SyntaxFactory.SeparatedList<ExpressionSyntax>(entries)
+                )
+            );
     }
 
     private static LiteralExpressionSyntax CreateStringLiteral(string value)

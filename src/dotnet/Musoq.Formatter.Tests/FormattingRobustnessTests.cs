@@ -17,19 +17,32 @@ public sealed class FormattingRobustnessTests
         var result = MusoqFormatter.Format(source, new FormattingOptions { LineWidth = 60 });
 
         Assert.IsTrue(result.IsSuccess, "seed=" + seed);
-        CollectionAssert.AreEqual(SourceSignature.Of(source).ToArray(), SourceSignature.Of(result.FormattedText!).ToArray(), "seed=" + seed);
+        CollectionAssert.AreEqual(
+            SourceSignature.Of(source).ToArray(),
+            SourceSignature.Of(result.FormattedText!).ToArray(),
+            "seed=" + seed
+        );
         Assert.AreEqual(AstSignature.Parse(source), AstSignature.Parse(result.FormattedText!), "seed=" + seed);
-        Assert.AreEqual(result.FormattedText, MusoqFormatter.Format(result.FormattedText!, new FormattingOptions { LineWidth = 60 }).FormattedText, "seed=" + seed);
+        Assert.AreEqual(
+            result.FormattedText,
+            MusoqFormatter.Format(result.FormattedText!, new FormattingOptions { LineWidth = 60 }).FormattedText,
+            "seed=" + seed
+        );
     }
 
     [TestMethod]
     public async Task ConcurrentCalls_ShouldReuseImmutableOptionsWithoutLeakingState()
     {
         var options = new FormattingOptions { LineWidth = 18, IndentSize = 2 };
-        var results = await Task.WhenAll(Enumerable.Range(0, 64).Select(_ => Task.Run(() =>
-            MusoqFormatter.Format("select Alpha,Beta,Gamma from #s.rows()", options))));
+        var results = await Task.WhenAll(
+            Enumerable
+                .Range(0, 64)
+                .Select(_ => Task.Run(() => MusoqFormatter.Format("select Alpha,Beta,Gamma from #s.rows()", options)))
+        );
 
-        Assert.IsTrue(results.All(r => r.IsSuccess && r.FormattedText == "SELECT\n  Alpha,\n  Beta,\n  Gamma\nFROM #s.rows()\n"));
+        Assert.IsTrue(
+            results.All(r => r.IsSuccess && r.FormattedText == "SELECT\n  Alpha,\n  Beta,\n  Gamma\nFROM #s.rows()\n")
+        );
         Assert.AreEqual(18, options.LineWidth);
         Assert.AreEqual(2, options.IndentSize);
     }
@@ -58,18 +71,27 @@ public sealed class FormattingRobustnessTests
         var result = MusoqFormatter.Format(source);
 
         Assert.IsTrue(result.IsSuccess);
-        CollectionAssert.AreEqual(SourceSignature.Of(source).ToArray(), SourceSignature.Of(result.FormattedText!).ToArray());
+        CollectionAssert.AreEqual(
+            SourceSignature.Of(source).ToArray(),
+            SourceSignature.Of(result.FormattedText!).ToArray()
+        );
         Assert.AreEqual(result.FormattedText, MusoqFormatter.Format(result.FormattedText!).FormattedText);
     }
 
     [TestMethod]
     public void LargeScript_ShouldPreserveAllStatementsAndSeparators()
     {
-        var source = string.Join(";", Enumerable.Range(0, 80).Select(index => "select " + index + " Value from #s.rows()"));
+        var source = string.Join(
+            ";",
+            Enumerable.Range(0, 80).Select(index => "select " + index + " Value from #s.rows()")
+        );
         var result = MusoqFormatter.Format(source);
 
         Assert.IsTrue(result.IsSuccess);
-        CollectionAssert.AreEqual(SourceSignature.Of(source).ToArray(), SourceSignature.Of(result.FormattedText!).ToArray());
+        CollectionAssert.AreEqual(
+            SourceSignature.Of(source).ToArray(),
+            SourceSignature.Of(result.FormattedText!).ToArray()
+        );
         Assert.AreEqual(AstSignature.Parse(source), AstSignature.Parse(result.FormattedText!));
     }
 
@@ -78,21 +100,34 @@ public sealed class FormattingRobustnessTests
     [DataRow("select r'a''b' Value from #s.rows()")]
     [DataRow("select [Order], TrUe, null, 0xAb, 1UL from #s.rows()")]
     [DataRow("select 'a\n\nb' Value from #s.rows()")]
-    [DataRow("select - -1 Value from #s.rows()") ]
-    [DataRow("select - 1 Value from #s.rows()") ]
+    [DataRow("select - -1 Value from #s.rows()")]
+    [DataRow("select - 1 Value from #s.rows()")]
     public void ProtectedSyntax_ShouldSurviveAllPresentationOptions(string source)
     {
-        var result = MusoqFormatter.Format(source, new FormattingOptions { KeywordCasing = KeywordCasing.Lower, LineEnding = LineEnding.CrLf, LineWidth = 25 });
+        var result = MusoqFormatter.Format(
+            source,
+            new FormattingOptions
+            {
+                KeywordCasing = KeywordCasing.Lower,
+                LineEnding = LineEnding.CrLf,
+                LineWidth = 25,
+            }
+        );
 
         Assert.IsTrue(result.IsSuccess);
-        CollectionAssert.AreEqual(SourceSignature.Of(source).ToArray(), SourceSignature.Of(result.FormattedText!).ToArray());
+        CollectionAssert.AreEqual(
+            SourceSignature.Of(source).ToArray(),
+            SourceSignature.Of(result.FormattedText!).ToArray()
+        );
         Assert.AreEqual(AstSignature.Parse(source), AstSignature.Parse(result.FormattedText!));
     }
 
     [TestMethod]
     public void InvalidLineEndingValue_ShouldThrowArgumentOutOfRangeException()
     {
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => MusoqFormatter.Format("", new FormattingOptions { LineEnding = (LineEnding)99 }));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            MusoqFormatter.Format("", new FormattingOptions { LineEnding = (LineEnding)99 })
+        );
     }
 
     [TestMethod]

@@ -1,10 +1,6 @@
 namespace Musoq.Evaluator.IR.Optimization;
 
-internal sealed record OptimizationResult<TPlan>(
-    TPlan Plan,
-    bool IsChanged,
-    string Outcome,
-    string Reason)
+internal sealed record OptimizationResult<TPlan>(TPlan Plan, bool IsChanged, string Outcome, string Reason)
 {
     public static OptimizationResult<TPlan> NoChange(TPlan plan, string reason)
     {

@@ -7,5 +7,5 @@ internal sealed record LogicalSubqueryOwnershipFact(
     LogicalSubqueryFormKind Kind,
     bool IsCorrelated,
     IReadOnlyList<string> OutputColumns,
-    string Reason);
-
+    string Reason
+);

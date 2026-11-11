@@ -9,7 +9,8 @@ public static partial class ExecutionExpressionConverter
     public static ExecutionExpression? CreateInjectedSourceExpression(
         MethodInfo method,
         string? alias,
-        IReadOnlyDictionary<string, RowShape> sourceShapes)
+        IReadOnlyDictionary<string, RowShape> sourceShapes
+    )
     {
         ArgumentNullException.ThrowIfNull(method);
         ArgumentNullException.ThrowIfNull(sourceShapes);
@@ -30,12 +31,13 @@ public static partial class ExecutionExpressionConverter
     private static ExecutionExpression? CreateAliasedInjectedSourceExpression(
         string alias,
         Type parameterType,
-        IReadOnlyDictionary<string, RowShape> sourceShapes)
+        IReadOnlyDictionary<string, RowShape> sourceShapes
+    )
     {
-
-
         if (sourceShapes.TryGetValue(alias, out var shape) && shape is not TableRowShape)
-            return new ExecutionVariableRead(new ExecutionVariable(alias, RowShapeLookup.ResolveSourceRuntimeType(shape)));
+            return new ExecutionVariableRead(
+                new ExecutionVariable(alias, RowShapeLookup.ResolveSourceRuntimeType(shape))
+            );
 
         foreach (var tableRow in sourceShapes.Values.OfType<TableRowShape>())
         {
@@ -49,22 +51,19 @@ public static partial class ExecutionExpressionConverter
 
     private static ExecutionExpression? CreateUniqueCompatibleInjectedSourceExpression(
         Type parameterType,
-        IReadOnlyDictionary<string, RowShape> sourceShapes)
+        IReadOnlyDictionary<string, RowShape> sourceShapes
+    )
     {
-        var candidates = sourceShapes.Values
-            .SelectMany(shape => CreateInjectedSourceCandidates(shape, parameterType))
+        var candidates = sourceShapes
+            .Values.SelectMany(shape => CreateInjectedSourceCandidates(shape, parameterType))
             .Take(2)
             .ToArray();
 
         return candidates.Length == 1 ? candidates[0] : null;
     }
 
-    private static IEnumerable<ExecutionExpression> CreateInjectedSourceCandidates(
-        RowShape shape,
-        Type parameterType)
+    private static IEnumerable<ExecutionExpression> CreateInjectedSourceCandidates(RowShape shape, Type parameterType)
     {
-
-
         if (shape is TableRowShape tableRow)
         {
             foreach (var context in tableRow.Contexts.Where(context => CanUseContextBinding(context, parameterType)))
@@ -74,40 +73,34 @@ public static partial class ExecutionExpressionConverter
         }
 
         var runtimeType = RowShapeLookup.ResolveSourceRuntimeType(shape);
-        if (CanUseSourceType(runtimeType, parameterType) &&
-            RowShapeLookup.TryResolveSourceAlias(shape, out var alias))
+        if (CanUseSourceType(runtimeType, parameterType) && RowShapeLookup.TryResolveSourceAlias(shape, out var alias))
         {
             yield return new ExecutionVariableRead(new ExecutionVariable(alias, runtimeType));
         }
     }
 
-    private static FieldBinding? FindContextBinding(
-        TableRowShape tableRow,
-        string alias,
-        Type parameterType)
+    private static FieldBinding? FindContextBinding(TableRowShape tableRow, string alias, Type parameterType)
     {
         return tableRow.Contexts.FirstOrDefault(context =>
-            IsContextAlias(context, alias) &&
-            CanUseContextBinding(context, parameterType));
+            IsContextAlias(context, alias) && CanUseContextBinding(context, parameterType)
+        );
     }
 
     private static bool IsContextAlias(FieldBinding context, string alias)
     {
-        return string.Equals(context.Name, alias, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(context.QualifiedName, alias, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(context.Name, alias, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(context.QualifiedName, alias, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool CanUseContextBinding(FieldBinding context, Type parameterType)
     {
-        return context.AccessStrategy is ContextAccess or GeneratedFieldAccess or GeneratedRowContextAccess &&
-               CanUseSourceType(context.Type.ResolveClrType(), parameterType);
+        return context.AccessStrategy is ContextAccess or GeneratedFieldAccess or GeneratedRowContextAccess
+            && CanUseSourceType(context.Type.ResolveClrType(), parameterType);
     }
 
     private static bool CanUseSourceType(Type sourceType, Type parameterType)
     {
-        return parameterType == typeof(object) ||
-               parameterType.IsAssignableFrom(Nullable.GetUnderlyingType(sourceType) ?? sourceType);
+        return parameterType == typeof(object)
+            || parameterType.IsAssignableFrom(Nullable.GetUnderlyingType(sourceType) ?? sourceType);
     }
-
-
 }

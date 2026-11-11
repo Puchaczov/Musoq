@@ -12,7 +12,7 @@ public partial class QueryInspectionTests
         {
             ["Team"] = typeof(string),
             ["Name"] = typeof(string),
-            ["Score"] = typeof(int)
+            ["Score"] = typeof(int),
         };
         var rows = new List<IReadOnlyDictionary<string, object>>
         {
@@ -20,20 +20,20 @@ public partial class QueryInspectionTests
             {
                 ["Team"] = "a",
                 ["Name"] = "ada",
-                ["Score"] = 2
+                ["Score"] = 2,
             },
             new Dictionary<string, object>
             {
                 ["Team"] = "a",
                 ["Name"] = "bea",
-                ["Score"] = 1
+                ["Score"] = 1,
             },
             new Dictionary<string, object>
             {
                 ["Team"] = "b",
                 ["Name"] = "cid",
-                ["Score"] = 3
-            }
+                ["Score"] = 3,
+            },
         };
 
         return new DynamicRowsSchemaProvider(columns, rows);
@@ -41,101 +41,95 @@ public partial class QueryInspectionTests
 
     private static ApplyCandidateSchemaProvider CreateApplyCandidateSchemaProvider()
     {
-        return new ApplyCandidateSchemaProvider(
-        [
-            new ApplyCandidateEntity
-            {
-                Name = "left",
-                Line = "INFO ready",
-                Numbers = [1, 2]
-            },
-            new ApplyCandidateEntity
-            {
-                Name = "right",
-                Line = "WARN retry",
-                Numbers = [3]
-            }
-        ]);
-    }
-
-    private static ApplyCandidateSchemaProvider CreateAliasDistinctAggregateSchemaProvider()
-    {
-        return new ApplyCandidateSchemaProvider(
-        [
+        return new ApplyCandidateSchemaProvider([
             new ApplyCandidateEntity
             {
                 Name = "left",
                 Line = "INFO ready",
                 Numbers = [1, 2],
-                Content = [10, 20]
             },
             new ApplyCandidateEntity
             {
                 Name = "right",
                 Line = "WARN retry",
                 Numbers = [3],
-                Content = [7]
-            }
+            },
+        ]);
+    }
+
+    private static ApplyCandidateSchemaProvider CreateAliasDistinctAggregateSchemaProvider()
+    {
+        return new ApplyCandidateSchemaProvider([
+            new ApplyCandidateEntity
+            {
+                Name = "left",
+                Line = "INFO ready",
+                Numbers = [1, 2],
+                Content = [10, 20],
+            },
+            new ApplyCandidateEntity
+            {
+                Name = "right",
+                Line = "WARN retry",
+                Numbers = [3],
+                Content = [7],
+            },
         ]);
     }
 
     private static ApplyCandidateSchemaProvider CreateAliasDistinctAggregateSortSchemaProvider()
     {
-        return new ApplyCandidateSchemaProvider(
-        [
+        return new ApplyCandidateSchemaProvider([
             new ApplyCandidateEntity
             {
                 Name = "left",
                 Line = "INFO ready",
                 Numbers = [10],
-                Content = [1]
+                Content = [1],
             },
             new ApplyCandidateEntity
             {
                 Name = "right",
                 Line = "WARN retry",
                 Numbers = [1, 2],
-                Content = [50]
-            }
+                Content = [50],
+            },
         ]);
     }
 
     private static ApplyCandidateSchemaProvider CreateMixedRegularAndDistinctAggregateSchemaProvider()
     {
-        return new ApplyCandidateSchemaProvider(
-        [
+        return new ApplyCandidateSchemaProvider([
             new ApplyCandidateEntity
             {
                 Name = "left",
                 Line = "INFO ready",
-                Numbers = [1, 1]
+                Numbers = [1, 1],
             },
             new ApplyCandidateEntity
             {
                 Name = "right",
                 Line = "WARN retry",
-                Numbers = [2]
-            }
+                Numbers = [2],
+            },
         ]);
     }
 
     private static ApplyCandidateSchemaProvider CreateMixedDistinctAggregateFamilySchemaProvider()
     {
-        return new ApplyCandidateSchemaProvider(
-        [
+        return new ApplyCandidateSchemaProvider([
             new ApplyCandidateEntity
             {
                 Name = "left",
                 Line = "INFO ready",
-                Numbers = [1, 1, 4]
+                Numbers = [1, 1, 4],
             },
             new ApplyCandidateEntity
             {
                 Name = "right",
                 Line = "WARN retry",
-                Numbers = [3]
-            }
+                Numbers = [3],
+            },
         ]);
     }
-
 }

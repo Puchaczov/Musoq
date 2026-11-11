@@ -38,11 +38,16 @@ public partial class MethodsMetadata
     {
         if (!_sharedRegistrations)
             return;
-        _methods = _methods.ToDictionary(static pair => pair.Key,
-            static pair => new List<MethodInfo>(pair.Value), _methods.Comparer);
+        _methods = _methods.ToDictionary(
+            static pair => pair.Key,
+            static pair => new List<MethodInfo>(pair.Value),
+            _methods.Comparer
+        );
         _methodIndexCache = new(_methodIndexCache);
-        _normalizedToOriginalMethodNames = new(_normalizedToOriginalMethodNames,
-            _normalizedToOriginalMethodNames.Comparer);
+        _normalizedToOriginalMethodNames = new(
+            _normalizedToOriginalMethodNames,
+            _normalizedToOriginalMethodNames.Comparer
+        );
         _sharedRegistrations = false;
     }
 }

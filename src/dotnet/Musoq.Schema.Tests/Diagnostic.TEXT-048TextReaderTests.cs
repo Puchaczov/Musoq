@@ -13,7 +13,8 @@ public sealed class DiagnosticText048TextReaderTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestReadChars("ab".AsSpan(), 3, fieldName: "Code"));
+            interpreter.TestReadChars("ab".AsSpan(), 3, fieldName: "Code")
+        );
 
         Assert.AreEqual(ParseErrorCode.InsufficientData, exception.ErrorCode);
         Assert.AreEqual("Code", exception.FieldName);
@@ -48,7 +49,8 @@ public sealed class DiagnosticText048TextReaderTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestSkipWhitespace("\u00A0value".AsSpan(), required: true, fieldName: "Gap"));
+            interpreter.TestSkipWhitespace("\u00A0value".AsSpan(), required: true, fieldName: "Gap")
+        );
 
         Assert.AreEqual(ParseErrorCode.ExpectedWhitespace, exception.ErrorCode);
         Assert.AreEqual("Gap", exception.FieldName);
@@ -76,7 +78,8 @@ public sealed class DiagnosticText048TextReaderTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            interpreter.TestReadWhitespace("value".AsSpan(), "+", fieldName: "Gap"));
+            interpreter.TestReadWhitespace("value".AsSpan(), "+", fieldName: "Gap")
+        );
 
         Assert.AreEqual(ParseErrorCode.ExpectedWhitespace, exception.ErrorCode);
         Assert.AreEqual("Gap", exception.FieldName);

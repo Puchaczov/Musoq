@@ -8,15 +8,12 @@ namespace Musoq.Evaluator.IR.Physical.Nodes;
 /// node is deliberately target-neutral; lowerers choose ordinary locals,
 /// generated row fields, or typed arrays for the carrier.
 /// </summary>
-public sealed record PhysicalComputeNode(
-    PhysicalNode Input,
-    IReadOnlyList<ProjectedField> ComputedFields) : PhysicalNode(CreateOutputSchema(Input, ComputedFields))
+public sealed record PhysicalComputeNode(PhysicalNode Input, IReadOnlyList<ProjectedField> ComputedFields)
+    : PhysicalNode(CreateOutputSchema(Input, ComputedFields))
 {
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Input];
 
-    private static OutputSchema CreateOutputSchema(
-        PhysicalNode input,
-        IReadOnlyList<ProjectedField> computedFields)
+    private static OutputSchema CreateOutputSchema(PhysicalNode input, IReadOnlyList<ProjectedField> computedFields)
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(computedFields);
@@ -29,7 +26,8 @@ public sealed record PhysicalComputeNode(
             columns[input.OutputSchema.Columns.Length + index] = new ColumnSchema(
                 field.OutputName,
                 field.Expression.ReturnType,
-                input.OutputSchema.Columns.Length + index);
+                input.OutputSchema.Columns.Length + index
+            );
         }
 
         return new OutputSchema(columns);

@@ -10,8 +10,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = ReadSample(ValuesStaticParametersAndLetsSampleFileName);
 
-        Assert.Contains("var paramBaseScore = ScriptParameterBinder.GetRequired<int>(__musoqExecutionState, \"baseScore\");", sample.Content);
-        Assert.Contains("var paramSuffix = ScriptParameterBinder.GetOptional<string>(__musoqExecutionState, \"suffix\", \"-ok\");", sample.Content);
+        Assert.Contains(
+            "var paramBaseScore = ScriptParameterBinder.GetRequired<int>(__musoqExecutionState, \"baseScore\");",
+            sample.Content
+        );
+        Assert.Contains(
+            "var paramSuffix = ScriptParameterBinder.GetOptional<string>(__musoqExecutionState, \"suffix\", \"-ok\");",
+            sample.Content
+        );
         Assert.Contains("const int letBonus = 5;", sample.Content);
         Assert.Contains("paramBaseScore + letBonus", sample.Content);
         Assert.Contains("new Column(\"Name\", typeof(string), 0)", sample.Content);

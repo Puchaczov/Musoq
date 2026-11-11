@@ -10,10 +10,12 @@ public partial class Parser
 {
     private bool IsParameterBlockStart()
     {
-        return (Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function) &&
-               (Current.Value.Equals("param", StringComparison.OrdinalIgnoreCase) || Current.Value.Equals("params", StringComparison.OrdinalIgnoreCase));
+        return (Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function)
+            && (
+                Current.Value.Equals("param", StringComparison.OrdinalIgnoreCase)
+                || Current.Value.Equals("params", StringComparison.OrdinalIgnoreCase)
+            );
     }
-
 
     private ParameterBlockNode ComposeParameterBlock()
     {
@@ -39,7 +41,6 @@ public partial class Parser
         return new ParameterBlockNode(parameters.ToArray(), start.Span.Through(end.Span));
     }
 
-
     private ParameterDeclarationNode ComposeParameterDeclaration()
     {
         var name = ConsumeParameterName();
@@ -49,7 +50,8 @@ public partial class Parser
                 "PowerShell-style script parameter declarations are not supported. Use Musoq syntax: param(author: string) and reference it as $author.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
-                name.Span.Through(Current.Span));
+                name.Span.Through(Current.Span)
+            );
 
         if (Current.TokenType != TokenType.Colon)
         {
@@ -58,7 +60,8 @@ public partial class Parser
                 $"Invalid script parameter declaration near '{name.Value}'. Use '{example}' with the parameter name before the type and a colon between them.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
-                name.Span.Through(Current.Span));
+                name.Span.Through(Current.Span)
+            );
         }
 
         Consume(TokenType.Colon);
@@ -73,14 +76,19 @@ public partial class Parser
         }
 
         var span = name.Span.Through(defaultValue?.Span ?? typeSpan);
-        if (TryGetLegacyTypeParts(typeSyntax, out var typeName, out var isNullable) &&
-            defaultValue is not ArrayLiteralNode &&
-            !(typeSyntax.Kind == StructuralTypeSyntaxKind.Collection &&
-              (typeSyntax.IsNullable || defaultValue != null)))
+        if (
+            TryGetLegacyTypeParts(typeSyntax, out var typeName, out var isNullable)
+            && defaultValue is not ArrayLiteralNode
+            && !(
+                typeSyntax.Kind == StructuralTypeSyntaxKind.Collection
+                && (typeSyntax.IsNullable || defaultValue != null)
+            )
+        )
             return new ParameterDeclarationNode(name.Value, typeName, isNullable, defaultValue, span);
 
         return new ParameterDeclarationNode(name.Value, typeSyntax, defaultValue, span);
     }
+
     private string CreateParameterDeclarationExample(Token firstToken)
     {
         if (Current.TokenType is not (TokenType.Identifier or TokenType.Word))
@@ -92,12 +100,10 @@ public partial class Parser
         return $"param({firstToken.Value}: {Current.Value})";
     }
 
-
     private static bool IsLikelyParameterTypeName(string value)
     {
         return ScriptParameterTypeCatalog.IsKnownScalarTypeName(value);
     }
-
 
     private Token ConsumeParameterName()
     {
@@ -109,15 +115,16 @@ public partial class Parser
                 "PowerShell-style script parameter declarations are not supported. Use Musoq syntax: param(author: string) and reference it as $author.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
-                Current.Span);
+                Current.Span
+            );
 
         throw new SyntaxException(
             $"Expected script parameter name but received {Current.TokenType}. Use Musoq syntax: param(author: string).",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
-            Current.Span);
+            Current.Span
+        );
     }
-
 
     private Token ConsumeParameterTypeName()
     {
@@ -128,9 +135,9 @@ public partial class Parser
             $"Expected script parameter type name but received {Current.TokenType}. Use Musoq syntax: param(author: string).",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
-            Current.Span);
+            Current.Span
+        );
     }
-
 
     private Node ComposeParameterDefaultValue()
     {
@@ -163,8 +170,8 @@ public partial class Parser
                     $"Parameter default values support only primitive constants or null. Received {Current.TokenType}.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
-                    Current.Span);
+                    Current.Span
+                );
         }
     }
-
 }

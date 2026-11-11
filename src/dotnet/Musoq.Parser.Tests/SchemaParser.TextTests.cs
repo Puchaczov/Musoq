@@ -132,13 +132,15 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
     [TestMethod]
     public void TextSchema_SwitchField_MultiplePatterns_ShouldParse()
     {
-        var schema = @"text ConfigLine {
-            Content: switch {
-                pattern '\s*\[' => SectionHeader,
-                pattern '\s*#' => Comment,
-                pattern '\s*;' => Comment
-            }
-        }";
+        var schema = (
+            "text ConfigLine {\n"
+            + "            Content: switch {\n"
+            + "                pattern '\\s*\\[' => SectionHeader,\n"
+            + "                pattern '\\s*#' => Comment,\n"
+            + "                pattern '\\s*;' => Comment\n"
+            + "            }\n"
+            + "        }"
+        );
         var result = ParseTextSchema(schema);
 
         var field = result.Fields[0];
@@ -158,12 +160,14 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
     [TestMethod]
     public void TextSchema_SwitchField_WithDefaultCase_ShouldParse()
     {
-        var schema = @"text ConfigLine {
-            Content: switch {
-                pattern '\s*\[' => SectionHeader,
-                _ => KeyValue
-            }
-        }";
+        var schema = (
+            "text ConfigLine {\n"
+            + "            Content: switch {\n"
+            + "                pattern '\\s*\\[' => SectionHeader,\n"
+            + "                _ => KeyValue\n"
+            + "            }\n"
+            + "        }"
+        );
         var result = ParseTextSchema(schema);
 
         var field = result.Fields[0];
@@ -194,12 +198,14 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
     [TestMethod]
     public void TextSchema_SwitchField_WithoutTrailingComma_ShouldParse()
     {
-        var schema = @"text ConfigLine {
-            Content: switch {
-                pattern '\s*\[' => SectionHeader
-                pattern '\s*#' => Comment
-            }
-        }";
+        var schema = (
+            "text ConfigLine {\n"
+            + "            Content: switch {\n"
+            + "                pattern '\\s*\\[' => SectionHeader\n"
+            + "                pattern '\\s*#' => Comment\n"
+            + "            }\n"
+            + "        }"
+        );
         var result = ParseTextSchema(schema);
 
         var field = result.Fields[0];
@@ -209,12 +215,14 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
     [TestMethod]
     public void TextSchema_SwitchField_ToString_ShouldFormat()
     {
-        var schema = @"text ConfigLine {
-            Content: switch {
-                pattern '\s*\[' => SectionHeader,
-                _ => KeyValue
-            }
-        }";
+        var schema = (
+            "text ConfigLine {\n"
+            + "            Content: switch {\n"
+            + "                pattern '\\s*\\[' => SectionHeader,\n"
+            + "                _ => KeyValue\n"
+            + "            }\n"
+            + "        }"
+        );
         var result = ParseTextSchema(schema);
 
         var field = result.Fields[0];
@@ -241,18 +249,23 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
         var field = result.Fields[0];
         Assert.AreEqual("_", field.Name);
         Assert.AreEqual(TextFieldType.Literal, field.FieldType);
-        Assert.AreNotEqual((TextFieldModifier)0, field.Modifiers & TextFieldModifier.Optional,
-            "Expected Optional modifier to be set");
+        Assert.AreNotEqual(
+            (TextFieldModifier)0,
+            field.Modifiers & TextFieldModifier.Optional,
+            "Expected Optional modifier to be set"
+        );
     }
 
     [TestMethod]
     public void TextSchema_RawLiteralDelimiter_ShouldPreserveBackslashes()
     {
-        var schema = @"text Paths {
-            LiteralPath: literal r'C:\new\test',
-            Line: until r'\r\n',
-            Comment: between r'/*' r'*/'
-        }";
+        var schema = (
+            "text Paths {\n"
+            + "            LiteralPath: literal r'C:\\new\\test',\n"
+            + "            Line: until r'\\r\\n',\n"
+            + "            Comment: between r'/*' r'*/'\n"
+            + "        }"
+        );
 
         var result = ParseTextSchema(schema);
 
@@ -282,8 +295,11 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
         Assert.AreEqual("TraceId", field.Name);
         Assert.AreEqual(TextFieldType.Pattern, field.FieldType);
         Assert.AreEqual("[a-f0-9]{32}", field.PrimaryValue);
-        Assert.AreNotEqual((TextFieldModifier)0, field.Modifiers & TextFieldModifier.Optional,
-            "Expected Optional modifier to be set");
+        Assert.AreNotEqual(
+            (TextFieldModifier)0,
+            field.Modifiers & TextFieldModifier.Optional,
+            "Expected Optional modifier to be set"
+        );
     }
 
     [TestMethod]
@@ -296,8 +312,11 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
         var field = result.Fields[0];
         Assert.AreEqual("Extra", field.Name);
         Assert.AreEqual(TextFieldType.Until, field.FieldType);
-        Assert.AreNotEqual((TextFieldModifier)0, field.Modifiers & TextFieldModifier.Optional,
-            "Expected Optional modifier to be set");
+        Assert.AreNotEqual(
+            (TextFieldModifier)0,
+            field.Modifiers & TextFieldModifier.Optional,
+            "Expected Optional modifier to be set"
+        );
     }
 
     [TestMethod]
@@ -309,8 +328,11 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
 
         var field = result.Fields[0];
         Assert.AreEqual("Data", field.Name);
-        Assert.AreNotEqual((TextFieldModifier)0, field.Modifiers & TextFieldModifier.Optional,
-            "Expected Optional modifier");
+        Assert.AreNotEqual(
+            (TextFieldModifier)0,
+            field.Modifiers & TextFieldModifier.Optional,
+            "Expected Optional modifier"
+        );
         Assert.AreNotEqual((TextFieldModifier)0, field.Modifiers & TextFieldModifier.Trim, "Expected Trim modifier");
     }
 
@@ -326,8 +348,11 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
         Assert.AreEqual(TextFieldType.Between, field.FieldType);
         Assert.AreEqual("/*", field.PrimaryValue);
         Assert.AreEqual("*/", field.SecondaryValue);
-        Assert.AreNotEqual((TextFieldModifier)0, field.Modifiers & TextFieldModifier.Optional,
-            "Expected Optional modifier");
+        Assert.AreNotEqual(
+            (TextFieldModifier)0,
+            field.Modifiers & TextFieldModifier.Optional,
+            "Expected Optional modifier"
+        );
     }
 
     [TestMethod]
@@ -341,8 +366,11 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
         Assert.AreEqual("Suffix", field.Name);
         Assert.AreEqual(TextFieldType.Chars, field.FieldType);
         Assert.AreEqual("4", field.PrimaryValue);
-        Assert.AreNotEqual((TextFieldModifier)0, field.Modifiers & TextFieldModifier.Optional,
-            "Expected Optional modifier");
+        Assert.AreNotEqual(
+            (TextFieldModifier)0,
+            field.Modifiers & TextFieldModifier.Optional,
+            "Expected Optional modifier"
+        );
     }
 
     [TestMethod]
@@ -353,8 +381,11 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
         var result = ParseTextSchema(schema);
 
         var field = result.Fields[0];
-        Assert.AreEqual((TextFieldModifier)0, field.Modifiers & TextFieldModifier.Optional,
-            "Should not have Optional modifier");
+        Assert.AreEqual(
+            (TextFieldModifier)0,
+            field.Modifiers & TextFieldModifier.Optional,
+            "Should not have Optional modifier"
+        );
     }
 
     [TestMethod]
@@ -365,8 +396,11 @@ public partial class SchemaParserTextTests : SchemaParserTestsBase
         var result = ParseTextSchema(schema);
 
         var field = result.Fields[0];
-        Assert.AreNotEqual((TextFieldModifier)0, field.Modifiers & TextFieldModifier.Optional,
-            "Expected Optional modifier from trailing position");
+        Assert.AreNotEqual(
+            (TextFieldModifier)0,
+            field.Modifiers & TextFieldModifier.Optional,
+            "Expected Optional modifier from trailing position"
+        );
     }
 
     #endregion

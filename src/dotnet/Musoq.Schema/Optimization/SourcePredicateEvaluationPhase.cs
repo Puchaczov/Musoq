@@ -7,5 +7,5 @@ public enum SourcePredicateEvaluationPhase
     RowFiltering,
 
     /// <summary>Applies the predicate to cheap candidate metadata before payload open, decode, or row materialization.</summary>
-    CandidateMetadata
+    CandidateMetadata,
 }

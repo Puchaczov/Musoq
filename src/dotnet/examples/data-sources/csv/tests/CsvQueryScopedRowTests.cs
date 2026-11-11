@@ -12,16 +12,14 @@ public sealed class CsvQueryScopedRowTests : CsvExampleTestBase
         var recorder = new CsvDataSourceApiRecorder();
         var provider = new CsvSchemaProvider(recorder);
         var query =
-            "table CsvShape { Name: string, Amount: int };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Name, Amount from Rows({SqlString(path)}, true)";
+            "table CsvShape { Name: string, Amount: int };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Name, Amount from Rows({SqlString(path)}, true)";
 
         var inspection = Inspect(query, provider);
         var table = Run(query, provider);
 
-        StringAssert.Contains(
-            inspection.GeneratedCSharpCode,
-            "QuerySourceInvocation<");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "QuerySourceInvocation<");
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, recorder.QueryRowSourceCalls.Count);
         Assert.AreEqual(0, recorder.RowSourceCalls.Count);
@@ -30,15 +28,11 @@ public sealed class CsvQueryScopedRowTests : CsvExampleTestBase
     [TestMethod]
     public void RuntimePathParameter_WhenDefaulted_ShouldMatchCompileTimeLetPath()
     {
-        var path = WriteTempCsv(
-            "Customer,Amount\n" +
-            "Ada,10\n" +
-            "Ada,25\n" +
-            "Grace,12\n");
+        var path = WriteTempCsv("Customer,Amount\n" + "Ada,10\n" + "Ada,25\n" + "Grace,12\n");
         const string queryBody =
-            "select c.Customer as Customer, Count(*) as Orders, Sum(c.Amount::int) as Total " +
-            "from #csv.file($path, true, 0) c " +
-            "group by c.Customer order by c.Customer";
+            "select c.Customer as Customer, Count(*) as Orders, Sum(c.Amount::int) as Total "
+            + "from #csv.file($path, true, 0) c "
+            + "group by c.Customer order by c.Customer";
         var recorder = new CsvDataSourceApiRecorder();
         var provider = new CsvSchemaProvider(recorder);
         var parameterizedQuery = $"param(path: string = {SqlString(path)}) {queryBody}";
@@ -75,11 +69,15 @@ public sealed class CsvQueryScopedRowTests : CsvExampleTestBase
         var path = WriteTempCsv("Name,Amount\nAda,12\nBob,3\n");
         var recorder = new CsvDataSourceApiRecorder();
         var provider = new CsvSchemaProvider(recorder, enableQueryScopedRows: false);
-        var query = "table CsvShape { Name: string, Amount: int };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Name, Amount from Rows({SqlString(path)}, true) where Amount > 5 order by Name";
+        var query =
+            "table CsvShape { Name: string, Amount: int };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Name, Amount from Rows({SqlString(path)}, true) where Amount > 5 order by Name";
         var exception = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() => Run(query, provider));
-        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, exception.PrimaryEnvelope.Code);
+        Assert.AreEqual(
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError,
+            exception.PrimaryEnvelope.Code
+        );
         Assert.Contains("native typed positional accessor", exception.Message);
         Assert.AreEqual(0, recorder.QueryRowSourceCalls.Count);
         Assert.AreEqual(0, recorder.RowSourceCalls.Count);
@@ -91,8 +89,7 @@ public sealed class CsvQueryScopedRowTests : CsvExampleTestBase
         var path = WriteTempCsv("Full Name,Status\nAda,Open\n");
         var recorder = new CsvDataSourceApiRecorder();
         var provider = new CsvSchemaProvider(recorder, enableQueryScopedRows: true);
-        var query =
-            $"select d.Status from #csv.file({SqlString(path)}, true) d where d.Status = 'Open'";
+        var query = $"select d.Status from #csv.file({SqlString(path)}, true) d where d.Status = 'Open'";
 
         var table = Run(query, provider);
 
@@ -105,8 +102,7 @@ public sealed class CsvQueryScopedRowTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("Full Name,naĂŻve-value\nAda,ready\n");
         var provider = new CsvSchemaProvider(enableQueryScopedRows: true);
-        var query =
-            $"select d.[Full Name], d.[naĂŻve-value] from #csv.file({SqlString(path)}, true) d";
+        var query = $"select d.[Full Name], d.[naĂŻve-value] from #csv.file({SqlString(path)}, true) d";
 
         var table = Run(query, provider);
 
@@ -120,8 +116,7 @@ public sealed class CsvQueryScopedRowTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("Ada,Open\n");
         var provider = new CsvSchemaProvider(enableQueryScopedRows: true);
-        var query =
-            $"select d.Column0, d.Column1 from #csv.file({SqlString(path)}) d";
+        var query = $"select d.Column0, d.Column1 from #csv.file({SqlString(path)}) d";
 
         var table = Run(query, provider);
 
@@ -129,5 +124,4 @@ public sealed class CsvQueryScopedRowTests : CsvExampleTestBase
         Assert.AreEqual("Ada", table[0].ReadValue(0));
         Assert.AreEqual("Open", table[0].ReadValue(1));
     }
-
 }

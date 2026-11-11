@@ -19,20 +19,13 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class MultiJoinHashJoinTests : BasicEntityTestBase
 {
-
-
-
-
-
-
-
-
     #region Helper Methods
 
     private string CompileAndGetGeneratedCode(
         string query,
         Dictionary<string, IEnumerable<BasicEntity>> sources,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions
+    )
     {
         RuntimeLibraries.CreateReferences();
 
@@ -43,17 +36,14 @@ public partial class MultiJoinHashJoinTests : BasicEntityTestBase
             AssemblyName = Guid.NewGuid().ToString(),
             CompilationOptions = compilationOptions,
             CreateBuildMetadataAndInferTypesVisitor = null,
-            DiagnosticContext = new DiagnosticContext(new SourceText(query))
+            DiagnosticContext = new DiagnosticContext(new SourceText(query)),
         };
 
-
         var chain = new CreateTree(
-            new CompileInterpretationSchemas(
-                new TransformTree(
-                    new TurnQueryIntoRunnableCode(null), LoggerResolver)));
+            new CompileInterpretationSchemas(new TransformTree(new TurnQueryIntoRunnableCode(null), LoggerResolver))
+        );
 
         chain.Build(items);
-
 
         var builder = new StringBuilder();
         if (items.Compilation?.SyntaxTrees != null)
@@ -83,8 +73,8 @@ public partial class MultiJoinHashJoinTests : BasicEntityTestBase
 
     private static int CountHashDictionaryDeclarations(string generatedCode)
     {
-        return CountOccurrences(generatedCode, "Hashed = new Dictionary<") +
-               CountOccurrences(generatedCode, "Hash = new Dictionary<");
+        return CountOccurrences(generatedCode, "Hashed = new Dictionary<")
+            + CountOccurrences(generatedCode, "Hash = new Dictionary<");
     }
 
     private static void AssertContainsAny(string text, string message, params string[] patterns)

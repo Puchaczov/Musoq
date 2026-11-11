@@ -6,8 +6,10 @@ public sealed class LibraryExecutionDefaultsAttribute : Attribute
 {
     /// <summary>Gets or sets defaults for scalar declarations on this exact library type.</summary>
     public FunctionExecutionPermissions ScalarPermissions { get; set; }
+
     /// <summary>Gets or sets defaults for aggregate declarations on this exact library type.</summary>
     public FunctionExecutionPermissions AggregatePermissions { get; set; }
+
     /// <summary>Gets or sets defaults for window declarations on this exact library type.</summary>
     public FunctionExecutionPermissions WindowPermissions { get; set; }
 }

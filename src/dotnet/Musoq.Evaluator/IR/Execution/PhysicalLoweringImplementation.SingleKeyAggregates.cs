@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
+
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
@@ -14,7 +15,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (pipeline.Source.Source is PhysicalNestedLoopApplyNode { Kind: ApplyKind.Cross } apply)
         {
@@ -25,7 +27,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 schemaFromIndex,
                 new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase),
                 CreateSourceRowsScope(resultTableName),
-                scope);
+                scope
+            );
             if (chain.IsBuilt && !chain.Chain.Sources.Any(static source => source.OrdinalityVariable != null))
             {
                 return BuildSingleKeyAggregateTableFromApplyChain(
@@ -33,7 +36,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     chain.Chain,
                     resultTableName,
                     resultShapeName,
-                    scopeAggregateVariables);
+                    scopeAggregateVariables
+                );
             }
         }
         if (pipeline.Source.Source is PhysicalHashJoinNode { Kind: JoinKind.Inner } hashJoin)
@@ -44,7 +48,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndex,
-                scope);
+                scope
+            );
             if (hashJoinSource.IsBuilt)
             {
                 return BuildSingleKeyAggregateTableCore(
@@ -52,7 +57,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     hashJoinSource.Source,
                     resultTableName,
                     resultShapeName,
-                    scopeAggregateVariables);
+                    scopeAggregateVariables
+                );
             }
         }
         var aggregateSource = BuildAggregateSource(
@@ -62,7 +68,8 @@ internal sealed partial class PhysicalLoweringImplementation
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
             "single-key aggregate",
-            scope);
+            scope
+        );
         if (!aggregateSource.IsBuilt)
             return TableBuildResult.Unsupported(aggregateSource.UnsupportedReason);
 
@@ -73,12 +80,14 @@ internal sealed partial class PhysicalLoweringImplementation
             aggregateSource.Source.Setup,
             body => CreateSourceLoop(sourceShape, aggregateSource.Source.Rows, aggregateSource.Source.Variable, body),
             aggregateSource.Source.Variable,
-            aggregateSource.Source.Rows);
+            aggregateSource.Source.Rows
+        );
         return BuildSingleKeyAggregateTableCore(
             pipeline,
             source,
             resultTableName,
             resultShapeName,
-            scopeAggregateVariables);
+            scopeAggregateVariables
+        );
     }
 }

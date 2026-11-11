@@ -52,7 +52,8 @@ public sealed class DescParserArgumentsTests : DescParserTestBase
     [TestMethod]
     public void DescArgumentsCommentsAroundArrayDelimiters_ShouldParse()
     {
-        const string query = "desc arguments #inputs.match('TODO', patterns: array /* open */ { (Id: 'todo') /* close */ })";
+        const string query =
+            "desc arguments #inputs.match('TODO', patterns: array /* open */ { (Id: 'todo') /* close */ })";
         var parser = new Parser(new Lexer(query, true));
 
         var desc = GetDescNode(parser.ComposeAll());

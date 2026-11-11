@@ -20,18 +20,17 @@ internal static class GitCommitColumnCatalog
         Create(nameof(GitCommitRow.Additions), 10, typeof(int), static row => row.Additions, isExpensive: true),
         Create(nameof(GitCommitRow.Deletions), 11, typeof(int), static row => row.Deletions, isExpensive: true),
         Create(nameof(GitCommitRow.Churn), 12, typeof(int), static row => row.Churn, isExpensive: true),
-        Create(nameof(GitCommitRow.IsMerge), 13, typeof(bool), static row => row.IsMerge)
+        Create(nameof(GitCommitRow.IsMerge), 13, typeof(bool), static row => row.IsMerge),
     ];
 
-    private static readonly IReadOnlyDictionary<string, GitCommitColumn> ByName =
-        Catalog.ToDictionary(static column => column.Name, StringComparer.OrdinalIgnoreCase);
+    private static readonly IReadOnlyDictionary<string, GitCommitColumn> ByName = Catalog.ToDictionary(
+        static column => column.Name,
+        StringComparer.OrdinalIgnoreCase
+    );
 
     public static IReadOnlyList<GitCommitColumn> Columns => Catalog;
 
-    public static ISchemaColumn[] SchemaColumns =>
-        Catalog
-            .Select(static column => column.SchemaColumn)
-            .ToArray();
+    public static ISchemaColumn[] SchemaColumns => Catalog.Select(static column => column.SchemaColumn).ToArray();
 
     public static bool TryGetColumn(string name, out GitCommitColumn column)
     {
@@ -56,7 +55,8 @@ internal static class GitCommitColumnCatalog
         int ordinal,
         Type type,
         Func<GitCommitRow, object?> valueSelector,
-        bool isExpensive = false)
+        bool isExpensive = false
+    )
     {
         return new GitCommitColumn(
             name,
@@ -64,7 +64,8 @@ internal static class GitCommitColumnCatalog
             type,
             isExpensive,
             valueSelector,
-            new SchemaColumn(name, ordinal, type));
+            new SchemaColumn(name, ordinal, type)
+        );
     }
 }
 
@@ -74,13 +75,16 @@ internal sealed record GitCommitColumn(
     Type Type,
     bool IsExpensive,
     Func<GitCommitRow, object?> ValueSelector,
-    ISchemaColumn SchemaColumn)
+    ISchemaColumn SchemaColumn
+)
 {
-    public static GitCommitColumn Empty { get; } = new(
-        string.Empty,
-        -1,
-        typeof(object),
-        false,
-        static _ => null,
-        new SchemaColumn(string.Empty, -1, typeof(object)));
+    public static GitCommitColumn Empty { get; } =
+        new(
+            string.Empty,
+            -1,
+            typeof(object),
+            false,
+            static _ => null,
+            new SchemaColumn(string.Empty, -1, typeof(object))
+        );
 }

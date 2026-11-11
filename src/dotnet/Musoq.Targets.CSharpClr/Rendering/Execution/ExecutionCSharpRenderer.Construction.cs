@@ -7,14 +7,14 @@ public sealed partial class ExecutionCSharpRenderer
     public ExecutionCSharpRenderer(
         IReadOnlyList<ScriptParameterDefinition>? scriptParameterDefinitions = null,
         IReadOnlyList<ScriptVariableDefinition>? scriptVariableDefinitions = null,
-        QueryInstrumentationMode instrumentationMode = QueryInstrumentationMode.Disabled)
+        QueryInstrumentationMode instrumentationMode = QueryInstrumentationMode.Disabled
+    )
         : this(
             scriptParameterDefinitions,
             scriptVariableDefinitions,
             instrumentationMode,
-            new CSharpClrExecutionBindingContext())
-    {
-    }
+            new CSharpClrExecutionBindingContext()
+        ) { }
 
     internal ExecutionCSharpRenderer(
         IReadOnlyList<ScriptParameterDefinition>? scriptParameterDefinitions,
@@ -22,7 +22,8 @@ public sealed partial class ExecutionCSharpRenderer
         QueryInstrumentationMode instrumentationMode,
         CSharpClrExecutionBindingContext executionBindings,
         string generatedMemberSuffix = "",
-        bool metadataOnly = false)
+        bool metadataOnly = false
+    )
     {
         _renderOptions = ExecutionRenderOptions.Create(
             scriptParameterDefinitions,
@@ -30,6 +31,7 @@ public sealed partial class ExecutionCSharpRenderer
             instrumentationMode,
             executionBindings,
             generatedMemberSuffix,
-            metadataOnly);
+            metadataOnly
+        );
     }
 }

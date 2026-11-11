@@ -11,7 +11,8 @@ internal static class ChunkedLoopSyntaxFactory
         ExecutionVariable item,
         ExpressionSyntax sourceExpression,
         string breakTarget,
-        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements)
+        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements
+    )
     {
         var chunkVariableName = CreateIdentifierCandidate($"{item.Name}Chunk", 0);
         var indexVariableName = CreateIdentifierCandidate($"{item.Name}Index", 0);
@@ -20,28 +21,23 @@ internal static class ChunkedLoopSyntaxFactory
             chunkVariableName,
             sourceExpression,
             TryCreateFastPathItemType(item, out var itemType)
-                ? CreateChunkFastPathStatement(
-                    itemType,
-                    chunkVariableName,
-                    indexVariableName,
-                    createBodyStatements)
-                : CreateGenericChunkLoop(
-                    chunkVariableName,
-                    indexVariableName,
-                    createBodyStatements));
+                ? CreateChunkFastPathStatement(itemType, chunkVariableName, indexVariableName, createBodyStatements)
+                : CreateGenericChunkLoop(chunkVariableName, indexVariableName, createBodyStatements)
+        );
 
         var exitsLogicalLoop = loop.DescendantNodes()
             .OfType<GotoStatementSyntax>()
-            .Any(statement => statement.Expression is IdentifierNameSyntax identifier &&
-                              identifier.Identifier.ValueText == breakTarget);
+            .Any(statement =>
+                statement.Expression is IdentifierNameSyntax identifier
+                && identifier.Identifier.ValueText == breakTarget
+            );
         if (!exitsLogicalLoop)
             return loop;
 
         return StatementEmitter.CreateBlock(
             loop,
-            SyntaxFactory.LabeledStatement(
-                breakTarget,
-                SyntaxFactory.EmptyStatement()));
+            SyntaxFactory.LabeledStatement(breakTarget, SyntaxFactory.EmptyStatement())
+        );
     }
 
     private static bool TryCreateFastPathItemType(ExecutionVariable item, out TypeSyntax itemType)
@@ -60,37 +56,32 @@ internal static class ChunkedLoopSyntaxFactory
         TypeSyntax itemType,
         string chunkVariableName,
         string indexVariableName,
-        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements)
+        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements
+    )
     {
         var rowChunkVariableName = CreateIdentifierCandidate($"{chunkVariableName}View", 0);
 
         return StatementEmitter.CreateBlock(
             StatementEmitter.CreateIf(
-                CreateIsPatternExpression(
-                    chunkVariableName,
-                    CreateRowChunkTypeSyntax(itemType),
-                    rowChunkVariableName),
-                CreateRowChunkFastPathStatement(
-                    itemType,
-                    rowChunkVariableName,
-                    indexVariableName,
-                    createBodyStatements)),
-            CreateGenericChunkLoop(
-                chunkVariableName,
-                indexVariableName,
-                createBodyStatements));
+                CreateIsPatternExpression(chunkVariableName, CreateRowChunkTypeSyntax(itemType), rowChunkVariableName),
+                CreateRowChunkFastPathStatement(itemType, rowChunkVariableName, indexVariableName, createBodyStatements)
+            ),
+            CreateGenericChunkLoop(chunkVariableName, indexVariableName, createBodyStatements)
+        );
     }
 
     private static StatementSyntax CreateRowChunkFastPathStatement(
         TypeSyntax itemType,
         string rowChunkVariableName,
         string indexVariableName,
-        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements)
+        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements
+    )
     {
         var sourceExpression = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(rowChunkVariableName),
-            SyntaxFactory.IdentifierName("Source"));
+            SyntaxFactory.IdentifierName("Source")
+        );
         var arrayVariableName = CreateIdentifierCandidate($"{rowChunkVariableName}Array", 0);
         var listVariableName = CreateIdentifierCandidate($"{rowChunkVariableName}List", 0);
 
@@ -100,66 +91,87 @@ internal static class ChunkedLoopSyntaxFactory
                     sourceExpression,
                     SyntaxFactory.DeclarationPattern(
                         CreateArrayTypeSyntax(itemType),
-                        SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(arrayVariableName)))),
+                        SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(arrayVariableName))
+                    )
+                ),
                 CreateRowChunkIndexedSourceLoop(
                     rowChunkVariableName,
                     arrayVariableName,
                     indexVariableName,
-                    createBodyStatements)),
+                    createBodyStatements
+                )
+            ),
             StatementEmitter.CreateIf(
                 SyntaxFactory.IsPatternExpression(
                     sourceExpression,
                     SyntaxFactory.DeclarationPattern(
                         CreateListTypeSyntax(itemType),
-                        SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(listVariableName)))),
+                        SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(listVariableName))
+                    )
+                ),
                 CreateRowChunkIndexedSourceLoop(
                     rowChunkVariableName,
                     listVariableName,
                     indexVariableName,
-                    createBodyStatements)));
+                    createBodyStatements
+                )
+            )
+        );
     }
 
     private static StatementSyntax CreateRowChunkIndexedSourceLoop(
         string rowChunkVariableName,
         string sourceVariableName,
         string indexVariableName,
-        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements)
+        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements
+    )
     {
         var offsetVariableName = CreateIdentifierCandidate($"{rowChunkVariableName}Offset", 0);
         var offsetDeclaration = CreateLocalDeclaration(
             CreateTypeSyntax(typeof(int)),
             offsetVariableName,
-            CreateMemberAccess(rowChunkVariableName, "Offset"));
+            CreateMemberAccess(rowChunkVariableName, "Offset")
+        );
 
         var itemAccess = CreateElementAccess(
             SyntaxFactory.IdentifierName(sourceVariableName),
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.AddExpression,
                 SyntaxFactory.IdentifierName(offsetVariableName),
-                SyntaxFactory.IdentifierName(indexVariableName)));
+                SyntaxFactory.IdentifierName(indexVariableName)
+            )
+        );
 
         return StatementEmitter.CreateBlock(
             offsetDeclaration,
             CreateChunkIndexLoop(
                 indexVariableName,
                 CreateMemberAccess(rowChunkVariableName, "Count"),
-                StatementEmitter.CreateBlock(createBodyStatements(itemAccess, indexVariableName))),
-            SyntaxFactory.ContinueStatement());
+                StatementEmitter.CreateBlock(createBodyStatements(itemAccess, indexVariableName))
+            ),
+            SyntaxFactory.ContinueStatement()
+        );
     }
 
     private static StatementSyntax CreateGenericChunkLoop(
         string chunkVariableName,
         string indexVariableName,
-        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements)
+        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements
+    )
     {
         return CreateChunkIndexLoop(
             indexVariableName,
             CreateMemberAccess(chunkVariableName, "Count"),
-            StatementEmitter.CreateBlock(createBodyStatements(
-                CreateElementAccess(
-                    SyntaxFactory.IdentifierName(chunkVariableName),
-                    SyntaxFactory.IdentifierName(indexVariableName)),
-                indexVariableName)));
+            StatementEmitter.CreateBlock(
+                createBodyStatements(
+                    CreateElementAccess(
+                        SyntaxFactory.IdentifierName(chunkVariableName),
+                        SyntaxFactory.IdentifierName(indexVariableName)
+                    ),
+                    indexVariableName
+                )
+            )
+        );
     }
 
     private static TypeSyntax CreateArrayTypeSyntax(TypeSyntax itemType)
@@ -177,53 +189,70 @@ internal static class ChunkedLoopSyntaxFactory
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(variableName),
-            SyntaxFactory.IdentifierName(memberName));
+            SyntaxFactory.IdentifierName(memberName)
+        );
     }
 
     private static ExpressionSyntax CreateIsPatternExpression(
         string variableName,
         TypeSyntax type,
-        string designationName)
+        string designationName
+    )
     {
         return SyntaxFactory.IsPatternExpression(
             SyntaxFactory.IdentifierName(variableName),
             SyntaxFactory.DeclarationPattern(
                 type,
-                SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(designationName))));
+                SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(designationName))
+            )
+        );
     }
 
     private static ForStatementSyntax CreateChunkIndexLoop(
         string indexVariableName,
         ExpressionSyntax countExpression,
-        StatementSyntax body)
+        StatementSyntax body
+    )
     {
         var countVariableName = CreateIdentifierCandidate($"{indexVariableName}Count", 0);
 
-        return SyntaxFactory.ForStatement(body)
+        return SyntaxFactory
+            .ForStatement(body)
             .WithDeclaration(
                 SyntaxFactory.VariableDeclaration(
                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.VariableDeclarator(indexVariableName)
+                    SyntaxFactory.SeparatedList([
+                        SyntaxFactory
+                            .VariableDeclarator(indexVariableName)
                             .WithInitializer(
                                 SyntaxFactory.EqualsValueClause(
                                     SyntaxFactory.LiteralExpression(
                                         SyntaxKind.NumericLiteralExpression,
-                                        SyntaxFactory.Literal(0)))),
-                        SyntaxFactory.VariableDeclarator(countVariableName)
-                            .WithInitializer(SyntaxFactory.EqualsValueClause(countExpression))
-                    ])))
+                                        SyntaxFactory.Literal(0)
+                                    )
+                                )
+                            ),
+                        SyntaxFactory
+                            .VariableDeclarator(countVariableName)
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(countExpression)),
+                    ])
+                )
+            )
             .WithCondition(
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.LessThanExpression,
                     SyntaxFactory.IdentifierName(indexVariableName),
-                    SyntaxFactory.IdentifierName(countVariableName)))
+                    SyntaxFactory.IdentifierName(countVariableName)
+                )
+            )
             .WithIncrementors(
                 SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                     SyntaxFactory.PrefixUnaryExpression(
                         SyntaxKind.PreIncrementExpression,
-                        SyntaxFactory.IdentifierName(indexVariableName))));
+                        SyntaxFactory.IdentifierName(indexVariableName)
+                    )
+                )
+            );
     }
 
     private static string CreateIdentifierCandidate(string value, int disambiguator)

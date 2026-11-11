@@ -4,27 +4,39 @@ namespace Musoq.Evaluator.IR.Optimization.Execution;
 
 internal sealed class ExecutionIrOptimizer
 {
-    public ExecutionIrOptimizationResult Optimize(ExecutionPlan initialPlan, CompilationOptions? compilationOptions = null)
+    public ExecutionIrOptimizationResult Optimize(
+        ExecutionPlan initialPlan,
+        CompilationOptions? compilationOptions = null
+    )
     {
         ArgumentNullException.ThrowIfNull(initialPlan);
 
         var trace = new OptimizationTrace();
         var effectiveOptions = compilationOptions ?? new CompilationOptions();
-        var effectivePlan = compilationOptions is null || initialPlan.RegexMatchTimeout == effectiveOptions.RegexMatchTimeout
-            ? initialPlan
-            : initialPlan with { RegexMatchTimeout = effectiveOptions.RegexMatchTimeout };
+        var effectivePlan =
+            compilationOptions is null || initialPlan.RegexMatchTimeout == effectiveOptions.RegexMatchTimeout
+                ? initialPlan
+                : initialPlan with
+                {
+                    RegexMatchTimeout = effectiveOptions.RegexMatchTimeout,
+                };
         var options = new OptimizationOptions
         {
             FieldReadDiscoveryEnabled = false,
             ExpressionCseEnabled = effectiveOptions.UseCommonSubexpressionElimination,
             CrossNodeExpressionCseEnabled = effectiveOptions.UseCommonSubexpressionElimination,
             LoopInvariantCodeMotionEnabled = effectiveOptions.UseLoopInvariantCodeMotion,
-            StabilityAwareScalarReuseEnabled = effectiveOptions.UseStabilityAwareScalarReuse
+            StabilityAwareScalarReuseEnabled = effectiveOptions.UseStabilityAwareScalarReuse,
         };
-        var result = new PlanOptimizationRunner<ExecutionPlan>(
-            ExecutionIrOptimizationGroup.Pipeline).Run(
+        var result = new PlanOptimizationRunner<ExecutionPlan>(ExecutionIrOptimizationGroup.Pipeline).Run(
             effectivePlan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization, trace, options, OptimizationContextState.Empty));
+            new OptimizationContext(
+                OptimizationStage.ExecutionIrOptimization,
+                trace,
+                options,
+                OptimizationContextState.Empty
+            )
+        );
 
         return new ExecutionIrOptimizationResult(initialPlan, result.Plan, trace);
     }

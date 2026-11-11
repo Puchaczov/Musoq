@@ -4,15 +4,15 @@ using Musoq.Evaluator.IR.Physical;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-internal sealed partial class PhysicalLoweringImplementation :
-    IJoinLoweringOperations,
-    IPipelineLoweringOperations,
-    ICteLoweringOperations,
-    IMultiStatementLoweringOperations,
-    IDescLoweringOperations,
-    IAggregateLoweringOperations,
-    IWindowLoweringOperations,
-    IApplyLoweringOperations
+internal sealed partial class PhysicalLoweringImplementation
+    : IJoinLoweringOperations,
+        IPipelineLoweringOperations,
+        ICteLoweringOperations,
+        IMultiStatementLoweringOperations,
+        IDescLoweringOperations,
+        IAggregateLoweringOperations,
+        IWindowLoweringOperations,
+        IApplyLoweringOperations
 {
     private const int DefaultSchemaFromIndex = 0;
     private const int SourceInstanceOrdinal = 1;
@@ -43,19 +43,22 @@ internal sealed partial class PhysicalLoweringImplementation :
         ArgumentNullException.ThrowIfNull(physicalPlan);
         ArgumentException.ThrowIfNullOrWhiteSpace(identifier);
 
-        var scope = _physicalLoweringFacade.CreateScope(_facts).WithGeneratedTypePrefix(_facts.GeneratedTypePrefix)
+        var scope = _physicalLoweringFacade
+            .CreateScope(_facts)
+            .WithGeneratedTypePrefix(_facts.GeneratedTypePrefix)
             .WithSubqueryCtes(_shapeResolver.Subqueries.Get(identifier));
         return BuildWithScope(physicalPlan, identifier, scope);
     }
 
-    private ExecutionPlanBuildResult BuildWithScope(
-        PhysicalNode physicalPlan,
-        string identifier,
-        LoweringScope scope)
+    private ExecutionPlanBuildResult BuildWithScope(PhysicalNode physicalPlan, string identifier, LoweringScope scope)
     {
         var unwrapped = UnwrapSingleStatement(physicalPlan);
-        _shapeResolver.Subqueries.Register(physicalPlan, new Dictionary<string, int>(),
-            new Dictionary<string, GeneratedRowShape>(), scope.SubqueryCtes);
+        _shapeResolver.Subqueries.Register(
+            physicalPlan,
+            new Dictionary<string, int>(),
+            new Dictionary<string, GeneratedRowShape>(),
+            scope.SubqueryCtes
+        );
         var loweringContext = new PhysicalToExecutionLoweringContext(unwrapped, identifier, scope);
 
         var result = _physicalLoweringFacade.BuildPlan(loweringContext, CreateUnsupported);
@@ -64,10 +67,15 @@ internal sealed partial class PhysicalLoweringImplementation :
             {
                 ExecutionPlan = ExecutionPlanRepresentationPlanner.Plan(
                     new NativeScriptGenericBinding(_shapeResolver.ScriptValues).RewritePlan(
-                        PagingCountExecution.AddValidation(unwrapped, ExecutionPhaseBoundaryPlanner.AddRootBoundaries(unwrapped, executionPlan)))) with
+                        PagingCountExecution.AddValidation(
+                            unwrapped,
+                            ExecutionPhaseBoundaryPlanner.AddRootBoundaries(unwrapped, executionPlan)
+                        )
+                    )
+                ) with
                 {
-                    StructuralCarriers = ExecutionIrCollections.Freeze(_shapeResolver.InlineRecords.Carriers)
-                }
+                    StructuralCarriers = ExecutionIrCollections.Freeze(_shapeResolver.InlineRecords.Carriers),
+                },
             }
             : result;
     }
@@ -79,7 +87,8 @@ internal sealed partial class PhysicalLoweringImplementation :
     private ExecutionPlanBuildResult BuildPipeline(
         CteSupportedPipeline pipeline,
         string identifier,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var cteIndexes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var result = BuildTable(
@@ -87,9 +96,14 @@ internal sealed partial class PhysicalLoweringImplementation :
             "result",
             scope.GeneratedTypePrefix + "ResultRow0",
             cteIndexes,
-            cteShapesByName: scope.SubqueryCtes.ToDictionary(static binding => binding.Name, static binding => binding.Shape, StringComparer.OrdinalIgnoreCase),
+            cteShapesByName: scope.SubqueryCtes.ToDictionary(
+                static binding => binding.Name,
+                static binding => binding.Shape,
+                StringComparer.OrdinalIgnoreCase
+            ),
             schemaFromIndex: DefaultSchemaFromIndex,
-            scope: scope);
+            scope: scope
+        );
 
         if (!result.IsBuilt)
             return ExecutionPlanBuildResult.CreateUnsupported(result.UnsupportedReason);

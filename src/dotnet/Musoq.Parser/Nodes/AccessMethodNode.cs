@@ -6,16 +6,28 @@ namespace Musoq.Parser.Nodes;
 
 public class AccessMethodNode : Node
 {
-    public AccessMethodNode(FunctionToken functionToken, ArgsListNode args, ArgsListNode? extraAggregateArguments,
+    public AccessMethodNode(
+        FunctionToken functionToken,
+        ArgsListNode args,
+        ArgsListNode? extraAggregateArguments,
         bool canSkipInjectSource,
-        MethodInfo? method = null, string alias = "", bool isDistinct = false)
+        MethodInfo? method = null,
+        string alias = "",
+        bool isDistinct = false
+    )
         : this(functionToken, args, extraAggregateArguments, canSkipInjectSource, method, alias, default, isDistinct)
-    {
-    }
+    { }
 
-    public AccessMethodNode(FunctionToken functionToken, ArgsListNode args, ArgsListNode? extraAggregateArguments,
+    public AccessMethodNode(
+        FunctionToken functionToken,
+        ArgsListNode args,
+        ArgsListNode? extraAggregateArguments,
         bool canSkipInjectSource,
-        MethodInfo? method, string alias, TextSpan span, bool isDistinct = false)
+        MethodInfo? method,
+        string alias,
+        TextSpan span,
+        bool isDistinct = false
+    )
     {
         ArgumentNullException.ThrowIfNull(args);
         FunctionToken = functionToken;
@@ -27,7 +39,8 @@ public class AccessMethodNode : Node
         IsDistinct = isDistinct;
         TypeParameter = (functionToken as GenericFunctionToken)?.TypeParameter;
         var typeParameterSuffix = CreateTypeParameterSuffix(TypeParameter);
-        Id = $"{nameof(AccessMethodNode)}{alias}{functionToken.Value}{typeParameterSuffix}{args.Id}{(isDistinct ? "Distinct" : "")}";
+        Id =
+            $"{nameof(AccessMethodNode)}{alias}{functionToken.Value}{typeParameterSuffix}{args.Id}{(isDistinct ? "Distinct" : "")}";
 
         // If no explicit span provided, try to compute from function token and args
         if (span.IsEmpty && functionToken != null)
@@ -135,7 +148,9 @@ public class AccessMethodNode : Node
     {
         var alias = !string.IsNullOrWhiteSpace(Alias) ? $"{Alias}." : string.Empty;
         var typeParameterSuffix = CreateTypeParameterSuffix(TypeParameter);
-        return ArgsCount > 0 ? $"{alias}{Name}{typeParameterSuffix}({Arguments.ToString()})" : $"{alias}{Name}{typeParameterSuffix}()";
+        return ArgsCount > 0
+            ? $"{alias}{Name}{typeParameterSuffix}({Arguments.ToString()})"
+            : $"{alias}{Name}{typeParameterSuffix}()";
     }
 
     private static string CreateTypeParameterSuffix(string? typeParameter)

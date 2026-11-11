@@ -13,15 +13,16 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (node.IsColumnAccess)
         {
             var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(
-                string.IsNullOrEmpty(node.TableAlias) ? _sourceBinding.Identifier : node.TableAlias);
+                string.IsNullOrEmpty(node.TableAlias) ? _sourceBinding.Identifier : node.TableAlias
+            );
 
             if (tableSymbol == null)
             {
-                    if (TryReportUnknownProperty(node.TableAlias ?? _sourceBinding.Identifier, null, node))
-                    {
-                        PushSemanticNode(new IdentifierNode(node.ObjectName, typeof(object), node.SpanOrEmpty()));
-                        return;
-                    }
+                if (TryReportUnknownProperty(node.TableAlias ?? _sourceBinding.Identifier, null, node))
+                {
+                    PushSemanticNode(new IdentifierNode(node.ObjectName, typeof(object), node.SpanOrEmpty()));
+                    return;
+                }
                 var span = node.SpanOrEmpty();
                 throw new UnknownPropertyException(node.TableAlias ?? _sourceBinding.Identifier, "unknown", span);
             }
@@ -29,7 +30,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             var columnAccess = _columnPropertyBindingService.TryCreateColumnArrayAccess(
                 tableSymbol,
                 string.IsNullOrEmpty(node.TableAlias) ? _sourceBinding.Identifier : node.TableAlias,
-                node);
+                node
+            );
 
             if (columnAccess == null)
             {
@@ -49,19 +51,27 @@ public partial class BuildMetadataAndInferTypesVisitor
         var parentNode = TraversalFrame.NodeCount > 0 ? PeekSemanticNode("Visit(AccessObjectArrayNode).Parent") : null;
         var parentNodeType = parentNode?.ReturnType;
         var intendedName = InterpretationPropertyBinding.GetIntendedTypeName(parentNode);
-        if (intendedName is not null &&
-            ResolveSchemaFieldFromIntendedTypeName(intendedName, node.Name) is { } schemaProperty &&
-            schemaProperty.ClrType.IsArray)
+        if (
+            intendedName is not null
+            && ResolveSchemaFieldFromIntendedTypeName(intendedName, node.Name) is { } schemaProperty
+            && schemaProperty.ClrType.IsArray
+        )
         {
-            PushSemanticNode(new AccessObjectArrayNode(node.Token,
-                new ExpandoObjectPropertyInfo(node.Name, schemaProperty.ClrType)));
+            PushSemanticNode(
+                new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, schemaProperty.ClrType))
+            );
             return;
         }
 
         if (!_columnPropertyBindingService.HasTypedParentForArrayAccess(parentNode))
         {
-            var currentTableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
-            var columnAccessNode = _columnPropertyBindingService.TryCreateCurrentScopeArrayAccess(currentTableSymbol, node);
+            var currentTableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(
+                _sourceBinding.Identifier
+            );
+            var columnAccessNode = _columnPropertyBindingService.TryCreateCurrentScopeArrayAccess(
+                currentTableSymbol,
+                node
+            );
             if (columnAccessNode != null)
             {
                 PushSemanticNode(columnAccessNode);
@@ -75,7 +85,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 parentNodeType,
                 node.Name,
                 typeof(object[]),
-                typeof(ExpandoObject[]));
+                typeof(ExpandoObject[])
+            );
             PushSemanticNode(new AccessObjectArrayNode(node.Token, propertyInfo));
         }
         else
@@ -87,13 +98,17 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var propertyAccess = _columnPropertyBindingService.TryResolveTypedProperty(
                     parentNodeType,
                     node.Name,
-                    out var error);
+                    out var error
+                );
 
                 if (error != null)
                 {
-                    if (TryReportObjectNotArray(
+                    if (
+                        TryReportObjectNotArray(
                             $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
-                            node))
+                            node
+                        )
+                    )
                     {
                         PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                         return;
@@ -101,14 +116,18 @@ public partial class BuildMetadataAndInferTypesVisitor
                     var nodeSpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
-                        nodeSpan);
+                        nodeSpan
+                    );
                 }
 
                 if (!_columnPropertyBindingService.CanUseAsArrayOrIndexer(propertyAccess))
                 {
-                    if (TryReportObjectNotArray(
+                    if (
+                        TryReportObjectNotArray(
                             $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.",
-                            node))
+                            node
+                        )
+                    )
                     {
                         PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                         return;
@@ -116,7 +135,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     var notArraySpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
                         $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.",
-                        notArraySpan);
+                        notArraySpan
+                    );
                 }
 
                 if (propertyAccess == null)
@@ -127,8 +147,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                         return;
                     }
                     var propSpan = node.SpanOrEmpty();
-                    throw new UnknownPropertyException(
-                        node.Name, parentNodeType.Name, propSpan);
+                    throw new UnknownPropertyException(node.Name, parentNodeType.Name, propSpan);
                 }
 
                 PushSemanticNode(new AccessObjectArrayNode(node.Token, propertyAccess));
@@ -141,13 +160,17 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var property = _columnPropertyBindingService.TryResolveTypedProperty(
                     parentNodeType,
                     node.Name,
-                    out var error);
+                    out var error
+                );
 
                 if (error != null)
                 {
-                    if (TryReportObjectNotArray(
+                    if (
+                        TryReportObjectNotArray(
                             $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
-                            node))
+                            node
+                        )
+                    )
                     {
                         PushSemanticNode(new IdentifierNode(node.Name, typeof(object), node.SpanOrEmpty()));
                         return;
@@ -155,7 +178,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     var exSpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
-                        exSpan);
+                        exSpan
+                    );
                 }
 
                 if (!_columnPropertyBindingService.CanUseAsArrayOrIndexer(property))
@@ -167,7 +191,9 @@ public partial class BuildMetadataAndInferTypesVisitor
                     }
                     var naSpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
-                        $"Object {node.Name} is not an array or indexable type.", naSpan);
+                        $"Object {node.Name} is not an array or indexable type.",
+                        naSpan
+                    );
                 }
 
                 if (property == null)
@@ -178,8 +204,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                         return;
                     }
                     var propSpan = node.SpanOrEmpty();
-                    throw new UnknownPropertyException(
-                        node.Name, parentNodeType.Name, propSpan);
+                    throw new UnknownPropertyException(node.Name, parentNodeType.Name, propSpan);
                 }
 
                 PushSemanticNode(new AccessObjectArrayNode(node.Token, property));
@@ -192,10 +217,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     return;
                 }
                 var objSpan = node.SpanOrEmpty();
-                throw new UnknownPropertyException(
-                    node.ObjectName, "unknown", objSpan);
+                throw new UnknownPropertyException(node.ObjectName, "unknown", objSpan);
             }
         }
     }
-
 }

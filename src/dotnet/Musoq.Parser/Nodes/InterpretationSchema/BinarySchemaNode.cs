@@ -29,24 +29,25 @@ public class BinarySchemaNode : Node
     /// <param name="fields">The field definitions (parsed and/or computed).</param>
     /// <param name="extends">Optional base schema name for inheritance.</param>
     /// <param name="typeParameters">Optional generic type parameters (e.g., T, U).</param>
-    public BinarySchemaNode(string name, SchemaFieldNode[] fields, string? extends = null,
-        string[]? typeParameters = null, TextSpan extendsSpan = default,
-        IReadOnlyList<SchemaComment>? comments = null)
+    public BinarySchemaNode(
+        string name,
+        SchemaFieldNode[] fields,
+        string? extends = null,
+        string[]? typeParameters = null,
+        TextSpan extendsSpan = default,
+        IReadOnlyList<SchemaComment>? comments = null
+    )
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         Extends = extends;
         TypeParameters = typeParameters ?? [];
         ExtendsSpan = extendsSpan;
-        Comments = comments != null ? [..comments] : [];
+        Comments = comments != null ? [.. comments] : [];
 
-        var fieldsId = fields.Length == 0
-            ? string.Empty
-            : string.Concat(fields.Select(f => f.Id));
+        var fieldsId = fields.Length == 0 ? string.Empty : string.Concat(fields.Select(f => f.Id));
         var extendsId = extends ?? string.Empty;
-        var typeParamsId = TypeParameters.Length == 0
-            ? string.Empty
-            : "<" + string.Join(",", TypeParameters) + ">";
+        var typeParamsId = TypeParameters.Length == 0 ? string.Empty : "<" + string.Join(",", TypeParameters) + ">";
         Id = $"{nameof(BinarySchemaNode)}{name}{typeParamsId}{extendsId}{fieldsId}";
     }
 
@@ -129,7 +130,8 @@ public class BinarySchemaNode : Node
             builder.Append("    ");
             builder.Append(Fields[i].ToString());
 
-            if (i < Fields.Length - 1) builder.Append(',');
+            if (i < Fields.Length - 1)
+                builder.Append(',');
 
             builder.AppendLine();
         }

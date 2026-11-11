@@ -9,9 +9,7 @@ internal sealed class NamedWindowDefinitionValidator
 {
     private readonly Stack<HashSet<string>> _scopes = new();
 
-    internal void Precollect(
-        WindowNode? window,
-        Action<DiagnosticCode, string, TextSpan> report)
+    internal void Precollect(WindowNode? window, Action<DiagnosticCode, string, TextSpan> report)
     {
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (window != null)
@@ -24,7 +22,8 @@ internal sealed class NamedWindowDefinitionValidator
                 report(
                     DiagnosticCode.MQ3105_DuplicateNamedWindow,
                     $"Window definition '{definition.Name}' is declared more than once in this query.",
-                    definition.SpanOrEmpty());
+                    definition.SpanOrEmpty()
+                );
             }
         }
 
@@ -37,9 +36,7 @@ internal sealed class NamedWindowDefinitionValidator
             _scopes.Pop();
     }
 
-    internal void Validate(
-        WindowFunctionNode node,
-        Action<DiagnosticCode, string, TextSpan> report)
+    internal void Validate(WindowFunctionNode node, Action<DiagnosticCode, string, TextSpan> report)
     {
         if (!node.IsNamedWindowReference || node.WindowName is not { } windowName)
             return;
@@ -50,6 +47,7 @@ internal sealed class NamedWindowDefinitionValidator
         report(
             DiagnosticCode.MQ3104_UnknownNamedWindow,
             $"Named window '{windowName}' is not defined in the current query.",
-            node.SpanOrEmpty());
+            node.SpanOrEmpty()
+        );
     }
 }

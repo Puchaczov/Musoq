@@ -15,26 +15,33 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_Select_WithBitwiseAndAlias_ShouldWork()
     {
-        var query = @"
-            binary Header {
-                PackedByte: byte
-            };
-            select
-                h.PackedByte & 0x80 as HighBit
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                PackedByte: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.PackedByte & 0x80 as HighBit\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h"
+        );
 
         var testData = new byte[] { 0xF7 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -48,27 +55,34 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_Select_WithBitwiseOrAlias_ShouldWork()
     {
-        var query = @"
-            binary Header {
-                LowByte: byte,
-                HighByte: byte
-            };
-            select
-                h.LowByte | h.HighByte as Combined
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                LowByte: byte,\n"
+            + "                HighByte: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.LowByte | h.HighByte as Combined\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h"
+        );
 
         var testData = new byte[] { 0x0F, 0xF0 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -82,27 +96,34 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_Select_WithBitwiseXorAlias_ShouldWork()
     {
-        var query = @"
-            binary Header {
-                A: byte,
-                B: byte
-            };
-            select
-                h.A ^ h.B as Xored
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                A: byte,\n"
+            + "                B: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.A ^ h.B as Xored\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h"
+        );
 
         var testData = new byte[] { 0xAA, 0x55 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -116,26 +137,33 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_Select_WithLeftShiftAlias_ShouldWork()
     {
-        var query = @"
-            binary Header {
-                Value: byte
-            };
-            select
-                h.Value << 4 as Shifted
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Value: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Value << 4 as Shifted\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h"
+        );
 
         var testData = new byte[] { 0x0F };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -149,26 +177,33 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_Select_WithRightShiftAlias_ShouldWork()
     {
-        var query = @"
-            binary Header {
-                Value: byte
-            };
-            select
-                h.Value >> 4 as Shifted
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Value: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Value >> 4 as Shifted\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h"
+        );
 
         var testData = new byte[] { 0xF0 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -183,27 +218,34 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_Select_WithComplexBitwiseExpressionAlias_ShouldWork()
     {
-        var query = @"
-            binary Header {
-                PackedByte: byte
-            };
-            select
-                h.PackedByte >> 4 as HighNibble,
-                h.PackedByte & 0x0F as LowNibble
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                PackedByte: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.PackedByte >> 4 as HighNibble,\n"
+            + "                h.PackedByte & 0x0F as LowNibble\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h"
+        );
 
         var testData = new byte[] { 0xAB };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -219,30 +261,36 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_Select_WithMultipleBitwiseAliases_ShouldWork()
     {
-        var query = @"
-            binary GifFlags {
-                PackedByte: byte
-            };
-            select
-                h.PackedByte & 0x80 as HasGlobalColorTable,
-                (h.PackedByte & 0x70) >> 4 as ColorResolution,
-                h.PackedByte & 0x08 as SortFlag,
-                h.PackedByte & 0x07 as SizeOfGlobalColorTable
-            from #test.files() f
-            cross apply Interpret<GifFlags>(f.Content) h";
-
+        var query = (
+            "\n"
+            + "            binary GifFlags {\n"
+            + "                PackedByte: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.PackedByte & 0x80 as HasGlobalColorTable,\n"
+            + "                (h.PackedByte & 0x70) >> 4 as ColorResolution,\n"
+            + "                h.PackedByte & 0x08 as SortFlag,\n"
+            + "                h.PackedByte & 0x07 as SizeOfGlobalColorTable\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<GifFlags>(f.Content) h"
+        );
 
         var testData = new byte[] { 0xF7 };
-        var entities = new[] { new BinaryEntity { Name = "test.gif", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.gif", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 

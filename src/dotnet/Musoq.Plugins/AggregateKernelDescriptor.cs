@@ -34,7 +34,8 @@ public sealed partial record AggregateKernelDescriptor(
     Type UnderlyingResultType,
     AggregateResultDescriptor ResultDescriptor,
     int? ParentParameterIndex,
-    bool Inline)
+    bool Inline
+)
 {
     /// <summary>Gets the validated operation used to initialize independent state.</summary>
     public required MethodInfo ResetMethod { get; init; }
@@ -62,7 +63,10 @@ public sealed partial record AggregateKernelDescriptor(
         ArgumentNullException.ThrowIfNull(declarationMethod);
         var attribute = declarationMethod.GetCustomAttribute<AggregateFunctionAttribute>();
         if (attribute is null)
-            throw CreateInvalidKernelException(declarationMethod, "Aggregate declaration is missing AggregateFunctionAttribute.");
+            throw CreateInvalidKernelException(
+                declarationMethod,
+                "Aggregate declaration is missing AggregateFunctionAttribute."
+            );
 
         return Create(declarationMethod, attribute);
     }
@@ -74,14 +78,14 @@ public sealed partial record AggregateKernelDescriptor(
         ValidateKernelState(kernelType, stateType, declarationMethod);
         var valueParameters = GetValueParameters(declarationMethod);
         var parentParameterIndex = ValidateParentParameter(declarationMethod);
-        var inputShape = AggregateInputShape.Tuple(valueParameters.Select(static parameter => parameter.ParameterType).ToArray());
+        var inputShape = AggregateInputShape.Tuple(
+            valueParameters.Select(static parameter => parameter.ParameterType).ToArray()
+        );
         var setMethod = ResolveSetMethod(kernelType, stateType, valueParameters, declarationMethod);
         var getMethod = ResolveGetMethod(kernelType, stateType, declarationMethod);
         var mergeMethod = ResolveMergeMethod(kernelType, stateType, declarationMethod);
         var resetMethod = ResolveResetMethod(kernelType, stateType, declarationMethod);
-        var functionName = string.IsNullOrWhiteSpace(attribute.Name)
-            ? declarationMethod.Name
-            : attribute.Name!;
+        var functionName = string.IsNullOrWhiteSpace(attribute.Name) ? declarationMethod.Name : attribute.Name!;
         var resultType = declarationMethod.ReturnType;
 
         return new AggregateKernelDescriptor(
@@ -98,37 +102,41 @@ public sealed partial record AggregateKernelDescriptor(
             new AggregateResultDescriptor(
                 resultType,
                 Nullable.GetUnderlyingType(resultType) ?? resultType,
-                attribute.EmptyResultBehavior),
+                attribute.EmptyResultBehavior
+            ),
             parentParameterIndex,
-            attribute.Inline)
+            attribute.Inline
+        )
         {
             ResetMethod = resetMethod,
-            ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(declarationMethod, SqlFunctionKind.Aggregate, attribute)
+            ExecutionPermissions = FunctionExecutionPermissionResolver.Resolve(
+                declarationMethod,
+                SqlFunctionKind.Aggregate,
+                attribute
+            ),
         };
     }
 
     private static Type ResolveStateType(
         AggregateFunctionAttribute attribute,
         Type kernelType,
-        MethodInfo declarationMethod)
+        MethodInfo declarationMethod
+    )
     {
         if (attribute.StateType is not null)
             return CloseNestedStateType(kernelType, attribute.StateType);
 
-        var stateType = kernelType.GetNestedType(
-            StateTypeName,
-            BindingFlags.Public | BindingFlags.NonPublic);
+        var stateType = kernelType.GetNestedType(StateTypeName, BindingFlags.Public | BindingFlags.NonPublic);
         if (stateType is not null)
             return CloseNestedStateType(kernelType, stateType);
 
         throw CreateInvalidKernelException(
             declarationMethod,
-            $"Aggregate kernel {attribute.KernelType.FullName} must expose a nested State type or set AggregateFunctionAttribute.StateType.");
+            $"Aggregate kernel {attribute.KernelType.FullName} must expose a nested State type or set AggregateFunctionAttribute.StateType."
+        );
     }
 
-    private static Type CloseNestedStateType(
-        Type kernelType,
-        Type stateType)
+    private static Type CloseNestedStateType(Type kernelType, Type stateType)
     {
         if (!stateType.ContainsGenericParameters || !kernelType.IsConstructedGenericType)
             return stateType;
@@ -160,14 +168,23 @@ public sealed partial record AggregateKernelDescriptor(
                 continue;
 
             if (parentIndex is not null)
-                throw CreateInvalidKernelException(declarationMethod, "Aggregate declarations can have only one AggregateParent parameter.");
+                throw CreateInvalidKernelException(
+                    declarationMethod,
+                    "Aggregate declarations can have only one AggregateParent parameter."
+                );
 
             if (parameter.ParameterType != typeof(int))
-                throw CreateInvalidKernelException(declarationMethod, "AggregateParent parameter must be an int compile-time depth.");
+                throw CreateInvalidKernelException(
+                    declarationMethod,
+                    "AggregateParent parameter must be an int compile-time depth."
+                );
 
             if (parameter is { HasDefaultValue: true, DefaultValue: int and < 0 })
             {
-                throw CreateInvalidKernelException(declarationMethod, "AggregateParent default depth cannot be negative.");
+                throw CreateInvalidKernelException(
+                    declarationMethod,
+                    "AggregateParent default depth cannot be negative."
+                );
             }
 
             parentIndex = index;
@@ -180,7 +197,8 @@ public sealed partial record AggregateKernelDescriptor(
         Type kernelType,
         Type stateType,
         IReadOnlyList<ParameterInfo> valueParameters,
-        MethodInfo declarationMethod)
+        MethodInfo declarationMethod
+    )
     {
         var setMethod = EnumerateStaticMethods(kernelType, SetMethodName)
             .SingleOrDefault(method => IsMatchingSetMethod(method, stateType, valueParameters));
@@ -189,13 +207,11 @@ public sealed partial record AggregateKernelDescriptor(
 
         throw CreateInvalidKernelException(
             declarationMethod,
-            $"Aggregate kernel {kernelType.FullName} must expose Set(ref State, args...) matching declaration argument types.");
+            $"Aggregate kernel {kernelType.FullName} must expose Set(ref State, args...) matching declaration argument types."
+        );
     }
 
-    private static MethodInfo ResolveGetMethod(
-        Type kernelType,
-        Type stateType,
-        MethodInfo declarationMethod)
+    private static MethodInfo ResolveGetMethod(Type kernelType, Type stateType, MethodInfo declarationMethod)
     {
         var getMethod = EnumerateStaticMethods(kernelType, GetMethodName)
             .SingleOrDefault(method => IsMatchingGetMethod(method, stateType, declarationMethod.ReturnType));
@@ -204,13 +220,11 @@ public sealed partial record AggregateKernelDescriptor(
 
         throw CreateInvalidKernelException(
             declarationMethod,
-            $"Aggregate kernel {kernelType.FullName} must expose Get(in State) returning {declarationMethod.ReturnType.FullName}.");
+            $"Aggregate kernel {kernelType.FullName} must expose Get(in State) returning {declarationMethod.ReturnType.FullName}."
+        );
     }
 
-    private static MethodInfo? ResolveMergeMethod(
-        Type kernelType,
-        Type stateType,
-        MethodInfo declarationMethod)
+    private static MethodInfo? ResolveMergeMethod(Type kernelType, Type stateType, MethodInfo declarationMethod)
     {
         var mergeMethods = EnumerateStaticMethods(kernelType, MergeMethodName).ToArray();
 
@@ -220,28 +234,29 @@ public sealed partial record AggregateKernelDescriptor(
             1 when IsMatchingMergeMethod(mergeMethods[0], stateType) => mergeMethods[0],
             _ => throw CreateInvalidKernelException(
                 declarationMethod,
-                $"Aggregate kernel {kernelType.FullName} must expose one exact Merge(ref State, in State) operation when Merge is present.")
+                $"Aggregate kernel {kernelType.FullName} must expose one exact Merge(ref State, in State) operation when Merge is present."
+            ),
         };
     }
 
-    private static IEnumerable<MethodInfo> EnumerateStaticMethods(
-        Type type,
-        string name)
+    private static IEnumerable<MethodInfo> EnumerateStaticMethods(Type type, string name)
     {
-        return type
-            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+        return type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(method => string.Equals(method.Name, name, StringComparison.Ordinal));
     }
 
     private static bool IsMatchingSetMethod(
         MethodInfo method,
         Type stateType,
-        IReadOnlyList<ParameterInfo> valueParameters)
+        IReadOnlyList<ParameterInfo> valueParameters
+    )
     {
         var parameters = method.GetParameters();
-        if (method.ReturnType != typeof(void) ||
-            parameters.Length != valueParameters.Count + 1 ||
-            !IsMutableStateParameter(parameters[0], stateType))
+        if (
+            method.ReturnType != typeof(void)
+            || parameters.Length != valueParameters.Count + 1
+            || !IsMutableStateParameter(parameters[0], stateType)
+        )
         {
             return false;
         }
@@ -255,41 +270,32 @@ public sealed partial record AggregateKernelDescriptor(
         return true;
     }
 
-    private static bool IsMatchingGetMethod(
-        MethodInfo method,
-        Type stateType,
-        Type resultType)
+    private static bool IsMatchingGetMethod(MethodInfo method, Type stateType, Type resultType)
     {
         var parameters = method.GetParameters();
-        return method.ReturnType == resultType &&
-               parameters.Length == 1 &&
-               IsReadOnlyStateParameter(parameters[0], stateType);
+        return method.ReturnType == resultType
+            && parameters.Length == 1
+            && IsReadOnlyStateParameter(parameters[0], stateType);
     }
 
-    private static bool IsMatchingMergeMethod(
-        MethodInfo method,
-        Type stateType)
+    private static bool IsMatchingMergeMethod(MethodInfo method, Type stateType)
     {
         var parameters = method.GetParameters();
-        return method.ReturnType == typeof(void) &&
-               parameters.Length == 2 &&
-               IsMutableStateParameter(parameters[0], stateType) &&
-               IsReadOnlyStateParameter(parameters[1], stateType);
+        return method.ReturnType == typeof(void)
+            && parameters.Length == 2
+            && IsMutableStateParameter(parameters[0], stateType)
+            && IsReadOnlyStateParameter(parameters[1], stateType);
     }
 
-    private static bool IsByRefStateParameter(
-        ParameterInfo parameter,
-        Type stateType)
+    private static bool IsByRefStateParameter(ParameterInfo parameter, Type stateType)
     {
-        return parameter.ParameterType.IsByRef &&
-               parameter.ParameterType.GetElementType() == stateType;
+        return parameter.ParameterType.IsByRef && parameter.ParameterType.GetElementType() == stateType;
     }
 
-    private static InvalidOperationException CreateInvalidKernelException(
-        MethodInfo declarationMethod,
-        string reason)
+    private static InvalidOperationException CreateInvalidKernelException(MethodInfo declarationMethod, string reason)
     {
         return new InvalidOperationException(
-            $"Aggregate declaration {declarationMethod.DeclaringType?.FullName}.{declarationMethod.Name} is invalid. {reason}");
+            $"Aggregate declaration {declarationMethod.DeclaringType?.FullName}.{declarationMethod.Name} is invalid. {reason}"
+        );
     }
 }

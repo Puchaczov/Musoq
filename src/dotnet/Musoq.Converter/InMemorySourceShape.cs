@@ -9,8 +9,9 @@ namespace Musoq.Converter;
 
 internal sealed class InMemorySourceShape
 {
-    private static readonly WeakTypeRuntimeCache<InMemorySourceShape> Shapes =
-        new(RuntimeCacheOptions.InMemorySourceShapeCacheSize);
+    private static readonly WeakTypeRuntimeCache<InMemorySourceShape> Shapes = new(
+        RuntimeCacheOptions.InMemorySourceShapeCacheSize
+    );
 
     private readonly ISchemaColumn[] _columns;
 
@@ -39,7 +40,9 @@ internal sealed class InMemorySourceShape
 
     public ISchemaColumn? GetColumnByName(string name)
     {
-        return _columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+        return _columns.SingleOrDefault(column =>
+            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)
@@ -67,16 +70,10 @@ internal sealed class InMemorySourceShape
         foreach (var field in rowType.GetFields(BindingFlags.Public | BindingFlags.Instance))
             AddColumn(columns, names, field.Name, field.FieldType);
 
-        return columns.Count > 0
-            ? columns.ToArray()
-            : [new SchemaColumn("Value", 0, rowType)];
+        return columns.Count > 0 ? columns.ToArray() : [new SchemaColumn("Value", 0, rowType)];
     }
 
-    private static void AddColumn(
-        ICollection<ISchemaColumn> columns,
-        ISet<string> names,
-        string name,
-        Type type)
+    private static void AddColumn(ICollection<ISchemaColumn> columns, ISet<string> names, string name, Type type)
     {
         if (!names.Add(name))
             throw new InvalidOperationException($"In-memory source row member '{name}' is ambiguous.");
@@ -86,13 +83,13 @@ internal sealed class InMemorySourceShape
 
     private static bool IsScalar(Type type)
     {
-        return type.IsPrimitive ||
-               type.IsEnum ||
-               type == typeof(string) ||
-               type == typeof(decimal) ||
-               type == typeof(DateTime) ||
-               type == typeof(DateTimeOffset) ||
-               type == typeof(Guid) ||
-               type == typeof(TimeSpan);
+        return type.IsPrimitive
+            || type.IsEnum
+            || type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(DateTime)
+            || type == typeof(DateTimeOffset)
+            || type == typeof(Guid)
+            || type == typeof(TimeSpan);
     }
 }

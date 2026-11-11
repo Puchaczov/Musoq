@@ -21,8 +21,8 @@ public class AstNodeDefinitionTests
 
     private static PropertyInfo GetRequiredProperty(Type type, string name)
     {
-        return type.GetProperty(name) ??
-               throw new InvalidOperationException($"Property {type.FullName}.{name} was not found.");
+        return type.GetProperty(name)
+            ?? throw new InvalidOperationException($"Property {type.FullName}.{name} was not found.");
     }
 
     #endregion
@@ -80,10 +80,7 @@ public class AstNodeDefinitionTests
     public void GroupSelectNode_Constructor_ShouldSetFields()
     {
         // Arrange
-        var fields = new[]
-        {
-            new FieldNode(new IntegerNode(1), 0, "col1")
-        };
+        var fields = new[] { new FieldNode(new IntegerNode(1), 0, "col1") };
 
         // Act
         var node = new GroupSelectNode(fields);
@@ -205,11 +202,7 @@ public class AstNodeDefinitionTests
     public void QueryScope_Constructor_ShouldSetStatements()
     {
         // Arrange
-        var statements = new Node[]
-        {
-            new IntegerNode(1),
-            new StringNode("test")
-        };
+        var statements = new Node[] { new IntegerNode(1), new StringNode("test") };
 
         // Act
         var node = new QueryScope(statements);

@@ -73,12 +73,7 @@ public partial class RowAndKeyEqualityTests
     public void Table_AddRange_AddsMultipleRows()
     {
         var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
-        var rows = new[]
-        {
-            new TestRow([1]),
-            new TestRow([2]),
-            new TestRow([3])
-        };
+        var rows = new[] { new TestRow([1]), new TestRow([2]), new TestRow([3]) };
 
         table.AddRange(rows);
 
@@ -88,11 +83,7 @@ public partial class RowAndKeyEqualityTests
     [TestMethod]
     public void Table_Columns_ReturnsAllColumns()
     {
-        var columns = new[]
-        {
-            new Column("Col1", typeof(int), 0),
-            new Column("Col2", typeof(string), 1)
-        };
+        var columns = new[] { new Column("Col1", typeof(int), 0), new Column("Col2", typeof(string), 1) };
         var table = new Table("Test", columns);
 
         var resultColumns = new List<Column>(table.Columns);
@@ -136,7 +127,8 @@ public partial class RowAndKeyEqualityTests
         var table = new Table("Test", [new Column("Col1", typeof(int), 0)]) { new TestRow([1]), new TestRow([2]) };
 
         var count = 0;
-        foreach (var _ in table) count++;
+        foreach (var _ in table)
+            count++;
 
         Assert.AreEqual(2, count);
     }
@@ -177,7 +169,12 @@ public partial class RowAndKeyEqualityTests
     [TestMethod]
     public void Table_Add_MultipleSameValues_Works()
     {
-        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]) { new TestRow([1]), new TestRow([1]), new TestRow([2]) };
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)])
+        {
+            new TestRow([1]),
+            new TestRow([1]),
+            new TestRow([2]),
+        };
 
         Assert.AreEqual(3, table.Count);
     }
@@ -189,7 +186,8 @@ public partial class RowAndKeyEqualityTests
 
         var enumerable = (IEnumerable)table;
         var count = 0;
-        foreach (var _ in enumerable) count++;
+        foreach (var _ in enumerable)
+            count++;
 
         Assert.AreEqual(1, count);
     }
@@ -197,11 +195,7 @@ public partial class RowAndKeyEqualityTests
     [TestMethod]
     public void Table_ColumnByIndex_ReturnsCorrectColumn()
     {
-        var columns = new[]
-        {
-            new Column("Col1", typeof(int), 0),
-            new Column("Col2", typeof(string), 1)
-        };
+        var columns = new[] { new Column("Col1", typeof(int), 0), new Column("Col2", typeof(string), 1) };
         var table = new Table("Test", columns);
 
         Assert.AreEqual("Col1", table.Columns.First().ColumnName);
@@ -214,8 +208,7 @@ public partial class RowAndKeyEqualityTests
         var columns = new[] { new Column("Col1", typeof(int), 0) };
         var table = new Table("Test", columns);
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            table.Add(new TestRow([1, 2])));
+        var ex = Assert.Throws<NotSupportedException>(() => table.Add(new TestRow([1, 2])));
 
         Assert.Contains("2 values", ex.Message);
     }
@@ -226,8 +219,7 @@ public partial class RowAndKeyEqualityTests
         var columns = new[] { new Column("Col1", typeof(int), 0) };
         var table = new Table("Test", columns);
 
-        var ex = Assert.Throws<NotSupportedException>(() =>
-            table.Add(new TestRow(["string"])));
+        var ex = Assert.Throws<NotSupportedException>(() => table.Add(new TestRow(["string"])));
 
         Assert.Contains("Mismatched", ex.Message);
     }
@@ -244,7 +236,8 @@ public partial class RowAndKeyEqualityTests
     [TestMethod]
     public void TypedTableQuery_WhenAMaterializedKeyIsAbsent_ShouldReturnNoRows()
     {
-        const string query = "with rows as (select s.Position as Position from #schema.first() s) select r.Position as Position from rows r where r.Position = 999";
+        const string query =
+            "with rows as (select s.Position as Position from #schema.first() s) select r.Position as Position from rows r where r.Position = 999";
         using var compiled = CreateAndRunVirtualMachine<ContextInput, ContextLibrary>(query, ContextRows());
         using var table = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)));

@@ -44,13 +44,8 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
         foreach (var index in Enumerable.Range(1, CasesPerFamily))
         {
             var caseId = CaseId("COLD", index);
-            var query =
-                $"select e.Name from #rec137.items() e /* REC-137-{caseId}-candidate */";
-            var provider = new REC137VersionedSchemaProvider
-            {
-                SchemaSignature = $"{caseId}-name",
-                IncludeName = true
-            };
+            var query = $"select e.Name from #rec137.items() e /* REC-137-{caseId}-candidate */";
+            var provider = new REC137VersionedSchemaProvider { SchemaSignature = $"{caseId}-name", IncludeName = true };
 
             var cold = Compile(query, $"REC137_{caseId}_cold", provider);
             AssertSucceeded(cold, caseId + "/cold");
@@ -58,7 +53,8 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
             Assert.AreEqual($"{caseId}-name-name", RunSingleValue(cold, caseId + "/cold"));
             Assert.IsTrue(
                 InstanceCreator.HasExecutionCompilationCacheEntryForTests(query, provider, DefaultOptions),
-                caseId + "/cold did not publish an execution cache entry");
+                caseId + "/cold did not publish an execution cache entry"
+            );
 
             var warm = Compile(query, $"REC137_{caseId}_warm", provider);
             AssertSucceeded(warm, caseId + "/warm");
@@ -84,12 +80,11 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
         foreach (var index in Enumerable.Range(1, CasesPerFamily))
         {
             var caseId = CaseId("SEQUENCE", index);
-            var query =
-                $"select e.Extra from #rec137.items() e /* REC-137-{caseId}-candidate */";
+            var query = $"select e.Extra from #rec137.items() e /* REC-137-{caseId}-candidate */";
             var provider = new REC137VersionedSchemaProvider
             {
                 SchemaSignature = $"{caseId}-invalid-a",
-                IncludeExtra = false
+                IncludeExtra = false,
             };
 
             var invalidA = Compile(query, $"REC137_{caseId}_invalid_a", provider);
@@ -105,7 +100,10 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
             provider.IncludeExtra = false;
             var invalidB = Compile(query, $"REC137_{caseId}_invalid_b", provider);
             AssertUnknownColumn(invalidB, "Extra", caseId + "/invalid-b");
-            Assert.IsFalse(invalidB.BuildItems?.StopAfterPlanning == true, caseId + "/invalid-b reused a stale success");
+            Assert.IsFalse(
+                invalidB.BuildItems?.StopAfterPlanning == true,
+                caseId + "/invalid-b reused a stale success"
+            );
         }
     }
 
@@ -115,13 +113,12 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
         foreach (var index in Enumerable.Range(1, CasesPerFamily))
         {
             var caseId = CaseId("ENUM", index);
-            var query =
-                $"select e.Status from #rec137.items() e /* REC-137-{caseId}-candidate */";
+            var query = $"select e.Status from #rec137.items() e /* REC-137-{caseId}-candidate */";
             var provider = new REC137VersionedSchemaProvider
             {
                 SchemaSignature = $"{caseId}-enum",
                 EnumVersion = 1,
-                IncludeEnum = true
+                IncludeEnum = true,
             };
 
             var first = Compile(query, $"REC137_{caseId}_first", provider);
@@ -133,7 +130,11 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
                 Assert.HasCount(1, firstTable, caseId + "/first");
                 var firstDescriptor = firstTable.Columns.Single().EnumType;
                 Assert.IsNotNull(firstDescriptor, caseId + "/first has no enum descriptor");
-                Assert.AreEqual(1, Convert.ToInt32(firstTable[0].ReadValue(0)), caseId + "/first returned the wrong enum value");
+                Assert.AreEqual(
+                    1,
+                    Convert.ToInt32(firstTable[0].ReadValue(0)),
+                    caseId + "/first returned the wrong enum value"
+                );
                 firstFingerprint = firstDescriptor.Fingerprint;
             }
 
@@ -152,7 +153,10 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
             provider.DriftAtExecution = false;
             var rebuilt = Compile(query, $"REC137_{caseId}_rebuilt", provider);
             AssertSucceeded(rebuilt, caseId + "/rebuilt");
-            Assert.IsFalse(rebuilt.BuildItems!.StopAfterPlanning, caseId + "/rebuilt reused the old descriptor artifact");
+            Assert.IsFalse(
+                rebuilt.BuildItems!.StopAfterPlanning,
+                caseId + "/rebuilt reused the old descriptor artifact"
+            );
             var rebuiltFingerprint = RunSingleEnumFingerprint(rebuilt, caseId + "/rebuilt");
             Assert.AreNotEqual(firstFingerprint, rebuiltFingerprint, caseId + "/descriptor fingerprint did not change");
         }
@@ -164,12 +168,8 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
         foreach (var index in Enumerable.Range(1, CasesPerFamily))
         {
             var caseId = CaseId("SETTINGS", index);
-            var query =
-                $"select e.Token from #rec137settings.items() e /* REC-137-{caseId}-candidate */";
-            var provider = new REC137SettingsProvider
-            {
-                MetadataVersion = $"{caseId}-metadata-a"
-            };
+            var query = $"select e.Token from #rec137settings.items() e /* REC-137-{caseId}-candidate */";
+            var provider = new REC137SettingsProvider { MetadataVersion = $"{caseId}-metadata-a" };
             var resolver = new REC137SettingsResolver($"{caseId}-token-a");
             var options = new CompilationOptions(sourceRuntimeSettingsResolver: resolver);
 
@@ -184,8 +184,16 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
             AssertSucceeded(second, caseId + "/second");
             Assert.IsFalse(second.BuildItems!.StopAfterPlanning, caseId + "/second reused a settings compilation");
             Assert.AreEqual($"{caseId}-token-b", RunSingleValue(second, caseId + "/second"));
-            Assert.IsGreaterThanOrEqualTo(2, provider.Schema.DescribeRuntimeSettingsCount, caseId + "/settings were not re-described");
-            Assert.AreEqual($"{caseId}-metadata-b", provider.Schema.LastMetadataVersion, caseId + "/metadata identity was stale");
+            Assert.IsGreaterThanOrEqualTo(
+                2,
+                provider.Schema.DescribeRuntimeSettingsCount,
+                caseId + "/settings were not re-described"
+            );
+            Assert.AreEqual(
+                $"{caseId}-metadata-b",
+                provider.Schema.LastMetadataVersion,
+                caseId + "/metadata identity was stale"
+            );
         }
     }
 
@@ -193,14 +201,16 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
         string query,
         string assemblyName,
         ISchemaProvider provider,
-        CompilationOptions? options = null)
+        CompilationOptions? options = null
+    )
     {
         return InstanceCreator.CompileWithDiagnostics(
             query,
             assemblyName,
             provider,
             new TestsLoggerResolver(),
-            options ?? DefaultOptions);
+            options ?? DefaultOptions
+        );
     }
 
     private static object? RunSingleValue(BuildResult result, string caseId)
@@ -235,9 +245,7 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
         Assert.IsFalse(result.Succeeded, caseId + " unexpectedly succeeded");
         var diagnostic = result.Diagnostics.Single(item => item.Code == DiagnosticCode.MQ3001_UnknownColumn);
         Assert.Contains(column, diagnostic.Message, caseId);
-        Assert.IsTrue(
-            diagnostic.Span.Start >= 0 && diagnostic.Span.Length > 0,
-            caseId + " has no source span");
+        Assert.IsTrue(diagnostic.Span.Start >= 0 && diagnostic.Span.Length > 0, caseId + " has no source span");
     }
 
     private static string FormatDiagnostics(BuildResult result)
@@ -245,7 +253,9 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
         return string.Join(
             Environment.NewLine,
             result.Diagnostics.Select(static diagnostic =>
-                $"{diagnostic.Code}: {diagnostic.Message} ({diagnostic.Span.Start},{diagnostic.Span.Length})"));
+                $"{diagnostic.Code}: {diagnostic.Message} ({diagnostic.Span.Start},{diagnostic.Span.Length})"
+            )
+        );
     }
 
     private static string CaseId(string family, int index) => $"{family}-{index:00}";
@@ -282,12 +292,14 @@ public sealed class REC137VersionedSchemaProvider : ISchemaProvider
 }
 
 public sealed class REC137VersionedSchema(REC137VersionedSchemaProvider provider)
-    : SchemaBase("rec137", new MethodsAggregator(new MethodsManager())), IQueryScopedRowSourceSchema
+    : SchemaBase("rec137", new MethodsAggregator(new MethodsManager())),
+        IQueryScopedRowSourceSchema
 {
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         if (!string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
             throw new NotSupportedException(name);
@@ -296,13 +308,15 @@ public sealed class REC137VersionedSchema(REC137VersionedSchemaProvider provider
             provider.IncludeName,
             provider.IncludeExtra,
             provider.IncludeEnum,
-            provider.EnumVersion);
+            provider.EnumVersion
+        );
     }
 
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         var table = GetTableByName(name, context.MetadataContext, parameters);
         return new SourceDescriptor
@@ -311,16 +325,16 @@ public sealed class REC137VersionedSchema(REC137VersionedSchemaProvider provider
             RowType = table.Metadata?.TableEntityType,
             Columns = table.Columns,
             TransferCapabilities = provider.IncludeEnum
-                ? SourceTransferCapabilities.QueryScopedRows |
-                  SourceTransferCapabilities.LogicalScalarReads
-                : SourceTransferCapabilities.None
+                ? SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads
+                : SourceTransferCapabilities.None,
         };
     }
 
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         if (!string.Equals(name, "items", StringComparison.OrdinalIgnoreCase))
             throw new NotSupportedException(name);
@@ -328,24 +342,25 @@ public sealed class REC137VersionedSchema(REC137VersionedSchemaProvider provider
         if (provider.DriftAtExecution)
         {
             var requested = executionContext.AllColumns.SingleOrDefault(column =>
-                string.Equals(column.ColumnName, "Status", StringComparison.OrdinalIgnoreCase));
+                string.Equals(column.ColumnName, "Status", StringComparison.OrdinalIgnoreCase)
+            );
             var current = REC137VersionedTable.CreateEnumDescriptor(provider.EnumVersion);
             if (requested?.EnumType is { } requestedDescriptor && !requestedDescriptor.Equals(current))
             {
                 throw new InvalidOperationException(
-                    "The enum descriptor changed after compilation; recompile the query.");
+                    "The enum descriptor changed after compilation; recompile the query."
+                );
             }
         }
 
-        return EnsureSourceType<T, REC137Row>(
-            name,
-            new REC137RowSource(provider.SchemaSignature));
+        return EnsureSourceType<T, REC137Row>(name, new REC137RowSource(provider.SchemaSignature));
     }
 
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
@@ -355,12 +370,14 @@ public sealed class REC137VersionedSchema(REC137VersionedSchemaProvider provider
         if (provider.DriftAtExecution)
         {
             var requested = request.Shape.Fields.SingleOrDefault(field =>
-                string.Equals(field.Name, nameof(REC137Row.Status), StringComparison.OrdinalIgnoreCase));
+                string.Equals(field.Name, nameof(REC137Row.Status), StringComparison.OrdinalIgnoreCase)
+            );
             var current = REC137VersionedTable.CreateEnumDescriptor(provider.EnumVersion);
             if (requested?.EnumType is { } requestedDescriptor && !requestedDescriptor.Equals(current))
             {
                 throw new InvalidOperationException(
-                    "The enum descriptor changed after compilation; recompile the query.");
+                    "The enum descriptor changed after compilation; recompile the query."
+                );
             }
         }
 
@@ -378,14 +395,17 @@ public sealed class REC137VersionedTable : ISchemaTable
         if (includeExtra)
             columns.Add(new SchemaColumn(nameof(REC137Row.Extra), columns.Count, typeof(string)));
 
-        columns.Add(includeEnum
-            ? new SchemaColumn(
-                nameof(REC137Row.Status),
-                columns.Count,
-                typeof(int),
-                typeof(int),
-                CreateEnumDescriptor(enumVersion))
-            : new SchemaColumn(nameof(REC137Row.Status), columns.Count, typeof(int)));
+        columns.Add(
+            includeEnum
+                ? new SchemaColumn(
+                    nameof(REC137Row.Status),
+                    columns.Count,
+                    typeof(int),
+                    typeof(int),
+                    CreateEnumDescriptor(enumVersion)
+                )
+                : new SchemaColumn(nameof(REC137Row.Status), columns.Count, typeof(int))
+        );
         Columns = columns.ToArray();
     }
 
@@ -394,12 +414,10 @@ public sealed class REC137VersionedTable : ISchemaTable
     public SchemaTableMetadata Metadata { get; } = new(typeof(REC137Row));
 
     public ISchemaColumn? GetColumnByName(string name) =>
-        Columns.SingleOrDefault(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+        Columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
 
     public ISchemaColumn[] GetColumnsByName(string name) =>
-        Columns.Where(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+        Columns.Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
 
     public static EnumTypeDescriptor CreateEnumDescriptor(int version)
     {
@@ -409,7 +427,8 @@ public sealed class REC137VersionedTable : ISchemaTable
             EnumTypeOrigin.NativeClr,
             EnumUnderlyingKind.Int32,
             isFlags: false,
-            [new EnumMemberDescriptor(memberName, EnumScalarValue.FromInt32(1))]);
+            [new EnumMemberDescriptor(memberName, EnumScalarValue.FromInt32(1))]
+        );
     }
 }
 
@@ -418,11 +437,13 @@ public sealed record REC137Row(string Name, string Extra, int Status);
 public sealed class REC137RowSource(string signature) : RowSource<REC137Row>
 {
     public override IEnumerable<IReadOnlyList<REC137Row>> Chunks =>
-        [[new REC137Row($"{signature}-name", $"{signature}-extra", 1)]];
+        [
+            [new REC137Row($"{signature}-name", $"{signature}-extra", 1)],
+        ];
 }
 
-public sealed class REC137QueryScopedSource<TRow, TMaterializer>(
-    IReadOnlyList<QueryRowField> fields) : RowSourceBase<TRow>
+public sealed class REC137QueryScopedSource<TRow, TMaterializer>(IReadOnlyList<QueryRowField> fields)
+    : RowSourceBase<TRow>
     where TMaterializer : struct, IQueryRowMaterializer<TRow>
 {
     protected override void CollectChunks(IChunkWriter<TRow> writer)
@@ -469,9 +490,11 @@ public sealed class REC137SettingsSchema : SchemaBase
         AddSource<REC137SettingsSource>("items");
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name,
-        SourceExecutionContext context, TArguments arguments)
-        => EnsureSourceType<T, REC137SettingsRow>(name, new REC137SettingsSource(context));
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext context,
+        TArguments arguments
+    ) => EnsureSourceType<T, REC137SettingsRow>(name, new REC137SettingsSource(context));
 
     public string MetadataVersion { get; set; } = "default";
 
@@ -482,7 +505,8 @@ public sealed class REC137SettingsSchema : SchemaBase
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         LastMetadataVersion = MetadataVersion;
         return base.GetTableByName(name, metadataContext, parameters);
@@ -491,7 +515,8 @@ public sealed class REC137SettingsSchema : SchemaBase
     public override IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
         string name,
         SourceRuntimeSettingsDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         DescribeRuntimeSettingsCount++;
         return base.DescribeSourceRuntimeSettings(name, context, parameters);
@@ -500,20 +525,15 @@ public sealed class REC137SettingsSchema : SchemaBase
 
 public sealed class REC137SettingsTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns { get; } =
-    [
-        new SchemaColumn(nameof(REC137SettingsRow.Token), 0, typeof(string))
-    ];
+    public ISchemaColumn[] Columns { get; } = [new SchemaColumn(nameof(REC137SettingsRow.Token), 0, typeof(string))];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(REC137SettingsRow));
 
     public ISchemaColumn? GetColumnByName(string name) =>
-        Columns.SingleOrDefault(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+        Columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
 
     public ISchemaColumn[] GetColumnsByName(string name) =>
-        Columns.Where(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+        Columns.Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
 }
 
 public sealed record REC137SettingsRow(string Token);
@@ -525,13 +545,13 @@ public sealed class REC137SettingsSource : RowSource<REC137SettingsRow>
     [SourceRuntimeSetting("TOKEN", Required = true)]
     public REC137SettingsSource(SourceExecutionContext context)
     {
-        _token = context.SourceRuntimeSettings.TryGetValue("TOKEN", out var token)
-            ? token
-            : string.Empty;
+        _token = context.SourceRuntimeSettings.TryGetValue("TOKEN", out var token) ? token : string.Empty;
     }
 
     public override IEnumerable<IReadOnlyList<REC137SettingsRow>> Chunks =>
-        [[new REC137SettingsRow(_token)]];
+        [
+            [new REC137SettingsRow(_token)],
+        ];
 }
 
 public sealed class REC137SettingsResolver(string value) : ISourceRuntimeSettingsResolver
@@ -540,9 +560,6 @@ public sealed class REC137SettingsResolver(string value) : ISourceRuntimeSetting
 
     public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
     {
-        return new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["TOKEN"] = Value
-        };
+        return new Dictionary<string, string>(StringComparer.Ordinal) { ["TOKEN"] = Value };
     }
 }

@@ -192,21 +192,24 @@ public sealed class ProfiledEnumerator<T> : IEnumerator<T>
 
         var isTimingEstimated = _untimedMoveNextCalls > 0;
 
-        _recorder.RecordEnumeration(new SourceEnumerationProfileBatch(
-            _started,
-            _startedTimestamp,
-            _rowsRead,
-            _hasFirstRow,
-            _firstRowTimestamp,
-            _lastRowTimestamp,
-            EstimateMoveNextWait(isTimingEstimated),
-            EstimateConsumerGap(isTimingEstimated),
-            _exceptionCount,
-            _exceptionType,
-            _exceptionMessage,
-            isTimingEstimated,
-            _timedMoveNextCalls,
-            _untimedMoveNextCalls));
+        _recorder.RecordEnumeration(
+            new SourceEnumerationProfileBatch(
+                _started,
+                _startedTimestamp,
+                _rowsRead,
+                _hasFirstRow,
+                _firstRowTimestamp,
+                _lastRowTimestamp,
+                EstimateMoveNextWait(isTimingEstimated),
+                EstimateConsumerGap(isTimingEstimated),
+                _exceptionCount,
+                _exceptionType,
+                _exceptionMessage,
+                isTimingEstimated,
+                _timedMoveNextCalls,
+                _untimedMoveNextCalls
+            )
+        );
         _operatorExclusionTarget.ExcludeElapsedTicks(_moveNextWaitTicksToExclude);
     }
 

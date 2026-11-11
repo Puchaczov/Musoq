@@ -2,11 +2,11 @@ namespace Musoq.Plugins;
 
 internal static class WindowFrameValueOperations<T>
 {
-    public static T First(in WindowFrameContext<T> context)
-        => context.IsEmpty ? default! : context.Read(context.FrameStart);
+    public static T First(in WindowFrameContext<T> context) =>
+        context.IsEmpty ? default! : context.Read(context.FrameStart);
 
-    public static T Last(in WindowFrameContext<T> context)
-        => context.IsEmpty ? default! : context.Read(context.FrameEnd);
+    public static T Last(in WindowFrameContext<T> context) =>
+        context.IsEmpty ? default! : context.Read(context.FrameEnd);
 
     public static T Nth(in WindowFrameContext<T> context, int position)
     {

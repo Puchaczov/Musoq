@@ -26,27 +26,38 @@ public class BugProbeGenericSchemaTests
     [TestMethod]
     public void Binary_GenericSchema_ShouldInstantiateCorrectly()
     {
-        var query = @"
-            binary Item { Value: byte };
-            binary LengthPrefixed<T> {
-                Length: byte,
-                Data: T[Length]
-            };
-            binary Container {
-                Items: LengthPrefixed<Item>
-            };
-            select d.Value from #test.files() b
-            cross apply Interpret<Container>(b.Content) c
-            cross apply c.Items.Data d
-            order by d.Value asc";
+        var query = (
+            "\n"
+            + "            binary Item { Value: byte };\n"
+            + "            binary LengthPrefixed<T> {\n"
+            + "                Length: byte,\n"
+            + "                Data: T[Length]\n"
+            + "            };\n"
+            + "            binary Container {\n"
+            + "                Items: LengthPrefixed<Item>\n"
+            + "            };\n"
+            + "            select d.Value from #test.files() b\n"
+            + "            cross apply Interpret<Container>(b.Content) c\n"
+            + "            cross apply c.Items.Data d\n"
+            + "            order by d.Value asc"
+        );
 
         var testData = new byte[] { 0x02, 0x0A, 0x14 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);

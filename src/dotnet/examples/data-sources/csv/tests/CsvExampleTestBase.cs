@@ -14,7 +14,11 @@ namespace Musoq.Examples.DataSources.Csv.Tests;
 public abstract class CsvExampleTestBase
 {
     private readonly string _fixtureDirectory = Path.Combine(
-        RepositoryPaths.FindRoot(), ".artifacts", "csv-tests", Guid.NewGuid().ToString("N"));
+        RepositoryPaths.FindRoot(),
+        ".artifacts",
+        "csv-tests",
+        Guid.NewGuid().ToString("N")
+    );
 
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
     protected static readonly ILoggerResolver LoggerResolver = new NullLoggerResolver();
@@ -22,21 +26,24 @@ public abstract class CsvExampleTestBase
     protected static CompiledQuery Compile(
         string query,
         CsvSchemaProvider? provider = null,
-        CompilationOptions? options = null)
+        CompilationOptions? options = null
+    )
     {
         return InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             provider ?? new CsvSchemaProvider(),
             LoggerResolver,
-            options ?? TestCompilationOptions);
+            options ?? TestCompilationOptions
+        );
     }
 
     protected static Table Run(
         string query,
         CsvSchemaProvider? provider = null,
         CompilationOptions? options = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         return Compile(query, provider, options).Run(cancellationToken);
     }
@@ -44,36 +51,42 @@ public abstract class CsvExampleTestBase
     protected static BuildResult CompileWithDiagnostics(
         string query,
         CsvSchemaProvider? provider = null,
-        CompilationOptions? options = null)
+        CompilationOptions? options = null
+    )
     {
         return InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             provider ?? new CsvSchemaProvider(),
             LoggerResolver,
-            options ?? TestCompilationOptions);
+            options ?? TestCompilationOptions
+        );
     }
 
     protected static QueryInspectionResult Inspect(
         string query,
         CsvSchemaProvider? provider = null,
-        CompilationOptions? options = null)
+        CompilationOptions? options = null
+    )
     {
         return InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             provider ?? new CsvSchemaProvider(),
             LoggerResolver,
-            options ?? TestCompilationOptions);
+            options ?? TestCompilationOptions
+        );
     }
 
     protected static CompilationOptions CreateOptionsWithRuntimeSettings(
         IReadOnlyDictionary<string, string> settings,
-        ISourceRuntimeSettingsResolver? resolver = null)
+        ISourceRuntimeSettingsResolver? resolver = null
+    )
     {
         return new CompilationOptions(
             usePrimitiveTypeValidation: false,
-            sourceRuntimeSettingsResolver: resolver ?? new StaticSettingsResolver(settings));
+            sourceRuntimeSettingsResolver: resolver ?? new StaticSettingsResolver(settings)
+        );
     }
 
     [TestCleanup]
@@ -100,21 +113,24 @@ public abstract class CsvExampleTestBase
         IReadOnlyCollection<ISchemaColumn>? columns = null,
         string queryId = "query",
         IReadOnlyDictionary<string, string>? sourceRuntimeSettings = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         return new SourceMetadataContext(
             queryId,
             cancellationToken,
             columns ?? [],
             sourceRuntimeSettings ?? new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
     }
 
     protected static SourceExecutionContext CreateExecutionContext(
         SourceExecutionPlan? plan = null,
         IReadOnlyCollection<ISchemaColumn>? columns = null,
         IReadOnlyDictionary<string, string>? sourceRuntimeSettings = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         return new SourceExecutionContext(
             "execution-query",
@@ -122,14 +138,16 @@ public abstract class CsvExampleTestBase
             cancellationToken,
             columns ?? [],
             sourceRuntimeSettings ?? new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
     }
 
     protected static Musoq.Schema.DataSources.SchemaColumn Column(
         string name,
         int index,
         Type type,
-        IReadOnlyDictionary<string, string>? readModifiers = null)
+        IReadOnlyDictionary<string, string>? readModifiers = null
+    )
     {
         return new Musoq.Schema.DataSources.SchemaColumn(name, index, type, readModifiers);
     }

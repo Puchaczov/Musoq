@@ -17,17 +17,16 @@ public partial class SubqueryToCteRewriteVisitor
         WindowNode? window,
         QualifyNode? qualify,
         SubqueryCorrelationAnalysis analysis,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var rewriter = new PredicateSubqueryExpressionRewriter(this, analysis, cteInnerExpressions);
         var context = RewriteExpressionContext(
             new SubqueryRewriteContext(select, from, whereExpression, groupBy, orderBy, window, qualify),
             rewriter,
-            static (currentFrom, join) => new Parser.JoinFromNode(
-                currentFrom,
-                join.CteRef,
-                join.JoinExpression,
-                JoinType.LeftMark));
+            static (currentFrom, join) =>
+                new Parser.JoinFromNode(currentFrom, join.CteRef, join.JoinExpression, JoinType.LeftMark)
+        );
 
         return new PredicateRewriteResult(
             context.Select,
@@ -36,26 +35,30 @@ public partial class SubqueryToCteRewriteVisitor
             context.GroupBy,
             context.OrderBy,
             context.Window,
-            context.Qualify);
+            context.Qualify
+        );
     }
 
     private PredicateSubqueryJoin PreparePredicateApplySubquery(
         SubqueryInfo subqueryInfo,
         SubqueryCorrelationAnalysis analysis,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         return PreparePredicateSubqueryJoin(
             subqueryInfo with
             {
                 RequiresLeftJoin = true,
-                Correlation = FindCorrelation(subqueryInfo.PredicateNode, analysis)
+                Correlation = FindCorrelation(subqueryInfo.PredicateNode, analysis),
             },
-            cteInnerExpressions);
+            cteInnerExpressions
+        );
     }
 
     private static void ValidateHavingPredicateSubqueriesCanMoveBeforeGrouping(
         IReadOnlyList<SubqueryInfo> subqueries,
-        GroupByNode groupBy)
+        GroupByNode groupBy
+    )
     {
         var groupKeys = CollectGroupKeyColumns(groupBy);
 
@@ -67,16 +70,20 @@ public partial class SubqueryToCteRewriteVisitor
             throw SubqueryDiagnosticFactory.InvalidSubquery(
                 "HAVING predicate subquery rewrite",
                 "Predicate subqueries in HAVING can be decorrelated before grouping only when they reference grouping keys. Predicates that depend on non-grouped row values require aggregate-phase APPLY lowering.",
-                subquery.PredicateNode);
+                subquery.PredicateNode
+            );
         }
     }
 
     private static bool CanMoveHavingPredicateSubqueryBeforeGrouping(
         SubqueryInfo subquery,
-        IReadOnlySet<string> groupKeys)
+        IReadOnlySet<string> groupKeys
+    )
     {
-        if (subquery is { IsIn: true, InQueryNode: { } inQueryNode } &&
-            !ReferencesOnlyGroupKeys(inQueryNode.Left, groupKeys))
+        if (
+            subquery is { IsIn: true, InQueryNode: { } inQueryNode }
+            && !ReferencesOnlyGroupKeys(inQueryNode.Left, groupKeys)
+        )
             return false;
 
         if (subquery.Correlation is not { IsCorrelated: true })
@@ -114,8 +121,8 @@ public partial class SubqueryToCteRewriteVisitor
     }
 
     private static bool IsGroupKey(AccessColumnNode column, IReadOnlySet<string> groupKeys) =>
-        groupKeys.Contains(CreateGroupKey(column.Alias, column.Name)) ||
-        groupKeys.Contains(CreateGroupKey(string.Empty, column.Name));
+        groupKeys.Contains(CreateGroupKey(column.Alias, column.Name))
+        || groupKeys.Contains(CreateGroupKey(string.Empty, column.Name));
 
     private static string CreateGroupKey(string? alias, string name) => $"{alias ?? string.Empty}.{name}";
 
@@ -126,13 +133,14 @@ public partial class SubqueryToCteRewriteVisitor
         GroupByNode? GroupBy,
         OrderByNode? OrderBy,
         WindowNode? Window,
-        QualifyNode? Qualify);
+        QualifyNode? Qualify
+    );
 
     private sealed partial class PredicateSubqueryExpressionRewriter(
         SubqueryToCteRewriteVisitor owner,
         SubqueryCorrelationAnalysis analysis,
-        List<CteInnerExpressionNode> cteInnerExpressions)
-        : CloneQueryVisitor, ISubqueryExpressionContextRewriter<PredicateSubqueryJoin>
+        List<CteInnerExpressionNode> cteInnerExpressions
+    ) : CloneQueryVisitor, ISubqueryExpressionContextRewriter<PredicateSubqueryJoin>
     {
         private readonly List<PredicateSubqueryJoin> _joins = [];
         private readonly Dictionary<string, PredicateSubqueryJoin> _preparedSubqueries = new();
@@ -203,9 +211,11 @@ public partial class SubqueryToCteRewriteVisitor
             for (var i = node.PartitionFields.Length - 1; i >= 0; i--)
                 partitionFields[i] = (FieldNode)Nodes.Pop();
 
-            Nodes.Push(((WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, node.Frame))
-                .WithSpan(node.Span)
-                .WithFullSpan(node.FullSpan));
+            Nodes.Push(
+                ((WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, node.Frame))
+                    .WithSpan(node.Span)
+                    .WithFullSpan(node.FullSpan)
+            );
         }
 
         private PredicateSubqueryJoin PrepareSubquery(SubqueryInfo subqueryInfo)
@@ -214,16 +224,13 @@ public partial class SubqueryToCteRewriteVisitor
             if (_preparedSubqueries.TryGetValue(key, out var rewrite))
                 return rewrite;
 
-            rewrite = owner.PreparePredicateApplySubquery(
-                subqueryInfo,
-                analysis,
-                cteInnerExpressions);
+            rewrite = owner.PreparePredicateApplySubquery(subqueryInfo, analysis, cteInnerExpressions);
             _preparedSubqueries.Add(key, rewrite);
             _joins.Add(rewrite);
             return rewrite;
         }
 
-        private static string CreatePreparedKey(SubqueryInfo subqueryInfo)
-            => subqueryInfo.IsNegated ? $"not:{subqueryInfo.PredicateNode.Id}" : subqueryInfo.PredicateNode.Id;
+        private static string CreatePreparedKey(SubqueryInfo subqueryInfo) =>
+            subqueryInfo.IsNegated ? $"not:{subqueryInfo.PredicateNode.Id}" : subqueryInfo.PredicateNode.Id;
     }
 }

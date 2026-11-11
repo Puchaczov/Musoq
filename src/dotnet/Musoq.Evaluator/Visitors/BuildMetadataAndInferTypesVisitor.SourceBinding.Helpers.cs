@@ -43,19 +43,26 @@ public partial class BuildMetadataAndInferTypesVisitor
             : SchemaArgumentBinder.BindStaticArguments(schemaFrom.Parameters);
 
         var table = SchemaProviderBoundary.Invoke(() =>
-            schema.GetTableByName(schemaFrom.Method, metadataContext, parameters));
+            schema.GetTableByName(schemaFrom.Method, metadataContext, parameters)
+        );
         ThrowIfCancellationRequested();
         return table;
     }
 
     private void UpdateQueryAliasAndSymbolTable(PropertyFromNode node, ISchema schema, ISchemaTable table)
     {
-        _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _resultShape.GeneratedAliases, _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(
+            node.Alias,
+            _resultShape.GeneratedAliases,
+            _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        );
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
 
         var tableSymbol = new TableSymbol(_sourceBinding.QueryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(_sourceBinding.QueryAlias, tableSymbol);
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
+        _sourceBinding
+            .CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases)
+            .AddAlias(node.Alias);
         _sourceBinding.CurrentScope[node.Id] = _sourceBinding.QueryAlias;
 
         if (!string.IsNullOrEmpty(node.Alias) && table.Columns is { Length: > 0 })
@@ -110,8 +117,10 @@ public partial class BuildMetadataAndInferTypesVisitor
         var args = (ArgsListNode)PopSemanticNode();
         var argTypes = args.Args.Select(a => a.ReturnType ?? typeof(object)).ToArray();
 
-        if (!schema.TryResolveMethod(node.Identifier, argTypes, entityType, out var method) &&
-            !schema.TryResolveRawMethod(node.Identifier, argTypes, out method))
+        if (
+            !schema.TryResolveMethod(node.Identifier, argTypes, entityType, out var method)
+            && !schema.TryResolveRawMethod(node.Identifier, argTypes, out method)
+        )
         {
             throw CallableResolutionDiagnostics.CreateException(
                 schema,
@@ -119,14 +128,16 @@ public partial class BuildMetadataAndInferTypesVisitor
                 argTypes,
                 entityType,
                 node.SpanOrEmpty(),
-                args.Args);
+                args.Args
+            );
         }
 
         if (args.HasNamedArguments)
             throw new CannotResolveMethodException(
                 "Named arguments are supported only for explicitly coupled datasource calls.",
                 Musoq.Parser.Diagnostics.DiagnosticCode.MQ2034_InvalidNamedSourceArgument,
-                args.Span);
+                args.Span
+            );
 
         var returnType = method.ReturnType;
         var convertedTable = TurnTypeIntoTableWithDiagnostics(returnType, node);
@@ -134,19 +145,36 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (convertedTable == null)
             return false;
 
-        _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _resultShape.GeneratedAliases, _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(
+            node.Alias,
+            _resultShape.GeneratedAliases,
+            _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        );
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
 
         var functionToken = new FunctionToken(node.Identifier, TextSpan.Empty);
         var canSkipInjectSource = schema.TryResolveRawMethod(node.Identifier, argTypes, out _);
-        var accessMethodNode = new AccessMethodNode(functionToken, args, null, canSkipInjectSource, method,
-            sourceAlias);
+        var accessMethodNode = new AccessMethodNode(
+            functionToken,
+            args,
+            null,
+            canSkipInjectSource,
+            method,
+            sourceAlias
+        );
 
-        var tableSymbol = new TableSymbol(_sourceBinding.QueryAlias, schema, convertedTable, !string.IsNullOrEmpty(node.Alias));
+        var tableSymbol = new TableSymbol(
+            _sourceBinding.QueryAlias,
+            schema,
+            convertedTable,
+            !string.IsNullOrEmpty(node.Alias)
+        );
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(_sourceBinding.QueryAlias, tableSymbol);
         _sourceBinding.CurrentScope[node.Id] = _sourceBinding.QueryAlias;
         _sourceBinding.AliasMapToInMemoryTableMap.Add(_sourceBinding.QueryAlias, sourceAlias);
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
+        _sourceBinding
+            .CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases)
+            .AddAlias(node.Alias);
 
         if (method.DeclaringType != null)
             AddAssembly(method.DeclaringType.Assembly);
@@ -167,10 +195,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
         else if (!IsGenericEnumerable(type, out nestedType))
         {
-            return TryReportColumnMustBeArray(node) ? null : throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
+            return TryReportColumnMustBeArray(node)
+                ? null
+                : throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
         }
 
-        if (nestedType == null) throw new InvalidOperationException("Element type is null.");
+        if (nestedType == null)
+            throw new InvalidOperationException("Element type is null.");
 
         if (IsPrimitiveType(nestedType))
             return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<object>.Value), 0, nestedType)]);
@@ -184,17 +215,22 @@ public partial class BuildMetadataAndInferTypesVisitor
         return new DynamicTable(columns.ToArray(), nestedType);
     }
 
-    private bool ValidateBindablePropertyAsTableWithDiagnostics(ISchemaTable table, ISchemaColumn targetColumn,
-        Node? node)
+    private bool ValidateBindablePropertyAsTableWithDiagnostics(
+        ISchemaTable table,
+        ISchemaColumn targetColumn,
+        Node? node
+    )
     {
         var propertyInfo = table.Metadata.TableEntityType.GetProperty(targetColumn.ColumnName);
         var bindablePropertyAsTableAttribute = propertyInfo?.GetCustomAttribute<BindablePropertyAsTableAttribute>();
 
-        if (bindablePropertyAsTableAttribute == null) return false;
+        if (bindablePropertyAsTableAttribute == null)
+            return false;
 
-        var isValid = IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType) ||
-                      IsArray(propertyInfo.PropertyType, out elementType) ||
-                      (elementType != null && (elementType.IsPrimitive || elementType == typeof(string)));
+        var isValid =
+            IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType)
+            || IsArray(propertyInfo.PropertyType, out elementType)
+            || (elementType != null && (elementType.IsPrimitive || elementType == typeof(string)));
 
         if (!isValid)
         {
@@ -206,8 +242,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         return false;
     }
 
-    private Type? FollowPropertiesWithDiagnostics(Type type, PropertyFromNode.PropertyNameAndTypePair[] propertiesChain,
-        Node? node)
+    private Type? FollowPropertiesWithDiagnostics(
+        Type type,
+        PropertyFromNode.PropertyNameAndTypePair[] propertiesChain,
+        Node? node
+    )
     {
         var propertiesWithoutColumnType = propertiesChain.Skip(1);
 
@@ -232,12 +271,18 @@ public partial class BuildMetadataAndInferTypesVisitor
     }
 
     private PropertyFromNode.PropertyNameAndTypePair[]? RewritePropertiesChainWithTargetColumnWithDiagnostics(
-        ISchemaColumn targetColumn, PropertyFromNode.PropertyNameAndTypePair[] nodePropertiesChain, Node? node)
+        ISchemaColumn targetColumn,
+        PropertyFromNode.PropertyNameAndTypePair[] nodePropertiesChain,
+        Node? node
+    )
     {
         var propertiesChain = new PropertyFromNode.PropertyNameAndTypePair[nodePropertiesChain.Length];
         var rootType = targetColumn.ColumnType;
         propertiesChain[0] = new PropertyFromNode.PropertyNameAndTypePair(
-            targetColumn.ColumnName, rootType, targetColumn.IntendedTypeName);
+            targetColumn.ColumnName,
+            rootType,
+            targetColumn.IntendedTypeName
+        );
 
         for (var i = 1; i < nodePropertiesChain.Length; i++)
         {
@@ -254,8 +299,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                 return null;
             }
 
-            propertiesChain[i] =
-                new PropertyFromNode.PropertyNameAndTypePair(propertyInfo.Name, propertyInfo.PropertyType);
+            propertiesChain[i] = new PropertyFromNode.PropertyNameAndTypePair(
+                propertyInfo.Name,
+                propertyInfo.PropertyType
+            );
         }
 
         return propertiesChain;
@@ -266,7 +313,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         var scope = _sourceBinding.CurrentScope;
         while (scope != null)
         {
-            if (scope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(name, out var tableSymbol)) return tableSymbol;
+            if (scope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(name, out var tableSymbol))
+                return tableSymbol;
             scope = scope.Parent;
         }
 
@@ -287,7 +335,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private string GetSourceContextIdForAlias(string alias, string fallbackSourceContextId)
     {
-        if (_sourceBinding.SchemaFromInfo.TryGetValue(alias, out var info)) return info.SourceContextId;
+        if (_sourceBinding.SchemaFromInfo.TryGetValue(alias, out var info))
+            return info.SourceContextId;
 
         return fallbackSourceContextId;
     }

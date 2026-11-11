@@ -13,8 +13,8 @@ public class SourceExecutionContext(
     IReadOnlyDictionary<string, string> sourceRuntimeSettings,
     ILogger logger,
     DataSourceEventHandler? dataSourceProgressCallback = null,
-    SourceDiagnostics? sourceDiagnostics = null)
-    : SourceMetadataContext(queryId, endWorkToken, originallyInferredColumns, sourceRuntimeSettings, logger)
+    SourceDiagnostics? sourceDiagnostics = null
+) : SourceMetadataContext(queryId, endWorkToken, originallyInferredColumns, sourceRuntimeSettings, logger)
 {
     /// <summary>Optional warning channel, owned by the current compilation or execution.</summary>
     public Action<DataSourceDiagnostic>? WarningReporter { get; init; }
@@ -34,26 +34,39 @@ public class SourceExecutionContext(
 
     public void ReportDataSourceBegin(string dataSourceName)
     {
-        dataSourceProgressCallback?.Invoke(this,
-            new DataSourceEventArgs(QueryId, dataSourceName, DataSourcePhase.Begin));
+        dataSourceProgressCallback?.Invoke(
+            this,
+            new DataSourceEventArgs(QueryId, dataSourceName, DataSourcePhase.Begin)
+        );
     }
 
     public void ReportDataSourceRowsKnown(string dataSourceName, long totalRows)
     {
-        dataSourceProgressCallback?.Invoke(this,
-            new DataSourceEventArgs(QueryId, dataSourceName, DataSourcePhase.RowsKnown, totalRows));
+        dataSourceProgressCallback?.Invoke(
+            this,
+            new DataSourceEventArgs(QueryId, dataSourceName, DataSourcePhase.RowsKnown, totalRows)
+        );
     }
 
     public void ReportDataSourceRowsRead(string dataSourceName, long rowsProcessed, long? totalRows = null)
     {
-        dataSourceProgressCallback?.Invoke(this,
-            new DataSourceEventArgs(QueryId, dataSourceName, DataSourcePhase.RowsRead, totalRows, rowsProcessed));
+        dataSourceProgressCallback?.Invoke(
+            this,
+            new DataSourceEventArgs(QueryId, dataSourceName, DataSourcePhase.RowsRead, totalRows, rowsProcessed)
+        );
     }
 
     public void ReportDataSourceEnd(string dataSourceName, long? totalRowsProcessed = null)
     {
-        dataSourceProgressCallback?.Invoke(this,
-            new DataSourceEventArgs(QueryId, dataSourceName, DataSourcePhase.End, totalRowsProcessed,
-                totalRowsProcessed));
+        dataSourceProgressCallback?.Invoke(
+            this,
+            new DataSourceEventArgs(
+                QueryId,
+                dataSourceName,
+                DataSourcePhase.End,
+                totalRowsProcessed,
+                totalRowsProcessed
+            )
+        );
     }
 }

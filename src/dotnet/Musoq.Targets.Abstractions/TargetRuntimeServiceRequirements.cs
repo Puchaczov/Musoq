@@ -8,12 +8,14 @@ namespace Musoq.Targets.Abstractions;
 internal sealed record TargetRuntimeServiceRequirements
 {
     public TargetRuntimeServiceRequirements(IEnumerable<TargetRuntimeServiceRequirementKind> requiredServices)
-        : this((requiredServices ?? throw new ArgumentNullException(nameof(requiredServices)))
-            .Select(static service => new TargetRuntimeServiceFulfillment(
-                service,
-                TargetRuntimeServiceFulfillmentKind.HostImport)))
-    {
-    }
+        : this(
+            (requiredServices ?? throw new ArgumentNullException(nameof(requiredServices))).Select(
+                static service => new TargetRuntimeServiceFulfillment(
+                    service,
+                    TargetRuntimeServiceFulfillmentKind.HostImport
+                )
+            )
+        ) { }
 
     public TargetRuntimeServiceRequirements(IEnumerable<TargetRuntimeServiceFulfillment> fulfillments)
     {
@@ -27,37 +29,45 @@ internal sealed record TargetRuntimeServiceRequirements
         {
             throw new ArgumentException(
                 $"Runtime service '{duplicate.Key}' has more than one fulfillment.",
-                nameof(fulfillments));
+                nameof(fulfillments)
+            );
         }
 
         Fulfillments = new ReadOnlyDictionary<TargetRuntimeServiceRequirementKind, TargetRuntimeServiceFulfillmentKind>(
-            values.ToDictionary(static value => value.Service, static value => value.Fulfillment));
+            values.ToDictionary(static value => value.Service, static value => value.Fulfillment)
+        );
         RequiredServices = new ReadOnlySet<TargetRuntimeServiceRequirementKind>(
-            new HashSet<TargetRuntimeServiceRequirementKind>(Fulfillments.Keys));
+            new HashSet<TargetRuntimeServiceRequirementKind>(Fulfillments.Keys)
+        );
     }
 
     public IReadOnlySet<TargetRuntimeServiceRequirementKind> RequiredServices { get; }
 
-    public IReadOnlyDictionary<TargetRuntimeServiceRequirementKind, TargetRuntimeServiceFulfillmentKind> Fulfillments { get; }
+    public IReadOnlyDictionary<
+        TargetRuntimeServiceRequirementKind,
+        TargetRuntimeServiceFulfillmentKind
+    > Fulfillments { get; }
 
-    public static TargetRuntimeServiceRequirements Empty { get; } =
-        new(Array.Empty<TargetRuntimeServiceFulfillment>());
+    public static TargetRuntimeServiceRequirements Empty { get; } = new(Array.Empty<TargetRuntimeServiceFulfillment>());
 
-    public static TargetRuntimeServiceRequirements Create(
-        params TargetRuntimeServiceRequirementKind[] requiredServices)
+    public static TargetRuntimeServiceRequirements Create(params TargetRuntimeServiceRequirementKind[] requiredServices)
     {
         return new TargetRuntimeServiceRequirements(requiredServices);
     }
 
     public static TargetRuntimeServiceRequirements CreateTargetProvided(
-        params TargetRuntimeServiceRequirementKind[] requiredServices)
+        params TargetRuntimeServiceRequirementKind[] requiredServices
+    )
     {
-        return new TargetRuntimeServiceRequirements(requiredServices.Select(static service =>
-            new TargetRuntimeServiceFulfillment(service, TargetRuntimeServiceFulfillmentKind.TargetProvided)));
+        return new TargetRuntimeServiceRequirements(
+            requiredServices.Select(static service => new TargetRuntimeServiceFulfillment(
+                service,
+                TargetRuntimeServiceFulfillmentKind.TargetProvided
+            ))
+        );
     }
 
-    public static TargetRuntimeServiceRequirements Create(
-        params TargetRuntimeServiceFulfillment[] fulfillments)
+    public static TargetRuntimeServiceRequirements Create(params TargetRuntimeServiceFulfillment[] fulfillments)
     {
         return new TargetRuntimeServiceRequirements(fulfillments);
     }

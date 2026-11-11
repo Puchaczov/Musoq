@@ -50,9 +50,7 @@ public class WindowFunctionNode : Node
     {
         // Node hides object.ToString(), so interpolation of child nodes would
         // emit CLR type names instead of SQL without these explicit calls.
-        var overPart = IsNamedWindowReference
-            ? $"over {WindowName}"
-            : $"over {WindowSpecification!.ToString()}";
+        var overPart = IsNamedWindowReference ? $"over {WindowName}" : $"over {WindowSpecification!.ToString()}";
         return $"{FunctionCall.ToString()} {overPart}";
     }
 }

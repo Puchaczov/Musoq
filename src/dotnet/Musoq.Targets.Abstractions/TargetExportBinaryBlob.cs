@@ -12,9 +12,10 @@ internal sealed record TargetExportBinaryBlob
 
         Name = TargetArtifactPath.Normalize(name, nameof(name));
         _content = (byte[])content.Clone();
-        ContentType = string.IsNullOrWhiteSpace(contentType) || !contentType.Contains('/', StringComparison.Ordinal)
-            ? throw new ArgumentException("Binary content type must be a MIME type.", nameof(contentType))
-            : contentType;
+        ContentType =
+            string.IsNullOrWhiteSpace(contentType) || !contentType.Contains('/', StringComparison.Ordinal)
+                ? throw new ArgumentException("Binary content type must be a MIME type.", nameof(contentType))
+                : contentType;
     }
 
     public string Name { get; }

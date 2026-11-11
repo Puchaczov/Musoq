@@ -56,15 +56,27 @@ public sealed class DiagnosticREC095MultipleActionsTests
     public void CaseMatrix_ShouldCoverAllCompositionBoundaries()
     {
         Assert.HasCount(24, CandidateCases);
-        Assert.HasCount(24, CandidateCases.Select(static candidate => candidate.CaseId).Distinct(StringComparer.Ordinal));
+        Assert.HasCount(
+            24,
+            CandidateCases.Select(static candidate => candidate.CaseId).Distinct(StringComparer.Ordinal)
+        );
 
         var familyCounts = CandidateCases
             .GroupBy(static candidate => candidate.Family)
             .ToDictionary(static group => group.Key, static group => group.Count(), StringComparer.Ordinal);
 
         CollectionAssert.AreEquivalent(
-            new[] { "non-overlapping", "original-coordinate", "overlapping", "alternative", "repeated", "reanalyze-each" },
-            familyCounts.Keys.ToArray());
+            new[]
+            {
+                "non-overlapping",
+                "original-coordinate",
+                "overlapping",
+                "alternative",
+                "repeated",
+                "reanalyze-each",
+            },
+            familyCounts.Keys.ToArray()
+        );
         Assert.IsTrue(familyCounts.Values.All(static count => count == 4));
     }
 
@@ -84,7 +96,7 @@ public sealed class DiagnosticREC095MultipleActionsTests
         var actions = new[]
         {
             new CapturedAction(document, nativeEdit),
-            new CapturedAction(document, TextEdit.Replace(nativeEdit.Span, "City"))
+            new CapturedAction(document, TextEdit.Replace(nativeEdit.Span, "City")),
         };
 
         var result = CompositionHarness.ApplyBatch(actions, document);
@@ -110,17 +122,13 @@ public sealed class DiagnosticREC095MultipleActionsTests
         Assert.IsNotNull(first.AppliedText);
 
         var afterFirst = DocumentSnapshot.Create("query-1", 2, first.AppliedText!, Utf16CoordinateUnit);
-        var staleSecond = CompositionHarness.ApplyBatch(
-            [new CapturedAction(original, originalEdits[1])],
-            afterFirst);
+        var staleSecond = CompositionHarness.ApplyBatch([new CapturedAction(original, originalEdits[1])], afterFirst);
         Assert.IsFalse(staleSecond.Applied);
         Assert.AreEqual(CompositionRejection.StaleIdentity, staleSecond.Rejection);
 
         var refreshed = Analyze(afterFirst.Text);
         var refreshedEdit = GetSingleNativeEdit(refreshed, afterFirst.Text, candidate.CaseId);
-        var final = CompositionHarness.ApplyBatch(
-            [new CapturedAction(afterFirst, refreshedEdit)],
-            afterFirst);
+        var final = CompositionHarness.ApplyBatch([new CapturedAction(afterFirst, refreshedEdit)], afterFirst);
 
         Assert.IsTrue(final.Applied);
         Assert.IsTrue(Analyze(final.AppliedText!).IsSuccess, FormatDiagnostics(Analyze(final.AppliedText!)));
@@ -153,34 +161,49 @@ public sealed class DiagnosticREC095MultipleActionsTests
     private static readonly IReadOnlyList<RecoveryCase> CandidateCases =
     [
         new("REC-095-N01", "non-overlapping", "select Naem, Ctiy from #A.Entities()", null),
-        new("REC-095-N02", "non-overlapping", "select Name from #A.Entities() where Naem = 'Warsaw' and Ctiy = 'Warsaw'", null),
+        new(
+            "REC-095-N02",
+            "non-overlapping",
+            "select Name from #A.Entities() where Naem = 'Warsaw' and Ctiy = 'Warsaw'",
+            null
+        ),
         new("REC-095-N03", "non-overlapping", "select Naem from #A.Entities() order by Ctiy", null),
         new("REC-095-N04", "non-overlapping", "select Naem, Name from #A.Entities()\r\nwhere Ctiy = 'Warsaw'", null),
-
         new("REC-095-D01", "original-coordinate", "select Naem, Ctiy from #A.Entities()", "Country"),
-        new("REC-095-D02", "original-coordinate", "select Name from #A.Entities() where Naem = 'Warsaw' and Ctiy = 'Warsaw'", "Country"),
+        new(
+            "REC-095-D02",
+            "original-coordinate",
+            "select Name from #A.Entities() where Naem = 'Warsaw' and Ctiy = 'Warsaw'",
+            "Country"
+        ),
         new("REC-095-D03", "original-coordinate", "select Naem from #A.Entities() order by Ctiy", "Country"),
-        new("REC-095-D04", "original-coordinate", "select Naem, Name from #A.Entities()\r\nwhere Ctiy = 'Warsaw'", "Country"),
-
+        new(
+            "REC-095-D04",
+            "original-coordinate",
+            "select Naem, Name from #A.Entities()\r\nwhere Ctiy = 'Warsaw'",
+            "Country"
+        ),
         new("REC-095-O01", "overlapping", "select Naem from #A.Entities()", null),
         new("REC-095-O02", "overlapping", "select Name from #A.Entities() where Naem = 'Warsaw'", null),
         new("REC-095-O03", "overlapping", "select Naem from #A.Entities() order by Name", null),
         new("REC-095-O04", "overlapping", "select '😀' as Marker from #A.Entities() where Naem = 'Warsaw'", null),
-
         new("REC-095-X01", "alternative", "select Naem from #A.Entities()", "City"),
         new("REC-095-X02", "alternative", "select Name from #A.Entities() where Naem = 'Warsaw'", "Country"),
         new("REC-095-X03", "alternative", "select Naem from #A.Entities() order by Name", ""),
         new("REC-095-X04", "alternative", "select '😀' as Marker from #A.Entities() where Naem = 'Warsaw'", "City"),
-
         new("REC-095-P01", "repeated", "select Naem from #A.Entities()", null),
         new("REC-095-P02", "repeated", "select Name from #A.Entities() where Naem = 'Warsaw'", null),
         new("REC-095-P03", "repeated", "select Naem from #A.Entities() order by Name", null),
         new("REC-095-P04", "repeated", "select '😀' as Marker from #A.Entities() where Naem = 'Warsaw'", null),
-
         new("REC-095-R01", "reanalyze-each", "select Naem, Ctiy from #A.Entities()", null),
-        new("REC-095-R02", "reanalyze-each", "select Name from #A.Entities() where Naem = 'Warsaw' and Ctiy = 'Warsaw'", null),
+        new(
+            "REC-095-R02",
+            "reanalyze-each",
+            "select Name from #A.Entities() where Naem = 'Warsaw' and Ctiy = 'Warsaw'",
+            null
+        ),
         new("REC-095-R03", "reanalyze-each", "select Naem from #A.Entities() order by Ctiy", null),
-        new("REC-095-R04", "reanalyze-each", "select Naem, Name from #A.Entities()\r\nwhere Ctiy = 'Warsaw'", null)
+        new("REC-095-R04", "reanalyze-each", "select Naem, Name from #A.Entities()\r\nwhere Ctiy = 'Warsaw'", null),
     ];
 
     private static void AssertIndependentBatch(RecoveryCase candidate, string? replaceFirstWith)
@@ -191,14 +214,8 @@ public sealed class DiagnosticREC095MultipleActionsTests
         Assert.IsFalse(edits[0].Span.Overlaps(edits[1].Span), candidate.CaseId);
 
         var document = DocumentSnapshot.Create("query-1", 1, candidate.Query, Utf16CoordinateUnit);
-        var firstEdit = replaceFirstWith is null
-            ? edits[0]
-            : TextEdit.Replace(edits[0].Span, replaceFirstWith);
-        var actions = new CapturedAction[]
-        {
-            new(document, firstEdit),
-            new(document, edits[1])
-        };
+        var firstEdit = replaceFirstWith is null ? edits[0] : TextEdit.Replace(edits[0].Span, replaceFirstWith);
+        var actions = new CapturedAction[] { new(document, firstEdit), new(document, edits[1]) };
 
         var result = CompositionHarness.ApplyBatch(actions, document);
 
@@ -206,8 +223,10 @@ public sealed class DiagnosticREC095MultipleActionsTests
         Assert.IsNull(result.Rejection, candidate.CaseId);
         Assert.IsNotNull(result.AppliedText, candidate.CaseId);
         var repaired = Analyze(result.AppliedText!);
-        Assert.IsTrue(repaired.IsSuccess,
-            $"{candidate.CaseId}: independent original-coordinate edits did not repair the query. {FormatDiagnostics(repaired)}");
+        Assert.IsTrue(
+            repaired.IsSuccess,
+            $"{candidate.CaseId}: independent original-coordinate edits did not repair the query. {FormatDiagnostics(repaired)}"
+        );
     }
 
     private static void AssertOverlappingBatchRejected(RecoveryCase candidate)
@@ -218,18 +237,21 @@ public sealed class DiagnosticREC095MultipleActionsTests
         var overlappingEdit = candidate.CaseId switch
         {
             "REC-095-O01" => TextEdit.Replace(
-                new TextSpan(nativeEdit.Span.Start - 1, nativeEdit.Span.Length + 1), "Name"),
-            "REC-095-O02" => TextEdit.Replace(
-                new TextSpan(nativeEdit.Span.Start, nativeEdit.Span.Length - 1), "Name"),
+                new TextSpan(nativeEdit.Span.Start - 1, nativeEdit.Span.Length + 1),
+                "Name"
+            ),
+            "REC-095-O02" => TextEdit.Replace(new TextSpan(nativeEdit.Span.Start, nativeEdit.Span.Length - 1), "Name"),
             "REC-095-O03" => TextEdit.Replace(
-                new TextSpan(nativeEdit.Span.Start + 1, nativeEdit.Span.Length - 1), "Name"),
-            _ => TextEdit.Replace(
-                new TextSpan(nativeEdit.Span.Start - 1, nativeEdit.Span.Length + 2), "Name")
+                new TextSpan(nativeEdit.Span.Start + 1, nativeEdit.Span.Length - 1),
+                "Name"
+            ),
+            _ => TextEdit.Replace(new TextSpan(nativeEdit.Span.Start - 1, nativeEdit.Span.Length + 2), "Name"),
         };
 
         var result = CompositionHarness.ApplyBatch(
             [new CapturedAction(document, nativeEdit), new CapturedAction(document, overlappingEdit)],
-            document);
+            document
+        );
 
         Assert.IsFalse(result.Applied, candidate.CaseId);
         Assert.AreEqual(CompositionRejection.Conflict, result.Rejection, candidate.CaseId);
@@ -246,7 +268,8 @@ public sealed class DiagnosticREC095MultipleActionsTests
 
         var result = CompositionHarness.ApplyBatch(
             [new CapturedAction(document, nativeEdit), new CapturedAction(document, alternative)],
-            document);
+            document
+        );
 
         Assert.IsFalse(result.Applied, candidate.CaseId);
         Assert.AreEqual(CompositionRejection.Conflict, result.Rejection, candidate.CaseId);
@@ -270,7 +293,7 @@ public sealed class DiagnosticREC095MultipleActionsTests
             "REC-095-P02" => first.AppliedText! + "  ",
             "REC-095-P03" => ReplaceOnce(first.AppliedText!, "Name", "City"),
             "REC-095-P04" => first.AppliedText!.Replace("Marker", "Marker2", StringComparison.Ordinal),
-            _ => first.AppliedText!
+            _ => first.AppliedText!,
         };
         var current = DocumentSnapshot.Create("query-1", 2, currentText, Utf16CoordinateUnit);
         var repeated = CompositionHarness.ApplyBatch([captured], current);
@@ -287,15 +310,11 @@ public sealed class DiagnosticREC095MultipleActionsTests
         var originalEdits = GetNativeEdits(Analyze(candidate.Query), candidate.Query, candidate.CaseId);
         Assert.HasCount(2, originalEdits, candidate.CaseId);
 
-        var first = CompositionHarness.ApplyBatch(
-            [new CapturedAction(original, originalEdits[0])],
-            original);
+        var first = CompositionHarness.ApplyBatch([new CapturedAction(original, originalEdits[0])], original);
         Assert.IsTrue(first.Applied, candidate.CaseId);
 
         var afterFirst = DocumentSnapshot.Create("query-1", 2, first.AppliedText!, Utf16CoordinateUnit);
-        var staleSecond = CompositionHarness.ApplyBatch(
-            [new CapturedAction(original, originalEdits[1])],
-            afterFirst);
+        var staleSecond = CompositionHarness.ApplyBatch([new CapturedAction(original, originalEdits[1])], afterFirst);
         Assert.IsFalse(staleSecond.Applied, candidate.CaseId);
         Assert.AreEqual(CompositionRejection.StaleIdentity, staleSecond.Rejection, candidate.CaseId);
         Assert.IsNull(staleSecond.AppliedText, candidate.CaseId);
@@ -303,13 +322,13 @@ public sealed class DiagnosticREC095MultipleActionsTests
         var refreshed = Analyze(afterFirst.Text);
         var refreshedEdits = GetNativeEdits(refreshed, afterFirst.Text, candidate.CaseId);
         Assert.HasCount(1, refreshedEdits, candidate.CaseId);
-        var final = CompositionHarness.ApplyBatch(
-            [new CapturedAction(afterFirst, refreshedEdits[0])],
-            afterFirst);
+        var final = CompositionHarness.ApplyBatch([new CapturedAction(afterFirst, refreshedEdits[0])], afterFirst);
 
         Assert.IsTrue(final.Applied, candidate.CaseId);
-        Assert.IsTrue(Analyze(final.AppliedText!).IsSuccess,
-            $"{candidate.CaseId}: fresh action did not repair current text. {FormatDiagnostics(Analyze(final.AppliedText!))}");
+        Assert.IsTrue(
+            Analyze(final.AppliedText!).IsSuccess,
+            $"{candidate.CaseId}: fresh action did not repair current text. {FormatDiagnostics(Analyze(final.AppliedText!))}"
+        );
     }
 
     private static TextEdit GetSingleNativeEdit(QueryAnalysisResult result, string sourceText, string caseId)
@@ -319,20 +338,19 @@ public sealed class DiagnosticREC095MultipleActionsTests
         return edits[0];
     }
 
-    private static IReadOnlyList<TextEdit> GetNativeEdits(
-        QueryAnalysisResult result,
-        string sourceText,
-        string caseId)
+    private static IReadOnlyList<TextEdit> GetNativeEdits(QueryAnalysisResult result, string sourceText, string caseId)
     {
         Assert.IsFalse(result.IsSuccess, caseId);
-        var edits = result.Errors
-            .SelectMany(static diagnostic => diagnostic.SuggestedFixes)
+        var edits = result
+            .Errors.SelectMany(static diagnostic => diagnostic.SuggestedFixes)
             .Where(static action => action.TextEdit != null)
             .Select(static action => action.TextEdit!)
             .OrderBy(static edit => edit.Span.Start)
             .ToArray();
-        Assert.IsTrue(edits.All(edit => edit.Span.Start >= 0 && edit.Span.End <= sourceText.Length),
-            $"{caseId}: native edit span was not bounded.");
+        Assert.IsTrue(
+            edits.All(edit => edit.Span.Start >= 0 && edit.Span.End <= sourceText.Length),
+            $"{caseId}: native edit span was not bounded."
+        );
         return edits;
     }
 
@@ -346,7 +364,7 @@ public sealed class DiagnosticREC095MultipleActionsTests
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity("Warsaw", "PL", 100)],
-            ["#B"] = [new BasicEntity("Berlin", "DE", 200)]
+            ["#B"] = [new BasicEntity("Berlin", "DE", 200)],
         };
     }
 
@@ -371,14 +389,16 @@ public sealed class DiagnosticREC095MultipleActionsTests
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"[{diagnostic.Code}] {diagnostic.Message}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic => $"[{diagnostic.Code}] {diagnostic.Message}")
+        );
     }
 
     private enum CompositionRejection
     {
         Conflict,
-        StaleIdentity
+        StaleIdentity,
     }
 
     private sealed record RecoveryCase(string CaseId, string Family, string Query, string? FirstReplacement);
@@ -388,7 +408,8 @@ public sealed class DiagnosticREC095MultipleActionsTests
         int Version,
         string Text,
         string CoordinateUnit,
-        string TextDigest)
+        string TextDigest
+    )
     {
         public static DocumentSnapshot Create(string documentId, int version, string text, string coordinateUnit)
         {
@@ -398,23 +419,20 @@ public sealed class DiagnosticREC095MultipleActionsTests
 
     private sealed record CapturedAction(DocumentSnapshot OriginalDocument, TextEdit Edit);
 
-    private sealed record BatchOutcome(
-        bool Applied,
-        string? AppliedText,
-        CompositionRejection? Rejection);
+    private sealed record BatchOutcome(bool Applied, string? AppliedText, CompositionRejection? Rejection);
 
     private static class CompositionHarness
     {
-        public static BatchOutcome ApplyBatch(
-            IReadOnlyList<CapturedAction> actions,
-            DocumentSnapshot current)
+        public static BatchOutcome ApplyBatch(IReadOnlyList<CapturedAction> actions, DocumentSnapshot current)
         {
             if (actions.Count == 0)
                 throw new ArgumentException("At least one action is required.", nameof(actions));
 
             var original = actions[0].OriginalDocument;
-            if (actions.Any(action => !SameIdentity(original, action.OriginalDocument)) ||
-                !SameIdentity(original, current))
+            if (
+                actions.Any(action => !SameIdentity(original, action.OriginalDocument))
+                || !SameIdentity(original, current)
+            )
             {
                 return new BatchOutcome(false, null, CompositionRejection.StaleIdentity);
             }
@@ -441,10 +459,10 @@ public sealed class DiagnosticREC095MultipleActionsTests
 
         private static bool SameIdentity(DocumentSnapshot left, DocumentSnapshot right)
         {
-            return string.Equals(left.DocumentId, right.DocumentId, StringComparison.Ordinal) &&
-                   left.Version == right.Version &&
-                   string.Equals(left.CoordinateUnit, right.CoordinateUnit, StringComparison.Ordinal) &&
-                   string.Equals(left.TextDigest, right.TextDigest, StringComparison.Ordinal);
+            return string.Equals(left.DocumentId, right.DocumentId, StringComparison.Ordinal)
+                && left.Version == right.Version
+                && string.Equals(left.CoordinateUnit, right.CoordinateUnit, StringComparison.Ordinal)
+                && string.Equals(left.TextDigest, right.TextDigest, StringComparison.Ordinal);
         }
     }
 }

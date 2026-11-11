@@ -1,5 +1,5 @@
-using Musoq.Parser.Exceptions;
 using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 
@@ -35,7 +35,7 @@ public partial class Parser
             long l => l < 0,
             short s => s < 0,
             sbyte sb => sb < 0,
-            _ => false
+            _ => false,
         };
     }
 
@@ -45,6 +45,7 @@ public partial class Parser
             $"{clause} count must be a non-negative integer.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2038_InvalidSliceCount,
-            span);
+            span
+        );
     }
 }

@@ -62,7 +62,12 @@ public partial class LibraryBase
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public ulong? ToUInt64(bool? value) => value.HasValue ? value.Value ? 1ul : 0ul : null;
+    public ulong? ToUInt64(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? 1ul
+                : 0ul
+            : null;
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]

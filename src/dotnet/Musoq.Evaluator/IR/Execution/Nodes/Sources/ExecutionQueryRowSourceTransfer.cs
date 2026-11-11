@@ -15,22 +15,23 @@ public sealed record ExecutionQueryRowSourceTransfer
     public ExecutionQueryRowSourceTransfer(
         ExecutionQueryRowCarrier carrier,
         string shapeFingerprint,
-        IReadOnlyList<ExecutionQueryRowField> fields)
+        IReadOnlyList<ExecutionQueryRowField> fields
+    )
         : this(
             carrier,
             carrier == ExecutionQueryRowCarrier.ReadonlyStruct
                 ? ExecutionQueryRowLifetime.ScanLocal
                 : ExecutionQueryRowLifetime.EscapesScan,
             shapeFingerprint,
-            fields)
-    {
-    }
+            fields
+        ) { }
 
     public ExecutionQueryRowSourceTransfer(
         ExecutionQueryRowCarrier carrier,
         ExecutionQueryRowLifetime lifetime,
         string shapeFingerprint,
-        IReadOnlyList<ExecutionQueryRowField> fields)
+        IReadOnlyList<ExecutionQueryRowField> fields
+    )
     {
         if (carrier is not (ExecutionQueryRowCarrier.ReadonlyStruct or ExecutionQueryRowCarrier.SealedClass))
             throw new ArgumentOutOfRangeException(nameof(carrier), carrier, "Unknown query-row carrier.");
@@ -40,15 +41,20 @@ public sealed record ExecutionQueryRowSourceTransfer
         {
             throw new ArgumentException(
                 "A readonly-struct query-row carrier must remain scan-local.",
-                nameof(lifetime));
+                nameof(lifetime)
+            );
         }
 
-        if (string.IsNullOrWhiteSpace(shapeFingerprint) || shapeFingerprint.Length != 64 ||
-            shapeFingerprint.Any(static character => !Uri.IsHexDigit(character)))
+        if (
+            string.IsNullOrWhiteSpace(shapeFingerprint)
+            || shapeFingerprint.Length != 64
+            || shapeFingerprint.Any(static character => !Uri.IsHexDigit(character))
+        )
         {
             throw new ArgumentException(
                 "A query-row shape fingerprint must be a 64-character hexadecimal digest.",
-                nameof(shapeFingerprint));
+                nameof(shapeFingerprint)
+            );
         }
 
         ArgumentNullException.ThrowIfNull(fields);
@@ -59,7 +65,13 @@ public sealed record ExecutionQueryRowSourceTransfer
                 throw new ArgumentException("Query-row field slots must be dense and zero-based.", nameof(fields));
         }
 
-        if (values.Where(static field => field.ComputedProjection is null).Select(static field => field.SourceColumnIndex).Distinct().Count() != values.Count(static field => field.ComputedProjection is null))
+        if (
+            values
+                .Where(static field => field.ComputedProjection is null)
+                .Select(static field => field.SourceColumnIndex)
+                .Distinct()
+                .Count() != values.Count(static field => field.ComputedProjection is null)
+        )
             throw new ArgumentException("Query-row source ordinals must be unique.", nameof(fields));
 
         Carrier = carrier;
@@ -79,13 +91,16 @@ public sealed record ExecutionQueryRowSourceTransfer
     internal static ExecutionQueryRowSourceTransfer FromPlanner(SourceTransferStrategyPlan plan)
     {
         ArgumentNullException.ThrowIfNull(plan);
-        if (plan.Mode != SourceTransferMode.QueryScopedRows ||
-            plan.Shape == null ||
-            plan.Carrier == null ||
-            plan.Lifetime == null)
+        if (
+            plan.Mode != SourceTransferMode.QueryScopedRows
+            || plan.Shape == null
+            || plan.Carrier == null
+            || plan.Lifetime == null
+        )
         {
             throw new InvalidOperationException(
-                $"Source transfer plan '{plan.SourceContextId}' is not a complete query-scoped row selection.");
+                $"Source transfer plan '{plan.SourceContextId}' is not a complete query-scoped row selection."
+            );
         }
 
         return new ExecutionQueryRowSourceTransfer(
@@ -93,38 +108,43 @@ public sealed record ExecutionQueryRowSourceTransfer
             {
                 SourceQueryRowCarrier.ReadonlyStruct => ExecutionQueryRowCarrier.ReadonlyStruct,
                 SourceQueryRowCarrier.SealedClass => ExecutionQueryRowCarrier.SealedClass,
-                _ => throw new InvalidOperationException($"Unknown source query-row carrier '{plan.Carrier}'.")
+                _ => throw new InvalidOperationException($"Unknown source query-row carrier '{plan.Carrier}'."),
             },
             plan.Lifetime.Value switch
             {
                 SourceQueryRowLifetime.ScanLocal => ExecutionQueryRowLifetime.ScanLocal,
                 SourceQueryRowLifetime.EscapesScan => ExecutionQueryRowLifetime.EscapesScan,
-                _ => throw new InvalidOperationException($"Unknown source query-row lifetime '{plan.Lifetime}'.")
+                _ => throw new InvalidOperationException($"Unknown source query-row lifetime '{plan.Lifetime}'."),
             },
             plan.Shape.Fingerprint,
             plan.Shape.Fields.Select(static field => new ExecutionQueryRowField(
-                field.Slot,
-                field.SourceColumnIndex,
-                field.Name,
-                ExecutionClrBindingFactory.FromClr(field.FieldType),
-                ExecutionClrBindingFactory.FromClr(field.SourceReadType),
-                field.EnumType,
-                field.IsNullable,
-                field.ReadModifiers,
-                field.ComputedProjection is { } projection ? ExecutionSourceComputedProjection.FromSchema(projection) : null)).ToArray());
+                    field.Slot,
+                    field.SourceColumnIndex,
+                    field.Name,
+                    ExecutionClrBindingFactory.FromClr(field.FieldType),
+                    ExecutionClrBindingFactory.FromClr(field.SourceReadType),
+                    field.EnumType,
+                    field.IsNullable,
+                    field.ReadModifiers,
+                    field.ComputedProjection is { } projection
+                        ? ExecutionSourceComputedProjection.FromSchema(projection)
+                        : null
+                ))
+                .ToArray()
+        );
     }
 }
 
 public enum ExecutionQueryRowCarrier
 {
     ReadonlyStruct = 0,
-    SealedClass = 1
+    SealedClass = 1,
 }
 
 public enum ExecutionQueryRowLifetime
 {
     ScanLocal = 0,
-    EscapesScan = 1
+    EscapesScan = 1,
 }
 
 public sealed record ExecutionQueryRowField
@@ -135,10 +155,9 @@ public sealed record ExecutionQueryRowField
         string name,
         ExecutionTypeRef fieldType,
         bool isNullable,
-        IReadOnlyDictionary<string, string>? readModifiers = null)
-        : this(slot, sourceColumnIndex, name, fieldType, fieldType, null, isNullable, readModifiers)
-    {
-    }
+        IReadOnlyDictionary<string, string>? readModifiers = null
+    )
+        : this(slot, sourceColumnIndex, name, fieldType, fieldType, null, isNullable, readModifiers) { }
 
     public ExecutionQueryRowField(
         int slot,
@@ -149,7 +168,8 @@ public sealed record ExecutionQueryRowField
         EnumTypeDescriptor? enumType,
         bool isNullable,
         IReadOnlyDictionary<string, string>? readModifiers = null,
-        ExecutionSourceComputedProjection? computedProjection = null)
+        ExecutionSourceComputedProjection? computedProjection = null
+    )
     {
         if (slot < 0)
             throw new ArgumentOutOfRangeException(nameof(slot));
@@ -159,9 +179,20 @@ public sealed record ExecutionQueryRowField
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(fieldType);
         ArgumentNullException.ThrowIfNull(sourceReadType);
-        if (computedProjection is not null && (sourceColumnIndex != -1 || name != computedProjection.Name ||
-                fieldType.StableId != computedProjection.ResultType.StableId || fieldType.StableId != sourceReadType.StableId || enumType != null))
-            throw new ArgumentException("Computed field metadata does not match its typed projection.", nameof(computedProjection));
+        if (
+            computedProjection is not null
+            && (
+                sourceColumnIndex != -1
+                || name != computedProjection.Name
+                || fieldType.StableId != computedProjection.ResultType.StableId
+                || fieldType.StableId != sourceReadType.StableId
+                || enumType != null
+            )
+        )
+            throw new ArgumentException(
+                "Computed field metadata does not match its typed projection.",
+                nameof(computedProjection)
+            );
         ComputedProjection = computedProjection;
         Slot = slot;
         SourceColumnIndex = sourceColumnIndex;
@@ -173,7 +204,8 @@ public sealed record ExecutionQueryRowField
         ReadModifiers = new ReadOnlyDictionary<string, string>(
             readModifiers is null
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal));
+                : new Dictionary<string, string>(readModifiers, StringComparer.Ordinal)
+        );
     }
 
     public ExecutionSourceComputedProjection? ComputedProjection { get; }

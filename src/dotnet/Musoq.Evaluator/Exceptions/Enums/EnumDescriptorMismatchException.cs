@@ -20,8 +20,7 @@ internal sealed class EnumDescriptorMismatchException : Exception, IDiagnosticEx
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty)
-            .WithArgument("column", ColumnName);
+        return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty).WithArgument("column", ColumnName);
     }
 
     private static string CreateMessage(string columnName, string? detail)

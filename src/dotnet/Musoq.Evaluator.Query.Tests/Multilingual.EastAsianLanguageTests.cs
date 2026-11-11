@@ -14,12 +14,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'こんにちは世界' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -33,12 +28,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'コンピュータ' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -54,13 +44,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("東京"),
-                    new BasicEntity("大阪"),
-                    new BasicEntity("京都")
-                ]
-            }
+            { "#A", [new BasicEntity("東京"), new BasicEntity("大阪"), new BasicEntity("京都")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -77,13 +61,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("東京"),
-                    new BasicEntity("大阪"),
-                    new BasicEntity("京都")
-                ]
-            }
+            { "#A", [new BasicEntity("東京"), new BasicEntity("大阪"), new BasicEntity("京都")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -91,13 +69,9 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "東京"),
-            "Row with '東京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"), "Row with '東京' not found");
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "京都"),
-            "Row with '京都' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "京都"), "Row with '京都' not found");
     }
 
     [TestMethod]
@@ -108,14 +82,15 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("東京"),
                     new BasicEntity("東京"),
                     new BasicEntity("大阪"),
                     new BasicEntity("東京"),
-                    new BasicEntity("大阪")
+                    new BasicEntity("大阪"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -123,13 +98,15 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "東京" && (long)row.ReadValues()[1] == 3L),
-            "Expected group '東京' with count 3");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "東京" && (long)row.ReadValues()[1] == 3L),
+            "Expected group '東京' with count 3"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "大阪" && (long)row.ReadValues()[1] == 2L),
-            "Expected group '大阪' with count 2");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "大阪" && (long)row.ReadValues()[1] == 2L),
+            "Expected group '大阪' with count 2"
+        );
     }
 
     [TestMethod]
@@ -139,13 +116,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("ひらがな"),
-                    new BasicEntity("カタカナ"),
-                    new BasicEntity("漢字")
-                ]
-            }
+            { "#A", [new BasicEntity("ひらがな"), new BasicEntity("カタカナ"), new BasicEntity("漢字")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -153,12 +124,9 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(3, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ひらがな"),
-            "Hiragana row not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "カタカナ"),
-            "Katakana row not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "漢字"),
-            "Kanji row not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ひらがな"), "Hiragana row not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "カタカナ"), "Katakana row not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "漢字"), "Kanji row not found");
     }
 
     #endregion
@@ -169,12 +137,7 @@ public partial class MultilingualTextTests
     {
         var query = "select '你好世界' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -188,12 +151,7 @@ public partial class MultilingualTextTests
     {
         var query = "select '計算機科學' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -209,13 +167,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("北京"),
-                    new BasicEntity("上海"),
-                    new BasicEntity("广州")
-                ]
-            }
+            { "#A", [new BasicEntity("北京"), new BasicEntity("上海"), new BasicEntity("广州")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -232,13 +184,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("北京"),
-                    new BasicEntity("南京"),
-                    new BasicEntity("上海")
-                ]
-            }
+            { "#A", [new BasicEntity("北京"), new BasicEntity("南京"), new BasicEntity("上海")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -246,13 +192,9 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "北京"),
-            "Row with '北京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"), "Row with '北京' not found");
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "南京"),
-            "Row with '南京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "南京"), "Row with '南京' not found");
     }
 
     [TestMethod]
@@ -263,14 +205,15 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("北京"),
                     new BasicEntity("北京"),
                     new BasicEntity("上海"),
                     new BasicEntity("北京"),
-                    new BasicEntity("上海")
+                    new BasicEntity("上海"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -278,13 +221,15 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "北京" && (long)row.ReadValues()[1] == 3L),
-            "Expected group '北京' with count 3");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "北京" && (long)row.ReadValues()[1] == 3L),
+            "Expected group '北京' with count 3"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "上海" && (long)row.ReadValues()[1] == 2L),
-            "Expected group '上海' with count 2");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "上海" && (long)row.ReadValues()[1] == 2L),
+            "Expected group '上海' with count 2"
+        );
     }
 
     #endregion
@@ -295,12 +240,7 @@ public partial class MultilingualTextTests
     {
         var query = "select '안녕하세요 세계' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -316,13 +256,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("서울"),
-                    new BasicEntity("부산"),
-                    new BasicEntity("인천")
-                ]
-            }
+            { "#A", [new BasicEntity("서울"), new BasicEntity("부산"), new BasicEntity("인천")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -340,12 +274,13 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("컴퓨터 프로그래밍"),
                     new BasicEntity("데이터베이스"),
-                    new BasicEntity("프로그래밍 언어")
+                    new BasicEntity("프로그래밍 언어"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -353,13 +288,15 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "컴퓨터 프로그래밍"),
-            "Row with '컴퓨터 프로그래밍' not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "컴퓨터 프로그래밍"),
+            "Row with '컴퓨터 프로그래밍' not found"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "프로그래밍 언어"),
-            "Row with '프로그래밍 언어' not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "프로그래밍 언어"),
+            "Row with '프로그래밍 언어' not found"
+        );
     }
 
     [TestMethod]
@@ -370,14 +307,15 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("서울"),
                     new BasicEntity("서울"),
                     new BasicEntity("부산"),
                     new BasicEntity("서울"),
-                    new BasicEntity("부산")
+                    new BasicEntity("부산"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -385,13 +323,15 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "서울" && (long)row.ReadValues()[1] == 3L),
-            "Expected group '서울' with count 3");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "서울" && (long)row.ReadValues()[1] == 3L),
+            "Expected group '서울' with count 3"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "부산" && (long)row.ReadValues()[1] == 2L),
-            "Expected group '부산' with count 2");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "부산" && (long)row.ReadValues()[1] == 2L),
+            "Expected group '부산' with count 2"
+        );
     }
 
     #endregion

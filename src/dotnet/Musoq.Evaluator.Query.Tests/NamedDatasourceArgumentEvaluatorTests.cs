@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Converter;
@@ -12,9 +12,9 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Visitors;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
@@ -36,9 +36,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
     {
         object?[]? captured = null;
 
-        Analyze(
-            query,
-            new NamedCaptureSchemaProvider(arguments => captured = arguments));
+        Analyze(query, new NamedCaptureSchemaProvider(arguments => captured = arguments));
 
         Assert.IsNotNull(captured);
         CollectionAssert.AreEqual(new object?[] { "value", expectedSecond }, captured);
@@ -51,7 +49,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
         Analyze(
             "select 1 from #capture.any(first: 'value')",
-            new NamedCaptureSchemaProvider(arguments => captured = arguments));
+            new NamedCaptureSchemaProvider(arguments => captured = arguments)
+        );
 
         Assert.IsNotNull(captured);
         CollectionAssert.AreEqual(new object?[] { "value", 7 }, captured);
@@ -64,7 +63,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
         Analyze(
             "table T { Value: int }; couple #capture.any with table T as Source; select 1 from Source(second: 4, first: 'value')",
-            new NamedCaptureSchemaProvider(arguments => captured = arguments));
+            new NamedCaptureSchemaProvider(arguments => captured = arguments)
+        );
 
         Assert.IsNotNull(captured);
         CollectionAssert.AreEqual(new object?[] { "value", 4 }, captured);
@@ -77,7 +77,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
         Analyze(
             "select 1 from #capture.any(second: 4, first: 'value') a join #capture.any(first: 'other', second: 8) b on 1 = 1",
-            new NamedCaptureSchemaProvider(arguments => captured.Add(arguments)));
+            new NamedCaptureSchemaProvider(arguments => captured.Add(arguments))
+        );
 
         Assert.HasCount(2, captured);
         CollectionAssert.AreEqual(new object?[] { "value", 4 }, captured[0]);
@@ -91,7 +92,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
         Analyze(
             "select 1 from #capture.any(first: 'outer', second: 4) a cross apply #capture.any(second: 8, first: 'inner') b",
-            new NamedCaptureSchemaProvider(arguments => captured.Add(arguments)));
+            new NamedCaptureSchemaProvider(arguments => captured.Add(arguments))
+        );
 
         Assert.HasCount(2, captured);
         CollectionAssert.AreEqual(new object?[] { "outer", 4 }, captured[0]);
@@ -105,7 +107,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
         Analyze(
             "desc query (select 1 from #capture.any(second: 4, first: 'value'))",
-            new NamedCaptureSchemaProvider(arguments => captured = arguments));
+            new NamedCaptureSchemaProvider(arguments => captured = arguments)
+        );
 
         Assert.IsNotNull(captured);
         CollectionAssert.AreEqual(new object?[] { "value", 4 }, captured);
@@ -127,8 +130,10 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
         Assert.HasCount(1, collector.Sources);
         var arguments = collector.Sources.Single().Parameters;
         Assert.HasCount(2, arguments.Args);
-        CollectionAssert.AreEqual(new[] { "second", "first" },
-            arguments.ArgumentNames.Select(name => name?.Name).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "second", "first" },
+            arguments.ArgumentNames.Select(name => name?.Name).ToArray()
+        );
         Assert.AreEqual(4, Assert.IsInstanceOfType<IntegerNode>(arguments.Args[0]).ObjValue);
         Assert.AreEqual("value", Assert.IsInstanceOfType<ConstantValueNode>(arguments.Args[1]).ObjValue);
         Assert.AreEqual(typeof(string), arguments.Args[1].ReturnType);
@@ -138,6 +143,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
     private sealed class SourceArgumentsCollector : NoOpExpressionVisitor
     {
         internal List<SchemaFromNode> Sources { get; } = [];
+
         public override void Visit(SchemaFromNode node) => Sources.Add(node);
     }
 
@@ -154,7 +160,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
             CancellationToken.None,
             [],
             new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
 
         var table = EvaluationHelper.GetConstructorsForSpecificMethod(schema, "any", context);
 
@@ -175,7 +182,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
             query,
             Guid.NewGuid().ToString(),
             provider,
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         var result = vm.Run(CancellationToken.None);
 
@@ -186,28 +194,19 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
     [TestMethod]
     public void RequiredParameterInFirstSourcePosition_PreservesLaterLiterals()
     {
-        AssertPositionalSourceArguments(
-            "$value, 'middle', 'last'",
-            [],
-            ["value", "middle", "last"]);
+        AssertPositionalSourceArguments("$value, 'middle', 'last'", [], ["value", "middle", "last"]);
     }
 
     [TestMethod]
     public void RequiredParameterInMiddleSourcePosition_PreservesLaterLiterals()
     {
-        AssertPositionalSourceArguments(
-            "'first', $value, 'last'",
-            ["first"],
-            ["first", "value", "last"]);
+        AssertPositionalSourceArguments("'first', $value, 'last'", ["first"], ["first", "value", "last"]);
     }
 
     [TestMethod]
     public void RequiredParameterInLastSourcePosition_PreservesEarlierLiterals()
     {
-        AssertPositionalSourceArguments(
-            "'first', 'middle', $value",
-            ["first", "middle"],
-            ["first", "middle", "value"]);
+        AssertPositionalSourceArguments("'first', 'middle', $value", ["first", "middle"], ["first", "middle", "value"]);
     }
 
     [TestMethod]
@@ -220,9 +219,15 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
             "param(value: string) select Value from #triple.any(second: 'middle', first: $value, last: 'last')",
             Guid.NewGuid().ToString(),
             provider,
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "first");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "value",
+            "first"
+        );
         var result = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, result.Count);
@@ -240,7 +245,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
             "param(value: int) select Value from #triple.any(second: $value, first: 'first', last: 'last')",
             Guid.NewGuid().ToString(),
             provider,
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", 7);
         var result = vm.Run(CancellationToken.None);
@@ -253,9 +259,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
     public void NamedArguments_UnknownNameHasStableDiagnostic()
     {
         var exception = Assert.Throws<CannotResolveMethodException>(() =>
-            Analyze(
-                "select 1 from #capture.any(unknown: 4, first: 'value')",
-                new NamedCaptureSchemaProvider(_ => { })));
+            Analyze("select 1 from #capture.any(unknown: 4, first: 'value')", new NamedCaptureSchemaProvider(_ => { }))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3079_UnknownSourceArgument, exception.Code);
     }
@@ -267,7 +272,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
         var visitor = new BuildMetadataAndInferTypesVisitor(
             schemaProvider,
             new Dictionary<string, string[]>(),
-            logger.Object);
+            logger.Object
+        );
 
         tree.Accept(new BuildMetadataAndInferTypesTraverseVisitor(visitor));
         return visitor;
@@ -276,7 +282,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
     private static void AssertPositionalSourceArguments(
         string arguments,
         object?[] expectedMetadataPrefix,
-        object?[] expectedRuntimeArguments)
+        object?[] expectedRuntimeArguments
+    )
     {
         var metadata = new List<object?[]>();
         var runtime = new List<object?[]>();
@@ -285,9 +292,15 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
             $"param(value: string) select Value from #triple.any({arguments})",
             Guid.NewGuid().ToString(),
             provider,
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "value");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "value",
+            "value"
+        );
         var result = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, result.Count);
@@ -316,7 +329,9 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
                         .Single(constructor => constructor.GetParameters().Length == 2),
                     false,
                     ("first", typeof(string)),
-                    ("second", typeof(int))))
+                    ("second", typeof(int))
+                )
+            ),
         ];
 
         public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext) => Constructors;
@@ -324,7 +339,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             capture(parameters);
             return new NamedCaptureTable();
@@ -333,7 +349,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             capture(parameters);
@@ -343,16 +360,13 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
     private sealed class SingleRowSource<T> : RowSource<T>
     {
-        public override IEnumerable<IReadOnlyList<T>> Chunks =>
-            new[] { (IReadOnlyList<T>)new[] { default(T)! } };
+        public override IEnumerable<IReadOnlyList<T>> Chunks => new[] { (IReadOnlyList<T>)new[] { default(T)! } };
     }
 
     private sealed class NamedCaptureTable : ISchemaTable
     {
         public NamedCaptureTable()
-            : this(string.Empty, 7)
-        {
-        }
+            : this(string.Empty, 7) { }
 
         public NamedCaptureTable(string first, int second = 7)
         {
@@ -378,14 +392,13 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
     private sealed class TripleCaptureSchemaProvider(
         Action<object?[]> captureMetadata,
-        Action<object?[]> captureRuntime) : ISchemaProvider
+        Action<object?[]> captureRuntime
+    ) : ISchemaProvider
     {
         public ISchema GetSchema(string schema) => new TripleCaptureSchema(captureMetadata, captureRuntime);
     }
 
-    private sealed class TripleCaptureSchema(
-        Action<object?[]> captureMetadata,
-        Action<object?[]> captureRuntime)
+    private sealed class TripleCaptureSchema(Action<object?[]> captureMetadata, Action<object?[]> captureRuntime)
         : SchemaBase("triple", new MethodsAggregator(new MethodsManager()))
     {
         private static readonly SchemaMethodInfo[] Constructors =
@@ -399,17 +412,19 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
                     false,
                     ("first", typeof(string)),
                     ("second", typeof(string)),
-                    ("last", typeof(string)))),
+                    ("last", typeof(string))
+                )
+            ),
             new(
                 "any",
                 new SchemaConstructorInfo(
-                    typeof(TripleCaptureIntTable)
-                        .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
-                        .Single(),
+                    typeof(TripleCaptureIntTable).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single(),
                     false,
                     ("first", typeof(string)),
                     ("second", typeof(int)),
-                    ("last", typeof(string))))
+                    ("last", typeof(string))
+                )
+            ),
         ];
 
         public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext) => Constructors;
@@ -417,7 +432,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             captureMetadata(parameters);
             return new TripleCaptureTable();
@@ -426,7 +442,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             captureRuntime(parameters);
@@ -436,8 +453,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
     private sealed class TripleCaptureRowSource<T> : RowSource<T>
     {
-        public override IEnumerable<IReadOnlyList<T>> Chunks =>
-            new[] { (IReadOnlyList<T>)new[] { CreateRow() } };
+        public override IEnumerable<IReadOnlyList<T>> Chunks => new[] { (IReadOnlyList<T>)new[] { CreateRow() } };
 
         private static T CreateRow()
         {
@@ -450,16 +466,15 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
     private sealed class TripleCaptureTable : ISchemaTable
     {
-        public TripleCaptureTable()
-        {
-        }
+        public TripleCaptureTable() { }
 
         public TripleCaptureTable(string first, string second, string last)
         {
             _ = (first, second, last);
         }
 
-        public ISchemaColumn[] Columns => [new Musoq.Schema.DataSources.SchemaColumn(nameof(TripleCaptureEntity.Value), 0, typeof(int))];
+        public ISchemaColumn[] Columns =>
+            [new Musoq.Schema.DataSources.SchemaColumn(nameof(TripleCaptureEntity.Value), 0, typeof(int))];
 
         public ISchemaColumn? GetColumnByName(string name) =>
             Columns.SingleOrDefault(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -477,7 +492,8 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
             _ = (first, second, last);
         }
 
-        public ISchemaColumn[] Columns => [new Musoq.Schema.DataSources.SchemaColumn(nameof(TripleCaptureEntity.Value), 0, typeof(int))];
+        public ISchemaColumn[] Columns =>
+            [new Musoq.Schema.DataSources.SchemaColumn(nameof(TripleCaptureEntity.Value), 0, typeof(int))];
 
         public ISchemaColumn? GetColumnByName(string name) =>
             Columns.SingleOrDefault(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));

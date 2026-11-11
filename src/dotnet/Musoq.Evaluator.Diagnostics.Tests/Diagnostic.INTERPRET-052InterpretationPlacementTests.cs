@@ -16,28 +16,61 @@ public sealed class DiagnosticInterpret052InterpretationPlacementTests : BinaryO
     {
         var cases = new[]
         {
-            (FunctionName: "Interpret", Declaration: "binary Packet { Value: int le };", Source: "files",
-                Invocation: "Interpret<Packet>(f.Content)", IsBinary: true),
-            (FunctionName: "Parse", Declaration: "text Record { Value: rest };", Source: "lines",
-                Invocation: "Parse<Record>(f.Text)", IsBinary: false),
-            (FunctionName: "TryInterpret", Declaration: "binary Packet { Value: int le };", Source: "files",
-                Invocation: "TryInterpret<Packet>(f.Content)", IsBinary: true),
-            (FunctionName: "TryParse", Declaration: "text Record { Value: rest };", Source: "lines",
-                Invocation: "TryParse<Record>(f.Text)", IsBinary: false),
-            (FunctionName: "InterpretAt", Declaration: "binary Packet { Value: int le };", Source: "files",
-                Invocation: "InterpretAt<Packet>(f.Content, 0)", IsBinary: true),
-            (FunctionName: "PartialInterpret", Declaration: "binary Packet { Value: int le };", Source: "files",
-                Invocation: "PartialInterpret<Packet>(f.Content)", IsBinary: true),
-            (FunctionName: "PartialParse", Declaration: "text Record { Value: rest };", Source: "lines",
-                Invocation: "PartialParse<Record>(f.Text)", IsBinary: false)
+            (
+                FunctionName: "Interpret",
+                Declaration: "binary Packet { Value: int le };",
+                Source: "files",
+                Invocation: "Interpret<Packet>(f.Content)",
+                IsBinary: true
+            ),
+            (
+                FunctionName: "Parse",
+                Declaration: "text Record { Value: rest };",
+                Source: "lines",
+                Invocation: "Parse<Record>(f.Text)",
+                IsBinary: false
+            ),
+            (
+                FunctionName: "TryInterpret",
+                Declaration: "binary Packet { Value: int le };",
+                Source: "files",
+                Invocation: "TryInterpret<Packet>(f.Content)",
+                IsBinary: true
+            ),
+            (
+                FunctionName: "TryParse",
+                Declaration: "text Record { Value: rest };",
+                Source: "lines",
+                Invocation: "TryParse<Record>(f.Text)",
+                IsBinary: false
+            ),
+            (
+                FunctionName: "InterpretAt",
+                Declaration: "binary Packet { Value: int le };",
+                Source: "files",
+                Invocation: "InterpretAt<Packet>(f.Content, 0)",
+                IsBinary: true
+            ),
+            (
+                FunctionName: "PartialInterpret",
+                Declaration: "binary Packet { Value: int le };",
+                Source: "files",
+                Invocation: "PartialInterpret<Packet>(f.Content)",
+                IsBinary: true
+            ),
+            (
+                FunctionName: "PartialParse",
+                Declaration: "text Record { Value: rest };",
+                Source: "lines",
+                Invocation: "PartialParse<Record>(f.Text)",
+                IsBinary: false
+            ),
         };
 
         foreach (var testCase in cases)
         {
-            var query = $@"
-                {testCase.Declaration}
-                select {testCase.Invocation}
-                from #test.{testCase.Source}() f";
+            var query =
+                $"\n                {testCase.Declaration}\n                select {testCase.Invocation}\n                from #test.{testCase.Source}() f";
 
             var exception = Assert.Throws<MusoqQueryException>(() =>
                 CompileGeneratedQuery(
@@ -45,7 +78,9 @@ public sealed class DiagnosticInterpret052InterpretationPlacementTests : BinaryO
                     Guid.NewGuid().ToString(),
                     CreateSchemaProvider(testCase.IsBinary),
                     LoggerResolver,
-                    TestCompilationOptions));
+                    TestCompilationOptions
+                )
+            );
 
             AssertPlacementDiagnostic(exception, query, testCase.FunctionName);
         }
@@ -54,13 +89,15 @@ public sealed class DiagnosticInterpret052InterpretationPlacementTests : BinaryO
     [TestMethod]
     public void TryInterpret_InWhere_ShouldReportMq3033()
     {
-        const string query = @"
-            binary Packet {
-                Value: int le
-            };
-            select 1
-            from #test.files() f
-            where TryInterpret<Packet>(f.Content) is not null";
+        const string query = (
+            "\n"
+            + "            binary Packet {\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            select 1\n"
+            + "            from #test.files() f\n"
+            + "            where TryInterpret<Packet>(f.Content) is not null"
+        );
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CompileGeneratedQuery(
@@ -68,7 +105,9 @@ public sealed class DiagnosticInterpret052InterpretationPlacementTests : BinaryO
                 Guid.NewGuid().ToString(),
                 CreateSchemaProvider(isBinary: true),
                 LoggerResolver,
-                TestCompilationOptions));
+                TestCompilationOptions
+            )
+        );
 
         AssertPlacementDiagnostic(exception, query, "TryInterpret");
     }
@@ -76,14 +115,16 @@ public sealed class DiagnosticInterpret052InterpretationPlacementTests : BinaryO
     [TestMethod]
     public void InterpretAt_InHaving_ShouldReportMq3033()
     {
-        const string query = @"
-            binary Packet {
-                Value: int le
-            };
-            select Count(*) as Total
-            from #test.files() f
-            group by f.Name
-            having InterpretAt<Packet>(f.Content, 0) is not null";
+        const string query = (
+            "\n"
+            + "            binary Packet {\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            select Count(*) as Total\n"
+            + "            from #test.files() f\n"
+            + "            group by f.Name\n"
+            + "            having InterpretAt<Packet>(f.Content, 0) is not null"
+        );
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CompileGeneratedQuery(
@@ -91,7 +132,9 @@ public sealed class DiagnosticInterpret052InterpretationPlacementTests : BinaryO
                 Guid.NewGuid().ToString(),
                 CreateSchemaProvider(isBinary: true),
                 LoggerResolver,
-                TestCompilationOptions));
+                TestCompilationOptions
+            )
+        );
 
         AssertPlacementDiagnostic(exception, query, "InterpretAt");
     }
@@ -103,27 +146,27 @@ public sealed class DiagnosticInterpret052InterpretationPlacementTests : BinaryO
             return new BinarySchemaProvider(
                 new Dictionary<string, IEnumerable<BinaryEntity>>
                 {
-                    ["#test"] = [new BinaryEntity { Name = "sample.bin", Content = [0, 0, 0, 0] }]
-                });
+                    ["#test"] = [new BinaryEntity { Name = "sample.bin", Content = [0, 0, 0, 0] }],
+                }
+            );
         }
 
         return new TextSchemaProvider(
             new Dictionary<string, IEnumerable<TextEntity>>
             {
-                ["#test"] = [new TextEntity { Name = "sample.txt", Text = "value" }]
-            });
+                ["#test"] = [new TextEntity { Name = "sample.txt", Text = "value" }],
+            }
+        );
     }
 
-    private static void AssertPlacementDiagnostic(
-        MusoqQueryException exception,
-        string query,
-        string functionName)
+    private static void AssertPlacementDiagnostic(MusoqQueryException exception, string query, string functionName)
     {
         AssertErrorEnvelope(
             exception,
             DiagnosticCode.MQ3033_InterpretFunctionOutsideApply,
             DiagnosticPhase.Bind,
-            functionName);
+            functionName
+        );
         AssertHasGuidance(exception);
 
         var envelope = exception.PrimaryEnvelope;
@@ -136,6 +179,7 @@ public sealed class DiagnosticInterpret052InterpretationPlacementTests : BinaryO
         Assert.IsNotEmpty(envelope.Actions);
         Assert.IsTrue(
             envelope.Offset.Value >= 0 && envelope.Offset.Value < query.Length,
-            $"Expected a query offset within the source, got {envelope.Offset.Value} for {functionName}.");
+            $"Expected a query offset within the source, got {envelope.Offset.Value} for {functionName}."
+        );
     }
 }

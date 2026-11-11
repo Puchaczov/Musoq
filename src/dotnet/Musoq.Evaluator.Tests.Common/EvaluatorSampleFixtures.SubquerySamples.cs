@@ -15,7 +15,8 @@ internal static partial class EvaluatorSampleFixtures
                   SELECT b.City
                   FROM #B.entities() b
                   WHERE b.Country = a.Country
-              )"),
+              )"
+            ),
             Basic(
                 "Q139_CorrelatedNotExistsSubquery",
                 "Subquery",
@@ -25,7 +26,8 @@ internal static partial class EvaluatorSampleFixtures
                   SELECT b.City
                   FROM #B.entities() b
                   WHERE b.Country = a.Country
-              )"),
+              )"
+            ),
             Basic(
                 "Q140_CorrelatedScalarAggregateSubquery",
                 "Subquery",
@@ -35,7 +37,8 @@ internal static partial class EvaluatorSampleFixtures
                          FROM #B.entities() b
                          WHERE b.Country = a.Country
                      ) AS CountryPopulation
-              FROM #A.entities() a"),
+              FROM #A.entities() a"
+            ),
             Basic(
                 "Q141_ScalarSubqueryJoinOn",
                 "Subquery",
@@ -45,7 +48,8 @@ internal static partial class EvaluatorSampleFixtures
                   SELECT c.City
                   FROM #C.entities() c
                   WHERE c.Country = a.Country
-              )"),
+              )"
+            ),
             Basic(
                 "Q142_CorrelatedAllSubquery",
                 "Subquery",
@@ -55,7 +59,8 @@ internal static partial class EvaluatorSampleFixtures
                   SELECT b.Population
                   FROM #B.entities() b
                   WHERE b.Country = a.Country
-              )"),
+              )"
+            ),
             Basic(
                 "Q143_CorrelatedApplyDerivedTable",
                 "Subquery",
@@ -65,7 +70,8 @@ internal static partial class EvaluatorSampleFixtures
                   SELECT b.City, b.Country
                   FROM #B.entities() b
                   WHERE b.Country = a.Country
-              ) d"),
+              ) d"
+            ),
             Basic(
                 "Q144_CorrelatedCompositeValueTypeSubquery",
                 "Subquery",
@@ -76,7 +82,8 @@ internal static partial class EvaluatorSampleFixtures
                   FROM #B.entities() b
                   WHERE b.Country = a.Country
                     AND b.Population = a.Population
-              )"),
+              )"
+            ),
             Basic(
                 "Q145_CorrelatedApplySelectiveDerivedTable",
                 "Subquery",
@@ -87,7 +94,8 @@ internal static partial class EvaluatorSampleFixtures
                   FROM #B.entities() b
                   WHERE b.Country = a.Country
                     AND b.City = a.City
-              ) d"),
+              ) d"
+            ),
             Basic(
                 "Q186_CorrelatedCompositeRangeMark",
                 "Subquery",
@@ -99,7 +107,8 @@ internal static partial class EvaluatorSampleFixtures
                            AND b.City = a.City
                            AND b.Population < a.Population
                      ) THEN 'Y' ELSE 'N' END AS HasEarlierPeer
-              FROM #A.entities() a")
+              FROM #A.entities() a"
+            ),
         ];
     }
 }

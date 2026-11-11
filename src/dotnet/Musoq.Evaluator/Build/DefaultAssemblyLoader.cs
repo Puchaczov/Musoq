@@ -29,9 +29,7 @@ internal sealed class DefaultAssemblyLoader : IAssemblyLoader
     private sealed class CollectibleInterpreterAssemblyLoadContext : AssemblyLoadContext
     {
         public CollectibleInterpreterAssemblyLoadContext()
-            : base($"Musoq.Interpreter.{Guid.NewGuid():N}", isCollectible: true)
-        {
-        }
+            : base($"Musoq.Interpreter.{Guid.NewGuid():N}", isCollectible: true) { }
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {

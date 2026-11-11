@@ -12,7 +12,8 @@ public sealed record GeneratedRowShape : RowShape
         IReadOnlyList<FieldBinding> fields,
         IReadOnlyList<FieldBinding> contexts,
         bool supportsGeneratedFieldAccess = true,
-        bool requiresRowBase = true)
+        bool requiresRowBase = true
+    )
         : base(typeName, fields)
     {
         TypeName = typeName;
@@ -55,10 +56,6 @@ public sealed record GeneratedRowShape : RowShape
     /// </summary>
     public string? SourceAlias { get; init; }
 
-    public GeneratedRowShape(
-        string typeName,
-        IReadOnlyList<FieldBinding> fields)
-        : this(typeName, fields, [])
-    {
-    }
+    public GeneratedRowShape(string typeName, IReadOnlyList<FieldBinding> fields)
+        : this(typeName, fields, []) { }
 }

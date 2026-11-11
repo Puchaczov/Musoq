@@ -15,26 +15,36 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, string> aggregateSourceFields,
         IReadOnlyDictionary<int, ExecutionVariable> windowResults,
         ExecutionVariable windowIndex,
-        bool preserveContexts)
+        bool preserveContexts
+    )
     {
         var values = new List<ExecutionRowValue>(fields.Length);
 
         foreach (var field in fields)
         {
-            var expression = ConvertWindowProjectionExpression(field, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
+            var expression = ConvertWindowProjectionExpression(
+                field,
+                sourceLookup,
+                aggregateSourceFields,
+                windowResults,
+                windowIndex
+            );
             if (!expression.IsBuilt)
                 return LoweringAttempt<ExecutionAppendRow>.Unsupported(expression.UnsupportedReason);
 
             values.Add(new ExecutionRowValue(field.OutputName, expression.Value));
         }
 
-        return LoweringAttempt<ExecutionAppendRow>.Built(new ExecutionAppendRow(
-            resultTable,
-            resultShape,
-            values,
-            preserveContexts ? CreateContextValues(sourceLookup) : [],
-            SerialAppendMode,
-            preserveContexts ? CreateContextLayout(sourceLookup) : null));
+        return LoweringAttempt<ExecutionAppendRow>.Built(
+            new ExecutionAppendRow(
+                resultTable,
+                resultShape,
+                values,
+                preserveContexts ? CreateContextValues(sourceLookup) : [],
+                SerialAppendMode,
+                preserveContexts ? CreateContextLayout(sourceLookup) : null
+            )
+        );
     }
 
     private LoweringAttempt<ExecutionBlock> CreateWindowAppendBlock(
@@ -43,24 +53,29 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         IReadOnlyDictionary<string, string> aggregateSourceFields,
         IReadOnlyDictionary<int, ExecutionVariable> windowResults,
-        ExecutionVariable windowIndex)
+        ExecutionVariable windowIndex
+    )
     {
         if (qualifyPredicate == null)
             return LoweringAttempt<ExecutionBlock>.Built(CreateAppendBlock(appendRow));
 
-        var condition = ConvertWindowExpression(qualifyPredicate, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
+        var condition = ConvertWindowExpression(
+            qualifyPredicate,
+            sourceLookup,
+            aggregateSourceFields,
+            windowResults,
+            windowIndex
+        );
         if (!condition.IsBuilt)
             return LoweringAttempt<ExecutionBlock>.Unsupported(condition.UnsupportedReason);
 
         if (!IrExpressionNullSemantics.IsBoolean(condition.Value.ReturnType.ResolveClrType()))
         {
             return LoweringAttempt<ExecutionBlock>.Unsupported(
-                $"Execution IR window QUALIFY lowering requires a boolean predicate. Found {condition.Value.ReturnType.ResolveClrType().Name}.");
+                $"Execution IR window QUALIFY lowering requires a boolean predicate. Found {condition.Value.ReturnType.ResolveClrType().Name}."
+            );
         }
 
-        return LoweringAttempt<ExecutionBlock>.Built(CreateFilteredAppendBlock(
-            condition.Value,
-            appendRow));
+        return LoweringAttempt<ExecutionBlock>.Built(CreateFilteredAppendBlock(condition.Value, appendRow));
     }
-
 }

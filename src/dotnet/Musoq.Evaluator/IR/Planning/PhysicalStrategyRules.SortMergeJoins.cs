@@ -12,9 +12,20 @@ internal static partial class PhysicalStrategyRules
         JoinKind kind,
         IrExpression predicate,
         PhysicalNode left,
-        PhysicalNode right)
+        PhysicalNode right
+    )
     {
-        if (kind is not (JoinKind.Inner or JoinKind.LeftSemi or JoinKind.LeftAntiSemi or JoinKind.LeftMark or JoinKind.LeftSingle) || predicate == null)
+        if (
+            kind
+                is not (
+                    JoinKind.Inner
+                    or JoinKind.LeftSemi
+                    or JoinKind.LeftAntiSemi
+                    or JoinKind.LeftMark
+                    or JoinKind.LeftSingle
+                )
+            || predicate == null
+        )
             return null;
 
         var leftAliases = CollectAliases(left);
@@ -29,7 +40,8 @@ internal static partial class PhysicalStrategyRules
             leftPartitionKeys,
             rightPartitionKeys,
             [],
-            allowConstantKeys: false);
+            allowConstantKeys: false
+        );
 
         return TryFindSortMergeCondition(predicate, leftAliases, rightAliases, out var key)
             ? new SortMergeJoinDecomposition(
@@ -37,8 +49,9 @@ internal static partial class PhysicalStrategyRules
                 key.RightKey,
                 key.ComparisonKind,
                 predicate,
-                [..leftPartitionKeys],
-                [..rightPartitionKeys])
+                [.. leftPartitionKeys],
+                [.. rightPartitionKeys]
+            )
             : null;
     }
 
@@ -46,7 +59,8 @@ internal static partial class PhysicalStrategyRules
         IrExpression expression,
         HashSet<string> leftAliases,
         HashSet<string> rightAliases,
-        out NormalizedSortMergeKey key)
+        out NormalizedSortMergeKey key
+    )
     {
         if (expression is BinaryOp { Kind: BinaryOpKind.And } and)
         {
@@ -56,9 +70,11 @@ internal static partial class PhysicalStrategyRules
             return TryFindSortMergeCondition(and.Right, leftAliases, rightAliases, out key);
         }
 
-        if (expression is BinaryOp range &&
-            IsSortMergeRangeKind(range.Kind) &&
-            TryNormalizeSortMergeRange(range, leftAliases, rightAliases, out key))
+        if (
+            expression is BinaryOp range
+            && IsSortMergeRangeKind(range.Kind)
+            && TryNormalizeSortMergeRange(range, leftAliases, rightAliases, out key)
+        )
         {
             return true;
         }
@@ -69,35 +85,40 @@ internal static partial class PhysicalStrategyRules
 
     private static bool IsSortMergeRangeKind(BinaryOpKind kind)
     {
-        return kind is BinaryOpKind.GreaterThan
-            or BinaryOpKind.GreaterOrEqual
-            or BinaryOpKind.LessThan
-            or BinaryOpKind.LessOrEqual;
+        return kind
+            is BinaryOpKind.GreaterThan
+                or BinaryOpKind.GreaterOrEqual
+                or BinaryOpKind.LessThan
+                or BinaryOpKind.LessOrEqual;
     }
 
     private static bool TryNormalizeSortMergeRange(
         BinaryOp range,
         HashSet<string> leftAliases,
         HashSet<string> rightAliases,
-        out NormalizedSortMergeKey key)
+        out NormalizedSortMergeKey key
+    )
     {
         var leftSide = ClassifyJoinSide(range.Left, leftAliases, rightAliases);
         var rightSide = ClassifyJoinSide(range.Right, leftAliases, rightAliases);
 
-        if (leftSide == JoinExpressionSide.Left && rightSide == JoinExpressionSide.Right &&
-            CanCompareSortMergeKeys(range.Left.ReturnType, range.Right.ReturnType))
+        if (
+            leftSide == JoinExpressionSide.Left
+            && rightSide == JoinExpressionSide.Right
+            && CanCompareSortMergeKeys(range.Left.ReturnType, range.Right.ReturnType)
+        )
         {
             key = new NormalizedSortMergeKey(range.Left, range.Right, range.Kind);
             return true;
         }
 
-        if (leftSide == JoinExpressionSide.Right && rightSide == JoinExpressionSide.Left &&
-            CanCompareSortMergeKeys(range.Left.ReturnType, range.Right.ReturnType))
+        if (
+            leftSide == JoinExpressionSide.Right
+            && rightSide == JoinExpressionSide.Left
+            && CanCompareSortMergeKeys(range.Left.ReturnType, range.Right.ReturnType)
+        )
         {
-            key = new NormalizedSortMergeKey(
-                range.Right,
-                range.Left,
-                ReverseComparisonKind(range.Kind));
+            key = new NormalizedSortMergeKey(range.Right, range.Left, ReverseComparisonKind(range.Kind));
             return true;
         }
 
@@ -108,7 +129,8 @@ internal static partial class PhysicalStrategyRules
     private static JoinExpressionSide ClassifyJoinSide(
         IrExpression expression,
         HashSet<string> leftAliases,
-        HashSet<string> rightAliases)
+        HashSet<string> rightAliases
+    )
     {
         var columns = ColumnRefExtractor.Extract(expression);
         var hasLeft = ReferencesAliases(columns, leftAliases);
@@ -119,7 +141,7 @@ internal static partial class PhysicalStrategyRules
             (true, false) => JoinExpressionSide.Left,
             (false, true) => JoinExpressionSide.Right,
             (false, false) => JoinExpressionSide.Constant,
-            _ => JoinExpressionSide.Mixed
+            _ => JoinExpressionSide.Mixed,
         };
     }
 
@@ -128,9 +150,7 @@ internal static partial class PhysicalStrategyRules
         leftType = Nullable.GetUnderlyingType(leftType) ?? leftType;
         rightType = Nullable.GetUnderlyingType(rightType) ?? rightType;
 
-        return leftType == rightType &&
-               leftType != typeof(object) &&
-               typeof(IComparable).IsAssignableFrom(leftType);
+        return leftType == rightType && leftType != typeof(object) && typeof(IComparable).IsAssignableFrom(leftType);
     }
 
     private static BinaryOpKind ReverseComparisonKind(BinaryOpKind kind)
@@ -141,7 +161,11 @@ internal static partial class PhysicalStrategyRules
             BinaryOpKind.GreaterOrEqual => BinaryOpKind.LessOrEqual,
             BinaryOpKind.LessThan => BinaryOpKind.GreaterThan,
             BinaryOpKind.LessOrEqual => BinaryOpKind.GreaterOrEqual,
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Only range comparison kinds can be reversed.")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(kind),
+                kind,
+                "Only range comparison kinds can be reversed."
+            ),
         };
     }
 }

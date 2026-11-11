@@ -8,24 +8,26 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Schema.RecursiveCte;
 
-internal sealed class RecursiveGraphSchema(
-    RecursiveGraphData data,
-    RecursiveGraphSourceRecorder recorder) : SchemaBase("graph", CreateLibrary())
+internal sealed class RecursiveGraphSchema(RecursiveGraphData data, RecursiveGraphSourceRecorder recorder)
+    : SchemaBase("graph", CreateLibrary())
 {
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters) => name.ToLowerInvariant() switch
-    {
-        "roots" => RecursiveGraphRootTable.Instance,
-        "edges" or "neighbors" => RecursiveGraphEdgeTable.Instance,
-        _ => throw new NotSupportedException($"Unknown recursive graph source '{name}'.")
-    };
+        params object?[] parameters
+    ) =>
+        name.ToLowerInvariant() switch
+        {
+            "roots" => RecursiveGraphRootTable.Instance,
+            "edges" or "neighbors" => RecursiveGraphEdgeTable.Instance,
+            _ => throw new NotSupportedException($"Unknown recursive graph source '{name}'."),
+        };
 
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
         recorder.SourceCreated(name);
@@ -33,7 +35,8 @@ internal sealed class RecursiveGraphSchema(
         if (name.Equals("roots", StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, RecursiveGraphRoot>(
                 name,
-                new ObservableRowSource<RecursiveGraphRoot>(name, () => [data.GetRoots()], recorder));
+                new ObservableRowSource<RecursiveGraphRoot>(name, () => [data.GetRoots()], recorder)
+            );
 
         if (name.Equals("edges", StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, RecursiveGraphEdge>(
@@ -42,7 +45,9 @@ internal sealed class RecursiveGraphSchema(
                     name,
                     data.GetEdgeChunks,
                     recorder,
-                    data.EdgesEnumerationCompleted));
+                    data.EdgesEnumerationCompleted
+                )
+            );
 
         if (name.Equals("neighbors", StringComparison.OrdinalIgnoreCase))
         {
@@ -50,10 +55,8 @@ internal sealed class RecursiveGraphSchema(
             var sourceId = Convert.ToInt32(parameters.Single(), System.Globalization.CultureInfo.InvariantCulture);
             return EnsureSourceType<T, RecursiveGraphEdge>(
                 name,
-                new ObservableRowSource<RecursiveGraphEdge>(
-                    name,
-                    () => [data.GetNeighbors(sourceId)],
-                    recorder));
+                new ObservableRowSource<RecursiveGraphEdge>(name, () => [data.GetNeighbors(sourceId)], recorder)
+            );
         }
 
         throw new NotSupportedException($"Unknown recursive graph source '{name}'.");
@@ -70,7 +73,8 @@ internal sealed class RecursiveGraphSchema(
         string sourceName,
         Func<IEnumerable<IReadOnlyList<T>>> chunksFactory,
         RecursiveGraphSourceRecorder recorder,
-        Action? enumerationCompleted = null) : RowSource<T>
+        Action? enumerationCompleted = null
+    ) : RowSource<T>
     {
         public override IEnumerable<IReadOnlyList<T>> Chunks => Enumerate();
 
@@ -98,16 +102,14 @@ internal sealed class RecursiveGraphRootTable : ISchemaTable
 {
     public static RecursiveGraphRootTable Instance { get; } = new();
 
-    public ISchemaColumn[] Columns { get; } =
-    [
-        new SchemaColumn(nameof(RecursiveGraphRoot.RootId), 0, typeof(int))
-    ];
+    public ISchemaColumn[] Columns { get; } = [new SchemaColumn(nameof(RecursiveGraphRoot.RootId), 0, typeof(int))];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(RecursiveGraphRoot));
 
     public ISchemaColumn? GetColumnByName(string name) => Columns.SingleOrDefault(column => column.ColumnName == name);
 
-    public ISchemaColumn[] GetColumnsByName(string name) => Columns.Where(column => column.ColumnName == name).ToArray();
+    public ISchemaColumn[] GetColumnsByName(string name) =>
+        Columns.Where(column => column.ColumnName == name).ToArray();
 }
 
 internal sealed class RecursiveGraphEdgeTable : ISchemaTable
@@ -119,12 +121,13 @@ internal sealed class RecursiveGraphEdgeTable : ISchemaTable
         new SchemaColumn(nameof(RecursiveGraphEdge.SourceId), 0, typeof(int)),
         new SchemaColumn(nameof(RecursiveGraphEdge.TargetId), 1, typeof(int)),
         new SchemaColumn(nameof(RecursiveGraphEdge.Weight), 2, typeof(decimal)),
-        new SchemaColumn(nameof(RecursiveGraphEdge.Label), 3, typeof(string))
+        new SchemaColumn(nameof(RecursiveGraphEdge.Label), 3, typeof(string)),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(RecursiveGraphEdge));
 
     public ISchemaColumn? GetColumnByName(string name) => Columns.SingleOrDefault(column => column.ColumnName == name);
 
-    public ISchemaColumn[] GetColumnsByName(string name) => Columns.Where(column => column.ColumnName == name).ToArray();
+    public ISchemaColumn[] GetColumnsByName(string name) =>
+        Columns.Where(column => column.ColumnName == name).ToArray();
 }

@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -21,14 +21,11 @@ public class ChunkEnumeratorTests
             new List<string> { "a", "ab", "abc", "abcd" },
             new List<string>(),
             new List<string> { "x", "xs" },
-            new List<string>()
+            new List<string>(),
         };
         readChunks.CompleteAdding();
 
-
-        var enumerator =
-            new ChunkEnumerator<string>(readChunks,
-                tokenSource.Token);
+        var enumerator = new ChunkEnumerator<string>(readChunks, tokenSource.Token);
         using var disposableEnumerator = enumerator;
 
         Assert.IsTrue(enumerator.MoveNext());
@@ -42,14 +39,9 @@ public class ChunkEnumeratorTests
     public void MoveNext_WhenTokenCancelled_ShouldNotConsumeBufferedChunks()
     {
         using var tokenSource = new CancellationTokenSource();
-        using var readChunks = new BlockingCollection<IReadOnlyList<string>>
-        {
-            new List<string> { "a" }
-        };
+        using var readChunks = new BlockingCollection<IReadOnlyList<string>> { new List<string> { "a" } };
 
-        using var enumerator = new ChunkEnumerator<string>(
-            readChunks,
-            tokenSource.Token);
+        using var enumerator = new ChunkEnumerator<string>(readChunks, tokenSource.Token);
 
         tokenSource.Cancel();
 
@@ -61,9 +53,7 @@ public class ChunkEnumeratorTests
     public void Current_WhenEnumerationHasNotStarted_ShouldThrowInvalidOperationException()
     {
         using var readChunks = new BlockingCollection<IReadOnlyList<string>>();
-        using var enumerator = new ChunkEnumerator<string>(
-            readChunks,
-            CancellationToken.None);
+        using var enumerator = new ChunkEnumerator<string>(readChunks, CancellationToken.None);
 
         Assert.Throws<InvalidOperationException>(() => _ = enumerator.Current);
     }
@@ -71,14 +61,9 @@ public class ChunkEnumeratorTests
     [TestMethod]
     public void Current_WhenEnumerationFinished_ShouldThrowInvalidOperationException()
     {
-        using var readChunks = new BlockingCollection<IReadOnlyList<string>>
-        {
-            new List<string> { "a" }
-        };
+        using var readChunks = new BlockingCollection<IReadOnlyList<string>> { new List<string> { "a" } };
         readChunks.CompleteAdding();
-        using var enumerator = new ChunkEnumerator<string>(
-            readChunks,
-            CancellationToken.None);
+        using var enumerator = new ChunkEnumerator<string>(readChunks, CancellationToken.None);
 
         Assert.IsTrue(enumerator.MoveNext());
         Assert.IsFalse(enumerator.MoveNext());
@@ -89,13 +74,8 @@ public class ChunkEnumeratorTests
     [TestMethod]
     public void Current_WhenEnumeratorDisposed_ShouldThrowInvalidOperationException()
     {
-        using var readChunks = new BlockingCollection<IReadOnlyList<string>>
-        {
-            new List<string> { "a" }
-        };
-        using var enumerator = new ChunkEnumerator<string>(
-            readChunks,
-            CancellationToken.None);
+        using var readChunks = new BlockingCollection<IReadOnlyList<string>> { new List<string> { "a" } };
+        using var enumerator = new ChunkEnumerator<string>(readChunks, CancellationToken.None);
 
         Assert.IsTrue(enumerator.MoveNext());
         enumerator.Dispose();

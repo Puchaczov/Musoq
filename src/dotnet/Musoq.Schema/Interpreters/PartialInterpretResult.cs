@@ -7,9 +7,7 @@ namespace Musoq.Schema.Interpreters;
 public sealed class PartialInterpretResult<TOut>
 {
     public PartialInterpretResult(TOut result, IReadOnlySet<string> completedFields, int bytesConsumed)
-        : this(result, completedFields, bytesConsumed, 0)
-    {
-    }
+        : this(result, completedFields, bytesConsumed, 0) { }
 
     public PartialInterpretResult(TOut result, IReadOnlySet<string> completedFields, int bytesConsumed, int bitOffset)
     {
@@ -23,14 +21,23 @@ public sealed class PartialInterpretResult<TOut>
         BitOffset = bitOffset;
     }
 
-    public PartialInterpretResult(TOut? parsedFields, IReadOnlySet<string> completedFields, int bytesConsumed,
-        string errorField, string errorMessage)
-        : this(parsedFields, completedFields, bytesConsumed, errorField, errorMessage, 0)
-    {
-    }
+    public PartialInterpretResult(
+        TOut? parsedFields,
+        IReadOnlySet<string> completedFields,
+        int bytesConsumed,
+        string errorField,
+        string errorMessage
+    )
+        : this(parsedFields, completedFields, bytesConsumed, errorField, errorMessage, 0) { }
 
-    public PartialInterpretResult(TOut? parsedFields, IReadOnlySet<string> completedFields, int bytesConsumed,
-        string errorField, string errorMessage, int bitOffset)
+    public PartialInterpretResult(
+        TOut? parsedFields,
+        IReadOnlySet<string> completedFields,
+        int bytesConsumed,
+        string errorField,
+        string errorMessage,
+        int bitOffset
+    )
     {
         ArgumentOutOfRangeException.ThrowIfNegative(bitOffset);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(bitOffset, 7);

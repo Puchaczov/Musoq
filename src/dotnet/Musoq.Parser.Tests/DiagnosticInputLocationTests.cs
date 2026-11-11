@@ -15,7 +15,8 @@ public sealed class DiagnosticInputLocationTests
         var exception = new RuntimeInputDiagnosticException(
             RuntimeInputFailureReason.MalformedJson,
             inputLocation: new DiagnosticInputLocation(line: 2, column: 4, byteOffset: 19),
-            innerException: innerException);
+            innerException: innerException
+        );
 
         var wrapped = new InvalidOperationException("wrapper detail", exception);
         var diagnostic = wrapped.ToDiagnosticOrGeneric();
@@ -46,7 +47,8 @@ public sealed class DiagnosticInputLocationTests
             RuntimeInputFailureReason.UnterminatedQuotedField,
             DiagnosticSourceKind.DataSource,
             new DiagnosticInputLocation(byteOffset: 41),
-            new InvalidDataException(sensitiveDetail));
+            new InvalidDataException(sensitiveDetail)
+        );
 
         var safe = MusoqErrorEnvelope.FromException(exception);
         var verbose = MusoqErrorEnvelope.FromExceptionVerbose(exception);

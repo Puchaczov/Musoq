@@ -14,7 +14,10 @@ public class BasicSchemaProvider<T>(IDictionary<string, IEnumerable<T>> values) 
         if (!Values.TryGetValue(schema, out var value))
             throw new SourceNotFoundException($"Schema '{schema}' was not found.");
 
-        return new GenericSchema<BasicEntity, BasicEntityTable>(value, BasicEntity.TestNameToIndexMap,
-            BasicEntity.TestIndexToObjectAccessMap);
+        return new GenericSchema<BasicEntity, BasicEntityTable>(
+            value,
+            BasicEntity.TestNameToIndexMap,
+            BasicEntity.TestIndexToObjectAccessMap
+        );
     }
 }

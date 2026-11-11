@@ -14,15 +14,10 @@ public partial class OrderByTests
         const string query = "select City as SortKey, Money from #A.Entities() order by SortKey";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] =
-            [
-                new BasicEntity("zeta", "city", 1m),
-                new BasicEntity("alpha", "city", 2m)
-            ]
+            ["#A"] = [new BasicEntity("zeta", "city", 1m), new BasicEntity("alpha", "city", 2m)],
         };
 
-        var analysis = new QueryAnalyzer(
-            new BasicSchemaProvider<BasicEntity>(sources)).Analyze(query);
+        var analysis = new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(sources)).Analyze(query);
 
         Assert.IsFalse(analysis.HasErrors, string.Join(" | ", analysis.Diagnostics));
         Assert.IsFalse(analysis.Warnings.Any(static warning => (int)warning.Code == 5009));
@@ -31,9 +26,7 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["alpha", 2m], ["zeta", 1m]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["alpha", 2m], ["zeta", 1m]);
     }
 
     [TestMethod]
@@ -44,21 +37,20 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c", "mar", 300m),
                     new BasicEntity("a", "jan", 100m),
-                    new BasicEntity("b", "feb", 200m)
+                    new BasicEntity("b", "feb", 200m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("CityName", typeof(string)), ("Amount", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["a", 100m], ["b", 200m], ["c", 300m]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["a", 100m], ["b", 200m], ["c", 300m]);
     }
 
     [TestMethod]
@@ -69,21 +61,20 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("cracow", "poland", 100) { Money = 10m },
                     new BasicEntity("warsaw", "poland", 500) { Money = 20m },
-                    new BasicEntity("gdansk", "poland", 200) { Money = 5m }
+                    new BasicEntity("gdansk", "poland", 200) { Money = 5m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Total", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["warsaw", 520m], ["gdansk", 205m], ["cracow", 110m]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["warsaw", 520m], ["gdansk", 205m], ["cracow", 110m]);
     }
 
     [TestMethod]
@@ -94,12 +85,13 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("cracow", "jan", 300m),
                     new BasicEntity("amsterdam", "feb", 100m),
-                    new BasicEntity("berlin", "mar", 200m)
+                    new BasicEntity("berlin", "mar", 200m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -108,7 +100,10 @@ public partial class OrderByTests
         TableMaterializationTestHelper.AssertColumns(table, ("CityName", typeof(string)), ("Amount", typeof(decimal)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            ["amsterdam", 100m], ["berlin", 200m], ["cracow", 300m]);
+            ["amsterdam", 100m],
+            ["berlin", 200m],
+            ["cracow", 300m]
+        );
     }
 
     [TestMethod]
@@ -119,15 +114,16 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a", "jan", 100m),
                     new BasicEntity("a", "feb", 200m),
                     new BasicEntity("a", "mar", 300m),
                     new BasicEntity("b", "apr", 400m),
                     new BasicEntity("b", "may", 500m),
-                    new BasicEntity("c", "jun", 600m)
+                    new BasicEntity("c", "jun", 600m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -145,13 +141,14 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a", "jan", 100m),
                     new BasicEntity("a", "feb", 200m),
                     new BasicEntity("b", "mar", 500m),
-                    new BasicEntity("c", "apr", 50m)
+                    new BasicEntity("c", "apr", 50m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -169,12 +166,13 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a", "jan", 100m),
                     new BasicEntity("b", "feb", 300m),
-                    new BasicEntity("c", "mar", 200m)
+                    new BasicEntity("c", "mar", 200m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -192,12 +190,13 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a", "jan", 100m),
                     new BasicEntity("b", "feb", 300m),
-                    new BasicEntity("c", "mar", 200m)
+                    new BasicEntity("c", "mar", 200m),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -215,14 +214,40 @@ public partial class OrderByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "alpha", Population = 100m, Money = 10m },
-                    new BasicEntity { Name = "bravo", Population = 60m, Money = 20m },
-                    new BasicEntity { Name = "charlie", Population = 70m, Money = 5m },
-                    new BasicEntity { Name = "delta", Population = 30m, Money = 35m },
-                    new BasicEntity { Name = "echo", Population = 20m, Money = 1m }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "alpha",
+                        Population = 100m,
+                        Money = 10m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "bravo",
+                        Population = 60m,
+                        Money = 20m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "charlie",
+                        Population = 70m,
+                        Money = 5m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "delta",
+                        Population = 30m,
+                        Money = 35m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "echo",
+                        Population = 20m,
+                        Money = 1m,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

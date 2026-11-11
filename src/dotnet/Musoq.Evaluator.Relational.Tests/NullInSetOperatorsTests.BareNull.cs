@@ -77,11 +77,16 @@ public partial class NullInSetOperatorsTests
     [DataRow("null", "e.Id", "8", new object?[] { null, 7, 8 })]
     [DataRow("null", "null", "e.Id", new object?[] { null, null, 7 })]
     [DataRow("e.Id", "null", "null", new object?[] { 7, null, null })]
-    public void ThreeWayBareNullUnion_ShouldPropagateNullableCarriers(string first, string second, string third,
-        object?[] expected)
+    public void ThreeWayBareNullUnion_ShouldPropagateNullableCarriers(
+        string first,
+        string second,
+        string third,
+        object?[] expected
+    )
     {
-        var sql = $"select {first} as K from #A.Entities() e union all (K) " +
-                  $"select {second} as K from #A.Entities() e union all (K) select {third} as K from #A.Entities() e";
+        var sql =
+            $"select {first} as K from #A.Entities() e union all (K) "
+            + $"select {second} as K from #A.Entities() e union all (K) select {third} as K from #A.Entities() e";
         using var query = CreateAndRunVirtualMachine(sql, SetNullSources());
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -96,8 +101,9 @@ public partial class NullInSetOperatorsTests
     {
         const string value = "select r.K as K from #A.Entities() e cross apply Interpret<R>(FromHexToBytes('01')) r";
         const string missing = "select null as K from #A.Entities() e";
-        var sql = "binary R { K: byte } " +
-                  (nullFirst ? $"{missing} union all (K) {value}" : $"{value} union all (K) {missing}");
+        var sql =
+            "binary R { K: byte } "
+            + (nullFirst ? $"{missing} union all (K) {value}" : $"{value} union all (K) {missing}");
         using var query = CreateAndRunVirtualMachine(sql, SetNullSources());
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -108,8 +114,9 @@ public partial class NullInSetOperatorsTests
     [TestMethod]
     public void NullFirstSetCte_ShouldPreserveLeftColumnNameAndNullableType()
     {
-        const string sql = "with q as (select null as K from #A.Entities() e union all (K) " +
-                           "select e.Id as Other from #A.Entities() e) select q.K from q";
+        const string sql =
+            "with q as (select null as K from #A.Entities() e union all (K) "
+            + "select e.Id as Other from #A.Entities() e) select q.K from q";
         using var query = CreateAndRunVirtualMachine(sql, SetNullSources());
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -120,10 +127,15 @@ public partial class NullInSetOperatorsTests
     [TestMethod]
     public void TypedNullWorkaround_ShouldRetainUnreachableCaseWarning()
     {
-        const string sql = "select e.Id as K from #A.Entities() e union all (K) " +
-                           "select case when 1 = 0 then ToInt32(0) else null end as K from #A.Entities() e";
-        var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(),
-            new BasicSchemaProvider<BasicEntity>(SetNullSources()), LoggerResolver);
+        const string sql =
+            "select e.Id as K from #A.Entities() e union all (K) "
+            + "select case when 1 = 0 then ToInt32(0) else null end as K from #A.Entities() e";
+        var inspection = InstanceCreator.CompileForInspection(
+            sql,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(SetNullSources()),
+            LoggerResolver
+        );
 
         Assert.IsTrue(inspection.Warnings.Any(warning => warning.Code == DiagnosticCode.MQ5008_UnreachableCode));
     }
@@ -133,8 +145,11 @@ public partial class NullInSetOperatorsTests
     {
         const string sql = "select e.Id as K from #A.Entities() e union all (K) select null as K from #A.Entities() e";
         using var query = CreateAndRunVirtualMachine(sql, SetNullSources());
-        var boxedMethods = GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query)
-            .Where(GeneratedExecutionIlInspection.ContainsBoxOpcode).Select(static method => method.Name).ToArray();
+        var boxedMethods = GeneratedExecutionIlInspection
+            .GetGeneratedComputeMethods(query)
+            .Where(GeneratedExecutionIlInspection.ContainsBoxOpcode)
+            .Select(static method => method.Name)
+            .ToArray();
 
         Assert.IsEmpty(boxedMethods, string.Join(", ", boxedMethods));
     }
@@ -148,8 +163,12 @@ public partial class NullInSetOperatorsTests
             ? "binary R { K: byte } select r.K as K from #A.Entities() e cross apply Interpret<R>(FromHexToBytes('01')) r"
             : "select e.Id as K from #A.Entities() e";
         sql += " union all (K) select null as K from #A.Entities() e";
-        var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(),
-            new BasicSchemaProvider<BasicEntity>(SetNullSources()), LoggerResolver);
+        var inspection = InstanceCreator.CompileForInspection(
+            sql,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(SetNullSources()),
+            LoggerResolver
+        );
 
         TestContext.WriteLine(inspection.GeneratedCSharpCode);
         Assert.DoesNotContain("StrictCastRuntime.", inspection.GeneratedCSharpCode);
@@ -157,8 +176,6 @@ public partial class NullInSetOperatorsTests
         Assert.DoesNotContain("DynamicInvoke", inspection.GeneratedCSharpCode);
     }
 
-    private static Dictionary<string, IEnumerable<BasicEntity>> SetNullSources() => new()
-    {
-        ["#A"] = [new BasicEntity("seven") { Id = 7 }]
-    };
+    private static Dictionary<string, IEnumerable<BasicEntity>> SetNullSources() =>
+        new() { ["#A"] = [new BasicEntity("seven") { Id = 7 }] };
 }

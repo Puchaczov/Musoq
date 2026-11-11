@@ -24,32 +24,44 @@ public sealed partial class RewriteQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var rewritten = node is Parser.SchemaFromNode schemaFromNode
-            ? new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
-                node.QueryId, schemaFromNode.HasExternallyProvidedTypes)
-            : new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
-                node.QueryId, false);
-        if (node.SchemaSpan is { } schemaSpan) rewritten.WithSchemaSpan(schemaSpan);
-        if (node.MethodSpan is { } methodSpan) rewritten.WithMethodSpan(methodSpan);
-        if (node is Parser.SchemaFromNode boundSource &&
-            boundSource.BoundInvocation is { } boundInvocation)
+            ? new Parser.SchemaFromNode(
+                node.Schema,
+                node.Method,
+                (ArgsListNode)Nodes.Pop(),
+                node.Alias,
+                node.QueryId,
+                schemaFromNode.HasExternallyProvidedTypes
+            )
+            : new Parser.SchemaFromNode(
+                node.Schema,
+                node.Method,
+                (ArgsListNode)Nodes.Pop(),
+                node.Alias,
+                node.QueryId,
+                false
+            );
+        if (node.SchemaSpan is { } schemaSpan)
+            rewritten.WithSchemaSpan(schemaSpan);
+        if (node.MethodSpan is { } methodSpan)
+            rewritten.WithMethodSpan(methodSpan);
+        if (node is Parser.SchemaFromNode boundSource && boundSource.BoundInvocation is { } boundInvocation)
             rewritten.SetBoundInvocation(boundInvocation);
         if (node is Parser.SchemaFromNode metadataSource)
-            rewritten.SetStaticMetadataArguments(metadataSource.StaticMetadataArguments, metadataSource.HasRequiredRuntimeArguments);
+            rewritten.SetStaticMetadataArguments(
+                metadataSource.StaticMetadataArguments,
+                metadataSource.HasRequiredRuntimeArguments
+            );
         Nodes.Push(rewritten);
     }
 
-    public void Visit(JoinSourcesTableFromNode node)
-    {
-    }
+    public void Visit(JoinSourcesTableFromNode node) { }
 
     public void Visit(ApplySourcesTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var second = (FromNode)Nodes.Pop();
 
-
         var first = (FromNode)Nodes.Pop();
-
 
         Nodes.Push(new Parser.ApplySourcesTableFromNode(first, second, node.ApplyType, node.WithOrdinality));
     }
@@ -71,8 +83,7 @@ public sealed partial class RewriteQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var right = (FromNode)Nodes.Pop();
         var left = (FromNode)Nodes.Pop();
-        var newApply = new Parser.ApplyFromNode(left, right, node.ApplyType, node.WithOrdinality)
-            .CopySpansFrom(node);
+        var newApply = new Parser.ApplyFromNode(left, right, node.ApplyType, node.WithOrdinality).CopySpansFrom(node);
         Nodes.Push(newApply);
 
         _joinedTables.Add(newApply);
@@ -130,20 +141,26 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(AccessMethodFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new AccessMethodFromNode(node.Alias, node.SourceAlias, node.AccessMethod, node.ReturnType ?? typeof(object)));
+        Nodes.Push(
+            new AccessMethodFromNode(node.Alias, node.SourceAlias, node.AccessMethod, node.ReturnType ?? typeof(object))
+        );
     }
 
     public void Visit(InterpretFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var interpretCall = Nodes.Pop();
-        Nodes.Push(new InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType ?? typeof(object))
-            .CopySpansFrom(node));
+        Nodes.Push(
+            new InterpretFromNode(
+                node.Alias,
+                interpretCall,
+                node.ApplyType,
+                node.ReturnType ?? typeof(object)
+            ).CopySpansFrom(node)
+        );
     }
 
-    public void Visit(SchemaMethodFromNode node)
-    {
-    }
+    public void Visit(SchemaMethodFromNode node) { }
 
     public void Visit(PropertyFromNode node)
     {
@@ -155,7 +172,8 @@ public sealed partial class RewriteQueryVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var identifier = node.Identifier;
-        if (identifier == "Interpret" || identifier == "Parse" || identifier == "InterpretAt") Nodes.Push(node);
+        if (identifier == "Interpret" || identifier == "Parse" || identifier == "InterpretAt")
+            Nodes.Push(node);
     }
 
     public void Visit(JoinInMemoryWithSourceTableFromNode node)
@@ -164,17 +182,30 @@ public sealed partial class RewriteQueryVisitor
         var tieBreak = node.TieBreak == null ? null : (FieldOrderedNode)Nodes.Pop();
         var exp = Nodes.Pop();
         var from = (FromNode)Nodes.Pop();
-        Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(
-            node.InMemoryTableAlias, from, exp, node.JoinType,
-            (node as Parser.JoinInMemoryWithSourceTableFromNode)?.InMemoryTableVariableName,
-            tieBreak));
+        Nodes.Push(
+            new Parser.JoinInMemoryWithSourceTableFromNode(
+                node.InMemoryTableAlias,
+                from,
+                exp,
+                node.JoinType,
+                (node as Parser.JoinInMemoryWithSourceTableFromNode)?.InMemoryTableVariableName,
+                tieBreak
+            )
+        );
     }
 
     public void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var from = (FromNode)Nodes.Pop();
-        Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType, node.WithOrdinality));
+        Nodes.Push(
+            new Parser.ApplyInMemoryWithSourceTableFromNode(
+                node.InMemoryTableAlias,
+                from,
+                node.ApplyType,
+                node.WithOrdinality
+            )
+        );
     }
 
     public void Visit(JoinNode node)

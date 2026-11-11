@@ -32,11 +32,7 @@ internal static class ExecutionPlanInventory
             .CollectExpressions<ExecutionStoredTableRows>(block)
             .Select(static rows => rows.TableIndex);
 
-        return storedTableIndexes
-            .Concat(storedTableReads)
-            .Concat(storedTableRowReads)
-            .DefaultIfEmpty(-1)
-            .Max();
+        return storedTableIndexes.Concat(storedTableReads).Concat(storedTableRowReads).DefaultIfEmpty(-1).Max();
     }
 
     public static int FindMaxCteIndexSlot(ExecutionBlock block)
@@ -48,9 +44,6 @@ internal static class ExecutionPlanInventory
             .CollectNodes<ExecutionLoadCteIndex>(block)
             .Select(static load => load.IndexSlot);
 
-        return storeSlots
-            .Concat(loadSlots)
-            .DefaultIfEmpty(-1)
-            .Max();
+        return storeSlots.Concat(loadSlots).DefaultIfEmpty(-1).Max();
     }
 }

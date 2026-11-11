@@ -10,7 +10,8 @@ public sealed record SourceEntityShape : RowShape
         string alias,
         ExecutionTypeRef entityType,
         IReadOnlyList<FieldBinding> fields,
-        string? generatedTypeName = null)
+        string? generatedTypeName = null
+    )
         : base(alias, fields)
     {
         Alias = alias;
@@ -31,8 +32,11 @@ public sealed record SourceEntityShape : RowShape
         init => _fields = ExecutionIrCollections.Freeze(value);
     }
 
-    internal SourceEntityShape(string alias, Type entityType, IReadOnlyList<FieldBinding> fields, string? generatedTypeName = null)
-        : this(alias, ExecutionClrBindingFactory.FromClr(entityType), fields, generatedTypeName)
-    {
-    }
+    internal SourceEntityShape(
+        string alias,
+        Type entityType,
+        IReadOnlyList<FieldBinding> fields,
+        string? generatedTypeName = null
+    )
+        : this(alias, ExecutionClrBindingFactory.FromClr(entityType), fields, generatedTypeName) { }
 }

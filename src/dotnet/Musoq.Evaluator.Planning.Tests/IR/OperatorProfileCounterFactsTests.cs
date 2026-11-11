@@ -31,13 +31,17 @@ public sealed class OperatorProfileCounterFactsTests
         var matchesLoop = new ExecutionForEach(
             row,
             new ExecutionVariableRead(new ExecutionVariable("hashMatches", typeof(IEnumerable<object>))),
-            new ExecutionBlock([]));
+            new ExecutionBlock([])
+        );
 
         Assert.IsTrue(OperatorProfileCounterFacts.IsCounterOnlyNode(new ExecutionAppendExistingRow(table, row)));
         Assert.IsTrue(OperatorProfileCounterFacts.IsCounterOnlyNode(matchesLoop));
         Assert.IsFalse(OperatorProfileCounterFacts.IsCounterOnlyNode(new ExecutionContinue()));
-        Assert.IsTrue(OperatorProfileCounterFacts.IsCounterOnlyDescriptor(
-            CreateDescriptor("op3", "ForEach", "ForEach [b in hashMatches]")));
+        Assert.IsTrue(
+            OperatorProfileCounterFacts.IsCounterOnlyDescriptor(
+                CreateDescriptor("op3", "ForEach", "ForEach [b in hashMatches]")
+            )
+        );
     }
 
     [TestMethod]
@@ -50,34 +54,39 @@ public sealed class OperatorProfileCounterFactsTests
             new ExecutionLiteral(1, typeof(int)),
             typeof(int),
             typeof(object),
-            new ExecutionBlock([]));
+            new ExecutionBlock([])
+        );
 
         var input = OperatorProfileCounterFacts.CreateCounterInputRowStatements(descriptor, probe).Single();
-        var output = OperatorProfileCounterFacts.CreateCounterOutputRowStatements(
-            CreateDescriptor("op4", "AppendExistingRow"),
-            new ExecutionAppendExistingRow(new ExecutionVariable("result", typeof(Table)), new ExecutionVariable("row", typeof(object))))
+        var output = OperatorProfileCounterFacts
+            .CreateCounterOutputRowStatements(
+                CreateDescriptor("op4", "AppendExistingRow"),
+                new ExecutionAppendExistingRow(
+                    new ExecutionVariable("result", typeof(Table)),
+                    new ExecutionVariable("row", typeof(object))
+                )
+            )
             .Single();
         var flush = OperatorProfileCounterFacts.CreateCounterFlushStatement(
             "profileRecorder",
             nameof(QueryProfileRecorder.AddOperatorOutputRows),
             descriptor,
-            "__op2OutputRows");
+            "__op2OutputRows"
+        );
 
         Assert.AreEqual("__op2InputRows += 1;", Render(input));
         Assert.AreEqual("__op4OutputRows += 1;", Render(output));
         StringAssert.Contains(Render(flush), "profileRecorder?.AddOperatorOutputRows(__op2Handle, __op2OutputRows);");
     }
 
-    private static ExecutionPlanOperatorDescriptor CreateDescriptor(
-        string id,
-        string kind,
-        string? displayName = null)
+    private static ExecutionPlanOperatorDescriptor CreateDescriptor(string id, string kind, string? displayName = null)
     {
         return new ExecutionPlanOperatorDescriptor(
             id,
             displayName ?? kind,
             kind,
-            ExecutionPlanOperatorRowCountStrategy.RowProducer);
+            ExecutionPlanOperatorRowCountStrategy.RowProducer
+        );
     }
 
     private static string Render(StatementSyntax statement)

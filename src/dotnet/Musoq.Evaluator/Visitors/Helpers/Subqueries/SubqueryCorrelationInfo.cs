@@ -10,7 +10,8 @@ internal sealed record SubqueryCorrelationInfo(
     IReadOnlySet<string> CorrelatedAliases,
     IReadOnlySet<string> IllegalOuterConsumingCteAliases,
     SubqueryCorrelationFacts Facts,
-    bool IsInsideCteDefinition)
+    bool IsInsideCteDefinition
+)
 {
     public bool IsCorrelated => CorrelatedAliases.Count > 0;
 

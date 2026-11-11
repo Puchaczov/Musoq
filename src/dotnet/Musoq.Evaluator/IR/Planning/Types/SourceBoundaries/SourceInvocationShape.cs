@@ -4,5 +4,5 @@ internal enum SourceInvocationShape
 {
     PerQuery,
     PerRow,
-    Unknown
+    Unknown,
 }

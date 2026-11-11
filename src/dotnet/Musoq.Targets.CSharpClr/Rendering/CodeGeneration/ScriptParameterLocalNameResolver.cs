@@ -6,7 +6,8 @@ namespace Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 internal static class ScriptParameterLocalNameResolver
 {
     public static IReadOnlyDictionary<string, string> CreateLocalNameMap(
-        IReadOnlyList<ScriptParameterDefinition> definitions)
+        IReadOnlyList<ScriptParameterDefinition> definitions
+    )
     {
         if (definitions == null || definitions.Count == 0)
             return new Dictionary<string, string>(StringComparer.Ordinal);
@@ -42,14 +43,10 @@ internal static class ScriptParameterLocalNameResolver
                 continue;
             }
 
-            builder.Append(capitalizeNext
-                ? char.ToUpperInvariant(character)
-                : character);
+            builder.Append(capitalizeNext ? char.ToUpperInvariant(character) : character);
             capitalizeNext = false;
         }
 
-        return builder.Length == "param".Length
-            ? "paramValue"
-            : builder.ToString();
+        return builder.Length == "param".Length ? "paramValue" : builder.ToString();
     }
 }

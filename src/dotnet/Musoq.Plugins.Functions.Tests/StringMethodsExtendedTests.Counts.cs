@@ -9,7 +9,6 @@ namespace Musoq.Plugins.Tests;
 /// </summary>
 public partial class StringMethodsExtendedTests
 {
-
     [TestMethod]
     public void WordCount_EmptyString_ReturnsZero()
     {
@@ -171,5 +170,4 @@ public partial class StringMethodsExtendedTests
     {
         Assert.AreEqual(1, Library.SentenceCount(".Hello"));
     }
-
 }

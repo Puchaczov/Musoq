@@ -10,7 +10,8 @@ public sealed record JoinNode(
     LogicalNode Left,
     LogicalNode Right,
     OrderField? TieBreak = null,
-    bool WithOrdinality = false) : LogicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
+    bool WithOrdinality = false
+) : LogicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = [Left, Right];
 }

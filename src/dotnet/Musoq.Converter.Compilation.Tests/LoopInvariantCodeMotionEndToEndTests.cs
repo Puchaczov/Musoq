@@ -21,7 +21,8 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
         var on = Run(
             "select a.Value, b.Value, c.Value from #licm.outers() a cross apply a.Middles b cross apply b.Leaves c",
             enabled: true,
-            useCse: false);
+            useCse: false
+        );
 
         Assert.AreEqual(24, on.RowCount);
         Assert.AreEqual(2, on.OuterValueReads);
@@ -31,7 +32,8 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
         var off = Run(
             "select a.Value, b.Value, c.Value from #licm.outers() a cross apply a.Middles b cross apply b.Leaves c",
             enabled: false,
-            useCse: false);
+            useCse: false
+        );
 
         Assert.AreEqual(24, off.RowCount);
         Assert.AreEqual(6, off.OuterValueReads);
@@ -43,8 +45,7 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
     [TestMethod]
     public void LicmAndCseToggles_ShouldRemainIndependent()
     {
-        const string query =
-            "select a.Value, a.Value from #licm.outers() a cross apply a.Middles b";
+        const string query = "select a.Value, a.Value from #licm.outers() a cross apply a.Middles b";
 
         var licmOnCseOff = Run(query, enabled: true, useCse: false);
         var licmOffCseOn = Run(query, enabled: false, useCse: true);
@@ -64,7 +65,8 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
         var result = Run(
             "select a.VolatileValue, b.Value, c.Value from #licm.outers() a cross apply a.Middles b cross apply b.Leaves c",
             enabled: true,
-            useCse: false);
+            useCse: false
+        );
 
         Assert.AreEqual(24, result.RowCount);
         Assert.AreEqual(6, result.OuterVolatileValueReads);
@@ -78,7 +80,8 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
         var result = Run(
             "select a.StableOf(a.Value), a.StablePair(a.Value, b.Value), a.VolatileOf(b.Value), a.VolatileOf(b.Value) from #licm.outers() a cross apply a.Middles b",
             enabled: true,
-            useCse: true);
+            useCse: true
+        );
 
         Assert.AreEqual(6, result.RowCount);
         Assert.AreEqual(2, result.StableOuterFunctionCalls);
@@ -92,7 +95,8 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
         var result = Run(
             "select a.VolatileOf(c.Value), a.VolatileOf(c.Value) from #licm.outers() a cross apply a.Middles b cross apply b.Leaves c",
             enabled: true,
-            useCse: true);
+            useCse: true
+        );
 
         Assert.AreEqual(24, result.RowCount);
         Assert.AreEqual(48, result.VolatileFunctionCalls);
@@ -104,7 +108,8 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
         var result = Run(
             "select a.Value, b.VolatileValue from #licm.outers() a cross apply a.EmptyMiddles b",
             enabled: true,
-            useCse: false);
+            useCse: false
+        );
 
         Assert.AreEqual(0, result.RowCount);
         Assert.AreEqual(2, result.OuterValueReads);
@@ -114,7 +119,8 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
     [TestMethod]
     public void OuterApplyAndOrdinality_ShouldPreserveNullAndOrderParity()
     {
-        var query = "select a.Id, a.Value, b.Ordinal from #licm.outers() a outer apply a.EmptyMiddles b with ordinality order by a.Id, b.Ordinal";
+        var query =
+            "select a.Id, a.Value, b.Ordinal from #licm.outers() a outer apply a.EmptyMiddles b with ordinality order by a.Id, b.Ordinal";
         var on = Run(query, enabled: true, useCse: false);
         var off = Run(query, enabled: false, useCse: false);
 
@@ -133,7 +139,7 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
             "select a.Id, b.Value from #licm.outers() a cross apply a.Middles b where b.Value > 0 order by a.Id, b.Value",
             "select a.Id, sum(a.StablePair(a.Value, b.Value)) from #licm.outers() a cross apply a.Middles b group by a.Id order by a.Id",
             "with x as (select a.Id, a.Value from #licm.outers() a) select x.Id, x.Value from x order by x.Id",
-            "with x as (select a.Id, a.Value from #licm.outers() a) select x.Id, x.Value from x cross apply #licm.outers() y where y.Id = x.Id order by x.Id"
+            "with x as (select a.Id, a.Value from #licm.outers() a) select x.Id, x.Value from x cross apply #licm.outers() y where y.Id = x.Id order by x.Id",
         };
 
         foreach (var query in queries)
@@ -152,7 +158,8 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
             "LicmGeneratedShape",
             new LoopInvariantSchemaProvider(),
             _loggerResolver,
-            CreateOptions(enabled: true, useCse: false));
+            CreateOptions(enabled: true, useCse: false)
+        );
 
         Assert.IsNotNull(inspection.GeneratedCSharpCode);
         var tree = CSharpSyntaxTree.ParseText(inspection.GeneratedCSharpCode);
@@ -163,12 +170,17 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
             .ToArray();
 
         CollectionAssert.Contains(locals, "aValue");
-        Assert.IsTrue(locals.Any(static name =>
-            name.StartsWith("ab", StringComparison.Ordinal) &&
-            name.EndsWith("Value", StringComparison.Ordinal)));
-        Assert.IsFalse(locals.Any(static name =>
-            name.Contains("initialized", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("cache", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            locals.Any(static name =>
+                name.StartsWith("ab", StringComparison.Ordinal) && name.EndsWith("Value", StringComparison.Ordinal)
+            )
+        );
+        Assert.IsFalse(
+            locals.Any(static name =>
+                name.Contains("initialized", StringComparison.OrdinalIgnoreCase)
+                || name.Contains("cache", StringComparison.OrdinalIgnoreCase)
+            )
+        );
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("??=", StringComparison.Ordinal));
     }
 
@@ -180,11 +192,15 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
             $"Licm_{Guid.NewGuid():N}",
             new LoopInvariantSchemaProvider(),
             _loggerResolver,
-            CreateOptions(enabled, useCse));
+            CreateOptions(enabled, useCse)
+        );
         using var table = compiled.Run();
         var rowCount = table.Count;
-        var values = Enumerable.Range(0, rowCount)
-            .Select(row => Enumerable.Range(0, table.Columns.Count()).Select(column => table[row].ReadValue(column)).ToArray())
+        var values = Enumerable
+            .Range(0, rowCount)
+            .Select(row =>
+                Enumerable.Range(0, table.Columns.Count()).Select(column => table[row].ReadValue(column)).ToArray()
+            )
             .ToArray();
 
         return new RunResult(
@@ -197,15 +213,16 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
             LoopInvariantCounters.LeafValueReads,
             LoopInvariantCounters.StableOuterFunctionCalls,
             LoopInvariantCounters.StablePairFunctionCalls,
-            LoopInvariantCounters.VolatileFunctionCalls);
+            LoopInvariantCounters.VolatileFunctionCalls
+        );
     }
 
     private static CompilationOptions CreateOptions(bool enabled, bool useCse)
     {
         return new CompilationOptions(
-                ParallelizationMode.None,
-                useCommonSubexpressionElimination: useCse)
-            .WithLoopInvariantCodeMotion(enabled);
+            ParallelizationMode.None,
+            useCommonSubexpressionElimination: useCse
+        ).WithLoopInvariantCodeMotion(enabled);
     }
 
     private static void AssertTablesEqual(object?[][] expected, object?[][] actual)
@@ -229,5 +246,6 @@ public sealed class LoopInvariantCodeMotionEndToEndTests
         int LeafValueReads,
         int StableOuterFunctionCalls,
         int StablePairFunctionCalls,
-        int VolatileFunctionCalls);
+        int VolatileFunctionCalls
+    );
 }

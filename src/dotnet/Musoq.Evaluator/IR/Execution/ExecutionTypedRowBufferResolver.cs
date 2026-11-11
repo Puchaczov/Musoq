@@ -9,11 +9,13 @@ internal static class ExecutionTypedRowBufferResolver
 {
     public static IReadOnlyDictionary<string, GeneratedRowShape> Resolve(
         ExecutionBlock block,
-        string? finalShapeTableName = null)
+        string? finalShapeTableName = null
+    )
     {
         var result = new Dictionary<string, GeneratedRowShape>(
             ResolveSetOperationTypedRowBuffers(block, finalShapeTableName),
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
 
         foreach (var (name, rowShape) in ResolveMaterializedGeneratedRowTypedBuffers(block))
             result.TryAdd(name, rowShape);
@@ -23,7 +25,8 @@ internal static class ExecutionTypedRowBufferResolver
 
     private static IReadOnlyDictionary<string, GeneratedRowShape> ResolveSetOperationTypedRowBuffers(
         ExecutionBlock block,
-        string? finalShapeTableName)
+        string? finalShapeTableName
+    )
     {
         var rowShapesByTableName = CreateTableRowShapeMap(block);
         var candidates = new HashSet<string>(StringComparer.Ordinal);
@@ -36,21 +39,29 @@ internal static class ExecutionTypedRowBufferResolver
         var blocked = CreateBlockedSetOperationTypedRowBuffers(
             nodes,
             tableStoredNames,
-            structurallyDemandedStoredNames);
+            structurallyDemandedStoredNames
+        );
 
-        foreach (var setOperation in nodes
-                     .OfType<ExecutionSetOperation>()
-                     .Where(setOperation => CanUseTypedSetOperationBuffers(
-                         setOperation,
-                         tableStoredNames,
-                         structurallyDemandedStoredNames,
-                         blocked)))
+        foreach (
+            var setOperation in nodes
+                .OfType<ExecutionSetOperation>()
+                .Where(setOperation =>
+                    CanUseTypedSetOperationBuffers(
+                        setOperation,
+                        tableStoredNames,
+                        structurallyDemandedStoredNames,
+                        blocked
+                    )
+                )
+        )
         {
             candidates.Add(setOperation.Left.Name);
             candidates.Add(setOperation.Right.Name);
 
-            if (finalShapeTableName == null ||
-                !string.Equals(setOperation.Target.Name, finalShapeTableName, StringComparison.Ordinal))
+            if (
+                finalShapeTableName == null
+                || !string.Equals(setOperation.Target.Name, finalShapeTableName, StringComparison.Ordinal)
+            )
             {
                 candidates.Add(setOperation.Target.Name);
             }
@@ -63,21 +74,26 @@ internal static class ExecutionTypedRowBufferResolver
 
             foreach (var node in nodes)
             {
-                if (ExecutionNodeFacts.TryGetTablePostOperation(node, out var postOperation) &&
-                    candidates.Contains(postOperation.Target.Name) &&
-                    candidates.Add(postOperation.Source.Name))
+                if (
+                    ExecutionNodeFacts.TryGetTablePostOperation(node, out var postOperation)
+                    && candidates.Contains(postOperation.Target.Name)
+                    && candidates.Add(postOperation.Source.Name)
+                )
                 {
                     changed = true;
                     continue;
                 }
 
-                if (node is ExecutionSetOperation setOperation &&
-                    CanUseTypedSetOperationBuffers(
+                if (
+                    node is ExecutionSetOperation setOperation
+                    && CanUseTypedSetOperationBuffers(
                         setOperation,
                         tableStoredNames,
                         structurallyDemandedStoredNames,
-                        blocked) &&
-                    candidates.Contains(setOperation.Target.Name))
+                        blocked
+                    )
+                    && candidates.Contains(setOperation.Target.Name)
+                )
                 {
                     changed |= candidates.Add(setOperation.Left.Name);
                     changed |= candidates.Add(setOperation.Right.Name);
@@ -88,14 +104,12 @@ internal static class ExecutionTypedRowBufferResolver
         return candidates
             .Except(blocked, StringComparer.Ordinal)
             .Where(rowShapesByTableName.ContainsKey)
-            .ToDictionary(
-                static name => name,
-                name => rowShapesByTableName[name],
-                StringComparer.Ordinal);
+            .ToDictionary(static name => name, name => rowShapesByTableName[name], StringComparer.Ordinal);
     }
 
     private static IReadOnlyDictionary<string, GeneratedRowShape> ResolveMaterializedGeneratedRowTypedBuffers(
-        ExecutionBlock block)
+        ExecutionBlock block
+    )
     {
         var rowShapesByTableName = CreateTableRowShapeMap(block);
         var nodes = ExecutionIrAnalysis.FlattenNodes(block).ToArray();
@@ -107,12 +121,14 @@ internal static class ExecutionTypedRowBufferResolver
 
         foreach (var materialize in nodes.OfType<ExecutionMaterializeList>())
         {
-            if (materialize.GeneratedRowShape == null ||
-                !TryGetMaterializedGeneratedRowTableSource(materialize.Source, out var sourceName) ||
-                tableStoredNames.Contains(sourceName) ||
-                !rowShapesByTableName.TryGetValue(sourceName, out var rowShape) ||
-                !string.Equals(rowShape.TypeName, materialize.GeneratedRowShape.TypeName, StringComparison.Ordinal) ||
-                !CanUseMaterializedGeneratedRowTypedBuffer(nodes, sourceName))
+            if (
+                materialize.GeneratedRowShape == null
+                || !TryGetMaterializedGeneratedRowTableSource(materialize.Source, out var sourceName)
+                || tableStoredNames.Contains(sourceName)
+                || !rowShapesByTableName.TryGetValue(sourceName, out var rowShape)
+                || !string.Equals(rowShape.TypeName, materialize.GeneratedRowShape.TypeName, StringComparison.Ordinal)
+                || !CanUseMaterializedGeneratedRowTypedBuffer(nodes, sourceName)
+            )
             {
                 continue;
             }
@@ -122,12 +138,14 @@ internal static class ExecutionTypedRowBufferResolver
 
         foreach (var materialize in nodes.OfType<ExecutionMaterializeFilteredList>())
         {
-            if (materialize.GeneratedRowShape == null ||
-                !TryGetMaterializedGeneratedRowTableSource(materialize.Source, out var sourceName) ||
-                tableStoredNames.Contains(sourceName) ||
-                !rowShapesByTableName.TryGetValue(sourceName, out var rowShape) ||
-                !string.Equals(rowShape.TypeName, materialize.GeneratedRowShape.TypeName, StringComparison.Ordinal) ||
-                !CanUseMaterializedGeneratedRowTypedBuffer(nodes, sourceName))
+            if (
+                materialize.GeneratedRowShape == null
+                || !TryGetMaterializedGeneratedRowTableSource(materialize.Source, out var sourceName)
+                || tableStoredNames.Contains(sourceName)
+                || !rowShapesByTableName.TryGetValue(sourceName, out var rowShape)
+                || !string.Equals(rowShape.TypeName, materialize.GeneratedRowShape.TypeName, StringComparison.Ordinal)
+                || !CanUseMaterializedGeneratedRowTypedBuffer(nodes, sourceName)
+            )
             {
                 continue;
             }
@@ -155,7 +173,8 @@ internal static class ExecutionTypedRowBufferResolver
                 case ExecutionMaterializeRecordListToTable materialize:
                     result[materialize.Target.Name] = materialize.RowShape;
                     break;
-                case ExecutionDistinctTable distinct when result.TryGetValue(distinct.Source.Name, out var distinctShape):
+                case ExecutionDistinctTable distinct
+                    when result.TryGetValue(distinct.Source.Name, out var distinctShape):
                     result[distinct.Target.Name] = distinctShape;
                     break;
                 case ExecutionSortTable sort when result.TryGetValue(sort.Source.Name, out var sortShape):
@@ -164,7 +183,8 @@ internal static class ExecutionTypedRowBufferResolver
                 case ExecutionTopNTable topN when result.TryGetValue(topN.Source.Name, out var topNShape):
                     result[topN.Target.Name] = topNShape;
                     break;
-                case ExecutionTopOffsetTable topOffset when result.TryGetValue(topOffset.Source.Name, out var topOffsetShape):
+                case ExecutionTopOffsetTable topOffset
+                    when result.TryGetValue(topOffset.Source.Name, out var topOffsetShape):
                     result[topOffset.Target.Name] = topOffsetShape;
                     break;
                 case ExecutionSkipTable skip when result.TryGetValue(skip.Source.Name, out var skipShape):
@@ -176,7 +196,8 @@ internal static class ExecutionTypedRowBufferResolver
                 case ExecutionSliceTable slice when result.TryGetValue(slice.Source.Name, out var sliceShape):
                     result[slice.Target.Name] = sliceShape;
                     break;
-                case ExecutionSetOperation setOperation when result.TryGetValue(setOperation.Left.Name, out var setOperationShape):
+                case ExecutionSetOperation setOperation
+                    when result.TryGetValue(setOperation.Left.Name, out var setOperationShape):
                     result[setOperation.Target.Name] = setOperationShape;
                     break;
             }
@@ -185,15 +206,15 @@ internal static class ExecutionTypedRowBufferResolver
         return result;
     }
 
-    private static bool TryGetMaterializedGeneratedRowTableSource(
-        ExecutionExpression source,
-        out string tableName)
+    private static bool TryGetMaterializedGeneratedRowTableSource(ExecutionExpression source, out string tableName)
     {
-        if (source is ExecutionRowStream
+        if (
+            source is ExecutionRowStream
             {
                 Kind: ExecutionRowStreamKind.Rows,
                 RowsAccess: ExecutionRowStreamRowsAccess.TableRows
-            } rows)
+            } rows
+        )
         {
             tableName = rows.Variable.Name;
             return true;
@@ -203,9 +224,7 @@ internal static class ExecutionTypedRowBufferResolver
         return false;
     }
 
-    private static bool CanUseMaterializedGeneratedRowTypedBuffer(
-        IReadOnlyList<ExecutionNode> nodes,
-        string tableName)
+    private static bool CanUseMaterializedGeneratedRowTypedBuffer(IReadOnlyList<ExecutionNode> nodes, string tableName)
     {
         foreach (var node in nodes)
         {
@@ -219,9 +238,7 @@ internal static class ExecutionTypedRowBufferResolver
         return true;
     }
 
-    private static bool IsAllowedMaterializedGeneratedRowBufferNode(
-        ExecutionNode node,
-        string tableName)
+    private static bool IsAllowedMaterializedGeneratedRowBufferNode(ExecutionNode node, string tableName)
     {
         return node switch
         {
@@ -229,52 +246,66 @@ internal static class ExecutionTypedRowBufferResolver
             ExecutionEnsureTableCapacity ensureCapacity => HasName(ensureCapacity.Table, tableName),
             ExecutionAppendRow appendRow => HasName(appendRow.Table, tableName),
             ExecutionAppendExistingRow appendRow => HasName(appendRow.Table, tableName),
-            ExecutionMaterializeList materialize => TryGetMaterializedGeneratedRowTableSource(materialize.Source, out var sourceName) &&
-                                                    string.Equals(sourceName, tableName, StringComparison.Ordinal),
-            ExecutionMaterializeFilteredList materialize => TryGetMaterializedGeneratedRowTableSource(materialize.Source, out var sourceName) &&
-                                                            string.Equals(sourceName, tableName, StringComparison.Ordinal),
-            _ => false
+            ExecutionMaterializeList materialize => TryGetMaterializedGeneratedRowTableSource(
+                materialize.Source,
+                out var sourceName
+            ) && string.Equals(sourceName, tableName, StringComparison.Ordinal),
+            ExecutionMaterializeFilteredList materialize => TryGetMaterializedGeneratedRowTableSource(
+                materialize.Source,
+                out var sourceName
+            ) && string.Equals(sourceName, tableName, StringComparison.Ordinal),
+            _ => false,
         };
     }
 
-    private static bool NodeReferencesVariableWithoutChildBlocks(
-        ExecutionNode node,
-        string variableName)
+    private static bool NodeReferencesVariableWithoutChildBlocks(ExecutionNode node, string variableName)
     {
-        return ExecutionNodeFacts.GetDirectVariableReferences(node).Any(variable => HasName(variable, variableName)) ||
-               ExecutionIrAnalysis.ContainsVariableUse(ExecutionIrAnalysis.GetNodeExpressions(node), variableName);
+        return ExecutionNodeFacts.GetDirectVariableReferences(node).Any(variable => HasName(variable, variableName))
+            || ExecutionIrAnalysis.ContainsVariableUse(ExecutionIrAnalysis.GetNodeExpressions(node), variableName);
     }
 
     private static bool CanUseTypedSetOperationBuffers(
         ExecutionSetOperation setOperation,
         IReadOnlySet<string> tableStoredNames,
         IReadOnlySet<string> structurallyDemandedStoredNames,
-        IReadOnlySet<string> blocked)
+        IReadOnlySet<string> blocked
+    )
     {
-        return (!tableStoredNames.Contains(setOperation.Target.Name) ||
-                structurallyDemandedStoredNames.Contains(setOperation.Target.Name)) &&
-               !blocked.Contains(setOperation.Target.Name) &&
-               !blocked.Contains(setOperation.Left.Name) &&
-               !blocked.Contains(setOperation.Right.Name) &&
-               (setOperation.Kind == SetOpKind.UnionAll ||
-                setOperation.Strategy == ExecutionSetOperationStrategy.HashSet ||
-                setOperation.Strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop);
+        return (
+                !tableStoredNames.Contains(setOperation.Target.Name)
+                || structurallyDemandedStoredNames.Contains(setOperation.Target.Name)
+            )
+            && !blocked.Contains(setOperation.Target.Name)
+            && !blocked.Contains(setOperation.Left.Name)
+            && !blocked.Contains(setOperation.Right.Name)
+            && (
+                setOperation.Kind == SetOpKind.UnionAll
+                || setOperation.Strategy == ExecutionSetOperationStrategy.HashSet
+                || setOperation.Strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop
+            );
     }
 
     private static HashSet<string> CreateBlockedSetOperationTypedRowBuffers(
         IReadOnlyList<ExecutionNode> nodes,
         IReadOnlySet<string> tableStoredNames,
-        IReadOnlySet<string> structurallyDemandedStoredNames)
+        IReadOnlySet<string> structurallyDemandedStoredNames
+    )
     {
         var blocked = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var setOperation in nodes.OfType<ExecutionSetOperation>())
         {
-            if ((!tableStoredNames.Contains(setOperation.Target.Name) ||
-                 structurallyDemandedStoredNames.Contains(setOperation.Target.Name)) &&
-                (setOperation.Kind == SetOpKind.UnionAll ||
-                 setOperation.Strategy == ExecutionSetOperationStrategy.HashSet ||
-                 setOperation.Strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop))
+            if (
+                (
+                    !tableStoredNames.Contains(setOperation.Target.Name)
+                    || structurallyDemandedStoredNames.Contains(setOperation.Target.Name)
+                )
+                && (
+                    setOperation.Kind == SetOpKind.UnionAll
+                    || setOperation.Strategy == ExecutionSetOperationStrategy.HashSet
+                    || setOperation.Strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop
+                )
+            )
             {
                 continue;
             }
@@ -291,16 +322,17 @@ internal static class ExecutionTypedRowBufferResolver
 
             foreach (var node in nodes)
             {
-                if (ExecutionNodeFacts.TryGetTablePostOperation(node, out var postOperation) &&
-                    blocked.Contains(postOperation.Target.Name) &&
-                    blocked.Add(postOperation.Source.Name))
+                if (
+                    ExecutionNodeFacts.TryGetTablePostOperation(node, out var postOperation)
+                    && blocked.Contains(postOperation.Target.Name)
+                    && blocked.Add(postOperation.Source.Name)
+                )
                 {
                     changed = true;
                     continue;
                 }
 
-                if (node is ExecutionSetOperation setOperation &&
-                    blocked.Contains(setOperation.Target.Name))
+                if (node is ExecutionSetOperation setOperation && blocked.Contains(setOperation.Target.Name))
                 {
                     changed |= blocked.Add(setOperation.Left.Name);
                     changed |= blocked.Add(setOperation.Right.Name);
@@ -311,8 +343,7 @@ internal static class ExecutionTypedRowBufferResolver
         return blocked;
     }
 
-    private static HashSet<string> CollectStructurallyDemandedStoredTableNames(
-        IReadOnlyList<ExecutionNode> nodes)
+    private static HashSet<string> CollectStructurallyDemandedStoredTableNames(IReadOnlyList<ExecutionNode> nodes)
     {
         // A flattened execution body can contain stores from nested scopes
         // that reuse a table index.  Keep the first stable mapping instead of
@@ -323,14 +354,17 @@ internal static class ExecutionTypedRowBufferResolver
             namesByIndex.TryAdd(store.TableIndex, store.Table.Name);
         var result = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var input in ExecutionIrAnalysis.CollectExpressions<ExecutionCteCollectionInput>(
-                     new ExecutionBlock(nodes)))
+        foreach (
+            var input in ExecutionIrAnalysis.CollectExpressions<ExecutionCteCollectionInput>(new ExecutionBlock(nodes))
+        )
         {
             if (!IsStructuralCteConsumer(input))
                 continue;
 
-            if (input.Rows is ExecutionStoredTableRows rows &&
-                namesByIndex.TryGetValue(rows.TableIndex, out var tableName))
+            if (
+                input.Rows is ExecutionStoredTableRows rows
+                && namesByIndex.TryGetValue(rows.TableIndex, out var tableName)
+            )
             {
                 result.Add(tableName);
             }

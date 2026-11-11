@@ -1,7 +1,7 @@
 using System.Linq;
+using Musoq.Evaluator.IR.Optimization.Logical.Subqueries;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
-using Musoq.Evaluator.IR.Optimization.Logical.Subqueries;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 
@@ -21,9 +21,13 @@ internal sealed class SubqueryToCteNormalizationPass : IPreLogicalNormalizationP
         plan.Accept(subqueryTraverser);
 
         var rewriteRequests = subqueryRewriter.RewriteRequests;
-        var decisions = rewriteRequests.Select(request => subqueryRewriter.FallbackReasons.TryGetValue(request.Node, out var reason)
-            ? new CorrelatedSubqueryDecision(request, CorrelatedSubqueryStrategyKind.Apply, reason)
-            : CorrelatedSubqueryStrategyPlanner.Decide(request)).ToArray();
+        var decisions = rewriteRequests
+            .Select(request =>
+                subqueryRewriter.FallbackReasons.TryGetValue(request.Node, out var reason)
+                    ? new CorrelatedSubqueryDecision(request, CorrelatedSubqueryStrategyKind.Apply, reason)
+                    : CorrelatedSubqueryStrategyPlanner.Decide(request)
+            )
+            .ToArray();
         context.AnalysisFacts.Set(CorrelatedSubqueryPlanningFacts.RewriteRequests, rewriteRequests);
         context.AnalysisFacts.Set(CorrelatedSubqueryPlanningFacts.Decisions, decisions);
 
@@ -33,10 +37,12 @@ internal sealed class SubqueryToCteNormalizationPass : IPreLogicalNormalizationP
         return changed
             ? OptimizationResult<RootNode>.Changed(
                 normalized,
-                $"Selected {subqueryRewriter.FallbackReasons.Count} typed Apply fallback(s). {CreateChangedReason(normalized)}")
+                $"Selected {subqueryRewriter.FallbackReasons.Count} typed Apply fallback(s). {CreateChangedReason(normalized)}"
+            )
             : OptimizationResult<RootNode>.NoChange(
                 normalized,
-                "No supported subquery forms required pre-logical normalization.");
+                "No supported subquery forms required pre-logical normalization."
+            );
     }
 
     private static string CreateChangedReason(RootNode normalized)
@@ -50,7 +56,8 @@ internal sealed class SubqueryToCteNormalizationPass : IPreLogicalNormalizationP
             facts
                 .GroupBy(static fact => fact.Kind)
                 .OrderBy(static group => group.Key)
-                .Select(static group => $"{group.Key}={group.Count()}"));
+                .Select(static group => $"{group.Key}={group.Count()}")
+        );
 
         return $"Converted supported subquery forms into CTE/join-compatible pre-logical shapes ({summary}).";
     }

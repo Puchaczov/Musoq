@@ -26,27 +26,35 @@ public class BugProbeComputedBitwiseTests
     [TestMethod]
     public void Binary_ComputedBitwiseAnd_ShouldExtractFlagBit()
     {
-        var query = @"
-            binary Data {
-                Flags: byte,
-                HasBit0: = (Flags & 1) <> 0,
-                HasBit1: = (Flags & 2) <> 0,
-                HasBit7: = (Flags & 128) <> 0
-            };
-            select d.Flags, d.HasBit0, d.HasBit1, d.HasBit7 from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d
-            order by d.Flags asc";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Flags: byte,\n"
+            + "                HasBit0: = (Flags & 1) <> 0,\n"
+            + "                HasBit1: = (Flags & 2) <> 0,\n"
+            + "                HasBit7: = (Flags & 128) <> 0\n"
+            + "            };\n"
+            + "            select d.Flags, d.HasBit0, d.HasBit1, d.HasBit7 from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d\n"
+            + "            order by d.Flags asc"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "a.bin", Data = [0x83] }, // bits 0,1,7
-            new BinaryEntity { Name = "b.bin", Data = [0x02] } // bit 1 only
+            new BinaryEntity { Name = "b.bin", Data = [0x02] }, // bit 1 only
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -70,22 +78,33 @@ public class BugProbeComputedBitwiseTests
     [TestMethod]
     public void Binary_ComputedBitwiseShift_ShouldExtractNibble()
     {
-        var query = @"
-            binary Data {
-                Flags: byte,
-                HighNibble: = (Flags >> 4) & 0x0F,
-                LowNibble: = Flags & 0x0F
-            };
-            select d.Flags, d.HighNibble, d.LowNibble from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Flags: byte,\n"
+            + "                HighNibble: = (Flags >> 4) & 0x0F,\n"
+            + "                LowNibble: = Flags & 0x0F\n"
+            + "            };\n"
+            + "            select d.Flags, d.HighNibble, d.LowNibble from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var testData = new byte[] { 0xA3 }; // high=0xA (10), low=0x3
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -101,22 +120,33 @@ public class BugProbeComputedBitwiseTests
     [TestMethod]
     public void Binary_ComputedBitwiseOr_ShouldCombineBits()
     {
-        var query = @"
-            binary Data {
-                Low: byte,
-                High: byte,
-                Combined: = (High << 8) | Low
-            };
-            select d.Low, d.High, d.Combined from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Low: byte,\n"
+            + "                High: byte,\n"
+            + "                Combined: = (High << 8) | Low\n"
+            + "            };\n"
+            + "            select d.Low, d.High, d.Combined from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var testData = new byte[] { 0x34, 0x12 }; // Low=0x34, High=0x12 -> Combined=0x1234
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

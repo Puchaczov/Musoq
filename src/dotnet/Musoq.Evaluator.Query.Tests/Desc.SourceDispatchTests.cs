@@ -105,7 +105,8 @@ public sealed class DescSourceDispatchTests
             query,
             Guid.NewGuid().ToString(),
             new DispatchProbeSchemaProvider(schema),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         return compiled.Run();
     }
@@ -117,21 +118,16 @@ public sealed class DescSourceDispatchTests
 
     private sealed class DispatchProbeSchema : SchemaBase
     {
-        private static readonly SchemaMethodInfo[] Constructors =
-        [
-            new("items", ConstructorInfo.Empty())
-        ];
+        private static readonly SchemaMethodInfo[] Constructors = [new("items", ConstructorInfo.Empty())];
 
         private static readonly ISchemaColumn[] Columns =
         [
             new Musoq.Schema.DataSources.SchemaColumn("Name", 0, typeof(string)),
-            new Musoq.Schema.DataSources.SchemaColumn("Children", 1, typeof(int[]))
+            new Musoq.Schema.DataSources.SchemaColumn("Children", 1, typeof(int[])),
         ];
 
         public DispatchProbeSchema()
-            : base("dispatch", new MethodsAggregator(new MethodsManager()))
-        {
-        }
+            : base("dispatch", new MethodsAggregator(new MethodsManager())) { }
 
         public int SchemaWideCalls { get; private set; }
 
@@ -143,12 +139,12 @@ public sealed class DescSourceDispatchTests
             return Constructors;
         }
 
-        public override SchemaMethodInfo[] GetRawConstructors(
-            string methodName,
-            SourceMetadataContext metadataContext)
+        public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
         {
             if (string.IsNullOrWhiteSpace(methodName))
-                throw new InvalidOperationException("The filtered constructor overload must not receive an empty method name.");
+                throw new InvalidOperationException(
+                    "The filtered constructor overload must not receive an empty method name."
+                );
 
             SpecificMethodCalls.Add(methodName);
             return Constructors.Where(constructor => constructor.MethodName == methodName).ToArray();
@@ -157,12 +153,14 @@ public sealed class DescSourceDispatchTests
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters) => new DispatchProbeTable();
+            params object?[] parameters
+        ) => new DispatchProbeTable();
 
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments parameters) => throw new NotSupportedException();
+            TArguments parameters
+        ) => throw new NotSupportedException();
 
         private sealed class DispatchProbeTable : ISchemaTable
         {

@@ -9,7 +9,8 @@ public sealed record ExecutionCreateValuesRows : ExecutionNode
     public ExecutionCreateValuesRows(
         ExecutionVariable rows,
         GeneratedRowShape rowShape,
-        IReadOnlyList<IReadOnlyList<ExecutionRowValue>> values)
+        IReadOnlyList<IReadOnlyList<ExecutionRowValue>> values
+    )
     {
         Rows = rows;
         RowShape = rowShape;

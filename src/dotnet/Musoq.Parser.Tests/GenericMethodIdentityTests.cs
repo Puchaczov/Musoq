@@ -16,12 +16,14 @@ public sealed class GenericMethodIdentityTests
             new GenericFunctionToken("Interpret", "Header", TextSpan.Empty),
             new ArgsListNode([payload]),
             null,
-            false);
+            false
+        );
         var packet = new AccessMethodNode(
             new GenericFunctionToken("Interpret", "Packet", TextSpan.Empty),
             new ArgsListNode([payload]),
             null,
-            false);
+            false
+        );
 
         Assert.AreEqual("Interpret<Header>(payload)", header.ToString());
         Assert.Contains("Interpret<Header>", header.Id);
@@ -32,11 +34,7 @@ public sealed class GenericMethodIdentityTests
     [TestMethod]
     public void AccessMethodNode_WhenNonGeneric_ShouldKeepExistingRendering()
     {
-        var method = new AccessMethodNode(
-            new FunctionToken("Length", TextSpan.Empty),
-            ArgsListNode.Empty,
-            null,
-            false);
+        var method = new AccessMethodNode(new FunctionToken("Length", TextSpan.Empty), ArgsListNode.Empty, null, false);
 
         Assert.AreEqual("Length()", method.ToString());
         Assert.IsFalse(method.Id.Contains("<", System.StringComparison.Ordinal));
@@ -46,20 +44,8 @@ public sealed class GenericMethodIdentityTests
     public void AliasedFromNode_WhenGeneric_ShouldIncludeTypeParameterInIdentityAndRendering()
     {
         var payload = new IdentifierNode("payload");
-        var header = new AliasedFromNode(
-            "Interpret",
-            new ArgsListNode([payload]),
-            "h",
-            typeof(object),
-            0,
-            "Header");
-        var packet = new AliasedFromNode(
-            "Interpret",
-            new ArgsListNode([payload]),
-            "h",
-            typeof(object),
-            0,
-            "Packet");
+        var header = new AliasedFromNode("Interpret", new ArgsListNode([payload]), "h", typeof(object), 0, "Header");
+        var packet = new AliasedFromNode("Interpret", new ArgsListNode([payload]), "h", typeof(object), 0, "Packet");
 
         Assert.AreEqual("Interpret<Header>(payload) as h", header.ToString());
         Assert.AreEqual("Interpret<Header>-h", header.Id);
@@ -70,12 +56,7 @@ public sealed class GenericMethodIdentityTests
     [TestMethod]
     public void AliasedFromNode_WhenNonGeneric_ShouldKeepExistingRendering()
     {
-        var source = new AliasedFromNode(
-            "Entities",
-            ArgsListNode.Empty,
-            "e",
-            typeof(object),
-            0);
+        var source = new AliasedFromNode("Entities", ArgsListNode.Empty, "e", typeof(object), 0);
 
         Assert.AreEqual("Entities() as e", source.ToString());
         Assert.AreEqual("Entities-e", source.Id);

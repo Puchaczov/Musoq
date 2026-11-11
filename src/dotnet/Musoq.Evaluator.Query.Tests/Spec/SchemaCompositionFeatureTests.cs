@@ -25,27 +25,37 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_BytesToText_AsClause()
     {
-        var query = @"
-            binary Container { 
-                Length: byte,
-                TextData: byte[Length]
-            };
-            text Parsed { 
-                Key: until '=',
-                Value: rest
-            };
-            select p.Key, p.Value from #test.bytes() b
-            cross apply Interpret<Container>(b.Content) c
-            cross apply Parse<Parsed>(ToText(c.TextData, 'utf-8')) p";
-
+        var query = (
+            "\n"
+            + "            binary Container { \n"
+            + "                Length: byte,\n"
+            + "                TextData: byte[Length]\n"
+            + "            };\n"
+            + "            text Parsed { \n"
+            + "                Key: until '=',\n"
+            + "                Value: rest\n"
+            + "            };\n"
+            + "            select p.Key, p.Value from #test.bytes() b\n"
+            + "            cross apply Interpret<Container>(b.Content) c\n"
+            + "            cross apply Parse<Parsed>(ToText(c.TextData, 'utf-8')) p"
+        );
 
         var data = "\tkey=value"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -63,38 +73,45 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_BinaryAndText_ShouldCombine()
     {
-        var query = @"
-            binary Header { 
-                Version: byte,
-                RecordCount: int le
-            };
-            text Record { 
-                Name: until ','
-            };
-            select h.Version, h.RecordCount, r.Name 
-            from #btest.bytes() b
-            cross apply Interpret<Header>(b.Content) h
-            cross apply #ttest.lines() l
-            cross apply Parse<Record>(l.Line) r";
+        var query = (
+            "\n"
+            + "            binary Header { \n"
+            + "                Version: byte,\n"
+            + "                RecordCount: int le\n"
+            + "            };\n"
+            + "            text Record { \n"
+            + "                Name: until ','\n"
+            + "            };\n"
+            + "            select h.Version, h.RecordCount, r.Name \n"
+            + "            from #btest.bytes() b\n"
+            + "            cross apply Interpret<Header>(b.Content) h\n"
+            + "            cross apply #ttest.lines() l\n"
+            + "            cross apply Parse<Record>(l.Line) r"
+        );
 
-        var binaryData = new byte[]
+        var binaryData = new byte[] { 0x01, 0x02, 0x00, 0x00, 0x00 };
+        var binaryEntities = new[]
         {
-            0x01,
-            0x02, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "header.bin", Data = binaryData },
         };
-        var binaryEntities = new[] { new BinaryEntity { Name = "header.bin", Data = binaryData } };
         var textEntities = new[]
         {
             new TextEntity { Name = "row1", Text = "Alice,30" },
-            new TextEntity { Name = "row2", Text = "Bob,25" }
+            new TextEntity { Name = "row2", Text = "Bob,25" },
         };
 
         var schemaProvider = new MixedSchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#btest", binaryEntities } },
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#ttest", textEntities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#ttest", textEntities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -110,30 +127,38 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_ReuseSchema_ShouldWork()
     {
-        var query = @"
-            binary Pair { 
-                A: int le,
-                B: int le
-            };
-            select p1.A as First, p2.A as Second 
-            from #test.bytes() b1
-            cross apply Interpret<Pair>(b1.Content) p1
-            cross apply #test.bytes() b2
-            cross apply Interpret<Pair>(b2.Content) p2
-            where b1.Name <> b2.Name";
+        var query = (
+            "\n"
+            + "            binary Pair { \n"
+            + "                A: int le,\n"
+            + "                B: int le\n"
+            + "            };\n"
+            + "            select p1.A as First, p2.A as Second \n"
+            + "            from #test.bytes() b1\n"
+            + "            cross apply Interpret<Pair>(b1.Content) p1\n"
+            + "            cross apply #test.bytes() b2\n"
+            + "            cross apply Interpret<Pair>(b2.Content) p2\n"
+            + "            where b1.Name <> b2.Name"
+        );
 
         var data1 = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00 };
         var data2 = new byte[] { 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00 };
         var entities = new[]
         {
             new BinaryEntity { Name = "first.bin", Data = data1 },
-            new BinaryEntity { Name = "second.bin", Data = data2 }
+            new BinaryEntity { Name = "second.bin", Data = data2 },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -149,31 +174,37 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_ConditionalReference_ShouldWork()
     {
-        var query = @"
-            binary Extended { 
-                Extra: int le
-            };
-            binary Record { 
-                HasExtension: byte,
-                Value: int le,
-                Extension: Extended when HasExtension = 1
-            };
-            select r.HasExtension, r.Value, r.Extension.Extra from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) r
-            where r.HasExtension = 1";
+        var query = (
+            "\n"
+            + "            binary Extended { \n"
+            + "                Extra: int le\n"
+            + "            };\n"
+            + "            binary Record { \n"
+            + "                HasExtension: byte,\n"
+            + "                Value: int le,\n"
+            + "                Extension: Extended when HasExtension = 1\n"
+            + "            };\n"
+            + "            select r.HasExtension, r.Value, r.Extension.Extra from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) r\n"
+            + "            where r.HasExtension = 1"
+        );
 
-        var data = new byte[]
+        var data = new byte[] { 0x01, 0x0A, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00 };
+        var entities = new[]
         {
-            0x01,
-            0x0A, 0x00, 0x00, 0x00,
-            0x14, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Data = data },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -192,33 +223,38 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_ArrayOfReferences_ShouldWork()
     {
-        var query = @"
-            binary Point { 
-                X: short le,
-                Y: short le
-            };
-            binary Polygon { 
-                VertexCount: byte,
-                Vertices: Point[VertexCount]
-            };
-            select p.VertexCount, v.X, v.Y from #test.bytes() b
-            cross apply Interpret<Polygon>(b.Content) p
-            cross apply p.Vertices v
-            order by v.X";
+        var query = (
+            "\n"
+            + "            binary Point { \n"
+            + "                X: short le,\n"
+            + "                Y: short le\n"
+            + "            };\n"
+            + "            binary Polygon { \n"
+            + "                VertexCount: byte,\n"
+            + "                Vertices: Point[VertexCount]\n"
+            + "            };\n"
+            + "            select p.VertexCount, v.X, v.Y from #test.bytes() b\n"
+            + "            cross apply Interpret<Polygon>(b.Content) p\n"
+            + "            cross apply p.Vertices v\n"
+            + "            order by v.X"
+        );
 
-        var data = new byte[]
+        var data = new byte[] { 0x03, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x05, 0x00, 0x0A, 0x00 };
+        var entities = new[]
         {
-            0x03,
-            0x00, 0x00, 0x00, 0x00,
-            0x0A, 0x00, 0x00, 0x00,
-            0x05, 0x00, 0x0A, 0x00
+            new BinaryEntity { Name = "test.bin", Data = data },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -235,25 +271,33 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_TextToText_ShouldWork()
     {
-        var query = @"
-            text KeyValue { 
-                Key: until '=',
-                Value: rest
-            };
-            select kv.Key, kv.Value from #test.lines() l
-            cross apply Parse<KeyValue>(l.Line) kv
-            order by kv.Key";
+        var query = (
+            "\n"
+            + "            text KeyValue { \n"
+            + "                Key: until '=',\n"
+            + "                Value: rest\n"
+            + "            };\n"
+            + "            select kv.Key, kv.Value from #test.lines() l\n"
+            + "            cross apply Parse<KeyValue>(l.Line) kv\n"
+            + "            order by kv.Key"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "line1", Text = "name=John" },
-            new TextEntity { Name = "line2", Text = "age=30" }
+            new TextEntity { Name = "line2", Text = "age=30" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -273,31 +317,54 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_BasicReference_ShouldWork()
     {
-        var query = @"
-            binary Point { 
-                X: int le,
-                Y: int le
-            };
-            binary Rectangle { 
-                TopLeft: Point,
-                BottomRight: Point
-            };
-            select r.TopLeft.X, r.TopLeft.Y, r.BottomRight.X, r.BottomRight.Y from #test.bytes() b
-            cross apply Interpret<Rectangle>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Point { \n"
+            + "                X: int le,\n"
+            + "                Y: int le\n"
+            + "            };\n"
+            + "            binary Rectangle { \n"
+            + "                TopLeft: Point,\n"
+            + "                BottomRight: Point\n"
+            + "            };\n"
+            + "            select r.TopLeft.X, r.TopLeft.Y, r.BottomRight.X, r.BottomRight.Y from #test.bytes() b\n"
+            + "            cross apply Interpret<Rectangle>(b.Content) r"
+        );
 
         var data = new byte[]
         {
-            0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00,
-            0x64, 0x00, 0x00, 0x00,
-            0xC8, 0x00, 0x00, 0x00
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x64,
+            0x00,
+            0x00,
+            0x00,
+            0xC8,
+            0x00,
+            0x00,
+            0x00,
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -313,26 +380,37 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_DeepNesting_ShouldWork()
     {
-        var query = @"
-            binary Value { 
-                Data: int le
-            };
-            binary Wrapper { 
-                Inner: Value
-            };
-            binary Container { 
-                Wrapped: Wrapper
-            };
-            select c.Wrapped.Inner.Data from #test.bytes() b
-            cross apply Interpret<Container>(b.Content) c";
+        var query = (
+            "\n"
+            + "            binary Value { \n"
+            + "                Data: int le\n"
+            + "            };\n"
+            + "            binary Wrapper { \n"
+            + "                Inner: Value\n"
+            + "            };\n"
+            + "            binary Container { \n"
+            + "                Wrapped: Wrapper\n"
+            + "            };\n"
+            + "            select c.Wrapped.Inner.Data from #test.bytes() b\n"
+            + "            cross apply Interpret<Container>(b.Content) c"
+        );
 
         var data = "*\u0000\u0000\u0000"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -349,35 +427,57 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_FileFormat_ShouldParseCorrectly()
     {
-        var query = @"
-            binary FileHeader { 
-                Magic: int le,
-                Version: short le,
-                DataOffset: short le
-            };
-            binary DataRecord { 
-                Id: int le,
-                Value: int le
-            };
-            select h.Magic, h.Version, d.Id, d.Value 
-            from #test.bytes() b
-            cross apply Interpret<FileHeader>(b.Content) h
-            cross apply InterpretAt<DataRecord>(b.Content, h.DataOffset) d";
+        var query = (
+            "\n"
+            + "            binary FileHeader { \n"
+            + "                Magic: int le,\n"
+            + "                Version: short le,\n"
+            + "                DataOffset: short le\n"
+            + "            };\n"
+            + "            binary DataRecord { \n"
+            + "                Id: int le,\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            select h.Magic, h.Version, d.Id, d.Value \n"
+            + "            from #test.bytes() b\n"
+            + "            cross apply Interpret<FileHeader>(b.Content) h\n"
+            + "            cross apply InterpretAt<DataRecord>(b.Content, h.DataOffset) d"
+        );
 
         var data = new byte[]
         {
-            0x4D, 0x55, 0x53, 0x51,
-            0x01, 0x00,
-            0x08, 0x00,
-            0x01, 0x00, 0x00, 0x00,
-            0x64, 0x00, 0x00, 0x00
+            0x4D,
+            0x55,
+            0x53,
+            0x51,
+            0x01,
+            0x00,
+            0x08,
+            0x00,
+            0x01,
+            0x00,
+            0x00,
+            0x00,
+            0x64,
+            0x00,
+            0x00,
+            0x00,
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Data = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -393,29 +493,36 @@ public class SchemaCompositionFeatureTests
     [TestMethod]
     public void SchemaComposition_WithComputedFields_ShouldWork()
     {
-        var query = @"
-            binary Measurement { 
-                Raw: int le,
-                Scaled: = Raw * 10
-            };
-            binary SensorData { 
-                SensorId: byte,
-                Reading: Measurement
-            };
-            select s.SensorId, s.Reading.Raw, s.Reading.Scaled from #test.bytes() b
-            cross apply Interpret<SensorData>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary Measurement { \n"
+            + "                Raw: int le,\n"
+            + "                Scaled: = Raw * 10\n"
+            + "            };\n"
+            + "            binary SensorData { \n"
+            + "                SensorId: byte,\n"
+            + "                Reading: Measurement\n"
+            + "            };\n"
+            + "            select s.SensorId, s.Reading.Raw, s.Reading.Scaled from #test.bytes() b\n"
+            + "            cross apply Interpret<SensorData>(b.Content) s"
+        );
 
-        var data = new byte[]
+        var data = new byte[] { 0x01, 0x05, 0x00, 0x00, 0x00 };
+        var entities = new[]
         {
-            0x01,
-            0x05, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Data = data },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

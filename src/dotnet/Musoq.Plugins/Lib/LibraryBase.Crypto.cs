@@ -68,7 +68,8 @@ public partial class LibraryBase
         foreach (var b in data)
         {
             crc ^= b;
-            for (var i = 0; i < 8; i++) crc = (crc & 1) == 1 ? (crc >> 1) ^ 0xEDB88320 : crc >> 1;
+            for (var i = 0; i < 8; i++)
+                crc = (crc & 1) == 1 ? (crc >> 1) ^ 0xEDB88320 : crc >> 1;
         }
 
         return (~crc).ToString("x8", System.Globalization.CultureInfo.InvariantCulture);

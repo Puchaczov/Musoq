@@ -5,16 +5,16 @@ namespace Musoq.Evaluator.Helpers;
 
 public static class ScriptParameterBinder
 {
-    public static T GetRequired<T>(ExecutionState state, string name) =>
-        state.TypedParameters.GetRequired<T>(name);
+    public static T GetRequired<T>(ExecutionState state, string name) => state.TypedParameters.GetRequired<T>(name);
 
     public static T GetOptional<T>(ExecutionState state, string name, T defaultValue) =>
         state.TypedParameters.Contains(name) ? state.TypedParameters.GetRequired<T>(name) : defaultValue;
 
-    public static T? GetRequiredNullable<T>(ExecutionState state, string name) where T : struct =>
-        state.TypedParameters.GetRequiredNullable<T>(name);
+    public static T? GetRequiredNullable<T>(ExecutionState state, string name)
+        where T : struct => state.TypedParameters.GetRequiredNullable<T>(name);
 
-    public static T? GetOptionalNullable<T>(ExecutionState state, string name, T? defaultValue) where T : struct =>
+    public static T? GetOptionalNullable<T>(ExecutionState state, string name, T? defaultValue)
+        where T : struct =>
         state.TypedParameters.Contains(name) ? state.TypedParameters.GetRequiredNullable<T>(name) : defaultValue;
 
     public static IReadOnlyList<T> GetRequiredCollection<T>(ExecutionState state, string name) =>

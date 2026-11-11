@@ -7,7 +7,8 @@ internal static class JoinTieBreakRewriter
 {
     internal static FieldOrderedNode? Rewrite(
         FieldOrderedNode? tieBreak,
-        IReadOnlyDictionary<string, string> usedTables)
+        IReadOnlyDictionary<string, string> usedTables
+    )
     {
         if (tieBreak == null)
             return null;
@@ -22,6 +23,7 @@ internal static class JoinTieBreakRewriter
             tieBreak.FieldName,
             tieBreak.HasExplicitFieldName,
             tieBreak.Order,
-            tieBreak.NullOrdering);
+            tieBreak.NullOrdering
+        );
     }
 }

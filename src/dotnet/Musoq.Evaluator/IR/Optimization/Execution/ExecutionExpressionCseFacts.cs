@@ -14,7 +14,8 @@ internal static partial class ExecutionExpressionCseFacts
         string Signature,
         ExecutionExpression Expression,
         int Depth,
-        bool IsSafeOrigin);
+        bool IsSafeOrigin
+    );
 
     public static IReadOnlyList<ExecutionExpression> GetWindowHelperExpressions(ExecutionNode node)
     {
@@ -26,9 +27,7 @@ internal static partial class ExecutionExpressionCseFacts
     public static IReadOnlyList<ExecutionExpression> GetWindowHelperIndependentExpressions(ExecutionNode node)
     {
         var expressions = GetWindowHelperExpressions(node);
-        return expressions.All(IsWindowHelperIndependentExpression)
-            ? expressions
-            : [];
+        return expressions.All(IsWindowHelperIndependentExpression) ? expressions : [];
     }
 
     /// <summary>
@@ -41,10 +40,12 @@ internal static partial class ExecutionExpressionCseFacts
         if (!ExecutionNodeFacts.TryGetWindowComputation(node, out _))
             return [];
 
-        return ExecutionNodeFacts.GetLocalExpressions(node)
+        return ExecutionNodeFacts
+            .GetLocalExpressions(node)
             .Where(static expression =>
-                ExpressionStabilityAnalyzer.IsStable(expression) &&
-                IsCseResultTypeStable(expression.ReturnType.ResolveClrType()))
+                ExpressionStabilityAnalyzer.IsStable(expression)
+                && IsCseResultTypeStable(expression.ReturnType.ResolveClrType())
+            )
             .ToArray();
     }
 
@@ -59,23 +60,29 @@ internal static partial class ExecutionExpressionCseFacts
         {
             ExecutionGetOrAddSingleKeyAggregateGroup group => StableScalarExpressions([group.Key]),
             ExecutionGetOrAddValueTupleAggregateGroup group => StableScalarExpressions(group.Keys),
-            ExecutionAggregateSet { FilterPredicate: not null } aggregate => StableScalarExpressions([aggregate.FilterPredicate]),
+            ExecutionAggregateSet { FilterPredicate: not null } aggregate => StableScalarExpressions([
+                aggregate.FilterPredicate,
+            ]),
             ExecutionAggregateSet aggregate => StableScalarExpressions(
-                AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregate.Arguments)
+                AggregateKernelArgumentSelector
+                    .SelectValueArgumentsAfterGroup(aggregate.Arguments)
                     .Concat(OptionalExpression(aggregate.FilterPredicate))
-                    .Concat(OptionalExpression(aggregate.AccumulatorInput))),
+                    .Concat(OptionalExpression(aggregate.AccumulatorInput))
+            ),
             ExecutionAggregateCapturedValueSet captured => StableScalarExpressions([captured.Value]),
-            _ => []
+            _ => [],
         };
     }
 
     private static IReadOnlyList<ExecutionExpression> StableScalarExpressions(
-        IEnumerable<ExecutionExpression> expressions)
+        IEnumerable<ExecutionExpression> expressions
+    )
     {
         return expressions
             .Where(static expression =>
-                ExpressionStabilityAnalyzer.IsStable(expression) &&
-                IsCseResultTypeStable(expression.ReturnType.ResolveClrType()))
+                ExpressionStabilityAnalyzer.IsStable(expression)
+                && IsCseResultTypeStable(expression.ReturnType.ResolveClrType())
+            )
             .ToArray();
     }
 
@@ -93,25 +100,29 @@ internal static partial class ExecutionExpressionCseFacts
 
     private readonly struct WindowIndependenceVisitor : IExecutionExpressionVisitor
     {
-        public bool Visit(ExecutionExpression expression) => !(expression is
-            ExecutionFieldRead or
-            ExecutionMemberRead or
-            ExecutionVariableRead or
-            ExecutionRowContextsRead or
-            ExecutionWindowValueRead or
-            ExecutionAggregateCall or
-            ExecutionGroupKeyRead or
-            ExecutionAggregateCapturedValueRead or
-            ExecutionRowStream or
-            ExecutionScalarRowStream or
-            ExecutionStoredTable or
-            ExecutionStoredTableRows or
-            ExecutionCteCollectionInput);
+        public bool Visit(ExecutionExpression expression) =>
+            !(
+                expression
+                is ExecutionFieldRead
+                    or ExecutionMemberRead
+                    or ExecutionVariableRead
+                    or ExecutionRowContextsRead
+                    or ExecutionWindowValueRead
+                    or ExecutionAggregateCall
+                    or ExecutionGroupKeyRead
+                    or ExecutionAggregateCapturedValueRead
+                    or ExecutionRowStream
+                    or ExecutionScalarRowStream
+                    or ExecutionStoredTable
+                    or ExecutionStoredTableRows
+                    or ExecutionCteCollectionInput
+            );
     }
 
     public static IEnumerable<HoistOccurrence> CollectHoistableOccurrences(
         ExecutionBlock block,
-        bool inPassThroughUnsafeContext = false)
+        bool inPassThroughUnsafeContext = false
+    )
     {
         foreach (var node in block.Nodes)
         {
@@ -122,7 +133,8 @@ internal static partial class ExecutionExpressionCseFacts
 
     public static IEnumerable<HoistOccurrence> CollectHoistableOccurrences(
         ExecutionNode node,
-        bool inPassThroughUnsafeContext = false)
+        bool inPassThroughUnsafeContext = false
+    )
     {
         switch (node)
         {
@@ -133,11 +145,13 @@ internal static partial class ExecutionExpressionCseFacts
             case ExecutionAggregateSet { FilterPredicate: not null } aggregateSet:
                 return CollectHoistableOccurrences(aggregateSet.FilterPredicate, inPassThroughUnsafeContext);
             case ExecutionAggregateSet aggregateSet:
-                return aggregateSet.Arguments
-                    .SelectMany(argument => CollectHoistableOccurrences(argument, inPassThroughUnsafeContext))
-                    .Concat(aggregateSet.AccumulatorInput == null
-                        ? []
-                        : CollectHoistableOccurrences(aggregateSet.AccumulatorInput, inPassThroughUnsafeContext));
+                return aggregateSet
+                    .Arguments.SelectMany(argument => CollectHoistableOccurrences(argument, inPassThroughUnsafeContext))
+                    .Concat(
+                        aggregateSet.AccumulatorInput == null
+                            ? []
+                            : CollectHoistableOccurrences(aggregateSet.AccumulatorInput, inPassThroughUnsafeContext)
+                    );
             case ExecutionAggregateCapturedValueSet capturedValueSet:
                 return CollectHoistableOccurrences(capturedValueSet.Value, inPassThroughUnsafeContext);
             case ExecutionLet let:
@@ -146,13 +160,22 @@ internal static partial class ExecutionExpressionCseFacts
                 return CollectHoistableOccurrences(branch.Condition, inPassThroughUnsafeContext)
                     .Concat(CollectHoistableOccurrences(branch.Body, true));
             case ExecutionAppendRow appendRow:
-                return appendRow.Values
-                    .SelectMany(value => CollectHoistableOccurrences(value.Value, inPassThroughUnsafeContext))
-                    .Concat(appendRow.Contexts.SelectMany(context => CollectHoistableOccurrences(context, inPassThroughUnsafeContext)))
-                    .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(appendRow.ContextLayout)
-                        .SelectMany(context => CollectHoistableOccurrences(context, inPassThroughUnsafeContext)));
+                return appendRow
+                    .Values.SelectMany(value => CollectHoistableOccurrences(value.Value, inPassThroughUnsafeContext))
+                    .Concat(
+                        appendRow.Contexts.SelectMany(context =>
+                            CollectHoistableOccurrences(context, inPassThroughUnsafeContext)
+                        )
+                    )
+                    .Concat(
+                        ExecutionNodeFacts
+                            .GetContextLayoutExpressions(appendRow.ContextLayout)
+                            .SelectMany(context => CollectHoistableOccurrences(context, inPassThroughUnsafeContext))
+                    );
             case ExecutionAppendRecord appendRecord:
-                return appendRecord.Values.SelectMany(value => CollectHoistableOccurrences(value.Value, inPassThroughUnsafeContext));
+                return appendRecord.Values.SelectMany(value =>
+                    CollectHoistableOccurrences(value.Value, inPassThroughUnsafeContext)
+                );
             default:
                 return [];
         }
@@ -160,7 +183,8 @@ internal static partial class ExecutionExpressionCseFacts
 
     public static IEnumerable<HoistOccurrence> CollectStableScalarReuseOccurrences(
         ExecutionBlock block,
-        bool inPassThroughUnsafeContext = false)
+        bool inPassThroughUnsafeContext = false
+    )
     {
         foreach (var node in block.Nodes)
         {
@@ -176,13 +200,13 @@ internal static partial class ExecutionExpressionCseFacts
     {
         return node switch
         {
-            ExecutionAppendRow appendRow => appendRow.Values
-                .Select(static value => value.Value)
+            ExecutionAppendRow appendRow => appendRow
+                .Values.Select(static value => value.Value)
                 .Concat(appendRow.Contexts)
                 .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(appendRow.ContextLayout)),
             ExecutionAppendRecord appendRecord => appendRecord.Values.Select(static value => value.Value),
-            ExecutionCreateGeneratedRow createRow => createRow.Values
-                .Select(static value => value.Value)
+            ExecutionCreateGeneratedRow createRow => createRow
+                .Values.Select(static value => value.Value)
                 .Concat(createRow.Contexts)
                 .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(createRow.ContextLayout)),
             ExecutionCreateHashPayload payload => payload.Values.Select(static value => value.Value),
@@ -193,27 +217,27 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd => [getOrAdd.Key],
             ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => getOrAdd.Keys,
             ExecutionAggregateSet { FilterPredicate: not null } aggregateSet => [aggregateSet.FilterPredicate],
-            ExecutionAggregateSet aggregateSet => aggregateSet.Arguments
-                .Concat(aggregateSet.FilterPredicate == null ? [] : [aggregateSet.FilterPredicate])
+            ExecutionAggregateSet aggregateSet => aggregateSet
+                .Arguments.Concat(aggregateSet.FilterPredicate == null ? [] : [aggregateSet.FilterPredicate])
                 .Concat(aggregateSet.AccumulatorInput == null ? [] : [aggregateSet.AccumulatorInput]),
             ExecutionAggregateCapturedValueSet capturedValueSet => [capturedValueSet.Value],
-            ExecutionComputeRankingWindow or
-                ExecutionComputeOffsetWindow or
-            ExecutionComputePluginWindow or
-                ExecutionWindowAggregateKernel => ExecutionNodeFacts.GetLocalExpressions(node),
-            ExecutionCreateRangeIndex or
-                ExecutionRangeProbe => ExecutionNodeFacts.GetLocalExpressions(node),
-            ExecutionRecursiveCteAppend append => append.AppendRow.Values
-                .Select(static value => value.Value)
+            ExecutionComputeRankingWindow
+            or ExecutionComputeOffsetWindow
+            or ExecutionComputePluginWindow
+            or ExecutionWindowAggregateKernel => ExecutionNodeFacts.GetLocalExpressions(node),
+            ExecutionCreateRangeIndex or ExecutionRangeProbe => ExecutionNodeFacts.GetLocalExpressions(node),
+            ExecutionRecursiveCteAppend append => append
+                .AppendRow.Values.Select(static value => value.Value)
                 .Concat(append.AppendRow.Contexts)
                 .Concat(ExecutionNodeFacts.GetContextLayoutExpressions(append.AppendRow.ContextLayout)),
-            _ => []
+            _ => [],
         };
     }
 
     public static IEnumerable<HoistOccurrence> CollectHoistableOccurrences(
         ExecutionExpression expression,
-        bool inPassThroughUnsafeContext = false)
+        bool inPassThroughUnsafeContext = false
+    )
     {
         if (IsWorthHoistingExpression(expression) && IsDeterministicExpression(expression))
         {
@@ -221,25 +245,31 @@ internal static partial class ExecutionExpressionCseFacts
                 ExecutionExpressionFingerprint.ForHoist(expression),
                 expression,
                 GetExpressionDepth(expression),
-                !inPassThroughUnsafeContext || expression is ExecutionFieldRead);
+                !inPassThroughUnsafeContext || expression is ExecutionFieldRead
+            );
         }
 
         switch (expression)
         {
             case ExecutionInCheck { UsesSqlNullSemantics: true } membership:
-                foreach (var occurrence in CollectHoistableOccurrences(membership.Expression, inPassThroughUnsafeContext))
+                foreach (
+                    var occurrence in CollectHoistableOccurrences(membership.Expression, inPassThroughUnsafeContext)
+                )
                     yield return occurrence;
                 foreach (var value in membership.Values)
-                    foreach (var occurrence in CollectHoistableOccurrences(value, true))
-                        yield return occurrence;
+                foreach (var occurrence in CollectHoistableOccurrences(value, true))
+                    yield return occurrence;
                 break;
             case ExecutionBinary binary:
                 var rightIsShortCircuitConditional = binary.IsShortCircuiting;
                 foreach (var occurrence in CollectHoistableOccurrences(binary.Left, inPassThroughUnsafeContext))
                     yield return occurrence;
-                foreach (var occurrence in CollectHoistableOccurrences(
-                             binary.Right,
-                             inPassThroughUnsafeContext || rightIsShortCircuitConditional))
+                foreach (
+                    var occurrence in CollectHoistableOccurrences(
+                        binary.Right,
+                        inPassThroughUnsafeContext || rightIsShortCircuitConditional
+                    )
+                )
                     yield return occurrence;
                 break;
             case ExecutionArrayAccess arrayAccess:
@@ -265,9 +295,12 @@ internal static partial class ExecutionExpressionCseFacts
             case ExecutionCoalesce coalesce:
                 for (var index = 0; index < coalesce.Expressions.Count; index++)
                 {
-                    foreach (var occurrence in CollectHoistableOccurrences(
-                                 coalesce.Expressions[index],
-                                 inPassThroughUnsafeContext || index > 0))
+                    foreach (
+                        var occurrence in CollectHoistableOccurrences(
+                            coalesce.Expressions[index],
+                            inPassThroughUnsafeContext || index > 0
+                        )
+                    )
                         yield return occurrence;
                 }
 
@@ -289,8 +322,14 @@ internal static partial class ExecutionExpressionCseFacts
         {
             ExecutionFieldRead fieldRead => !string.IsNullOrWhiteSpace(fieldRead.Alias),
             ExecutionMemberRead memberRead => IsDeterministicExpression(memberRead.Receiver),
-            ExecutionMethodCall methodCall => IsSafeWholeMethodCallCseCandidate(methodCall, hasExplicitTargetMetadata: false),
-            ExecutionMethodTargetReuseCandidate candidate => IsSafeWholeMethodCallCseCandidate(candidate.MethodCall, hasExplicitTargetMetadata: true),
+            ExecutionMethodCall methodCall => IsSafeWholeMethodCallCseCandidate(
+                methodCall,
+                hasExplicitTargetMetadata: false
+            ),
+            ExecutionMethodTargetReuseCandidate candidate => IsSafeWholeMethodCallCseCandidate(
+                candidate.MethodCall,
+                hasExplicitTargetMetadata: true
+            ),
             ExecutionStrictCast strictCast => IsSafeWholeStrictCastCseCandidate(strictCast),
             ExecutionBinary binary => binary.Kind is not (BinaryOpKind.And or BinaryOpKind.Or),
             ExecutionStringConcatenation => true,
@@ -308,37 +347,38 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionDynamicRLikeMatch => true,
             ExecutionRLikeMatcherCacheSlot => false,
             ExecutionBetween => true,
-            _ => false
+            _ => false,
         };
     }
 
     private static bool IsSafeWholeStrictCastCseCandidate(ExecutionStrictCast strictCast)
     {
         return !StrictCastLibraryConversionFacts.IsPassThrough(
-                   strictCast.Expression.ReturnType.ResolveClrType(),
-                   strictCast.ReturnType.ResolveClrType()) &&
-               IsCseResultTypeStable(strictCast.ReturnType.ResolveClrType()) &&
-               IsDeterministicExpression(strictCast.Expression);
+                strictCast.Expression.ReturnType.ResolveClrType(),
+                strictCast.ReturnType.ResolveClrType()
+            )
+            && IsCseResultTypeStable(strictCast.ReturnType.ResolveClrType())
+            && IsDeterministicExpression(strictCast.Expression);
     }
 
-    public static bool IsSafeWholeMethodCallCseCandidate(
-        ExecutionMethodCall methodCall,
-        bool hasExplicitTargetMetadata)
+    public static bool IsSafeWholeMethodCallCseCandidate(ExecutionMethodCall methodCall, bool hasExplicitTargetMetadata)
     {
-        if (methodCall.ReturnType.ResolveClrType() == typeof(void) ||
-            methodCall.InjectedSource != null ||
-            !IsCseResultTypeStable(methodCall.ReturnType.ResolveClrType()) ||
-            !IsDeterministicMethod(methodCall.Method) ||
-            !methodCall.Arguments.All(IsDeterministicExpression))
+        if (
+            methodCall.ReturnType.ResolveClrType() == typeof(void)
+            || methodCall.InjectedSource != null
+            || !IsCseResultTypeStable(methodCall.ReturnType.ResolveClrType())
+            || !IsDeterministicMethod(methodCall.Method)
+            || !methodCall.Arguments.All(IsDeterministicExpression)
+        )
         {
             return false;
         }
 
-        return methodCall.Target != null ||
-               methodCall.Cache != null ||
-               methodCall.Method.IsStatic ||
-               hasExplicitTargetMetadata ||
-               ExecutionMethodTargetReuse.CanRenderWithoutTarget(methodCall);
+        return methodCall.Target != null
+            || methodCall.Cache != null
+            || methodCall.Method.IsStatic
+            || hasExplicitTargetMetadata
+            || ExecutionMethodTargetReuse.CanRenderWithoutTarget(methodCall);
     }
 
     public static bool IsCseResultTypeStable(Type type)
@@ -352,8 +392,7 @@ internal static partial class ExecutionExpressionCseFacts
         return ExpressionStabilityAnalyzer.IsStable(expression);
     }
 
-    public static bool IsDeterministicMethod(MethodInfo method) =>
-        ExpressionStabilityAnalyzer.IsStableMethod(method);
+    public static bool IsDeterministicMethod(MethodInfo method) => ExpressionStabilityAnalyzer.IsStableMethod(method);
 
     public static bool IsDeterministicMethod(ExecutionCallableRef method) =>
         ExpressionStabilityAnalyzer.IsStableMethod(method);
@@ -368,55 +407,60 @@ internal static partial class ExecutionExpressionCseFacts
             ExecutionUnary unary => 1 + GetExpressionDepth(unary.Operand),
             ExecutionStrictCast strictCast => 1 + GetExpressionDepth(strictCast.Expression),
             ExecutionMethodTargetReuseCandidate candidate => GetExpressionDepth(candidate.MethodCall),
-            ExecutionMethodCall methodCall => 1 + Math.Max(
-                methodCall.Arguments.Count == 0 ? 0 : methodCall.Arguments.Max(GetExpressionDepth),
-                methodCall.InjectedSource == null ? 0 : GetExpressionDepth(methodCall.InjectedSource)),
-            ExecutionArrayAccess arrayAccess => 1 + Math.Max(
-                GetExpressionDepth(arrayAccess.Array),
-                GetExpressionDepth(arrayAccess.Index)),
+            ExecutionMethodCall methodCall => 1
+                + Math.Max(
+                    methodCall.Arguments.Count == 0 ? 0 : methodCall.Arguments.Max(GetExpressionDepth),
+                    methodCall.InjectedSource == null ? 0 : GetExpressionDepth(methodCall.InjectedSource)
+                ),
+            ExecutionArrayAccess arrayAccess => 1
+                + Math.Max(GetExpressionDepth(arrayAccess.Array), GetExpressionDepth(arrayAccess.Index)),
             ExecutionIsNullCheck isNull => 1 + GetExpressionDepth(isNull.Expression),
-            ExecutionInCheck inCheck => 1 + Math.Max(
-                GetExpressionDepth(inCheck.Expression),
-                inCheck.Values.Count == 0 ? 0 : inCheck.Values.Max(GetExpressionDepth)),
+            ExecutionInCheck inCheck => 1
+                + Math.Max(
+                    GetExpressionDepth(inCheck.Expression),
+                    inCheck.Values.Count == 0 ? 0 : inCheck.Values.Max(GetExpressionDepth)
+                ),
             ExecutionCollectionInCheck collectionInCheck => 1 + GetExpressionDepth(collectionInCheck.Expression),
-            ExecutionPatternMatch patternMatch => 1 + Math.Max(
-                GetExpressionDepth(patternMatch.Expression),
-                GetExpressionDepth(patternMatch.Pattern)),
+            ExecutionPatternMatch patternMatch => 1
+                + Math.Max(GetExpressionDepth(patternMatch.Expression), GetExpressionDepth(patternMatch.Pattern)),
             ExecutionStringMatch stringMatch => 1 + GetExpressionDepth(stringMatch.Input),
             ExecutionPrepareLikeMatcher prepareLike => 1 + GetExpressionDepth(prepareLike.Pattern),
-            ExecutionPreparedLikeMatch preparedLike => 1 + Math.Max(
-                GetExpressionDepth(preparedLike.Input),
-                GetExpressionDepth(preparedLike.Matcher)),
-            ExecutionDynamicLikeMatch dynamicLike => 1 + Math.Max(
-                GetExpressionDepth(dynamicLike.Input),
-                Math.Max(GetExpressionDepth(dynamicLike.Pattern), GetExpressionDepth(dynamicLike.CacheSlot))),
+            ExecutionPreparedLikeMatch preparedLike => 1
+                + Math.Max(GetExpressionDepth(preparedLike.Input), GetExpressionDepth(preparedLike.Matcher)),
+            ExecutionDynamicLikeMatch dynamicLike => 1
+                + Math.Max(
+                    GetExpressionDepth(dynamicLike.Input),
+                    Math.Max(GetExpressionDepth(dynamicLike.Pattern), GetExpressionDepth(dynamicLike.CacheSlot))
+                ),
             ExecutionPrepareRLikeMatcher prepareRLike => 1 + GetExpressionDepth(prepareRLike.Pattern),
-            ExecutionPreparedRLikeMatch preparedRLike => 1 + Math.Max(
-                GetExpressionDepth(preparedRLike.Input),
-                GetExpressionDepth(preparedRLike.Matcher)),
-            ExecutionDynamicRLikeMatch dynamicRLike => 1 + Math.Max(
-                GetExpressionDepth(dynamicRLike.Input),
-                Math.Max(GetExpressionDepth(dynamicRLike.Pattern), GetExpressionDepth(dynamicRLike.CacheSlot))),
-            ExecutionBetween between => 1 + Math.Max(
-                GetExpressionDepth(between.Expression),
-                Math.Max(GetExpressionDepth(between.Low), GetExpressionDepth(between.High))),
-            ExecutionCaseWhen caseWhen => 1 + Math.Max(
-                caseWhen.Branches.Count == 0
-                    ? 0
-                    : caseWhen.Branches.Max(static branch => Math.Max(
-                        GetExpressionDepth(branch.Condition),
-                        GetExpressionDepth(branch.Result))),
-                caseWhen.ElseExpression == null ? 0 : GetExpressionDepth(caseWhen.ElseExpression)),
-            ExecutionCoalesce coalesce => 1 + (coalesce.Expressions.Count == 0
-                ? 0
-                : coalesce.Expressions.Max(GetExpressionDepth)),
-            ExecutionValueTupleKey valueTupleKey => 1 + (valueTupleKey.Parts.Count == 0
-                ? 0
-                : valueTupleKey.Parts.Max(GetExpressionDepth)),
-            ExecutionAggregateCall aggregateCall => 1 + (aggregateCall.Arguments.Count == 0
-                ? 0
-                : aggregateCall.Arguments.Max(GetExpressionDepth)),
-            _ => 1
+            ExecutionPreparedRLikeMatch preparedRLike => 1
+                + Math.Max(GetExpressionDepth(preparedRLike.Input), GetExpressionDepth(preparedRLike.Matcher)),
+            ExecutionDynamicRLikeMatch dynamicRLike => 1
+                + Math.Max(
+                    GetExpressionDepth(dynamicRLike.Input),
+                    Math.Max(GetExpressionDepth(dynamicRLike.Pattern), GetExpressionDepth(dynamicRLike.CacheSlot))
+                ),
+            ExecutionBetween between => 1
+                + Math.Max(
+                    GetExpressionDepth(between.Expression),
+                    Math.Max(GetExpressionDepth(between.Low), GetExpressionDepth(between.High))
+                ),
+            ExecutionCaseWhen caseWhen => 1
+                + Math.Max(
+                    caseWhen.Branches.Count == 0
+                        ? 0
+                        : caseWhen.Branches.Max(static branch =>
+                            Math.Max(GetExpressionDepth(branch.Condition), GetExpressionDepth(branch.Result))
+                        ),
+                    caseWhen.ElseExpression == null ? 0 : GetExpressionDepth(caseWhen.ElseExpression)
+                ),
+            ExecutionCoalesce coalesce => 1
+                + (coalesce.Expressions.Count == 0 ? 0 : coalesce.Expressions.Max(GetExpressionDepth)),
+            ExecutionValueTupleKey valueTupleKey => 1
+                + (valueTupleKey.Parts.Count == 0 ? 0 : valueTupleKey.Parts.Max(GetExpressionDepth)),
+            ExecutionAggregateCall aggregateCall => 1
+                + (aggregateCall.Arguments.Count == 0 ? 0 : aggregateCall.Arguments.Max(GetExpressionDepth)),
+            _ => 1,
         };
     }
 }

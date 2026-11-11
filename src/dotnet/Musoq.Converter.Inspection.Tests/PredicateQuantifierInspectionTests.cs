@@ -14,14 +14,20 @@ public class PredicateQuantifierInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenAnyLikePredicateQuantifierIsUsed_ShouldExposeLoweredOrPatternShape()
     {
-        var result = CreateInspection("select d.Dummy from #system.dual() d where any(d.Dummy, 'fallback') like 'single%'");
+        var result = CreateInspection(
+            "select d.Dummy from #system.dual() d where any(d.Dummy, 'fallback') like 'single%'"
+        );
 
         Assert.Contains("Filter [(d.Dummy LIKE 'single%' OR 'fallback' LIKE 'single%')]", result.LogicalPlanText);
-        Assert.Contains("PhysicalFilter [(d.Dummy LIKE 'single%' OR 'fallback' LIKE 'single%')]", result.PhysicalPlanText);
         Assert.Contains(
-            "If [(STRING_MATCH(dummy, pattern='single%', needle='single', kind=Prefix, comparison=LikeIgnoreCase) OR " +
-            "STRING_MATCH('fallback', pattern='single%', needle='single', kind=Prefix, comparison=LikeIgnoreCase))]",
-            result.ExecutionPlanText);
+            "PhysicalFilter [(d.Dummy LIKE 'single%' OR 'fallback' LIKE 'single%')]",
+            result.PhysicalPlanText
+        );
+        Assert.Contains(
+            "If [(STRING_MATCH(dummy, pattern='single%', needle='single', kind=Prefix, comparison=LikeIgnoreCase) OR "
+                + "STRING_MATCH('fallback', pattern='single%', needle='single', kind=Prefix, comparison=LikeIgnoreCase))]",
+            result.ExecutionPlanText
+        );
         AssertNoResidualQuantifier(result);
         Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, ".StartsWith("));
         Assert.Contains("STRING_MATCH", result.ExecutionPlanText);
@@ -30,17 +36,27 @@ public class PredicateQuantifierInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenAllNotRLikePredicateQuantifierIsUsed_ShouldExposeLoweredAndNegatedPatternShape()
     {
-        var result = CreateInspection("select d.Dummy from #system.dual() d where all(d.Dummy, 'fallback') not rlike '^blocked'");
+        var result = CreateInspection(
+            "select d.Dummy from #system.dual() d where all(d.Dummy, 'fallback') not rlike '^blocked'"
+        );
 
-        Assert.Contains("Filter [(NOT d.Dummy RLIKE '^blocked' AND NOT 'fallback' RLIKE '^blocked')]", result.LogicalPlanText);
-        Assert.Contains("PhysicalFilter [(NOT d.Dummy RLIKE '^blocked' AND NOT 'fallback' RLIKE '^blocked')]", result.PhysicalPlanText);
         Assert.Contains(
-            "Let [__rlikeMatcher0: PreparedRLikeMatcher = PREPARE_RLIKE('^blocked', " +
-            "strategy=regex, anchors=none, literal-span=none, fallback=RegexMetacharacter)]",
-            result.ExecutionPlanText);
+            "Filter [(NOT d.Dummy RLIKE '^blocked' AND NOT 'fallback' RLIKE '^blocked')]",
+            result.LogicalPlanText
+        );
+        Assert.Contains(
+            "PhysicalFilter [(NOT d.Dummy RLIKE '^blocked' AND NOT 'fallback' RLIKE '^blocked')]",
+            result.PhysicalPlanText
+        );
+        Assert.Contains(
+            "Let [__rlikeMatcher0: PreparedRLikeMatcher = PREPARE_RLIKE('^blocked', "
+                + "strategy=regex, anchors=none, literal-span=none, fallback=RegexMetacharacter)]",
+            result.ExecutionPlanText
+        );
         Assert.Contains(
             "If [(NOT PREPARED_RLIKE(dummy, __rlikeMatcher0) AND NOT PREPARED_RLIKE('fallback', __rlikeMatcher0))]",
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         AssertNoResidualQuantifier(result);
         Assert.AreEqual(1, CountOccurrences(result.GeneratedCSharpCode, "Operators.PrepareRLike("));
         Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, "Operators.RLikePrepared("));
@@ -49,11 +65,7 @@ public class PredicateQuantifierInspectionTests
 
     private QueryInspectionResult CreateInspection(string query)
     {
-        return InstanceCreator.CompileForInspection(
-            query,
-            Guid.NewGuid().ToString(),
-            _schemaProvider,
-            _loggerResolver);
+        return InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString(), _schemaProvider, _loggerResolver);
     }
 
     private static void AssertNoResidualQuantifier(QueryInspectionResult result)

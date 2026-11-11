@@ -2,7 +2,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-
     private static string? GetUnsupportedNodeReason(ExecutionBlock block)
     {
         foreach (var node in block.Nodes)

@@ -38,8 +38,16 @@ internal sealed class DocumentRenderer(FormattingOptions options, string newline
                 _pending.Push(frame with { Document = indented.Content, Indent = frame.Indent + options.IndentSize });
                 break;
             case GroupedDocument grouped:
-                var flat = grouped.FlatWidth != int.MaxValue && (long)_column + grouped.FlatWidth + SuffixWidth() <= options.LineWidth;
-                _pending.Push(frame with { Document = grouped.Content, Mode = flat ? LayoutMode.Flat : LayoutMode.Expanded });
+                var flat =
+                    grouped.FlatWidth != int.MaxValue
+                    && (long)_column + grouped.FlatWidth + SuffixWidth() <= options.LineWidth;
+                _pending.Push(
+                    frame with
+                    {
+                        Document = grouped.Content,
+                        Mode = flat ? LayoutMode.Flat : LayoutMode.Expanded,
+                    }
+                );
                 break;
             case SequenceDocument sequence:
                 for (var index = sequence.Parts.Count - 1; index >= 0; index--)
@@ -109,7 +117,11 @@ internal sealed class DocumentRenderer(FormattingOptions options, string newline
         return true;
     }
 
-    private enum LayoutMode { Expanded, Flat }
+    private enum LayoutMode
+    {
+        Expanded,
+        Flat,
+    }
 
     private readonly record struct Frame(Document Document, int Indent, LayoutMode Mode);
 }

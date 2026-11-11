@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace Musoq.Targets.Execution;
 
 internal static class TargetHostAbiInventoryBuilder
@@ -21,250 +22,294 @@ internal static class TargetHostAbiInventoryBuilder
         AddLikeMatcher(runtimeContract, imports);
         AddRLikeMatcher(runtimeContract, imports);
         if (runtimeContract.RequiresByteBufferSnapshots)
-            imports.Add(new TargetHostAbiImport(TargetHostAbiImportKind.ByteBufferSnapshot,
-                "owned-prefix-or-complete-snapshot", "byte-buffer-snapshot-v1", 1,
-                new TargetByteBufferSnapshotAbiDetails()));
+            imports.Add(
+                new TargetHostAbiImport(
+                    TargetHostAbiImportKind.ByteBufferSnapshot,
+                    "owned-prefix-or-complete-snapshot",
+                    "byte-buffer-snapshot-v1",
+                    1,
+                    new TargetByteBufferSnapshotAbiDetails()
+                )
+            );
         if (runtimeContract.RequiresInterpretationStatus)
-            imports.Add(new TargetHostAbiImport(TargetHostAbiImportKind.InterpretationStatus,
-                "typed-parse-status-and-completion", "interpretation-status-v1", 1,
-                new TargetInterpretationStatusAbiDetails()));
+            imports.Add(
+                new TargetHostAbiImport(
+                    TargetHostAbiImportKind.InterpretationStatus,
+                    "typed-parse-status-and-completion",
+                    "interpretation-status-v1",
+                    1,
+                    new TargetInterpretationStatusAbiDetails()
+                )
+            );
         return new TargetHostAbiInventory(imports);
     }
 
-    private static void AddSourceAccess(
-        TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+    private static void AddSourceAccess(TargetRuntimeContract runtimeContract, ICollection<TargetHostAbiImport> imports)
     {
         foreach (var source in runtimeContract.SourceAccess)
         {
-            imports.Add(new TargetHostAbiImport(
-                TargetHostAbiImportKind.SourceAccess,
-                $"{source.Kind}:{source.SourceContextId}:{source.SchemaName}.{source.MethodName}",
-                "source-access-v2",
-                2,
-                new TargetSourceAccessAbiDetails(
-                    source.Kind,
-                    source.SourceContextId,
-                    source.SchemaName,
-                    source.MethodName,
-                    source.RowsType.StableName,
-                    source.RowsType.Portability,
-                    source.SourceType?.StableName ?? string.Empty,
-                    source.SourceType?.Portability,
-                    source.ArgumentTypes.Select((type, index) => new TargetSourceArgumentAbiContract(index, type)),
-                    source.Fields.Select(static field => new TargetSourceFieldAbiContract(
-                        field.Index,
-                        field.Name,
-                        field.Type,
-                        field.PublicType,
-                        field.SourceReadType,
-                        field.EnumType,
-                        field.Nullability,
-                        field.ReadModifiers)),
-                    source.AcceptedOperations,
-                    source.RuntimeSettings)));
+            imports.Add(
+                new TargetHostAbiImport(
+                    TargetHostAbiImportKind.SourceAccess,
+                    $"{source.Kind}:{source.SourceContextId}:{source.SchemaName}.{source.MethodName}",
+                    "source-access-v2",
+                    2,
+                    new TargetSourceAccessAbiDetails(
+                        source.Kind,
+                        source.SourceContextId,
+                        source.SchemaName,
+                        source.MethodName,
+                        source.RowsType.StableName,
+                        source.RowsType.Portability,
+                        source.SourceType?.StableName ?? string.Empty,
+                        source.SourceType?.Portability,
+                        source.ArgumentTypes.Select((type, index) => new TargetSourceArgumentAbiContract(index, type)),
+                        source.Fields.Select(static field => new TargetSourceFieldAbiContract(
+                            field.Index,
+                            field.Name,
+                            field.Type,
+                            field.PublicType,
+                            field.SourceReadType,
+                            field.EnumType,
+                            field.Nullability,
+                            field.ReadModifiers
+                        )),
+                        source.AcceptedOperations,
+                        source.RuntimeSettings
+                    )
+                )
+            );
         }
     }
 
     private static void AddQueryRowSourceAccess(
         TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+        ICollection<TargetHostAbiImport> imports
+    )
     {
         foreach (var source in runtimeContract.QueryRowSourceAccess)
         {
-            imports.Add(new TargetHostAbiImport(
-                TargetHostAbiImportKind.QueryRowSourceAccess,
-                $"{source.SourceContextId}:{source.SchemaName}.{source.MethodName}",
-                source.Fields.Any(static field => field.ComputedExpressionIdentity is not null) ? "query-row-source-access-v3" : "query-row-source-access-v2",
-                source.Fields.Any(static field => field.ComputedExpressionIdentity is not null) ? 3 : 2,
-                new TargetQueryRowSourceAccessAbiDetails(
-                    source.SourceContextId,
-                    source.SchemaName,
-                    source.MethodName,
-                    source.Carrier.ToString(),
-                    source.Lifetime.ToString(),
-                    source.ShapeFingerprint,
-                    source.Fields.Select(static field => new TargetQueryRowFieldAbiContract(
-                        field.Slot,
-                        field.SourceColumnIndex,
-                        field.Name,
-                        field.Type,
-                        field.SourceReadType,
-                        field.EnumType,
-                        field.IsNullable,
-                        field.ReadModifiers,
-                        field.ComputedExpressionIdentity)))));
+            imports.Add(
+                new TargetHostAbiImport(
+                    TargetHostAbiImportKind.QueryRowSourceAccess,
+                    $"{source.SourceContextId}:{source.SchemaName}.{source.MethodName}",
+                    source.Fields.Any(static field => field.ComputedExpressionIdentity is not null)
+                        ? "query-row-source-access-v3"
+                        : "query-row-source-access-v2",
+                    source.Fields.Any(static field => field.ComputedExpressionIdentity is not null) ? 3 : 2,
+                    new TargetQueryRowSourceAccessAbiDetails(
+                        source.SourceContextId,
+                        source.SchemaName,
+                        source.MethodName,
+                        source.Carrier.ToString(),
+                        source.Lifetime.ToString(),
+                        source.ShapeFingerprint,
+                        source.Fields.Select(static field => new TargetQueryRowFieldAbiContract(
+                            field.Slot,
+                            field.SourceColumnIndex,
+                            field.Name,
+                            field.Type,
+                            field.SourceReadType,
+                            field.EnumType,
+                            field.IsNullable,
+                            field.ReadModifiers,
+                            field.ComputedExpressionIdentity
+                        ))
+                    )
+                )
+            );
         }
     }
 
     private static void AddPluginInvocations(
         TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+        ICollection<TargetHostAbiImport> imports
+    )
     {
         foreach (var invocation in runtimeContract.PluginInvocations)
         {
-            imports.Add(new TargetHostAbiImport(
-                TargetHostAbiImportKind.PluginInvocation,
-                $"{invocation.Detail} [{invocation.Callable.StableName}]",
-                "plugin-invocation-v2",
-                2,
-                new TargetPluginInvocationAbiDetails(
-                    invocation.Detail,
-                    invocation.Callable.StableName,
-                    invocation.Callable.Portability,
-                    invocation.Callable.MethodName,
-                    invocation.Callable.DeclaringType?.StableName ?? string.Empty,
-                    invocation.Callable.ParameterTypes.Count)));
+            imports.Add(
+                new TargetHostAbiImport(
+                    TargetHostAbiImportKind.PluginInvocation,
+                    $"{invocation.Detail} [{invocation.Callable.StableName}]",
+                    "plugin-invocation-v2",
+                    2,
+                    new TargetPluginInvocationAbiDetails(
+                        invocation.Detail,
+                        invocation.Callable.StableName,
+                        invocation.Callable.Portability,
+                        invocation.Callable.MethodName,
+                        invocation.Callable.DeclaringType?.StableName ?? string.Empty,
+                        invocation.Callable.ParameterTypes.Count
+                    )
+                )
+            );
         }
     }
 
-    private static void AddRowShapes(
-        TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+    private static void AddRowShapes(TargetRuntimeContract runtimeContract, ICollection<TargetHostAbiImport> imports)
     {
         foreach (var shape in runtimeContract.RowShapes)
         {
-            imports.Add(new TargetHostAbiImport(
-                TargetHostAbiImportKind.RowShapeTransfer,
-                $"{shape.Kind}:{shape.Name}",
-                "row-shape-transfer-v1",
-                1,
-                new TargetRowShapeTransferAbiDetails(
-                    shape.Kind,
-                    shape.Name,
-                    shape.TypeSymbol?.StableName ?? string.Empty,
-                    shape.TypeSymbol?.Portability,
-                    shape.Fields.Count)));
+            imports.Add(
+                new TargetHostAbiImport(
+                    TargetHostAbiImportKind.RowShapeTransfer,
+                    $"{shape.Kind}:{shape.Name}",
+                    "row-shape-transfer-v1",
+                    1,
+                    new TargetRowShapeTransferAbiDetails(
+                        shape.Kind,
+                        shape.Name,
+                        shape.TypeSymbol?.StableName ?? string.Empty,
+                        shape.TypeSymbol?.Portability,
+                        shape.Fields.Count
+                    )
+                )
+            );
         }
     }
 
-    private static void AddNullBehavior(
-        TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+    private static void AddNullBehavior(TargetRuntimeContract runtimeContract, ICollection<TargetHostAbiImport> imports)
     {
         var nullBehavior = runtimeContract.NullBehavior;
-        if (!nullBehavior.UsesNullableValueTypes &&
-            !nullBehavior.UsesObjectNulls &&
-            !nullBehavior.UsesFieldNullabilityMetadata)
+        if (
+            !nullBehavior.UsesNullableValueTypes
+            && !nullBehavior.UsesObjectNulls
+            && !nullBehavior.UsesFieldNullabilityMetadata
+        )
         {
             return;
         }
 
-        imports.Add(new TargetHostAbiImport(
-            TargetHostAbiImportKind.NullTypeCoercion,
-            nullBehavior.Semantics,
-            "null-type-coercion-v1",
-            1,
-            new TargetNullTypeCoercionAbiDetails(
+        imports.Add(
+            new TargetHostAbiImport(
+                TargetHostAbiImportKind.NullTypeCoercion,
                 nullBehavior.Semantics,
-                nullBehavior.UsesNullableValueTypes,
-                nullBehavior.UsesObjectNulls,
-                nullBehavior.UsesFieldNullabilityMetadata)));
+                "null-type-coercion-v1",
+                1,
+                new TargetNullTypeCoercionAbiDetails(
+                    nullBehavior.Semantics,
+                    nullBehavior.UsesNullableValueTypes,
+                    nullBehavior.UsesObjectNulls,
+                    nullBehavior.UsesFieldNullabilityMetadata
+                )
+            )
+        );
     }
 
-    private static void AddCancellation(
-        TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+    private static void AddCancellation(TargetRuntimeContract runtimeContract, ICollection<TargetHostAbiImport> imports)
     {
         var cancellation = runtimeContract.Cancellation;
-        if (!cancellation.RequiresCancellationToken &&
-            !cancellation.RequiresParallelCancellation)
+        if (!cancellation.RequiresCancellationToken && !cancellation.RequiresParallelCancellation)
         {
             return;
         }
 
-        imports.Add(new TargetHostAbiImport(
-            TargetHostAbiImportKind.Cancellation,
-            cancellation.RequiresParallelCancellation
-                ? "cancellation-token+parallel"
-                : "cancellation-token",
-            "cancellation-v1",
-            1,
-            new TargetCancellationAbiDetails(
-                cancellation.RequiresCancellationToken,
-                cancellation.RequiresParallelCancellation)));
+        imports.Add(
+            new TargetHostAbiImport(
+                TargetHostAbiImportKind.Cancellation,
+                cancellation.RequiresParallelCancellation ? "cancellation-token+parallel" : "cancellation-token",
+                "cancellation-v1",
+                1,
+                new TargetCancellationAbiDetails(
+                    cancellation.RequiresCancellationToken,
+                    cancellation.RequiresParallelCancellation
+                )
+            )
+        );
     }
 
-    private static void AddDiagnostics(
-        TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+    private static void AddDiagnostics(TargetRuntimeContract runtimeContract, ICollection<TargetHostAbiImport> imports)
     {
         var diagnostics = runtimeContract.Diagnostics;
-        if (!diagnostics.RequiresBuildDiagnostics &&
-            !diagnostics.RequiresSourceDiagnostics &&
-            !diagnostics.RequiresRuntimeExceptionDiagnostics)
+        if (
+            !diagnostics.RequiresBuildDiagnostics
+            && !diagnostics.RequiresSourceDiagnostics
+            && !diagnostics.RequiresRuntimeExceptionDiagnostics
+        )
         {
             return;
         }
 
-        imports.Add(new TargetHostAbiImport(
-            TargetHostAbiImportKind.Diagnostics,
-            $"{Flag("build", diagnostics.RequiresBuildDiagnostics)}{Flag("source", diagnostics.RequiresSourceDiagnostics)}{Flag("runtime", diagnostics.RequiresRuntimeExceptionDiagnostics)}".Trim('+'),
-            "diagnostics-v1",
-            1,
-            new TargetDiagnosticsAbiDetails(
-                diagnostics.RequiresBuildDiagnostics,
-                diagnostics.RequiresSourceDiagnostics,
-                diagnostics.RequiresRuntimeExceptionDiagnostics)));
+        imports.Add(
+            new TargetHostAbiImport(
+                TargetHostAbiImportKind.Diagnostics,
+                $"{Flag("build", diagnostics.RequiresBuildDiagnostics)}{Flag("source", diagnostics.RequiresSourceDiagnostics)}{Flag("runtime", diagnostics.RequiresRuntimeExceptionDiagnostics)}".Trim(
+                    '+'
+                ),
+                "diagnostics-v1",
+                1,
+                new TargetDiagnosticsAbiDetails(
+                    diagnostics.RequiresBuildDiagnostics,
+                    diagnostics.RequiresSourceDiagnostics,
+                    diagnostics.RequiresRuntimeExceptionDiagnostics
+                )
+            )
+        );
     }
 
-    private static void AddProfiling(
-        TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+    private static void AddProfiling(TargetRuntimeContract runtimeContract, ICollection<TargetHostAbiImport> imports)
     {
         var profiling = runtimeContract.Profiling;
-        if (!profiling.SupportsSourceBoundaryProfiling &&
-            !profiling.SupportsOperatorProfiling)
+        if (!profiling.SupportsSourceBoundaryProfiling && !profiling.SupportsOperatorProfiling)
         {
             return;
         }
 
-        imports.Add(new TargetHostAbiImport(
-            TargetHostAbiImportKind.Profiling,
-            $"source-boundaries:{profiling.SourceBoundaryCount};operators:{profiling.OperatorCount}",
-            "profiling-v1",
-            1,
-            new TargetProfilingAbiDetails(
-                profiling.SupportsSourceBoundaryProfiling,
-                profiling.SupportsOperatorProfiling,
-                profiling.SourceBoundaryCount,
-                profiling.OperatorCount)));
+        imports.Add(
+            new TargetHostAbiImport(
+                TargetHostAbiImportKind.Profiling,
+                $"source-boundaries:{profiling.SourceBoundaryCount};operators:{profiling.OperatorCount}",
+                "profiling-v1",
+                1,
+                new TargetProfilingAbiDetails(
+                    profiling.SupportsSourceBoundaryProfiling,
+                    profiling.SupportsOperatorProfiling,
+                    profiling.SourceBoundaryCount,
+                    profiling.OperatorCount
+                )
+            )
+        );
     }
 
-    private static void AddLikeMatcher(
-        TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+    private static void AddLikeMatcher(TargetRuntimeContract runtimeContract, ICollection<TargetHostAbiImport> imports)
     {
         if (runtimeContract.LikeMatcher is not { } likeMatcher)
             return;
 
-        imports.Add(new TargetHostAbiImport(
-            TargetHostAbiImportKind.LikeMatcher,
-            "prepared-and-dynamic-like",
-            "like-matcher-v1",
-            1,
-            new TargetLikeMatcherAbiDetails(
-                likeMatcher.CacheCapacity,
-                likeMatcher.Comparison,
-                likeMatcher.CultureAware)));
+        imports.Add(
+            new TargetHostAbiImport(
+                TargetHostAbiImportKind.LikeMatcher,
+                "prepared-and-dynamic-like",
+                "like-matcher-v1",
+                1,
+                new TargetLikeMatcherAbiDetails(
+                    likeMatcher.CacheCapacity,
+                    likeMatcher.Comparison,
+                    likeMatcher.CultureAware
+                )
+            )
+        );
     }
 
-    private static void AddRLikeMatcher(
-        TargetRuntimeContract runtimeContract,
-        ICollection<TargetHostAbiImport> imports)
+    private static void AddRLikeMatcher(TargetRuntimeContract runtimeContract, ICollection<TargetHostAbiImport> imports)
     {
         if (runtimeContract.RLikeMatcher is not { } rLikeMatcher)
             return;
 
-        imports.Add(new TargetHostAbiImport(
-            TargetHostAbiImportKind.RLikeMatcher,
-            "prepared-and-dynamic-rlike",
-            "rlike-matcher-v1",
-            1,
-            new TargetRLikeMatcherAbiDetails(
-                rLikeMatcher.CacheCapacity,
-                rLikeMatcher.CultureAware,
-                rLikeMatcher.TimeoutMilliseconds)));
+        imports.Add(
+            new TargetHostAbiImport(
+                TargetHostAbiImportKind.RLikeMatcher,
+                "prepared-and-dynamic-rlike",
+                "rlike-matcher-v1",
+                1,
+                new TargetRLikeMatcherAbiDetails(
+                    rLikeMatcher.CacheCapacity,
+                    rLikeMatcher.CultureAware,
+                    rLikeMatcher.TimeoutMilliseconds
+                )
+            )
+        );
     }
 
     private static string Flag(string name, bool enabled)

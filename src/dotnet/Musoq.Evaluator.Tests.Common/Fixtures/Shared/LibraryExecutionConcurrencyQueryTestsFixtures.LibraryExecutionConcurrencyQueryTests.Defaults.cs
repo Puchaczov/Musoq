@@ -10,15 +10,20 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionConcurrencyQueryTestsFixtures
 {
-
-    [LibraryExecutionDefaults(AggregatePermissions = FunctionExecutionPermissions.ConcurrentInvocations |
-        FunctionExecutionPermissions.IndependentGroups | FunctionExecutionPermissions.EquivalentPartialMerge)]
+    [LibraryExecutionDefaults(
+        AggregatePermissions = FunctionExecutionPermissions.ConcurrentInvocations
+            | FunctionExecutionPermissions.IndependentGroups
+            | FunctionExecutionPermissions.EquivalentPartialMerge
+    )]
     public class PermittedDefaultsLibrary : LibraryBase
     {
         [AggregateFunction(typeof(CountNullableAggregateKernel<int>))]
         public long DefaultCount(int? value) => AggregateFunction.NotInvoked<long>();
 
-        [AggregateFunction(typeof(CountNullableAggregateKernel<int>), ExecutionPermissions = FunctionExecutionPermissions.None)]
+        [AggregateFunction(
+            typeof(CountNullableAggregateKernel<int>),
+            ExecutionPermissions = FunctionExecutionPermissions.None
+        )]
         public long ExplicitSerialCount(int? value) => AggregateFunction.NotInvoked<long>();
     }
 
@@ -27,5 +32,4 @@ public partial class LibraryExecutionConcurrencyQueryTestsFixtures
         [AggregateFunction(typeof(CountNullableAggregateKernel<int>))]
         public long DescendantCount(int? value) => AggregateFunction.NotInvoked<long>();
     }
-
 }

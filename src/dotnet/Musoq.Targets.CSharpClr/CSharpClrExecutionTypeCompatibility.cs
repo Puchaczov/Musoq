@@ -6,8 +6,7 @@ internal static class CSharpClrExecutionTypeCompatibility
 {
     private static readonly CSharpClrExecutionBindingContext DefaultBindingContext = new();
 
-    internal static Type RequireClrType(this ExecutionTypeRef typeRef) =>
-        DefaultBindingContext.BindType(typeRef);
+    internal static Type RequireClrType(this ExecutionTypeRef typeRef) => DefaultBindingContext.BindType(typeRef);
 
     internal static Type? RequireOptionalClrType(this ExecutionTypeRef? typeRef) =>
         DefaultBindingContext.BindOptionalType(typeRef);

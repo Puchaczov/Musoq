@@ -36,8 +36,9 @@ public sealed class SqlConcatenationTests : BasicEntityTestBase
     [DataRow("e.Population || 'b'")]
     public void SqlConcatenation_ShouldRejectImplicitFormatting(string expression)
     {
-        var analysis = new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(Sources()))
-            .Analyze($"select {expression} from #A.Entities() e");
+        var analysis = new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(Sources())).Analyze(
+            $"select {expression} from #A.Entities() e"
+        );
 
         Assert.IsTrue(analysis.HasErrors);
         Assert.AreEqual(DiagnosticCode.MQ3007_InvalidOperandTypes, analysis.Errors.First().Code);
@@ -54,28 +55,43 @@ public sealed class SqlConcatenationTests : BasicEntityTestBase
     public void HomogeneousChains_ShouldPreserveNativeStringsAndOptimizerToggles(int arity, bool optimize)
     {
         var expression = string.Join(" || ", Enumerable.Repeat("e.Name", arity));
-        var options = new CompilationOptions(ParallelizationMode.None, useCommonSubexpressionElimination: optimize,
-            useConstantFolding: optimize).WithLoopInvariantCodeMotion(optimize);
-        using var query = CreateAndRunVirtualMachine($"select {expression} as A from #A.Entities() e", Sources(), options);
+        var options = new CompilationOptions(
+            ParallelizationMode.None,
+            useCommonSubexpressionElimination: optimize,
+            useConstantFolding: optimize
+        ).WithLoopInvariantCodeMotion(optimize);
+        using var query = CreateAndRunVirtualMachine(
+            $"select {expression} as A from #A.Entities() e",
+            Sources(),
+            options
+        );
         using var table = query.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { string.Concat(Enumerable.Repeat("🙂", arity)) });
-        Assert.IsEmpty(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query)
-            .Where(GeneratedExecutionIlInspection.ContainsBoxOpcode).Select(method => method.Name).ToArray());
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { string.Concat(Enumerable.Repeat("🙂", arity)) }
+        );
+        Assert.IsEmpty(
+            GeneratedExecutionIlInspection
+                .GetGeneratedComputeMethods(query)
+                .Where(GeneratedExecutionIlInspection.ContainsBoxOpcode)
+                .Select(method => method.Name)
+                .ToArray()
+        );
     }
 
     [TestMethod]
     public void SqlConcatenation_ShouldPreserveBitwisePipeAndLegacyPlus()
     {
         using var query = CreateAndRunVirtualMachine(
-            "select 1 | 2 as Bits, e.Name + e.City as Legacy, e.Name || e.City as Sql from #A.Entities() e", Sources());
+            "select 1 | 2 as Bits, e.Name + e.City as Legacy, e.Name || e.City as Sql from #A.Entities() e",
+            Sources()
+        );
         using var table = query.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, [3, "🙂", null]);
     }
 
-    private static Dictionary<string, IEnumerable<BasicEntity>> Sources() => new()
-    {
-        ["#A"] = [new BasicEntity("🙂") { City = null, Population = 1m }]
-    };
+    private static Dictionary<string, IEnumerable<BasicEntity>> Sources() =>
+        new() { ["#A"] = [new BasicEntity("🙂") { City = null, Population = 1m }] };
 }

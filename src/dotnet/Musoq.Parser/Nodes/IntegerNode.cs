@@ -3,9 +3,7 @@ namespace Musoq.Parser.Nodes;
 public class IntegerNode : ConstantValueNode
 {
     public IntegerNode(string value, string abbreviation)
-        : this(value, abbreviation, default)
-    {
-    }
+        : this(value, abbreviation, default) { }
 
     public IntegerNode(string value, string abbreviation, TextSpan span)
     {
@@ -20,7 +18,7 @@ public class IntegerNode : ConstantValueNode
             "UI" => uint.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
             "L" => long.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
             "UL" => ulong.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
-            _ => int.Parse(value, System.Globalization.CultureInfo.InvariantCulture)
+            _ => int.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
         };
 
         Id = $"{nameof(IntegerNode)}{value}{ReturnType.Name}";
@@ -29,9 +27,7 @@ public class IntegerNode : ConstantValueNode
     }
 
     public IntegerNode(object objValue)
-        : this(objValue, default)
-    {
-    }
+        : this(objValue, default) { }
 
     public IntegerNode(object objValue, TextSpan span)
     {
@@ -57,5 +53,4 @@ public class IntegerNode : ConstantValueNode
         ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
-
 }

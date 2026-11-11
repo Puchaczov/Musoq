@@ -12,17 +12,18 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     public void Constructor_WhenLoweringLacksPlannerExecutionStrategies_ShouldFailClearly()
     {
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["p"] = typeof(Person)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["p"] = typeof(Person) }
+        );
 
-        var exception = Assert.ThrowsExactly<ArgumentNullException>(() => new PhysicalToExecutionPlanBuilder(
-            shapeResolver,
-            null,
-            new CompilationOptions(),
-            null,
-            executionArtifacts: null!));
+        var exception = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new PhysicalToExecutionPlanBuilder(
+                shapeResolver,
+                null,
+                new CompilationOptions(),
+                null,
+                executionArtifacts: null!
+            )
+        );
 
         Assert.AreEqual("executionArtifacts", exception.ParamName);
     }

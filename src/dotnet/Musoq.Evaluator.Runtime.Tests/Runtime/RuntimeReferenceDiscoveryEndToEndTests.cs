@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Microsoft.CodeAnalysis;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Schema;
@@ -32,29 +32,25 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
 
-        StringAssert.Contains(
-            inspection.GeneratedCSharpCode,
-            "SourceInvocation<System.Diagnostics.Process>");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "SourceInvocation<System.Diagnostics.Process>");
 
         using var compiled = InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
 
         using var table = compiled.Run();
         Assert.AreEqual(0, table.Count);
 
         var columns = table.Columns.ToArray();
         var expectedColumns = query.Contains("ProcessorAffinity", StringComparison.Ordinal)
-            ? new[]
-            {
-                (nameof(Process.ProcessName), typeof(string)),
-                ("ProcessorAffinity", typeof(IntPtr))
-            }
+            ? new[] { (nameof(Process.ProcessName), typeof(string)), ("ProcessorAffinity", typeof(IntPtr)) }
             : new[] { (nameof(Process.ProcessName), typeof(string)) };
 
         Assert.AreEqual(expectedColumns.Length, columns.Length);
@@ -69,17 +65,22 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            compilationOptions);
-        var referenceFileNames = analyzed.RenderingArtifacts.Compilation.References
-            .OfType<PortableExecutableReference>()
+            compilationOptions
+        );
+        var referenceFileNames = analyzed
+            .RenderingArtifacts.Compilation.References.OfType<PortableExecutableReference>()
             .Select(reference => Path.GetFileName(reference.FilePath))
             .Where(static name => name is not null)
             .Select(static name => name!)
             .ToArray();
 
         CollectionAssert.Contains(referenceFileNames, "System.Diagnostics.Process.dll");
-        Assert.AreEqual(1, referenceFileNames.Count(
-            static name => string.Equals(name, "System.Diagnostics.Process.dll", StringComparison.OrdinalIgnoreCase)));
+        Assert.AreEqual(
+            1,
+            referenceFileNames.Count(static name =>
+                string.Equals(name, "System.Diagnostics.Process.dll", StringComparison.OrdinalIgnoreCase)
+            )
+        );
         CollectionAssert.DoesNotContain(referenceFileNames, "System.Xml.dll");
         CollectionAssert.DoesNotContain(referenceFileNames, "System.Net.Http.dll");
 
@@ -88,7 +89,8 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
             Guid.NewGuid().ToString(),
             CreatePrimitiveSchemaProvider(),
             _loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
         var baselineReferenceFileNames = GetReferenceFileNames(primitiveBaseline);
         var planReferenceDelta = referenceFileNames
             .Except(baselineReferenceFileNames, StringComparer.OrdinalIgnoreCase)
@@ -101,7 +103,8 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
         var firstProcessReference = GetProcessReference(analyzed);
         var repeatedProcessReference = GetProcessReference(repeated);
         Assert.AreSame(firstProcessReference, repeatedProcessReference);
@@ -109,8 +112,8 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
 
     private static string[] GetReferenceFileNames(Musoq.Converter.Build.BuildItems items)
     {
-        return items.RenderingArtifacts.Compilation.References
-            .OfType<PortableExecutableReference>()
+        return items
+            .RenderingArtifacts.Compilation.References.OfType<PortableExecutableReference>()
             .Select(reference => Path.GetFileName(reference.FilePath))
             .Where(static name => name is not null)
             .Select(static name => name!)
@@ -119,12 +122,15 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
 
     private static PortableExecutableReference GetProcessReference(Musoq.Converter.Build.BuildItems items)
     {
-        return items.RenderingArtifacts.Compilation.References
-                   .OfType<PortableExecutableReference>()
-                   .Single(reference => string.Equals(
-                       Path.GetFileName(reference.FilePath),
-                       "System.Diagnostics.Process.dll",
-                       StringComparison.OrdinalIgnoreCase));
+        return items
+            .RenderingArtifacts.Compilation.References.OfType<PortableExecutableReference>()
+            .Single(reference =>
+                string.Equals(
+                    Path.GetFileName(reference.FilePath),
+                    "System.Diagnostics.Process.dll",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            );
     }
 
     private static ISchemaProvider CreateProcessSchemaProvider()
@@ -132,14 +138,11 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
         var schema = new GenericSchema<GenericLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                { "processes", (new ProcessTable(), new EmptyProcessRowSource()) }
-            });
+                { "processes", (new ProcessTable(), new EmptyProcessRowSource()) },
+            }
+        );
 
-        return new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            { "os", schema },
-            { "#os", schema }
-        });
+        return new GenericSchemaProvider(new Dictionary<string, ISchema> { { "os", schema }, { "#os", schema } });
     }
 
     private static ISchemaProvider CreatePrimitiveSchemaProvider()
@@ -147,13 +150,11 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
         var schema = new GenericSchema<GenericLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                { "values", (new PrimitiveTable(), new EmptyPrimitiveRowSource()) }
-            });
+                { "values", (new PrimitiveTable(), new EmptyPrimitiveRowSource()) },
+            }
+        );
 
-        return new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            { "#primitive", schema }
-        });
+        return new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#primitive", schema } });
     }
 
     private sealed class ProcessTable : ISchemaTable
@@ -163,7 +164,7 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
         public ISchemaColumn[] Columns { get; } =
         [
             new Musoq.Schema.DataSources.SchemaColumn(nameof(Process.ProcessName), 0, typeof(string)),
-            new Musoq.Schema.DataSources.SchemaColumn(ProcessorAffinityColumnName, 1, typeof(IntPtr))
+            new Musoq.Schema.DataSources.SchemaColumn(ProcessorAffinityColumnName, 1, typeof(IntPtr)),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(Process));
@@ -187,17 +188,12 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
 
     private sealed class EmptyProcessRowSource : RowSourceBase<Process>
     {
-        protected override void CollectChunks(IChunkWriter<Process> writer)
-        {
-        }
+        protected override void CollectChunks(IChunkWriter<Process> writer) { }
     }
 
     private sealed class PrimitiveTable : ISchemaTable
     {
-        public ISchemaColumn[] Columns { get; } =
-        [
-            new Musoq.Schema.DataSources.SchemaColumn("Value", 0, typeof(int))
-        ];
+        public ISchemaColumn[] Columns { get; } = [new Musoq.Schema.DataSources.SchemaColumn("Value", 0, typeof(int))];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(int));
 
@@ -213,8 +209,6 @@ public sealed class RuntimeReferenceDiscoveryEndToEndTests
 
     private sealed class EmptyPrimitiveRowSource : RowSourceBase<int>
     {
-        protected override void CollectChunks(IChunkWriter<int> writer)
-        {
-        }
+        protected override void CollectChunks(IChunkWriter<int> writer) { }
     }
 }

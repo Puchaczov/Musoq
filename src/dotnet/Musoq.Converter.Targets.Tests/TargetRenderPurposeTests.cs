@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
-using Musoq.Evaluator;
 using Musoq.Converter.Tests.Schema;
+using Musoq.Evaluator;
 
 namespace Musoq.Converter.Tests;
 
@@ -13,16 +13,20 @@ public sealed class TargetRenderPurposeTests
     {
         Assert.AreEqual(
             TargetRenderPurpose.Execution,
-            TargetRenderPurposeFactory.CreatePurpose(CompilationPurpose.Execution));
+            TargetRenderPurposeFactory.CreatePurpose(CompilationPurpose.Execution)
+        );
         Assert.AreEqual(
             TargetRenderPurpose.Inspection,
-            TargetRenderPurposeFactory.CreatePurpose(CompilationPurpose.Inspection));
+            TargetRenderPurposeFactory.CreatePurpose(CompilationPurpose.Inspection)
+        );
         Assert.AreEqual(
             TargetRenderPurpose.PortablePackaging,
-            TargetRenderPurposeFactory.CreatePurpose(CompilationPurpose.PortableArtifactPackaging));
+            TargetRenderPurposeFactory.CreatePurpose(CompilationPurpose.PortableArtifactPackaging)
+        );
         Assert.AreEqual(
             TargetRenderPurpose.StrictValidation,
-            TargetRenderPurposeFactory.CreatePurpose(CompilationPurpose.ArtifactValidation));
+            TargetRenderPurposeFactory.CreatePurpose(CompilationPurpose.ArtifactValidation)
+        );
     }
 
     [TestMethod]
@@ -30,13 +34,16 @@ public sealed class TargetRenderPurposeTests
     {
         Assert.AreEqual(
             TargetRenderProfile.ExecutionFast,
-            TargetRenderPurposeFactory.CreateProfile(CompilationPurpose.Execution, emitPdb: false));
+            TargetRenderPurposeFactory.CreateProfile(CompilationPurpose.Execution, emitPdb: false)
+        );
         Assert.AreEqual(
             TargetRenderProfile.StableArtifact,
-            TargetRenderPurposeFactory.CreateProfile(CompilationPurpose.Execution, emitPdb: true));
+            TargetRenderPurposeFactory.CreateProfile(CompilationPurpose.Execution, emitPdb: true)
+        );
         Assert.AreEqual(
             TargetRenderProfile.StableArtifact,
-            TargetRenderPurposeFactory.CreateProfile(CompilationPurpose.Inspection, emitPdb: false));
+            TargetRenderPurposeFactory.CreateProfile(CompilationPurpose.Inspection, emitPdb: false)
+        );
     }
 
     [TestMethod]
@@ -49,13 +56,15 @@ public sealed class TargetRenderPurposeTests
             provider,
             options,
             ExecutionTargetIds.CSharpClr,
-            TargetRenderProfile.ExecutionFast);
+            TargetRenderProfile.ExecutionFast
+        );
         var stable = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             "select 1",
             provider,
             options,
             ExecutionTargetIds.CSharpClr,
-            TargetRenderProfile.StableArtifact);
+            TargetRenderProfile.StableArtifact
+        );
 
         Assert.AreNotEqual(fast, stable);
     }

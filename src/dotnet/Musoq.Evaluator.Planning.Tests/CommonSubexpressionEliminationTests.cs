@@ -21,15 +21,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     {
         const string query = "SELECT RandomNumber() as R1, RandomNumber() as R2 FROM #A.Entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("Test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -44,10 +36,12 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenExpressionWithImplicitConversionIsDuplicated_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT ToString(Population)
-            FROM #A.Entities()
-            WHERE ToString(Population) LIKE '1%'";
+        const string query = (
+            "\n"
+            + "            SELECT ToString(Population)\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE ToString(Population) LIKE '1%'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -57,9 +51,9 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
                     new BasicEntity("A", 100),
                     new BasicEntity("B", 200),
                     new BasicEntity("C", 150),
-                    new BasicEntity("D", 1000)
+                    new BasicEntity("D", 1000),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -76,29 +70,28 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenSubexpressionIsDuplicated_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Length(Name) * 10, Length(Name) + 5
-            FROM #A.Entities()
-            WHERE Length(Name) > 2";
+        const string query = (
+            "\n"
+            + "            SELECT Length(Name) * 10, Length(Name) + 5\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) > 2"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABC"),
-                    new BasicEntity("ABCDE")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCDE")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 30 && Convert.ToInt32(row.ReadValues()[1]) == 8));
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 50 && Convert.ToInt32(row.ReadValues()[1]) == 10));
+        Assert.IsTrue(
+            table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 30 && Convert.ToInt32(row.ReadValues()[1]) == 8)
+        );
+        Assert.IsTrue(
+            table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 50 && Convert.ToInt32(row.ReadValues()[1]) == 10)
+        );
     }
 
     #endregion
@@ -113,13 +106,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         {
             {
                 "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABCD"),
-                    new BasicEntity("ABCDEF"),
-                    new BasicEntity("XYZ")
-                ]
-            }
+                [new BasicEntity("AB"), new BasicEntity("ABCD"), new BasicEntity("ABCDEF"), new BasicEntity("XYZ")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -136,14 +124,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         const string query = "SELECT Name FROM #A.Entities() WHERE Name = 'Test'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("Test"),
-                    new BasicEntity("Other"),
-                    new BasicEntity("Test")
-                ]
-            }
+            { "#A", [new BasicEntity("Test"), new BasicEntity("Other"), new BasicEntity("Test")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -161,13 +142,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         {
             {
                 "#A",
-                [
-                    new BasicEntity("test"),
-                    new BasicEntity("TEST"),
-                    new BasicEntity("TeSt"),
-                    new BasicEntity("other")
-                ]
-            }
+                [new BasicEntity("test"), new BasicEntity("TEST"), new BasicEntity("TeSt"), new BasicEntity("other")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -184,23 +160,20 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenExpressionAppearsThreeTimes_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Name, Length(Name) as Len
-            FROM #A.Entities()
-            WHERE Length(Name) >= 3
-            ORDER BY Length(Name) DESC";
+        const string query = (
+            "\n"
+            + "            SELECT Name, Length(Name) as Len\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) >= 3\n"
+            + "            ORDER BY Length(Name) DESC"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABC"),
-                    new BasicEntity("ABCDE"),
-                    new BasicEntity("ABCD")
-                ]
-            }
+                [new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCDE"), new BasicEntity("ABCD")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -215,30 +188,28 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMultipleDifferentExpressionsAreDuplicated_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Length(Name), ToUpper(Name)
-            FROM #A.Entities()
-            WHERE Length(Name) > 2 AND ToUpper(Name) LIKE 'A%'";
+        const string query = (
+            "\n"
+            + "            SELECT Length(Name), ToUpper(Name)\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) > 2 AND ToUpper(Name) LIKE 'A%'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("Abc"),
-                    new BasicEntity("Xyz"),
-                    new BasicEntity("Alpha")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("Abc"), new BasicEntity("Xyz"), new BasicEntity("Alpha")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 rows");
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 3 && (string)row.ReadValues()[1] == "ABC"));
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 5 && (string)row.ReadValues()[1] == "ALPHA"));
+        Assert.IsTrue(
+            table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 3 && (string)row.ReadValues()[1] == "ABC")
+        );
+        Assert.IsTrue(
+            table.Any(row => Convert.ToInt32(row.ReadValues()[0]) == 5 && (string)row.ReadValues()[1] == "ALPHA")
+        );
     }
 
     #endregion
@@ -248,21 +219,16 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenArithmeticExpressionIsDuplicated_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Population * 2 as DoublePopulation
-            FROM #A.Entities()
-            WHERE Population * 2 > 100";
+        const string query = (
+            "\n"
+            + "            SELECT Population * 2 as DoublePopulation\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Population * 2 > 100"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 40),
-                    new BasicEntity("B", 60),
-                    new BasicEntity("C", 100)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 40), new BasicEntity("B", 60), new BasicEntity("C", 100)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -276,10 +242,12 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenStringConcatenationIsDuplicated_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT City + ', ' + Country as Location
-            FROM #A.Entities()
-            WHERE City + ', ' + Country LIKE '%Poland%'";
+        const string query = (
+            "\n"
+            + "            SELECT City + ', ' + Country as Location\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE City + ', ' + Country LIKE '%Poland%'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -288,9 +256,9 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
                 [
                     new BasicEntity("Poland", "Warsaw"),
                     new BasicEntity("Germany", "Berlin"),
-                    new BasicEntity("Poland", "Krakow")
+                    new BasicEntity("Poland", "Krakow"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -307,11 +275,13 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenAggregateUsedInHaving_ShouldNotAffectResult()
     {
-        const string query = @"
-            SELECT Country, Count(Country) as Cnt
-            FROM #A.Entities()
-            GROUP BY Country
-            HAVING Count(Country) > 1";
+        const string query = (
+            "\n"
+            + "            SELECT Country, Count(Country) as Cnt\n"
+            + "            FROM #A.Entities()\n"
+            + "            GROUP BY Country\n"
+            + "            HAVING Count(Country) > 1"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -321,9 +291,9 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
                     new BasicEntity("Poland", 100),
                     new BasicEntity("Poland", 200),
                     new BasicEntity("Germany", 300),
-                    new BasicEntity("Poland", 400)
+                    new BasicEntity("Poland", 400),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -337,21 +307,16 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenSameAggregateAppearsMultipleTimes_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Country, Sum(Population) as Total, Sum(Population) * 2 as DoubleTotal
-            FROM #A.Entities()
-            GROUP BY Country";
+        const string query = (
+            "\n"
+            + "            SELECT Country, Sum(Population) as Total, Sum(Population) * 2 as DoubleTotal\n"
+            + "            FROM #A.Entities()\n"
+            + "            GROUP BY Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("Poland", 100),
-                    new BasicEntity("Poland", 200),
-                    new BasicEntity("Germany", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("Poland", 100), new BasicEntity("Poland", 200), new BasicEntity("Germany", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -375,10 +340,12 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenExpressionEvaluatesToNull_ShouldHandleCorrectly()
     {
-        const string query = @"
-            SELECT NullableValue, NullableValue + 1
-            FROM #A.Entities()
-            WHERE NullableValue IS NOT NULL";
+        const string query = (
+            "\n"
+            + "            SELECT NullableValue, NullableValue + 1\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE NullableValue IS NOT NULL"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -387,9 +354,9 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
                 [
                     new BasicEntity { Name = "A", NullableValue = null },
                     new BasicEntity { Name = "B", NullableValue = 10 },
-                    new BasicEntity { Name = "C", NullableValue = 20 }
+                    new BasicEntity { Name = "C", NullableValue = 20 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -403,10 +370,12 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMethodReturnsNullAndIsUsedTwice_ShouldHandleCorrectly()
     {
-        const string query = @"
-            SELECT NullableValue
-            FROM #A.Entities()
-            WHERE NullableValue IS NULL";
+        const string query = (
+            "\n"
+            + "            SELECT NullableValue\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE NullableValue IS NULL"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -415,9 +384,9 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
                 [
                     new BasicEntity { Name = "A", NullableValue = null },
                     new BasicEntity { Name = "B", NullableValue = 10 },
-                    new BasicEntity { Name = "C", NullableValue = null }
+                    new BasicEntity { Name = "C", NullableValue = null },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -434,10 +403,12 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNoExpressionIsDuplicated_ShouldStillWorkCorrectly()
     {
-        const string query = @"
-            SELECT City, Country, Population
-            FROM #A.Entities()
-            WHERE Population > 50";
+        const string query = (
+            "\n"
+            + "            SELECT City, Country, Population\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Population > 50"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -446,9 +417,9 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
                 [
                     new BasicEntity("Warsaw", "Poland", 100),
                     new BasicEntity("Berlin", "Germany", 30),
-                    new BasicEntity("Krakow", "Poland", 80)
+                    new BasicEntity("Krakow", "Poland", 80),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -462,21 +433,16 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenExpressionWithDifferentAliasButSameStructure_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT a.Name, Length(a.Name) as L1, Length(a.Name) as L2
-            FROM #A.Entities() a
-            WHERE Length(a.Name) > 2";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name, Length(a.Name) as L1, Length(a.Name) as L2\n"
+            + "            FROM #A.Entities() a\n"
+            + "            WHERE Length(a.Name) > 2"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABC"),
-                    new BasicEntity("ABCDE")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCDE")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -484,32 +450,28 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count);
 
-        foreach (var row in table) Assert.AreEqual(row.ReadValue(1), row.ReadValue(2), "L1 and L2 should have the same value");
+        foreach (var row in table)
+            Assert.AreEqual(row.ReadValue(1), row.ReadValue(2), "L1 and L2 should have the same value");
     }
 
     [TestMethod]
     public void WhenSameExpressionInCaseWhenBranches_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                CASE
-                    WHEN Length(Name) > 3 THEN 'Long'
-                    WHEN Length(Name) > 1 THEN 'Medium'
-                    ELSE 'Short'
-                END as Category
-            FROM #A.Entities()
-            WHERE Length(Name) > 0";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                CASE\n"
+            + "                    WHEN Length(Name) > 3 THEN 'Long'\n"
+            + "                    WHEN Length(Name) > 1 THEN 'Medium'\n"
+            + "                    ELSE 'Short'\n"
+            + "                END as Category\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) > 0"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("ABCD"),
-                    new BasicEntity("AB")
-                ]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("ABCD"), new BasicEntity("AB")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -527,22 +489,17 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenExpressionAppearsInSelectAndCaseWhen_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Length(Name) as Len,
-                CASE WHEN Length(Name) > 3 THEN 'Long' ELSE 'Short' END as Category
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Length(Name) as Len,\n"
+            + "                CASE WHEN Length(Name) > 3 THEN 'Long' ELSE 'Short' END as Category\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABCD"),
-                    new BasicEntity("ABCDEF")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABCD"), new BasicEntity("ABCDEF")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -563,24 +520,21 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenExpressionAppearsInWhereAndCaseWhen_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Name,
-                CASE WHEN Length(Name) >= 4 THEN 'Long' ELSE 'Medium' END as Category
-            FROM #A.Entities()
-            WHERE Length(Name) >= 3";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Name,\n"
+            + "                CASE WHEN Length(Name) >= 4 THEN 'Long' ELSE 'Medium' END as Category\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) >= 3"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABC"),
-                    new BasicEntity("ABCD"),
-                    new BasicEntity("ABCDEF")
-                ]
-            }
+                [new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCD"), new BasicEntity("ABCDEF")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -601,22 +555,17 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenExpressionOnlyAppearsInsideCaseWhen_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Name,
-                CASE WHEN ToUpper(Name) = 'ABC' THEN 'Match' ELSE 'NoMatch' END as Category
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Name,\n"
+            + "                CASE WHEN ToUpper(Name) = 'ABC' THEN 'Match' ELSE 'NoMatch' END as Category\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("abc"),
-                    new BasicEntity("ABC"),
-                    new BasicEntity("def")
-                ]
-            }
+            { "#A", [new BasicEntity("abc"), new BasicEntity("ABC"), new BasicEntity("def")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -641,21 +590,16 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenExpensiveMethodCalledTwice_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Inc(Population), Inc(Population) + 10
-            FROM #A.Entities()
-            WHERE Inc(Population) > 100";
+        const string query = (
+            "\n"
+            + "            SELECT Inc(Population), Inc(Population) + 10\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Inc(Population) > 100"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 50),
-                    new BasicEntity("B", 100),
-                    new BasicEntity("C", 200)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 50), new BasicEntity("B", 100), new BasicEntity("C", 200)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -665,7 +609,6 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         Assert.IsTrue(table.Any(row => (decimal)row.ReadValues()[0] == 101m && (decimal)row.ReadValues()[1] == 111m));
         Assert.IsTrue(table.Any(row => (decimal)row.ReadValues()[0] == 201m && (decimal)row.ReadValues()[1] == 211m));
     }
-
 
     #endregion
 }

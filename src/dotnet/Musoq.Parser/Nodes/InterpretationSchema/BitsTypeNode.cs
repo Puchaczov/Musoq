@@ -28,13 +28,14 @@ public class BitsTypeNode : TypeAnnotationNode
     /// <remarks>
     ///     Type depends on bit count: 1-8 → byte, 9-16 → ushort, 17-32 → uint, 33-64 → ulong.
     /// </remarks>
-    public override Type ClrType => BitCount switch
-    {
-        <= 8 => typeof(byte),
-        <= 16 => typeof(ushort),
-        <= 32 => typeof(uint),
-        _ => typeof(ulong)
-    };
+    public override Type ClrType =>
+        BitCount switch
+        {
+            <= 8 => typeof(byte),
+            <= 16 => typeof(ushort),
+            <= 32 => typeof(uint),
+            _ => typeof(ulong),
+        };
 
     /// <inheritdoc />
     /// <remarks>

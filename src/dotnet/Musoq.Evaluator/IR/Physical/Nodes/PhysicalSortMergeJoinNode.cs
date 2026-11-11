@@ -11,7 +11,8 @@ public sealed record PhysicalSortMergeJoinNode(
     BinaryOpKind ComparisonKind,
     IrExpression Residual,
     PhysicalNode Left,
-    PhysicalNode Right) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
+    PhysicalNode Right
+) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
 {
     public IrExpression[] LeftPartitionKeys { get; init; } = [];
 

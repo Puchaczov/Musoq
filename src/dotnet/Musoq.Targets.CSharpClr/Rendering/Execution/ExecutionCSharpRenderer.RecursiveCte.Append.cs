@@ -8,7 +8,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private IEnumerable<StatementSyntax> RenderRecursiveCteAppend(
         ExecutionRecursiveCteAppend append,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var acceptedRowCounter = CreateAcceptedRecursiveRowCounter(append, context);
         foreach (var cancellationStatement in CreateRecursiveCandidateCancellationCheck(context))
@@ -27,40 +28,31 @@ public sealed partial class ExecutionCSharpRenderer
         for (var index = 0; index < append.AppendRow.Values.Count; index++)
         {
             var value = append.AppendRow.Values[index];
-            var isNullLiteral = value.Value is ExecutionLiteral
-            {
-                Value.Kind: ExecutionConstantKind.Null
-            };
-            var candidateType = isNullLiteral
-                ? append.AppendRow.RowShape.Fields[index].Type
-                : value.Value.ReturnType;
-            var variable = new ExecutionVariable(
-                $"__{append.Frontier.Name}Candidate{index}",
-                candidateType);
+            var isNullLiteral = value.Value is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null };
+            var candidateType = isNullLiteral ? append.AppendRow.RowShape.Fields[index].Type : value.Value.ReturnType;
+            var variable = new ExecutionVariable($"__{append.Frontier.Name}Candidate{index}", candidateType);
             yield return CreateLocalDeclaration(
                 isNullLiteral ? CreateTypeSyntax(candidateType) : SyntaxFactory.IdentifierName("var"),
                 variable.Name,
-                RenderExpression(value.Value, context));
+                RenderExpression(value.Value, context)
+            );
             candidateVariables[index] = variable;
             candidateValues[index] = value with { Value = new ExecutionVariableRead(variable) };
         }
 
-        var acceptedStatements = new List<StatementSyntax>
-        {
-            CreateRecursiveRowLimitGuard(append)
-        };
-        acceptedStatements.Add(RenderAppendRow(
-            append.AppendRow with { Values = candidateValues },
-            context));
+        var acceptedStatements = new List<StatementSyntax> { CreateRecursiveRowLimitGuard(append) };
+        acceptedStatements.Add(RenderAppendRow(append.AppendRow with { Values = candidateValues }, context));
         if (acceptedRowCounter != null)
             acceptedStatements.Add(acceptedRowCounter);
         yield return SyntaxFactory.IfStatement(
             RecursiveCteIdentitySyntaxFactory.CreateSeenAddExpression(append, candidateVariables),
-            StatementEmitter.CreateBlock(acceptedStatements));
+            StatementEmitter.CreateBlock(acceptedStatements)
+        );
     }
 
     private static IEnumerable<StatementSyntax> CreateRecursiveCandidateCancellationCheck(
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var counterName = context.Session.RecursiveCteCancellationCounterName;
         if (counterName == null)
@@ -71,22 +63,25 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.PrefixUnaryExpression(
                     SyntaxKind.PreIncrementExpression,
-                    SyntaxFactory.IdentifierName(counterName))),
-            CreatePeriodicCancellationCheck(counterName)
+                    SyntaxFactory.IdentifierName(counterName)
+                )
+            ),
+            CreatePeriodicCancellationCheck(counterName),
         ];
     }
 
     private StatementSyntax? CreateAcceptedRecursiveRowCounter(
         ExecutionRecursiveCteAppend append,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        return IsOperatorProfilingEnabledFor(context) &&
-               context.Session.OperatorCatalog.TryGetDescriptor(append, out var descriptor)
+        return
+            IsOperatorProfilingEnabledFor(context)
+            && context.Session.OperatorCatalog.TryGetDescriptor(append, out var descriptor)
             ? OperatorProfileCounterFacts.CreateCounterRowsStatement(
                 OperatorProfileCounterFacts.CreateOutputRowsVariableName(descriptor),
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(1)))
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1))
+            )
             : null;
     }
 }

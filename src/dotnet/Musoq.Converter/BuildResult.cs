@@ -20,7 +20,8 @@ public sealed class BuildResult
         IReadOnlyList<Diagnostic> diagnostics,
         string? queryText,
         Exception? caughtException,
-        BuildItems? buildItems)
+        BuildItems? buildItems
+    )
     {
         CompiledQuery = compiledQuery;
         Diagnostics = diagnostics;
@@ -75,9 +76,7 @@ public sealed class BuildResult
     /// </summary>
     public IReadOnlyList<MusoqErrorEnvelope> ToEnvelopes()
     {
-        return Errors
-            .Select(d => MusoqErrorEnvelope.FromDiagnostic(d, _queryText))
-            .ToList();
+        return Errors.Select(d => MusoqErrorEnvelope.FromDiagnostic(d, _queryText)).ToList();
     }
 
     /// <summary>
@@ -87,16 +86,18 @@ public sealed class BuildResult
     /// </summary>
     public IReadOnlyList<MusoqErrorEnvelope> ToAllEnvelopes()
     {
-        return Diagnostics
-            .Select(diagnostic => MusoqErrorEnvelope.FromDiagnostic(diagnostic, _queryText))
-            .ToList();
+        return Diagnostics.Select(diagnostic => MusoqErrorEnvelope.FromDiagnostic(diagnostic, _queryText)).ToList();
     }
 
     /// <summary>
     ///     Creates a successful result with optional warnings/info diagnostics.
     /// </summary>
-    internal static BuildResult Success(CompiledQuery query, IReadOnlyList<Diagnostic> diagnostics,
-        string? queryText, BuildItems? buildItems = null)
+    internal static BuildResult Success(
+        CompiledQuery query,
+        IReadOnlyList<Diagnostic> diagnostics,
+        string? queryText,
+        BuildItems? buildItems = null
+    )
     {
         return new BuildResult(query, diagnostics, queryText, caughtException: null, buildItems);
     }
@@ -104,9 +105,12 @@ public sealed class BuildResult
     /// <summary>
     ///     Creates a failed result with collected error diagnostics.
     /// </summary>
-    internal static BuildResult Failure(IReadOnlyList<Diagnostic> diagnostics, string? queryText,
+    internal static BuildResult Failure(
+        IReadOnlyList<Diagnostic> diagnostics,
+        string? queryText,
         Exception? caughtException = null,
-        BuildItems? buildItems = null)
+        BuildItems? buildItems = null
+    )
     {
         return new BuildResult(null, diagnostics, queryText, caughtException, buildItems);
     }

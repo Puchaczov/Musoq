@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Collections.Immutable;
+using System.Reflection;
 using Musoq.Plugins;
 
 namespace Musoq.Schema.Managers;
@@ -16,11 +16,15 @@ public partial class MethodsMetadata
 
     private readonly ConcurrentDictionary<MethodInfo, ParameterMetadataInfo> _parameterMetadataCache = new();
 
-    private readonly ConcurrentDictionary<MethodResolutionKey, (bool Found, int Index, string? ActualName)>
-        _annotatedMethodCache = new();
+    private readonly ConcurrentDictionary<
+        MethodResolutionKey,
+        (bool Found, int Index, string? ActualName)
+    > _annotatedMethodCache = new();
 
-    private readonly ConcurrentDictionary<MethodResolutionKey, (bool Found, int Index, string? ActualName)>
-        _aggregationMethodCache = new();
+    private readonly ConcurrentDictionary<
+        MethodResolutionKey,
+        (bool Found, int Index, string? ActualName)
+    > _aggregationMethodCache = new();
 
     /// <summary>
     ///     Initialize object.
@@ -33,11 +37,14 @@ public partial class MethodsMetadata
 
     private ParameterMetadataInfo GetCachedParameterMetadata(MethodInfo method)
     {
-        return _parameterMetadataCache.GetOrAdd(method, static m =>
-        {
-            var parameters = m.GetParameters();
-            return new ParameterMetadataInfo(parameters);
-        });
+        return _parameterMetadataCache.GetOrAdd(
+            method,
+            static m =>
+            {
+                var parameters = m.GetParameters();
+                return new ParameterMetadataInfo(parameters);
+            }
+        );
     }
 
     private ParameterInfo[] GetCachedParameters(MethodInfo method)
@@ -47,8 +54,6 @@ public partial class MethodsMetadata
 
     private int GetCachedMethodIndex(string name, MethodInfo method)
     {
-        return _methodIndexCache.TryGetValue((name, method), out var index)
-            ? index
-            : _methods[name].IndexOf(method);
+        return _methodIndexCache.TryGetValue((name, method), out var index) ? index : _methods[name].IndexOf(method);
     }
 }

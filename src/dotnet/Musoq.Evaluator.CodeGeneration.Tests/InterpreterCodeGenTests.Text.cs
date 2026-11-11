@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class InterpreterCodeGenTests
 {
-
     [TestMethod]
     public void GenerateAll_SimpleTextSchema_ShouldGenerateClass()
     {
@@ -22,7 +21,7 @@ public partial class InterpreterCodeGenTests
         {
             CreateTextField("Key", TextFieldType.Until, ":"),
             CreateTextField("_", TextFieldType.Literal, ": "),
-            CreateTextField("Value", TextFieldType.Rest)
+            CreateTextField("Value", TextFieldType.Rest),
         };
         var schema = new TextSchemaNode("KeyValue", fields);
         registry.Register("KeyValue", schema);
@@ -45,10 +44,7 @@ public partial class InterpreterCodeGenTests
     {
         // Arrange
         var registry = new SchemaRegistry();
-        var fields = new[]
-        {
-            CreateTextField("Bracketed", TextFieldType.Between, "[", "]")
-        };
+        var fields = new[] { CreateTextField("Bracketed", TextFieldType.Between, "[", "]") };
         var schema = new TextSchemaNode("BracketedValue", fields);
         registry.Register("BracketedValue", schema);
         var generator = new InterpreterCodeGenerator(registry);
@@ -65,10 +61,7 @@ public partial class InterpreterCodeGenTests
     {
         // Arrange
         var registry = new SchemaRegistry();
-        var fields = new[]
-        {
-            CreateTextField("Fixed", TextFieldType.Chars, "10", modifiers: TextFieldModifier.Trim)
-        };
+        var fields = new[] { CreateTextField("Fixed", TextFieldType.Chars, "10", modifiers: TextFieldModifier.Trim) };
         var schema = new TextSchemaNode("FixedWidth", fields);
         registry.Register("FixedWidth", schema);
         var generator = new InterpreterCodeGenerator(registry);
@@ -87,7 +80,7 @@ public partial class InterpreterCodeGenTests
         var registry = new SchemaRegistry();
         var fields = new[]
         {
-            CreateTextField("IpAddress", TextFieldType.Pattern, @"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
+            CreateTextField("IpAddress", TextFieldType.Pattern, @"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"),
         };
         var schema = new TextSchemaNode("IpMatcher", fields);
         registry.Register("IpMatcher", schema);
@@ -98,7 +91,10 @@ public partial class InterpreterCodeGenTests
 
         // Assert
         Assert.Contains("ReadPreparedPatternStatus(data, __musoqPattern0, \"IpAddress\")", code);
-        Assert.Contains("private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0", code);
+        Assert.Contains(
+            "private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0",
+            code
+        );
         Assert.Contains(@"new(@""\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}""", code);
     }
 
@@ -111,7 +107,7 @@ public partial class InterpreterCodeGenTests
         {
             CreateTextField("Word1", TextFieldType.Token),
             CreateTextField("_", TextFieldType.Whitespace, "+"),
-            CreateTextField("Word2", TextFieldType.Token)
+            CreateTextField("Word2", TextFieldType.Token),
         };
         var schema = new TextSchemaNode("TwoWords", fields);
         registry.Register("TwoWords", schema);
@@ -134,7 +130,7 @@ public partial class InterpreterCodeGenTests
         {
             CreateTextField("Key", TextFieldType.Until, ":"),
             CreateTextField("_", TextFieldType.Literal, ": "),
-            CreateTextField("Value", TextFieldType.Rest)
+            CreateTextField("Value", TextFieldType.Rest),
         };
         var schema = new TextSchemaNode("SimpleKeyValue", fields);
         registry.Register("SimpleKeyValue", schema);
@@ -142,16 +138,16 @@ public partial class InterpreterCodeGenTests
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
+        using var compilationUnit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code);
 
         // Act
         var result = compilationUnit.Compile();
 
         // Assert
-        Assert.IsTrue(result,
-            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}");
+        Assert.IsTrue(
+            result,
+            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}"
+        );
     }
 
     [TestMethod]
@@ -160,20 +156,18 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
         var pointFields = new[]
         {
             CreatePrimitiveField("X", PrimitiveTypeName.Float, Endianness.LittleEndian),
-            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian)
+            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian),
         };
         var pointSchema = new BinarySchemaNode("Point", [.. pointFields]);
         registry.Register("Point", pointSchema);
 
-
         var vertexFields = new[]
         {
             CreatePrimitiveField("Id", PrimitiveTypeName.Int, Endianness.LittleEndian),
-            new FieldDefinitionNode("Position", new SchemaReferenceTypeNode("Point"))
+            new FieldDefinitionNode("Position", new SchemaReferenceTypeNode("Point")),
         };
         var vertexSchema = new BinarySchemaNode("Vertex", [.. vertexFields]);
         registry.Register("Vertex", vertexSchema);
@@ -181,16 +175,16 @@ public partial class InterpreterCodeGenTests
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
+        using var compilationUnit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code);
 
         // Act
         var result = compilationUnit.Compile();
 
         // Assert
-        Assert.IsTrue(result,
-            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}");
+        Assert.IsTrue(
+            result,
+            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}"
+        );
     }
 
     [TestMethod]
@@ -199,22 +193,13 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
         var totalField = CreatePrimitiveField("Total", PrimitiveTypeName.Byte, Endianness.NotApplicable);
         var headerSizeField = CreatePrimitiveField("HeaderSize", PrimitiveTypeName.Byte, Endianness.NotApplicable);
 
-
-        var sizeExpr = new HyphenNode(
-            new IdentifierNode("Total"),
-            new IdentifierNode("HeaderSize"));
+        var sizeExpr = new HyphenNode(new IdentifierNode("Total"), new IdentifierNode("HeaderSize"));
         var byteArrayType = new ByteArrayTypeNode(sizeExpr);
 
-        var fields = new[]
-        {
-            totalField,
-            headerSizeField,
-            new FieldDefinitionNode("Data", byteArrayType)
-        };
+        var fields = new[] { totalField, headerSizeField, new FieldDefinitionNode("Data", byteArrayType) };
         var schema = new BinarySchemaNode("DynamicPacket", [.. fields]);
         registry.Register("DynamicPacket", schema);
 
@@ -235,12 +220,10 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
         var fields = new[]
         {
             new TextFieldDefinitionNode("Required", TextFieldType.Until, ":"),
-            new TextFieldDefinitionNode("Optional", TextFieldType.Until, ",", null,
-                TextFieldModifier.Optional)
+            new TextFieldDefinitionNode("Optional", TextFieldType.Until, ",", null, TextFieldModifier.Optional),
         };
         var schema = new TextSchemaNode("LogEntry", fields);
         registry.Register("LogEntry", schema);
@@ -252,14 +235,14 @@ public partial class InterpreterCodeGenTests
 
         // Assert
 
-        Assert.Contains("string? _optional = null;",
-            code, $"Expected 'string? _optional = null;' but got:\n{code}");
-        Assert.Contains("ParsePosition = __musoqOptionalPosition",
-            code, $"Expected position save for optional but got:\n{code}");
-        Assert.Contains("try",
-            code, $"Expected 'try' block for optional but got:\n{code}");
-        Assert.Contains("catch",
-            code, $"Expected 'catch' block for optional but got:\n{code}");
+        Assert.Contains("string? _optional = null;", code, $"Expected 'string? _optional = null;' but got:\n{code}");
+        Assert.Contains(
+            "ParsePosition = __musoqOptionalPosition",
+            code,
+            $"Expected position save for optional but got:\n{code}"
+        );
+        Assert.Contains("try", code, $"Expected 'try' block for optional but got:\n{code}");
+        Assert.Contains("catch", code, $"Expected 'catch' block for optional but got:\n{code}");
     }
 
     [TestMethod]
@@ -271,9 +254,14 @@ public partial class InterpreterCodeGenTests
         var fields = new[]
         {
             new TextFieldDefinitionNode("Key", TextFieldType.Until, ":"),
-            new TextFieldDefinitionNode("Value", TextFieldType.Until, "\t", null,
-                TextFieldModifier.Optional | TextFieldModifier.Trim),
-            new TextFieldDefinitionNode("Extra", TextFieldType.Rest)
+            new TextFieldDefinitionNode(
+                "Value",
+                TextFieldType.Until,
+                "\t",
+                null,
+                TextFieldModifier.Optional | TextFieldModifier.Trim
+            ),
+            new TextFieldDefinitionNode("Extra", TextFieldType.Rest),
         };
         var schema = new TextSchemaNode("KeyValue", fields);
         registry.Register("KeyValue", schema);
@@ -281,16 +269,16 @@ public partial class InterpreterCodeGenTests
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
+        using var compilationUnit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code);
 
         // Act
         var result = compilationUnit.Compile();
 
         // Assert
-        Assert.IsTrue(result,
-            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}\n\nGenerated code:\n{code}");
+        Assert.IsTrue(
+            result,
+            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}\n\nGenerated code:\n{code}"
+        );
     }
 
     [TestMethod]
@@ -302,7 +290,7 @@ public partial class InterpreterCodeGenTests
         {
             CreateTextField("Word1", TextFieldType.Token),
             CreateTextField("_", TextFieldType.Whitespace, "+"),
-            CreateTextField("Word2", TextFieldType.Token)
+            CreateTextField("Word2", TextFieldType.Token),
         };
         var schema = new TextSchemaNode("Test", fields);
         registry.Register("Test", schema);
@@ -324,7 +312,7 @@ public partial class InterpreterCodeGenTests
         {
             CreateTextField("Word1", TextFieldType.Token),
             CreateTextField("_", TextFieldType.Whitespace, "*"),
-            CreateTextField("Word2", TextFieldType.Token)
+            CreateTextField("Word2", TextFieldType.Token),
         };
         var schema = new TextSchemaNode("Test", fields);
         registry.Register("Test", schema);
@@ -346,7 +334,7 @@ public partial class InterpreterCodeGenTests
         {
             CreateTextField("Word1", TextFieldType.Token),
             CreateTextField("_", TextFieldType.Whitespace, "?"),
-            CreateTextField("Word2", TextFieldType.Token)
+            CreateTextField("Word2", TextFieldType.Token),
         };
         var schema = new TextSchemaNode("Test", fields);
         registry.Register("Test", schema);
@@ -365,19 +353,11 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
-        var lineFields = new[]
-        {
-            new TextFieldDefinitionNode("Value", TextFieldType.Rest)
-        };
+        var lineFields = new[] { new TextFieldDefinitionNode("Value", TextFieldType.Rest) };
         var lineSchema = new TextSchemaNode("Line", lineFields);
         registry.Register("Line", lineSchema);
 
-
-        var headerFields = new[]
-        {
-            new TextFieldDefinitionNode("Lines", TextFieldType.Repeat, "Line", "\n\n")
-        };
+        var headerFields = new[] { new TextFieldDefinitionNode("Lines", TextFieldType.Repeat, "Line", "\n\n") };
         var headerSchema = new TextSchemaNode("AllLines", headerFields);
         registry.Register("AllLines", headerSchema);
 
@@ -387,12 +367,13 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("List<Line>",
-            code, $"Expected 'List<Line>' but got:\n{code}");
-        Assert.Contains("while (!IsAtEnd(data) && !LookaheadMatches",
-            code, $"Expected loop with LookaheadMatches but got:\n{code}");
-        Assert.Contains("Line[]? Lines",
-            code, $"Expected 'Line[]? Lines' property but got:\n{code}");
+        Assert.Contains("List<Line>", code, $"Expected 'List<Line>' but got:\n{code}");
+        Assert.Contains(
+            "while (!IsAtEnd(data) && !LookaheadMatches",
+            code,
+            $"Expected loop with LookaheadMatches but got:\n{code}"
+        );
+        Assert.Contains("Line[]? Lines", code, $"Expected 'Line[]? Lines' property but got:\n{code}");
     }
 
     [TestMethod]
@@ -401,19 +382,11 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
-        var lineFields = new[]
-        {
-            new TextFieldDefinitionNode("Content", TextFieldType.Until, "\n")
-        };
+        var lineFields = new[] { new TextFieldDefinitionNode("Content", TextFieldType.Until, "\n") };
         var lineSchema = new TextSchemaNode("TextLine", lineFields);
         registry.Register("TextLine", lineSchema);
 
-
-        var allLinesFields = new[]
-        {
-            new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "TextLine")
-        };
+        var allLinesFields = new[] { new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "TextLine") };
         var allLinesSchema = new TextSchemaNode("TextBlock", allLinesFields);
         registry.Register("TextBlock", allLinesSchema);
 
@@ -423,10 +396,8 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("while (!IsAtEnd(data))",
-            code, $"Expected 'while (!IsAtEnd(data))' but got:\n{code}");
-        Assert.Contains("List<TextLine>",
-            code, $"Expected 'List<TextLine>' but got:\n{code}");
+        Assert.Contains("while (!IsAtEnd(data))", code, $"Expected 'while (!IsAtEnd(data))' but got:\n{code}");
+        Assert.Contains("List<TextLine>", code, $"Expected 'List<TextLine>' but got:\n{code}");
     }
 
     [TestMethod]
@@ -435,35 +406,27 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
-        var lineFields = new[]
-        {
-            new TextFieldDefinitionNode("Value", TextFieldType.Until, "\n")
-        };
+        var lineFields = new[] { new TextFieldDefinitionNode("Value", TextFieldType.Until, "\n") };
         var lineSchema = new TextSchemaNode("SimpleLine", lineFields);
         registry.Register("SimpleLine", lineSchema);
 
-
-        var headerFields = new[]
-        {
-            new TextFieldDefinitionNode("Lines", TextFieldType.Repeat, "SimpleLine")
-        };
+        var headerFields = new[] { new TextFieldDefinitionNode("Lines", TextFieldType.Repeat, "SimpleLine") };
         var headerSchema = new TextSchemaNode("Document", headerFields);
         registry.Register("Document", headerSchema);
 
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
+        using var compilationUnit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code);
 
         // Act
         var result = compilationUnit.Compile();
 
         // Assert
-        Assert.IsTrue(result,
-            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}\n\nGenerated code:\n{code}");
+        Assert.IsTrue(
+            result,
+            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}\n\nGenerated code:\n{code}"
+        );
     }
 
     [TestMethod]
@@ -472,31 +435,20 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
-        var sectionFields = new[]
-        {
-            new TextFieldDefinitionNode("Name", TextFieldType.Until, "]")
-        };
+        var sectionFields = new[] { new TextFieldDefinitionNode("Name", TextFieldType.Until, "]") };
         var sectionSchema = new TextSchemaNode("SectionHeader", sectionFields);
         registry.Register("SectionHeader", sectionSchema);
 
-        var commentFields = new[]
-        {
-            new TextFieldDefinitionNode("Text", TextFieldType.Rest)
-        };
+        var commentFields = new[] { new TextFieldDefinitionNode("Text", TextFieldType.Rest) };
         var commentSchema = new TextSchemaNode("Comment", commentFields);
         registry.Register("Comment", commentSchema);
-
 
         var switchCases = new[]
         {
             new TextSwitchCaseNode(@"\s*\[", "SectionHeader"),
-            new TextSwitchCaseNode(@"\s*#", "Comment")
+            new TextSwitchCaseNode(@"\s*#", "Comment"),
         };
-        var configFields = new[]
-        {
-            new TextFieldDefinitionNode("Content", switchCases)
-        };
+        var configFields = new[] { new TextFieldDefinitionNode("Content", switchCases) };
         var configSchema = new TextSchemaNode("ConfigLine", configFields);
         registry.Register("ConfigLine", configSchema);
 
@@ -506,12 +458,9 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("LookaheadMatchesPattern",
-            code, $"Expected 'LookaheadMatchesPattern' but got:\n{code}");
-        Assert.Contains("SectionHeader",
-            code, $"Expected 'SectionHeader' but got:\n{code}");
-        Assert.Contains("Comment",
-            code, $"Expected 'Comment' but got:\n{code}");
+        Assert.Contains("LookaheadMatchesPattern", code, $"Expected 'LookaheadMatchesPattern' but got:\n{code}");
+        Assert.Contains("SectionHeader", code, $"Expected 'SectionHeader' but got:\n{code}");
+        Assert.Contains("Comment", code, $"Expected 'Comment' but got:\n{code}");
     }
 
     [TestMethod]
@@ -520,31 +469,20 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
-        var sectionFields = new[]
-        {
-            new TextFieldDefinitionNode("Name", TextFieldType.Until, "]")
-        };
+        var sectionFields = new[] { new TextFieldDefinitionNode("Name", TextFieldType.Until, "]") };
         var sectionSchema = new TextSchemaNode("SectionHeader", sectionFields);
         registry.Register("SectionHeader", sectionSchema);
 
-        var keyValueFields = new[]
-        {
-            new TextFieldDefinitionNode("Value", TextFieldType.Rest)
-        };
+        var keyValueFields = new[] { new TextFieldDefinitionNode("Value", TextFieldType.Rest) };
         var keyValueSchema = new TextSchemaNode("KeyValue", keyValueFields);
         registry.Register("KeyValue", keyValueSchema);
-
 
         var switchCases = new[]
         {
             new TextSwitchCaseNode(@"\s*\[", "SectionHeader"),
-            new TextSwitchCaseNode(null, "KeyValue")
+            new TextSwitchCaseNode(null, "KeyValue"),
         };
-        var configFields = new[]
-        {
-            new TextFieldDefinitionNode("Content", switchCases)
-        };
+        var configFields = new[] { new TextFieldDefinitionNode("Content", switchCases) };
         var configSchema = new TextSchemaNode("ConfigLine", configFields);
         registry.Register("ConfigLine", configSchema);
 
@@ -554,10 +492,8 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("else",
-            code, $"Expected 'else' for default case but got:\n{code}");
-        Assert.Contains("KeyValue",
-            code, $"Expected 'KeyValue' but got:\n{code}");
+        Assert.Contains("else", code, $"Expected 'else' for default case but got:\n{code}");
+        Assert.Contains("KeyValue", code, $"Expected 'KeyValue' but got:\n{code}");
     }
 
     [TestMethod]
@@ -566,12 +502,11 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
         var sectionFields = new[]
         {
             new TextFieldDefinitionNode("_", TextFieldType.Literal, "["),
             new TextFieldDefinitionNode("Name", TextFieldType.Until, "]"),
-            new TextFieldDefinitionNode("_", TextFieldType.Literal, "]")
+            new TextFieldDefinitionNode("_", TextFieldType.Literal, "]"),
         };
         var sectionSchema = new TextSchemaNode("SectionHeader", sectionFields);
         registry.Register("SectionHeader", sectionSchema);
@@ -579,37 +514,32 @@ public partial class InterpreterCodeGenTests
         var commentFields = new[]
         {
             new TextFieldDefinitionNode("_", TextFieldType.Literal, "#"),
-            new TextFieldDefinitionNode("Text", TextFieldType.Rest)
+            new TextFieldDefinitionNode("Text", TextFieldType.Rest),
         };
         var commentSchema = new TextSchemaNode("Comment", commentFields);
         registry.Register("Comment", commentSchema);
 
-
         var switchCases = new[]
         {
             new TextSwitchCaseNode(@"\[", "SectionHeader"),
-            new TextSwitchCaseNode(null, "Comment")
+            new TextSwitchCaseNode(null, "Comment"),
         };
-        var configFields = new[]
-        {
-            new TextFieldDefinitionNode("Content", switchCases)
-        };
+        var configFields = new[] { new TextFieldDefinitionNode("Content", switchCases) };
         var configSchema = new TextSchemaNode("ConfigLine", configFields);
         registry.Register("ConfigLine", configSchema);
 
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
+        using var compilationUnit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code);
 
         // Act
         var result = compilationUnit.Compile();
 
         // Assert
-        Assert.IsTrue(result,
-            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}\n\nGenerated code:\n{code}");
+        Assert.IsTrue(
+            result,
+            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}\n\nGenerated code:\n{code}"
+        );
     }
-
 }

@@ -11,98 +11,77 @@ public partial class SpecExplorationCoreLanguageTests
     [TestMethod]
     public void Spec_Join_InnerJoin()
     {
-        var query = @"
-            select a.City, b.City
-            from #A.Entities() a
-            inner join #B.Entities() b on a.City = b.City";
+        var query = (
+            "\n"
+            + "            select a.City, b.City\n"
+            + "            from #A.Entities() a\n"
+            + "            inner join #B.Entities() b on a.City = b.City"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("a") { City = "NYC" },
-                    new BasicEntity("b") { City = "LA" }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("c") { City = "NYC" },
-                    new BasicEntity("d") { City = "SF" }
-                ]
-            }
+            { "#A", [new BasicEntity("a") { City = "NYC" }, new BasicEntity("b") { City = "LA" }] },
+            { "#B", [new BasicEntity("c") { City = "NYC" }, new BasicEntity("d") { City = "SF" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("City", typeof(string)), ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "NYC", "NYC" });
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "NYC", "NYC" });
     }
 
     [TestMethod]
     public void Spec_Join_LeftOuterJoin()
     {
-        var query = @"
-            select a.Name, b.Name
-            from #A.Entities() a
-            left outer join #B.Entities() b on a.City = b.City";
+        var query = (
+            "\n"
+            + "            select a.Name, b.Name\n"
+            + "            from #A.Entities() a\n"
+            + "            left outer join #B.Entities() b on a.City = b.City"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("PersonA") { City = "NYC" },
-                    new BasicEntity("PersonC") { City = "LA" }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("PersonB") { City = "NYC" }
-                ]
-            }
+            { "#A", [new BasicEntity("PersonA") { City = "NYC" }, new BasicEntity("PersonC") { City = "LA" }] },
+            { "#B", [new BasicEntity("PersonB") { City = "NYC" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Name", typeof(string)), ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
             new object?[] { "PersonA", "PersonB" },
-            new object?[] { "PersonC", null });
+            new object?[] { "PersonC", null }
+        );
     }
 
     [TestMethod]
     public void Spec_Join_CrossJoin()
     {
-        var query = @"
-            select a.Name, b.Name
-            from #A.Entities() a
-            cross join #B.Entities() b";
+        var query = (
+            "\n"
+            + "            select a.Name, b.Name\n"
+            + "            from #A.Entities() a\n"
+            + "            cross join #B.Entities() b"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("A1"),
-                    new BasicEntity("A2")
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("B1"),
-                    new BasicEntity("B2")
-                ]
-            }
+            { "#A", [new BasicEntity("A1"), new BasicEntity("A2")] },
+            { "#B", [new BasicEntity("B1"), new BasicEntity("B2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Name", typeof(string)), ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { "A1", "B1" }, new object?[] { "A1", "B2" },
-            new object?[] { "A2", "B1" }, new object?[] { "A2", "B2" });
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { "A1", "B1" },
+            new object?[] { "A1", "B2" },
+            new object?[] { "A2", "B1" },
+            new object?[] { "A2", "B2" }
+        );
     }
 
     #endregion
@@ -116,21 +95,28 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Country = "POLAND" },
                     new BasicEntity("b") { Country = "POLAND" },
-                    new BasicEntity("c") { Country = "GERMANY" }
+                    new BasicEntity("c") { Country = "GERMANY" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Country", typeof(string)), ("Count(Country)", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { "POLAND", 2L }, new object?[] { "GERMANY", 1L });
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Count(Country)", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { "POLAND", 2L },
+            new object?[] { "GERMANY", 1L }
+        );
     }
 
     [TestMethod]
@@ -140,49 +126,50 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Country = "POLAND", Population = 100m },
                     new BasicEntity("b") { Country = "POLAND", Population = 200m },
-                    new BasicEntity("c") { Country = "GERMANY", Population = 500m }
+                    new BasicEntity("c") { Country = "GERMANY", Population = 500m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Country", typeof(string)), ("Sum(Population)", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            new object?[] { "POLAND", 300m }, new object?[] { "GERMANY", 500m });
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Sum(Population)", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { "POLAND", 300m },
+            new object?[] { "GERMANY", 500m }
+        );
     }
 
     [TestMethod]
     public void Spec_GroupBy_Having()
     {
-        var query = @"
-            select Name, Count(Name)
-            from #A.Entities()
-            group by Name
-            having Count(Name) >= 2";
+        var query = (
+            "\n"
+            + "            select Name, Count(Name)\n"
+            + "            from #A.Entities()\n"
+            + "            group by Name\n"
+            + "            having Count(Name) >= 2"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Alice"), new BasicEntity("Bob")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Name", typeof(string)), ("Count(Name)", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Alice", 2L });
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "Alice", 2L });
     }
 
     [TestMethod]
@@ -192,12 +179,13 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Country = "POLAND" },
                     new BasicEntity("b") { Country = "GERMANY" },
-                    new BasicEntity("c") { Country = "FRANCE" }
+                    new BasicEntity("c") { Country = "FRANCE" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

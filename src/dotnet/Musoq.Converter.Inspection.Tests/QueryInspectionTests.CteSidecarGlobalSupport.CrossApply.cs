@@ -13,7 +13,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "select d.Dummy, marker.Label from #system.dual() d cross join values { ( Label: 'x' ), ( Label: 'y' ) } marker order by marker.Label",
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         var table = compiled.Run();
 
@@ -30,7 +31,8 @@ public partial class QueryInspectionTests
         var result = Inspect(
             "select l.Name, r.Line as RightLine from #apply.items() l cross apply #apply.related(l.Name) r order by l.Name",
             CreateApplyCandidateSchemaProvider(),
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanDoesNotContain("Sidecar join pipeline failed", result.ExecutionPlanText);
@@ -44,7 +46,8 @@ public partial class QueryInspectionTests
         var compiled = CompileForExecution(
             "select l.Name, r.Line as RightLine from #apply.items() l outer apply #apply.related(l.Numbers) r order by l.Name",
             CreateApplyCandidateSchemaProvider(),
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         var table = compiled.Run();
 
@@ -61,15 +64,15 @@ public partial class QueryInspectionTests
         var compiled = CompileForExecution(
             "select i.Name, n.Value, n.Ordinal from #apply.items() i cross apply i.Numbers n with ordinality order by i.Name, n.Ordinal",
             CreateApplyCandidateSchemaProvider(),
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         var table = compiled.Run();
-        var rows = Enumerable.Range(0, table.Count)
+        var rows = Enumerable
+            .Range(0, table.Count)
             .Select(index => $"{table[index].ReadValue(0)}:{table[index].ReadValue(1)}:{table[index].ReadValue(2)}")
             .ToArray();
 
-        CollectionAssert.AreEqual(
-            new[] { "left:1:0", "left:2:1", "right:3:0" },
-            rows);
+        CollectionAssert.AreEqual(new[] { "left:1:0", "left:2:1", "right:3:0" }, rows);
     }
 }

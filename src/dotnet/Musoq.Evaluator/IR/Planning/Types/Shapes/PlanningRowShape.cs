@@ -7,7 +7,8 @@ internal sealed record PlanningRowShape(
     string Alias,
     PlanningRowShapeKind Kind,
     Type RuntimeType,
-    IReadOnlyList<PlanningField> Fields)
+    IReadOnlyList<PlanningField> Fields
+)
 {
     public bool IsDynamic => RuntimeType == typeof(object);
 }

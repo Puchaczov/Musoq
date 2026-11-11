@@ -79,8 +79,6 @@ public readonly struct ValueShard<T> : IReadOnlyList<T>
             _index = -1;
         }
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 }

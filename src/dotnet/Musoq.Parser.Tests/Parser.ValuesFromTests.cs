@@ -14,7 +14,9 @@ public class ParserValuesFromTests
     [TestMethod]
     public void ValuesFromSource_ShouldParseRowsAndAlias()
     {
-        var root = Parse("from values { ( Name: 'Newtonsoft.Json', Approved: true ), ( Name: 'Legacy.Package', Approved: false ) } packages select packages.Name");
+        var root = Parse(
+            "from values { ( Name: 'Newtonsoft.Json', Approved: true ), ( Name: 'Legacy.Package', Approved: false ) } packages select packages.Name"
+        );
 
         var query = GetSingleQuery(root);
         var values = (ValuesFromNode)UnwrapFrom(query.From);
@@ -29,7 +31,9 @@ public class ParserValuesFromTests
     [TestMethod]
     public void ValuesFromSource_WithTrailingCommas_ShouldParse()
     {
-        var root = Parse("select v.Name from values { ( Name: 'A', Approved: true, ), ( Name: 'B', Approved: false, ), } v");
+        var root = Parse(
+            "select v.Name from values { ( Name: 'A', Approved: true, ), ( Name: 'B', Approved: false, ), } v"
+        );
 
         var query = GetSingleQuery(root);
         var values = (ValuesFromNode)UnwrapFrom(query.From);
@@ -77,7 +81,7 @@ public class ParserValuesFromTests
             ("0o17", typeof(long), 15L),
             ("0O17", typeof(long), 15L),
             ("-10", typeof(int), -10),
-            ("-10.5", typeof(decimal), -10.5m)
+            ("-10.5", typeof(decimal), -10.5m),
         };
 
         foreach (var testCase in cases)
@@ -107,7 +111,9 @@ public class ParserValuesFromTests
     [TestMethod]
     public void ValuesFromSource_InJoin_ShouldParse()
     {
-        var root = Parse("from #os.files('.') f join values { ( Extension: '.dll', MaxSize: 5242880 ), ( Extension: '.exe', MaxSize: 5242880 ) } policy on f.Extension = policy.Extension select f.FullName");
+        var root = Parse(
+            "from #os.files('.') f join values { ( Extension: '.dll', MaxSize: 5242880 ), ( Extension: '.exe', MaxSize: 5242880 ) } policy on f.Extension = policy.Extension select f.FullName"
+        );
 
         var query = GetSingleQuery(root);
         var join = ((JoinNode)UnwrapFrom(query.From)).Join;
@@ -135,6 +141,7 @@ public class ParserValuesFromTests
     {
         Assert.Throws<SyntaxException>(() => Parse("select * from values { ( Name: 'A' ), { Name: 'B' } } v"));
     }
+
     [TestMethod]
     public void SourceNamedValues_WithoutLiteralBrace_ShouldRemainInMemorySource()
     {
@@ -159,15 +166,11 @@ public class ParserValuesFromTests
     {
         var statements = (StatementsArrayNode)((RootNode)root).Expression;
         var statementNode = statements.Statements[0].Node;
-        return statementNode is SingleSetNode singleSet
-            ? singleSet.Query
-            : (QueryNode)statementNode;
+        return statementNode is SingleSetNode singleSet ? singleSet.Query : (QueryNode)statementNode;
     }
 
     private static FromNode UnwrapFrom(FromNode from)
     {
-        return from is ExpressionFromNode expressionFrom
-            ? expressionFrom.Expression
-            : from;
+        return from is ExpressionFromNode expressionFrom ? expressionFrom.Expression : from;
     }
 }

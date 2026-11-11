@@ -11,17 +11,13 @@ public partial class ErrorQualityBinaryTextSchemaTests
     {
         // Arrange — binary schema without opening brace
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat
-    Magic: int le
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat\n" + "    Magic: int le\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should report parse error for missing brace
-        AssertParseOrSemanticFailure(result,
-            "Missing opening brace should produce parse error");
+        AssertParseOrSemanticFailure(result, "Missing opening brace should produce parse error");
     }
 
     [TestMethod]
@@ -29,17 +25,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — binary schema without closing brace
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: int le
-;
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Magic: int le\n" + ";\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should report parse error for missing brace
-        AssertParseOrSemanticFailure(result,
-            "Missing closing brace should produce parse error");
+        AssertParseOrSemanticFailure(result, "Missing closing brace should produce parse error");
     }
 
     [TestMethod]
@@ -47,10 +39,7 @@ select 1 from #A.Entities()";
     {
         // Arrange — binary schema without trailing semicolon
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: int le
-}
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Magic: int le\n" + "}\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -64,17 +53,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — field without colon separator
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic int le
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Magic int le\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should report parse error
-        AssertParseOrSemanticFailure(result,
-            "Missing colon after field name should produce parse error");
+        AssertParseOrSemanticFailure(result, "Missing colon after field name should produce parse error");
     }
 
     #endregion
@@ -86,17 +71,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — int field without le/be
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: int
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Magic: int\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — int requires endianness: should error or misparse
-        AssertParseOrSemanticFailure(result,
-            "int without endianness should report error");
+        AssertParseOrSemanticFailure(result, "int without endianness should report error");
     }
 
     [TestMethod]
@@ -104,17 +85,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — invalid endianness identifier
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: int middle
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Magic: int middle\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — 'middle' is not a valid endianness
-        AssertParseOrSemanticFailure(result,
-            "Invalid endianness 'middle' should produce error");
+        AssertParseOrSemanticFailure(result, "Invalid endianness 'middle' should produce error");
     }
 
     #endregion
@@ -126,17 +103,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — field with nonsense type
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: complex128 le
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Magic: complex128 le\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — 'complex128' is not a known binary type
-        AssertParseOrSemanticFailure(result,
-            "Unknown binary type 'complex128' should produce error");
+        AssertParseOrSemanticFailure(result, "Unknown binary type 'complex128' should produce error");
     }
 
     [TestMethod]
@@ -144,18 +117,14 @@ select 1 from #A.Entities()";
     {
         // Arrange — byte doesn't need endianness
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Flag: byte le
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Flag: byte le\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — byte with endianness is actually rejected by the parser.
         // Even though byte is single-byte, specifying endianness produces an error.
-        AssertParseOrSemanticFailure(result,
-            "byte with endianness produces a parse error");
+        AssertParseOrSemanticFailure(result, "byte with endianness produces a parse error");
     }
 
     #endregion
@@ -167,17 +136,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — byte array without size
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Data: byte[]
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Data: byte[]\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — byte[] needs size
-        AssertParseOrSemanticFailure(result,
-            "byte[] without size should produce parse error");
+        AssertParseOrSemanticFailure(result, "byte[] without size should produce parse error");
     }
 
     [TestMethod]
@@ -185,17 +150,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — byte array with negative size
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Data: byte[-5]
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Data: byte[-5]\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — negative size
-        AssertParseOrSemanticFailure(result,
-            "byte[-5] should produce parse error");
+        AssertParseOrSemanticFailure(result, "byte[-5] should produce parse error");
     }
 
     [TestMethod]
@@ -203,10 +164,7 @@ select 1 from #A.Entities()";
     {
         // Arrange — byte array with zero size
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Data: byte[0]
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Data: byte[0]\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -225,18 +183,14 @@ select 1 from #A.Entities()";
     {
         // Arrange — string field without encoding
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Name: string[20]
-};
-select 1 from #A.Entities()";
+        var query = ("binary HeaderFormat {\n" + "    Name: string[20]\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — string fields should require encoding for clarity.
         // Without encoding, the parser may either default or error.
-        AssertParseOrSemanticFailure(result,
-            "string[20] without encoding should require explicit encoding");
+        AssertParseOrSemanticFailure(result, "string[20] without encoding should require explicit encoding");
     }
 
     [TestMethod]
@@ -244,17 +198,15 @@ select 1 from #A.Entities()";
     {
         // Arrange — string field with unknown encoding
         var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Name: string[20] klingon
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary HeaderFormat {\n" + "    Name: string[20] klingon\n" + "};\n" + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — 'klingon' is not a valid encoding
-        AssertParseOrSemanticFailure(result,
-            "Invalid encoding 'klingon' should produce error");
+        AssertParseOrSemanticFailure(result, "Invalid encoding 'klingon' should produce error");
     }
 
     #endregion
@@ -270,17 +222,13 @@ select 1 from #A.Entities()";
     {
         // Arrange
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine
-    Timestamp: until ' '
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine\n" + "    Timestamp: until ' '\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "Missing opening brace should produce parse error");
+        AssertParseOrSemanticFailure(result, "Missing opening brace should produce parse error");
     }
 
     [TestMethod]
@@ -288,17 +236,13 @@ select 1 from #A.Entities()";
     {
         // Arrange
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Timestamp: until ' '
-;
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Timestamp: until ' '\n" + ";\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "Missing closing brace should produce parse error");
+        AssertParseOrSemanticFailure(result, "Missing closing brace should produce parse error");
     }
 
     [TestMethod]
@@ -306,10 +250,7 @@ select 1 from #A.Entities()";
     {
         // Arrange
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Timestamp: until ' '
-}
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Timestamp: until ' '\n" + "}\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -323,17 +264,13 @@ select 1 from #A.Entities()";
     {
         // Arrange
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Timestamp until ' '
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Timestamp until ' '\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "Missing colon after field name should produce parse error");
+        AssertParseOrSemanticFailure(result, "Missing colon after field name should produce parse error");
     }
 
     #endregion
@@ -345,17 +282,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — 'between' with only one delimiter
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: between '['
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Data: between '['\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "between with missing end delimiter should produce parse error");
+        AssertParseOrSemanticFailure(result, "between with missing end delimiter should produce parse error");
     }
 
     [TestMethod]
@@ -363,17 +296,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — 'between' without any delimiters
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: between
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Data: between\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "between without delimiters should produce parse error");
+        AssertParseOrSemanticFailure(result, "between without delimiters should produce parse error");
     }
 
     #endregion
@@ -385,17 +314,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — 'chars' without bracket size
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Code: chars
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Code: chars\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "chars without size should produce parse error");
+        AssertParseOrSemanticFailure(result, "chars without size should produce parse error");
     }
 
     [TestMethod]
@@ -403,17 +328,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — 'chars[-5]'
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Code: chars[-5]
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Code: chars[-5]\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "chars[-5] should produce parse error");
+        AssertParseOrSemanticFailure(result, "chars[-5] should produce parse error");
     }
 
     #endregion

@@ -2,14 +2,8 @@ namespace Musoq.Evaluator;
 
 public sealed record ScriptParameterDefinition
 {
-    public ScriptParameterDefinition(
-        string name,
-        Type parameterType,
-        bool hasDefaultValue,
-        object? defaultValue)
-        : this(ScriptParameterContract.FromLegacy(name, parameterType, hasDefaultValue, defaultValue))
-    {
-    }
+    public ScriptParameterDefinition(string name, Type parameterType, bool hasDefaultValue, object? defaultValue)
+        : this(ScriptParameterContract.FromLegacy(name, parameterType, hasDefaultValue, defaultValue)) { }
 
     public ScriptParameterDefinition(ScriptParameterContract contract)
     {

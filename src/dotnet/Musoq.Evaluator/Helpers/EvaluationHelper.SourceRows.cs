@@ -9,25 +9,27 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-
-
-
     public static Type GetRequiredType(string assemblyQualifiedName)
     {
         if (string.IsNullOrWhiteSpace(assemblyQualifiedName))
             throw new ArgumentException(@"Type name must be provided.", nameof(assemblyQualifiedName));
 
         return Type.GetType(assemblyQualifiedName, throwOnError: false)
-               ?? throw new InvalidOperationException($"Type '{assemblyQualifiedName}' could not be resolved.");
+            ?? throw new InvalidOperationException($"Type '{assemblyQualifiedName}' could not be resolved.");
     }
 
     public static IEnumerable<IReadOnlyList<TRow>> GetRowSourceChunks<TRow, TArguments>(
-        ISchema schema, string name, SourceExecutionContext executionContext, TArguments arguments)
+        ISchema schema,
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments arguments
+    )
         where TArguments : struct, ISourceArguments
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(executionContext);
-        var source = schema.GetRowSource<TRow, TArguments>(name, executionContext, arguments)
+        var source =
+            schema.GetRowSource<TRow, TArguments>(name, executionContext, arguments)
             ?? throw new InvalidOperationException($"Schema '{schema.Name}' returned null row source for '{name}'.");
         return source.Chunks;
     }
@@ -171,9 +173,7 @@ public static partial class EvaluationHelper
         if (rows is null)
             return Array.Empty<T>();
 
-        var result = rows is ICollection<T> collection
-            ? new List<T>(collection.Count)
-            : new List<T>();
+        var result = rows is ICollection<T> collection ? new List<T>(collection.Count) : new List<T>();
 
         foreach (var row in rows)
         {
@@ -186,7 +186,8 @@ public static partial class EvaluationHelper
 
     public static IReadOnlyList<T> MaterializeFilteredGeneratedChunkedRows<T>(
         IEnumerable<IReadOnlyList<T>>? chunks,
-        Func<T, bool> predicate)
+        Func<T, bool> predicate
+    )
     {
         ArgumentNullException.ThrowIfNull(predicate);
         if (chunks is null)
@@ -214,17 +215,14 @@ public static partial class EvaluationHelper
     private static List<T> CreateGeneratedRowList<T>(IEnumerable<Row> rows)
         where T : Row
     {
-        return rows is ICollection<Row> collection
-            ? new List<T>(collection.Count)
-            : new List<T>();
+        return rows is ICollection<Row> collection ? new List<T>(collection.Count) : new List<T>();
     }
 
-
-    public static IEnumerable<IReadOnlyList<PrimitiveTypeEntity<T>>> ConvertScalarEnumerableToTypedChunks<T>(IEnumerable<T>? enumerable)
+    public static IEnumerable<IReadOnlyList<PrimitiveTypeEntity<T>>> ConvertScalarEnumerableToTypedChunks<T>(
+        IEnumerable<T>? enumerable
+    )
     {
-        return enumerable is null
-            ? []
-            : CreateScalarBufferedChunks(enumerable);
+        return enumerable is null ? [] : CreateScalarBufferedChunks(enumerable);
     }
 
     public const int DefaultSourceChunkSize = RowChunking.DefaultChunkSize;

@@ -14,14 +14,24 @@ public sealed partial record AggregateKernelDescriptor
             return null;
         var parameters = GetValueParameters(declaration);
         if (parameters.Length != 1 || (attribute.Modes & WindowEvaluationModes.Batch) == 0)
-            throw CreateInvalidKernelException(declaration, "Typed batch registration requires one concrete value argument and Batch mode.");
+            throw CreateInvalidKernelException(
+                declaration,
+                "Typed batch registration requires one concrete value argument and Batch mode."
+            );
         var kernel = ResolveKernelType(attribute.BatchKernelType, declaration);
         ValidateKernelSharedFields(kernel, declaration);
-        var context = typeof(WindowBatchContext<,>).MakeGenericType(parameters[0].ParameterType, declaration.ReturnType);
-        var operations = EnumerateStaticMethods(kernel, "TryEvaluate").Where(operation =>
-            IsMatchingGetMethod(operation, context, typeof(bool))).ToArray();
+        var context = typeof(WindowBatchContext<,>).MakeGenericType(
+            parameters[0].ParameterType,
+            declaration.ReturnType
+        );
+        var operations = EnumerateStaticMethods(kernel, "TryEvaluate")
+            .Where(operation => IsMatchingGetMethod(operation, context, typeof(bool)))
+            .ToArray();
         if (operations.Length != 1)
-            throw CreateInvalidKernelException(declaration, "Batch kernel must expose one exact bool TryEvaluate(in WindowBatchContext<TInput, TResult>) operation.");
+            throw CreateInvalidKernelException(
+                declaration,
+                "Batch kernel must expose one exact bool TryEvaluate(in WindowBatchContext<TInput, TResult>) operation."
+            );
         return operations[0];
     }
 }

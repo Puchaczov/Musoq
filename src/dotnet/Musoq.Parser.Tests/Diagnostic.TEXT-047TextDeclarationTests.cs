@@ -13,20 +13,21 @@ public sealed class DiagnosticText047TextDeclarationTests : SchemaParserTestsBas
     public void TextSchema_DeclarationFields_ShouldPreserveValuesModifiersAndSpans()
     {
         const string schemaText =
-            "text LogEntry { Timestamp: between '[' ']' nested, _: literal ' ', " +
-            "Level: until ':', Code: pattern '(?<Value>[A-Z]+)' capture (Value) }";
+            "text LogEntry { Timestamp: between '[' ']' nested, _: literal ' ', "
+            + "Level: until ':', Code: pattern '(?<Value>[A-Z]+)' capture (Value) }";
 
         var schema = ParseTextSchema(schemaText);
 
         Assert.HasCount(4, schema.Fields);
-        Assert.AreEqual(new TextSpan(schemaText.IndexOf("Timestamp", StringComparison.Ordinal), 9),
-            schema.Fields[0].Span);
+        Assert.AreEqual(
+            new TextSpan(schemaText.IndexOf("Timestamp", StringComparison.Ordinal), 9),
+            schema.Fields[0].Span
+        );
         Assert.AreEqual(TextFieldType.Between, schema.Fields[0].FieldType);
         Assert.AreEqual("[", schema.Fields[0].PrimaryValue);
         Assert.AreEqual("]", schema.Fields[0].SecondaryValue);
         Assert.IsTrue((schema.Fields[0].Modifiers & TextFieldModifier.Nested) != 0);
-        Assert.AreEqual(new TextSpan(schemaText.IndexOf("Level", StringComparison.Ordinal), 5),
-            schema.Fields[2].Span);
+        Assert.AreEqual(new TextSpan(schemaText.IndexOf("Level", StringComparison.Ordinal), 5), schema.Fields[2].Span);
         Assert.AreEqual(TextFieldType.Pattern, schema.Fields[3].FieldType);
         Assert.AreEqual("(?<Value>[A-Z]+)", schema.Fields[3].PrimaryValue);
         Assert.HasCount(1, schema.Fields[3].CaptureGroups);
@@ -73,8 +74,10 @@ public sealed class DiagnosticText047TextDeclarationTests : SchemaParserTestsBas
 
         Assert.AreEqual(DiagnosticCode.MQ4002_InvalidTextSchemaField, exception.Code);
         const string patternLiteral = "'[unclosed'";
-        Assert.AreEqual(new TextSpan(schemaText.IndexOf(patternLiteral, StringComparison.Ordinal), patternLiteral.Length),
-            exception.Span);
+        Assert.AreEqual(
+            new TextSpan(schemaText.IndexOf(patternLiteral, StringComparison.Ordinal), patternLiteral.Length),
+            exception.Span
+        );
     }
 
     [TestMethod]
@@ -86,8 +89,10 @@ public sealed class DiagnosticText047TextDeclarationTests : SchemaParserTestsBas
 
         Assert.AreEqual(DiagnosticCode.MQ4002_InvalidTextSchemaField, exception.Code);
         const string patternLiteral = "'(?=abc)abc'";
-        Assert.AreEqual(new TextSpan(schemaText.IndexOf(patternLiteral, StringComparison.Ordinal), patternLiteral.Length),
-            exception.Span);
+        Assert.AreEqual(
+            new TextSpan(schemaText.IndexOf(patternLiteral, StringComparison.Ordinal), patternLiteral.Length),
+            exception.Span
+        );
     }
 
     [TestMethod]
@@ -99,8 +104,10 @@ public sealed class DiagnosticText047TextDeclarationTests : SchemaParserTestsBas
 
         Assert.AreEqual(DiagnosticCode.MQ4002_InvalidTextSchemaField, exception.Code);
         const string patternLiteral = "'(?<Value>\\d+)'";
-        Assert.AreEqual(new TextSpan(schemaText.IndexOf(patternLiteral, StringComparison.Ordinal), patternLiteral.Length),
-            exception.Span);
+        Assert.AreEqual(
+            new TextSpan(schemaText.IndexOf(patternLiteral, StringComparison.Ordinal), patternLiteral.Length),
+            exception.Span
+        );
     }
 
     [TestMethod]
@@ -122,7 +129,9 @@ public sealed class DiagnosticText047TextDeclarationTests : SchemaParserTestsBas
 
         Assert.AreEqual(DiagnosticCode.MQ4002_InvalidTextSchemaField, exception.Code);
         const string escapeLiteral = "'ab'";
-        Assert.AreEqual(new TextSpan(schemaText.IndexOf(escapeLiteral, StringComparison.Ordinal), escapeLiteral.Length),
-            exception.Span);
+        Assert.AreEqual(
+            new TextSpan(schemaText.IndexOf(escapeLiteral, StringComparison.Ordinal), escapeLiteral.Length),
+            exception.Span
+        );
     }
 }

@@ -21,7 +21,8 @@ public sealed class AsyncQueryRowsTests
             "result",
             [new Column("Value", typeof(int), 0)],
             rows,
-            cancellation.Token);
+            cancellation.Token
+        );
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(1, table[0].ReadValue(0));
@@ -35,14 +36,14 @@ public sealed class AsyncQueryRowsTests
             "result",
             [new Column("Value", typeof(int), 0)],
             CreateChunks(),
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual(3, table[2].ReadValue(0));
     }
 
-    private static async IAsyncEnumerable<Row> CreateRows(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    private static async IAsyncEnumerable<Row> CreateRows([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         await Task.Yield();
         yield return new ValueRow(1);
@@ -61,11 +62,9 @@ public sealed class AsyncQueryRowsTests
 
     private sealed class ValueRow(int value) : Row
     {
-        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
-            => TypedColumnVisit.Apply(0, value, ref visitor);
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor) =>
+            TypedColumnVisit.Apply(0, value, ref visitor);
 
         public override int Count => 1;
-
-
     }
 }

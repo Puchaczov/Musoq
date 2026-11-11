@@ -32,12 +32,16 @@ public sealed partial class LibraryFunctionCatalogQueryTests
     private void AssertRegisteredPrefix(MethodsManager manager, string expected)
     {
         const string query = "select Prefix(Text) as Value from #registered.all()";
-        var provider = new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            ["#registered"] = new RegistrationSchema(new MethodsAggregator(manager))
-        });
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString("N"),
-            provider, LoggerResolver, TestCompilationOptions);
+        var provider = new GenericSchemaProvider(
+            new Dictionary<string, ISchema> { ["#registered"] = new RegistrationSchema(new MethodsAggregator(manager)) }
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
         Assert.AreEqual(1, table.Count);
@@ -48,16 +52,27 @@ public sealed partial class LibraryFunctionCatalogQueryTests
 
     private sealed class RegistrationSchema(MethodsAggregator methods) : SchemaBase("registered", methods)
     {
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext context,
-            params object?[] parameters) => new GenericEntityTable<RegistrationInput>();
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext context,
+            params object?[] parameters
+        ) => new GenericEntityTable<RegistrationInput>();
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext context,
-            TArguments parameters) => EnsureSourceType<T, RegistrationInput>(name,
-            new EntitySource<RegistrationInput>(
-                new IReadOnlyList<RegistrationInput>[] { new RegistrationInput[] { new("seed") } },
-                new Dictionary<string, int>(), new Dictionary<int, Func<RegistrationInput, object?>>()));
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext context,
+            TArguments parameters
+        ) =>
+            EnsureSourceType<T, RegistrationInput>(
+                name,
+                new EntitySource<RegistrationInput>(
+                    new IReadOnlyList<RegistrationInput>[] { new RegistrationInput[] { new("seed") } },
+                    new Dictionary<string, int>(),
+                    new Dictionary<int, Func<RegistrationInput, object?>>()
+                )
+            );
 
-        public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext context)
-            => [new SchemaMethodInfo("all", ConstructorInfo.Empty())];
+        public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext context) =>
+            [new SchemaMethodInfo("all", ConstructorInfo.Empty())];
     }
 }

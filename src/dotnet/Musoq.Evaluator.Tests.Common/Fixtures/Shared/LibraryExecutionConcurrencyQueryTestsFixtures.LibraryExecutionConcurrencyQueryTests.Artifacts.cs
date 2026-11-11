@@ -9,7 +9,5 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionConcurrencyQueryTestsFixtures
 {
-
     public sealed record ReservedColumnRow(string Token, string Provider, string Logger, string QueryContext);
-
 }

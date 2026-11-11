@@ -5,7 +5,6 @@ namespace Musoq.Evaluator.IR.Logical;
 
 public sealed partial class LogicalPlanBuilder
 {
-
     public void Visit(SelectNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -22,7 +21,5 @@ public sealed partial class LogicalPlanBuilder
         }
     }
 
-    public void Visit(GroupSelectNode node)
-    {
-    }
+    public void Visit(GroupSelectNode node) { }
 }

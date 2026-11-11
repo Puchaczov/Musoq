@@ -37,7 +37,7 @@ public sealed class ExecutionArtifactFreezeTests
             Identity = new SourceIdentity("schema", "method", "context", "alias"),
             AcceptedColumns = columns,
             AcceptedOrderBy = orderBy,
-            Properties = properties
+            Properties = properties,
         };
 
         columns.Clear();
@@ -59,23 +59,25 @@ public sealed class ExecutionArtifactFreezeTests
             new SourceColumnRef("Name"),
             SourceStringMatchKind.Prefix,
             "item%",
-            "item");
+            "item"
+        );
         var applications = new List<SourcePredicateApplication>
         {
-            new(match, SourcePredicateEvaluationPhase.RowFiltering)
+            new(match, SourcePredicateEvaluationPhase.RowFiltering),
         };
         var plan = new SourceExecutionPlan
         {
             Identity = new SourceIdentity("schema", "method", "context", "alias"),
             AcceptedPredicate = match,
-            PredicateApplications = applications
+            PredicateApplications = applications,
         };
 
         applications.Clear();
 
         Assert.HasCount(1, plan.PredicateApplications);
         Assert.Throws<NotSupportedException>(() =>
-            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear());
+            ((IList<SourcePredicateApplication>)plan.PredicateApplications).Clear()
+        );
     }
 
     [TestMethod]

@@ -16,7 +16,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q188_RecursiveUnionAllCounter.cs",
         "Q189_RecursiveUnionAllPredicateTermination.cs",
         "Q190_RecursiveEmptyAnchor.cs",
-        "Q191_RecursiveMultipleRoots.cs"
+        "Q191_RecursiveMultipleRoots.cs",
     ];
 
     private static readonly string[] RecursiveIdentitySampleFileNames =
@@ -26,7 +26,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q194_RecursiveUnionCompositeKey.cs",
         "Q195_RecursiveKeyedNonKeyPayload.cs",
         "Q196_RecursiveAnchorDuplicates.cs",
-        "Q197_RecursiveDuplicateEdges.cs"
+        "Q197_RecursiveDuplicateEdges.cs",
     ];
 
     public static IEnumerable<object[]> RecursiveUnionAllSampleData =>
@@ -62,10 +62,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var execution = ReadExecutionPlan(fileName);
         var code = ReadGeneratedCode(fileName);
         var root = CSharpSyntaxTree.ParseText(code).GetRoot();
-        var fixedPointLoops = root.DescendantNodes().OfType<WhileStatementSyntax>()
-            .Where(static loop => loop.Condition.ToString().Contains("CurrentFrontier.Count > 0", StringComparison.Ordinal))
+        var fixedPointLoops = root.DescendantNodes()
+            .OfType<WhileStatementSyntax>()
+            .Where(static loop =>
+                loop.Condition.ToString().Contains("CurrentFrontier.Count > 0", StringComparison.Ordinal)
+            )
             .ToArray();
-        var collectionCreations = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>()
+        var collectionCreations = root.DescendantNodes()
+            .OfType<ObjectCreationExpressionSyntax>()
             .Where(static creation => IsRecursiveCollectionType(creation.Type.ToString()))
             .ToArray();
 
@@ -76,15 +80,28 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("private readonly struct Cte0Row0", code);
         Assert.AreEqual(3, collectionCreations.Count(static creation => creation.Type.ToString() == "List<Cte0Row0>"));
         Assert.HasCount(1, fixedPointLoops);
-        Assert.IsFalse(fixedPointLoops[0].DescendantNodes().OfType<ObjectCreationExpressionSyntax>()
-            .Any(static creation => IsRecursiveCollectionType(creation.Type.ToString())), fileName);
+        Assert.IsFalse(
+            fixedPointLoops[0]
+                .DescendantNodes()
+                .OfType<ObjectCreationExpressionSyntax>()
+                .Any(static creation => IsRecursiveCollectionType(creation.Type.ToString())),
+            fileName
+        );
         Assert.Contains("cte0NextFrontier.Clear();", code);
         Assert.Contains("cte0CurrentFrontier = cte0NextFrontier;", code);
         Assert.Contains("cte0NextFrontier = __cte0FrontierSwap;", code);
-        Assert.IsFalse(collectionCreations.Any(static creation =>
-            creation.Type.ToString().StartsWith("HashSet<", StringComparison.Ordinal)), fileName);
-        Assert.IsFalse(root.DescendantNodes().OfType<ArrayCreationExpressionSyntax>()
-            .Any(static creation => creation.Type.ElementType.ToString() == "object"), fileName);
+        Assert.IsFalse(
+            collectionCreations.Any(static creation =>
+                creation.Type.ToString().StartsWith("HashSet<", StringComparison.Ordinal)
+            ),
+            fileName
+        );
+        Assert.IsFalse(
+            root.DescendantNodes()
+                .OfType<ArrayCreationExpressionSyntax>()
+                .Any(static creation => creation.Type.ElementType.ToString() == "object"),
+            fileName
+        );
         Assert.IsFalse(ContainsInvocation(root, "Select"), fileName);
         Assert.IsFalse(ContainsInvocation(root, "Where"), fileName);
         Assert.IsFalse(execution.Contains("CreateTable [cte0CurrentFrontier", StringComparison.Ordinal), fileName);
@@ -99,7 +116,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var execution = ReadExecutionPlan(fileName);
         var code = ReadGeneratedCode(fileName);
         var root = CSharpSyntaxTree.ParseText(code).GetRoot();
-        var seenSets = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>()
+        var seenSets = root.DescendantNodes()
+            .OfType<ObjectCreationExpressionSyntax>()
             .Where(static creation => creation.Type.ToString().StartsWith("HashSet<", StringComparison.Ordinal))
             .ToArray();
         var seenDeclarationIndex = code.IndexOf("var cte0Seen = new HashSet<", StringComparison.Ordinal);
@@ -127,12 +145,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     }
 
     private static bool IsRecursiveCollectionType(string typeName) =>
-        typeName.StartsWith("List<", StringComparison.Ordinal) ||
-        typeName.StartsWith("HashSet<", StringComparison.Ordinal) ||
-        typeName.StartsWith("Dictionary<", StringComparison.Ordinal);
+        typeName.StartsWith("List<", StringComparison.Ordinal)
+        || typeName.StartsWith("HashSet<", StringComparison.Ordinal)
+        || typeName.StartsWith("Dictionary<", StringComparison.Ordinal);
 
     private static bool ContainsInvocation(Microsoft.CodeAnalysis.SyntaxNode root, string methodName) =>
-        root.DescendantNodes().OfType<InvocationExpressionSyntax>()
+        root.DescendantNodes()
+            .OfType<InvocationExpressionSyntax>()
             .Select(static invocation => invocation.Expression)
             .OfType<MemberAccessExpressionSyntax>()
             .Any(member => member.Name.Identifier.ValueText == methodName);

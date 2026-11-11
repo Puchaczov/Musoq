@@ -22,10 +22,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(CrossApplySampleFileName).Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("ChildName", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("ChildName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
@@ -34,10 +31,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(OuterApplySampleFileName).Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("OtherName", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("OtherName", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
@@ -60,24 +54,42 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.IsFalse(
-            result.ExecutionPlanText.Contains("CreateTable [apply_0_i_nTable: apply_0_i_nRow0]", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText.Contains(
+                "CreateTable [apply_0_i_nTable: apply_0_i_nRow0]",
+                StringComparison.Ordinal
+            ),
+            result.ExecutionPlanText
+        );
         Assert.IsFalse(
-            result.ExecutionPlanText.Contains("ForEach [apply_0_i_n in apply_0_i_nTable.Rows]", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText.Contains(
+                "ForEach [apply_0_i_n in apply_0_i_nTable.Rows]",
+                StringComparison.Ordinal
+            ),
+            result.ExecutionPlanText
+        );
         Assert.Contains("CreateRowBuffer [apply_0_i_n_mTable: List<apply_0_i_n_mRow0>]", result.ExecutionPlanText);
         Assert.Contains("Materialize [apply_0_i_n_mTable -> resultWindowRows]", result.ExecutionPlanText);
         Assert.IsFalse(
-            result.ExecutionPlanText.Contains("CreateTable [apply_0_i_n_mTable: apply_0_i_n_mRow0]", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText.Contains(
+                "CreateTable [apply_0_i_n_mTable: apply_0_i_n_mRow0]",
+                StringComparison.Ordinal
+            ),
+            result.ExecutionPlanText
+        );
         Assert.IsFalse(
-            result.ExecutionPlanText.Contains("Materialize [apply_0_i_n_mTable.Rows -> resultWindowRows]", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText.Contains(
+                "Materialize [apply_0_i_n_mTable.Rows -> resultWindowRows]",
+                StringComparison.Ordinal
+            ),
+            result.ExecutionPlanText
+        );
         Assert.Contains("EnumerableSource [i.Numbers -> apply_0_i_n_mTable_nRows]", result.ExecutionPlanText);
         Assert.Contains("EnumerableSource [i.Numbers -> apply_0_i_n_mTable_mRows]", result.ExecutionPlanText);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
@@ -97,14 +109,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ("Name", typeof(string)),
             ("FirstValue", typeof(int)),
             ("SecondValue", typeof(int)),
-            ("RowNo", typeof(long)));
+            ("RowNo", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["left", 1, 1, 1L],
             ["left", 1, 2, 2L],
             ["left", 2, 1, 3L],
             ["left", 2, 2, 4L],
-            ["right", 3, 3, 1L]);
+            ["right", 3, 3, 1L]
+        );
     }
 
     [TestMethod]
@@ -115,7 +129,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"{ChainedApplyWindowSampleFileName} has stale windowed chained-apply shape: {string.Join(", ", failures)}");
+            $"{ChainedApplyWindowSampleFileName} has stale windowed chained-apply shape: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -125,7 +140,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetSum", "SetDistinctAggregate");
         Assert.Contains("inm.Sum(distinct n.Value)", result.ExecutionPlanText);
@@ -145,11 +161,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             table,
             ("Name", typeof(string)),
             ("RepeatedSum", typeof(int?)),
-            ("DistinctSum", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["left", 6, 3],
-            ["right", 3, 3]);
+            ("DistinctSum", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["left", 6, 3], ["right", 3, 3]);
     }
 
     [TestMethod]
@@ -160,7 +174,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"{ChainedApplyMixedDistinctAggregateSortSampleFileName} has stale mixed distinct aggregate-sort shape: {string.Join(", ", failures)}");
+            $"{ChainedApplyMixedDistinctAggregateSortSampleFileName} has stale mixed distinct aggregate-sort shape: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -170,7 +185,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetMin", "SetMax", "SetDistinctAggregate");
         Assert.Contains("inm.Min(distinct n.Value)", result.ExecutionPlanText);
@@ -194,11 +210,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ("RepeatedMin", typeof(int?)),
             ("DistinctMin", typeof(int?)),
             ("RepeatedMax", typeof(int?)),
-            ("DistinctMax", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["left", 1, 1, 4, 4],
-            ["right", 3, 3, 3, 3]);
+            ("DistinctMax", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["left", 1, 1, 4, 4], ["right", 3, 3, 3, 3]);
     }
 
     [TestMethod]
@@ -209,7 +223,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"{ChainedApplyMixedDistinctMinMaxAggregateSortSampleFileName} has stale mixed distinct Min/Max aggregate-sort shape: {string.Join(", ", failures)}");
+            $"{ChainedApplyMixedDistinctMinMaxAggregateSortSampleFileName} has stale mixed distinct Min/Max aggregate-sort shape: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -219,7 +234,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetAvg", "SetDistinctAggregate");
         Assert.Contains("inm.Avg(distinct n.Value)", result.ExecutionPlanText);
@@ -240,11 +256,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             table,
             ("Name", typeof(string)),
             ("RepeatedAvg", typeof(decimal?)),
-            ("DistinctAvg", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["right", 3m, 3m],
-            ["left", 2m, 2.5m]);
+            ("DistinctAvg", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["right", 3m, 3m], ["left", 2m, 2.5m]);
     }
 
     [TestMethod]
@@ -255,7 +269,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"{ChainedApplyMixedDistinctAvgAggregateSortSampleFileName} has stale mixed distinct Avg aggregate-sort shape: {string.Join(", ", failures)}");
+            $"{ChainedApplyMixedDistinctAvgAggregateSortSampleFileName} has stale mixed distinct Avg aggregate-sort shape: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -285,11 +300,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ("DistinctMin", typeof(int?)),
             ("RepeatedMax", typeof(int?)),
             ("DistinctMax", typeof(int?)),
-            ("MixedMinMaxRowNo", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["left", 1, 1, 4, 4, 1L],
-            ["right", 3, 3, 3, 3, 2L]);
+            ("MixedMinMaxRowNo", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["left", 1, 1, 4, 4, 1L], ["right", 3, 3, 3, 3, 2L]);
     }
 
     [TestMethod]
@@ -300,7 +313,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"{ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName} has stale mixed distinct Min/Max aggregate-window shape: {string.Join(", ", failures)}");
+            $"{ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName} has stale mixed distinct Min/Max aggregate-window shape: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -326,11 +340,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ("Name", typeof(string)),
             ("RepeatedAvg", typeof(decimal?)),
             ("DistinctAvg", typeof(decimal?)),
-            ("MixedAvgRowNo", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["right", 3m, 3m, 1L],
-            ["left", 2m, 2.5m, 2L]);
+            ("MixedAvgRowNo", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["right", 3m, 3m, 1L], ["left", 2m, 2.5m, 2L]);
     }
 
     [TestMethod]
@@ -341,7 +353,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"{ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName} has stale mixed distinct Avg aggregate-window shape: {string.Join(", ", failures)}");
+            $"{ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName} has stale mixed distinct Avg aggregate-window shape: {string.Join(", ", failures)}"
+        );
     }
-
 }

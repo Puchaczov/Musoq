@@ -2,8 +2,11 @@ using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Benchmarks.Scenarios;
 
-public sealed record FixtureRequirements(bool ValidatePrimitiveTypes, int? RecursiveMaxIterations,
-    StructuralInputLimits StructuralLimits);
+public sealed record FixtureRequirements(
+    bool ValidatePrimitiveTypes,
+    int? RecursiveMaxIterations,
+    StructuralInputLimits StructuralLimits
+);
 
 public static class BenchmarkInputSizes
 {

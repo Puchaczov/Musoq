@@ -322,9 +322,7 @@ public class SchemaParserAdvancedTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySchema_InlineSchema_SimpleFields_ShouldParse()
     {
-        var schema = @"binary Packet {
-            Header: { Magic: int le, Version: short le }
-        }";
+        var schema = ("binary Packet {\n" + "            Header: { Magic: int le, Version: short le }\n" + "        }");
 
         var result = ParseBinarySchema(schema);
 
@@ -350,10 +348,12 @@ public class SchemaParserAdvancedTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySchema_InlineSchemaArray_ShouldParse()
     {
-        var schema = @"binary Packet {
-            Count: byte,
-            Items: { Tag: byte, Value: short le }[Count]
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Count: byte,\n"
+            + "            Items: { Tag: byte, Value: short le }[Count]\n"
+            + "        }"
+        );
 
         var result = ParseBinarySchema(schema);
 
@@ -392,11 +392,13 @@ public class SchemaParserAdvancedTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySchema_InlineSchema_NestedInline_ShouldParse()
     {
-        var schema = @"binary DeepNesting {
-            Outer: {
-                Inner: { Value: byte }
-            }
-        }";
+        var schema = (
+            "binary DeepNesting {\n"
+            + "            Outer: {\n"
+            + "                Inner: { Value: byte }\n"
+            + "            }\n"
+            + "        }"
+        );
 
         var result = ParseBinarySchema(schema);
 
@@ -420,11 +422,13 @@ public class SchemaParserAdvancedTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySchema_InlineSchema_MixedWithRegularFields_ShouldParse()
     {
-        var schema = @"binary Mixed {
-            Preamble: int le,
-            Header: { Magic: int le, Version: short le },
-            Data: byte[64]
-        }";
+        var schema = (
+            "binary Mixed {\n"
+            + "            Preamble: int le,\n"
+            + "            Header: { Magic: int le, Version: short le },\n"
+            + "            Data: byte[64]\n"
+            + "        }"
+        );
 
         var result = ParseBinarySchema(schema);
 
@@ -479,7 +483,7 @@ public class SchemaParserAdvancedTests : SchemaParserTestsBase
     {
         var fields = new SchemaFieldNode[]
         {
-            new FieldDefinitionNode("A", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))
+            new FieldDefinitionNode("A", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)),
         };
         var inlineSchema = new InlineSchemaTypeNode(fields);
 

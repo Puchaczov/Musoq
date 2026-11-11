@@ -9,7 +9,10 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderInterpretSource(ExecutionInterpretSource interpret, ExecutionRenderContext context)
+    private IEnumerable<StatementSyntax> RenderInterpretSource(
+        ExecutionInterpretSource interpret,
+        ExecutionRenderContext context
+    )
     {
         var interpreterVariableName = CreateInterpreterVariableName(interpret.SchemaName);
         var invocation = CreateInterpretInvocation(interpret, interpreterVariableName, context);
@@ -20,36 +23,52 @@ public sealed partial class ExecutionCSharpRenderer
         return
         [
             declaration,
-            CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                interpret.Rows.Name,
-                invocation)
+            CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), interpret.Rows.Name, invocation),
         ];
     }
 
-    private static IReadOnlyList<StatementSyntax> RenderTolerantInterpretSource(ExecutionInterpretSource interpret,
-        StatementSyntax declaration, ExpressionSyntax invocation)
+    private static IReadOnlyList<StatementSyntax> RenderTolerantInterpretSource(
+        ExecutionInterpretSource interpret,
+        StatementSyntax declaration,
+        ExpressionSyntax invocation
+    )
     {
         var rows = SyntaxFactory.IdentifierName(interpret.Rows.Name);
         var nullValue = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-        var assignment = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-            SyntaxKind.SimpleAssignmentExpression, rows, invocation));
-        var reset = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-            SyntaxKind.SimpleAssignmentExpression, rows, nullValue));
-        var parseFailure = SyntaxFactory.CatchClause()
-            .WithDeclaration(SyntaxFactory.CatchDeclaration(
-                SyntaxFactory.ParseTypeName("global::Musoq.Schema.Interpreters.ParseException")))
+        var assignment = SyntaxFactory.ExpressionStatement(
+            SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, rows, invocation)
+        );
+        var reset = SyntaxFactory.ExpressionStatement(
+            SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, rows, nullValue)
+        );
+        var parseFailure = SyntaxFactory
+            .CatchClause()
+            .WithDeclaration(
+                SyntaxFactory.CatchDeclaration(
+                    SyntaxFactory.ParseTypeName("global::Musoq.Schema.Interpreters.ParseException")
+                )
+            )
             .WithBlock(SyntaxFactory.Block(reset));
         return
         [
             declaration,
-            CreateLocalDeclaration(SyntaxFactory.NullableType(SyntaxFactory.ParseTypeName(interpret.InterpreterTypeName)),
-                interpret.Rows.Name, nullValue),
-            SyntaxFactory.TryStatement(SyntaxFactory.Block(assignment), SyntaxFactory.SingletonList(parseFailure), null)
+            CreateLocalDeclaration(
+                SyntaxFactory.NullableType(SyntaxFactory.ParseTypeName(interpret.InterpreterTypeName)),
+                interpret.Rows.Name,
+                nullValue
+            ),
+            SyntaxFactory.TryStatement(
+                SyntaxFactory.Block(assignment),
+                SyntaxFactory.SingletonList(parseFailure),
+                null
+            ),
         ];
     }
 
-    private LocalDeclarationStatementSyntax RenderEnumerableSource(ExecutionEnumerableSource enumerable, ExecutionRenderContext context)
+    private LocalDeclarationStatementSyntax RenderEnumerableSource(
+        ExecutionEnumerableSource enumerable,
+        ExecutionRenderContext context
+    )
     {
         var sourceExpression = RenderEnumerableSourceExpression(enumerable, context);
 
@@ -58,10 +77,14 @@ public sealed partial class ExecutionCSharpRenderer
             sourceExpression,
             enumerable.EnumerableType.RequireClrType(),
             enumerable.ChunkMode,
-            enumerable.EnumerableTypeName);
+            enumerable.EnumerableTypeName
+        );
     }
 
-    private ExpressionSyntax RenderEnumerableSourceExpression(ExecutionEnumerableSource enumerable, ExecutionRenderContext context)
+    private ExpressionSyntax RenderEnumerableSourceExpression(
+        ExecutionEnumerableSource enumerable,
+        ExecutionRenderContext context
+    )
     {
         var sourceExpression = RenderExpression(enumerable.Source, context);
         var enumerableType = CreateEnumerableTypeSyntax(enumerable);
@@ -69,20 +92,19 @@ public sealed partial class ExecutionCSharpRenderer
         if (IsAlreadyRenderedAsEnumerableType(enumerable, sourceExpression, enumerableType))
             return sourceExpression;
 
-        return SyntaxFactory.CastExpression(
-            enumerableType,
-            sourceExpression);
+        return SyntaxFactory.CastExpression(enumerableType, sourceExpression);
     }
 
     private static bool IsAlreadyRenderedAsEnumerableType(
         ExecutionEnumerableSource enumerable,
         ExpressionSyntax sourceExpression,
-        TypeSyntax enumerableType)
+        TypeSyntax enumerableType
+    )
     {
         if (!string.IsNullOrWhiteSpace(enumerable.EnumerableTypeName))
         {
-            return sourceExpression is not CastExpressionSyntax explicitCast ||
-                   SyntaxFactory.AreEquivalent(explicitCast.Type, enumerableType);
+            return sourceExpression is not CastExpressionSyntax explicitCast
+                || SyntaxFactory.AreEquivalent(explicitCast.Type, enumerableType);
         }
 
         if (enumerable.Source.ReturnType.RequireClrType() != enumerable.EnumerableType.RequireClrType())
@@ -91,8 +113,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (sourceExpression is not CastExpressionSyntax castExpression)
             return true;
 
-        return
-               SyntaxFactory.AreEquivalent(castExpression.Type, enumerableType);
+        return SyntaxFactory.AreEquivalent(castExpression.Type, enumerableType);
     }
 
     private static TypeSyntax CreateEnumerableTypeSyntax(ExecutionEnumerableSource enumerable)
@@ -105,40 +126,55 @@ public sealed partial class ExecutionCSharpRenderer
     private InvocationExpressionSyntax CreateInterpretInvocation(
         ExecutionInterpretSource interpret,
         string interpreterVariableName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var statusMethod = interpret.Kind switch
         {
             InterpretSourceKind.TryInterpret => nameof(InterpretationStatus.TryInterpret),
             InterpretSourceKind.TryParse => nameof(InterpretationStatus.TryParse),
             InterpretSourceKind.Parse => nameof(InterpretationStatus.ParseText),
-            _ => null
+            _ => null,
         };
         if (statusMethod is not null)
         {
-            return SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression(
-                    $"global::Musoq.Schema.Interpreters.InterpretationStatus.{statusMethod}"))
-                .WithArgumentList(CreateArgumentList(new[] { SyntaxFactory.IdentifierName(interpreterVariableName) }
-                    .Cast<ExpressionSyntax>().Concat(interpret.Arguments.Select(argument => RenderExpression(argument, context)))));
+            return SyntaxFactory
+                .InvocationExpression(
+                    SyntaxFactory.ParseExpression(
+                        $"global::Musoq.Schema.Interpreters.InterpretationStatus.{statusMethod}"
+                    )
+                )
+                .WithArgumentList(
+                    CreateArgumentList(
+                        new[] { SyntaxFactory.IdentifierName(interpreterVariableName) }
+                            .Cast<ExpressionSyntax>()
+                            .Concat(interpret.Arguments.Select(argument => RenderExpression(argument, context)))
+                    )
+                );
         }
-        var invocation = SyntaxFactory.InvocationExpression(
+        var invocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(interpreterVariableName),
-                    SyntaxFactory.IdentifierName(ResolveInterpretMethodName(interpret.Kind))))
-            .WithArgumentList(CreateArgumentList(interpret.Arguments.Select(argument => RenderExpression(argument, context))));
+                    SyntaxFactory.IdentifierName(ResolveInterpretMethodName(interpret.Kind))
+                )
+            )
+            .WithArgumentList(
+                CreateArgumentList(interpret.Arguments.Select(argument => RenderExpression(argument, context)))
+            );
 
         return invocation;
     }
 
-    private static LocalDeclarationStatementSyntax CreateInterpreterDeclaration(
-        string variableName,
-        string typeName)
+    private static LocalDeclarationStatementSyntax CreateInterpreterDeclaration(string variableName, string typeName)
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             variableName,
-            SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(typeName))
-                .WithArgumentList(SyntaxFactory.ArgumentList()));
+            SyntaxFactory
+                .ObjectCreationExpression(SyntaxFactory.ParseTypeName(typeName))
+                .WithArgumentList(SyntaxFactory.ArgumentList())
+        );
     }
 }

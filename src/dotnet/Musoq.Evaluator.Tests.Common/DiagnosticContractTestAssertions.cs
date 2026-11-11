@@ -9,11 +9,15 @@ internal static class DiagnosticContractTestAssertions
     internal static Diagnostic AssertSingleError(
         QueryAnalysisResult result,
         DiagnosticCode expectedCode,
-        string context)
+        string context
+    )
     {
         var diagnostics = result.Errors.ToList();
-        Assert.HasCount(1, diagnostics,
-            $"Expected one error {expectedCode} ({context}) but got: {Format(diagnostics)}");
+        Assert.HasCount(
+            1,
+            diagnostics,
+            $"Expected one error {expectedCode} ({context}) but got: {Format(diagnostics)}"
+        );
 
         var diagnostic = diagnostics[0];
         Assert.AreEqual(expectedCode, diagnostic.Code, Format(diagnostics));
@@ -25,16 +29,14 @@ internal static class DiagnosticContractTestAssertions
         return diagnostic;
     }
 
-    internal static void AssertErrorsHaveCode(
-        QueryAnalysisResult result,
-        DiagnosticCode expectedCode,
-        string context)
+    internal static void AssertErrorsHaveCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
         var diagnostics = result.Errors.ToList();
-        Assert.IsNotEmpty(diagnostics,
-            $"Expected {expectedCode} ({context}) but got no errors.");
-        Assert.IsTrue(diagnostics.All(item => item.Code == expectedCode),
-            $"Expected only {expectedCode} ({context}) but got: {Format(diagnostics)}");
+        Assert.IsNotEmpty(diagnostics, $"Expected {expectedCode} ({context}) but got no errors.");
+        Assert.IsTrue(
+            diagnostics.All(item => item.Code == expectedCode),
+            $"Expected only {expectedCode} ({context}) but got: {Format(diagnostics)}"
+        );
         Assert.IsTrue(diagnostics.All(item => item.Severity == DiagnosticSeverity.Error));
         Assert.IsTrue(diagnostics.All(item => item.Phase == ExpectedPhase(expectedCode)));
         Assert.IsTrue(diagnostics.All(item => item.SourceKind == ExpectedSourceKind(expectedCode)));
@@ -44,14 +46,17 @@ internal static class DiagnosticContractTestAssertions
 
     internal static void AssertNoErrors(QueryAnalysisResult result, string context)
     {
-        Assert.IsFalse(result.HasErrors,
-            $"Expected no errors ({context}) but got: {Format(result.Diagnostics)}");
+        Assert.IsFalse(result.HasErrors, $"Expected no errors ({context}) but got: {Format(result.Diagnostics)}");
     }
 
     private static string Format(System.Collections.Generic.IEnumerable<Diagnostic> diagnostics)
     {
-        return string.Join(" | ", diagnostics.Select(static item =>
-            $"{item.Code} {item.Severity}/{item.Phase} at {item.Span}: {item.Message}"));
+        return string.Join(
+            " | ",
+            diagnostics.Select(static item =>
+                $"{item.Code} {item.Severity}/{item.Phase} at {item.Span}: {item.Message}"
+            )
+        );
     }
 
     private static DiagnosticSourceKind ExpectedSourceKind(DiagnosticCode code)
@@ -65,23 +70,21 @@ internal static class DiagnosticContractTestAssertions
             >= 7010 and <= 7012 => DiagnosticSourceKind.DataSource,
             >= 8001 and <= 8002 => DiagnosticSourceKind.GeneratedSource,
             >= 9001 and <= 9002 => DiagnosticSourceKind.Internal,
-            _ => DiagnosticSourceKind.Query
+            _ => DiagnosticSourceKind.Query,
         };
     }
 
-    private static DiagnosticPhase ExpectedPhase(DiagnosticCode code) => (int)code switch
-    {
-        >= 1000 and < 3000 => DiagnosticPhase.Parse,
-        >= 3000 and < 4000 => DiagnosticPhase.Bind,
-        >= 4001 and <= 4016 => DiagnosticPhase.Schema,
-        8001 => DiagnosticPhase.CodeGeneration,
-        _ => throw new AssertFailedException($"No independent phase expectation is registered for {code}.")
-    };
+    private static DiagnosticPhase ExpectedPhase(DiagnosticCode code) =>
+        (int)code switch
+        {
+            >= 1000 and < 3000 => DiagnosticPhase.Parse,
+            >= 3000 and < 4000 => DiagnosticPhase.Bind,
+            >= 4001 and <= 4016 => DiagnosticPhase.Schema,
+            8001 => DiagnosticPhase.CodeGeneration,
+            _ => throw new AssertFailedException($"No independent phase expectation is registered for {code}."),
+        };
 
-    private static void AssertLocationConsistency(
-        Diagnostic diagnostic,
-        DiagnosticCode expectedCode,
-        string context)
+    private static void AssertLocationConsistency(Diagnostic diagnostic, DiagnosticCode expectedCode, string context)
     {
         if (!diagnostic.Location.IsValid && !diagnostic.EndLocation.IsValid)
             return;
@@ -92,6 +95,7 @@ internal static class DiagnosticContractTestAssertions
         Assert.AreEqual(
             diagnostic.Location.Offset + diagnostic.Span.Length,
             diagnostic.EndLocation.Offset,
-            $"{expectedCode} ({context}) has inconsistent source endpoints.");
+            $"{expectedCode} ({context}) has inconsistent source endpoints."
+        );
     }
 }

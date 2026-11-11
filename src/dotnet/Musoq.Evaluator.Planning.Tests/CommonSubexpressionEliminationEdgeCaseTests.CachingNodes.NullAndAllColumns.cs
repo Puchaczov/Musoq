@@ -12,13 +12,15 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenIsNullOnDifferentColumns_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Name,
-                Country,
-                CASE WHEN Name IS NULL THEN 'NameNull' ELSE 'NameNotNull' END,
-                CASE WHEN Country IS NULL THEN 'CountryNull' ELSE 'CountryNotNull' END
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Name,\n"
+            + "                Country,\n"
+            + "                CASE WHEN Name IS NULL THEN 'NameNull' ELSE 'NameNotNull' END,\n"
+            + "                CASE WHEN Country IS NULL THEN 'CountryNull' ELSE 'CountryNotNull' END\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -27,9 +29,9 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
                 [
                     new BasicEntity { Name = null, Country = "Poland" },
                     new BasicEntity { Name = "Test", Country = null },
-                    new BasicEntity { Name = "Both", Country = "USA" }
+                    new BasicEntity { Name = "Both", Country = "USA" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -37,20 +39,17 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
 
         Assert.AreEqual(3, table.Count);
 
-
         var row1 = table.FirstOrDefault(r => r.ReadValue(1)?.ToString() == "Poland");
         Assert.IsNotNull(row1);
         Assert.IsNull(row1.ReadValue(0));
         Assert.AreEqual("NameNull", row1.ReadValue(2));
         Assert.AreEqual("CountryNotNull", row1.ReadValue(3));
 
-
         var row2 = table.FirstOrDefault(r => r.ReadValue(0)?.ToString() == "Test");
         Assert.IsNotNull(row2);
         Assert.IsNull(row2.ReadValue(1));
         Assert.AreEqual("NameNotNull", row2.ReadValue(2));
         Assert.AreEqual("CountryNull", row2.ReadValue(3));
-
 
         var row3 = table.FirstOrDefault(r => r.ReadValue(0)?.ToString() == "Both");
         Assert.IsNotNull(row3);
@@ -61,22 +60,18 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenIsNullAndIsNotNullOnSameColumn_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Name,
-                CASE WHEN Name IS NULL THEN 'IsNull' ELSE 'NotNull1' END,
-                CASE WHEN Name IS NOT NULL THEN 'IsNotNull' ELSE 'Null2' END
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Name,\n"
+            + "                CASE WHEN Name IS NULL THEN 'IsNull' ELSE 'NotNull1' END,\n"
+            + "                CASE WHEN Name IS NOT NULL THEN 'IsNotNull' ELSE 'Null2' END\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity { Name = null },
-                    new BasicEntity { Name = "Test" }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = null }, new BasicEntity { Name = "Test" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -84,12 +79,10 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
 
         Assert.AreEqual(2, table.Count);
 
-
         var nullRow = table.FirstOrDefault(r => r.ReadValue(0) == null);
         Assert.IsNotNull(nullRow);
         Assert.AreEqual("IsNull", nullRow.ReadValue(1));
         Assert.AreEqual("Null2", nullRow.ReadValue(2));
-
 
         var notNullRow = table.FirstOrDefault(r => r.ReadValue(0)?.ToString() == "Test");
         Assert.IsNotNull(notNullRow);
@@ -100,23 +93,21 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenIsNullUsedMultipleTimesOnSameColumn_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Name,
-                CASE WHEN Name IS NULL THEN 'Null' ELSE Name END as DisplayName
-            FROM #A.Entities()
-            WHERE Name IS NULL OR Name = 'Test'";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Name,\n"
+            + "                CASE WHEN Name IS NULL THEN 'Null' ELSE Name END as DisplayName\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Name IS NULL OR Name = 'Test'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
-                [
-                    new BasicEntity { Name = null },
-                    new BasicEntity { Name = "Test" },
-                    new BasicEntity { Name = "Other" }
-                ]
-            }
+                [new BasicEntity { Name = null }, new BasicEntity { Name = "Test" }, new BasicEntity { Name = "Other" }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -140,38 +131,27 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenAllColumnsWithDifferentAliases_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT a.Country, a.Population, b.Country as Country2, b.Population as Population2
-            FROM #A.Entities() a
-            INNER JOIN #B.Entities() b ON a.Country = b.Country";
+        const string query = (
+            "\n"
+            + "            SELECT a.Country, a.Population, b.Country as Country2, b.Population as Population2\n"
+            + "            FROM #A.Entities() a\n"
+            + "            INNER JOIN #B.Entities() b ON a.Country = b.Country"
+        );
 
         var sourcesA = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("Poland", 100),
-                    new BasicEntity("USA", 200)
-                ]
-            }
+            { "#A", [new BasicEntity("Poland", 100), new BasicEntity("USA", 200)] },
         };
 
         var sourcesB = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#B",
-                [
-                    new BasicEntity("Poland", 38),
-                    new BasicEntity("USA", 331)
-                ]
-            }
+            { "#B", [new BasicEntity("Poland", 38), new BasicEntity("USA", 331)] },
         };
-
 
         var allSources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", sourcesA["#A"] },
-            { "#B", sourcesB["#B"] }
+            { "#B", sourcesB["#B"] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, allSources);
@@ -191,7 +171,6 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
         Assert.AreEqual("USA", usaRow.ReadValue(2));
         Assert.AreEqual(331m, usaRow.ReadValue(3));
     }
-
 
     #endregion
 }

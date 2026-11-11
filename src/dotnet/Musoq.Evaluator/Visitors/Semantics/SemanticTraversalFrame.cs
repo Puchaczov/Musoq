@@ -4,9 +4,7 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
-internal sealed class SemanticTraversalFrame(
-    Stack<Node> nodes,
-    Stack<string> methods)
+internal sealed class SemanticTraversalFrame(Stack<Node> nodes, Stack<string> methods)
 {
     public int NodeCount => nodes.Count;
 
@@ -37,7 +35,8 @@ internal sealed class SemanticTraversalFrame(
             visitorName,
             operation,
             typeof(TNode).Name,
-            node.GetType().Name);
+            node.GetType().Name
+        );
     }
 
     public Node[] PopNodes(string visitorName, int count, string operation)
@@ -74,7 +73,8 @@ internal sealed class SemanticTraversalFrame(
             visitorName,
             operation,
             typeof(TNode).Name,
-            node.GetType().Name);
+            node.GetType().Name
+        );
     }
 
     public void PushMethod(string methodName)

@@ -33,7 +33,8 @@ public sealed class GitProviderAndSchemaTests : GitExampleTestBase
             CancellationToken.None,
             [],
             new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
 
         Assert.Throws<SchemaArgumentException>(() => schema.GetTableByName("unknown", context));
     }

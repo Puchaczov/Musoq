@@ -10,7 +10,8 @@ public sealed record PhysicalHashJoinNode(
     IrExpression[] ProbeKeys,
     IrExpression? Residual,
     PhysicalNode Left,
-    PhysicalNode Right) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
+    PhysicalNode Right
+) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
 {
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Left, Right];
 }

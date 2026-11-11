@@ -6,8 +6,11 @@ namespace Musoq.Targets.CSharpClr;
 
 internal static class ExecutionExpressionCaptureNames
 {
-    internal static (string Value, string Pattern) Reserve(ExecutionRenderContext context,
-        ExpressionSyntax value, ExpressionSyntax pattern)
+    internal static (string Value, string Pattern) Reserve(
+        ExecutionRenderContext context,
+        ExpressionSyntax value,
+        ExpressionSyntax pattern
+    )
     {
         var session = context.Session;
         var names = session.ValueCaptureNames ??= CollectNames(context);

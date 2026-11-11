@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionProviderQueryTestsFixtures
 {
-
     public sealed class MembershipRow(int? value, int? first, int? second)
     {
         public int? Value { get; } = value;
@@ -30,5 +29,4 @@ public partial class LibraryExecutionProviderQueryTestsFixtures
             return value;
         }
     }
-
 }

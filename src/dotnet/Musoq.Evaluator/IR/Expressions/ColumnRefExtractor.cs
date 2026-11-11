@@ -119,15 +119,18 @@ public sealed partial class ColumnRefExtractor : IrExpressionVisitor<IReadOnlyLi
         Visit(node.Index);
         return _columns;
     }
+
     protected override IReadOnlyList<ColumnRef> VisitStructuralRecordLiteral(StructuralRecordLiteral node)
     {
-        foreach (var field in node.Fields) Visit(field.Value);
+        foreach (var field in node.Fields)
+            Visit(field.Value);
         return _columns;
     }
 
     protected override IReadOnlyList<ColumnRef> VisitStructuralArrayLiteral(StructuralArrayLiteral node)
     {
-        foreach (var element in node.Elements) Visit(element);
+        foreach (var element in node.Elements)
+            Visit(element);
         return _columns;
     }
 
@@ -135,4 +138,5 @@ public sealed partial class ColumnRefExtractor : IrExpressionVisitor<IReadOnlyLi
     {
         Visit(node.Value);
         return _columns;
-    }}
+    }
+}

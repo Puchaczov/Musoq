@@ -6,5 +6,5 @@ public enum ExecutionRankingWindowFunction
     Rank,
     DenseRank,
     PercentRank,
-    CumeDist
+    CumeDist,
 }

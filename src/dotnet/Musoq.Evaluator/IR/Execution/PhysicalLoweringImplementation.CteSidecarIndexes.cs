@@ -11,31 +11,37 @@ internal sealed partial class PhysicalLoweringImplementation
         TableBuildResult result,
         IReadOnlyList<CteSidecarIndexSpec> specs,
         LoweringScope scope,
-        out LoweringScope updatedScope)
+        out LoweringScope updatedScope
+    )
     {
         updatedScope = scope;
         if (specs.Count == 0)
             return result;
 
         var block = new ExecutionBlock(result.Nodes);
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionParallelBlock>(block).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionParallelFilterProjectLoop>(block).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionParallelSingleKeyAggregateLoop>(block).Any())
+        if (
+            ExecutionIrAnalysis.CollectNodes<ExecutionParallelBlock>(block).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionParallelFilterProjectLoop>(block).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionParallelSingleKeyAggregateLoop>(block).Any()
+        )
         {
             return UnsupportedSelectedCteSidecarIndexes(
                 specs,
-                "selected CTE sidecar indexes cannot be materialized from a parallel CTE producer.");
+                "selected CTE sidecar indexes cannot be materialized from a parallel CTE producer."
+            );
         }
 
         var nodes = result.Nodes.ToList();
         var createTableIndex = nodes.FindIndex(node =>
-            node is ExecutionCreateTable createTable &&
-            string.Equals(createTable.Table.Name, result.Table.Name, StringComparison.Ordinal));
+            node is ExecutionCreateTable createTable
+            && string.Equals(createTable.Table.Name, result.Table.Name, StringComparison.Ordinal)
+        );
         if (createTableIndex < 0 || nodes[createTableIndex] is not ExecutionCreateTable createTable)
         {
             return UnsupportedSelectedCteSidecarIndexes(
                 specs,
-                $"selected CTE sidecar indexes require a materialized CTE table '{result.Table.Name}'.");
+                $"selected CTE sidecar indexes require a materialized CTE table '{result.Table.Name}'."
+            );
         }
 
         var canUseHashPayloads = CanUseCteSidecarHashPayloads(block, result.Table.Name, result.RowShape);
@@ -47,10 +53,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 result.RowShape,
                 spec,
                 canUseHashPayloads,
-                buildState.Payloads);
-            buildState = new SidecarBuildState(
-                next.Payloads,
-                [..buildState.Builds, ..next.Builds]);
+                buildState.Payloads
+            );
+            buildState = new SidecarBuildState(next.Payloads, [.. buildState.Builds, .. next.Builds]);
         }
 
         updatedScope = scope.WithCteSidecarHashPayloads(buildState.Payloads);
@@ -59,12 +64,14 @@ internal sealed partial class PhysicalLoweringImplementation
             new ExecutionBlock(nodes),
             result.Table,
             result.RowShape,
-            builds);
+            builds
+        );
         if (transformed.AppendCount == 0)
         {
             return UnsupportedSelectedCteSidecarIndexes(
                 specs,
-                "selected CTE sidecar indexes require at least one producer append row to rewrite.");
+                "selected CTE sidecar indexes require at least one producer append row to rewrite."
+            );
         }
 
         nodes = transformed.Block.Nodes.ToList();
@@ -76,45 +83,56 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         var createIndexSpecs = builds
-            .Select(build => CreateCteSidecarCreateSpec(
-                build,
-                result.RowShape,
-                CreateCteSidecarCapacityCandidate(capacityHint, build.Index)))
+            .Select(build =>
+                CreateCteSidecarCreateSpec(
+                    build,
+                    result.RowShape,
+                    CreateCteSidecarCapacityCandidate(capacityHint, build.Index)
+                )
+            )
             .ToArray();
-        nodes.Insert(
-            createTableIndex + 1,
-            new ExecutionCteSidecarIndexBuildCandidate(createIndexSpecs));
-        nodes.AddRange(builds.Select(build => new ExecutionCteSidecarIndexStoreCandidate(
-            build.Index,
-            build.Spec.IndexSlot,
-            ToExecutionIndexKind(build.Spec.Kind),
-            build.Spec.KeyType,
-            build.Spec.Kind == CteSidecarIndexKind.Hash ? typeof(Row) : null,
-            build.Spec.Kind == CteSidecarIndexKind.Hash
-                ? build.PayloadShape?.TypeName ?? result.RowShape.TypeName
-                : null)));
+        nodes.Insert(createTableIndex + 1, new ExecutionCteSidecarIndexBuildCandidate(createIndexSpecs));
+        nodes.AddRange(
+            builds.Select(build => new ExecutionCteSidecarIndexStoreCandidate(
+                build.Index,
+                build.Spec.IndexSlot,
+                ToExecutionIndexKind(build.Spec.Kind),
+                build.Spec.KeyType,
+                build.Spec.Kind == CteSidecarIndexKind.Hash ? typeof(Row) : null,
+                build.Spec.Kind == CteSidecarIndexKind.Hash
+                    ? build.PayloadShape?.TypeName ?? result.RowShape.TypeName
+                    : null
+            ))
+        );
 
-        var payloadShapes = builds
-            .Select(static build => build.PayloadShape)
-            .OfType<HashPayloadShape>()
-            .ToArray();
+        var payloadShapes = builds.Select(static build => build.PayloadShape).OfType<HashPayloadShape>().ToArray();
 
-        return result with { Nodes = nodes, Shapes = [..result.Shapes, ..payloadShapes] };
+        return result with
+        {
+            Nodes = nodes,
+            Shapes = [.. result.Shapes, .. payloadShapes],
+        };
     }
 
     private static TableBuildResult UnsupportedSelectedCteSidecarIndexes(
         IReadOnlyList<CteSidecarIndexSpec> specs,
-        string reason)
+        string reason
+    )
     {
-        var slots = string.Join(", ", specs.Select(static spec => spec.IndexSlot.ToString(CultureInfo.InvariantCulture)));
+        var slots = string.Join(
+            ", ",
+            specs.Select(static spec => spec.IndexSlot.ToString(CultureInfo.InvariantCulture))
+        );
         return TableBuildResult.Unsupported(
-            $"Execution IR CTE sidecar lowering cannot silently drop planner-selected sidecar index slot(s) [{slots}]: {reason}");
+            $"Execution IR CTE sidecar lowering cannot silently drop planner-selected sidecar index slot(s) [{slots}]: {reason}"
+        );
     }
 
     private static ExecutionCteSidecarIndexCreateSpec CreateCteSidecarCreateSpec(
         CteSidecarIndexBuild build,
         GeneratedRowShape rowShape,
-        ExecutionCapacityHint? capacityHint)
+        ExecutionCapacityHint? capacityHint
+    )
     {
         return build.Spec.Kind switch
         {
@@ -124,13 +142,15 @@ internal sealed partial class PhysicalLoweringImplementation
                 build.Spec.KeyType,
                 capacityHint,
                 typeof(Row),
-                build.PayloadShape?.TypeName ?? rowShape.TypeName),
+                build.PayloadShape?.TypeName ?? rowShape.TypeName
+            ),
             CteSidecarIndexKind.KeySet => new ExecutionCteSidecarIndexCreateSpec(
                 build.Index,
                 ExecutionCteSidecarIndexKind.KeySet,
                 build.Spec.KeyType,
-                capacityHint),
-            _ => throw UnsupportedShape.Of($"CTE sidecar index kind {build.Spec.Kind}")
+                capacityHint
+            ),
+            _ => throw UnsupportedShape.Of($"CTE sidecar index kind {build.Spec.Kind}"),
         };
     }
 
@@ -138,7 +158,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionBlock block,
         ExecutionVariable targetTable,
         GeneratedRowShape rowShape,
-        IReadOnlyList<CteSidecarIndexBuild> builds)
+        IReadOnlyList<CteSidecarIndexBuild> builds
+    )
     {
         var nodes = new List<ExecutionNode>(block.Nodes.Count);
         var appendCount = 0;
@@ -146,13 +167,18 @@ internal sealed partial class PhysicalLoweringImplementation
 
         foreach (var node in block.Nodes)
         {
-            if (node is ExecutionAppendRow appendRow &&
-                string.Equals(appendRow.Table.Name, targetTable.Name, StringComparison.Ordinal) &&
-                string.Equals(appendRow.RowShape.TypeName, rowShape.TypeName, StringComparison.Ordinal))
+            if (
+                node is ExecutionAppendRow appendRow
+                && string.Equals(appendRow.Table.Name, targetTable.Name, StringComparison.Ordinal)
+                && string.Equals(appendRow.RowShape.TypeName, rowShape.TypeName, StringComparison.Ordinal)
+            )
             {
-                nodes.Add(new ExecutionCteSidecarAppendRewriteCandidate(
-                    appendRow,
-                    CreateCteSidecarAppendIndexes(appendRow, builds)));
+                nodes.Add(
+                    new ExecutionCteSidecarAppendRewriteCandidate(
+                        appendRow,
+                        CreateCteSidecarAppendIndexes(appendRow, builds)
+                    )
+                );
                 appendCount++;
                 continue;
             }
@@ -170,55 +196,86 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionNode node,
         ExecutionVariable targetTable,
         GeneratedRowShape rowShape,
-        IReadOnlyList<CteSidecarIndexBuild> builds)
+        IReadOnlyList<CteSidecarIndexBuild> builds
+    )
     {
         switch (node)
         {
             case ExecutionForEach forEach:
             {
                 var body = TransformCteSidecarAppendBlock(forEach.Body, targetTable, rowShape, builds);
-                var capacityHint = body.CapacityHint ??
-                                   (body.AppendCount > 0 ? CreateRowsCapacityCandidate(targetTable, forEach.Source) : null);
+                var capacityHint =
+                    body.CapacityHint
+                    ?? (body.AppendCount > 0 ? CreateRowsCapacityCandidate(targetTable, forEach.Source) : null);
                 return new CteSidecarAppendNodeTransformResult(
-                    forEach with { Body = body.Block },
+                    forEach with
+                    {
+                        Body = body.Block,
+                    },
                     body.AppendCount,
-                    capacityHint);
+                    capacityHint
+                );
             }
             case ExecutionForEachWithOrdinality forEach:
             {
                 var body = TransformCteSidecarAppendBlock(forEach.Body, targetTable, rowShape, builds);
-                var capacityHint = body.CapacityHint ??
-                                   (body.AppendCount > 0 ? CreateRowsCapacityCandidate(targetTable, forEach.Source) : null);
+                var capacityHint =
+                    body.CapacityHint
+                    ?? (body.AppendCount > 0 ? CreateRowsCapacityCandidate(targetTable, forEach.Source) : null);
                 return new CteSidecarAppendNodeTransformResult(
-                    forEach with { Body = body.Block },
+                    forEach with
+                    {
+                        Body = body.Block,
+                    },
                     body.AppendCount,
-                    capacityHint);
+                    capacityHint
+                );
             }
             case ExecutionForEachIndexed forEachIndexed:
             {
                 var body = TransformCteSidecarAppendBlock(forEachIndexed.Body, targetTable, rowShape, builds);
-                var capacityHint = body.CapacityHint ??
-                                   (body.AppendCount > 0 ? CreateRowsCapacityCandidate(targetTable, new ExecutionRowStream(forEachIndexed.Source, ExecutionRowStreamKind.Rows)) : null);
+                var capacityHint =
+                    body.CapacityHint
+                    ?? (
+                        body.AppendCount > 0
+                            ? CreateRowsCapacityCandidate(
+                                targetTable,
+                                new ExecutionRowStream(forEachIndexed.Source, ExecutionRowStreamKind.Rows)
+                            )
+                            : null
+                    );
                 return new CteSidecarAppendNodeTransformResult(
-                    forEachIndexed with { Body = body.Block },
+                    forEachIndexed with
+                    {
+                        Body = body.Block,
+                    },
                     body.AppendCount,
-                    capacityHint);
+                    capacityHint
+                );
             }
             case ExecutionIf branch:
             {
                 var body = TransformCteSidecarAppendBlock(branch.Body, targetTable, rowShape, builds);
                 return new CteSidecarAppendNodeTransformResult(
-                    branch with { Body = body.Block },
+                    branch with
+                    {
+                        Body = body.Block,
+                    },
                     body.AppendCount,
-                    body.CapacityHint);
+                    body.CapacityHint
+                );
             }
             case ExecutionScopedBlock scopedBlock:
             {
                 var body = TransformCteSidecarAppendBlock(scopedBlock.Body, targetTable, rowShape, builds);
                 return new CteSidecarAppendNodeTransformResult(
-                    scopedBlock with { Body = body.Block },
+                    scopedBlock with
+                    {
+                        Body = body.Block,
+                    },
                     body.AppendCount,
-                    body.CapacityHint);
+                    body.CapacityHint
+                );
             }
             case ExecutionHashProbe hashProbe:
             {
@@ -235,9 +292,14 @@ internal sealed partial class PhysicalLoweringImplementation
                 }
 
                 return new CteSidecarAppendNodeTransformResult(
-                    hashProbe with { Body = body.Block, NoMatchBody = noMatchBlock },
+                    hashProbe with
+                    {
+                        Body = body.Block,
+                        NoMatchBody = noMatchBlock,
+                    },
                     body.AppendCount + noMatchAppendCount,
-                    body.CapacityHint ?? noMatchCapacityHint);
+                    body.CapacityHint ?? noMatchCapacityHint
+                );
             }
             case ExecutionKeySetProbe keySetProbe:
             {
@@ -247,16 +309,26 @@ internal sealed partial class PhysicalLoweringImplementation
                 ExecutionCapacityHint? noMatchCapacityHint = null;
                 if (keySetProbe.NoMatchBody != null)
                 {
-                    var noMatch = TransformCteSidecarAppendBlock(keySetProbe.NoMatchBody, targetTable, rowShape, builds);
+                    var noMatch = TransformCteSidecarAppendBlock(
+                        keySetProbe.NoMatchBody,
+                        targetTable,
+                        rowShape,
+                        builds
+                    );
                     noMatchBlock = noMatch.Block;
                     noMatchAppendCount = noMatch.AppendCount;
                     noMatchCapacityHint = noMatch.CapacityHint;
                 }
 
                 return new CteSidecarAppendNodeTransformResult(
-                    keySetProbe with { Body = body.Block, NoMatchBody = noMatchBlock },
+                    keySetProbe with
+                    {
+                        Body = body.Block,
+                        NoMatchBody = noMatchBlock,
+                    },
                     body.AppendCount + noMatchAppendCount,
-                    body.CapacityHint ?? noMatchCapacityHint);
+                    body.CapacityHint ?? noMatchCapacityHint
+                );
             }
             case ExecutionAsOfProbe asOfProbe:
             {
@@ -273,9 +345,14 @@ internal sealed partial class PhysicalLoweringImplementation
                 }
 
                 return new CteSidecarAppendNodeTransformResult(
-                    asOfProbe with { Body = body.Block, NoMatchBody = noMatchBlock },
+                    asOfProbe with
+                    {
+                        Body = body.Block,
+                        NoMatchBody = noMatchBlock,
+                    },
                     body.AppendCount + noMatchAppendCount,
-                    body.CapacityHint ?? noMatchCapacityHint);
+                    body.CapacityHint ?? noMatchCapacityHint
+                );
             }
             case ExecutionRangeProbe rangeProbe:
             {
@@ -292,13 +369,17 @@ internal sealed partial class PhysicalLoweringImplementation
                 }
 
                 return new CteSidecarAppendNodeTransformResult(
-                    rangeProbe with { Body = body.Block, NoMatchBody = noMatchBlock },
+                    rangeProbe with
+                    {
+                        Body = body.Block,
+                        NoMatchBody = noMatchBlock,
+                    },
                     body.AppendCount + noMatchAppendCount,
-                    body.CapacityHint ?? noMatchCapacityHint);
+                    body.CapacityHint ?? noMatchCapacityHint
+                );
             }
             default:
                 return new CteSidecarAppendNodeTransformResult(node, 0, null);
         }
     }
-
 }

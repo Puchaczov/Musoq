@@ -13,5 +13,5 @@ public enum SourceStringMatchKind
     Suffix,
 
     /// <summary>Requires the input to contain the needle.</summary>
-    Contains
+    Contains,
 }

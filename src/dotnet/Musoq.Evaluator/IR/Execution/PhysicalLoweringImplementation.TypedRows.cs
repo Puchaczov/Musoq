@@ -7,7 +7,8 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static ExecutionVariable CreateMaterializedRowsBufferVariable(
         string name,
-        GeneratedRowShape? generatedRowShape)
+        GeneratedRowShape? generatedRowShape
+    )
     {
         return string.IsNullOrWhiteSpace(generatedRowShape?.TypeName)
             ? new ExecutionVariable(name, typeof(object))

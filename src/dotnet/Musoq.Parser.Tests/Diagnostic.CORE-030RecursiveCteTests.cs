@@ -12,10 +12,10 @@ public sealed class DiagnosticCore030RecursiveCteTests
     public void WithRecursive_ShouldExposeOneAnchorAndOneRecursiveMemberAtTopLevel()
     {
         const string query =
-            "with recursive counter (Value) as (" +
-            "select Value from values {( Value: 1 )} seed " +
-            "union all select c.Value + 1 from counter c where c.Value < 3) " +
-            "select Value from counter";
+            "with recursive counter (Value) as ("
+            + "select Value from values {( Value: 1 )} seed "
+            + "union all select c.Value + 1 from counter c where c.Value < 3) "
+            + "select Value from counter";
 
         var cte = ParseCte(query);
         var definition = cte.InnerExpression[0];
@@ -31,15 +31,15 @@ public sealed class DiagnosticCore030RecursiveCteTests
         Assert.IsFalse(boundary.Left == boundary.Right);
         Assert.AreEqual(
             new TextSpan(query.IndexOf("Value", StringComparison.Ordinal), "Value".Length),
-            definition.Columns[0].Span);
+            definition.Columns[0].Span
+        );
     }
 
     [TestMethod]
     public void RecursiveTokenBeforeAs_ShouldRemainAnOrdinaryCteName()
     {
         const string query =
-            "with recursive as (select Value from values {( Value: 1 )} seed) " +
-            "select Value from recursive";
+            "with recursive as (select Value from values {( Value: 1 )} seed) " + "select Value from recursive";
 
         var cte = ParseCte(query);
 

@@ -11,23 +11,25 @@ public partial class BinaryOrTextualCoreBinaryTests
     [TestMethod]
     public void Query_InterpretComposedBinaryAndText_WhenCompiledRepeatedly_ShouldReturnIsolatedEquivalentResults()
     {
-        const string query = @"
-            text KeyValue {
-                Key: until ':',
-                Value: rest trim
-            };
-            binary ConfigPacket {
-                Version: byte,
-                Config: string[20] utf8 as KeyValue,
-                Checksum: byte
-            };
-            select
-                p.Version,
-                p.Config.Key,
-                p.Config.Value,
-                p.Checksum
-            from #test.files() f
-            cross apply Interpret<ConfigPacket>(f.Content) p";
+        const string query = (
+            "\n"
+            + "            text KeyValue {\n"
+            + "                Key: until ':',\n"
+            + "                Value: rest trim\n"
+            + "            };\n"
+            + "            binary ConfigPacket {\n"
+            + "                Version: byte,\n"
+            + "                Config: string[20] utf8 as KeyValue,\n"
+            + "                Checksum: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                p.Version,\n"
+            + "                p.Config.Key,\n"
+            + "                p.Config.Value,\n"
+            + "                p.Checksum\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<ConfigPacket>(f.Content) p"
+        );
 
         var data = new byte[22];
         data[0] = 1;
@@ -36,8 +38,9 @@ public partial class BinaryOrTextualCoreBinaryTests
         var provider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
             {
-                ["#test"] = [new BinaryEntity { Name = "config.bin", Content = data }]
-            });
+                ["#test"] = [new BinaryEntity { Name = "config.bin", Content = data }],
+            }
+        );
 
         for (var compilation = 0; compilation < 3; compilation++)
         {
@@ -46,7 +49,8 @@ public partial class BinaryOrTextualCoreBinaryTests
                 Guid.NewGuid().ToString(),
                 provider,
                 LoggerResolver,
-                TestCompilationOptions);
+                TestCompilationOptions
+            );
 
             var table = compiled.Run(CancellationToken.None);
             TableMaterializationTestHelper.AssertColumns(
@@ -54,10 +58,9 @@ public partial class BinaryOrTextualCoreBinaryTests
                 ("Version", typeof(byte)),
                 ("p.Config.Key", typeof(string)),
                 ("p.Config.Value", typeof(string)),
-                ("Checksum", typeof(byte)));
-            TableMaterializationTestHelper.AssertRowsInOrder(
-                table,
-                [(byte)1, "host", "localhost", (byte)0xFF]);
+                ("Checksum", typeof(byte))
+            );
+            TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, "host", "localhost", (byte)0xFF]);
         }
     }
 }

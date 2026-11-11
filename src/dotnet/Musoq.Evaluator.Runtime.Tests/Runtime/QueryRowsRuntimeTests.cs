@@ -6,9 +6,9 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
-using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
@@ -22,7 +22,8 @@ public sealed class QueryRowsRuntimeTests
         var rows = new QueryEnumerable<int>(
             _ => [1, 2, 3],
             CancellationToken.None,
-            onCompleted: () => completedCount++);
+            onCompleted: () => completedCount++
+        );
 
         CollectionAssert.AreEqual(new[] { 1, 2, 3 }, rows.ToArray());
 
@@ -44,10 +45,7 @@ public sealed class QueryRowsRuntimeTests
     {
         var disposed = false;
         var tokenCancelledInSourceFinally = false;
-        var rows = new QueryEnumerable<int>(
-            Rows,
-            CancellationToken.None,
-            onDisposed: () => disposed = true);
+        var rows = new QueryEnumerable<int>(Rows, CancellationToken.None, onDisposed: () => disposed = true);
 
         using (var enumerator = rows.GetEnumerator())
         {
@@ -81,7 +79,8 @@ public sealed class QueryRowsRuntimeTests
         var rows = new QueryEnumerable<int>(
             _ => ThrowingRows(expected),
             CancellationToken.None,
-            onException: ex => captured = ex);
+            onException: ex => captured = ex
+        );
 
         var actual = Assert.Throws<QueryExecutionException>(() => rows.ToArray());
 
@@ -98,7 +97,8 @@ public sealed class QueryRowsRuntimeTests
         var rows = new QueryEnumerable<int>(
             _ => new ThrowingGetEnumeratorEnumerable<int>(expected),
             CancellationToken.None,
-            onException: ex => captured = ex);
+            onException: ex => captured = ex
+        );
 
         var actual = Assert.Throws<QueryExecutionException>(() => rows.ToArray());
 
@@ -110,11 +110,10 @@ public sealed class QueryRowsRuntimeTests
     [TestMethod]
     public void QueryShardedEnumerable_ShouldExposeCountAndDeterministicOrder()
     {
-        var rows = QueryRows.FromShards(
-        [
+        var rows = QueryRows.FromShards([
             new ValueShard<int>([1, 2, 99], 2),
             ValueShard<int>.Empty,
-            new ValueShard<int>([3, 4], 2)
+            new ValueShard<int>([3, 4], 2),
         ]);
 
         Assert.AreEqual(4, rows.Count);
@@ -125,11 +124,10 @@ public sealed class QueryRowsRuntimeTests
     [TestMethod]
     public void QueryRowShardedEnumerable_ShouldExposeCountAndAppendByDeferredBatch()
     {
-        var rows = QueryRows.FromRowShards(
-        [
+        var rows = QueryRows.FromRowShards([
             new RowShard<TestRow>([new TestRow("a"), new TestRow("b"), new TestRow("unused")], 2),
             RowShard<TestRow>.Empty,
-            new RowShard<TestRow>([new TestRow("c")], 1)
+            new RowShard<TestRow>([new TestRow("c")], 1),
         ]);
         var table = new Table("result", [new Column("Value", typeof(string), 0)]);
 
@@ -137,7 +135,10 @@ public sealed class QueryRowsRuntimeTests
 
         Assert.AreEqual(3, rows.Count);
         Assert.AreEqual(3, rows.ShardCount);
-        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, rows.Select(static row => (string)row.ReadValue(0)).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "a", "b", "c" },
+            rows.Select(static row => (string)row.ReadValue(0)).ToArray()
+        );
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("a", table[0].ReadValue(0));
         Assert.AreEqual("b", table[1].ReadValue(0));
@@ -147,19 +148,16 @@ public sealed class QueryRowsRuntimeTests
     [TestMethod]
     public void TypedPostOperationRows_ShouldApplyDistinctOrderingAndProjection()
     {
-        var rows = new[]
-        {
-            new TestRow("b"),
-            new TestRow("a"),
-            new TestRow("b"),
-            new TestRow(null!)
-        };
+        var rows = new[] { new TestRow("b"), new TestRow("a"), new TestRow("b"), new TestRow(null!) };
 
-        var result = TypedPostOperationRows.Project(
+        var result = TypedPostOperationRows
+            .Project(
                 TypedPostOperationRows.Order(
                     TypedPostOperationRows.Distinct(rows),
-                    [new TypedRowOrderKey<TestRow>(static row => row.ReadValue(0), false, 2)]),
-                static row => (string?)row.ReadValue(0))
+                    [new TypedRowOrderKey<TestRow>(static row => row.ReadValue(0), false, 2)]
+                ),
+                static row => (string?)row.ReadValue(0)
+            )
             .ToArray();
 
         CollectionAssert.AreEqual(new string?[] { "a", "b", null }, result);
@@ -168,12 +166,7 @@ public sealed class QueryRowsRuntimeTests
     [TestMethod]
     public void RowOrdering_WhenNullOrderingIsExplicit_ShouldMatchTypedOrdering()
     {
-        var rows = new[]
-        {
-            new TestRow("b", "b"),
-            new TestRow(null!, "null"),
-            new TestRow("a", "a")
-        };
+        var rows = new[] { new TestRow("b", "b"), new TestRow(null!, "null"), new TestRow("a", "a") };
 
         AssertEquivalentOrdering(rows, 0, false, 2, ["a", "b", "null"]);
     }
@@ -181,12 +174,7 @@ public sealed class QueryRowsRuntimeTests
     [TestMethod]
     public void RowOrdering_WhenStringsUseOrdinalComparison_ShouldMatchTypedOrdering()
     {
-        var rows = new[]
-        {
-            new TestRow("b", "b"),
-            new TestRow("B", "B"),
-            new TestRow("a", "a")
-        };
+        var rows = new[] { new TestRow("b", "b"), new TestRow("B", "B"), new TestRow("a", "a") };
 
         AssertEquivalentOrdering(rows, 0, false, 0, ["B", "a", "b"]);
     }
@@ -194,12 +182,7 @@ public sealed class QueryRowsRuntimeTests
     [TestMethod]
     public void RowOrdering_WhenDescending_ShouldMatchTypedOrdering()
     {
-        var rows = new[]
-        {
-            new TestRow(1, "one"),
-            new TestRow(3, "three"),
-            new TestRow(2, "two")
-        };
+        var rows = new[] { new TestRow(1, "one"), new TestRow(3, "three"), new TestRow(2, "two") };
 
         AssertEquivalentOrdering(rows, 0, true, 0, ["three", "two", "one"]);
     }
@@ -212,7 +195,7 @@ public sealed class QueryRowsRuntimeTests
             new TestRow(1, "first"),
             new TestRow(1, "second"),
             new TestRow(0, "zero"),
-            new TestRow(1, "third")
+            new TestRow(1, "third"),
         };
 
         AssertEquivalentOrdering(rows, 0, false, 0, ["zero", "first", "second", "third"]);
@@ -226,7 +209,7 @@ public sealed class QueryRowsRuntimeTests
             new TestRow(4, "four"),
             new TestRow(1, "one"),
             new TestRow(3, "three"),
-            new TestRow(2, "two")
+            new TestRow(2, "two"),
         };
 
         var tableRows = OrderTableRows(rows, 0, false, 0).Select(static row => row.ReadValue(1)).ToArray();
@@ -243,22 +226,17 @@ public sealed class QueryRowsRuntimeTests
     [TestMethod]
     public void RowOrdering_WhenDistinctAndOrderAreCombined_ShouldMatchTypedOrdering()
     {
-        var rows = new[]
-        {
-            new TestRow("b"),
-            new TestRow("a"),
-            new TestRow("b"),
-            new TestRow(null!)
-        };
+        var rows = new[] { new TestRow("b"), new TestRow("a"), new TestRow("b"), new TestRow(null!) };
 
-        var tableRows = EvaluationHelper.OrderRows(
-                rows.Distinct(),
-                [new RowOrderKey(static row => row.ReadValue(0), false, 2)])
+        var tableRows = EvaluationHelper
+            .OrderRows(rows.Distinct(), [new RowOrderKey(static row => row.ReadValue(0), false, 2)])
             .Select(static row => row.ReadValue(0))
             .ToArray();
-        var typedRows = TypedPostOperationRows.Order(
+        var typedRows = TypedPostOperationRows
+            .Order(
                 TypedPostOperationRows.Distinct(rows),
-                [new TypedRowOrderKey<TestRow>(static row => row.ReadValue(0), false, 2)])
+                [new TypedRowOrderKey<TestRow>(static row => row.ReadValue(0), false, 2)]
+            )
             .Select(static row => row.ReadValue(0))
             .ToArray();
 
@@ -269,15 +247,9 @@ public sealed class QueryRowsRuntimeTests
     [TestMethod]
     public void MaterializeTable_WhenRowsAreBatchSource_ShouldUseBatchFastPath()
     {
-        var batchRows = new TestBatchRows(
-        [
-            new RowShard<TestRow>([new TestRow("a"), new TestRow("b")], 2)
-        ]);
+        var batchRows = new TestBatchRows([new RowShard<TestRow>([new TestRow("a"), new TestRow("b")], 2)]);
 
-        var table = QueryRows.MaterializeTable(
-            "result",
-            [new Column("Value", typeof(string), 0)],
-            batchRows);
+        var table = QueryRows.MaterializeTable("result", [new Column("Value", typeof(string), 0)], batchRows);
 
         Assert.IsTrue(batchRows.AddToCalled);
         Assert.AreEqual(2, table.Count);
@@ -304,14 +276,12 @@ public sealed class QueryRowsRuntimeTests
     public void QueryTableEnumerable_AddTo_WhenInnerRowsAreBatchSource_ShouldPreserveBatchFastPath()
     {
         var completed = false;
-        var batchRows = new TestBatchRows(
-        [
-            new RowShard<TestRow>([new TestRow("a"), new TestRow("b")], 2)
-        ]);
+        var batchRows = new TestBatchRows([new RowShard<TestRow>([new TestRow("a"), new TestRow("b")], 2)]);
         var rows = new QueryTableEnumerable<TestRow>(
             _ => batchRows,
             CancellationToken.None,
-            onCompleted: () => completed = true);
+            onCompleted: () => completed = true
+        );
         var table = new Table("result", [new Column("Value", typeof(string), 0)]);
 
         rows.AddTo(table);
@@ -330,7 +300,8 @@ public sealed class QueryRowsRuntimeTests
         var rows = new QueryTableEnumerable<TestRow>(
             _ => new ThrowingGetEnumeratorEnumerable<TestRow>(expected),
             CancellationToken.None,
-            onException: ex => captured = ex);
+            onException: ex => captured = ex
+        );
 
         var actual = Assert.Throws<QueryExecutionException>(() => rows.ToArray());
 
@@ -348,7 +319,8 @@ public sealed class QueryRowsRuntimeTests
             "result",
             [new Column("Value", typeof(string), 0)],
             Rows,
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
         Assert.AreEqual(0, factoryCalls);
         Assert.AreEqual(0, enumeratedRows);
@@ -383,7 +355,8 @@ public sealed class QueryRowsRuntimeTests
             "result",
             [new Column("Value", typeof(string), 0)],
             Rows,
-            cancellation.Token);
+            cancellation.Token
+        );
 
         Assert.Throws<OperationCanceledException>(() => _ = table.Count);
         return;
@@ -444,7 +417,8 @@ public sealed class QueryRowsRuntimeTests
         int keyIndex,
         bool descending,
         int nullOrdering,
-        object[] expectedIds)
+        object[] expectedIds
+    )
     {
         var tableRows = OrderTableRows(rows, keyIndex, descending, nullOrdering)
             .Select(static row => row.ReadValue(1))
@@ -461,22 +435,26 @@ public sealed class QueryRowsRuntimeTests
         IEnumerable<TestRow> rows,
         int keyIndex,
         bool descending,
-        int nullOrdering)
+        int nullOrdering
+    )
     {
         return TypedPostOperationRows.Order(
             rows,
-            [new TypedRowOrderKey<TestRow>(row => row.ReadValue(keyIndex), descending, nullOrdering)]);
+            [new TypedRowOrderKey<TestRow>(row => row.ReadValue(keyIndex), descending, nullOrdering)]
+        );
     }
 
     private static IOrderedEnumerable<Row> OrderTableRows(
         IEnumerable<TestRow> rows,
         int keyIndex,
         bool descending,
-        int nullOrdering)
+        int nullOrdering
+    )
     {
         return EvaluationHelper.OrderRows(
             rows,
-            [new RowOrderKey(row => row.ReadValue(keyIndex), descending, nullOrdering)]);
+            [new RowOrderKey(row => row.ReadValue(keyIndex), descending, nullOrdering)]
+        );
     }
 
     private sealed class TestRow : Row
@@ -489,6 +467,7 @@ public sealed class QueryRowsRuntimeTests
         }
 
         public override int Count => _values.Length;
+
         public override void VisitColumns<TVisitor>(ref TVisitor visitor)
         {
             for (var index = 0; index < _values.Length; index++)
@@ -497,7 +476,5 @@ public sealed class QueryRowsRuntimeTests
 
         public override void VisitColumn<TVisitor>(int columnIndex, ref TVisitor visitor) =>
             FixtureColumnVisit.Apply(columnIndex, _values[columnIndex], ref visitor);
-
-
     }
 }

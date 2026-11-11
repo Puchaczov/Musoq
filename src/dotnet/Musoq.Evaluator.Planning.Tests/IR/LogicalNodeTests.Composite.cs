@@ -13,9 +13,7 @@ public partial class LogicalNodeTests
         var defPlan = CreateScan("d", ("X", typeof(int)));
         var queryPlan = CreateScan("q", ("Y", typeof(string)));
 
-        var cte = new CteNode(
-            [new CteDefinition("myCte", defPlan)],
-            queryPlan);
+        var cte = new CteNode([new CteDefinition("myCte", defPlan)], queryPlan);
 
         Assert.AreEqual(queryPlan.OutputSchema, cte.OutputSchema);
     }
@@ -27,9 +25,7 @@ public partial class LogicalNodeTests
         var def2 = CreateScan("d2", ("B", typeof(int)));
         var query = CreateScan("q", ("C", typeof(int)));
 
-        var cte = new CteNode(
-            [new CteDefinition("cte1", def1), new CteDefinition("cte2", def2)],
-            query);
+        var cte = new CteNode([new CteDefinition("cte1", def1), new CteDefinition("cte2", def2)], query);
 
         Assert.HasCount(3, cte.Children);
         Assert.AreEqual(def1, cte.Children[0]);

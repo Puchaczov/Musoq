@@ -9,7 +9,8 @@ public partial class RowAndKeyEqualityTests
     [TestMethod]
     public void TypedTableQuery_WhenAJoinKeyIsAbsent_ShouldReturnNoRows()
     {
-        const string query = "select a.One as One from #schema.first() a inner join #schema.first() b on a.Position = b.Position where b.Position = 999";
+        const string query =
+            "select a.One as One from #schema.first() a inner join #schema.first() b on a.Position = b.Position where b.Position = 999";
         using var compiled = CreateAndRunVirtualMachine<ContextInput, ContextLibrary>(query, ContextRows());
         using var table = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(table, ("One", typeof(int)));
@@ -21,7 +22,8 @@ public partial class RowAndKeyEqualityTests
     [TestMethod]
     public void TypedTableQuery_WhenTheKeyMatchesButTheValueDoesNot_ShouldReturnNoRows()
     {
-        const string query = "select a.One as One from #schema.first() a inner join #schema.first() b on a.Position = b.Position where a.One = 100";
+        const string query =
+            "select a.One as One from #schema.first() a inner join #schema.first() b on a.Position = b.Position where a.One = 100";
         using var compiled = CreateAndRunVirtualMachine<ContextInput, ContextLibrary>(query, ContextRows());
         using var table = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(table, ("One", typeof(int)));

@@ -19,7 +19,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class CompilationPipelineErrorTests
 {
-
     [TestMethod]
     public void Stage2_MissingFromClause()
     {
@@ -73,7 +72,11 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - the parser identifies the missing grouping delimiter.
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2010_MissingClosingParenthesis, "unbalanced parentheses - missing close");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2010_MissingClosingParenthesis,
+            "unbalanced parentheses - missing close"
+        );
     }
 
     [TestMethod]
@@ -107,23 +110,22 @@ public partial class CompilationPipelineErrorTests
     [TestMethod]
     public void Stage2_InvalidExpression_ConsecutiveLiterals()
     {
-
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT 5 5 FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ2018_MissingOperator, nameof(Stage2_InvalidExpression_ConsecutiveLiterals));
+            result,
+            DiagnosticCode.MQ2018_MissingOperator,
+            nameof(Stage2_InvalidExpression_ConsecutiveLiterals)
+        );
         Assert.AreEqual(new Musoq.Parser.TextSpan(9, 0), diagnostic.Span);
     }
 
     [TestMethod]
     public void Stage2_InvalidExpression_ConsecutiveIdentifiers()
     {
-
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name City FROM #A.Entities()";
 
@@ -158,8 +160,11 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns one typed missing-operand diagnostic.
-        AssertHasExactlyOneErrorCode(result, "trailing = operator without operand",
-            DiagnosticCode.MQ2020_MissingOperand);
+        AssertHasExactlyOneErrorCode(
+            result,
+            "trailing = operator without operand",
+            DiagnosticCode.MQ2020_MissingOperand
+        );
     }
 
     [TestMethod]
@@ -173,8 +178,11 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns one typed missing-operand diagnostic.
-        AssertHasExactlyOneErrorCode(result, "trailing AND without right operand",
-            DiagnosticCode.MQ2020_MissingOperand);
+        AssertHasExactlyOneErrorCode(
+            result,
+            "trailing AND without right operand",
+            DiagnosticCode.MQ2020_MissingOperand
+        );
     }
 
     [TestMethod]
@@ -202,7 +210,11 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - Parser returns MQ2030_UnsupportedSyntax: "Unrecognized token for ComposeOrder(), the token was Identifier"
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "ASCENDING not recognized (should be ASC)");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2009_InvalidOrderByExpression,
+            "ASCENDING not recognized (should be ASC)"
+        );
     }
 
     [TestMethod]
@@ -232,5 +244,4 @@ public partial class CompilationPipelineErrorTests
         // Assert - Parser returns MQ2001: "Parse error: The SQL query input cannot be empty..."
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ2016_IncompleteStatement, "whitespace-only query");
     }
-
 }

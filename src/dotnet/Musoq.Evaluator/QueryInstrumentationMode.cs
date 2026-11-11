@@ -4,5 +4,5 @@ public enum QueryInstrumentationMode
 {
     Disabled,
     SourceBoundaries,
-    Full
+    Full,
 }

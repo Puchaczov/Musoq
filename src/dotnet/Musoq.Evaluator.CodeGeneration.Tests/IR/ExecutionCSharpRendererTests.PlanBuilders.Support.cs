@@ -23,15 +23,18 @@ public sealed partial class ExecutionCSharpRendererTests
                     0,
                     typeof(string),
                     FieldNullability.Unknown,
-                    new GeneratedFieldAccess(fieldName))
-            ]);
+                    new GeneratedFieldAccess(fieldName)
+                ),
+            ]
+        );
     }
 
     private static string RenderClassMembersCode(ExecutionCSharpRenderer renderer, ExecutionPlan plan)
     {
         return string.Join(
             Environment.NewLine,
-            renderer.RenderClassMembers(plan).Select(member => member.NormalizeWhitespace().ToFullString()));
+            renderer.RenderClassMembers(plan).Select(member => member.NormalizeWhitespace().ToFullString())
+        );
     }
 
     private static void AssertNoParameterAccessInHelpers(string helperCode)
@@ -97,9 +100,7 @@ public sealed partial class ExecutionCSharpRendererTests
             if (!value.HasValue)
                 return;
 
-            state.Value = state.HasValue
-                ? checked(state.Value + value.Value)
-                : value.Value;
+            state.Value = state.HasValue ? checked(state.Value + value.Value) : value.Value;
             state.HasValue = true;
         }
 
@@ -113,9 +114,7 @@ public sealed partial class ExecutionCSharpRendererTests
             if (!source.HasValue)
                 return;
 
-            target.Value = target.HasValue
-                ? checked(target.Value + source.Value)
-                : source.Value;
+            target.Value = target.HasValue ? checked(target.Value + source.Value) : source.Value;
             target.HasValue = true;
         }
     }

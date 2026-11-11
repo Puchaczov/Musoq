@@ -11,13 +11,15 @@ internal sealed record PreparedExecutableTemplate
         ExecutableQueryArtifact executableArtifact,
         ExecutionTargetId targetId,
         string runnableTypeName,
-        string? semanticContractFingerprint)
+        string? semanticContractFingerprint
+    )
     {
         ExecutableArtifact = executableArtifact ?? throw new ArgumentNullException(nameof(executableArtifact));
         if (targetId != executableArtifact.TargetId)
         {
             throw new InvalidOperationException(
-                $"Prepared executable target '{targetId}' does not match artifact target '{executableArtifact.TargetId}'.");
+                $"Prepared executable target '{targetId}' does not match artifact target '{executableArtifact.TargetId}'."
+            );
         }
 
         if (string.IsNullOrWhiteSpace(runnableTypeName))

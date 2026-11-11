@@ -53,22 +53,25 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         AddAssembly(targetColumn.ColumnType.Assembly);
 
-
-        if (node.PropertiesChain.Length > 1
+        if (
+            node.PropertiesChain.Length > 1
             && targetColumn.ColumnType == typeof(object)
             && !string.IsNullOrEmpty(targetColumn.IntendedTypeName)
-            && SchemaRegistry != null)
+            && SchemaRegistry != null
+        )
         {
             var resolved = ResolveSchemaPropertyChain(
                 targetColumn.IntendedTypeName,
-                node.PropertiesChain.Skip(1).ToArray());
+                node.PropertiesChain.Skip(1).ToArray()
+            );
 
             if (resolved != null)
             {
                 var resolvedNestedTable = TurnTypeIntoTableWithIntendedTypeName(
                     resolved.Value.ClrType,
                     resolved.Value.IntendedTypeName,
-                    node);
+                    node
+                );
                 if (resolvedNestedTable == null)
                 {
                     PushErrorRecoveryState(node, schema);
@@ -81,23 +84,26 @@ public partial class BuildMetadataAndInferTypesVisitor
                 RegisterBinaryArrayElementAlias(resolved.Value.IntendedTypeName);
                 var resolvedChain = new PropertyFromNode.PropertyNameAndTypePair[node.PropertiesChain.Length];
                 resolvedChain[0] = new PropertyFromNode.PropertyNameAndTypePair(
-                    targetColumn.ColumnName, targetColumn.ColumnType, targetColumn.IntendedTypeName);
+                    targetColumn.ColumnName,
+                    targetColumn.ColumnType,
+                    targetColumn.IntendedTypeName
+                );
                 var currentIntendedName = targetColumn.IntendedTypeName;
                 for (var i = 1; i < node.PropertiesChain.Length; i++)
                 {
-                    var member = ResolveSchemaFieldFromIntendedTypeName(currentIntendedName!, node.PropertiesChain[i].PropertyName)!.Value;
+                    var member = ResolveSchemaFieldFromIntendedTypeName(
+                        currentIntendedName!,
+                        node.PropertiesChain[i].PropertyName
+                    )!.Value;
                     resolvedChain[i] = new PropertyFromNode.PropertyNameAndTypePair(
-                        node.PropertiesChain[i].PropertyName, member.ClrType, member.IntendedTypeName);
+                        node.PropertiesChain[i].PropertyName,
+                        member.ClrType,
+                        member.IntendedTypeName
+                    );
                     currentIntendedName = member.IntendedTypeName;
                 }
 
-                PushSemanticNode(
-                    new Parser.PropertyFromNode(
-                        node.Alias,
-                        node.SourceAlias,
-                        resolvedChain
-                    )
-                );
+                PushSemanticNode(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, resolvedChain));
                 return;
             }
         }
@@ -109,10 +115,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return;
         }
 
-        var nestedTable = TurnTypeIntoTableWithIntendedTypeName(
-            followedType,
-            targetColumn.IntendedTypeName,
-            node);
+        var nestedTable = TurnTypeIntoTableWithIntendedTypeName(followedType, targetColumn.IntendedTypeName, node);
         if (nestedTable == null)
         {
             PushErrorRecoveryState(node, schema);
@@ -124,21 +127,18 @@ public partial class BuildMetadataAndInferTypesVisitor
         UpdateQueryAliasAndSymbolTable(node, schema, table);
         RegisterBinaryArrayElementAlias(targetColumn.IntendedTypeName);
 
-        var rewrittenChain =
-            RewritePropertiesChainWithTargetColumnWithDiagnostics(targetColumn, node.PropertiesChain, node);
+        var rewrittenChain = RewritePropertiesChainWithTargetColumnWithDiagnostics(
+            targetColumn,
+            node.PropertiesChain,
+            node
+        );
         if (rewrittenChain == null)
         {
             PushErrorRecoveryState(node, schema);
             return;
         }
 
-        PushSemanticNode(
-            new Parser.PropertyFromNode(
-                node.Alias,
-                node.SourceAlias,
-                rewrittenChain
-            )
-        );
+        PushSemanticNode(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, rewrittenChain));
     }
 
     private void RegisterBinaryArrayElementAlias(string? intendedTypeName)
@@ -146,8 +146,10 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (intendedTypeName?.EndsWith("[]", StringComparison.Ordinal) != true)
             return;
         var reference = ParseSchemaReferenceFromTypeName(intendedTypeName[..^2]);
-        if (SchemaRegistry?.TryGetSchema(reference.SchemaName, out var registration) != true ||
-            registration?.Node is not BinarySchemaNode)
+        if (
+            SchemaRegistry?.TryGetSchema(reference.SchemaName, out var registration) != true
+            || registration?.Node is not BinarySchemaNode
+        )
             return;
         _binaryInterpretationAliases[_sourceBinding.QueryAlias] = reference.SchemaName;
     }
@@ -171,7 +173,11 @@ public partial class BuildMetadataAndInferTypesVisitor
             schema = new TransitionSchema(name, table);
         }
 
-        _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _resultShape.GeneratedAliases, _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(
+            node.Alias,
+            _resultShape.GeneratedAliases,
+            _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        );
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
 
         var accessMethodNode = (AccessMethodNode)PopSemanticNode();
@@ -183,9 +189,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(_sourceBinding.QueryAlias, tableSymbol);
         _sourceBinding.CurrentScope[node.Id] = _sourceBinding.QueryAlias;
         _sourceBinding.AliasMapToInMemoryTableMap.Add(_sourceBinding.QueryAlias, node.SourceAlias);
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
+        _sourceBinding
+            .CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases)
+            .AddAlias(node.Alias);
 
-        PushSemanticNode(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethodNode,
-            accessMethodNode.ReturnType));
+        PushSemanticNode(
+            new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethodNode, accessMethodNode.ReturnType)
+        );
     }
 }

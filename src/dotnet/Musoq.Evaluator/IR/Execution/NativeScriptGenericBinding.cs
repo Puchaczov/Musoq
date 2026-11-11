@@ -1,22 +1,29 @@
-using Musoq.Evaluator.IR.Expressions;
 using System.Linq;
+using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Execution;
 
 /// <summary>Specializes calls after native script storage has been assigned concrete carriers.</summary>
 internal sealed class NativeScriptGenericBinding(NativeScriptValueTypes values) : ExecutionIrRewriter
 {
-    public override ExecutionPlan RewritePlan(ExecutionPlan plan)
-        => values.HasGeneratedStorage || values.InlineRecords.Carriers.Any()
-            ? base.RewritePlan(plan) : plan;
+    public override ExecutionPlan RewritePlan(ExecutionPlan plan) =>
+        values.HasGeneratedStorage || values.InlineRecords.Carriers.Any() ? base.RewritePlan(plan) : plan;
 
-    protected override ExecutionExpression RewriteScriptParameterRead(ExecutionScriptParameterRead read)
-        => read with { GeneratedTypeName = values.ResolveGeneratedTypeName(
-            new ScriptParameterRef(read.Name, read.ReturnType.ResolveClrType())) };
+    protected override ExecutionExpression RewriteScriptParameterRead(ExecutionScriptParameterRead read) =>
+        read with
+        {
+            GeneratedTypeName = values.ResolveGeneratedTypeName(
+                new ScriptParameterRef(read.Name, read.ReturnType.ResolveClrType())
+            ),
+        };
 
-    protected override ExecutionExpression RewriteScriptVariableRead(ExecutionScriptVariableRead read)
-        => read with { GeneratedTypeName = values.ResolveGeneratedTypeName(
-            new ScriptVariableRef(read.Name, read.ReturnType.ResolveClrType())) };
+    protected override ExecutionExpression RewriteScriptVariableRead(ExecutionScriptVariableRead read) =>
+        read with
+        {
+            GeneratedTypeName = values.ResolveGeneratedTypeName(
+                new ScriptVariableRef(read.Name, read.ReturnType.ResolveClrType())
+            ),
+        };
 
     protected override ExecutionExpression RewriteMethodCall(ExecutionMethodCall expression)
     {
@@ -30,24 +37,42 @@ internal sealed class NativeScriptGenericBinding(NativeScriptValueTypes values) 
         return call with
         {
             GeneratedGenericArguments = bindings,
-            GeneratedResultTypeName = GeneratedScalarGenericBinding.ResolveResult(method, bindings)
+            GeneratedResultTypeName = GeneratedScalarGenericBinding.ResolveResult(method, bindings),
         };
     }
+
     private void ValidateRecordConstraints(string methodName, Type parameter, string name)
     {
         if (!values.IsRecordCarrier(name))
             return;
-        if ((parameter.GenericParameterAttributes & System.Reflection.GenericParameterAttributes.ReferenceTypeConstraint) != 0)
+        if (
+            (
+                parameter.GenericParameterAttributes
+                & System.Reflection.GenericParameterAttributes.ReferenceTypeConstraint
+            ) != 0
+        )
             throw new Musoq.Evaluator.Exceptions.CannotResolveMethodException(
-                $"Scalar '{methodName}' requires a reference type for '{parameter.Name}', but its generated record carrier is a value type.");
-        if (name.EndsWith('?') &&
-            (parameter.GenericParameterAttributes & System.Reflection.GenericParameterAttributes.NotNullableValueTypeConstraint) != 0)
+                $"Scalar '{methodName}' requires a reference type for '{parameter.Name}', but its generated record carrier is a value type."
+            );
+        if (
+            name.EndsWith('?')
+            && (
+                parameter.GenericParameterAttributes
+                & System.Reflection.GenericParameterAttributes.NotNullableValueTypeConstraint
+            ) != 0
+        )
             throw new Musoq.Evaluator.Exceptions.CannotResolveMethodException(
-                $"Scalar '{methodName}' requires a non-nullable value type for '{parameter.Name}'.");
-        if (parameter.GetCustomAttributesData().Any(static attribute =>
-                attribute.AttributeType == typeof(System.Runtime.CompilerServices.IsUnmanagedAttribute)) &&
-            !values.IsUnmanagedRecordCarrier(name))
+                $"Scalar '{methodName}' requires a non-nullable value type for '{parameter.Name}'."
+            );
+        if (
+            parameter
+                .GetCustomAttributesData()
+                .Any(static attribute =>
+                    attribute.AttributeType == typeof(System.Runtime.CompilerServices.IsUnmanagedAttribute)
+                ) && !values.IsUnmanagedRecordCarrier(name)
+        )
             throw new Musoq.Evaluator.Exceptions.CannotResolveMethodException(
-                $"Scalar '{methodName}' requires unmanaged fields for '{parameter.Name}', but its generated record contains managed fields.");
+                $"Scalar '{methodName}' requires unmanaged fields for '{parameter.Name}', but its generated record contains managed fields."
+            );
     }
 }

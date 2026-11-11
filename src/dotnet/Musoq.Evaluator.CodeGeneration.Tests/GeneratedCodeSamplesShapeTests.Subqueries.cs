@@ -15,7 +15,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         CorrelatedAllSubquerySampleFileName,
         CorrelatedApplyDerivedTableSampleFileName,
         CorrelatedCompositeValueTypeSubquerySampleFileName,
-        CorrelatedApplySelectiveDerivedTableSampleFileName
+        CorrelatedApplySelectiveDerivedTableSampleFileName,
     ];
 
     [TestMethod]
@@ -29,13 +29,15 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [DataRow(CorrelatedApplySelectiveDerivedTableSampleFileName, "PhysicalHashJoin [Inner]")]
     public void SubquerySample_WhenCompiledForInspection_ShouldUseExpectedJoinStrategy(
         string fileName,
-        string expectedJoin)
+        string expectedJoin
+    )
     {
         var result = CompileSampleForInspection(fileName);
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains(expectedJoin, result.PhysicalPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(SmartForEachPattern, StringComparison.Ordinal));
     }
@@ -43,12 +45,19 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     [DataRow(CorrelatedInSubquerySampleFileName, "HashSet<ValueTuple<string, string>>")]
     [DataRow(CorrelatedNotExistsSubquerySampleFileName, "HashSet<ValueTuple<int, string>>")]
-    [DataRow(CorrelatedAllSubquerySampleFileName, "Dictionary<ValueTuple<int, string>, HashJoinBucket<_sq_1HashPayload0>>")]
+    [DataRow(
+        CorrelatedAllSubquerySampleFileName,
+        "Dictionary<ValueTuple<int, string>, HashJoinBucket<_sq_1HashPayload0>>"
+    )]
     [DataRow(CorrelatedCompositeValueTypeSubquerySampleFileName, "HashSet<ValueTuple<int, string, decimal>>")]
-    [DataRow(CorrelatedApplySelectiveDerivedTableSampleFileName, "Dictionary<ValueTuple<string, string>, HashJoinBucket<DHashPayload0>>")]
+    [DataRow(
+        CorrelatedApplySelectiveDerivedTableSampleFileName,
+        "Dictionary<ValueTuple<string, string>, HashJoinBucket<DHashPayload0>>"
+    )]
     public void SubquerySample_WhenCompiledForInspection_ShouldAvoidObjectKeyHotPathPatterns(
         string fileName,
-        string expectedTypedKeyContainer)
+        string expectedTypedKeyContainer
+    )
     {
         var result = CompileSampleForInspection(fileName);
         Assert.Contains(expectedTypedKeyContainer, result.GeneratedCSharpCode);
@@ -83,204 +92,304 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", samples[CorrelatedNotExistsSubquerySampleFileName]);
         Assert.Contains(
             "var _sq_1Keys = new HashSet<ValueTuple<string, string>>();",
-            samples[CorrelatedInSubquerySampleFileName]);
-        Assert.Contains(
-            "foreach (var bChunk in cte0_bRows)",
-            samples[CorrelatedInSubquerySampleFileName]);
+            samples[CorrelatedInSubquerySampleFileName]
+        );
+        Assert.Contains("foreach (var bChunk in cte0_bRows)", samples[CorrelatedInSubquerySampleFileName]);
         Assert.Contains(
             "var _sq_1Keys = new HashSet<ValueTuple<string, string>>();",
-            samples[CorrelatedInSubquerySampleFileName]);
-        Assert.Contains(
-            "var key0 = b.City;",
-            samples[CorrelatedInSubquerySampleFileName]);
-        Assert.Contains(
-            "_sq_1Keys.Add(key);",
-            samples[CorrelatedInSubquerySampleFileName]);
+            samples[CorrelatedInSubquerySampleFileName]
+        );
+        Assert.Contains("var key0 = b.City;", samples[CorrelatedInSubquerySampleFileName]);
+        Assert.Contains("_sq_1Keys.Add(key);", samples[CorrelatedInSubquerySampleFileName]);
         Assert.IsFalse(
             samples[CorrelatedInSubquerySampleFileName].Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal),
-            "Q138 should use a payload-free key set for equality-only semi joins.");
-        Assert.IsFalse(ExtractGeneratedCodeSection(samples[CorrelatedInSubquerySampleFileName]).Contains("_tableResults[0]", StringComparison.Ordinal),
-            "Q138 should fuse the generated subquery directly into the key-set build.");
+            "Q138 should use a payload-free key set for equality-only semi joins."
+        );
+        Assert.IsFalse(
+            ExtractGeneratedCodeSection(samples[CorrelatedInSubquerySampleFileName])
+                .Contains("_tableResults[0]", StringComparison.Ordinal),
+            "Q138 should fuse the generated subquery directly into the key-set build."
+        );
         Assert.Contains(
             "var _sq_1Keys = new HashSet<ValueTuple<int, string>>();",
-            samples[CorrelatedNotExistsSubquerySampleFileName]);
-        Assert.Contains(
-            "foreach (var bChunk in cte0_bRows)",
-            samples[CorrelatedNotExistsSubquerySampleFileName]);
-        Assert.IsFalse(
-            samples[CorrelatedNotExistsSubquerySampleFileName].Contains("private static void BuildSq1Keys(", StringComparison.Ordinal));
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.City));", samples[CorrelatedNotExistsSubquerySampleFileName]);
+            samples[CorrelatedNotExistsSubquerySampleFileName]
+        );
+        Assert.Contains("foreach (var bChunk in cte0_bRows)", samples[CorrelatedNotExistsSubquerySampleFileName]);
         Assert.IsFalse(
             samples[CorrelatedNotExistsSubquerySampleFileName]
-                .Contains("AppendLeftJoinRows(aRows, _sq_1Keys, result, token);", StringComparison.Ordinal));
+                .Contains("private static void BuildSq1Keys(", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            "__musoqFinalShapeRows.Add(new ResultRow0(a.City));",
+            samples[CorrelatedNotExistsSubquerySampleFileName]
+        );
         Assert.IsFalse(
-            samples[CorrelatedNotExistsSubquerySampleFileName].Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal),
-            "Q139 should use a payload-free key set for equality-only anti-semi joins.");
-        Assert.IsFalse(ExtractGeneratedCodeSection(samples[CorrelatedNotExistsSubquerySampleFileName]).Contains("_tableResults[0]", StringComparison.Ordinal),
-            "Q139 should fuse the generated subquery directly into the key-set build.");
+            samples[CorrelatedNotExistsSubquerySampleFileName]
+                .Contains("AppendLeftJoinRows(aRows, _sq_1Keys, result, token);", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            samples[CorrelatedNotExistsSubquerySampleFileName]
+                .Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal),
+            "Q139 should use a payload-free key set for equality-only anti-semi joins."
+        );
+        Assert.IsFalse(
+            ExtractGeneratedCodeSection(samples[CorrelatedNotExistsSubquerySampleFileName])
+                .Contains("_tableResults[0]", StringComparison.Ordinal),
+            "Q139 should fuse the generated subquery directly into the key-set build."
+        );
         Assert.Contains("PhysicalHashJoin [LeftSingle]", samples[CorrelatedScalarAggregateSubquerySampleFileName]);
         Assert.Contains("AggregateGroup [Cte0AggregateGroup", samples[CorrelatedScalarAggregateSubquerySampleFileName]);
         Assert.Contains("PhysicalHashJoin [Inner]", samples[ScalarSubqueryJoinOnSampleFileName]);
         Assert.Contains(
             "var a_sq_1Hash = new Dictionary<string, HashJoinBucket<Statement0Row0>>(_cteRowResults.Slot1.Count);",
-            samples[ScalarSubqueryJoinOnSampleFileName]);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a_sq_1.a_City, b.City));", samples[ScalarSubqueryJoinOnSampleFileName]);
+            samples[ScalarSubqueryJoinOnSampleFileName]
+        );
+        Assert.Contains(
+            "__musoqFinalShapeRows.Add(new ResultRow0(a_sq_1.a_City, b.City));",
+            samples[ScalarSubqueryJoinOnSampleFileName]
+        );
         Assert.IsFalse(
             samples[ScalarSubqueryJoinOnSampleFileName]
-                .Contains("AppendHashJoinRows(bRows, a_sq_1Hash, result, token);", StringComparison.Ordinal));
+                .Contains("AppendHashJoinRows(bRows, a_sq_1Hash, result, token);", StringComparison.Ordinal)
+        );
         Assert.Contains("PhaseBoundary [Begin:cte2]", samples[ScalarSubqueryJoinOnSampleFileName]);
         Assert.IsFalse(
-            samples[ScalarSubqueryJoinOnSampleFileName]
-                .Contains("BuildCte2(", StringComparison.Ordinal),
-            "Q141 should fuse the final statement1 projection directly into the result table.");
+            samples[ScalarSubqueryJoinOnSampleFileName].Contains("BuildCte2(", StringComparison.Ordinal),
+            "Q141 should fuse the final statement1 projection directly into the result table."
+        );
         Assert.IsFalse(
             samples[ScalarSubqueryJoinOnSampleFileName]
                 .Contains("StoreTable [statement1 -> _tableResults[2]]", StringComparison.Ordinal),
-            "Q141 should not materialize statement1 before immediately projecting it.");
+            "Q141 should not materialize statement1 before immediately projecting it."
+        );
         Assert.IsFalse(
             ExtractGeneratedCodeSection(samples[ScalarSubqueryJoinOnSampleFileName])
                 .Contains("_tableResults[2]", StringComparison.Ordinal),
-            "Q141 generated code should not read or write the fused statement1 slot.");
+            "Q141 generated code should not read or write the fused statement1 slot."
+        );
         Assert.IsFalse(
-            samples[ScalarSubqueryJoinOnSampleFileName]
-                .Contains("Statement1Row0", StringComparison.Ordinal),
-            "Q141 should avoid generating the eliminated statement1 row type.");
+            samples[ScalarSubqueryJoinOnSampleFileName].Contains("Statement1Row0", StringComparison.Ordinal),
+            "Q141 should avoid generating the eliminated statement1 row type."
+        );
         Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", samples[CorrelatedAllSubquerySampleFileName]);
         Assert.Contains("private readonly struct _sq_1HashPayload0", samples[CorrelatedAllSubquerySampleFileName]);
         Assert.Contains("HashJoinBucket<_sq_1HashPayload0>", samples[CorrelatedAllSubquerySampleFileName]);
-        Assert.Contains("_sq_1HashPayload0 _sq_1 = new _sq_1HashPayload0(b.Population);", samples[CorrelatedAllSubquerySampleFileName]);
-        Assert.IsFalse(ExtractGeneratedCodeSection(samples[CorrelatedAllSubquerySampleFileName]).Contains("public readonly Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __context0;", StringComparison.Ordinal), "Q142 payload should not store unused source row contexts.");
-        Assert.IsFalse(ExtractGeneratedCodeSection(samples[CorrelatedAllSubquerySampleFileName]).Contains("public readonly int _sq_1_key;", StringComparison.Ordinal),
-            "Q142 payload should not store key-only constant fields.");
-        Assert.IsFalse(ExtractGeneratedCodeSection(samples[CorrelatedAllSubquerySampleFileName]).Contains("public readonly string _sq_1_corr_0;", StringComparison.Ordinal),
-            "Q142 payload should not store key-only correlation fields.");
+        Assert.Contains(
+            "_sq_1HashPayload0 _sq_1 = new _sq_1HashPayload0(b.Population);",
+            samples[CorrelatedAllSubquerySampleFileName]
+        );
         Assert.IsFalse(
-            samples[CorrelatedAllSubquerySampleFileName].Contains("private sealed class Cte0Row0 : Row", StringComparison.Ordinal),
-            "Q142 should avoid generated Row payloads in the fused hash build.");
-        Assert.IsFalse(ExtractGeneratedCodeSection(samples[CorrelatedAllSubquerySampleFileName]).Contains("_tableResults[0]", StringComparison.Ordinal),
-            "Q142 should fuse the generated subquery directly into the residual hash build.");
+            ExtractGeneratedCodeSection(samples[CorrelatedAllSubquerySampleFileName])
+                .Contains(
+                    "public readonly Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __context0;",
+                    StringComparison.Ordinal
+                ),
+            "Q142 payload should not store unused source row contexts."
+        );
+        Assert.IsFalse(
+            ExtractGeneratedCodeSection(samples[CorrelatedAllSubquerySampleFileName])
+                .Contains("public readonly int _sq_1_key;", StringComparison.Ordinal),
+            "Q142 payload should not store key-only constant fields."
+        );
+        Assert.IsFalse(
+            ExtractGeneratedCodeSection(samples[CorrelatedAllSubquerySampleFileName])
+                .Contains("public readonly string _sq_1_corr_0;", StringComparison.Ordinal),
+            "Q142 payload should not store key-only correlation fields."
+        );
+        Assert.IsFalse(
+            samples[CorrelatedAllSubquerySampleFileName]
+                .Contains("private sealed class Cte0Row0 : Row", StringComparison.Ordinal),
+            "Q142 should avoid generated Row payloads in the fused hash build."
+        );
+        Assert.IsFalse(
+            ExtractGeneratedCodeSection(samples[CorrelatedAllSubquerySampleFileName])
+                .Contains("_tableResults[0]", StringComparison.Ordinal),
+            "Q142 should fuse the generated subquery directly into the residual hash build."
+        );
         Assert.Contains("PhysicalHashJoin [Inner]", samples[CorrelatedApplyDerivedTableSampleFileName]);
         Assert.Contains("_dt_1", samples[CorrelatedApplyDerivedTableSampleFileName]);
+        Assert.Contains("foreach (var bChunk in cte0_bRows)", samples[CorrelatedApplyDerivedTableSampleFileName]);
         Assert.Contains(
-            "foreach (var bChunk in cte0_bRows)",
-            samples[CorrelatedApplyDerivedTableSampleFileName]);
-        Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.City, d.City));", samples[CorrelatedApplyDerivedTableSampleFileName]);
+            "__musoqFinalShapeRows.Add(new ResultRow0(a.City, d.City));",
+            samples[CorrelatedApplyDerivedTableSampleFileName]
+        );
         Assert.IsFalse(
             samples[CorrelatedApplyDerivedTableSampleFileName]
-                .Contains("AppendHashJoinRows(aRows, dHash, result, token);", StringComparison.Ordinal));
+                .Contains("AppendHashJoinRows(aRows, dHash, result, token);", StringComparison.Ordinal)
+        );
         Assert.IsFalse(
-            samples[CorrelatedApplyDerivedTableSampleFileName].Contains("private static void BuildDHash(", StringComparison.Ordinal));
+            samples[CorrelatedApplyDerivedTableSampleFileName]
+                .Contains("private static void BuildDHash(", StringComparison.Ordinal)
+        );
         Assert.Contains(
             "var dHash = new Dictionary<string, HashJoinBucket<DHashPayload0>>();",
-            samples[CorrelatedApplyDerivedTableSampleFileName]);
+            samples[CorrelatedApplyDerivedTableSampleFileName]
+        );
         Assert.Contains(
             "DHashPayload0 d = new DHashPayload0(b.City);",
-            samples[CorrelatedApplyDerivedTableSampleFileName]);
-        Assert.IsFalse(ExtractGeneratedCodeSection(samples[CorrelatedApplyDerivedTableSampleFileName]).Contains("public readonly Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __context0;", StringComparison.Ordinal), "Q143 payload should not store unused source row contexts.");
+            samples[CorrelatedApplyDerivedTableSampleFileName]
+        );
+        Assert.IsFalse(
+            ExtractGeneratedCodeSection(samples[CorrelatedApplyDerivedTableSampleFileName])
+                .Contains(
+                    "public readonly Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __context0;",
+                    StringComparison.Ordinal
+                ),
+            "Q143 payload should not store unused source row contexts."
+        );
         Assert.IsFalse(
             ExtractGeneratedCodeSection(samples[CorrelatedApplyDerivedTableSampleFileName])
                 .Contains("public readonly string b_Country;", StringComparison.Ordinal),
-            "Q143 payload should not store the key-only Country field.");
-        Assert.Contains(
-            "string key = b.Country;",
-            samples[CorrelatedApplyDerivedTableSampleFileName]);
+            "Q143 payload should not store the key-only Country field."
+        );
+        Assert.Contains("string key = b.Country;", samples[CorrelatedApplyDerivedTableSampleFileName]);
         Assert.IsFalse(
             samples[CorrelatedApplyDerivedTableSampleFileName]
                 .Contains("string key = d.b_Country;", StringComparison.Ordinal),
-            "Q143 should compute the hash key before constructing the fused payload.");
+            "Q143 should compute the hash key before constructing the fused payload."
+        );
         Assert.Contains("private readonly struct DHashPayload0", samples[CorrelatedApplyDerivedTableSampleFileName]);
-        Assert.IsFalse(samples[CorrelatedApplyDerivedTableSampleFileName].Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal));
-        Assert.IsFalse(samples[CorrelatedApplyDerivedTableSampleFileName].Contains("new Cte0Row0(", StringComparison.Ordinal));
-        Assert.IsFalse(samples[CorrelatedApplyDerivedTableSampleFileName].Contains("private sealed class Cte0Row0 : Row", StringComparison.Ordinal));
         Assert.IsFalse(
             samples[CorrelatedApplyDerivedTableSampleFileName]
-                .Contains("BuildCte0(", StringComparison.Ordinal),
-            "Q143 should fuse the single-use derived table directly into the hash build.");
+                .Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            samples[CorrelatedApplyDerivedTableSampleFileName].Contains("new Cte0Row0(", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            samples[CorrelatedApplyDerivedTableSampleFileName]
+                .Contains("private sealed class Cte0Row0 : Row", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            samples[CorrelatedApplyDerivedTableSampleFileName].Contains("BuildCte0(", StringComparison.Ordinal),
+            "Q143 should fuse the single-use derived table directly into the hash build."
+        );
         Assert.IsFalse(
             samples[CorrelatedApplyDerivedTableSampleFileName]
                 .Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal),
-            "Q143 should not materialize the derived table before building the hash.");
+            "Q143 should not materialize the derived table before building the hash."
+        );
         Assert.IsFalse(
             samples[CorrelatedApplyDerivedTableSampleFileName]
-                .Contains("private static void AppendHashJoinRows(", StringComparison.Ordinal));
+                .Contains("private static void AppendHashJoinRows(", StringComparison.Ordinal)
+        );
         Assert.IsGreaterThanOrEqualTo(
             2,
             CountOccurrences(
                 samples[CorrelatedApplyDerivedTableSampleFileName],
-                "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]"),
-            "Q143 hash join helper methods should be aggressively inlined.");
+                "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]"
+            ),
+            "Q143 hash join helper methods should be aggressively inlined."
+        );
         Assert.IsFalse(
             ExtractGeneratedCodeSection(samples[CorrelatedApplyDerivedTableSampleFileName])
                 .Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal),
-            "Q143 should build the hash from producer rows without generated-row casts.");
+            "Q143 should build the hash from producer rows without generated-row casts."
+        );
         Assert.IsFalse(
             samples[CorrelatedApplyDerivedTableSampleFileName]
                 .Replace("\r\n", "\n", StringComparison.Ordinal)
-                .Contains("var dHash = new Dictionary<string, HashJoinBucket<DHashPayload0>>();\n            {\n", StringComparison.Ordinal),
-            "Q143 should not wrap the dHash stored-row build loop in an extra block.");
+                .Contains(
+                    "var dHash = new Dictionary<string, HashJoinBucket<DHashPayload0>>();\n            {\n",
+                    StringComparison.Ordinal
+                ),
+            "Q143 should not wrap the dHash stored-row build loop in an extra block."
+        );
         Assert.Contains("PhysicalHashJoin [Inner]", samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
         Assert.Contains(
             "CreateHash [dHash: ValueTuple<string, string> -> Row]",
-            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+        );
         Assert.Contains(
             "foreach (var bChunk in cte0_bRows)",
-            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+        );
         Assert.IsFalse(
-            samples[CorrelatedApplySelectiveDerivedTableSampleFileName].Contains("private static void BuildDHash(", StringComparison.Ordinal));
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+                .Contains("private static void BuildDHash(", StringComparison.Ordinal)
+        );
         Assert.Contains(
             "var dHash = new Dictionary<ValueTuple<string, string>, HashJoinBucket<DHashPayload0>>();",
-            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+        );
         Assert.Contains(
             "DHashPayload0 d = new DHashPayload0(b.City);",
-            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
-        Assert.IsFalse(ExtractGeneratedCodeSection(samples[CorrelatedApplySelectiveDerivedTableSampleFileName]).Contains("public readonly Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __context0;", StringComparison.Ordinal), "Q145 payload should not store unused source row contexts.");
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+        );
+        Assert.IsFalse(
+            ExtractGeneratedCodeSection(samples[CorrelatedApplySelectiveDerivedTableSampleFileName])
+                .Contains(
+                    "public readonly Musoq.Evaluator.Tests.Schema.Basic.BasicEntity __context0;",
+                    StringComparison.Ordinal
+                ),
+            "Q145 payload should not store unused source row contexts."
+        );
         Assert.IsFalse(
             ExtractGeneratedCodeSection(samples[CorrelatedApplySelectiveDerivedTableSampleFileName])
                 .Contains("public readonly string b_Country;", StringComparison.Ordinal),
-            "Q145 payload should keep the projected City field but not the key-only Country field.");
-        Assert.Contains(
-            "string key0 = b.Country;",
-            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
-        Assert.Contains(
-            "string key1 = b.City;",
-            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
+            "Q145 payload should keep the projected City field but not the key-only Country field."
+        );
+        Assert.Contains("string key0 = b.Country;", samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
+        Assert.Contains("string key1 = b.City;", samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
         Assert.Contains(
             "ValueTuple<string, string> key = (key0, key1);",
-            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+        );
         Assert.IsFalse(
             samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
                 .Contains("var key0 = d.b_Country;", StringComparison.Ordinal),
-            "Q145 should compute composite hash key parts before constructing the fused payload.");
-        Assert.Contains("private readonly struct DHashPayload0", samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
-        Assert.IsFalse(samples[CorrelatedApplySelectiveDerivedTableSampleFileName].Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal));
-        Assert.IsFalse(samples[CorrelatedApplySelectiveDerivedTableSampleFileName].Contains("new Cte0Row0(", StringComparison.Ordinal));
-        Assert.IsFalse(samples[CorrelatedApplySelectiveDerivedTableSampleFileName].Contains("private sealed class Cte0Row0 : Row", StringComparison.Ordinal));
+            "Q145 should compute composite hash key parts before constructing the fused payload."
+        );
+        Assert.Contains(
+            "private readonly struct DHashPayload0",
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+        );
+        Assert.IsFalse(
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+                .Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+                .Contains("new Cte0Row0(", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+                .Contains("private sealed class Cte0Row0 : Row", StringComparison.Ordinal)
+        );
         Assert.Contains(
             "foreach (var bChunk in cte0_bRows)",
-            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]);
+            samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
+        );
         Assert.IsFalse(
             samples[CorrelatedApplySelectiveDerivedTableSampleFileName]
                 .Contains("BuildCte0(", StringComparison.Ordinal),
-            "Q145 should fuse the single-use selective derived table directly into the hash build.");
+            "Q145 should fuse the single-use selective derived table directly into the hash build."
+        );
         Assert.IsFalse(
             ExtractGeneratedCodeSection(samples[CorrelatedApplySelectiveDerivedTableSampleFileName])
                 .Contains("_tableResults[0]", StringComparison.Ordinal),
-            "Q145 generated code should not read or write the fused derived table slot.");
+            "Q145 generated code should not read or write the fused derived table slot."
+        );
         Assert.IsFalse(
             ExtractGeneratedCodeSection(samples[CorrelatedApplySelectiveDerivedTableSampleFileName])
                 .Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal),
-            "Q145 should build the selective hash from producer rows without generated-row casts.");
+            "Q145 should build the selective hash from producer rows without generated-row casts."
+        );
         Assert.Contains("PhysicalHashJoin [LeftSemi]", samples[CorrelatedCompositeValueTypeSubquerySampleFileName]);
         Assert.Contains(
             "HashSet<ValueTuple<int, string, decimal>>",
-            samples[CorrelatedCompositeValueTypeSubquerySampleFileName]);
+            samples[CorrelatedCompositeValueTypeSubquerySampleFileName]
+        );
         Assert.IsFalse(
-            samples[CorrelatedCompositeValueTypeSubquerySampleFileName].Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal),
-            "Q144 should use a payload-free key set for equality-only composite semi joins.");
+            samples[CorrelatedCompositeValueTypeSubquerySampleFileName]
+                .Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal),
+            "Q144 should use a payload-free key set for equality-only composite semi joins."
+        );
         Assert.IsFalse(
             ExtractGeneratedCodeSection(samples[CorrelatedCompositeValueTypeSubquerySampleFileName])
                 .Contains("_tableResults[0]", StringComparison.Ordinal),
-            "Q144 should fuse the generated subquery directly into the key-set build.");
+            "Q144 should fuse the generated subquery directly into the key-set build."
+        );
         Assert.Contains("var key1 = a.Country;", samples[CorrelatedCompositeValueTypeSubquerySampleFileName]);
 
         foreach (var sample in samples.Values)
@@ -297,7 +406,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var generatedCode = string.Concat(
             ReadNamedSamples(SubquerySampleFileNames)
-                .Select(static sample => ExtractGeneratedCodeSection(sample.Content)));
+                .Select(static sample => ExtractGeneratedCodeSection(sample.Content))
+        );
 
         Assert.AreEqual(0, CountOccurrences(generatedCode, NullableHashJoinKeyPattern));
         Assert.AreEqual(0, CountOccurrences(generatedCode, ObjectHashJoinBucketPattern));
@@ -315,37 +425,43 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             var generatedCode = ExtractGeneratedCodeSection(sample.Content);
 
             var usesPayloadFreeKeySet =
-                sample.FileName == InSubqueryBasicSampleFileName ||
-                sample.FileName == CorrelatedInSubquerySampleFileName ||
-                sample.FileName == CorrelatedNotExistsSubquerySampleFileName ||
-                sample.FileName == CorrelatedCompositeValueTypeSubquerySampleFileName;
+                sample.FileName == InSubqueryBasicSampleFileName
+                || sample.FileName == CorrelatedInSubquerySampleFileName
+                || sample.FileName == CorrelatedNotExistsSubquerySampleFileName
+                || sample.FileName == CorrelatedCompositeValueTypeSubquerySampleFileName;
 
             if (usesPayloadFreeKeySet)
             {
                 Assert.IsTrue(
                     generatedCode.Contains(".Add(key);", StringComparison.Ordinal),
-                    $"{sample.FileName} should use payload-free key-set adds.");
+                    $"{sample.FileName} should use payload-free key-set adds."
+                );
                 Assert.IsFalse(
                     generatedCode.Contains("HashJoinBucket<Cte0Row0>", StringComparison.Ordinal),
-                    $"{sample.FileName} should not allocate row hash buckets for payload-free semi/anti joins.");
+                    $"{sample.FileName} should not allocate row hash buckets for payload-free semi/anti joins."
+                );
             }
             else
             {
                 Assert.IsTrue(
                     generatedCode.Contains(HashJoinSingleLookupAddPattern, StringComparison.Ordinal),
-                    $"{sample.FileName} should use the single-lookup hash build path.");
+                    $"{sample.FileName} should use the single-lookup hash build path."
+                );
             }
 
             Assert.IsFalse(
                 generatedCode.Contains("result.EnsureCapacity(", StringComparison.Ordinal),
-                $"{sample.FileName} should not pre-size hash-join result tables from streaming source chunks.");
+                $"{sample.FileName} should not pre-size hash-join result tables from streaming source chunks."
+            );
             Assert.AreEqual(
                 0,
                 CountOccurrences(generatedCode, HashJoinDoubleLookupAddPattern),
-                $"{sample.FileName} should not use Dictionary.Add after a separate TryGetValue in hash build paths.");
+                $"{sample.FileName} should not use Dictionary.Add after a separate TryGetValue in hash build paths."
+            );
             Assert.IsFalse(
                 generatedCode.Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal),
-                $"{sample.FileName} should use indexed stored-row loops in generated subquery hot paths.");
+                $"{sample.FileName} should use indexed stored-row loops in generated subquery hot paths."
+            );
         }
     }
 

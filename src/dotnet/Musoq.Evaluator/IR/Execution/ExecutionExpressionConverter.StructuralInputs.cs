@@ -4,56 +4,64 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Execution;
+
 public static partial class ExecutionExpressionConverter
 {
     private static ExecutionExpression ConvertStructuralRecord(
         StructuralRecordLiteral record,
         IReadOnlyDictionary<string, RowShape> sourceShapes,
         IReadOnlyDictionary<string, int>? cteTableIndexes,
-        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets)
+        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets
+    )
     {
-        var fields = record.Fields
-            .Select(field => new ExecutionStructuralField(
+        var fields = record
+            .Fields.Select(field => new ExecutionStructuralField(
                 field.Name,
-                Convert(field.Value, sourceShapes, cteTableIndexes, methodTargets)))
+                Convert(field.Value, sourceShapes, cteTableIndexes, methodTargets)
+            ))
             .ToArray();
-        var constructionPlan = record.TargetType == null
-            ? null
-            : CreateConstructionPlan(record, fields);
+        var constructionPlan = record.TargetType == null ? null : CreateConstructionPlan(record, fields);
         return new ExecutionStructuralRecord(
             ExecutionClrBindingFactory.FromClr(record.ReturnType),
             fields,
-            constructionPlan);
+            constructionPlan
+        );
     }
 
     private static ExecutionExpression ConvertStructuralArray(
         StructuralArrayLiteral array,
         IReadOnlyDictionary<string, RowShape> sourceShapes,
         IReadOnlyDictionary<string, int>? cteTableIndexes,
-        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets)
+        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets
+    )
     {
         return new ExecutionStructuralArray(
             ExecutionClrBindingFactory.FromClr(array.ReturnType),
             ExecutionClrBindingFactory.FromClr(array.ElementType),
-            array.Elements.Select(element => Convert(element, sourceShapes, cteTableIndexes, methodTargets)));
+            array.Elements.Select(element => Convert(element, sourceShapes, cteTableIndexes, methodTargets))
+        );
     }
 
     private static ExecutionExpression ConvertStructuralConversion(
         StructuralConversion conversion,
         IReadOnlyDictionary<string, RowShape> sourceShapes,
         IReadOnlyDictionary<string, int>? cteTableIndexes,
-        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets)
+        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets
+    )
     {
         return new ExecutionStructuralConversion(
             Convert(conversion.Value, sourceShapes, cteTableIndexes, methodTargets),
-            ExecutionClrBindingFactory.FromClr(conversion.TargetType));
+            ExecutionClrBindingFactory.FromClr(conversion.TargetType)
+        );
     }
 
     private static ExecutionStructuralConstructionPlan CreateConstructionPlan(
         StructuralRecordLiteral record,
-        IReadOnlyList<ExecutionStructuralField> fields)
+        IReadOnlyList<ExecutionStructuralField> fields
+    )
     {
-        var targetType = record.TargetType ?? throw new InvalidOperationException("A structural record target type is required.");
+        var targetType =
+            record.TargetType ?? throw new InvalidOperationException("A structural record target type is required.");
         var receiver = StructuralTypeDescriptor.FromClrType(targetType);
         if (receiver.Kind != StructuralTypeKind.Record)
             throw new InvalidOperationException($"Structural receiver '{targetType.FullName}' is not a record.");
@@ -66,7 +74,8 @@ public static partial class ExecutionExpressionConverter
         {
             var field = fields[index];
             var receiverField = receiver.Fields.FirstOrDefault(candidate =>
-                string.Equals(candidate.Name, field.Name, StringComparison.OrdinalIgnoreCase));
+                string.Equals(candidate.Name, field.Name, StringComparison.OrdinalIgnoreCase)
+            );
             if (receiverField == null)
                 throw new InvalidOperationException($"Structural input contains unexpected field '{field.Name}'.");
 
@@ -85,22 +94,19 @@ public static partial class ExecutionExpressionConverter
 
             defaults[parameterIndex] = new ExecutionLiteral(
                 parameter.Default.Value,
-                ExecutionClrBindingFactory.FromClr(parameter.Type.ClrType ?? typeof(object)));
+                ExecutionClrBindingFactory.FromClr(parameter.Type.ClrType ?? typeof(object))
+            );
         }
 
-        var shape = new ExecutionStructuralShape(
-            StructuralTypeKind.Record,
-            null,
-            plans,
-            null,
-            receiver.IsNullable);
+        var shape = new ExecutionStructuralShape(StructuralTypeKind.Record, null, plans, null, receiver.IsNullable);
         return new ExecutionStructuralConstructionPlan(
             ExecutionClrBindingFactory.FromClr(targetType),
             ExecutionClrBindingFactory.FromClr(constructor),
             shape,
             sourceIndexes,
             defaults,
-            ExecutionStructuralPreparationLifetime.Inline);
+            ExecutionStructuralPreparationLifetime.Inline
+        );
     }
 
     private static int FindFieldIndex(IReadOnlyList<ExecutionStructuralField> fields, string name)

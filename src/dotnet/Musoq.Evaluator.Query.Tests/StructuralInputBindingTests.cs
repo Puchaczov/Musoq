@@ -1,10 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using System.Reflection;
 using System.Threading;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Evaluator.Helpers;
@@ -25,14 +25,16 @@ public sealed partial class StructuralInputBindingTests
     public void ParameterDeclaration_ShouldBindRecursiveShapeAndStructuredDefault()
     {
         var visitor = Analyze(
-            "param(patterns: (Id: string, Pattern: string, Mode: string = 'literal')[] = array { (Id: 'todo', Pattern: 'TODO') }); " +
-            "select 1 from #EnvironmentVariables.All()");
+            "param(patterns: (Id: string, Pattern: string, Mode: string = 'literal')[] = array { (Id: 'todo', Pattern: 'TODO') }); "
+                + "select 1 from #EnvironmentVariables.All()"
+        );
 
         var definition = visitor.ScriptParameterDefinitions.Single();
         Assert.IsTrue(definition.Contract.IsStructured);
         Assert.AreEqual(
             "(Id: string, Pattern: string, Mode: string = 'literal')[]",
-            definition.Contract.CanonicalTypeName);
+            definition.Contract.CanonicalTypeName
+        );
         Assert.AreEqual(ScriptParameterDefaultKind.Structured, definition.Contract.DefaultKind);
         Assert.IsInstanceOfType<StructuralTypeDescriptor>(definition.Contract.StructuralType);
 
@@ -46,8 +48,7 @@ public sealed partial class StructuralInputBindingTests
     [TestMethod]
     public void EmptyPrimitiveArrayDefault_ShouldRetainExpectedElementType()
     {
-        var visitor = Analyze(
-            "param(emptyNumbers: int[] = array {}); select 1 from #EnvironmentVariables.All()");
+        var visitor = Analyze("param(emptyNumbers: int[] = array {}); select 1 from #EnvironmentVariables.All()");
 
         var definition = visitor.ScriptParameterDefinitions.Single();
         Assert.IsTrue(definition.Contract.IsStructured);
@@ -60,15 +61,14 @@ public sealed partial class StructuralInputBindingTests
     public void InferredRecordArray_ShouldUnionFieldsWithoutMaterializingMissingValues()
     {
         var visitor = Analyze(
-            "let patterns = array { (Id: 'todo', Pattern: 'TODO'), (Id: 'issue', Pattern: 'ISSUE', Mode: 'regex') }; " +
-            "select 1 from #EnvironmentVariables.All()");
+            "let patterns = array { (Id: 'todo', Pattern: 'TODO'), (Id: 'issue', Pattern: 'ISSUE', Mode: 'regex') }; "
+                + "select 1 from #EnvironmentVariables.All()"
+        );
 
         var definition = visitor.ScriptVariableDefinitions.Single();
         Assert.IsTrue(definition.StructuralType != null);
         Assert.AreEqual(typeof(StructuralValue[]), definition.VariableType);
-        Assert.AreEqual(
-            "(Id: string, Mode: string, Pattern: string)[]",
-            definition.StructuralType!.ToCanonicalSql());
+        Assert.AreEqual("(Id: string, Mode: string, Pattern: string)[]", definition.StructuralType!.ToCanonicalSql());
 
         var mode = definition.StructuralType.ElementType!.Fields.Single(field => field.Name == "Mode");
         Assert.IsFalse(mode.Required);
@@ -82,15 +82,28 @@ public sealed partial class StructuralInputBindingTests
     public void InferredNestedRecordAndPrimitiveArray_ShouldPreserveTypedShape()
     {
         var visitor = Analyze(
-            "let options = (Enabled: true, Codes: array { 10, 20 }, Window: (Before: 2, After: 3)); " +
-            "select 1 from #EnvironmentVariables.All()");
+            "let options = (Enabled: true, Codes: array { 10, 20 }, Window: (Before: 2, After: 3)); "
+                + "select 1 from #EnvironmentVariables.All()"
+        );
 
         var definition = visitor.ScriptVariableDefinitions.Single();
         var type = definition.StructuralType!;
         Assert.AreEqual(StructuralTypeKind.Record, type.Kind);
-        Assert.AreEqual("bool", type.Fields.Single(field => string.Equals(field.Name, "Enabled", StringComparison.OrdinalIgnoreCase)).Type.ToCanonicalSql());
-        Assert.AreEqual("int[]", type.Fields.Single(field => string.Equals(field.Name, "Codes", StringComparison.OrdinalIgnoreCase)).Type.ToCanonicalSql());
-        Assert.AreEqual("(Before: int, After: int)", type.Fields.Single(field => string.Equals(field.Name, "Window", StringComparison.OrdinalIgnoreCase)).Type.ToCanonicalSql());
+        Assert.AreEqual(
+            "bool",
+            type.Fields.Single(field => string.Equals(field.Name, "Enabled", StringComparison.OrdinalIgnoreCase))
+                .Type.ToCanonicalSql()
+        );
+        Assert.AreEqual(
+            "int[]",
+            type.Fields.Single(field => string.Equals(field.Name, "Codes", StringComparison.OrdinalIgnoreCase))
+                .Type.ToCanonicalSql()
+        );
+        Assert.AreEqual(
+            "(Before: int, After: int)",
+            type.Fields.Single(field => string.Equals(field.Name, "Window", StringComparison.OrdinalIgnoreCase))
+                .Type.ToCanonicalSql()
+        );
 
         var value = (StructuralValue)definition.Value!;
         Assert.AreEqual(2, value.Fields["Codes"].Elements.Count);
@@ -103,8 +116,9 @@ public sealed partial class StructuralInputBindingTests
             typeof(StructuralValue),
             [
                 new StructuralFieldDescriptor("Pattern", StructuralTypeDescriptor.Scalar(typeof(string), true), true),
-                new StructuralFieldDescriptor("Id", StructuralTypeDescriptor.Scalar(typeof(string), true), true)
-            ]);
+                new StructuralFieldDescriptor("Id", StructuralTypeDescriptor.Scalar(typeof(string), true), true),
+            ]
+        );
         var receiver = StructuralTypeDescriptor.FromClrType(typeof(ReceiverInput));
 
         var success = StructuralConstructionPlanBinder.TryBind(input, receiver, out var plan, out var error);
@@ -119,7 +133,8 @@ public sealed partial class StructuralInputBindingTests
     {
         var input = StructuralTypeDescriptor.Record(
             typeof(StructuralValue),
-            [new StructuralFieldDescriptor("Unknown", StructuralTypeDescriptor.Scalar(typeof(string), true), true)]);
+            [new StructuralFieldDescriptor("Unknown", StructuralTypeDescriptor.Scalar(typeof(string), true), true)]
+        );
         var receiver = StructuralTypeDescriptor.FromClrType(typeof(ReceiverInput));
 
         var success = StructuralConstructionPlanBinder.TryBind(input, receiver, out _, out var error);
@@ -133,20 +148,22 @@ public sealed partial class StructuralInputBindingTests
     {
         var descriptor = StructuralTypeDescriptor.Record(
             typeof(StructuralValue),
-            [new StructuralFieldDescriptor(
-                "Mode",
-                StructuralTypeDescriptor.Scalar(typeof(string), true),
-                required: false,
-                StructuralDefaultDescriptor.Create("regex"))]);
+            [
+                new StructuralFieldDescriptor(
+                    "Mode",
+                    StructuralTypeDescriptor.Scalar(typeof(string), true),
+                    required: false,
+                    StructuralDefaultDescriptor.Create("regex")
+                ),
+            ]
+        );
 
         var raw = StructuralValue.FromRecord([]);
 
-        Assert.IsTrue(StructuralValueBinder.TryNormalize(
-            raw,
-            descriptor,
-            "input",
-            out var normalized,
-            out var error), error);
+        Assert.IsTrue(
+            StructuralValueBinder.TryNormalize(raw, descriptor, "input", out var normalized, out var error),
+            error
+        );
         var record = (StructuralValue)normalized!;
         Assert.IsTrue(record.Fields.ContainsKey("Mode"));
         Assert.AreEqual("regex", record.Fields["Mode"].Scalar);
@@ -155,20 +172,24 @@ public sealed partial class StructuralInputBindingTests
     [TestMethod]
     public void StructuralArgumentDescriptions_ShouldUseExplicitNullTextForNestedDefaults()
     {
-        var constructor = typeof(NullDefaultSource).GetConstructors(BindingFlags.Instance | BindingFlags.Public).Single();
+        var constructor = typeof(NullDefaultSource)
+            .GetConstructors(BindingFlags.Instance | BindingFlags.Public)
+            .Single();
         var contract = StructuralInputMetadata.CreateContract("source", constructor);
         var metadata = new Musoq.Schema.Reflection.ConstructorInfo(
             constructor,
             supportsInterCommunicator: true,
-            ("input", typeof(NullDefaultInput)))
+            ("input", typeof(NullDefaultInput))
+        )
         {
             StructuralContract = contract,
-            SourceStableId = "source:null-default"
+            SourceStableId = "source:null-default",
         };
 
         var descriptions = StructuralArgumentDescriptionFactory.Create(
             new SchemaMethodInfo("source", metadata),
-            overload: 2);
+            overload: 2
+        );
         var field = descriptions.Single(description => description.Path == "input.Mode");
 
         Assert.IsTrue(field.HasDefault);
@@ -186,13 +207,10 @@ public sealed partial class StructuralInputBindingTests
             CancellationToken.None,
             [],
             new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
 
-        var table = EvaluationHelper.GetStructuralArgumentDescriptions(
-            schema,
-            "multi",
-            selected: null,
-            context);
+        var table = EvaluationHelper.GetStructuralArgumentDescriptions(schema, "multi", selected: null, context);
 
         Assert.AreEqual(2, table.Rows.Count);
         Assert.AreEqual(0, table.Rows[0].ReadValue(0));
@@ -211,7 +229,8 @@ public sealed partial class StructuralInputBindingTests
         var visitor = new BuildMetadataAndInferTypesVisitor(
             new EnvironmentVariablesSchemaProvider(),
             new Dictionary<string, string[]>(),
-            new Mock<ILogger<BuildMetadataAndInferTypesVisitor>>().Object);
+            new Mock<ILogger<BuildMetadataAndInferTypesVisitor>>().Object
+        );
         tree.Accept(new BuildMetadataAndInferTypesTraverseVisitor(visitor));
         return visitor;
     }

@@ -39,9 +39,13 @@ public class ArrayTypeNode : TypeAnnotationNode
     {
         get
         {
-            if (!IsFixedSize) return null;
+            if (!IsFixedSize)
+                return null;
 
-            var count = int.Parse(((IntegerNode)SizeExpression).ObjValue.ToString()!, System.Globalization.CultureInfo.InvariantCulture);
+            var count = int.Parse(
+                ((IntegerNode)SizeExpression).ObjValue.ToString()!,
+                System.Globalization.CultureInfo.InvariantCulture
+            );
             var elementSize = ElementType.FixedSizeBytes;
 
             return elementSize.HasValue ? count * elementSize.Value : null;

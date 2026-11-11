@@ -32,7 +32,10 @@ public class AggregateKernelDescriptorTests
         Assert.AreEqual(typeof(WeightedAverageAggregate), descriptor.KernelType);
         Assert.AreEqual(typeof(WeightedAverageAggregate.State), descriptor.StateType);
         Assert.AreEqual(typeof(ValueTuple<decimal?, decimal?>), descriptor.InputShape.InputType);
-        CollectionAssert.AreEqual(new[] { typeof(decimal?), typeof(decimal?) }, descriptor.InputShape.ArgumentTypes.ToArray());
+        CollectionAssert.AreEqual(
+            new[] { typeof(decimal?), typeof(decimal?) },
+            descriptor.InputShape.ArgumentTypes.ToArray()
+        );
         Assert.AreEqual(typeof(decimal?), descriptor.ResultType);
         Assert.AreEqual(typeof(decimal), descriptor.UnderlyingResultType);
         Assert.AreEqual(typeof(decimal?), descriptor.ResultDescriptor.PublicResultType);
@@ -196,9 +199,7 @@ public class AggregateKernelDescriptorTests
 
         public static decimal? Get(in State state)
         {
-            return state.WeightSum == 0m
-                ? null
-                : state.WeightedSum / state.WeightSum;
+            return state.WeightSum == 0m ? null : state.WeightedSum / state.WeightSum;
         }
 
         public static void Merge(ref State target, in State source)

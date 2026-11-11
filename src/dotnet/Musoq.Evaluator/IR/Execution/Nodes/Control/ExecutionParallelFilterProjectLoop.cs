@@ -7,4 +7,5 @@ public sealed record ExecutionParallelFilterProjectLoop(
     ExecutionAppendRow AppendRow,
     ExecutionBlock ProjectionBody,
     int Threshold,
-    int MaxDegreeOfParallelism) : ExecutionNode;
+    int MaxDegreeOfParallelism
+) : ExecutionNode;

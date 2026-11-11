@@ -287,6 +287,15 @@ Musoq already does most of what I wanted it to do. I really enjoy watching an ag
 - [Binary and text interpretation](specs/musoq-binary-text-spec.md) — declarative parsing inside SQL.
 - [Data-source providers](https://github.com/Puchaczov/Musoq.DataSources) — the separate provider ecosystem, including Search.
 
+## Development formatting
+
+Restore the pinned CSharpier tool with `dotnet tool restore`, format authored C#/MSBuild files with
+`dotnet csharpier format . --no-cache`, and verify with `dotnet csharpier check .`.
+The shared style uses four spaces, CRLF, and a 120-column wrapping target. VS Code recommends the CSharpier
+extension and enables C#/XML format-on-save; Rider users can select the same local tool integration.
+CI checks formatting on Windows and Linux. Honor `.csharpierignore` so generated samples, imported fixtures,
+resource designer files, benchmark history, and build outputs remain unchanged.
+
 ## License
 
 Musoq is available under the [MIT License](LICENSE).

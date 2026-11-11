@@ -9,7 +9,11 @@ namespace Musoq.Evaluator.Tests;
 public sealed class RepositoryPathsTests
 {
     private readonly string _fixtureDirectory = Path.Combine(
-        RepositoryPaths.FindRoot(), ".artifacts", "repository-path-tests", Guid.NewGuid().ToString("N"));
+        RepositoryPaths.FindRoot(),
+        ".artifacts",
+        "repository-path-tests",
+        Guid.NewGuid().ToString("N")
+    );
 
     [TestCleanup]
     public void Cleanup()

@@ -9,5 +9,5 @@ public enum QueryPart
     GroupBy,
     Having,
     Qualify,
-    OrderBy
+    OrderBy,
 }

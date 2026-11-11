@@ -11,11 +11,11 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void WhenParametersAreUsedInCteBodyAndConsumer_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(country: string, city: string)
             with filtered as (
                 select Name, City, Country from #A.Entities() a where a.Country = $country
@@ -23,8 +23,18 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             select Name from filtered where City = $city";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "city", "Warsaw");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "city",
+            "Warsaw"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -35,7 +45,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenParametersAreUsedInJoinPredicateAndProjection_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(country: string, suffix: string = '!')
             select a.Name + $suffix, b.Name
             from #A.Entities() a
@@ -43,8 +54,18 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             where a.Country = $country";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "?");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "suffix",
+            "?"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -56,7 +77,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenParametersAreUsedInGroupByAndHaving_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(suffix: string, minCount: int)
             select Country + $suffix, Count(Name)
             from #A.Entities()
@@ -64,8 +86,18 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             having Count(Name) >= $minCount";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-group");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "suffix",
+            "-group"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "minCount",
+            2
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -77,7 +109,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenParametersAreUsedInValueTupleGroupByAndHaving_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(countrySuffix: string, citySuffix: string, minCount: int)
             select Country + $countrySuffix, City + $citySuffix, Count(Name)
             from #A.Entities()
@@ -85,9 +118,24 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             having Count(Name) >= $minCount";
 
         var vm = CreateAndRunVirtualMachine(query, CreateValueTupleAggregateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "countrySuffix", "-country");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "citySuffix", "-city");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "countrySuffix",
+            "-country"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "citySuffix",
+            "-city"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "minCount",
+            2
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -100,7 +148,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenParametersAreUsedInParallelCteBlock_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(country: string, city: string)
             with filteredA as (
                 select Name, $country as JoinKey
@@ -123,13 +172,24 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            options);
+            options
+        );
 
         Assert.Contains("ParallelBlock", inspection.ExecutionPlanText, inspection.PlanningText);
 
         var vm = CreateAndRunVirtualMachine(query, sources, options);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "city", "Warsaw");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "city",
+            "Warsaw"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -145,7 +205,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenParametersAreUsedWithOrderByAndPagination_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(country: string)
             select Name
             from #A.Entities()
@@ -155,7 +216,12 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             take 1";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "country",
+            "PL"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -166,15 +232,26 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenParametersAreUsedInCaseWhen_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(minPopulation: decimal, label: string)
             select Name, case when Population >= $minPopulation then $label else 'small' end
             from #A.Entities()
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minPopulation", 100m);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "large");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "minPopulation",
+            100m
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "label",
+            "large"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -187,15 +264,26 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenParametersAreUsedInInList_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(firstCity: string, secondCity: string)
             select Name from #A.Entities()
             where City in ($firstCity, $secondCity)
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "firstCity", "Warsaw");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "secondCity", "Berlin");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "firstCity",
+            "Warsaw"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "secondCity",
+            "Berlin"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -207,14 +295,20 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenArrayParameterIsUsedInInPredicate_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(ids: int[])
             select Name from #A.Entities()
             where Id in $ids
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new[] { 1, 3 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "ids",
+            new[] { 1, 3 }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -225,14 +319,20 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenListParameterIsUsedInInPredicate_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(ids: int[])
             select Name from #A.Entities()
             where Id in $ids
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new List<int> { 2, 4 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "ids",
+            new List<int> { 2, 4 }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -243,13 +343,19 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenReadOnlyListParameterIsUsedInInPredicate_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(ids: int[])
             select Name from #A.Entities()
             where Id in $ids";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", Array.AsReadOnly(new[] { 3 }));
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "ids",
+            Array.AsReadOnly(new[] { 3 })
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -260,14 +366,20 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenStringArrayParameterIsUsedInInPredicate_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(cities: string[])
             select Name from #A.Entities()
             where City in $cities
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "cities", new[] { "Warsaw", "Paris" });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "cities",
+            new[] { "Warsaw", "Paris" }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -278,14 +390,20 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenArrayParameterIsUsedInNotInPredicate_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(ids: int[])
             select Name from #A.Entities()
             where Id not in $ids
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new[] { 1, 3 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "ids",
+            new[] { 1, 3 }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -296,7 +414,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
     [TestMethod]
     public void WhenParametersAreUsedInWindowPartitionOrderAndProjection_ShouldRun()
     {
-        const string query = @"
+        const string query =
+            @"
             param(country: string, suffix: string)
             select Name,
                    RowNumber() over (
@@ -308,8 +427,18 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             where Country in ($country, 'DE')";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-window");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "suffix",
+            "-window"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -332,20 +461,59 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             {
                 "#A",
                 [
-                    new BasicEntity { Name = "Alice", Country = "PL", City = "Warsaw", Population = 120m },
-                    new BasicEntity { Name = "Bob", Country = "DE", City = "Berlin", Population = 80m },
-                    new BasicEntity { Name = "Cara", Country = "PL", City = "Krakow", Population = 200m },
-                    new BasicEntity { Name = "Dora", Country = "FR", City = "Paris", Population = 50m }
+                    new BasicEntity
+                    {
+                        Name = "Alice",
+                        Country = "PL",
+                        City = "Warsaw",
+                        Population = 120m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Bob",
+                        Country = "DE",
+                        City = "Berlin",
+                        Population = 80m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Cara",
+                        Country = "PL",
+                        City = "Krakow",
+                        Population = 200m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Dora",
+                        Country = "FR",
+                        City = "Paris",
+                        Population = 50m,
+                    },
                 ]
             },
             {
                 "#B",
                 [
-                    new BasicEntity { Name = "TargetWarsaw", Country = "PL", City = "Warsaw" },
-                    new BasicEntity { Name = "TargetBerlin", Country = "DE", City = "Berlin" },
-                    new BasicEntity { Name = "Other", Country = "US", City = "Austin" }
+                    new BasicEntity
+                    {
+                        Name = "TargetWarsaw",
+                        Country = "PL",
+                        City = "Warsaw",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "TargetBerlin",
+                        Country = "DE",
+                        City = "Berlin",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Other",
+                        Country = "US",
+                        City = "Austin",
+                    },
                 ]
-            }
+            },
         };
     }
 
@@ -367,11 +535,29 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             {
                 "#A",
                 [
-                    new BasicEntity { Name = "Alice", Country = "PL", City = "Warsaw", Population = 120m },
-                    new BasicEntity { Name = "Ava", Country = "PL", City = "Warsaw", Population = 180m },
-                    new BasicEntity { Name = "Bob", Country = "DE", City = "Berlin", Population = 80m }
+                    new BasicEntity
+                    {
+                        Name = "Alice",
+                        Country = "PL",
+                        City = "Warsaw",
+                        Population = 120m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Ava",
+                        Country = "PL",
+                        City = "Warsaw",
+                        Population = 180m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Bob",
+                        Country = "DE",
+                        City = "Berlin",
+                        Population = 80m,
+                    },
                 ]
-            }
+            },
         };
     }
 }

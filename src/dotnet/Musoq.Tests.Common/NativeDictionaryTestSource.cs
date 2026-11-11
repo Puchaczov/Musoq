@@ -6,7 +6,8 @@ namespace Musoq.Tests.Common;
 
 public sealed class NativeDictionaryTestSource<TRow, TMaterializer>(
     IReadOnlyList<IReadOnlyDictionary<string, object?>> rows,
-    IReadOnlyList<QueryRowField> fields) : RowSourceBase<TRow>
+    IReadOnlyList<QueryRowField> fields
+) : RowSourceBase<TRow>
     where TMaterializer : struct, IQueryRowMaterializer<TRow>
 {
     protected override void CollectChunks(IChunkWriter<TRow> writer)
@@ -22,7 +23,9 @@ public sealed class NativeDictionaryTestSource<TRow, TMaterializer>(
 }
 
 public ref struct NativeDictionaryTestReader(
-    IReadOnlyDictionary<string, object?> row, IReadOnlyList<QueryRowField> fields) : IQuerySourceFieldReader
+    IReadOnlyDictionary<string, object?> row,
+    IReadOnlyList<QueryRowField> fields
+) : IQuerySourceFieldReader
 {
     public T Read<T>(int slot)
     {

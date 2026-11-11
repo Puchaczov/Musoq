@@ -11,7 +11,7 @@ public sealed partial class ExpressionConverter
         {
             Stability = ResolveColumnStability(alias, name),
             EnumType = ResolveColumnEnumType(alias, name),
-            SourceColumnIndex = node.SourceColumnIndex
+            SourceColumnIndex = node.SourceColumnIndex,
         };
     }
 }

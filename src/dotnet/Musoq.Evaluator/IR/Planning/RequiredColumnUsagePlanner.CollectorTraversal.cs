@@ -17,8 +17,8 @@ internal static partial class RequiredColumnUsagePlanner
             {
                 Collect(cte.Query);
 
-                var materializedDefinitions = cte.Definitions
-                    .Where(definition => RequiresMaterializedDefinition(cte, definition.Name))
+                var materializedDefinitions = cte
+                    .Definitions.Where(definition => RequiresMaterializedDefinition(cte, definition.Name))
                     .Select(static definition => definition.Name)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -117,7 +117,8 @@ internal static partial class RequiredColumnUsagePlanner
 
         private void AddProjectedFields(
             IReadOnlyList<ProjectedField> fields,
-            IReadOnlySet<string> requiredOutputColumns)
+            IReadOnlySet<string> requiredOutputColumns
+        )
         {
             foreach (var field in fields)
             {
@@ -130,9 +131,11 @@ internal static partial class RequiredColumnUsagePlanner
         private void CollectCteDefinition(CteDefinition definition, bool materialized)
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            if (!materialized &&
-                _requiredColumnsByCteName.TryGetValue(definition.Name, out var requiredColumns) &&
-                requiredColumns.Count > 0)
+            if (
+                !materialized
+                && _requiredColumnsByCteName.TryGetValue(definition.Name, out var requiredColumns)
+                && requiredColumns.Count > 0
+            )
             {
                 CollectCteDefinitionPlan(definition.Plan, requiredColumns);
                 return;
@@ -144,17 +147,17 @@ internal static partial class RequiredColumnUsagePlanner
         private bool RequiresMaterializedDefinition(CteNode cte, string cteName)
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            return CountCteReferences(cte, cteName) != 1 ||
-                   !IsTerminalReadOnceReference(cte.Query, cteName);
+            return CountCteReferences(cte, cteName) != 1 || !IsTerminalReadOnceReference(cte.Query, cteName);
         }
 
         private int CountCteReferences(LogicalNode node, string cteName)
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            var count = node is CteRefNode reference &&
-                        string.Equals(reference.CteName, cteName, StringComparison.OrdinalIgnoreCase)
-                ? 1
-                : 0;
+            var count =
+                node is CteRefNode reference
+                && string.Equals(reference.CteName, cteName, StringComparison.OrdinalIgnoreCase)
+                    ? 1
+                    : 0;
 
             foreach (var child in node.Children)
             {
@@ -171,13 +174,11 @@ internal static partial class RequiredColumnUsagePlanner
             if (node is MultiStatementNode { Statements.Length: 1 } multiStatement)
                 return IsTerminalReadOnceReference(multiStatement.Statements[0], cteName);
 
-            return node is ProjectNode { IsDistinct: false, Input: CteRefNode reference } &&
-                   string.Equals(reference.CteName, cteName, StringComparison.OrdinalIgnoreCase);
+            return node is ProjectNode { IsDistinct: false, Input: CteRefNode reference }
+                && string.Equals(reference.CteName, cteName, StringComparison.OrdinalIgnoreCase);
         }
 
-        private void CollectCteDefinitionPlan(
-            LogicalNode node,
-            IReadOnlySet<string> requiredOutputColumns)
+        private void CollectCteDefinitionPlan(LogicalNode node, IReadOnlySet<string> requiredOutputColumns)
         {
             _cancellationToken.ThrowIfCancellationRequested();
             if (node is MultiStatementNode { Statements.Length: 1 } multiStatement)
@@ -196,9 +197,7 @@ internal static partial class RequiredColumnUsagePlanner
             Collect(node);
         }
 
-        private bool ContainsOutputColumn(
-            IReadOnlySet<string> requiredOutputColumns,
-            string outputName)
+        private bool ContainsOutputColumn(IReadOnlySet<string> requiredOutputColumns, string outputName)
         {
             if (requiredOutputColumns.Contains(outputName))
                 return true;
@@ -206,8 +205,10 @@ internal static partial class RequiredColumnUsagePlanner
             foreach (var required in requiredOutputColumns)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                if (outputName.EndsWith($".{required}", StringComparison.OrdinalIgnoreCase) ||
-                    required.EndsWith($".{outputName}", StringComparison.OrdinalIgnoreCase))
+                if (
+                    outputName.EndsWith($".{required}", StringComparison.OrdinalIgnoreCase)
+                    || required.EndsWith($".{outputName}", StringComparison.OrdinalIgnoreCase)
+                )
                     return true;
             }
 
@@ -221,9 +222,7 @@ internal static partial class RequiredColumnUsagePlanner
                 : RequiredColumnUsageReason.Projection;
         }
 
-        private void AddOrderFields(
-            IReadOnlyList<OrderField> fields,
-            RequiredColumnUsageReason reason)
+        private void AddOrderFields(IReadOnlyList<OrderField> fields, RequiredColumnUsageReason reason)
         {
             foreach (var field in fields)
             {
@@ -265,8 +264,8 @@ internal static partial class RequiredColumnUsagePlanner
             AddColumn(
                 propertySource.SourceAlias,
                 propertySource.PropertiesChain[0].PropertyName,
-                RequiredColumnUsageReason.ApplyCorrelation);
+                RequiredColumnUsageReason.ApplyCorrelation
+            );
         }
-
     }
 }

@@ -10,25 +10,24 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_WithUnionSubquery_ShouldWork()
     {
-        var query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (SELECT b.City FROM #B.entities() b UNION (City) SELECT c.City FROM #C.entities() c)";
+        var query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (SELECT b.City FROM #B.entities() b UNION (City) SELECT c.City FROM #C.entities() c)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("PRAGUE", "CZECH", 200)
+                    new BasicEntity("PRAGUE", "CZECH", 200),
                 ]
             },
-            {
-                "#B", [new BasicEntity("WARSAW", "POLAND", 500)]
-            },
-            {
-                "#C", [new BasicEntity("BERLIN", "GERMANY", 250)]
-            }
+            { "#B", [new BasicEntity("WARSAW", "POLAND", 500)] },
+            { "#C", [new BasicEntity("BERLIN", "GERMANY", 250)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -41,25 +40,23 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_SubqueryHasDuplicates_ShouldNotMultiplyRows()
     {
-        var query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (SELECT b.City FROM #B.entities() b)";
+        var query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (SELECT b.City FROM #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("BERLIN", "GERMANY", 250)] },
             {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
-                ]
-            },
-            {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 400),
-                    new BasicEntity("WARSAW", "POLAND", 300)
+                    new BasicEntity("WARSAW", "POLAND", 300),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -72,20 +69,16 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_EmptyOuterSource_ShouldReturnEmpty()
     {
-        var query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (SELECT b.City FROM #B.entities() b)";
+        var query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (SELECT b.City FROM #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", Array.Empty<BasicEntity>()
-            },
-            {
-                "#B", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", Array.Empty<BasicEntity>() },
+            { "#B", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -98,20 +91,16 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenNotInSubquery_EmptyOuterSource_ShouldReturnEmpty()
     {
-        var query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City NOT IN (SELECT b.City FROM #B.entities() b)";
+        var query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City NOT IN (SELECT b.City FROM #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", Array.Empty<BasicEntity>()
-            },
-            {
-                "#B", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", Array.Empty<BasicEntity>() },
+            { "#B", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -124,22 +113,16 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_SingleRowMatch_ShouldReturnOne()
     {
-        var query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (SELECT b.City FROM #B.entities() b)";
+        var query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (SELECT b.City FROM #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
+            { "#B", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -152,25 +135,23 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_SelectMultipleColumns_ShouldWork()
     {
-        var query = @"
-            SELECT a.City, a.Country, a.Population FROM #A.entities() a
-            WHERE a.City IN (SELECT b.City FROM #B.entities() b)";
+        var query = (
+            "\n"
+            + "            SELECT a.City, a.Country, a.Population FROM #A.entities() a\n"
+            + "            WHERE a.City IN (SELECT b.City FROM #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("PARIS", "FRANCE", 300)
+                    new BasicEntity("PARIS", "FRANCE", 300),
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("PARIS", "FRANCE", 300)
-                ]
-            }
+            { "#B", [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("PARIS", "FRANCE", 300)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -180,34 +161,35 @@ public partial class SubqueryTests
             table,
             ("City", typeof(string)),
             ("Country", typeof(string)),
-            ("Population", typeof(decimal)));
+            ("Population", typeof(decimal))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["WARSAW", "POLAND", 500m],
-            ["PARIS", "FRANCE", 300m]);
+            ["PARIS", "FRANCE", 300m]
+        );
     }
 
     [TestMethod]
     public void WhenInSubquery_WithExpressionOnLeftSide_ShouldWork()
     {
-        var query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE (a.Population + 100) IN (SELECT b.Population FROM #B.entities() b)";
+        var query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE (a.Population + 100) IN (SELECT b.Population FROM #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 400),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("PARIS", "FRANCE", 300)
+                    new BasicEntity("PARIS", "FRANCE", 300),
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("X", "Y", 500)
-                ]
-            }
+            { "#B", [new BasicEntity("X", "Y", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -216,5 +198,4 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"]);
     }
-
 }

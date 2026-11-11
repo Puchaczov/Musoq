@@ -26,11 +26,7 @@ public sealed class OptimizerContextOptionGuardrailTests
         var options = new OptimizationOptions { ConstantFoldingEnabled = false };
         var state = new OptimizationContextState();
 
-        var context = new OptimizationContext(
-            OptimizationStage.LogicalOptimization,
-            trace: null,
-            options,
-            state);
+        var context = new OptimizationContext(OptimizationStage.LogicalOptimization, trace: null, options, state);
 
         Assert.AreSame(options, context.Options);
         Assert.AreSame(state, context.State);
@@ -41,7 +37,8 @@ public sealed class OptimizerContextOptionGuardrailTests
     {
         Assert.IsNull(
             CompilerContractSymbols.For(typeof(OptimizationContext)).GetProperty("Properties"),
-            "Optimizer state must flow through OptimizationOptions and OptimizationContextState, not a raw property bag.");
+            "Optimizer state must flow through OptimizationOptions and OptimizationContextState, not a raw property bag."
+        );
     }
 
     [TestMethod]
@@ -63,7 +60,8 @@ public sealed class OptimizerContextOptionGuardrailTests
             OptimizationStage.LogicalOptimization,
             trace: null,
             new OptimizationOptions { ConstantFoldingEnabled = false },
-            OptimizationContextState.Empty);
+            OptimizationContextState.Empty
+        );
 
         var result = new LogicalConstantFoldingPass().Optimize(plan, context);
 
@@ -79,7 +77,8 @@ public sealed class OptimizerContextOptionGuardrailTests
             OptimizationStage.LogicalOptimization,
             trace: null,
             new OptimizationOptions { ConstantFoldingEnabled = true },
-            OptimizationContextState.Empty);
+            OptimizationContextState.Empty
+        );
 
         var result = new LogicalConstantFoldingPass().Optimize(plan, context);
 
@@ -91,10 +90,7 @@ public sealed class OptimizerContextOptionGuardrailTests
 
     private static ProjectNode BuildFoldablePlan()
     {
-        var input = new ValuesScanNode(
-            "v",
-            [],
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+        var input = new ValuesScanNode("v", [], new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
 
         return new ProjectNode(
             [
@@ -104,9 +100,12 @@ public sealed class OptimizerContextOptionGuardrailTests
                         BinaryOpKind.Add,
                         new Literal(1, typeof(int)),
                         new Literal(2, typeof(int)),
-                        typeof(int)),
-                    0)
+                        typeof(int)
+                    ),
+                    0
+                ),
             ],
-            input);
+            input
+        );
     }
 }

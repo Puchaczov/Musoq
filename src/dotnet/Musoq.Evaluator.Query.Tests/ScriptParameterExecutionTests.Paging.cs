@@ -9,10 +9,13 @@ public partial class ScriptParameterExecutionTests
     [TestMethod]
     public void Paging_DefaultsAndRepeatedOverrides_ShouldUseCurrentExecutionValues()
     {
-        using var query = CreateAndRunVirtualMachine("""
+        using var query = CreateAndRunVirtualMachine(
+            """
             params(offset: int = 0, limit: int = 1)
             select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit
-            """, CreateEnvironmentVariableSources());
+            """,
+            CreateEnvironmentVariableSources()
+        );
         Assert.AreEqual("KEY_1", query.Run(TestContext.CancellationToken)[0].ReadValue(0));
         NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 1);
         Assert.AreEqual("KEY_2", query.Run(TestContext.CancellationToken)[0].ReadValue(0));
@@ -30,7 +33,10 @@ public partial class ScriptParameterExecutionTests
     [DataRow("skip 0 take $count", 1)]
     public void Paging_UnorderedReferences_ShouldSliceRows(string paging, int expectedCount)
     {
-        using var query = CreateAndRunVirtualMachine($"param(count: int = 1) select Key from #EnvironmentVariables.All() {paging}", CreateEnvironmentVariableSources());
+        using var query = CreateAndRunVirtualMachine(
+            $"param(count: int = 1) select Key from #EnvironmentVariables.All() {paging}",
+            CreateEnvironmentVariableSources()
+        );
         Assert.AreEqual(expectedCount, query.Run(TestContext.CancellationToken).Count);
     }
 
@@ -46,7 +52,10 @@ public partial class ScriptParameterExecutionTests
     [DataRow("int?", 1)]
     public void Paging_IntegralParameter_ShouldAcceptTypedCount(string type, object value)
     {
-        using var query = CreateAndRunVirtualMachine($"param(count: {type}) select Key from #EnvironmentVariables.All() order by Key skip $count take 1", CreateEnvironmentVariableSources());
+        using var query = CreateAndRunVirtualMachine(
+            $"param(count: {type}) select Key from #EnvironmentVariables.All() order by Key skip $count take 1",
+            CreateEnvironmentVariableSources()
+        );
         NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "count", value);
         Assert.AreEqual("KEY_2", query.Run(TestContext.CancellationToken)[0].ReadValue(0));
     }
@@ -58,9 +67,14 @@ public partial class ScriptParameterExecutionTests
     [DataRow("int?", null)]
     public void Paging_InvalidRuntimeCount_ShouldReportStructuredError(string type, object? value)
     {
-        using var query = CreateAndRunVirtualMachine($"param(count: {type}) select Key from #EnvironmentVariables.All() take $count", CreateEnvironmentVariableSources());
+        using var query = CreateAndRunVirtualMachine(
+            $"param(count: {type}) select Key from #EnvironmentVariables.All() take $count",
+            CreateEnvironmentVariableSources()
+        );
         NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "count", value);
-        var exception = Assert.ThrowsExactly<PagingCountException>(() => _ = query.Run(TestContext.CancellationToken).Count);
+        var exception = Assert.ThrowsExactly<PagingCountException>(() =>
+            _ = query.Run(TestContext.CancellationToken).Count
+        );
         Assert.AreEqual(DiagnosticCode.MQ7019_InvalidRuntimePagingCount, exception.Code);
         StringAssert.Contains(exception.Message, "TAKE count '$count'");
     }
@@ -70,7 +84,10 @@ public partial class ScriptParameterExecutionTests
     [DataRow("let limit: long = 1L", "take $limit", "KEY_1")]
     public void Paging_LetCount_ShouldFoldConstant(string declaration, string paging, string expected)
     {
-        using var query = CreateAndRunVirtualMachine($"{declaration} select Key from #EnvironmentVariables.All() order by Key {paging}", CreateEnvironmentVariableSources());
+        using var query = CreateAndRunVirtualMachine(
+            $"{declaration} select Key from #EnvironmentVariables.All() order by Key {paging}",
+            CreateEnvironmentVariableSources()
+        );
         Assert.AreEqual(expected, query.Run(TestContext.CancellationToken)[0].ReadValue(0));
     }
 
@@ -80,20 +97,44 @@ public partial class ScriptParameterExecutionTests
     [DataRow("skip $count take $count", 0)]
     public void Paging_MaximumCount_ShouldNotOverflow(string paging, int expected)
     {
-        using var query = CreateAndRunVirtualMachine($"param(count: int = 2147483647) select Key from #EnvironmentVariables.All() order by Key {paging}", CreateEnvironmentVariableSources());
+        using var query = CreateAndRunVirtualMachine(
+            $"param(count: int = 2147483647) select Key from #EnvironmentVariables.All() order by Key {paging}",
+            CreateEnvironmentVariableSources()
+        );
         Assert.AreEqual(expected, query.Run(TestContext.CancellationToken).Count);
     }
 
     [TestMethod]
-    [DataRow("with rows as (select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit) select Key from rows", "KEY_2")]
-    [DataRow("select r.Key from (select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit) r", "KEY_2")]
-    [DataRow("select Key from #EnvironmentVariables.All() union all select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit", "KEY_1")]
-    [DataRow("select Key, Count(*) from #EnvironmentVariables.All() group by Key order by Key skip $offset take $limit", "KEY_2")]
-    [DataRow("select a.Key from #EnvironmentVariables.All() a inner join #EnvironmentVariables.All() b on a.Key = b.Key order by a.Key skip $offset take $limit", "KEY_2")]
-    [DataRow("select (select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit) as Chosen from #EnvironmentVariables.All()", "KEY_2")]
+    [DataRow(
+        "with rows as (select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit) select Key from rows",
+        "KEY_2"
+    )]
+    [DataRow(
+        "select r.Key from (select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit) r",
+        "KEY_2"
+    )]
+    [DataRow(
+        "select Key from #EnvironmentVariables.All() union all select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit",
+        "KEY_1"
+    )]
+    [DataRow(
+        "select Key, Count(*) from #EnvironmentVariables.All() group by Key order by Key skip $offset take $limit",
+        "KEY_2"
+    )]
+    [DataRow(
+        "select a.Key from #EnvironmentVariables.All() a inner join #EnvironmentVariables.All() b on a.Key = b.Key order by a.Key skip $offset take $limit",
+        "KEY_2"
+    )]
+    [DataRow(
+        "select (select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit) as Chosen from #EnvironmentVariables.All()",
+        "KEY_2"
+    )]
     public void Paging_QueryBoundaries_ShouldCaptureRuntimeCounts(string sql, string expected)
     {
-        using var query = CreateAndRunVirtualMachine($"params(offset: int = 1, limit: int = 1) {sql}", CreateEnvironmentVariableSources());
+        using var query = CreateAndRunVirtualMachine(
+            $"params(offset: int = 1, limit: int = 1) {sql}",
+            CreateEnvironmentVariableSources()
+        );
         Assert.AreEqual(expected, query.Run(TestContext.CancellationToken)[0].ReadValue(0));
     }
 }

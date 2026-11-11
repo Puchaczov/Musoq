@@ -11,8 +11,7 @@ internal static class MethodTargetScopeFacts
         if (!string.IsNullOrWhiteSpace(prefix))
             return prefix;
 
-        return ContainsAggregateGroupLookup(block) &&
-               !string.IsNullOrWhiteSpace(currentTableTargetNamePrefix)
+        return ContainsAggregateGroupLookup(block) && !string.IsNullOrWhiteSpace(currentTableTargetNamePrefix)
             ? currentTableTargetNamePrefix
             : string.Empty;
     }
@@ -21,8 +20,9 @@ internal static class MethodTargetScopeFacts
     {
         const string windowRowsSuffix = "WindowRows";
 
-        return bufferName.EndsWith(windowRowsSuffix, StringComparison.Ordinal) &&
-               bufferName.Length > windowRowsSuffix.Length
+        return
+            bufferName.EndsWith(windowRowsSuffix, StringComparison.Ordinal)
+            && bufferName.Length > windowRowsSuffix.Length
             ? bufferName[..^windowRowsSuffix.Length]
             : bufferName;
     }
@@ -51,18 +51,21 @@ internal static class MethodTargetScopeFacts
             ExecutionIf branch => GetTablePrefix(branch.Body),
             ExecutionHashProbe probe => FirstNonEmpty(
                 GetTablePrefix(probe.Body),
-                probe.NoMatchBody != null ? GetTablePrefix(probe.NoMatchBody) : string.Empty),
+                probe.NoMatchBody != null ? GetTablePrefix(probe.NoMatchBody) : string.Empty
+            ),
             ExecutionKeySetProbe probe => FirstNonEmpty(
                 GetTablePrefix(probe.Body),
-                probe.NoMatchBody != null ? GetTablePrefix(probe.NoMatchBody) : string.Empty),
+                probe.NoMatchBody != null ? GetTablePrefix(probe.NoMatchBody) : string.Empty
+            ),
             ExecutionAsOfProbe probe => FirstNonEmpty(
                 GetTablePrefix(probe.Body),
-                probe.NoMatchBody != null ? GetTablePrefix(probe.NoMatchBody) : string.Empty),
+                probe.NoMatchBody != null ? GetTablePrefix(probe.NoMatchBody) : string.Empty
+            ),
             ExecutionRangeProbe probe => GetTablePrefix(probe.Body),
             ExecutionForEach loop => GetTablePrefix(loop.Body),
             ExecutionForEachWithOrdinality loop => GetTablePrefix(loop.Body),
             ExecutionForEachIndexed loop => GetTablePrefix(loop.Body),
-            _ => string.Empty
+            _ => string.Empty,
         };
     }
 
@@ -77,17 +80,17 @@ internal static class MethodTargetScopeFacts
         {
             ExecutionGetOrAddSingleKeyAggregateGroup or ExecutionGetOrAddValueTupleAggregateGroup => true,
             ExecutionIf branch => ContainsAggregateGroupLookup(branch.Body),
-            ExecutionHashProbe probe => ContainsAggregateGroupLookup(probe.Body) ||
-                                        (probe.NoMatchBody != null && ContainsAggregateGroupLookup(probe.NoMatchBody)),
-            ExecutionKeySetProbe probe => ContainsAggregateGroupLookup(probe.Body) ||
-                                           (probe.NoMatchBody != null && ContainsAggregateGroupLookup(probe.NoMatchBody)),
-            ExecutionAsOfProbe probe => ContainsAggregateGroupLookup(probe.Body) ||
-                                         (probe.NoMatchBody != null && ContainsAggregateGroupLookup(probe.NoMatchBody)),
+            ExecutionHashProbe probe => ContainsAggregateGroupLookup(probe.Body)
+                || (probe.NoMatchBody != null && ContainsAggregateGroupLookup(probe.NoMatchBody)),
+            ExecutionKeySetProbe probe => ContainsAggregateGroupLookup(probe.Body)
+                || (probe.NoMatchBody != null && ContainsAggregateGroupLookup(probe.NoMatchBody)),
+            ExecutionAsOfProbe probe => ContainsAggregateGroupLookup(probe.Body)
+                || (probe.NoMatchBody != null && ContainsAggregateGroupLookup(probe.NoMatchBody)),
             ExecutionRangeProbe probe => ContainsAggregateGroupLookup(probe.Body),
             ExecutionForEach loop => ContainsAggregateGroupLookup(loop.Body),
             ExecutionForEachWithOrdinality loop => ContainsAggregateGroupLookup(loop.Body),
             ExecutionForEachIndexed loop => ContainsAggregateGroupLookup(loop.Body),
-            _ => false
+            _ => false,
         };
     }
 
@@ -95,8 +98,9 @@ internal static class MethodTargetScopeFacts
     {
         const string rootGroupSuffix = "RootGroup";
 
-        return rootGroupName.EndsWith(rootGroupSuffix, StringComparison.Ordinal) &&
-               rootGroupName.Length > rootGroupSuffix.Length
+        return
+            rootGroupName.EndsWith(rootGroupSuffix, StringComparison.Ordinal)
+            && rootGroupName.Length > rootGroupSuffix.Length
             ? rootGroupName[..^rootGroupSuffix.Length]
             : string.Empty;
     }
@@ -106,4 +110,3 @@ internal static class MethodTargetScopeFacts
         return string.IsNullOrWhiteSpace(first) ? second : first;
     }
 }
-

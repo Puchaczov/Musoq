@@ -49,7 +49,10 @@ public static partial class SafeArrayAccess
         return GetTypedDictionaryValue<TDictionary, TKey, TValue>(values, key.Value);
     }
 
-    public static TValue? GetTypedNullableMutableDictionaryValue<TDictionary, TKey, TValue>(TDictionary? values, TKey? key)
+    public static TValue? GetTypedNullableMutableDictionaryValue<TDictionary, TKey, TValue>(
+        TDictionary? values,
+        TKey? key
+    )
         where TDictionary : IDictionary<TKey, TValue>
         where TKey : struct
     {

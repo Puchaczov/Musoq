@@ -22,15 +22,12 @@ internal enum ExecutionTargetFeatureKind
     StringMatchKind,
     StringMatchComparison,
     LikeMatcherStrategy,
-    RLikeMatcherStrategy
+    RLikeMatcherStrategy,
 }
 
 internal sealed record ExecutionTargetFeature
 {
-    public ExecutionTargetFeature(
-        ExecutionTargetFeatureKind kind,
-        string stableId,
-        string detail)
+    public ExecutionTargetFeature(ExecutionTargetFeatureKind kind, string stableId, string detail)
     {
         if (string.IsNullOrWhiteSpace(stableId))
             throw new ArgumentException("Feature id cannot be empty.", nameof(stableId));
@@ -55,10 +52,11 @@ internal sealed record ExecutionTargetFeatureReport
     {
         Features = new ReadOnlyCollection<ExecutionTargetFeature>(
             (features ?? [])
-            .Distinct()
-            .OrderBy(static feature => feature.Kind)
-            .ThenBy(static feature => feature.StableId, StringComparer.Ordinal)
-            .ToArray());
+                .Distinct()
+                .OrderBy(static feature => feature.Kind)
+                .ThenBy(static feature => feature.StableId, StringComparer.Ordinal)
+                .ToArray()
+        );
     }
 
     public IReadOnlyList<ExecutionTargetFeature> Features { get; }

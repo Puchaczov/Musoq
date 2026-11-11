@@ -1,12 +1,20 @@
 namespace Musoq.Evaluator.Tables;
+
 public partial class Table
 {
     private IDisposable? _lifetimeLease;
+
     public void Dispose() => DetachLifetimeLease()?.Dispose();
+
     internal bool HasDeferredMaterialization
     {
-        get { lock (_guard) return _deferredMaterializer != null; }
+        get
+        {
+            lock (_guard)
+                return _deferredMaterializer != null;
+        }
     }
+
     internal bool TryAttachLifetimeLease(IDisposable lease)
     {
         lock (_guard)
@@ -19,6 +27,7 @@ public partial class Table
             return true;
         }
     }
+
     internal IDisposable? DetachLifetimeLease()
     {
         lock (_guard)

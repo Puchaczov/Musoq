@@ -2,15 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
-using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
 [global::Musoq.Tests.Common.CultureTestClass]
 public class EscapeTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void WhenBackslashEscaped_ShouldBePresent()
     {
@@ -260,13 +259,6 @@ public class EscapeTests : BasicEntityTestBase
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateSource()
     {
-        return new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        return new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
     }
 }

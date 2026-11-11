@@ -7,9 +7,7 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class CteColumnListValidator
 {
-    public static bool TryFindDuplicate(
-        CteInnerExpressionNode definition,
-        out DuplicateCteColumnFailure failure)
+    public static bool TryFindDuplicate(CteInnerExpressionNode definition, out DuplicateCteColumnFailure failure)
     {
         ArgumentNullException.ThrowIfNull(definition);
 
@@ -20,11 +18,9 @@ internal static class CteColumnListValidator
                 continue;
 
             failure = new DuplicateCteColumnFailure(
-                ErrorCatalog.GetMessage(
-                    DiagnosticCode.MQ3078_DuplicateCteColumnName,
-                    definition.Name,
-                    column.Name),
-                column.Span);
+                ErrorCatalog.GetMessage(DiagnosticCode.MQ3078_DuplicateCteColumnName, definition.Name, column.Name),
+                column.Span
+            );
             return true;
         }
 

@@ -10,10 +10,7 @@ public class SchemaParserSubstreamTests : SchemaParserTestsBase
 {
     private static SubstreamTypeNode ParseSubstream(string payloadField)
     {
-        var schema = $@"binary Packet {{
-            Length: uint le,
-            Payload: {payloadField}
-        }}";
+        var schema = $"binary Packet {{\n            Length: uint le,\n            Payload: {payloadField}\n        }}";
 
         var result = ParseBinarySchema(schema);
         var payload = (FieldDefinitionNode)result.Fields[1];
@@ -105,8 +102,7 @@ public class SchemaParserSubstreamTests : SchemaParserTestsBase
     [TestMethod]
     public void Substream_AsSwitch_ShouldCaptureSwitchTarget()
     {
-        var substream = ParseSubstream(
-            "substream[Length] as switch Kind { 1 => A: ABody, _ => Raw: byte[Length] }");
+        var substream = ParseSubstream("substream[Length] as switch Kind { 1 => A: ABody, _ => Raw: byte[Length] }");
 
         Assert.IsInstanceOfType<BinarySwitchTypeNode>(substream.Target);
     }
@@ -181,11 +177,13 @@ public class SchemaParserSubstreamTests : SchemaParserTestsBase
     [TestMethod]
     public void Substream_MissingRawOrAs_ShouldReportModifierDiagnostic()
     {
-        var schema = @"binary Packet {
-            Length: uint le,
-            Payload: substream[Length],
-            Checksum: uint le
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Length: uint le,\n"
+            + "            Payload: substream[Length],\n"
+            + "            Checksum: uint le\n"
+            + "        }"
+        );
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
         Assert.AreEqual(DiagnosticCode.MQ4014_InvalidSubstreamModifier, exception.Code);
@@ -194,8 +192,9 @@ public class SchemaParserSubstreamTests : SchemaParserTestsBase
     [TestMethod]
     public void Substream_InvalidMode_ShouldReportModifierDiagnostic()
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(
-            () => ParseSubstream("substream[Length] as PayloadBody bogus"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseSubstream("substream[Length] as PayloadBody bogus")
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4014_InvalidSubstreamModifier, exception.Code);
     }
@@ -203,8 +202,7 @@ public class SchemaParserSubstreamTests : SchemaParserTestsBase
     [TestMethod]
     public void Substream_NegativeConstantSize_ShouldReportInvalidFieldDiagnostic()
     {
-        var exception = Assert.ThrowsExactly<SyntaxException>(
-            () => ParseSubstream("substream[-1] raw"));
+        var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseSubstream("substream[-1] raw"));
 
         Assert.AreEqual(DiagnosticCode.MQ4001_InvalidBinarySchemaField, exception.Code);
     }
@@ -212,10 +210,12 @@ public class SchemaParserSubstreamTests : SchemaParserTestsBase
     [TestMethod]
     public void Substream_EmptyTargetAfterAs_ShouldReportTargetDiagnostic()
     {
-        var schema = @"binary Packet {
-            Length: uint le,
-            Payload: substream[Length] as
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Length: uint le,\n"
+            + "            Payload: substream[Length] as\n"
+            + "        }"
+        );
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
         Assert.AreEqual(DiagnosticCode.MQ4015_InvalidSubstreamTarget, exception.Code);

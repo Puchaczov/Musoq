@@ -18,7 +18,8 @@ public sealed record ExecutionComputeOffsetWindow : ExecutionNode
         ExecutionWindowKeyArray? partitionKeyArray = null,
         ExecutionWindowKeyArray? orderKeyArray = null,
         ExecutionWindowPartitionSet? partitions = null,
-        ExecutionWindowPartitionSet? sortedPartitions = null)
+        ExecutionWindowPartitionSet? sortedPartitions = null
+    )
     {
         Buffer = buffer;
         Item = item;

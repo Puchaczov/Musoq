@@ -22,17 +22,19 @@ internal static partial class ApplyPredicateMovementPlanner
                     return null;
 
                 var sourceAlias = column.ColumnName[..separator];
-                var isKnownCteAlias = scope.SourceAliasesByCteAlias.TryGetValue(
-                    column.Alias,
-                    out var sourceAliases);
-                return ((isKnownCteAlias && sourceAliases is not null && sourceAliases.Contains(sourceAlias)) ||
-                        (!isKnownCteAlias &&
-                         !boundaryAliases.Contains(column.Alias) &&
-                         boundaryAliases.Contains(sourceAlias)))
+                var isKnownCteAlias = scope.SourceAliasesByCteAlias.TryGetValue(column.Alias, out var sourceAliases);
+                return (
+                    (isKnownCteAlias && sourceAliases is not null && sourceAliases.Contains(sourceAlias))
+                    || (
+                        !isKnownCteAlias
+                        && !boundaryAliases.Contains(column.Alias)
+                        && boundaryAliases.Contains(sourceAlias)
+                    )
+                )
                     ? column with
                     {
                         Alias = sourceAlias,
-                        ColumnName = column.ColumnName[(separator + 1)..]
+                        ColumnName = column.ColumnName[(separator + 1)..],
                     }
                     : null;
             });
@@ -40,18 +42,15 @@ internal static partial class ApplyPredicateMovementPlanner
             return rewriter.Rewrite(predicate);
         }
 
-        private static IrExpression RewriteForBoundary(
-            IrExpression predicate,
-            ApplyBoundary boundary)
+        private static IrExpression RewriteForBoundary(IrExpression predicate, ApplyBoundary boundary)
         {
-            if (boundary.Apply.Left is not CteRefNode cteRef ||
-                string.IsNullOrWhiteSpace(cteRef.Alias))
+            if (boundary.Apply.Left is not CteRefNode cteRef || string.IsNullOrWhiteSpace(cteRef.Alias))
             {
                 return predicate;
             }
 
-            var sourceAliases = boundary.LeftAliases
-                .Where(alias => !string.Equals(alias, cteRef.Alias, StringComparison.OrdinalIgnoreCase))
+            var sourceAliases = boundary
+                .LeftAliases.Where(alias => !string.Equals(alias, cteRef.Alias, StringComparison.OrdinalIgnoreCase))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             if (sourceAliases.Count == 0)
                 return predicate;
@@ -64,7 +63,7 @@ internal static partial class ApplyPredicateMovementPlanner
                 return column with
                 {
                     Alias = cteRef.Alias,
-                    ColumnName = string.Concat(column.Alias, ".", column.ColumnName)
+                    ColumnName = string.Concat(column.Alias, ".", column.ColumnName),
                 };
             });
 
@@ -73,10 +72,10 @@ internal static partial class ApplyPredicateMovementPlanner
 
         private static IReadOnlyDictionary<string, IReadOnlySet<string>> CreateSourceAliasesByCteAlias(
             IReadOnlyDictionary<string, LogicalNode> definitions,
-            IEnumerable<CteRefNode> references)
+            IEnumerable<CteRefNode> references
+        )
         {
-            var aliasesByCteAlias = new Dictionary<string, IReadOnlySet<string>>(
-                StringComparer.OrdinalIgnoreCase);
+            var aliasesByCteAlias = new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase);
             foreach (var reference in references)
             {
                 var sourceAliases = definitions.TryGetValue(reference.CteName, out var definition)
@@ -96,7 +95,8 @@ internal static partial class ApplyPredicateMovementPlanner
         private static void CollectCteDefinitionsAndReferences(
             LogicalNode node,
             IDictionary<string, LogicalNode> definitions,
-            ICollection<CteRefNode> references)
+            ICollection<CteRefNode> references
+        )
         {
             if (node is CteNode cte)
             {

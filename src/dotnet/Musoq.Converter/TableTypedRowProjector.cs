@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Collections.Generic;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.TypedOutput;
 
@@ -27,11 +27,17 @@ internal sealed class TableTypedRowProjector<TOut>(System.Func<Row, TOut> projec
     private static Expression CreateOutput(TypedOutputBindingPlan binding, ParameterExpression row)
     {
         if (binding.Constructor is not null)
-            return Expression.New(binding.Constructor, binding.ConstructorBindings.Select(argument =>
-                ReadColumn(row, argument.Column, argument.TargetType)));
+            return Expression.New(
+                binding.Constructor,
+                binding.ConstructorBindings.Select(argument => ReadColumn(row, argument.Column, argument.TargetType))
+            );
 
-        return Expression.MemberInit(Expression.New(typeof(TOut)), binding.MemberBindings.Select(member =>
-            Expression.Bind(member.Member, ReadColumn(row, member.Column, member.TargetType))));
+        return Expression.MemberInit(
+            Expression.New(typeof(TOut)),
+            binding.MemberBindings.Select(member =>
+                Expression.Bind(member.Member, ReadColumn(row, member.Column, member.TargetType))
+            )
+        );
     }
 
     private static Expression ReadColumn(ParameterExpression row, TypedOutputColumn column, System.Type targetType)

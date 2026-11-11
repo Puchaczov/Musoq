@@ -19,7 +19,6 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(input))
             return [];
 
-
         return input.Split(Separator, StringSplitOptions.None);
     }
 

@@ -40,5 +40,4 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             failures.Add($"{DynamicCteBackedAsOfJoinSampleFileName}: erased dictionary decoding returned");
         return failures.ToArray();
     }
-
 }

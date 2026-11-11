@@ -12,7 +12,8 @@ namespace Musoq.Evaluator.IR.Execution;
 internal sealed partial class PhysicalLoweringImplementation
 {
     private static IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> CollectScalarSubqueryEmptyResults(
-        PhysicalCteNode cte)
+        PhysicalCteNode cte
+    )
     {
         var results = new Dictionary<string, ScalarSubqueryEmptyResultSpec>(StringComparer.OrdinalIgnoreCase);
         foreach (var definition in cte.Definitions)
@@ -25,10 +26,7 @@ internal sealed partial class PhysicalLoweringImplementation
             if (bindings.Count != 1 || bindings[0].Kernel is not { } kernel)
                 continue;
 
-            results[definition.Name] = new ScalarSubqueryEmptyResultSpec(
-                definition.Name,
-                valueColumnName,
-                kernel);
+            results[definition.Name] = new ScalarSubqueryEmptyResultSpec(definition.Name, valueColumnName, kernel);
         }
 
         return results;
@@ -36,7 +34,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> MergeScalarSubqueryEmptyResults(
         IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> existing,
-        IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> current)
+        IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> current
+    )
     {
         if (current.Count == 0)
             return existing;
@@ -88,12 +87,15 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalNode buildNode,
         string variablePrefix,
         out string valueColumnName,
-        out ScalarSubqueryEmptyResultLowering lowering)
+        out ScalarSubqueryEmptyResultLowering lowering
+    )
     {
         valueColumnName = string.Empty;
         lowering = null!;
-        if (!TryGetScalarSubqueryCteRef(buildNode, out var cteRef) ||
-            !scope.ScalarSubqueryEmptyResults.TryGetValue(cteRef.CteName, out var spec))
+        if (
+            !TryGetScalarSubqueryCteRef(buildNode, out var cteRef)
+            || !scope.ScalarSubqueryEmptyResults.TryGetValue(cteRef.CteName, out var spec)
+        )
         {
             return false;
         }
@@ -103,32 +105,31 @@ internal sealed partial class PhysicalLoweringImplementation
         switch (kernel.ResultDescriptor.EmptyResultBehavior)
         {
             case AggregateEmptyResultBehavior.Null:
-                lowering = new ScalarSubqueryEmptyResultLowering(
-                    new ExecutionLiteral(null, kernel.ResultType),
-                    []);
+                lowering = new ScalarSubqueryEmptyResultLowering(new ExecutionLiteral(null, kernel.ResultType), []);
                 return true;
             case AggregateEmptyResultBehavior.Zero:
                 var zero = CreateClrDefaultValue(kernel.UnderlyingResultType);
-                lowering = new ScalarSubqueryEmptyResultLowering(
-                    new ExecutionLiteral(zero, kernel.ResultType),
-                    []);
+                lowering = new ScalarSubqueryEmptyResultLowering(new ExecutionLiteral(zero, kernel.ResultType), []);
                 return true;
             case AggregateEmptyResultBehavior.Custom:
-                var state = new ExecutionVariable(
-                    $"{variablePrefix}EmptyState",
-                    kernel.StateType);
-                var variable = new ExecutionVariable(
-                    $"{variablePrefix}EmptyValue",
-                    kernel.ResultType);
+                var state = new ExecutionVariable($"{variablePrefix}EmptyState", kernel.StateType);
+                var variable = new ExecutionVariable($"{variablePrefix}EmptyValue", kernel.ResultType);
                 var call = new ExecutionMethodCall(
                     kernel.GetMethod,
                     [new ExecutionVariableRead(state)],
                     null,
-                    kernel.ResultType);
+                    kernel.ResultType
+                );
                 lowering = new ScalarSubqueryEmptyResultLowering(
                     new ExecutionVariableRead(variable),
-                    [new ExecutionInitializeAggregateState(state, ExecutionClrBindingFactory.FromClr(kernel.ResetMethod)),
-                        new ExecutionLet(variable, call)]);
+                    [
+                        new ExecutionInitializeAggregateState(
+                            state,
+                            ExecutionClrBindingFactory.FromClr(kernel.ResetMethod)
+                        ),
+                        new ExecutionLet(variable, call),
+                    ]
+                );
                 return true;
             default:
                 throw new ArgumentOutOfRangeException(
@@ -136,13 +137,16 @@ internal sealed partial class PhysicalLoweringImplementation
                     kernel.ResultDescriptor.EmptyResultBehavior,
                     string.Create(
                         CultureInfo.InvariantCulture,
-                        $"Unsupported aggregate empty result behavior for '{kernel.FunctionName}'."));
+                        $"Unsupported aggregate empty result behavior for '{kernel.FunctionName}'."
+                    )
+                );
         }
     }
 
     private static bool TryGetScalarSubqueryCteRef(
         PhysicalNode node,
-        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out PhysicalCteRefNode? cteRef)
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out PhysicalCteRefNode? cteRef
+    )
     {
         while (node is PhysicalFilterNode filter)
             node = filter.Input;

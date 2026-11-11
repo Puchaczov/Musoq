@@ -5,14 +5,14 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class StoredTableBuildDiscovery
 {
-    public static bool TryGetParallelTaskResultTable(
-        ExecutionParallelTask task,
-        out ExecutionVariable table)
+    public static bool TryGetParallelTaskResultTable(ExecutionParallelTask task, out ExecutionVariable table)
     {
         foreach (var assign in task.Body.Nodes.OfType<ExecutionAssign>().Reverse())
         {
-            if (string.Equals(assign.Variable.Name, task.Output.Name, StringComparison.Ordinal) &&
-                assign.Value is ExecutionVariableRead read)
+            if (
+                string.Equals(assign.Variable.Name, task.Output.Name, StringComparison.Ordinal)
+                && assign.Value is ExecutionVariableRead read
+            )
             {
                 table = read.Variable;
                 return true;
@@ -38,9 +38,11 @@ internal static class StoredTableBuildDiscovery
                 continue;
             }
 
-            if (node is ExecutionStoreTable store &&
-                !yieldedTableIndexes.Contains(store.TableIndex) &&
-                TryCreate(nodes, index, pending, store, out var build))
+            if (
+                node is ExecutionStoreTable store
+                && !yieldedTableIndexes.Contains(store.TableIndex)
+                && TryCreate(nodes, index, pending, store, out var build)
+            )
             {
                 yieldedTableIndexes.Add(store.TableIndex);
                 yield return build;
@@ -57,16 +59,20 @@ internal static class StoredTableBuildDiscovery
         int storeIndex,
         List<ExecutionNode> pendingNodes,
         ExecutionStoreTable store,
-        out StoredTableBuild build)
+        out StoredTableBuild build
+    )
     {
         build = null!;
 
-        if (pendingNodes.Count == 0 ||
-            pendingNodes.OfType<ExecutionStoreTable>().Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionSetOperation>(new ExecutionBlock(pendingNodes)).Any() ||
-            !pendingNodes.OfType<ExecutionCreateTable>().Any(createTable =>
-                string.Equals(createTable.Table.Name, store.Table.Name, StringComparison.Ordinal)) ||
-            ExecutionIrAnalysis.IsVariableUsedAfter(nodes, storeIndex, store.Table.Name))
+        if (
+            pendingNodes.Count == 0
+            || pendingNodes.OfType<ExecutionStoreTable>().Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionSetOperation>(new ExecutionBlock(pendingNodes)).Any()
+            || !pendingNodes
+                .OfType<ExecutionCreateTable>()
+                .Any(createTable => string.Equals(createTable.Table.Name, store.Table.Name, StringComparison.Ordinal))
+            || ExecutionIrAnalysis.IsVariableUsedAfter(nodes, storeIndex, store.Table.Name)
+        )
         {
             return false;
         }
@@ -75,31 +81,29 @@ internal static class StoredTableBuildDiscovery
         var nestedPhaseSuffixes = pendingNodes
             .OfType<ExecutionPhaseBoundary>()
             .Where(static boundary =>
-                boundary.Phase == QueryPhase.Begin &&
-                !string.IsNullOrEmpty(boundary.QueryIdSuffix))
+                boundary.Phase == QueryPhase.Begin && !string.IsNullOrEmpty(boundary.QueryIdSuffix)
+            )
             .Select(static boundary => boundary.QueryIdSuffix)
             .ToHashSet(StringComparer.Ordinal);
         var trailingPhaseNodes = nodes
             .Skip(storeIndex + 1)
-            .TakeWhile(node => node is ExecutionPhaseBoundary
-            {
-                Phase: QueryPhase.End,
-                QueryIdSuffix: { Length: > 0 } suffix
-            } && nestedPhaseSuffixes.Contains(suffix))
+            .TakeWhile(node =>
+                node is ExecutionPhaseBoundary { Phase: QueryPhase.End, QueryIdSuffix: { Length: > 0 } suffix }
+                && nestedPhaseSuffixes.Contains(suffix)
+            )
             .ToArray();
-        var helperNodes = pendingNodes
-            .Where(static node => !IsEnclosingNode(node))
-            .ToArray();
+        var helperNodes = pendingNodes.Where(static node => !IsEnclosingNode(node)).ToArray();
 
         build = new StoredTableBuild(store.TableIndex, helperNodes, store.Table, [])
         {
             EnclosingNodes = enclosingNodes,
-            TrailingPhaseNodes = trailingPhaseNodes
+            TrailingPhaseNodes = trailingPhaseNodes,
         };
         return true;
     }
 
-    private static bool IsEnclosingNode(ExecutionNode node) => node is
-        ExecutionPhaseBoundary { QueryIdSuffix: null or "" } or
-        ExecutionLet { DeclarationScope: ExecutionDeclarationScope.Execution };
+    private static bool IsEnclosingNode(ExecutionNode node) =>
+        node
+            is ExecutionPhaseBoundary { QueryIdSuffix: null or "" }
+                or ExecutionLet { DeclarationScope: ExecutionDeclarationScope.Execution };
 }

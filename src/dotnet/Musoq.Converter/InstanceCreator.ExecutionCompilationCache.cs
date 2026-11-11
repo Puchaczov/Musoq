@@ -23,18 +23,26 @@ public static partial class InstanceCreator
     private const int DefaultExecutionCompilationCacheLimit = 512;
     private const int CanonicalExecutionCompilationAliasLimit = 2048;
 
-    private static readonly ConcurrentDictionary<ExecutionCompilationCacheKey, CachedExecutionCompilation>
-        ExecutionCompilationCache = new();
-    private static readonly ConcurrentDictionary<CanonicalExecutionArtifactContract, CachedExecutionCompilation>
-        CanonicalExecutionCompilationCache = new();
+    private static readonly ConcurrentDictionary<
+        ExecutionCompilationCacheKey,
+        CachedExecutionCompilation
+    > ExecutionCompilationCache = new();
+    private static readonly ConcurrentDictionary<
+        CanonicalExecutionArtifactContract,
+        CachedExecutionCompilation
+    > CanonicalExecutionCompilationCache = new();
     private static readonly object ExecutionCompilationCacheMutationSync = new();
     private static readonly List<CachedExecutionCompilation> ExecutionCompilationEntries = [];
     private static readonly object ExecutionCompilationFlightSync = new();
-    private static readonly Dictionary<ExecutionCompilationCacheKey, ExecutionCompilationFlight>
-        ExecutionCompilationFlights = new();
+    private static readonly Dictionary<
+        ExecutionCompilationCacheKey,
+        ExecutionCompilationFlight
+    > ExecutionCompilationFlights = new();
     private static readonly object CanonicalExecutionCompilationFlightSync = new();
-    private static readonly Dictionary<CanonicalExecutionArtifactContract, ExecutionCompilationFlight>
-        CanonicalExecutionCompilationFlights = new();
+    private static readonly Dictionary<
+        CanonicalExecutionArtifactContract,
+        ExecutionCompilationFlight
+    > CanonicalExecutionCompilationFlights = new();
     private static readonly AsyncLocal<Action?> ExecutionCompilationCommitTestHook = new();
 
     private static long _executionCompilationAccessTick;
@@ -48,7 +56,8 @@ public static partial class InstanceCreator
     private static IDisposable AcquireExecutionCompilationFlight(
         ExecutionCompilationCacheKey cacheKey,
         CancellationToken cancellationToken,
-        Action? waiterRegistered = null)
+        Action? waiterRegistered = null
+    )
     {
         ExecutionCompilationFlight flight;
         lock (ExecutionCompilationFlightSync)
@@ -86,7 +95,8 @@ public static partial class InstanceCreator
 
     private static void ReleaseExecutionCompilationFlight(
         ExecutionCompilationCacheKey cacheKey,
-        ExecutionCompilationFlight flight)
+        ExecutionCompilationFlight flight
+    )
     {
         flight.Gate.Release();
         lock (ExecutionCompilationFlightSync)
@@ -106,14 +116,16 @@ public static partial class InstanceCreator
         string semanticContractFingerprint,
         string runnableTypeName,
         CanonicalExecutionArtifactContract? canonicalContract,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(executableArtifact);
         if (cacheKey is { } exactKey && exactKey.ExecutionTarget != executableArtifact.TargetId)
         {
             throw new InvalidOperationException(
-                $"Execution compilation cache key targets '{exactKey.ExecutionTarget}', but executable artifact targets '{executableArtifact.TargetId}'.");
+                $"Execution compilation cache key targets '{exactKey.ExecutionTarget}', but executable artifact targets '{executableArtifact.TargetId}'."
+            );
         }
         if (cacheKey is null && canonicalContract is null)
             throw new ArgumentException("An executable template requires a cache identity.", nameof(canonicalContract));
@@ -124,14 +136,15 @@ public static partial class InstanceCreator
                 executableArtifact,
                 executableArtifact.TargetId,
                 runnableTypeName,
-                semanticContractFingerprint),
-            canonicalContract);
+                semanticContractFingerprint
+            ),
+            canonicalContract
+        );
     }
 
-
-
     private static void CommitExecutionCompilationAfterCancellationCheck(
-        ExecutionCompilationCachePublication publication)
+        ExecutionCompilationCachePublication publication
+    )
     {
         if (!publication.TryBeginCommit())
             return;
@@ -140,13 +153,18 @@ public static partial class InstanceCreator
         {
             lock (ExecutionCompilationCacheMutationSync)
             {
-                if (publication.CacheKey is { } exactKey &&
-                    ExecutionCompilationCache.TryGetValue(exactKey, out var existing))
+                if (
+                    publication.CacheKey is { } exactKey
+                    && ExecutionCompilationCache.TryGetValue(exactKey, out var existing)
+                )
                 {
-                    if (string.Equals(
+                    if (
+                        string.Equals(
                             existing.SemanticContractFingerprint,
                             publication.Template!.SemanticContractFingerprint,
-                            StringComparison.Ordinal))
+                            StringComparison.Ordinal
+                        )
+                    )
                     {
                         AddCanonicalExecutionAliasLocked(existing, publication.CanonicalContract);
                         publication.MarkCommitted(ownsArtifact: false);
@@ -176,23 +194,20 @@ public static partial class InstanceCreator
         ExecutionCompilationCacheKey cacheKey,
         CachedExecutionCompilation cachedCompilation,
         CanonicalExecutionArtifactContract canonicalContract,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return new ExecutionCompilationCachePublication(
-            cacheKey,
-            cachedCompilation,
-            canonicalContract);
+        return new ExecutionCompilationCachePublication(cacheKey, cachedCompilation, canonicalContract);
     }
 
-
-
     private static void CommitCanonicalExecutionAliasAfterCancellationCheck(
-        ExecutionCompilationCachePublication publication)
+        ExecutionCompilationCachePublication publication
+    )
     {
         ArgumentNullException.ThrowIfNull(publication);
-        var exactKey = publication.CacheKey ??
-                       throw new InvalidOperationException("An exact alias requires an exact cache key.");
+        var exactKey =
+            publication.CacheKey ?? throw new InvalidOperationException("An exact alias requires an exact cache key.");
         if (!publication.TryBeginCommit())
             return;
 
@@ -206,15 +221,15 @@ public static partial class InstanceCreator
                     return;
                 }
 
-                if (ExecutionCompilationCache.TryGetValue(exactKey, out var existing) &&
-                    !ReferenceEquals(existing, publication.CachedCompilation))
+                if (
+                    ExecutionCompilationCache.TryGetValue(exactKey, out var existing)
+                    && !ReferenceEquals(existing, publication.CachedCompilation)
+                )
                     RemoveExecutionCompilationEntryLocked(existing);
 
                 EnsureExecutionCompilationCapacityLocked();
                 ExecutionCompilationCache[exactKey] = publication.CachedCompilation!;
-                AddCanonicalExecutionAliasLocked(
-                    publication.CachedCompilation!,
-                    publication.CanonicalContract);
+                AddCanonicalExecutionAliasLocked(publication.CachedCompilation!, publication.CanonicalContract);
                 publication.MarkCommitted(ownsArtifact: false);
             }
         }
@@ -227,12 +242,12 @@ public static partial class InstanceCreator
 
     private static IDisposable? TryAcquireExecutionCompilationReader(
         ExecutionCompilationCacheKey cacheKey,
-        out CachedExecutionCompilation? cachedCompilation)
+        out CachedExecutionCompilation? cachedCompilation
+    )
     {
         lock (ExecutionCompilationCacheMutationSync)
         {
-            if (!ExecutionCompilationCache.TryGetValue(cacheKey, out var entry) ||
-                !entry.TryAcquireReaderLocked())
+            if (!ExecutionCompilationCache.TryGetValue(cacheKey, out var entry) || !entry.TryAcquireReaderLocked())
             {
                 cachedCompilation = null;
                 return null;
@@ -246,12 +261,15 @@ public static partial class InstanceCreator
 
     private static IDisposable? TryAcquireCanonicalExecutionCompilationReader(
         CanonicalExecutionArtifactContract canonicalContract,
-        out CachedExecutionCompilation? cachedCompilation)
+        out CachedExecutionCompilation? cachedCompilation
+    )
     {
         lock (ExecutionCompilationCacheMutationSync)
         {
-            if (!CanonicalExecutionCompilationCache.TryGetValue(canonicalContract, out var entry) ||
-                !entry.TryAcquireReaderLocked())
+            if (
+                !CanonicalExecutionCompilationCache.TryGetValue(canonicalContract, out var entry)
+                || !entry.TryAcquireReaderLocked()
+            )
             {
                 cachedCompilation = null;
                 return null;
@@ -278,43 +296,48 @@ public static partial class InstanceCreator
         BuildItems items,
         ExecutionTargetId targetId,
         Type? runnableType,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (ContainsQueryScopedRowTransfer(items))
         {
-            var executableArtifact = items.ExecutableArtifact ?? throw new InvalidOperationException(
-                "Query-scoped execution caching requires the emitted executable artifact.");
-            return CSharpClrArtifactCompatibility.TryGetAssemblyExecutable(
-                       executableArtifact,
-                       out var clrArtifact)
+            var executableArtifact =
+                items.ExecutableArtifact
+                ?? throw new InvalidOperationException(
+                    "Query-scoped execution caching requires the emitted executable artifact."
+                );
+            return CSharpClrArtifactCompatibility.TryGetAssemblyExecutable(executableArtifact, out var clrArtifact)
                 ? CSharpClrArtifactCompatibility.CreateAssemblyExecutable(
                     clrArtifact.DllFile,
                     clrArtifact.PdbFile,
-                    clrArtifact.RunnableTypeName)
+                    clrArtifact.RunnableTypeName
+                )
                 : executableArtifact;
         }
 
         return ExecutionTargetCatalog
             .ResolveActivator(targetId)
-            .CreateLoadedExecutableArtifact(runnableType ?? throw new InvalidOperationException(
-                "Declared-row execution caching requires a loaded runnable type."));
+            .CreateLoadedExecutableArtifact(
+                runnableType
+                    ?? throw new InvalidOperationException(
+                        "Declared-row execution caching requires a loaded runnable type."
+                    )
+            );
     }
 
     private static bool ContainsQueryScopedRowTransfer(BuildItems items)
     {
-        return items.PlanningResult?.ExecutionArtifacts.SourceTransferPlansBySourceId?
-            .Values
-            .Any(static plan => plan.Mode == SourceTransferMode.QueryScopedRows) == true;
+        return items.PlanningResult?.ExecutionArtifacts.SourceTransferPlansBySourceId?.Values.Any(static plan =>
+                plan.Mode == SourceTransferMode.QueryScopedRows
+            ) == true;
     }
 
     private static void EnsureExecutionCompilationCapacityLocked()
     {
         while (ExecutionCompilationEntries.Count >= Volatile.Read(ref _executionCompilationCacheLimit))
         {
-            var coldest = ExecutionCompilationEntries
-                .OrderBy(static entry => entry.LastAccessTick)
-                .FirstOrDefault();
+            var coldest = ExecutionCompilationEntries.OrderBy(static entry => entry.LastAccessTick).FirstOrDefault();
             if (coldest is null)
                 return;
 
@@ -324,16 +347,20 @@ public static partial class InstanceCreator
 
     private static void RemoveExecutionCompilationEntryLocked(CachedExecutionCompilation entry)
     {
-        foreach (var exact in ExecutionCompilationCache
-                     .Where(pair => ReferenceEquals(pair.Value, entry))
-                     .Select(static pair => pair.Key)
-                     .ToArray())
+        foreach (
+            var exact in ExecutionCompilationCache
+                .Where(pair => ReferenceEquals(pair.Value, entry))
+                .Select(static pair => pair.Key)
+                .ToArray()
+        )
             ExecutionCompilationCache.TryRemove(exact, out _);
 
-        foreach (var canonical in CanonicalExecutionCompilationCache
-                     .Where(pair => ReferenceEquals(pair.Value, entry))
-                     .Select(static pair => pair.Key)
-                     .ToArray())
+        foreach (
+            var canonical in CanonicalExecutionCompilationCache
+                .Where(pair => ReferenceEquals(pair.Value, entry))
+                .Select(static pair => pair.Key)
+                .ToArray()
+        )
             CanonicalExecutionCompilationCache.TryRemove(canonical, out _);
 
         if (ExecutionCompilationEntries.Remove(entry))
@@ -342,10 +369,10 @@ public static partial class InstanceCreator
 
     private static void AddCanonicalExecutionAliasLocked(
         CachedExecutionCompilation entry,
-        CanonicalExecutionArtifactContract? canonicalContract)
+        CanonicalExecutionArtifactContract? canonicalContract
+    )
     {
-        if (canonicalContract is null ||
-            CanonicalExecutionCompilationCache.ContainsKey(canonicalContract))
+        if (canonicalContract is null || CanonicalExecutionCompilationCache.ContainsKey(canonicalContract))
             return;
 
         while (CanonicalExecutionCompilationCache.Count >= CanonicalExecutionCompilationAliasLimit)
@@ -364,7 +391,8 @@ public static partial class InstanceCreator
     }
 
     private static CachedExecutionCompilation? TryGetCanonicalExecutionCompilation(
-        CanonicalExecutionArtifactContract canonicalContract)
+        CanonicalExecutionArtifactContract canonicalContract
+    )
     {
         return CanonicalExecutionCompilationCache.TryGetValue(canonicalContract, out var cachedCompilation)
             ? cachedCompilation
@@ -374,7 +402,8 @@ public static partial class InstanceCreator
     private static IDisposable AcquireCanonicalExecutionCompilationFlight(
         CanonicalExecutionArtifactContract canonicalContract,
         CancellationToken cancellationToken,
-        Action? waiterRegistered = null)
+        Action? waiterRegistered = null
+    )
     {
         ExecutionCompilationFlight flight;
         lock (CanonicalExecutionCompilationFlightSync)
@@ -412,7 +441,8 @@ public static partial class InstanceCreator
 
     private static void ReleaseCanonicalExecutionCompilationFlight(
         CanonicalExecutionArtifactContract canonicalContract,
-        ExecutionCompilationFlight flight)
+        ExecutionCompilationFlight flight
+    )
     {
         flight.Gate.Release();
         lock (CanonicalExecutionCompilationFlightSync)
@@ -442,19 +472,19 @@ public static partial class InstanceCreator
 
     private static bool CanReuseExecutableArtifact(BuildItems items)
     {
-        return !items.HasDeclaredSourceRuntimeSettings &&
-               !items.HasSourceRuntimeSettingValues &&
-               items.CompilationOptions.InstrumentationMode == QueryInstrumentationMode.Disabled;
+        return !items.HasDeclaredSourceRuntimeSettings
+            && !items.HasSourceRuntimeSettingValues
+            && items.CompilationOptions.InstrumentationMode == QueryInstrumentationMode.Disabled;
     }
 
     private static bool CanUseCanonicalExecutionCompilationCache(BuildItems items)
     {
-        return CanReuseExecutableArtifact(items) &&
-               !Debugger.IsAttached &&
-               items.ExecutionTarget == ExecutionTargetIds.CSharpClr &&
-               items.QueryResultMode == QueryResultMode.Table &&
-               items.OutputType is null &&
-               !items.EmitPdb;
+        return CanReuseExecutableArtifact(items)
+            && !Debugger.IsAttached
+            && items.ExecutionTarget == ExecutionTargetIds.CSharpClr
+            && items.QueryResultMode == QueryResultMode.Table
+            && items.OutputType is null
+            && !items.EmitPdb;
     }
 
     private static ExecutionCompilationCacheKey CreateExecutionCompilationCacheKey(
@@ -463,7 +493,8 @@ public static partial class InstanceCreator
         CompilationOptions options,
         ExecutionTargetId executionTarget,
         TargetRenderProfile renderProfile = TargetRenderProfile.ExecutionFast,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var providerType = schemaProvider.GetType();
@@ -477,32 +508,28 @@ public static partial class InstanceCreator
             CreateProviderContractSignature(schemaProvider, cancellationToken),
             CompilationOptionsFingerprint.Compute(options),
             renderProfile,
-            TargetRenderProfileContract.Version);
+            TargetRenderProfileContract.Version
+        );
     }
 
     internal static string CreateExecutionCompilationCacheKeyTestSignature(
         string script,
         ISchemaProvider schemaProvider,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
-        return CreateExecutionCompilationCacheKey(
-            script,
-            schemaProvider,
-            options,
-            ExecutionTargetIds.CSharpClr).ToString();
+        return CreateExecutionCompilationCacheKey(script, schemaProvider, options, ExecutionTargetIds.CSharpClr)
+            .ToString();
     }
 
     internal static string CreateExecutionCompilationCacheKeyTestSignature(
         string script,
         ISchemaProvider schemaProvider,
         CompilationOptions options,
-        ExecutionTargetId executionTarget)
+        ExecutionTargetId executionTarget
+    )
     {
-        return CreateExecutionCompilationCacheKey(
-            script,
-            schemaProvider,
-            options,
-            executionTarget).ToString();
+        return CreateExecutionCompilationCacheKey(script, schemaProvider, options, executionTarget).ToString();
     }
 
     internal static string CreateExecutionCompilationCacheKeyTestSignature(
@@ -510,14 +537,11 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         CompilationOptions options,
         ExecutionTargetId executionTarget,
-        TargetRenderProfile renderProfile)
+        TargetRenderProfile renderProfile
+    )
     {
-        return CreateExecutionCompilationCacheKey(
-            script,
-            schemaProvider,
-            options,
-            executionTarget,
-            renderProfile).ToString();
+        return CreateExecutionCompilationCacheKey(script, schemaProvider, options, executionTarget, renderProfile)
+            .ToString();
     }
 
     internal static string CreateExecutionCompilationCacheKeyTestSignature(
@@ -526,15 +550,18 @@ public static partial class InstanceCreator
         CompilationOptions options,
         ExecutionTargetId executionTarget,
         TargetRenderProfile renderProfile,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateExecutionCompilationCacheKey(
-            script,
-            schemaProvider,
-            options,
-            executionTarget,
-            renderProfile,
-            cancellationToken).ToString();
+                script,
+                schemaProvider,
+                options,
+                executionTarget,
+                renderProfile,
+                cancellationToken
+            )
+            .ToString();
     }
 
     internal static IDisposable AcquireExecutionCompilationFlightForTests(
@@ -542,7 +569,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         CompilationOptions options,
         Action waiterRegistered,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(waiterRegistered);
         return AcquireExecutionCompilationFlight(
@@ -551,27 +579,25 @@ public static partial class InstanceCreator
                 schemaProvider,
                 options,
                 ExecutionTargetIds.CSharpClr,
-                cancellationToken: cancellationToken),
+                cancellationToken: cancellationToken
+            ),
             cancellationToken,
-            waiterRegistered);
+            waiterRegistered
+        );
     }
 
     internal static IDisposable AcquireCanonicalExecutionCompilationFlightForTests(
         CanonicalExecutionArtifactContract canonicalContract,
         Action waiterRegistered,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(canonicalContract);
         ArgumentNullException.ThrowIfNull(waiterRegistered);
-        return AcquireCanonicalExecutionCompilationFlight(
-            canonicalContract,
-            cancellationToken,
-            waiterRegistered);
+        return AcquireCanonicalExecutionCompilationFlight(canonicalContract, cancellationToken, waiterRegistered);
     }
 
-    internal static int GetCanonicalExecutionEntryIdentityForTests(
-        BuildItems items,
-        ISchemaProvider schemaProvider)
+    internal static int GetCanonicalExecutionEntryIdentityForTests(BuildItems items, ISchemaProvider schemaProvider)
     {
         if (!CanUseCanonicalExecutionCompilationCache(items))
             return 0;
@@ -580,7 +606,8 @@ public static partial class InstanceCreator
             items,
             schemaProvider,
             items.CompilationOptions,
-            CancellationToken.None);
+            CancellationToken.None
+        );
         return contract is not null && TryGetCanonicalExecutionCompilation(contract) is { } entry
             ? RuntimeHelpers.GetHashCode(entry)
             : 0;
@@ -588,25 +615,29 @@ public static partial class InstanceCreator
 
     internal static CanonicalExecutionArtifactContract CreateCanonicalExecutionContractForTests(
         BuildItems items,
-        ISchemaProvider schemaProvider)
+        ISchemaProvider schemaProvider
+    )
     {
         return CreateCanonicalExecutionArtifactContract(
-            items,
-            schemaProvider,
-            items.CompilationOptions,
-            CancellationToken.None) ?? throw new InvalidOperationException("Canonical identity is unavailable.");
+                items,
+                schemaProvider,
+                items.CompilationOptions,
+                CancellationToken.None
+            ) ?? throw new InvalidOperationException("Canonical identity is unavailable.");
     }
 
     internal static CanonicalExecutionArtifactContract CreateCanonicalExecutionContractForTests(
         BuildItems items,
         ISchemaProvider schemaProvider,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateCanonicalExecutionArtifactContract(
-            items,
-            schemaProvider,
-            items.CompilationOptions,
-            cancellationToken) ?? throw new InvalidOperationException("Canonical identity is unavailable.");
+                items,
+                schemaProvider,
+                items.CompilationOptions,
+                cancellationToken
+            ) ?? throw new InvalidOperationException("Canonical identity is unavailable.");
     }
 
     internal static IDisposable SetExecutionCompilationCacheLimitForTests(int limit)
@@ -640,13 +671,10 @@ public static partial class InstanceCreator
     internal static bool HasExecutionCompilationCacheEntryForTests(
         string script,
         ISchemaProvider schemaProvider,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
-        var key = CreateExecutionCompilationCacheKey(
-            script,
-            schemaProvider,
-            options,
-            ExecutionTargetIds.CSharpClr);
+        var key = CreateExecutionCompilationCacheKey(script, schemaProvider, options, ExecutionTargetIds.CSharpClr);
         lock (ExecutionCompilationCacheMutationSync)
             return ExecutionCompilationCache.ContainsKey(key);
     }
@@ -654,13 +682,10 @@ public static partial class InstanceCreator
     internal static IDisposable? AcquireExecutionCompilationReaderForTests(
         string script,
         ISchemaProvider schemaProvider,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
-        var key = CreateExecutionCompilationCacheKey(
-            script,
-            schemaProvider,
-            options,
-            ExecutionTargetIds.CSharpClr);
+        var key = CreateExecutionCompilationCacheKey(script, schemaProvider, options, ExecutionTargetIds.CSharpClr);
         return TryAcquireExecutionCompilationReader(key, out _);
     }
 
@@ -669,21 +694,19 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         CompilationOptions options,
         ExecutableQueryArtifact artifact,
-        string semanticContractFingerprint)
+        string semanticContractFingerprint
+    )
     {
         ArgumentNullException.ThrowIfNull(artifact);
-        var key = CreateExecutionCompilationCacheKey(
-            script,
-            schemaProvider,
-            options,
-            ExecutionTargetIds.CSharpClr);
+        var key = CreateExecutionCompilationCacheKey(script, schemaProvider, options, ExecutionTargetIds.CSharpClr);
         var publication = PrepareExecutionCompilation(
             key,
             artifact,
             semanticContractFingerprint,
             "Musoq.Converter.Tests.CacheRunnable",
             canonicalContract: null,
-            CancellationToken.None);
+            CancellationToken.None
+        );
         try
         {
             CommitExecutionCompilationAfterCancellationCheck(publication);
@@ -709,14 +732,13 @@ public static partial class InstanceCreator
 
     internal static string CreateProviderSignatureForTests(
         ISchemaProvider schemaProvider,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateProviderSignature(schemaProvider, cancellationToken);
     }
 
-    private static string CreateProviderSignature(
-        ISchemaProvider schemaProvider,
-        CancellationToken cancellationToken)
+    private static string CreateProviderSignature(ISchemaProvider schemaProvider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var builder = new StringBuilder();
@@ -725,11 +747,7 @@ public static partial class InstanceCreator
         foreach (var field in fields)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            builder
-                .Append(field.DeclaringType?.FullName)
-                .Append('.')
-                .Append(field.Name)
-                .Append('=');
+            builder.Append(field.DeclaringType?.FullName).Append('.').Append(field.Name).Append('=');
 
             AppendSignatureValue(builder, field.GetValue(schemaProvider), 0, cancellationToken);
             builder.Append(';');
@@ -739,18 +757,16 @@ public static partial class InstanceCreator
         return builder.ToString();
     }
 
-    private static IEnumerable<FieldInfo> GetInstanceFields(
-        Type type,
-        CancellationToken cancellationToken)
+    private static IEnumerable<FieldInfo> GetInstanceFields(Type type, CancellationToken cancellationToken)
     {
         for (var current = type; current != null; current = current.BaseType)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            foreach (var field in current.GetFields(
-                         BindingFlags.Instance |
-                         BindingFlags.Public |
-                         BindingFlags.NonPublic |
-                         BindingFlags.DeclaredOnly))
+            foreach (
+                var field in current.GetFields(
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly
+                )
+            )
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 yield return field;
@@ -761,32 +777,33 @@ public static partial class InstanceCreator
     private static IReadOnlyList<FieldInfo> GetOrderedInstanceFields(
         Type type,
         CancellationToken cancellationToken,
-        bool useAssemblyQualifiedDeclaringType = false)
+        bool useAssemblyQualifiedDeclaringType = false
+    )
     {
         var fields = GetInstanceFields(type, cancellationToken).ToList();
         cancellationToken.ThrowIfCancellationRequested();
-        fields.Sort((left, right) =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var declaringTypeComparison = StringComparer.Ordinal.Compare(
-                useAssemblyQualifiedDeclaringType
-                    ? left.DeclaringType?.AssemblyQualifiedName
-                    : left.DeclaringType?.FullName,
-                useAssemblyQualifiedDeclaringType
-                    ? right.DeclaringType?.AssemblyQualifiedName
-                    : right.DeclaringType?.FullName);
-            return declaringTypeComparison != 0
-                ? declaringTypeComparison
-                : StringComparer.Ordinal.Compare(left.Name, right.Name);
-        });
+        fields.Sort(
+            (left, right) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var declaringTypeComparison = StringComparer.Ordinal.Compare(
+                    useAssemblyQualifiedDeclaringType
+                        ? left.DeclaringType?.AssemblyQualifiedName
+                        : left.DeclaringType?.FullName,
+                    useAssemblyQualifiedDeclaringType
+                        ? right.DeclaringType?.AssemblyQualifiedName
+                        : right.DeclaringType?.FullName
+                );
+                return declaringTypeComparison != 0
+                    ? declaringTypeComparison
+                    : StringComparer.Ordinal.Compare(left.Name, right.Name);
+            }
+        );
         cancellationToken.ThrowIfCancellationRequested();
         return fields;
     }
 
-    private static string CreateSignatureFragment(
-        object? value,
-        int depth,
-        CancellationToken cancellationToken)
+    private static string CreateSignatureFragment(object? value, int depth, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var builder = new StringBuilder();
@@ -799,7 +816,8 @@ public static partial class InstanceCreator
         StringBuilder builder,
         object? value,
         int depth,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (value is null)
@@ -823,10 +841,7 @@ public static partial class InstanceCreator
                 builder.Append("type:").Append(type.AssemblyQualifiedName ?? type.FullName ?? type.Name);
                 return;
             case Enum enumValue:
-                builder
-                    .Append(enumValue.GetType().FullName)
-                    .Append(':')
-                    .Append(enumValue);
+                builder.Append(enumValue.GetType().FullName).Append(':').Append(enumValue);
                 return;
             case bool boolean:
                 builder.Append(boolean ? "true" : "false");
@@ -847,37 +862,37 @@ public static partial class InstanceCreator
         StringBuilder builder,
         IDictionary dictionary,
         int depth,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var entries = new List<(string Key, string Value)>(dictionary.Count);
         foreach (DictionaryEntry entry in dictionary)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            entries.Add((
-                CreateSignatureFragment(entry.Key, depth + 1, cancellationToken),
-                CreateSignatureFragment(entry.Value, depth + 1, cancellationToken)));
+            entries.Add(
+                (
+                    CreateSignatureFragment(entry.Key, depth + 1, cancellationToken),
+                    CreateSignatureFragment(entry.Value, depth + 1, cancellationToken)
+                )
+            );
         }
 
-        entries.Sort((left, right) =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var keyCompare = string.CompareOrdinal(left.Key, right.Key);
-            return keyCompare != 0
-                ? keyCompare
-                : string.CompareOrdinal(left.Value, right.Value);
-        });
+        entries.Sort(
+            (left, right) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var keyCompare = string.CompareOrdinal(left.Key, right.Key);
+                return keyCompare != 0 ? keyCompare : string.CompareOrdinal(left.Value, right.Value);
+            }
+        );
 
         cancellationToken.ThrowIfCancellationRequested();
         builder.Append("dict[").Append(entries.Count).Append("]{");
         foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            builder
-                .Append(entry.Key)
-                .Append("=>")
-                .Append(entry.Value)
-                .Append('|');
+            builder.Append(entry.Key).Append("=>").Append(entry.Value).Append('|');
         }
 
         builder.Append('}');
@@ -901,7 +916,8 @@ public static partial class InstanceCreator
         string ProviderContractBucket,
         string CompilationOptionsFingerprint,
         TargetRenderProfile RenderProfile,
-        int RenderProfileVersion);
+        int RenderProfileVersion
+    );
 
     private sealed class ExecutionCompilationFlight
     {
@@ -912,7 +928,8 @@ public static partial class InstanceCreator
 
     private sealed class ExecutionCompilationFlightLease(
         ExecutionCompilationCacheKey cacheKey,
-        ExecutionCompilationFlight flight) : IDisposable
+        ExecutionCompilationFlight flight
+    ) : IDisposable
     {
         private bool _disposed;
 
@@ -928,7 +945,8 @@ public static partial class InstanceCreator
 
     private sealed class CanonicalExecutionCompilationFlightLease(
         CanonicalExecutionArtifactContract canonicalContract,
-        ExecutionCompilationFlight flight) : IDisposable
+        ExecutionCompilationFlight flight
+    ) : IDisposable
     {
         private bool _disposed;
 
@@ -949,8 +967,7 @@ public static partial class InstanceCreator
         private int _retired;
         private int _artifactDisposed;
 
-        public CachedExecutionCompilation(
-            PreparedExecutableTemplate template)
+        public CachedExecutionCompilation(PreparedExecutableTemplate template)
         {
             Template = template ?? throw new ArgumentNullException(nameof(template));
             SemanticContractFingerprint = template.SemanticContractFingerprint ?? string.Empty;
@@ -994,17 +1011,18 @@ public static partial class InstanceCreator
 
         private void DisposeArtifactIfReadyLocked()
         {
-            if (Volatile.Read(ref _retired) == 0 ||
-                _activeReaders != 0 ||
-                Interlocked.Exchange(ref _artifactDisposed, 1) != 0)
+            if (
+                Volatile.Read(ref _retired) == 0
+                || _activeReaders != 0
+                || Interlocked.Exchange(ref _artifactDisposed, 1) != 0
+            )
                 return;
 
             (Template.ExecutableArtifact as IDisposable)?.Dispose();
         }
     }
 
-    private sealed class CachedExecutionCompilationReaderLease(
-        CachedExecutionCompilation entry) : IDisposable
+    private sealed class CachedExecutionCompilationReaderLease(CachedExecutionCompilation entry) : IDisposable
     {
         private int _disposed;
 
@@ -1037,7 +1055,8 @@ public static partial class InstanceCreator
         public ExecutionCompilationCachePublication(
             ExecutionCompilationCacheKey? cacheKey,
             PreparedExecutableTemplate template,
-            CanonicalExecutionArtifactContract? canonicalContract)
+            CanonicalExecutionArtifactContract? canonicalContract
+        )
         {
             CacheKey = cacheKey;
             Template = template ?? throw new ArgumentNullException(nameof(template));
@@ -1047,7 +1066,8 @@ public static partial class InstanceCreator
         public ExecutionCompilationCachePublication(
             ExecutionCompilationCacheKey cacheKey,
             CachedExecutionCompilation cachedCompilation,
-            CanonicalExecutionArtifactContract canonicalContract)
+            CanonicalExecutionArtifactContract canonicalContract
+        )
         {
             CacheKey = cacheKey;
             CachedCompilation = cachedCompilation ?? throw new ArgumentNullException(nameof(cachedCompilation));

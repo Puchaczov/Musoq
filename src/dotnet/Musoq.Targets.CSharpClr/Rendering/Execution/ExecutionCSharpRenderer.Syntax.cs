@@ -6,9 +6,7 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IdentifierNameSyntax CreateAggregateGroupType(
-        AggregateGroupShape shape,
-        ExecutionRenderContext context)
+    private IdentifierNameSyntax CreateAggregateGroupType(AggregateGroupShape shape, ExecutionRenderContext context)
     {
         return SyntaxFactory.IdentifierName(GetAggregateGroupTypeName(shape, context));
     }
@@ -17,9 +15,10 @@ public sealed partial class ExecutionCSharpRenderer
         AggregateGroupShape shape,
         ExecutionRenderContext context,
         IReadOnlyList<ExpressionSyntax> owners,
-        params ExpressionSyntax[] keys)
+        params ExpressionSyntax[] keys
+    )
     {
-        return CreateObjectCreation(GetAggregateGroupTypeName(shape, context), [..owners, ..keys]);
+        return CreateObjectCreation(GetAggregateGroupTypeName(shape, context), [.. owners, .. keys]);
     }
 
     internal sealed record ConstantInSetField(string Name, ExecutionConstantInSet ConstantSet);

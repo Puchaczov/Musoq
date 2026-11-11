@@ -14,15 +14,17 @@ internal sealed class SourcePredicatePhysicalRewritePass : IPhysicalOptimization
         var rewritten = SourcePredicatePhysicalRewriter.Rewrite(
             plan,
             state.Facts.SourceRewrite.SourcePlanResultsBySourceId,
-            state.Facts.SourceRewrite.SourcePredicatePlansBySourceId);
+            state.Facts.SourceRewrite.SourcePredicatePlansBySourceId
+        );
 
         return ReferenceEquals(plan, rewritten)
             ? OptimizationResult<PhysicalNode>.NoChange(
                 rewritten,
-                "No accepted source predicate conjuncts were removed from the physical plan.")
+                "No accepted source predicate conjuncts were removed from the physical plan."
+            )
             : OptimizationResult<PhysicalNode>.Changed(
                 rewritten,
-                "Removed source-accepted predicate conjuncts from physical filters.");
+                "Removed source-accepted predicate conjuncts from physical filters."
+            );
     }
 }
-

@@ -14,12 +14,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'مرحبا بالعالم' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -35,13 +30,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("القاهرة"),
-                    new BasicEntity("الرياض"),
-                    new BasicEntity("دبي")
-                ]
-            }
+            { "#A", [new BasicEntity("القاهرة"), new BasicEntity("الرياض"), new BasicEntity("دبي")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -58,13 +47,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("القاهرة"),
-                    new BasicEntity("الرياض"),
-                    new BasicEntity("دبي")
-                ]
-            }
+            { "#A", [new BasicEntity("القاهرة"), new BasicEntity("الرياض"), new BasicEntity("دبي")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -82,14 +65,15 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("القاهرة"),
                     new BasicEntity("القاهرة"),
                     new BasicEntity("دبي"),
                     new BasicEntity("القاهرة"),
-                    new BasicEntity("دبي")
+                    new BasicEntity("دبي"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -97,13 +81,15 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "القاهرة" && (long)row.ReadValues()[1] == 3L),
-            "Expected group 'القاهرة' with count 3");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "القاهرة" && (long)row.ReadValues()[1] == 3L),
+            "Expected group 'القاهرة' with count 3"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "دبي" && (long)row.ReadValues()[1] == 2L),
-            "Expected group 'دبي' with count 2");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "دبي" && (long)row.ReadValues()[1] == 2L),
+            "Expected group 'دبي' with count 2"
+        );
     }
 
     #endregion
@@ -114,12 +100,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'Ärzte überprüfen größere Übungen' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -135,13 +116,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Straße"),
-                    new BasicEntity("München"),
-                    new BasicEntity("Düsseldorf")
-                ]
-            }
+            { "#A", [new BasicEntity("Straße"), new BasicEntity("München"), new BasicEntity("Düsseldorf")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -158,13 +133,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Straße"),
-                    new BasicEntity("München"),
-                    new BasicEntity("Düsseldorf")
-                ]
-            }
+            { "#A", [new BasicEntity("Straße"), new BasicEntity("München"), new BasicEntity("Düsseldorf")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -182,12 +151,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'สวัสดีชาวโลก' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -203,13 +167,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("กรุงเทพมหานคร"),
-                    new BasicEntity("เชียงใหม่"),
-                    new BasicEntity("ภูเก็ต")
-                ]
-            }
+            { "#A", [new BasicEntity("กรุงเทพมหานคร"), new BasicEntity("เชียงใหม่"), new BasicEntity("ภูเก็ต")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -227,12 +185,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'שלום עולם' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -248,13 +201,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("ירושלים"),
-                    new BasicEntity("תל אביב"),
-                    new BasicEntity("חיפה")
-                ]
-            }
+            { "#A", [new BasicEntity("ירושלים"), new BasicEntity("תל אביב"), new BasicEntity("חיפה")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -272,12 +219,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'नमस्ते दुनिया' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -293,13 +235,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("मुंबई"),
-                    new BasicEntity("दिल्ली"),
-                    new BasicEntity("कोलकाता")
-                ]
-            }
+            { "#A", [new BasicEntity("मुंबई"), new BasicEntity("दिल्ली"), new BasicEntity("कोलकाता")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -316,13 +252,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("मुंबई"),
-                    new BasicEntity("दिल्ली"),
-                    new BasicEntity("कोलकाता")
-                ]
-            }
+            { "#A", [new BasicEntity("मुंबई"), new BasicEntity("दिल्ली"), new BasicEntity("कोलकाता")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -340,12 +270,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'Türkçe öğretmeni çalışıyor' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -361,13 +286,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("İstanbul"),
-                    new BasicEntity("Ankara"),
-                    new BasicEntity("İzmir")
-                ]
-            }
+            { "#A", [new BasicEntity("İstanbul"), new BasicEntity("Ankara"), new BasicEntity("İzmir")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -384,14 +303,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("İ"),
-                    new BasicEntity("ı"),
-                    new BasicEntity("I"),
-                    new BasicEntity("i")
-                ]
-            }
+            { "#A", [new BasicEntity("İ"), new BasicEntity("ı"), new BasicEntity("I"), new BasicEntity("i")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -399,14 +311,19 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "İ"),
-            "Row with 'İ' (Turkish dotted I) not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ı"),
-            "Row with 'ı' (Turkish dotless i) not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "I"),
-            "Row with 'I' (Latin capital I) not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "i"),
-            "Row with 'i' (Latin lowercase i) not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "İ"),
+            "Row with 'İ' (Turkish dotted I) not found"
+        );
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "ı"),
+            "Row with 'ı' (Turkish dotless i) not found"
+        );
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "I"), "Row with 'I' (Latin capital I) not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "i"),
+            "Row with 'i' (Latin lowercase i) not found"
+        );
     }
 
     #endregion
@@ -417,12 +334,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'Γεια σου κόσμε' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -438,13 +350,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Αθήνα"),
-                    new BasicEntity("Θεσσαλονίκη"),
-                    new BasicEntity("Πάτρα")
-                ]
-            }
+            { "#A", [new BasicEntity("Αθήνα"), new BasicEntity("Θεσσαλονίκη"), new BasicEntity("Πάτρα")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -462,12 +368,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'Привіт світе' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -483,13 +384,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Київ"),
-                    new BasicEntity("Львів"),
-                    new BasicEntity("Одеса")
-                ]
-            }
+            { "#A", [new BasicEntity("Київ"), new BasicEntity("Львів"), new BasicEntity("Одеса")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -507,12 +402,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'Xin chào thế giới' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -528,13 +418,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Hà Nội"),
-                    new BasicEntity("Thành phố Hồ Chí Minh"),
-                    new BasicEntity("Đà Nẵng")
-                ]
-            }
+            { "#A", [new BasicEntity("Hà Nội"), new BasicEntity("Thành phố Hồ Chí Minh"), new BasicEntity("Đà Nẵng")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

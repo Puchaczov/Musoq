@@ -6,9 +6,7 @@ public sealed class StopwatchProfileClock : IProfileClock
 {
     public static StopwatchProfileClock Instance { get; } = new();
 
-    private StopwatchProfileClock()
-    {
-    }
+    private StopwatchProfileClock() { }
 
     public long GetTimestamp() => Stopwatch.GetTimestamp();
 

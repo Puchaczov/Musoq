@@ -9,7 +9,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void AddHashJoinBodyHelperCaptures(
         ExecutionBlock block,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         foreach (var node in block.Nodes)
             AddHashJoinBodyHelperCaptures(node, excludedNames, captures);
@@ -18,7 +19,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void AddHashJoinBodyHelperCaptures(
         ExecutionNode node,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         switch (node)
         {
@@ -70,8 +72,12 @@ public sealed partial class ExecutionCSharpRenderer
                 case ExecutionLet let:
                     yield return let.Variable.Name;
                     break;
-                case ExecutionCreateObject createObject: yield return createObject.Target.Name; break;
-                case ExecutionMethodTargetDeclarationCandidate candidate: yield return candidate.Target.Name; break;
+                case ExecutionCreateObject createObject:
+                    yield return createObject.Target.Name;
+                    break;
+                case ExecutionMethodTargetDeclarationCandidate candidate:
+                    yield return candidate.Target.Name;
+                    break;
                 case ExecutionForEach forEach:
                     yield return forEach.Item.Name;
                     break;
@@ -115,14 +121,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateHashProbeFunctionBaseName(ExecutionHashProbe hashProbe)
     {
-        return hashProbe.NoMatchBody is { Nodes.Count: > 0 }
-            ? "AppendLeftJoinRows"
-            : "AppendHashJoinRows";
+        return hashProbe.NoMatchBody is { Nodes.Count: > 0 } ? "AppendLeftJoinRows" : "AppendHashJoinRows";
     }
 
-    private static string ReserveFunctionName(
-        string baseName,
-        Dictionary<string, int> usedFunctionNames)
+    private static string ReserveFunctionName(string baseName, Dictionary<string, int> usedFunctionNames)
     {
         if (!usedFunctionNames.TryGetValue(baseName, out var count))
         {

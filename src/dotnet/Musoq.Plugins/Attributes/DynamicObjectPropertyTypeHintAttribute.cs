@@ -22,7 +22,6 @@ public sealed class DynamicObjectPropertyTypeHintAttribute : Attribute
     /// </summary>
     public string Name { get; }
 
-
     /// <summary>
     ///     Gets the type of the property.
     /// </summary>

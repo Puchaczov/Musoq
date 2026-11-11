@@ -9,7 +9,8 @@ internal static class PhysicalStrategyPlanner
     public static PhysicalStrategyPlanningResult Plan(
         LogicalNode node,
         CompilationOptions compilationOptions,
-        IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults = null)
+        IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults = null
+    )
     {
         return Plan(node, compilationOptions, sourcePlanResults, CancellationToken.None);
     }
@@ -18,7 +19,8 @@ internal static class PhysicalStrategyPlanner
         LogicalNode node,
         CompilationOptions compilationOptions,
         IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(compilationOptions);

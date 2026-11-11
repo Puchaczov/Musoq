@@ -20,10 +20,12 @@ public partial class SchemaExtendedTests
             CancellationToken.None,
             [],
             new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
         var context = new SourceRuntimeSettingsDescribeContext(
             new SourceIdentity("#runtime", "items", "items:1", "items"),
-            metadataContext);
+            metadataContext
+        );
 
         var requirements = schema.DescribeSourceRuntimeSettings("items", context, "profile");
 
@@ -50,10 +52,12 @@ public partial class SchemaExtendedTests
             CancellationToken.None,
             [],
             new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
         var context = new SourceRuntimeSettingsDescribeContext(
             new SourceIdentity("#runtime", "items", "items:1", "items"),
-            metadataContext);
+            metadataContext
+        );
 
         var requirements = schema.DescribeSourceRuntimeSettings("items", context, 123);
 
@@ -75,7 +79,8 @@ public partial class SchemaExtendedTests
         [SourceRuntimeSetting(
             "API_TOKEN",
             Secret = true,
-            Description = "Token used by the metadata and execution constructors.")]
+            Description = "Token used by the metadata and execution constructors."
+        )]
         public RuntimeSettingsTable(string profile)
         {
             _ = profile;
@@ -98,10 +103,7 @@ public partial class SchemaExtendedTests
 
     private sealed class RuntimeSettingsSource : RowSource<RuntimeSettingsEntity>
     {
-        [SourceRuntimeSetting(
-            "ENDPOINT",
-            Required = false,
-            Phases = SourceRuntimeSettingPhase.Execution)]
+        [SourceRuntimeSetting("ENDPOINT", Required = false, Phases = SourceRuntimeSettingPhase.Execution)]
         public RuntimeSettingsSource(SourceExecutionContext context, string profile)
         {
             _ = context;

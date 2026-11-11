@@ -66,8 +66,10 @@ public sealed class DiagnosticCore002StringLiteralTests
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
-        Assert.AreEqual(new TextSpan(query.IndexOf(invalidEscape, StringComparison.Ordinal), invalidEscape.Length),
-            diagnostic.Span);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf(invalidEscape, StringComparison.Ordinal), invalidEscape.Length),
+            diagnostic.Span
+        );
         Assert.Contains(invalidEscape, diagnostic.Message);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
@@ -81,9 +83,7 @@ public sealed class DiagnosticCore002StringLiteralTests
         const string query = "select 'not closed";
         var lexer = new Lexer(query, true, recoverOnError: true);
 
-        while (lexer.Next().TokenType != TokenType.EndOfFile)
-        {
-        }
+        while (lexer.Next().TokenType != TokenType.EndOfFile) { }
 
         var diagnostic = lexer.Diagnostics.ToSortedList().Single();
         var start = query.IndexOf('\'', StringComparison.Ordinal);

@@ -8,16 +8,16 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
 {
-
     [TestMethod]
     public void WhenComparingStringWithLongLiteral_ShouldPromoteToLong()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size = 9223372036854775807l";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size = 9223372036854775807l";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "9223372036854775807";
@@ -29,8 +29,6 @@ public partial class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("MaxLong", table[0].ReadValues()[0]);
     }
-
-
 
     private static List<dynamic> CreateTestDataWithStringColumn()
     {
@@ -82,8 +80,4 @@ public partial class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
 
         return [item1, item2, item3];
     }
-
-
-
-
 }

@@ -8,9 +8,11 @@ internal static class KeywordMisspellingFacts
 
     public static bool IsLikelyMisspelledFromKeyword(Token token, string input)
     {
-        if (token.TokenType is not (TokenType.Word or TokenType.Identifier) ||
-            string.IsNullOrWhiteSpace(token.Value) ||
-            token.Value.Equals("FROM", StringComparison.OrdinalIgnoreCase))
+        if (
+            token.TokenType is not (TokenType.Word or TokenType.Identifier)
+            || string.IsNullOrWhiteSpace(token.Value)
+            || token.Value.Equals("FROM", StringComparison.OrdinalIgnoreCase)
+        )
             return false;
 
         var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(token.Value, FromKeyword, maxDistance: 2);
@@ -47,8 +49,10 @@ internal static class KeywordMisspellingFacts
             break;
         }
 
-        if (index + keyword.Length > input.Length ||
-            !input.AsSpan(index, keyword.Length).Equals(keyword, StringComparison.OrdinalIgnoreCase))
+        if (
+            index + keyword.Length > input.Length
+            || !input.AsSpan(index, keyword.Length).Equals(keyword, StringComparison.OrdinalIgnoreCase)
+        )
             return false;
 
         var end = index + keyword.Length;

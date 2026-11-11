@@ -71,7 +71,8 @@ public partial class Parser
                         $"Unrecognized token for ComposeEqualityOperators(), the token was {Current.TokenType}.",
                         _lexer.AlreadyResolvedQueryPart,
                         DiagnosticCode.MQ2001_UnexpectedToken,
-                        Current.Span);
+                        Current.Span
+                    );
             }
 
         return node;
@@ -82,9 +83,11 @@ public partial class Parser
         Consume(operatorType);
         ThrowIfMissingRightOperand(Previous!.Value);
         var right = ComposeArithmeticExpression(0);
-        if (left is AccessMethodNode quantifier
+        if (
+            left is AccessMethodNode quantifier
             && string.IsNullOrEmpty(quantifier.Alias)
-            && IsPredicateQuantifierName(quantifier.Name))
+            && IsPredicateQuantifierName(quantifier.Name)
+        )
             return ComposePredicateQuantifier(quantifier, operatorType, right);
 
         return CreatePatternPredicate(left, operatorType, right);
@@ -95,8 +98,12 @@ public partial class Parser
         var operatorText = Previous!.Value;
         ThrowIfMissingRightOperand(operatorText);
         if (IsEqualityOperator(Current))
-            throw new SyntaxException($"Operator '{operatorText}' cannot be followed by operator '{Current.Value}'.",
-                _lexer.AlreadyResolvedQueryPart, DiagnosticCode.MQ2019_InvalidOperator, Current.Span);
+            throw new SyntaxException(
+                $"Operator '{operatorText}' cannot be followed by operator '{Current.Value}'.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2019_InvalidOperator,
+                Current.Span
+            );
         return IsQuantifiedSubqueryToken(Current.TokenType)
             ? ComposeQuantifiedSubquery(left, operatorType)
             : CreateComparisonPredicate(left, operatorType, ComposeEqualityOperators());
@@ -107,8 +114,8 @@ public partial class Parser
         ThrowIfPredicateQuantifierHasNoArguments(quantifier, operatorType);
         ThrowIfPredicateQuantifierHasStarArgument(quantifier);
 
-        var predicates = quantifier.Arguments.Args
-            .Select(argument => CreatePatternPredicate(argument, operatorType, right))
+        var predicates = quantifier
+            .Arguments.Args.Select(argument => CreatePatternPredicate(argument, operatorType, right))
             .ToArray();
         return FoldPredicateQuantifier(quantifier, predicates);
     }
@@ -122,7 +129,8 @@ public partial class Parser
             $"{GetPredicateQuantifierDiagnosticName(quantifier)} requires at least one argument before {GetPatternOperatorText(operatorType)}.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2003_InvalidExpression,
-            quantifier.Span);
+            quantifier.Span
+        );
     }
 
     private void ThrowIfPredicateQuantifierHasStarArgument(AccessMethodNode quantifier)
@@ -135,7 +143,8 @@ public partial class Parser
             $"{GetPredicateQuantifierDiagnosticName(quantifier)} does not support star arguments; list columns or expressions explicitly.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2003_InvalidExpression,
-            starArgument.Span);
+            starArgument.Span
+        );
     }
 
     private static Node FoldPredicateQuantifier(AccessMethodNode quantifier, Node[] predicates)
@@ -168,14 +177,15 @@ public partial class Parser
                 $"{operatorType} is not supported while parsing pattern predicate.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2001_UnexpectedToken,
-                Current.Span)
+                Current.Span
+            ),
         };
     }
 
     private static bool IsPredicateQuantifierName(string name)
     {
         return string.Equals(name, "any", StringComparison.OrdinalIgnoreCase)
-               || string.Equals(name, "all", StringComparison.OrdinalIgnoreCase);
+            || string.Equals(name, "all", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsAnyPredicateQuantifier(AccessMethodNode quantifier)
@@ -196,7 +206,7 @@ public partial class Parser
             TokenType.NotLike => "NOT LIKE",
             TokenType.RLike => "RLIKE",
             TokenType.NotRLike => "NOT RLIKE",
-            _ => operatorType.ToString().ToUpperInvariant()
+            _ => operatorType.ToString().ToUpperInvariant(),
         };
     }
 
@@ -206,8 +216,11 @@ public partial class Parser
         ThrowIfMissingRightOperand("BETWEEN");
         var min = ComposeArithmeticExpression(0);
         if (Current.TokenType != TokenType.And)
-            throw ParserDiagnosticFacts.MissingToken("BETWEEN requires AND between its lower and upper bounds.",
-                _lexer.AlreadyResolvedQueryPart, new TextSpan(Current.Span.Start, 0));
+            throw ParserDiagnosticFacts.MissingToken(
+                "BETWEEN requires AND between its lower and upper bounds.",
+                _lexer.AlreadyResolvedQueryPart,
+                new TextSpan(Current.Span.Start, 0)
+            );
 
         Consume(TokenType.And);
         ThrowIfMissingRightOperand("BETWEEN");
@@ -224,23 +237,34 @@ public partial class Parser
         }
 
         if (Current.TokenType != TokenType.LeftParenthesis)
-            throw ParserDiagnosticFacts.MissingToken("IN requires a parenthesized value list, collection parameter, or subquery.",
-                _lexer.AlreadyResolvedQueryPart, new TextSpan(Current.Span.Start, 0));
+            throw ParserDiagnosticFacts.MissingToken(
+                "IN requires a parenthesized value list, collection parameter, or subquery.",
+                _lexer.AlreadyResolvedQueryPart,
+                new TextSpan(Current.Span.Start, 0)
+            );
 
         var openingParenthesis = ConsumeAndGetToken(TokenType.LeftParenthesis);
 
         if (Current.TokenType == TokenType.RightParenthesis)
             throw ParserDiagnosticFacts.EmptyPredicateList(
                 notIn ? "NOT IN does not support an empty value list." : "IN does not support an empty value list.",
-                _lexer.AlreadyResolvedQueryPart, Current.Span);
+                _lexer.AlreadyResolvedQueryPart,
+                Current.Span
+            );
 
-        if (Current.TokenType == TokenType.Select || Current.TokenType == TokenType.From || Current.TokenType == TokenType.Pivot || Current.TokenType == TokenType.Unpivot)
+        if (
+            Current.TokenType == TokenType.Select
+            || Current.TokenType == TokenType.From
+            || Current.TokenType == TokenType.Pivot
+            || Current.TokenType == TokenType.Unpivot
+        )
         {
             Node subquery = ComposeSetOperators(1);
 
             var closingParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
-            return new InQueryNode(left, subquery)
-                .WithSpan(left.Span.Through(openingParenthesis.Span).Through(subquery.Span).Through(closingParenthesis.Span));
+            return new InQueryNode(left, subquery).WithSpan(
+                left.Span.Through(openingParenthesis.Span).Through(subquery.Span).Through(closingParenthesis.Span)
+            );
         }
 
         var args = new List<Node>();
@@ -256,7 +280,9 @@ public partial class Parser
 
         var closingValueListParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
 
-        return new InNode(left, new ArgsListNode(args.ToArray())).WithSpan(left.Span.Through(closingValueListParenthesis.Span));
+        return new InNode(left, new ArgsListNode(args.ToArray())).WithSpan(
+            left.Span.Through(closingValueListParenthesis.Span)
+        );
     }
 
     private Node ComposeExistsPredicateOrIdentifier()
@@ -268,18 +294,22 @@ public partial class Parser
 
         Consume(TokenType.LeftParenthesis);
 
-        if (Current.TokenType != TokenType.Select && Current.TokenType != TokenType.From && Current.TokenType != TokenType.Pivot && Current.TokenType != TokenType.Unpivot)
+        if (
+            Current.TokenType != TokenType.Select
+            && Current.TokenType != TokenType.From
+            && Current.TokenType != TokenType.Pivot
+            && Current.TokenType != TokenType.Unpivot
+        )
             throw new SyntaxException(
                 "EXISTS requires a SELECT, FROM, PIVOT, or UNPIVOT subquery.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2024_InvalidSubquery,
-                Current.Span);
+                Current.Span
+            );
 
         var subquery = ComposeSetOperators(1);
         Consume(TokenType.RightParenthesis);
 
         return new ExistsQueryNode(subquery);
     }
-
-
 }

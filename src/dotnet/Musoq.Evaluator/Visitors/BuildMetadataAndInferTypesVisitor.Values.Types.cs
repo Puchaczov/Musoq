@@ -19,7 +19,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             {
                 var field = row.Fields[fieldIndex];
                 var column = columns.Single(column =>
-                    string.Equals(column.ColumnName, field.Name, StringComparison.OrdinalIgnoreCase));
+                    string.Equals(column.ColumnName, field.Name, StringComparison.OrdinalIgnoreCase)
+                );
                 var expression = CommonColumnTypeResolver.IsExplicitNullType(field.Expression.ReturnType)
                     ? new NullNode(column.ColumnType, field.Expression.Span)
                     : field.Expression;

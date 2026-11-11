@@ -31,15 +31,17 @@ public class BugProbeInlineSchemaOuterRefTests
     [TestMethod]
     public void Binary_InlineSchemaWithOuterFieldRef_ShouldResolveSize()
     {
-        var query = @"
-            binary Outer {
-                Length: byte,
-                Inner: {
-                    Data: string[Length] ascii
-                }
-            };
-            select o.Inner.Data from #test.files() b
-            cross apply Interpret<Outer>(b.Content) o";
+        var query = (
+            "\n"
+            + "            binary Outer {\n"
+            + "                Length: byte,\n"
+            + "                Inner: {\n"
+            + "                    Data: string[Length] ascii\n"
+            + "                }\n"
+            + "            };\n"
+            + "            select o.Inner.Data from #test.files() b\n"
+            + "            cross apply Interpret<Outer>(b.Content) o"
+        );
 
         using var ms = new MemoryStream();
         using var bw = new BinaryWriter(ms);
@@ -48,12 +50,21 @@ public class BugProbeInlineSchemaOuterRefTests
         bw.Flush();
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -66,23 +77,34 @@ public class BugProbeInlineSchemaOuterRefTests
     [TestMethod]
     public void Binary_InlineSchemaWithOuterByteArrayRef_ShouldResolveSize()
     {
-        var query = @"
-            binary Container {
-                Size: byte,
-                Payload: {
-                    Raw: byte[Size]
-                }
-            };
-            select c.Size from #test.files() b
-            cross apply Interpret<Container>(b.Content) c";
+        var query = (
+            "\n"
+            + "            binary Container {\n"
+            + "                Size: byte,\n"
+            + "                Payload: {\n"
+            + "                    Raw: byte[Size]\n"
+            + "                }\n"
+            + "            };\n"
+            + "            select c.Size from #test.files() b\n"
+            + "            cross apply Interpret<Container>(b.Content) c"
+        );
 
         var testData = new byte[] { 0x03, 0xAA, 0xBB, 0xCC };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

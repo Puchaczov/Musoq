@@ -11,18 +11,13 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
 {
-
     [TestMethod]
     public void WhenCompilerMustDecideWhichOneOfTheMethodsUse_ShouldChoseTheFirstOne()
     {
         const string query =
             "select first.MethodA() from #schema.first() first inner join #schema.second() second on 1 = 1";
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -37,11 +32,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
         const string query =
             "select second.MethodA() from #schema.first() first inner join #schema.second() second on 1 = 1";
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -56,11 +47,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
         const string query =
             "select first.MethodA() from #schema.second() second inner join #schema.first() first on 1 = 1";
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -75,11 +62,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
         const string query =
             "select second.MethodB('abc') from #schema.second() second inner join #schema.first() first on 1 = 1";
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -94,11 +77,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
         const string query =
             "select first.MethodB('abc') from #schema.first() first inner join #schema.second() second on 1 = 1";
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -112,9 +91,7 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
     {
         const string query = "select AggregateMethodA() from #schema.first()";
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], []);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], []);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -124,16 +101,18 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
     [TestMethod]
     public void WhenUnqualifiedAggregateHasSingleResolvableOwner_ShouldInferAlias()
     {
-        const string query = @"select first.FirstItem, AggregateMethodA() as AggregateValue
-from #schema.first() first
-inner join #schema.second() second on 1 = 1
-group by first.FirstItem";
+        const string query = (
+            "select first.FirstItem, AggregateMethodA() as AggregateValue\n"
+            + "from #schema.first() first\n"
+            + "inner join #schema.second() second on 1 = 1\n"
+            + "group by first.FirstItem"
+        );
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity { FirstItem = "group-a" }
-        ], [
-            new SecondEntity { FirstItem = "group-a" }
-        ]);
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            [new FirstEntity { FirstItem = "group-a" }],
+            [new SecondEntity { FirstItem = "group-a" }]
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -147,9 +126,7 @@ group by first.FirstItem";
     {
         const string query = "select MethodC() from #schema.first()";
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], []);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], []);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -163,9 +140,7 @@ group by first.FirstItem";
     {
         var query = @"select FirstItem from #schema.first() first inner join #schema.first() second on 1 = 1";
 
-        CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], []);
+        CreateAndRunVirtualMachine(query, [new FirstEntity()], []);
     }
 
     [TestMethod]
@@ -173,11 +148,9 @@ group by first.FirstItem";
     {
         var query = @"select FirstItem from #schema.first() first inner join #schema.second() second on 1 = 1";
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()])
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3002_AmbiguousColumn, DiagnosticPhase.Bind, "FirstItem");
         AssertHasGuidance(ex);

@@ -5,4 +5,5 @@ public sealed record LibraryExecutionEntity(
     string Partition,
     int? Integral,
     decimal? Amount,
-    double? Floating);
+    double? Floating
+);

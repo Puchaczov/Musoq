@@ -6,7 +6,6 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Parser.Tests;
 
-
 [TestClass]
 public class DescParserColumnTests : DescParserTestBase
 {
@@ -111,12 +110,14 @@ public class DescParserColumnTests : DescParserTestBase
     [TestMethod]
     public void DescSchemaMethodColumn_MultiLine_ShouldParse()
     {
-        var query = @"
-            desc
-                #schema.method()
-                column
-                    Name
-        ";
+        var query = (
+            "\n"
+            + "            desc\n"
+            + "                #schema.method()\n"
+            + "                column\n"
+            + "                    Name\n"
+            + "        "
+        );
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -191,11 +192,13 @@ public class DescParserColumnTests : DescParserTestBase
     [TestMethod]
     public void DescSchemaMethodColumn_WithComment_ShouldParse()
     {
-        var query = @"
-            -- This is a comment
-            desc #schema.method() column Name
-            -- Another comment
-        ";
+        var query = (
+            "\n"
+            + "            -- This is a comment\n"
+            + "            desc #schema.method() column Name\n"
+            + "            -- Another comment\n"
+            + "        "
+        );
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -310,11 +313,13 @@ public class DescParserColumnTests : DescParserTestBase
     [TestMethod]
     public void DescSchemaMethodColumn_NestedProperty_MultiLine_ShouldParse()
     {
-        var query = @"
-            desc #schema.method()
-            column
-                Self.Other.Children
-        ";
+        var query = (
+            "\n"
+            + "            desc #schema.method()\n"
+            + "            column\n"
+            + "                Self.Other.Children\n"
+            + "        "
+        );
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -394,7 +399,6 @@ public class DescParserColumnTests : DescParserTestBase
     #endregion
 
 
-
     private static string? ExtractColumnPath(Node? node)
     {
         return node switch
@@ -404,7 +408,7 @@ public class DescParserColumnTests : DescParserTestBase
             PropertyValueNode p => p.Name,
             WordNode w => w.Value,
             IdentifierNode i => i.Name,
-            _ => throw new InvalidOperationException($"Unexpected node type: {node.GetType().Name}")
+            _ => throw new InvalidOperationException($"Unexpected node type: {node.GetType().Name}"),
         };
     }
 

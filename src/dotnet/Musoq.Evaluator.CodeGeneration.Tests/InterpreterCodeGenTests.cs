@@ -43,9 +43,7 @@ public partial class InterpreterCodeGenTests
 
         public override string Id => nameof(UnsupportedTypeAnnotationNode);
 
-        public override void Accept(IExpressionVisitor visitor)
-        {
-        }
+        public override void Accept(IExpressionVisitor visitor) { }
 
         public override string ToString()
         {
@@ -58,7 +56,8 @@ public partial class InterpreterCodeGenTests
     private static FieldDefinitionNode CreatePrimitiveField(
         string name,
         PrimitiveTypeName typeName,
-        Endianness endianness)
+        Endianness endianness
+    )
     {
         var typeNode = new PrimitiveTypeNode(typeName, endianness);
         return new FieldDefinitionNode(name, typeNode);
@@ -69,16 +68,11 @@ public partial class InterpreterCodeGenTests
         TextFieldType fieldType,
         string? primaryValue = null,
         string? secondaryValue = null,
-        TextFieldModifier modifiers = TextFieldModifier.None)
+        TextFieldModifier modifiers = TextFieldModifier.None
+    )
     {
-        return new TextFieldDefinitionNode(
-            name,
-            fieldType,
-            primaryValue,
-            secondaryValue,
-            modifiers);
+        return new TextFieldDefinitionNode(name, fieldType, primaryValue, secondaryValue, modifiers);
     }
 
     #endregion
-
 }

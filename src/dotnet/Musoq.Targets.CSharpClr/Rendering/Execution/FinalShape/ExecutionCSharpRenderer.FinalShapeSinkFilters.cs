@@ -5,69 +5,61 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private bool CanUseHashJoinHelperSetInCurrentSink(
-        HashJoinHelperSet helperSet,
-        ExecutionRenderContext context)
+    private bool CanUseHashJoinHelperSetInCurrentSink(HashJoinHelperSet helperSet, ExecutionRenderContext context)
     {
         return !HasCurrentFinalShapeAppendTarget(helperSet.Probe.AppendTargets, context);
     }
 
-    private bool CanUseKeySetHelperSetInCurrentSink(
-        KeySetHelperSet helperSet,
-        ExecutionRenderContext context)
+    private bool CanUseKeySetHelperSetInCurrentSink(KeySetHelperSet helperSet, ExecutionRenderContext context)
     {
         return !HasCurrentFinalShapeAppendTarget(helperSet.Probe.AppendTargets, context);
     }
 
-    private bool CanUseSortedCopyHelperInCurrentSink(
-        SortedCopyHelper helper,
-        ExecutionRenderContext context)
+    private bool CanUseSortedCopyHelperInCurrentSink(SortedCopyHelper helper, ExecutionRenderContext context)
     {
         return !IsCurrentFinalShapeTargetOrSourceBuffer(helper.Sort.Target.Name, context);
     }
 
     private bool CanUseWindowAppendRowsHelperInCurrentSink(
         WindowAppendRowsHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return !HasCurrentFinalShapeAppendTarget(helper.AppendTargets, context);
     }
 
-    private bool CanUseAggregateFinalizeHelperInCurrentSink(
-        string tableName,
-        ExecutionRenderContext context)
+    private bool CanUseAggregateFinalizeHelperInCurrentSink(string tableName, ExecutionRenderContext context)
     {
         return !IsCurrentFinalShapeTargetOrSourceBuffer(tableName, context);
     }
 
     private bool CanUseParallelFilterProjectHelperInCurrentSink(
         ExecutionParallelFilterProjectLoop parallelProject,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return !IsCurrentFinalShapeTargetOrSourceBuffer(parallelProject.AppendRow.Table.Name, context);
     }
 
     private bool HasCurrentFinalShapeAppendTarget(
         IReadOnlyList<ExecutionVariable> appendTargets,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return appendTargets.Any(target => IsCurrentFinalShapeTargetOrSourceBuffer(target.Name, context));
     }
 
-    private static bool IsCurrentFinalShapeTargetOrSourceBuffer(
-        string tableName,
-        ExecutionRenderContext context)
+    private static bool IsCurrentFinalShapeTargetOrSourceBuffer(string tableName, ExecutionRenderContext context)
     {
-        return context.Session.FinalShapeYieldSink is { } sink &&
-               (string.Equals(tableName, sink.TableName, StringComparison.Ordinal) ||
-                (sink.SourceBuffers?.ContainsKey(tableName) ?? false));
+        return context.Session.FinalShapeYieldSink is { } sink
+            && (
+                string.Equals(tableName, sink.TableName, StringComparison.Ordinal)
+                || (sink.SourceBuffers?.ContainsKey(tableName) ?? false)
+            );
     }
 
-    private static bool IsCurrentFinalShapeSourceBuffer(
-        string tableName,
-        ExecutionRenderContext context)
+    private static bool IsCurrentFinalShapeSourceBuffer(string tableName, ExecutionRenderContext context)
     {
-        return context.Session.FinalShapeYieldSink is { } sink &&
-               (sink.SourceBuffers?.ContainsKey(tableName) ?? false);
+        return context.Session.FinalShapeYieldSink is { } sink && (sink.SourceBuffers?.ContainsKey(tableName) ?? false);
     }
 }

@@ -27,7 +27,10 @@ public sealed class FormattingFoundationTests
     [TestMethod]
     public void LongProjection_ShouldWrapOneItemPerLine()
     {
-        var result = MusoqFormatter.Format("select Alpha,Beta,Gamma from #s.rows()", new FormattingOptions { LineWidth = 20 });
+        var result = MusoqFormatter.Format(
+            "select Alpha,Beta,Gamma from #s.rows()",
+            new FormattingOptions { LineWidth = 20 }
+        );
 
         Assert.AreEqual("SELECT\n    Alpha,\n    Beta,\n    Gamma\nFROM #s.rows()\n", result.FormattedText);
     }
@@ -35,7 +38,10 @@ public sealed class FormattingFoundationTests
     [TestMethod]
     public void ExactWidthProjection_ShouldStayInline()
     {
-        var result = MusoqFormatter.Format("select Alpha,Beta from #s.rows()", new FormattingOptions { LineWidth = 18 });
+        var result = MusoqFormatter.Format(
+            "select Alpha,Beta from #s.rows()",
+            new FormattingOptions { LineWidth = 18 }
+        );
 
         Assert.AreEqual("SELECT Alpha, Beta\nFROM #s.rows()\n", result.FormattedText);
     }
@@ -43,7 +49,10 @@ public sealed class FormattingFoundationTests
     [TestMethod]
     public void KeywordOptions_ShouldPreserveIdentifierAndLiteralSpelling()
     {
-        var result = MusoqFormatter.Format("SELECT 'SELECT' AS Mixed FROM #Some.Source() Alias", new FormattingOptions { KeywordCasing = KeywordCasing.Lower });
+        var result = MusoqFormatter.Format(
+            "SELECT 'SELECT' AS Mixed FROM #Some.Source() Alias",
+            new FormattingOptions { KeywordCasing = KeywordCasing.Lower }
+        );
 
         Assert.AreEqual("select 'SELECT' as Mixed\nfrom #Some.Source() Alias\n", result.FormattedText);
     }
@@ -51,7 +60,10 @@ public sealed class FormattingFoundationTests
     [TestMethod]
     public void PreserveKeywordOption_ShouldKeepEachKeywordOccurrence()
     {
-        var result = MusoqFormatter.Format("sElEcT One FrOm #s.rows()", new FormattingOptions { KeywordCasing = KeywordCasing.Preserve });
+        var result = MusoqFormatter.Format(
+            "sElEcT One FrOm #s.rows()",
+            new FormattingOptions { KeywordCasing = KeywordCasing.Preserve }
+        );
 
         Assert.AreEqual("sElEcT One\nFrOm #s.rows()\n", result.FormattedText);
     }
@@ -67,7 +79,10 @@ public sealed class FormattingFoundationTests
     [TestMethod]
     public void ExplicitLf_ShouldPreserveEmbeddedLiteralLineBreaks()
     {
-        var result = MusoqFormatter.Format("select 'a\r\nb' from #s.rows()", new FormattingOptions { LineEnding = LineEnding.Lf });
+        var result = MusoqFormatter.Format(
+            "select 'a\r\nb' from #s.rows()",
+            new FormattingOptions { LineEnding = LineEnding.Lf }
+        );
 
         Assert.IsTrue(result.IsSuccess);
         StringAssert.Contains(result.FormattedText, "'a\r\nb'");
@@ -105,18 +120,24 @@ public sealed class FormattingFoundationTests
     [TestMethod]
     public void InvalidWidth_ShouldThrowArgumentOutOfRangeException()
     {
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => MusoqFormatter.Format("", new FormattingOptions { LineWidth = 0 }));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            MusoqFormatter.Format("", new FormattingOptions { LineWidth = 0 })
+        );
     }
 
     [TestMethod]
     public void InvalidIndentation_ShouldThrowArgumentOutOfRangeException()
     {
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => MusoqFormatter.Format("", new FormattingOptions { IndentSize = -1 }));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            MusoqFormatter.Format("", new FormattingOptions { IndentSize = -1 })
+        );
     }
 
     [TestMethod]
     public void InvalidCasing_ShouldThrowArgumentOutOfRangeException()
     {
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => MusoqFormatter.Format("", new FormattingOptions { KeywordCasing = (KeywordCasing)99 }));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            MusoqFormatter.Format("", new FormattingOptions { KeywordCasing = (KeywordCasing)99 })
+        );
     }
 }

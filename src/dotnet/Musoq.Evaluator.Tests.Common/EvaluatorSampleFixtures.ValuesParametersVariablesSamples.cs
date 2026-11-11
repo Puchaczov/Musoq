@@ -14,7 +14,8 @@ internal static partial class EvaluatorSampleFixtures
                   ( Name: 'Legacy.Package', Approved: false, Score: 20ui )
               } packages
               where packages.Approved = false
-              select packages.Name, packages.Score"),
+              select packages.Name, packages.Score"
+            ),
             Basic(
                 "Q118_ValuesCteReuse",
                 "Values",
@@ -28,7 +29,8 @@ internal static partial class EvaluatorSampleFixtures
               select leftPolicy.Name, rightPolicy.Approved
               from policy leftPolicy
               inner join policy rightPolicy on leftPolicy.Name = rightPolicy.Name
-              where rightPolicy.Approved = false"),
+              where rightPolicy.Approved = false"
+            ),
             Basic(
                 "Q119_ValuesNumericLiterals",
                 "Values",
@@ -59,7 +61,8 @@ internal static partial class EvaluatorSampleFixtures
                      literals.DecimalValue,
                      literals.HexValue,
                      literals.BinaryValue,
-                     literals.OctalValue"),
+                     literals.OctalValue"
+            ),
             Basic(
                 "Q171_ValuesStaticParametersAndLets",
                 "Values",
@@ -69,7 +72,8 @@ internal static partial class EvaluatorSampleFixtures
                   ( Name: 'first' + $suffix, Score: $baseScore ),
                   ( Name: 'second' + $suffix, Score: $baseScore + $bonus )
               } scores
-              select scores.Name, scores.Score"),
+              select scores.Name, scores.Score"
+            ),
             Basic(
                 "Q172_CollectionParameterInMembership",
                 "Parameters",
@@ -77,14 +81,16 @@ internal static partial class EvaluatorSampleFixtures
               select Name, Id
               from #A.entities()
               where Id in $ids
-              order by Name"),
+              order by Name"
+            ),
             Basic(
                 "Q120_ScriptParametersWhereSelect",
                 "Parameters",
                 @"param(country: string, minPopulation: int = 100)
               select Name, Population, $country as RequestedCountry
               from #A.entities()
-              where Country = $country and Population > $minPopulation"),
+              where Country = $country and Population > $minPopulation"
+            ),
             Basic(
                 "Q121_ScriptParameterPrimitiveDefaults",
                 "Parameters",
@@ -95,7 +101,8 @@ internal static partial class EvaluatorSampleFixtures
                   id: guid = '2ffcf6fa-3369-4300-946a-bb131a037985',
                   created: datetime = '2024-01-02T03:04:05.0000000Z')
               select $flag, $code, $limit, $id, $created
-              from #A.entities()"),
+              from #A.entities()"
+            ),
             ScriptParameterSourceArgument(),
             Basic(
                 "Q123_ScriptParameterGroupByHelperCapture",
@@ -104,7 +111,8 @@ internal static partial class EvaluatorSampleFixtures
               select Country + $suffix as CountryKey, Count(Name) as NameCount
               from #A.entities()
               group by Country + $suffix
-              having Count(Name) >= $minCount"),
+              having Count(Name) >= $minCount"
+            ),
             BasicWithOptions(
                 "Q124_ScriptParameterJoinHelperCapture",
                 "Parameters",
@@ -112,8 +120,8 @@ internal static partial class EvaluatorSampleFixtures
               select a.Name, Coalesce(b.Name + $suffix, $fallback) as MatchedName
               from #A.entities() a
               left outer join #B.entities() b on a.City + $suffix = b.City + $suffix",
-                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
-                    .WithStabilityAwareScalarReuse()),
+                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false).WithStabilityAwareScalarReuse()
+            ),
             Basic(
                 "Q125_ScriptParameterCteHelperCapture",
                 "Parameters",
@@ -125,7 +133,8 @@ internal static partial class EvaluatorSampleFixtures
               )
               select l.Name, r.RequestedCountry
               from filtered l
-              inner join filtered r on l.Name = r.Name"),
+              inner join filtered r on l.Name = r.Name"
+            ),
             Basic(
                 "Q126_ScriptParameterWindowHelperCapture",
                 "Parameters",
@@ -136,27 +145,31 @@ internal static partial class EvaluatorSampleFixtures
                          order by Name + $label
                      ) as rn,
                      $label as WindowLabel
-              from #A.entities()"),
+              from #A.entities()"
+            ),
             RuntimeV2ScriptParameter(
                 "Q127_ScriptParameterParallelHelperCapture",
                 @"param(threshold: int, label: string)
               SELECT Name, $label as Label, HeavyComputation(Value) as Heavy
               FROM #test.entities()
-              WHERE Value > $threshold"),
+              WHERE Value > $threshold"
+            ),
             Basic(
                 "Q128_ScriptParameterTypedComparison",
                 "Parameters",
                 @"param(country: string)
               select Name, Country
               from #A.entities()
-              where Country = $country"),
+              where Country = $country"
+            ),
             Basic(
                 "Q129_ScriptParameterNumericWideningComparison",
                 "Parameters",
                 @"param(minPopulation: int)
               select Name, Population
               from #A.entities()
-              where Population >= $minPopulation"),
+              where Population >= $minPopulation"
+            ),
             Basic(
                 "Q130_ScriptVariableWhereSelect",
                 "Variables",
@@ -164,7 +177,8 @@ internal static partial class EvaluatorSampleFixtures
                             let minPopulation: int = 100
                             select Name, Population, $country as RequestedCountry
                             from #A.entities()
-                            where Country = $country and Population > $minPopulation"),
+                            where Country = $country and Population > $minPopulation"
+            ),
             Basic(
                 "Q131_ScriptVariablePrimitiveValues",
                 "Variables",
@@ -175,7 +189,8 @@ internal static partial class EvaluatorSampleFixtures
                             let created: datetime = '2024-01-02T03:04:05.0000000Z'
                             let elapsed: timespan = '01:30:00'
                             select $flag, $code, $limit, $id, $created, $elapsed
-                            from #A.entities()"),
+                            from #A.entities()"
+            ),
             ScriptVariableSourceArgument(),
             Basic(
                 "Q133_ScriptVariableGroupByHavingCapture",
@@ -185,7 +200,8 @@ internal static partial class EvaluatorSampleFixtures
                             select Country + $suffix as CountryKey, Count(Name) as NameCount
                             from #A.entities()
                             group by Country + $suffix
-                            having Count(Name) >= $minCount"),
+                            having Count(Name) >= $minCount"
+            ),
             BasicWithOptions(
                 "Q134_ScriptVariableJoinHelperCapture",
                 "Variables",
@@ -194,8 +210,8 @@ internal static partial class EvaluatorSampleFixtures
                             select a.Name, Coalesce(b.Name + $suffix, $fallback) as MatchedName
                             from #A.entities() a
                             left outer join #B.entities() b on a.City + $suffix = b.City + $suffix",
-                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
-                    .WithStabilityAwareScalarReuse()),
+                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false).WithStabilityAwareScalarReuse()
+            ),
             Basic(
                 "Q135_ScriptVariableCteHelperCapture",
                 "Variables",
@@ -207,7 +223,8 @@ internal static partial class EvaluatorSampleFixtures
                             )
                             select l.Name, r.RequestedCountry
                             from filtered l
-                            inner join filtered r on l.Name = r.Name"),
+                            inner join filtered r on l.Name = r.Name"
+            ),
             Basic(
                 "Q136_ScriptVariableWindowHelperCapture",
                 "Variables",
@@ -219,14 +236,16 @@ internal static partial class EvaluatorSampleFixtures
                                                  order by Name + $label
                                          ) as rn,
                                          $label as WindowLabel
-                            from #A.entities()"),
+                            from #A.entities()"
+            ),
             RuntimeV2ScriptVariable(
                 "Q137_ScriptVariableParallelHelperCapture",
                 @"let threshold: int = 100
                             let label: string = 'static'
                             SELECT Name, $label as Label, HeavyComputation(Value) as Heavy
                             FROM #test.entities()
-                            WHERE Value > $threshold")
+                            WHERE Value > $threshold"
+            ),
         ];
     }
 }

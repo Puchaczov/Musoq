@@ -1,5 +1,5 @@
-using Musoq.Parser.Nodes;
 using System.Threading;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -14,13 +14,21 @@ internal sealed class SemanticAdvisoryPhaseCoordinator
         DiagnosticContext diagnosticContext,
         RootNode? sourceQuery = null,
         RootNode? authoredQuery = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(diagnosticContext);
 
-        var context = new SemanticAdvisoryContext(query, metadata, diagnosticContext, sourceQuery, authoredQuery, cancellationToken);
+        var context = new SemanticAdvisoryContext(
+            query,
+            metadata,
+            diagnosticContext,
+            sourceQuery,
+            authoredQuery,
+            cancellationToken
+        );
         RegexPatternAdvisoryAnalyzer.Analyze(context);
         context.ThrowIfCancellationRequested();
         LikePatternAdvisoryAnalyzer.Analyze(context);

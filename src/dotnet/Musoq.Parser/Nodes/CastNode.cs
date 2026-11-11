@@ -4,9 +4,10 @@ public class CastNode(Node expression, string targetTypeName, Type? returnType =
 {
     public Node Expression { get; } = expression ?? throw new ArgumentNullException(nameof(expression));
 
-    public string TargetTypeName { get; } = !string.IsNullOrWhiteSpace(targetTypeName)
-        ? targetTypeName
-        : throw new ArgumentException("Cast target type name cannot be empty.", nameof(targetTypeName));
+    public string TargetTypeName { get; } =
+        !string.IsNullOrWhiteSpace(targetTypeName)
+            ? targetTypeName
+            : throw new ArgumentException("Cast target type name cannot be empty.", nameof(targetTypeName));
 
     public override Type? ReturnType { get; } = returnType;
 

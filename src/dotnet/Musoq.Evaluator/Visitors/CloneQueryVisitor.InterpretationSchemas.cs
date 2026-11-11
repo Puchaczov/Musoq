@@ -10,5 +10,4 @@ public partial class CloneQueryVisitor
         var array = Nodes.Pop();
         Nodes.Push(new ArrayIndexNode(array, index, node.ReturnType));
     }
-
 }

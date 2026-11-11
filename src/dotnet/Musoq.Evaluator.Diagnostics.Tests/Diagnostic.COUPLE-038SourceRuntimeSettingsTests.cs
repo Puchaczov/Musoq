@@ -12,8 +12,7 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class DiagnosticCouple038SourceRuntimeSettingsTests
 {
-    private static readonly CompilationOptions CompilationOptions =
-        new(usePrimitiveTypeValidation: false);
+    private static readonly CompilationOptions CompilationOptions = new(usePrimitiveTypeValidation: false);
 
     [TestMethod]
     public void CoupledAliases_WithDifferentProfiles_KeepSettingsIsolatedAcrossSourcePhases()
@@ -22,36 +21,31 @@ public sealed class DiagnosticCouple038SourceRuntimeSettingsTests
         var resolver = new ProfileSettingsResolver();
         var options = new CompilationOptions(sourceRuntimeSettingsResolver: resolver);
         const string query =
-            "table Shape { Token: string };" +
-            "couple #settings.items with table Shape and settings prod as ProdItems;" +
-            "couple #settings.items with settings staging as StagingItems;" +
-            "select p.Token, s.Token from ProdItems() p inner join StagingItems() s on 1 = 1;";
+            "table Shape { Token: string };"
+            + "couple #settings.items with table Shape and settings prod as ProdItems;"
+            + "couple #settings.items with settings staging as StagingItems;"
+            + "select p.Token, s.Token from ProdItems() p inner join StagingItems() s on 1 = 1;";
 
         var compiled = InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
 
         var table = compiled.Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Token", typeof(string)),
-            ("Token", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [new object?[] { "prod-token", "staging-token" }]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Token", typeof(string)), ("Token", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [new object?[] { "prod-token", "staging-token" }]);
 
         Assert.HasCount(2, resolver.Requests);
-        Assert.IsTrue(resolver.Requests.Any(request =>
-            request.ProfileName == "prod" && request.Alias == "p"));
-        Assert.IsTrue(resolver.Requests.Any(request =>
-            request.ProfileName == "staging" && request.Alias == "s"));
+        Assert.IsTrue(resolver.Requests.Any(request => request.ProfileName == "prod" && request.Alias == "p"));
+        Assert.IsTrue(resolver.Requests.Any(request => request.ProfileName == "staging" && request.Alias == "s"));
         Assert.HasCount(
             2,
-            resolver.Requests.Select(request => request.SourceContextId).Distinct(StringComparer.Ordinal));
+            resolver.Requests.Select(request => request.SourceContextId).Distinct(StringComparer.Ordinal)
+        );
 
         AssertSettingsReachedPhase(provider.Schema.MetadataSettings, "prod-token");
         AssertSettingsReachedPhase(provider.Schema.MetadataSettings, "staging-token");
@@ -65,17 +59,17 @@ public sealed class DiagnosticCouple038SourceRuntimeSettingsTests
     public void CoupledAlias_WhenRequiredSettingIsMissing_ReportsStructuredRedactedDiagnostic()
     {
         const string query =
-            "couple #settings.items with settings prod as ProdItems;" +
-            "select Token from proditems();";
+            "couple #settings.items with settings prod as ProdItems;" + "select Token from proditems();";
 
         var result = new QueryAnalyzer(
-                new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(declareRequirement: true),
-                compilationOptions: CompilationOptions)
-            .Analyze(query);
+            new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(declareRequirement: true),
+            compilationOptions: CompilationOptions
+        ).Analyze(query);
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ3067_MissingSourceRuntimeSetting,
-            "missing coupled source runtime setting");
+            "missing coupled source runtime setting"
+        );
         var expectedSpan = SpanOf(query, "()");
 
         Assert.AreEqual(expectedSpan, diagnostic.Span);
@@ -103,7 +97,8 @@ public sealed class DiagnosticCouple038SourceRuntimeSettingsTests
             Guid.NewGuid().ToString(),
             new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(declareRequirement: true),
             new TestsLoggerResolver(),
-            new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
+            new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+        );
 
         var table = compiled.Run();
 
@@ -114,27 +109,35 @@ public sealed class DiagnosticCouple038SourceRuntimeSettingsTests
             ("Secret", typeof(bool)),
             ("Phases", typeof(string)),
             ("Status", typeof(string)),
-            ("Description", typeof(string)));
+            ("Description", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [
                 ["OPTIONAL_TOKEN", false, false, "All", "Provided", "Optional token override."],
-                ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]
-            ]);
+                ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."],
+            ]
+        );
 
         Assert.IsTrue(resolver.Requests.Any(request => request.ProfileName == "prod"));
-        Assert.IsFalse(table.Rows.SelectMany(row => row.ReadValues()).Any(value =>
-            Equals(value, "prod-token") || Equals(value, "prod-optional")));
+        Assert.IsFalse(
+            table
+                .Rows.SelectMany(row => row.ReadValues())
+                .Any(value => Equals(value, "prod-token") || Equals(value, "prod-optional"))
+        );
     }
 
     private static void AssertSettingsReachedPhase(
         IEnumerable<IReadOnlyDictionary<string, string>> settingsByInvocation,
-        string expectedToken)
+        string expectedToken
+    )
     {
         Assert.IsTrue(
             settingsByInvocation.Any(settings =>
-                settings.TryGetValue("TOKEN", out var token) && token == expectedToken),
-            $"Expected TOKEN={expectedToken} in source settings.");
+                settings.TryGetValue("TOKEN", out var token) && token == expectedToken
+            ),
+            $"Expected TOKEN={expectedToken} in source settings."
+        );
     }
 
     private static TextSpan SpanOf(string query, string text)
@@ -154,7 +157,7 @@ public sealed class DiagnosticCouple038SourceRuntimeSettingsTests
             return new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["TOKEN"] = $"{request.ProfileName}-token",
-                ["OPTIONAL_TOKEN"] = $"{request.ProfileName}-optional"
+                ["OPTIONAL_TOKEN"] = $"{request.ProfileName}-optional",
             };
         }
     }

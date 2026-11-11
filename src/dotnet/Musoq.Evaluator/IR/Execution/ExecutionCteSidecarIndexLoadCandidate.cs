@@ -6,7 +6,8 @@ internal sealed record ExecutionCteSidecarIndexLoadCandidate(
     ExecutionCteSidecarIndexKind Kind,
     ExecutionTypeRef KeyType,
     ExecutionTypeRef? RowType = null,
-    string? GeneratedRowTypeName = null) : ExecutionNode
+    string? GeneratedRowTypeName = null
+) : ExecutionNode
 {
     internal ExecutionCteSidecarIndexLoadCandidate(
         ExecutionVariable index,
@@ -14,8 +15,14 @@ internal sealed record ExecutionCteSidecarIndexLoadCandidate(
         ExecutionCteSidecarIndexKind kind,
         Type keyType,
         Type? rowType = null,
-        string? generatedRowTypeName = null)
-        : this(index, indexSlot, kind, ExecutionClrBindingFactory.FromClr(keyType), ExecutionClrBindingFactory.FromOptionalClr(rowType), generatedRowTypeName)
-    {
-    }
+        string? generatedRowTypeName = null
+    )
+        : this(
+            index,
+            indexSlot,
+            kind,
+            ExecutionClrBindingFactory.FromClr(keyType),
+            ExecutionClrBindingFactory.FromOptionalClr(rowType),
+            generatedRowTypeName
+        ) { }
 }

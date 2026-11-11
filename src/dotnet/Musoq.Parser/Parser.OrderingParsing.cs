@@ -54,7 +54,8 @@ public partial class Parser
                     $"Unrecognized token for ComposeOrder(), the token was {Current.TokenType}.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2009_InvalidOrderByExpression,
-                    Current.Span);
+                    Current.Span
+                );
         }
     }
 
@@ -81,13 +82,14 @@ public partial class Parser
             "Expected FIRST or LAST after NULLS in ORDER BY.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2009_InvalidOrderByExpression,
-            Current.Span);
+            Current.Span
+        );
     }
 
     private bool IsOrderingBoundary(bool allowClauseBoundaries)
     {
-        return IsContextualKeyword("rows") ||
-               IsContextualKeyword("range") ||
-               allowClauseBoundaries && IsContextualKeyword("qualify");
+        return IsContextualKeyword("rows")
+            || IsContextualKeyword("range")
+            || allowClauseBoundaries && IsContextualKeyword("qualify");
     }
 }

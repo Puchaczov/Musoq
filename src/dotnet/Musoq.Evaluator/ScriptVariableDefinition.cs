@@ -7,4 +7,5 @@ public sealed record ScriptVariableDefinition(
     Type VariableType,
     object? Value,
     bool CanUseConstKeyword,
-    StructuralTypeDescriptor? StructuralType = null);
+    StructuralTypeDescriptor? StructuralType = null
+);

@@ -4,21 +4,26 @@ using System.Text;
 using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Execution;
+
 public static partial class ExecutionPlanPrinter
 {
     private static string FormatExpressionList(IReadOnlyList<ExecutionExpression> expressions) =>
         string.Join(", ", expressions.Select(FormatExpression));
+
     private static string FormatExpression(ExecutionExpression expression)
     {
         return expression switch
         {
-            ExecutionStructuralRecord structuralRecord => $"({string.Join(", ", structuralRecord.Fields.Select(field => $"{field.Name}: {FormatExpression(field.Value)}"))}){FormatLimitBinding(structuralRecord.LimitBinding)}",
-            ExecutionStructuralArray structuralArray => $"array {{ {FormatExpressionList(structuralArray.Elements)} }}{FormatLimitBinding(structuralArray.LimitBinding)}",
-            ExecutionStructuralConversion conversion => $"convert<{conversion.TargetType.DisplayName}>({FormatExpression(conversion.Input)}){FormatLimitBinding(conversion.LimitBinding)}",
+            ExecutionStructuralRecord structuralRecord =>
+                $"({string.Join(", ", structuralRecord.Fields.Select(field => $"{field.Name}: {FormatExpression(field.Value)}"))}){FormatLimitBinding(structuralRecord.LimitBinding)}",
+            ExecutionStructuralArray structuralArray =>
+                $"array {{ {FormatExpressionList(structuralArray.Elements)} }}{FormatLimitBinding(structuralArray.LimitBinding)}",
+            ExecutionStructuralConversion conversion =>
+                $"convert<{conversion.TargetType.DisplayName}>({FormatExpression(conversion.Input)}){FormatLimitBinding(conversion.LimitBinding)}",
             ExecutionCteCollectionInput cteCollection =>
-                $"cte-input<{cteCollection.ElementType.DisplayName}>({cteCollection.CteName})" +
-                $" [ownership {cteCollection.Ownership}; lifetime {cteCollection.Lifetime}; metrics {cteCollection.MetricsStrategy}; " +
-                $"limits {FormatLimitBinding(cteCollection.LimitBinding)}]",
+                $"cte-input<{cteCollection.ElementType.DisplayName}>({cteCollection.CteName})"
+                    + $" [ownership {cteCollection.Ownership}; lifetime {cteCollection.Lifetime}; metrics {cteCollection.MetricsStrategy}; "
+                    + $"limits {FormatLimitBinding(cteCollection.LimitBinding)}]",
             ExecutionSubquery subquery => FormatSubquery(subquery),
             ExecutionFieldRead fieldRead => string.IsNullOrEmpty(fieldRead.Alias)
                 ? fieldRead.FieldName
@@ -29,16 +34,21 @@ public static partial class ExecutionPlanPrinter
             ExecutionScriptParameterRead parameterRead => $"${parameterRead.Name}",
             ExecutionScriptVariableRead variableRead => $"${variableRead.Name}",
             ExecutionLiteral literal => FormatLiteral(literal.Value.ToClrValue()),
-            ExecutionBinary binary => $"({FormatExpression(binary.Left)} {FormatBinaryOperator(binary.Kind)} {FormatExpression(binary.Right)})",
+            ExecutionBinary binary =>
+                $"({FormatExpression(binary.Left)} {FormatBinaryOperator(binary.Kind)} {FormatExpression(binary.Right)})",
             ExecutionUnary unary => FormatUnaryExpression(unary),
             ExecutionMethodCall method => FormatMethodCall(method),
-            ExecutionByteBufferOperation buffer => $"Buffer{buffer.Operation}[{buffer.Materialization}]({(buffer.Program is { } program ? program.HelperName : FormatExpression(buffer.Original))})",
+            ExecutionByteBufferOperation buffer =>
+                $"Buffer{buffer.Operation}[{buffer.Materialization}]({(buffer.Program is { } program ? program.HelperName : FormatExpression(buffer.Original))})",
             ExecutionByteBufferArgument argument => $"BufferArgument[{argument.Index}]",
-            ExecutionByteBufferSnapshot snapshot => $"OwnedBufferSnapshot({string.Join(", ", snapshot.Arguments.Select(FormatExpression))}; maximum-read={snapshot.MaximumReadBytes?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "complete"})",
+            ExecutionByteBufferSnapshot snapshot =>
+                $"OwnedBufferSnapshot({string.Join(", ", snapshot.Arguments.Select(FormatExpression))}; maximum-read={snapshot.MaximumReadBytes?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "complete"})",
             ExecutionStrictCast strictCast => $"{FormatExpression(strictCast.Expression)}::{strictCast.TargetTypeName}",
             ExecutionMethodTargetReuseCandidate candidate => FormatMethodTargetReuseCandidate(candidate),
-            ExecutionArrayAccess arrayAccess => $"{FormatExpression(arrayAccess.Array)}[{FormatExpression(arrayAccess.Index)}]",
-            ExecutionIndexedHashRowCreate indexedCreate => $"IndexedHashRow({indexedCreate.Row.Name}, {indexedCreate.Index.Name})",
+            ExecutionArrayAccess arrayAccess =>
+                $"{FormatExpression(arrayAccess.Array)}[{FormatExpression(arrayAccess.Index)}]",
+            ExecutionIndexedHashRowCreate indexedCreate =>
+                $"IndexedHashRow({indexedCreate.Row.Name}, {indexedCreate.Index.Name})",
             ExecutionIndexedHashRowRowRead rowRead => $"{rowRead.IndexedRow.Name}.Row",
             ExecutionIndexedHashRowIndexRead indexRead => $"{indexRead.IndexedRow.Name}.Index",
             ExecutionIsNullCheck isNull => FormatIsNullCheck(isNull),
@@ -52,32 +62,38 @@ public static partial class ExecutionPlanPrinter
                 stringMatch,
                 FormatExpression(stringMatch.Input),
                 FormatLiteral(stringMatch.OriginalPattern),
-                FormatLiteral(stringMatch.Needle)),
+                FormatLiteral(stringMatch.Needle)
+            ),
             ExecutionPrepareLikeMatcher prepareLike =>
                 $"PREPARE_LIKE({FormatExpression(prepareLike.Pattern)}, comparison={prepareLike.Comparison})",
             ExecutionPreparedLikeMatch preparedLike =>
                 $"PREPARED_LIKE({FormatExpression(preparedLike.Input)}, {FormatExpression(preparedLike.Matcher)})",
             ExecutionDynamicLikeMatch dynamicLike =>
-                $"DYNAMIC_LIKE({FormatExpression(dynamicLike.Input)}, {FormatExpression(dynamicLike.Pattern)}, " +
-                $"cache={FormatExpression(dynamicLike.CacheSlot)}, comparison={dynamicLike.Comparison})",
+                $"DYNAMIC_LIKE({FormatExpression(dynamicLike.Input)}, {FormatExpression(dynamicLike.Pattern)}, "
+                    + $"cache={FormatExpression(dynamicLike.CacheSlot)}, comparison={dynamicLike.Comparison})",
             ExecutionLikeMatcherCacheSlot cacheSlot =>
                 $"LIKE_MATCHER_CACHE_SLOT(capacity=2, scope={(cacheSlot.WorkerLocal ? "parallel-worker" : "serial")})",
             ExecutionPrepareRLikeMatcher prepareRLike => RLikeExecutionPlanFormatting.FormatPrepareMatcher(
                 prepareRLike,
-                FormatExpression(prepareRLike.Pattern)),
+                FormatExpression(prepareRLike.Pattern)
+            ),
             ExecutionPreparedRLikeMatch preparedRLike =>
                 $"PREPARED_RLIKE({FormatExpression(preparedRLike.Input)}, {FormatExpression(preparedRLike.Matcher)})",
             ExecutionDynamicRLikeMatch dynamicRLike =>
-                $"DYNAMIC_RLIKE({FormatExpression(dynamicRLike.Input)}, {FormatExpression(dynamicRLike.Pattern)}, " +
-                $"cache={FormatExpression(dynamicRLike.CacheSlot)}, strategy=runtime-classified)",
+                $"DYNAMIC_RLIKE({FormatExpression(dynamicRLike.Input)}, {FormatExpression(dynamicRLike.Pattern)}, "
+                    + $"cache={FormatExpression(dynamicRLike.CacheSlot)}, strategy=runtime-classified)",
             ExecutionRLikeMatcherCacheSlot cacheSlot =>
                 $"RLIKE_MATCHER_CACHE_SLOT(capacity=2, scope={(cacheSlot.WorkerLocal ? "parallel-worker" : "serial")})",
             ExecutionBetween between => FormatBetween(between),
             ExecutionCaseWhen caseWhen => FormatCaseWhen(caseWhen),
             ExecutionCoalesce coalesce => FormatCoalesce(coalesce),
-            ExecutionStringConcatenation concatenation => $"({string.Join(" || ", concatenation.Expressions.Select(FormatExpression))})",
+            ExecutionStringConcatenation concatenation =>
+                $"({string.Join(" || ", concatenation.Expressions.Select(FormatExpression))})",
             ExecutionRowStream { Kind: ExecutionRowStreamKind.Chunks } rows => rows.Variable.Name,
-            ExecutionRowStream { RowsAccess: ExecutionRowStreamRowsAccess.TableRows } rows => TryGetTypedRowBuffer(rows.Variable.Name, out _)
+            ExecutionRowStream { RowsAccess: ExecutionRowStreamRowsAccess.TableRows } rows => TryGetTypedRowBuffer(
+                rows.Variable.Name,
+                out _
+            )
                 ? rows.Variable.Name
                 : $"{rows.Variable.Name}.Rows",
             ExecutionRowStream rows => rows.Variable.Name,
@@ -87,16 +103,18 @@ public static partial class ExecutionPlanPrinter
             ExecutionVariableRead variableRead => variableRead.Variable.Name,
             ExecutionRowContextsRead contextsRead => $"{contextsRead.Row.Name}.Contexts",
             ExecutionNullContextArray nullContextArray => $"new object[{nullContextArray.Count}]",
-            ExecutionContextArray contextArray => $"contexts({string.Join(", ", contextArray.Segments.Select(static segment => FormatExpression(segment.Value)))})",
+            ExecutionContextArray contextArray =>
+                $"contexts({string.Join(", ", contextArray.Segments.Select(static segment => FormatExpression(segment.Value)))})",
 
             ExecutionValueTupleKey valueTupleKey => FormatTupleExpression(valueTupleKey.Parts),
             ExecutionWindowValueRead windowValueRead => $"{windowValueRead.Results.Name}[{windowValueRead.Index.Name}]",
             ExecutionAggregateCall aggregateCall => FormatAggregateCall(aggregateCall),
             ExecutionGroupKeyRead groupKeyRead => $"{groupKeyRead.Group.Name}.{groupKeyRead.KeyName}",
-            ExecutionAggregateCapturedValueRead capturedValueRead => $"{capturedValueRead.Group.Name}.{capturedValueRead.CapturedField.FieldName}",
+            ExecutionAggregateCapturedValueRead capturedValueRead =>
+                $"{capturedValueRead.Group.Name}.{capturedValueRead.CapturedField.FieldName}",
             ExecutionAggregateResultRef aggregateRef => aggregateRef.DisplayName ?? aggregateRef.Identifier,
             ExecutionWindowResultRef windowRef => $"window[{windowRef.WindowIndex}]",
-            _ => $"UnknownExpression({expression.GetType().Name})"
+            _ => $"UnknownExpression({expression.GetType().Name})",
         };
     }
 
@@ -128,7 +146,7 @@ public static partial class ExecutionPlanPrinter
         {
             UnaryOpKind.Not => $"NOT {operand}",
             UnaryOpKind.Negate => $"-{operand}",
-            _ => $"?{operand}"
+            _ => $"?{operand}",
         };
     }
 
@@ -176,7 +194,7 @@ public static partial class ExecutionPlanPrinter
         {
             PatternKind.Like => "LIKE",
             PatternKind.RLike => "RLIKE",
-            _ => patternMatch.Kind.ToString()
+            _ => patternMatch.Kind.ToString(),
         };
 
         return $"{FormatExpression(patternMatch.Expression)} {keyword} {FormatExpression(patternMatch.Pattern)}";
@@ -192,10 +210,16 @@ public static partial class ExecutionPlanPrinter
         var builder = new StringBuilder("CASE");
 
         foreach (var branch in caseWhen.Branches)
-            builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" WHEN {FormatExpression(branch.Condition)} THEN {FormatExpression(branch.Result)}");
+            builder.Append(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $" WHEN {FormatExpression(branch.Condition)} THEN {FormatExpression(branch.Result)}"
+            );
 
         if (caseWhen.ElseExpression != null)
-            builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" ELSE {FormatExpression(caseWhen.ElseExpression)}");
+            builder.Append(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $" ELSE {FormatExpression(caseWhen.ElseExpression)}"
+            );
 
         builder.Append(" END");
         return builder.ToString();
@@ -213,7 +237,7 @@ public static partial class ExecutionPlanPrinter
             null => "NULL",
             string text => $"'{text}'",
             bool flag => flag ? "TRUE" : "FALSE",
-            _ => value.ToString() ?? "NULL"
+            _ => value.ToString() ?? "NULL",
         };
     }
 
@@ -243,12 +267,15 @@ public static partial class ExecutionPlanPrinter
             BinaryOpKind.RightShift => ">>",
             BinaryOpKind.SqlStringConcatenate => "||",
             BinaryOpKind.StringConcatenate => "||",
-            _ => "?"
+            _ => "?",
         };
     }
+
     private static string FormatSubquery(ExecutionSubquery query)
     {
-        var comparison = query.Kind is Musoq.Evaluator.IR.Expressions.SubqueryResultKind.Any or Musoq.Evaluator.IR.Expressions.SubqueryResultKind.All
+        var comparison = query.Kind
+            is Musoq.Evaluator.IR.Expressions.SubqueryResultKind.Any
+                or Musoq.Evaluator.IR.Expressions.SubqueryResultKind.All
             ? $"<{query.Comparison}>({FormatExpression(query.Operand!)})"
             : string.Empty;
         return $"Apply{query.Kind}{comparison}[{query.Identifier}]({string.Join(", ", query.Bindings.Select(FormatExpression))})";

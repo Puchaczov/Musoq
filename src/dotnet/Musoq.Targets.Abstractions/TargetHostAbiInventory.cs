@@ -11,7 +11,8 @@ internal sealed record TargetHostAbiImport
         string name,
         string contract,
         int contractVersion,
-        TargetHostAbiImportDetails details)
+        TargetHostAbiImportDetails details
+    )
     {
         ArgumentNullException.ThrowIfNull(details);
 
@@ -22,7 +23,8 @@ internal sealed record TargetHostAbiImport
         {
             throw new ArgumentException(
                 $"ABI import details kind '{details.Kind}' does not match import kind '{kind}'.",
-                nameof(details));
+                nameof(details)
+            );
         }
 
         Kind = kind;
@@ -37,14 +39,16 @@ internal sealed record TargetHostAbiImport
         string name,
         string contract,
         int contractVersion = 1,
-        IReadOnlyDictionary<string, string>? attributes = null)
+        IReadOnlyDictionary<string, string>? attributes = null
+    )
     {
         return new TargetHostAbiImport(
             kind,
             name,
             contract,
             contractVersion,
-            new TargetCustomAbiImportDetails(kind, attributes));
+            new TargetCustomAbiImportDetails(kind, attributes)
+        );
     }
 
     public TargetHostAbiImportKind Kind { get; }
@@ -73,7 +77,8 @@ internal sealed record TargetHostAbiInventory
 {
     public TargetHostAbiInventory(
         IEnumerable<TargetHostAbiImport>? imports,
-        int contractVersion = TargetContractVersions.HostAbi)
+        int contractVersion = TargetContractVersions.HostAbi
+    )
     {
         if (contractVersion <= 0)
             throw new ArgumentOutOfRangeException(nameof(contractVersion), "ABI contract version must be positive.");
@@ -91,36 +96,43 @@ internal sealed record TargetHostAbiInventory
                 .ThenBy(static import => import.Contract, StringComparer.Ordinal)
                 .ThenBy(static import => import.ContractVersion)
                 .ThenBy(static import => FormatAttributes(import.Attributes), StringComparer.Ordinal)
-                .ToArray());
+                .ToArray()
+        );
     }
 
     private static TargetHostAbiImport SelectCanonicalImport(
         (TargetHostAbiImportKind Kind, string Name) identity,
-        IEnumerable<TargetHostAbiImport> candidates)
+        IEnumerable<TargetHostAbiImport> candidates
+    )
     {
         var first = candidates.First();
         foreach (var candidate in candidates.Skip(1))
         {
-            if (string.Equals(first.Contract, candidate.Contract, StringComparison.Ordinal) &&
-                first.ContractVersion == candidate.ContractVersion &&
-                first.Details.GetType() == candidate.Details.GetType() &&
-                string.Equals(first.Details.CanonicalDefinition, candidate.Details.CanonicalDefinition, StringComparison.Ordinal))
+            if (
+                string.Equals(first.Contract, candidate.Contract, StringComparison.Ordinal)
+                && first.ContractVersion == candidate.ContractVersion
+                && first.Details.GetType() == candidate.Details.GetType()
+                && string.Equals(
+                    first.Details.CanonicalDefinition,
+                    candidate.Details.CanonicalDefinition,
+                    StringComparison.Ordinal
+                )
+            )
             {
                 continue;
             }
 
             throw new ArgumentException(
-                $"ABI import '{identity.Kind}:{identity.Name}' has conflicting ABI import definitions " +
-                $"({FormatConflictComponents(first, candidate)}).",
-                "imports");
+                $"ABI import '{identity.Kind}:{identity.Name}' has conflicting ABI import definitions "
+                    + $"({FormatConflictComponents(first, candidate)}).",
+                "imports"
+            );
         }
 
         return first;
     }
 
-    private static string FormatConflictComponents(
-        TargetHostAbiImport first,
-        TargetHostAbiImport candidate)
+    private static string FormatConflictComponents(TargetHostAbiImport first, TargetHostAbiImport candidate)
     {
         var components = new List<string>();
         if (!string.Equals(first.Contract, candidate.Contract, StringComparison.Ordinal))
@@ -129,7 +141,13 @@ internal sealed record TargetHostAbiInventory
             components.Add("contract version");
         if (first.Details.GetType() != candidate.Details.GetType())
             components.Add("details type");
-        if (!string.Equals(first.Details.CanonicalDefinition, candidate.Details.CanonicalDefinition, StringComparison.Ordinal))
+        if (
+            !string.Equals(
+                first.Details.CanonicalDefinition,
+                candidate.Details.CanonicalDefinition,
+                StringComparison.Ordinal
+            )
+        )
             components.Add("canonical definition");
 
         return string.Join(", ", components);
@@ -159,7 +177,8 @@ internal sealed record TargetHostAbiInventory
             if (!Requires(importKind))
             {
                 throw new InvalidOperationException(
-                    $"Runtime service '{service}' is host-imported but ABI import '{importKind}' is missing.");
+                    $"Runtime service '{service}' is host-imported but ABI import '{importKind}' is missing."
+                );
             }
         }
 
@@ -169,19 +188,20 @@ internal sealed record TargetHostAbiInventory
             if (!runtimeServices.Requires(service))
             {
                 throw new InvalidOperationException(
-                    $"ABI import '{import.Kind}' has no declared runtime-service fulfillment for '{service}'.");
+                    $"ABI import '{import.Kind}' has no declared runtime-service fulfillment for '{service}'."
+                );
             }
         }
     }
 
-    public TargetRuntimeServiceRequirements CreateServiceRequirements(
-        TargetRuntimeServiceFulfillmentKind fulfillment)
+    public TargetRuntimeServiceRequirements CreateServiceRequirements(TargetRuntimeServiceFulfillmentKind fulfillment)
     {
         return new TargetRuntimeServiceRequirements(
             Imports
                 .Select(static import => GetService(import.Kind))
                 .Distinct()
-                .Select(service => new TargetRuntimeServiceFulfillment(service, fulfillment)));
+                .Select(service => new TargetRuntimeServiceFulfillment(service, fulfillment))
+        );
     }
 
     private static TargetHostAbiImportKind GetImportKind(TargetRuntimeServiceRequirementKind service)
@@ -200,7 +220,7 @@ internal sealed record TargetHostAbiInventory
             TargetRuntimeServiceRequirementKind.RLikeMatcher => TargetHostAbiImportKind.RLikeMatcher,
             TargetRuntimeServiceRequirementKind.ByteBufferSnapshot => TargetHostAbiImportKind.ByteBufferSnapshot,
             TargetRuntimeServiceRequirementKind.InterpretationStatus => TargetHostAbiImportKind.InterpretationStatus,
-            _ => throw new ArgumentOutOfRangeException(nameof(service), service, "Unknown runtime service.")
+            _ => throw new ArgumentOutOfRangeException(nameof(service), service, "Unknown runtime service."),
         };
     }
 
@@ -220,7 +240,7 @@ internal sealed record TargetHostAbiInventory
             TargetHostAbiImportKind.RLikeMatcher => TargetRuntimeServiceRequirementKind.RLikeMatcher,
             TargetHostAbiImportKind.ByteBufferSnapshot => TargetRuntimeServiceRequirementKind.ByteBufferSnapshot,
             TargetHostAbiImportKind.InterpretationStatus => TargetRuntimeServiceRequirementKind.InterpretationStatus,
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown ABI import kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown ABI import kind."),
         };
     }
 
@@ -230,6 +250,7 @@ internal sealed record TargetHostAbiInventory
             "|",
             attributes
                 .OrderBy(static pair => pair.Key, StringComparer.Ordinal)
-                .Select(static pair => $"{pair.Key}={pair.Value}"));
+                .Select(static pair => $"{pair.Key}={pair.Value}")
+        );
     }
 }

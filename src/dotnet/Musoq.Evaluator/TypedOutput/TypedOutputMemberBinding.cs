@@ -6,4 +6,5 @@ internal sealed record TypedOutputMemberBinding(
     string MemberName,
     Type TargetType,
     TypedOutputColumn Column,
-    MemberInfo Member);
+    MemberInfo Member
+);

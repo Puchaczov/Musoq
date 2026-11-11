@@ -11,8 +11,8 @@ using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical;
-using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using Musoq.Parser.Nodes;
+using Musoq.Targets.CSharpClr.Optimization.Codegen;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 
@@ -45,14 +45,15 @@ public sealed class OptimizationPassPipelineGuardrailTests
         Assert.IsNotEmpty(reasons);
         Assert.IsEmpty(
             reasons.Where(string.IsNullOrWhiteSpace),
-            "Every optimization pipeline step must declare a non-empty reason.");
+            "Every optimization pipeline step must declare a non-empty reason."
+        );
     }
 
     [TestMethod]
     public void ExecutionIrPipeline_ShouldDocumentBothMethodTargetReuseRunsDistinctly()
     {
-        var reuseReasons = ExecutionIrOptimizationGroup.Pipeline.Steps
-            .Where(step => step.Name == "MethodTargetReuse")
+        var reuseReasons = ExecutionIrOptimizationGroup
+            .Pipeline.Steps.Where(step => step.Name == "MethodTargetReuse")
             .Select(step => step.Reason)
             .ToArray();
 
@@ -60,7 +61,8 @@ public sealed class OptimizationPassPipelineGuardrailTests
         Assert.AreNotEqual(
             reuseReasons[0],
             reuseReasons[1],
-            "The two intentional MethodTargetReusePass runs should document distinct reasons.");
+            "The two intentional MethodTargetReusePass runs should document distinct reasons."
+        );
     }
 
     [TestMethod]
@@ -100,80 +102,73 @@ public sealed class OptimizationPassPipelineGuardrailTests
     public void LogicalOptimizationPasses_ShouldLiveUnderLogicalOwnershipFolder()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var optimizationRoot = Path.Combine(
-            repositoryRoot,
-            "src",
-            "dotnet",
-            "Musoq.Evaluator",
-            "IR",
-            "Optimization");
-        var offenders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
+        var optimizationRoot = Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Optimization");
+        var offenders = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
             .Select(Path.GetFileName)
             .Where(static name => name is not null)
             .Where(static name =>
-                name!.StartsWith("Logical", StringComparison.Ordinal) ||
-                name.StartsWith("PreLogical", StringComparison.Ordinal) ||
-                name is "DeadCteEliminationLogicalPass.cs" ||
-                name is "DistinctToGroupByNormalizationPass.cs" ||
-                name is "SubqueryToCteNormalizationPass.cs")
+                name!.StartsWith("Logical", StringComparison.Ordinal)
+                || name.StartsWith("PreLogical", StringComparison.Ordinal)
+                || name is "DeadCteEliminationLogicalPass.cs"
+                || name is "DistinctToGroupByNormalizationPass.cs"
+                || name is "SubqueryToCteNormalizationPass.cs"
+            )
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Logical and pre-logical optimizer ownership belongs under IR/Optimization/Logical: " +
-            string.Join(", ", offenders));
+            "Logical and pre-logical optimizer ownership belongs under IR/Optimization/Logical: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void PhysicalOptimizationPasses_ShouldLiveUnderPhysicalOwnershipFolder()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var optimizationRoot = Path.Combine(
-            repositoryRoot,
-            "src",
-            "dotnet",
-            "Musoq.Evaluator",
-            "IR",
-            "Optimization");
-        var offenders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
+        var optimizationRoot = Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Optimization");
+        var offenders = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
             .Select(Path.GetFileName)
             .Where(static name => name is not null)
             .Where(static name =>
-                name!.StartsWith("Physical", StringComparison.Ordinal) ||
-                name.StartsWith("ProjectionPruning", StringComparison.Ordinal) ||
-                name.StartsWith("AggregateStrategy", StringComparison.Ordinal) ||
-                name.StartsWith("PredicateMovementPhysical", StringComparison.Ordinal) ||
-                name.StartsWith("JoinStrategy", StringComparison.Ordinal) ||
-                name.StartsWith("OrderingStrategy", StringComparison.Ordinal) ||
-                name.StartsWith("WindowMaterialization", StringComparison.Ordinal) ||
-                name.StartsWith("SourcePredicate", StringComparison.Ordinal) ||
-                name.StartsWith("SourceProjection", StringComparison.Ordinal) ||
-                name.StartsWith("SourcePlanPhysical", StringComparison.Ordinal))
+                name!.StartsWith("Physical", StringComparison.Ordinal)
+                || name.StartsWith("ProjectionPruning", StringComparison.Ordinal)
+                || name.StartsWith("AggregateStrategy", StringComparison.Ordinal)
+                || name.StartsWith("PredicateMovementPhysical", StringComparison.Ordinal)
+                || name.StartsWith("JoinStrategy", StringComparison.Ordinal)
+                || name.StartsWith("OrderingStrategy", StringComparison.Ordinal)
+                || name.StartsWith("WindowMaterialization", StringComparison.Ordinal)
+                || name.StartsWith("SourcePredicate", StringComparison.Ordinal)
+                || name.StartsWith("SourceProjection", StringComparison.Ordinal)
+                || name.StartsWith("SourcePlanPhysical", StringComparison.Ordinal)
+            )
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Physical optimizer ownership belongs under IR/Optimization/Physical: " +
-            string.Join(", ", offenders));
+            "Physical optimizer ownership belongs under IR/Optimization/Physical: " + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void ExecutionIrOptimizationPasses_ShouldLiveUnderExecutionOwnershipFolder()
     {
-        var offenders = FindRootOptimizationFiles(
-            static name =>
-                name.StartsWith("Execution", StringComparison.Ordinal) ||
-                name.StartsWith("Expression", StringComparison.Ordinal) ||
-                name.StartsWith("MethodTarget", StringComparison.Ordinal) ||
-                name.StartsWith("Cte", StringComparison.Ordinal) ||
-                name.StartsWith("CapacityHint", StringComparison.Ordinal) ||
-                name.StartsWith("FieldExpression", StringComparison.Ordinal) ||
-                name.StartsWith("SingleUsePipeline", StringComparison.Ordinal));
+        var offenders = FindRootOptimizationFiles(static name =>
+            name.StartsWith("Execution", StringComparison.Ordinal)
+            || name.StartsWith("Expression", StringComparison.Ordinal)
+            || name.StartsWith("MethodTarget", StringComparison.Ordinal)
+            || name.StartsWith("Cte", StringComparison.Ordinal)
+            || name.StartsWith("CapacityHint", StringComparison.Ordinal)
+            || name.StartsWith("FieldExpression", StringComparison.Ordinal)
+            || name.StartsWith("SingleUsePipeline", StringComparison.Ordinal)
+        );
 
         Assert.IsEmpty(
             offenders,
-            "Execution IR optimizer ownership belongs under IR/Optimization/Execution: " +
-            string.Join(", ", offenders));
+            "Execution IR optimizer ownership belongs under IR/Optimization/Execution: " + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -187,10 +182,12 @@ public sealed class OptimizationPassPipelineGuardrailTests
             "Musoq.Evaluator",
             "IR",
             "Optimization",
-            "Codegen");
+            "Codegen"
+        );
         Assert.IsFalse(
             Directory.Exists(evaluatorCodegenRoot),
-            "Generated C# readability optimization belongs to Musoq.Targets.CSharpClr, not evaluator IR.");
+            "Generated C# readability optimization belongs to Musoq.Targets.CSharpClr, not evaluator IR."
+        );
 
         var targetCodegenRoot = Path.Combine(
             repositoryRoot,
@@ -198,7 +195,8 @@ public sealed class OptimizationPassPipelineGuardrailTests
             "dotnet",
             "Musoq.Targets.CSharpClr",
             "Optimization",
-            "Codegen");
+            "Codegen"
+        );
         string[] expectedFiles =
         [
             "CodegenReadabilityGroup.cs",
@@ -212,31 +210,31 @@ public sealed class OptimizationPassPipelineGuardrailTests
             "HelperExtractionReadabilityPass.cs",
             "ICodegenReadabilityOptimizationPass.cs",
             "LocalDeclarationNormalizationPass.cs",
-            "ReadabilityDecisionTracePass.cs"
+            "ReadabilityDecisionTracePass.cs",
         ];
-        var missing = expectedFiles
-            .Where(file => !File.Exists(Path.Combine(targetCodegenRoot, file)))
-            .ToArray();
+        var missing = expectedFiles.Where(file => !File.Exists(Path.Combine(targetCodegenRoot, file))).ToArray();
 
         Assert.IsEmpty(
             missing,
-            "Expected generated C# readability optimization files under the CSharpClr target package: " +
-            string.Join(", ", missing));
+            "Expected generated C# readability optimization files under the CSharpClr target package: "
+                + string.Join(", ", missing)
+        );
 
-        var misplaced = FindRootOptimizationFiles(
-            static name =>
-                name.StartsWith("Codegen", StringComparison.Ordinal) ||
-                name.StartsWith("DeterministicMember", StringComparison.Ordinal) ||
-                name.StartsWith("LocalDeclaration", StringComparison.Ordinal) ||
-                name.StartsWith("DeadTemporary", StringComparison.Ordinal) ||
-                name.StartsWith("ControlFlow", StringComparison.Ordinal) ||
-                name.StartsWith("HelperExtraction", StringComparison.Ordinal) ||
-                name.StartsWith("ReadabilityDecision", StringComparison.Ordinal));
+        var misplaced = FindRootOptimizationFiles(static name =>
+            name.StartsWith("Codegen", StringComparison.Ordinal)
+            || name.StartsWith("DeterministicMember", StringComparison.Ordinal)
+            || name.StartsWith("LocalDeclaration", StringComparison.Ordinal)
+            || name.StartsWith("DeadTemporary", StringComparison.Ordinal)
+            || name.StartsWith("ControlFlow", StringComparison.Ordinal)
+            || name.StartsWith("HelperExtraction", StringComparison.Ordinal)
+            || name.StartsWith("ReadabilityDecision", StringComparison.Ordinal)
+        );
 
         Assert.IsEmpty(
             misplaced,
-            "Generated C# readability optimizer ownership belongs under Musoq.Targets.CSharpClr/Optimization/Codegen: " +
-            string.Join(", ", misplaced));
+            "Generated C# readability optimizer ownership belongs under Musoq.Targets.CSharpClr/Optimization/Codegen: "
+                + string.Join(", ", misplaced)
+        );
     }
 
     [TestMethod]
@@ -250,13 +248,15 @@ public sealed class OptimizationPassPipelineGuardrailTests
             "Musoq.Evaluator",
             "IR",
             "Optimization",
-            "IPlanOptimizationPass.cs");
+            "IPlanOptimizationPass.cs"
+        );
         var contents = File.ReadAllText(contractFile);
 
         Assert.IsFalse(
-            contents.Contains("Microsoft.CodeAnalysis", StringComparison.Ordinal) ||
-            contents.Contains("CompilationUnitSyntax", StringComparison.Ordinal),
-            "Evaluator optimization pass contracts must stay target-neutral; generated C# syntax contracts belong to Musoq.Targets.CSharpClr.");
+            contents.Contains("Microsoft.CodeAnalysis", StringComparison.Ordinal)
+                || contents.Contains("CompilationUnitSyntax", StringComparison.Ordinal),
+            "Evaluator optimization pass contracts must stay target-neutral; generated C# syntax contracts belong to Musoq.Targets.CSharpClr."
+        );
     }
 
     private static void AssertPassesMatchSteps<TPlan>(OptimizationPassPipeline<TPlan> pipeline)
@@ -264,7 +264,8 @@ public sealed class OptimizationPassPipelineGuardrailTests
         CollectionAssert.AreEqual(
             pipeline.Steps.Select(step => step.Pass).ToArray(),
             pipeline.Passes.ToArray(),
-            $"Pipeline for stage {pipeline.Stage} exposes passes that diverge from its declared steps.");
+            $"Pipeline for stage {pipeline.Stage} exposes passes that diverge from its declared steps."
+        );
     }
 
     private static void AssertStageContract<TContract, TPlan>()
@@ -275,7 +276,8 @@ public sealed class OptimizationPassPipelineGuardrailTests
 
     private static void AssertPassContracts<TPlan>(
         IReadOnlyList<IPlanOptimizationPass<TPlan>> passes,
-        Type expectedContract)
+        Type expectedContract
+    )
     {
         var offenders = passes
             .Where(pass => !expectedContract.IsInstanceOfType(pass))
@@ -284,22 +286,17 @@ public sealed class OptimizationPassPipelineGuardrailTests
 
         Assert.IsEmpty(
             offenders,
-            $"Pipeline contains pass(es) that do not implement {expectedContract.Name}: " +
-            string.Join(", ", offenders));
+            $"Pipeline contains pass(es) that do not implement {expectedContract.Name}: " + string.Join(", ", offenders)
+        );
     }
 
     private static string[] FindRootOptimizationFiles(Func<string, bool> isForbiddenFileName)
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var optimizationRoot = Path.Combine(
-            repositoryRoot,
-            "src",
-            "dotnet",
-            "Musoq.Evaluator",
-            "IR",
-            "Optimization");
+        var optimizationRoot = Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Optimization");
 
-        return global::Musoq.Tests.Common.RequiredSourceInventory.Files(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
+        return global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
             .Select(Path.GetFileName)
             .Where(static name => name is not null)
             .Select(static name => name!)
@@ -316,7 +313,7 @@ public sealed class OptimizationPassPipelineGuardrailTests
             .. LogicalOptimizationGroup.Pipeline.Steps.Select(step => step.Reason),
             .. PhysicalOptimizationGroup.Pipeline.Steps.Select(step => step.Reason),
             .. ExecutionIrOptimizationGroup.Pipeline.Steps.Select(step => step.Reason),
-            .. CodegenReadabilityGroup.Pipeline.Steps.Select(step => step.Reason)
+            .. CodegenReadabilityGroup.Pipeline.Steps.Select(step => step.Reason),
         ];
     }
 }

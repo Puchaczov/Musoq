@@ -29,8 +29,12 @@ public partial class LibraryBase
             payload = payload.Replace('-', '+').Replace('_', '/');
             switch (payload.Length % 4)
             {
-                case 2: payload += "=="; break;
-                case 3: payload += "="; break;
+                case 2:
+                    payload += "==";
+                    break;
+                case 3:
+                    payload += "=";
+                    break;
             }
 
             var bytes = Convert.FromBase64String(payload);
@@ -64,8 +68,12 @@ public partial class LibraryBase
             header = header.Replace('-', '+').Replace('_', '/');
             switch (header.Length % 4)
             {
-                case 2: header += "=="; break;
-                case 3: header += "="; break;
+                case 2:
+                    header += "==";
+                    break;
+                case 3:
+                    header += "=";
+                    break;
             }
 
             var bytes = Convert.FromBase64String(header);
@@ -98,9 +106,7 @@ public partial class LibraryBase
         {
             using var doc = JsonDocument.Parse(payload);
             if (doc.RootElement.TryGetProperty(claimName, out var claim))
-                return claim.ValueKind == JsonValueKind.String
-                    ? claim.GetString()
-                    : claim.GetRawText();
+                return claim.ValueKind == JsonValueKind.String ? claim.GetString() : claim.GetRawText();
             return null;
         }
         catch

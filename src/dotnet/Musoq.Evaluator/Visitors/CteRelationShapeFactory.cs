@@ -17,13 +17,13 @@ internal static class CteRelationShapeFactory
         {
             var column = columns[index];
             if (!names.Add(column.ColumnName))
-                throw new InvalidOperationException(
-                    $"CTE output contains duplicate column '{column.ColumnName}'.");
+                throw new InvalidOperationException($"CTE output contains duplicate column '{column.ColumnName}'.");
 
             fields[index] = new StructuralFieldDescriptor(
                 column.ColumnName,
                 StructuralTypeDescriptor.FromClrType(column.ColumnType),
-                required: true);
+                required: true
+            );
         }
 
         return StructuralTypeDescriptor.Record(typeof(StructuralValue), fields);

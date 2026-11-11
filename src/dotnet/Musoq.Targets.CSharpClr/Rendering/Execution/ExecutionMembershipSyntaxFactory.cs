@@ -10,7 +10,8 @@ internal sealed partial class ExecutionMembershipSyntaxFactory(
     Func<ExecutionExpression, ExpressionSyntax> renderExpression,
     Func<ExecutionConstantInSet, string?> resolveConstantField,
     Func<ExecutionConstantValue, ExpressionSyntax> renderLiteral,
-    int variableSequence)
+    int variableSequence
+)
 {
     public ExpressionSyntax Render(ExecutionInCheck inCheck)
     {
@@ -20,18 +21,18 @@ internal sealed partial class ExecutionMembershipSyntaxFactory(
         if (inCheck.Values.Count == 0)
         {
             return SyntaxFactory.LiteralExpression(
-                inCheck.IsNegated ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
+                inCheck.IsNegated ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression
+            );
         }
 
         if (inCheck.ConstantSet is { Kind: ExecutionConstantInSetKind.Switch } constantSet)
-            return ApplyInNegation(
-                RenderConstantSwitchInCheck(constantSet, inCheck.Expression),
-                inCheck.IsNegated);
+            return ApplyInNegation(RenderConstantSwitchInCheck(constantSet, inCheck.Expression), inCheck.IsNegated);
 
-        if (inCheck.ConstantSet != null &&
-            resolveConstantField(inCheck.ConstantSet) is { } fieldName)
+        if (inCheck.ConstantSet != null && resolveConstantField(inCheck.ConstantSet) is { } fieldName)
         {
-            var constantMatch = inCheck.ConstantSet.Kind is ExecutionConstantInSetKind.HashSet or ExecutionConstantInSetKind.FrozenSet
+            var constantMatch = inCheck.ConstantSet.Kind
+                is ExecutionConstantInSetKind.HashSet
+                    or ExecutionConstantInSetKind.FrozenSet
                 ? RenderConstantHashSetInCheck(fieldName, inCheck.Expression)
                 : RenderConstantArrayInCheck(fieldName, inCheck.Expression);
             return ApplyInNegation(constantMatch, inCheck.IsNegated);
@@ -48,7 +49,9 @@ internal sealed partial class ExecutionMembershipSyntaxFactory(
         if (inCheck.ConstantSet is { Kind: ExecutionConstantInSetKind.Switch } switchSet)
             lookup = RenderConstantSwitchInCheck(switchSet, inCheck.Expression, parameter);
         else if (inCheck.ConstantSet != null && resolveConstantField(inCheck.ConstantSet) is { } fieldName)
-            lookup = inCheck.ConstantSet.Kind is ExecutionConstantInSetKind.HashSet or ExecutionConstantInSetKind.FrozenSet
+            lookup = inCheck.ConstantSet.Kind
+                is ExecutionConstantInSetKind.HashSet
+                    or ExecutionConstantInSetKind.FrozenSet
                 ? RenderConstantHashSetInCheck(fieldName, inCheck.Expression, parameter)
                 : RenderConstantArrayInCheck(fieldName, inCheck.Expression, parameter);
 
@@ -58,11 +61,17 @@ internal sealed partial class ExecutionMembershipSyntaxFactory(
         if (lookup is null)
             return ApplyInNegation(RenderTypedMembership(inCheck), inCheck.IsNegated);
 
-        var arguments = CreateArgumentList(operand,
+        var arguments = CreateArgumentList(
+            operand,
             SyntaxFactory.SimpleLambdaExpression(SyntaxFactory.Parameter(parameter.Identifier), lookup),
-            SyntaxFactory.LiteralExpression(inCheck.ConstantSet!.Values.Any(value => value.Kind == ExecutionConstantKind.Null)
-                ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression));
-        var result = SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression("Musoq.Evaluator.Operators.SqlIn"))
+            SyntaxFactory.LiteralExpression(
+                inCheck.ConstantSet!.Values.Any(value => value.Kind == ExecutionConstantKind.Null)
+                    ? SyntaxKind.TrueLiteralExpression
+                    : SyntaxKind.FalseLiteralExpression
+            )
+        );
+        var result = SyntaxFactory
+            .InvocationExpression(SyntaxFactory.ParseExpression("Musoq.Evaluator.Operators.SqlIn"))
             .WithArgumentList(arguments);
         return ApplyInNegation(result, inCheck.IsNegated);
     }
@@ -72,28 +81,32 @@ internal sealed partial class ExecutionMembershipSyntaxFactory(
         return isNegated
             ? SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.LogicalNotExpression,
-                SyntaxFactory.ParenthesizedExpression(expression))
+                SyntaxFactory.ParenthesizedExpression(expression)
+            )
             : expression;
     }
 
     private ParenthesizedExpressionSyntax RenderConstantSwitchInCheck(
         ExecutionConstantInSet constantSet,
         ExecutionExpression expression,
-        ExpressionSyntax? input = null)
+        ExpressionSyntax? input = null
+    )
     {
         var matchPattern = CreateConstantInSwitchPattern(constantSet.Values);
-        var arms = SyntaxFactory.SeparatedList(
-        [
+        var arms = SyntaxFactory.SeparatedList([
             SyntaxFactory.SwitchExpressionArm(
                 matchPattern,
-                SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)),
+                SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+            ),
             SyntaxFactory.SwitchExpressionArm(
                 SyntaxFactory.DiscardPattern(),
-                SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
+                SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)
+            ),
         ]);
 
         return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.SwitchExpression(input ?? renderExpression(expression), arms));
+            SyntaxFactory.SwitchExpression(input ?? renderExpression(expression), arms)
+        );
     }
 
     private PatternSyntax CreateConstantInSwitchPattern(IReadOnlyList<ExecutionConstantValue> values)
@@ -107,39 +120,53 @@ internal sealed partial class ExecutionMembershipSyntaxFactory(
     private ParenthesizedExpressionSyntax RenderConstantArrayInCheck(
         string fieldName,
         ExecutionExpression expression,
-        ExpressionSyntax? input = null)
+        ExpressionSyntax? input = null
+    )
     {
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.GreaterThanOrEqualExpression,
-                CreateArrayIndexOfExpression(SyntaxFactory.IdentifierName(fieldName), input ?? renderExpression(expression)),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))));
+                CreateArrayIndexOfExpression(
+                    SyntaxFactory.IdentifierName(fieldName),
+                    input ?? renderExpression(expression)
+                ),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+            )
+        );
     }
 
     private ParenthesizedExpressionSyntax RenderConstantHashSetInCheck(
         string fieldName,
         ExecutionExpression expression,
-        ExpressionSyntax? input = null)
+        ExpressionSyntax? input = null
+    )
     {
         return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(fieldName),
-                        SyntaxFactory.IdentifierName(nameof(HashSet<object>.Contains))))
-                .WithArgumentList(CreateArgumentList(input ?? renderExpression(expression))));
+                        SyntaxFactory.IdentifierName(nameof(HashSet<object>.Contains))
+                    )
+                )
+                .WithArgumentList(CreateArgumentList(input ?? renderExpression(expression)))
+        );
     }
 
     private static InvocationExpressionSyntax CreateArrayIndexOfExpression(
         ExpressionSyntax values,
-        ExpressionSyntax value)
+        ExpressionSyntax value
+    )
     {
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(Array)),
-                    SyntaxFactory.IdentifierName(nameof(Array.IndexOf))))
+                    SyntaxFactory.IdentifierName(nameof(Array.IndexOf))
+                )
+            )
             .WithArgumentList(CreateArgumentList(values, value));
     }
-
 }

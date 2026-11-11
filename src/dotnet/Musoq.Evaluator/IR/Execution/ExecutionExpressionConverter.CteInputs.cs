@@ -4,41 +4,46 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.IR.Execution;
+
 public static partial class ExecutionExpressionConverter
 {
     private static ExecutionExpression ConvertCteCollectionInput(
         CteCollectionInput input,
-        IReadOnlyDictionary<string, int>? cteTableIndexes)
+        IReadOnlyDictionary<string, int>? cteTableIndexes
+    )
     {
         if (cteTableIndexes?.TryGetValue(input.CteName, out var tableIndex) != true)
             throw Unsupported(input, $"CTE table '{input.CteName}' requires a registered table index");
-        var fields = input.Fields
-            .Select(field => new ExecutionCteCollectionField(
+        var fields = input
+            .Fields.Select(field => new ExecutionCteCollectionField(
                 field.Name,
                 field.Index,
-                ExecutionClrBindingFactory.FromClr(field.Type)))
+                ExecutionClrBindingFactory.FromClr(field.Type)
+            ))
             .ToArray();
         var receiver = StructuralTypeDescriptor.FromClrType(input.ElementType);
-        var constructionPlan = receiver.Kind == StructuralTypeKind.Record
-            ? CreateCteConstructionPlan(input.ElementType, fields, receiver)
-            : null;
+        var constructionPlan =
+            receiver.Kind == StructuralTypeKind.Record
+                ? CreateCteConstructionPlan(input.ElementType, fields, receiver)
+                : null;
         return new ExecutionCteCollectionInput(
             input.CteName,
             new ExecutionStoredTableRows(tableIndex),
             ExecutionClrBindingFactory.FromClr(input.ReturnType),
             ExecutionClrBindingFactory.FromClr(input.ElementType),
             fields,
-            constructionPlan);
+            constructionPlan
+        );
     }
+
     private static ExecutionStructuralConstructionPlan CreateCteConstructionPlan(
         Type elementType,
         IReadOnlyList<ExecutionCteCollectionField> fields,
-        StructuralTypeDescriptor receiver)
+        StructuralTypeDescriptor receiver
+    )
     {
         var constructor = StructuralInputMetadata.SelectConstructor(elementType);
-        var sourceFieldPlans = fields
-            .Select(field => CreateCteFieldPlan(field))
-            .ToArray();
+        var sourceFieldPlans = fields.Select(field => CreateCteFieldPlan(field)).ToArray();
         var sourceIndexes = new int[receiver.Fields.Count];
         var defaults = new ExecutionExpression?[receiver.Fields.Count];
 
@@ -51,12 +56,11 @@ public static partial class ExecutionExpressionConverter
 
             if (!receiverField.HasDefault)
                 throw new InvalidOperationException(
-                    $"CTE relation is missing required receiving field '{receiverField.Name}'.");
+                    $"CTE relation is missing required receiving field '{receiverField.Name}'."
+                );
 
             var targetType = receiverField.Type.ClrType ?? typeof(object);
-            defaults[parameterIndex] = new ExecutionLiteral(
-                receiverField.Default.Value,
-                targetType);
+            defaults[parameterIndex] = new ExecutionLiteral(receiverField.Default.Value, targetType);
         }
 
         var shape = new ExecutionStructuralShape(
@@ -64,7 +68,8 @@ public static partial class ExecutionExpressionConverter
             scalarType: null,
             sourceFieldPlans,
             elementType: null,
-            receiver.IsNullable);
+            receiver.IsNullable
+        );
         return new ExecutionStructuralConstructionPlan(
             ExecutionClrBindingFactory.FromClr(elementType),
             ExecutionClrBindingFactory.FromClr(constructor),
@@ -74,7 +79,8 @@ public static partial class ExecutionExpressionConverter
             ExecutionStructuralPreparationLifetime.Inline,
             origin: ExecutionStructuralInputOrigin.Cte,
             metricsStrategy: ExecutionStructuralMetricsStrategy.TypedPrepass,
-            ownership: ExecutionStructuralOwnershipMode.ConstructFresh);
+            ownership: ExecutionStructuralOwnershipMode.ConstructFresh
+        );
     }
 
     private static ExecutionStructuralFieldPlan CreateCteFieldPlan(ExecutionCteCollectionField field)
@@ -86,12 +92,11 @@ public static partial class ExecutionExpressionConverter
             Required: true,
             HasDefault: false,
             DefaultText: null,
-            Shape: ExecutionStructuralShapeFactory.Create(descriptor));
+            Shape: ExecutionStructuralShapeFactory.Create(descriptor)
+        );
     }
 
-    private static int FindCteFieldIndex(
-        IReadOnlyList<ExecutionCteCollectionField> fields,
-        string name)
+    private static int FindCteFieldIndex(IReadOnlyList<ExecutionCteCollectionField> fields, string name)
     {
         for (var index = 0; index < fields.Count; index++)
         {

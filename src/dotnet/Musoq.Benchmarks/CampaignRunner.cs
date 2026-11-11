@@ -9,7 +9,9 @@ public static class CampaignRunner
         var root = ProvenanceCollector.RepositoryRoot();
         var work = Path.Combine(root, ".artifacts", "benchmarks", "work", Guid.NewGuid().ToString("N"));
         var complete = CampaignCases.CreateComplete(options, work);
-        var canonical = options.Size is null ? complete : CampaignCases.CreateComplete(options with { Size = null }, work);
+        var canonical = options.Size is null
+            ? complete
+            : CampaignCases.CreateComplete(options with { Size = null }, work);
         var catalog = CaseLifecycleCatalog.Load(canonical.Select(item => item.Definition.Id));
         var cases = CampaignCases.Select(complete, options, catalog);
         catalog.ValidateSelection(cases.Select(item => item.Definition.Id), options.Official);
@@ -20,10 +22,12 @@ public static class CampaignRunner
         var runId = $"{DateTimeOffset.UtcNow:yyyyMMddTHHmmssfffZ}-{provenance.Source.Commit[..12]}";
         var manifest = new RunManifest
         {
-            SuiteVersion = ScenarioCatalog.SuiteVersion, RunId = runId,
-            Provenance = provenance, Cases = cases.Select(item => item.Definition).ToArray(),
+            SuiteVersion = ScenarioCatalog.SuiteVersion,
+            RunId = runId,
+            Provenance = provenance,
+            Cases = cases.Select(item => item.Definition).ToArray(),
             CaseCatalog = catalog,
-            Invocation = options with { Resume = null, Output = null, Supplied = [] }
+            Invocation = options with { Resume = null, Output = null, Supplied = [] },
         };
         var output = options.Output ?? DefaultOutput(root, options, manifest);
         CampaignPaths.Validate(root, options.Resume ?? output, cases);
@@ -32,7 +36,9 @@ public static class CampaignRunner
             store = new CampaignStore(output, manifest);
         else
             store = CampaignStore.Resume(options.Resume, manifest);
-        Console.WriteLine($"{options.Mode}: {cases.Length} cases; {provenance.Source.Branch ?? "detached"}@{provenance.Source.Commit}; {provenance.Hardware.CpuModel}");
+        Console.WriteLine(
+            $"{options.Mode}: {cases.Length} cases; {provenance.Source.Branch ?? "detached"}@{provenance.Source.Commit}; {provenance.Hardware.CpuModel}"
+        );
         Console.WriteLine($"Results: {store.DirectoryPath}; working reports: {work}");
         ExecuteCampaign(root, options, store, cases);
         if (store.Manifest.Status == "complete")
@@ -43,14 +49,22 @@ public static class CampaignRunner
     private static void ExecuteCampaign(string root, CampaignOptions options, CampaignStore store, CampaignCase[] cases)
     {
         using var process = System.Diagnostics.Process.GetCurrentProcess();
-        var session = new CampaignSession(process.Id, process.StartTime.ToUniversalTime(), Environment.MachineName,
-            DateTimeOffset.UtcNow);
+        var session = new CampaignSession(
+            process.Id,
+            process.StartTime.ToUniversalTime(),
+            Environment.MachineName,
+            DateTimeOffset.UtcNow
+        );
         var sessionPath = Path.Combine(store.DirectoryPath, "sessions", Guid.NewGuid().ToString("N") + ".json");
         ArtifactJson.Write(sessionPath, session);
         foreach (var note in store.RecoveryNotes)
             Console.WriteLine(note);
         using var cancelled = new CancellationTokenSource();
-        ConsoleCancelEventHandler handler = (_, eventArgs) => { eventArgs.Cancel = true; cancelled.Cancel(); };
+        ConsoleCancelEventHandler handler = (_, eventArgs) =>
+        {
+            eventArgs.Cancel = true;
+            cancelled.Cancel();
+        };
         Console.CancelKeyPress += handler;
         try
         {
@@ -71,7 +85,12 @@ public static class CampaignRunner
         Console.WriteLine($"Campaign {store.Manifest.Status}: {store.DirectoryPath}");
     }
 
-    private static void MeasureCases(string root, CampaignStore store, CampaignCase[] cases, CancellationToken cancellation)
+    private static void MeasureCases(
+        string root,
+        CampaignStore store,
+        CampaignCase[] cases,
+        CancellationToken cancellation
+    )
     {
         foreach (var item in cases)
         {
@@ -95,7 +114,11 @@ public static class CampaignRunner
         CampaignIntegrity.ValidateOfficialBuild(provenance);
         if (provenance.Source.Dirty)
             throw new InvalidOperationException("Official runs require a clean source checkout.");
-        if (provenance.Hardware.CpuModel == "unknown" || provenance.Hardware.MemoryBytes <= 0 || provenance.Hardware.LogicalCores <= 0)
+        if (
+            provenance.Hardware.CpuModel == "unknown"
+            || provenance.Hardware.MemoryBytes <= 0
+            || provenance.Hardware.LogicalCores <= 0
+        )
             throw new InvalidOperationException("Official hardware metadata is incomplete.");
         if (Environment.GetEnvironmentVariable("MUSOQ_EVALUATOR_PERF_TELEMETRY") == "1")
             throw new InvalidOperationException("Disable compilation telemetry before official timing.");
@@ -111,8 +134,20 @@ public static class CampaignRunner
         }
         store.Manifest.Preflight = "running";
         store.Flush();
-        var test = ProcessCommand.Run(root, "dotnet", "test", "src/dotnet/Musoq.Benchmarks.Tests", "-c", "Release", "--no-build",
-            "--nologo", "--verbosity", "quiet", "--logger", "console;verbosity=minimal");
+        var test = ProcessCommand.Run(
+            root,
+            "dotnet",
+            "test",
+            "src/dotnet/Musoq.Benchmarks.Tests",
+            "-c",
+            "Release",
+            "--no-build",
+            "--nologo",
+            "--verbosity",
+            "quiet",
+            "--logger",
+            "console;verbosity=minimal"
+        );
         RecordTests(store, test);
         store.Manifest.Preflight = "passed";
         store.Flush();

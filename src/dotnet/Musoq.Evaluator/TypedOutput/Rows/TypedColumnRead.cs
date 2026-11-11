@@ -7,9 +7,7 @@ public static class TypedColumnRead
 {
     /// <summary>Consumes a concrete assignment result without an erased argument or a local-name collision.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Discard<T>(T value)
-    {
-    }
+    public static void Discard<T>(T value) { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Read<T, TValue>(TValue value)

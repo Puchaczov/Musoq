@@ -5,23 +5,17 @@ namespace Musoq.Evaluator.Tests;
 
 internal static class EvaluatorProfiledSampleFixtures
 {
-    private const string SimpleSelectWhereQuery =
-        "select Name, Population from #A.entities() where Population > 0";
+    private const string SimpleSelectWhereQuery = "select Name, Population from #A.entities() where Population > 0";
 
     public static IReadOnlyList<GeneratedCodeSample> Samples { get; } =
     [
-        ProfiledBasic(
-            "P01_SimpleSelectWhere_Disabled",
-            SimpleSelectWhereQuery,
-            QueryInstrumentationMode.Disabled),
+        ProfiledBasic("P01_SimpleSelectWhere_Disabled", SimpleSelectWhereQuery, QueryInstrumentationMode.Disabled),
         ProfiledBasic(
             "P02_SimpleSelectWhere_SourceBoundaries",
             SimpleSelectWhereQuery,
-            QueryInstrumentationMode.SourceBoundaries),
-        ProfiledBasic(
-            "P03_SimpleSelectWhere_Full",
-            SimpleSelectWhereQuery,
-            QueryInstrumentationMode.Full),
+            QueryInstrumentationMode.SourceBoundaries
+        ),
+        ProfiledBasic("P03_SimpleSelectWhere_Full", SimpleSelectWhereQuery, QueryInstrumentationMode.Full),
         ProfiledFromExisting("P04_InnerJoin_Full", "Q03_InnerJoin.cs"),
         ProfiledFromExisting("P05_GroupBySingle_Full", "Q05_GroupBySingle.cs"),
         ProfiledFromExisting("P06_OrderBySkipTake_Full", "Q22_OrderBySkipTake.cs"),
@@ -29,17 +23,20 @@ internal static class EvaluatorProfiledSampleFixtures
         ProfiledFromExisting(
             "P08_RecursiveUnionAll_Disabled",
             "Q188_RecursiveUnionAllCounter.cs",
-            QueryInstrumentationMode.Disabled),
+            QueryInstrumentationMode.Disabled
+        ),
         ProfiledFromExisting(
             "P09_RecursiveUnionAll_SourceBoundaries",
             "Q188_RecursiveUnionAllCounter.cs",
-            QueryInstrumentationMode.SourceBoundaries),
+            QueryInstrumentationMode.SourceBoundaries
+        ),
         ProfiledFromExisting("P10_RecursiveUnionAll_Full", "Q188_RecursiveUnionAllCounter.cs"),
         ProfiledFromExisting("P11_RecursiveKeyedUnion_Full", "Q193_RecursiveUnionSingleKeyCycle.cs"),
         ProfiledFromExisting("P12_RecursiveInvariantIndexedEdges_Full", "Q203_RecursiveInvariantHashLookup.cs"),
         ProfiledFromExisting(
             "P13_RecursiveTypedInvariantDirectIndex_Full",
-            "Q224_RecursiveCompositeInvariantSubplan.cs"),
+            "Q224_RecursiveCompositeInvariantSubplan.cs"
+        ),
         ProfiledFromExisting("P14_StableFilterProjectionReuse_Full", "Q252_StableFilterProjectionReuse.cs"),
         ProfiledFromExisting("P15_VolatileFilterProjectionReuse_Full", "Q253_VolatileFilterProjectionReuse.cs"),
         ProfiledFromExisting("P16_SharedStableWindowInputs_Full", "Q254_SharedStableWindowInputs.cs"),
@@ -70,8 +67,10 @@ internal static class EvaluatorProfiledSampleFixtures
         ProfiledFromExisting("P41_TypedWindowRankingContext_Full", "K29_TypedWindowRankingContext.cs"),
         ProfiledFromExisting("P42_TypedWindowOutputTableProfile_Full", "K30_TypedWindowOutputValueCarrier.cs"),
         ProfiledFromExisting("P43_TypedWindowCapturedVolatileInputs_Full", "K31_TypedWindowCapturedVolatileInputs.cs"),
-        ProfiledFromExisting("P44_TypedWindowExtremaBatch_Full", "K32_TypedWindowExtremaBatch.cs")
-            with { OutputType = null },
+        ProfiledFromExisting("P44_TypedWindowExtremaBatch_Full", "K32_TypedWindowExtremaBatch.cs") with
+        {
+            OutputType = null,
+        },
         ProfiledFromExisting("P45_AuthorizedTypedCountMerge_Full", "K33_AuthorizedTypedCountMerge.cs"),
         ProfiledFromExisting("P46_CustomCountSerialDefault_Full", "K34_CustomCountSerialDefault.cs"),
         ProfiledFromExisting("P47_CheckedSumWithoutMergeEquivalence_Full", "K35_CheckedSumWithoutMergeEquivalence.cs"),
@@ -90,7 +89,10 @@ internal static class EvaluatorProfiledSampleFixtures
         ProfiledFromExisting("P60_TypedNullableArithmeticFilter_Full", "K48_TypedNullableArithmeticFilter.cs"),
         ProfiledFromExisting("P61_TypedVolatileReceiverLifetime_Full", "K49_TypedVolatileReceiverLifetime.cs"),
         ProfiledFromExisting("P62_TypedNativeRecordProjection_Full", "K50_TypedNativeRecordProjection.cs"),
-        ProfiledFromExisting("P63_TypedNativeRecordMembersThroughCte_Full", "K51_TypedNativeRecordMembersThroughCte.cs"),
+        ProfiledFromExisting(
+            "P63_TypedNativeRecordMembersThroughCte_Full",
+            "K51_TypedNativeRecordMembersThroughCte.cs"
+        ),
         ProfiledFromExisting("P64_TypedWideRangeJoinPartition_Full", "K52_TypedWideRangeJoinPartition.cs"),
         ProfiledFromExisting("P65_TypedWideWindowPartition_Full", "K53_TypedWideWindowPartition.cs"),
         ProfiledFromExisting("P66_TypedNullableWindowPartition_Full", "K54_TypedNullableWindowPartition.cs"),
@@ -133,7 +135,7 @@ internal static class EvaluatorProfiledSampleFixtures
         ProfiledFromExisting("P103_NativeUInt32KernelState_Full", "K91_NativeUInt32KernelState.cs"),
         ProfiledFromExisting("P104_NativeInt64KernelState_Full", "K92_NativeInt64KernelState.cs"),
         ProfiledFromExisting("P105_NativeUInt64KernelState_Full", "K93_NativeUInt64KernelState.cs"),
-        ProfiledFromExisting("P106_NativeSingleKernelState_Full", "K94_NativeSingleKernelState.cs")
+        ProfiledFromExisting("P106_NativeSingleKernelState_Full", "K94_NativeSingleKernelState.cs"),
     ];
 
     public static GeneratedCodeSample GetByFileName(string fileName)
@@ -144,7 +146,8 @@ internal static class EvaluatorProfiledSampleFixtures
     private static GeneratedCodeSample ProfiledBasic(
         string name,
         string query,
-        QueryInstrumentationMode instrumentationMode)
+        QueryInstrumentationMode instrumentationMode
+    )
     {
         return new GeneratedCodeSample
         {
@@ -154,14 +157,15 @@ internal static class EvaluatorProfiledSampleFixtures
             Category = "Profiled",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
             CreateSchemaProvider = EvaluatorSampleFixtures.CreateBasicSchemaProvider,
-            CompilationOptions = new CompilationOptions(instrumentationMode: instrumentationMode)
+            CompilationOptions = new CompilationOptions(instrumentationMode: instrumentationMode),
         };
     }
 
     private static GeneratedCodeSample ProfiledFromExisting(
         string name,
         string sourceFileName,
-        QueryInstrumentationMode instrumentationMode = QueryInstrumentationMode.Full)
+        QueryInstrumentationMode instrumentationMode = QueryInstrumentationMode.Full
+    )
     {
         var source = EvaluatorSampleFixtures.GetByFileName(sourceFileName);
 
@@ -171,7 +175,7 @@ internal static class EvaluatorProfiledSampleFixtures
             FileName = $"{name}.cs",
             Category = "Profiled",
             OutputType = null,
-            CompilationOptions = source.CompilationOptions.WithInstrumentationMode(instrumentationMode)
+            CompilationOptions = source.CompilationOptions.WithInstrumentationMode(instrumentationMode),
         };
     }
 }

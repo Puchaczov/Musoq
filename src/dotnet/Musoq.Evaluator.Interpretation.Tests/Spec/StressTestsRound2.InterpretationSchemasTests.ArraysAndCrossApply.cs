@@ -18,23 +18,34 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_PrimitiveArrayCountZero_CrossApply_ShouldProduceNoRows()
     {
-        var query = @"
-            binary Container {
-                Count: byte,
-                Values: int le[Count]
-            };
-            select v.Value
-            from #test.files() f
-            cross apply Interpret<Container>(f.Content) c
-            cross apply c.Values v";
+        var query = (
+            "\n"
+            + "            binary Container {\n"
+            + "                Count: byte,\n"
+            + "                Values: int le[Count]\n"
+            + "            };\n"
+            + "            select v.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Container>(f.Content) c\n"
+            + "            cross apply c.Values v"
+        );
 
         var data = new byte[] { 0x00 }; // Count=0
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(0, table.Count);
@@ -46,21 +57,23 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_ArrayConditionalFields_WhereFilter()
     {
-        var query = @"
-            binary Item {
-                Tag: byte,
-                Val: int le when Tag <> 0
-            };
-            binary Box {
-                Count: byte,
-                Items: Item[Count]
-            };
-            select i.Tag, i.Val
-            from #test.files() f
-            cross apply Interpret<Box>(f.Content) b
-            cross apply b.Items i
-            where i.Val is not null
-            order by i.Tag asc";
+        var query = (
+            "\n"
+            + "            binary Item {\n"
+            + "                Tag: byte,\n"
+            + "                Val: int le when Tag <> 0\n"
+            + "            };\n"
+            + "            binary Box {\n"
+            + "                Count: byte,\n"
+            + "                Items: Item[Count]\n"
+            + "            };\n"
+            + "            select i.Tag, i.Val\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Box>(f.Content) b\n"
+            + "            cross apply b.Items i\n"
+            + "            where i.Val is not null\n"
+            + "            order by i.Tag asc"
+        );
 
         using var ms = new MemoryStream();
         ms.WriteByte(4); // 4 items
@@ -75,12 +88,21 @@ public partial class StressTestsRound2InterpretationSchemasTests
         // Item 4: Tag=0, Val=null
         ms.WriteByte(0);
 
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = ms.ToArray() } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = ms.ToArray() },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         // Only items with Tag<>0 pass filter
@@ -97,22 +119,24 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_ArrayCrossApply_GroupByHaving()
     {
-        var query = @"
-            binary Entry {
-                Cat: byte,
-                Score: short le
-            };
-            binary DataFile {
-                Count: byte,
-                Entries: Entry[Count]
-            };
-            select e.Cat, Count(e.Cat) as Cnt, Sum(e.Score) as Total
-            from #test.files() f
-            cross apply Interpret<DataFile>(f.Content) d
-            cross apply d.Entries e
-            group by e.Cat
-            having Count(e.Cat) > 1
-            order by e.Cat asc";
+        var query = (
+            "\n"
+            + "            binary Entry {\n"
+            + "                Cat: byte,\n"
+            + "                Score: short le\n"
+            + "            };\n"
+            + "            binary DataFile {\n"
+            + "                Count: byte,\n"
+            + "                Entries: Entry[Count]\n"
+            + "            };\n"
+            + "            select e.Cat, Count(e.Cat) as Cnt, Sum(e.Score) as Total\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<DataFile>(f.Content) d\n"
+            + "            cross apply d.Entries e\n"
+            + "            group by e.Cat\n"
+            + "            having Count(e.Cat) > 1\n"
+            + "            order by e.Cat asc"
+        );
 
         using var ms = new MemoryStream();
         ms.WriteByte(5); // 5 entries
@@ -132,12 +156,21 @@ public partial class StressTestsRound2InterpretationSchemasTests
         ms.WriteByte(2);
         ms.Write(BitConverter.GetBytes((short)30));
 
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = ms.ToArray() } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = ms.ToArray() },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         // Cat=1: 3 entries (10+15+25=50), Cat=2: 2 entries (20+30=50)
@@ -156,17 +189,19 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_ArraySizeFromComputedField()
     {
-        var query = @"
-            binary Rec {
-                Half: byte,
-                FullCount: Half * 2,
-                Items: short le[FullCount]
-            };
-            select r.Half, r.FullCount, i.Value
-            from #test.files() f
-            cross apply Interpret<Rec>(f.Content) r
-            cross apply r.Items i
-            order by i.Value asc";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Half: byte,\n"
+            + "                FullCount: Half * 2,\n"
+            + "                Items: short le[FullCount]\n"
+            + "            };\n"
+            + "            select r.Half, r.FullCount, i.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Rec>(f.Content) r\n"
+            + "            cross apply r.Items i\n"
+            + "            order by i.Value asc"
+        );
 
         using var ms = new MemoryStream();
         ms.WriteByte(2); // Half=2 → FullCount=4
@@ -175,12 +210,21 @@ public partial class StressTestsRound2InterpretationSchemasTests
         ms.Write(BitConverter.GetBytes((short)30));
         ms.Write(BitConverter.GetBytes((short)20));
 
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = ms.ToArray() } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = ms.ToArray() },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(4, table.Count);
@@ -196,15 +240,17 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_MultipleFiles_ArrayAggregation()
     {
-        var query = @"
-            binary Pkg {
-                Count: byte,
-                Vals: short le[Count]
-            };
-            select Sum(v.Value) as Total
-            from #test.files() f
-            cross apply Interpret<Pkg>(f.Content) p
-            cross apply p.Vals v";
+        var query = (
+            "\n"
+            + "            binary Pkg {\n"
+            + "                Count: byte,\n"
+            + "                Vals: short le[Count]\n"
+            + "            };\n"
+            + "            select Sum(v.Value) as Total\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Pkg>(f.Content) p\n"
+            + "            cross apply p.Vals v"
+        );
 
         // File 1: Count=2, Vals=[10, 20]
         using var ms1 = new MemoryStream();
@@ -222,13 +268,19 @@ public partial class StressTestsRound2InterpretationSchemasTests
         var entities = new[]
         {
             new BinaryEntity { Name = "a.bin", Content = ms1.ToArray() },
-            new BinaryEntity { Name = "b.bin", Content = ms2.ToArray() }
+            new BinaryEntity { Name = "b.bin", Content = ms2.ToArray() },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -241,18 +293,20 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_TwoArrayFields_IndependentCrossApply()
     {
-        var query = @"
-            binary Rec {
-                ACount: byte,
-                Vals: short le[ACount],
-                BCount: byte,
-                Bs: int le[BCount]
-            };
-            select v.Value
-            from #test.files() f
-            cross apply Interpret<Rec>(f.Content) r
-            cross apply r.Vals v
-            order by v.Value asc";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                ACount: byte,\n"
+            + "                Vals: short le[ACount],\n"
+            + "                BCount: byte,\n"
+            + "                Bs: int le[BCount]\n"
+            + "            };\n"
+            + "            select v.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Rec>(f.Content) r\n"
+            + "            cross apply r.Vals v\n"
+            + "            order by v.Value asc"
+        );
 
         using var ms = new MemoryStream();
         ms.WriteByte(3); // ACount=3
@@ -263,12 +317,21 @@ public partial class StressTestsRound2InterpretationSchemasTests
         ms.Write(BitConverter.GetBytes(100));
         ms.Write(BitConverter.GetBytes(200));
 
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = ms.ToArray() } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = ms.ToArray() },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);

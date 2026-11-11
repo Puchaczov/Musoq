@@ -16,23 +16,39 @@ public sealed partial class ExecutionCSharpRendererTests
         var members = renderer.RenderClassMembers(plan);
         var method = renderer.RenderMethod(plan, "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
-        var memberCode = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var memberCode = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.Contains("var resultRowNumbers = new long[resultWindowRows.Count];", code);
-        Assert.Contains("resultRowNumbers[resultRowNumbersCurrentIndex] = Musoq.Plugins.RowNumberKernel.Get(in resultRowNumbersContext);", code);
+        Assert.Contains(
+            "resultRowNumbers[resultRowNumbersCurrentIndex] = Musoq.Plugins.RowNumberKernel.Get(in resultRowNumbersContext);",
+            code
+        );
         Assert.Contains("var resultLagsValues = new string[resultWindowRows.Count];", code);
-        Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLagsPartitions, resultSharedOrderKeys, false);", code);
+        Assert.Contains(
+            "WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLagsPartitions, resultSharedOrderKeys, false);",
+            code
+        );
         Assert.Contains("var resultLags = new string[resultWindowRows.Count];", code);
         Assert.Contains("resultLags[resultLagsCurrentIndex] = resultLagsSourcePartitionIndex >= 0", code);
         Assert.Contains("resultWindowSumsIntOrderBuilder.ToSortedPartitionSet(false)", code);
         Assert.Contains("RunningAgeKernel.Reset(ref ", code);
         Assert.Contains("RunningAgeKernel.Set(ref resultWindowSumsState, (int)(p.Age));", code);
-        Assert.Contains("AppendResultWindowRows(resultWindowRows, result, resultRowNumbers, resultLags, resultWindowSums);", code);
+        Assert.Contains(
+            "AppendResultWindowRows(resultWindowRows, result, resultRowNumbers, resultLags, resultWindowSums);",
+            code
+        );
         Assert.Contains("resultWindowSums[windowIndex]", memberCode);
         Assert.IsFalse(code.Contains("WindowFunctionHelpers.ComputeRowNumber", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("WindowFunctionHelpers.ComputeLag", StringComparison.Ordinal));
-        Assert.IsFalse(code.Contains("WindowFunctionHelpers.ComputeOrderedFramedPluginWindowFunction", StringComparison.Ordinal));
-        Assert.IsFalse(code.Contains("resultWindowSumsFunction.SetArguments(Array.Empty<object?>())", StringComparison.Ordinal));
+        Assert.IsFalse(
+            code.Contains("WindowFunctionHelpers.ComputeOrderedFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            code.Contains("resultWindowSumsFunction.SetArguments(Array.Empty<object?>())", StringComparison.Ordinal)
+        );
         Assert.IsFalse(code.Contains(".AccumulateValue(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("resultWindowSumsValues", StringComparison.Ordinal));
     }
@@ -45,13 +61,28 @@ public sealed partial class ExecutionCSharpRendererTests
         var members = renderer.RenderClassMembers(plan);
         var method = renderer.RenderMethod(plan, "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
-        var memberCode = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var memberCode = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
-        Assert.Contains("var resultSharedOrderKeys = new WindowResultSharedOrderKeysKey[resultWindowRows.Count];", code);
-        Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultRowNumbersPartitions, resultSharedOrderKeys, false);", code);
+        Assert.Contains(
+            "var resultSharedOrderKeys = new WindowResultSharedOrderKeysKey[resultWindowRows.Count];",
+            code
+        );
+        Assert.Contains(
+            "WindowFunctionHelpers.SortStructPartitionSetInPlace(resultRowNumbersPartitions, resultSharedOrderKeys, false);",
+            code
+        );
         Assert.Contains("var resultLagsValues = new string[resultWindowRows.Count];", code);
-        Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLagsPartitions, resultSharedOrderKeys, false);", code);
-        Assert.Contains("var resultWindowSumsIntOrderBuilder = new Musoq.Evaluator.Helpers.WindowIntOrderBuilder<string>(resultWindowRows.Count);", code);
+        Assert.Contains(
+            "WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLagsPartitions, resultSharedOrderKeys, false);",
+            code
+        );
+        Assert.Contains(
+            "var resultWindowSumsIntOrderBuilder = new Musoq.Evaluator.Helpers.WindowIntOrderBuilder<string>(resultWindowRows.Count);",
+            code
+        );
         Assert.Contains("resultSharedOrderKeys[windowIndex] = new WindowResultSharedOrderKeysKey(p.Age);", memberCode);
         Assert.Contains("resultWindowSumsIntOrderBuilder.Add((string)p.Name, (int)p.Age, windowIndex);", code);
         Assert.IsFalse(code.Contains("resultRowNumbersIntOrderBuilder", StringComparison.Ordinal));
@@ -71,12 +102,21 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.Contains("RunningAgeKernel.Reset(ref resultWindowSumsState)", code);
         Assert.Contains("RunningAgeKernel.Set(ref resultWindowSumsState, (int)(p.Age))", code);
         Assert.Contains("RunningAgeKernel.Get(in resultWindowSumsState)", code);
-        Assert.IsFalse(code.Contains("resultWindowSumsFunction.SetArguments(Array.Empty<object?>())", StringComparison.Ordinal));
+        Assert.IsFalse(
+            code.Contains("resultWindowSumsFunction.SetArguments(Array.Empty<object?>())", StringComparison.Ordinal)
+        );
         Assert.IsFalse(code.Contains(".AccumulateValue(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains(".GetCurrentValue(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("resultWindowSumsValues", StringComparison.Ordinal));
-        Assert.IsFalse(code.Contains("WindowFunctionHelpers.ComputeTypedPluginWindowFunction", StringComparison.Ordinal));
-        Assert.IsFalse(code.Contains("resultWindowSums = WindowFunctionHelpers.ComputePluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            code.Contains("WindowFunctionHelpers.ComputeTypedPluginWindowFunction", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            code.Contains(
+                "resultWindowSums = WindowFunctionHelpers.ComputePluginWindowFunction",
+                StringComparison.Ordinal
+            )
+        );
     }
 
     [TestMethod]
@@ -84,12 +124,16 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreatePlan());
-        var code = members.Single(member =>
-            member.NormalizeWhitespace().ToFullString().Contains("class ResultRow0", StringComparison.Ordinal))
+        var code = members
+            .Single(member =>
+                member.NormalizeWhitespace().ToFullString().Contains("class ResultRow0", StringComparison.Ordinal)
+            )
             .NormalizeWhitespace()
             .ToFullString();
-        var shapeCode = members.Single(member =>
-            member.NormalizeWhitespace().ToFullString().Contains("class ResultShape0", StringComparison.Ordinal))
+        var shapeCode = members
+            .Single(member =>
+                member.NormalizeWhitespace().ToFullString().Contains("class ResultShape0", StringComparison.Ordinal)
+            )
             .NormalizeWhitespace()
             .ToFullString();
 
@@ -125,7 +169,8 @@ public sealed partial class ExecutionCSharpRendererTests
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var classCode = string.Join(
             Environment.NewLine,
-            renderer.RenderClassMembers(plan).Select(member => member.NormalizeWhitespace().ToFullString()));
+            renderer.RenderClassMembers(plan).Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.Contains("KernelSumAggregate.Set(ref currentGroup.__agg0", methodCode);
         Assert.Contains("KernelSumAggregate.Get(in currentGroup.__agg0)", methodCode);
@@ -139,14 +184,14 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateContextLayoutAppendPlan());
-        var code = members.Single(member =>
-            member.NormalizeWhitespace().ToFullString().Contains("class ResultRow0", StringComparison.Ordinal))
+        var code = members
+            .Single(member =>
+                member.NormalizeWhitespace().ToFullString().Contains("class ResultRow0", StringComparison.Ordinal)
+            )
             .NormalizeWhitespace()
             .ToFullString();
 
-        Assert.Contains(
-            "public ResultRow0(string __value0, string __value1)",
-            code);
+        Assert.Contains("public ResultRow0(string __value0, string __value1)", code);
         Assert.AreEqual(1, code.Split("public ResultRow0(").Length - 1);
         Assert.IsFalse(code.Contains("__leftContext", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("__rightContext", StringComparison.Ordinal));
@@ -159,15 +204,22 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateInternalStoredRowCarrierPlan(useRowContext: false));
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
-        var statementCode = members.Single(member =>
-            member.NormalizeWhitespace().ToFullString().Contains("class Statement0Row0", StringComparison.Ordinal))
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
+        var statementCode = members
+            .Single(member =>
+                member.NormalizeWhitespace().ToFullString().Contains("class Statement0Row0", StringComparison.Ordinal)
+            )
             .NormalizeWhitespace()
             .ToFullString();
 
         Assert.Contains("private sealed class Statement0Row0", code);
         Assert.IsFalse(code.Contains("private sealed class Statement0Row0 : Row", StringComparison.Ordinal));
-        Assert.IsFalse(statementCode.Contains("public override object this[int columnNumber]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            statementCode.Contains("public override object this[int columnNumber]", StringComparison.Ordinal)
+        );
         Assert.Contains("private sealed class ResultRow0 : Row", code);
     }
 
@@ -176,12 +228,17 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateInternalStoredRowCarrierPlan(useRowContext: true));
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.Contains("private sealed class Statement0Row0 : Row", code);
         Assert.IsFalse(code.Contains("object[] Contexts", StringComparison.Ordinal));
         Assert.Contains("private sealed class ResultRow0 : Row", code);
-        Assert.IsFalse(code.Contains("public ResultRow0(string __value0, Row __contextsRow)", StringComparison.Ordinal));
+        Assert.IsFalse(
+            code.Contains("public ResultRow0(string __value0, Row __contextsRow)", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -190,12 +247,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var renderer = new ExecutionCSharpRenderer();
         var plan = CreateDynamicPlan();
         var members = renderer.RenderClassMembers(plan);
-        var code = string.Join(Environment.NewLine,
-            members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
         Assert.DoesNotContain("class pDynamicRow0", code);
         Assert.IsFalse(renderer.CanRender(plan));
-        Assert.AreEqual("Execution IR C# backend cannot render row shape SourceEntityShape.",
-            renderer.GetUnsupportedReason(plan));
+        Assert.AreEqual(
+            "Execution IR C# backend cannot render row shape SourceEntityShape.",
+            renderer.GetUnsupportedReason(plan)
+        );
     }
 
     [TestMethod]
@@ -204,8 +265,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var renderer = new ExecutionCSharpRenderer();
         var plan = CreateDynamicPlan();
         Assert.IsFalse(renderer.CanRender(plan));
-        Assert.AreEqual("Execution IR C# backend cannot render row shape SourceEntityShape.",
-            renderer.GetUnsupportedReason(plan));
+        Assert.AreEqual(
+            "Execution IR C# backend cannot render row shape SourceEntityShape.",
+            renderer.GetUnsupportedReason(plan)
+        );
     }
 
     [TestMethod]
@@ -217,7 +280,8 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.IsFalse(renderer.CanRender(plan));
         Assert.AreEqual(
             "Execution IR C# backend cannot render row shape SourceEntityShape.",
-            renderer.GetUnsupportedReason(plan));
+            renderer.GetUnsupportedReason(plan)
+        );
     }
 
     [TestMethod]
@@ -229,7 +293,8 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.Contains(
             "var asOfIndex = EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person, int, string>(rRows, (rCandidate) =>",
-            code);
+            code
+        );
         Assert.Contains("new NativeEqualityKey<string>", code);
         Assert.Contains("var r = asOfIndex.Find(rEquality, l.Age);", code);
         Assert.DoesNotContain("(object)", code);

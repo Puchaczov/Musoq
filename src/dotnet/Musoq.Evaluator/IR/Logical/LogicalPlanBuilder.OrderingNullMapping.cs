@@ -11,7 +11,7 @@ public sealed partial class LogicalPlanBuilder
         {
             ParserNullOrdering.First => NullOrdering.First,
             ParserNullOrdering.Last => NullOrdering.Last,
-            _ => NullOrdering.Default
+            _ => NullOrdering.Default,
         };
     }
 }

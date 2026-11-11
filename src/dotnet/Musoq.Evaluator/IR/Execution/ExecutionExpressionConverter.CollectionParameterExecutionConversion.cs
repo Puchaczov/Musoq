@@ -16,13 +16,15 @@ public static partial class ExecutionExpressionConverter
         CollectionInCheck collectionInCheck,
         IReadOnlyDictionary<string, RowShape> sourceShapes,
         IReadOnlyDictionary<string, int>? cteTableIndexes,
-        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets)
+        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets
+    )
     {
         return new ExecutionCollectionInCheck(
             Convert(collectionInCheck.Expression, sourceShapes, cteTableIndexes, methodTargets),
             ConvertScriptParameter(collectionInCheck.Collection),
             collectionInCheck.ElementType,
-            collectionInCheck.ReturnType);
+            collectionInCheck.ReturnType
+        );
     }
 
     private static Type GetScriptParameterExecutionType(Type parameterType)

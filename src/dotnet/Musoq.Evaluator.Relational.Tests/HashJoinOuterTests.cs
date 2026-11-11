@@ -10,48 +10,47 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class HashJoinOuterTests : BasicEntityTestBase
 {
-
     private CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IDictionary<string, IEnumerable<BasicEntity>> sources,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            options);
+            options
+        );
     }
 
     [TestMethod]
     public void LeftJoin_HashJoin()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-left join #B.entities() b on a.Population = b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "left join #B.entities() b on a.Population = b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 },
-                    new BasicEntity { Name = "A2", Population = 10 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 10 }]
             },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 100 }
-                ]
-            }
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
         };
 
-
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "HashJoin Left Join failed");
@@ -67,31 +66,29 @@ left join #B.entities() b on a.Population = b.Population";
     [TestMethod]
     public void RightJoin_HashJoin()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-right join #B.entities() b on a.Population = b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "right join #B.entities() b on a.Population = b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 }
-                ]
+                "#B",
+                [new BasicEntity { Name = "B1", Population = 100 }, new BasicEntity { Name = "B2", Population = 200 }]
             },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 100 },
-                    new BasicEntity { Name = "B2", Population = 200 }
-                ]
-            }
         };
 
-
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "HashJoin Right Join failed");
@@ -107,31 +104,29 @@ right join #B.entities() b on a.Population = b.Population";
     [TestMethod]
     public void LeftJoin_HashJoin_WithProjection()
     {
-        var query = @"
-select 
-    a.Name + '_X', 
-    b.Name 
-from #A.entities() a 
-left join #B.entities() b on a.Population = b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name + '_X', \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "left join #B.entities() b on a.Population = b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 },
-                    new BasicEntity { Name = "A2", Population = 10 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 10 }]
             },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 100 }
-                ]
-            }
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
         };
 
-
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "HashJoin Left Join failed");

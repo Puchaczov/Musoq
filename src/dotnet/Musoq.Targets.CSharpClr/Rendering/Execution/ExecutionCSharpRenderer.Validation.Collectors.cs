@@ -137,7 +137,10 @@ public sealed partial class ExecutionCSharpRenderer
         }
     }
 
-    private static IEnumerable<T> CollectNestedValues<T>(ExecutionNode node, Func<ExecutionBlock, IEnumerable<T>> collect)
+    private static IEnumerable<T> CollectNestedValues<T>(
+        ExecutionNode node,
+        Func<ExecutionBlock, IEnumerable<T>> collect
+    )
     {
         return GetNestedBlocks(node).SelectMany(collect);
     }

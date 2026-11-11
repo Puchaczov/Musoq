@@ -32,7 +32,8 @@ public partial class RewriteQueryVisitorTests
         return _visitor.RootScript.Expression;
     }
 
-    private void AssertSingleResult<T>() where T : Node
+    private void AssertSingleResult<T>()
+        where T : Node
     {
         Assert.IsInstanceOfType<T>(ReadResult());
         Assert.ThrowsExactly<InvalidOperationException>(() => ReadResult());
@@ -45,7 +46,6 @@ public partial class RewriteQueryVisitorTests
         var left = new IntegerNode("5");
         var right = new IntegerNode("3");
         var starNode = new StarNode(left, right);
-
 
         PushNode(left);
         PushNode(right);
@@ -65,7 +65,6 @@ public partial class RewriteQueryVisitorTests
         var right = new IntegerNode("20");
         var addNode = new AddNode(left, right);
 
-
         PushNode(left);
         PushNode(right);
 
@@ -84,7 +83,6 @@ public partial class RewriteQueryVisitorTests
         var right = new IntegerNode("5");
         var equalityNode = new EqualityNode(left, right);
 
-
         PushNode(left);
         PushNode(right);
 
@@ -102,13 +100,10 @@ public partial class RewriteQueryVisitorTests
         var right = new BooleanNode(false);
         var andNode = new AndNode(left, right);
 
-
         PushNode(left);
         PushNode(right);
 
-
         _visitor.Visit(andNode);
-
 
         AssertSingleResult<AndNode>();
     }
@@ -119,7 +114,6 @@ public partial class RewriteQueryVisitorTests
         // Arrange
         var expression = new IdentifierNode("TestField");
         var fieldNode = new FieldNode(expression, 0, "TestField");
-
 
         PushNode(expression);
 
@@ -137,7 +131,6 @@ public partial class RewriteQueryVisitorTests
         var arg1 = new IntegerNode("1");
         var arg2 = new StringNode("test");
         var argsListNode = new ArgsListNode([arg1, arg2]);
-
 
         PushNode(arg2);
         PushNode(arg1);
@@ -157,7 +150,6 @@ public partial class RewriteQueryVisitorTests
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
         var groupByNode = new GroupByNode([field1, field2], null);
 
-
         PushNode(field2);
         PushNode(field1);
 
@@ -175,7 +167,6 @@ public partial class RewriteQueryVisitorTests
         var argsListNode = new ArgsListNode([]);
         var schemaFromNode = new SchemaFromNode("testSchema", "testMethod", argsListNode, "alias", typeof(object), 0);
 
-
         PushNode(argsListNode);
 
         // Act
@@ -185,12 +176,10 @@ public partial class RewriteQueryVisitorTests
         AssertSingleResult<SchemaFromNode>();
     }
 
-
     [TestMethod]
     public void Visit_StarNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         var starNode = new StarNode(new IntegerNode("5"), new IntegerNode("3"));
-
 
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(starNode));
     }
@@ -200,7 +189,6 @@ public partial class RewriteQueryVisitorTests
     {
         // Arrange
         var addNode = new AddNode(new IntegerNode("10"), new IntegerNode("20"));
-
 
         PushNode(new IntegerNode("10"));
 
@@ -213,7 +201,6 @@ public partial class RewriteQueryVisitorTests
     {
         var equalityNode = new EqualityNode(new IntegerNode("5"), new IntegerNode("5"));
 
-
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(equalityNode));
     }
 
@@ -222,9 +209,7 @@ public partial class RewriteQueryVisitorTests
     {
         var andNode = new AndNode(new BooleanNode(true), new BooleanNode(false));
 
-
         PushNode(new BooleanNode(true));
-
 
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(andNode));
     }
@@ -234,7 +219,6 @@ public partial class RewriteQueryVisitorTests
     {
         var fieldNode = new FieldNode(new IdentifierNode("TestField"), 0, "TestField");
 
-
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(fieldNode));
     }
 
@@ -243,7 +227,6 @@ public partial class RewriteQueryVisitorTests
     {
         // Arrange
         var argsListNode = new ArgsListNode([new IntegerNode("1"), new StringNode("test")]);
-
 
         PushNode(new IntegerNode("1"));
 
@@ -258,9 +241,7 @@ public partial class RewriteQueryVisitorTests
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
         var groupByNode = new GroupByNode([field1, field2], null);
 
-
         PushNode(field1);
-
 
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(groupByNode));
     }
@@ -270,7 +251,6 @@ public partial class RewriteQueryVisitorTests
     {
         var argsListNode = new ArgsListNode([]);
         var schemaFromNode = new SchemaFromNode("testSchema", "testMethod", argsListNode, "alias", typeof(object), 0);
-
 
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(schemaFromNode));
     }
@@ -282,7 +262,8 @@ public partial class RewriteQueryVisitorTests
         nodes.Push(null!);
         nodes.Push(new IntegerNode("5"));
         var exception = Assert.ThrowsExactly<ArgumentException>(() =>
-            Musoq.Evaluator.Visitors.Helpers.BinaryOperationVisitorHelper.ProcessStarOperation(nodes));
+            Musoq.Evaluator.Visitors.Helpers.BinaryOperationVisitorHelper.ProcessStarOperation(nodes)
+        );
         Assert.AreEqual("Left operand cannot be null", exception.Message);
     }
 
@@ -293,7 +274,6 @@ public partial class RewriteQueryVisitorTests
         var val1 = new IntegerNode("10");
         var val2 = new IntegerNode("20");
         var val3 = new IntegerNode("30");
-
 
         PushNode(val1);
         PushNode(val2);
@@ -311,7 +291,6 @@ public partial class RewriteQueryVisitorTests
     {
         var field = new FieldNode(new IdentifierNode("TestField"), 0, "TestField");
         PushNode(new IdentifierNode("TestField"));
-
 
         _visitor.Visit(field);
 
@@ -332,15 +311,12 @@ public partial class RewriteQueryVisitorTests
         var three = new IntegerNode("3");
         var two = new IntegerNode("2");
 
-
         PushNode(five);
         PushNode(three);
         _visitor.Visit(new AddNode(five, three));
 
-
         PushNode(two);
-        _visitor.Visit(new StarNode(five,
-            two));
+        _visitor.Visit(new StarNode(five, two));
 
         // Assert
         AssertSingleResult<StarNode>();
@@ -351,11 +327,16 @@ public partial class RewriteQueryVisitorTests
     {
         // Arrange
         var leftFrom = new SchemaFromNode("leftSchema", "leftMethod", new ArgsListNode([]), "left", typeof(object), 0);
-        var rightFrom =
-            new SchemaFromNode("rightSchema", "rightMethod", new ArgsListNode([]), "right", typeof(object), 1);
+        var rightFrom = new SchemaFromNode(
+            "rightSchema",
+            "rightMethod",
+            new ArgsListNode([]),
+            "right",
+            typeof(object),
+            1
+        );
         var joinExpression = new EqualityNode(new IdentifierNode("left.id"), new IdentifierNode("right.id"));
         var joinNode = new JoinFromNode(leftFrom, rightFrom, joinExpression, JoinType.Inner, typeof(object));
-
 
         PushNode(leftFrom);
         PushNode(rightFrom);
@@ -375,7 +356,6 @@ public partial class RewriteQueryVisitorTests
         var havingExpression = new GreaterNode(new IdentifierNode("count"), new IntegerNode("5"));
         var havingNode = new HavingNode(havingExpression);
 
-
         PushNode(havingExpression);
 
         // Act
@@ -390,7 +370,6 @@ public partial class RewriteQueryVisitorTests
     {
         var havingNode = new HavingNode(new GreaterNode(new IdentifierNode("count"), new IntegerNode("5")));
 
-
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(havingNode));
     }
 
@@ -401,7 +380,6 @@ public partial class RewriteQueryVisitorTests
         var field1 = new FieldNode(new IdentifierNode("Field1"), 0, "Field1");
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
         var createTableNode = new CreateTransformationTableNode("TestTable", [], [field1, field2], false);
-
 
         PushNode(field2);
         PushNode(field1);
@@ -459,7 +437,7 @@ public partial class RewriteQueryVisitorTests
             (Action)(() => _visitor.Visit(new StarNode(new IntegerNode("1"), new IntegerNode("2")))),
             (Action)(() => _visitor.Visit(new AddNode(new IntegerNode("1"), new IntegerNode("2")))),
             (Action)(() => _visitor.Visit(new EqualityNode(new IntegerNode("1"), new IntegerNode("2")))),
-            (Action)(() => _visitor.Visit(new AndNode(new BooleanNode(true), new BooleanNode(false))))
+            (Action)(() => _visitor.Visit(new AndNode(new BooleanNode(true), new BooleanNode(false)))),
         };
 
         foreach (var operation in operations)
@@ -470,8 +448,11 @@ public partial class RewriteQueryVisitorTests
             }
             catch (InvalidOperationException ex)
             {
-                Assert.Contains("Stack must contain at least",
-                    ex.Message, $"Error message should be informative: {ex.Message}");
+                Assert.Contains(
+                    "Stack must contain at least",
+                    ex.Message,
+                    $"Error message should be informative: {ex.Message}"
+                );
             }
     }
 
@@ -482,13 +463,15 @@ public partial class RewriteQueryVisitorTests
         starNodes.Push(new IntegerNode("1"));
         starNodes.Push(null!);
         var starError = Assert.ThrowsExactly<ArgumentException>(() =>
-            Musoq.Evaluator.Visitors.Helpers.BinaryOperationVisitorHelper.ProcessStarOperation(starNodes));
+            Musoq.Evaluator.Visitors.Helpers.BinaryOperationVisitorHelper.ProcessStarOperation(starNodes)
+        );
         Assert.AreEqual("Right operand cannot be null", starError.Message);
         var addNodes = new Stack<Node>();
         addNodes.Push(null!);
         addNodes.Push(new IntegerNode("2"));
         var addError = Assert.ThrowsExactly<ArgumentException>(() =>
-            Musoq.Evaluator.Visitors.Helpers.BinaryOperationVisitorHelper.ProcessAddOperation(addNodes));
+            Musoq.Evaluator.Visitors.Helpers.BinaryOperationVisitorHelper.ProcessAddOperation(addNodes)
+        );
         Assert.AreEqual("Left operand cannot be null", addError.Message);
     }
 
@@ -502,7 +485,6 @@ public partial class RewriteQueryVisitorTests
         var argsListNode = new ArgsListNode([dataSourceNode]);
         var functionToken = new GenericFunctionToken("Interpret", "MySchema", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
-
 
         PushNode(argsListNode);
 
@@ -524,7 +506,6 @@ public partial class RewriteQueryVisitorTests
         var argsListNode = new ArgsListNode([dataSourceNode]);
         var functionToken = new GenericFunctionToken("Parse", "MyParser", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
-
 
         PushNode(argsListNode);
 
@@ -548,7 +529,6 @@ public partial class RewriteQueryVisitorTests
         var functionToken = new GenericFunctionToken("InterpretAt", "MyOffsetSchema", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
 
-
         PushNode(argsListNode);
 
         // Act
@@ -570,7 +550,6 @@ public partial class RewriteQueryVisitorTests
         var functionToken = new FunctionToken("SomeOtherFunction", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
 
-
         PushNode(argsListNode);
 
         // Act
@@ -591,12 +570,9 @@ public partial class RewriteQueryVisitorTests
         var functionToken = new FunctionToken("Interpret", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
 
-
         PushNode(argsListNode);
 
-
         _visitor.Visit(accessMethodNode);
-
 
         var result = ReadResult();
         Assert.IsInstanceOfType<AccessMethodNode>(result);
@@ -610,12 +586,9 @@ public partial class RewriteQueryVisitorTests
         var functionToken = new GenericFunctionToken("INTERPRET", "MySchema", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
 
-
         PushNode(argsListNode);
 
-
         _visitor.Visit(accessMethodNode);
-
 
         var result = ReadResult();
         Assert.IsInstanceOfType<InterpretCallNode>(result);

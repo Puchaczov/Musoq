@@ -11,15 +11,25 @@ public sealed class ParsingFailureComparerTests
     public void Wrong_diagnostic_does_not_satisfy_a_failure_case()
     {
         using var contract = JsonDocument.Parse("{\"code\":\"ValidationFailed\",\"field\":\"Value\"}");
-        Assert.Throws<AssertFailedException>(() => ParsingFailureAssertion.Compare(() =>
-            throw ParseException.ForBytes(ParseErrorCode.InsufficientData, "Record", "Value", 0, "Truncated"), contract.RootElement, "wrong-code"));
+        Assert.Throws<AssertFailedException>(() =>
+            ParsingFailureAssertion.Compare(
+                () => throw ParseException.ForBytes(ParseErrorCode.InsufficientData, "Record", "Value", 0, "Truncated"),
+                contract.RootElement,
+                "wrong-code"
+            )
+        );
     }
 
     [TestMethod]
     public void Unrelated_exception_does_not_satisfy_a_failure_case()
     {
         using var contract = JsonDocument.Parse("{\"code\":\"ValidationFailed\",\"field\":\"Value\"}");
-        Assert.Throws<AssertFailedException>(() => ParsingFailureAssertion.Compare(() =>
-            throw new InvalidOperationException("Unexpected runtime failure"), contract.RootElement, "wrong-type"));
+        Assert.Throws<AssertFailedException>(() =>
+            ParsingFailureAssertion.Compare(
+                () => throw new InvalidOperationException("Unexpected runtime failure"),
+                contract.RootElement,
+                "wrong-type"
+            )
+        );
     }
 }

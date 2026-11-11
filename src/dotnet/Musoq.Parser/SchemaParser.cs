@@ -1,6 +1,6 @@
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Frozen;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
@@ -20,39 +20,108 @@ public partial class SchemaParser
     ///     This includes SQL keywords and schema-specific keywords that should
     ///     be treated as identifiers when used as field names.
     /// </summary>
-    private static readonly FrozenSet<TokenType> AllowedKeywordTokenTypes =
-    new[]
+    private static readonly FrozenSet<TokenType> AllowedKeywordTokenTypes = new[]
     {
         // Text schema keywords
-        TokenType.Rest, TokenType.Text, TokenType.End, TokenType.Binary,
-        TokenType.Pattern, TokenType.Literal, TokenType.Until, TokenType.Between,
-        TokenType.Chars, TokenType.Token, TokenType.Whitespace, TokenType.Switch,
-        TokenType.Repeat, TokenType.Optional,
-
+        TokenType.Rest,
+        TokenType.Text,
+        TokenType.End,
+        TokenType.Binary,
+        TokenType.Pattern,
+        TokenType.Literal,
+        TokenType.Until,
+        TokenType.Between,
+        TokenType.Chars,
+        TokenType.Token,
+        TokenType.Whitespace,
+        TokenType.Switch,
+        TokenType.Repeat,
+        TokenType.Optional,
         // SQL keywords
-        TokenType.And, TokenType.Or, TokenType.Not, TokenType.Where,
-        TokenType.Select, TokenType.From, TokenType.Like, TokenType.NotLike,
-        TokenType.RLike, TokenType.NotRLike, TokenType.As, TokenType.Is,
-        TokenType.Null, TokenType.Union, TokenType.UnionAll, TokenType.Except,
-        TokenType.Intersect, TokenType.GroupBy, TokenType.Having, TokenType.Contains,
-        TokenType.Skip, TokenType.Take, TokenType.With, TokenType.InnerJoin,
-        TokenType.OuterJoin, TokenType.CrossApply, TokenType.OuterApply, TokenType.On,
-        TokenType.OrderBy, TokenType.Asc, TokenType.Desc, TokenType.Functions,
-        TokenType.True, TokenType.False, TokenType.In, TokenType.NotIn, TokenType.Any, TokenType.Some, TokenType.All,
-        TokenType.Table, TokenType.Couple, TokenType.Case, TokenType.When,
-        TokenType.Then, TokenType.Else, TokenType.Distinct, TokenType.ColumnKeyword,
-
+        TokenType.And,
+        TokenType.Or,
+        TokenType.Not,
+        TokenType.Where,
+        TokenType.Select,
+        TokenType.From,
+        TokenType.Like,
+        TokenType.NotLike,
+        TokenType.RLike,
+        TokenType.NotRLike,
+        TokenType.As,
+        TokenType.Is,
+        TokenType.Null,
+        TokenType.Union,
+        TokenType.UnionAll,
+        TokenType.Except,
+        TokenType.Intersect,
+        TokenType.GroupBy,
+        TokenType.Having,
+        TokenType.Contains,
+        TokenType.Skip,
+        TokenType.Take,
+        TokenType.With,
+        TokenType.InnerJoin,
+        TokenType.OuterJoin,
+        TokenType.CrossApply,
+        TokenType.OuterApply,
+        TokenType.On,
+        TokenType.OrderBy,
+        TokenType.Asc,
+        TokenType.Desc,
+        TokenType.Functions,
+        TokenType.True,
+        TokenType.False,
+        TokenType.In,
+        TokenType.NotIn,
+        TokenType.Any,
+        TokenType.Some,
+        TokenType.All,
+        TokenType.Table,
+        TokenType.Couple,
+        TokenType.Case,
+        TokenType.When,
+        TokenType.Then,
+        TokenType.Else,
+        TokenType.Distinct,
+        TokenType.ColumnKeyword,
         // Schema-specific keywords
-        TokenType.LittleEndian, TokenType.BigEndian, TokenType.ByteType,
-        TokenType.SByteType, TokenType.ShortType, TokenType.UShortType,
-        TokenType.IntType, TokenType.UIntType, TokenType.LongType, TokenType.ULongType,
-        TokenType.FloatType, TokenType.DoubleType, TokenType.BitsType, TokenType.Align,
-        TokenType.StringType, TokenType.Utf8, TokenType.Utf16Le, TokenType.Utf16Be,
-        TokenType.Ascii, TokenType.Latin1, TokenType.Ebcdic, TokenType.Trim,
-        TokenType.RTrim, TokenType.LTrim, TokenType.NullTerm, TokenType.Check,
-        TokenType.At, TokenType.Substream, TokenType.Nested, TokenType.Escaped, TokenType.Greedy,
-        TokenType.Lazy, TokenType.Lower, TokenType.Upper, TokenType.Capture,
-        TokenType.Extends
+        TokenType.LittleEndian,
+        TokenType.BigEndian,
+        TokenType.ByteType,
+        TokenType.SByteType,
+        TokenType.ShortType,
+        TokenType.UShortType,
+        TokenType.IntType,
+        TokenType.UIntType,
+        TokenType.LongType,
+        TokenType.ULongType,
+        TokenType.FloatType,
+        TokenType.DoubleType,
+        TokenType.BitsType,
+        TokenType.Align,
+        TokenType.StringType,
+        TokenType.Utf8,
+        TokenType.Utf16Le,
+        TokenType.Utf16Be,
+        TokenType.Ascii,
+        TokenType.Latin1,
+        TokenType.Ebcdic,
+        TokenType.Trim,
+        TokenType.RTrim,
+        TokenType.LTrim,
+        TokenType.NullTerm,
+        TokenType.Check,
+        TokenType.At,
+        TokenType.Substream,
+        TokenType.Nested,
+        TokenType.Escaped,
+        TokenType.Greedy,
+        TokenType.Lazy,
+        TokenType.Lower,
+        TokenType.Upper,
+        TokenType.Capture,
+        TokenType.Extends,
     }.ToFrozenSet();
 
     private readonly Syntax.SourceCapture? _sourceCapture;
@@ -63,9 +132,8 @@ public partial class SchemaParser
     ///     Creates a new schema parser.
     /// </summary>
     /// <param name="lexer">The lexer to use for tokenization.</param>
-    public SchemaParser(ILexer lexer) : this(lexer, null)
-    {
-    }
+    public SchemaParser(ILexer lexer)
+        : this(lexer, null) { }
 
     internal SchemaParser(ILexer lexer, Syntax.SourceCapture? capture)
     {
@@ -81,8 +149,8 @@ public partial class SchemaParser
         if (schemaSpan.IsEmpty || _lexer.Comments.Count == 0)
             return [];
 
-        return _lexer.Comments
-            .Where(comment => schemaSpan.Contains(comment.Span))
+        return _lexer
+            .Comments.Where(comment => schemaSpan.Contains(comment.Span))
             .Select(comment => new SchemaComment(comment.Value, comment.Span))
             .ToArray();
     }
@@ -106,7 +174,8 @@ public partial class SchemaParser
                 TokenType.Text => ComposeTextSchema(),
                 _ => throw new SyntaxException(
                     $"Expected 'binary' or 'text' keyword but found '{Current.TokenType}'",
-                    _lexer.AlreadyResolvedQueryPart)
+                    _lexer.AlreadyResolvedQueryPart
+                ),
             };
         }
         finally
@@ -126,12 +195,18 @@ public partial class SchemaParser
 
         try
         {
-            var isBinary = Current.TokenType == TokenType.Binary ||
-                           (Current.TokenType == TokenType.Identifier &&
-                            Current.Value.Equals("binary", StringComparison.OrdinalIgnoreCase));
-            var isText = Current.TokenType == TokenType.Text ||
-                         (Current.TokenType == TokenType.Identifier &&
-                          Current.Value.Equals("text", StringComparison.OrdinalIgnoreCase));
+            var isBinary =
+                Current.TokenType == TokenType.Binary
+                || (
+                    Current.TokenType == TokenType.Identifier
+                    && Current.Value.Equals("binary", StringComparison.OrdinalIgnoreCase)
+                );
+            var isText =
+                Current.TokenType == TokenType.Text
+                || (
+                    Current.TokenType == TokenType.Identifier
+                    && Current.Value.Equals("text", StringComparison.OrdinalIgnoreCase)
+                );
 
             if (isBinary)
             {
@@ -151,7 +226,8 @@ public partial class SchemaParser
 
             throw new SyntaxException(
                 $"Expected 'binary' or 'text' keyword but found '{Current.TokenType}'",
-                _lexer.AlreadyResolvedQueryPart);
+                _lexer.AlreadyResolvedQueryPart
+            );
         }
         finally
         {

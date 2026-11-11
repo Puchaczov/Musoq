@@ -15,9 +15,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("PhysicalDescQuery", result.PhysicalPlanText);
         Assert.Contains("ReturnDesc [query Query]", result.ExecutionPlanText);
         Assert.Contains("EvaluationHelper.GetQueryDescription(__columns_", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("SourceInvocation<", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("GetTableByName", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("foreach", StringComparison.Ordinal), result.GeneratedCSharpCode);
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("SourceInvocation<", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("GetTableByName", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("foreach", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
     }
 
     [TestMethod]
@@ -39,7 +48,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = ReadSample(DescQuerySampleFileName);
 
-        Assert.Contains("desc query (select Name as PersonName, Population + Money as Total from #A.entities())", sample.Content);
+        Assert.Contains(
+            "desc query (select Name as PersonName, Population + Money as Total from #A.entities())",
+            sample.Content
+        );
         Assert.Contains("DescQuery", sample.Content);
         Assert.Contains("PhysicalDescQuery", sample.Content);
         Assert.Contains("ReturnDesc [query Query]", sample.Content);

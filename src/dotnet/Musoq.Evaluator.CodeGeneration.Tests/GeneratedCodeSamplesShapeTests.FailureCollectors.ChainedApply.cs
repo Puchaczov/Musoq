@@ -16,7 +16,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             failures.Add($"{ChainedApplyWindowSampleFileName}: missing direct scalar enumerable binding");
 
         if (content.Contains("EvaluationHelper.ConvertScalarEnumerableToTypedChunks<int>", StringComparison.Ordinal))
-            failures.Add($"{ChainedApplyWindowSampleFileName}: scalar enumerable still allocates PrimitiveTypeEntity wrappers");
+            failures.Add(
+                $"{ChainedApplyWindowSampleFileName}: scalar enumerable still allocates PrimitiveTypeEntity wrappers"
+            );
 
         if (!ContainsGeneratedRowNumberKernel(content))
             failures.Add($"{ChainedApplyWindowSampleFileName}: missing row-number window computation");
@@ -32,7 +34,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var failures = GetCommonChainedApplyQualifyWindowShapeFailures(
             ChainedApplyQualifyWindowSampleFileName,
             content,
-            []);
+            []
+        );
 
         if (content.Contains("_tableResults[0] = statement0", StringComparison.Ordinal))
             failures.Add($"{ChainedApplyQualifyWindowSampleFileName}: still uses statement transition-table rewrite");
@@ -43,15 +46,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private static string[] GetChainedApplyGroupedAggregateQualifyWindowShapeFailures(string content)
     {
         return GetCommonChainedApplyQualifyWindowShapeFailures(
-            ChainedApplyGroupedAggregateQualifyWindowSampleFileName,
-            content,
-            ["SetAvg", "SetMin", "SetMax"]).ToArray();
+                ChainedApplyGroupedAggregateQualifyWindowSampleFileName,
+                content,
+                ["SetAvg", "SetMin", "SetMax"]
+            )
+            .ToArray();
     }
 
     private static List<string> GetCommonChainedApplyQualifyWindowShapeFailures(
         string fileName,
         string content,
-        IReadOnlyList<string> aggregateSetMethods)
+        IReadOnlyList<string> aggregateSetMethods
+    )
     {
         var failures = GetRetiredHelperShapeFailures(fileName, content).ToList();
 
@@ -78,7 +84,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ChainedApplyMixedDistinctAggregateSortSampleFileName,
             content,
             ["SetSum"],
-            ["SumDistinct"]);
+            ["SumDistinct"]
+        );
     }
 
     private static string[] GetChainedApplyMixedDistinctMinMaxAggregateSortShapeFailures(string content)
@@ -87,7 +94,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ChainedApplyMixedDistinctMinMaxAggregateSortSampleFileName,
             content,
             ["SetMin", "SetMax"],
-            ["MinDistinct", "MaxDistinct"]);
+            ["MinDistinct", "MaxDistinct"]
+        );
     }
 
     private static string[] GetChainedApplyMixedDistinctAvgAggregateSortShapeFailures(string content)
@@ -96,7 +104,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ChainedApplyMixedDistinctAvgAggregateSortSampleFileName,
             content,
             ["SetAvg"],
-            ["AvgDistinct"]);
+            ["AvgDistinct"]
+        );
     }
 
     private static string[] GetChainedApplyMixedDistinctMinMaxAggregateWindowShapeFailures(string content)
@@ -105,7 +114,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName,
             content,
             ["SetMin", "SetMax"],
-            ["MinDistinct", "MaxDistinct"]);
+            ["MinDistinct", "MaxDistinct"]
+        );
     }
 
     private static string[] GetChainedApplyMixedDistinctAvgAggregateWindowShapeFailures(string content)
@@ -114,14 +124,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName,
             content,
             ["SetAvg"],
-            ["AvgDistinct"]);
+            ["AvgDistinct"]
+        );
     }
 
     private static string[] GetChainedApplyMixedDistinctAggregateSortShapeFailures(
         string fileName,
         string content,
         IReadOnlyList<string> regularAggregateSetMethods,
-        IReadOnlyList<string> distinctAggregateFinalizers)
+        IReadOnlyList<string> distinctAggregateFinalizers
+    )
     {
         var failures = GetRetiredHelperShapeFailures(fileName, content).ToList();
         AddChainedApplyAggregateStreamingFailures(fileName, content, failures);
@@ -129,8 +141,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AddTypedAggregateStateFailures(
             fileName,
             content,
-            [..regularAggregateSetMethods, "SetDistinctAggregate"],
-            failures);
+            [.. regularAggregateSetMethods, "SetDistinctAggregate"],
+            failures
+        );
 
         foreach (var methodName in distinctAggregateFinalizers)
             if (!content.Contains(DistinctKernelGetSignature(methodName), StringComparison.Ordinal))
@@ -152,7 +165,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         string fileName,
         string content,
         IReadOnlyList<string> regularAggregateSetMethods,
-        IReadOnlyList<string> distinctAggregateFinalizers)
+        IReadOnlyList<string> distinctAggregateFinalizers
+    )
     {
         var failures = GetRetiredHelperShapeFailures(fileName, content).ToList();
         AddChainedApplyAggregateStreamingFailures(fileName, content, failures);
@@ -160,8 +174,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AddTypedAggregateStateFailures(
             fileName,
             content,
-            [..regularAggregateSetMethods, "SetDistinctAggregate"],
-            failures);
+            [.. regularAggregateSetMethods, "SetDistinctAggregate"],
+            failures
+        );
 
         foreach (var methodName in distinctAggregateFinalizers)
             if (!content.Contains(DistinctKernelGetSignature(methodName), StringComparison.Ordinal))
@@ -182,7 +197,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private static void AddChainedApplyLateMaterializationFailures(
         string fileName,
         string content,
-        List<string> failures)
+        List<string> failures
+    )
     {
         if (content.Contains("var apply_0_i_nTable = new Table(\"apply_0_i_nTable\"", StringComparison.Ordinal))
             failures.Add($"{fileName}: still materializes first chained-apply transition table");
@@ -196,17 +212,29 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (!content.Contains("var apply_0_i_n_mTable = new List<apply_0_i_n_mRow0>();", StringComparison.Ordinal))
             failures.Add($"{fileName}: missing typed final chained-apply window row buffer");
 
-        if (!content.Contains("EvaluationHelper.MaterializeGeneratedRows<apply_0_i_n_mRow0>(apply_0_i_n_mTable)", StringComparison.Ordinal))
+        if (
+            !content.Contains(
+                "EvaluationHelper.MaterializeGeneratedRows<apply_0_i_n_mRow0>(apply_0_i_n_mTable)",
+                StringComparison.Ordinal
+            )
+        )
             failures.Add($"{fileName}: window rows are not materialized from the typed chained-apply buffer");
 
-        if (content.Contains("EvaluationHelper.MaterializeGeneratedRows<apply_0_i_n_mRow0>(apply_0_i_n_mTable.Rows)", StringComparison.Ordinal))
+        if (
+            content.Contains(
+                "EvaluationHelper.MaterializeGeneratedRows<apply_0_i_n_mRow0>(apply_0_i_n_mTable.Rows)",
+                StringComparison.Ordinal
+            )
+        )
             failures.Add($"{fileName}: still unwraps final chained-apply window rows through Table.Rows");
 
         if (content.Contains("apply_0_i_n_mTable.AddDirect", StringComparison.Ordinal))
             failures.Add($"{fileName}: still appends final chained-apply window rows through Table.AddDirect");
 
-        if (!content.Contains("int n = nIndexArray[nIndex];", StringComparison.Ordinal) ||
-            !content.Contains("int m = mIndexArray[mIndex];", StringComparison.Ordinal))
+        if (
+            !content.Contains("int n = nIndexArray[nIndex];", StringComparison.Ordinal)
+            || !content.Contains("int m = mIndexArray[mIndex];", StringComparison.Ordinal)
+        )
         {
             failures.Add($"{fileName}: missing nested direct apply loops");
         }
@@ -214,13 +242,17 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static bool ContainsGeneratedRowNumberKernel(string content)
     {
-        return content.Contains("resultRowNumbers[resultRowNumbersCurrentIndex] = Musoq.Plugins.RowNumberKernel.Get(in resultRowNumbersContext)", StringComparison.Ordinal);
+        return content.Contains(
+            "resultRowNumbers[resultRowNumbersCurrentIndex] = Musoq.Plugins.RowNumberKernel.Get(in resultRowNumbersContext)",
+            StringComparison.Ordinal
+        );
     }
 
     private static void AddChainedApplyAggregateStreamingFailures(
         string fileName,
         string content,
-        List<string> failures)
+        List<string> failures
+    )
     {
         if (content.Contains("var apply_0_i_nTable = new Table(\"apply_0_i_nTable\"", StringComparison.Ordinal))
             failures.Add($"{fileName}: still materializes first chained-apply transition table");
@@ -234,8 +266,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (content.Contains("foreach (var apply_0_i_n_m in apply_0_i_n_mTable.Rows)", StringComparison.Ordinal))
             failures.Add($"{fileName}: still aggregates by scanning the final chained-apply table");
 
-        if (!content.Contains("int n = nIndexArray[nIndex];", StringComparison.Ordinal) ||
-            !content.Contains("int m = mIndexArray[mIndex];", StringComparison.Ordinal))
+        if (
+            !content.Contains("int n = nIndexArray[nIndex];", StringComparison.Ordinal)
+            || !content.Contains("int m = mIndexArray[mIndex];", StringComparison.Ordinal)
+        )
         {
             failures.Add($"{fileName}: missing direct nested apply loops");
         }
@@ -245,7 +279,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         string fileName,
         string content,
         IReadOnlyList<string> legacySetMethods,
-        List<string> failures)
+        List<string> failures
+    )
     {
         if (!content.Contains("AggregateGroup [", StringComparison.Ordinal))
             failures.Add($"{fileName}: missing typed aggregate group shape");
@@ -256,35 +291,42 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (content.Contains("CreateAggregateLibrary [", StringComparison.Ordinal))
             failures.Add($"{fileName}: typed aggregate still creates aggregate library state");
 
-        if (!content.Contains(".Accumulate(", StringComparison.Ordinal) &&
-            !content.Contains(".Set(ref ", StringComparison.Ordinal) &&
-            !content.Contains(".Count = checked(", StringComparison.Ordinal) &&
-            !content.Contains(".HasValue = true", StringComparison.Ordinal))
+        if (
+            !content.Contains(".Accumulate(", StringComparison.Ordinal)
+            && !content.Contains(".Set(ref ", StringComparison.Ordinal)
+            && !content.Contains(".Count = checked(", StringComparison.Ordinal)
+            && !content.Contains(".HasValue = true", StringComparison.Ordinal)
+        )
         {
             failures.Add($"{fileName}: missing typed aggregate update");
         }
 
-        if (!content.Contains(".GetValue()", StringComparison.Ordinal) &&
-            !content.Contains(".Get(in ", StringComparison.Ordinal) &&
-            !content.Contains("finalGroup.__agg", StringComparison.Ordinal) &&
-            !content.Contains("finalGroup.__owner", StringComparison.Ordinal) &&
-            !content.Contains("FinalGroup.__agg", StringComparison.Ordinal) &&
-            !content.Contains("FinalGroup.__owner", StringComparison.Ordinal))
+        if (
+            !content.Contains(".GetValue()", StringComparison.Ordinal)
+            && !content.Contains(".Get(in ", StringComparison.Ordinal)
+            && !content.Contains("finalGroup.__agg", StringComparison.Ordinal)
+            && !content.Contains("finalGroup.__owner", StringComparison.Ordinal)
+            && !content.Contains("FinalGroup.__agg", StringComparison.Ordinal)
+            && !content.Contains("FinalGroup.__owner", StringComparison.Ordinal)
+        )
         {
             failures.Add($"{fileName}: missing typed aggregate finalization");
         }
 
         foreach (var methodName in legacySetMethods)
         {
-            if (content.Contains($"AggregateSet [{methodName}(", StringComparison.Ordinal) ||
-                content.Contains($".{methodName}(", StringComparison.Ordinal))
+            if (
+                content.Contains($"AggregateSet [{methodName}(", StringComparison.Ordinal)
+                || content.Contains($".{methodName}(", StringComparison.Ordinal)
+            )
             {
                 failures.Add($"{fileName}: regular aggregate still uses {methodName} dictionary state");
             }
         }
     }
 
-    private static string DistinctKernelGetSignature(string methodName)
-        => methodName == "AvgDistinct" ? "AverageDistinctKernel<int, decimal>.Get" : $"{methodName}AggregateKernel<int>.Get";
-
+    private static string DistinctKernelGetSignature(string methodName) =>
+        methodName == "AvgDistinct"
+            ? "AverageDistinctKernel<int, decimal>.Get"
+            : $"{methodName}AggregateKernel<int>.Get";
 }

@@ -14,9 +14,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public long? ToInt64(string? value)
     {
-        return long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number)
-            ? number
-            : null;
+        return long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) ? number : null;
     }
 
     /// <summary>
@@ -162,7 +160,12 @@ public partial class LibraryBase
     /// <returns>Converted to long value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public long? ToInt64(bool? value) => value.HasValue ? value.Value ? 1L : 0L : null;
+    public long? ToInt64(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? 1L
+                : 0L
+            : null;
 
     /// <summary>
     ///     Converts given value to long

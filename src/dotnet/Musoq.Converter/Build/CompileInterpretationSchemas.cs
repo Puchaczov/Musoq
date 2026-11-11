@@ -1,7 +1,7 @@
-﻿using Musoq.Evaluator;
+﻿using System.Threading;
+using Musoq.Evaluator;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.InterpretationSchemaDependencyGraph;
-using System.Threading;
 
 namespace Musoq.Converter.Build;
 
@@ -28,16 +28,18 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
                 : partition.Registry;
             items.CancellationToken.ThrowIfCancellationRequested();
 
-
             if (usedRegistry.Count > 0)
             {
-                var sourceCode = GenerateInterpreterSourceCode(usedRegistry, items.CompilationOptions.InterpretationLimits, items.CancellationToken);
+                var sourceCode = GenerateInterpreterSourceCode(
+                    usedRegistry,
+                    items.CompilationOptions.InterpretationLimits,
+                    items.CancellationToken
+                );
                 items.InterpreterSourceCode = sourceCode;
             }
 
             if (partition.HasDefinitions)
                 items.RawQueryTree = partition.QueryWithoutDefinitions;
-
 
             items.SchemaRegistry = usedRegistry;
             items.CancellationToken.ThrowIfCancellationRequested();
@@ -53,7 +55,8 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
     private static string? GenerateInterpreterSourceCode(
         SchemaRegistry registry,
         InterpretationExecutionLimits limits,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         const string interpreterNamespace = "Musoq.Generated.Interpreters";
 
@@ -63,7 +66,6 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
 
         if (string.IsNullOrWhiteSpace(sourceCode) || !sourceCode.Contains("class", StringComparison.Ordinal))
             return null;
-
 
         foreach (var registration in registry.Schemas)
         {

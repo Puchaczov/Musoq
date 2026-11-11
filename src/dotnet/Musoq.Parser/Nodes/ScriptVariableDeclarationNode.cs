@@ -3,25 +3,17 @@ namespace Musoq.Parser.Nodes;
 public sealed class ScriptVariableDeclarationNode : Node
 {
     public ScriptVariableDeclarationNode(string name, string typeName, bool isNullable, Node initializer)
-        : this(name, typeName, isNullable, initializer, null, false, default)
-    {
-    }
+        : this(name, typeName, isNullable, initializer, null, false, default) { }
 
-    public ScriptVariableDeclarationNode(
-        string name,
-        string typeName,
-        bool isNullable,
-        Node initializer,
-        TextSpan span)
-        : this(name, typeName, isNullable, initializer, null, false, span)
-    {
-    }
+    public ScriptVariableDeclarationNode(string name, string typeName, bool isNullable, Node initializer, TextSpan span)
+        : this(name, typeName, isNullable, initializer, null, false, span) { }
 
     public ScriptVariableDeclarationNode(
         string name,
         StructuralTypeSyntaxNode typeSyntax,
         Node initializer,
-        TextSpan span)
+        TextSpan span
+    )
         : this(
             name,
             typeSyntax?.ToString() ?? throw new ArgumentNullException(nameof(typeSyntax)),
@@ -29,14 +21,11 @@ public sealed class ScriptVariableDeclarationNode : Node
             initializer,
             typeSyntax,
             false,
-            span)
-    {
-    }
+            span
+        ) { }
 
     public ScriptVariableDeclarationNode(string name, Node initializer, TextSpan span)
-        : this(name, string.Empty, false, initializer, null, true, span)
-    {
-    }
+        : this(name, string.Empty, false, initializer, null, true, span) { }
 
     private ScriptVariableDeclarationNode(
         string name,
@@ -45,7 +34,8 @@ public sealed class ScriptVariableDeclarationNode : Node
         Node initializer,
         StructuralTypeSyntaxNode? typeSyntax,
         bool isInferred,
-        TextSpan span)
+        TextSpan span
+    )
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
         TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
@@ -68,7 +58,8 @@ public sealed class ScriptVariableDeclarationNode : Node
 
     public bool IsInferred { get; }
 
-    public string DeclaredTypeName => IsInferred ? string.Empty : TypeSyntax?.ToString() ?? (IsNullable ? $"{TypeName}?" : TypeName);
+    public string DeclaredTypeName =>
+        IsInferred ? string.Empty : TypeSyntax?.ToString() ?? (IsNullable ? $"{TypeName}?" : TypeName);
 
     public Node Initializer { get; }
 

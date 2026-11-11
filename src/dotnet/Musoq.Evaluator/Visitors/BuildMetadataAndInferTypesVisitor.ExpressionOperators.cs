@@ -8,7 +8,8 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private void VisitBinaryOperatorWithSafePop<T>(Func<Node, Node, T> nodeFactory, string operationName) where T : Node
+    private void VisitBinaryOperatorWithSafePop<T>(Func<Node, Node, T> nodeFactory, string operationName)
+        where T : Node
     {
         var nodes = PopSemanticNodes(2, operationName);
         var right = nodes[1];
@@ -16,14 +17,20 @@ public partial class BuildMetadataAndInferTypesVisitor
         PushSemanticNode(nodeFactory(left, right));
     }
 
-    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, Node errorContextNode,
-        BinaryOperatorKind operatorKind, BinaryOperationContext operationContext = BinaryOperationContext.Standard) where T : Node
+    private void VisitBinaryOperatorWithTypeConversion<T>(
+        Func<Node, Node, T> nodeFactory,
+        Node errorContextNode,
+        BinaryOperatorKind operatorKind,
+        BinaryOperationContext operationContext = BinaryOperationContext.Standard
+    )
+        where T : Node
     {
         var right = PopSemanticNode("VisitBinaryOperatorWithTypeConversion (right)");
         var left = PopSemanticNode("VisitBinaryOperatorWithTypeConversion (left)");
 
-        if (TryBindEnumBinaryOperation(left, right, operatorKind, errorContextNode,
-                out var enumLeft, out var enumRight))
+        if (
+            TryBindEnumBinaryOperation(left, right, operatorKind, errorContextNode, out var enumLeft, out var enumRight)
+        )
         {
             var enumResult = nodeFactory(enumLeft, enumRight);
             if (errorContextNode.HasSpan)
@@ -90,9 +97,11 @@ public partial class BuildMetadataAndInferTypesVisitor
     private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)
     {
         var otherNodeType = otherNode.ReturnType;
-        if (candidateNode is not WordNode stringNode ||
-            otherNodeType == null ||
-            !TypeConversionNodeFactory.IsDateTimeType(otherNodeType))
+        if (
+            candidateNode is not WordNode stringNode
+            || otherNodeType == null
+            || !TypeConversionNodeFactory.IsDateTimeType(otherNodeType)
+        )
             return candidateNode;
 
         var conversion = _nodeFactory.CreateDateTimeConversionNode(otherNodeType, stringNode.Value);
@@ -101,14 +110,21 @@ public partial class BuildMetadataAndInferTypesVisitor
         return conversion;
     }
 
-    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode,
-        BinaryOperationContext operationContext)
+    private Node TransformToNumericTypeIfNeeded(
+        Node candidateNode,
+        Node otherNode,
+        BinaryOperationContext operationContext
+    )
     {
         var shouldTransform = operationContext switch
         {
-            BinaryOperationContext.ArithmeticOperation => TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType),
-            BinaryOperationContext.RelationalComparison => TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType),
-            _ => TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
+            BinaryOperationContext.ArithmeticOperation => TypeConversionNodeFactory.IsObjectType(
+                candidateNode.ReturnType
+            ),
+            BinaryOperationContext.RelationalComparison => TypeConversionNodeFactory.IsStringOrObjectType(
+                candidateNode.ReturnType
+            ),
+            _ => TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType),
         };
 
         if (!shouldTransform || !TypeConversionNodeFactory.IsNumericLiteralNode(otherNode, out var targetType))
@@ -117,8 +133,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (ContainsScriptParameterReference(candidateNode))
             return candidateNode;
 
-        return _nodeFactory.CreateNumericConversionNode(candidateNode, targetType,
-            TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), operationContext);
+        return _nodeFactory.CreateNumericConversionNode(
+            candidateNode,
+            targetType,
+            TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType),
+            operationContext
+        );
     }
 
     private void ValidateBooleanOperand(Node operand, string operatorName, Node errorContextNode)
@@ -127,8 +147,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (CanSkipStaticTypeValidation(operandType) || operandType == typeof(bool))
             return;
 
-        ThrowOrReportInvalidOperandTypes(typeof(bool), operandType, errorContextNode,
-            $"Operator {operatorName} requires boolean operands, but got '{operandType.Name}'.");
+        ThrowOrReportInvalidOperandTypes(
+            typeof(bool),
+            operandType,
+            errorContextNode,
+            $"Operator {operatorName} requires boolean operands, but got '{operandType.Name}'."
+        );
     }
 
     private void ValidatePatternOperand(Node operand, string operatorName, Node errorContextNode)
@@ -137,14 +161,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (CanSkipStaticTypeValidation(operandType) || operandType == typeof(string))
             return;
 
-        var message =
-            $"Operator {operatorName} requires string operands, but got '{operandType.Name}'.";
+        var message = $"Operator {operatorName} requires string operands, but got '{operandType.Name}'.";
 
         if (TryReportTypeMismatch(message, errorContextNode))
             return;
 
-        throw new TypeMismatchException(typeof(string), operandType,
-            errorContextNode.SpanOrEmpty());
+        throw new TypeMismatchException(typeof(string), operandType, errorContextNode.SpanOrEmpty());
     }
 
     private void ValidateCollectionPredicateItems(Node left, ArgsListNode args, Node errorContextNode)
@@ -153,7 +175,12 @@ public partial class BuildMetadataAndInferTypesVisitor
             ValidateBinaryOperatorOperands(left, item, BinaryOperatorKind.Equality, errorContextNode);
     }
 
-    private void ValidateBinaryOperatorOperands(Node left, Node right, BinaryOperatorKind operatorKind, Node errorContextNode)
+    private void ValidateBinaryOperatorOperands(
+        Node left,
+        Node right,
+        BinaryOperatorKind operatorKind,
+        Node errorContextNode
+    )
     {
         var leftType = NormalizeOperandType(left.ReturnType);
         var rightType = NormalizeOperandType(right.ReturnType);
@@ -176,23 +203,26 @@ public partial class BuildMetadataAndInferTypesVisitor
             BinaryOperatorKind.Equality => CanApplyEqualityOperator(leftType, rightType),
             BinaryOperatorKind.Inequality => CanApplyEqualityOperator(leftType, rightType),
             BinaryOperatorKind.Relational => CanApplyRelationalOperator(leftType, rightType),
-            _ => true
+            _ => true,
         };
 
         if (isValid)
             return;
 
-        if (operatorKind is BinaryOperatorKind.Equality or BinaryOperatorKind.Inequality or BinaryOperatorKind.Relational)
+        if (
+            operatorKind
+            is BinaryOperatorKind.Equality
+                or BinaryOperatorKind.Inequality
+                or BinaryOperatorKind.Relational
+        )
         {
             var message = CreateComparisonTypeMismatchMessage(left, right, leftType, rightType);
             if (TryReportTypeMismatch(message, errorContextNode))
                 return;
 
-            throw new TypeMismatchException(leftType, rightType,
-                errorContextNode.SpanOrEmpty());
+            throw new TypeMismatchException(leftType, rightType, errorContextNode.SpanOrEmpty());
         }
 
         ThrowOrReportInvalidOperandTypes(leftType, rightType, errorContextNode);
     }
-
 }

@@ -10,7 +10,7 @@ public static partial class ExecutionPlanPrinter
         {
             NullOrdering.First => " NULLS FIRST",
             NullOrdering.Last => " NULLS LAST",
-            _ => string.Empty
+            _ => string.Empty,
         };
     }
 }

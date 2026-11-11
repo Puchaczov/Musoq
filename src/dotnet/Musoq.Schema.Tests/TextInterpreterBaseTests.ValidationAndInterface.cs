@@ -19,8 +19,7 @@ public partial class TextInterpreterBaseTests
     public void Validate_ConditionFalse_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        var ex = Assert.Throws<ParseException>(() =>
-            interpreter.TestValidate(false, "testField", "validation failed"));
+        var ex = Assert.Throws<ParseException>(() => interpreter.TestValidate(false, "testField", "validation failed"));
         Assert.AreEqual("testField", ex.FieldName);
         Assert.AreEqual("validation failed", ex.Details);
     }
@@ -85,8 +84,7 @@ public partial class TextInterpreterBaseTests
     public void EnsureChars_NotEnoughChars_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestEnsureChars("hi".AsSpan(), 10));
+        Assert.Throws<ParseException>(() => interpreter.TestEnsureChars("hi".AsSpan(), 10));
     }
 
     #endregion

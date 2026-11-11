@@ -11,7 +11,8 @@ internal static class WindowFunctionArgumentValidation
     public static void Validate(
         AccessMethodNode functionCall,
         Node[] arguments,
-        Action<DiagnosticCode, string, Node> report)
+        Action<DiagnosticCode, string, Node> report
+    )
     {
         ArgumentNullException.ThrowIfNull(functionCall);
         ArgumentNullException.ThrowIfNull(arguments);
@@ -35,12 +36,14 @@ internal static class WindowFunctionArgumentValidation
                     report(
                         DiagnosticCode.MQ3088_NoMatchingCallableOverload,
                         CreateWindowTypeMismatchMessage(functionCall.Name, arguments),
-                        arguments[0]);
+                        arguments[0]
+                    );
                 else if (TryGetConstantInteger(arguments[0], out var bucketCount) && bucketCount <= 0)
                     report(
                         DiagnosticCode.MQ3103_InvalidWindowFunctionArgument,
                         $"Window function '{functionCall.Name}' has an invalid argument: bucket count must be a positive integer.",
-                        arguments[0]);
+                        arguments[0]
+                    );
                 return;
 
             case "LAG":
@@ -52,7 +55,8 @@ internal static class WindowFunctionArgumentValidation
                     report(
                         DiagnosticCode.MQ3088_NoMatchingCallableOverload,
                         CreateWindowTypeMismatchMessage(functionCall.Name, arguments),
-                        arguments[1]);
+                        arguments[1]
+                    );
                 return;
 
             case "SUM":
@@ -73,12 +77,14 @@ internal static class WindowFunctionArgumentValidation
                     report(
                         DiagnosticCode.MQ3088_NoMatchingCallableOverload,
                         CreateWindowTypeMismatchMessage(functionCall.Name, arguments),
-                        arguments[1]);
+                        arguments[1]
+                    );
                 else if (TryGetConstantInteger(arguments[1], out var position) && position <= 0)
                     report(
                         DiagnosticCode.MQ3103_InvalidWindowFunctionArgument,
                         $"Window function '{functionCall.Name}' has an invalid argument: position must be a positive 1-based integer.",
-                        arguments[1]);
+                        arguments[1]
+                    );
                 return;
         }
     }
@@ -87,17 +93,21 @@ internal static class WindowFunctionArgumentValidation
         AccessMethodNode functionCall,
         int actualCount,
         string expectedCounts,
-        Action<DiagnosticCode, string, Node> report)
+        Action<DiagnosticCode, string, Node> report
+    )
     {
-        if (expectedCounts == "1..3"
+        if (
+            expectedCounts == "1..3"
                 ? actualCount is >= 1 and <= 3
-                : actualCount.ToString(CultureInfo.InvariantCulture) == expectedCounts)
+                : actualCount.ToString(CultureInfo.InvariantCulture) == expectedCounts
+        )
             return true;
 
         report(
             DiagnosticCode.MQ3087_InvalidCallableArity,
             $"Callable '{functionCall.Name}' does not accept {actualCount.ToString(CultureInfo.InvariantCulture)} argument(s); expected {expectedCounts}.",
-            functionCall);
+            functionCall
+        );
         return false;
     }
 

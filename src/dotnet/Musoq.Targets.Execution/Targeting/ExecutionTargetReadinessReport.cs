@@ -8,7 +8,8 @@ internal sealed record ExecutionTargetReadinessReport
 {
     public ExecutionTargetReadinessReport(
         IReadOnlyList<ExecutionTargetReadinessIssue>? issues,
-        ExecutionSemanticsContract? semanticsContract = null)
+        ExecutionSemanticsContract? semanticsContract = null
+    )
     {
         Issues = Freeze(issues);
         SemanticsContract = semanticsContract ?? ExecutionSemanticsContract.Current;
@@ -23,12 +24,9 @@ internal sealed record ExecutionTargetReadinessReport
         return Issues.All(issue => issue.RuntimeFamily != runtimeFamily);
     }
 
-    public IReadOnlyList<ExecutionTargetReadinessIssue> IssuesFor(
-        ExecutionTargetRuntimeFamily runtimeFamily)
+    public IReadOnlyList<ExecutionTargetReadinessIssue> IssuesFor(ExecutionTargetRuntimeFamily runtimeFamily)
     {
-        return Issues
-            .Where(issue => issue.RuntimeFamily == runtimeFamily)
-            .ToArray();
+        return Issues.Where(issue => issue.RuntimeFamily == runtimeFamily).ToArray();
     }
 
     private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values)

@@ -56,7 +56,8 @@ public class DefensiveVisitorBaseTests
             return SafePeek(nodes, operation);
         }
 
-        public T TestSafeCast<T>(Node node, string operation) where T : Node
+        public T TestSafeCast<T>(Node node, string operation)
+            where T : Node
         {
             return SafeCast<T>(node, operation);
         }
@@ -284,7 +285,9 @@ public class DefensiveVisitorBaseTests
         var visitor = new TestVisitor();
 
         // Act & Assert
-        var ex = Assert.Throws<VisitorException>(() => visitor.TestValidateConstructorParameter("param", null!, "ctor"));
+        var ex = Assert.Throws<VisitorException>(() =>
+            visitor.TestValidateConstructorParameter("param", null!, "ctor")
+        );
         Assert.Contains("param", ex.Message);
     }
 
@@ -350,7 +353,8 @@ public class DefensiveVisitorBaseTests
 
         // Act & Assert
         var ex = Assert.Throws<VisitorException>(() =>
-            visitor.TestSafeExecuteAction(() => throw new InvalidOperationException("Test"), "TestOp"));
+            visitor.TestSafeExecuteAction(() => throw new InvalidOperationException("Test"), "TestOp")
+        );
         Assert.IsNotNull(ex.InnerException);
         Assert.IsInstanceOfType<InvalidOperationException>(ex.InnerException);
     }
@@ -363,8 +367,7 @@ public class DefensiveVisitorBaseTests
         var original = new VisitorException("Test", "Op", "Message");
 
         // Act & Assert
-        var ex = Assert.Throws<VisitorException>(() =>
-            visitor.TestSafeExecuteAction(() => throw original, "TestOp"));
+        var ex = Assert.Throws<VisitorException>(() => visitor.TestSafeExecuteAction(() => throw original, "TestOp"));
         Assert.AreSame(original, ex);
     }
 
@@ -389,7 +392,8 @@ public class DefensiveVisitorBaseTests
 
         // Act & Assert
         var ex = Assert.Throws<VisitorException>(() =>
-            visitor.TestSafeExecuteFunc<int>(() => throw new InvalidOperationException("Test"), "TestOp"));
+            visitor.TestSafeExecuteFunc<int>(() => throw new InvalidOperationException("Test"), "TestOp")
+        );
         Assert.IsNotNull(ex.InnerException);
     }
 

@@ -35,10 +35,7 @@ public sealed class BuildArtifactStoreTests
     [TestMethod]
     public void GetRequired_WhenRawBackingValueHasWrongType_ShouldKeepInvalidCastBehavior()
     {
-        var store = new BuildArtifactStore(new Dictionary<string, object>
-        {
-            ["VALUE"] = 123
-        });
+        var store = new BuildArtifactStore(new Dictionary<string, object> { ["VALUE"] = 123 });
         var slot = new BuildArtifactSlot<string>("VALUE");
 
         Assert.Throws<InvalidCastException>(() => store.GetRequired(slot));

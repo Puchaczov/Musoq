@@ -26,8 +26,12 @@ public sealed class SourceSyntaxTests
     [DataRow("let count: int = 1; select $count from #s.rows() a")]
     [DataRow("select array { 1, 2 }, (Name: 'A', Age: 3) from #s.rows() a")]
     [DataRow("with p as (select a.Name from #s.rows() a) select p.Name from p")]
-    [DataRow("select Sum(Population) over (order by Name rows between unbounded preceding and current row) from #s.rows()")]
-    [DataRow("binary Header { Magic: int le, Version: short le }; select h.Magic from #s.rows() a cross apply Interpret<Header>(a.Bytes) h")]
+    [DataRow(
+        "select Sum(Population) over (order by Name rows between unbounded preceding and current row) from #s.rows()"
+    )]
+    [DataRow(
+        "binary Header { Magic: int le, Version: short le }; select h.Magic from #s.rows() a cross apply Interpret<Header>(a.Bytes) h"
+    )]
     [DataRow("binary Rec { Items: substream[1] as { Value: byte } exact[2] }")]
     [DataRow("binary Rec { Count: byte, Copy: (Count + 1), Items: (byte repeat until Items[-1] = 0)[2], Tail: byte }")]
     [DataRow("text LogEntry { Level: until ':', Message: rest };")]

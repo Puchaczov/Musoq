@@ -19,8 +19,12 @@ public sealed class SourceRegexPlanningUtilityTests
     [DataRow(true)]
     public void Converter_ShouldRetainConstantPatternAndNegation(bool negated)
     {
-        IrExpression expression = new PatternMatch(new ColumnRef("s", "Name", typeof(string)),
-            new Literal(@"\A(ab)\1\z", typeof(string)), PatternKind.RLike, typeof(bool));
+        IrExpression expression = new PatternMatch(
+            new ColumnRef("s", "Name", typeof(string)),
+            new Literal(@"\A(ab)\1\z", typeof(string)),
+            PatternKind.RLike,
+            typeof(bool)
+        );
         if (negated)
             expression = new UnaryOp(UnaryOpKind.Not, expression, typeof(bool));
         Assert.IsTrue(SourcePredicateExpressionConverter.TryConvertPredicate(expression, "s", out var converted));
@@ -42,10 +46,23 @@ public sealed class SourceRegexPlanningUtilityTests
         var expression = new[]
         {
             new PatternMatch(column, column, PatternKind.RLike, typeof(bool)),
-            new PatternMatch(new Literal("input", typeof(string)), new Literal("pattern", typeof(string)), PatternKind.RLike, typeof(bool)),
-            new PatternMatch(column with { Alias = "other" }, new Literal("pattern", typeof(string)), PatternKind.RLike, typeof(bool)),
+            new PatternMatch(
+                new Literal("input", typeof(string)),
+                new Literal("pattern", typeof(string)),
+                PatternKind.RLike,
+                typeof(bool)
+            ),
+            new PatternMatch(
+                column with
+                {
+                    Alias = "other",
+                },
+                new Literal("pattern", typeof(string)),
+                PatternKind.RLike,
+                typeof(bool)
+            ),
             new PatternMatch(column, new Literal(null, typeof(string)), PatternKind.RLike, typeof(bool)),
-            new PatternMatch(column, new Literal("pattern", typeof(string)), (PatternKind)99, typeof(bool))
+            new PatternMatch(column, new Literal("pattern", typeof(string)), (PatternKind)99, typeof(bool)),
         }[variant];
         Assert.IsFalse(SourcePredicateExpressionConverter.TryConvertPredicate(expression, "s", out _));
     }
@@ -73,7 +90,7 @@ public sealed class SourceRegexPlanningUtilityTests
             new SourcePredicateRegexMatch(new SourceColumnRef("Other"), original.Pattern, original.MatchTimeout),
             new SourcePredicateRegexMatch(original.Column, "other", original.MatchTimeout),
             new SourcePredicateRegexMatch(original.Column, original.Pattern, TimeSpan.FromMilliseconds(17)),
-            new SourcePredicateRegexMatch(original.Column, original.Pattern, original.MatchTimeout, isNegated: true)
+            new SourcePredicateRegexMatch(original.Column, original.Pattern, original.MatchTimeout, isNegated: true),
         }[variant];
         Assert.IsFalse(SourcePredicateExpressionComparer.Instance.Equals(original, different));
     }
@@ -84,17 +101,21 @@ public sealed class SourceRegexPlanningUtilityTests
         var match = Match();
         var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
         {
-            Predicate = new SourcePredicateLogical(SourcePredicateLogicalOperator.And, match, match)
+            Predicate = new SourcePredicateLogical(SourcePredicateLogicalOperator.And, match, match),
         };
         var result = SourcePlanResult.AcceptAll(request);
         SourcePredicatePlanContractValidator.Validate(request, result, Capabilities(), TextSpan.Empty);
         Assert.HasCount(2, result.ExecutionPlan.PredicateApplications);
-        var missing = result with { ExecutionPlan = result.ExecutionPlan with
+        var missing = result with
         {
-            PredicateApplications = result.ExecutionPlan.PredicateApplications.Take(1).ToArray()
-        } };
+            ExecutionPlan = result.ExecutionPlan with
+            {
+                PredicateApplications = result.ExecutionPlan.PredicateApplications.Take(1).ToArray(),
+            },
+        };
         Assert.Throws<SourcePlanContractException>(() =>
-            SourcePredicatePlanContractValidator.Validate(request, missing, Capabilities(), TextSpan.Empty));
+            SourcePredicatePlanContractValidator.Validate(request, missing, Capabilities(), TextSpan.Empty)
+        );
     }
 
     [TestMethod]
@@ -103,32 +124,40 @@ public sealed class SourceRegexPlanningUtilityTests
         var match = Match();
         var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with
         {
-            Predicate = new SourcePredicateLogical(SourcePredicateLogicalOperator.Or, match, match)
+            Predicate = new SourcePredicateLogical(SourcePredicateLogicalOperator.Or, match, match),
         };
         var negotiation = SourcePredicateCapabilityNegotiator.Negotiate(request, Capabilities());
         Assert.IsNull(negotiation.ProviderRequest.Predicate);
         Assert.AreSame(request.Predicate, negotiation.DeferredPredicate);
         var fabricated = SourcePlanResult.AcceptAll(request);
         Assert.Throws<SourcePlanContractException>(() =>
-            SourcePredicatePlanContractValidator.Validate(request, fabricated, Capabilities(), TextSpan.Empty));
+            SourcePredicatePlanContractValidator.Validate(request, fabricated, Capabilities(), TextSpan.Empty)
+        );
     }
 
     [TestMethod]
     public void OrdinaryPredicateMovement_ShouldStillRejectPotentiallyThrowingRegex()
     {
-        var expression = new PatternMatch(new ColumnRef("s", "Name", typeof(string)),
-            new Literal("pattern", typeof(string)), PatternKind.RLike, typeof(bool));
+        var expression = new PatternMatch(
+            new ColumnRef("s", "Name", typeof(string)),
+            new Literal("pattern", typeof(string)),
+            PatternKind.RLike,
+            typeof(bool)
+        );
         Assert.IsFalse(PredicateMovementPlanner.IsTransferSafe(expression));
-        Assert.IsFalse(PredicateMovementPlanner.IsTransferSafe(expression with
-        {
-            Expression = new ColumnRef("s", "Name", typeof(string)) { Stability = ColumnStability.Volatile }
-        }));
+        Assert.IsFalse(
+            PredicateMovementPlanner.IsTransferSafe(
+                expression with
+                {
+                    Expression = new ColumnRef("s", "Name", typeof(string)) { Stability = ColumnStability.Volatile },
+                }
+            )
+        );
     }
 
-    private static SourcePredicateRegexMatch Match() => new(new SourceColumnRef("Name"), "pattern", TimeSpan.FromSeconds(1));
+    private static SourcePredicateRegexMatch Match() =>
+        new(new SourceColumnRef("Name"), "pattern", TimeSpan.FromSeconds(1));
 
-    private static SourcePredicateCapabilities Capabilities() => new()
-    {
-        RegexMatches = [new SourceRegexMatchCapability(new SourceColumnRef("Name"))]
-    };
+    private static SourcePredicateCapabilities Capabilities() =>
+        new() { RegexMatches = [new SourceRegexMatchCapability(new SourceColumnRef("Name"))] };
 }

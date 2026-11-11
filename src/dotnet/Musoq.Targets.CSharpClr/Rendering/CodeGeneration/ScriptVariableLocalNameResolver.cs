@@ -8,7 +8,8 @@ internal static class ScriptVariableLocalNameResolver
     private const string LocalNamePrefix = "let";
 
     public static IReadOnlyDictionary<string, string> CreateLocalNameMap(
-        IReadOnlyList<ScriptVariableDefinition> definitions)
+        IReadOnlyList<ScriptVariableDefinition> definitions
+    )
     {
         if (definitions == null || definitions.Count == 0)
             return new Dictionary<string, string>(StringComparer.Ordinal);
@@ -44,14 +45,10 @@ internal static class ScriptVariableLocalNameResolver
                 continue;
             }
 
-            builder.Append(capitalizeNext
-                ? char.ToUpperInvariant(character)
-                : character);
+            builder.Append(capitalizeNext ? char.ToUpperInvariant(character) : character);
             capitalizeNext = false;
         }
 
-        return builder.Length == LocalNamePrefix.Length
-            ? "letValue"
-            : builder.ToString();
+        return builder.Length == LocalNamePrefix.Length ? "letValue" : builder.ToString();
     }
 }

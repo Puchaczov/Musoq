@@ -1,6 +1,3 @@
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record AggregateGroupOwnerField(
-    int PrefixLength,
-    string FieldName,
-    AggregateGroupShape Shape);
+public sealed record AggregateGroupOwnerField(int PrefixLength, string FieldName, AggregateGroupShape Shape);

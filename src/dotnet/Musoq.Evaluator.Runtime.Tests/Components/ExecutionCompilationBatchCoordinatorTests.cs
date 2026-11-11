@@ -31,9 +31,7 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
             requests =>
             {
                 Interlocked.Increment(ref batchCalls);
-                return requests
-                    .Select(request => CreateSuccess(request, queries))
-                    .ToArray();
+                return requests.Select(request => CreateSuccess(request, queries)).ToArray();
             },
             request =>
             {
@@ -46,10 +44,21 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
             {
                 if (Interlocked.Increment(ref enqueued) == 8)
                     collectionGate.Set();
-            });
+            }
+        );
 
-        var submissions = Enumerable.Range(0, 8).Select(index => Task.Run(() =>
-            coordinator.Submit($"query-{index}", new EmptySchemaProvider(), new TestsLoggerResolver(), new CompilationOptions())))
+        var submissions = Enumerable
+            .Range(0, 8)
+            .Select(index =>
+                Task.Run(() =>
+                    coordinator.Submit(
+                        $"query-{index}",
+                        new EmptySchemaProvider(),
+                        new TestsLoggerResolver(),
+                        new CompilationOptions()
+                    )
+                )
+            )
             .ToArray();
 
         try
@@ -91,10 +100,21 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
             {
                 if (Interlocked.Increment(ref enqueued) == 16)
                     collectionGate.Set();
-            });
+            }
+        );
 
-        var submissions = Enumerable.Range(0, 16).Select(index => Task.Run(() =>
-            coordinator.Submit($"query-{index}", new EmptySchemaProvider(), new TestsLoggerResolver(), new CompilationOptions())))
+        var submissions = Enumerable
+            .Range(0, 16)
+            .Select(index =>
+                Task.Run(() =>
+                    coordinator.Submit(
+                        $"query-{index}",
+                        new EmptySchemaProvider(),
+                        new TestsLoggerResolver(),
+                        new CompilationOptions()
+                    )
+                )
+            )
             .ToArray();
 
         try
@@ -131,13 +151,15 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
                 Interlocked.Increment(ref singleCalls);
                 return CreateSuccess(request, queries).Result;
             },
-            collectionWindow: TimeSpan.Zero);
+            collectionWindow: TimeSpan.Zero
+        );
 
         var result = coordinator.Submit(
             "single-query",
             new EmptySchemaProvider(),
             new TestsLoggerResolver(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.IsFalse(result.WasBatched);
         Assert.AreEqual(0, batchCalls);
@@ -154,13 +176,17 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
         using var collectionGate = new ManualResetEventSlim();
         var enqueued = 0;
         using var coordinator = CreateCoordinator(
-            requests => requests
-                .Select(request => request.Key.EndsWith("1", StringComparison.Ordinal)
-                    ? new ExecutionBatchCompilationResult(
-                        request.Key,
-                        BuildResult.Failure([], request.Script, new FormatException("batch failure")))
-                    : CreateSuccess(request, queries))
-                .ToArray(),
+            requests =>
+                requests
+                    .Select(request =>
+                        request.Key.EndsWith("1", StringComparison.Ordinal)
+                            ? new ExecutionBatchCompilationResult(
+                                request.Key,
+                                BuildResult.Failure([], request.Script, new FormatException("batch failure"))
+                            )
+                            : CreateSuccess(request, queries)
+                    )
+                    .ToArray(),
             request =>
             {
                 singleCalls.Add(request.Key);
@@ -172,10 +198,21 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
             {
                 if (Interlocked.Increment(ref enqueued) == 2)
                     collectionGate.Set();
-            });
+            }
+        );
 
-        var submissions = Enumerable.Range(0, 2).Select(index => Task.Run(() =>
-            coordinator.Submit($"query-{index}", new EmptySchemaProvider(), new TestsLoggerResolver(), new CompilationOptions())))
+        var submissions = Enumerable
+            .Range(0, 2)
+            .Select(index =>
+                Task.Run(() =>
+                    coordinator.Submit(
+                        $"query-{index}",
+                        new EmptySchemaProvider(),
+                        new TestsLoggerResolver(),
+                        new CompilationOptions()
+                    )
+                )
+            )
             .ToArray();
 
         try
@@ -210,16 +247,21 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
                 return CreateSuccess(request, queries).Result;
             },
             collectionWindow: TimeSpan.FromSeconds(10),
-            requestEnqueued: requestEnqueued.Set);
+            requestEnqueued: requestEnqueued.Set
+        );
 
-        var resultTask = Task.Run(() => coordinator.Submit(
-            "shutdown-query",
-            new EmptySchemaProvider(),
-            new TestsLoggerResolver(),
-            new CompilationOptions()));
+        var resultTask = Task.Run(() =>
+            coordinator.Submit(
+                "shutdown-query",
+                new EmptySchemaProvider(),
+                new TestsLoggerResolver(),
+                new CompilationOptions()
+            )
+        );
         Assert.IsTrue(
             requestEnqueued.Wait(TimeSpan.FromSeconds(30)),
-            "The request was not enqueued before the coordinator shutdown test continued.");
+            "The request was not enqueued before the coordinator shutdown test continued."
+        );
 
         coordinator.Dispose();
         var result = await resultTask;
@@ -233,21 +275,29 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
     [TestMethod]
     public async Task BasicCoordinator_WhenProvidersDiffer_ShouldNeverMixSentinelRows()
     {
-        var results = await Task.WhenAll(Enumerable.Range(0, 8).Select(index => Task.Run(() =>
-        {
-            var provider = new BasicSchemaProvider<BasicEntity>(
-                new Dictionary<string, IEnumerable<BasicEntity>>
-                {
-                    ["#A"] = [new BasicEntity($"sentinel-{index}")]
-                });
-            var result = StableTypedExecutionCompilationCoordinator.Submit(
-                "select e.Name from #A.Entities() e",
-                provider,
-                new TestsLoggerResolver(),
-                new CompilationOptions(usePrimitiveTypeValidation: false));
-            Assert.IsTrue(result.Result.Succeeded);
-            return (result, expected: $"sentinel-{index}");
-        })));
+        var results = await Task.WhenAll(
+            Enumerable
+                .Range(0, 8)
+                .Select(index =>
+                    Task.Run(() =>
+                    {
+                        var provider = new BasicSchemaProvider<BasicEntity>(
+                            new Dictionary<string, IEnumerable<BasicEntity>>
+                            {
+                                ["#A"] = [new BasicEntity($"sentinel-{index}")],
+                            }
+                        );
+                        var result = StableTypedExecutionCompilationCoordinator.Submit(
+                            "select e.Name from #A.Entities() e",
+                            provider,
+                            new TestsLoggerResolver(),
+                            new CompilationOptions(usePrimitiveTypeValidation: false)
+                        );
+                        Assert.IsTrue(result.Result.Succeeded);
+                        return (result, expected: $"sentinel-{index}");
+                    })
+                )
+        );
 
         foreach (var item in results)
         {
@@ -262,26 +312,30 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
     public void BinaryTextSpecifications_ShouldUseTheTrackedCompilationHelper()
     {
         var root = RepositorySourceScan.RepositoryRoot();
-        var testFiles = EvaluatorTestSources.Files("BinaryOrTextual*.cs")
-            .Where(file => !file.EndsWith(
-                "BinaryOrTextual.SchemaFeaturesTests.Regressions.cs",
-                StringComparison.Ordinal))
+        var testFiles = EvaluatorTestSources
+            .Files("BinaryOrTextual*.cs")
+            .Where(file =>
+                !file.EndsWith("BinaryOrTextual.SchemaFeaturesTests.Regressions.cs", StringComparison.Ordinal)
+            )
             .ToArray();
         var directCompilationCallers = testFiles
             .Where(file =>
             {
                 var text = File.ReadAllText(file);
-                return text.Contains("InstanceCreator.CompileForExecution(", StringComparison.Ordinal) ||
-                       text.Contains("InstanceCreator.CompileWithDiagnostics(", StringComparison.Ordinal);
+                return text.Contains("InstanceCreator.CompileForExecution(", StringComparison.Ordinal)
+                    || text.Contains("InstanceCreator.CompileWithDiagnostics(", StringComparison.Ordinal);
             })
             .ToArray();
 
         Assert.IsEmpty(
             directCompilationCallers,
-            "Positive Binary/Text specification tests must use the tracked batching helper; " +
-            string.Join(", ", directCompilationCallers));
+            "Positive Binary/Text specification tests must use the tracked batching helper; "
+                + string.Join(", ", directCompilationCallers)
+        );
 
-        var baseText = File.ReadAllText(Path.Combine(root, "src", "dotnet", "Musoq.Evaluator.Tests.Common", "BinaryOrTextualEvaluatorTestBase.cs"));
+        var baseText = File.ReadAllText(
+            Path.Combine(root, "src", "dotnet", "Musoq.Evaluator.Tests.Common", "BinaryOrTextualEvaluatorTestBase.cs")
+        );
         StringAssert.Contains(baseText, "stable-interpretation-specification");
     }
 
@@ -292,21 +346,28 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
         var converterRoot = Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter");
         var productionText = string.Join(
             "\n",
-            global::Musoq.Tests.Common.RequiredSourceInventory.Files(converterRoot, "*.cs", SearchOption.AllDirectories)
-                .Select(File.ReadAllText));
+            global::Musoq
+                .Tests.Common.RequiredSourceInventory.Files(converterRoot, "*.cs", SearchOption.AllDirectories)
+                .Select(File.ReadAllText)
+        );
 
         Assert.IsFalse(
             productionText.Contains(nameof(StableTypedExecutionCompilationCoordinator), StringComparison.Ordinal),
-            "The test-only compilation coordinator must not leak into production compilation.");
+            "The test-only compilation coordinator must not leak into production compilation."
+        );
     }
 
     private static ExecutionCompilationBatchCoordinator CreateCoordinator(
-        Func<IReadOnlyList<ExecutionBatchCompilationRequest>, IReadOnlyList<ExecutionBatchCompilationResult>> batchCompiler,
+        Func<
+            IReadOnlyList<ExecutionBatchCompilationRequest>,
+            IReadOnlyList<ExecutionBatchCompilationResult>
+        > batchCompiler,
         Func<ExecutionBatchCompilationRequest, BuildResult> singleCompiler,
         TimeSpan collectionWindow,
         int maximumBatchSize = 8,
         ManualResetEventSlim? collectionGate = null,
-        Action? requestEnqueued = null)
+        Action? requestEnqueued = null
+    )
     {
         return new ExecutionCompilationBatchCoordinator(
             batchCompiler,
@@ -314,31 +375,35 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
             maximumBatchSize,
             collectionWindow: collectionWindow,
             collectionGate: collectionGate,
-            requestEnqueued: requestEnqueued);
+            requestEnqueued: requestEnqueued
+        );
     }
 
     private static ExecutionBatchCompilationResult CreateSuccess(
         ExecutionBatchCompilationRequest request,
-        ConcurrentBag<CompiledQuery> queries)
+        ConcurrentBag<CompiledQuery> queries
+    )
     {
         var query = new CompiledQuery(new EmptyRunnable());
         queries.Add(query);
-        return new ExecutionBatchCompilationResult(
-            request.Key,
-            BuildResult.Success(query, [], request.Script));
+        return new ExecutionBatchCompilationResult(request.Key, BuildResult.Success(query, [], request.Script));
     }
 
     private sealed class EmptyRunnable : ITableRunnable
     {
         public ISchemaProvider Provider { get; set; } = new EmptySchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>
-            SourceRuntimeSettingsBySourceContextId
-        { get; set; } = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
+            new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>
-            SourceRuntimeSettingDescriptionsBySourceContextId
-        { get; set; } = new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+            new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
             new Dictionary<string, SourceExecutionPlan>();

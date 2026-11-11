@@ -1,6 +1,6 @@
 using System.Linq;
-using Musoq.Parser.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Converter.Tests;
 
@@ -11,14 +11,24 @@ public partial class QueryInspectionTests
     [DataRow("skip $offset take 2")]
     public void RuntimePaging_ShouldRemainResidualWhenProviderAcceptsEveryRequest(string paging)
     {
-        var provider = new PlanningSchemaProvider(static request => SourcePlanResult.AcceptAll(request), CreatePlanningRows());
-        var sql = $"params(offset: int = 1, limit: int = 2) select p.Name from #planning.items() p order by p.Name {paging}";
+        var provider = new PlanningSchemaProvider(
+            static request => SourcePlanResult.AcceptAll(request),
+            CreatePlanningRows()
+        );
+        var sql =
+            $"params(offset: int = 1, limit: int = 2) select p.Name from #planning.items() p order by p.Name {paging}";
         using var query = CompileForExecution(sql, provider);
         var table = query.Run();
-        CollectionAssert.AreEqual(new[] { "bravo", "charlie" }, table.Select(static row => (string)row.ReadValue(0)!).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "bravo", "charlie" },
+            table.Select(static row => (string)row.ReadValue(0)!).ToArray()
+        );
         Assert.IsTrue(provider.Requests.All(static request => request.Skip == null && request.Take == null));
         NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 2);
-        CollectionAssert.AreEqual(new[] { "charlie", "delta" }, query.Run().Select(static row => (string)row.ReadValue(0)!).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "charlie", "delta" },
+            query.Run().Select(static row => (string)row.ReadValue(0)!).ToArray()
+        );
     }
 
     [TestMethod]
@@ -27,11 +37,15 @@ public partial class QueryInspectionTests
     public void RuntimePaging_WithRejectedSourcePlan_ShouldRetainBoundedOrdering(string paging, string strategy)
     {
         var provider = new PlanningSchemaProvider(static request => SourcePlanResult.RejectAll(request));
-        var inspection = Inspect($"params(offset: int = 1, limit: int = 2) select p.Name from #planning.items() p order by p.Name {paging}", provider);
+        var inspection = Inspect(
+            $"params(offset: int = 1, limit: int = 2) select p.Name from #planning.items() p order by p.Name {paging}",
+            provider
+        );
         StringAssert.Contains(inspection.PhysicalPlanText, strategy);
         StringAssert.Contains(inspection.GeneratedCSharpCode, "BoundedTopRecordList");
         StringAssert.Contains(inspection.ExecutionPlanText, "$limit");
     }
+
     [TestMethod]
     [DataRow("select p.Name from #planning.items() p skip $offset")]
     [DataRow("select p.Name from #planning.items() p union all select q.Name from #planning.items() q skip $offset")]

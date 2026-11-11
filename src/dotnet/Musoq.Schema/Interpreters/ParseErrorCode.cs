@@ -79,5 +79,5 @@ public enum ParseErrorCode
     /// <summary>
     ///     ISE015: General parsing error.
     /// </summary>
-    GeneralError = 15
+    GeneralError = 15,
 }

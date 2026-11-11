@@ -23,7 +23,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         IReadOnlyCollection<ISchemaColumn> columns,
         string queryId,
         string? profileName = null,
-        SourceRuntimeSettingsResolutionMode mode = SourceRuntimeSettingsResolutionMode.EnforceRequiredSettings)
+        SourceRuntimeSettingsResolutionMode mode = SourceRuntimeSettingsResolutionMode.EnforceRequiredSettings
+    )
     {
         ThrowIfCancellationRequested();
         var sourceContextId = sourceNode.Id;
@@ -40,7 +41,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 RetrieveInitialSourceRuntimeSettings(sourceContextId, sourceNode),
                 _logger,
                 mode,
-                CancellationToken);
+                CancellationToken
+            );
         }
         catch (SchemaProviderFailureException exception) when (sourceNode.HasRequiredRuntimeArguments)
         {
@@ -48,17 +50,20 @@ public partial class BuildMetadataAndInferTypesVisitor
                 sourceNode.Schema,
                 sourceNode.Method,
                 sourceNode.HasSpan ? sourceNode.Span : TextSpan.Empty,
-                exception);
+                exception
+            );
         }
-        catch (SchemaArgumentException exception) when (
-            sourceNode.HasRequiredRuntimeArguments &&
-            !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal))
+        catch (SchemaArgumentException exception)
+            when (sourceNode.HasRequiredRuntimeArguments
+                && !string.Equals(exception.ParamName, "methodName", StringComparison.Ordinal)
+            )
         {
             throw new SourceMetadataRequiresDefaultException(
                 sourceNode.Schema,
                 sourceNode.Method,
                 sourceNode.HasSpan ? sourceNode.Span : TextSpan.Empty,
-                exception);
+                exception
+            );
         }
 
         if (resolved.HasDeclaredRequirements)

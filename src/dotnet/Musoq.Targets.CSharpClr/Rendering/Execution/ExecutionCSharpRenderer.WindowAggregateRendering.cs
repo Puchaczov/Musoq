@@ -11,18 +11,19 @@ public sealed partial class ExecutionCSharpRenderer
         const string indexVariableName = "windowIndex";
         var index = new ExecutionVariable(indexVariableName, typeof(int));
         var partitionKeys = ResolveAggregatePartitionKeyArray(kernel);
-        var orderKeys = kernel.OrderKeys.Count == 0
-            ? null
-            : ResolveAggregateOrderKeyArray(kernel);
-        var requiresRangeKeys = kernel is
-        {
-            Frame.Kind: ExecutionWindowFrameKind.Range,
-            Descriptor.Mode: ExecutionWindowAggregateMode.BoundedRows
-        } && WindowRangeFrameSyntax.HasRangeOffsetBound(kernel.Frame);
+        var orderKeys = kernel.OrderKeys.Count == 0 ? null : ResolveAggregateOrderKeyArray(kernel);
+        var requiresRangeKeys =
+            kernel
+                is {
+                    Frame.Kind: ExecutionWindowFrameKind.Range,
+                    Descriptor.Mode: ExecutionWindowAggregateMode.BoundedRows
+                }
+            && WindowRangeFrameSyntax.HasRangeOffsetBound(kernel.Frame);
         var rangeKeys = requiresRangeKeys
             ? new ExecutionVariable(
                 WindowRangeFrameSyntax.GetAggregateRangeKeysName(kernel),
-                kernel.OrderKeys[0].Expression.ReturnType.RequireClrType().MakeArrayType())
+                kernel.OrderKeys[0].Expression.ReturnType.RequireClrType().MakeArrayType()
+            )
             : null;
         var extractionStatements = new List<StatementSyntax>();
         var statements = new List<StatementSyntax>();
@@ -35,42 +36,54 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (partitionKeys is { ShouldExtract: true } || orderKeys is { ShouldExtract: true } || requiresRangeKeys)
         {
-            extractionStatements.AddRange(CreateIndexedItemDeclarations(
-                kernel.Item,
-                kernel.Buffer,
-                index,
-                kernel.RowAccessMode));
+            extractionStatements.AddRange(
+                CreateIndexedItemDeclarations(kernel.Item, kernel.Buffer, index, kernel.RowAccessMode)
+            );
         }
 
         if (partitionKeys is { ShouldExtract: true })
-            extractionStatements.AddRange(CreateWindowPartitionKeyExtractionStatements(
-                partitionKeys,
-                partitionBuilder,
-                index.Name,
-                CreateWindowPartitionKeyExpression(partitionKeys, kernel.PartitionKey!)));
+            extractionStatements.AddRange(
+                CreateWindowPartitionKeyExtractionStatements(
+                    partitionKeys,
+                    partitionBuilder,
+                    index.Name,
+                    CreateWindowPartitionKeyExpression(partitionKeys, kernel.PartitionKey!)
+                )
+            );
 
         if (orderKeys is { ShouldExtract: true })
         {
-            extractionStatements.Add(CreateWindowKeyArrayAssignment(
-                orderKeys,
-                index.Name,
-                CreateWindowOrderKeyExpression(orderKeys, kernel.OrderKeys)));
+            extractionStatements.Add(
+                CreateWindowKeyArrayAssignment(
+                    orderKeys,
+                    index.Name,
+                    CreateWindowOrderKeyExpression(orderKeys, kernel.OrderKeys)
+                )
+            );
         }
 
         if (rangeKeys != null)
         {
-            extractionStatements.Add(CreateWindowKeyArrayAssignment(
-                rangeKeys,
-                index.Name,
-                Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseExpression($"{orderKeys!.Variable.Name}[{index.Name}].RawValues")));
+            extractionStatements.Add(
+                CreateWindowKeyArrayAssignment(
+                    rangeKeys,
+                    index.Name,
+                    Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseExpression(
+                        $"{orderKeys!.Variable.Name}[{index.Name}].RawValues"
+                    )
+                )
+            );
         }
 
         if (ShouldMaterializeWindowKeyArray(partitionKeys))
         {
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                partitionKeys.Variable.Name,
-                CreateWindowKeyArrayCreation(partitionKeys, CreateBufferCountExpression(kernel.Buffer))));
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    partitionKeys.Variable.Name,
+                    CreateWindowKeyArrayCreation(partitionKeys, CreateBufferCountExpression(kernel.Buffer))
+                )
+            );
         }
 
         if (partitionBuilder != null)
@@ -78,58 +91,65 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (orderKeys is { ShouldExtract: true })
         {
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                orderKeys.Variable.Name,
-                CreateWindowKeyArrayCreation(orderKeys, CreateBufferCountExpression(kernel.Buffer))));
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    orderKeys.Variable.Name,
+                    CreateWindowKeyArrayCreation(orderKeys, CreateBufferCountExpression(kernel.Buffer))
+                )
+            );
         }
 
         if (rangeKeys != null)
         {
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                rangeKeys.Name,
-                CreateSizedArrayCreation(
-                    kernel.OrderKeys[0].Expression.ReturnType,
-                    CreateBufferCountExpression(kernel.Buffer))));
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    rangeKeys.Name,
+                    CreateSizedArrayCreation(
+                        kernel.OrderKeys[0].Expression.ReturnType,
+                        CreateBufferCountExpression(kernel.Buffer)
+                    )
+                )
+            );
         }
 
         if (extractionStatements.Count > 0)
         {
-            statements.Add(CreateIndexedForLoop(
-                index.Name,
-                kernel.Buffer,
-                StatementEmitter.CreateBlock(extractionStatements)));
+            statements.Add(
+                CreateIndexedForLoop(index.Name, kernel.Buffer, StatementEmitter.CreateBlock(extractionStatements))
+            );
         }
 
-        AddWindowPartitionDeclarations(statements, kernel.Partitions, partitionKeys?.Variable, kernel.Buffer, partitionBuilder);
+        AddWindowPartitionDeclarations(
+            statements,
+            kernel.Partitions,
+            partitionKeys?.Variable,
+            kernel.Buffer,
+            partitionBuilder
+        );
         if (orderKeys != null)
         {
-            AddWindowSortedPartitionDeclarations(
-                statements,
-                kernel.SortedPartitions,
-                kernel.Partitions,
-                orderKeys);
+            AddWindowSortedPartitionDeclarations(statements, kernel.SortedPartitions, kernel.Partitions, orderKeys);
         }
 
-        statements.Add(CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            kernel.Results.Name,
-            CreateSizedArrayCreation(
-                kernel.Descriptor.ResultType,
-                CreateBufferCountExpression(kernel.Buffer))));
+        statements.Add(
+            CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                kernel.Results.Name,
+                CreateSizedArrayCreation(kernel.Descriptor.ResultType, CreateBufferCountExpression(kernel.Buffer))
+            )
+        );
         AddLibraryWindowBatchValues(kernel, statements);
-        statements.Add(CreateWindowAggregateKernelPartitionLoop(
-            kernel,
-            GetWindowAggregateKernelPartitions(kernel)));
+        statements.Add(CreateWindowAggregateKernelPartitionLoop(kernel, GetWindowAggregateKernelPartitions(kernel)));
 
         return statements;
     }
 
-
     private List<StatementSyntax> RenderFusedIntOrderAggregateKernel(
         ExecutionWindowAggregateKernel kernel,
-        ExecutionWindowKeyArray? partitionKeys)
+        ExecutionWindowKeyArray? partitionKeys
+    )
     {
         const string indexVariableName = "windowIndex";
         var index = new ExecutionVariable(indexVariableName, typeof(int));
@@ -140,38 +160,38 @@ public sealed partial class ExecutionCSharpRenderer
         AddWindowMethodTargetDeclarations(statements, kernel.MethodTargets);
         statements.Add(CreateFusedIntOrderBuilderDeclaration(builder, kernel.Buffer));
 
-        extractionStatements.AddRange(CreateIndexedItemDeclarations(
-            kernel.Item,
-            kernel.Buffer,
-            index,
-            kernel.RowAccessMode));
-        extractionStatements.Add(CreateFusedIntOrderBuilderAddStatement(
-            builder,
-            partitionKeys,
-            kernel.PartitionKey,
-            kernel.OrderKeys[0].Expression,
-            indexVariableName));
+        extractionStatements.AddRange(
+            CreateIndexedItemDeclarations(kernel.Item, kernel.Buffer, index, kernel.RowAccessMode)
+        );
+        extractionStatements.Add(
+            CreateFusedIntOrderBuilderAddStatement(
+                builder,
+                partitionKeys,
+                kernel.PartitionKey,
+                kernel.OrderKeys[0].Expression,
+                indexVariableName
+            )
+        );
 
-        statements.Add(CreateIndexedForLoop(
-            indexVariableName,
-            kernel.Buffer,
-            StatementEmitter.CreateBlock(extractionStatements)));
+        statements.Add(
+            CreateIndexedForLoop(indexVariableName, kernel.Buffer, StatementEmitter.CreateBlock(extractionStatements))
+        );
         AddFusedIntOrderPartitionDeclarations(
             statements,
             kernel.Partitions,
             kernel.SortedPartitions,
             builder,
-            kernel.OrderKeys[0].Descending);
-        statements.Add(CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            kernel.Results.Name,
-            CreateSizedArrayCreation(
-                kernel.Descriptor.ResultType,
-                CreateBufferCountExpression(kernel.Buffer))));
+            kernel.OrderKeys[0].Descending
+        );
+        statements.Add(
+            CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                kernel.Results.Name,
+                CreateSizedArrayCreation(kernel.Descriptor.ResultType, CreateBufferCountExpression(kernel.Buffer))
+            )
+        );
         AddLibraryWindowBatchValues(kernel, statements);
-        statements.Add(CreateWindowAggregateKernelPartitionLoop(
-            kernel,
-            GetWindowAggregateKernelPartitions(kernel)));
+        statements.Add(CreateWindowAggregateKernelPartitionLoop(kernel, GetWindowAggregateKernelPartitions(kernel)));
 
         return statements;
     }
@@ -181,22 +201,23 @@ public sealed partial class ExecutionCSharpRenderer
         return kernel.UseIntegerOrderIndex;
     }
 
-    private static ExecutionWindowPartitionSet GetWindowAggregateKernelPartitions(
-        ExecutionWindowAggregateKernel kernel)
+    private static ExecutionWindowPartitionSet GetWindowAggregateKernelPartitions(ExecutionWindowAggregateKernel kernel)
     {
         if (kernel.Descriptor.Mode == ExecutionWindowAggregateMode.Running || kernel.OrderKeys.Count > 0)
         {
-            return kernel.SortedPartitions ?? kernel.Partitions ??
-                   throw new InvalidOperationException("Window aggregate kernels require resolved partitions.");
+            return kernel.SortedPartitions
+                ?? kernel.Partitions
+                ?? throw new InvalidOperationException("Window aggregate kernels require resolved partitions.");
         }
 
-        return kernel.Partitions ??
-               throw new InvalidOperationException("Window aggregate kernels require resolved partitions.");
+        return kernel.Partitions
+            ?? throw new InvalidOperationException("Window aggregate kernels require resolved partitions.");
     }
 
     private ForStatementSyntax CreateWindowAggregateKernelPartitionLoop(
         ExecutionWindowAggregateKernel kernel,
-        ExecutionWindowPartitionSet partitions)
+        ExecutionWindowPartitionSet partitions
+    )
     {
         var partitionSetIndexName = $"{kernel.Results.Name}PartitionSetIndex";
         var partitionStartName = $"{kernel.Results.Name}PartitionStart";
@@ -204,15 +225,13 @@ public sealed partial class ExecutionCSharpRenderer
         var partitionIndicesName = $"{kernel.Results.Name}PartitionIndices";
         var body = new List<StatementSyntax>
         {
-            CreateWindowPartitionStartDeclaration(
-                partitions.Variable.Name,
-                partitionSetIndexName,
-                partitionStartName),
+            CreateWindowPartitionStartDeclaration(partitions.Variable.Name, partitionSetIndexName, partitionStartName),
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 partitionCountName,
-                CreateWindowPartitionLengthExpression(partitions.Variable.Name, partitionSetIndexName)),
-            CreateWindowPartitionIndicesDeclaration(partitions.Variable.Name, partitionIndicesName)
+                CreateWindowPartitionLengthExpression(partitions.Variable.Name, partitionSetIndexName)
+            ),
+            CreateWindowPartitionIndicesDeclaration(partitions.Variable.Name, partitionIndicesName),
         };
 
         if (kernel.Descriptor.UseRunningPeers)
@@ -223,48 +242,66 @@ public sealed partial class ExecutionCSharpRenderer
         else if (kernel.Descriptor.Mode == ExecutionWindowAggregateMode.Running)
         {
             body.AddRange(CreateWindowAggregateAccumulatorDeclarations(kernel));
-            body.Add(CreateWindowAggregateRunningLoop(
-                kernel,
-                partitionIndicesName,
-                partitionStartName,
-                partitionCountName));
+            body.Add(
+                CreateWindowAggregateRunningLoop(kernel, partitionIndicesName, partitionStartName, partitionCountName)
+            );
         }
         else if (kernel.Descriptor.Mode == ExecutionWindowAggregateMode.WholePartition)
         {
             body.AddRange(CreateWindowAggregateAccumulatorDeclarations(kernel));
-            body.Add(CreateWindowAggregateAccumulationLoop(
-                kernel,
-                partitionIndicesName,
-                partitionStartName,
-                partitionCountName));
-            body.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                $"{kernel.Results.Name}FinalValue",
-                CreateWindowAggregateValueExpression(kernel)));
-            body.Add(CreateWindowAggregateWholePartitionAssignmentLoop(
-                kernel,
-                partitionIndicesName,
-                partitionStartName,
-                partitionCountName));
+            body.Add(
+                CreateWindowAggregateAccumulationLoop(
+                    kernel,
+                    partitionIndicesName,
+                    partitionStartName,
+                    partitionCountName
+                )
+            );
+            body.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    $"{kernel.Results.Name}FinalValue",
+                    CreateWindowAggregateValueExpression(kernel)
+                )
+            );
+            body.Add(
+                CreateWindowAggregateWholePartitionAssignmentLoop(
+                    kernel,
+                    partitionIndicesName,
+                    partitionStartName,
+                    partitionCountName
+                )
+            );
         }
         else
         {
             body.AddRange(CreateWindowAggregateAccumulatorDeclarations(kernel));
-            body.Add(HasLibraryWindowBatch(kernel)
-                ? CreateLibraryWindowBatchPartition(kernel, partitionIndicesName, partitionStartName, partitionCountName)
-                : CreateLibraryWindowFrameLoop(kernel, partitionIndicesName, partitionStartName, partitionCountName));
+            body.Add(
+                HasLibraryWindowBatch(kernel)
+                    ? CreateLibraryWindowBatchPartition(
+                        kernel,
+                        partitionIndicesName,
+                        partitionStartName,
+                        partitionCountName
+                    )
+                    : CreateLibraryWindowFrameLoop(kernel, partitionIndicesName, partitionStartName, partitionCountName)
+            );
         }
 
         return CreateWindowPartitionSetForLoop(
             partitionSetIndexName,
             partitions.Variable.Name,
-            StatementEmitter.CreateBlock(body));
+            StatementEmitter.CreateBlock(body)
+        );
     }
 
-    private static IEnumerable<StatementSyntax> CreateWindowAggregateAccumulatorDeclarations(ExecutionWindowAggregateKernel kernel)
+    private static IEnumerable<StatementSyntax> CreateWindowAggregateAccumulatorDeclarations(
+        ExecutionWindowAggregateKernel kernel
+    )
     {
-        var library = kernel.Descriptor.LibraryKernel ??
-            throw new InvalidOperationException("Window state requires a registered typed library kernel.");
+        var library =
+            kernel.Descriptor.LibraryKernel
+            ?? throw new InvalidOperationException("Window state requires a registered typed library kernel.");
         var state = new ExecutionVariable(CreateLibraryWindowStateName(kernel), library.StateType);
         return RenderInitializeAggregateState(new ExecutionInitializeAggregateState(state, library.ResetMethod));
     }

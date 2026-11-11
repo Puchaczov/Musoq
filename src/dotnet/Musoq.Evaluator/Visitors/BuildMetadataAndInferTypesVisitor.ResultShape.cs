@@ -14,20 +14,29 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var reorderedList = new FieldNode[oldFields.Length];
         for (var i = reorderedList.Length - 1; i >= 0; i--)
-            reorderedList[i] = PopSemanticNode() as FieldNode
-                               ?? throw new VisitorException(
-                                   VisitorName,
-                                   "CreateFields",
-                                   "Expected SELECT field node on visitor stack.");
+            reorderedList[i] =
+                PopSemanticNode() as FieldNode
+                ?? throw new VisitorException(
+                    VisitorName,
+                    "CreateFields",
+                    "Expected SELECT field node on visitor stack."
+                );
 
         var fields = new List<FieldNode>(reorderedList.Length);
         var positionCounter = 0;
 
         foreach (var field in reorderedList)
             if (field.Expression is AllColumnsNode allColumnsNode)
-                _resultShapeBindingService.AddAllColumnsFields(_sourceBinding, fields, allColumnsNode, ref positionCounter);
+                _resultShapeBindingService.AddAllColumnsFields(
+                    _sourceBinding,
+                    fields,
+                    allColumnsNode,
+                    ref positionCounter
+                );
             else
-                fields.Add(new FieldNode(field.Expression, positionCounter++, field.FieldName, field.HasExplicitFieldName));
+                fields.Add(
+                    new FieldNode(field.Expression, positionCounter++, field.FieldName, field.HasExplicitFieldName)
+                );
 
         return fields.ToArray();
     }
@@ -38,8 +47,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         foreach (var field in fields)
         {
-            if (field.Expression is AllColumnsNode ||
-                (!field.HasExplicitFieldName && field.Expression is AccessColumnNode))
+            if (
+                field.Expression is AllColumnsNode
+                || (!field.HasExplicitFieldName && field.Expression is AccessColumnNode)
+            )
                 continue;
 
             var expressionText = field.Expression.ToString();
@@ -70,23 +81,34 @@ public partial class BuildMetadataAndInferTypesVisitor
         return generatedColumns;
     }
 
-    private void AddColumnToGeneratedColumns(TableSymbol tableSymbol, ISchemaColumn column, int index,
-        string identifier, List<FieldNode> generatedColumns, string? outputName = null,
-        TextSpan sourceSpan = default)
+    private void AddColumnToGeneratedColumns(
+        TableSymbol tableSymbol,
+        ISchemaColumn column,
+        int index,
+        string identifier,
+        List<FieldNode> generatedColumns,
+        string? outputName = null,
+        TextSpan sourceSpan = default
+    )
     {
         AddAssembly(column.ColumnType.Assembly);
 
-        var accessColumn = new AccessColumnNode(column.ColumnName, identifier, column.ColumnType, sourceSpan,
-            column.IntendedTypeName)
+        var accessColumn = new AccessColumnNode(
+            column.ColumnName,
+            identifier,
+            column.ColumnType,
+            sourceSpan,
+            column.IntendedTypeName
+        )
         {
-            SourceColumnIndex = tableSymbol.FullTable.GetColumnsByName(column.ColumnName).Length > 1
-                ? column.ColumnIndex
-                : null
+            SourceColumnIndex =
+                tableSymbol.FullTable.GetColumnsByName(column.ColumnName).Length > 1 ? column.ColumnIndex : null,
         };
         if (column.EnumType != null)
             MarkEnumExpression(accessColumn, column.EnumType);
         var fieldName = outputName ?? column.ColumnName;
-        var hasExplicitName = outputName != null && !string.Equals(outputName, column.ColumnName, StringComparison.Ordinal);
+        var hasExplicitName =
+            outputName != null && !string.Equals(outputName, column.ColumnName, StringComparison.Ordinal);
         generatedColumns.Add(new FieldNode(accessColumn, index, fieldName, hasExplicitName));
     }
 

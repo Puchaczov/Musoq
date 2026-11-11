@@ -8,12 +8,14 @@ internal sealed record SingleKeyAggregateExecutionSource(
     IReadOnlyList<ExecutionNode> Setup,
     Func<ExecutionBlock, ExecutionSourceLoop> CreateLoop,
     ExecutionVariable? ParallelSource = null,
-    ExecutionExpression? ParallelRows = null);
+    ExecutionExpression? ParallelRows = null
+);
 
 internal sealed record SingleKeyAggregateExecutionSourceBuildResult(
     bool IsBuilt,
     SingleKeyAggregateExecutionSource Source,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static SingleKeyAggregateExecutionSourceBuildResult Success(SingleKeyAggregateExecutionSource source)
     {
@@ -31,7 +33,10 @@ internal sealed record SingleKeyAggregateExecutionSourceBuildResult(
                 _ => new ExecutionForEach(
                     new ExecutionVariable(string.Empty, typeof(object)),
                     new ExecutionVariableRead(new ExecutionVariable(string.Empty, typeof(object))),
-                    ExecutionBlock.Empty)),
-            reason);
+                    ExecutionBlock.Empty
+                )
+            ),
+            reason
+        );
     }
 }

@@ -25,11 +25,24 @@ public partial class SchemaParser
             return false;
         distance++;
         var genericDepth = 0;
-        while (PeekSchemaToken(distance).TokenType is TokenType.Less or TokenType.Greater or TokenType.RightShift
-               or TokenType.Identifier or TokenType.Word or TokenType.Comma)
+        while (
+            PeekSchemaToken(distance).TokenType
+                is TokenType.Less
+                    or TokenType.Greater
+                    or TokenType.RightShift
+                    or TokenType.Identifier
+                    or TokenType.Word
+                    or TokenType.Comma
+        )
         {
             var token = PeekSchemaToken(distance).TokenType;
-            genericDepth += token switch { TokenType.Less => 1, TokenType.Greater => -1, TokenType.RightShift => -2, _ => 0 };
+            genericDepth += token switch
+            {
+                TokenType.Less => 1,
+                TokenType.Greater => -1,
+                TokenType.RightShift => -2,
+                _ => 0,
+            };
             if (genericDepth <= 0 && token is not (TokenType.Greater or TokenType.RightShift))
                 break;
             distance++;

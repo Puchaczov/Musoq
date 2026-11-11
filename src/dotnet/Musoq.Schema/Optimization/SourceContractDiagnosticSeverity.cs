@@ -4,5 +4,5 @@ public enum SourceContractDiagnosticSeverity
 {
     Info,
     Warning,
-    Error
+    Error,
 }

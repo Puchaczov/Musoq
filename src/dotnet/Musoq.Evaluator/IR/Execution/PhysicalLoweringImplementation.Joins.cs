@@ -11,7 +11,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var attempt = _joinPlanLowerer.Build(
             pipeline,
@@ -20,15 +21,14 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            scope);
+            scope
+        );
 
         return attempt.Kind switch
         {
             LoweringAttemptKind.Built => attempt.RequireValue().ToCompatibilityResult(),
-            LoweringAttemptKind.Unsupported => TableBuildResult.Unsupported(
-                attempt.RequireUnsupportedReason()),
-            _ => TableBuildResult.Unsupported("Execution IR join lowering did not claim the source node.")
+            LoweringAttemptKind.Unsupported => TableBuildResult.Unsupported(attempt.RequireUnsupportedReason()),
+            _ => TableBuildResult.Unsupported("Execution IR join lowering did not claim the source node."),
         };
     }
-
 }

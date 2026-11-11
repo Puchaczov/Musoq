@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Plugins;
@@ -13,15 +13,23 @@ namespace Musoq.Evaluator.Tests.Schema.Generic;
 public class GenericSchema<TLibrary>(
     IReadOnlyDictionary<string, (ISchemaTable SchemaTable, object RowSource)> tables,
     IReadOnlyDictionary<string, Func<object?[], RowSourceFilterInput, object?>?>? filterRowsSource = null,
-    SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None)
-    : SchemaBase("test", GetOrCreateLibrary()) where TLibrary : LibraryBase, new()
+    SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None
+) : SchemaBase("test", GetOrCreateLibrary())
+    where TLibrary : LibraryBase, new()
 {
     private static readonly ConcurrentDictionary<Type, MethodsAggregator> LibraryCache = new();
 
-    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-        => base.DescribeSource(name, context, parameters) with { ExecutionPermissions = executionPermissions };
+    public override SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters
+    ) => base.DescribeSource(name, context, parameters) with { ExecutionPermissions = executionPermissions };
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         if (tables.TryGetValue(name, out var table))
             return table.SchemaTable;
@@ -29,7 +37,11 @@ public class GenericSchema<TLibrary>(
         throw new NotSupportedException($"Table {name} is not supported.");
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
         if (!tables.TryGetValue(name, out var table))
@@ -41,9 +53,16 @@ public class GenericSchema<TLibrary>(
         if (filterRowsSource.TryGetValue(name, out var filter))
             return CreateSourceFromFilterResult<T>(
                 name,
-                filter?.Invoke(parameters, new RowSourceFilterInput(
-                    EnsureSourceType<T>(name, table.RowSource).Chunks.Where(chunk => chunk.Count > 0).Select(chunk =>
-                        (IReadOnlyList<dynamic>)chunk.Cast<dynamic>().ToArray()))) ?? table.RowSource);
+                filter?.Invoke(
+                    parameters,
+                    new RowSourceFilterInput(
+                        EnsureSourceType<T>(name, table.RowSource)
+                            .Chunks.Where(chunk => chunk.Count > 0)
+                            .Select(chunk => (IReadOnlyList<dynamic>)chunk.Cast<dynamic>().ToArray())
+                    )
+                )
+                    ?? table.RowSource
+            );
 
         return EnsureSourceType<T>(name, table.RowSource);
     }
@@ -57,7 +76,11 @@ public class GenericSchema<TLibrary>(
             return new EntitySource<T>(chunks, new Dictionary<string, int>(), new Dictionary<int, Func<T, object?>>());
 
         if (source is IEnumerable enumerable and not string)
-            return new EntitySource<T>(CastChunks<T>(enumerable), new Dictionary<string, int>(), new Dictionary<int, Func<T, object?>>());
+            return new EntitySource<T>(
+                CastChunks<T>(enumerable),
+                new Dictionary<string, int>(),
+                new Dictionary<int, Func<T, object?>>()
+            );
 
         return EnsureSourceType<T>(name, source);
     }
@@ -85,7 +108,8 @@ public class GenericSchema<TLibrary>(
             }
 
             throw new InvalidOperationException(
-                $"Filter returned '{chunk?.GetType().FullName ?? "<null>"}' instead of a chunk compatible with '{typeof(T).FullName}'.");
+                $"Filter returned '{chunk?.GetType().FullName ?? "<null>"}' instead of a chunk compatible with '{typeof(T).FullName}'."
+            );
         }
     }
 
@@ -128,5 +152,4 @@ public sealed class RowSourceFilterInput(IEnumerable<IReadOnlyList<dynamic>> chu
                 yield return filtered;
         }
     }
-
 }

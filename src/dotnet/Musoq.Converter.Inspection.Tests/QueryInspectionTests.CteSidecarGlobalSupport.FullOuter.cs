@@ -9,29 +9,30 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenCteSidecarIndexesAreEnabledForFullOuterPresencePredicates_ShouldClassifyRows()
     {
         var compiled = CompileForExecution(
-            """
-            with leftRows as (
-                select 1 as Id from #system.dual()
-                union all (Id) select 2 as Id from #system.dual()
+            (
+                "with leftRows as (\n"
+                + "    select 1 as Id from #system.dual()\n"
+                + "    union all (Id) select 2 as Id from #system.dual()\n"
+                + "),\n"
+                + "rightRows as (\n"
+                + "    select 2 as Id from #system.dual()\n"
+                + "    union all (Id) select 3 as Id from #system.dual()\n"
+                + ")\n"
+                + "select\n"
+                + "    case\n"
+                + "        when l is missing and r is present then 'right-only'\n"
+                + "        when l is present and r is missing then 'left-only'\n"
+                + "        when l is present and r is present then 'matched'\n"
+                + "        else 'unexpected'\n"
+                + "    end as State,\n"
+                + "    l.Id as LeftId,\n"
+                + "    r.Id as RightId\n"
+                + "from leftRows l\n"
+                + "full outer join rightRows r on l.Id = r.Id\n"
+                + "order by State"
             ),
-            rightRows as (
-                select 2 as Id from #system.dual()
-                union all (Id) select 3 as Id from #system.dual()
-            )
-            select
-                case
-                    when l is missing and r is present then 'right-only'
-                    when l is present and r is missing then 'left-only'
-                    when l is present and r is present then 'matched'
-                    else 'unexpected'
-                end as State,
-                l.Id as LeftId,
-                r.Id as RightId
-            from leftRows l
-            full outer join rightRows r on l.Id = r.Id
-            order by State
-            """,
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         var table = compiled.Run();
 
@@ -51,64 +52,63 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenCteSidecarIndexesAreEnabledForFullOuterResidualPredicate_ShouldKeepUnmatchedRows()
     {
         var compiled = CompileForExecution(
-            """
-            with leftRows as (
-                select 1 as Id, 'left-only' as City from #system.dual()
-                union all (Id, City) select 2 as Id, 'reject' as City from #system.dual()
-                union all (Id, City) select 3 as Id, 'match' as City from #system.dual()
+            (
+                "with leftRows as (\n"
+                + "    select 1 as Id, 'left-only' as City from #system.dual()\n"
+                + "    union all (Id, City) select 2 as Id, 'reject' as City from #system.dual()\n"
+                + "    union all (Id, City) select 3 as Id, 'match' as City from #system.dual()\n"
+                + "),\n"
+                + "rightRows as (\n"
+                + "    select 2 as Id, 'reject' as City from #system.dual()\n"
+                + "    union all (Id, City) select 3 as Id, 'match' as City from #system.dual()\n"
+                + "    union all (Id, City) select 4 as Id, 'right-only' as City from #system.dual()\n"
+                + ")\n"
+                + "select\n"
+                + "    case\n"
+                + "        when l is missing then 'right-only'\n"
+                + "        when r is missing then 'left-only'\n"
+                + "        else 'matched'\n"
+                + "    end as State,\n"
+                + "    l.Id as LeftId,\n"
+                + "    r.Id as RightId\n"
+                + "from leftRows l\n"
+                + "full outer join rightRows r on l.Id = r.Id and r.City = 'match'"
             ),
-            rightRows as (
-                select 2 as Id, 'reject' as City from #system.dual()
-                union all (Id, City) select 3 as Id, 'match' as City from #system.dual()
-                union all (Id, City) select 4 as Id, 'right-only' as City from #system.dual()
-            )
-            select
-                case
-                    when l is missing then 'right-only'
-                    when r is missing then 'left-only'
-                    else 'matched'
-                end as State,
-                l.Id as LeftId,
-                r.Id as RightId
-            from leftRows l
-            full outer join rightRows r on l.Id = r.Id and r.City = 'match'
-            """,
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         var table = compiled.Run();
-        var rows = Enumerable.Range(0, table.Count)
-            .Select(index => $"{table[index].ReadValue(0)}:{table[index].ReadValue(1) ?? "null"}:{table[index].ReadValue(2) ?? "null"}")
+        var rows = Enumerable
+            .Range(0, table.Count)
+            .Select(index =>
+                $"{table[index].ReadValue(0)}:{table[index].ReadValue(1) ?? "null"}:{table[index].ReadValue(2) ?? "null"}"
+            )
             .OrderBy(static row => row)
             .ToArray();
 
         CollectionAssert.AreEqual(
-            new[]
-            {
-                "left-only:1:null",
-                "left-only:2:null",
-                "matched:3:3",
-                "right-only:null:2",
-                "right-only:null:4"
-            },
-            rows);
+            new[] { "left-only:1:null", "left-only:2:null", "matched:3:3", "right-only:null:2", "right-only:null:4" },
+            rows
+        );
     }
 
     [TestMethod]
     public void CompileForInspection_WhenCteSidecarIndexesAreEnabledForFullOuterJoin_ShouldUseExecutionBackend()
     {
         var result = Inspect(
-            """
-            with leftRows as (
-                select 1 as Id from #system.dual()
+            (
+                "with leftRows as (\n"
+                + "    select 1 as Id from #system.dual()\n"
+                + "),\n"
+                + "rightRows as (\n"
+                + "    select 2 as Id from #system.dual()\n"
+                + ")\n"
+                + "select l.Id as LeftId, r.Id as RightId\n"
+                + "from leftRows l\n"
+                + "full outer join rightRows r on l.Id = r.Id"
             ),
-            rightRows as (
-                select 2 as Id from #system.dual()
-            )
-            select l.Id as LeftId, r.Id as RightId
-            from leftRows l
-            full outer join rightRows r on l.Id = r.Id
-            """,
-            SidecarGlobalOptions);
+            SidecarGlobalOptions
+        );
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanDoesNotContain("Sidecar join pipeline failed", result.ExecutionPlanText);

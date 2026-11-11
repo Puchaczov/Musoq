@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
@@ -26,13 +26,16 @@ public sealed class CompileTimeCancellationCacheTests
         using var cancellation = new CancellationTokenSource();
         var loggerResolver = new CancellingLoggerResolver(cancellation);
 
-        var exception = Assert.Throws<OperationCanceledException>(() => InstanceCreator.CompileWithDiagnostics(
-            query,
-            $"SemanticCancellation_{Guid.NewGuid():N}",
-            provider,
-            loggerResolver,
-            new CompilationOptions(),
-            cancellation.Token));
+        var exception = Assert.Throws<OperationCanceledException>(() =>
+            InstanceCreator.CompileWithDiagnostics(
+                query,
+                $"SemanticCancellation_{Guid.NewGuid():N}",
+                provider,
+                loggerResolver,
+                new CompilationOptions(),
+                cancellation.Token
+            )
+        );
 
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
         Assert.IsFalse(SemanticTemplateCache.TryGet(key, CancellationToken.None, out _));
@@ -53,7 +56,8 @@ public sealed class CompileTimeCancellationCacheTests
             $"SemanticCancellationExisting_{Guid.NewGuid():N}",
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
         try
         {
             Assert.IsTrue(initial.Succeeded, string.Join(Environment.NewLine, initial.Errors));
@@ -63,18 +67,23 @@ public sealed class CompileTimeCancellationCacheTests
             initial.CompiledQuery?.Dispose();
         }
 
-        Assert.IsTrue(SemanticTemplateCache.TryGet(key, CancellationToken.None, out _),
-            $"Semantic cache entry was not available (count={SemanticTemplateCache.Snapshot.Count}).");
+        Assert.IsTrue(
+            SemanticTemplateCache.TryGet(key, CancellationToken.None, out _),
+            $"Semantic cache entry was not available (count={SemanticTemplateCache.Snapshot.Count})."
+        );
 
         using var cancellation = new CancellationTokenSource();
         var loggerResolver = new CancellingLoggerResolver(cancellation);
-        var exception = Assert.Throws<OperationCanceledException>(() => InstanceCreator.CompileWithDiagnostics(
-            query,
-            $"SemanticCancellationExistingCancelled_{Guid.NewGuid():N}",
-            provider,
-            loggerResolver,
-            options,
-            cancellation.Token));
+        var exception = Assert.Throws<OperationCanceledException>(() =>
+            InstanceCreator.CompileWithDiagnostics(
+                query,
+                $"SemanticCancellationExistingCancelled_{Guid.NewGuid():N}",
+                provider,
+                loggerResolver,
+                options,
+                cancellation.Token
+            )
+        );
 
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
         Assert.IsTrue(SemanticTemplateCache.TryGet(key, CancellationToken.None, out _));
@@ -84,7 +93,8 @@ public sealed class CompileTimeCancellationCacheTests
             $"SemanticCancellationExistingNext_{Guid.NewGuid():N}",
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
         try
         {
             Assert.IsTrue(next.Succeeded, string.Join(Environment.NewLine, next.Errors));
@@ -104,13 +114,16 @@ public sealed class CompileTimeCancellationCacheTests
         using var cancellation = new CancellationTokenSource();
         using var commitHook = InstanceCreator.SetExecutionCompilationCommitHookForTests(cancellation.Cancel);
 
-        var exception = Assert.Throws<OperationCanceledException>(() => InstanceCreator.CompileWithDiagnostics(
-            query,
-            $"ExecutionCancellation_{Guid.NewGuid():N}",
-            provider,
-            new TestsLoggerResolver(),
-            options,
-            cancellation.Token));
+        var exception = Assert.Throws<OperationCanceledException>(() =>
+            InstanceCreator.CompileWithDiagnostics(
+                query,
+                $"ExecutionCancellation_{Guid.NewGuid():N}",
+                provider,
+                new TestsLoggerResolver(),
+                options,
+                cancellation.Token
+            )
+        );
 
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
         Assert.IsFalse(InstanceCreator.HasExecutionCompilationCacheEntryForTests(query, provider, options));
@@ -133,7 +146,8 @@ public sealed class CompileTimeCancellationCacheTests
             $"CanonicalCancellationFirst_{suffix}",
             provider,
             logger,
-            options);
+            options
+        );
         try
         {
             Assert.IsTrue(first.Succeeded, string.Join(Environment.NewLine, first.Errors));
@@ -144,18 +158,24 @@ public sealed class CompileTimeCancellationCacheTests
 
             using var cancellation = new CancellationTokenSource();
             using var commitHook = InstanceCreator.SetExecutionCompilationCommitHookForTests(cancellation.Cancel);
-            var exception = Assert.Throws<OperationCanceledException>(() => InstanceCreator.CompileWithDiagnostics(
-                secondQuery,
-                $"CanonicalCancellationSecond_{suffix}",
-                provider,
-                logger,
-                options,
-                cancellation.Token));
+            var exception = Assert.Throws<OperationCanceledException>(() =>
+                InstanceCreator.CompileWithDiagnostics(
+                    secondQuery,
+                    $"CanonicalCancellationSecond_{suffix}",
+                    provider,
+                    logger,
+                    options,
+                    cancellation.Token
+                )
+            );
 
             Assert.AreEqual(cancellation.Token, exception.CancellationToken);
             Assert.IsTrue(InstanceCreator.HasExecutionCompilationCacheEntryForTests(firstQuery, provider, options));
             Assert.IsFalse(InstanceCreator.HasExecutionCompilationCacheEntryForTests(secondQuery, provider, options));
-            Assert.AreEqual(firstEntry, InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(first.BuildItems, provider));
+            Assert.AreEqual(
+                firstEntry,
+                InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(first.BuildItems, provider)
+            );
         }
         finally
         {
@@ -183,7 +203,8 @@ public sealed class CompileTimeCancellationCacheTests
                 provider,
                 options,
                 firstArtifact,
-                "first");
+                "first"
+            );
             reader = InstanceCreator.AcquireExecutionCompilationReaderForTests(firstQuery, provider, options);
             Assert.IsNotNull(reader);
 
@@ -192,7 +213,8 @@ public sealed class CompileTimeCancellationCacheTests
                 provider,
                 options,
                 secondArtifact,
-                "second");
+                "second"
+            );
 
             Assert.AreEqual(0, firstArtifact.DisposeCount);
             reader.Dispose();
@@ -218,7 +240,8 @@ public sealed class CompileTimeCancellationCacheTests
         var provider = new SignatureSchemaProvider(values);
 
         var exception = Assert.Throws<OperationCanceledException>(() =>
-            InstanceCreator.CreateProviderSignatureForTests(provider, cancellation.Token));
+            InstanceCreator.CreateProviderSignatureForTests(provider, cancellation.Token)
+        );
 
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
     }
@@ -230,14 +253,14 @@ public sealed class CompileTimeCancellationCacheTests
         using var owner = SemanticTemplateCache.Acquire(key, CancellationToken.None);
         using var cancellation = new CancellationTokenSource();
         var waiterRegistered = NewSignal();
-        var waiter = Task.Run(() => SemanticTemplateCache.AcquireForTests(
-            key,
-            () => waiterRegistered.TrySetResult(true),
-            cancellation.Token));
+        var waiter = Task.Run(() =>
+            SemanticTemplateCache.AcquireForTests(key, () => waiterRegistered.TrySetResult(true), cancellation.Token)
+        );
 
         await TestSynchronization.WaitForSignalAsync(
             waiterRegistered.Task,
-            "The semantic-cache waiter did not register");
+            "The semantic-cache waiter did not register"
+        );
         var token = cancellation.Token;
         cancellation.Cancel();
 
@@ -259,19 +282,24 @@ public sealed class CompileTimeCancellationCacheTests
             fixture.Provider,
             options,
             static () => { },
-            CancellationToken.None);
+            CancellationToken.None
+        );
         using var cancellation = new CancellationTokenSource();
         var waiterRegistered = NewSignal();
-        var waiter = Task.Run(() => InstanceCreator.AcquireExecutionCompilationFlightForTests(
-            script,
-            fixture.Provider,
-            options,
-            () => waiterRegistered.TrySetResult(true),
-            cancellation.Token));
+        var waiter = Task.Run(() =>
+            InstanceCreator.AcquireExecutionCompilationFlightForTests(
+                script,
+                fixture.Provider,
+                options,
+                () => waiterRegistered.TrySetResult(true),
+                cancellation.Token
+            )
+        );
 
         await TestSynchronization.WaitForSignalAsync(
             waiterRegistered.Task,
-            "The execution-cache waiter did not register");
+            "The execution-cache waiter did not register"
+        );
         var token = cancellation.Token;
         cancellation.Cancel();
 
@@ -284,7 +312,8 @@ public sealed class CompileTimeCancellationCacheTests
             fixture.Provider,
             options,
             static () => { },
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     [TestMethod]
@@ -294,17 +323,22 @@ public sealed class CompileTimeCancellationCacheTests
         using var owner = InstanceCreator.AcquireCanonicalExecutionCompilationFlightForTests(
             contract,
             static () => { },
-            CancellationToken.None);
+            CancellationToken.None
+        );
         using var cancellation = new CancellationTokenSource();
         var waiterRegistered = NewSignal();
-        var waiter = Task.Run(() => InstanceCreator.AcquireCanonicalExecutionCompilationFlightForTests(
-            contract,
-            () => waiterRegistered.TrySetResult(true),
-            cancellation.Token));
+        var waiter = Task.Run(() =>
+            InstanceCreator.AcquireCanonicalExecutionCompilationFlightForTests(
+                contract,
+                () => waiterRegistered.TrySetResult(true),
+                cancellation.Token
+            )
+        );
 
         await TestSynchronization.WaitForSignalAsync(
             waiterRegistered.Task,
-            "The canonical-cache waiter did not register");
+            "The canonical-cache waiter did not register"
+        );
         var token = cancellation.Token;
         cancellation.Cancel();
 
@@ -315,7 +349,8 @@ public sealed class CompileTimeCancellationCacheTests
         using var nextOwner = InstanceCreator.AcquireCanonicalExecutionCompilationFlightForTests(
             contract,
             static () => { },
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     private static TaskCompletionSource<bool> NewSignal()
@@ -323,14 +358,11 @@ public sealed class CompileTimeCancellationCacheTests
         return new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
-    private static async Task<OperationCanceledException> AwaitCancellationAsync(
-        Task<IDisposable> operation)
+    private static async Task<OperationCanceledException> AwaitCancellationAsync(Task<IDisposable> operation)
     {
         try
         {
-            await TestSynchronization.WaitForSignalAsync(
-                operation,
-                "The cancelled cache waiter did not complete");
+            await TestSynchronization.WaitForSignalAsync(operation, "The cancelled cache waiter did not complete");
             Assert.Fail("The cancelled cache waiter returned normally.");
         }
         catch (OperationCanceledException exception)
@@ -344,25 +376,31 @@ public sealed class CompileTimeCancellationCacheTests
     private static SemanticTemplateCacheKey CreateSemanticCacheKey(
         string? query = null,
         ISchemaProvider? provider = null,
-        CompilationOptions? options = null)
+        CompilationOptions? options = null
+    )
     {
         if (provider is not null)
         {
-            return SemanticTemplateCache.CreateKey(new SemanticTemplateCacheInput(
-                query ?? throw new ArgumentNullException(nameof(query)),
-                provider,
-                options ?? new CompilationOptions(),
-                CompilationPurpose.Execution,
-                ExecutionTargetIds.CSharpClr,
-                QueryResultMode.Table,
-                null,
-                false,
-                null,
-                false,
-                false,
-                false,
-                [],
-                typeof(SchemaRegistry).AssemblyQualifiedName!))!.Value;
+            return SemanticTemplateCache
+                .CreateKey(
+                    new SemanticTemplateCacheInput(
+                        query ?? throw new ArgumentNullException(nameof(query)),
+                        provider,
+                        options ?? new CompilationOptions(),
+                        CompilationPurpose.Execution,
+                        ExecutionTargetIds.CSharpClr,
+                        QueryResultMode.Table,
+                        null,
+                        false,
+                        null,
+                        false,
+                        false,
+                        false,
+                        [],
+                        typeof(SchemaRegistry).AssemblyQualifiedName!
+                    )
+                )!
+                .Value;
         }
 
         return new SemanticTemplateCacheKey(
@@ -379,7 +417,8 @@ public sealed class CompileTimeCancellationCacheTests
             QueryResultMode.Table,
             string.Empty,
             string.Empty,
-            "registry");
+            "registry"
+        );
     }
 
     private sealed class CancellingLoggerResolver(CancellationTokenSource cancellation) : ILoggerResolver
@@ -397,7 +436,8 @@ public sealed class CompileTimeCancellationCacheTests
     }
 
     private sealed record TrackingExecutableArtifact()
-        : ExecutableQueryArtifact(ExecutionTargetIds.CSharpClr), IDisposable
+        : ExecutableQueryArtifact(ExecutionTargetIds.CSharpClr),
+            IDisposable
     {
         private int _disposeCount;
 
@@ -480,9 +520,8 @@ public sealed class CompileTimeCancellationCacheTests
         }
     }
 
-    private sealed class CancellingEnumerator(
-        IDictionaryEnumerator inner,
-        CancellationTokenSource cancellation) : IDictionaryEnumerator
+    private sealed class CancellingEnumerator(IDictionaryEnumerator inner, CancellationTokenSource cancellation)
+        : IDictionaryEnumerator
     {
         public object Key => inner.Key;
 
@@ -520,6 +559,7 @@ public sealed class CompileTimeCancellationCacheTests
             "options",
             "references",
             "provider",
-            "interpreter");
+            "interpreter"
+        );
     }
 }

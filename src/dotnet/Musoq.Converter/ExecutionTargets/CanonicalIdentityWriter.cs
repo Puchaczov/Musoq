@@ -63,16 +63,20 @@ internal ref struct CanonicalIdentityWriter
         if (_segments is not { } segments)
             return new string(_storage.Buffer.AsSpan(0, _written));
 
-        return string.Create(_length, (Segments: segments, Current: _storage.Buffer, Written: _written), static (destination, state) =>
-        {
-            foreach (var segment in state.Segments)
+        return string.Create(
+            _length,
+            (Segments: segments, Current: _storage.Buffer, Written: _written),
+            static (destination, state) =>
             {
-                segment.Storage.Buffer.AsSpan(0, segment.Written).CopyTo(destination);
-                destination = destination[segment.Written..];
-            }
+                foreach (var segment in state.Segments)
+                {
+                    segment.Storage.Buffer.AsSpan(0, segment.Written).CopyTo(destination);
+                    destination = destination[segment.Written..];
+                }
 
-            state.Current.AsSpan(0, state.Written).CopyTo(destination);
-        });
+                state.Current.AsSpan(0, state.Written).CopyTo(destination);
+            }
+        );
     }
 
     public void Dispose()
@@ -120,7 +124,10 @@ internal ref struct CanonicalIdentityWriter
 
     private void AppendOwnedSegment(int minimumLength)
     {
-        var next = new Storage(GC.AllocateUninitializedArray<char>(Math.Max(minimumLength, OwnedSegmentCapacity)), false);
+        var next = new Storage(
+            GC.AllocateUninitializedArray<char>(Math.Max(minimumLength, OwnedSegmentCapacity)),
+            false
+        );
         _segments ??= [];
         _segments.Add(new Segment(_storage, _written));
         _storage = next;
@@ -155,5 +162,6 @@ internal ref struct CanonicalIdentityWriter
     }
 
     private readonly record struct Storage(char[] Buffer, bool IsPooled);
+
     private readonly record struct Segment(Storage Storage, int Written);
 }

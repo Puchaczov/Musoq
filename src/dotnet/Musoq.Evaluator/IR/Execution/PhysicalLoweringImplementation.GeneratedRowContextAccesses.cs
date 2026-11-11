@@ -5,17 +5,19 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static IReadOnlyList<FieldBinding> CreateTypedStoredGeneratedRowContextBindings(
-        GeneratedRowShape rowShape)
+    private static IReadOnlyList<FieldBinding> CreateTypedStoredGeneratedRowContextBindings(GeneratedRowShape rowShape)
     {
         if (!rowShape.SupportsGeneratedFieldAccess || rowShape.Contexts.Count == 0)
             return rowShape.Contexts;
 
-        return rowShape.Contexts
-            .Select((context, index) => context with
-            {
-                AccessStrategy = new GeneratedRowContextAccess(rowShape.TypeName, index)
-            })
+        return rowShape
+            .Contexts.Select(
+                (context, index) =>
+                    context with
+                    {
+                        AccessStrategy = new GeneratedRowContextAccess(rowShape.TypeName, index),
+                    }
+            )
             .ToArray();
     }
 }

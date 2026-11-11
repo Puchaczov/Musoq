@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class NullabilityTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void QueryWithWhereWithNullableValueResultTest()
     {
@@ -21,17 +20,19 @@ public class NullabilityTests : BasicEntityTestBase
                 [
                     new BasicEntity { NullableValue = 1 },
                     new BasicEntity { NullableValue = null },
-                    new BasicEntity { NullableValue = 2 }
+                    new BasicEntity { NullableValue = 2 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
-        Assert.IsTrue(table.Any(row => (int)row.ReadValues()[0] == 1) && table.Any(row => (int)row.ReadValues()[0] == 2),
-            "Expected values 1 and 2 not found");
+        Assert.IsTrue(
+            table.Any(row => (int)row.ReadValues()[0] == 1) && table.Any(row => (int)row.ReadValues()[0] == 2),
+            "Expected values 1 and 2 not found"
+        );
     }
 
     [TestMethod]
@@ -41,13 +42,7 @@ public class NullabilityTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity { NullableValue = null },
-                    new BasicEntity { NullableValue = 125 }
-                ]
-            }
+            { "#A", [new BasicEntity { NullableValue = null }, new BasicEntity { NullableValue = 125 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -55,8 +50,10 @@ public class NullabilityTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Where(entry => entry.ReadValues()[0] != null).Any(entry => (int)entry.ReadValues()[0] == 0),
-            "First entry should be 0");
+        Assert.IsTrue(
+            table.Where(entry => entry.ReadValues()[0] != null).Any(entry => (int)entry.ReadValues()[0] == 0),
+            "First entry should be 0"
+        );
         Assert.IsTrue(table.Any(entry => entry.ReadValues()[0] == null), "Second entry should be null");
     }
 
@@ -73,9 +70,9 @@ public class NullabilityTests : BasicEntityTestBase
                 [
                     new BasicEntity { NullableValue = 1 },
                     new BasicEntity { NullableValue = null },
-                    new BasicEntity { NullableValue = 2 }
+                    new BasicEntity { NullableValue = 2 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -94,7 +91,8 @@ public class NullabilityTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("ABBA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity("BABBA"),
@@ -103,9 +101,9 @@ public class NullabilityTests : BasicEntityTestBase
                     new BasicEntity("CECCA"),
                     new BasicEntity("ABBA"),
                     new BasicEntity(null),
-                    new BasicEntity(null)
+                    new BasicEntity(null),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -130,16 +128,17 @@ public class NullabilityTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("POLAND", "WARSAW"),
                     new BasicEntity("POLAND", null),
                     new BasicEntity("UK", "LONDON"),
                     new BasicEntity("POLAND", null),
                     new BasicEntity("UK", "MANCHESTER"),
                     new BasicEntity("ANGOLA", "LLL"),
-                    new BasicEntity("POLAND", "WARSAW")
+                    new BasicEntity("POLAND", "WARSAW"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -153,30 +152,30 @@ public class NullabilityTests : BasicEntityTestBase
 
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValues()[0] == "POLAND" &&
-            (string)entry.ReadValues()[1] == "WARSAW"
-        ), "First entry should be POLAND, WARSAW");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "POLAND" && (string)entry.ReadValues()[1] == "WARSAW"),
+            "First entry should be POLAND, WARSAW"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValues()[0] == "POLAND" &&
-            entry.ReadValues()[1] == null
-        ), "Second entry should be POLAND with null city");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "POLAND" && entry.ReadValues()[1] == null),
+            "Second entry should be POLAND with null city"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValues()[0] == "UK" &&
-            (string)entry.ReadValues()[1] == "LONDON"
-        ), "Third entry should be UK, LONDON");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "UK" && (string)entry.ReadValues()[1] == "LONDON"),
+            "Third entry should be UK, LONDON"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValues()[0] == "UK" &&
-            (string)entry.ReadValues()[1] == "MANCHESTER"
-        ), "Fourth entry should be UK, MANCHESTER");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "UK" && (string)entry.ReadValues()[1] == "MANCHESTER"),
+            "Fourth entry should be UK, MANCHESTER"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValues()[0] == "ANGOLA" &&
-            (string)entry.ReadValues()[1] == "LLL"
-        ), "Fifth entry should be ANGOLA, LLL");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "ANGOLA" && (string)entry.ReadValues()[1] == "LLL"),
+            "Fifth entry should be ANGOLA, LLL"
+        );
     }
 
     [TestMethod]
@@ -189,10 +188,14 @@ public class NullabilityTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("001"), new BasicEntity(null), new BasicEntity("003"), new BasicEntity(null),
-                    new BasicEntity("005"), new BasicEntity("006")
+                    new BasicEntity("001"),
+                    new BasicEntity(null),
+                    new BasicEntity("003"),
+                    new BasicEntity(null),
+                    new BasicEntity("005"),
+                    new BasicEntity("006"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -215,10 +218,12 @@ public class NullabilityTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("Poland", "Gdansk"), new BasicEntity(null, "Warsaw"),
-                    new BasicEntity("France", "Paris"), new BasicEntity(null, "Bratislava")
+                    new BasicEntity("Poland", "Gdansk"),
+                    new BasicEntity(null, "Warsaw"),
+                    new BasicEntity("France", "Paris"),
+                    new BasicEntity(null, "Bratislava"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -227,9 +232,11 @@ public class NullabilityTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "Warsaw"), "First entry should be Warsaw");
-        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "Bratislava"), "Second entry should be Bratislava");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "Bratislava"),
+            "Second entry should be Bratislava"
+        );
     }
-
 
     [TestMethod]
     public void IsNotNullValueTypeTest()
@@ -238,12 +245,7 @@ public class NullabilityTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("ABC", 100), new BasicEntity("CBA", 200), new BasicEntity("aaa")
-                ]
-            }
+            { "#A", [new BasicEntity("ABC", 100), new BasicEntity("CBA", 200), new BasicEntity("aaa")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -251,17 +253,11 @@ public class NullabilityTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry =>
-                (decimal)entry.ReadValues()[0] == 100m),
-            "First entry should be 100m");
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValues()[0] == 100m), "First entry should be 100m");
 
-        Assert.IsTrue(table.Any(entry =>
-                (decimal)entry.ReadValues()[0] == 200m),
-            "Second entry should be 200m");
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValues()[0] == 200m), "Second entry should be 200m");
 
-        Assert.IsTrue(table.Any(entry =>
-                (decimal)entry.ReadValues()[0] == 0m),
-            "Third entry should be 0m");
+        Assert.IsTrue(table.Any(entry => (decimal)entry.ReadValues()[0] == 0m), "Third entry should be 0m");
     }
 
     [TestMethod]
@@ -271,14 +267,7 @@ public class NullabilityTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("ABC", 100),
-                    new BasicEntity("CBA", 200),
-                    new BasicEntity("aaa")
-                ]
-            }
+            { "#A", [new BasicEntity("ABC", 100), new BasicEntity("CBA", 200), new BasicEntity("aaa")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -301,9 +290,9 @@ public class NullabilityTests : BasicEntityTestBase
                     new BasicEntity("England", "London"),
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
-                    new BasicEntity(null, null)
+                    new BasicEntity(null, null),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -311,20 +300,20 @@ public class NullabilityTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValues()[0] == "England" &&
-            (string)entry.ReadValues()[1] == "London"
-        ), "First entry should be England, London");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "England" && (string)entry.ReadValues()[1] == "London"),
+            "First entry should be England, London"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValues()[0] == "Brazil" &&
-            entry.ReadValues()[1] == null
-        ), "Second entry should be Brazil with null city");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "Brazil" && entry.ReadValues()[1] == null),
+            "Second entry should be Brazil with null city"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            entry.ReadValues()[0] == null &&
-            entry.ReadValues()[1] == null
-        ), "Third entry should have null values");
+        Assert.IsTrue(
+            table.Any(entry => entry.ReadValues()[0] == null && entry.ReadValues()[1] == null),
+            "Third entry should have null values"
+        );
     }
 
     [TestMethod]
@@ -341,9 +330,9 @@ public class NullabilityTests : BasicEntityTestBase
                     new BasicEntity("England", "London"),
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
-                    new BasicEntity(null, null)
+                    new BasicEntity(null, null),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -351,20 +340,20 @@ public class NullabilityTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "Poland" &&
-                (string)row.ReadValues()[1] == "Warsaw"),
-            "Row with Poland/Warsaw not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Poland" && (string)row.ReadValues()[1] == "Warsaw"),
+            "Row with Poland/Warsaw not found"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                row.ReadValues()[0] == null &&
-                (string)row.ReadValues()[1] == "Bratislava"),
-            "Row with null/Bratislava not found");
+        Assert.IsTrue(
+            table.Any(row => row.ReadValues()[0] == null && (string)row.ReadValues()[1] == "Bratislava"),
+            "Row with null/Bratislava not found"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                row.ReadValues()[0] == null &&
-                row.ReadValues()[1] == null),
-            "Row with null/null not found");
+        Assert.IsTrue(
+            table.Any(row => row.ReadValues()[0] == null && row.ReadValues()[1] == null),
+            "Row with null/null not found"
+        );
     }
 
     [TestMethod]
@@ -381,9 +370,9 @@ public class NullabilityTests : BasicEntityTestBase
                     new BasicEntity("England", "London"),
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
-                    new BasicEntity(null, null)
+                    new BasicEntity(null, null),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -391,20 +380,20 @@ public class NullabilityTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "Brazil" &&
-                row.ReadValues()[1] == null),
-            "Expected row with Brazil and null");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Brazil" && row.ReadValues()[1] == null),
+            "Expected row with Brazil and null"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                row.ReadValues()[0] == null &&
-                (string)row.ReadValues()[1] == "Bratislava"),
-            "Expected row with null and Bratislava");
+        Assert.IsTrue(
+            table.Any(row => row.ReadValues()[0] == null && (string)row.ReadValues()[1] == "Bratislava"),
+            "Expected row with null and Bratislava"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                row.ReadValues()[0] == null &&
-                row.ReadValues()[1] == null),
-            "Expected row with both nulls");
+        Assert.IsTrue(
+            table.Any(row => row.ReadValues()[0] == null && row.ReadValues()[1] == null),
+            "Expected row with both nulls"
+        );
     }
 
     [TestMethod]
@@ -421,9 +410,9 @@ public class NullabilityTests : BasicEntityTestBase
                     new BasicEntity("England", "London"),
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
-                    new BasicEntity(null, null)
+                    new BasicEntity(null, null),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -449,9 +438,9 @@ public class NullabilityTests : BasicEntityTestBase
                     new BasicEntity("England", "London"),
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
-                    new BasicEntity(null, null)
+                    new BasicEntity(null, null),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -477,9 +466,9 @@ public class NullabilityTests : BasicEntityTestBase
                     new BasicEntity("England", "London"),
                     new BasicEntity("Brazil", null),
                     new BasicEntity(null, "Bratislava"),
-                    new BasicEntity(null, null)
+                    new BasicEntity(null, null),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -503,9 +492,9 @@ public class NullabilityTests : BasicEntityTestBase
                 [
                     new BasicEntity { NullableValue = 1 },
                     new BasicEntity { NullableValue = null },
-                    new BasicEntity { NullableValue = 2 }
+                    new BasicEntity { NullableValue = 2 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

@@ -5,5 +5,5 @@ public enum SetOpKind
     Union,
     UnionAll,
     Except,
-    Intersect
+    Intersect,
 }

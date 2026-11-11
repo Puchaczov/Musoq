@@ -19,8 +19,14 @@ public sealed class DiagnosticDescriptorRegistryTests
         var descriptors = DiagnosticDescriptorRegistry.All.ToArray();
 
         Assert.AreEqual(catalogCodes.Length, descriptors.Length);
-        CollectionAssert.AreEquivalent(catalogCodes, descriptors.Select(static descriptor => descriptor.Code).ToArray());
-        Assert.AreEqual(descriptors.Length, descriptors.Select(static descriptor => descriptor.Code).Distinct().Count());
+        CollectionAssert.AreEquivalent(
+            catalogCodes,
+            descriptors.Select(static descriptor => descriptor.Code).ToArray()
+        );
+        Assert.AreEqual(
+            descriptors.Length,
+            descriptors.Select(static descriptor => descriptor.Code).Distinct().Count()
+        );
     }
 
     [TestMethod]
@@ -30,10 +36,19 @@ public sealed class DiagnosticDescriptorRegistryTests
 
         Assert.IsNotNull(descriptor);
         Assert.AreEqual(descriptor.MessageTemplate, ErrorCatalog.GetTemplate(DiagnosticCode.MQ3001_UnknownColumn));
-        Assert.AreEqual(descriptor.DefaultSeverity, ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ3001_UnknownColumn));
+        Assert.AreEqual(
+            descriptor.DefaultSeverity,
+            ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ3001_UnknownColumn)
+        );
         Assert.AreEqual(descriptor.Category, ErrorCatalog.GetCategory(DiagnosticCode.MQ3001_UnknownColumn));
-        Assert.AreEqual(descriptor.Explanation, ErrorMetadataCatalog.Get(DiagnosticCode.MQ3001_UnknownColumn)!.Explanation);
-        Assert.AreEqual(descriptor.DefaultActions.Count, ErrorMetadataCatalog.Get(DiagnosticCode.MQ3001_UnknownColumn)!.SuggestedFixes.Length);
+        Assert.AreEqual(
+            descriptor.Explanation,
+            ErrorMetadataCatalog.Get(DiagnosticCode.MQ3001_UnknownColumn)!.Explanation
+        );
+        Assert.AreEqual(
+            descriptor.DefaultActions.Count,
+            ErrorMetadataCatalog.Get(DiagnosticCode.MQ3001_UnknownColumn)!.SuggestedFixes.Length
+        );
     }
 
     [TestMethod]
@@ -47,7 +62,7 @@ public sealed class DiagnosticDescriptorRegistryTests
             [DiagnosticCode.MQ3071_SourceContractError] = DiagnosticPhase.Bind,
             [DiagnosticCode.MQ5013_SourceContractWarning] = DiagnosticPhase.Bind,
             [DiagnosticCode.MQ7010_DataSourceOpenFailed] = DiagnosticPhase.DataSource,
-            [DiagnosticCode.MQ7011_DataSourceReadFailed] = DiagnosticPhase.DataSource
+            [DiagnosticCode.MQ7011_DataSourceReadFailed] = DiagnosticPhase.DataSource,
         };
 
         foreach (var (code, phase) in expectedPhases)
@@ -61,10 +76,11 @@ public sealed class DiagnosticDescriptorRegistryTests
 
             var recoveryText = string.Join(" ", descriptor.SuggestedFixes.Prepend(descriptor.Explanation));
             Assert.IsFalse(
-                recoveryText.Contains("reset", StringComparison.OrdinalIgnoreCase) ||
-                recoveryText.Contains("reinstall", StringComparison.OrdinalIgnoreCase) ||
-                recoveryText.Contains("force", StringComparison.OrdinalIgnoreCase),
-                $"{code} must retain non-destructive observation guidance.");
+                recoveryText.Contains("reset", StringComparison.OrdinalIgnoreCase)
+                    || recoveryText.Contains("reinstall", StringComparison.OrdinalIgnoreCase)
+                    || recoveryText.Contains("force", StringComparison.OrdinalIgnoreCase),
+                $"{code} must retain non-destructive observation guidance."
+            );
         }
     }
 
@@ -78,17 +94,20 @@ public sealed class DiagnosticDescriptorRegistryTests
             "generated",
             new SourceLocation(0, 1, 1),
             phase: DiagnosticPhase.CodeGeneration,
-            sourceKind: DiagnosticSourceKind.GeneratedSource);
+            sourceKind: DiagnosticSourceKind.GeneratedSource
+        );
         var later = new Diagnostic(
             DiagnosticCode.MQ3001_UnknownColumn,
             DiagnosticSeverity.Error,
             "later",
-            new SourceLocation(10, 1, 11));
+            new SourceLocation(10, 1, 11)
+        );
         var earlier = new Diagnostic(
             DiagnosticCode.MQ3002_AmbiguousColumn,
             DiagnosticSeverity.Warning,
             "earlier",
-            new SourceLocation(2, 1, 3));
+            new SourceLocation(2, 1, 3)
+        );
 
         Assert.IsTrue(bag.Add(later));
         Assert.IsTrue(bag.Add(earlier));
@@ -113,7 +132,8 @@ public sealed class DiagnosticDescriptorRegistryTests
             "unknown",
             new SourceLocation(3, 1, 4),
             arguments: new[] { new KeyValuePair<string, string>("symbol", "Name") },
-            correlationId: "corr");
+            correlationId: "corr"
+        );
         var sourceBag = new DiagnosticBag();
         sourceBag.Add(source);
         var destination = new DiagnosticBag();

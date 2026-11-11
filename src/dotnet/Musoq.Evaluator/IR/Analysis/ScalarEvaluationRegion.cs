@@ -10,7 +10,8 @@ internal sealed record ScalarEvaluationRegion(
     ScalarEvaluationRegionKind Kind,
     bool IsUnconditional,
     bool AllowsHoisting,
-    ScalarEvaluationRegion? Parent = null)
+    ScalarEvaluationRegion? Parent = null
+)
 {
     public static ScalarEvaluationRegion Root(string ownerScope) =>
         new(ownerScope, ScalarEvaluationRegionKind.Unconditional, true, true);
@@ -41,5 +42,5 @@ internal enum ScalarEvaluationRegionKind
     Helper,
     Worker,
     Materialization,
-    Recursive
+    Recursive,
 }

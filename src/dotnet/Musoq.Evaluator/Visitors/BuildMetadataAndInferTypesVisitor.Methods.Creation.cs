@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Parser;
@@ -19,18 +19,26 @@ public partial class BuildMetadataAndInferTypesVisitor
         var isAggregateMethod = method.GetCustomAttribute<AggregateFunctionAttribute>() != null;
 
         if (isAggregateMethod && method.IsGenericMethodDefinition)
-            return AggregateDeclarationSpecialization.Bind(method, args.Args.Select(static argument => argument.ReturnType).ToArray());
+            return AggregateDeclarationSpecialization.Bind(
+                method,
+                args.Args.Select(static argument => argument.ReturnType).ToArray()
+            );
 
         if (!isAggregateMethod && method.IsGenericMethod && TryReduceDimensions(method, args, out var reducedMethod))
             method = reducedMethod;
 
-        if (!isAggregateMethod &&
-            method is { IsGenericMethod: true, IsConstructedGenericMethod: false } &&
-            TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
+        if (
+            !isAggregateMethod
+            && method is { IsGenericMethod: true, IsConstructedGenericMethod: false }
+            && TryConstructGenericMethod(method, args, entityType, out var constructedMethod)
+        )
             method = constructedMethod;
 
         if (method.ContainsGenericParameters)
-            throw new CannotResolveMethodException($"Method '{method.Name}' has generic type parameters that cannot be inferred from its SQL arguments.", args.SpanOrEmpty());
+            throw new CannotResolveMethodException(
+                $"Method '{method.Name}' has generic type parameters that cannot be inferred from its SQL arguments.",
+                args.SpanOrEmpty()
+            );
         return method;
     }
 
@@ -40,19 +48,25 @@ public partial class BuildMetadataAndInferTypesVisitor
         MethodInfo method,
         MethodResolutionContext context,
         bool canSkipInjectSource,
-        Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func)
+        Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func
+    )
     {
         var isAggregateMethod = method.GetCustomAttribute<AggregateFunctionAttribute>() != null;
 
         if (isAggregateMethod && _queryState.QueryPart == QueryPart.Where)
-                throw new CannotResolveMethodException($"Aggregate method {node.Name} cannot be used in WHERE. Use HAVING for aggregate predicates.", Musoq.Parser.Diagnostics.DiagnosticCode.MQ3011_AggregateNotAllowed, node.SpanOrEmpty());
+            throw new CannotResolveMethodException(
+                $"Aggregate method {node.Name} cannot be used in WHERE. Use HAVING for aggregate predicates.",
+                Musoq.Parser.Diagnostics.DiagnosticCode.MQ3011_AggregateNotAllowed,
+                node.SpanOrEmpty()
+            );
 
         if (node is { HasFilter: true, IsPivotGenerated: true } && !isAggregateMethod)
             ThrowPivotUsingOnNonAggregate(node);
         else if (node.HasFilter && !isAggregateMethod)
             ThrowFilterOnNonAggregate(node);
 
-        if (isAggregateMethod) return ProcessAggregateMethod(node, args, method, context, func);
+        if (isAggregateMethod)
+            return ProcessAggregateMethod(node, args, method, context, func);
 
         return func(node.FunctionToken, args, new ArgsListNode([]), method, context.Alias, canSkipInjectSource);
     }
@@ -62,12 +76,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgsListNode args,
         MethodInfo method,
         MethodResolutionContext context,
-        Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func)
+        Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func
+    )
     {
         if (!IsAggregateDeclarationMethod(method))
             throw new CannotResolveMethodException(
                 $"Aggregate method {node.Name} must declare a typed AggregateFunctionAttribute.",
-                node.SpanOrEmpty());
+                node.SpanOrEmpty()
+            );
 
         return ProcessAggregateDeclarationMethod(node, args, method, context, func);
     }
@@ -77,18 +93,22 @@ public partial class BuildMetadataAndInferTypesVisitor
         Type[] argTypes,
         ArgsListNode args,
         MethodResolutionContext context,
-        [NotNullWhen(true)] out MethodInfo? method)
+        [NotNullWhen(true)] out MethodInfo? method
+    )
     {
         if (TryResolveWildcardAggregateAsArgumentless(methodName, args, context, out method))
             return true;
 
-        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(
+        if (
+            context.SchemaTablePair.Schema.TryResolveAggregationMethod(
                 methodName,
                 argTypes,
                 context.EntityType,
-                candidate => IsAggregateDeclarationMethod(candidate) &&
-                             CanUseAggregateDeclarationForArguments(candidate, args),
-                out method))
+                candidate =>
+                    IsAggregateDeclarationMethod(candidate) && CanUseAggregateDeclarationForArguments(candidate, args),
+                out method
+            )
+        )
         {
             return true;
         }
@@ -101,15 +121,19 @@ public partial class BuildMetadataAndInferTypesVisitor
         string methodName,
         ArgsListNode args,
         MethodResolutionContext context,
-        [NotNullWhen(true)] out MethodInfo? method)
+        [NotNullWhen(true)] out MethodInfo? method
+    )
     {
-        if (args.Args is [AllColumnsNode] &&
-            context.SchemaTablePair.Schema.TryResolveAggregationMethod(
+        if (
+            args.Args is [AllColumnsNode]
+            && context.SchemaTablePair.Schema.TryResolveAggregationMethod(
                 methodName,
                 Type.EmptyTypes,
                 context.EntityType,
                 IsAggregateDeclarationMethod,
-                out method))
+                out method
+            )
+        )
         {
             return true;
         }
@@ -123,13 +147,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         var parameters = method.GetParameters();
         var parentParameterIndex = Array.FindIndex(
             parameters,
-            static parameter => parameter.GetCustomAttribute<AggregateParentAttribute>() is not null);
+            static parameter => parameter.GetCustomAttribute<AggregateParentAttribute>() is not null
+        );
 
         if (parentParameterIndex < 0 || parentParameterIndex >= args.Args.Length)
             return true;
 
-        return args.Args[parentParameterIndex] is IntegerNode integer &&
-               Convert.ToInt64(integer.ObjValue, System.Globalization.CultureInfo.InvariantCulture) >= 0L;
+        return args.Args[parentParameterIndex] is IntegerNode integer
+            && Convert.ToInt64(integer.ObjValue, System.Globalization.CultureInfo.InvariantCulture) >= 0L;
     }
 
     private AccessMethodNode ProcessAggregateDeclarationMethod(
@@ -137,7 +162,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgsListNode args,
         MethodInfo method,
         MethodResolutionContext context,
-        Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func)
+        Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func
+    )
     {
         var accessMethod = func(node.FunctionToken, args, node.ExtraAggregateArguments, method, context.Alias, false);
         accessMethod.HasFilter = node.HasFilter;
@@ -157,7 +183,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             null,
             method,
             context.Alias,
-            false);
+            false
+        );
         refreshMethodNode.HasFilter = node.HasFilter;
         refreshMethodNode.FilterExpression = node.FilterExpression;
         refreshMethodNode.FilterExpressionText = node.FilterExpressionText;
@@ -172,7 +199,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             null,
             method,
             context.Alias,
-            false);
+            false
+        );
         result.MarkAsAggregate();
         return result;
     }
@@ -181,7 +209,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         MethodInfo method,
         ArgsListNode args,
         string identifier,
-        string displayName)
+        string displayName
+    )
     {
         if (!TryGetAggregateDeclarationParentArgument(method, args, out var parentArgument))
             return [new AggregateIdentifierNode(identifier, displayName)];
@@ -202,7 +231,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static bool TryGetAggregateDeclarationParentArgument(
         MethodInfo method,
         ArgsListNode args,
-        [NotNullWhen(true)] out Node? parentArgument)
+        [NotNullWhen(true)] out Node? parentArgument
+    )
     {
         var parameters = method.GetParameters();
         for (var index = 0; index < parameters.Length && index < args.Args.Length; index++)

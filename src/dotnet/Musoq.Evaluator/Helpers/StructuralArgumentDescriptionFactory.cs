@@ -9,17 +9,13 @@ namespace Musoq.Evaluator.Helpers;
 
 internal static class StructuralArgumentDescriptionFactory
 {
-    public static IReadOnlyList<StructuralArgumentDescription> Create(
-        SchemaMethodInfo method,
-        int overload)
+    public static IReadOnlyList<StructuralArgumentDescription> Create(SchemaMethodInfo method, int overload)
     {
         ArgumentNullException.ThrowIfNull(method);
         return Create(SchemaSourceSignature.Create(method), overload);
     }
 
-    public static IReadOnlyList<StructuralArgumentDescription> Create(
-        SchemaSourceSignature signature,
-        int overload)
+    public static IReadOnlyList<StructuralArgumentDescription> Create(SchemaSourceSignature signature, int overload)
     {
         ArgumentNullException.ThrowIfNull(signature);
 
@@ -38,7 +34,8 @@ internal static class StructuralArgumentDescriptionFactory
                 parameter.HasDefaultValue,
                 parameter.HasDefaultValue ? StructuralSqlLiteralFormatter.Format(parameter.DefaultValue) : null,
                 isRoot: true,
-                limits);
+                limits
+            );
         }
 
         return rows;
@@ -50,10 +47,14 @@ internal static class StructuralArgumentDescriptionFactory
         return string.Join(
             "|",
             signature.Parameters.Select(parameter =>
-                $"{parameter.Name}:{parameter.StructuralType?.ToCanonicalSql() ?? CreateDescriptor(parameter.ParameterType).ToCanonicalSql()}" +
-                (parameter.HasDefaultValue
-                    ? $"={StructuralSqlLiteralFormatter.Format(parameter.DefaultValue)}"
-                    : string.Empty)));
+                $"{parameter.Name}:{parameter.StructuralType?.ToCanonicalSql() ?? CreateDescriptor(parameter.ParameterType).ToCanonicalSql()}"
+                + (
+                    parameter.HasDefaultValue
+                        ? $"={StructuralSqlLiteralFormatter.Format(parameter.DefaultValue)}"
+                        : string.Empty
+                )
+            )
+        );
     }
 
     private static void AddType(
@@ -65,21 +66,25 @@ internal static class StructuralArgumentDescriptionFactory
         bool hasDefault,
         string? @default,
         bool isRoot,
-        StructuralInputLimits limits)
+        StructuralInputLimits limits
+    )
     {
         var structuredRoot = isRoot && type.Kind != StructuralTypeKind.Scalar;
-        rows.Add(new StructuralArgumentDescription(
-            overload,
-            path,
-            type.Kind.ToString(),
-            type.ToCanonicalSql(),
-            required,
-            type.IsNullable,
-            hasDefault,
-            @default,
-            structuredRoot ? limits.MaxDepth : null,
-            structuredRoot ? limits.MaxNodes : null,
-            structuredRoot ? limits.MaxStringBytes : null));
+        rows.Add(
+            new StructuralArgumentDescription(
+                overload,
+                path,
+                type.Kind.ToString(),
+                type.ToCanonicalSql(),
+                required,
+                type.IsNullable,
+                hasDefault,
+                @default,
+                structuredRoot ? limits.MaxDepth : null,
+                structuredRoot ? limits.MaxNodes : null,
+                structuredRoot ? limits.MaxStringBytes : null
+            )
+        );
 
         switch (type.Kind)
         {
@@ -95,7 +100,8 @@ internal static class StructuralArgumentDescriptionFactory
                         field.HasDefault,
                         field.HasDefault ? field.Default.CanonicalText : null,
                         isRoot: false,
-                        limits);
+                        limits
+                    );
                 }
 
                 break;
@@ -104,12 +110,14 @@ internal static class StructuralArgumentDescriptionFactory
                     rows,
                     overload,
                     $"{path}[]",
-                    type.ElementType ?? throw new InvalidOperationException("Collection descriptor has no element type."),
+                    type.ElementType
+                        ?? throw new InvalidOperationException("Collection descriptor has no element type."),
                     required: null,
                     hasDefault: false,
                     @default: null,
                     isRoot: false,
-                    limits);
+                    limits
+                );
                 break;
         }
     }

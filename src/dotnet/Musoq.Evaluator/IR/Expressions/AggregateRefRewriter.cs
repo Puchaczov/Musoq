@@ -16,7 +16,8 @@ public sealed partial class AggregateRefRewriter : ExpressionArrayRewriter
 
     public static IrExpression Rewrite(
         IrExpression expression,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         ArgumentNullException.ThrowIfNull(expression);
         ArgumentNullException.ThrowIfNull(bindingsByIdentifier);

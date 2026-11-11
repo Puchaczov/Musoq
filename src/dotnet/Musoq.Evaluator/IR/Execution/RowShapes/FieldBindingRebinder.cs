@@ -8,7 +8,8 @@ internal static class FieldBindingRebinder
     public static FieldBinding Rebind(
         FieldBinding field,
         FieldAccessStrategy accessStrategy,
-        string? qualifiedName = null)
+        string? qualifiedName = null
+    )
     {
         ArgumentNullException.ThrowIfNull(field);
         ArgumentNullException.ThrowIfNull(accessStrategy);
@@ -16,19 +17,18 @@ internal static class FieldBindingRebinder
         return field with
         {
             QualifiedName = qualifiedName ?? field.QualifiedName,
-            AccessStrategy = accessStrategy
+            AccessStrategy = accessStrategy,
         };
     }
 
     public static FieldBinding[] Rebind(
         IEnumerable<FieldBinding> fields,
-        Func<FieldBinding, FieldAccessStrategy> createAccess)
+        Func<FieldBinding, FieldAccessStrategy> createAccess
+    )
     {
         ArgumentNullException.ThrowIfNull(fields);
         ArgumentNullException.ThrowIfNull(createAccess);
 
-        return fields
-            .Select(field => Rebind(field, createAccess(field)))
-            .ToArray();
+        return fields.Select(field => Rebind(field, createAccess(field))).ToArray();
     }
 }

@@ -236,7 +236,8 @@ public class InterpretationSchemaNodeTests
         var node = new FieldValueValidationNode(
             FieldValueValidationKind.Magic,
             [new IntegerNode("137", "i"), new IntegerNode("80", "i")],
-            true);
+            true
+        );
 
         Assert.AreEqual(FieldValueValidationKind.Magic, node.Kind);
         Assert.IsTrue(node.IsByteList);
@@ -249,7 +250,8 @@ public class InterpretationSchemaNodeTests
         var node = new FieldValueValidationNode(
             FieldValueValidationKind.OneOf,
             [new IntegerNode("1", "i"), new IntegerNode("2", "i")],
-            false);
+            false
+        );
 
         Assert.AreEqual(FieldValueValidationKind.OneOf, node.Kind);
         Assert.AreEqual("oneOf [1, 2]", node.ToString());
@@ -262,7 +264,8 @@ public class InterpretationSchemaNodeTests
         var validation = new FieldValueValidationNode(
             FieldValueValidationKind.OneOf,
             [new IntegerNode("1", "i"), new IntegerNode("2", "i")],
-            false);
+            false
+        );
         var offsetNode = new IntegerNode("4", "s");
         var node = new FieldDefinitionNode("Version", typeNode, null, offsetNode, null, validation);
 
@@ -288,10 +291,14 @@ public class InterpretationSchemaNodeTests
     [TestMethod]
     public void BinarySchemaNode_WithFields_ShouldHaveCorrectProperties()
     {
-        var field1 = new FieldDefinitionNode("Magic",
-            new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian));
-        var field2 = new FieldDefinitionNode("Version",
-            new PrimitiveTypeNode(PrimitiveTypeName.Short, Endianness.LittleEndian));
+        var field1 = new FieldDefinitionNode(
+            "Magic",
+            new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian)
+        );
+        var field2 = new FieldDefinitionNode(
+            "Version",
+            new PrimitiveTypeNode(PrimitiveTypeName.Short, Endianness.LittleEndian)
+        );
 
         var node = new BinarySchemaNode("Header", [field1, field2]);
 
@@ -304,8 +311,10 @@ public class InterpretationSchemaNodeTests
     [TestMethod]
     public void BinarySchemaNode_WithExtends_ShouldIncludeInheritance()
     {
-        var field = new FieldDefinitionNode("Extra",
-            new PrimitiveTypeNode(PrimitiveTypeName.Long, Endianness.LittleEndian));
+        var field = new FieldDefinitionNode(
+            "Extra",
+            new PrimitiveTypeNode(PrimitiveTypeName.Long, Endianness.LittleEndian)
+        );
 
         var node = new BinarySchemaNode("ExtendedHeader", [field], "BaseHeader");
 
@@ -316,10 +325,14 @@ public class InterpretationSchemaNodeTests
     [TestMethod]
     public void BinarySchemaNode_ToString_ShouldFormatCorrectly()
     {
-        var field1 = new FieldDefinitionNode("Magic",
-            new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian));
-        var field2 = new FieldDefinitionNode("Version",
-            new PrimitiveTypeNode(PrimitiveTypeName.Short, Endianness.LittleEndian));
+        var field1 = new FieldDefinitionNode(
+            "Magic",
+            new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian)
+        );
+        var field2 = new FieldDefinitionNode(
+            "Version",
+            new PrimitiveTypeNode(PrimitiveTypeName.Short, Endianness.LittleEndian)
+        );
 
         var node = new BinarySchemaNode("Header", [field1, field2]);
         var result = node.ToString();
@@ -412,7 +425,8 @@ public class InterpretationSchemaNodeTests
             "Coords",
             TextFieldType.Pattern,
             @"(?<Lat>-?\d+\.\d+),(?<Lon>-?\d+\.\d+)",
-            captureGroups: ["Lat", "Lon"]);
+            captureGroups: ["Lat", "Lon"]
+        );
 
         Assert.HasCount(2, node.CaptureGroups);
         Assert.Contains("capture (Lat, Lon)", node.ToString());
@@ -490,23 +504,27 @@ public class InterpretationSchemaNodeTests
     {
         var visitor = new TestVisitor();
 
-
         new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian).Accept(visitor);
         new ByteArrayTypeNode(new IntegerNode("16", "s")).Accept(visitor);
         new StringTypeNode(new IntegerNode("32", "s"), StringEncoding.Utf8).Accept(visitor);
         new BitsTypeNode(4).Accept(visitor);
         new AlignmentNode(8).Accept(visitor);
         new SchemaReferenceTypeNode("Test").Accept(visitor);
-        new ArrayTypeNode(new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
-            new IntegerNode("10", "s")).Accept(visitor);
+        new ArrayTypeNode(
+            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
+            new IntegerNode("10", "s")
+        ).Accept(visitor);
         new FieldConstraintNode(new IntegerNode("1", "s")).Accept(visitor);
-        new FieldDefinitionNode("Test", new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian))
-            .Accept(visitor);
+        new FieldDefinitionNode("Test", new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian)).Accept(
+            visitor
+        );
         new TextFieldDefinitionNode("Test", TextFieldType.Rest).Accept(visitor);
         new BinarySchemaNode("Test", []).Accept(visitor);
         new TextSchemaNode("Test", []).Accept(visitor);
         new SubstreamTypeNode(new IntegerNode("8", "s"), SubstreamMode.Raw, null).Accept(visitor);
-        new FieldValueValidationNode(FieldValueValidationKind.Const, [new IntegerNode("1", "i")], false).Accept(visitor);
+        new FieldValueValidationNode(FieldValueValidationKind.Const, [new IntegerNode("1", "i")], false).Accept(
+            visitor
+        );
 
         Assert.AreEqual(14, visitor.VisitCount);
     }

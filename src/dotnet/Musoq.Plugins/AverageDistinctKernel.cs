@@ -25,8 +25,7 @@ public static class AverageDistinctKernel<TInput, TResult>
         AverageKernel<TInput, TResult>.Set(ref state.Average, value);
     }
 
-    public static TResult? Get(in State state)
-        => AverageKernel<TInput, TResult>.Get(in state.Average);
+    public static TResult? Get(in State state) => AverageKernel<TInput, TResult>.Get(in state.Average);
 
     public static void Merge(ref State target, in State source)
     {

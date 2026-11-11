@@ -17,7 +17,8 @@ internal sealed class InterpretationSchemaPartition
         SchemaRegistry registry,
         RootNode usageTree,
         RootNode queryWithoutDefinitions,
-        bool hasDefinitions)
+        bool hasDefinitions
+    )
     {
         Registry = registry;
         UsageTree = usageTree;
@@ -60,31 +61,26 @@ internal sealed class InterpretationSchemaPartition
         if (!hasDefinitions)
             return Empty(queryTree);
 
-        var executableTree = CreateStatementsRoot(
-            executableStatements.ToArray(),
-            queryTree,
-            statementsArray);
+        var executableTree = CreateStatementsRoot(executableStatements.ToArray(), queryTree, statementsArray);
 
         return new InterpretationSchemaPartition(
             registry,
             executableTree,
             executableStatements.Count == 0 ? queryTree : executableTree,
-            true);
+            true
+        );
     }
 
     private static InterpretationSchemaPartition Empty(RootNode queryTree)
     {
-        return new InterpretationSchemaPartition(
-            new SchemaRegistry(),
-            queryTree,
-            queryTree,
-            false);
+        return new InterpretationSchemaPartition(new SchemaRegistry(), queryTree, queryTree, false);
     }
 
     private static RootNode CreateStatementsRoot(
         StatementNode[] statements,
         RootNode sourceRoot,
-        StatementsArrayNode sourceStatements)
+        StatementsArrayNode sourceStatements
+    )
     {
         var filteredStatements = new StatementsArrayNode(statements).CopySpansFrom(sourceStatements);
         return new RootNode(filteredStatements).CopySpansFrom(sourceRoot);

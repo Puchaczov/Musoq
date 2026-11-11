@@ -9,7 +9,8 @@ internal sealed record RenderedQueryInspection
     public RenderedQueryInspection(
         ExecutionTargetId targetId,
         string? generatedCSharpCode,
-        IReadOnlyDictionary<string, string>? sourceMetadata)
+        IReadOnlyDictionary<string, string>? sourceMetadata
+    )
     {
         TargetId = targetId;
         GeneratedCSharpCode = generatedCSharpCode;
@@ -22,12 +23,12 @@ internal sealed record RenderedQueryInspection
 
     public IReadOnlyDictionary<string, string> SourceMetadata { get; }
 
-    private static IReadOnlyDictionary<string, string> FreezeDictionary(
-        IReadOnlyDictionary<string, string>? values)
+    private static IReadOnlyDictionary<string, string> FreezeDictionary(IReadOnlyDictionary<string, string>? values)
     {
         return new ReadOnlyDictionary<string, string>(
             values is null
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(values, StringComparer.Ordinal));
+                : new Dictionary<string, string>(values, StringComparer.Ordinal)
+        );
     }
 }

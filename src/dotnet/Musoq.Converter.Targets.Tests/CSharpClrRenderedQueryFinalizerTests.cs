@@ -16,12 +16,12 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
     {
         var compilation = CreateValidCompilation();
         var rendering = new RenderingBuildArtifacts(
-            new CSharpRenderedQueryArtifact(compilation, "FinalizerSmoke.CompiledQuery"));
+            new CSharpRenderedQueryArtifact(compilation, "FinalizerSmoke.CompiledQuery")
+        );
         var finalizer = ExecutionTargetCatalog.ResolveFinalizer(ExecutionTargetIds.CSharpClr);
 
-        var result = (CSharpClrFinalizationResult)finalizer.Finalize(
-            rendering.Artifact,
-            new CSharpClrFinalizationOptions(false));
+        var result = (CSharpClrFinalizationResult)
+            finalizer.Finalize(rendering.Artifact, new CSharpClrFinalizationOptions(false));
 
         Assert.IsTrue(result.EmitResult.Success);
         Assert.IsTrue(result.Success);
@@ -37,12 +37,12 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
     {
         var compilation = CreateValidCompilation();
         var rendering = new RenderingBuildArtifacts(
-            new CSharpRenderedQueryArtifact(compilation, "FinalizerSmoke.CompiledQuery"));
+            new CSharpRenderedQueryArtifact(compilation, "FinalizerSmoke.CompiledQuery")
+        );
         var finalizer = ExecutionTargetCatalog.ResolveFinalizer(ExecutionTargetIds.CSharpClr);
 
-        var result = (CSharpClrFinalizationResult)finalizer.Finalize(
-            rendering.Artifact,
-            new CSharpClrFinalizationOptions(true));
+        var result = (CSharpClrFinalizationResult)
+            finalizer.Finalize(rendering.Artifact, new CSharpClrFinalizationOptions(true));
 
         Assert.IsTrue(result.EmitResult.Success);
         var artifact = (ClrAssemblyExecutableArtifact)result.Artifact!;
@@ -56,20 +56,23 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
     {
         var compilation = CreateInvalidCompilation();
         var rendering = new RenderingBuildArtifacts(
-            new CSharpRenderedQueryArtifact(compilation, "FinalizerSmoke.CompiledQuery"));
+            new CSharpRenderedQueryArtifact(compilation, "FinalizerSmoke.CompiledQuery")
+        );
         var finalizer = ExecutionTargetCatalog.ResolveFinalizer(ExecutionTargetIds.CSharpClr);
 
-        var result = (CSharpClrFinalizationResult)finalizer.Finalize(
-            rendering.Artifact,
-            new CSharpClrFinalizationOptions(false));
+        var result = (CSharpClrFinalizationResult)
+            finalizer.Finalize(rendering.Artifact, new CSharpClrFinalizationOptions(false));
 
         Assert.IsFalse(result.EmitResult.Success);
         Assert.IsFalse(result.Success);
         Assert.IsNull(result.Artifact);
-        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
-            diagnostic.Severity == TargetDiagnosticSeverity.Error &&
-            diagnostic.Code.StartsWith("CS", System.StringComparison.Ordinal) &&
-            diagnostic.Message.Contains("CS", System.StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Diagnostics.Any(static diagnostic =>
+                diagnostic.Severity == TargetDiagnosticSeverity.Error
+                && diagnostic.Code.StartsWith("CS", System.StringComparison.Ordinal)
+                && diagnostic.Message.Contains("CS", System.StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -78,8 +81,9 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
         var finalizer = ExecutionTargetCatalog.ResolveFinalizer(ExecutionTargetIds.CSharpClr);
         var artifact = new FakeRenderedQueryArtifact(TestExecutionTargetIds.TestOnlyNonClr);
 
-        var exception = Assert.Throws<System.InvalidOperationException>(
-            () => finalizer.Finalize(artifact, new CSharpClrFinalizationOptions(false)));
+        var exception = Assert.Throws<System.InvalidOperationException>(() =>
+            finalizer.Finalize(artifact, new CSharpClrFinalizationOptions(false))
+        );
 
         StringAssert.Contains(exception.Message, nameof(CSharpRenderedQueryArtifact));
         StringAssert.Contains(exception.Message, ExecutionTargetIds.CSharpClr.ToString());
@@ -92,11 +96,13 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
     {
         var compilation = CreateValidCompilation();
         var rendering = new RenderingBuildArtifacts(
-            new CSharpRenderedQueryArtifact(compilation, "FinalizerSmoke.CompiledQuery"));
+            new CSharpRenderedQueryArtifact(compilation, "FinalizerSmoke.CompiledQuery")
+        );
         var finalizer = ExecutionTargetCatalog.ResolveFinalizer(ExecutionTargetIds.CSharpClr);
 
-        var exception = Assert.Throws<System.NotSupportedException>(
-            () => finalizer.Finalize(rendering.Artifact, TargetFinalizationOptions.Empty));
+        var exception = Assert.Throws<System.NotSupportedException>(() =>
+            finalizer.Finalize(rendering.Artifact, TargetFinalizationOptions.Empty)
+        );
 
         StringAssert.Contains(exception.Message, nameof(CSharpClrFinalizationOptions));
         StringAssert.Contains(exception.Message, TargetFinalizationOptions.Empty.GetType().Name);
@@ -109,13 +115,16 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
         cancellation.Cancel();
         var compilation = CreateValidCompilation();
         var rendering = new RenderingBuildArtifacts(
-            new CSharpRenderedQueryArtifact(compilation, "FinalizerCancellation.CompiledQuery"));
+            new CSharpRenderedQueryArtifact(compilation, "FinalizerCancellation.CompiledQuery")
+        );
         var finalizer = ExecutionTargetCatalog.ResolveFinalizer(ExecutionTargetIds.CSharpClr);
 
-        var exception = Assert.Throws<OperationCanceledException>(
-            () => finalizer.Finalize(
+        var exception = Assert.Throws<OperationCanceledException>(() =>
+            finalizer.Finalize(
                 rendering.Artifact,
-                new CSharpClrFinalizationOptions(false, cancellationToken: cancellation.Token)));
+                new CSharpClrFinalizationOptions(false, cancellationToken: cancellation.Token)
+            )
+        );
 
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
     }
@@ -126,10 +135,9 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
-        var exception = Assert.Throws<OperationCanceledException>(
-            () => CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(
-                CreateValidCompilation(),
-                cancellation.Token));
+        var exception = Assert.Throws<OperationCanceledException>(() =>
+            CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(CreateValidCompilation(), cancellation.Token)
+        );
 
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
     }
@@ -141,10 +149,7 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
         var pdb = new byte[] { 4, 5 };
         var executable = new ClrAssemblyExecutableArtifact(dll, pdb, "Runnable");
         var emitResult = CreateValidCompilation().Emit(new System.IO.MemoryStream());
-        var items = new BuildItems
-        {
-            CompilationArtifacts = new CompilationBuildArtifacts(emitResult, executable)
-        };
+        var items = new BuildItems { CompilationArtifacts = new CompilationBuildArtifacts(emitResult, executable) };
 
         dll[0] = 9;
         pdb[0] = 9;
@@ -163,31 +168,30 @@ public sealed class CSharpClrRenderedQueryFinalizerTests
     private static CSharpCompilation CreateValidCompilation()
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(
-            "namespace FinalizerSmoke { public sealed class CompiledQuery { } }");
+            "namespace FinalizerSmoke { public sealed class CompiledQuery { } }"
+        );
         return CreateCompilation(syntaxTree);
     }
 
     private static CSharpCompilation CreateInvalidCompilation()
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(
-            "namespace FinalizerSmoke { public sealed class CompiledQuery { public void Broken( } }");
+            "namespace FinalizerSmoke { public sealed class CompiledQuery { public void Broken( } }"
+        );
         return CreateCompilation(syntaxTree);
     }
 
     private static CSharpCompilation CreateCompilation(SyntaxTree syntaxTree)
     {
-        var references = new[]
-        {
-            MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
-        };
+        var references = new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) };
 
         return CSharpCompilation.Create(
             "FinalizerSmoke",
             [syntaxTree],
             references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
     }
 
-    private sealed record FakeRenderedQueryArtifact(ExecutionTargetId Target)
-        : RenderedQueryArtifact(Target);
+    private sealed record FakeRenderedQueryArtifact(ExecutionTargetId Target) : RenderedQueryArtifact(Target);
 }

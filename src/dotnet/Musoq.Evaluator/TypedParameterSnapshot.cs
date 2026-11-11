@@ -7,6 +7,7 @@ namespace Musoq.Evaluator;
 public sealed class TypedParameterSnapshot
 {
     private readonly IReadOnlyDictionary<string, TypedParameterSlot> _values;
+
     /// <summary>Gets the shared empty snapshot.</summary>
     public static TypedParameterSnapshot Empty { get; } = new(new Dictionary<string, TypedParameterSlot>());
 
@@ -14,19 +15,23 @@ public sealed class TypedParameterSnapshot
 
     /// <summary>Gets the supplied names for declaration validation.</summary>
     public IEnumerable<string> Names => _values.Keys;
+
     /// <summary>Gets the supplied slot count.</summary>
     public int Count => _values.Count;
 
     internal void CopyTo(Dictionary<string, TypedParameterSlot> destination)
     {
-        foreach (var entry in _values) destination.Add(entry.Key, entry.Value);
+        foreach (var entry in _values)
+            destination.Add(entry.Key, entry.Value);
     }
 
     /// <summary>Prevents legacy capture from silently bypassing mixed parameter validation during migration.</summary>
     public void ValidateExclusive(IReadOnlyDictionary<string, object?> legacyParameters)
     {
         if (Count != 0 && legacyParameters.Count != 0)
-            throw new InvalidOperationException("Use TypedParameters for every supplied parameter in this execution; mixed typed and legacy parameter values are unsupported.");
+            throw new InvalidOperationException(
+                "Use TypedParameters for every supplied parameter in this execution; mixed typed and legacy parameter values are unsupported."
+            );
     }
 
     /// <summary>Reports whether an explicitly supplied value is present.</summary>
@@ -44,7 +49,8 @@ public sealed class TypedParameterSnapshot
     }
 
     /// <summary>Reads an exact nullable scalar or lifts its concrete underlying scalar without boxing.</summary>
-    public T? GetRequiredNullable<T>(string name) where T : struct
+    public T? GetRequiredNullable<T>(string name)
+        where T : struct
     {
         var slot = RequireSlot(name);
         if (slot is ScalarParameterSlot<T?> nullable)
@@ -74,6 +80,6 @@ public sealed class TypedParameterSnapshot
         return slot;
     }
 
-    private static ScriptParameterBindingException TypeMismatch(string name, Type expected, Type actual)
-        => ScriptParameterBindingException.TypeMismatch(name, expected, actual);
+    private static ScriptParameterBindingException TypeMismatch(string name, Type expected, Type actual) =>
+        ScriptParameterBindingException.TypeMismatch(name, expected, actual);
 }

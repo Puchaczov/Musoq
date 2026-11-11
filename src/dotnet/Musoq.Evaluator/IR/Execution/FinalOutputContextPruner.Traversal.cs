@@ -5,12 +5,17 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static partial class GeneratedRowContextPruner
 {
-    private enum ContextReadPolicy { DirectOnly, IncludeVariables }
+    private enum ContextReadPolicy
+    {
+        DirectOnly,
+        IncludeVariables,
+    }
 
     private readonly record struct ContextConsumerState(
         IReadOnlyDictionary<string, HashSet<string>> VariableTypes,
         IReadOnlySet<string> ContextTypes,
-        HashSet<string> Result);
+        HashSet<string> Result
+    );
 
     private readonly struct NonContextWriteVisitor(ContextConsumerState state) : IExecutionNodeVisitor
     {
@@ -41,12 +46,18 @@ internal static partial class GeneratedRowContextPruner
         }
     }
 
-    private readonly struct ContextExpressionVisitor(ContextConsumerState state, ContextReadPolicy policy) : IExecutionExpressionVisitor
+    private readonly struct ContextExpressionVisitor(ContextConsumerState state, ContextReadPolicy policy)
+        : IExecutionExpressionVisitor
     {
         public bool Visit(ExecutionExpression expression)
         {
             if (policy == ContextReadPolicy.IncludeVariables && expression is ExecutionVariableRead variableRead)
-                TryAddVariableGeneratedRowTypes(variableRead.Variable, state.VariableTypes, state.ContextTypes, state.Result);
+                TryAddVariableGeneratedRowTypes(
+                    variableRead.Variable,
+                    state.VariableTypes,
+                    state.ContextTypes,
+                    state.Result
+                );
             AddDirectContextConsumer(expression, state.VariableTypes, state.ContextTypes, state.Result);
             return true;
         }

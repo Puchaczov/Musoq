@@ -10,7 +10,8 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         JoinType joinType,
         string outputId,
         TableSymbol left,
-        TableSymbol right)
+        TableSymbol right
+    )
     {
         var output = joinType is JoinType.LeftSemi or JoinType.LeftAntiSemi
             ? left.WithFullTableName(outputId)
@@ -20,11 +21,9 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         {
             JoinType.OuterLeft or JoinType.AsOfLeft or JoinType.LeftMark or JoinType.LeftSingle =>
                 output.MarkAliasesAsMaybeMissing(right.CompoundTables),
-            JoinType.OuterRight =>
-                output.MarkAliasesAsMaybeMissing(left.CompoundTables),
-            JoinType.OuterFull =>
-                output.MarkAliasesAsMaybeMissing(left.CompoundTables.Concat(right.CompoundTables)),
-            _ => output
+            JoinType.OuterRight => output.MarkAliasesAsMaybeMissing(left.CompoundTables),
+            JoinType.OuterFull => output.MarkAliasesAsMaybeMissing(left.CompoundTables.Concat(right.CompoundTables)),
+            _ => output,
         };
     }
 }

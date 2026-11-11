@@ -16,12 +16,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     public void RewritingIntermediateStatements_ShouldPreserveProducerBindings()
     {
         var scan = CreateScan();
-        var plan = new PhysicalMultiStatementNode([scan])
-        {
-            IntermediateProducers = [new(new(new(7), "producer"), 0)]
-        };
-        var rewritten = (PhysicalMultiStatementNode)Musoq.Evaluator.IR.Physical.Rewriting.PhysicalPlanRewriter
-            .RewriteChildren(plan, _ => CreateScan("renamed"));
+        var plan = new PhysicalMultiStatementNode([scan]) { IntermediateProducers = [new(new(new(7), "producer"), 0)] };
+        var rewritten = (PhysicalMultiStatementNode)
+            Musoq.Evaluator.IR.Physical.Rewriting.PhysicalPlanRewriter.RewriteChildren(
+                plan,
+                _ => CreateScan("renamed")
+            );
         CollectionAssert.AreEqual(plan.IntermediateProducers.ToArray(), rewritten.IntermediateProducers.ToArray());
     }
 
@@ -32,7 +32,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var second = new PhysicalCteRefNode("first", "f", new OutputSchema([])) { IntermediateProducerId = new(1) };
         var plan = new PhysicalMultiStatementNode([CreateScan(), CreateScan(), first, second])
         {
-            IntermediateProducers = [new(new(new(1), "first"), 0), new(new(new(2), "second"), 1)]
+            IntermediateProducers = [new(new(new(1), "first"), 0), new(new(new(2), "second"), 1)],
         };
         var bindings = Musoq.Evaluator.IR.Planning.IntermediateSourceProducers.Resolve(plan);
         Assert.AreEqual(0, bindings["first"]);
@@ -49,14 +49,17 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var scan = CreateScan();
         var definition = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            scan);
-        var cteRef = new PhysicalCteRefNode("people", "c", new OutputSchema(
-        [
-            new ColumnSchema("Name", typeof(string), 0)
-        ]));
+            scan
+        );
+        var cteRef = new PhysicalCteRefNode(
+            "people",
+            "c",
+            new OutputSchema([new ColumnSchema("Name", typeof(string), 0)])
+        );
         var query = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("c", "Name", typeof(string)), 0)],
-            cteRef);
+            cteRef
+        );
         var cte = new PhysicalCteNode([new PhysicalCteDefinition("people", definition)], query);
         var builder = CreateBuilder();
 
@@ -80,7 +83,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         StringAssert.Contains(printed, "ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
         StringAssert.Contains(
             ExecutionPlanPrinter.Print(new ExecutionIrOptimizer().Optimize(plan).OptimizedPlan),
-            "PhaseBoundary [Begin:cte0]");
+            "PhaseBoundary [Begin:cte0]"
+        );
     }
 
     [TestMethod]
@@ -89,27 +93,40 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var producer = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Age", new ColumnRef("p", "Age", typeof(int)), 1)
+                new ProjectedField("Age", new ColumnRef("p", "Age", typeof(int)), 1),
             ],
-            CreateScan());
-        var cteRef = new PhysicalCteRefNode("people", "c", new OutputSchema(
-        [
-            new ColumnSchema("Name", typeof(string), 0),
-            new ColumnSchema("Age", typeof(int), 1)
-        ])) { IntermediateProducerId = new IntermediateProducerId(0) };
+            CreateScan()
+        );
+        var cteRef = new PhysicalCteRefNode(
+            "people",
+            "c",
+            new OutputSchema([new ColumnSchema("Name", typeof(string), 0), new ColumnSchema("Age", typeof(int), 1)])
+        )
+        {
+            IntermediateProducerId = new IntermediateProducerId(0),
+        };
         var filter = new PhysicalFilterNode(
             new BinaryOp(
                 BinaryOpKind.GreaterThan,
                 new ColumnRef("c", "Age", typeof(int)),
                 new Literal(18, typeof(int)),
-                typeof(bool)),
-            cteRef);
+                typeof(bool)
+            ),
+            cteRef
+        );
         var query = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("c", "Name", typeof(string)), 0)],
-            filter);
+            filter
+        );
         var builder = CreateBuilder();
 
-        var result = builder.Build(new PhysicalMultiStatementNode([producer, query]) { IntermediateProducers = [new(new(new(0), "people"), 0)] }, "Q_SingleUseProjectionChain");
+        var result = builder.Build(
+            new PhysicalMultiStatementNode([producer, query])
+            {
+                IntermediateProducers = [new(new(new(0), "people"), 0)],
+            },
+            "Q_SingleUseProjectionChain"
+        );
         var plan = RequireExecutionPlan(result);
         var initialText = ExecutionPlanPrinter.Print(plan);
         var optimizedText = ExecutionPlanPrinter.Print(new ExecutionIrOptimizer().Optimize(plan).OptimizedPlan);
@@ -119,7 +136,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         StringAssert.Contains(initialText, "If [(p.Age > 18)]");
         StringAssert.Contains(optimizedText, "PhaseBoundary [Begin:cte0]");
         Assert.IsFalse(optimizedText.Contains("SingleUseFusionCandidate", StringComparison.Ordinal), optimizedText);
-        Assert.IsFalse(optimizedText.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal), optimizedText);
+        Assert.IsFalse(
+            optimizedText.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal),
+            optimizedText
+        );
     }
 
     [TestMethod]
@@ -127,26 +147,32 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     {
         var peopleDefinition = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            CreateScan());
+            CreateScan()
+        );
         var ordersDefinition = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            CreateScan());
-        var cteRef = new PhysicalCteRefNode("people", "c", new OutputSchema(
-        [
-            new ColumnSchema("Name", typeof(string), 0)
-        ]));
+            CreateScan()
+        );
+        var cteRef = new PhysicalCteRefNode(
+            "people",
+            "c",
+            new OutputSchema([new ColumnSchema("Name", typeof(string), 0)])
+        );
         var query = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("c", "Name", typeof(string)), 0)],
-            cteRef);
+            cteRef
+        );
         var cte = new PhysicalCteNode(
             [
                 new PhysicalCteDefinition("people", peopleDefinition),
-                new PhysicalCteDefinition("orders", ordersDefinition)
+                new PhysicalCteDefinition("orders", ordersDefinition),
             ],
-            query);
+            query
+        );
         var builder = CreateBuilder(
             new CompilationOptions(useCteParallelization: true),
-            CreateIndependentCteExecutionPlan("people", "orders"));
+            CreateIndependentCteExecutionPlan("people", "orders")
+        );
 
         var result = builder.Build(cte, "Q_ParallelCte");
         var plan = RequireExecutionPlan(result);
@@ -176,10 +202,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var orders = CreateOrderScan();
         var peopleDefinition = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            people);
+            people
+        );
         var ordersDefinition = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("o", "Description", typeof(string)), 0)],
-            orders);
+            orders
+        );
         var leftRef = CreateCteRef("people", "l");
         var rightRef = CreateCteRef("orders", "r");
         var join = new PhysicalHashJoinNode(
@@ -188,25 +216,26 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [new ColumnRef("l", "Name", typeof(string))],
             null,
             leftRef,
-            rightRef);
+            rightRef
+        );
         var query = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("l", "Name", typeof(string)), 0)],
-            join);
+            join
+        );
         var cte = new PhysicalCteNode(
             [
                 new PhysicalCteDefinition("people", peopleDefinition),
-                new PhysicalCteDefinition("orders", ordersDefinition)
+                new PhysicalCteDefinition("orders", ordersDefinition),
             ],
-            query);
+            query
+        );
         var builder = CreateJoinBuilder(new CompilationOptions(useCteSidecarIndexes: false));
 
         var result = builder.Build(cte, "Q_CteHashJoinCapacity");
         var plan = RequireExecutionPlan(result);
         var text = ExecutionPlanPrinter.Print(plan);
 
-        Assert.Contains(
-            "CreateHash [rHash: string -> Row; capacity: Candidate(rHash <- _cteRowResults.Slot1)]",
-            text);
+        Assert.Contains("CreateHash [rHash: string -> Row; capacity: Candidate(rHash <- _cteRowResults.Slot1)]", text);
     }
 
     [TestMethod]
@@ -216,30 +245,27 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var orders = CreateOrderScan();
         var leftDefinition = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            people);
+            people
+        );
         var rightDefinition = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("o", "Description", typeof(string)), 0)],
-            orders);
+            orders
+        );
         var leftRef = CreateCteRef("people", "l");
         var rightRef = CreateCteRef("orders", "r");
         var leftArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("l", "Name", typeof(string)), 0)],
-            leftRef);
+            leftRef
+        );
         var rightArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("r", "Name", typeof(string)), 0)],
-            rightRef);
-        var setOperation = new PhysicalSetOperationNode(
-            SetOpKind.UnionAll,
-            leftArm,
-            rightArm,
-            [0],
-            [typeof(string)]);
+            rightRef
+        );
+        var setOperation = new PhysicalSetOperationNode(SetOpKind.UnionAll, leftArm, rightArm, [0], [typeof(string)]);
         var cte = new PhysicalCteNode(
-            [
-                new PhysicalCteDefinition("people", leftDefinition),
-                new PhysicalCteDefinition("orders", rightDefinition)
-            ],
-            setOperation);
+            [new PhysicalCteDefinition("people", leftDefinition), new PhysicalCteDefinition("orders", rightDefinition)],
+            setOperation
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(cte, "Q_CteSetOperation");

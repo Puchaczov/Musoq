@@ -11,7 +11,6 @@ public partial class RowAndKeyEqualityTests : Musoq.Evaluator.Tests.Schema.Gener
     #region Row Tests
 
 
-
     [TestMethod]
     public void TestRow_Indexer_ReturnsCorrectValue()
     {
@@ -132,5 +131,4 @@ public partial class RowAndKeyEqualityTests : Musoq.Evaluator.Tests.Schema.Gener
     }
 
     #endregion
-
 }

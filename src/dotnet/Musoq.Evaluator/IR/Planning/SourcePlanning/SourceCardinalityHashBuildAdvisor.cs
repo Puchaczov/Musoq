@@ -14,7 +14,8 @@ internal static class SourceCardinalityHashBuildAdvisor
         PhysicalNode right,
         IReadOnlyList<CardinalityFact>? cardinalityFacts,
         out bool buildOnLeft,
-        out string reason)
+        out string reason
+    )
     {
         buildOnLeft = false;
 
@@ -30,17 +31,30 @@ internal static class SourceCardinalityHashBuildAdvisor
             return false;
         }
 
-        if (!TryResolveSimpleSourceScan(left, out var leftScan) ||
-            !TryResolveSimpleSourceScan(right, out var rightScan) ||
-            string.IsNullOrWhiteSpace(leftScan.SourceContextId) ||
-            string.IsNullOrWhiteSpace(rightScan.SourceContextId))
+        if (
+            !TryResolveSimpleSourceScan(left, out var leftScan)
+            || !TryResolveSimpleSourceScan(right, out var rightScan)
+            || string.IsNullOrWhiteSpace(leftScan.SourceContextId)
+            || string.IsNullOrWhiteSpace(rightScan.SourceContextId)
+        )
         {
-            reason = "Cardinality build-side selection applies only to simple source-scan inner joins and full outer joins.";
+            reason =
+                "Cardinality build-side selection applies only to simple source-scan inner joins and full outer joins.";
             return false;
         }
 
-        if (!CardinalityFactAdvisor.TryResolveComparableRows(cardinalityFacts, $"source:{leftScan.SourceContextId}", out var leftRows) ||
-            !CardinalityFactAdvisor.TryResolveComparableRows(cardinalityFacts, $"source:{rightScan.SourceContextId}", out var rightRows))
+        if (
+            !CardinalityFactAdvisor.TryResolveComparableRows(
+                cardinalityFacts,
+                $"source:{leftScan.SourceContextId}",
+                out var leftRows
+            )
+            || !CardinalityFactAdvisor.TryResolveComparableRows(
+                cardinalityFacts,
+                $"source:{rightScan.SourceContextId}",
+                out var rightRows
+            )
+        )
         {
             reason = "Cardinality facts were missing, unknown, or too low-confidence for hash build-side selection.";
             return false;
@@ -49,26 +63,28 @@ internal static class SourceCardinalityHashBuildAdvisor
         if (IsClearlySmaller(leftRows, rightRows))
         {
             buildOnLeft = true;
-            reason = $"Cardinality fact selected the left source as hash build side ({leftRows} row(s) vs {rightRows} row(s)).";
+            reason =
+                $"Cardinality fact selected the left source as hash build side ({leftRows} row(s) vs {rightRows} row(s)).";
             return true;
         }
 
         if (IsClearlySmaller(rightRows, leftRows))
         {
             buildOnLeft = false;
-            reason = $"Cardinality fact selected the right source as hash build side ({rightRows} row(s) vs {leftRows} row(s)).";
+            reason =
+                $"Cardinality fact selected the right source as hash build side ({rightRows} row(s) vs {leftRows} row(s)).";
             return true;
         }
 
-        reason = $"Cardinality facts were too close for hash build-side selection ({leftRows} row(s) vs {rightRows} row(s)).";
+        reason =
+            $"Cardinality facts were too close for hash build-side selection ({leftRows} row(s) vs {rightRows} row(s)).";
         return false;
     }
 
-    private static bool TryResolveSimpleSourceScan(
-        PhysicalNode node,
-        out PhysicalSchemaScanNode scan)
+    private static bool TryResolveSimpleSourceScan(PhysicalNode node, out PhysicalSchemaScanNode scan)
     {
-        while (node is PhysicalFilterNode filter) node = filter.Input;
+        while (node is PhysicalFilterNode filter)
+            node = filter.Input;
 
         var schemaScan = node as PhysicalSchemaScanNode;
         scan = schemaScan ?? null!;

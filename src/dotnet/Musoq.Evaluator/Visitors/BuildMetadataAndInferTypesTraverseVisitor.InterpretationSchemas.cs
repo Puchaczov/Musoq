@@ -38,9 +38,11 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
         if (node.ResultOrderBy != null || node.ResultSkip != null || node.ResultTake != null)
         {
-            var bindingVisitor = Visitor as BuildMetadataAndInferTypesVisitor
-                                 ?? throw new InvalidOperationException(
-                                     "Set result modifiers require the metadata and type inference visitor.");
+            var bindingVisitor =
+                Visitor as BuildMetadataAndInferTypesVisitor
+                ?? throw new InvalidOperationException(
+                    "Set result modifiers require the metadata and type inference visitor."
+                );
             bindingVisitor.BeginSetResultModifierBinding();
             try
             {

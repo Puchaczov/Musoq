@@ -11,13 +11,9 @@ public sealed partial class CSharpRenderer
     private readonly CSharpClrExecutionBindingContext _executionBindings;
 
     public CSharpRenderer(RenderContext context)
-        : this(context, new CSharpClrExecutionBindingContext())
-    {
-    }
+        : this(context, new CSharpClrExecutionBindingContext()) { }
 
-    internal CSharpRenderer(
-        RenderContext context,
-        CSharpClrExecutionBindingContext executionBindings)
+    internal CSharpRenderer(RenderContext context, CSharpClrExecutionBindingContext executionBindings)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _executionBindings = executionBindings ?? new CSharpClrExecutionBindingContext();
@@ -27,15 +23,14 @@ public sealed partial class CSharpRenderer
         string queryIdentifier,
         int inMemoryTableCount = 0,
         int cteIndexResultCount = 0,
-        string? runMethodNameOverride = null)
+        string? runMethodNameOverride = null
+    )
     {
         var classRenderer = new CompiledQueryClassRenderer(_context);
         return classRenderer.Render(queryIdentifier, inMemoryTableCount, cteIndexResultCount, runMethodNameOverride);
     }
 
-    public ExecutionQueryRenderOutcome TryRenderExecutionQueryMethod(
-        ExecutionPlan plan,
-        string queryIdentifier)
+    public ExecutionQueryRenderOutcome TryRenderExecutionQueryMethod(ExecutionPlan plan, string queryIdentifier)
     {
         var executionRenderer = new ExecutionCSharpRenderer(
             _context.ScriptParameterDefinitions,
@@ -43,15 +38,18 @@ public sealed partial class CSharpRenderer
             _context.InstrumentationMode,
             _executionBindings,
             _context.InstrumentationMode == QueryInstrumentationMode.Disabled ? "" : "_Profiled",
-            _context.IsMetadataOnly);
-        var unprofiledExecutionRenderer = _context.InstrumentationMode == QueryInstrumentationMode.Disabled
-            ? executionRenderer
-            : new ExecutionCSharpRenderer(
-                _context.ScriptParameterDefinitions,
-                _context.ScriptVariableDefinitions,
-                QueryInstrumentationMode.Disabled,
-                _executionBindings,
-                metadataOnly: _context.IsMetadataOnly);
+            _context.IsMetadataOnly
+        );
+        var unprofiledExecutionRenderer =
+            _context.InstrumentationMode == QueryInstrumentationMode.Disabled
+                ? executionRenderer
+                : new ExecutionCSharpRenderer(
+                    _context.ScriptParameterDefinitions,
+                    _context.ScriptVariableDefinitions,
+                    QueryInstrumentationMode.Disabled,
+                    _executionBindings,
+                    metadataOnly: _context.IsMetadataOnly
+                );
         var unsupportedReason = executionRenderer.GetUnsupportedReason(plan);
         if (unsupportedReason != null)
             return ExecutionQueryRenderOutcome.Unsupported(unsupportedReason);
@@ -63,39 +61,51 @@ public sealed partial class CSharpRenderer
         var tableDirectSink = hasTableViaRowsRenderPlan
             ? precomputedRenderPlan.FinalSinkPlans.TableDirectProjection
             : null;
-        var omitFinalShapeClass = tableDirectSink?.IsAccepted == true &&
-                                  (_context.ResultMode is QueryResultMode.Table or QueryResultMode.TableViaRows) &&
-                                  tableDirectSink.ProjectionLoop?.CanUseParallel == false &&
-                                  tableDirectSink.ProjectionLoop?.OptionalProjectionBody != null;
+        var omitFinalShapeClass =
+            tableDirectSink?.IsAccepted == true
+            && (_context.ResultMode is QueryResultMode.Table or QueryResultMode.TableViaRows)
+            && tableDirectSink.ProjectionLoop?.CanUseParallel == false
+            && tableDirectSink.ProjectionLoop?.OptionalProjectionBody != null;
         AddExecutionClassMembers(
             unprofiledExecutionRenderer,
             plan,
-            hasTableViaRowsRenderPlan &&
-            _context.ResultMode is QueryResultMode.Table or QueryResultMode.TableViaRows or QueryResultMode.TypedEnumerable
-                 ? precomputedRenderPlan.ResultInfo
-                 : null,
-             omitFinalShapeClass);
+            hasTableViaRowsRenderPlan
+            && _context.ResultMode
+                is QueryResultMode.Table
+                    or QueryResultMode.TableViaRows
+                    or QueryResultMode.TypedEnumerable
+                ? precomputedRenderPlan.ResultInfo
+                : null,
+            omitFinalShapeClass
+        );
         if (_context.InstrumentationMode != QueryInstrumentationMode.Disabled)
         {
             AddExecutionClassMembers(
                 executionRenderer,
                 plan,
-                hasTableViaRowsRenderPlan &&
-                _context.ResultMode is QueryResultMode.Table or QueryResultMode.TableViaRows or QueryResultMode.TypedEnumerable
+                hasTableViaRowsRenderPlan
+                && _context.ResultMode
+                    is QueryResultMode.Table
+                        or QueryResultMode.TableViaRows
+                        or QueryResultMode.TypedEnumerable
                     ? precomputedRenderPlan.ResultInfo
                     : null,
-                omitFinalShapeClass);
+                omitFinalShapeClass
+            );
         }
-        if (hasTableViaRowsRenderPlan &&
-            executionRenderer.TryGetTableColumnMetadataFieldName(
+        if (
+            hasTableViaRowsRenderPlan
+            && executionRenderer.TryGetTableColumnMetadataFieldName(
                 plan,
                 precomputedRenderPlan.ResultInfo.TableName,
                 precomputedRenderPlan.ResultInfo.Columns,
-                out var columnsFieldName))
+                out var columnsFieldName
+            )
+        )
         {
             precomputedRenderPlan = precomputedRenderPlan with
             {
-                ResultInfo = precomputedRenderPlan.ResultInfo with { ColumnsFieldName = columnsFieldName }
+                ResultInfo = precomputedRenderPlan.ResultInfo with { ColumnsFieldName = columnsFieldName },
             };
         }
 
@@ -105,13 +115,13 @@ public sealed partial class CSharpRenderer
                 executionRenderer,
                 unprofiledExecutionRenderer,
                 queryIdentifier,
-                precomputedRenderPlan);
+                precomputedRenderPlan
+            );
 
         if (_context.ResultMode == QueryResultMode.TypedEnumerable)
             return RenderTypedEnumerableExecutionQueryMethod(plan, executionRenderer, queryIdentifier);
 
-        if (_context.ResultMode == QueryResultMode.Table &&
-            hasTableViaRowsRenderPlan)
+        if (_context.ResultMode == QueryResultMode.Table && hasTableViaRowsRenderPlan)
         {
             var tableRenderPlan = precomputedRenderPlan;
             var tableMethodName = QueryMethodNameResolver.ResolveTable(_context, queryIdentifier);
@@ -121,8 +131,9 @@ public sealed partial class CSharpRenderer
             var tableDirectRowsMetadata = CreateTableDirectMetadata();
             _context.SetTableViaRowsResult(tableResultInfo);
 
-            if (_context.InstrumentationMode == QueryInstrumentationMode.Disabled &&
-                TryCreateTableDirectProjectionMethod(
+            if (
+                _context.InstrumentationMode == QueryInstrumentationMode.Disabled
+                && TryCreateTableDirectProjectionMethod(
                     plan,
                     executionRenderer,
                     queryIdentifier,
@@ -131,13 +142,17 @@ public sealed partial class CSharpRenderer
                     tableRenderPlan.FinalSinkPlans.TableDirectProjection,
                     useQueryRunContext: _context.EnableContextualExecution,
                     out var tableDirectRowsMethod,
-                    out tableDirectRowsMetadata))
+                    out tableDirectRowsMetadata
+                )
+            )
             {
                 return ExecutionQueryRenderOutcome.Rendered(
-                    new QueryMethodRenderResult(rowsMethodName, tableDirectRowsMethod, tableDirectRowsMetadata));
+                    new QueryMethodRenderResult(rowsMethodName, tableDirectRowsMethod, tableDirectRowsMetadata)
+                );
             }
 
-            if (TryCreateTableShapeStreamingMethods(
+            if (
+                TryCreateTableShapeStreamingMethods(
                     plan,
                     executionRenderer,
                     unprofiledExecutionRenderer,
@@ -147,14 +162,23 @@ public sealed partial class CSharpRenderer
                     tableRenderPlan.FinalSinkPlans.TableOutput,
                     useQueryRunContext: _context.EnableContextualExecution,
                     out var tableShapeStreamingRowsAdapterMethod,
-                    out var tableShapeStreamingRowsMetadata))
+                    out var tableShapeStreamingRowsMetadata
+                )
+            )
             {
                 return ExecutionQueryRenderOutcome.Rendered(
-                    new QueryMethodRenderResult(rowsMethodName, tableShapeStreamingRowsAdapterMethod, tableShapeStreamingRowsMetadata));
+                    new QueryMethodRenderResult(
+                        rowsMethodName,
+                        tableShapeStreamingRowsAdapterMethod,
+                        tableShapeStreamingRowsMetadata
+                    )
+                );
             }
 
             if (_context.InstrumentationMode != QueryInstrumentationMode.Disabled)
-                return ExecutionQueryRenderOutcome.Unsupported("Profiled table output requires final shape-row streaming.");
+                return ExecutionQueryRenderOutcome.Unsupported(
+                    "Profiled table output requires final shape-row streaming."
+                );
 
             _context.AddClassMember(executionRenderer.RenderMethod(plan, tableMethodName, queryIdentifier));
             return ExecutionQueryRenderOutcome.Rendered(
@@ -164,29 +188,39 @@ public sealed partial class CSharpRenderer
                         rowsMethodName,
                         tableMethodName,
                         tableResultInfo.RowTypeName,
-                        _context.EnableContextualExecution),
-                    tableDirectRowsMetadata));
+                        _context.EnableContextualExecution
+                    ),
+                    tableDirectRowsMetadata
+                )
+            );
         }
 
         var methodName = QueryMethodNameResolver.Resolve(_context, queryIdentifier);
         if (_context.InstrumentationMode != QueryInstrumentationMode.Disabled)
         {
-            _context.AddClassMember(executionRenderer.RenderMethod(
-                plan,
-                QueryMethodNameResolver.ResolveProfiled(methodName),
-                queryIdentifier));
+            _context.AddClassMember(
+                executionRenderer.RenderMethod(
+                    plan,
+                    QueryMethodNameResolver.ResolveProfiled(methodName),
+                    queryIdentifier
+                )
+            );
             return ExecutionQueryRenderOutcome.Rendered(
                 new QueryMethodRenderResult(
                     methodName,
                     unprofiledExecutionRenderer.RenderMethod(plan, methodName, queryIdentifier),
-                    CreateTableDirectMetadata()));
+                    CreateTableDirectMetadata()
+                )
+            );
         }
 
         return ExecutionQueryRenderOutcome.Rendered(
             new QueryMethodRenderResult(
                 methodName,
                 executionRenderer.RenderMethod(plan, methodName, queryIdentifier),
-                CreateTableDirectMetadata()));
+                CreateTableDirectMetadata()
+            )
+        );
     }
 
     private ExecutionQueryRenderOutcome RenderTableViaRowsExecutionQueryMethod(
@@ -194,10 +228,13 @@ public sealed partial class CSharpRenderer
         ExecutionCSharpRenderer executionRenderer,
         ExecutionCSharpRenderer unprofiledExecutionRenderer,
         string queryIdentifier,
-        TableViaRowsRenderPlan renderPlan)
+        TableViaRowsRenderPlan renderPlan
+    )
     {
         if (renderPlan == null)
-            return ExecutionQueryRenderOutcome.Unsupported("TableViaRows result mode requires final select-shape result metadata.");
+            return ExecutionQueryRenderOutcome.Unsupported(
+                "TableViaRows result mode requires final select-shape result metadata."
+            );
 
         var tableMethodName = QueryMethodNameResolver.ResolveTable(_context, queryIdentifier);
         var rowsMethodName = QueryMethodNameResolver.ResolveRows(_context, queryIdentifier);
@@ -206,8 +243,9 @@ public sealed partial class CSharpRenderer
         var tableDirectRowsMetadata = CreateTableDirectMetadata();
         _context.SetTableViaRowsResult(resultInfo);
 
-        if (_context.InstrumentationMode == QueryInstrumentationMode.Disabled &&
-            TryCreateTableDirectProjectionMethod(
+        if (
+            _context.InstrumentationMode == QueryInstrumentationMode.Disabled
+            && TryCreateTableDirectProjectionMethod(
                 plan,
                 executionRenderer,
                 queryIdentifier,
@@ -216,13 +254,17 @@ public sealed partial class CSharpRenderer
                 renderPlan.FinalSinkPlans.TableDirectProjection,
                 useQueryRunContext: _context.EnableContextualExecution,
                 out var tableDirectRowsMethod,
-                out tableDirectRowsMetadata))
+                out tableDirectRowsMetadata
+            )
+        )
         {
             return ExecutionQueryRenderOutcome.Rendered(
-                new QueryMethodRenderResult(rowsMethodName, tableDirectRowsMethod, tableDirectRowsMetadata));
+                new QueryMethodRenderResult(rowsMethodName, tableDirectRowsMethod, tableDirectRowsMetadata)
+            );
         }
 
-        if (TryCreateTableShapeStreamingMethods(
+        if (
+            TryCreateTableShapeStreamingMethods(
                 plan,
                 executionRenderer,
                 unprofiledExecutionRenderer,
@@ -232,25 +274,37 @@ public sealed partial class CSharpRenderer
                 renderPlan.FinalSinkPlans.TableOutput,
                 useQueryRunContext: _context.EnableContextualExecution,
                 out var tableShapeStreamingRowsAdapterMethod,
-                out var tableShapeStreamingRowsMetadata))
+                out var tableShapeStreamingRowsMetadata
+            )
+        )
         {
             return ExecutionQueryRenderOutcome.Rendered(
-                new QueryMethodRenderResult(rowsMethodName, tableShapeStreamingRowsAdapterMethod, tableShapeStreamingRowsMetadata));
+                new QueryMethodRenderResult(
+                    rowsMethodName,
+                    tableShapeStreamingRowsAdapterMethod,
+                    tableShapeStreamingRowsMetadata
+                )
+            );
         }
 
         if (_context.InstrumentationMode != QueryInstrumentationMode.Disabled)
-            return ExecutionQueryRenderOutcome.Unsupported("Profiled TableViaRows output requires final shape-row streaming.");
+            return ExecutionQueryRenderOutcome.Unsupported(
+                "Profiled TableViaRows output requires final shape-row streaming."
+            );
 
         _context.AddClassMember(executionRenderer.RenderMethod(plan, tableMethodName, queryIdentifier));
         return ExecutionQueryRenderOutcome.Rendered(
-                new QueryMethodRenderResult(
-                    rowsMethodName,
+            new QueryMethodRenderResult(
+                rowsMethodName,
                 CreateRowsFromTableMethod(
                     rowsMethodName,
                     tableMethodName,
                     resultInfo.RowTypeName,
-                    _context.EnableContextualExecution),
-                tableDirectRowsMetadata));
+                    _context.EnableContextualExecution
+                ),
+                tableDirectRowsMetadata
+            )
+        );
     }
 
     private static bool TryGetTableViaRowsRenderPlan(ExecutionPlan plan, out TableViaRowsRenderPlan renderPlan)
@@ -262,23 +316,30 @@ public sealed partial class CSharpRenderer
         ExecutionCSharpRenderer executionRenderer,
         ExecutionPlan plan,
         TableViaRowsResultInfo? finalShapeResultInfo,
-        bool omitFinalShapeClass)
+        bool omitFinalShapeClass
+    )
     {
-        var target = _context.ResultMode == QueryResultMode.TypedEnumerable
-            ? FinalProjectionSinkTarget.TypedRows
-            : FinalProjectionSinkTarget.TableRows;
+        var target =
+            _context.ResultMode == QueryResultMode.TypedEnumerable
+                ? FinalProjectionSinkTarget.TypedRows
+                : FinalProjectionSinkTarget.TableRows;
         if (_context.InstrumentationMode == QueryInstrumentationMode.Disabled)
         {
-            foreach (var classMember in executionRenderer.RenderFinalOutputClassMembers(
-                         plan,
-                         finalShapeResultInfo?.TableName,
-                         finalShapeResultInfo?.ShapeTypeName,
-                         finalShapeResultInfo?.ShapeFields,
-                         omitFinalShapeClass,
-                         target))
+            foreach (
+                var classMember in executionRenderer.RenderFinalOutputClassMembers(
+                    plan,
+                    finalShapeResultInfo?.TableName,
+                    finalShapeResultInfo?.ShapeTypeName,
+                    finalShapeResultInfo?.ShapeFields,
+                    omitFinalShapeClass,
+                    target
+                )
+            )
             {
-                if (classMember is ClassDeclarationSyntax classDeclaration &&
-                    ContainsClassMember(classDeclaration.Identifier.ValueText))
+                if (
+                    classMember is ClassDeclarationSyntax classDeclaration
+                    && ContainsClassMember(classDeclaration.Identifier.ValueText)
+                )
                 {
                     continue;
                 }
@@ -289,24 +350,28 @@ public sealed partial class CSharpRenderer
             return;
         }
 
-        foreach (var classMember in executionRenderer.RenderFinalOutputClassMembers(
-                     plan,
-                     finalShapeResultInfo?.TableName,
-                     finalShapeResultInfo?.ShapeTypeName,
-                     finalShapeResultInfo?.ShapeFields,
-                     omitFinalShapeClass,
-                     target))
+        foreach (
+            var classMember in executionRenderer.RenderFinalOutputClassMembers(
+                plan,
+                finalShapeResultInfo?.TableName,
+                finalShapeResultInfo?.ShapeTypeName,
+                finalShapeResultInfo?.ShapeFields,
+                omitFinalShapeClass,
+                target
+            )
+        )
         {
             var memberIdentity = CreateClassMemberIdentity(classMember);
-            var existingMember = _context.ClassMembers
-                .OfType<MemberDeclarationSyntax>()
+            var existingMember = _context
+                .ClassMembers.OfType<MemberDeclarationSyntax>()
                 .FirstOrDefault(member => CreateClassMemberIdentity(member) == memberIdentity);
             if (existingMember != null)
             {
                 if (!existingMember.IsEquivalentTo(classMember))
                 {
                     throw new InvalidOperationException(
-                        $"Generated execution member '{memberIdentity}' has conflicting profiled and unprofiled declarations.");
+                        $"Generated execution member '{memberIdentity}' has conflicting profiled and unprofiled declarations."
+                    );
                 }
 
                 continue;
@@ -318,8 +383,8 @@ public sealed partial class CSharpRenderer
 
     private bool ContainsClassMember(string className)
     {
-        return _context.ClassMembers
-            .OfType<ClassDeclarationSyntax>()
+        return _context
+            .ClassMembers.OfType<ClassDeclarationSyntax>()
             .Any(member => member.Identifier.ValueText == className);
     }
 
@@ -349,7 +414,7 @@ public sealed partial class CSharpRenderer
                 $"{member.RawKind}:operator:{operatorDeclaration.OperatorToken.ValueText}:{CreateParameterIdentity(operatorDeclaration.ParameterList)}",
             ConversionOperatorDeclarationSyntax conversionDeclaration =>
                 $"{member.RawKind}:conversion:{conversionDeclaration.ImplicitOrExplicitKeyword.ValueText}:{CreateParameterIdentity(conversionDeclaration.ParameterList)}",
-            _ => $"{member.RawKind}:syntax:{member.WithoutTrivia()}"
+            _ => $"{member.RawKind}:syntax:{member.WithoutTrivia()}",
         };
     }
 
@@ -357,15 +422,16 @@ public sealed partial class CSharpRenderer
     {
         return string.Join(
             ",",
-            parameterList.Parameters.Select(parameter =>
-                $"{parameter.Modifiers}:{parameter.Type?.WithoutTrivia()}"));
+            parameterList.Parameters.Select(parameter => $"{parameter.Modifiers}:{parameter.Type?.WithoutTrivia()}")
+        );
     }
 
     private static MethodDeclarationSyntax CreateRowsFromTableMethod(
         string rowsMethodName,
         string tableMethodName,
         string rowTypeName,
-        bool useQueryRunContext)
+        bool useQueryRunContext
+    )
     {
         var tableCall = useQueryRunContext
             ? $"{tableMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken)"
@@ -373,27 +439,36 @@ public sealed partial class CSharpRenderer
         var rowsExpression = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName("__musoqRowsTable"),
-            SyntaxFactory.IdentifierName("Rows"));
+            SyntaxFactory.IdentifierName("Rows")
+        );
         var yieldRow = SyntaxFactory.YieldStatement(
             SyntaxKind.YieldReturnStatement,
             SyntaxFactory.CastExpression(
                 SyntaxFactory.ParseTypeName(rowTypeName),
-                SyntaxFactory.IdentifierName("__musoqRow")));
+                SyntaxFactory.IdentifierName("__musoqRow")
+            )
+        );
         var body = SyntaxFactory.Block(
             SyntaxFactory.ParseStatement($"var __musoqRowsTable = {tableCall};"),
             SyntaxFactory.ForEachStatement(
-                    SyntaxFactory.IdentifierName("var"),
-                    SyntaxFactory.Identifier("__musoqRow"),
-                    rowsExpression,
-                    SyntaxFactory.Block(yieldRow)));
+                SyntaxFactory.IdentifierName("var"),
+                SyntaxFactory.Identifier("__musoqRow"),
+                rowsExpression,
+                SyntaxFactory.Block(yieldRow)
+            )
+        );
 
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.ParseTypeName($"IEnumerable<{rowTypeName}>"),
-                SyntaxFactory.Identifier(rowsMethodName))
+                SyntaxFactory.Identifier(rowsMethodName)
+            )
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(useQueryRunContext
-                ? MethodDeclarationHelper.CreateTypedRunContextParameterList()
-                : MethodDeclarationHelper.CreateStandardParameterList())
+            .WithParameterList(
+                useQueryRunContext
+                    ? MethodDeclarationHelper.CreateTypedRunContextParameterList()
+                    : MethodDeclarationHelper.CreateStandardParameterList()
+            )
             .WithBody(body);
     }
 
@@ -401,45 +476,59 @@ public sealed partial class CSharpRenderer
         string rowsMethodName,
         string tableMethodName,
         string rowTypeName,
-        bool useQueryRunContext)
+        bool useQueryRunContext
+    )
     {
         var tableCall = useQueryRunContext
             ? $"{tableMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken)"
             : $"{tableMethodName}(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token)";
-        var body = SyntaxFactory.Block(SyntaxFactory.ReturnStatement(
-            SyntaxFactory.ParseExpression($"QueryRows.FromTable<{rowTypeName}>({tableCall})")));
+        var body = SyntaxFactory.Block(
+            SyntaxFactory.ReturnStatement(
+                SyntaxFactory.ParseExpression($"QueryRows.FromTable<{rowTypeName}>({tableCall})")
+            )
+        );
 
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.ParseTypeName($"IEnumerable<{rowTypeName}>"),
-                SyntaxFactory.Identifier(rowsMethodName))
+                SyntaxFactory.Identifier(rowsMethodName)
+            )
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(useQueryRunContext
-                ? MethodDeclarationHelper.CreateTypedRunContextParameterList()
-                : MethodDeclarationHelper.CreateStandardParameterList())
+            .WithParameterList(
+                useQueryRunContext
+                    ? MethodDeclarationHelper.CreateTypedRunContextParameterList()
+                    : MethodDeclarationHelper.CreateStandardParameterList()
+            )
             .WithBody(body);
     }
 
     private ExecutionQueryRenderOutcome RenderTypedEnumerableExecutionQueryMethod(
         ExecutionPlan plan,
         ExecutionCSharpRenderer executionRenderer,
-        string queryIdentifier)
+        string queryIdentifier
+    )
     {
         if (_context.InstrumentationMode != QueryInstrumentationMode.Disabled)
-            return ExecutionQueryRenderOutcome.Unsupported("Typed enumerable result mode does not support profiling instrumentation yet.");
+            return ExecutionQueryRenderOutcome.Unsupported(
+                "Typed enumerable result mode does not support profiling instrumentation yet."
+            );
 
         var outputType = _context.OutputType;
         if (outputType == null)
             return ExecutionQueryRenderOutcome.Unsupported("Typed enumerable result mode requires an output type.");
 
         if (!TryGetTableViaRowsRenderPlan(plan, out var renderPlan))
-            return ExecutionQueryRenderOutcome.Unsupported("Typed enumerable result mode requires final select-shape result metadata.");
+            return ExecutionQueryRenderOutcome.Unsupported(
+                "Typed enumerable result mode requires final select-shape result metadata."
+            );
 
         var resultInfo = renderPlan.ResultInfo;
         var binding = TypedOutputBinding.Create(outputType, resultInfo.Columns);
         var rowsMethodName = QueryMethodNameResolver.ResolveRows(_context, queryIdentifier);
         var shapeRowsMethodName = QueryMethodNameResolver.ResolveShapeRows(_context, queryIdentifier);
 
-        if (TryCreateTypedDirectProjectionMethod(
+        if (
+            TryCreateTypedDirectProjectionMethod(
                 plan,
                 executionRenderer,
                 rowsMethodName,
@@ -447,13 +536,17 @@ public sealed partial class CSharpRenderer
                 renderPlan.FinalSinkPlans.TypedDirectProjection,
                 useQueryRunContext: true,
                 out var typedDirectMethod,
-                out var typedDirectMetadata))
+                out var typedDirectMetadata
+            )
+        )
         {
             return ExecutionQueryRenderOutcome.Rendered(
-                new QueryMethodRenderResult(rowsMethodName, typedDirectMethod, typedDirectMetadata));
+                new QueryMethodRenderResult(rowsMethodName, typedDirectMethod, typedDirectMetadata)
+            );
         }
 
-        if (TryCreateTypedPostOperationRowsMethod(
+        if (
+            TryCreateTypedPostOperationRowsMethod(
                 plan,
                 executionRenderer,
                 rowsMethodName,
@@ -462,13 +555,17 @@ public sealed partial class CSharpRenderer
                 renderPlan.FinalSinkPlans.TypedPostOperations,
                 useQueryRunContext: true,
                 out var typedPostOperationMethod,
-                out var typedPostOperationMetadata))
+                out var typedPostOperationMetadata
+            )
+        )
         {
             return ExecutionQueryRenderOutcome.Rendered(
-                new QueryMethodRenderResult(rowsMethodName, typedPostOperationMethod, typedPostOperationMetadata));
+                new QueryMethodRenderResult(rowsMethodName, typedPostOperationMethod, typedPostOperationMetadata)
+            );
         }
 
-        if (TryCreateTypedShapeStreamingMethod(
+        if (
+            TryCreateTypedShapeStreamingMethod(
                 plan,
                 executionRenderer,
                 queryIdentifier,
@@ -478,18 +575,26 @@ public sealed partial class CSharpRenderer
                 resultInfo,
                 out var typedShapeStreamingRowsMethod,
                 out var typedShapeStreamingAdapterMethod,
-                out var typedShapeStreamingMetadata))
+                out var typedShapeStreamingMetadata
+            )
+        )
         {
             _context.AddClassMember(typedShapeStreamingRowsMethod);
             return ExecutionQueryRenderOutcome.Rendered(
-                new QueryMethodRenderResult(rowsMethodName, typedShapeStreamingAdapterMethod, typedShapeStreamingMetadata));
+                new QueryMethodRenderResult(
+                    rowsMethodName,
+                    typedShapeStreamingAdapterMethod,
+                    typedShapeStreamingMetadata
+                )
+            );
         }
 
-        var rejectionReason = typedPostOperationMetadata.FinalSinkRejectionReason ??
-                              typedDirectMetadata.FinalSinkRejectionReason ??
-                              "the final query shape is not supported by the direct typed output renderer.";
+        var rejectionReason =
+            typedPostOperationMetadata.FinalSinkRejectionReason
+            ?? typedDirectMetadata.FinalSinkRejectionReason
+            ?? "the final query shape is not supported by the direct typed output renderer.";
         return ExecutionQueryRenderOutcome.Unsupported(
-            $"Typed enumerable result mode requires direct typed output: {rejectionReason}");
+            $"Typed enumerable result mode requires direct typed output: {rejectionReason}"
+        );
     }
-
 }

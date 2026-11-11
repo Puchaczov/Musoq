@@ -1,12 +1,7 @@
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionVariable(
-    string Name,
-    ExecutionTypeRef Type,
-    string? GeneratedRowTypeName = null)
+public sealed record ExecutionVariable(string Name, ExecutionTypeRef Type, string? GeneratedRowTypeName = null)
 {
     internal ExecutionVariable(string name, Type type, string? generatedRowTypeName = null)
-        : this(name, ExecutionClrBindingFactory.FromClr(type), generatedRowTypeName)
-    {
-    }
+        : this(name, ExecutionClrBindingFactory.FromClr(type), generatedRowTypeName) { }
 }

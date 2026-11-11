@@ -18,7 +18,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw VisitorException.CreateForProcessingFailure(
                 nameof(BuildMetadataAndInferTypesVisitor),
                 nameof(Visit),
-                "ASOF JOIN tie-break expression did not produce an ordered field.");
+                "ASOF JOIN tie-break expression did not produce an ordered field."
+            );
 
         var tieBreak = tieBreakNode as FieldOrderedNode;
         var expression = PopSemanticNode();
@@ -28,7 +29,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw VisitorException.CreateForProcessingFailure(
                 nameof(BuildMetadataAndInferTypesVisitor),
                 nameof(Visit),
-                "JOIN inputs did not produce source nodes.");
+                "JOIN inputs did not produce source nodes."
+            );
 
         if (node.JoinType is JoinType.AsOf or JoinType.AsOfLeft)
             ValidateAsOfJoinCondition(expression, source, joinedTable, tieBreak);
@@ -39,19 +41,26 @@ public partial class BuildMetadataAndInferTypesVisitor
             expression,
             node.JoinType,
             tieBreak,
-            node.WithOrdinality);
+            node.WithOrdinality
+        );
         _sourceBinding.Identifier = joinedFrom.Alias;
         PushSemanticNode(joinedFrom);
     }
 
-    private void ValidateAsOfJoinCondition(Node expression, FromNode source, FromNode joinedTable, FieldOrderedNode? tieBreak)
+    private void ValidateAsOfJoinCondition(
+        Node expression,
+        FromNode source,
+        FromNode joinedTable,
+        FieldOrderedNode? tieBreak
+    )
     {
         if (ContainsOrNode(expression))
         {
             ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3038_AsOfJoinOrNotSupported,
                 "ASOF JOIN ON clause does not support OR.",
-                expression.Span);
+                expression.Span
+            );
             return;
         }
 
@@ -62,7 +71,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3036_AsOfJoinMissingInequality,
                 "ASOF JOIN requires at least one inequality condition (>=, >, <=, <).",
-                expression.Span);
+                expression.Span
+            );
             return;
         }
 
@@ -71,7 +81,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities,
                 $"ASOF JOIN supports exactly one inequality condition. Found {inequalities.Count}.",
-                expression.Span);
+                expression.Span
+            );
             return;
         }
 
@@ -130,7 +141,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         return node is GreaterNode or LessNode or GreaterOrEqualNode or LessOrEqualNode;
     }
 
-    private void ValidateInequalityReferencesBothSides(BinaryNode inequality, HashSet<string> leftAliases, HashSet<string> rightAliases)
+    private void ValidateInequalityReferencesBothSides(
+        BinaryNode inequality,
+        HashSet<string> leftAliases,
+        HashSet<string> rightAliases
+    )
     {
         var columnAliases = ExtractColumnAliases(inequality.Left);
         columnAliases.UnionWith(ExtractColumnAliases(inequality.Right));
@@ -142,13 +157,15 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides,
                 "ASOF JOIN inequality must reference columns from both sides.",
-                inequality.Span);
+                inequality.Span
+            );
     }
 
     private void ValidateTieBreakReferencesRightSide(
         FieldOrderedNode? tieBreak,
         HashSet<string> leftAliases,
-        HashSet<string> rightAliases)
+        HashSet<string> rightAliases
+    )
     {
         if (tieBreak == null)
             return;
@@ -161,7 +178,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides,
                 "ASOF JOIN TIE BREAK BY expression must reference only right-side columns.",
-                tieBreak.SpanOrEmpty());
+                tieBreak.SpanOrEmpty()
+            );
     }
 
     private static HashSet<string> CollectFromNodeAliases(FromNode node)
@@ -173,7 +191,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private static void CollectFromNodeAliasesRecursive(FromNode node, HashSet<string> aliases)
     {
-        if (node == null) return;
+        if (node == null)
+            return;
 
         aliases.Add(node.Alias);
 
@@ -228,7 +247,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3040_AsOfJoinInequalityColumnNotOrderable,
                 "ASOF JOIN inequality column type could not be inferred.",
-                span);
+                span
+            );
             return;
         }
 
@@ -238,7 +258,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportOrThrowAsOfDiagnostic(
                 DiagnosticCode.MQ3040_AsOfJoinInequalityColumnNotOrderable,
                 $"ASOF JOIN inequality column type '{underlying.Name}' is not orderable.",
-                span);
+                span
+            );
     }
 
     private void ReportOrThrowAsOfDiagnostic(DiagnosticCode code, string message, TextSpan span)
@@ -254,17 +275,18 @@ public partial class BuildMetadataAndInferTypesVisitor
             "ASOF JOIN validation",
             message,
             code,
-            span);
+            span
+        );
     }
 
     private static bool IsOrderableType(Type type)
     {
-        return typeof(IComparable).IsAssignableFrom(type) ||
-               type.IsPrimitive ||
-               type == typeof(string) ||
-               type == typeof(DateTime) ||
-               type == typeof(DateTimeOffset) ||
-               type == typeof(TimeSpan) ||
-               type == typeof(decimal);
+        return typeof(IComparable).IsAssignableFrom(type)
+            || type.IsPrimitive
+            || type == typeof(string)
+            || type == typeof(DateTime)
+            || type == typeof(DateTimeOffset)
+            || type == typeof(TimeSpan)
+            || type == typeof(decimal);
     }
 }

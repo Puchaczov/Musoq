@@ -16,37 +16,44 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_LinesFunctionWithParse_ShouldSplitAndParseEachLine()
     {
-        var query = @"
-            text LogEntry {
-                Timestamp: until ' ',
-                Level: until ' ',
-                Message: rest
-            };
-            select
-                log.Timestamp,
-                log.Level,
-                log.Message
-            from #test.files() f
-            cross apply Lines(f.Text) line
-            cross apply Parse<LogEntry>(line.Value) log";
+        var query = (
+            "\n"
+            + "            text LogEntry {\n"
+            + "                Timestamp: until ' ',\n"
+            + "                Level: until ' ',\n"
+            + "                Message: rest\n"
+            + "            };\n"
+            + "            select\n"
+            + "                log.Timestamp,\n"
+            + "                log.Level,\n"
+            + "                log.Message\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Lines(f.Text) line\n"
+            + "            cross apply Parse<LogEntry>(line.Value) log"
+        );
 
-        var multiLineContent = string.Join("\n",
+        var multiLineContent = string.Join(
+            "\n",
             "2024-01-15T10:30:00 INFO Application started",
             "2024-01-15T10:30:01 WARN Low memory detected",
-            "2024-01-15T10:30:02 ERROR Connection failed");
+            "2024-01-15T10:30:02 ERROR Connection failed"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "app.log", Text = multiLineContent }
+            new TextEntity { Name = "app.log", Text = multiLineContent },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -54,12 +61,14 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             table,
             ("Timestamp", typeof(string)),
             ("Level", typeof(string)),
-            ("Message", typeof(string)));
+            ("Message", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["2024-01-15T10:30:00", "INFO", "Application started"],
             ["2024-01-15T10:30:01", "WARN", "Low memory detected"],
-            ["2024-01-15T10:30:02", "ERROR", "Connection failed"]);
+            ["2024-01-15T10:30:02", "ERROR", "Connection failed"]
+        );
     }
 
     /// <summary>
@@ -68,45 +77,48 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_LinesFunctionWithParse_WindowsNewlines_ShouldWork()
     {
-        var query = @"
-            text KeyValue {
-                Key: until '=',
-                Value: rest trim
-            };
-            select
-                kv.Key,
-                kv.Value
-            from #test.files() f
-            cross apply Lines(f.Text) line
-            cross apply Parse<KeyValue>(line.Value) kv
-            order by kv.Key asc";
+        var query = (
+            "\n"
+            + "            text KeyValue {\n"
+            + "                Key: until '=',\n"
+            + "                Value: rest trim\n"
+            + "            };\n"
+            + "            select\n"
+            + "                kv.Key,\n"
+            + "                kv.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Lines(f.Text) line\n"
+            + "            cross apply Parse<KeyValue>(line.Value) kv\n"
+            + "            order by kv.Key asc"
+        );
 
         var multiLineContent = "host=localhost\r\nport=8080\r\ndebug=true";
 
         var entities = new[]
         {
-            new TextEntity { Name = "config.ini", Text = multiLineContent }
+            new TextEntity { Name = "config.ini", Text = multiLineContent },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Key", typeof(string)),
-            ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Key", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["debug", "true"],
             ["host", "localhost"],
-            ["port", "8080"]);
+            ["port", "8080"]
+        );
     }
 
     /// <summary>
@@ -116,41 +128,49 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
     [TestMethod]
     public void Query_LinesFunctionWithParse_OldSyntax_ShouldFailWithClearError()
     {
-        var query = @"
-            text LogEntry {
-                Timestamp: until ' ',
-                Level: until ' ',
-                Message: rest
-            };
-            select
-                log.Timestamp,
-                log.Level,
-                log.Message
-            from #test.files() f
-            cross apply Lines(f.Text) line
-            cross apply Parse(line.Value, 'LogEntry') log";
+        var query = (
+            "\n"
+            + "            text LogEntry {\n"
+            + "                Timestamp: until ' ',\n"
+            + "                Level: until ' ',\n"
+            + "                Message: rest\n"
+            + "            };\n"
+            + "            select\n"
+            + "                log.Timestamp,\n"
+            + "                log.Level,\n"
+            + "                log.Message\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Lines(f.Text) line\n"
+            + "            cross apply Parse(line.Value, 'LogEntry') log"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "app.log", Text = "2024-01-15 INFO Started" }
+            new TextEntity { Name = "app.log", Text = "2024-01-15 INFO Started" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,
-                LoggerResolver, TestCompilationOptions));
+                LoggerResolver,
+                TestCompilationOptions
+            )
+        );
 
         var innerMessage = ex.InnerException?.Message ?? ex.Message;
         Assert.IsTrue(
             innerMessage.Contains("no longer supported", StringComparison.OrdinalIgnoreCase),
-            $"Expected error about old syntax being unsupported, got: {innerMessage}");
+            $"Expected error about old syntax being unsupported, got: {innerMessage}"
+        );
         Assert.IsTrue(
             innerMessage.Contains("Parse<LogEntry>", StringComparison.Ordinal),
-            $"Expected error to suggest new syntax 'Parse<LogEntry>', got: {innerMessage}");
+            $"Expected error to suggest new syntax 'Parse<LogEntry>', got: {innerMessage}"
+        );
     }
 
     #endregion

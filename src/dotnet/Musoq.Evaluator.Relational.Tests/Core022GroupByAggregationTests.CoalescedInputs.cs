@@ -20,20 +20,31 @@ public sealed partial class Core022GroupByAggregationTests
     [TestProperty("Phase", "4")]
     public void Current_P4_0044_GroupedCountAndCoalescedSumHandleNulls()
     {
-        const string query = "with ScoreRows as (\r\n    select v.Bucket as Bucket, v.Score as Score\r\n    from values {\r\n        (Bucket: 'A', Score: null),\r\n        (Bucket: 'A', Score: 2),\r\n        (Bucket: 'B', Score: null),\r\n        (Bucket: 'B', Score: null),\r\n        (Bucket: 'C', Score: 3),\r\n        (Bucket: 'C', Score: null),\r\n        (Bucket: 'D', Score: 0),\r\n        (Bucket: 'D', Score: null)\r\n    } v\r\n)\r\nselect r.Bucket as Bucket,\r\n       Count(*) as RowsInGroup,\r\n       Count(r.Score) as PresentScores,\r\n       Sum(r.Score ?? 0) as FilledTotal\r\nfrom ScoreRows r\r\ngroup by r.Bucket\r\norder by FilledTotal desc, Bucket asc";
+        const string query =
+            "with ScoreRows as (\r\n    select v.Bucket as Bucket, v.Score as Score\r\n    from values {\r\n        (Bucket: 'A', Score: null),\r\n        (Bucket: 'A', Score: 2),\r\n        (Bucket: 'B', Score: null),\r\n        (Bucket: 'B', Score: null),\r\n        (Bucket: 'C', Score: 3),\r\n        (Bucket: 'C', Score: null),\r\n        (Bucket: 'D', Score: 0),\r\n        (Bucket: 'D', Score: null)\r\n    } v\r\n)\r\nselect r.Bucket as Bucket,\r\n       Count(*) as RowsInGroup,\r\n       Count(r.Score) as PresentScores,\r\n       Sum(r.Score ?? 0) as FilledTotal\r\nfrom ScoreRows r\r\ngroup by r.Bucket\r\norder by FilledTotal desc, Bucket asc";
 
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>()), LoggerResolver, TestCompilationOptions);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>()),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
+        TableMaterializationTestHelper.AssertColumns(
+            result,
             ("Bucket", typeof(System.String)),
             ("RowsInGroup", typeof(long)),
             ("PresentScores", typeof(long)),
-            ("FilledTotal", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(result,
+            ("FilledTotal", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            result,
             new object?[] { "C", 2L, 1L, 3 },
             new object?[] { "A", 2L, 1L, 2 },
             new object?[] { "B", 2L, 0L, 0 },
-            new object?[] { "D", 2L, 1L, 0 });
+            new object?[] { "D", 2L, 1L, 0 }
+        );
     }
 
     [TestMethod]

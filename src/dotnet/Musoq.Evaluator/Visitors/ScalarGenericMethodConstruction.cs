@@ -8,8 +8,12 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class ScalarGenericMethodConstruction
 {
-    internal static bool TryConstruct(MethodInfo method, ArgsListNode arguments, Type entity,
-        [NotNullWhen(true)] out MethodInfo? constructed)
+    internal static bool TryConstruct(
+        MethodInfo method,
+        ArgsListNode arguments,
+        Type entity,
+        [NotNullWhen(true)] out MethodInfo? constructed
+    )
     {
         var inferred = new Type?[method.GetGenericArguments().Length];
         var argumentIndex = 0;
@@ -54,8 +58,14 @@ internal static class ScalarGenericMethodConstruction
         constructed = null;
         if (inferred.Any(static type => type == null))
             return false;
-        try { constructed = method.MakeGenericMethod(inferred.Select(static type => type!).ToArray()); }
-        catch (ArgumentException) { return false; }
+        try
+        {
+            constructed = method.MakeGenericMethod(inferred.Select(static type => type!).ToArray());
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
         return true;
     }
 
@@ -77,8 +87,12 @@ internal static class ScalarGenericMethodConstruction
         if (!parameter.IsGenericType)
             return false;
         var definition = parameter.GetGenericTypeDefinition();
-        var candidate = actual.IsGenericType && actual.GetGenericTypeDefinition() == definition
-            ? actual : actual.GetInterfaces().FirstOrDefault(type => type.IsGenericType && type.GetGenericTypeDefinition() == definition);
+        var candidate =
+            actual.IsGenericType && actual.GetGenericTypeDefinition() == definition
+                ? actual
+                : actual
+                    .GetInterfaces()
+                    .FirstOrDefault(type => type.IsGenericType && type.GetGenericTypeDefinition() == definition);
         if (candidate == null)
             return false;
         var templates = parameter.GetGenericArguments();

@@ -20,16 +20,14 @@ public sealed class SuspiciousOrdinaryStringEscapeDocumentationTests
     [DataRow(@"select r'\\server\share' from system.dual()", false)]
     [DataRow(@"select r'C:\Temp\' from system.dual()", false)]
     [DataRow(@"select r'a''b' from system.dual()", false)]
-    public void DocumentedPathExamples_ShouldParseWithDocumentedWarningBehavior(
-        string query,
-        bool expectsWarning)
+    public void DocumentedPathExamples_ShouldParseWithDocumentedWarningBehavior(string query, bool expectsWarning)
     {
         var result = Parse(query);
 
         Assert.IsNotNull(result.Root, result.FormatDiagnostics());
         Assert.IsTrue(result.Success, result.FormatDiagnostics());
-        var warnings = result.Warnings
-            .Where(diagnostic => diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape)
+        var warnings = result
+            .Warnings.Where(diagnostic => diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape)
             .ToArray();
 
         if (expectsWarning)

@@ -11,25 +11,17 @@ namespace Musoq.Evaluator.Tests.Schema.Multi;
 
 public class MultiSchemaTestBase : MSTestContextTestBase
 {
-
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
-    protected CompiledQuery CreateAndRunVirtualMachine(
-        string script,
-        FirstEntity[] first,
-        SecondEntity[] second)
+    protected CompiledQuery CreateAndRunVirtualMachine(string script, FirstEntity[] first, SecondEntity[] second)
     {
-        var schema = new MultiSchema(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
+        var schema = new MultiSchema(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                "first",
-                (new FirstEntityTable(), new MultiRowSource<FirstEntity>(first))
-            },
-            {
-                "second",
-                (new SecondEntityTable(), new MultiRowSource<SecondEntity>(second))
+                { "first", (new FirstEntityTable(), new MultiRowSource<FirstEntity>(first)) },
+                { "second", (new SecondEntityTable(), new MultiRowSource<SecondEntity>(second)) },
             }
-        });
+        );
         return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
     }
 
@@ -44,17 +36,16 @@ public class MultiSchemaTestBase : MSTestContextTestBase
     private CompiledQuery CreateAndRunVirtualMachine(
         string script,
         ISchema schema,
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? SourceRuntimeSettingsBySourceContextId = null)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? SourceRuntimeSettingsBySourceContextId = null
+    )
     {
         _ = SourceRuntimeSettingsBySourceContextId;
 
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
-            new MultiSchemaProvider(new Dictionary<string, ISchema>
-            {
-                { "#schema", schema }
-            }),
-            LoggerResolver);
+            new MultiSchemaProvider(new Dictionary<string, ISchema> { { "#schema", schema } }),
+            LoggerResolver
+        );
     }
 }

@@ -62,6 +62,7 @@ public sealed class GeneratedCodeSamplesLoopInvariantExecutionTests
             $"GeneratedSample_{fileName.Replace('.', '_')}",
             sample.CreateSchemaProvider(),
             new Components.TestsLoggerResolver(),
-            sample.CompilationOptions);
+            sample.CompilationOptions
+        );
     }
 }

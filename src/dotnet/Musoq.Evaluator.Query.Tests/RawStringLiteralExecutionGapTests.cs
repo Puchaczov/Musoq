@@ -7,15 +7,16 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class RawStringLiteralExecutionGapTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void ValuesSource_WhenUppercaseEmptyAndQuotedRawLiteralsAreUsed_ShouldPreserveValues()
     {
-        const string query = @"
-from values {
-    ( Path: R'C:\new\test', Empty: R'', Quoted: R'a''b' )
-} paths
-select paths.Path, paths.Empty, paths.Quoted";
+        const string query = (
+            "\n"
+            + "from values {\n"
+            + "    ( Path: R'C:\\new\\test', Empty: R'', Quoted: R'a''b' )\n"
+            + "} paths\n"
+            + "select paths.Path, paths.Empty, paths.Quoted"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         var table = vm.Run(TestContext.CancellationToken);
@@ -29,11 +30,13 @@ select paths.Path, paths.Empty, paths.Quoted";
     [TestMethod]
     public void ValuesSource_WhenRawBackslashesReachLikeAndRlike_ShouldMatchExpectedPath()
     {
-        const string query = @"
-from values { ( Path: R'C:\logs\app.log' ) } paths
-select
-    paths.Path like R'C:\logs\%.log' as LikeMatch,
-    paths.Path rlike R'C:\\logs\\.*\.log' as RlikeMatch";
+        const string query = (
+            "\n"
+            + "from values { ( Path: R'C:\\logs\\app.log' ) } paths\n"
+            + "select\n"
+            + "    paths.Path like R'C:\\logs\\%.log' as LikeMatch,\n"
+            + "    paths.Path rlike R'C:\\\\logs\\\\.*\\.log' as RlikeMatch"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         var table = vm.Run(TestContext.CancellationToken);
@@ -46,10 +49,9 @@ select
     [TestMethod]
     public void ValuesSource_WhenUppercaseRawLiteralIsAssignedToScriptVariable_ShouldPreserveValue()
     {
-        const string query = @"
-let path: string = R'C:\A';
-from values { ( Path: $path ) } paths
-select paths.Path";
+        const string query = (
+            "\n" + "let path: string = R'C:\\A';\n" + "from values { ( Path: $path ) } paths\n" + "select paths.Path"
+        );
 
         var vm = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         var table = vm.Run(TestContext.CancellationToken);

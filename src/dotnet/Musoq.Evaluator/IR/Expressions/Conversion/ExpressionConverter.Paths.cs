@@ -15,7 +15,8 @@ public sealed partial class ExpressionConverter
             WordNode word => (string.Empty, word.Value),
             DotNode dot => MergePath(ExtractPath(dot.Root), ComposePathSegment(ExtractPath(dot.Expression))),
             _ => throw new UnsupportedIrShapeException(
-                $"Cannot extract dotted path from AST node of type '{node.GetType().Name}'.")
+                $"Cannot extract dotted path from AST node of type '{node.GetType().Name}'."
+            ),
         };
     }
 
@@ -28,17 +29,21 @@ public sealed partial class ExpressionConverter
             PropertyValueNode property => (string.Empty, property.Name),
             AccessObjectArrayNode arrayAccess => (
                 arrayAccess.IsColumnAccess ? arrayAccess.TableAlias ?? string.Empty : string.Empty,
-                $"{arrayAccess.Name}[{arrayAccess.Token.Index}]"),
+                $"{arrayAccess.Name}[{arrayAccess.Token.Index}]"
+            ),
             AccessObjectKeyNode keyAccess => (
                 keyAccess.IsColumnAccess ? keyAccess.TableAlias ?? string.Empty : string.Empty,
-                $"{keyAccess.Name}['{keyAccess.Token.Key}']"),
+                $"{keyAccess.Name}['{keyAccess.Token.Key}']"
+            ),
             IdentifierNode identifier => (string.Empty, identifier.Name),
             WordNode word => (string.Empty, word.Value),
             DotNode dot => MergePath(
                 ExtractPathWithIndexers(dot.Root),
-                ComposePathSegment(ExtractPathWithIndexers(dot.Expression))),
+                ComposePathSegment(ExtractPathWithIndexers(dot.Expression))
+            ),
             _ => throw new UnsupportedIrShapeException(
-                $"Cannot extract dotted path from AST node of type '{node.GetType().Name}'.")
+                $"Cannot extract dotted path from AST node of type '{node.GetType().Name}'."
+            ),
         };
     }
 
@@ -49,7 +54,7 @@ public sealed partial class ExpressionConverter
             AccessObjectArrayNode => true,
             AccessObjectKeyNode => true,
             DotNode dot => ContainsIndexerNode(dot.Root) || ContainsIndexerNode(dot.Expression),
-            _ => false
+            _ => false,
         };
     }
 
@@ -81,9 +86,7 @@ public sealed partial class ExpressionConverter
         return (name[..dotIndex], name[(dotIndex + 1)..]);
     }
 
-    private static (string Alias, string Name) MergePath(
-        (string Alias, string Name) left,
-        string rightSegment)
+    private static (string Alias, string Name) MergePath((string Alias, string Name) left, string rightSegment)
     {
         if (string.IsNullOrWhiteSpace(rightSegment))
             return left;

@@ -14,7 +14,8 @@ public sealed class CompressionTests : PluginsTestBase
     private const string Brotli = "Brotli";
     private const string TestXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><item>Hello World</item></root>";
     private const string TestText = "Hello, World! This is a test string for compression.";
-    private const string UnicodeText = "Hello \u4e16\u754c! \u041f\u0440\u0438\u0432\u0435\u0442 \u043c\u0438\u0440! \U0001f30d";
+    private const string UnicodeText =
+        "Hello \u4e16\u754c! \u041f\u0440\u0438\u0432\u0435\u0442 \u043c\u0438\u0440! \U0001f30d";
 
     [TestMethod]
     [DynamicData(nameof(Codecs))]
@@ -257,7 +258,7 @@ public sealed class CompressionTests : PluginsTestBase
             GZip => Library.CompressGZip(data),
             Deflate => Library.CompressDeflate(data),
             Brotli => Library.CompressBrotli(data),
-            _ => throw UnknownCodec(codec)
+            _ => throw UnknownCodec(codec),
         };
     }
 
@@ -269,7 +270,7 @@ public sealed class CompressionTests : PluginsTestBase
             GZip => Library.CompressGZip(data),
             Deflate => Library.CompressDeflate(data),
             Brotli => Library.CompressBrotli(data),
-            _ => throw UnknownCodec(codec)
+            _ => throw UnknownCodec(codec),
         };
     }
 
@@ -281,7 +282,7 @@ public sealed class CompressionTests : PluginsTestBase
             GZip => Library.DecompressGZip(data),
             Deflate => Library.DecompressDeflate(data),
             Brotli => Library.DecompressBrotli(data),
-            _ => throw UnknownCodec(codec)
+            _ => throw UnknownCodec(codec),
         };
     }
 
@@ -293,7 +294,7 @@ public sealed class CompressionTests : PluginsTestBase
             GZip => Library.DecompressGZip(data, encoding),
             Deflate => Library.DecompressDeflate(data, encoding),
             Brotli => Library.DecompressBrotli(data, encoding),
-            _ => throw UnknownCodec(codec)
+            _ => throw UnknownCodec(codec),
         };
     }
 
@@ -305,7 +306,7 @@ public sealed class CompressionTests : PluginsTestBase
             GZip => Library.DecompressGZipToBytes(data),
             Deflate => Library.DecompressDeflateToBytes(data),
             Brotli => Library.DecompressBrotliToBytes(data),
-            _ => throw UnknownCodec(codec)
+            _ => throw UnknownCodec(codec),
         };
     }
 
@@ -317,7 +318,7 @@ public sealed class CompressionTests : PluginsTestBase
             GZip => Library.CompressGZipToBase64(data),
             Deflate => Library.CompressDeflateToBase64(data),
             Brotli => Library.CompressBrotliToBase64(data),
-            _ => throw UnknownCodec(codec)
+            _ => throw UnknownCodec(codec),
         };
     }
 
@@ -329,7 +330,7 @@ public sealed class CompressionTests : PluginsTestBase
             GZip => Library.DecompressGZipFromBase64(data),
             Deflate => Library.DecompressDeflateFromBase64(data),
             Brotli => Library.DecompressBrotliFromBase64(data),
-            _ => throw UnknownCodec(codec)
+            _ => throw UnknownCodec(codec),
         };
     }
 
@@ -341,7 +342,7 @@ public sealed class CompressionTests : PluginsTestBase
             GZip => Library.DecompressGZipFromBase64(data, encoding),
             Deflate => Library.DecompressDeflateFromBase64(data, encoding),
             Brotli => Library.DecompressBrotliFromBase64(data, encoding),
-            _ => throw UnknownCodec(codec)
+            _ => throw UnknownCodec(codec),
         };
     }
 

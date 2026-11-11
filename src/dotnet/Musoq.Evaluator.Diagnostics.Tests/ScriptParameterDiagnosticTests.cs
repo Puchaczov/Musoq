@@ -17,71 +17,85 @@ public sealed class ScriptParameterDiagnosticTests : EnvironmentVariablesTestBas
         "param(author: string); param(limit: int); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3056_DuplicateScriptParameterBlock,
         "Only one parameter block",
-        DisplayName = "duplicate parameter block")]
+        DisplayName = "duplicate parameter block"
+    )]
     [DataRow(
         "select 1 from #EnvironmentVariables.All(); param(author: string)",
         DiagnosticCode.MQ3057_ScriptParameterBlockAfterStatement,
         "must appear before",
-        DisplayName = "parameter block after query")]
+        DisplayName = "parameter block after query"
+    )]
     [DataRow(
         "param(author: string, author: int); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3058_DuplicateScriptParameterName,
         "declared more than once",
-        DisplayName = "duplicate parameter name")]
+        DisplayName = "duplicate parameter name"
+    )]
     [DataRow(
         "param(author: string); select $missing from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3059_UndeclaredScriptParameter,
         "is not declared",
-        DisplayName = "undeclared parameter reference")]
+        DisplayName = "undeclared parameter reference"
+    )]
     [DataRow(
         "param(author: object); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3060_UnsupportedScriptParameterType,
         "is not supported",
-        DisplayName = "unsupported parameter type")]
+        DisplayName = "unsupported parameter type"
+    )]
     [DataRow(
         "param(ids: object[]); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3060_UnsupportedScriptParameterType,
         "is not supported",
-        DisplayName = "unsupported collection element type")]
+        DisplayName = "unsupported collection element type"
+    )]
     [DataRow(
         "param(limit: int = 'abc'); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3061_InvalidScriptParameterDefault,
         "cannot be converted",
-        DisplayName = "invalid parameter default")]
+        DisplayName = "invalid parameter default"
+    )]
     [DataRow(
         "param(ids: int[] = null); select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3061_InvalidScriptParameterDefault,
         "null",
-        DisplayName = "null default for nonnullable collection")]
+        DisplayName = "null default for nonnullable collection"
+    )]
     [DataRow(
         "param(name: string); let name: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3063_DuplicateScriptSymbolName,
         "declared more than once",
-        DisplayName = "let duplicates parameter name")]
+        DisplayName = "let duplicates parameter name"
+    )]
     [DataRow(
         "let name: object = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3064_UnsupportedScriptVariableType,
         "is not supported",
-        DisplayName = "unsupported let type")]
+        DisplayName = "unsupported let type"
+    )]
     [DataRow(
         "param(root: string = 'KEY'); let name: string = $root + '_1'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
         "runtime parameter",
-        DisplayName = "let initializer uses parameter")]
+        DisplayName = "let initializer uses parameter"
+    )]
     [DataRow(
         "let name: int = 'abc'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
         "cannot be converted",
-        DisplayName = "invalid let conversion")]
+        DisplayName = "invalid let conversion"
+    )]
     [DataRow(
         "let name: string = $later; let later: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ3066_ScriptVariableUsedBeforeDeclaration,
         "before it is declared",
-        DisplayName = "let forward reference")]
+        DisplayName = "let forward reference"
+    )]
     public void CompileForExecution_WhenScriptParameterBindingFails_ShouldUseSpecificEnvelope(
         string query,
         DiagnosticCode expectedCode,
-        string messagePart)
+        string messagePart
+    )
     {
         var exception = CompileFails(query);
 
@@ -96,36 +110,43 @@ public sealed class ScriptParameterDiagnosticTests : EnvironmentVariablesTestBas
         "param(string author) select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
         "param(author: string)",
-        DisplayName = "C#-style parameter")]
+        DisplayName = "C#-style parameter"
+    )]
     [DataRow(
         "param([string]$author) select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
         "PowerShell-style",
-        DisplayName = "PowerShell-style parameter")]
+        DisplayName = "PowerShell-style parameter"
+    )]
     [DataRow(
         "def query(author: str = 'x') select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
         "Python-style",
-        DisplayName = "Python-style parameter")]
+        DisplayName = "Python-style parameter"
+    )]
     [DataRow(
         "declare @author string; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
         "SQL variable",
-        DisplayName = "SQL variable declaration")]
+        DisplayName = "SQL variable declaration"
+    )]
     [DataRow(
         "param(limit: int = $other) select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
         "primitive constants or null",
-        DisplayName = "non-constant default")]
+        DisplayName = "non-constant default"
+    )]
     [DataRow(
         "let string topic = 'important'; select 1 from #EnvironmentVariables.All()",
         DiagnosticCode.MQ2033_InvalidScriptVariableDeclaration,
         "let topic: string",
-        DisplayName = "C#-style let declaration")]
+        DisplayName = "C#-style let declaration"
+    )]
     public void CompileForExecution_WhenScriptParameterSyntaxIsBorrowedFromOtherLanguages_ShouldUseSpecificEnvelope(
         string query,
         DiagnosticCode expectedCode,
-        string messagePart)
+        string messagePart
+    )
     {
         var exception = CompileFails(query);
 
@@ -140,7 +161,8 @@ public sealed class ScriptParameterDiagnosticTests : EnvironmentVariablesTestBas
             "param(limit: int = 'abc') select 1 from #EnvironmentVariables.All()",
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
-            LoggerResolver);
+            LoggerResolver
+        );
 
         var envelope = result.ToEnvelopes().Single();
 
@@ -159,6 +181,8 @@ public sealed class ScriptParameterDiagnosticTests : EnvironmentVariablesTestBas
                 query,
                 Guid.NewGuid().ToString(),
                 new EnvironmentVariablesSchemaProvider(),
-                LoggerResolver));
+                LoggerResolver
+            )
+        );
     }
 }

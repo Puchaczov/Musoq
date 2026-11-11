@@ -6,9 +6,10 @@ public partial class BuildItems
 
     internal TargetFinalizationPurpose FinalizationPurpose
     {
-        get => TryGetArtifact(FinalizationPurposeKey, out TargetFinalizationPurpose purpose)
-            ? purpose
-            : TargetFinalizationPurpose.Execution;
+        get =>
+            TryGetArtifact(FinalizationPurposeKey, out TargetFinalizationPurpose purpose)
+                ? purpose
+                : TargetFinalizationPurpose.Execution;
         set => SetRequired(FinalizationPurposeKey, value);
     }
 }

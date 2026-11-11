@@ -9,7 +9,8 @@ public sealed record AggregateGroupShape : RowShape
         IReadOnlyList<AggregateGroupKeyField> keys,
         IReadOnlyList<AggregateCapturedField> capturedFields,
         IReadOnlyList<AggregateAccumulatorField> accumulators,
-        IReadOnlyList<AggregateGroupOwnerField> ownerFields)
+        IReadOnlyList<AggregateGroupOwnerField> ownerFields
+    )
         : base(typeName, [])
     {
         TypeName = typeName;
@@ -33,10 +34,9 @@ public sealed record AggregateGroupShape : RowShape
         string typeName,
         IReadOnlyList<AggregateGroupKeyField> keys,
         IReadOnlyList<AggregateCapturedField> capturedFields,
-        IReadOnlyList<AggregateAccumulatorField> accumulators)
-        : this(typeName, keys, capturedFields, accumulators, [])
-    {
-    }
+        IReadOnlyList<AggregateAccumulatorField> accumulators
+    )
+        : this(typeName, keys, capturedFields, accumulators, []) { }
 
     public bool RequiresParentLinks => OwnerFields.Count > 0;
 }

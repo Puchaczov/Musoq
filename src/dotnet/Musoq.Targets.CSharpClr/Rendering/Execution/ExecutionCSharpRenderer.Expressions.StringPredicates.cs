@@ -6,7 +6,10 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
     private ParenthesizedExpressionSyntax RenderLibraryBaseStringPredicate(
-        ExecutionMethodCall methodCall, string methodName, ExecutionRenderContext context)
+        ExecutionMethodCall methodCall,
+        string methodName,
+        ExecutionRenderContext context
+    )
     {
         var value = RenderStringPredicateArgument(methodCall.Arguments[0], context);
         var pattern = RenderStringPredicateArgument(methodCall.Arguments[1], context);
@@ -15,14 +18,25 @@ public sealed partial class ExecutionCSharpRenderer
         var literalPattern = methodCall.Arguments[1] is ExecutionLiteral;
         ExpressionSyntax patternLocal = literalPattern ? pattern : SyntaxFactory.IdentifierName(names.Pattern);
         var nullLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-        var hasNull = SyntaxFactory.BinaryExpression(SyntaxKind.LogicalOrExpression,
+        var hasNull = SyntaxFactory.BinaryExpression(
+            SyntaxKind.LogicalOrExpression,
             SyntaxFactory.IsPatternExpression(valueLocal, SyntaxFactory.ConstantPattern(nullLiteral)),
-            SyntaxFactory.IsPatternExpression(patternLocal, SyntaxFactory.ConstantPattern(nullLiteral)));
-        var invocation = SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression, valueLocal, SyntaxFactory.IdentifierName(methodName)))
+            SyntaxFactory.IsPatternExpression(patternLocal, SyntaxFactory.ConstantPattern(nullLiteral))
+        );
+        var invocation = SyntaxFactory
+            .InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    valueLocal,
+                    SyntaxFactory.IdentifierName(methodName)
+                )
+            )
             .WithArgumentList(CreateArgumentList(patternLocal, CreateOrdinalIgnoreCaseStringComparisonExpression()));
-        var result = SyntaxFactory.ConditionalExpression(hasNull,
-            SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), nullLiteral), invocation);
+        var result = SyntaxFactory.ConditionalExpression(
+            hasNull,
+            SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), nullLiteral),
+            invocation
+        );
         ExpressionSyntax body = result;
         if (!literalPattern)
             body = ExecutionValueCaptureSyntax.Capture(pattern, names.Pattern, body);
@@ -33,6 +47,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var value = RenderExpression(argument, context);
         return argument is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null }
-            ? SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(string)), value) : value;
+            ? SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(string)), value)
+            : value;
     }
 }

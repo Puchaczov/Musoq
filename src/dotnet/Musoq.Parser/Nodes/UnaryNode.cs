@@ -3,9 +3,7 @@ namespace Musoq.Parser.Nodes;
 public abstract class UnaryNode : Node
 {
     protected UnaryNode(Node expression)
-        : this(expression, default)
-    {
-    }
+        : this(expression, default) { }
 
     protected UnaryNode(Node expression, TextSpan span)
     {

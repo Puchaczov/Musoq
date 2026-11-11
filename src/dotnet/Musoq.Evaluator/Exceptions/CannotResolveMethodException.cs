@@ -1,5 +1,5 @@
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class CannotResolveMethodException : Exception, IDiagnosticException
 {
-
     public CannotResolveMethodException(string message, Exception innerException)
         : base(message, innerException)
     {
@@ -22,6 +21,7 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     {
         Code = DiagnosticCode.MQ3088_NoMatchingCallableOverload;
     }
+
     /// <summary>
     ///     Initializes a new instance with a message.
     /// </summary>
@@ -60,7 +60,8 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
         DiagnosticCode code,
         TextSpan span,
         IReadOnlyDictionary<string, string>? arguments,
-        IReadOnlyList<DiagnosticAction>? suggestedFixes = null)
+        IReadOnlyList<DiagnosticAction>? suggestedFixes = null
+    )
         : base(message)
     {
         Code = code;
@@ -68,9 +69,7 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
         Arguments = arguments is null
             ? new Dictionary<string, string>(StringComparer.Ordinal)
             : new Dictionary<string, string>(arguments, StringComparer.Ordinal);
-        SuggestedFixes = suggestedFixes is null
-            ? []
-            : [..suggestedFixes];
+        SuggestedFixes = suggestedFixes is null ? [] : [.. suggestedFixes];
     }
 
     /// <summary>
@@ -100,23 +99,24 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
         var span = Span ?? TextSpan.Empty;
-        var actions = SuggestedFixes.Count > 0
-            ? SuggestedFixes
-            : CreateCallableReplacement(sourceText, span);
+        var actions = SuggestedFixes.Count > 0 ? SuggestedFixes : CreateCallableReplacement(sourceText, span);
         return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText, Arguments, actions);
     }
 
     private IReadOnlyList<DiagnosticAction>? CreateCallableReplacement(SourceText? sourceText, TextSpan span)
     {
-        if (sourceText == null || span.IsEmpty || Code != DiagnosticCode.MQ3086_UnknownCallable ||
-            !Arguments.TryGetValue("callable", out var callable) ||
-            !Arguments.TryGetValue("suggestion", out var suggestion) ||
-            !Arguments.TryGetValue("candidateCallables", out var candidateCallables))
+        if (
+            sourceText == null
+            || span.IsEmpty
+            || Code != DiagnosticCode.MQ3086_UnknownCallable
+            || !Arguments.TryGetValue("callable", out var callable)
+            || !Arguments.TryGetValue("suggestion", out var suggestion)
+            || !Arguments.TryGetValue("candidateCallables", out var candidateCallables)
+        )
             return null;
 
-        var candidates = candidateCallables.Split(
-                ',',
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        var candidates = candidateCallables
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
         if (candidates.Length != 1 || !string.Equals(candidates[0], suggestion, StringComparison.OrdinalIgnoreCase))
@@ -127,11 +127,7 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
         if (start >= end)
             return null;
 
-        var index = sourceText.Text.IndexOf(
-            callable,
-            start,
-            end - start,
-            StringComparison.OrdinalIgnoreCase);
+        var index = sourceText.Text.IndexOf(callable, start, end - start, StringComparison.OrdinalIgnoreCase);
         return index < 0
             ? null
             :
@@ -139,7 +135,8 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
                 DiagnosticAction.QuickFix(
                     $"Replace '{callable}' with '{suggestion}'",
                     new TextSpan(index, callable.Length),
-                    suggestion)
+                    suggestion
+                ),
             ];
     }
 
@@ -157,11 +154,9 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     public static CannotResolveMethodException CreateForCannotMatchMethodNameOrArguments(string methodName, Node[] args)
     {
         ArgumentNullException.ThrowIfNull(args);
-        var types = args.Length > 0
-            ? string.Join(", ", args.Select(f => f.ReturnType?.ToString() ?? "null"))
-            : string.Empty;
+        var types =
+            args.Length > 0 ? string.Join(", ", args.Select(f => f.ReturnType?.ToString() ?? "null")) : string.Empty;
 
-        return new CannotResolveMethodException(
-            $"Method {methodName} with argument types {types} cannot be resolved");
+        return new CannotResolveMethodException($"Method {methodName} with argument types {types} cannot be resolved");
     }
 }

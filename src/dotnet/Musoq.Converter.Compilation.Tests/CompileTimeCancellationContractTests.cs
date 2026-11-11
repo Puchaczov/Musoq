@@ -28,7 +28,8 @@ public sealed class CompileTimeCancellationContractTests
             provider,
             new TestsLoggerResolver(),
             options,
-            cancellation.Token);
+            cancellation.Token
+        );
 
         try
         {
@@ -42,15 +43,22 @@ public sealed class CompileTimeCancellationContractTests
 
         var key = SemanticTemplateCache.CreateKey(
             CreateSemanticCacheInput(query, provider, options),
-            CancellationToken.None);
+            CancellationToken.None
+        );
         Assert.IsNotNull(key);
         Assert.IsTrue(key.HasValue);
         Assert.IsTrue(SemanticTemplateCache.TryGet(key.Value, CancellationToken.None, out var snapshot));
         Assert.IsNotEmpty(snapshot.SourcePlanRequestsPerSchema);
-        Assert.IsTrue(snapshot.SourcePlanRequestsPerSchema.Values.All(
-            static request => request.CancellationToken == CancellationToken.None));
-        Assert.IsTrue(snapshot.Phase.Metadata.SourcePlanRequestsPerSchema.Values.All(
-            static request => request.CancellationToken == CancellationToken.None));
+        Assert.IsTrue(
+            snapshot.SourcePlanRequestsPerSchema.Values.All(static request =>
+                request.CancellationToken == CancellationToken.None
+            )
+        );
+        Assert.IsTrue(
+            snapshot.Phase.Metadata.SourcePlanRequestsPerSchema.Values.All(static request =>
+                request.CancellationToken == CancellationToken.None
+            )
+        );
     }
 
     [TestMethod]
@@ -64,10 +72,12 @@ public sealed class CompileTimeCancellationContractTests
 
         var first = SemanticTemplateCache.CreateKey(
             CreateSemanticCacheInput(query, provider, options),
-            firstCancellation.Token);
+            firstCancellation.Token
+        );
         var second = SemanticTemplateCache.CreateKey(
             CreateSemanticCacheInput(query, provider, options),
-            secondCancellation.Token);
+            secondCancellation.Token
+        );
 
         Assert.IsNotNull(first);
         Assert.IsTrue(first.HasValue);
@@ -91,14 +101,16 @@ public sealed class CompileTimeCancellationContractTests
             options,
             ExecutionTargetIds.CSharpClr,
             TargetRenderProfile.ExecutionFast,
-            firstCancellation.Token);
+            firstCancellation.Token
+        );
         var second = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             provider,
             options,
             ExecutionTargetIds.CSharpClr,
             TargetRenderProfile.ExecutionFast,
-            secondCancellation.Token);
+            secondCancellation.Token
+        );
 
         Assert.AreEqual(first, second);
     }
@@ -117,7 +129,8 @@ public sealed class CompileTimeCancellationContractTests
             provider,
             new TestsLoggerResolver(),
             options,
-            firstCancellation.Token);
+            firstCancellation.Token
+        );
 
         try
         {
@@ -127,11 +140,13 @@ public sealed class CompileTimeCancellationContractTests
             var first = InstanceCreator.CreateCanonicalExecutionContractForTests(
                 result.BuildItems!,
                 provider,
-                firstCancellation.Token);
+                firstCancellation.Token
+            );
             var second = InstanceCreator.CreateCanonicalExecutionContractForTests(
                 result.BuildItems!,
                 provider,
-                secondCancellation.Token);
+                secondCancellation.Token
+            );
 
             Assert.AreEqual(first, second);
         }
@@ -144,7 +159,8 @@ public sealed class CompileTimeCancellationContractTests
     private static SemanticTemplateCacheInput CreateSemanticCacheInput(
         string query,
         ISchemaProvider provider,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
         return new SemanticTemplateCacheInput(
             query,
@@ -160,6 +176,7 @@ public sealed class CompileTimeCancellationContractTests
             false,
             false,
             [],
-            typeof(SchemaRegistry).AssemblyQualifiedName!);
+            typeof(SchemaRegistry).AssemblyQualifiedName!
+        );
     }
 }

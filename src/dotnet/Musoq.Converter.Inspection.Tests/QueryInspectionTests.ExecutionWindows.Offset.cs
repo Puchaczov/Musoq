@@ -9,31 +9,45 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForLagWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect("select d.Dummy, Lag(d.Dummy, 1) over (order by d.Dummy) as PrevDummy from #system.dual() d",
-            new CompilationOptions());
+        var result = Inspect(
+            "select d.Dummy, Lag(d.Dummy, 1) over (order by d.Dummy) as PrevDummy from #system.dual() d",
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeLagWindow [resultLags <- resultWindowRows value d.Dummy order by d.Dummy ASC frame range between unbounded preceding and current row args 1, NULL]", result.ExecutionPlanText);
-        Assert.Contains("var resultLagsOrderKeys = new WindowResultLagsOrderKeysKey[resultWindowRows.Count];", result.GeneratedCSharpCode);
+        Assert.Contains(
+            "ComputeLagWindow [resultLags <- resultWindowRows value d.Dummy order by d.Dummy ASC frame range between unbounded preceding and current row args 1, NULL]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains(
+            "var resultLagsOrderKeys = new WindowResultLagsOrderKeysKey[resultWindowRows.Count];",
+            result.GeneratedCSharpCode
+        );
         Assert.Contains("resultLagsValues", result.GeneratedCSharpCode);
         Assert.Contains("var resultLags = new string[resultWindowRows.Count];", result.GeneratedCSharpCode);
         Assert.Contains("LagReferenceKernel<string>.Get(in resultLagsContext", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeLag", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeLag", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForPartitionedLagWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'a' as City, 'amy' as Name, 1 as Score from #system.dual()
-                    union all (City, Name, Score) select 'a' as City, 'bea' as Name, 2 as Score from #system.dual()
-                    union all (City, Name, Score) select 'b' as City, 'cal' as Name, 3 as Score from #system.dual()
-                )
-                select c.City, c.Score, c.Name, Lag(c.Score, 1) over (partition by c.City order by c.Score) as PrevScore
-                from c
-                order by c.City, c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'a' as City, 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (City, Name, Score) select 'a' as City, 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (City, Name, Score) select 'b' as City, 'cal' as Name, 3 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.City, c.Score, c.Name, Lag(c.Score, 1) over (partition by c.City order by c.Score) as PrevScore\n"
+                + "                from c\n"
+                + "                order by c.City, c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -55,16 +69,20 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForPartitionedLeadWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'a' as City, 'amy' as Name, 1 as Score from #system.dual()
-                    union all (City, Name, Score) select 'a' as City, 'bea' as Name, 2 as Score from #system.dual()
-                    union all (City, Name, Score) select 'b' as City, 'cal' as Name, 3 as Score from #system.dual()
-                )
-                select c.City, c.Score, c.Name, Lead(c.Score, 1) over (partition by c.City order by c.Score) as NextScore
-                from c
-                order by c.City, c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'a' as City, 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (City, Name, Score) select 'a' as City, 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (City, Name, Score) select 'b' as City, 'cal' as Name, 3 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.City, c.Score, c.Name, Lead(c.Score, 1) over (partition by c.City order by c.Score) as NextScore\n"
+                + "                from c\n"
+                + "                order by c.City, c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -86,38 +104,52 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForFramedOffsetWindows_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                )
-                select c.Name,
-                       Lag(c.Score, 1) over (order by c.Score rows between current row and current row) as PrevScore,
-                       Lead(c.Score, 1) over (order by c.Score range between unbounded preceding and current row) as NextScore
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Lag(c.Score, 1) over (order by c.Score rows between current row and current row) as PrevScore,\n"
+                + "                       Lead(c.Score, 1) over (order by c.Score range between unbounded preceding and current row) as NextScore\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeLagWindow [resultLags0 <- resultWindowRows value c.Score order by c.Score ASC frame rows between current row and current row args 1, NULL]", result.ExecutionPlanText);
-        Assert.Contains("ComputeLeadWindow [resultLeads1 <- resultWindowRows value c.Score order by c.Score ASC frame range between unbounded preceding and current row args 1, NULL]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeLagWindow [resultLags0 <- resultWindowRows value c.Score order by c.Score ASC frame rows between current row and current row args 1, NULL]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains(
+            "ComputeLeadWindow [resultLeads1 <- resultWindowRows value c.Score order by c.Score ASC frame range between unbounded preceding and current row args 1, NULL]",
+            result.ExecutionPlanText
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForFramedOffsetWindows_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()
-                )
-                select c.Name,
-                       c.Score,
-                       Lag(c.Score, 1) over (order by c.Score rows between current row and current row) as PrevScore,
-                       Lead(c.Score, 1) over (order by c.Score range between unbounded preceding and current row) as NextScore
-                from c
-                order by c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       c.Score,\n"
+                + "                       Lag(c.Score, 1) over (order by c.Score rows between current row and current row) as PrevScore,\n"
+                + "                       Lead(c.Score, 1) over (order by c.Score range between unbounded preceding and current row) as NextScore\n"
+                + "                from c\n"
+                + "                order by c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -139,44 +171,62 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForRowDependentOffsetWindowArguments_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score, 1 as Step, 'fallback-amy' as Fallback from #system.dual()
-                    union all (Name, Score, Step, Fallback) select 'bea' as Name, 2 as Score, 2 as Step, 'fallback-bea' as Fallback from #system.dual()
-                )
-                select c.Name,
-                       Lag(c.Name, c.Step, c.Fallback) over (order by c.Score) as PrevName,
-                       Lead(c.Name, c.Step, c.Fallback) over (order by c.Score) as NextName
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score, 1 as Step, 'fallback-amy' as Fallback from #system.dual()\n"
+                + "                    union all (Name, Score, Step, Fallback) select 'bea' as Name, 2 as Score, 2 as Step, 'fallback-bea' as Fallback from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Lag(c.Name, c.Step, c.Fallback) over (order by c.Score) as PrevName,\n"
+                + "                       Lead(c.Name, c.Step, c.Fallback) over (order by c.Score) as NextName\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeLagWindow [resultLags0 <- resultWindowRows value c.Name order by c.Score ASC frame range between unbounded preceding and current row args c.Step, c.Fallback]", result.ExecutionPlanText);
-        Assert.Contains("ComputeLeadWindow [resultLeads1 <- resultWindowRows value c.Name order by c.Score ASC frame range between unbounded preceding and current row args c.Step, c.Fallback]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeLagWindow [resultLags0 <- resultWindowRows value c.Name order by c.Score ASC frame range between unbounded preceding and current row args c.Step, c.Fallback]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains(
+            "ComputeLeadWindow [resultLeads1 <- resultWindowRows value c.Name order by c.Score ASC frame range between unbounded preceding and current row args c.Step, c.Fallback]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("resultLags0Argument0", result.GeneratedCSharpCode);
         Assert.Contains("resultLags0Argument1", result.GeneratedCSharpCode);
         Assert.Contains("resultLeads1Argument0", result.GeneratedCSharpCode);
         Assert.Contains("resultLeads1Argument1", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeLag", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeLead", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeLag", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeLead", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForRowDependentOffsetWindowArguments_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score, 1 as Step, 'fallback-amy' as Fallback from #system.dual()
-                    union all (Name, Score, Step, Fallback) select 'bea' as Name, 2 as Score, 2 as Step, 'fallback-bea' as Fallback from #system.dual()
-                    union all (Name, Score, Step, Fallback) select 'cal' as Name, 3 as Score, 1 as Step, 'fallback-cal' as Fallback from #system.dual()
-                )
-                  select c.Name,
-                      c.Score,
-                       Lag(c.Name, c.Step, c.Fallback) over (order by c.Score) as PrevName,
-                       Lead(c.Name, c.Step, c.Fallback) over (order by c.Score) as NextName
-                from c
-                order by c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score, 1 as Step, 'fallback-amy' as Fallback from #system.dual()\n"
+                + "                    union all (Name, Score, Step, Fallback) select 'bea' as Name, 2 as Score, 2 as Step, 'fallback-bea' as Fallback from #system.dual()\n"
+                + "                    union all (Name, Score, Step, Fallback) select 'cal' as Name, 3 as Score, 1 as Step, 'fallback-cal' as Fallback from #system.dual()\n"
+                + "                )\n"
+                + "                  select c.Name,\n"
+                + "                      c.Score,\n"
+                + "                       Lag(c.Name, c.Step, c.Fallback) over (order by c.Score) as PrevName,\n"
+                + "                       Lead(c.Name, c.Step, c.Fallback) over (order by c.Score) as NextName\n"
+                + "                from c\n"
+                + "                order by c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -194,5 +244,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual("bea", table[2].ReadValue(2));
         Assert.AreEqual("fallback-cal", table[2].ReadValue(3));
     }
-
 }

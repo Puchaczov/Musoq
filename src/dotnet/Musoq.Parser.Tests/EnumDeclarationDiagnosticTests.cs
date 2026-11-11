@@ -19,13 +19,18 @@ public sealed class EnumDeclarationDiagnosticTests
     [DataRow("enum MissingComma : int { A = 1 B = 2 };", DiagnosticCode.MQ2042_InvalidEnumDeclaration, "B")]
     [DataRow("enum Overflow : byte { A = 256 };", DiagnosticCode.MQ2046_EnumMemberValueOutOfRange, "256")]
     [DataRow("enum NegativeUnsigned : uint { A = -1 };", DiagnosticCode.MQ2046_EnumMemberValueOutOfRange, "-1")]
-    [DataRow("enum PositiveSignedOverflow : long { A = 9223372036854775808 };", DiagnosticCode.MQ2046_EnumMemberValueOutOfRange, "9223372036854775808")]
+    [DataRow(
+        "enum PositiveSignedOverflow : long { A = 9223372036854775808 };",
+        DiagnosticCode.MQ2046_EnumMemberValueOutOfRange,
+        "9223372036854775808"
+    )]
     [DataRow("ENUM('Ready', 'Done');", DiagnosticCode.MQ2048_UnsupportedEnumSyntax, "ENUM")]
     [DataRow("CREATE TYPE state AS ENUM ('Ready', 'Done');", DiagnosticCode.MQ2048_UnsupportedEnumSyntax, "CREATE")]
     public void InvalidEnumDeclaration_ShouldReportStablePreciseDiagnostic(
         string query,
         DiagnosticCode expectedCode,
-        string expectedText)
+        string expectedText
+    )
     {
         AssertParseDiagnostic(query, expectedCode, SpanOf(query, expectedText));
     }
@@ -38,7 +43,8 @@ public sealed class EnumDeclarationDiagnosticTests
         AssertParseDiagnostic(
             query,
             DiagnosticCode.MQ2045_DuplicateEnumMember,
-            SpanOf(query, "Ready", query.IndexOf("Ready", StringComparison.Ordinal) + 1));
+            SpanOf(query, "Ready", query.IndexOf("Ready", StringComparison.Ordinal) + 1)
+        );
     }
 
     [TestMethod]
@@ -46,10 +52,7 @@ public sealed class EnumDeclarationDiagnosticTests
     {
         const string query = "enum Duplicate : int { Ready = 1, READY = 2 };";
 
-        AssertParseDiagnostic(
-            query,
-            DiagnosticCode.MQ2045_DuplicateEnumMember,
-            SpanOf(query, "READY"));
+        AssertParseDiagnostic(query, DiagnosticCode.MQ2045_DuplicateEnumMember, SpanOf(query, "READY"));
     }
 
     [TestMethod]
@@ -57,10 +60,7 @@ public sealed class EnumDeclarationDiagnosticTests
     {
         const string query = "enum State : int { Ready = 1 }; enum STATE : int { Done = 2 };";
 
-        AssertParseDiagnostic(
-            query,
-            DiagnosticCode.MQ2042_InvalidEnumDeclaration,
-            SpanOf(query, "STATE"));
+        AssertParseDiagnostic(query, DiagnosticCode.MQ2042_InvalidEnumDeclaration, SpanOf(query, "STATE"));
     }
 
     [TestMethod]
@@ -83,10 +83,7 @@ public sealed class EnumDeclarationDiagnosticTests
     {
         const string query = "flags FileAccess : uint { Read = 1ui };";
 
-        AssertParseDiagnostic(
-            query,
-            DiagnosticCode.MQ2042_InvalidEnumDeclaration,
-            SpanOf(query, "FileAccess"));
+        AssertParseDiagnostic(query, DiagnosticCode.MQ2042_InvalidEnumDeclaration, SpanOf(query, "FileAccess"));
     }
 
     [TestMethod]
@@ -94,10 +91,7 @@ public sealed class EnumDeclarationDiagnosticTests
     {
         const string query = "enum State : int { Ready, Done };";
 
-        AssertParseDiagnostic(
-            query,
-            DiagnosticCode.MQ2044_MissingEnumMemberValue,
-            SpanOf(query, "Ready"));
+        AssertParseDiagnostic(query, DiagnosticCode.MQ2044_MissingEnumMemberValue, SpanOf(query, "Ready"));
     }
 
     private static ParseResult ParseWithDiagnostics(string query)

@@ -12,6 +12,9 @@ trim_trailing_whitespace = true
 # helper hooks, benchmark scenarios, and regression-test scenario names.
 dotnet_diagnostic.CA1707.severity = none
 
+[*.{cs,csx,csproj,props,targets,config,Config,xml,resx}]
+max_line_length = 120
+
 [src/dotnet/Musoq.*.Tests/**]
 # Test method and fixture names intentionally encode scenarios.
 dotnet_diagnostic.CA1515.severity = none

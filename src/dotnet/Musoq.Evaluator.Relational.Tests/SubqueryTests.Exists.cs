@@ -10,11 +10,13 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenExistsSubquery_IsUncorrelatedAndNonEmpty_ShouldUseLeftSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.City, b.Country FROM #B.entities() b
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE EXISTS (\n"
+            + "                SELECT b.City, b.Country FROM #B.entities() b\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateExistsSources()).Run(TestContext.CancellationToken);
 
@@ -29,13 +31,16 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenExistsSubquery_IsUncorrelatedAndEmpty_ShouldReturnNoRows()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.City FROM #B.entities() b
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE EXISTS (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "            )"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateExistsSourcesWithEmptyB()).Run(TestContext.CancellationToken);
+        var table = CreateAndRunVirtualMachine(query, CreateExistsSourcesWithEmptyB())
+            .Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table);
@@ -44,13 +49,16 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenNotExistsSubquery_IsUncorrelatedAndEmpty_ShouldUseLeftAntiSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE NOT EXISTS (
-                SELECT b.City FROM #B.entities() b
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE NOT EXISTS (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "            )"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateExistsSourcesWithEmptyB()).Run(TestContext.CancellationToken);
+        var table = CreateAndRunVirtualMachine(query, CreateExistsSourcesWithEmptyB())
+            .Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"], ["PARIS"]);
@@ -62,12 +70,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenExistsSubquery_HasEqualityCorrelation_ShouldUseLeftSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE EXISTS (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateExistsSources()).Run(TestContext.CancellationToken);
 
@@ -82,12 +92,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenNotExistsSubquery_HasEqualityCorrelation_ShouldUseLeftAntiSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE NOT EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE NOT EXISTS (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateExistsSources()).Run(TestContext.CancellationToken);
 
@@ -101,12 +113,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenExistsSubquery_SelectReferencesOuterAlias_ShouldIgnoreProjectionForCorrelation()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT a.City FROM #B.entities() b
-                WHERE b.Country = 'POLAND'
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE EXISTS (\n"
+            + "                SELECT a.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = 'POLAND'\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateExistsSources()).Run(TestContext.CancellationToken);
 
@@ -120,15 +134,17 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenExistsSubquery_IsInsideCteBody_ShouldCorrelateToCteBodyQuery()
     {
-        const string query = @"
-            WITH filtered AS (
-                SELECT a.City FROM #A.entities() a
-                WHERE EXISTS (
-                    SELECT b.City FROM #B.entities() b
-                    WHERE b.Country = a.Country
-                )
-            )
-            SELECT f.City FROM filtered f";
+        const string query = (
+            "\n"
+            + "            WITH filtered AS (\n"
+            + "                SELECT a.City FROM #A.entities() a\n"
+            + "                WHERE EXISTS (\n"
+            + "                    SELECT b.City FROM #B.entities() b\n"
+            + "                    WHERE b.Country = a.Country\n"
+            + "                )\n"
+            + "            )\n"
+            + "            SELECT f.City FROM filtered f"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateExistsSources()).Run(TestContext.CancellationToken);
 
@@ -139,16 +155,18 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenNestedExistsSubquery_CorrelatesToParentSubquery_ShouldDecorrelateBothLevels()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-                  AND EXISTS (
-                      SELECT c.City FROM #C.entities() c
-                      WHERE c.City = b.City
-                  )
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE EXISTS (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "                  AND EXISTS (\n"
+            + "                      SELECT c.City FROM #C.entities() c\n"
+            + "                      WHERE c.City = b.City\n"
+            + "                  )\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateExistsSources()).Run(TestContext.CancellationToken);
 
@@ -163,13 +181,15 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenExistsSubquery_IsInsideOrBranch_ShouldUsePredicateHashMark()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-            )
-               OR a.Country = 'GERMANY'";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE EXISTS (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "            )\n"
+            + "               OR a.Country = 'GERMANY'"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateExistsSources()).Run(TestContext.CancellationToken);
 
@@ -178,7 +198,10 @@ public partial class SubqueryTests
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateHashMark", inspection.PlanningText);
+        Assert.Contains(
+            "SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateHashMark",
+            inspection.PlanningText
+        );
         Assert.IsFalse(inspection.PhysicalPlanText.Contains("PhysicalHashJoin [LeftSemi]", StringComparison.Ordinal));
     }
 
@@ -187,24 +210,15 @@ public partial class SubqueryTests
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("PARIS", "FRANCE", 300)
+                    new BasicEntity("PARIS", "FRANCE", 300),
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("KRAKOW", "POLAND", 100),
-                    new BasicEntity("PARIS", "FRANCE", 450)
-                ]
-            },
-            {
-                "#C", [
-                    new BasicEntity("KRAKOW", "POLAND", 10),
-                    new BasicEntity("PARIS", "FRANCE", 20)
-                ]
-            }
+            { "#B", [new BasicEntity("KRAKOW", "POLAND", 100), new BasicEntity("PARIS", "FRANCE", 450)] },
+            { "#C", [new BasicEntity("KRAKOW", "POLAND", 10), new BasicEntity("PARIS", "FRANCE", 20)] },
         };
     }
 

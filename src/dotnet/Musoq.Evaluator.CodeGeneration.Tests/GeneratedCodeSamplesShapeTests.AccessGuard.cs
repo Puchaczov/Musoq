@@ -32,10 +32,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void ShapeTests_ShouldNotUseRemovedEagerSampleAccessorOrSingleFromCorpus()
     {
         var sourceDirectory = GetShapeTestSourceDirectory();
-        var sourceFiles = Directory.EnumerateFiles(
-                sourceDirectory,
-                "GeneratedCodeSamplesShapeTests*.cs",
-                SearchOption.TopDirectoryOnly)
+        var sourceFiles = Directory
+            .EnumerateFiles(sourceDirectory, "GeneratedCodeSamplesShapeTests*.cs", SearchOption.TopDirectoryOnly)
             .ToArray();
 
         Assert.IsNotEmpty(sourceFiles);
@@ -47,10 +45,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsEmpty(eagerAccessorFiles, string.Join(Environment.NewLine, eagerAccessorFiles));
 
         var singleFromCorpusFiles = sourceFiles
-            .Where(fileName => Regex.IsMatch(
-                File.ReadAllText(fileName),
-                @"ReadAllSamples\(\)\s*\.\s*Single\(",
-                RegexOptions.CultureInvariant))
+            .Where(fileName =>
+                Regex.IsMatch(
+                    File.ReadAllText(fileName),
+                    @"ReadAllSamples\(\)\s*\.\s*Single\(",
+                    RegexOptions.CultureInvariant
+                )
+            )
             .Select(Path.GetFileName)
             .ToArray();
         Assert.IsEmpty(singleFromCorpusFiles, string.Join(Environment.NewLine, singleFromCorpusFiles));

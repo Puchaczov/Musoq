@@ -18,10 +18,19 @@ public abstract partial class TextInterpreterBase<TOut>
         {
             var attempt = InterpretationStatus.ReadAt(this, text, 0);
             if (attempt.Succeeded)
-                return new PartialInterpretResult<TOut>(attempt.Value!, (IReadOnlySet<string>)parsedFields, CharsConsumed);
+                return new PartialInterpretResult<TOut>(
+                    attempt.Value!,
+                    (IReadOnlySet<string>)parsedFields,
+                    CharsConsumed
+                );
             var failure = attempt.Failure!;
-            return new PartialInterpretResult<TOut>(attempt.Value, (IReadOnlySet<string>)parsedFields, CharsConsumed,
-                failure.FieldName ?? _currentFieldName ?? "Unknown", failure.GetPartialInterpretationMessage());
+            return new PartialInterpretResult<TOut>(
+                attempt.Value,
+                (IReadOnlySet<string>)parsedFields,
+                CharsConsumed,
+                failure.FieldName ?? _currentFieldName ?? "Unknown",
+                failure.GetPartialInterpretationMessage()
+            );
         }
         finally
         {

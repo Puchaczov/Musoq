@@ -14,55 +14,85 @@ public sealed class Core024PivotUnpivotTests : BasicEntityTestBase
     [TestMethod]
     public void Pivot_MultiColumnKeyWithNullComponent_ShouldMatchTupleBucket()
     {
-        const string query = "pivot #A.Entities() on Id, Country in ((0, null) as Missing, (1, 'PL') as Known) using Count(*) as Orders group by City";
+        const string query =
+            "pivot #A.Entities() on Id, Country in ((0, null) as Missing, (1, 'PL') as Known) using Count(*) as Orders group by City";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { City = "GDA", Id = 0, Country = null },
-            new BasicEntity { City = "GDA", Id = 1, Country = "PL" },
-            new BasicEntity { City = "GDA", Id = 0, Country = "US" })).Run();
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity
+                    {
+                        City = "GDA",
+                        Id = 0,
+                        Country = null,
+                    },
+                    new BasicEntity
+                    {
+                        City = "GDA",
+                        Id = 1,
+                        Country = "PL",
+                    },
+                    new BasicEntity
+                    {
+                        City = "GDA",
+                        Id = 0,
+                        Country = "US",
+                    }
+                )
+            )
+            .Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
             ("Missing", typeof(long)),
-            ("Known", typeof(long)));
+            ("Known", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["GDA", 1L, 1L]);
     }
 
     [TestMethod]
     public void Pivot_UnmatchedStaticBucket_ShouldRemainNull()
     {
-        const string query = "pivot #A.Entities() on Month in ('Jan' as Jan, 'Missing' as Missing) using Sum(Money) as Sales group by City";
+        const string query =
+            "pivot #A.Entities() on Month in ('Jan' as Jan, 'Missing' as Missing) using Sum(Money) as Sales group by City";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { City = "GDA", Month = "Jan", Money = 10m })).Run();
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity
+                    {
+                        City = "GDA",
+                        Month = "Jan",
+                        Money = 10m,
+                    }
+                )
+            )
+            .Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
             ("Jan", typeof(decimal?)),
-            ("Missing", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            new object?[] { "GDA", 10m, null });
+            ("Missing", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "GDA", 10m, null });
     }
 
     [TestMethod]
     public void Unpivot_EntriesShouldPreserveWrittenExpansionOrder()
     {
-        const string query = "unpivot #A.Entities() s on Metric in (s.Population as Population, s.Money as Money) using Amount";
+        const string query =
+            "unpivot #A.Entities() s on Metric in (s.Population as Population, s.Money as Money) using Amount";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Population = 10m, Money = 1.5m })).Run();
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(new BasicEntity { Population = 10m, Money = 1.5m })
+            )
+            .Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Metric", typeof(string)),
-            ("Amount", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Population", 10m],
-            ["Money", 1.5m]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Metric", typeof(string)), ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Population", 10m], ["Money", 1.5m]);
     }
 
     [TestMethod]
@@ -70,36 +100,32 @@ public sealed class Core024PivotUnpivotTests : BasicEntityTestBase
     {
         const string query = "unpivot #A.Entities() s on Metric in (s.Name as Name, s.City as City) using Value";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Name = "Alice", City = "GDA" })).Run();
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(new BasicEntity { Name = "Alice", City = "GDA" })
+            )
+            .Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Metric", typeof(string)),
-            ("Value", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Name", "Alice"],
-            ["City", "GDA"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Metric", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Name", "Alice"], ["City", "GDA"]);
     }
 
     [TestMethod]
     public void Unpivot_MixedNumericEntriesWithNull_ShouldWidenToNullableDecimal()
     {
-        const string query = "unpivot #A.Entities() s on Metric in (s.Id as Id, s.Population as Population, null as Missing) using Value";
+        const string query =
+            "unpivot #A.Entities() s on Metric in (s.Id as Id, s.Population as Population, null as Missing) using Value";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Id = 7, Population = 2.5m })).Run();
+        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity { Id = 7, Population = 2.5m }))
+            .Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Metric", typeof(string)),
-            ("Value", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Metric", typeof(string)), ("Value", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             new object?[] { "Id", 7m },
             new object?[] { "Population", 2.5m },
-            new object?[] { "Missing", null });
+            new object?[] { "Missing", null }
+        );
     }
 
     [TestMethod]
@@ -113,7 +139,8 @@ public sealed class Core024PivotUnpivotTests : BasicEntityTestBase
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual(
             "PIVOT USING accepts aggregate function calls only, but 'ToUpper' is not an aggregate function.",
-            diagnostic.Message);
+            diagnostic.Message
+        );
         Assert.AreEqual(new TextSpan(functionStart, "ToUpper".Length), diagnostic.Span);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
 
@@ -134,17 +161,17 @@ public sealed class Core024PivotUnpivotTests : BasicEntityTestBase
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual(
             "UNPIVOT value column 'Value' mixes incompatible types: Int32, String. Use consistent expression types or explicit conversion functions.",
-            diagnostic.Message);
-        Assert.AreEqual(
-            new TextSpan(query.IndexOf("Name", StringComparison.Ordinal), "Name".Length),
-            diagnostic.Span);
+            diagnostic.Message
+        );
+        Assert.AreEqual(new TextSpan(query.IndexOf("Name", StringComparison.Ordinal), "Name".Length), diagnostic.Span);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
     }
 
     private static QueryAnalysisResult Analyze(string query)
     {
-        return new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] })).Analyze(query);
+        return new QueryAnalyzer(
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] })
+        ).Analyze(query);
     }
 
     private static Diagnostic AssertSingleError(QueryAnalysisResult result, DiagnosticCode expectedCode)
@@ -158,7 +185,9 @@ public sealed class Core024PivotUnpivotTests : BasicEntityTestBase
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code}: {diagnostic.Message}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic => $"{diagnostic.Code}: {diagnostic.Message}")
+        );
     }
 }

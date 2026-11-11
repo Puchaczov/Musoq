@@ -9,35 +9,28 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class SetOperatorMustHaveSameTypesOfColumnsException : Exception, IDiagnosticException
 {
-
     public SetOperatorMustHaveSameTypesOfColumnsException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public SetOperatorMustHaveSameTypesOfColumnsException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public SetOperatorMustHaveSameTypesOfColumnsException()
-    {
-    }
+    public SetOperatorMustHaveSameTypesOfColumnsException() { }
+
     /// <summary>
     ///     Initializes a new instance with left and right field nodes.
     /// </summary>
     public SetOperatorMustHaveSameTypesOfColumnsException(FieldNode left, FieldNode right)
         : base(
-            $"Set operator must have the same types of columns in both queries. Left column expression is {FormatColumnExpression(left)} and right column expression is {FormatColumnExpression(right)}")
+            $"Set operator must have the same types of columns in both queries. Left column expression is {FormatColumnExpression(left)} and right column expression is {FormatColumnExpression(right)}"
+        )
     {
         Code = DiagnosticCode.MQ3020_SetOperatorColumnTypes;
     }
 
     private static string FormatColumnExpression(FieldNode field)
     {
-        return field.Expression is AccessColumnNode
-            ? field.FieldName
-            : field.Expression.ToString();
+        return field.Expression is AccessColumnNode ? field.FieldName : field.Expression.ToString();
     }
 
     /// <summary>

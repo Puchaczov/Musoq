@@ -19,13 +19,18 @@ public sealed class ApplyCarrierRegressionTests
         var prefix = parameter ? "param(batchLabel: string = 'demo') " : string.Empty;
         var argument = parameter ? "$batchLabel" : "'demo'";
         var key = correlated ? "batch.Key" : "'batch-alpha'";
-        var sql = prefix + $"binary SampleReading {{ Score: int le }} select batch.Label, reading.Score from #fixture.batches({argument}, false) batch " +
-            $"cross apply #fixture.samples({key}) sample cross apply Interpret<SampleReading>(sample.ReadPayload()) reading where sample.Key = 'sample-alpha'";
+        var sql =
+            prefix
+            + $"binary SampleReading {{ Score: int le }} select batch.Label, reading.Score from #fixture.batches({argument}, false) batch "
+            + $"cross apply #fixture.samples({key}) sample cross apply Interpret<SampleReading>(sample.ReadPayload()) reading where sample.Key = 'sample-alpha'";
         using var query = Compile(sql);
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["batch-alpha", 73]);
-        Assert.IsFalse(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query)
-            .Any(GeneratedExecutionIlInspection.ContainsBoxOpcode));
+        Assert.IsFalse(
+            GeneratedExecutionIlInspection
+                .GetGeneratedComputeMethods(query)
+                .Any(GeneratedExecutionIlInspection.ContainsBoxOpcode)
+        );
     }
 
     [TestMethod]
@@ -33,24 +38,44 @@ public sealed class ApplyCarrierRegressionTests
     [DataRow("TryInterpret<SampleReading>(sample.ReadPayload())", "reading.Score", 73)]
     [DataRow("PartialInterpret<SampleReading>(sample.ReadPayload())", "reading.BytesConsumed", 4)]
     [DataRow("Interpret<SampleReading>(sample.Payload)", "reading.Score", 73)]
-    public void InterpretationKinds_WithChainedCarrier_ShouldEvaluateTypedArguments(string interpretation, string value, int expected)
+    public void InterpretationKinds_WithChainedCarrier_ShouldEvaluateTypedArguments(
+        string interpretation,
+        string value,
+        int expected
+    )
     {
-        var sql = "binary SampleReading { Score: int le } select " + value + " as V, " + value + " + 1 as Next " +
-            "from #fixture.batches('demo', false) batch cross apply #fixture.samples(batch.Key) sample cross apply " + interpretation + " reading";
+        var sql =
+            "binary SampleReading { Score: int le } select "
+            + value
+            + " as V, "
+            + value
+            + " + 1 as Next "
+            + "from #fixture.batches('demo', false) batch cross apply #fixture.samples(batch.Key) sample cross apply "
+            + interpretation
+            + " reading";
         using var query = Compile(sql);
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [expected, expected + 1]);
-        Assert.IsFalse(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query)
-            .Any(GeneratedExecutionIlInspection.ContainsBoxOpcode));
+        Assert.IsFalse(
+            GeneratedExecutionIlInspection
+                .GetGeneratedComputeMethods(query)
+                .Any(GeneratedExecutionIlInspection.ContainsBoxOpcode)
+        );
     }
 
     [TestMethod]
     public void InterpretationArguments_ShouldRenderDirectTypedCarrierFields()
     {
-        const string sql = "binary SampleReading { Score: int le } select reading.Score as N from #fixture.batches('demo', false) batch " +
-            "cross apply #fixture.samples(batch.Key) sample cross apply Interpret<SampleReading>(sample.ReadPayload()) reading";
-        var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(),
-            new ApplyCarrierSchemaProvider(), new TestsLoggerResolver(), new CompilationOptions());
+        const string sql =
+            "binary SampleReading { Score: int le } select reading.Score as N from #fixture.batches('demo', false) batch "
+            + "cross apply #fixture.samples(batch.Key) sample cross apply Interpret<SampleReading>(sample.ReadPayload()) reading";
+        var inspection = InstanceCreator.CompileForInspection(
+            sql,
+            Guid.NewGuid().ToString(),
+            new ApplyCarrierSchemaProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions()
+        );
         Assert.Contains("ReadPayload(", inspection.GeneratedCSharpCode);
         Assert.Contains("batchsample.__rightContext", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain(".GetValue(", inspection.GeneratedCSharpCode);
@@ -61,16 +86,26 @@ public sealed class ApplyCarrierRegressionTests
     [DataRow(true)]
     public void ChainedCarrier_WithRepeatedProjections_ShouldPreserveValuesAcrossExecutionModes(bool parallel)
     {
-        const string sql = "binary SampleReading { Score: int le } select batch.Label, reading.Score as A, reading.Score as B from #fixture.batches('demo', false) batch " +
-            "cross apply #fixture.samples(batch.Key) sample cross apply Interpret<SampleReading>(sample.ReadPayload()) reading";
-        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(),
-            new ApplyCarrierSchemaProvider(), new TestsLoggerResolver(),
-            new CompilationOptions(parallelizationMode: parallel ? null : ParallelizationMode.None));
+        const string sql =
+            "binary SampleReading { Score: int le } select batch.Label, reading.Score as A, reading.Score as B from #fixture.batches('demo', false) batch "
+            + "cross apply #fixture.samples(batch.Key) sample cross apply Interpret<SampleReading>(sample.ReadPayload()) reading";
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            new ApplyCarrierSchemaProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions(parallelizationMode: parallel ? null : ParallelizationMode.None)
+        );
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["batch-alpha", 73, 73]);
     }
 
-    private static CompiledQuery Compile(string sql) => GeneratedExecutionIlInspection.CompileForExecution(sql,
-        Guid.NewGuid().ToString(), new ApplyCarrierSchemaProvider(), new TestsLoggerResolver(),
-        new CompilationOptions(usePrimitiveTypeValidation: false));
+    private static CompiledQuery Compile(string sql) =>
+        GeneratedExecutionIlInspection.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            new ApplyCarrierSchemaProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 }

@@ -14,9 +14,7 @@ public sealed partial class ProjectionSensitiveWildcardTests
     public void StarExclude_WithPredicate_ShouldDiscoverAndProjectCompleteSchema()
     {
         var recorder = new ProjectionSensitiveWildcardRecorder();
-        var query = Compile(
-            "select * exclude (Other) from #wildcard.rows() a where a.Id > 0",
-            recorder);
+        var query = Compile("select * exclude (Other) from #wildcard.rows() a where a.Id > 0", recorder);
 
         var table = query.Run();
         var columnNames = table.Columns.Select(static column => column.ColumnName).ToArray();
@@ -34,9 +32,7 @@ public sealed partial class ProjectionSensitiveWildcardTests
     public void QualifiedStar_WithPredicate_ShouldDiscoverAndProjectQualifiedSchema()
     {
         var recorder = new ProjectionSensitiveWildcardRecorder();
-        var query = Compile(
-            "select a.* exclude (Other) from #wildcard.rows() a where a.Id > 0",
-            recorder);
+        var query = Compile("select a.* exclude (Other) from #wildcard.rows() a where a.Id > 0", recorder);
 
         var table = query.Run();
         var columnNames = table.Columns.Select(static column => column.ColumnName).ToArray();
@@ -53,6 +49,7 @@ public sealed partial class ProjectionSensitiveWildcardTests
             query,
             Guid.NewGuid().ToString(),
             new ProjectionSensitiveWildcardSchemaProvider(recorder),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
     }
 }

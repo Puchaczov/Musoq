@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -17,13 +16,20 @@ public sealed class LibraryExecutionWideRangeKeyQueryTests : GenericEntityTestBa
     {
         const string query = WideRangeQuery;
         var input = CreateRows();
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(input), LoggerResolver,
-            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(input),
+            LoggerResolver,
+            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true)
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("FirstPosition", typeof(int)), ("SecondPosition", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("FirstPosition", typeof(int)),
+            ("SecondPosition", typeof(int))
+        );
         Assert.HasCount(1, rows);
         Assert.AreEqual(2, rows[0].GetValue<int>(0));
         Assert.AreEqual(1, rows[0].GetValue<int>(1));

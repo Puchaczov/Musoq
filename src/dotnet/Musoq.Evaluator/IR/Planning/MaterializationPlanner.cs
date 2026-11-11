@@ -9,7 +9,8 @@ internal static class MaterializationPlanner
 {
     public static IReadOnlyList<PlanningDecision> Plan(
         PhysicalNode physicalPlan,
-        ExecutionStrategyPlan executionStrategies)
+        ExecutionStrategyPlan executionStrategies
+    )
     {
         ArgumentNullException.ThrowIfNull(physicalPlan);
         ArgumentNullException.ThrowIfNull(executionStrategies);
@@ -23,7 +24,8 @@ internal static class MaterializationPlanner
         PhysicalNode node,
         PhysicalNode? parent,
         ExecutionStrategyPlan executionStrategies,
-        List<PlanningDecision> decisions)
+        List<PlanningDecision> decisions
+    )
     {
         AddNodeDecision(node, parent, executionStrategies, decisions);
 
@@ -35,7 +37,8 @@ internal static class MaterializationPlanner
         PhysicalNode node,
         PhysicalNode? parent,
         ExecutionStrategyPlan executionStrategies,
-        List<PlanningDecision> decisions)
+        List<PlanningDecision> decisions
+    )
     {
         switch (node)
         {
@@ -45,7 +48,8 @@ internal static class MaterializationPlanner
                     "MaterializationBoundary",
                     ResolveMaterializeTarget(parent),
                     "Required",
-                    ResolveMaterializeReason(parent));
+                    ResolveMaterializeReason(parent)
+                );
                 break;
             case PhysicalSortNode sort:
                 AddDecision(
@@ -53,7 +57,8 @@ internal static class MaterializationPlanner
                     "OrderingBoundary",
                     "PhysicalSortNode",
                     "Required",
-                    $"Sort materializes rows before applying {sort.Keys.Length.ToString(CultureInfo.InvariantCulture)} order key(s).");
+                    $"Sort materializes rows before applying {sort.Keys.Length.ToString(CultureInfo.InvariantCulture)} order key(s)."
+                );
                 break;
             case PhysicalTopNNode topN:
                 AddDecision(
@@ -61,7 +66,8 @@ internal static class MaterializationPlanner
                     "TopNBoundary",
                     "PhysicalTopNNode",
                     "Required",
-                    $"Top-N keeps an ordered materialization for {topN.N.ToString(CultureInfo.InvariantCulture)} row(s).");
+                    $"Top-N keeps an ordered materialization for {topN.N.ToString(CultureInfo.InvariantCulture)} row(s)."
+                );
                 break;
             case PhysicalTopOffsetNode topOffset:
                 AddDecision(
@@ -69,7 +75,8 @@ internal static class MaterializationPlanner
                     "TopOffsetBoundary",
                     "PhysicalTopOffsetNode",
                     "Required",
-                    $"Top-offset keeps an ordered materialization after skipping {topOffset.Skip.ToString(CultureInfo.InvariantCulture)} row(s).");
+                    $"Top-offset keeps an ordered materialization after skipping {topOffset.Skip.ToString(CultureInfo.InvariantCulture)} row(s)."
+                );
                 break;
             case PhysicalAggregateOnlyNode:
             case PhysicalSingleKeyAggregateNode:
@@ -79,7 +86,8 @@ internal static class MaterializationPlanner
                     "AggregateBoundary",
                     node.GetType().Name,
                     "Required",
-                    "Aggregate planning materializes group state before final projection.");
+                    "Aggregate planning materializes group state before final projection."
+                );
                 break;
             case PhysicalProjectNode { IsDistinct: true }:
                 AddDecision(
@@ -87,7 +95,8 @@ internal static class MaterializationPlanner
                     "DistinctBoundary",
                     "PhysicalProjectNode",
                     "Required",
-                    "Distinct projection materializes rows before duplicate removal.");
+                    "Distinct projection materializes rows before duplicate removal."
+                );
                 break;
             case PhysicalSetOperationNode setOperation:
                 AddDecision(
@@ -95,7 +104,8 @@ internal static class MaterializationPlanner
                     "SetOperationBoundary",
                     setOperation.Kind.ToString(),
                     "Required",
-                    "Set operation materializes row identity while combining input tables.");
+                    "Set operation materializes row identity while combining input tables."
+                );
                 break;
             case PhysicalWindowNode window:
                 AddDecision(
@@ -103,7 +113,8 @@ internal static class MaterializationPlanner
                     "WindowBoundary",
                     "PhysicalWindowNode",
                     "Required",
-                    $"Window planning materializes input rows for {window.Registrations.Length.ToString(CultureInfo.InvariantCulture)} window registration(s).");
+                    $"Window planning materializes input rows for {window.Registrations.Length.ToString(CultureInfo.InvariantCulture)} window registration(s)."
+                );
                 break;
             case PhysicalHashJoinNode:
                 AddDecision(
@@ -111,7 +122,8 @@ internal static class MaterializationPlanner
                     "HashJoinBuildBoundary",
                     "PhysicalHashJoinNode",
                     "Required",
-                    "Hash join materializes the build side into a hash table before probing.");
+                    "Hash join materializes the build side into a hash table before probing."
+                );
                 break;
             case PhysicalNestedLoopApplyNode:
                 AddDecision(
@@ -119,7 +131,8 @@ internal static class MaterializationPlanner
                     "ApplyBoundary",
                     "PhysicalNestedLoopApplyNode",
                     "Required",
-                    "APPLY evaluates a lateral right source for each left row and preserves that boundary in the plan.");
+                    "APPLY evaluates a lateral right source for each left row and preserves that boundary in the plan."
+                );
                 break;
             case PhysicalInterpretSourceNode interpret:
                 AddDecision(
@@ -127,7 +140,8 @@ internal static class MaterializationPlanner
                     "InterpretationBoundary",
                     interpret.Kind.ToString(),
                     "Required",
-                    "Interpretation source creates typed rows from source expressions before projection.");
+                    "Interpretation source creates typed rows from source expressions before projection."
+                );
                 break;
             case PhysicalCteNode cte:
                 AddCteDecisions(cte, executionStrategies, decisions);
@@ -138,7 +152,8 @@ internal static class MaterializationPlanner
     private static void AddCteDecisions(
         PhysicalCteNode cte,
         ExecutionStrategyPlan executionStrategies,
-        List<PlanningDecision> decisions)
+        List<PlanningDecision> decisions
+    )
     {
         var strategy = executionStrategies.GetCteStrategy(cte);
 
@@ -149,7 +164,8 @@ internal static class MaterializationPlanner
                 ResolveCteMaterializationRuleName(definition),
                 $"cte:{definition.Name}",
                 ResolveCteMaterializationOutcome(definition),
-                definition.Reason);
+                definition.Reason
+            );
         }
     }
 
@@ -159,7 +175,7 @@ internal static class MaterializationPlanner
         {
             CteDefinitionStrategyKind.MaterializeReuse => "CteReuseBoundary",
             CteDefinitionStrategyKind.FuseReadOnce => "CteFusionBoundary",
-            _ => "CteBoundary"
+            _ => "CteBoundary",
         };
     }
 
@@ -170,7 +186,7 @@ internal static class MaterializationPlanner
             CteDefinitionStrategyKind.Unreferenced => "Skipped",
             CteDefinitionStrategyKind.FuseReadOnce => "Candidate",
             CteDefinitionStrategyKind.MaterializeReuse => "Required",
-            _ => "Conditional"
+            _ => "Conditional",
         };
     }
 
@@ -182,7 +198,7 @@ internal static class MaterializationPlanner
             PhysicalSetOperationNode => "set-operation-input",
             PhysicalNestedLoopApplyNode => "apply-input",
             null => "physical-materialize",
-            _ => parent.GetType().Name
+            _ => parent.GetType().Name,
         };
     }
 
@@ -190,11 +206,13 @@ internal static class MaterializationPlanner
     {
         return parent switch
         {
-            PhysicalWindowNode => "Window strategy requires a stable materialized input before computing rankings or offsets.",
+            PhysicalWindowNode =>
+                "Window strategy requires a stable materialized input before computing rankings or offsets.",
             PhysicalSetOperationNode => "Set operation requires stable input rows for membership evaluation.",
-            PhysicalNestedLoopApplyNode => "APPLY strategy preserves the lateral source boundary before lowering nested loops.",
+            PhysicalNestedLoopApplyNode =>
+                "APPLY strategy preserves the lateral source boundary before lowering nested loops.",
             null => "Physical plan contains an explicit materialization boundary.",
-            _ => $"{parent.GetType().Name} requires an explicit materialization boundary."
+            _ => $"{parent.GetType().Name} requires an explicit materialization boundary.",
         };
     }
 
@@ -203,14 +221,18 @@ internal static class MaterializationPlanner
         string ruleName,
         string target,
         string outcome,
-        string reason)
+        string reason
+    )
     {
-        decisions.Add(new PlanningDecision(
-            PlanningDecisionCategory.Materialization,
-            ruleName,
-            target,
-            outcome,
-            PlanningConfidence.High,
-            reason));
+        decisions.Add(
+            new PlanningDecision(
+                PlanningDecisionCategory.Materialization,
+                ruleName,
+                target,
+                outcome,
+                PlanningConfidence.High,
+                reason
+            )
+        );
     }
 }

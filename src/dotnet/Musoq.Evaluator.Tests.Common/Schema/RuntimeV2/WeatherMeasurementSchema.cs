@@ -12,7 +12,8 @@ public sealed class WeatherMeasurementSchema(IReadOnlyList<WeatherMeasurementEnt
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return new WeatherMeasurementTable();
     }
@@ -20,7 +21,8 @@ public sealed class WeatherMeasurementSchema(IReadOnlyList<WeatherMeasurementEnt
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, WeatherMeasurementEntity>(name, new WeatherMeasurementRowSource(rows));
     }

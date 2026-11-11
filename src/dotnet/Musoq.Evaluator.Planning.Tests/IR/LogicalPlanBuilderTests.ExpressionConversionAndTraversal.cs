@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public partial class LogicalPlanBuilderTests
 {
-
     #region Expression conversion in context
 
     [TestMethod]
@@ -45,9 +44,7 @@ public partial class LogicalPlanBuilderTests
     [TestMethod]
     public void WhenExplicitAliasesAreDuplicated_ShouldPreserveNamesAndColumnBindings()
     {
-        var select = CreateSelect(
-            Field(Column("Left"), 0, "Same"),
-            Field(Column("Right"), 1, "Same"));
+        var select = CreateSelect(Field(Column("Left"), 0, "Same"), Field(Column("Right"), 1, "Same"));
         var root = new RootNode(new SingleSetNode(CreateQuery(select, CreateSchemaFrom())));
 
         var project = (ProjectNode)Build(root);

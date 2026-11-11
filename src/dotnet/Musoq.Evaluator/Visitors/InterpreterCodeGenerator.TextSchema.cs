@@ -18,30 +18,62 @@ public partial class InterpreterCodeGenerator
         var allFields = EnumerateBoundTextFields(plan.Fields).ToArray();
 
         builder.AppendLine("/// <summary>");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Generated interpreter for text schema '{className}'.");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"/// Generated interpreter for text schema '{className}'."
+        );
         builder.AppendLine("/// </summary>");
-        builder.AppendLine("[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : TextInterpreterBase<{className}>, ITextInterpreterStatus<{className}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload");
+        builder.AppendLine(
+            "[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"public sealed class {className} : TextInterpreterBase<{className}>, ITextInterpreterStatus<{className}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload"
+        );
         builder.AppendLine("{");
-        var completion = CompletionLayoutCodeEmitter.Create(plan.Fields.Where(static field => field.EmitsProperty).Select(static field => field.Name));
+        var completion = CompletionLayoutCodeEmitter.Create(
+            plan.Fields.Where(static field => field.EmitsProperty).Select(static field => field.Name)
+        );
         builder.Append(completion);
         AppendPreparedPatternMembers(builder, allFields, className);
         builder.Append(PartialPayloadCodeEmitter.Members(className));
-        builder.Append(PartialPayloadCodeEmitter.JsonMembers(plan.Fields.Where(static field => field.EmitsProperty)
-            .Select(static field => (field.Name, field.PropertyName ?? throw new InvalidOperationException("An emitted payload field requires a property name.")))));
+        builder.Append(
+            PartialPayloadCodeEmitter.JsonMembers(
+                plan.Fields.Where(static field => field.EmitsProperty)
+                    .Select(static field =>
+                        (
+                            field.Name,
+                            field.PropertyName
+                                ?? throw new InvalidOperationException(
+                                    "An emitted payload field requires a property name."
+                                )
+                        )
+                    )
+            )
+        );
 
         foreach (var field in plan.Fields)
         {
-            if (!field.EmitsProperty) continue;
+            if (!field.EmitsProperty)
+                continue;
 
             var summary = field.IsCaptureResult ? "capture result" : "field value";
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    /// <summary>Gets the {field.Name} {summary}.</summary>");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public {field.PropertyClrType} {field.PropertyName} {{ get; set; }}");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    /// <summary>Gets the {field.Name} {summary}.</summary>"
+            );
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    public {field.PropertyClrType} {field.PropertyName} {{ get; set; }}"
+            );
             builder.AppendLine();
         }
 
         builder.AppendLine("    /// <inheritdoc />");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override string SchemaName => \"{className}\";");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"    public override string SchemaName => \"{className}\";"
+        );
         builder.AppendLine();
 
         BeginStatusMethod(className);
@@ -52,7 +84,10 @@ public partial class InterpreterCodeGenerator
         builder.Append(InterpreterStatusCodeEmitter.BeginText(className, _textInputName));
         builder.AppendLine("        ParsePosition = offset;");
         builder.AppendLine("        SetCurrentField(null);");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        __parsedValue = new {className}();");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"        __parsedValue = new {className}();"
+        );
         builder.AppendLine("        RecordParsedValue(__parsedValue);");
         builder.AppendLine();
 
@@ -61,14 +96,20 @@ public partial class InterpreterCodeGenerator
         var completionIndex = 0;
         foreach (var field in plan.Fields)
         {
-            AppendGeneratedLine(builder, $"        SetCurrentField(\"{InterpretationStringLiterals.EscapeCSharpString(field.Name)}\");");
+            AppendGeneratedLine(
+                builder,
+                $"        SetCurrentField(\"{InterpretationStringLiterals.EscapeCSharpString(field.Name)}\");"
+            );
 
             var readCode = GenerateTextFieldReadCode(field.Source);
             builder.Append(Indent(readCode, 2));
 
             if (field.EmitsProperty)
             {
-                AppendGeneratedLine(builder, $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};");
+                AppendGeneratedLine(
+                    builder,
+                    $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};"
+                );
                 AppendGeneratedLine(builder, $"        base.RecordParsedFieldSlot({completionIndex++});");
             }
         }
@@ -77,13 +118,20 @@ public partial class InterpreterCodeGenerator
 
         foreach (var field in allFields)
         {
-            if (!field.IsCaptureResult) continue;
+            if (!field.IsCaptureResult)
+                continue;
 
             builder.AppendLine();
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public sealed class CaptureResult_{field.Name}");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    public sealed class CaptureResult_{field.Name}"
+            );
             builder.AppendLine("    {");
             foreach (var group in field.CaptureGroups)
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        public string? {EscapeCSharpIdentifier(group)} {{ get; set; }}");
+                builder.AppendLine(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $"        public string? {EscapeCSharpIdentifier(group)} {{ get; set; }}"
+                );
             builder.AppendLine("    }");
         }
 
@@ -98,12 +146,11 @@ public partial class InterpreterCodeGenerator
         {
             yield return field;
             foreach (var arm in field.SwitchArms)
-                foreach (var nested in EnumerateBoundTextFields([arm.Body]))
-                    yield return nested;
+            foreach (var nested in EnumerateBoundTextFields([arm.Body]))
+                yield return nested;
             if (field.RepeatElement is { } element)
                 foreach (var nested in EnumerateBoundTextFields([element]))
                     yield return nested;
         }
     }
-
 }

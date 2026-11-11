@@ -18,8 +18,10 @@ public sealed class TypedProjectionTests
     [DataRow("I", "L")]
     public void EqualNumericValuesWithDifferentKinds_ShouldRemainDistinct(string first, string second)
     {
-        Assert.AreNotEqual(AstProjector.Snapshot(new IntegerNode("1", first)),
-            AstProjector.Snapshot(new IntegerNode("1", second)));
+        Assert.AreNotEqual(
+            AstProjector.Snapshot(new IntegerNode("1", first)),
+            AstProjector.Snapshot(new IntegerNode("1", second))
+        );
     }
 
     [TestMethod]
@@ -46,8 +48,10 @@ public sealed class TypedProjectionTests
     [TestMethod]
     public void SourceLocations_ShouldNotAffectStructure()
     {
-        Assert.AreEqual(AstProjector.Snapshot(new IntegerNode("1", "I", new TextSpan(1, 1))),
-            AstProjector.Snapshot(new IntegerNode("1", "I", new TextSpan(100, 1))));
+        Assert.AreEqual(
+            AstProjector.Snapshot(new IntegerNode("1", "I", new TextSpan(1, 1))),
+            AstProjector.Snapshot(new IntegerNode("1", "I", new TextSpan(100, 1)))
+        );
     }
 
     [TestMethod]
@@ -63,7 +67,10 @@ public sealed class TypedProjectionTests
     }
 
     [TestMethod]
-    [DataRow("select case when 1 = 1 then 2 else 3 end from #s.rows()", "select case when 1 = 1 then 3 else 2 end from #s.rows()")]
+    [DataRow(
+        "select case when 1 = 1 then 2 else 3 end from #s.rows()",
+        "select case when 1 = 1 then 3 else 2 end from #s.rows()"
+    )]
     [DataRow("select 1, 2 from #s.rows()", "select 2, 1 from #s.rows()")]
     [DataRow("profile select Name from #s.rows()", "profile select Other from #s.rows()")]
     [DataRow("select Name from #s.rows() a", "select Name from #s.rows() b")]
@@ -85,15 +92,19 @@ public sealed class TypedProjectionTests
     [TestMethod]
     public void DictionaryKeys_ShouldRemainSemantic()
     {
-        Assert.AreNotEqual(AstProjector.Snapshot(TableWithModifierSpan("encoding", new TextSpan(1, 1))),
-            AstProjector.Snapshot(TableWithModifierSpan("culture", new TextSpan(1, 1))));
+        Assert.AreNotEqual(
+            AstProjector.Snapshot(TableWithModifierSpan("encoding", new TextSpan(1, 1))),
+            AstProjector.Snapshot(TableWithModifierSpan("culture", new TextSpan(1, 1)))
+        );
     }
 
     [TestMethod]
     public void DictionarySourceRanges_ShouldRemainIgnorable()
     {
-        Assert.AreEqual(AstProjector.Snapshot(TableWithModifierSpan("encoding", new TextSpan(1, 1))),
-            AstProjector.Snapshot(TableWithModifierSpan("encoding", new TextSpan(100, 1))));
+        Assert.AreEqual(
+            AstProjector.Snapshot(TableWithModifierSpan("encoding", new TextSpan(1, 1))),
+            AstProjector.Snapshot(TableWithModifierSpan("encoding", new TextSpan(100, 1)))
+        );
     }
 
     [TestMethod]
@@ -105,11 +116,17 @@ public sealed class TypedProjectionTests
         Assert.AreNotEqual(AstSignature.Parse(first), AstSignature.Parse(second));
     }
 
-    private static CreateTableNode TableWithModifierSpan(string key, TextSpan span) => new("T",
-        new[] { new CreateTableColumnDefinition("Name", "string", Array.Empty<CreateTableColumnModifier>())
-        {
-            ReadModifierSpans = new Dictionary<string, TextSpan> { [key] = span }
-        } });
+    private static CreateTableNode TableWithModifierSpan(string key, TextSpan span) =>
+        new(
+            "T",
+            new[]
+            {
+                new CreateTableColumnDefinition("Name", "string", Array.Empty<CreateTableColumnModifier>())
+                {
+                    ReadModifierSpans = new Dictionary<string, TextSpan> { [key] = span },
+                },
+            }
+        );
 
     private sealed class UnreviewedInteger() : IntegerNode("1", "I");
 }

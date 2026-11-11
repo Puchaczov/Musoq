@@ -43,9 +43,10 @@ internal static partial class EvaluatorSampleFixtures
                         ConcreteCol,
                         FullyQualified, NullableInt
                     from Typed()",
-                CreateTypedTypeMatrixSampleProvider) with
+                CreateTypedTypeMatrixSampleProvider
+            ) with
             {
-                CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
+                CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false),
             },
             TableCoupleSample(
                 "Q320_SpecTableReadModifiers",
@@ -59,7 +60,8 @@ internal static partial class EvaluatorSampleFixtures
                     couple #readmods.records with table LegacyInvoiceRow as Invoices;
                     select InvoiceNo, CustomerName, Total, Attachment
                     from Invoices()",
-                CreateTypedReadModifiersSampleProvider),
+                CreateTypedReadModifiersSampleProvider
+            ),
             TableCoupleSample(
                 "Q321_SpecTableCoupleArguments",
                 @"
@@ -79,7 +81,8 @@ internal static partial class EvaluatorSampleFixtures
                     from Data('positional') d
                     cross join Data(second: 4, first: $label) p
                     cross join Forward(Input) c",
-                CreateTableCoupleArgumentsSampleProvider),
+                CreateTableCoupleArgumentsSampleProvider
+            ),
             TableCoupleSampleWithOptions(
                 "Q322_SpecTableSettingsProfiles",
                 @"
@@ -91,7 +94,8 @@ internal static partial class EvaluatorSampleFixtures
                     from SettingsOnly() a
                     cross join TableFirst() b
                     cross join SettingsFirst() c",
-                CreateSettingsProfileCompilationOptions()),
+                CreateSettingsProfileCompilationOptions()
+            ),
             TableCoupleSample(
                 "Q323_SpecTableCoupleComposition",
                 @"
@@ -118,7 +122,8 @@ internal static partial class EvaluatorSampleFixtures
                     union (Name)
                     select Name, Sum(Population) as Total
                     from LeftRows()
-                    group by Name")
+                    group by Name"
+            ),
         ];
     }
 
@@ -130,7 +135,8 @@ internal static partial class EvaluatorSampleFixtures
     private static GeneratedCodeSample TableCoupleSample(
         string name,
         string query,
-        Func<Musoq.Schema.ISchemaProvider> createSchemaProvider)
+        Func<Musoq.Schema.ISchemaProvider> createSchemaProvider
+    )
     {
         return new GeneratedCodeSample
         {
@@ -139,18 +145,19 @@ internal static partial class EvaluatorSampleFixtures
             Query = query,
             Category = "Scan",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = createSchemaProvider
+            CreateSchemaProvider = createSchemaProvider,
         };
     }
 
     private static GeneratedCodeSample TableCoupleSampleWithOptions(
         string name,
         string query,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions
+    )
     {
         return TableCoupleSample(name, query, CreateSettingsProfileSampleProvider) with
         {
-            CompilationOptions = compilationOptions
+            CompilationOptions = compilationOptions,
         };
     }
 }

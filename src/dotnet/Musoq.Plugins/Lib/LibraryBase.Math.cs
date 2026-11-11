@@ -83,7 +83,8 @@ public partial class LibraryBase
         return ComputeSign(value);
     }
 
-    private static T? ComputeSign<T>(T? value) where T : struct, IComparable<T>
+    private static T? ComputeSign<T>(T? value)
+        where T : struct, IComparable<T>
     {
         if (!value.HasValue)
             return null;

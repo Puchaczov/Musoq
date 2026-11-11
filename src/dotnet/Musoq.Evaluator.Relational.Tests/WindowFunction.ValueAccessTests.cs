@@ -13,7 +13,8 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
     [DataRow("NthValue(N, 1)")]
     public void ValueAccess_EmptyFollowingFrame_ShouldReturnNull(string function)
     {
-        var query = $"select N, {function} over (order by N rows between 1 following and 1 following) as Value from values {{ (N: 1), (N: 2) }} v order by N";
+        var query =
+            $"select N, {function} over (order by N rows between 1 following and 1 following) as Value from values {{ (N: 1), (N: 2) }} v order by N";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -25,7 +26,8 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
     [TestMethod]
     public void NthValue_ImplicitPeerFrame_ShouldIncludeSecondPeerForFirstRow()
     {
-        const string query = "select Id, NthValue(N, 2) over (order by N) as Value from values { (Id: 1, N: 10), (Id: 2, N: 10), (Id: 3, N: 20) } v order by Id";
+        const string query =
+            "select Id, NthValue(N, 2) over (order by N) as Value from values { (Id: 1, N: 10), (Id: 2, N: 10), (Id: 3, N: 20) } v order by Id";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -37,7 +39,8 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
     [TestProperty("CandidateId", "P1-096")]
     public void InlineFirstValue_ShouldAdvertiseNullableResultMetadata()
     {
-        const string query = "select N, FirstValue(N) over (order by N) as FirstN from values { (N: 1), (N: 2), (N: 3) } v order by N";
+        const string query =
+            "select N, FirstValue(N) over (order by N) as FirstN from values { (N: 1), (N: 2), (N: 3) } v order by N";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -46,43 +49,40 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(table, ("N", typeof(int)), ("FirstN", typeof(int?)));
     }
 
-
     [TestMethod]
     public void WhenFirstValueOverOrderByName_ShouldReturnFirstInPartition()
     {
         var query = "select Name, FirstValue(Name) over (order by Name) as FV from #A.entities()";
 
-        var sources = CreateSingleSource(
-            new BasicEntity("Charlie"),
-            new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+        var sources = CreateSingleSource(new BasicEntity("Charlie"), new BasicEntity("Alice"), new BasicEntity("Bob"));
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("FV", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("FV", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "Alice"],
             ["Bob", "Alice"],
-            ["Charlie", "Alice"]);
+            ["Charlie", "Alice"]
+        );
     }
 
     [TestMethod]
     public void WhenFirstValueWithPartition_ShouldReturnFirstPerPartition()
     {
-        var query = @"
-            select Name, City, FirstValue(Name) over (partition by City order by Name) as FV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, City, FirstValue(Name) over (partition by City order by Name) as FV\n"
+            + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { City = "NYC" },
             new BasicEntity("Alice") { City = "LA" },
             new BasicEntity("Bob") { City = "NYC" },
-            new BasicEntity("Diana") { City = "LA" });
+            new BasicEntity("Diana") { City = "LA" }
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -91,39 +91,37 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("FV", typeof(string)));
+            ("FV", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "LA", "Alice"],
             ["Diana", "LA", "Alice"],
             ["Bob", "NYC", "Bob"],
-            ["Charlie", "NYC", "Bob"]);
+            ["Charlie", "NYC", "Bob"]
+        );
     }
 
     [TestMethod]
     public void WhenFirstValueOnNumericColumn_ShouldReturnFirstValue()
     {
-        var query = @"
-            select Name, FirstValue(Population) over (order by Name) as FV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, FirstValue(Population) over (order by Name) as FV\n"
+            + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { Population = 300 },
             new BasicEntity("Alice") { Population = 100 },
-            new BasicEntity("Bob") { Population = 200 });
+            new BasicEntity("Bob") { Population = 200 }
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("FV", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", 100m],
-            ["Bob", 100m],
-            ["Charlie", 100m]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("FV", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", 100m], ["Bob", 100m], ["Charlie", 100m]);
     }
 
     [TestMethod]
@@ -131,37 +129,35 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
     {
         var query = "select Name, LastValue(Name) over (order by Name) as LV from #A.entities()";
 
-        var sources = CreateSingleSource(
-            new BasicEntity("Charlie"),
-            new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+        var sources = CreateSingleSource(new BasicEntity("Charlie"), new BasicEntity("Alice"), new BasicEntity("Bob"));
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("LV", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("LV", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "Alice"],
             ["Bob", "Bob"],
-            ["Charlie", "Charlie"]);
+            ["Charlie", "Charlie"]
+        );
     }
 
     [TestMethod]
     public void WhenLastValueWithPartition_ShouldReturnRunningLastPerPartition()
     {
-        var query = @"
-            select Name, City, LastValue(Name) over (partition by City order by Name) as LV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, City, LastValue(Name) over (partition by City order by Name) as LV\n"
+            + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { City = "NYC" },
             new BasicEntity("Alice") { City = "LA" },
             new BasicEntity("Bob") { City = "NYC" },
-            new BasicEntity("Diana") { City = "LA" });
+            new BasicEntity("Diana") { City = "LA" }
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -170,79 +166,70 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("LV", typeof(string)));
+            ("LV", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "LA", "Alice"],
             ["Diana", "LA", "Diana"],
             ["Bob", "NYC", "Bob"],
-            ["Charlie", "NYC", "Charlie"]);
+            ["Charlie", "NYC", "Charlie"]
+        );
     }
 
     [TestMethod]
     public void WhenLastValueWithoutOrderBy_ShouldReturnPartitionLast()
     {
-        var query = @"
-            select Name, LastValue(Population) over () as LV
-            from #A.entities()";
+        var query = (
+            "\n" + "            select Name, LastValue(Population) over () as LV\n" + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { Population = 300 },
             new BasicEntity("Alice") { Population = 100 },
-            new BasicEntity("Bob") { Population = 200 });
+            new BasicEntity("Bob") { Population = 200 }
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("LV", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", 200m],
-            ["Bob", 200m],
-            ["Charlie", 200m]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("LV", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", 200m], ["Bob", 200m], ["Charlie", 200m]);
     }
 
     [TestMethod]
     public void WhenNthValueWithN2_ShouldReturnSecondValue()
     {
-        var query = @"
-            select Name, NthValue(Name, 2) over (order by Name) as NV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, NthValue(Name, 2) over (order by Name) as NV\n"
+            + "            from #A.entities()"
+        );
 
-        var sources = CreateSingleSource(
-            new BasicEntity("Charlie"),
-            new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+        var sources = CreateSingleSource(new BasicEntity("Charlie"), new BasicEntity("Alice"), new BasicEntity("Bob"));
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("NV", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", null],
-            ["Bob", "Bob"],
-            ["Charlie", "Bob"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("NV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", null], ["Bob", "Bob"], ["Charlie", "Bob"]);
     }
 
     [TestMethod]
     public void WhenNthValueWithPartition_ShouldReturnNthPerPartition()
     {
-        var query = @"
-            select Name, City, NthValue(Name, 2) over (partition by City order by Name) as NV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, City, NthValue(Name, 2) over (partition by City order by Name) as NV\n"
+            + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { City = "NYC" },
             new BasicEntity("Alice") { City = "LA" },
             new BasicEntity("Bob") { City = "NYC" },
-            new BasicEntity("Diana") { City = "LA" });
+            new BasicEntity("Diana") { City = "LA" }
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -251,39 +238,33 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("NV", typeof(string)));
+            ("NV", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "LA", null],
             ["Diana", "LA", "Diana"],
             ["Bob", "NYC", null],
-            ["Charlie", "NYC", "Charlie"]);
+            ["Charlie", "NYC", "Charlie"]
+        );
     }
 
     [TestMethod]
     public void WhenNthValueExceedsPartitionSize_ShouldReturnNull()
     {
-        var query = @"
-            select Name, NthValue(Name, 10) over (order by Name) as NV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, NthValue(Name, 10) over (order by Name) as NV\n"
+            + "            from #A.entities()"
+        );
 
-        var sources = CreateSingleSource(
-            new BasicEntity("Alice"),
-            new BasicEntity("Bob"),
-            new BasicEntity("Charlie"));
+        var sources = CreateSingleSource(new BasicEntity("Alice"), new BasicEntity("Bob"), new BasicEntity("Charlie"));
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("NV", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", null],
-            ["Bob", null],
-            ["Charlie", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("NV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", null], ["Bob", null], ["Charlie", null]);
     }
 
     [TestMethod]
@@ -291,23 +272,18 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
     {
         var query = "select Name, First_Value(Name) over (order by Name) as FV from #A.entities()";
 
-        var sources = CreateSingleSource(
-            new BasicEntity("Charlie"),
-            new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+        var sources = CreateSingleSource(new BasicEntity("Charlie"), new BasicEntity("Alice"), new BasicEntity("Bob"));
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("FV", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("FV", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "Alice"],
             ["Bob", "Alice"],
-            ["Charlie", "Alice"]);
+            ["Charlie", "Alice"]
+        );
     }
 
     [TestMethod]
@@ -315,23 +291,18 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
     {
         var query = "select Name, Last_Value(Name) over (order by Name) as LV from #A.entities()";
 
-        var sources = CreateSingleSource(
-            new BasicEntity("Charlie"),
-            new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+        var sources = CreateSingleSource(new BasicEntity("Charlie"), new BasicEntity("Alice"), new BasicEntity("Bob"));
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("LV", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("LV", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "Alice"],
             ["Bob", "Bob"],
-            ["Charlie", "Charlie"]);
+            ["Charlie", "Charlie"]
+        );
     }
 
     [TestMethod]
@@ -339,38 +310,27 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
     {
         var query = "select Name, Nth_Value(Name, 2) over (order by Name) as NV from #A.entities()";
 
-        var sources = CreateSingleSource(
-            new BasicEntity("Charlie"),
-            new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+        var sources = CreateSingleSource(new BasicEntity("Charlie"), new BasicEntity("Alice"), new BasicEntity("Bob"));
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("NV", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", null],
-            ["Bob", "Bob"],
-            ["Charlie", "Bob"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("NV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", null], ["Bob", "Bob"], ["Charlie", "Bob"]);
     }
 
     [TestMethod]
     public void WhenNthValueWithN1_ShouldBehaveLikeFirstValue()
     {
-        var query = @"
-            select Name,
-                   NthValue(Name, 1) over (order by Name) as NV,
-                   FirstValue(Name) over (order by Name) as FV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name,\n"
+            + "                   NthValue(Name, 1) over (order by Name) as NV,\n"
+            + "                   FirstValue(Name) over (order by Name) as FV\n"
+            + "            from #A.entities()"
+        );
 
-        var sources = CreateSingleSource(
-            new BasicEntity("Charlie"),
-            new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+        var sources = CreateSingleSource(new BasicEntity("Charlie"), new BasicEntity("Alice"), new BasicEntity("Bob"));
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -379,112 +339,120 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("NV", typeof(string)),
-            ("FV", typeof(string)));
+            ("FV", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "Alice", "Alice"],
             ["Bob", "Alice", "Alice"],
-            ["Charlie", "Alice", "Alice"]);
+            ["Charlie", "Alice", "Alice"]
+        );
     }
 
     [TestMethod]
     public void WhenFirstValueWithFrame_ShouldReturnFirstInFrame()
     {
-        var query = @"
-            select Name, FirstValue(Name) over (order by Name rows between 1 preceding and 1 following) as FV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, FirstValue(Name) over (order by Name rows between 1 preceding and 1 following) as FV\n"
+            + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Diana"),
             new BasicEntity("Charlie"),
             new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+            new BasicEntity("Bob")
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("FV", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("FV", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "Alice"],
             ["Bob", "Alice"],
             ["Charlie", "Bob"],
-            ["Diana", "Charlie"]);
+            ["Diana", "Charlie"]
+        );
     }
 
     [TestMethod]
     public void WhenLastValueWithFrame_ShouldReturnLastInFrame()
     {
-        var query = @"
-            select Name, LastValue(Name) over (order by Name rows between 1 preceding and 1 following) as LV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, LastValue(Name) over (order by Name rows between 1 preceding and 1 following) as LV\n"
+            + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Diana"),
             new BasicEntity("Charlie"),
             new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+            new BasicEntity("Bob")
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("LV", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("LV", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "Bob"],
             ["Bob", "Charlie"],
             ["Charlie", "Diana"],
-            ["Diana", "Diana"]);
+            ["Diana", "Diana"]
+        );
     }
 
     [TestMethod]
     public void WhenNthValueWithFrame_ShouldReturnNthInFrame()
     {
-        var query = @"
-            select Name, NthValue(Name, 2) over (order by Name rows between 1 preceding and 1 following) as NV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, NthValue(Name, 2) over (order by Name rows between 1 preceding and 1 following) as NV\n"
+            + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Diana"),
             new BasicEntity("Charlie"),
             new BasicEntity("Alice"),
-            new BasicEntity("Bob"));
+            new BasicEntity("Bob")
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("NV", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("NV", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "Bob"],
             ["Bob", "Bob"],
             ["Charlie", "Charlie"],
-            ["Diana", "Diana"]);
+            ["Diana", "Diana"]
+        );
     }
 
     [TestMethod]
     public void WhenFirstValueWithUnboundedFrame_ShouldReturnPartitionFirst()
     {
-        var query = @"
-            select Name, City,
-                   FirstValue(Name) over (partition by City order by Name rows between unbounded preceding and unbounded following) as FV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, City,\n"
+            + "                   FirstValue(Name) over (partition by City order by Name rows between unbounded preceding and unbounded following) as FV\n"
+            + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { City = "NYC" },
             new BasicEntity("Alice") { City = "LA" },
             new BasicEntity("Bob") { City = "NYC" },
             new BasicEntity("Diana") { City = "LA" },
-            new BasicEntity("Eve") { City = "LA" });
+            new BasicEntity("Eve") { City = "LA" }
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -493,30 +461,35 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("FV", typeof(string)));
+            ("FV", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "LA", "Alice"],
             ["Diana", "LA", "Alice"],
             ["Eve", "LA", "Alice"],
             ["Bob", "NYC", "Bob"],
-            ["Charlie", "NYC", "Bob"]);
+            ["Charlie", "NYC", "Bob"]
+        );
     }
 
     [TestMethod]
     public void WhenLastValueWithUnboundedFrame_ShouldReturnPartitionLast()
     {
-        var query = @"
-            select Name, City,
-                   LastValue(Name) over (partition by City order by Name rows between unbounded preceding and unbounded following) as LV
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select Name, City,\n"
+            + "                   LastValue(Name) over (partition by City order by Name rows between unbounded preceding and unbounded following) as LV\n"
+            + "            from #A.entities()"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { City = "NYC" },
             new BasicEntity("Alice") { City = "LA" },
             new BasicEntity("Bob") { City = "NYC" },
             new BasicEntity("Diana") { City = "LA" },
-            new BasicEntity("Eve") { City = "LA" });
+            new BasicEntity("Eve") { City = "LA" }
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -525,13 +498,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("LV", typeof(string)));
+            ("LV", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "LA", "Eve"],
             ["Diana", "LA", "Eve"],
             ["Eve", "LA", "Eve"],
             ["Bob", "NYC", "Charlie"],
-            ["Charlie", "NYC", "Charlie"]);
+            ["Charlie", "NYC", "Charlie"]
+        );
     }
 }

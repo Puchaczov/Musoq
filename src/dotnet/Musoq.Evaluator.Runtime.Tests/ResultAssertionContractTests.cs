@@ -55,32 +55,60 @@ public sealed class ResultAssertionContractTests
     {
         using var table = new Table("control", [new Column("Value", typeof(int), 0)])
         {
-            new ValueRow(1), new ValueRow(2), new ValueRow(2)
+            new ValueRow(1),
+            new ValueRow(2),
+            new ValueRow(2),
         };
 
-        Assert.ThrowsExactly<AssertFailedException>(() => TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [1], [2]));
-        Assert.ThrowsExactly<AssertFailedException>(() => TableMaterializationTestHelper.AssertRowsInOrder(table, [1], [1], [2]));
+        Assert.ThrowsExactly<AssertFailedException>(() =>
+            TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [1], [2])
+        );
+        Assert.ThrowsExactly<AssertFailedException>(() =>
+            TableMaterializationTestHelper.AssertRowsInOrder(table, [1], [1], [2])
+        );
     }
 
     [TestMethod]
     public void RowComparisons_WhenOnlyOrderChanges_ShouldRespectTheSelectedContract()
     {
-        using var table = new Table("control", [new Column("Value", typeof(int), 0)]) { new ValueRow(2), new ValueRow(1) };
+        using var table = new Table("control", [new Column("Value", typeof(int), 0)])
+        {
+            new ValueRow(2),
+            new ValueRow(1),
+        };
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [2]);
-        Assert.ThrowsExactly<AssertFailedException>(() => TableMaterializationTestHelper.AssertRowsInOrder(table, [1], [2]));
+        Assert.ThrowsExactly<AssertFailedException>(() =>
+            TableMaterializationTestHelper.AssertRowsInOrder(table, [1], [2])
+        );
     }
 
     private sealed class VisitationRow(string mode) : Row
     {
-        public override int Count => mode switch { "empty" => 0, "duplicate-and-missing" => 2, _ => 1 };
+        public override int Count =>
+            mode switch
+            {
+                "empty" => 0,
+                "duplicate-and-missing" => 2,
+                _ => 1,
+            };
 
         public override void VisitColumns<TVisitor>(ref TVisitor visitor)
         {
-            if (mode is "missing" or "empty") return;
+            if (mode is "missing" or "empty")
+                return;
             object? value = null;
-            visitor.Visit(mode switch { "negative" => -1, "outside" => 1, _ => 0 }, in value);
-            if (mode is "duplicate" or "duplicate-and-missing") visitor.Visit(0, in value);
+            visitor.Visit(
+                mode switch
+                {
+                    "negative" => -1,
+                    "outside" => 1,
+                    _ => 0,
+                },
+                in value
+            );
+            if (mode is "duplicate" or "duplicate-and-missing")
+                visitor.Visit(0, in value);
         }
     }
 

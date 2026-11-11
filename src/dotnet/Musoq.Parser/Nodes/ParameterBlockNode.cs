@@ -5,9 +5,7 @@ namespace Musoq.Parser.Nodes;
 public class ParameterBlockNode : Node
 {
     public ParameterBlockNode(ParameterDeclarationNode[] parameters)
-        : this(parameters, default)
-    {
-    }
+        : this(parameters, default) { }
 
     public ParameterBlockNode(ParameterDeclarationNode[] parameters, TextSpan span)
     {

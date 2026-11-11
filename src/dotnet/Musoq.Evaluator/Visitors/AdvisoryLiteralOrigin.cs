@@ -1,5 +1,5 @@
-using Musoq.Parser.Nodes;
 using Musoq.Parser;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -10,10 +10,10 @@ internal sealed record LiteralOrigin(
     string Source,
     int ContentStart,
     int ContentLength,
-    bool IsRaw)
+    bool IsRaw
+)
 {
     public ReadOnlySpan<char> Content => Source.AsSpan(ContentStart - Span.Start, ContentLength);
 
-    public TextSpan ContentSpan(int relativeStart, int length) =>
-        new(ContentStart + relativeStart, length);
+    public TextSpan ContentSpan(int relativeStart, int length) => new(ContentStart + relativeStart, length);
 }

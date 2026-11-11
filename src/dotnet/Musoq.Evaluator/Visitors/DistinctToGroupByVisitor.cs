@@ -18,11 +18,12 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
         var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
         var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
 
-        var select = Nodes.Pop() as SelectNode ??
-                     throw new InvalidOperationException("Distinct rewrite requires a SELECT node.");
+        var select =
+            Nodes.Pop() as SelectNode
+            ?? throw new InvalidOperationException("Distinct rewrite requires a SELECT node.");
         var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
-        var from = Nodes.Pop() as FromNode ??
-                   throw new InvalidOperationException("Distinct rewrite requires a FROM node.");
+        var from =
+            Nodes.Pop() as FromNode ?? throw new InvalidOperationException("Distinct rewrite requires a FROM node.");
 
         if (select is { IsDistinct: true } && groupBy == null && !ContainsWindowFunction(select))
         {
@@ -30,14 +31,17 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
             groupBy = new GroupByNode(groupByFields, null);
 
             var newSelectFields = new FieldNode[select.Fields.Length];
-            for (var i = 0; i < select.Fields.Length; i++) newSelectFields[i] = select.Fields[i];
+            for (var i = 0; i < select.Fields.Length; i++)
+                newSelectFields[i] = select.Fields[i];
 
             select = new SelectNode(newSelectFields, true);
         }
 
-        Nodes.Push(((QueryNode)new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify,
-                node.Span))
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            (
+                (QueryNode)new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, node.Span)
+            ).WithFullSpan(node.FullSpan)
+        );
     }
 
     private static FieldNode[] CreateGroupByFieldsFromSelect(SelectNode select)
@@ -47,8 +51,10 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
         for (var i = 0; i < select.Fields.Length; i++)
         {
             var originalField = select.Fields[i];
-            fields[i] = (FieldNode)new FieldNode(originalField.Expression, i, string.Empty, originalField.Span)
-                .WithFullSpan(originalField.FullSpan);
+            fields[i] = (FieldNode)
+                new FieldNode(originalField.Expression, i, string.Empty, originalField.Span).WithFullSpan(
+                    originalField.FullSpan
+                );
         }
 
         return fields;

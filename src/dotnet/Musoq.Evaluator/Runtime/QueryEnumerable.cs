@@ -18,7 +18,8 @@ public sealed class QueryEnumerable<T> : IQueryRows<T>
         CancellationToken token,
         Action? onCompleted = null,
         Action<Exception>? onException = null,
-        Action? onDisposed = null)
+        Action? onDisposed = null
+    )
     {
         _rowsFactory = rowsFactory ?? throw new ArgumentNullException(nameof(rowsFactory));
         _token = token;

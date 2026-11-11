@@ -17,13 +17,14 @@ public sealed partial class ExecutionCSharpRenderer
         {
             ExecutionMethodCall methodCall => MethodUsesInjectQueryStats(methodCall.Method.RequireClrMethod()),
             ExecutionAggregateCall aggregateCall => MethodUsesInjectQueryStats(aggregateCall.Method.RequireClrMethod()),
-            _ => false
+            _ => false,
         };
     }
 
     private static bool MethodUsesInjectQueryStats(MethodInfo method)
     {
-        return method.GetParameters()
+        return method
+            .GetParameters()
             .Any(parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null);
     }
 }

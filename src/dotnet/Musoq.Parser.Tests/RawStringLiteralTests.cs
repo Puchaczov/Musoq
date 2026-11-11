@@ -134,7 +134,8 @@ public class RawStringLiteralTests
     [DataRow(@"r'\'", @"\")]
     public void RawStringLiteral_MalformedEscapeLookingContent_IsLiteralAndHasNoDiagnostic(
         string source,
-        string expected)
+        string expected
+    )
     {
         var lexer = new Lexer(source, true);
 
@@ -221,8 +222,7 @@ public class RawStringLiteralTests
     [TestMethod]
     public void RawStringLiteral_WithCommentText_IsParsedAsOneLiteral()
     {
-        var root = new Parser(new Lexer("select r'-- not a comment' from #some.files()", true))
-            .ComposeAll();
+        var root = new Parser(new Lexer("select r'-- not a comment' from #some.files()", true)).ComposeAll();
 
         Assert.IsNotNull(root);
     }
@@ -230,19 +230,21 @@ public class RawStringLiteralTests
     [TestMethod]
     public void RawStringLiteral_IsAcceptedInQueryExpressionContexts()
     {
-        const string query = @"
-let path: string = r'C:\A';
-select
-    $path,
-    case when Col = r'C:\A' then r'C:\B' else r'C:\C' end,
-    Length(r'C:\A')
-from schema.method(r'C:\source', true)
-where Col in (r'C:\A', r'C:\B')
-  and Col like r'%A'
-  and Col rlike r'.*A'
-group by Col
-having Count(Col) > Length(r'')
-order by r'C:\A'";
+        const string query = (
+            "\n"
+            + "let path: string = r'C:\\A';\n"
+            + "select\n"
+            + "    $path,\n"
+            + "    case when Col = r'C:\\A' then r'C:\\B' else r'C:\\C' end,\n"
+            + "    Length(r'C:\\A')\n"
+            + "from schema.method(r'C:\\source', true)\n"
+            + "where Col in (r'C:\\A', r'C:\\B')\n"
+            + "  and Col like r'%A'\n"
+            + "  and Col rlike r'.*A'\n"
+            + "group by Col\n"
+            + "having Count(Col) > Length(r'')\n"
+            + "order by r'C:\\A'"
+        );
 
         var root = new Parser(new Lexer(query, true)).ComposeAll();
 
@@ -252,11 +254,9 @@ order by r'C:\A'";
     [TestMethod]
     public void RawStringLiteral_IsAcceptedInValuesSource()
     {
-        const string query = @"
-from values {
-    ( Path: r'C:\new\test' )
-} paths
-select paths.Path";
+        const string query = (
+            "\n" + "from values {\n" + "    ( Path: r'C:\\new\\test' )\n" + "} paths\n" + "select paths.Path"
+        );
 
         var root = new Parser(new Lexer(query, true)).ComposeAll();
 

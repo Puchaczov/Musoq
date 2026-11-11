@@ -21,7 +21,10 @@ internal sealed class ListLayout(LayoutContext context, Func<IReadOnlyList<Layou
             if (index < elements.Count)
             {
                 parts.Add(context.Tokens.Of(elements[index].Token));
-                if (index + 1 < elements.Count && context.Comments.IsTrailingLineComment(elements[index].Token, elements[index + 1].Token))
+                if (
+                    index + 1 < elements.Count
+                    && context.Comments.IsTrailingLineComment(elements[index].Token, elements[index + 1].Token)
+                )
                 {
                     parts.Add(Document.Text(" "));
                     parts.Add(context.Tokens.Of(elements[++index].Token));
@@ -34,5 +37,4 @@ internal sealed class ListLayout(LayoutContext context, Func<IReadOnlyList<Layou
         }
         return Document.Join(parts);
     }
-
 }

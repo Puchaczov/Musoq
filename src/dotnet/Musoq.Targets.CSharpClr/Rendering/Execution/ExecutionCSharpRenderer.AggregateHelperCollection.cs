@@ -12,7 +12,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static IEnumerable<(THelper Helper, int Index)> CollectAggregateHelpersWithIndexes<THelper>(
         ExecutionBlock block,
         CreateAggregateHelper<THelper> createHelper,
-        AssignAggregateHelperNames<THelper> assignNames)
+        AssignAggregateHelperNames<THelper> assignNames
+    )
         where THelper : class
     {
         var helperIndex = 0;
@@ -22,8 +23,7 @@ public sealed partial class ExecutionCSharpRenderer
         for (var index = 0; index < nodes.Count; index++)
         {
             var node = nodes[index];
-            if (node is ExecutionStoreTable store &&
-                TryCreateStoredTableBuild(nodes, index, pending, store, out _))
+            if (node is ExecutionStoreTable store && TryCreateStoredTableBuild(nodes, index, pending, store, out _))
             {
                 pending.Clear();
                 continue;

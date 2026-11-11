@@ -15,10 +15,7 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(5);
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Utf8);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Name", stringType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Name", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -37,10 +34,7 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(4);
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Ascii);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Label", stringType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Label", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -61,9 +55,9 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
             "Record",
             new BinarySchemaNode(
                 "Record",
-                [new FieldDefinitionNode(
-                    "Text",
-                    new StringTypeNode(new IntegerNode(1), StringEncoding.Ebcdic))]));
+                [new FieldDefinitionNode("Text", new StringTypeNode(new IntegerNode(1), StringEncoding.Ebcdic))]
+            )
+        );
 
         var interpreter = CompileInterpreter(registry, "Record");
         var result = InvokeInterpret(interpreter, [0xC1]);
@@ -77,10 +71,7 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(10);
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Utf8, StringModifier.Trim);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Name", stringType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Name", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -99,10 +90,7 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(10);
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Utf8, StringModifier.RTrim);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Name", stringType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Name", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -121,10 +109,7 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(10);
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Utf8, StringModifier.LTrim);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Name", stringType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Name", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -143,10 +128,7 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(10);
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Utf8, StringModifier.NullTerm);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Name", stringType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Name", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -164,12 +146,12 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
     {
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(12);
-        var stringType = new StringTypeNode(sizeExpr, StringEncoding.Utf8,
-            StringModifier.NullTerm | StringModifier.Trim);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Name", stringType)
-        };
+        var stringType = new StringTypeNode(
+            sizeExpr,
+            StringEncoding.Utf8,
+            StringModifier.NullTerm | StringModifier.Trim
+        );
+        var fields = new[] { new FieldDefinitionNode("Name", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -188,10 +170,7 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(8);
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Utf16Le);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Name", stringType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Name", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -210,10 +189,7 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(8);
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Utf16Be);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Name", stringType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Name", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -232,10 +208,7 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(5);
         var stringType = new StringTypeNode(sizeExpr, StringEncoding.Latin1);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Text", stringType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Text", stringType) };
         var schema = new BinarySchemaNode("Record", [.. fields]);
         registry.Register("Record", schema);
 
@@ -252,10 +225,14 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
     public void Interpret_ByteArray_WithDynamicSize_ShouldUsePreviousField()
     {
         var registry = new SchemaRegistry();
-        var lengthField = new FieldDefinitionNode("Length",
-            new PrimitiveTypeNode(PrimitiveTypeName.Short, Endianness.LittleEndian));
-        var dataField = new FieldDefinitionNode("Data",
-            new ByteArrayTypeNode(new AccessColumnNode("Length", string.Empty, TextSpan.Empty)));
+        var lengthField = new FieldDefinitionNode(
+            "Length",
+            new PrimitiveTypeNode(PrimitiveTypeName.Short, Endianness.LittleEndian)
+        );
+        var dataField = new FieldDefinitionNode(
+            "Data",
+            new ByteArrayTypeNode(new AccessColumnNode("Length", string.Empty, TextSpan.Empty))
+        );
 
         var fields = new[] { lengthField, dataField };
         var schema = new BinarySchemaNode("Record", [.. fields]);
@@ -281,12 +258,14 @@ public class BinaryInterpretationStringTests : BinaryInterpretationTestBase
     public void Interpret_String_WithDynamicSize_ShouldUsePreviousField()
     {
         var registry = new SchemaRegistry();
-        var nameLenField = new FieldDefinitionNode("NameLen",
-            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable));
-        var nameField = new FieldDefinitionNode("Name",
-            new StringTypeNode(
-                new AccessColumnNode("NameLen", string.Empty, TextSpan.Empty),
-                StringEncoding.Utf8));
+        var nameLenField = new FieldDefinitionNode(
+            "NameLen",
+            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)
+        );
+        var nameField = new FieldDefinitionNode(
+            "Name",
+            new StringTypeNode(new AccessColumnNode("NameLen", string.Empty, TextSpan.Empty), StringEncoding.Utf8)
+        );
 
         var fields = new[] { nameLenField, nameField };
         var schema = new BinarySchemaNode("Record", [.. fields]);

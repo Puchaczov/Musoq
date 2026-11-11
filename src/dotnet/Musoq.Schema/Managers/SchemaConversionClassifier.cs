@@ -1,4 +1,3 @@
-
 namespace Musoq.Schema.Managers;
 
 /// <summary>Provides the canonical implicit conversion costs used by callable binding.</summary>
@@ -45,8 +44,10 @@ public static class SchemaConversionClassifier
             return true;
         }
 
-        if (MethodsMetadata.ValidImplicitConversions.TryGetValue(source, out var numericTargets) &&
-            numericTargets.Contains(target))
+        if (
+            MethodsMetadata.ValidImplicitConversions.TryGetValue(source, out var numericTargets)
+            && numericTargets.Contains(target)
+        )
         {
             cost = MethodsMetadata.ConversionCosts.TryGetValue((source, target), out var numericCost)
                 ? numericCost + (targetNullable == null ? 0 : 1)
@@ -73,5 +74,4 @@ public static class SchemaConversionClassifier
 
         return 20;
     }
-
 }

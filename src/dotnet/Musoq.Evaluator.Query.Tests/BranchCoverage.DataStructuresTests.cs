@@ -227,11 +227,7 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
     {
         var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
 
-        table.AddRange([
-            new TestRow([1]),
-            new TestRow([2]),
-            new TestRow([3])
-        ]);
+        table.AddRange([new TestRow([1]), new TestRow([2]), new TestRow([3])]);
 
         Assert.AreEqual(3, table.Count);
     }
@@ -255,10 +251,7 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
     [TestMethod]
     public void Table_Columns_ShouldReturnAllColumns()
     {
-        var table = new Table("Test", [
-            new Column("Col1", typeof(int), 0),
-            new Column("Col2", typeof(string), 1)
-        ]);
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0), new Column("Col2", typeof(string), 1)]);
 
         var columns = table.Columns.ToList();
 
@@ -268,10 +261,7 @@ public partial class BranchCoverageImprovementTests : GenericEntityTestBase
     [TestMethod]
     public void Table_DuplicateLabelsWithDifferentTypes_ShouldPreserveOrdinals()
     {
-        using var table = new Table("Test", [
-            new Column("Id", typeof(int), 0),
-            new Column("Id", typeof(string), 1)
-        ]);
+        using var table = new Table("Test", [new Column("Id", typeof(int), 0), new Column("Id", typeof(string), 1)]);
         table.AddDirect(new TestRow([7, "seven"]));
 
         var columns = table.Columns.ToArray();

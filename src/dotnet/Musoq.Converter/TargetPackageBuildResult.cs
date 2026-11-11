@@ -14,7 +14,8 @@ internal sealed class TargetPackageBuildResult
         IReadOnlyList<Diagnostic> diagnostics,
         Exception? caughtException,
         BuildItems? buildItems,
-        string? compilationOptionsSignature)
+        string? compilationOptionsSignature
+    )
     {
         Package = package;
         Inspection = inspection;
@@ -50,7 +51,8 @@ internal sealed class TargetPackageBuildResult
         RenderedQueryInspection? inspection,
         IReadOnlyList<Diagnostic> diagnostics,
         BuildItems buildItems,
-        string compilationOptionsSignature)
+        string compilationOptionsSignature
+    )
     {
         return new TargetPackageBuildResult(
             package,
@@ -58,13 +60,15 @@ internal sealed class TargetPackageBuildResult
             diagnostics,
             caughtException: null,
             buildItems,
-            compilationOptionsSignature);
+            compilationOptionsSignature
+        );
     }
 
     public static TargetPackageBuildResult Failure(
         IReadOnlyList<Diagnostic> diagnostics,
         Exception? caughtException = null,
-        BuildItems? buildItems = null)
+        BuildItems? buildItems = null
+    )
     {
         return new TargetPackageBuildResult(
             package: null,
@@ -72,6 +76,7 @@ internal sealed class TargetPackageBuildResult
             diagnostics,
             caughtException,
             buildItems,
-            compilationOptionsSignature: null);
+            compilationOptionsSignature: null
+        );
     }
 }

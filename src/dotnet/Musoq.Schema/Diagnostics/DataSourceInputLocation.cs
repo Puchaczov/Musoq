@@ -11,7 +11,8 @@ public sealed record DataSourceInputLocation
         long? column = null,
         long? byteOffset = null,
         long? characterOffset = null,
-        long? bytePositionInLine = null)
+        long? bytePositionInLine = null
+    )
     {
         ValidateOneBased(line, nameof(line));
         ValidateOneBased(column, nameof(column));

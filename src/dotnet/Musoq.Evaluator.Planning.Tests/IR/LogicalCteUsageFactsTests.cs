@@ -16,9 +16,7 @@ public sealed class LogicalCteUsageFactsTests
     {
         var schema = CreateSchema();
         var input = new CteRefNode("direct", "d", schema);
-        var project = new ProjectNode(
-            [new ProjectedField("Value", new CteTableRef("expr"), 0)],
-            input);
+        var project = new ProjectNode([new ProjectedField("Value", new CteTableRef("expr"), 0)], input);
 
         var references = LogicalCteUsageFacts.CollectCteReferences(project).ToArray();
 

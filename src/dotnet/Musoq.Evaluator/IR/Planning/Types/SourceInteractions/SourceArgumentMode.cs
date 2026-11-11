@@ -5,5 +5,5 @@ internal enum SourceArgumentMode
     ConstantArguments,
     SourceLocalArguments,
     CorrelatedArguments,
-    Unknown
+    Unknown,
 }

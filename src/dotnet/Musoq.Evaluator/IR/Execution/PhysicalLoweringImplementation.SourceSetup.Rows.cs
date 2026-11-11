@@ -14,35 +14,53 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         string? sourceRowsScope,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (source is PhysicalCteRefNode reference)
         {
             foreach (var binding in scope.SubqueryCtes)
                 if (string.Equals(reference.CteName, binding.Name, StringComparison.OrdinalIgnoreCase))
-                    return new ExecutionVariableRead(new ExecutionVariable(binding.ParameterName, typeof(object),
-                        $"IReadOnlyList<{binding.Shape.TypeName}>"));
+                    return new ExecutionVariableRead(
+                        new ExecutionVariable(
+                            binding.ParameterName,
+                            typeof(object),
+                            $"IReadOnlyList<{binding.Shape.TypeName}>"
+                        )
+                    );
         }
         return source switch
         {
             PhysicalSchemaScanNode scan => CreateSchemaScanRowsExpression(scan.Alias, sourceRowsScope),
-            PhysicalInterpretSourceNode interpret =>
-                new ExecutionScalarRowStream(new ExecutionVariable(CreateSourceRowsName(interpret.Alias, sourceRowsScope), typeof(object))),
-            PhysicalPropertySourceNode property => CreateEnumerableRowsExpression(property.Alias, property.ResultType, sourceShape, sourceRowsScope),
-            PhysicalAccessMethodSourceNode accessMethod => CreateEnumerableRowsExpression(accessMethod.Alias, accessMethod.ResultType, sourceShape, sourceRowsScope),
-            PhysicalValuesScanNode values when sourceShape is ValuesRowShape valuesShape =>
-                new ExecutionVariableRead(CreateValuesRowsVariable(values.Alias, valuesShape.GeneratedShape, sourceRowsScope)),
-            PhysicalCteRefNode cteRef when scope?.RecursiveCteInvariantInputs.TryGetValue(
-                                                cteRef.CteName,
-                                                out var invariant) == true =>
+            PhysicalInterpretSourceNode interpret => new ExecutionScalarRowStream(
+                new ExecutionVariable(CreateSourceRowsName(interpret.Alias, sourceRowsScope), typeof(object))
+            ),
+            PhysicalPropertySourceNode property => CreateEnumerableRowsExpression(
+                property.Alias,
+                property.ResultType,
+                sourceShape,
+                sourceRowsScope
+            ),
+            PhysicalAccessMethodSourceNode accessMethod => CreateEnumerableRowsExpression(
+                accessMethod.Alias,
+                accessMethod.ResultType,
+                sourceShape,
+                sourceRowsScope
+            ),
+            PhysicalValuesScanNode values when sourceShape is ValuesRowShape valuesShape => new ExecutionVariableRead(
+                CreateValuesRowsVariable(values.Alias, valuesShape.GeneratedShape, sourceRowsScope)
+            ),
+            PhysicalCteRefNode cteRef
+                when scope?.RecursiveCteInvariantInputs.TryGetValue(cteRef.CteName, out var invariant) == true =>
                 invariant.Rows,
-            PhysicalCteRefNode cteRef when scope?.RecursiveCteSink is { } sink &&
-                                                cteIndexes[cteRef.CteName] == sink.TableIndex =>
+            PhysicalCteRefNode cteRef
+                when scope?.RecursiveCteSink is { } sink && cteIndexes[cteRef.CteName] == sink.TableIndex =>
                 new ExecutionVariableRead(sink.InputFrontier),
             PhysicalCteRefNode cteRef => new ExecutionStoredTableRows(
                 cteIndexes[cteRef.CteName],
-                ResolveCteGeneratedRowShape(cteRef, cteShapesByName)),
-            _ => throw UnsupportedShape.Of($"Source node '{source.GetType().Name}'", "Execution IR lowering")
+                ResolveCteGeneratedRowShape(cteRef, cteShapesByName)
+            ),
+            _ => throw UnsupportedShape.Of($"Source node '{source.GetType().Name}'", "Execution IR lowering"),
         };
     }
 
@@ -50,22 +68,20 @@ internal sealed partial class PhysicalLoweringImplementation
         string alias,
         Type enumerableType,
         RowShape sourceShape,
-        string? sourceRowsScope)
+        string? sourceRowsScope
+    )
     {
         var rows = new ExecutionVariable(CreateSourceRowsName(alias, sourceRowsScope), typeof(object));
 
         var directScalar = IsDirectScalarSource(sourceShape);
-        return new ExecutionRowStream(rows, directScalar
-            ? ExecutionRowStreamKind.Rows : ExecutionRowStreamKind.Chunks)
+        return new ExecutionRowStream(rows, directScalar ? ExecutionRowStreamKind.Rows : ExecutionRowStreamKind.Chunks)
         {
             HasDirectScalarElements = directScalar,
-            IsValueEnumerable = directScalar && enumerableType.IsValueType
+            IsValueEnumerable = directScalar && enumerableType.IsValueType,
         };
     }
 
-    private static ExecutionExpression CreateSchemaScanRowsExpression(
-        string alias,
-        string? sourceRowsScope)
+    private static ExecutionExpression CreateSchemaScanRowsExpression(string alias, string? sourceRowsScope)
     {
         var rows = new ExecutionVariable(CreateSourceRowsName(alias, sourceRowsScope), typeof(object));
 
@@ -74,9 +90,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static string? CreateSourceRowsScope(string resultTableName)
     {
-        return string.Equals(resultTableName, "result", StringComparison.Ordinal)
-            ? null
-            : resultTableName;
+        return string.Equals(resultTableName, "result", StringComparison.Ordinal) ? null : resultTableName;
     }
 
     private static string CreateSourceRowsName(string alias, string? sourceRowsScope)
@@ -92,17 +106,18 @@ internal sealed partial class PhysicalLoweringImplementation
         if (IsDirectScalarSource(sourceShape))
             return ExecutionEnumerableChunkMode.DirectScalar;
 
-        return sourceShape is SourceEntityShape { EntityType: not null } source &&
-               source.EntityType.ResolveClrType() != typeof(object) &&
-               RowShapeLookup.CanReferenceType(source.EntityType.ResolveClrType()) &&
-               !RowShapeLookup.UsesReflectedMemberAccess(source)
+        return
+            sourceShape is SourceEntityShape { EntityType: not null } source
+            && source.EntityType.ResolveClrType() != typeof(object)
+            && RowShapeLookup.CanReferenceType(source.EntityType.ResolveClrType())
+            && !RowShapeLookup.UsesReflectedMemberAccess(source)
             ? ExecutionEnumerableChunkMode.Direct
             : ExecutionEnumerableChunkMode.ObjectOrReflected;
     }
 
     private static bool IsDirectScalarSource(RowShape sourceShape)
     {
-        return sourceShape is SourceEntityShape source &&
-               source.Fields.Any(static field => field.AccessStrategy is DirectScalarValueAccess);
+        return sourceShape is SourceEntityShape source
+            && source.Fields.Any(static field => field.AccessStrategy is DirectScalarValueAccess);
     }
 }

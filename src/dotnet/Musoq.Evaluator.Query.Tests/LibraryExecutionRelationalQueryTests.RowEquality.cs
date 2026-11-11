@@ -1,7 +1,7 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Plugins;
 using Musoq.Evaluator.Tests.Schema.Generic;
+using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -12,7 +12,13 @@ public sealed class LibraryExecutionRowEqualityQueryTests : GenericEntityTestBas
     public void NativeResultRows_WhenCompared_ShouldPreserveNullAndNumericEquality()
     {
         const string query = "select Key, Amount from #schema.first() order by Position";
-        RowEqualityInput[] input = [new(1, "same", 42m), new(2, "same", 42m), new(3, "same", null), new(4, "same", null)];
+        RowEqualityInput[] input =
+        [
+            new(1, "same", 42m),
+            new(2, "same", 42m),
+            new(3, "same", null),
+            new(4, "same", null),
+        ];
         using var compiled = CreateAndRunVirtualMachine<RowEqualityInput, LibraryBase>(query, input);
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
@@ -31,8 +37,10 @@ public sealed class LibraryExecutionRowEqualityQueryTests : GenericEntityTestBas
     public void NumericResultRowEqualityAndHashing_ShouldMatchEquivalentValues()
     {
         const string query = "select Amount from #schema.first() order by Position";
-        using var compiled = CreateAndRunVirtualMachine<RowEqualityInput, LibraryBase>(query,
-            [new(1, "same", 42m), new(2, "same", 42m)]);
+        using var compiled = CreateAndRunVirtualMachine<RowEqualityInput, LibraryBase>(
+            query,
+            [new(1, "same", 42m), new(2, "same", 42m)]
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         TableMaterializationTestHelper.AssertColumns(table, ("Amount", typeof(decimal?)));

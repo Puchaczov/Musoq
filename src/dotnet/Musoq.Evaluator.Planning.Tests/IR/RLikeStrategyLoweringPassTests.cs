@@ -14,9 +14,12 @@ public sealed class RLikeStrategyLoweringPassTests
     [TestMethod]
     public void Optimize_WhenConstantContainsRegexSyntax_ShouldPrepareAtExecutionRoot()
     {
-        var plan = Plan(new ExecutionLet(
-            Var("matched", typeof(bool)),
-            Match(new ExecutionLiteral("alpha", typeof(string)), new ExecutionLiteral("^a", typeof(string)))));
+        var plan = Plan(
+            new ExecutionLet(
+                Var("matched", typeof(bool)),
+                Match(new ExecutionLiteral("alpha", typeof(string)), new ExecutionLiteral("^a", typeof(string)))
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -27,7 +30,8 @@ public sealed class RLikeStrategyLoweringPassTests
         StringAssert.Contains(result.Reason, "fallbacks=[RegexMetacharacter=1]");
         StringAssert.Contains(
             ExecutionPlanPrinter.Print(result.Plan),
-            "strategy=regex, anchors=none, literal-span=none, fallback=RegexMetacharacter");
+            "strategy=regex, anchors=none, literal-span=none, fallback=RegexMetacharacter"
+        );
     }
 
     [TestMethod]
@@ -35,9 +39,17 @@ public sealed class RLikeStrategyLoweringPassTests
     {
         var patterns = new[] { "alpha", @"\Aalpha", @"alpha\z", @"\Aalpha\z" };
         var body = patterns
-            .Select((pattern, index) => (ExecutionNode)new ExecutionLet(
-                Var($"matched{index}", typeof(bool)),
-                Match(new ExecutionLiteral("head-alpha-tail", typeof(string)), new ExecutionLiteral(pattern, typeof(string)))))
+            .Select(
+                (pattern, index) =>
+                    (ExecutionNode)
+                        new ExecutionLet(
+                            Var($"matched{index}", typeof(bool)),
+                            Match(
+                                new ExecutionLiteral("head-alpha-tail", typeof(string)),
+                                new ExecutionLiteral(pattern, typeof(string))
+                            )
+                        )
+            )
             .ToArray();
 
         var result = Optimize(new ExecutionPlan("compiled", [], new ExecutionBlock(body)));
@@ -46,7 +58,8 @@ public sealed class RLikeStrategyLoweringPassTests
         Assert.HasCount(4, matches);
         CollectionAssert.AreEquivalent(
             Enum.GetValues<ExecutionStringMatchKind>(),
-            matches.Select(static match => match.Kind).ToArray());
+            matches.Select(static match => match.Kind).ToArray()
+        );
         Assert.IsTrue(matches.All(static match => match.Comparison == ExecutionStringMatchComparison.Ordinal));
         Assert.IsTrue(matches.All(static match => match.Needle == "alpha"));
         Assert.IsEmpty(ExecutionIrAnalysis.CollectExpressions<ExecutionPrepareRLikeMatcher>(result.Plan.Body));
@@ -63,9 +76,17 @@ public sealed class RLikeStrategyLoweringPassTests
     [TestMethod]
     public void Optimize_WhenConstantUsesUnsupportedEscape_ShouldReportStableFallbackReason()
     {
-        var result = Optimize(Plan(new ExecutionLet(
-            Var("matched", typeof(bool)),
-            Match(new ExecutionLiteral("alpha1", typeof(string)), new ExecutionLiteral(@"alpha\d", typeof(string))))));
+        var result = Optimize(
+            Plan(
+                new ExecutionLet(
+                    Var("matched", typeof(bool)),
+                    Match(
+                        new ExecutionLiteral("alpha1", typeof(string)),
+                        new ExecutionLiteral(@"alpha\d", typeof(string))
+                    )
+                )
+            )
+        );
 
         Assert.HasCount(1, ExecutionIrAnalysis.CollectExpressions<ExecutionPreparedRLikeMatch>(result.Plan.Body));
         StringAssert.Contains(result.Reason, "fallbacks=[UnsupportedEscape=1]");
@@ -75,13 +96,19 @@ public sealed class RLikeStrategyLoweringPassTests
     public void Optimize_WhenPatternIsDynamicInSerialRegion_ShouldUseOneTwoEntryCacheSlot()
     {
         var row = Var("row", typeof(object));
-        var plan = Plan(new ExecutionForEach(
-            row,
-            new ExecutionVariableRead(Var("rows", typeof(object))),
-            new ExecutionBlock([
-                new ExecutionLet(Var("first", typeof(bool)), Match(Field("row", "First"), Field("row", "Pattern"))),
-                new ExecutionLet(Var("second", typeof(bool)), Match(Field("row", "Second"), Field("row", "OtherPattern")))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                row,
+                new ExecutionVariableRead(Var("rows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionLet(Var("first", typeof(bool)), Match(Field("row", "First"), Field("row", "Pattern"))),
+                    new ExecutionLet(
+                        Var("second", typeof(bool)),
+                        Match(Field("row", "Second"), Field("row", "OtherPattern"))
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
         var slots = ExecutionIrAnalysis.CollectExpressions<ExecutionRLikeMatcherCacheSlot>(result.Plan.Body).ToArray();
@@ -98,28 +125,40 @@ public sealed class RLikeStrategyLoweringPassTests
     {
         var outer = Var("m1", typeof(object));
         var inner = Var("m2", typeof(object));
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock([
-                new ExecutionEnumerableSource(
-                    Var("innerRows", typeof(object)),
-                    new ExecutionMemberRead(new ExecutionVariableRead(outer), "Children", typeof(object), false),
-                    typeof(object)),
-                new ExecutionForEach(
-                    inner,
-                    new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                    new ExecutionBlock([
-                        new ExecutionLet(Var("first", typeof(bool)), Match(Field("m2", "Value"), Field("m1", "Pattern"))),
-                        new ExecutionLet(Var("second", typeof(bool)), Match(Field("m2", "Other"), Field("m1", "Pattern")))
-                    ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionEnumerableSource(
+                        Var("innerRows", typeof(object)),
+                        new ExecutionMemberRead(new ExecutionVariableRead(outer), "Children", typeof(object), false),
+                        typeof(object)
+                    ),
+                    new ExecutionForEach(
+                        inner,
+                        new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                        new ExecutionBlock([
+                            new ExecutionLet(
+                                Var("first", typeof(bool)),
+                                Match(Field("m2", "Value"), Field("m1", "Pattern"))
+                            ),
+                            new ExecutionLet(
+                                Var("second", typeof(bool)),
+                                Match(Field("m2", "Other"), Field("m1", "Pattern"))
+                            ),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
         var optimizedOuter = Assert.IsInstanceOfType<ExecutionForEach>(result.Plan.Body.Nodes.Single());
 
         Assert.IsInstanceOfType<ExecutionPrepareRLikeMatcher>(
-            Assert.IsInstanceOfType<ExecutionLet>(optimizedOuter.Body.Nodes[0]).Value);
+            Assert.IsInstanceOfType<ExecutionLet>(optimizedOuter.Body.Nodes[0]).Value
+        );
         Assert.IsInstanceOfType<ExecutionEnumerableSource>(optimizedOuter.Body.Nodes[1]);
         Assert.IsInstanceOfType<ExecutionForEach>(optimizedOuter.Body.Nodes[2]);
         Assert.HasCount(1, ExecutionIrAnalysis.CollectExpressions<ExecutionPrepareRLikeMatcher>(result.Plan.Body));
@@ -133,19 +172,24 @@ public sealed class RLikeStrategyLoweringPassTests
     {
         var outer = Var("m1", typeof(object));
         var inner = Var("m2", typeof(object));
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock([
-                new ExecutionForEach(
-                    inner,
-                    new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                    new ExecutionBlock([
-                        new ExecutionLet(
-                            Var("matched", typeof(bool)),
-                            Match(Field("m1", "Value"), Field("m2", "Pattern")))
-                    ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionForEach(
+                        inner,
+                        new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                        new ExecutionBlock([
+                            new ExecutionLet(
+                                Var("matched", typeof(bool)),
+                                Match(Field("m1", "Value"), Field("m2", "Pattern"))
+                            ),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -158,23 +202,29 @@ public sealed class RLikeStrategyLoweringPassTests
     {
         var outer = Var("m1", typeof(object));
         var inner = Var("m2", typeof(object));
-        var plan = Plan(new ExecutionForEach(
-            outer,
-            new ExecutionVariableRead(Var("outerRows", typeof(object))),
-            new ExecutionBlock([
-                new ExecutionIf(
-                    new ExecutionLiteral(true, typeof(bool)),
-                    new ExecutionBlock([
-                        new ExecutionForEach(
-                            inner,
-                            new ExecutionVariableRead(Var("innerRows", typeof(object))),
-                            new ExecutionBlock([
-                                new ExecutionLet(
-                                    Var("matched", typeof(bool)),
-                                    Match(Field("m2", "Value"), Field("m1", "Pattern")))
-                            ]))
-                    ]))
-            ])));
+        var plan = Plan(
+            new ExecutionForEach(
+                outer,
+                new ExecutionVariableRead(Var("outerRows", typeof(object))),
+                new ExecutionBlock([
+                    new ExecutionIf(
+                        new ExecutionLiteral(true, typeof(bool)),
+                        new ExecutionBlock([
+                            new ExecutionForEach(
+                                inner,
+                                new ExecutionVariableRead(Var("innerRows", typeof(object))),
+                                new ExecutionBlock([
+                                    new ExecutionLet(
+                                        Var("matched", typeof(bool)),
+                                        Match(Field("m2", "Value"), Field("m1", "Pattern"))
+                                    ),
+                                ])
+                            ),
+                        ])
+                    ),
+                ])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -185,16 +235,15 @@ public sealed class RLikeStrategyLoweringPassTests
     private static OptimizationResult<ExecutionPlan> Optimize(ExecutionPlan plan) =>
         new LikeStrategyLoweringPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
-    private static ExecutionPlan Plan(ExecutionNode node) =>
-        new("compiled", [], new ExecutionBlock([node]));
+    private static ExecutionPlan Plan(ExecutionNode node) => new("compiled", [], new ExecutionBlock([node]));
 
     private static ExecutionPatternMatch Match(ExecutionExpression input, ExecutionExpression pattern) =>
         new(input, pattern, PatternKind.RLike, typeof(bool));
 
-    private static ExecutionFieldRead Field(string alias, string name) =>
-        new(alias, name, typeof(string));
+    private static ExecutionFieldRead Field(string alias, string name) => new(alias, name, typeof(string));
 
     private static ExecutionVariable Var(string name, Type type) => new(name, type);
 }

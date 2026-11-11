@@ -16,7 +16,8 @@ public class ApplyJoinPipelineIntegrationTests : GenericEntityTestBase
     [TestMethod]
     public void WhenCrossApplyFollowedByRightOuterJoin_ShouldPreserveApplyAndJoinOperatorsInBothPlans()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, t.Money, c.Month
             from #schema.first() a
             cross apply #schema.second(a.Country) t
@@ -24,13 +25,28 @@ public class ApplyJoinPipelineIntegrationTests : GenericEntityTestBase
 
         var secondSource = new[]
         {
-            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2 { Country = "Country1", Money = 1000, Month = "January" }
+            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         };
 
         var thirdSource = new[]
         {
-            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2 { Country = "Country1", Money = 5000, Month = "March" },
-            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2 { Country = "NoMatch", Money = 6000, Month = "April" }
+            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2
+            {
+                Country = "Country1",
+                Money = 5000,
+                Month = "March",
+            },
+            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2
+            {
+                Country = "NoMatch",
+                Money = 6000,
+                Month = "April",
+            },
         };
 
         var buildItems = CreateApplyJoinBuildItems(query, secondSource, thirdSource);
@@ -65,7 +81,8 @@ public class ApplyJoinPipelineIntegrationTests : GenericEntityTestBase
     [TestMethod]
     public void WhenOuterApplyFollowedByInnerJoin_ShouldPreserveApplyAndJoinOperatorsInBothPlans()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, t.Money, c.Month
             from #schema.first() a
             outer apply #schema.second(a.Country) t
@@ -73,12 +90,22 @@ public class ApplyJoinPipelineIntegrationTests : GenericEntityTestBase
 
         var secondSource = new[]
         {
-            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2 { Country = "Country1", Money = 1000, Month = "January" }
+            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         };
 
         var thirdSource = new[]
         {
-            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2 { Country = "Country1", Money = 5000, Month = "March" }
+            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2
+            {
+                Country = "Country1",
+                Money = 5000,
+                Month = "March",
+            },
         };
 
         var buildItems = CreateApplyJoinBuildItems(query, secondSource, thirdSource);
@@ -112,11 +139,17 @@ public class ApplyJoinPipelineIntegrationTests : GenericEntityTestBase
     private BuildItems CreateApplyJoinBuildItems(
         string query,
         CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2[] secondSource,
-        CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2[] thirdSource)
+        CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2[] thirdSource
+    )
     {
         var firstSource = new[]
         {
-            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1 { City = "City1", Country = "Country1", Population = 100 }
+            new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         };
 
         return CreateBuildItems(
@@ -125,7 +158,8 @@ public class ApplyJoinPipelineIntegrationTests : GenericEntityTestBase
             secondSource,
             thirdSource,
             filterSecondRowsSource: static (parameters, source) =>
-                source.Filter(row => (string)row.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(row => (string)row.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
     }
 
     private static void AssertCountryLateralArgument(SchemaScanNode scan)

@@ -10,8 +10,12 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private bool TryInferAggregateMethodContext(string identifier, AccessMethodNode node, ArgsListNode args,
-        out MethodResolutionContext context)
+    private bool TryInferAggregateMethodContext(
+        string identifier,
+        AccessMethodNode node,
+        ArgsListNode args,
+        out MethodResolutionContext context
+    )
     {
         context = default;
 
@@ -74,7 +78,11 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private static string? TryInferAliasFromArguments(ArgsListNode args, TableSymbol tableSymbol)
     {
-        if (!tableSymbol.CompoundTables.Any(a => a.StartsWith(Helpers.Subqueries.GeneratedSubqueryContract.SubqueryPrefix, StringComparison.Ordinal)))
+        if (
+            !tableSymbol.CompoundTables.Any(a =>
+                a.StartsWith(Helpers.Subqueries.GeneratedSubqueryContract.SubqueryPrefix, StringComparison.Ordinal)
+            )
+        )
             return null;
 
         string? commonAlias = null;
@@ -99,8 +107,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         return tableSymbol.CompoundTables.Contains(commonAlias) ? commonAlias : null;
     }
 
-    private bool TryReportAmbiguousAggregateOwnerFromCandidates(string identifier, AccessMethodNode node,
-        ArgsListNode args)
+    private bool TryReportAmbiguousAggregateOwnerFromCandidates(
+        string identifier,
+        AccessMethodNode node,
+        ArgsListNode args
+    )
     {
         var tableSymbol = FindTableSymbolInScopeHierarchy(identifier);
         if (!tableSymbol.IsCompoundTable)
@@ -119,7 +130,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         foreach (var alias in tableSymbol.CompoundTables)
         {
             var candidateContext = CreateMethodResolutionContext(alias, false);
-            if (!TryResolveAggregateDeclarationMethod(methodName, argTypes, args, candidateContext, out var candidateMethod))
+            if (
+                !TryResolveAggregateDeclarationMethod(
+                    methodName,
+                    argTypes,
+                    args,
+                    candidateContext,
+                    out var candidateMethod
+                )
+            )
                 continue;
 
             if (schemaType == null)
@@ -130,9 +149,11 @@ public partial class BuildMetadataAndInferTypesVisitor
                 continue;
             }
 
-            if (schemaType != candidateContext.SchemaTablePair.Schema.GetType() ||
-                resolvedMethod == null ||
-                !AreSameMethod(resolvedMethod, candidateMethod))
+            if (
+                schemaType != candidateContext.SchemaTablePair.Schema.GetType()
+                || resolvedMethod == null
+                || !AreSameMethod(resolvedMethod, candidateMethod)
+            )
             {
                 candidateAliases.Add(alias);
             }
@@ -151,7 +172,10 @@ public partial class BuildMetadataAndInferTypesVisitor
         throw new AmbiguousAggregateOwnerException(node.ToString(), candidateAliases, span);
     }
 
-    private void ReportAmbiguousAggregateOwner(AccessMethodNode methodNode, IReadOnlyCollection<string> candidateAliases)
+    private void ReportAmbiguousAggregateOwner(
+        AccessMethodNode methodNode,
+        IReadOnlyCollection<string> candidateAliases
+    )
     {
         if (DiagnosticContext != null)
         {
@@ -163,8 +187,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         throw new AmbiguousAggregateOwnerException(methodNode.ToString(), candidateAliases, span);
     }
 
-    private static bool TryResolveAggregateSignature(AccessMethodNode node, ArgsListNode args, MethodResolutionContext context,
-        out AggregateResolutionSignature signature)
+    private static bool TryResolveAggregateSignature(
+        AccessMethodNode node,
+        ArgsListNode args,
+        MethodResolutionContext context,
+        out AggregateResolutionSignature signature
+    )
     {
         signature = default;
 
@@ -176,9 +204,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             methodName = $"{methodName}Distinct";
             if (TryResolveAggregateDeclarationMethod(methodName, argTypes, args, context, out var distinctDeclaration))
             {
-                signature = new AggregateResolutionSignature(
-                    distinctDeclaration,
-                    distinctDeclaration);
+                signature = new AggregateResolutionSignature(distinctDeclaration, distinctDeclaration);
                 return true;
             }
 
@@ -187,9 +213,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (TryResolveAggregateDeclarationMethod(methodName, argTypes, args, context, out var declaration))
         {
-            signature = new AggregateResolutionSignature(
-                declaration,
-                declaration);
+            signature = new AggregateResolutionSignature(declaration, declaration);
             return true;
         }
 

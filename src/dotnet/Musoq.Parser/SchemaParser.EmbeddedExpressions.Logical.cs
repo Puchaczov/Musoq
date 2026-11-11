@@ -79,7 +79,9 @@ public partial class SchemaParser
     private Node ComposeBitwiseOrExpression()
     {
         var left = ComposeShiftExpression();
-        while (Current.TokenType is TokenType.Pipe or TokenType.Caret or TokenType.Ampersand or TokenType.NullCoalescing)
+        while (
+            Current.TokenType is TokenType.Pipe or TokenType.Caret or TokenType.Ampersand or TokenType.NullCoalescing
+        )
         {
             var operation = Current.TokenType;
             Consume(operation);
@@ -93,7 +95,7 @@ public partial class SchemaParser
                 TokenType.NullCoalescing => new CoalesceNode(left, right),
                 TokenType.Pipe => new BitwiseOrNode(left, right),
                 TokenType.Caret => new BitwiseXorNode(left, right),
-                _ => new BitwiseAndNode(left, right)
+                _ => new BitwiseAndNode(left, right),
             };
         }
         return left;
@@ -109,9 +111,7 @@ public partial class SchemaParser
             Consume(op);
             var right = ComposeAdditiveExpression();
 
-            left = op == TokenType.LeftShift
-                ? new LeftShiftNode(left, right)
-                : new RightShiftNode(left, right);
+            left = op == TokenType.LeftShift ? new LeftShiftNode(left, right) : new RightShiftNode(left, right);
         }
 
         return left;
@@ -124,7 +124,8 @@ public partial class SchemaParser
             var value = Convert.ToInt64(intNode.ObjValue, System.Globalization.CultureInfo.InvariantCulture);
             if (value < 0)
             {
-                valueStr = intNode.ObjValue.ToString() ?? value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                valueStr =
+                    intNode.ObjValue.ToString() ?? value.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 return true;
             }
         }

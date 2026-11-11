@@ -62,5 +62,5 @@ public enum TextFieldType
     ///     Uses lookahead pattern matching to determine which type to parse.
     ///     The SwitchCases property on TextFieldDefinitionNode contains the case definitions.
     /// </summary>
-    Switch
+    Switch,
 }

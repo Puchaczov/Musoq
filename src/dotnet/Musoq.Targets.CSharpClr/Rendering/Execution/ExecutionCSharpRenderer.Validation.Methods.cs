@@ -6,7 +6,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-
     private static bool CanRenderMethodCall(ExecutionMethodCall methodCall)
     {
         if (methodCall.EnumIntrinsic != null)
@@ -15,15 +14,21 @@ public sealed partial class ExecutionCSharpRenderer
         var method = methodCall.Method.RequireClrMethod();
         var declaringType = method.DeclaringType;
         var resultIsRenderable = methodCall.GeneratedResultTypeName is { } resultName
-            ? CanRenderGeneratedTypeName(resultName) : CanReferenceType(methodCall.ReturnType);
+            ? CanRenderGeneratedTypeName(resultName)
+            : CanReferenceType(methodCall.ReturnType);
         if (declaringType == null || !method.IsPublic || !CanReferenceType(declaringType) || !resultIsRenderable)
             return false;
 
         if (method.ContainsGenericParameters)
             return false;
 
-        if (methodCall.Target != null &&
-            (!CanReferenceType(methodCall.Target.Type) || !declaringType.IsAssignableFrom(methodCall.Target.Type.RequireClrType())))
+        if (
+            methodCall.Target != null
+            && (
+                !CanReferenceType(methodCall.Target.Type)
+                || !declaringType.IsAssignableFrom(methodCall.Target.Type.RequireClrType())
+            )
+        )
         {
             return false;
         }
@@ -38,9 +43,7 @@ public sealed partial class ExecutionCSharpRenderer
         var parameters = method.GetParameters();
         foreach (var parameter in parameters)
         {
-            var injectAttribute = parameter.GetCustomAttributes(true)
-                .OfType<InjectTypeAttribute>()
-                .FirstOrDefault();
+            var injectAttribute = parameter.GetCustomAttributes(true).OfType<InjectTypeAttribute>().FirstOrDefault();
 
             if (injectAttribute != null)
             {
@@ -79,7 +82,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static bool CanRenderInjectedMethodArgument(
         ExecutionMethodCall methodCall,
         ParameterInfo parameter,
-        InjectTypeAttribute injectAttribute)
+        InjectTypeAttribute injectAttribute
+    )
     {
         if (injectAttribute is InjectQueryStatsAttribute)
             return true;

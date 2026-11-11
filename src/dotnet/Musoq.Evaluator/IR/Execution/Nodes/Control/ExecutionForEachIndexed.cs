@@ -5,4 +5,5 @@ public sealed record ExecutionForEachIndexed(
     ExecutionVariable Index,
     ExecutionVariable Source,
     ExecutionRowAccessMode RowAccessMode,
-    ExecutionBlock Body) : ExecutionNode;
+    ExecutionBlock Body
+) : ExecutionNode;

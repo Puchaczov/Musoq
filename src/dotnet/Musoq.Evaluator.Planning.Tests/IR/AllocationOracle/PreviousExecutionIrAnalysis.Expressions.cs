@@ -5,7 +5,6 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static partial class PreviousExecutionIrAnalysis
 {
-
     internal static IEnumerable<ExecutionExpression> FlattenExpressions(ExecutionBlock block)
     {
         foreach (var node in FlattenNodes(block))

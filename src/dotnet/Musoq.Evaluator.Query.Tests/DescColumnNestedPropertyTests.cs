@@ -15,7 +15,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
 {
-
     #region Dictionary/IEnumerable Nested Property Tests
 
     /// <summary>
@@ -26,14 +25,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     {
         var query = "desc #A.entities() column Self.Dictionary";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -57,14 +49,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     {
         var query = "desc #A.entities() column Self.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -86,23 +71,14 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     {
         var query = "desc #A.entities() column Self.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
-
         Assert.AreEqual("Children", columnNames[0], "First row should be the base element type");
-
 
         var expectedProperties = new[]
         {
@@ -110,9 +86,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
             "City",
             "Country",
             "Month",
-
             "Id",
-
             "Self",
             "Other",
             "Array",
@@ -121,13 +95,14 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
             "Time",
             "Money",
             "Population",
-            "NullableValue"
+            "NullableValue",
         };
 
         foreach (var expected in expectedProperties)
             Assert.IsTrue(
                 columnNames.Any(c => c.Equals(expected, StringComparison.OrdinalIgnoreCase)),
-                $"Expected property '{expected}' not found. Found: {string.Join(", ", columnNames)}");
+                $"Expected property '{expected}' not found. Found: {string.Join(", ", columnNames)}"
+            );
     }
 
     /// <summary>
@@ -139,41 +114,35 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     {
         var query = "desc #A.entities() column Self.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
-
         var expectedNestedComplexProperties = new[]
         {
             "Time.Date",
             "Time.TimeOfDay",
             "Dictionary.Keys",
-            "Dictionary.Values"
+            "Dictionary.Values",
         };
 
         foreach (var expected in expectedNestedComplexProperties)
             Assert.IsTrue(
                 columnNames.Any(c => c.Equals(expected, StringComparison.OrdinalIgnoreCase)),
-                $"Expected nested complex property '{expected}' not found. Found: {string.Join(", ", columnNames)}");
-
+                $"Expected nested complex property '{expected}' not found. Found: {string.Join(", ", columnNames)}"
+            );
 
         Assert.IsFalse(
             columnNames.Any(c => c.StartsWith("Id.", StringComparison.OrdinalIgnoreCase)),
-            "Primitive property 'Id' should not have nested properties");
+            "Primitive property 'Id' should not have nested properties"
+        );
         Assert.IsFalse(
             columnNames.Any(c => c.StartsWith("Name.", StringComparison.OrdinalIgnoreCase)),
-            "String property 'Name' should not have nested properties");
+            "String property 'Name' should not have nested properties"
+        );
     }
 
     /// <summary>
@@ -185,14 +154,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     {
         var query = "desc #A.entities() column Self.Array";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -218,14 +180,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     {
         var query = "desc #A.entities() column Self.Other.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -244,14 +199,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     {
         var query = "desc #A.entities() column Self.Other.Self.Array";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -274,14 +222,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     {
         var query = "desc #A.entities() column self.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -297,14 +238,7 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     {
         var query = "desc #A.entities() column Self.children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -313,5 +247,4 @@ public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
     }
 
     #endregion
-
 }

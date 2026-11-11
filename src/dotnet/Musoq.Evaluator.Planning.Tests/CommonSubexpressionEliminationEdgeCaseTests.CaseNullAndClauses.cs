@@ -13,22 +13,17 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenNestedCallInCaseWhenCondition_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                ToString(Population) as Pop,
-                CASE WHEN Length(ToString(Population)) > 2 THEN 'Long' ELSE 'Short' END as Category
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                ToString(Population) as Pop,\n"
+            + "                CASE WHEN Length(ToString(Population)) > 2 THEN 'Long' ELSE 'Short' END as Category\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 10),
-                    new BasicEntity("B", 100),
-                    new BasicEntity("C", 1000)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 10), new BasicEntity("B", 100), new BasicEntity("C", 1000)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -49,26 +44,21 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenSameExpressionInMultipleCaseWhenBranches_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                CASE
-                    WHEN Length(Name) > 4 THEN 'Very Long'
-                    WHEN Length(Name) > 2 THEN 'Long'
-                    WHEN Length(Name) > 0 THEN 'Short'
-                    ELSE 'Empty'
-                END as Category
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                CASE\n"
+            + "                    WHEN Length(Name) > 4 THEN 'Very Long'\n"
+            + "                    WHEN Length(Name) > 2 THEN 'Long'\n"
+            + "                    WHEN Length(Name) > 0 THEN 'Short'\n"
+            + "                    ELSE 'Empty'\n"
+            + "                END as Category\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("ABC"),
-                    new BasicEntity("ABCDEF")
-                ]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("ABC"), new BasicEntity("ABCDEF")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -83,21 +73,16 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenCaseWhenInWhereClause_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Name, Length(Name) as Len
-            FROM #A.Entities()
-            WHERE (CASE WHEN Length(Name) > 2 THEN 1 ELSE 0 END) = 1";
+        const string query = (
+            "\n"
+            + "            SELECT Name, Length(Name) as Len\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE (CASE WHEN Length(Name) > 2 THEN 1 ELSE 0 END) = 1"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABC"),
-                    new BasicEntity("ABCDE")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCDE")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -110,28 +95,23 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenNestedCaseWhenExpressions_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                CASE
-                    WHEN Length(Name) > 3 THEN
-                        CASE
-                            WHEN Length(Name) > 5 THEN 'Very Long'
-                            ELSE 'Long'
-                        END
-                    ELSE 'Short'
-                END as Category
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                CASE\n"
+            + "                    WHEN Length(Name) > 3 THEN\n"
+            + "                        CASE\n"
+            + "                            WHEN Length(Name) > 5 THEN 'Very Long'\n"
+            + "                            ELSE 'Long'\n"
+            + "                        END\n"
+            + "                    ELSE 'Short'\n"
+            + "                END as Category\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABCD"),
-                    new BasicEntity("ABCDEFG")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABCD"), new BasicEntity("ABCDEFG")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -150,21 +130,16 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenExpressionInShortCircuitedBranch_ShouldNotCauseIssues()
     {
-        const string query = @"
-            SELECT Name
-            FROM #A.Entities()
-            WHERE Name IS NOT NULL AND Length(Name) > 2";
+        const string query = (
+            "\n"
+            + "            SELECT Name\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Name IS NOT NULL AND Length(Name) > 2"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity(null),
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABCD")
-                ]
-            }
+            { "#A", [new BasicEntity(null), new BasicEntity("AB"), new BasicEntity("ABCD")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -177,21 +152,16 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenOrConditionWithSharedExpression_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Name, Length(Name) as Len
-            FROM #A.Entities()
-            WHERE Length(Name) = 2 OR Length(Name) = 5";
+        const string query = (
+            "\n"
+            + "            SELECT Name, Length(Name) as Len\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) = 2 OR Length(Name) = 5"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABC"),
-                    new BasicEntity("ABCDE")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCDE")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -209,12 +179,14 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenNullableExpressionWithMultipleUses_ShouldHandleCorrectly()
     {
-        const string query = @"
-            SELECT
-                NullableValue,
-                CASE WHEN NullableValue IS NULL THEN 0 ELSE NullableValue END as SafeValue
-            FROM #A.Entities()
-            WHERE NullableValue IS NULL OR NullableValue > 5";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                NullableValue,\n"
+            + "                CASE WHEN NullableValue IS NULL THEN 0 ELSE NullableValue END as SafeValue\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE NullableValue IS NULL OR NullableValue > 5"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -223,9 +195,9 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
                 [
                     new BasicEntity { Name = "A", NullableValue = null },
                     new BasicEntity { Name = "B", NullableValue = 3 },
-                    new BasicEntity { Name = "C", NullableValue = 10 }
+                    new BasicEntity { Name = "C", NullableValue = 10 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -243,11 +215,13 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenCoalesceWithSharedExpression_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Coalesce(NullableValue, 0) as Safe,
-                NullableValue
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Coalesce(NullableValue, 0) as Safe,\n"
+            + "                NullableValue\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -255,9 +229,9 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
                 "#A",
                 [
                     new BasicEntity { Name = "A", NullableValue = null },
-                    new BasicEntity { Name = "B", NullableValue = 42 }
+                    new BasicEntity { Name = "B", NullableValue = 42 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -279,22 +253,17 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenExpressionInSelectWhereAndOrderBy_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Name, Length(Name) as Len
-            FROM #A.Entities()
-            WHERE Length(Name) >= 2
-            ORDER BY Length(Name) DESC";
+        const string query = (
+            "\n"
+            + "            SELECT Name, Length(Name) as Len\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) >= 2\n"
+            + "            ORDER BY Length(Name) DESC"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABCDE")
-                ]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("AB"), new BasicEntity("ABCDE")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -309,12 +278,13 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenExpressionInGroupByAndHaving_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Length(Country) as CountryLen, Count(Country) as Cnt
-            FROM #A.Entities()
-            GROUP BY Length(Country)
-            HAVING Count(Country) > 1";
-
+        const string query = (
+            "\n"
+            + "            SELECT Length(Country) as CountryLen, Count(Country) as Cnt\n"
+            + "            FROM #A.Entities()\n"
+            + "            GROUP BY Length(Country)\n"
+            + "            HAVING Count(Country) > 1"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -325,17 +295,18 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
                     new BasicEntity("Poland", 200),
                     new BasicEntity("Germany", 300),
                     new BasicEntity("Poland", 400),
-                    new BasicEntity("UK", 500)
+                    new BasicEntity("UK", 500),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(1, table.Count);
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.ReadValue(0)) == 6 && Convert.ToInt32(row.ReadValue(1)) == 2));
+        Assert.IsTrue(
+            table.Any(row => Convert.ToInt32(row.ReadValue(0)) == 6 && Convert.ToInt32(row.ReadValue(1)) == 2)
+        );
     }
 
     #endregion

@@ -17,7 +17,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         BinaryOpKind comparisonKind,
         IComparer<TKey> comparer,
         IAsOfJoinBucket? singleBucket,
-        Dictionary<TEquality, IAsOfJoinBucket>? buckets)
+        Dictionary<TEquality, IAsOfJoinBucket>? buckets
+    )
     {
         _comparisonKind = comparisonKind;
         _comparer = comparer;
@@ -29,7 +30,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         IEnumerable<T> candidates,
         Func<T, NativeEqualityKey<TEquality>>? equalityKeySelector,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
     {
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(keySelector);
@@ -46,7 +48,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         IEnumerable<IReadOnlyList<T>> candidateChunks,
         Func<T, NativeEqualityKey<TEquality>>? equalityKeySelector,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
     {
         ArgumentNullException.ThrowIfNull(candidateChunks);
         ArgumentNullException.ThrowIfNull(keySelector);
@@ -56,7 +59,13 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
 
         return equalityKeySelector == null
             ? CreateSingleBucketFromChunks(candidateChunks, keySelector, comparisonKind, comparer)
-            : CreatePartitionedBucketsFromChunks(candidateChunks, equalityKeySelector, keySelector, comparisonKind, comparer);
+            : CreatePartitionedBucketsFromChunks(
+                candidateChunks,
+                equalityKeySelector,
+                keySelector,
+                comparisonKind,
+                comparer
+            );
     }
 
     public static AsOfJoinIndex<T, TKey, TEquality> Create<TTie>(
@@ -66,7 +75,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         BinaryOpKind comparisonKind,
         Func<T, TTie> tieBreakKeySelector,
         bool tieBreakDescending,
-        NullOrdering tieBreakNullOrdering)
+        NullOrdering tieBreakNullOrdering
+    )
     {
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(keySelector);
@@ -83,7 +93,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 comparisonKind,
                 comparer,
                 tieBreakKeySelector,
-                tieBreakComparer)
+                tieBreakComparer
+            )
             : CreatePartitionedBuckets(
                 candidates,
                 equalityKeySelector,
@@ -91,7 +102,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 comparisonKind,
                 comparer,
                 tieBreakKeySelector,
-                tieBreakComparer);
+                tieBreakComparer
+            );
     }
 
     public static AsOfJoinIndex<T, TKey, TEquality> CreateFromChunks<TTie>(
@@ -101,7 +113,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
         BinaryOpKind comparisonKind,
         Func<T, TTie> tieBreakKeySelector,
         bool tieBreakDescending,
-        NullOrdering tieBreakNullOrdering)
+        NullOrdering tieBreakNullOrdering
+    )
     {
         ArgumentNullException.ThrowIfNull(candidateChunks);
         ArgumentNullException.ThrowIfNull(keySelector);
@@ -118,7 +131,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 comparisonKind,
                 comparer,
                 tieBreakKeySelector,
-                tieBreakComparer)
+                tieBreakComparer
+            )
             : CreatePartitionedBucketsFromChunks(
                 candidateChunks,
                 equalityKeySelector,
@@ -126,7 +140,8 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 comparisonKind,
                 comparer,
                 tieBreakKeySelector,
-                tieBreakComparer);
+                tieBreakComparer
+            );
     }
 
     public T? Find(NativeEqualityKey<TEquality> equalityKey, TKey probeValue)
@@ -152,13 +167,17 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
 
     private static void ValidateComparisonKind(BinaryOpKind comparisonKind)
     {
-        if (comparisonKind is not (BinaryOpKind.GreaterThan
-            or BinaryOpKind.GreaterOrEqual
-            or BinaryOpKind.LessThan
-            or BinaryOpKind.LessOrEqual))
+        if (
+            comparisonKind
+            is not (
+                BinaryOpKind.GreaterThan
+                or BinaryOpKind.GreaterOrEqual
+                or BinaryOpKind.LessThan
+                or BinaryOpKind.LessOrEqual
+            )
+        )
         {
-            throw new InvalidOperationException(
-                $"Unsupported ASOF comparison kind '{comparisonKind}'.");
+            throw new InvalidOperationException($"Unsupported ASOF comparison kind '{comparisonKind}'.");
         }
     }
 }

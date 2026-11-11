@@ -6,28 +6,30 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class AutomaticNumericTypeInferenceTests
 {
-
     [TestMethod]
     public void WhenUsingStringColumnComparisonInCaseWhen_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name, " +
-                             "case when Size < 1000 then 'Small' " +
-                             "     when Size <= 2000 then 'Medium' " +
-                             "     else 'Large' end as Category " +
-                             "from Items()";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name, "
+            + "case when Size < 1000 then 'Small' "
+            + "     when Size <= 2000 then 'Medium' "
+            + "     else 'Large' end as Category "
+            + "from Items()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithStringColumn());
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
-            .OrderBy(x => x.Name).ToList();
+        var results = table
+            .Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
+            .OrderBy(x => x.Name)
+            .ToList();
 
         Assert.AreEqual("Large", results[0].Name);
         Assert.AreEqual("Large", results[0].Category);
@@ -42,16 +44,17 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenUsingDeclaredNumericColumnComparisonInCaseWhen_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name, " +
-                             "case when Value = 0 then 'Zero' " +
-                             "     when Value > 1000 then 'High' " +
-                             "     else 'Low' end as Level " +
-                             "from Items()";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name, "
+            + "case when Value = 0 then 'Zero' "
+            + "     when Value > 1000 then 'High' "
+            + "     else 'Low' end as Level "
+            + "from Items()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithDoubleValues());
         var table = vm.Run(TestContext.CancellationToken);
@@ -65,17 +68,16 @@ public partial class AutomaticNumericTypeInferenceTests
         Assert.AreEqual(1, lowCount);
     }
 
-
-
     [TestMethod]
     public void WhenStringColumnContainsInvalidNumber_ShouldHandleGracefully()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size > 1000";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size > 1000";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "abc";
@@ -88,7 +90,6 @@ public partial class AutomaticNumericTypeInferenceTests
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
@@ -96,12 +97,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenDeclaredNumericColumnIsNull_ShouldHandleGracefully()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value > 1000";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value > 1000";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = null;
@@ -114,7 +116,6 @@ public partial class AutomaticNumericTypeInferenceTests
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
@@ -122,12 +123,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingWithHexLiteral_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size = 0xFF";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size = 0xFF";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "255";
@@ -147,12 +149,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingWithBinaryLiteral_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size > 0b1111";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size > 0b1111";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "10";
@@ -165,22 +168,20 @@ public partial class AutomaticNumericTypeInferenceTests
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Large", table[0].ReadValues()[0]);
     }
 
-
-
     [TestMethod]
     public void WhenComparingStringColumnWithInvalidNumericString_ShouldNotMatch()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size > 1000";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size > 1000";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "not_a_number";
@@ -200,12 +201,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingDeclaredNumericColumnWithNaN_ShouldNotMatch()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value = 1000";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = 1000";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (double)(double.NaN);
@@ -225,12 +227,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingDeclaredNumericColumnWithPositiveInfinity_ShouldNotMatch()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value < 2000";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value < 2000";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (double)(double.PositiveInfinity);
@@ -246,5 +249,4 @@ public partial class AutomaticNumericTypeInferenceTests
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].ReadValues()[0]);
     }
-
 }

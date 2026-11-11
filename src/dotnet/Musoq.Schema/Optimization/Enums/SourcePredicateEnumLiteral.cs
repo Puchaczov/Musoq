@@ -14,7 +14,8 @@ public sealed record SourcePredicateEnumLiteral : SourcePredicateExpression
         {
             throw new ArgumentException(
                 "An enum predicate fingerprint must be a 64-character hexadecimal digest.",
-                nameof(enumFingerprint));
+                nameof(enumFingerprint)
+            );
         }
 
         Value = value;

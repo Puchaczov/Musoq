@@ -132,8 +132,6 @@ public class CteExecutionLevelTests
         Assert.AreEqual(100, level.Level);
     }
 
-
-
     [TestMethod]
     public void CteExecutionLevel_ToString_SingleCte_ShouldShowParallelFalse()
     {
@@ -159,7 +157,7 @@ public class CteExecutionLevelTests
             new("cte2", null),
             new("cte3", null),
             new("cte4", null),
-            new("cte5", null)
+            new("cte5", null),
         };
 
         // Act

@@ -2,10 +2,12 @@ using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
+
 public partial class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
     where TExpressionVisitor : class, IExpressionVisitor
 {
     protected TExpressionVisitor Visitor { get; }
+
     protected RawTraverseVisitor(TExpressionVisitor visitor)
     {
         Visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));

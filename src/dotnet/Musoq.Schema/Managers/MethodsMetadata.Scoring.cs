@@ -54,9 +54,10 @@ public partial class MethodsMetadata
             {
                 var nullableParameter = Nullable.GetUnderlyingType(rawParam) != null;
                 var nullableArgument = Nullable.GetUnderlyingType(rawArg) != null;
-                howClosePassedTypesAre += nullableParameter == nullableArgument
-                    ? GenericExactShapeConversionCost
-                    : GenericNullableLiftConversionCost;
+                howClosePassedTypesAre +=
+                    nullableParameter == nullableArgument
+                        ? GenericExactShapeConversionCost
+                        : GenericNullableLiftConversionCost;
             }
             else
                 return int.MaxValue;
@@ -85,7 +86,8 @@ public partial class MethodsMetadata
 
     private static int GetInheritanceDepth(Type derived, Type target)
     {
-        if (derived == target) return 0;
+        if (derived == target)
+            return 0;
 
         var depth = 0;
         var current = derived;
@@ -101,14 +103,19 @@ public partial class MethodsMetadata
 
     private static bool IsParameterTypeCompatible(Type rawParam, Type param, Type arg)
     {
-        return (!rawParam.ContainsGenericParameters && SchemaConversionClassifier.TryGetCost(arg, rawParam, out _)) || IsGenericShapeCompatible(param, arg) ||
-               CanSafelyPassNull(rawParam, arg) ||
-               (param.IsGenericParameter && TypeConformsToConstraints(param, arg)) ||
-               ((arg.IsArray || arg.GetInterface("IEnumerable") != null) && param is { IsGenericType: true, Name: "IEnumerable`1" }) ||
-               (param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" &&
-                arg.Name == "IEnumerable`1") ||
-               (param.IsArray && IsGenericArrayElement(param) && arg.IsArray) ||
-               (arg.IsArray && IsGenericArrayElement(arg));
+        return (!rawParam.ContainsGenericParameters && SchemaConversionClassifier.TryGetCost(arg, rawParam, out _))
+            || IsGenericShapeCompatible(param, arg)
+            || CanSafelyPassNull(rawParam, arg)
+            || (param.IsGenericParameter && TypeConformsToConstraints(param, arg))
+            || (
+                (arg.IsArray || arg.GetInterface("IEnumerable") != null)
+                && param is { IsGenericType: true, Name: "IEnumerable`1" }
+            )
+            || (
+                param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" && arg.Name == "IEnumerable`1"
+            )
+            || (param.IsArray && IsGenericArrayElement(param) && arg.IsArray)
+            || (arg.IsArray && IsGenericArrayElement(arg));
     }
 
     private static bool IsGenericShapeCompatible(Type template, Type actual)
@@ -118,28 +125,37 @@ public partial class MethodsMetadata
         if (template.IsGenericParameter)
             return TypeConformsToConstraints(template, actual);
         if (template.IsArray)
-            return actual.IsArray && template.GetArrayRank() == actual.GetArrayRank() &&
-                   IsGenericShapeCompatible(template.GetElementType()!, actual.GetElementType()!);
+            return actual.IsArray
+                && template.GetArrayRank() == actual.GetArrayRank()
+                && IsGenericShapeCompatible(template.GetElementType()!, actual.GetElementType()!);
         if (!template.IsGenericType)
             return false;
         var definition = template.GetGenericTypeDefinition();
-        var candidate = actual.IsGenericType && actual.GetGenericTypeDefinition() == definition
-            ? actual : actual.GetInterfaces().FirstOrDefault(type => type.IsGenericType &&
-                type.GetGenericTypeDefinition() == definition);
+        var candidate =
+            actual.IsGenericType && actual.GetGenericTypeDefinition() == definition
+                ? actual
+                : actual
+                    .GetInterfaces()
+                    .FirstOrDefault(type => type.IsGenericType && type.GetGenericTypeDefinition() == definition);
         if (candidate is null)
             return false;
         var parameters = template.GetGenericArguments();
         var values = candidate.GetGenericArguments();
         for (var index = 0; index < parameters.Length; index++)
-            if (parameters[index].ContainsGenericParameters
-                ? !IsGenericShapeCompatible(parameters[index], values[index])
-                : parameters[index] != values[index])
+            if (
+                parameters[index].ContainsGenericParameters
+                    ? !IsGenericShapeCompatible(parameters[index], values[index])
+                    : parameters[index] != values[index]
+            )
                 return false;
         return true;
     }
 
-    private static bool CanUseSomeArgumentsAsDefaultParameters(IReadOnlyCollection<Type> methodArgs,
-        int parametersCount, int optionalParametersCount)
+    private static bool CanUseSomeArgumentsAsDefaultParameters(
+        IReadOnlyCollection<Type> methodArgs,
+        int parametersCount,
+        int optionalParametersCount
+    )
     {
         return methodArgs.Count >= parametersCount - optionalParametersCount && methodArgs.Count <= parametersCount;
     }
@@ -149,17 +165,21 @@ public partial class MethodsMetadata
         return arrayType.GetElementType() is { IsGenericParameter: true };
     }
 
-    private static bool HasMoreArgumentsThanMethodDefinitionContains(IReadOnlyList<Type> methodArgs,
-        int parametersCount)
+    private static bool HasMoreArgumentsThanMethodDefinitionContains(
+        IReadOnlyList<Type> methodArgs,
+        int parametersCount
+    )
     {
         return methodArgs.Count > parametersCount;
     }
+
     private bool IsMethodCompatibleWithEntityType(MethodInfo methodInfo, Type entityType)
     {
         var injectTypeAttributes = GetInjectTypeAttribute(methodInfo);
         var injectTypeAttribute = injectTypeAttributes.SingleOrDefault(
             f => f is InjectSpecificSourceAttribute,
-            injectTypeAttributes.FirstOrDefault());
+            injectTypeAttributes.FirstOrDefault()
+        );
 
         if (injectTypeAttribute is null or InjectQueryStatsAttribute)
             return true;

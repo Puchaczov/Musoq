@@ -44,7 +44,10 @@ public sealed class ByteBufferBoundaryTests
     public void Concatenation_PreservesThrowingSuffixEvaluation()
     {
         var entity = new BufferFlowEntity();
-        using var query = Compile("select Length(EnumerableToArray(Take(MergeArrays(Produce(f.Content), Fail(f.Content)), 0))) as Value from #schema.first() f", entity);
+        using var query = Compile(
+            "select Length(EnumerableToArray(Take(MergeArrays(Produce(f.Content), Fail(f.Content)), 0))) as Value from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         var exception = Assert.ThrowsExactly<QueryExecutionException>(() => result.ToArray());
         Assert.IsInstanceOfType<InvalidOperationException>(exception.GetBaseException());
@@ -61,7 +64,10 @@ public sealed class ByteBufferBoundaryTests
     public void EmptyMaterialization_PreservesNullStateLengthAndPadding(string expression, int? length, int? value)
     {
         var entity = new BufferFlowEntity { Content = [] };
-        using var query = Compile($"select Length({expression}) as Size, FromBytesToInt32({expression}, true) as Value from #schema.first() f", entity);
+        using var query = Compile(
+            $"select Length({expression}) as Size, FromBytesToInt32({expression}, true) as Value from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         var row = result.Single();
         Assert.AreEqual(length, row.GetValue<int?>(0));
@@ -72,7 +78,10 @@ public sealed class ByteBufferBoundaryTests
     public void SuccessiveExcessiveSkips_ClampWithoutOverflow()
     {
         var entity = new BufferFlowEntity();
-        using var query = Compile("select Length(EnumerableToArray(Skip(Skip(f.Content, 2147483647), 2147483647))) as Value from #schema.first() f", entity);
+        using var query = Compile(
+            "select Length(EnumerableToArray(Skip(Skip(f.Content, 2147483647), 2147483647))) as Value from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         Assert.AreEqual(0, result.Single().GetValue<int?>(0));
     }
@@ -81,7 +90,10 @@ public sealed class ByteBufferBoundaryTests
     public void PublicSnapshots_PreserveDistinctAllocationIdentities()
     {
         var entity = new BufferFlowEntity();
-        using var query = Compile("select EnumerableToArray(f.Content) as First, EnumerableToArray(f.Content) as Second from #schema.first() f", entity);
+        using var query = Compile(
+            "select EnumerableToArray(f.Content) as First, EnumerableToArray(f.Content) as Second from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         var row = result.Single();
         Assert.AreNotSame(row.GetValue<byte[]>(0), row.GetValue<byte[]>(1));
@@ -92,7 +104,10 @@ public sealed class ByteBufferBoundaryTests
     public void DirectCteArrayProjection_PreservesOriginalSharedReference()
     {
         var entity = new BufferFlowEntity();
-        using var query = Compile("with bytes as (select f.Content as Content from #schema.first() f) select b.Content as Bytes from bytes b", entity);
+        using var query = Compile(
+            "with bytes as (select f.Content as Content from #schema.first() f) select b.Content as Bytes from bytes b",
+            entity
+        );
         using var result = query.Run();
         var bytes = result.Single().GetValue<byte[]>(0);
         Assert.AreSame(entity.Content, bytes);
@@ -117,7 +132,10 @@ public sealed class ByteBufferBoundaryTests
     public void InvalidConcatenation_PrecedesEffectfulLaterRangeBound()
     {
         var entity = new BufferFlowEntity();
-        using var query = Compile("select Length(EnumerableToArray(Skip(MergeArrays(Produce(f.Content), NullBuffer()), Mutate(f.Content)))) as Value from #schema.first() f", entity);
+        using var query = Compile(
+            "select Length(EnumerableToArray(Skip(MergeArrays(Produce(f.Content), NullBuffer()), Mutate(f.Content)))) as Value from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         var exception = Assert.ThrowsExactly<QueryExecutionException>(() => result.ToArray());
         Assert.IsInstanceOfType<NullReferenceException>(exception.GetBaseException());
@@ -140,7 +158,10 @@ public sealed class ByteBufferBoundaryTests
     {
         var entity = new BufferFlowEntity { Content = new byte[8 * 1024 * 1024] };
         var arguments = string.Join(", ", Enumerable.Repeat("f.Content", 256));
-        using var query = Compile($"select FromBytesToInt32(EnumerableToArray(Take(MergeArrays({arguments}), 0))) as Value from #schema.first() f", entity);
+        using var query = Compile(
+            $"select FromBytesToInt32(EnumerableToArray(Take(MergeArrays({arguments}), 0))) as Value from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         var exception = Assert.ThrowsExactly<QueryExecutionException>(() => result.ToArray());
         Assert.IsInstanceOfType<OverflowException>(exception.GetBaseException());
@@ -153,7 +174,11 @@ public sealed class ByteBufferBoundaryTests
         var provider = LibraryExecutionFixture.CreateProvider<BufferFlowEntity, BufferFlowLibrary>([entity, entity]);
         using var query = InstanceCreator.CompileForExecution(
             "select Length(EnumerableToArray(Take(UnmarkedBuffer(f.Self), 0))) as Value from #schema.first() f",
-            Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         using var first = query.Run();
         CollectionAssert.AreEqual(new int?[] { 0, 0 }, first.Select(row => row.GetValue<int?>(0)).ToArray());
         Assert.AreEqual(2, entity.Calls);
@@ -162,7 +187,12 @@ public sealed class ByteBufferBoundaryTests
         Assert.AreEqual(4, entity.Calls);
     }
 
-    private static CompiledQuery Compile(string sql, BufferFlowEntity entity) => InstanceCreator.CompileForExecution(
-        sql, Guid.NewGuid().ToString(), LibraryExecutionFixture.CreateProvider<BufferFlowEntity, BufferFlowLibrary>([entity]),
-        new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+    private static CompiledQuery Compile(string sql, BufferFlowEntity entity) =>
+        InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider<BufferFlowEntity, BufferFlowLibrary>([entity]),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 }

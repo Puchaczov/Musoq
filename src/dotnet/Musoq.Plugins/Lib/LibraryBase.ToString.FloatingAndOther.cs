@@ -177,7 +177,8 @@ public partial class LibraryBase
             builder.Append(',');
         }
 
-        if (value.Length > 0) builder.Append(value[^1]);
+        if (value.Length > 0)
+            builder.Append(value[^1]);
 
         return builder.ToString();
     }
@@ -200,7 +201,8 @@ public partial class LibraryBase
             builder.Append(',');
         }
 
-        if (value.Length > 0) builder.Append(value[^1]);
+        if (value.Length > 0)
+            builder.Append(value[^1]);
 
         return builder.ToString();
     }

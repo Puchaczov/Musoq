@@ -4,5 +4,5 @@ public enum ExecutionRecursiveCteIdentityMode
 {
     None,
     FullRow,
-    Keyed
+    Keyed,
 }

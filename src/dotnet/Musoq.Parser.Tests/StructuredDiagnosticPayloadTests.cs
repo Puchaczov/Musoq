@@ -15,7 +15,8 @@ public sealed class StructuredDiagnosticPayloadTests
             new SourceLocation(12, 2, 3),
             new SourceLocation(15, 2, 6),
             "Declaration is here",
-            DiagnosticSourceKind.Schema);
+            DiagnosticSourceKind.Schema
+        );
         var action = DiagnosticAction.QuickFix("Use the declared name", new TextSpan(0, 3), "Name");
         var diagnostic = new Diagnostic(
             DiagnosticCode.MQ9001_InternalCompilerError,
@@ -25,14 +26,10 @@ public sealed class StructuredDiagnosticPayloadTests
             new SourceLocation(3, 1, 4),
             phase: DiagnosticPhase.Internal,
             sourceKind: DiagnosticSourceKind.GeneratedSource,
-            arguments: new Dictionary<string, string>
-            {
-                ["symbol"] = "Name",
-                ["actualTypes"] = "Int32"
-            },
+            arguments: new Dictionary<string, string> { ["symbol"] = "Name", ["actualTypes"] = "Int32" },
             relatedLocations: [related],
-            correlationId: "corr-1")
-            .WithSuggestedFix(action);
+            correlationId: "corr-1"
+        ).WithSuggestedFix(action);
 
         var copy = diagnostic.WithExplanation("The generated expression could not be lowered.");
 
@@ -58,7 +55,8 @@ public sealed class StructuredDiagnosticPayloadTests
             "Another statement starts here.",
             start,
             end,
-            phase: DiagnosticPhase.Parse);
+            phase: DiagnosticPhase.Parse
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, sourceText.Text);
 
@@ -83,14 +81,9 @@ public sealed class StructuredDiagnosticPayloadTests
             phase: DiagnosticPhase.CodeGeneration,
             sourceKind: DiagnosticSourceKind.GeneratedSource,
             arguments: new Dictionary<string, string> { ["symbol"] = "x\"y" },
-            relatedLocations:
-            [
-                new DiagnosticRelatedLocation(
-                    new SourceLocation(10, 2, 1),
-                    message: "SQL origin")
-            ],
-            correlationId: "corr-2")
-            .WithSuggestedFix(DiagnosticAction.QuickFix("Replace", new TextSpan(2, 0), "x"));
+            relatedLocations: [new DiagnosticRelatedLocation(new SourceLocation(10, 2, 1), message: "SQL origin")],
+            correlationId: "corr-2"
+        ).WithSuggestedFix(DiagnosticAction.QuickFix("Replace", new TextSpan(2, 0), "x"));
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic);
         var json = MusoqErrorEnvelopeFormatter.FormatJson(envelope);

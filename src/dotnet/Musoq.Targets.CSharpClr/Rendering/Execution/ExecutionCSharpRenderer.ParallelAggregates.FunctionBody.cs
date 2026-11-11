@@ -9,7 +9,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private List<StatementSyntax> CreateParallelSingleKeyAggregateFunctionBody(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return IsChunkedParallelSingleKeyAggregate(parallelAggregate)
             ? CreateParallelSingleKeyAggregateChunkedFunctionBody(parallelAggregate, context)
@@ -18,7 +19,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private List<StatementSyntax> CreateParallelSingleKeyAggregateIndexedFunctionBody(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         const string rowsName = "rows";
         const string maxDegreeName = "maxDegreeOfParallelism";
@@ -44,76 +46,94 @@ public sealed partial class ExecutionCSharpRenderer
                 cancellationTokenName,
                 workerName,
                 captures,
-                context),
-            CreateParallelAggregateForStatement(
-                workerCountName,
-                optionsName,
-                workerName)
+                context
+            ),
+            CreateParallelAggregateForStatement(workerCountName, optionsName, workerName),
         };
 
-        body.AddRange(CreateParallelAggregateMergeStatements(
-            parallelAggregate,
-            groupType,
-            shardsName));
+        body.AddRange(CreateParallelAggregateMergeStatements(parallelAggregate, groupType, shardsName));
 
         return body;
     }
 
     private IfStatementSyntax CreateReturnEmptyGroupsIfNoRowsStatement(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return SyntaxFactory.IfStatement(
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.EqualsExpression,
                 CreateRowsCountExpression("rows"),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
-            StatementEmitter.CreateBlock(SyntaxFactory.ReturnStatement(SyntaxFactory.ObjectCreationExpression(
-                        CreateListTypeSyntax(CreateAggregateGroupType(parallelAggregate.GroupShape, context)))
-                    .WithArgumentList(SyntaxFactory.ArgumentList()))));
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+            ),
+            StatementEmitter.CreateBlock(
+                SyntaxFactory.ReturnStatement(
+                    SyntaxFactory
+                        .ObjectCreationExpression(
+                            CreateListTypeSyntax(CreateAggregateGroupType(parallelAggregate.GroupShape, context))
+                        )
+                        .WithArgumentList(SyntaxFactory.ArgumentList())
+                )
+            )
+        );
     }
 
     private static LocalDeclarationStatementSyntax CreateWorkerCountDeclaration(
         string rowsName,
         string maxDegreeName,
-        string workerCountName)
+        string workerCountName
+    )
     {
-        var maxExpression = SyntaxFactory.InvocationExpression(
+        var maxExpression = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(Math)),
-                    SyntaxFactory.IdentifierName(nameof(Math.Max))))
-            .WithArgumentList(CreateArgumentList(
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)),
-                SyntaxFactory.IdentifierName(maxDegreeName)));
+                    SyntaxFactory.IdentifierName(nameof(Math.Max))
+                )
+            )
+            .WithArgumentList(
+                CreateArgumentList(
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)),
+                    SyntaxFactory.IdentifierName(maxDegreeName)
+                )
+            );
 
-        var minExpression = SyntaxFactory.InvocationExpression(
+        var minExpression = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(Math)),
-                    SyntaxFactory.IdentifierName(nameof(Math.Min))))
-            .WithArgumentList(CreateArgumentList(
-                maxExpression,
-                CreateRowsCountExpression(rowsName)));
+                    SyntaxFactory.IdentifierName(nameof(Math.Min))
+                )
+            )
+            .WithArgumentList(CreateArgumentList(maxExpression, CreateRowsCountExpression(rowsName)));
 
-        return CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            workerCountName,
-            minExpression);
+        return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), workerCountName, minExpression);
     }
 
     private static LocalDeclarationStatementSyntax CreateShardArrayDeclaration(
         TypeSyntax groupType,
         string shardsName,
-        string workerCountName)
+        string workerCountName
+    )
     {
         var shardType = CreateListTypeSyntax(groupType);
         var arrayType = CreateSingleDimensionArrayTypeSyntax(shardType);
         var arrayCreation = SyntaxFactory.ArrayCreationExpression(
-            SyntaxFactory.ArrayType(shardType)
-                .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                    SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                        SyntaxFactory.IdentifierName(workerCountName))))));
+            SyntaxFactory
+                .ArrayType(shardType)
+                .WithRankSpecifiers(
+                    SyntaxFactory.SingletonList(
+                        SyntaxFactory.ArrayRankSpecifier(
+                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                SyntaxFactory.IdentifierName(workerCountName)
+                            )
+                        )
+                    )
+                )
+        );
 
         return CreateLocalDeclaration(arrayType, shardsName, arrayCreation);
     }
@@ -121,51 +141,63 @@ public sealed partial class ExecutionCSharpRenderer
     private static LocalDeclarationStatementSyntax CreateParallelAggregateOptionsDeclaration(
         string optionsName,
         string cancellationTokenName,
-        string workerCountName)
+        string workerCountName
+    )
     {
-        var optionsCreation = SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(typeof(ParallelOptions)))
+        var optionsCreation = SyntaxFactory
+            .ObjectCreationExpression(CreateTypeSyntax(typeof(ParallelOptions)))
             .WithArgumentList(SyntaxFactory.ArgumentList())
-            .WithInitializer(SyntaxFactory.InitializerExpression(
-                SyntaxKind.ObjectInitializerExpression,
-                SyntaxFactory.SeparatedList(
-                new ExpressionSyntax[]
-                {
-                    SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        SyntaxFactory.IdentifierName(nameof(ParallelOptions.CancellationToken)),
-                        SyntaxFactory.IdentifierName(cancellationTokenName)),
-                    SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        SyntaxFactory.IdentifierName(nameof(ParallelOptions.MaxDegreeOfParallelism)),
-                        SyntaxFactory.IdentifierName(workerCountName))
-                })));
+            .WithInitializer(
+                SyntaxFactory.InitializerExpression(
+                    SyntaxKind.ObjectInitializerExpression,
+                    SyntaxFactory.SeparatedList(
+                        new ExpressionSyntax[]
+                        {
+                            SyntaxFactory.AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxFactory.IdentifierName(nameof(ParallelOptions.CancellationToken)),
+                                SyntaxFactory.IdentifierName(cancellationTokenName)
+                            ),
+                            SyntaxFactory.AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxFactory.IdentifierName(nameof(ParallelOptions.MaxDegreeOfParallelism)),
+                                SyntaxFactory.IdentifierName(workerCountName)
+                            ),
+                        }
+                    )
+                )
+            );
 
-        return CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            optionsName,
-            optionsCreation);
+        return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), optionsName, optionsCreation);
     }
 
     private ExpressionStatementSyntax CreateParallelAggregateForStatement(
         string workerCountName,
         string optionsName,
-        string workerName)
+        string workerName
+    )
     {
-        var loopInvocation = SyntaxFactory.InvocationExpression(
+        var loopInvocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(Parallel)),
-                    SyntaxFactory.IdentifierName(nameof(Parallel.For))))
-            .WithArgumentList(CreateArgumentList(
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)),
-                SyntaxFactory.IdentifierName(workerCountName),
-                SyntaxFactory.IdentifierName(optionsName),
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(workerName),
-                    SyntaxFactory.IdentifierName("Run"))));
+                    SyntaxFactory.IdentifierName(nameof(Parallel.For))
+                )
+            )
+            .WithArgumentList(
+                CreateArgumentList(
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)),
+                    SyntaxFactory.IdentifierName(workerCountName),
+                    SyntaxFactory.IdentifierName(optionsName),
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(workerName),
+                        SyntaxFactory.IdentifierName("Run")
+                    )
+                )
+            );
 
         return SyntaxFactory.ExpressionStatement(loopInvocation);
     }
-
 }

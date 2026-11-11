@@ -206,11 +206,7 @@ public class TablesTests
     public void Table_Constructor_WithColumns_ShouldAddColumns()
     {
         // Arrange
-        var columns = new Column[]
-        {
-            new("Col1", typeof(string), 0),
-            new("Col2", typeof(int), 1)
-        };
+        var columns = new Column[] { new("Col1", typeof(string), 0), new("Col2", typeof(int), 1) };
 
         // Act
         var table = new Table("TestTable", columns);
@@ -284,11 +280,16 @@ public class TablesTests
     public void Table_GetEnumerator_ShouldEnumerateRows()
     {
         // Arrange
-        var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]) { new TestRow(["value1"]), new TestRow(["value2"]) };
+        var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)])
+        {
+            new TestRow(["value1"]),
+            new TestRow(["value2"]),
+        };
 
         // Act
         var count = 0;
-        foreach (var _ in table) count++;
+        foreach (var _ in table)
+            count++;
 
         // Assert
         Assert.AreEqual(2, count);
@@ -302,7 +303,7 @@ public class TablesTests
         IReadOnlyList<TestRow>[] shards =
         [
             [new TestRow(["value1"]), new TestRow(["value2"])],
-            [new TestRow(["value3"])]
+            [new TestRow(["value3"])],
         ];
 
         // Act
@@ -320,17 +321,8 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var firstShardRows = new[]
-        {
-            new TestRow(["value1"]),
-            new TestRow(["value2"]),
-            new TestRow(["ignored"])
-        };
-        RowShard<TestRow>[] shards =
-        [
-            new(firstShardRows, 2),
-            new([new TestRow(["value3"])], 1)
-        ];
+        var firstShardRows = new[] { new TestRow(["value1"]), new TestRow(["value2"]), new TestRow(["ignored"]) };
+        RowShard<TestRow>[] shards = [new(firstShardRows, 2), new([new TestRow(["value3"])], 1)];
 
         // Act
         table.AddDirectDeferred(shards);
@@ -347,12 +339,7 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var rows = new[]
-        {
-            new TestRow(["value1"]),
-            new TestRow(["value2"]),
-            new TestRow(["ignored"])
-        };
+        var rows = new[] { new TestRow(["value1"]), new TestRow(["value2"]), new TestRow(["ignored"]) };
 
         // Act
         table.AddDirectDeferred(rows, 2);

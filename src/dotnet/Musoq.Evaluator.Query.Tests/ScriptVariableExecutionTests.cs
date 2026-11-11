@@ -14,7 +14,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesTestBase
 {
-
     [TestMethod]
     public void WhenScriptVariableIsUsedInWhere_ShouldUseCompileTimeValue()
     {
@@ -36,10 +35,10 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
     public void WhenScriptVariableUsesEarlierVariables_ShouldProjectComputedValues()
     {
         const string query =
-            "let prefix: string = 'VALUE'; " +
-            "let value: string = $prefix + '_1'; " +
-            "let total: int = 10 + 5; " +
-            "select $value, $total from #EnvironmentVariables.All()";
+            "let prefix: string = 'VALUE'; "
+            + "let value: string = $prefix + '_1'; "
+            + "let total: int = 10 + 5; "
+            + "select $value, $total from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -56,10 +55,10 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
         const string dateTimeText = "2024-01-02T03:04:05.0000000Z";
         const string timeSpanText = "01:30:00";
         const string query =
-            "let id: guid = '2ffcf6fa-3369-4300-946a-bb131a037985'; " +
-            "let created: datetime = '2024-01-02T03:04:05.0000000Z'; " +
-            "let elapsed: timespan = '01:30:00'; " +
-            "select $id, $created, $elapsed from #EnvironmentVariables.All()";
+            "let id: guid = '2ffcf6fa-3369-4300-946a-bb131a037985'; "
+            + "let created: datetime = '2024-01-02T03:04:05.0000000Z'; "
+            + "let elapsed: timespan = '01:30:00'; "
+            + "select $id, $created, $elapsed from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -68,7 +67,8 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
         Assert.AreEqual(Guid.Parse(guidText), table[0].ReadValue(0));
         Assert.AreEqual(
             DateTime.Parse(dateTimeText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            table[0].ReadValue(1));
+            table[0].ReadValue(1)
+        );
         Assert.AreEqual(TimeSpan.Parse(timeSpanText, CultureInfo.InvariantCulture), table[0].ReadValue(2));
     }
 
@@ -76,9 +76,9 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
     public void WhenScriptVariableExpressionIsUsedAsSourceArgument_ShouldOpenSourceWithComputedValue()
     {
         const string query =
-            "let prefix: string = 'KEY'; " +
-            "let suffix: string = '_1'; " +
-            "select Key, Value from #Parameterized.Items($prefix + $suffix)";
+            "let prefix: string = 'KEY'; "
+            + "let suffix: string = '_1'; "
+            + "select Key, Value from #Parameterized.Items($prefix + $suffix)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
@@ -92,11 +92,7 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
 
     private CompiledQuery CompileWithProvider(string query, ISchemaProvider provider)
     {
-        return InstanceCreator.CompileForExecution(
-            query,
-            Guid.NewGuid().ToString(),
-            provider,
-            LoggerResolver);
+        return InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, LoggerResolver);
     }
 
     private static Dictionary<string, IEnumerable<EnvironmentVariableEntity>> CreateEnvironmentVariableSources()
@@ -105,11 +101,8 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
         {
             {
                 "*",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
-                ]
-            }
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_1"), new EnvironmentVariableEntity("KEY_2", "VALUE_2")]
+            },
         };
     }
 
@@ -129,7 +122,8 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new EnvironmentVariableEntityTable();
         }
@@ -137,18 +131,15 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             onOpen();
             var key = parameters.Length > 0 ? parameters[0] as string : null;
-            var rows = (key == null
-                ? CreateRows()
-                : CreateRows().Where(entity => entity.Key == key)).ToArray();
+            var rows = (key == null ? CreateRows() : CreateRows().Where(entity => entity.Key == key)).ToArray();
 
-            return EnsureSourceType<T, EnvironmentVariableEntity>(
-                name,
-                new ParameterizedEnvironmentSource(rows));
+            return EnsureSourceType<T, EnvironmentVariableEntity>(name, new ParameterizedEnvironmentSource(rows));
         }
 
         private static IEnumerable<EnvironmentVariableEntity> CreateRows()
@@ -156,7 +147,7 @@ public sealed partial class ScriptVariableExecutionTests : EnvironmentVariablesT
             return
             [
                 new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                new EnvironmentVariableEntity("KEY_2", "VALUE_2")
+                new EnvironmentVariableEntity("KEY_2", "VALUE_2"),
             ];
         }
     }

@@ -37,13 +37,18 @@ public sealed class TwoModeRendererGuardrailTests
     public void FinalSinkRenderers_ShouldNotCallSinkPlannersOrAnalyzers()
     {
         var rendererRoot = FindRendererRoot();
-        foreach (var file in global::Musoq.Tests.Common.RequiredSourceInventory.Files(rendererRoot, "CSharpRenderer*.cs"))
+        foreach (
+            var file in global::Musoq.Tests.Common.RequiredSourceInventory.Files(rendererRoot, "CSharpRenderer*.cs")
+        )
         {
             var text = File.ReadAllText(file);
             var fileName = Path.GetFileName(file);
 
             Assert.IsFalse(text.Contains("FinalProjectionSinkPlanner", StringComparison.Ordinal), fileName);
-            Assert.IsFalse(text.Contains("FinalProjectionDirectProjectionAnalyzer", StringComparison.Ordinal), fileName);
+            Assert.IsFalse(
+                text.Contains("FinalProjectionDirectProjectionAnalyzer", StringComparison.Ordinal),
+                fileName
+            );
             Assert.IsFalse(text.Contains("FinalProjectionPostOperationAnalyzer", StringComparison.Ordinal), fileName);
         }
     }

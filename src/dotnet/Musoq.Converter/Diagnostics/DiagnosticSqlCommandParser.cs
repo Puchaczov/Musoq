@@ -12,7 +12,8 @@ public static class DiagnosticSqlCommandParser
     public static bool TryParse(
         string script,
         out DiagnosticSqlCommand? command,
-        out IReadOnlyList<Diagnostic>? diagnostics)
+        out IReadOnlyList<Diagnostic>? diagnostics
+    )
     {
         command = null;
         diagnostics = null;
@@ -32,13 +33,12 @@ public static class DiagnosticSqlCommandParser
             var source = parseResult.SourceText.Text;
             command = new DiagnosticSqlCommand(
                 MapKind(commandNode.Kind),
-                source[..commandNode.CommandStart] + source[commandNode.InnerStart..]);
+                source[..commandNode.CommandStart] + source[commandNode.InnerStart..]
+            );
             return true;
         }
 
-        var commandDiagnostics = parseResult.Errors
-            .Where(IsDiagnosticCommandDiagnostic)
-            .ToArray();
+        var commandDiagnostics = parseResult.Errors.Where(IsDiagnosticCommandDiagnostic).ToArray();
 
         if (commandDiagnostics.Length == 0)
             return false;
@@ -73,13 +73,13 @@ public static class DiagnosticSqlCommandParser
 
     private static bool IsDiagnosticPreambleStatement(Node? node)
     {
-        return node is
-            ParameterBlockNode or
-            ScriptVariableDeclarationNode or
-            CreateTableNode or
-            CoupleNode or
-            BinarySchemaNode or
-            TextSchemaNode;
+        return node
+            is ParameterBlockNode
+                or ScriptVariableDeclarationNode
+                or CreateTableNode
+                or CoupleNode
+                or BinarySchemaNode
+                or TextSchemaNode;
     }
 
     private static DiagnosticSqlCommandKind MapKind(DiagnosticCommandKind kind)
@@ -88,14 +88,14 @@ public static class DiagnosticSqlCommandParser
         {
             DiagnosticCommandKind.Profile => DiagnosticSqlCommandKind.Profile,
             DiagnosticCommandKind.ExplainAnalyze => DiagnosticSqlCommandKind.ExplainAnalyze,
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
         };
     }
 
     private static bool IsDiagnosticCommandDiagnostic(Diagnostic diagnostic)
     {
-        return diagnostic.Message.Contains("Diagnostic command", StringComparison.Ordinal) ||
-               diagnostic.Message.Contains("EXPLAIN without ANALYZE", StringComparison.Ordinal) ||
-               diagnostic.Message.Contains("Standalone ANALYZE", StringComparison.Ordinal);
+        return diagnostic.Message.Contains("Diagnostic command", StringComparison.Ordinal)
+            || diagnostic.Message.Contains("EXPLAIN without ANALYZE", StringComparison.Ordinal)
+            || diagnostic.Message.Contains("Standalone ANALYZE", StringComparison.Ordinal);
     }
 }

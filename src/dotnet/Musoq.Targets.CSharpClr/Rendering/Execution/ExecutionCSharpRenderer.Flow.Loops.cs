@@ -8,17 +8,25 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderForEach(
-        ExecutionForEach forEach,
-        ExecutionRenderContext context)
+    private IEnumerable<StatementSyntax> RenderForEach(ExecutionForEach forEach, ExecutionRenderContext context)
     {
         var session = context.Session;
-        if (forEach.Source is ExecutionRowStream
-            { Kind: ExecutionRowStreamKind.Rows, HasDirectScalarElements: true, IsValueEnumerable: false })
+        if (
+            forEach.Source is ExecutionRowStream
+            {
+                Kind: ExecutionRowStreamKind.Rows,
+                HasDirectScalarElements: true,
+                IsValueEnumerable: false
+            }
+        )
         {
             var ordinal = new ExecutionVariable(CreateIdentifierCandidate($"{forEach.Item.Name}Index", 0), typeof(int));
-            foreach (var statement in RenderForEachWithOrdinality(
-                         new ExecutionForEachWithOrdinality(forEach.Item, forEach.Source, ordinal, forEach.Body), context))
+            foreach (
+                var statement in RenderForEachWithOrdinality(
+                    new ExecutionForEachWithOrdinality(forEach.Item, forEach.Source, ordinal, forEach.Body),
+                    context
+                )
+            )
                 yield return statement;
             yield break;
         }
@@ -38,18 +46,26 @@ public sealed partial class ExecutionCSharpRenderer
         if (session.EmitChunkLoopCancellationChecks && !session.SkipInitialLoopCancellationCheck)
             bodyStatements.Add(QueryEmitter.GenerateCancellationCheck());
 
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
+        bodyStatements.AddRange(
+            LoopOperatorProfilingStatementFactory.Create(
+                IsOperatorProfilingEnabledFor(context),
+                session.OperatorCatalog,
+                forEach
+            )
+        );
         bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
 
         yield return StatementEmitter.CreateForeach(
             EscapeIdentifier(forEach.Item.Name),
             RenderExpression(forEach.Source, context),
-            StatementEmitter.CreateBlock(bodyStatements));
+            StatementEmitter.CreateBlock(bodyStatements)
+        );
     }
 
     private IEnumerable<StatementSyntax> RenderForEachWithOrdinality(
         ExecutionForEachWithOrdinality forEach,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var rowsVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}Rows", 0);
         var listVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}List", 0);
@@ -60,7 +76,8 @@ public sealed partial class ExecutionCSharpRenderer
         yield return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             rowsVariableName,
-            RenderExpression(forEach.Source, context));
+            RenderExpression(forEach.Source, context)
+        );
 
         if (forEach.Source is ExecutionRowStream { IsValueEnumerable: true })
         {
@@ -71,36 +88,52 @@ public sealed partial class ExecutionCSharpRenderer
         if (forEach.Source is not ExecutionRowStream { HasDirectScalarElements: true })
         {
             yield return StatementEmitter.CreateIf(
-            SyntaxFactory.IsPatternExpression(
-                SyntaxFactory.IdentifierName(rowsVariableName),
-                SyntaxFactory.DeclarationPattern(
-                    SyntaxFactory.ParseTypeName($"IReadOnlyList<{itemType}>"),
-                    SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(listVariableName)))),
-            RenderOrdinalityIndexedLoop(forEach, listVariableName, context),
-            RenderOrdinalityForeachLoop(forEach, rowsVariableName, context));
+                SyntaxFactory.IsPatternExpression(
+                    SyntaxFactory.IdentifierName(rowsVariableName),
+                    SyntaxFactory.DeclarationPattern(
+                        SyntaxFactory.ParseTypeName($"IReadOnlyList<{itemType}>"),
+                        SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(listVariableName))
+                    )
+                ),
+                RenderOrdinalityIndexedLoop(forEach, listVariableName, context),
+                RenderOrdinalityForeachLoop(forEach, rowsVariableName, context)
+            );
             yield break;
         }
 
         var fallback = RenderOrdinalityForeachLoop(forEach, rowsVariableName, context);
 
         var concreteList = StatementEmitter.CreateIf(
-            SyntaxFactory.IsPatternExpression(SyntaxFactory.IdentifierName(rowsVariableName),
-                SyntaxFactory.DeclarationPattern(SyntaxFactory.ParseTypeName($"List<{itemType}>"),
-                    SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(concreteListVariableName)))),
-            RenderOrdinalityIndexedLoop(forEach, concreteListVariableName, context), fallback);
+            SyntaxFactory.IsPatternExpression(
+                SyntaxFactory.IdentifierName(rowsVariableName),
+                SyntaxFactory.DeclarationPattern(
+                    SyntaxFactory.ParseTypeName($"List<{itemType}>"),
+                    SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(concreteListVariableName))
+                )
+            ),
+            RenderOrdinalityIndexedLoop(forEach, concreteListVariableName, context),
+            fallback
+        );
 
         yield return StatementEmitter.CreateIf(
-            SyntaxFactory.IsPatternExpression(SyntaxFactory.IdentifierName(rowsVariableName),
-                SyntaxFactory.DeclarationPattern(SyntaxFactory.ParseTypeName($"{itemType}[]"),
-                    SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(arrayVariableName)))),
-            RenderOrdinalityIndexedLoop(forEach, arrayVariableName, context, "Length"), concreteList);
+            SyntaxFactory.IsPatternExpression(
+                SyntaxFactory.IdentifierName(rowsVariableName),
+                SyntaxFactory.DeclarationPattern(
+                    SyntaxFactory.ParseTypeName($"{itemType}[]"),
+                    SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(arrayVariableName))
+                )
+            ),
+            RenderOrdinalityIndexedLoop(forEach, arrayVariableName, context, "Length"),
+            concreteList
+        );
     }
 
     private ForStatementSyntax RenderOrdinalityIndexedLoop(
         ExecutionForEachWithOrdinality forEach,
         string listVariableName,
         ExecutionRenderContext context,
-        string countMember = "Count")
+        string countMember = "Count"
+    )
     {
         var session = context.Session;
         var bodyStatements = new List<StatementSyntax>
@@ -110,84 +143,128 @@ public sealed partial class ExecutionCSharpRenderer
                 forEach.Item.Name,
                 CreateElementAccess(
                     SyntaxFactory.IdentifierName(listVariableName),
-                    SyntaxFactory.IdentifierName(forEach.Ordinal.Name)))
+                    SyntaxFactory.IdentifierName(forEach.Ordinal.Name)
+                )
+            ),
         };
         if (session.EmitChunkLoopCancellationChecks)
-            bodyStatements.Insert(0, CreatePeriodicCancellationCheck(
-                forEach.Ordinal.Name,
-                session.SkipInitialLoopCancellationCheck));
+            bodyStatements.Insert(
+                0,
+                CreatePeriodicCancellationCheck(forEach.Ordinal.Name, session.SkipInitialLoopCancellationCheck)
+            );
 
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
+        bodyStatements.AddRange(
+            LoopOperatorProfilingStatementFactory.Create(
+                IsOperatorProfilingEnabledFor(context),
+                session.OperatorCatalog,
+                forEach
+            )
+        );
         bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
 
-        var count = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-            SyntaxFactory.IdentifierName(listVariableName), SyntaxFactory.IdentifierName(countMember));
-        var declaration = SyntaxFactory.VariableDeclaration(CreateTypeSyntax(typeof(int)))
-            .AddVariables(SyntaxFactory.VariableDeclarator(forEach.Ordinal.Name)
-                .WithInitializer(SyntaxFactory.EqualsValueClause(CreateIntLiteral(0))));
+        var count = SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxFactory.IdentifierName(listVariableName),
+            SyntaxFactory.IdentifierName(countMember)
+        );
+        var declaration = SyntaxFactory
+            .VariableDeclaration(CreateTypeSyntax(typeof(int)))
+            .AddVariables(
+                SyntaxFactory
+                    .VariableDeclarator(forEach.Ordinal.Name)
+                    .WithInitializer(SyntaxFactory.EqualsValueClause(CreateIntLiteral(0)))
+            );
         ExpressionSyntax bound = count;
         if (forEach.Source is ExecutionRowStream { HasDirectScalarElements: true })
         {
             var countVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}Count", 0);
-            declaration = declaration.AddVariables(SyntaxFactory.VariableDeclarator(countVariableName)
-                .WithInitializer(SyntaxFactory.EqualsValueClause(count)));
+            declaration = declaration.AddVariables(
+                SyntaxFactory
+                    .VariableDeclarator(countVariableName)
+                    .WithInitializer(SyntaxFactory.EqualsValueClause(count))
+            );
             bound = SyntaxFactory.IdentifierName(countVariableName);
         }
-        return SyntaxFactory.ForStatement(StatementEmitter.CreateBlock(bodyStatements))
+        return SyntaxFactory
+            .ForStatement(StatementEmitter.CreateBlock(bodyStatements))
             .WithDeclaration(declaration)
-            .WithCondition(SyntaxFactory.BinaryExpression(
-                SyntaxKind.LessThanExpression,
-                SyntaxFactory.IdentifierName(forEach.Ordinal.Name),
-                bound))
-            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.PreIncrementExpression,
-                SyntaxFactory.IdentifierName(forEach.Ordinal.Name))));
+            .WithCondition(
+                SyntaxFactory.BinaryExpression(
+                    SyntaxKind.LessThanExpression,
+                    SyntaxFactory.IdentifierName(forEach.Ordinal.Name),
+                    bound
+                )
+            )
+            .WithIncrementors(
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                    SyntaxFactory.PrefixUnaryExpression(
+                        SyntaxKind.PreIncrementExpression,
+                        SyntaxFactory.IdentifierName(forEach.Ordinal.Name)
+                    )
+                )
+            );
     }
 
     private StatementSyntax RenderOrdinalityForeachLoop(
         ExecutionForEachWithOrdinality forEach,
         string rowsVariableName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var session = context.Session;
         var bodyStatements = new List<StatementSyntax>();
         if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Add(QueryEmitter.GenerateCancellationCheck());
 
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
+        bodyStatements.AddRange(
+            LoopOperatorProfilingStatementFactory.Create(
+                IsOperatorProfilingEnabledFor(context),
+                session.OperatorCatalog,
+                forEach
+            )
+        );
         bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
-        bodyStatements.Add(SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.PreIncrementExpression,
-                SyntaxFactory.IdentifierName(forEach.Ordinal.Name))));
+        bodyStatements.Add(
+            SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.PrefixUnaryExpression(
+                    SyntaxKind.PreIncrementExpression,
+                    SyntaxFactory.IdentifierName(forEach.Ordinal.Name)
+                )
+            )
+        );
 
         return StatementEmitter.CreateBlock(
             CreateLocalDeclaration(
                 CreateTypeSyntax(typeof(int)),
                 forEach.Ordinal.Name,
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(0))),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+            ),
             StatementEmitter.CreateForeach(
                 EscapeIdentifier(forEach.Item.Name),
                 SyntaxFactory.IdentifierName(rowsVariableName),
-            StatementEmitter.CreateBlock(bodyStatements)));
+                StatementEmitter.CreateBlock(bodyStatements)
+            )
+        );
     }
 
     private bool TryCreateStoredGeneratedRowsIndexedLoop(
         ExecutionForEach forEach,
         ExecutionRenderContext context,
-        out IReadOnlyList<StatementSyntax> statements)
+        out IReadOnlyList<StatementSyntax> statements
+    )
     {
         var session = context.Session;
         statements = [];
 
-        if (!TryCreateGeneratedRowsLoopSource(
+        if (
+            !TryCreateGeneratedRowsLoopSource(
                 forEach.Source,
                 context,
                 out var rowsVariable,
                 out var rowsDeclaration,
-                out var sourceAlreadyTyped))
+                out var sourceAlreadyTyped
+            )
+        )
         {
             return false;
         }
@@ -195,31 +272,34 @@ public sealed partial class ExecutionCSharpRenderer
         var indexVariable = CreateGeneratedRowsIndexVariable(rowsVariable.Name);
         var rowAccess = CreateElementAccess(
             SyntaxFactory.IdentifierName(rowsVariable.Name),
-            SyntaxFactory.IdentifierName(indexVariable.Name));
-        var itemType = sourceAlreadyTyped && !string.IsNullOrWhiteSpace(rowsVariable.GeneratedRowTypeName)
-            ? SyntaxFactory.ParseTypeName(rowsVariable.GeneratedRowTypeName)
-            : CreateVariableTypeSyntax(forEach.Item);
+            SyntaxFactory.IdentifierName(indexVariable.Name)
+        );
+        var itemType =
+            sourceAlreadyTyped && !string.IsNullOrWhiteSpace(rowsVariable.GeneratedRowTypeName)
+                ? SyntaxFactory.ParseTypeName(rowsVariable.GeneratedRowTypeName)
+                : CreateVariableTypeSyntax(forEach.Item);
         ExpressionSyntax itemInitializer = sourceAlreadyTyped
             ? rowAccess
             : SyntaxFactory.CastExpression(itemType, rowAccess);
-        var itemDeclaration = CreateLocalDeclaration(
-            itemType,
-            forEach.Item.Name,
-            itemInitializer);
+        var itemDeclaration = CreateLocalDeclaration(itemType, forEach.Item.Name, itemInitializer);
         var bodyStatements = new List<StatementSyntax> { itemDeclaration };
         if (session.EmitChunkLoopCancellationChecks)
-            bodyStatements.Insert(0, CreatePeriodicCancellationCheck(
-                indexVariable.Name,
-                session.SkipInitialLoopCancellationCheck));
+            bodyStatements.Insert(
+                0,
+                CreatePeriodicCancellationCheck(indexVariable.Name, session.SkipInitialLoopCancellationCheck)
+            );
 
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
+        bodyStatements.AddRange(
+            LoopOperatorProfilingStatementFactory.Create(
+                IsOperatorProfilingEnabledFor(context),
+                session.OperatorCatalog,
+                forEach
+            )
+        );
         using (EnterGeneratedRowVariableType(context, forEach.Item.Name, rowsVariable.GeneratedRowTypeName!))
             bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
 
-        var loop = CreateIndexedForLoop(
-            indexVariable.Name,
-            rowsVariable,
-            StatementEmitter.CreateBlock(bodyStatements));
+        var loop = CreateIndexedForLoop(indexVariable.Name, rowsVariable, StatementEmitter.CreateBlock(bodyStatements));
 
         statements = rowsDeclaration == null ? [loop] : [rowsDeclaration, loop];
         return true;
@@ -230,28 +310,38 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context,
         out ExecutionVariable rowsVariable,
         out StatementSyntax? rowsDeclaration,
-        out bool sourceAlreadyTyped)
+        out bool sourceAlreadyTyped
+    )
     {
         rowsVariable = null!;
         rowsDeclaration = null;
         sourceAlreadyTyped = false;
 
-        if (source is ExecutionStoredTableRows storedRows &&
-            !context.Session.StoredRowsCacheNames.ContainsKey(storedRows.TableIndex) &&
-            TryResolveStoredGeneratedRowsShape(storedRows, context, out var rowShape))
+        if (
+            source is ExecutionStoredTableRows storedRows
+            && !context.Session.StoredRowsCacheNames.ContainsKey(storedRows.TableIndex)
+            && TryResolveStoredGeneratedRowsShape(storedRows, context, out var rowShape)
+        )
         {
             var nameDisambiguator = GetStoredGeneratedRowsLoopNameDisambiguator(storedRows.TableIndex, context);
-            rowsVariable = CreateStoredGeneratedRowsVariable(storedRows.TableIndex, nameDisambiguator, rowShape.TypeName);
+            rowsVariable = CreateStoredGeneratedRowsVariable(
+                storedRows.TableIndex,
+                nameDisambiguator,
+                rowShape.TypeName
+            );
             sourceAlreadyTyped = TryGetTypedStoredTableResult(storedRows.TableIndex, rowShape, context, out _);
             rowsDeclaration = CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 rowsVariable.Name,
-                CreateStoredTableRowsRead(storedRows, context));
+                CreateStoredTableRowsRead(storedRows, context)
+            );
             return true;
         }
 
-        if (source is ExecutionVariableRead { Variable: { GeneratedRowTypeName: not null } variable } &&
-            variable.Type.RequireClrType() == typeof(IReadOnlyList<Row>))
+        if (
+            source is ExecutionVariableRead { Variable: { GeneratedRowTypeName: not null } variable }
+            && variable.Type.RequireClrType() == typeof(IReadOnlyList<Row>)
+        )
         {
             rowsVariable = variable;
             return true;
@@ -263,7 +353,8 @@ public sealed partial class ExecutionCSharpRenderer
     private bool TryResolveStoredGeneratedRowsShape(
         ExecutionStoredTableRows storedRows,
         ExecutionRenderContext context,
-        out GeneratedRowShape rowShape)
+        out GeneratedRowShape rowShape
+    )
     {
         if (storedRows.GeneratedRowShape != null)
         {
@@ -281,9 +372,7 @@ public sealed partial class ExecutionCSharpRenderer
         return false;
     }
 
-    private int GetStoredGeneratedRowsLoopNameDisambiguator(
-        int tableIndex,
-        ExecutionRenderContext context)
+    private int GetStoredGeneratedRowsLoopNameDisambiguator(int tableIndex, ExecutionRenderContext context)
     {
         context.Session.StoredGeneratedRowsLoopNameCounts.TryGetValue(tableIndex, out var disambiguator);
         context.Session.StoredGeneratedRowsLoopNameCounts[tableIndex] = disambiguator + 1;
@@ -293,12 +382,17 @@ public sealed partial class ExecutionCSharpRenderer
     private static ExecutionVariable CreateStoredGeneratedRowsVariable(
         int tableIndex,
         int disambiguator,
-        string generatedRowTypeName)
+        string generatedRowTypeName
+    )
     {
         return new ExecutionVariable(
-            CreateIdentifierCandidate($"__storedTable{tableIndex.ToString(CultureInfo.InvariantCulture)}Rows", disambiguator),
+            CreateIdentifierCandidate(
+                $"__storedTable{tableIndex.ToString(CultureInfo.InvariantCulture)}Rows",
+                disambiguator
+            ),
             typeof(IReadOnlyList<Row>),
-            generatedRowTypeName);
+            generatedRowTypeName
+        );
     }
 
     private static ExecutionVariable CreateGeneratedRowsIndexVariable(string rowsVariableName)
@@ -311,11 +405,14 @@ public sealed partial class ExecutionCSharpRenderer
 
     private LocalDeclarationStatementSyntax? TryCreateStoredRowsCacheDeclaration(
         ExecutionExpression source,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        if (source is not ExecutionStoredTableRows storedRows ||
-            !context.Session.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName) ||
-            !context.Session.DeclaredStoredRowsCaches.Add(storedRows.TableIndex))
+        if (
+            source is not ExecutionStoredTableRows storedRows
+            || !context.Session.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName)
+            || !context.Session.DeclaredStoredRowsCaches.Add(storedRows.TableIndex)
+        )
         {
             return null;
         }
@@ -323,31 +420,43 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             cacheName,
-            CreateStoredTableRowsRead(storedRows, context));
+            CreateStoredTableRowsRead(storedRows, context)
+        );
     }
 
     private ForStatementSyntax RenderForEachIndexed(
         ExecutionForEachIndexed forEachIndexed,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var session = context.Session;
         var bodyStatements = new List<StatementSyntax>();
         if (session.EmitChunkLoopCancellationChecks)
-            bodyStatements.Add(CreatePeriodicCancellationCheck(
-                forEachIndexed.Index.Name,
-                session.SkipInitialLoopCancellationCheck));
+            bodyStatements.Add(
+                CreatePeriodicCancellationCheck(forEachIndexed.Index.Name, session.SkipInitialLoopCancellationCheck)
+            );
 
-        bodyStatements.AddRange(CreateIndexedItemDeclarations(
-            forEachIndexed.Item,
-            forEachIndexed.Source,
-            forEachIndexed.Index,
-            forEachIndexed.RowAccessMode));
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEachIndexed));
+        bodyStatements.AddRange(
+            CreateIndexedItemDeclarations(
+                forEachIndexed.Item,
+                forEachIndexed.Source,
+                forEachIndexed.Index,
+                forEachIndexed.RowAccessMode
+            )
+        );
+        bodyStatements.AddRange(
+            LoopOperatorProfilingStatementFactory.Create(
+                IsOperatorProfilingEnabledFor(context),
+                session.OperatorCatalog,
+                forEachIndexed
+            )
+        );
         bodyStatements.AddRange(RenderBlock(forEachIndexed.Body, context).Statements);
 
         return CreateIndexedForLoop(
             forEachIndexed.Index.Name,
             forEachIndexed.Source,
-            StatementEmitter.CreateBlock(bodyStatements));
+            StatementEmitter.CreateBlock(bodyStatements)
+        );
     }
 }

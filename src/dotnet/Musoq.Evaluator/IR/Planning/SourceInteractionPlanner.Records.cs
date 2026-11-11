@@ -12,18 +12,21 @@ internal static partial class SourceInteractionPlanner
         SourceColumnContract Contract,
         ISchemaColumn[] Columns,
         PlanningConfidence Confidence,
-        string Reason);
+        string Reason
+    );
 
     private sealed record SourceInteractionPredicate(
         SourcePredicateContract Contract,
         WhereNode? WhereNode,
         PlanningConfidence Confidence,
-        string Reason);
+        string Reason
+    );
 
     private sealed record SourceInteractionArguments(
         SourceArgumentMode Mode,
         PlanningConfidence Confidence,
-        string Reason);
+        string Reason
+    );
 
     private sealed record ArgumentReferenceResult(IReadOnlySet<string> Aliases, bool HasUnknownExpression);
 }

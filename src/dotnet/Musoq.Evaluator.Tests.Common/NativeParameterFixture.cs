@@ -9,19 +9,26 @@ namespace Musoq.Tests.Common;
 /// <summary>Supplies heterogeneous test inputs through the actual typed parameter APIs.</summary>
 public static class NativeParameterFixture
 {
-    private sealed record ScalarShape(Action<TypedParameterValues, string, object?> Set,
-        Action<TypedParameterValues, string> SetNull);
+    private sealed record ScalarShape(
+        Action<TypedParameterValues, string, object?> Set,
+        Action<TypedParameterValues, string> SetNull
+    );
+
     private interface ICollectionShape
     {
         Type ArrayType { get; }
         bool Accepts(object value);
         void Set(TypedParameterValues target, string name, object? value);
     }
+
     private sealed class CollectionShape<T> : ICollectionShape
     {
         public Type ArrayType => typeof(T[]);
+
         public bool Accepts(object value) => value is IReadOnlyList<T>;
-        public void Set(TypedParameterValues target, string name, object? value) => target.SetCollection(name, (IReadOnlyList<T>?)value);
+
+        public void Set(TypedParameterValues target, string name, object? value) =>
+            target.SetCollection(name, (IReadOnlyList<T>?)value);
     }
 
     private static readonly IReadOnlyDictionary<Type, ScalarShape> Scalars;
@@ -60,34 +67,55 @@ public static class NativeParameterFixture
         Collections = collections;
     }
 
-    private static void AddStruct<T>(Dictionary<Type, ScalarShape> scalars, List<ICollectionShape> collections) where T : struct
+    private static void AddStruct<T>(Dictionary<Type, ScalarShape> scalars, List<ICollectionShape> collections)
+        where T : struct
     {
-        scalars.Add(typeof(T), new((target, name, value) => target.Set(name, (T)value!),
-            (target, name) => target.Set<T?>(name, null)));
-        scalars.Add(typeof(T?), new((target, name, value) => target.Set(name, (T?)value),
-            (target, name) => target.Set<T?>(name, null)));
+        scalars.Add(
+            typeof(T),
+            new((target, name, value) => target.Set(name, (T)value!), (target, name) => target.Set<T?>(name, null))
+        );
+        scalars.Add(
+            typeof(T?),
+            new((target, name, value) => target.Set(name, (T?)value), (target, name) => target.Set<T?>(name, null))
+        );
         collections.Add(new CollectionShape<T>());
         collections.Add(new CollectionShape<T?>());
     }
 
-    private static void AddReference<T>(Dictionary<Type, ScalarShape> scalars, List<ICollectionShape> collections) where T : class
+    private static void AddReference<T>(Dictionary<Type, ScalarShape> scalars, List<ICollectionShape> collections)
+        where T : class
     {
-        scalars.Add(typeof(T), new((target, name, value) => target.Set(name, (T?)value),
-            (target, name) => target.Set<T?>(name, null)));
+        scalars.Add(
+            typeof(T),
+            new((target, name, value) => target.Set(name, (T?)value), (target, name) => target.Set<T?>(name, null))
+        );
         collections.Add(new CollectionShape<T>());
     }
 
-    public static void Set(TypedParameterValues target, IEnumerable<ScriptParameterDefinition>? definitions, string name, object? value) =>
-        Set<object?>(target, definitions, name, value);
+    public static void Set(
+        TypedParameterValues target,
+        IEnumerable<ScriptParameterDefinition>? definitions,
+        string name,
+        object? value
+    ) => Set<object?>(target, definitions, name, value);
 
-    public static void Set<T>(TypedParameterValues target, IEnumerable<ScriptParameterDefinition>? definitions, string name, T value)
+    public static void Set<T>(
+        TypedParameterValues target,
+        IEnumerable<ScriptParameterDefinition>? definitions,
+        string name,
+        T value
+    )
     {
         ArgumentNullException.ThrowIfNull(target);
         var definition = definitions?.FirstOrDefault(item => string.Equals(item.Name, name, StringComparison.Ordinal));
         if (definition?.Contract.IsStructured == true || value is JsonElement)
         {
-            var json = value is JsonElement element ? element : JsonSerializer.SerializeToElement(
-                NativeParameterTestInputs.ToFixtureJsonValue(value), new JsonSerializerOptions { IncludeFields = true });
+            var json = value is JsonElement element
+                ? element
+                : JsonSerializer.SerializeToElement(
+                    NativeParameterTestInputs.ToFixtureJsonValue(value),
+                    new JsonSerializerOptions { IncludeFields = true }
+                );
             target.SetJson(name, json);
             return;
         }
@@ -98,7 +126,8 @@ public static class NativeParameterFixture
         }
         foreach (var shape in Collections)
         {
-            if (!shape.Accepts(value)) continue;
+            if (!shape.Accepts(value))
+                continue;
             shape.Set(target, name, value);
             return;
         }
@@ -126,11 +155,14 @@ public static class NativeParameterFixture
         scalar.SetNull(target, name);
     }
 
-    public static TypedParameterSnapshot Capture(IEnumerable<KeyValuePair<string, object?>> values,
-        IEnumerable<ScriptParameterDefinition>? definitions = null)
+    public static TypedParameterSnapshot Capture(
+        IEnumerable<KeyValuePair<string, object?>> values,
+        IEnumerable<ScriptParameterDefinition>? definitions = null
+    )
     {
         var target = new TypedParameterValues();
-        foreach (var pair in values) Set(target, definitions, pair.Key, pair.Value);
+        foreach (var pair in values)
+            Set(target, definitions, pair.Key, pair.Value);
         return target.Capture();
     }
 }

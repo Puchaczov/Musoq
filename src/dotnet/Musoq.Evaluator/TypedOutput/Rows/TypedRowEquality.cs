@@ -25,6 +25,7 @@ internal static class TypedRowEquality
     private struct EqualityVisitor(Row other) : IColumnValueVisitor
     {
         internal bool Equal = true;
+
         public void Visit<T>(int index, in T value)
         {
             if (!Equal)
@@ -38,13 +39,18 @@ internal static class TypedRowEquality
     private struct ColumnEquality<T>(T value) : IColumnValueVisitor
     {
         internal bool Equal;
-        public void Visit<TValue>(int index, in TValue other) => Equal = value is null && other is null ||
-            typeof(T) == typeof(TValue) && EqualityComparer<T>.Default.Equals(value, Unsafe.As<TValue, T>(ref Unsafe.AsRef(in other)));
+
+        public void Visit<TValue>(int index, in TValue other) =>
+            Equal =
+                value is null && other is null
+                || typeof(T) == typeof(TValue)
+                    && EqualityComparer<T>.Default.Equals(value, Unsafe.As<TValue, T>(ref Unsafe.AsRef(in other)));
     }
 
     private struct HashVisitor : IColumnValueVisitor
     {
         internal HashCode Value;
+
         public void Visit<T>(int index, in T value) => Value.Add(value, EqualityComparer<T>.Default);
     }
 }

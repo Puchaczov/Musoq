@@ -8,7 +8,8 @@ internal static class GeneratedRowCarrierUsage
 {
     public static IReadOnlySet<string> CollectTypesRequiringRowBase(
         ExecutionBlock block,
-        IReadOnlyDictionary<string, IReadOnlySet<GeneratedRowContextConstructor>> constructorUsages)
+        IReadOnlyDictionary<string, IReadOnlySet<GeneratedRowContextConstructor>> constructorUsages
+    )
     {
         var aliases = CollectGeneratedRowAliases(block);
         var types = new HashSet<string>(StringComparer.Ordinal);
@@ -21,8 +22,7 @@ internal static class GeneratedRowCarrierUsage
             if (read.AccessStrategy is GeneratedRowContextAccess context)
                 types.Add(context.TypeName);
 
-            if (string.IsNullOrWhiteSpace(read.Alias) ||
-                !aliases.TryGetValue(read.Alias, out var typeNames))
+            if (string.IsNullOrWhiteSpace(read.Alias) || !aliases.TryGetValue(read.Alias, out var typeNames))
             {
                 continue;
             }
@@ -110,34 +110,35 @@ internal static class GeneratedRowCarrierUsage
 
     private static bool RequiresRowBase(
         ExecutionFieldRead read,
-        IReadOnlyDictionary<string, IReadOnlySet<GeneratedRowContextConstructor>> constructorUsages)
+        IReadOnlyDictionary<string, IReadOnlySet<GeneratedRowContextConstructor>> constructorUsages
+    )
     {
-        return read.AccessStrategy is PositionalAccess or NestedPositionalAccess or ContextAccess ||
-               read.AccessStrategy is GeneratedRowContextAccess context &&
-               !CanReadGeneratedContextStorage(context, constructorUsages);
+        return read.AccessStrategy is PositionalAccess or NestedPositionalAccess or ContextAccess
+            || read.AccessStrategy is GeneratedRowContextAccess context
+                && !CanReadGeneratedContextStorage(context, constructorUsages);
     }
 
     private static bool CanReadGeneratedContextStorage(
         GeneratedRowContextAccess context,
-        IReadOnlyDictionary<string, IReadOnlySet<GeneratedRowContextConstructor>> constructorUsages)
+        IReadOnlyDictionary<string, IReadOnlySet<GeneratedRowContextConstructor>> constructorUsages
+    )
     {
         if (!constructorUsages.TryGetValue(context.TypeName, out var usages))
             return false;
 
-        var constructors = usages
-            .Where(static usage => usage != GeneratedRowContextConstructor.NoContext)
-            .ToArray();
+        var constructors = usages.Where(static usage => usage != GeneratedRowContextConstructor.NoContext).ToArray();
 
         if (constructors.Length > 1)
             return context.Index >= 0;
 
-        return constructors.Length == 1 && constructors[0] switch
-        {
-            GeneratedRowContextConstructor.ContextArray => context.Index >= 0,
-            GeneratedRowContextConstructor.SingleContext => context.Index == 0,
-            GeneratedRowContextConstructor.SingleContexts => context.Index >= 0,
-            GeneratedRowContextConstructor.TwoSingleContexts => context.Index is 0 or 1,
-            _ => false
-        };
+        return constructors.Length == 1
+            && constructors[0] switch
+            {
+                GeneratedRowContextConstructor.ContextArray => context.Index >= 0,
+                GeneratedRowContextConstructor.SingleContext => context.Index == 0,
+                GeneratedRowContextConstructor.SingleContexts => context.Index >= 0,
+                GeneratedRowContextConstructor.TwoSingleContexts => context.Index is 0 or 1,
+                _ => false,
+            };
     }
 }

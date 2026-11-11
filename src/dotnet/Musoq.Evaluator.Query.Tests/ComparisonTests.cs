@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class ComparisonTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void ArithmeticOpsGreaterTest()
     {
@@ -17,14 +16,15 @@ public class ComparisonTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -45,14 +45,15 @@ public class ComparisonTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -64,8 +65,10 @@ public class ComparisonTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "WARSAW"), "First entry should be 'WARSAW'");
-        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "CZESTOCHOWA"),
-            "Second entry should be 'CZESTOCHOWA'");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "CZESTOCHOWA"),
+            "Second entry should be 'CZESTOCHOWA'"
+        );
     }
 
     [TestMethod]
@@ -76,14 +79,15 @@ public class ComparisonTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -93,7 +97,10 @@ public class ComparisonTests : BasicEntityTestBase
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "KATOWICE"), "Collection should contain KATOWICE");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "KATOWICE"),
+            "Collection should contain KATOWICE"
+        );
         Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "BERLIN"), "Collection should contain BERLIN");
     }
 
@@ -105,14 +112,15 @@ public class ComparisonTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -123,10 +131,12 @@ public class ComparisonTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "KATOWICE"),
+            "First entry should be 'KATOWICE'"
+        );
         Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "BERLIN"), "Second entry should be 'BERLIN'");
     }
-
 
     [TestMethod]
     public void ArithmeticOpsLessEqualTest()
@@ -136,14 +146,15 @@ public class ComparisonTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -154,7 +165,10 @@ public class ComparisonTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "KATOWICE"), "First entry should be 'KATOWICE'");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "KATOWICE"),
+            "First entry should be 'KATOWICE'"
+        );
         Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "BERLIN"), "Second entry should be 'BERLIN'");
         Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "MUNICH"), "Third entry should be 'MUNICH'");
     }

@@ -9,7 +9,8 @@ public sealed record SourcePredicateRegexMatch : SourcePredicatePatternMatch
         string pattern,
         TimeSpan matchTimeout,
         SourceRegexSemantics semantics = SourceRegexSemantics.MusoqRLike,
-        bool isNegated = false)
+        bool isNegated = false
+    )
         : base(column, isNegated)
     {
         ArgumentNullException.ThrowIfNull(pattern);

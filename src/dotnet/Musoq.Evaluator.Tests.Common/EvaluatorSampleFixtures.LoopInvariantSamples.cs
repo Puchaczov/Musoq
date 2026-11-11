@@ -11,7 +11,7 @@ internal static partial class EvaluatorSampleFixtures
             LoopInvariantStableApplyProjection(),
             LoopInvariantVolatileApplyProjection(),
             LoopInvariantStableAndVolatileFunctions(),
-            LoopInvariantEmptyApply()
+            LoopInvariantEmptyApply(),
         ];
     }
 
@@ -21,10 +21,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q248_LoopInvariantStableApplyProjection",
             FileName = "Q248_LoopInvariantStableApplyProjection.cs",
-            Query = "select a.Value, b.Value, c.Value from #licm.outers() a cross apply a.Middles b cross apply b.Leaves c",
+            Query =
+                "select a.Value, b.Value, c.Value from #licm.outers() a cross apply a.Middles b cross apply b.Leaves c",
             Category = "LoopInvariant",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider
+            CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider,
         };
     }
 
@@ -34,10 +35,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q249_LoopInvariantVolatileApplyProjection",
             FileName = "Q249_LoopInvariantVolatileApplyProjection.cs",
-            Query = "select a.VolatileValue, b.Value, c.Value from #licm.outers() a cross apply a.Middles b cross apply b.Leaves c",
+            Query =
+                "select a.VolatileValue, b.Value, c.Value from #licm.outers() a cross apply a.Middles b cross apply b.Leaves c",
             Category = "LoopInvariant",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider
+            CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider,
         };
     }
 
@@ -47,11 +49,12 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q250_LoopInvariantStableAndVolatileFunctions",
             FileName = "Q250_LoopInvariantStableAndVolatileFunctions.cs",
-            Query = "select a.StableOf(a.Value), a.StablePair(a.Value, b.Value), a.VolatileOf(b.Value) from #licm.outers() a cross apply a.Middles b",
+            Query =
+                "select a.StableOf(a.Value), a.StablePair(a.Value, b.Value), a.VolatileOf(b.Value) from #licm.outers() a cross apply a.Middles b",
             Category = "LoopInvariant",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
             CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider,
-            CompilationOptions = new CompilationOptions(useCommonSubexpressionElimination: false)
+            CompilationOptions = new CompilationOptions(useCommonSubexpressionElimination: false),
         };
     }
 
@@ -64,7 +67,7 @@ internal static partial class EvaluatorSampleFixtures
             Query = "select a.Value, b.VolatileValue from #licm.outers() a cross apply a.EmptyMiddles b",
             Category = "LoopInvariant",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider
+            CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider,
         };
     }
 }

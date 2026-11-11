@@ -8,11 +8,14 @@ internal interface IWindowLoweringService
     WindowPipeline? DecomposeWindowPipeline(PhysicalNode node);
     LoweringAttempt<ExecutionPlan> CreatePlanResult(string identifier, LoweringAttempt<LoweredTable> table);
     LoweringAttempt<LoweredTable> BuildWindowTable(
-        WindowPipeline pipeline, string resultTableName, string resultShapeName,
-        IReadOnlyDictionary<string, int> cteIndexes, IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex, LoweringScope scope);
+        WindowPipeline pipeline,
+        string resultTableName,
+        string resultShapeName,
+        IReadOnlyDictionary<string, int> cteIndexes,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
+        int schemaFromIndex,
+        LoweringScope scope
+    );
 }
 
-internal interface IWindowLoweringOperations : IWindowLoweringService
-{
-}
+internal interface IWindowLoweringOperations : IWindowLoweringService { }

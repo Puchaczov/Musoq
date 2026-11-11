@@ -9,5 +9,5 @@ internal sealed record PhysicalOptimizationResult(
     PhysicalNode OptimizedPlan,
     PlanProperties OptimizedProperties,
     IReadOnlyList<PlanningDecision> Decisions,
-    OptimizationTrace Trace);
-
+    OptimizationTrace Trace
+);

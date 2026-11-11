@@ -7,14 +7,13 @@ namespace Musoq.Evaluator.IR.Planning.SourcePlanning;
 
 internal static partial class SourcePlanningPlanner
 {
-    private static TextSpan ResolveColumnSpan(
-        PlanningContext context,
-        SchemaFromNode? sourceNode,
-        string columnName)
+    private static TextSpan ResolveColumnSpan(PlanningContext context, SchemaFromNode? sourceNode, string columnName)
     {
-        if (sourceNode != null &&
-            context.SourceContractDiagnosticLocationsBySource.TryGetValue(sourceNode, out var locations) &&
-            locations.TryGetColumnSpan(columnName, out var span))
+        if (
+            sourceNode != null
+            && context.SourceContractDiagnosticLocationsBySource.TryGetValue(sourceNode, out var locations)
+            && locations.TryGetColumnSpan(columnName, out var span)
+        )
         {
             return span;
         }
@@ -32,12 +31,14 @@ internal static partial class SourcePlanningPlanner
     private static SourceMetadataRequiresDefaultException CreateMetadataDefaultException(
         SchemaScanNode scan,
         Musoq.Evaluator.Parser.SchemaFromNode sourceNode,
-        Exception innerException)
+        Exception innerException
+    )
     {
         return new SourceMetadataRequiresDefaultException(
             scan.SchemaName,
             scan.MethodName,
             sourceNode.HasSpan ? sourceNode.Span : TextSpan.Empty,
-            innerException);
+            innerException
+        );
     }
 }

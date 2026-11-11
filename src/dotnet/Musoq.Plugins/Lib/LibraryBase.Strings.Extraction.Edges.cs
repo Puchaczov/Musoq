@@ -48,9 +48,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(prefix))
             return value;
 
-        return value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
-            ? value.Substring(prefix.Length)
-            : value;
+        return value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? value.Substring(prefix.Length) : value;
     }
 
     /// <summary>

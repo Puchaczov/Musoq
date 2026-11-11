@@ -14,14 +14,18 @@ public partial class BuildMetadataAndInferTypesVisitor
     private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
     {
         var identifier = GetCurrentMethodResolutionIdentifier();
-        if (string.IsNullOrWhiteSpace(identifier) && string.IsNullOrWhiteSpace(node.Alias) &&
-            SourceArgumentContext is { Source: var source })
+        if (
+            string.IsNullOrWhiteSpace(identifier)
+            && string.IsNullOrWhiteSpace(node.Alias)
+            && SourceArgumentContext is { Source: var source }
+        )
             return CreateSourceArgumentMethodContext(source);
 
         if (string.IsNullOrWhiteSpace(identifier) && string.IsNullOrWhiteSpace(node.Alias))
             throw new AliasMissingException(
                 $"Method call '{node}' has no source owner. Move it to an APPLY after a source is bound.",
-                node.SpanOrEmpty());
+                node.SpanOrEmpty()
+            );
 
         if (_sourceBinding.UsedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
         {
@@ -37,7 +41,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     nameof(ResolveMethodContext),
                     "Aggregate owner resolution reported an ambiguous aggregate owner.",
                     DiagnosticCode.MQ3034_AmbiguousAggregateOwner,
-                    node.SpanOrEmpty());
+                    node.SpanOrEmpty()
+                );
 
             if (TryInferNonAggregateMethodContext(identifier, node, args, out var nonAggContext))
                 return nonAggContext;
@@ -48,14 +53,14 @@ public partial class BuildMetadataAndInferTypesVisitor
                     nameof(ResolveMethodContext),
                     AliasMissingException.CreateMethodCallMessage(node.ToString()),
                     DiagnosticCode.MQ3022_MissingAlias,
-                    node.SpanOrEmpty());
+                    node.SpanOrEmpty()
+                );
             var span = node.SpanOrEmpty();
             throw new AliasMissingException(AliasMissingException.CreateMethodCallMessage(node.ToString()), span);
         }
 
         var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : identifier;
-        if (!string.IsNullOrEmpty(node.Alias) &&
-            !GetVisibleAliases().Contains(alias, StringComparer.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(node.Alias) && !GetVisibleAliases().Contains(alias, StringComparer.OrdinalIgnoreCase))
         {
             ColumnInstanceMethodValidation.RejectColumnOwner(FindTableSymbolInScopeHierarchy(identifier), node);
             throw new UnknownAliasException(alias, node.SpanOrEmpty(), GetVisibleAliases());
@@ -80,8 +85,12 @@ public partial class BuildMetadataAndInferTypesVisitor
             ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
             : _sourceBinding.Identifier;
 
-    private bool TryInferNonAggregateMethodContext(string identifier, AccessMethodNode node, ArgsListNode args,
-        out MethodResolutionContext context)
+    private bool TryInferNonAggregateMethodContext(
+        string identifier,
+        AccessMethodNode node,
+        ArgsListNode args,
+        out MethodResolutionContext context
+    )
     {
         context = default;
 
@@ -102,8 +111,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             var candidateContext = CreateMethodResolutionContext(alias, false);
             var schema = candidateContext.SchemaTablePair.Schema;
 
-            if (!schema.TryResolveMethod(methodName, argTypes, candidateContext.EntityType, out var candidateMethod) &&
-                !schema.TryResolveRawMethod(methodName, argTypes, out candidateMethod))
+            if (
+                !schema.TryResolveMethod(methodName, argTypes, candidateContext.EntityType, out var candidateMethod)
+                && !schema.TryResolveRawMethod(methodName, argTypes, out candidateMethod)
+            )
                 continue;
 
             if (firstMethod == null)
@@ -118,9 +129,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (allCandidatesEquivalent)
             {
-                allCandidatesEquivalent = AreSameMethod(firstMethod, candidateMethod) &&
-                                          SourceArgumentMethodValidation.IsAliasIndependent(firstMethod) &&
-                                          SourceArgumentMethodValidation.IsAliasIndependent(candidateMethod);
+                allCandidatesEquivalent =
+                    AreSameMethod(firstMethod, candidateMethod)
+                    && SourceArgumentMethodValidation.IsAliasIndependent(firstMethod)
+                    && SourceArgumentMethodValidation.IsAliasIndependent(candidateMethod);
             }
         }
 

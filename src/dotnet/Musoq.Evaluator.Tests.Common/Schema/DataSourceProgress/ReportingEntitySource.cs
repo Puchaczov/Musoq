@@ -6,7 +6,8 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Schema.DataSourceProgress;
 
-public class ReportingEntitySource<T> : RowSource<T> where T : BasicEntity
+public class ReportingEntitySource<T> : RowSource<T>
+    where T : BasicEntity
 {
     private readonly string _dataSourceName;
     private readonly IEnumerable<T> _entities;
@@ -17,7 +18,8 @@ public class ReportingEntitySource<T> : RowSource<T> where T : BasicEntity
         IDictionary<string, int> nameToIndexMap,
         IDictionary<int, Func<T, object?>> indexToObjectAccessMap,
         SourceExecutionContext runtimeContext,
-        string dataSourceName)
+        string dataSourceName
+    )
     {
         _ = nameToIndexMap;
         _ = indexToObjectAccessMap;

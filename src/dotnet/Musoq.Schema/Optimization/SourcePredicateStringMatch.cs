@@ -16,7 +16,8 @@ public sealed record SourcePredicateStringMatch : SourcePredicatePatternMatch
         string originalPattern,
         string needle,
         SourceStringComparison comparison = SourceStringComparison.LikeIgnoreCase,
-        bool isNegated = false)
+        bool isNegated = false
+    )
         : base(column, isNegated)
     {
         ArgumentNullException.ThrowIfNull(originalPattern);
@@ -28,7 +29,8 @@ public sealed record SourcePredicateStringMatch : SourcePredicatePatternMatch
             throw new ArgumentOutOfRangeException(
                 nameof(comparison),
                 comparison,
-                "Source string matches currently require LIKE-equivalent case-insensitive comparison.");
+                "Source string matches currently require LIKE-equivalent case-insensitive comparison."
+            );
         }
 
         Kind = kind;

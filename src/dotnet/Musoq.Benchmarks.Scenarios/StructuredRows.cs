@@ -5,7 +5,8 @@ namespace Musoq.Benchmarks.Scenarios;
 
 public sealed record NumberInput(int Id, decimal Amount);
 
-public sealed class StructuredRows(IReadOnlyList<NumberInput> items, SourceExecutionContext context) : RowSource<NumberInput>
+public sealed class StructuredRows(IReadOnlyList<NumberInput> items, SourceExecutionContext context)
+    : RowSource<NumberInput>
 {
     public override IEnumerable<IReadOnlyList<NumberInput>> Chunks
     {

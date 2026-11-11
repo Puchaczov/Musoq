@@ -8,7 +8,8 @@ public static partial class InstanceCreator
     private static void CompleteSemanticCache(
         BuildItems items,
         bool commit,
-        CancellationToken? cancellationToken = null)
+        CancellationToken? cancellationToken = null
+    )
     {
         ArgumentNullException.ThrowIfNull(items);
 

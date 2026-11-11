@@ -30,16 +30,14 @@ public partial class BytesInterpreterBaseTests
     public void ReadBytes_NegativeLength_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadBytes([0x01], -1));
+        Assert.Throws<ParseException>(() => interpreter.TestReadBytes([0x01], -1));
     }
 
     [TestMethod]
     public void ReadBytes_InsufficientData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadBytes([0x01, 0x02], 10));
+        Assert.Throws<ParseException>(() => interpreter.TestReadBytes([0x01, 0x02], 10));
     }
 
     #endregion
@@ -68,16 +66,14 @@ public partial class BytesInterpreterBaseTests
     public void ReadString_NegativeLength_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadString([0x00], -1, Encoding.ASCII));
+        Assert.Throws<ParseException>(() => interpreter.TestReadString([0x00], -1, Encoding.ASCII));
     }
 
     [TestMethod]
     public void ReadString_InsufficientData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadString([0x41], 10, Encoding.ASCII));
+        Assert.Throws<ParseException>(() => interpreter.TestReadString([0x41], 10, Encoding.ASCII));
     }
 
     #endregion
@@ -105,16 +101,14 @@ public partial class BytesInterpreterBaseTests
     public void ReadNullTerminatedString_NegativeMaxBytes_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadNullTerminatedString([0x41], -1, Encoding.ASCII));
+        Assert.Throws<ParseException>(() => interpreter.TestReadNullTerminatedString([0x41], -1, Encoding.ASCII));
     }
 
     [TestMethod]
     public void ReadNullTerminatedString_InsufficientData_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadNullTerminatedString([0x41], 10, Encoding.ASCII));
+        Assert.Throws<ParseException>(() => interpreter.TestReadNullTerminatedString([0x41], 10, Encoding.ASCII));
     }
 
     #endregion
@@ -145,7 +139,6 @@ public partial class BytesInterpreterBaseTests
         interpreter.SetBitOffset(4);
         var result = interpreter.TestReadBits([0xF0, 0x0F], 8);
 
-
         Assert.AreEqual(0xFFuL, result);
     }
 
@@ -153,16 +146,14 @@ public partial class BytesInterpreterBaseTests
     public void ReadBits_TooFewBits_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadBits([0x00], 0));
+        Assert.Throws<ParseException>(() => interpreter.TestReadBits([0x00], 0));
     }
 
     [TestMethod]
     public void ReadBits_TooManyBits_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadBits([0x00], 65));
+        Assert.Throws<ParseException>(() => interpreter.TestReadBits([0x00], 65));
     }
 
     [TestMethod]
@@ -170,8 +161,7 @@ public partial class BytesInterpreterBaseTests
     {
         var interpreter = new TestBytesInterpreter();
         interpreter.SetPosition(0);
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadBits(Array.Empty<byte>(), 8));
+        Assert.Throws<ParseException>(() => interpreter.TestReadBits(Array.Empty<byte>(), 8));
     }
 
     #endregion

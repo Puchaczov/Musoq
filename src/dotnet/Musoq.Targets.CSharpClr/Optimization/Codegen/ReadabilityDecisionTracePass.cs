@@ -13,7 +13,7 @@ internal sealed class ReadabilityDecisionTracePass : ICodegenReadabilityOptimiza
 
         return OptimizationResult<CompilationUnitSyntax>.NoChange(
             plan,
-            "Readability pass group completed; strategy decisions remain owned by logical, physical, and Execution IR optimizers.");
+            "Readability pass group completed; strategy decisions remain owned by logical, physical, and Execution IR optimizers."
+        );
     }
 }
-

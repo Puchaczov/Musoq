@@ -8,8 +8,11 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionMethodCall : ExecutionExpression
 {
     private IReadOnlyList<ExecutionExpression> _arguments = [];
-    private IReadOnlyDictionary<int, string> _generatedGenericArguments =
-        System.Collections.Immutable.ImmutableDictionary<int, string>.Empty;
+    private IReadOnlyDictionary<int, string> _generatedGenericArguments = System
+        .Collections
+        .Immutable
+        .ImmutableDictionary<int, string>
+        .Empty;
 
     public ExecutionMethodCall(
         ExecutionCallableRef method,
@@ -18,7 +21,8 @@ public sealed record ExecutionMethodCall : ExecutionExpression
         ExecutionTypeRef returnType,
         ExecutionExpression? injectedSource,
         ExecutionVariable? target = null,
-        ExecutionVariable? cache = null)
+        ExecutionVariable? cache = null
+    )
         : base(returnType)
     {
         Method = method;
@@ -74,17 +78,29 @@ public sealed record ExecutionMethodCall : ExecutionExpression
         Type returnType,
         ExecutionExpression? injectedSource,
         ExecutionVariable? target = null,
-        ExecutionVariable? cache = null)
-        : this(ExecutionClrBindingFactory.FromClr(method), arguments, alias, ExecutionClrBindingFactory.FromClr(returnType), injectedSource, target, cache)
-    {
-    }
+        ExecutionVariable? cache = null
+    )
+        : this(
+            ExecutionClrBindingFactory.FromClr(method),
+            arguments,
+            alias,
+            ExecutionClrBindingFactory.FromClr(returnType),
+            injectedSource,
+            target,
+            cache
+        ) { }
 
     internal ExecutionMethodCall(
         MethodInfo method,
         IReadOnlyList<ExecutionExpression> arguments,
         string? alias,
-        Type returnType)
-        : this(ExecutionClrBindingFactory.FromClr(method), arguments, alias, ExecutionClrBindingFactory.FromClr(returnType), null)
-    {
-    }
+        Type returnType
+    )
+        : this(
+            ExecutionClrBindingFactory.FromClr(method),
+            arguments,
+            alias,
+            ExecutionClrBindingFactory.FromClr(returnType),
+            null
+        ) { }
 }

@@ -13,20 +13,25 @@ public sealed class ExecutionTargetCatalogOverrideTests
     public void ExecutionTargetCatalog_WhenResolvingCSharpClr_ShouldReturnAllCSharpPhases()
     {
         Assert.IsInstanceOfType<CSharpClrExecutionBackend>(
-            ExecutionTargetCatalog.ResolveBackend(ExecutionTargetIds.CSharpClr));
+            ExecutionTargetCatalog.ResolveBackend(ExecutionTargetIds.CSharpClr)
+        );
         Assert.IsInstanceOfType<CSharpClrRenderedQueryFinalizer>(
-            ExecutionTargetCatalog.ResolveFinalizer(ExecutionTargetIds.CSharpClr));
+            ExecutionTargetCatalog.ResolveFinalizer(ExecutionTargetIds.CSharpClr)
+        );
         Assert.IsInstanceOfType<ClrAssemblyExecutableActivator>(
-            ExecutionTargetCatalog.ResolveActivator(ExecutionTargetIds.CSharpClr));
+            ExecutionTargetCatalog.ResolveActivator(ExecutionTargetIds.CSharpClr)
+        );
         Assert.IsInstanceOfType<CSharpRenderedQueryInspector>(
-            ExecutionTargetCatalog.ResolveInspector(ExecutionTargetIds.CSharpClr));
+            ExecutionTargetCatalog.ResolveInspector(ExecutionTargetIds.CSharpClr)
+        );
     }
 
     [TestMethod]
     public void ExecutionTargetCatalog_WhenTestOnlyTargetHasNoRenderPhase_ShouldReject()
     {
-        var exception = Assert.Throws<NotSupportedException>(
-            () => ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+        var exception = Assert.Throws<NotSupportedException>(() =>
+            ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr)
+        );
 
         Assert.Contains("TestOnlyNonClr", exception.Message);
     }
@@ -38,36 +43,28 @@ public sealed class ExecutionTargetCatalogOverrideTests
         var finalizer = new TestOnlyExecutionTarget.Finalizer();
         var activator = new TestOnlyExecutionTarget.Activator();
         var inspector = new TestOnlyExecutionTarget.Inspector();
-        var descriptor = TestOnlyExecutionTarget.CreateDescriptor(
-            backend,
-            finalizer,
-            activator,
-            inspector);
+        var descriptor = TestOnlyExecutionTarget.CreateDescriptor(backend, finalizer, activator, inspector);
 
         using (ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor))
         {
-            Assert.AreSame(
-                backend,
-                ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
-            Assert.AreSame(
-                finalizer,
-                ExecutionTargetCatalog.ResolveFinalizer(TestExecutionTargetIds.TestOnlyNonClr));
-            Assert.AreSame(
-                activator,
-                ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr));
-            Assert.AreSame(
-                inspector,
-                ExecutionTargetCatalog.ResolveInspector(TestExecutionTargetIds.TestOnlyNonClr));
+            Assert.AreSame(backend, ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+            Assert.AreSame(finalizer, ExecutionTargetCatalog.ResolveFinalizer(TestExecutionTargetIds.TestOnlyNonClr));
+            Assert.AreSame(activator, ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr));
+            Assert.AreSame(inspector, ExecutionTargetCatalog.ResolveInspector(TestExecutionTargetIds.TestOnlyNonClr));
         }
 
-        Assert.Throws<NotSupportedException>(
-            () => ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
-        Assert.Throws<NotSupportedException>(
-            () => ExecutionTargetCatalog.ResolveFinalizer(TestExecutionTargetIds.TestOnlyNonClr));
-        Assert.Throws<NotSupportedException>(
-            () => ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr));
-        Assert.Throws<NotSupportedException>(
-            () => ExecutionTargetCatalog.ResolveInspector(TestExecutionTargetIds.TestOnlyNonClr));
+        Assert.Throws<NotSupportedException>(() =>
+            ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr)
+        );
+        Assert.Throws<NotSupportedException>(() =>
+            ExecutionTargetCatalog.ResolveFinalizer(TestExecutionTargetIds.TestOnlyNonClr)
+        );
+        Assert.Throws<NotSupportedException>(() =>
+            ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr)
+        );
+        Assert.Throws<NotSupportedException>(() =>
+            ExecutionTargetCatalog.ResolveInspector(TestExecutionTargetIds.TestOnlyNonClr)
+        );
     }
 
     [TestMethod]
@@ -80,24 +77,22 @@ public sealed class ExecutionTargetCatalogOverrideTests
 
         using (ExecutionTargetCatalog.UseTemporaryDescriptor(outer))
         {
-            Assert.AreSame(
-                outerBackend,
-                ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+            Assert.AreSame(outerBackend, ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
 
             using (ExecutionTargetCatalog.UseTemporaryDescriptor(inner))
             {
                 Assert.AreSame(
                     innerBackend,
-                    ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+                    ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr)
+                );
             }
 
-            Assert.AreSame(
-                outerBackend,
-                ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+            Assert.AreSame(outerBackend, ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
         }
 
         Assert.Throws<NotSupportedException>(() =>
-            ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+            ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr)
+        );
     }
 
     [TestMethod]
@@ -106,20 +101,21 @@ public sealed class ExecutionTargetCatalogOverrideTests
         var outerBackend = new TestOnlyExecutionTarget.Backend();
         var innerBackend = new TestOnlyExecutionTarget.Backend();
         var outer = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(backend: outerBackend));
+            TestOnlyExecutionTarget.CreateDescriptor(backend: outerBackend)
+        );
         var inner = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(backend: innerBackend));
+            TestOnlyExecutionTarget.CreateDescriptor(backend: innerBackend)
+        );
 
         try
         {
             outer.Dispose();
-            Assert.AreSame(
-                innerBackend,
-                ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+            Assert.AreSame(innerBackend, ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
 
             inner.Dispose();
             Assert.Throws<NotSupportedException>(() =>
-                ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+                ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr)
+            );
         }
         finally
         {
@@ -132,27 +128,23 @@ public sealed class ExecutionTargetCatalogOverrideTests
     public async Task ExecutionTargetCatalog_WhenCapturedAsyncContextOutlivesRegistration_ShouldNotResolveDisposedDescriptor()
     {
         var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(backend: new TestOnlyExecutionTarget.Backend()));
+            TestOnlyExecutionTarget.CreateDescriptor(backend: new TestOnlyExecutionTarget.Backend())
+        );
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var child = Task.Run(async () =>
         {
             started.SetResult();
-            await TestSynchronization.WaitForSignalAsync(
-                release.Task,
-                "The catalog child context was not released");
+            await TestSynchronization.WaitForSignalAsync(release.Task, "The catalog child context was not released");
             Assert.Throws<NotSupportedException>(() =>
-                ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+                ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr)
+            );
         });
 
-        await TestSynchronization.WaitForSignalAsync(
-            started.Task,
-            "The catalog child context did not start");
+        await TestSynchronization.WaitForSignalAsync(started.Task, "The catalog child context did not start");
         registration.Dispose();
         release.SetResult();
-        await TestSynchronization.WaitForSignalAsync(
-            child,
-            "The catalog child context did not finish");
+        await TestSynchronization.WaitForSignalAsync(child, "The catalog child context did not finish");
     }
 
     [TestMethod]
@@ -164,22 +156,18 @@ public sealed class ExecutionTargetCatalogOverrideTests
         var descriptor = TestOnlyExecutionTarget.CreateDescriptor(
             backend: backend,
             finalizer: finalizer,
-            inspector: inspector);
+            inspector: inspector
+        );
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
 
-        Assert.AreSame(
-            backend,
-            ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
-        Assert.AreSame(
-            finalizer,
-            ExecutionTargetCatalog.ResolveFinalizer(TestExecutionTargetIds.TestOnlyNonClr));
-        Assert.AreSame(
-            inspector,
-            ExecutionTargetCatalog.ResolveInspector(TestExecutionTargetIds.TestOnlyNonClr));
+        Assert.AreSame(backend, ExecutionTargetCatalog.ResolveBackend(TestExecutionTargetIds.TestOnlyNonClr));
+        Assert.AreSame(finalizer, ExecutionTargetCatalog.ResolveFinalizer(TestExecutionTargetIds.TestOnlyNonClr));
+        Assert.AreSame(inspector, ExecutionTargetCatalog.ResolveInspector(TestExecutionTargetIds.TestOnlyNonClr));
 
-        var exception = Assert.Throws<NotSupportedException>(
-            () => ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr));
+        var exception = Assert.Throws<NotSupportedException>(() =>
+            ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr)
+        );
 
         Assert.Contains("does not support activation", exception.Message);
     }
@@ -188,10 +176,10 @@ public sealed class ExecutionTargetCatalogOverrideTests
     public void ExecutionTargetCatalog_WhenDescriptorHasNoRenderContributionFactory_ShouldReturnEmptyContribution()
     {
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor());
+            TestOnlyExecutionTarget.CreateDescriptor()
+        );
 
-        var contribution = ExecutionTargetCatalog.CreateRenderBuildContribution(
-            new TestOnlyRenderedArtifact());
+        var contribution = ExecutionTargetCatalog.CreateRenderBuildContribution(new TestOnlyRenderedArtifact());
 
         Assert.AreEqual(QueryMethodRenderMetadata.Unknown, contribution.QueryMethodRenderMetadata);
         Assert.IsNull(contribution.OptimizationTrace);
@@ -201,18 +189,23 @@ public sealed class ExecutionTargetCatalogOverrideTests
     public void ExecutionTargetCatalog_WhenDescriptorHasNoPackageFactory_ShouldRejectArtifactPackaging()
     {
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor());
+            TestOnlyExecutionTarget.CreateDescriptor()
+        );
 
-        var exception = Assert.Throws<NotSupportedException>(() => ExecutionTargetCatalog.CreateArtifactPackage(
-            new TargetArtifactPackagingContext(
-                TestExecutionTargetIds.TestOnlyNonClr,
-                "TestOnlyPackage",
-                "select 1",
-                "options",
-                new TestOnlyRenderedArtifact(),
-                TargetExportArtifact.Create(TestExecutionTargetIds.TestOnlyNonClr),
-                TargetArtifactSemanticFacts.Empty,
-                ExecutionSemanticsContract.Current)));
+        var exception = Assert.Throws<NotSupportedException>(() =>
+            ExecutionTargetCatalog.CreateArtifactPackage(
+                new TargetArtifactPackagingContext(
+                    TestExecutionTargetIds.TestOnlyNonClr,
+                    "TestOnlyPackage",
+                    "select 1",
+                    "options",
+                    new TestOnlyRenderedArtifact(),
+                    TargetExportArtifact.Create(TestExecutionTargetIds.TestOnlyNonClr),
+                    TargetArtifactSemanticFacts.Empty,
+                    ExecutionSemanticsContract.Current
+                )
+            )
+        );
 
         Assert.Contains("does not support artifact packaging", exception.Message);
     }
@@ -221,23 +214,17 @@ public sealed class ExecutionTargetCatalogOverrideTests
     public void ExecutionTargetCatalog_WhenDescriptorUsesPortableExportPackageFactory_ShouldPackagePortableExportArtifact()
     {
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(createArtifactPackage: CreateExportPackage));
+            TestOnlyExecutionTarget.CreateDescriptor(createArtifactPackage: CreateExportPackage)
+        );
         var executableArtifact = TargetExportArtifact.Create(
             TestExecutionTargetIds.TestOnlyNonClr,
-            sourceFiles:
-            [
-                new TargetExportSourceFile("query.js", "javascript", "export function run() {}")
-            ],
-            binaryBlobs:
-            [
-                new TargetExportBinaryBlob("query.bin", [1, 2, 3], "application/octet-stream")
-            ],
-            entrypoints:
-            [
-                new TargetRuntimeEntrypoint("run", TargetRuntimeEntrypointKind.TableQuery, "run")
-            ],
+            sourceFiles: [new TargetExportSourceFile("query.js", "javascript", "export function run() {}")],
+            binaryBlobs: [new TargetExportBinaryBlob("query.bin", [1, 2, 3], "application/octet-stream")],
+            entrypoints: [new TargetRuntimeEntrypoint("run", TargetRuntimeEntrypointKind.TableQuery, "run")],
             runtimeServices: TargetRuntimeServiceRequirements.CreateTargetProvided(
-                TargetRuntimeServiceRequirementKind.SourceAccess));
+                TargetRuntimeServiceRequirementKind.SourceAccess
+            )
+        );
 
         var package = ExecutionTargetCatalog.CreateArtifactPackage(
             new TargetArtifactPackagingContext(
@@ -248,7 +235,9 @@ public sealed class ExecutionTargetCatalogOverrideTests
                 new TestOnlyRenderedArtifact(),
                 executableArtifact,
                 TargetArtifactSemanticFacts.Empty,
-                ExecutionSemanticsContract.Current));
+                ExecutionSemanticsContract.Current
+            )
+        );
 
         Assert.AreEqual(TestExecutionTargetIds.TestOnlyNonClr, package.TargetId);
         Assert.AreEqual("TargetExport", package.ArtifactKind);
@@ -262,12 +251,14 @@ public sealed class ExecutionTargetCatalogOverrideTests
     [TestMethod]
     public void ExecutionTargetCatalog_WhenPackageFactoryReturnsDifferentTarget_ShouldReject()
     {
-        var descriptor = TestOnlyExecutionTarget.CreateDescriptor(
-            createArtifactPackage: static _ => TargetArtifactPackage.CreateValidated(
+        var descriptor = TestOnlyExecutionTarget.CreateDescriptor(createArtifactPackage: static _ =>
+            TargetArtifactPackage.CreateValidated(
                 ExecutionTargetIds.CSharpClr,
                 "wrong",
                 "wrong",
-                ExecutionSemanticsContract.Current));
+                ExecutionSemanticsContract.Current
+            )
+        );
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
@@ -280,7 +271,10 @@ public sealed class ExecutionTargetCatalogOverrideTests
                     new TestOnlyRenderedArtifact(),
                     TargetExportArtifact.Create(TestExecutionTargetIds.TestOnlyNonClr),
                     TargetArtifactSemanticFacts.Empty,
-                    ExecutionSemanticsContract.Current)));
+                    ExecutionSemanticsContract.Current
+                )
+            )
+        );
 
         Assert.Contains("produced a package for target", exception.Message);
     }
@@ -288,8 +282,9 @@ public sealed class ExecutionTargetCatalogOverrideTests
     [TestMethod]
     public void ExecutionTargetCatalog_WhenTestOnlyTargetHasNoFinalizationPhase_ShouldReject()
     {
-        var exception = Assert.Throws<NotSupportedException>(
-            () => ExecutionTargetCatalog.ResolveFinalizer(TestExecutionTargetIds.TestOnlyNonClr));
+        var exception = Assert.Throws<NotSupportedException>(() =>
+            ExecutionTargetCatalog.ResolveFinalizer(TestExecutionTargetIds.TestOnlyNonClr)
+        );
 
         Assert.Contains("TestOnlyNonClr", exception.Message);
     }
@@ -297,20 +292,21 @@ public sealed class ExecutionTargetCatalogOverrideTests
     [TestMethod]
     public void ExecutionTargetDescriptor_WhenComponentTargetDoesNotMatch_ShouldReject()
     {
-        var exception = Assert.Throws<ArgumentException>(
-            () => ExecutionTargetDescriptor.Create(
+        var exception = Assert.Throws<ArgumentException>(() =>
+            ExecutionTargetDescriptor.Create(
                 ExecutionTargetIds.CSharpClr,
                 renderPhase: new TestOnlyExecutionTarget.Backend(),
                 finalizationPhase: new CSharpClrRenderedQueryFinalizer(),
                 activationPhase: new ClrAssemblyExecutableActivator(),
-                inspectionPhase: new CSharpRenderedQueryInspector()));
+                inspectionPhase: new CSharpRenderedQueryInspector()
+            )
+        );
 
         Assert.Contains("CSharpClr", exception.Message);
         Assert.Contains("TestOnlyNonClr", exception.Message);
     }
 
-    private sealed record TestOnlyRenderedArtifact()
-        : RenderedQueryArtifact(TestExecutionTargetIds.TestOnlyNonClr);
+    private sealed record TestOnlyRenderedArtifact() : RenderedQueryArtifact(TestExecutionTargetIds.TestOnlyNonClr);
 
     private static TargetArtifactPackage CreateExportPackage(TargetArtifactPackagingContext context)
     {
@@ -319,6 +315,7 @@ public sealed class ExecutionTargetCatalogOverrideTests
             context.TargetId,
             "TargetExport",
             exportArtifact,
-            context.SemanticsContract);
+            context.SemanticsContract
+        );
     }
 }

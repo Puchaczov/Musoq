@@ -1,6 +1,3 @@
-
 namespace Musoq.Evaluator.Tests;
 
-public partial class CrossApplyUnusedAliasTests
-{
-}
+public partial class CrossApplyUnusedAliasTests { }

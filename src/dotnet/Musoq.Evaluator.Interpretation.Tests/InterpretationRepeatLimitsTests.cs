@@ -15,10 +15,12 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
 {
-    private const string BinaryQuery = "binary Rec { X: byte } binary S { Records: Rec repeat until eof } " +
-        "select Count(r.X) as N from #test.files() f cross apply Interpret<S>(f.Content) s cross apply s.Records r";
-    private const string TextQuery = "text Rec { X: chars[1] } text S { Records: repeat Rec until end } " +
-        "select Count(r.X) as N from #test.files() f cross apply Parse<S>(f.Text) s cross apply s.Records r";
+    private const string BinaryQuery =
+        "binary Rec { X: byte } binary S { Records: Rec repeat until eof } "
+        + "select Count(r.X) as N from #test.files() f cross apply Interpret<S>(f.Content) s cross apply s.Records r";
+    private const string TextQuery =
+        "text Rec { X: chars[1] } text S { Records: repeat Rec until end } "
+        + "select Count(r.X) as N from #test.files() f cross apply Parse<S>(f.Text) s cross apply s.Records r";
 
     [TestMethod]
     [DataRow(false, 10_000, 10_000)]
@@ -40,7 +42,11 @@ public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
     [DataRow(true, 10_001, 10_000)]
     [DataRow(false, 4, 3)]
     [DataRow(true, 4, 3)]
-    public void ExceedingConfiguredBoundary_ShouldPreserveDiagnosticAndFailurePosition(bool text, int records, int maximum)
+    public void ExceedingConfiguredBoundary_ShouldPreserveDiagnosticAndFailurePosition(
+        bool text,
+        int records,
+        int maximum
+    )
     {
         using var query = Compile(text ? TextQuery : BinaryQuery, Provider(text, records), maximum);
         var failure = CaptureParseFailure(query);
@@ -66,8 +72,10 @@ public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
     [DataRow(true)]
     public void ZeroProgressProtection_ShouldRemainImmediateWithLargerLimits(bool text)
     {
-        const string binary = "binary S { Records: byte[0] repeat until eof } select 1 as N from #test.files() f cross apply Interpret<S>(f.Content) s";
-        const string textual = "text Empty { } text S { Records: repeat Empty until end } select 1 as N from #test.files() f cross apply Parse<S>(f.Text) s";
+        const string binary =
+            "binary S { Records: byte[0] repeat until eof } select 1 as N from #test.files() f cross apply Interpret<S>(f.Content) s";
+        const string textual =
+            "text Empty { } text S { Records: repeat Empty until end } select 1 as N from #test.files() f cross apply Parse<S>(f.Text) s";
         using var query = Compile(text ? textual : binary, Provider(text, 1), int.MaxValue);
         var failure = CaptureParseFailure(query);
 
@@ -79,8 +87,9 @@ public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
     [TestMethod]
     public void ConditionRepeat_ShouldAllowItsTerminatorAtTheBoundary()
     {
-        const string sql = "binary S { Records: byte repeat until Records[-1] = 0 } select Count(*) as N " +
-            "from #test.files() f cross apply Interpret<S>(f.Content) s cross apply s.Records r";
+        const string sql =
+            "binary S { Records: byte repeat until Records[-1] = 0 } select Count(*) as N "
+            + "from #test.files() f cross apply Interpret<S>(f.Content) s cross apply s.Records r";
         using var query = Compile(sql, BinaryProvider([1, 1, 0]), 3);
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -90,8 +99,9 @@ public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
     [TestMethod]
     public void ConditionRepeat_ShouldFailBeforeReadingPastItsBoundary()
     {
-        const string sql = "binary S { Records: byte repeat until Records[-1] = 0 } select Count(*) as N " +
-            "from #test.files() f cross apply Interpret<S>(f.Content) s cross apply s.Records r";
+        const string sql =
+            "binary S { Records: byte repeat until Records[-1] = 0 } select Count(*) as N "
+            + "from #test.files() f cross apply Interpret<S>(f.Content) s cross apply s.Records r";
         using var query = Compile(sql, BinaryProvider([1, 1, 1, 0]), 3);
         var failure = CaptureParseFailure(query);
 
@@ -102,9 +112,10 @@ public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
     [TestMethod]
     public void NestedSubstreams_ShouldReceiveTheSelectedLimitWithIndependentCounters()
     {
-        const string sql = "binary Inner { Values: byte repeat until eof } " +
-            "binary S { A: substream[2] as Inner, B: substream[2] as Inner } " +
-            "select s.A.Values.Length as A, s.B.Values.Length as B from #test.files() f cross apply Interpret<S>(f.Content) s";
+        const string sql =
+            "binary Inner { Values: byte repeat until eof } "
+            + "binary S { A: substream[2] as Inner, B: substream[2] as Inner } "
+            + "select s.A.Values.Length as A, s.B.Values.Length as B from #test.files() f cross apply Interpret<S>(f.Content) s";
         using var query = Compile(sql, BinaryProvider([1, 2, 3, 4]), 2);
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -114,8 +125,9 @@ public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
     [TestMethod]
     public void NestedSubstream_ShouldEnforceTheSelectedLimit()
     {
-        const string sql = "binary Inner { Values: byte repeat until eof } binary S { Payload: substream[3] as Inner } " +
-            "select 1 as N from #test.files() f cross apply Interpret<S>(f.Content) s";
+        const string sql =
+            "binary Inner { Values: byte repeat until eof } binary S { Payload: substream[3] as Inner } "
+            + "select 1 as N from #test.files() f cross apply Interpret<S>(f.Content) s";
         using var query = Compile(sql, BinaryProvider([1, 2, 3]), 2);
         var failure = CaptureParseFailure(query);
 
@@ -139,18 +151,30 @@ public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
     }
 
     private CompiledQuery Compile(string sql, ISchemaProvider provider, int maximum) =>
-        InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, LoggerResolver,
+        InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
             new CompilationOptions(ParallelizationMode.None, usePrimitiveTypeValidation: false)
-                .WithTableResultMaterialization().WithInterpretationLimits(new(maximum)));
+                .WithTableResultMaterialization()
+                .WithInterpretationLimits(new(maximum))
+        );
 
-    private static ISchemaProvider Provider(bool text, int records) => text
-        ? new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>>
-        { ["#test"] = [new TextEntity { Text = new string('x', records) }] })
-        : BinaryProvider(Enumerable.Repeat((byte)1, records).ToArray());
+    private static ISchemaProvider Provider(bool text, int records) =>
+        text
+            ? new TextSchemaProvider(
+                new Dictionary<string, IEnumerable<TextEntity>>
+                {
+                    ["#test"] = [new TextEntity { Text = new string('x', records) }],
+                }
+            )
+            : BinaryProvider(Enumerable.Repeat((byte)1, records).ToArray());
 
     private static ISchemaProvider BinaryProvider(byte[] bytes) =>
-        new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-        { ["#test"] = [new BinaryEntity { Content = bytes }] });
+        new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { ["#test"] = [new BinaryEntity { Content = bytes }] }
+        );
 
     private static ParseException CaptureParseFailure(CompiledQuery query)
     {

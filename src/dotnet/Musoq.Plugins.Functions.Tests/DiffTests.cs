@@ -101,10 +101,8 @@ public class DiffTests : PluginsTestBase
         var resultNullFirst = Library.Diff(null, "test");
         Assert.AreEqual("[+test]", resultNullFirst);
 
-
         var resultEmptyFirst = Library.Diff("", "test");
         Assert.AreEqual("[+test]", resultEmptyFirst);
-
 
         var resultBothNull = Library.Diff(null, null);
         Assert.IsNull(resultBothNull);
@@ -391,9 +389,13 @@ public class DiffTests : PluginsTestBase
     {
         var result = Library.DiffSegments("abcXYZdef", "abcABdef").ToList();
 
-        CollectionAssert.AreEqual(new[] { "abc", "XYZ", "AB", "def" }, result.Select(segment => segment.Text).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "abc", "XYZ", "AB", "def" },
+            result.Select(segment => segment.Text).ToArray()
+        );
         CollectionAssert.AreEqual(new[] { 3, 3, 2, 3 }, result.Select(segment => segment.Length).ToArray());
-        foreach (var segment in result) Assert.AreEqual(segment.Text.Length, segment.Length);
+        foreach (var segment in result)
+            Assert.AreEqual(segment.Text.Length, segment.Length);
     }
 
     [TestMethod]
@@ -402,7 +404,10 @@ public class DiffTests : PluginsTestBase
         var result = Library.DiffSegments("aXb", "aYb").ToList();
         var validKinds = new[] { "Unchanged", "Deleted", "Inserted" };
 
-        CollectionAssert.AreEqual(new[] { "Unchanged", "Deleted", "Inserted", "Unchanged" }, result.Select(segment => segment.Kind).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "Unchanged", "Deleted", "Inserted", "Unchanged" },
+            result.Select(segment => segment.Kind).ToArray()
+        );
         foreach (var segment in result)
             Assert.IsTrue(validKinds.Contains(segment.Kind), $"Invalid kind: {segment.Kind}");
     }
@@ -418,9 +423,7 @@ public class DiffTests : PluginsTestBase
         var second = "hello brave world";
 
         var segments = Library.DiffSegments(first, second).ToList();
-        var reconstructed = string.Concat(segments
-            .Where(s => s.Kind != "Deleted")
-            .Select(s => s.Text));
+        var reconstructed = string.Concat(segments.Where(s => s.Kind != "Deleted").Select(s => s.Text));
 
         Assert.AreEqual(second, reconstructed);
     }
@@ -432,9 +435,7 @@ public class DiffTests : PluginsTestBase
         var second = "hello brave world";
 
         var segments = Library.DiffSegments(first, second).ToList();
-        var reconstructed = string.Concat(segments
-            .Where(s => s.Kind != "Inserted")
-            .Select(s => s.Text));
+        var reconstructed = string.Concat(segments.Where(s => s.Kind != "Inserted").Select(s => s.Text));
 
         Assert.AreEqual(first, reconstructed);
     }
@@ -467,9 +468,7 @@ public class DiffTests : PluginsTestBase
     {
         var result = Library.DiffSegments("aXbYcZ", "aAbBcC").ToList();
 
-
         Assert.IsNotEmpty(result);
-
 
         Assert.AreEqual("a", result[0].Text);
         Assert.AreEqual("Unchanged", result[0].Kind);

@@ -16,7 +16,12 @@ public sealed class StringExtremaAggregateKernelTests
     [DataRow("a", "A", "A", "a")]
     [DataRow("z", "z", "z", "z")]
     [DataRow("\uE000", "\U00010000", "\U00010000", "\uE000")]
-    public void Set_ShouldSelectOrdinalExtremaAndSkipNulls(string? first, string? second, string? minimum, string? maximum)
+    public void Set_ShouldSelectOrdinalExtremaAndSkipNulls(
+        string? first,
+        string? second,
+        string? minimum,
+        string? maximum
+    )
     {
         var min = new MinStringAggregateKernel.State();
         var max = new MaxStringAggregateKernel.State();
@@ -49,7 +54,12 @@ public sealed class StringExtremaAggregateKernelTests
     [DataRow("", "a", "", "a")]
     [DataRow("z", "z", "z", "z")]
     [DataRow("\uE000", "\U00010000", "\U00010000", "\uE000")]
-    public void Merge_ShouldSelectOrdinalExtremaWithoutChangingSource(string? first, string? second, string? minimum, string? maximum)
+    public void Merge_ShouldSelectOrdinalExtremaWithoutChangingSource(
+        string? first,
+        string? second,
+        string? minimum,
+        string? maximum
+    )
     {
         var minTarget = new MinStringAggregateKernel.State();
         var maxTarget = new MaxStringAggregateKernel.State();

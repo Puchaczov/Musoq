@@ -7,21 +7,22 @@ internal sealed class CodegenReadabilityOptimizer
 {
     public CodegenReadabilityOptimizationResult Optimize(
         CompilationUnitSyntax initialCode,
-        TargetRenderProfile profile = TargetRenderProfile.StableArtifact)
+        TargetRenderProfile profile = TargetRenderProfile.StableArtifact
+    )
     {
         ArgumentNullException.ThrowIfNull(initialCode);
 
         var trace = new OptimizationTrace();
-        var pipeline = profile == TargetRenderProfile.ExecutionFast
-            ? CodegenReadabilityGroup.ExecutionPipeline
-            : CodegenReadabilityGroup.Pipeline;
-        var result = new PlanOptimizationRunner<CompilationUnitSyntax>(
-            pipeline).Run(
+        var pipeline =
+            profile == TargetRenderProfile.ExecutionFast
+                ? CodegenReadabilityGroup.ExecutionPipeline
+                : CodegenReadabilityGroup.Pipeline;
+        var result = new PlanOptimizationRunner<CompilationUnitSyntax>(pipeline).Run(
             initialCode,
             new OptimizationContext(OptimizationStage.CodegenReadability, trace),
-            static passName => TargetRenderTelemetry.BeginPhase($"render.readability.{passName}"));
+            static passName => TargetRenderTelemetry.BeginPhase($"render.readability.{passName}")
+        );
 
         return new CodegenReadabilityOptimizationResult(initialCode, result.Plan, trace);
     }
 }
-

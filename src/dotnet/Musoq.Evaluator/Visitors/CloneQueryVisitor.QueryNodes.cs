@@ -22,9 +22,11 @@ public partial class CloneQueryVisitor
         var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
         var from = SafeCast<FromNode>(Nodes.Pop(), nameof(Visit));
 
-        Nodes.Push(((QueryNode)new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify,
-                node.Span))
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            (
+                (QueryNode)new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, node.Span)
+            ).WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(JoinInMemoryWithSourceTableFromNode node)
@@ -34,16 +36,36 @@ public partial class CloneQueryVisitor
         var exp = Nodes.Pop();
         var from = (FromNode)Nodes.Pop();
         var bound = node as Parser.JoinInMemoryWithSourceTableFromNode;
-        Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType,
-            bound?.InMemoryTableVariableName, tieBreak) { IntermediateSource = bound?.IntermediateSource });
+        Nodes.Push(
+            new Parser.JoinInMemoryWithSourceTableFromNode(
+                node.InMemoryTableAlias,
+                from,
+                exp,
+                node.JoinType,
+                bound?.InMemoryTableVariableName,
+                tieBreak
+            )
+            {
+                IntermediateSource = bound?.IntermediateSource,
+            }
+        );
     }
 
     public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var from = (FromNode)Nodes.Pop();
-        Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType, node.WithOrdinality)
-        { IntermediateSource = (node as Parser.ApplyInMemoryWithSourceTableFromNode)?.IntermediateSource });
+        Nodes.Push(
+            new Parser.ApplyInMemoryWithSourceTableFromNode(
+                node.InMemoryTableAlias,
+                from,
+                node.ApplyType,
+                node.WithOrdinality
+            )
+            {
+                IntermediateSource = (node as Parser.ApplyInMemoryWithSourceTableFromNode)?.IntermediateSource,
+            }
+        );
     }
 
     public override void Visit(InternalQueryNode node)
@@ -56,9 +78,7 @@ public partial class CloneQueryVisitor
         Nodes.Push(new RootNode(Nodes.Pop()));
     }
 
-    public override void Visit(SingleSetNode node)
-    {
-    }
+    public override void Visit(SingleSetNode node) { }
 
     public override void Visit(RefreshNode node)
     {
@@ -95,7 +115,8 @@ public partial class CloneQueryVisitor
             node.Extends,
             (string[])node.TypeParameters.Clone(),
             node.ExtendsSpan,
-            node.Comments);
+            node.Comments
+        );
 
         Nodes.Push(clone.WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
@@ -125,7 +146,14 @@ public partial class CloneQueryVisitor
     public override void Visit(CteInnerExpressionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name, (CteColumnName[])node.Columns.Clone(), node.IsRecursiveDefinition).CopySpansFrom(node));
+        Nodes.Push(
+            new CteInnerExpressionNode(
+                Nodes.Pop(),
+                node.Name,
+                (CteColumnName[])node.Columns.Clone(),
+                node.IsRecursiveDefinition
+            ).CopySpansFrom(node)
+        );
     }
 
     public override void Visit(JoinNode node)
@@ -146,24 +174,27 @@ public partial class CloneQueryVisitor
         for (var i = node.Fields.Length - 1; i >= 0; --i)
             fields[i] = (FieldOrderedNode)Nodes.Pop();
 
-        Nodes.Push(new OrderByNode(fields, node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(new OrderByNode(fields, node.Span).WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(CreateTableNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(((CreateTableNode)new CreateTableNode(node.Name, node.Columns))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            ((CreateTableNode)new CreateTableNode(node.Name, node.Columns))
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(CoupleNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(((CoupleNode)new CoupleNode(node.SchemaMethodNode, node.TableName, node.ProfileName, node.MappedSchemaName))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            ((CoupleNode)new CoupleNode(node.SchemaMethodNode, node.TableName, node.ProfileName, node.MappedSchemaName))
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(StatementsArrayNode node)
@@ -212,5 +243,4 @@ public partial class CloneQueryVisitor
     {
         Nodes.Push(new ElseNode(Nodes.Pop()));
     }
-
 }

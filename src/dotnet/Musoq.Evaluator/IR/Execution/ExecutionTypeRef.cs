@@ -16,8 +16,7 @@ public sealed class ExecutionTypeRef : IEquatable<ExecutionTypeRef>
     public ExecutionPortableTypeDescriptor Descriptor { get; }
 
     public bool Equals(ExecutionTypeRef? other) =>
-        other is not null &&
-        string.Equals(StableId, other.StableId, StringComparison.Ordinal);
+        other is not null && string.Equals(StableId, other.StableId, StringComparison.Ordinal);
 
     public override bool Equals(object? obj) => obj is ExecutionTypeRef other && Equals(other);
 

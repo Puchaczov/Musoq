@@ -8,5 +8,5 @@ internal enum CteOutputFlags
     Aggregate = 2,
     Window = 4,
     SetOperation = 8,
-    SideEffectSensitive = 16
+    SideEffectSensitive = 16,
 }

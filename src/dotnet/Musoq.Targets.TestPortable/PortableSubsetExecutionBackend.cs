@@ -14,7 +14,8 @@ internal sealed class PortableSubsetExecutionBackend : IQueryExecutionBackend
         if (request.TargetId != TargetId)
         {
             throw new InvalidOperationException(
-                $"Portable subset backend expected target '{TargetId}', but received '{request.TargetId}'.");
+                $"Portable subset backend expected target '{TargetId}', but received '{request.TargetId}'."
+            );
         }
 
         PortableSubsetProgram program;
@@ -26,7 +27,8 @@ internal sealed class PortableSubsetExecutionBackend : IQueryExecutionBackend
         {
             return TargetRenderResult.Failed(
                 TargetId,
-                [TargetDiagnostic.Error(TargetDiagnosticCodes.UnsupportedLowering, exception.Message)]);
+                [TargetDiagnostic.Error(TargetDiagnosticCodes.UnsupportedLowering, exception.Message)]
+            );
         }
         var hostAbiInventory = TargetHostAbiInventoryBuilder.Build(request.RuntimeContract);
         return TargetRenderResult.Succeeded(new PortableSubsetRenderedArtifact(program, hostAbiInventory));

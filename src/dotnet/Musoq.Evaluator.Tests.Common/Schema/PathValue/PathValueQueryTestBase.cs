@@ -20,29 +20,61 @@ public class PathValueQueryTestBase
             Guid.NewGuid().ToString(),
             new PathValueSchemaProvider(entities),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 
-    protected Table RunNativeNumericQuery<T>(string script, IEnumerable<PathValueEntity> entities, bool allowNumericText = false)
+    protected Table RunNativeNumericQuery<T>(
+        string script,
+        IEnumerable<PathValueEntity> entities,
+        bool allowNumericText = false
+    )
         where T : struct
     {
-        var rows = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(entities,
-            entity => new NativeNumericPathValue<T>(entity.Path, DecodeNumericFixtureValue<T>(entity.Value, allowNumericText),
-                DecodeNumericFixtureValue<T>(entity.Value2, allowNumericText))));
-        using var compiled = InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString("N"),
-            Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionFixture.CreateProvider<NativeNumericPathValue<T>, PathValueLibrary>(rows),
-            LoggerResolver, TestCompilationOptions);
+        var rows = System.Linq.Enumerable.ToArray(
+            System.Linq.Enumerable.Select(
+                entities,
+                entity => new NativeNumericPathValue<T>(
+                    entity.Path,
+                    DecodeNumericFixtureValue<T>(entity.Value, allowNumericText),
+                    DecodeNumericFixtureValue<T>(entity.Value2, allowNumericText)
+                )
+            )
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            script,
+            Guid.NewGuid().ToString("N"),
+            Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionFixture.CreateProvider<
+                NativeNumericPathValue<T>,
+                PathValueLibrary
+            >(rows),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         return TableMaterializationTestHelper.Materialize(compiled.Run());
     }
 
     protected Table RunNativeStringQuery(string script, IEnumerable<PathValueEntity> entities)
     {
-        var rows = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(entities,
-            entity => new NativeStringPathValue(entity.Path,
-                Convert.ToString(entity.Value, System.Globalization.CultureInfo.InvariantCulture))));
-        using var compiled = InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString("N"),
-            Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionFixture.CreateProvider<NativeStringPathValue, PathValueLibrary>(rows),
-            LoggerResolver, TestCompilationOptions);
+        var rows = System.Linq.Enumerable.ToArray(
+            System.Linq.Enumerable.Select(
+                entities,
+                entity => new NativeStringPathValue(
+                    entity.Path,
+                    Convert.ToString(entity.Value, System.Globalization.CultureInfo.InvariantCulture)
+                )
+            )
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            script,
+            Guid.NewGuid().ToString("N"),
+            Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionFixture.CreateProvider<
+                NativeStringPathValue,
+                PathValueLibrary
+            >(rows),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         return TableMaterializationTestHelper.Materialize(compiled.Run());
     }
 
@@ -50,22 +82,49 @@ public class PathValueQueryTestBase
 
     protected Table RunNativeMixedQuery(string script, IEnumerable<PathValueEntity> entities)
     {
-        var rows = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(entities, entity =>
-            new NativeMixedPathValue(entity.Path,
-                entity.Value is byte or sbyte or short or ushort or int or uint or long
-                    ? Convert.ToInt64(entity.Value, System.Globalization.CultureInfo.InvariantCulture) : null,
-                entity.Value is byte or sbyte or short or ushort or int or uint or long or decimal or float or double
-                    ? Convert.ToDecimal(entity.Value, System.Globalization.CultureInfo.InvariantCulture) : null,
-                entity.Value as string, entity.Value is bool flag ? flag : null)));
-        using var compiled = InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString("N"),
-            Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionFixture.CreateProvider<NativeMixedPathValue, PathValueLibrary>(rows),
-            LoggerResolver, TestCompilationOptions);
+        var rows = System.Linq.Enumerable.ToArray(
+            System.Linq.Enumerable.Select(
+                entities,
+                entity => new NativeMixedPathValue(
+                    entity.Path,
+                    entity.Value is byte or sbyte or short or ushort or int or uint or long
+                        ? Convert.ToInt64(entity.Value, System.Globalization.CultureInfo.InvariantCulture)
+                        : null,
+                    entity.Value
+                        is byte
+                            or sbyte
+                            or short
+                            or ushort
+                            or int
+                            or uint
+                            or long
+                            or decimal
+                            or float
+                            or double
+                        ? Convert.ToDecimal(entity.Value, System.Globalization.CultureInfo.InvariantCulture)
+                        : null,
+                    entity.Value as string,
+                    entity.Value is bool flag ? flag : null
+                )
+            )
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            script,
+            Guid.NewGuid().ToString("N"),
+            Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionFixture.CreateProvider<
+                NativeMixedPathValue,
+                PathValueLibrary
+            >(rows),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         return TableMaterializationTestHelper.Materialize(compiled.Run());
     }
 
     public sealed record NativeMixedPathValue(string Path, long? Integral, decimal? Amount, string? Text, bool? Flag);
 
-    private static T? DecodeNumericFixtureValue<T>(object? value, bool allowNumericText) where T : struct
+    private static T? DecodeNumericFixtureValue<T>(object? value, bool allowNumericText)
+        where T : struct
     {
         if (value is null || value is string && !allowNumericText)
             return null;
@@ -79,7 +138,8 @@ public class PathValueQueryTestBase
         }
     }
 
-    public sealed record NativeNumericPathValue<T>(string Path, T? Value, T? Value2) where T : struct;
+    public sealed record NativeNumericPathValue<T>(string Path, T? Value, T? Value2)
+        where T : struct;
 
     protected Table RunQuery(string script, IEnumerable<PathValueEntity> entities)
     {

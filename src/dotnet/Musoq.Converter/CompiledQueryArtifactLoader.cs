@@ -13,4 +13,5 @@ public delegate CompiledQueryArtifactLoadResult CompiledQueryArtifactLoader(ICom
 /// </summary>
 public delegate CompiledQueryArtifactLoadResult CompiledQueryArtifactLoaderWithCancellation(
     ICompiledQueryArtifact artifact,
-    CancellationToken cancellationToken);
+    CancellationToken cancellationToken
+);

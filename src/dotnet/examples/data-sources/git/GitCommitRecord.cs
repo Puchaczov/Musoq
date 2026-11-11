@@ -9,4 +9,5 @@ public sealed record GitCommitRecord(
     DateTime AuthoredAt,
     string Subject,
     string Message,
-    bool IsMerge);
+    bool IsMerge
+);

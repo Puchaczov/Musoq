@@ -26,7 +26,12 @@ public sealed class StringPredicateEvaluationTests
     [DataRow("Contains", "null", "'B'", null)]
     [DataRow("Contains", "'ABC'", "null", null)]
     [DataRow("StartsWith", "null", "null", null)]
-    public void StringPredicate_ShouldPreserveTypedReceiverAndNullSemantics(string function, string value, string pattern, bool? expected)
+    public void StringPredicate_ShouldPreserveTypedReceiverAndNullSemantics(
+        string function,
+        string value,
+        string pattern,
+        bool? expected
+    )
     {
         using var query = Compile($"select {function}({value}, {pattern}) as P from #schema.first() d");
         using var table = query.Run();
@@ -38,7 +43,9 @@ public sealed class StringPredicateEvaluationTests
     [DataRow("StartsWith", "'A'")]
     public void DecodedStringPredicate_InWhere_ShouldReturnTheMatchingRow(string function, string pattern)
     {
-        using var query = Compile($"select d.Dummy from #schema.first() d where {function}(FromBytesToString(FromHexToBytes('414243')), {pattern})");
+        using var query = Compile(
+            $"select d.Dummy from #schema.first() d where {function}(FromBytesToString(FromHexToBytes('414243')), {pattern})"
+        );
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["x"]);
     }
@@ -52,14 +59,21 @@ public sealed class StringPredicateEvaluationTests
     [DataRow("StartsWith", true, false)]
     [DataRow("StartsWith", false, true)]
     [DataRow("StartsWith", true, true)]
-    public void VolatileArguments_ShouldRunOnceInOrderEvenWhenReceiverIsNull(string function, bool nullReceiver, bool nullPattern)
+    public void VolatileArguments_ShouldRunOnceInOrderEvenWhenReceiverIsNull(
+        string function,
+        bool nullReceiver,
+        bool nullPattern
+    )
     {
         using var trace = new TraceScope();
         var left = trace.Argument("left", nullReceiver ? null : "AB");
         var right = trace.Argument("right", nullPattern ? null : "A");
         using var query = Compile($"select {function}({left}, {right}) as P from #schema.first() d");
         using var table = query.Run();
-        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { nullReceiver || nullPattern ? null : (bool?)true });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { nullReceiver || nullPattern ? null : (bool?)true }
+        );
         CollectionAssert.AreEqual(new[] { "left", "right" }, trace.Values);
     }
 
@@ -69,7 +83,9 @@ public sealed class StringPredicateEvaluationTests
     public void NullReceiver_InWhere_ShouldStillEvaluateThePattern(string function)
     {
         using var trace = new TraceScope();
-        using var query = Compile($"select d.Dummy from #schema.first() d where {function}({trace.Argument("left", null)}, {trace.Argument("right", "A")})");
+        using var query = Compile(
+            $"select d.Dummy from #schema.first() d where {function}({trace.Argument("left", null)}, {trace.Argument("right", "A")})"
+        );
         using var table = query.Run();
         Assert.HasCount(0, table);
         CollectionAssert.AreEqual(new[] { "left", "right" }, trace.Values);
@@ -82,7 +98,9 @@ public sealed class StringPredicateEvaluationTests
     {
         using var trace = new TraceScope();
         var expression = $"Contains({trace.Argument("left", "AB")}, {trace.Argument("right", "B")})";
-        using var query = Compile($"select case when {(selected ? "1 = 1" : "1 = 0")} then {expression} else false end as P from #schema.first() d");
+        using var query = Compile(
+            $"select case when {(selected ? "1 = 1" : "1 = 0")} then {expression} else false end as P from #schema.first() d"
+        );
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [selected]);
         CollectionAssert.AreEqual(selected ? new[] { "left", "right" } : Array.Empty<string>(), trace.Values);
@@ -94,7 +112,9 @@ public sealed class StringPredicateEvaluationTests
         using var trace = new TraceScope();
         var inner = $"StartsWith({trace.Argument("inner-left", "AB")}, {trace.Argument("inner-right", "A")})";
         var value = $"case when {inner} then {trace.Argument("chosen", "BC")} else {trace.Argument("unused", "Q")} end";
-        using var query = Compile($"select Contains({value}, {trace.Argument("outer-right", "B")}) as P from #schema.first() d");
+        using var query = Compile(
+            $"select Contains({value}, {trace.Argument("outer-right", "B")}) as P from #schema.first() d"
+        );
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [true]);
         CollectionAssert.AreEqual(new[] { "inner-left", "inner-right", "chosen", "outer-right" }, trace.Values);
@@ -105,14 +125,21 @@ public sealed class StringPredicateEvaluationTests
     {
         const string sql = "select Contains(ToString(1), '1') as P from #schema.first() d";
         var logger = new TestsLoggerResolver();
-        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql,
-            Guid.NewGuid().ToString(), CreateProvider(), logger,
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            CreateProvider(),
+            logger,
             () => new CreateTree(new TransformTree(new TurnQueryIntoRunnableCode(null), logger)),
-            items => items.CompilationOptions = new CompilationOptions());
+            items => items.CompilationOptions = new CompilationOptions()
+        );
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [true]);
-        Assert.IsFalse(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query)
-            .Any(GeneratedExecutionIlInspection.ContainsBoxOpcode));
+        Assert.IsFalse(
+            GeneratedExecutionIlInspection
+                .GetGeneratedComputeMethods(query)
+                .Any(GeneratedExecutionIlInspection.ContainsBoxOpcode)
+        );
     }
 
     [TestMethod]
@@ -130,7 +157,9 @@ public sealed class StringPredicateEvaluationTests
     {
         using var trace = new TraceScope();
         var arguments = trace.Argument("left", "AB") + ", " + trace.Argument("right", "A");
-        using var query = Compile($"select Contains({arguments}) as A, StartsWith({arguments}) as B from #schema.first() d");
+        using var query = Compile(
+            $"select Contains({arguments}) as A, StartsWith({arguments}) as B from #schema.first() d"
+        );
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [true, true]);
         CollectionAssert.AreEqual(new[] { "left", "right", "left", "right" }, trace.Values);
@@ -140,16 +169,27 @@ public sealed class StringPredicateEvaluationTests
     public void ComputedArguments_ShouldUseTypedLocalCapturesWithoutRuntimeWrappers()
     {
         const string sql = "select Contains(ToString(1), '1') as P from #schema.first() d";
-        var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(), CreateProvider(),
-            new TestsLoggerResolver(), new CompilationOptions());
+        var inspection = InstanceCreator.CompileForInspection(
+            sql,
+            Guid.NewGuid().ToString(),
+            CreateProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions()
+        );
         Assert.Contains("__musoqStringPredicate", inspection.GeneratedCSharpCode);
         Assert.Contains("switch", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain(".DynamicInvoke(", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain("new object[", inspection.GeneratedCSharpCode);
     }
 
-    private static CompiledQuery Compile(string sql) => GeneratedExecutionIlInspection.CompileForExecution(sql,
-        Guid.NewGuid().ToString(), CreateProvider(), new TestsLoggerResolver(), new CompilationOptions());
+    private static CompiledQuery Compile(string sql) =>
+        GeneratedExecutionIlInspection.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            CreateProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions()
+        );
 
     private static ISchemaProvider CreateProvider() =>
         LibraryExecutionFixture.CreateProvider<PredicateRow, Functions>([new("x")]);
@@ -173,10 +213,16 @@ public sealed class StringPredicateEvaluationTests
     {
         private readonly string _key = Guid.NewGuid().ToString("N");
         private readonly ConcurrentQueue<string> _values = new();
+
         internal TraceScope() => Functions.Traces[_key] = _values;
+
         internal string[] Values => _values.ToArray();
+
         internal string Argument(string label, string? value) => $"Mark('{_key}', '{label}', {Quote(value)})";
-        private static string Quote(string? value) => value is null ? "null" : "'" + value.Replace("'", "''", StringComparison.Ordinal) + "'";
+
+        private static string Quote(string? value) =>
+            value is null ? "null" : "'" + value.Replace("'", "''", StringComparison.Ordinal) + "'";
+
         public void Dispose() => Functions.Traces.TryRemove(_key, out _);
     }
 }

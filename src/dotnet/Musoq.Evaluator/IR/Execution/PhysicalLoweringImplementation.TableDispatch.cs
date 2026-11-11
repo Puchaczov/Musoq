@@ -14,7 +14,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var unwrapped = UnwrapSingleStatement(plan);
         var tableContext = new PhysicalToExecutionTableLoweringContext(
@@ -25,11 +26,13 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             scopeAggregateVariables,
-            scope);
+            scope
+        );
 
         return _physicalLoweringFacade.BuildTable(
             tableContext,
-            unsupportedPlan => TableBuildResult.Unsupported(CreateUnsupported(unsupportedPlan).UnsupportedReason!));
+            unsupportedPlan => TableBuildResult.Unsupported(CreateUnsupported(unsupportedPlan).UnsupportedReason!)
+        );
     }
 
     private bool CanBuildTableProducingMultiStatement(PhysicalMultiStatementNode multiStatement)
@@ -50,8 +53,7 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         var unwrapped = UnwrapSingleStatement(statement);
 
-        return DecomposeSupportedPipeline(unwrapped) != null ||
-               CanBuildIntermediateAggregateStatement(unwrapped);
+        return DecomposeSupportedPipeline(unwrapped) != null || CanBuildIntermediateAggregateStatement(unwrapped);
     }
 
     private bool CanBuildIntermediateAggregateStatement(PhysicalNode statement)

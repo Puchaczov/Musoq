@@ -4,5 +4,5 @@ public enum QueryResultMode
 {
     Table,
     TableViaRows,
-    TypedEnumerable
+    TypedEnumerable,
 }

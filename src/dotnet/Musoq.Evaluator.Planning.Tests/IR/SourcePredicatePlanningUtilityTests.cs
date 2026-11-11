@@ -20,14 +20,15 @@ public sealed class SourcePredicatePlanningUtilityTests
             Equal("s", "Category", "alpha"),
             new BinaryOp(
                 BinaryOpKind.Or,
-                new InCheck(
-                    Column("s", "Name", typeof(string)),
-                    [Literal("Alpha"), Literal("beta")],
-                    typeof(bool))
-                { SqlSemantics = true },
+                new InCheck(Column("s", "Name", typeof(string)), [Literal("Alpha"), Literal("beta")], typeof(bool))
+                {
+                    SqlSemantics = true,
+                },
                 new IsNullCheck(Column("s", "Name", typeof(string)), false, typeof(bool)),
-                typeof(bool)),
-            typeof(bool));
+                typeof(bool)
+            ),
+            typeof(bool)
+        );
 
         var converted = SourcePredicateExpressionConverter.TryConvertPredicate(predicate, "s", out var sourcePredicate);
 
@@ -42,7 +43,8 @@ public sealed class SourcePredicatePlanningUtilityTests
             BinaryOpKind.Equal,
             Column("s", "Category", typeof(string)),
             Column("other", "Category", typeof(string)),
-            typeof(bool));
+            typeof(bool)
+        );
 
         var converted = SourcePredicateExpressionConverter.TryConvertPredicate(predicate, "s", out _);
 
@@ -56,7 +58,8 @@ public sealed class SourcePredicatePlanningUtilityTests
             Column("s", "Name", typeof(string)),
             Literal("item-0%"),
             PatternKind.Like,
-            typeof(bool));
+            typeof(bool)
+        );
 
         Assert.IsTrue(SourcePredicateExpressionConverter.TryConvertPredicate(expression, "s", out var predicate));
 
@@ -74,12 +77,9 @@ public sealed class SourcePredicatePlanningUtilityTests
     {
         var expression = new UnaryOp(
             UnaryOpKind.Not,
-            new PatternMatch(
-                Column("s", "Name", typeof(string)),
-                Literal("%item%"),
-                PatternKind.Like,
-                typeof(bool)),
-            typeof(bool));
+            new PatternMatch(Column("s", "Name", typeof(string)), Literal("%item%"), PatternKind.Like, typeof(bool)),
+            typeof(bool)
+        );
 
         Assert.IsTrue(SourcePredicateExpressionConverter.TryConvertPredicate(expression, "s", out var predicate));
 
@@ -97,12 +97,14 @@ public sealed class SourcePredicatePlanningUtilityTests
             Column("s", "Name", typeof(string)),
             Literal("item-%0%"),
             PatternKind.Like,
-            typeof(bool));
+            typeof(bool)
+        );
         var singleCharacterWildcard = new PatternMatch(
             Column("s", "Name", typeof(string)),
             Literal("item_0%"),
             PatternKind.Like,
-            typeof(bool));
+            typeof(bool)
+        );
 
         Assert.IsFalse(SourcePredicateExpressionConverter.TryConvertPredicate(interiorWildcard, "s", out _));
         Assert.IsFalse(SourcePredicateExpressionConverter.TryConvertPredicate(singleCharacterWildcard, "s", out _));
@@ -115,7 +117,8 @@ public sealed class SourcePredicatePlanningUtilityTests
             Column("s", "Name", typeof(string)),
             Literal("Żółć%"),
             PatternKind.Like,
-            typeof(bool));
+            typeof(bool)
+        );
 
         Assert.IsFalse(SourcePredicateExpressionConverter.TryConvertPredicate(expression, "s", out _));
     }
@@ -124,16 +127,23 @@ public sealed class SourcePredicatePlanningUtilityTests
     public void Negotiator_ShouldDeferTypedMatchNestedOutsideTopLevelAnd()
     {
         var match = new SourcePredicateStringMatch(
-            new SourceColumnRef("Name"), SourceStringMatchKind.Prefix, "item%", "item");
+            new SourceColumnRef("Name"),
+            SourceStringMatchKind.Prefix,
+            "item%",
+            "item"
+        );
         var nested = new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             match,
-            new SourcePredicateLiteral(true));
+            new SourcePredicateLiteral(true)
+        );
         var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { Predicate = nested };
         var capabilities = new SourcePredicateCapabilities
         {
             StringMatches =
-            [new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.All)]
+            [
+                new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.All),
+            ],
         };
 
         var negotiation = SourcePredicateCapabilityNegotiator.Negotiate(request, capabilities);
@@ -146,14 +156,20 @@ public sealed class SourcePredicatePlanningUtilityTests
     public void ContractValidator_ShouldPreserveDuplicateTopLevelMatchMultiplicity()
     {
         var match = new SourcePredicateStringMatch(
-            new SourceColumnRef("Name"), SourceStringMatchKind.Prefix, "item%", "item");
+            new SourceColumnRef("Name"),
+            SourceStringMatchKind.Prefix,
+            "item%",
+            "item"
+        );
         var predicate = new SourcePredicateLogical(SourcePredicateLogicalOperator.And, match, match);
         var request = SourcePlanRequest.Empty(SourceIdentity.Empty) with { Predicate = predicate };
         var result = SourcePlanResult.AcceptAll(request);
         var capabilities = new SourcePredicateCapabilities
         {
             StringMatches =
-            [new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.All)]
+            [
+                new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.All),
+            ],
         };
 
         SourcePredicatePlanContractValidator.Validate(request, result, capabilities, TextSpan.Empty);
@@ -166,21 +182,24 @@ public sealed class SourcePredicatePlanningUtilityTests
     {
         var left = new SourcePredicateIn(
             new SourcePredicateColumn(new SourceColumnRef("Category")),
-            [new SourcePredicateLiteral("alpha"), new SourcePredicateLiteral("beta")]);
+            [new SourcePredicateLiteral("alpha"), new SourcePredicateLiteral("beta")]
+        );
         var same = new SourcePredicateIn(
             new SourcePredicateColumn(new SourceColumnRef("category")),
-            [new SourcePredicateLiteral("alpha"), new SourcePredicateLiteral("beta")]);
+            [new SourcePredicateLiteral("alpha"), new SourcePredicateLiteral("beta")]
+        );
         var differentOrder = new SourcePredicateIn(
             new SourcePredicateColumn(new SourceColumnRef("Category")),
-            [new SourcePredicateLiteral("beta"), new SourcePredicateLiteral("alpha")]);
-        var nullCheck = new SourcePredicateNullCheck(
-            new SourcePredicateColumn(new SourceColumnRef("Category")));
+            [new SourcePredicateLiteral("beta"), new SourcePredicateLiteral("alpha")]
+        );
+        var nullCheck = new SourcePredicateNullCheck(new SourcePredicateColumn(new SourceColumnRef("Category")));
         var negatedNullCheck = nullCheck with { IsNegated = true };
 
         Assert.IsTrue(SourcePredicateExpressionComparer.Instance.Equals(left, same));
         Assert.AreEqual(
             SourcePredicateExpressionComparer.Instance.GetHashCode(left),
-            SourcePredicateExpressionComparer.Instance.GetHashCode(same));
+            SourcePredicateExpressionComparer.Instance.GetHashCode(same)
+        );
         Assert.IsFalse(SourcePredicateExpressionComparer.Instance.Equals(left, differentOrder));
         Assert.IsFalse(SourcePredicateExpressionComparer.Instance.Equals(nullCheck, negatedNullCheck));
     }
@@ -193,14 +212,16 @@ public sealed class SourcePredicatePlanningUtilityTests
         var acceptedPredicate = new SourcePredicateLogical(
             SourcePredicateLogicalOperator.And,
             ToSourcePredicate(categoryPredicate),
-            ToSourcePredicate(scorePredicate));
+            ToSourcePredicate(scorePredicate)
+        );
         var plan = new SourcePredicatePlan(
             "source-1",
             "s",
             new WhereNode(new BooleanNode(true)),
             [categoryPredicate, scorePredicate],
             "test",
-            PlanningConfidence.High);
+            PlanningConfidence.High
+        );
 
         var matched = SourcePredicateConjunctMatcher.MatchAcceptedConjuncts(acceptedPredicate, plan);
 
@@ -215,14 +236,16 @@ public sealed class SourcePredicatePlanningUtilityTests
         var acceptedPredicate = new SourcePredicateLogical(
             SourcePredicateLogicalOperator.Or,
             ToSourcePredicate(categoryPredicate),
-            ToSourcePredicate(scorePredicate));
+            ToSourcePredicate(scorePredicate)
+        );
         var plan = new SourcePredicatePlan(
             "source-1",
             "s",
             new WhereNode(new BooleanNode(true)),
             [categoryPredicate, scorePredicate],
             "test",
-            PlanningConfidence.High);
+            PlanningConfidence.High
+        );
 
         var matched = SourcePredicateConjunctMatcher.MatchAcceptedConjuncts(acceptedPredicate, plan);
 
@@ -236,7 +259,8 @@ public sealed class SourcePredicatePlanningUtilityTests
             BinaryOpKind.Or,
             Equal("s", "Category", "alpha"),
             GreaterThan("s", "Score", 10),
-            typeof(bool));
+            typeof(bool)
+        );
         var acceptedPredicate = ToSourcePredicate(predicate);
         var plan = new SourcePredicatePlan(
             "source-1",
@@ -244,12 +268,14 @@ public sealed class SourcePredicatePlanningUtilityTests
             new WhereNode(new BooleanNode(true)),
             [predicate],
             "test",
-            PlanningConfidence.High);
+            PlanningConfidence.High
+        );
 
         var matched = SourcePredicateConjunctMatcher.MatchAcceptedConjuncts(
             acceptedPredicate,
             plan,
-            allowWholePredicateMatch: true);
+            allowWholePredicateMatch: true
+        );
 
         CollectionAssert.AreEqual(new IrExpression[] { predicate }, matched.ToArray());
     }
@@ -259,15 +285,9 @@ public sealed class SourcePredicatePlanningUtilityTests
     {
         var categoryPredicate = Equal("s", "Category", "alpha");
         var scorePredicate = GreaterThan("s", "Score", 10);
-        var predicate = new BinaryOp(
-            BinaryOpKind.And,
-            categoryPredicate,
-            scorePredicate,
-            typeof(bool));
+        var predicate = new BinaryOp(BinaryOpKind.And, categoryPredicate, scorePredicate, typeof(bool));
 
-        var rewritten = SourcePredicateConjunctMatcher.RemoveAcceptedConjuncts(
-            predicate,
-            [categoryPredicate]);
+        var rewritten = SourcePredicateConjunctMatcher.RemoveAcceptedConjuncts(predicate, [categoryPredicate]);
 
         Assert.AreEqual(scorePredicate, rewritten);
     }
@@ -284,7 +304,8 @@ public sealed class SourcePredicatePlanningUtilityTests
             BinaryOpKind.Equal,
             Column(alias, columnName, value.GetType()),
             Literal(value),
-            typeof(bool));
+            typeof(bool)
+        );
     }
 
     private static BinaryOp GreaterThan(string alias, string columnName, object value)
@@ -293,7 +314,8 @@ public sealed class SourcePredicatePlanningUtilityTests
             BinaryOpKind.GreaterThan,
             Column(alias, columnName, value.GetType()),
             Literal(value),
-            typeof(bool));
+            typeof(bool)
+        );
     }
 
     private static ColumnRef Column(string alias, string columnName, System.Type type)

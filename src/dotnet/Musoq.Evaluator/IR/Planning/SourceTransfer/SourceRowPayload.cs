@@ -35,7 +35,7 @@ internal static class SourceRowPayload
             TypeCode.Int32 or TypeCode.UInt32 or TypeCode.Single => 4,
             TypeCode.Int64 or TypeCode.UInt64 or TypeCode.Double or TypeCode.DateTime => 8,
             _ when type == typeof(decimal) || type == typeof(Guid) => 16,
-            _ => StructCarrierLimit + 1
+            _ => StructCarrierLimit + 1,
         };
     }
 }

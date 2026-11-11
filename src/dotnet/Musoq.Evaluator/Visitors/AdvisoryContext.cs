@@ -17,7 +17,8 @@ internal sealed class SemanticAdvisoryContext
         DiagnosticContext diagnosticContext,
         RootNode? sourceQuery = null,
         RootNode? authoredQuery = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         Query = query;
         SourceQuery = sourceQuery ?? query;
@@ -49,10 +50,11 @@ internal sealed class SemanticAdvisoryContext
         if (!_reported.Add(new DiagnosticKey(code, span.Start, span.End)))
             return;
 
-        if (Diagnostics.Warnings.Any(diagnostic =>
-                diagnostic.Code == code &&
-                diagnostic.Span.Start == span.Start &&
-                diagnostic.Span.End == span.End))
+        if (
+            Diagnostics.Warnings.Any(diagnostic =>
+                diagnostic.Code == code && diagnostic.Span.Start == span.Start && diagnostic.Span.End == span.End
+            )
+        )
             return;
 
         Diagnostics.ReportWarning(code, message, span);
@@ -63,10 +65,11 @@ internal sealed class SemanticAdvisoryContext
         if (!_reported.Add(new DiagnosticKey(code, span.Start, span.End)))
             return;
 
-        if (Diagnostics.Diagnostics.Any(diagnostic =>
-                diagnostic.Code == code &&
-                diagnostic.Span.Start == span.Start &&
-                diagnostic.Span.End == span.End))
+        if (
+            Diagnostics.Diagnostics.Any(diagnostic =>
+                diagnostic.Code == code && diagnostic.Span.Start == span.Start && diagnostic.Span.End == span.End
+            )
+        )
             return;
 
         Diagnostics.ReportError(code, message, span);

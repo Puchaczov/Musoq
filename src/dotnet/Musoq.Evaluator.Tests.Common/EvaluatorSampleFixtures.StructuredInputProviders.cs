@@ -1,7 +1,7 @@
-using Musoq.Examples.DataSources.StructuredInputs;
-using Musoq.Evaluator.Tests.StructuredSamples;
 using System;
 using System.Linq;
+using Musoq.Evaluator.Tests.StructuredSamples;
+using Musoq.Examples.DataSources.StructuredInputs;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
@@ -24,8 +24,10 @@ internal static partial class EvaluatorSampleFixtures
     {
         public ISchema GetSchema(string schema)
         {
-            if (schema.Equals("structured", StringComparison.OrdinalIgnoreCase) ||
-                schema.Equals("#structured", StringComparison.OrdinalIgnoreCase))
+            if (
+                schema.Equals("structured", StringComparison.OrdinalIgnoreCase)
+                || schema.Equals("#structured", StringComparison.OrdinalIgnoreCase)
+            )
                 return new StructuredWideSchema();
 
             throw new NotSupportedException(schema);
@@ -44,10 +46,7 @@ internal static partial class EvaluatorSampleFixtures
 
     private sealed class StructuredWideTable : ISchemaTable
     {
-        public ISchemaColumn[] Columns { get; } =
-        [
-            new SchemaColumn(nameof(StructuredWideRow.Value), 0, typeof(int))
-        ];
+        public ISchemaColumn[] Columns { get; } = [new SchemaColumn(nameof(StructuredWideRow.Value), 0, typeof(int))];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(StructuredWideRow));
 
@@ -57,5 +56,4 @@ internal static partial class EvaluatorSampleFixtures
         public ISchemaColumn[] GetColumnsByName(string name) =>
             Columns.Where(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
     }
-
 }

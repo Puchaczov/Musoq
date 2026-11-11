@@ -39,7 +39,8 @@ public class TableSymbol : Symbol
 
     private ISchema FullSchema => _fullSchema ?? throw new InvalidOperationException("Table symbol is incomplete.");
 
-    private string FullTableName => _fullTableName ?? throw new InvalidOperationException("Table symbol is incomplete.");
+    private string FullTableName =>
+        _fullTableName ?? throw new InvalidOperationException("Table symbol is incomplete.");
 
     public bool HasAlias { get; }
 
@@ -49,7 +50,8 @@ public class TableSymbol : Symbol
 
     public (ISchema? Schema, ISchemaTable? Table, string? TableName) GetTableByColumnName(
         string column,
-        TextSpan? span = null)
+        TextSpan? span = null
+    )
     {
         (ISchema? Schema, ISchemaTable? Table, string? Alias) score = (null, null, null);
 
@@ -109,9 +111,10 @@ public class TableSymbol : Symbol
 
     public ISchemaColumn? GetColumnByAliasAndName(string alias, string columnName, TextSpan? span = null)
     {
-        var columns = _fullTableName == alias
-            ? FullTable.GetColumnsByName(columnName)
-            : _tables[alias].Item2.GetColumnsByName(columnName);
+        var columns =
+            _fullTableName == alias
+                ? FullTable.GetColumnsByName(columnName)
+                : _tables[alias].Item2.GetColumnsByName(columnName);
 
         if (columns.Length > 1)
             throw CreateAmbiguousColumnException(columnName, alias, alias, span);
@@ -147,7 +150,8 @@ public class TableSymbol : Symbol
     public ISchemaColumn[] GetColumns()
     {
         var columns = new List<ISchemaColumn>();
-        foreach (var table in _orders) columns.AddRange(GetColumns(table));
+        foreach (var table in _orders)
+            columns.AddRange(GetColumns(table));
 
         return columns.ToArray();
     }
@@ -164,8 +168,11 @@ public class TableSymbol : Symbol
 
         symbol.SetFullBinding(
             string.Concat(symbol._orders),
-            new DynamicTable(compoundTableColumns.ToArray(),
-                caseSensitive: IsCaseSensitiveTable(FullTable) || IsCaseSensitiveTable(other.FullTable)));
+            new DynamicTable(
+                compoundTableColumns.ToArray(),
+                caseSensitive: IsCaseSensitiveTable(FullTable) || IsCaseSensitiveTable(other.FullTable)
+            )
+        );
         CopyMaybeMissingAliasesTo(symbol);
         other.CopyMaybeMissingAliasesTo(symbol);
 
@@ -198,9 +205,10 @@ public class TableSymbol : Symbol
             if (string.Equals(tableName, alias, StringComparison.OrdinalIgnoreCase))
             {
                 schemaTable = new DynamicTable(
-                    [..table.SchemaTable.Columns, column],
+                    [.. table.SchemaTable.Columns, column],
                     entityType,
-                    IsCaseSensitiveTable(table.SchemaTable));
+                    IsCaseSensitiveTable(table.SchemaTable)
+                );
             }
 
             symbol._tables.Add(tableName, (table.Schema, schemaTable));
@@ -210,10 +218,8 @@ public class TableSymbol : Symbol
 
         symbol.SetFullBinding(
             string.Concat(symbol._orders),
-            new DynamicTable(
-                compoundTableColumns.ToArray(),
-                singleEntityType,
-                IsCaseSensitiveTable(FullTable)));
+            new DynamicTable(compoundTableColumns.ToArray(), singleEntityType, IsCaseSensitiveTable(FullTable))
+        );
         CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
@@ -240,7 +246,8 @@ public class TableSymbol : Symbol
         var symbol = new TableSymbol(HasAlias);
         var compoundTableColumns = new List<ISchemaColumn>();
 
-        foreach (var column in FullTable.Columns) compoundTableColumns.Add(ConvertColumnToNullable(column));
+        foreach (var column in FullTable.Columns)
+            compoundTableColumns.Add(ConvertColumnToNullable(column));
 
         Type? singleEntityType = null;
         foreach (var item in _tables)
@@ -251,17 +258,16 @@ public class TableSymbol : Symbol
             var dynamicTable = new DynamicTable(
                 item.Value.Item2.Columns.Select(ConvertColumnToNullable).ToArray(),
                 entityType,
-                IsCaseSensitiveTable(item.Value.Item2));
+                IsCaseSensitiveTable(item.Value.Item2)
+            );
             symbol._tables.Add(item.Key, (item.Value.Item1, dynamicTable));
             symbol._orders.Add(item.Key);
         }
 
         symbol.SetFullBinding(
             string.Concat(symbol._orders),
-            new DynamicTable(
-                compoundTableColumns.ToArray(),
-                singleEntityType,
-                IsCaseSensitiveTable(FullTable)));
+            new DynamicTable(compoundTableColumns.ToArray(), singleEntityType, IsCaseSensitiveTable(FullTable))
+        );
         CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
@@ -277,7 +283,8 @@ public class TableSymbol : Symbol
             column.EnumType,
             column.IntendedTypeName,
             column.ReadModifiers,
-            column.Stability);
+            column.Stability
+        );
         return NullableInterpretationColumn.Preserve(converted, column is NullableInterpretationColumn);
     }
 
@@ -304,10 +311,7 @@ public class TableSymbol : Symbol
             var columns = columnLimits.TryGetValue(item.Key, out var allowedColumns)
                 ? item.Value.Item2.Columns.Where(c => allowedColumns.Contains(c.ColumnName)).ToArray()
                 : [];
-            var dynamicTable = new DynamicTable(
-                columns,
-                entityType,
-                IsCaseSensitiveTable(item.Value.Item2));
+            var dynamicTable = new DynamicTable(columns, entityType, IsCaseSensitiveTable(item.Value.Item2));
             symbol._tables.Add(item.Key, (item.Value.Item1, dynamicTable));
             symbol._orders.Add(item.Key);
 
@@ -316,10 +320,8 @@ public class TableSymbol : Symbol
 
         symbol.SetFullBinding(
             string.Concat(symbol._orders),
-            new DynamicTable(
-                compoundTableColumns.ToArray(),
-                singleEntityType,
-                IsCaseSensitiveTable(FullTable)));
+            new DynamicTable(compoundTableColumns.ToArray(), singleEntityType, IsCaseSensitiveTable(FullTable))
+        );
         CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
@@ -334,25 +336,26 @@ public class TableSymbol : Symbol
         }
     }
 
-    private static bool IsCaseSensitiveTable(ISchemaTable table) =>
-        table is DynamicTable { IsCaseSensitive: true };
+    private static bool IsCaseSensitiveTable(ISchemaTable table) => table is DynamicTable { IsCaseSensitive: true };
 
     private void SetFullBinding(string fullTableName, ISchemaTable fullTable)
     {
         _fullTableName = fullTableName;
         _fullTable = fullTable;
-        _fullSchema = _tables.Count == 1 &&
-                      _orders.Count == 1 &&
-                      string.Equals(_orders[0], fullTableName, StringComparison.Ordinal)
-            ? _tables[_orders[0]].Schema
-            : new TransitionSchema(fullTableName, fullTable);
+        _fullSchema =
+            _tables.Count == 1
+            && _orders.Count == 1
+            && string.Equals(_orders[0], fullTableName, StringComparison.Ordinal)
+                ? _tables[_orders[0]].Schema
+                : new TransitionSchema(fullTableName, fullTable);
     }
 
     private static void AddTableBindings(
         TableSymbol source,
         TableSymbol destination,
         ICollection<ISchemaColumn> compoundTableColumns,
-        IReadOnlyList<string> aliases)
+        IReadOnlyList<string> aliases
+    )
     {
         for (var index = 0; index < aliases.Count; index++)
         {
@@ -369,7 +372,8 @@ public class TableSymbol : Symbol
         string column,
         string alias1,
         string alias2,
-        TextSpan? span)
+        TextSpan? span
+    )
     {
         return span is { } value && !value.IsEmpty
             ? new AmbiguousColumnException(column, alias1, alias2, value)

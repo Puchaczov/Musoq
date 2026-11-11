@@ -14,7 +14,7 @@ internal static class CompletionLayoutCodeEmitter
         while (used.Contains(name))
             name += "_";
         var values = string.Join(", ", names.Select(static field => JsonSerializer.Serialize(field)));
-        return $"private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout {name} = new(new string[] {{ {values} }});\n" +
-            $"global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => {name};\n";
+        return $"private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout {name} = new(new string[] {{ {values} }});\n"
+            + $"global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => {name};\n";
     }
 }

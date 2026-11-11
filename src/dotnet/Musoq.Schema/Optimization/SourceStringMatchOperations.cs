@@ -20,5 +20,5 @@ public enum SourceStringMatchOperations
     Contains = 1 << 3,
 
     /// <summary>All version 1 string-match operations are supported.</summary>
-    All = Exact | Prefix | Suffix | Contains
+    All = Exact | Prefix | Suffix | Contains,
 }

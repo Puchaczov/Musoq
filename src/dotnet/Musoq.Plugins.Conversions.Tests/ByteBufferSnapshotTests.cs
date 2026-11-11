@@ -37,8 +37,12 @@ public sealed class ByteBufferSnapshotTests
     public void InvalidRange_ShouldPreservePlatformCodecDiagnosticsBeforeApplyingReadBound(int offset, int length)
     {
         byte[] input = [1, 2];
-        var original = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => Convert.ToBase64String(input, offset, length));
-        var optimized = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => ByteBufferSnapshot.Copy(input, offset, length, 0));
+        var original = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            Convert.ToBase64String(input, offset, length)
+        );
+        var optimized = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            ByteBufferSnapshot.Copy(input, offset, length, 0)
+        );
         Assert.AreEqual(original.ParamName, optimized.ParamName);
         Assert.AreEqual(original.Message, optimized.Message);
     }

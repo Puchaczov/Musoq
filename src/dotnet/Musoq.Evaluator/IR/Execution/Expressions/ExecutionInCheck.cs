@@ -11,7 +11,8 @@ public sealed record ExecutionInCheck : ExecutionExpression
         IReadOnlyList<ExecutionExpression> values,
         ExecutionTypeRef returnType,
         ExecutionConstantInSet? constantSet = null,
-        bool isNegated = false)
+        bool isNegated = false
+    )
         : base(returnType)
     {
         Expression = expression;
@@ -45,8 +46,7 @@ public sealed record ExecutionInCheck : ExecutionExpression
         IReadOnlyList<ExecutionExpression> values,
         Type returnType,
         ExecutionConstantInSet? constantSet = null,
-        bool isNegated = false)
-        : this(expression, values, ExecutionClrBindingFactory.FromClr(returnType), constantSet, isNegated)
-    {
-    }
+        bool isNegated = false
+    )
+        : this(expression, values, ExecutionClrBindingFactory.FromClr(returnType), constantSet, isNegated) { }
 }

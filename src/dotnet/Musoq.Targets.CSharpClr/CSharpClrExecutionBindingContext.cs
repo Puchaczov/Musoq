@@ -18,15 +18,15 @@ internal sealed class CSharpClrExecutionBindingContext
 
     internal Type BindType(
         ExecutionPortableTypeDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly> semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly> semanticAssemblies
+    )
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(semanticAssemblies);
         return ExecutionClrBindingResolver.ResolveType(descriptor, semanticAssemblies);
     }
 
-    internal Type? BindOptionalType(ExecutionTypeRef? typeRef) =>
-        typeRef is null ? null : BindType(typeRef);
+    internal Type? BindOptionalType(ExecutionTypeRef? typeRef) => typeRef is null ? null : BindType(typeRef);
 
     internal Type[] BindTypes(IEnumerable<ExecutionTypeRef> typeRefs)
     {
@@ -42,7 +42,8 @@ internal sealed class CSharpClrExecutionBindingContext
 
     internal MethodInfo BindMethod(
         ExecutionPortableCallableDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly> semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly> semanticAssemblies
+    )
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(semanticAssemblies);

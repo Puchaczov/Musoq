@@ -62,7 +62,12 @@ public partial class LibraryBase
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public short? ToInt16(bool? value) => value.HasValue ? value.Value ? (short)1 : (short)0 : null;
+    public short? ToInt16(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? (short)1
+                : (short)0
+            : null;
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]

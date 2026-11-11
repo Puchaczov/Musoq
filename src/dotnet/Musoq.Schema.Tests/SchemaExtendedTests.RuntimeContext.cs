@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Tests;
 
 public partial class SchemaExtendedTests
 {
-
     #region SourceExecutionContext Tests
 
     [TestMethod]
@@ -32,7 +31,10 @@ public partial class SchemaExtendedTests
     public void SourceExecutionContext_AllColumns_ReturnsColumns()
     {
         ISchemaColumn[] columns =
-            [new SchemaColumn("Col1", 0, typeof(int)), new SchemaColumn("Col2", 1, typeof(string))];
+        [
+            new SchemaColumn("Col1", 0, typeof(int)),
+            new SchemaColumn("Col2", 1, typeof(string)),
+        ];
         var ctx = new SourceExecutionContext(
             "queryId",
             SourceExecutionPlan.Empty(SourceIdentity.Empty),
@@ -75,7 +77,6 @@ public partial class SchemaExtendedTests
             NullLogger.Instance
         );
 
-
         ctx.ReportDataSourceBegin("testSource");
     }
 
@@ -91,7 +92,6 @@ public partial class SchemaExtendedTests
             new Dictionary<string, string>(),
             NullLogger.Instance
         );
-
 
         ctx.ReportDataSourceRowsKnown("testSource", 100);
     }
@@ -109,7 +109,6 @@ public partial class SchemaExtendedTests
             NullLogger.Instance
         );
 
-
         ctx.ReportDataSourceRowsRead("testSource", 50, 100);
     }
 
@@ -125,7 +124,6 @@ public partial class SchemaExtendedTests
             new Dictionary<string, string>(),
             NullLogger.Instance
         );
-
 
         ctx.ReportDataSourceEnd("testSource", 100);
     }
@@ -218,5 +216,4 @@ public partial class SchemaExtendedTests
     }
 
     #endregion
-
 }

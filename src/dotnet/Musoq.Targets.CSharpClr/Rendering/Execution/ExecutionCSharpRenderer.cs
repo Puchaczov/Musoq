@@ -13,10 +13,13 @@ public sealed partial class ExecutionCSharpRenderer
     private const string StatsVariableName = "stats";
     private const string ProfileRecorderVariableName = "profileRecorder";
     private readonly ExecutionRenderOptions _renderOptions;
-    private IReadOnlyList<ScriptParameterDefinition> _scriptParameterDefinitions => _renderOptions.ScriptParameterDefinitions;
-    private IReadOnlyList<ScriptVariableDefinition> _scriptVariableDefinitions => _renderOptions.ScriptVariableDefinitions;
+    private IReadOnlyList<ScriptParameterDefinition> _scriptParameterDefinitions =>
+        _renderOptions.ScriptParameterDefinitions;
+    private IReadOnlyList<ScriptVariableDefinition> _scriptVariableDefinitions =>
+        _renderOptions.ScriptVariableDefinitions;
     internal IReadOnlyList<ScriptVariableDefinition> StructuralScriptVariableDefinitions => _scriptVariableDefinitions;
-    internal IReadOnlyList<ScriptParameterDefinition> StructuralScriptParameterDefinitions => _scriptParameterDefinitions;
+    internal IReadOnlyList<ScriptParameterDefinition> StructuralScriptParameterDefinitions =>
+        _scriptParameterDefinitions;
     private IReadOnlyDictionary<string, string> _scriptParameterLocalNames => _renderOptions.ScriptParameterLocalNames;
     private IReadOnlyDictionary<string, string> _scriptVariableLocalNames => _renderOptions.ScriptVariableLocalNames;
     private QueryInstrumentationMode _instrumentationMode => _renderOptions.InstrumentationMode;
@@ -25,7 +28,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool IsFullInstrumentationEnabled => _instrumentationMode == QueryInstrumentationMode.Full;
 
-    private bool IsOperatorProfilingEnabledFor(ExecutionRenderContext context) => IsFullInstrumentationEnabled && context.Session.ProfileRecorderInScope;
+    private bool IsOperatorProfilingEnabledFor(ExecutionRenderContext context) =>
+        IsFullInstrumentationEnabled && context.Session.ProfileRecorderInScope;
 
     internal bool IsFullProfilingEnabledForGeneratedCode => IsFullInstrumentationEnabled;
 }

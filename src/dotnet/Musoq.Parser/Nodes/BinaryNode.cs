@@ -8,9 +8,7 @@ public abstract class BinaryNode : Node
     private Type? _returnType;
 
     protected BinaryNode(Node left, Node right)
-        : this(left, right, default)
-    {
-    }
+        : this(left, right, default) { }
 
     protected BinaryNode(Node left, Node right, TextSpan span)
     {
@@ -73,7 +71,6 @@ public abstract class BinaryNode : Node
             return typeof(void);
         }
 
-
         if (leftType == null || rightType == null)
             return typeof(object);
 
@@ -103,7 +100,13 @@ public abstract class BinaryNode : Node
 
     private bool ShouldLiftNullableArithmetic(Type? leftType, Type? rightType, Type? returnType)
     {
-        if (leftType == null || rightType == null || returnType == null || !returnType.IsValueType || Nullable.GetUnderlyingType(returnType) != null)
+        if (
+            leftType == null
+            || rightType == null
+            || returnType == null
+            || !returnType.IsValueType
+            || Nullable.GetUnderlyingType(returnType) != null
+        )
             return false;
 
         if (Nullable.GetUnderlyingType(leftType) == null && Nullable.GetUnderlyingType(rightType) == null)
@@ -112,8 +115,9 @@ public abstract class BinaryNode : Node
         if (this is HyphenNode && IsTemporalNullableOperation(leftType, rightType))
             return true;
 
-        return this is AddNode or HyphenNode or StarNode or FSlashNode or ModuloNode ||
-               IsAggregateAccess(Left) || IsAggregateAccess(Right);
+        return this is AddNode or HyphenNode or StarNode or FSlashNode or ModuloNode
+            || IsAggregateAccess(Left)
+            || IsAggregateAccess(Right);
     }
 
     private static bool IsTemporalNullableOperation(Type leftType, Type rightType)
@@ -121,11 +125,11 @@ public abstract class BinaryNode : Node
         var leftUnderlying = Nullable.GetUnderlyingType(leftType) ?? leftType;
         var rightUnderlying = Nullable.GetUnderlyingType(rightType) ?? rightType;
 
-        return (leftUnderlying == typeof(DateTime) && rightUnderlying == typeof(DateTime)) ||
-               (leftUnderlying == typeof(DateTimeOffset) && rightUnderlying == typeof(DateTimeOffset)) ||
-               (leftUnderlying == typeof(DateTime) && rightUnderlying == typeof(TimeSpan)) ||
-               (leftUnderlying == typeof(DateTimeOffset) && rightUnderlying == typeof(TimeSpan)) ||
-               (leftUnderlying == typeof(TimeSpan) && rightUnderlying == typeof(TimeSpan));
+        return (leftUnderlying == typeof(DateTime) && rightUnderlying == typeof(DateTime))
+            || (leftUnderlying == typeof(DateTimeOffset) && rightUnderlying == typeof(DateTimeOffset))
+            || (leftUnderlying == typeof(DateTime) && rightUnderlying == typeof(TimeSpan))
+            || (leftUnderlying == typeof(DateTimeOffset) && rightUnderlying == typeof(TimeSpan))
+            || (leftUnderlying == typeof(TimeSpan) && rightUnderlying == typeof(TimeSpan));
     }
 
     private static bool IsAggregateAccess(Node node)
@@ -146,6 +150,7 @@ public abstract class BinaryNode : Node
             {
                 var name = attribute.GetType().Name;
                 return name is "AggregateFunctionAttribute";
-            });
+            }
+        );
     }
 }

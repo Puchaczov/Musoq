@@ -16,24 +16,16 @@ public partial class LogicalPlanBuilderTests
             EnumTypeOrigin.QueryLocal,
             EnumUnderlyingKind.Int32,
             false,
-            [new EnumMemberDescriptor("Running", EnumScalarValue.FromInt32(20))]);
+            [new EnumMemberDescriptor("Running", EnumScalarValue.FromInt32(20))]
+        );
         var from = CreateSchemaFrom("t");
         var select = CreateSelect(Field(Column("Status", "t", typeof(int)), 0, "Status"));
         var query = CreateQuery(select, from);
         var root = new RootNode(new SingleSetNode(query));
-        IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns =
-            new Dictionary<string, ISchemaColumn[]>
-            {
-                ["t"] =
-                [
-                    new Musoq.Schema.DataSources.SchemaColumn(
-                        "Status",
-                        0,
-                        typeof(int),
-                        typeof(int),
-                        descriptor)
-                ]
-            };
+        IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns = new Dictionary<string, ISchemaColumn[]>
+        {
+            ["t"] = [new Musoq.Schema.DataSources.SchemaColumn("Status", 0, typeof(int), typeof(int), descriptor)],
+        };
 
         var result = Build(root, inferredColumns);
 

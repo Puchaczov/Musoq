@@ -17,5 +17,6 @@ public sealed class DataSourceException : Exception, IDiagnosticException
     public DataSourceDiagnostic Report { get; }
     public DiagnosticCode Code => DiagnosticCode.MQ7020_ReportedDataSourceFailure;
     public TextSpan? Span => null;
+
     public Diagnostic ToDiagnostic(SourceText? sourceText = null) => Report.ToDiagnostic();
 }

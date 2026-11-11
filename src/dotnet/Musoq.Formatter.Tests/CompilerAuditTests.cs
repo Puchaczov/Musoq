@@ -19,8 +19,10 @@ public sealed class CompilerAuditTests
     [TestMethod]
     public void FormatterOwnedCode_ShouldUseNoRuntimeReflectionOrDynamicAccess()
     {
-        var violations = ReflectionAudit.Violations(VerificationCompiler.Current.Formatter)
-            .Concat(ReflectionAudit.Violations(VerificationCompiler.Current.Tests)).ToArray();
+        var violations = ReflectionAudit
+            .Violations(VerificationCompiler.Current.Formatter)
+            .Concat(ReflectionAudit.Violations(VerificationCompiler.Current.Tests))
+            .ToArray();
 
         CollectionAssert.AreEqual(Array.Empty<string>(), violations, string.Join("\n", violations));
     }
@@ -40,17 +42,27 @@ public sealed class CompilerAuditTests
     [TestMethod]
     [DataRow("AstProjector.Expressions1.cs", "Write(value.Alias);", "Write(value.Name);")]
     [DataRow("AstProjector.Expressions1.cs", "Write(value.Arguments);", "Member(nameof(value.Arguments));")]
-    [DataRow("AstProjector.Expressions1.cs", "private void Project(global::Musoq.Parser.Nodes.AddNode value)", "private void MissingProjection(global::Musoq.Parser.Nodes.AddNode value)")]
+    [DataRow(
+        "AstProjector.Expressions1.cs",
+        "private void Project(global::Musoq.Parser.Nodes.AddNode value)",
+        "private void MissingProjection(global::Musoq.Parser.Nodes.AddNode value)"
+    )]
     [DataRow("AstProjector.Expressions1.cs", "writer.Write(item)", "writer.Null()")]
     [DataRow("AstProjector.Expressions1.cs", "writer.Write(pair.Then);", "writer.Write(pair.When);")]
     [DataRow("AstProjector.Expressions1.cs", "Member(nameof(value.Alias));", "Member(\"Alias\");")]
-    [DataRow("AstProjector.Scripts1.cs", "Write(AstParsing.Parse(value.InnerQueryText));", "Write(value.InnerQueryText);")]
+    [DataRow(
+        "AstProjector.Scripts1.cs",
+        "Write(AstParsing.Parse(value.InnerQueryText));",
+        "Write(value.InnerQueryText);"
+    )]
     [DataRow("AstProjector.Dispatch.cs", "\"Musoq.Parser.Nodes.AddNode\"", "\"Musoq.Parser.Nodes.WrongNode\"")]
     public void RemovedOrMiswiredProjection_ShouldFailTheCompilerAudit(string file, string original, string replacement)
     {
         var mutated = CompilerMutation.Replace(VerificationCompiler.Current.Tests, file, original, replacement);
 
-        Assert.ThrowsExactly<InvalidOperationException>(() => ProjectionAudit.Verify(mutated, CoverageManifest.SourceTypes));
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            ProjectionAudit.Verify(mutated, CoverageManifest.SourceTypes)
+        );
     }
 
     [TestMethod]
@@ -58,8 +70,9 @@ public sealed class CompilerAuditTests
     [DataRow("NewSchemaHelper")]
     public void NewParserDeclaration_ShouldChangeTheReviewedInventory(string name)
     {
-        var parser = VerificationCompiler.Current.Parser.AddSyntaxTrees(CSharpSyntaxTree.ParseText(
-            "namespace Musoq.Parser.Nodes; public sealed class " + name + " {}"));
+        var parser = VerificationCompiler.Current.Parser.AddSyntaxTrees(
+            CSharpSyntaxTree.ParseText("namespace Musoq.Parser.Nodes; public sealed class " + name + " {}")
+        );
         var additions = VerificationCompiler.ParserDeclarations(parser).Except(CoverageManifest.Inventory).ToArray();
 
         CollectionAssert.AreEqual(new[] { "Musoq.Parser.Nodes." + name }, additions);
@@ -78,7 +91,9 @@ public sealed class CompilerAuditTests
     [TestMethod]
     public void ReflectionMethodGroup_ShouldBeRejectedSemantically()
     {
-        var compilation = CompilerMutation.Fixture("class Mutation { System.Func<string,System.Type> Factory = System.Type.GetType; }");
+        var compilation = CompilerMutation.Fixture(
+            "class Mutation { System.Func<string,System.Type> Factory = System.Type.GetType; }"
+        );
 
         Assert.IsNotEmpty(ReflectionAudit.Violations(compilation));
     }
@@ -94,8 +109,9 @@ public sealed class CompilerAuditTests
     {
         var compilation = CompilerMutation.Fixture(ProjectionFixture.Create(declaration));
 
-        Assert.ThrowsExactly<InvalidOperationException>(() => ProjectionAudit.Verify(compilation,
-            new[] { "Musoq.Parser.Nodes.FixtureNode" }));
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            ProjectionAudit.Verify(compilation, new[] { "Musoq.Parser.Nodes.FixtureNode" })
+        );
     }
 
     [TestMethod]
@@ -119,7 +135,9 @@ public sealed class CompilerAuditTests
     [TestMethod]
     public void OrdinaryTypeEquality_ShouldBePermitted()
     {
-        var compilation = CompilerMutation.Fixture("class Allowed { bool Run(object value) => value.GetType() == typeof(string); }");
+        var compilation = CompilerMutation.Fixture(
+            "class Allowed { bool Run(object value) => value.GetType() == typeof(string); }"
+        );
 
         CollectionAssert.AreEqual(Array.Empty<string>(), ReflectionAudit.Violations(compilation).ToArray());
     }
@@ -132,7 +150,12 @@ public sealed class CompilerAuditTests
     {
         using var assets = JsonDocument.Parse("{\"libraries\":{\"" + package + "/1.0.0\":{}}}");
 
-        Assert.ThrowsExactly<InvalidOperationException>(() => DependencyAudit.VerifyAssets(assets.RootElement,
-            new[] { "Musoq.Parser" }.ToHashSet(StringComparer.Ordinal), "Formatter"));
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            DependencyAudit.VerifyAssets(
+                assets.RootElement,
+                new[] { "Musoq.Parser" }.ToHashSet(StringComparer.Ordinal),
+                "Formatter"
+            )
+        );
     }
 }

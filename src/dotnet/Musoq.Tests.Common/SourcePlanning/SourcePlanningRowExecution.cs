@@ -10,13 +10,14 @@ public sealed record SourcePlanningRowExecutionOptions<T>(
     string StrategyPropertyName,
     Func<string, Func<T, object?>> CreateKeySelector,
     Func<T, object?> TieBreakerSelector,
-    Func<IEnumerable<T>, SourceExecutionPlan, IEnumerable<T>> ApplyProjectionWork);
+    Func<IEnumerable<T>, SourceExecutionPlan, IEnumerable<T>> ApplyProjectionWork
+);
 
 public enum SourcePlanningExecutionStrategy
 {
     NaiveSort,
     TopN,
-    NaturalOrder
+    NaturalOrder,
 }
 
 public static class SourcePlanningRowExecution
@@ -24,7 +25,8 @@ public static class SourcePlanningRowExecution
     public static IEnumerable<T> ApplyPlan<T>(
         IEnumerable<T> sourceRows,
         SourceExecutionPlan executionPlan,
-        SourcePlanningRowExecutionOptions<T> options)
+        SourcePlanningRowExecutionOptions<T> options
+    )
     {
         ArgumentNullException.ThrowIfNull(sourceRows);
         ArgumentNullException.ThrowIfNull(executionPlan);
@@ -33,11 +35,13 @@ public static class SourcePlanningRowExecution
             sourceRows,
             executionPlan.PredicateApplications,
             SourcePredicateEvaluationPhase.CandidateMetadata,
-            options.CreateKeySelector);
+            options.CreateKeySelector
+        );
         var query = ApplyPredicate(
             options.ApplyProjectionWork(candidates, executionPlan),
             executionPlan.AcceptedPredicate,
-            options.CreateKeySelector);
+            options.CreateKeySelector
+        );
 
         query = ApplyOrdering(query, executionPlan, options);
 
@@ -54,7 +58,8 @@ public static class SourcePlanningRowExecution
         IEnumerable<T> sourceRows,
         IReadOnlyList<SourcePredicateApplication> applications,
         SourcePredicateEvaluationPhase phase,
-        Func<string, Func<T, object?>> createKeySelector)
+        Func<string, Func<T, object?>> createKeySelector
+    )
     {
         ArgumentNullException.ThrowIfNull(sourceRows);
         ArgumentNullException.ThrowIfNull(applications);
@@ -64,7 +69,8 @@ public static class SourcePlanningRowExecution
             .Where(application => application.Phase == phase)
             .Select(application => new PreparedStringMatch<T>(
                 (SourcePredicateStringMatch)application.Predicate,
-                createKeySelector(application.Predicate.Column.Name)))
+                createKeySelector(application.Predicate.Column.Name)
+            ))
             .ToArray();
 
         return phaseApplications.Length == 0
@@ -76,15 +82,18 @@ public static class SourcePlanningRowExecution
         IEnumerable<T> sourceRows,
         SourceExecutionPlan executionPlan,
         string columnName,
-        Action<T> computeColumn)
+        Action<T> computeColumn
+    )
     {
         ArgumentNullException.ThrowIfNull(sourceRows);
         ArgumentNullException.ThrowIfNull(executionPlan);
         ArgumentNullException.ThrowIfNull(columnName);
         ArgumentNullException.ThrowIfNull(computeColumn);
-        var computesColumn = executionPlan.AcceptedColumns.Count == 0 ||
-            executionPlan.AcceptedColumns.Any(column =>
-                string.Equals(column.Name, columnName, StringComparison.OrdinalIgnoreCase));
+        var computesColumn =
+            executionPlan.AcceptedColumns.Count == 0
+            || executionPlan.AcceptedColumns.Any(column =>
+                string.Equals(column.Name, columnName, StringComparison.OrdinalIgnoreCase)
+            );
 
         if (!computesColumn)
             return sourceRows;
@@ -99,7 +108,8 @@ public static class SourcePlanningRowExecution
     private static IEnumerable<T> ApplyPredicate<T>(
         IEnumerable<T> sourceRows,
         SourcePredicateExpression? predicate,
-        Func<string, Func<T, object?>> createKeySelector)
+        Func<string, Func<T, object?>> createKeySelector
+    )
     {
         return predicate == null
             ? sourceRows
@@ -109,30 +119,38 @@ public static class SourcePlanningRowExecution
     private static bool? EvaluatePredicate<T>(
         SourcePredicateExpression predicate,
         T row,
-        Func<string, Func<T, object?>> createKeySelector)
+        Func<string, Func<T, object?>> createKeySelector
+    )
     {
         return predicate switch
         {
             SourcePredicateLiteral { Value: bool value } => value,
             SourcePredicateComparison comparison => EvaluateComparison(comparison, row, createKeySelector),
-            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical =>
-                EvaluatePredicate(logical.Left, row, createKeySelector) &
-                EvaluatePredicate(logical.Right, row, createKeySelector),
-            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.Or } logical =>
-                EvaluatePredicate(logical.Left, row, createKeySelector) |
-                EvaluatePredicate(logical.Right, row, createKeySelector),
+            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical => EvaluatePredicate(
+                logical.Left,
+                row,
+                createKeySelector
+            ) & EvaluatePredicate(logical.Right, row, createKeySelector),
+            SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.Or } logical => EvaluatePredicate(
+                logical.Left,
+                row,
+                createKeySelector
+            ) | EvaluatePredicate(logical.Right, row, createKeySelector),
             SourcePredicateIn inPredicate => EvaluateIn(inPredicate, row, createKeySelector),
             SourcePredicateStringMatch stringMatch => EvaluateStringMatch(stringMatch, row, createKeySelector),
-            SourcePredicateNullCheck nullCheck =>
-                (EvaluateValue(nullCheck.Expression, row, createKeySelector) == null) ^ nullCheck.IsNegated,
-            _ => throw new InvalidOperationException($"Unsupported source-planning predicate '{predicate.GetType().Name}'.")
+            SourcePredicateNullCheck nullCheck => (EvaluateValue(nullCheck.Expression, row, createKeySelector) == null)
+                ^ nullCheck.IsNegated,
+            _ => throw new InvalidOperationException(
+                $"Unsupported source-planning predicate '{predicate.GetType().Name}'."
+            ),
         };
     }
 
     private static bool? EvaluateComparison<T>(
         SourcePredicateComparison comparison,
         T row,
-        Func<string, Func<T, object?>> createKeySelector)
+        Func<string, Func<T, object?>> createKeySelector
+    )
     {
         var left = EvaluateValue(comparison.Left, row, createKeySelector);
         var right = EvaluateValue(comparison.Right, row, createKeySelector);
@@ -151,14 +169,17 @@ public static class SourcePlanningRowExecution
             SourcePredicateComparisonOperator.GreaterOrEqual => valueComparison >= 0,
             SourcePredicateComparisonOperator.LessThan => valueComparison < 0,
             SourcePredicateComparisonOperator.LessOrEqual => valueComparison <= 0,
-            _ => throw new InvalidOperationException($"Unsupported source-planning comparison '{comparison.Operator}'.")
+            _ => throw new InvalidOperationException(
+                $"Unsupported source-planning comparison '{comparison.Operator}'."
+            ),
         };
     }
 
     private static bool? EvaluateIn<T>(
         SourcePredicateIn inPredicate,
         T row,
-        Func<string, Func<T, object?>> createKeySelector)
+        Func<string, Func<T, object?>> createKeySelector
+    )
     {
         var value = EvaluateValue(inPredicate.Expression, row, createKeySelector);
         bool? contains = false;
@@ -170,8 +191,11 @@ public static class SourcePlanningRowExecution
                 contains = null;
                 continue;
             }
-            if (value is double.NaN or float.NaN || candidate is double.NaN or float.NaN ||
-                ComparePredicateValues(value, candidate) != 0)
+            if (
+                value is double.NaN or float.NaN
+                || candidate is double.NaN or float.NaN
+                || ComparePredicateValues(value, candidate) != 0
+            )
                 continue;
             contains = true;
             break;
@@ -182,14 +206,14 @@ public static class SourcePlanningRowExecution
     private static bool EvaluateStringMatch<T>(
         SourcePredicateStringMatch stringMatch,
         T row,
-        Func<string, Func<T, object?>> createKeySelector)
+        Func<string, Func<T, object?>> createKeySelector
+    )
     {
         var value = createKeySelector(stringMatch.Column.Name)(row) as string;
         return EvaluateStringMatch(stringMatch, value);
     }
-    private static bool EvaluateStringMatches<T>(
-        IReadOnlyList<PreparedStringMatch<T>> matches,
-        T row)
+
+    private static bool EvaluateStringMatches<T>(IReadOnlyList<PreparedStringMatch<T>> matches, T row)
     {
         foreach (var match in matches)
         {
@@ -200,9 +224,7 @@ public static class SourcePlanningRowExecution
         return true;
     }
 
-    private static bool EvaluateStringMatch(
-        SourcePredicateStringMatch stringMatch,
-        string? value)
+    private static bool EvaluateStringMatch(SourcePredicateStringMatch stringMatch, string? value)
     {
         if (stringMatch.Comparison != SourceStringComparison.LikeIgnoreCase)
             throw new InvalidOperationException($"Unsupported source string comparison '{stringMatch.Comparison}'.");
@@ -219,25 +241,32 @@ public static class SourcePlanningRowExecution
 
         return stringMatch.Kind switch
         {
-            SourceStringMatchKind.Exact =>
-                value.Length == needle.Length &&
-                (ordinalCompatible && string.Equals(value, needle, StringComparison.OrdinalIgnoreCase) ||
-                 (!ordinalCompatible || !IsAscii(value.AsSpan())) && MatchesLikeLegacy(value, stringMatch.OriginalPattern)),
-            SourceStringMatchKind.Prefix =>
-                value.Length >= needle.Length &&
-                (ordinalCompatible && value.StartsWith(needle, StringComparison.OrdinalIgnoreCase) ||
-                 (!ordinalCompatible || !IsAscii(value.AsSpan(0, needle.Length))) && MatchesLikeLegacy(value, stringMatch.OriginalPattern)),
-            SourceStringMatchKind.Suffix =>
-                value.Length >= needle.Length &&
-                (ordinalCompatible && value.EndsWith(needle, StringComparison.OrdinalIgnoreCase) ||
-                 (!ordinalCompatible || !IsAscii(value.AsSpan(value.Length - needle.Length, needle.Length))) &&
-                 MatchesLikeLegacy(value, stringMatch.OriginalPattern)),
-            SourceStringMatchKind.Contains =>
-                value.Length >= needle.Length &&
-                (needle.Length == 0 ||
-                 ordinalCompatible && value.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
-                 (!ordinalCompatible || !IsAscii(value.AsSpan())) && MatchesLikeLegacy(value, stringMatch.OriginalPattern)),
-            _ => throw new InvalidOperationException($"Unsupported source string-match kind '{stringMatch.Kind}'.")
+            SourceStringMatchKind.Exact => value.Length == needle.Length
+                && (
+                    ordinalCompatible && string.Equals(value, needle, StringComparison.OrdinalIgnoreCase)
+                    || (!ordinalCompatible || !IsAscii(value.AsSpan()))
+                        && MatchesLikeLegacy(value, stringMatch.OriginalPattern)
+                ),
+            SourceStringMatchKind.Prefix => value.Length >= needle.Length
+                && (
+                    ordinalCompatible && value.StartsWith(needle, StringComparison.OrdinalIgnoreCase)
+                    || (!ordinalCompatible || !IsAscii(value.AsSpan(0, needle.Length)))
+                        && MatchesLikeLegacy(value, stringMatch.OriginalPattern)
+                ),
+            SourceStringMatchKind.Suffix => value.Length >= needle.Length
+                && (
+                    ordinalCompatible && value.EndsWith(needle, StringComparison.OrdinalIgnoreCase)
+                    || (!ordinalCompatible || !IsAscii(value.AsSpan(value.Length - needle.Length, needle.Length)))
+                        && MatchesLikeLegacy(value, stringMatch.OriginalPattern)
+                ),
+            SourceStringMatchKind.Contains => value.Length >= needle.Length
+                && (
+                    needle.Length == 0
+                    || ordinalCompatible && value.Contains(needle, StringComparison.OrdinalIgnoreCase)
+                    || (!ordinalCompatible || !IsAscii(value.AsSpan()))
+                        && MatchesLikeLegacy(value, stringMatch.OriginalPattern)
+                ),
+            _ => throw new InvalidOperationException($"Unsupported source string-match kind '{stringMatch.Kind}'."),
         };
     }
 
@@ -263,33 +292,44 @@ public static class SourcePlanningRowExecution
 
     private static bool MatchesLikeLegacy(string value, string pattern)
     {
-        var escaped = Regex.Replace(pattern, @"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\", static match => @"\" + match.Value);
-        var sqlPattern = escaped.Replace("_", ".", StringComparison.Ordinal).Replace("%", ".*", StringComparison.Ordinal);
+        var escaped = Regex.Replace(
+            pattern,
+            @"\.|\$|\^|\{|\[|\(|\||\)|\*|\+|\?|\\",
+            static match => @"\" + match.Value
+        );
+        var sqlPattern = escaped
+            .Replace("_", ".", StringComparison.Ordinal)
+            .Replace("%", ".*", StringComparison.Ordinal);
         return Regex.IsMatch(
             value,
             string.Concat(@"\A", sqlPattern, @"\z"),
             RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.NonBacktracking,
-            TimeSpan.FromSeconds(2));
+            TimeSpan.FromSeconds(2)
+        );
     }
 
     private static object? EvaluateValue<T>(
         SourcePredicateExpression expression,
         T row,
-        Func<string, Func<T, object?>> createKeySelector)
+        Func<string, Func<T, object?>> createKeySelector
+    )
     {
         return expression switch
         {
             SourcePredicateColumn column => createKeySelector(column.Column.Name)(row),
             SourcePredicateLiteral literal => literal.Value,
             _ when CanEvaluatePredicate(expression) => EvaluatePredicate(expression, row, createKeySelector),
-            _ => throw new InvalidOperationException($"Unsupported source-planning value expression '{expression.GetType().Name}'.")
+            _ => throw new InvalidOperationException(
+                $"Unsupported source-planning value expression '{expression.GetType().Name}'."
+            ),
         };
     }
 
     private static IEnumerable<T> ApplyOrdering<T>(
         IEnumerable<T> sourceRows,
         SourceExecutionPlan executionPlan,
-        SourcePlanningRowExecutionOptions<T> options)
+        SourcePlanningRowExecutionOptions<T> options
+    )
     {
         if (executionPlan.AcceptedOrderBy.Count == 0)
             return sourceRows;
@@ -297,19 +337,27 @@ public static class SourcePlanningRowExecution
         return GetStrategy(executionPlan, options.StrategyPropertyName) switch
         {
             SourcePlanningExecutionStrategy.NaturalOrder => sourceRows,
-            SourcePlanningExecutionStrategy.TopN when executionPlan.AcceptedTake.HasValue =>
-                ApplyTopNOrdering(sourceRows, executionPlan, options),
-            _ => sourceRows.OrderBy(static row => row, new SourcePlanningOrderComparer<T>(
-                executionPlan.AcceptedOrderBy,
-                options.CreateKeySelector,
-                options.TieBreakerSelector))
+            SourcePlanningExecutionStrategy.TopN when executionPlan.AcceptedTake.HasValue => ApplyTopNOrdering(
+                sourceRows,
+                executionPlan,
+                options
+            ),
+            _ => sourceRows.OrderBy(
+                static row => row,
+                new SourcePlanningOrderComparer<T>(
+                    executionPlan.AcceptedOrderBy,
+                    options.CreateKeySelector,
+                    options.TieBreakerSelector
+                )
+            ),
         };
     }
 
     private static IEnumerable<T> ApplyTopNOrdering<T>(
         IEnumerable<T> sourceRows,
         SourceExecutionPlan executionPlan,
-        SourcePlanningRowExecutionOptions<T> options)
+        SourcePlanningRowExecutionOptions<T> options
+    )
     {
         var take = (int)executionPlan.AcceptedTake!.Value;
         var skip = (int)(executionPlan.AcceptedSkip ?? 0);
@@ -321,7 +369,8 @@ public static class SourcePlanningRowExecution
         var orderComparer = new SourcePlanningOrderComparer<T>(
             executionPlan.AcceptedOrderBy,
             options.CreateKeySelector,
-            options.TieBreakerSelector);
+            options.TieBreakerSelector
+        );
         var priorityComparer = new ReverseSourcePlanningOrderComparer<T>(orderComparer);
         var queue = new PriorityQueue<T, T>(priorityComparer);
 
@@ -341,14 +390,10 @@ public static class SourcePlanningRowExecution
             queue.Enqueue(row, row);
         }
 
-        return queue.UnorderedItems
-            .Select(static item => item.Element)
-            .OrderBy(static row => row, orderComparer);
+        return queue.UnorderedItems.Select(static item => item.Element).OrderBy(static row => row, orderComparer);
     }
 
-    private static SourcePlanningExecutionStrategy GetStrategy(
-        SourceExecutionPlan plan,
-        string strategyPropertyName)
+    private static SourcePlanningExecutionStrategy GetStrategy(SourceExecutionPlan plan, string strategyPropertyName)
     {
         if (!plan.Properties.TryGetValue(strategyPropertyName, out var value) || value is not string rawValue)
             return SourcePlanningExecutionStrategy.NaiveSort;
@@ -365,12 +410,17 @@ public static class SourcePlanningRowExecution
         {
             null => true,
             SourcePredicateLiteral { Value: bool } => true,
-            SourcePredicateComparison comparison => Enum.IsDefined(comparison.Operator) && CanEvaluateValue(comparison.Left) && CanEvaluateValue(comparison.Right),
-            SourcePredicateLogical logical => Enum.IsDefined(logical.Operator) && CanEvaluatePredicate(logical.Left) && CanEvaluatePredicate(logical.Right),
-            SourcePredicateIn membership => CanEvaluateValue(membership.Expression) && membership.Values.All(CanEvaluateValue),
+            SourcePredicateComparison comparison => Enum.IsDefined(comparison.Operator)
+                && CanEvaluateValue(comparison.Left)
+                && CanEvaluateValue(comparison.Right),
+            SourcePredicateLogical logical => Enum.IsDefined(logical.Operator)
+                && CanEvaluatePredicate(logical.Left)
+                && CanEvaluatePredicate(logical.Right),
+            SourcePredicateIn membership => CanEvaluateValue(membership.Expression)
+                && membership.Values.All(CanEvaluateValue),
             SourcePredicateNullCheck check => CanEvaluateValue(check.Expression),
             SourcePredicateStringMatch { Comparison: SourceStringComparison.LikeIgnoreCase } => true,
-            _ => false
+            _ => false,
         };
     }
 
@@ -384,10 +434,16 @@ public static class SourcePlanningRowExecution
         if (IsNumeric(left) && IsNumeric(right))
         {
             if (left is double || right is double)
-                return Convert.ToDouble(left, CultureInfo.InvariantCulture).CompareTo(Convert.ToDouble(right, CultureInfo.InvariantCulture));
+                return Convert
+                    .ToDouble(left, CultureInfo.InvariantCulture)
+                    .CompareTo(Convert.ToDouble(right, CultureInfo.InvariantCulture));
             if (left is float || right is float)
-                return Convert.ToSingle(left, CultureInfo.InvariantCulture).CompareTo(Convert.ToSingle(right, CultureInfo.InvariantCulture));
-            return Convert.ToDecimal(left, CultureInfo.InvariantCulture).CompareTo(Convert.ToDecimal(right, CultureInfo.InvariantCulture));
+                return Convert
+                    .ToSingle(left, CultureInfo.InvariantCulture)
+                    .CompareTo(Convert.ToSingle(right, CultureInfo.InvariantCulture));
+            return Convert
+                .ToDecimal(left, CultureInfo.InvariantCulture)
+                .CompareTo(Convert.ToDecimal(right, CultureInfo.InvariantCulture));
         }
         if (left is string leftString && right is string rightString)
             return string.Compare(leftString, rightString, StringComparison.Ordinal);
@@ -417,8 +473,8 @@ public static class SourcePlanningRowExecution
     private sealed class SourcePlanningOrderComparer<T>(
         IReadOnlyList<OrderByExpression> orderBy,
         Func<string, Func<T, object?>> createKeySelector,
-        Func<T, object?> tieBreakerSelector)
-        : IComparer<T>
+        Func<T, object?> tieBreakerSelector
+    ) : IComparer<T>
     {
         public int Compare(T? x, T? y)
         {
@@ -435,22 +491,20 @@ public static class SourcePlanningRowExecution
             {
                 var comparison = CompareValues(
                     createKeySelector(order.Column.Name)(x),
-                    createKeySelector(order.Column.Name)(y));
+                    createKeySelector(order.Column.Name)(y)
+                );
 
                 if (comparison == 0)
                     continue;
 
-                return order.Direction == OrderDirection.Descending
-                    ? -comparison
-                    : comparison;
+                return order.Direction == OrderDirection.Descending ? -comparison : comparison;
             }
 
             return CompareValues(tieBreakerSelector(x), tieBreakerSelector(y));
         }
     }
 
-    private sealed class ReverseSourcePlanningOrderComparer<T>(IComparer<T> innerComparer)
-        : IComparer<T>
+    private sealed class ReverseSourcePlanningOrderComparer<T>(IComparer<T> innerComparer) : IComparer<T>
     {
         public int Compare(T? x, T? y)
         {
@@ -460,5 +514,6 @@ public static class SourcePlanningRowExecution
 
     private readonly record struct PreparedStringMatch<T>(
         SourcePredicateStringMatch Predicate,
-        Func<T, object?> Selector);
+        Func<T, object?> Selector
+    );
 }

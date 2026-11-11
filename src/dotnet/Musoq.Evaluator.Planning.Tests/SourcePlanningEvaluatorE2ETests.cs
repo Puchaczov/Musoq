@@ -82,7 +82,8 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void MultiColumnOrderAcceptedBySource_ShouldMatchResidualRuntimeExecution()
     {
-        const string query = "select s.Id, s.Category, s.Score from #sp.items() s order by s.Category, s.Score desc, s.Id";
+        const string query =
+            "select s.Id, s.Category, s.Score from #sp.items() s order by s.Category, s.Score desc, s.Id";
 
         AssertOptimizedMatchesBaseline(query, SourcePlanningMode.AcceptOrderSkipTake, out var provider);
         var executionPlan = provider.ExecutionPlans.Single();
@@ -140,7 +141,11 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     {
         const string query = "select s.Id, s.Name, s.Score from #sp.items() s order by s.Score desc skip 2 take 6";
 
-        var optimized = AssertOptimizedMatchesBaseline(query, SourcePlanningMode.AcceptNaiveOrderSkipTake, out var provider);
+        var optimized = AssertOptimizedMatchesBaseline(
+            query,
+            SourcePlanningMode.AcceptNaiveOrderSkipTake,
+            out var provider
+        );
         var executionPlan = provider.ExecutionPlans.Single();
 
         Assert.AreEqual(6, optimized.Count);
@@ -154,7 +159,11 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     {
         const string query = "select s.Id, s.Name, s.Score from #sp.items() s order by s.Score desc skip 2 take 6";
 
-        var optimized = AssertOptimizedMatchesBaseline(query, SourcePlanningMode.AcceptTopNOrderSkipTake, out var provider);
+        var optimized = AssertOptimizedMatchesBaseline(
+            query,
+            SourcePlanningMode.AcceptTopNOrderSkipTake,
+            out var provider
+        );
         var executionPlan = provider.ExecutionPlans.Single();
 
         Assert.AreEqual(6, optimized.Count);
@@ -167,14 +176,12 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     public void NaturalSourceOrderSkipTake_ShouldMatchResidualRuntimeExecution()
     {
         const string query = "select s.Id, s.Name, s.Score from #sp.items() s order by s.Score desc skip 2 take 6";
-        var sortedRows = SourcePlanningRows.CreateDefault()
+        var sortedRows = SourcePlanningRows
+            .CreateDefault()
             .OrderByDescending(static row => row.Score)
             .ThenBy(static row => row.Id)
             .ToArray();
-        var rows = new Dictionary<string, IReadOnlyList<SourcePlanningEntity>>
-        {
-            ["#sp"] = sortedRows
-        };
+        var rows = new Dictionary<string, IReadOnlyList<SourcePlanningEntity>> { ["#sp"] = sortedRows };
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
         var optimized = Run(query, SourcePlanningMode.AcceptNaturalOrderSkipTake, rows, out var provider);
@@ -190,12 +197,14 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void MixedSourceFinalOrderTake_ShouldRemainGlobalAndMatchBaseline()
     {
-        const string query = @"
-            select l.Id, r.Name
-            from #left.items() l
-            inner join #right.items() r on l.JoinKey = r.JoinKey
-            order by l.Score desc
-            take 5";
+        const string query = (
+            "\n"
+            + "            select l.Id, r.Name\n"
+            + "            from #left.items() l\n"
+            + "            inner join #right.items() r on l.JoinKey = r.JoinKey\n"
+            + "            order by l.Score desc\n"
+            + "            take 5"
+        );
 
         var rows = SourcePlanningSchemaProvider.CreatePair(SourcePlanningRows.CreateDefault());
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -213,11 +222,13 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void ExactCardinality_ShouldBuildInnerHashJoinOnSmallerLeftSource()
     {
-        const string query = @"
-            select l.Id, r.Id
-            from #left.items() l
-            inner join #right.items() r on l.JoinKey = r.JoinKey
-            order by l.Id, r.Id";
+        const string query = (
+            "\n"
+            + "            select l.Id, r.Id\n"
+            + "            from #left.items() l\n"
+            + "            inner join #right.items() r on l.JoinKey = r.JoinKey\n"
+            + "            order by l.Id, r.Id"
+        );
         var rows = CreateCardinalityJoinRows(leftCount: 4, rightCount: 24);
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -228,8 +239,14 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         Assert.Contains("PhysicalHashJoin [Inner] [build: l.JoinKey] [probe: r.JoinKey]", inspection.PhysicalPlanText);
         Assert.Contains("Cardinality fact selected the left source as hash build side", inspection.PlanningText);
         Assert.Contains("CardinalityFacts", inspection.PlanningText);
-        Assert.Contains("SourceEstimate -> Exact exact=4 lower=4 upper=4 confidence=1 - Test source knows its exact row count.", inspection.PlanningText);
-        Assert.Contains("SourceEstimate -> Exact exact=24 lower=24 upper=24 confidence=1 - Test source knows its exact row count.", inspection.PlanningText);
+        Assert.Contains(
+            "SourceEstimate -> Exact exact=4 lower=4 upper=4 confidence=1 - Test source knows its exact row count.",
+            inspection.PlanningText
+        );
+        Assert.Contains(
+            "SourceEstimate -> Exact exact=24 lower=24 upper=24 confidence=1 - Test source knows its exact row count.",
+            inspection.PlanningText
+        );
         Assert.Contains("capacity: 4", inspection.ExecutionPlanText);
         Assert.Contains("new List<Statement0Row0>(24)", inspection.GeneratedCSharpCode);
     }
@@ -237,11 +254,13 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void LowConfidenceCardinality_ShouldKeepLegacyInnerHashJoinBuildSide()
     {
-        const string query = @"
-            select l.Id, r.Id
-            from #left.items() l
-            inner join #right.items() r on l.JoinKey = r.JoinKey
-            order by l.Id, r.Id";
+        const string query = (
+            "\n"
+            + "            select l.Id, r.Id\n"
+            + "            from #left.items() l\n"
+            + "            inner join #right.items() r on l.JoinKey = r.JoinKey\n"
+            + "            order by l.Id, r.Id"
+        );
         var rows = CreateCardinalityJoinRows(leftCount: 4, rightCount: 24);
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -256,53 +275,79 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void PlanningText_WhenSourcePartiallyAcceptsCapabilities_ShouldExplainNegotiatedCapabilities()
     {
-        const string predicateQuery = @"
-            select s.Id, s.Category
-            from #sp.items() s
-            where s.Category = 'alpha'
-              and s.Score > 20";
-        const string orderedQuery = @"
-            select s.Id, s.Category, s.Score
-            from #sp.items() s
-            order by s.Score desc
-            skip 1
-            take 2";
+        const string predicateQuery = (
+            "\n"
+            + "            select s.Id, s.Category\n"
+            + "            from #sp.items() s\n"
+            + "            where s.Category = 'alpha'\n"
+            + "              and s.Score > 20"
+        );
+        const string orderedQuery = (
+            "\n"
+            + "            select s.Id, s.Category, s.Score\n"
+            + "            from #sp.items() s\n"
+            + "            order by s.Score desc\n"
+            + "            skip 1\n"
+            + "            take 2"
+        );
         var rows = CreateSingleRows();
 
         var predicateInspection = Inspect(predicateQuery, SourcePlanningMode.AcceptFirstPredicate, rows);
         var orderedInspection = Inspect(orderedQuery, SourcePlanningMode.AcceptProjection, rows);
 
-        Assert.Contains("source capability projection: requested=3, accepted=3, residual=0 -> Accepted", predicateInspection.PlanningText);
-        Assert.Contains("source capability predicate: requested=yes, accepted=yes, residual=yes -> Partial", predicateInspection.PlanningText);
-        Assert.Contains("source capability ordering: requested=1, accepted=0, residual=1 -> Rejected", orderedInspection.PlanningText);
-        Assert.Contains("source capability slicing: requested=skip=1, take=2, accepted=skip=null, take=null, residual=skip=1, take=2 -> Rejected", orderedInspection.PlanningText);
+        Assert.Contains(
+            "source capability projection: requested=3, accepted=3, residual=0 -> Accepted",
+            predicateInspection.PlanningText
+        );
+        Assert.Contains(
+            "source capability predicate: requested=yes, accepted=yes, residual=yes -> Partial",
+            predicateInspection.PlanningText
+        );
+        Assert.Contains(
+            "source capability ordering: requested=1, accepted=0, residual=1 -> Rejected",
+            orderedInspection.PlanningText
+        );
+        Assert.Contains(
+            "source capability slicing: requested=skip=1, take=2, accepted=skip=null, take=null, residual=skip=1, take=2 -> Rejected",
+            orderedInspection.PlanningText
+        );
     }
 
     [TestMethod]
     public void PlanningText_WhenSourceReportsCardinality_ShouldExplainHashBuildUsability()
     {
-        const string query = @"
-            select l.Id, r.Id
-            from #left.items() l
-            inner join #right.items() r on l.JoinKey = r.JoinKey
-            order by l.Id, r.Id";
+        const string query = (
+            "\n"
+            + "            select l.Id, r.Id\n"
+            + "            from #left.items() l\n"
+            + "            inner join #right.items() r on l.JoinKey = r.JoinKey\n"
+            + "            order by l.Id, r.Id"
+        );
         var rows = CreateCardinalityJoinRows(leftCount: 4, rightCount: 24);
 
         var exactInspection = Inspect(query, SourcePlanningMode.RejectAllWithExactCardinality, rows);
         var lowConfidenceInspection = Inspect(query, SourcePlanningMode.RejectAllWithLowConfidenceCardinality, rows);
 
-        Assert.Contains("source capability cardinality: Exact confidence=1 usableForHashBuild=yes reason=Test source knows its exact row count.", exactInspection.PlanningText);
-        Assert.Contains("source capability cardinality: Bounded confidence=0.25 usableForHashBuild=no reason=Test source row count is low confidence.", lowConfidenceInspection.PlanningText);
+        Assert.Contains(
+            "source capability cardinality: Exact confidence=1 usableForHashBuild=yes reason=Test source knows its exact row count.",
+            exactInspection.PlanningText
+        );
+        Assert.Contains(
+            "source capability cardinality: Bounded confidence=0.25 usableForHashBuild=no reason=Test source row count is low confidence.",
+            lowConfidenceInspection.PlanningText
+        );
     }
 
     [TestMethod]
     public void ExactCardinality_ShouldNotChangeOuterJoinHashBuildSide()
     {
-        const string query = @"
-            select l.Id, r.Id
-            from #left.items() l
-            left outer join #right.items() r on l.JoinKey = r.JoinKey
-            order by l.Id, r.Id";
+        const string query = (
+            "\n"
+            + "            select l.Id, r.Id\n"
+            + "            from #left.items() l\n"
+            + "            left outer join #right.items() r on l.JoinKey = r.JoinKey\n"
+            + "            order by l.Id, r.Id"
+        );
         var rows = CreateCardinalityJoinRows(leftCount: 4, rightCount: 24);
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -310,19 +355,26 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         var inspection = Inspect(query, SourcePlanningMode.RejectAllWithExactCardinality, rows);
 
         AssertSameTable(baseline, optimized);
-        Assert.Contains("PhysicalHashJoin [LeftOuter] [build: r.JoinKey] [probe: l.JoinKey]", inspection.PhysicalPlanText);
-        Assert.IsFalse(inspection.PlanningText.Contains("Cardinality selected the left source", System.StringComparison.Ordinal));
+        Assert.Contains(
+            "PhysicalHashJoin [LeftOuter] [build: r.JoinKey] [probe: l.JoinKey]",
+            inspection.PhysicalPlanText
+        );
+        Assert.IsFalse(
+            inspection.PlanningText.Contains("Cardinality selected the left source", System.StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void GroupedFinalOrderTake_ShouldRemainGlobalAndMatchBaseline()
     {
-        const string query = @"
-            select s.Category, Count(s.Id)
-            from #sp.items() s
-            group by s.Category
-            order by Count(s.Id) desc
-            take 2";
+        const string query = (
+            "\n"
+            + "            select s.Category, Count(s.Id)\n"
+            + "            from #sp.items() s\n"
+            + "            group by s.Category\n"
+            + "            order by Count(s.Id) desc\n"
+            + "            take 2"
+        );
 
         AssertNonSourceLocalQueryMatchesBaseline(query);
     }
@@ -338,18 +390,24 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void CteSourceLocalOrderSkipTakeAcceptedBySource_ShouldMatchBaseline()
     {
-        const string query = @"
-            with ranked as (
-                select s.Id as Id, s.Name as Name, s.Score as Score
-                from #sp.items() s
-                order by s.Score desc
-                skip 2
-                take 5
-            )
-            select ranked.Id, ranked.Name, ranked.Score
-            from ranked";
+        const string query = (
+            "\n"
+            + "            with ranked as (\n"
+            + "                select s.Id as Id, s.Name as Name, s.Score as Score\n"
+            + "                from #sp.items() s\n"
+            + "                order by s.Score desc\n"
+            + "                skip 2\n"
+            + "                take 5\n"
+            + "            )\n"
+            + "            select ranked.Id, ranked.Name, ranked.Score\n"
+            + "            from ranked"
+        );
 
-        var optimized = AssertOptimizedMatchesBaseline(query, SourcePlanningMode.AcceptTopNOrderSkipTake, out var provider);
+        var optimized = AssertOptimizedMatchesBaseline(
+            query,
+            SourcePlanningMode.AcceptTopNOrderSkipTake,
+            out var provider
+        );
         var executionPlan = provider.ExecutionPlans.Single();
 
         Assert.AreEqual(5, optimized.Count);
@@ -361,16 +419,22 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void DerivedTableSourceLocalOrderTakeAcceptedBySource_ShouldMatchBaseline()
     {
-        const string query = @"
-            select q.Id, q.Name, q.Score
-            from (
-                select s.Id as Id, s.Name as Name, s.Score as Score
-                from #sp.items() s
-                order by s.Score desc
-                take 6
-            ) q";
+        const string query = (
+            "\n"
+            + "            select q.Id, q.Name, q.Score\n"
+            + "            from (\n"
+            + "                select s.Id as Id, s.Name as Name, s.Score as Score\n"
+            + "                from #sp.items() s\n"
+            + "                order by s.Score desc\n"
+            + "                take 6\n"
+            + "            ) q"
+        );
 
-        var optimized = AssertOptimizedMatchesBaseline(query, SourcePlanningMode.AcceptTopNOrderSkipTake, out var provider);
+        var optimized = AssertOptimizedMatchesBaseline(
+            query,
+            SourcePlanningMode.AcceptTopNOrderSkipTake,
+            out var provider
+        );
         var executionPlan = provider.ExecutionPlans.Single();
 
         Assert.AreEqual(6, optimized.Count);
@@ -381,15 +445,17 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void CteFinalOrderTake_ShouldRemainGlobalAndMatchBaseline()
     {
-        const string query = @"
-            with allItems as (
-                select s.Id as Id, s.Name as Name, s.Score as Score
-                from #sp.items() s
-            )
-            select allItems.Id, allItems.Name, allItems.Score
-            from allItems
-            order by allItems.Score desc
-            take 5";
+        const string query = (
+            "\n"
+            + "            with allItems as (\n"
+            + "                select s.Id as Id, s.Name as Name, s.Score as Score\n"
+            + "                from #sp.items() s\n"
+            + "            )\n"
+            + "            select allItems.Id, allItems.Name, allItems.Score\n"
+            + "            from allItems\n"
+            + "            order by allItems.Score desc\n"
+            + "            take 5"
+        );
 
         AssertNonSourceLocalQueryMatchesBaseline(query);
     }
@@ -408,12 +474,15 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         AssertSameTable(baseline, optimized);
         CollectionAssert.AreEquivalent(
             new[] { nameof(SourcePlanningEntity.Id), nameof(SourcePlanningEntity.Name) },
-            request.RequiredColumns.Select(static column => column.Name).ToArray());
+            request.RequiredColumns.Select(static column => column.Name).ToArray()
+        );
         CollectionAssert.AreEquivalent(
             new[] { nameof(SourcePlanningEntity.Id), nameof(SourcePlanningEntity.Name) },
-            executionPlan.AcceptedColumns.Select(static column => column.Name).ToArray());
-        Assert.IsFalse(request.RequiredColumns.Any(static column =>
-            column.Name == nameof(SourcePlanningEntity.ExpensivePayload)));
+            executionPlan.AcceptedColumns.Select(static column => column.Name).ToArray()
+        );
+        Assert.IsFalse(
+            request.RequiredColumns.Any(static column => column.Name == nameof(SourcePlanningEntity.ExpensivePayload))
+        );
         Assert.IsTrue(baselineProvider.Recorder.ExpensivePayloadComputations > 0);
         Assert.AreEqual(0, optimizedProvider.Recorder.ExpensivePayloadComputations);
     }
@@ -428,10 +497,14 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         var executionPlan = provider.ExecutionPlans.Single();
 
         Assert.AreEqual(3, optimized.Count);
-        Assert.IsTrue(request.RequiredColumns.Any(static column =>
-            column.Name == nameof(SourcePlanningEntity.ExpensivePayload)));
-        Assert.IsTrue(executionPlan.AcceptedColumns.Any(static column =>
-            column.Name == nameof(SourcePlanningEntity.ExpensivePayload)));
+        Assert.IsTrue(
+            request.RequiredColumns.Any(static column => column.Name == nameof(SourcePlanningEntity.ExpensivePayload))
+        );
+        Assert.IsTrue(
+            executionPlan.AcceptedColumns.Any(static column =>
+                column.Name == nameof(SourcePlanningEntity.ExpensivePayload)
+            )
+        );
         Assert.IsTrue(provider.Recorder.ExpensivePayloadComputations > 0);
     }
 
@@ -446,23 +519,27 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
 
         CollectionAssert.AreEquivalent(
             new[] { nameof(SourcePlanningEntity.Score) },
-            request.RequiredColumns.Select(static column => column.Name).ToArray());
+            request.RequiredColumns.Select(static column => column.Name).ToArray()
+        );
         CollectionAssert.AreEquivalent(
             new[] { nameof(SourcePlanningEntity.Score) },
-            executionPlan.AcceptedColumns.Select(static column => column.Name).ToArray());
+            executionPlan.AcceptedColumns.Select(static column => column.Name).ToArray()
+        );
         Assert.IsFalse(request.RequiredColumns.Any(static column => column.Name == nameof(SourcePlanningEntity.Id)));
     }
 
     [TestMethod]
     public void ProjectionAcceptedBySource_WhenCteConsumerNeedsSubset_ShouldRequestConsumerColumnsOnly()
     {
-        const string query = @"
-            with people as (
-                select s.Id as Id, s.Name as Name, s.ExpensivePayload as ExpensivePayload
-                from #sp.items() s
-            )
-            select people.Id
-            from people";
+        const string query = (
+            "\n"
+            + "            with people as (\n"
+            + "                select s.Id as Id, s.Name as Name, s.ExpensivePayload as ExpensivePayload\n"
+            + "                from #sp.items() s\n"
+            + "            )\n"
+            + "            select people.Id\n"
+            + "            from people"
+        );
         var rows = CreateSingleRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out var baselineProvider);
@@ -473,10 +550,12 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         AssertSameTable(baseline, optimized);
         CollectionAssert.AreEquivalent(
             new[] { nameof(SourcePlanningEntity.Id) },
-            request.RequiredColumns.Select(static column => column.Name).ToArray());
+            request.RequiredColumns.Select(static column => column.Name).ToArray()
+        );
         CollectionAssert.AreEquivalent(
             new[] { nameof(SourcePlanningEntity.Id) },
-            executionPlan.AcceptedColumns.Select(static column => column.Name).ToArray());
+            executionPlan.AcceptedColumns.Select(static column => column.Name).ToArray()
+        );
         Assert.IsTrue(baselineProvider.Recorder.ExpensivePayloadComputations > 0);
         Assert.AreEqual(0, optimizedProvider.Recorder.ExpensivePayloadComputations);
     }
@@ -484,10 +563,12 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void PredicateAcceptedBySource_ShouldFilterBeforeRuntimeResidualAndMatchBaseline()
     {
-        const string query = @"
-            select s.Id, s.Category
-            from #sp.items() s
-            where s.Category = 'alpha' and s.Score + 1 > 0";
+        const string query = (
+            "\n"
+            + "            select s.Id, s.Category\n"
+            + "            from #sp.items() s\n"
+            + "            where s.Category = 'alpha' and s.Score + 1 > 0"
+        );
         var rows = CreateSingleRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out var baselineProvider);
@@ -505,10 +586,12 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void AcceptedPredicateConjunct_ShouldBeRemovedFromRuntimeFilter()
     {
-        const string query = @"
-            select s.Id, s.Category
-            from #sp.items() s
-            where s.Category = 'alpha'";
+        const string query = (
+            "\n"
+            + "            select s.Id, s.Category\n"
+            + "            from #sp.items() s\n"
+            + "            where s.Category = 'alpha'"
+        );
         var rows = CreateSingleRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -522,12 +605,14 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void PartiallyAcceptedPredicateConjunct_ShouldKeepOnlyResidualRuntimeFilter()
     {
-        const string query = @"
-            select s.Id, s.Category, s.Score
-            from #sp.items() s
-            where s.Category = 'alpha'
-              and s.Score > 20
-              and s.Score + 1 > 0";
+        const string query = (
+            "\n"
+            + "            select s.Id, s.Category, s.Score\n"
+            + "            from #sp.items() s\n"
+            + "            where s.Category = 'alpha'\n"
+            + "              and s.Score > 20\n"
+            + "              and s.Score + 1 > 0"
+        );
         var rows = CreateSingleRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -544,12 +629,14 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void FilteredOrderTakeAcceptedBySource_ShouldRemoveRuntimeFilterAndTopN()
     {
-        const string query = @"
-            select s.Id, s.Category, s.Score
-            from #sp.items() s
-            where s.Category = 'alpha'
-            order by s.Score desc
-            take 3";
+        const string query = (
+            "\n"
+            + "            select s.Id, s.Category, s.Score\n"
+            + "            from #sp.items() s\n"
+            + "            where s.Category = 'alpha'\n"
+            + "            order by s.Score desc\n"
+            + "            take 3"
+        );
         var rows = CreateSingleRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -572,12 +659,14 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void FilteredOrderTake_WhenPredicateIsResidual_ShouldKeepRuntimeFilterAndTopN()
     {
-        const string query = @"
-            select s.Id, s.Category, s.Score
-            from #sp.items() s
-            where s.Category = 'alpha'
-            order by s.Score desc
-            take 3";
+        const string query = (
+            "\n"
+            + "            select s.Id, s.Category, s.Score\n"
+            + "            from #sp.items() s\n"
+            + "            where s.Category = 'alpha'\n"
+            + "            order by s.Score desc\n"
+            + "            take 3"
+        );
         var rows = CreateSingleRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -600,10 +689,12 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void PredicateAcceptedBySource_ShouldSupportInAndNullChecks()
     {
-        const string query = @"
-            select s.Id, s.Name
-            from #sp.items() s
-            where s.Name is null or s.Name in ('Alpha', 'beta')";
+        const string query = (
+            "\n"
+            + "            select s.Id, s.Name\n"
+            + "            from #sp.items() s\n"
+            + "            where s.Name is null or s.Name in ('Alpha', 'beta')"
+        );
         var rows = CreateStringOrderingRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -618,10 +709,12 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void AcceptedOrPredicate_WhenSourceReportsNoResidual_ShouldRemoveRuntimeFilter()
     {
-        const string query = @"
-            select s.Id, s.Name
-            from #sp.items() s
-            where s.Category = 'alpha' or s.Category = 'beta'";
+        const string query = (
+            "\n"
+            + "            select s.Id, s.Name\n"
+            + "            from #sp.items() s\n"
+            + "            where s.Category = 'alpha' or s.Category = 'beta'"
+        );
         var rows = CreateStringOrderingRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -635,13 +728,15 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     [TestMethod]
     public void JoinLocalPredicateAcceptedBySource_ShouldPushRequestAndKeepJoinGuard()
     {
-        const string query = @"
-            select l.Id, r.Id
-            from #left.items() l
-            inner join #right.items() r
-                on l.JoinKey = r.JoinKey
-               and l.Category = 'alpha'
-            order by l.Id, r.Id";
+        const string query = (
+            "\n"
+            + "            select l.Id, r.Id\n"
+            + "            from #left.items() l\n"
+            + "            inner join #right.items() r\n"
+            + "                on l.JoinKey = r.JoinKey\n"
+            + "               and l.Category = 'alpha'\n"
+            + "            order by l.Id, r.Id"
+        );
         var rows = SourcePlanningSchemaProvider.CreatePair(SourcePlanningRows.CreateDefault());
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out var baselineProvider);
@@ -649,10 +744,14 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         var inspection = Inspect(query, SourcePlanningMode.AcceptPredicate, rows);
 
         AssertSameTable(baseline, optimized);
-        Assert.IsTrue(optimizedProvider.Requests.Any(static request =>
-            request.Identity.Alias == "l" && request.Predicate != null));
-        Assert.IsTrue(optimizedProvider.ExecutionPlans.Any(static plan =>
-            plan.Identity.Alias == "l" && plan.AcceptedPredicate != null));
+        Assert.IsTrue(
+            optimizedProvider.Requests.Any(static request => request.Identity.Alias == "l" && request.Predicate != null)
+        );
+        Assert.IsTrue(
+            optimizedProvider.ExecutionPlans.Any(static plan =>
+                plan.Identity.Alias == "l" && plan.AcceptedPredicate != null
+            )
+        );
         Assert.IsTrue(optimizedProvider.Recorder.SourceRowsProduced < baselineProvider.Recorder.SourceRowsProduced);
         Assert.Contains("SourcePredicateMovementExpansion", inspection.PlanningText);
         Assert.Contains("PhysicalHashJoin", inspection.PhysicalPlanText);
@@ -662,7 +761,8 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     private Table AssertOptimizedMatchesBaseline(
         string query,
         SourcePlanningMode mode,
-        out SourcePlanningSchemaProvider optimizedProvider)
+        out SourcePlanningSchemaProvider optimizedProvider
+    )
     {
         var rows = CreateSingleRows();
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -689,7 +789,8 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         string query,
         SourcePlanningMode mode,
         IReadOnlyDictionary<string, IReadOnlyList<SourcePlanningEntity>> rows,
-        out SourcePlanningSchemaProvider provider)
+        out SourcePlanningSchemaProvider provider
+    )
     {
         provider = new SourcePlanningSchemaProvider(mode, rows);
         var compiled = CreateAndRunVirtualMachine(query, schemaProvider: provider);
@@ -699,21 +800,23 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
     private QueryInspectionResult Inspect(
         string query,
         SourcePlanningMode mode,
-        IReadOnlyDictionary<string, IReadOnlyList<SourcePlanningEntity>> rows)
+        IReadOnlyDictionary<string, IReadOnlyList<SourcePlanningEntity>> rows
+    )
     {
         return InstanceCreator.CompileForInspection(
             query,
             System.Guid.NewGuid().ToString(),
             new SourcePlanningSchemaProvider(mode, rows),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 
     private static Dictionary<string, IReadOnlyList<SourcePlanningEntity>> CreateSingleRows()
     {
         return new Dictionary<string, IReadOnlyList<SourcePlanningEntity>>
         {
-            ["#sp"] = SourcePlanningRows.CreateDefault()
+            ["#sp"] = SourcePlanningRows.CreateDefault(),
         };
     }
 
@@ -723,41 +826,72 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
         {
             ["#sp"] =
             [
-                new SourcePlanningEntity { Id = 1, Name = "alpha", Category = "case", Score = 1 },
-                new SourcePlanningEntity { Id = 2, Name = null, Category = "case", Score = 2 },
-                new SourcePlanningEntity { Id = 3, Name = "Alpha", Category = "case", Score = 3 },
-                new SourcePlanningEntity { Id = 4, Name = "beta", Category = "case", Score = 4 },
-                new SourcePlanningEntity { Id = 5, Name = "Beta", Category = "case", Score = 5 }
-            ]
+                new SourcePlanningEntity
+                {
+                    Id = 1,
+                    Name = "alpha",
+                    Category = "case",
+                    Score = 1,
+                },
+                new SourcePlanningEntity
+                {
+                    Id = 2,
+                    Name = null,
+                    Category = "case",
+                    Score = 2,
+                },
+                new SourcePlanningEntity
+                {
+                    Id = 3,
+                    Name = "Alpha",
+                    Category = "case",
+                    Score = 3,
+                },
+                new SourcePlanningEntity
+                {
+                    Id = 4,
+                    Name = "beta",
+                    Category = "case",
+                    Score = 4,
+                },
+                new SourcePlanningEntity
+                {
+                    Id = 5,
+                    Name = "Beta",
+                    Category = "case",
+                    Score = 5,
+                },
+            ],
         };
     }
 
     private static Dictionary<string, IReadOnlyList<SourcePlanningEntity>> CreateCardinalityJoinRows(
         int leftCount,
-        int rightCount)
+        int rightCount
+    )
     {
         var rows = SourcePlanningRows.CreateDefault();
         return new Dictionary<string, IReadOnlyList<SourcePlanningEntity>>
         {
             ["#left"] = rows.Take(leftCount).ToArray(),
-            ["#right"] = rows.Take(rightCount).Select(static row => new SourcePlanningEntity
-            {
-                Id = row.Id + 1000,
-                Name = $"right-{row.Name}",
-                Category = row.Category,
-                Score = row.Score,
-                CreatedAt = row.CreatedAt,
-                JoinKey = row.JoinKey,
-                ExpensivePayload = row.ExpensivePayload
-            }).ToArray()
+            ["#right"] = rows.Take(rightCount)
+                .Select(static row => new SourcePlanningEntity
+                {
+                    Id = row.Id + 1000,
+                    Name = $"right-{row.Name}",
+                    Category = row.Category,
+                    Score = row.Score,
+                    CreatedAt = row.CreatedAt,
+                    JoinKey = row.JoinKey,
+                    ExpensivePayload = row.ExpensivePayload,
+                })
+                .ToArray(),
         };
     }
 
     private static object[] ReadColumn(Table table, int columnIndex)
     {
-        return Enumerable.Range(0, table.Count)
-            .Select(index => table[index].ReadValue(columnIndex))
-            .ToArray();
+        return Enumerable.Range(0, table.Count).Select(index => table[index].ReadValue(columnIndex)).ToArray();
     }
 
     private static string GetSinglePhysicalFilterLine(string physicalPlanText)
@@ -778,7 +912,8 @@ public sealed class SourcePlanningEvaluatorE2ETests : BasicEntityTestBase
             CollectionAssert.AreEqual(
                 expected[rowIndex].ReadValues(),
                 actual[rowIndex].ReadValues(),
-                $"Row {rowIndex} differs.");
+                $"Row {rowIndex} differs."
+            );
         }
     }
 }

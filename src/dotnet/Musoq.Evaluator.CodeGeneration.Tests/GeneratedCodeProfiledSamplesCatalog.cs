@@ -5,5 +5,7 @@ namespace Musoq.Evaluator.Tests;
 internal static class GeneratedCodeProfiledSamplesCatalog
 {
     public static IReadOnlyList<GeneratedCodeSample> Samples => EvaluatorProfiledSampleFixtures.Samples;
-    public static GeneratedCodeSample GetByFileName(string fileName) => EvaluatorProfiledSampleFixtures.GetByFileName(fileName);
+
+    public static GeneratedCodeSample GetByFileName(string fileName) =>
+        EvaluatorProfiledSampleFixtures.GetByFileName(fileName);
 }

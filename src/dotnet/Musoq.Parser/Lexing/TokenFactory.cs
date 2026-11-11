@@ -16,8 +16,10 @@ public static class TokenFactory
     /// </summary>
     public delegate Token TokenCreator(int position, string tokenText, Match? match);
 
-    private static readonly FrozenDictionary<TokenType, TokenCreator> SimpleTokenFactories = CreateSimpleTokenFactories();
-    private static readonly FrozenDictionary<TokenType, TokenCreator> ComplexTokenFactories = CreateComplexTokenFactories();
+    private static readonly FrozenDictionary<TokenType, TokenCreator> SimpleTokenFactories =
+        CreateSimpleTokenFactories();
+    private static readonly FrozenDictionary<TokenType, TokenCreator> ComplexTokenFactories =
+        CreateComplexTokenFactories();
 
     private static FrozenDictionary<TokenType, TokenCreator> CreateSimpleTokenFactories()
     {
@@ -106,7 +108,10 @@ public static class TokenFactory
             { TokenType.End, (pos, text, _) => new EndToken(new TextSpan(pos, text.Length)) },
             { TokenType.Distinct, (pos, text, _) => new DistinctToken(new TextSpan(pos, text.Length)) },
             { TokenType.Ampersand, (pos, text, _) => new AmpersandToken(new TextSpan(pos, text.Length)) },
-            { TokenType.StringConcatenation, (pos, text, _) => new StringConcatenationToken(new TextSpan(pos, text.Length)) },
+            {
+                TokenType.StringConcatenation,
+                (pos, text, _) => new StringConcatenationToken(new TextSpan(pos, text.Length))
+            },
             { TokenType.Pipe, (pos, text, _) => new PipeToken(new TextSpan(pos, text.Length)) },
             { TokenType.Caret, (pos, text, _) => new CaretToken(new TextSpan(pos, text.Length)) },
             { TokenType.LeftShift, (pos, text, _) => new LeftShiftToken(new TextSpan(pos, text.Length)) },
@@ -118,7 +123,7 @@ public static class TokenFactory
             { TokenType.Replace, (pos, text, _) => new ReplaceToken(new TextSpan(pos, text.Length)) },
             { TokenType.Over, (pos, text, _) => new OverToken(new TextSpan(pos, text.Length)) },
             { TokenType.PartitionBy, (pos, text, _) => new PartitionByToken(new TextSpan(pos, text.Length)) },
-            { TokenType.Window, (pos, text, _) => new WindowToken(new TextSpan(pos, text.Length)) }
+            { TokenType.Window, (pos, text, _) => new WindowToken(new TextSpan(pos, text.Length)) },
         }.ToFrozenDictionary();
     }
 
@@ -140,7 +145,10 @@ public static class TokenFactory
             { TokenType.OctalInteger, (pos, text, _) => new OctalIntegerToken(text, new TextSpan(pos, text.Length)) },
             { TokenType.AliasedStar, (pos, text, _) => new AliasedStarToken(text, new TextSpan(pos, text.Length)) },
             { TokenType.Identifier, (pos, text, _) => new ColumnToken(text, new TextSpan(pos, text.Length)) },
-            { TokenType.ParameterReference, (pos, text, _) => new ParameterReferenceToken(text.TrimStart('$'), new TextSpan(pos, text.Length)) },
+            {
+                TokenType.ParameterReference,
+                (pos, text, _) => new ParameterReferenceToken(text.TrimStart('$'), new TextSpan(pos, text.Length))
+            },
             { TokenType.Property, (pos, text, _) => new AccessPropertyToken(text, new TextSpan(pos, text.Length)) },
             { TokenType.NumericAccess, CreateNumericAccessToken },
             { TokenType.KeyAccess, CreateKeyAccessToken },
@@ -149,7 +157,7 @@ public static class TokenFactory
             { TokenType.OuterJoin, CreateOuterJoinToken },
             { TokenType.MethodAccess, CreateMethodAccessToken },
             { TokenType.Comment, (pos, text, _) => new CommentToken(text, new TextSpan(pos, text.Length)) },
-            { TokenType.Word, (pos, text, _) => new WordToken(text, new TextSpan(pos, text.Length)) }
+            { TokenType.Word, (pos, text, _) => new WordToken(text, new TextSpan(pos, text.Length)) },
         }.ToFrozenDictionary();
     }
 
@@ -210,24 +218,31 @@ public static class TokenFactory
     private static IntegerToken CreateIntegerToken(int position, string tokenText)
     {
         var abbreviation = GetAbbreviation(tokenText);
-        var unAbbreviatedValue = abbreviation.Length > 0
-            ? tokenText.Replace(abbreviation, string.Empty, StringComparison.Ordinal)
-            : tokenText;
+        var unAbbreviatedValue =
+            abbreviation.Length > 0
+                ? tokenText.Replace(abbreviation, string.Empty, StringComparison.Ordinal)
+                : tokenText;
         return new IntegerToken(unAbbreviatedValue, new TextSpan(position, tokenText.Length), abbreviation);
     }
 
     private static Token CreateNumericAccessToken(int position, string tokenText, Match? match)
     {
         ArgumentNullException.ThrowIfNull(match);
-        return new NumericAccessToken(match.Groups[1].Value, match.Groups[2].Value,
-            new TextSpan(position, tokenText.Length));
+        return new NumericAccessToken(
+            match.Groups[1].Value,
+            match.Groups[2].Value,
+            new TextSpan(position, tokenText.Length)
+        );
     }
 
     private static Token CreateKeyAccessToken(int position, string tokenText, Match? match)
     {
         ArgumentNullException.ThrowIfNull(match);
-        return new KeyAccessToken(match.Groups[1].Value, match.Groups[2].Value,
-            new TextSpan(position, tokenText.Length));
+        return new KeyAccessToken(
+            match.Groups[1].Value,
+            match.Groups[2].Value,
+            new TextSpan(position, tokenText.Length)
+        );
     }
 
     private static Token CreateOuterJoinToken(int position, string tokenText, Match? match)
@@ -238,7 +253,11 @@ public static class TokenFactory
             "left" => OuterJoinType.Left,
             "right" => OuterJoinType.Right,
             "full" => OuterJoinType.Full,
-            _ => throw new ArgumentOutOfRangeException(nameof(match), match.Groups[1].Value, "Unsupported outer join type.")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(match),
+                match.Groups[1].Value,
+                "Unsupported outer join type."
+            ),
         };
         return new OuterJoinToken(type, new TextSpan(position, tokenText.Length));
     }
@@ -246,13 +265,13 @@ public static class TokenFactory
     private static Token CreateMethodAccessToken(int position, string tokenText, Match? match)
     {
         ArgumentNullException.ThrowIfNull(match);
-        return new MethodAccessToken(match.Groups[1].Value,
-            new TextSpan(position, match.Groups[1].Value.Length));
+        return new MethodAccessToken(match.Groups[1].Value, new TextSpan(position, match.Groups[1].Value.Length));
     }
 
     private static string GetAbbreviation(string tokenText)
     {
-        if (tokenText.Length == 1) return string.Empty;
+        if (tokenText.Length == 1)
+            return string.Empty;
 
         var position = 1;
         while (position < tokenText.Length && char.IsDigit(tokenText[position]))

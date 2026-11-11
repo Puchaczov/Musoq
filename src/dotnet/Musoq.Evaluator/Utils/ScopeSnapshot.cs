@@ -37,7 +37,8 @@ internal sealed class ScopeSnapshot
             scope.Name,
             scope.SnapshotAttributes(),
             scope.ScopeSymbolTable.Snapshot(),
-            scope.Child.Select(CaptureNode).ToArray());
+            scope.Child.Select(CaptureNode).ToArray()
+        );
     }
 
     private sealed class ScopeNodeSnapshot
@@ -47,12 +48,14 @@ internal sealed class ScopeSnapshot
             string name,
             IReadOnlyDictionary<string, string> attributes,
             IReadOnlyList<ScopeSymbolSnapshot> symbols,
-            IReadOnlyList<ScopeNodeSnapshot> children)
+            IReadOnlyList<ScopeNodeSnapshot> children
+        )
         {
             SelfIndex = selfIndex;
             Name = name;
             Attributes = new ReadOnlyDictionary<string, string>(
-                new Dictionary<string, string>(attributes, StringComparer.Ordinal));
+                new Dictionary<string, string>(attributes, StringComparer.Ordinal)
+            );
             Symbols = new ReadOnlyCollection<ScopeSymbolSnapshot>(symbols.ToArray());
             Children = new ReadOnlyCollection<ScopeNodeSnapshot>(children.ToArray());
         }
@@ -89,9 +92,7 @@ internal static class SymbolSnapshotCloner
     {
         ArgumentNullException.ThrowIfNull(symbol);
 
-        return symbol is TableSymbol table
-            ? BoundTableSymbolContract.Capture(table)
-            : Clone(symbol);
+        return symbol is TableSymbol table ? BoundTableSymbolContract.Capture(table) : Clone(symbol);
     }
 
     public static Symbol Restore(object snapshot)
@@ -103,7 +104,8 @@ internal static class SymbolSnapshotCloner
             BoundTableSymbolContract table => table.Restore(),
             Symbol symbol => Clone(symbol),
             _ => throw new InvalidOperationException(
-                $"Unsupported semantic scope symbol snapshot '{snapshot.GetType().FullName}'.")
+                $"Unsupported semantic scope symbol snapshot '{snapshot.GetType().FullName}'."
+            ),
         };
     }
 
@@ -119,7 +121,7 @@ internal static class SymbolSnapshotCloner
             FieldsNamesSymbol fields => fields.Clone(),
             IndexBasedContextsPositionsSymbol contexts => contexts.Clone(),
             RefreshMethodsSymbol refreshMethods => refreshMethods.Clone(),
-            _ => symbol
+            _ => symbol,
         };
     }
 }

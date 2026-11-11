@@ -17,10 +17,12 @@ internal sealed class AggregateStrategySelectionPass : IPhysicalOptimizationPass
         return ReferenceEquals(plan, rewritten)
             ? OptimizationResult<PhysicalNode>.NoChange(
                 plan,
-                "No aggregate candidates were present in the physical plan.")
+                "No aggregate candidates were present in the physical plan."
+            )
             : OptimizationResult<PhysicalNode>.Changed(
                 rewritten,
-                "Selected concrete aggregate strategies for aggregate candidates.");
+                "Selected concrete aggregate strategies for aggregate candidates."
+            );
     }
 
     private static PhysicalNode Rewrite(PhysicalNode node, PhysicalOptimizationState state)
@@ -28,46 +30,48 @@ internal sealed class AggregateStrategySelectionPass : IPhysicalOptimizationPass
         if (node is PhysicalAggregateCandidateNode aggregate)
             return SelectAggregateStrategy(aggregate, state);
 
-        return PhysicalPlanRewriter.RewriteChildren(
-            node,
-            child => Rewrite(child, state));
+        return PhysicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, state));
     }
 
     private static PhysicalNode SelectAggregateStrategy(
         PhysicalAggregateCandidateNode aggregate,
-        PhysicalOptimizationState state)
+        PhysicalOptimizationState state
+    )
     {
         var input = Rewrite(aggregate.Input, state);
         var strategy = PhysicalStrategyRules.ChooseAggregateStrategy(
             aggregate.GroupKeys.Length,
-            aggregate.GroupKeyTypes);
-        state.AddDecision(new PlanningDecision(
-            PlanningDecisionCategory.AggregateStrategy,
-            "AggregateStrategySelection",
-            "aggregate",
-            strategy.Kind.ToString(),
-            strategy.Kind == AggregateStrategyKind.Unsupported ? PlanningConfidence.Low : PlanningConfidence.High,
-            strategy.Reason));
+            aggregate.GroupKeyTypes
+        );
+        state.AddDecision(
+            new PlanningDecision(
+                PlanningDecisionCategory.AggregateStrategy,
+                "AggregateStrategySelection",
+                "aggregate",
+                strategy.Kind.ToString(),
+                strategy.Kind == AggregateStrategyKind.Unsupported ? PlanningConfidence.Low : PlanningConfidence.High,
+                strategy.Reason
+            )
+        );
 
         return strategy.Kind switch
         {
-            AggregateStrategyKind.AggregateOnly => new PhysicalAggregateOnlyNode(
-                aggregate.Bindings,
-                input),
+            AggregateStrategyKind.AggregateOnly => new PhysicalAggregateOnlyNode(aggregate.Bindings, input),
             AggregateStrategyKind.SingleKey => new PhysicalSingleKeyAggregateNode(
                 aggregate.GroupKeys[0],
                 aggregate.GroupKeyNames[0],
                 aggregate.GroupKeyTypes[0],
                 aggregate.Bindings,
-                input),
+                input
+            ),
             AggregateStrategyKind.ValueTuple => new PhysicalValueTupleAggregateNode(
                 aggregate.GroupKeys,
                 aggregate.GroupKeyNames,
                 aggregate.GroupKeyTypes,
                 aggregate.Bindings,
-                input),
-            _ => throw new NotSupportedException(strategy.Reason)
+                input
+            ),
+            _ => throw new NotSupportedException(strategy.Reason),
         };
     }
 }
-

@@ -8,7 +8,10 @@ public class UsedColumnsOrUsedWhereSchemaProvider<T>(IDictionary<string, IEnumer
 {
     public ISchema GetSchema(string schema)
     {
-        return new GenericSchema<UsedColumnsOrUsedWhereEntity, UsedColumnsOrUsedWhereTable>(values[schema],
-            UsedColumnsOrUsedWhereEntity.TestNameToIndexMap, UsedColumnsOrUsedWhereEntity.TestIndexToObjectAccessMap);
+        return new GenericSchema<UsedColumnsOrUsedWhereEntity, UsedColumnsOrUsedWhereTable>(
+            values[schema],
+            UsedColumnsOrUsedWhereEntity.TestNameToIndexMap,
+            UsedColumnsOrUsedWhereEntity.TestIndexToObjectAccessMap
+        );
     }
 }

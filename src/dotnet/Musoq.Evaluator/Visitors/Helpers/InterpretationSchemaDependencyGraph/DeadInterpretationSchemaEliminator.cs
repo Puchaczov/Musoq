@@ -19,7 +19,7 @@ public static class DeadInterpretationSchemaEliminator
                 WereSchemasEliminated = false,
                 AllSchemasEliminated = false,
                 EliminatedCount = 0,
-                Graph = graph
+                Graph = graph,
             };
 
         var prunedRegistry = new SchemaRegistry();
@@ -34,7 +34,7 @@ public static class DeadInterpretationSchemaEliminator
             WereSchemasEliminated = true,
             AllSchemasEliminated = prunedRegistry.Count == 0,
             EliminatedCount = graph.DeadSchemas.Count,
-            Graph = graph
+            Graph = graph,
         };
     }
 

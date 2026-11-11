@@ -19,7 +19,8 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select p.LittleInt, p.BigInt, p.LittleShort, p.BigShort, p.LittleFloat, p.LittleDouble
                     from #test.files() f
-                    cross apply Interpret<PrimitiveMatrix>(f.Content) p"),
+                    cross apply Interpret<PrimitiveMatrix>(f.Content) p"
+            ),
             BinaryInterpretationSample(
                 "Q303_SpecBinaryBytesAndStrings",
                 @"
@@ -35,11 +36,12 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select r.FixedBytes[0], r.DynamicBytes[0], r.AsciiValue, r.Utf8Value, r.Utf16Value, r.LatinValue, r.NullTermValue
                     from #test.files() f
-                    cross apply Interpret<EncodedRecord>(f.Content) r") with
+                    cross apply Interpret<EncodedRecord>(f.Content) r"
+            ) with
             {
                 CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                     .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse()
+                    .WithStabilityAwareScalarReuse(),
             },
             BinaryInterpretationSample(
                 "Q304_SpecBinaryBitsAlignmentAbsolute",
@@ -52,7 +54,8 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select p.Flags, p.NextByte, p.Signature
                     from #test.files() f
-                    cross apply Interpret<PositionedFlags>(f.Content) p"),
+                    cross apply Interpret<PositionedFlags>(f.Content) p"
+            ),
             BinaryInterpretationSample(
                 "Q305_SpecBinaryChecksConstMagicOneOf",
                 @"
@@ -63,11 +66,12 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select r.Version, r.Signature, r.Kind
                     from #test.files() f
-                    cross apply Interpret<ValidatedRecord>(f.Content) r") with
+                    cross apply Interpret<ValidatedRecord>(f.Content) r"
+            ) with
             {
                 CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                     .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse()
+                    .WithStabilityAwareScalarReuse(),
             },
             BinaryInterpretationSample(
                 "Q306_SpecBinaryDiscardRepeatUntilEof",
@@ -82,7 +86,8 @@ internal static partial class EvaluatorSampleFixtures
                     select i.Value
                     from #test.files() f
                     cross apply Interpret<ItemStream>(f.Content) s
-                    cross apply s.Items i"),
+                    cross apply s.Items i"
+            ),
             BinaryInterpretationSample(
                 "Q307_SpecBinarySwitchTaggedUnion",
                 @"
@@ -99,11 +104,12 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select p.Type, p.Payload.Case, p.Payload.Login.UserId, p.Payload.Data.Size, p.Payload.Raw
                     from #test.files() f
-                    cross apply Interpret<Packet>(f.Content) p") with
+                    cross apply Interpret<Packet>(f.Content) p"
+            ) with
             {
                 CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                     .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse()
+                    .WithStabilityAwareScalarReuse(),
             },
             BinaryInterpretationSample(
                 "Q308_SpecBinaryRawSubstream",
@@ -116,11 +122,12 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select p.Kind, p.Payload, p.Checksum
                     from #test.files() f
-                    cross apply Interpret<Packet>(f.Content) p") with
+                    cross apply Interpret<Packet>(f.Content) p"
+            ) with
             {
                 CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                     .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse()
+                    .WithStabilityAwareScalarReuse(),
             },
             BinaryInterpretationSample(
                 "Q309_SpecBinaryStructuredSubstreams",
@@ -136,11 +143,12 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select f.Exact.A, f.Exact.B, f.Lax.A, f.Lax.B, f.Inline.A, f.Inline.B
                     from #test.files() src
-                    cross apply Interpret<Frame>(src.Content) f") with
+                    cross apply Interpret<Frame>(src.Content) f"
+            ) with
             {
                 CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                     .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse()
+                    .WithStabilityAwareScalarReuse(),
             },
             BinaryInterpretationSample(
                 "Q310_SpecBinaryTryInterpretAndInterpretAt",
@@ -150,11 +158,12 @@ internal static partial class EvaluatorSampleFixtures
                     select h.Magic, h.Offset, p.Value
                     from #test.files() f
                     cross apply TryInterpret<Header>(f.Content) h
-                    cross apply InterpretAt<Payload>(f.Content, h.Offset) p") with
+                    cross apply InterpretAt<Payload>(f.Content, h.Offset) p"
+            ) with
             {
                 CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                     .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse()
+                    .WithStabilityAwareScalarReuse(),
             },
             BinaryInterpretationSample(
                 "Q311_SpecBinaryPartialInterpret",
@@ -162,11 +171,12 @@ internal static partial class EvaluatorSampleFixtures
                     binary DebugPacket { Magic: int le, Version: byte };
                     select p.ErrorField, p.ErrorMessage, p.BytesConsumed
                     from #test.files() f
-                    cross apply PartialInterpret<DebugPacket>(f.Content) p") with
+                    cross apply PartialInterpret<DebugPacket>(f.Content) p"
+            ) with
             {
                 CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                     .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse()
+                    .WithStabilityAwareScalarReuse(),
             },
             BinaryInterpretationSample(
                 "Q312_SpecBinaryInheritance",
@@ -176,7 +186,8 @@ internal static partial class EvaluatorSampleFixtures
                     binary Grandchild extends Child { Flags: byte };
                     select g.Id, g.Version, g.Flags
                     from #test.files() f
-                    cross apply Interpret<Grandchild>(f.Content) g"),
+                    cross apply Interpret<Grandchild>(f.Content) g"
+            ),
             BinaryInterpretationSample(
                 "Q313_SpecBinaryTextComposition",
                 @"
@@ -191,7 +202,8 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select c.Version, c.Data.Key, c.Data.Value, c.Checksum
                     from #test.files() f
-                    cross apply Interpret<Config>(f.Content) c")
+                    cross apply Interpret<Config>(f.Content) c"
+            ),
         ];
     }
 }

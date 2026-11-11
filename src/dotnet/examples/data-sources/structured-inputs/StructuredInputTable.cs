@@ -7,8 +7,10 @@ namespace Musoq.Examples.DataSources.StructuredInputs;
 public sealed class StructuredInputTable<TRow> : ISchemaTable
 {
     private static readonly ISchemaColumn[] SchemaColumns = CreateColumns();
-    private static readonly IReadOnlyDictionary<string, ISchemaColumn> ColumnsByName =
-        SchemaColumns.ToDictionary(static column => column.ColumnName, StringComparer.OrdinalIgnoreCase);
+    private static readonly IReadOnlyDictionary<string, ISchemaColumn> ColumnsByName = SchemaColumns.ToDictionary(
+        static column => column.ColumnName,
+        StringComparer.OrdinalIgnoreCase
+    );
 
     public ISchemaColumn[] Columns => SchemaColumns.ToArray();
 

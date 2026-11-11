@@ -57,8 +57,10 @@ public sealed class DiagnosticLocationContractTests
     public void UnlocatedTextSchemaReference_ShouldNotInventAnInsertionPoint()
     {
         var visitor = new SchemaDefinitionVisitor(new SchemaRegistry());
-        var schema = new TextSchemaNode("Container",
-            [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Missing")]);
+        var schema = new TextSchemaNode(
+            "Container",
+            [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Missing")]
+        );
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(schema));
 
         Assert.IsNull(exception.Span);

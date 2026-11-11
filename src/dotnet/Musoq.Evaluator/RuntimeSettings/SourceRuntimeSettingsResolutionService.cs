@@ -12,7 +12,8 @@ namespace Musoq.Evaluator.RuntimeSettings;
 
 internal sealed class SourceRuntimeSettingsResolutionService(
     CompilationOptions compilationOptions,
-    DiagnosticContext? diagnosticContext)
+    DiagnosticContext? diagnosticContext
+)
 {
     public ResolvedSourceRuntimeSettings Resolve(
         ISchema schema,
@@ -24,23 +25,23 @@ internal sealed class SourceRuntimeSettingsResolutionService(
         IReadOnlyDictionary<string, string> initialSettings,
         ILogger logger,
         SourceRuntimeSettingsResolutionMode mode,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var sourceContextId = sourceNode.Id;
         var values = new Dictionary<string, string>(initialSettings, StringComparer.Ordinal);
         var identity = new SourceIdentity(sourceNode.Schema, sourceNode.Method, sourceContextId, sourceNode.Alias);
-        var metadataContext = new SourceMetadataContext(
-            queryId,
-            cancellationToken,
-            columns,
-            values,
-            logger);
+        var metadataContext = new SourceMetadataContext(queryId, cancellationToken, columns, values, logger);
         cancellationToken.ThrowIfCancellationRequested();
-        var requirements = SchemaProviderBoundary.Invoke(() => schema.DescribeSourceRuntimeSettings(
-            sourceNode.Method,
-            new SourceRuntimeSettingsDescribeContext(identity, metadataContext),
-            parameters)) ?? [];
+        var requirements =
+            SchemaProviderBoundary.Invoke(() =>
+                schema.DescribeSourceRuntimeSettings(
+                    sourceNode.Method,
+                    new SourceRuntimeSettingsDescribeContext(identity, metadataContext),
+                    parameters
+                )
+            ) ?? [];
         cancellationToken.ThrowIfCancellationRequested();
 
         if (requirements.Count > 0 || !compilationOptions.UsesDefaultSourceRuntimeSettingsResolver)
@@ -49,8 +50,9 @@ internal sealed class SourceRuntimeSettingsResolutionService(
             var resolvedSettings = compilationOptions.SourceRuntimeSettingsResolver.Resolve(
                 new SourceRuntimeSettingsResolutionRequest(identity, profileName, requirements, parameters)
                 {
-                    CancellationToken = cancellationToken
-                });
+                    CancellationToken = cancellationToken,
+                }
+            );
             cancellationToken.ThrowIfCancellationRequested();
 
             foreach (var setting in resolvedSettings ?? new Dictionary<string, string>())
@@ -64,7 +66,8 @@ internal sealed class SourceRuntimeSettingsResolutionService(
         var snapshot = values.ToFrozenDictionary(StringComparer.Ordinal);
         var descriptions = CreateDescriptions(requirements, snapshot, cancellationToken);
         var hasMissingRequired = descriptions.Any(static description =>
-            description.Status == SourceRuntimeSettingResolutionStatus.Missing);
+            description.Status == SourceRuntimeSettingResolutionStatus.Missing
+        );
 
         if (mode == SourceRuntimeSettingsResolutionMode.EnforceRequiredSettings)
             ReportMissingSourceRuntimeSettings(descriptions, identity, sourceNode, cancellationToken);
@@ -76,25 +79,32 @@ internal sealed class SourceRuntimeSettingsResolutionService(
             descriptions,
             requirements.Count > 0,
             snapshot.Count > 0,
-            hasMissingRequired);
+            hasMissingRequired
+        );
     }
 
     private static IReadOnlyList<SourceRuntimeSettingDescription> CreateDescriptions(
         IReadOnlyList<SourceRuntimeSettingRequirement> requirements,
         IReadOnlyDictionary<string, string> values,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var descriptions = new List<SourceRuntimeSettingDescription>(requirements.Count);
-        foreach (var requirement in requirements.OrderBy(static requirement => requirement.Name, StringComparer.Ordinal))
+        foreach (
+            var requirement in requirements.OrderBy(static requirement => requirement.Name, StringComparer.Ordinal)
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            descriptions.Add(new SourceRuntimeSettingDescription(
-                requirement.Name,
-                requirement.Required,
-                requirement.Secret,
-                requirement.Phases,
-                ResolveStatus(requirement, values),
-                requirement.Description));
+            descriptions.Add(
+                new SourceRuntimeSettingDescription(
+                    requirement.Name,
+                    requirement.Required,
+                    requirement.Secret,
+                    requirement.Phases,
+                    ResolveStatus(requirement, values),
+                    requirement.Description
+                )
+            );
         }
 
         return descriptions.AsReadOnly();
@@ -102,7 +112,8 @@ internal sealed class SourceRuntimeSettingsResolutionService(
 
     private static SourceRuntimeSettingResolutionStatus ResolveStatus(
         SourceRuntimeSettingRequirement requirement,
-        IReadOnlyDictionary<string, string> values)
+        IReadOnlyDictionary<string, string> values
+    )
     {
         if (values.ContainsKey(requirement.Name))
             return SourceRuntimeSettingResolutionStatus.Provided;
@@ -116,7 +127,8 @@ internal sealed class SourceRuntimeSettingsResolutionService(
         IEnumerable<SourceRuntimeSettingDescription> descriptions,
         SourceIdentity identity,
         Node node,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         foreach (var description in descriptions)
         {

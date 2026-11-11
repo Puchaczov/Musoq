@@ -10,7 +10,11 @@ public abstract partial class ExpressionArrayRewriter
         var operand = node.Operand is null ? null : Visit(node.Operand);
         return bindings.SequenceEqual(node.Bindings) && ReferenceEquals(operand, node.Operand)
             ? node
-            : node with { Bindings = bindings, Operand = operand };
+            : node with
+            {
+                Bindings = bindings,
+                Operand = operand,
+            };
     }
 
     protected override IrExpression VisitSubqueryParameter(SubqueryParameterRef node) => node;

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Musoq.Parser.Nodes;
-using Musoq.Parser;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Parser;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -20,15 +20,25 @@ internal static class AggregateDeclarationSpecialization
                 BindParameter(parameters[index].ParameterType, argument, bindings);
         }
 
-        var arguments = declaration.GetGenericArguments().Select(parameter => ResolveArgument(declaration, parameter, bindings)).ToArray();
+        var arguments = declaration
+            .GetGenericArguments()
+            .Select(parameter => ResolveArgument(declaration, parameter, bindings))
+            .ToArray();
         return declaration.MakeGenericMethod(arguments);
     }
 
-    private static Type ResolveArgument(MethodInfo declaration, Type parameter, IReadOnlyDictionary<Type, Type> bindings)
+    private static Type ResolveArgument(
+        MethodInfo declaration,
+        Type parameter,
+        IReadOnlyDictionary<Type, Type> bindings
+    )
     {
         if (bindings.TryGetValue(parameter, out var bound))
             return bound;
-        throw new SourcePlanContractException($"Aggregate declaration {declaration.Name} type parameter {parameter.Name} cannot be inferred.", TextSpan.Empty);
+        throw new SourcePlanContractException(
+            $"Aggregate declaration {declaration.Name} type parameter {parameter.Name} cannot be inferred.",
+            TextSpan.Empty
+        );
     }
 
     private static void BindParameter(Type parameter, Type argument, Dictionary<Type, Type> bindings)
@@ -36,7 +46,10 @@ internal static class AggregateDeclarationSpecialization
         if (parameter.IsGenericParameter)
         {
             if (bindings.TryGetValue(parameter, out var previous) && previous != argument)
-                throw new SourcePlanContractException($"Aggregate type parameter {parameter.Name} has incompatible concrete arguments.", TextSpan.Empty);
+                throw new SourcePlanContractException(
+                    $"Aggregate type parameter {parameter.Name} has incompatible concrete arguments.",
+                    TextSpan.Empty
+                );
             bindings[parameter] = argument;
             return;
         }

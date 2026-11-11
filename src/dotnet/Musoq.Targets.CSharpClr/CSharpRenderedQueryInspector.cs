@@ -21,7 +21,8 @@ internal sealed class CSharpRenderedQueryInspector : IRenderedQueryInspector, IC
         cancellationToken.ThrowIfCancellationRequested();
         if (artifact is not CSharpRenderedQueryArtifact csharp)
             throw new InvalidOperationException(
-                $"Generated C# inspection requires a C# rendered artifact, but got '{artifact.TargetId}'.");
+                $"Generated C# inspection requires a C# rendered artifact, but got '{artifact.TargetId}'."
+            );
 
         var generatedCode = FormatGeneratedCode(csharp, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
@@ -31,8 +32,9 @@ internal sealed class CSharpRenderedQueryInspector : IRenderedQueryInspector, IC
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["language"] = "csharp",
-                ["runnableType"] = csharp.AccessToClassPath
-            });
+                ["runnableType"] = csharp.AccessToClassPath,
+            }
+        );
     }
 
     private static string FormatGeneratedCode(CSharpRenderedQueryArtifact csharp, CancellationToken cancellationToken)

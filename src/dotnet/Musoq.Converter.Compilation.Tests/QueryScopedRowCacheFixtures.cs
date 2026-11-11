@@ -15,7 +15,8 @@ public sealed class QueryRowCacheState
     public QueryRowCacheState(
         IReadOnlyList<QueryRowCacheColumn> columns,
         IReadOnlyList<object?[]> rows,
-        SourceTransferCapabilities transferCapabilities = SourceTransferCapabilities.QueryScopedRows)
+        SourceTransferCapabilities transferCapabilities = SourceTransferCapabilities.QueryScopedRows
+    )
     {
         Configure(columns, rows, transferCapabilities);
     }
@@ -29,7 +30,8 @@ public sealed class QueryRowCacheState
     public void Configure(
         IReadOnlyList<QueryRowCacheColumn> columns,
         IReadOnlyList<object?[]> rows,
-        SourceTransferCapabilities transferCapabilities = SourceTransferCapabilities.QueryScopedRows)
+        SourceTransferCapabilities transferCapabilities = SourceTransferCapabilities.QueryScopedRows
+    )
     {
         ArgumentNullException.ThrowIfNull(columns);
         ArgumentNullException.ThrowIfNull(rows);
@@ -43,8 +45,10 @@ public sealed class QueryRowCacheSchemaProvider(QueryRowCacheState state) : ISch
 {
     public ISchema GetSchema(string schema)
     {
-        if (string.Equals(schema, "queryrowcache", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(schema, "#queryrowcache", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(schema, "queryrowcache", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(schema, "#queryrowcache", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return new QueryRowCacheSchema(state);
         }
@@ -66,7 +70,8 @@ public sealed class QueryRowCacheSchema : SchemaBase, IQueryScopedRowSourceSchem
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         if (string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
             return new QueryRowCacheTable(_state);
@@ -77,13 +82,12 @@ public sealed class QueryRowCacheSchema : SchemaBase, IQueryScopedRowSourceSchem
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         if (string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
         {
-            return EnsureSourceType<T, QueryRowCacheEntity>(
-                name,
-                new QueryRowCacheLegacySource(_state));
+            return EnsureSourceType<T, QueryRowCacheEntity>(name, new QueryRowCacheLegacySource(_state));
         }
 
         throw new NotSupportedException(name);
@@ -92,27 +96,27 @@ public sealed class QueryRowCacheSchema : SchemaBase, IQueryScopedRowSourceSchem
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return base.DescribeSource(name, context, parameters) with
         {
-            TransferCapabilities = _state.TransferCapabilities
+            TransferCapabilities = _state.TransferCapabilities,
         };
     }
 
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         if (!string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
             throw new NotSupportedException(name);
 
-        return new QueryRowCacheMaterializedSource<TRow, TMaterializer>(
-            _state.Rows,
-            request.Shape.Fields);
+        return new QueryRowCacheMaterializedSource<TRow, TMaterializer>(_state.Rows, request.Shape.Fields);
     }
 
     private static MethodsAggregator CreateLibrary()
@@ -125,9 +129,10 @@ public sealed class QueryRowCacheSchema : SchemaBase, IQueryScopedRowSourceSchem
 
 public sealed class QueryRowCacheTable(QueryRowCacheState state) : ISchemaTable
 {
-    public ISchemaColumn[] Columns { get; } = state.Columns
-        .Select(static column => (ISchemaColumn)new SchemaColumn(column.Name, column.Ordinal, column.Type))
-        .ToArray();
+    public ISchemaColumn[] Columns { get; } =
+        state
+            .Columns.Select(static column => (ISchemaColumn)new SchemaColumn(column.Name, column.Ordinal, column.Type))
+            .ToArray();
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(QueryRowCacheEntity));
 
@@ -148,7 +153,8 @@ public sealed class QueryRowCacheLegacySource(QueryRowCacheState state) : RowSou
 
 public sealed class QueryRowCacheMaterializedSource<TRow, TMaterializer>(
     IReadOnlyList<object?[]> rows,
-    IReadOnlyList<QueryRowField> fields) : RowSourceBase<TRow>
+    IReadOnlyList<QueryRowField> fields
+) : RowSourceBase<TRow>
     where TMaterializer : struct, IQueryRowMaterializer<TRow>
 {
     protected override void CollectChunks(IChunkWriter<TRow> writer)
@@ -164,9 +170,8 @@ public sealed class QueryRowCacheMaterializedSource<TRow, TMaterializer>(
     }
 }
 
-public ref struct QueryRowCacheReader(
-    IReadOnlyList<object?> values,
-    IReadOnlyList<QueryRowField> fields) : IQuerySourceFieldReader
+public ref struct QueryRowCacheReader(IReadOnlyList<object?> values, IReadOnlyList<QueryRowField> fields)
+    : IQuerySourceFieldReader
 {
     public T Read<T>(int slot)
     {
@@ -191,9 +196,7 @@ public sealed class QueryRowCacheEntity
 
     public Guid G4 { get; set; }
 
-    public static QueryRowCacheEntity Create(
-        IReadOnlyList<QueryRowCacheColumn> columns,
-        IReadOnlyList<object?> values)
+    public static QueryRowCacheEntity Create(IReadOnlyList<QueryRowCacheColumn> columns, IReadOnlyList<object?> values)
     {
         var entity = new QueryRowCacheEntity();
         foreach (var column in columns)

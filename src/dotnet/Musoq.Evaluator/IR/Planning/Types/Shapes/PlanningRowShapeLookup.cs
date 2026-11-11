@@ -8,9 +8,11 @@ internal static class PlanningRowShapeLookup
 {
     public static PlanningField? ResolveField(PlanningRowShape sourceShape, ColumnRef column)
     {
-        if (!string.IsNullOrWhiteSpace(column.Alias) &&
-            !string.Equals(sourceShape.Alias, column.Alias, StringComparison.OrdinalIgnoreCase) &&
-            sourceShape.Kind != PlanningRowShapeKind.TableRow)
+        if (
+            !string.IsNullOrWhiteSpace(column.Alias)
+            && !string.Equals(sourceShape.Alias, column.Alias, StringComparison.OrdinalIgnoreCase)
+            && sourceShape.Kind != PlanningRowShapeKind.TableRow
+        )
         {
             return null;
         }
@@ -23,39 +25,45 @@ internal static class PlanningRowShapeLookup
             : $"{column.Alias}.{columnName}";
 
         var field = sourceShape.Fields.FirstOrDefault(candidate =>
-            string.Equals(candidate.Name, columnName, StringComparison.Ordinal) ||
-            string.Equals(candidate.Name, column.ColumnName, StringComparison.Ordinal) ||
-            string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.Ordinal) ||
-            string.Equals(candidate.Name, originalQualifiedName, StringComparison.Ordinal) ||
-            string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.Ordinal) ||
-            string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.Ordinal) ||
-            string.Equals(candidate.QualifiedName, $"{sourceShape.Alias}.{originalQualifiedName}", StringComparison.Ordinal));
+            string.Equals(candidate.Name, columnName, StringComparison.Ordinal)
+            || string.Equals(candidate.Name, column.ColumnName, StringComparison.Ordinal)
+            || string.Equals(candidate.Name, sourceRelativeColumnName, StringComparison.Ordinal)
+            || string.Equals(candidate.Name, originalQualifiedName, StringComparison.Ordinal)
+            || string.Equals(candidate.QualifiedName, originalQualifiedName, StringComparison.Ordinal)
+            || string.Equals(candidate.QualifiedName, qualifiedName, StringComparison.Ordinal)
+            || string.Equals(
+                candidate.QualifiedName,
+                $"{sourceShape.Alias}.{originalQualifiedName}",
+                StringComparison.Ordinal
+            )
+        );
 
         if (field != null)
             return field;
 
-        return ResolveNestedField(sourceShape, sourceRelativeColumnName, originalQualifiedName) ??
-               ResolveIndexedField(sourceShape, column, sourceRelativeColumnName) ??
-               ResolveUnqualifiedField(sourceShape, column, sourceRelativeColumnName);
+        return ResolveNestedField(sourceShape, sourceRelativeColumnName, originalQualifiedName)
+            ?? ResolveIndexedField(sourceShape, column, sourceRelativeColumnName)
+            ?? ResolveUnqualifiedField(sourceShape, column, sourceRelativeColumnName);
     }
 
     private static PlanningField? ResolveNestedField(
         PlanningRowShape sourceShape,
         string sourceRelativeColumnName,
-        string originalQualifiedName)
+        string originalQualifiedName
+    )
     {
-        if (!sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
-            !sourceRelativeColumnName.Contains('[', StringComparison.Ordinal))
+        if (
+            !sourceRelativeColumnName.Contains('.', StringComparison.Ordinal)
+            && !sourceRelativeColumnName.Contains('[', StringComparison.Ordinal)
+        )
         {
             return null;
         }
 
-        return sourceShape.Fields
-            .SelectMany(field => CreateNestedRootMatches(
-                field,
-                sourceShape.Alias,
-                sourceRelativeColumnName,
-                originalQualifiedName))
+        return sourceShape
+            .Fields.SelectMany(field =>
+                CreateNestedRootMatches(field, sourceShape.Alias, sourceRelativeColumnName, originalQualifiedName)
+            )
             .OrderByDescending(match => match.PrefixLength)
             .FirstOrDefault()
             ?.Field;
@@ -64,28 +72,36 @@ internal static class PlanningRowShapeLookup
     private static PlanningField? ResolveIndexedField(
         PlanningRowShape sourceShape,
         ColumnRef column,
-        string sourceRelativeColumnName)
+        string sourceRelativeColumnName
+    )
     {
         if (!sourceRelativeColumnName.Contains('[', StringComparison.Ordinal))
             return null;
 
         var rootName = GetRootFieldName(sourceRelativeColumnName);
         return sourceShape.Fields.FirstOrDefault(candidate =>
-            string.Equals(candidate.Name, rootName, StringComparison.Ordinal) ||
-            string.Equals(candidate.Name, $"{column.Alias}.{rootName}", StringComparison.Ordinal) ||
-            string.Equals(candidate.QualifiedName, $"{sourceShape.Alias}.{rootName}", StringComparison.Ordinal) ||
-            string.Equals(candidate.QualifiedName, $"{column.Alias}.{rootName}", StringComparison.Ordinal));
+            string.Equals(candidate.Name, rootName, StringComparison.Ordinal)
+            || string.Equals(candidate.Name, $"{column.Alias}.{rootName}", StringComparison.Ordinal)
+            || string.Equals(candidate.QualifiedName, $"{sourceShape.Alias}.{rootName}", StringComparison.Ordinal)
+            || string.Equals(candidate.QualifiedName, $"{column.Alias}.{rootName}", StringComparison.Ordinal)
+        );
     }
 
     private static PlanningField? ResolveUnqualifiedField(
         PlanningRowShape sourceShape,
         ColumnRef column,
-        string sourceRelativeColumnName)
+        string sourceRelativeColumnName
+    )
     {
-        var matches = sourceShape.Fields
-            .Where(candidate =>
-                string.Equals(GetUnqualifiedFieldName(candidate.Name), column.ColumnName, StringComparison.Ordinal) ||
-                string.Equals(GetUnqualifiedFieldName(candidate.Name), sourceRelativeColumnName, StringComparison.Ordinal))
+        var matches = sourceShape
+            .Fields.Where(candidate =>
+                string.Equals(GetUnqualifiedFieldName(candidate.Name), column.ColumnName, StringComparison.Ordinal)
+                || string.Equals(
+                    GetUnqualifiedFieldName(candidate.Name),
+                    sourceRelativeColumnName,
+                    StringComparison.Ordinal
+                )
+            )
             .Take(2)
             .ToArray();
 
@@ -96,7 +112,8 @@ internal static class PlanningRowShapeLookup
         PlanningField candidate,
         string alias,
         string sourceRelativeColumnName,
-        string originalQualifiedName)
+        string originalQualifiedName
+    )
     {
         foreach (var match in CreateNestedRootMatches(candidate, sourceRelativeColumnName))
             yield return match;
@@ -111,9 +128,7 @@ internal static class PlanningRowShapeLookup
             yield return match;
     }
 
-    private static IEnumerable<NestedRootField> CreateNestedRootMatches(
-        PlanningField candidate,
-        string columnName)
+    private static IEnumerable<NestedRootField> CreateNestedRootMatches(PlanningField candidate, string columnName)
     {
         foreach (var prefix in CreateNestedRootPrefixes(candidate))
         {
@@ -140,9 +155,11 @@ internal static class PlanningRowShapeLookup
 
     private static bool IsNestedPrefix(string columnName, string prefix)
     {
-        if (string.IsNullOrWhiteSpace(prefix) ||
-            !columnName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
-            columnName.Length <= prefix.Length)
+        if (
+            string.IsNullOrWhiteSpace(prefix)
+            || !columnName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+            || columnName.Length <= prefix.Length
+        )
         {
             return false;
         }

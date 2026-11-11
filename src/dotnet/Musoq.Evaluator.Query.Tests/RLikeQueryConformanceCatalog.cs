@@ -23,7 +23,7 @@ internal enum RLikePatternFamily
     Backreference,
     UnicodeCategory,
     EscapedLiteral,
-    Multiline
+    Multiline,
 }
 
 internal enum RLikePatternSource
@@ -36,7 +36,7 @@ internal enum RLikePatternSource
     MethodResult,
     CaseExpression,
     CoalesceExpression,
-    InnerApplyColumn
+    InnerApplyColumn,
 }
 
 internal enum RLikeCharacterDomain
@@ -45,12 +45,22 @@ internal enum RLikeCharacterDomain
     Unicode,
     CultureSensitive,
     ComposedAndDecomposed,
-    SurrogateContaining
+    SurrogateContaining,
 }
 
-internal enum RLikePolarity { Positive, Negated }
+internal enum RLikePolarity
+{
+    Positive,
+    Negated,
+}
 
-internal enum RLikeNullCase { Neither, Input, Pattern, Both }
+internal enum RLikeNullCase
+{
+    Neither,
+    Input,
+    Pattern,
+    Both,
+}
 
 internal enum RLikeQueryContext
 {
@@ -71,16 +81,22 @@ internal enum RLikeQueryContext
     SetBranch,
     DistinctOrderPage,
     PredicateQuantifier,
-    Parallel
+    Parallel,
 }
 
-internal enum RLikeExecutionStrategy { Direct, Prepared, Dynamic }
+internal enum RLikeExecutionStrategy
+{
+    Direct,
+    Prepared,
+    Dynamic,
+}
 
 internal sealed record RLikeQueryContextCoverage(
     string Id,
     RLikeQueryContext Context,
     RLikeExecutionStrategy Strategy,
-    RLikePatternSource? PatternSource = null);
+    RLikePatternSource? PatternSource = null
+);
 
 internal sealed record RLikeQueryConformanceCase(
     string Id,
@@ -95,7 +111,8 @@ internal sealed record RLikeQueryConformanceCase(
     RLikeExecutionStrategy ExpectedStrategy,
     IReadOnlyDictionary<string, object?[][]>? CultureExpectedRows = null,
     IReadOnlyDictionary<string, object?>? Parameters = null,
-    bool CacheSensitive = false)
+    bool CacheSensitive = false
+)
 {
     public object?[][] GetExpectedRows(CultureInfo culture)
     {
@@ -109,7 +126,11 @@ internal sealed record RLikeQueryConformanceCase(
 internal static class RLikeQueryConformanceCatalog
 {
     public static IReadOnlyList<RLikeQueryConformanceCase> Cases { get; } =
-        CreatePatternCases().Concat(CreateSourceCases()).Concat(CreateUnicodeCases()).Concat(CreateNullCases()).ToArray();
+        CreatePatternCases()
+            .Concat(CreateSourceCases())
+            .Concat(CreateUnicodeCases())
+            .Concat(CreateNullCases())
+            .ToArray();
 
     public static IReadOnlyList<RLikeQueryContextCoverage> ContextCoverage { get; } =
     [
@@ -119,7 +140,12 @@ internal static class RLikeQueryConformanceCatalog
         new("context-case", RLikeQueryContext.CaseWhen, RLikeExecutionStrategy.Dynamic),
         new("context-inner-join", RLikeQueryContext.InnerJoin, RLikeExecutionStrategy.Dynamic),
         new("context-left-join", RLikeQueryContext.LeftJoin, RLikeExecutionStrategy.Dynamic),
-        new("context-cross-apply", RLikeQueryContext.CrossApply, RLikeExecutionStrategy.Dynamic, RLikePatternSource.InnerApplyColumn),
+        new(
+            "context-cross-apply",
+            RLikeQueryContext.CrossApply,
+            RLikeExecutionStrategy.Dynamic,
+            RLikePatternSource.InnerApplyColumn
+        ),
         new("context-outer-apply", RLikeQueryContext.OuterApply, RLikeExecutionStrategy.Prepared),
         new("context-aggregate-filter", RLikeQueryContext.AggregateFilter, RLikeExecutionStrategy.Prepared),
         new("context-having", RLikeQueryContext.Having, RLikeExecutionStrategy.Prepared),
@@ -130,89 +156,360 @@ internal static class RLikeQueryConformanceCatalog
         new("context-set", RLikeQueryContext.SetBranch, RLikeExecutionStrategy.Direct),
         new("context-page", RLikeQueryContext.DistinctOrderPage, RLikeExecutionStrategy.Direct),
         new("context-quantifier", RLikeQueryContext.PredicateQuantifier, RLikeExecutionStrategy.Prepared),
-        new("context-parallel", RLikeQueryContext.Parallel, RLikeExecutionStrategy.Dynamic)
+        new("context-parallel", RLikeQueryContext.Parallel, RLikeExecutionStrategy.Dynamic),
     ];
 
     private static IEnumerable<RLikeQueryConformanceCase> CreatePatternCases()
     {
-        yield return Literal("literal", "before-Alpha-after", "Alpha", true, RLikePatternFamily.Literal, RLikeExecutionStrategy.Direct);
-        yield return Literal("absolute-prefix", "Alphabet", @"\AAlpha", true, RLikePatternFamily.AbsolutePrefix, RLikeExecutionStrategy.Direct);
-        yield return Literal("absolute-suffix", "Alphabet", @"bet\z", true, RLikePatternFamily.AbsoluteSuffix, RLikeExecutionStrategy.Direct);
-        yield return Literal("absolute-exact", "Alpha", @"\AAlpha\z", true, RLikePatternFamily.AbsoluteExact, RLikeExecutionStrategy.Direct);
-        yield return Literal("empty", "Alpha", string.Empty, true, RLikePatternFamily.Empty, RLikeExecutionStrategy.Direct);
+        yield return Literal(
+            "literal",
+            "before-Alpha-after",
+            "Alpha",
+            true,
+            RLikePatternFamily.Literal,
+            RLikeExecutionStrategy.Direct
+        );
+        yield return Literal(
+            "absolute-prefix",
+            "Alphabet",
+            @"\AAlpha",
+            true,
+            RLikePatternFamily.AbsolutePrefix,
+            RLikeExecutionStrategy.Direct
+        );
+        yield return Literal(
+            "absolute-suffix",
+            "Alphabet",
+            @"bet\z",
+            true,
+            RLikePatternFamily.AbsoluteSuffix,
+            RLikeExecutionStrategy.Direct
+        );
+        yield return Literal(
+            "absolute-exact",
+            "Alpha",
+            @"\AAlpha\z",
+            true,
+            RLikePatternFamily.AbsoluteExact,
+            RLikeExecutionStrategy.Direct
+        );
+        yield return Literal(
+            "empty",
+            "Alpha",
+            string.Empty,
+            true,
+            RLikePatternFamily.Empty,
+            RLikeExecutionStrategy.Direct
+        );
         yield return Literal("dot", "Alpha", "Al.ha", true, RLikePatternFamily.Dot, RLikeExecutionStrategy.Prepared);
-        yield return Literal("character-class", "Alpha", "[A-Z]lpha", true, RLikePatternFamily.CharacterClass, RLikeExecutionStrategy.Prepared);
-        yield return Literal("quantifier", "Alpha", "Al.+a", true, RLikePatternFamily.Quantifier, RLikeExecutionStrategy.Prepared);
-        yield return Literal("alternation", "Beta", "Alpha|Beta", true, RLikePatternFamily.Alternation, RLikeExecutionStrategy.Prepared);
-        yield return Literal("group", "Alpha", "(?:Al)pha", true, RLikePatternFamily.Group, RLikeExecutionStrategy.Prepared);
-        yield return Literal("inline-options", "ALPHA", "(?i)alpha", true, RLikePatternFamily.InlineOptions, RLikeExecutionStrategy.Prepared);
-        yield return Literal("lookaround", "AlphaBeta", "Alpha(?=Beta)", true, RLikePatternFamily.Lookaround, RLikeExecutionStrategy.Prepared);
-        yield return Literal("backreference", "AlAl", @"\A(Al)\1\z", true, RLikePatternFamily.Backreference, RLikeExecutionStrategy.Prepared);
-        yield return Literal("unicode-category", "Łódź", @"\A\p{L}+\z", true, RLikePatternFamily.UnicodeCategory, RLikeExecutionStrategy.Prepared, RLikeCharacterDomain.Unicode);
-        yield return Literal("escaped-literal", "a.b", @"\Aa\.b\z", true, RLikePatternFamily.EscapedLiteral, RLikeExecutionStrategy.Prepared);
-        yield return Literal("multiline", "first\nsecond", "(?m)^second$", true, RLikePatternFamily.Multiline, RLikeExecutionStrategy.Prepared);
+        yield return Literal(
+            "character-class",
+            "Alpha",
+            "[A-Z]lpha",
+            true,
+            RLikePatternFamily.CharacterClass,
+            RLikeExecutionStrategy.Prepared
+        );
+        yield return Literal(
+            "quantifier",
+            "Alpha",
+            "Al.+a",
+            true,
+            RLikePatternFamily.Quantifier,
+            RLikeExecutionStrategy.Prepared
+        );
+        yield return Literal(
+            "alternation",
+            "Beta",
+            "Alpha|Beta",
+            true,
+            RLikePatternFamily.Alternation,
+            RLikeExecutionStrategy.Prepared
+        );
+        yield return Literal(
+            "group",
+            "Alpha",
+            "(?:Al)pha",
+            true,
+            RLikePatternFamily.Group,
+            RLikeExecutionStrategy.Prepared
+        );
+        yield return Literal(
+            "inline-options",
+            "ALPHA",
+            "(?i)alpha",
+            true,
+            RLikePatternFamily.InlineOptions,
+            RLikeExecutionStrategy.Prepared
+        );
+        yield return Literal(
+            "lookaround",
+            "AlphaBeta",
+            "Alpha(?=Beta)",
+            true,
+            RLikePatternFamily.Lookaround,
+            RLikeExecutionStrategy.Prepared
+        );
+        yield return Literal(
+            "backreference",
+            "AlAl",
+            @"\A(Al)\1\z",
+            true,
+            RLikePatternFamily.Backreference,
+            RLikeExecutionStrategy.Prepared
+        );
+        yield return Literal(
+            "unicode-category",
+            "Łódź",
+            @"\A\p{L}+\z",
+            true,
+            RLikePatternFamily.UnicodeCategory,
+            RLikeExecutionStrategy.Prepared,
+            RLikeCharacterDomain.Unicode
+        );
+        yield return Literal(
+            "escaped-literal",
+            "a.b",
+            @"\Aa\.b\z",
+            true,
+            RLikePatternFamily.EscapedLiteral,
+            RLikeExecutionStrategy.Prepared
+        );
+        yield return Literal(
+            "multiline",
+            "first\nsecond",
+            "(?m)^second$",
+            true,
+            RLikePatternFamily.Multiline,
+            RLikeExecutionStrategy.Prepared
+        );
     }
 
     private static IEnumerable<RLikeQueryConformanceCase> CreateSourceCases()
     {
-        yield return Dynamic("source-column", "Name rlike City", new BasicEntity { Id = 1, Name = "Alpha", City = @"\AAlpha\z" }, true, RLikePatternSource.SameRowColumn);
+        yield return Dynamic(
+            "source-column",
+            "Name rlike City",
+            new BasicEntity
+            {
+                Id = 1,
+                Name = "Alpha",
+                City = @"\AAlpha\z",
+            },
+            true,
+            RLikePatternSource.SameRowColumn
+        );
         yield return new RLikeQueryConformanceCase(
             "source-parameter",
             "param(pattern: string) select Id, Name, Name rlike $pattern as Matched from #A.Entities() order by Id",
-            [Row(1, "Alpha")], [[1, "Alpha", true]], RLikePatternFamily.AbsolutePrefix,
-            RLikePatternSource.Parameter, RLikeCharacterDomain.Ascii, RLikePolarity.Positive,
-            RLikeNullCase.Neither, RLikeExecutionStrategy.Prepared,
-            Parameters: new Dictionary<string, object?> { ["pattern"] = @"\AAl" }, CacheSensitive: true);
+            [Row(1, "Alpha")],
+            [
+                [1, "Alpha", true],
+            ],
+            RLikePatternFamily.AbsolutePrefix,
+            RLikePatternSource.Parameter,
+            RLikeCharacterDomain.Ascii,
+            RLikePolarity.Positive,
+            RLikeNullCase.Neither,
+            RLikeExecutionStrategy.Prepared,
+            Parameters: new Dictionary<string, object?> { ["pattern"] = @"\AAl" },
+            CacheSensitive: true
+        );
         yield return new RLikeQueryConformanceCase(
             "source-variable",
             "let pattern: string = r'\\AAl'; select Id, Name, Name rlike $pattern as Matched from #A.Entities() order by Id",
-            [Row(1, "Alpha")], [[1, "Alpha", true]], RLikePatternFamily.AbsolutePrefix,
-            RLikePatternSource.Variable, RLikeCharacterDomain.Ascii, RLikePolarity.Positive,
-            RLikeNullCase.Neither, RLikeExecutionStrategy.Prepared, CacheSensitive: true);
+            [Row(1, "Alpha")],
+            [
+                [1, "Alpha", true],
+            ],
+            RLikePatternFamily.AbsolutePrefix,
+            RLikePatternSource.Variable,
+            RLikeCharacterDomain.Ascii,
+            RLikePolarity.Positive,
+            RLikeNullCase.Neither,
+            RLikeExecutionStrategy.Prepared,
+            CacheSensitive: true
+        );
         yield return Dynamic(
             "source-concatenation",
             "Name rlike (City + Country)",
-            new BasicEntity { Id = 1, Name = "Alpha", City = @"\AAl", Country = "pha" },
+            new BasicEntity
+            {
+                Id = 1,
+                Name = "Alpha",
+                City = @"\AAl",
+                Country = "pha",
+            },
             true,
-            RLikePatternSource.Concatenation);
+            RLikePatternSource.Concatenation
+        );
         yield return Dynamic(
             "source-method",
             "Name rlike ToUpper(City)",
-            new BasicEntity { Id = 1, Name = "ALPHA", City = "alpha" },
+            new BasicEntity
+            {
+                Id = 1,
+                Name = "ALPHA",
+                City = "alpha",
+            },
             true,
             RLikePatternSource.MethodResult,
-            RLikePatternFamily.Literal);
+            RLikePatternFamily.Literal
+        );
         yield return Dynamic(
             "source-case",
             "Name rlike case when Id = 1 then City else Country end",
-            new BasicEntity { Id = 1, Name = "Alpha", City = @"\AAlpha\z", Country = "never" },
+            new BasicEntity
+            {
+                Id = 1,
+                Name = "Alpha",
+                City = @"\AAlpha\z",
+                Country = "never",
+            },
             true,
-            RLikePatternSource.CaseExpression);
+            RLikePatternSource.CaseExpression
+        );
         yield return Dynamic(
             "source-coalesce",
             "Name rlike Coalesce(City, Country)",
-            new BasicEntity { Id = 1, Name = "Alpha", City = null, Country = @"\AAlpha\z" },
+            new BasicEntity
+            {
+                Id = 1,
+                Name = "Alpha",
+                City = null,
+                Country = @"\AAlpha\z",
+            },
             true,
-            RLikePatternSource.CoalesceExpression);
+            RLikePatternSource.CoalesceExpression
+        );
     }
 
     private static IEnumerable<RLikeQueryConformanceCase> CreateUnicodeCases()
     {
-        yield return Literal("unicode-literal", "Zażółć", "żół", true, RLikePatternFamily.Literal, RLikeExecutionStrategy.Direct, RLikeCharacterDomain.Unicode);
-        yield return Dynamic("unicode-decomposed", "Name rlike City", new BasicEntity { Id = 1, Name = "é", City = "e\u0301" }, false, RLikePatternSource.SameRowColumn, RLikePatternFamily.Literal, RLikeCharacterDomain.ComposedAndDecomposed);
-        yield return Dynamic("unicode-surrogate", "Name rlike City", new BasicEntity { Id = 1, Name = "\uD800x", City = "\uD800" }, true, RLikePatternSource.SameRowColumn, RLikePatternFamily.Literal, RLikeCharacterDomain.SurrogateContaining);
+        yield return Literal(
+            "unicode-literal",
+            "Zażółć",
+            "żół",
+            true,
+            RLikePatternFamily.Literal,
+            RLikeExecutionStrategy.Direct,
+            RLikeCharacterDomain.Unicode
+        );
+        yield return Dynamic(
+            "unicode-decomposed",
+            "Name rlike City",
+            new BasicEntity
+            {
+                Id = 1,
+                Name = "é",
+                City = "e\u0301",
+            },
+            false,
+            RLikePatternSource.SameRowColumn,
+            RLikePatternFamily.Literal,
+            RLikeCharacterDomain.ComposedAndDecomposed
+        );
+        yield return Dynamic(
+            "unicode-surrogate",
+            "Name rlike City",
+            new BasicEntity
+            {
+                Id = 1,
+                Name = "\uD800x",
+                City = "\uD800",
+            },
+            true,
+            RLikePatternSource.SameRowColumn,
+            RLikePatternFamily.Literal,
+            RLikeCharacterDomain.SurrogateContaining
+        );
         yield return CultureSensitive("culture-inline-i", "I", @"(?i)\Ai\z", true, true, true, false);
         yield return CultureSensitive("culture-inline-dotted-i", "İ", @"(?i)\Ai\z", false, true, true, true);
     }
 
     private static IEnumerable<RLikeQueryConformanceCase> CreateNullCases()
     {
-        yield return Dynamic("null-input", "Name rlike City", new BasicEntity { Id = 1, Name = null, City = "[" }, false, RLikePatternSource.SameRowColumn, nullCase: RLikeNullCase.Input);
-        yield return Dynamic("null-pattern", "Name rlike City", new BasicEntity { Id = 1, Name = "Alpha", City = null }, false, RLikePatternSource.SameRowColumn, nullCase: RLikeNullCase.Pattern);
-        yield return Dynamic("null-both", "Name rlike City", new BasicEntity { Id = 1, Name = null, City = null }, false, RLikePatternSource.SameRowColumn, nullCase: RLikeNullCase.Both);
-        yield return Dynamic("null-input-negated", "Name not rlike City", new BasicEntity { Id = 1, Name = null, City = "[" }, true, RLikePatternSource.SameRowColumn, polarity: RLikePolarity.Negated, nullCase: RLikeNullCase.Input);
-        yield return Dynamic("null-pattern-negated", "Name not rlike City", new BasicEntity { Id = 1, Name = "Alpha", City = null }, true, RLikePatternSource.SameRowColumn, polarity: RLikePolarity.Negated, nullCase: RLikeNullCase.Pattern);
-        yield return Dynamic("null-both-negated", "Name not rlike City", new BasicEntity { Id = 1, Name = null, City = null }, true, RLikePatternSource.SameRowColumn, polarity: RLikePolarity.Negated, nullCase: RLikeNullCase.Both);
+        yield return Dynamic(
+            "null-input",
+            "Name rlike City",
+            new BasicEntity
+            {
+                Id = 1,
+                Name = null,
+                City = "[",
+            },
+            false,
+            RLikePatternSource.SameRowColumn,
+            nullCase: RLikeNullCase.Input
+        );
+        yield return Dynamic(
+            "null-pattern",
+            "Name rlike City",
+            new BasicEntity
+            {
+                Id = 1,
+                Name = "Alpha",
+                City = null,
+            },
+            false,
+            RLikePatternSource.SameRowColumn,
+            nullCase: RLikeNullCase.Pattern
+        );
+        yield return Dynamic(
+            "null-both",
+            "Name rlike City",
+            new BasicEntity
+            {
+                Id = 1,
+                Name = null,
+                City = null,
+            },
+            false,
+            RLikePatternSource.SameRowColumn,
+            nullCase: RLikeNullCase.Both
+        );
+        yield return Dynamic(
+            "null-input-negated",
+            "Name not rlike City",
+            new BasicEntity
+            {
+                Id = 1,
+                Name = null,
+                City = "[",
+            },
+            true,
+            RLikePatternSource.SameRowColumn,
+            polarity: RLikePolarity.Negated,
+            nullCase: RLikeNullCase.Input
+        );
+        yield return Dynamic(
+            "null-pattern-negated",
+            "Name not rlike City",
+            new BasicEntity
+            {
+                Id = 1,
+                Name = "Alpha",
+                City = null,
+            },
+            true,
+            RLikePatternSource.SameRowColumn,
+            polarity: RLikePolarity.Negated,
+            nullCase: RLikeNullCase.Pattern
+        );
+        yield return Dynamic(
+            "null-both-negated",
+            "Name not rlike City",
+            new BasicEntity
+            {
+                Id = 1,
+                Name = null,
+                City = null,
+            },
+            true,
+            RLikePatternSource.SameRowColumn,
+            polarity: RLikePolarity.Negated,
+            nullCase: RLikeNullCase.Both
+        );
     }
 
     private static RLikeQueryConformanceCase Literal(
@@ -222,14 +519,25 @@ internal static class RLikeQueryConformanceCatalog
         bool expected,
         RLikePatternFamily family,
         RLikeExecutionStrategy strategy,
-        RLikeCharacterDomain domain = RLikeCharacterDomain.Ascii)
+        RLikeCharacterDomain domain = RLikeCharacterDomain.Ascii
+    )
     {
         var escapedPattern = pattern.Replace("'", "''", StringComparison.Ordinal);
         return new RLikeQueryConformanceCase(
             id,
             $"select Id, Name, Name rlike r'{escapedPattern}' as Matched from #A.Entities() order by Id",
-            [Row(1, input)], [[1, input, expected]], family, RLikePatternSource.Literal,
-            domain, RLikePolarity.Positive, RLikeNullCase.Neither, strategy, CacheSensitive: true);
+            [Row(1, input)],
+            [
+                [1, input, expected],
+            ],
+            family,
+            RLikePatternSource.Literal,
+            domain,
+            RLikePolarity.Positive,
+            RLikeNullCase.Neither,
+            strategy,
+            CacheSensitive: true
+        );
     }
 
     private static RLikeQueryConformanceCase Dynamic(
@@ -241,11 +549,23 @@ internal static class RLikeQueryConformanceCatalog
         RLikePatternFamily family = RLikePatternFamily.AbsoluteExact,
         RLikeCharacterDomain domain = RLikeCharacterDomain.Ascii,
         RLikePolarity polarity = RLikePolarity.Positive,
-        RLikeNullCase nullCase = RLikeNullCase.Neither) => new(
-        id,
-        $"select Id, Name, {predicate} as Matched from #A.Entities() order by Id",
-        [row], [[row.Id, row.Name, expected]], family, source, domain, polarity, nullCase,
-        RLikeExecutionStrategy.Dynamic, CacheSensitive: true);
+        RLikeNullCase nullCase = RLikeNullCase.Neither
+    ) =>
+        new(
+            id,
+            $"select Id, Name, {predicate} as Matched from #A.Entities() order by Id",
+            [row],
+            [
+                [row.Id, row.Name, expected],
+            ],
+            family,
+            source,
+            domain,
+            polarity,
+            nullCase,
+            RLikeExecutionStrategy.Dynamic,
+            CacheSensitive: true
+        );
 
     private static RLikeQueryConformanceCase CultureSensitive(
         string id,
@@ -254,20 +574,42 @@ internal static class RLikeQueryConformanceCatalog
         bool invariant,
         bool enUs,
         bool plPl,
-        bool trTr) => new(
-        id,
-        $"select Id, Name, Name rlike r'{pattern}' as Matched from #A.Entities() order by Id",
-        [Row(1, input)], [[1, input, invariant]], RLikePatternFamily.InlineOptions,
-        RLikePatternSource.Literal, RLikeCharacterDomain.CultureSensitive, RLikePolarity.Positive,
-        RLikeNullCase.Neither, RLikeExecutionStrategy.Prepared,
-        new Dictionary<string, object?[][]>(StringComparer.Ordinal)
-        {
-            [string.Empty] = [[1, input, invariant]],
-            ["en-US"] = [[1, input, enUs]],
-            ["pl-PL"] = [[1, input, plPl]],
-            ["tr-TR"] = [[1, input, trTr]]
-        },
-        CacheSensitive: true);
+        bool trTr
+    ) =>
+        new(
+            id,
+            $"select Id, Name, Name rlike r'{pattern}' as Matched from #A.Entities() order by Id",
+            [Row(1, input)],
+            [
+                [1, input, invariant],
+            ],
+            RLikePatternFamily.InlineOptions,
+            RLikePatternSource.Literal,
+            RLikeCharacterDomain.CultureSensitive,
+            RLikePolarity.Positive,
+            RLikeNullCase.Neither,
+            RLikeExecutionStrategy.Prepared,
+            new Dictionary<string, object?[][]>(StringComparer.Ordinal)
+            {
+                [string.Empty] =
+                [
+                    [1, input, invariant],
+                ],
+                ["en-US"] =
+                [
+                    [1, input, enUs],
+                ],
+                ["pl-PL"] =
+                [
+                    [1, input, plPl],
+                ],
+                ["tr-TR"] =
+                [
+                    [1, input, trTr],
+                ],
+            },
+            CacheSensitive: true
+        );
 
     private static BasicEntity Row(int id, string? name) => new() { Id = id, Name = name };
 }

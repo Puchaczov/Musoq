@@ -13,14 +13,13 @@ internal sealed record RenderingBuildArtifacts
     }
 
     public RenderingBuildArtifacts(CSharpCompilation compilation, string accessToClassPath)
-        : this(CSharpClrArtifactCompatibility.CreateRenderedArtifact(compilation, accessToClassPath))
-    {
-    }
+        : this(CSharpClrArtifactCompatibility.CreateRenderedArtifact(compilation, accessToClassPath)) { }
 
     public RenderingBuildArtifacts(
         CSharpCompilation compilation,
         string accessToClassPath,
-        QueryMethodRenderMetadata queryMethodRenderMetadata)
+        QueryMethodRenderMetadata queryMethodRenderMetadata
+    )
         : this(CSharpClrArtifactCompatibility.CreateRenderedArtifact(compilation, accessToClassPath))
     {
         QueryMethodRenderMetadata = queryMethodRenderMetadata;
@@ -28,13 +27,11 @@ internal sealed record RenderingBuildArtifacts
 
     public RenderedQueryArtifact Artifact { get; init; }
 
-    public CSharpCompilation Compilation => CSharpClrArtifactCompatibility.RequireCompilation(
-        Artifact,
-        "rendering artifact compilation access");
+    public CSharpCompilation Compilation =>
+        CSharpClrArtifactCompatibility.RequireCompilation(Artifact, "rendering artifact compilation access");
 
-    public string AccessToClassPath => CSharpClrArtifactCompatibility.RequireAccessToClassPath(
-        Artifact,
-        "rendering artifact runnable type access");
+    public string AccessToClassPath =>
+        CSharpClrArtifactCompatibility.RequireAccessToClassPath(Artifact, "rendering artifact runnable type access");
 
     public QueryMethodRenderMetadata QueryMethodRenderMetadata { get; init; } = QueryMethodRenderMetadata.Unknown;
 

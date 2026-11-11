@@ -61,9 +61,7 @@ public class MultiLibrary : LibraryBase
 
         public static string Get(in State state)
         {
-            return state.Values is { Count: > 0 } values
-                ? string.Join(',', values)
-                : string.Empty;
+            return state.Values is { Count: > 0 } values ? string.Join(',', values) : string.Empty;
         }
 
         public static void Merge(ref State target, in State source)

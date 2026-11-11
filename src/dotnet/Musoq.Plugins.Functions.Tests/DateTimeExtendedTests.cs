@@ -9,7 +9,6 @@ namespace Musoq.Plugins.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class DateTimeExtendedTests : PluginsTestBase
 {
-
     [TestMethod]
     public void Month_NullDateTimeOffset_ReturnsNull()
     {
@@ -84,8 +83,6 @@ public partial class DateTimeExtendedTests : PluginsTestBase
         Assert.AreEqual((int)DayOfWeek.Saturday, Library.DayOfWeek(date));
     }
 
-
-
     [TestMethod]
     public void AddMonths_NullDateTime_ReturnsNull()
     {
@@ -114,8 +111,6 @@ public partial class DateTimeExtendedTests : PluginsTestBase
         Assert.AreEqual(new DateTimeOffset(2024, 8, 15, 0, 0, 0, TimeSpan.Zero), result);
     }
 
-
-
     [TestMethod]
     public void AddYears_ValidDateTime_AddsYears()
     {
@@ -137,8 +132,6 @@ public partial class DateTimeExtendedTests : PluginsTestBase
         var result = Library.AddYears(date, 1);
         Assert.AreEqual(new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero), result);
     }
-
-
 
     [TestMethod]
     public void AddHours_NullDateTime_ReturnsNull()
@@ -167,8 +160,6 @@ public partial class DateTimeExtendedTests : PluginsTestBase
         var result = Library.AddHours(date, 2);
         Assert.AreEqual(new DateTimeOffset(2024, 6, 15, 12, 0, 0, TimeSpan.Zero), result);
     }
-
-
 
     [TestMethod]
     public void AddMinutes_NullDateTime_ReturnsNull()
@@ -220,8 +211,6 @@ public partial class DateTimeExtendedTests : PluginsTestBase
         Assert.AreEqual(new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.FromHours(2)), result);
     }
 
-
-
     [TestMethod]
     public void EndOfDay_ValidDateTime_ReturnsEndOfDay()
     {
@@ -235,5 +224,4 @@ public partial class DateTimeExtendedTests : PluginsTestBase
         Assert.AreEqual(59, result.Value.Minute);
         Assert.AreEqual(59, result.Value.Second);
     }
-
 }

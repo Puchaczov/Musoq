@@ -9,7 +9,11 @@ namespace Musoq.Formatter.Tests.Verification;
 
 internal sealed partial class AstProjector
 {
-    private enum Purpose { Structure, Coverage }
+    private enum Purpose
+    {
+        Structure,
+        Coverage,
+    }
 
     private readonly Purpose purpose;
     private readonly StringBuilder? structure;
@@ -39,7 +43,8 @@ internal sealed partial class AstProjector
         return writer.coverage.ToFrozenSet(StringComparer.Ordinal);
     }
 
-    private void ProjectValue<T>(T value, string identity, Action<AstProjector, T> project) where T : struct
+    private void ProjectValue<T>(T value, string identity, Action<AstProjector, T> project)
+        where T : struct
     {
         coverage.Add(identity);
         structure?.Append(identity).Append('{');
@@ -47,7 +52,8 @@ internal sealed partial class AstProjector
         structure?.Append('}');
     }
 
-    private void ProjectNode<T>(T? value, string identity, Action<AstProjector, T> project) where T : class
+    private void ProjectNode<T>(T? value, string identity, Action<AstProjector, T> project)
+        where T : class
     {
         if (value == null)
         {
@@ -69,6 +75,7 @@ internal sealed partial class AstProjector
     }
 
     private void Member(string name) => structure?.Append(name).Append('=');
+
     private void Null() => structure?.Append("null;");
 
     private void Write(Type? value)

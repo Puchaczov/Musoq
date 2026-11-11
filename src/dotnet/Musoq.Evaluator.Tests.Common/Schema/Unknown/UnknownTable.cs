@@ -17,5 +17,6 @@ public class UnknownTable(SourceMetadataContext runtimeContext) : ISchemaTable
         return Columns.Where(col => col.ColumnName == name).ToArray();
     }
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+    public SchemaTableMetadata Metadata { get; } =
+        new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 }

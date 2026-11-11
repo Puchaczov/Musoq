@@ -11,22 +11,17 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
 {
-
     [TestMethod]
     public void WithDynamicSource_DescDynamicObjectWithSimpleColumns_ShouldPass()
     {
         const string query = "desc #dynamic.all()";
-        var sources =
-            new List<dynamic>
-            {
-                new ComplexType(1, "Test1")
-            };
+        var sources = new List<dynamic> { new ComplexType(1, "Test1") };
 
-        var vm = CreateAndRunVirtualMachine(query, sources, new Dictionary<string, Type>
-        {
-            { "Id", typeof(int) },
-            { "Name", typeof(string) }
-        });
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new Dictionary<string, Type> { { "Id", typeof(int) }, { "Name", typeof(string) } }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -41,18 +36,13 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     public void WithDynamicSource_SimpleQuery_ShouldPass()
     {
         const string query = "select Id, Name from #dynamic.all()";
-        var sources =
-            new List<dynamic>
-            {
-                new ComplexType(1, "Test1"),
-                new ComplexType(2, "Test2")
-            };
+        var sources = new List<dynamic> { new ComplexType(1, "Test1"), new ComplexType(2, "Test2") };
 
-        var vm = CreateAndRunVirtualMachine(query, sources, new Dictionary<string, Type>
-        {
-            { "Id", typeof(int) },
-            { "Name", typeof(string) }
-        });
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new Dictionary<string, Type> { { "Id", typeof(int) }, { "Name", typeof(string) } }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -62,36 +52,36 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry =>
-                (int)entry.ReadValue(0) == 1 &&
-                (string)entry.ReadValue(1) == "Test1"),
-            "First entry should have values 1 and 'Test1'");
+        Assert.IsTrue(
+            table.Any(entry => (int)entry.ReadValue(0) == 1 && (string)entry.ReadValue(1) == "Test1"),
+            "First entry should have values 1 and 'Test1'"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-                (int)entry.ReadValue(0) == 2 &&
-                (string)entry.ReadValue(1) == "Test2"),
-            "Second entry should have values 2 and 'Test2'");
+        Assert.IsTrue(
+            table.Any(entry => (int)entry.ReadValue(0) == 2 && (string)entry.ReadValue(1) == "Test2"),
+            "Second entry should have values 2 and 'Test2'"
+        );
     }
 
     [TestMethod]
     public void WithDynamicSource_DescDynamicObjectWithComplexColumns_ShouldPass()
     {
         const string query = "desc #dynamic.all()";
-        var sources = new List<dynamic>
-        {
-            new ComplexExpandoType(new ComplexType(1, "Test1"))
-        };
+        var sources = new List<dynamic> { new ComplexExpandoType(new ComplexType(1, "Test1")) };
 
-        var vm = CreateAndRunVirtualMachine(query, sources, new Dictionary<string, Type>
-        {
-            { "Complex", typeof(ComplexExpandoType) }
-        });
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new Dictionary<string, Type> { { "Complex", typeof(ComplexExpandoType) } }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
-        CollectionAssert.AreEquivalent(new[] { "Complex", "Complex.Complex", "Complex.Complex.Id", "Complex.Complex.Name" },
-            table.Select(row => row.GetValue<string>(0)).ToArray());
+        CollectionAssert.AreEquivalent(
+            new[] { "Complex", "Complex.Complex", "Complex.Complex.Id", "Complex.Complex.Name" },
+            table.Select(row => row.GetValue<string>(0)).ToArray()
+        );
         Assert.AreEqual("Complex", table[0].ReadValue(0));
         Assert.AreEqual(0, (int)table[0].ReadValue(1));
         Assert.AreEqual(typeof(ComplexExpandoType).FullName, table[0].ReadValue(2));
@@ -101,14 +91,8 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     public void WithDynamicSource_AccessComplexObjectProperties_ShouldPass()
     {
         const string query = "select Complex.Id, Complex.Name from #dynamic.all()";
-        var sources = new List<dynamic>
-        {
-            CreateExpandoObject(new ComplexType(1, "Test1"))
-        };
-        var schema = new Dictionary<string, Type>
-        {
-            { "Complex", typeof(ComplexType) }
-        };
+        var sources = new List<dynamic> { CreateExpandoObject(new ComplexType(1, "Test1")) };
+        var schema = new Dictionary<string, Type> { { "Complex", typeof(ComplexType) } };
 
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
 
@@ -127,14 +111,8 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     public void WithDynamicSource_AccessArray_ShouldPass()
     {
         const string query = "select Complex.Array[0], Complex.Array[1] from #dynamic.all()";
-        var sources = new List<dynamic>
-        {
-            CreateExpandoObject(new ComplexArrayOfShortsType([1, 2]))
-        };
-        var schema = new Dictionary<string, Type>
-        {
-            { "Complex", typeof(ComplexArrayOfShortsType) }
-        };
+        var sources = new List<dynamic> { CreateExpandoObject(new ComplexArrayOfShortsType([1, 2])) };
+        var schema = new Dictionary<string, Type> { { "Complex", typeof(ComplexArrayOfShortsType) } };
 
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
 
@@ -155,14 +133,9 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         const string query = "select Complex.Array[0].Id, Complex.Array[0].Name from #dynamic.all()";
         var sources = new List<dynamic>
         {
-            CreateExpandoObject(new ComplexArrayOfComplexTypeType([
-                new ComplexType(1, "Test1")
-            ]))
+            CreateExpandoObject(new ComplexArrayOfComplexTypeType([new ComplexType(1, "Test1")])),
         };
-        var schema = new Dictionary<string, Type>
-        {
-            { "Complex", typeof(ComplexArrayOfComplexTypeType) }
-        };
+        var schema = new Dictionary<string, Type> { { "Complex", typeof(ComplexArrayOfComplexTypeType) } };
 
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
 
@@ -177,21 +150,15 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
         Assert.AreEqual("Test1", table[0].ReadValue(1));
     }
 
-
     [TestMethod]
     public void WithDynamicSource_IncrementAccessedProperty_ShouldPass()
     {
         const string query = "select Increment(Complex.Array[0].Id) from #dynamic.all()";
         var sources = new List<dynamic>
         {
-            CreateExpandoObject(new ComplexArrayOfComplexTypeType([
-                new ComplexType(1, "test1")
-            ]))
+            CreateExpandoObject(new ComplexArrayOfComplexTypeType([new ComplexType(1, "test1")])),
         };
-        var schema = new Dictionary<string, Type>
-        {
-            { "Complex", typeof(ComplexArrayOfComplexTypeType) }
-        };
+        var schema = new Dictionary<string, Type> { { "Complex", typeof(ComplexArrayOfComplexTypeType) } };
 
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
 
@@ -208,14 +175,8 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     public void WithDynamicSource_IncrementAccessedProperty_ShouldPass2()
     {
         const string query = "select TrueWhenCalled() from #dynamic.all()";
-        var sources = new List<dynamic>
-        {
-            new ComplexType(1, "test1")
-        };
-        var schema = new Dictionary<string, Type>
-        {
-            { "Complex", typeof(ComplexType) }
-        };
+        var sources = new List<dynamic> { new ComplexType(1, "test1") };
+        var schema = new Dictionary<string, Type> { { "Complex", typeof(ComplexType) } };
 
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
 
@@ -239,6 +200,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     {
         public int Id { get; } = intValue;
         public string Name { get; } = stringValue;
+
         public IReadOnlyDictionary<string, object?> ReadFixtureValues() =>
             new Dictionary<string, object?> { [nameof(Id)] = Id, [nameof(Name)] = Name };
     }
@@ -246,6 +208,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     public class ComplexArrayType<TType>(TType[] arrayValue) : IDynamicFixtureValues
     {
         public TType[] Array { get; } = arrayValue;
+
         public IReadOnlyDictionary<string, object?> ReadFixtureValues() =>
             new Dictionary<string, object?> { [nameof(Array)] = Array };
     }
@@ -260,6 +223,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     public sealed class ComplexExpandoType(ComplexType complexType) : IDynamicFixtureValues
     {
         public ComplexType Complex { get; } = complexType;
+
         public IReadOnlyDictionary<string, object?> ReadFixtureValues() =>
             new Dictionary<string, object?> { [nameof(Complex)] = Complex };
     }

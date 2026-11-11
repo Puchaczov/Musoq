@@ -15,58 +15,94 @@ public partial class InterpreterCodeGenerator
         var className = plan.SchemaName;
         var typeParameters = plan.TypeParameters;
 
-        var typeParamsDecl = schema.IsGeneric
-            ? $"<{string.Join(", ", typeParameters)}>"
-            : string.Empty;
+        var typeParamsDecl = schema.IsGeneric ? $"<{string.Join(", ", typeParameters)}>" : string.Empty;
         var fullClassName = $"{className}{typeParamsDecl}";
 
         var genericConstraints = string.Empty;
         if (schema.IsGeneric)
         {
-            var constraints = typeParameters
-                .Select(t => $"where {t} : IBytesInterpreter<{t}>, new()")
-                .ToArray();
+            var constraints = typeParameters.Select(t => $"where {t} : IBytesInterpreter<{t}>, new()").ToArray();
             genericConstraints = " " + string.Join(" ", constraints);
         }
 
         var allFields = plan.Fields.Select(f => f.Source).ToList();
 
         builder.AppendLine("/// <summary>");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Generated interpreter for binary schema '{className}'.");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"/// Generated interpreter for binary schema '{className}'."
+        );
         if (schema.IsGeneric)
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-                $"/// This is a generic schema with type parameters: {string.Join(", ", typeParameters)}.");
-        if (!string.IsNullOrEmpty(schema.Extends)) builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Extends schema '{schema.Extends}'.");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"/// This is a generic schema with type parameters: {string.Join(", ", typeParameters)}."
+            );
+        if (!string.IsNullOrEmpty(schema.Extends))
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"/// Extends schema '{schema.Extends}'."
+            );
         builder.AppendLine("/// </summary>");
-        builder.AppendLine("[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-            $"public sealed class {fullClassName} : BytesInterpreterBase<{fullClassName}>, IBytesInterpreterStatus<{fullClassName}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload{genericConstraints}");
+        builder.AppendLine(
+            "[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"public sealed class {fullClassName} : BytesInterpreterBase<{fullClassName}>, IBytesInterpreterStatus<{fullClassName}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload{genericConstraints}"
+        );
         builder.AppendLine("{");
-        var completion = CompletionLayoutCodeEmitter.Create(plan.Fields.Where(static field => field.EmitsProperty).Select(static field => field.Name));
+        var completion = CompletionLayoutCodeEmitter.Create(
+            plan.Fields.Where(static field => field.EmitsProperty).Select(static field => field.Name)
+        );
         builder.Append(completion);
         builder.Append(GenerateParentContextMembers(fullClassName));
         builder.Append(PartialPayloadCodeEmitter.Members(fullClassName));
-        builder.Append(PartialPayloadCodeEmitter.JsonMembers(plan.Fields.Where(static field => field.EmitsProperty)
-            .Select(static field => (field.Name, field.PropertyName ?? throw new InvalidOperationException("An emitted payload field requires a property name.")))));
+        builder.Append(
+            PartialPayloadCodeEmitter.JsonMembers(
+                plan.Fields.Where(static field => field.EmitsProperty)
+                    .Select(static field =>
+                        (
+                            field.Name,
+                            field.PropertyName
+                                ?? throw new InvalidOperationException(
+                                    "An emitted payload field requires a property name."
+                                )
+                        )
+                    )
+            )
+        );
 
         foreach (var field in plan.Fields)
         {
-            if (!field.EmitsProperty) continue;
+            if (!field.EmitsProperty)
+                continue;
 
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    /// <summary>Gets the {field.Name} field value.</summary>");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public {field.PropertyClrType} {field.PropertyName} {{ get; set; }}");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    /// <summary>Gets the {field.Name} field value.</summary>"
+            );
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    public {field.PropertyClrType} {field.PropertyName} {{ get; set; }}"
+            );
             builder.AppendLine();
         }
 
         builder.AppendLine("    /// <inheritdoc />");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override string SchemaName => \"{className}\";");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"    public override string SchemaName => \"{className}\";"
+        );
         builder.AppendLine();
 
         BeginStatusMethod(fullClassName);
         builder.Append(InterpreterStatusCodeEmitter.BeginBinary(fullClassName));
         builder.Append(StatusCheck("base.InitializeParsePositionStatus(data, offset)"));
         builder.AppendLine("        SetCurrentField(null);");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        __parsedValue = new {fullClassName}();");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"        __parsedValue = new {fullClassName}();"
+        );
         builder.AppendLine("        RecordParsedValue(__parsedValue);");
         builder.AppendLine();
 
@@ -89,7 +125,10 @@ public partial class InterpreterCodeGenerator
 
             if (field.EmitsProperty)
             {
-                AppendGeneratedLine(builder, $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};");
+                AppendGeneratedLine(
+                    builder,
+                    $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};"
+                );
                 AppendGeneratedLine(builder, $"        base.RecordParsedFieldSlot({completionIndex++});");
             }
         }
@@ -110,8 +149,16 @@ public partial class InterpreterCodeGenerator
 
         if (field.WhenCondition != null)
         {
-            if (BinarySchemaExpressionTypes.Unwrap(BinarySchemaExpressionTypes.Resolve(field.WhenCondition, _expressionFields, _registry)) != typeof(bool))
-                throw new Musoq.Evaluator.Exceptions.QuerySyntaxException($"Binary schema field '{field.Name}' when expression must evaluate to boolean.", field.WhenCondition.SpanOrEmpty(), Musoq.Parser.Diagnostics.DiagnosticCode.MQ4006_InvalidFieldConstraint);
+            if (
+                BinarySchemaExpressionTypes.Unwrap(
+                    BinarySchemaExpressionTypes.Resolve(field.WhenCondition, _expressionFields, _registry)
+                ) != typeof(bool)
+            )
+                throw new Musoq.Evaluator.Exceptions.QuerySyntaxException(
+                    $"Binary schema field '{field.Name}' when expression must evaluate to boolean.",
+                    field.WhenCondition.SpanOrEmpty(),
+                    Musoq.Parser.Diagnostics.DiagnosticCode.MQ4006_InvalidFieldConstraint
+                );
             var condition = GenerateConditionExpression(field.WhenCondition);
             var isTypeParam = IsTypeParameter(clrTypeName);
             var isReferenceType = IsReferenceType(clrTypeName);
@@ -135,14 +182,23 @@ public partial class InterpreterCodeGenerator
                 defaultValue = "null";
             }
 
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{nullableTypeName} {localVar} = {defaultValue};");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"{nullableTypeName} {localVar} = {defaultValue};"
+            );
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"if (({condition}) == true)");
             builder.AppendLine("{");
 
             if (field.AtOffset != null)
             {
                 var offset = NextStatusName("__musoqOffset");
-                builder.Append(StatusSizeDeclaration(offset, field.AtOffset, Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition));
+                builder.Append(
+                    StatusSizeDeclaration(
+                        offset,
+                        field.AtOffset,
+                        Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition
+                    )
+                );
                 builder.Append(StatusCheck($"base.SeekWithStatus({offset})"));
             }
 
@@ -152,12 +208,19 @@ public partial class InterpreterCodeGenerator
             if (field.Constraint != null)
             {
                 var checkExpr = GenerateConditionExpression(field.Constraint.Expression);
-                builder.Append(StatusCheck($"base.ValidateWithStatus(({checkExpr}) == true, \"{EscapeString(field.Name)}\", \"Check constraint failed\")"));
+                builder.Append(
+                    StatusCheck(
+                        $"base.ValidateWithStatus(({checkExpr}) == true, \"{EscapeString(field.Name)}\", \"Check constraint failed\")"
+                    )
+                );
             }
 
             var valueValidationStatement = GenerateFieldValueValidationStatement(field, localVar);
             if (!string.IsNullOrEmpty(valueValidationStatement))
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {valueValidationStatement}");
+                builder.AppendLine(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $"    {valueValidationStatement}"
+                );
 
             builder.AppendLine("}");
         }
@@ -166,7 +229,13 @@ public partial class InterpreterCodeGenerator
             if (field.AtOffset != null)
             {
                 var offset = NextStatusName("__musoqOffset");
-                builder.Append(StatusSizeDeclaration(offset, field.AtOffset, Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition));
+                builder.Append(
+                    StatusSizeDeclaration(
+                        offset,
+                        field.AtOffset,
+                        Musoq.Schema.Interpreters.ParseErrorCode.InvalidPosition
+                    )
+                );
                 builder.Append(StatusCheck($"base.SeekWithStatus({offset})"));
             }
 
@@ -175,7 +244,11 @@ public partial class InterpreterCodeGenerator
             if (field.Constraint != null)
             {
                 var checkExpr = GenerateConditionExpression(field.Constraint.Expression);
-                builder.Append(StatusCheck($"base.ValidateWithStatus(({checkExpr}) == true, \"{EscapeString(field.Name)}\", \"Check constraint failed\")"));
+                builder.Append(
+                    StatusCheck(
+                        $"base.ValidateWithStatus(({checkExpr}) == true, \"{EscapeString(field.Name)}\", \"Check constraint failed\")"
+                    )
+                );
             }
 
             var valueValidationStatement = GenerateFieldValueValidationStatement(field, localVar);
@@ -185,5 +258,4 @@ public partial class InterpreterCodeGenerator
 
         return builder.ToString();
     }
-
 }

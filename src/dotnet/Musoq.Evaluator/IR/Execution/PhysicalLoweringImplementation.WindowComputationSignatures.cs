@@ -6,7 +6,8 @@ namespace Musoq.Evaluator.IR.Execution;
 internal sealed partial class PhysicalLoweringImplementation
 {
     private static HashSet<string> CreateInPlaceSortableSortedPartitionSignatures(
-        IReadOnlyList<WindowRegistrationBuildResult> registrationResults)
+        IReadOnlyList<WindowRegistrationBuildResult> registrationResults
+    )
     {
         var usages = new Dictionary<string, WindowPartitionSortUsage>(StringComparer.Ordinal);
 
@@ -23,7 +24,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 usages.Add(partitionSignature, usage);
             }
 
-            var sortedSignature = WindowRegistrationLoweringHelpers.CreateWindowSortedPartitionListSignature(registration);
+            var sortedSignature = WindowRegistrationLoweringHelpers.CreateWindowSortedPartitionListSignature(
+                registration
+            );
             if (sortedSignature == null)
                 usage.HasUnsortedConsumer = true;
             else
@@ -41,7 +44,8 @@ internal sealed partial class PhysicalLoweringImplementation
     }
 
     private static HashSet<string> CreateSingleUsePartitionKeySignatures(
-        IReadOnlyList<WindowRegistrationBuildResult> registrationResults)
+        IReadOnlyList<WindowRegistrationBuildResult> registrationResults
+    )
     {
         var usages = new Dictionary<string, int>(StringComparer.Ordinal);
 
@@ -50,7 +54,9 @@ internal sealed partial class PhysicalLoweringImplementation
             if (!registrationResult.IsBuilt || registrationResult.Registration == null)
                 continue;
 
-            var signature = WindowRegistrationLoweringHelpers.CreateWindowPartitionSignature(registrationResult.Registration);
+            var signature = WindowRegistrationLoweringHelpers.CreateWindowPartitionSignature(
+                registrationResult.Registration
+            );
             if (signature == null)
                 continue;
 

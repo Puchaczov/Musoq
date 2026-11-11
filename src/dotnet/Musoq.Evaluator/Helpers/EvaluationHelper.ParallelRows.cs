@@ -12,7 +12,8 @@ public static partial class EvaluationHelper
         ConcurrentDictionary<TKey, TValue> cache,
         TTarget target,
         TKey key,
-        Func<TTarget, TKey, TValue> factory)
+        Func<TTarget, TKey, TValue> factory
+    )
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(cache);
@@ -24,9 +25,7 @@ public static partial class EvaluationHelper
         return cache.GetOrAdd(key, value);
     }
 
-    public static IReadOnlyList<T> GetParallelAggregationRowsOrEmpty<T>(
-        IEnumerable<T> source,
-        int threshold)
+    public static IReadOnlyList<T> GetParallelAggregationRowsOrEmpty<T>(IEnumerable<T> source, int threshold)
     {
         ArgumentNullException.ThrowIfNull(source);
         if (source is IReadOnlyList<T> indexedRows)
@@ -37,7 +36,8 @@ public static partial class EvaluationHelper
 
     public static IReadOnlyList<T> GetParallelAggregationRowsOrEmpty<T>(
         IEnumerable<IReadOnlyList<T>> sourceChunks,
-        int threshold)
+        int threshold
+    )
     {
         ArgumentNullException.ThrowIfNull(sourceChunks);
 
@@ -55,20 +55,19 @@ public static partial class EvaluationHelper
         {
             0 => Array.Empty<T>(),
             1 => chunks[0],
-            _ => new ChunkedReadOnlyList<T>(chunks, rowCount)
+            _ => new ChunkedReadOnlyList<T>(chunks, rowCount),
         };
     }
 
-    public static IReadOnlyList<T> GetParallelProjectionRowsOrEmpty<T>(
-        IEnumerable<T> source,
-        int threshold)
+    public static IReadOnlyList<T> GetParallelProjectionRowsOrEmpty<T>(IEnumerable<T> source, int threshold)
     {
         return GetParallelAggregationRowsOrEmpty(source, threshold);
     }
 
     public static IReadOnlyList<T> GetParallelProjectionRowsOrEmpty<T>(
         IEnumerable<IReadOnlyList<T>> sourceChunks,
-        int threshold)
+        int threshold
+    )
     {
         return GetParallelAggregationRowsOrEmpty(sourceChunks, threshold);
     }
@@ -78,7 +77,8 @@ public static partial class EvaluationHelper
         int maxDegreeOfParallelism,
         Func<TSource, bool> predicate,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         return ProjectionRows.ProjectParallel(
@@ -88,7 +88,8 @@ public static partial class EvaluationHelper
             project,
             includeProjected: null,
             PublishShard,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static IEnumerable<TRow> ProjectChunkedRowsParallel<TSource, TRow>(
@@ -96,7 +97,8 @@ public static partial class EvaluationHelper
         int maxDegreeOfParallelism,
         Func<TSource, bool> predicate,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         return ProjectionRows.ProjectChunksParallel(
@@ -105,14 +107,16 @@ public static partial class EvaluationHelper
             predicate,
             project,
             includeProjected: null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static RowShard<TRow>[] ProjectRowsParallel<TSource, TRow>(
         IReadOnlyList<TSource> rows,
         int maxDegreeOfParallelism,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         return ProjectionRows.ProjectParallel(
@@ -122,14 +126,16 @@ public static partial class EvaluationHelper
             project,
             static row => row != null,
             PublishShard,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static IEnumerable<TRow> ProjectChunkedRowsParallel<TSource, TRow>(
         IEnumerable<IReadOnlyList<TSource>> chunks,
         int maxDegreeOfParallelism,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         return ProjectionRows.ProjectChunksParallel(
@@ -138,12 +144,11 @@ public static partial class EvaluationHelper
             static _ => true,
             project,
             static row => row != null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
-    public static void AddRowsDirect<TRow>(
-        Table target,
-        IReadOnlyCollection<TRow> rows)
+    public static void AddRowsDirect<TRow>(Table target, IReadOnlyCollection<TRow> rows)
         where TRow : Row
     {
         ArgumentNullException.ThrowIfNull(target);
@@ -164,9 +169,7 @@ public static partial class EvaluationHelper
             target.AddDirect(row);
     }
 
-    public static void AddRowsDirect<TRow>(
-        Table target,
-        RowShard<TRow>[] shards)
+    public static void AddRowsDirect<TRow>(Table target, RowShard<TRow>[] shards)
         where TRow : Row
     {
         ArgumentNullException.ThrowIfNull(target);
@@ -174,9 +177,7 @@ public static partial class EvaluationHelper
         target.AddDirectDeferred(shards);
     }
 
-    public static void AddRowsDirect<TRow>(
-        Table target,
-        IReadOnlyList<TRow>[] shards)
+    public static void AddRowsDirect<TRow>(Table target, IReadOnlyList<TRow>[] shards)
         where TRow : Row
     {
         ArgumentNullException.ThrowIfNull(target);
@@ -196,7 +197,8 @@ public static partial class EvaluationHelper
     private static bool TryGetReusableChunks<T>(
         IEnumerable<IReadOnlyList<T>> sourceChunks,
         out IReadOnlyList<IReadOnlyList<T>> chunks,
-        out int rowCount)
+        out int rowCount
+    )
     {
         chunks = Array.Empty<IReadOnlyList<T>>();
         rowCount = 0;
@@ -210,7 +212,6 @@ public static partial class EvaluationHelper
             var chunk = chunks[index];
             if (chunk is null)
                 return false;
-
             checked
             {
                 rowCount += chunk.Count;
@@ -271,5 +272,4 @@ public static partial class EvaluationHelper
             return GetEnumerator();
         }
     }
-
 }

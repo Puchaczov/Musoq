@@ -12,22 +12,12 @@ internal interface IPlanOptimizationPass<TPlan>
     OptimizationResult<TPlan> Optimize(TPlan plan, OptimizationContext context);
 }
 
-internal interface IPreLogicalNormalizationPass : IPlanOptimizationPass<RootNode>
-{
-}
+internal interface IPreLogicalNormalizationPass : IPlanOptimizationPass<RootNode> { }
 
-internal interface ILogicalNormalizationPass : IPlanOptimizationPass<LogicalNode>
-{
-}
+internal interface ILogicalNormalizationPass : IPlanOptimizationPass<LogicalNode> { }
 
-internal interface ILogicalOptimizationPass : IPlanOptimizationPass<LogicalNode>
-{
-}
+internal interface ILogicalOptimizationPass : IPlanOptimizationPass<LogicalNode> { }
 
-internal interface IPhysicalOptimizationPass : IPlanOptimizationPass<PhysicalNode>
-{
-}
+internal interface IPhysicalOptimizationPass : IPlanOptimizationPass<PhysicalNode> { }
 
-internal interface IExecutionIrOptimizationPass : IPlanOptimizationPass<ExecutionPlan>
-{
-}
+internal interface IExecutionIrOptimizationPass : IPlanOptimizationPass<ExecutionPlan> { }

@@ -30,8 +30,12 @@ public sealed class InterpretationCarrierPruningTests
         using var query = Compile(input);
         using var table = query.Run();
 
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("Level", typeof(string)), ("Total", typeof(long?)), ("Count", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Level", typeof(string)),
+            ("Total", typeof(long?)),
+            ("Count", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["INFO", 18L, 2L]);
         Assert.AreEqual(1, input.PayloadCalls);
         Assert.AreEqual(2, input.TextCalls);
@@ -63,9 +67,14 @@ public sealed class InterpretationCarrierPruningTests
         Assert.AreEqual(1, input.TextCalls);
     }
 
-    private static CompiledQuery Compile(PacketInput input) => InstanceCreator.CompileForExecution(Query,
-        Guid.NewGuid().ToString(), LibraryExecutionFixture.CreateProvider<PacketInput, PacketLibrary>([input]),
-        new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+    private static CompiledQuery Compile(PacketInput input) =>
+        InstanceCreator.CompileForExecution(
+            Query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider<PacketInput, PacketLibrary>([input]),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
     public sealed class PacketInput
     {

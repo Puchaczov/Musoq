@@ -6,12 +6,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static bool CanUseParallelLevelsWithRecursiveDefinitions(
-        IReadOnlyList<ParallelCteLevel>? levels)
+    private static bool CanUseParallelLevelsWithRecursiveDefinitions(IReadOnlyList<ParallelCteLevel>? levels)
     {
-        return levels != null && levels.All(static level =>
-            level.Definitions.Count == 1 ||
-            level.Definitions.All(static definition => definition.Plan is not PhysicalRecursiveCteNode));
+        return levels != null
+            && levels.All(static level =>
+                level.Definitions.Count == 1
+                || level.Definitions.All(static definition => definition.Plan is not PhysicalRecursiveCteNode)
+            );
     }
 
     private TableBuildResult BuildSingletonCteLevelDefinition(
@@ -26,7 +27,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, CteReferenceClassification> cteReferenceClassifications,
         LoweringScope scope,
         out bool storeRows,
-        out LoweringScope updatedScope)
+        out LoweringScope updatedScope
+    )
     {
         updatedScope = scope;
         if (definition.Plan is PhysicalRecursiveCteNode recursive)
@@ -41,7 +43,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndex,
-                scope);
+                scope
+            );
             return recursiveResult;
         }
 
@@ -53,7 +56,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             pruningPlan,
-            scope);
+            scope
+        );
         result = ApplyCteSidecarOptimizations(
             definition.Name,
             ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name),
@@ -62,14 +66,11 @@ internal sealed partial class PhysicalLoweringImplementation
             result,
             scope,
             out var storage,
-            out var sidecarUpdatedScope);
+            out var sidecarUpdatedScope
+        );
         scope = sidecarUpdatedScope;
         storeRows = storage.StoreRows;
         updatedScope = scope;
-        return AddCteClauseBoundaries(
-            definition,
-            index,
-            result,
-            includeScopeBoundaries: !storeRows);
+        return AddCteClauseBoundaries(definition, index, result, includeScopeBoundaries: !storeRows);
     }
 }

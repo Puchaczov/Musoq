@@ -11,7 +11,8 @@ public sealed record PhysicalNestedLoopJoinNode(
     PhysicalNode Left,
     PhysicalNode Right,
     OrderField? TieBreak = null,
-    bool WithOrdinality = false) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
+    bool WithOrdinality = false
+) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
 {
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Left, Right];
 }

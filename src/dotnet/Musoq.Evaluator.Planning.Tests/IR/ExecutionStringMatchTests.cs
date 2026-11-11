@@ -15,9 +15,8 @@ public sealed class ExecutionStringMatchTests
         var plan = new ExecutionPlan(
             "Q_StringMatch",
             [],
-            new ExecutionBlock([
-                new ExecutionLet(new ExecutionVariable("matched", typeof(bool)), match)
-            ]));
+            new ExecutionBlock([new ExecutionLet(new ExecutionVariable("matched", typeof(bool)), match)])
+        );
 
         var children = ExecutionIrAnalysis.GetChildExpressions(match).ToArray();
         var rewritten = new LiteralReplacingRewriter().RewriteExpression(match);
@@ -39,7 +38,9 @@ public sealed class ExecutionStringMatchTests
 
         Assert.IsTrue(Musoq.Evaluator.IR.Analysis.ExpressionStabilityAnalyzer.IsStable(match));
         Assert.IsTrue(ParallelExecutionEligibilityRules.CanUseFilterProjectExpression(match).IsEligible);
-        Assert.IsTrue(Musoq.Evaluator.IR.Optimization.Execution.ExecutionExpressionCseFacts.IsWorthHoistingExpression(match));
+        Assert.IsTrue(
+            Musoq.Evaluator.IR.Optimization.Execution.ExecutionExpressionCseFacts.IsWorthHoistingExpression(match)
+        );
     }
 
     private static ExecutionStringMatch CreateMatch(ExecutionExpression input) =>
@@ -49,7 +50,8 @@ public sealed class ExecutionStringMatchTests
             "Google",
             ExecutionStringMatchKind.Prefix,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
 
     private sealed class LiteralReplacingRewriter : ExecutionIrRewriter
     {

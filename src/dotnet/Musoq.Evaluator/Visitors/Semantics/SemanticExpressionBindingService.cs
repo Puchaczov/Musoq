@@ -19,7 +19,11 @@ internal sealed class SemanticExpressionBindingService(SemanticDiagnosticReporte
         if (IsStaticallyNonNullableValueType(left.ReturnType))
             return convertedLeft;
 
-        var result = new CoalesceNode(convertedLeft, ConvertCoalesceOperand(RetypeNullFallback(right, left), returnType), returnType);
+        var result = new CoalesceNode(
+            convertedLeft,
+            ConvertCoalesceOperand(RetypeNullFallback(right, left), returnType),
+            returnType
+        );
         if (original.HasSpan)
             result.WithSpan(original.Span);
 
@@ -33,10 +37,15 @@ internal sealed class SemanticExpressionBindingService(SemanticDiagnosticReporte
             return operand;
         var sourceValue = Nullable.GetUnderlyingType(sourceType) ?? sourceType;
         var resultValue = Nullable.GetUnderlyingType(resultType) ?? resultType;
-        if (sourceValue == resultValue || CallableOverloadPreference.FindCommonNumericType(sourceValue, resultValue) != resultValue)
+        if (
+            sourceValue == resultValue
+            || CallableOverloadPreference.FindCommonNumericType(sourceValue, resultValue) != resultValue
+        )
             return operand;
 
-        var targetType = Nullable.GetUnderlyingType(sourceType) is null ? resultValue : typeof(Nullable<>).MakeGenericType(resultValue);
+        var targetType = Nullable.GetUnderlyingType(sourceType) is null
+            ? resultValue
+            : typeof(Nullable<>).MakeGenericType(resultValue);
         return new CastNode(operand, resultValue.Name, targetType).CopySpansFrom(operand);
     }
 
@@ -45,7 +54,8 @@ internal sealed class SemanticExpressionBindingService(SemanticDiagnosticReporte
         if (AreCoalesceTypesCompatible(left.ReturnType, right.ReturnType))
             return;
 
-        var message = $"Operator ?? requires compatible fallback types, but got '{FormatTypeName(left.ReturnType)}' and '{FormatTypeName(right.ReturnType)}'.";
+        var message =
+            $"Operator ?? requires compatible fallback types, but got '{FormatTypeName(left.ReturnType)}' and '{FormatTypeName(right.ReturnType)}'.";
         if (diagnosticReporter.TryReportTypeMismatch(message, errorContextNode))
             return;
 
@@ -54,9 +64,7 @@ internal sealed class SemanticExpressionBindingService(SemanticDiagnosticReporte
 
     private static Node FoldNullLeftOperand(Node right)
     {
-        return IsNullLiteral(right)
-            ? new NullNode(typeof(object), right.Span)
-            : right;
+        return IsNullLiteral(right) ? new NullNode(typeof(object), right.Span) : right;
     }
 
     private static Node RetypeNullFallback(Node right, Node left)
@@ -105,8 +113,10 @@ internal sealed class SemanticExpressionBindingService(SemanticDiagnosticReporte
             return leftType;
 
         var leftUnderlyingType = Nullable.GetUnderlyingType(leftType);
-        var numericType = CallableOverloadPreference.FindCommonNumericType(leftUnderlyingType ?? leftType,
-            Nullable.GetUnderlyingType(rightType) ?? rightType);
+        var numericType = CallableOverloadPreference.FindCommonNumericType(
+            leftUnderlyingType ?? leftType,
+            Nullable.GetUnderlyingType(rightType) ?? rightType
+        );
         if (numericType is not null)
             return leftUnderlyingType is not null && Nullable.GetUnderlyingType(rightType) is not null
                 ? typeof(Nullable<>).MakeGenericType(numericType)

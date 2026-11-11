@@ -22,21 +22,31 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
     {
         Assert.HasCount(48, CandidateCases);
         Assert.HasCount(4, CandidateCases.GroupBy(static candidate => candidate.Family));
-        Assert.IsTrue(CandidateCases.GroupBy(static candidate => candidate.Family).All(static family => family.Count() == 12));
+        Assert.IsTrue(
+            CandidateCases.GroupBy(static candidate => candidate.Family).All(static family => family.Count() == 12)
+        );
 
         foreach (var candidate in CandidateCases)
         {
             var analysis = Analyze(candidate);
-            Assert.IsFalse(analysis.HasErrors, $"{candidate.Id}: {FormatDiagnostics(analysis.Diagnostics, candidate.Query)}");
-            Assert.IsEmpty(analysis.Errors, $"{candidate.Id}: {FormatDiagnostics(analysis.Diagnostics, candidate.Query)}");
+            Assert.IsFalse(
+                analysis.HasErrors,
+                $"{candidate.Id}: {FormatDiagnostics(analysis.Diagnostics, candidate.Query)}"
+            );
+            Assert.IsEmpty(
+                analysis.Errors,
+                $"{candidate.Id}: {FormatDiagnostics(analysis.Diagnostics, candidate.Query)}"
+            );
             Assert.AreEqual(
                 candidate.ExpectedDiagnostics.Count,
                 analysis.Warnings.Count(),
-                $"{candidate.Id}: {FormatDiagnostics(analysis.Diagnostics, candidate.Query)}");
+                $"{candidate.Id}: {FormatDiagnostics(analysis.Diagnostics, candidate.Query)}"
+            );
             CollectionAssert.AreEqual(
                 candidate.ExpectedDiagnostics.ToArray(),
                 analysis.Warnings.Select(static warning => warning.Code).ToArray(),
-                candidate.Id);
+                candidate.Id
+            );
 
             foreach (var warning in analysis.Warnings)
             {
@@ -46,14 +56,21 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
             }
 
             var syntax = new QueryAnalyzer(candidate.ProviderFactory()).ValidateSyntax(candidate.Query);
-            Assert.IsFalse(syntax.HasErrors, $"{candidate.Id}: {FormatDiagnostics(syntax.Diagnostics, candidate.Query)}");
+            Assert.IsFalse(
+                syntax.HasErrors,
+                $"{candidate.Id}: {FormatDiagnostics(syntax.Diagnostics, candidate.Query)}"
+            );
             Assert.AreEqual(
                 candidate.ExpectedSyntaxWarningCount,
                 syntax.Warnings.Count(),
-                $"{candidate.Id}: {FormatDiagnostics(syntax.Diagnostics, candidate.Query)}");
+                $"{candidate.Id}: {FormatDiagnostics(syntax.Diagnostics, candidate.Query)}"
+            );
             Assert.IsTrue(
-                syntax.Warnings.All(static warning => warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape),
-                candidate.Id);
+                syntax.Warnings.All(static warning =>
+                    warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+                ),
+                candidate.Id
+            );
         }
     }
 
@@ -66,18 +83,21 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
                 candidate.Query,
                 $"REC116_{candidate.Id}_{Guid.NewGuid():N}",
                 candidate.ProviderFactory(),
-                loggerResolver);
+                loggerResolver
+            );
 
             Assert.IsTrue(build.Succeeded, $"{candidate.Id}: {FormatDiagnostics(build.Diagnostics, candidate.Query)}");
             Assert.IsEmpty(build.Errors, $"{candidate.Id}: {FormatDiagnostics(build.Diagnostics, candidate.Query)}");
             Assert.AreEqual(
                 candidate.ExpectedDiagnostics.Count,
                 build.Warnings.Count(),
-                $"{candidate.Id}: {FormatDiagnostics(build.Diagnostics, candidate.Query)}");
+                $"{candidate.Id}: {FormatDiagnostics(build.Diagnostics, candidate.Query)}"
+            );
             CollectionAssert.AreEqual(
                 candidate.ExpectedDiagnostics.ToArray(),
                 build.Warnings.Select(static warning => warning.Code).ToArray(),
-                candidate.Id);
+                candidate.Id
+            );
 
             using var table = build.CompiledQuery!.Run();
             Assert.IsNotNull(table, candidate.Id);
@@ -134,10 +154,13 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
             Assert.IsEmpty(syntax.Warnings, id);
             Assert.IsNotEmpty(analysis.Warnings, id);
             Assert.IsTrue(
-                analysis.Warnings.All(static warning => warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
-                    ? warning.Phase == DiagnosticPhase.Parse
-                    : warning.Phase == DiagnosticPhase.Bind),
-                $"{id}: {FormatDiagnostics(analysis.Diagnostics, candidate.Query)}");
+                analysis.Warnings.All(static warning =>
+                    warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+                        ? warning.Phase == DiagnosticPhase.Parse
+                        : warning.Phase == DiagnosticPhase.Bind
+                ),
+                $"{id}: {FormatDiagnostics(analysis.Diagnostics, candidate.Query)}"
+            );
         }
 
         var rooted = Candidate("P01");
@@ -154,7 +177,8 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
             candidate.Query,
             $"REC116_value_{Guid.NewGuid():N}",
             candidate.ProviderFactory(),
-            loggerResolver);
+            loggerResolver
+        );
 
         Assert.IsTrue(build.Succeeded, FormatDiagnostics(build.Diagnostics, candidate.Query));
         using var table = build.CompiledQuery!.Run();
@@ -177,7 +201,8 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
         string family,
         string query,
         IReadOnlyList<DiagnosticCode> expectedDiagnostics,
-        int expectedSyntaxWarningCount = 0)
+        int expectedSyntaxWarningCount = 0
+    )
     {
         return new AdvisoryCase(
             id,
@@ -186,7 +211,8 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
             query,
             static () => new SystemSchemaProvider(),
             expectedDiagnostics,
-            expectedSyntaxWarningCount);
+            expectedSyntaxWarningCount
+        );
     }
 
     private static AdvisoryCase RawCase(
@@ -194,7 +220,8 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
         string family,
         string query,
         IReadOnlyList<DiagnosticCode> expectedDiagnostics,
-        int expectedSyntaxWarningCount = 0)
+        int expectedSyntaxWarningCount = 0
+    )
     {
         return new AdvisoryCase(
             id,
@@ -203,7 +230,8 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
             query,
             static () => new RawStringLiteralSchemaProvider(),
             expectedDiagnostics,
-            expectedSyntaxWarningCount);
+            expectedSyntaxWarningCount
+        );
     }
 
     private static string FormatDiagnostics(IEnumerable<Diagnostic> diagnostics, string query)
@@ -213,35 +241,127 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
 
     private static IReadOnlyList<AdvisoryCase> CandidateCases { get; } =
     [
-        SystemCase("P01", "PATH", @"select 'C:\new\test' from #system.dual() d", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape], 1),
-        SystemCase("P02", "PATH", @"select '/tmp\new\test' from #system.dual() d", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape], 1),
-        SystemCase("P03", "PATH", @"select '.\new\test' from #system.dual() d", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape], 1),
-        SystemCase("P04", "PATH", @"select '..\new\test' from #system.dual() d", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape], 1),
-        RawCase("P05", "PATH", @"select f.Path from #raw.files('some\text', true) f", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]),
-        RawCase("P06", "PATH", @"select f.Path from #raw.files('folder\new', true) f", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]),
+        SystemCase(
+            "P01",
+            "PATH",
+            @"select 'C:\new\test' from #system.dual() d",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape],
+            1
+        ),
+        SystemCase(
+            "P02",
+            "PATH",
+            @"select '/tmp\new\test' from #system.dual() d",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape],
+            1
+        ),
+        SystemCase(
+            "P03",
+            "PATH",
+            @"select '.\new\test' from #system.dual() d",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape],
+            1
+        ),
+        SystemCase(
+            "P04",
+            "PATH",
+            @"select '..\new\test' from #system.dual() d",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape],
+            1
+        ),
+        RawCase(
+            "P05",
+            "PATH",
+            @"select f.Path from #raw.files('some\text', true) f",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]
+        ),
+        RawCase(
+            "P06",
+            "PATH",
+            @"select f.Path from #raw.files('folder\new', true) f",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]
+        ),
         RawCase("P07", "PATH", @"select f.Path from #raw.files(r'some\text', true) f", []),
         RawCase("P08", "PATH", @"select f.Path from #raw.files('some\\text', true) f", []),
         RawCase("P09", "PATH", @"select f.Path from #raw.files('\t', true) f", []),
         RawCase("P10", "PATH", @"select f.Path from #raw.files('some\q', true) f", []),
-        RawCase("P11", "PATH", @"select f.Path from #raw.files(r'safe\root', true) f where f.Path = 'other\temp'", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]),
-        RawCase("P12", "PATH", @"select f.Path from #raw.files(r'safe\root', true) f where f.Path in ('one\temp', 'two\new')", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]),
-
-        SystemCase("R01", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bword\b'", [DiagnosticCode.MQ5015_SuspiciousRegexEscape]),
-        SystemCase("R02", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy rlike '\b'", [DiagnosticCode.MQ5015_SuspiciousRegexEscape]),
+        RawCase(
+            "P11",
+            "PATH",
+            @"select f.Path from #raw.files(r'safe\root', true) f where f.Path = 'other\temp'",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]
+        ),
+        RawCase(
+            "P12",
+            "PATH",
+            @"select f.Path from #raw.files(r'safe\root', true) f where f.Path in ('one\temp', 'two\new')",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]
+        ),
+        SystemCase(
+            "R01",
+            "REGEX",
+            @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bword\b'",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape]
+        ),
+        SystemCase(
+            "R02",
+            "REGEX",
+            @"select d.Dummy from #system.dual() d where d.Dummy rlike '\b'",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape]
+        ),
         SystemCase("R03", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy rlike '[\b]'", []),
         SystemCase("R04", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy rlike r'[\b]'", []),
         SystemCase("R05", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy rlike '\\bword\\b'", []),
         SystemCase("R06", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy rlike '\d+\s+\w+'", []),
         SystemCase("R07", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy rlike Dummy", []),
-        SystemCase("R08", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy not rlike '\bword\b'", [DiagnosticCode.MQ5015_SuspiciousRegexEscape]),
-        SystemCase("R09", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bword' or d.Dummy rlike '\bother'", [DiagnosticCode.MQ5015_SuspiciousRegexEscape, DiagnosticCode.MQ5015_SuspiciousRegexEscape]),
-        SystemCase("R10", "REGEX", @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bword\b' and d.Dummy like '%d%'", [DiagnosticCode.MQ5015_SuspiciousRegexEscape]),
-        SystemCase("R11", "REGEX", @"select Match('\bword\b', d.Dummy) from #system.dual() d", [DiagnosticCode.MQ5015_SuspiciousRegexEscape]),
-        SystemCase("R12", "REGEX", @"select IsMatch(d.Dummy, '\bword\b') from #system.dual() d", [DiagnosticCode.MQ5015_SuspiciousRegexEscape]),
-
-        SystemCase("L01", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like '*.log'", [DiagnosticCode.MQ5016_GlobWildcardInLike]),
-        SystemCase("L02", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like 'file?.txt'", [DiagnosticCode.MQ5016_GlobWildcardInLike]),
-        SystemCase("L03", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like 'logs/?'", [DiagnosticCode.MQ5016_GlobWildcardInLike]),
+        SystemCase(
+            "R08",
+            "REGEX",
+            @"select d.Dummy from #system.dual() d where d.Dummy not rlike '\bword\b'",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape]
+        ),
+        SystemCase(
+            "R09",
+            "REGEX",
+            @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bword' or d.Dummy rlike '\bother'",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape, DiagnosticCode.MQ5015_SuspiciousRegexEscape]
+        ),
+        SystemCase(
+            "R10",
+            "REGEX",
+            @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bword\b' and d.Dummy like '%d%'",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape]
+        ),
+        SystemCase(
+            "R11",
+            "REGEX",
+            @"select Match('\bword\b', d.Dummy) from #system.dual() d",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape]
+        ),
+        SystemCase(
+            "R12",
+            "REGEX",
+            @"select IsMatch(d.Dummy, '\bword\b') from #system.dual() d",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape]
+        ),
+        SystemCase(
+            "L01",
+            "LIKE",
+            @"select d.Dummy from #system.dual() d where d.Dummy like '*.log'",
+            [DiagnosticCode.MQ5016_GlobWildcardInLike]
+        ),
+        SystemCase(
+            "L02",
+            "LIKE",
+            @"select d.Dummy from #system.dual() d where d.Dummy like 'file?.txt'",
+            [DiagnosticCode.MQ5016_GlobWildcardInLike]
+        ),
+        SystemCase(
+            "L03",
+            "LIKE",
+            @"select d.Dummy from #system.dual() d where d.Dummy like 'logs/?'",
+            [DiagnosticCode.MQ5016_GlobWildcardInLike]
+        ),
         SystemCase("L04", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like 'percent%value'", []),
         SystemCase("L05", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like '_leading'", []),
         SystemCase("L06", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like 'glob*%mixed'", []),
@@ -250,20 +370,75 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
         SystemCase("L09", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like '? question'", []),
         SystemCase("L10", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like 'what?'", []),
         SystemCase("L11", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like Dummy", []),
-        SystemCase("L12", "LIKE", @"select d.Dummy from #system.dual() d where d.Dummy like r'*.log'", [DiagnosticCode.MQ5016_GlobWildcardInLike]),
-
-        RawCase("S01", "SURFACES", @"select f.Path from #raw.files('reports\new', true) f", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]),
-        SystemCase("S02", "SURFACES", @"select d.Dummy from #system.dual() d where d.Dummy rlike 'prefix\bword'", [DiagnosticCode.MQ5015_SuspiciousRegexEscape]),
-        SystemCase("S03", "SURFACES", @"select d.Dummy from #system.dual() d where d.Dummy like 'reports/*.log'", [DiagnosticCode.MQ5016_GlobWildcardInLike]),
-        SystemCase("S04", "SURFACES", @"select '\\server\share\new' from #system.dual() d", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape], 1),
-        RawCase("S05", "SURFACES", @"select f.Path from #raw.files('archive\new', true) f", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]),
+        SystemCase(
+            "L12",
+            "LIKE",
+            @"select d.Dummy from #system.dual() d where d.Dummy like r'*.log'",
+            [DiagnosticCode.MQ5016_GlobWildcardInLike]
+        ),
+        RawCase(
+            "S01",
+            "SURFACES",
+            @"select f.Path from #raw.files('reports\new', true) f",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]
+        ),
+        SystemCase(
+            "S02",
+            "SURFACES",
+            @"select d.Dummy from #system.dual() d where d.Dummy rlike 'prefix\bword'",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape]
+        ),
+        SystemCase(
+            "S03",
+            "SURFACES",
+            @"select d.Dummy from #system.dual() d where d.Dummy like 'reports/*.log'",
+            [DiagnosticCode.MQ5016_GlobWildcardInLike]
+        ),
+        SystemCase(
+            "S04",
+            "SURFACES",
+            @"select '\\server\share\new' from #system.dual() d",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape],
+            1
+        ),
+        RawCase(
+            "S05",
+            "SURFACES",
+            @"select f.Path from #raw.files('archive\new', true) f",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]
+        ),
         SystemCase("S06", "SURFACES", @"select d.Dummy from #system.dual() d where d.Dummy rlike '[\b]'", []),
-        RawCase("S07", "SURFACES", @"select f.Path from #raw.files(r'safe\root', true) f where f.Path = 'archive\temp'", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]),
-        RawCase("S08", "SURFACES", @"select f.Path from #raw.files(r'safe\root', true) f where f.Path in ('first\temp', 'second\new')", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]),
-        SystemCase("S09", "SURFACES", @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bfirst' or d.Dummy rlike '\bsecond'", [DiagnosticCode.MQ5015_SuspiciousRegexEscape, DiagnosticCode.MQ5015_SuspiciousRegexEscape]),
-        SystemCase("S10", "SURFACES", @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bword' and d.Dummy like '*.log'", [DiagnosticCode.MQ5015_SuspiciousRegexEscape, DiagnosticCode.MQ5016_GlobWildcardInLike]),
-        RawCase("S11", "SURFACES", @"select f.Path from #raw.files('source\new', true) f where f.Path = 'predicate\temp'", [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]),
-        SystemCase("S12", "SURFACES", @"select d.Dummy from #system.dual() d where d.Dummy not like 'hello?'", [])
+        RawCase(
+            "S07",
+            "SURFACES",
+            @"select f.Path from #raw.files(r'safe\root', true) f where f.Path = 'archive\temp'",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]
+        ),
+        RawCase(
+            "S08",
+            "SURFACES",
+            @"select f.Path from #raw.files(r'safe\root', true) f where f.Path in ('first\temp', 'second\new')",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]
+        ),
+        SystemCase(
+            "S09",
+            "SURFACES",
+            @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bfirst' or d.Dummy rlike '\bsecond'",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape, DiagnosticCode.MQ5015_SuspiciousRegexEscape]
+        ),
+        SystemCase(
+            "S10",
+            "SURFACES",
+            @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bword' and d.Dummy like '*.log'",
+            [DiagnosticCode.MQ5015_SuspiciousRegexEscape, DiagnosticCode.MQ5016_GlobWildcardInLike]
+        ),
+        RawCase(
+            "S11",
+            "SURFACES",
+            @"select f.Path from #raw.files('source\new', true) f where f.Path = 'predicate\temp'",
+            [DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape]
+        ),
+        SystemCase("S12", "SURFACES", @"select d.Dummy from #system.dual() d where d.Dummy not like 'hello?'", []),
     ];
 
     private sealed record AdvisoryCase(
@@ -273,5 +448,6 @@ public sealed class DiagnosticREC116AdvisoryPrecisionTests
         string Query,
         Func<ISchemaProvider> ProviderFactory,
         IReadOnlyList<DiagnosticCode> ExpectedDiagnostics,
-        int ExpectedSyntaxWarningCount);
+        int ExpectedSyntaxWarningCount
+    );
 }

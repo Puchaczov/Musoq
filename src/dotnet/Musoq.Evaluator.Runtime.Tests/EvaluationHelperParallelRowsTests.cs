@@ -17,7 +17,8 @@ public sealed class EvaluationHelperParallelRowsTests
             rows,
             24,
             value => new TestRow([value]),
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
         Assert.HasCount(20, shards);
         Assert.AreEqual(10_000, shards.Sum(static shard => shard.Count));
@@ -32,7 +33,8 @@ public sealed class EvaluationHelperParallelRowsTests
             rows,
             24,
             value => new TestRow([value]),
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
         Assert.HasCount(1, shards);
         Assert.AreEqual(512, shards[0].Count);
@@ -48,7 +50,8 @@ public sealed class EvaluationHelperParallelRowsTests
             24,
             static value => value % 2 == 0,
             value => new TestRow([value]),
-            CancellationToken.None);
+            CancellationToken.None
+        );
 
         var projectedValues = shards
             .SelectMany(static shard => shard)
@@ -60,6 +63,7 @@ public sealed class EvaluationHelperParallelRowsTests
         Assert.HasCount(5000, projectedValues);
         CollectionAssert.AreEqual(
             Enumerable.Range(0, 5000).Select(static value => value * 2).ToArray(),
-            projectedValues);
+            projectedValues
+        );
     }
 }

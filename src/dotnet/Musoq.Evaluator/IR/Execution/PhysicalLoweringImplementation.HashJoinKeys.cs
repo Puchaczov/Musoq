@@ -13,7 +13,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool TryResolveHashJoinSides(
         PhysicalHashJoinNode join,
         JoinSources sources,
-        [NotNullWhen(true)] out HashJoinSides? hashSides)
+        [NotNullWhen(true)] out HashJoinSides? hashSides
+    )
     {
         var buildUsage = HashJoinAliasResolver.GetUsage(join.BuildKeys, sources.Left.Shape, sources.Right.Shape);
         var probeUsage = HashJoinAliasResolver.GetUsage(join.ProbeKeys, sources.Left.Shape, sources.Right.Shape);
@@ -36,8 +37,9 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool ReferencesAlias(IrExpression expression, string alias)
     {
-        return AliasRefExtractor.Extract(expression).Any(candidate =>
-            string.Equals(candidate, alias, StringComparison.OrdinalIgnoreCase));
+        return AliasRefExtractor
+            .Extract(expression)
+            .Any(candidate => string.Equals(candidate, alias, StringComparison.OrdinalIgnoreCase));
     }
 
     private static Type ResolveHashJoinKeyType(PhysicalHashJoinNode join)
@@ -45,8 +47,10 @@ internal sealed partial class PhysicalLoweringImplementation
         if (join.BuildKeys.Length == 1)
             return ResolveCommonKeyType(join.BuildKeys[0].ReturnType, join.ProbeKeys[0].ReturnType);
 
-        if (TryResolveValueTupleHashJoinKeyTypes(join, out var keyTypes) &&
-            ValueTupleTypeShape.TryCreate(keyTypes, out var tupleType))
+        if (
+            TryResolveValueTupleHashJoinKeyTypes(join, out var keyTypes)
+            && ValueTupleTypeShape.TryCreate(keyTypes, out var tupleType)
+        )
             return tupleType;
 
         throw new InvalidOperationException("Composite join keys require a concrete typed carrier.");
@@ -63,16 +67,15 @@ internal sealed partial class PhysicalLoweringImplementation
             return null;
 
         if (join.LeftPartitionKeys.Length == 1)
-            return ResolveCommonKeyType(
-                join.RightPartitionKeys[0].ReturnType,
-                join.LeftPartitionKeys[0].ReturnType);
+            return ResolveCommonKeyType(join.RightPartitionKeys[0].ReturnType, join.LeftPartitionKeys[0].ReturnType);
 
         var keyTypes = new Type[join.LeftPartitionKeys.Length];
         for (var index = 0; index < keyTypes.Length; index++)
         {
             var keyType = ResolveCommonKeyType(
                 join.RightPartitionKeys[index].ReturnType,
-                join.LeftPartitionKeys[index].ReturnType);
+                join.LeftPartitionKeys[index].ReturnType
+            );
             if (!CanUseTypedValueTupleHashJoinKeyPart(keyType))
                 throw new InvalidOperationException("Composite join keys require a concrete typed carrier.");
             keyTypes[index] = keyType;
@@ -81,15 +84,14 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!ValueTupleTypeShape.TryCreate(keyTypes, out var tupleType))
             throw new InvalidOperationException("Composite join keys require a concrete typed carrier.");
 
-        return join.LeftPartitionKeys.Concat(join.RightPartitionKeys).Any(static key =>
-            !key.ReturnType.IsValueType || Nullable.GetUnderlyingType(key.ReturnType) != null)
+        return join
+            .LeftPartitionKeys.Concat(join.RightPartitionKeys)
+            .Any(static key => !key.ReturnType.IsValueType || Nullable.GetUnderlyingType(key.ReturnType) != null)
             ? typeof(Nullable<>).MakeGenericType(tupleType)
             : tupleType;
     }
 
-    private static bool TryResolveValueTupleHashJoinKeyTypes(
-        PhysicalHashJoinNode join,
-        out Type[] keyTypes)
+    private static bool TryResolveValueTupleHashJoinKeyTypes(PhysicalHashJoinNode join, out Type[] keyTypes)
     {
         keyTypes = [];
 
@@ -119,8 +121,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool CanUseTypedValueTupleHashJoinKeyPart(Type type)
     {
-        return type != typeof(object) &&
-               type is not NullNode.NullType;
+        return type != typeof(object) && type is not NullNode.NullType;
     }
 
     private static bool IsValueTupleHashJoinKeyType(Type keyType)
@@ -131,7 +132,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ExecutionExpression CreateHashJoinKeyExpression(
         IrExpression[] keys,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        Type keyType)
+        Type keyType
+    )
     {
         if (keys.Length == 1)
             return ExecutionExpressionConverter.Convert(keys[0], sourceLookup);
@@ -140,7 +142,8 @@ internal sealed partial class PhysicalLoweringImplementation
         {
             return new ExecutionValueTupleKey(
                 keys.Select(key => ExecutionExpressionConverter.Convert(key, sourceLookup)).ToArray(),
-                keyType);
+                keyType
+            );
         }
 
         throw new InvalidOperationException("Composite hash keys must be lowered to a typed tuple.");
@@ -151,32 +154,52 @@ internal sealed partial class PhysicalLoweringImplementation
         return expression switch
         {
             ExecutionFieldRead fieldRead => string.Equals(fieldRead.Alias, alias, StringComparison.OrdinalIgnoreCase),
-            ExecutionBinary binary => ReferencesExecutionAlias(binary.Left, alias) ||
-                                      ReferencesExecutionAlias(binary.Right, alias),
+            ExecutionBinary binary => ReferencesExecutionAlias(binary.Left, alias)
+                || ReferencesExecutionAlias(binary.Right, alias),
             ExecutionUnary unary => ReferencesExecutionAlias(unary.Operand, alias),
             ExecutionStrictCast strictCast => ReferencesExecutionAlias(strictCast.Expression, alias),
-            ExecutionMethodCall method => method.Arguments.Any(argument => ReferencesExecutionAlias(argument, alias)) ||
-                                          (method.InjectedSource != null &&
-                                           ReferencesExecutionAlias(method.InjectedSource, alias)),
+            ExecutionMethodCall method => method.Arguments.Any(argument => ReferencesExecutionAlias(argument, alias))
+                || (method.InjectedSource != null && ReferencesExecutionAlias(method.InjectedSource, alias)),
             ExecutionIsNullCheck isNull => ReferencesExecutionAlias(isNull.Expression, alias),
-            ExecutionRowPresence rowPresence => string.Equals(rowPresence.Alias, alias, StringComparison.OrdinalIgnoreCase) ||
-                                                ReferencesExecutionAlias(rowPresence.PresenceSource, alias),
-            ExecutionInCheck inCheck => ReferencesExecutionAlias(inCheck.Expression, alias) ||
-                                        inCheck.Values.Any(value => ReferencesExecutionAlias(value, alias)),
-            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, child => ReferencesExecutionAlias(child, alias)),
-            ExecutionBetween between => ReferencesExecutionAlias(between.Expression, alias) ||
-                                        ReferencesExecutionAlias(between.Low, alias) ||
-                                        ReferencesExecutionAlias(between.High, alias),
+            ExecutionRowPresence rowPresence => string.Equals(
+                rowPresence.Alias,
+                alias,
+                StringComparison.OrdinalIgnoreCase
+            ) || ReferencesExecutionAlias(rowPresence.PresenceSource, alias),
+            ExecutionInCheck inCheck => ReferencesExecutionAlias(inCheck.Expression, alias)
+                || inCheck.Values.Any(value => ReferencesExecutionAlias(value, alias)),
+            ExecutionPatternMatch
+            or ExecutionStringMatch
+            or ExecutionPrepareLikeMatcher
+            or ExecutionPreparedLikeMatch
+            or ExecutionDynamicLikeMatch
+            or ExecutionLikeMatcherCacheSlot
+            or ExecutionPrepareRLikeMatcher
+            or ExecutionPreparedRLikeMatch
+            or ExecutionDynamicRLikeMatch
+            or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(
+                expression,
+                child => ReferencesExecutionAlias(child, alias)
+            ),
+            ExecutionBetween between => ReferencesExecutionAlias(between.Expression, alias)
+                || ReferencesExecutionAlias(between.Low, alias)
+                || ReferencesExecutionAlias(between.High, alias),
             ExecutionCaseWhen caseWhen => caseWhen.Branches.Any(branch =>
-                                                 ReferencesExecutionAlias(branch.Condition, alias) ||
-                                                 ReferencesExecutionAlias(branch.Result, alias)) ||
-                                             (caseWhen.ElseExpression != null &&
-                                              ReferencesExecutionAlias(caseWhen.ElseExpression, alias)),
-            ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(expression => ReferencesExecutionAlias(expression, alias)),
-            ExecutionCoalesce coalesce => coalesce.Expressions.Any(expression => ReferencesExecutionAlias(expression, alias)),
-            ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(part => ReferencesExecutionAlias(part, alias)),
-            ExecutionAggregateCall aggregateCall => aggregateCall.Arguments.Any(argument => ReferencesExecutionAlias(argument, alias)),
-            _ => false
+                ReferencesExecutionAlias(branch.Condition, alias) || ReferencesExecutionAlias(branch.Result, alias)
+            ) || (caseWhen.ElseExpression != null && ReferencesExecutionAlias(caseWhen.ElseExpression, alias)),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(expression =>
+                ReferencesExecutionAlias(expression, alias)
+            ),
+            ExecutionCoalesce coalesce => coalesce.Expressions.Any(expression =>
+                ReferencesExecutionAlias(expression, alias)
+            ),
+            ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(part =>
+                ReferencesExecutionAlias(part, alias)
+            ),
+            ExecutionAggregateCall aggregateCall => aggregateCall.Arguments.Any(argument =>
+                ReferencesExecutionAlias(argument, alias)
+            ),
+            _ => false,
         };
     }
 }

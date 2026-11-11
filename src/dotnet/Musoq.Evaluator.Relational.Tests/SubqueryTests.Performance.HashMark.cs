@@ -7,28 +7,26 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenPredicateSubqueryProducesValue_ShouldUseBoundedHashMarkProbe()
     {
-        const string query = @"
-            SELECT a.City,
-                   EXISTS (
-                       SELECT b.City FROM #B.entities() b
-                       WHERE b.Country = a.Country
-                   ) AS HasMatch
-            FROM #A.entities() a";
+        const string query = (
+            "\n"
+            + "            SELECT a.City,\n"
+            + "                   EXISTS (\n"
+            + "                       SELECT b.City FROM #B.entities() b\n"
+            + "                       WHERE b.Country = a.Country\n"
+            + "                   ) AS HasMatch\n"
+            + "            FROM #A.entities() a"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("HasMatch", typeof(bool)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["WARSAW", true],
-            ["BERLIN", false],
-            ["PARIS", true]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("HasMatch", typeof(bool)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW", true], ["BERLIN", false], ["PARIS", true]);
 
         var inspection = CompileSubqueryForInspection(query);
 
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateHashMark", inspection.PlanningText);
+        Assert.Contains(
+            "SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateHashMark",
+            inspection.PlanningText
+        );
         Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
         Assert.Contains("CreateKeySet [_sq_1Keys", inspection.ExecutionPlanText);
         Assert.Contains("KeySetProbe", inspection.ExecutionPlanText);
@@ -40,28 +38,24 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenPredicateHashMarkDisablesGeneralHashJoins_ShouldRetainBoundedHashStrategy()
     {
-        const string query = @"
-            SELECT a.City,
-                   CASE WHEN EXISTS (
-                       SELECT b.City FROM #B.entities() b
-                       WHERE b.Country = a.Country
-                   ) THEN 'Y' ELSE 'N' END AS HasMatch
-            FROM #A.entities() a";
+        const string query = (
+            "\n"
+            + "            SELECT a.City,\n"
+            + "                   CASE WHEN EXISTS (\n"
+            + "                       SELECT b.City FROM #B.entities() b\n"
+            + "                       WHERE b.Country = a.Country\n"
+            + "                   ) THEN 'Y' ELSE 'N' END AS HasMatch\n"
+            + "            FROM #A.entities() a"
+        );
         var options = new CompilationOptions(
             useHashJoin: false,
             useSortMergeJoin: false,
-            usePrimitiveTypeValidation: false);
+            usePrimitiveTypeValidation: false
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources(), options)
             .Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("HasMatch", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["BERLIN", "N"],
-            ["PARIS", "Y"],
-            ["WARSAW", "Y"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("HasMatch", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["BERLIN", "N"], ["PARIS", "Y"], ["WARSAW", "Y"]);
     }
 }

@@ -71,8 +71,7 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
 
         Assert.AreEqual(0, unknown.Warnings.Count());
         Assert.AreEqual(0, intentional.Warnings.Count());
-        Assert.IsTrue(malformed.Errors.Any(static error =>
-            error.Code == DiagnosticCode.MQ1004_InvalidEscapeSequence));
+        Assert.IsTrue(malformed.Errors.Any(static error => error.Code == DiagnosticCode.MQ1004_InvalidEscapeSequence));
         Assert.AreEqual(0, malformed.Warnings.Count());
     }
 
@@ -88,7 +87,8 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
     public void Analyze_AmbiguousSourceMetadata_DoesNotGuessPathIntent()
     {
         var result = new QueryAnalyzer(new ContextSchemaProvider()).Analyze(
-            "select 1 from #ambiguous.files('some\\text')");
+            "select 1 from #ambiguous.files('some\\text')"
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3089_AmbiguousCallableOverload, result.Errors.Single().Code);
         Assert.AreEqual(0, result.Warnings.Count());
@@ -98,7 +98,8 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
     public void Analyze_MissingSourceMetadata_DoesNotGuessPathIntent()
     {
         var result = new QueryAnalyzer(new ContextSchemaProvider()).Analyze(
-            "select 1 from #metadatafree.files('some\\text')");
+            "select 1 from #metadatafree.files('some\\text')"
+        );
 
         Assert.IsFalse(result.HasErrors, string.Join("\n", result.Errors));
         Assert.AreEqual(0, result.Warnings.Count());
@@ -108,7 +109,8 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
     public void ValidateSyntax_RelativePathHasNoSemanticContext()
     {
         var result = new QueryAnalyzer(new ContextSchemaProvider()).ValidateSyntax(
-            "select ReadFile('some\\text') from #context.rows()");
+            "select ReadFile('some\\text') from #context.rows()"
+        );
 
         Assert.AreEqual(0, result.Warnings.Count());
     }
@@ -121,10 +123,19 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
         Assert.IsTrue(result.IsParsed, string.Join("\n", result.Diagnostics));
         Assert.IsFalse(result.HasErrors, string.Join("\n", result.Errors));
 
-        var warnings = result.Warnings.Where(static warning =>
-            warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape).ToArray();
-        Assert.AreEqual(1, warnings.Length, string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code} {diagnostic.Message} @{diagnostic.Location.Offset}")));
+        var warnings = result
+            .Warnings.Where(static warning => warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape)
+            .ToArray();
+        Assert.AreEqual(
+            1,
+            warnings.Length,
+            string.Join(
+                " | ",
+                result.Diagnostics.Select(static diagnostic =>
+                    $"{diagnostic.Code} {diagnostic.Message} @{diagnostic.Location.Offset}"
+                )
+            )
+        );
         Assert.AreEqual(DiagnosticSeverity.Warning, warnings[0].Severity);
         Assert.IsTrue(warnings[0].Message.Contains("raw literal", StringComparison.Ordinal));
 
@@ -136,12 +147,13 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
 
     private sealed class ContextSchemaProvider : ISchemaProvider
     {
-        public ISchema GetSchema(string schema) => schema switch
-        {
-            "#ambiguous" => new AmbiguousSchema(),
-            "#metadatafree" => new MetadataFreeSchema(),
-            _ => new ContextSchema()
-        };
+        public ISchema GetSchema(string schema) =>
+            schema switch
+            {
+                "#ambiguous" => new AmbiguousSchema(),
+                "#metadatafree" => new MetadataFreeSchema(),
+                _ => new ContextSchema(),
+            };
     }
 
     private class ContextSchema : SchemaBase
@@ -155,15 +167,18 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
                     typeof(PathTable).GetConstructor([typeof(string), typeof(bool)])!,
                     false,
                     ("path", typeof(string)),
-                    ("recursive", typeof(bool))))
+                    ("recursive", typeof(bool))
+                )
+            ),
         ];
 
         public ContextSchema()
-            : base("context", CachedLibrary.Value)
-        {
-        }
+            : base("context", CachedLibrary.Value) { }
 
-        public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext) =>
+        public override SchemaMethodInfo[] GetRawConstructors(
+            string methodName,
+            SourceMetadataContext metadataContext
+        ) =>
             methodName.Equals("files", StringComparison.OrdinalIgnoreCase)
                 ? FilesConstructors
                 : [new SchemaMethodInfo("rows", SchemaConstructorInfo.Empty())];
@@ -171,12 +186,14 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters) => new ContextTable();
+            params object?[] parameters
+        ) => new ContextTable();
 
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments parameters) => new OneRowSource<T>();
+            TArguments parameters
+        ) => new OneRowSource<T>();
 
         private static MethodsAggregator CreateLibrary()
         {
@@ -195,22 +212,31 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
                 new SchemaConstructorInfo(
                     typeof(AmbiguousTable).GetConstructor([typeof(string)])!,
                     false,
-                    ("path", typeof(string)))),
+                    ("path", typeof(string))
+                )
+            ),
             new(
                 "files",
                 new SchemaConstructorInfo(
                     typeof(AmbiguousTable).GetConstructor([typeof(string)])!,
                     false,
-                    ("message", typeof(string))))
+                    ("message", typeof(string))
+                )
+            ),
         ];
 
-        public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext) =>
-            methodName.Equals("files", StringComparison.OrdinalIgnoreCase) ? Constructors : [];
+        public override SchemaMethodInfo[] GetRawConstructors(
+            string methodName,
+            SourceMetadataContext metadataContext
+        ) => methodName.Equals("files", StringComparison.OrdinalIgnoreCase) ? Constructors : [];
     }
 
     private sealed class MetadataFreeSchema : ContextSchema
     {
-        public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext) => [];
+        public override SchemaMethodInfo[] GetRawConstructors(
+            string methodName,
+            SourceMetadataContext metadataContext
+        ) => [];
     }
 
     private sealed class ContextLibrary : LibraryBase
@@ -224,8 +250,7 @@ public sealed class SuspiciousOrdinaryStringEscapeContextTests
 
     private sealed class OneRowSource<T> : RowSource<T>
     {
-        public override IEnumerable<IReadOnlyList<T>> Chunks =>
-            new[] { (IReadOnlyList<T>)new[] { default(T)! } };
+        public override IEnumerable<IReadOnlyList<T>> Chunks => new[] { (IReadOnlyList<T>)new[] { default(T)! } };
     }
 
     private class ContextTable : ISchemaTable

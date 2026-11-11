@@ -13,9 +13,7 @@ namespace Musoq.Schema;
 public sealed record QueryRowShape
 {
     public QueryRowShape(IReadOnlyList<QueryRowField> fields)
-        : this(fields, RowStreamReplayability.Unknown)
-    {
-    }
+        : this(fields, RowStreamReplayability.Unknown) { }
 
     public QueryRowShape(IReadOnlyList<QueryRowField> fields, RowStreamReplayability replayability)
     {
@@ -29,7 +27,8 @@ public sealed record QueryRowShape
             {
                 throw new ArgumentException(
                     $"Query row slots must be contiguous and start at zero; field '{field.Name}' has slot {field.Slot}, expected {index}.",
-                    nameof(fields));
+                    nameof(fields)
+                );
             }
         }
 
@@ -44,27 +43,36 @@ public sealed record QueryRowShape
 
     public RowStreamReplayability Replayability { get; }
 
-    private static string ComputeFingerprint(
-        IReadOnlyList<QueryRowField> fields,
-        RowStreamReplayability replayability)
+    private static string ComputeFingerprint(IReadOnlyList<QueryRowField> fields, RowStreamReplayability replayability)
     {
         var builder = new StringBuilder();
         builder.Append("query-row-shape-v2\n");
         foreach (var field in fields)
         {
-            builder.Append(field.Slot.ToString(CultureInfo.InvariantCulture)).Append('|')
-                .Append(field.SourceColumnIndex.ToString(CultureInfo.InvariantCulture)).Append('|')
-                .Append(field.Name).Append('|')
-                .Append(field.FieldType.AssemblyQualifiedName).Append('|')
-                .Append(field.SourceReadType.AssemblyQualifiedName).Append('|')
-                .Append(field.EnumType?.Fingerprint ?? "-").Append('|')
-                .Append(field.IsNullable ? '1' : '0').Append('|');
+            builder
+                .Append(field.Slot.ToString(CultureInfo.InvariantCulture))
+                .Append('|')
+                .Append(field.SourceColumnIndex.ToString(CultureInfo.InvariantCulture))
+                .Append('|')
+                .Append(field.Name)
+                .Append('|')
+                .Append(field.FieldType.AssemblyQualifiedName)
+                .Append('|')
+                .Append(field.SourceReadType.AssemblyQualifiedName)
+                .Append('|')
+                .Append(field.EnumType?.Fingerprint ?? "-")
+                .Append('|')
+                .Append(field.IsNullable ? '1' : '0')
+                .Append('|');
 
             if (field.Stability != ColumnStability.Stable)
                 builder.Append("stability=").Append(field.Stability).Append('|');
 
             if (field.ComputedProjection is { } projection)
-                builder.Append("computed=").Append(SourceScalarExpressionFingerprint.Compute(projection.Expression)).Append('|');
+                builder
+                    .Append("computed=")
+                    .Append(SourceScalarExpressionFingerprint.Compute(projection.Expression))
+                    .Append('|');
 
             foreach (var modifier in field.ReadModifiers.OrderBy(static pair => pair.Key, StringComparer.Ordinal))
                 builder.Append(modifier.Key).Append('=').Append(modifier.Value).Append(';');

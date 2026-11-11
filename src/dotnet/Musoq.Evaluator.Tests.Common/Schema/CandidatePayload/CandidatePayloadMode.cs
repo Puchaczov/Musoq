@@ -11,5 +11,5 @@ public enum CandidatePayloadMode
     MalformedDuplicateApplication,
     MalformedAlteredApplication,
     MalformedUnadvertisedPhase,
-    MalformedUnknownVersionApplication
+    MalformedUnknownVersionApplication,
 }

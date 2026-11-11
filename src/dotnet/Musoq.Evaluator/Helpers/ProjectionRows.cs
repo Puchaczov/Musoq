@@ -17,7 +17,8 @@ internal static class ProjectionRows
         IEnumerable<TSource> rows,
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(predicate);
@@ -41,7 +42,8 @@ internal static class ProjectionRows
         Func<TSource, TOut> project,
         Func<TOut, bool>? includeProjected,
         Func<TOut[], int, TShard> publishShard,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(predicate);
@@ -54,22 +56,45 @@ internal static class ProjectionRows
         var shards = new TShard[workerCount];
         if (workerCount == 1)
         {
-            shards[0] = ProjectShard(rows, 0, rows.Count, predicate, project, includeProjected, publishShard, cancellationToken);
+            shards[0] = ProjectShard(
+                rows,
+                0,
+                rows.Count,
+                predicate,
+                project,
+                includeProjected,
+                publishShard,
+                cancellationToken
+            );
             return shards;
         }
 
         var options = new ParallelOptions
         {
             CancellationToken = cancellationToken,
-            MaxDegreeOfParallelism = workerCount
+            MaxDegreeOfParallelism = workerCount,
         };
 
-        Parallel.For(0, workerCount, options, shardIndex =>
-        {
-            var start = rows.Count * shardIndex / workerCount;
-            var end = rows.Count * (shardIndex + 1) / workerCount;
-            shards[shardIndex] = ProjectShard(rows, start, end, predicate, project, includeProjected, publishShard, cancellationToken);
-        });
+        Parallel.For(
+            0,
+            workerCount,
+            options,
+            shardIndex =>
+            {
+                var start = rows.Count * shardIndex / workerCount;
+                var end = rows.Count * (shardIndex + 1) / workerCount;
+                shards[shardIndex] = ProjectShard(
+                    rows,
+                    start,
+                    end,
+                    predicate,
+                    project,
+                    includeProjected,
+                    publishShard,
+                    cancellationToken
+                );
+            }
+        );
 
         return shards;
     }
@@ -80,7 +105,8 @@ internal static class ProjectionRows
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
         Func<TOut, bool>? includeProjected,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(chunks);
         ArgumentNullException.ThrowIfNull(predicate);
@@ -89,21 +115,13 @@ internal static class ProjectionRows
         var workerCount = Math.Max(1, maxDegreeOfParallelism);
         return workerCount == 1
             ? ProjectChunksSerialCore(chunks, predicate, project, includeProjected, cancellationToken)
-            : ProjectChunksParallelCore(
-                chunks,
-                workerCount,
-                predicate,
-                project,
-                includeProjected,
-                cancellationToken);
+            : ProjectChunksParallelCore(chunks, workerCount, predicate, project, includeProjected, cancellationToken);
     }
 
     private static int ResolveWorkerCount(int rowCount, int maxDegreeOfParallelism)
     {
         var maxWorkers = Math.Min(Math.Max(1, maxDegreeOfParallelism), rowCount);
-        var rowLimitedWorkers = Math.Max(
-            1,
-            (rowCount + TargetRowsPerWorker - 1) / TargetRowsPerWorker);
+        var rowLimitedWorkers = Math.Max(1, (rowCount + TargetRowsPerWorker - 1) / TargetRowsPerWorker);
 
         return Math.Min(maxWorkers, rowLimitedWorkers);
     }
@@ -114,7 +132,8 @@ internal static class ProjectionRows
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
         Func<TOut, bool>? includeProjected,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         using var chunkEnumerator = chunks.GetEnumerator();
@@ -136,12 +155,12 @@ internal static class ProjectionRows
 
             var chunk = chunkEnumerator.Current ?? Array.Empty<TSource>();
             bufferedChunks.Enqueue(chunk);
-            bufferedRows = Math.Min(
-                ChunkParallelMinimumSourceRows,
-                bufferedRows + chunk.Count);
+            bufferedRows = Math.Min(ChunkParallelMinimumSourceRows, bufferedRows + chunk.Count);
 
-            if (bufferedChunks.Count >= ChunkParallelMinimumSourceChunks &&
-                bufferedRows >= ChunkParallelMinimumSourceRows)
+            if (
+                bufferedChunks.Count >= ChunkParallelMinimumSourceChunks
+                && bufferedRows >= ChunkParallelMinimumSourceRows
+            )
             {
                 shouldUseParallel = true;
                 break;
@@ -155,12 +174,15 @@ internal static class ProjectionRows
         {
             while (bufferedChunks.Count > 0)
             {
-                foreach (var projected in ProjectChunkSerial(
-                             bufferedChunks.Dequeue(),
-                             predicate,
-                             project,
-                             includeProjected,
-                             linkedCancellation.Token))
+                foreach (
+                    var projected in ProjectChunkSerial(
+                        bufferedChunks.Dequeue(),
+                        predicate,
+                        project,
+                        includeProjected,
+                        linkedCancellation.Token
+                    )
+                )
                 {
                     yield return projected;
                 }
@@ -172,12 +194,15 @@ internal static class ProjectionRows
                 if (!chunkEnumerator.MoveNext())
                     yield break;
 
-                foreach (var projected in ProjectChunkSerial(
-                             chunkEnumerator.Current ?? Array.Empty<TSource>(),
-                             predicate,
-                             project,
-                             includeProjected,
-                             linkedCancellation.Token))
+                foreach (
+                    var projected in ProjectChunkSerial(
+                        chunkEnumerator.Current ?? Array.Empty<TSource>(),
+                        predicate,
+                        project,
+                        includeProjected,
+                        linkedCancellation.Token
+                    )
+                )
                 {
                     yield return projected;
                 }
@@ -214,13 +239,16 @@ internal static class ProjectionRows
                         chunk = chunkEnumerator.Current ?? Array.Empty<TSource>();
                     }
 
-                    inFlight.Enqueue(StartChunkProjection(
-                        chunk,
-                        predicate,
-                        project,
-                        includeProjected,
-                        linkedCancellation.Token,
-                        concurrencyLimiter));
+                    inFlight.Enqueue(
+                        StartChunkProjection(
+                            chunk,
+                            predicate,
+                            project,
+                            includeProjected,
+                            linkedCancellation.Token,
+                            concurrencyLimiter
+                        )
+                    );
                 }
 
                 if (inFlight.Count == 0)
@@ -250,7 +278,8 @@ internal static class ProjectionRows
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
         Func<TOut, bool>? includeProjected,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         using var chunkEnumerator = chunks.GetEnumerator();
         while (true)
@@ -259,12 +288,15 @@ internal static class ProjectionRows
             if (!chunkEnumerator.MoveNext())
                 yield break;
 
-            foreach (var projected in ProjectChunkSerial(
-                         chunkEnumerator.Current ?? Array.Empty<TSource>(),
-                         predicate,
-                         project,
-                         includeProjected,
-                         cancellationToken))
+            foreach (
+                var projected in ProjectChunkSerial(
+                    chunkEnumerator.Current ?? Array.Empty<TSource>(),
+                    predicate,
+                    project,
+                    includeProjected,
+                    cancellationToken
+                )
+            )
             {
                 yield return projected;
             }
@@ -277,7 +309,8 @@ internal static class ProjectionRows
         Func<TSource, TOut> project,
         Func<TOut, bool>? includeProjected,
         CancellationToken cancellationToken,
-        SemaphoreSlim concurrencyLimiter)
+        SemaphoreSlim concurrencyLimiter
+    )
     {
         if (chunk is not { Count: > 0 })
             return Task.FromResult(ChunkProjectionResult<TOut>.Empty);
@@ -288,7 +321,8 @@ internal static class ProjectionRows
             project,
             includeProjected,
             cancellationToken,
-            concurrencyLimiter);
+            concurrencyLimiter
+        );
     }
 
     private static async Task<ChunkProjectionResult<TOut>> ProjectChunkWithConcurrencyLimit<TSource, TOut>(
@@ -297,31 +331,37 @@ internal static class ProjectionRows
         Func<TSource, TOut> project,
         Func<TOut, bool>? includeProjected,
         CancellationToken cancellationToken,
-        SemaphoreSlim concurrencyLimiter)
+        SemaphoreSlim concurrencyLimiter
+    )
     {
         await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            return await Task.Factory.StartNew(
-                static state =>
-                {
-                    var work = (ChunkProjectionWork<TSource, TOut>)state!;
-                    return ProjectChunk(
-                        work.Chunk,
-                        work.Predicate,
-                        work.Project,
-                        work.IncludeProjected,
-                        work.CancellationToken);
-                },
-                new ChunkProjectionWork<TSource, TOut>(
-                    chunk,
-                    predicate,
-                    project,
-                    includeProjected,
-                    cancellationToken),
-                CancellationToken.None,
-                TaskCreationOptions.DenyChildAttach,
-                TaskScheduler.Default).ConfigureAwait(false);
+            return await Task
+                .Factory.StartNew(
+                    static state =>
+                    {
+                        var work = (ChunkProjectionWork<TSource, TOut>)state!;
+                        return ProjectChunk(
+                            work.Chunk,
+                            work.Predicate,
+                            work.Project,
+                            work.IncludeProjected,
+                            work.CancellationToken
+                        );
+                    },
+                    new ChunkProjectionWork<TSource, TOut>(
+                        chunk,
+                        predicate,
+                        project,
+                        includeProjected,
+                        cancellationToken
+                    ),
+                    CancellationToken.None,
+                    TaskCreationOptions.DenyChildAttach,
+                    TaskScheduler.Default
+                )
+                .ConfigureAwait(false);
         }
         finally
         {
@@ -331,7 +371,8 @@ internal static class ProjectionRows
 
     private static void DisposeConcurrencyLimiterWhenTasksComplete<TOut>(
         SemaphoreSlim concurrencyLimiter,
-        IReadOnlyList<Task<ChunkProjectionResult<TOut>>> tasks)
+        IReadOnlyList<Task<ChunkProjectionResult<TOut>>> tasks
+    )
     {
         if (tasks.Count == 0)
         {
@@ -339,16 +380,18 @@ internal static class ProjectionRows
             return;
         }
 
-        _ = Task.WhenAll(tasks).ContinueWith(
-            static (completed, state) =>
-            {
-                _ = completed.Exception;
-                ((SemaphoreSlim)state!).Dispose();
-            },
-            concurrencyLimiter,
-            CancellationToken.None,
-            TaskContinuationOptions.ExecuteSynchronously,
-            TaskScheduler.Default);
+        _ = Task.WhenAll(tasks)
+            .ContinueWith(
+                static (completed, state) =>
+                {
+                    _ = completed.Exception;
+                    ((SemaphoreSlim)state!).Dispose();
+                },
+                concurrencyLimiter,
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default
+            );
     }
 
     private static ChunkProjectionResult<TOut> ProjectChunk<TSource, TOut>(
@@ -356,7 +399,8 @@ internal static class ProjectionRows
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
         Func<TOut, bool>? includeProjected,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var projectedRows = new TOut[chunk.Count];
         var count = 0;
@@ -375,9 +419,7 @@ internal static class ProjectionRows
                 projectedRows[count++] = projected;
         }
 
-        return count == 0
-            ? ChunkProjectionResult<TOut>.Empty
-            : new ChunkProjectionResult<TOut>(projectedRows, count);
+        return count == 0 ? ChunkProjectionResult<TOut>.Empty : new ChunkProjectionResult<TOut>(projectedRows, count);
     }
 
     private static IEnumerable<TOut> ProjectChunkSerial<TSource, TOut>(
@@ -385,7 +427,8 @@ internal static class ProjectionRows
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
         Func<TOut, bool>? includeProjected,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         for (var index = 0; index < chunk.Count; index++)
         {
@@ -410,7 +453,8 @@ internal static class ProjectionRows
         Func<TSource, TOut> project,
         Func<TOut, bool>? includeProjected,
         Func<TOut[], int, TShard> publishShard,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var shard = new TOut[end - start];
         var count = 0;
@@ -453,7 +497,8 @@ internal static class ProjectionRows
         Func<TSource, bool> Predicate,
         Func<TSource, TOut> Project,
         Func<TOut, bool>? IncludeProjected,
-        CancellationToken CancellationToken);
+        CancellationToken CancellationToken
+    );
 
     private readonly record struct ChunkProjectionResult<TOut>(TOut[] Values, int Count)
     {

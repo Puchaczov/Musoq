@@ -10,7 +10,8 @@ internal static class TextCapturePropertyResolver
         SchemaRegistry? registry,
         Func<TextSchemaNode, List<TextFieldDefinitionNode>> fields,
         string intendedTypeName,
-        string propertyName)
+        string propertyName
+    )
     {
         const string prefix = "Musoq.Generated.Interpreters.";
         const string captureMarker = ".CaptureResult_";
@@ -22,16 +23,17 @@ internal static class TextCapturePropertyResolver
             return null;
 
         var schemaName = intendedTypeName[prefix.Length..markerIndex];
-        if (!registry.TryGetSchema(schemaName, out var registration) ||
-            registration?.Node is not TextSchemaNode schema)
+        if (!registry.TryGetSchema(schemaName, out var registration) || registration?.Node is not TextSchemaNode schema)
             return null;
 
         var fieldName = intendedTypeName[(markerIndex + captureMarker.Length)..];
-        var field = InterpretationTextFieldTypeResolver.EnumerateDefinitions(fields(schema)).FirstOrDefault(candidate =>
-            candidate.FieldType == TextFieldType.Pattern &&
-            string.Equals(candidate.Name, fieldName, StringComparison.OrdinalIgnoreCase));
-        return field?.CaptureGroups.Any(group =>
-            string.Equals(group, propertyName, StringComparison.Ordinal)) == true
+        var field = InterpretationTextFieldTypeResolver
+            .EnumerateDefinitions(fields(schema))
+            .FirstOrDefault(candidate =>
+                candidate.FieldType == TextFieldType.Pattern
+                && string.Equals(candidate.Name, fieldName, StringComparison.OrdinalIgnoreCase)
+            );
+        return field?.CaptureGroups.Any(group => string.Equals(group, propertyName, StringComparison.Ordinal)) == true
             ? (typeof(string), null)
             : null;
     }

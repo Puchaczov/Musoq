@@ -14,22 +14,27 @@ public sealed partial class ExecutionCSharpRenderer
 
     private LocalDeclarationStatementSyntax CreateScriptVariableDeclaration(ScriptVariableDefinition definition)
     {
-        if (StructuralCarrierSyntaxFactory.TryCreateVariableStorage(
+        if (
+            StructuralCarrierSyntaxFactory.TryCreateVariableStorage(
                 _scriptVariableDefinitions,
                 definition,
                 out var structuralType,
-                out var structuralInitializer))
+                out var structuralInitializer
+            )
+        )
         {
             return CreateLocalDeclaration(
                 structuralType,
                 GetScriptVariableLocalName(definition.Name),
-                structuralInitializer);
+                structuralInitializer
+            );
         }
 
         var declaration = CreateLocalDeclaration(
             CreateTypeSyntax(definition.VariableType),
             GetScriptVariableLocalName(definition.Name),
-            CreateScriptVariableInitializer(definition));
+            CreateScriptVariableInitializer(definition)
+        );
 
         return definition.CanUseConstKeyword
             ? declaration.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword)))
@@ -40,7 +45,11 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return definition.CanUseConstKeyword
             ? RenderLiteral(definition.Value)
-            : ScriptParameterSyntaxFactory.CreateDefaultArgumentExpression(definition.VariableType, definition.Value, definition.StructuralType);
+            : ScriptParameterSyntaxFactory.CreateDefaultArgumentExpression(
+                definition.VariableType,
+                definition.Value,
+                definition.StructuralType
+            );
     }
 
     private string GetScriptVariableLocalName(string name)
@@ -48,7 +57,6 @@ public sealed partial class ExecutionCSharpRenderer
         if (_scriptVariableLocalNames.TryGetValue(name, out var localName))
             return localName;
 
-        throw new InvalidOperationException(
-            $"Script variable '{name}' is not declared in render context.");
+        throw new InvalidOperationException($"Script variable '{name}' is not declared in render context.");
     }
 }

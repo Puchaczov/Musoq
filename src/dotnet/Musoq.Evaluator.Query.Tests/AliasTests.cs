@@ -12,17 +12,12 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class AliasTests : MultiSchemaTestBase
 {
-
     [TestMethod]
     public void WhenUniqueColumnAcrossJoinedDataSetOccurred_ShouldNotNeedToUseAlias()
     {
         const string query = "select ZeroItem from #schema.first() first inner join #schema.second() second on 1 = 1";
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -36,11 +31,9 @@ public class AliasTests : MultiSchemaTestBase
     {
         const string query = "select b.ZeroItem from #schema.first() a";
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()])
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3015_UnknownAlias, DiagnosticPhase.Bind, "b");
     }
@@ -51,11 +44,7 @@ public class AliasTests : MultiSchemaTestBase
         const string query =
             "select first.FirstItem, second.FirstItem from #schema.first() first inner join #schema.second() second on 1 = 1";
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -68,21 +57,19 @@ public class AliasTests : MultiSchemaTestBase
     [TestMethod]
     public void WhenCteUsesExplicitDottedAlias_ShouldBeAccessibleByRawColumnNameAccessSyntax()
     {
-        const string query = @"
-with p as (
-    select 
-        first.FirstItem as [first.FirstItem],
-        second.FirstItem as [second.FirstItem]
-    from #schema.first() first 
-    inner join #schema.second() second on 1 = 1
-)
-select [first.FirstItem], [second.FirstItem] from p";
+        const string query = (
+            "\n"
+            + "with p as (\n"
+            + "    select \n"
+            + "        first.FirstItem as [first.FirstItem],\n"
+            + "        second.FirstItem as [second.FirstItem]\n"
+            + "    from #schema.first() first \n"
+            + "    inner join #schema.second() second on 1 = 1\n"
+            + ")\n"
+            + "select [first.FirstItem], [second.FirstItem] from p"
+        );
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -95,22 +82,20 @@ select [first.FirstItem], [second.FirstItem] from p";
     [TestMethod]
     public void WhenCteUsesExplicitDottedAlias_ShouldBeAccessibleByAliasedColumnNameAccessSyntax()
     {
-        const string query = @"
-with p as (
-    select 
-        first.FirstItem as [first.FirstItem],
-        second.FirstItem as [second.FirstItem]
-    }
-    from #schema.first() first
-    inner join #schema.second() second on 1 = 1
-)
-select p.[first.FirstItem], p.[second.FirstItem] from p";
+        const string query = (
+            "\n"
+            + "with p as (\n"
+            + "    select \n"
+            + "        first.FirstItem as [first.FirstItem],\n"
+            + "        second.FirstItem as [second.FirstItem]\n"
+            + "    }\n"
+            + "    from #schema.first() first\n"
+            + "    inner join #schema.second() second on 1 = 1\n"
+            + ")\n"
+            + "select p.[first.FirstItem], p.[second.FirstItem] from p"
+        );
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -123,23 +108,21 @@ select p.[first.FirstItem], p.[second.FirstItem] from p";
     [TestMethod]
     public void WhenCteUsesExplicitDottedAlias_ShouldBeAccessibleByAliasedColumnNameAccessSyntaxWithAlias()
     {
-        const string query = @"
-with p as (
-    select 
-        first.FirstItem as [first.FirstItem],
-        second.FirstItem as [second.FirstItem]
-    from #schema.first() first
-    inner join #schema.second() second on 1 = 1
-), q as (
-    select p.[first.FirstItem] as FirstItem, p.[second.FirstItem] as SecondItem from p
-)
-select q.FirstItem, q.SecondItem from q";
+        const string query = (
+            "\n"
+            + "with p as (\n"
+            + "    select \n"
+            + "        first.FirstItem as [first.FirstItem],\n"
+            + "        second.FirstItem as [second.FirstItem]\n"
+            + "    from #schema.first() first\n"
+            + "    inner join #schema.second() second on 1 = 1\n"
+            + "), q as (\n"
+            + "    select p.[first.FirstItem] as FirstItem, p.[second.FirstItem] as SecondItem from p\n"
+            + ")\n"
+            + "select q.FirstItem, q.SecondItem from q"
+        );
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -152,24 +135,22 @@ select q.FirstItem, q.SecondItem from q";
     [TestMethod]
     public void WhenCteUsesExplicitDottedAlias_ShouldBeAccessibleByAliasedColumnNameAccessSyntaxWithAliasAndAlias()
     {
-        const string query = @"
-with p as (
-    select 
-        first.FirstItem as [first.FirstItem],
-        second.FirstItem as [second.FirstItem]
-    }
-    from #schema.first() first
-    inner join #schema.second() second on 1 = 1
-), q as (
-    select p.[first.FirstItem] as [p.first.FirstItem], p.[second.FirstItem] as [p.second.FirstItem] from p
-)
-select q.[p.first.FirstItem], q.[p.second.FirstItem] from q";
+        const string query = (
+            "\n"
+            + "with p as (\n"
+            + "    select \n"
+            + "        first.FirstItem as [first.FirstItem],\n"
+            + "        second.FirstItem as [second.FirstItem]\n"
+            + "    }\n"
+            + "    from #schema.first() first\n"
+            + "    inner join #schema.second() second on 1 = 1\n"
+            + "), q as (\n"
+            + "    select p.[first.FirstItem] as [p.first.FirstItem], p.[second.FirstItem] as [p.second.FirstItem] from p\n"
+            + ")\n"
+            + "select q.[p.first.FirstItem], q.[p.second.FirstItem] from q"
+        );
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -182,23 +163,21 @@ select q.[p.first.FirstItem], q.[p.second.FirstItem] from q";
     [TestMethod]
     public void WhenAliasUsedWithinCte_AndSameUsedWithinOuterQuery_AliasesShouldNotClash()
     {
-        const string query = @"
-with p as (
-    select 
-        1 
-    from #schema.first() first
-    cross apply first.Split('') b
-)
-select 
-    1 
-from p inner join #schema.first() first on 1 = 1
-cross apply first.Split('') b";
+        const string query = (
+            "\n"
+            + "with p as (\n"
+            + "    select \n"
+            + "        1 \n"
+            + "    from #schema.first() first\n"
+            + "    cross apply first.Split('') b\n"
+            + ")\n"
+            + "select \n"
+            + "    1 \n"
+            + "from p inner join #schema.first() first on 1 = 1\n"
+            + "cross apply first.Split('') b"
+        );
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -213,13 +192,13 @@ cross apply first.Split('') b";
         const string query =
             "select a.FirstItem from #schema.first() a inner join #schema.second() a on a.FirstItem = a.FirstItem";
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
-            new FirstEntity(),
-            new FirstEntity()
-        ], [
-            new SecondEntity(),
-            new SecondEntity()
-        ]));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                query,
+                [new FirstEntity(), new FirstEntity()],
+                [new SecondEntity(), new SecondEntity()]
+            )
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind);
         AssertHasGuidance(ex);
@@ -228,21 +207,21 @@ cross apply first.Split('') b";
     [TestMethod]
     public void WhenSameAliasUsedInMultipleJoins_ShouldThrow()
     {
-        const string query = @"
-            select src.FirstItem 
-            from #schema.first() src 
-            inner join #schema.second() b on src.FirstItem = b.FirstItem
-            inner join #schema.third() b on b.FirstItem = src.FirstItem";
+        const string query = (
+            "\n"
+            + "            select src.FirstItem \n"
+            + "            from #schema.first() src \n"
+            + "            inner join #schema.second() b on src.FirstItem = b.FirstItem\n"
+            + "            inner join #schema.third() b on b.FirstItem = src.FirstItem"
+        );
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
-            new FirstEntity(),
-            new FirstEntity(),
-            new FirstEntity()
-        ], [
-            new SecondEntity(),
-            new SecondEntity(),
-            new SecondEntity()
-        ]));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                query,
+                [new FirstEntity(), new FirstEntity(), new FirstEntity()],
+                [new SecondEntity(), new SecondEntity(), new SecondEntity()]
+            )
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind);
         AssertHasGuidance(ex);
@@ -251,21 +230,23 @@ cross apply first.Split('') b";
     [TestMethod]
     public void WhenSameAliasUsedInCTEAndMainQuery_ShouldThrow()
     {
-        const string query = @"
-            with src as (
-                select FirstItem from #schema.first()
-            )
-            select src.FirstItem 
-            from #schema.second() src
-            inner join src on src.FirstItem = src.FirstItem";
+        const string query = (
+            "\n"
+            + "            with src as (\n"
+            + "                select FirstItem from #schema.first()\n"
+            + "            )\n"
+            + "            select src.FirstItem \n"
+            + "            from #schema.second() src\n"
+            + "            inner join src on src.FirstItem = src.FirstItem"
+        );
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
-            new FirstEntity(),
-            new FirstEntity()
-        ], [
-            new SecondEntity(),
-            new SecondEntity()
-        ]));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                query,
+                [new FirstEntity(), new FirstEntity()],
+                [new SecondEntity(), new SecondEntity()]
+            )
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind, "src");
     }
@@ -273,19 +254,19 @@ cross apply first.Split('') b";
     [TestMethod]
     public void WhenCteReferenceUsesDuplicateJoinAlias_ShouldReportDuplicateAlias()
     {
-        const string query = @"
-            with cte as (
-                select FirstItem from #schema.first()
-            )
-            select a.FirstItem
-            from #schema.first() a
-            inner join cte a on 1 = 1";
+        const string query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select FirstItem from #schema.first()\n"
+            + "            )\n"
+            + "            select a.FirstItem\n"
+            + "            from #schema.first() a\n"
+            + "            inner join cte a on 1 = 1"
+        );
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
-            new FirstEntity()
-        ], [
-            new SecondEntity()
-        ]));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(query, [new FirstEntity()], [new SecondEntity()])
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind, "a");
     }
@@ -293,18 +274,20 @@ cross apply first.Split('') b";
     [TestMethod]
     public void WhenSameAliasUsedInCrossApply_ShouldThrow()
     {
-        const string query = @"
-            select a.FirstItem 
-            from #schema.first() a 
-            cross apply #schema.second() a";
+        const string query = (
+            "\n"
+            + "            select a.FirstItem \n"
+            + "            from #schema.first() a \n"
+            + "            cross apply #schema.second() a"
+        );
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
-            new FirstEntity(),
-            new FirstEntity()
-        ], [
-            new SecondEntity(),
-            new SecondEntity()
-        ]));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                query,
+                [new FirstEntity(), new FirstEntity()],
+                [new SecondEntity(), new SecondEntity()]
+            )
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind);
         AssertHasGuidance(ex);
@@ -313,18 +296,20 @@ cross apply first.Split('') b";
     [TestMethod]
     public void WhenSameAliasUsedInOuterApply_ShouldThrow()
     {
-        const string query = @"
-            select a.FirstItem 
-            from #schema.first() a 
-            outer apply #schema.second() a";
+        const string query = (
+            "\n"
+            + "            select a.FirstItem \n"
+            + "            from #schema.first() a \n"
+            + "            outer apply #schema.second() a"
+        );
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
-            new FirstEntity(),
-            new FirstEntity()
-        ], [
-            new SecondEntity(),
-            new SecondEntity()
-        ]));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                query,
+                [new FirstEntity(), new FirstEntity()],
+                [new SecondEntity(), new SecondEntity()]
+            )
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind);
         AssertHasGuidance(ex);

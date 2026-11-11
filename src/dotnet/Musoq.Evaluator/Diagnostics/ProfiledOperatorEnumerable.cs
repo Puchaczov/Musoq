@@ -9,26 +9,18 @@ public sealed class ProfiledOperatorEnumerable<T> : IEnumerable<T>
     private readonly QueryProfileRecorder _recorder;
     private readonly int _scopeDepth;
 
-    private ProfiledOperatorEnumerable(
-        IEnumerable<T> source,
-        QueryProfileRecorder recorder,
-        int scopeDepth)
+    private ProfiledOperatorEnumerable(IEnumerable<T> source, QueryProfileRecorder recorder, int scopeDepth)
     {
         _source = source;
         _recorder = recorder;
         _scopeDepth = scopeDepth;
     }
 
-    public static IEnumerable<T> Create(
-        IEnumerable<T> source,
-        QueryProfileRecorder? recorder,
-        int scopeDepth)
+    public static IEnumerable<T> Create(IEnumerable<T> source, QueryProfileRecorder? recorder, int scopeDepth)
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        return recorder == null
-            ? source
-            : new ProfiledOperatorEnumerable<T>(source, recorder, scopeDepth);
+        return recorder == null ? source : new ProfiledOperatorEnumerable<T>(source, recorder, scopeDepth);
     }
 
     public IEnumerator<T> GetEnumerator()
@@ -49,16 +41,15 @@ public sealed class ProfiledOperatorEnumerable<T> : IEnumerable<T>
     private static bool RecordActiveOperatorException(
         QueryProfileRecorder recorder,
         int scopeDepth,
-        Exception exception)
+        Exception exception
+    )
     {
         recorder.RecordActiveOperatorException(exception, scopeDepth);
         return true;
     }
 
-    private sealed class Enumerator(
-        IEnumerator<T> source,
-        QueryProfileRecorder recorder,
-        int scopeDepth) : IEnumerator<T>
+    private sealed class Enumerator(IEnumerator<T> source, QueryProfileRecorder recorder, int scopeDepth)
+        : IEnumerator<T>
     {
         public T Current => source.Current;
 

@@ -6,17 +6,16 @@ using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
+using static Musoq.Converter.Tests.TwoModeTestFixtures;
 using MusoqApi = Musoq.Converter.Musoq;
 using NameDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameDto;
 using Person = Musoq.Converter.Tests.TwoModeTestFixtures.Person;
-using static Musoq.Converter.Tests.TwoModeTestFixtures;
 
 namespace Musoq.Converter.Tests;
 
 [global::Musoq.Tests.Common.CultureTestClass]
 public class TypedInspectionTests
 {
-
     [TestMethod]
     public void InspectTyped_WhenProjectionIsSimple_ShouldExposeGeneratedCodeAndMetadata()
     {
@@ -49,7 +48,8 @@ public class TypedInspectionTests
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
             new TestsLoggerResolver(),
-            new CompilationOptions(ParallelizationMode.None));
+            new CompilationOptions(ParallelizationMode.None)
+        );
 
         Assert.AreEqual(QueryResultMode.TypedEnumerable, result.ResultMode);
         Assert.AreEqual(TypedGeneratedRowsKind.DirectRows, result.RowsKind);
@@ -78,9 +78,14 @@ public class TypedInspectionTests
         Assert.IsFalse(result.HasFinalSinkRejectionDiagnostics);
         Assert.AreEqual(FinalProjectionSinkRejectionKind.None, result.FinalSinkRejectionKind);
         Assert.IsNull(result.FinalSinkRejectionReason);
-        StringAssert.Contains(result.GeneratedCSharpCode, "private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0(");
+        StringAssert.Contains(
+            result.GeneratedCSharpCode,
+            "private IEnumerable<ResultRow0WithSortKeys> ComputeShapeRows_compiled_0("
+        );
         StringAssert.Contains(result.GeneratedCSharpCode, "return resultOrderRecords;");
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("QueryRows.FromTable<ResultRow0>", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("QueryRows.FromTable<ResultRow0>", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -138,8 +143,7 @@ public class TypedInspectionTests
             .WithCompilationOptions(new CompilationOptions(ParallelizationMode.None))
             .CompileForProfile<NameDto>()
             .RunWithProfile(CancellationToken.None, MusoqApi.Source("#A", "entities", Chunks(rows)))
-            .Rows
-            .ToArray();
+            .Rows.ToArray();
 
         Assert.AreEqual("Alice", compiledRows.Single().Name);
         Assert.AreEqual("Alice", loadedRows.Single().Name);

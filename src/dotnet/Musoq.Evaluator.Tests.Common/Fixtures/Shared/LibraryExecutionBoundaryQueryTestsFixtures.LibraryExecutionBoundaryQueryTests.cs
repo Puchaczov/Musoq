@@ -1,25 +1,25 @@
 using System;
+using System.Collections;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Collections;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-using Musoq.Examples.DataSources.StructuredInputs;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
+using Musoq.Examples.DataSources.StructuredInputs;
 using Musoq.Schema;
-using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionBoundaryQueryTestsFixtures
 {
-
     public readonly record struct ErasedAmountRow(object Amount);
 
     public sealed record FrameworkCollectionEntity(ArrayList Value);
+
     public readonly record struct TextRow(string Text);
 
     internal static ColumnValueVisitor VisitColumnValues(Row[] rows)
@@ -45,8 +45,11 @@ public partial class LibraryExecutionBoundaryQueryTestsFixtures
     }
 
     public readonly record struct PositionRow(int Position);
+
     public sealed record ObjectFieldEntity(object Value);
+
     public sealed record NestedObjectEntity(ObjectFieldEntity Payload);
+
     public readonly record struct AmountRow(decimal? Amount);
 
     public struct FunctionRow
@@ -81,5 +84,4 @@ public partial class LibraryExecutionBoundaryQueryTestsFixtures
                 Nulls++;
         }
     }
-
 }

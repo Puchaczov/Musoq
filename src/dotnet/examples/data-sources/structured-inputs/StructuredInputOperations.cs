@@ -10,7 +10,8 @@ public static class StructuredInputOperations
     public static PatternMatchRow[] Match(
         string text,
         IReadOnlyList<PatternInput> patterns,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(patterns);
@@ -32,12 +33,12 @@ public static class StructuredInputOperations
             }
 
             if (!string.Equals(pattern.Mode, "regex", StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException($"Pattern '{pattern.Id}' has unsupported mode '{pattern.Mode}'.", nameof(patterns));
+                throw new ArgumentException(
+                    $"Pattern '{pattern.Id}' has unsupported mode '{pattern.Mode}'.",
+                    nameof(patterns)
+                );
 
-            var regex = new Regex(
-                pattern.Pattern,
-                RegexOptions.CultureInvariant | RegexOptions.Compiled,
-                RegexTimeout);
+            var regex = new Regex(pattern.Pattern, RegexOptions.CultureInvariant | RegexOptions.Compiled, RegexTimeout);
             for (var match = regex.Match(text); match.Success; match = match.NextMatch())
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -71,7 +72,8 @@ public static class StructuredInputOperations
 
     public static MatrixValueRow[] Matrix(
         IReadOnlyList<IReadOnlyList<int>> values,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(values);
         var rows = new List<MatrixValueRow>();
@@ -91,7 +93,8 @@ public static class StructuredInputOperations
 
     public static WeightedRow[] Weighted(
         IReadOnlyList<WeightedInput> items,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(items);
         var rows = new WeightedRow[items.Count];
@@ -109,7 +112,8 @@ public static class StructuredInputOperations
         string text,
         PatternInput pattern,
         ICollection<PatternMatchRow> rows,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var offset = 0;
         while (offset <= text.Length - pattern.Pattern.Length)

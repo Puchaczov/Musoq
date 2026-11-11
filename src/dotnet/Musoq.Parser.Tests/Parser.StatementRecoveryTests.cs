@@ -22,8 +22,7 @@ public class ParserStatementRecoveryTests
     [TestMethod]
     public void Recovery_ShouldResumeAtNextSemicolonDelimitedStatement()
     {
-        var result = ParseWithDiagnostics(
-            "select 1 + from #some.files(); select 2 from #some.files()");
+        var result = ParseWithDiagnostics("select 1 + from #some.files(); select 2 from #some.files()");
 
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
         Assert.IsNotNull(result.Root);
@@ -35,11 +34,11 @@ public class ParserStatementRecoveryTests
     public void Recovery_ShouldReportOneRootCausePerMalformedStatement()
     {
         var result = ParseWithDiagnostics(
-            "select 1 + from #some.files(); select 2 + from #some.files(); select 3 from #some.files()");
+            "select 1 + from #some.files(); select 2 + from #some.files(); select 3 from #some.files()"
+        );
 
         Assert.HasCount(2, result.Diagnostics, result.FormatDiagnostics());
-        Assert.IsTrue(result.Diagnostics.All(diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ2020_MissingOperand));
+        Assert.IsTrue(result.Diagnostics.All(diagnostic => diagnostic.Code == DiagnosticCode.MQ2020_MissingOperand));
         Assert.IsNotNull(result.Root);
         var statements = (StatementsArrayNode)result.Root.Expression;
         Assert.HasCount(1, statements.Statements);
@@ -49,8 +48,7 @@ public class ParserStatementRecoveryTests
     public void Recovery_ShouldKeepIndependentDiagnosticsInSourceOrder()
     {
         const string query =
-            "select 1 + from #some.files(); select Name,, City from #some.files(); " +
-            "select Name from #some.files()";
+            "select 1 + from #some.files(); select Name,, City from #some.files(); " + "select Name from #some.files()";
 
         var result = ParseWithDiagnostics(query);
 
@@ -59,7 +57,8 @@ public class ParserStatementRecoveryTests
         Assert.AreEqual(DiagnosticCode.MQ2001_UnexpectedToken, result.Diagnostics[1].Code);
         Assert.IsTrue(
             result.Diagnostics[0].Location.Offset < result.Diagnostics[1].Location.Offset,
-            result.FormatDiagnostics());
+            result.FormatDiagnostics()
+        );
         Assert.IsNotNull(result.Root);
         var statements = (StatementsArrayNode)result.Root.Expression;
         Assert.HasCount(1, statements.Statements);
@@ -69,7 +68,8 @@ public class ParserStatementRecoveryTests
     public void Recovery_ShouldResumeAfterMalformedTrailingSetSlice()
     {
         var result = ParseWithDiagnostics(
-            "select Name from #some.files() union select Name from #some.files() take invalid; select Name from #some.files()");
+            "select Name from #some.files() union select Name from #some.files() take invalid; select Name from #some.files()"
+        );
 
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
         Assert.AreEqual(DiagnosticCode.MQ2038_InvalidSliceCount, result.Diagnostics[0].Code);
@@ -90,7 +90,8 @@ public class ParserStatementRecoveryTests
             query.Contains("[Name", StringComparison.Ordinal)
                 ? DiagnosticCode.MQ2011_MissingClosingBracket
                 : DiagnosticCode.MQ2001_UnexpectedToken,
-            result.Diagnostics[0].Code);
+            result.Diagnostics[0].Code
+        );
     }
 
     [TestMethod]

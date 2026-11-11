@@ -13,8 +13,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AssertUsesExecutionBackendWithoutRetiredHelperPatterns(result);
         Assert.Contains("ForEachWithOrdinality [nOrdinal, n in", result.ExecutionPlanText);
         AssertDirectScalarOrdinality(result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains(".Select((", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("Select((n, nOrdinal)", StringComparison.Ordinal), result.GeneratedCSharpCode);
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(".Select((", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("Select((n, nOrdinal)", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
     }
 
     [TestMethod]
@@ -26,12 +32,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             table,
             ("Name", typeof(string)),
             ("Number", typeof(int)),
-            ("NumberOrdinal", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["left", 1, 0],
-            ["left", 2, 1],
-            ["right", 3, 0]);
+            ("NumberOrdinal", typeof(int))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["left", 1, 0], ["left", 2, 1], ["right", 3, 0]);
     }
 
     [TestMethod]
@@ -41,7 +44,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         AssertDirectScalarOrdinality(sample.Content);
         Assert.IsFalse(sample.Content.Contains(".Select((", StringComparison.Ordinal), sample.Content);
-        Assert.IsFalse(sample.Content.Contains("EvaluationHelper.SmartForEach(", StringComparison.Ordinal), sample.Content);
+        Assert.IsFalse(
+            sample.Content.Contains("EvaluationHelper.SmartForEach(", StringComparison.Ordinal),
+            sample.Content
+        );
     }
 
     private static void AssertDirectScalarOrdinality(string code)

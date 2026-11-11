@@ -16,26 +16,25 @@ internal sealed record SourcePlanProperties(
     ISchemaColumn[] ProjectedSchemaColumns,
     SourceQueryRowProjection QueryRowProjection,
     PlanningConfidence ShapeConfidence,
-    string ShapeReason);
+    string ShapeReason
+);
 
 internal enum SourceProjectionState
 {
     Unavailable,
-    Exact
+    Exact,
 }
 
 internal sealed record SourceQueryRowProjection(
     SourceProjectionState State,
     IReadOnlyList<ISchemaColumn> Columns,
-    string Reason)
+    string Reason
+)
 {
     public static SourceQueryRowProjection Exact(IReadOnlyList<ISchemaColumn> columns, string reason)
     {
         ArgumentNullException.ThrowIfNull(columns);
-        return new SourceQueryRowProjection(
-            SourceProjectionState.Exact,
-            Array.AsReadOnly(columns.ToArray()),
-            reason);
+        return new SourceQueryRowProjection(SourceProjectionState.Exact, Array.AsReadOnly(columns.ToArray()), reason);
     }
 
     public static SourceQueryRowProjection Unavailable(string reason)

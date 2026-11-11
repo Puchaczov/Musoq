@@ -5,10 +5,7 @@ namespace Musoq.Evaluator.IR.Planning.Cardinality;
 
 internal static class CardinalityFactAdvisor
 {
-    public static bool TryResolveComparableRows(
-        IReadOnlyList<CardinalityFact>? facts,
-        string targetId,
-        out long rows)
+    public static bool TryResolveComparableRows(IReadOnlyList<CardinalityFact>? facts, string targetId, out long rows)
     {
         rows = 0;
 
@@ -30,7 +27,8 @@ internal static class CardinalityFactAdvisor
         IReadOnlyList<CardinalityFact>? facts,
         PhysicalNode node,
         out int capacity,
-        out CardinalityFact? matchedFact)
+        out CardinalityFact? matchedFact
+    )
     {
         capacity = 0;
         matchedFact = null;

@@ -1,19 +1,12 @@
 namespace Musoq.Evaluator.Helpers;
 
-public sealed record FrameBounds(
-    FrameBound Start,
-    FrameBound End)
+public sealed record FrameBounds(FrameBound Start, FrameBound End)
 {
-    public FrameBounds(
-        int precedingOffset,
-        bool unboundedPreceding,
-        int followingOffset,
-        bool unboundedFollowing)
+    public FrameBounds(int precedingOffset, bool unboundedPreceding, int followingOffset, bool unboundedFollowing)
         : this(
             CreateStartBound(precedingOffset, unboundedPreceding),
-            CreateEndBound(followingOffset, unboundedFollowing))
-    {
-    }
+            CreateEndBound(followingOffset, unboundedFollowing)
+        ) { }
 
     private static FrameBound CreateStartBound(int offset, bool unbounded)
     {

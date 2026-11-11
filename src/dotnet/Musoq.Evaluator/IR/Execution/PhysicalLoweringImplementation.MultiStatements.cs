@@ -11,18 +11,26 @@ internal sealed partial class PhysicalLoweringImplementation
     private ExecutionPlanBuildResult BuildMultiStatement(
         PhysicalMultiStatementNode multiStatement,
         string identifier,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
-        var indexes = CreateMultiStatementIndexes(multiStatement,
-            existingCteShapesByName: scope.SubqueryCtes.ToDictionary(static binding => binding.Name, static binding => binding.Shape, StringComparer.OrdinalIgnoreCase),
-            statementNamePrefix: string.IsNullOrEmpty(scope.GeneratedTypePrefix) ? null : scope.GeneratedTypePrefix);
+        var indexes = CreateMultiStatementIndexes(
+            multiStatement,
+            existingCteShapesByName: scope.SubqueryCtes.ToDictionary(
+                static binding => binding.Name,
+                static binding => binding.Shape,
+                StringComparer.OrdinalIgnoreCase
+            ),
+            statementNamePrefix: string.IsNullOrEmpty(scope.GeneratedTypePrefix) ? null : scope.GeneratedTypePrefix
+        );
         var result = BuildMultiStatementTable(
             multiStatement,
             "result",
             scope.GeneratedTypePrefix + "ResultRow0",
             indexes,
             scopeAggregateVariables: true,
-            scope);
+            scope
+        );
 
         if (!result.IsBuilt)
             return ExecutionPlanBuildResult.CreateUnsupported(result.UnsupportedReason);
@@ -36,11 +44,14 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
-        var loweredPlansByCteName = new Dictionary<string, IReadOnlyList<ApplyPredicateMovementPlan>>(StringComparer.OrdinalIgnoreCase);
+        var loweredPlansByCteName = new Dictionary<string, IReadOnlyList<ApplyPredicateMovementPlan>>(
+            StringComparer.OrdinalIgnoreCase
+        );
         ExecutionVariable? finalTable = null;
         GeneratedRowShape? finalShape = null;
         IReadOnlyList<ApplyPredicateMovementPlan> finalLoweredPlans = [];
@@ -53,13 +64,15 @@ internal sealed partial class PhysicalLoweringImplementation
                 resultShapeName,
                 indexes,
                 scopeAggregateVariables,
-                scope);
+                scope
+            );
             if (directRecursiveProjection != null)
                 return directRecursiveProjection;
 
             return TableBuildResult.Unsupported(
-                $"Recursive CTE '{scope.RecursiveCteSink.CteName}' branch cannot be lowered to its direct sink. " +
-                $"Statements: {string.Join(", ", multiStatement.Statements.Select(static statement => statement.GetType().Name))}.");
+                $"Recursive CTE '{scope.RecursiveCteSink.CteName}' branch cannot be lowered to its direct sink. "
+                    + $"Statements: {string.Join(", ", multiStatement.Statements.Select(static statement => statement.GetType().Name))}."
+            );
         }
 
         var finalAggregateProjection = TryBuildFinalAggregateProjectionTable(
@@ -68,7 +81,8 @@ internal sealed partial class PhysicalLoweringImplementation
             resultShapeName,
             indexes,
             scopeAggregateVariables,
-            scope);
+            scope
+        );
         if (finalAggregateProjection != null)
             return finalAggregateProjection;
 
@@ -78,7 +92,8 @@ internal sealed partial class PhysicalLoweringImplementation
             resultShapeName,
             indexes,
             scopeAggregateVariables,
-            scope);
+            scope
+        );
         if (finalJoinAggregateProjection != null)
             return finalJoinAggregateProjection;
 
@@ -87,7 +102,8 @@ internal sealed partial class PhysicalLoweringImplementation
             resultTableName,
             resultShapeName,
             indexes,
-            scope);
+            scope
+        );
         if (finalJoinProjection != null)
             return finalJoinProjection;
 
@@ -97,7 +113,8 @@ internal sealed partial class PhysicalLoweringImplementation
             resultShapeName,
             indexes,
             scopeAggregateVariables,
-            scope);
+            scope
+        );
         if (finalSideEffectApplyProjection != null)
             return finalSideEffectApplyProjection;
 
@@ -107,7 +124,8 @@ internal sealed partial class PhysicalLoweringImplementation
             resultShapeName,
             indexes,
             scopeAggregateVariables,
-            scope);
+            scope
+        );
         if (sidecarJoinChain != null)
             return sidecarJoinChain;
 
@@ -117,7 +135,8 @@ internal sealed partial class PhysicalLoweringImplementation
             resultShapeName,
             indexes,
             scopeAggregateVariables,
-            scope);
+            scope
+        );
         if (finalProjectionChain != null)
             return finalProjectionChain;
 
@@ -132,7 +151,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 ? resultShapeName
                 : CreateStatementShapeName(indexes.StatementNamePrefix, index);
             var effectiveStatement = statement;
-            var inheritedInputPlans = ApplyPredicateGuardLoweringService.CollectCteNames(statement)
+            var inheritedInputPlans = ApplyPredicateGuardLoweringService
+                .CollectCteNames(statement)
                 .Where(loweredPlansByCteName.ContainsKey)
                 .SelectMany(name => loweredPlansByCteName[name])
                 .DistinctBy(static plan => plan.MovementId, StringComparer.Ordinal)
@@ -141,22 +161,30 @@ internal sealed partial class PhysicalLoweringImplementation
             {
                 effectiveStatement = ApplyPredicateGuardLoweringService.RemoveLoweredPredicatesFromStatement(
                     statement,
-                    inheritedInputPlans);
+                    inheritedInputPlans
+                );
             }
 
-            _shapeResolver.Subqueries.Register(effectiveStatement, indexes.CteIndexes, indexes.CteShapesByName, scope.SubqueryCtes);
+            _shapeResolver.Subqueries.Register(
+                effectiveStatement,
+                indexes.CteIndexes,
+                indexes.CteShapesByName,
+                scope.SubqueryCtes
+            );
             var result = BuildStatementTable(
                 effectiveStatement,
                 statementTableName,
                 statementShapeName,
                 indexes,
                 scopeAggregateVariables,
-                scope);
+                scope
+            );
 
             if (!result.IsBuilt)
                 return result;
 
-            var inheritedPlans = ApplyPredicateGuardLoweringService.CollectCteNames(statement)
+            var inheritedPlans = ApplyPredicateGuardLoweringService
+                .CollectCteNames(statement)
                 .Where(loweredPlansByCteName.ContainsKey)
                 .SelectMany(name => loweredPlansByCteName[name])
                 .Concat(result.LoweredApplyPredicateMovementPlans)
@@ -179,7 +207,8 @@ internal sealed partial class PhysicalLoweringImplementation
             if (tableIndex < 0)
             {
                 return TableBuildResult.Unsupported(
-                    $"Execution IR multi-statement lowering cannot resolve table storage slot for statement {index.ToString(CultureInfo.InvariantCulture)}.");
+                    $"Execution IR multi-statement lowering cannot resolve table storage slot for statement {index.ToString(CultureInfo.InvariantCulture)}."
+                );
             }
 
             var cteName = ResolveStatementCteName(index, indexes);
@@ -193,16 +222,18 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         if (finalTable == null || finalShape == null)
-            return TableBuildResult.Unsupported("Execution IR multi-statement lowering requires at least one statement.");
+            return TableBuildResult.Unsupported(
+                "Execution IR multi-statement lowering requires at least one statement."
+            );
 
-        var allLoweredPlans = loweredPlansByCteName.Values
-            .SelectMany(static plans => plans)
+        var allLoweredPlans = loweredPlansByCteName
+            .Values.SelectMany(static plans => plans)
             .Concat(finalLoweredPlans)
             .DistinctBy(static plan => plan.MovementId, StringComparer.Ordinal)
             .ToArray();
         return TableBuildResult.Success(shapes, nodes, finalTable, finalShape) with
         {
-            LoweredApplyPredicateMovementPlans = allLoweredPlans
+            LoweredApplyPredicateMovementPlans = allLoweredPlans,
         };
     }
 
@@ -212,7 +243,8 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         return BuildPlanTable(
             statement,
@@ -222,6 +254,7 @@ internal sealed partial class PhysicalLoweringImplementation
             indexes.CteShapesByName,
             schemaFromIndex: DefaultSchemaFromIndex,
             scopeAggregateVariables: scopeAggregateVariables,
-            scope: scope);
+            scope: scope
+        );
     }
 }

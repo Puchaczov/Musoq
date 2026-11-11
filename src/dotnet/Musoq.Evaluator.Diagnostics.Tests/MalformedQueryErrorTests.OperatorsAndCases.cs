@@ -13,9 +13,15 @@ public partial class MalformedQueryErrorTests
     public void WhenBetweenMissingUpperBound_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE Age BETWEEN 20 AND"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE Age BETWEEN 20 AND")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2020_MissingOperand, DiagnosticPhase.Parse, "missing its right operand");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2020_MissingOperand,
+            DiagnosticPhase.Parse,
+            "missing its right operand"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -23,9 +29,15 @@ public partial class MalformedQueryErrorTests
     public void WhenBetweenMissingLowerBound_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE Age BETWEEN AND 30"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE Age BETWEEN AND 30")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2020_MissingOperand, DiagnosticPhase.Parse, "missing its right operand");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2020_MissingOperand,
+            DiagnosticPhase.Parse,
+            "missing its right operand"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -33,7 +45,8 @@ public partial class MalformedQueryErrorTests
     public void WhenBetweenMissingAndKeyword_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE Age BETWEEN 20 30"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE Age BETWEEN 20 30")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2018_MissingOperator, DiagnosticPhase.Parse, "Two operands");
         AssertHasGuidance(ex);
@@ -43,9 +56,15 @@ public partial class MalformedQueryErrorTests
     public void WhenBetweenMissingBothBounds_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE Age BETWEEN"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE Age BETWEEN")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2020_MissingOperand, DiagnosticPhase.Parse, "missing its right operand");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2020_MissingOperand,
+            DiagnosticPhase.Parse,
+            "missing its right operand"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -53,7 +72,8 @@ public partial class MalformedQueryErrorTests
     public void WhenBetweenMissingLeftOperand_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE BETWEEN 20 AND 30"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE BETWEEN 20 AND 30")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "cannot be used here");
         AssertHasGuidance(ex);
@@ -67,7 +87,8 @@ public partial class MalformedQueryErrorTests
     public void WhenLegacyPrefixDoubleColonNumberInSelect_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT ::5, Count(1) FROM #test.people() GROUP BY City"));
+            CompileQuery("SELECT ::5, Count(1) FROM #test.people() GROUP BY City")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "DoubleColon");
     }
@@ -75,8 +96,7 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenLegacyPrefixDoubleColonNumberWithoutGroupBy_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT ::1 FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT ::1 FROM #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "DoubleColon");
     }
@@ -85,7 +105,8 @@ public partial class MalformedQueryErrorTests
     public void WhenLegacyPrefixDoubleColonZero_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT ::0, Count(1) FROM #test.people() GROUP BY City"));
+            CompileQuery("SELECT ::0, Count(1) FROM #test.people() GROUP BY City")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "DoubleColon");
         AssertHasGuidance(ex);
@@ -95,7 +116,8 @@ public partial class MalformedQueryErrorTests
     public void WhenLegacyPrefixDoubleColonNegative_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT ::-1, Count(1) FROM #test.people() GROUP BY City"));
+            CompileQuery("SELECT ::-1, Count(1) FROM #test.people() GROUP BY City")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "DoubleColon");
         AssertHasGuidance(ex);
@@ -127,7 +149,8 @@ public partial class MalformedQueryErrorTests
     public void WhenCaseWhenMultipleBranchesWithoutElse_ShouldReturnFirstMatchOrNull()
     {
         using var query = CompileQuery(
-            "SELECT CASE WHEN Age > 40 THEN 'senior' WHEN Age > 25 THEN 'mid' END AS Category FROM #test.people()");
+            "SELECT CASE WHEN Age > 40 THEN 'senior' WHEN Age > 25 THEN 'mid' END AS Category FROM #test.people()"
+        );
         using var table = query.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [null], ["mid"], ["mid"], ["senior"], ["mid"]);
@@ -136,7 +159,9 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenSimpleCaseWithoutElse_ShouldReturnMatchOrNull()
     {
-        using var query = CompileQuery("SELECT CASE Age WHEN 25 THEN 'young' WHEN 35 THEN 'mid' END AS Category FROM #test.people()");
+        using var query = CompileQuery(
+            "SELECT CASE Age WHEN 25 THEN 'young' WHEN 35 THEN 'mid' END AS Category FROM #test.people()"
+        );
         using var table = query.Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["young"], ["mid"], [null], [null], [null]);
@@ -150,7 +175,8 @@ public partial class MalformedQueryErrorTests
     public void WhenSimpleCaseValid_ShouldSucceed()
     {
         var vm = CompileQuery(
-            "SELECT CASE City WHEN 'London' THEN 'UK' WHEN 'Paris' THEN 'FR' ELSE 'Other' END FROM #test.people()");
+            "SELECT CASE City WHEN 'London' THEN 'UK' WHEN 'Paris' THEN 'FR' ELSE 'Other' END FROM #test.people()"
+        );
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(5, table.Count);
@@ -160,7 +186,8 @@ public partial class MalformedQueryErrorTests
     public void WhenSimpleCaseMissingInputExpression_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT CASE THEN 'yes' ELSE 'no' END FROM #test.people()"));
+            CompileQuery("SELECT CASE THEN 'yes' ELSE 'no' END FROM #test.people()")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "cannot be used here");
         AssertHasGuidance(ex);
@@ -174,9 +201,15 @@ public partial class MalformedQueryErrorTests
     public void WhenHexLiteralOverflow_ShouldThrowError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT 0xFFFFFFFFFFFFFFFFFF FROM #test.single()"));
+            CompileQuery("SELECT 0xFFFFFFFFFFFFFFFFFF FROM #test.single()")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
+            DiagnosticPhase.Parse,
+            "outside the supported range"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -185,9 +218,16 @@ public partial class MalformedQueryErrorTests
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery(
-                "SELECT 0b11111111111111111111111111111111111111111111111111111111111111111 FROM #test.single()"));
+                "SELECT 0b11111111111111111111111111111111111111111111111111111111111111111 FROM #test.single()"
+            )
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
+            DiagnosticPhase.Parse,
+            "outside the supported range"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -195,9 +235,15 @@ public partial class MalformedQueryErrorTests
     public void WhenOctalLiteralOverflow_ShouldThrowError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT 0o7777777777777777777777 FROM #test.single()"));
+            CompileQuery("SELECT 0o7777777777777777777777 FROM #test.single()")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
+            DiagnosticPhase.Parse,
+            "outside the supported range"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -209,10 +255,15 @@ public partial class MalformedQueryErrorTests
     public void WhenContainsWithEmptyArgList_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Name CONTAINS ()"));
+            CompileQuery("SELECT * FROM #test.people() WHERE Name CONTAINS ()")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, DiagnosticPhase.Parse,
-            "CONTAINS requires at least one argument");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
+            DiagnosticPhase.Parse,
+            "CONTAINS requires at least one argument"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -220,10 +271,15 @@ public partial class MalformedQueryErrorTests
     public void WhenContainsMissingParentheses_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Name CONTAINS 'Alice'"));
+            CompileQuery("SELECT * FROM #test.people() WHERE Name CONTAINS 'Alice'")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2002_MissingToken, DiagnosticPhase.Parse,
-            "CONTAINS requires a parenthesized value list");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2002_MissingToken,
+            DiagnosticPhase.Parse,
+            "CONTAINS requires a parenthesized value list"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -234,29 +290,44 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenInWithEmptyList_ShouldThrowError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Age IN ()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT * FROM #test.people() WHERE Age IN ()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, DiagnosticPhase.Parse,
-            "IN does not support an empty value list");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
+            DiagnosticPhase.Parse,
+            "IN does not support an empty value list"
+        );
     }
 
     [TestMethod]
     public void WhenNotInWithEmptyList_ShouldThrowError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Age NOT IN ()"));
+            CompileQuery("SELECT * FROM #test.people() WHERE Age NOT IN ()")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, DiagnosticPhase.Parse, "NOT IN does not support an empty value list");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
+            DiagnosticPhase.Parse,
+            "NOT IN does not support an empty value list"
+        );
     }
 
     [TestMethod]
     public void WhenInWithUnclosedParenthesis_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Age IN (25, 30"));
+            CompileQuery("SELECT * FROM #test.people() WHERE Age IN (25, 30")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Expected token is RightParenthesis");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            DiagnosticPhase.Parse,
+            "Expected token is RightParenthesis"
+        );
         AssertHasGuidance(ex);
     }
 

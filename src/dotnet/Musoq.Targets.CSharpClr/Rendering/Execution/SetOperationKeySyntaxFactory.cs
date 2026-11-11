@@ -37,7 +37,8 @@ internal static class SetOperationKeySyntaxFactory
             6 => typeof(ValueTuple<,,,,,>).MakeGenericType(fieldTypes.ToArray()),
             7 => typeof(ValueTuple<,,,,,,>).MakeGenericType(fieldTypes.ToArray()),
             _ => throw new NotSupportedException(
-                $"Hash set set-operation keys support at least one field. Found {fieldTypes.Count.ToString(CultureInfo.InvariantCulture)}.")
+                $"Hash set set-operation keys support at least one field. Found {fieldTypes.Count.ToString(CultureInfo.InvariantCulture)}."
+            ),
         };
     }
 }

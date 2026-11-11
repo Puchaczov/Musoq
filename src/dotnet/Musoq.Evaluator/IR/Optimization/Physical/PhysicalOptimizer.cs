@@ -9,40 +9,38 @@ internal sealed class PhysicalOptimizer
         PhysicalNode initialPlan,
         PlanProperties initialProperties,
         CompilationOptions compilationOptions,
-        IPlanningShapeResolver shapeResolver)
+        IPlanningShapeResolver shapeResolver
+    )
     {
         return Optimize(
             initialPlan,
-            new PhysicalOptimizationSession(initialProperties, compilationOptions, shapeResolver));
+            new PhysicalOptimizationSession(initialProperties, compilationOptions, shapeResolver)
+        );
     }
 
-    public PhysicalOptimizationResult Optimize(
-        PhysicalNode initialPlan,
-        PhysicalOptimizationSession session)
+    public PhysicalOptimizationResult Optimize(PhysicalNode initialPlan, PhysicalOptimizationSession session)
     {
         ArgumentNullException.ThrowIfNull(initialPlan);
         ArgumentNullException.ThrowIfNull(session);
 
         var trace = new OptimizationTrace();
         var state = new PhysicalOptimizationState(session);
-        var contextState = new OptimizationContextState
-        {
-            PhysicalOptimizationState = state
-        };
+        var contextState = new OptimizationContextState { PhysicalOptimizationState = state };
         var options = new OptimizationOptions
         {
-            StabilityAwareScalarReuseEnabled = session.CompilationOptions.UseStabilityAwareScalarReuse
+            StabilityAwareScalarReuseEnabled = session.CompilationOptions.UseStabilityAwareScalarReuse,
         };
-        var result = new PlanOptimizationRunner<PhysicalNode>(
-            PhysicalOptimizationGroup.Pipeline).Run(
+        var result = new PlanOptimizationRunner<PhysicalNode>(PhysicalOptimizationGroup.Pipeline).Run(
             initialPlan,
-            new OptimizationContext(OptimizationStage.PhysicalOptimization, trace, options, contextState));
+            new OptimizationContext(OptimizationStage.PhysicalOptimization, trace, options, contextState)
+        );
 
         return new PhysicalOptimizationResult(
             initialPlan,
             result.Plan,
             state.OptimizedProperties,
             state.Decisions,
-            trace);
+            trace
+        );
     }
 }

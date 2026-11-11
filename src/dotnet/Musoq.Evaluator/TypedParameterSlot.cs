@@ -1,6 +1,6 @@
-using System.Threading;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace Musoq.Evaluator;
 
@@ -16,6 +16,7 @@ internal sealed class ScalarParameterSlot<T>(T value) : TypedParameterSlot
     public T Value { get; } = value;
     public override Type ValueType => typeof(T);
     public override bool IsNull => Value is null;
+
     public override TypedParameterSlot Capture(CancellationToken cancellationToken) => this;
 }
 

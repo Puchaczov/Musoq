@@ -42,26 +42,31 @@ public sealed class QueryScopedRowGeneratedMaterializerTests
             "select p.Name, p.Value from #queryrows.items() p",
             "query-row-materializer-syntax",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsFalse(inspection.Diagnostics.Any(static diagnostic => diagnostic.IsError));
 
         var root = CSharpSyntaxTree.ParseText(inspection.GeneratedCSharpCode).GetRoot();
         var materializer = root.DescendantNodes()
             .OfType<StructDeclarationSyntax>()
-            .Single(static declaration => declaration.Identifier.ValueText.StartsWith(
-                "QueryRowMaterializer_",
-                StringComparison.Ordinal));
-        var materialize = materializer.Members
-            .OfType<MethodDeclarationSyntax>()
+            .Single(static declaration =>
+                declaration.Identifier.ValueText.StartsWith("QueryRowMaterializer_", StringComparison.Ordinal)
+            );
+        var materialize = materializer
+            .Members.OfType<MethodDeclarationSyntax>()
             .Single(static method => method.Identifier.ValueText == "Materialize");
         var reader = materialize.ParameterList.Parameters.Single();
-        var readerCalls = materialize.DescendantNodes()
+        var readerCalls = materialize
+            .DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
-            .Where(static invocation => invocation.Expression is MemberAccessExpressionSyntax
-            {
-                Expression: IdentifierNameSyntax { Identifier.ValueText: "reader" },
-                Name: GenericNameSyntax { Identifier.ValueText: "Read" }
-            })
+            .Where(static invocation =>
+                invocation.Expression
+                    is MemberAccessExpressionSyntax
+                    {
+                        Expression: IdentifierNameSyntax { Identifier.ValueText: "reader" },
+                        Name: GenericNameSyntax { Identifier.ValueText: "Read" }
+                    }
+            )
             .Select(static invocation => invocation.NormalizeWhitespace().ToFullString())
             .ToArray();
 
@@ -70,9 +75,7 @@ public sealed class QueryScopedRowGeneratedMaterializerTests
         Assert.IsTrue(reader.Modifiers.Any(static modifier => modifier.IsKind(SyntaxKind.RefKeyword)));
         StringAssert.Contains(materialize.ConstraintClauses.Single().ToString(), "IQuerySourceFieldReader");
         StringAssert.Contains(materialize.ConstraintClauses.Single().ToString(), "allows ref struct");
-        CollectionAssert.AreEqual(
-            new[] { "reader.Read<string>(0)", "reader.Read<int>(1)" },
-            readerCalls);
+        CollectionAssert.AreEqual(new[] { "reader.Read<string>(0)", "reader.Read<int>(1)" }, readerCalls);
 
         var materializerCode = materializer.NormalizeWhitespace().ToFullString();
         Assert.IsFalse(materializerCode.Contains("object[]", StringComparison.Ordinal));
@@ -89,18 +92,19 @@ public sealed class QueryScopedRowGeneratedMaterializerTests
             "select p.Name, p.Value from #queryrows.items() p where p.Value > -987654321",
             "query-row-materializer-il",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
 
         try
         {
             var runtimeType = capture.RequireType(result.BuildItems!.AccessToClassPath);
-            var materializer = runtimeType.Assembly.GetTypes().Single(static type =>
-                type.Name.StartsWith("QueryRowMaterializer_", StringComparison.Ordinal));
-            var method = materializer.GetMethod(
-                "Materialize",
-                BindingFlags.Public | BindingFlags.Static) ??
-                         throw new AssertFailedException("The generated materializer method was not found.");
+            var materializer = runtimeType
+                .Assembly.GetTypes()
+                .Single(static type => type.Name.StartsWith("QueryRowMaterializer_", StringComparison.Ordinal));
+            var method =
+                materializer.GetMethod("Materialize", BindingFlags.Public | BindingFlags.Static)
+                ?? throw new AssertFailedException("The generated materializer method was not found.");
             var opCodes = ReadOpCodes(method);
 
             Assert.IsFalse(opCodes.Contains(OpCodes.Box));
@@ -112,7 +116,8 @@ public sealed class QueryScopedRowGeneratedMaterializerTests
 
                 Assert.IsTrue(
                     index > 0 && opCodes[index - 1] == OpCodes.Constrained,
-                    "Every interface call in the generated materializer must use constrained generic dispatch.");
+                    "Every interface call in the generated materializer must use constrained generic dispatch."
+                );
             }
         }
         finally
@@ -123,10 +128,11 @@ public sealed class QueryScopedRowGeneratedMaterializerTests
 
     private static IReadOnlyList<OpCode> ReadOpCodes(MethodInfo method)
     {
-        var il = method.GetMethodBody()?.GetILAsByteArray() ??
-                 throw new AssertFailedException("The generated materializer has no IL body.");
+        var il =
+            method.GetMethodBody()?.GetILAsByteArray()
+            ?? throw new AssertFailedException("The generated materializer has no IL body.");
         var result = new List<OpCode>();
-        for (var index = 0; index < il.Length;)
+        for (var index = 0; index < il.Length; )
         {
             var opCode = ReadOpCode(il, ref index);
             result.Add(opCode);
@@ -139,9 +145,7 @@ public sealed class QueryScopedRowGeneratedMaterializerTests
     private static OpCode ReadOpCode(byte[] il, ref int index)
     {
         var value = il[index++];
-        return value != 0xfe
-            ? OneByteOpCodes[value]
-            : TwoByteOpCodes[il[index++]];
+        return value != 0xfe ? OneByteOpCodes[value] : TwoByteOpCodes[il[index++]];
     }
 
     private static int GetOperandSize(OperandType operandType, byte[] il, int operandIndex)
@@ -151,13 +155,18 @@ public sealed class QueryScopedRowGeneratedMaterializerTests
             OperandType.InlineNone => 0,
             OperandType.ShortInlineBrTarget or OperandType.ShortInlineI or OperandType.ShortInlineVar => 1,
             OperandType.InlineVar => 2,
-            OperandType.InlineBrTarget or OperandType.InlineField or OperandType.InlineI or OperandType.InlineMethod
-                or OperandType.InlineSig or OperandType.InlineString or OperandType.InlineTok or OperandType.InlineType
-                => 4,
+            OperandType.InlineBrTarget
+            or OperandType.InlineField
+            or OperandType.InlineI
+            or OperandType.InlineMethod
+            or OperandType.InlineSig
+            or OperandType.InlineString
+            or OperandType.InlineTok
+            or OperandType.InlineType => 4,
             OperandType.InlineI8 or OperandType.InlineR => 8,
             OperandType.ShortInlineR => 4,
             OperandType.InlineSwitch => 4 + (BitConverter.ToInt32(il, operandIndex) * 4),
-            _ => throw new ArgumentOutOfRangeException(nameof(operandType), operandType, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(operandType), operandType, null),
         };
     }
 }

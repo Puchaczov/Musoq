@@ -10,11 +10,12 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void DiagnosticREC100_QueryLocalEnumTypeNames_ShouldResolveWithoutCaseSensitivity()
     {
         var visitor = Analyze(
-            "enum WorkState : byte { Ready = 1ub };" +
-            "table Jobs { Status: WORKSTATE?, Previous: workstate };" +
-            "couple #capture.any with table Jobs as Jobs;" +
-            "select Status from Jobs()",
-            new CaptureMetadataContextSchemaProvider(_ => { }));
+            "enum WorkState : byte { Ready = 1ub };"
+                + "table Jobs { Status: WORKSTATE?, Previous: workstate };"
+                + "couple #capture.any with table Jobs as Jobs;"
+                + "select Status from Jobs()",
+            new CaptureMetadataContextSchemaProvider(_ => { })
+        );
 
         Assert.IsTrue(visitor.QueryLocalEnumTypes.TryGetValue("workstate", out var descriptor));
         Assert.IsNotNull(descriptor);
@@ -27,8 +28,9 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void DiagnosticREC100_QueryLocalNumericAliases_ShouldKeepFirstDeclaredCanonicalName()
     {
         var visitor = Analyze(
-            "flags enum PermissionMask : uint { None = 0ui, Read = 1ui, AliasRead = 1ui, Write = 2ui, ReadWrite = 3ui };" +
-            "select 1 from #EnvironmentVariables.All()");
+            "flags enum PermissionMask : uint { None = 0ui, Read = 1ui, AliasRead = 1ui, Write = 2ui, ReadWrite = 3ui };"
+                + "select 1 from #EnvironmentVariables.All()"
+        );
 
         var descriptor = visitor.QueryLocalEnumTypes["permissionmask"];
         Assert.IsTrue(descriptor.TryGetValue("AliasRead", out var aliasValue));

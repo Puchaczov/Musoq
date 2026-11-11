@@ -16,16 +16,14 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
         {
             new FieldNode(new IntegerNode("1", "s"), 0, "Field1"),
             new FieldNode(new IntegerNode("2", "s"), 1, "Field2"),
-            new FieldNode(new IntegerNode("3", "s"), 2, "Field3")
+            new FieldNode(new IntegerNode("3", "s"), 2, "Field3"),
         };
         var selectNode = new SelectNode(fields);
         var fromNode = new SchemaFromNode("test", "table", new ArgsListNode([]), "t1", typeof(object), 1);
         var queryNode = new QueryNode(selectNode, fromNode, null, null, null, null, null);
         var keys = new[] { "Field1", "Field3" };
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes(queryNode, keys);
-
 
         Assert.HasCount(2, result);
         Assert.AreEqual(0, result[0]);
@@ -37,9 +35,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var intType = typeof(int);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(intType);
-
 
         Assert.IsTrue(result);
     }
@@ -49,9 +45,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var stringType = typeof(string);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(stringType);
-
 
         Assert.IsTrue(result);
     }
@@ -61,9 +55,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var decimalType = typeof(decimal);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(decimalType);
-
 
         Assert.IsTrue(result);
     }
@@ -73,9 +65,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var dateTimeType = typeof(DateTime);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(dateTimeType);
-
 
         Assert.IsTrue(result);
     }
@@ -85,9 +75,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var dateTimeOffsetType = typeof(DateTimeOffset);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(dateTimeOffsetType);
-
 
         Assert.IsTrue(result);
     }
@@ -97,10 +85,9 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var nullableDateTimeOffsetType = typeof(DateTimeOffset?);
 
-
-        var result =
-            BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(nullableDateTimeOffsetType);
-
+        var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(
+            nullableDateTimeOffsetType
+        );
 
         Assert.IsTrue(result);
     }
@@ -110,9 +97,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var nullableIntType = typeof(int?);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(nullableIntType);
-
 
         Assert.IsTrue(result);
     }
@@ -122,9 +107,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var arrayType = typeof(int[]);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(arrayType);
-
 
         Assert.IsFalse(result);
     }
@@ -134,9 +117,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var objectType = typeof(object);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(objectType);
-
 
         Assert.IsFalse(result);
     }
@@ -146,9 +127,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var listType = typeof(List<string>);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(listType);
-
 
         Assert.IsFalse(result);
     }
@@ -158,9 +137,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var dictionaryType = typeof(Dictionary<string, string>);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(dictionaryType);
-
 
         Assert.IsFalse(result);
     }
@@ -170,9 +147,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         Type? nullType = null;
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(nullType);
-
 
         Assert.IsFalse(result);
     }

@@ -24,10 +24,7 @@ public sealed class PhysicalOptimizerTests
     [TestMethod]
     public void Optimize_WhenDefaultCompatibilityPassesDoNotRewrite_ShouldKeepPlanAndTracePasses()
     {
-        var plan = new PhysicalValuesScanNode(
-            "v",
-            [],
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+        var plan = new PhysicalValuesScanNode("v", [], new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
         var properties = CreateEmptyProperties();
 
         var result = Optimize(plan, properties);
@@ -54,16 +51,14 @@ public sealed class PhysicalOptimizerTests
     [TestMethod]
     public void Optimize_WhenAggregateCandidateHasSingleKey_ShouldSelectSingleKeyAggregate()
     {
-        var input = new PhysicalValuesScanNode(
-            "v",
-            [],
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+        var input = new PhysicalValuesScanNode("v", [], new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
         var candidate = new PhysicalAggregateCandidateNode(
             [new ColumnRef("v", "Value", typeof(int))],
             ["Value"],
             [typeof(int)],
             [],
-            input);
+            input
+        );
 
         var result = Optimize(candidate, CreateEmptyProperties());
 
@@ -88,9 +83,11 @@ public sealed class PhysicalOptimizerTests
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             left,
-            right);
+            right
+        );
 
         var result = Optimize(candidate, CreateEmptyProperties());
 
@@ -115,21 +112,22 @@ public sealed class PhysicalOptimizerTests
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             left,
-            right);
+            right
+        );
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["a"] = typeof(object),
-                ["b"] = typeof(ExpandoObject)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["a"] = typeof(object), ["b"] = typeof(ExpandoObject) }
+        );
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => Optimize(
-            candidate,
-            CreateEmptyProperties(),
-            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver)));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            Optimize(
+                candidate,
+                CreateEmptyProperties(),
+                shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver)
+            )
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }
@@ -145,21 +143,22 @@ public sealed class PhysicalOptimizerTests
                 BinaryOpKind.GreaterOrEqual,
                 new ColumnRef("a", "Age", typeof(int)),
                 new ColumnRef("b", "Age", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             left,
-            right);
+            right
+        );
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["a"] = typeof(object),
-                ["b"] = typeof(ExpandoObject)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["a"] = typeof(object), ["b"] = typeof(ExpandoObject) }
+        );
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => Optimize(
-            candidate,
-            CreateEmptyProperties(),
-            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver)));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            Optimize(
+                candidate,
+                CreateEmptyProperties(),
+                shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver)
+            )
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }
@@ -177,15 +176,19 @@ public sealed class PhysicalOptimizerTests
                     BinaryOpKind.Equal,
                     new ColumnRef("a", "Symbol", typeof(string)),
                     new ColumnRef("b", "Symbol", typeof(string)),
-                    typeof(bool)),
+                    typeof(bool)
+                ),
                 new BinaryOp(
                     BinaryOpKind.GreaterOrEqual,
                     new ColumnRef("a", "Timestamp", typeof(long)),
                     new ColumnRef("b", "Timestamp", typeof(long)),
-                    typeof(bool)),
-                typeof(bool)),
+                    typeof(bool)
+                ),
+                typeof(bool)
+            ),
             left,
-            right);
+            right
+        );
 
         var result = Optimize(candidate, CreateEmptyProperties());
 
@@ -197,9 +200,7 @@ public sealed class PhysicalOptimizerTests
     public void Optimize_WhenSortSkipTakeShapeExists_ShouldSelectTopOffset()
     {
         var input = CreateValuesScan("v", ("Value", typeof(int)));
-        var sort = new PhysicalSortNode(
-            [new OrderField(new ColumnRef("v", "Value", typeof(int)), false)],
-            input);
+        var sort = new PhysicalSortNode([new OrderField(new ColumnRef("v", "Value", typeof(int)), false)], input);
         var skip = new PhysicalSkipNode(2, sort);
         var take = new PhysicalTakeNode(5, skip);
 
@@ -222,12 +223,11 @@ public sealed class PhysicalOptimizerTests
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Value", new ColumnRef("v", "Value", typeof(int)), 0),
-                new ProjectedField("RowNumber", new MethodCall(rowNumberMethod, [], null, typeof(int)), 1)
+                new ProjectedField("RowNumber", new MethodCall(rowNumberMethod, [], null, typeof(int)), 1),
             ],
-            input);
-        var sort = new PhysicalSortNode(
-            [new OrderField(new ColumnRef("v", "Value", typeof(int)), false)],
-            project);
+            input
+        );
+        var sort = new PhysicalSortNode([new OrderField(new ColumnRef("v", "Value", typeof(int)), false)], project);
         var skip = new PhysicalSkipNode(2, sort);
         var take = new PhysicalTakeNode(5, skip);
 
@@ -251,12 +251,11 @@ public sealed class PhysicalOptimizerTests
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Value", new ColumnRef("v", "Value", typeof(int)), 0),
-                new ProjectedField("RowNumber", new MethodCall(rowNumberMethod, [], null, typeof(int)), 1)
+                new ProjectedField("RowNumber", new MethodCall(rowNumberMethod, [], null, typeof(int)), 1),
             ],
-            input);
-        var sort = new PhysicalSortNode(
-            [new OrderField(new ColumnRef("v", "Value", typeof(int)), false)],
-            project);
+            input
+        );
+        var sort = new PhysicalSortNode([new OrderField(new ColumnRef("v", "Value", typeof(int)), false)], project);
         var take = new PhysicalTakeNode(5, sort);
 
         var result = Optimize(take, CreateEmptyProperties());
@@ -283,9 +282,11 @@ public sealed class PhysicalOptimizerTests
                     [],
                     [],
                     0,
-                    typeof(string))
+                    typeof(string)
+                ),
             ],
-            input);
+            input
+        );
 
         var result = Optimize(window, CreateEmptyProperties());
 
@@ -303,7 +304,8 @@ public sealed class PhysicalOptimizerTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("v", "Value", typeof(int)),
             new Literal(1, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var scan = new PhysicalSchemaScanNode(
             "test",
             "items",
@@ -312,17 +314,12 @@ public sealed class PhysicalOptimizerTests
             [],
             [],
             new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]),
-            "source-1");
+            "source-1"
+        );
         var properties = CreateEmptyProperties() with
         {
-            PushedPredicatesBySourceId = new Dictionary<string, IrExpression[]>
-            {
-                ["source-1"] = [predicate]
-            },
-            ProjectedColumnsBySourceId = new Dictionary<string, string[]>
-            {
-                ["source-1"] = ["Value"]
-            }
+            PushedPredicatesBySourceId = new Dictionary<string, IrExpression[]> { ["source-1"] = [predicate] },
+            ProjectedColumnsBySourceId = new Dictionary<string, string[]> { ["source-1"] = ["Value"] },
         };
 
         var result = Optimize(scan, properties);
@@ -341,14 +338,14 @@ public sealed class PhysicalOptimizerTests
             [
                 new ProjectedField("Id", new ColumnRef("v", "Id", typeof(int)), 0),
                 new ProjectedField("Name", new ColumnRef("v", "Name", typeof(string)), 1),
-                new ProjectedField("Age", new ColumnRef("v", "Age", typeof(int)), 2)
+                new ProjectedField("Age", new ColumnRef("v", "Age", typeof(int)), 2),
             ],
-            scan);
+            scan
+        );
         var outer = new PhysicalProjectNode(
-            [
-                new ProjectedField("Name", new ColumnRef("inner", "Name", typeof(string)), 0)
-            ],
-            inner);
+            [new ProjectedField("Name", new ColumnRef("inner", "Name", typeof(string)), 0)],
+            inner
+        );
 
         var result = Optimize(outer, CreateEmptyProperties());
 
@@ -371,17 +368,17 @@ public sealed class PhysicalOptimizerTests
         var inner = new PhysicalProjectNode(
             [
                 new ProjectedField("Id", new ColumnRef("v", "Id", typeof(int)), 0),
-                new ProjectedField("Name", new ColumnRef("v", "Name", typeof(string)), 1)
+                new ProjectedField("Name", new ColumnRef("v", "Name", typeof(string)), 1),
             ],
-            scan)
+            scan
+        )
         {
-            IsDistinct = true
+            IsDistinct = true,
         };
         var outer = new PhysicalProjectNode(
-            [
-                new ProjectedField("Name", new ColumnRef("inner", "Name", typeof(string)), 0)
-            ],
-            inner);
+            [new ProjectedField("Name", new ColumnRef("inner", "Name", typeof(string)), 0)],
+            inner
+        );
 
         var result = Optimize(outer, CreateEmptyProperties());
 
@@ -397,21 +394,23 @@ public sealed class PhysicalOptimizerTests
             [
                 new ProjectedField("Id", new ColumnRef("v", "Id", typeof(int)), 0),
                 new ProjectedField("Name", new ColumnRef("v", "Name", typeof(string)), 1),
-                new ProjectedField("Age", new ColumnRef("v", "Age", typeof(int)), 2)
+                new ProjectedField("Age", new ColumnRef("v", "Age", typeof(int)), 2),
             ],
-            scan);
+            scan
+        );
         var filter = new PhysicalFilterNode(
             new BinaryOp(
                 BinaryOpKind.GreaterThan,
                 new ColumnRef("inner", "Age", typeof(int)),
                 new Literal(0, typeof(int)),
-                typeof(bool)),
-            inner);
+                typeof(bool)
+            ),
+            inner
+        );
         var outer = new PhysicalProjectNode(
-            [
-                new ProjectedField("Name", new ColumnRef("inner", "Name", typeof(string)), 0)
-            ],
-            filter);
+            [new ProjectedField("Name", new ColumnRef("inner", "Name", typeof(string)), 0)],
+            filter
+        );
 
         var result = Optimize(outer, CreateEmptyProperties());
 
@@ -424,10 +423,12 @@ public sealed class PhysicalOptimizerTests
 
         CollectionAssert.AreEqual(
             new[] { "Name", "Age" },
-            optimizedInner.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedInner.Fields.Select(static field => field.OutputName).ToArray()
+        );
         CollectionAssert.AreEqual(
             new[] { 0, 1 },
-            optimizedInner.Fields.Select(static field => field.OutputIndex).ToArray());
+            optimizedInner.Fields.Select(static field => field.OutputIndex).ToArray()
+        );
         Assert.AreSame(scan, optimizedInner.Input);
         Assert.IsTrue(result.Trace.Entries[2].IsChanged);
         Assert.Contains("Pruned 1 unused projected field(s)", result.Trace.Entries[2].Reason);
@@ -441,17 +442,15 @@ public sealed class PhysicalOptimizerTests
             [
                 new ProjectedField("Id", new ColumnRef("v", "Id", typeof(int)), 0),
                 new ProjectedField("Name", new ColumnRef("v", "Name", typeof(string)), 1),
-                new ProjectedField("Age", new ColumnRef("v", "Age", typeof(int)), 2)
+                new ProjectedField("Age", new ColumnRef("v", "Age", typeof(int)), 2),
             ],
-            scan);
-        var sort = new PhysicalSortNode(
-            [new OrderField(new ColumnRef("inner", "Age", typeof(int)), false)],
-            inner);
+            scan
+        );
+        var sort = new PhysicalSortNode([new OrderField(new ColumnRef("inner", "Age", typeof(int)), false)], inner);
         var outer = new PhysicalProjectNode(
-            [
-                new ProjectedField("Name", new ColumnRef("inner", "Name", typeof(string)), 0)
-            ],
-            sort);
+            [new ProjectedField("Name", new ColumnRef("inner", "Name", typeof(string)), 0)],
+            sort
+        );
 
         var result = Optimize(outer, CreateEmptyProperties());
 
@@ -464,10 +463,12 @@ public sealed class PhysicalOptimizerTests
 
         CollectionAssert.AreEqual(
             new[] { "Name", "Age" },
-            optimizedInner.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedInner.Fields.Select(static field => field.OutputName).ToArray()
+        );
         CollectionAssert.AreEqual(
             new[] { 0, 1 },
-            optimizedInner.Fields.Select(static field => field.OutputIndex).ToArray());
+            optimizedInner.Fields.Select(static field => field.OutputIndex).ToArray()
+        );
         Assert.AreSame(scan, optimizedInner.Input);
         Assert.IsTrue(result.Trace.Entries[2].IsChanged);
         Assert.Contains("Pruned 1 unused projected field(s)", result.Trace.Entries[2].Reason);
@@ -476,33 +477,43 @@ public sealed class PhysicalOptimizerTests
     [TestMethod]
     public void Optimize_WhenInnerJoinInputsHaveUnusedProjectedPayload_ShouldPrunePayloadAndRetainJoinKeys()
     {
-        var leftScan = CreateValuesScan("a", ("Name", typeof(string)), ("City", typeof(string)), ("Payload", typeof(decimal)));
+        var leftScan = CreateValuesScan(
+            "a",
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Payload", typeof(decimal))
+        );
         var rightScan = CreateValuesScan("b", ("City", typeof(string)), ("Payload", typeof(decimal)));
         var leftProject = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0),
                 new ProjectedField("City", new ColumnRef("a", "City", typeof(string)), 1),
-                new ProjectedField("Payload", new ColumnRef("a", "Payload", typeof(decimal)), 2)
+                new ProjectedField("Payload", new ColumnRef("a", "Payload", typeof(decimal)), 2),
             ],
-            leftScan);
+            leftScan
+        );
         var rightProject = new PhysicalProjectNode(
             [
                 new ProjectedField("City", new ColumnRef("b", "City", typeof(string)), 0),
-                new ProjectedField("Payload", new ColumnRef("b", "Payload", typeof(decimal)), 1)
+                new ProjectedField("Payload", new ColumnRef("b", "Payload", typeof(decimal)), 1),
             ],
-            rightScan);
+            rightScan
+        );
         var join = new PhysicalJoinCandidateNode(
             JoinKind.Inner,
             new BinaryOp(
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "City", typeof(string)),
                 new ColumnRef("b", "City", typeof(string)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             leftProject,
-            rightProject);
+            rightProject
+        );
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0)],
-            join);
+            join
+        );
 
         var result = Optimize(project, CreateEmptyProperties());
 
@@ -515,10 +526,12 @@ public sealed class PhysicalOptimizerTests
 
         CollectionAssert.AreEqual(
             new[] { "Name", "City" },
-            optimizedLeft.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedLeft.Fields.Select(static field => field.OutputName).ToArray()
+        );
         CollectionAssert.AreEqual(
             new[] { "City" },
-            optimizedRight.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedRight.Fields.Select(static field => field.OutputName).ToArray()
+        );
         Assert.IsTrue(result.Trace.Entries[2].IsChanged);
         Assert.Contains("2 join input(s)", result.Trace.Entries[2].Reason);
     }
@@ -531,27 +544,32 @@ public sealed class PhysicalOptimizerTests
         var leftProject = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0),
-                new ProjectedField("City", new ColumnRef("a", "City", typeof(string)), 1)
+                new ProjectedField("City", new ColumnRef("a", "City", typeof(string)), 1),
             ],
-            leftScan);
+            leftScan
+        );
         var rightProject = new PhysicalProjectNode(
             [
                 new ProjectedField("City", new ColumnRef("b", "City", typeof(string)), 0),
-                new ProjectedField("Payload", new ColumnRef("b", "Payload", typeof(decimal)), 1)
+                new ProjectedField("Payload", new ColumnRef("b", "Payload", typeof(decimal)), 1),
             ],
-            rightScan);
+            rightScan
+        );
         var join = new PhysicalJoinCandidateNode(
             JoinKind.LeftSemi,
             new BinaryOp(
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "City", typeof(string)),
                 new ColumnRef("b", "City", typeof(string)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             leftProject,
-            rightProject);
+            rightProject
+        );
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0)],
-            join);
+            join
+        );
 
         var result = Optimize(project, CreateEmptyProperties());
 
@@ -564,10 +582,12 @@ public sealed class PhysicalOptimizerTests
 
         CollectionAssert.AreEqual(
             new[] { "Name", "City" },
-            optimizedLeft.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedLeft.Fields.Select(static field => field.OutputName).ToArray()
+        );
         CollectionAssert.AreEqual(
             new[] { "City" },
-            optimizedRight.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedRight.Fields.Select(static field => field.OutputName).ToArray()
+        );
         Assert.IsTrue(result.Trace.Entries[2].IsChanged);
         Assert.Contains("1 join input(s)", result.Trace.Entries[2].Reason);
     }
@@ -575,14 +595,20 @@ public sealed class PhysicalOptimizerTests
     [TestMethod]
     public void Optimize_WhenAggregateInputProjectHasUnusedPayload_ShouldPruneToGroupAndAggregateArguments()
     {
-        var scan = CreateValuesScan("e", ("City", typeof(string)), ("Population", typeof(decimal)), ("Payload", typeof(string)));
+        var scan = CreateValuesScan(
+            "e",
+            ("City", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Payload", typeof(string))
+        );
         var input = new PhysicalProjectNode(
             [
                 new ProjectedField("City", new ColumnRef("e", "City", typeof(string)), 0),
                 new ProjectedField("Population", new ColumnRef("e", "Population", typeof(decimal)), 1),
-                new ProjectedField("Payload", new ColumnRef("e", "Payload", typeof(string)), 2)
+                new ProjectedField("Payload", new ColumnRef("e", "Payload", typeof(string)), 2),
             ],
-            scan);
+            scan
+        );
         var aggregate = new PhysicalSingleKeyAggregateNode(
             new ColumnRef("e", "City", typeof(string)),
             "City",
@@ -595,9 +621,11 @@ public sealed class PhysicalOptimizerTests
                     [new ColumnRef("e", "Population", typeof(decimal))],
                     ((Func<decimal>)GetAggregate).Method,
                     [],
-                    typeof(decimal))
+                    typeof(decimal)
+                ),
             ],
-            input);
+            input
+        );
 
         var result = Optimize(aggregate, CreateEmptyProperties());
 
@@ -607,7 +635,8 @@ public sealed class PhysicalOptimizerTests
 
         CollectionAssert.AreEqual(
             new[] { "City", "Population" },
-            optimizedInput.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedInput.Fields.Select(static field => field.OutputName).ToArray()
+        );
         Assert.IsTrue(result.Trace.Entries[2].IsChanged);
         Assert.Contains("1 aggregate input(s)", result.Trace.Entries[2].Reason);
     }
@@ -620,15 +649,17 @@ public sealed class PhysicalOptimizerTests
             ("Name", typeof(string)),
             ("Country", typeof(string)),
             ("Population", typeof(decimal)),
-            ("Payload", typeof(string)));
+            ("Payload", typeof(string))
+        );
         var input = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("e", "Name", typeof(string)), 0),
                 new ProjectedField("Country", new ColumnRef("e", "Country", typeof(string)), 1),
                 new ProjectedField("Population", new ColumnRef("e", "Population", typeof(decimal)), 2),
-                new ProjectedField("Payload", new ColumnRef("e", "Payload", typeof(string)), 3)
+                new ProjectedField("Payload", new ColumnRef("e", "Payload", typeof(string)), 3),
             ],
-            scan);
+            scan
+        );
         var window = new PhysicalWindowNode(
             [
                 new WindowRegistration(
@@ -638,15 +669,18 @@ public sealed class PhysicalOptimizerTests
                     [new OrderField(new ColumnRef("e", "Population", typeof(decimal)), true)],
                     [],
                     0,
-                    typeof(long))
+                    typeof(long)
+                ),
             ],
-            input);
+            input
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("e", "Name", typeof(string)), 0),
-                new ProjectedField("RowNum", new WindowFunctionRef(0, typeof(long)), 1)
+                new ProjectedField("RowNum", new WindowFunctionRef(0, typeof(long)), 1),
             ],
-            window);
+            window
+        );
 
         var result = Optimize(project, CreateEmptyProperties());
 
@@ -660,7 +694,8 @@ public sealed class PhysicalOptimizerTests
 
         CollectionAssert.AreEqual(
             new[] { "Name", "Country", "Population" },
-            optimizedInput.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedInput.Fields.Select(static field => field.OutputName).ToArray()
+        );
         Assert.IsTrue(result.Trace.Entries[2].IsChanged);
         Assert.Contains("1 window input(s)", result.Trace.Entries[2].Reason);
     }
@@ -673,24 +708,28 @@ public sealed class PhysicalOptimizerTests
         var leftProject = new PhysicalProjectNode(
             [
                 new ProjectedField("City", new ColumnRef("l", "City", typeof(string)), 0),
-                new ProjectedField("Payload", new ColumnRef("l", "Payload", typeof(string)), 1)
+                new ProjectedField("Payload", new ColumnRef("l", "Payload", typeof(string)), 1),
             ],
-            leftScan);
+            leftScan
+        );
         var rightProject = new PhysicalProjectNode(
             [
                 new ProjectedField("City", new ColumnRef("r", "City", typeof(string)), 0),
-                new ProjectedField("Payload", new ColumnRef("r", "Payload", typeof(string)), 1)
+                new ProjectedField("Payload", new ColumnRef("r", "Payload", typeof(string)), 1),
             ],
-            rightScan);
+            rightScan
+        );
         var setOperation = new PhysicalSetOperationNode(
             SetOpKind.Union,
             leftProject,
             rightProject,
             [0],
-            [typeof(string)]);
+            [typeof(string)]
+        );
         var project = new PhysicalProjectNode(
             [new ProjectedField("City", new ColumnRef("set", "City", typeof(string)), 0)],
-            setOperation);
+            setOperation
+        );
 
         var result = Optimize(project, CreateEmptyProperties());
 
@@ -702,10 +741,12 @@ public sealed class PhysicalOptimizerTests
 
         CollectionAssert.AreEqual(
             new[] { "City" },
-            optimizedLeft.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedLeft.Fields.Select(static field => field.OutputName).ToArray()
+        );
         CollectionAssert.AreEqual(
             new[] { "City" },
-            optimizedRight.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedRight.Fields.Select(static field => field.OutputName).ToArray()
+        );
         CollectionAssert.AreEqual(new[] { 0 }, optimizedSetOperation.FieldIndexes);
         CollectionAssert.AreEqual(new[] { typeof(string) }, optimizedSetOperation.FieldTypes);
         Assert.IsTrue(result.Trace.Entries[2].IsChanged);
@@ -720,24 +761,28 @@ public sealed class PhysicalOptimizerTests
         var leftProject = new PhysicalProjectNode(
             [
                 new ProjectedField("City", new ColumnRef("l", "City", typeof(string)), 0),
-                new ProjectedField("Payload", new ColumnRef("l", "Payload", typeof(string)), 1)
+                new ProjectedField("Payload", new ColumnRef("l", "Payload", typeof(string)), 1),
             ],
-            leftScan);
+            leftScan
+        );
         var rightProject = new PhysicalProjectNode(
             [
                 new ProjectedField("City", new ColumnRef("r", "City", typeof(string)), 0),
-                new ProjectedField("Payload", new ColumnRef("r", "Payload", typeof(string)), 1)
+                new ProjectedField("Payload", new ColumnRef("r", "Payload", typeof(string)), 1),
             ],
-            rightScan);
+            rightScan
+        );
         var setOperation = new PhysicalSetOperationNode(
             SetOpKind.Union,
             leftProject,
             rightProject,
             [0, 1],
-            [typeof(string), typeof(string)]);
+            [typeof(string), typeof(string)]
+        );
         var project = new PhysicalProjectNode(
             [new ProjectedField("City", new ColumnRef("set", "City", typeof(string)), 0)],
-            setOperation);
+            setOperation
+        );
 
         var result = Optimize(project, CreateEmptyProperties());
 
@@ -748,21 +793,26 @@ public sealed class PhysicalOptimizerTests
     [TestMethod]
     public void Optimize_WhenCteConsumersRequireSubset_ShouldPruneDefinitionProjectionAndReferenceSchema()
     {
-        var scan = CreateValuesScan("e", ("Name", typeof(string)), ("City", typeof(string)), ("Payload", typeof(string)));
+        var scan = CreateValuesScan(
+            "e",
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Payload", typeof(string))
+        );
         var definitionPlan = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("e", "Name", typeof(string)), 0),
                 new ProjectedField("City", new ColumnRef("e", "City", typeof(string)), 1),
-                new ProjectedField("Payload", new ColumnRef("e", "Payload", typeof(string)), 2)
+                new ProjectedField("Payload", new ColumnRef("e", "Payload", typeof(string)), 2),
             ],
-            scan);
+            scan
+        );
         var cteRef = new PhysicalCteRefNode("people", "p", definitionPlan.OutputSchema);
         var query = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            cteRef);
-        var cte = new PhysicalCteNode(
-            [new PhysicalCteDefinition("people", definitionPlan)],
-            query);
+            cteRef
+        );
+        var cte = new PhysicalCteNode([new PhysicalCteDefinition("people", definitionPlan)], query);
 
         var result = Optimize(cte, CreateEmptyProperties());
 
@@ -774,7 +824,8 @@ public sealed class PhysicalOptimizerTests
 
         CollectionAssert.AreEqual(
             new[] { "Name" },
-            optimizedDefinition.Fields.Select(static field => field.OutputName).ToArray());
+            optimizedDefinition.Fields.Select(static field => field.OutputName).ToArray()
+        );
         Assert.HasCount(1, optimizedRef.OutputSchema.Columns);
         Assert.AreEqual("Name", optimizedRef.OutputSchema.Columns[0].Name);
         Assert.IsTrue(result.Trace.Entries[2].IsChanged);
@@ -790,18 +841,21 @@ public sealed class PhysicalOptimizerTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("a", "Id", typeof(int)),
             new Literal(0, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var candidate = new PhysicalJoinCandidateNode(
             JoinKind.Inner,
             new BinaryOp(
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             left,
             right,
             [movedPredicate],
-            []);
+            []
+        );
 
         var result = Optimize(candidate, CreateEmptyProperties());
 
@@ -819,37 +873,44 @@ public sealed class PhysicalOptimizerTests
             "a",
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("Population", typeof(decimal)));
+            ("Population", typeof(decimal))
+        );
         var leftProject = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0),
                 new ProjectedField("City", new ColumnRef("a", "City", typeof(string)), 1),
-                new ProjectedField("Population", new ColumnRef("a", "Population", typeof(decimal)), 2)
+                new ProjectedField("Population", new ColumnRef("a", "Population", typeof(decimal)), 2),
             ],
-            leftScan);
+            leftScan
+        );
         var leftSort = new PhysicalSortNode(
             [new OrderField(new ColumnRef("a", "Name", typeof(string)), false)],
-            leftProject);
+            leftProject
+        );
         var right = CreateValuesScan("b", ("City", typeof(string)));
         var movedPredicate = new BinaryOp(
             BinaryOpKind.GreaterThan,
             new ColumnRef("a", "Population", typeof(decimal)),
             new Literal(100m, typeof(decimal)),
-            typeof(bool));
+            typeof(bool)
+        );
         var candidate = new PhysicalJoinCandidateNode(
             JoinKind.Inner,
             new BinaryOp(
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "City", typeof(string)),
                 new ColumnRef("b", "City", typeof(string)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             leftSort,
             right,
             [movedPredicate],
-            []);
+            []
+        );
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0)],
-            candidate);
+            candidate
+        );
 
         var result = Optimize(project, CreateEmptyProperties());
 
@@ -874,30 +935,31 @@ public sealed class PhysicalOptimizerTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("a", "Age", typeof(int)),
             new Literal(18, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var rightPredicate = new BinaryOp(
             BinaryOpKind.Equal,
             new ColumnRef("b", "IsActive", typeof(bool)),
             new Literal(true, typeof(bool)),
-            typeof(bool));
+            typeof(bool)
+        );
         var equality = new BinaryOp(
             BinaryOpKind.Equal,
             new ColumnRef("a", "Id", typeof(int)),
             new ColumnRef("b", "UserId", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var candidate = new PhysicalJoinCandidateNode(
             JoinKind.Inner,
             new BinaryOp(
                 BinaryOpKind.And,
                 equality,
-                new BinaryOp(
-                    BinaryOpKind.And,
-                    leftPredicate,
-                    rightPredicate,
-                    typeof(bool)),
-                typeof(bool)),
+                new BinaryOp(BinaryOpKind.And, leftPredicate, rightPredicate, typeof(bool)),
+                typeof(bool)
+            ),
             left,
-            right);
+            right
+        );
 
         var result = Optimize(candidate, CreateEmptyProperties());
 
@@ -913,9 +975,7 @@ public sealed class PhysicalOptimizerTests
         Assert.IsTrue(result.Trace.Entries[4].IsChanged);
     }
 
-    private static void SetAggregate(decimal value)
-    {
-    }
+    private static void SetAggregate(decimal value) { }
 
     private static decimal GetAggregate()
     {
@@ -926,18 +986,18 @@ public sealed class PhysicalOptimizerTests
         PhysicalNode plan,
         PlanProperties properties,
         CompilationOptions? compilationOptions = null,
-        IPlanningShapeResolver? shapeResolver = null)
+        IPlanningShapeResolver? shapeResolver = null
+    )
     {
         return new PhysicalOptimizer().Optimize(
             plan,
             properties,
             compilationOptions ?? new CompilationOptions(),
-            shapeResolver ?? ConservativeTestPlanningShapeResolver.Instance);
+            shapeResolver ?? ConservativeTestPlanningShapeResolver.Instance
+        );
     }
 
-    private static PhysicalValuesScanNode CreateValuesScan(
-        string alias,
-        params (string Name, Type Type)[] columns)
+    private static PhysicalValuesScanNode CreateValuesScan(string alias, params (string Name, Type Type)[] columns)
     {
         var schemaColumns = new ColumnSchema[columns.Length];
 
@@ -947,23 +1007,14 @@ public sealed class PhysicalOptimizerTests
         return new PhysicalValuesScanNode(alias, [], new OutputSchema(schemaColumns));
     }
 
-    private static PhysicalSchemaScanNode CreateSchemaScan(
-        string alias,
-        params (string Name, Type Type)[] columns)
+    private static PhysicalSchemaScanNode CreateSchemaScan(string alias, params (string Name, Type Type)[] columns)
     {
         var schemaColumns = new ColumnSchema[columns.Length];
 
         for (var i = 0; i < columns.Length; i++)
             schemaColumns[i] = new ColumnSchema(columns[i].Name, columns[i].Type, i);
 
-        return new PhysicalSchemaScanNode(
-            "test",
-            "items",
-            [],
-            alias,
-            [],
-            [],
-            new OutputSchema(schemaColumns));
+        return new PhysicalSchemaScanNode("test", "items", [], alias, [], [], new OutputSchema(schemaColumns));
     }
 
     private static PlanProperties CreateEmptyProperties()
@@ -971,14 +1022,16 @@ public sealed class PhysicalOptimizerTests
         return PlanPropertiesTestFactory.CreateEmpty();
     }
 
-    private static void AssertTraceEntriesAreMeaningful(
-        IReadOnlyList<OptimizationTraceEntry> entries)
+    private static void AssertTraceEntriesAreMeaningful(IReadOnlyList<OptimizationTraceEntry> entries)
     {
         Assert.IsTrue(entries.All(static entry => entry.Stage == OptimizationStage.PhysicalOptimization));
         Assert.IsTrue(entries.All(static entry => !string.IsNullOrWhiteSpace(entry.PassName)));
         Assert.IsTrue(entries.All(static entry => !string.IsNullOrWhiteSpace(entry.Outcome)));
         Assert.IsTrue(entries.All(static entry => !string.IsNullOrWhiteSpace(entry.Reason)));
-        Assert.IsTrue(entries.All(static entry =>
-            string.Equals(entry.Outcome, entry.IsChanged ? "Changed" : "NoChange", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            entries.All(static entry =>
+                string.Equals(entry.Outcome, entry.IsChanged ? "Changed" : "NoChange", StringComparison.Ordinal)
+            )
+        );
     }
 }

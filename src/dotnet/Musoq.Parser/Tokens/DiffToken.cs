@@ -10,16 +10,12 @@ public class DiffToken : Token
     public const string TokenText = "<>";
 
     public DiffToken(TextSpan span)
-        : base(TokenText, TokenType.Diff, span)
-    {
-    }
+        : base(TokenText, TokenType.Diff, span) { }
 
     /// <summary>
     ///     Constructor for non-standard operators like '!=' that need custom token text
     ///     for error message purposes.
     /// </summary>
     public DiffToken(string tokenText, TextSpan span)
-        : base(tokenText, TokenType.Diff, span)
-    {
-    }
+        : base(tokenText, TokenType.Diff, span) { }
 }

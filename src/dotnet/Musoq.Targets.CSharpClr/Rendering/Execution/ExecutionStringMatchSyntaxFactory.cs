@@ -8,7 +8,8 @@ internal static class ExecutionStringMatchSyntaxFactory
     internal static ExpressionSyntax Render(
         ExecutionStringMatch match,
         ExpressionSyntax input,
-        ExecutionRenderSession session)
+        ExecutionRenderSession session
+    )
     {
         ArgumentNullException.ThrowIfNull(match);
         ArgumentNullException.ThrowIfNull(input);
@@ -19,17 +20,22 @@ internal static class ExecutionStringMatchSyntaxFactory
 
         if (match.Kind == ExecutionStringMatchKind.Contains && match.Needle.Length == 0)
         {
-            return Parenthesize(SyntaxFactory.IsPatternExpression(
-                Parenthesize(input),
-                SyntaxFactory.TypePattern(
-                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)))));
+            return Parenthesize(
+                SyntaxFactory.IsPatternExpression(
+                    Parenthesize(input),
+                    SyntaxFactory.TypePattern(
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))
+                    )
+                )
+            );
         }
 
         var variableName = $"__musoqStringMatch{++session.StringMatchPatternCount}";
         var variable = SyntaxFactory.IdentifierName(variableName);
         var stringPattern = SyntaxFactory.DeclarationPattern(
             SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-            SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(variableName)));
+            SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(variableName))
+        );
         var inputIsString = SyntaxFactory.IsPatternExpression(Parenthesize(input), stringPattern);
         var length = Member(variable, nameof(string.Length));
         var needleLength = Number(match.Needle.Length);
@@ -38,67 +44,89 @@ internal static class ExecutionStringMatchSyntaxFactory
                 ? SyntaxKind.EqualsExpression
                 : SyntaxKind.GreaterThanOrEqualExpression,
             length,
-            needleLength);
+            needleLength
+        );
         var direct = CreateDirectMatch(match, variable);
         ExpressionSyntax selectedMatch = direct;
-        if (match.Comparison == ExecutionStringMatchComparison.LikeIgnoreCase &&
-            RequiresLegacyUnicodeFallback(match.Needle))
+        if (
+            match.Comparison == ExecutionStringMatchComparison.LikeIgnoreCase
+            && RequiresLegacyUnicodeFallback(match.Needle)
+        )
         {
-            ExpressionSyntax asciiStart = match.Kind == ExecutionStringMatchKind.Suffix
-                ? SyntaxFactory.BinaryExpression(SyntaxKind.SubtractExpression, length, needleLength)
-                : Number(0);
-            ExpressionSyntax asciiLength = match.Kind is ExecutionStringMatchKind.Exact or ExecutionStringMatchKind.Contains
+            ExpressionSyntax asciiStart =
+                match.Kind == ExecutionStringMatchKind.Suffix
+                    ? SyntaxFactory.BinaryExpression(SyntaxKind.SubtractExpression, length, needleLength)
+                    : Number(0);
+            ExpressionSyntax asciiLength = match.Kind
+                is ExecutionStringMatchKind.Exact
+                    or ExecutionStringMatchKind.Contains
                 ? length
                 : needleLength;
-            ExpressionSyntax asciiCheck = match.Needle.Length == 1 && match.Kind != ExecutionStringMatchKind.Contains
-                ? SyntaxFactory.BinaryExpression(
-                    SyntaxKind.LessThanOrEqualExpression,
-                    SyntaxFactory.ElementAccessExpression(variable)
-                        .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(asciiStart)))),
-                    Number(0x7f))
-                : InvokeStatic(
-                    nameof(Operators),
-                    nameof(Operators.IsAsciiLikeSpan),
-                    variable,
-                    asciiStart,
-                    asciiLength);
+            ExpressionSyntax asciiCheck =
+                match.Needle.Length == 1 && match.Kind != ExecutionStringMatchKind.Contains
+                    ? SyntaxFactory.BinaryExpression(
+                        SyntaxKind.LessThanOrEqualExpression,
+                        SyntaxFactory
+                            .ElementAccessExpression(variable)
+                            .WithArgumentList(
+                                SyntaxFactory.BracketedArgumentList(
+                                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(asciiStart))
+                                )
+                            ),
+                        Number(0x7f)
+                    )
+                    : InvokeStatic(
+                        nameof(Operators),
+                        nameof(Operators.IsAsciiLikeSpan),
+                        variable,
+                        asciiStart,
+                        asciiLength
+                    );
             var fallback = CreateLegacyFallback(match, variable, match.RegexMatchTimeout ?? session.RegexMatchTimeout);
             var compatibleCultureMatch = Or(direct, And(Not(asciiCheck), fallback));
-            selectedMatch = match.Needle.AsSpan().IndexOfAny('I', 'i') < 0
-                ? compatibleCultureMatch
-                : SyntaxFactory.ConditionalExpression(
-                    InvokeStatic(nameof(Operators), nameof(Operators.IsOrdinalIgnoreCaseLikeCompatible)),
-                    compatibleCultureMatch,
-                    fallback);
+            selectedMatch =
+                match.Needle.AsSpan().IndexOfAny('I', 'i') < 0
+                    ? compatibleCultureMatch
+                    : SyntaxFactory.ConditionalExpression(
+                        InvokeStatic(nameof(Operators), nameof(Operators.IsOrdinalIgnoreCaseLikeCompatible)),
+                        compatibleCultureMatch,
+                        fallback
+                    );
         }
 
         if (match.Comparison == ExecutionStringMatchComparison.Ordinal)
         {
-            return Parenthesize(SyntaxFactory.SwitchExpression(
-                Parenthesize(input),
-                SyntaxFactory.SeparatedList([
-                    SyntaxFactory.SwitchExpressionArm(stringPattern, direct),
-                    SyntaxFactory.SwitchExpressionArm(
-                        SyntaxFactory.DiscardPattern(),
-                        SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
-                ])));
+            return Parenthesize(
+                SyntaxFactory.SwitchExpression(
+                    Parenthesize(input),
+                    SyntaxFactory.SeparatedList([
+                        SyntaxFactory.SwitchExpressionArm(stringPattern, direct),
+                        SyntaxFactory.SwitchExpressionArm(
+                            SyntaxFactory.DiscardPattern(),
+                            SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)
+                        ),
+                    ])
+                )
+            );
         }
 
         var successfulMatch = And(lengthCheck, Parenthesize(selectedMatch));
-        return Parenthesize(SyntaxFactory.ConditionalExpression(
-            inputIsString,
-            successfulMatch,
-            SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)));
+        return Parenthesize(
+            SyntaxFactory.ConditionalExpression(
+                inputIsString,
+                successfulMatch,
+                SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)
+            )
+        );
     }
 
-    private static ExpressionSyntax CreateDirectMatch(
-        ExecutionStringMatch match,
-        IdentifierNameSyntax variable)
+    private static ExpressionSyntax CreateDirectMatch(ExecutionStringMatch match, IdentifierNameSyntax variable)
     {
-        if (match.Comparison == ExecutionStringMatchComparison.LikeIgnoreCase &&
-            match.Needle.Length == 1 &&
-            match.Kind != ExecutionStringMatchKind.Contains)
+        if (
+            match.Comparison == ExecutionStringMatchComparison.LikeIgnoreCase
+            && match.Needle.Length == 1
+            && match.Kind != ExecutionStringMatchKind.Contains
+        )
             return CreateSingleAsciiCharacterMatch(match, variable);
 
         var needle = ExecutionSyntaxFactory.CreateStringLiteral(match.Needle);
@@ -108,8 +136,9 @@ internal static class ExecutionStringMatchSyntaxFactory
             {
                 ExecutionStringMatchComparison.LikeIgnoreCase => nameof(StringComparison.OrdinalIgnoreCase),
                 ExecutionStringMatchComparison.Ordinal => nameof(StringComparison.Ordinal),
-                _ => throw UnsupportedShape.Of($"String comparison {match.Comparison}")
-            });
+                _ => throw UnsupportedShape.Of($"String comparison {match.Comparison}"),
+            }
+        );
 
         return match.Kind switch
         {
@@ -118,63 +147,64 @@ internal static class ExecutionStringMatchSyntaxFactory
                 nameof(string.Equals),
                 variable,
                 needle,
-                comparison),
-            ExecutionStringMatchKind.Prefix => Invoke(
-                Member(variable, nameof(string.StartsWith)),
-                needle,
-                comparison),
-            ExecutionStringMatchKind.Suffix => Invoke(
-                Member(variable, nameof(string.EndsWith)),
-                needle,
-                comparison),
-            ExecutionStringMatchKind.Contains => Invoke(
-                Member(variable, nameof(string.Contains)),
-                needle,
-                comparison),
-            _ => throw UnsupportedShape.Of($"String match kind {match.Kind}")
+                comparison
+            ),
+            ExecutionStringMatchKind.Prefix => Invoke(Member(variable, nameof(string.StartsWith)), needle, comparison),
+            ExecutionStringMatchKind.Suffix => Invoke(Member(variable, nameof(string.EndsWith)), needle, comparison),
+            ExecutionStringMatchKind.Contains => Invoke(Member(variable, nameof(string.Contains)), needle, comparison),
+            _ => throw UnsupportedShape.Of($"String match kind {match.Kind}"),
         };
     }
 
     private static ExpressionSyntax CreateSingleAsciiCharacterMatch(
         ExecutionStringMatch match,
-        IdentifierNameSyntax variable)
+        IdentifierNameSyntax variable
+    )
     {
-        ExpressionSyntax index = match.Kind == ExecutionStringMatchKind.Suffix
-            ? SyntaxFactory.BinaryExpression(
-                SyntaxKind.SubtractExpression,
-                Member(variable, nameof(string.Length)),
-                Number(1))
-            : Number(0);
-        var value = SyntaxFactory.ElementAccessExpression(variable)
-            .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(index))));
+        ExpressionSyntax index =
+            match.Kind == ExecutionStringMatchKind.Suffix
+                ? SyntaxFactory.BinaryExpression(
+                    SyntaxKind.SubtractExpression,
+                    Member(variable, nameof(string.Length)),
+                    Number(1)
+                )
+                : Number(0);
+        var value = SyntaxFactory
+            .ElementAccessExpression(variable)
+            .WithArgumentList(
+                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(index)))
+            );
         var expected = SyntaxFactory.LiteralExpression(
             SyntaxKind.CharacterLiteralExpression,
-            SyntaxFactory.Literal(match.Needle[0]));
+            SyntaxFactory.Literal(match.Needle[0])
+        );
         var foldedValue = SyntaxFactory.BinaryExpression(
             SyntaxKind.BitwiseOrExpression,
             Parenthesize(value),
-            Number(0x20));
+            Number(0x20)
+        );
         var foldedExpected = match.Needle[0] | 0x20;
         var exact = SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, value, expected);
         var foldedEqual = SyntaxFactory.BinaryExpression(
             SyntaxKind.EqualsExpression,
             Parenthesize(foldedValue),
-            Number(foldedExpected));
+            Number(foldedExpected)
+        );
         var foldedIsLetter = SyntaxFactory.BinaryExpression(
             SyntaxKind.LessThanOrEqualExpression,
-            Parenthesize(SyntaxFactory.BinaryExpression(
-                SyntaxKind.SubtractExpression,
-                Parenthesize(foldedValue),
-                Number('a'))),
-            Number('z' - 'a'));
+            Parenthesize(
+                SyntaxFactory.BinaryExpression(SyntaxKind.SubtractExpression, Parenthesize(foldedValue), Number('a'))
+            ),
+            Number('z' - 'a')
+        );
         return Or(exact, And(foldedEqual, foldedIsLetter));
     }
 
     private static ExpressionSyntax CreateLegacyFallback(
         ExecutionStringMatch match,
         IdentifierNameSyntax variable,
-        TimeSpan timeout)
+        TimeSpan timeout
+    )
     {
         if (match is { Kind: ExecutionStringMatchKind.Prefix, Needle.Length: 1 })
         {
@@ -184,7 +214,8 @@ internal static class ExecutionStringMatchSyntaxFactory
                 variable,
                 ExecutionSyntaxFactory.CreateStringLiteral(match.OriginalPattern),
                 ExecutionSyntaxFactory.CreateStringLiteral(match.Needle),
-                RegexTimeoutSyntax.Create(timeout));
+                RegexTimeoutSyntax.Create(timeout)
+            );
         }
 
         return InvokeStatic(
@@ -192,7 +223,8 @@ internal static class ExecutionStringMatchSyntaxFactory
             nameof(Operators.LikeLegacyRegex),
             variable,
             ExecutionSyntaxFactory.CreateStringLiteral(match.OriginalPattern),
-            RegexTimeoutSyntax.Create(timeout));
+            RegexTimeoutSyntax.Create(timeout)
+        );
     }
 
     private static bool RequiresLegacyUnicodeFallback(string needle)
@@ -207,16 +239,10 @@ internal static class ExecutionStringMatchSyntaxFactory
     }
 
     private static BinaryExpressionSyntax And(ExpressionSyntax left, ExpressionSyntax right) =>
-        SyntaxFactory.BinaryExpression(
-            SyntaxKind.LogicalAndExpression,
-            Parenthesize(left),
-            Parenthesize(right));
+        SyntaxFactory.BinaryExpression(SyntaxKind.LogicalAndExpression, Parenthesize(left), Parenthesize(right));
 
     private static BinaryExpressionSyntax Or(ExpressionSyntax left, ExpressionSyntax right) =>
-        SyntaxFactory.BinaryExpression(
-            SyntaxKind.LogicalOrExpression,
-            Parenthesize(left),
-            Parenthesize(right));
+        SyntaxFactory.BinaryExpression(SyntaxKind.LogicalOrExpression, Parenthesize(left), Parenthesize(right));
 
     private static PrefixUnaryExpressionSyntax Not(ExpressionSyntax expression) =>
         SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, Parenthesize(expression));
@@ -224,25 +250,23 @@ internal static class ExecutionStringMatchSyntaxFactory
     private static InvocationExpressionSyntax InvokeStatic(
         string typeName,
         string methodName,
-        params ExpressionSyntax[] arguments) =>
-        Invoke(Member(SyntaxFactory.IdentifierName(typeName), methodName), arguments);
+        params ExpressionSyntax[] arguments
+    ) => Invoke(Member(SyntaxFactory.IdentifierName(typeName), methodName), arguments);
 
-    private static InvocationExpressionSyntax Invoke(
-        ExpressionSyntax target,
-        params ExpressionSyntax[] arguments) =>
-        SyntaxFactory.InvocationExpression(target)
+    private static InvocationExpressionSyntax Invoke(ExpressionSyntax target, params ExpressionSyntax[] arguments) =>
+        SyntaxFactory
+            .InvocationExpression(target)
             .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(arguments));
 
     private static MemberAccessExpressionSyntax Member(ExpressionSyntax receiver, string name) =>
         SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             receiver,
-            SyntaxFactory.IdentifierName(name));
+            SyntaxFactory.IdentifierName(name)
+        );
 
     private static LiteralExpressionSyntax Number(int value) =>
-        SyntaxFactory.LiteralExpression(
-            SyntaxKind.NumericLiteralExpression,
-            SyntaxFactory.Literal(value));
+        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(value));
 
     private static ParenthesizedExpressionSyntax Parenthesize(ExpressionSyntax expression) =>
         expression as ParenthesizedExpressionSyntax ?? SyntaxFactory.ParenthesizedExpression(expression);

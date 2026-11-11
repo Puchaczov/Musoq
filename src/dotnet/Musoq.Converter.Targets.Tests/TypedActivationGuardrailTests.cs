@@ -32,8 +32,18 @@ public sealed class TypedActivationGuardrailTests
         var publicTypedQuery = File.ReadAllText(Path.Combine(converterRoot, "PublicCompiledTypedQuery.cs"));
         var publicProfileQuery = File.ReadAllText(Path.Combine(converterRoot, "PublicCompiledTypedProfileQuery.cs"));
 
-        Assert.IsFalse(publicTypedQuery.Contains("ParameterSnapshot.CaptureMutableOrEmpty(options.Parameters)", StringComparison.Ordinal));
-        Assert.IsFalse(publicProfileQuery.Contains("ParameterSnapshot.CaptureMutableOrEmpty(options.Parameters)", StringComparison.Ordinal));
+        Assert.IsFalse(
+            publicTypedQuery.Contains(
+                "ParameterSnapshot.CaptureMutableOrEmpty(options.Parameters)",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.IsFalse(
+            publicProfileQuery.Contains(
+                "ParameterSnapshot.CaptureMutableOrEmpty(options.Parameters)",
+                StringComparison.Ordinal
+            )
+        );
     }
 
     [TestMethod]

@@ -11,5 +11,5 @@ internal enum PredicateEarliestPlacement
     PostJoin,
     PostAggregate,
     PostWindow,
-    RuntimeFilter
+    RuntimeFilter,
 }

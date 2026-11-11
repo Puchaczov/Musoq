@@ -4,29 +4,4 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 [global::Musoq.Tests.Common.CultureTestClass]
-public partial class CteTests : BasicEntityTestBase
-{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
+public partial class CteTests : BasicEntityTestBase { }

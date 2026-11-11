@@ -39,7 +39,8 @@ public class ParserParametersTests
     [TestMethod]
     public void Parser_ParamBlockWithDefaults_ShouldParseAsStatement()
     {
-        const string query = "param (author: string, limit: int = 100, since: datetime? = null); select $author, $limit from #test.rows()";
+        const string query =
+            "param (author: string, limit: int = 100, since: datetime? = null); select $author, $limit from #test.rows()";
 
         var root = Parse(query);
         var statements = (StatementsArrayNode)root.Expression;
@@ -122,26 +123,31 @@ public class ParserParametersTests
         "param(string author) select 1 from #test.rows()",
         DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
         "string author",
-        DisplayName = "C# style parameter")]
+        DisplayName = "C# style parameter"
+    )]
     [DataRow(
         "param([string]$author) select 1 from #test.rows()",
         DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
         "[string]$author",
-        DisplayName = "PowerShell style parameter")]
+        DisplayName = "PowerShell style parameter"
+    )]
     [DataRow(
         "def query(author: str = \"x\") select 1 from #test.rows()",
         DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
         "def",
-        DisplayName = "Python style parameter")]
+        DisplayName = "Python style parameter"
+    )]
     [DataRow(
         "declare @author string; select 1 from #test.rows()",
         DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
         "declare",
-        DisplayName = "SQL variable declaration")]
+        DisplayName = "SQL variable declaration"
+    )]
     public void Parser_UnsupportedParameterSyntax_ShouldReportStructuredDiagnostic(
         string query,
         DiagnosticCode expectedCode,
-        string offendingText)
+        string offendingText
+    )
     {
         var result = ParseWithDiagnostics(query);
 

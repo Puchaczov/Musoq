@@ -16,7 +16,8 @@ internal static partial class EvaluatorSampleFixtures
                       FROM #A.entities()
                   )
                   SELECT Name, Nation
-                  FROM places"),
+                  FROM places"
+            ),
             Recursive("Q188_RecursiveUnionAllCounter"),
             Recursive("Q189_RecursiveUnionAllPredicateTermination"),
             Recursive("Q190_RecursiveEmptyAnchor"),
@@ -55,7 +56,7 @@ internal static partial class EvaluatorSampleFixtures
             Recursive("Q223_RecursiveUncorrelatedApplySnapshot"),
             Recursive("Q224_RecursiveCompositeInvariantSubplan"),
             Recursive("Q225_RecursiveMutableSourceValueSnapshot"),
-            Recursive("Q226_RecursiveSnapshotLimitCodeShape")
+            Recursive("Q226_RecursiveSnapshotLimitCodeShape"),
         ];
     }
 
@@ -69,7 +70,7 @@ internal static partial class EvaluatorSampleFixtures
         return Basic(name, "RecursiveCte", testCase.Query) with
         {
             CompilationOptions = options,
-            CreateSchemaProvider = testCase.CreateSchemaProvider ?? CreateBasicSchemaProvider
+            CreateSchemaProvider = testCase.CreateSchemaProvider ?? CreateBasicSchemaProvider,
         };
     }
 }

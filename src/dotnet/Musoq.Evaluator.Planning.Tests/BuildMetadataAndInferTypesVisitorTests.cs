@@ -31,7 +31,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
             new EnvironmentVariablesSchemaProvider(),
             new Dictionary<string, string[]>(),
             logger.Object,
-            schemaRegistry: registry);
+            schemaRegistry: registry
+        );
 
         Assert.AreSame(registry, visitor.SchemaRegistry);
     }
@@ -48,16 +49,14 @@ public partial class BuildMetadataAndInferTypesVisitorTests
 
         var visitor = new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(
             new EnvironmentVariablesSchemaProvider(),
-            new Dictionary<string, string[]>
-            {
-                { "d1", ["Key", "Value"] },
-                { "e1", ["Key", "Value"] }
-            },
+            new Dictionary<string, string[]> { { "d1", ["Key", "Value"] }, { "e1", ["Key", "Value"] } },
             new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
             {
                 { "d:1", [] },
-                { "e:1", [new EnvironmentVariableEntity("KEY_1", "VALUE_1")] }
-            }, logger.Object);
+                { "e:1", [new EnvironmentVariableEntity("KEY_1", "VALUE_1")] },
+            },
+            logger.Object
+        );
 
         var traverser = new BuildMetadataAndInferTypesTraverseVisitor(visitor);
 
@@ -81,8 +80,9 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void ScriptParameters_WhenDeclared_ShouldExposeResolvedDefinitions()
     {
         var visitor = Analyze(
-            "param (author: string, limit: int = 100, since: datetime? = null); " +
-            "select $author, $limit, $since from #EnvironmentVariables.All()");
+            "param (author: string, limit: int = 100, since: datetime? = null); "
+                + "select $author, $limit, $since from #EnvironmentVariables.All()"
+        );
 
         Assert.HasCount(3, visitor.ScriptParameterDefinitions);
 
@@ -105,42 +105,48 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void ScriptParameters_WhenDuplicated_ShouldThrow()
     {
         Assert.Throws<NotSupportedException>(() =>
-            Analyze("param (author: string, author: int); select 1 from #EnvironmentVariables.All()"));
+            Analyze("param (author: string, author: int); select 1 from #EnvironmentVariables.All()")
+        );
     }
 
     [TestMethod]
     public void ScriptParameters_WhenBlockIsDeclaredTwice_ShouldThrow()
     {
         Assert.Throws<NotSupportedException>(() =>
-            Analyze("param (author: string); param (limit: int); select 1 from #EnvironmentVariables.All()"));
+            Analyze("param (author: string); param (limit: int); select 1 from #EnvironmentVariables.All()")
+        );
     }
 
     [TestMethod]
     public void ScriptParameters_WhenBlockAppearsAfterQuery_ShouldThrow()
     {
         Assert.Throws<NotSupportedException>(() =>
-            Analyze("select 1 from #EnvironmentVariables.All(); param (author: string)"));
+            Analyze("select 1 from #EnvironmentVariables.All(); param (author: string)")
+        );
     }
 
     [TestMethod]
     public void ScriptParameters_WhenReferenceIsMissing_ShouldThrow()
     {
         Assert.Throws<NotSupportedException>(() =>
-            Analyze("param (author: string); select $missing from #EnvironmentVariables.All()"));
+            Analyze("param (author: string); select $missing from #EnvironmentVariables.All()")
+        );
     }
 
     [TestMethod]
     public void ScriptParameters_WhenTypeIsUnknown_ShouldThrow()
     {
         Assert.Throws<TypeNotFoundException>(() =>
-            Analyze("param (author: UnknownType); select 1 from #EnvironmentVariables.All()"));
+            Analyze("param (author: UnknownType); select 1 from #EnvironmentVariables.All()")
+        );
     }
 
     [TestMethod]
     public void ScriptParameters_WhenDefaultCannotBeConverted_ShouldThrow()
     {
         Assert.Throws<NotSupportedException>(() =>
-            Analyze("param (limit: int = 'abc'); select 1 from #EnvironmentVariables.All()"));
+            Analyze("param (limit: int = 'abc'); select 1 from #EnvironmentVariables.All()")
+        );
     }
 
     [TestMethod]
@@ -149,7 +155,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         object?[]? capturedArguments = null;
         Analyze(
             "param (name: string); select 1 from #capture.any($name)",
-            new CaptureArgumentsSchemaProvider(arguments => capturedArguments = arguments));
+            new CaptureArgumentsSchemaProvider(arguments => capturedArguments = arguments)
+        );
 
         Assert.IsNotNull(capturedArguments);
         Assert.IsEmpty(capturedArguments);
@@ -161,9 +168,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         object?[]? attemptedArguments = null;
         var provider = new MetadataDependentSchemaProvider(arguments => attemptedArguments = arguments);
         var exception = Assert.Throws<SourceMetadataRequiresDefaultException>(() =>
-            Analyze(
-                "param (value: string); select 1 from #metadata.any($value)",
-                provider));
+            Analyze("param (value: string); select 1 from #metadata.any($value)", provider)
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, exception.Code);
         StringAssert.Contains(exception.Message, "requires a static argument value");
@@ -179,7 +185,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         object?[]? capturedArguments = null;
         Analyze(
             "param (value: string = 'fallback'); select 1 from #metadata.any($value)",
-            new MetadataDependentSchemaProvider(arguments => capturedArguments = arguments));
+            new MetadataDependentSchemaProvider(arguments => capturedArguments = arguments)
+        );
 
         Assert.IsNotNull(capturedArguments);
         CollectionAssert.AreEqual(new object?[] { "fallback" }, capturedArguments);
@@ -193,7 +200,9 @@ public partial class BuildMetadataAndInferTypesVisitorTests
                 "param (value: string); select 1 from #planningmetadata.any($value)",
                 Guid.NewGuid().ToString(),
                 new PlanningMetadataDependentSchemaProvider(),
-                new TestsLoggerResolver()));
+                new TestsLoggerResolver()
+            )
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument, exception.PrimaryEnvelope.Code);
         StringAssert.Contains(exception.PrimaryEnvelope.Message, "Declare defaults");
@@ -205,7 +214,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         object?[]? capturedArguments = null;
         var visitor = Analyze(
             "param (name: string = 'KEY_1'); select 1 from #capture.any($name)",
-            new CaptureArgumentsSchemaProvider(arguments => capturedArguments = arguments));
+            new CaptureArgumentsSchemaProvider(arguments => capturedArguments = arguments)
+        );
 
         Assert.HasCount(1, visitor.ScriptParameterDefinitions);
         Assert.AreEqual("KEY_1", visitor.ScriptParameterDefinitions[0].DefaultValue);
@@ -219,8 +229,10 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void ScriptParameters_WhenNestedInSchemaArgument_ShouldBindComputedDefault()
     {
         object?[]? captured = null;
-        Analyze("param (name: string = 'KEY_1'); select 1 from #capture.any($name + '_2')",
-            new CaptureArgumentsSchemaProvider(arguments => captured = arguments));
+        Analyze(
+            "param (name: string = 'KEY_1'); select 1 from #capture.any($name + '_2')",
+            new CaptureArgumentsSchemaProvider(arguments => captured = arguments)
+        );
         Assert.IsNotNull(captured);
         CollectionAssert.AreEqual(new object?[] { "KEY_1_2" }, captured);
     }
@@ -229,10 +241,11 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void ScriptVariables_WhenDeclared_ShouldExposeResolvedDefinitions()
     {
         var visitor = Analyze(
-            "let root: string = 'KEY'; " +
-            "let name: string = $root + '_1'; " +
-            "let limit: int = 10 + 5; " +
-            "select $name, $limit from #EnvironmentVariables.All()");
+            "let root: string = 'KEY'; "
+                + "let name: string = $root + '_1'; "
+                + "let limit: int = 10 + 5; "
+                + "select $name, $limit from #EnvironmentVariables.All()"
+        );
 
         Assert.HasCount(3, visitor.ScriptVariableDefinitions);
 
@@ -256,14 +269,16 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void ScriptVariables_WhenNameDuplicatesParameter_ShouldThrow()
     {
         Assert.Throws<NotSupportedException>(() =>
-            Analyze("param (name: string); let name: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()"));
+            Analyze("param (name: string); let name: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()")
+        );
     }
 
     [TestMethod]
     public void ScriptVariables_WhenInitializerUsesLaterVariable_ShouldThrow()
     {
         Assert.Throws<NotSupportedException>(() =>
-            Analyze("let name: string = $later; let later: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()"));
+            Analyze("let name: string = $later; let later: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()")
+        );
     }
 
     [TestMethod]
@@ -272,7 +287,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         object?[]? capturedArguments = null;
         Analyze(
             "let root: string = 'KEY'; let name: string = $root + '_1'; select 1 from #capture.any($name + '_2')",
-            new CaptureArgumentsSchemaProvider(arguments => capturedArguments = arguments));
+            new CaptureArgumentsSchemaProvider(arguments => capturedArguments = arguments)
+        );
 
         Assert.IsNotNull(capturedArguments);
         Assert.HasCount(1, capturedArguments);
@@ -284,13 +300,15 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     {
         var capturedContexts = new List<SourceMetadataContext>();
         Analyze(
-            "table LegacyRecord { Name: string encoding 'windows-1250' trim, Payload: string source codec 'base64' };" +
-            "couple #capture.any with table LegacyRecord as Records;" +
-            "select Name from Records()",
-            new CaptureMetadataContextSchemaProvider(capturedContexts.Add));
+            "table LegacyRecord { Name: string encoding 'windows-1250' trim, Payload: string source codec 'base64' };"
+                + "couple #capture.any with table LegacyRecord as Records;"
+                + "select Name from Records()",
+            new CaptureMetadataContextSchemaProvider(capturedContexts.Add)
+        );
 
         var contractContext = capturedContexts.SingleOrDefault(context =>
-            context.AllColumns.Any(column => column.ReadModifiers.ContainsKey("encoding")));
+            context.AllColumns.Any(column => column.ReadModifiers.ContainsKey("encoding"))
+        );
         Assert.IsNotNull(contractContext);
 
         var nameColumn = contractContext.AllColumns.Single(column => column.ColumnName == "Name");
@@ -306,13 +324,15 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     {
         var capturedContexts = new List<SourceMetadataContext>();
         Analyze(
-            "table RecordsShape { Payload: System.String };" +
-            "couple #capture.any with table RecordsShape as Records;" +
-            "select Payload from Records()",
-            new CaptureMetadataContextSchemaProvider(capturedContexts.Add));
+            "table RecordsShape { Payload: System.String };"
+                + "couple #capture.any with table RecordsShape as Records;"
+                + "select Payload from Records()",
+            new CaptureMetadataContextSchemaProvider(capturedContexts.Add)
+        );
 
         var contractContext = capturedContexts.SingleOrDefault(context =>
-            context.AllColumns.Any(column => column.ColumnName == "Payload"));
+            context.AllColumns.Any(column => column.ColumnName == "Payload")
+        );
         Assert.IsNotNull(contractContext);
 
         var payloadColumn = contractContext.AllColumns.Single(column => column.ColumnName == "Payload");
@@ -324,13 +344,15 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     {
         var capturedContexts = new List<SourceMetadataContext>();
         Analyze(
-            "table RecordsShape { CapturedAt: System.DateTime? };" +
-            "couple #capture.any with table RecordsShape as Records;" +
-            "select CapturedAt from Records()",
-            new CaptureMetadataContextSchemaProvider(capturedContexts.Add));
+            "table RecordsShape { CapturedAt: System.DateTime? };"
+                + "couple #capture.any with table RecordsShape as Records;"
+                + "select CapturedAt from Records()",
+            new CaptureMetadataContextSchemaProvider(capturedContexts.Add)
+        );
 
         var contractContext = capturedContexts.SingleOrDefault(context =>
-            context.AllColumns.Any(column => column.ColumnName == "CapturedAt"));
+            context.AllColumns.Any(column => column.ColumnName == "CapturedAt")
+        );
         Assert.IsNotNull(contractContext);
 
         var capturedAtColumn = contractContext.AllColumns.Single(column => column.ColumnName == "CapturedAt");
@@ -342,10 +364,12 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     {
         var exception = Assert.Throws<TypeNotFoundException>(() =>
             Analyze(
-                "table RecordsShape { Payload: System.SomeCustomType };" +
-                "couple #capture.any with table RecordsShape as Records;" +
-                "select Payload from Records()",
-                new CaptureMetadataContextSchemaProvider(_ => { })));
+                "table RecordsShape { Payload: System.SomeCustomType };"
+                    + "couple #capture.any with table RecordsShape as Records;"
+                    + "select Payload from Records()",
+                new CaptureMetadataContextSchemaProvider(_ => { })
+            )
+        );
 
         Assert.AreEqual("System.SomeCustomType", exception.TypeName);
     }
@@ -365,7 +389,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         var visitor = new BuildMetadataAndInferTypesVisitor(
             schemaProvider,
             new Dictionary<string, string[]>(),
-            logger.Object);
+            logger.Object
+        );
 
         var traverser = new BuildMetadataAndInferTypesTraverseVisitor(visitor);
         tree.Accept(traverser);
@@ -384,13 +409,21 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     private sealed class CaptureArgumentsSchema(Action<object?[]> onArguments)
         : SchemaBase("capture", new MethodsAggregator(new MethodsManager()))
     {
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters
+        )
         {
             onArguments(parameters);
             return new CaptureArgumentsTable();
         }
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext executionContext,
+            TArguments nativeArguments
+        )
         {
             throw new NotSupportedException();
         }
@@ -413,7 +446,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         public SchemaTableMetadata Metadata { get; } = new(typeof(object));
     }
 
-    private sealed class CaptureMetadataContextSchemaProvider(Action<SourceMetadataContext> onMetadataContext) : ISchemaProvider
+    private sealed class CaptureMetadataContextSchemaProvider(Action<SourceMetadataContext> onMetadataContext)
+        : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
@@ -424,13 +458,21 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     private sealed class CaptureMetadataContextSchema(Action<SourceMetadataContext> onMetadataContext)
         : SchemaBase("capture", new MethodsAggregator(new MethodsManager()))
     {
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters
+        )
         {
             onMetadataContext(metadataContext);
             return new CaptureMetadataContextTable(metadataContext.AllColumns.ToArray());
         }
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext executionContext,
+            TArguments nativeArguments
+        )
         {
             throw new NotSupportedException();
         }
@@ -450,13 +492,14 @@ public partial class BuildMetadataAndInferTypesVisitorTests
             return Columns.Where(column => column.ColumnName == name).ToArray();
         }
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(object)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+        public SchemaTableMetadata Metadata { get; } =
+            new(typeof(object)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
     private sealed class MetadataDependentSchemaProvider(Action<object?[]>? capture = null) : ISchemaProvider
     {
-        public ISchema GetSchema(string schema) => new MetadataDependentSchema(
-            arguments =>
+        public ISchema GetSchema(string schema) =>
+            new MetadataDependentSchema(arguments =>
             {
                 capture?.Invoke(arguments);
             });
@@ -468,13 +511,15 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             onTable(parameters);
             if (parameters.Length == 0)
                 throw new Musoq.Schema.Exceptions.SchemaArgumentException(
                     "value",
-                    "Metadata requires the runtime source value.");
+                    "Metadata requires the runtime source value."
+                );
 
             onTable(parameters);
             return new MetadataDependentTable();
@@ -483,7 +528,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments parameters) => throw new NotSupportedException();
+            TArguments parameters
+        ) => throw new NotSupportedException();
     }
 
     private sealed class PlanningMetadataDependentSchemaProvider : ISchemaProvider
@@ -497,17 +543,20 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters) => new MetadataDependentTable();
+            params object?[] parameters
+        ) => new MetadataDependentTable();
 
         public override SourceDescriptor DescribeSource(
             string name,
             SourceDescribeContext context,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (parameters.Length == 0)
                 throw new Musoq.Schema.Exceptions.SchemaArgumentException(
                     "value",
-                    "Planning requires the runtime source value.");
+                    "Planning requires the runtime source value."
+                );
 
             return base.DescribeSource(name, context, parameters);
         }
@@ -515,7 +564,8 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments parameters) => throw new NotSupportedException();
+            TArguments parameters
+        ) => throw new NotSupportedException();
     }
 
     private sealed class MetadataDependentTable : ISchemaTable
@@ -530,5 +580,4 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     }
 
     public sealed class MetadataDependentEntity;
-
 }

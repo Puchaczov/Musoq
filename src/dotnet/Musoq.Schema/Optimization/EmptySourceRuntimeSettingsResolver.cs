@@ -6,9 +6,7 @@ public sealed class EmptySourceRuntimeSettingsResolver : ISourceRuntimeSettingsR
 {
     public static EmptySourceRuntimeSettingsResolver Instance { get; } = new();
 
-    private EmptySourceRuntimeSettingsResolver()
-    {
-    }
+    private EmptySourceRuntimeSettingsResolver() { }
 
     public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
     {

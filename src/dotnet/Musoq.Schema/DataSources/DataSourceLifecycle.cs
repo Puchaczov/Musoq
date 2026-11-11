@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
-using System.Reflection;
 
 namespace Musoq.Schema.DataSources;
 
@@ -26,14 +26,16 @@ public static class DataSourceLifecycle
         string schemaName,
         string sourceName,
         string alias,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         ArgumentNullException.ThrowIfNull(provider);
 
         try
         {
-            var schema = provider.GetSchema(schemaName) ??
-                         throw new InvalidOperationException($"Schema '{schemaName}' returned null.");
+            var schema =
+                provider.GetSchema(schemaName)
+                ?? throw new InvalidOperationException($"Schema '{schemaName}' returned null.");
             return new LifecycleSchema(schema, schemaName, alias, sourceContextId);
         }
         catch (OperationCanceledException)
@@ -46,12 +48,7 @@ public static class DataSourceLifecycle
         }
         catch (Exception exception)
         {
-            throw DataSourceLifecycleException.ForOpen(
-                schemaName,
-                sourceName,
-                alias,
-                sourceContextId,
-                exception);
+            throw DataSourceLifecycleException.ForOpen(schemaName, sourceName, alias, sourceContextId, exception);
         }
     }
 
@@ -62,7 +59,8 @@ public static class DataSourceLifecycle
         TArguments parameters,
         string schemaName,
         string alias,
-        string sourceContextId)
+        string sourceContextId
+    )
         where TArguments : struct, ISourceArguments
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -70,8 +68,8 @@ public static class DataSourceLifecycle
 
         try
         {
-            return schema.GetRowSource<T, TArguments>(sourceName, executionContext, parameters) ??
-                   throw new InvalidOperationException($"Source '{sourceName}' returned null.");
+            return schema.GetRowSource<T, TArguments>(sourceName, executionContext, parameters)
+                ?? throw new InvalidOperationException($"Source '{sourceName}' returned null.");
         }
         catch (OperationCanceledException)
         {
@@ -83,12 +81,7 @@ public static class DataSourceLifecycle
         }
         catch (Exception exception)
         {
-            throw DataSourceLifecycleException.ForOpen(
-                schemaName,
-                sourceName,
-                alias,
-                sourceContextId,
-                exception);
+            throw DataSourceLifecycleException.ForOpen(schemaName, sourceName, alias, sourceContextId, exception);
         }
     }
 
@@ -99,7 +92,8 @@ public static class DataSourceLifecycle
         SourceExecutionContext executionContext,
         string schemaName,
         string alias,
-        string sourceContextId)
+        string sourceContextId
+    )
         where TSource : RowSource<TRow>
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -108,13 +102,16 @@ public static class DataSourceLifecycle
 
         try
         {
-            if (schema is ITypedSourceSchema typedSchema &&
-                typedSchema.TryGetTypedSourceRegistration(sourceName, out var registration) &&
-                registration.RowType != typeof(TRow))
+            if (
+                schema is ITypedSourceSchema typedSchema
+                && typedSchema.TryGetTypedSourceRegistration(sourceName, out var registration)
+                && registration.RowType != typeof(TRow)
+            )
             {
                 throw new InvalidOperationException(
-                    $"Schema source '{sourceName}' produces row type '{registration.RowType.FullName}', " +
-                    $"but source was requested as '{typeof(TRow).FullName}'.");
+                    $"Schema source '{sourceName}' produces row type '{registration.RowType.FullName}', "
+                        + $"but source was requested as '{typeof(TRow).FullName}'."
+                );
             }
 
             var identity = executionContext.Plan.Identity;
@@ -129,7 +126,8 @@ public static class DataSourceLifecycle
                 effectiveSchemaName,
                 effectiveSourceName,
                 effectiveAlias,
-                effectiveContextId);
+                effectiveContextId
+            );
         }
         catch (OperationCanceledException)
         {
@@ -141,14 +139,10 @@ public static class DataSourceLifecycle
         }
         catch (Exception exception)
         {
-            throw DataSourceLifecycleException.ForOpen(
-                schemaName,
-                sourceName,
-                alias,
-                sourceContextId,
-                exception);
+            throw DataSourceLifecycleException.ForOpen(schemaName, sourceName, alias, sourceContextId, exception);
         }
     }
+
     public static RowSource<TRow> OpenQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         IQueryScopedRowSourceSchema schema,
         string sourceName,
@@ -156,7 +150,8 @@ public static class DataSourceLifecycle
         TArguments parameters,
         string schemaName,
         string alias,
-        string sourceContextId)
+        string sourceContextId
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, ISourceArguments
     {
@@ -165,8 +160,8 @@ public static class DataSourceLifecycle
 
         try
         {
-            return schema.GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(sourceName, request, parameters) ??
-                   throw new InvalidOperationException($"Source '{sourceName}' returned null.");
+            return schema.GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(sourceName, request, parameters)
+                ?? throw new InvalidOperationException($"Source '{sourceName}' returned null.");
         }
         catch (OperationCanceledException)
         {
@@ -178,12 +173,7 @@ public static class DataSourceLifecycle
         }
         catch (Exception exception)
         {
-            throw DataSourceLifecycleException.ForOpen(
-                schemaName,
-                sourceName,
-                alias,
-                sourceContextId,
-                exception);
+            throw DataSourceLifecycleException.ForOpen(schemaName, sourceName, alias, sourceContextId, exception);
         }
     }
 
@@ -192,15 +182,16 @@ public static class DataSourceLifecycle
         string schemaName,
         string sourceName,
         string alias,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         ArgumentNullException.ThrowIfNull(source);
 
         IEnumerable<IReadOnlyList<T>> chunks;
         try
         {
-            chunks = source.Chunks ??
-                     throw new InvalidOperationException($"Source '{sourceName}' returned null chunks.");
+            chunks =
+                source.Chunks ?? throw new InvalidOperationException($"Source '{sourceName}' returned null chunks.");
         }
         catch (OperationCanceledException)
         {
@@ -212,12 +203,7 @@ public static class DataSourceLifecycle
         }
         catch (Exception exception)
         {
-            throw DataSourceLifecycleException.ForRead(
-                schemaName,
-                sourceName,
-                alias,
-                sourceContextId,
-                exception);
+            throw DataSourceLifecycleException.ForRead(schemaName, sourceName, alias, sourceContextId, exception);
         }
 
         return ReadCore(chunks, schemaName, sourceName, alias, sourceContextId);
@@ -229,7 +215,8 @@ public static class DataSourceLifecycle
         string sourceName,
         string alias,
         string sourceContextId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(source);
         return ReadAsyncCore(source, schemaName, sourceName, alias, sourceContextId, cancellationToken);
@@ -240,7 +227,8 @@ public static class DataSourceLifecycle
         string schemaName,
         string sourceName,
         string alias,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         IEnumerator<IReadOnlyList<T>>? enumerator = null;
         Exception? primaryFailure = null;
@@ -263,7 +251,8 @@ public static class DataSourceLifecycle
                     sourceName,
                     alias,
                     sourceContextId,
-                    exception);
+                    exception
+                );
                 throw primaryLifecycleFailure;
             }
 
@@ -287,7 +276,8 @@ public static class DataSourceLifecycle
                         sourceName,
                         alias,
                         sourceContextId,
-                        exception);
+                        exception
+                    );
                     throw primaryLifecycleFailure;
                 }
 
@@ -312,7 +302,8 @@ public static class DataSourceLifecycle
                         sourceName,
                         alias,
                         sourceContextId,
-                        exception);
+                        exception
+                    );
                     throw primaryLifecycleFailure;
                 }
 
@@ -344,7 +335,8 @@ public static class DataSourceLifecycle
                             sourceName,
                             alias,
                             sourceContextId,
-                            exception);
+                            exception
+                        );
                     }
 
                     primaryLifecycleFailure?.AttachRelatedFailure(exception);
@@ -359,7 +351,8 @@ public static class DataSourceLifecycle
         string sourceName,
         string alias,
         string sourceContextId,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken
+    )
     {
         IAsyncEnumerator<IReadOnlyList<T>>? enumerator = null;
         Exception? primaryFailure = null;
@@ -382,7 +375,8 @@ public static class DataSourceLifecycle
                     sourceName,
                     alias,
                     sourceContextId,
-                    exception);
+                    exception
+                );
                 throw primaryLifecycleFailure;
             }
 
@@ -406,7 +400,8 @@ public static class DataSourceLifecycle
                         sourceName,
                         alias,
                         sourceContextId,
-                        exception);
+                        exception
+                    );
                     throw primaryLifecycleFailure;
                 }
 
@@ -431,7 +426,8 @@ public static class DataSourceLifecycle
                         sourceName,
                         alias,
                         sourceContextId,
-                        exception);
+                        exception
+                    );
                     throw primaryLifecycleFailure;
                 }
 
@@ -465,7 +461,8 @@ public static class DataSourceLifecycle
                             sourceName,
                             alias,
                             sourceContextId,
-                            exception);
+                            exception
+                        );
                     }
 
                     primaryLifecycleFailure?.AttachRelatedFailure(exception);
@@ -474,25 +471,30 @@ public static class DataSourceLifecycle
         }
     }
 
-    private sealed class LifecycleSchema(
-        ISchema inner,
-        string schemaName,
-        string alias,
-        string sourceContextId) : ISchema, IQueryScopedRowSourceSchema, ITypedSourceSchema
+    private sealed class LifecycleSchema(ISchema inner, string schemaName, string alias, string sourceContextId)
+        : ISchema,
+            IQueryScopedRowSourceSchema,
+            ITypedSourceSchema
     {
         public string Name => inner.Name;
 
-        public ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters) =>
-            inner.GetTableByName(name, metadataContext, parameters);
+        public ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters
+        ) => inner.GetTableByName(name, metadataContext, parameters);
 
-        public SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters) =>
-            inner.DescribeSource(name, context, parameters);
+        public SourceDescriptor DescribeSource(
+            string name,
+            SourceDescribeContext context,
+            params object?[] parameters
+        ) => inner.DescribeSource(name, context, parameters);
 
         public IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
             string name,
             SourceRuntimeSettingsDescribeContext context,
-            params object?[] parameters) =>
-            inner.DescribeSourceRuntimeSettings(name, context, parameters);
+            params object?[] parameters
+        ) => inner.DescribeSourceRuntimeSettings(name, context, parameters);
 
         public SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters) =>
             inner.TryPlanSource(name, request, parameters);
@@ -500,7 +502,9 @@ public static class DataSourceLifecycle
         public RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments
+            TArguments parameters
+        )
+            where TArguments : struct, global::Musoq.Schema.ISourceArguments
         {
             var identity = executionContext.Plan.Identity;
             var effectiveSchemaName = string.IsNullOrEmpty(identity.SchemaName) ? schemaName : identity.SchemaName;
@@ -516,26 +520,30 @@ public static class DataSourceLifecycle
                 parameters,
                 effectiveSchemaName,
                 effectiveAlias,
-                effectiveContextId);
+                effectiveContextId
+            );
             return new LifecycleRowSource<T>(
                 source,
                 effectiveSchemaName,
                 effectiveSourceName,
                 effectiveAlias,
-                effectiveContextId);
+                effectiveContextId
+            );
         }
 
         public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
             string name,
             QueryScopedRowSourceRequest request,
-            TArguments parameters)
+            TArguments parameters
+        )
             where TMaterializer : struct, IQueryRowMaterializer<TRow>
-        where TArguments : struct, global::Musoq.Schema.ISourceArguments
+            where TArguments : struct, global::Musoq.Schema.ISourceArguments
         {
             if (inner is not IQueryScopedRowSourceSchema queryScoped)
             {
                 throw new InvalidOperationException(
-                    $"Schema '{Name}' does not implement {nameof(IQueryScopedRowSourceSchema)}.");
+                    $"Schema '{Name}' does not implement {nameof(IQueryScopedRowSourceSchema)}."
+                );
             }
 
             var identity = request.ExecutionContext.Plan.Identity;
@@ -552,13 +560,15 @@ public static class DataSourceLifecycle
                 parameters,
                 effectiveSchemaName,
                 effectiveAlias,
-                effectiveContextId);
+                effectiveContextId
+            );
             return new LifecycleRowSource<TRow>(
                 source,
                 effectiveSchemaName,
                 effectiveSourceName,
                 effectiveAlias,
-                effectiveContextId);
+                effectiveContextId
+            );
         }
 
         public bool TryGetTypedSourceRegistration(string name, out TypedSourceRegistration registration)
@@ -568,34 +578,49 @@ public static class DataSourceLifecycle
             registration = null!;
             return false;
         }
+
         public SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext) =>
             inner.GetRawConstructors(metadataContext);
 
         public SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext) =>
             inner.GetRawConstructors(methodName, metadataContext);
 
-        public bool TryResolveMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo) =>
-            inner.TryResolveMethod(method, parameters, entityType, out methodInfo);
+        public bool TryResolveMethod(
+            string method,
+            Type[] parameters,
+            Type? entityType,
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        ) => inner.TryResolveMethod(method, parameters, entityType, out methodInfo);
 
-        public bool TryResolveRawMethod(string method, Type[] parameters, [NotNullWhen(true)] out MethodInfo? methodInfo) =>
-            inner.TryResolveRawMethod(method, parameters, out methodInfo);
+        public bool TryResolveRawMethod(
+            string method,
+            Type[] parameters,
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        ) => inner.TryResolveRawMethod(method, parameters, out methodInfo);
 
-        public bool TryResolveAggregationMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo) =>
-            inner.TryResolveAggregationMethod(method, parameters, entityType, out methodInfo);
+        public bool TryResolveAggregationMethod(
+            string method,
+            Type[] parameters,
+            Type? entityType,
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        ) => inner.TryResolveAggregationMethod(method, parameters, entityType, out methodInfo);
 
         public bool TryResolveAggregationMethod(
             string method,
             Type[] parameters,
             Type? entityType,
             Func<MethodInfo, bool> methodFilter,
-            [NotNullWhen(true)] out MethodInfo? methodInfo) =>
-            inner.TryResolveAggregationMethod(method, parameters, entityType, methodFilter, out methodInfo);
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        ) => inner.TryResolveAggregationMethod(method, parameters, entityType, methodFilter, out methodInfo);
 
         public bool TryResolveWindowFunction(string method, [NotNullWhen(true)] out MethodInfo? methodInfo) =>
             inner.TryResolveWindowFunction(method, out methodInfo);
 
-        public bool TryResolveWindowFunction(string method, Type[] argumentTypes, [NotNullWhen(true)] out MethodInfo? methodInfo) =>
-            inner.TryResolveWindowFunction(method, argumentTypes, out methodInfo);
+        public bool TryResolveWindowFunction(
+            string method,
+            Type[] argumentTypes,
+            [NotNullWhen(true)] out MethodInfo? methodInfo
+        ) => inner.TryResolveWindowFunction(method, argumentTypes, out methodInfo);
 
         public IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods() =>
             inner.GetAllLibraryMethods();
@@ -609,7 +634,8 @@ public static class DataSourceLifecycle
         string schemaName,
         string sourceName,
         string alias,
-        string sourceContextId) : RowSource<T>
+        string sourceContextId
+    ) : RowSource<T>
     {
         public override IEnumerable<IReadOnlyList<T>> Chunks =>
             Read(inner, schemaName, sourceName, alias, sourceContextId);

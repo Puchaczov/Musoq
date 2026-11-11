@@ -15,19 +15,27 @@ public sealed class PreparedTextPattern
 
     /// <summary>Prepares the immutable configuration of a pattern field.</summary>
     public PreparedTextPattern(string pattern, TextPatternModifiers modifiers, string[]? captureNames = null)
-        : this(pattern, modifiers, captureNames, isLookahead: false)
-    {
-    }
+        : this(pattern, modifiers, captureNames, isLookahead: false) { }
 
-    private PreparedTextPattern(string pattern, TextPatternModifiers modifiers, string[]? captureNames, bool isLookahead)
+    private PreparedTextPattern(
+        string pattern,
+        TextPatternModifiers modifiers,
+        string[]? captureNames,
+        bool isLookahead
+    )
     {
         ArgumentNullException.ThrowIfNull(pattern);
         Pattern = pattern;
         Modifiers = modifiers;
         IsLookahead = isLookahead;
         _captureNames = captureNames is null ? [] : (string[])captureNames.Clone();
-        var normalized = TextPatternCompiler.Normalize(TextPatternCompiler.ApplyGreediness(pattern,
-            modifiers.HasFlag(TextPatternModifiers.Greedy), modifiers.HasFlag(TextPatternModifiers.Lazy)));
+        var normalized = TextPatternCompiler.Normalize(
+            TextPatternCompiler.ApplyGreediness(
+                pattern,
+                modifiers.HasFlag(TextPatternModifiers.Greedy),
+                modifiers.HasFlag(TextPatternModifiers.Lazy)
+            )
+        );
         _validationPattern = isLookahead ? null : normalized;
         _anchored = isLookahead && normalized.StartsWith('^') ? normalized : "^" + normalized;
     }

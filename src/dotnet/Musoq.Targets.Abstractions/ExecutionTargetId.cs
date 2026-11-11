@@ -10,7 +10,10 @@ internal readonly record struct ExecutionTargetId
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Execution target id cannot be empty.", nameof(value));
         if (!string.Equals(value, value.Trim(), StringComparison.Ordinal) || value.Any(char.IsControl))
-            throw new ArgumentException("Execution target id must be trimmed and cannot contain control characters.", nameof(value));
+            throw new ArgumentException(
+                "Execution target id must be trimmed and cannot contain control characters.",
+                nameof(value)
+            );
 
         Value = value;
     }

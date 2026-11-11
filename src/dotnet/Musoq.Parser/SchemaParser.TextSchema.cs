@@ -12,7 +12,6 @@ namespace Musoq.Parser;
 /// </summary>
 public partial class SchemaParser
 {
-
     private TextSchemaNode ComposeTextSchema()
     {
         var textToken = ConsumeAndGetToken(TokenType.Text);
@@ -37,7 +36,8 @@ public partial class SchemaParser
             fields,
             extends,
             extendsSpan,
-            GetSchemaComments(schemaStartSpan.Through(closingToken.Span)));
+            GetSchemaComments(schemaStartSpan.Through(closingToken.Span))
+        );
 
         return (TextSchemaNode)schema.WithSpan(schemaStartSpan.Through(closingToken.Span));
     }
@@ -54,7 +54,8 @@ public partial class SchemaParser
                 $"Text schema field '{field.Name}' is declared more than once.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ4008_DuplicateSchemaField,
-                field.Span);
+                field.Span
+            );
         }
     }
 
@@ -71,10 +72,10 @@ public partial class SchemaParser
             else if (Current.TokenType != TokenType.RBracket)
                 throw new SyntaxException(
                     $"Expected ',' or '}}' after field definition, but found '{Current.TokenType}'",
-                    _lexer.AlreadyResolvedQueryPart);
+                    _lexer.AlreadyResolvedQueryPart
+                );
         }
 
         return fields.ToArray();
     }
-
 }

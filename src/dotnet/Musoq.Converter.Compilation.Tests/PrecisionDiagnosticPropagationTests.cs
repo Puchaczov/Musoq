@@ -20,16 +20,15 @@ public sealed class PrecisionDiagnosticPropagationTests
             new EntitySetSchemaProvider(
                 new Dictionary<string, IReadOnlyList<EntitySetEntity>>(StringComparer.OrdinalIgnoreCase)
                 {
-                    ["#data"] = [new EntitySetEntity { Population = 42m }]
-                }),
-            new TestsLoggerResolver());
+                    ["#data"] = [new EntitySetEntity { Population = 42m }],
+                }
+            ),
+            new TestsLoggerResolver()
+        );
 
         var errors = result.Errors.ToArray();
         Assert.AreEqual(1, errors.Length, Describe(result.Diagnostics));
-        Assert.AreEqual(
-            DiagnosticCode.MQ3094_InvalidConstantRegex,
-            errors[0].Code,
-            Describe(result.Diagnostics));
+        Assert.AreEqual(DiagnosticCode.MQ3094_InvalidConstantRegex, errors[0].Code, Describe(result.Diagnostics));
         Assert.AreEqual(DiagnosticPhase.Bind, errors[0].Phase);
         Assert.IsNull(result.CompiledQuery);
     }

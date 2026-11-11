@@ -11,7 +11,8 @@ public partial class AutomaticDateTimeComparisonTests
         var dateTimeType = DateTimeTypes[0];
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
 
-        foreach (var op in operators) TestBasicOperatorFunctionality(dateTimeType, op, "EventDate");
+        foreach (var op in operators)
+            TestBasicOperatorFunctionality(dateTimeType, op, "EventDate");
     }
 
     [TestMethod]
@@ -20,7 +21,8 @@ public partial class AutomaticDateTimeComparisonTests
         var dateTimeType = DateTimeTypes[2];
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
 
-        foreach (var op in operators) TestBasicOperatorFunctionality(dateTimeType, op, "EventDate");
+        foreach (var op in operators)
+            TestBasicOperatorFunctionality(dateTimeType, op, "EventDate");
     }
 
     [TestMethod]
@@ -29,7 +31,8 @@ public partial class AutomaticDateTimeComparisonTests
         var dateTimeType = DateTimeTypes[4];
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
 
-        foreach (var op in operators) TestBasicOperatorFunctionality(dateTimeType, op, "Duration");
+        foreach (var op in operators)
+            TestBasicOperatorFunctionality(dateTimeType, op, "Duration");
     }
 
     [TestMethod]
@@ -38,7 +41,8 @@ public partial class AutomaticDateTimeComparisonTests
         var dateTimeType = DateTimeTypes[1];
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
 
-        foreach (var op in operators) TestBasicOperatorFunctionality(dateTimeType, op, "EventDate");
+        foreach (var op in operators)
+            TestBasicOperatorFunctionality(dateTimeType, op, "EventDate");
     }
 
     [TestMethod]
@@ -47,7 +51,8 @@ public partial class AutomaticDateTimeComparisonTests
         var dateTimeType = DateTimeTypes[3];
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
 
-        foreach (var op in operators) TestBasicOperatorFunctionality(dateTimeType, op, "EventDate");
+        foreach (var op in operators)
+            TestBasicOperatorFunctionality(dateTimeType, op, "EventDate");
     }
 
     [TestMethod]
@@ -56,7 +61,8 @@ public partial class AutomaticDateTimeComparisonTests
         var dateTimeType = DateTimeTypes[5];
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
 
-        foreach (var op in operators) TestBasicOperatorFunctionality(dateTimeType, op, "Duration");
+        foreach (var op in operators)
+            TestBasicOperatorFunctionality(dateTimeType, op, "Duration");
     }
 
     [TestMethod]
@@ -69,18 +75,17 @@ public partial class AutomaticDateTimeComparisonTests
         }
     }
 
-
-
     [TestMethod]
     public void WhenComparingWithEqualityOperator_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where EventDate = '2023-03-15'";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where EventDate = '2023-03-15'";
 
         var result = RunComparisonTest(query, testData);
         Assert.AreEqual("Equal Event", result);
@@ -90,12 +95,13 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenComparingWithNotEqualOperator_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where EventDate <> '2023-01-01'";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where EventDate <> '2023-01-01'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
@@ -110,12 +116,13 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenComparingWithGreaterThanOperator_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where EventDate > '2023-01-01'";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where EventDate > '2023-01-01'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
@@ -130,12 +137,13 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenComparingWithLessThanOperator_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where EventDate < '2023-06-15'";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where EventDate < '2023-06-15'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
@@ -150,12 +158,13 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenComparingWithGreaterOrEqualOperator_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where EventDate >= '2023-03-15'";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where EventDate >= '2023-03-15'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
@@ -170,12 +179,13 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenComparingWithLessOrEqualOperator_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where EventDate <= '2023-03-15'";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where EventDate <= '2023-03-15'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
@@ -186,18 +196,17 @@ public partial class AutomaticDateTimeComparisonTests
         Assert.Contains("Equal Event", results);
     }
 
-
-
     [TestMethod]
     public void WhenComparingDateTimeOffsetWithSpecificOperator_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[2];
-        const string query = "table Events {" +
-                             "  EventDate: datetimeoffset," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where EventDate = '2023-03-15T12:00:00+00:00'";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetimeoffset,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where EventDate = '2023-03-15T12:00:00+00:00'";
 
         var result = RunComparisonTest(query, testData);
         Assert.AreEqual("Equal Event", result);
@@ -207,12 +216,13 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenComparingTimeSpanWithSpecificOperator_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[4];
-        const string query = "table Events {" +
-                             "  Duration: timespan," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where Duration >= '02:00:00'";
+        const string query =
+            "table Events {"
+            + "  Duration: timespan,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where Duration >= '02:00:00'";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, "Duration"));
         var table = vm.Run(TestContext.CancellationToken);
@@ -222,7 +232,4 @@ public partial class AutomaticDateTimeComparisonTests
         Assert.Contains("Equal Event", results);
         Assert.Contains("Later Event", results);
     }
-
-
-
 }

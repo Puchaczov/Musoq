@@ -19,20 +19,23 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "p.Name",
             typeof(string),
             [binding],
-            scan);
+            scan
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1)
+                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1),
             ],
-            aggregate);
+            aggregate
+        );
         var builder = CreateSerialBuilder();
 
         var result = builder.Build(project, "Q_SingleKeyAggregate");
         var plan = RequireExecutionPlan(result);
         AssertFinalShapeResult(plan, "result", "ResultRow0", "Name", "Count");
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_SingleKeyAggregate]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -53,7 +56,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
             "      AppendShape [result <- ResultRow0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -68,13 +72,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "p.Name",
             typeof(string),
             [binding],
-            scan);
+            scan
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1)
+                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1),
             ],
-            aggregate);
+            aggregate
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_ParallelSingleKeyAggregate");
@@ -98,39 +104,48 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "p.Name",
             typeof(string),
             [binding],
-            scan);
+            scan
+        );
         var aggregateProject = new PhysicalProjectNode(
             [
                 new ProjectedField("p.Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("p.Count", new AggregateRef("p.Count", typeof(long)), 1)
+                new ProjectedField("p.Count", new AggregateRef("p.Count", typeof(long)), 1),
             ],
-            aggregate);
+            aggregate
+        );
         var cteRef = new PhysicalCteRefNode(
             "pScore",
             "pScore",
-            new OutputSchema(
-            [
+            new OutputSchema([
                 new ColumnSchema("p.Name", typeof(string), 0),
-                new ColumnSchema("p.Count", typeof(long), 1)
-            ])) { IntermediateProducerId = new IntermediateProducerId(0) };
+                new ColumnSchema("p.Count", typeof(long), 1),
+            ])
+        )
+        {
+            IntermediateProducerId = new IntermediateProducerId(0),
+        };
         var finalProject = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Count", new ColumnRef("p", "Count", typeof(long)), 1)
+                new ProjectedField("Count", new ColumnRef("p", "Count", typeof(long)), 1),
             ],
-            cteRef);
-        var multiStatement = new PhysicalMultiStatementNode(
-        [
+            cteRef
+        );
+        var multiStatement = new PhysicalMultiStatementNode([
             aggregateProject,
-            new PhysicalTakeNode(2, new PhysicalSkipNode(1, finalProject))
-        ]) { IntermediateProducers = [new(new(new(0), "pScore"), 0)] };
+            new PhysicalTakeNode(2, new PhysicalSkipNode(1, finalProject)),
+        ])
+        {
+            IntermediateProducers = [new(new(new(0), "pScore"), 0)],
+        };
         var builder = CreateSerialBuilder();
 
         var result = builder.Build(multiStatement, "Q_FinalAggregateProjection");
         var plan = RequireExecutionPlan(result);
         var planText = ExecutionPlanPrinter.Print(plan);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_FinalAggregateProjection]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -152,7 +167,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    ForEach [finalGroup in groupsToFinalize]",
             "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
             "    SliceShapeRows [result -> resultSliced, skip 1, take 2; capacity: Candidate(resultSliced <- Min(Max(result.Count - 1, 0), 2))]",
-            "    ReturnDeferredTable [resultSliced: ResultRow0 <- ResultShape0]");
+            "    ReturnDeferredTable [resultSliced: ResultRow0 <- ResultShape0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
         Assert.IsFalse(planText.Contains("StoreTable", StringComparison.Ordinal));
@@ -169,21 +185,26 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "p.Name",
             typeof(string),
             [binding],
-            scan);
+            scan
+        );
         var aggregateProject = new PhysicalProjectNode(
             [
                 new ProjectedField("p.Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("p.Count", new AggregateRef("p.Count", typeof(long)), 1)
+                new ProjectedField("p.Count", new AggregateRef("p.Count", typeof(long)), 1),
             ],
-            aggregate);
+            aggregate
+        );
         var cteRef = new PhysicalCteRefNode(
             "pScore",
             "pScore",
-            new OutputSchema(
-            [
+            new OutputSchema([
                 new ColumnSchema("p.Name", typeof(string), 0),
-                new ColumnSchema("p.Count", typeof(long), 1)
-            ])) { IntermediateProducerId = new IntermediateProducerId(0) };
+                new ColumnSchema("p.Count", typeof(long), 1),
+            ])
+        )
+        {
+            IntermediateProducerId = new IntermediateProducerId(0),
+        };
         var bucket = new CaseWhen(
             [
                 new CaseWhenBranch(
@@ -191,18 +212,25 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                         BinaryOpKind.GreaterThan,
                         new ColumnRef("p", "Count", typeof(long)),
                         new Literal(1, typeof(int)),
-                        typeof(bool)),
-                    new Literal("Many", typeof(string)))
+                        typeof(bool)
+                    ),
+                    new Literal("Many", typeof(string))
+                ),
             ],
             new Literal("One", typeof(string)),
-            typeof(string));
+            typeof(string)
+        );
         var finalProject = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Bucket", bucket, 1)
+                new ProjectedField("Bucket", bucket, 1),
             ],
-            cteRef);
-        var multiStatement = new PhysicalMultiStatementNode([aggregateProject, finalProject]) { IntermediateProducers = [new(new(new(0), "pScore"), 0)] };
+            cteRef
+        );
+        var multiStatement = new PhysicalMultiStatementNode([aggregateProject, finalProject])
+        {
+            IntermediateProducers = [new(new(new(0), "pScore"), 0)],
+        };
         var builder = CreateSerialBuilder();
 
         var result = builder.Build(multiStatement, "Q_FinalAggregateCaseProjection");
@@ -211,6 +239,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
 
         StringAssert.Contains(planText, "StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]");
         StringAssert.Contains(planText, "Generated [Statement0Row0]");
-        StringAssert.Contains(planText, "AppendShape [result <- ResultRow0(Name: pScore.p.Name, Bucket: CASE WHEN (pScore.p.Count > 1) THEN 'Many' ELSE 'One' END)]");
+        StringAssert.Contains(
+            planText,
+            "AppendShape [result <- ResultRow0(Name: pScore.p.Name, Bucket: CASE WHEN (pScore.p.Count > 1) THEN 'Many' ELSE 'One' END)]"
+        );
     }
 }

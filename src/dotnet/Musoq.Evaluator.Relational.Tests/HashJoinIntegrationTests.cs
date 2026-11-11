@@ -12,15 +12,22 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class HashJoinIntegrationTests : MultiSchemaTestBase
 {
-
     [TestMethod]
     public void LeftOuterJoin_WithHashJoinEnabled_ShouldUseHashJoin()
     {
         const string query =
             "select first.FirstItem, second.FirstItem from #schema.first() first left outer join #schema.second() second on first.FirstItem = second.FirstItem order by first.FirstItem";
 
-        var first = new[] { new FirstEntity { FirstItem = "1" }, new FirstEntity { FirstItem = "2" } };
-        var second = new[] { new SecondEntity { FirstItem = "1" }, new SecondEntity { FirstItem = "3" } };
+        var first = new[]
+        {
+            new FirstEntity { FirstItem = "1" },
+            new FirstEntity { FirstItem = "2" },
+        };
+        var second = new[]
+        {
+            new SecondEntity { FirstItem = "1" },
+            new SecondEntity { FirstItem = "3" },
+        };
 
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
 
@@ -41,8 +48,16 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
         const string query =
             "select first.FirstItem, second.FirstItem from #schema.first() first right outer join #schema.second() second on first.FirstItem = second.FirstItem order by second.FirstItem";
 
-        var first = new[] { new FirstEntity { FirstItem = "1" }, new FirstEntity { FirstItem = "2" } };
-        var second = new[] { new SecondEntity { FirstItem = "1" }, new SecondEntity { FirstItem = "3" } };
+        var first = new[]
+        {
+            new FirstEntity { FirstItem = "1" },
+            new FirstEntity { FirstItem = "2" },
+        };
+        var second = new[]
+        {
+            new SecondEntity { FirstItem = "1" },
+            new SecondEntity { FirstItem = "3" },
+        };
 
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
 
@@ -63,8 +78,16 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
         const string query =
             "select first.FirstItem, second.FirstItem from #schema.first() first inner join #schema.second() second on first.FirstItem = second.FirstItem";
 
-        var first = new[] { new FirstEntity { FirstItem = "1" }, new FirstEntity { FirstItem = "2" } };
-        var second = new[] { new SecondEntity { FirstItem = "1" }, new SecondEntity { FirstItem = "3" } };
+        var first = new[]
+        {
+            new FirstEntity { FirstItem = "1" },
+            new FirstEntity { FirstItem = "2" },
+        };
+        var second = new[]
+        {
+            new SecondEntity { FirstItem = "1" },
+            new SecondEntity { FirstItem = "3" },
+        };
 
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: false));
 
@@ -79,28 +102,23 @@ public class HashJoinIntegrationTests : MultiSchemaTestBase
         string script,
         FirstEntity[] first,
         SecondEntity[] second,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
-        var schema = new MultiSchema(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
+        var schema = new MultiSchema(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                "first",
-                (new FirstEntityTable(), new MultiRowSource<FirstEntity>(first))
-            },
-            {
-                "second",
-                (new SecondEntityTable(), new MultiRowSource<SecondEntity>(second))
+                { "first", (new FirstEntityTable(), new MultiRowSource<FirstEntity>(first)) },
+                { "second", (new SecondEntityTable(), new MultiRowSource<SecondEntity>(second)) },
             }
-        });
+        );
 
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
-            new MultiSchemaProvider(new Dictionary<string, ISchema>
-            {
-                { "#schema", schema }
-            }),
+            new MultiSchemaProvider(new Dictionary<string, ISchema> { { "#schema", schema } }),
             LoggerResolver,
-            options);
+            options
+        );
     }
 }

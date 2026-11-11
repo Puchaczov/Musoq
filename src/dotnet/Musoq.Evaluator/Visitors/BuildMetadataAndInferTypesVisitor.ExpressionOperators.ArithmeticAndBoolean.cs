@@ -8,22 +8,34 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(StarNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitBinaryOperatorWithTypeConversion((left, right) => new StarNode(left, right), node,
-            BinaryOperatorKind.Multiply, BinaryOperationContext.ArithmeticOperation);
+        VisitBinaryOperatorWithTypeConversion(
+            (left, right) => new StarNode(left, right),
+            node,
+            BinaryOperatorKind.Multiply,
+            BinaryOperationContext.ArithmeticOperation
+        );
     }
 
     public override void Visit(FSlashNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitBinaryOperatorWithTypeConversion((left, right) => new FSlashNode(left, right), node,
-            BinaryOperatorKind.Divide, BinaryOperationContext.ArithmeticOperation);
+        VisitBinaryOperatorWithTypeConversion(
+            (left, right) => new FSlashNode(left, right),
+            node,
+            BinaryOperatorKind.Divide,
+            BinaryOperationContext.ArithmeticOperation
+        );
     }
 
     public override void Visit(ModuloNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitBinaryOperatorWithTypeConversion((left, right) => new ModuloNode(left, right), node,
-            BinaryOperatorKind.Modulo, BinaryOperationContext.ArithmeticOperation);
+        VisitBinaryOperatorWithTypeConversion(
+            (left, right) => new ModuloNode(left, right),
+            node,
+            BinaryOperatorKind.Modulo,
+            BinaryOperationContext.ArithmeticOperation
+        );
     }
 
     public override void Visit(AddNode node)
@@ -39,8 +51,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             PushSemanticNode(left);
             PushSemanticNode(right);
-            VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), node, BinaryOperatorKind.Add,
-                BinaryOperationContext.ArithmeticOperation);
+            VisitBinaryOperatorWithTypeConversion(
+                (l, r) => new AddNode(l, r),
+                node,
+                BinaryOperatorKind.Add,
+                BinaryOperationContext.ArithmeticOperation
+            );
             return;
         }
 
@@ -54,16 +70,24 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             PushSemanticNode(left);
             PushSemanticNode(right);
-            VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), node, BinaryOperatorKind.Add,
-                BinaryOperationContext.ArithmeticOperation);
+            VisitBinaryOperatorWithTypeConversion(
+                (l, r) => new AddNode(l, r),
+                node,
+                BinaryOperatorKind.Add,
+                BinaryOperationContext.ArithmeticOperation
+            );
         }
     }
 
     public override void Visit(HyphenNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitBinaryOperatorWithTypeConversion((left, right) => new HyphenNode(left, right), node,
-            BinaryOperatorKind.Subtract, BinaryOperationContext.ArithmeticOperation);
+        VisitBinaryOperatorWithTypeConversion(
+            (left, right) => new HyphenNode(left, right),
+            node,
+            BinaryOperatorKind.Subtract,
+            BinaryOperationContext.ArithmeticOperation
+        );
     }
 
     public override void Visit(AndNode node)
@@ -93,36 +117,56 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(BitwiseAndNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseAndNode(left, right), node,
-            BinaryOperatorKind.BitwiseAnd, BinaryOperationContext.ArithmeticOperation);
+        VisitBinaryOperatorWithTypeConversion(
+            (left, right) => new BitwiseAndNode(left, right),
+            node,
+            BinaryOperatorKind.BitwiseAnd,
+            BinaryOperationContext.ArithmeticOperation
+        );
     }
 
     public override void Visit(BitwiseOrNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseOrNode(left, right), node,
-            BinaryOperatorKind.BitwiseOr, BinaryOperationContext.ArithmeticOperation);
+        VisitBinaryOperatorWithTypeConversion(
+            (left, right) => new BitwiseOrNode(left, right),
+            node,
+            BinaryOperatorKind.BitwiseOr,
+            BinaryOperationContext.ArithmeticOperation
+        );
     }
 
     public override void Visit(BitwiseXorNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseXorNode(left, right), node,
-            BinaryOperatorKind.BitwiseXor, BinaryOperationContext.ArithmeticOperation);
+        VisitBinaryOperatorWithTypeConversion(
+            (left, right) => new BitwiseXorNode(left, right),
+            node,
+            BinaryOperatorKind.BitwiseXor,
+            BinaryOperationContext.ArithmeticOperation
+        );
     }
 
     public override void Visit(LeftShiftNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitBinaryOperatorWithTypeConversion((left, right) => new LeftShiftNode(left, right), node,
-            BinaryOperatorKind.LeftShift, BinaryOperationContext.ArithmeticOperation);
+        VisitBinaryOperatorWithTypeConversion(
+            (left, right) => new LeftShiftNode(left, right),
+            node,
+            BinaryOperatorKind.LeftShift,
+            BinaryOperationContext.ArithmeticOperation
+        );
     }
 
     public override void Visit(RightShiftNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitBinaryOperatorWithTypeConversion((left, right) => new RightShiftNode(left, right), node,
-            BinaryOperatorKind.RightShift, BinaryOperationContext.ArithmeticOperation);
+        VisitBinaryOperatorWithTypeConversion(
+            (left, right) => new RightShiftNode(left, right),
+            node,
+            BinaryOperatorKind.RightShift,
+            BinaryOperationContext.ArithmeticOperation
+        );
     }
 
     public override void Visit(ShortCircuitingNodeLeft node)

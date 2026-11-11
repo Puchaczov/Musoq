@@ -39,7 +39,10 @@ public sealed class TableSymbolTransformationTests
 
         Assert.AreSame(fixture.Schema, binding.Schema);
         Assert.AreEqual(typeof(TestEntity), binding.Table.Metadata?.TableEntityType);
-        CollectionAssert.AreEqual(new[] { "Value", "Name", "Ordinality" }, binding.Table.Columns.Select(column => column.ColumnName).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "Value", "Name", "Ordinality" },
+            binding.Table.Columns.Select(column => column.ColumnName).ToArray()
+        );
     }
 
     [TestMethod]
@@ -135,14 +138,13 @@ public sealed class TableSymbolTransformationTests
 
     private static (TableSymbol Symbol, ISchema Schema, ISchemaTable Table) CreateSymbol(
         string alias,
-        bool hasAlias = true)
+        bool hasAlias = true
+    )
     {
         var table = new ProviderTable(
-            [
-                new SchemaColumn("Value", 0, typeof(int)),
-                new SchemaColumn("Name", 1, typeof(string))
-            ],
-            typeof(TestEntity));
+            [new SchemaColumn("Value", 0, typeof(int)), new SchemaColumn("Name", 1, typeof(string))],
+            typeof(TestEntity)
+        );
         var schema = new ProviderSchema(alias, table);
         return (new TableSymbol(alias, schema, table, hasAlias), schema, table);
     }
@@ -155,7 +157,8 @@ public sealed class TableSymbolTransformationTests
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters) => table;
+            params object?[] parameters
+        ) => table;
     }
 
     private sealed class ProviderTable(ISchemaColumn[] columns, Type entityType) : ISchemaTable
@@ -165,9 +168,13 @@ public sealed class TableSymbolTransformationTests
         public SchemaTableMetadata Metadata { get; } = new(entityType);
 
         public ISchemaColumn? GetColumnByName(string name) =>
-            Columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            Columns.SingleOrDefault(column =>
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+            );
 
         public ISchemaColumn[] GetColumnsByName(string name) =>
-            Columns.Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            Columns
+                .Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
     }
 }

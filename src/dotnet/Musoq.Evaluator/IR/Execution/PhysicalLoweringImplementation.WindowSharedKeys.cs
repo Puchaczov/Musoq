@@ -7,7 +7,8 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static void MarkSharedWindowOrderKeys(List<WindowComputationBuildResult> computations)
     {
-        var shared = computations.Select(computation => GetWindowOrderKeyArray(computation.Node))
+        var shared = computations
+            .Select(computation => GetWindowOrderKeyArray(computation.Node))
             .Where(static keys => keys != null)
             .GroupBy(static keys => keys!.Variable.Name, StringComparer.Ordinal)
             .Where(static group => group.Count() > 1)
@@ -28,7 +29,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 ExecutionComputeRankingWindow ranking => ranking with { OrderKeyArray = marked },
                 ExecutionComputeOffsetWindow offset => offset with { OrderKeyArray = marked },
                 ExecutionComputePluginWindow plugin => plugin with { OrderKeyArray = marked },
-                _ => computation.Node
+                _ => computation.Node,
             };
             computations[index] = computation with { Node = node };
         }
@@ -42,7 +43,7 @@ internal sealed partial class PhysicalLoweringImplementation
             ExecutionComputeRankingWindow ranking => ranking.OrderKeyArray,
             ExecutionComputeOffsetWindow offset => offset.OrderKeyArray,
             ExecutionComputePluginWindow plugin => plugin.OrderKeyArray,
-            _ => null
+            _ => null,
         };
     }
 }

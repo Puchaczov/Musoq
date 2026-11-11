@@ -1,32 +1,38 @@
 <Project>
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeBundledTargetAssemblies</TargetsForTfmSpecificBuildOutput>
-    <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificDebugSymbolsInPackage);IncludeBundledTargetAssemblySymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
-  </PropertyGroup>
-  <Target Name="ResolveBundledTargetFiles">
-    <ItemGroup>
-      <BundledTargetAssembly Include="@(BundledTargetAssemblyName->'$(TargetDir)%(Identity).dll')" />
-      <BundledTargetDocumentation Include="@(BundledTargetAssemblyName->'$(TargetDir)%(Identity).xml')" />
-      <BundledTargetSymbol Include="@(BundledTargetAssemblyName->'$(TargetDir)%(Identity).pdb')" />
-    </ItemGroup>
-  </Target>
-  <Target Name="IncludeBundledTargetAssemblies" DependsOnTargets="ResolveBundledTargetFiles">
-    <Error Condition="!Exists('%(BundledTargetAssembly.FullPath)')"
-           Text="Expected bundled target assembly '%(BundledTargetAssembly.FullPath)' was not built." />
-    <Error Condition="!Exists('%(BundledTargetDocumentation.FullPath)')"
-           Text="Expected bundled target documentation '%(BundledTargetDocumentation.FullPath)' was not built." />
-    <ItemGroup>
-      <BuildOutputInPackage Include="@(BundledTargetAssembly)" />
-      <BuildOutputInPackage Include="@(BundledTargetDocumentation)" />
-    </ItemGroup>
-  </Target>
-  <Target Name="IncludeBundledTargetAssemblySymbols" DependsOnTargets="ResolveBundledTargetFiles">
-    <Error Condition="!Exists('%(BundledTargetSymbol.FullPath)')"
-           Text="Expected bundled target symbols '%(BundledTargetSymbol.FullPath)' were not built." />
-    <ItemGroup>
-      <TfmSpecificDebugSymbolsFile Include="@(BundledTargetSymbol)">
-        <TargetFramework>$(TargetFramework)</TargetFramework>
-      </TfmSpecificDebugSymbolsFile>
-    </ItemGroup>
-  </Target>
+    <PropertyGroup>
+        <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeBundledTargetAssemblies</TargetsForTfmSpecificBuildOutput>
+        <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificDebugSymbolsInPackage);IncludeBundledTargetAssemblySymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
+    </PropertyGroup>
+    <Target Name="ResolveBundledTargetFiles">
+        <ItemGroup>
+            <BundledTargetAssembly Include="@(BundledTargetAssemblyName->'$(TargetDir)%(Identity).dll')" />
+            <BundledTargetDocumentation Include="@(BundledTargetAssemblyName->'$(TargetDir)%(Identity).xml')" />
+            <BundledTargetSymbol Include="@(BundledTargetAssemblyName->'$(TargetDir)%(Identity).pdb')" />
+        </ItemGroup>
+    </Target>
+    <Target Name="IncludeBundledTargetAssemblies" DependsOnTargets="ResolveBundledTargetFiles">
+        <Error
+            Condition="!Exists('%(BundledTargetAssembly.FullPath)')"
+            Text="Expected bundled target assembly '%(BundledTargetAssembly.FullPath)' was not built."
+        />
+        <Error
+            Condition="!Exists('%(BundledTargetDocumentation.FullPath)')"
+            Text="Expected bundled target documentation '%(BundledTargetDocumentation.FullPath)' was not built."
+        />
+        <ItemGroup>
+            <BuildOutputInPackage Include="@(BundledTargetAssembly)" />
+            <BuildOutputInPackage Include="@(BundledTargetDocumentation)" />
+        </ItemGroup>
+    </Target>
+    <Target Name="IncludeBundledTargetAssemblySymbols" DependsOnTargets="ResolveBundledTargetFiles">
+        <Error
+            Condition="!Exists('%(BundledTargetSymbol.FullPath)')"
+            Text="Expected bundled target symbols '%(BundledTargetSymbol.FullPath)' were not built."
+        />
+        <ItemGroup>
+            <TfmSpecificDebugSymbolsFile Include="@(BundledTargetSymbol)">
+                <TargetFramework>$(TargetFramework)</TargetFramework>
+            </TfmSpecificDebugSymbolsFile>
+        </ItemGroup>
+    </Target>
 </Project>

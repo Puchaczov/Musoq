@@ -13,7 +13,10 @@ public static class InterpretationStatus
                 return status.ReadAt(data, offset);
             return ParseAttempt<T>.Success(interpreter.InterpretAt(data, offset));
         }
-        catch (ParseException failure) { return ParseAttempt<T>.Failed(default, ParseFailure.FromException(failure)); }
+        catch (ParseException failure)
+        {
+            return ParseAttempt<T>.Failed(default, ParseFailure.FromException(failure));
+        }
     }
 
     /// <summary>Parses text without requiring an external interpreter to implement the status protocol.</summary>
@@ -32,7 +35,10 @@ public static class InterpretationStatus
                 return status.ReadAt(ref input, offset);
             return ParseAttempt<T>.Success(interpreter.ParseAt(input.Text, offset));
         }
-        catch (ParseException failure) { return ParseAttempt<T>.Failed(default, ParseFailure.FromException(failure)); }
+        catch (ParseException failure)
+        {
+            return ParseAttempt<T>.Failed(default, ParseFailure.FromException(failure));
+        }
     }
 
     /// <summary>Returns a binary result or the established tolerant default value.</summary>

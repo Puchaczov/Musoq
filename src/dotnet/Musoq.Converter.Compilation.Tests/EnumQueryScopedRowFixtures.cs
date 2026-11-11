@@ -13,9 +13,10 @@ namespace Musoq.Converter.Tests;
 public sealed class EnumQueryRowsSchemaProvider : ISchemaProvider
 {
     public EnumQueryRowsSchemaProvider(
-        SourceTransferCapabilities capabilities = SourceTransferCapabilities.QueryScopedRows |
-                                                  SourceTransferCapabilities.LogicalScalarReads,
-        bool corruptDescriptor = false)
+        SourceTransferCapabilities capabilities =
+            SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads,
+        bool corruptDescriptor = false
+    )
     {
         Schema = new EnumQueryRowsSchema(capabilities, corruptDescriptor);
     }
@@ -24,8 +25,9 @@ public sealed class EnumQueryRowsSchemaProvider : ISchemaProvider
 
     public ISchema GetSchema(string schema)
     {
-        return string.Equals(schema, "enumrows", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(schema, "#enumrows", StringComparison.OrdinalIgnoreCase)
+        return
+            string.Equals(schema, "enumrows", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(schema, "#enumrows", StringComparison.OrdinalIgnoreCase)
             ? Schema
             : throw new NotSupportedException(schema);
     }
@@ -37,7 +39,7 @@ public sealed class EnumQueryRowsSchema : SchemaBase, IQueryScopedRowSourceSchem
     [
         new("Running", null, "ReadWrite", null),
         new(null, 10, null, 1),
-        new(null, 99, null, 8)
+        new(null, 99, null, 8),
     ];
 
     private readonly SourceTransferCapabilities _capabilities;
@@ -65,10 +67,10 @@ public sealed class EnumQueryRowsSchema : SchemaBase, IQueryScopedRowSourceSchem
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
-        if (string.Equals(name, "dynamic", StringComparison.OrdinalIgnoreCase) &&
-            metadataContext.AllColumns.Count > 0)
+        if (string.Equals(name, "dynamic", StringComparison.OrdinalIgnoreCase) && metadataContext.AllColumns.Count > 0)
         {
             return new DeclaredEnumQueryRowsTable(metadataContext.AllColumns.ToArray());
         }
@@ -79,13 +81,15 @@ public sealed class EnumQueryRowsSchema : SchemaBase, IQueryScopedRowSourceSchem
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         var descriptor = base.DescribeSource(name, context, parameters);
-        var columns = string.Equals(name, "dynamic", StringComparison.OrdinalIgnoreCase) &&
-                      context.MetadataContext.AllColumns.Count > 0
-            ? context.MetadataContext.AllColumns.ToArray()
-            : descriptor.Columns;
+        var columns =
+            string.Equals(name, "dynamic", StringComparison.OrdinalIgnoreCase)
+            && context.MetadataContext.AllColumns.Count > 0
+                ? context.MetadataContext.AllColumns.ToArray()
+                : descriptor.Columns;
 
         var firstEnum = columns.FirstOrDefault(static column => column.EnumType != null);
         foreach (var enumColumn in columns.Where(static column => column.EnumType != null))
@@ -98,32 +102,33 @@ public sealed class EnumQueryRowsSchema : SchemaBase, IQueryScopedRowSourceSchem
                 enumType.Origin,
                 enumType.UnderlyingKind,
                 enumType.IsFlags,
-                enumType.Members.Concat(
-                [
-                    new EnumMemberDescriptor("Corrupted", CreateOne(enumType.UnderlyingKind))
-                ]).ToArray());
-            columns = columns.Select(column => ReferenceEquals(column, firstEnum)
-                    ? new SchemaColumn(
-                        column.ColumnName,
-                        column.ColumnIndex,
-                        column.ColumnType,
-                        column.SourceReadType,
-                        corrupted)
-                    : column)
+                enumType
+                    .Members.Concat([new EnumMemberDescriptor("Corrupted", CreateOne(enumType.UnderlyingKind))])
+                    .ToArray()
+            );
+            columns = columns
+                .Select(column =>
+                    ReferenceEquals(column, firstEnum)
+                        ? new SchemaColumn(
+                            column.ColumnName,
+                            column.ColumnIndex,
+                            column.ColumnType,
+                            column.SourceReadType,
+                            corrupted
+                        )
+                        : column
+                )
                 .ToArray();
         }
 
         return descriptor with
         {
             Columns = columns,
-            TransferCapabilities = _capabilities
+            TransferCapabilities = _capabilities,
         };
     }
 
-    public override SourcePlanResult TryPlanSource(
-        string name,
-        SourcePlanRequest request,
-        params object?[] parameters)
+    public override SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
     {
         LastPlanRequest = request;
         return SourcePlanResult.AcceptAll(request);
@@ -132,7 +137,8 @@ public sealed class EnumQueryRowsSchema : SchemaBase, IQueryScopedRowSourceSchem
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
@@ -163,7 +169,8 @@ public sealed class DeclaredEnumQueryRowsTable(ISchemaColumn[] columns) : ISchem
 {
     public ISchemaColumn[] Columns { get; } = columns;
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(DynamicEnumQueryRowEntity)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+    public SchemaTableMetadata Metadata { get; } =
+        new(typeof(DynamicEnumQueryRowEntity)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 
     public ISchemaColumn? GetColumnByName(string name) =>
         Columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.Ordinal));
@@ -175,10 +182,7 @@ public sealed class DeclaredEnumQueryRowsTable(ISchemaColumn[] columns) : ISchem
 public sealed class DynamicEnumQueryRowsTable : ISchemaTable
 {
     public ISchemaColumn[] Columns { get; } =
-    [
-        new SchemaColumn("Status", 0, typeof(int)),
-        new SchemaColumn("Access", 1, typeof(uint))
-    ];
+    [new SchemaColumn("Status", 0, typeof(int)), new SchemaColumn("Access", 1, typeof(uint))];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(DynamicEnumQueryRowEntity));
 
@@ -195,7 +199,7 @@ public sealed class NativeEnumQueryRowsTable : ISchemaTable
     [
         new SchemaColumn("Status", 0, typeof(NativeQueryStatus)),
         new SchemaColumn("Access", 1, typeof(NativeQueryAccess)),
-        new SchemaColumn("OptionalStatus", 2, typeof(NativeQueryStatus?))
+        new SchemaColumn("OptionalStatus", 2, typeof(NativeQueryStatus?)),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(NativeEnumQueryRowEntity));
@@ -220,7 +224,8 @@ public sealed class NativeEnumLegacySource : RowSourceBase<NativeEnumQueryRowEnt
 public sealed class EnumQueryRowsMaterializedSource<TRow, TMaterializer>(
     IReadOnlyList<EnumQueryRowInput> inputs,
     IReadOnlyList<QueryRowField> fields,
-    bool native) : RowSourceBase<TRow>
+    bool native
+) : RowSourceBase<TRow>
     where TMaterializer : struct, IQueryRowMaterializer<TRow>
 {
     protected override void CollectChunks(IChunkWriter<TRow> writer)
@@ -236,10 +241,8 @@ public sealed class EnumQueryRowsMaterializedSource<TRow, TMaterializer>(
     }
 }
 
-public struct EnumQueryRowReader(
-    EnumQueryRowInput input,
-    IReadOnlyList<QueryRowField> fields,
-    bool native) : IQuerySourceFieldReader
+public struct EnumQueryRowReader(EnumQueryRowInput input, IReadOnlyList<QueryRowField> fields, bool native)
+    : IQuerySourceFieldReader
 {
     public T Read<T>(int slot)
     {
@@ -249,19 +252,16 @@ public struct EnumQueryRowReader(
             "Status" => Resolve(input.StatusName, input.StatusNumber, field),
             "OptionalStatus" => Resolve(input.StatusName, input.StatusNumber, field),
             "Access" => Resolve(input.AccessName, input.AccessNumber, field),
-            _ => throw new ArgumentOutOfRangeException(nameof(slot))
+            _ => throw new ArgumentOutOfRangeException(nameof(slot)),
         };
 
         return native ? ReadNative<T>(field.Name, value) : ReadCarrier<T>(value);
     }
 
-    private static EnumScalarValue Resolve(
-        string? name,
-        ulong? number,
-        QueryRowField field)
+    private static EnumScalarValue Resolve(string? name, ulong? number, QueryRowField field)
     {
-        var descriptor = field.EnumType ??
-                         throw new InvalidOperationException($"Field '{field.Name}' lost its enum descriptor.");
+        var descriptor =
+            field.EnumType ?? throw new InvalidOperationException($"Field '{field.Name}' lost its enum descriptor.");
         if (name != null)
         {
             return descriptor.TryGetValue(name, out var named)
@@ -332,7 +332,9 @@ public struct EnumQueryRowReader(
             return Unsafe.As<TFrom?, TTo>(ref nullable);
         }
 
-        throw new InvalidOperationException($"Expected logical scalar read '{typeof(TFrom)}' or its nullable form, received '{typeof(TTo)}'.");
+        throw new InvalidOperationException(
+            $"Expected logical scalar read '{typeof(TFrom)}' or its nullable form, received '{typeof(TTo)}'."
+        );
     }
 }
 
@@ -340,7 +342,8 @@ public readonly record struct EnumQueryRowInput(
     string? StatusName,
     ulong? StatusNumber,
     string? AccessName,
-    ulong? AccessNumber);
+    ulong? AccessNumber
+);
 
 public sealed class DynamicEnumQueryRowEntity
 {
@@ -362,7 +365,7 @@ public enum NativeQueryStatus : short
 {
     Queued = 10,
     Running = 20,
-    Finished = 30
+    Finished = 30,
 }
 
 [Flags]
@@ -371,5 +374,5 @@ public enum NativeQueryAccess : uint
     None = 0,
     Read = 1,
     Write = 2,
-    ReadWrite = Read | Write
+    ReadWrite = Read | Write,
 }

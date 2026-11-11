@@ -14,28 +14,28 @@ namespace Musoq.Evaluator.Tests;
 public sealed class RecursiveCteJoinExecutionTests
 {
     private const string InnerJoinQuery =
-        "with recursive reachable (Id, Depth) as (" +
-        "select RootId, 0 from #graph.roots() " +
-        "union (Id) " +
-        "select e.TargetId, r.Depth + 1 from reachable r " +
-        "inner join #graph.edges() e on e.SourceId = r.Id) " +
-        "select Id, Depth from reachable order by Id";
+        "with recursive reachable (Id, Depth) as ("
+        + "select RootId, 0 from #graph.roots() "
+        + "union (Id) "
+        + "select e.TargetId, r.Depth + 1 from reachable r "
+        + "inner join #graph.edges() e on e.SourceId = r.Id) "
+        + "select Id, Depth from reachable order by Id";
 
     private const string CrossApplyQuery =
-        "with recursive reachable (Id, Depth) as (" +
-        "select RootId, 0 from #graph.roots() " +
-        "union (Id) " +
-        "select e.TargetId, r.Depth + 1 from reachable r " +
-        "cross apply #graph.neighbors(r.Id) e) " +
-        "select Id, Depth from reachable order by Id";
+        "with recursive reachable (Id, Depth) as ("
+        + "select RootId, 0 from #graph.roots() "
+        + "union (Id) "
+        + "select e.TargetId, r.Depth + 1 from reachable r "
+        + "cross apply #graph.neighbors(r.Id) e) "
+        + "select Id, Depth from reachable order by Id";
 
     private const string UncorrelatedCrossApplyQuery =
-        "with recursive reachable (Id, Depth) as (" +
-        "select RootId, 0 from #graph.roots() " +
-        "union (Id) " +
-        "select e.TargetId, r.Depth + 1 from reachable r " +
-        "cross apply #graph.edges() e where e.SourceId = r.Id) " +
-        "select Id, Depth from reachable order by Id";
+        "with recursive reachable (Id, Depth) as ("
+        + "select RootId, 0 from #graph.roots() "
+        + "union (Id) "
+        + "select e.TargetId, r.Depth + 1 from reachable r "
+        + "cross apply #graph.edges() e where e.SourceId = r.Id) "
+        + "select Id, Depth from reachable order by Id";
 
     private readonly TestsLoggerResolver _loggerResolver = new();
 
@@ -72,17 +72,16 @@ public sealed class RecursiveCteJoinExecutionTests
     public void RecursiveInvariantSource_WhenBackingDataChanges_ShouldUseCompletedSnapshot()
     {
         var factoryCalls = 0;
-        var provider = new RecursiveGraphSchemaProvider(new RecursiveGraphData
-        {
-            Roots = [new RecursiveGraphRoot(1)],
-            EdgesFactory = () => Interlocked.Increment(ref factoryCalls) == 1
-                ?
-                [
-                    new RecursiveGraphEdge(1, 2, 1m, "one-two"),
-                    new RecursiveGraphEdge(2, 3, 1m, "two-three")
-                ]
-                : [new RecursiveGraphEdge(1, 99, 1m, "changed")]
-        });
+        var provider = new RecursiveGraphSchemaProvider(
+            new RecursiveGraphData
+            {
+                Roots = [new RecursiveGraphRoot(1)],
+                EdgesFactory = () =>
+                    Interlocked.Increment(ref factoryCalls) == 1
+                        ? [new RecursiveGraphEdge(1, 2, 1m, "one-two"), new RecursiveGraphEdge(2, 3, 1m, "two-three")]
+                        : [new RecursiveGraphEdge(1, 99, 1m, "changed")],
+            }
+        );
         using var compiled = Compile(InnerJoinQuery, provider);
 
         var table = TableMaterializationTestHelper.Materialize(compiled.Run());
@@ -96,20 +95,24 @@ public sealed class RecursiveCteJoinExecutionTests
     [TestMethod]
     public void RecursiveInvariantSource_WhenEnumerationFails_ShouldDisposeOnce()
     {
-        var provider = new RecursiveGraphSchemaProvider(new RecursiveGraphData
-        {
-            Roots = [new RecursiveGraphRoot(1)],
-            EdgesFactory = static () => throw new InvalidOperationException("snapshot failed")
-        });
+        var provider = new RecursiveGraphSchemaProvider(
+            new RecursiveGraphData
+            {
+                Roots = [new RecursiveGraphRoot(1)],
+                EdgesFactory = static () => throw new InvalidOperationException("snapshot failed"),
+            }
+        );
         using var compiled = Compile(InnerJoinQuery, provider);
 
-        var exception = Assert.ThrowsExactly<QueryExecutionException>(
-            () => TableMaterializationTestHelper.Materialize(compiled.Run()));
+        var exception = Assert.ThrowsExactly<QueryExecutionException>(() =>
+            TableMaterializationTestHelper.Materialize(compiled.Run())
+        );
 
         var envelope = exception.Envelope ?? throw new AssertFailedException("Expected a datasource envelope.");
         Assert.AreEqual(DiagnosticCode.MQ7011_DataSourceReadFailed, envelope.Code);
-        var preserved = exception.InnerException?.InnerException ??
-                        throw new AssertFailedException("The original datasource exception was not preserved.");
+        var preserved =
+            exception.InnerException?.InnerException
+            ?? throw new AssertFailedException("The original datasource exception was not preserved.");
         Assert.AreEqual("snapshot failed", preserved.Message);
         Assert.AreEqual(1, provider.Recorder.Enumerated("edges"));
         Assert.AreEqual(1, provider.Recorder.Disposed("edges"));
@@ -118,20 +121,24 @@ public sealed class RecursiveCteJoinExecutionTests
     [TestMethod]
     public void RecursiveInvariantSource_WhenPartialEnumerationFails_ShouldDisposeOnce()
     {
-        var provider = new RecursiveGraphSchemaProvider(new RecursiveGraphData
-        {
-            Roots = [new RecursiveGraphRoot(1)],
-            EdgeChunksFactory = static () => FailingEdgeChunks()
-        });
+        var provider = new RecursiveGraphSchemaProvider(
+            new RecursiveGraphData
+            {
+                Roots = [new RecursiveGraphRoot(1)],
+                EdgeChunksFactory = static () => FailingEdgeChunks(),
+            }
+        );
         using var compiled = Compile(InnerJoinQuery, provider);
 
-        var exception = Assert.ThrowsExactly<QueryExecutionException>(
-            () => TableMaterializationTestHelper.Materialize(compiled.Run()));
+        var exception = Assert.ThrowsExactly<QueryExecutionException>(() =>
+            TableMaterializationTestHelper.Materialize(compiled.Run())
+        );
 
         var envelope = exception.Envelope ?? throw new AssertFailedException("Expected a datasource envelope.");
         Assert.AreEqual(DiagnosticCode.MQ7011_DataSourceReadFailed, envelope.Code);
-        var preserved = exception.InnerException?.InnerException ??
-                        throw new AssertFailedException("The original datasource exception was not preserved.");
+        var preserved =
+            exception.InnerException?.InnerException
+            ?? throw new AssertFailedException("The original datasource exception was not preserved.");
         Assert.AreEqual("snapshot failed after first chunk", preserved.Message);
         Assert.AreEqual(1, provider.Recorder.Enumerated("edges"));
         Assert.AreEqual(1, provider.Recorder.RowsYielded("edges"));
@@ -142,17 +149,20 @@ public sealed class RecursiveCteJoinExecutionTests
     public void RecursiveInvariantSource_WhenSnapshotLimitIsReached_ShouldReportMq7009AndDispose()
     {
         var provider = RecursiveGraphFixtures.CreateChainProvider();
-        var options = new CompilationOptions(usePrimitiveTypeValidation: false)
-            .WithRecursiveCteLimits(new(100, 100, 1));
+        var options = new CompilationOptions(usePrimitiveTypeValidation: false).WithRecursiveCteLimits(
+            new(100, 100, 1)
+        );
         using var compiled = InstanceCreator.CompileForExecution(
             InnerJoinQuery,
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            options);
+            options
+        );
 
-        var exception = Assert.ThrowsExactly<RecursiveCteLimitExceededException>(
-            () => TableMaterializationTestHelper.Materialize(compiled.Run()));
+        var exception = Assert.ThrowsExactly<RecursiveCteLimitExceededException>(() =>
+            TableMaterializationTestHelper.Materialize(compiled.Run())
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ7009_RecursiveCteSnapshotLimitExceeded, exception.Code);
         Assert.AreEqual(1, exception.ConfiguredLimit);
@@ -166,15 +176,18 @@ public sealed class RecursiveCteJoinExecutionTests
     public void RecursiveInvariantSource_WhenCancelledDuringSnapshot_ShouldDisposeOnce()
     {
         using var cancellation = new CancellationTokenSource();
-        var provider = new RecursiveGraphSchemaProvider(new RecursiveGraphData
-        {
-            Roots = [new RecursiveGraphRoot(1)],
-            EdgeChunksFactory = () => CancellingEdgeChunks(cancellation)
-        });
+        var provider = new RecursiveGraphSchemaProvider(
+            new RecursiveGraphData
+            {
+                Roots = [new RecursiveGraphRoot(1)],
+                EdgeChunksFactory = () => CancellingEdgeChunks(cancellation),
+            }
+        );
         using var compiled = Compile(InnerJoinQuery, provider);
 
-        Assert.ThrowsExactly<OperationCanceledException>(
-            () => TableMaterializationTestHelper.Materialize(compiled.Run(cancellation.Token)));
+        Assert.ThrowsExactly<OperationCanceledException>(() =>
+            TableMaterializationTestHelper.Materialize(compiled.Run(cancellation.Token))
+        );
 
         Assert.AreEqual(1, provider.Recorder.Enumerated("edges"));
         Assert.AreEqual(2, provider.Recorder.RowsYielded("edges"));
@@ -186,17 +199,19 @@ public sealed class RecursiveCteJoinExecutionTests
     {
         var first = new RecursiveGraphEdge(1, 2, 1m, "one-two");
         var second = new RecursiveGraphEdge(2, 3, 1m, "two-three");
-        var provider = new RecursiveGraphSchemaProvider(new RecursiveGraphData
-        {
-            Roots = [new RecursiveGraphRoot(1)],
-            Edges = [first, second],
-            EdgesEnumerationCompleted = () =>
+        var provider = new RecursiveGraphSchemaProvider(
+            new RecursiveGraphData
             {
-                first.TargetId = 99;
-                second.SourceId = 99;
-                second.TargetId = 100;
+                Roots = [new RecursiveGraphRoot(1)],
+                Edges = [first, second],
+                EdgesEnumerationCompleted = () =>
+                {
+                    first.TargetId = 99;
+                    second.SourceId = 99;
+                    second.TargetId = 100;
+                },
             }
-        });
+        );
         using var compiled = Compile(InnerJoinQuery, provider);
 
         var table = TableMaterializationTestHelper.Materialize(compiled.Run());
@@ -224,11 +239,11 @@ public sealed class RecursiveCteJoinExecutionTests
     public void RecursiveUncorrelatedOuterApply_WhenSourceIsEmpty_ShouldSnapshotSourceOnce()
     {
         const string query =
-            "with recursive reachable (Id, Depth) as (" +
-            "select RootId, 0 from #graph.roots() union (Id) " +
-            "select r.Id, r.Depth + 1 from reachable r " +
-            "outer apply #graph.edges() e where r.Depth < 1) " +
-            "select Id, Depth from reachable order by Id";
+            "with recursive reachable (Id, Depth) as ("
+            + "select RootId, 0 from #graph.roots() union (Id) "
+            + "select r.Id, r.Depth + 1 from reachable r "
+            + "outer apply #graph.edges() e where r.Depth < 1) "
+            + "select Id, Depth from reachable order by Id";
         var provider = RecursiveGraphFixtures.CreateEmptyEdgesProvider();
         using var compiled = Compile(query, provider);
 
@@ -244,27 +259,29 @@ public sealed class RecursiveCteJoinExecutionTests
     public void RecursiveCompositeInvariantSubplan_ShouldSnapshotBothSourcesOnce()
     {
         const string query =
-            "with recursive reachable (Id, Depth) as (" +
-            "select RootId, 0 from #graph.roots() union (Id) " +
-            "select e.TargetId, r.Depth + 1 " +
-            "from #graph.edges() e " +
-            "inner join values {( Label: 'one-two' ), ( Label: 'two-three' )} expected " +
-            "on e.Label = expected.Label " +
-            "inner join reachable r on e.SourceId = r.Id) " +
-            "select Id, Depth from reachable order by Id";
+            "with recursive reachable (Id, Depth) as ("
+            + "select RootId, 0 from #graph.roots() union (Id) "
+            + "select e.TargetId, r.Depth + 1 "
+            + "from #graph.edges() e "
+            + "inner join values {( Label: 'one-two' ), ( Label: 'two-three' )} expected "
+            + "on e.Label = expected.Label "
+            + "inner join reachable r on e.SourceId = r.Id) "
+            + "select Id, Depth from reachable order by Id";
         var provider = RecursiveGraphFixtures.CreateChainProvider();
         var inspection = InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         Assert.AreEqual(1, CountOccurrences(inspection.PhysicalPlanText, "PhysicalSchemaScan [#graph.edges() as e]"));
         Assert.AreEqual(1, CountOccurrences(inspection.PhysicalPlanText, "PhysicalValuesScan [2 rows as expected]"));
         Assert.AreEqual(1, CountOccurrences(inspection.ExecutionPlanText, "CreateValuesRows ["));
         Assert.IsTrue(
-            inspection.ExecutionPlanText.IndexOf("CreateValuesRows [", StringComparison.Ordinal) <
-            inspection.ExecutionPlanText.IndexOf("RecursiveMember", StringComparison.Ordinal));
+            inspection.ExecutionPlanText.IndexOf("CreateValuesRows [", StringComparison.Ordinal)
+                < inspection.ExecutionPlanText.IndexOf("RecursiveMember", StringComparison.Ordinal)
+        );
         using var compiled = Compile(query, provider);
 
         var table = TableMaterializationTestHelper.Materialize(compiled.Run());
@@ -279,16 +296,17 @@ public sealed class RecursiveCteJoinExecutionTests
     public void RecursiveEarlierMaterializedCte_ShouldReuseStoredRowsWithoutSnapshotCopy()
     {
         const string query =
-            "with recursive steps (Amount) as (select Amount from values {( Amount: 1 )} step), " +
-            "counter (Value) as (select 1 from values {( Seed: 1 )} seed union all " +
-            "select c.Value + s.Amount from counter c cross join steps s where c.Value < 3) " +
-            "select Value from counter order by Value";
+            "with recursive steps (Amount) as (select Amount from values {( Amount: 1 )} step), "
+            + "counter (Value) as (select 1 from values {( Seed: 1 )} seed union all "
+            + "select c.Value + s.Amount from counter c cross join steps s where c.Value < 3) "
+            + "select Value from counter order by Value";
         var inspection = InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             RecursiveGraphFixtures.CreateChainProvider(),
             _loggerResolver,
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
         Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "new List<Cte0Row0>"));
         Assert.AreEqual(0, CountOccurrences(inspection.GeneratedCSharpCode, "Invariant0Row0"));
@@ -323,36 +341,45 @@ public sealed class RecursiveCteJoinExecutionTests
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
         Assert.Contains("InvariantSetup", inspection.ExecutionPlanText);
-        Assert.Contains(
-            "CreateGeneratedRow [cte0Invariant0Row <- Cte0Invariant0Row0",
-            inspection.ExecutionPlanText);
+        Assert.Contains("CreateGeneratedRow [cte0Invariant0Row <- Cte0Invariant0Row0", inspection.ExecutionPlanText);
         Assert.IsTrue(
-            inspection.ExecutionPlanText.IndexOf("InvariantSetup", StringComparison.Ordinal) <
-            inspection.ExecutionPlanText.IndexOf("RecursiveMember", StringComparison.Ordinal));
+            inspection.ExecutionPlanText.IndexOf("InvariantSetup", StringComparison.Ordinal)
+                < inspection.ExecutionPlanText.IndexOf("RecursiveMember", StringComparison.Ordinal)
+        );
         Assert.AreEqual(1, CountOccurrences(inspection.ExecutionPlanText, "SourceScan [e: RecursiveGraphEdge]"));
-        Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "var cte0Invariant0Hash = new Dictionary<"));
+        Assert.AreEqual(
+            1,
+            CountOccurrences(inspection.GeneratedCSharpCode, "var cte0Invariant0Hash = new Dictionary<")
+        );
         Assert.AreEqual(0, CountOccurrences(inspection.GeneratedCSharpCode, "MaterializeChunkedRows"));
         Assert.IsTrue(
-            inspection.GeneratedCSharpCode.IndexOf("var cte0Invariant0Hash = new Dictionary<", StringComparison.Ordinal) <
-            inspection.GeneratedCSharpCode.IndexOf("while (cte0CurrentFrontier.Count > 0)", StringComparison.Ordinal));
+            inspection.GeneratedCSharpCode.IndexOf("var cte0Invariant0Hash = new Dictionary<", StringComparison.Ordinal)
+                < inspection.GeneratedCSharpCode.IndexOf(
+                    "while (cte0CurrentFrontier.Count > 0)",
+                    StringComparison.Ordinal
+                )
+        );
     }
 
     [TestMethod]
     public void UnusedRecursiveCte_WithFailingExternalAnchor_ShouldRemainDead()
     {
         const string query =
-            "with recursive dead (Id) as (" +
-            "select RootId from #graph.roots() union all " +
-            "select d.Id + 1 from dead d where d.Id < 3), " +
-            "live (Value) as (select Value from values {( Value: 42 )} row) " +
-            "select Value from live";
-        var provider = new RecursiveGraphSchemaProvider(new RecursiveGraphData
-        {
-            RootsFactory = static () => throw new InvalidOperationException("dead source opened")
-        });
+            "with recursive dead (Id) as ("
+            + "select RootId from #graph.roots() union all "
+            + "select d.Id + 1 from dead d where d.Id < 3), "
+            + "live (Value) as (select Value from values {( Value: 42 )} row) "
+            + "select Value from live";
+        var provider = new RecursiveGraphSchemaProvider(
+            new RecursiveGraphData
+            {
+                RootsFactory = static () => throw new InvalidOperationException("dead source opened"),
+            }
+        );
         using var compiled = Compile(query, provider);
 
         var table = TableMaterializationTestHelper.Materialize(compiled.Run());
@@ -369,7 +396,8 @@ public sealed class RecursiveCteJoinExecutionTests
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
     }
 
     private static int CountOccurrences(string text, string value)
@@ -384,7 +412,8 @@ public sealed class RecursiveCteJoinExecutionTests
     }
 
     private static IEnumerable<IReadOnlyList<RecursiveGraphEdge>> CancellingEdgeChunks(
-        CancellationTokenSource cancellation)
+        CancellationTokenSource cancellation
+    )
     {
         yield return [new RecursiveGraphEdge(1, 2, 1m, "one-two")];
         cancellation.Cancel();

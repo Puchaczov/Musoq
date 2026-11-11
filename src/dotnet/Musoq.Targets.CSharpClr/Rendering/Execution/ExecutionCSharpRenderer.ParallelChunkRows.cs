@@ -14,7 +14,8 @@ public sealed partial class ExecutionCSharpRenderer
         string orderedGroupsName,
         string nullGroupName,
         string cancellationTokenName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         const string indexName = "index";
         const string groupKeyName = "groupKey";
@@ -30,7 +31,8 @@ public sealed partial class ExecutionCSharpRenderer
                 indexName,
                 groupKeyName,
                 cancellationTokenName,
-                context)
+                context
+            ),
         ];
     }
 
@@ -43,7 +45,8 @@ public sealed partial class ExecutionCSharpRenderer
         string indexName,
         string groupKeyName,
         string cancellationTokenName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var aggregateBodyStatements = RenderBlock(parallelAggregate.AggregateBody, context).Statements.ToList();
         var reuseGroupKeyLet = TryGetReusableGroupKeyLet(parallelAggregate, out var groupKeyLet);
@@ -53,7 +56,8 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 CreateVariableTypeSyntax(parallelAggregate.Source),
                 parallelAggregate.Source.Name,
-                CreateElementAccess(SyntaxFactory.IdentifierName(chunkName), SyntaxFactory.IdentifierName(indexName)))
+                CreateElementAccess(SyntaxFactory.IdentifierName(chunkName), SyntaxFactory.IdentifierName(indexName))
+            ),
         };
 
         if (reuseGroupKeyLet)
@@ -62,39 +66,66 @@ public sealed partial class ExecutionCSharpRenderer
             aggregateBodyStatements.RemoveAt(0);
         }
 
-        body.Add(CreateLocalDeclaration(
-            CreateTypeSyntax(parallelAggregate.KeyType),
-            groupKeyName,
-            reuseGroupKeyLet
-                ? SyntaxFactory.IdentifierName(groupKeyLet!.Variable.Name)
-                : RenderExpression(parallelAggregate.Key, context)));
+        body.Add(
+            CreateLocalDeclaration(
+                CreateTypeSyntax(parallelAggregate.KeyType),
+                groupKeyName,
+                reuseGroupKeyLet
+                    ? SyntaxFactory.IdentifierName(groupKeyLet!.Variable.Name)
+                    : RenderExpression(parallelAggregate.Key, context)
+            )
+        );
 
-        body.AddRange(CreateParallelAggregateGroupAcquisitionStatements(
-            parallelAggregate,
-            groupsName,
-            orderedGroupsName,
-            groupKeyName,
-            context,
-            nullGroupName));
+        body.AddRange(
+            CreateParallelAggregateGroupAcquisitionStatements(
+                parallelAggregate,
+                groupsName,
+                orderedGroupsName,
+                groupKeyName,
+                context,
+                nullGroupName
+            )
+        );
         body.AddRange(aggregateBodyStatements);
 
-        return SyntaxFactory.ForStatement(StatementEmitter.CreateBlock(body))
-            .WithDeclaration(SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(indexName)
-                        .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(
-                            SyntaxKind.NumericLiteralExpression,
-                            SyntaxFactory.Literal(0)))))))
-            .WithCondition(SyntaxFactory.BinaryExpression(
-                SyntaxKind.LessThanExpression,
-                SyntaxFactory.IdentifierName(indexName),
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(chunkName),
-                    SyntaxFactory.IdentifierName(nameof(IReadOnlyCollection<object>.Count)))))
-            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                SyntaxFactory.PostfixUnaryExpression(
-                    SyntaxKind.PostIncrementExpression,
-                    SyntaxFactory.IdentifierName(indexName))));
+        return SyntaxFactory
+            .ForStatement(StatementEmitter.CreateBlock(body))
+            .WithDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory
+                                .VariableDeclarator(indexName)
+                                .WithInitializer(
+                                    SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.NumericLiteralExpression,
+                                            SyntaxFactory.Literal(0)
+                                        )
+                                    )
+                                )
+                        )
+                    )
+            )
+            .WithCondition(
+                SyntaxFactory.BinaryExpression(
+                    SyntaxKind.LessThanExpression,
+                    SyntaxFactory.IdentifierName(indexName),
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(chunkName),
+                        SyntaxFactory.IdentifierName(nameof(IReadOnlyCollection<object>.Count))
+                    )
+                )
+            )
+            .WithIncrementors(
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                    SyntaxFactory.PostfixUnaryExpression(
+                        SyntaxKind.PostIncrementExpression,
+                        SyntaxFactory.IdentifierName(indexName)
+                    )
+                )
+            );
     }
 }

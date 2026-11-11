@@ -11,17 +11,28 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         IReadOnlyDictionary<string, string> aggregateSourceFields,
         IReadOnlyDictionary<int, ExecutionVariable> windowResults,
-        ExecutionVariable windowIndex)
+        ExecutionVariable windowIndex
+    )
     {
-        var expression = ConvertWindowExpression(collectionInCheck.Expression, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
+        var expression = ConvertWindowExpression(
+            collectionInCheck.Expression,
+            sourceLookup,
+            aggregateSourceFields,
+            windowResults,
+            windowIndex
+        );
         return expression.IsBuilt
-            ? LoweringAttempt<ExecutionExpression>.Built(new ExecutionCollectionInCheck(
-                expression.Value,
-                new ExecutionScriptParameterRead(
-                    collectionInCheck.Collection.Name,
-                    PrimitiveTypeResolver.CreateReadOnlyCollectionType(collectionInCheck.ElementType)),
-                collectionInCheck.ElementType,
-                collectionInCheck.ReturnType))
+            ? LoweringAttempt<ExecutionExpression>.Built(
+                new ExecutionCollectionInCheck(
+                    expression.Value,
+                    new ExecutionScriptParameterRead(
+                        collectionInCheck.Collection.Name,
+                        PrimitiveTypeResolver.CreateReadOnlyCollectionType(collectionInCheck.ElementType)
+                    ),
+                    collectionInCheck.ElementType,
+                    collectionInCheck.ReturnType
+                )
+            )
             : expression;
     }
 }

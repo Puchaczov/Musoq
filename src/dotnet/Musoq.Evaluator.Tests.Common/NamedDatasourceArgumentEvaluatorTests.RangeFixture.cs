@@ -57,10 +57,10 @@ public sealed class SpecStressSystemRangeSource : RowSource<SpecStressSystemRang
         get
         {
             _context.EndWorkToken.ThrowIfCancellationRequested();
-            yield return Enumerable.Range(_start, _end - _start)
+            yield return Enumerable
+                .Range(_start, _end - _start)
                 .Select(value => new SpecStressSystemRangeRow(value))
                 .ToArray();
         }
     }
 }
-

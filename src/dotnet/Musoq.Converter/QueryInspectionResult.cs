@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Physical;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Converter;
 
@@ -11,7 +11,8 @@ public sealed record QueryInspectionResult(
     PhysicalNode PhysicalPlan,
     string LogicalPlanText,
     string PhysicalPlanText,
-    string GeneratedCSharpCode)
+    string GeneratedCSharpCode
+)
 {
     public string PlanningText { get; init; } = string.Empty;
 

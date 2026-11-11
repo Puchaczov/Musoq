@@ -6,7 +6,6 @@ using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -14,34 +13,45 @@ namespace Musoq.Evaluator.Tests;
 public sealed partial class LibraryExecutionProviderQueryTests
 {
     [TestMethod]
-    public void DynamicSqlMembership_ShouldEvaluateOperandOnceAndStopAtFirstMatch()
-        => AssertMembershipEvaluation("in", new MembershipRow(7, 7, 8), true, ["operand", "first"]);
+    public void DynamicSqlMembership_ShouldEvaluateOperandOnceAndStopAtFirstMatch() =>
+        AssertMembershipEvaluation("in", new MembershipRow(7, 7, 8), true, ["operand", "first"]);
 
     [TestMethod]
-    public void DynamicSqlMembership_WithNullOperand_ShouldEvaluateMembersAndReturnUnknown()
-        => AssertMembershipEvaluation("in", new MembershipRow(null, null, 8), null, ["operand", "first", "second"]);
+    public void DynamicSqlMembership_WithNullOperand_ShouldEvaluateMembersAndReturnUnknown() =>
+        AssertMembershipEvaluation("in", new MembershipRow(null, null, 8), null, ["operand", "first", "second"]);
 
     [TestMethod]
-    public void DynamicSqlMembership_WithNullMemberAndNoMatch_ShouldReturnUnknown()
-        => AssertMembershipEvaluation("in", new MembershipRow(7, null, 8), null, ["operand", "first", "second"]);
+    public void DynamicSqlMembership_WithNullMemberAndNoMatch_ShouldReturnUnknown() =>
+        AssertMembershipEvaluation("in", new MembershipRow(7, null, 8), null, ["operand", "first", "second"]);
 
     [TestMethod]
-    public void DynamicSqlMembership_WithNullBeforeMatch_ShouldReturnTrue()
-        => AssertMembershipEvaluation("in", new MembershipRow(7, null, 7), true, ["operand", "first", "second"]);
+    public void DynamicSqlMembership_WithNullBeforeMatch_ShouldReturnTrue() =>
+        AssertMembershipEvaluation("in", new MembershipRow(7, null, 7), true, ["operand", "first", "second"]);
 
     [TestMethod]
-    public void DynamicLiteralContains_ShouldEvaluateAllMembersBeforeMatching()
-        => AssertMembershipEvaluation("contains", new MembershipRow(7, 7, 8), true, ["operand", "first", "second"]);
+    public void DynamicLiteralContains_ShouldEvaluateAllMembersBeforeMatching() =>
+        AssertMembershipEvaluation("contains", new MembershipRow(7, 7, 8), true, ["operand", "first", "second"]);
 
     [TestMethod]
-    public void DynamicLiteralContains_WithNullOperandAndMember_ShouldMatchAndEvaluateAllMembers()
-        => AssertMembershipEvaluation("contains", new MembershipRow(null, null, 8), true, ["operand", "first", "second"]);
+    public void DynamicLiteralContains_WithNullOperandAndMember_ShouldMatchAndEvaluateAllMembers() =>
+        AssertMembershipEvaluation("contains", new MembershipRow(null, null, 8), true, ["operand", "first", "second"]);
 
-    private void AssertMembershipEvaluation(string operation, MembershipRow input, bool? expected, string[] expectedEvents)
+    private void AssertMembershipEvaluation(
+        string operation,
+        MembershipRow input,
+        bool? expected,
+        string[] expectedEvents
+    )
     {
-        var sql = $"select Record(Value, 'operand') {operation} (Record(First, 'first'), Record(Second, 'second')) as Matched from #schema.first()";
-        using var compiled = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString("N"),
-            LibraryExecutionFixture.CreateProvider<MembershipRow, MembershipLibrary>([input]), LoggerResolver, TestCompilationOptions);
+        var sql =
+            $"select Record(Value, 'operand') {operation} (Record(First, 'first'), Record(Second, 'second')) as Matched from #schema.first()";
+        using var compiled = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString("N"),
+            LibraryExecutionFixture.CreateProvider<MembershipRow, MembershipLibrary>([input]),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         Assert.HasCount(1, rows);

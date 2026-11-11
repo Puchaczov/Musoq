@@ -1,5 +1,5 @@
-using System.Globalization;
 using System.Collections.Generic;
+using System.Globalization;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
@@ -49,9 +49,11 @@ public partial class SchemaParser
         var span = TranslateLiteralSpan(token.Span, sourceOffset);
         return token.TokenType switch
         {
-            TokenType.Integer => new IntegerNode(token.Value, token is IntegerToken { Abbreviation.Length: > 0 } integer
-                ? integer.Abbreviation
-                : "i", span),
+            TokenType.Integer => new IntegerNode(
+                token.Value,
+                token is IntegerToken { Abbreviation.Length: > 0 } integer ? integer.Abbreviation : "i",
+                span
+            ),
             TokenType.HexadecimalInteger => new HexIntegerNode(token.Value, span),
             TokenType.BinaryInteger => new BinaryIntegerNode(token.Value, span),
             TokenType.OctalInteger => new OctalIntegerNode(token.Value, span),
@@ -59,7 +61,8 @@ public partial class SchemaParser
             TokenType.StringLiteral or TokenType.Word => new WordNode(token.Value, span),
             _ => throw InvalidFieldValueValidation(
                 $"Field '{fieldName}' value validation expects a literal value but found '{token.TokenType}'.",
-                span)
+                span
+            ),
         };
     }
 
@@ -69,8 +72,9 @@ public partial class SchemaParser
         {
             var minusToken = ConsumeAndGetToken(TokenType.Hyphen);
             var operand = ComposeValidationScalar(fieldName);
-            return new HyphenNode(new IntegerNode(0, minusToken.Span), operand)
-                .WithSpan(minusToken.Span.Through(operand.Span));
+            return new HyphenNode(new IntegerNode(0, minusToken.Span), operand).WithSpan(
+                minusToken.Span.Through(operand.Span)
+            );
         }
 
         var token = Current;
@@ -86,7 +90,8 @@ public partial class SchemaParser
 
         throw InvalidFieldValueValidation(
             $"Field '{fieldName}' scalar value validation is only supported for numeric, bits, and string types.",
-            keywordSpan);
+            keywordSpan
+        );
     }
 
     private void EnsureByteListCompatible(TypeAnnotationNode typeAnnotation, string fieldName, TextSpan keywordSpan)
@@ -99,25 +104,27 @@ public partial class SchemaParser
 
         throw InvalidFieldValueValidation(
             $"Field '{fieldName}' byte-list value validation is only supported for 'byte[n]' and raw substream types.",
-            keywordSpan);
+            keywordSpan
+        );
     }
 
     private void EnsureByteValue(Node element, string fieldName)
     {
-        if (TryGetNumericValue(element, out var value) &&
-            decimal.Truncate(value) == value && value is >= 0 and <= 255)
+        if (TryGetNumericValue(element, out var value) && decimal.Truncate(value) == value && value is >= 0 and <= 255)
             return;
 
         throw InvalidFieldValueValidation(
             $"Field '{fieldName}' byte value must be an integer between 0 and 255.",
-            element.Span);
+            element.Span
+        );
     }
 
     private void EnsureScalarValueCompatible(
         TypeAnnotationNode typeAnnotation,
         Node value,
         string fieldName,
-        TextSpan keywordSpan)
+        TextSpan keywordSpan
+    )
     {
         var valueSpan = value.HasSpan ? value.Span : keywordSpan;
 
@@ -128,7 +135,8 @@ public partial class SchemaParser
 
             throw InvalidFieldValueValidation(
                 $"Field '{fieldName}' string value validation requires a string literal.",
-                valueSpan);
+                valueSpan
+            );
         }
 
         if (typeAnnotation is BitsTypeNode bitsType)
@@ -136,15 +144,15 @@ public partial class SchemaParser
             if (!TryGetBitValue(value, out var bitValue))
                 throw InvalidFieldValueValidation(
                     $"Field '{fieldName}' bits value validation requires a non-negative integer literal.",
-                    valueSpan);
+                    valueSpan
+                );
 
-            var maximum = bitsType.BitCount == 64
-                ? ulong.MaxValue
-                : (1UL << bitsType.BitCount) - 1;
+            var maximum = bitsType.BitCount == 64 ? ulong.MaxValue : (1UL << bitsType.BitCount) - 1;
             if (bitValue > maximum)
                 throw InvalidFieldValueValidation(
                     $"Field '{fieldName}' bits value {bitValue} does not fit in {bitsType.BitCount} bits.",
-                    valueSpan);
+                    valueSpan
+                );
 
             return;
         }
@@ -152,7 +160,8 @@ public partial class SchemaParser
         if (typeAnnotation is PrimitiveTypeNode && !IsNumericLiteral(value))
             throw InvalidFieldValueValidation(
                 $"Field '{fieldName}' numeric value validation requires a numeric literal.",
-                valueSpan);
+                valueSpan
+            );
     }
 
     private static TextSpan TranslateLiteralSpan(TextSpan span, int sourceOffset)
@@ -170,15 +179,16 @@ public partial class SchemaParser
 
     private static bool IsNumericObject(object value)
     {
-        return value is byte or sbyte or short or ushort or int or uint or long or ulong or
-            float or double or decimal;
+        return value is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
     }
 
     private static bool TryGetNumericValue(Node node, out decimal value)
     {
-        if (node is HyphenNode hyphen &&
-            TryGetNumericValue(hyphen.Left, out var left) &&
-            TryGetNumericValue(hyphen.Right, out var right))
+        if (
+            node is HyphenNode hyphen
+            && TryGetNumericValue(hyphen.Left, out var left)
+            && TryGetNumericValue(hyphen.Right, out var right)
+        )
         {
             value = left - right;
             return true;
@@ -203,15 +213,22 @@ public partial class SchemaParser
 
     private static bool TryGetBitValue(Node node, out ulong value)
     {
-        if ((node is HexIntegerNode or BinaryIntegerNode or OctalIntegerNode) &&
-            node is ConstantValueNode { ObjValue: long signedValue } && signedValue < 0)
+        if (
+            (node is HexIntegerNode or BinaryIntegerNode or OctalIntegerNode)
+            && node is ConstantValueNode { ObjValue: long signedValue }
+            && signedValue < 0
+        )
         {
             value = unchecked((ulong)signedValue);
             return true;
         }
 
-        if (!TryGetNumericValue(node, out var numeric) ||
-            numeric < 0 || numeric > ulong.MaxValue || decimal.Truncate(numeric) != numeric)
+        if (
+            !TryGetNumericValue(node, out var numeric)
+            || numeric < 0
+            || numeric > ulong.MaxValue
+            || decimal.Truncate(numeric) != numeric
+        )
         {
             value = default;
             return false;
@@ -227,6 +244,7 @@ public partial class SchemaParser
             message,
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ4006_InvalidFieldConstraint,
-            span);
+            span
+        );
     }
 }

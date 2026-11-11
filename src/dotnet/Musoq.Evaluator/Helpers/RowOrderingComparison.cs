@@ -13,11 +13,13 @@ internal static class RowOrderingComparison
         if (right is null)
             return CompareRightNull(descending, nullOrdering);
 
-        var comparison = left is string leftString && right is string rightString
-            ? StringComparer.Ordinal.Compare(leftString, rightString)
-            : left is IComparable comparable
-                ? comparable.CompareTo(right)
-                : throw new InvalidOperationException($"ORDER BY key type '{left.GetType().FullName}' does not support comparison.");
+        var comparison =
+            left is string leftString && right is string rightString
+                ? StringComparer.Ordinal.Compare(leftString, rightString)
+            : left is IComparable comparable ? comparable.CompareTo(right)
+            : throw new InvalidOperationException(
+                $"ORDER BY key type '{left.GetType().FullName}' does not support comparison."
+            );
 
         return descending ? -comparison : comparison;
     }
@@ -31,7 +33,7 @@ internal static class RowOrderingComparison
         {
             2 => 1,
             1 => -1,
-            _ => descending ? 1 : -1
+            _ => descending ? 1 : -1,
         };
     }
 
@@ -41,7 +43,7 @@ internal static class RowOrderingComparison
         {
             2 => -1,
             1 => 1,
-            _ => descending ? -1 : 1
+            _ => descending ? -1 : 1,
         };
     }
 }

@@ -11,10 +11,17 @@ public sealed partial class ExecutionCSharpRenderer
         string? finalShapeTableName = null,
         string? finalShapeTypeName = null,
         IReadOnlyList<FieldBinding>? finalShapeFields = null,
-        bool omitFinalShapeClass = false)
+        bool omitFinalShapeClass = false
+    )
     {
-        return RenderFinalOutputClassMembers(plan, finalShapeTableName, finalShapeTypeName, finalShapeFields,
-            omitFinalShapeClass, FinalProjectionSinkTarget.TableRows);
+        return RenderFinalOutputClassMembers(
+            plan,
+            finalShapeTableName,
+            finalShapeTypeName,
+            finalShapeFields,
+            omitFinalShapeClass,
+            FinalProjectionSinkTarget.TableRows
+        );
     }
 
     internal IReadOnlyList<MemberDeclarationSyntax> RenderFinalOutputClassMembers(
@@ -23,14 +30,16 @@ public sealed partial class ExecutionCSharpRenderer
         string? finalShapeTypeName,
         IReadOnlyList<FieldBinding>? finalShapeFields,
         bool omitFinalShapeClass,
-        FinalProjectionSinkTarget target)
+        FinalProjectionSinkTarget target
+    )
     {
         ArgumentNullException.ThrowIfNull(plan);
         FinalOutputPlan? output = null;
         if (TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan))
-            output = target == FinalProjectionSinkTarget.TypedRows
-                ? renderPlan.FinalSinkPlans.TypedOutput
-                : renderPlan.FinalSinkPlans.TableOutput;
+            output =
+                target == FinalProjectionSinkTarget.TypedRows
+                    ? renderPlan.FinalSinkPlans.TypedOutput
+                    : renderPlan.FinalSinkPlans.TableOutput;
         var context = InitializeRenderContext(plan);
 
         return RenderClassMembers(
@@ -40,7 +49,8 @@ public sealed partial class ExecutionCSharpRenderer
             finalShapeFields,
             context,
             omitFinalShapeClass,
-            output);
+            output
+        );
     }
 
     private IReadOnlyList<MemberDeclarationSyntax> RenderClassMembers(
@@ -50,16 +60,18 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<FieldBinding>? finalShapeFields,
         ExecutionRenderContext context,
         bool omitFinalShapeClass,
-        FinalOutputPlan? output)
+        FinalOutputPlan? output
+    )
     {
         var session = context.Session;
         session.ReuseStoredRows = finalShapeTableName != null && output?.ReuseStoredRows == true;
         if (finalShapeTableName != null)
         {
             var usesGeneratedRowCarrier = output?.UsesGeneratedRow == true;
-            var sinkTypeName = usesGeneratedRowCarrier && plan.FinalResult is { } finalResult
-                ? finalResult.Shape.TypeName
-                : finalShapeTypeName ?? string.Empty;
+            var sinkTypeName =
+                usesGeneratedRowCarrier && plan.FinalResult is { } finalResult
+                    ? finalResult.Shape.TypeName
+                    : finalShapeTypeName ?? string.Empty;
             IReadOnlyDictionary<string, FinalShapeSourceBuffer>? sourceBuffers = null;
             if (output != null && finalShapeTypeName != null && finalShapeFields != null)
                 sourceBuffers = CreateFinalShapeSourceBuffers(output, finalShapeFields);
@@ -69,13 +81,15 @@ public sealed partial class ExecutionCSharpRenderer
                 finalShapeFields ?? [],
                 null,
                 sourceBuffers,
-                usesGeneratedRowCarrier);
+                usesGeneratedRowCarrier
+            );
         }
 
         session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
         session.ColumnarStoredTableResultsByTableName = CreateColumnarStoredTableResultsByTableName(
             plan,
-            session.TypedStoredTableResults);
+            session.TypedStoredTableResults
+        );
         session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
         session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
         session.IncludeTableResults = PlanUsesTableResults(plan, session.TypedStoredTableResults);
@@ -83,171 +97,227 @@ public sealed partial class ExecutionCSharpRenderer
         session.OperatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
         session.TypedRowBufferVariables = CreateTypedRowBufferVariables(plan.Body, finalShapeTableName);
         session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
-        session.EnumerableTraversalHelpersByBlock = finalShapeTableName == null
-            ? CollectEnumerableTraversalHelpersByBlock(plan.Body, context)
-            : CollectEnumerableTraversalHelpersByBlock(plan.Body, context)
-                .Where(pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value, context))
-                .ToDictionary(static pair => pair.Key, static pair => pair.Value);
+        session.EnumerableTraversalHelpersByBlock =
+            finalShapeTableName == null
+                ? CollectEnumerableTraversalHelpersByBlock(plan.Body, context)
+                : CollectEnumerableTraversalHelpersByBlock(plan.Body, context)
+                    .Where(pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value, context))
+                    .ToDictionary(static pair => pair.Key, static pair => pair.Value);
 
-            var members = new List<MemberDeclarationSyntax>();
-            members.AddRange(CreateByteBufferPrograms(plan, context));
-            members.AddRange(StructuralCarrierSyntaxFactory.CreateMembers(plan.StructuralCarriers));
-            members.AddRange(StructuralCarrierSyntaxFactory.CreateMembers(
+        var members = new List<MemberDeclarationSyntax>();
+        members.AddRange(CreateByteBufferPrograms(plan, context));
+        members.AddRange(StructuralCarrierSyntaxFactory.CreateMembers(plan.StructuralCarriers));
+        members.AddRange(
+            StructuralCarrierSyntaxFactory.CreateMembers(
                 _scriptVariableDefinitions,
                 _scriptParameterDefinitions,
-                ExecutionIrAnalysis.CollectExpressions<ExecutionStructuralConversion>(plan.Body)));
+                ExecutionIrAnalysis.CollectExpressions<ExecutionStructuralConversion>(plan.Body)
+            )
+        );
 
-            var constructorUsages = CollectGeneratedRowConstructorUsages(plan.Body, session.TypedStoredTableResults);
-            session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(plan.Body, session.TypedStoredTableResults);
-            session.GeneratedRowConstructorUsagesByType = constructorUsages;
-            session.GeneratedRowTypesUsedAsRowContexts = CollectGeneratedRowTypesUsedAsRowContexts(plan.Body);
-            session.GeneratedRowTypesUsedAtPublicBoundary = CollectGeneratedRowTypesUsedAtPublicBoundary(plan.Body);
-            session.GeneratedRowTypesRequiringRowBase = GeneratedRowCarrierUsage.CollectTypesRequiringRowBase(plan.Body, constructorUsages);
-            var renderedGeneratedRows = new HashSet<string>(StringComparer.Ordinal);
-            var renderedHashPayloads = new HashSet<string>(StringComparer.Ordinal);
-            var renderedAggregateGroups = new HashSet<string>(StringComparer.Ordinal);
-            var renderedOrderComparers = new HashSet<string>(StringComparer.Ordinal);
-            var renderedGeneratedRowOrderComparers = new HashSet<string>(StringComparer.Ordinal);
-            var tableRowShapesByVariableName = CreateTableRowShapeMap(plan.Body);
-            session.TableRowShapesByVariableName = tableRowShapesByVariableName;
+        var constructorUsages = CollectGeneratedRowConstructorUsages(plan.Body, session.TypedStoredTableResults);
+        session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(
+            plan.Body,
+            session.TypedStoredTableResults
+        );
+        session.GeneratedRowConstructorUsagesByType = constructorUsages;
+        session.GeneratedRowTypesUsedAsRowContexts = CollectGeneratedRowTypesUsedAsRowContexts(plan.Body);
+        session.GeneratedRowTypesUsedAtPublicBoundary = CollectGeneratedRowTypesUsedAtPublicBoundary(plan.Body);
+        session.GeneratedRowTypesRequiringRowBase = GeneratedRowCarrierUsage.CollectTypesRequiringRowBase(
+            plan.Body,
+            constructorUsages
+        );
+        var renderedGeneratedRows = new HashSet<string>(StringComparer.Ordinal);
+        var renderedHashPayloads = new HashSet<string>(StringComparer.Ordinal);
+        var renderedAggregateGroups = new HashSet<string>(StringComparer.Ordinal);
+        var renderedOrderComparers = new HashSet<string>(StringComparer.Ordinal);
+        var renderedGeneratedRowOrderComparers = new HashSet<string>(StringComparer.Ordinal);
+        var tableRowShapesByVariableName = CreateTableRowShapeMap(plan.Body);
+        session.TableRowShapesByVariableName = tableRowShapesByVariableName;
 
-            members.AddRange(CreateQueryRowShapeFields(plan.Body));
-            members.AddRange(CreateQueryRowMaterializers(plan.Body));
+        members.AddRange(CreateQueryRowShapeFields(plan.Body));
+        members.AddRange(CreateQueryRowMaterializers(plan.Body));
 
-            foreach (var shape in plan.Shapes)
+        foreach (var shape in plan.Shapes)
+        {
+            switch (shape)
             {
-                switch (shape)
-                {
-                    case GeneratedRowShape generated:
-                        if (renderedGeneratedRows.Add(generated.TypeName))
-                        {
-                            constructorUsages.TryGetValue(generated.TypeName, out var usedConstructors);
-                            members.Add(RenderGeneratedRowClass(generated, usedConstructors, context));
-                        }
-                        break;
-                    case ValuesRowShape values:
-                        if (renderedGeneratedRows.Add(values.GeneratedShape.TypeName))
-                        {
-                            constructorUsages.TryGetValue(values.GeneratedShape.TypeName, out var usedConstructors);
-                            members.Add(RenderGeneratedRowClass(values.GeneratedShape, usedConstructors, context));
-                        }
-                        break;
-                    case GeneratedRecordShape generated:
-                        members.Add(RenderGeneratedRecordClass(generated, finalShapeTableName is null ? null : output));
-                        break;
-                    case HashPayloadShape hashPayload:
-                        if (renderedHashPayloads.Add(hashPayload.TypeName))
-                            members.Add(RenderHashPayloadStruct(hashPayload));
-                        break;
-                    case AggregateGroupShape aggregateGroup:
-                        if (renderedAggregateGroups.Add(GetAggregateGroupTypeName(aggregateGroup, context)))
-                            members.Add(RenderAggregateGroupClass(aggregateGroup, context));
-                        break;
-                }
+                case GeneratedRowShape generated:
+                    if (renderedGeneratedRows.Add(generated.TypeName))
+                    {
+                        constructorUsages.TryGetValue(generated.TypeName, out var usedConstructors);
+                        members.Add(RenderGeneratedRowClass(generated, usedConstructors, context));
+                    }
+                    break;
+                case ValuesRowShape values:
+                    if (renderedGeneratedRows.Add(values.GeneratedShape.TypeName))
+                    {
+                        constructorUsages.TryGetValue(values.GeneratedShape.TypeName, out var usedConstructors);
+                        members.Add(RenderGeneratedRowClass(values.GeneratedShape, usedConstructors, context));
+                    }
+                    break;
+                case GeneratedRecordShape generated:
+                    members.Add(RenderGeneratedRecordClass(generated, finalShapeTableName is null ? null : output));
+                    break;
+                case HashPayloadShape hashPayload:
+                    if (renderedHashPayloads.Add(hashPayload.TypeName))
+                        members.Add(RenderHashPayloadStruct(hashPayload));
+                    break;
+                case AggregateGroupShape aggregateGroup:
+                    if (renderedAggregateGroups.Add(GetAggregateGroupTypeName(aggregateGroup, context)))
+                        members.Add(RenderAggregateGroupClass(aggregateGroup, context));
+                    break;
             }
+        }
 
-            if (plan.FinalResult != null &&
-                !omitFinalShapeClass &&
-                output?.OwnedBuffer is not { SequenceField: null } &&
-                (session.FinalShapeYieldSink is null || !session.FinalShapeYieldSink.UsesGeneratedRowCarrier))
-                members.Add(RenderFinalSelectShapeClass(plan.FinalResult, output));
+        if (
+            plan.FinalResult != null
+            && !omitFinalShapeClass
+            && output?.OwnedBuffer is not { SequenceField: null }
+            && (session.FinalShapeYieldSink is null || !session.FinalShapeYieldSink.UsesGeneratedRowCarrier)
+        )
+            members.Add(RenderFinalSelectShapeClass(plan.FinalResult, output));
 
-            members.AddRange(CreateCteIndexResultMembers(plan));
-            members.AddRange(CreateCteRowResultMembers(session.TypedStoredTableResults)); members.AddRange(StructuralCtePreparationMembers.CreateMembers(plan.Body, context, this)); members.AddRange(StructuralInputLimitSyntaxFactory.CreateMembers(plan.Body));
-            members.AddRange(session.ConstantInSetFields.Select(static field => CreateConstantInSetField(field)));
-            members.AddRange(session.StaticMetadataFields.Select(static field => CreateStaticMetadataField(field)));
-            members.AddRange(session.SingleKeyAggregateUpdateHelpersByBlock.Values
-                .Select(helper => CreateSingleKeyAggregateUpdateFunction(helper, context)));
-            members.AddRange(session.EnumerableTraversalHelpersByBlock.Values
-                .Select(helper => CreateEnumerableTraversalFunction(helper, context)));
-            members.AddRange(CollectStoredTableBuilds(plan.Body, context).Select(build => CreateStoredTableBuildFunction(build, context)));
-            members.AddRange(CollectHashJoinHelperSets(plan.Body)
+        members.AddRange(CreateCteIndexResultMembers(plan));
+        members.AddRange(CreateCteRowResultMembers(session.TypedStoredTableResults));
+        members.AddRange(StructuralCtePreparationMembers.CreateMembers(plan.Body, context, this));
+        members.AddRange(StructuralInputLimitSyntaxFactory.CreateMembers(plan.Body));
+        members.AddRange(session.ConstantInSetFields.Select(static field => CreateConstantInSetField(field)));
+        members.AddRange(session.StaticMetadataFields.Select(static field => CreateStaticMetadataField(field)));
+        members.AddRange(
+            session.SingleKeyAggregateUpdateHelpersByBlock.Values.Select(helper =>
+                CreateSingleKeyAggregateUpdateFunction(helper, context)
+            )
+        );
+        members.AddRange(
+            session.EnumerableTraversalHelpersByBlock.Values.Select(helper =>
+                CreateEnumerableTraversalFunction(helper, context)
+            )
+        );
+        members.AddRange(
+            CollectStoredTableBuilds(plan.Body, context).Select(build => CreateStoredTableBuildFunction(build, context))
+        );
+        members.AddRange(
+            CollectHashJoinHelperSets(plan.Body)
                 .Where(helperSet => CanUseHashJoinHelperSetInCurrentSink(helperSet, context))
-                .SelectMany(helperSet => CreateHashJoinHelperFunctions(helperSet, context)));
-            members.AddRange(CollectKeySetHelperSets(plan.Body)
+                .SelectMany(helperSet => CreateHashJoinHelperFunctions(helperSet, context))
+        );
+        members.AddRange(
+            CollectKeySetHelperSets(plan.Body)
                 .Where(helperSet => CanUseKeySetHelperSetInCurrentSink(helperSet, context))
-                .SelectMany(helperSet => CreateKeySetHelperFunctions(helperSet, context)));
-            members.AddRange(CollectGeneratedWindowKeyStructs(plan.Body)
+                .SelectMany(helperSet => CreateKeySetHelperFunctions(helperSet, context))
+        );
+        members.AddRange(
+            CollectGeneratedWindowKeyStructs(plan.Body)
                 .GroupBy(static key => key.TypeName)
                 .Select(static group => group.First())
-                .Select(CreateGeneratedWindowKeyStruct));
-            members.AddRange(CollectRankingWindowKeyExtractionHelpers(plan.Body)
-                .Select(CreateRankingWindowKeyExtractionFunction));
-            members.AddRange(CollectWindowAppendRowsHelpers(plan.Body)
+                .Select(CreateGeneratedWindowKeyStruct)
+        );
+        members.AddRange(
+            CollectRankingWindowKeyExtractionHelpers(plan.Body).Select(CreateRankingWindowKeyExtractionFunction)
+        );
+        members.AddRange(
+            CollectWindowAppendRowsHelpers(plan.Body)
                 .Where(helper => CanUseWindowAppendRowsHelperInCurrentSink(helper, context))
-                .Select(helper => CreateWindowAppendRowsFunction(helper, context)));
-            var previousTableRowShapesByVariableName = session.TableRowShapesByVariableName;
-            session.TableRowShapesByVariableName = tableRowShapesByVariableName;
-            try
-            {
-                members.AddRange(CollectSortedCopyHelpers(plan.Body)
+                .Select(helper => CreateWindowAppendRowsFunction(helper, context))
+        );
+        var previousTableRowShapesByVariableName = session.TableRowShapesByVariableName;
+        session.TableRowShapesByVariableName = tableRowShapesByVariableName;
+        try
+        {
+            members.AddRange(
+                CollectSortedCopyHelpers(plan.Body)
                     .Where(helper => CanUseSortedCopyHelperInCurrentSink(helper, context))
-                    .Select(helper => CreateSortedCopyFunction(helper, context)));
-            }
-            finally
-            {
-                session.TableRowShapesByVariableName = previousTableRowShapesByVariableName;
-            }
+                    .Select(helper => CreateSortedCopyFunction(helper, context))
+            );
+        }
+        finally
+        {
+            session.TableRowShapesByVariableName = previousTableRowShapesByVariableName;
+        }
 
-            members.AddRange(CollectValueTupleAggregateHelpers(plan.Body)
+        members.AddRange(
+            CollectValueTupleAggregateHelpers(plan.Body)
                 .Where(helper => CanUseAggregateFinalizeHelperInCurrentSink(helper.EnsureCapacity.Table.Name, context))
-                .SelectMany(helper => CreateValueTupleAggregateFunctions(helper, context)));
-            members.AddRange(CollectSingleKeyHashAggregateHelpers(plan.Body)
+                .SelectMany(helper => CreateValueTupleAggregateFunctions(helper, context))
+        );
+        members.AddRange(
+            CollectSingleKeyHashAggregateHelpers(plan.Body)
                 .Where(helper => CanUseAggregateFinalizeHelperInCurrentSink(helper.EnsureCapacity.Table.Name, context))
-                .SelectMany(helper => CreateSingleKeyAggregateFunctions(helper, context)));
-            members.AddRange(CollectParallelBlocks(plan.Body)
-                .SelectMany(block => CreateParallelBlockMembers(block, context)));
-            var parallelFilterProjectLoops = CollectParallelFilterProjectLoops(plan.Body).ToArray();
-            members.AddRange(parallelFilterProjectLoops
+                .SelectMany(helper => CreateSingleKeyAggregateFunctions(helper, context))
+        );
+        members.AddRange(
+            CollectParallelBlocks(plan.Body).SelectMany(block => CreateParallelBlockMembers(block, context))
+        );
+        var parallelFilterProjectLoops = CollectParallelFilterProjectLoops(plan.Body).ToArray();
+        members.AddRange(
+            parallelFilterProjectLoops
                 .Where(loop => CanUseParallelFilterProjectHelperInCurrentSink(loop, context))
                 .GroupBy(loop => CreateParallelFilterProjectFunctionName(loop, context))
                 .Select(static group => group.First())
-                .Select(loop => CreateParallelFilterProjectFunction(loop, context)));
-            var parallelAggregateLoops = CollectParallelSingleKeyAggregateLoops(plan.Body).ToArray();
-            var uniqueParallelAggregateLoops = parallelAggregateLoops
-                .GroupBy(loop => CreateParallelSingleKeyAggregateFunctionName(loop, context))
-                .Select(static group => group.First())
-                .ToArray();
-            members.AddRange(uniqueParallelAggregateLoops.Select(loop => CreateParallelSingleKeyAggregateFunction(loop, context)));
-            members.AddRange(uniqueParallelAggregateLoops
+                .Select(loop => CreateParallelFilterProjectFunction(loop, context))
+        );
+        var parallelAggregateLoops = CollectParallelSingleKeyAggregateLoops(plan.Body).ToArray();
+        var uniqueParallelAggregateLoops = parallelAggregateLoops
+            .GroupBy(loop => CreateParallelSingleKeyAggregateFunctionName(loop, context))
+            .Select(static group => group.First())
+            .ToArray();
+        members.AddRange(
+            uniqueParallelAggregateLoops.Select(loop => CreateParallelSingleKeyAggregateFunction(loop, context))
+        );
+        members.AddRange(
+            uniqueParallelAggregateLoops
                 .Where(static loop => !IsChunkedParallelSingleKeyAggregate(loop))
-                .Select(loop => CreateParallelSingleKeyAggregateShardFunction(loop, context)));
-            members.AddRange(uniqueParallelAggregateLoops
+                .Select(loop => CreateParallelSingleKeyAggregateShardFunction(loop, context))
+        );
+        members.AddRange(
+            uniqueParallelAggregateLoops
                 .Where(static loop => !IsChunkedParallelSingleKeyAggregate(loop))
-                .Select(loop => CreateParallelSingleKeyAggregateWorkerClass(loop, context)));
-            members.AddRange(uniqueParallelAggregateLoops
+                .Select(loop => CreateParallelSingleKeyAggregateWorkerClass(loop, context))
+        );
+        members.AddRange(
+            uniqueParallelAggregateLoops
                 .Where(IsChunkedParallelSingleKeyAggregate)
-                .Select(loop => CreateParallelSingleKeyAggregateChunkFunction(loop, context)));
-            members.AddRange(uniqueParallelAggregateLoops
+                .Select(loop => CreateParallelSingleKeyAggregateChunkFunction(loop, context))
+        );
+        members.AddRange(
+            uniqueParallelAggregateLoops
                 .Where(IsChunkedParallelSingleKeyAggregate)
-                .Select(loop => CreateParallelSingleKeyAggregateChunkWorkerClass(loop, context)));
-            members.AddRange(FlattenNodes(plan.Body)
+                .Select(loop => CreateParallelSingleKeyAggregateChunkWorkerClass(loop, context))
+        );
+        members.AddRange(
+            FlattenNodes(plan.Body)
                 .OfType<ExecutionOrderRecordList>()
                 .Where(order => renderedOrderComparers.Add(CreateOrderRecordComparerTypeName(order.RecordShape)))
-                .Select(CreateOrderRecordComparerClass));
-            members.AddRange(FlattenNodes(plan.Body)
+                .Select(CreateOrderRecordComparerClass)
+        );
+        members.AddRange(
+            FlattenNodes(plan.Body)
                 .OfType<ExecutionCreateBoundedRecordList>()
                 .Where(order => renderedOrderComparers.Add(CreateOrderRecordComparerTypeName(order.RecordShape)))
-                .Select(CreateOrderRecordComparerClass));
-            foreach (var input in CollectGeneratedRowOrderComparerInputs(plan.Body, tableRowShapesByVariableName))
+                .Select(CreateOrderRecordComparerClass)
+        );
+        foreach (var input in CollectGeneratedRowOrderComparerInputs(plan.Body, tableRowShapesByVariableName))
+        {
+            if (
+                IsCurrentFinalShapeSourceBuffer(input.SourceName, context)
+                || IsCurrentFinalShapeSourceBuffer(input.TargetName, context)
+            )
             {
-                if (IsCurrentFinalShapeSourceBuffer(input.SourceName, context) ||
-                    IsCurrentFinalShapeSourceBuffer(input.TargetName, context))
-                {
-                    continue;
-                }
-
-                var comparerTypeName = CreateGeneratedRowOrderComparerTypeName(input.RowShape, input.Keys);
-                if (renderedGeneratedRowOrderComparers.Add(comparerTypeName))
-                    members.Add(CreateGeneratedRowOrderComparerClass(input.RowShape, input.Keys));
+                continue;
             }
 
-            foreach (var concatenation in ExecutionIrAnalysis.CollectExpressions<ExecutionStringConcatenation>(plan.Body))
-                session.StringConcatenation.RegisterArity(concatenation.Expressions.Count);
-            var concatenationCallbacks = session.StringConcatenation.EmitCallbackClass();
-            if (concatenationCallbacks.Length != 0)
-                members.Add(Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseMemberDeclaration(concatenationCallbacks)!);
-            return CodegenHelperExtractionMetadata.AnnotateCandidateMembers(members);
+            var comparerTypeName = CreateGeneratedRowOrderComparerTypeName(input.RowShape, input.Keys);
+            if (renderedGeneratedRowOrderComparers.Add(comparerTypeName))
+                members.Add(CreateGeneratedRowOrderComparerClass(input.RowShape, input.Keys));
+        }
+
+        foreach (var concatenation in ExecutionIrAnalysis.CollectExpressions<ExecutionStringConcatenation>(plan.Body))
+            session.StringConcatenation.RegisterArity(concatenation.Expressions.Count);
+        var concatenationCallbacks = session.StringConcatenation.EmitCallbackClass();
+        if (concatenationCallbacks.Length != 0)
+            members.Add(Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseMemberDeclaration(concatenationCallbacks)!);
+        return CodegenHelperExtractionMetadata.AnnotateCandidateMembers(members);
     }
 
     private static bool PlanUsesCteIndexResults(ExecutionPlan plan)
@@ -257,14 +327,17 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool PlanUsesTableResults(
         ExecutionPlan plan,
-        IReadOnlyDictionary<int, TypedStoredTableResult> typedResults)
+        IReadOnlyDictionary<int, TypedStoredTableResult> typedResults
+    )
     {
         if (ExecutionIrAnalysis.CollectExpressions<ExecutionStoredTable>(plan.Body).Any())
             return true;
 
-        if (ExecutionIrAnalysis
-            .CollectExpressions<ExecutionStoredTableRows>(plan.Body)
-            .Any(storedRows => !typedResults.ContainsKey(storedRows.TableIndex)))
+        if (
+            ExecutionIrAnalysis
+                .CollectExpressions<ExecutionStoredTableRows>(plan.Body)
+                .Any(storedRows => !typedResults.ContainsKey(storedRows.TableIndex))
+        )
         {
             return true;
         }
@@ -275,17 +348,17 @@ public sealed partial class ExecutionCSharpRenderer
             {
                 case ExecutionStoreTable store when !typedResults.ContainsKey(store.TableIndex):
                     return true;
-                case ExecutionCreateHash { CapacityHint: ExecutionStoredTableCountCapacityHint hint } when
-                    !typedResults.ContainsKey(hint.TableIndex):
+                case ExecutionCreateHash { CapacityHint: ExecutionStoredTableCountCapacityHint hint }
+                    when !typedResults.ContainsKey(hint.TableIndex):
                     return true;
-                case ExecutionCreateKeySet { CapacityHint: ExecutionStoredTableCountCapacityHint hint } when
-                    !typedResults.ContainsKey(hint.TableIndex):
+                case ExecutionCreateKeySet { CapacityHint: ExecutionStoredTableCountCapacityHint hint }
+                    when !typedResults.ContainsKey(hint.TableIndex):
                     return true;
-                case ExecutionCreateTable { CapacityHint: ExecutionStoredTableCountCapacityHint hint } when
-                    !typedResults.ContainsKey(hint.TableIndex):
+                case ExecutionCreateTable { CapacityHint: ExecutionStoredTableCountCapacityHint hint }
+                    when !typedResults.ContainsKey(hint.TableIndex):
                     return true;
-                case ExecutionEnsureTableCapacity { CapacityHint: ExecutionStoredTableCountCapacityHint hint } when
-                    !typedResults.ContainsKey(hint.TableIndex):
+                case ExecutionEnsureTableCapacity { CapacityHint: ExecutionStoredTableCountCapacityHint hint }
+                    when !typedResults.ContainsKey(hint.TableIndex):
                     return true;
             }
         }

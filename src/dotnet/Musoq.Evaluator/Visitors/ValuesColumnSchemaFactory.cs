@@ -20,11 +20,18 @@ internal static class ValuesColumnSchemaFactory
         for (var index = 0; index < names.Length; index++)
         {
             var name = names[index];
-            var expressions = rows.Select(row => row.Fields.Single(field =>
-                    string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase)).Expression)
+            var expressions = rows.Select(row =>
+                    row.Fields.Single(field =>
+                        string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase)
+                    ).Expression
+                )
                 .ToArray();
-            var type = CommonColumnTypeResolver.Resolve(name, expressions,
-                ValuesSourceSpanHelpers.GetColumnExpressionSpan(expressions, node), CommonColumnTypeDiagnosticKind.Values);
+            var type = CommonColumnTypeResolver.Resolve(
+                name,
+                expressions,
+                ValuesSourceSpanHelpers.GetColumnExpressionSpan(expressions, node),
+                CommonColumnTypeDiagnosticKind.Values
+            );
             columns[index] = new SchemaColumn(name, index, type);
         }
 

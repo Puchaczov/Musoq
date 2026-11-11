@@ -10,18 +10,22 @@ namespace Musoq.Converter;
 
 internal sealed record InterpretationExecutableIdentity(
     CSharpArtifactCompilationIdentity Compilation,
-    string RuntimeFingerprint)
+    string RuntimeFingerprint
+)
 {
     public static InterpretationExecutableIdentity? TryCreate(
         RenderingBuildArtifacts rendering,
         TargetArtifactSemanticFacts facts,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (rendering.RuntimeContract is not { } runtime)
             return null;
 
         var compilation = CSharpClrGeneratedCodeCompatibility.TryGetCompilationIdentity(
-            rendering.Artifact, cancellationToken);
+            rendering.Artifact,
+            cancellationToken
+        );
         if (compilation is null)
             return null;
 
@@ -43,8 +47,10 @@ internal sealed record InterpretationExecutableIdentity(
         AppendComponent(identity, TargetContractVersions.ExecutionIr.ToString());
         AppendComponent(identity, ByteBufferCallableSemantics.Contract);
         AppendComponent(identity, runtime.ToString());
-        AppendComponent(identity, CompiledQueryArtifactSupport.ComputeSemanticShapeHash(
-            facts, "<interpretation-cache>", cancellationToken));
+        AppendComponent(
+            identity,
+            CompiledQueryArtifactSupport.ComputeSemanticShapeHash(facts, "<interpretation-cache>", cancellationToken)
+        );
         foreach (var import in abi.Imports)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -58,7 +64,8 @@ internal sealed record InterpretationExecutableIdentity(
         cancellationToken.ThrowIfCancellationRequested();
         return new InterpretationExecutableIdentity(
             compilation,
-            CompiledQueryArtifactSupport.ComputeHash(identity.ToString()));
+            CompiledQueryArtifactSupport.ComputeHash(identity.ToString())
+        );
     }
 
     private static void AppendComponent(StringBuilder builder, string value)

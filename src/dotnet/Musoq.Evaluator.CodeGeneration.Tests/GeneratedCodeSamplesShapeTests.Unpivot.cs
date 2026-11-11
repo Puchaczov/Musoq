@@ -29,9 +29,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void UnpivotCompositionSamples_WhenCheckedIn_ShouldExposeCompositionShapes()
     {
-        var samples = ReadNamedSamples(
-                UnpivotCteNullableOrderingSampleFileName,
-                UnpivotSetOperatorSampleFileName)
+        var samples = ReadNamedSamples(UnpivotCteNullableOrderingSampleFileName, UnpivotSetOperatorSampleFileName)
             .ToDictionary(static sample => sample.FileName);
         var cte = samples[UnpivotCteNullableOrderingSampleFileName].Content;
         var setOperator = samples[UnpivotSetOperatorSampleFileName].Content;

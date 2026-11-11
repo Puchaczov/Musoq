@@ -17,7 +17,7 @@ internal static class ExecutionSubqueryPlans
             yield break;
         yield return plan;
         foreach (var subquery in ExecutionIrAnalysis.FlattenExpressions(plan.Body).OfType<ExecutionSubquery>())
-            foreach (var nested in Enumerate(subquery.Plan, visited))
-                yield return nested;
+        foreach (var nested in Enumerate(subquery.Plan, visited))
+            yield return nested;
     }
 }

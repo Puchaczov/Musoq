@@ -9,11 +9,13 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenEqualAnySubquery_ShouldUseExistingInSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.Country = ANY (
-                SELECT b.Country FROM #B.entities() b
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.Country = ANY (\n"
+            + "                SELECT b.Country FROM #B.entities() b\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
@@ -27,11 +29,13 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenEqualSomeSubquery_ShouldBehaveLikeAny()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.Country = SOME (
-                SELECT b.Country FROM #B.entities() b
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.Country = SOME (\n"
+            + "                SELECT b.Country FROM #B.entities() b\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
@@ -42,11 +46,13 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenGreaterThanAnySubquery_ShouldReturnRowsWithAtLeastOneTrueComparison()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.Population > ANY (
-                SELECT b.Population FROM #B.entities() b
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.Population > ANY (\n"
+            + "                SELECT b.Population FROM #B.entities() b\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
@@ -57,11 +63,13 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenGreaterThanAllSubquery_ShouldReturnRowsWhereEveryComparisonIsTrue()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.Population > ALL (
-                SELECT b.Population FROM #B.entities() b
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.Population > ALL (\n"
+            + "                SELECT b.Population FROM #B.entities() b\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
@@ -72,12 +80,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenAnySubquery_IsEmpty_ShouldReturnNoRows()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.Population > ANY (
-                SELECT b.Population FROM #B.entities() b
-                WHERE b.Country = 'SPAIN'
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.Population > ANY (\n"
+            + "                SELECT b.Population FROM #B.entities() b\n"
+            + "                WHERE b.Country = 'SPAIN'\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
@@ -88,12 +98,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenAllSubquery_IsEmpty_ShouldReturnAllRows()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.Population > ALL (
-                SELECT b.Population FROM #B.entities() b
-                WHERE b.Country = 'SPAIN'
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.Population > ALL (\n"
+            + "                SELECT b.Population FROM #B.entities() b\n"
+            + "                WHERE b.Country = 'SPAIN'\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
@@ -104,26 +116,30 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenAllSubquery_ContainsNullComparison_ShouldNotTreatUnknownAsTrue()
     {
-        const string query = @"
-            SELECT a.Name FROM #A.entities() a
-            WHERE a.NullableValue > ALL (
-                SELECT b.NullableValue FROM #B.entities() b
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name FROM #A.entities() a\n"
+            + "            WHERE a.NullableValue > ALL (\n"
+            + "                SELECT b.NullableValue FROM #B.entities() b\n"
+            + "            )"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "HAS_VALUE", NullableValue = 10 },
-                    new BasicEntity { Name = "IS_NULL", NullableValue = null }
+                    new BasicEntity { Name = "IS_NULL", NullableValue = null },
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "LOW", NullableValue = 1 },
-                    new BasicEntity { Name = "UNKNOWN", NullableValue = null }
+                    new BasicEntity { Name = "UNKNOWN", NullableValue = null },
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -135,27 +151,31 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenAnySubquery_ContainsNulls_ShouldReturnOnlyRowsWithTrueComparison()
     {
-        const string query = @"
-            SELECT a.Name FROM #A.entities() a
-            WHERE a.NullableValue = ANY (
-                SELECT b.NullableValue FROM #B.entities() b
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name FROM #A.entities() a\n"
+            + "            WHERE a.NullableValue = ANY (\n"
+            + "                SELECT b.NullableValue FROM #B.entities() b\n"
+            + "            )"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "HAS_VALUE", NullableValue = 10 },
                     new BasicEntity { Name = "IS_NULL", NullableValue = null },
-                    new BasicEntity { Name = "NO_MATCH", NullableValue = 30 }
+                    new BasicEntity { Name = "NO_MATCH", NullableValue = 30 },
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "MATCH", NullableValue = 10 },
-                    new BasicEntity { Name = "UNKNOWN", NullableValue = null }
+                    new BasicEntity { Name = "UNKNOWN", NullableValue = null },
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -167,12 +187,14 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenAllSubquery_HasCorrelation_ShouldUseAntiSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.Population > ALL (
-                SELECT b.Population FROM #B.entities() b
-                WHERE b.Country = a.Country
-            )";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.Population > ALL (\n"
+            + "                SELECT b.Population FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "            )"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
@@ -188,22 +210,22 @@ public partial class SubqueryTests
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("PARIS", "FRANCE", 300)
+                    new BasicEntity("PARIS", "FRANCE", 300),
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity("KRAKOW", "POLAND", 100),
                     new BasicEntity("GDANSK", "POLAND", 400),
-                    new BasicEntity("LYON", "FRANCE", 200)
+                    new BasicEntity("LYON", "FRANCE", 200),
                 ]
             },
-            {
-                "#C", []
-            }
+            { "#C", [] },
         };
     }
 }

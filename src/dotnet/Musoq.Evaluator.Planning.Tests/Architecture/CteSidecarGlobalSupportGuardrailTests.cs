@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Evaluator.Tests.Architecture;
@@ -19,46 +21,69 @@ public sealed class CteSidecarGlobalSupportGuardrailTests
         "Apply",
         "APPLY",
         "Cross",
-        "CROSS"
+        "CROSS",
     ];
 
     [TestMethod]
     public void CteSidecarPipelineStages_ShouldKeepGlobalJoinFamiliesModeledAndDelegated()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var modelText = File.ReadAllText(Path.Combine(
-            repositoryRoot,
-            "src",
-            "dotnet",
-            "Musoq.Evaluator",
-            "IR",
-            "Execution",
-            "Lowering",
-            "Ctes",
-            "CteLoweringModel.cs"));
-        var chainText = File.ReadAllText(Path.Combine(
-            repositoryRoot,
-            "src",
-            "dotnet",
-            "Musoq.Evaluator",
-            "IR",
-            "Execution",
-            "PhysicalLoweringImplementation.SingleUseSidecarJoinChains.cs"));
+        var modelText = File.ReadAllText(
+            Path.Combine(
+                repositoryRoot,
+                "src",
+                "dotnet",
+                "Musoq.Evaluator",
+                "IR",
+                "Execution",
+                "Lowering",
+                "Ctes",
+                "CteLoweringModel.cs"
+            )
+        );
+        var chainText = File.ReadAllText(
+            Path.Combine(
+                repositoryRoot,
+                "src",
+                "dotnet",
+                "Musoq.Evaluator",
+                "IR",
+                "Execution",
+                "PhysicalLoweringImplementation.SingleUseSidecarJoinChains.cs"
+            )
+        );
 
         foreach (var stageKind in new[] { "StandardJoin", "AsOfJoin", "Apply", "CrossJoin" })
             Assert.Contains(stageKind, modelText);
 
-        foreach (var requiredMapping in new[]
-                 {
-                     "PhysicalNestedLoopApplyNode => SidecarJoinPipelineStageKind.Apply",
-                     "PhysicalNestedLoopJoinNode { Kind: JoinKind.Cross } => SidecarJoinPipelineStageKind.CrossJoin",
-                     "PhysicalNestedLoopJoinNode { Kind: JoinKind.AsofInner or JoinKind.AsofLeft } => SidecarJoinPipelineStageKind.AsOfJoin",
-                     "PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode => SidecarJoinPipelineStageKind.StandardJoin",
-                     "BuildDelegatedSidecarEnabledMultiStatementTable",
-                     "scope.WithSidecarJoinPipelineSuppressed()"
-                 })
+        foreach (
+            var requiredMapping in new[]
+            {
+                "PhysicalNestedLoopApplyNode => SidecarJoinPipelineStageKind.Apply",
+                "PhysicalNestedLoopJoinNode { Kind: JoinKind.Cross } => SidecarJoinPipelineStageKind.CrossJoin",
+                "PhysicalNestedLoopJoinNode { Kind: JoinKind.AsofInner or JoinKind.AsofLeft } => SidecarJoinPipelineStageKind.AsOfJoin",
+                "PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode => SidecarJoinPipelineStageKind.StandardJoin",
+                "BuildDelegatedSidecarEnabledMultiStatementTable",
+                "scope.WithSidecarJoinPipelineSuppressed()",
+            }
+        )
         {
-            Assert.Contains(requiredMapping, chainText);
+            var expectedTokens = SyntaxFactory
+                .ParseTokens(requiredMapping)
+                .Where(token => !token.IsKind(SyntaxKind.EndOfFileToken))
+                .Select(token => token.Text)
+                .ToArray();
+            var actualTokens = SyntaxFactory
+                .ParseTokens(chainText)
+                .Where(token => !token.IsKind(SyntaxKind.EndOfFileToken))
+                .Select(token => token.Text)
+                .ToArray();
+            Assert.IsTrue(
+                Enumerable
+                    .Range(0, Math.Max(0, actualTokens.Length - expectedTokens.Length + 1))
+                    .Any(start => actualTokens.Skip(start).Take(expectedTokens.Length).SequenceEqual(expectedTokens)),
+                $"Missing sidecar pipeline mapping: {requiredMapping}"
+            );
         }
     }
 
@@ -67,38 +92,50 @@ public sealed class CteSidecarGlobalSupportGuardrailTests
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var asOfText = ReadConverterTest(repositoryRoot, "QueryInspectionTests.CteSidecarGlobalSupport.AsOf.cs");
-        var crossApplyText = ReadConverterTest(repositoryRoot, "QueryInspectionTests.CteSidecarGlobalSupport.CrossApply.cs");
-        var fullOuterText = ReadConverterTest(repositoryRoot, "QueryInspectionTests.CteSidecarGlobalSupport.FullOuter.cs");
+        var crossApplyText = ReadConverterTest(
+            repositoryRoot,
+            "QueryInspectionTests.CteSidecarGlobalSupport.CrossApply.cs"
+        );
+        var fullOuterText = ReadConverterTest(
+            repositoryRoot,
+            "QueryInspectionTests.CteSidecarGlobalSupport.FullOuter.cs"
+        );
 
-        foreach (var requiredTestMarker in new[]
-                 {
-                     "CteSidecarIndexesAreEnabledForAsOfBackwardLookupWithPartition",
-                     "CteSidecarIndexesAreEnabledForAsOfForwardLookup",
-                     "CteSidecarIndexesAreEnabledForAsOfLeftNoMatch",
-                     "CteSidecarIndexesAreEnabledForAsOfTieBreak",
-                     "CteSidecarIndexesAreEnabledForCteBackedAsOfJoin"
-                 })
+        foreach (
+            var requiredTestMarker in new[]
+            {
+                "CteSidecarIndexesAreEnabledForAsOfBackwardLookupWithPartition",
+                "CteSidecarIndexesAreEnabledForAsOfForwardLookup",
+                "CteSidecarIndexesAreEnabledForAsOfLeftNoMatch",
+                "CteSidecarIndexesAreEnabledForAsOfTieBreak",
+                "CteSidecarIndexesAreEnabledForCteBackedAsOfJoin",
+            }
+        )
         {
             Assert.Contains(requiredTestMarker, asOfText);
         }
 
-        foreach (var requiredTestMarker in new[]
-                 {
-                     "CteSidecarIndexesAreEnabledForCrossJoinValues",
-                     "CteSidecarIndexesAreEnabledForCrossApplySchemaSource",
-                     "CteSidecarIndexesAreEnabledForOuterApplyNoMatches",
-                     "CteSidecarIndexesAreEnabledForApplyWithOrdinality"
-                 })
+        foreach (
+            var requiredTestMarker in new[]
+            {
+                "CteSidecarIndexesAreEnabledForCrossJoinValues",
+                "CteSidecarIndexesAreEnabledForCrossApplySchemaSource",
+                "CteSidecarIndexesAreEnabledForOuterApplyNoMatches",
+                "CteSidecarIndexesAreEnabledForApplyWithOrdinality",
+            }
+        )
         {
             Assert.Contains(requiredTestMarker, crossApplyText);
         }
 
-        foreach (var requiredTestMarker in new[]
-                 {
-                     "CteSidecarIndexesAreEnabledForFullOuterPresencePredicates",
-                     "CteSidecarIndexesAreEnabledForFullOuterResidualPredicate",
-                     "CteSidecarIndexesAreEnabledForFullOuterJoin"
-                 })
+        foreach (
+            var requiredTestMarker in new[]
+            {
+                "CteSidecarIndexesAreEnabledForFullOuterPresencePredicates",
+                "CteSidecarIndexesAreEnabledForFullOuterResidualPredicate",
+                "CteSidecarIndexesAreEnabledForFullOuterJoin",
+            }
+        )
         {
             Assert.Contains(requiredTestMarker, fullOuterText);
         }
@@ -112,41 +149,69 @@ public sealed class CteSidecarGlobalSupportGuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var guardedFiles = new[]
         {
-            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "PhysicalLoweringImplementation.SingleUseSidecarJoinChains.cs"),
-            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "Lowering", "Ctes", "SidecarJoinCteLowerer.cs")
+            Path.Combine(
+                repositoryRoot,
+                "src",
+                "dotnet",
+                "Musoq.Evaluator",
+                "IR",
+                "Execution",
+                "PhysicalLoweringImplementation.SingleUseSidecarJoinChains.cs"
+            ),
+            Path.Combine(
+                repositoryRoot,
+                "src",
+                "dotnet",
+                "Musoq.Evaluator",
+                "IR",
+                "Execution",
+                "Lowering",
+                "Ctes",
+                "SidecarJoinCteLowerer.cs"
+            ),
         };
 
-        var offenders = MatchingLines(guardedFiles, repositoryRoot, line =>
-            line.Contains("Unsupported", StringComparison.OrdinalIgnoreCase) &&
-            DelegatedStageTerms.Any(term => line.Contains(term, StringComparison.Ordinal)));
+        var offenders = MatchingLines(
+            guardedFiles,
+            repositoryRoot,
+            line =>
+                line.Contains("Unsupported", StringComparison.OrdinalIgnoreCase)
+                && DelegatedStageTerms.Any(term => line.Contains(term, StringComparison.Ordinal))
+        );
 
-        Assert.IsEmpty(offenders, "Sidecar pipeline global join families must delegate to standard lowering instead of hard-rejecting: " + string.Join(Environment.NewLine, offenders));
+        Assert.IsEmpty(
+            offenders,
+            "Sidecar pipeline global join families must delegate to standard lowering instead of hard-rejecting: "
+                + string.Join(Environment.NewLine, offenders)
+        );
     }
 
     private static string ReadConverterTest(string repositoryRoot, string fileName)
     {
-        return File.ReadAllText(Path.Combine(
-            repositoryRoot,
-            "src",
-            "dotnet",
-            "Musoq.Converter.Inspection.Tests",
-            fileName));
+        return File.ReadAllText(
+            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter.Inspection.Tests", fileName)
+        );
     }
 
     private static string[] MatchingLines(
         IEnumerable<string> files,
         string repositoryRoot,
-        Func<string, bool> predicate)
+        Func<string, bool> predicate
+    )
     {
         return files
-            .SelectMany(file => File
-                .ReadLines(file)
-                .Select((line, index) => new
-                {
-                    File = RepositorySourceScan.ToRelative(repositoryRoot, file),
-                    Line = index + 1,
-                    Text = line.Trim()
-                }))
+            .SelectMany(file =>
+                File.ReadLines(file)
+                    .Select(
+                        (line, index) =>
+                            new
+                            {
+                                File = RepositorySourceScan.ToRelative(repositoryRoot, file),
+                                Line = index + 1,
+                                Text = line.Trim(),
+                            }
+                    )
+            )
             .Where(item => predicate(item.Text))
             .Select(item => $"{item.File}:{item.Line}: {item.Text}")
             .ToArray();

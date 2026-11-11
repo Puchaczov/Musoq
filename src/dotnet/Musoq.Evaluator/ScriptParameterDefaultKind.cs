@@ -5,5 +5,5 @@ public enum ScriptParameterDefaultKind
     None,
     Null,
     Literal,
-    Structured
+    Structured,
 }

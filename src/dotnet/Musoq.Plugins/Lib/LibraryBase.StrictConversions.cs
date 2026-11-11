@@ -19,7 +19,8 @@ public partial class LibraryBase
     private static readonly TypePreservingRuntimeOperators RuntimeOperators = new(
         NumericOnlyConverter,
         ComparisonConverter,
-        StrictConverter);
+        StrictConverter
+    );
 
     #endregion
 }

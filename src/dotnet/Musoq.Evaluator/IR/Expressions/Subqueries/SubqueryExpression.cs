@@ -1,6 +1,6 @@
-using Musoq.Evaluator.IR.Logical;
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Planning.Subqueries;
 
 namespace Musoq.Evaluator.IR.Expressions;
@@ -11,7 +11,7 @@ public enum SubqueryResultKind
     Exists,
     In,
     Any,
-    All
+    All,
 }
 
 public sealed record SubqueryExpression(
@@ -20,7 +20,8 @@ public sealed record SubqueryExpression(
     LogicalNode Query,
     IrExpression[] Bindings,
     IrExpression? Operand,
-    Type ReturnType) : IrExpression(ReturnType)
+    Type ReturnType
+) : IrExpression(ReturnType)
 {
     public BinaryOpKind Comparison { get; init; } = BinaryOpKind.Equal;
     public IEnumerable<IrExpression> Inputs => Operand is null ? Bindings : Bindings.Append(Operand);

@@ -23,39 +23,58 @@ internal static partial class ScriptVariableInitializerEvaluator
 
     private static ScriptConstantEvaluationResult EvaluateEquality(object? left, object? right)
     {
-        return ScriptConstantEvaluationResult.Evaluated(ConstantOperatorEvaluator.CompareValues(left, right) == 0, typeof(bool));
+        return ScriptConstantEvaluationResult.Evaluated(
+            ConstantOperatorEvaluator.CompareValues(left, right) == 0,
+            typeof(bool)
+        );
     }
 
     private static ScriptConstantEvaluationResult EvaluateDifference(object? left, object? right)
     {
-        return ScriptConstantEvaluationResult.Evaluated(ConstantOperatorEvaluator.CompareValues(left, right) != 0, typeof(bool));
+        return ScriptConstantEvaluationResult.Evaluated(
+            ConstantOperatorEvaluator.CompareValues(left, right) != 0,
+            typeof(bool)
+        );
     }
 
     private static ScriptConstantEvaluationResult EvaluateGreater(object? left, object? right)
     {
-        return ScriptConstantEvaluationResult.Evaluated(ConstantOperatorEvaluator.CompareValues(left, right) > 0, typeof(bool));
+        return ScriptConstantEvaluationResult.Evaluated(
+            ConstantOperatorEvaluator.CompareValues(left, right) > 0,
+            typeof(bool)
+        );
     }
 
     private static ScriptConstantEvaluationResult EvaluateGreaterOrEqual(object? left, object? right)
     {
-        return ScriptConstantEvaluationResult.Evaluated(ConstantOperatorEvaluator.CompareValues(left, right) >= 0, typeof(bool));
+        return ScriptConstantEvaluationResult.Evaluated(
+            ConstantOperatorEvaluator.CompareValues(left, right) >= 0,
+            typeof(bool)
+        );
     }
 
     private static ScriptConstantEvaluationResult EvaluateLess(object? left, object? right)
     {
-        return ScriptConstantEvaluationResult.Evaluated(ConstantOperatorEvaluator.CompareValues(left, right) < 0, typeof(bool));
+        return ScriptConstantEvaluationResult.Evaluated(
+            ConstantOperatorEvaluator.CompareValues(left, right) < 0,
+            typeof(bool)
+        );
     }
 
     private static ScriptConstantEvaluationResult EvaluateLessOrEqual(object? left, object? right)
     {
-        return ScriptConstantEvaluationResult.Evaluated(ConstantOperatorEvaluator.CompareValues(left, right) <= 0, typeof(bool));
+        return ScriptConstantEvaluationResult.Evaluated(
+            ConstantOperatorEvaluator.CompareValues(left, right) <= 0,
+            typeof(bool)
+        );
     }
 
     private static ScriptConstantEvaluationResult EvaluateNot(
         Node expression,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
         IReadOnlyDictionary<string, ScriptParameterDefinition>? parameters,
-        string ownerName)
+        string ownerName
+    )
     {
         var result = EvaluateCore(expression, variables, parameters, ownerName);
         if (!result.Success)
@@ -70,7 +89,8 @@ internal static partial class ScriptVariableInitializerEvaluator
         IsNullNode expression,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
         IReadOnlyDictionary<string, ScriptParameterDefinition>? parameters,
-        string ownerName)
+        string ownerName
+    )
     {
         var result = EvaluateCore(expression.Expression, variables, parameters, ownerName);
         if (!result.Success)
@@ -84,7 +104,8 @@ internal static partial class ScriptVariableInitializerEvaluator
         BetweenNode expression,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
         IReadOnlyDictionary<string, ScriptParameterDefinition>? parameters,
-        string ownerName)
+        string ownerName
+    )
     {
         var value = EvaluateCore(expression.Expression, variables, parameters, ownerName);
         if (!value.Success)
@@ -98,8 +119,9 @@ internal static partial class ScriptVariableInitializerEvaluator
         if (!high.Success)
             return high;
 
-        var isBetween = ConstantOperatorEvaluator.CompareValues(value.Value, low.Value) >= 0 &&
-                        ConstantOperatorEvaluator.CompareValues(value.Value, high.Value) <= 0;
+        var isBetween =
+            ConstantOperatorEvaluator.CompareValues(value.Value, low.Value) >= 0
+            && ConstantOperatorEvaluator.CompareValues(value.Value, high.Value) <= 0;
         return ScriptConstantEvaluationResult.Evaluated(isBetween, typeof(bool));
     }
 }

@@ -27,22 +27,33 @@ public class BugProbeDotNotationInConditionsTests
     [TestMethod]
     public void Binary_ComputedFieldWithDotNotationReference_ShouldWork()
     {
-        var query = @"
-            binary Inner { X: byte, Y: byte };
-            binary Outer {
-                Coords: Inner,
-                Sum: = Coords.X + Coords.Y
-            };
-            select o.Coords.X, o.Coords.Y, o.Sum from #test.files() b
-            cross apply Interpret<Outer>(b.Content) o";
+        var query = (
+            "\n"
+            + "            binary Inner { X: byte, Y: byte };\n"
+            + "            binary Outer {\n"
+            + "                Coords: Inner,\n"
+            + "                Sum: = Coords.X + Coords.Y\n"
+            + "            };\n"
+            + "            select o.Coords.X, o.Coords.Y, o.Sum from #test.files() b\n"
+            + "            cross apply Interpret<Outer>(b.Content) o"
+        );
 
         var testData = new byte[] { 0x0A, 0x14 }; // X=10, Y=20
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -59,22 +70,33 @@ public class BugProbeDotNotationInConditionsTests
     [TestMethod]
     public void Binary_ConditionalWithDotNotation_ShouldEvaluateNested()
     {
-        var query = @"
-            binary Header { Version: byte, Flags: byte };
-            binary Packet {
-                Hdr: Header,
-                Payload: int le when Hdr.Version > 0
-            };
-            select p.Hdr.Version, p.Payload from #test.files() b
-            cross apply Interpret<Packet>(b.Content) p";
+        var query = (
+            "\n"
+            + "            binary Header { Version: byte, Flags: byte };\n"
+            + "            binary Packet {\n"
+            + "                Hdr: Header,\n"
+            + "                Payload: int le when Hdr.Version > 0\n"
+            + "            };\n"
+            + "            select p.Hdr.Version, p.Payload from #test.files() b\n"
+            + "            cross apply Interpret<Packet>(b.Content) p"
+        );
 
         var testData = new byte[] { 0x02, 0x00, 0x2A, 0x00, 0x00, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -90,22 +112,33 @@ public class BugProbeDotNotationInConditionsTests
     [TestMethod]
     public void Binary_CheckConstraintWithDotNotation_ShouldValidateNested()
     {
-        var query = @"
-            binary Inner { Magic: int le };
-            binary Outer {
-                Hdr: Inner check Hdr.Magic = 0x12345678,
-                Value: byte
-            };
-            select o.Hdr.Magic, o.Value from #test.files() b
-            cross apply Interpret<Outer>(b.Content) o";
+        var query = (
+            "\n"
+            + "            binary Inner { Magic: int le };\n"
+            + "            binary Outer {\n"
+            + "                Hdr: Inner check Hdr.Magic = 0x12345678,\n"
+            + "                Value: byte\n"
+            + "            };\n"
+            + "            select o.Hdr.Magic, o.Value from #test.files() b\n"
+            + "            cross apply Interpret<Outer>(b.Content) o"
+        );
 
         var testData = new byte[] { 0x78, 0x56, 0x34, 0x12, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

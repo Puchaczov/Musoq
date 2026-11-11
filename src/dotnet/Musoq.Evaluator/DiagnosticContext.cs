@@ -16,10 +16,44 @@ public sealed class DiagnosticContext
     private const int CandidateLimit = 5;
     private static readonly string[] KnownTypeNames =
     [
-        "Boolean", "Byte", "SByte", "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64",
-        "Single", "Double", "Decimal", "Char", "String", "DateTime", "DateTimeOffset", "TimeSpan", "Guid",
-        "Object", "bool", "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "float",
-        "double", "decimal", "char", "string", "datetime", "datetimeoffset", "timespan", "guid", "object"
+        "Boolean",
+        "Byte",
+        "SByte",
+        "Int16",
+        "UInt16",
+        "Int32",
+        "UInt32",
+        "Int64",
+        "UInt64",
+        "Single",
+        "Double",
+        "Decimal",
+        "Char",
+        "String",
+        "DateTime",
+        "DateTimeOffset",
+        "TimeSpan",
+        "Guid",
+        "Object",
+        "bool",
+        "byte",
+        "sbyte",
+        "short",
+        "ushort",
+        "int",
+        "uint",
+        "long",
+        "ulong",
+        "float",
+        "double",
+        "decimal",
+        "char",
+        "string",
+        "datetime",
+        "datetimeoffset",
+        "timespan",
+        "guid",
+        "object",
     ];
     private readonly DiagnosticBag _diagnostics;
     private readonly Lock _lock = new();
@@ -71,11 +105,13 @@ public sealed class DiagnosticContext
             return false;
 
         return Errors.Any(diagnostic =>
-            diagnostic.Code == code &&
-            diagnostic.Location.IsValid &&
-            (diagnostic.Span == span ||
-             (diagnostic.Span.End <= span.Start &&
-              span.Start - diagnostic.Span.End <= distance)));
+            diagnostic.Code == code
+            && diagnostic.Location.IsValid
+            && (
+                diagnostic.Span == span
+                || (diagnostic.Span.End <= span.Start && span.Start - diagnostic.Span.End <= distance)
+            )
+        );
     }
 
     /// <summary>
@@ -137,12 +173,9 @@ public sealed class DiagnosticContext
     {
         if (node is null || !node.HasSpan)
         {
-            _diagnostics.Add(new Diagnostic(
-                code,
-                DiagnosticSeverity.Error,
-                message,
-                SourceLocation.None,
-                SourceLocation.None));
+            _diagnostics.Add(
+                new Diagnostic(code, DiagnosticSeverity.Error, message, SourceLocation.None, SourceLocation.None)
+            );
             return;
         }
 
@@ -183,9 +216,7 @@ public sealed class DiagnosticContext
     private Diagnostic CreateWarningDiagnostic(DiagnosticCode code, string message, TextSpan? span = null)
     {
         var metadata = ErrorMetadataCatalog.Get(code);
-        var suggestedFixes = metadata?.SuggestedFixes
-            .Select(DiagnosticAction.Suggestion)
-            .ToArray();
+        var suggestedFixes = metadata?.SuggestedFixes.Select(DiagnosticAction.Suggestion).ToArray();
 
         if (!span.HasValue)
         {
@@ -198,17 +229,20 @@ public sealed class DiagnosticContext
                 suggestedFixes: suggestedFixes,
                 explanation: metadata?.Explanation,
                 docsReference: metadata?.DocsReference,
-                phase: metadata?.Phase);
+                phase: metadata?.Phase
+            );
         }
 
         var warningSpan = span.Value;
-        var locations = SourceText != null
-            ? SourceText.GetLocations(warningSpan)
-            : (Start: new SourceLocation(warningSpan.Start, 1, warningSpan.Start + 1),
-                End: new SourceLocation(warningSpan.End, 1, warningSpan.End + 1));
-        var contextSnippet = SourceText != null && locations.Start.IsValid
-            ? SourceText.GetContextSnippet(warningSpan)
-            : null;
+        var locations =
+            SourceText != null
+                ? SourceText.GetLocations(warningSpan)
+                : (
+                    Start: new SourceLocation(warningSpan.Start, 1, warningSpan.Start + 1),
+                    End: new SourceLocation(warningSpan.End, 1, warningSpan.End + 1)
+                );
+        var contextSnippet =
+            SourceText != null && locations.Start.IsValid ? SourceText.GetContextSnippet(warningSpan) : null;
 
         return new Diagnostic(
             code,
@@ -220,7 +254,8 @@ public sealed class DiagnosticContext
             suggestedFixes: suggestedFixes,
             explanation: metadata?.Explanation,
             docsReference: metadata?.DocsReference,
-            phase: metadata?.Phase);
+            phase: metadata?.Phase
+        );
     }
 
     /// <summary>
@@ -260,9 +295,7 @@ public sealed class DiagnosticContext
 
         lock (_lock)
         {
-            var retained = _diagnostics.ToSortedList()
-                .Where(diagnostic => !predicate(diagnostic))
-                .ToArray();
+            var retained = _diagnostics.ToSortedList().Where(diagnostic => !predicate(diagnostic)).ToArray();
             _diagnostics.Clear();
             _diagnostics.AddRange(retained);
         }
@@ -276,8 +309,7 @@ public sealed class DiagnosticContext
         var diagnostic = exception.ToDiagnosticOrGeneric(SourceText);
         var effectiveSpan = span ?? diagnostic.Span;
 
-        if (effectiveSpan is { IsEmpty: false } &&
-            HasNearbyError(diagnostic.Code, effectiveSpan))
+        if (effectiveSpan is { IsEmpty: false } && HasNearbyError(diagnostic.Code, effectiveSpan))
             return;
 
         if (!span.HasValue)
@@ -316,7 +348,7 @@ public sealed class DiagnosticContext
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["alias"] = DiagnosticSafety.SanitizeForDisplay(alias),
-            ["availableAliases"] = FormatFactCandidates(candidates)
+            ["availableAliases"] = FormatFactCandidates(candidates),
         };
         IReadOnlyList<DiagnosticAction>? suggestedFixes = null;
         if (!string.IsNullOrEmpty(suggestion))
@@ -333,17 +365,21 @@ public sealed class DiagnosticContext
                     DiagnosticAction.QuickFix(
                         $"Replace {DiagnosticSafety.QuoteForDisplay(alias)} with {DiagnosticSafety.QuoteForDisplay(suggestion)}",
                         span,
-                        suggestion)
+                        suggestion
+                    ),
                 ];
         }
 
-        _diagnostics.Add(SemanticDiagnosticFactory.Create(
-            DiagnosticCode.MQ3015_UnknownAlias,
-            message,
-            span,
-            SourceText,
-            facts,
-            suggestedFixes));
+        _diagnostics.Add(
+            SemanticDiagnosticFactory.Create(
+                DiagnosticCode.MQ3015_UnknownAlias,
+                message,
+                span,
+                SourceText,
+                facts,
+                suggestedFixes
+            )
+        );
     }
 
     /// <summary>
@@ -367,11 +403,12 @@ public sealed class DiagnosticContext
         var message = AppendCandidateGuidance(
             $"Unknown column {DiagnosticSafety.QuoteForDisplay(columnName)}.",
             closeCandidates,
-            suggestion);
+            suggestion
+        );
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["column"] = DiagnosticSafety.SanitizeForDisplay(columnName),
-            ["availableColumns"] = FormatFactCandidates(GetDisplayCandidates(candidates, closeCandidates))
+            ["availableColumns"] = FormatFactCandidates(GetDisplayCandidates(candidates, closeCandidates)),
         };
         if (closeCandidates.Count > 0)
             facts["candidateColumns"] = FormatFactCandidates(closeCandidates);
@@ -380,13 +417,16 @@ public sealed class DiagnosticContext
 
         var replacementSpan = GetIdentifierSpan(columnName, span);
         var suggestedFixes = CreateSafeReplacement(columnName, suggestion, replacementSpan);
-        _diagnostics.Add(SemanticDiagnosticFactory.Create(
-            DiagnosticCode.MQ3001_UnknownColumn,
-            message,
-            span,
-            SourceText,
-            facts,
-            suggestedFixes));
+        _diagnostics.Add(
+            SemanticDiagnosticFactory.Create(
+                DiagnosticCode.MQ3001_UnknownColumn,
+                message,
+                span,
+                SourceText,
+                facts,
+                suggestedFixes
+            )
+        );
     }
 
     /// <summary>
@@ -397,17 +437,21 @@ public sealed class DiagnosticContext
         IEnumerable<string> availableProperties,
         Node? node,
         string? objectTypeName = null,
-        string? accessContext = null)
+        string? accessContext = null
+    )
     {
         ArgumentNullException.ThrowIfNull(availableProperties);
         var span = node.SpanOrEmpty();
         var candidates = NormalizeCandidates(availableProperties);
         var closeCandidates = ErrorCatalog.GetDidYouMeanCandidates(propertyName, candidates);
         var suggestion = closeCandidates.Count == 1 ? closeCandidates[0] : null;
-        var message = $"Unknown property {DiagnosticSafety.QuoteForDisplay(propertyName)}" +
-                      (string.IsNullOrWhiteSpace(objectTypeName)
-                          ? "."
-                          : $" on {DiagnosticSafety.QuoteForDisplay(objectTypeName)}.");
+        var message =
+            $"Unknown property {DiagnosticSafety.QuoteForDisplay(propertyName)}"
+            + (
+                string.IsNullOrWhiteSpace(objectTypeName)
+                    ? "."
+                    : $" on {DiagnosticSafety.QuoteForDisplay(objectTypeName)}."
+            );
         if (!string.IsNullOrWhiteSpace(accessContext))
             message += $" Accessed through {DiagnosticSafety.QuoteForDisplay(accessContext)}.";
         message = AppendCandidateGuidance(message, closeCandidates, suggestion);
@@ -415,7 +459,7 @@ public sealed class DiagnosticContext
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["property"] = DiagnosticSafety.SanitizeForDisplay(propertyName),
-            ["availableProperties"] = FormatFactCandidates(GetDisplayCandidates(candidates, closeCandidates))
+            ["availableProperties"] = FormatFactCandidates(GetDisplayCandidates(candidates, closeCandidates)),
         };
         if (!string.IsNullOrWhiteSpace(objectTypeName))
             facts["objectType"] = DiagnosticSafety.SanitizeForDisplay(objectTypeName);
@@ -428,13 +472,16 @@ public sealed class DiagnosticContext
 
         var replacementSpan = GetIdentifierSpan(propertyName, span);
         var suggestedFixes = CreateSafeReplacement(propertyName, suggestion, replacementSpan);
-        _diagnostics.Add(SemanticDiagnosticFactory.Create(
-            DiagnosticCode.MQ3028_UnknownProperty,
-            message,
-            span,
-            SourceText,
-            facts,
-            suggestedFixes));
+        _diagnostics.Add(
+            SemanticDiagnosticFactory.Create(
+                DiagnosticCode.MQ3028_UnknownProperty,
+                message,
+                span,
+                SourceText,
+                facts,
+                suggestedFixes
+            )
+        );
     }
 
     /// <summary>
@@ -451,11 +498,12 @@ public sealed class DiagnosticContext
         var message = AppendCandidateGuidance(
             $"Unknown function {DiagnosticSafety.QuoteForDisplay(functionName)}.",
             closeCandidates,
-            suggestion);
+            suggestion
+        );
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["callable"] = DiagnosticSafety.SanitizeForDisplay(functionName),
-            ["availableCallables"] = FormatFactCandidates(GetDisplayCandidates(candidates, closeCandidates))
+            ["availableCallables"] = FormatFactCandidates(GetDisplayCandidates(candidates, closeCandidates)),
         };
         if (closeCandidates.Count > 0)
             facts["candidateCallables"] = FormatFactCandidates(closeCandidates);
@@ -464,13 +512,16 @@ public sealed class DiagnosticContext
 
         var replacementSpan = GetIdentifierSpan(functionName, span);
         var suggestedFixes = CreateSafeReplacement(functionName, suggestion, replacementSpan);
-        _diagnostics.Add(SemanticDiagnosticFactory.Create(
-            DiagnosticCode.MQ3086_UnknownCallable,
-            message,
-            span,
-            SourceText,
-            facts,
-            suggestedFixes));
+        _diagnostics.Add(
+            SemanticDiagnosticFactory.Create(
+                DiagnosticCode.MQ3086_UnknownCallable,
+                message,
+                span,
+                SourceText,
+                facts,
+                suggestedFixes
+            )
+        );
     }
 
     /// <summary>
@@ -480,7 +531,8 @@ public sealed class DiagnosticContext
     {
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
-        var message = $"Type mismatch: expected {DiagnosticSafety.QuoteForDisplay(expected)} but got {DiagnosticSafety.QuoteForDisplay(actual)}.";
+        var message =
+            $"Type mismatch: expected {DiagnosticSafety.QuoteForDisplay(expected)} but got {DiagnosticSafety.QuoteForDisplay(actual)}.";
         ReportError(DiagnosticCode.MQ3005_TypeMismatch, message, span);
     }
 
@@ -504,24 +556,28 @@ public sealed class DiagnosticContext
         var message = AppendCandidateGuidance(
             $"Type {DiagnosticSafety.QuoteForDisplay(typeName)} could not be found or resolved.",
             closeCandidates,
-            suggestion);
+            suggestion
+        );
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["type"] = DiagnosticSafety.SanitizeForDisplay(typeName),
-            ["candidateTypes"] = FormatFactCandidates(closeCandidates)
+            ["candidateTypes"] = FormatFactCandidates(closeCandidates),
         };
         if (suggestion != null)
             facts["suggestion"] = DiagnosticSafety.SanitizeForDisplay(suggestion);
 
         var replacementSpan = GetIdentifierSpan(typeName, span);
         var suggestedFixes = CreateSafeReplacement(typeName, suggestion, replacementSpan);
-        _diagnostics.Add(SemanticDiagnosticFactory.Create(
-            DiagnosticCode.MQ3005_TypeMismatch,
-            message,
-            span,
-            SourceText,
-            facts,
-            suggestedFixes));
+        _diagnostics.Add(
+            SemanticDiagnosticFactory.Create(
+                DiagnosticCode.MQ3005_TypeMismatch,
+                message,
+                span,
+                SourceText,
+                facts,
+                suggestedFixes
+            )
+        );
     }
 
     /// <summary>
@@ -531,19 +587,16 @@ public sealed class DiagnosticContext
     {
         var span = node.SpanOrEmpty();
         var message =
-            $"Ambiguous column name {DiagnosticSafety.QuoteForDisplay(columnName)} between " +
-            $"{DiagnosticSafety.QuoteForDisplay(alias1)} and {DiagnosticSafety.QuoteForDisplay(alias2)}.";
+            $"Ambiguous column name {DiagnosticSafety.QuoteForDisplay(columnName)} between "
+            + $"{DiagnosticSafety.QuoteForDisplay(alias1)} and {DiagnosticSafety.QuoteForDisplay(alias2)}.";
         var facts = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["column"] = DiagnosticSafety.SanitizeForDisplay(columnName),
-            ["aliases"] = FormatFactCandidates([alias1, alias2])
+            ["aliases"] = FormatFactCandidates([alias1, alias2]),
         };
-        _diagnostics.Add(SemanticDiagnosticFactory.Create(
-            DiagnosticCode.MQ3002_AmbiguousColumn,
-            message,
-            span,
-            SourceText,
-            facts));
+        _diagnostics.Add(
+            SemanticDiagnosticFactory.Create(DiagnosticCode.MQ3002_AmbiguousColumn, message, span, SourceText, facts)
+        );
     }
 
     /// <summary>
@@ -554,7 +607,8 @@ public sealed class DiagnosticContext
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
         var aliases = string.Join(", ", candidateAliases.Select(DiagnosticSafety.QuoteForDisplay));
-        var message = $"Aggregate call {DiagnosticSafety.QuoteForDisplay(methodCall)} is ambiguous because multiple source aliases expose different implementations: {aliases}.";
+        var message =
+            $"Aggregate call {DiagnosticSafety.QuoteForDisplay(methodCall)} is ambiguous because multiple source aliases expose different implementations: {aliases}.";
         ReportError(DiagnosticCode.MQ3034_AmbiguousAggregateOwner, message, span);
     }
 
@@ -566,7 +620,8 @@ public sealed class DiagnosticContext
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
         var aliases = string.Join(", ", candidateAliases.Select(DiagnosticSafety.QuoteForDisplay));
-        var message = $"Method call {DiagnosticSafety.QuoteForDisplay(methodCall)} is ambiguous because multiple source aliases expose different implementations: {aliases}.";
+        var message =
+            $"Method call {DiagnosticSafety.QuoteForDisplay(methodCall)} is ambiguous because multiple source aliases expose different implementations: {aliases}.";
         ReportError(DiagnosticCode.MQ3035_AmbiguousMethodOwner, message, span);
     }
 
@@ -577,7 +632,8 @@ public sealed class DiagnosticContext
     {
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
-        var message = $"Function {DiagnosticSafety.QuoteForDisplay(functionName)} expects {expected} argument(s) but got {actual}.";
+        var message =
+            $"Function {DiagnosticSafety.QuoteForDisplay(functionName)} expects {expected} argument(s) but got {actual}.";
         ReportError(DiagnosticCode.MQ3087_InvalidCallableArity, message, span);
     }
 
@@ -604,7 +660,8 @@ public sealed class DiagnosticContext
     private static string AppendCandidateGuidance(
         string message,
         IReadOnlyList<string> closeCandidates,
-        string? suggestion)
+        string? suggestion
+    )
     {
         if (!string.IsNullOrEmpty(suggestion))
             return $"{message} Did you mean {DiagnosticSafety.QuoteForDisplay(suggestion)}?";
@@ -622,19 +679,20 @@ public sealed class DiagnosticContext
             if (string.IsNullOrWhiteSpace(candidate))
                 continue;
 
-            if (!canonicalCandidates.TryGetValue(candidate, out var existing) ||
-                string.CompareOrdinal(candidate, existing) < 0)
+            if (
+                !canonicalCandidates.TryGetValue(candidate, out var existing)
+                || string.CompareOrdinal(candidate, existing) < 0
+            )
                 canonicalCandidates[candidate] = candidate;
         }
 
-        return canonicalCandidates.Values
-            .OrderBy(static candidate => candidate, StringComparer.Ordinal)
-            .ToArray();
+        return canonicalCandidates.Values.OrderBy(static candidate => candidate, StringComparer.Ordinal).ToArray();
     }
 
     private static string[] GetDisplayCandidates(
         IReadOnlyList<string> candidates,
-        IReadOnlyList<string> closeCandidates)
+        IReadOnlyList<string> closeCandidates
+    )
     {
         var displayCandidates = new List<string>(CandidateLimit);
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -664,10 +722,15 @@ public sealed class DiagnosticContext
     private static IReadOnlyList<DiagnosticAction>? CreateSafeReplacement(
         string original,
         string? suggestion,
-        TextSpan span)
+        TextSpan span
+    )
     {
-        if (string.IsNullOrWhiteSpace(suggestion) || !DiagnosticSafety.IsSafeSuggestedIdentifier(suggestion) ||
-            span.IsEmpty || span.Length != original.Length)
+        if (
+            string.IsNullOrWhiteSpace(suggestion)
+            || !DiagnosticSafety.IsSafeSuggestedIdentifier(suggestion)
+            || span.IsEmpty
+            || span.Length != original.Length
+        )
             return null;
 
         return
@@ -675,7 +738,8 @@ public sealed class DiagnosticContext
             DiagnosticAction.QuickFix(
                 $"Replace {DiagnosticSafety.QuoteForDisplay(original)} with {DiagnosticSafety.QuoteForDisplay(suggestion)}",
                 span,
-                suggestion)
+                suggestion
+            ),
         ];
     }
 
@@ -690,11 +754,7 @@ public sealed class DiagnosticContext
         if (start >= end)
             return nodeSpan;
 
-        var index = SourceText.Text.IndexOf(
-            alias,
-            start,
-            end - start,
-            StringComparison.OrdinalIgnoreCase);
+        var index = SourceText.Text.IndexOf(alias, start, end - start, StringComparison.OrdinalIgnoreCase);
         return index >= 0 ? new TextSpan(index, alias.Length) : nodeSpan;
     }
 
@@ -708,11 +768,7 @@ public sealed class DiagnosticContext
         if (start >= end)
             return nodeSpan;
 
-        var index = SourceText.Text.IndexOf(
-            identifier,
-            start,
-            end - start,
-            StringComparison.OrdinalIgnoreCase);
+        var index = SourceText.Text.IndexOf(identifier, start, end - start, StringComparison.OrdinalIgnoreCase);
         return index >= 0 ? new TextSpan(index, identifier.Length) : nodeSpan;
     }
 

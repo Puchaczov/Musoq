@@ -16,12 +16,16 @@ public sealed class QueryResultTests
     {
         var scenario = ScenarioCatalog.Get(id);
         var expected = Expectations.Get(id);
-        using var query = InstanceCreator.CompileForExecution(scenario.Sql, "correctness", FixtureCatalog.Prepare(scenario, FixtureData.TestSize).CreateSchemaProvider(),
-            BenchmarkLogger.Instance, ExecutionSettings.Create(scenario));
+        using var query = InstanceCreator.CompileForExecution(
+            scenario.Sql,
+            "correctness",
+            FixtureCatalog.Prepare(scenario, FixtureData.TestSize).CreateSchemaProvider(),
+            BenchmarkLogger.Instance,
+            ExecutionSettings.Create(scenario)
+        );
         ResultAssertions.Execution(expected, query, scenario);
         ResultAssertions.Execution(expected, query, scenario);
     }
-
 
     [TestMethod]
     public void Catalog_HasUniqueIdsAndCompleteExpectationsAndRegistration()
@@ -39,22 +43,52 @@ public static partial class Expectations
 {
     private static readonly Dictionary<string, ExpectedResult> Results = Create();
     public static IEnumerable<string> Ids => Results.Keys;
+
     public static ExpectedResult Get(string id) => Results[id];
+
     private static Dictionary<string, ExpectedResult> Create()
     {
         Dictionary<string, ExpectedResult> results = new()
         {
-            ["B01_Scan"] = new([("Id", typeof(int)), ("Name", typeof(string))],
-                [[0, "item-0"], [1, "item-1"], [2, "item-2"], [3, "item-3"]])
+            ["B01_Scan"] = new(
+                [("Id", typeof(int)), ("Name", typeof(string))],
+                [
+                    [0, "item-0"],
+                    [1, "item-1"],
+                    [2, "item-2"],
+                    [3, "item-3"],
+                ]
+            ),
         };
         AddRelational(results);
         AddAnalytics(results);
-        results.Add("B14_Skewed", new([("Id", typeof(int)), ("Count", typeof(long)), ("Total", typeof(decimal?))], [[0, 4L, 10m]]));
+        results.Add(
+            "B14_Skewed",
+            new(
+                [("Id", typeof(int)), ("Count", typeof(long)), ("Total", typeof(decimal?))],
+                [
+                    [0, 4L, 10m],
+                ]
+            )
+        );
         AddInterpretation(results);
         AddComposed(results);
-        results.Add("B01_Wide", new(new[] { ("Id", typeof(int)) }.Concat(Enumerable.Range(0, 64)
-            .Select(index => ($"C{index}", typeof(decimal)))).ToArray(), Enumerable.Range(0, 4)
-            .Select(row => new object?[] { row }.Concat(Enumerable.Range(0, 64).Select(column => (object?)(row + 1m + column))).ToArray()).ToArray()));
+        results.Add(
+            "B01_Wide",
+            new(
+                new[] { ("Id", typeof(int)) }
+                    .Concat(Enumerable.Range(0, 64).Select(index => ($"C{index}", typeof(decimal))))
+                    .ToArray(),
+                Enumerable
+                    .Range(0, 4)
+                    .Select(row =>
+                        new object?[] { row }
+                            .Concat(Enumerable.Range(0, 64).Select(column => (object?)(row + 1m + column)))
+                            .ToArray()
+                    )
+                    .ToArray()
+            )
+        );
         AddProfiles(results);
         AddCosts(results);
         return results;

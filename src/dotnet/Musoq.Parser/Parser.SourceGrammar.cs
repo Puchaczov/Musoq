@@ -9,7 +9,7 @@ internal enum SourceParseContext
 {
     Primary,
     JoinRight,
-    ApplyRight
+    ApplyRight,
 }
 
 internal enum SourceKind
@@ -22,7 +22,7 @@ internal enum SourceKind
     Property,
     Derived,
     Values,
-    Composite
+    Composite,
 }
 
 internal readonly record struct ParsedSource(
@@ -31,7 +31,8 @@ internal readonly record struct ParsedSource(
     TextSpan Extent,
     TextSpan SourceEndSpan,
     AliasParseResult Alias,
-    string? NaturalAlias)
+    string? NaturalAlias
+)
 {
     public bool HasExplicitAlias => Alias.HasAlias;
 
@@ -45,7 +46,8 @@ internal readonly record struct ParsedSource(
         int sourceStart,
         TextSpan sourceEndSpan,
         AliasParseResult alias,
-        string? naturalAlias = null)
+        string? naturalAlias = null
+    )
     {
         var extentEnd = alias.HasAlias ? alias.Span.End : sourceEndSpan.End;
         return new ParsedSource(
@@ -54,7 +56,8 @@ internal readonly record struct ParsedSource(
             TextSpan.FromBounds(sourceStart, extentEnd),
             sourceEndSpan,
             alias,
-            naturalAlias);
+            naturalAlias
+        );
     }
 
     public static ParsedSource Composite(FromNode node)
@@ -78,7 +81,9 @@ public partial class Parser
             message,
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2035_MissingRequiredAlias,
-            new TextSpan(source.SourceEndSpan.End, 0), ParserDiagnosticFacts.RequiredAlias(source.Kind, operatorText, GetSourceBoundaryText(), isFirstSource));
+            new TextSpan(source.SourceEndSpan.End, 0),
+            ParserDiagnosticFacts.RequiredAlias(source.Kind, operatorText, GetSourceBoundaryText(), isFirstSource)
+        );
     }
 
     private static string GetJoinOperatorText(Token token)
@@ -90,7 +95,7 @@ public partial class Parser
                 OuterJoinType.Left => "LEFT OUTER JOIN",
                 OuterJoinType.Right => "RIGHT OUTER JOIN",
                 OuterJoinType.Full => "FULL OUTER JOIN",
-                _ => "OUTER JOIN"
+                _ => "OUTER JOIN",
             },
             AsOfJoinToken asOf => asOf.IsLeft ? "ASOF LEFT JOIN" : "ASOF JOIN",
             _ => token.TokenType switch
@@ -101,8 +106,8 @@ public partial class Parser
                 TokenType.CrossJoin => "CROSS JOIN",
                 TokenType.CrossApply => "CROSS APPLY",
                 TokenType.OuterApply => "OUTER APPLY",
-                _ => token.Value.ToUpperInvariant()
-            }
+                _ => token.Value.ToUpperInvariant(),
+            },
         };
     }
 
@@ -120,9 +125,14 @@ public partial class Parser
             TokenType.OrderBy => "ORDER BY",
             TokenType.Skip => "SKIP",
             TokenType.Take => "TAKE",
-            TokenType.InnerJoin or TokenType.OuterJoin or TokenType.SemiJoin or TokenType.AntiJoin
-                or TokenType.CrossJoin or TokenType.CrossApply or TokenType.OuterApply or TokenType.AsOfJoin
-                => GetJoinOperatorText(Current),
+            TokenType.InnerJoin
+            or TokenType.OuterJoin
+            or TokenType.SemiJoin
+            or TokenType.AntiJoin
+            or TokenType.CrossJoin
+            or TokenType.CrossApply
+            or TokenType.OuterApply
+            or TokenType.AsOfJoin => GetJoinOperatorText(Current),
             TokenType.Union => "UNION",
             TokenType.UnionAll => "UNION ALL",
             TokenType.Except => "EXCEPT",
@@ -131,18 +141,37 @@ public partial class Parser
             TokenType.Semicolon => ";",
             TokenType.EndOfFile => "the end of the statement",
             _ when !string.IsNullOrWhiteSpace(Current.Value) => Current.Value.ToUpperInvariant(),
-            _ => "the next clause"
+            _ => "the next clause",
         };
     }
 
     private static bool IsJoinConditionBoundary(TokenType tokenType)
     {
-        return tokenType is TokenType.EndOfFile or TokenType.Semicolon or TokenType.RightParenthesis
-            or TokenType.Where or TokenType.GroupBy or TokenType.Having or TokenType.Window or TokenType.Qualify
-            or TokenType.OrderBy or TokenType.Skip or TokenType.Take or TokenType.With or TokenType.Union
-            or TokenType.UnionAll or TokenType.Except or TokenType.Intersect or TokenType.InnerJoin
-            or TokenType.OuterJoin or TokenType.SemiJoin or TokenType.AntiJoin or TokenType.CrossJoin
-            or TokenType.CrossApply or TokenType.OuterApply or TokenType.AsOfJoin;
+        return tokenType
+            is TokenType.EndOfFile
+                or TokenType.Semicolon
+                or TokenType.RightParenthesis
+                or TokenType.Where
+                or TokenType.GroupBy
+                or TokenType.Having
+                or TokenType.Window
+                or TokenType.Qualify
+                or TokenType.OrderBy
+                or TokenType.Skip
+                or TokenType.Take
+                or TokenType.With
+                or TokenType.Union
+                or TokenType.UnionAll
+                or TokenType.Except
+                or TokenType.Intersect
+                or TokenType.InnerJoin
+                or TokenType.OuterJoin
+                or TokenType.SemiJoin
+                or TokenType.AntiJoin
+                or TokenType.CrossJoin
+                or TokenType.CrossApply
+                or TokenType.OuterApply
+                or TokenType.AsOfJoin;
     }
 
     private void EnsureJoinCondition(string operatorText)
@@ -161,19 +190,23 @@ public partial class Parser
             $"The {operatorText} requires an ON condition.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2007_InvalidJoinCondition,
-            span);
+            span
+        );
     }
 
     private static SyntaxException MissingRequiredAliasAfterDelimiter(
         string sourceKind,
         string delimiter,
         string queryPart,
-        TextSpan position)
+        TextSpan position
+    )
     {
         return new SyntaxException(
             $"The {sourceKind} source requires an alias after {delimiter}.",
             queryPart,
             DiagnosticCode.MQ2035_MissingRequiredAlias,
-            new TextSpan(position.End, 0), ParserDiagnosticFacts.RequiredAliasAfterDelimiter(sourceKind, delimiter));
+            new TextSpan(position.End, 0),
+            ParserDiagnosticFacts.RequiredAliasAfterDelimiter(sourceKind, delimiter)
+        );
     }
 }

@@ -1,7 +1,6 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -9,27 +8,35 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class LibraryExecutionMixedKeyQueryTests : GenericEntityTestBase
 {
+    [TestMethod]
+    public void CompositeHashKeys_WhenIntegralWidthsDiffer_ShouldPreserveNumericEquality() =>
+        AssertMatches(MixedKeyQuery);
 
     [TestMethod]
-    public void CompositeHashKeys_WhenIntegralWidthsDiffer_ShouldPreserveNumericEquality()
-        => AssertMatches(MixedKeyQuery);
-
-    [TestMethod]
-    public void CompositeHashKeys_WhenMaterializedInACte_ShouldPreserveNumericEquality()
-        => AssertMatches("with Data as (select Position, IntKey, LongKey, Label from #schema.first()) " +
-            "select a.Position as LeftPosition, b.Position as RightPosition from Data a inner join Data b " +
-            "on a.IntKey = b.LongKey and a.Label = b.Label order by LeftPosition, RightPosition");
+    public void CompositeHashKeys_WhenMaterializedInACte_ShouldPreserveNumericEquality() =>
+        AssertMatches(
+            "with Data as (select Position, IntKey, LongKey, Label from #schema.first()) "
+                + "select a.Position as LeftPosition, b.Position as RightPosition from Data a inner join Data b "
+                + "on a.IntKey = b.LongKey and a.Label = b.Label order by LeftPosition, RightPosition"
+        );
 
     [TestMethod]
     public void CompositeHashKeys_WhenIntegralSignsDiffer_ShouldKeepNegativeAndLargeKeysDistinct()
     {
-        const string query = "select a.Position as LeftPosition, b.Position as RightPosition " +
-            "from #schema.first() a inner join #schema.first() b " +
-            "on a.SignedKey = b.UnsignedKey and a.Label = b.Label order by LeftPosition";
-        using var compiled = CreateAndRunVirtualMachine<SignedInput>(query,
-            [new(1, -1, ulong.MaxValue, "A"), new(2, 42, 42, "A")]);
+        const string query =
+            "select a.Position as LeftPosition, b.Position as RightPosition "
+            + "from #schema.first() a inner join #schema.first() b "
+            + "on a.SignedKey = b.UnsignedKey and a.Label = b.Label order by LeftPosition";
+        using var compiled = CreateAndRunVirtualMachine<SignedInput>(
+            query,
+            [new(1, -1, ulong.MaxValue, "A"), new(2, 42, 42, "A")]
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(table, ("LeftPosition", typeof(int)), ("RightPosition", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("LeftPosition", typeof(int)),
+            ("RightPosition", typeof(int))
+        );
         var row = table.Single();
         Assert.AreEqual(2, row.GetValue<int>(0));
         Assert.AreEqual(2, row.GetValue<int>(1));
@@ -40,7 +47,11 @@ public sealed class LibraryExecutionMixedKeyQueryTests : GenericEntityTestBase
         using var compiled = CreateAndRunVirtualMachine<MixedInput>(query, CreateRows());
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table, ("LeftPosition", typeof(int)), ("RightPosition", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("LeftPosition", typeof(int)),
+            ("RightPosition", typeof(int))
+        );
         (int Left, int Right)[] expected = [(1, 1), (1, 2), (2, 1), (2, 2), (4, 4), (5, 5)];
         Assert.HasCount(expected.Length, rows);
         for (var index = 0; index < rows.Length; index++)

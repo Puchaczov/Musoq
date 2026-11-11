@@ -3,8 +3,7 @@ using Musoq.Evaluator.IR.Physical;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.Coordinators;
 
-internal sealed class AggregateLoweringService(
-    IAggregateLoweringOperations operations) : IAggregateLoweringService
+internal sealed class AggregateLoweringService(IAggregateLoweringOperations operations) : IAggregateLoweringService
 {
     public AggregateOnlyPipeline? DecomposeAggregateOnlyPipeline(PhysicalNode node) =>
         operations.DecomposeAggregateOnlyPipeline(node);
@@ -28,23 +27,65 @@ internal sealed class AggregateLoweringService(
         operations.CreatePlanResult(identifier, table);
 
     public LoweringAttempt<LoweredTable> BuildAggregateOnlyTable(
-        AggregateOnlyPipeline pipeline, string resultTableName, string resultShapeName,
-        IReadOnlyDictionary<string, int> cteIndexes, IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex, bool scopeAggregateVariables, LoweringScope scope) =>
-        operations.BuildAggregateOnlyTable(pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName,
-            schemaFromIndex, scopeAggregateVariables, scope);
+        AggregateOnlyPipeline pipeline,
+        string resultTableName,
+        string resultShapeName,
+        IReadOnlyDictionary<string, int> cteIndexes,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
+        int schemaFromIndex,
+        bool scopeAggregateVariables,
+        LoweringScope scope
+    ) =>
+        operations.BuildAggregateOnlyTable(
+            pipeline,
+            resultTableName,
+            resultShapeName,
+            cteIndexes,
+            cteShapesByName,
+            schemaFromIndex,
+            scopeAggregateVariables,
+            scope
+        );
 
     public LoweringAttempt<LoweredTable> BuildSingleKeyAggregateTable(
-        AggregateSingleKeyPipeline pipeline, string resultTableName, string resultShapeName,
-        IReadOnlyDictionary<string, int> cteIndexes, IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex, bool scopeAggregateVariables, LoweringScope scope) =>
-        operations.BuildSingleKeyAggregateTable(pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName,
-            schemaFromIndex, scopeAggregateVariables, scope);
+        AggregateSingleKeyPipeline pipeline,
+        string resultTableName,
+        string resultShapeName,
+        IReadOnlyDictionary<string, int> cteIndexes,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
+        int schemaFromIndex,
+        bool scopeAggregateVariables,
+        LoweringScope scope
+    ) =>
+        operations.BuildSingleKeyAggregateTable(
+            pipeline,
+            resultTableName,
+            resultShapeName,
+            cteIndexes,
+            cteShapesByName,
+            schemaFromIndex,
+            scopeAggregateVariables,
+            scope
+        );
 
     public LoweringAttempt<LoweredTable> BuildValueTupleAggregateTable(
-        ValueTupleAggregatePipeline pipeline, string resultTableName, string resultShapeName,
-        IReadOnlyDictionary<string, int> cteIndexes, IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex, bool scopeAggregateVariables, LoweringScope scope) =>
-        operations.BuildValueTupleAggregateTable(pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName,
-            schemaFromIndex, scopeAggregateVariables, scope);
+        ValueTupleAggregatePipeline pipeline,
+        string resultTableName,
+        string resultShapeName,
+        IReadOnlyDictionary<string, int> cteIndexes,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
+        int schemaFromIndex,
+        bool scopeAggregateVariables,
+        LoweringScope scope
+    ) =>
+        operations.BuildValueTupleAggregateTable(
+            pipeline,
+            resultTableName,
+            resultShapeName,
+            cteIndexes,
+            cteShapesByName,
+            schemaFromIndex,
+            scopeAggregateVariables,
+            scope
+        );
 }

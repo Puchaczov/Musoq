@@ -13,7 +13,8 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (multiStatement.Statements.Length < 2)
             return null;
@@ -32,51 +33,59 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         var finalPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(multiStatement.Statements[^1]));
-        if (finalPipeline is not { Source: PhysicalCteRefNode cteRef } ||
-            finalPipeline.PostOperations.Count != 0 ||
-            (recursiveSink == null &&
-             !string.Equals(cteRef.CteName, producerCteName, StringComparison.OrdinalIgnoreCase)))
+        if (
+            finalPipeline is not { Source: PhysicalCteRefNode cteRef }
+            || finalPipeline.PostOperations.Count != 0
+            || (
+                recursiveSink == null
+                && !string.Equals(cteRef.CteName, producerCteName, StringComparison.OrdinalIgnoreCase)
+            )
+        )
         {
             return recursiveSink == null
                 ? null
                 : TableBuildResult.Unsupported(
-                    $"Recursive CTE '{recursiveSink.CteName}' final projection is not a direct read of its branch producer.");
+                    $"Recursive CTE '{recursiveSink.CteName}' final projection is not a direct read of its branch producer."
+                );
         }
 
-        var producerPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(multiStatement.Statements[producerIndex]));
-        if (producerPipeline == null ||
-            producerPipeline.Project.IsDistinct ||
-            producerPipeline.PostOperations.Count != 0 ||
-            (!CanInlineFinalProjectionSource(producerPipeline.Source, finalPipeline.Filter) &&
-             (scope.RecursiveCteSink == null ||
-              !CanInlineRecursiveCteProjectionSource(producerPipeline.Source))))
+        var producerPipeline = DecomposeSupportedPipeline(
+            UnwrapSingleStatement(multiStatement.Statements[producerIndex])
+        );
+        if (
+            producerPipeline == null
+            || producerPipeline.Project.IsDistinct
+            || producerPipeline.PostOperations.Count != 0
+            || (
+                !CanInlineFinalProjectionSource(producerPipeline.Source, finalPipeline.Filter)
+                && (scope.RecursiveCteSink == null || !CanInlineRecursiveCteProjectionSource(producerPipeline.Source))
+            )
+        )
         {
             return recursiveSink == null
                 ? null
                 : TableBuildResult.Unsupported(
-                    $"Recursive CTE '{recursiveSink.CteName}' branch producer is not a supported direct projection pipeline " +
-                    $"({producerPipeline?.Source.GetType().Name ?? "unknown source"}).");
+                    $"Recursive CTE '{recursiveSink.CteName}' branch producer is not a supported direct projection pipeline "
+                        + $"({producerPipeline?.Source.GetType().Name ?? "unknown source"})."
+                );
         }
 
         var rewrite = RewriteFinalJoinProjection(
             finalPipeline.Project,
             finalPipeline.Filter,
             producerPipeline.Project,
-            cteRef);
+            cteRef
+        );
         if (rewrite == null)
         {
             return recursiveSink == null
                 ? null
                 : TableBuildResult.Unsupported(
-                    $"Recursive CTE '{recursiveSink.CteName}' final projection cannot be fused with its branch producer.");
+                    $"Recursive CTE '{recursiveSink.CteName}' final projection cannot be fused with its branch producer."
+                );
         }
 
-        var prefix = BuildMultiStatementPrefix(
-            multiStatement,
-            producerIndex,
-            indexes,
-            scopeAggregateVariables,
-            scope);
+        var prefix = BuildMultiStatementPrefix(multiStatement, producerIndex, indexes, scopeAggregateVariables, scope);
         if (!prefix.IsBuilt)
             return TableBuildResult.Unsupported(prefix.UnsupportedReason);
 
@@ -87,44 +96,44 @@ internal sealed partial class PhysicalLoweringImplementation
                 Filter = ReadOnceCteProjectionLowerer.CombineProducerAndFinalFilters(
                     producerPipeline.Filter,
                     rewrite.Filter,
-                    producerPipeline.Source)
+                    producerPipeline.Source
+                ),
             },
             resultTableName,
             resultShapeName,
             indexes.CteIndexes,
             indexes.CteShapesByName,
             schemaFromIndex: DefaultSchemaFromIndex,
-            scope: scope);
+            scope: scope
+        );
         if (!result.IsBuilt)
             return result;
 
-        var tableIndex = recursiveSink == null
-            ? ResolveStatementTableIndex(producerIndex, indexes)
-            : -1;
+        var tableIndex = recursiveSink == null ? ResolveStatementTableIndex(producerIndex, indexes) : -1;
         if (recursiveSink == null && tableIndex < 0)
         {
             return TableBuildResult.Unsupported(
-                $"Execution IR single-use projection fusion cannot resolve table storage slot for statement {producerIndex.ToString(CultureInfo.InvariantCulture)}.");
+                $"Execution IR single-use projection fusion cannot resolve table storage slot for statement {producerIndex.ToString(CultureInfo.InvariantCulture)}."
+            );
         }
 
-        IReadOnlyList<ExecutionNode> resultNodes = recursiveSink == null
-            ? [CreateSingleUsePipelineFusionCandidate(tableIndex, result.Nodes)]
-            : result.Nodes;
+        IReadOnlyList<ExecutionNode> resultNodes =
+            recursiveSink == null ? [CreateSingleUsePipelineFusionCandidate(tableIndex, result.Nodes)] : result.Nodes;
 
         return TableBuildResult.Success(
-            [..prefix.Shapes, ..result.Shapes],
-            [..prefix.Nodes, ..resultNodes],
+            [.. prefix.Shapes, .. result.Shapes],
+            [.. prefix.Nodes, .. resultNodes],
             result.Table,
-            result.RowShape);
+            result.RowShape
+        );
     }
 
     private static ExecutionSingleUsePipelineFusionCandidate CreateSingleUsePipelineFusionCandidate(
         int relatedTableIndex,
-        IReadOnlyList<ExecutionNode> body)
+        IReadOnlyList<ExecutionNode> body
+    )
     {
-        return new ExecutionSingleUsePipelineFusionCandidate(
-            relatedTableIndex,
-            new ExecutionBlock(body));
+        return new ExecutionSingleUsePipelineFusionCandidate(relatedTableIndex, new ExecutionBlock(body));
     }
 
     private static bool CanInlineRecursiveCteProjectionSource(PhysicalNode source)
@@ -132,10 +141,9 @@ internal sealed partial class PhysicalLoweringImplementation
         return source switch
         {
             PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode => true,
-            PhysicalNestedLoopApplyNode apply =>
-                CanInlineRecursiveCteProjectionInput(apply.Left) &&
-                CanInlineRecursiveCteProjectionInput(apply.Right),
-            _ => false
+            PhysicalNestedLoopApplyNode apply => CanInlineRecursiveCteProjectionInput(apply.Left)
+                && CanInlineRecursiveCteProjectionInput(apply.Right),
+            _ => false,
         };
     }
 
@@ -143,12 +151,15 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return source switch
         {
-            PhysicalCteRefNode or PhysicalSchemaScanNode or PhysicalValuesScanNode or
-                PhysicalInterpretSourceNode or PhysicalPropertySourceNode or PhysicalAccessMethodSourceNode => true,
-            PhysicalNestedLoopApplyNode apply =>
-                CanInlineRecursiveCteProjectionInput(apply.Left) &&
-                CanInlineRecursiveCteProjectionInput(apply.Right),
-            _ => false
+            PhysicalCteRefNode
+            or PhysicalSchemaScanNode
+            or PhysicalValuesScanNode
+            or PhysicalInterpretSourceNode
+            or PhysicalPropertySourceNode
+            or PhysicalAccessMethodSourceNode => true,
+            PhysicalNestedLoopApplyNode apply => CanInlineRecursiveCteProjectionInput(apply.Left)
+                && CanInlineRecursiveCteProjectionInput(apply.Right),
+            _ => false,
         };
     }
 }

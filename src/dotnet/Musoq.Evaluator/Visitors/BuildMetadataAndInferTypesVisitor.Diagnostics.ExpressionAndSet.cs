@@ -25,7 +25,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3027_InvalidExpressionType,
                 $"Query output column '{field.FieldName}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. Only primitive types are allowed in query outputs.",
-                node);
+                node
+            );
             return true;
         }
 
@@ -42,15 +43,20 @@ public partial class BuildMetadataAndInferTypesVisitor
     /// <param name="context">The context where the error occurred.</param>
     /// <param name="node">The node where the error occurred.</param>
     /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
-    protected bool TryReportInvalidExpressionType(string expressionDescription, Type? invalidType, string context,
-        Node? node)
+    protected bool TryReportInvalidExpressionType(
+        string expressionDescription,
+        Type? invalidType,
+        string context,
+        Node? node
+    )
     {
         if (DiagnosticContext != null)
         {
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3027_InvalidExpressionType,
                 $"Expression '{expressionDescription}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. Only primitive types are allowed in query expressions.",
-                node);
+                node
+            );
             return true;
         }
 
@@ -72,7 +78,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3026_ColumnNotBindable,
                 $"Column '{columnName}' must be marked with BindablePropertyAsTable attribute to be used in this context.",
-                node);
+                node
+            );
             return true;
         }
 
@@ -92,17 +99,19 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         if (DiagnosticContext != null)
         {
-            if (node is { HasSpan: true } &&
-                DiagnosticContext.HasNearbyError(DiagnosticCode.MQ3028_UnknownProperty, node.Span))
+            if (
+                node is { HasSpan: true }
+                && DiagnosticContext.HasNearbyError(DiagnosticCode.MQ3028_UnknownProperty, node.Span)
+            )
                 return true;
 
             DiagnosticContext.ReportUnknownProperty(
                 identifier,
                 properties.Select(static property => property.Name),
-                node);
+                node
+            );
             return true;
         }
-
 
         return false;
     }
@@ -118,14 +127,10 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         if (DiagnosticContext != null)
         {
-            DiagnosticContext.ReportError(
-                DiagnosticCode.MQ4016_UnsupportedSchemaConstruction,
-                description,
-                node);
+            DiagnosticContext.ReportError(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction, description, node);
             return true;
         }
 
         return false;
     }
-
 }

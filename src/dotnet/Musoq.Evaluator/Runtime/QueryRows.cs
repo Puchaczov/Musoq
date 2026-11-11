@@ -30,7 +30,8 @@ public static class QueryRows
         string name,
         Column[] columns,
         IAsyncEnumerable<TRow> rows,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -48,7 +49,8 @@ public static class QueryRows
         string name,
         Column[] columns,
         IAsyncEnumerable<IReadOnlyList<TRow>> chunks,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -57,24 +59,23 @@ public static class QueryRows
 
         var table = new Table(name, columns);
         await foreach (var chunk in chunks.WithCancellation(cancellationToken).ConfigureAwait(false))
-            foreach (var row in chunk)
-                table.AddDirect(row);
+        foreach (var row in chunk)
+            table.AddDirect(row);
 
         return table;
     }
 
-    public static Table MaterializeTable<TRow>(
-        string name,
-        Column[] columns,
-        IEnumerable<TRow> rows)
+    public static Table MaterializeTable<TRow>(string name, Column[] columns, IEnumerable<TRow> rows)
         where TRow : Row
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(columns);
         ArgumentNullException.ThrowIfNull(rows);
 
-        if (rows is ITableMaterializationSource materializationSource &&
-            materializationSource.TryMaterializeTable(name, columns, out var materializedTable))
+        if (
+            rows is ITableMaterializationSource materializationSource
+            && materializationSource.TryMaterializeTable(name, columns, out var materializedTable)
+        )
         {
             return materializedTable;
         }
@@ -89,7 +90,8 @@ public static class QueryRows
         string name,
         Column[] columns,
         Func<CancellationToken, IEnumerable<TRow>> rowsFactory,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);

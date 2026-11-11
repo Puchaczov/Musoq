@@ -73,7 +73,8 @@ public class InterpretFromNode : FromNode
                 PartialInterpretCallNode partialInterpret => partialInterpret.SchemaName,
                 PartialParseCallNode partialParse => partialParse.SchemaName,
                 _ => throw new InvalidOperationException(
-                    $"Unexpected interpret call type: {InterpretCall.GetType().Name}")
+                    $"Unexpected interpret call type: {InterpretCall.GetType().Name}"
+                ),
             };
         }
     }
@@ -103,15 +104,18 @@ public class InterpretFromNode : FromNode
 
     private static void ValidateInterpretCall(Node interpretCall)
     {
-        if (interpretCall is not InterpretCallNode
+        if (
+            interpretCall is not InterpretCallNode
             && interpretCall is not InterpretAtCallNode
             && interpretCall is not ParseCallNode
             && interpretCall is not TryInterpretCallNode
             && interpretCall is not TryParseCallNode
             && interpretCall is not PartialInterpretCallNode
-            && interpretCall is not PartialParseCallNode)
+            && interpretCall is not PartialParseCallNode
+        )
             throw new ArgumentException(
                 $"Expected InterpretCallNode, InterpretAtCallNode, ParseCallNode, TryInterpretCallNode, TryParseCallNode, PartialInterpretCallNode, or PartialParseCallNode but got {interpretCall.GetType().Name}",
-                nameof(interpretCall));
+                nameof(interpretCall)
+            );
     }
 }

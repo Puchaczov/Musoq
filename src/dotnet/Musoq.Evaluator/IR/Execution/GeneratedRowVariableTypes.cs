@@ -5,8 +5,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class GeneratedRowVariableTypes
 {
-    public static Dictionary<string, HashSet<string>> Collect(ExecutionBlock block,
-        IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes = null)
+    public static Dictionary<string, HashSet<string>> Collect(
+        ExecutionBlock block,
+        IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes = null
+    )
     {
         ArgumentNullException.ThrowIfNull(block);
         var result = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
@@ -31,7 +33,9 @@ internal static class GeneratedRowVariableTypes
 
     private static void AddGeneratedRowVariableTypeFromNode(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        ExecutionNode node, IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes)
+        ExecutionNode node,
+        IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes
+    )
     {
         switch (node)
         {
@@ -39,7 +43,12 @@ internal static class GeneratedRowVariableTypes
                 AddGeneratedRowVariableTypeFromSource(variableTypeNamesByName, let.Variable, let.Value, storedShapes);
                 break;
             case ExecutionAssign assign:
-                AddGeneratedRowVariableTypeFromSource(variableTypeNamesByName, assign.Variable, assign.Value, storedShapes);
+                AddGeneratedRowVariableTypeFromSource(
+                    variableTypeNamesByName,
+                    assign.Variable,
+                    assign.Value,
+                    storedShapes
+                );
                 break;
             case ExecutionMaterializeList { GeneratedRowShape: { } shape } materialize:
                 AddVariableType(variableTypeNamesByName, materialize.Buffer.Name, shape.TypeName);
@@ -56,7 +65,9 @@ internal static class GeneratedRowVariableTypes
     private static void AddGeneratedRowVariableTypeFromSource(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
         ExecutionVariable variable,
-        ExecutionExpression source, IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes)
+        ExecutionExpression source,
+        IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes
+    )
     {
         if (TryResolveGeneratedRowTypeName(source, storedShapes, out var typeName))
             AddVariableType(variableTypeNamesByName, variable.Name, typeName);
@@ -64,7 +75,9 @@ internal static class GeneratedRowVariableTypes
 
     private static void AddGeneratedRowItemTypeFromSource(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        ExecutionNode node, IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes)
+        ExecutionNode node,
+        IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes
+    )
     {
         switch (node)
         {
@@ -78,7 +91,12 @@ internal static class GeneratedRowVariableTypes
                 AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, loop.Item, loop.Source);
                 break;
             case ExecutionMaterializeFilteredList materialize:
-                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, materialize.Item, materialize.Source, storedShapes);
+                AddGeneratedRowItemTypeFromSource(
+                    variableTypeNamesByName,
+                    materialize.Item,
+                    materialize.Source,
+                    storedShapes
+                );
                 break;
         }
     }
@@ -86,7 +104,9 @@ internal static class GeneratedRowVariableTypes
     private static void AddGeneratedRowItemTypeFromSource(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
         ExecutionVariable item,
-        ExecutionExpression source, IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes)
+        ExecutionExpression source,
+        IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes
+    )
     {
         if (TryResolveGeneratedRowTypeName(source, storedShapes, out var typeName))
         {
@@ -98,10 +118,9 @@ internal static class GeneratedRowVariableTypes
         {
             ExecutionVariableRead read => read.Variable,
             ExecutionRowStream stream => stream.Variable,
-            _ => null
+            _ => null,
         };
-        if (sourceVariable is not null &&
-            variableTypeNamesByName.TryGetValue(sourceVariable.Name, out var typeNames))
+        if (sourceVariable is not null && variableTypeNamesByName.TryGetValue(sourceVariable.Name, out var typeNames))
         {
             foreach (var sourceTypeName in typeNames)
                 AddVariableType(variableTypeNamesByName, item.Name, sourceTypeName);
@@ -111,7 +130,8 @@ internal static class GeneratedRowVariableTypes
     private static void AddGeneratedRowItemTypeFromSource(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
         ExecutionVariable item,
-        ExecutionVariable source)
+        ExecutionVariable source
+    )
     {
         if (!string.IsNullOrWhiteSpace(source.GeneratedRowTypeName))
         {
@@ -126,15 +146,19 @@ internal static class GeneratedRowVariableTypes
             AddVariableType(variableTypeNamesByName, item.Name, sourceTypeName);
     }
 
-    private static bool TryResolveGeneratedRowTypeName(ExecutionExpression source,
-        IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes, out string typeName)
+    private static bool TryResolveGeneratedRowTypeName(
+        ExecutionExpression source,
+        IReadOnlyDictionary<int, GeneratedRowShape>? storedShapes,
+        out string typeName
+    )
     {
         switch (source)
         {
             case ExecutionStoredTableRows { GeneratedRowShape: { } shape }:
                 typeName = shape.TypeName;
                 return true;
-            case ExecutionStoredTableRows stored when storedShapes is not null && storedShapes.TryGetValue(stored.TableIndex, out var storedShape):
+            case ExecutionStoredTableRows stored
+                when storedShapes is not null && storedShapes.TryGetValue(stored.TableIndex, out var storedShape):
                 typeName = storedShape.TypeName;
                 return true;
             case ExecutionVariableRead { Variable.GeneratedRowTypeName: { } generatedRowTypeName }:
@@ -152,7 +176,8 @@ internal static class GeneratedRowVariableTypes
     private static void AddVariableType(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
         string variableName,
-        string typeName)
+        string typeName
+    )
     {
         if (!variableTypeNamesByName.TryGetValue(variableName, out var typeNames))
         {
@@ -162,5 +187,4 @@ internal static class GeneratedRowVariableTypes
 
         typeNames.Add(typeName);
     }
-
 }

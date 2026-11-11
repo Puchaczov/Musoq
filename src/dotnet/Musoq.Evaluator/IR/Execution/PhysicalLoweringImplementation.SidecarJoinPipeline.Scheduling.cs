@@ -10,17 +10,19 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ExecutionBlock CreateSidecarJoinRuntimeBody(
         IReadOnlyList<SidecarJoinRuntimeOperation> operations,
         RowShape baseShape,
-        ExecutionBlock continuation)
+        ExecutionBlock continuation
+    )
     {
         return new SidecarJoinRuntimePlanner(
-                CreateSidecarJoinStepBlock,
-                static (guard, body) => CreateConditionalJoinBlock(guard.Predicate, guard.SourceLookup, body))
-            .CreateRuntimeBody(operations, baseShape, continuation);
+            CreateSidecarJoinStepBlock,
+            static (guard, body) => CreateConditionalJoinBlock(guard.Predicate, guard.SourceLookup, body)
+        ).CreateRuntimeBody(operations, baseShape, continuation);
     }
 
     private static IReadOnlySet<string> CreateSidecarJoinIntroducedAliases(
         CteSidecarIndexSpec sidecar,
-        RowShape buildShape)
+        RowShape buildShape
+    )
     {
         var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (sidecar.Kind == CteSidecarIndexKind.Hash)
@@ -32,7 +34,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static IReadOnlySet<string> CreateSidecarJoinRequiredAliases(
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         IReadOnlySet<string> aliasesIntroducedByOperation,
-        params IrExpression?[] expressions)
+        params IrExpression?[] expressions
+    )
     {
         if (!TryCollectSidecarJoinRequiredAliases(sourceLookup, expressions, out var aliases))
             return new HashSet<string>(sourceLookup.Keys, StringComparer.OrdinalIgnoreCase);
@@ -45,7 +48,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IrExpression predicate,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         int ordinal,
-        [NotNullWhen(true)] out SidecarJoinRuntimeGuard? guard)
+        [NotNullWhen(true)] out SidecarJoinRuntimeGuard? guard
+    )
     {
         if (TryCollectSidecarJoinRequiredAliases(sourceLookup, [predicate], out var requiredAliases))
         {
@@ -60,7 +64,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool TryCollectSidecarJoinRequiredAliases(
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         IEnumerable<IrExpression?> expressions,
-        out HashSet<string> aliases)
+        out HashSet<string> aliases
+    )
     {
         aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -77,38 +82,64 @@ internal sealed partial class PhysicalLoweringImplementation
         return true;
     }
 
-    private static bool TryCollectExecutionExpressionAliases(
-        ExecutionExpression expression,
-        ISet<string> aliases)
+    private static bool TryCollectExecutionExpressionAliases(ExecutionExpression expression, ISet<string> aliases)
     {
         return expression switch
         {
             ExecutionFieldRead fieldRead => TryAddFieldAlias(fieldRead, aliases),
-            ExecutionBinary binary => TryCollectExecutionExpressionAliases(binary.Left, aliases) &&
-                                      TryCollectExecutionExpressionAliases(binary.Right, aliases),
+            ExecutionBinary binary => TryCollectExecutionExpressionAliases(binary.Left, aliases)
+                && TryCollectExecutionExpressionAliases(binary.Right, aliases),
             ExecutionUnary unary => TryCollectExecutionExpressionAliases(unary.Operand, aliases),
             ExecutionStrictCast strictCast => TryCollectExecutionExpressionAliases(strictCast.Expression, aliases),
-            ExecutionMethodCall method => method.Arguments.All(argument => TryCollectExecutionExpressionAliases(argument, aliases)) &&
-                                          (method.InjectedSource == null || TryCollectExecutionExpressionAliases(method.InjectedSource, aliases)),
-            ExecutionArrayAccess array => TryCollectExecutionExpressionAliases(array.Array, aliases) &&
-                                          TryCollectExecutionExpressionAliases(array.Index, aliases),
+            ExecutionMethodCall method => method.Arguments.All(argument =>
+                TryCollectExecutionExpressionAliases(argument, aliases)
+            )
+                && (
+                    method.InjectedSource == null
+                    || TryCollectExecutionExpressionAliases(method.InjectedSource, aliases)
+                ),
+            ExecutionArrayAccess array => TryCollectExecutionExpressionAliases(array.Array, aliases)
+                && TryCollectExecutionExpressionAliases(array.Index, aliases),
             ExecutionIsNullCheck isNull => TryCollectExecutionExpressionAliases(isNull.Expression, aliases),
-            ExecutionRowPresence rowPresence => TryAddRowPresenceAlias(rowPresence, aliases) &&
-                                                TryCollectExecutionExpressionAliases(rowPresence.PresenceSource, aliases),
-            ExecutionInCheck inCheck => TryCollectExecutionExpressionAliases(inCheck.Expression, aliases) &&
-                                        inCheck.Values.All(value => TryCollectExecutionExpressionAliases(value, aliases)),
-            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AllChildren(expression, child => TryCollectExecutionExpressionAliases(child, aliases)),
-            ExecutionBetween between => TryCollectExecutionExpressionAliases(between.Expression, aliases) &&
-                                        TryCollectExecutionExpressionAliases(between.Low, aliases) &&
-                                        TryCollectExecutionExpressionAliases(between.High, aliases),
-            ExecutionCaseWhen caseWhen => caseWhen.Branches.All(branch => TryCollectExecutionExpressionAliases(branch.Condition, aliases) &&
-                                                                          TryCollectExecutionExpressionAliases(branch.Result, aliases)) &&
-                                          (caseWhen.ElseExpression == null || TryCollectExecutionExpressionAliases(caseWhen.ElseExpression, aliases)),
-            ExecutionStringConcatenation concatenation => concatenation.Expressions.All(expression => TryCollectExecutionExpressionAliases(expression, aliases)),
-            ExecutionCoalesce coalesce => coalesce.Expressions.All(expression => TryCollectExecutionExpressionAliases(expression, aliases)),
+            ExecutionRowPresence rowPresence => TryAddRowPresenceAlias(rowPresence, aliases)
+                && TryCollectExecutionExpressionAliases(rowPresence.PresenceSource, aliases),
+            ExecutionInCheck inCheck => TryCollectExecutionExpressionAliases(inCheck.Expression, aliases)
+                && inCheck.Values.All(value => TryCollectExecutionExpressionAliases(value, aliases)),
+            ExecutionPatternMatch
+            or ExecutionStringMatch
+            or ExecutionPrepareLikeMatcher
+            or ExecutionPreparedLikeMatch
+            or ExecutionDynamicLikeMatch
+            or ExecutionLikeMatcherCacheSlot
+            or ExecutionPrepareRLikeMatcher
+            or ExecutionPreparedRLikeMatch
+            or ExecutionDynamicRLikeMatch
+            or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AllChildren(
+                expression,
+                child => TryCollectExecutionExpressionAliases(child, aliases)
+            ),
+            ExecutionBetween between => TryCollectExecutionExpressionAliases(between.Expression, aliases)
+                && TryCollectExecutionExpressionAliases(between.Low, aliases)
+                && TryCollectExecutionExpressionAliases(between.High, aliases),
+            ExecutionCaseWhen caseWhen => caseWhen.Branches.All(branch =>
+                TryCollectExecutionExpressionAliases(branch.Condition, aliases)
+                && TryCollectExecutionExpressionAliases(branch.Result, aliases)
+            )
+                && (
+                    caseWhen.ElseExpression == null
+                    || TryCollectExecutionExpressionAliases(caseWhen.ElseExpression, aliases)
+                ),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.All(expression =>
+                TryCollectExecutionExpressionAliases(expression, aliases)
+            ),
+            ExecutionCoalesce coalesce => coalesce.Expressions.All(expression =>
+                TryCollectExecutionExpressionAliases(expression, aliases)
+            ),
             ExecutionValueTupleKey key => key.Parts.All(part => TryCollectExecutionExpressionAliases(part, aliases)),
-            ExecutionAggregateCall aggregate => aggregate.Arguments.All(argument => TryCollectExecutionExpressionAliases(argument, aliases)),
-            _ => true
+            ExecutionAggregateCall aggregate => aggregate.Arguments.All(argument =>
+                TryCollectExecutionExpressionAliases(argument, aliases)
+            ),
+            _ => true,
         };
     }
 

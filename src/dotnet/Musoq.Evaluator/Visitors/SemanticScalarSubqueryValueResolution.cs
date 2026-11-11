@@ -10,7 +10,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private bool TryElideCorrelatedScalarSubqueryResultAccessor(AccessMethodNode node, ArgsListNode args)
     {
-        if (!node.IsCompilerGenerated || !string.Equals(node.Name, CorrelatedScalarSubqueryResultName, StringComparison.Ordinal))
+        if (
+            !node.IsCompilerGenerated
+            || !string.Equals(node.Name, CorrelatedScalarSubqueryResultName, StringComparison.Ordinal)
+        )
             return false;
 
         if (args.Args is not [var wrappedExpression])
@@ -18,8 +21,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var returnType = wrappedExpression.ReturnType ?? typeof(object);
         var wrappedType = Nullable.GetUnderlyingType(returnType) ?? returnType;
-        if (wrappedType.IsGenericType &&
-            wrappedType.GetGenericTypeDefinition() == typeof(CorrelatedScalarSubqueryResult<>))
+        if (
+            wrappedType.IsGenericType
+            && wrappedType.GetGenericTypeDefinition() == typeof(CorrelatedScalarSubqueryResult<>)
+        )
         {
             return false;
         }

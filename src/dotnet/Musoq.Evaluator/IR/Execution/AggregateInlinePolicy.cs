@@ -30,14 +30,12 @@ internal static class AggregateInlinePolicy
         if (genericDefinition == typeof(CountReferenceAggregateKernel<>))
             return AggregateInlineKind.CountReference;
 
-        if (genericDefinition == typeof(SumAggregateKernel<>) &&
-            CanInlineDirectArithmetic(kernel.UnderlyingResultType))
+        if (genericDefinition == typeof(SumAggregateKernel<>) && CanInlineDirectArithmetic(kernel.UnderlyingResultType))
         {
             return AggregateInlineKind.Sum;
         }
 
-        if (genericDefinition == typeof(AvgAggregateKernel<>) &&
-            CanInlineDirectArithmetic(kernel.UnderlyingResultType))
+        if (genericDefinition == typeof(AvgAggregateKernel<>) && CanInlineDirectArithmetic(kernel.UnderlyingResultType))
         {
             return AggregateInlineKind.Avg;
         }
@@ -54,12 +52,12 @@ internal static class AggregateInlinePolicy
     private static bool CanInlineDirectArithmetic(Type type)
     {
         type = Nullable.GetUnderlyingType(type) ?? type;
-        return type == typeof(int) ||
-               type == typeof(uint) ||
-               type == typeof(long) ||
-               type == typeof(ulong) ||
-               type == typeof(float) ||
-               type == typeof(double) ||
-               type == typeof(decimal);
+        return type == typeof(int)
+            || type == typeof(uint)
+            || type == typeof(long)
+            || type == typeof(ulong)
+            || type == typeof(float)
+            || type == typeof(double)
+            || type == typeof(decimal);
     }
 }

@@ -12,10 +12,7 @@ public sealed class AggregateLoweringModelTests
     [TestMethod]
     public void AggregateSetBuildResult_Factories_ShouldPreserveSupportState()
     {
-        var nodes = new ExecutionNode[]
-        {
-            new ExecutionContinue()
-        };
+        var nodes = new ExecutionNode[] { new ExecutionContinue() };
         var accumulators = new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase);
 
         var success = AggregateSetBuildResult.Success(nodes, accumulators);
@@ -34,13 +31,10 @@ public sealed class AggregateLoweringModelTests
     [TestMethod]
     public void AggregateGroupValueCaptureBuildResult_Factories_ShouldPreserveSupportState()
     {
-        var nodes = new ExecutionNode[]
-        {
-            new ExecutionBreak()
-        };
+        var nodes = new ExecutionNode[] { new ExecutionBreak() };
         var capturedValues = new Dictionary<string, AggregateCapturedValue>(StringComparer.OrdinalIgnoreCase)
         {
-            ["City"] = new AggregateCapturedValue("__city", typeof(string))
+            ["City"] = new AggregateCapturedValue("__city", typeof(string)),
         };
 
         var success = AggregateGroupValueCaptureBuildResult.Success(nodes, capturedValues);
@@ -64,7 +58,8 @@ public sealed class AggregateLoweringModelTests
         var lowering = new AggregateGroupLowering(
             plan,
             new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase),
-            new Dictionary<string, AggregateCapturedField>(StringComparer.OrdinalIgnoreCase));
+            new Dictionary<string, AggregateCapturedField>(StringComparer.OrdinalIgnoreCase)
+        );
 
         Assert.AreSame(shape, lowering.Shape);
         Assert.AreSame(plan, lowering.Plan);
@@ -78,10 +73,17 @@ public sealed class AggregateLoweringModelTests
         var group = new AggregateGroupLowering(
             plan,
             new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase),
-            new Dictionary<string, AggregateCapturedField>(StringComparer.OrdinalIgnoreCase));
+            new Dictionary<string, AggregateCapturedField>(StringComparer.OrdinalIgnoreCase)
+        );
         var libraryNodes = new ExecutionNode[] { new ExecutionContinue() };
-        var setNodes = AggregateSetBuildResult.Success([], new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase));
-        var capture = AggregateGroupValueCaptureBuildResult.Success([], new Dictionary<string, AggregateCapturedValue>(StringComparer.OrdinalIgnoreCase));
+        var setNodes = AggregateSetBuildResult.Success(
+            [],
+            new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase)
+        );
+        var capture = AggregateGroupValueCaptureBuildResult.Success(
+            [],
+            new Dictionary<string, AggregateCapturedValue>(StringComparer.OrdinalIgnoreCase)
+        );
         var context = CreateFinalizationContext(shape);
 
         var resources = new AggregateLoweringResources(group, libraryNodes, setNodes, capture, context);
@@ -101,13 +103,15 @@ public sealed class AggregateLoweringModelTests
         var group = new AggregateGroupLowering(
             plan,
             new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase),
-            new Dictionary<string, AggregateCapturedField>(StringComparer.OrdinalIgnoreCase));
+            new Dictionary<string, AggregateCapturedField>(StringComparer.OrdinalIgnoreCase)
+        );
         var resources = new AggregateLoweringResources(
             group,
             [],
             AggregateSetBuildResult.Unsupported("unused"),
             AggregateGroupValueCaptureBuildResult.Unsupported("unused"),
-            CreateFinalizationContext(shape));
+            CreateFinalizationContext(shape)
+        );
         var resultTable = new ExecutionVariable("resultTable", typeof(object));
         var resultShape = new GeneratedRowShape("ResultRow", []);
         var groups = new ExecutionVariable("groups", typeof(IReadOnlyList<object>));
@@ -125,7 +129,8 @@ public sealed class AggregateLoweringModelTests
             finalGroup,
             ExecutionBlock.Empty,
             [],
-            IsDistinct: true);
+            IsDistinct: true
+        );
 
         Assert.AreSame(resources, completion.Aggregate);
         Assert.AreSame(resultTable, completion.ResultTable);
@@ -145,6 +150,7 @@ public sealed class AggregateLoweringModelTests
             new Dictionary<string, AggregateCapturedValue>(StringComparer.OrdinalIgnoreCase),
             new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase),
             shape,
-            "aggregate");
+            "aggregate"
+        );
     }
 }

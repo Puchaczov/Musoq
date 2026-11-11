@@ -10,14 +10,25 @@ internal static class DescColumnSpanSyntax
         if (columnSpan is not { } span)
             return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
-        return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName("Musoq.Parser.TextSpan"))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
-                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(span.Start))),
-                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(span.Length)))
-            ])));
+        return SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.ParseTypeName("Musoq.Parser.TextSpan"))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList([
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(span.Start)
+                            )
+                        ),
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(span.Length)
+                            )
+                        ),
+                    ])
+                )
+            );
     }
 }

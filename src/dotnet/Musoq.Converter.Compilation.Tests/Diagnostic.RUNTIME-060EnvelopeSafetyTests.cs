@@ -3,11 +3,11 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
+using Musoq.Converter.Tests.Components;
+using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
-using Musoq.Converter.Tests.Components;
-using Musoq.Converter.Tests.Schema;
 
 namespace Musoq.Converter.Tests;
 
@@ -22,7 +22,8 @@ public sealed class DiagnosticRuntime060EnvelopeSafetyTests
             parseQuery,
             "runtime-060-parse",
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         var parseEnvelopes = parseResult.ToEnvelopes();
         Assert.HasCount(1, parseEnvelopes);
@@ -39,7 +40,8 @@ public sealed class DiagnosticRuntime060EnvelopeSafetyTests
             bindQuery,
             "runtime-060-bind",
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         var bindEnvelopes = bindResult.ToEnvelopes();
         Assert.HasCount(1, bindEnvelopes);
@@ -65,9 +67,11 @@ public sealed class DiagnosticRuntime060EnvelopeSafetyTests
                     "generated compilation failed",
                     new TargetSourceRange(23, 4, 11, 5, 11, 9),
                     "CompiledQuery.g.cs",
-                    "generated line")
+                    "generated line"
+                ),
             ],
-            context);
+            context
+        );
 
         var diagnostic = context.Diagnostics.Single();
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, "select 1");
@@ -94,7 +98,8 @@ public sealed class DiagnosticRuntime060EnvelopeSafetyTests
     public void RuntimeAndInternalExecutionFailures_ShouldExposeSafeStableEnvelopes()
     {
         var parameterFailure = QueryExecutionException.ForScriptParameterBinding(
-            ScriptParameterBindingException.MissingRequired("apiKey"));
+            ScriptParameterBindingException.MissingRequired("apiKey")
+        );
         var parameterEnvelope = parameterFailure.Envelope!;
 
         Assert.AreEqual(DiagnosticCode.MQ7003_RequiredScriptParameterMissing, parameterEnvelope.Code);
@@ -107,7 +112,8 @@ public sealed class DiagnosticRuntime060EnvelopeSafetyTests
         const string secret = "runtime-060-private-detail";
         var internalFailure = QueryExecutionException.ForExecutionFailure(
             "row enumeration",
-            new InvalidOperationException(secret));
+            new InvalidOperationException(secret)
+        );
         var internalEnvelope = internalFailure.Envelope!;
         var safeText = internalFailure.FormatText();
         var safeJson = internalFailure.FormatJson();

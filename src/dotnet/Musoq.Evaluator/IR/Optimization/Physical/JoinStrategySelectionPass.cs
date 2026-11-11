@@ -16,12 +16,11 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
         var rewritten = Rewrite(plan, state);
 
         return ReferenceEquals(plan, rewritten)
-            ? OptimizationResult<PhysicalNode>.NoChange(
-                plan,
-                "No join candidates were present in the physical plan.")
+            ? OptimizationResult<PhysicalNode>.NoChange(plan, "No join candidates were present in the physical plan.")
             : OptimizationResult<PhysicalNode>.Changed(
                 rewritten,
-                "Selected concrete join strategies for join candidates.");
+                "Selected concrete join strategies for join candidates."
+            );
     }
 
     private static PhysicalNode Rewrite(PhysicalNode node, PhysicalOptimizationState state)
@@ -29,14 +28,10 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
         if (node is PhysicalJoinCandidateNode join)
             return SelectJoinStrategy(join, state);
 
-        return PhysicalPlanRewriter.RewriteChildren(
-            node,
-            child => Rewrite(child, state));
+        return PhysicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, state));
     }
 
-    private static PhysicalNode SelectJoinStrategy(
-        PhysicalJoinCandidateNode join,
-        PhysicalOptimizationState state)
+    private static PhysicalNode SelectJoinStrategy(PhysicalJoinCandidateNode join, PhysicalOptimizationState state)
     {
         var left = Rewrite(join.Left, state);
         var right = Rewrite(join.Right, state);
@@ -46,7 +41,8 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
             left,
             right,
             state.CompilationOptions,
-            state.Facts.CardinalityFacts);
+            state.Facts.CardinalityFacts
+        );
         var strategyKind = join.WithOrdinality ? JoinStrategyKind.NestedLoop : strategy.Kind;
         var reason = join.WithOrdinality
             ? "Physical planning selected nested-loop because APPLY WITH ORDINALITY requires right-source enumeration order."
@@ -56,24 +52,32 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
             ValidateFlatJoinSource(left, state);
             ValidateFlatJoinSource(right, state);
         }
-        if (!join.WithOrdinality && strategyKind == JoinStrategyKind.SortMergeJoin &&
-            RequiresNestedLoopForSortMergeProbe(right, state))
+        if (
+            !join.WithOrdinality
+            && strategyKind == JoinStrategyKind.SortMergeJoin
+            && RequiresNestedLoopForSortMergeProbe(right, state)
+        )
         {
             strategyKind = JoinStrategyKind.NestedLoop;
-            reason = "Physical planning selected nested-loop because the range probe source does not support indexed access.";
+            reason =
+                "Physical planning selected nested-loop because the range probe source does not support indexed access.";
         }
 
-        state.AddDecision(new PlanningDecision(
-            PlanningDecisionCategory.JoinStrategy,
-            "JoinStrategySelection",
-            join.Kind.ToString(),
-            strategyKind.ToString(),
-            PlanningConfidence.High,
-            reason));
+        state.AddDecision(
+            new PlanningDecision(
+                PlanningDecisionCategory.JoinStrategy,
+                "JoinStrategySelection",
+                join.Kind.ToString(),
+                strategyKind.ToString(),
+                PlanningConfidence.High,
+                reason
+            )
+        );
 
         if (strategyKind == JoinStrategyKind.NestedLoop)
-            state.AddDecision(NestedLoopJoinRiskAdvisor.CreateRiskDecision(
-                join.Kind, left, right, state.Facts.CardinalityFacts));
+            state.AddDecision(
+                NestedLoopJoinRiskAdvisor.CreateRiskDecision(join.Kind, left, right, state.Facts.CardinalityFacts)
+            );
 
         return strategyKind switch
         {
@@ -83,7 +87,8 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
                 strategy.HashJoin.ProbeKeys,
                 strategy.HashJoin.Residual,
                 left,
-                right),
+                right
+            ),
             JoinStrategyKind.SortMergeJoin => new PhysicalSortMergeJoinNode(
                 join.Kind,
                 strategy.SortMergeJoin!.LeftKey,
@@ -91,10 +96,11 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
                 strategy.SortMergeJoin.ComparisonKind,
                 strategy.SortMergeJoin.Residual,
                 left,
-                right)
+                right
+            )
             {
                 LeftPartitionKeys = strategy.SortMergeJoin.LeftPartitionKeys,
-                RightPartitionKeys = strategy.SortMergeJoin.RightPartitionKeys
+                RightPartitionKeys = strategy.SortMergeJoin.RightPartitionKeys,
             },
             JoinStrategyKind.NestedLoop => new PhysicalNestedLoopJoinNode(
                 join.Kind,
@@ -102,16 +108,13 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
                 left,
                 right,
                 join.TieBreak,
-                join.WithOrdinality),
-            _ => throw UnsupportedShape.Of($"Join strategy '{strategy.Kind}'")
+                join.WithOrdinality
+            ),
+            _ => throw UnsupportedShape.Of($"Join strategy '{strategy.Kind}'"),
         };
     }
 
-
-
-    private static bool RequiresNestedLoopForSortMergeProbe(
-        PhysicalNode right,
-        PhysicalOptimizationState state)
+    private static bool RequiresNestedLoopForSortMergeProbe(PhysicalNode right, PhysicalOptimizationState state)
     {
         var source = UnwrapFilterInput(right);
         if (source is PhysicalSchemaScanNode scan)
@@ -139,8 +142,8 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
 
     private static bool CanUseRangeProbeSource(PlanningRowShape sourceShape)
     {
-        return sourceShape.Kind is PlanningRowShapeKind.SourceEntity or PlanningRowShapeKind.TableRow &&
-               !sourceShape.RuntimeType.IsValueType &&
-               !DynamicEntityBoundary.IsDynamicMetaObjectProvider(sourceShape.RuntimeType);
+        return sourceShape.Kind is PlanningRowShapeKind.SourceEntity or PlanningRowShapeKind.TableRow
+            && !sourceShape.RuntimeType.IsValueType
+            && !DynamicEntityBoundary.IsDynamicMetaObjectProvider(sourceShape.RuntimeType);
     }
 }

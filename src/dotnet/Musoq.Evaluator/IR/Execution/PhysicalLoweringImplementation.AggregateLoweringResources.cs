@@ -2,27 +2,35 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private LoweringAttempt<AggregateLoweringResources> CreateAggregateLoweringResources(AggregateLoweringResourceRequest request)
+    private LoweringAttempt<AggregateLoweringResources> CreateAggregateLoweringResources(
+        AggregateLoweringResourceRequest request
+    )
     {
-        if (!TryCreateAggregateGroupLowering(
-            _facts.GeneratedTypePrefix + request.ResultTableName,
-            request.FinalizationGroupKeys,
-            request.Bindings,
-            request.OutputFields,
-            request.HavingPredicate,
-            request.PostOperations,
-            out var aggregateGroup,
-            out var aggregateGroupUnsupportedReason))
+        if (
+            !TryCreateAggregateGroupLowering(
+                _facts.GeneratedTypePrefix + request.ResultTableName,
+                request.FinalizationGroupKeys,
+                request.Bindings,
+                request.OutputFields,
+                request.HavingPredicate,
+                request.PostOperations,
+                out var aggregateGroup,
+                out var aggregateGroupUnsupportedReason
+            )
+        )
         {
             return LoweringAttempt<AggregateLoweringResources>.Unsupported(aggregateGroupUnsupportedReason);
         }
 
-        if (!TryCreateAggregateLibraries(
-            request.Bindings,
-            request.AggregateScopeName,
-            out var libraries,
-            out var libraryNodes,
-            out var unsupportedReason))
+        if (
+            !TryCreateAggregateLibraries(
+                request.Bindings,
+                request.AggregateScopeName,
+                out var libraries,
+                out var libraryNodes,
+                out var unsupportedReason
+            )
+        )
         {
             return LoweringAttempt<AggregateLoweringResources>.Unsupported(unsupportedReason);
         }
@@ -32,7 +40,8 @@ internal sealed partial class PhysicalLoweringImplementation
             request.CurrentGroup,
             request.SourceLookup,
             libraries,
-            aggregateGroup);
+            aggregateGroup
+        );
         if (!aggregateSetNodes.IsBuilt)
             return LoweringAttempt<AggregateLoweringResources>.Unsupported(aggregateSetNodes.UnsupportedReason);
 
@@ -43,7 +52,8 @@ internal sealed partial class PhysicalLoweringImplementation
             request.FinalizationGroupKeys,
             request.CurrentGroup,
             request.SourceLookup,
-            aggregateGroup);
+            aggregateGroup
+        );
         if (!groupValueCapture.IsBuilt)
             return LoweringAttempt<AggregateLoweringResources>.Unsupported(groupValueCapture.UnsupportedReason);
 
@@ -54,13 +64,17 @@ internal sealed partial class PhysicalLoweringImplementation
             groupValueCapture.CapturedValues,
             aggregateSetNodes.TypedAccumulators,
             aggregateGroup.Shape,
-            request.AggregateKind);
+            request.AggregateKind
+        );
 
-        return LoweringAttempt<AggregateLoweringResources>.Built(new AggregateLoweringResources(
-            aggregateGroup,
-            libraryNodes,
-            aggregateSetNodes,
-            groupValueCapture,
-            finalizationContext));
+        return LoweringAttempt<AggregateLoweringResources>.Built(
+            new AggregateLoweringResources(
+                aggregateGroup,
+                libraryNodes,
+                aggregateSetNodes,
+                groupValueCapture,
+                finalizationContext
+            )
+        );
     }
 }

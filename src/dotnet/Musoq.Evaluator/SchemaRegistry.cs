@@ -26,11 +26,19 @@ public class SchemaRegistry
     {
         get
         {
-            if (_parentBindings is not null) return _parentBindings;
+            if (_parentBindings is not null)
+                return _parentBindings;
             var bindings = new Visitors.BinarySchemaParentBindings(this);
             _parentBindings = bindings;
-            try { bindings.BindAll(); }
-            catch { _parentBindings = null; throw; }
+            try
+            {
+                bindings.BindAll();
+            }
+            catch
+            {
+                _parentBindings = null;
+                throw;
+            }
             return bindings;
         }
     }
@@ -50,7 +58,8 @@ public class SchemaRegistry
 
         if (_schemas.ContainsKey(name))
             throw new InvalidOperationException(
-                $"Schema '{name}' is already defined. Schema names must be unique within a query batch.");
+                $"Schema '{name}' is already defined. Schema names must be unique within a query batch."
+            );
 
         var registration = new SchemaRegistration(name, node);
         _schemas[name] = registration;
@@ -102,9 +111,9 @@ public class SchemaRegistry
     {
         if (!_schemas.TryGetValue(referencedName, out var referenced))
             throw new InvalidOperationException(
-                $"Schema '{referencingName}' references undefined schema '{referencedName}'. " +
-                $"Schemas must be defined before they can be referenced.");
-
+                $"Schema '{referencingName}' references undefined schema '{referencedName}'. "
+                    + $"Schemas must be defined before they can be referenced."
+            );
 
         var referencedIndex = _orderedSchemas.IndexOf(referenced);
         var referencingIndex = -1;
@@ -117,8 +126,9 @@ public class SchemaRegistry
 
         if (referencingIndex >= 0 && referencedIndex >= referencingIndex)
             throw new InvalidOperationException(
-                $"Schema '{referencingName}' references '{referencedName}', but '{referencedName}' " +
-                $"is defined after '{referencingName}'. Referenced schemas must be defined first.");
+                $"Schema '{referencingName}' references '{referencedName}', but '{referencedName}' "
+                    + $"is defined after '{referencingName}'. Referenced schemas must be defined first."
+            );
     }
 
     /// <summary>

@@ -15,9 +15,7 @@ public sealed class WindowPartitionCountBuilderTests
         bool[] includeValues = [true, false, true, true, false, true, false];
         var builder = CreateBuilder(partitionKeys, includeValues);
 
-        CollectionAssert.AreEqual(
-            new[] { 2, 2, 1, 2, 1, 1, 1 },
-            builder.ToResult());
+        CollectionAssert.AreEqual(new[] { 2, 2, 1, 2, 1, 1, 1 }, builder.ToResult());
     }
 
     [TestMethod]
@@ -29,9 +27,7 @@ public sealed class WindowPartitionCountBuilderTests
         for (var rowIndex = 0; rowIndex < partitionKeys.Length; rowIndex++)
             builder.Add(partitionKeys[rowIndex], includeValues[rowIndex], rowIndex);
 
-        CollectionAssert.AreEqual(
-            new[] { 3, 3, 2, 1, 2, 3 },
-            builder.ToResult());
+        CollectionAssert.AreEqual(new[] { 3, 3, 2, 1, 2, 3 }, builder.ToResult());
     }
 
     [TestMethod]
@@ -42,16 +38,14 @@ public sealed class WindowPartitionCountBuilderTests
             new("eng".ToCharArray()),
             new("eng".ToCharArray()),
             new("sales".ToCharArray()),
-            new("eng".ToCharArray())
+            new("eng".ToCharArray()),
         ];
 
         var builder = new WindowPartitionCountBuilder<string>(partitionKeys.Length);
         for (var rowIndex = 0; rowIndex < partitionKeys.Length; rowIndex++)
             builder.Add(partitionKeys[rowIndex], true, rowIndex);
 
-        CollectionAssert.AreEqual(
-            new[] { 3, 3, 1, 3 },
-            builder.ToResult());
+        CollectionAssert.AreEqual(new[] { 3, 3, 1, 3 }, builder.ToResult());
     }
 
     [TestMethod]
@@ -61,30 +55,19 @@ public sealed class WindowPartitionCountBuilderTests
         for (var rowIndex = 0; rowIndex < 20; rowIndex++)
             builder.Add(rowIndex, true, rowIndex);
 
-        CollectionAssert.AreEqual(
-            Enumerable.Repeat(1, 20).ToArray(),
-            builder.ToResult());
+        CollectionAssert.AreEqual(Enumerable.Repeat(1, 20).ToArray(), builder.ToResult());
     }
 
     [TestMethod]
     public void ToResult_WhenPartitionHashesCollide_ShouldKeepSeparateCounts()
     {
-        CollidingKey[] partitionKeys =
-        [
-            new(1),
-            new(2),
-            new(1),
-            new(3),
-            new(2)
-        ];
+        CollidingKey[] partitionKeys = [new(1), new(2), new(1), new(3), new(2)];
 
         var builder = new WindowPartitionCountBuilder<CollidingKey>(partitionKeys.Length);
         for (var rowIndex = 0; rowIndex < partitionKeys.Length; rowIndex++)
             builder.Add(partitionKeys[rowIndex], true, rowIndex);
 
-        CollectionAssert.AreEqual(
-            new[] { 2, 2, 2, 1, 2 },
-            builder.ToResult());
+        CollectionAssert.AreEqual(new[] { 2, 2, 2, 1, 2 }, builder.ToResult());
     }
 
     [TestMethod]
@@ -105,9 +88,7 @@ public sealed class WindowPartitionCountBuilderTests
         for (var rowIndex = 0; rowIndex < partitionKeys.Length; rowIndex++)
             builder.AddReferenceUnchecked(partitionKeys[rowIndex], includeValues[rowIndex], rowIndex);
 
-        CollectionAssert.AreEqual(
-            new[] { 1, 1, 1, 1, 1 },
-            builder.ToResultUnchecked());
+        CollectionAssert.AreEqual(new[] { 1, 1, 1, 1, 1 }, builder.ToResultUnchecked());
     }
 
     [TestMethod]
@@ -121,9 +102,7 @@ public sealed class WindowPartitionCountBuilderTests
 
         var result = builder.ToResultInPlaceUnchecked();
 
-        CollectionAssert.AreEqual(
-            new[] { 1, 1, 1, 1, 1 },
-            result);
+        CollectionAssert.AreEqual(new[] { 1, 1, 1, 1, 1 }, result);
     }
 
     [TestMethod]
@@ -140,9 +119,7 @@ public sealed class WindowPartitionCountBuilderTests
         Assert.AreEqual(1, result[2]);
         Assert.AreEqual(2, result[3]);
         Assert.AreEqual(1, result[4]);
-        CollectionAssert.AreEqual(
-            new[] { 2, 2, 1, 2, 1 },
-            builder.ToResult());
+        CollectionAssert.AreEqual(new[] { 2, 2, 1, 2, 1 }, builder.ToResult());
     }
 
     [TestMethod]

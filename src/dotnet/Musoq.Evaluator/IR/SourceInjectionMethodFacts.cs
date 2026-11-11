@@ -10,10 +10,14 @@ internal static class SourceInjectionMethodFacts
     {
         ArgumentNullException.ThrowIfNull(method);
 
-        return method.GetParameters()
-            .FirstOrDefault(static parameter => parameter.GetCustomAttributes(true)
-                .OfType<InjectTypeAttribute>()
-                .Any(static attribute => IsSourceInjectionAttribute(attribute)));
+        return method
+            .GetParameters()
+            .FirstOrDefault(static parameter =>
+                parameter
+                    .GetCustomAttributes(true)
+                    .OfType<InjectTypeAttribute>()
+                    .Any(static attribute => IsSourceInjectionAttribute(attribute))
+            );
     }
 
     private static bool IsSourceInjectionAttribute(InjectTypeAttribute attribute)

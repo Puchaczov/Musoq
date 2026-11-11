@@ -9,13 +9,22 @@ internal static class SourceSpacing
     {
         if (previous == null)
             return false;
-        if (previous.Token.Role == Parser.Syntax.SyntaxTokenRole.Comment &&
-            (previous.Token.Text.StartsWith("--", StringComparison.Ordinal) || previous.Token.Text.Contains('\n')))
+        if (
+            previous.Token.Role == Parser.Syntax.SyntaxTokenRole.Comment
+            && (previous.Token.Text.StartsWith("--", StringComparison.Ordinal) || previous.Token.Text.Contains('\n'))
+        )
             return false;
         var left = previous.Close?.TokenType ?? previous.Token.TokenType;
         var right = current.Token.TokenType;
-        if (right is TokenType.Comma or TokenType.Semicolon or TokenType.Dot or TokenType.Colon
-            or TokenType.DoubleColon or TokenType.QuestionMark)
+        if (
+            right
+            is TokenType.Comma
+                or TokenType.Semicolon
+                or TokenType.Dot
+                or TokenType.Colon
+                or TokenType.DoubleColon
+                or TokenType.QuestionMark
+        )
             return false;
         if (left is TokenType.Dot or TokenType.DoubleColon)
             return false;
@@ -23,7 +32,10 @@ internal static class SourceSpacing
         {
             if (current.Token.Text.StartsWith("-", StringComparison.Ordinal))
                 return true;
-            if (current.Token.Role == Parser.Syntax.SyntaxTokenRole.Literal && previous.Token.Span.End < current.Token.Span.Start)
+            if (
+                current.Token.Role == Parser.Syntax.SyntaxTokenRole.Literal
+                && previous.Token.Span.End < current.Token.Span.Start
+            )
                 return true;
             return false;
         }
@@ -31,10 +43,10 @@ internal static class SourceSpacing
             return false;
         if (current.IsGroup && right == TokenType.LeftParenthesis && !previous.IsGroup)
         {
-            var parameterHeader = previous.IsKeyword && previous.Token.Text.Equals("param", StringComparison.OrdinalIgnoreCase) ||
-                                  previous.IsKeyword && previous.Token.Text.Equals("params", StringComparison.OrdinalIgnoreCase);
-            if (parameterHeader || !previous.IsKeyword && previous.Token.TokenType is
-                TokenType.Function)
+            var parameterHeader =
+                previous.IsKeyword && previous.Token.Text.Equals("param", StringComparison.OrdinalIgnoreCase)
+                || previous.IsKeyword && previous.Token.Text.Equals("params", StringComparison.OrdinalIgnoreCase);
+            if (parameterHeader || !previous.IsKeyword && previous.Token.TokenType is TokenType.Function)
                 return false;
         }
         return true;
@@ -44,7 +56,8 @@ internal static class SourceSpacing
     {
         if (current.Token.TokenType is not (TokenType.Hyphen or TokenType.Plus))
             return false;
-        return previous == null || previous.Token.Role == Parser.Syntax.SyntaxTokenRole.Operator ||
-               previous.Token.TokenType is TokenType.Comma or TokenType.Then or TokenType.Else;
+        return previous == null
+            || previous.Token.Role == Parser.Syntax.SyntaxTokenRole.Operator
+            || previous.Token.TokenType is TokenType.Comma or TokenType.Then or TokenType.Else;
     }
 }

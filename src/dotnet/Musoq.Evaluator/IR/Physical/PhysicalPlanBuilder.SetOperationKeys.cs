@@ -3,7 +3,6 @@ using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 
-
 namespace Musoq.Evaluator.IR.Physical;
 
 public sealed partial class PhysicalPlanBuilder
@@ -13,7 +12,8 @@ public sealed partial class PhysicalPlanBuilder
         Bindings.ProjectedField[]? projectFields,
         Bindings.ColumnSchema[] columns,
         out int index,
-        [NotNullWhen(true)] out Type? type)
+        [NotNullWhen(true)] out Type? type
+    )
     {
         if (projectFields is not null)
         {

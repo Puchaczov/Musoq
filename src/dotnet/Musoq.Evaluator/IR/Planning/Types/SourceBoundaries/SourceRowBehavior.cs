@@ -4,5 +4,5 @@ internal enum SourceRowBehavior
 {
     RowPreserving,
     RowMultiplying,
-    Unknown
+    Unknown,
 }

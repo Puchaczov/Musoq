@@ -8,7 +8,8 @@ public partial class SubqueryToCteRewriteVisitor
     private static SubqueryRewriteContext RewriteExpressionContext<TJoin>(
         SubqueryRewriteContext context,
         ISubqueryExpressionContextRewriter<TJoin> rewriter,
-        Func<FromNode, TJoin, FromNode> appendJoin)
+        Func<FromNode, TJoin, FromNode> appendJoin
+    )
     {
         var select = RewriteExpressionContext(context.Select, rewriter);
         var from = RewriteExpressionContext(context.From, rewriter, appendJoin);
@@ -16,9 +17,7 @@ public partial class SubqueryToCteRewriteVisitor
         var groupBy = RewriteExpressionContext(context.GroupBy, rewriter);
         var window = RewriteExpressionContext(context.Window, rewriter);
         var orderBy = RewriteExpressionContext(context.OrderBy, rewriter);
-        var qualify = context.Qualify != null
-            ? new QualifyNode(rewriter.Rewrite(context.Qualify.Expression))
-            : null;
+        var qualify = context.Qualify != null ? new QualifyNode(rewriter.Rewrite(context.Qualify.Expression)) : null;
 
         foreach (var join in rewriter.Joins)
             from = appendJoin(from, join);
@@ -28,7 +27,8 @@ public partial class SubqueryToCteRewriteVisitor
 
     private static SelectNode RewriteExpressionContext<TJoin>(
         SelectNode select,
-        ISubqueryExpressionContextRewriter<TJoin> rewriter)
+        ISubqueryExpressionContextRewriter<TJoin> rewriter
+    )
     {
         var fields = new FieldNode[select.Fields.Length];
 
@@ -40,7 +40,8 @@ public partial class SubqueryToCteRewriteVisitor
                 field.FieldOrder,
                 field.FieldName,
                 field.HasExplicitFieldName,
-                field.Span);
+                field.Span
+            );
         }
 
         return new SelectNode(fields, select.IsDistinct, select.Span);
@@ -48,7 +49,8 @@ public partial class SubqueryToCteRewriteVisitor
 
     private static GroupByNode? RewriteExpressionContext<TJoin>(
         GroupByNode? groupBy,
-        ISubqueryExpressionContextRewriter<TJoin> rewriter)
+        ISubqueryExpressionContextRewriter<TJoin> rewriter
+    )
     {
         if (groupBy == null)
             return null;
@@ -62,19 +64,19 @@ public partial class SubqueryToCteRewriteVisitor
                 field.FieldOrder,
                 field.FieldName,
                 field.HasExplicitFieldName,
-                field.Span);
+                field.Span
+            );
         }
 
-        var having = groupBy.Having != null
-            ? new HavingNode(rewriter.Rewrite(groupBy.Having.Expression))
-            : null;
+        var having = groupBy.Having != null ? new HavingNode(rewriter.Rewrite(groupBy.Having.Expression)) : null;
 
         return new GroupByNode(fields, having, groupBy.IsAll, groupBy.Span);
     }
 
     private static OrderByNode? RewriteExpressionContext<TJoin>(
         OrderByNode? orderBy,
-        ISubqueryExpressionContextRewriter<TJoin> rewriter)
+        ISubqueryExpressionContextRewriter<TJoin> rewriter
+    )
     {
         if (orderBy == null)
             return null;
@@ -89,7 +91,8 @@ public partial class SubqueryToCteRewriteVisitor
                 field.FieldName,
                 field.HasExplicitFieldName,
                 field.Order,
-                field.NullOrdering);
+                field.NullOrdering
+            );
         }
 
         return new OrderByNode(fields, orderBy.Span);
@@ -97,7 +100,8 @@ public partial class SubqueryToCteRewriteVisitor
 
     private static WindowNode? RewriteExpressionContext<TJoin>(
         WindowNode? window,
-        ISubqueryExpressionContextRewriter<TJoin> rewriter)
+        ISubqueryExpressionContextRewriter<TJoin> rewriter
+    )
     {
         if (window == null)
             return null;
@@ -106,12 +110,14 @@ public partial class SubqueryToCteRewriteVisitor
         for (var i = 0; i < window.Definitions.Length; i++)
         {
             var definition = window.Definitions[i];
-            definitions[i] = (WindowDefinitionNode)new WindowDefinitionNode(
-                definition.Name,
-                RewriteExpressionContext(definition.Specification, rewriter)
-                ?? throw new InvalidOperationException("Window definition is missing a specification."))
-                .WithSpan(definition.Span)
-                .WithFullSpan(definition.FullSpan);
+            definitions[i] = (WindowDefinitionNode)
+                new WindowDefinitionNode(
+                    definition.Name,
+                    RewriteExpressionContext(definition.Specification, rewriter)
+                        ?? throw new InvalidOperationException("Window definition is missing a specification.")
+                )
+                    .WithSpan(definition.Span)
+                    .WithFullSpan(definition.FullSpan);
         }
 
         var rewrittenWindow = new WindowNode(definitions);
@@ -121,7 +127,8 @@ public partial class SubqueryToCteRewriteVisitor
 
     private static WindowSpecificationNode? RewriteExpressionContext<TJoin>(
         WindowSpecificationNode? specification,
-        ISubqueryExpressionContextRewriter<TJoin> rewriter)
+        ISubqueryExpressionContextRewriter<TJoin> rewriter
+    )
     {
         if (specification == null)
             return null;
@@ -135,7 +142,8 @@ public partial class SubqueryToCteRewriteVisitor
                 field.FieldOrder,
                 field.FieldName,
                 field.HasExplicitFieldName,
-                field.Span);
+                field.Span
+            );
         }
 
         var orderByFields = new FieldOrderedNode[specification.OrderByFields.Length];
@@ -148,7 +156,8 @@ public partial class SubqueryToCteRewriteVisitor
                 field.FieldName,
                 field.HasExplicitFieldName,
                 field.Order,
-                field.NullOrdering);
+                field.NullOrdering
+            );
         }
 
         var rewrittenSpecification = new WindowSpecificationNode(partitionFields, orderByFields, specification.Frame);
@@ -159,23 +168,27 @@ public partial class SubqueryToCteRewriteVisitor
     private static FromNode RewriteExpressionContext<TJoin>(
         FromNode from,
         ISubqueryExpressionContextRewriter<TJoin> rewriter,
-        Func<FromNode, TJoin, FromNode> appendJoin)
+        Func<FromNode, TJoin, FromNode> appendJoin
+    )
     {
         return from switch
         {
             Parser.JoinFromNode join => RewriteExpressionContext(join, rewriter, appendJoin),
-            Parser.ExpressionFromNode { Expression: Parser.JoinNode joinNode } =>
-                new Parser.ExpressionFromNode(new Parser.JoinNode((Parser.JoinFromNode)RewriteExpressionContext(joinNode.Join, rewriter, appendJoin))),
-            Parser.ExpressionFromNode expressionFrom =>
-                new Parser.ExpressionFromNode(RewriteExpressionContext(expressionFrom.Expression, rewriter, appendJoin)),
-            _ => from
+            Parser.ExpressionFromNode { Expression: Parser.JoinNode joinNode } => new Parser.ExpressionFromNode(
+                new Parser.JoinNode((Parser.JoinFromNode)RewriteExpressionContext(joinNode.Join, rewriter, appendJoin))
+            ),
+            Parser.ExpressionFromNode expressionFrom => new Parser.ExpressionFromNode(
+                RewriteExpressionContext(expressionFrom.Expression, rewriter, appendJoin)
+            ),
+            _ => from,
         };
     }
 
     private static Parser.JoinFromNode RewriteExpressionContext<TJoin>(
         Parser.JoinFromNode join,
         ISubqueryExpressionContextRewriter<TJoin> rewriter,
-        Func<FromNode, TJoin, FromNode> appendJoin)
+        Func<FromNode, TJoin, FromNode> appendJoin
+    )
     {
         var source = RewriteExpressionContext(join.Source, rewriter, appendJoin);
         var with = RewriteExpressionContext(join.With, rewriter, appendJoin);
@@ -191,7 +204,8 @@ public partial class SubqueryToCteRewriteVisitor
 
     private static Node? RewriteExpressionContext<TJoin>(
         Node? expression,
-        ISubqueryExpressionContextRewriter<TJoin> rewriter)
+        ISubqueryExpressionContextRewriter<TJoin> rewriter
+    )
     {
         return expression == null ? null : rewriter.Rewrite(expression);
     }
@@ -203,7 +217,8 @@ public partial class SubqueryToCteRewriteVisitor
         GroupByNode? GroupBy,
         OrderByNode? OrderBy,
         WindowNode? Window,
-        QualifyNode? Qualify);
+        QualifyNode? Qualify
+    );
 
     private interface ISubqueryExpressionContextRewriter<TJoin>
     {

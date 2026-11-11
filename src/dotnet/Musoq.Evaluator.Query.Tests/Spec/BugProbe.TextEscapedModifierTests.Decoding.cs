@@ -19,17 +19,26 @@ public partial class BugProbeTextEscapedModifierTests
     [DataRow(@"between '\'' '\'' escaped '\''", "'it''s'tail", "it's")]
     [DataRow("between '<' '>' escaped trim upper", @"<  a\>b  >tail", "A>B")]
     public void TextBetween_EscapedContentDecodesBeforeModifiersAndPreservesRest(
-        string fieldDefinition, string input, string expected)
+        string fieldDefinition,
+        string input,
+        string expected
+    )
     {
-        var query = $"text Packet {{ Value: {fieldDefinition}, Trailer: rest }} " +
-                    "select p.Value as Value, p.Trailer as Trailer " +
-                    "from #test.entities() e cross apply Parse<Packet>(e.Text) p";
+        var query =
+            $"text Packet {{ Value: {fieldDefinition}, Trailer: rest }} "
+            + "select p.Value as Value, p.Trailer as Trailer "
+            + "from #test.entities() e cross apply Parse<Packet>(e.Text) p";
         var sources = new Dictionary<string, IEnumerable<TextEntity>>
         {
-            ["#test"] = [new TextEntity { Name = "input", Text = input }]
+            ["#test"] = [new TextEntity { Name = "input", Text = input }],
         };
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new TextSchemaProvider(sources), LoggerResolver, TestCompilationOptions);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new TextSchemaProvider(sources),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
 
         TableMaterializationTestHelper.AssertColumns(result, ("Value", typeof(string)), ("Trailer", typeof(string)));

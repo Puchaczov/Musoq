@@ -9,8 +9,8 @@ public class AccessRefreshAggregationScoreNode(
     ArgsListNode extraArgs,
     bool canSkipInjectSource,
     MethodInfo method,
-    string alias)
-    : AccessMethodNode(fToken, args, extraArgs, canSkipInjectSource, method, alias)
+    string alias
+) : AccessMethodNode(fToken, args, extraArgs, canSkipInjectSource, method, alias)
 {
     public override void Accept(IExpressionVisitor visitor)
     {

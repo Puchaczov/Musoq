@@ -5,8 +5,13 @@ namespace Musoq.Evaluator.IR.Execution;
 /// <summary>Compilation-selected concrete storage consumed by a direct typed window context operation.</summary>
 public sealed record ExecutionWindowContextBuffers
 {
-    public ExecutionWindowContextBuffers(ExecutionVariable values, IReadOnlyList<ExecutionVariable> arguments,
-        ExecutionVariable? rangeKeys, ExecutionVariable? orderKeyValues, ExecutionTypeRef contextType)
+    public ExecutionWindowContextBuffers(
+        ExecutionVariable values,
+        IReadOnlyList<ExecutionVariable> arguments,
+        ExecutionVariable? rangeKeys,
+        ExecutionVariable? orderKeyValues,
+        ExecutionTypeRef contextType
+    )
     {
         ArgumentNullException.ThrowIfNull(values);
         ArgumentNullException.ThrowIfNull(arguments);

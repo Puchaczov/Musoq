@@ -19,13 +19,12 @@ public static class SumAggregateKernel<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Set(ref State state, T? value)
-        => NullableAggregateCore.SetSum(ref state.HasValue, ref state.Value, value);
+    public static void Set(ref State state, T? value) =>
+        NullableAggregateCore.SetSum(ref state.HasValue, ref state.Value, value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T? Get(in State state)
-        => NullableAggregateCore.GetNullable(state.HasValue, state.Value);
+    public static T? Get(in State state) => NullableAggregateCore.GetNullable(state.HasValue, state.Value);
 
-    public static void Merge(ref State target, in State source)
-        => NullableAggregateCore.MergeSum(ref target.HasValue, ref target.Value, source.HasValue, source.Value);
+    public static void Merge(ref State target, in State source) =>
+        NullableAggregateCore.MergeSum(ref target.HasValue, ref target.Value, source.HasValue, source.Value);
 }

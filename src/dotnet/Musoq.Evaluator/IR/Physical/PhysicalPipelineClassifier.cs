@@ -4,9 +4,7 @@ namespace Musoq.Evaluator.IR.Physical;
 
 internal static class PhysicalPipelineClassifier
 {
-    internal static bool TryDecomposeSourcePipeline(
-        PhysicalNode input,
-        out PhysicalSourcePipeline pipeline)
+    internal static bool TryDecomposeSourcePipeline(PhysicalNode input, out PhysicalSourcePipeline pipeline)
     {
         if (TryGetSupportedSource(input, out var source))
         {
@@ -14,8 +12,7 @@ internal static class PhysicalPipelineClassifier
             return true;
         }
 
-        if (input is PhysicalFilterNode filter &&
-            TryGetSupportedSource(filter.Input, out source))
+        if (input is PhysicalFilterNode filter && TryGetSupportedSource(filter.Input, out source))
         {
             pipeline = new PhysicalSourcePipeline(source, filter);
             return true;
@@ -34,20 +31,24 @@ internal static class PhysicalPipelineClassifier
             PhysicalTopOffsetNode topOffset => topOffset.Input,
             PhysicalSkipNode skip => skip.Input,
             PhysicalTakeNode take => take.Input,
-            _ => null
+            _ => null,
         };
     }
 
-    private static bool TryGetSupportedSource(PhysicalNode input, out PhysicalNode source) {
-        if (input is PhysicalSchemaScanNode
-            or PhysicalCteRefNode
-            or PhysicalInterpretSourceNode
-            or PhysicalValuesScanNode
-            or PhysicalUnpivotNode
-            or PhysicalNestedLoopJoinNode
-            or PhysicalHashJoinNode
-            or PhysicalSortMergeJoinNode
-            or PhysicalNestedLoopApplyNode)
+    private static bool TryGetSupportedSource(PhysicalNode input, out PhysicalNode source)
+    {
+        if (
+            input
+            is PhysicalSchemaScanNode
+                or PhysicalCteRefNode
+                or PhysicalInterpretSourceNode
+                or PhysicalValuesScanNode
+                or PhysicalUnpivotNode
+                or PhysicalNestedLoopJoinNode
+                or PhysicalHashJoinNode
+                or PhysicalSortMergeJoinNode
+                or PhysicalNestedLoopApplyNode
+        )
         {
             source = input;
             return true;

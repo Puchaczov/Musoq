@@ -11,7 +11,8 @@ public partial class SubqueryToCteRewriteVisitor
 {
     private static SubqueryCorrelationInfo AnalyzeDerivedTableCorrelation(
         Node body,
-        IReadOnlySet<string> visibleOuterAliases)
+        IReadOnlySet<string> visibleOuterAliases
+    )
     {
         return DerivedTableCorrelationAnalyzer.Analyze(body, visibleOuterAliases);
     }
@@ -53,9 +54,7 @@ public partial class SubqueryToCteRewriteVisitor
         }
     }
 
-    private static HashSet<string> MergeAliases(
-        IReadOnlySet<string> first,
-        IReadOnlySet<string> second)
+    private static HashSet<string> MergeAliases(IReadOnlySet<string> first, IReadOnlySet<string> second)
     {
         var aliases = CreateAliasSet(first);
         foreach (var alias in second)
@@ -70,14 +69,18 @@ public partial class SubqueryToCteRewriteVisitor
 
     private static HashSet<string> CreateAliasSet(IEnumerable<string> aliases)
     {
-        return new HashSet<string>(aliases.Where(alias => !string.IsNullOrWhiteSpace(alias)), StringComparer.OrdinalIgnoreCase);
+        return new HashSet<string>(
+            aliases.Where(alias => !string.IsNullOrWhiteSpace(alias)),
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
     [DoesNotReturn]
     private static void ThrowUnsupportedDerivedCorrelation(
         DerivedTableFromNode derived,
         string message,
-        IReadOnlyDictionary<string, string>? arguments = null)
+        IReadOnlyDictionary<string, string>? arguments = null
+    )
     {
         throw CreateUnsupportedDerivedCorrelation(derived, message, arguments);
     }
@@ -85,19 +88,13 @@ public partial class SubqueryToCteRewriteVisitor
     private static Exceptions.VisitorException CreateUnsupportedDerivedCorrelation(
         DerivedTableFromNode derived,
         string message,
-        IReadOnlyDictionary<string, string>? arguments = null)
+        IReadOnlyDictionary<string, string>? arguments = null
+    )
     {
-        return SubqueryDiagnosticFactory.InvalidSubquery(
-            "derived table rewrite",
-            message,
-            derived,
-            arguments);
+        return SubqueryDiagnosticFactory.InvalidSubquery("derived table rewrite", message, derived, arguments);
     }
 
-    private sealed record DerivedTableRewriteResult(
-        FromNode From,
-        bool WasDerivedTable,
-        Node? JoinPredicate);
+    private sealed record DerivedTableRewriteResult(FromNode From, bool WasDerivedTable, Node? JoinPredicate);
 
     private sealed record DerivedCorrelationRewrite(Node Body, Node? JoinPredicate, string[] CorrelationKey);
 

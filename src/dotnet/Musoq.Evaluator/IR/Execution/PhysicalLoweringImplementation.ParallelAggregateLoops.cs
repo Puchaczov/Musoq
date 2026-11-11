@@ -15,17 +15,20 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable groupsToFinalize,
         ExecutionBlock aggregateBody,
         AggregateGroupShape aggregateGroupShape,
-        AggregateSetBuildResult aggregateSetNodes)
+        AggregateSetBuildResult aggregateSetNodes
+    )
     {
-        if (!ExecutionStrategies.CanUseParallelSingleKeyAggregate(pipeline.Aggregate) ||
-            pipeline.Source.Filter != null ||
-            source.ParallelSource == null ||
-            source.ParallelRows == null ||
-            !CanUseParallelAggregateSource(source.Lookup) ||
-            !CanUseParallelAggregateRows(source.ParallelRows) ||
-            !CanUseParallelAggregateSets(aggregateSetNodes) ||
-            aggregateGroupShape.RequiresParentLinks ||
-            !CanMergeAggregateGroupShape(aggregateGroupShape))
+        if (
+            !ExecutionStrategies.CanUseParallelSingleKeyAggregate(pipeline.Aggregate)
+            || pipeline.Source.Filter != null
+            || source.ParallelSource == null
+            || source.ParallelRows == null
+            || !CanUseParallelAggregateSource(source.Lookup)
+            || !CanUseParallelAggregateRows(source.ParallelRows)
+            || !CanUseParallelAggregateSets(aggregateSetNodes)
+            || aggregateGroupShape.RequiresParentLinks
+            || !CanMergeAggregateGroupShape(aggregateGroupShape)
+        )
         {
             return null;
         }
@@ -48,13 +51,16 @@ internal sealed partial class PhysicalLoweringImplementation
             ParallelAggregateRowThreshold,
             ParallelAggregateCardinalitySampleSize,
             ParallelAggregateMaxDistinctSample,
-            maxDegreeOfParallelism);
+            maxDegreeOfParallelism
+        );
     }
 
     private static bool CanUseParallelAggregateSource(IReadOnlyDictionary<string, RowShape> sourceLookup)
     {
-        return sourceLookup.Values.All(static shape => RowShapeLookup.ResolveSourceRuntimeType(shape) != typeof(object) ||
-            SourceGeneratedRowShapeResolver.Resolve(shape) is not null);
+        return sourceLookup.Values.All(static shape =>
+            RowShapeLookup.ResolveSourceRuntimeType(shape) != typeof(object)
+            || SourceGeneratedRowShapeResolver.Resolve(shape) is not null
+        );
     }
 
     private static bool CanUseParallelAggregateRows(ExecutionExpression rows)
@@ -68,25 +74,31 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable source,
         ExecutionExpression sourceRows,
         ExecutionSourceLoop serialLoop,
-        ExecutionAppendRow appendRow)
+        ExecutionAppendRow appendRow
+    )
     {
-        if (!ExecutionStrategies.CanUseParallelFilterProject(pipeline.Project) ||
-            pipeline.PostOperations.Count != 0 ||
-            pipeline.Project.IsDistinct ||
-            pipeline.Source is not (PhysicalSchemaScanNode or PhysicalCteRefNode) ||
-            !CanUseParallelFilterProjectRows(sourceRows) ||
-            appendRow.AppendMode != ExecutionAppendMode.Direct)
+        if (
+            !ExecutionStrategies.CanUseParallelFilterProject(pipeline.Project)
+            || pipeline.PostOperations.Count != 0
+            || pipeline.Project.IsDistinct
+            || pipeline.Source is not (PhysicalSchemaScanNode or PhysicalCteRefNode)
+            || !CanUseParallelFilterProjectRows(sourceRows)
+            || appendRow.AppendMode != ExecutionAppendMode.Direct
+        )
         {
             return null;
         }
 
-        var predicate = pipeline.Filter == null
-            ? null
-            : ExecutionExpressionConverter.Convert(pipeline.Filter.Predicate, sourceShape);
+        var predicate =
+            pipeline.Filter == null
+                ? null
+                : ExecutionExpressionConverter.Convert(pipeline.Filter.Predicate, sourceShape);
 
-        if (!CanUseParallelFilterProjectExpression(predicate) ||
-            !CanUseParallelFilterProjectAppend(appendRow) ||
-            !HasParallelWorthyMethodCall(predicate, appendRow))
+        if (
+            !CanUseParallelFilterProjectExpression(predicate)
+            || !CanUseParallelFilterProjectAppend(appendRow)
+            || !HasParallelWorthyMethodCall(predicate, appendRow)
+        )
         {
             return null;
         }
@@ -102,7 +114,8 @@ internal sealed partial class PhysicalLoweringImplementation
             appendRow,
             serialLoop.Body,
             ParallelFilterProjectRowThreshold,
-            maxDegreeOfParallelism);
+            maxDegreeOfParallelism
+        );
     }
 
     private static bool CanUseParallelFilterProjectRows(ExecutionExpression rows)
@@ -112,20 +125,25 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool CanUseParallelFilterProjectAppend(ExecutionAppendRow appendRow)
     {
-        return appendRow.Values.All(static value => CanUseParallelFilterProjectExpression(value.Value)) &&
-               appendRow.Contexts.All(CanUseParallelFilterProjectExpression) &&
-               (appendRow.ContextLayout == null ||
-                appendRow.ContextLayout.Segments.All(static segment =>
-                    CanUseParallelFilterProjectExpression(segment.Value)));
+        return appendRow.Values.All(static value => CanUseParallelFilterProjectExpression(value.Value))
+            && appendRow.Contexts.All(CanUseParallelFilterProjectExpression)
+            && (
+                appendRow.ContextLayout == null
+                || appendRow.ContextLayout.Segments.All(static segment =>
+                    CanUseParallelFilterProjectExpression(segment.Value)
+                )
+            );
     }
 
     private static bool HasParallelWorthyMethodCall(ExecutionExpression? predicate, ExecutionAppendRow appendRow)
     {
-        return ContainsMethodCall(predicate) ||
-               appendRow.Values.Any(static value => ContainsMethodCall(value.Value)) ||
-               appendRow.Contexts.Any(ContainsMethodCall) ||
-               (appendRow.ContextLayout != null &&
-                appendRow.ContextLayout.Segments.Any(static segment => ContainsMethodCall(segment.Value)));
+        return ContainsMethodCall(predicate)
+            || appendRow.Values.Any(static value => ContainsMethodCall(value.Value))
+            || appendRow.Contexts.Any(ContainsMethodCall)
+            || (
+                appendRow.ContextLayout != null
+                && appendRow.ContextLayout.Segments.Any(static segment => ContainsMethodCall(segment.Value))
+            );
     }
 
     private static bool ContainsMethodCall(ExecutionExpression? expression)
@@ -148,8 +166,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool CanMergeAggregateGroupShape(AggregateGroupShape shape)
     {
-        return shape is { RequiresParentLinks: false, Accumulators.Count: > 0 } &&
-               shape.Accumulators.All(static accumulator => accumulator.CanMerge);
+        return shape is { RequiresParentLinks: false, Accumulators.Count: > 0 }
+            && shape.Accumulators.All(static accumulator => accumulator.CanMerge);
     }
-
 }

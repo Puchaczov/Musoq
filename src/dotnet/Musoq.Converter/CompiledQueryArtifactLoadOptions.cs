@@ -13,6 +13,5 @@ public sealed class CompiledQueryArtifactLoadOptions
     /// <summary>
     ///     Gets the artifact validation mode. The default fast mode avoids regenerating executable code.
     /// </summary>
-    public CompiledQueryArtifactValidationMode ValidationMode { get; init; } =
-        CompiledQueryArtifactValidationMode.Fast;
+    public CompiledQueryArtifactValidationMode ValidationMode { get; init; } = CompiledQueryArtifactValidationMode.Fast;
 }

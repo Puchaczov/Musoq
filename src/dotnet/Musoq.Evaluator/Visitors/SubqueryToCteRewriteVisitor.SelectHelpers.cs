@@ -1,6 +1,7 @@
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
+
 public partial class SubqueryToCteRewriteVisitor
 {
     private static QueryNode GetLeftmostQuery(Node node)
@@ -34,13 +35,14 @@ public partial class SubqueryToCteRewriteVisitor
         {
             AccessColumnNode accessColumn => accessColumn.Name,
             DotNode { Root: IdentifierNode, Expression: IdentifierNode column } => column.Name,
-            _ => field.FieldName
+            _ => field.FieldName,
         };
     }
 
     private static bool ShouldRenameSubqueryOutput(FieldNode field)
     {
-        return field is { HasExplicitFieldName: false, Expression: DotNode or AccessColumnNode { Alias: not null and not "" } };
+        return field
+            is { HasExplicitFieldName: false, Expression: DotNode or AccessColumnNode { Alias: not null and not "" } };
     }
 
     private static QueryNode RenameSelectColumn(QueryNode query, string newAlias)
@@ -65,6 +67,7 @@ public partial class SubqueryToCteRewriteVisitor
             query.Take,
             query.Window,
             query.Qualify,
-            default);
+            default
+        );
     }
 }

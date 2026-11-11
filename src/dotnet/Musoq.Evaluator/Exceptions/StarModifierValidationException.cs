@@ -5,20 +5,14 @@ namespace Musoq.Evaluator.Exceptions;
 
 public class StarModifierValidationException : Exception, IDiagnosticException
 {
-
     public StarModifierValidationException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public StarModifierValidationException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public StarModifierValidationException()
-    {
-    }
+    public StarModifierValidationException() { }
+
     public StarModifierValidationException(string message, DiagnosticCode code, TextSpan span)
         : base(message)
     {

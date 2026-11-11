@@ -11,7 +11,8 @@ public sealed record PhysicalAccessMethodSourceNode(
     string Alias,
     Type ResultType,
     ApplyKind ApplyKind,
-    OutputSchema OutputSchema) : PhysicalNode(OutputSchema)
+    OutputSchema OutputSchema
+) : PhysicalNode(OutputSchema)
 {
     public override IReadOnlyList<PhysicalNode> Children { get; } = Array.Empty<PhysicalNode>();
 }

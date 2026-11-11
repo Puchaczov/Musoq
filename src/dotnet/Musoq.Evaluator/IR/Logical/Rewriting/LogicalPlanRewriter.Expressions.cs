@@ -10,7 +10,8 @@ internal static partial class LogicalPlanRewriter
     public static IrExpression[] RewriteExpressions(
         IReadOnlyList<IrExpression> expressions,
         Func<IrExpression, IrExpression> rewriteExpression,
-        out bool changed)
+        out bool changed
+    )
     {
         var rewritten = new IrExpression[expressions.Count];
         changed = false;
@@ -27,7 +28,8 @@ internal static partial class LogicalPlanRewriter
     public static AggregateBinding[] RewriteAggregateBindings(
         AggregateBinding[] bindings,
         Func<IrExpression, IrExpression> rewriteExpression,
-        out bool changed)
+        out bool changed
+    )
     {
         var rewritten = new AggregateBinding[bindings.Length];
         changed = false;
@@ -37,13 +39,17 @@ internal static partial class LogicalPlanRewriter
             var binding = bindings[index];
             var setArguments = RewriteExpressions(binding.SetArguments, rewriteExpression, out var setChanged);
             var getArguments = RewriteExpressions(binding.GetArguments, rewriteExpression, out var getChanged);
-            var filterPredicate = binding.FilterPredicate == null
-                ? null
-                : rewriteExpression(binding.FilterPredicate);
+            var filterPredicate = binding.FilterPredicate == null ? null : rewriteExpression(binding.FilterPredicate);
             var filterChanged = !ReferenceEquals(filterPredicate, binding.FilterPredicate);
-            rewritten[index] = setChanged || getChanged || filterChanged
-                ? binding with { SetArguments = setArguments, FilterPredicate = filterPredicate, GetArguments = getArguments }
-                : binding;
+            rewritten[index] =
+                setChanged || getChanged || filterChanged
+                    ? binding with
+                    {
+                        SetArguments = setArguments,
+                        FilterPredicate = filterPredicate,
+                        GetArguments = getArguments,
+                    }
+                    : binding;
             changed |= !ReferenceEquals(rewritten[index], binding);
         }
 
@@ -53,7 +59,8 @@ internal static partial class LogicalPlanRewriter
     public static ProjectedField[] RewriteProjectedFields(
         ProjectedField[] fields,
         Func<IrExpression, IrExpression> rewriteExpression,
-        out bool changed)
+        out bool changed
+    )
     {
         var rewritten = new ProjectedField[fields.Length];
         changed = false;
@@ -64,7 +71,10 @@ internal static partial class LogicalPlanRewriter
             var expression = rewriteExpression(field.Expression);
             rewritten[index] = ReferenceEquals(expression, field.Expression)
                 ? field
-                : field with { Expression = expression };
+                : field with
+                {
+                    Expression = expression,
+                };
             changed |= !ReferenceEquals(rewritten[index], field);
         }
 
@@ -74,7 +84,8 @@ internal static partial class LogicalPlanRewriter
     public static OrderField[] RewriteOrderFields(
         OrderField[] fields,
         Func<IrExpression, IrExpression> rewriteExpression,
-        out bool changed)
+        out bool changed
+    )
     {
         var rewritten = new OrderField[fields.Length];
         changed = false;
@@ -85,7 +96,10 @@ internal static partial class LogicalPlanRewriter
             var expression = rewriteExpression(field.Expression);
             rewritten[index] = ReferenceEquals(expression, field.Expression)
                 ? field
-                : field with { Expression = expression };
+                : field with
+                {
+                    Expression = expression,
+                };
             changed |= !ReferenceEquals(rewritten[index], field);
         }
 
@@ -95,7 +109,8 @@ internal static partial class LogicalPlanRewriter
     public static IReadOnlyList<ValuesScanRow> RewriteValuesRows(
         IReadOnlyList<ValuesScanRow> rows,
         Func<IrExpression, IrExpression> rewriteExpression,
-        out bool changed)
+        out bool changed
+    )
     {
         var rewritten = new ValuesScanRow[rows.Count];
         changed = false;
@@ -110,9 +125,7 @@ internal static partial class LogicalPlanRewriter
             {
                 var field = row.Fields[fieldIndex];
                 var value = rewriteExpression(field.Value);
-                fields[fieldIndex] = ReferenceEquals(value, field.Value)
-                    ? field
-                    : field with { Value = value };
+                fields[fieldIndex] = ReferenceEquals(value, field.Value) ? field : field with { Value = value };
                 rowChanged |= !ReferenceEquals(fields[fieldIndex], field);
             }
 
@@ -126,7 +139,8 @@ internal static partial class LogicalPlanRewriter
     public static WindowRegistration[] RewriteWindowRegistrations(
         WindowRegistration[] registrations,
         Func<IrExpression, IrExpression> rewriteExpression,
-        out bool changed)
+        out bool changed
+    )
     {
         var rewritten = new WindowRegistration[registrations.Length];
         changed = false;
@@ -134,22 +148,30 @@ internal static partial class LogicalPlanRewriter
         for (var index = 0; index < registrations.Length; index++)
         {
             var registration = registrations[index];
-            var partitionKeys = RewriteExpressions(registration.PartitionKeys, rewriteExpression, out var partitionChanged);
+            var partitionKeys = RewriteExpressions(
+                registration.PartitionKeys,
+                rewriteExpression,
+                out var partitionChanged
+            );
             var orderKeys = RewriteOrderFields(registration.OrderKeys, rewriteExpression, out var orderChanged);
-            var valueArguments = RewriteExpressions(registration.ValueArguments, rewriteExpression, out var valueChanged);
-            var filterPredicate = registration.FilterPredicate == null
-                ? null
-                : rewriteExpression(registration.FilterPredicate);
+            var valueArguments = RewriteExpressions(
+                registration.ValueArguments,
+                rewriteExpression,
+                out var valueChanged
+            );
+            var filterPredicate =
+                registration.FilterPredicate == null ? null : rewriteExpression(registration.FilterPredicate);
             var filterChanged = !ReferenceEquals(filterPredicate, registration.FilterPredicate);
-            rewritten[index] = partitionChanged || orderChanged || valueChanged || filterChanged
-                ? registration with
-                {
-                    PartitionKeys = partitionKeys,
-                    OrderKeys = orderKeys,
-                    ValueArguments = valueArguments,
-                    FilterPredicate = filterPredicate
-                }
-                : registration;
+            rewritten[index] =
+                partitionChanged || orderChanged || valueChanged || filterChanged
+                    ? registration with
+                    {
+                        PartitionKeys = partitionKeys,
+                        OrderKeys = orderKeys,
+                        ValueArguments = valueArguments,
+                        FilterPredicate = filterPredicate,
+                    }
+                    : registration;
             changed |= !ReferenceEquals(rewritten[index], registration);
         }
 

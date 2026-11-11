@@ -16,14 +16,14 @@ public partial class ConstantFoldingTests
         Assert.IsTrue(result.Succeeded, "Query should compile successfully despite tautological warning.");
         Assert.IsTrue(
             result.Warnings.Any(w => w.Code == DiagnosticCode.MQ5010_TautologicalCondition),
-            $"Expected MQ5010 warning but found: [{string.Join(", ", result.Warnings.Select(w => w.Code))}]");
+            $"Expected MQ5010 warning but found: [{string.Join(", ", result.Warnings.Select(w => w.Code))}]"
+        );
     }
 
     [TestMethod]
     public void WhenWhereIsFoldedToTrue_ShouldEmitTautologicalWarning()
     {
-        var result = CompileWithDiagnostics(
-            "select Name from #schema.first() where true and true", SingleEntitySource);
+        var result = CompileWithDiagnostics("select Name from #schema.first() where true and true", SingleEntitySource);
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsTrue(result.Warnings.Any(w => w.Code == DiagnosticCode.MQ5010_TautologicalCondition));
@@ -32,8 +32,7 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenWhereOrFoldsToTrue_ShouldEmitTautologicalWarning()
     {
-        var result = CompileWithDiagnostics(
-            "select Name from #schema.first() where false or true", SingleEntitySource);
+        var result = CompileWithDiagnostics("select Name from #schema.first() where false or true", SingleEntitySource);
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsTrue(result.Warnings.Any(w => w.Code == DiagnosticCode.MQ5010_TautologicalCondition));
@@ -43,7 +42,9 @@ public partial class ConstantFoldingTests
     public void WhenHavingIsAlwaysTrue_ShouldEmitTautologicalWarning()
     {
         var result = CompileWithDiagnostics(
-            "select Name, Count(Name) from #schema.first() group by Name having true", SingleEntitySource);
+            "select Name, Count(Name) from #schema.first() group by Name having true",
+            SingleEntitySource
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsTrue(result.Warnings.Any(w => w.Code == DiagnosticCode.MQ5010_TautologicalCondition));
@@ -70,14 +71,17 @@ public partial class ConstantFoldingTests
         Assert.IsTrue(result.Succeeded, "Query should compile successfully despite contradictory warning.");
         Assert.IsTrue(
             result.Warnings.Any(w => w.Code == DiagnosticCode.MQ5011_ContradictoryCondition),
-            $"Expected MQ5011 warning but found: [{string.Join(", ", result.Warnings.Select(w => w.Code))}]");
+            $"Expected MQ5011 warning but found: [{string.Join(", ", result.Warnings.Select(w => w.Code))}]"
+        );
     }
 
     [TestMethod]
     public void WhenWhereIsFoldedToFalse_ShouldEmitContradictoryWarning()
     {
         var result = CompileWithDiagnostics(
-            "select Name from #schema.first() where true and false", SingleEntitySource);
+            "select Name from #schema.first() where true and false",
+            SingleEntitySource
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsTrue(result.Warnings.Any(w => w.Code == DiagnosticCode.MQ5011_ContradictoryCondition));
@@ -87,7 +91,9 @@ public partial class ConstantFoldingTests
     public void WhenWhereOrOrFoldsToFalse_ShouldEmitContradictoryWarning()
     {
         var result = CompileWithDiagnostics(
-            "select Name from #schema.first() where false or false", SingleEntitySource);
+            "select Name from #schema.first() where false or false",
+            SingleEntitySource
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsTrue(result.Warnings.Any(w => w.Code == DiagnosticCode.MQ5011_ContradictoryCondition));
@@ -97,7 +103,9 @@ public partial class ConstantFoldingTests
     public void WhenHavingIsAlwaysFalse_ShouldEmitContradictoryWarning()
     {
         var result = CompileWithDiagnostics(
-            "select Name, Count(Name) from #schema.first() group by Name having false", SingleEntitySource);
+            "select Name, Count(Name) from #schema.first() group by Name having false",
+            SingleEntitySource
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsTrue(result.Warnings.Any(w => w.Code == DiagnosticCode.MQ5011_ContradictoryCondition));
@@ -119,29 +127,34 @@ public partial class ConstantFoldingTests
     [TestMethod]
     public void WhenWhereHasColumnReference_ShouldNotEmitWarning()
     {
-        var result = CompileWithDiagnostics(
-            "select Name from #schema.first() where Value > 0", SingleEntitySource);
+        var result = CompileWithDiagnostics("select Name from #schema.first() where Value > 0", SingleEntitySource);
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsFalse(
             result.Warnings.Any(w =>
-                w.Code == DiagnosticCode.MQ5010_TautologicalCondition ||
-                w.Code == DiagnosticCode.MQ5011_ContradictoryCondition),
-            "No tautological/contradictory warnings expected for column-based conditions.");
+                w.Code == DiagnosticCode.MQ5010_TautologicalCondition
+                || w.Code == DiagnosticCode.MQ5011_ContradictoryCondition
+            ),
+            "No tautological/contradictory warnings expected for column-based conditions."
+        );
     }
 
     [TestMethod]
     public void WhenWhereMixesColumnAndConstant_ShouldNotEmitWarning()
     {
         var result = CompileWithDiagnostics(
-            "select Name from #schema.first() where true and Value > 0", SingleEntitySource);
+            "select Name from #schema.first() where true and Value > 0",
+            SingleEntitySource
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsFalse(
             result.Warnings.Any(w =>
-                w.Code == DiagnosticCode.MQ5010_TautologicalCondition ||
-                w.Code == DiagnosticCode.MQ5011_ContradictoryCondition),
-            "No tautological/contradictory warnings when column references remain.");
+                w.Code == DiagnosticCode.MQ5010_TautologicalCondition
+                || w.Code == DiagnosticCode.MQ5011_ContradictoryCondition
+            ),
+            "No tautological/contradictory warnings when column references remain."
+        );
     }
 
     #endregion

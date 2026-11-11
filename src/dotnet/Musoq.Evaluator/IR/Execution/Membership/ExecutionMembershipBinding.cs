@@ -6,29 +6,35 @@ public enum ExecutionMembershipEqualityKind
 {
     TypedEquality,
     NumericEquality,
-    NeverMatch
+    NeverMatch,
 }
 
 public sealed record ExecutionMembershipComparison(
-    ExecutionMembershipEqualityKind Kind, ExecutionTypeRef ComparisonType);
+    ExecutionMembershipEqualityKind Kind,
+    ExecutionTypeRef ComparisonType
+);
 
 public enum ExecutionMembershipEvaluationMode
 {
     Eager,
-    ShortCircuit
+    ShortCircuit,
 }
 
 public sealed record ExecutionMembershipBinding
 {
-    public ExecutionMembershipBinding(ExecutionTypeRef operandType,
-        IReadOnlyList<ExecutionTypeRef> memberTypes, IReadOnlyList<ExecutionMembershipComparison> comparisons,
-        ExecutionMembershipEvaluationMode evaluationMode)
+    public ExecutionMembershipBinding(
+        ExecutionTypeRef operandType,
+        IReadOnlyList<ExecutionTypeRef> memberTypes,
+        IReadOnlyList<ExecutionMembershipComparison> comparisons,
+        ExecutionMembershipEvaluationMode evaluationMode
+    )
     {
         OperandType = operandType;
         EvaluationMode = evaluationMode;
         MemberTypes = ExecutionIrCollections.Freeze(memberTypes);
         Comparisons = ExecutionIrCollections.Freeze(comparisons);
     }
+
     public ExecutionTypeRef OperandType { get; }
     public ExecutionMembershipEvaluationMode EvaluationMode { get; }
     public IReadOnlyList<ExecutionTypeRef> MemberTypes { get; }

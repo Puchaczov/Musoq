@@ -6,7 +6,6 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-
     /// <summary>
     ///     Converts bytes to human readable size (e.g., "1.5 MB").
     /// </summary>
@@ -29,9 +28,7 @@ public partial class LibraryBase
             suffixIndex++;
         }
 
-        return suffixIndex == 0
-            ? $"{size:0} {suffixes[suffixIndex]}"
-            : $"{size:0.##} {suffixes[suffixIndex]}";
+        return suffixIndex == 0 ? $"{size:0} {suffixes[suffixIndex]}" : $"{size:0.##} {suffixes[suffixIndex]}";
     }
 
     /// <summary>
@@ -49,10 +46,14 @@ public partial class LibraryBase
         var ts = TimeSpan.FromSeconds(seconds.Value);
         var parts = new List<string>();
 
-        if (ts.Days > 0) parts.Add($"{ts.Days}d");
-        if (ts.Hours > 0) parts.Add($"{ts.Hours}h");
-        if (ts.Minutes > 0) parts.Add($"{ts.Minutes}m");
-        if (ts.Seconds > 0 || parts.Count == 0) parts.Add($"{ts.Seconds}s");
+        if (ts.Days > 0)
+            parts.Add($"{ts.Days}d");
+        if (ts.Hours > 0)
+            parts.Add($"{ts.Hours}h");
+        if (ts.Minutes > 0)
+            parts.Add($"{ts.Minutes}m");
+        if (ts.Seconds > 0 || parts.Count == 0)
+            parts.Add($"{ts.Seconds}s");
 
         return string.Join(" ", parts);
     }
@@ -68,7 +69,6 @@ public partial class LibraryBase
     {
         if (string.IsNullOrEmpty(value))
             return null;
-
 
         var charCounts = new Dictionary<char, int>();
         foreach (var c in value)
@@ -128,5 +128,4 @@ public partial class LibraryBase
 
         return value.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f' or >= 'A' and <= 'F');
     }
-
 }

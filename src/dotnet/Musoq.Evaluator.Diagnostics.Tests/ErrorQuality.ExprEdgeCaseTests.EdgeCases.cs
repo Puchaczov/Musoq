@@ -172,13 +172,23 @@ public partial class ErrorQualityExprEdgeCaseTests
     {
         const string query1 = @"SELECT 'it\'s a test' AS Value FROM #A.Entities()";
         const string query2 = @"SELECT 'double \'quotes\' inside' AS Value FROM #A.Entities()";
-        using var first = Musoq.Converter.InstanceCreator.CompileForExecution(query1,
-            System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var first = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query1,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var firstTable = first.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(firstTable, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(firstTable, ["it's a test"]);
-        using var second = Musoq.Converter.InstanceCreator.CompileForExecution(query2,
-            System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var second = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query2,
+            System.Guid.NewGuid().ToString(),
+            CreateSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var secondTable = second.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(secondTable, ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(secondTable, ["double 'quotes' inside"]);
@@ -240,10 +250,7 @@ public partial class ErrorQualityExprEdgeCaseTests
         AssertHasErrorCode(result, DiagnosticCode.MQ3001_UnknownColumn, "star from non-existent alias x");
     }
 
-
     // ============================================================================
     // E-DESC: DESC Command Edge Cases
     // ============================================================================
-
-
 }

@@ -11,7 +11,8 @@ public sealed record ExecutionInterpretSource : ExecutionNode
         string interpreterTypeName,
         InterpretSourceKind kind,
         IReadOnlyList<ExecutionExpression> arguments,
-        ApplyKind applyKind)
+        ApplyKind applyKind
+    )
     {
         Rows = rows;
         SchemaName = schemaName;

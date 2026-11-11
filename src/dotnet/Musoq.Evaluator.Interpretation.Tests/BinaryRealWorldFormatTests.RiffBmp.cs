@@ -12,23 +12,25 @@ public partial class BinaryRealWorldFormatTests
     //   'fmt ', FmtSize (uint le), AudioFormat/Channels/SampleRate/...
     //   'data', DataSize (uint le), Data (substream[DataSize] raw)
 
-    private const string WavSchema = @"
-        binary WavFile {
-            Riff: string[4] ascii magic 'RIFF',
-            RiffSize: uint le,
-            Wave: string[4] ascii magic 'WAVE',
-            FmtId: string[4] ascii oneOf ['fmt ', 'data'],
-            FmtSize: uint le,
-            AudioFormat: ushort le,
-            Channels: ushort le,
-            SampleRate: uint le,
-            ByteRate: uint le,
-            BlockAlign: ushort le,
-            BitsPerSample: ushort le,
-            DataId: string[4] ascii oneOf ['fmt ', 'data'],
-            DataSize: uint le,
-            Data: substream[DataSize] raw
-        };";
+    private const string WavSchema = (
+        "\n"
+        + "        binary WavFile {\n"
+        + "            Riff: string[4] ascii magic 'RIFF',\n"
+        + "            RiffSize: uint le,\n"
+        + "            Wave: string[4] ascii magic 'WAVE',\n"
+        + "            FmtId: string[4] ascii oneOf ['fmt ', 'data'],\n"
+        + "            FmtSize: uint le,\n"
+        + "            AudioFormat: ushort le,\n"
+        + "            Channels: ushort le,\n"
+        + "            SampleRate: uint le,\n"
+        + "            ByteRate: uint le,\n"
+        + "            BlockAlign: ushort le,\n"
+        + "            BitsPerSample: ushort le,\n"
+        + "            DataId: string[4] ascii oneOf ['fmt ', 'data'],\n"
+        + "            DataSize: uint le,\n"
+        + "            Data: substream[DataSize] raw\n"
+        + "        };"
+    );
 
     private byte[] BuildWav(string riff, string wave, byte[] data)
     {
@@ -53,9 +55,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_ValidWav_ShouldProjectChannelsSampleRateAndDataLength()
     {
-        var query = WavSchema + @"
-            select w.Channels, w.SampleRate, w.Data from #test.files() f
-            cross apply Interpret<WavFile>(f.Content) w";
+        var query =
+            WavSchema
+            + (
+                "\n"
+                + "            select w.Channels, w.SampleRate, w.Data from #test.files() f\n"
+                + "            cross apply Interpret<WavFile>(f.Content) w"
+            );
 
         var data = BuildWav("RIFF", "WAVE", [0x11, 0x22, 0x33, 0x44]);
         var table = RunQuery(query, data);
@@ -69,9 +75,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_WavInvalidRiffMagic_ShouldThrowParseException()
     {
-        var query = WavSchema + @"
-            select w.Channels from #test.files() f
-            cross apply Interpret<WavFile>(f.Content) w";
+        var query =
+            WavSchema
+            + (
+                "\n"
+                + "            select w.Channels from #test.files() f\n"
+                + "            cross apply Interpret<WavFile>(f.Content) w"
+            );
 
         var data = BuildWav("RIFX", "WAVE", [0x01]);
         Assert.Throws<ParseException>(() => RunQuery(query, data));
@@ -80,9 +90,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void TryInterpret_WavInvalidWaveMagic_ShouldReturnNull()
     {
-        var query = WavSchema + @"
-            select f.Name, w.Channels from #test.files() f
-            outer apply TryInterpret<WavFile>(f.Content) w";
+        var query =
+            WavSchema
+            + (
+                "\n"
+                + "            select f.Name, w.Channels from #test.files() f\n"
+                + "            outer apply TryInterpret<WavFile>(f.Content) w"
+            );
 
         var data = BuildWav("RIFF", "AVI ", [0x01]);
         var table = RunQuery(query, data);
@@ -101,19 +115,21 @@ public partial class BinaryRealWorldFormatTests
     //   Planes (ushort le const 1), BitsPerPixel (ushort le oneOf [24, 32])
     //   Pixels read with 'at DataOffset'
 
-    private const string BmpSchema = @"
-        binary BmpFile {
-            Signature: string[2] ascii magic 'BM',
-            FileSize: uint le,
-            _: uint le,
-            DataOffset: uint le,
-            DibHeaderSize: uint le const 40,
-            Width: int le,
-            Height: int le,
-            Planes: ushort le const 1,
-            BitsPerPixel: ushort le oneOf [24, 32],
-            Pixels: byte[6] at DataOffset
-        };";
+    private const string BmpSchema = (
+        "\n"
+        + "        binary BmpFile {\n"
+        + "            Signature: string[2] ascii magic 'BM',\n"
+        + "            FileSize: uint le,\n"
+        + "            _: uint le,\n"
+        + "            DataOffset: uint le,\n"
+        + "            DibHeaderSize: uint le const 40,\n"
+        + "            Width: int le,\n"
+        + "            Height: int le,\n"
+        + "            Planes: ushort le const 1,\n"
+        + "            BitsPerPixel: ushort le oneOf [24, 32],\n"
+        + "            Pixels: byte[6] at DataOffset\n"
+        + "        };"
+    );
 
     private byte[] BuildBmp(int bitsPerPixel, int dibHeaderSize = 40, int planes = 1)
     {
@@ -136,9 +152,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_ValidBmp_ShouldProjectDimensionsAndPixelPayload()
     {
-        var query = BmpSchema + @"
-            select b.Width, b.Height, b.BitsPerPixel, b.Pixels from #test.files() f
-            cross apply Interpret<BmpFile>(f.Content) b";
+        var query =
+            BmpSchema
+            + (
+                "\n"
+                + "            select b.Width, b.Height, b.BitsPerPixel, b.Pixels from #test.files() f\n"
+                + "            cross apply Interpret<BmpFile>(f.Content) b"
+            );
 
         var data = BuildBmp(24);
         var table = RunQuery(query, data);
@@ -153,9 +173,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_BmpInvalidBitsPerPixel_ShouldFailOneOf()
     {
-        var query = BmpSchema + @"
-            select b.Width from #test.files() f
-            cross apply Interpret<BmpFile>(f.Content) b";
+        var query =
+            BmpSchema
+            + (
+                "\n"
+                + "            select b.Width from #test.files() f\n"
+                + "            cross apply Interpret<BmpFile>(f.Content) b"
+            );
 
         var data = BuildBmp(16);
         Assert.Throws<ParseException>(() => RunQuery(query, data));
@@ -164,9 +188,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_BmpInvalidDibHeaderSize_ShouldFailConst()
     {
-        var query = BmpSchema + @"
-            select b.Width from #test.files() f
-            cross apply Interpret<BmpFile>(f.Content) b";
+        var query =
+            BmpSchema
+            + (
+                "\n"
+                + "            select b.Width from #test.files() f\n"
+                + "            cross apply Interpret<BmpFile>(f.Content) b"
+            );
 
         var data = BuildBmp(24, dibHeaderSize: 12);
         Assert.Throws<ParseException>(() => RunQuery(query, data));
@@ -175,9 +203,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void TryInterpret_BmpInvalidBitsPerPixel_ShouldPreserveInvalidRowAsNull()
     {
-        var query = BmpSchema + @"
-            select f.Name, b.Width from #test.files() f
-            outer apply TryInterpret<BmpFile>(f.Content) b";
+        var query =
+            BmpSchema
+            + (
+                "\n"
+                + "            select f.Name, b.Width from #test.files() f\n"
+                + "            outer apply TryInterpret<BmpFile>(f.Content) b"
+            );
 
         var data = BuildBmp(8);
         var table = RunQuery(query, data);

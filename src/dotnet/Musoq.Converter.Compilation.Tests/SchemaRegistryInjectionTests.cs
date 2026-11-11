@@ -23,26 +23,30 @@ public class SchemaRegistryInjectionTests
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
             loggerResolver,
-            () => new CreateTree(
-                new TransformTree(
-                    new TurnQueryIntoRunnableCode(null),
-                    loggerResolver)),
+            () => new CreateTree(new TransformTree(new TurnQueryIntoRunnableCode(null), loggerResolver)),
             items =>
             {
                 items.SchemaRegistry = expectedRegistry;
-                items.CreateBuildMetadataAndInferTypesVisitor =
-                    (provider, columns, compilationOptions, schemaRegistry, logger) =>
-                    {
-                        capturedVisitor = new BuildMetadataAndInferTypesVisitor(
-                            provider,
-                            columns,
-                            logger,
-                            compilationOptions,
-                            schemaRegistry);
+                items.CreateBuildMetadataAndInferTypesVisitor = (
+                    provider,
+                    columns,
+                    compilationOptions,
+                    schemaRegistry,
+                    logger
+                ) =>
+                {
+                    capturedVisitor = new BuildMetadataAndInferTypesVisitor(
+                        provider,
+                        columns,
+                        logger,
+                        compilationOptions,
+                        schemaRegistry
+                    );
 
-                        return capturedVisitor;
-                    };
-            });
+                    return capturedVisitor;
+                };
+            }
+        );
 
         var result = compiled.Run();
 

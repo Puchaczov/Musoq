@@ -18,9 +18,9 @@ public static class DiagnosticPhaseMapping
             (int)DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape => DiagnosticPhase.Parse,
             >= 4001 and <= 4016 => DiagnosticPhase.Schema,
             (int)DiagnosticCode.MQ8001_CodeGenerationFailed => DiagnosticPhase.CodeGeneration,
-            (int)DiagnosticCode.MQ7010_DataSourceOpenFailed or
-            (int)DiagnosticCode.MQ7011_DataSourceReadFailed or
-            (int)DiagnosticCode.MQ7012_DataSourceCleanupFailed => DiagnosticPhase.DataSource,
+            (int)DiagnosticCode.MQ7010_DataSourceOpenFailed
+            or (int)DiagnosticCode.MQ7011_DataSourceReadFailed
+            or (int)DiagnosticCode.MQ7012_DataSourceCleanupFailed => DiagnosticPhase.DataSource,
             (int)DiagnosticCode.MQ7013_StructuralInputLimitExceeded => DiagnosticPhase.Runtime,
             >= 7014 and <= 7115 => DiagnosticPhase.Runtime,
             >= 1000 and < 3000 => DiagnosticPhase.Parse,
@@ -29,9 +29,10 @@ public static class DiagnosticPhaseMapping
             >= 5000 and < 6000 => DiagnosticPhase.Bind,
             >= 6000 and < 7000 => DiagnosticPhase.FeatureGate,
             >= 7000 and < 8000 => DiagnosticPhase.Runtime,
-            (int)DiagnosticCode.MQ9001_InternalCompilerError or (int)DiagnosticCode.MQ9002_InternalExecutionError => DiagnosticPhase.Internal,
+            (int)DiagnosticCode.MQ9001_InternalCompilerError or (int)DiagnosticCode.MQ9002_InternalExecutionError =>
+                DiagnosticPhase.Internal,
             >= 8000 and < 9000 => DiagnosticPhase.Runtime,
-            _ => DiagnosticPhase.Runtime
+            _ => DiagnosticPhase.Runtime,
         };
     }
 
@@ -50,7 +51,7 @@ public static class DiagnosticPhaseMapping
             DiagnosticPhase.CodeGeneration => "code-generation",
             DiagnosticPhase.Schema => "schema",
             DiagnosticPhase.Internal => "internal",
-            _ => "unknown"
+            _ => "unknown",
         };
     }
 }

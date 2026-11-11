@@ -11,15 +11,12 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 {
-
     [TestMethod]
     public void WhenComparingReversedStringDateTimeWithBasicOperators_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
         TestReversedComparison(testData, "EventDate");
     }
-
-
 
     private sealed class DateTimeTypeTestData
     {
@@ -42,7 +39,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             EqualValue = new DateTime(2023, 3, 15),
             StringEarlier = "2023-01-01",
             StringLater = "2023-06-15",
-            StringEqual = "2023-03-15"
+            StringEqual = "2023-03-15",
         },
         new()
         {
@@ -52,7 +49,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             EqualValue = new DateTime(2023, 3, 15),
             StringEarlier = "2023-01-01",
             StringLater = "2023-06-15",
-            StringEqual = "2023-03-15"
+            StringEqual = "2023-03-15",
         },
         new()
         {
@@ -62,7 +59,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             EqualValue = new DateTimeOffset(2023, 3, 15, 12, 0, 0, TimeSpan.Zero),
             StringEarlier = "2023-01-01T12:00:00+00:00",
             StringLater = "2023-06-15T12:00:00+00:00",
-            StringEqual = "2023-03-15T12:00:00+00:00"
+            StringEqual = "2023-03-15T12:00:00+00:00",
         },
         new()
         {
@@ -72,7 +69,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             EqualValue = new DateTimeOffset(2023, 3, 15, 12, 0, 0, TimeSpan.Zero),
             StringEarlier = "2023-01-01T12:00:00+00:00",
             StringLater = "2023-06-15T12:00:00+00:00",
-            StringEqual = "2023-03-15T12:00:00+00:00"
+            StringEqual = "2023-03-15T12:00:00+00:00",
         },
         new()
         {
@@ -82,7 +79,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             EqualValue = new TimeSpan(2, 0, 0),
             StringEarlier = "01:00:00",
             StringLater = "03:00:00",
-            StringEqual = "02:00:00"
+            StringEqual = "02:00:00",
         },
         new()
         {
@@ -92,16 +89,16 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             EqualValue = new TimeSpan(2, 0, 0),
             StringEarlier = "01:00:00",
             StringLater = "03:00:00",
-            StringEqual = "02:00:00"
-        }
+            StringEqual = "02:00:00",
+        },
     ];
-
 
     private void TestBasicOperatorFunctionality(DateTimeTypeTestData testData, string op, string fieldName)
     {
-        var query = $"table Events {{ {fieldName}: {testData.TypeName}, Name: string }};" +
-                    $"couple #test.whatever with table Events as Events; " +
-                    $"select Name from Events() where {fieldName} {op} '{testData.StringEqual}'";
+        var query =
+            $"table Events {{ {fieldName}: {testData.TypeName}, Name: string }};"
+            + $"couple #test.whatever with table Events as Events; "
+            + $"select Name from Events() where {fieldName} {op} '{testData.StringEqual}'";
 
         try
         {
@@ -116,7 +113,8 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             CollectionAssert.AreEqual(
                 GetExpectedEventsForOperator(op),
                 actualEvents,
-                $"Unexpected rows for {testData.TypeName} with operator {op}");
+                $"Unexpected rows for {testData.TypeName} with operator {op}"
+            );
         }
         catch (Exception ex)
         {
@@ -131,17 +129,20 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         foreach (var op in operators)
         {
             var reversedOp = GetReversedOperator(op);
-            var query = $"table Events {{ {fieldName}: {testData.TypeName}, Name: string }};" +
-                        $"couple #test.whatever with table Events as Events; " +
-                        $"select Name from Events() where '{testData.StringEqual}' {reversedOp} {fieldName}";
+            var query =
+                $"table Events {{ {fieldName}: {testData.TypeName}, Name: string }};"
+                + $"couple #test.whatever with table Events as Events; "
+                + $"select Name from Events() where '{testData.StringEqual}' {reversedOp} {fieldName}";
 
             try
             {
                 var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, fieldName));
                 var table = vm.Run();
 
-                CollectionAssert.AreEqual(GetExpectedEventsForOperator(op),
-                    table.Select(row => (string)row.ReadValues()[0]).OrderBy(name => name).ToArray());
+                CollectionAssert.AreEqual(
+                    GetExpectedEventsForOperator(op),
+                    table.Select(row => (string)row.ReadValues()[0]).OrderBy(name => name).ToArray()
+                );
             }
             catch (Exception ex)
             {
@@ -160,7 +161,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             "<=" => ">=",
             "=" => "=",
             "<>" => "<>",
-            _ => op
+            _ => op,
         };
     }
 
@@ -174,7 +175,7 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
             ">=" => ["Equal Event", "Later Event"],
             "<=" => ["Earlier Event", "Equal Event"],
             "<>" => ["Earlier Event", "Later Event"],
-            _ => throw new ArgumentOutOfRangeException(nameof(op), op, "Unsupported comparison operator.")
+            _ => throw new ArgumentOutOfRangeException(nameof(op), op, "Unsupported comparison operator."),
         };
     }
 
@@ -184,8 +185,8 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var table = vm.Run();
 
         Assert.IsGreaterThan(0, table.Count, "Query should return at least one result");
-        return table[0].ReadValues()[0] as string ??
-               throw new AssertFailedException("Expected comparison result to be a string.");
+        return table[0].ReadValues()[0] as string
+            ?? throw new AssertFailedException("Expected comparison result to be a string.");
     }
 
     private List<dynamic> CreateTestData(DateTimeTypeTestData testData, string? fieldName = null)
@@ -206,6 +207,4 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         return [earlier, equal, later];
     }
-
-
 }

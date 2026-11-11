@@ -7,8 +7,8 @@ using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Planning.Printing;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
-using Musoq.Parser.Nodes;
 using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using Musoq.Schema.Optimization;
 using PlanningContext = Musoq.Evaluator.IR.Planning.PlanningContext;
@@ -18,9 +18,7 @@ namespace Musoq.Converter.Build;
 
 public partial class TransformTree
 {
-    private static CteExecutionPlan? ComputeCteExecutionPlan(
-        RootNode queryTree,
-        CancellationToken cancellationToken)
+    private static CteExecutionPlan? ComputeCteExecutionPlan(RootNode queryTree, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         CteExpressionNode? cteExpression = null;
@@ -46,35 +44,26 @@ public partial class TransformTree
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        return cteExpression == null
-            ? null
-            : CteParallelizationAnalyzer.CreatePlan(cteExpression, cancellationToken);
+        return cteExpression == null ? null : CteParallelizationAnalyzer.CreatePlan(cteExpression, cancellationToken);
     }
 
     private static PlanningStageBuildResult? BuildPlans(
         SemanticBuildArtifacts semantic,
-        TransformPipelineContext context)
+        TransformPipelineContext context
+    )
     {
         try
         {
             context.CancellationToken.ThrowIfCancellationRequested();
-            var aliasKeyedColumns = CreateAliasKeyedInferredColumns(
-                semantic.Phase.Metadata,
-                context.CancellationToken);
+            var aliasKeyedColumns = CreateAliasKeyedInferredColumns(semantic.Phase.Metadata, context.CancellationToken);
             var sourcePlanRequests = new Dictionary<SchemaFromNode, SourcePlanRequest>();
             foreach (var pair in semantic.SourcePlanRequestsPerSchema)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
-                sourcePlanRequests[pair.Key] = pair.Value with
-                {
-                    CancellationToken = context.CancellationToken
-                };
+                sourcePlanRequests[pair.Key] = pair.Value with { CancellationToken = context.CancellationToken };
             }
 
-            var logicalArtifacts = BuildLogicalPlanMeasured(
-                semantic.TransformedQueryTree,
-                aliasKeyedColumns,
-                context);
+            var logicalArtifacts = BuildLogicalPlanMeasured(semantic.TransformedQueryTree, aliasKeyedColumns, context);
             if (logicalArtifacts is null)
                 return null;
             context.CancellationToken.ThrowIfCancellationRequested();
@@ -88,14 +77,16 @@ public partial class TransformTree
                 semantic.UsedWhereNodes,
                 sourcePlanRequests,
                 semantic.PipelineInferredColumns ?? aliasKeyedColumns,
-                semantic.PipelineUsedColumns ?? new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
+                semantic.PipelineUsedColumns
+                    ?? new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
                 planningScope,
                 context.SchemaRegistry,
                 new ExecutionPlanningShapeResolverAdapter(executionShapes),
-                semantic.CteExecutionPlan)
+                semantic.CteExecutionPlan
+            )
             {
                 CancellationToken = context.CancellationToken,
-                SourceContractDiagnosticLocationsBySource = semantic.SourceContractDiagnosticLocationsPerSchema
+                SourceContractDiagnosticLocationsBySource = semantic.SourceContractDiagnosticLocationsPerSchema,
             };
 
             var planner = new QueryPlanner();
@@ -110,12 +101,8 @@ public partial class TransformTree
                 physicalPhase.Dispose();
             }
             context.CancellationToken.ThrowIfCancellationRequested();
-            SourceContractDiagnosticReporter.Report(
-                planningResult,
-                context.DiagnosticContext);
-            SourceOptimizationDiagnosticReporter.Report(
-                planningResult,
-                context.DiagnosticContext);
+            SourceContractDiagnosticReporter.Report(planningResult, context.DiagnosticContext);
+            SourceOptimizationDiagnosticReporter.Report(planningResult, context.DiagnosticContext);
             context.CancellationToken.ThrowIfCancellationRequested();
 
             var updatedContext = context
@@ -126,7 +113,8 @@ public partial class TransformTree
                 UsedWhereNodes = ApplyPlannedWhereNodes(
                     semantic.UsedWhereNodes,
                     planningResult.Properties.SourcePredicatePlansBySourceId,
-                    context.CancellationToken)
+                    context.CancellationToken
+                ),
             };
 
             string? planningText = null;
@@ -153,7 +141,7 @@ public partial class TransformTree
                 PlanningText = planningText,
                 InitialPhysicalPlan = planningResult.PhysicalArtifacts.InitialPhysicalPlan,
                 OptimizedPhysicalPlan = planningResult.PhysicalArtifacts.OptimizedPhysicalPlan,
-                PhysicalPlan = planningResult.PhysicalArtifacts.OptimizedPhysicalPlan
+                PhysicalPlan = planningResult.PhysicalArtifacts.OptimizedPhysicalPlan,
             };
 
             context.CancellationToken.ThrowIfCancellationRequested();
@@ -166,13 +154,19 @@ public partial class TransformTree
         catch (SchemaProviderFailureException providerFailure)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
-            return DataSourceDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(providerFailure, context.DiagnosticContext);
+            return DataSourceDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(
+                providerFailure,
+                context.DiagnosticContext
+            );
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex) is not null)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
             var providerFailure = EvaluatorExceptionTaxonomy.FindSchemaProviderFailure(ex)!;
-            return DataSourceDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(providerFailure, context.DiagnosticContext);
+            return DataSourceDiagnosticReporter.ReportOrRethrow<PlanningStageBuildResult>(
+                providerFailure,
+                context.DiagnosticContext
+            );
         }
         catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
@@ -185,8 +179,7 @@ public partial class TransformTree
         {
             context.CancellationToken.ThrowIfCancellationRequested();
             if (!context.DiagnosticContext.HasErrors)
-                context.DiagnosticContext.ReportException(
-                    InternalDiagnosticException.ForCompiler(ex));
+                context.DiagnosticContext.ReportException(InternalDiagnosticException.ForCompiler(ex));
             return null;
         }
     }
@@ -194,7 +187,8 @@ public partial class TransformTree
     private static LogicalPlanningArtifacts? BuildLogicalPlanMeasured(
         RootNode queryTree,
         Dictionary<string, ISchemaColumn[]> aliasKeyedColumns,
-        TransformPipelineContext context)
+        TransformPipelineContext context
+    )
     {
         var phase = EvaluatorPerformanceTelemetry.BeginPhase("semantic.logical-plan");
         try
@@ -210,14 +204,16 @@ public partial class TransformTree
 
             var logicalOptimizer = new LogicalOptimizer(
                 context.CompilationOptions.UseConstantFolding,
-                context.DiagnosticContext);
+                context.DiagnosticContext
+            );
             context.CancellationToken.ThrowIfCancellationRequested();
             var logicalOptimizationResult = logicalOptimizer.Optimize(logicalTraverser.Result);
             context.CancellationToken.ThrowIfCancellationRequested();
             return new LogicalPlanningArtifacts(
                 logicalOptimizationResult.InitialPlan,
                 logicalOptimizationResult.OptimizedPlan,
-                logicalOptimizationResult.Trace);
+                logicalOptimizationResult.Trace
+            );
         }
         finally
         {
@@ -228,7 +224,8 @@ public partial class TransformTree
     private static Dictionary<SchemaFromNode, WhereNode> ApplyPlannedWhereNodes(
         IReadOnlyDictionary<SchemaFromNode, WhereNode> rawWhereNodes,
         IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlans,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var result = new Dictionary<SchemaFromNode, WhereNode>(rawWhereNodes.Count);
@@ -236,8 +233,10 @@ public partial class TransformTree
         foreach (var whereNode in rawWhereNodes)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!string.IsNullOrWhiteSpace(whereNode.Key.Id) &&
-                sourcePredicatePlans.TryGetValue(whereNode.Key.Id, out var predicatePlan))
+            if (
+                !string.IsNullOrWhiteSpace(whereNode.Key.Id)
+                && sourcePredicatePlans.TryGetValue(whereNode.Key.Id, out var predicatePlan)
+            )
             {
                 result[whereNode.Key] = predicatePlan.PushedWhereNode;
                 continue;

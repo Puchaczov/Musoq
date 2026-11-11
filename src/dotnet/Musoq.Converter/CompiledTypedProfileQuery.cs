@@ -7,7 +7,10 @@ using Musoq.Schema;
 
 namespace Musoq.Converter;
 
-public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOut>, IQueryProgressSource, ITypedQueryDiagnosticsProvider
+public sealed class CompiledTypedProfileQuery<TOut>
+    : IProfiledTypedRunnable<TOut>,
+        IQueryProgressSource,
+        ITypedQueryDiagnosticsProvider
 {
     private readonly TypedProfileRunnableFactory<TOut> _factory;
     private readonly ISchemaProvider _schemaProvider;
@@ -96,7 +99,8 @@ public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOu
             ProjectRows(profileResult.Result, _factory.Projector),
             profileResult.Profile,
             profileResult.ProfileText,
-            isSourceExecutionComplete: true);
+            isSourceExecutionComplete: true
+        );
     }
 
     private static IEnumerable<TOut> ProjectRows(Table table, TableTypedRowProjector<TOut> projector)
@@ -104,5 +108,4 @@ public sealed class CompiledTypedProfileQuery<TOut> : IProfiledTypedRunnable<TOu
         foreach (var row in table)
             yield return projector.Project(row);
     }
-
 }

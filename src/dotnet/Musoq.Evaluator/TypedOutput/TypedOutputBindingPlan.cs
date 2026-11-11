@@ -11,7 +11,8 @@ internal sealed class TypedOutputBindingPlan
         IReadOnlyList<TypedOutputColumn> columns,
         ConstructorInfo? constructor,
         IReadOnlyList<TypedOutputConstructorBinding> constructorBindings,
-        IReadOnlyList<TypedOutputMemberBinding> memberBindings)
+        IReadOnlyList<TypedOutputMemberBinding> memberBindings
+    )
     {
         OutputType = outputType;
         Columns = columns.ToArray();

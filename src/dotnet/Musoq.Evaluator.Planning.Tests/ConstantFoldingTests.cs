@@ -16,18 +16,7 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class ConstantFoldingTests : GenericEntityTestBase
 {
-    private static readonly FoldEntity[] SingleEntitySource =
-        [new() { Name = "a", Value = 1 }];
-
-
-
-
-
-
-
-
-
-
+    private static readonly FoldEntity[] SingleEntitySource = [new() { Name = "a", Value = 1 }];
 
     #region Test entity
 
@@ -41,9 +30,6 @@ public partial class ConstantFoldingTests : GenericEntityTestBase
     #endregion
 
 
-
-
-
     #region Diagnostic helper
 
     private BuildResult CompileWithDiagnostics<TEntity>(string script, TEntity[] source)
@@ -53,25 +39,27 @@ public partial class ConstantFoldingTests : GenericEntityTestBase
             {
                 {
                     "first",
-                    (new GenericEntityTable<TEntity>(),
+                    (
+                        new GenericEntityTable<TEntity>(),
                         new GenericChunkSource<TEntity>(
                             source,
                             GenericEntityTable<TEntity>.NameToIndexMap,
-                            GenericEntityTable<TEntity>.IndexToObjectAccessMap))
-                }
-            });
+                            GenericEntityTable<TEntity>.IndexToObjectAccessMap
+                        )
+                    )
+                },
+            }
+        );
 
-        var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            { "#schema", schema }
-        });
+        var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#schema", schema } });
 
         return InstanceCreator.CompileWithDiagnostics(
             script,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 
     #endregion

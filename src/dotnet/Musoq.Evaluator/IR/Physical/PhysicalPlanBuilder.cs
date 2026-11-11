@@ -3,6 +3,7 @@ using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Physical;
+
 public sealed partial class PhysicalPlanBuilder
 {
     public PhysicalNode Lower(LogicalNode node)
@@ -10,7 +11,9 @@ public sealed partial class PhysicalPlanBuilder
         ArgumentNullException.ThrowIfNull(node);
 
         if (_strategyPlan == null)
-            throw new InvalidOperationException("Physical plan lowering requires an explicit PhysicalStrategyPlan. Run PhysicalStrategyPlanner before constructing PhysicalPlanBuilder.");
+            throw new InvalidOperationException(
+                "Physical plan lowering requires an explicit PhysicalStrategyPlan. Run PhysicalStrategyPlanner before constructing PhysicalPlanBuilder."
+            );
 
         return Lower(node, _strategyPlan);
     }
@@ -31,7 +34,10 @@ public sealed partial class PhysicalPlanBuilder
                 ResolveSourceTransferStrategy(scan.SourceContextId),
                 scan.SourceConstructionType,
                 scan.SourceConstructionSupportsContext,
-                scan.SourceConstructorStableId, scan.SourceConstructor, scan.StructuralArgumentLimits),
+                scan.SourceConstructorStableId,
+                scan.SourceConstructor,
+                scan.StructuralArgumentLimits
+            ),
             ValuesScanNode values => new PhysicalValuesScanNode(values.Alias, values.Rows, values.OutputSchema),
             UnpivotNode unpivot => LowerUnpivot(unpivot, strategyPlan),
             InterpretSourceNode interpret => new PhysicalInterpretSourceNode(
@@ -41,9 +47,12 @@ public sealed partial class PhysicalPlanBuilder
                 interpret.Alias,
                 interpret.ResultType,
                 interpret.ApplyKind,
-                interpret.OutputSchema),
+                interpret.OutputSchema
+            ),
             CteRefNode cteRef => new PhysicalCteRefNode(cteRef.CteName, cteRef.Alias, cteRef.OutputSchema)
-            { IntermediateProducerId = cteRef.IntermediateProducerId },
+            {
+                IntermediateProducerId = cteRef.IntermediateProducerId,
+            },
             PropertySourceNode property => new PhysicalPropertySourceNode(
                 property.SourceAlias,
                 property.PropertiesChain,
@@ -51,23 +60,51 @@ public sealed partial class PhysicalPlanBuilder
                 property.ColumnIndex,
                 property.ResultType,
                 property.ApplyKind,
-                property.OutputSchema),
+                property.OutputSchema
+            ),
             AccessMethodSourceNode accessMethod => new PhysicalAccessMethodSourceNode(
                 accessMethod.SourceAlias,
                 accessMethod.MethodCallExpression,
                 accessMethod.Alias,
                 accessMethod.ResultType,
                 accessMethod.ApplyKind,
-                accessMethod.OutputSchema),
+                accessMethod.OutputSchema
+            ),
             FilterNode filter => new PhysicalFilterNode(filter.Predicate, Lower(filter.Input, strategyPlan)),
-            ProjectNode project => new PhysicalProjectNode(ResolveProjectedFields(project), Lower(project.Input, strategyPlan)) { IsDistinct = project.IsDistinct },
-            HavingFilterNode having => new PhysicalHavingFilterNode(having.Predicate, Lower(having.Input, strategyPlan)),
-            QualifyFilterNode qualify => new PhysicalQualifyFilterNode(qualify.Predicate, Lower(qualify.Input, strategyPlan)),
+            ProjectNode project => new PhysicalProjectNode(
+                ResolveProjectedFields(project),
+                Lower(project.Input, strategyPlan)
+            )
+            {
+                IsDistinct = project.IsDistinct,
+            },
+            HavingFilterNode having => new PhysicalHavingFilterNode(
+                having.Predicate,
+                Lower(having.Input, strategyPlan)
+            ),
+            QualifyFilterNode qualify => new PhysicalQualifyFilterNode(
+                qualify.Predicate,
+                Lower(qualify.Input, strategyPlan)
+            ),
             TakeNode take => LowerTake(take, strategyPlan),
             SortNode sort => new PhysicalSortNode(sort.Keys, Lower(sort.Input, strategyPlan)),
             SkipNode skip => new PhysicalSkipNode(skip.Count, Lower(skip.Input, strategyPlan)),
             WindowNode window => LowerWindow(window, strategyPlan),
-            DescNode desc => new PhysicalDescNode(desc.SchemaName, desc.MethodName, desc.Type, desc.Column, desc.Arguments, desc.SourceContextId, desc.OutputSchema, desc.QueryOutputSchema, desc.ColumnSpan, desc.ArgumentDescriptions) { QueryProjection = desc.QueryProjection },
+            DescNode desc => new PhysicalDescNode(
+                desc.SchemaName,
+                desc.MethodName,
+                desc.Type,
+                desc.Column,
+                desc.Arguments,
+                desc.SourceContextId,
+                desc.OutputSchema,
+                desc.QueryOutputSchema,
+                desc.ColumnSpan,
+                desc.ArgumentDescriptions
+            )
+            {
+                QueryProjection = desc.QueryProjection,
+            },
             AggregateNode aggregate => LowerAggregate(aggregate, strategyPlan),
             JoinNode join => LowerJoin(join, strategyPlan),
             ApplyNode apply => LowerApply(apply, strategyPlan),
@@ -75,15 +112,16 @@ public sealed partial class PhysicalPlanBuilder
             RecursiveCteNode recursiveCte => LowerRecursiveCte(recursiveCte, strategyPlan),
             CteNode cte => LowerCte(cte, strategyPlan),
             MultiStatementNode multiStatement => LowerMultiStatement(multiStatement, strategyPlan),
-            _ => throw UnsupportedShape.Of($"Logical node type '{node.GetType().Name}'", "the physical plan builder")
+            _ => throw UnsupportedShape.Of($"Logical node type '{node.GetType().Name}'", "the physical plan builder"),
         };
     }
 
     private SourceTransferStrategyPlan? ResolveSourceTransferStrategy(string? sourceContextId)
     {
-        return sourceContextId != null &&
-               _sourceTransferPlans.TryGetValue(sourceContextId, out var plan) &&
-               plan.Mode == SourceTransferMode.QueryScopedRows
+        return
+            sourceContextId != null
+            && _sourceTransferPlans.TryGetValue(sourceContextId, out var plan)
+            && plan.Mode == SourceTransferMode.QueryScopedRows
             ? plan
             : null;
     }

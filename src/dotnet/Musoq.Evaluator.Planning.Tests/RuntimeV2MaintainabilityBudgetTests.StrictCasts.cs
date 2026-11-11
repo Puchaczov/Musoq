@@ -17,18 +17,20 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void StrictCastLogicalLowering_ShouldUseDedicatedStrictCastIr()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var converterText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/CastExpressionConverter.cs"));
+        var converterText = File.ReadAllText(
+            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/CastExpressionConverter.cs")
+        );
 
         Assert.Contains("private StrictCast ConvertCast(CastNode node)", converterText);
         Assert.Contains("return new StrictCast(", converterText);
         Assert.IsFalse(
             converterText.Contains("new MethodCall(", StringComparison.Ordinal),
-            "Postfix casts must not lower to generic MethodCall IR.");
+            "Postfix casts must not lower to generic MethodCall IR."
+        );
         Assert.IsFalse(
             converterText.Contains("TryGetMethod", StringComparison.Ordinal),
-            "Postfix cast lowering must not resolve methods by reflection.");
+            "Postfix cast lowering must not resolve methods by reflection."
+        );
     }
 
     [TestMethod]
@@ -37,21 +39,22 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var inspection = CompileGeneratedSampleForInspection("Q150_RuntimeV2CastProjection.cs");
         Assert.IsNotNull(inspection.ExecutionPlan);
 
-        var expressions = ExecutionIrAnalysis
-            .FlattenExpressions(inspection.ExecutionPlan.Body)
-            .ToArray();
+        var expressions = ExecutionIrAnalysis.FlattenExpressions(inspection.ExecutionPlan.Body).ToArray();
         var strictCasts = expressions.OfType<ExecutionStrictCast>().ToArray();
         var castLikeMethodCalls = expressions
             .OfType<ExecutionMethodCall>()
             .Where(static method => IsStrictCastHelperName(method.Method.MethodName))
-            .Select(static method => $"{method.Method.ResolveClrMethod().DeclaringType?.FullName}.{method.Method.MethodName}")
+            .Select(static method =>
+                $"{method.Method.ResolveClrMethod().DeclaringType?.FullName}.{method.Method.MethodName}"
+            )
             .ToArray();
 
         Assert.HasCount(3, strictCasts);
         Assert.IsEmpty(
             castLikeMethodCalls,
-            "Postfix casts must remain ExecutionStrictCast nodes, not execution MethodCall nodes: " +
-            string.Join(", ", castLikeMethodCalls));
+            "Postfix casts must remain ExecutionStrictCast nodes, not execution MethodCall nodes: "
+                + string.Join(", ", castLikeMethodCalls)
+        );
     }
 
     [TestMethod]
@@ -59,16 +62,14 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         const string query =
             "select Population::int as IntValue, Money::float as FloatValue, Self::string as TextValue from #A.entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] = [new BasicEntity("A", 1)]
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity("A", 1)] };
 
         var inspection = InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         Assert.IsNotNull(inspection.ExecutionPlan);
 
@@ -80,7 +81,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         Assert.HasCount(3, strictCasts);
         CollectionAssert.AreEquivalent(
             new[] { "Int32", "Single", "String" },
-            strictCasts.Select(static cast => cast.TargetTypeName).ToArray());
+            strictCasts.Select(static cast => cast.TargetTypeName).ToArray()
+        );
         Assert.Contains("StrictCastRuntime.ToInt32", inspection.GeneratedCSharpCode);
         Assert.Contains("StrictCastRuntime.ToSingle", inspection.GeneratedCSharpCode);
         Assert.Contains("StrictCastRuntime.ToReferenceString", inspection.GeneratedCSharpCode);
@@ -98,7 +100,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "Q152_RuntimeV2CastAggregateGrouping.cs",
             "Q154_RuntimeV2GroupByAllCasts.cs",
             "Q158_RuntimeV2CombinedGrouping.cs",
-            "Q185_RuntimeV2WeatherSingleAggregate.cs"
+            "Q185_RuntimeV2WeatherSingleAggregate.cs",
         ];
         string[] forbiddenPatterns =
         [
@@ -112,24 +114,27 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "System.Convert.To",
             "__agg0Input = (object)",
             "StrictCastRuntime.ToSingle((object)",
-            "(object)temperature"
+            "(object)temperature",
         ];
 
         var failures = sampleFileNames
             .Select(fileName => new
             {
                 FileName = fileName,
-                Code = CompileGeneratedSampleForInspection(fileName).GeneratedCSharpCode
+                Code = CompileGeneratedSampleForInspection(fileName).GeneratedCSharpCode,
             })
-            .SelectMany(sample => forbiddenPatterns
-                .Where(pattern => sample.Code.Contains(pattern, StringComparison.Ordinal))
-                .Select(pattern => $"{sample.FileName}: {pattern}"))
+            .SelectMany(sample =>
+                forbiddenPatterns
+                    .Where(pattern => sample.Code.Contains(pattern, StringComparison.Ordinal))
+                    .Select(pattern => $"{sample.FileName}: {pattern}")
+            )
             .ToArray();
 
         Assert.IsEmpty(
             failures,
-            "Known typed postfix casts should render direct strict runtime calls, without reflection/fallback/boxing patterns: " +
-            string.Join(", ", failures));
+            "Known typed postfix casts should render direct strict runtime calls, without reflection/fallback/boxing patterns: "
+                + string.Join(", ", failures)
+        );
 
         foreach (var fileName in sampleFileNames)
         {
@@ -137,10 +142,10 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.", code);
         }
 
-        var weatherCode = CompileGeneratedSampleForInspection("Q185_RuntimeV2WeatherSingleAggregate.cs").GeneratedCSharpCode;
-        Assert.Contains(
-            "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToSingle(temperature)",
-            weatherCode);
+        var weatherCode = CompileGeneratedSampleForInspection(
+            "Q185_RuntimeV2WeatherSingleAggregate.cs"
+        ).GeneratedCSharpCode;
+        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToSingle(temperature)", weatherCode);
         Assert.IsFalse(weatherCode.Contains("RuntimeExpressionBoundary", StringComparison.Ordinal));
     }
 
@@ -165,7 +170,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "src/dotnet/Musoq.Evaluator/IR/CastExpressionConverter.cs",
             "src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionExpressionConverter.cs",
             "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.StrictCastExpressionRendering.cs",
-            "src/dotnet/Musoq.Evaluator/Helpers/StrictCastRuntime.cs"
+            "src/dotnet/Musoq.Evaluator/Helpers/StrictCastRuntime.cs",
         ];
         string[] forbiddenPatterns =
         [
@@ -174,24 +179,27 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ".GetMethod(",
             ".GetMethods(",
             "TryGetMethod",
-            "Convert.ChangeType"
+            "Convert.ChangeType",
         ];
 
         var offenders = relativeFiles
             .Select(relativePath => new
             {
                 RelativePath = relativePath,
-                Text = File.ReadAllText(ToAbsolutePath(repositoryRoot, relativePath))
+                Text = File.ReadAllText(ToAbsolutePath(repositoryRoot, relativePath)),
             })
-            .SelectMany(file => forbiddenPatterns
-                .Where(pattern => file.Text.Contains(pattern, StringComparison.Ordinal))
-                .Select(pattern => $"{file.RelativePath}: {pattern}"))
+            .SelectMany(file =>
+                forbiddenPatterns
+                    .Where(pattern => file.Text.Contains(pattern, StringComparison.Ordinal))
+                    .Select(pattern => $"{file.RelativePath}: {pattern}")
+            )
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Strict-cast lowering/rendering/runtime code must not use reflection lookup APIs: " +
-            string.Join(", ", offenders));
+            "Strict-cast lowering/rendering/runtime code must not use reflection lookup APIs: "
+                + string.Join(", ", offenders)
+        );
     }
 
     private static QueryInspectionResult CompileGeneratedSampleForInspection(string fileName)
@@ -203,41 +211,43 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             $"GeneratedSample_{Path.GetFileNameWithoutExtension(sample.FileName)}_StrictCastGuard",
             sample.CreateSchemaProvider(),
             new TestsLoggerResolver(),
-            sample.CompilationOptions);
+            sample.CompilationOptions
+        );
     }
 
     private static bool IsStrictCastHelperName(string methodName)
     {
-        return methodName is
-            "ToBoolean" or
-            "ToByte" or
-            "ToSByte" or
-            "ToInt16" or
-            "ToUInt16" or
-            "ToInt32" or
-            "ToUInt32" or
-            "ToInt64" or
-            "ToUInt64" or
-            "ToSingle" or
-            "ToDouble" or
-            "ToDecimal" or
-            "ToChar" or
-            "ToString" or
-            "ToDateTime" or
-            "ToDateTimeOffset" or
-            "ToTimeSpan" or
-            "ToGuid";
+        return methodName
+            is "ToBoolean"
+                or "ToByte"
+                or "ToSByte"
+                or "ToInt16"
+                or "ToUInt16"
+                or "ToInt32"
+                or "ToUInt32"
+                or "ToInt64"
+                or "ToUInt64"
+                or "ToSingle"
+                or "ToDouble"
+                or "ToDecimal"
+                or "ToChar"
+                or "ToString"
+                or "ToDateTime"
+                or "ToDateTimeOffset"
+                or "ToTimeSpan"
+                or "ToGuid";
     }
 
     private static void AssertHasStrictCastOverload(string methodName, Type argumentType)
     {
-        var methods = typeof(StrictCastRuntime).GetMethods()
+        var methods = typeof(StrictCastRuntime)
+            .GetMethods()
             .Where(candidate => candidate.Name == methodName && candidate.GetParameters().Length == 1);
         var concreteType = Nullable.GetUnderlyingType(argumentType) ?? argumentType;
         var method = methods
-            .Select(candidate => candidate.IsGenericMethodDefinition
-                ? candidate.MakeGenericMethod(concreteType)
-                : candidate)
+            .Select(candidate =>
+                candidate.IsGenericMethodDefinition ? candidate.MakeGenericMethod(concreteType) : candidate
+            )
             .SingleOrDefault(candidate => candidate.GetParameters()[0].ParameterType == argumentType);
 
         Assert.IsNotNull(method, $"Expected typed strict-cast overload {methodName}({argumentType.Name}).");

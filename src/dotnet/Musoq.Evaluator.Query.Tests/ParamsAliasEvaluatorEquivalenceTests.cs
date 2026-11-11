@@ -32,12 +32,20 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var pair = CompilePair(script, CreateSources());
 
         AssertParameterMetadataEqual(pair.Canonical, pair.Alias);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "country",
+            "PL"
+        );
 
-        AssertTablesEqual(
-            pair.Canonical.Run(CancellationToken.None),
-            pair.Alias.Run(CancellationToken.None));
+        AssertTablesEqual(pair.Canonical.Run(CancellationToken.None), pair.Alias.Run(CancellationToken.None));
     }
 
     [TestMethod]
@@ -52,16 +60,44 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
             """;
         var pair = CompilePair(script, CreateSources());
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "ids", new[] { 1, 3 });
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "lower", "lower");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "Upper", "upper");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "ids", new[] { 1, 3 });
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "lower", "lower");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "Upper", "upper");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "ids",
+            new[] { 1, 3 }
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "lower",
+            "lower"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "Upper",
+            "upper"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "ids",
+            new[] { 1, 3 }
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "lower",
+            "lower"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "Upper",
+            "upper"
+        );
 
-        AssertTablesEqual(
-            pair.Canonical.Run(CancellationToken.None),
-            pair.Alias.Run(CancellationToken.None));
+        AssertTablesEqual(pair.Canonical.Run(CancellationToken.None), pair.Alias.Run(CancellationToken.None));
     }
 
     [TestMethod]
@@ -78,14 +114,32 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
             """;
         var pair = CompilePair(script, CreateSources());
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "minimum", 2);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "minimum", 2);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "minimum",
+            2
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "minimum",
+            2
+        );
 
-        AssertTablesEqual(
-            pair.Canonical.Run(CancellationToken.None),
-            pair.Alias.Run(CancellationToken.None));
+        AssertTablesEqual(pair.Canonical.Run(CancellationToken.None), pair.Alias.Run(CancellationToken.None));
     }
 
     [TestMethod]
@@ -113,16 +167,44 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
             """;
         var pair = CompilePair(script, CreateSources());
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "city", "Warsaw");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "suffix", "-cte");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "city", "Warsaw");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "suffix", "-cte");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "city",
+            "Warsaw"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "suffix",
+            "-cte"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "city",
+            "Warsaw"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "suffix",
+            "-cte"
+        );
 
-        AssertTablesEqual(
-            pair.Canonical.Run(CancellationToken.None),
-            pair.Alias.Run(CancellationToken.None));
+        AssertTablesEqual(pair.Canonical.Run(CancellationToken.None), pair.Alias.Run(CancellationToken.None));
     }
 
     [TestMethod]
@@ -137,17 +219,33 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
             """;
         var pair = CompilePair(script, CreateSources());
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
-        AssertTablesEqual(
-            pair.Canonical.Run(CancellationToken.None),
-            pair.Alias.Run(CancellationToken.None));
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "country",
+            "PL"
+        );
+        AssertTablesEqual(pair.Canonical.Run(CancellationToken.None), pair.Alias.Run(CancellationToken.None));
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "DE");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "DE");
-        AssertTablesEqual(
-            pair.Canonical.Run(CancellationToken.None),
-            pair.Alias.Run(CancellationToken.None));
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Canonical.TypedParameters,
+            pair.Canonical.ParameterDefinitions,
+            "country",
+            "DE"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            pair.Alias.TypedParameters,
+            pair.Alias.ParameterDefinitions,
+            "country",
+            "DE"
+        );
+        AssertTablesEqual(pair.Canonical.Run(CancellationToken.None), pair.Alias.Run(CancellationToken.None));
     }
 
     [TestMethod]
@@ -163,13 +261,21 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var canonical = CompileWithProvider("param" + script, canonicalProvider);
         var alias = CompileWithProvider("params" + script, aliasProvider);
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            canonical.TypedParameters,
+            canonical.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            alias.TypedParameters,
+            alias.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
 
         AssertParameterMetadataEqual(canonical, alias);
-        AssertTablesEqual(
-            canonical.Run(CancellationToken.None),
-            alias.Run(CancellationToken.None));
+        AssertTablesEqual(canonical.Run(CancellationToken.None), alias.Run(CancellationToken.None));
         Assert.AreEqual(1, canonicalProvider.OpenCount);
         Assert.AreEqual(1, aliasProvider.OpenCount);
     }
@@ -187,13 +293,21 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var canonical = CompileWithProvider("param" + script, canonicalProvider);
         var alias = CompileWithProvider("params" + script, aliasProvider);
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            canonical.TypedParameters,
+            canonical.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            alias.TypedParameters,
+            alias.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
 
         AssertParameterMetadataEqual(canonical, alias);
-        AssertTablesEqual(
-            canonical.Run(CancellationToken.None),
-            alias.Run(CancellationToken.None));
+        AssertTablesEqual(canonical.Run(CancellationToken.None), alias.Run(CancellationToken.None));
         Assert.AreEqual(1, canonicalProvider.OpenCount);
         Assert.AreEqual(1, aliasProvider.OpenCount);
     }
@@ -202,35 +316,43 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
     [DataRow(
         "param(author: string); param(limit: int); select 1 from #EnvironmentVariables.All()",
         "params(author: string); params(limit: int); select 1 from #EnvironmentVariables.All()",
-        DiagnosticCode.MQ3056_DuplicateScriptParameterBlock)]
+        DiagnosticCode.MQ3056_DuplicateScriptParameterBlock
+    )]
     [DataRow(
         "select 1 from #EnvironmentVariables.All(); param(author: string)",
         "select 1 from #EnvironmentVariables.All(); params(author: string)",
-        DiagnosticCode.MQ3057_ScriptParameterBlockAfterStatement)]
+        DiagnosticCode.MQ3057_ScriptParameterBlockAfterStatement
+    )]
     [DataRow(
         "param(author: string, author: int); select 1 from #EnvironmentVariables.All()",
         "params(author: string, author: int); select 1 from #EnvironmentVariables.All()",
-        DiagnosticCode.MQ3058_DuplicateScriptParameterName)]
+        DiagnosticCode.MQ3058_DuplicateScriptParameterName
+    )]
     [DataRow(
         "param(author: string); select $missing from #EnvironmentVariables.All()",
         "params(author: string); select $missing from #EnvironmentVariables.All()",
-        DiagnosticCode.MQ3059_UndeclaredScriptParameter)]
+        DiagnosticCode.MQ3059_UndeclaredScriptParameter
+    )]
     [DataRow(
         "param(author: object); select 1 from #EnvironmentVariables.All()",
         "params(author: object); select 1 from #EnvironmentVariables.All()",
-        DiagnosticCode.MQ3060_UnsupportedScriptParameterType)]
+        DiagnosticCode.MQ3060_UnsupportedScriptParameterType
+    )]
     [DataRow(
         "param(limit: int = 'abc'); select 1 from #EnvironmentVariables.All()",
         "params(limit: int = 'abc'); select 1 from #EnvironmentVariables.All()",
-        DiagnosticCode.MQ3061_InvalidScriptParameterDefault)]
+        DiagnosticCode.MQ3061_InvalidScriptParameterDefault
+    )]
     [DataRow(
         "param(name: string); let name: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
         "params(name: string); let name: string = 'KEY_1'; select 1 from #EnvironmentVariables.All()",
-        DiagnosticCode.MQ3063_DuplicateScriptSymbolName)]
+        DiagnosticCode.MQ3063_DuplicateScriptSymbolName
+    )]
     public void ParamsAlias_ShouldPreserveBindingDiagnostics(
         string canonicalQuery,
         string aliasQuery,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var canonical = CompileFailure(canonicalQuery);
         var alias = CompileFailure(aliasQuery);
@@ -247,7 +369,8 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
     public void ParamsAlias_ShouldAllowMixedBlocksAndKeepDuplicateBlockDiagnostic()
     {
         var exception = CompileFailure(
-            "param(author: string); params(limit: int); select 1 from #EnvironmentVariables.All()");
+            "param(author: string); params(limit: int); select 1 from #EnvironmentVariables.All()"
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3056_DuplicateScriptParameterBlock, exception.PrimaryEnvelope.Code);
         Assert.AreEqual(DiagnosticPhase.Bind, exception.PrimaryEnvelope.Phase);
@@ -256,20 +379,20 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
     [TestMethod]
     public void ParamsAlias_ShouldMatchDiagnosticsCompilation()
     {
-        const string canonicalQuery =
-            "param(limit: int = 'abc'); select 1 from #EnvironmentVariables.All()";
-        const string aliasQuery =
-            "params(limit: int = 'abc'); select 1 from #EnvironmentVariables.All()";
+        const string canonicalQuery = "param(limit: int = 'abc'); select 1 from #EnvironmentVariables.All()";
+        const string aliasQuery = "params(limit: int = 'abc'); select 1 from #EnvironmentVariables.All()";
         var canonical = InstanceCreator.CompileWithDiagnostics(
             canonicalQuery,
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
-            LoggerResolver);
+            LoggerResolver
+        );
         var alias = InstanceCreator.CompileWithDiagnostics(
             aliasQuery,
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
-            LoggerResolver);
+            LoggerResolver
+        );
         var canonicalEnvelope = canonical.ToEnvelopes().Single();
         var aliasEnvelope = alias.ToEnvelopes().Single();
 
@@ -310,8 +433,18 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var aliasProvider = new ParameterizedSchemaProvider();
         var canonical = CompileWithProvider("param" + script, canonicalProvider);
         var alias = CompileWithProvider("params" + script, aliasProvider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "limit", "10");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "limit", "10");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            canonical.TypedParameters,
+            canonical.ParameterDefinitions,
+            "limit",
+            "10"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            alias.TypedParameters,
+            alias.ParameterDefinitions,
+            "limit",
+            "10"
+        );
 
         AssertRuntimeExceptionsEqual(RunFailure(canonical), RunFailure(alias));
         Assert.AreEqual(0, canonicalProvider.OpenCount);
@@ -329,10 +462,30 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var aliasProvider = new ParameterizedSchemaProvider();
         var canonical = CompileWithProvider("param" + script, canonicalProvider);
         var alias = CompileWithProvider("params" + script, aliasProvider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "extra", "ignored");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "extra", "ignored");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            canonical.TypedParameters,
+            canonical.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            alias.TypedParameters,
+            alias.ParameterDefinitions,
+            "key",
+            "KEY_1"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            canonical.TypedParameters,
+            canonical.ParameterDefinitions,
+            "extra",
+            "ignored"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            alias.TypedParameters,
+            alias.ParameterDefinitions,
+            "extra",
+            "ignored"
+        );
 
         AssertRuntimeExceptionsEqual(RunFailure(canonical), RunFailure(alias));
         Assert.AreEqual(0, canonicalProvider.OpenCount);
@@ -346,27 +499,25 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
                 query,
                 Guid.NewGuid().ToString(),
                 new EnvironmentVariablesSchemaProvider(),
-                LoggerResolver));
+                LoggerResolver
+            )
+        );
     }
 
-    private CompiledQuery CompileWithProvider(
-        string query,
-        ParameterizedSchemaProvider provider)
+    private CompiledQuery CompileWithProvider(string query, ParameterizedSchemaProvider provider)
     {
-        return InstanceCreator.CompileForExecution(
-            query,
-            Guid.NewGuid().ToString(),
-            provider,
-            LoggerResolver);
+        return InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, LoggerResolver);
     }
 
     private (CompiledQuery Canonical, CompiledQuery Alias) CompilePair(
         string script,
-        IDictionary<string, IEnumerable<BasicEntity>> sources)
+        IDictionary<string, IEnumerable<BasicEntity>> sources
+    )
     {
         return (
             CreateAndRunVirtualMachine("param" + script, sources),
-            CreateAndRunVirtualMachine("params" + script, sources));
+            CreateAndRunVirtualMachine("params" + script, sources)
+        );
     }
 
     private static QueryExecutionException RunFailure(CompiledQuery query)
@@ -374,9 +525,7 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         return Assert.Throws<QueryExecutionException>(() => _ = query.Run(CancellationToken.None).Count);
     }
 
-    private static void AssertRuntimeExceptionsEqual(
-        QueryExecutionException canonical,
-        QueryExecutionException alias)
+    private static void AssertRuntimeExceptionsEqual(QueryExecutionException canonical, QueryExecutionException alias)
     {
         Assert.IsNotNull(canonical.Envelope);
         Assert.IsNotNull(alias.Envelope);
@@ -387,15 +536,9 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
 
     private static void AssertParameterMetadataEqual(CompiledQuery canonical, CompiledQuery alias)
     {
-        CollectionAssert.AreEqual(
-            canonical.ParameterDefinitions.ToArray(),
-            alias.ParameterDefinitions.ToArray());
-        CollectionAssert.AreEqual(
-            canonical.ParameterContracts.ToArray(),
-            alias.ParameterContracts.ToArray());
-        CollectionAssert.AreEqual(
-            canonical.RequiredParameters.ToArray(),
-            alias.RequiredParameters.ToArray());
+        CollectionAssert.AreEqual(canonical.ParameterDefinitions.ToArray(), alias.ParameterDefinitions.ToArray());
+        CollectionAssert.AreEqual(canonical.ParameterContracts.ToArray(), alias.ParameterContracts.ToArray());
+        CollectionAssert.AreEqual(canonical.RequiredParameters.ToArray(), alias.RequiredParameters.ToArray());
     }
 
     private static void AssertTablesEqual(Table canonical, Table alias)
@@ -414,19 +557,55 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity { Name = "Alice", Country = "PL", City = "Warsaw", Id = 1 },
-                    new BasicEntity { Name = "Bob", Country = "DE", City = "Berlin", Id = 2 },
-                    new BasicEntity { Name = "Cara", Country = "PL", City = "Krakow", Id = 3 },
-                    new BasicEntity { Name = "Dora", Country = "FR", City = "Paris", Id = 4 }
+                    new BasicEntity
+                    {
+                        Name = "Alice",
+                        Country = "PL",
+                        City = "Warsaw",
+                        Id = 1,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Bob",
+                        Country = "DE",
+                        City = "Berlin",
+                        Id = 2,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Cara",
+                        Country = "PL",
+                        City = "Krakow",
+                        Id = 3,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Dora",
+                        Country = "FR",
+                        City = "Paris",
+                        Id = 4,
+                    },
                 ]
             },
             {
                 "#B",
                 [
-                    new BasicEntity { Name = "TargetWarsaw", Country = "PL", City = "Warsaw", Id = 1 },
-                    new BasicEntity { Name = "TargetBerlin", Country = "DE", City = "Berlin", Id = 2 }
+                    new BasicEntity
+                    {
+                        Name = "TargetWarsaw",
+                        Country = "PL",
+                        City = "Warsaw",
+                        Id = 1,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "TargetBerlin",
+                        Country = "DE",
+                        City = "Berlin",
+                        Id = 2,
+                    },
                 ]
-            }
+            },
         };
     }
 
@@ -444,23 +623,18 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
 
     private sealed class ParameterizedSchema : SchemaBase
     {
-        private static readonly EnvironmentVariableEntity[] Rows =
-        [
-            new("KEY_1", "VALUE_1"),
-            new("KEY_2", "VALUE_2")
-        ];
+        private static readonly EnvironmentVariableEntity[] Rows = [new("KEY_1", "VALUE_1"), new("KEY_2", "VALUE_2")];
 
         public ParameterizedSchema()
-            : base("parameterized", new MethodsAggregator(new MethodsManager()))
-        {
-        }
+            : base("parameterized", new MethodsAggregator(new MethodsManager())) { }
 
         public int OpenCount { get; private set; }
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new EnvironmentVariableEntityTable();
         }
@@ -468,18 +642,15 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             OpenCount++;
             var key = parameters.Length > 0 ? parameters[0] as string : null;
-            var rows = key == null
-                ? Rows
-                : Rows.Where(row => row.Key == key).ToArray();
+            var rows = key == null ? Rows : Rows.Where(row => row.Key == key).ToArray();
 
-            return EnsureSourceType<T, EnvironmentVariableEntity>(
-                name,
-                new ParameterizedSource(rows));
+            return EnsureSourceType<T, EnvironmentVariableEntity>(name, new ParameterizedSource(rows));
         }
 
         private sealed class ParameterizedSource(IReadOnlyList<EnvironmentVariableEntity> rows)

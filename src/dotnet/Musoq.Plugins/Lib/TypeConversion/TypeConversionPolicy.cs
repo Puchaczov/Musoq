@@ -4,5 +4,5 @@ internal enum TypeConversionPolicy
 {
     Strict,
     Comparison,
-    NumericOnly
+    NumericOnly,
 }

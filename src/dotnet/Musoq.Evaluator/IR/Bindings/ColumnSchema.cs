@@ -5,14 +5,8 @@ namespace Musoq.Evaluator.IR.Bindings;
 
 public sealed record ColumnSchema
 {
-    public ColumnSchema(
-        string name,
-        Type type,
-        int index,
-        string? intendedTypeName = null)
-        : this(name, type, index, intendedTypeName, type, null)
-    {
-    }
+    public ColumnSchema(string name, Type type, int index, string? intendedTypeName = null)
+        : this(name, type, index, intendedTypeName, type, null) { }
 
     public ColumnSchema(
         string name,
@@ -20,7 +14,8 @@ public sealed record ColumnSchema
         int index,
         string? intendedTypeName,
         Type sourceReadType,
-        EnumTypeDescriptor? enumType)
+        EnumTypeDescriptor? enumType
+    )
     {
         Name = name;
         Type = type;
@@ -46,14 +41,6 @@ public sealed record ColumnSchema
 
     public ISchemaColumn ToSchemaColumn()
     {
-        return new SchemaColumn(
-            Name,
-            Index,
-            Type,
-            SourceReadType,
-            EnumType,
-            IntendedTypeName,
-            null,
-            Stability);
+        return new SchemaColumn(Name, Index, Type, SourceReadType, EnumType, IntendedTypeName, null, Stability);
     }
 }

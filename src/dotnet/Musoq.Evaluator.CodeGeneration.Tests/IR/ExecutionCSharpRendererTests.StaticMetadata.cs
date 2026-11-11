@@ -18,9 +18,10 @@ public sealed partial class ExecutionCSharpRendererTests
             [
                 new Literal("Dog", typeof(string)),
                 new Literal("Cat", typeof(string)),
-                new Literal("Bird", typeof(string))
+                new Literal("Bird", typeof(string)),
             ],
-            typeof(bool));
+            typeof(bool)
+        );
 
         var converted = (ExecutionInCheck)ExecutionExpressionConverter.Convert(expression);
 
@@ -35,11 +36,13 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var expression = new InCheck(
             new ColumnRef("p", "Name", typeof(string)),
-            Enumerable.Range(0, 20)
+            Enumerable
+                .Range(0, 20)
                 .Select(index => new Literal(index.ToString(), typeof(string)))
                 .Cast<IrExpression>()
                 .ToArray(),
-            typeof(bool));
+            typeof(bool)
+        );
 
         var converted = (ExecutionInCheck)ExecutionExpressionConverter.Convert(expression);
 
@@ -54,11 +57,13 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var expression = new InCheck(
             new Literal("A", typeof(string)),
-            Enumerable.Range(0, 64)
+            Enumerable
+                .Range(0, 64)
                 .Select(index => new Literal(index.ToString(), typeof(string)))
                 .Cast<IrExpression>()
                 .ToArray(),
-            typeof(bool));
+            typeof(bool)
+        );
 
         var converted = (ExecutionInCheck)ExecutionExpressionConverter.Convert(expression);
 
@@ -73,7 +78,10 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateConstantInCheckPlan("Q_InCheckSmall", 3));
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.Contains("private static readonly string[] __inSet_Q_InCheckSmall_0", code);
         Assert.Contains("new string[]", code);
@@ -87,7 +95,10 @@ public sealed partial class ExecutionCSharpRendererTests
         _ = renderer.RenderClassMembers(CreateConstantInCheckPlan("Q_InCheckFirst", 3));
 
         var members = renderer.RenderClassMembers(CreatePlan());
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.IsFalse(code.Contains("__inSet_Q_InCheckFirst_0", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("new string[]", StringComparison.Ordinal));
@@ -109,7 +120,10 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateConstantInCheckPlan("Q_InCheckLarge", 20));
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.IsFalse(code.Contains("__inSet_Q_InCheckLarge_0", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("HashSet", StringComparison.Ordinal));
@@ -133,7 +147,10 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateConstantInCheckPlan("Q_InCheckVeryLarge", 64));
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.Contains("FrozenSet<string> __inSet_Q_InCheckVeryLarge_0", code);
         Assert.Contains(".ToFrozenSet()", code);
@@ -156,9 +173,15 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateConstantInCheckPlan("Q_Metadata", 3));
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
-        Assert.Contains("private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_Q_Metadata_p_0", code);
+        Assert.Contains(
+            "private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_Q_Metadata_p_0",
+            code
+        );
         Assert.Contains("Array.AsReadOnly(new ISchemaColumn[]", code);
         Assert.Contains("private static readonly Column[] __columns_Q_Metadata_result_1", code);
         Assert.Contains("new Column[]", code);
@@ -169,7 +192,10 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateSameReferenceDifferentMetadataPlan());
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.AreEqual(2, code.Split("private static readonly Column[]").Length - 1);
         Assert.Contains("private static readonly Column[] __columns_Q_MetadataCollision_shared_0", code);
@@ -183,7 +209,10 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateSameReferenceDifferentEnumMetadataPlan());
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.AreEqual(2, code.Split("private static readonly Column[]").Length - 1);
         Assert.Contains("__columns_Q_EnumMetadataCollision_shared_0", code);
@@ -204,7 +233,10 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreateSameReferenceDifferentSourceModifierMetadataPlan());
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.AreEqual(2, code.Split("private static readonly IReadOnlyCollection<ISchemaColumn>").Length - 1);
         Assert.Contains("__schemaColumns_Q_SourceModifierMetadataCollision_shared_0", code);
@@ -246,7 +278,10 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var members = renderer.RenderClassMembers(CreatePostOperationMetadataPlan());
-        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+        var code = string.Join(
+            Environment.NewLine,
+            members.Select(member => member.NormalizeWhitespace().ToFullString())
+        );
 
         Assert.AreEqual(1, code.Split("private static readonly Column[]").Length - 1);
         Assert.Contains("private static readonly Column[] __columns_Q_PostOps_result_0", code);
@@ -263,8 +298,14 @@ public sealed partial class ExecutionCSharpRendererTests
         var code = method.NormalizeWhitespace().ToFullString();
 
         Assert.Contains("var resultSorted = new Table(\"resultSorted\", __columns_Q_PostOps_result_0);", code);
-        Assert.Contains("var resultSortedSkipped = new Table(\"resultSortedSkipped\", __columns_Q_PostOps_result_0);", code);
-        Assert.Contains("var resultSortedSkippedTaken = new Table(\"resultSortedSkippedTaken\", __columns_Q_PostOps_result_0);", code);
+        Assert.Contains(
+            "var resultSortedSkipped = new Table(\"resultSortedSkipped\", __columns_Q_PostOps_result_0);",
+            code
+        );
+        Assert.Contains(
+            "var resultSortedSkippedTaken = new Table(\"resultSortedSkippedTaken\", __columns_Q_PostOps_result_0);",
+            code
+        );
         Assert.IsFalse(code.Contains(".Columns.ToArray()", StringComparison.Ordinal));
     }
 
@@ -277,7 +318,8 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.Contains(
             "var resultTopNRows = EvaluationHelper.CastGeneratedRows<ResultRow0>(result.Rows).OrderBy((row) => row, ResultRow0OrderBy_0AComparer.Instance).Take(2);",
-            code);
+            code
+        );
         Assert.Contains(".Take(2)", code);
         Assert.Contains("var resultTopN = new Table(\"resultTopN\", __columns_Q_TopN_result_0);", code);
         Assert.IsFalse(code.Contains("resultSorted", StringComparison.Ordinal));
@@ -292,7 +334,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var code = method.NormalizeWhitespace().ToFullString();
 
         Assert.Contains("var resultTopOffsetSourceRows = new List<ResultRow0>(result.Rows.Count);", code);
-        Assert.Contains("EvaluationHelper.SelectTopOffsetRecords(resultTopOffsetSourceRows, 1, 2, ResultRow0OrderBy_0AComparer.Instance)", code);
+        Assert.Contains(
+            "EvaluationHelper.SelectTopOffsetRecords(resultTopOffsetSourceRows, 1, 2, ResultRow0OrderBy_0AComparer.Instance)",
+            code
+        );
         Assert.Contains("var resultTopOffset = new Table(\"resultTopOffset\", __columns_Q_TopOffset_result_0);", code);
         Assert.Contains("resultTopOffset.EnsureCapacity(Math.Min(Math.Max(result.Count - 1, 0), 2));", code);
         Assert.Contains("foreach (var copiedRow in resultTopOffsetRows)", code);

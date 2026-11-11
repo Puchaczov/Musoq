@@ -36,115 +36,154 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.BinaryExpression(
                 GetBinaryExpressionKind(binary.Kind),
                 RenderExpression(binary.Left, context),
-                RenderBinaryRightOperand(binary, context)));
+                RenderBinaryRightOperand(binary, context)
+            )
+        );
 
-        return RequiresBinaryResultCast(binary)
-            ? CastIfNeeded(expression, binary.ReturnType)
-            : expression;
+        return RequiresBinaryResultCast(binary) ? CastIfNeeded(expression, binary.ReturnType) : expression;
     }
 
     private ExpressionSyntax RenderBinaryRightOperand(ExecutionBinary binary, ExecutionRenderContext context)
     {
         var rendered = RenderExpression(binary.Right, context);
-        if (binary.Kind is not (BinaryOpKind.Divide or BinaryOpKind.Modulo) ||
-            !IsConstantNumericExpression(binary.Right))
+        if (
+            binary.Kind is not (BinaryOpKind.Divide or BinaryOpKind.Modulo)
+            || !IsConstantNumericExpression(binary.Right)
+        )
             return rendered;
 
         var type = binary.Right.ReturnType.RequireClrType();
-        if (!type.IsValueType || Nullable.GetUnderlyingType(type) is not null ||
-            type == typeof(float) || type == typeof(double))
+        if (
+            !type.IsValueType
+            || Nullable.GetUnderlyingType(type) is not null
+            || type == typeof(float)
+            || type == typeof(double)
+        )
             return rendered;
 
-        var nullable = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
-            CreateTypeSyntax(typeof(Nullable<>).MakeGenericType(type)), rendered));
-        return SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression, nullable,
-            SyntaxFactory.IdentifierName(nameof(Nullable<int>.GetValueOrDefault))));
+        var nullable = SyntaxFactory.ParenthesizedExpression(
+            SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(Nullable<>).MakeGenericType(type)), rendered)
+        );
+        return SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                nullable,
+                SyntaxFactory.IdentifierName(nameof(Nullable<int>.GetValueOrDefault))
+            )
+        );
     }
 
-    private static bool IsConstantNumericExpression(ExecutionExpression expression) => expression switch
-    {
-        ExecutionLiteral { Value.Kind: ExecutionConstantKind.SignedInteger or ExecutionConstantKind.UnsignedInteger or ExecutionConstantKind.Decimal } => true,
-        ExecutionUnary unary => IsConstantNumericExpression(unary.Operand),
-        ExecutionBinary binary => IsConstantNumericExpression(binary.Left) && IsConstantNumericExpression(binary.Right),
-        _ => false
-    };
+    private static bool IsConstantNumericExpression(ExecutionExpression expression) =>
+        expression switch
+        {
+            ExecutionLiteral
+            {
+                Value.Kind: ExecutionConstantKind.SignedInteger
+                    or ExecutionConstantKind.UnsignedInteger
+                    or ExecutionConstantKind.Decimal
+            } => true,
+            ExecutionUnary unary => IsConstantNumericExpression(unary.Operand),
+            ExecutionBinary binary => IsConstantNumericExpression(binary.Left)
+                && IsConstantNumericExpression(binary.Right),
+            _ => false,
+        };
 
     private static bool RequiresBinaryResultCast(ExecutionBinary binary)
     {
-        return binary.ReturnType.RequireClrType().IsValueType &&
-               binary.ReturnType.RequireClrType() != typeof(bool) &&
-               (ContainsMethodCall(binary.Left) ||
-                ContainsMethodCall(binary.Right) ||
-                IsNullableValueType(binary.Left.ReturnType) ||
-                IsNullableValueType(binary.Right.ReturnType));
+        return binary.ReturnType.RequireClrType().IsValueType
+            && binary.ReturnType.RequireClrType() != typeof(bool)
+            && (
+                ContainsMethodCall(binary.Left)
+                || ContainsMethodCall(binary.Right)
+                || IsNullableValueType(binary.Left.ReturnType)
+                || IsNullableValueType(binary.Right.ReturnType)
+            );
     }
 
     private InvocationExpressionSyntax RenderNullableTemporalSubtractionOrDefault(
         ExecutionBinary binary,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 RenderNullableTemporalSubtractionValue(binary, context),
-                SyntaxFactory.IdentifierName(nameof(Nullable<int>.GetValueOrDefault))));
+                SyntaxFactory.IdentifierName(nameof(Nullable<int>.GetValueOrDefault))
+            )
+        );
     }
 
     private ParenthesizedExpressionSyntax RenderNullableTemporalSubtractionValue(
         ExecutionBinary binary,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.SubtractExpression,
                 RenderExpression(binary.Left, context),
-                RenderExpression(binary.Right, context)));
+                RenderExpression(binary.Right, context)
+            )
+        );
     }
 
     private ParenthesizedExpressionSyntax RenderStringComparison(ExecutionBinary binary, ExecutionRenderContext context)
     {
-        var comparison = SyntaxFactory.InvocationExpression(
+        var comparison = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName("string"),
-                    SyntaxFactory.IdentifierName(nameof(string.Compare))))
-            .WithArgumentList(CreateArgumentList(
-                RenderExpression(binary.Left, context),
-                RenderExpression(binary.Right, context),
-                CreateOrdinalStringComparisonExpression()));
+                    SyntaxFactory.IdentifierName(nameof(string.Compare))
+                )
+            )
+            .WithArgumentList(
+                CreateArgumentList(
+                    RenderExpression(binary.Left, context),
+                    RenderExpression(binary.Right, context),
+                    CreateOrdinalStringComparisonExpression()
+                )
+            );
 
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.BinaryExpression(
                 GetBinaryExpressionKind(binary.Kind),
                 comparison,
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))));
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+            )
+        );
     }
 
     private static bool RequiresStringComparison(ExecutionBinary binary)
     {
-        return IsRelationalComparison(binary.Kind) &&
-               binary.Left.ReturnType.RequireClrType() == typeof(string) &&
-               binary.Right.ReturnType.RequireClrType() == typeof(string);
+        return IsRelationalComparison(binary.Kind)
+            && binary.Left.ReturnType.RequireClrType() == typeof(string)
+            && binary.Right.ReturnType.RequireClrType() == typeof(string);
     }
 
     private bool TryRenderCharStringEquality(
         ExecutionBinary binary,
         ExecutionRenderContext context,
-        [NotNullWhen(true)] out ExpressionSyntax? result)
+        [NotNullWhen(true)] out ExpressionSyntax? result
+    )
     {
         result = null;
-        if (binary.Kind != BinaryOpKind.Equal &&
-            binary.Kind != BinaryOpKind.NotEqual &&
-            !IsNullSafeDistinctComparison(binary.Kind))
+        if (
+            binary.Kind != BinaryOpKind.Equal
+            && binary.Kind != BinaryOpKind.NotEqual
+            && !IsNullSafeDistinctComparison(binary.Kind)
+        )
             return false;
 
         var leftIsChar = binary.Left.ReturnType.RequireClrType() == typeof(char);
         var rightIsChar = binary.Right.ReturnType.RequireClrType() == typeof(char);
         var leftStringLiteral = binary.Left as ExecutionLiteral;
         var rightStringLiteral = binary.Right as ExecutionLiteral;
-        var leftIsStringLiteral = leftStringLiteral is not null && leftStringLiteral.ReturnType.RequireClrType() == typeof(string);
-        var rightIsStringLiteral = rightStringLiteral is not null && rightStringLiteral.ReturnType.RequireClrType() == typeof(string);
+        var leftIsStringLiteral =
+            leftStringLiteral is not null && leftStringLiteral.ReturnType.RequireClrType() == typeof(string);
+        var rightIsStringLiteral =
+            rightStringLiteral is not null && rightStringLiteral.ReturnType.RequireClrType() == typeof(string);
 
         if (!((leftIsChar && rightIsStringLiteral) || (rightIsChar && leftIsStringLiteral)))
             return false;
@@ -154,22 +193,34 @@ public sealed partial class ExecutionCSharpRenderer
         if (leftIsChar)
         {
             left = RenderExpression(binary.Left, context);
-            right = CreateCharLiteralFromStringLiteral(rightStringLiteral ?? throw new InvalidOperationException("Char/string comparison requires a string literal."));
+            right = CreateCharLiteralFromStringLiteral(
+                rightStringLiteral
+                    ?? throw new InvalidOperationException("Char/string comparison requires a string literal.")
+            );
         }
         else
         {
-            left = CreateCharLiteralFromStringLiteral(leftStringLiteral ?? throw new InvalidOperationException("Char/string comparison requires a string literal."));
+            left = CreateCharLiteralFromStringLiteral(
+                leftStringLiteral
+                    ?? throw new InvalidOperationException("Char/string comparison requires a string literal.")
+            );
             right = RenderExpression(binary.Right, context);
         }
 
         result = SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.BinaryExpression(GetEqualitySyntaxKind(binary.Kind), left, right));
+            SyntaxFactory.BinaryExpression(GetEqualitySyntaxKind(binary.Kind), left, right)
+        );
         return true;
     }
 
     private ParenthesizedExpressionSyntax RenderEquality(ExecutionBinary binary, ExecutionRenderContext context) =>
-        SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(
-            GetEqualitySyntaxKind(binary.Kind), RenderExpression(binary.Left, context), RenderExpression(binary.Right, context)));
+        SyntaxFactory.ParenthesizedExpression(
+            SyntaxFactory.BinaryExpression(
+                GetEqualitySyntaxKind(binary.Kind),
+                RenderExpression(binary.Left, context),
+                RenderExpression(binary.Right, context)
+            )
+        );
 
     private static bool IsNullSafeDistinctComparison(BinaryOpKind kind) =>
         kind is BinaryOpKind.IsDistinctFrom or BinaryOpKind.IsNotDistinctFrom;
@@ -180,7 +231,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             BinaryOpKind.NotEqual or BinaryOpKind.IsDistinctFrom => SyntaxKind.NotEqualsExpression,
             BinaryOpKind.Equal or BinaryOpKind.IsNotDistinctFrom => SyntaxKind.EqualsExpression,
-            _ => GetBinaryExpressionKind(kind)
+            _ => GetBinaryExpressionKind(kind),
         };
     }
 
@@ -194,10 +245,11 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool IsRelationalComparison(BinaryOpKind kind)
     {
-        return kind is BinaryOpKind.GreaterThan
-            or BinaryOpKind.LessThan
-            or BinaryOpKind.GreaterOrEqual
-            or BinaryOpKind.LessOrEqual;
+        return kind
+            is BinaryOpKind.GreaterThan
+                or BinaryOpKind.LessThan
+                or BinaryOpKind.GreaterOrEqual
+                or BinaryOpKind.LessOrEqual;
     }
 
     private static MemberAccessExpressionSyntax CreateOrdinalStringComparisonExpression()
@@ -215,7 +267,8 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(nameof(StringComparison)),
-            SyntaxFactory.IdentifierName(memberName));
+            SyntaxFactory.IdentifierName(memberName)
+        );
     }
 
     private ExpressionSyntax RenderUnary(ExecutionUnary unary, ExecutionRenderContext context)
@@ -227,17 +280,15 @@ public sealed partial class ExecutionCSharpRenderer
             _ => SyntaxFactory.ParenthesizedExpression(
                 SyntaxFactory.PrefixUnaryExpression(
                     GetUnaryExpressionKind(unary.Kind),
-                    this.RenderNullableOperand(unary.Operand, context)))
+                    this.RenderNullableOperand(unary.Operand, context)
+                )
+            ),
         };
 
-        return RequiresUnaryResultCast(unary)
-            ? CastIfNeeded(expression, unary.ReturnType)
-            : expression;
+        return RequiresUnaryResultCast(unary) ? CastIfNeeded(expression, unary.ReturnType) : expression;
     }
 
-    private ParenthesizedExpressionSyntax RenderIsNullCheck(
-        ExecutionIsNullCheck isNull,
-        ExecutionRenderContext context)
+    private ParenthesizedExpressionSyntax RenderIsNullCheck(ExecutionIsNullCheck isNull, ExecutionRenderContext context)
     {
         var expression = RenderExpression(isNull.Expression, context);
         var nullLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
@@ -246,15 +297,16 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.BinaryExpression(
                 isNull.IsNegated ? SyntaxKind.NotEqualsExpression : SyntaxKind.EqualsExpression,
                 expression,
-                nullLiteral));
+                nullLiteral
+            )
+        );
     }
 
     private static bool RequiresUnaryResultCast(ExecutionUnary unary)
     {
-        return unary.ReturnType.RequireClrType().IsValueType &&
-               unary.ReturnType.RequireClrType() != typeof(bool) &&
-               (ContainsMethodCall(unary.Operand) ||
-                IsNullableValueType(unary.Operand.ReturnType));
+        return unary.ReturnType.RequireClrType().IsValueType
+            && unary.ReturnType.RequireClrType() != typeof(bool)
+            && (ContainsMethodCall(unary.Operand) || IsNullableValueType(unary.Operand.ReturnType));
     }
 
     private static bool IsNullableValueType(Type type)
@@ -263,5 +315,4 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private static bool IsNullableValueType(ExecutionTypeRef type) => IsNullableValueType(type.RequireClrType());
-
 }

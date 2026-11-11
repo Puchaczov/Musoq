@@ -23,8 +23,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select 0xGG from #schema.first()";
         var source = new[] { new SimpleEntity { Name = "a" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1006_InvalidHexNumber, DiagnosticPhase.Parse);
     }
@@ -35,8 +34,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select 0x from #schema.first()";
         var source = new[] { new SimpleEntity { Name = "a" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1006_InvalidHexNumber, DiagnosticPhase.Parse);
     }
@@ -47,8 +45,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select 0b23 from #schema.first()";
         var source = new[] { new SimpleEntity { Name = "a" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1007_InvalidBinaryNumber, DiagnosticPhase.Parse);
     }
@@ -59,8 +56,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select 0b from #schema.first()";
         var source = new[] { new SimpleEntity { Name = "a" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1007_InvalidBinaryNumber, DiagnosticPhase.Parse);
     }
@@ -71,8 +67,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select 0o89 from #schema.first()";
         var source = new[] { new SimpleEntity { Name = "a" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1008_InvalidOctalNumber, DiagnosticPhase.Parse);
     }
@@ -83,8 +78,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select 0o from #schema.first()";
         var source = new[] { new SimpleEntity { Name = "a" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1008_InvalidOctalNumber, DiagnosticPhase.Parse);
     }
@@ -135,8 +129,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select 1 /* unclosed comment from #schema.first()";
         var source = new[] { new SimpleEntity { Name = "a" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1005_UnterminatedBlockComment, DiagnosticPhase.Parse);
     }
@@ -163,8 +156,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select b.Value from #schema.first() a cross apply a.Name as b";
         var source = new[] { new SimpleEntity { Name = "hello" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertExactErrors(ex, DiagnosticCode.MQ3025_ColumnMustBeArray);
     }
@@ -173,10 +165,12 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
     public void U1_CrossApplyOnIntColumn_ShouldThrowColumnMustBeArray()
     {
         const string query = "select b.Value from #schema.first() a cross apply a.Count as b";
-        var source = new[] { new SimpleEntity { Name = "hello", Count = 5 } };
+        var source = new[]
+        {
+            new SimpleEntity { Name = "hello", Count = 5 },
+        };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertExactErrors(ex, DiagnosticCode.MQ3025_ColumnMustBeArray);
     }
@@ -191,8 +185,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select b.Value1 from #schema.first() a cross apply a.NotACollection as b";
         var source = new[] { new EntityWithUnbindableProperty { Name = "test" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertExactErrors(ex, DiagnosticCode.MQ3026_ColumnNotBindable);
     }
@@ -207,8 +200,7 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         const string query = "select 'unterminated from #schema.first()";
         var source = new[] { new SimpleEntity { Name = "a" } };
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, source));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, source));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1002_UnterminatedString, DiagnosticPhase.Parse);
     }

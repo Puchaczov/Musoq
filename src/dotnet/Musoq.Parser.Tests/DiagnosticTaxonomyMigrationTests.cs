@@ -12,9 +12,31 @@ public sealed class DiagnosticTaxonomyMigrationTests
     {
         var removedValues = new[]
         {
-            3003, 3004, 3006, 3009, 3013, 3014, 3029, 3030, 3031, 3082,
-            5001, 5002, 5004, 5005, 5006, 5007, 5009, 5012,
-            6001, 6002, 6003, 6004, 7001, 7002, 9999
+            3003,
+            3004,
+            3006,
+            3009,
+            3013,
+            3014,
+            3029,
+            3030,
+            3031,
+            3082,
+            5001,
+            5002,
+            5004,
+            5005,
+            5006,
+            5007,
+            5009,
+            5012,
+            6001,
+            6002,
+            6003,
+            6004,
+            7001,
+            7002,
+            9999,
         };
 
         foreach (var value in removedValues)
@@ -22,7 +44,8 @@ public sealed class DiagnosticTaxonomyMigrationTests
             var code = (DiagnosticCode)value;
             Assert.IsFalse(
                 Array.IndexOf(Enum.GetNames<DiagnosticCode>(), code.ToString()) >= 0,
-                $"Removed numeric value {value} still has an enum member.");
+                $"Removed numeric value {value} still has an enum member."
+            );
             Assert.IsNull(ErrorMetadataCatalog.Get(code), $"Removed code {value} still has metadata.");
             Assert.AreEqual($"Error {code}", ErrorCatalog.GetTemplate(code));
         }
@@ -37,7 +60,7 @@ public sealed class DiagnosticTaxonomyMigrationTests
             DiagnosticCode.MQ3086_UnknownCallable,
             DiagnosticCode.MQ3087_InvalidCallableArity,
             DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3089_AmbiguousCallableOverload
+            DiagnosticCode.MQ3089_AmbiguousCallableOverload,
         };
 
         foreach (var code in activeCodes)

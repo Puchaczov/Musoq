@@ -41,8 +41,8 @@ public sealed class ExecutionTypeRefTests
     [TestMethod]
     public void ExpressionAndVariablePublicSurface_ShouldNotExposeClrType()
     {
-        var expressionTypes = typeof(ExecutionExpression).Assembly
-            .GetTypes()
+        var expressionTypes = typeof(ExecutionExpression)
+            .Assembly.GetTypes()
             .Where(static type => typeof(ExecutionExpression).IsAssignableFrom(type))
             .Append(typeof(ExecutionVariable))
             .ToArray();
@@ -54,7 +54,9 @@ public sealed class ExecutionTypeRefTests
             .ToArray();
         var constructorOffenders = expressionTypes
             .SelectMany(static type => type.GetConstructors(BindingFlags.Public | BindingFlags.Instance))
-            .Where(static constructor => constructor.GetParameters().Any(parameter => IsReflectionType(parameter.ParameterType)))
+            .Where(static constructor =>
+                constructor.GetParameters().Any(parameter => IsReflectionType(parameter.ParameterType))
+            )
             .Select(static constructor => constructor.ToString())
             .ToArray();
 
@@ -81,17 +83,22 @@ public sealed class ExecutionTypeRefTests
                 continue;
             }
 
-            if (candidate.Assembly != assembly ||
-                candidate.Namespace?.StartsWith("Musoq.Evaluator.IR.Execution", StringComparison.Ordinal) != true ||
-                !visited.Add(candidate))
+            if (
+                candidate.Assembly != assembly
+                || candidate.Namespace?.StartsWith("Musoq.Evaluator.IR.Execution", StringComparison.Ordinal) != true
+                || !visited.Add(candidate)
+            )
             {
                 continue;
             }
 
             if (candidate.IsAbstract || candidate.IsInterface)
             {
-                foreach (var implementation in assembly.GetTypes()
-                             .Where(type => type.IsPublic && !type.IsAbstract && candidate.IsAssignableFrom(type)))
+                foreach (
+                    var implementation in assembly
+                        .GetTypes()
+                        .Where(type => type.IsPublic && !type.IsAbstract && candidate.IsAssignableFrom(type))
+                )
                 {
                     pending.Enqueue((implementation, $"{path}->{implementation.Name}"));
                 }
@@ -136,7 +143,5 @@ public sealed class ExecutionTypeRefTests
     }
 
     private static bool IsReflectionType(Type type) =>
-        type == typeof(Type) ||
-        typeof(MemberInfo).IsAssignableFrom(type) ||
-        type == typeof(Assembly);
+        type == typeof(Type) || typeof(MemberInfo).IsAssignableFrom(type) || type == typeof(Assembly);
 }

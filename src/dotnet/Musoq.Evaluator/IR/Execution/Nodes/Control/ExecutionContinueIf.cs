@@ -1,4 +1,3 @@
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionContinueIf(
-    ExecutionExpression Condition) : ExecutionNode;
+public sealed record ExecutionContinueIf(ExecutionExpression Condition) : ExecutionNode;

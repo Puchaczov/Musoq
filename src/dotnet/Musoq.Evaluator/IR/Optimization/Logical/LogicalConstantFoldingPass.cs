@@ -16,7 +16,8 @@ internal sealed partial class LogicalConstantFoldingPass : ILogicalNormalization
         {
             return OptimizationResult<LogicalNode>.NoChange(
                 plan,
-                "Logical constant folding is disabled by compilation options.");
+                "Logical constant folding is disabled by compilation options."
+            );
         }
 
         var diagnostics = context.State.DiagnosticContext;
@@ -28,12 +29,11 @@ internal sealed partial class LogicalConstantFoldingPass : ILogicalNormalization
                 optimized,
                 folder.FoldedExpressions == 1
                     ? "Folded 1 logical constant expression."
-                    : $"Folded {folder.FoldedExpressions} logical constant expression(s).");
+                    : $"Folded {folder.FoldedExpressions} logical constant expression(s)."
+            );
         }
 
-        return OptimizationResult<LogicalNode>.NoChange(
-            plan,
-            "No logical constant expressions were safe to fold.");
+        return OptimizationResult<LogicalNode>.NoChange(plan, "No logical constant expressions were safe to fold.");
     }
 
     private static LogicalNode Rewrite(LogicalNode node, LogicalConstantExpressionFolder folder)
@@ -41,5 +41,4 @@ internal sealed partial class LogicalConstantFoldingPass : ILogicalNormalization
         var rewritten = LogicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, folder));
         return LogicalPlanRewriter.RewriteLocalExpressions(rewritten, folder.Visit);
     }
-
 }

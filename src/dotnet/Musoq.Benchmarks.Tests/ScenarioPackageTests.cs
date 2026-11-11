@@ -14,17 +14,29 @@ public sealed class ScenarioPackageTests
         Assert.AreEqual("true", project.Descendants("IsPackable").Single().Value);
         Assert.AreEqual("$(MusoqBenchmarksScenariosVersion)", project.Descendants("Version").Single().Value);
         var versions = XDocument.Load(Path.Combine(ProvenanceCollector.RepositoryRoot(), "scripts", "Versions.props"));
-        Assert.AreEqual(versions.Descendants("MusoqBenchmarksScenariosVersion").Single().Value, ScenarioCatalog.PackageVersion);
+        Assert.AreEqual(
+            versions.Descendants("MusoqBenchmarksScenariosVersion").Single().Value,
+            ScenarioCatalog.PackageVersion
+        );
     }
 
     [TestMethod]
     public void SharedLibrary_HasOnlySchemaAndPluginsRuntimeDependencies()
     {
         var project = Project("Musoq.Benchmarks.Scenarios");
-        var actual = project.Descendants("ProjectReference").Select(reference =>
-            Path.GetFileNameWithoutExtension(reference.Attribute("Include")!.Value.Replace('\\', '/'))).ToArray();
+        var actual = project
+            .Descendants("ProjectReference")
+            .Select(reference =>
+                Path.GetFileNameWithoutExtension(reference.Attribute("Include")!.Value.Replace('\\', '/'))
+            )
+            .ToArray();
         CollectionAssert.AreEquivalent(new[] { "Musoq.Schema", "Musoq.Plugins" }, actual);
-        Assert.IsEmpty(project.Descendants("PackageReference").Where(reference => reference.Attribute("PrivateAssets")?.Value != "All").ToArray());
+        Assert.IsEmpty(
+            project
+                .Descendants("PackageReference")
+                .Where(reference => reference.Attribute("PrivateAssets")?.Value != "All")
+                .ToArray()
+        );
     }
 
     [TestMethod]
@@ -42,6 +54,6 @@ public sealed class ScenarioPackageTests
         StringAssert.Contains(stamp.SuiteInformationalVersion, stamp.Source!.Commit);
     }
 
-    private static XDocument Project(string name) => XDocument.Load(Path.Combine(
-        ProvenanceCollector.RepositoryRoot(), "src", "dotnet", name, name + ".csproj"));
+    private static XDocument Project(string name) =>
+        XDocument.Load(Path.Combine(ProvenanceCollector.RepositoryRoot(), "src", "dotnet", name, name + ".csproj"));
 }

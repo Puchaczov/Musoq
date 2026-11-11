@@ -30,7 +30,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "legacy right-side",
             "materialized fallback",
             "V1 sidecar",
-            "diagnostic-only in v1"
+            "diagnostic-only in v1",
         };
 
         var offenders = EnumerateProductionSourceFiles(repositoryRoot)
@@ -39,14 +39,11 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         Assert.IsEmpty(
             offenders,
-            "Runtime-v2 migration fallback markers must stay out of production code: " +
-            string.Join(", ", offenders));
+            "Runtime-v2 migration fallback markers must stay out of production code: " + string.Join(", ", offenders)
+        );
     }
 
-    private static string[] FindForbiddenMarkers(
-        string repositoryRoot,
-        string file,
-        string[] markers)
+    private static string[] FindForbiddenMarkers(string repositoryRoot, string file, string[] markers)
     {
         var relativePath = Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/');
         return markers

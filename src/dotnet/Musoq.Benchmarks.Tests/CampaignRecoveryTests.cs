@@ -10,10 +10,16 @@ public sealed class CampaignRecoveryTests
     {
         var provenance = CampaignTests.Manifest().Provenance;
         Assert.Throws<ArgumentException>(() => CampaignIntegrity.ValidateOfficialBuild(provenance));
-        CampaignIntegrity.ValidateOfficialBuild(provenance with
-        {
-            Build = provenance.Build with { EngineInformationalVersion = "version+commit", SuiteInformationalVersion = "suite+commit" }
-        });
+        CampaignIntegrity.ValidateOfficialBuild(
+            provenance with
+            {
+                Build = provenance.Build with
+                {
+                    EngineInformationalVersion = "version+commit",
+                    SuiteInformationalVersion = "suite+commit",
+                },
+            }
+        );
     }
 
     [TestMethod]
@@ -22,14 +28,20 @@ public sealed class CampaignRecoveryTests
         using var temporary = new TemporaryDirectory();
         ProcessCommand.Require(temporary.Path, "git", "init", "--quiet");
         ProcessCommand.Require(temporary.Path, "git", "config", "core.autocrlf", "true");
-        File.Copy(Path.Combine(ProvenanceCollector.RepositoryRoot(), ".gitattributes"), Path.Combine(temporary.Path, ".gitattributes"));
+        File.Copy(
+            Path.Combine(ProvenanceCollector.RepositoryRoot(), ".gitattributes"),
+            Path.Combine(temporary.Path, ".gitattributes")
+        );
         const string relative = "benchmarks/history/fixture/raw/report.json";
         var evidence = Path.Combine(temporary.Path, relative);
         Directory.CreateDirectory(Path.GetDirectoryName(evidence)!);
         File.WriteAllText(evidence, "{\r\n  \"Mean\": 10\r\n}\r\n");
         ProcessCommand.Require(temporary.Path, "git", "add", relative);
         var indexHash = ProcessCommand.Require(temporary.Path, "git", "rev-parse", ":" + relative);
-        Assert.AreEqual(ProcessCommand.Require(temporary.Path, "git", "hash-object", "--no-filters", relative), indexHash);
+        Assert.AreEqual(
+            ProcessCommand.Require(temporary.Path, "git", "hash-object", "--no-filters", relative),
+            indexHash
+        );
     }
 
     [TestMethod]
@@ -37,7 +49,9 @@ public sealed class CampaignRecoveryTests
     {
         using var temporary = new TemporaryDirectory();
         var store = new CampaignStore(temporary.Path, CampaignTests.Manifest());
-        Assert.Throws<InvalidOperationException>(() => CampaignRunner.RecordTests(store, new(1, "assertion failed", "test error")));
+        Assert.Throws<InvalidOperationException>(() =>
+            CampaignRunner.RecordTests(store, new(1, "assertion failed", "test error"))
+        );
         store.Finish();
         Assert.AreEqual("failed", store.Manifest.Preflight);
         Assert.AreEqual("incomplete", store.Manifest.Status);
@@ -52,11 +66,17 @@ public sealed class CampaignRecoveryTests
         var definition = CampaignTests.Manifest().Cases[0];
         var stamp = MeasuredProcess.Capture() with
         {
-            ScenarioId = definition.ScenarioId, Sql = definition.Sql, InputCount = definition.InputCount
+            ScenarioId = definition.ScenarioId,
+            Sql = definition.Sql,
+            InputCount = definition.InputCount,
         };
         CampaignIntegrity.ValidateQuery(stamp, definition);
-        Assert.Throws<InvalidDataException>(() => CampaignIntegrity.ValidateQuery(stamp with { Sql = "different" }, definition));
-        Assert.Throws<InvalidDataException>(() => CampaignIntegrity.ValidateQuery(stamp with { InputCount = 99 }, definition));
+        Assert.Throws<InvalidDataException>(() =>
+            CampaignIntegrity.ValidateQuery(stamp with { Sql = "different" }, definition)
+        );
+        Assert.Throws<InvalidDataException>(() =>
+            CampaignIntegrity.ValidateQuery(stamp with { InputCount = 99 }, definition)
+        );
     }
 
     [TestMethod]
@@ -99,7 +119,13 @@ public sealed class CampaignRecoveryTests
         var raw = Path.Combine(store.RawDirectory(attempt), "report.json");
         Directory.CreateDirectory(Path.GetDirectoryName(raw)!);
         File.WriteAllText(raw, "{}");
-        store.Complete(attempt, CampaignTests.Success() with { RawReports = [Path.GetRelativePath(temporary.Path, raw)] });
+        store.Complete(
+            attempt,
+            CampaignTests.Success() with
+            {
+                RawReports = [Path.GetRelativePath(temporary.Path, raw)],
+            }
+        );
         File.WriteAllText(raw, "damaged");
         var resumed = CampaignStore.Resume(temporary.Path, CampaignTests.Manifest());
         Assert.IsFalse(resumed.Completed("case"));
@@ -114,15 +140,19 @@ public sealed class CampaignRecoveryTests
         var saved = new RunManifest
         {
             SuiteVersion = original.SuiteVersion,
-            RunId = original.RunId, Provenance = original.Provenance, Cases = original.Cases,
-            Invocation = new(Job: "Dry", Filter: "*Join*", Size: 17, MachineProfile: "fixture")
+            RunId = original.RunId,
+            Provenance = original.Provenance,
+            Cases = original.Cases,
+            Invocation = new(Job: "Dry", Filter: "*Join*", Size: 17, MachineProfile: "fixture"),
         };
         _ = new CampaignStore(temporary.Path, saved);
         var options = CampaignOptions.Parse(["--resume", temporary.Path]);
         Assert.AreEqual("Dry", options.Job);
         Assert.AreEqual(17, options.Size);
         Assert.AreEqual("*Join*", options.Filter);
-        Assert.Throws<CampaignCompatibilityException>(() => CampaignOptions.Parse(["--resume", temporary.Path, "--size", "18"]));
+        Assert.Throws<CampaignCompatibilityException>(() =>
+            CampaignOptions.Parse(["--resume", temporary.Path, "--size", "18"])
+        );
     }
 
     [TestMethod]
@@ -135,9 +165,16 @@ public sealed class CampaignRecoveryTests
         changed.Cases[0] = saved.Cases[0] with { Arguments = new() { ["workerLimit"] = "1" } };
         Assert.Throws<CampaignCompatibilityException>(() => CampaignStore.ValidateResume(saved, changed));
         var provenance = saved.Provenance with { Environment = saved.Provenance.Environment with { Sdk = "other" } };
-        Assert.Throws<CampaignCompatibilityException>(() => CampaignStore.ValidateResume(saved, CampaignTests.Manifest(provenance: provenance)));
-        provenance = saved.Provenance with { Environment = saved.Provenance.Environment with { MaxDegreeOfParallelism = 1 } };
-        Assert.Throws<CampaignCompatibilityException>(() => CampaignStore.ValidateResume(saved, CampaignTests.Manifest(provenance: provenance)));
+        Assert.Throws<CampaignCompatibilityException>(() =>
+            CampaignStore.ValidateResume(saved, CampaignTests.Manifest(provenance: provenance))
+        );
+        provenance = saved.Provenance with
+        {
+            Environment = saved.Provenance.Environment with { MaxDegreeOfParallelism = 1 },
+        };
+        Assert.Throws<CampaignCompatibilityException>(() =>
+            CampaignStore.ValidateResume(saved, CampaignTests.Manifest(provenance: provenance))
+        );
     }
 
     [TestMethod]
@@ -161,13 +198,27 @@ public sealed class CampaignRecoveryTests
         var stamp = MeasuredProcess.Capture();
         var expected = CampaignTests.Manifest().Provenance with
         {
-            Hardware = CampaignTests.Manifest().Provenance.Hardware with { EffectiveProcessors = stamp.EffectiveProcessors },
-            Environment = CampaignTests.Manifest().Provenance.Environment with { Runtime = stamp.Runtime, ServerGc = stamp.ServerGc },
-            Build = CampaignTests.Manifest().Provenance.Build with {
-                EngineInformationalVersion = stamp.EngineInformationalVersion, SuiteInformationalVersion = stamp.SuiteInformationalVersion }
+            Hardware = CampaignTests.Manifest().Provenance.Hardware with
+            {
+                EffectiveProcessors = stamp.EffectiveProcessors,
+            },
+            Environment = CampaignTests.Manifest().Provenance.Environment with
+            {
+                Runtime = stamp.Runtime,
+                ServerGc = stamp.ServerGc,
+            },
+            Build = CampaignTests.Manifest().Provenance.Build with
+            {
+                EngineInformationalVersion = stamp.EngineInformationalVersion,
+                SuiteInformationalVersion = stamp.SuiteInformationalVersion,
+            },
         };
         CampaignIntegrity.ValidateProcess(stamp, expected);
-        Assert.Throws<InvalidDataException>(() => CampaignIntegrity.ValidateProcess(stamp with { EffectiveProcessors = 0 }, expected));
-        Assert.Throws<InvalidDataException>(() => CampaignIntegrity.ValidateProcess(stamp with { EngineInformationalVersion = "different" }, expected));
+        Assert.Throws<InvalidDataException>(() =>
+            CampaignIntegrity.ValidateProcess(stamp with { EffectiveProcessors = 0 }, expected)
+        );
+        Assert.Throws<InvalidDataException>(() =>
+            CampaignIntegrity.ValidateProcess(stamp with { EngineInformationalVersion = "different" }, expected)
+        );
     }
 }

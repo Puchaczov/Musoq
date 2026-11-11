@@ -10,7 +10,8 @@ public sealed record UnpivotNode(
     IReadOnlyList<UnpivotEntry> Entries,
     IReadOnlyList<ProjectedField> KeepFields,
     LogicalNode Source,
-    OutputSchema OutputSchema) : LogicalNode(OutputSchema)
+    OutputSchema OutputSchema
+) : LogicalNode(OutputSchema)
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = [Source];
 }

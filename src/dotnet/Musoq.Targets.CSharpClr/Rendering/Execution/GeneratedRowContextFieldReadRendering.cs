@@ -8,14 +8,22 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax RenderContextFieldRead(
         ExecutionFieldRead fieldRead,
         ContextAccess contextAccess,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             throw new InvalidOperationException("Context field reads require a source alias.");
 
-        var value = TryCreateGeneratedRowContextStorageRead(fieldRead.Alias, contextAccess, context, out var contextRead)
+        var value = TryCreateGeneratedRowContextStorageRead(
+            fieldRead.Alias,
+            contextAccess,
+            context,
+            out var contextRead
+        )
             ? contextRead
-            : throw UnsupportedShape.Of($"Context read {fieldRead.Alias}[{contextAccess.Index}] has no concrete source carrier.");
+            : throw UnsupportedShape.Of(
+                $"Context read {fieldRead.Alias}[{contextAccess.Index}] has no concrete source carrier."
+            );
 
         if (fieldRead.ReturnType.RequireClrType() == typeof(object))
             return value;
@@ -27,7 +35,8 @@ public sealed partial class ExecutionCSharpRenderer
         string alias,
         ContextAccess contextAccess,
         ExecutionRenderContext context,
-        out ExpressionSyntax value)
+        out ExpressionSyntax value
+    )
     {
         value = null!;
         if (!context.Session.GeneratedRowVariableTypeNamesByName.TryGetValue(alias, out var typeNames))
@@ -35,11 +44,14 @@ public sealed partial class ExecutionCSharpRenderer
 
         foreach (var typeName in typeNames)
         {
-            if (TryCreateGeneratedRowContextStorageRead(
+            if (
+                TryCreateGeneratedRowContextStorageRead(
                     alias,
                     new GeneratedRowContextAccess(typeName, contextAccess.Index),
                     context,
-                    out value))
+                    out value
+                )
+            )
             {
                 return true;
             }
@@ -47,5 +59,4 @@ public sealed partial class ExecutionCSharpRenderer
 
         return false;
     }
-
 }

@@ -37,9 +37,7 @@ public sealed partial class Lexer : ILexer
     /// <param name="skipWhiteSpaces">Whether to skip whitespace tokens.</param>
     /// <param name="recoverOnError">Whether to recover from errors instead of throwing.</param>
     public Lexer(string input, bool skipWhiteSpaces, bool recoverOnError = false)
-        : this(input, skipWhiteSpaces, recoverOnError, null)
-    {
-    }
+        : this(input, skipWhiteSpaces, recoverOnError, null) { }
 
     internal Lexer(string input, bool skipWhiteSpaces, bool recoverOnError, Action<Token>? observeToken)
     {
@@ -102,9 +100,7 @@ public sealed partial class Lexer : ILexer
     {
         get
         {
-            var startToken = _resolvedTokenCount > 0
-                ? GetResolvedTokenByAge(0)
-                : null;
+            var startToken = _resolvedTokenCount > 0 ? GetResolvedTokenByAge(0) : null;
 
             if (startToken == null)
                 return string.Empty;
@@ -145,7 +141,6 @@ public sealed partial class Lexer : ILexer
             token = NextInternal();
         }
 
-
         if (IsSchemaContext)
         {
             if (token.TokenType == TokenType.NumericAccess)
@@ -167,8 +162,11 @@ public sealed partial class Lexer : ILexer
 
         var match = regex.Match(Input, Position);
         if (!match.Success || match.Index != Position)
-            throw new UnknownTokenException(Position, Input[Position],
-                $"Unrecognized token at {Position} for {Input[Position..]}");
+            throw new UnknownTokenException(
+                Position,
+                Input[Position],
+                $"Unrecognized token at {Position} for {Input[Position..]}"
+            );
 
         var token = getToken(match.Value);
         Position += match.Length;
@@ -236,7 +234,7 @@ public sealed partial class Lexer : ILexer
             1 => _resolvedToken1,
             2 => _resolvedToken2,
             3 => _resolvedToken3,
-            _ => _resolvedToken4
+            _ => _resolvedToken4,
         };
     }
 }

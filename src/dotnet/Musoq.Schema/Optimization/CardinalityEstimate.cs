@@ -6,7 +6,8 @@ public sealed record CardinalityEstimate(
     long? LowerBound,
     long? UpperBound,
     double Confidence,
-    string? Reason)
+    string? Reason
+)
 {
     public static CardinalityEstimate Unknown(string? reason = null)
     {
@@ -18,7 +19,12 @@ public sealed record CardinalityEstimate(
         return new CardinalityEstimate(CardinalityKind.Exact, rows, rows, rows, 1d, reason);
     }
 
-    public static CardinalityEstimate Bounded(long? lowerBound, long? upperBound, double confidence, string? reason = null)
+    public static CardinalityEstimate Bounded(
+        long? lowerBound,
+        long? upperBound,
+        double confidence,
+        string? reason = null
+    )
     {
         return new CardinalityEstimate(CardinalityKind.Bounded, null, lowerBound, upperBound, confidence, reason);
     }

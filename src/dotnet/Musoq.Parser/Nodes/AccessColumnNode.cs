@@ -7,9 +7,7 @@ public class AccessColumnNode(string column, string alias, Type type, TextSpan s
     private Type _type = type;
 
     public AccessColumnNode(string column, string alias, TextSpan span)
-        : this(column, alias, typeof(void), span)
-    {
-    }
+        : this(column, alias, typeof(void), span) { }
 
     public AccessColumnNode(string column, string alias, Type type, TextSpan span, string? intendedTypeName)
         : this(column, alias, type, span)

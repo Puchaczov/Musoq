@@ -9,7 +9,8 @@ public sealed record TypedQueryInspectionResult(
     FinalResultSinkKind SelectedResultSinkKind,
     Type OutputType,
     TypedGeneratedRowsKind RowsKind,
-    IReadOnlyList<string> OutputBindingDiagnostics)
+    IReadOnlyList<string> OutputBindingDiagnostics
+)
 {
     public string OutputTypeName { get; } = OutputType.AssemblyQualifiedName ?? OutputType.FullName ?? OutputType.Name;
 
@@ -34,7 +35,7 @@ public sealed record TypedQueryInspectionResult(
             TypedGeneratedRowsKind.DirectRows => QueryResultRowPathKind.DirectRows,
             TypedGeneratedRowsKind.ShardRows => QueryResultRowPathKind.ShardRows,
             TypedGeneratedRowsKind.MaterializedTableRows => QueryResultRowPathKind.MaterializedTableRows,
-            _ => QueryResultRowPathKind.Unknown
+            _ => QueryResultRowPathKind.Unknown,
         };
     }
 }

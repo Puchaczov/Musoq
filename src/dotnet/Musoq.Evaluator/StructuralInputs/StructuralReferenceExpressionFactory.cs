@@ -1,4 +1,5 @@
 using Musoq.Schema.StructuralInputs;
+
 namespace Musoq.Evaluator.IR.Expressions;
 
 internal static class StructuralReferenceExpressionFactory

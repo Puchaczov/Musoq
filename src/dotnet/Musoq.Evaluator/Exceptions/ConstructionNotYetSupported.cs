@@ -5,7 +5,6 @@ namespace Musoq.Evaluator.Exceptions;
 
 public class ConstructionNotYetSupported : Exception, IDiagnosticException
 {
-
     public ConstructionNotYetSupported(string message, Exception innerException)
         : base(message, innerException)
     {
@@ -16,6 +15,7 @@ public class ConstructionNotYetSupported : Exception, IDiagnosticException
     {
         Code = DiagnosticCode.MQ4016_UnsupportedSchemaConstruction;
     }
+
     public ConstructionNotYetSupported(string message)
         : base(message)
     {

@@ -14,14 +14,16 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgsListNode args,
         MethodResolutionContext methodContext,
         out MethodInfo method,
-        out bool canSkipInjectSource)
+        out bool canSkipInjectSource
+    )
     {
         try
         {
             (method, canSkipInjectSource) = DiagnosticRecovery.ResolveMethod(
                 () => ResolveMethod(node, args, methodContext),
                 DiagnosticContext,
-                args);
+                args
+            );
             return true;
         }
         catch (CannotResolveMethodException exception) when (TryRecoverUnresolvedMethod(node, args, exception))
@@ -35,14 +37,17 @@ public partial class BuildMetadataAndInferTypesVisitor
     private bool TryRecoverUnresolvedMethod(
         AccessMethodNode node,
         ArgsListNode args,
-        CannotResolveMethodException exception)
+        CannotResolveMethodException exception
+    )
     {
         if (DiagnosticContext == null)
             return false;
 
-        if (!DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, args) &&
-            !ReferencesDiagnosticRecoveryAlias(args) &&
-            !HasSameCallableRoot(exception))
+        if (
+            !DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, args)
+            && !ReferencesDiagnosticRecoveryAlias(args)
+            && !HasSameCallableRoot(exception)
+        )
             DiagnosticContext.ReportException(exception);
 
         PushSemanticNode(new NullNode(typeof(object), node.SpanOrEmpty()));
@@ -77,10 +82,13 @@ public partial class BuildMetadataAndInferTypesVisitor
     private bool HasSameCallableRoot(CannotResolveMethodException exception)
     {
         return DiagnosticContext!.Errors.Any(diagnostic =>
-            diagnostic.Code == exception.Code &&
-            (exception.Arguments.TryGetValue("callable", out var callable) &&
-             diagnostic.Arguments.TryGetValue("callable", out var priorCallable)
-                ? string.Equals(callable, priorCallable, StringComparison.OrdinalIgnoreCase)
-                : string.Equals(diagnostic.Message, exception.Message, StringComparison.Ordinal)));
+            diagnostic.Code == exception.Code
+            && (
+                exception.Arguments.TryGetValue("callable", out var callable)
+                && diagnostic.Arguments.TryGetValue("callable", out var priorCallable)
+                    ? string.Equals(callable, priorCallable, StringComparison.OrdinalIgnoreCase)
+                    : string.Equals(diagnostic.Message, exception.Message, StringComparison.Ordinal)
+            )
+        );
     }
 }

@@ -13,33 +13,41 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithNestedSchema_ShouldReturnNestedObject()
     {
         // Arrange: Nested schema - accessing the nested object itself
-        var query = @"
-            binary InnerData {
-                Value: int le
-            };
-            binary OuterData {
-                Id: byte,
-                Child: InnerData
-            };
-            select
-                h.Id,
-                h.Child
-            from #test.files() f
-            cross apply Interpret<OuterData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary InnerData {\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            binary OuterData {\n"
+            + "                Id: byte,\n"
+            + "                Child: InnerData\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Id,\n"
+            + "                h.Child\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<OuterData>(f.Content) h"
+        );
 
         // Id=0xAB, Value=0x12345678
         var testData = new byte[] { 0xAB, 0x78, 0x56, 0x34, 0x12 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -54,33 +62,41 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithDeepNestedPropertyAccess_ShouldWork()
     {
         // Arrange: Deep property access through nested schemas (h.Child.Value)
-        var query = @"
-            binary InnerData {
-                Value: int le
-            };
-            binary OuterData {
-                Id: byte,
-                Child: InnerData
-            };
-            select
-                h.Id,
-                h.Child.Value
-            from #test.files() f
-            cross apply Interpret<OuterData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary InnerData {\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            binary OuterData {\n"
+            + "                Id: byte,\n"
+            + "                Child: InnerData\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Id,\n"
+            + "                h.Child.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<OuterData>(f.Content) h"
+        );
 
         // Id=0xAB, Value=0x12345678
         var testData = new byte[] { 0xAB, 0x78, 0x56, 0x34, 0x12 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -94,38 +110,46 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithThreeLevelDeepPropertyAccess_ShouldWork()
     {
         // Arrange: Three levels deep property access (h.Middle.Inner.Value)
-        var query = @"
-            binary InnerData {
-                Value: int le
-            };
-            binary MiddleData {
-                Id: byte,
-                Inner: InnerData
-            };
-            binary OuterData {
-                Flags: byte,
-                Middle: MiddleData
-            };
-            select
-                h.Flags,
-                h.Middle.Id,
-                h.Middle.Inner.Value
-            from #test.files() f
-            cross apply Interpret<OuterData>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary InnerData {\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            binary MiddleData {\n"
+            + "                Id: byte,\n"
+            + "                Inner: InnerData\n"
+            + "            };\n"
+            + "            binary OuterData {\n"
+            + "                Flags: byte,\n"
+            + "                Middle: MiddleData\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Flags,\n"
+            + "                h.Middle.Id,\n"
+            + "                h.Middle.Inner.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<OuterData>(f.Content) h"
+        );
 
         // Flags=0xFF, Id=0xAB, Value=0x12345678
         var testData = new byte[] { 0xFF, 0xAB, 0x78, 0x56, 0x34, 0x12 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -140,33 +164,41 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithArrayOfNestedSchemas_ShouldParseAll()
     {
         // Arrange: Array of nested schemas
-        var query = @"
-            binary Item {
-                Value: byte
-            };
-            binary Container {
-                ItemCount: byte,
-                Items: Item[ItemCount]
-            };
-            select
-                h.ItemCount,
-                h.Items
-            from #test.files() f
-            cross apply Interpret<Container>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary Item {\n"
+            + "                Value: byte\n"
+            + "            };\n"
+            + "            binary Container {\n"
+            + "                ItemCount: byte,\n"
+            + "                Items: Item[ItemCount]\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.ItemCount,\n"
+            + "                h.Items\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Container>(f.Content) h"
+        );
 
         // ItemCount=3, Items: [0xAA, 0xBB, 0xCC]
         var testData = new byte[] { 0x03, 0xAA, 0xBB, 0xCC };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 

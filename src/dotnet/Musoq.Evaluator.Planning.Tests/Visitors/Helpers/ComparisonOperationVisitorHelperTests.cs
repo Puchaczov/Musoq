@@ -17,9 +17,7 @@ public class ComparisonOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         ComparisonOperationVisitorHelper.ProcessEqualityOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -38,9 +36,7 @@ public class ComparisonOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         ComparisonOperationVisitorHelper.ProcessGreaterOrEqualOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -59,9 +55,7 @@ public class ComparisonOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         ComparisonOperationVisitorHelper.ProcessLessOrEqualOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -80,9 +74,7 @@ public class ComparisonOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         ComparisonOperationVisitorHelper.ProcessGreaterOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -101,9 +93,7 @@ public class ComparisonOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         ComparisonOperationVisitorHelper.ProcessLessOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -122,9 +112,7 @@ public class ComparisonOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         ComparisonOperationVisitorHelper.ProcessDiffOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -143,9 +131,7 @@ public class ComparisonOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         ComparisonOperationVisitorHelper.ProcessLikeOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();

@@ -19,16 +19,15 @@ public partial class StringComparisonConsistencyTests
                     new BasicEntity("banana"),
                     new BasicEntity("Apple"),
                     new BasicEntity("cherry"),
-                    new BasicEntity("Banana")
+                    new BasicEntity("Banana"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
-
 
         Assert.AreEqual("Apple", table[0].ReadValues()[0]);
         Assert.AreEqual("Banana", table[1].ReadValues()[0]);
@@ -48,16 +47,15 @@ public partial class StringComparisonConsistencyTests
                     new BasicEntity("banana"),
                     new BasicEntity("Apple"),
                     new BasicEntity("cherry"),
-                    new BasicEntity("Banana")
+                    new BasicEntity("Banana"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
-
 
         Assert.AreEqual("cherry", table[0].ReadValues()[0]);
         Assert.AreEqual("banana", table[1].ReadValues()[0]);
@@ -71,22 +69,13 @@ public partial class StringComparisonConsistencyTests
         var query = "select Name from #A.entities() order by Name asc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("zzz"),
-                    new BasicEntity("Ąbc"),
-                    new BasicEntity("abc"),
-                    new BasicEntity("Abc")
-                ]
-            }
+            { "#A", [new BasicEntity("zzz"), new BasicEntity("Ąbc"), new BasicEntity("abc"), new BasicEntity("Abc")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
-
 
         Assert.AreEqual("Abc", table[0].ReadValues()[0]);
         Assert.AreEqual("abc", table[1].ReadValues()[0]);
@@ -100,14 +89,7 @@ public partial class StringComparisonConsistencyTests
         var query = "select Population from #A.entities() order by Population asc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("c", 300),
-                    new BasicEntity("a", 100),
-                    new BasicEntity("b", 200)
-                ]
-            }
+            { "#A", [new BasicEntity("c", 300), new BasicEntity("a", 100), new BasicEntity("b", 200)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -118,8 +100,6 @@ public partial class StringComparisonConsistencyTests
         Assert.AreEqual(200m, table[1].ReadValues()[0]);
         Assert.AreEqual(300m, table[2].ReadValues()[0]);
     }
-
-
 
     [TestMethod]
     public void Where_ContainsCaseInsensitive_MatchesDifferentCases()
@@ -133,9 +113,9 @@ public partial class StringComparisonConsistencyTests
                     new BasicEntity("Hello World"),
                     new BasicEntity("HELLO WORLD"),
                     new BasicEntity("hello world"),
-                    new BasicEntity("goodbye")
+                    new BasicEntity("goodbye"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -156,9 +136,9 @@ public partial class StringComparisonConsistencyTests
                     new BasicEntity("Hello World"),
                     new BasicEntity("HELLO WORLD"),
                     new BasicEntity("hello world"),
-                    new BasicEntity("world hello")
+                    new BasicEntity("world hello"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -179,9 +159,9 @@ public partial class StringComparisonConsistencyTests
                     new BasicEntity("Hello World"),
                     new BasicEntity("HELLO WORLD"),
                     new BasicEntity("hello world"),
-                    new BasicEntity("world hello")
+                    new BasicEntity("world hello"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -190,21 +170,13 @@ public partial class StringComparisonConsistencyTests
         Assert.AreEqual(3, table.Count, "EndsWith should be case-insensitive");
     }
 
-
-
     [TestMethod]
     public void Select_ToUpperUsesInvariantCulture()
     {
         var query = "select ToUpper(Name) from #A.entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("hello world"),
-                    new BasicEntity("zażółć")
-                ]
-            }
+            { "#A", [new BasicEntity("hello world"), new BasicEntity("zażółć")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -221,13 +193,7 @@ public partial class StringComparisonConsistencyTests
         var query = "select ToLower(Name) from #A.entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("HELLO WORLD"),
-                    new BasicEntity("ZAŻÓŁĆ")
-                ]
-            }
+            { "#A", [new BasicEntity("HELLO WORLD"), new BasicEntity("ZAŻÓŁĆ")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -244,22 +210,17 @@ public partial class StringComparisonConsistencyTests
         var query = "select Replace(Name, 'hello', 'Hi') from #A.entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("Hello World"),
-                    new BasicEntity("HELLO World"),
-                    new BasicEntity("hello World")
-                ]
-            }
+            { "#A", [new BasicEntity("Hello World"), new BasicEntity("HELLO World"), new BasicEntity("hello World")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => ((string)row.ReadValues()[0]).StartsWith("Hi")),
-            "Replace should be case-insensitive and replace all case variants");
+        Assert.IsTrue(
+            table.All(row => ((string)row.ReadValues()[0]).StartsWith("Hi")),
+            "Replace should be case-insensitive and replace all case variants"
+        );
     }
 
     [TestMethod]
@@ -268,24 +229,16 @@ public partial class StringComparisonConsistencyTests
         var query = "select IndexOf(Name, 'WORLD') from #A.entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("hello world"),
-                    new BasicEntity("Hello World"),
-                    new BasicEntity("HELLO WORLD")
-                ]
-            }
+            { "#A", [new BasicEntity("hello world"), new BasicEntity("Hello World"), new BasicEntity("HELLO WORLD")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => (int?)row.ReadValues()[0] == 6),
-            "IndexOf should be case-insensitive and return 6 for all rows");
+        Assert.IsTrue(
+            table.All(row => (int?)row.ReadValues()[0] == 6),
+            "IndexOf should be case-insensitive and return 6 for all rows"
+        );
     }
-
-
-
 }

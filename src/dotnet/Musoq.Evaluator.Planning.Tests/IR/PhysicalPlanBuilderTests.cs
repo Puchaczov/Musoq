@@ -48,14 +48,14 @@ public class PhysicalPlanBuilderTests
                 physical,
                 CreateEmptyProperties(),
                 options ?? new CompilationOptions(),
-                ConservativeTestPlanningShapeResolver.Instance)
+                ConservativeTestPlanningShapeResolver.Instance
+            )
             .OptimizedPlan;
     }
 
     private static PhysicalPlanBuilder CreatePhysicalBuilder()
     {
-        return new PhysicalPlanBuilder(predicateMovementPlans: null,
-            strategyPlan: new PhysicalStrategyPlan());
+        return new PhysicalPlanBuilder(predicateMovementPlans: null, strategyPlan: new PhysicalStrategyPlan());
     }
 
     private static PlanProperties CreateEmptyProperties()
@@ -90,13 +90,7 @@ public class PhysicalPlanBuilderTests
     [TestMethod]
     public void Lower_WhenSchemaScanHasMatchingSourceContextId_ShouldCreateInitialScanWithoutPushedPredicates()
     {
-        var logical = new SchemaScanNode(
-            "test",
-            "data",
-            [],
-            "t",
-            CreateSchema(("Id", typeof(int))),
-            "source-1");
+        var logical = new SchemaScanNode("test", "data", [], "t", CreateSchema(("Id", typeof(int))), "source-1");
         var physical = CreatePhysicalBuilder().Lower(logical);
 
         Assert.IsInstanceOfType<PhysicalNodes.PhysicalSchemaScanNode>(physical);
@@ -114,7 +108,8 @@ public class PhysicalPlanBuilderTests
             "p",
             typeof(object),
             ApplyKind.Outer,
-            CreateSchema(("Value", typeof(string))));
+            CreateSchema(("Value", typeof(string)))
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
@@ -145,7 +140,8 @@ public class PhysicalPlanBuilderTests
             ["Name"],
             [typeof(string)],
             [CreateAggregateBinding()],
-            CreateScan());
+            CreateScan()
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
@@ -163,7 +159,8 @@ public class PhysicalPlanBuilderTests
             ["Name", "Id"],
             [typeof(string), typeof(int)],
             [CreateAggregateBinding()],
-            CreateScan());
+            CreateScan()
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
@@ -180,7 +177,8 @@ public class PhysicalPlanBuilderTests
             ["Payload"],
             [typeof(object)],
             [CreateAggregateBinding()],
-            CreateScan("t", ("Payload", typeof(object))));
+            CreateScan("t", ("Payload", typeof(object)))
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
@@ -202,10 +200,20 @@ public class PhysicalPlanBuilderTests
                 new ColumnRef("t", "K5", typeof(int)),
                 new ColumnRef("t", "K6", typeof(int)),
                 new ColumnRef("t", "K7", typeof(int)),
-                new ColumnRef("t", "K8", typeof(int))
+                new ColumnRef("t", "K8", typeof(int)),
             ],
             ["K0", "K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8"],
-            [typeof(string), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int)],
+            [
+                typeof(string),
+                typeof(int),
+                typeof(int),
+                typeof(int),
+                typeof(int),
+                typeof(int),
+                typeof(int),
+                typeof(int),
+                typeof(int),
+            ],
             [CreateAggregateBinding()],
             CreateScan(
                 "t",
@@ -217,7 +225,9 @@ public class PhysicalPlanBuilderTests
                 ("K5", typeof(int)),
                 ("K6", typeof(int)),
                 ("K7", typeof(int)),
-                ("K8", typeof(int))));
+                ("K8", typeof(int))
+            )
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
@@ -231,9 +241,8 @@ public class PhysicalPlanBuilderTests
     {
         var logical = new TakeNode(
             3,
-            new SortNode(
-                [new OrderField(new ColumnRef("t", "Name", typeof(string)), false)],
-                CreateScan()));
+            new SortNode([new OrderField(new ColumnRef("t", "Name", typeof(string)), false)], CreateScan())
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
         var optimized = Optimize(physical);
@@ -252,9 +261,11 @@ public class PhysicalPlanBuilderTests
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)))
+        );
 
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical));
 
@@ -274,9 +285,11 @@ public class PhysicalPlanBuilderTests
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)))
+        );
 
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical));
 
@@ -293,7 +306,8 @@ public class PhysicalPlanBuilderTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("a", "Score", typeof(int)),
             new ColumnRef("b", "Score", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var logical = new JoinNode(
             JoinKind.Inner,
             new BinaryOp(
@@ -302,11 +316,14 @@ public class PhysicalPlanBuilderTests
                     BinaryOpKind.Equal,
                     new ColumnRef("a", "Id", typeof(int)),
                     new ColumnRef("b", "UserId", typeof(int)),
-                    typeof(bool)),
+                    typeof(bool)
+                ),
                 residual,
-                typeof(bool)),
+                typeof(bool)
+            ),
             CreateScan("a", ("Id", typeof(int)), ("Score", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int)), ("Score", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)), ("Score", typeof(int)))
+        );
 
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical));
 
@@ -328,15 +345,19 @@ public class PhysicalPlanBuilderTests
                     BinaryOpKind.Equal,
                     new ColumnRef("a", "Symbol", typeof(string)),
                     new ColumnRef("b", "Symbol", typeof(string)),
-                    typeof(bool)),
+                    typeof(bool)
+                ),
                 new BinaryOp(
                     BinaryOpKind.GreaterOrEqual,
                     new ColumnRef("a", "Timestamp", typeof(long)),
                     new ColumnRef("b", "Timestamp", typeof(long)),
-                    typeof(bool)),
-                typeof(bool)),
+                    typeof(bool)
+                ),
+                typeof(bool)
+            ),
             CreateScan("a", ("Symbol", typeof(string)), ("Timestamp", typeof(long))),
-            CreateScan("b", ("Symbol", typeof(string)), ("Timestamp", typeof(long))));
+            CreateScan("b", ("Symbol", typeof(string)), ("Timestamp", typeof(long)))
+        );
 
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical));
 
@@ -350,12 +371,14 @@ public class PhysicalPlanBuilderTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("a", "Id", typeof(int)),
             new ColumnRef("b", "UserId", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var logical = new JoinNode(
             JoinKind.Inner,
             predicate,
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)))
+        );
 
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical));
 
@@ -376,9 +399,11 @@ public class PhysicalPlanBuilderTests
                 BinaryOpKind.GreaterThan,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)))
+        );
 
         var options = new CompilationOptions(useSortMergeJoin: false);
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical), options);
@@ -395,9 +420,11 @@ public class PhysicalPlanBuilderTests
                 BinaryOpKind.Equal,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)))
+        );
 
         var options = new CompilationOptions(useHashJoin: false);
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical), options);
@@ -414,9 +441,11 @@ public class PhysicalPlanBuilderTests
                 BinaryOpKind.LessThan,
                 new ColumnRef("b", "UserId", typeof(int)),
                 new ColumnRef("a", "Id", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)))
+        );
 
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical));
 
@@ -434,16 +463,14 @@ public class PhysicalPlanBuilderTests
             BinaryOpKind.Add,
             new ColumnRef("b", "UserId", typeof(int)),
             new Literal(5, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var logical = new JoinNode(
             JoinKind.Inner,
-            new BinaryOp(
-                BinaryOpKind.GreaterOrEqual,
-                new ColumnRef("a", "Id", typeof(int)),
-                rightKey,
-                typeof(bool)),
+            new BinaryOp(BinaryOpKind.GreaterOrEqual, new ColumnRef("a", "Id", typeof(int)), rightKey, typeof(bool)),
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)))
+        );
 
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical));
 
@@ -462,9 +489,11 @@ public class PhysicalPlanBuilderTests
                 BinaryOpKind.NotEqual,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)))
+        );
 
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical));
 
@@ -480,9 +509,11 @@ public class PhysicalPlanBuilderTests
                 BinaryOpKind.GreaterThan,
                 new ColumnRef("a", "Id", typeof(int)),
                 new ColumnRef("b", "UserId", typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("UserId", typeof(int))));
+            CreateScan("b", ("UserId", typeof(int)))
+        );
 
         var physical = Optimize(CreatePhysicalBuilder().Lower(logical));
 
@@ -495,7 +526,8 @@ public class PhysicalPlanBuilderTests
         var logical = new ApplyNode(
             ApplyKind.Cross,
             CreateScan("a", ("Id", typeof(int))),
-            CreateScan("b", ("Value", typeof(string))));
+            CreateScan("b", ("Value", typeof(string)))
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
@@ -512,7 +544,8 @@ public class PhysicalPlanBuilderTests
             [],
             [],
             0,
-            typeof(string));
+            typeof(string)
+        );
         var logical = new WindowNode([registration], CreateScan());
 
         var physical = CreatePhysicalBuilder().Lower(logical);
@@ -532,7 +565,8 @@ public class PhysicalPlanBuilderTests
             "Self.Children",
             [new Literal(7, typeof(int)), new Literal("sample", typeof(string))],
             "desc-source",
-            OutputSchema.Empty);
+            OutputSchema.Empty
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
@@ -553,7 +587,8 @@ public class PhysicalPlanBuilderTests
             SetOpKind.UnionAll,
             CreateScan("a", ("Id", typeof(int)), ("Name", typeof(string))),
             CreateScan("b", ("Id", typeof(int)), ("Name", typeof(string))),
-            []);
+            []
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
@@ -568,26 +603,17 @@ public class PhysicalPlanBuilderTests
     {
         var logical = new SetOperationNode(
             SetOpKind.Union,
-            CreateScan(
-                "a",
-                ("K0", typeof(int)),
-                ("K1", typeof(string)),
-                ("K2", typeof(decimal))),
-            CreateScan(
-                "b",
-                ("K0", typeof(int)),
-                ("K1", typeof(string)),
-                ("K2", typeof(decimal))),
-            []);
+            CreateScan("a", ("K0", typeof(int)), ("K1", typeof(string)), ("K2", typeof(decimal))),
+            CreateScan("b", ("K0", typeof(int)), ("K1", typeof(string)), ("K2", typeof(decimal))),
+            []
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
         Assert.IsInstanceOfType<PhysicalNodes.PhysicalSetOperationNode>(physical);
         var setOperation = (PhysicalNodes.PhysicalSetOperationNode)physical;
         CollectionAssert.AreEqual(new[] { 0, 1, 2 }, setOperation.FieldIndexes);
-        CollectionAssert.AreEqual(
-            new[] { typeof(int), typeof(string), typeof(decimal) },
-            setOperation.FieldTypes);
+        CollectionAssert.AreEqual(new[] { typeof(int), typeof(string), typeof(decimal) }, setOperation.FieldTypes);
     }
 
     [TestMethod]
@@ -595,7 +621,8 @@ public class PhysicalPlanBuilderTests
     {
         var logical = new CteNode(
             [new CteDefinition("cte", CreateScan("inner", ("Id", typeof(int))))],
-            new CteRefNode("cte", "c", CreateSchema(("Id", typeof(int)))));
+            new CteRefNode("cte", "c", CreateSchema(("Id", typeof(int))))
+        );
 
         var physical = CreatePhysicalBuilder().Lower(logical);
 
@@ -623,12 +650,14 @@ public class PhysicalPlanBuilderTests
             ["Name"],
             [typeof(string)],
             [CreateAggregateBinding()],
-            CreateScan());
+            CreateScan()
+        );
 
         var output = PhysicalPlanPrinter.Print(CreatePhysicalBuilder().Lower(logical));
 
         PlanTextAssertions.AreEqual(
             "PhysicalAggregateCandidate [keys: Name] [aggs: Count]\r\n  PhysicalSchemaScan [#test.data() as t]",
-            output);
+            output
+        );
     }
 }

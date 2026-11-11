@@ -32,7 +32,6 @@ internal sealed class PhysicalOptimizationState(PhysicalOptimizationSession sess
         ArgumentNullException.ThrowIfNull(context);
 
         return context.State.PhysicalOptimizationState
-               ?? throw new InvalidOperationException("Physical optimization requires physical optimization state.");
+            ?? throw new InvalidOperationException("Physical optimization requires physical optimization state.");
     }
 }
-

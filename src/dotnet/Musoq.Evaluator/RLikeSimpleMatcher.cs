@@ -5,7 +5,11 @@ namespace Musoq.Evaluator;
 
 /// <summary>Linear, ordinal matching for a deliberately restricted regular-expression grammar.</summary>
 internal sealed class RLikeSimpleMatcher(
-    string[] prefixes, string suffix, RLikeRepeatSpecification repetition, TimeSpan timeout)
+    string[] prefixes,
+    string suffix,
+    RLikeRepeatSpecification repetition,
+    TimeSpan timeout
+)
 {
     internal TimeSpan MatchTimeout { get; } = timeout;
 
@@ -16,8 +20,7 @@ internal sealed class RLikeSimpleMatcher(
         {
             if (value.EndsWith(suffix, StringComparison.Ordinal))
                 return true;
-            return value.Length > 0 && value[^1] == '\n' &&
-                   value[..^1].EndsWith(suffix, StringComparison.Ordinal);
+            return value.Length > 0 && value[^1] == '\n' && value[..^1].EndsWith(suffix, StringComparison.Ordinal);
         }
 
         foreach (var prefix in prefixes)
@@ -33,12 +36,13 @@ internal sealed class RLikeSimpleMatcher(
         return false;
     }
 
-    private bool MatchesCharacters(ReadOnlySpan<char> value) => repetition.Kind switch
-    {
-        RLikeSimpleCharacterKind.AsciiDigits => value.IndexOfAnyExceptInRange('0', '9') < 0,
-        RLikeSimpleCharacterKind.ExceptNewline => !value.Contains('\n'),
-        _ => throw new InvalidOperationException("A literal suffix has no repeated character class.")
-    };
+    private bool MatchesCharacters(ReadOnlySpan<char> value) =>
+        repetition.Kind switch
+        {
+            RLikeSimpleCharacterKind.AsciiDigits => value.IndexOfAnyExceptInRange('0', '9') < 0,
+            RLikeSimpleCharacterKind.ExceptNewline => !value.Contains('\n'),
+            _ => throw new InvalidOperationException("A literal suffix has no repeated character class."),
+        };
 
     public static RLikeSimpleMatcher? TryCreate(string pattern) =>
         TryCreate(pattern, Runtime.RuntimeCacheOptions.DefaultRegexTimeout);
@@ -49,8 +53,7 @@ internal sealed class RLikeSimpleMatcher(
         if (suffixMatcher is not null)
             return suffixMatcher;
 
-        if (!pattern.StartsWith(@"\A", StringComparison.Ordinal) ||
-            !pattern.EndsWith(@"\z", StringComparison.Ordinal))
+        if (!pattern.StartsWith(@"\A", StringComparison.Ordinal) || !pattern.EndsWith(@"\z", StringComparison.Ordinal))
             return null;
         var body = pattern.AsSpan(2, pattern.Length - 4);
         var repeatStart = body.LastIndexOf("[0-9]", StringComparison.Ordinal);
@@ -146,8 +149,8 @@ internal sealed class RLikeSimpleMatcher(
         return builder.ToString();
     }
 
-    private static bool IsMetacharacter(char character) => character is
-        '^' or '$' or '.' or '|' or '?' or '*' or '+' or '(' or ')' or '[' or ']' or '{' or '}';
+    private static bool IsMetacharacter(char character) =>
+        character is '^' or '$' or '.' or '|' or '?' or '*' or '+' or '(' or ')' or '[' or ']' or '{' or '}';
 }
 
 internal readonly record struct RLikeRepeatBounds(int Minimum, int Maximum);
@@ -158,5 +161,5 @@ internal enum RLikeSimpleCharacterKind
 {
     LiteralSuffix,
     AsciiDigits,
-    ExceptNewline
+    ExceptNewline,
 }

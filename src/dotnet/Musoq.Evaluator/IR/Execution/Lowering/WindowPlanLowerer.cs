@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+
 namespace Musoq.Evaluator.IR.Execution.Lowering;
 
-internal sealed class WindowPlanLowerer(
-    IWindowLoweringService handlers)
+internal sealed class WindowPlanLowerer(IWindowLoweringService handlers)
 {
     public LoweringAttempt<ExecutionPlan> TryBuildPlan(PhysicalToExecutionLoweringContext context)
     {
@@ -24,21 +24,27 @@ internal sealed class WindowPlanLowerer(
                 context.CteIndexes,
                 context.CteShapesByName,
                 context.SchemaFromIndex,
-                context.Scope);
+                context.Scope
+            );
     }
 
     private LoweringAttempt<ExecutionPlan> BuildWindowPlan(
         WindowPipeline pipeline,
         string identifier,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
-        return handlers.CreatePlanResult(identifier, handlers.BuildWindowTable(
-            pipeline,
-            "result",
-            scope.GeneratedTypePrefix + "ResultRow0",
-            new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
-            null,
-            0,
-            scope));
+        return handlers.CreatePlanResult(
+            identifier,
+            handlers.BuildWindowTable(
+                pipeline,
+                "result",
+                scope.GeneratedTypePrefix + "ResultRow0",
+                new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
+                null,
+                0,
+                scope
+            )
+        );
     }
 }

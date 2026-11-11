@@ -5,13 +5,13 @@ public enum ExecutionStringMatchKind
     Exact,
     Prefix,
     Suffix,
-    Contains
+    Contains,
 }
 
 public enum ExecutionStringMatchComparison
 {
     LikeIgnoreCase,
-    Ordinal
+    Ordinal,
 }
 
 public sealed record ExecutionStringMatch : ExecutionExpression
@@ -22,7 +22,8 @@ public sealed record ExecutionStringMatch : ExecutionExpression
         string needle,
         ExecutionStringMatchKind kind,
         ExecutionStringMatchComparison comparison,
-        ExecutionTypeRef returnType)
+        ExecutionTypeRef returnType
+    )
         : base(returnType)
     {
         Input = input ?? throw new ArgumentNullException(nameof(input));

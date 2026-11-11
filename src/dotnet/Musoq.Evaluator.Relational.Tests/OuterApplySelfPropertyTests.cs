@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class OuterApplySelfPropertyTests : GenericEntityTestBase
 {
-
     [TestMethod]
     public void OuterApplyProperty_NoMatch_ShouldPass()
     {
@@ -18,20 +17,14 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { City = "City1", Values = [] }
+            new() { City = "City1", Values = [] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Value", typeof(double?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Value", typeof(double?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["City1", null]);
     }
 
@@ -44,25 +37,23 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         {
             new() { City = "City1", Values = [1] },
             new() { City = "City2", Values = [2, 3] },
-            new() { City = "City3", Values = [4, 5, 6] }
+            new() { City = "City3", Values = [4, 5, 6] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Value", typeof(double?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Value", typeof(double?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", 1d],
-            ["City2", 2d], ["City2", 3d],
-            ["City3", 4d], ["City3", 5d], ["City3", 6d]);
+            ["City2", 2d],
+            ["City2", 3d],
+            ["City3", 4d],
+            ["City3", 5d],
+            ["City3", 6d]
+        );
     }
 
     [TestMethod]
@@ -75,24 +66,22 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         {
             new() { City = "City1", Values = [1] },
             new() { City = "City2", Values = [2, 3] },
-            new() { City = "City3", Values = [4, 5, 6] }
+            new() { City = "City3", Values = [4, 5, 6] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Value", typeof(double?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Value", typeof(double?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["City2", 2d], ["City2", 3d],
-            ["City3", 4d], ["City3", 5d], ["City3", 6d]);
+            ["City2", 2d],
+            ["City2", 3d],
+            ["City3", 4d],
+            ["City3", 5d],
+            ["City3", 6d]
+        );
     }
 
     [TestMethod]
@@ -105,23 +94,19 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         {
             new() { City = "City1", Values = [1] },
             new() { City = "City2", Values = [2, 3] },
-            new() { City = "City3", Values = [4, 5, 6] }
+            new() { City = "City3", Values = [4, 5, 6] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("a.Sum(b.Value)", typeof(double?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["City1", 1d], ["City2", 5d], ["City3", 15d]);
+            ("a.Sum(b.Value)", typeof(double?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["City1", 1d], ["City2", 5d], ["City3", 15d]);
     }
 
     [TestMethod]
@@ -133,25 +118,23 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         {
             new() { City = "City1", Values = [1] },
             new() { City = "City2", Values = [2, 3] },
-            new() { City = "City3", Values = [4, 5, 6] }
+            new() { City = "City3", Values = [4, 5, 6] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Value", typeof(double?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Value", typeof(double?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", 1d],
-            ["City2", 2d], ["City2", 3d],
-            ["City3", 4d], ["City3", 5d], ["City3", 6d]);
+            ["City2", 2d],
+            ["City2", 3d],
+            ["City3", 4d],
+            ["City3", 5d],
+            ["City3", 6d]
+        );
     }
 
     [TestMethod]
@@ -168,8 +151,8 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
                 Values =
                 [
                     new ComplexType1 { Value1 = "Value2", Value2 = 2 },
-                    new ComplexType1 { Value1 = "Value3", Value2 = 3 }
-                ]
+                    new ComplexType1 { Value1 = "Value3", Value2 = 3 },
+                ],
             },
             new()
             {
@@ -178,15 +161,12 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
                 [
                     new ComplexType1 { Value1 = "Value4", Value2 = 4 },
                     new ComplexType1 { Value1 = "Value5", Value2 = 5 },
-                    new ComplexType1 { Value1 = "Value6", Value2 = 6 }
-                ]
-            }
+                    new ComplexType1 { Value1 = "Value6", Value2 = 6 },
+                ],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -194,12 +174,17 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
             table,
             ("City", typeof(string)),
             ("Value1", typeof(string)),
-            ("Value2", typeof(int?)));
+            ("Value2", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Value1", 1],
-            ["City2", "Value2", 2], ["City2", "Value3", 3],
-            ["City3", "Value4", 4], ["City3", "Value5", 5], ["City3", "Value6", 6]);
+            ["City2", "Value2", 2],
+            ["City2", "Value3", 3],
+            ["City3", "Value4", 4],
+            ["City3", "Value5", 5],
+            ["City3", "Value6", 6]
+        );
     }
 
     [TestMethod]
@@ -216,8 +201,8 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
                 Values =
                 [
                     new ComplexType1 { Value1 = "Value2", Value2 = 2 },
-                    new ComplexType1 { Value1 = "Value3", Value2 = 3 }
-                ]
+                    new ComplexType1 { Value1 = "Value3", Value2 = 3 },
+                ],
             },
             new()
             {
@@ -226,15 +211,12 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
                 [
                     new ComplexType1 { Value1 = "Value4", Value2 = 4 },
                     new ComplexType1 { Value1 = "Value5", Value2 = 5 },
-                    new ComplexType1 { Value1 = "Value6", Value2 = 6 }
-                ]
-            }
+                    new ComplexType1 { Value1 = "Value6", Value2 = 6 },
+                ],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -242,12 +224,17 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
             table,
             ("City", typeof(string)),
             ("Value1", typeof(string)),
-            ("Value2", typeof(int?)));
+            ("Value2", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Value1", 1],
-            ["City2", "Value2", 2], ["City2", "Value3", 3],
-            ["City3", "Value4", 4], ["City3", "Value5", 5], ["City3", "Value6", 6]);
+            ["City2", "Value2", 2],
+            ["City2", "Value3", 3],
+            ["City3", "Value4", 4],
+            ["City3", "Value5", 5],
+            ["City3", "Value6", 6]
+        );
     }
 
     [TestMethod]
@@ -258,58 +245,65 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass5>
         {
-            new() { City = "City1", Values1 = [1], Values2 = [1.1] },
-            new() { City = "City2", Values1 = [2, 3], Values2 = [2.1, 2.2, 3.3] },
-            new() { City = "City3", Values1 = [4, 5, 6], Values2 = [4.1, 5.1, 6.1] }
+            new()
+            {
+                City = "City1",
+                Values1 = [1],
+                Values2 = [1.1],
+            },
+            new()
+            {
+                City = "City2",
+                Values1 = [2, 3],
+                Values2 = [2.1, 2.2, 3.3],
+            },
+            new()
+            {
+                City = "City3",
+                Values1 = [4, 5, 6],
+                Values2 = [4.1, 5.1, 6.1],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Value", typeof(double?)),
-            ("Value", typeof(double?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(double?)), ("Value", typeof(double?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [1d, 1.1d],
-            [2d, 2.1d], [2d, 2.2d], [2d, 3.3d],
-            [3d, 2.1d], [3d, 2.2d], [3d, 3.3d],
-            [4d, 4.1d], [4d, 5.1d], [4d, 6.1d],
-            [5d, 4.1d], [5d, 5.1d], [5d, 6.1d],
-            [6d, 4.1d], [6d, 5.1d], [6d, 6.1d]);
+            [2d, 2.1d],
+            [2d, 2.2d],
+            [2d, 3.3d],
+            [3d, 2.1d],
+            [3d, 2.2d],
+            [3d, 3.3d],
+            [4d, 4.1d],
+            [4d, 5.1d],
+            [4d, 6.1d],
+            [5d, 4.1d],
+            [5d, 5.1d],
+            [5d, 6.1d],
+            [6d, 4.1d],
+            [6d, 5.1d],
+            [6d, 6.1d]
+        );
     }
 
     [TestMethod]
     public void WhenApplyChainedProperty_WithPrimitiveList_ShouldPass()
     {
-        const string query = """
-                             select
-                                b.Value
-                             from #schema.first() a
-                             outer apply a.ComplexType.PrimitiveValues as b
-                             """;
+        const string query = (
+            "select\n" + "   b.Value\n" + "from #schema.first() a\n" + "outer apply a.ComplexType.PrimitiveValues as b"
+        );
 
         var firstSource = new List<OuterApplyClass7>
         {
-            new()
-            {
-                ComplexType = new ComplexType5
-                {
-                    PrimitiveValues = { 1, 2 }
-                }
-            }
+            new() { ComplexType = new ComplexType5 { PrimitiveValues = { 1, 2 } } },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -320,12 +314,9 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenApplyChainedProperty_WithComplexList_ShouldPass()
     {
-        const string query = """
-                             select
-                                b.Value
-                             from #schema.first() a
-                             outer apply a.ComplexType.ComplexValues as b
-                             """;
+        const string query = (
+            "select\n" + "   b.Value\n" + "from #schema.first() a\n" + "outer apply a.ComplexType.ComplexValues as b"
+        );
 
         var firstSource = new List<OuterApplyClass7>
         {
@@ -333,15 +324,16 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
             {
                 ComplexType = new ComplexType5
                 {
-                    ComplexValues = { new ComplexType6 { Value = 1 }, new ComplexType6 { Value = 2 } }
-                }
-            }
+                    ComplexValues =
+                    {
+                        new ComplexType6 { Value = 1 },
+                        new ComplexType6 { Value = 2 },
+                    },
+                },
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -375,14 +367,16 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     {
         public string City { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public ComplexType1[] Values { get; set; } = [];
+        [BindablePropertyAsTable]
+        public ComplexType1[] Values { get; set; } = [];
     }
 
     public sealed class OuterApplyClass4
     {
         public string City { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public List<ComplexType1> Values { get; set; } = [];
+        [BindablePropertyAsTable]
+        public List<ComplexType1> Values { get; set; } = [];
     }
 
     public sealed class OuterApplyClass5
@@ -401,9 +395,11 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
 
     public class ComplexType5
     {
-        [BindablePropertyAsTable] public List<int> PrimitiveValues { get; } = [];
+        [BindablePropertyAsTable]
+        public List<int> PrimitiveValues { get; } = [];
 
-        [BindablePropertyAsTable] public List<ComplexType6> ComplexValues { get; } = [];
+        [BindablePropertyAsTable]
+        public List<ComplexType6> ComplexValues { get; } = [];
     }
 
     public class ComplexType6

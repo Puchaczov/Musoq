@@ -5,5 +5,5 @@ internal enum PredicatePlacementOrigin
     Where,
     JoinOn,
     Having,
-    Qualify
+    Qualify,
 }

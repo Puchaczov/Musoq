@@ -46,20 +46,22 @@ public sealed class ParserNodeChildTraversalTests
     [TestMethod]
     public void TraversalRegistry_ShouldCoverEveryConcreteParserNode()
     {
-        var missing = typeof(Node).Assembly
-            .GetTypes()
+        var missing = typeof(Node)
+            .Assembly.GetTypes()
             .Where(static type => typeof(Node).IsAssignableFrom(type))
             .Where(static type => !type.IsAbstract && !type.IsGenericTypeDefinition)
             .Where(static type =>
-                ParserNodeTraversalRegistry.ResolveDescriptor(type).Mode == ParserNodeTraversalMode.Unsupported)
+                ParserNodeTraversalRegistry.ResolveDescriptor(type).Mode == ParserNodeTraversalMode.Unsupported
+            )
             .Select(static type => type.FullName)
             .OrderBy(static name => name)
             .ToArray();
 
         Assert.IsEmpty(
             missing,
-            "Every concrete parser node should be covered by traversal registry descriptors or an explicit leaf descriptor: " +
-            string.Join(", ", missing));
+            "Every concrete parser node should be covered by traversal registry descriptors or an explicit leaf descriptor: "
+                + string.Join(", ", missing)
+        );
     }
 
     [TestMethod]
@@ -71,7 +73,8 @@ public sealed class ParserNodeChildTraversalTests
             ArgsListNode.Empty,
             "alias",
             0,
-            false);
+            false
+        );
         var expression = new Musoq.Evaluator.Parser.ExpressionFromNode(schema);
 
         AssertChildren(expression, schema);
@@ -114,7 +117,8 @@ public sealed class ParserNodeChildTraversalTests
         var valueB = Id("valueB");
         var values = new ValuesFromNode(
             [new ValuesRowNode([new ValuesFieldNode("a", valueA), new ValuesFieldNode("b", valueB)])],
-            "v");
+            "v"
+        );
 
         AssertChildren(values, valueA, valueB);
     }
@@ -137,7 +141,8 @@ public sealed class ParserNodeChildTraversalTests
             new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian),
             constraint,
             atOffset,
-            whenCondition);
+            whenCondition
+        );
 
         AssertChildren(field, atOffset, whenCondition, constraint);
         AssertChildren(constraint, constraintExpression);
@@ -153,7 +158,8 @@ public sealed class ParserNodeChildTraversalTests
             new FunctionToken("row_number", TextSpan.Empty),
             ArgsListNode.Empty,
             ArgsListNode.Empty,
-            false);
+            false
+        );
         var windowFunction = new WindowFunctionNode(function, specification);
         var definition = new WindowDefinitionNode("w", specification);
         var window = new WindowNode([definition]);
@@ -177,6 +183,7 @@ public sealed class ParserNodeChildTraversalTests
         AssertChildren(specification, partition, order, frame);
         AssertChildren(frame, start, end);
     }
+
     [TestMethod]
     public void ScriptVariableChildren_ShouldTraverseInitializerOnly()
     {
@@ -200,15 +207,13 @@ public sealed class ParserNodeChildTraversalTests
     {
         var actual = ParserNodeChildTraversal.EnumerateChildren(node).ToArray();
 
-        Assert.AreEqual(
-            expected.Length,
-            actual.Length,
-            $"{node.GetType().Name} child count should match.");
+        Assert.AreEqual(expected.Length, actual.Length, $"{node.GetType().Name} child count should match.");
 
         for (var i = 0; i < expected.Length; i++)
             Assert.IsTrue(
                 ReferenceEquals(expected[i], actual[i]),
-                $"{node.GetType().Name} child {i} should be {expected[i].GetType().Name} but was {actual[i].GetType().Name}.");
+                $"{node.GetType().Name} child {i} should be {expected[i].GetType().Name} but was {actual[i].GetType().Name}."
+            );
     }
 
     private static void AssertCteInnerFirstChildren(CteExpressionNode node, params Node[] expected)

@@ -13,4 +13,5 @@ public sealed record ErrorMetadata(
     DiagnosticPhase Phase,
     string Explanation,
     string[] SuggestedFixes,
-    string DocsReference);
+    string DocsReference
+);

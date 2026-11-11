@@ -14,10 +14,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         QueryNode anchor,
         IReadOnlyList<string> keys,
         SetOperatorNode node,
-        out string[] canonicalKeys)
+        out string[] canonicalKeys
+    )
     {
-        var exportedNames = anchor.Select.Fields
-            .Select(static field => field.FieldName)
+        var exportedNames = anchor
+            .Select.Fields.Select(static field => field.FieldName)
             .Where(static fieldName => !string.IsNullOrWhiteSpace(fieldName))
             .ToArray();
         canonicalKeys = new string[keys.Count];
@@ -26,7 +27,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var key = keys[keyIndex];
             var canonicalName = exportedNames.FirstOrDefault(exportedName =>
-                string.Equals(exportedName, key, StringComparison.OrdinalIgnoreCase));
+                string.Equals(exportedName, key, StringComparison.OrdinalIgnoreCase)
+            );
             if (canonicalName != null)
             {
                 canonicalKeys[keyIndex] = canonicalName;
@@ -40,11 +42,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                 return false;
             }
 
-            var columns = anchor.Select.Fields
-                .Select((field, index) => (ISchemaColumn)new SchemaColumn(
-                    field.FieldName,
-                    index,
-                    field.Expression.ReturnType ?? typeof(object)))
+            var columns = anchor
+                .Select.Fields.Select(
+                    (field, index) =>
+                        (ISchemaColumn)
+                            new SchemaColumn(field.FieldName, index, field.Expression.ReturnType ?? typeof(object))
+                )
                 .ToArray();
             PrepareAndThrowUnknownColumnExceptionMessage(key, columns, keySpan);
         }
@@ -54,8 +57,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private bool ValidateSetOperatorKeys(QueryNode query, IReadOnlyList<string> keys, SetOperatorNode node)
     {
-        var availableFieldNames = query.Select.Fields
-            .SelectMany(field => new[] { field.FieldName, field.Expression.ToString() })
+        var availableFieldNames = query
+            .Select.Fields.SelectMany(field => new[] { field.FieldName, field.Expression.ToString() })
             .Where(fieldName => !string.IsNullOrWhiteSpace(fieldName))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -78,7 +81,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             DiagnosticContext.ReportUnknownColumn(
                 missingKey,
                 availableFieldNames,
-                GetSetOperatorKeySpan(node, missingKeyIndex));
+                GetSetOperatorKeySpan(node, missingKeyIndex)
+            );
             return false;
         }
 

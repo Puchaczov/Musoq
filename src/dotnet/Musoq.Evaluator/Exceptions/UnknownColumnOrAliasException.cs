@@ -10,15 +10,11 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class UnknownColumnOrAliasException : Exception, IDiagnosticException
 {
-
     public UnknownColumnOrAliasException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
-    public UnknownColumnOrAliasException()
-    {
-    }
+    public UnknownColumnOrAliasException() { }
+
     /// <summary>
     ///     Initializes a new instance of UnknownColumnOrAliasException.
     /// </summary>
@@ -33,9 +29,10 @@ public class UnknownColumnOrAliasException : Exception, IDiagnosticException
     /// </summary>
     public UnknownColumnOrAliasException(string columnName, string context, TextSpan span)
         : base(
-            $"Unknown column or alias {DiagnosticSafety.QuoteForDisplay(columnName)}" +
-            (string.IsNullOrEmpty(context) ? string.Empty : $" {DiagnosticSafety.SanitizeForDisplay(context)}") +
-            ".")
+            $"Unknown column or alias {DiagnosticSafety.QuoteForDisplay(columnName)}"
+                + (string.IsNullOrEmpty(context) ? string.Empty : $" {DiagnosticSafety.SanitizeForDisplay(context)}")
+                + "."
+        )
     {
         ColumnName = columnName;
         Code = DiagnosticCode.MQ3001_UnknownColumn;
@@ -49,7 +46,8 @@ public class UnknownColumnOrAliasException : Exception, IDiagnosticException
         string columnName,
         string context,
         TextSpan span,
-        IEnumerable<string> candidates)
+        IEnumerable<string> candidates
+    )
         : this(columnName, context, span)
     {
         ArgumentNullException.ThrowIfNull(candidates);
@@ -98,17 +96,19 @@ public class UnknownColumnOrAliasException : Exception, IDiagnosticException
             arguments["suggestion"] = Suggestion;
 
         var replacementSpan = GetIdentifierSpan(sourceText, span, ColumnName);
-        var suggestedFixes = string.IsNullOrWhiteSpace(Suggestion) ||
-                             replacementSpan.IsEmpty ||
-                             replacementSpan.Length != ColumnName?.Length
-            ? null
-            : new[]
-            {
-                DiagnosticAction.QuickFix(
-                    $"Replace '{ColumnName}' with '{Suggestion}'",
-                    replacementSpan,
-                    Suggestion)
-            };
+        var suggestedFixes =
+            string.IsNullOrWhiteSpace(Suggestion)
+            || replacementSpan.IsEmpty
+            || replacementSpan.Length != ColumnName?.Length
+                ? null
+                : new[]
+                {
+                    DiagnosticAction.QuickFix(
+                        $"Replace '{ColumnName}' with '{Suggestion}'",
+                        replacementSpan,
+                        Suggestion
+                    ),
+                };
 
         return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText, arguments, suggestedFixes);
     }
@@ -121,14 +121,14 @@ public class UnknownColumnOrAliasException : Exception, IDiagnosticException
             if (string.IsNullOrWhiteSpace(candidate))
                 continue;
 
-            if (!canonicalCandidates.TryGetValue(candidate, out var existing) ||
-                string.CompareOrdinal(candidate, existing) < 0)
+            if (
+                !canonicalCandidates.TryGetValue(candidate, out var existing)
+                || string.CompareOrdinal(candidate, existing) < 0
+            )
                 canonicalCandidates[candidate] = candidate;
         }
 
-        return canonicalCandidates.Values
-            .OrderBy(static candidate => candidate, StringComparer.Ordinal)
-            .ToArray();
+        return canonicalCandidates.Values.OrderBy(static candidate => candidate, StringComparer.Ordinal).ToArray();
     }
 
     private static TextSpan GetIdentifierSpan(SourceText? sourceText, TextSpan nodeSpan, string? identifier)
@@ -141,11 +141,7 @@ public class UnknownColumnOrAliasException : Exception, IDiagnosticException
         if (start >= end)
             return nodeSpan;
 
-        var index = sourceText.Text.IndexOf(
-            identifier,
-            start,
-            end - start,
-            StringComparison.OrdinalIgnoreCase);
+        var index = sourceText.Text.IndexOf(identifier, start, end - start, StringComparison.OrdinalIgnoreCase);
         return index >= 0 ? new TextSpan(index, identifier.Length) : nodeSpan;
     }
 }

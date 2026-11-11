@@ -11,7 +11,8 @@ public sealed record TableRowShape : RowShape
         string alias,
         IReadOnlyList<FieldBinding> fields,
         IReadOnlyList<FieldBinding> contexts,
-        string? generatedRowTypeName = null)
+        string? generatedRowTypeName = null
+    )
         : base(alias, fields)
     {
         Alias = alias;
@@ -36,10 +37,6 @@ public sealed record TableRowShape : RowShape
 
     public string? GeneratedRowTypeName { get; init; }
 
-    public TableRowShape(
-        string alias,
-        IReadOnlyList<FieldBinding> fields)
-        : this(alias, fields, [])
-    {
-    }
+    public TableRowShape(string alias, IReadOnlyList<FieldBinding> fields)
+        : this(alias, fields, []) { }
 }

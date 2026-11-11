@@ -11,7 +11,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private ExecutionPlanBuildResult BuildSetOperation(
         SetOperationPipeline pipeline,
         string identifier,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var cteIndexes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var table = BuildSetOperationTable(
@@ -21,7 +22,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             cteShapesByName: null,
             schemaFromIndex: DefaultSchemaFromIndex,
-            scope: scope);
+            scope: scope
+        );
         if (!table.IsBuilt)
             return ExecutionPlanBuildResult.CreateUnsupported(table.UnsupportedReason);
 
@@ -35,7 +37,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var table = BuildSetOperationTable(
             pipeline.SetOperation,
@@ -44,7 +47,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            scope);
+            scope
+        );
 
         if (!table.IsBuilt)
             return table;
@@ -54,7 +58,8 @@ internal sealed partial class PhysicalLoweringImplementation
             table.Nodes.ToList(),
             table.Table,
             table.RowShape,
-            pipeline.PostOperations);
+            pipeline.PostOperations
+        );
     }
 
     private TableBuildResult BuildSetOperationTable(
@@ -64,7 +69,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var strategy = ExecutionStrategies.GetSetOperationStrategy(setOperation);
         var streamingUnionAll = TryBuildStreamingUnionAllTable(
@@ -75,7 +81,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            scope);
+            scope
+        );
         if (streamingUnionAll != null)
             return streamingUnionAll;
 
@@ -91,7 +98,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             scopeAggregateVariables: true,
-            scope: scope);
+            scope: scope
+        );
         if (!left.IsBuilt)
             return TableBuildResult.Unsupported(left.UnsupportedReason);
 
@@ -107,7 +115,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex + rightSchemaFromIndex,
             scopeAggregateVariables: true,
-            scope: scope);
+            scope: scope
+        );
         if (!right.IsBuilt)
             return TableBuildResult.Unsupported(right.UnsupportedReason);
 
@@ -118,26 +127,33 @@ internal sealed partial class PhysicalLoweringImplementation
 
         nodes.AddRange(leftNodes);
         nodes.AddRange(rightNodes);
-        nodes.Add(new ExecutionSetOperation(
-            result,
-            left.Table,
-            right.Table,
-            setOperation.Kind,
-            setOperation.FieldIndexes,
-            setOperation.FieldTypes,
-            ResolveSetOperationStrategy(strategy)));
+        nodes.Add(
+            new ExecutionSetOperation(
+                result,
+                left.Table,
+                right.Table,
+                setOperation.Kind,
+                setOperation.FieldIndexes,
+                setOperation.FieldTypes,
+                ResolveSetOperationStrategy(strategy)
+            )
+        );
 
         var requiresResultShape = RequiresSetOperationResultShape(setOperation.OutputSchema, left.RowShape);
         var resultShape = requiresResultShape
             ? CreateSetOperationResultShape(resultShapeName, setOperation.OutputSchema) with
             {
                 Contexts = [],
-                SupportsGeneratedFieldAccess = false
+                SupportsGeneratedFieldAccess = false,
             }
-            : left.RowShape with { Contexts = [], SupportsGeneratedFieldAccess = false };
+            : left.RowShape with
+            {
+                Contexts = [],
+                SupportsGeneratedFieldAccess = false,
+            };
         var shapes = requiresResultShape
-            ? new List<RowShape>([..left.Shapes, ..right.Shapes, resultShape])
-            : new List<RowShape>([..left.Shapes, ..right.Shapes]);
+            ? new List<RowShape>([.. left.Shapes, .. right.Shapes, resultShape])
+            : new List<RowShape>([.. left.Shapes, .. right.Shapes]);
         return TableBuildResult.Success(shapes, nodes, result, resultShape);
     }
 
@@ -155,7 +171,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (!strategy.CanStreamUnionAll)
             return null;
@@ -164,7 +181,8 @@ internal sealed partial class PhysicalLoweringImplementation
         var rightPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(setOperation.Right));
         if (leftPipeline == null || rightPipeline == null)
             return TableBuildResult.Unsupported(
-                "Planner selected streaming UnionAll, but Execution IR lowering could not decompose both arms into supported streaming pipelines.");
+                "Planner selected streaming UnionAll, but Execution IR lowering could not decompose both arms into supported streaming pipelines."
+            );
 
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
         var resultShape = CreateSetOperationResultShape(resultShapeName, setOperation.OutputSchema);
@@ -172,7 +190,8 @@ internal sealed partial class PhysicalLoweringImplementation
             resultTableName,
             resultShapeName,
             leftPipeline.Source,
-            rightPipeline.Source);
+            rightPipeline.Source
+        );
         var left = BuildStreamingUnionAllArm(
             leftPipeline,
             armNames.LeftTableName,
@@ -181,10 +200,12 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            scope);
+            scope
+        );
         if (!left.IsBuilt)
             return TableBuildResult.Unsupported(
-                $"Planner selected streaming UnionAll, but the left arm could not be lowered: {left.UnsupportedReason}");
+                $"Planner selected streaming UnionAll, but the left arm could not be lowered: {left.UnsupportedReason}"
+            );
 
         var rightSchemaFromIndex = schemaFromIndex + CountSchemaScans(UnwrapSingleStatement(setOperation.Left));
         var right = BuildStreamingUnionAllArm(
@@ -195,23 +216,26 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             cteShapesByName,
             rightSchemaFromIndex,
-            scope);
+            scope
+        );
         if (!right.IsBuilt)
             return TableBuildResult.Unsupported(
-                $"Planner selected streaming UnionAll, but the right arm could not be lowered: {right.UnsupportedReason}");
+                $"Planner selected streaming UnionAll, but the right arm could not be lowered: {right.UnsupportedReason}"
+            );
 
         var leftNodes = CreateSetOperationArmNodes(
             UnwrapSingleStatement(setOperation.Left),
-            [..left.Value.Setup, left.Value.Loop],
-            ":left");
+            [.. left.Value.Setup, left.Value.Loop],
+            ":left"
+        );
         var rightNodes = CreateSetOperationArmNodes(
             UnwrapSingleStatement(setOperation.Right),
-            [..right.Value.Setup, right.Value.Loop],
-            ":right");
-        var nodes = new List<ExecutionNode>(
-            leftNodes.Count + rightNodes.Count + 3)
+            [.. right.Value.Setup, right.Value.Loop],
+            ":right"
+        );
+        var nodes = new List<ExecutionNode>(leftNodes.Count + rightNodes.Count + 3)
         {
-            CreateTable(resultTable, resultShape)
+            CreateTable(resultTable, resultShape),
         };
         nodes.AddRange(leftNodes);
         nodes.AddRange(rightNodes);
@@ -221,7 +245,8 @@ internal sealed partial class PhysicalLoweringImplementation
             nodes,
             resultTable,
             resultShape,
-            []);
+            []
+        );
     }
 
     private LoweringAttempt<StreamingUnionAllArm> BuildStreamingUnionAllArm(
@@ -232,12 +257,14 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var sourceShape = ResolveSourceShape(pipeline.Source, cteIndexes, cteShapesByName);
         if (sourceShape == null)
             return LoweringAttempt<StreamingUnionAllArm>.Unsupported(
-                $"Execution IR lowering cannot resolve source shape for {pipeline.Source.GetType().Name}.");
+                $"Execution IR lowering cannot resolve source shape for {pipeline.Source.GetType().Name}."
+            );
 
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(sourceShape);
         var source = CreateSourceVariable(pipeline.Source, sourceShape, cteShapesByName);
@@ -247,38 +274,35 @@ internal sealed partial class PhysicalLoweringImplementation
             source,
             schemaFromIndex,
             cteIndexes,
-            sourceRowsScope);
-        var sourceRows = CreateSourceRowsExpression(pipeline.Source, sourceShape, cteIndexes, cteShapesByName, sourceRowsScope, scope);
-        var appendRow = CreateContextFreeAppendRow(
-            resultTable,
-            resultShape,
-            pipeline.Project.Fields,
-            sourceLookup);
+            sourceRowsScope
+        );
+        var sourceRows = CreateSourceRowsExpression(
+            pipeline.Source,
+            sourceShape,
+            cteIndexes,
+            cteShapesByName,
+            sourceRowsScope,
+            scope
+        );
+        var appendRow = CreateContextFreeAppendRow(resultTable, resultShape, pipeline.Project.Fields, sourceLookup);
         var loopBody = CreateLoopBody(pipeline.Filter, appendRow, sourceShape);
         var loop = CreateSourceLoop(sourceShape, sourceRows, source, loopBody);
 
-        return LoweringAttempt<StreamingUnionAllArm>.Built(new StreamingUnionAllArm(
-            sourceShape,
-            setup,
-            loop));
+        return LoweringAttempt<StreamingUnionAllArm>.Built(new StreamingUnionAllArm(sourceShape, setup, loop));
     }
 
     private ExecutionAppendRow CreateContextFreeAppendRow(
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var values = fields
             .Select(field => new ExecutionRowValue(field.OutputName, ConvertProjectedExpression(field, sourceLookup)))
             .ToArray();
 
-        return new ExecutionAppendRow(
-            resultTable,
-            resultShape,
-            values,
-            [],
-            SerialAppendMode);
+        return new ExecutionAppendRow(resultTable, resultShape, values, [], SerialAppendMode);
     }
 
     private static ExecutionSetOperationStrategy ResolveSetOperationStrategy(SetOperationStrategyDecision strategy)
@@ -288,7 +312,7 @@ internal sealed partial class PhysicalLoweringImplementation
             SetOperationTableStrategy.AppendLoop => ExecutionSetOperationStrategy.AppendLoop,
             SetOperationTableStrategy.HashSet => ExecutionSetOperationStrategy.HashSet,
             SetOperationTableStrategy.GeneratedEqualityLoop => ExecutionSetOperationStrategy.GeneratedEqualityLoop,
-            _ => throw new NotSupportedException($"Unsupported set-operation table strategy: {strategy.TableStrategy}")
+            _ => throw new NotSupportedException($"Unsupported set-operation table strategy: {strategy.TableStrategy}"),
         };
     }
 }

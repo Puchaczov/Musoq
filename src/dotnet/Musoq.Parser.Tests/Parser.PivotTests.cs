@@ -11,15 +11,17 @@ public class ParserPivotTests
     [TestMethod]
     public void Pivot_WithSingleMeasure_ShouldLowerToGroupedAggregateProjection()
     {
-        var root = Parse("""
-                         pivot #sales.orders()
-                         on Quarter in ('Q1' as Q1, 'Q2' as Q2)
-                         using Sum(Amount) as Sales
-                         group by Region
-                         order by Region
-                         skip 1
-                         take 10
-                         """);
+        var root = Parse(
+            (
+                "pivot #sales.orders()\n"
+                + "on Quarter in ('Q1' as Q1, 'Q2' as Q2)\n"
+                + "using Sum(Amount) as Sales\n"
+                + "group by Region\n"
+                + "order by Region\n"
+                + "skip 1\n"
+                + "take 10"
+            )
+        );
 
         var query = GetSingleQuery(root);
 
@@ -47,12 +49,14 @@ public class ParserPivotTests
     [TestMethod]
     public void Pivot_WithMultipleMeasures_ShouldIncludeMeasureAliasInGeneratedColumns()
     {
-        var root = Parse("""
-                         pivot #sales.orders()
-                         on Quarter in ('Q1' as Q1, 'Q2' as Q2)
-                         using Sum(Amount) as Sales, Count(*) as Orders
-                         group by Region
-                         """);
+        var root = Parse(
+            (
+                "pivot #sales.orders()\n"
+                + "on Quarter in ('Q1' as Q1, 'Q2' as Q2)\n"
+                + "using Sum(Amount) as Sales, Count(*) as Orders\n"
+                + "group by Region"
+            )
+        );
 
         var query = GetSingleQuery(root);
 
@@ -72,11 +76,9 @@ public class ParserPivotTests
     [TestMethod]
     public void Pivot_WithoutGroupBy_ShouldLowerToAggregateOnlyProjection()
     {
-        var root = Parse("""
-                         pivot #sales.orders()
-                         on Quarter in ('Q1' as Q1, 'Q2' as Q2)
-                         using Sum(Amount) as Sales
-                         """);
+        var root = Parse(
+            ("pivot #sales.orders()\n" + "on Quarter in ('Q1' as Q1, 'Q2' as Q2)\n" + "using Sum(Amount) as Sales")
+        );
 
         var query = GetSingleQuery(root);
 
@@ -89,12 +91,14 @@ public class ParserPivotTests
     [TestMethod]
     public void Pivot_WithMultiColumnKey_ShouldLowerToConjunctiveFilteredAggregate()
     {
-        var root = Parse("""
-                         pivot #cities.entities()
-                         on Year, Country in ((2000, 'NL') as y2000_nl)
-                         using Sum(Population) as Total
-                         group by Name
-                         """);
+        var root = Parse(
+            (
+                "pivot #cities.entities()\n"
+                + "on Year, Country in ((2000, 'NL') as y2000_nl)\n"
+                + "using Sum(Population) as Total\n"
+                + "group by Name"
+            )
+        );
 
         var query = GetSingleQuery(root);
 
@@ -110,11 +114,9 @@ public class ParserPivotTests
     [TestMethod]
     public void Pivot_WithNullValue_ShouldLowerToIsNullPredicate()
     {
-        var root = Parse("""
-                         pivot #sales.orders()
-                         on Quarter in (null as Missing)
-                         using Count(*) as Orders
-                         """);
+        var root = Parse(
+            ("pivot #sales.orders()\n" + "on Quarter in (null as Missing)\n" + "using Count(*) as Orders")
+        );
 
         var query = GetSingleQuery(root);
         var measure = AssertAccessMethod(query.Select.Fields[0].Expression);
@@ -126,11 +128,13 @@ public class ParserPivotTests
     [TestMethod]
     public void Pivot_WithExplicitMeasureFilter_ShouldCombineWithPivotPredicate()
     {
-        var root = Parse("""
-                         pivot #sales.orders()
-                         on Quarter in ('Q1' as Q1)
-                         using Sum(Amount) filter (where Amount > 0) as Sales
-                         """);
+        var root = Parse(
+            (
+                "pivot #sales.orders()\n"
+                + "on Quarter in ('Q1' as Q1)\n"
+                + "using Sum(Amount) filter (where Amount > 0) as Sales"
+            )
+        );
 
         var query = GetSingleQuery(root);
         var measure = AssertAccessMethod(query.Select.Fields[0].Expression);
@@ -165,9 +169,7 @@ public class ParserPivotTests
     {
         var statements = (StatementsArrayNode)((RootNode)root).Expression;
         var statementNode = statements.Statements[0].Node;
-        return statementNode is SingleSetNode singleSet
-            ? singleSet.Query
-            : (QueryNode)statementNode;
+        return statementNode is SingleSetNode singleSet ? singleSet.Query : (QueryNode)statementNode;
     }
 
     private static AccessMethodNode AssertAccessMethod(Node node)
@@ -175,5 +177,4 @@ public class ParserPivotTests
         Assert.IsInstanceOfType<AccessMethodNode>(node);
         return (AccessMethodNode)node;
     }
-
 }

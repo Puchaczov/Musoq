@@ -12,15 +12,23 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed class AllocationTraversalTests
 {
     public static IEnumerable<object[]> NodeCases => AllocationTraversalFixtures.NodeCases();
-    public static IEnumerable<object[]> ExpressionCases => AllocationTraversalFixtures.ExpressionCases()
-        .Where(static sample => (Type)sample[0] != typeof(ExecutionSubquery) && (Type)sample[0] != typeof(ExecutionUnionMemberRead));
+    public static IEnumerable<object[]> ExpressionCases =>
+        AllocationTraversalFixtures
+            .ExpressionCases()
+            .Where(static sample =>
+                (Type)sample[0] != typeof(ExecutionSubquery) && (Type)sample[0] != typeof(ExecutionUnionMemberRead)
+            );
 
     [TestMethod]
     public void UnionMemberTraversal_ShouldVisitItsReceiverExactlyOnce()
     {
         var receiver = new ExecutionLiteral(null, typeof(object));
-        var expression = new ExecutionUnionMemberRead(receiver, "Name", ExecutionClrBindingFactory.FromClr(typeof(string)),
-            [new ExecutionUnionMemberCase("Generated.Record", "Name")]);
+        var expression = new ExecutionUnionMemberRead(
+            receiver,
+            "Name",
+            ExecutionClrBindingFactory.FromClr(typeof(string)),
+            [new ExecutionUnionMemberCase("Generated.Record", "Name")]
+        );
         var visitor = new ExpressionCollector([]);
 
         ExecutionIrTraversal.VisitExpressions(expression, ref visitor);
@@ -33,11 +41,21 @@ public sealed class AllocationTraversalTests
     {
         var capture = new ExecutionLiteral(1, typeof(int));
         var operand = new ExecutionLiteral(2, typeof(int));
-        var inner = new ExecutionPlan("inner", [], new ExecutionBlock([
-            new ExecutionLet(new ExecutionVariable("local", typeof(int)), new ExecutionLiteral(3, typeof(int)))
-        ]));
-        var expression = new ExecutionSubquery("inner", SubqueryResultKind.In, inner, [capture], operand,
-            ExecutionClrBindingFactory.FromClr(typeof(bool?)));
+        var inner = new ExecutionPlan(
+            "inner",
+            [],
+            new ExecutionBlock([
+                new ExecutionLet(new ExecutionVariable("local", typeof(int)), new ExecutionLiteral(3, typeof(int))),
+            ])
+        );
+        var expression = new ExecutionSubquery(
+            "inner",
+            SubqueryResultKind.In,
+            inner,
+            [capture],
+            operand,
+            ExecutionClrBindingFactory.FromClr(typeof(bool?))
+        );
         var visitor = new ExpressionCollector([]);
 
         ExecutionIrTraversal.VisitExpressions(expression, ref visitor);
@@ -112,7 +130,12 @@ public sealed class AllocationTraversalTests
     [TestMethod]
     public void EarlyExit_ShouldStopBeforeTheNextChild()
     {
-        var root = new ExecutionBinary(BinaryOpKind.Add, new ExecutionLiteral(1, typeof(int)), new ExecutionLiteral(2, typeof(int)), typeof(int));
+        var root = new ExecutionBinary(
+            BinaryOpKind.Add,
+            new ExecutionLiteral(1, typeof(int)),
+            new ExecutionLiteral(2, typeof(int)),
+            typeof(int)
+        );
         var visitor = new StopVisitor();
 
         var completed = ExecutionIrTraversal.VisitExpressions(root, ref visitor);
@@ -124,7 +147,12 @@ public sealed class AllocationTraversalTests
     public void CancellationFromVisitor_ShouldBeObservedBeforeNextChild()
     {
         using var source = new CancellationTokenSource();
-        var expression = new ExecutionBinary(BinaryOpKind.Add, new ExecutionLiteral(1, typeof(int)), new ExecutionLiteral(2, typeof(int)), typeof(int));
+        var expression = new ExecutionBinary(
+            BinaryOpKind.Add,
+            new ExecutionLiteral(1, typeof(int)),
+            new ExecutionLiteral(2, typeof(int)),
+            typeof(int)
+        );
 
         Assert.ThrowsExactly<OperationCanceledException>(() => TraverseCanceled(expression, source));
     }
@@ -190,10 +218,15 @@ public sealed class AllocationTraversalTests
     public void NodeCancellationFromVisitor_ShouldBeObservedBeforeNextChild()
     {
         using var source = new CancellationTokenSource();
-        var root = new ExecutionIf(new ExecutionLiteral(true, typeof(bool)), new ExecutionBlock([new ExecutionBreak()]));
+        var root = new ExecutionIf(
+            new ExecutionLiteral(true, typeof(bool)),
+            new ExecutionBlock([new ExecutionBreak()])
+        );
         var visitor = new CancelNodeVisitor(source);
 
-        Assert.ThrowsExactly<OperationCanceledException>(() => ExecutionIrTraversal.VisitNode(root, ref visitor, source.Token));
+        Assert.ThrowsExactly<OperationCanceledException>(() =>
+            ExecutionIrTraversal.VisitNode(root, ref visitor, source.Token)
+        );
     }
 
     [TestMethod]
@@ -245,7 +278,9 @@ public sealed class AllocationTraversalTests
         source.Cancel();
         var visitor = new NodeCollector([]);
 
-        Assert.ThrowsExactly<OperationCanceledException>(() => ExecutionIrTraversal.VisitNodes(ExecutionBlock.Empty, ref visitor, source.Token));
+        Assert.ThrowsExactly<OperationCanceledException>(() =>
+            ExecutionIrTraversal.VisitNodes(ExecutionBlock.Empty, ref visitor, source.Token)
+        );
     }
 
     private sealed record UnknownNode : ExecutionNode;
@@ -267,19 +302,29 @@ public sealed class AllocationTraversalTests
         return current;
     }
 
-    private static void AssertReferenceSequence<T>(IReadOnlyList<T> expected, IReadOnlyList<T> actual) where T : class =>
-        Assert.IsTrue(expected.Count == actual.Count && expected.Where((value, index) => !ReferenceEquals(value, actual[index])).Any() == false);
+    private static void AssertReferenceSequence<T>(IReadOnlyList<T> expected, IReadOnlyList<T> actual)
+        where T : class =>
+        Assert.IsTrue(
+            expected.Count == actual.Count
+                && expected.Where((value, index) => !ReferenceEquals(value, actual[index])).Any() == false
+        );
 
-    private static void AssertExpressionSequence(IReadOnlyList<ExecutionExpression> expected,
-        IReadOnlyList<ExecutionExpression> actual) => Assert.IsTrue(expected.Count == actual.Count &&
-        expected.Select((value, index) => SameExpression(value, actual[index])).All(same => same));
+    private static void AssertExpressionSequence(
+        IReadOnlyList<ExecutionExpression> expected,
+        IReadOnlyList<ExecutionExpression> actual
+    ) =>
+        Assert.IsTrue(
+            expected.Count == actual.Count
+                && expected.Select((value, index) => SameExpression(value, actual[index])).All(same => same)
+        );
 
     private static bool SameExpression(ExecutionExpression expected, ExecutionExpression actual) =>
         ReferenceEquals(expected, actual) || EquivalentSynthesizedPagingRead(expected, actual);
 
     private static bool EquivalentSynthesizedPagingRead(ExecutionExpression expected, ExecutionExpression actual) =>
-        expected is ExecutionVariableRead read &&
-        read.Variable.Name.StartsWith("__musoqPaging_", StringComparison.Ordinal) && expected == actual;
+        expected is ExecutionVariableRead read
+        && read.Variable.Name.StartsWith("__musoqPaging_", StringComparison.Ordinal)
+        && expected == actual;
 
     private static List<ExecutionExpression> Collect(ExecutionExpression expression)
     {
@@ -302,28 +347,49 @@ public sealed class AllocationTraversalTests
 
     private readonly record struct NodeCollector(List<ExecutionNode> Values) : IExecutionNodeVisitor
     {
-        public bool Visit(ExecutionNode node) { Values.Add(node); return true; }
+        public bool Visit(ExecutionNode node)
+        {
+            Values.Add(node);
+            return true;
+        }
     }
 
     private readonly record struct ExpressionCollector(List<ExecutionExpression> Values) : IExecutionExpressionVisitor
     {
-        public bool Visit(ExecutionExpression expression) { Values.Add(expression); return true; }
+        public bool Visit(ExecutionExpression expression)
+        {
+            Values.Add(expression);
+            return true;
+        }
     }
 
     private struct StopVisitor : IExecutionExpressionVisitor
     {
         public int Count;
-        public bool Visit(ExecutionExpression expression) { Count++; return false; }
+
+        public bool Visit(ExecutionExpression expression)
+        {
+            Count++;
+            return false;
+        }
     }
 
     private readonly record struct CancelVisitor(CancellationTokenSource Source) : IExecutionExpressionVisitor
     {
-        public bool Visit(ExecutionExpression expression) { Source.Cancel(); return true; }
+        public bool Visit(ExecutionExpression expression)
+        {
+            Source.Cancel();
+            return true;
+        }
     }
 
     private readonly record struct CancelNodeVisitor(CancellationTokenSource Source) : IExecutionNodeVisitor
     {
-        public bool Visit(ExecutionNode node) { Source.Cancel(); return true; }
+        public bool Visit(ExecutionNode node)
+        {
+            Source.Cancel();
+            return true;
+        }
     }
 
     private readonly struct ThrowVisitor : IExecutionExpressionVisitor

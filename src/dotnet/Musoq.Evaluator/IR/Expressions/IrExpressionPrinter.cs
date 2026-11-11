@@ -2,6 +2,7 @@ using System.Linq;
 using System.Text;
 
 namespace Musoq.Evaluator.IR.Expressions;
+
 public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
 {
     public static string Print(IrExpression expression)
@@ -12,9 +13,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
 
     protected override string VisitColumnRef(ColumnRef node)
     {
-        return string.IsNullOrEmpty(node.Alias)
-            ? node.ColumnName
-            : $"{node.Alias}.{node.ColumnName}";
+        return string.IsNullOrEmpty(node.Alias) ? node.ColumnName : $"{node.Alias}.{node.ColumnName}";
     }
 
     protected override string VisitLiteral(Literal node)
@@ -38,6 +37,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
     {
         return $"${node.Name}";
     }
+
     protected override string VisitScriptVariableRef(ScriptVariableRef node)
     {
         return $"${node.Name}";
@@ -63,7 +63,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
         {
             UnaryOpKind.Not => $"NOT {operand}",
             UnaryOpKind.Negate => $"-{operand}",
-            _ => $"?{operand}"
+            _ => $"?{operand}",
         };
     }
 
@@ -90,16 +90,12 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
     protected override string VisitIsNullCheck(IsNullCheck node)
     {
         var expr = Visit(node.Expression);
-        return node.IsNegated
-            ? $"{expr} IS NOT NULL"
-            : $"{expr} IS NULL";
+        return node.IsNegated ? $"{expr} IS NOT NULL" : $"{expr} IS NULL";
     }
 
     protected override string VisitRowPresence(RowPresence node)
     {
-        return node.IsPresent
-            ? $"{node.Alias} IS PRESENT"
-            : $"{node.Alias} IS MISSING";
+        return node.IsPresent ? $"{node.Alias} IS PRESENT" : $"{node.Alias} IS MISSING";
     }
 
     protected override string VisitInCheck(InCheck node)
@@ -210,7 +206,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
             BinaryOpKind.RightShift => ">>",
             BinaryOpKind.SqlStringConcatenate => "||",
             BinaryOpKind.StringConcatenate => "||",
-            _ => "?"
+            _ => "?",
         };
     }
 
@@ -220,6 +216,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
         var indexStr = Visit(node.Index);
         return $"{arrayStr}[{indexStr}]";
     }
+
     protected override string VisitStructuralRecordLiteral(StructuralRecordLiteral node)
     {
         var parts = node.Fields.Select(field => $"{field.Name}: {Visit(field.Value)}");

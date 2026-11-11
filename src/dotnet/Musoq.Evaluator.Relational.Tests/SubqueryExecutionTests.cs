@@ -24,8 +24,13 @@ public sealed class SubqueryExecutionTests
     public void Membership_ShouldStopAtTrueAndDisposeItsInput()
     {
         var rows = new ObservedRows([2, 0]);
-        var result = SubqueryExecution.In(2, rows, static value => value,
-            static (left, right) => left / right == 1, CancellationToken.None);
+        var result = SubqueryExecution.In(
+            2,
+            rows,
+            static value => value,
+            static (left, right) => left / right == 1,
+            CancellationToken.None
+        );
         Assert.AreEqual(true, result);
         Assert.AreEqual(1, rows.Visited);
         Assert.AreEqual(1, rows.Disposals);
@@ -36,7 +41,9 @@ public sealed class SubqueryExecutionTests
     {
         using var cancellation = new CancellationTokenSource();
         var rows = new ObservedRows([1, 2], cancellation.Cancel);
-        Assert.Throws<OperationCanceledException>(() => SubqueryExecution.Scalar<int, int?>(rows, static value => value, cancellation.Token));
+        Assert.Throws<OperationCanceledException>(() =>
+            SubqueryExecution.Scalar<int, int?>(rows, static value => value, cancellation.Token)
+        );
         Assert.AreEqual(1, rows.Disposals);
     }
 
@@ -60,11 +67,17 @@ public sealed class SubqueryExecutionTests
         using var cancellation = new CancellationTokenSource();
         var rows = new ObservedRows([1, 2], cancellation.Cancel);
         Assert.Throws<OperationCanceledException>(() =>
-            RunQuantifier(quantifier, rows, static (left, right) => left > right, cancellation.Token));
+            RunQuantifier(quantifier, rows, static (left, right) => left > right, cancellation.Token)
+        );
         Assert.AreEqual(1, rows.Disposals);
     }
 
-    private static bool? RunQuantifier(string quantifier, ObservedRows rows, Func<int, int, bool?> compare, CancellationToken token)
+    private static bool? RunQuantifier(
+        string quantifier,
+        ObservedRows rows,
+        Func<int, int, bool?> compare,
+        CancellationToken token
+    )
     {
         if (quantifier == "ALL")
             return SubqueryExecution.All(2, rows, static value => value, compare, token);
@@ -75,6 +88,7 @@ public sealed class SubqueryExecutionTests
     {
         internal int Visited { get; private set; }
         internal int Disposals { get; private set; }
+
         public IEnumerator<int> GetEnumerator()
         {
             try
@@ -91,6 +105,7 @@ public sealed class SubqueryExecutionTests
                 Disposals++;
             }
         }
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

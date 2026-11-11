@@ -8,7 +8,8 @@ public sealed record ExecutionParallelBlock : ExecutionNode
         string name,
         int maxDegreeOfParallelism,
         IReadOnlyList<ExecutionParallelTask> tasks,
-        ExecutionParallelMerge merge)
+        ExecutionParallelMerge merge
+    )
     {
         Name = name;
         MaxDegreeOfParallelism = maxDegreeOfParallelism;

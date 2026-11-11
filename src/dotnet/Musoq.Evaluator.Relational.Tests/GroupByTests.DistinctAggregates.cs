@@ -13,29 +13,24 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { City = "NYC", Name = "John" },
                     new BasicEntity { City = "NYC", Name = "John" },
                     new BasicEntity { City = "NYC", Name = "Jane" },
                     new BasicEntity { City = "LA", Name = "Bob" },
                     new BasicEntity { City = "LA", Name = "Bob" },
                     new BasicEntity { City = "LA", Name = "Alice" },
-                    new BasicEntity { City = "LA", Name = "Carol" }
+                    new BasicEntity { City = "LA", Name = "Carol" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Count(Name)", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["NYC", 2L],
-            ["LA", 3L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["NYC", 2L], ["LA", 3L]);
     }
 
     [TestMethod]
@@ -45,15 +40,16 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "John" },
                     new BasicEntity { Name = "John" },
                     new BasicEntity { Name = "Jane" },
                     new BasicEntity { Name = "Bob" },
                     new BasicEntity { Name = "Bob" },
-                    new BasicEntity { Name = "Bob" }
+                    new BasicEntity { Name = "Bob" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -70,14 +66,15 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "John" },
                     new BasicEntity { Name = null },
                     new BasicEntity { Name = "Jane" },
                     new BasicEntity { Name = null },
-                    new BasicEntity { Name = "John" }
+                    new BasicEntity { Name = "John" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -94,14 +91,15 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Population = 100 },
                     new BasicEntity { Population = 100 },
                     new BasicEntity { Population = 200 },
                     new BasicEntity { Population = 300 },
-                    new BasicEntity { Population = 200 }
+                    new BasicEntity { Population = 200 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -118,13 +116,14 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "Same" },
                     new BasicEntity { Name = "Same" },
                     new BasicEntity { Name = "Same" },
-                    new BasicEntity { Name = "Same" }
+                    new BasicEntity { Name = "Same" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -141,13 +140,14 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "A" },
                     new BasicEntity { Name = "B" },
                     new BasicEntity { Name = "C" },
-                    new BasicEntity { Name = "D" }
+                    new BasicEntity { Name = "D" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -164,14 +164,15 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 200m },
                     new BasicEntity { Population = 300m },
-                    new BasicEntity { Population = 200m }
+                    new BasicEntity { Population = 200m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -188,14 +189,15 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "A", Population = 100m },
                     new BasicEntity { Name = "A", Population = 100m },
                     new BasicEntity { Name = "A", Population = 200m },
                     new BasicEntity { Name = "B", Population = 50m },
-                    new BasicEntity { Name = "B", Population = 50m }
+                    new BasicEntity { Name = "B", Population = 50m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -204,11 +206,9 @@ public partial class GroupByTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
-            ("Sum(Population)", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["A", 300m],
-            ["B", 50m]);
+            ("Sum(Population)", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A", 300m], ["B", 50m]);
     }
 
     [TestMethod]
@@ -218,13 +218,14 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 200m },
-                    new BasicEntity { Population = 300m }
+                    new BasicEntity { Population = 300m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -241,13 +242,14 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Population = 500m },
                     new BasicEntity { Population = 500m },
                     new BasicEntity { Population = 100m },
-                    new BasicEntity { Population = 300m }
+                    new BasicEntity { Population = 300m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -264,13 +266,14 @@ public partial class GroupByTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 500m },
-                    new BasicEntity { Population = 300m }
+                    new BasicEntity { Population = 300m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

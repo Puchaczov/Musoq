@@ -8,18 +8,16 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private sealed record KeyLocalRendering(
-        ExecutionValueTupleKey? ValueTupleKey,
-        bool HasNullableValueTupleParts);
+    private sealed record KeyLocalRendering(ExecutionValueTupleKey? ValueTupleKey, bool HasNullableValueTupleParts);
 
     private void AddKeyBuildLocal(
         List<StatementSyntax> statements,
         ExecutionExpression key,
         Type keyType,
-        string keyVariableName)
+        string keyVariableName
+    )
     {
-        if (key is ExecutionValueTupleKey valueTupleKey &&
-            HasNullableValueTuplePart(valueTupleKey))
+        if (key is ExecutionValueTupleKey valueTupleKey && HasNullableValueTuplePart(valueTupleKey))
         {
             statements.AddRange(CreateValueTupleKeyPartDeclarations(valueTupleKey));
             statements.Add(CreateContinueIfAnyValueTuplePartNull(valueTupleKey));
@@ -27,10 +25,7 @@ public sealed partial class ExecutionCSharpRenderer
             return;
         }
 
-        statements.Add(CreateLocalDeclaration(
-            CreateHashKeyLocalType(keyType),
-            keyVariableName,
-            RenderExpression(key)));
+        statements.Add(CreateLocalDeclaration(CreateHashKeyLocalType(keyType), keyVariableName, RenderExpression(key)));
 
         if (CanBeNull(keyType))
             statements.Add(CreateContinueIfNull(keyVariableName));
@@ -40,7 +35,8 @@ public sealed partial class ExecutionCSharpRenderer
         List<StatementSyntax> statements,
         ExecutionExpression key,
         Type keyType,
-        string keyVariableName)
+        string keyVariableName
+    )
     {
         var valueTupleKey = key as ExecutionValueTupleKey;
         var hasNullableValueTupleParts = valueTupleKey != null && HasNullableValueTuplePart(valueTupleKey);
@@ -52,10 +48,7 @@ public sealed partial class ExecutionCSharpRenderer
             return new KeyLocalRendering(valueTupleKey, hasNullableValueTupleParts);
         }
 
-        statements.Add(CreateLocalDeclaration(
-            CreateHashKeyLocalType(keyType),
-            keyVariableName,
-            RenderExpression(key)));
+        statements.Add(CreateLocalDeclaration(CreateHashKeyLocalType(keyType), keyVariableName, RenderExpression(key)));
         return new KeyLocalRendering(valueTupleKey, hasNullableValueTupleParts);
     }
 
@@ -63,14 +56,16 @@ public sealed partial class ExecutionCSharpRenderer
         KeyLocalRendering keyLocal,
         Type keyType,
         string keyVariableName,
-        ExpressionSyntax lookupExpression)
+        ExpressionSyntax lookupExpression
+    )
     {
         if (keyLocal is { HasNullableValueTupleParts: true, ValueTupleKey: { } valueTupleKey })
         {
             return SyntaxFactory.BinaryExpression(
                 SyntaxKind.LogicalAndExpression,
                 CreateAllValueTuplePartsNotNullCondition(valueTupleKey),
-                lookupExpression);
+                lookupExpression
+            );
         }
 
         if (CanBeNull(keyType))
@@ -80,8 +75,10 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.NotEqualsExpression,
                     SyntaxFactory.IdentifierName(keyVariableName),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                lookupExpression);
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                ),
+                lookupExpression
+            );
         }
 
         return lookupExpression;
@@ -99,7 +96,8 @@ public sealed partial class ExecutionCSharpRenderer
             yield return CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 CreateValueTupleKeyPartVariableName(index),
-                RenderExpression(valueTupleKey.Parts[index]));
+                RenderExpression(valueTupleKey.Parts[index])
+            );
         }
     }
 
@@ -107,30 +105,30 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return SyntaxFactory.IfStatement(
             CreateAnyValueTuplePartNullCondition(valueTupleKey),
-            SyntaxFactory.ContinueStatement());
+            SyntaxFactory.ContinueStatement()
+        );
     }
 
     private static ExpressionSyntax CreateAnyValueTuplePartNullCondition(ExecutionValueTupleKey valueTupleKey)
     {
         return CreateValueTuplePartNullConditions(valueTupleKey, isNullCheck: true)
-            .Aggregate(static (left, right) => SyntaxFactory.BinaryExpression(
-                SyntaxKind.LogicalOrExpression,
-                left,
-                right));
+            .Aggregate(
+                static (left, right) => SyntaxFactory.BinaryExpression(SyntaxKind.LogicalOrExpression, left, right)
+            );
     }
 
     private static ExpressionSyntax CreateAllValueTuplePartsNotNullCondition(ExecutionValueTupleKey valueTupleKey)
     {
         return CreateValueTuplePartNullConditions(valueTupleKey, isNullCheck: false)
-            .Aggregate(static (left, right) => SyntaxFactory.BinaryExpression(
-                SyntaxKind.LogicalAndExpression,
-                left,
-                right));
+            .Aggregate(
+                static (left, right) => SyntaxFactory.BinaryExpression(SyntaxKind.LogicalAndExpression, left, right)
+            );
     }
 
     private static IEnumerable<ExpressionSyntax> CreateValueTuplePartNullConditions(
         ExecutionValueTupleKey valueTupleKey,
-        bool isNullCheck)
+        bool isNullCheck
+    )
     {
         for (var index = 0; index < valueTupleKey.Parts.Count; index++)
         {
@@ -140,21 +138,31 @@ public sealed partial class ExecutionCSharpRenderer
             yield return SyntaxFactory.BinaryExpression(
                 isNullCheck ? SyntaxKind.EqualsExpression : SyntaxKind.NotEqualsExpression,
                 SyntaxFactory.IdentifierName(CreateValueTupleKeyPartVariableName(index)),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+            );
         }
     }
 
     private static LocalDeclarationStatementSyntax CreateValueTupleKeyLocalDeclaration(
         ExecutionValueTupleKey valueTupleKey,
-        string keyVariableName)
+        string keyVariableName
+    )
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             keyVariableName,
-            SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(
-                Enumerable.Range(0, valueTupleKey.Parts.Count)
-                    .Select(index => SyntaxFactory.Argument(
-                        SyntaxFactory.IdentifierName(CreateValueTupleKeyPartVariableName(index)))))));
+            SyntaxFactory.TupleExpression(
+                SyntaxFactory.SeparatedList(
+                    Enumerable
+                        .Range(0, valueTupleKey.Parts.Count)
+                        .Select(index =>
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName(CreateValueTupleKeyPartVariableName(index))
+                            )
+                        )
+                )
+            )
+        );
     }
 
     private static string CreateValueTupleKeyPartVariableName(int index)
@@ -164,9 +172,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static TypeSyntax CreateHashKeyLocalType(Type keyType)
     {
-        return IsValueTupleType(keyType)
-            ? SyntaxFactory.IdentifierName("var")
-            : CreateTypeSyntax(keyType);
+        return IsValueTupleType(keyType) ? SyntaxFactory.IdentifierName("var") : CreateTypeSyntax(keyType);
     }
 
     private static bool IsValueTupleType(Type type)

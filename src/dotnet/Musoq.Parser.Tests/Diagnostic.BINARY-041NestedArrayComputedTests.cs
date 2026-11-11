@@ -15,15 +15,15 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : SchemaParserTe
     public void BinaryDeclaration_NestedArraysConditionsAndComputedFields_ShouldPreserveAst()
     {
         const string schema =
-            "binary Packet {" +
-            " Count: byte," +
-            " Child: Inner," +
-            " Items: Inner[Count]," +
-            " Values: int le[Count]," +
-            " Names: string[2] ascii[Count]," +
-            " Present: byte when Count <> 0," +
-            " Total: Count + 1" +
-            "}";
+            "binary Packet {"
+            + " Count: byte,"
+            + " Child: Inner,"
+            + " Items: Inner[Count],"
+            + " Values: int le[Count],"
+            + " Names: string[2] ascii[Count],"
+            + " Present: byte when Count <> 0,"
+            + " Total: Count + 1"
+            + "}";
 
         var result = ParseBinarySchema(schema);
 
@@ -55,14 +55,14 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : SchemaParserTe
     public void BinaryDeclaration_ComputedDisambiguation_ShouldKeepKnownSchemaAndTypeFormsParsed()
     {
         const string schema =
-            "binary Packet {" +
-            " Count: byte," +
-            " Typed: int le," +
-            " Buffer: byte[2]," +
-            " Nested: KnownSchema," +
-            " Parenthesized: (Count)," +
-            " Flag: (Count & 1) <> 0" +
-            "}";
+            "binary Packet {"
+            + " Count: byte,"
+            + " Typed: int le,"
+            + " Buffer: byte[2],"
+            + " Nested: KnownSchema,"
+            + " Parenthesized: (Count),"
+            + " Flag: (Count & 1) <> 0"
+            + "}";
 
         var result = ParseBinarySchema(schema);
 
@@ -82,7 +82,8 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : SchemaParserTe
             schema,
             DiagnosticCode.MQ4001_InvalidBinarySchemaField,
             SpanOf(schema, "-1"),
-            () => ParseBinarySchema(schema));
+            () => ParseBinarySchema(schema)
+        );
     }
 
     [TestMethod]
@@ -94,7 +95,8 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : SchemaParserTe
             schema,
             DiagnosticCode.MQ4001_InvalidBinarySchemaField,
             SpanOf(schema, "-1"),
-            () => ParseBinarySchema(schema));
+            () => ParseBinarySchema(schema)
+        );
     }
 
     private static FieldDefinitionNode Field(BinarySchemaNode schema, string name)
@@ -118,7 +120,8 @@ public sealed class DiagnosticBinary041NestedArrayComputedTests : SchemaParserTe
         string schema,
         DiagnosticCode expectedCode,
         TextSpan expectedSpan,
-        Action parse)
+        Action parse
+    )
     {
         var exception = Assert.ThrowsExactly<SyntaxException>(parse);
 

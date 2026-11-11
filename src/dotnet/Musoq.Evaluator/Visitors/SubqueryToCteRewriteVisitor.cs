@@ -3,6 +3,7 @@ using Musoq.Evaluator.IR.Optimization.Logical.Subqueries;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
+
 public partial class SubqueryToCteRewriteVisitor : CloneQueryVisitor
 {
     private readonly List<CorrelatedSubqueryRewriteRequest> _rewriteRequests = [];

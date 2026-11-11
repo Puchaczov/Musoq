@@ -5,10 +5,9 @@ public readonly record struct QueryMethodRenderMetadata(
     QueryResultRowPathKind RowPathKind,
     bool RequiresComputeTableMethod,
     FinalProjectionSinkRejectionKind FinalSinkRejectionKind = FinalProjectionSinkRejectionKind.None,
-    string? FinalSinkRejectionReason = null)
+    string? FinalSinkRejectionReason = null
+)
 {
-    public static QueryMethodRenderMetadata Unknown { get; } = new(
-        FinalResultSinkKind.TableDirect,
-        QueryResultRowPathKind.Unknown,
-        false);
+    public static QueryMethodRenderMetadata Unknown { get; } =
+        new(FinalResultSinkKind.TableDirect, QueryResultRowPathKind.Unknown, false);
 }

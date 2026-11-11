@@ -42,21 +42,41 @@ public sealed partial class ScriptVariableDiagnosticTests
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
             InstanceCreator.CompileForExecution(
-                query, Guid.NewGuid().ToString(), new NativeTableCarrierSchemaProvider(),
-                LoggerResolver, new CompilationOptions(usePrimitiveTypeValidation: false), TestContext.CancellationToken));
+                query,
+                Guid.NewGuid().ToString(),
+                new NativeTableCarrierSchemaProvider(),
+                LoggerResolver,
+                new CompilationOptions(usePrimitiveTypeValidation: false),
+                TestContext.CancellationToken
+            )
+        );
 
-        AssertSingleError(exception, DiagnosticCode.MQ3060_UnsupportedScriptParameterType, DiagnosticPhase.Bind,
-            "not a supported Core scalar type");
+        AssertSingleError(
+            exception,
+            DiagnosticCode.MQ3060_UnsupportedScriptParameterType,
+            DiagnosticPhase.Bind,
+            "not a supported Core scalar type"
+        );
     }
 
     private void AssertUnsupportedStructuralVariableType(string query)
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
             InstanceCreator.CompileForExecution(
-                query, Guid.NewGuid().ToString(), new NativeTableCarrierSchemaProvider(),
-                LoggerResolver, new CompilationOptions(usePrimitiveTypeValidation: false), TestContext.CancellationToken));
+                query,
+                Guid.NewGuid().ToString(),
+                new NativeTableCarrierSchemaProvider(),
+                LoggerResolver,
+                new CompilationOptions(usePrimitiveTypeValidation: false),
+                TestContext.CancellationToken
+            )
+        );
 
-        AssertSingleError(exception, DiagnosticCode.MQ3064_UnsupportedScriptVariableType, DiagnosticPhase.Bind,
-            "is not supported");
+        AssertSingleError(
+            exception,
+            DiagnosticCode.MQ3064_UnsupportedScriptVariableType,
+            DiagnosticPhase.Bind,
+            "is not supported"
+        );
     }
 }

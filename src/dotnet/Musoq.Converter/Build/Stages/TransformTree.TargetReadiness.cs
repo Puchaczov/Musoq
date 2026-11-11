@@ -6,13 +6,15 @@ public partial class TransformTree
 {
     private static ExecutionTargetReadinessReport? CreateReadinessReport(
         TransformPipelineContext context,
-        TargetRenderRequest request)
+        TargetRenderRequest request
+    )
     {
         return context.CompilationPurpose == CompilationPurpose.PortableArtifactPackaging
             ? ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(
                 request.CompatibilityReport,
                 request.RuntimeContract,
-                request.SemanticsContract)
+                request.SemanticsContract
+            )
             : null;
     }
 }

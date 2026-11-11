@@ -13,12 +13,22 @@ public sealed class ExecutionPlanTextApplyAndSourceTests
     {
         var buildItems = _buildHarness.BuildForThreeSources(
             "select b.Value from #schema.first() a cross apply a.JustReturnArrayOfString() b",
-            [new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1 { City = "City1", Country = "Country1", Population = 100 }],
+            [
+                new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1
+                {
+                    City = "City1",
+                    Country = "Country1",
+                    Population = 100,
+                },
+            ],
             Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2>(),
-            Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass3>());
+            Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass3>()
+        );
 
         Assert.Contains("ExecutionPlan [compiled]", buildItems.RequireExecutionPlanText());
-        Assert.IsFalse(buildItems.RequireExecutionPlanText().Contains("ExecutionPlanUnsupported", StringComparison.Ordinal));
+        Assert.IsFalse(
+            buildItems.RequireExecutionPlanText().Contains("ExecutionPlanUnsupported", StringComparison.Ordinal)
+        );
         Assert.Contains("EnumerableSource [JustReturnArrayOfString() ->", buildItems.RequireExecutionPlanText());
         Assert.Contains("ForEach [b in", buildItems.RequireExecutionPlanText());
     }
@@ -28,12 +38,22 @@ public sealed class ExecutionPlanTextApplyAndSourceTests
     {
         var buildItems = _buildHarness.BuildForThreeSources(
             "select b.Value from #schema.first() a outer apply a.JustReturnArrayOfString() b",
-            [new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1 { City = "City1", Country = "Country1", Population = 100 }],
+            [
+                new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1
+                {
+                    City = "City1",
+                    Country = "Country1",
+                    Population = 100,
+                },
+            ],
             Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2>(),
-            Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass3>());
+            Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass3>()
+        );
 
         Assert.Contains("ExecutionPlan [compiled]", buildItems.RequireExecutionPlanText());
-        Assert.IsFalse(buildItems.RequireExecutionPlanText().Contains("ExecutionPlanUnsupported", StringComparison.Ordinal));
+        Assert.IsFalse(
+            buildItems.RequireExecutionPlanText().Contains("ExecutionPlanUnsupported", StringComparison.Ordinal)
+        );
         Assert.Contains("EnumerableSource [JustReturnArrayOfString() ->", buildItems.RequireExecutionPlanText());
         Assert.Contains("Assign [bHasMatch = TRUE]", buildItems.RequireExecutionPlanText());
         Assert.Contains("If [NOT bHasMatch]", buildItems.RequireExecutionPlanText());

@@ -3,9 +3,7 @@ namespace Musoq.Parser.Nodes;
 public class BooleanNode : ConstantValueNode
 {
     public BooleanNode(bool value)
-        : this(value, default)
-    {
-    }
+        : this(value, default) { }
 
     public BooleanNode(bool value, TextSpan span)
     {

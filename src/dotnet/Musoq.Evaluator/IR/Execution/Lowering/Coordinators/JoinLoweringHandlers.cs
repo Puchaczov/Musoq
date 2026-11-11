@@ -17,7 +17,8 @@ internal interface IJoinLoweringService
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope);
+        LoweringScope scope
+    );
 
     LoweringAttempt<LoweredTable> BuildHashJoinTable(
         PhysicalHashJoinNode join,
@@ -27,7 +28,8 @@ internal interface IJoinLoweringService
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope);
+        LoweringScope scope
+    );
 
     LoweringAttempt<LoweredTable> BuildSortMergeJoinTable(
         PhysicalSortMergeJoinNode join,
@@ -37,9 +39,8 @@ internal interface IJoinLoweringService
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope);
+        LoweringScope scope
+    );
 }
 
-internal interface IJoinLoweringOperations : IJoinLoweringService
-{
-}
+internal interface IJoinLoweringOperations : IJoinLoweringService { }

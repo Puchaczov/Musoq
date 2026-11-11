@@ -2,7 +2,8 @@ namespace Musoq.Parser.Nodes;
 
 public class BitwiseOrNode : BinaryNode
 {
-    public BitwiseOrNode(Node left, Node right) : base(left, right)
+    public BitwiseOrNode(Node left, Node right)
+        : base(left, right)
     {
         Id = CalculateId(this);
     }

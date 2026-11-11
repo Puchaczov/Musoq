@@ -18,4 +18,5 @@ internal sealed record SourceInteractionPlan(
     string ColumnReason,
     string PredicateReason,
     string SourcePlanRequestReason,
-    string ArgumentReason);
+    string ArgumentReason
+);

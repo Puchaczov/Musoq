@@ -14,8 +14,11 @@ internal sealed class ExpressionLayout
     private readonly CaseLayout _cases;
     private readonly WindowLayout _windows;
 
-    internal ExpressionLayout(LayoutContext context, Func<IReadOnlyList<LayoutElement>, Document> query,
-        Func<IReadOnlyList<LayoutElement>, Document> clause)
+    internal ExpressionLayout(
+        LayoutContext context,
+        Func<IReadOnlyList<LayoutElement>, Document> query,
+        Func<IReadOnlyList<LayoutElement>, Document> clause
+    )
     {
         _context = context;
         _query = query;
@@ -36,8 +39,12 @@ internal sealed class ExpressionLayout
         {
             var element = elements[index];
             var type = element.Token.TokenType;
-            var logicalBreak = element.IsKeyword && type is TokenType.And or TokenType.Or &&
-                               mode != ExpressionMode.WindowFrame && !between && _context.Syntax.Contains(SyntaxKind.Predicate, element.Token.Span.Start);
+            var logicalBreak =
+                element.IsKeyword
+                && type is TokenType.And or TokenType.Or
+                && mode != ExpressionMode.WindowFrame
+                && !between
+                && _context.Syntax.Contains(SyntaxKind.Predicate, element.Token.Span.Start);
             if (logicalBreak)
                 parts.Add(Document.Line);
             else if (SourceSpacing.NeedsSpace(previous, element, previousWasUnary))
@@ -55,7 +62,11 @@ internal sealed class ExpressionLayout
         return Document.Join(parts);
     }
 
-    private (Document Content, int LastIndex) SequencePart(IReadOnlyList<LayoutElement> elements, int index, LayoutElement? previous)
+    private (Document Content, int LastIndex) SequencePart(
+        IReadOnlyList<LayoutElement> elements,
+        int index,
+        LayoutElement? previous
+    )
     {
         var element = elements[index];
         if (element.Token.Role == SyntaxTokenRole.Comment)
@@ -79,18 +90,37 @@ internal sealed class ExpressionLayout
         if (element.Children.Count == 0)
             return Document.Concat(opening, closing);
         if (_context.Syntax.IsQueryGroup(element))
-            return Document.Concat(opening, Document.Indent(Document.Concat(Document.Line, _query(element.Children))), Document.Line, closing);
+            return Document.Concat(
+                opening,
+                Document.Indent(Document.Concat(Document.Line, _query(element.Children))),
+                Document.Line,
+                closing
+            );
         if (_context.Syntax.IsWindowStart(element.Start))
             return _windows.Build(element);
-        var schema = element.Token.TokenType == TokenType.LBracket && _context.Syntax.IsSchemaBody(element.Token.Span.Start);
+        var schema =
+            element.Token.TokenType == TokenType.LBracket && _context.Syntax.IsSchemaBody(element.Token.Span.Start);
         if (schema)
-            return Document.Concat(opening, Document.Indent(Document.Concat(Document.Line, Lists.Build(element.Children, Document.Line))), Document.Line, closing);
+            return Document.Concat(
+                opening,
+                Document.Indent(Document.Concat(Document.Line, Lists.Build(element.Children, Document.Line))),
+                Document.Line,
+                closing
+            );
         var padding = element.Token.TokenType == TokenType.LBracket ? " " : "";
-        return Document.Group(Document.Concat(opening,
-            Document.Indent(Document.Concat(Document.Break(padding), Lists.Build(element.Children))),
-            Document.Break(padding), closing));
+        return Document.Group(
+            Document.Concat(
+                opening,
+                Document.Indent(Document.Concat(Document.Break(padding), Lists.Build(element.Children))),
+                Document.Break(padding),
+                closing
+            )
+        );
     }
-
 }
 
-internal enum ExpressionMode { Expression, WindowFrame }
+internal enum ExpressionMode
+{
+    Expression,
+    WindowFrame,
+}

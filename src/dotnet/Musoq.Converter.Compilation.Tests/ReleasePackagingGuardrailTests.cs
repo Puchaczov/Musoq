@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Converter.Tests;
@@ -36,20 +37,20 @@ public sealed class ReleasePackagingGuardrailTests
     [TestMethod]
     public void ConverterPackage_ShouldBundleOnlyItsInternalTargetAssemblies()
     {
-        var converterProject = File.ReadAllText(Path.Combine(
-            RepositoryRoot,
-            "src",
-            "dotnet",
-            "Musoq.Converter",
-            "Musoq.Converter.csproj"));
+        var converterProject = File.ReadAllText(
+            Path.Combine(RepositoryRoot, "src", "dotnet", "Musoq.Converter", "Musoq.Converter.csproj")
+        );
 
         foreach (var targetProject in InternalTargetProjects)
         {
-            StringAssert.Contains(converterProject, $"..\\{targetProject}\\{targetProject}.csproj\" PrivateAssets=\"All\"");
+            AssertPrivateProjectReference(converterProject, targetProject);
             StringAssert.Contains(converterProject, targetProject);
         }
 
-        StringAssert.Contains(converterProject, "<Import Project=\"..\\..\\..\\scripts\\release\\BundledTargets.targets\"");
+        StringAssert.Contains(
+            converterProject,
+            "<Import Project=\"..\\..\\..\\scripts\\release\\BundledTargets.targets\""
+        );
         foreach (var targetProject in InternalTargetProjects)
             StringAssert.Contains(converterProject, $"<BundledTargetAssemblyName Include=\"{targetProject}\"");
         StringAssert.Contains(converterProject, "Microsoft.CodeAnalysis.CSharp");
@@ -59,15 +60,15 @@ public sealed class ReleasePackagingGuardrailTests
     [TestMethod]
     public void EvaluatorPackage_ShouldBundleTargetAbstractionsForStandaloneEvaluatorConsumers()
     {
-        var evaluatorProject = File.ReadAllText(Path.Combine(
-            RepositoryRoot,
-            "src",
-            "dotnet",
-            "Musoq.Evaluator",
-            "Musoq.Evaluator.csproj"));
+        var evaluatorProject = File.ReadAllText(
+            Path.Combine(RepositoryRoot, "src", "dotnet", "Musoq.Evaluator", "Musoq.Evaluator.csproj")
+        );
 
-        StringAssert.Contains(evaluatorProject, "..\\Musoq.Targets.Abstractions\\Musoq.Targets.Abstractions.csproj\" PrivateAssets=\"All\"");
-        StringAssert.Contains(evaluatorProject, "<Import Project=\"..\\..\\..\\scripts\\release\\BundledTargets.targets\"");
+        AssertPrivateProjectReference(evaluatorProject, "Musoq.Targets.Abstractions");
+        StringAssert.Contains(
+            evaluatorProject,
+            "<Import Project=\"..\\..\\..\\scripts\\release\\BundledTargets.targets\""
+        );
         StringAssert.Contains(evaluatorProject, "<BundledTargetAssemblyName Include=\"Musoq.Targets.Abstractions\"");
         Assert.IsFalse(evaluatorProject.Contains("Musoq.Targets.TestPortable", StringComparison.Ordinal));
     }
@@ -77,23 +78,17 @@ public sealed class ReleasePackagingGuardrailTests
     {
         var registryPath = Path.Combine(RepositoryRoot, "scripts", "release", "packages.json");
         using var document = JsonDocument.Parse(File.ReadAllText(registryPath));
-        var packageIds = document.RootElement
-            .GetProperty("packages")
+        var packageIds = document
+            .RootElement.GetProperty("packages")
             .EnumerateArray()
             .Select(static package => package.GetProperty("packageId").GetString())
             .OrderBy(static packageId => packageId, StringComparer.Ordinal)
             .ToArray();
 
         CollectionAssert.AreEqual(
-            new[]
-            {
-                "Musoq.Converter",
-                "Musoq.Evaluator",
-                "Musoq.Parser",
-                "Musoq.Plugins",
-                "Musoq.Schema"
-            },
-            packageIds);
+            new[] { "Musoq.Converter", "Musoq.Evaluator", "Musoq.Parser", "Musoq.Plugins", "Musoq.Schema" },
+            packageIds
+        );
     }
 
     [TestMethod]
@@ -106,16 +101,18 @@ public sealed class ReleasePackagingGuardrailTests
             RedirectStandardError = true,
             RedirectStandardOutput = true,
             UseShellExecute = false,
-            CreateNoWindow = true
+            CreateNoWindow = true,
         };
         startInfo.ArgumentList.Add("-NoProfile");
         startInfo.ArgumentList.Add("-NonInteractive");
         startInfo.ArgumentList.Add("-Command");
         var escapedScriptPath = scriptPath.Replace("'", "''", StringComparison.Ordinal);
         startInfo.ArgumentList.Add(
-            $"& '{escapedScriptPath}'; if (Test-Path variable:LASTEXITCODE) {{ exit $LASTEXITCODE }}");
+            $"& '{escapedScriptPath}'; if (Test-Path variable:LASTEXITCODE) {{ exit $LASTEXITCODE }}"
+        );
 
-        using var process = Process.Start(startInfo)
+        using var process =
+            Process.Start(startInfo)
             ?? throw new InvalidOperationException("Could not start PowerShell release-script tests.");
 
         var standardOutputTask = process.StandardOutput.ReadToEndAsync();
@@ -133,16 +130,15 @@ public sealed class ReleasePackagingGuardrailTests
                 if (!process.HasExited)
                     process.Kill(entireProcessTree: true);
             }
-            catch (InvalidOperationException)
-            {
-            }
+            catch (InvalidOperationException) { }
 
             await exitTask.WaitAsync(TestSynchronization.DeadlockTimeout);
             var timedOutOutput = await standardOutputTask.WaitAsync(TestSynchronization.DeadlockTimeout);
             var timedOutError = await standardErrorTask.WaitAsync(TestSynchronization.DeadlockTimeout);
             throw new AssertFailedException(
-                $"Release-script tests did not exit within {TestSynchronization.DeadlockTimeout}." +
-                $"{Environment.NewLine}{timedOutOutput}{Environment.NewLine}{timedOutError}");
+                $"Release-script tests did not exit within {TestSynchronization.DeadlockTimeout}."
+                    + $"{Environment.NewLine}{timedOutOutput}{Environment.NewLine}{timedOutError}"
+            );
         }
 
         var output = await Task.WhenAll(standardOutputTask, standardErrorTask)
@@ -151,32 +147,27 @@ public sealed class ReleasePackagingGuardrailTests
         Assert.AreEqual(
             0,
             process.ExitCode,
-            $"Release-script tests failed.{Environment.NewLine}{output[0]}{Environment.NewLine}{output[1]}");
+            $"Release-script tests failed.{Environment.NewLine}{output[0]}{Environment.NewLine}{output[1]}"
+        );
     }
 
     [TestMethod]
     public void ReleaseWorkflows_ShouldQualifyBranchPushesWithoutTagTriggeredCi()
     {
-        var ciWorkflow = File.ReadAllText(Path.Combine(
-            RepositoryRoot,
-            ".github",
-            "workflows",
-            "ci.yml"));
-        var publishWorkflow = File.ReadAllText(Path.Combine(
-            RepositoryRoot,
-            ".github",
-            "workflows",
-            "publish.yml"));
+        var ciWorkflow = File.ReadAllText(Path.Combine(RepositoryRoot, ".github", "workflows", "ci.yml"));
+        var publishWorkflow = File.ReadAllText(Path.Combine(RepositoryRoot, ".github", "workflows", "publish.yml"));
 
         StringAssert.Contains(ciWorkflow, "- 'release/**'");
         StringAssert.Contains(ciWorkflow, "- master");
         StringAssert.Contains(ciWorkflow, "pull_request:");
         Assert.IsFalse(
             ciWorkflow.Contains("\n    tags:", StringComparison.Ordinal),
-            "Release tags must reuse branch CI qualification instead of starting another validation matrix.");
+            "Release tags must reuse branch CI qualification instead of starting another validation matrix."
+        );
         Assert.IsFalse(
             ciWorkflow.Contains("- '**'", StringComparison.Ordinal),
-            "CI must not run the full validation matrix on every arbitrary branch push.");
+            "CI must not run the full validation matrix on every arbitrary branch push."
+        );
 
         StringAssert.Contains(publishWorkflow, "- 'v*.*.*'");
         StringAssert.Contains(publishWorkflow, "- '*/v*.*.*'");
@@ -187,7 +178,18 @@ public sealed class ReleasePackagingGuardrailTests
         StringAssert.Contains(publishWorkflow, "AddMinutes(90)");
         Assert.IsFalse(
             publishWorkflow.Contains("$attempt -le 3", StringComparison.Ordinal),
-            "Publish must retain its qualification wait window instead of using the old short retry window.");
+            "Publish must retain its qualification wait window instead of using the old short retry window."
+        );
+    }
+
+    private static void AssertPrivateProjectReference(string projectXml, string targetProject)
+    {
+        var reference = XDocument
+            .Parse(projectXml)
+            .Descendants("ProjectReference")
+            .Single(element => (string?)element.Attribute("Include") == $"..\\{targetProject}\\{targetProject}.csproj");
+
+        Assert.AreEqual("All", (string?)reference.Attribute("PrivateAssets"));
     }
 
     private static string[] InternalTargetProjects { get; } =
@@ -195,7 +197,7 @@ public sealed class ReleasePackagingGuardrailTests
         "Musoq.Targets.Abstractions",
         "Musoq.Targets.Execution",
         "Musoq.Targets.Execution.Analysis",
-        "Musoq.Targets.CSharpClr"
+        "Musoq.Targets.CSharpClr",
     ];
 
     private static string[] NonReleaseProjectPaths { get; } =
@@ -204,7 +206,7 @@ public sealed class ReleasePackagingGuardrailTests
         Path.Combine("src", "dotnet", "Musoq.Playground", "Musoq.Playground.csproj"),
         Path.Combine("src", "dotnet", "Musoq.Benchmarks", "Musoq.Benchmarks.csproj"),
         Path.Combine("src", "dotnet", "examples", "data-sources", "csv", "Musoq.Examples.DataSources.Csv.csproj"),
-        Path.Combine("src", "dotnet", "examples", "data-sources", "git", "Musoq.Examples.DataSources.Git.csproj")
+        Path.Combine("src", "dotnet", "examples", "data-sources", "git", "Musoq.Examples.DataSources.Git.csproj"),
     ];
 
     private static string RepositoryRoot

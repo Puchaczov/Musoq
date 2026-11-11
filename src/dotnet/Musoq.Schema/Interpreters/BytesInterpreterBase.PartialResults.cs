@@ -22,7 +22,8 @@ public abstract partial class BytesInterpreterBase<TOut>
                 SchemaName,
                 null,
                 offset,
-                $"Parse position {offset} is {(offset < 0 ? "negative" : "past the end of the input")}; valid range is 0 through {data.Length}");
+                $"Parse position {offset} is {(offset < 0 ? "negative" : "past the end of the input")}; valid range is 0 through {data.Length}"
+            );
 
         ParsePosition = offset;
         BitOffset = 0;
@@ -53,15 +54,16 @@ public abstract partial class BytesInterpreterBase<TOut>
         }
     }
 
-    protected virtual void AttachPartialFieldNames(TOut value, IReadOnlySet<string> completedFields)
-    {
-    }
+    protected virtual void AttachPartialFieldNames(TOut value, IReadOnlySet<string> completedFields) { }
 
     /// <summary>
     ///     Interprets a nested schema at the current cursor position and preserves its field path on failure.
     /// </summary>
-    protected TChild InterpretNested<TChild>(IBytesInterpreter<TChild> interpreter, ReadOnlySpan<byte> data,
-        string fieldName)
+    protected TChild InterpretNested<TChild>(
+        IBytesInterpreter<TChild> interpreter,
+        ReadOnlySpan<byte> data,
+        string fieldName
+    )
     {
         ArgumentNullException.ThrowIfNull(interpreter);
         AlignToBits(data, 8);
@@ -89,8 +91,12 @@ public abstract partial class BytesInterpreterBase<TOut>
     /// <summary>
     ///     Interprets a nested schema at an explicit cursor position and preserves its field path on failure.
     /// </summary>
-    protected TChild InterpretNestedAt<TChild>(IBytesInterpreter<TChild> interpreter, ReadOnlySpan<byte> data,
-        int offset, string fieldName)
+    protected TChild InterpretNestedAt<TChild>(
+        IBytesInterpreter<TChild> interpreter,
+        ReadOnlySpan<byte> data,
+        int offset,
+        string fieldName
+    )
     {
         ArgumentNullException.ThrowIfNull(interpreter);
 
@@ -111,7 +117,7 @@ public abstract partial class BytesInterpreterBase<TOut>
             {
                 > int.MaxValue => int.MaxValue,
                 < int.MinValue => int.MinValue,
-                _ => (int)rebasedPosition
+                _ => (int)rebasedPosition,
             };
 
             throw AddNestedFieldContext(ex, fieldName, position);
@@ -160,10 +166,21 @@ public abstract partial class BytesInterpreterBase<TOut>
         {
             var attempt = InterpretationStatus.ReadAt(this, data, 0);
             if (attempt.Succeeded)
-                return new PartialInterpretResult<TOut>(attempt.Value!, (IReadOnlySet<string>)parsedFields, BytesConsumed, BitOffset);
+                return new PartialInterpretResult<TOut>(
+                    attempt.Value!,
+                    (IReadOnlySet<string>)parsedFields,
+                    BytesConsumed,
+                    BitOffset
+                );
             var failure = attempt.Failure!;
-            return new PartialInterpretResult<TOut>(attempt.Value, (IReadOnlySet<string>)parsedFields, BytesConsumed,
-                failure.FieldName ?? _currentFieldName ?? "Unknown", failure.GetPartialInterpretationMessage(), BitOffset);
+            return new PartialInterpretResult<TOut>(
+                attempt.Value,
+                (IReadOnlySet<string>)parsedFields,
+                BytesConsumed,
+                failure.FieldName ?? _currentFieldName ?? "Unknown",
+                failure.GetPartialInterpretationMessage(),
+                BitOffset
+            );
         }
         finally
         {
@@ -176,7 +193,8 @@ public abstract partial class BytesInterpreterBase<TOut>
     private static ParseException AddNestedFieldContext(
         ParseException exception,
         string fieldName,
-        int? positionOverride = null)
+        int? positionOverride = null
+    )
     {
         return ParseException.ForBytes(
             exception.ErrorCode,
@@ -184,6 +202,7 @@ public abstract partial class BytesInterpreterBase<TOut>
             ParserFieldPath.Qualify(exception.FieldName, fieldName),
             positionOverride ?? exception.Position,
             exception.Details,
-            exception);
+            exception
+        );
     }
 }

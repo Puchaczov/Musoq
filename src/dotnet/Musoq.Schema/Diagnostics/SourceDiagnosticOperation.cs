@@ -9,5 +9,5 @@ public enum SourceDiagnosticOperation
     Transform,
     Produce,
     Cleanup,
-    Other
+    Other,
 }

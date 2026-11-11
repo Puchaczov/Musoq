@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
-using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests.IR;
@@ -17,7 +17,8 @@ public sealed partial class ExecutionCSharpRendererTests
         ExecutionBlock body,
         ExecutionVariable finalTable,
         GeneratedRowShape finalShape,
-        ExecutionColumnMetadata? columnMetadata = null)
+        ExecutionColumnMetadata? columnMetadata = null
+    )
     {
         return new ExecutionPlan(
             identifier,
@@ -27,19 +28,21 @@ public sealed partial class ExecutionCSharpRendererTests
                 finalTable.Name,
                 finalTable,
                 finalShape,
-                columnMetadata ?? CreateFinalResultColumnMetadata(finalTable.Name, finalShape)));
+                columnMetadata ?? CreateFinalResultColumnMetadata(finalTable.Name, finalShape)
+            )
+        );
     }
 
     private static ExecutionColumnMetadata CreateFinalResultColumnMetadata(
         string tableName,
-        GeneratedRowShape finalShape)
+        GeneratedRowShape finalShape
+    )
     {
         return new ExecutionColumnMetadata(
             tableName,
-            finalShape.Fields
-                .Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field))
-                .ToArray(),
-            ExecutionColumnMetadataKind.TableColumns);
+            finalShape.Fields.Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field)).ToArray(),
+            ExecutionColumnMetadataKind.TableColumns
+        );
     }
 
     private static ExecutionPlan CreatePlan()
@@ -48,56 +51,75 @@ public sealed partial class ExecutionCSharpRendererTests
             "p",
             typeof(Person),
             [
-                new FieldBinding("Name", "p.Name", 0, typeof(string), FieldNullability.Unknown, new ClrPropertyAccess("Name")),
-                new FieldBinding("Age", "p.Age", 1, typeof(int), FieldNullability.Unknown, new ClrPropertyAccess("Age"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "p.Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Name")
+                ),
+                new FieldBinding(
+                    "Age",
+                    "p.Age",
+                    1,
+                    typeof(int),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Age")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var source = new ExecutionVariable("p", typeof(Person));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
-        var sourceBinding = new ExecutionSourceBinding(
-            "test",
-            "data",
-            "p:1",
-            0,
-            [],
-            sourceShape.Fields);
+        var sourceBinding = new ExecutionSourceBinding("test", "data", "p:1", 0, [], sourceShape.Fields);
         var resultTable = new ExecutionVariable("result", typeof(object));
         var predicate = new ExecutionBinary(
             BinaryOpKind.GreaterThan,
             new ExecutionFieldRead("p", "Age", typeof(int)),
             new ExecutionLiteral(18, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
 
         return CreateFinalResultPlan(
             "Q_Plain",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(source, sourceRows, sourceBinding),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
                     source,
                     new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionIf(
                             predicate,
-                            new ExecutionBlock(
-                            [
+                            new ExecutionBlock([
                                 new ExecutionAppendRow(
                                     resultTable,
                                     resultShape,
-                                    [new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string)))])
-                            ]))
-                    ])),
-                new ExecutionReturnTable(resultTable)
+                                    [new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string)))]
+                                ),
+                            ])
+                        ),
+                    ])
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateParallelProjectionPlan()
@@ -106,48 +128,62 @@ public sealed partial class ExecutionCSharpRendererTests
             "p",
             typeof(Person),
             [
-                new FieldBinding("Name", "p.Name", 0, typeof(string), FieldNullability.Unknown, new ClrPropertyAccess("Name")),
-                new FieldBinding("Age", "p.Age", 1, typeof(int), FieldNullability.Unknown, new ClrPropertyAccess("Age"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "p.Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Name")
+                ),
+                new FieldBinding(
+                    "Age",
+                    "p.Age",
+                    1,
+                    typeof(int),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Age")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var source = new ExecutionVariable("p", typeof(Person));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
-        var sourceBinding = new ExecutionSourceBinding(
-            "test",
-            "data",
-            "p:1",
-            0,
-            [],
-            sourceShape.Fields);
+        var sourceBinding = new ExecutionSourceBinding("test", "data", "p:1", 0, [], sourceShape.Fields);
         var resultTable = new ExecutionVariable("result", typeof(object));
         var predicate = new ExecutionBinary(
             BinaryOpKind.GreaterThan,
             new ExecutionFieldRead("p", "Age", typeof(int)),
             new ExecutionLiteral(18, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var appendRow = new ExecutionAppendRow(
             resultTable,
             resultShape,
-            [new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string)))]);
+            [new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string)))]
+        );
         var serialLoop = new ExecutionForEach(
             source,
             new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
-            new ExecutionBlock(
-            [
-                new ExecutionIf(
-                    predicate,
-                    new ExecutionBlock([appendRow]))
-            ]));
+            new ExecutionBlock([new ExecutionIf(predicate, new ExecutionBlock([appendRow]))])
+        );
 
         return CreateFinalResultPlan(
             "Q_ParallelProjection",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(source, sourceRows, sourceBinding),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionParallelFilterProjectLoop(
@@ -157,11 +193,13 @@ public sealed partial class ExecutionCSharpRendererTests
                     appendRow,
                     serialLoop.Body,
                     1,
-                    4),
-                new ExecutionReturnTable(resultTable)
+                    4
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateParallelProjectionPlanWithRowLocalMethodCse()
@@ -170,23 +208,40 @@ public sealed partial class ExecutionCSharpRendererTests
             "p",
             typeof(Person),
             [
-                new FieldBinding("Name", "p.Name", 0, typeof(string), FieldNullability.Unknown, new ClrPropertyAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "p.Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Name")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name")),
-                new FieldBinding("Upper", "Upper", 1, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Upper"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+                new FieldBinding(
+                    "Upper",
+                    "Upper",
+                    1,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Upper")
+                ),
+            ]
+        );
         var source = new ExecutionVariable("p", typeof(Person));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
-        var sourceBinding = new ExecutionSourceBinding(
-            "test",
-            "data",
-            "p:1",
-            0,
-            [],
-            sourceShape.Fields);
+        var sourceBinding = new ExecutionSourceBinding("test", "data", "p:1", 0, [], sourceShape.Fields);
         var resultTable = new ExecutionVariable("result", typeof(object));
         var upper = new ExecutionVariable("upper", typeof(string));
         var methodCall = CreateToUpperNameCall();
@@ -194,41 +249,45 @@ public sealed partial class ExecutionCSharpRendererTests
             BinaryOpKind.NotEqual,
             methodCall,
             new ExecutionLiteral(null, typeof(string)),
-            typeof(bool));
+            typeof(bool)
+        );
         var appendRow = new ExecutionAppendRow(
             resultTable,
             resultShape,
             [
                 new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string))),
-                new ExecutionRowValue("Upper", methodCall)
-            ]);
+                new ExecutionRowValue("Upper", methodCall),
+            ]
+        );
         var serialAppendRow = new ExecutionAppendRow(
             resultTable,
             resultShape,
             [
                 new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string))),
-                new ExecutionRowValue("Upper", new ExecutionVariableRead(upper))
-            ]);
+                new ExecutionRowValue("Upper", new ExecutionVariableRead(upper)),
+            ]
+        );
         var serialLoop = new ExecutionForEach(
             source,
             new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(upper, methodCall, ExecutionLetCacheMode.SuppressMethodCache),
                 new ExecutionIf(
                     new ExecutionBinary(
                         BinaryOpKind.NotEqual,
                         new ExecutionVariableRead(upper),
                         new ExecutionLiteral(null, typeof(string)),
-                        typeof(bool)),
-                    new ExecutionBlock([serialAppendRow]))
-            ]));
+                        typeof(bool)
+                    ),
+                    new ExecutionBlock([serialAppendRow])
+                ),
+            ])
+        );
 
         return CreateFinalResultPlan(
             "Q_ParallelProjection_RowLocalCse",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(source, sourceRows, sourceBinding),
                 new ExecutionCreateObject(methodCall.Target!),
                 new ExecutionCreateTable(resultTable, resultShape),
@@ -239,11 +298,13 @@ public sealed partial class ExecutionCSharpRendererTests
                     appendRow,
                     serialLoop.Body,
                     1,
-                    4),
-                new ExecutionReturnTable(resultTable)
+                    4
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateProjectionPostOperationPlan()
@@ -252,23 +313,40 @@ public sealed partial class ExecutionCSharpRendererTests
             "p",
             typeof(Person),
             [
-                new FieldBinding("Name", "p.Name", 0, typeof(string), FieldNullability.Unknown, new ClrPropertyAccess("Name")),
-                new FieldBinding("Age", "p.Age", 1, typeof(int), FieldNullability.Unknown, new ClrPropertyAccess("Age"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "p.Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Name")
+                ),
+                new FieldBinding(
+                    "Age",
+                    "p.Age",
+                    1,
+                    typeof(int),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Age")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var source = new ExecutionVariable("p", typeof(Person));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
-        var sourceBinding = new ExecutionSourceBinding(
-            "test",
-            "data",
-            "p:1",
-            0,
-            [],
-            sourceShape.Fields);
+        var sourceBinding = new ExecutionSourceBinding("test", "data", "p:1", 0, [], sourceShape.Fields);
         var resultTable = new ExecutionVariable("result", typeof(object));
         var distinctTable = new ExecutionVariable("resultDistinct", typeof(object));
         var sortedTable = new ExecutionVariable("resultSorted", typeof(object));
@@ -278,68 +356,81 @@ public sealed partial class ExecutionCSharpRendererTests
         return CreateFinalResultPlan(
             "Q_PostOperationProjection",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(source, sourceRows, sourceBinding),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
                     source,
                     new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,
-                            [new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string)))])
-                    ])),
+                            [new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string)))]
+                        ),
+                    ])
+                ),
                 new ExecutionDistinctTable(resultTable, distinctTable),
                 new ExecutionSortTable(
                     distinctTable,
                     sortedTable,
-                    [new ExecutionOrderField("Name", 0, typeof(string), true)]),
+                    [new ExecutionOrderField("Name", 0, typeof(string), true)]
+                ),
                 new ExecutionSkipTable(sortedTable, skippedTable, 1),
                 new ExecutionTakeTable(skippedTable, takenTable, 2),
-                new ExecutionReturnTable(takenTable)
+                new ExecutionReturnTable(takenTable),
             ]),
             takenTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateSameReferenceDifferentMetadataPlan()
     {
         var idShape = new GeneratedRowShape(
             "IdRow",
-            [
-                new FieldBinding("Id", "Id", 0, typeof(int), FieldNullability.Unknown, new GeneratedFieldAccess("Id"))
-            ]);
+            [new FieldBinding("Id", "Id", 0, typeof(int), FieldNullability.Unknown, new GeneratedFieldAccess("Id"))]
+        );
         var nameShape = new GeneratedRowShape(
             "NameRow",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var firstTable = new ExecutionVariable("first", typeof(object));
         var secondTable = new ExecutionVariable("second", typeof(object));
 
         return new ExecutionPlan(
             "Q_MetadataCollision",
             [idShape, nameShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(
                     firstTable,
                     idShape,
                     ColumnMetadata: new ExecutionColumnMetadata(
                         "shared",
                         [new ExecutionColumnMetadataField("Id", 0, typeof(int))],
-                        ExecutionColumnMetadataKind.TableColumns)),
+                        ExecutionColumnMetadataKind.TableColumns
+                    )
+                ),
                 new ExecutionCreateTable(
                     secondTable,
                     nameShape,
                     ColumnMetadata: new ExecutionColumnMetadata(
                         "shared",
                         [new ExecutionColumnMetadataField("Name", 0, typeof(string))],
-                        ExecutionColumnMetadataKind.TableColumns))
-            ]));
+                        ExecutionColumnMetadataKind.TableColumns
+                    )
+                ),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateSameReferenceDifferentEnumMetadataPlan()
@@ -347,9 +438,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var shape = new GeneratedRowShape(
             "StatusRow",
             [
-                new FieldBinding("Status", "Status", 0, typeof(short), FieldNullability.Unknown,
-                    new GeneratedFieldAccess("Status"))
-            ]);
+                new FieldBinding(
+                    "Status",
+                    "Status",
+                    0,
+                    typeof(short),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Status")
+                ),
+            ]
+        );
         var firstTable = new ExecutionVariable("first", typeof(object));
         var secondTable = new ExecutionVariable("second", typeof(object));
         var status = new EnumTypeDescriptor(
@@ -357,34 +455,40 @@ public sealed partial class ExecutionCSharpRendererTests
             EnumTypeOrigin.QueryLocal,
             EnumUnderlyingKind.Int16,
             false,
-            [new EnumMemberDescriptor("Queued", EnumScalarValue.FromInt16(10))]);
+            [new EnumMemberDescriptor("Queued", EnumScalarValue.FromInt16(10))]
+        );
         var priority = new EnumTypeDescriptor(
             "Priority",
             EnumTypeOrigin.QueryLocal,
             EnumUnderlyingKind.Int16,
             false,
-            [new EnumMemberDescriptor("Normal", EnumScalarValue.FromInt16(10))]);
+            [new EnumMemberDescriptor("Normal", EnumScalarValue.FromInt16(10))]
+        );
 
         return new ExecutionPlan(
             "Q_EnumMetadataCollision",
             [shape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(
                     firstTable,
                     shape,
                     ColumnMetadata: new ExecutionColumnMetadata(
                         "shared",
                         [new ExecutionColumnMetadataField("Status", 0, typeof(short), enumType: status)],
-                        ExecutionColumnMetadataKind.TableColumns)),
+                        ExecutionColumnMetadataKind.TableColumns
+                    )
+                ),
                 new ExecutionCreateTable(
                     secondTable,
                     shape,
                     ColumnMetadata: new ExecutionColumnMetadata(
                         "shared",
                         [new ExecutionColumnMetadataField("Status", 0, typeof(short), enumType: priority)],
-                        ExecutionColumnMetadataKind.TableColumns))
-            ]));
+                        ExecutionColumnMetadataKind.TableColumns
+                    )
+                ),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateSameReferenceDifferentSourceModifierMetadataPlan()
@@ -396,17 +500,19 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_SourceModifierMetadataCollision",
             [sourceShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(
                     new ExecutionVariable("p1", typeof(Person)),
                     new ExecutionVariable("p1Rows", typeof(object)),
-                    firstBinding),
+                    firstBinding
+                ),
                 new ExecutionSourceScan(
                     new ExecutionVariable("p2", typeof(Person)),
                     new ExecutionVariable("p2Rows", typeof(object)),
-                    secondBinding)
-            ]));
+                    secondBinding
+                ),
+            ])
+        );
     }
 
     private static ExecutionSourceBinding CreateModifierMetadataSourceBinding(string runtimeContextId, string encoding)
@@ -418,19 +524,13 @@ public sealed partial class ExecutionCSharpRendererTests
                     "Name",
                     0,
                     typeof(string),
-                    new Dictionary<string, string> { ["encoding"] = encoding })
+                    new Dictionary<string, string> { ["encoding"] = encoding }
+                ),
             ],
-            ExecutionColumnMetadataKind.SourceSchemaColumns);
+            ExecutionColumnMetadataKind.SourceSchemaColumns
+        );
 
-        return new ExecutionSourceBinding(
-            "test",
-            "data",
-            runtimeContextId,
-            0,
-            [],
-            [],
-            metadata,
-            typeof(Person));
+        return new ExecutionSourceBinding("test", "data", runtimeContextId, 0, [], [], metadata, typeof(Person));
     }
 
     private static ExecutionPlan CreatePostOperationMetadataPlan()
@@ -438,8 +538,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var sortedTable = new ExecutionVariable("resultSorted", typeof(object));
         var skippedTable = new ExecutionVariable("resultSortedSkipped", typeof(object));
@@ -448,8 +556,7 @@ public sealed partial class ExecutionCSharpRendererTests
         return CreateFinalResultPlan(
             "Q_PostOps",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionSortTable(
                     resultTable,
@@ -458,25 +565,29 @@ public sealed partial class ExecutionCSharpRendererTests
                     [],
                     new ExecutionCollectionCountCapacityHint(resultTable),
                     ExecutionAppendMode.Direct,
-                    CreateTestColumnMetadata(sortedTable.Name)),
+                    CreateTestColumnMetadata(sortedTable.Name)
+                ),
                 new ExecutionSkipTable(
                     sortedTable,
                     skippedTable,
                     1,
                     new ExecutionSkipCapacityHint(sortedTable, 1),
                     ExecutionAppendMode.Direct,
-                    CreateTestColumnMetadata(skippedTable.Name)),
+                    CreateTestColumnMetadata(skippedTable.Name)
+                ),
                 new ExecutionTakeTable(
                     skippedTable,
                     takenTable,
                     2,
                     new ExecutionTakeCapacityHint(skippedTable, 2),
                     ExecutionAppendMode.Direct,
-                    CreateTestColumnMetadata(takenTable.Name)),
-                new ExecutionReturnTable(takenTable)
+                    CreateTestColumnMetadata(takenTable.Name)
+                ),
+                new ExecutionReturnTable(takenTable),
             ]),
             takenTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionColumnMetadata CreateTestColumnMetadata(string referenceName)
@@ -484,7 +595,8 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionColumnMetadata(
             referenceName,
             [new ExecutionColumnMetadataField("Name", 0, typeof(string))],
-            ExecutionColumnMetadataKind.TableColumns);
+            ExecutionColumnMetadataKind.TableColumns
+        );
     }
 
     private static ExecutionPlan CreateTopNMetadataPlan()
@@ -492,16 +604,23 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var topNTable = new ExecutionVariable("resultTopN", typeof(object));
 
         return new ExecutionPlan(
             "Q_TopN",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionTopNTable(
                     resultTable,
@@ -511,9 +630,11 @@ public sealed partial class ExecutionCSharpRendererTests
                     [],
                     new ExecutionTakeCapacityHint(resultTable, 2),
                     ExecutionAppendMode.Direct,
-                    CreateTestColumnMetadata(topNTable.Name)),
-                new ExecutionReturnTable(topNTable)
-            ]));
+                    CreateTestColumnMetadata(topNTable.Name)
+                ),
+                new ExecutionReturnTable(topNTable),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateTopOffsetMetadataPlan()
@@ -521,16 +642,23 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var topOffsetTable = new ExecutionVariable("resultTopOffset", typeof(object));
 
         return new ExecutionPlan(
             "Q_TopOffset",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionTopOffsetTable(
                     resultTable,
@@ -542,9 +670,11 @@ public sealed partial class ExecutionCSharpRendererTests
                     ExecutionTopOffsetStrategy.BoundedHeap,
                     new ExecutionSkipTakeCapacityHint(resultTable, 1, 2),
                     ExecutionAppendMode.Direct,
-                    CreateTestColumnMetadata(topOffsetTable.Name)),
-                new ExecutionReturnTable(topOffsetTable)
-            ]));
+                    CreateTestColumnMetadata(topOffsetTable.Name)
+                ),
+                new ExecutionReturnTable(topOffsetTable),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateSliceMetadataPlan()
@@ -552,16 +682,23 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var slicedTable = new ExecutionVariable("resultSliced", typeof(object));
 
         return new ExecutionPlan(
             "Q_Slice",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionSliceTable(
                     resultTable,
@@ -570,9 +707,11 @@ public sealed partial class ExecutionCSharpRendererTests
                     2,
                     new ExecutionSkipTakeCapacityHint(resultTable, 1, 2),
                     ExecutionAppendMode.Direct,
-                    CreateTestColumnMetadata(slicedTable.Name)),
-                new ExecutionReturnTable(slicedTable)
-            ]));
+                    CreateTestColumnMetadata(slicedTable.Name)
+                ),
+                new ExecutionReturnTable(slicedTable),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateTableRowLoopPlan()
@@ -580,13 +719,29 @@ public sealed partial class ExecutionCSharpRendererTests
         var sourceShape = new GeneratedRowShape(
             "SourceRow0",
             [
-                new FieldBinding("Name", "t.Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "t.Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var sourceTable = new ExecutionVariable("source", typeof(object));
         var resultTable = new ExecutionVariable("result", typeof(object));
         var tableRow = new ExecutionVariable("t", typeof(Row));
@@ -594,8 +749,7 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_TableRowLoop",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(sourceTable, sourceShape),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
@@ -603,16 +757,24 @@ public sealed partial class ExecutionCSharpRendererTests
                     new ExecutionRowStream(
                         sourceTable,
                         ExecutionRowStreamKind.Rows,
-                        ExecutionRowStreamRowsAccess.TableRows),
-                    new ExecutionBlock(
-                    [
+                        ExecutionRowStreamRowsAccess.TableRows
+                    ),
+                    new ExecutionBlock([
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,
-                            [new ExecutionRowValue("Name", new ExecutionFieldRead("t", "Name", typeof(string), new PositionalAccess(0)))])
-                    ])),
-                new ExecutionReturnTable(resultTable)
-            ]));
+                            [
+                                new ExecutionRowValue(
+                                    "Name",
+                                    new ExecutionFieldRead("t", "Name", typeof(string), new PositionalAccess(0))
+                                ),
+                            ]
+                        ),
+                    ])
+                ),
+                new ExecutionReturnTable(resultTable),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateRepeatedStoredRowsPlan()
@@ -620,13 +782,29 @@ public sealed partial class ExecutionCSharpRendererTests
         var sourceShape = new GeneratedRowShape(
             "SourceRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var sourceTable = new ExecutionVariable("source", typeof(object));
         var resultTable = new ExecutionVariable("result", typeof(object));
         var leftRow = new ExecutionVariable("l", typeof(Row));
@@ -635,33 +813,31 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_RepeatedStoredRows",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(sourceTable, sourceShape),
                 new ExecutionStoreTable(sourceTable, 0),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
                     leftRow,
                     new ExecutionStoredTableRows(0, sourceShape),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionForEach(
                             rightRow,
                             new ExecutionStoredTableRows(0, sourceShape),
-                            new ExecutionBlock(
-                            [
+                            new ExecutionBlock([
                                 new ExecutionAppendRow(
                                     resultTable,
                                     resultShape,
-                                    [new ExecutionRowValue("Name", new ExecutionLiteral("cached", typeof(string)))])
-                            ]))
-                    ])),
-                new ExecutionReturnTable(resultTable)
+                                    [new ExecutionRowValue("Name", new ExecutionLiteral("cached", typeof(string)))]
+                                ),
+                            ])
+                        ),
+                    ])
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
-            storedTableRepresentations:
-            [
-                new ExecutionStoredTableRepresentationPlan(0, sourceShape)
-            ]);
+            storedTableRepresentations: [new ExecutionStoredTableRepresentationPlan(0, sourceShape)]
+        );
     }
 
     private static ExecutionPlan CreateTypedMaterializedRowsBufferPlan()
@@ -669,13 +845,29 @@ public sealed partial class ExecutionCSharpRendererTests
         var sourceShape = new GeneratedRowShape(
             "SourceRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var sourceTable = new ExecutionVariable("source", typeof(object));
         var resultTable = new ExecutionVariable("result", typeof(object));
         var buffer = new ExecutionVariable("sourceRowsBuffer", typeof(IReadOnlyList<Row>), sourceShape.TypeName);
@@ -684,33 +876,42 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_TypedMaterializedRowsBuffer",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(sourceTable, sourceShape),
                 new ExecutionMaterializeList(
                     new ExecutionRowStream(
                         sourceTable,
                         ExecutionRowStreamKind.Rows,
-                        ExecutionRowStreamRowsAccess.TableRows),
+                        ExecutionRowStreamRowsAccess.TableRows
+                    ),
                     buffer,
-                    sourceShape),
+                    sourceShape
+                ),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
                     sourceRow,
                     new ExecutionVariableRead(buffer),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,
                             [
                                 new ExecutionRowValue(
                                     "Name",
-                                    new ExecutionFieldRead("s", "Name", typeof(string), new GeneratedFieldAccess("Name")))
-                            ])
-                    ])),
-                new ExecutionReturnTable(resultTable)
-            ]));
+                                    new ExecutionFieldRead(
+                                        "s",
+                                        "Name",
+                                        typeof(string),
+                                        new GeneratedFieldAccess("Name")
+                                    )
+                                ),
+                            ]
+                        ),
+                    ])
+                ),
+                new ExecutionReturnTable(resultTable),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateInternalStoredRowCarrierPlan(bool useRowContext)
@@ -718,16 +919,39 @@ public sealed partial class ExecutionCSharpRendererTests
         var statementShape = new GeneratedRowShape(
             "Statement0Row0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
             ],
             [
-                new FieldBinding("Source", "Source", 0, typeof(object), FieldNullability.Unknown, new GeneratedRowContextAccess("Statement0Row0", 0))
-            ]);
+                new FieldBinding(
+                    "Source",
+                    "Source",
+                    0,
+                    typeof(object),
+                    FieldNullability.Unknown,
+                    new GeneratedRowContextAccess("Statement0Row0", 0)
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var cteTable = new ExecutionVariable("statement", typeof(object));
         var resultTable = new ExecutionVariable("result", typeof(object));
         var cteRow = new ExecutionVariable("s", typeof(Row), statementShape.TypeName);
@@ -736,20 +960,15 @@ public sealed partial class ExecutionCSharpRendererTests
             ? (IReadOnlyList<ExecutionExpression>)[new ExecutionVariableRead(cteRow)]
             : [];
         var resultContextLayout = useRowContext
-            ? new ExecutionContextLayout(
-            [
-                new ExecutionContextSegment(
-                    ExecutionContextSegmentKind.Row,
-                    new ExecutionVariableRead(cteRow),
-                    1)
+            ? new ExecutionContextLayout([
+                new ExecutionContextSegment(ExecutionContextSegmentKind.Row, new ExecutionVariableRead(cteRow), 1),
             ])
             : null;
 
         return new ExecutionPlan(
             "Q_InternalStoredRowCarrier",
             [statementShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(cteTable, statementShape),
                 new ExecutionAppendRow(
                     cteTable,
@@ -757,37 +976,46 @@ public sealed partial class ExecutionCSharpRendererTests
                     [new ExecutionRowValue("Name", new ExecutionLiteral("Ada", typeof(string)))],
                     [new ExecutionLiteral("ctx", typeof(object))],
                     ExecutionAppendMode.Checked,
-                    new ExecutionContextLayout(
-                    [
+                    new ExecutionContextLayout([
                         new ExecutionContextSegment(
                             ExecutionContextSegmentKind.Single,
                             new ExecutionLiteral("ctx", typeof(object)),
-                            1)
-                    ])),
+                            1
+                        ),
+                    ])
+                ),
                 new ExecutionStoreTable(cteTable, 0),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
                     cteRow,
                     cteRows,
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionAppendRow(
                             resultTable,
                             resultShape,
                             [
                                 new ExecutionRowValue(
                                     "Name",
-                                    new ExecutionFieldRead("s", "Name", typeof(string), new GeneratedFieldAccess("Name")))
+                                    new ExecutionFieldRead(
+                                        "s",
+                                        "Name",
+                                        typeof(string),
+                                        new GeneratedFieldAccess("Name")
+                                    )
+                                ),
                             ],
                             resultContexts,
                             ExecutionAppendMode.Checked,
-                            resultContextLayout)
-                    ])),
-                new ExecutionReturnTable(resultTable)
+                            resultContextLayout
+                        ),
+                    ])
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             storedTableRepresentations: useRowContext
                 ? []
-                : [new ExecutionStoredTableRepresentationPlan(0, statementShape)]);
+                : [new ExecutionStoredTableRepresentationPlan(0, statementShape)]
+        );
     }
 
     private static ExecutionPlan CreateParallelBlockPlan()
@@ -795,8 +1023,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var cteShape = new GeneratedRowShape(
             "CteRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var cte0 = new ExecutionVariable("cte0", typeof(Table));
         var cte1 = new ExecutionVariable("cte1", typeof(Table));
         var output0 = new ExecutionVariable("__parallelCteLevel0Task0Result", typeof(Table));
@@ -805,8 +1041,7 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_ParallelBlock",
             [cteShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionParallelBlock(
                     "cte-level-0",
                     2,
@@ -814,27 +1049,27 @@ public sealed partial class ExecutionCSharpRendererTests
                         new ExecutionParallelTask(
                             "left",
                             output0,
-                            new ExecutionBlock(
-                            [
+                            new ExecutionBlock([
                                 new ExecutionCreateTable(cte0, cteShape),
-                                new ExecutionAssign(output0, new ExecutionVariableRead(cte0))
-                            ])),
+                                new ExecutionAssign(output0, new ExecutionVariableRead(cte0)),
+                            ])
+                        ),
                         new ExecutionParallelTask(
                             "right",
                             output1,
-                            new ExecutionBlock(
-                            [
+                            new ExecutionBlock([
                                 new ExecutionCreateTable(cte1, cteShape),
-                                new ExecutionAssign(output1, new ExecutionVariableRead(cte1))
-                            ]))
+                                new ExecutionAssign(output1, new ExecutionVariableRead(cte1)),
+                            ])
+                        ),
                     ],
-                    new ExecutionParallelMerge(new ExecutionBlock(
-                    [
-                        new ExecutionStoreTable(output0, 0),
-                        new ExecutionStoreTable(output1, 1)
-                    ]))),
-                new ExecutionReturnTable(output0)
-            ]));
+                    new ExecutionParallelMerge(
+                        new ExecutionBlock([new ExecutionStoreTable(output0, 0), new ExecutionStoreTable(output1, 1)])
+                    )
+                ),
+                new ExecutionReturnTable(output0),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateTypedParallelBlockPlan()
@@ -842,8 +1077,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var cteShape = new GeneratedRowShape(
             "CteRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var cte0 = new ExecutionVariable("cte0", typeof(Table));
         var cte1 = new ExecutionVariable("cte1", typeof(Table));
         var output0 = new ExecutionVariable("__parallelCteLevel0Task0Result", typeof(object), "List<CteRow0>");
@@ -852,8 +1095,7 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_TypedParallelBlock",
             [cteShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionParallelBlock(
                     "cte-level-0",
                     2,
@@ -861,34 +1103,34 @@ public sealed partial class ExecutionCSharpRendererTests
                         new ExecutionParallelTask(
                             "left",
                             output0,
-                            new ExecutionBlock(
-                            [
+                            new ExecutionBlock([
                                 new ExecutionCreateTable(cte0, cteShape),
-                                new ExecutionAssign(output0, new ExecutionVariableRead(cte0))
+                                new ExecutionAssign(output0, new ExecutionVariableRead(cte0)),
                             ]),
-                            0),
+                            0
+                        ),
                         new ExecutionParallelTask(
                             "right",
                             output1,
-                            new ExecutionBlock(
-                            [
+                            new ExecutionBlock([
                                 new ExecutionCreateTable(cte1, cteShape),
-                                new ExecutionAssign(output1, new ExecutionVariableRead(cte1))
+                                new ExecutionAssign(output1, new ExecutionVariableRead(cte1)),
                             ]),
-                            1)
+                            1
+                        ),
                     ],
-                    new ExecutionParallelMerge(new ExecutionBlock(
-                    [
-                        new ExecutionStoreTable(output0, 0),
-                        new ExecutionStoreTable(output1, 1)
-                    ]))),
-                new ExecutionReturnTable(output0)
+                    new ExecutionParallelMerge(
+                        new ExecutionBlock([new ExecutionStoreTable(output0, 0), new ExecutionStoreTable(output1, 1)])
+                    )
+                ),
+                new ExecutionReturnTable(output0),
             ]),
             storedTableRepresentations:
             [
                 new ExecutionStoredTableRepresentationPlan(0, cteShape),
-                new ExecutionStoredTableRepresentationPlan(1, cteShape)
-            ]);
+                new ExecutionStoredTableRepresentationPlan(1, cteShape),
+            ]
+        );
     }
 
     private static ExecutionPlan CreateCapacityHintPlan()
@@ -896,18 +1138,26 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
 
         return new ExecutionPlan(
             "Q_CapacityHint",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape, new ExecutionConstantCapacityHint(16)),
-                new ExecutionReturnTable(resultTable)
-            ]));
+                new ExecutionReturnTable(resultTable),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateHashCapacityHintPlan()
@@ -915,20 +1165,28 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var hash = new ExecutionVariable("hash", typeof(object));
 
         return new ExecutionPlan(
             "Q_HashCapacityHint",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateHash(hash, typeof(int), typeof(Row), new ExecutionConstantCapacityHint(32)),
-                new ExecutionReturnTable(resultTable)
-            ]));
+                new ExecutionReturnTable(resultTable),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateHashEnumerableCapacityHintPlan()
@@ -936,8 +1194,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var hash = new ExecutionVariable("hash", typeof(object));
         var rows = new ExecutionVariable("rows", typeof(object));
@@ -945,16 +1211,17 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_HashEnumerableCapacityHint",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateHash(
                     hash,
                     typeof(int),
                     typeof(Row),
-                    new ExecutionTryGetNonEnumeratedCountCapacityHint(rows, "hashCapacity")),
-                new ExecutionReturnTable(resultTable)
-            ]));
+                    new ExecutionTryGetNonEnumeratedCountCapacityHint(rows, "hashCapacity")
+                ),
+                new ExecutionReturnTable(resultTable),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateValueTupleHashPlan()
@@ -962,8 +1229,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var hash = new ExecutionVariable("hash", typeof(object));
         var row = new ExecutionVariable("row", typeof(Row));
@@ -972,30 +1247,27 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_ValueTupleHash",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateHash(hash, tupleType, typeof(Row)),
                 new ExecutionHashAdd(
                     hash,
                     new ExecutionValueTupleKey(
-                    [
-                        new ExecutionLiteral(1, typeof(int)),
-                        new ExecutionLiteral(2, typeof(int))
-                    ], tupleType),
+                        [new ExecutionLiteral(1, typeof(int)), new ExecutionLiteral(2, typeof(int))],
+                        tupleType
+                    ),
                     row,
                     tupleType,
-                    typeof(Row)),
-                new ExecutionReturnTable(resultTable)
-            ]));
+                    typeof(Row)
+                ),
+                new ExecutionReturnTable(resultTable),
+            ])
+        );
     }
 
     private static ExecutionPlan CreateHashPayloadShapePlan()
     {
-        return new ExecutionPlan(
-            "Q_HashPayloadShape",
-            [CreateHashPayloadShape()],
-            ExecutionBlock.Empty);
+        return new ExecutionPlan("Q_HashPayloadShape", [CreateHashPayloadShape()], ExecutionBlock.Empty);
     }
 
     private static ExecutionPlan CreateHashPayloadJoinPlan()
@@ -1004,8 +1276,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var hash = new ExecutionVariable("dHash", typeof(object));
         var rows = new ExecutionVariable("bRows", typeof(object));
@@ -1015,36 +1295,47 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_HashPayloadJoin",
             [payloadShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateHash(
                     hash,
                     ExecutionClrBindingFactory.FromClr(typeof(string)),
                     ExecutionClrBindingFactory.FromClr(typeof(object)),
-                    GeneratedRowTypeName: payloadShape.TypeName),
+                    GeneratedRowTypeName: payloadShape.TypeName
+                ),
                 new ExecutionForEach(
                     b,
                     new ExecutionVariableRead(rows),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionCreateHashPayload(
                             d,
                             payloadShape,
                             [
                                 new ExecutionRowValue("b.City", new ExecutionFieldRead("b", "City", typeof(string))),
-                                new ExecutionRowValue("b.Country", new ExecutionFieldRead("b", "Country", typeof(string)))
-                            ]),
+                                new ExecutionRowValue(
+                                    "b.Country",
+                                    new ExecutionFieldRead("b", "Country", typeof(string))
+                                ),
+                            ]
+                        ),
                         new ExecutionHashAdd(
                             hash,
-                            new ExecutionFieldRead("d", "b.Country", typeof(string), new GeneratedFieldAccess("b_Country")),
+                            new ExecutionFieldRead(
+                                "d",
+                                "b.Country",
+                                typeof(string),
+                                new GeneratedFieldAccess("b_Country")
+                            ),
                             d,
                             typeof(string),
                             typeof(object),
-                            payloadShape.TypeName)
-                    ])),
-                new ExecutionReturnTable(resultTable)
-            ]));
+                            payloadShape.TypeName
+                        ),
+                    ])
+                ),
+                new ExecutionReturnTable(resultTable),
+            ])
+        );
     }
 
     private static HashPayloadShape CreateHashPayloadShape()
@@ -1052,9 +1343,23 @@ public sealed partial class ExecutionCSharpRendererTests
         return new HashPayloadShape(
             "DHashPayload0",
             [
-                new FieldBinding("b.City", "b.City", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("b_City")),
-                new FieldBinding("b.Country", "b.Country", 1, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("b_Country"))
-            ]);
+                new FieldBinding(
+                    "b.City",
+                    "b.City",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("b_City")
+                ),
+                new FieldBinding(
+                    "b.Country",
+                    "b.Country",
+                    1,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("b_Country")
+                ),
+            ]
+        );
     }
-
 }

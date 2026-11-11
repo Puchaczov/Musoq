@@ -24,9 +24,14 @@ public sealed partial class LogicalPlanBuilder
                 var normalizedIdentifier = NormalizeAggregateIdentifier(identifier);
                 if (!string.Equals(normalizedIdentifier, identifier, StringComparison.Ordinal))
                 {
-                    if (!string.IsNullOrWhiteSpace(normalizedIdentifier) &&
-                        rawIdentifiersByNormalizedIdentifier.TryGetValue(normalizedIdentifier, out var existingIdentifier) &&
-                        !string.Equals(existingIdentifier, identifier, StringComparison.Ordinal))
+                    if (
+                        !string.IsNullOrWhiteSpace(normalizedIdentifier)
+                        && rawIdentifiersByNormalizedIdentifier.TryGetValue(
+                            normalizedIdentifier,
+                            out var existingIdentifier
+                        )
+                        && !string.Equals(existingIdentifier, identifier, StringComparison.Ordinal)
+                    )
                         ambiguousNormalizedIdentifiers.Add(normalizedIdentifier);
                     else if (!string.IsNullOrWhiteSpace(normalizedIdentifier))
                         rawIdentifiersByNormalizedIdentifier[normalizedIdentifier] = identifier;
@@ -43,16 +48,24 @@ public sealed partial class LogicalPlanBuilder
     private void CollectBindingsFromProjectedFields(
         AggregateRefreshLookup refreshLookup,
         List<AggregateBinding> bindings,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         foreach (var field in _projectedFields)
-            CollectBindingsFromExpression(field.Expression, field.OutputName, refreshLookup, bindings, bindingsByIdentifier);
+            CollectBindingsFromExpression(
+                field.Expression,
+                field.OutputName,
+                refreshLookup,
+                bindings,
+                bindingsByIdentifier
+            );
     }
 
     private void CollectBindingsFromOrderFields(
         AggregateRefreshLookup refreshLookup,
         List<AggregateBinding> bindings,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         foreach (var field in _orderFields)
             CollectBindingsFromExpression(field.Expression, null, refreshLookup, bindings, bindingsByIdentifier);
@@ -62,7 +75,8 @@ public sealed partial class LogicalPlanBuilder
         LogicalNode source,
         AggregateRefreshLookup refreshLookup,
         List<AggregateBinding> bindings,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         switch (source)
         {
@@ -86,7 +100,8 @@ public sealed partial class LogicalPlanBuilder
         WindowRegistration registration,
         AggregateRefreshLookup refreshLookup,
         List<AggregateBinding> bindings,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         foreach (var partitionKey in registration.PartitionKeys)
             CollectBindingsFromExpression(partitionKey, null, refreshLookup, bindings, bindingsByIdentifier);
@@ -97,7 +112,13 @@ public sealed partial class LogicalPlanBuilder
         foreach (var valueArgument in registration.ValueArguments)
             CollectBindingsFromExpression(valueArgument, null, refreshLookup, bindings, bindingsByIdentifier);
 
-        CollectBindingsFromExpression(registration.FilterPredicate, null, refreshLookup, bindings, bindingsByIdentifier);
+        CollectBindingsFromExpression(
+            registration.FilterPredicate,
+            null,
+            refreshLookup,
+            bindings,
+            bindingsByIdentifier
+        );
     }
 
     private static void CollectBindingsFromExpression(
@@ -105,7 +126,8 @@ public sealed partial class LogicalPlanBuilder
         string? outputName,
         AggregateRefreshLookup refreshLookup,
         List<AggregateBinding> bindings,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         if (expression is null)
             return;
@@ -114,13 +136,19 @@ public sealed partial class LogicalPlanBuilder
         {
             var identifierCandidates = GetAggregateIdentifierCandidates(methodCall, refreshLookup);
 
-            if (TryResolveRefreshCapture(identifierCandidates, outputName, refreshLookup, out var resolvedIdentifier, out var refresh) &&
-                !bindingsByIdentifier.ContainsKey(resolvedIdentifier))
+            if (
+                TryResolveRefreshCapture(
+                    identifierCandidates,
+                    outputName,
+                    refreshLookup,
+                    out var resolvedIdentifier,
+                    out var refresh
+                ) && !bindingsByIdentifier.ContainsKey(resolvedIdentifier)
+            )
             {
-                var kernel = TryCreateAggregateKernelDescriptor(methodCall.Method, methodCall.Arguments) ??
-                             TryCreateAggregateKernelDescriptor(
-                                 methodCall.Method,
-                                 refresh.SetArguments.Skip(1).ToArray());
+                var kernel =
+                    TryCreateAggregateKernelDescriptor(methodCall.Method, methodCall.Arguments)
+                    ?? TryCreateAggregateKernelDescriptor(methodCall.Method, refresh.SetArguments.Skip(1).ToArray());
                 var binding = new AggregateBinding(
                     resolvedIdentifier,
                     ResolveAggregateColumnName(outputName, refresh, resolvedIdentifier),
@@ -128,13 +156,12 @@ public sealed partial class LogicalPlanBuilder
                     [.. refresh.SetArguments],
                     refresh.FilterPredicate,
                     methodCall.Method,
-                    kernel is null
-                        ? CreateAggregateGetArguments(methodCall.Method, methodCall.Arguments, refresh)
-                        : [],
+                    kernel is null ? CreateAggregateGetArguments(methodCall.Method, methodCall.Arguments, refresh) : [],
                     kernel?.ResultType ?? methodCall.ReturnType,
                     kernel,
                     ResolveAggregateParentDepth(kernel, methodCall.Arguments),
-                    refresh.DisplayName);
+                    refresh.DisplayName
+                );
 
                 bindings.Add(binding);
                 bindingsByIdentifier[resolvedIdentifier] = binding;
@@ -161,13 +188,12 @@ public sealed partial class LogicalPlanBuilder
     private static string ResolveAggregateColumnName(
         string? outputName,
         RefreshMethodCapture refresh,
-        string resolvedIdentifier)
+        string resolvedIdentifier
+    )
     {
         if (!string.IsNullOrWhiteSpace(outputName))
             return outputName;
 
-        return !string.IsNullOrWhiteSpace(refresh.DisplayName)
-            ? refresh.DisplayName
-            : resolvedIdentifier;
+        return !string.IsNullOrWhiteSpace(refresh.DisplayName) ? refresh.DisplayName : resolvedIdentifier;
     }
 }

@@ -3,10 +3,32 @@ using System.Linq;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-internal enum ExecutionByteBufferStepKind { Skip, Take, CheckedRange, NullWhenEmpty }
-internal enum ExecutionByteBufferResultKind { Snapshot, Length, View }
-internal enum ExecutionByteBufferEmptyAllocation { Shared, Fresh }
-internal readonly record struct ExecutionByteBufferStep(ExecutionByteBufferStepKind Kind, int Argument, int LengthArgument);
+internal enum ExecutionByteBufferStepKind
+{
+    Skip,
+    Take,
+    CheckedRange,
+    NullWhenEmpty,
+}
+
+internal enum ExecutionByteBufferResultKind
+{
+    Snapshot,
+    Length,
+    View,
+}
+
+internal enum ExecutionByteBufferEmptyAllocation
+{
+    Shared,
+    Fresh,
+}
+
+internal readonly record struct ExecutionByteBufferStep(
+    ExecutionByteBufferStepKind Kind,
+    int Argument,
+    int LengthArgument
+);
 
 internal sealed record ExecutionByteBufferProgram
 {
@@ -29,16 +51,21 @@ internal sealed record ExecutionByteBufferProgram
     internal ExecutionByteBufferResultKind Result { get; init; }
     internal ExecutionByteBufferEmptyAllocation EmptyAllocation { get; init; }
     internal ExecutionMethodCall? Concatenation { get; init; }
-    internal bool RequiresSnapshotService => Steps.Any(step => step.Kind == ExecutionByteBufferStepKind.CheckedRange) ||
-        SegmentCount == 0 && Result != ExecutionByteBufferResultKind.Length;
+    internal bool RequiresSnapshotService =>
+        Steps.Any(step => step.Kind == ExecutionByteBufferStepKind.CheckedRange)
+        || SegmentCount == 0 && Result != ExecutionByteBufferResultKind.Length;
 
     internal IEnumerable<ExecutionExpression> Children => Concatenation is null ? Inputs : Inputs.Append(Concatenation);
-    internal ExecutionExpression? ChildAt(int index) => index < Inputs.Count
-        ? Inputs[index] : index == Inputs.Count ? Concatenation : null;
 
-    internal ExecutionByteBufferProgram Rewrite(Func<ExecutionExpression, ExecutionExpression> rewrite) => this with
-    {
-        Inputs = Inputs.Select(rewrite).ToArray(),
-        Concatenation = Concatenation is null ? null : (ExecutionMethodCall)rewrite(Concatenation)
-    };
+    internal ExecutionExpression? ChildAt(int index) =>
+        index < Inputs.Count ? Inputs[index]
+        : index == Inputs.Count ? Concatenation
+        : null;
+
+    internal ExecutionByteBufferProgram Rewrite(Func<ExecutionExpression, ExecutionExpression> rewrite) =>
+        this with
+        {
+            Inputs = Inputs.Select(rewrite).ToArray(),
+            Concatenation = Concatenation is null ? null : (ExecutionMethodCall)rewrite(Concatenation),
+        };
 }

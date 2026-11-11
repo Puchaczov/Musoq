@@ -10,7 +10,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (output is null)
             return content.Contains("BaseOperations, ITableRunnable,", StringComparison.Ordinal);
         var type = Musoq.Evaluator.Helpers.EvaluationHelper.GetCastableType(output);
-        return content.Contains($"BaseOperations, ITypedRunnable<{type}>", StringComparison.Ordinal) &&
-               content.Contains("ITypedParameterizedRunnable", StringComparison.Ordinal);
+        return content.Contains($"BaseOperations, ITypedRunnable<{type}>", StringComparison.Ordinal)
+            && content.Contains("ITypedParameterizedRunnable", StringComparison.Ordinal);
     }
 }

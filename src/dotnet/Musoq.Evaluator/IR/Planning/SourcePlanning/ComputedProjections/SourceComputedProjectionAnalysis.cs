@@ -10,28 +10,36 @@ namespace Musoq.Evaluator.IR.Planning.SourcePlanning;
 
 internal sealed record SourceComputedTransferPlan(
     IReadOnlyList<SourceComputedProjectionBinding> Bindings,
-    FrozenSet<string> UnusedSourceColumns);
+    FrozenSet<string> UnusedSourceColumns
+);
 
 internal sealed record SourceComputedProjectionAnalysis(
     IReadOnlyList<SourceComputedProjectionBinding> Offers,
     IReadOnlyDictionary<IrExpression, FrozenSet<string>> InputsByExpression,
     FrozenSet<string> RequiredOutsideProjection,
-    int DeclinedForTransferCost)
+    int DeclinedForTransferCost
+)
 {
     internal static SourceComputedProjectionAnalysis Empty { get; } =
         new([], FrozenDictionary<IrExpression, FrozenSet<string>>.Empty, FrozenSet<string>.Empty, 0);
 
-    internal SourceComputedTransferPlan? ResolveValidatedAcceptance(SourcePlanResult result,
-        CancellationToken cancellationToken)
+    internal SourceComputedTransferPlan? ResolveValidatedAcceptance(
+        SourcePlanResult result,
+        CancellationToken cancellationToken
+    )
     {
         if (result.AcceptedComputedProjections.Count == 0)
             return null;
 
-        var acceptedNames = result.AcceptedComputedProjections.Select(static projection => projection.Name)
+        var acceptedNames = result
+            .AcceptedComputedProjections.Select(static projection => projection.Name)
             .ToHashSet(StringComparer.Ordinal);
         var bindings = Offers.Where(binding => acceptedNames.Contains(binding.Projection.Name)).ToArray();
         if (bindings.Length != acceptedNames.Count)
-            throw new SourcePlanContractException("Accepted computed projections lost their planner bindings.", TextSpan.Empty);
+            throw new SourcePlanContractException(
+                "Accepted computed projections lost their planner bindings.",
+                TextSpan.Empty
+            );
 
         var accepted = bindings.Select(static binding => binding.Expression).ToHashSet();
         var liveInputs = RequiredOutsideProjection.ToHashSet(StringComparer.Ordinal);
@@ -46,7 +54,9 @@ internal sealed record SourceComputedProjectionAnalysis(
         }
 
         providerInputs.ExceptWith(liveInputs);
-        return new SourceComputedTransferPlan(Array.AsReadOnly(bindings),
-            providerInputs.ToFrozenSet(StringComparer.Ordinal));
+        return new SourceComputedTransferPlan(
+            Array.AsReadOnly(bindings),
+            providerInputs.ToFrozenSet(StringComparer.Ordinal)
+        );
     }
 }

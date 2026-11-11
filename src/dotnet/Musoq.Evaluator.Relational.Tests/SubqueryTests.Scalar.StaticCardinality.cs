@@ -16,9 +16,9 @@ public partial class SubqueryTests
     {
         using var compiled = CompileStaticScalarCardinality();
         var failure = Assert.Throws<Musoq.Evaluator.Exceptions.QueryExecutionException>(() =>
-            _ = compiled.Run(TestContext.CancellationToken).Count);
-        MusoqExceptionAssertions.AssertRuntimeError(failure,
-            DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
+            _ = compiled.Run(TestContext.CancellationToken).Count
+        );
+        MusoqExceptionAssertions.AssertRuntimeError(failure, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
         Assert.IsNotNull(failure.Envelope);
         Assert.AreEqual("Scalar subquery returned more than one row.", failure.Envelope.Message);
         Assert.IsNotEmpty(failure.Envelope.SuggestedFixes);
@@ -26,7 +26,9 @@ public partial class SubqueryTests
 
     private CompiledQuery CompileStaticScalarCardinality()
     {
-        return CreateAndRunVirtualMachine(StaticScalarCardinalityQuery,
-            new Dictionary<string, IEnumerable<BasicEntity>>());
+        return CreateAndRunVirtualMachine(
+            StaticScalarCardinalityQuery,
+            new Dictionary<string, IEnumerable<BasicEntity>>()
+        );
     }
 }

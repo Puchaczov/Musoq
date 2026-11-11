@@ -6,15 +6,14 @@ namespace Musoq.Evaluator.IR.Optimization.Physical;
 
 internal sealed record PhysicalOptimizationFacts(
     SourceRewriteFacts SourceRewrite,
-    IReadOnlyList<CardinalityFact> CardinalityFacts)
+    IReadOnlyList<CardinalityFact> CardinalityFacts
+)
 {
     public static PhysicalOptimizationFacts From(PlanProperties properties)
     {
         ArgumentNullException.ThrowIfNull(properties);
 
-        return new PhysicalOptimizationFacts(
-            SourceRewriteFacts.From(properties),
-            properties.Cardinality.Facts);
+        return new PhysicalOptimizationFacts(SourceRewriteFacts.From(properties), properties.Cardinality.Facts);
     }
 
     public PlanProperties ApplyTo(PlanProperties properties)
@@ -23,8 +22,7 @@ internal sealed record PhysicalOptimizationFacts(
 
         return SourceRewrite.ApplyTo(properties) with
         {
-            CardinalityFacts = CardinalityFacts
+            CardinalityFacts = CardinalityFacts,
         };
     }
 }
-

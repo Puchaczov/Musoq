@@ -26,8 +26,8 @@ internal sealed partial class ParallelStrategyPlanner
             return [];
         }
 
-        var definitionNames = node.Definitions
-            .Select(static definition => definition.Name)
+        var definitionNames = node
+            .Definitions.Select(static definition => definition.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var levels = new List<PlannedParallelCteLevel>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -70,5 +70,4 @@ internal sealed partial class ParallelStrategyPlanner
         reason = $"CTE dependency plan provides {levels.Count} parallel level(s).";
         return levels;
     }
-
 }

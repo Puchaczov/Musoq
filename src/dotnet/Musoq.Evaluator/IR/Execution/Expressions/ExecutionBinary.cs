@@ -6,7 +6,8 @@ public sealed record ExecutionBinary(
     BinaryOpKind Kind,
     ExecutionExpression Left,
     ExecutionExpression Right,
-    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+    ExecutionTypeRef ReturnType
+) : ExecutionExpression(ReturnType)
 {
     /// <summary>Logical right operands are evaluated only when the left value does not determine the result.</summary>
     public bool IsShortCircuiting => Kind is BinaryOpKind.And or BinaryOpKind.Or;
@@ -18,12 +19,6 @@ public sealed record ExecutionBinary(
     /// </summary>
     public bool UsesSqlNullSemantics { get; init; }
 
-    internal ExecutionBinary(
-        BinaryOpKind kind,
-        ExecutionExpression left,
-        ExecutionExpression right,
-        Type returnType)
-        : this(kind, left, right, ExecutionClrBindingFactory.FromClr(returnType))
-    {
-    }
+    internal ExecutionBinary(BinaryOpKind kind, ExecutionExpression left, ExecutionExpression right, Type returnType)
+        : this(kind, left, right, ExecutionClrBindingFactory.FromClr(returnType)) { }
 }

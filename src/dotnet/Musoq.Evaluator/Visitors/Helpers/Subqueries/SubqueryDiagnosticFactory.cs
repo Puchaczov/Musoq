@@ -11,14 +11,16 @@ internal static class SubqueryDiagnosticFactory
 {
     private const string VisitorName = "SubqueryToCteRewriteVisitor";
 
-    internal static bool IsInvalidSubquery(VisitorException exception) => exception.Code == DiagnosticCode.MQ2024_InvalidSubquery;
+    internal static bool IsInvalidSubquery(VisitorException exception) =>
+        exception.Code == DiagnosticCode.MQ2024_InvalidSubquery;
 
     public static VisitorException InvalidSubquery(
         string operation,
         string message,
         Node node,
         IReadOnlyDictionary<string, string>? arguments = null,
-        IReadOnlyList<DiagnosticAction>? suggestedFixes = null)
+        IReadOnlyList<DiagnosticAction>? suggestedFixes = null
+    )
     {
         return InvalidSubquery(operation, message, GetSpan(node), arguments, suggestedFixes);
     }
@@ -28,7 +30,8 @@ internal static class SubqueryDiagnosticFactory
         string message,
         TextSpan span,
         IReadOnlyDictionary<string, string>? arguments = null,
-        IReadOnlyList<DiagnosticAction>? suggestedFixes = null)
+        IReadOnlyList<DiagnosticAction>? suggestedFixes = null
+    )
     {
         return new VisitorException(
             VisitorName,
@@ -37,12 +40,11 @@ internal static class SubqueryDiagnosticFactory
             DiagnosticCode.MQ2024_InvalidSubquery,
             span,
             arguments,
-            suggestedFixes);
+            suggestedFixes
+        );
     }
 
-    public static VisitorException CteDefinitionConsumesOuterAlias(
-        IReadOnlySet<string> aliases,
-        TextSpan span)
+    public static VisitorException CteDefinitionConsumesOuterAlias(IReadOnlySet<string> aliases, TextSpan span)
     {
         var outerAliases = string.Join(", ", aliases.OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase));
         return InvalidSubquery(
@@ -53,15 +55,17 @@ internal static class SubqueryDiagnosticFactory
             {
                 ["constraint"] = "cte-definition-outer-alias",
                 ["outerAliases"] = outerAliases,
-                ["allowedScope"] = "CTE body-local sources only"
-            });
+                ["allowedScope"] = "CTE body-local sources only",
+            }
+        );
     }
 
     public static VisitorException CteDefinitionConsumesOuterAlias(SubqueryCorrelationAnalysis analysis)
     {
         return CteDefinitionConsumesOuterAlias(
             analysis.IllegalOuterConsumingCteAliases,
-            analysis.IllegalOuterConsumingCteReferenceSpan);
+            analysis.IllegalOuterConsumingCteReferenceSpan
+        );
     }
 
     private static TextSpan GetSpan(Node node)

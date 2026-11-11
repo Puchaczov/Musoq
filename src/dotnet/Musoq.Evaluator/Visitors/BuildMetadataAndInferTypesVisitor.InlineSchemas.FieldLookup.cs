@@ -11,9 +11,11 @@ public partial class BuildMetadataAndInferTypesVisitor
     private BinarySwitchTypeNode? FindSwitchSchemaType(string fieldName) =>
         FindBinaryCompositionType<BinarySwitchTypeNode>(fieldName);
 
-    private T? FindBinaryCompositionType<T>(string fieldName) where T : TypeAnnotationNode
+    private T? FindBinaryCompositionType<T>(string fieldName)
+        where T : TypeAnnotationNode
     {
-        if (SchemaRegistry == null) return null;
+        if (SchemaRegistry == null)
+            return null;
         foreach (var registration in SchemaRegistry.Schemas)
             if (registration.Node is BinarySchemaNode binary)
                 foreach (var (name, type) in BinaryCompositionTypes.EnumerateFields(GetAllBinarySchemaFields(binary)))
@@ -40,16 +42,19 @@ public partial class BuildMetadataAndInferTypesVisitor
     }
 
     private (Type ClrType, string? IntendedTypeName) ResolveBinaryFieldClrTypeWithIntendedName(
-        FieldDefinitionNode field)
+        FieldDefinitionNode field
+    )
     {
         return ResolveBinaryFieldClrTypeWithIntendedName(
             field,
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        );
     }
 
     private (Type ClrType, string? IntendedTypeName) ResolveBinaryFieldClrTypeWithIntendedName(
         FieldDefinitionNode field,
-        IReadOnlyDictionary<string, string> typeParamMap)
+        IReadOnlyDictionary<string, string> typeParamMap
+    )
     {
         if (field.TypeAnnotation is BinarySwitchTypeNode)
             return (typeof(object), CreateSwitchSchemaIntendedTypeName(field.Name));

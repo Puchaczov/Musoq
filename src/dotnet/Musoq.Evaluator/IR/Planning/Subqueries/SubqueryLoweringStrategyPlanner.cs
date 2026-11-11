@@ -17,15 +17,13 @@ internal static class SubqueryLoweringStrategyPlanner
         CollectDefinitions(physicalPlan, definitions);
         Visit(physicalPlan, definitions, strategies);
 
-        var ordered = strategies.Values
-            .OrderBy(static strategy => strategy.CteName, StringComparer.OrdinalIgnoreCase)
+        var ordered = strategies
+            .Values.OrderBy(static strategy => strategy.CteName, StringComparer.OrdinalIgnoreCase)
             .ToArray();
         return new SubqueryLoweringStrategyPlanningResult(ordered, ordered.Select(CreateDecision).ToArray());
     }
 
-    private static void CollectDefinitions(
-        PhysicalNode node,
-        Dictionary<string, PhysicalCteDefinition> definitions)
+    private static void CollectDefinitions(PhysicalNode node, Dictionary<string, PhysicalCteDefinition> definitions)
     {
         if (node is PhysicalCteNode cte)
         {
@@ -46,18 +44,40 @@ internal static class SubqueryLoweringStrategyPlanner
     private static void Visit(
         PhysicalNode node,
         IReadOnlyDictionary<string, PhysicalCteDefinition> definitions,
-        Dictionary<string, SubqueryLoweringStrategyDecision> strategies)
+        Dictionary<string, SubqueryLoweringStrategyDecision> strategies
+    )
     {
         switch (node)
         {
             case PhysicalHashJoinNode hashJoin:
-                RecordJoin(hashJoin.Kind, hashJoin.Left, hashJoin.Right, usesRangeIndex: false, definitions, strategies);
+                RecordJoin(
+                    hashJoin.Kind,
+                    hashJoin.Left,
+                    hashJoin.Right,
+                    usesRangeIndex: false,
+                    definitions,
+                    strategies
+                );
                 break;
             case PhysicalNestedLoopJoinNode nestedJoin:
-                RecordJoin(nestedJoin.Kind, nestedJoin.Left, nestedJoin.Right, usesRangeIndex: false, definitions, strategies);
+                RecordJoin(
+                    nestedJoin.Kind,
+                    nestedJoin.Left,
+                    nestedJoin.Right,
+                    usesRangeIndex: false,
+                    definitions,
+                    strategies
+                );
                 break;
             case PhysicalSortMergeJoinNode sortMergeJoin:
-                RecordJoin(sortMergeJoin.Kind, sortMergeJoin.Left, sortMergeJoin.Right, usesRangeIndex: true, definitions, strategies);
+                RecordJoin(
+                    sortMergeJoin.Kind,
+                    sortMergeJoin.Left,
+                    sortMergeJoin.Right,
+                    usesRangeIndex: true,
+                    definitions,
+                    strategies
+                );
                 break;
             case PhysicalCteRefNode cteRef:
                 RecordCteRef(cteRef, null, usesRangeIndex: false, definitions, strategies);
@@ -74,7 +94,8 @@ internal static class SubqueryLoweringStrategyPlanner
         PhysicalNode right,
         bool usesRangeIndex,
         IReadOnlyDictionary<string, PhysicalCteDefinition> definitions,
-        Dictionary<string, SubqueryLoweringStrategyDecision> strategies)
+        Dictionary<string, SubqueryLoweringStrategyDecision> strategies
+    )
     {
         if (TryGetBoundaryCteRef(left, out var leftCte))
             RecordCteRef(leftCte, kind, usesRangeIndex, definitions, strategies);
@@ -88,7 +109,8 @@ internal static class SubqueryLoweringStrategyPlanner
         JoinKind? joinKind,
         bool usesRangeIndex,
         IReadOnlyDictionary<string, PhysicalCteDefinition> definitions,
-        Dictionary<string, SubqueryLoweringStrategyDecision> strategies)
+        Dictionary<string, SubqueryLoweringStrategyDecision> strategies
+    )
     {
         if (!IsGeneratedSubqueryCte(cteRef.CteName) || strategies.ContainsKey(cteRef.CteName))
             return;
@@ -99,10 +121,14 @@ internal static class SubqueryLoweringStrategyPlanner
             Classify(cteRef.CteName, joinKind, usesRangeIndex, definition),
             joinKind,
             IsCorrelated(definition),
-            CreateReason(cteRef.CteName, joinKind, usesRangeIndex, definition));
+            CreateReason(cteRef.CteName, joinKind, usesRangeIndex, definition)
+        );
     }
 
-    private static bool TryGetBoundaryCteRef(PhysicalNode node, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out PhysicalCteRefNode? cteRef)
+    private static bool TryGetBoundaryCteRef(
+        PhysicalNode node,
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out PhysicalCteRefNode? cteRef
+    )
     {
         switch (node)
         {
@@ -123,7 +149,8 @@ internal static class SubqueryLoweringStrategyPlanner
         string cteName,
         JoinKind? joinKind,
         bool usesRangeIndex,
-        PhysicalCteDefinition? definition)
+        PhysicalCteDefinition? definition
+    )
     {
         if (GeneratedSubqueryContract.IsDerivedTableCteName(cteName))
             return joinKind.HasValue ? SubqueryLoweringKind.DerivedTableJoin : SubqueryLoweringKind.DerivedTableScan;
@@ -149,7 +176,7 @@ internal static class SubqueryLoweringStrategyPlanner
             JoinKind.LeftMark => usesRangeIndex
                 ? SubqueryLoweringKind.PredicateRangeMark
                 : SubqueryLoweringKind.PredicateHashMark,
-            _ => SubqueryLoweringKind.PredicateCte
+            _ => SubqueryLoweringKind.PredicateCte,
         };
     }
 
@@ -161,14 +188,16 @@ internal static class SubqueryLoweringStrategyPlanner
             strategy.CteName,
             strategy.Kind.ToString(),
             PlanningConfidence.High,
-            strategy.Reason);
+            strategy.Reason
+        );
     }
 
     private static string CreateReason(
         string cteName,
         JoinKind? joinKind,
         bool usesRangeIndex,
-        PhysicalCteDefinition? definition)
+        PhysicalCteDefinition? definition
+    )
     {
         var correlation = IsCorrelated(definition) ? "correlated" : "uncorrelated";
         var joinText = joinKind.HasValue
@@ -185,7 +214,8 @@ internal static class SubqueryLoweringStrategyPlanner
     private static bool IsCorrelated(PhysicalCteDefinition? definition)
     {
         return definition?.Plan.OutputSchema.Columns.Any(static column =>
-            GeneratedSubqueryContract.IsCorrelationColumnName(column.Name)) == true;
+                GeneratedSubqueryContract.IsCorrelationColumnName(column.Name)
+            ) == true;
     }
 
     private static bool HasColumn(PhysicalCteDefinition? definition, string columnName)

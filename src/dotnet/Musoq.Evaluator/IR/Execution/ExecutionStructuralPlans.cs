@@ -11,11 +11,13 @@ public sealed record ExecutionStructuralFieldPlan(
     bool Required,
     bool HasDefault,
     string? DefaultText,
-    ExecutionStructuralShape? Shape = null)
+    ExecutionStructuralShape? Shape = null
+)
 {
-    public string Name { get; } = string.IsNullOrWhiteSpace(Name)
-        ? throw new ArgumentException("Structural field name cannot be empty.", nameof(Name))
-        : Name;
+    public string Name { get; } =
+        string.IsNullOrWhiteSpace(Name)
+            ? throw new ArgumentException("Structural field name cannot be empty.", nameof(Name))
+            : Name;
 
     public ExecutionTypeRef Type { get; } = Type ?? throw new ArgumentNullException(nameof(Type));
 
@@ -34,7 +36,8 @@ public sealed record ExecutionStructuralShape
         IEnumerable<ExecutionStructuralFieldPlan>? fields,
         ExecutionTypeRef? elementType,
         bool nullable,
-        ExecutionStructuralShape? elementShape = null)
+        ExecutionStructuralShape? elementShape = null
+    )
     {
         if (kind == StructuralTypeKind.Scalar && scalarType == null)
             throw new ArgumentNullException(nameof(scalarType));
@@ -68,9 +71,12 @@ public sealed record ExecutionStructuralShape
         Kind switch
         {
             StructuralTypeKind.Scalar => ScalarType!.DisplayName + (IsNullable ? "?" : string.Empty),
-            StructuralTypeKind.Record => $"({string.Join(", ", Fields.Select(static slot => $"{slot.Name}: {(slot.Shape?.CanonicalType ?? slot.Type.DisplayName)}{(slot.HasDefault ? $" = {slot.DefaultText ?? "null"}" : string.Empty)}"))})" + (IsNullable ? "?" : string.Empty),
-            StructuralTypeKind.Collection => $"{(ElementShape?.CanonicalType ?? ElementType!.DisplayName)}[]{(IsNullable ? "?" : string.Empty)}",
-            _ => throw new InvalidOperationException($"Unknown structural type '{Kind}'.")
+            StructuralTypeKind.Record =>
+                $"({string.Join(", ", Fields.Select(static slot => $"{slot.Name}: {(slot.Shape?.CanonicalType ?? slot.Type.DisplayName)}{(slot.HasDefault ? $" = {slot.DefaultText ?? "null"}" : string.Empty)}"))})"
+                    + (IsNullable ? "?" : string.Empty),
+            StructuralTypeKind.Collection =>
+                $"{(ElementShape?.CanonicalType ?? ElementType!.DisplayName)}[]{(IsNullable ? "?" : string.Empty)}",
+            _ => throw new InvalidOperationException($"Unknown structural type '{Kind}'."),
         };
 }
 
@@ -80,7 +86,7 @@ public enum ExecutionStructuralInputOrigin
     Inline,
     Let,
     Parameter,
-    Cte
+    Cte,
 }
 
 /// <summary>Describes how a structural value's resource usage is measured.</summary>
@@ -89,7 +95,7 @@ public enum ExecutionStructuralMetricsStrategy
     None,
     CompileTime,
     Runtime,
-    TypedPrepass
+    TypedPrepass,
 }
 
 /// <summary>Describes ownership of storage passed to a receiving source.</summary>
@@ -98,7 +104,7 @@ public enum ExecutionStructuralOwnershipMode
     Borrowed,
     Transfer,
     Copy,
-    ConstructFresh
+    ConstructFresh,
 }
 
 /// <summary>Portable resource limits for one structural input root.</summary>
@@ -126,8 +132,7 @@ public readonly record struct ExecutionStructuralLimitPlan
 
     public long MaxStringBytes { get; }
 
-    public override string ToString() =>
-        $"depth={MaxDepth};nodes={MaxNodes};strings={MaxStringBytes}";
+    public override string ToString() => $"depth={MaxDepth};nodes={MaxNodes};strings={MaxStringBytes}";
 }
 
 /// <summary>Limit metadata attached to one structural value at a source demand boundary.</summary>
@@ -135,11 +140,13 @@ public sealed record ExecutionStructuralLimitBinding(
     ExecutionStructuralLimitPlan Limits,
     ExecutionStructuralInputOrigin Origin,
     string Path,
-    string? SourceContextId = null)
+    string? SourceContextId = null
+)
 {
-    public string Path { get; } = string.IsNullOrWhiteSpace(Path)
-        ? throw new ArgumentException("A structural input path is required.", nameof(Path))
-        : Path;
+    public string Path { get; } =
+        string.IsNullOrWhiteSpace(Path)
+            ? throw new ArgumentException("A structural input path is required.", nameof(Path))
+            : Path;
 }
 
 /// <summary>Controls where a prepared structural value is retained.</summary>
@@ -147,7 +154,7 @@ public enum ExecutionStructuralPreparationLifetime
 {
     Inline,
     Statement,
-    Execution
+    Execution,
 }
 
 /// <summary>Portable indexed construction plan consumed by a target renderer.</summary>
@@ -163,12 +170,15 @@ public sealed record ExecutionStructuralConstructionPlan
         ExecutionStructuralLimitPlan? limits = null,
         ExecutionStructuralInputOrigin origin = ExecutionStructuralInputOrigin.Inline,
         ExecutionStructuralMetricsStrategy metricsStrategy = ExecutionStructuralMetricsStrategy.Runtime,
-        ExecutionStructuralOwnershipMode ownership = ExecutionStructuralOwnershipMode.ConstructFresh)
+        ExecutionStructuralOwnershipMode ownership = ExecutionStructuralOwnershipMode.ConstructFresh
+    )
     {
         TargetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
         Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
         InputShape = inputShape ?? throw new ArgumentNullException(nameof(inputShape));
-        SourceFieldIndexes = Array.AsReadOnly((sourceFieldIndexes ?? throw new ArgumentNullException(nameof(sourceFieldIndexes))).ToArray());
+        SourceFieldIndexes = Array.AsReadOnly(
+            (sourceFieldIndexes ?? throw new ArgumentNullException(nameof(sourceFieldIndexes))).ToArray()
+        );
         Defaults = Array.AsReadOnly((defaults ?? throw new ArgumentNullException(nameof(defaults))).ToArray());
         Lifetime = lifetime;
         Limits = limits ?? ExecutionStructuralLimitPlan.Default;
@@ -176,9 +186,14 @@ public sealed record ExecutionStructuralConstructionPlan
         MetricsStrategy = metricsStrategy;
         Ownership = ownership;
 
-        if (SourceFieldIndexes.Count != Constructor.Descriptor.ParameterTypes.Count ||
-            Defaults.Count != SourceFieldIndexes.Count)
-            throw new ArgumentException("Construction slot metadata must match constructor arity.", nameof(sourceFieldIndexes));
+        if (
+            SourceFieldIndexes.Count != Constructor.Descriptor.ParameterTypes.Count
+            || Defaults.Count != SourceFieldIndexes.Count
+        )
+            throw new ArgumentException(
+                "Construction slot metadata must match constructor arity.",
+                nameof(sourceFieldIndexes)
+            );
     }
 
     public ExecutionTypeRef TargetType { get; }
@@ -203,7 +218,7 @@ public sealed record ExecutionStructuralConstructionPlan
 
     /// <summary>Gets a stable metadata representation used by plan fingerprints.</summary>
     public string MetadataFingerprint =>
-        $"target={TargetType.StableId};constructor={Constructor.StableId};shape={InputShape.CanonicalType};" +
-        $"lifetime={Lifetime};origin={Origin};metrics={MetricsStrategy};ownership={Ownership};limits={Limits};" +
-        $"indexes={string.Join(',', SourceFieldIndexes)};defaults={string.Join(',', Defaults.Select(static value => value?.ToString() ?? "-"))}";
+        $"target={TargetType.StableId};constructor={Constructor.StableId};shape={InputShape.CanonicalType};"
+        + $"lifetime={Lifetime};origin={Origin};metrics={MetricsStrategy};ownership={Ownership};limits={Limits};"
+        + $"indexes={string.Join(',', SourceFieldIndexes)};defaults={string.Join(',', Defaults.Select(static value => value?.ToString() ?? "-"))}";
 }

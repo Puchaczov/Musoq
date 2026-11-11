@@ -17,12 +17,18 @@ public sealed class DiagnosticUx061KeywordMisspellingsTests
     [DataRow("SELECT 1 FROM #system.dual() d GROPU BY 1", "GROPU", "GROUP", DiagnosticCode.MQ2001_UnexpectedToken)]
     [DataRow("SELECT 1 FROM #system.dual() d ORDRE BY 1", "ORDRE", "ORDER", DiagnosticCode.MQ2001_UnexpectedToken)]
     [DataRow("SELECT 1 FROM #system.dual() d HAVIGN 1 = 1", "HAVIGN", "HAVING", DiagnosticCode.MQ2001_UnexpectedToken)]
-    [DataRow("SELECT 1 FROM #system.dual() a JION #system.dual() b ON 1 = 1", "JION", "JOIN", DiagnosticCode.MQ2001_UnexpectedToken)]
+    [DataRow(
+        "SELECT 1 FROM #system.dual() a JION #system.dual() b ON 1 = 1",
+        "JION",
+        "JOIN",
+        DiagnosticCode.MQ2001_UnexpectedToken
+    )]
     public void SingleEditAndTransposedKeyword_ShouldReportLocatedSuggestion(
         string query,
         string misspelling,
         string replacement,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var result = ParseWithDiagnostics(query);
 
@@ -68,8 +74,7 @@ public sealed class DiagnosticUx061KeywordMisspellingsTests
     [TestMethod]
     public void CorrectKeywordCasing_ShouldRemainValid()
     {
-        const string query =
-            "sElEcT 1 fRoM #system.dual() d wHeRe 1 = 1 gRoUp By 1 hAvInG 1 = 1 oRdEr By 1";
+        const string query = "sElEcT 1 fRoM #system.dual() d wHeRe 1 = 1 gRoUp By 1 hAvInG 1 = 1 oRdEr By 1";
         var result = ParseWithDiagnostics(query);
 
         Assert.IsTrue(result.Success, result.FormatDiagnostics());

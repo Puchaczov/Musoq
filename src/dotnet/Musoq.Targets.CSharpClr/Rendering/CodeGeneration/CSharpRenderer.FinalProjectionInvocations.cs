@@ -15,7 +15,7 @@ public sealed partial class CSharpRenderer
         TypedChunkedValuesParallel,
         TableRowsSerial,
         TableRowsParallel,
-        TableChunkedRowsParallel
+        TableChunkedRowsParallel,
     }
 
     private sealed record FinalProjectionInvocationSpec(
@@ -25,19 +25,27 @@ public sealed partial class CSharpRenderer
         string RowsName,
         ExpressionSyntax Predicate,
         ExpressionSyntax Projection,
-        int MaxDegreeOfParallelism = 0);
+        int MaxDegreeOfParallelism = 0
+    );
 
     private static InvocationExpressionSyntax CreateQueryRowsShardInvocation(
         string methodName,
-        ExpressionSyntax projectionInvocation)
+        ExpressionSyntax projectionInvocation
+    )
     {
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(QueryRows)),
-                    SyntaxFactory.IdentifierName(methodName)))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Argument(projectionInvocation))));
+                    SyntaxFactory.IdentifierName(methodName)
+                )
+            )
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(projectionInvocation))
+                )
+            );
     }
 
     private static InvocationExpressionSyntax CreateFinalProjectionInvocation(FinalProjectionInvocationSpec spec)
@@ -45,29 +53,35 @@ public sealed partial class CSharpRenderer
         var memberAccess = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(GetProjectionHelperName(spec.Kind)),
-            SyntaxFactory.GenericName(GetProjectionMethodName(spec.Kind))
-                .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(
-                [
-                    spec.SourceType,
-                    spec.ResultType
-                ]))));
+            SyntaxFactory
+                .GenericName(GetProjectionMethodName(spec.Kind))
+                .WithTypeArgumentList(
+                    SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList([spec.SourceType, spec.ResultType]))
+                )
+        );
         var arguments = new List<ArgumentSyntax>
         {
-            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(spec.RowsName))
+            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(spec.RowsName)),
         };
 
         if (IsParallelProjection(spec.Kind))
         {
-            arguments.Add(SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                SyntaxKind.NumericLiteralExpression,
-                SyntaxFactory.Literal(spec.MaxDegreeOfParallelism))));
+            arguments.Add(
+                SyntaxFactory.Argument(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.NumericLiteralExpression,
+                        SyntaxFactory.Literal(spec.MaxDegreeOfParallelism)
+                    )
+                )
+            );
         }
 
         arguments.Add(SyntaxFactory.Argument(spec.Predicate));
         arguments.Add(SyntaxFactory.Argument(spec.Projection));
         arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")));
 
-        return SyntaxFactory.InvocationExpression(memberAccess)
+        return SyntaxFactory
+            .InvocationExpression(memberAccess)
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
     }
 
@@ -75,13 +89,13 @@ public sealed partial class CSharpRenderer
     {
         return kind switch
         {
-            FinalProjectionInvocationKind.TypedValuesSerial or FinalProjectionInvocationKind.TypedValuesParallel
-                or FinalProjectionInvocationKind.TypedChunkedValuesParallel
-                => nameof(TypedProjectionRows),
+            FinalProjectionInvocationKind.TypedValuesSerial
+            or FinalProjectionInvocationKind.TypedValuesParallel
+            or FinalProjectionInvocationKind.TypedChunkedValuesParallel => nameof(TypedProjectionRows),
             FinalProjectionInvocationKind.TableRowsSerial => nameof(TableProjectionRows),
-            FinalProjectionInvocationKind.TableRowsParallel or FinalProjectionInvocationKind.TableChunkedRowsParallel
-                => nameof(EvaluationHelper),
-            _ => throw new InvalidOperationException($"Unsupported projection invocation kind '{kind}'.")
+            FinalProjectionInvocationKind.TableRowsParallel or FinalProjectionInvocationKind.TableChunkedRowsParallel =>
+                nameof(EvaluationHelper),
+            _ => throw new InvalidOperationException($"Unsupported projection invocation kind '{kind}'."),
         };
     }
 
@@ -91,19 +105,24 @@ public sealed partial class CSharpRenderer
         {
             FinalProjectionInvocationKind.TypedValuesSerial => nameof(TypedProjectionRows.ProjectValuesSerial),
             FinalProjectionInvocationKind.TypedValuesParallel => nameof(TypedProjectionRows.ProjectValuesParallel),
-            FinalProjectionInvocationKind.TypedChunkedValuesParallel => nameof(TypedProjectionRows.ProjectChunkedValuesParallel),
+            FinalProjectionInvocationKind.TypedChunkedValuesParallel => nameof(
+                TypedProjectionRows.ProjectChunkedValuesParallel
+            ),
             FinalProjectionInvocationKind.TableRowsSerial => nameof(TableProjectionRows.ProjectRowsSerial),
             FinalProjectionInvocationKind.TableRowsParallel => nameof(EvaluationHelper.ProjectRowsParallel),
-            FinalProjectionInvocationKind.TableChunkedRowsParallel => nameof(EvaluationHelper.ProjectChunkedRowsParallel),
-            _ => throw new InvalidOperationException($"Unsupported projection invocation kind '{kind}'.")
+            FinalProjectionInvocationKind.TableChunkedRowsParallel => nameof(
+                EvaluationHelper.ProjectChunkedRowsParallel
+            ),
+            _ => throw new InvalidOperationException($"Unsupported projection invocation kind '{kind}'."),
         };
     }
 
     private static bool IsParallelProjection(FinalProjectionInvocationKind kind)
     {
-        return kind is FinalProjectionInvocationKind.TypedValuesParallel
-            or FinalProjectionInvocationKind.TypedChunkedValuesParallel
-            or FinalProjectionInvocationKind.TableRowsParallel
-            or FinalProjectionInvocationKind.TableChunkedRowsParallel;
+        return kind
+            is FinalProjectionInvocationKind.TypedValuesParallel
+                or FinalProjectionInvocationKind.TypedChunkedValuesParallel
+                or FinalProjectionInvocationKind.TableRowsParallel
+                or FinalProjectionInvocationKind.TableChunkedRowsParallel;
     }
 }

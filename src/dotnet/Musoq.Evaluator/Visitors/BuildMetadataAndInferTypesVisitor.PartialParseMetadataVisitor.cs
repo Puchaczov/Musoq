@@ -9,7 +9,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitPartialParseCallNode);
 
-
         PushSemanticNode(new PartialParseCallNode(dataSource, node.SchemaName, node.ReturnType));
     }
 }

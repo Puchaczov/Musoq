@@ -13,8 +13,9 @@ public class RewriteFieldOrderedWithGroupMethodCall(FieldNode[] nodes)
     public override void Visit(FieldOrderedNode node)
     {
         base.Visit(node);
-        Expression = Nodes.Pop() as FieldOrderedNode
-                     ?? throw new InvalidOperationException("Expected a rewritten ordered field node.");
+        Expression =
+            Nodes.Pop() as FieldOrderedNode
+            ?? throw new InvalidOperationException("Expected a rewritten ordered field node.");
     }
 
     public override void Visit(AccessMethodNode node)

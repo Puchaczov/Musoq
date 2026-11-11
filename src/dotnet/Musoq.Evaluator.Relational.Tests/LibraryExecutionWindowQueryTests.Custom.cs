@@ -1,7 +1,6 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -16,13 +15,19 @@ public sealed partial class LibraryExecutionWindowQueryTests
                 GenericTotal(Amount) over (partition by Partition order by Position) as Decimals
             from #schema.first() order by Position
             """;
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)),
-            ("Integers", typeof(int?)), ("Decimals", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Position", typeof(int)),
+            ("Integers", typeof(int?)),
+            ("Decimals", typeof(decimal?))
+        );
         Assert.HasCount(5, rows);
         int?[] integers = [1, 3, 3, -3, 2];
         decimal?[] decimals = [1.25m, 4m, 4m, -3m, 2m];
@@ -46,13 +51,20 @@ public sealed partial class LibraryExecutionWindowQueryTests
                 PositiveCount(Amount) over (partition by Partition) as Positive
             from #schema.first() order by Position
             """;
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)), ("Scaled", typeof(decimal?)),
-            ("Seeded", typeof(decimal)), ("Positive", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Position", typeof(int)),
+            ("Scaled", typeof(decimal?)),
+            ("Seeded", typeof(decimal)),
+            ("Positive", typeof(long))
+        );
         Assert.HasCount(5, rows);
         decimal?[] scaled = [1.25m, 6.75m, 5.5m, -12m, 13m];
         decimal[] seeded = [101.25m, 104m, 104m, 97m, 102m];

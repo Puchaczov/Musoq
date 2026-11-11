@@ -7,10 +7,7 @@ public sealed record HashPayloadShape : RowShape
     private IReadOnlyList<FieldBinding> _fields = [];
     private IReadOnlyList<FieldBinding> _contexts = [];
 
-    public HashPayloadShape(
-        string typeName,
-        IReadOnlyList<FieldBinding> fields,
-        IReadOnlyList<FieldBinding> contexts)
+    public HashPayloadShape(string typeName, IReadOnlyList<FieldBinding> fields, IReadOnlyList<FieldBinding> contexts)
         : base(typeName, fields)
     {
         TypeName = typeName;
@@ -32,10 +29,6 @@ public sealed record HashPayloadShape : RowShape
         init => _contexts = ExecutionIrCollections.Freeze(value);
     }
 
-    public HashPayloadShape(
-        string typeName,
-        IReadOnlyList<FieldBinding> fields)
-        : this(typeName, fields, [])
-    {
-    }
+    public HashPayloadShape(string typeName, IReadOnlyList<FieldBinding> fields)
+        : this(typeName, fields, []) { }
 }

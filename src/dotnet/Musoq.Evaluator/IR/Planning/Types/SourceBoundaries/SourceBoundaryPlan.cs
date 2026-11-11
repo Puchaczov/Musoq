@@ -16,4 +16,5 @@ internal sealed record SourceBoundaryPlan(
     string[] InputAliases,
     string[] OutputAliases,
     PlanningConfidence Confidence,
-    string Reason);
+    string Reason
+);

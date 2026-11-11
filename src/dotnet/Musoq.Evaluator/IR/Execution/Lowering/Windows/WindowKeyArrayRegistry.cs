@@ -10,7 +10,8 @@ internal sealed class WindowKeyArrayRegistry
         string signature,
         ExecutionVariable candidate,
         ExecutionWindowKeyShape? shape = null,
-        bool shouldMaterialize = true)
+        bool shouldMaterialize = true
+    )
     {
         if (_arrays.TryGetValue(signature, out var array))
             return array with { ShouldExtract = false };

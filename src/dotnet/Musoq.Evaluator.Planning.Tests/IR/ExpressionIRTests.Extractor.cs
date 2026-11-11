@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public partial class ExpressionIrTests
 {
-
     [TestMethod]
     public void ColumnRefExtractor_WhenSingleColumn_ShouldReturnOne()
     {
@@ -63,8 +62,14 @@ public partial class ExpressionIrTests
         var branches = new[]
         {
             new CaseWhenBranch(
-                new BinaryOp(BinaryOpKind.Equal, new ColumnRef("t", "Status", typeof(int)), new Literal(1, typeof(int)), typeof(bool)),
-                new ColumnRef("t", "ActiveName", typeof(string)))
+                new BinaryOp(
+                    BinaryOpKind.Equal,
+                    new ColumnRef("t", "Status", typeof(int)),
+                    new Literal(1, typeof(int)),
+                    typeof(bool)
+                ),
+                new ColumnRef("t", "ActiveName", typeof(string))
+            ),
         };
         var caseWhen = new CaseWhen(branches, new ColumnRef("t", "DefaultName", typeof(string)), typeof(string));
 
@@ -95,7 +100,8 @@ public partial class ExpressionIrTests
             new ColumnRef("t", "Age", typeof(int)),
             new ColumnRef("t", "MinAge", typeof(int)),
             new ColumnRef("t", "MaxAge", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
 
         var result = ColumnRefExtractor.Extract(expr);
 
@@ -108,7 +114,8 @@ public partial class ExpressionIrTests
         var expr = new InCheck(
             new ColumnRef("t", "City", typeof(string)),
             [new ColumnRef("t", "HomeCity", typeof(string)), new Literal("NYC", typeof(string))],
-            typeof(bool));
+            typeof(bool)
+        );
 
         var result = ColumnRefExtractor.Extract(expr);
 
@@ -116,5 +123,4 @@ public partial class ExpressionIrTests
         Assert.AreEqual("City", result[0].ColumnName);
         Assert.AreEqual("HomeCity", result[1].ColumnName);
     }
-
 }

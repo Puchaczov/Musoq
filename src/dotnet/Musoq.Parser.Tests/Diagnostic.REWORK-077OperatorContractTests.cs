@@ -1,10 +1,10 @@
-using Musoq.Parser.Tokens;
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Tests;
 
@@ -43,7 +43,8 @@ public sealed class DiagnosticRework077OperatorContractTests
     [DataRow("NOT false", "NotNode")]
     public void OperatorTruthTable_ShouldBuildTheDocumentedNodeForEachSpelling(
         string expression,
-        string expectedNodeType)
+        string expectedNodeType
+    )
     {
         var parsed = ParseSelectExpression(expression);
 
@@ -105,7 +106,8 @@ public sealed class DiagnosticRework077OperatorContractTests
     [DataRow("left.Value not rlike right.Pattern", "NotNode")]
     public void PatternPredicate_QualifiedRightOperand_ShouldPreserveColumnAccess(
         string expression,
-        string expectedNodeType)
+        string expectedNodeType
+    )
     {
         var parsed = ParseWhereExpression(expression);
         Assert.AreEqual(expectedNodeType, parsed.GetType().Name);
@@ -115,7 +117,7 @@ public sealed class DiagnosticRework077OperatorContractTests
         {
             LikeNode like => like.Right,
             RLikeNode rlike => rlike.Right,
-            _ => throw new AssertFailedException($"Unexpected pattern node {pattern.GetType().Name}.")
+            _ => throw new AssertFailedException($"Unexpected pattern node {pattern.GetType().Name}."),
         };
         var access = Assert.IsInstanceOfType<DotNode>(right);
         Assert.AreEqual("right.Pattern", access.ToString());
@@ -138,7 +140,8 @@ public sealed class DiagnosticRework077OperatorContractTests
         Assert.IsTrue(isNotNull.IsNegated);
 
         var isNotDistinct = Assert.IsInstanceOfType<IsDistinctFromNode>(
-            ParseWhereExpression("1 is not distinct from 2"));
+            ParseWhereExpression("1 is not distinct from 2")
+        );
         Assert.IsTrue(isNotDistinct.IsNegated);
     }
 
@@ -149,7 +152,8 @@ public sealed class DiagnosticRework077OperatorContractTests
     public void QuantifiedSubqueryOperators_ShouldRetainQuantifierComparisonAndBody(string quantifier, TokenType token)
     {
         var expression = Assert.IsInstanceOfType<QuantifiedSubqueryNode>(
-            ParseWhereExpression($"1 > {quantifier} (select 1 from #some.a())"));
+            ParseWhereExpression($"1 > {quantifier} (select 1 from #some.a())")
+        );
         Assert.AreEqual(token, expression.Quantifier);
         Assert.AreEqual(TokenType.Greater, expression.Comparison);
         Assert.IsInstanceOfType<QueryNode>(expression.Subquery);
@@ -171,7 +175,14 @@ public sealed class DiagnosticRework077OperatorContractTests
 
         Assert.AreEqual("v", outerColumn.Alias);
         Assert.AreEqual(new TextSpan(query.IndexOf("where N", StringComparison.Ordinal) + 6, 1), outerColumn.Span);
-        Assert.AreEqual(new TextSpan(query.IndexOf("select N", query.IndexOf("where", StringComparison.Ordinal), StringComparison.Ordinal) + 7, 1), innerColumn.Span);
+        Assert.AreEqual(
+            new TextSpan(
+                query.IndexOf("select N", query.IndexOf("where", StringComparison.Ordinal), StringComparison.Ordinal)
+                    + 7,
+                1
+            ),
+            innerColumn.Span
+        );
     }
 
     [TestMethod]
@@ -186,131 +197,36 @@ public sealed class DiagnosticRework077OperatorContractTests
     }
 
     [TestMethod]
-    [DataRow(
-        "select 1 from #some.a() where 1 + * 2",
-        DiagnosticCode.MQ2019_InvalidOperator,
-        "*",
-        1)]
-    [DataRow(
-        "select 1 from #some.a() where 1 > < 2",
-        DiagnosticCode.MQ2019_InvalidOperator,
-        "<",
-        1)]
-    [DataRow(
-        "select 1 from #some.a() where 1 + )",
-        DiagnosticCode.MQ2020_MissingOperand,
-        ")",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 in ()",
-        DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
-        ")",
-        1)]
-    [DataRow(
-        "select 1 from #some.a() where 1 contains ()",
-        DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
-        ")",
-        1)]
-    [DataRow(
-        "select 1 from #some.a() where 1 2",
-        DiagnosticCode.MQ2018_MissingOperator,
-        "2",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 +",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 ??",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 >",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 like",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where true and",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 between 0 and",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 between 0",
-        DiagnosticCode.MQ2002_MissingToken,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 between 0 or 2",
-        DiagnosticCode.MQ2002_MissingToken,
-        "or",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 between and 3",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "and",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 is",
-        DiagnosticCode.MQ2002_MissingToken,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 is not",
-        DiagnosticCode.MQ2002_MissingToken,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 is not distinct from",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 in 1",
-        DiagnosticCode.MQ2002_MissingToken,
-        "1",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 contains 1",
-        DiagnosticCode.MQ2002_MissingToken,
-        "1",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 not like",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 not in ()",
-        DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
-        ")",
-        1)]
-    [DataRow(
-        "select 1 from #some.a() where 1 not in 1",
-        DiagnosticCode.MQ2002_MissingToken,
-        "1",
-        0)]
-    [DataRow(
-        "select 1 from #some.a() where 1 is distinct from",
-        DiagnosticCode.MQ2020_MissingOperand,
-        "",
-        0)]
+    [DataRow("select 1 from #some.a() where 1 + * 2", DiagnosticCode.MQ2019_InvalidOperator, "*", 1)]
+    [DataRow("select 1 from #some.a() where 1 > < 2", DiagnosticCode.MQ2019_InvalidOperator, "<", 1)]
+    [DataRow("select 1 from #some.a() where 1 + )", DiagnosticCode.MQ2020_MissingOperand, ")", 0)]
+    [DataRow("select 1 from #some.a() where 1 in ()", DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, ")", 1)]
+    [DataRow("select 1 from #some.a() where 1 contains ()", DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, ")", 1)]
+    [DataRow("select 1 from #some.a() where 1 2", DiagnosticCode.MQ2018_MissingOperator, "2", 0)]
+    [DataRow("select 1 from #some.a() where 1 +", DiagnosticCode.MQ2020_MissingOperand, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 ??", DiagnosticCode.MQ2020_MissingOperand, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 >", DiagnosticCode.MQ2020_MissingOperand, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 like", DiagnosticCode.MQ2020_MissingOperand, "", 0)]
+    [DataRow("select 1 from #some.a() where true and", DiagnosticCode.MQ2020_MissingOperand, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 between 0 and", DiagnosticCode.MQ2020_MissingOperand, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 between 0", DiagnosticCode.MQ2002_MissingToken, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 between 0 or 2", DiagnosticCode.MQ2002_MissingToken, "or", 0)]
+    [DataRow("select 1 from #some.a() where 1 between and 3", DiagnosticCode.MQ2020_MissingOperand, "and", 0)]
+    [DataRow("select 1 from #some.a() where 1 is", DiagnosticCode.MQ2002_MissingToken, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 is not", DiagnosticCode.MQ2002_MissingToken, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 is not distinct from", DiagnosticCode.MQ2020_MissingOperand, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 in 1", DiagnosticCode.MQ2002_MissingToken, "1", 0)]
+    [DataRow("select 1 from #some.a() where 1 contains 1", DiagnosticCode.MQ2002_MissingToken, "1", 0)]
+    [DataRow("select 1 from #some.a() where 1 not like", DiagnosticCode.MQ2020_MissingOperand, "", 0)]
+    [DataRow("select 1 from #some.a() where 1 not in ()", DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, ")", 1)]
+    [DataRow("select 1 from #some.a() where 1 not in 1", DiagnosticCode.MQ2002_MissingToken, "1", 0)]
+    [DataRow("select 1 from #some.a() where 1 is distinct from", DiagnosticCode.MQ2020_MissingOperand, "", 0)]
     public void InvalidOperatorForms_ShouldIdentifyTheRootCauseAndRepairLocation(
         string query,
         DiagnosticCode expectedCode,
         string offendingText,
-        int expectedLength)
+        int expectedLength
+    )
     {
         var result = ParseWithDiagnostics(query);
 
@@ -325,8 +241,7 @@ public sealed class DiagnosticRework077OperatorContractTests
         var offendingStart = string.IsNullOrEmpty(offendingText)
             ? query.Length
             : query.LastIndexOf(offendingText, StringComparison.Ordinal);
-        Assert.AreEqual(new TextSpan(offendingStart, expectedLength),
-            diagnostic.Span);
+        Assert.AreEqual(new TextSpan(offendingStart, expectedLength), diagnostic.Span);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.DocsReference));
@@ -348,9 +263,7 @@ public sealed class DiagnosticRework077OperatorContractTests
     [DataRow("select 1 from #some.a() where true and", "Operator 'and'")]
     [DataRow("select 1 from #some.a() where 1 between 0 and", "Operator 'BETWEEN'")]
     [DataRow("select 1 from #some.a() where 1 is not distinct from", "Operator 'IS NOT DISTINCT FROM'")]
-    public void MissingRightOperandDiagnostic_ShouldNameTheOperatorForRepair(
-        string query,
-        string expectedMessage)
+    public void MissingRightOperandDiagnostic_ShouldNameTheOperatorForRepair(string query, string expectedMessage)
     {
         var result = ParseWithDiagnostics(query);
 
@@ -368,8 +281,8 @@ public sealed class DiagnosticRework077OperatorContractTests
 
         var statements = (StatementsArrayNode)result.Root!.Expression;
         var statement = (SingleSetNode)statements.Statements.Single().Node;
-        return statement.Query.Where?.Expression ??
-               throw new InvalidOperationException("Expected the parsed query to contain a WHERE clause.");
+        return statement.Query.Where?.Expression
+            ?? throw new InvalidOperationException("Expected the parsed query to contain a WHERE clause.");
     }
 
     private static Node ParseSelectExpression(string expression)

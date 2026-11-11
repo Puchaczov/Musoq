@@ -14,7 +14,8 @@ public sealed record ExecutionParallelSingleKeyAggregateLoop(
     int Threshold,
     int CardinalitySampleSize,
     int MaxDistinctSample,
-    int MaxDegreeOfParallelism) : ExecutionNode
+    int MaxDegreeOfParallelism
+) : ExecutionNode
 {
     internal ExecutionParallelSingleKeyAggregateLoop(
         ExecutionVariable source,
@@ -30,7 +31,8 @@ public sealed record ExecutionParallelSingleKeyAggregateLoop(
         int threshold,
         int cardinalitySampleSize,
         int maxDistinctSample,
-        int maxDegreeOfParallelism)
+        int maxDegreeOfParallelism
+    )
         : this(
             source,
             sourceRows,
@@ -45,7 +47,6 @@ public sealed record ExecutionParallelSingleKeyAggregateLoop(
             threshold,
             cardinalitySampleSize,
             maxDistinctSample,
-            maxDegreeOfParallelism)
-    {
-    }
+            maxDegreeOfParallelism
+        ) { }
 }

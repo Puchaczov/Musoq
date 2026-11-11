@@ -17,22 +17,31 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
     [DataRow("left semi join")]
     public void SemiJoin_Synonyms_ShouldReturnOnlyDistinctLeftRows(string joinOperator)
     {
-        var query = $"select a.Id, a.Name from #A.Entities() a {joinOperator} #B.Entities() b on a.Id = b.Id and b.Population > 0";
+        var query =
+            $"select a.Id, a.Name from #A.Entities() a {joinOperator} #B.Entities() b on a.Id = b.Id and b.Population > 0";
 
-        var table = Run(query, CreateSources(
-            [
-                new BasicEntity { Id = 1, Name = "A1" },
-                new BasicEntity { Id = 2, Name = "A2" }
-            ],
-            [
-                new BasicEntity { Id = 1, Name = "B1", Population = 10 },
-                new BasicEntity { Id = 1, Name = "B1Duplicate", Population = 20 }
-            ]));
+        var table = Run(
+            query,
+            CreateSources(
+                [new BasicEntity { Id = 1, Name = "A1" }, new BasicEntity { Id = 2, Name = "A2" }],
+                [
+                    new BasicEntity
+                    {
+                        Id = 1,
+                        Name = "B1",
+                        Population = 10,
+                    },
+                    new BasicEntity
+                    {
+                        Id = 1,
+                        Name = "B1Duplicate",
+                        Population = 20,
+                    },
+                ]
+            )
+        );
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Id", typeof(int)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "A1"]);
     }
 
@@ -44,43 +53,39 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
     {
         var query = $"select a.Id, a.Name from #A.Entities() a {joinOperator} #B.Entities() b on a.Id = b.Id";
 
-        var table = Run(query, CreateSources(
-            [
-                new BasicEntity { Id = 1, Name = "A1" },
-                new BasicEntity { Id = 2, Name = "A2" }
-            ],
-            [
-                new BasicEntity { Id = 1, Name = "B1" },
-                new BasicEntity { Id = 1, Name = "B1Duplicate" }
-            ]));
+        var table = Run(
+            query,
+            CreateSources(
+                [new BasicEntity { Id = 1, Name = "A1" }, new BasicEntity { Id = 2, Name = "A2" }],
+                [new BasicEntity { Id = 1, Name = "B1" }, new BasicEntity { Id = 1, Name = "B1Duplicate" }]
+            )
+        );
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Id", typeof(int)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [2, "A2"]);
     }
 
     [TestMethod]
     public void FullOuterJoin_RowPresence_ShouldDistinguishMissingRowsFromPresentNullValues()
     {
-        const string query = """
-            select
-                case when a is present then 'LeftPresent' else 'LeftMissing' end as LeftState,
-                case when b is present then 'RightPresent' else 'RightMissing' end as RightState,
-                a.Id,
-                b.Id,
-                b.NullableValue
-            from #A.Entities() a
-            full join #B.Entities() b on a.Id = b.Id
-            """;
+        const string query = (
+            "select\n"
+            + "    case when a is present then 'LeftPresent' else 'LeftMissing' end as LeftState,\n"
+            + "    case when b is present then 'RightPresent' else 'RightMissing' end as RightState,\n"
+            + "    a.Id,\n"
+            + "    b.Id,\n"
+            + "    b.NullableValue\n"
+            + "from #A.Entities() a\n"
+            + "full join #B.Entities() b on a.Id = b.Id"
+        );
 
-        var table = Run(query, CreateSources(
-            [new BasicEntity { Id = 1 }],
-            [
-                new BasicEntity { Id = 1, NullableValue = null },
-                new BasicEntity { Id = 2, NullableValue = null }
-            ]));
+        var table = Run(
+            query,
+            CreateSources(
+                [new BasicEntity { Id = 1 }],
+                [new BasicEntity { Id = 1, NullableValue = null }, new BasicEntity { Id = 2, NullableValue = null }]
+            )
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -88,11 +93,13 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
             ("RightState", typeof(string)),
             ("Id", typeof(int?)),
             ("Id", typeof(int?)),
-            ("NullableValue", typeof(int?)));
+            ("NullableValue", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { "LeftPresent", "RightPresent", 1, 1, null },
-            new object?[] { "LeftMissing", "RightPresent", null, 2, null });
+            new object?[] { "LeftMissing", "RightPresent", null, 2, null }
+        );
     }
 
     [TestMethod]
@@ -100,7 +107,8 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
     [DataRow("anti join", "ANTI JOIN")]
     public void SemiAndAntiJoin_WithoutOn_ShouldReportExactJoinConditionContract(
         string joinOperator,
-        string displayOperator)
+        string displayOperator
+    )
     {
         var query = $"select 1 from #A.Entities() a {joinOperator} #B.Entities() b where 1 = 1";
         var expectedStart = query.IndexOf("where", StringComparison.Ordinal);
@@ -115,8 +123,9 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
             "Core Spec - JOIN Clause",
             [
                 "Add an ON clause with a comparison between the joined sources.",
-                "Make sure the ON expression evaluates to a boolean value."
-            ]);
+                "Make sure the ON expression evaluates to a boolean value.",
+            ]
+        );
     }
 
     [TestMethod]
@@ -153,22 +162,21 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
         Assert.AreEqual(expectedStart, envelope.Offset);
         Assert.AreEqual(expectedSpan.End, envelope.EndOffset);
         Assert.AreEqual(expectedSpan.Length, envelope.Length);
-        Assert.AreEqual(
-            "The operator cannot be applied to the given operand types.",
-            envelope.Explanation);
+        Assert.AreEqual("The operator cannot be applied to the given operand types.", envelope.Explanation);
         Assert.AreEqual("Core Spec - Operator Type Rules", envelope.DocsReference);
         var expectedFixes = new[]
         {
             "Convert operands to compatible types before comparing.",
-            "For string date comparisons, parse to a numeric or date representation first."
+            "For string date comparisons, parse to a numeric or date representation first.",
         };
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
-        CollectionAssert.AreEqual(
-            expectedFixes,
-            envelope.Actions.Select(static action => action.Title).ToArray());
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        CollectionAssert.AreEqual(expectedFixes, envelope.Actions.Select(static action => action.Title).ToArray());
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
     }
 
     [TestMethod]
@@ -205,11 +213,10 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
         Assert.AreEqual("Name".Length, envelope.Length);
         Assert.AreEqual(
             "The query references an alias that is not visible in the current scope.",
-            envelope.Explanation);
+            envelope.Explanation
+        );
         Assert.AreEqual("Core Spec - Aliasing", envelope.DocsReference);
-        CollectionAssert.AreEqual(
-            new[] { "Replace 'b' with 'a'" },
-            envelope.SuggestedFixes.ToArray());
+        CollectionAssert.AreEqual(new[] { "Replace 'b' with 'a'" }, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(1, envelope.Actions);
         var action = envelope.Actions[0];
         Assert.AreEqual(DiagnosticActionKind.QuickFix, action.Kind);
@@ -229,22 +236,17 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
     {
         return new QueryAnalyzer(
             new BasicSchemaProvider<BasicEntity>(
-                new Dictionary<string, IEnumerable<BasicEntity>>
-                {
-                    ["#A"] = [],
-                    ["#B"] = []
-                })).Analyze(query);
+                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [], ["#B"] = [] }
+            )
+        ).Analyze(query);
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources(
         IEnumerable<BasicEntity> left,
-        IEnumerable<BasicEntity> right)
+        IEnumerable<BasicEntity> right
+    )
     {
-        return new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] = left,
-            ["#B"] = right
-        };
+        return new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = left, ["#B"] = right };
     }
 
     private static void AssertParserDiagnosticContract(
@@ -255,7 +257,8 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
         int expectedLength,
         string expectedExplanation,
         string expectedDocsReference,
-        string[] expectedFixes)
+        string[] expectedFixes
+    )
     {
         var result = Analyze(query);
         Assert.IsFalse(result.IsSuccess, FormatDiagnostics(result));
@@ -284,13 +287,18 @@ public sealed class Core017SemiAntiPresenceTests : BasicEntityTestBase
         Assert.AreEqual(expectedDocsReference, envelope.DocsReference);
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
     }
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code}: {diagnostic.Message}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic => $"{diagnostic.Code}: {diagnostic.Message}")
+        );
     }
 }

@@ -16,8 +16,7 @@ namespace Musoq.Converter.Tests;
 
 public partial class QueryInspectionTests
 {
-    private const string MaterializationQuery =
-        "select e.Id, e.Name from #counting.entities() e where e.Id > 1";
+    private const string MaterializationQuery = "select e.Id, e.Name from #counting.entities() e where e.Id > 1";
 
     [TestMethod]
     public void Run_WhenTableResultMaterializationIsDefault_ShouldRemainLazy()
@@ -44,7 +43,8 @@ public partial class QueryInspectionTests
         var compiled = CompileForExecution(
             MaterializationQuery,
             provider,
-            new CompilationOptions().WithTableResultMaterialization());
+            new CompilationOptions().WithTableResultMaterialization()
+        );
 
         var table = compiled.Run();
 
@@ -62,7 +62,8 @@ public partial class QueryInspectionTests
         var materialized = CompileForExecution(
             MaterializationQuery,
             materializedProvider,
-            new CompilationOptions().WithTableResultMaterialization());
+            new CompilationOptions().WithTableResultMaterialization()
+        );
 
         var lazyRows = ReadRows(lazy.Run());
         var materializedRows = ReadRows(materialized.Run());
@@ -78,7 +79,8 @@ public partial class QueryInspectionTests
         var materialized = Inspect(
             MaterializationQuery,
             provider,
-            new CompilationOptions().WithTableResultMaterialization());
+            new CompilationOptions().WithTableResultMaterialization()
+        );
 
         Assert.IsFalse(lazy.GeneratedCSharpCode.Contains("__musoqMaterializedTable", StringComparison.Ordinal));
         Assert.Contains("__musoqMaterializedTable", materialized.GeneratedCSharpCode);
@@ -97,7 +99,8 @@ public partial class QueryInspectionTests
         var materialized = CompileForExecution(
             MaterializationQuery,
             provider,
-            new CompilationOptions().WithTableResultMaterialization());
+            new CompilationOptions().WithTableResultMaterialization()
+        );
 
         _ = materialized.Run();
 
@@ -106,15 +109,14 @@ public partial class QueryInspectionTests
 
     private static string[] ReadRows(Table table)
     {
-        return table
-            .Select(row => string.Join("|", row.ReadValue(0), row.ReadValue(1)))
-            .ToArray();
+        return table.Select(row => string.Join("|", row.ReadValue(0), row.ReadValue(1))).ToArray();
     }
 }
 
 public sealed class MaterializationCountingSchemaProvider(
     IReadOnlyList<MaterializationCountingEntity> rows,
-    MaterializationCountingState state) : ISchemaProvider
+    MaterializationCountingState state
+) : ISchemaProvider
 {
     public int ChunksRead => state.ChunksRead;
 
@@ -126,9 +128,10 @@ public sealed class MaterializationCountingSchemaProvider(
             [
                 new MaterializationCountingEntity(1, "one"),
                 new MaterializationCountingEntity(2, "two"),
-                new MaterializationCountingEntity(3, "three")
+                new MaterializationCountingEntity(3, "three"),
             ],
-            new MaterializationCountingState());
+            new MaterializationCountingState()
+        );
     }
 
     public ISchema GetSchema(string schema)
@@ -142,12 +145,14 @@ public sealed class MaterializationCountingSchemaProvider(
 
 public sealed class MaterializationCountingSchema(
     IReadOnlyList<MaterializationCountingEntity> rows,
-    MaterializationCountingState state) : SchemaBase("counting", CreateLibrary())
+    MaterializationCountingState state
+) : SchemaBase("counting", CreateLibrary())
 {
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
             return new MaterializationCountingTable();
@@ -158,13 +163,15 @@ public sealed class MaterializationCountingSchema(
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         if (string.Equals(name, "entities", StringComparison.OrdinalIgnoreCase))
         {
             return EnsureSourceType<T, MaterializationCountingEntity>(
                 name,
-                new MaterializationCountingRowSource(rows, state));
+                new MaterializationCountingRowSource(rows, state)
+            );
         }
 
         throw new NotSupportedException(name);
@@ -187,10 +194,10 @@ public sealed class MaterializationCountingSchema(
 public sealed class MaterializationCountingTable : ISchemaTable
 {
     public ISchemaColumn[] Columns =>
-    [
-        new SchemaColumn(nameof(MaterializationCountingEntity.Id), 0, typeof(int)),
-        new SchemaColumn(nameof(MaterializationCountingEntity.Name), 1, typeof(string))
-    ];
+        [
+            new SchemaColumn(nameof(MaterializationCountingEntity.Id), 0, typeof(int)),
+            new SchemaColumn(nameof(MaterializationCountingEntity.Name), 1, typeof(string)),
+        ];
 
     public ISchemaColumn? GetColumnByName(string name)
     {
@@ -207,7 +214,8 @@ public sealed class MaterializationCountingTable : ISchemaTable
 
 public sealed class MaterializationCountingRowSource(
     IReadOnlyList<MaterializationCountingEntity> rows,
-    MaterializationCountingState state) : RowSourceBase<MaterializationCountingEntity>
+    MaterializationCountingState state
+) : RowSourceBase<MaterializationCountingEntity>
 {
     protected override void CollectChunks(IChunkWriter<MaterializationCountingEntity> writer)
     {

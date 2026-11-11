@@ -9,9 +9,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var index = PopSemanticNode("Visit(ArrayIndexNode).Index");
         var array = PopSemanticNode("Visit(ArrayIndexNode).Array");
-        var elementType = array.ReturnType?.IsArray == true
-            ? array.ReturnType.GetElementType()
-            : null;
+        var elementType = array.ReturnType?.IsArray == true ? array.ReturnType.GetElementType() : null;
         if (elementType == null || index.ReturnType != typeof(int))
         {
             var message = $"Expression '{array}' requires a collection and an integer index.";

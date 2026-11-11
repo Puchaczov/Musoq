@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
-
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Tables;
 
@@ -31,7 +30,8 @@ internal static class ExecutionSyntaxFactory
     internal static TypeSyntax CreateValueTupleGroupDictionaryTypeSyntax(
         IReadOnlyList<Type> keyTypes,
         int keyCount,
-        TypeSyntax groupType)
+        TypeSyntax groupType
+    )
     {
         return SyntaxFactory.ParseTypeName($"Dictionary<{CreateValueTupleTypeName(keyTypes, keyCount)}, {groupType}>");
     }
@@ -39,8 +39,8 @@ internal static class ExecutionSyntaxFactory
     internal static TypeSyntax CreateValueTupleGroupDictionaryTypeSyntax(
         IReadOnlyList<ExecutionTypeRef> keyTypes,
         int keyCount,
-        TypeSyntax groupType) =>
-        CreateValueTupleGroupDictionaryTypeSyntax(keyTypes.RequireClrTypes(), keyCount, groupType);
+        TypeSyntax groupType
+    ) => CreateValueTupleGroupDictionaryTypeSyntax(keyTypes.RequireClrTypes(), keyCount, groupType);
 
     internal static string CreateValueTupleTypeName(IReadOnlyList<Type> keyTypes, int keyCount)
     {
@@ -57,19 +57,20 @@ internal static class ExecutionSyntaxFactory
 
     internal static ExpressionSyntax[] CreateAggregateGroupDefaultKeyArguments(AggregateGroupShape shape)
     {
-        return shape.Keys
-            .Select(static key => (ExpressionSyntax)SyntaxFactory.DefaultExpression(CreateTypeSyntax(key.Type)))
+        return shape
+            .Keys.Select(static key => (ExpressionSyntax)SyntaxFactory.DefaultExpression(CreateTypeSyntax(key.Type)))
             .ToArray();
     }
 
-    internal static ExpressionSyntax[] CreateAggregateGroupKeyArguments(
-        AggregateGroupShape shape,
-        int knownKeyCount)
+    internal static ExpressionSyntax[] CreateAggregateGroupKeyArguments(AggregateGroupShape shape, int knownKeyCount)
     {
-        return shape.Keys
-            .Select((key, index) => index < knownKeyCount
-                ? (ExpressionSyntax)SyntaxFactory.IdentifierName(CreateGroupKeyVariableName(index))
-                : SyntaxFactory.DefaultExpression(CreateTypeSyntax(key.Type)))
+        return shape
+            .Keys.Select(
+                (key, index) =>
+                    index < knownKeyCount
+                        ? (ExpressionSyntax)SyntaxFactory.IdentifierName(CreateGroupKeyVariableName(index))
+                        : SyntaxFactory.DefaultExpression(CreateTypeSyntax(key.Type))
+            )
             .ToArray();
     }
 
@@ -95,16 +96,23 @@ internal static class ExecutionSyntaxFactory
 
     internal static bool CanBeNull(ExecutionTypeRef type) => CanBeNull(type.RequireClrType());
 
-    internal static ExpressionSyntax CreateBooleanCondition(ExpressionSyntax expression, bool nullable) => nullable
-        ? SyntaxFactory.BinaryExpression(
-            SyntaxKind.EqualsExpression,
-            SyntaxFactory.ParenthesizedExpression(expression),
-            SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression))
-        : expression;
+    internal static ExpressionSyntax CreateBooleanCondition(ExpressionSyntax expression, bool nullable) =>
+        nullable
+            ? SyntaxFactory.BinaryExpression(
+                SyntaxKind.EqualsExpression,
+                SyntaxFactory.ParenthesizedExpression(expression),
+                SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+            )
+            : expression;
 
-    internal static bool IsSqlComparison(BinaryOpKind kind) => kind is
-        BinaryOpKind.Equal or BinaryOpKind.NotEqual or BinaryOpKind.GreaterThan or
-        BinaryOpKind.LessThan or BinaryOpKind.GreaterOrEqual or BinaryOpKind.LessOrEqual;
+    internal static bool IsSqlComparison(BinaryOpKind kind) =>
+        kind
+            is BinaryOpKind.Equal
+                or BinaryOpKind.NotEqual
+                or BinaryOpKind.GreaterThan
+                or BinaryOpKind.LessThan
+                or BinaryOpKind.GreaterOrEqual
+                or BinaryOpKind.LessOrEqual;
 
     internal static bool RequiresNullableBoolean(ExecutionExpression expression)
     {
@@ -114,15 +122,16 @@ internal static class ExecutionSyntaxFactory
         return expression switch
         {
             ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null } => true,
-            ExecutionBinary binary when binary.Kind is BinaryOpKind.And or BinaryOpKind.Or =>
-                RequiresNullableBoolean(binary.Left) || RequiresNullableBoolean(binary.Right),
+            ExecutionBinary binary when binary.Kind is BinaryOpKind.And or BinaryOpKind.Or => RequiresNullableBoolean(
+                binary.Left
+            ) || RequiresNullableBoolean(binary.Right),
             ExecutionBinary binary when binary.UsesSqlNullSemantics && IsSqlComparison(binary.Kind) =>
                 CanExecutionExpressionBeNull(binary.Left) || CanExecutionExpressionBeNull(binary.Right),
             ExecutionUnary { Kind: UnaryOpKind.Not } unary => RequiresNullableBoolean(unary.Operand),
-            ExecutionBetween between => CanExecutionExpressionBeNull(between.Expression) ||
-                                        CanExecutionExpressionBeNull(between.Low) ||
-                                        CanExecutionExpressionBeNull(between.High),
-            _ => false
+            ExecutionBetween between => CanExecutionExpressionBeNull(between.Expression)
+                || CanExecutionExpressionBeNull(between.Low)
+                || CanExecutionExpressionBeNull(between.High),
+            _ => false,
         };
     }
 
@@ -139,29 +148,41 @@ internal static class ExecutionSyntaxFactory
         {
             ExecutionBinary binary when binary.UsesSqlNullSemantics && IsSqlComparison(binary.Kind) =>
                 CanExecutionExpressionBeNull(binary.Left) || CanExecutionExpressionBeNull(binary.Right),
-            ExecutionBinary binary when binary.Kind is BinaryOpKind.And or BinaryOpKind.Or =>
-                RequiresNullableBoolean(binary),
+            ExecutionBinary binary when binary.Kind is BinaryOpKind.And or BinaryOpKind.Or => RequiresNullableBoolean(
+                binary
+            ),
             ExecutionUnary { Kind: UnaryOpKind.Not } unary => RequiresNullableBoolean(unary.Operand),
-            ExecutionBetween between => CanExecutionExpressionBeNull(between.Expression) ||
-                                        CanExecutionExpressionBeNull(between.Low) ||
-                                        CanExecutionExpressionBeNull(between.High),
-            _ => false
+            ExecutionBetween between => CanExecutionExpressionBeNull(between.Expression)
+                || CanExecutionExpressionBeNull(between.Low)
+                || CanExecutionExpressionBeNull(between.High),
+            _ => false,
         };
     }
 
     internal static InvocationExpressionSyntax CreateSqlNullComparison(
         ExecutionBinary binary,
         ExpressionSyntax left,
-        ExpressionSyntax right)
+        ExpressionSyntax right
+    )
     {
-        var method = SyntaxFactory.GenericName(nameof(Operators.SqlCompare))
-            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList<TypeSyntax>(
-            [CreateTypeSyntax(binary.Left.ReturnType), CreateTypeSyntax(binary.Right.ReturnType)])));
-        return SyntaxFactory.InvocationExpression(
+        var method = SyntaxFactory
+            .GenericName(nameof(Operators.SqlCompare))
+            .WithTypeArgumentList(
+                SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SeparatedList<TypeSyntax>([
+                        CreateTypeSyntax(binary.Left.ReturnType),
+                        CreateTypeSyntax(binary.Right.ReturnType),
+                    ])
+                )
+            );
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(Operators)),
-                    method))
+                    method
+                )
+            )
             .WithArgumentList(CreateArgumentList(left, right, CreateSqlComparisonLambda(binary)));
     }
 
@@ -172,53 +193,76 @@ internal static class ExecutionSyntaxFactory
         var body = CreateSqlComparisonBody(
             binary,
             SyntaxFactory.IdentifierName(leftName),
-            SyntaxFactory.IdentifierName(rightName));
-        return SyntaxFactory.ParenthesizedLambdaExpression(body)
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
-            [
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier(leftName)).WithType(CreateTypeSyntax(binary.Left.ReturnType)),
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier(rightName)).WithType(CreateTypeSyntax(binary.Right.ReturnType))
-            ])));
+            SyntaxFactory.IdentifierName(rightName)
+        );
+        return SyntaxFactory
+            .ParenthesizedLambdaExpression(body)
+            .WithParameterList(
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList([
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier(leftName))
+                            .WithType(CreateTypeSyntax(binary.Left.ReturnType)),
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier(rightName))
+                            .WithType(CreateTypeSyntax(binary.Right.ReturnType)),
+                    ])
+                )
+            );
     }
 
     private static ExpressionSyntax CreateSqlComparisonBody(
         ExecutionBinary binary,
         ExpressionSyntax left,
-        ExpressionSyntax right)
+        ExpressionSyntax right
+    )
     {
-        if (binary.Left is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null } ||
-            binary.Right is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null })
+        if (
+            binary.Left is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null }
+            || binary.Right is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null }
+        )
             return SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression);
 
-        if (IsRelationalComparison(binary.Kind) &&
-            binary.Left.ReturnType.RequireClrType() == typeof(string) &&
-            binary.Right.ReturnType.RequireClrType() == typeof(string))
+        if (
+            IsRelationalComparison(binary.Kind)
+            && binary.Left.ReturnType.RequireClrType() == typeof(string)
+            && binary.Right.ReturnType.RequireClrType() == typeof(string)
+        )
         {
-            var compare = SyntaxFactory.InvocationExpression(
+            var compare = SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName("string"),
-                        SyntaxFactory.IdentifierName(nameof(string.Compare))))
-                .WithArgumentList(CreateArgumentList(left, right, CreateStringComparisonExpression(nameof(StringComparison.Ordinal))));
+                        SyntaxFactory.IdentifierName(nameof(string.Compare))
+                    )
+                )
+                .WithArgumentList(
+                    CreateArgumentList(left, right, CreateStringComparisonExpression(nameof(StringComparison.Ordinal)))
+                );
             return SyntaxFactory.ParenthesizedExpression(
                 SyntaxFactory.BinaryExpression(
                     GetBinaryExpressionKind(binary.Kind),
                     compare,
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))));
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+                )
+            );
         }
 
         if (TryCreateCharStringEquality(binary, left, right, out var charStringEquality))
             return charStringEquality;
 
         return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.BinaryExpression(GetBinaryExpressionKind(binary.Kind), left, right));
+            SyntaxFactory.BinaryExpression(GetBinaryExpressionKind(binary.Kind), left, right)
+        );
     }
 
     private static bool TryCreateCharStringEquality(
         ExecutionBinary binary,
         ExpressionSyntax left,
         ExpressionSyntax right,
-        out ExpressionSyntax result)
+        out ExpressionSyntax result
+    )
     {
         result = null!;
         if (binary.Kind is not (BinaryOpKind.Equal or BinaryOpKind.NotEqual))
@@ -234,8 +278,16 @@ internal static class ExecutionSyntaxFactory
             return false;
 
         result = leftIsChar
-            ? SyntaxFactory.BinaryExpression(GetEqualitySyntaxKind(binary.Kind), left, CreateCharLiteral((ExecutionLiteral)binary.Right))
-            : SyntaxFactory.BinaryExpression(GetEqualitySyntaxKind(binary.Kind), CreateCharLiteral((ExecutionLiteral)binary.Left), right);
+            ? SyntaxFactory.BinaryExpression(
+                GetEqualitySyntaxKind(binary.Kind),
+                left,
+                CreateCharLiteral((ExecutionLiteral)binary.Right)
+            )
+            : SyntaxFactory.BinaryExpression(
+                GetEqualitySyntaxKind(binary.Kind),
+                CreateCharLiteral((ExecutionLiteral)binary.Left),
+                right
+            );
         return true;
     }
 
@@ -244,21 +296,26 @@ internal static class ExecutionSyntaxFactory
         var text = literal.Value.RequireClrValue() as string ?? string.Empty;
         return SyntaxFactory.LiteralExpression(
             SyntaxKind.CharacterLiteralExpression,
-            SyntaxFactory.Literal(text.Length > 0 ? text[0] : '\0'));
+            SyntaxFactory.Literal(text.Length > 0 ? text[0] : '\0')
+        );
     }
 
-    private static SyntaxKind GetEqualitySyntaxKind(BinaryOpKind kind) => kind == BinaryOpKind.NotEqual
-        ? SyntaxKind.NotEqualsExpression
-        : SyntaxKind.EqualsExpression;
+    private static SyntaxKind GetEqualitySyntaxKind(BinaryOpKind kind) =>
+        kind == BinaryOpKind.NotEqual ? SyntaxKind.NotEqualsExpression : SyntaxKind.EqualsExpression;
 
-    private static bool IsRelationalComparison(BinaryOpKind kind) => kind is
-        BinaryOpKind.GreaterThan or BinaryOpKind.LessThan or BinaryOpKind.GreaterOrEqual or BinaryOpKind.LessOrEqual;
+    private static bool IsRelationalComparison(BinaryOpKind kind) =>
+        kind
+            is BinaryOpKind.GreaterThan
+                or BinaryOpKind.LessThan
+                or BinaryOpKind.GreaterOrEqual
+                or BinaryOpKind.LessOrEqual;
 
     private static MemberAccessExpressionSyntax CreateStringComparisonExpression(string name) =>
         SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(nameof(StringComparison)),
-            SyntaxFactory.IdentifierName(name));
+            SyntaxFactory.IdentifierName(name)
+        );
 
     internal static ExpressionSyntax CreateColumnCreation(ExecutionColumnMetadataField field)
     {
@@ -267,21 +324,30 @@ internal static class ExecutionSyntaxFactory
             return CreateObjectCreation(
                 nameof(Column),
                 CreateStringLiteral(field.Name),
-                SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
-                    ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
-                    : CreateTypeOfTypeSyntax(field.Type)),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)),
+                SyntaxFactory.TypeOfExpression(
+                    field.GeneratedTypeName != null
+                        ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
+                        : CreateTypeOfTypeSyntax(field.Type)
+                ),
+                SyntaxFactory.LiteralExpression(
+                    SyntaxKind.NumericLiteralExpression,
+                    SyntaxFactory.Literal(field.Index)
+                ),
                 SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.SourceReadType)),
-                EnumDescriptorSyntax.Create(field.EnumType));
+                EnumDescriptorSyntax.Create(field.EnumType)
+            );
         }
 
         return CreateObjectCreation(
             nameof(Column),
             CreateStringLiteral(field.Name),
-            SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
+            SyntaxFactory.TypeOfExpression(
+                field.GeneratedTypeName != null
                     ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
-                    : CreateTypeOfTypeSyntax(field.Type)),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)));
+                    : CreateTypeOfTypeSyntax(field.Type)
+            ),
+            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index))
+        );
     }
 
     internal static ExpressionSyntax CreateSchemaColumnCreation(ExecutionColumnMetadataField field)
@@ -291,92 +357,148 @@ internal static class ExecutionSyntaxFactory
 
         if (field.EnumType != null || field.SourceReadType != field.Type)
         {
-            return SyntaxFactory.ObjectCreationExpression(
-                    SyntaxFactory.ParseTypeName("global::Musoq.Schema.DataSources.SchemaColumn"))
-                .WithArgumentList(CreateArgumentList(
-                    CreateStringLiteral(field.Name),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)),
-                    SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
-                    ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
-                    : CreateTypeOfTypeSyntax(field.Type)),
-                    SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.SourceReadType)),
-                    EnumDescriptorSyntax.Create(field.EnumType),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
-                    CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers),
-                    SyntaxFactory.ParseExpression("global::Musoq.Schema.ColumnStability.Stable")));
+            return SyntaxFactory
+                .ObjectCreationExpression(SyntaxFactory.ParseTypeName("global::Musoq.Schema.DataSources.SchemaColumn"))
+                .WithArgumentList(
+                    CreateArgumentList(
+                        CreateStringLiteral(field.Name),
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(field.Index)
+                        ),
+                        SyntaxFactory.TypeOfExpression(
+                            field.GeneratedTypeName != null
+                                ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
+                                : CreateTypeOfTypeSyntax(field.Type)
+                        ),
+                        SyntaxFactory.TypeOfExpression(CreateTypeOfTypeSyntax(field.SourceReadType)),
+                        EnumDescriptorSyntax.Create(field.EnumType),
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
+                        CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers),
+                        SyntaxFactory.ParseExpression("global::Musoq.Schema.ColumnStability.Stable")
+                    )
+                );
         }
 
-        return SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.ParseTypeName("global::Musoq.Schema.DataSources.SchemaColumn"))
-            .WithArgumentList(CreateArgumentList(
-                CreateStringLiteral(field.Name),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(field.Index)),
-                SyntaxFactory.TypeOfExpression(field.GeneratedTypeName != null
-                    ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
-                    : CreateTypeOfTypeSyntax(field.Type)),
-                CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers)));
+        return SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.ParseTypeName("global::Musoq.Schema.DataSources.SchemaColumn"))
+            .WithArgumentList(
+                CreateArgumentList(
+                    CreateStringLiteral(field.Name),
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.NumericLiteralExpression,
+                        SyntaxFactory.Literal(field.Index)
+                    ),
+                    SyntaxFactory.TypeOfExpression(
+                        field.GeneratedTypeName != null
+                            ? SyntaxFactory.ParseTypeName(field.GeneratedTypeName)
+                            : CreateTypeOfTypeSyntax(field.Type)
+                    ),
+                    CSharpReadModifierMetadata.CreateDictionaryCreation(field.ReadModifiers)
+                )
+            );
     }
 
     internal static LocalDeclarationStatementSyntax CreateLocalDeclaration(
         TypeSyntax type,
         string variableName,
-        ExpressionSyntax initializer)
+        ExpressionSyntax initializer
+    )
     {
         return SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(type)
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(EscapeIdentifier(variableName))
-                        .WithInitializer(SyntaxFactory.EqualsValueClause(initializer)))));
+            SyntaxFactory
+                .VariableDeclaration(type)
+                .WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory
+                            .VariableDeclarator(EscapeIdentifier(variableName))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(initializer))
+                    )
+                )
+        );
     }
 
     internal static ObjectCreationExpressionSyntax CreateObjectCreation(
         string typeName,
-        params ExpressionSyntax[] arguments)
+        params ExpressionSyntax[] arguments
+    )
     {
-        return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName(typeName))
+        return SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.IdentifierName(typeName))
             .WithArgumentList(CreateArgumentList(arguments));
     }
 
     internal static ArrayCreationExpressionSyntax CreateArrayCreation(
         string elementTypeName,
-        IEnumerable<ExpressionSyntax> expressions)
+        IEnumerable<ExpressionSyntax> expressions
+    )
     {
-        return SyntaxFactory.ArrayCreationExpression(
-                SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(elementTypeName))
-                    .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                            SyntaxFactory.OmittedArraySizeExpression())))))
-            .WithInitializer(SyntaxFactory.InitializerExpression(
-                SyntaxKind.ArrayInitializerExpression,
-                SyntaxFactory.SeparatedList(expressions)));
+        return SyntaxFactory
+            .ArrayCreationExpression(
+                SyntaxFactory
+                    .ArrayType(SyntaxFactory.ParseTypeName(elementTypeName))
+                    .WithRankSpecifiers(
+                        SyntaxFactory.SingletonList(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                    SyntaxFactory.OmittedArraySizeExpression()
+                                )
+                            )
+                        )
+                    )
+            )
+            .WithInitializer(
+                SyntaxFactory.InitializerExpression(
+                    SyntaxKind.ArrayInitializerExpression,
+                    SyntaxFactory.SeparatedList(expressions)
+                )
+            );
     }
 
     internal static ArrayCreationExpressionSyntax CreateArrayCreation(
         Type elementType,
-        IEnumerable<ExpressionSyntax> expressions)
+        IEnumerable<ExpressionSyntax> expressions
+    )
     {
-        return SyntaxFactory.ArrayCreationExpression(
-                SyntaxFactory.ArrayType(CreateTypeSyntax(elementType))
-                    .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                            SyntaxFactory.OmittedArraySizeExpression())))))
-            .WithInitializer(SyntaxFactory.InitializerExpression(
-                SyntaxKind.ArrayInitializerExpression,
-                SyntaxFactory.SeparatedList(expressions)));
+        return SyntaxFactory
+            .ArrayCreationExpression(
+                SyntaxFactory
+                    .ArrayType(CreateTypeSyntax(elementType))
+                    .WithRankSpecifiers(
+                        SyntaxFactory.SingletonList(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                    SyntaxFactory.OmittedArraySizeExpression()
+                                )
+                            )
+                        )
+                    )
+            )
+            .WithInitializer(
+                SyntaxFactory.InitializerExpression(
+                    SyntaxKind.ArrayInitializerExpression,
+                    SyntaxFactory.SeparatedList(expressions)
+                )
+            );
     }
 
     internal static ArrayCreationExpressionSyntax CreateArrayCreation(
         ExecutionTypeRef elementType,
-        IEnumerable<ExpressionSyntax> expressions) =>
-        CreateArrayCreation(elementType.RequireClrType(), expressions);
+        IEnumerable<ExpressionSyntax> expressions
+    ) => CreateArrayCreation(elementType.RequireClrType(), expressions);
 
     internal static ElementAccessExpressionSyntax CreateElementAccess(
         ExpressionSyntax expression,
-        ExpressionSyntax indexExpression)
+        ExpressionSyntax indexExpression
+    )
     {
-        return SyntaxFactory.ElementAccessExpression(expression)
-            .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(indexExpression))));
+        return SyntaxFactory
+            .ElementAccessExpression(expression)
+            .WithArgumentList(
+                SyntaxFactory.BracketedArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(indexExpression))
+                )
+            );
     }
 
     internal static ArgumentListSyntax CreateArgumentList(params ExpressionSyntax[] expressions)
@@ -399,8 +521,7 @@ internal static class ExecutionSyntaxFactory
         return SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(type));
     }
 
-    internal static TypeSyntax CreateTypeSyntax(ExecutionTypeRef type) =>
-        CreateTypeSyntax(type.RequireClrType());
+    internal static TypeSyntax CreateTypeSyntax(ExecutionTypeRef type) => CreateTypeSyntax(type.RequireClrType());
 
     internal static TypeSyntax CreateVariableTypeSyntax(ExecutionVariable variable)
     {
@@ -424,9 +545,7 @@ internal static class ExecutionSyntaxFactory
 
     internal static string EscapeIdentifier(string identifier)
     {
-        return SyntaxFacts.GetKeywordKind(identifier) == SyntaxKind.None
-            ? identifier
-            : $"@{identifier}";
+        return SyntaxFacts.GetKeywordKind(identifier) == SyntaxKind.None ? identifier : $"@{identifier}";
     }
 
     internal static SyntaxKind GetBinaryExpressionKind(BinaryOpKind kind)
@@ -452,7 +571,7 @@ internal static class ExecutionSyntaxFactory
             BinaryOpKind.BitwiseXor => SyntaxKind.ExclusiveOrExpression,
             BinaryOpKind.LeftShift => SyntaxKind.LeftShiftExpression,
             BinaryOpKind.RightShift => SyntaxKind.RightShiftExpression,
-            _ => throw UnsupportedShape.Of($"Binary operator '{kind}'", "the C# backend")
+            _ => throw UnsupportedShape.Of($"Binary operator '{kind}'", "the C# backend"),
         };
     }
 
@@ -462,7 +581,7 @@ internal static class ExecutionSyntaxFactory
         {
             UnaryOpKind.Not => SyntaxKind.LogicalNotExpression,
             UnaryOpKind.Negate => SyntaxKind.UnaryMinusExpression,
-            _ => throw UnsupportedShape.Of($"Unary operator '{kind}'", "the C# backend")
+            _ => throw UnsupportedShape.Of($"Unary operator '{kind}'", "the C# backend"),
         };
     }
 }

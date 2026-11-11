@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
@@ -234,9 +234,11 @@ public partial class SchemaExtendedTests
         }
     }
 
-    private sealed class TestSchemaWithEmptyName(string name) : SchemaBase(name, new MethodsAggregator(new MethodsManager()));
+    private sealed class TestSchemaWithEmptyName(string name)
+        : SchemaBase(name, new MethodsAggregator(new MethodsManager()));
 
-    private sealed class TestSchemaWithNullAggregator(string name, MethodsAggregator aggregator) : SchemaBase(name, aggregator);
+    private sealed class TestSchemaWithNullAggregator(string name, MethodsAggregator aggregator)
+        : SchemaBase(name, aggregator);
 
     #endregion
 }

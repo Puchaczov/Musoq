@@ -9,7 +9,8 @@ internal sealed class PlanTextBuildHarness : GenericEntityTestBase
         string query,
         TFirst[] first,
         TSecond[] second,
-        TThird[] third)
+        TThird[] third
+    )
     {
         return CreateBuildItems(query, first, second, third);
     }

@@ -14,7 +14,8 @@ internal static partial class PhysicalStrategyRules
         PhysicalNode left,
         PhysicalNode right,
         CompilationOptions compilationOptions,
-        IReadOnlyList<CardinalityFact>? cardinalityFacts = null)
+        IReadOnlyList<CardinalityFact>? cardinalityFacts = null
+    )
     {
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
@@ -29,11 +30,16 @@ internal static partial class PhysicalStrategyRules
                     boundedRange,
                     kind switch
                     {
-                        JoinKind.LeftSingle => "Range-single join selected because scalar cardinality can be enforced over one indexed comparable range within its equality partition when present.",
-                        JoinKind.LeftAntiSemi => "Range anti-semi join selected because the indexed comparable range can prove absence within its equality partition.",
-                        JoinKind.LeftSemi => "Range semi-join selected because the indexed comparable range can stop after the first match within its equality partition.",
-                        _ => "Range-mark join selected because predicate truth can stop after the first indexed comparable-range match within its equality partition."
-                    });
+                        JoinKind.LeftSingle =>
+                            "Range-single join selected because scalar cardinality can be enforced over one indexed comparable range within its equality partition when present.",
+                        JoinKind.LeftAntiSemi =>
+                            "Range anti-semi join selected because the indexed comparable range can prove absence within its equality partition.",
+                        JoinKind.LeftSemi =>
+                            "Range semi-join selected because the indexed comparable range can stop after the first match within its equality partition.",
+                        _ =>
+                            "Range-mark join selected because predicate truth can stop after the first indexed comparable-range match within its equality partition.",
+                    }
+                );
             }
 
             if (boundedHash != null)
@@ -42,13 +48,15 @@ internal static partial class PhysicalStrategyRules
                     boundedHash,
                     kind == JoinKind.LeftSingle
                         ? $"Hash-single join selected because scalar cardinality enforcement requires its equi-key probe. {boundedHash.BuildSideReason}"
-                        : $"Bounded hash join selected because predicate truth can be resolved within one equi-key bucket. {boundedHash.BuildSideReason}");
+                        : $"Bounded hash join selected because predicate truth can be resolved within one equi-key bucket. {boundedHash.BuildSideReason}"
+                );
             }
 
             return JoinStrategyDecision.NestedLoop(
                 kind == JoinKind.LeftSingle
                     ? "Bounded scalar lowering requires an equi-key or one comparable range predicate; no eligible index key was found."
-                    : "Bounded mark lowering requires an equi-key or one comparable range predicate; no eligible index key was found.");
+                    : "Bounded mark lowering requires an equi-key or one comparable range predicate; no eligible index key was found."
+            );
         }
 
         if (compilationOptions.UseHashJoin)
@@ -58,7 +66,8 @@ internal static partial class PhysicalStrategyRules
             {
                 return JoinStrategyDecision.Hash(
                     hashJoin,
-                    $"Hash join selected because at least one equi key pair was found. {hashJoin.BuildSideReason}");
+                    $"Hash join selected because at least one equi key pair was found. {hashJoin.BuildSideReason}"
+                );
             }
         }
 
@@ -66,7 +75,10 @@ internal static partial class PhysicalStrategyRules
         {
             var sortMergeJoin = TryDecomposeSortMergeJoin(kind, predicate, left, right);
             if (sortMergeJoin != null)
-                return JoinStrategyDecision.SortMerge(sortMergeJoin, "Sort-merge join selected because one comparable range predicate was found.");
+                return JoinStrategyDecision.SortMerge(
+                    sortMergeJoin,
+                    "Sort-merge join selected because one comparable range predicate was found."
+                );
         }
 
         return JoinStrategyDecision.NestedLoop(CreateNestedLoopReason(kind, compilationOptions));

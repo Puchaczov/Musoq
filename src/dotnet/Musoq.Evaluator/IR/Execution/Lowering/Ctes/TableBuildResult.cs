@@ -10,7 +10,8 @@ internal sealed record TableBuildResult(
     ExecutionVariable Table,
     GeneratedRowShape RowShape,
     FinalShapeResult? FinalResult,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public IReadOnlyList<ApplyPredicateMovementPlan> LoweredApplyPredicateMovementPlans { get; init; } = [];
 
@@ -18,7 +19,8 @@ internal sealed record TableBuildResult(
         IReadOnlyList<RowShape> shapes,
         IReadOnlyList<ExecutionNode> nodes,
         ExecutionVariable table,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         return new TableBuildResult(
             true,
@@ -32,11 +34,14 @@ internal sealed record TableBuildResult(
                 rowShape,
                 new ExecutionColumnMetadata(
                     table.Name,
-                    rowShape.Fields
-                        .Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field))
+                    rowShape
+                        .Fields.Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field))
                         .ToArray(),
-                    ExecutionColumnMetadataKind.TableColumns)),
-            string.Empty);
+                    ExecutionColumnMetadataKind.TableColumns
+                )
+            ),
+            string.Empty
+        );
     }
 
     public static TableBuildResult Unsupported(string reason)
@@ -48,7 +53,8 @@ internal sealed record TableBuildResult(
             new ExecutionVariable(string.Empty, typeof(object)),
             new GeneratedRowShape(string.Empty, []),
             null,
-            reason);
+            reason
+        );
     }
 }
 
@@ -57,7 +63,8 @@ internal sealed record LoweredTable(
     IReadOnlyList<ExecutionNode> Nodes,
     ExecutionVariable Table,
     GeneratedRowShape RowShape,
-    FinalShapeResult FinalResult)
+    FinalShapeResult FinalResult
+)
 {
     public IReadOnlyList<ApplyPredicateMovementPlan> LoweredApplyPredicateMovementPlans { get; init; } = [];
 
@@ -68,7 +75,7 @@ internal sealed record LoweredTable(
             throw new InvalidOperationException("A lowered table product requires a complete built result.");
         return new(result.Shapes, result.Nodes, result.Table, result.RowShape, finalResult)
         {
-            LoweredApplyPredicateMovementPlans = result.LoweredApplyPredicateMovementPlans
+            LoweredApplyPredicateMovementPlans = result.LoweredApplyPredicateMovementPlans,
         };
     }
 
@@ -76,7 +83,7 @@ internal sealed record LoweredTable(
     {
         return TableBuildResult.Success(Shapes, Nodes, Table, RowShape) with
         {
-            LoweredApplyPredicateMovementPlans = LoweredApplyPredicateMovementPlans
+            LoweredApplyPredicateMovementPlans = LoweredApplyPredicateMovementPlans,
         };
     }
 }

@@ -9,4 +9,5 @@ internal sealed record TableCompletionRequest(
     GeneratedRowShape ResultShape,
     IReadOnlyList<PostOperation> PostOperations,
     bool IsDistinct = false,
-    TableProjection? FinalProjection = null);
+    TableProjection? FinalProjection = null
+);

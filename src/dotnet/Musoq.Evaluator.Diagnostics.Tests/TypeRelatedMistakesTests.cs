@@ -22,7 +22,7 @@ public partial class TypeRelatedMistakesTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -32,8 +32,11 @@ public partial class TypeRelatedMistakesTests : BasicEntityTestBase
         return new QueryAnalyzer(CreateSchemaProvider());
     }
 
-    private static void AssertTypeHandling(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
+    private static void AssertTypeHandling(
+        QueryAnalysisResult result,
+        string context,
+        params DiagnosticCode[] expectedCodes
+    )
     {
         Assert.IsNotNull(result, context);
         var errors = result.Errors.ToArray();
@@ -52,5 +55,4 @@ public partial class TypeRelatedMistakesTests : BasicEntityTestBase
     }
 
     #endregion
-
 }

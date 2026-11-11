@@ -10,8 +10,8 @@ namespace Musoq.Evaluator.Tests.IR;
 [TestClass]
 public sealed class RecursiveCteDiagnosticCatalogTests
 {
-    public static IEnumerable<object[]> Cases => RecursiveCteUnsupportedCaseCatalog.Cases
-        .Select(static item => new object[] { item });
+    public static IEnumerable<object[]> Cases =>
+        RecursiveCteUnsupportedCaseCatalog.Cases.Select(static item => new object[] { item });
 
     [TestMethod]
     public void Catalog_ShouldContainFiftyOneUniqueUnsupportedCases()
@@ -19,31 +19,51 @@ public sealed class RecursiveCteDiagnosticCatalogTests
         Assert.HasCount(51, RecursiveCteUnsupportedCaseCatalog.Cases);
         Assert.HasCount(
             51,
-            RecursiveCteUnsupportedCaseCatalog.Cases
-                .Select(static item => item.Name)
-                .Distinct(StringComparer.Ordinal));
+            RecursiveCteUnsupportedCaseCatalog.Cases.Select(static item => item.Name).Distinct(StringComparer.Ordinal)
+        );
     }
 
     [TestMethod]
     public void Catalog_ShouldGuardEveryV1RestrictionFamily()
     {
-        var names = RecursiveCteUnsupportedCaseCatalog.Cases
-            .Select(static item => item.Name)
+        var names = RecursiveCteUnsupportedCaseCatalog
+            .Cases.Select(static item => item.Name)
             .ToHashSet(StringComparer.Ordinal);
         string[] requiredCases =
         [
-            "MissingRecursiveKeyword", "NoTopLevelUnion", "SelfReferenceInAnchor",
-            "MultipleSelfReferences", "NestedSelfReference", "ForwardReference", "MutualRecursion",
-            "UnionAllWithKeys", "DistinctRecursiveMember", "AggregateRecursiveMember",
-            "GroupedRecursiveMember", "HavingRecursiveMember", "WindowRecursiveMember",
-            "QualifyRecursiveMember", "OrderedRecursiveMember", "SkipRecursiveMember",
-            "TakeRecursiveMember", "OuterJoinRecursiveMember", "RightOuterJoinRecursiveMember",
-            "FullOuterJoinRecursiveMember", "SemiJoinRecursiveMember", "AntiJoinRecursiveMember",
-            "AsOfJoinRecursiveMember", "PivotRecursiveMember", "UnpivotRecursiveMember",
-            "NestedSetOperation", "RecursiveOutputColumnCountMismatch",
-            "RecursiveOutputTypeMismatch", "RecursiveColumnListCountMismatch",
-            "RecursiveDuplicateColumnName", "UnknownRecursiveUnionKey",
-            "SearchClauseParserRecovery", "CycleClauseParserRecovery"
+            "MissingRecursiveKeyword",
+            "NoTopLevelUnion",
+            "SelfReferenceInAnchor",
+            "MultipleSelfReferences",
+            "NestedSelfReference",
+            "ForwardReference",
+            "MutualRecursion",
+            "UnionAllWithKeys",
+            "DistinctRecursiveMember",
+            "AggregateRecursiveMember",
+            "GroupedRecursiveMember",
+            "HavingRecursiveMember",
+            "WindowRecursiveMember",
+            "QualifyRecursiveMember",
+            "OrderedRecursiveMember",
+            "SkipRecursiveMember",
+            "TakeRecursiveMember",
+            "OuterJoinRecursiveMember",
+            "RightOuterJoinRecursiveMember",
+            "FullOuterJoinRecursiveMember",
+            "SemiJoinRecursiveMember",
+            "AntiJoinRecursiveMember",
+            "AsOfJoinRecursiveMember",
+            "PivotRecursiveMember",
+            "UnpivotRecursiveMember",
+            "NestedSetOperation",
+            "RecursiveOutputColumnCountMismatch",
+            "RecursiveOutputTypeMismatch",
+            "RecursiveColumnListCountMismatch",
+            "RecursiveDuplicateColumnName",
+            "UnknownRecursiveUnionKey",
+            "SearchClauseParserRecovery",
+            "CycleClauseParserRecovery",
         ];
 
         foreach (var requiredCase in requiredCases)
@@ -54,10 +74,15 @@ public sealed class RecursiveCteDiagnosticCatalogTests
     public void ParserRecoveryCases_ShouldReturnStableCompleteDiagnosticSetsWithoutThrowing()
     {
         var schemaProvider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } });
+            new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } }
+        );
 
         {
-            var selectedCases = RecursiveCteUnsupportedCaseCatalog.Cases.Where(static item => item.ParserRecovery).ToArray(); Assert.IsNotEmpty(selectedCases, "The intended scenario subset must contain cases."); foreach (var testCase in selectedCases)
+            var selectedCases = RecursiveCteUnsupportedCaseCatalog
+                .Cases.Where(static item => item.ParserRecovery)
+                .ToArray();
+            Assert.IsNotEmpty(selectedCases, "The intended scenario subset must contain cases.");
+            foreach (var testCase in selectedCases)
             {
                 var actual = new QueryAnalyzer(schemaProvider).Analyze(testCase.Query).Diagnostics.ToArray();
                 var expected = testCase.ExpectedDiagnostics!;
@@ -73,8 +98,9 @@ public sealed class RecursiveCteDiagnosticCatalogTests
                     var span = testCase.Query.Substring(actualDiagnostic.Span.Start, actualDiagnostic.Span.Length);
                     Assert.IsTrue(
                         span.Contains(expectedDiagnostic.SpanFragment, StringComparison.OrdinalIgnoreCase),
-                        $"{testCase.Name}: diagnostic {index} span '{span}' does not contain " +
-                        $"'{expectedDiagnostic.SpanFragment}'.");
+                        $"{testCase.Name}: diagnostic {index} span '{span}' does not contain "
+                            + $"'{expectedDiagnostic.SpanFragment}'."
+                    );
                 }
             }
         }
@@ -82,14 +108,13 @@ public sealed class RecursiveCteDiagnosticCatalogTests
 
     [TestMethod]
     [DynamicData(nameof(Cases))]
-    public void UnsupportedCase_ShouldStopBeforePlanningWithDeclaredDiagnostic(
-        RecursiveCteUnsupportedCase testCase)
+    public void UnsupportedCase_ShouldStopBeforePlanningWithDeclaredDiagnostic(RecursiveCteUnsupportedCase testCase)
     {
         if (testCase.ParserRecovery)
         {
-            var recovery = new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(
-                new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } }))
-                .Analyze(testCase.Query);
+            var recovery = new QueryAnalyzer(
+                new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } })
+            ).Analyze(testCase.Query);
             Assert.IsNotEmpty(recovery.Diagnostics, testCase.Name);
             Assert.AreEqual(testCase.DiagnosticCode, recovery.Diagnostics[0].Code, testCase.Name);
             StringAssert.Contains(recovery.Diagnostics[0].Message, testCase.MessageFragment, testCase.Name);
@@ -111,17 +136,18 @@ public sealed class RecursiveCteDiagnosticCatalogTests
         var offendingText = testCase.Query.Substring(span.Start, span.Length);
         Assert.IsTrue(
             offendingText.Contains(testCase.SpanFragment, StringComparison.OrdinalIgnoreCase),
-            $"{testCase.Name}: diagnostic span '{offendingText}' does not contain '{testCase.SpanFragment}'.");
+            $"{testCase.Name}: diagnostic span '{offendingText}' does not contain '{testCase.SpanFragment}'."
+        );
         AssertStructuredQueryDiagnostic(errors[0], testCase);
     }
 
     [TestMethod]
     [DynamicData(nameof(Cases))]
-    public void UnsupportedCase_QueryAnalyzerShouldReturnDeclaredPrimaryDiagnostic(
-        RecursiveCteUnsupportedCase testCase)
+    public void UnsupportedCase_QueryAnalyzerShouldReturnDeclaredPrimaryDiagnostic(RecursiveCteUnsupportedCase testCase)
     {
         var schemaProvider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } });
+            new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } }
+        );
         var result = new QueryAnalyzer(schemaProvider).Analyze(testCase.Query);
 
         Assert.IsNotEmpty(result.Diagnostics, testCase.Name);
@@ -133,12 +159,12 @@ public sealed class RecursiveCteDiagnosticCatalogTests
     public void MultilineUnsupportedRecursiveMember_ShouldRetainQueryLineAndContextSnippet()
     {
         const string query =
-            "with recursive counter (Value) as (\n" +
-            "    select Value from values {( Value: 1 )} seed\n" +
-            "    union all\n" +
-            "    select distinct c.Value + 1 from counter c\n" +
-            "    where c.Value < 3)\n" +
-            "select Value from counter";
+            "with recursive counter (Value) as (\n"
+            + "    select Value from values {( Value: 1 )} seed\n"
+            + "    union all\n"
+            + "    select distinct c.Value + 1 from counter c\n"
+            + "    where c.Value < 3)\n"
+            + "select Value from counter";
 
         var errors = PlanOnlyBuildItems.Create(query).DiagnosticContext.Errors.ToArray();
 
@@ -159,15 +185,10 @@ public sealed class RecursiveCteDiagnosticCatalogTests
         StringAssert.Contains(envelope.Snippet!, "select distinct");
     }
 
-    private static void AssertStructuredQueryDiagnostic(
-        Diagnostic diagnostic,
-        RecursiveCteUnsupportedCase testCase)
+    private static void AssertStructuredQueryDiagnostic(Diagnostic diagnostic, RecursiveCteUnsupportedCase testCase)
     {
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity, testCase.Name);
-        Assert.AreEqual(
-            DiagnosticPhaseMapping.FromCode(testCase.DiagnosticCode),
-            diagnostic.Phase,
-            testCase.Name);
+        Assert.AreEqual(DiagnosticPhaseMapping.FromCode(testCase.DiagnosticCode), diagnostic.Phase, testCase.Name);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind, testCase.Name);
         Assert.IsTrue(diagnostic.Location.IsValid, testCase.Name);
         Assert.IsTrue(diagnostic.EndLocation.IsValid, testCase.Name);
@@ -183,7 +204,9 @@ public sealed class RecursiveCteDiagnosticCatalogTests
         Assert.HasCount(envelope.SuggestedFixes.Count, envelope.Actions, testCase.Name);
         Assert.IsTrue(
             envelope.Actions.All(static action =>
-                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null),
-            testCase.Name);
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            ),
+            testCase.Name
+        );
     }
 }

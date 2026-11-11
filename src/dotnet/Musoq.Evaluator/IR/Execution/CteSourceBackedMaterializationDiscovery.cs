@@ -10,7 +10,8 @@ internal static class CteSourceBackedMaterializationDiscovery
         ExecutionBlock body,
         out int loopIndex,
         [NotNullWhen(true)] out ExecutionForEach? loop,
-        out int tableIndex)
+        out int tableIndex
+    )
     {
         loopIndex = -1;
         loop = null;
@@ -35,7 +36,8 @@ internal static class CteSourceBackedMaterializationDiscovery
     public static bool TryResolveCteName(
         IReadOnlyDictionary<string, int> cteIndexes,
         int tableIndex,
-        [NotNullWhen(true)] out string? cteName)
+        [NotNullWhen(true)] out string? cteName
+    )
     {
         foreach (var (name, index) in cteIndexes)
         {
@@ -54,7 +56,8 @@ internal static class CteSourceBackedMaterializationDiscovery
         IReadOnlyList<ExecutionNode> builtNodes,
         int tableIndex,
         IReadOnlyDictionary<string, SourceInteractionPlan> sourceInteractionPlans,
-        [NotNullWhen(true)] out CteSourceBackedMaterialization? materialization)
+        [NotNullWhen(true)] out CteSourceBackedMaterialization? materialization
+    )
     {
         materialization = null;
         var materializationNodes = builtNodes
@@ -62,17 +65,19 @@ internal static class CteSourceBackedMaterializationDiscovery
             .Where(static item => item.node is not ExecutionPhaseBoundary)
             .ToArray();
 
-        if (materializationNodes.Length < 3 ||
-            materializationNodes[^1].node is not ExecutionStoreTable storeTable ||
-            storeTable.TableIndex != tableIndex ||
-            materializationNodes[^2].node is not ExecutionSourceLoop loop ||
-            materializationNodes[^3].node is not ExecutionCreateTable createTable ||
-            !string.Equals(createTable.Table.Name, storeTable.Table.Name, StringComparison.Ordinal) ||
-            !TryFindSingleTargetAppend(loop.Body, createTable, out var appendRow) ||
-            !TryResolveLoopRowsVariable(loop.Source, out var rowsVariable) ||
-            !TryResolveSourceScan(builtNodes, rowsVariable, out var sourceScan) ||
-            !CanUseSourceBackedFusion(sourceScan, sourceInteractionPlans) ||
-            HasUnsafeMappedExpression(appendRow))
+        if (
+            materializationNodes.Length < 3
+            || materializationNodes[^1].node is not ExecutionStoreTable storeTable
+            || storeTable.TableIndex != tableIndex
+            || materializationNodes[^2].node is not ExecutionSourceLoop loop
+            || materializationNodes[^3].node is not ExecutionCreateTable createTable
+            || !string.Equals(createTable.Table.Name, storeTable.Table.Name, StringComparison.Ordinal)
+            || !TryFindSingleTargetAppend(loop.Body, createTable, out var appendRow)
+            || !TryResolveLoopRowsVariable(loop.Source, out var rowsVariable)
+            || !TryResolveSourceScan(builtNodes, rowsVariable, out var sourceScan)
+            || !CanUseSourceBackedFusion(sourceScan, sourceInteractionPlans)
+            || HasUnsafeMappedExpression(appendRow)
+        )
         {
             return false;
         }
@@ -82,19 +87,23 @@ internal static class CteSourceBackedMaterializationDiscovery
             materializationNodes[^1].index,
             createTable,
             loop,
-            appendRow);
+            appendRow
+        );
         return true;
     }
 
     private static bool TryFindSingleTargetAppend(
         ExecutionBlock block,
         ExecutionCreateTable createTable,
-        [NotNullWhen(true)] out ExecutionAppendRow? appendRow)
+        [NotNullWhen(true)] out ExecutionAppendRow? appendRow
+    )
     {
         var matches = ExecutionIrAnalysis
             .CollectNodes<ExecutionAppendRow>(block)
-            .Where(append => string.Equals(append.Table.Name, createTable.Table.Name, StringComparison.Ordinal) &&
-                             string.Equals(append.RowShape.TypeName, createTable.RowShape.TypeName, StringComparison.Ordinal))
+            .Where(append =>
+                string.Equals(append.Table.Name, createTable.Table.Name, StringComparison.Ordinal)
+                && string.Equals(append.RowShape.TypeName, createTable.RowShape.TypeName, StringComparison.Ordinal)
+            )
             .Take(2)
             .ToArray();
 
@@ -104,12 +113,13 @@ internal static class CteSourceBackedMaterializationDiscovery
 
     private static bool TryResolveLoopRowsVariable(
         ExecutionExpression source,
-        [NotNullWhen(true)] out ExecutionVariable? rowsVariable)
+        [NotNullWhen(true)] out ExecutionVariable? rowsVariable
+    )
     {
         rowsVariable = source switch
         {
             ExecutionRowStream rows => rows.Variable,
-            _ => null
+            _ => null,
         };
 
         return rowsVariable != null;
@@ -118,7 +128,8 @@ internal static class CteSourceBackedMaterializationDiscovery
     private static bool TryResolveSourceScan(
         IReadOnlyList<ExecutionNode> builtNodes,
         ExecutionVariable rowsVariable,
-        [NotNullWhen(true)] out ExecutionSourceScan? sourceScan)
+        [NotNullWhen(true)] out ExecutionSourceScan? sourceScan
+    )
     {
         sourceScan = builtNodes
             .OfType<ExecutionSourceScan>()
@@ -129,23 +140,27 @@ internal static class CteSourceBackedMaterializationDiscovery
 
     private static bool CanUseSourceBackedFusion(
         ExecutionSourceScan sourceScan,
-        IReadOnlyDictionary<string, SourceInteractionPlan> sourceInteractionPlans)
+        IReadOnlyDictionary<string, SourceInteractionPlan> sourceInteractionPlans
+    )
     {
         if (string.IsNullOrWhiteSpace(sourceScan.Binding.RuntimeContextId))
             return false;
 
         sourceInteractionPlans.TryGetValue(sourceScan.Binding.RuntimeContextId, out var plan);
-        return plan is
-        {
-            Confidence: not PlanningConfidence.Low,
-            ArgumentMode: SourceArgumentMode.ConstantArguments,
-            ShapeKind: SourceShapeKind.KnownClr or SourceShapeKind.ExternallyProvidedType or SourceShapeKind.InferredMetadata
-        };
+        return plan
+            is {
+                Confidence: not PlanningConfidence.Low,
+                ArgumentMode: SourceArgumentMode.ConstantArguments,
+                ShapeKind: SourceShapeKind.KnownClr
+                    or SourceShapeKind.ExternallyProvidedType
+                    or SourceShapeKind.InferredMetadata
+            };
     }
 
     private static bool HasUnsafeMappedExpression(ExecutionAppendRow appendRow)
     {
-        return appendRow.Values.Select(static value => value.Value)
+        return appendRow
+            .Values.Select(static value => value.Value)
             .Concat(appendRow.Contexts)
             .Concat(ExecutionIrAnalysis.GetContextLayoutExpressions(appendRow.ContextLayout))
             .SelectMany(ExecutionIrAnalysis.FlattenExpressions)

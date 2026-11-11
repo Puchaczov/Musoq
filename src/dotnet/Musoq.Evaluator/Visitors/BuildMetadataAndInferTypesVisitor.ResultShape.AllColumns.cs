@@ -9,7 +9,12 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private void ProcessSingleTable(AllColumnsNode node, TableSymbol tableSymbol, string identifier, Node[]? inferredReplaceExpressions)
+    private void ProcessSingleTable(
+        AllColumnsNode node,
+        TableSymbol tableSymbol,
+        string identifier,
+        Node[]? inferredReplaceExpressions
+    )
     {
         var generatedColumnIdentifier = node.Alias ?? identifier;
         (ISchema Schema, ISchemaTable Table, string TableName) tuple;
@@ -20,10 +25,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         catch (KeyNotFoundException)
         {
             var span = node.SpanOrEmpty();
-            throw new UnknownColumnOrAliasException(
-                generatedColumnIdentifier,
-                "in wildcard projection",
-                span);
+            throw new UnknownColumnOrAliasException(generatedColumnIdentifier, "in wildcard projection", span);
         }
 
         var table = tuple.Table;
@@ -41,9 +43,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (filteredColumns != null)
         {
-            var projectedColumns = CreateSingleTableStarProjectedColumns(
-                generatedColumnIdentifier,
-                filteredColumns);
+            var projectedColumns = CreateSingleTableStarProjectedColumns(generatedColumnIdentifier, filteredColumns);
             ApplyRenameSubstitution(node, projectedColumns, node.SpanOrEmpty());
 
             var positionCounter = 0;
@@ -51,10 +51,17 @@ public partial class BuildMetadataAndInferTypesVisitor
             {
                 if (entry.ReplacementExpression != null)
                 {
-                    AddAssembly((entry.ReplacementExpression.ReturnType ??
-                                 throw new InvalidOperationException($"Replacement expression for '{entry.Column.ColumnName}' has no inferred return type.")).Assembly);
-                    generatedColumns.Add(new FieldNode(entry.ReplacementExpression, positionCounter++, entry.OutputName,
-                        true));
+                    AddAssembly(
+                        (
+                            entry.ReplacementExpression.ReturnType
+                            ?? throw new InvalidOperationException(
+                                $"Replacement expression for '{entry.Column.ColumnName}' has no inferred return type."
+                            )
+                        ).Assembly
+                    );
+                    generatedColumns.Add(
+                        new FieldNode(entry.ReplacementExpression, positionCounter++, entry.OutputName, true)
+                    );
                 }
                 else
                 {
@@ -65,7 +72,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                         generatedColumnIdentifier,
                         generatedColumns,
                         entry.OutputName,
-                        node.Span);
+                        node.Span
+                    );
                 }
             }
         }
@@ -73,8 +81,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var positionCounter = 0;
             foreach (var column in eligibleColumns)
-                AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, generatedColumnIdentifier,
-                    generatedColumns, sourceSpan: node.Span);
+                AddColumnToGeneratedColumns(
+                    tableSymbol,
+                    column,
+                    positionCounter++,
+                    generatedColumnIdentifier,
+                    generatedColumns,
+                    sourceSpan: node.Span
+                );
         }
 
         UpdateUsedColumns(generatedColumnIdentifier, table);
@@ -93,9 +107,17 @@ public partial class BuildMetadataAndInferTypesVisitor
 
                 var positionCounter = 0;
                 foreach (var column in table.Columns)
-                    if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(column.ColumnType))
-                        AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, tableIdentifier,
-                            generatedColumns, sourceSpan: node.Span);
+                    if (
+                        BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(column.ColumnType)
+                    )
+                        AddColumnToGeneratedColumns(
+                            tableSymbol,
+                            column,
+                            positionCounter++,
+                            tableIdentifier,
+                            generatedColumns,
+                            sourceSpan: node.Span
+                        );
 
                 UpdateUsedColumns(tableIdentifier, table);
             }
@@ -104,8 +126,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
 
         var allEligible = new List<(string TableIdentifier, ISchemaColumn Column)>();
-        var tablesByIdentifier =
-            new Dictionary<string, (ISchemaTable Table, TableSymbol Symbol)>(StringComparer.OrdinalIgnoreCase);
+        var tablesByIdentifier = new Dictionary<string, (ISchemaTable Table, TableSymbol Symbol)>(
+            StringComparer.OrdinalIgnoreCase
+        );
 
         foreach (var tableIdentifier in tableSymbol.CompoundTables)
         {
@@ -135,20 +158,34 @@ public partial class BuildMetadataAndInferTypesVisitor
                     continue;
 
                 var projectedEntry = projected.FirstOrDefault(e =>
-                    e.TableIdentifier == tableIdentifier && e.Column == column);
+                    e.TableIdentifier == tableIdentifier && e.Column == column
+                );
                 if (projectedEntry == null)
                     continue;
 
                 if (projectedEntry.ReplacementExpression != null)
                 {
                     AddAssembly((projectedEntry.ReplacementExpression.ReturnType ?? typeof(object)).Assembly);
-                    generatedColumns.Add(new FieldNode(projectedEntry.ReplacementExpression, positionCounter++,
-                        projectedEntry.OutputName, true));
+                    generatedColumns.Add(
+                        new FieldNode(
+                            projectedEntry.ReplacementExpression,
+                            positionCounter++,
+                            projectedEntry.OutputName,
+                            true
+                        )
+                    );
                 }
                 else
                 {
-                    AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, tableIdentifier,
-                        generatedColumns, projectedEntry.OutputName, node.Span);
+                    AddColumnToGeneratedColumns(
+                        tableSymbol,
+                        column,
+                        positionCounter++,
+                        tableIdentifier,
+                        generatedColumns,
+                        projectedEntry.OutputName,
+                        node.Span
+                    );
                 }
             }
 
@@ -158,7 +195,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private static int FindOriginalIndex(
         List<(string TableIdentifier, ISchemaColumn Column)> allEligible,
-        ISchemaColumn column)
+        ISchemaColumn column
+    )
     {
         for (var i = 0; i < allEligible.Count; i++)
             if (allEligible[i].Column == column)

@@ -43,16 +43,11 @@ public partial class SubqueryToCteRewriteVisitor
             Parser.ExpressionFromNode => from,
             Parser.JoinFromNode joinFrom => new Parser.ExpressionFromNode(new Parser.JoinNode(joinFrom)),
             Parser.ApplyFromNode applyFrom => new Parser.ExpressionFromNode(new Parser.ApplyNode(applyFrom)),
-            _ => new Parser.ExpressionFromNode(from)
+            _ => new Parser.ExpressionFromNode(from),
         };
     }
 
-
-
-    private Node ProjectExistsKey(
-        Node node,
-        string cteColumnName,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+    private Node ProjectExistsKey(Node node, string cteColumnName, List<CteInnerExpressionNode> cteInnerExpressions)
     {
         switch (node)
         {
@@ -70,7 +65,8 @@ public partial class SubqueryToCteRewriteVisitor
                 return RecreateSetOperator(
                     setOperator,
                     ProjectExistsKey(setOperator.Left, cteColumnName, cteInnerExpressions),
-                    ProjectExistsKey(setOperator.Right, cteColumnName, cteInnerExpressions));
+                    ProjectExistsKey(setOperator.Right, cteColumnName, cteInnerExpressions)
+                );
 
             default:
                 return node;
@@ -80,10 +76,7 @@ public partial class SubqueryToCteRewriteVisitor
     private static QueryNode ProjectExistsKey(QueryNode query, string cteColumnName)
     {
         return new QueryNode(
-            new SelectNode(
-            [
-                new FieldNode(new IntegerNode(1), 0, cteColumnName)
-            ]),
+            new SelectNode([new FieldNode(new IntegerNode(1), 0, cteColumnName)]),
             query.From,
             query.Where,
             query.GroupBy,
@@ -92,13 +85,18 @@ public partial class SubqueryToCteRewriteVisitor
             query.Take,
             query.Window,
             query.Qualify,
-            default);
+            default
+        );
     }
 
     private static bool IsCardinalitySafeApplyCorrelation(SubqueryInfo info, Node expression)
     {
-        return info.Correlation?.Facts != null &&
-               (IsEqualityOnlyApplyCorrelation(expression) || SubqueryCorrelationUtilities.IsIndexedRangeCorrelation(expression) || PredicateApplyCorrelationShape.IsNullGuardedRange(expression));
+        return info.Correlation?.Facts != null
+            && (
+                IsEqualityOnlyApplyCorrelation(expression)
+                || SubqueryCorrelationUtilities.IsIndexedRangeCorrelation(expression)
+                || PredicateApplyCorrelationShape.IsNullGuardedRange(expression)
+            );
     }
 
     private static bool IsEqualityOnlyApplyCorrelation(Node expression)
@@ -106,9 +104,8 @@ public partial class SubqueryToCteRewriteVisitor
         return expression switch
         {
             EqualityNode => true,
-            AndNode and => IsEqualityOnlyApplyCorrelation(and.Left) &&
-                           IsEqualityOnlyApplyCorrelation(and.Right),
-            _ => false
+            AndNode and => IsEqualityOnlyApplyCorrelation(and.Left) && IsEqualityOnlyApplyCorrelation(and.Right),
+            _ => false,
         };
     }
 
@@ -118,6 +115,7 @@ public partial class SubqueryToCteRewriteVisitor
         throw SubqueryDiagnosticFactory.InvalidSubquery(
             $"{predicateName} subquery expression rewrite",
             $"Predicate {predicateName} subqueries used inside expression contexts require equality predicates, null guards, and at most one comparable range predicate.",
-            info.PredicateNode);
+            info.PredicateNode
+        );
     }
 }

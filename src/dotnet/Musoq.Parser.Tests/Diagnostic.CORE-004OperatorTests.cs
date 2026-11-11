@@ -93,8 +93,8 @@ public sealed class DiagnosticCore004OperatorTests
 
         var statements = (StatementsArrayNode)result.Root!.Expression;
         var statement = (SingleSetNode)statements.Statements.Single().Node;
-        return statement.Query.Where?.Expression ??
-               throw new InvalidOperationException("Expected the parsed query to contain a WHERE clause.");
+        return statement.Query.Where?.Expression
+            ?? throw new InvalidOperationException("Expected the parsed query to contain a WHERE clause.");
     }
 
     private static Node ParseSelectExpression(string expression)

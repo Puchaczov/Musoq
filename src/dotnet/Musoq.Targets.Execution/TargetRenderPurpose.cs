@@ -5,13 +5,13 @@ internal enum TargetRenderPurpose
     Execution,
     Inspection,
     PortablePackaging,
-    StrictValidation
+    StrictValidation,
 }
 
 internal enum TargetRenderProfile
 {
     ExecutionFast,
-    StableArtifact
+    StableArtifact,
 }
 
 internal static class TargetRenderProfileContract

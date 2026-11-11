@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 
 namespace Musoq.Schema.Optimization;
@@ -89,19 +89,27 @@ public static class SourceScalarExpressionFingerprint
 
     private static string Encode(params string[] values) => JsonSerializer.Serialize(values);
 
-    private static string Literal(object? value) => value switch
-    {
-        null => "null",
-        string text => JsonSerializer.Serialize(text),
-        char character => ((int)character).ToString(CultureInfo.InvariantCulture),
-        float number => BitConverter.SingleToInt32Bits(number).ToString("X8", CultureInfo.InvariantCulture),
-        double number => BitConverter.DoubleToInt64Bits(number).ToString("X16", CultureInfo.InvariantCulture),
-        decimal number => string.Join(",", decimal.GetBits(number).Select(part => part.ToString("X8", CultureInfo.InvariantCulture))),
-        DateTime date => Encode(date.Ticks.ToString(CultureInfo.InvariantCulture), date.Kind.ToString()),
-        DateTimeOffset date => Encode(date.Ticks.ToString(CultureInfo.InvariantCulture), date.Offset.Ticks.ToString(CultureInfo.InvariantCulture)),
-        TimeSpan duration => duration.Ticks.ToString(CultureInfo.InvariantCulture),
-        IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture) ?? throw new ArgumentException("A scalar literal produced no canonical value.", nameof(value)),
-        bool boolean => boolean ? "true" : "false",
-        _ => throw new ArgumentException("Unsupported portable scalar literal.", nameof(value))
-    };
+    private static string Literal(object? value) =>
+        value switch
+        {
+            null => "null",
+            string text => JsonSerializer.Serialize(text),
+            char character => ((int)character).ToString(CultureInfo.InvariantCulture),
+            float number => BitConverter.SingleToInt32Bits(number).ToString("X8", CultureInfo.InvariantCulture),
+            double number => BitConverter.DoubleToInt64Bits(number).ToString("X16", CultureInfo.InvariantCulture),
+            decimal number => string.Join(
+                ",",
+                decimal.GetBits(number).Select(part => part.ToString("X8", CultureInfo.InvariantCulture))
+            ),
+            DateTime date => Encode(date.Ticks.ToString(CultureInfo.InvariantCulture), date.Kind.ToString()),
+            DateTimeOffset date => Encode(
+                date.Ticks.ToString(CultureInfo.InvariantCulture),
+                date.Offset.Ticks.ToString(CultureInfo.InvariantCulture)
+            ),
+            TimeSpan duration => duration.Ticks.ToString(CultureInfo.InvariantCulture),
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture)
+                ?? throw new ArgumentException("A scalar literal produced no canonical value.", nameof(value)),
+            bool boolean => boolean ? "true" : "false",
+            _ => throw new ArgumentException("Unsupported portable scalar literal.", nameof(value)),
+        };
 }

@@ -10,7 +10,12 @@ internal static partial class ExecutionNodeFacts
         if (index < node.EqualityKeys.Count)
             return node.EqualityKeys[index].Right;
         index -= node.EqualityKeys.Count;
-        return index switch { 0 => node.CandidateKey, 1 => node.TieBreak?.Key, _ => null };
+        return index switch
+        {
+            0 => node.CandidateKey,
+            1 => node.TieBreak?.Key,
+            _ => null,
+        };
     }
 
     private static ExecutionExpression? AsOfProbeAt(ExecutionAsOfProbe node, int index)
@@ -21,7 +26,13 @@ internal static partial class ExecutionNodeFacts
         if (index / 2 < node.EqualityKeys.Count)
             return index % 2 == 0 ? node.EqualityKeys[index / 2].Left : node.EqualityKeys[index / 2].Right;
         index -= node.EqualityKeys.Count * 2;
-        return index switch { 0 => node.ProbeKey, 1 => node.CandidateKey, 2 => node.TieBreak?.Key, _ => null };
+        return index switch
+        {
+            0 => node.ProbeKey,
+            1 => node.CandidateKey,
+            2 => node.TieBreak?.Key,
+            _ => null,
+        };
     }
 
     private static ExecutionExpression? RangeCreateAt(ExecutionCreateRangeIndex node, int index)

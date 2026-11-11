@@ -15,12 +15,13 @@ public enum GeneratedQueryRowSampleShape
     Narrow,
     Wide,
     SpecialNames,
-    Enum
+    Enum,
 }
 
 public sealed class GeneratedQueryRowSampleSchemaProvider(
     GeneratedQueryRowSampleShape shape,
-    bool queryScopedRowsEnabled) : ISchemaProvider
+    bool queryScopedRowsEnabled
+) : ISchemaProvider
 {
     public ISchema GetSchema(string schema)
     {
@@ -37,9 +38,7 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
     private readonly bool _queryScopedRowsEnabled;
     private readonly GeneratedQueryRowSampleShape _shape;
 
-    public GeneratedQueryRowSampleSchema(
-        GeneratedQueryRowSampleShape shape,
-        bool queryScopedRowsEnabled)
+    public GeneratedQueryRowSampleSchema(GeneratedQueryRowSampleShape shape, bool queryScopedRowsEnabled)
         : base("queryrowsample", CreateMethods())
     {
         _shape = shape;
@@ -50,23 +49,25 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         if (string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
         {
-            var columns = _shape == GeneratedQueryRowSampleShape.Enum &&
-                          metadataContext.AllColumns.Count > 0
-                ? metadataContext.AllColumns.ToArray()
-                : _definition.Columns;
-            return new GeneratedQueryRowSampleTable(columns, _queryScopedRowsEnabled ? typeof(QueryScopedRowContract) : typeof(DeclaredQueryRowSample));
+            var columns =
+                _shape == GeneratedQueryRowSampleShape.Enum && metadataContext.AllColumns.Count > 0
+                    ? metadataContext.AllColumns.ToArray()
+                    : _definition.Columns;
+            return new GeneratedQueryRowSampleTable(
+                columns,
+                _queryScopedRowsEnabled ? typeof(QueryScopedRowContract) : typeof(DeclaredQueryRowSample)
+            );
         }
 
         return base.GetTableByName(name, metadataContext, parameters);
     }
 
-    public override SchemaMethodInfo[] GetRawConstructors(
-        string methodName,
-        SourceMetadataContext metadataContext)
+    public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
     {
         return string.Equals(methodName, "rows", StringComparison.OrdinalIgnoreCase)
             ? [new SchemaMethodInfo(methodName, SchemaConstructorInfo.Empty())]
@@ -76,28 +77,32 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         var descriptor = base.DescribeSource(name, context, parameters);
         return descriptor with
         {
-            Columns = _shape == GeneratedQueryRowSampleShape.Enum &&
-                      context.MetadataContext.AllColumns.Count > 0
-                ? context.MetadataContext.AllColumns.ToArray()
-                : descriptor.Columns,
+            Columns =
+                _shape == GeneratedQueryRowSampleShape.Enum && context.MetadataContext.AllColumns.Count > 0
+                    ? context.MetadataContext.AllColumns.ToArray()
+                    : descriptor.Columns,
             TransferCapabilities = _queryScopedRowsEnabled
-                ? SourceTransferCapabilities.QueryScopedRows |
-                  (_shape == GeneratedQueryRowSampleShape.Enum
-                      ? SourceTransferCapabilities.LogicalScalarReads
-                      : SourceTransferCapabilities.None)
-                : SourceTransferCapabilities.None
+                ? SourceTransferCapabilities.QueryScopedRows
+                    | (
+                        _shape == GeneratedQueryRowSampleShape.Enum
+                            ? SourceTransferCapabilities.LogicalScalarReads
+                            : SourceTransferCapabilities.None
+                    )
+                : SourceTransferCapabilities.None,
         };
     }
 
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         if (!string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
             return base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments);
@@ -110,7 +115,8 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
@@ -119,9 +125,7 @@ public sealed class GeneratedQueryRowSampleSchema : SchemaBase, IQueryScopedRowS
         if (!string.Equals(name, "rows", StringComparison.OrdinalIgnoreCase))
             throw new NotSupportedException(name);
 
-        return new GeneratedQueryRowSampleSource<TRow, TMaterializer>(
-            _definition.Rows,
-            request.Shape.Fields);
+        return new GeneratedQueryRowSampleSource<TRow, TMaterializer>(_definition.Rows, request.Shape.Fields);
     }
 
     private static MethodsAggregator CreateMethods()
@@ -136,18 +140,21 @@ public sealed class GeneratedQueryRowSampleTable(ISchemaColumn[] columns, Type? 
 {
     public ISchemaColumn[] Columns { get; } = columns;
 
-    public SchemaTableMetadata Metadata { get; } = new(entityType ?? typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+    public SchemaTableMetadata Metadata { get; } =
+        new(entityType ?? typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 
     public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)
     {
-        return Columns.Where(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+        return Columns
+            .Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
     }
 }
 
@@ -161,7 +168,8 @@ public sealed class DeclaredQueryRowSampleSource(IReadOnlyList<DeclaredQueryRowS
 
 public sealed class GeneratedQueryRowSampleSource<TRow, TMaterializer>(
     IReadOnlyList<object?[]> rows,
-    IReadOnlyList<QueryRowField> fields) : RowSourceBase<TRow>
+    IReadOnlyList<QueryRowField> fields
+) : RowSourceBase<TRow>
     where TMaterializer : struct, IQueryRowMaterializer<TRow>
 {
     protected override void CollectChunks(IChunkWriter<TRow> writer)
@@ -177,9 +185,8 @@ public sealed class GeneratedQueryRowSampleSource<TRow, TMaterializer>(
     }
 }
 
-public ref struct GeneratedQueryRowSampleReader(
-    object?[] row,
-    IReadOnlyList<QueryRowField> fields) : IQuerySourceFieldReader
+public ref struct GeneratedQueryRowSampleReader(object?[] row, IReadOnlyList<QueryRowField> fields)
+    : IQuerySourceFieldReader
 {
     public T Read<T>(int slot)
     {
@@ -188,52 +195,53 @@ public ref struct GeneratedQueryRowSampleReader(
     }
 }
 
-internal sealed record GeneratedQueryRowSampleDefinition(
-    ISchemaColumn[] Columns,
-    IReadOnlyList<object?[]> Rows)
+internal sealed record GeneratedQueryRowSampleDefinition(ISchemaColumn[] Columns, IReadOnlyList<object?[]> Rows)
 {
     public static GeneratedQueryRowSampleDefinition Create(GeneratedQueryRowSampleShape shape)
     {
         return shape switch
         {
             GeneratedQueryRowSampleShape.Narrow => new GeneratedQueryRowSampleDefinition(
-                [
-                    new SchemaColumn("Id", 0, typeof(int)),
-                    new SchemaColumn("Name", 1, typeof(string))
-                ],
+                [new SchemaColumn("Id", 0, typeof(int)), new SchemaColumn("Name", 1, typeof(string))],
                 [
                     [1, "alpha"],
-                    [2, "beta"]
-                ]),
+                    [2, "beta"],
+                ]
+            ),
             GeneratedQueryRowSampleShape.Wide => new GeneratedQueryRowSampleDefinition(
-                Enumerable.Range(0, 5)
+                Enumerable
+                    .Range(0, 5)
                     .Select(index => (ISchemaColumn)new SchemaColumn($"G{index}", index, typeof(Guid)))
                     .ToArray(),
                 [
-                    Enumerable.Range(0, 5)
+                    Enumerable
+                        .Range(0, 5)
                         .Select(index => (object?)Guid.Parse($"00000000-0000-0000-0000-{index + 1:000000000000}"))
-                        .ToArray()
-                ]),
+                        .ToArray(),
+                ]
+            ),
             GeneratedQueryRowSampleShape.SpecialNames => new GeneratedQueryRowSampleDefinition(
                 [
                     new SchemaColumn("display name", 0, typeof(string)),
                     new SchemaColumn("na-me", 1, typeof(int)),
                     new SchemaColumn("MiastoŁódź", 2, typeof(string)),
-                    new SchemaColumn("select", 3, typeof(string))
+                    new SchemaColumn("select", 3, typeof(string)),
                 ],
                 [
-                    ["visible", 7, "Łódź", "keyword"]
-                ]),
+                    ["visible", 7, "Łódź", "keyword"],
+                ]
+            ),
             GeneratedQueryRowSampleShape.Enum => new GeneratedQueryRowSampleDefinition(
                 [
                     new SchemaColumn("Id", 0, typeof(int)),
                     new SchemaColumn("Status", 1, typeof(short)),
-                    new SchemaColumn("Access", 2, typeof(uint))
+                    new SchemaColumn("Access", 2, typeof(uint)),
                 ],
                 [
-                    [1, (short)20, 3u]
-                ]),
-            _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null)
+                    [1, (short)20, 3u],
+                ]
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null),
         };
     }
 }

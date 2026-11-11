@@ -15,7 +15,8 @@ internal sealed partial class PhysicalLoweringImplementation
         AggregateFinalizationGroupKeys groupKeys,
         ExecutionVariable group,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        AggregateGroupLowering aggregateGroup)
+        AggregateGroupLowering aggregateGroup
+    )
     {
         var columns = CollectAggregateFinalSourceColumns(fields, havingPredicate, postOperations, groupKeys);
         var nodes = new List<ExecutionNode>(columns.Length);
@@ -34,17 +35,21 @@ internal sealed partial class PhysicalLoweringImplementation
             if (capturedField == null)
             {
                 return AggregateGroupValueCaptureBuildResult.Unsupported(
-                    $"Execution IR aggregate lowering cannot resolve typed captured field for aggregate finalization value '{valueName}'.");
+                    $"Execution IR aggregate lowering cannot resolve typed captured field for aggregate finalization value '{valueName}'."
+                );
             }
 
-            nodes.Add(new ExecutionAggregateCapturedValueSet(group, valueName, value, column.ReturnType, capturedField));
+            nodes.Add(
+                new ExecutionAggregateCapturedValueSet(group, valueName, value, column.ReturnType, capturedField)
+            );
             AddAggregateCapturedValue(capturedValues, ambiguousKeys, valueName, valueName, column.ReturnType);
             AddAggregateCapturedValue(
                 capturedValues,
                 ambiguousKeys,
                 AggregateRefRewriter.NormalizeIdentifier(valueName),
                 valueName,
-                column.ReturnType);
+                column.ReturnType
+            );
         }
 
         return AggregateGroupValueCaptureBuildResult.Success(nodes, capturedValues);
@@ -54,7 +59,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyList<ProjectedField> fields,
         IrExpression? havingPredicate,
         IReadOnlyList<PostOperation> postOperations,
-        AggregateFinalizationGroupKeys groupKeys)
+        AggregateFinalizationGroupKeys groupKeys
+    )
     {
         var columns = new List<ColumnRef>();
 
@@ -67,15 +73,14 @@ internal sealed partial class PhysicalLoweringImplementation
         foreach (var postOperation in postOperations)
             CollectAggregateFinalSourceColumns(postOperation, columns, groupKeys);
 
-        return columns
-            .Where(column => TryGetGroupKeyExpressionIndex(column, groupKeys) == null)
-            .ToArray();
+        return columns.Where(column => TryGetGroupKeyExpressionIndex(column, groupKeys) == null).ToArray();
     }
 
     private static void CollectAggregateFinalSourceColumns(
         PostOperation postOperation,
         ICollection<ColumnRef> columns,
-        AggregateFinalizationGroupKeys groupKeys)
+        AggregateFinalizationGroupKeys groupKeys
+    )
     {
         switch (postOperation)
         {
@@ -109,7 +114,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static void CollectAggregateFinalSourceColumns(
         IrExpression expression,
         ICollection<ColumnRef> columns,
-        AggregateFinalizationGroupKeys groupKeys)
+        AggregateFinalizationGroupKeys groupKeys
+    )
     {
         if (TryGetGroupKeyExpressionIndex(expression, groupKeys) != null)
             return;
@@ -187,7 +193,8 @@ internal sealed partial class PhysicalLoweringImplementation
         HashSet<string> ambiguousKeys,
         string? lookupKey,
         string valueName,
-        Type valueType)
+        Type valueType
+    )
     {
         if (string.IsNullOrWhiteSpace(lookupKey) || ambiguousKeys.Contains(lookupKey))
             return;
@@ -199,8 +206,10 @@ internal sealed partial class PhysicalLoweringImplementation
             return;
         }
 
-        if (string.Equals(existing.ValueName, valueName, StringComparison.OrdinalIgnoreCase) &&
-            existing.ValueType == valueType)
+        if (
+            string.Equals(existing.ValueName, valueName, StringComparison.OrdinalIgnoreCase)
+            && existing.ValueType == valueType
+        )
         {
             return;
         }

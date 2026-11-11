@@ -1,4 +1,3 @@
-
 namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
@@ -18,9 +17,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool RequiresAssignedMethodTarget(ExecutionMethodCall methodCall)
     {
-        return !methodCall.Method.IsStatic &&
-               methodCall.Target == null &&
-               !ExecutionMethodTargetReuse.CanRenderWithoutTarget(methodCall);
+        return !methodCall.Method.IsStatic
+            && methodCall.Target == null
+            && !ExecutionMethodTargetReuse.CanRenderWithoutTarget(methodCall);
     }
-
 }

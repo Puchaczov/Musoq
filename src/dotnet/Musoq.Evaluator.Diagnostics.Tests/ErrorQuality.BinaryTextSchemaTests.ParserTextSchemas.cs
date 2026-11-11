@@ -13,17 +13,13 @@ public partial class ErrorQualityBinaryTextSchemaTests
     {
         // Arrange — 'gobble' is not a valid extraction method
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: gobble ' '
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Data: gobble ' '\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — 'gobble' is not a known extraction method
-        AssertParseOrSemanticFailure(result,
-            "Unknown extraction method 'gobble' should produce error");
+        AssertParseOrSemanticFailure(result, "Unknown extraction method 'gobble' should produce error");
     }
 
     #endregion
@@ -35,17 +31,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — 'until' without delimiter string
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Timestamp: until
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Timestamp: until\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "until without delimiter should produce parse error");
+        AssertParseOrSemanticFailure(result, "until without delimiter should produce parse error");
     }
 
     #endregion
@@ -57,9 +49,7 @@ select 1 from #A.Entities()";
     {
         // Arrange — text schema with no fields
         var analyzer = CreateAnalyzer();
-        var query = @"text EmptyFormat {
-};
-select 1 from #A.Entities()";
+        var query = ("text EmptyFormat {\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -78,17 +68,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — text keyword without name
         var analyzer = CreateAnalyzer();
-        var query = @"text {
-    Data: rest
-};
-select 1 from #A.Entities()";
+        var query = ("text {\n" + "    Data: rest\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "Text schema without name should produce parse error");
+        AssertParseOrSemanticFailure(result, "Text schema without name should produce parse error");
     }
 
     #endregion
@@ -100,11 +86,9 @@ select 1 from #A.Entities()";
     {
         // Arrange — two fields with same name
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: until ' ',
-    Data: rest
-};
-select 1 from #A.Entities()";
+        var query = (
+            "text LogLine {\n" + "    Data: until ' ',\n" + "    Data: rest\n" + "};\n" + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -112,9 +96,12 @@ select 1 from #A.Entities()";
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ4008_DuplicateSchemaField,
-            "duplicate text field name");
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.LastIndexOf("Data", StringComparison.Ordinal), 4),
-            diagnostic.Span);
+            "duplicate text field name"
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.LastIndexOf("Data", StringComparison.Ordinal), 4),
+            diagnostic.Span
+        );
     }
 
     #endregion
@@ -126,17 +113,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — 'rest' with unknown modifier
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: rest squeeze
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Data: rest squeeze\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "Unknown modifier 'squeeze' should produce error");
+        AssertParseOrSemanticFailure(result, "Unknown modifier 'squeeze' should produce error");
     }
 
     #endregion
@@ -148,17 +131,13 @@ select 1 from #A.Entities()";
     {
         // Arrange — 'literal' without the expected text
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Marker: literal
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Marker: literal\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert
-        AssertParseOrSemanticFailure(result,
-            "literal without string value should produce parse error");
+        AssertParseOrSemanticFailure(result, "literal without string value should produce parse error");
     }
 
     #endregion
@@ -170,10 +149,7 @@ select 1 from #A.Entities()";
     {
         // Arrange — pattern with unclosed bracket
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: pattern '[unclosed'
-};
-select 1 from #A.Entities()";
+        var query = ("text LogLine {\n" + "    Data: pattern '[unclosed'\n" + "};\n" + "select 1 from #A.Entities()");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -181,11 +157,13 @@ select 1 from #A.Entities()";
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ4002_InvalidTextSchemaField,
-            "invalid text schema regex");
+            "invalid text schema regex"
+        );
         const string patternLiteral = "'[unclosed'";
         Assert.AreEqual(
             new Musoq.Parser.TextSpan(query.IndexOf(patternLiteral, StringComparison.Ordinal), patternLiteral.Length),
-            diagnostic.Span);
+            diagnostic.Span
+        );
     }
 
     #endregion

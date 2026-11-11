@@ -5,5 +5,5 @@ public enum ExecutionPortableCallableKind
     PortableBuiltin,
     HostPlugin,
     HostAggregate,
-    ClrMethod
+    ClrMethod,
 }

@@ -30,10 +30,16 @@ public sealed class TypedQueryExecutionFailureTests
     {
         public ISchemaProvider Provider { get; set; } = null!;
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
@@ -41,11 +47,11 @@ public sealed class TypedQueryExecutionFailureTests
 
         public ILogger Logger { get; set; } = NullLogger.Instance;
 
-        #pragma warning disable CS0067
+#pragma warning disable CS0067
         public event QueryPhaseEventHandler? PhaseChanged;
 
         public event DataSourceEventHandler? DataSourceProgress;
-        #pragma warning restore CS0067
+#pragma warning restore CS0067
 
         public IEnumerable<int> Run(TypedQueryRunOptions options)
         {

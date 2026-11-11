@@ -16,11 +16,15 @@ internal sealed class PlanOptimizationRunner<TPlan>
         OptimizationStage stage,
         IEnumerable<IPlanOptimizationPass<TPlan>> passes,
         OptimizationPassRunMode runMode = OptimizationPassRunMode.Once,
-        int maxIterations = DefaultMaxIterations)
+        int maxIterations = DefaultMaxIterations
+    )
     {
         ArgumentNullException.ThrowIfNull(passes);
         if (maxIterations <= 0)
-            throw new ArgumentOutOfRangeException(nameof(maxIterations), "Maximum iterations must be greater than zero.");
+            throw new ArgumentOutOfRangeException(
+                nameof(maxIterations),
+                "Maximum iterations must be greater than zero."
+            );
 
         _stage = stage;
         _passes = passes.ToArray();
@@ -40,14 +44,14 @@ internal sealed class PlanOptimizationRunner<TPlan>
             (pipeline ?? throw new ArgumentNullException(nameof(pipeline))).Stage,
             pipeline.Passes,
             pipeline.RunMode,
-            maxIterations)
-    {
-    }
+            maxIterations
+        ) { }
 
     public OptimizationResult<TPlan> Run(
         TPlan plan,
         OptimizationContext? context = null,
-        Func<string, IDisposable>? beginPassPhase = null)
+        Func<string, IDisposable>? beginPassPhase = null
+    )
     {
         ArgumentNullException.ThrowIfNull(plan);
 
@@ -68,8 +72,9 @@ internal sealed class PlanOptimizationRunner<TPlan>
             {
                 using var passPhase = beginPassPhase?.Invoke(pass.Name);
                 runContext.AnalysisFacts.BeginPass(_stage, pass.Name, iteration);
-                var result = pass.Optimize(current, runContext) ??
-                             throw new InvalidOperationException($"Optimization pass {pass.Name} returned null.");
+                var result =
+                    pass.Optimize(current, runContext)
+                    ?? throw new InvalidOperationException($"Optimization pass {pass.Name} returned null.");
 
                 ArgumentNullException.ThrowIfNull(result.Plan);
 
@@ -80,15 +85,19 @@ internal sealed class PlanOptimizationRunner<TPlan>
                 if (result.IsChanged)
                     invalidatedFactCount = runContext.AnalysisFacts.InvalidateForPlanChange();
 
-                runContext.Trace.Add(new OptimizationTraceEntry(
-                    _stage,
-                    pass.Name,
-                    iteration,
-                    result.IsChanged,
-                    result.Outcome,
-                    AppendAnalysisFactDiagnostic(
-                        result.Reason,
-                        runContext.AnalysisFacts.CreateCurrentPassFactDiagnostic(invalidatedFactCount))));
+                runContext.Trace.Add(
+                    new OptimizationTraceEntry(
+                        _stage,
+                        pass.Name,
+                        iteration,
+                        result.IsChanged,
+                        result.Outcome,
+                        AppendAnalysisFactDiagnostic(
+                            result.Reason,
+                            runContext.AnalysisFacts.CreateCurrentPassFactDiagnostic(invalidatedFactCount)
+                        )
+                    )
+                );
             }
 
             if (_runMode == OptimizationPassRunMode.Once || !iterationChanged)
@@ -100,13 +109,9 @@ internal sealed class PlanOptimizationRunner<TPlan>
         if (reachedMaxIterations)
         {
             const string reason = "Maximum fixed-point iterations reached.";
-            runContext.Trace.Add(new OptimizationTraceEntry(
-                _stage,
-                "FixedPoint",
-                _maxIterations,
-                false,
-                "MaxIterationsReached",
-                reason));
+            runContext.Trace.Add(
+                new OptimizationTraceEntry(_stage, "FixedPoint", _maxIterations, false, "MaxIterationsReached", reason)
+            );
 
             return new OptimizationResult<TPlan>(current, anyChange, anyChange ? "Changed" : "NoChange", reason);
         }
@@ -115,13 +120,12 @@ internal sealed class PlanOptimizationRunner<TPlan>
             current,
             anyChange,
             anyChange ? "Changed" : "NoChange",
-            anyChange ? "Optimization passes changed the plan." : "Optimization passes made no changes.");
+            anyChange ? "Optimization passes changed the plan." : "Optimization passes made no changes."
+        );
     }
 
     private static string AppendAnalysisFactDiagnostic(string reason, string? diagnostic)
     {
-        return string.IsNullOrWhiteSpace(diagnostic)
-            ? reason
-            : $"{reason} {diagnostic}";
+        return string.IsNullOrWhiteSpace(diagnostic) ? reason : $"{reason} {diagnostic}";
     }
 }

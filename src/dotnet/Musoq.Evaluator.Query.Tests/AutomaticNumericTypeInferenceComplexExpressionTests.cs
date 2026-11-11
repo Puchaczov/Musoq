@@ -13,13 +13,14 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
     [TestMethod]
     public void WhenComparingStringColumnInComplexBooleanExpression_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Price: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size > 1000 and Price < 50";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Price: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size > 1000 and Price < 50";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "1500";
@@ -46,12 +47,13 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
     [TestMethod]
     public void WhenComparingStringColumnWithOrExpression_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size < 500 or Size > 2000";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size < 500 or Size > 2000";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "300";
@@ -77,12 +79,13 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
     [TestMethod]
     public void WhenComparingStringColumnInBetweenSimulation_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size >= 1000 and Size <= 2000";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size >= 1000 and Size <= 2000";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "500";
@@ -106,13 +109,14 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
     [TestMethod]
     public void WhenComparingMultipleStringColumnsWithDifferentTypes_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  IntValue: string," +
-                             "  LongValue: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where IntValue = 1000 and LongValue = 9223372036854775807l";
+        const string query =
+            "table Items {"
+            + "  IntValue: string,"
+            + "  LongValue: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where IntValue = 1000 and LongValue = 9223372036854775807l";
 
         dynamic item1 = new ExpandoObject();
         item1.IntValue = "1000";
@@ -130,7 +134,6 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Match", table[0].ReadValues()[0]);
     }
-
 
     #endregion
 }

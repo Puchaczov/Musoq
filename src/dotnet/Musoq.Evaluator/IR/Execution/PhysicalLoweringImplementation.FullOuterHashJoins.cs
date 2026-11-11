@@ -11,14 +11,17 @@ internal sealed partial class PhysicalLoweringImplementation
         var resultTable = new ExecutionVariable(context.ResultTableName, typeof(object));
         var leftAlias = RowShapeLookup.ResolveSourceAlias(context.Sources.Left.Shape);
         var rightAlias = RowShapeLookup.ResolveSourceAlias(context.Sources.Right.Shape);
-        var projection = CreateFullOuterNullExtendedProjection(new NullExtendedProjectionContext(
+        var projection = CreateFullOuterNullExtendedProjection(
+            new NullExtendedProjectionContext(
                 context.ResultShapeName,
                 resultTable,
                 context.Pipeline.Project.Fields,
                 context.SourceLookup,
-                rightAlias),
+                rightAlias
+            ),
             leftAlias,
-            rightAlias);
+            rightAlias
+        );
         if (!projection.IsBuilt)
             return TableBuildResult.Unsupported(projection.UnsupportedReason);
 
@@ -27,7 +30,8 @@ internal sealed partial class PhysicalLoweringImplementation
             projection.MatchedAppendRow,
             projection.LeftOnlyAppendRow,
             context.SourceLookup,
-            rightAlias);
+            rightAlias
+        );
         if (!leftOnlyAppendBlocks.IsBuilt)
             return TableBuildResult.Unsupported(leftOnlyAppendBlocks.UnsupportedReason);
 
@@ -36,17 +40,20 @@ internal sealed partial class PhysicalLoweringImplementation
             projection.MatchedAppendRow,
             projection.RightOnlyAppendRow,
             context.SourceLookup,
-            leftAlias);
+            leftAlias
+        );
         if (!rightOnlyAppendBlocks.IsBuilt)
             return TableBuildResult.Unsupported(rightOnlyAppendBlocks.UnsupportedReason);
 
         var buildRows = CreateMaterializedRowsBufferVariable(
             CreateIdentifierCandidate($"{context.Sides.Build.Variable.Name}RowsBuffer", 0),
-            context.Sides.Build.GeneratedRowShape);
+            context.Sides.Build.GeneratedRowShape
+        );
         var buildIndex = new ExecutionVariable($"{context.Sides.Build.Variable.Name}Index", typeof(int));
         var indexedBuildRow = CreateIndexedHashRowVariable(
             $"{context.Sides.Build.Variable.Name}Indexed",
-            context.Sides.Build.Variable);
+            context.Sides.Build.Variable
+        );
         var buildMatched = new ExecutionVariable($"{context.Hash.Name}BuildMatched", typeof(bool[]));
         var probeHasMatch = new ExecutionVariable($"{context.Hash.Name}HasMatch", typeof(bool));
 
@@ -63,7 +70,8 @@ internal sealed partial class PhysicalLoweringImplementation
             buildMatched,
             buildIndex,
             projection.MatchedAppendRow,
-            context.ConversionLookup);
+            context.ConversionLookup
+        );
         var buildOnlyBody = new ExecutionIf(
             new ExecutionUnary(
                 UnaryOpKind.Not,
@@ -71,39 +79,50 @@ internal sealed partial class PhysicalLoweringImplementation
                     new ExecutionVariableRead(buildMatched),
                     new ExecutionVariableRead(buildIndex),
                     typeof(bool),
-                    typeof(bool)),
-                typeof(bool)),
-            buildOnlyAppendBlock);
+                    typeof(bool)
+                ),
+                typeof(bool)
+            ),
+            buildOnlyAppendBlock
+        );
         var nodes = CreateFullOuterHashJoinPrelude(
             context,
             projection.ResultShape,
             resultTable,
             buildRows,
             buildMatched,
-            indexedBuildRow);
+            indexedBuildRow
+        );
 
         nodes.Add(CreateFullOuterHashBuildLoop(context, buildRows, buildIndex, indexedBuildRow));
-        nodes.Add(CreateFullOuterHashProbeLoop(
-            context,
-            indexedBuildRow,
-            buildIndex,
-            probeHasMatch,
-            matchedBody,
-            probeOnlyAppendBlock));
-        nodes.Add(new ExecutionForEachIndexed(
-            context.Sides.Build.Variable,
-            buildIndex,
-            buildRows,
-            ExecutionRowAccessMode.Direct,
-            new ExecutionBlock([buildOnlyBody])));
+        nodes.Add(
+            CreateFullOuterHashProbeLoop(
+                context,
+                indexedBuildRow,
+                buildIndex,
+                probeHasMatch,
+                matchedBody,
+                probeOnlyAppendBlock
+            )
+        );
+        nodes.Add(
+            new ExecutionForEachIndexed(
+                context.Sides.Build.Variable,
+                buildIndex,
+                buildRows,
+                ExecutionRowAccessMode.Direct,
+                new ExecutionBlock([buildOnlyBody])
+            )
+        );
 
         return CompleteTableBuild(
-            [..context.Sources.Left.Shapes, ..context.Sources.Right.Shapes, projection.ResultShape],
+            [.. context.Sources.Left.Shapes, .. context.Sources.Right.Shapes, projection.ResultShape],
             nodes,
             resultTable,
             projection.ResultShape,
             context.Pipeline.PostOperations,
-            context.Pipeline.Project.IsDistinct);
+            context.Pipeline.Project.IsDistinct
+        );
     }
 
     private List<ExecutionNode> CreateFullOuterHashJoinPrelude(
@@ -112,24 +131,28 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable resultTable,
         ExecutionVariable buildRows,
         ExecutionVariable buildMatched,
-        ExecutionVariable indexedBuildRow)
+        ExecutionVariable indexedBuildRow
+    )
     {
         var nodes = CreateJoinPrelude(
             context.Sources,
             resultTable,
             resultShape,
-            CreateJoinResultCapacityCandidate(resultTable, context.Sides.Probe));
+            CreateJoinResultCapacityCandidate(resultTable, context.Sides.Probe)
+        );
 
-        nodes.Add(CreateMaterializeListNode(
-            context.Sides.Build.Rows,
-            buildRows,
-            context.Sides.Build.GeneratedRowShape));
-        nodes.Add(new ExecutionCreateHash(
-            context.Hash,
-            context.KeyType,
-            indexedBuildRow.Type.ResolveClrType(),
-            new ExecutionCollectionCountCapacityHint(buildRows),
-            indexedBuildRow.GeneratedRowTypeName));
+        nodes.Add(
+            CreateMaterializeListNode(context.Sides.Build.Rows, buildRows, context.Sides.Build.GeneratedRowShape)
+        );
+        nodes.Add(
+            new ExecutionCreateHash(
+                context.Hash,
+                context.KeyType,
+                indexedBuildRow.Type.ResolveClrType(),
+                new ExecutionCollectionCountCapacityHint(buildRows),
+                indexedBuildRow.GeneratedRowTypeName
+            )
+        );
         nodes.Add(new ExecutionCreateBooleanArray(buildMatched, buildRows));
 
         return nodes;
@@ -139,30 +162,34 @@ internal sealed partial class PhysicalLoweringImplementation
         HashJoinBuildContext context,
         ExecutionVariable buildRows,
         ExecutionVariable buildIndex,
-        ExecutionVariable indexedBuildRow)
+        ExecutionVariable indexedBuildRow
+    )
     {
         return new ExecutionForEachIndexed(
             context.Sides.Build.Variable,
             buildIndex,
             buildRows,
             ExecutionRowAccessMode.Direct,
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     indexedBuildRow,
                     new ExecutionIndexedHashRowCreate(
                         context.Sides.Build.Variable,
                         buildIndex,
                         indexedBuildRow.Type,
-                        indexedBuildRow.GeneratedRowTypeName)),
+                        indexedBuildRow.GeneratedRowTypeName
+                    )
+                ),
                 new ExecutionHashAdd(
                     context.Hash,
                     CreateHashJoinKeyExpression(context.Join.BuildKeys, context.ConversionLookup, context.KeyType),
                     indexedBuildRow,
                     context.KeyType,
                     indexedBuildRow.Type.ResolveClrType(),
-                    indexedBuildRow.GeneratedRowTypeName)
-            ]));
+                    indexedBuildRow.GeneratedRowTypeName
+                ),
+            ])
+        );
     }
 
     private static ExecutionSourceLoop CreateFullOuterHashProbeLoop(
@@ -171,28 +198,27 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable buildIndex,
         ExecutionVariable probeHasMatch,
         ExecutionBlock matchedBody,
-        ExecutionBlock probeOnlyAppendBlock)
+        ExecutionBlock probeOnlyAppendBlock
+    )
     {
         var matchesLoop = new ExecutionForEach(
             indexedBuildRow,
             new ExecutionVariableRead(context.Matches),
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     context.Sides.Build.Variable,
-                    new ExecutionIndexedHashRowRowRead(indexedBuildRow, context.Sides.Build.Variable.Type)),
-                new ExecutionLet(
-                    buildIndex,
-                    new ExecutionIndexedHashRowIndexRead(indexedBuildRow)),
-                ..matchedBody.Nodes
-            ]));
+                    new ExecutionIndexedHashRowRowRead(indexedBuildRow, context.Sides.Build.Variable.Type)
+                ),
+                new ExecutionLet(buildIndex, new ExecutionIndexedHashRowIndexRead(indexedBuildRow)),
+                .. matchedBody.Nodes,
+            ])
+        );
 
         return CreateSourceLoop(
             context.Sides.Probe.Shape,
             context.Sides.Probe.Rows,
             context.Sides.Probe.Variable,
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionHashProbe(
                     context.Hash,
                     context.Matches,
@@ -202,8 +228,10 @@ internal sealed partial class PhysicalLoweringImplementation
                     new ExecutionBlock([matchesLoop]),
                     probeOnlyAppendBlock,
                     probeHasMatch,
-                    indexedBuildRow.GeneratedRowTypeName)
-            ]));
+                    indexedBuildRow.GeneratedRowTypeName
+                ),
+            ])
+        );
     }
 
     private ExecutionBlock CreateFullOuterJoinMatchedBody(
@@ -213,18 +241,19 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable buildMatched,
         ExecutionVariable buildIndex,
         ExecutionAppendRow appendRow,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var appendBlock = CreateOuterJoinMatchedAppendBlock(filter, appendRow, sourceLookup);
-        var matchedBlock = new ExecutionBlock(
-        [
+        var matchedBlock = new ExecutionBlock([
             new ExecutionAssign(probeHasMatch, new ExecutionLiteral(true, typeof(bool))),
             new ExecutionArrayAssign(
                 buildMatched,
                 new ExecutionVariableRead(buildIndex),
                 new ExecutionLiteral(true, typeof(bool)),
-                typeof(bool)),
-            ..appendBlock.Nodes
+                typeof(bool)
+            ),
+            .. appendBlock.Nodes,
         ]);
 
         return CreateConditionalJoinBlock(joinCondition, sourceLookup, matchedBlock);

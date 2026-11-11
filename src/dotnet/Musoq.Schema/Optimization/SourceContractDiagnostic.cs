@@ -3,7 +3,8 @@ namespace Musoq.Schema.Optimization;
 public sealed record SourceContractDiagnostic(
     SourceContractDiagnosticSeverity Severity,
     string Message,
-    string? Code = null)
+    string? Code = null
+)
 {
     public string? Origin { get; init; }
 

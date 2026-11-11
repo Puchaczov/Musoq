@@ -16,7 +16,8 @@ public sealed class DataSourceInputDiagnosticContractTests
             column: 7,
             byteOffset: 23,
             characterOffset: 19,
-            bytePositionInLine: 5);
+            bytePositionInLine: 5
+        );
 
         Assert.AreEqual(3L, location.Line);
         Assert.AreEqual(7L, location.Column);
@@ -43,7 +44,8 @@ public sealed class DataSourceInputDiagnosticContractTests
         var exception = new DataSourceInputException(
             DataSourceInputFailureReason.UnterminatedQuotedField,
             location,
-            inner);
+            inner
+        );
 
         Assert.AreEqual("The final quoted field is not terminated.", exception.Message);
         Assert.AreEqual(DataSourceInputFailureReason.UnterminatedQuotedField, exception.Reason);
@@ -57,6 +59,7 @@ public sealed class DataSourceInputDiagnosticContractTests
     public void InputException_RejectsUnknownReason()
     {
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
-            new DataSourceInputException((DataSourceInputFailureReason)int.MaxValue));
+            new DataSourceInputException((DataSourceInputFailureReason)int.MaxValue)
+        );
     }
 }

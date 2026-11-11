@@ -11,7 +11,12 @@ public sealed partial class GenericTests
 {
     [TestMethod]
     [DynamicData(nameof(NumericCoalesceCases))]
-    public void Coalesce_NumericOverloadCases_ReturnExpected(string name, MethodInfo method, object?[] arguments, object? expected)
+    public void Coalesce_NumericOverloadCases_ReturnExpected(
+        string name,
+        MethodInfo method,
+        object?[] arguments,
+        object? expected
+    )
     {
         Assert.AreEqual(expected, InvokeCoalesce(method, arguments), name);
     }
@@ -26,13 +31,15 @@ public sealed partial class GenericTests
                 $"{FormatCoalesceName(method)}_FirstNotNull_ReturnsFirst",
                 method,
                 [CreateArray(elementType, 1, 2)],
-                CreateTypedValue(1, method.ReturnType));
+                CreateTypedValue(1, method.ReturnType)
+            );
 
             yield return ReflectionCase(
                 $"{FormatCoalesceName(method)}_FirstNull_ReturnsSecond",
                 method,
                 [CreateArray(elementType, null, 2)],
-                CreateTypedValue(2, method.ReturnType));
+                CreateTypedValue(2, method.ReturnType)
+            );
         }
     }
 
@@ -92,15 +99,17 @@ public sealed partial class GenericTests
             TypeCode.Int64 => InvokeNativeCoalesce<long, decimal>(Library, method, arguments),
             TypeCode.UInt64 => InvokeNativeCoalesce<ulong, decimal>(Library, method, arguments),
             TypeCode.Decimal => InvokeNativeCoalesce<decimal, decimal>(Library, method, arguments),
-            _ => throw new InvalidOperationException($"No typed Coalesce fixture for {elementType} -> {resultType}.")
+            _ => throw new InvalidOperationException($"No typed Coalesce fixture for {elementType} -> {resultType}."),
         };
     }
 
     private delegate TResult? NativeCoalesce<T, TResult>(ReadOnlySpan<T?> values)
-        where T : struct where TResult : struct;
+        where T : struct
+        where TResult : struct;
 
     private static object? InvokeNativeCoalesce<T, TResult>(LibraryBase library, MethodInfo method, object?[] arguments)
-        where T : struct where TResult : struct
+        where T : struct
+        where TResult : struct
     {
         if (method.GetParameters()[0].ParameterType.IsArray)
             return method.CreateDelegate<Func<T?[], TResult?>>(library)((T?[])arguments[0]!);

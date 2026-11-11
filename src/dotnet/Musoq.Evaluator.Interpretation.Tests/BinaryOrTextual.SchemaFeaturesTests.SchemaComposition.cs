@@ -13,7 +13,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithSchemaInheritance_ShouldIncludeParentFields()
     {
         // Arrange: Child extends Parent
-        var query = @"
+        var query =
+            @"
             binary BaseHeader {
                 Magic: int le,
                 Version: byte
@@ -33,22 +34,32 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         // Magic (4) + Version (1) + Flags (1) + Length (2) = 8 bytes
         var testData = new byte[]
         {
-            0x89, 0x50, 0x4E, 0x47, // Magic = "PNG" signature bytes (0x474E5089 in LE)
+            0x89,
+            0x50,
+            0x4E,
+            0x47, // Magic = "PNG" signature bytes (0x474E5089 in LE)
             0x01, // Version = 1
             0xFF, // Flags = 0xFF
-            0x00, 0x10 // Length = 4096 (little-endian)
+            0x00,
+            0x10, // Length = 4096 (little-endian)
         };
-        var entities = new[] { new BinaryEntity { Name = "extended.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "extended.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -57,14 +68,16 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("Magic", typeof(int)),
             ("Version", typeof(byte)),
             ("Flags", typeof(byte)),
-            ("Length", typeof(short)));
+            ("Length", typeof(short))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [0x474E5089, (byte)1, (byte)0xFF, (short)4096]);
     }
 
     [TestMethod]
     public void Query_SelectInterpret_WithMultiLevelInheritance_ShouldIncludeAllAncestors()
     {
-        var query = @"
+        var query =
+            @"
             binary Level1 {
                 A: byte
             };
@@ -82,33 +95,39 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             cross apply Interpret<Level3>(f.Content) l";
 
         var testData = new byte[] { 0x01, 0x02, 0x03 };
-        var entities = new[] { new BinaryEntity { Name = "levels.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "levels.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
-
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("A", typeof(byte)),
             ("B", typeof(byte)),
-            ("C", typeof(byte)));
+            ("C", typeof(byte))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, (byte)2, (byte)3]);
     }
 
     [TestMethod]
     public void Query_SelectInterpret_WithInheritanceAndComputedField_ShouldAccessParentFields()
     {
-        var query = @"
+        var query =
+            @"
             binary BaseValue {
                 Value: int le
             };
@@ -124,26 +143,31 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             cross apply Interpret<DerivedValue>(f.Content) d";
 
         var testData = BitConverter.GetBytes(25);
-        var entities = new[] { new BinaryEntity { Name = "derived.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "derived.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
-
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Value", typeof(int)),
             ("Doubled", typeof(int)),
-            ("IsPositive", typeof(bool)));
+            ("IsPositive", typeof(bool))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [25, 50, true]);
     }
 
@@ -155,7 +179,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithConditionalField_ShouldParseWhenTrue()
     {
         // Arrange: Optional field based on flag
-        var query = @"
+        var query =
+            @"
             binary OptionalData {
                 HasExtra: byte,
                 ExtraData: int le when HasExtra = 1,
@@ -174,17 +199,23 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         BitConverter.GetBytes(0x12345678).CopyTo(testData, 1); // ExtraData
         BitConverter.GetBytes(42).CopyTo(testData, 5); // Value
 
-        var entities = new[] { new BinaryEntity { Name = "with_extra.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "with_extra.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -192,7 +223,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             table,
             ("HasExtra", typeof(byte)),
             ("ExtraData", typeof(int?)),
-            ("Value", typeof(int)));
+            ("Value", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, 0x12345678, 42]);
     }
 
@@ -200,7 +232,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithConditionalField_ShouldBeNullWhenFalse()
     {
         // Arrange: Optional field skipped when condition is false
-        var query = @"
+        var query =
+            @"
             binary OptionalData {
                 HasExtra: byte,
                 ExtraData: int le when HasExtra = 1,
@@ -218,17 +251,23 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         testData[0] = 0; // HasExtra = 0
         BitConverter.GetBytes(42).CopyTo(testData, 1); // Value immediately follows
 
-        var entities = new[] { new BinaryEntity { Name = "no_extra.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "no_extra.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -236,7 +275,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             table,
             ("HasExtra", typeof(byte)),
             ("ExtraData", typeof(int?)),
-            ("Value", typeof(int)));
+            ("Value", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)0, null, 42]);
     }
 
@@ -244,7 +284,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithConditionalField_ShouldFilterByCondition()
     {
         // Arrange: Filter records by whether optional field condition is true
-        var query = @"
+        var query =
+            @"
             binary Record {
                 Type: byte,
                 ExtendedInfo: short le when Type > 0,
@@ -264,19 +305,21 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             // Type=0, Data only (5 bytes)
             new BinaryEntity { Name = "simple.bin", Content = [0x00, 0x01, 0x00, 0x00, 0x00] },
             // Type=1, ExtendedInfo=0x1234, Data (7 bytes)
-            new BinaryEntity
-                { Name = "extended.bin", Content = [0x01, 0x34, 0x12, 0x02, 0x00, 0x00, 0x00] }
+            new BinaryEntity { Name = "extended.bin", Content = [0x01, 0x34, 0x12, 0x02, 0x00, 0x00, 0x00] },
         };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -284,7 +327,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             table,
             ("Name", typeof(string)),
             ("Type", typeof(byte)),
-            ("ExtendedInfo", typeof(short?)));
+            ("ExtendedInfo", typeof(short?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["extended.bin", (byte)1, (short)0x1234]);
     }
 
@@ -296,7 +340,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithCheckConstraint_ShouldValidateMagicNumber()
     {
         // Arrange: File format with magic number validation
-        var query = @"
+        var query =
+            @"
             binary FileHeader {
                 Magic: int le check Magic = 0x46495845,
                 Version: byte,
@@ -314,24 +359,27 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         testData[4] = 2; // Version = 2
         BitConverter.GetBytes(1024).CopyTo(testData, 5); // Size = 1024
 
-        var entities = new[] { new BinaryEntity { Name = "valid.exif", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "valid.exif", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Version", typeof(byte)),
-            ("Size", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Version", typeof(byte)), ("Size", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, 1024]);
     }
 
@@ -339,7 +387,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithCheckConstraint_ShouldThrowOnInvalidMagic()
     {
         // Arrange: File with invalid magic number
-        var query = @"
+        var query =
+            @"
             binary FileHeader {
                 Magic: int le check Magic = 0x46495845,
                 Version: byte
@@ -354,17 +403,23 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         BitConverter.GetBytes(0xDEADBEEF).CopyTo(testData, 0); // Wrong magic
         testData[4] = 1;
 
-        var entities = new[] { new BinaryEntity { Name = "invalid.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "invalid.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         // Assert: Should throw validation exception
         Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => _ = vm.Run(CancellationToken.None).Count);
@@ -374,7 +429,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithRangeCheck_ShouldValidateRange()
     {
         // Arrange: Version must be between 1 and 10
-        var query = @"
+        var query =
+            @"
             binary VersionedData {
                 Version: byte check Version >= 1 and Version <= 10,
                 Data: int le
@@ -389,24 +445,27 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         testData[0] = 5; // Version = 5 (valid: 1-10)
         BitConverter.GetBytes(12345).CopyTo(testData, 1);
 
-        var entities = new[] { new BinaryEntity { Name = "v5.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "v5.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Version", typeof(byte)),
-            ("Data", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Version", typeof(byte)), ("Data", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)5, 12345]);
     }
 
@@ -418,7 +477,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithAtPosition_ShouldSeekToOffset()
     {
         // Arrange: Read field at specific offset
-        var query = @"
+        var query =
+            @"
             binary IndexedFile {
                 HeaderSize: int le,
                 DataOffset: int le,
@@ -439,17 +499,23 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         BitConverter.GetBytes(16).CopyTo(testData, 4); // DataOffset
         BitConverter.GetBytes(42).CopyTo(testData, 16); // Data at offset 16
 
-        var entities = new[] { new BinaryEntity { Name = "indexed.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "indexed.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -457,7 +523,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             table,
             ("HeaderSize", typeof(int)),
             ("DataOffset", typeof(int)),
-            ("Data", typeof(int)));
+            ("Data", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [8, 16, 42]);
     }
 
@@ -465,7 +532,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithAtPositionAndCondition_ShouldCombineModifiers()
     {
         // Arrange: Conditional field at specific position
-        var query = @"
+        var query =
+            @"
             binary ConditionalOffset {
                 HasData: byte,
                 DataOffset: int le,
@@ -484,17 +552,23 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         BitConverter.GetBytes(10).CopyTo(testData, 1); // DataOffset
         BitConverter.GetBytes(999).CopyTo(testData, 10); // Data at offset 10
 
-        var entities = new[] { new BinaryEntity { Name = "conditional_offset.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "conditional_offset.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -502,7 +576,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             table,
             ("HasData", typeof(byte)),
             ("DataOffset", typeof(int)),
-            ("Data", typeof(int?)));
+            ("Data", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, 10, 999]);
     }
 

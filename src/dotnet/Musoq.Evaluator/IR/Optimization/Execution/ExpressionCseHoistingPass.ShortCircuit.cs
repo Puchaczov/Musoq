@@ -11,14 +11,17 @@ internal sealed partial class ExpressionCseHoistingPass
     {
         private static ExecutionIf TrySplitShortCircuitConditionAroundBodyLet(ExecutionIf branch)
         {
-            if (branch.Condition is not ExecutionBinary { Kind: BinaryOpKind.And } ||
-                branch.Body.Nodes.Count < 2 ||
-                branch.Body.Nodes[0] is not ExecutionLet
-                {
-                    CacheMode: ExecutionLetCacheMode.SuppressMethodCache,
-                    Value: { } letValue
-                } let ||
-                !ExecutionExpressionCseFacts.IsWorthHoistingExpression(letValue))
+            if (
+                branch.Condition is not ExecutionBinary { Kind: BinaryOpKind.And }
+                || branch.Body.Nodes.Count < 2
+                || branch.Body.Nodes[0]
+                    is not ExecutionLet
+                    {
+                        CacheMode: ExecutionLetCacheMode.SuppressMethodCache,
+                        Value: { } letValue
+                    } let
+                || !ExecutionExpressionCseFacts.IsWorthHoistingExpression(letValue)
+            )
             {
                 return branch;
             }
@@ -34,23 +37,19 @@ internal sealed partial class ExpressionCseHoistingPass
 
             var remainingTerms = terms
                 .Skip(matchingTermIndex)
-                .Select(term => ExpressionCseSubstitution.Replace(
-                    term,
-                    new Dictionary<string, ExecutionVariable>(StringComparer.Ordinal)
-                    {
-                        [signature] = let.Variable
-                    }))
+                .Select(term =>
+                    ExpressionCseSubstitution.Replace(
+                        term,
+                        new Dictionary<string, ExecutionVariable>(StringComparer.Ordinal) { [signature] = let.Variable }
+                    )
+                )
                 .ToArray();
             var innerBody = branch.Body with { Nodes = branch.Body.Nodes.Skip(1).ToArray() };
 
             return branch with
             {
                 Condition = RebuildConjunction(terms.Take(matchingTermIndex)),
-                Body = new ExecutionBlock(
-                [
-                    let,
-                    new ExecutionIf(RebuildConjunction(remainingTerms), innerBody)
-                ])
+                Body = new ExecutionBlock([let, new ExecutionIf(RebuildConjunction(remainingTerms), innerBody)]),
             };
         }
 
@@ -83,11 +82,16 @@ internal sealed partial class ExpressionCseHoistingPass
 
         private static bool ContainsHoistSignature(ExecutionExpression expression, string signature)
         {
-            return ExecutionIrAnalysis.FlattenExpressions(expression)
+            return ExecutionIrAnalysis
+                .FlattenExpressions(expression)
                 .Any(current =>
-                    ExecutionExpressionCseFacts.IsWorthHoistingExpression(current) &&
-                    string.Equals(ExecutionExpressionFingerprint.ForHoist(current), signature, StringComparison.Ordinal));
+                    ExecutionExpressionCseFacts.IsWorthHoistingExpression(current)
+                    && string.Equals(
+                        ExecutionExpressionFingerprint.ForHoist(current),
+                        signature,
+                        StringComparison.Ordinal
+                    )
+                );
         }
     }
 }
-

@@ -19,15 +19,16 @@ internal static partial class BoundaryRowShapePlanner
 
     private static bool IsCurrentlyPrunableBoundary(BoundaryRowShapeKind kind)
     {
-        return kind is BoundaryRowShapeKind.Sort
-            or BoundaryRowShapeKind.TopN
-            or BoundaryRowShapeKind.TopOffset
-            or BoundaryRowShapeKind.Aggregate
-            or BoundaryRowShapeKind.Distinct
-            or BoundaryRowShapeKind.SetOperation
-            or BoundaryRowShapeKind.HashJoinBuild
-            or BoundaryRowShapeKind.HashJoinProbe
-            or BoundaryRowShapeKind.CteMaterialization
-            or BoundaryRowShapeKind.Window;
+        return kind
+            is BoundaryRowShapeKind.Sort
+                or BoundaryRowShapeKind.TopN
+                or BoundaryRowShapeKind.TopOffset
+                or BoundaryRowShapeKind.Aggregate
+                or BoundaryRowShapeKind.Distinct
+                or BoundaryRowShapeKind.SetOperation
+                or BoundaryRowShapeKind.HashJoinBuild
+                or BoundaryRowShapeKind.HashJoinProbe
+                or BoundaryRowShapeKind.CteMaterialization
+                or BoundaryRowShapeKind.Window;
     }
 }

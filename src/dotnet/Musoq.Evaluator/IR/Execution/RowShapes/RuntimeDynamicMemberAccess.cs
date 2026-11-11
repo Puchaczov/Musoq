@@ -30,7 +30,8 @@ public sealed record RuntimeDynamicMemberPathAccess : FieldAccessStrategy
         string rootFieldName,
         ExecutionTypeRef rootFieldType,
         IReadOnlyList<RuntimeDynamicMemberPathSegment> segments,
-        bool rootIsDynamic = true)
+        bool rootIsDynamic = true
+    )
     {
         if (string.IsNullOrWhiteSpace(rootFieldName))
             throw new ArgumentException("A runtime dynamic root field name is required.", nameof(rootFieldName));

@@ -7,5 +7,5 @@ internal enum ExecutionRendererNodeFamily
     Join,
     Window,
     Index,
-    Unsupported
+    Unsupported,
 }

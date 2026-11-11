@@ -64,7 +64,7 @@ public static class FastCharacterClassifier
         Dollar = 13,
 
         /// <summary>Question mark - could be ? or ??.</summary>
-        QuestionMark = 14
+        QuestionMark = 14,
     }
 
     // Lookup table for ASCII characters (0-127)
@@ -158,7 +158,7 @@ public static class FastCharacterClassifier
             ['['] = TokenType.LeftSquareBracket,
             [']'] = TokenType.RightSquareBracket,
             [';'] = TokenType.Semicolon,
-            ['?'] = TokenType.QuestionMark
+            ['?'] = TokenType.QuestionMark,
         }.ToFrozenDictionary();
     }
 
@@ -167,7 +167,9 @@ public static class FastCharacterClassifier
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CharCategory GetCategory(char c) =>
-        c < AsciiCharacterCount ? AsciiCategories[c] : IsIdentifierStart(c) ? CharCategory.Identifier : CharCategory.Unknown;
+        c < AsciiCharacterCount ? AsciiCategories[c]
+        : IsIdentifierStart(c) ? CharCategory.Identifier
+        : CharCategory.Unknown;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static CharCategory GetCategory(ReadOnlySpan<char> input, int index)
@@ -176,9 +178,9 @@ public static class FastCharacterClassifier
             return CharCategory.Unknown;
 
         var character = input[index];
-        return character < AsciiCharacterCount
-            ? AsciiCategories[character]
-            : IsIdentifierStart(input, index) ? CharCategory.Identifier : CharCategory.Unknown;
+        return character < AsciiCharacterCount ? AsciiCategories[character]
+            : IsIdentifierStart(input, index) ? CharCategory.Identifier
+            : CharCategory.Unknown;
     }
 
     /// <summary>
@@ -253,16 +255,24 @@ public static class FastCharacterClassifier
         return c < 128 ? CharToStringCache[c] : c.ToString();
     }
 
-    private static bool IsIdentifierContinuationMark(char c) => char.GetUnicodeCategory(c) is
-        UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.ConnectorPunctuation or UnicodeCategory.Format;
+    private static bool IsIdentifierContinuationMark(char c) =>
+        char.GetUnicodeCategory(c)
+            is UnicodeCategory.NonSpacingMark
+                or UnicodeCategory.SpacingCombiningMark
+                or UnicodeCategory.ConnectorPunctuation
+                or UnicodeCategory.Format;
 
     private static bool IsIdentifierStart(Rune rune) => rune.Value == '_' || Rune.IsLetter(rune);
 
     private static bool IsIdentifierContinue(Rune rune) =>
         IsIdentifierStart(rune) || Rune.IsDigit(rune) || IsIdentifierContinuationMark(rune);
 
-    private static bool IsIdentifierContinuationMark(Rune rune) => Rune.GetUnicodeCategory(rune) is
-        UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.ConnectorPunctuation or UnicodeCategory.Format;
+    private static bool IsIdentifierContinuationMark(Rune rune) =>
+        Rune.GetUnicodeCategory(rune)
+            is UnicodeCategory.NonSpacingMark
+                or UnicodeCategory.SpacingCombiningMark
+                or UnicodeCategory.ConnectorPunctuation
+                or UnicodeCategory.Format;
 
     private static bool TryDecodeRune(ReadOnlySpan<char> input, int index, out Rune rune, out int charsConsumed)
     {

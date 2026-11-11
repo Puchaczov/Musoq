@@ -10,7 +10,11 @@ internal static class ExecutionColumnMetadataFields
             field.ColumnType,
             field.ReadModifiers,
             field.SourceReadType,
-            field.EnumType) { GeneratedTypeName = field.GeneratedTypeName };
+            field.EnumType
+        )
+        {
+            GeneratedTypeName = field.GeneratedTypeName,
+        };
     }
 
     public static Type RequireClrTypeForLegacyCodeGeneration(ExecutionColumnMetadataField field)

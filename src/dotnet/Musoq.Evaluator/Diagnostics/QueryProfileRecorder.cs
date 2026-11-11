@@ -15,8 +15,7 @@ public sealed class QueryProfileRecorder
     private readonly List<OperatorProfileSnapshot> _operators = [];
     private readonly Dictionary<string, OperatorProfileRecorder> _operatorRecorders = new(StringComparer.Ordinal);
     private readonly List<string> _operatorOrder = [];
-    private readonly ThreadLocal<List<OperatorProfileFrame>> _operatorFrames =
-        new(static () => []);
+    private readonly ThreadLocal<List<OperatorProfileFrame>> _operatorFrames = new(static () => []);
     private int _nextOperatorFrameToken;
 
     public QueryProfileRecorder(IProfileClock? clock = null, string? queryId = null)
@@ -216,24 +215,18 @@ public sealed class QueryProfileRecorder
         {
             sources = _sources.ToArray();
             operators = _operators.ToArray();
-            operatorRecorders = _operatorOrder
-                .Select(id => _operatorRecorders[id])
-                .ToArray();
+            operatorRecorders = _operatorOrder.Select(id => _operatorRecorders[id]).ToArray();
         }
 
-        var snapshotSources = sources
-            .Select(source => source.CreateSnapshot())
-            .ToArray();
+        var snapshotSources = sources.Select(source => source.CreateSnapshot()).ToArray();
 
         return new QueryProfileSnapshot(
             _clock.GetElapsedTime(_startedTimestamp, _clock.GetTimestamp()),
             snapshotSources,
-            operatorRecorders
-                .Select(static recorder => recorder.CreateSnapshot())
-                .Concat(operators)
-                .ToArray())
+            operatorRecorders.Select(static recorder => recorder.CreateSnapshot()).Concat(operators).ToArray()
+        )
         {
-            QueryId = _queryId
+            QueryId = _queryId,
         };
     }
 
@@ -273,11 +266,15 @@ public sealed class QueryProfileRecorder
         if (count <= 0)
             return;
 
-        UpdateOperatorFrame(frameIndex, frameToken, frame =>
-        {
-            frame.InputRows += count;
-            return frame;
-        });
+        UpdateOperatorFrame(
+            frameIndex,
+            frameToken,
+            frame =>
+            {
+                frame.InputRows += count;
+                return frame;
+            }
+        );
     }
 
     internal void AddOperatorFrameOutputRows(int frameIndex, int frameToken, long count)
@@ -285,11 +282,15 @@ public sealed class QueryProfileRecorder
         if (count <= 0)
             return;
 
-        UpdateOperatorFrame(frameIndex, frameToken, frame =>
-        {
-            frame.OutputRows += count;
-            return frame;
-        });
+        UpdateOperatorFrame(
+            frameIndex,
+            frameToken,
+            frame =>
+            {
+                frame.OutputRows += count;
+                return frame;
+            }
+        );
     }
 
     internal void ExcludeOperatorFrameElapsed(int frameIndex, int frameToken, long elapsedTicks)
@@ -297,16 +298,21 @@ public sealed class QueryProfileRecorder
         if (elapsedTicks <= 0)
             return;
 
-        UpdateOperatorFrame(frameIndex, frameToken, frame =>
-        {
-            frame.ExcludedTicks += elapsedTicks;
-            return frame;
-        });
+        UpdateOperatorFrame(
+            frameIndex,
+            frameToken,
+            frame =>
+            {
+                frame.ExcludedTicks += elapsedTicks;
+                return frame;
+            }
+        );
     }
 
     internal void ExcludeOperatorFrameElapsed(
         IReadOnlyList<CapturedOperatorProfileFrame> capturedFrames,
-        long elapsedTicks)
+        long elapsedTicks
+    )
     {
         if (elapsedTicks <= 0)
             return;
@@ -327,14 +333,14 @@ public sealed class QueryProfileRecorder
 
         var frame = frames[actualIndex];
         frames.RemoveAt(actualIndex);
-        frame.Recorder.Complete(
-            frame.StartedTimestamp,
-            frame.ExcludedTicks,
-            frame.InputRows,
-            frame.OutputRows);
+        frame.Recorder.Complete(frame.StartedTimestamp, frame.ExcludedTicks, frame.InputRows, frame.OutputRows);
     }
 
-    private void UpdateOperatorFrame(int frameIndex, int frameToken, Func<OperatorProfileFrame, OperatorProfileFrame> update)
+    private void UpdateOperatorFrame(
+        int frameIndex,
+        int frameToken,
+        Func<OperatorProfileFrame, OperatorProfileFrame> update
+    )
     {
         var frames = _operatorFrames.Value;
         if (frames is null || frames.Count == 0)

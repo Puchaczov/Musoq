@@ -1,8 +1,8 @@
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionSkipTakeOrderRecordSelection(PagingCount SkipCount, PagingCount TakeCount) : ExecutionOrderRecordSelection
+public sealed record ExecutionSkipTakeOrderRecordSelection(PagingCount SkipCount, PagingCount TakeCount)
+    : ExecutionOrderRecordSelection
 {
-    public ExecutionSkipTakeOrderRecordSelection(int skipCount, int takeCount) : this((PagingCount)skipCount, (PagingCount)takeCount)
-    {
-    }
+    public ExecutionSkipTakeOrderRecordSelection(int skipCount, int takeCount)
+        : this((PagingCount)skipCount, (PagingCount)takeCount) { }
 }

@@ -20,10 +20,7 @@ public sealed class BuildItemsCompatibilityTests
     [TestMethod]
     public void DictionaryCompatibility_WhenRawKeyIsWritten_ShouldStillBeVisibleThroughTypedAccessor()
     {
-        var items = new BuildItems
-        {
-            [BuildItemKeys.AssemblyName] = "raw-assembly"
-        };
+        var items = new BuildItems { [BuildItemKeys.AssemblyName] = "raw-assembly" };
 
         Assert.AreEqual("raw-assembly", items.AssemblyName);
     }
@@ -31,10 +28,7 @@ public sealed class BuildItemsCompatibilityTests
     [TestMethod]
     public void DictionaryCompatibility_WhenTypedAccessorIsWritten_ShouldStillUpdateRawDictionary()
     {
-        var items = new BuildItems
-        {
-            AssemblyName = "typed-assembly"
-        };
+        var items = new BuildItems { AssemblyName = "typed-assembly" };
 
         Assert.AreEqual("typed-assembly", items[BuildItemKeys.AssemblyName]);
     }
@@ -42,10 +36,7 @@ public sealed class BuildItemsCompatibilityTests
     [TestMethod]
     public void DictionaryCompatibility_WhenRawValueHasWrongType_ShouldKeepCurrentInvalidCastBehavior()
     {
-        var items = new BuildItems
-        {
-            [BuildItemKeys.AssemblyName] = 123
-        };
+        var items = new BuildItems { [BuildItemKeys.AssemblyName] = 123 };
 
         Assert.Throws<InvalidCastException>(() => _ = items.AssemblyName);
     }

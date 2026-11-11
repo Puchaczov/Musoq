@@ -14,25 +14,45 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
     [TestMethod]
     public void AggregateFamilies_GroupedRows_ShouldReturnTypedValues()
     {
-        const string query = """
-            select
-                Country,
-                Count(Name) as NamedRows,
-                Count(*) as Rows,
-                Sum(Population) as Total,
-                Avg(Population) as Average,
-                Min(Population) as Minimum,
-                Max(Population) as Maximum,
-                AggregateValues(Name, '|') as Names
-            from #A.Entities()
-            group by Country
-            order by Country
-            """;
+        const string query = (
+            "select\n"
+            + "    Country,\n"
+            + "    Count(Name) as NamedRows,\n"
+            + "    Count(*) as Rows,\n"
+            + "    Sum(Population) as Total,\n"
+            + "    Avg(Population) as Average,\n"
+            + "    Min(Population) as Minimum,\n"
+            + "    Max(Population) as Maximum,\n"
+            + "    AggregateValues(Name, '|') as Names\n"
+            + "from #A.Entities()\n"
+            + "group by Country\n"
+            + "order by Country"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Name = "Alice", Country = "DE", Population = 5m },
-            new BasicEntity { Name = "Bob", Country = "DE", Population = 15m },
-            new BasicEntity { Name = "Carla", Country = "PL", Population = 20m })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity
+                    {
+                        Name = "Alice",
+                        Country = "DE",
+                        Population = 5m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Bob",
+                        Country = "DE",
+                        Population = 15m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Carla",
+                        Country = "PL",
+                        Population = 20m,
+                    }
+                )
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -43,35 +63,62 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
             ("Average", typeof(decimal?)),
             ("Minimum", typeof(decimal?)),
             ("Maximum", typeof(decimal?)),
-            ("Names", typeof(string)));
+            ("Names", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["DE", 2L, 2L, 20m, 10m, 5m, 15m, "Alice|Bob"],
-            ["PL", 1L, 1L, 20m, 20m, 20m, 20m, "Carla"]);
+            ["PL", 1L, 1L, 20m, 20m, 20m, 20m, "Carla"]
+        );
     }
 
     [TestMethod]
     public void ParentLevelAggregates_GroupedByMonthAndCity_ShouldRepeatMonthTotals()
     {
-        const string query = """
-            select
-                Month,
-                City,
-                Count(City) as CityRows,
-                Count(City, 1) as MonthRows,
-                Sum(Money) as CityTotal,
-                Sum(Money, 1) as MonthTotal,
-                Avg(Money, 1) as MonthAverage
-            from #A.Entities()
-            group by Month, City
-            order by Month, City
-            """;
+        const string query = (
+            "select\n"
+            + "    Month,\n"
+            + "    City,\n"
+            + "    Count(City) as CityRows,\n"
+            + "    Count(City, 1) as MonthRows,\n"
+            + "    Sum(Money) as CityTotal,\n"
+            + "    Sum(Money, 1) as MonthTotal,\n"
+            + "    Avg(Money, 1) as MonthAverage\n"
+            + "from #A.Entities()\n"
+            + "group by Month, City\n"
+            + "order by Month, City"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Month = "Feb", City = "Warsaw", Money = 40m },
-            new BasicEntity { Month = "Jan", City = "Krakow", Money = 30m },
-            new BasicEntity { Month = "Jan", City = "Warsaw", Money = 10m },
-            new BasicEntity { Month = "Jan", City = "Warsaw", Money = 20m })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity
+                    {
+                        Month = "Feb",
+                        City = "Warsaw",
+                        Money = 40m,
+                    },
+                    new BasicEntity
+                    {
+                        Month = "Jan",
+                        City = "Krakow",
+                        Money = 30m,
+                    },
+                    new BasicEntity
+                    {
+                        Month = "Jan",
+                        City = "Warsaw",
+                        Money = 10m,
+                    },
+                    new BasicEntity
+                    {
+                        Month = "Jan",
+                        City = "Warsaw",
+                        Money = 20m,
+                    }
+                )
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -81,68 +128,108 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
             ("MonthRows", typeof(long)),
             ("CityTotal", typeof(decimal?)),
             ("MonthTotal", typeof(decimal?)),
-            ("MonthAverage", typeof(decimal?)));
+            ("MonthAverage", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Feb", "Warsaw", 1L, 1L, 40m, 40m, 40m],
             ["Jan", "Krakow", 1L, 3L, 30m, 60m, 20m],
-            ["Jan", "Warsaw", 2L, 3L, 30m, 60m, 20m]);
+            ["Jan", "Warsaw", 2L, 3L, 30m, 60m, 20m]
+        );
     }
 
     [TestMethod]
     public void AggregateWithoutGroupBy_ShouldProduceOneGlobalRow()
     {
-        const string query = """
-            select
-                Count(*) as Rows,
-                Count(Name) as NamedRows,
-                Sum(Population) as Total,
-                Avg(Population) as Average
-            from #A.Entities()
-            """;
+        const string query = (
+            "select\n"
+            + "    Count(*) as Rows,\n"
+            + "    Count(Name) as NamedRows,\n"
+            + "    Sum(Population) as Total,\n"
+            + "    Avg(Population) as Average\n"
+            + "from #A.Entities()"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Name = "A", Population = 10m },
-            new BasicEntity { Name = null, Population = 20m },
-            new BasicEntity { Name = "C", Population = 30m })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity { Name = "A", Population = 10m },
+                    new BasicEntity { Name = null, Population = 20m },
+                    new BasicEntity { Name = "C", Population = 30m }
+                )
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Rows", typeof(long)),
             ("NamedRows", typeof(long)),
             ("Total", typeof(decimal?)),
-            ("Average", typeof(decimal?)));
+            ("Average", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [3L, 2L, 60m, 20m]);
     }
 
     [TestMethod]
     public void NullGrouping_MultiColumnKeys_ShouldKeepNullTuplesDistinct()
     {
-        const string query = """
-            select Country, City, Count(City) as NamedCities, Count(*) as Rows
-            from #A.Entities()
-            group by Country, City
-            """;
+        const string query = (
+            "select Country, City, Count(City) as NamedCities, Count(*) as Rows\n"
+            + "from #A.Entities()\n"
+            + "group by Country, City"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Name = "A", Country = null, City = null },
-            new BasicEntity { Name = "B", Country = null, City = "Warsaw" },
-            new BasicEntity { Name = "C", Country = "PL", City = null },
-            new BasicEntity { Name = "D", Country = "PL", City = null },
-            new BasicEntity { Name = "E", Country = "PL", City = "Warsaw" })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity
+                    {
+                        Name = "A",
+                        Country = null,
+                        City = null,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B",
+                        Country = null,
+                        City = "Warsaw",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "C",
+                        Country = "PL",
+                        City = null,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "D",
+                        Country = "PL",
+                        City = null,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "E",
+                        Country = "PL",
+                        City = "Warsaw",
+                    }
+                )
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Country", typeof(string)),
             ("City", typeof(string)),
             ("NamedCities", typeof(long)),
-            ("Rows", typeof(long)));
+            ("Rows", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [null, null, 0L, 1L],
             [null, "Warsaw", 1L, 1L],
             ["PL", null, 0L, 2L],
-            ["PL", "Warsaw", 1L, 1L]);
+            ["PL", "Warsaw", 1L, 1L]
+        );
     }
 
     [TestMethod]
@@ -153,81 +240,86 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
     {
         var query = $"select Count(*) as Rows, Sum(Population) as Total from #A.Entities() {groupByClause}";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Population = 10m },
-            new BasicEntity { Population = 20m })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(new BasicEntity { Population = 10m }, new BasicEntity { Population = 20m })
+            )
+            .Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Rows", typeof(long)),
-            ("Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Rows", typeof(long)), ("Total", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [2L, 30m]);
     }
 
     [TestMethod]
     public void GroupByAll_WindowProjection_ShouldExcludeWindowFromGroupingKeys()
     {
-        const string query = """
-            select City, Count(*) as Rows, RowNumber() over (order by City) as Position
-            from #A.Entities()
-            group by all
-            order by City
-            """;
+        const string query = (
+            "select City, Count(*) as Rows, RowNumber() over (order by City) as Position\n"
+            + "from #A.Entities()\n"
+            + "group by all\n"
+            + "order by City"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { City = "Berlin" },
-            new BasicEntity { City = "Berlin" },
-            new BasicEntity { City = "Paris" })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity { City = "Berlin" },
+                    new BasicEntity { City = "Berlin" },
+                    new BasicEntity { City = "Paris" }
+                )
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
             ("Rows", typeof(long)),
-            ("Position", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Berlin", 2L, 1L],
-            ["Paris", 1L, 2L]);
+            ("Position", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Berlin", 2L, 1L], ["Paris", 1L, 2L]);
     }
 
     [TestMethod]
     public void GroupByAll_RenameProjection_ShouldGroupFinalOutputExpressions()
     {
-        const string query = """
-            select * like 'C%' rename (City as CityKey), Count(*) as Rows
-            from #A.Entities()
-            group by all
-            order by Country, City
-            """;
+        const string query = (
+            "select * like 'C%' rename (City as CityKey), Count(*) as Rows\n"
+            + "from #A.Entities()\n"
+            + "group by all\n"
+            + "order by Country, City"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Country = "DE", City = "Berlin" },
-            new BasicEntity { Country = "DE", City = "Berlin" },
-            new BasicEntity { Country = "PL", City = "Warsaw" })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity { Country = "DE", City = "Berlin" },
+                    new BasicEntity { Country = "DE", City = "Berlin" },
+                    new BasicEntity { Country = "PL", City = "Warsaw" }
+                )
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("CityKey", typeof(string)),
             ("Country", typeof(string)),
-            ("Rows", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Berlin", "DE", 2L],
-            ["Warsaw", "PL", 1L]);
+            ("Rows", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Berlin", "DE", 2L], ["Warsaw", "PL", 1L]);
     }
 
     [TestMethod]
     public void GroupByAll_OnlyWindowExpression_ShouldUseOneConstantGroup()
     {
-        const string query = """
-            select RowNumber() over (order by 1) as Position
-            from #A.Entities()
-            group by all
-            """;
+        const string query = (
+            "select RowNumber() over (order by 1) as Position\n" + "from #A.Entities()\n" + "group by all"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { City = "Berlin" },
-            new BasicEntity { City = "Paris" })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(new BasicEntity { City = "Berlin" }, new BasicEntity { City = "Paris" })
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1L]);
@@ -246,8 +338,9 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
             "Every selected column must be either aggregated or included in the GROUP BY clause.",
             [
                 "Add the column to the GROUP BY clause.",
-                "Wrap the column in an aggregate function such as Count, Sum, Min, or Max."
-            ]);
+                "Wrap the column in an aggregate function such as Count, Sum, Min, or Max.",
+            ]
+        );
     }
 
     [TestMethod]
@@ -261,10 +354,8 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
             "GROUP BY expressions cannot contain aggregate functions or aggregate SELECT aliases.",
             "Sum",
             "An aggregate expression is not valid inside GROUP BY.",
-            [
-                "Group by the input expression instead.",
-                "Move the aggregate expression to SELECT or HAVING."
-            ]);
+            ["Group by the input expression instead.", "Move the aggregate expression to SELECT or HAVING."]
+        );
     }
 
     [TestMethod]
@@ -280,20 +371,21 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
             "A positional GROUP BY reference points outside the SELECT projection list.",
             [
                 "Use a GROUP BY index between 1 and the number of selected columns.",
-                "Prefer grouping by the expression or alias directly for clarity."
+                "Prefer grouping by the expression or alias directly for clarity.",
             ],
-            "Core Spec - GROUP BY Clause");
+            "Core Spec - GROUP BY Clause"
+        );
     }
 
     [TestMethod]
     public void QualifiedNonAggregateColumnFromAnotherAlias_ShouldNotSatisfyGroupingByName()
     {
-        const string query = """
-            select a.City, b.City, Count(*) as Rows
-            from #A.Entities() a
-            inner join #B.Entities() b on a.Id = b.Id
-            group by a.City
-            """;
+        const string query = (
+            "select a.City, b.City, Count(*) as Rows\n"
+            + "from #A.Entities() a\n"
+            + "inner join #B.Entities() b on a.Id = b.Id\n"
+            + "group by a.City"
+        );
 
         var result = Analyze(query);
         Assert.IsFalse(result.IsSuccess, FormatDiagnostics(result));
@@ -303,7 +395,8 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         Assert.AreEqual(
             "Column 'City' must appear in the GROUP BY clause or be used in an aggregate function. Current GROUP BY columns: City.",
-            diagnostic.Message);
+            diagnostic.Message
+        );
         var cityStart = query.IndexOf("b.City", StringComparison.Ordinal) + "b.".Length;
         Assert.AreEqual(new TextSpan(cityStart, "City".Length), diagnostic.Span);
     }
@@ -315,7 +408,8 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
         string expectedExpression,
         string expectedExplanation,
         string[] expectedFixes,
-        string expectedDocsReference = "Core Spec - GROUP BY and Aggregation")
+        string expectedDocsReference = "Core Spec - GROUP BY and Aggregation"
+    )
     {
         var result = Analyze(query);
         Assert.IsFalse(result.IsSuccess, FormatDiagnostics(result));
@@ -348,25 +442,27 @@ public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
         CollectionAssert.AreEqual(expectedFixes, envelope.Actions.Select(static action => action.Title).ToArray());
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
     }
 
     private static QueryAnalysisResult Analyze(string query)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [],
-                ["#B"] = []
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [], ["#B"] = [] }
+        );
 
         return new QueryAnalyzer(provider).Analyze(query);
     }
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code}: {diagnostic.Message}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic => $"{diagnostic.Code}: {diagnostic.Message}")
+        );
     }
 }

@@ -26,7 +26,8 @@ public sealed class DiagnosticAudit071PayloadConsistencyTests
             parseQuery,
             "audit-071-parse",
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         var parseDiagnostic = parseResult.Diagnostics.Single();
         var parseEnvelope = parseResult.ToEnvelopes().Single();
@@ -42,7 +43,8 @@ public sealed class DiagnosticAudit071PayloadConsistencyTests
             bindQuery,
             "audit-071-bind",
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         var bindDiagnostic = bindResult.Diagnostics.Single();
         var bindEnvelope = bindResult.ToEnvelopes().Single();
@@ -68,7 +70,8 @@ public sealed class DiagnosticAudit071PayloadConsistencyTests
             DiagnosticCode.MQ4001_InvalidBinarySchemaField,
             schemaSpan,
             [new KeyValuePair<string, string>("schema", "payload")],
-            [DiagnosticAction.Suggestion("Use a supported bit width.")]);
+            [DiagnosticAction.Suggestion("Use a supported bit width.")]
+        );
         var schemaDiagnostic = schemaException.ToDiagnostic(schemaSource);
         var schemaEnvelope = MusoqErrorEnvelope.FromDiagnostic(schemaDiagnostic, "select 1");
 
@@ -91,7 +94,8 @@ public sealed class DiagnosticAudit071PayloadConsistencyTests
             "provider",
             "ordersAlias",
             "source-context-071",
-            new InvalidOperationException(providerSecret));
+            new InvalidOperationException(providerSecret)
+        );
         var dataSourceDiagnostic = dataSourceException.ToDiagnostic();
         var dataSourceEnvelope = MusoqErrorEnvelope.FromDiagnostic(dataSourceDiagnostic, "select 1");
 
@@ -127,9 +131,11 @@ public sealed class DiagnosticAudit071PayloadConsistencyTests
                     "generated source failed",
                     new TargetSourceRange(23, 4, 4, 11, 4, 15),
                     "CompiledQuery.g.cs",
-                    "generated line")
+                    "generated line"
+                ),
             ],
-            generatedContext);
+            generatedContext
+        );
 
         var generatedDiagnostic = generatedContext.Diagnostics.Single();
         var generatedEnvelope = MusoqErrorEnvelope.FromDiagnostic(generatedDiagnostic, "select 1");
@@ -150,10 +156,12 @@ public sealed class DiagnosticAudit071PayloadConsistencyTests
         var generatedWithoutRangeContext = new DiagnosticContext(new SourceText("select 1", "query.musoq"));
         TargetDiagnosticReporter.Report(
             [new TargetDiagnostic("MT0711", TargetDiagnosticSeverity.Error, "generated source has no range")],
-            generatedWithoutRangeContext);
+            generatedWithoutRangeContext
+        );
         var generatedWithoutRange = MusoqErrorEnvelope.FromDiagnostic(
             generatedWithoutRangeContext.Diagnostics.Single(),
-            "select 1");
+            "select 1"
+        );
         AssertUnknownLocation(generatedWithoutRange);
 
         const string internalSecret = "audit-071-internal-secret";
@@ -189,7 +197,8 @@ public sealed class DiagnosticAudit071PayloadConsistencyTests
             relatedStart,
             relatedEnd,
             "Schema declaration is here",
-            DiagnosticSourceKind.Schema);
+            DiagnosticSourceKind.Schema
+        );
         var action = DiagnosticAction.QuickFix("Replace with Value", primarySpan, "Value");
         var diagnostic = new Diagnostic(
             DiagnosticCode.MQ3001_UnknownColumn,
@@ -204,10 +213,11 @@ public sealed class DiagnosticAudit071PayloadConsistencyTests
             arguments:
             [
                 new KeyValuePair<string, string>("column", "Name"),
-                new KeyValuePair<string, string>("availableColumns", "Value")
+                new KeyValuePair<string, string>("availableColumns", "Value"),
             ],
             relatedLocations: [related],
-            correlationId: "audit-071-correlation");
+            correlationId: "audit-071-correlation"
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
 
@@ -230,7 +240,10 @@ public sealed class DiagnosticAudit071PayloadConsistencyTests
         Assert.AreEqual("schema", root.GetProperty("related")[0].GetProperty("source").GetString());
         Assert.AreEqual(0, root.GetProperty("related")[0].GetProperty("offset").GetInt32());
         Assert.AreEqual(4, root.GetProperty("related")[0].GetProperty("endOffset").GetInt32());
-        Assert.AreEqual(primarySpan.Start, root.GetProperty("actions")[0].GetProperty("edit").GetProperty("start").GetInt32());
+        Assert.AreEqual(
+            primarySpan.Start,
+            root.GetProperty("actions")[0].GetProperty("edit").GetProperty("start").GetInt32()
+        );
         Assert.AreEqual(4, root.GetProperty("actions")[0].GetProperty("edit").GetProperty("length").GetInt32());
         Assert.AreEqual("Value", root.GetProperty("actions")[0].GetProperty("edit").GetProperty("newText").GetString());
         Assert.AreEqual("audit-071-correlation", root.GetProperty("correlationId").GetString());

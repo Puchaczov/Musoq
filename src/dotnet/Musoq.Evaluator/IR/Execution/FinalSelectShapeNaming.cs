@@ -19,9 +19,6 @@ internal static class FinalSelectShapeNaming
         var rowIndex = typeName.IndexOf(rowMarker, StringComparison.Ordinal);
         return rowIndex < 0
             ? $"{typeName}{shapeMarker}"
-            : string.Concat(
-                typeName.AsSpan(0, rowIndex),
-                shapeMarker,
-                typeName.AsSpan(rowIndex + rowMarker.Length));
+            : string.Concat(typeName.AsSpan(0, rowIndex), shapeMarker, typeName.AsSpan(rowIndex + rowMarker.Length));
     }
 }

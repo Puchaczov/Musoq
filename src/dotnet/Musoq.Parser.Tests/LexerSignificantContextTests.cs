@@ -18,7 +18,10 @@ public sealed class LexerSignificantContextTests
     {
         var tokens = SignificantTokens(new Lexer(source, skipTrivia));
 
-        CollectionAssert.AreEqual(new[] { TokenType.Integer, TokenType.Hyphen, TokenType.Integer }, tokens.Select(token => token.TokenType).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { TokenType.Integer, TokenType.Hyphen, TokenType.Integer },
+            tokens.Select(token => token.TokenType).ToArray()
+        );
     }
 
     [TestMethod]
@@ -28,7 +31,16 @@ public sealed class LexerSignificantContextTests
     {
         var tokens = SignificantTokens(new Lexer("$items /* gap */ [0]", skipTrivia));
 
-        CollectionAssert.AreEqual(new[] { TokenType.ParameterReference, TokenType.LeftSquareBracket, TokenType.Integer, TokenType.RightSquareBracket }, tokens.Select(token => token.TokenType).ToArray());
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                TokenType.ParameterReference,
+                TokenType.LeftSquareBracket,
+                TokenType.Integer,
+                TokenType.RightSquareBracket,
+            },
+            tokens.Select(token => token.TokenType).ToArray()
+        );
     }
 
     [TestMethod]

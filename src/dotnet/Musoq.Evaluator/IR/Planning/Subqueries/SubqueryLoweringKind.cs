@@ -13,5 +13,5 @@ internal enum SubqueryLoweringKind
     ScalarHashSingle,
     ScalarRangeSingle,
     DerivedTableJoin,
-    DerivedTableScan
+    DerivedTableScan,
 }

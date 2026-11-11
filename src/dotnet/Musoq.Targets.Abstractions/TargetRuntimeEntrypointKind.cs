@@ -5,5 +5,5 @@ internal enum TargetRuntimeEntrypointKind
     TableQuery = 0,
     TypedQuery = 1,
     Diagnostics = 2,
-    Metadata = 3
+    Metadata = 3,
 }

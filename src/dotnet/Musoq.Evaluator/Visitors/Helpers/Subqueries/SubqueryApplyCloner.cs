@@ -12,7 +12,10 @@ internal static class SubqueryApplyCloner
         var bindings = apply.IsBound ? PopBindings(apply, nodes) : null;
         var query = apply.IsBound ? apply.Subquery : nodes.Pop();
         var operand = apply.Operand is null ? null : nodes.Pop();
-        return new SubqueryApplyNode(query, apply.Kind, operand, apply.ReturnType, bindings) { Comparison = apply.Comparison }.CopySpansFrom(node);
+        return new SubqueryApplyNode(query, apply.Kind, operand, apply.ReturnType, bindings)
+        {
+            Comparison = apply.Comparison,
+        }.CopySpansFrom(node);
     }
 
     internal static SubqueryApplyNode Rewrite(ScalarSubqueryNode node, Stack<Node> nodes)
@@ -22,7 +25,10 @@ internal static class SubqueryApplyCloner
         var query = nodes.Pop();
         var bindings = PopBindings(apply, nodes);
         var operand = apply.Operand is null ? null : nodes.Pop();
-        return new SubqueryApplyNode(query, apply.Kind, operand, apply.ReturnType, bindings) { Comparison = apply.Comparison }.CopySpansFrom(node);
+        return new SubqueryApplyNode(query, apply.Kind, operand, apply.ReturnType, bindings)
+        {
+            Comparison = apply.Comparison,
+        }.CopySpansFrom(node);
     }
 
     private static Node[] PopBindings(SubqueryApplyNode apply, Stack<Node> nodes)

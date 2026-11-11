@@ -20,17 +20,19 @@ public sealed partial class ExecutionCSharpRenderer
         SingleContextAndContextArray,
         SingleContextAndContextRow,
         ContextRowAndContextArray,
-        ContextArrayAndContextRow
+        ContextArrayAndContextRow,
     }
 
     private sealed record GeneratedRowConstructorSignature(
         IReadOnlyList<ParameterSyntax> Parameters,
-        IReadOnlyList<StatementSyntax> ContextAssignments);
+        IReadOnlyList<StatementSyntax> ContextAssignments
+    );
 
     private readonly record struct GeneratedRowContextParameter(
         string ParameterName,
         string FieldName,
-        TypeSyntax Type);
+        TypeSyntax Type
+    );
 
     private sealed record ValueTupleAggregateHelper(
         string PopulateFunctionName,
@@ -38,11 +40,13 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionCreateValueTupleAggregateContext Context,
         ExecutionSourceLoop AccumulationLoop,
         ExecutionEnsureTableCapacity EnsureCapacity,
-        ExecutionForEach FinalizationLoop);
+        ExecutionForEach FinalizationLoop
+    );
 
     private readonly record struct GeneratedRowOrderComparerInput(
         string SourceName,
         string TargetName,
         GeneratedRowShape RowShape,
-        IReadOnlyList<ExecutionOrderField> Keys);
+        IReadOnlyList<ExecutionOrderField> Keys
+    );
 }

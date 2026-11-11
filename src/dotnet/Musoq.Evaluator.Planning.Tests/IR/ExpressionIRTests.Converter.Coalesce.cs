@@ -14,8 +14,10 @@ public partial class ExpressionIrTests
             new CoalesceNode(
                 new AccessColumnNode("Second", "t", typeof(string), default),
                 new AccessColumnNode("Third", "t", typeof(string), default),
-                typeof(string)),
-            typeof(string));
+                typeof(string)
+            ),
+            typeof(string)
+        );
 
         var result = _converter.Convert(node);
 

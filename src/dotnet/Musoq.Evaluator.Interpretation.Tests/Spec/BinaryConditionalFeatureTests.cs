@@ -25,23 +25,33 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_ChainedConditionalFields_ShouldWork()
     {
-        var query = @"
-            binary Data { 
-                HasData: byte,
-                Length: int le when HasData <> 0,
-                Payload: byte[Length] when HasData <> 0
-            };
-            select d.HasData, d.Length, d.Payload from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                HasData: byte,\n"
+            + "                Length: int le when HasData <> 0,\n"
+            + "                Payload: byte[Length] when HasData <> 0\n"
+            + "            };\n"
+            + "            select d.HasData, d.Length, d.Payload from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0x01, 0x03, 0x00, 0x00, 0x00, 0xAA, 0xBB, 0xCC };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -62,25 +72,33 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_ConditionalField_InWhereClause_FiltersNulls()
     {
-        var query = @"
-            binary Data { 
-                HasValue: byte,
-                Value: int le when HasValue <> 0
-            };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d
-            where d.Value is not null";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                HasValue: byte,\n"
+            + "                Value: int le when HasValue <> 0\n"
+            + "            };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d\n"
+            + "            where d.Value is not null"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "with.bin", Content = [0x01, 0x2A, 0x00, 0x00, 0x00] },
-            new BinaryEntity { Name = "without.bin", Content = [0x00] }
+            new BinaryEntity { Name = "without.bin", Content = [0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -97,25 +115,35 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_ConditionalField_WhenTrue_ShouldParse()
     {
-        var query = @"
-            binary Data { 
-                HasValue: byte,
-                Value: int le when HasValue <> 0
-            };
-            select d.HasValue, d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                HasValue: byte,\n"
+            + "                Value: int le when HasValue <> 0\n"
+            + "            };\n"
+            + "            select d.HasValue, d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[5];
         testData[0] = 0x01;
         BitConverter.GetBytes(12345).CopyTo(testData, 1);
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -129,22 +157,32 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_ConditionalField_WhenFalse_ShouldBeNull()
     {
-        var query = @"
-            binary Data { 
-                HasValue: byte,
-                Value: int le when HasValue <> 0
-            };
-            select d.HasValue, d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                HasValue: byte,\n"
+            + "                Value: int le when HasValue <> 0\n"
+            + "            };\n"
+            + "            select d.HasValue, d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -162,25 +200,35 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_ConditionalField_EqualityCheck_ShouldWork()
     {
-        var query = @"
-            binary Message { 
-                Type: byte,
-                ErrorCode: short le when Type = 255
-            };
-            select m.Type, m.ErrorCode from #test.files() f
-            cross apply Interpret<Message>(f.Content) m";
-
+        var query = (
+            "\n"
+            + "            binary Message { \n"
+            + "                Type: byte,\n"
+            + "                ErrorCode: short le when Type = 255\n"
+            + "            };\n"
+            + "            select m.Type, m.ErrorCode from #test.files() f\n"
+            + "            cross apply Interpret<Message>(f.Content) m"
+        );
 
         var testData = new byte[3];
         testData[0] = 0xFF;
         BitConverter.GetBytes((short)500).CopyTo(testData, 1);
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -194,22 +242,32 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_ConditionalField_EqualityFails_ShouldBeNull()
     {
-        var query = @"
-            binary Message { 
-                Type: byte,
-                ErrorCode: short le when Type = 255
-            };
-            select m.Type, m.ErrorCode from #test.files() f
-            cross apply Interpret<Message>(f.Content) m";
-
+        var query = (
+            "\n"
+            + "            binary Message { \n"
+            + "                Type: byte,\n"
+            + "                ErrorCode: short le when Type = 255\n"
+            + "            };\n"
+            + "            select m.Type, m.ErrorCode from #test.files() f\n"
+            + "            cross apply Interpret<Message>(f.Content) m"
+        );
 
         var testData = new byte[] { 0x01 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -227,27 +285,37 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_MultipleConditionalFields_IndependentConditions()
     {
-        var query = @"
-            binary Packet { 
-                Flags: byte,
-                PayloadLen: int le when (Flags & 1) <> 0,
-                Checksum: int le when (Flags & 2) <> 0
-            };
-            select p.Flags, p.PayloadLen, p.Checksum from #test.files() f
-            cross apply Interpret<Packet>(f.Content) p";
-
+        var query = (
+            "\n"
+            + "            binary Packet { \n"
+            + "                Flags: byte,\n"
+            + "                PayloadLen: int le when (Flags & 1) <> 0,\n"
+            + "                Checksum: int le when (Flags & 2) <> 0\n"
+            + "            };\n"
+            + "            select p.Flags, p.PayloadLen, p.Checksum from #test.files() f\n"
+            + "            cross apply Interpret<Packet>(f.Content) p"
+        );
 
         var testData = new byte[9];
         testData[0] = 0x03;
         BitConverter.GetBytes(100).CopyTo(testData, 1);
         BitConverter.GetBytes(0xABCD).CopyTo(testData, 5);
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -262,26 +330,36 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_MultipleConditionalFields_PartialPresence()
     {
-        var query = @"
-            binary Packet { 
-                Flags: byte,
-                PayloadLen: int le when (Flags & 1) <> 0,
-                Checksum: int le when (Flags & 2) <> 0
-            };
-            select p.Flags, p.PayloadLen, p.Checksum from #test.files() f
-            cross apply Interpret<Packet>(f.Content) p";
-
+        var query = (
+            "\n"
+            + "            binary Packet { \n"
+            + "                Flags: byte,\n"
+            + "                PayloadLen: int le when (Flags & 1) <> 0,\n"
+            + "                Checksum: int le when (Flags & 2) <> 0\n"
+            + "            };\n"
+            + "            select p.Flags, p.PayloadLen, p.Checksum from #test.files() f\n"
+            + "            cross apply Interpret<Packet>(f.Content) p"
+        );
 
         var testData = new byte[5];
         testData[0] = 0x01;
         BitConverter.GetBytes(100).CopyTo(testData, 1);
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -300,25 +378,35 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_ConditionalField_GreaterThan_ShouldWork()
     {
-        var query = @"
-            binary Data { 
-                Version: byte,
-                ExtendedData: int le when Version > 1
-            };
-            select d.Version, d.ExtendedData from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Version: byte,\n"
+            + "                ExtendedData: int le when Version > 1\n"
+            + "            };\n"
+            + "            select d.Version, d.ExtendedData from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[5];
         testData[0] = 0x02;
         BitConverter.GetBytes(999).CopyTo(testData, 1);
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -332,25 +420,35 @@ public class BinaryConditionalFeatureTests
     [TestMethod]
     public void Binary_ConditionalField_LessThan_ShouldWork()
     {
-        var query = @"
-            binary Data { 
-                Version: byte,
-                LegacyField: short le when Version < 3
-            };
-            select d.Version, d.LegacyField from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Version: byte,\n"
+            + "                LegacyField: short le when Version < 3\n"
+            + "            };\n"
+            + "            select d.Version, d.LegacyField from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[3];
         testData[0] = 0x02;
         BitConverter.GetBytes((short)100).CopyTo(testData, 1);
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

@@ -15,15 +15,27 @@ internal sealed partial class PhysicalLoweringImplementation
         int schemaFromIndex,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         string? sourceRowsScope,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (source is PhysicalNestedLoopApplyNode apply)
             return BuildNestedApplySource(apply, cteIndexes, cteShapesByName, schemaFromIndex, sourceLookup, scope);
 
-        if (source is not (PhysicalSchemaScanNode or PhysicalCteRefNode or PhysicalInterpretSourceNode or PhysicalPropertySourceNode or PhysicalAccessMethodSourceNode or PhysicalValuesScanNode))
+        if (
+            source
+            is not (
+                PhysicalSchemaScanNode
+                or PhysicalCteRefNode
+                or PhysicalInterpretSourceNode
+                or PhysicalPropertySourceNode
+                or PhysicalAccessMethodSourceNode
+                or PhysicalValuesScanNode
+            )
+        )
         {
             return SourceBuildResult.Unsupported(
-                $"Execution IR apply lowering currently supports flat schema-scan, CTE-ref, interpret-source, property-source, access-method-source, values, or nested apply inputs. Found {source.GetType().Name}.");
+                $"Execution IR apply lowering currently supports flat schema-scan, CTE-ref, interpret-source, property-source, access-method-source, values, or nested apply inputs. Found {source.GetType().Name}."
+            );
         }
 
         if (source is PhysicalInterpretSourceNode interpret)
@@ -35,29 +47,36 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var shape = ResolveSourceShape(source, cteIndexes, cteShapesByName);
         if (shape == null)
-            return SourceBuildResult.Unsupported($"Execution IR apply lowering cannot resolve source shape for {source.GetType().Name}.");
+            return SourceBuildResult.Unsupported(
+                $"Execution IR apply lowering cannot resolve source shape for {source.GetType().Name}."
+            );
 
         var variable = CreateSourceVariable(source, shape, cteShapesByName);
-        var setup = CreateSourceSetup(source, shape, variable, schemaFromIndex, sourceLookup, cteIndexes, sourceRowsScope);
-        var rows = CreateSourceRowsExpression(
-            source,
-            shape,
-            cteIndexes,
-            cteShapesByName,
-            sourceRowsScope,
-            scope);
-        var schemaSourceCount = source is PhysicalSchemaScanNode ? 1 : 0;
-        var canReuseSetupAcrossApplyRows = CanReuseSourceSetupAcrossApplyRows(source);
-
-        return SourceBuildResult.Success(new JoinSource(
+        var setup = CreateSourceSetup(
             source,
             shape,
             variable,
-            setup,
-            rows,
-            [shape],
-            schemaSourceCount,
-            canReuseSetupAcrossApplyRows));
+            schemaFromIndex,
+            sourceLookup,
+            cteIndexes,
+            sourceRowsScope
+        );
+        var rows = CreateSourceRowsExpression(source, shape, cteIndexes, cteShapesByName, sourceRowsScope, scope);
+        var schemaSourceCount = source is PhysicalSchemaScanNode ? 1 : 0;
+        var canReuseSetupAcrossApplyRows = CanReuseSourceSetupAcrossApplyRows(source);
+
+        return SourceBuildResult.Success(
+            new JoinSource(
+                source,
+                shape,
+                variable,
+                setup,
+                rows,
+                [shape],
+                schemaSourceCount,
+                canReuseSetupAcrossApplyRows
+            )
+        );
     }
 
     private SourceBuildResult BuildNestedApplySource(
@@ -67,7 +86,8 @@ internal sealed partial class PhysicalLoweringImplementation
         int schemaFromIndex,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         LoweringScope scope,
-        NestedApplyGeneratedRowPreservation generatedRowPreservation = NestedApplyGeneratedRowPreservation.Disabled)
+        NestedApplyGeneratedRowPreservation generatedRowPreservation = NestedApplyGeneratedRowPreservation.Disabled
+    )
     {
         var shouldPreserveGeneratedRows = generatedRowPreservation == NestedApplyGeneratedRowPreservation.Enabled;
         var projection = CreateNestedSourceProjectionFields(apply, cteIndexes, cteShapesByName);
@@ -88,7 +108,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             inheritedSourceLookup: sourceLookup,
-            scope: scope);
+            scope: scope
+        );
 
         if (!table.IsBuilt)
             return SourceBuildResult.Unsupported(table.UnsupportedReason);
@@ -102,21 +123,25 @@ internal sealed partial class PhysicalLoweringImplementation
         var rows = new ExecutionRowStream(
             table.Table,
             ExecutionRowStreamKind.Rows,
-            ExecutionRowStreamRowsAccess.TableRows);
+            ExecutionRowStreamRowsAccess.TableRows
+        );
         var shapes = table.Shapes.Concat([transitionShape]).ToArray();
 
-        return SourceBuildResult.Success(new JoinSource(
-            apply,
-            transitionShape,
-            source,
-            table.Nodes.ToList(),
-            rows,
-            shapes,
-            CountSchemaScans(apply),
-                GeneratedRowShape: shouldPreserveGeneratedRows ? table.RowShape : null)
-        {
-            LoweredApplyPredicateMovementPlans = table.LoweredApplyPredicateMovementPlans
-        });
+        return SourceBuildResult.Success(
+            new JoinSource(
+                apply,
+                transitionShape,
+                source,
+                table.Nodes.ToList(),
+                rows,
+                shapes,
+                CountSchemaScans(apply),
+                GeneratedRowShape: shouldPreserveGeneratedRows ? table.RowShape : null
+            )
+            {
+                LoweredApplyPredicateMovementPlans = table.LoweredApplyPredicateMovementPlans,
+            }
+        );
     }
 
     private static bool CanReuseSourceSetupAcrossApplyRows(PhysicalNode source)
@@ -130,29 +155,31 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionAppendRow unmatchedAppendRow,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         string rightAlias,
-        IDirectTableSink? directTableSink = null)
+        IDirectTableSink? directTableSink = null
+    )
     {
         var matchedAppendBlock = CreateOuterJoinMatchedAppendBlock(
             filter,
             matchedAppendRow,
             sourceLookup,
-            directTableSink);
+            directTableSink
+        );
         var unmatchedAppend = directTableSink?.CreateAppend(unmatchedAppendRow) ?? unmatchedAppendRow;
         if (filter == null)
-            return OuterApplyFilterBuildResult.Success(
-                matchedAppendBlock,
-                new ExecutionBlock([unmatchedAppend]));
+            return OuterApplyFilterBuildResult.Success(matchedAppendBlock, new ExecutionBlock([unmatchedAppend]));
 
         var condition = SubstituteRowPresenceAliases(
             ExecutionExpressionConverter.Convert(filter.Predicate, sourceLookup),
-            CreateNullExtendedPresenceMap(sourceLookup, rightAlias));
-        var referencesRight = ReferencesExecutionAlias(condition, rightAlias) ||
-                              ReferencesAlias(filter.Predicate, rightAlias);
+            CreateNullExtendedPresenceMap(sourceLookup, rightAlias)
+        );
+        var referencesRight =
+            ReferencesExecutionAlias(condition, rightAlias) || ReferencesAlias(filter.Predicate, rightAlias);
         if (!referencesRight)
         {
             return OuterApplyFilterBuildResult.Success(
                 matchedAppendBlock,
-                CreateFilteredAppendBlock(condition, unmatchedAppend));
+                CreateFilteredAppendBlock(condition, unmatchedAppend)
+            );
         }
 
         var unmatchedCondition = CreateUnmatchedOuterApplyFilterCondition(condition, rightAlias);
@@ -161,12 +188,14 @@ internal sealed partial class PhysicalLoweringImplementation
 
         return OuterApplyFilterBuildResult.Success(
             matchedAppendBlock,
-            CreateFilteredAppendBlock(unmatchedCondition.Value, unmatchedAppend));
+            CreateFilteredAppendBlock(unmatchedCondition.Value, unmatchedAppend)
+        );
     }
 
     private static LoweringAttempt<ExecutionExpression> CreateUnmatchedOuterApplyFilterCondition(
         ExecutionExpression condition,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var substituted = SubstituteOuterApplyRightAlias(condition, rightAlias);
         if (!substituted.IsBuilt)
@@ -185,7 +214,8 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalFilterNode? filter,
         ExecutionAppendRow appendRow,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        IDirectTableSink? directTableSink = null)
+        IDirectTableSink? directTableSink = null
+    )
     {
         var outputAppend = directTableSink?.CreateAppend(appendRow) ?? appendRow;
         if (filter == null)
@@ -193,29 +223,29 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var condition = SubstituteRowPresenceAliases(
             ExecutionExpressionConverter.Convert(filter.Predicate, sourceLookup),
-            CreateAllPresentMap(sourceLookup));
+            CreateAllPresentMap(sourceLookup)
+        );
 
         return CreateFilteredAppendBlock(condition, outputAppend);
     }
 
     private static LoweringAttempt<ExecutionExpression> CreateOuterApplyBooleanCondition(
         ExecutionExpression expression,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var normalized = OuterApplyNullSubstitutionService.NormalizeBooleanOperand(expression);
         if (normalized.IsBuilt)
             return normalized;
 
         return LoweringAttempt<ExecutionExpression>.Unsupported(
-            $"Execution IR outer apply lowering produced non-boolean unmatched filter expression for right apply alias '{rightAlias}'.");
+            $"Execution IR outer apply lowering produced non-boolean unmatched filter expression for right apply alias '{rightAlias}'."
+        );
     }
 
     private static string FormatTypeName(Type type)
     {
         var nullableUnderlying = Nullable.GetUnderlyingType(type);
-        return nullableUnderlying == null
-            ? type.Name
-            : $"{nullableUnderlying.Name}?";
+        return nullableUnderlying == null ? type.Name : $"{nullableUnderlying.Name}?";
     }
-
 }

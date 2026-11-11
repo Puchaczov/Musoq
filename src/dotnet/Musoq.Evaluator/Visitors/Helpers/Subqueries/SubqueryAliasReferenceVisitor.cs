@@ -55,7 +55,8 @@ internal sealed class SubqueryAliasReferenceVisitor : NoOpExpressionVisitor
 
     private SubqueryCorrelationAnalyzer RequireAnalyzer()
     {
-        return _analyzer ?? throw new InvalidOperationException("Subquery alias reference visitor must be bound before use.");
+        return _analyzer
+            ?? throw new InvalidOperationException("Subquery alias reference visitor must be bound before use.");
     }
 
     private static bool TryGetRootAlias(DotNode node, [NotNullWhen(true)] out string? alias)

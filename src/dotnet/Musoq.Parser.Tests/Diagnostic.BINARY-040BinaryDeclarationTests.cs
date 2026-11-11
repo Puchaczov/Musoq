@@ -15,18 +15,18 @@ public sealed class DiagnosticBinary040BinaryDeclarationTests : SchemaParserTest
     public void BinaryDeclaration_AllPrimitiveTypes_ShouldPreserveTypesAndByteOrder()
     {
         const string schema =
-            "binary PrimitiveRecord {" +
-            " ByteValue: byte," +
-            " SByteValue: sbyte," +
-            " ShortValue: short le," +
-            " UShortValue: ushort be," +
-            " IntValue: int le," +
-            " UIntValue: uint be," +
-            " LongValue: long le," +
-            " ULongValue: ulong be," +
-            " FloatValue: float le," +
-            " DoubleValue: double be," +
-            "}";
+            "binary PrimitiveRecord {"
+            + " ByteValue: byte,"
+            + " SByteValue: sbyte,"
+            + " ShortValue: short le,"
+            + " UShortValue: ushort be,"
+            + " IntValue: int le,"
+            + " UIntValue: uint be,"
+            + " LongValue: long le,"
+            + " ULongValue: ulong be,"
+            + " FloatValue: float le,"
+            + " DoubleValue: double be,"
+            + "}";
 
         var result = ParseBinarySchema(schema);
 
@@ -58,12 +58,12 @@ public sealed class DiagnosticBinary040BinaryDeclarationTests : SchemaParserTest
     public void BinaryDeclaration_SizedBytesAndStrings_ShouldPreserveExpressionsAndModifiers()
     {
         const string schema =
-            "binary Framed {" +
-            " Length: byte," +
-            " Payload: byte[Length]," +
-            " Name: string[8] utf8 nullterm trim," +
-            " Tail: byte" +
-            "}";
+            "binary Framed {"
+            + " Length: byte,"
+            + " Payload: byte[Length],"
+            + " Name: string[8] utf8 nullterm trim,"
+            + " Tail: byte"
+            + "}";
 
         var result = ParseBinarySchema(schema);
         var payload = Field(result, "Payload").TypeAnnotation;
@@ -92,7 +92,8 @@ public sealed class DiagnosticBinary040BinaryDeclarationTests : SchemaParserTest
             DiagnosticCode.MQ4005_InvalidEndianness,
             expectedSpan,
             "missing multi-byte endianness",
-            () => ParseBinarySchema(schema));
+            () => ParseBinarySchema(schema)
+        );
     }
 
     [TestMethod]
@@ -106,7 +107,8 @@ public sealed class DiagnosticBinary040BinaryDeclarationTests : SchemaParserTest
             DiagnosticCode.MQ4005_InvalidEndianness,
             expectedSpan,
             "invalid multi-byte endianness",
-            () => ParseBinarySchema(schema));
+            () => ParseBinarySchema(schema)
+        );
     }
 
     [TestMethod]
@@ -120,7 +122,8 @@ public sealed class DiagnosticBinary040BinaryDeclarationTests : SchemaParserTest
             DiagnosticCode.MQ4005_InvalidEndianness,
             expectedSpan,
             "endianness on a single-byte field",
-            () => ParseBinarySchema(schema));
+            () => ParseBinarySchema(schema)
+        );
     }
 
     [TestMethod]
@@ -134,7 +137,8 @@ public sealed class DiagnosticBinary040BinaryDeclarationTests : SchemaParserTest
             DiagnosticCode.MQ4001_InvalidBinarySchemaField,
             expectedSpan,
             "negative fixed string size",
-            () => ParseBinarySchema(schema));
+            () => ParseBinarySchema(schema)
+        );
     }
 
     [TestMethod]
@@ -148,7 +152,8 @@ public sealed class DiagnosticBinary040BinaryDeclarationTests : SchemaParserTest
             DiagnosticCode.MQ4001_InvalidBinarySchemaField,
             expectedSpan,
             "invalid string encoding",
-            () => ParseBinarySchema(schema));
+            () => ParseBinarySchema(schema)
+        );
     }
 
     private static FieldDefinitionNode Field(BinarySchemaNode schema, string name)
@@ -163,7 +168,8 @@ public sealed class DiagnosticBinary040BinaryDeclarationTests : SchemaParserTest
         string name,
         PrimitiveTypeName expectedType,
         Endianness expectedEndianness,
-        int expectedSize)
+        int expectedSize
+    )
     {
         var type = Field(schema, name).TypeAnnotation as PrimitiveTypeNode;
         Assert.IsNotNull(type, $"Expected primitive type for '{name}'.");
@@ -177,7 +183,8 @@ public sealed class DiagnosticBinary040BinaryDeclarationTests : SchemaParserTest
         DiagnosticCode expectedCode,
         TextSpan expectedSpan,
         string context,
-        Action parse)
+        Action parse
+    )
     {
         var exception = Assert.ThrowsExactly<SyntaxException>(parse, context);
 

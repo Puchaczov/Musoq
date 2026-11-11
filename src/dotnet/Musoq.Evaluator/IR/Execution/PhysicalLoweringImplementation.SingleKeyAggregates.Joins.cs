@@ -13,12 +13,14 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (join.BuildKeys.Length != join.ProbeKeys.Length || join.BuildKeys.Length == 0)
         {
             return SingleKeyAggregateExecutionSourceBuildResult.Unsupported(
-                "Execution IR hash-join aggregate fusion requires matching equality key counts.");
+                "Execution IR hash-join aggregate fusion requires matching equality key counts."
+            );
         }
 
         var sources = BuildJoinSources(
@@ -28,7 +30,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
-            scope);
+            scope
+        );
         if (!sources.IsBuilt)
             return SingleKeyAggregateExecutionSourceBuildResult.Unsupported(sources.UnsupportedReason);
 
@@ -36,41 +39,51 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!TryResolveHashJoinSides(join, joinSources, out var hashSides))
         {
             return SingleKeyAggregateExecutionSourceBuildResult.Unsupported(
-                "Execution IR hash-join aggregate fusion cannot map build/probe keys to flat join inputs.");
+                "Execution IR hash-join aggregate fusion cannot map build/probe keys to flat join inputs."
+            );
         }
 
-
-
         var sidecarIndex = TryResolveCteSidecarIndex(join, hashSides, CteSidecarIndexKind.Hash);
-        if (sidecarIndex != null &&
-            TryUseCteSidecarHashPayloadJoinSource(hashSides.Build, sidecarIndex, scope, out var payloadBuildSource))
+        if (
+            sidecarIndex != null
+            && TryUseCteSidecarHashPayloadJoinSource(hashSides.Build, sidecarIndex, scope, out var payloadBuildSource)
+        )
         {
             joinSources = ReferenceEquals(hashSides.Build, joinSources.Left)
-                ? joinSources with { Left = payloadBuildSource }
-                : joinSources with { Right = payloadBuildSource };
+                ? joinSources with
+                {
+                    Left = payloadBuildSource,
+                }
+                : joinSources with
+                {
+                    Right = payloadBuildSource,
+                };
             hashSides = hashSides with { Build = payloadBuildSource };
         }
 
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(joinSources.Left.Shape, joinSources.Right.Shape);
         var keyType = ResolveHashJoinKeyType(join);
-        var hash = new ExecutionVariable(CreateScopedHashName(resultTableName, $"{hashSides.Build.Variable.Name}Hash"), typeof(object));
+        var hash = new ExecutionVariable(
+            CreateScopedHashName(resultTableName, $"{hashSides.Build.Variable.Name}Hash"),
+            typeof(object)
+        );
         var matches = new ExecutionVariable($"{hash.Name}Matches", typeof(object));
-        var setup = new List<ExecutionNode>(
-            joinSources.Left.Setup.Count +
-            joinSources.Right.Setup.Count +
-            2);
+        var setup = new List<ExecutionNode>(joinSources.Left.Setup.Count + joinSources.Right.Setup.Count + 2);
 
         setup.AddRange(joinSources.Left.Setup);
         setup.AddRange(joinSources.Right.Setup);
         if (sidecarIndex != null)
         {
-            setup.Add(new ExecutionCteSidecarIndexLoadCandidate(
-                hash,
-                sidecarIndex.IndexSlot,
-                ExecutionCteSidecarIndexKind.Hash,
-                keyType,
-                hashSides.Build.Variable.Type.ResolveClrType(),
-                hashSides.Build.Variable.GeneratedRowTypeName));
+            setup.Add(
+                new ExecutionCteSidecarIndexLoadCandidate(
+                    hash,
+                    sidecarIndex.IndexSlot,
+                    ExecutionCteSidecarIndexKind.Hash,
+                    keyType,
+                    hashSides.Build.Variable.Type.ResolveClrType(),
+                    hashSides.Build.Variable.GeneratedRowTypeName
+                )
+            );
         }
         else
         {
@@ -78,66 +91,74 @@ internal sealed partial class PhysicalLoweringImplementation
                 hashSides.Build.Shape,
                 hashSides.Build.Rows,
                 hashSides.Build.Variable,
-                new ExecutionBlock(
-                [
+                new ExecutionBlock([
                     new ExecutionHashAdd(
                         hash,
                         CreateHashJoinKeyExpression(join.BuildKeys, sourceLookup, keyType),
                         hashSides.Build.Variable,
                         keyType,
                         hashSides.Build.Variable.Type.ResolveClrType(),
-                        hashSides.Build.Variable.GeneratedRowTypeName)
-                ]));
-            setup.Add(new ExecutionCreateHash(
-                hash,
-                keyType,
-                hashSides.Build.Variable.Type.ResolveClrType(),
-                CreateHashCapacityCandidate(hash, hashSides.Build),
-                hashSides.Build.Variable.GeneratedRowTypeName));
+                        hashSides.Build.Variable.GeneratedRowTypeName
+                    ),
+                ])
+            );
+            setup.Add(
+                new ExecutionCreateHash(
+                    hash,
+                    keyType,
+                    hashSides.Build.Variable.Type.ResolveClrType(),
+                    CreateHashCapacityCandidate(hash, hashSides.Build),
+                    hashSides.Build.Variable.GeneratedRowTypeName
+                )
+            );
             setup.Add(buildLoop);
         }
 
-        return SingleKeyAggregateExecutionSourceBuildResult.Success(new SingleKeyAggregateExecutionSource(
-            sourceLookup,
-            [..joinSources.Left.Shapes, ..joinSources.Right.Shapes],
-            setup,
-            body =>
-            {
-                var matchedBody = CreateHashJoinAggregateMatchedBody(join.Residual, body, sourceLookup);
-                var matchesLoop = new ExecutionForEach(
-                    hashSides.Build.Variable,
-                    new ExecutionVariableRead(matches),
-                    matchedBody);
-                var probe = new ExecutionHashProbe(
-                    hash,
-                    matches,
-                    CreateHashJoinKeyExpression(join.ProbeKeys, sourceLookup, keyType),
-                    ExecutionClrBindingFactory.FromClr(keyType),
-                    hashSides.Build.Variable.Type,
-                    new ExecutionBlock([matchesLoop]),
-                    GeneratedRowTypeName: hashSides.Build.Variable.GeneratedRowTypeName);
+        return SingleKeyAggregateExecutionSourceBuildResult.Success(
+            new SingleKeyAggregateExecutionSource(
+                sourceLookup,
+                [.. joinSources.Left.Shapes, .. joinSources.Right.Shapes],
+                setup,
+                body =>
+                {
+                    var matchedBody = CreateHashJoinAggregateMatchedBody(join.Residual, body, sourceLookup);
+                    var matchesLoop = new ExecutionForEach(
+                        hashSides.Build.Variable,
+                        new ExecutionVariableRead(matches),
+                        matchedBody
+                    );
+                    var probe = new ExecutionHashProbe(
+                        hash,
+                        matches,
+                        CreateHashJoinKeyExpression(join.ProbeKeys, sourceLookup, keyType),
+                        ExecutionClrBindingFactory.FromClr(keyType),
+                        hashSides.Build.Variable.Type,
+                        new ExecutionBlock([matchesLoop]),
+                        GeneratedRowTypeName: hashSides.Build.Variable.GeneratedRowTypeName
+                    );
 
-                return CreateSourceLoop(
-                    hashSides.Probe.Shape,
-                    hashSides.Probe.Rows,
-                    hashSides.Probe.Variable,
-                    new ExecutionBlock([probe]));
-            }));
+                    return CreateSourceLoop(
+                        hashSides.Probe.Shape,
+                        hashSides.Probe.Rows,
+                        hashSides.Probe.Variable,
+                        new ExecutionBlock([probe])
+                    );
+                }
+            )
+        );
     }
 
     private static ExecutionBlock CreateHashJoinAggregateMatchedBody(
         IrExpression? joinCondition,
         ExecutionBlock body,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         if (joinCondition == null)
             return body;
 
-        return new ExecutionBlock(
-        [
-            new ExecutionIf(
-                ExecutionExpressionConverter.Convert(joinCondition, sourceLookup),
-                body)
+        return new ExecutionBlock([
+            new ExecutionIf(ExecutionExpressionConverter.Convert(joinCondition, sourceLookup), body),
         ]);
     }
 
@@ -146,16 +167,18 @@ internal sealed partial class PhysicalLoweringImplementation
         ApplyChainSource chain,
         string resultTableName,
         string resultShapeName,
-        bool scopeAggregateVariables)
+        bool scopeAggregateVariables
+    )
     {
         if (chain.Sources.Any(static source => source.OrdinalityVariable != null))
         {
             return TableBuildResult.Unsupported(
-                "Execution IR single-key aggregate apply-chain fusion does not support WITH ORDINALITY inputs.");
+                "Execution IR single-key aggregate apply-chain fusion does not support WITH ORDINALITY inputs."
+            );
         }
 
-        var loweredPlans = chain.Sources
-            .SelectMany(static source => source.LoweredApplyPredicateMovementPlans)
+        var loweredPlans = chain
+            .Sources.SelectMany(static source => source.LoweredApplyPredicateMovementPlans)
             .DistinctBy(static plan => plan.MovementId, StringComparer.Ordinal)
             .ToArray();
         if (loweredPlans.Length > 0)
@@ -166,8 +189,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 {
                     Filter = ApplyPredicateGuardLoweringService.RemoveLoweredPredicates(
                         pipeline.Source.Filter,
-                        loweredPlans)
-                }
+                        loweredPlans
+                    ),
+                },
             };
         }
 
@@ -175,23 +199,27 @@ internal sealed partial class PhysicalLoweringImplementation
             chain.SourceLookup,
             chain.Shapes,
             chain.Sources[0].Setup,
-            body => CreateCrossApplyAggregateChainLoop(chain.Sources, body));
+            body => CreateCrossApplyAggregateChainLoop(chain.Sources, body)
+        );
 
         var result = BuildSingleKeyAggregateTableCore(
             pipeline,
             source,
             resultTableName,
             resultShapeName,
-            scopeAggregateVariables);
+            scopeAggregateVariables
+        );
         return result with { LoweredApplyPredicateMovementPlans = loweredPlans };
     }
 
     private static ExecutionSourceLoop CreateCrossApplyAggregateChainLoop(
         IReadOnlyList<JoinSource> sources,
-        ExecutionBlock body)
+        ExecutionBlock body
+    )
     {
         return CreateCrossApplyChainLoop(sources, 0, body) as ExecutionSourceLoop
-               ?? throw new InvalidOperationException(
-                   "Aggregate apply-chain fusion expected a source loop after rejecting ordinality inputs.");
+            ?? throw new InvalidOperationException(
+                "Aggregate apply-chain fusion expected a source loop after rejecting ordinality inputs."
+            );
     }
 }

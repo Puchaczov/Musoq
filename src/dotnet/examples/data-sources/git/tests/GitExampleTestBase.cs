@@ -18,21 +18,24 @@ public abstract class GitExampleTestBase
     protected static CompiledQuery Compile(
         string query,
         GitSchemaProvider? provider = null,
-        CompilationOptions? options = null)
+        CompilationOptions? options = null
+    )
     {
         return InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             provider ?? new GitSchemaProvider(),
             LoggerResolver,
-            options ?? TestCompilationOptions);
+            options ?? TestCompilationOptions
+        );
     }
 
     protected static Table Run(
         string query,
         GitSchemaProvider? provider = null,
         CompilationOptions? options = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         return Compile(query, provider, options).Run(cancellationToken);
     }
@@ -40,27 +43,31 @@ public abstract class GitExampleTestBase
     protected static BuildResult CompileWithDiagnostics(
         string query,
         GitSchemaProvider? provider = null,
-        CompilationOptions? options = null)
+        CompilationOptions? options = null
+    )
     {
         return InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             provider ?? new GitSchemaProvider(),
             LoggerResolver,
-            options ?? TestCompilationOptions);
+            options ?? TestCompilationOptions
+        );
     }
 
     protected static QueryInspectionResult Inspect(
         string query,
         GitSchemaProvider? provider = null,
-        CompilationOptions? options = null)
+        CompilationOptions? options = null
+    )
     {
         return InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             provider ?? new GitSchemaProvider(),
             LoggerResolver,
-            options ?? TestCompilationOptions);
+            options ?? TestCompilationOptions
+        );
     }
 
     protected static CompilationOptions CreateOptionsWithRepository(string repository)
@@ -68,17 +75,17 @@ public abstract class GitExampleTestBase
         return new CompilationOptions(
             usePrimitiveTypeValidation: false,
             sourceRuntimeSettingsResolver: new StaticSettingsResolver(
-                new Dictionary<string, string>
-                {
-                    [GitSchema.RepositoryRuntimeSetting] = repository
-                }));
+                new Dictionary<string, string> { [GitSchema.RepositoryRuntimeSetting] = repository }
+            )
+        );
     }
 
     protected static SourceExecutionContext CreateExecutionContext(
         SourceExecutionPlan plan,
         DataSourceEventHandler? progress = null,
         CancellationToken cancellationToken = default,
-        SourceDiagnostics? diagnostics = null)
+        SourceDiagnostics? diagnostics = null
+    )
     {
         return new SourceExecutionContext(
             "query",
@@ -88,12 +95,14 @@ public abstract class GitExampleTestBase
             new Dictionary<string, string>(),
             NullLogger.Instance,
             progress,
-            diagnostics);
+            diagnostics
+        );
     }
 
     protected static InMemoryGitHistoryStore CreateLargeStore(int rows)
     {
-        var commits = Enumerable.Range(0, rows)
+        var commits = Enumerable
+            .Range(0, rows)
             .Select(index => new GitCommitRecord(
                 "large",
                 "main",
@@ -103,11 +112,10 @@ public abstract class GitExampleTestBase
                 new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMinutes(index),
                 $"Commit {index}",
                 $"Synthetic commit {index}.",
-                false))
+                false
+            ))
             .ToArray();
-        var stats = commits.ToDictionary(
-            static commit => commit.Sha,
-            static _ => new GitCommitStats(1, 1, 0));
+        var stats = commits.ToDictionary(static commit => commit.Sha, static _ => new GitCommitStats(1, 1, 0));
 
         return new InMemoryGitHistoryStore(commits, stats);
     }
@@ -123,14 +131,16 @@ public abstract class GitExampleTestBase
         IReadOnlyCollection<ISchemaColumn>? columns = null,
         string queryId = "query",
         IReadOnlyDictionary<string, string>? sourceRuntimeSettings = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         return new SourceMetadataContext(
             queryId,
             cancellationToken,
             columns ?? [],
             sourceRuntimeSettings ?? new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
     }
 
     protected sealed record UnsupportedPredicateExpression : SourcePredicateExpression;

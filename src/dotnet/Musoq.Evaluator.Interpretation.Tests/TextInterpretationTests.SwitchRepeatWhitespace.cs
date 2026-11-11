@@ -16,23 +16,32 @@ public partial class TextInterpretationTests
     public void Parse_SwitchField_WhenPatternMatches_ShouldDispatchToMatchingSchema()
     {
         var registry = new SchemaRegistry();
-        registry.Register("SectionHeader", new TextSchemaNode("SectionHeader",
-        [
-            new TextFieldDefinitionNode("_", TextFieldType.Literal, "["),
-            new TextFieldDefinitionNode("Name", TextFieldType.Until, "]")
-        ]));
-        registry.Register("KeyValue", new TextSchemaNode("KeyValue",
-        [
-            new TextFieldDefinitionNode("Key", TextFieldType.Until, "=")
-        ]));
-        registry.Register("ConfigLine", new TextSchemaNode("ConfigLine",
-        [
-            new TextFieldDefinitionNode("Content",
-            [
-                new TextSwitchCaseNode(@"\[", "SectionHeader"),
-                new TextSwitchCaseNode(null, "KeyValue")
-            ])
-        ]));
+        registry.Register(
+            "SectionHeader",
+            new TextSchemaNode(
+                "SectionHeader",
+                [
+                    new TextFieldDefinitionNode("_", TextFieldType.Literal, "["),
+                    new TextFieldDefinitionNode("Name", TextFieldType.Until, "]"),
+                ]
+            )
+        );
+        registry.Register(
+            "KeyValue",
+            new TextSchemaNode("KeyValue", [new TextFieldDefinitionNode("Key", TextFieldType.Until, "=")])
+        );
+        registry.Register(
+            "ConfigLine",
+            new TextSchemaNode(
+                "ConfigLine",
+                [
+                    new TextFieldDefinitionNode(
+                        "Content",
+                        [new TextSwitchCaseNode(@"\[", "SectionHeader"), new TextSwitchCaseNode(null, "KeyValue")]
+                    ),
+                ]
+            )
+        );
 
         var interpreter = CompileFromRegistry(registry, "ConfigLine");
 
@@ -46,23 +55,32 @@ public partial class TextInterpretationTests
     public void Parse_SwitchField_WhenNoPatternMatches_ShouldDispatchToDefaultSchema()
     {
         var registry = new SchemaRegistry();
-        registry.Register("SectionHeader", new TextSchemaNode("SectionHeader",
-        [
-            new TextFieldDefinitionNode("_", TextFieldType.Literal, "["),
-            new TextFieldDefinitionNode("Name", TextFieldType.Until, "]")
-        ]));
-        registry.Register("KeyValue", new TextSchemaNode("KeyValue",
-        [
-            new TextFieldDefinitionNode("Key", TextFieldType.Until, "=")
-        ]));
-        registry.Register("ConfigLine", new TextSchemaNode("ConfigLine",
-        [
-            new TextFieldDefinitionNode("Content",
-            [
-                new TextSwitchCaseNode(@"\[", "SectionHeader"),
-                new TextSwitchCaseNode(null, "KeyValue")
-            ])
-        ]));
+        registry.Register(
+            "SectionHeader",
+            new TextSchemaNode(
+                "SectionHeader",
+                [
+                    new TextFieldDefinitionNode("_", TextFieldType.Literal, "["),
+                    new TextFieldDefinitionNode("Name", TextFieldType.Until, "]"),
+                ]
+            )
+        );
+        registry.Register(
+            "KeyValue",
+            new TextSchemaNode("KeyValue", [new TextFieldDefinitionNode("Key", TextFieldType.Until, "=")])
+        );
+        registry.Register(
+            "ConfigLine",
+            new TextSchemaNode(
+                "ConfigLine",
+                [
+                    new TextFieldDefinitionNode(
+                        "Content",
+                        [new TextSwitchCaseNode(@"\[", "SectionHeader"), new TextSwitchCaseNode(null, "KeyValue")]
+                    ),
+                ]
+            )
+        );
 
         var interpreter = CompileFromRegistry(registry, "ConfigLine");
 
@@ -76,14 +94,14 @@ public partial class TextInterpretationTests
     public void Parse_RepeatField_UntilEnd_ShouldCaptureEveryElement()
     {
         var registry = new SchemaRegistry();
-        registry.Register("LineItem", new TextSchemaNode("LineItem",
-        [
-            new TextFieldDefinitionNode("Content", TextFieldType.Until, "\n")
-        ]));
-        registry.Register("Document", new TextSchemaNode("Document",
-        [
-            new TextFieldDefinitionNode("Lines", TextFieldType.Repeat, "LineItem")
-        ]));
+        registry.Register(
+            "LineItem",
+            new TextSchemaNode("LineItem", [new TextFieldDefinitionNode("Content", TextFieldType.Until, "\n")])
+        );
+        registry.Register(
+            "Document",
+            new TextSchemaNode("Document", [new TextFieldDefinitionNode("Lines", TextFieldType.Repeat, "LineItem")])
+        );
 
         var interpreter = CompileFromRegistry(registry, "Document");
 
@@ -100,14 +118,14 @@ public partial class TextInterpretationTests
     public void Parse_RepeatField_UntilDelimiter_ShouldStopAtTerminator()
     {
         var registry = new SchemaRegistry();
-        registry.Register("LineItem", new TextSchemaNode("LineItem",
-        [
-            new TextFieldDefinitionNode("Content", TextFieldType.Until, "\n")
-        ]));
-        registry.Register("Block", new TextSchemaNode("Block",
-        [
-            new TextFieldDefinitionNode("Lines", TextFieldType.Repeat, "LineItem", "END")
-        ]));
+        registry.Register(
+            "LineItem",
+            new TextSchemaNode("LineItem", [new TextFieldDefinitionNode("Content", TextFieldType.Until, "\n")])
+        );
+        registry.Register(
+            "Block",
+            new TextSchemaNode("Block", [new TextFieldDefinitionNode("Lines", TextFieldType.Repeat, "LineItem", "END")])
+        );
 
         var interpreter = CompileFromRegistry(registry, "Block");
 
@@ -122,9 +140,11 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_RequiredWhitespace_ShouldConsumeLeadingSpaces()
     {
-        var interpreter = CreateAndCompileInterpreter("Padded",
+        var interpreter = CreateAndCompileInterpreter(
+            "Padded",
             CreateTextField("_", TextFieldType.Whitespace, "+"),
-            CreateTextField("Value", TextFieldType.Rest));
+            CreateTextField("Value", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "   payload");
 
@@ -134,9 +154,11 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_OptionalWhitespace_WhenAbsent_ShouldConsumeNothing()
     {
-        var interpreter = CreateAndCompileInterpreter("MaybePadded",
+        var interpreter = CreateAndCompileInterpreter(
+            "MaybePadded",
             CreateTextField("_", TextFieldType.Whitespace, "*"),
-            CreateTextField("Value", TextFieldType.Rest));
+            CreateTextField("Value", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "payload");
 

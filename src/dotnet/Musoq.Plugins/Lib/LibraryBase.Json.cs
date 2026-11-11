@@ -18,7 +18,9 @@ public partial class LibraryBase
     {
         if (obj == null)
             return null;
-        return !typeof(T).IsValueType && obj is IJsonPayload ? JsonPayloadWriter.Serialize(in obj) : JsonSerializer.Serialize(obj);
+        return !typeof(T).IsValueType && obj is IJsonPayload
+            ? JsonPayloadWriter.Serialize(in obj)
+            : JsonSerializer.Serialize(obj);
     }
 
     /// <summary>

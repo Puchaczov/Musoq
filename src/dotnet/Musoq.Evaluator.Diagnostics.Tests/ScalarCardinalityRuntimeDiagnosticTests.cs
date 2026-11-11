@@ -33,8 +33,9 @@ public sealed class ScalarCardinalityRuntimeDiagnosticTests : BasicEntityTestBas
     public void MultipleResultRows_ShouldFailEvenWhenValuesAreEqual(string scalar)
     {
         using var compiled = CompileScalar(scalar);
-        AssertCardinality(Assert.Throws<QueryExecutionException>(() =>
-            _ = compiled.Run(TestContext.CancellationToken).Count));
+        AssertCardinality(
+            Assert.Throws<QueryExecutionException>(() => _ = compiled.Run(TestContext.CancellationToken).Count)
+        );
     }
 
     [TestMethod]
@@ -48,11 +49,16 @@ public sealed class ScalarCardinalityRuntimeDiagnosticTests : BasicEntityTestBas
             new Dictionary<string, IEnumerable<BasicEntity>>
             {
                 ["#A"] = [new BasicEntity { Country = "PL" }],
-                ["#B"] = [new BasicEntity { Country = "PL", City = "same" },
-                    new BasicEntity { Country = "PL", City = "same" }]
-            });
-        AssertCardinality(Assert.Throws<QueryExecutionException>(() =>
-            _ = compiled.Run(TestContext.CancellationToken).Count));
+                ["#B"] =
+                [
+                    new BasicEntity { Country = "PL", City = "same" },
+                    new BasicEntity { Country = "PL", City = "same" },
+                ],
+            }
+        );
+        AssertCardinality(
+            Assert.Throws<QueryExecutionException>(() => _ = compiled.Run(TestContext.CancellationToken).Count)
+        );
     }
 
     [TestMethod]
@@ -67,14 +73,15 @@ public sealed class ScalarCardinalityRuntimeDiagnosticTests : BasicEntityTestBas
         AssertCardinality(failure);
     }
 
-    private CompiledQuery CompileScalar(string scalar) => CreateAndRunVirtualMachine(
-        $"select ({scalar}) as Value from values {{ (Marker: 0) }} o",
-        new Dictionary<string, IEnumerable<BasicEntity>>());
+    private CompiledQuery CompileScalar(string scalar) =>
+        CreateAndRunVirtualMachine(
+            $"select ({scalar}) as Value from values {{ (Marker: 0) }} o",
+            new Dictionary<string, IEnumerable<BasicEntity>>()
+        );
 
     private static void AssertCardinality(QueryExecutionException failure)
     {
-        MusoqExceptionAssertions.AssertRuntimeError(failure,
-            DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
+        MusoqExceptionAssertions.AssertRuntimeError(failure, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
         Assert.AreEqual("Scalar subquery returned more than one row.", failure.Envelope!.Message);
         Assert.AreEqual(DiagnosticSourceKind.Runtime, failure.Envelope.SourceKind);
         Assert.IsNotNull(failure.InnerException);

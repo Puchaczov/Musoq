@@ -88,7 +88,8 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
     public void TryGetMethod_NullValue_Resolution()
     {
         var exception = Assert.Throws<Musoq.Schema.Exceptions.MethodResolutionException>(() =>
-            _methodsMetadata.TryGetMethod("NullableMethod", [typeof(NullNode.NullType)], null, out _));
+            _methodsMetadata.TryGetMethod("NullableMethod", [typeof(NullNode.NullType)], null, out _)
+        );
 
         Assert.AreEqual("ambiguous-overload", exception.ResolutionReason);
     }
@@ -131,17 +132,21 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
     public void TryGetMethod_ComplexParameterCombination()
     {
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("ComplexMethod",
+            _methodsMetadata.TryGetMethod(
+                "ComplexMethod",
                 [typeof(string), typeof(int?), typeof(string), typeof(string)],
                 typeof(BaseEntity),
-                out var method),
+                out var method
+            ),
             "Should resolve complex parameter combination"
         );
 
         method = RequireResolved(method);
         var parameters = method.GetParameters();
-        Assert.IsNotNull(parameters[^1].GetCustomAttribute<ParamArrayAttribute>(),
-            "Last parameter should be params array");
+        Assert.IsNotNull(
+            parameters[^1].GetCustomAttribute<ParamArrayAttribute>(),
+            "Last parameter should be params array"
+        );
     }
 
     [TestMethod]
@@ -153,18 +158,17 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
         );
 
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("ParamsMethod",
-                [typeof(int), typeof(int), typeof(int)],
-                null,
-                out _),
+            _methodsMetadata.TryGetMethod("ParamsMethod", [typeof(int), typeof(int), typeof(int)], null, out _),
             "Should resolve with params array values"
         );
 
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("ParamsMethod",
+            _methodsMetadata.TryGetMethod(
+                "ParamsMethod",
                 [typeof(string), typeof(int), typeof(string)],
                 null,
-                out var objectMethod),
+                out var objectMethod
+            ),
             "Should resolve to object[] params for mixed types"
         );
 
@@ -198,232 +202,128 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class TestClass
     {
-        public void EmptyMethod()
-        {
-        }
+        public void EmptyMethod() { }
 
-        public void EmptyMethod([InjectSpecificSource(typeof(IBase))] IBase entity)
-        {
-        }
+        public void EmptyMethod([InjectSpecificSource(typeof(IBase))] IBase entity) { }
 
-        public void DynamicMethod(dynamic value)
-        {
-        }
+        public void DynamicMethod(dynamic value) { }
 
-        public void DynamicMethod(int value)
-        {
-        }
+        public void DynamicMethod(int value) { }
 
-        public void DynamicMethod(string value)
-        {
-        }
+        public void DynamicMethod(string value) { }
 
+        public void NullableMethod(int? value) { }
 
-        public void NullableMethod(int? value)
-        {
-        }
+        public void NullableMethod(string value) { }
 
-        public void NullableMethod(string value)
-        {
-        }
+        public void NullableMethod(object value) { }
 
-        public void NullableMethod(object value)
-        {
-        }
+        public void ValueTypeGeneric<T>(T value)
+            where T : struct { }
 
-        public void ValueTypeGeneric<T>(T value) where T : struct
-        {
-        }
+        public void ReferenceTypeGeneric<T>(T value)
+            where T : class { }
 
-        public void ReferenceTypeGeneric<T>(T value) where T : class
-        {
-        }
+        public void NullableStructGeneric<T>(T? value)
+            where T : struct { }
 
-        public void NullableStructGeneric<T>(T? value) where T : struct
-        {
-        }
+        public void ArrayMethod(int[] values) { }
 
-        public void ArrayMethod(int[] values)
-        {
-        }
+        public void ArrayMethod(Array values) { }
 
-        public void ArrayMethod(Array values)
-        {
-        }
-
-        public void ArrayMethod(object values)
-        {
-        }
+        public void ArrayMethod(object values) { }
 
         public void MultipleInjection(
             [InjectSpecificSource(typeof(IBase))] IBase entity1,
             [InjectQueryStats] object stats,
-            int value)
-        {
-        }
+            int value
+        ) { }
 
         public void ComplexMethod<T>(
             [InjectSpecificSource(typeof(IBase))] IBase entity,
             T value,
             int? nullableValue = null,
-            params string[] extraParams)
-        {
-        }
+            params string[] extraParams
+        ) { }
 
-        public void ParamsMethod(int x, params int[] values)
-        {
-        }
+        public void ParamsMethod(int x, params int[] values) { }
 
-        public void ParamsMethod(string x, params object[] values)
-        {
-        }
+        public void ParamsMethod(string x, params object[] values) { }
     }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class ManyOverloadsClass
     {
-        public void OverloadedMethod(byte value)
-        {
-        }
+        public void OverloadedMethod(byte value) { }
 
-        public void OverloadedMethod(sbyte value)
-        {
-        }
+        public void OverloadedMethod(sbyte value) { }
 
-        public void OverloadedMethod(short value)
-        {
-        }
+        public void OverloadedMethod(short value) { }
 
-        public void OverloadedMethod(ushort value)
-        {
-        }
+        public void OverloadedMethod(ushort value) { }
 
-        public void OverloadedMethod(int value)
-        {
-        }
+        public void OverloadedMethod(int value) { }
 
-        public void OverloadedMethod(uint value)
-        {
-        }
+        public void OverloadedMethod(uint value) { }
 
-        public void OverloadedMethod(long value)
-        {
-        }
+        public void OverloadedMethod(long value) { }
 
-        public void OverloadedMethod(ulong value)
-        {
-        }
+        public void OverloadedMethod(ulong value) { }
 
-        public void OverloadedMethod(float value)
-        {
-        }
+        public void OverloadedMethod(float value) { }
 
-        public void OverloadedMethod(double value)
-        {
-        }
+        public void OverloadedMethod(double value) { }
 
-        public void OverloadedMethod(decimal value)
-        {
-        }
+        public void OverloadedMethod(decimal value) { }
 
-        public void OverloadedMethod(char value)
-        {
-        }
+        public void OverloadedMethod(char value) { }
 
-        public void OverloadedMethod(bool value)
-        {
-        }
+        public void OverloadedMethod(bool value) { }
 
-        public void OverloadedMethod(string value)
-        {
-        }
+        public void OverloadedMethod(string value) { }
 
-        public void OverloadedMethod(object value)
-        {
-        }
+        public void OverloadedMethod(object value) { }
 
-        public void OverloadedMethod(DateTime value)
-        {
-        }
+        public void OverloadedMethod(DateTime value) { }
 
-        public void OverloadedMethod(DateTimeOffset value)
-        {
-        }
+        public void OverloadedMethod(DateTimeOffset value) { }
 
-        public void OverloadedMethod(TimeSpan value)
-        {
-        }
+        public void OverloadedMethod(TimeSpan value) { }
 
-        public void OverloadedMethod(Guid value)
-        {
-        }
+        public void OverloadedMethod(Guid value) { }
 
-        public void OverloadedMethod(Type value)
-        {
-        }
+        public void OverloadedMethod(Type value) { }
 
-        public void OverloadedMethod(byte[] value)
-        {
-        }
+        public void OverloadedMethod(byte[] value) { }
 
-        public void OverloadedMethod(int[] value)
-        {
-        }
+        public void OverloadedMethod(int[] value) { }
 
-        public void OverloadedMethod(string[] value)
-        {
-        }
+        public void OverloadedMethod(string[] value) { }
 
-        public void OverloadedMethod(IEnumerable<int> value)
-        {
-        }
+        public void OverloadedMethod(IEnumerable<int> value) { }
 
-        public void OverloadedMethod(IEnumerable<string> value)
-        {
-        }
+        public void OverloadedMethod(IEnumerable<string> value) { }
 
-        public void OverloadedMethod(List<int> value)
-        {
-        }
+        public void OverloadedMethod(List<int> value) { }
 
-        public void OverloadedMethod(List<string> value)
-        {
-        }
+        public void OverloadedMethod(List<string> value) { }
 
-        public void OverloadedMethod(Dictionary<string, int> value)
-        {
-        }
+        public void OverloadedMethod(Dictionary<string, int> value) { }
 
-        public void OverloadedMethod(Dictionary<string, string> value)
-        {
-        }
+        public void OverloadedMethod(Dictionary<string, string> value) { }
 
-        public void OverloadedMethod(HashSet<int> value)
-        {
-        }
+        public void OverloadedMethod(HashSet<int> value) { }
 
-        public void OverloadedMethod(HashSet<string> value)
-        {
-        }
+        public void OverloadedMethod(HashSet<string> value) { }
 
-        public void OverloadedMethod(int? value)
-        {
-        }
+        public void OverloadedMethod(int? value) { }
 
-        public void OverloadedMethod(long? value)
-        {
-        }
+        public void OverloadedMethod(long? value) { }
 
-        public void OverloadedMethod(double? value)
-        {
-        }
+        public void OverloadedMethod(double? value) { }
 
-        public void OverloadedMethod(decimal? value)
-        {
-        }
+        public void OverloadedMethod(decimal? value) { }
     }
-
-
 
     #region Stack-Allocated Sorting Boundary Tests
 

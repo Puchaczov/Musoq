@@ -10,27 +10,51 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class HashJoinCompositeKeysTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void InnerJoin_WithWideCompositeKeys_ShouldUseNestedTypedTuples()
     {
         foreach (var keyWidth in new[] { 8, 9, 15 })
         {
-            var fields = new[]
-            {
-                "Name", "City", "Country", "Population", "Month", "Money", "Id", "NullableValue"
-            };
-            var conditions = Enumerable.Range(0, keyWidth)
+            var fields = new[] { "Name", "City", "Country", "Population", "Month", "Money", "Id", "NullableValue" };
+            var conditions = Enumerable
+                .Range(0, keyWidth)
                 .Select(index =>
                 {
                     var field = fields[index % fields.Length];
                     return $"a.{field} = b.{field}";
                 });
-            var query = $"select a.Name, b.Name from #A.entities() a inner join #B.entities() b on {string.Join(" AND ", conditions)}";
+            var query =
+                $"select a.Name, b.Name from #A.entities() a inner join #B.entities() b on {string.Join(" AND ", conditions)}";
             var sources = new Dictionary<string, IEnumerable<BasicEntity>>
             {
-                ["#A"] = [new BasicEntity { Name = "match", City = "NY", Country = "PL", Population = 10m, Month = "Jan", Money = 20m, Id = 1, NullableValue = 2 }],
-                ["#B"] = [new BasicEntity { Name = "match", City = "NY", Country = "PL", Population = 10m, Month = "Jan", Money = 20m, Id = 1, NullableValue = 2 }]
+                ["#A"] =
+                [
+                    new BasicEntity
+                    {
+                        Name = "match",
+                        City = "NY",
+                        Country = "PL",
+                        Population = 10m,
+                        Month = "Jan",
+                        Money = 20m,
+                        Id = 1,
+                        NullableValue = 2,
+                    },
+                ],
+                ["#B"] =
+                [
+                    new BasicEntity
+                    {
+                        Name = "match",
+                        City = "NY",
+                        Country = "PL",
+                        Population = 10m,
+                        Month = "Jan",
+                        Money = 20m,
+                        Id = 1,
+                        NullableValue = 2,
+                    },
+                ],
             };
 
             var inspection = InstanceCreator.CompileForInspection(
@@ -38,16 +62,21 @@ public class HashJoinCompositeKeysTests : BasicEntityTestBase
                 Guid.NewGuid().ToString(),
                 new BasicSchemaProvider<BasicEntity>(sources),
                 LoggerResolver,
-                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
-            Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
+                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+            );
+            Assert.IsFalse(
+                inspection.GeneratedCSharpCode.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal)
+            );
             Assert.Contains("ValueTuple<", inspection.GeneratedCSharpCode);
 
-            var table = InstanceCreator.CompileForExecution(
-                query,
-                Guid.NewGuid().ToString(),
-                new BasicSchemaProvider<BasicEntity>(sources),
-                LoggerResolver,
-                new CompilationOptions(useHashJoin: true, useSortMergeJoin: false))
+            var table = InstanceCreator
+                .CompileForExecution(
+                    query,
+                    Guid.NewGuid().ToString(),
+                    new BasicSchemaProvider<BasicEntity>(sources),
+                    LoggerResolver,
+                    new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+                )
                 .Run(TestContext.CancellationToken);
             Assert.AreEqual(1, table.Count, $"key width {keyWidth}");
             Assert.AreEqual("match", table[0].ReadValue(0));
@@ -58,30 +87,64 @@ public class HashJoinCompositeKeysTests : BasicEntityTestBase
     [TestMethod]
     public void InnerJoin_WithCompositeKey_ShouldUseHashJoin()
     {
-        const string query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b 
-on a.Country = b.Country AND a.City = b.City";
+        const string query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b \n"
+            + "on a.Country = b.Country AND a.City = b.City"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "John", City = "New York", Country = "USA" },
-                    new BasicEntity { Name = "Alice", City = "London", Country = "UK" },
-                    new BasicEntity { Name = "Bob", City = "Paris", Country = "France" }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "John",
+                        City = "New York",
+                        Country = "USA",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Alice",
+                        City = "London",
+                        Country = "UK",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Bob",
+                        City = "Paris",
+                        Country = "France",
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" },
-                    new BasicEntity { Name = "Smith", City = "London", Country = "UK" },
-                    new BasicEntity { Name = "Pierre", City = "Lyon", Country = "France" }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Doe",
+                        City = "New York",
+                        Country = "USA",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Smith",
+                        City = "London",
+                        Country = "UK",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Pierre",
+                        City = "Lyon",
+                        Country = "France",
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
@@ -101,28 +164,52 @@ on a.Country = b.Country AND a.City = b.City";
     [TestMethod]
     public void CompileForInspection_WhenCompositeKeyUsesValueTypes_ShouldUseValueTupleHashKey()
     {
-        const string query = @"
-select
-    a.Name,
-    b.Name
-from #A.entities() a
-inner join #B.entities() b
-on a.Id = b.Id AND a.Population = b.Population";
+        const string query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name\n"
+            + "from #A.entities() a\n"
+            + "inner join #B.entities() b\n"
+            + "on a.Id = b.Id AND a.Population = b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "John", Id = 1, Population = 100 },
-                    new BasicEntity { Name = "Alice", Id = 2, Population = 200 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "John",
+                        Id = 1,
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Alice",
+                        Id = 2,
+                        Population = 200,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "Doe", Id = 1, Population = 100 },
-                    new BasicEntity { Name = "Smith", Id = 2, Population = 300 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Doe",
+                        Id = 1,
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Smith",
+                        Id = 2,
+                        Population = 300,
+                    },
                 ]
-            }
+            },
         };
 
         var result = InstanceCreator.CompileForInspection(
@@ -130,12 +217,11 @@ on a.Id = b.Id AND a.Population = b.Population";
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         Assert.Contains("ExecutionPlan [compiled]", result.ExecutionPlanText);
-        Assert.Contains(
-            "CreateHash [bHash: ValueTuple<int, decimal> -> BasicEntity]",
-            result.ExecutionPlanText);
+        Assert.Contains("CreateHash [bHash: ValueTuple<int, decimal> -> BasicEntity]", result.ExecutionPlanText);
         Assert.Contains("HashAdd [bHash[(b.Id, b.Population)] += b]", result.ExecutionPlanText);
         Assert.Contains("HashProbe [bHash[(a.Id, a.Population)] -> bHashMatches]", result.ExecutionPlanText);
         Assert.Contains("new Dictionary<ValueTuple<int, decimal>, HashJoinBucket<", result.GeneratedCSharpCode);
@@ -146,27 +232,46 @@ on a.Id = b.Id AND a.Population = b.Population";
     [TestMethod]
     public void LeftOuterJoin_WithCompositeKey_ShouldUseHashJoin()
     {
-        const string query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-left outer join #B.entities() b 
-on a.Country = b.Country AND a.City = b.City";
+        const string query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "left outer join #B.entities() b \n"
+            + "on a.Country = b.Country AND a.City = b.City"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "John", City = "New York", Country = "USA" },
-                    new BasicEntity { Name = "Bob", City = "Paris", Country = "France" }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "John",
+                        City = "New York",
+                        Country = "USA",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Bob",
+                        City = "Paris",
+                        Country = "France",
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Doe",
+                        City = "New York",
+                        Country = "USA",
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
@@ -186,27 +291,46 @@ on a.Country = b.Country AND a.City = b.City";
     [TestMethod]
     public void RightOuterJoin_WithCompositeKey_ShouldUseHashJoin()
     {
-        const string query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-right outer join #B.entities() b 
-on a.Country = b.Country AND a.City = b.City";
+        const string query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "right outer join #B.entities() b \n"
+            + "on a.Country = b.Country AND a.City = b.City"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "John", City = "New York", Country = "USA" }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "John",
+                        City = "New York",
+                        Country = "USA",
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" },
-                    new BasicEntity { Name = "Pierre", City = "Paris", Country = "France" }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Doe",
+                        City = "New York",
+                        Country = "USA",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Pierre",
+                        City = "Paris",
+                        Country = "France",
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
@@ -226,26 +350,40 @@ on a.Country = b.Country AND a.City = b.City";
     [TestMethod]
     public void InnerJoin_WithNullsInCompositeKey_ShouldNotMatch()
     {
-        const string query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b 
-on a.Country = b.Country AND a.City = b.City";
+        const string query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b \n"
+            + "on a.Country = b.Country AND a.City = b.City"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "John", City = null, Country = "USA" }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "John",
+                        City = null,
+                        Country = "USA",
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "Doe", City = null, Country = "USA" }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Doe",
+                        City = null,
+                        Country = "USA",
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
@@ -257,28 +395,56 @@ on a.Country = b.Country AND a.City = b.City";
     [TestMethod]
     public void InnerJoin_WithThreeCompositeKeys_ShouldWork()
     {
-        const string query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b 
-on a.Country = b.Country AND a.City = b.City AND a.Month = b.Month";
+        const string query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b \n"
+            + "on a.Country = b.Country AND a.City = b.City AND a.Month = b.Month"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "John", City = "NY", Country = "USA", Month = "Jan" },
-                    new BasicEntity { Name = "Alice", City = "NY", Country = "USA", Month = "Feb" }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "John",
+                        City = "NY",
+                        Country = "USA",
+                        Month = "Jan",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Alice",
+                        City = "NY",
+                        Country = "USA",
+                        Month = "Feb",
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "Doe", City = "NY", Country = "USA", Month = "Jan" },
-                    new BasicEntity { Name = "Smith", City = "NY", Country = "USA", Month = "Mar" }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Doe",
+                        City = "NY",
+                        Country = "USA",
+                        Month = "Jan",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Smith",
+                        City = "NY",
+                        Country = "USA",
+                        Month = "Mar",
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
@@ -292,24 +458,30 @@ on a.Country = b.Country AND a.City = b.City AND a.Month = b.Month";
     [TestMethod]
     public void LeftOuterJoin_WithEmptySource_ShouldReturnAllLeft()
     {
-        const string query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-left outer join #B.entities() b 
-on a.Country = b.Country AND a.City = b.City";
+        const string query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "left outer join #B.entities() b \n"
+            + "on a.Country = b.Country AND a.City = b.City"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "John", City = "NY", Country = "USA" }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "John",
+                        City = "NY",
+                        Country = "USA",
+                    },
                 ]
             },
-            {
-                "#B", new List<BasicEntity>()
-            }
+            { "#B", new List<BasicEntity>() },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
@@ -323,28 +495,27 @@ on a.Country = b.Country AND a.City = b.City";
     [TestMethod]
     public void LeftOuterJoin_WithPostJoinFilterOnNullableSide_ShouldFilterNullExtendedRows()
     {
-        const string query = @"
-select
-    a.Name,
-    b.Name
-from #A.entities() a
-left outer join #B.entities() b
-on a.Country = b.Country
-where b.Name is null";
+        const string query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name\n"
+            + "from #A.entities() a\n"
+            + "left outer join #B.entities() b\n"
+            + "on a.Country = b.Country\n"
+            + "where b.Name is null"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "John", Country = "USA" },
-                    new BasicEntity { Name = "Bob", Country = "France" }
+                    new BasicEntity { Name = "Bob", Country = "France" },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity { Name = "Doe", Country = "USA" }
-                ]
-            }
+            { "#B", [new BasicEntity { Name = "Doe", Country = "USA" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
@@ -358,29 +529,49 @@ where b.Name is null";
     [TestMethod]
     public void InnerJoin_WithAdditionalNonEquiCondition()
     {
-        const string query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b 
-on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population";
+        const string query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b \n"
+            + "on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "BigCity", City = "NY", Country = "USA", Population = 1000 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "BigCity",
+                        City = "NY",
+                        Country = "USA",
+                        Population = 1000,
+                    },
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity
-                        { Name = "SmallCity", City = "NY", Country = "USA", Population = 100 },
+                    {
+                        Name = "SmallCity",
+                        City = "NY",
+                        Country = "USA",
+                        Population = 100,
+                    },
                     new BasicEntity
-                        { Name = "HugeCity", City = "NY", Country = "USA", Population = 2000 }
+                    {
+                        Name = "HugeCity",
+                        City = "NY",
+                        Country = "USA",
+                        Population = 2000,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
@@ -394,13 +585,15 @@ on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population";
     private CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IDictionary<string, IEnumerable<BasicEntity>> sources,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            options);
+            options
+        );
     }
 }

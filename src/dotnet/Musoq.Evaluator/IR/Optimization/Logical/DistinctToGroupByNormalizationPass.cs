@@ -21,10 +21,11 @@ internal sealed class DistinctToGroupByNormalizationPass : IPreLogicalNormalizat
         return changed
             ? OptimizationResult<RootNode>.Changed(
                 normalized,
-                "Converted DISTINCT query forms into pre-logical GROUP BY-compatible shapes.")
+                "Converted DISTINCT query forms into pre-logical GROUP BY-compatible shapes."
+            )
             : OptimizationResult<RootNode>.NoChange(
                 normalized,
-                "No DISTINCT query forms required pre-logical normalization.");
+                "No DISTINCT query forms required pre-logical normalization."
+            );
     }
 }
-

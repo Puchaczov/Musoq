@@ -9,7 +9,8 @@ public sealed record ExecutionCaseWhen : ExecutionExpression
     public ExecutionCaseWhen(
         IReadOnlyList<ExecutionCaseWhenBranch> branches,
         ExecutionExpression? elseExpression,
-        ExecutionTypeRef returnType)
+        ExecutionTypeRef returnType
+    )
         : base(returnType)
     {
         Branches = branches;
@@ -30,8 +31,7 @@ public sealed record ExecutionCaseWhen : ExecutionExpression
     internal ExecutionCaseWhen(
         IReadOnlyList<ExecutionCaseWhenBranch> branches,
         ExecutionExpression? elseExpression,
-        Type returnType)
-        : this(branches, elseExpression, ExecutionClrBindingFactory.FromClr(returnType))
-    {
-    }
+        Type returnType
+    )
+        : this(branches, elseExpression, ExecutionClrBindingFactory.FromClr(returnType)) { }
 }

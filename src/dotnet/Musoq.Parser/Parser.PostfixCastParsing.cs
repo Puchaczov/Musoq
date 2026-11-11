@@ -16,6 +16,7 @@ public partial class Parser
             "Expected cast target type name after '::'.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2001_UnexpectedToken,
-            Current.Span);
+            Current.Span
+        );
     }
 }

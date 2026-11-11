@@ -11,7 +11,10 @@ public sealed class CompilerInputTests
     [TestMethod]
     public void MissingEvaluatedSource_ShouldFailWithoutDirectoryFallback()
     {
-        var inputs = CompilerInputs.Read("Tests") with { Sources = [Path.Combine(AppContext.BaseDirectory, "missing-verification-source.cs")] };
+        var inputs = CompilerInputs.Read("Tests") with
+        {
+            Sources = [Path.Combine(AppContext.BaseDirectory, "missing-verification-source.cs")],
+        };
 
         Assert.ThrowsExactly<InvalidOperationException>(() => inputs.Compile("MissingSource"));
     }
@@ -19,7 +22,10 @@ public sealed class CompilerInputTests
     [TestMethod]
     public void MissingEvaluatedReference_ShouldFailWithoutAssemblyDiscovery()
     {
-        var inputs = CompilerInputs.Read("Tests") with { References = [Path.Combine(AppContext.BaseDirectory, "missing-verification-reference.dll")] };
+        var inputs = CompilerInputs.Read("Tests") with
+        {
+            References = [Path.Combine(AppContext.BaseDirectory, "missing-verification-reference.dll")],
+        };
 
         Assert.ThrowsExactly<InvalidOperationException>(() => inputs.Compile("MissingReference"));
     }

@@ -13,8 +13,9 @@ public partial class BinarySpecificationRegressionTests
     [DataRow("PartialInterpret")]
     public void InterpretationModes_ShouldPropagateComputedArithmeticFailures(string mode)
     {
-        var query = $"binary Rec {{ Zero: byte, Value: 1 % Zero }}; select r.BytesConsumed " +
-                    $"from #test.files() f cross apply {mode}<Rec>(f.Content) r";
+        var query =
+            $"binary Rec {{ Zero: byte, Value: 1 % Zero }}; select r.BytesConsumed "
+            + $"from #test.files() f cross apply {mode}<Rec>(f.Content) r";
         if (mode != "PartialInterpret")
             query = query.Replace("r.BytesConsumed", "r.Value", StringComparison.Ordinal);
         var exception = Assert.Throws<QueryExecutionException>(() => RunBinaryQuery(query, [0]));
@@ -27,7 +28,11 @@ public partial class BinarySpecificationRegressionTests
     [DataRow("text Unused { Value: repeat rest nested }")]
     public void UnusedInvalidSchemas_ShouldFailCompilation(string unused)
     {
-        Assert.Throws<MusoqQueryException>(() => RunBinaryQuery(
-            $"{unused}; binary Rec {{ Value: byte }}; select r.Value from #test.files() f cross apply TryInterpret<Rec>(f.Content) r", [1]));
+        Assert.Throws<MusoqQueryException>(() =>
+            RunBinaryQuery(
+                $"{unused}; binary Rec {{ Value: byte }}; select r.Value from #test.files() f cross apply TryInterpret<Rec>(f.Content) r",
+                [1]
+            )
+        );
     }
 }

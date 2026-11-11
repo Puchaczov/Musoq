@@ -10,7 +10,8 @@ public sealed record ExecutionHashAdd(
     ExecutionVariable? PrecomputedKey = null,
     string? KeyVariableName = null,
     string? BucketVariableName = null,
-    ExecutionKeyBuildNullHandling NullHandling = ExecutionKeyBuildNullHandling.Continue) : ExecutionNode
+    ExecutionKeyBuildNullHandling NullHandling = ExecutionKeyBuildNullHandling.Continue
+) : ExecutionNode
 {
     internal ExecutionHashAdd(
         ExecutionVariable hash,
@@ -22,7 +23,8 @@ public sealed record ExecutionHashAdd(
         ExecutionVariable? precomputedKey = null,
         string? keyVariableName = null,
         string? bucketVariableName = null,
-        ExecutionKeyBuildNullHandling nullHandling = ExecutionKeyBuildNullHandling.Continue)
+        ExecutionKeyBuildNullHandling nullHandling = ExecutionKeyBuildNullHandling.Continue
+    )
         : this(
             hash,
             key,
@@ -33,7 +35,6 @@ public sealed record ExecutionHashAdd(
             precomputedKey,
             keyVariableName,
             bucketVariableName,
-            nullHandling)
-    {
-    }
+            nullHandling
+        ) { }
 }

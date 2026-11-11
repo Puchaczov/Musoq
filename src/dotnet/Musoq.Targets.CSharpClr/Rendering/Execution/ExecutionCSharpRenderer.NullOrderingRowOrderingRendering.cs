@@ -16,11 +16,13 @@ public sealed partial class ExecutionCSharpRenderer
     private InvocationExpressionSyntax CreateExplicitNullOrderedRowsExpression(
         ExecutionVariable source,
         IReadOnlyList<ExecutionOrderField> keys,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateEvaluationHelperInvocation(
             nameof(EvaluationHelper.OrderRows),
             CreateRowsRead(source, context),
-            CreateArrayCreation(nameof(RowOrderKey), keys.Select(CreateRowOrderKeyCreation)));
+            CreateArrayCreation(nameof(RowOrderKey), keys.Select(CreateRowOrderKeyCreation))
+        );
     }
 }

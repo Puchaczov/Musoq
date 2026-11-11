@@ -5,20 +5,21 @@ public sealed record ExecutionCreateHash(
     ExecutionTypeRef KeyType,
     ExecutionTypeRef RowType,
     ExecutionCapacityHint? CapacityHint = null,
-    string? GeneratedRowTypeName = null) : ExecutionNode
+    string? GeneratedRowTypeName = null
+) : ExecutionNode
 {
     internal ExecutionCreateHash(
         ExecutionVariable hash,
         Type keyType,
         Type rowType,
         ExecutionCapacityHint? capacityHint = null,
-        string? generatedRowTypeName = null)
+        string? generatedRowTypeName = null
+    )
         : this(
             hash,
             ExecutionClrBindingFactory.FromClr(keyType),
             ExecutionClrBindingFactory.FromClr(rowType),
             capacityHint,
-            generatedRowTypeName)
-    {
-    }
+            generatedRowTypeName
+        ) { }
 }

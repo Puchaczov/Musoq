@@ -125,7 +125,6 @@ public partial class LibraryBase
                 inSentence = true;
             }
 
-
         if (inSentence)
             count++;
 

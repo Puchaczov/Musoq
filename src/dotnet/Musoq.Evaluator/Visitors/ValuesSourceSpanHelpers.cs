@@ -9,15 +9,9 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class ValuesSourceSpanHelpers
 {
-    public static ValuesSourceException CreateException(
-        string message,
-        ValuesFromNode node,
-        string constraint)
+    public static ValuesSourceException CreateException(string message, ValuesFromNode node, string constraint)
     {
-        return ValuesSourceDiagnostics.Error(
-            message,
-            GetValuesInsertionSpan(node),
-            ("constraint", constraint));
+        return ValuesSourceDiagnostics.Error(message, GetValuesInsertionSpan(node), ("constraint", constraint));
     }
 
     public static TextSpan GetValuesInsertionSpan(ValuesFromNode node)
@@ -31,18 +25,14 @@ internal static class ValuesSourceSpanHelpers
         if (!row.Span.IsEmpty)
             return row.Span;
 
-        var fieldSpan = row.Fields
-            .Select(field => GetFieldNameSpan(field, node))
-            .FirstOrDefault(span => !span.IsEmpty);
+        var fieldSpan = row.Fields.Select(field => GetFieldNameSpan(field, node)).FirstOrDefault(span => !span.IsEmpty);
 
         return fieldSpan.IsEmpty ? node.SpanOrEmpty() : fieldSpan;
     }
 
     public static TextSpan GetMissingFieldInsertionSpan(ValuesRowNode row, ValuesFromNode node)
     {
-        return row.Span.Length >= 2
-            ? new TextSpan(row.Span.End - 1, 0)
-            : GetRowSpan(row, node);
+        return row.Span.Length >= 2 ? new TextSpan(row.Span.End - 1, 0) : GetRowSpan(row, node);
     }
 
     public static TextSpan GetFieldNameSpan(ValuesFieldNode field, ValuesFromNode node)

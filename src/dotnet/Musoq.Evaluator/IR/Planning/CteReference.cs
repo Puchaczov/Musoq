@@ -3,10 +3,7 @@ using System.Linq;
 
 namespace Musoq.Evaluator.IR.Planning;
 
-internal sealed record CteReference(
-    string CteName,
-    string Alias,
-    IReadOnlySet<string> OutputColumns)
+internal sealed record CteReference(string CteName, string Alias, IReadOnlySet<string> OutputColumns)
 {
     public bool ContainsOutputColumn(string columnName)
     {
@@ -14,9 +11,11 @@ internal sealed record CteReference(
             ? columnName[(Alias.Length + 1)..]
             : columnName;
 
-        return OutputColumns.Count == 0 ||
-               OutputColumns.Contains(columnName) ||
-               OutputColumns.Contains(relativeColumnName) ||
-               OutputColumns.Any(output => output.EndsWith($".{relativeColumnName}", StringComparison.OrdinalIgnoreCase));
+        return OutputColumns.Count == 0
+            || OutputColumns.Contains(columnName)
+            || OutputColumns.Contains(relativeColumnName)
+            || OutputColumns.Any(output =>
+                output.EndsWith($".{relativeColumnName}", StringComparison.OrdinalIgnoreCase)
+            );
     }
 }

@@ -10,32 +10,39 @@ internal static class AggregateFinalPatternMatchConversion
         PatternMatch patternMatch,
         AggregateFinalizationGroupKeys groupKeys,
         IReadOnlyList<AggregateBinding> bindings,
-        IReadOnlyDictionary<string, AggregateBinding> bindingsByIdentifier) =>
+        IReadOnlyDictionary<string, AggregateBinding> bindingsByIdentifier
+    ) =>
         PhysicalLoweringImplementation.CanFinalizeAggregateExpression(
-            patternMatch.Expression, groupKeys, bindings, bindingsByIdentifier) &&
-        PhysicalLoweringImplementation.CanFinalizeAggregateExpression(
-            patternMatch.Pattern, groupKeys, bindings, bindingsByIdentifier);
+            patternMatch.Expression,
+            groupKeys,
+            bindings,
+            bindingsByIdentifier
+        )
+        && PhysicalLoweringImplementation.CanFinalizeAggregateExpression(
+            patternMatch.Pattern,
+            groupKeys,
+            bindings,
+            bindingsByIdentifier
+        );
 
     public static LoweringAttempt<ExecutionExpression> Convert(
         PatternMatch patternMatch,
-        AggregateFinalizationContext context)
+        AggregateFinalizationContext context
+    )
     {
         var expression = PhysicalLoweringImplementation.ConvertAggregateFinalExpression(
             patternMatch.Expression,
-            context);
+            context
+        );
         if (!expression.IsBuilt)
             return expression;
 
-        var pattern = PhysicalLoweringImplementation.ConvertAggregateFinalExpression(
-            patternMatch.Pattern,
-            context);
+        var pattern = PhysicalLoweringImplementation.ConvertAggregateFinalExpression(patternMatch.Pattern, context);
         if (!pattern.IsBuilt)
             return pattern;
 
-        return LoweringAttempt<ExecutionExpression>.Built(new ExecutionPatternMatch(
-            expression.Value,
-            pattern.Value,
-            patternMatch.Kind,
-            patternMatch.ReturnType));
+        return LoweringAttempt<ExecutionExpression>.Built(
+            new ExecutionPatternMatch(expression.Value, pattern.Value, patternMatch.Kind, patternMatch.ReturnType)
+        );
     }
 }

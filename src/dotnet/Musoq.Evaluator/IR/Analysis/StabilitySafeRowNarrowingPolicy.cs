@@ -4,7 +4,8 @@ internal sealed record StabilitySafeRowNarrowingEstimate(
     int InputWidthBytes,
     int DroppedWidthBytes,
     bool RetainsVolatileDependencies,
-    bool AddsRowObjectAllocation);
+    bool AddsRowObjectAllocation
+);
 
 internal static class StabilitySafeRowNarrowingPolicy
 {
@@ -18,8 +19,8 @@ internal static class StabilitySafeRowNarrowingPolicy
             return false;
 
         var reduction = (double)estimate.DroppedWidthBytes / estimate.InputWidthBytes;
-        return reduction >= MinimumWidthReduction &&
-               estimate.RetainsVolatileDependencies &&
-               !estimate.AddsRowObjectAllocation;
+        return reduction >= MinimumWidthReduction
+            && estimate.RetainsVolatileDependencies
+            && !estimate.AddsRowObjectAllocation;
     }
 }

@@ -50,10 +50,13 @@ public partial class QueryInspectionTests
     private static bool TryFindSchemaScanByAlias(
         PhysicalNode node,
         string alias,
-        [NotNullWhen(true)] out PhysicalSchemaScanNode? scan)
+        [NotNullWhen(true)] out PhysicalSchemaScanNode? scan
+    )
     {
-        if (node is PhysicalSchemaScanNode currentScan &&
-            string.Equals(currentScan.Alias, alias, StringComparison.OrdinalIgnoreCase))
+        if (
+            node is PhysicalSchemaScanNode currentScan
+            && string.Equals(currentScan.Alias, alias, StringComparison.OrdinalIgnoreCase)
+        )
         {
             scan = currentScan;
             return true;

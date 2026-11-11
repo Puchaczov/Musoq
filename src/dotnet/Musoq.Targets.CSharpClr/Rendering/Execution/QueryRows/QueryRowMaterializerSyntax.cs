@@ -10,8 +10,6 @@ internal static class QueryRowMaterializerSyntax
         var sourceReadType = field.SourceReadType.RequireClrType();
         var read = $"reader.Read<{EvaluationHelper.GetCastableType(sourceReadType)}>({field.Slot})";
 
-        return fieldType == sourceReadType
-            ? read
-            : $"({EvaluationHelper.GetCastableType(fieldType)}){read}";
+        return fieldType == sourceReadType ? read : $"({EvaluationHelper.GetCastableType(fieldType)}){read}";
     }
 }

@@ -12,26 +12,30 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_HasDuplicateMatches_ShouldUseLeftSemiJoinAndNotMultiplyRows()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (SELECT b.City FROM #B.entities() b)";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (SELECT b.City FROM #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("PARIS", "FRANCE", 300)
+                    new BasicEntity("PARIS", "FRANCE", 300),
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity("WARSAW", "POLAND", 100),
                     new BasicEntity("WARSAW", "POLAND", 200),
-                    new BasicEntity("PARIS", "FRANCE", 300)
+                    new BasicEntity("PARIS", "FRANCE", 300),
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -49,25 +53,23 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenNotInSubquery_HasDuplicateMatches_ShouldUseLeftAntiSemiJoin()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City NOT IN (SELECT b.City FROM #B.entities() b)";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City NOT IN (SELECT b.City FROM #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("PARIS", "FRANCE", 300)
+                    new BasicEntity("PARIS", "FRANCE", 300),
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("WARSAW", "POLAND", 100),
-                    new BasicEntity("WARSAW", "POLAND", 200)
-                ]
-            }
+            { "#B", [new BasicEntity("WARSAW", "POLAND", 100), new BasicEntity("WARSAW", "POLAND", 200)] },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -83,10 +85,12 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_IsInsideOrBranch_ShouldKeepOuterJoinFallback()
     {
-        const string query = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE a.City IN (SELECT b.City FROM #B.entities() b)
-               OR a.Country = 'GERMANY'";
+        const string query = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE a.City IN (SELECT b.City FROM #B.entities() b)\n"
+            + "               OR a.Country = 'GERMANY'"
+        );
 
         var inspection = CompileSubqueryForInspection(query);
 
@@ -97,36 +101,23 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenInSubquery_FollowsExistingJoin_ShouldRebindTransitionKeys()
     {
-        const string query = @"
-            SELECT a.City, b.Country FROM #A.entities() a
-            INNER JOIN #B.entities() b ON a.Country = b.Country
-            WHERE a.City IN (SELECT c.City FROM #C.entities() c)";
+        const string query = (
+            "\n"
+            + "            SELECT a.City, b.Country FROM #A.entities() a\n"
+            + "            INNER JOIN #B.entities() b ON a.Country = b.Country\n"
+            + "            WHERE a.City IN (SELECT c.City FROM #C.entities() c)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("BERLIN", "GERMANY", 250)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("KRAKOW", "POLAND", 200),
-                    new BasicEntity("MUNICH", "GERMANY", 200)
-                ]
-            },
-            {
-                "#C", [new BasicEntity("WARSAW", "POLAND", 100)]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("BERLIN", "GERMANY", 250)] },
+            { "#B", [new BasicEntity("KRAKOW", "POLAND", 200), new BasicEntity("MUNICH", "GERMANY", 200)] },
+            { "#C", [new BasicEntity("WARSAW", "POLAND", 100)] },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"]);
 
         var inspection = CompileSubqueryForInspection(query);
@@ -144,9 +135,11 @@ public partial class SubqueryTests
                 {
                     { "#A", Array.Empty<BasicEntity>() },
                     { "#B", Array.Empty<BasicEntity>() },
-                    { "#C", Array.Empty<BasicEntity>() }
-                }),
+                    { "#C", Array.Empty<BasicEntity>() },
+                }
+            ),
             new TestsLoggerResolver(),
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 }

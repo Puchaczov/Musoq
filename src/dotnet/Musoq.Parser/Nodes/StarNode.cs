@@ -2,7 +2,8 @@ namespace Musoq.Parser.Nodes;
 
 public class StarNode : BinaryNode
 {
-    public StarNode(Node left, Node right) : base(left, right)
+    public StarNode(Node left, Node right)
+        : base(left, right)
     {
         Id = CalculateId(this);
     }

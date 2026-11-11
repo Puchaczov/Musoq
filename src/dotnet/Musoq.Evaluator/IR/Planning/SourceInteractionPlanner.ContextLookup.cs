@@ -16,7 +16,15 @@ internal static partial class SourceInteractionPlanner
             scan.SourceContextId ?? scan.Alias,
             $"{plan.ShapeKind}/{plan.ColumnContract}/{plan.PredicateContract}/{plan.ArgumentMode}",
             plan.Confidence,
-            string.Join(" ", plan.ShapeReason, plan.ColumnReason, plan.PredicateReason, plan.SourcePlanRequestReason, plan.ArgumentReason));
+            string.Join(
+                " ",
+                plan.ShapeReason,
+                plan.ColumnReason,
+                plan.PredicateReason,
+                plan.SourcePlanRequestReason,
+                plan.ArgumentReason
+            )
+        );
     }
 
     private static PlanningConfidence ResolveInteractionConfidence(params PlanningConfidence[] confidences)
@@ -33,7 +41,8 @@ internal static partial class SourceInteractionPlanner
     private static SourcePlanRequest ResolveSourcePlanRequest(
         PlanningContext context,
         SchemaFromNode? sourceNode,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         context.CancellationToken.ThrowIfCancellationRequested();
         if (sourceNode != null && context.SourcePlanRequestsBySource.TryGetValue(sourceNode, out var directRequest))
@@ -46,9 +55,10 @@ internal static partial class SourceInteractionPlanner
                 return entry.Value;
         }
 
-        var identity = sourceNode != null
-            ? SourceIdentityFactory.Create(sourceNode)
-            : new SourceIdentity(string.Empty, string.Empty, sourceContextId, string.Empty);
+        var identity =
+            sourceNode != null
+                ? SourceIdentityFactory.Create(sourceNode)
+                : new SourceIdentity(string.Empty, string.Empty, sourceContextId, string.Empty);
 
         return SourcePlanRequest.Empty(identity);
     }
@@ -56,7 +66,8 @@ internal static partial class SourceInteractionPlanner
     private static ISchemaColumn[] ResolveUsedColumns(
         PlanningContext context,
         SchemaFromNode? sourceNode,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         context.CancellationToken.ThrowIfCancellationRequested();
         if (sourceNode != null && context.UsedSchemaColumns.TryGetValue(sourceNode, out var directColumns))
@@ -75,7 +86,8 @@ internal static partial class SourceInteractionPlanner
     private static WhereNode? ResolveRawWhereNode(
         PlanningContext context,
         SchemaFromNode? sourceNode,
-        string sourceContextId)
+        string sourceContextId
+    )
     {
         context.CancellationToken.ThrowIfCancellationRequested();
         if (sourceNode != null && context.UsedWhereNodes.TryGetValue(sourceNode, out var directWhereNode))
@@ -131,8 +143,6 @@ internal static partial class SourceInteractionPlanner
 
     private static string FormatHintValue(long? value)
     {
-        return value.HasValue
-            ? value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
-            : "null";
+        return value.HasValue ? value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "null";
     }
 }

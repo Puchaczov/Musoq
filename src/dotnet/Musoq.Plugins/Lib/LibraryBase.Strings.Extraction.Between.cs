@@ -125,9 +125,7 @@ public partial class LibraryBase
         if (startIndex == -1)
             return null;
 
-        return includeDelimiter
-            ? value.Substring(startIndex)
-            : value.Substring(startIndex + startDelimiter.Length);
+        return includeDelimiter ? value.Substring(startIndex) : value.Substring(startIndex + startDelimiter.Length);
     }
 
     /// <summary>
@@ -152,8 +150,6 @@ public partial class LibraryBase
         if (endIndex == -1)
             return null;
 
-        return includeDelimiter
-            ? value.Substring(0, endIndex + endDelimiter.Length)
-            : value.Substring(0, endIndex);
+        return includeDelimiter ? value.Substring(0, endIndex + endDelimiter.Length) : value.Substring(0, endIndex);
     }
 }

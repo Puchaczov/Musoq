@@ -25,11 +25,10 @@ public class CoupleNode(SchemaMethodFromNode from, string? tableName, string? pr
 
     public override string ToString()
     {
-        var options = TableName != null && ProfileName != null
-            ? $"table {TableName} and settings {ProfileName}"
-            : TableName != null
-                ? $"table {TableName}"
-                : $"settings {ProfileName}";
+        var options =
+            TableName != null && ProfileName != null ? $"table {TableName} and settings {ProfileName}"
+            : TableName != null ? $"table {TableName}"
+            : $"settings {ProfileName}";
 
         return $"couple {SchemaMethodNode.ToString()} with {options} as {MappedSchemaName};";
     }

@@ -127,7 +127,12 @@ public sealed class LexerBoundaryCleanupTests
     {
         var observations = new List<Token>();
         Lexer? lexer = null;
-        lexer = new Lexer("select Name from #s.rows()", true, false, token => ObserveWithPeek(lexer!, observations, token));
+        lexer = new Lexer(
+            "select Name from #s.rows()",
+            true,
+            false,
+            token => ObserveWithPeek(lexer!, observations, token)
+        );
         lexer.Next();
 
         Assert.AreEqual("select", observations.Single().Value);
@@ -182,7 +187,9 @@ public sealed class LexerBoundaryCleanupTests
         var failure = new InvalidOperationException("sentinel");
         var lexer = new ForwardingLexer("select Name from #s.rows()", failure);
         var capture = new SourceCapture(lexer.SourceText);
-        var exception = Assert.ThrowsExactly<InvalidOperationException>(() => new Parser(lexer, capture).ComposeAllCore());
+        var exception = Assert.ThrowsExactly<InvalidOperationException>(() =>
+            new Parser(lexer, capture).ComposeAllCore()
+        );
 
         Assert.AreSame(failure, exception);
     }
@@ -192,21 +199,34 @@ public sealed class LexerBoundaryCleanupTests
         private readonly Lexer _inner = new(source, true);
         public int Position => _inner.Position;
         public string AlreadyResolvedQueryPart => _inner.AlreadyResolvedQueryPart;
-        public bool IsSchemaContext { get => _inner.IsSchemaContext; set => _inner.IsSchemaContext = value; }
+        public bool IsSchemaContext
+        {
+            get => _inner.IsSchemaContext;
+            set => _inner.IsSchemaContext = value;
+        }
         public string Input => _inner.Input;
         public SourceText SourceText => _inner.SourceText;
         public IReadOnlyList<CommentToken> Comments => _inner.Comments;
         public DiagnosticBag Diagnostics => _inner.Diagnostics;
-        public bool RecoverOnError { get => _inner.RecoverOnError; set => _inner.RecoverOnError = value; }
+        public bool RecoverOnError
+        {
+            get => _inner.RecoverOnError;
+            set => _inner.RecoverOnError = value;
+        }
+
         public Token Last() => _inner.Last();
+
         public Token Current() => _inner.Current();
+
         public Token Peek(int lookahead = 1) => _inner.Peek(lookahead);
+
         public Token Next()
         {
             if (failure != null)
                 throw failure;
             return _inner.Next();
         }
+
         public Token NextOf(Regex regex, Func<string, Token> getToken) =>
             throw new InvalidOperationException("The parser must consume the ordinary token stream.");
     }

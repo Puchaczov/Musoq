@@ -26,28 +26,36 @@ public class SchemaMultiSourceFeatureTests
     [TestMethod]
     public void Binary_TryInterpret_ShouldReturnNullForInvalidData()
     {
-        var query = @"
-            binary Header { 
-                Magic: int le check Magic = 305419896,
-                Version: byte
-            };
-            select b.Name, d.Magic, d.Version from #test.files() b
-            cross apply TryInterpret<Header>(b.Content) d
-            where d.Magic is not null
-            order by b.Name asc";
+        var query = (
+            "\n"
+            + "            binary Header { \n"
+            + "                Magic: int le check Magic = 305419896,\n"
+            + "                Version: byte\n"
+            + "            };\n"
+            + "            select b.Name, d.Magic, d.Version from #test.files() b\n"
+            + "            cross apply TryInterpret<Header>(b.Content) d\n"
+            + "            where d.Magic is not null\n"
+            + "            order by b.Name asc"
+        );
 
         var validData = new byte[] { 0x78, 0x56, 0x34, 0x12, 0x02 };
         var invalidData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x01 };
         var entities = new[]
         {
             new BinaryEntity { Name = "good.bin", Content = validData },
-            new BinaryEntity { Name = "bad.bin", Content = invalidData }
+            new BinaryEntity { Name = "bad.bin", Content = invalidData },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -66,24 +74,32 @@ public class SchemaMultiSourceFeatureTests
     [TestMethod]
     public void Text_TryParse_ShouldReturnNullForNonMatching()
     {
-        var query = @"
-            text KvPair { Key: until '=', Value: rest };
-            select l.Name, d.Key, d.Value from #test.lines() l
-            cross apply TryParse<KvPair>(l.Line) d
-            where d.Key is not null
-            order by d.Key asc";
+        var query = (
+            "\n"
+            + "            text KvPair { Key: until '=', Value: rest };\n"
+            + "            select l.Name, d.Key, d.Value from #test.lines() l\n"
+            + "            cross apply TryParse<KvPair>(l.Line) d\n"
+            + "            where d.Key is not null\n"
+            + "            order by d.Key asc"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "1.txt", Text = "host=localhost" },
             new TextEntity { Name = "2.txt", Text = "port=8080" },
-            new TextEntity { Name = "3.txt", Text = "# this is a comment" }
+            new TextEntity { Name = "3.txt", Text = "# this is a comment" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -103,27 +119,32 @@ public class SchemaMultiSourceFeatureTests
     [TestMethod]
     public void Binary_DoubleCrossApply_ShouldFlattenNestedArrays()
     {
-        var query = @"
-            binary Point { X: byte, Y: byte };
-            binary Shape { PointCount: byte, Points: Point[PointCount] };
-            select p.X, p.Y from #test.files() b
-            cross apply Interpret<Shape>(b.Content) s
-            cross apply s.Points p
-            order by p.X asc, p.Y asc";
+        var query = (
+            "\n"
+            + "            binary Point { X: byte, Y: byte };\n"
+            + "            binary Shape { PointCount: byte, Points: Point[PointCount] };\n"
+            + "            select p.X, p.Y from #test.files() b\n"
+            + "            cross apply Interpret<Shape>(b.Content) s\n"
+            + "            cross apply s.Points p\n"
+            + "            order by p.X asc, p.Y asc"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x03, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+        var entities = new[]
         {
-            0x03,
-            0x01, 0x02,
-            0x03, 0x04,
-            0x05, 0x06
+            new BinaryEntity { Name = "shape.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "shape.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -145,11 +166,13 @@ public class SchemaMultiSourceFeatureTests
     [TestMethod]
     public void Binary_MultipleFiles_ShouldParseEachFile()
     {
-        var query = @"
-            binary Header { Magic: int le, Version: byte };
-            select b.Name, h.Magic, h.Version from #test.files() b
-            cross apply Interpret<Header>(b.Content) h
-            order by b.Name asc";
+        var query = (
+            "\n"
+            + "            binary Header { Magic: int le, Version: byte };\n"
+            + "            select b.Name, h.Magic, h.Version from #test.files() b\n"
+            + "            cross apply Interpret<Header>(b.Content) h\n"
+            + "            order by b.Name asc"
+        );
 
         var file1 = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x0A };
         var file2 = new byte[] { 0x02, 0x00, 0x00, 0x00, 0x14 };
@@ -158,13 +181,19 @@ public class SchemaMultiSourceFeatureTests
         {
             new BinaryEntity { Name = "a.bin", Content = file1 },
             new BinaryEntity { Name = "b.bin", Content = file2 },
-            new BinaryEntity { Name = "c.bin", Content = file3 }
+            new BinaryEntity { Name = "c.bin", Content = file3 },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -189,28 +218,36 @@ public class SchemaMultiSourceFeatureTests
     [TestMethod]
     public void Mixed_BinaryAndText_ShouldWorkTogether()
     {
-        var query = @"
-            binary Header { Version: byte, Flags: byte };
-            text Config { Key: until '=', Value: rest };
-            select h.Version, h.Flags from #test.files() f
-            cross apply Interpret<Header>(f.Content) h
-            order by h.Version asc";
+        var query = (
+            "\n"
+            + "            binary Header { Version: byte, Flags: byte };\n"
+            + "            text Config { Key: until '=', Value: rest };\n"
+            + "            select h.Version, h.Flags from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h\n"
+            + "            order by h.Version asc"
+        );
 
         var binaryData = new byte[] { 0x01, 0xFF };
         var binaryEntities = new[]
         {
-            new BinaryEntity { Name = "header.bin", Content = binaryData }
+            new BinaryEntity { Name = "header.bin", Content = binaryData },
         };
         var textEntities = new[]
         {
-            new TextEntity { Name = "config.txt", Text = "key=value" }
+            new TextEntity { Name = "config.txt", Text = "key=value" },
         };
         var schemaProvider = new MixedSchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", binaryEntities } },
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", textEntities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", textEntities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -228,26 +265,34 @@ public class SchemaMultiSourceFeatureTests
     [TestMethod]
     public void Binary_MultiFileArrayAggregation_ShouldAggregateAcrossFiles()
     {
-        var query = @"
-            binary Item { Val: byte };
-            binary Bag { Count: byte, Items: Item[Count] };
-            select Sum(i.Val) as TotalVal, Count(i.Val) as TotalItems
-            from #test.files() b
-            cross apply Interpret<Bag>(b.Content) bag
-            cross apply bag.Items i";
+        var query = (
+            "\n"
+            + "            binary Item { Val: byte };\n"
+            + "            binary Bag { Count: byte, Items: Item[Count] };\n"
+            + "            select Sum(i.Val) as TotalVal, Count(i.Val) as TotalItems\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<Bag>(b.Content) bag\n"
+            + "            cross apply bag.Items i"
+        );
 
         var file1 = new byte[] { 0x02, 0x0A, 0x14 };
         var file2 = new byte[] { 0x03, 0x01, 0x02, 0x03 };
         var entities = new[]
         {
             new BinaryEntity { Name = "bag1.bin", Content = file1 },
-            new BinaryEntity { Name = "bag2.bin", Content = file2 }
+            new BinaryEntity { Name = "bag2.bin", Content = file2 },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -265,22 +310,29 @@ public class SchemaMultiSourceFeatureTests
     [TestMethod]
     public void Binary_InterpretAt_ShouldParseAtSpecifiedOffset()
     {
-        var query = @"
-            binary Value { Data: int le };
-            select d.Data from #test.files() b
-            cross apply InterpretAt<Value>(b.Content, 4) d";
+        var query = (
+            "\n"
+            + "            binary Value { Data: int le };\n"
+            + "            select d.Data from #test.files() b\n"
+            + "            cross apply InterpretAt<Value>(b.Content, 4) d"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x2A, 0x00, 0x00, 0x00 };
+        var entities = new[]
         {
-            0xFF, 0xFF, 0xFF, 0xFF,
-            0x2A, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -297,10 +349,12 @@ public class SchemaMultiSourceFeatureTests
     [TestMethod]
     public void Binary_CountAll_ShouldCountAllInterpretedRows()
     {
-        var query = @"
-            binary Record { Value: byte };
-            select Count(d.Value) as Total from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Record { Value: byte };\n"
+            + "            select Count(d.Value) as Total from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) d"
+        );
 
         var entities = new[]
         {
@@ -308,13 +362,19 @@ public class SchemaMultiSourceFeatureTests
             new BinaryEntity { Name = "2.bin", Data = [0x02] },
             new BinaryEntity { Name = "3.bin", Data = [0x03] },
             new BinaryEntity { Name = "4.bin", Data = [0x04] },
-            new BinaryEntity { Name = "5.bin", Data = [0x05] }
+            new BinaryEntity { Name = "5.bin", Data = [0x05] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

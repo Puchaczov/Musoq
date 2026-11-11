@@ -21,54 +21,63 @@ internal sealed partial class PhysicalLoweringImplementation
             context.Sources,
             resultTable,
             resultShape,
-            CreateJoinResultCapacityCandidate(resultTable, context.Sides.Probe));
+            CreateJoinResultCapacityCandidate(resultTable, context.Sides.Probe)
+        );
 
         if (context.CteSidecarIndex is { Kind: CteSidecarIndexKind.KeySet } sidecar)
         {
-            nodes.Add(new ExecutionCteSidecarIndexLoadCandidate(
-                keySet,
-                sidecar.IndexSlot,
-                ExecutionCteSidecarIndexKind.KeySet,
-                context.KeyType));
+            nodes.Add(
+                new ExecutionCteSidecarIndexLoadCandidate(
+                    keySet,
+                    sidecar.IndexSlot,
+                    ExecutionCteSidecarIndexKind.KeySet,
+                    context.KeyType
+                )
+            );
         }
         else
         {
-            nodes.Add(new ExecutionCreateKeySet(
-                keySet,
-                context.KeyType,
-                CreateHashCapacityCandidate(keySet, context.Sides.Build)));
+            nodes.Add(
+                new ExecutionCreateKeySet(
+                    keySet,
+                    context.KeyType,
+                    CreateHashCapacityCandidate(keySet, context.Sides.Build)
+                )
+            );
             nodes.Add(CreateKeySetBuildLoop(context, keySet));
         }
 
-        nodes.Add(CreateSourceLoop(
-            context.Sides.Probe.Shape,
-            context.Sides.Probe.Rows,
-            context.Sides.Probe.Variable,
-            new ExecutionBlock(
-            [
-                new ExecutionKeySetProbe(
-                    keySet,
-                    CreateHashJoinKeyExpression(context.Join.ProbeKeys, context.ConversionLookup, context.KeyType),
-                    context.KeyType,
-                    matchedBody,
-                    noMatchBody,
-                    hasMatch)
-            ])));
+        nodes.Add(
+            CreateSourceLoop(
+                context.Sides.Probe.Shape,
+                context.Sides.Probe.Rows,
+                context.Sides.Probe.Variable,
+                new ExecutionBlock([
+                    new ExecutionKeySetProbe(
+                        keySet,
+                        CreateHashJoinKeyExpression(context.Join.ProbeKeys, context.ConversionLookup, context.KeyType),
+                        context.KeyType,
+                        matchedBody,
+                        noMatchBody,
+                        hasMatch
+                    ),
+                ])
+            )
+        );
 
         return CompleteTableBuild(
-            [..context.Sources.Left.Shapes, ..context.Sources.Right.Shapes, resultShape],
+            [.. context.Sources.Left.Shapes, .. context.Sources.Right.Shapes, resultShape],
             nodes,
             resultTable,
             resultShape,
             context.Pipeline.PostOperations,
-            context.Pipeline.Project.IsDistinct);
+            context.Pipeline.Project.IsDistinct
+        );
     }
 
     private static bool CanUsePayloadFreeSemiJoinKeySet(HashJoinBuildContext context)
     {
-        return context.Join.Residual == null &&
-               context.KeyType != typeof(object) &&
-               CanBuildPayloadFreeKeySet(context);
+        return context.Join.Residual == null && context.KeyType != typeof(object) && CanBuildPayloadFreeKeySet(context);
     }
 
     private static HashJoinBuildContext DropUnusedFusedPayloadForKeySet(HashJoinBuildContext context)
@@ -79,16 +88,18 @@ internal sealed partial class PhysicalLoweringImplementation
         var build = context.Sides.Build with
         {
             FusedHashPayload = null,
-            Shapes = context.Sides.Build.Shapes
-                .Where(shape => shape is not HashPayloadShape hashPayload ||
-                                !string.Equals(hashPayload.TypeName, payload.Shape.TypeName, StringComparison.Ordinal))
-                .ToArray()
+            Shapes = context
+                .Sides.Build.Shapes.Where(shape =>
+                    shape is not HashPayloadShape hashPayload
+                    || !string.Equals(hashPayload.TypeName, payload.Shape.TypeName, StringComparison.Ordinal)
+                )
+                .ToArray(),
         };
         var sides = context.Sides with { Build = build };
         return context with
         {
             Sources = ReplaceBuildSource(context.Sources, context.Sides.Build, build),
-            Sides = sides
+            Sides = sides,
         };
     }
 
@@ -97,45 +108,45 @@ internal sealed partial class PhysicalLoweringImplementation
         if (context.Sides.Build.FusedHashBuild is not { } fused)
             return true;
 
-        var key = CreateHashJoinKeyExpression(
-            context.Join.BuildKeys,
-            context.ConversionLookup,
-            context.KeyType);
+        var key = CreateHashJoinKeyExpression(context.Join.BuildKeys, context.ConversionLookup, context.KeyType);
         return TryRewritePayloadKeyToProducerKey(
             key,
             context.Sides.Build.Variable.Name,
             fused.RowShape,
             fused.RowValues,
-            out _);
+            out _
+        );
     }
 
     private static ExecutionSourceLoop CreateKeySetBuildLoop(HashJoinBuildContext context, ExecutionVariable keySet)
     {
-        var key = CreateHashJoinKeyExpression(
-            context.Join.BuildKeys,
-            context.ConversionLookup,
-            context.KeyType);
+        var key = CreateHashJoinKeyExpression(context.Join.BuildKeys, context.ConversionLookup, context.KeyType);
 
-        if (context.Sides.Build.FusedHashBuild is { } fused &&
-            TryRewritePayloadKeyToProducerKey(
+        if (
+            context.Sides.Build.FusedHashBuild is { } fused
+            && TryRewritePayloadKeyToProducerKey(
                 key,
                 context.Sides.Build.Variable.Name,
                 fused.RowShape,
                 fused.RowValues,
-                out var producerKey))
+                out var producerKey
+            )
+        )
         {
             return CreateSourceLoop(
                 fused.ProducerShape,
                 context.Sides.Build.Rows,
                 fused.ProducerVariable,
-                new ExecutionBlock([new ExecutionKeySetAdd(keySet, producerKey, context.KeyType)]));
+                new ExecutionBlock([new ExecutionKeySetAdd(keySet, producerKey, context.KeyType)])
+            );
         }
 
         return CreateSourceLoop(
             context.Sides.Build.Shape,
             context.Sides.Build.Rows,
             context.Sides.Build.Variable,
-            new ExecutionBlock([new ExecutionKeySetAdd(keySet, key, context.KeyType)]));
+            new ExecutionBlock([new ExecutionKeySetAdd(keySet, key, context.KeyType)])
+        );
     }
 
     private static string CreateKeySetName(string hashName)

@@ -4,12 +4,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class QueryRowSourceShapeFactory
 {
-    public static GeneratedRowShape Create(
-        string alias,
-        SourceTransferStrategyPlan transfer)
+    public static GeneratedRowShape Create(string alias, SourceTransferStrategyPlan transfer)
     {
-        var fields = transfer.Shape!.Fields
-            .Select(field => new FieldBinding(
+        var fields = transfer
+            .Shape!.Fields.Select(field => new FieldBinding(
                 field.Name,
                 $"{alias}.{field.Name}",
                 field.Slot,
@@ -18,7 +16,8 @@ internal static class QueryRowSourceShapeFactory
                 new GeneratedFieldAccess(QueryRowSourceNaming.CreateFieldName(field.Slot)),
                 readModifiers: field.ReadModifiers,
                 sourceReadType: field.SourceReadType,
-                enumType: field.EnumType))
+                enumType: field.EnumType
+            ))
             .ToArray();
 
         return new GeneratedRowShape(
@@ -26,11 +25,12 @@ internal static class QueryRowSourceShapeFactory
             fields,
             [],
             supportsGeneratedFieldAccess: true,
-            requiresRowBase: false)
+            requiresRowBase: false
+        )
         {
             EmitAsValueType = transfer.Carrier == SourceQueryRowCarrier.ReadonlyStruct,
             IsQueryScopedRow = true,
-            SourceAlias = alias
+            SourceAlias = alias,
         };
     }
 }

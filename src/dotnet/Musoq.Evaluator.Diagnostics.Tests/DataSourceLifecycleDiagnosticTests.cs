@@ -7,14 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Plugins;
 using Musoq.Schema;
-using Musoq.Schema.Diagnostics;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Diagnostics;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
 
@@ -30,7 +30,8 @@ public sealed class DataSourceLifecycleDiagnosticTests
         var provider = new ThrowingProvider(original);
 
         var exception = Assert.Throws<DataSourceLifecycleException>(() =>
-            DataSourceLifecycle.OpenSchema(provider, "#fault", "items", "rows", "ctx-1"));
+            DataSourceLifecycle.OpenSchema(provider, "#fault", "items", "rows", "ctx-1")
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ7010_DataSourceOpenFailed, exception.Code);
         Assert.AreSame(original, exception.InnerException);
@@ -56,10 +57,18 @@ public sealed class DataSourceLifecycleDiagnosticTests
         var inputFailure = new DataSourceInputException(
             DataSourceInputFailureReason.MalformedJson,
             new DataSourceInputLocation(line: 2, column: 4, characterOffset: 13),
-            original);
+            original
+        );
 
         var exception = Assert.Throws<DataSourceLifecycleException>(() =>
-            DataSourceLifecycle.OpenSchema(new ThrowingProvider(inputFailure), "#fault", "items", "rows", "ctx-open-input"));
+            DataSourceLifecycle.OpenSchema(
+                new ThrowingProvider(inputFailure),
+                "#fault",
+                "items",
+                "rows",
+                "ctx-open-input"
+            )
+        );
         var diagnostic = exception.ToDiagnostic();
 
         Assert.AreEqual(DiagnosticCode.MQ7014_MalformedRuntimeInput, exception.Code);
@@ -78,21 +87,24 @@ public sealed class DataSourceLifecycleDiagnosticTests
         var inputFailure = new DataSourceInputException(
             DataSourceInputFailureReason.UnterminatedQuotedField,
             new DataSourceInputLocation(byteOffset: 23),
-            new InvalidDataException("private CSV path and payload"));
+            new InvalidDataException("private CSV path and payload")
+        );
 
         var result = InstanceCreator.CompileWithDiagnostics(
             "select Name from #fault.items() i",
             "metadata-input-diagnostic",
             new ThrowingProvider(inputFailure),
             new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
         Assert.IsFalse(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         var diagnostic = result.Errors.Single();
         Assert.AreEqual(
             DiagnosticCode.MQ7014_MalformedRuntimeInput,
             diagnostic.Code,
-            string.Join(Environment.NewLine, result.Diagnostics));
+            string.Join(Environment.NewLine, result.Diagnostics)
+        );
         Assert.AreEqual(DiagnosticPhase.Runtime, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.DataSource, diagnostic.SourceKind);
         Assert.AreEqual("unterminated-quoted-field", diagnostic.Arguments["inputReason"]);
@@ -107,26 +119,25 @@ public sealed class DataSourceLifecycleDiagnosticTests
         var inputFailure = new DataSourceInputException(
             DataSourceInputFailureReason.UnterminatedQuotedField,
             new DataSourceInputLocation(byteOffset: 23),
-            new InvalidDataException("private CSV path and unterminated payload"));
-        var provider = new FaultProvider
-        {
-            Mode = FaultMode.Metadata,
-            Exception = inputFailure
-        };
+            new InvalidDataException("private CSV path and unterminated payload")
+        );
+        var provider = new FaultProvider { Mode = FaultMode.Metadata, Exception = inputFailure };
 
         var result = InstanceCreator.CompileWithDiagnostics(
             "select Name from #test.entities() e",
             "source-metadata-input-diagnostic",
             provider,
             new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
         Assert.IsFalse(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         var diagnostic = result.Errors.Single();
         Assert.AreEqual(
             DiagnosticCode.MQ7014_MalformedRuntimeInput,
             diagnostic.Code,
-            string.Join(Environment.NewLine, result.Diagnostics));
+            string.Join(Environment.NewLine, result.Diagnostics)
+        );
         Assert.AreEqual(DiagnosticPhase.Runtime, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.DataSource, diagnostic.SourceKind);
         Assert.AreEqual("unterminated-quoted-field", diagnostic.Arguments["inputReason"]);
@@ -143,9 +154,7 @@ public sealed class DataSourceLifecycleDiagnosticTests
 
         var exception = Assert.Throws<DataSourceLifecycleException>(() =>
         {
-            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-2"))
-            {
-            }
+            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-2")) { }
         });
 
         Assert.AreEqual(DiagnosticCode.MQ7011_DataSourceReadFailed, exception.Code);
@@ -161,9 +170,7 @@ public sealed class DataSourceLifecycleDiagnosticTests
 
         var exception = Assert.Throws<DataSourceLifecycleException>(() =>
         {
-            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-invalid-sync"))
-            {
-            }
+            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-invalid-sync")) { }
         });
         var diagnostic = exception.ToDiagnostic();
 
@@ -184,14 +191,15 @@ public sealed class DataSourceLifecycleDiagnosticTests
         var inputFailure = new DataSourceInputException(
             DataSourceInputFailureReason.UnterminatedQuotedField,
             new DataSourceInputLocation(byteOffset: 23),
-            new InvalidDataException("private CSV path and contents"));
-        var source = new TestRowSource(new ThrowingEnumerable(new IOException("wrapped provider failure", inputFailure)));
+            new InvalidDataException("private CSV path and contents")
+        );
+        var source = new TestRowSource(
+            new ThrowingEnumerable(new IOException("wrapped provider failure", inputFailure))
+        );
 
         var exception = Assert.Throws<DataSourceLifecycleException>(() =>
         {
-            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-schema-input-sync"))
-            {
-            }
+            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-schema-input-sync")) { }
         });
         var diagnostic = exception.ToDiagnostic();
 
@@ -209,18 +217,20 @@ public sealed class DataSourceLifecycleDiagnosticTests
             RuntimeInputFailureReason.UnterminatedQuotedField,
             DiagnosticSourceKind.DataSource,
             new DiagnosticInputLocation(byteOffset: 23),
-            new InvalidDataException("private CSV path and contents"));
+            new InvalidDataException("private CSV path and contents")
+        );
 
         var exception = await AssertThrowsAsync<DataSourceLifecycleException>(async () =>
         {
-            await foreach (var _ in DataSourceLifecycle.ReadAsync(
-                               new ThrowingAsyncEnumerable(typedFailure),
-                               "#fault",
-                               "items",
-                               "rows",
-                               "ctx-invalid-async"))
-            {
-            }
+            await foreach (
+                var _ in DataSourceLifecycle.ReadAsync(
+                    new ThrowingAsyncEnumerable(typedFailure),
+                    "#fault",
+                    "items",
+                    "rows",
+                    "ctx-invalid-async"
+                )
+            ) { }
         });
         var diagnostic = exception.ToDiagnostic();
 
@@ -239,17 +249,19 @@ public sealed class DataSourceLifecycleDiagnosticTests
         var inputFailure = new DataSourceInputException(
             DataSourceInputFailureReason.MalformedJson,
             new DataSourceInputLocation(line: 4, column: 2, characterOffset: 18),
-            new InvalidDataException("private JSON path and payload"));
+            new InvalidDataException("private JSON path and payload")
+        );
         var exception = await AssertThrowsAsync<DataSourceLifecycleException>(async () =>
         {
-            await foreach (var _ in DataSourceLifecycle.ReadAsync(
-                               new ThrowingAsyncEnumerable(new IOException("wrapped read failure", inputFailure)),
-                               "#fault",
-                               "items",
-                               "rows",
-                               "ctx-schema-input-async"))
-            {
-            }
+            await foreach (
+                var _ in DataSourceLifecycle.ReadAsync(
+                    new ThrowingAsyncEnumerable(new IOException("wrapped read failure", inputFailure)),
+                    "#fault",
+                    "items",
+                    "rows",
+                    "ctx-schema-input-async"
+                )
+            ) { }
         });
         var diagnostic = exception.ToDiagnostic();
 
@@ -269,9 +281,7 @@ public sealed class DataSourceLifecycleDiagnosticTests
 
         var exception = Assert.Throws<DataSourceLifecycleException>(() =>
         {
-            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-3"))
-            {
-            }
+            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-3")) { }
         });
 
         Assert.AreEqual(DiagnosticCode.MQ7012_DataSourceCleanupFailed, exception.Code);
@@ -287,9 +297,7 @@ public sealed class DataSourceLifecycleDiagnosticTests
 
         var exception = Assert.Throws<OperationCanceledException>(() =>
         {
-            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-4"))
-            {
-            }
+            foreach (var _ in DataSourceLifecycle.Read(source, "#fault", "items", "rows", "ctx-4")) { }
         });
 
         Assert.AreSame(cancellation, exception);
@@ -302,14 +310,15 @@ public sealed class DataSourceLifecycleDiagnosticTests
 
         var exception = await AssertThrowsAsync<DataSourceLifecycleException>(async () =>
         {
-            await foreach (var _ in DataSourceLifecycle.ReadAsync(
-                               new ThrowingAsyncEnumerable(original),
-                               "#fault",
-                               "items",
-                               "rows",
-                               "ctx-5"))
-            {
-            }
+            await foreach (
+                var _ in DataSourceLifecycle.ReadAsync(
+                    new ThrowingAsyncEnumerable(original),
+                    "#fault",
+                    "items",
+                    "rows",
+                    "ctx-5"
+                )
+            ) { }
         });
 
         Assert.AreEqual(DiagnosticCode.MQ7011_DataSourceReadFailed, exception.Code);
@@ -396,23 +405,24 @@ public sealed class DataSourceLifecycleDiagnosticTests
     [TestMethod]
     public void CompileWithDiagnostics_WhenQueryScopedRowsAreAdvertisedWithoutImplementation_ShouldReportContractError()
     {
-        const string query = """
-            param(path: string = 'orders.csv')
-            select c.Customer as Customer, Count(*) as Orders, Sum(c.Amount::int) as Total
-            from #separatedvalues.comma($path, true, 0) c
-            group by c.Customer order by c.Customer
-            """;
+        const string query = (
+            "param(path: string = 'orders.csv')\n"
+            + "select c.Customer as Customer, Count(*) as Orders, Sum(c.Amount::int) as Total\n"
+            + "from #separatedvalues.comma($path, true, 0) c\n"
+            + "group by c.Customer order by c.Customer"
+        );
 
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             "query-scoped-capability-mismatch",
             new QueryScopedCapabilityMismatchSchemaProvider(),
             new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
         Assert.IsFalse(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
-        var sourceContractErrors = result.Errors
-            .Where(item => item.Code == DiagnosticCode.MQ3071_SourceContractError)
+        var sourceContractErrors = result
+            .Errors.Where(item => item.Code == DiagnosticCode.MQ3071_SourceContractError)
             .ToArray();
         Assert.AreEqual(1, sourceContractErrors.Length, string.Join(Environment.NewLine, result.Diagnostics));
         var error = sourceContractErrors[0];
@@ -420,17 +430,25 @@ public sealed class DataSourceLifecycleDiagnosticTests
         Assert.Contains("sourceCode=QueryScopedRowsMissingRuntimeImplementation", error.Message);
         Assert.Contains("QueryScopedRows", error.Message);
         Assert.Contains("IQueryScopedRowSourceSchema", error.Message);
-        Assert.IsTrue(result.Warnings.Any(item =>
-            item.Code == DiagnosticCode.MQ5013_SourceContractWarning &&
-            item.Message.Contains("sourceCode=ExistingSourceDiagnostic", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Warnings.Any(item =>
+                item.Code == DiagnosticCode.MQ5013_SourceContractWarning
+                && item.Message.Contains("sourceCode=ExistingSourceDiagnostic", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
     public void ReportedError_MetadataUsesPublicProviderDiagnostic()
     {
         var provider = new FaultProvider { Mode = FaultMode.Metadata, Exception = ReportedFailure() };
-        var result = InstanceCreator.CompileWithDiagnostics("select Name from #test.entities() e",
-            Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select Name from #test.entities() e",
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         Assert.IsFalse(result.Succeeded);
         Assert.AreEqual(DiagnosticCode.MQ7020_ReportedDataSourceFailure, result.Errors.Single().Code);
         Assert.AreEqual("REMOTE.UNAVAILABLE", result.Errors.Single().Arguments["providerCode"]);
@@ -456,15 +474,35 @@ public sealed class DataSourceLifecycleDiagnosticTests
     {
         var exception = await AssertThrowsAsync<DataSourceLifecycleException>(async () =>
         {
-            await foreach (var _ in DataSourceLifecycle.ReadAsync(new ThrowingAsyncEnumerable(ReportedFailure()),
-                "#api", "rows", "r", "async-ctx")) { }
+            await foreach (
+                var _ in DataSourceLifecycle.ReadAsync(
+                    new ThrowingAsyncEnumerable(ReportedFailure()),
+                    "#api",
+                    "rows",
+                    "r",
+                    "async-ctx"
+                )
+            ) { }
         });
         Assert.AreEqual(DiagnosticCode.MQ7020_ReportedDataSourceFailure, exception.ToDiagnostic().Code);
         Assert.AreEqual("REMOTE.UNAVAILABLE", exception.ToDiagnostic().Arguments["providerCode"]);
     }
 
-    private static DataSourceException ReportedFailure() => new(new DataSourceDiagnostic("REMOTE.UNAVAILABLE", "remote-service", "The service is unavailable.", new DataSourceDiagnosticOptions { Severity = DataSourceDiagnosticSeverity.Error, SuggestedFixes = ["Retry later."], FailureKind = DataSourceFailureKind.Unavailable }),
-        new IOException("PRIVATE SDK response"));
+    private static DataSourceException ReportedFailure() =>
+        new(
+            new DataSourceDiagnostic(
+                "REMOTE.UNAVAILABLE",
+                "remote-service",
+                "The service is unavailable.",
+                new DataSourceDiagnosticOptions
+                {
+                    Severity = DataSourceDiagnosticSeverity.Error,
+                    SuggestedFixes = ["Retry later."],
+                    FailureKind = DataSourceFailureKind.Unavailable,
+                }
+            ),
+            new IOException("PRIVATE SDK response")
+        );
 
     private static FaultProvider CreateCompiledFaultProvider(FaultMode mode, Exception exception)
     {
@@ -474,7 +512,8 @@ public sealed class DataSourceLifecycleDiagnosticTests
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
         provider.Mode = mode;
         provider.Exception = exception;
@@ -492,7 +531,8 @@ public sealed class DataSourceLifecycleDiagnosticTests
         QueryExecutionException exception,
         DiagnosticCode code,
         string operation,
-        Exception original)
+        Exception original
+    )
     {
         var envelope = exception.Envelope ?? throw new AssertFailedException("Expected a datasource envelope.");
         Assert.AreEqual(code, envelope.Code);
@@ -506,8 +546,9 @@ public sealed class DataSourceLifecycleDiagnosticTests
         Assert.IsFalse(string.IsNullOrWhiteSpace(sourceContextId));
         Assert.IsFalse(envelope.Arguments.ContainsKey("parameters"));
         Assert.DoesNotContain(original.Message, exception.Message);
-        var preserved = exception.InnerException?.InnerException ??
-                        throw new AssertFailedException("The original datasource exception was not preserved.");
+        var preserved =
+            exception.InnerException?.InnerException
+            ?? throw new AssertFailedException("The original datasource exception was not preserved.");
         Assert.AreSame(original, preserved);
     }
 
@@ -517,7 +558,7 @@ public sealed class DataSourceLifecycleDiagnosticTests
         Metadata,
         Open,
         Read,
-        Cleanup
+        Cleanup,
     }
 
     private sealed class FaultProvider : ISchemaProvider
@@ -542,9 +583,7 @@ public sealed class DataSourceLifecycleDiagnosticTests
     private sealed class FaultSchema : GenericSchema<BasicEntity, BasicEntityTable>
     {
         public FaultSchema()
-            : base([], BasicEntity.TestNameToIndexMap, BasicEntity.TestIndexToObjectAccessMap)
-        {
-        }
+            : base([], BasicEntity.TestNameToIndexMap, BasicEntity.TestIndexToObjectAccessMap) { }
 
         public FaultMode Mode { get; set; }
 
@@ -553,7 +592,8 @@ public sealed class DataSourceLifecycleDiagnosticTests
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (Mode == FaultMode.Metadata)
                 throw Exception;
@@ -564,24 +604,26 @@ public sealed class DataSourceLifecycleDiagnosticTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             return Mode switch
             {
                 FaultMode.Open => throw Exception,
                 FaultMode.Read => EnsureSourceType<T, BasicEntity>(
                     name,
-                    new EntityFaultRowSource(new ThrowingEntityEnumerable(Exception))),
+                    new EntityFaultRowSource(new ThrowingEntityEnumerable(Exception))
+                ),
                 FaultMode.Cleanup => EnsureSourceType<T, BasicEntity>(
                     name,
-                    new EntityFaultRowSource(new CleanupEntityEnumerable(Exception))),
-                _ => base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments)
+                    new EntityFaultRowSource(new CleanupEntityEnumerable(Exception))
+                ),
+                _ => base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments),
             };
         }
     }
 
-    private sealed class EntityFaultRowSource(
-        IEnumerable<IReadOnlyList<BasicEntity>> chunks) : RowSource<BasicEntity>
+    private sealed class EntityFaultRowSource(IEnumerable<IReadOnlyList<BasicEntity>> chunks) : RowSource<BasicEntity>
     {
         public override IEnumerable<IReadOnlyList<BasicEntity>> Chunks => chunks;
     }
@@ -606,10 +648,10 @@ public sealed class DataSourceLifecycleDiagnosticTests
         object IEnumerator.Current => Current;
 
         public bool MoveNext() => throw exception;
+
         public void Reset() => throw new NotSupportedException();
-        public void Dispose()
-        {
-        }
+
+        public void Dispose() { }
     }
 
     private sealed class CleanupEntityEnumerator(Exception exception) : IEnumerator<IReadOnlyList<BasicEntity>>
@@ -618,7 +660,9 @@ public sealed class DataSourceLifecycleDiagnosticTests
         object IEnumerator.Current => Current;
 
         public bool MoveNext() => false;
+
         public void Reset() => throw new NotSupportedException();
+
         public void Dispose() => throw exception;
     }
 
@@ -671,10 +715,10 @@ public sealed class DataSourceLifecycleDiagnosticTests
         object IEnumerator.Current => Current;
 
         public bool MoveNext() => throw exception;
+
         public void Reset() => throw new NotSupportedException();
-        public void Dispose()
-        {
-        }
+
+        public void Dispose() { }
     }
 
     private sealed class DisposeThrowingEnumerator(Exception exception) : IEnumerator<IReadOnlyList<int>>
@@ -683,7 +727,9 @@ public sealed class DataSourceLifecycleDiagnosticTests
         object IEnumerator.Current => Current;
 
         public bool MoveNext() => false;
+
         public void Reset() => throw new NotSupportedException();
+
         public void Dispose() => throw exception;
     }
 
@@ -724,7 +770,8 @@ public sealed class DataSourceLifecycleDiagnosticTests
         public override SourceDescriptor DescribeSource(
             string name,
             SourceDescribeContext context,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             var descriptor = base.DescribeSource(name, context, parameters);
             return descriptor with
@@ -733,8 +780,8 @@ public sealed class DataSourceLifecycleDiagnosticTests
                 ContractDiagnostics =
                 [
                     .. descriptor.ContractDiagnostics,
-                    SourceContractDiagnostic.Warning("Existing datasource warning.", "ExistingSourceDiagnostic")
-                ]
+                    SourceContractDiagnostic.Warning("Existing datasource warning.", "ExistingSourceDiagnostic"),
+                ],
             };
         }
 
@@ -753,7 +800,7 @@ public sealed class DataSourceLifecycleDiagnosticTests
         public ISchemaColumn[] Columns { get; } =
         [
             new Musoq.Schema.DataSources.SchemaColumn(nameof(OrderCsvRow.Customer), 0, typeof(string)),
-            new Musoq.Schema.DataSources.SchemaColumn(nameof(OrderCsvRow.Amount), 1, typeof(string))
+            new Musoq.Schema.DataSources.SchemaColumn(nameof(OrderCsvRow.Amount), 1, typeof(string)),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(OrderCsvRow));
@@ -761,13 +808,15 @@ public sealed class DataSourceLifecycleDiagnosticTests
         public ISchemaColumn? GetColumnByName(string name)
         {
             return Columns.SingleOrDefault(column =>
-                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+            );
         }
 
         public ISchemaColumn[] GetColumnsByName(string name)
         {
-            return Columns.Where(column =>
-                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            return Columns
+                .Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
         }
     }
 

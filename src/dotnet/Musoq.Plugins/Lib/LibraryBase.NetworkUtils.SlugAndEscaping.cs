@@ -35,7 +35,6 @@ public partial class LibraryBase
                 sb.Append('-');
         }
 
-
         var result = RemoveConsecutiveDashesRegex().Replace(sb.ToString(), "-").Trim('-');
         return result;
     }

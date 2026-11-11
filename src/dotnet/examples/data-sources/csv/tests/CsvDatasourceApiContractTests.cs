@@ -17,35 +17,29 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
     [TestMethod]
     public void Engine_WhenRunningCoupledCsvQuery_ShouldPropagateDatasourceApiContexts()
     {
-        var path = WriteTempCsv(
-            "skip-1\n" +
-            "skip-2\n" +
-            "skip-3\n" +
-            "FullName,Amount,Ignored,Status\n");
+        var path = WriteTempCsv("skip-1\n" + "skip-2\n" + "skip-3\n" + "FullName,Amount,Ignored,Status\n");
         var expectedPathArgument = path.Replace('\\', '/');
         var recorder = new CsvDataSourceApiRecorder();
-        recorder.RuntimeSettingRequirements.Add(new SourceRuntimeSettingRequirement(
-            RuntimeSettingName,
-            false,
-            false,
-            SourceRuntimeSettingPhase.All,
-            "Token used by CSV tests."));
-        var settings = new Dictionary<string, string>
-        {
-            [RuntimeSettingName] = RuntimeSettingValue
-        };
+        recorder.RuntimeSettingRequirements.Add(
+            new SourceRuntimeSettingRequirement(
+                RuntimeSettingName,
+                false,
+                false,
+                SourceRuntimeSettingPhase.All,
+                "Token used by CSV tests."
+            )
+        );
+        var settings = new Dictionary<string, string> { [RuntimeSettingName] = RuntimeSettingValue };
         var resolver = new StaticSettingsResolver(settings);
-        var options = CreateOptionsWithRuntimeSettings(
-                settings,
-                resolver)
+        var options = CreateOptionsWithRuntimeSettings(settings, resolver)
             .WithInstrumentationMode(QueryInstrumentationMode.SourceBoundaries);
         var provider = new CsvSchemaProvider(recorder);
         var query =
-            "table CsvShape { Name: string trim source name 'FullName', Amount: decimal culture 'pl-PL', Status: string source index '3' };" +
-            "couple #csv.file with settings csvProfile and table CsvShape as Rows;" +
-            $"select r.Name from Rows({SqlString(path)}, true, 3) r " +
-            "where r.Amount > 10 and r.Status in ('Open', 'Closed') " +
-            "order by r.Name desc skip 1 take 2";
+            "table CsvShape { Name: string trim source name 'FullName', Amount: decimal culture 'pl-PL', Status: string source index '3' };"
+            + "couple #csv.file with settings csvProfile and table CsvShape as Rows;"
+            + $"select r.Name from Rows({SqlString(path)}, true, 3) r "
+            + "where r.Amount > 10 and r.Status in ('Open', 'Closed') "
+            + "order by r.Name desc skip 1 take 2";
         var progress = new List<DataSourceEventArgs>();
         using var cancellation = new CancellationTokenSource();
 
@@ -114,12 +108,9 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
         Assert.IsTrue(rowSource.Execution.AllColumns.Any(column => column.ColumnName == "Name"));
 
         CollectionAssert.AreEqual(
-            new[]
-            {
-                DataSourcePhase.Begin,
-                DataSourcePhase.End
-            },
-            progress.Select(static item => item.Phase).ToArray());
+            new[] { DataSourcePhase.Begin, DataSourcePhase.End },
+            progress.Select(static item => item.Phase).ToArray()
+        );
         Assert.IsTrue(progress.All(item => item.QueryId == rowSource.Execution.QueryId));
     }
 
@@ -127,15 +118,12 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
     public void Engine_WhenSourceAcceptsPlan_ShouldPassAcceptedExecutionPlanToRowSource()
     {
         var path = WriteTempCsv(string.Empty);
-        var recorder = new CsvDataSourceApiRecorder
-        {
-            PlanResultFactory = CreateAcceptedPlanResult
-        };
+        var recorder = new CsvDataSourceApiRecorder { PlanResultFactory = CreateAcceptedPlanResult };
         var provider = new CsvSchemaProvider(recorder);
         var query =
-            "table CsvShape { Name: string trim, Amount: decimal };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select r.Name from Rows({SqlString(path)}) r order by r.Name desc skip 1 take 2";
+            "table CsvShape { Name: string trim, Amount: decimal };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select r.Name from Rows({SqlString(path)}) r order by r.Name desc skip 1 take 2";
 
         var table = Run(query, provider);
 
@@ -169,9 +157,9 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
         var coupledRecorder = new CsvDataSourceApiRecorder();
         var coupledPath = WriteTempCsv(string.Empty);
         var coupledQuery =
-            "table CsvShape { Name: string };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Rows.Name from Rows({SqlString(coupledPath)}) Rows";
+            "table CsvShape { Name: string };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Rows.Name from Rows({SqlString(coupledPath)}) Rows";
         Run(coupledQuery, new CsvSchemaProvider(coupledRecorder));
 
         var coupledIdentity = coupledRecorder.DescribeSourceCalls.Last().Identity;
@@ -188,13 +176,18 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
         var recorder = new CsvDataSourceApiRecorder();
         var provider = new CsvSchemaProvider(recorder);
         const string query =
-            "param(path: string) " +
-            "table CsvShape { Name: string };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            "select Name from Rows($path)";
+            "param(path: string) "
+            + "table CsvShape { Name: string };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + "select Name from Rows($path)";
 
         var compiled = Compile(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "path", path);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "path",
+            path
+        );
         var table = compiled.Run();
 
         Assert.AreEqual(0, table.Count);
@@ -210,23 +203,24 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
         var recorder = new CsvDataSourceApiRecorder();
         var warning = SourceContractDiagnostic.Warning(
             "Encoding modifier 'windows-1250' is ignored by #csv.file().",
-            "CsvUnsupportedEncoding") with
+            "CsvUnsupportedEncoding"
+        ) with
         {
             ColumnName = "Name",
-            ModifierKey = ColumnReadModifiers.Encoding
+            ModifierKey = ColumnReadModifiers.Encoding,
         };
         recorder.DescribeSourceContractDiagnostics.Add(warning);
         recorder.PlanContractDiagnostics.Add(warning);
         const string query =
-            "table CsvShape { Name: string encoding 'windows-1250' };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            "select Name from Rows('diagnostic.csv')";
+            "table CsvShape { Name: string encoding 'windows-1250' };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + "select Name from Rows('diagnostic.csv')";
 
         var result = CompileWithDiagnostics(query, new CsvSchemaProvider(recorder));
 
         Assert.IsTrue(result.Succeeded);
-        var warnings = result.Warnings
-            .Where(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        var warnings = result
+            .Warnings.Where(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
             .ToArray();
         Assert.AreEqual(1, warnings.Length);
         StringAssert.Contains(warnings[0].Message, "origin=DescribeSource");
@@ -260,7 +254,8 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
         IEnumerable<ISchemaColumn> columns,
         string columnName,
         string key,
-        string value)
+        string value
+    )
     {
         Assert.AreEqual(value, columns.Single(column => column.ColumnName == columnName).ReadModifiers[key]);
     }
@@ -269,7 +264,8 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
         IEnumerable<SourceColumnRef> columns,
         string columnName,
         string key,
-        string value)
+        string value
+    )
     {
         Assert.AreEqual(value, columns.Single(column => column.Name == columnName).ReadModifiers[key]);
     }
@@ -292,13 +288,13 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
                 AcceptedPredicate = request.Predicate,
                 AcceptedOrderBy = request.OrderBy,
                 AcceptedSkip = request.Skip,
-                AcceptedTake = request.Take
+                AcceptedTake = request.Take,
             },
             AcceptedColumns = request.RequiredColumns,
             AcceptedPredicate = request.Predicate,
             AcceptedOrderBy = request.OrderBy,
             AcceptedSkip = request.Skip,
-            AcceptedTake = request.Take
+            AcceptedTake = request.Take,
         };
     }
 }

@@ -12,14 +12,20 @@ internal static class ExecutionStrategyPlanner
         CompilationOptions compilationOptions,
         CteExecutionPlan? cteExecutionPlan,
         IPlanningShapeResolver shapeResolver,
-        IReadOnlyDictionary<string, SourceDescriptor>? sourceDescriptors = null)
+        IReadOnlyDictionary<string, SourceDescriptor>? sourceDescriptors = null
+    )
     {
         ArgumentNullException.ThrowIfNull(physicalPlan);
         ArgumentNullException.ThrowIfNull(compilationOptions);
         ArgumentNullException.ThrowIfNull(shapeResolver);
         var identityMap = PhysicalNodeIdentityMap.Build(physicalPlan);
-        var state = new ExecutionStrategyPlanningState(compilationOptions, cteExecutionPlan, shapeResolver, identityMap,
-            new ParallelSourcePermissionPolicy(physicalPlan, sourceDescriptors));
+        var state = new ExecutionStrategyPlanningState(
+            compilationOptions,
+            cteExecutionPlan,
+            shapeResolver,
+            identityMap,
+            new ParallelSourcePermissionPolicy(physicalPlan, sourceDescriptors)
+        );
         state.Visit(physicalPlan);
 
         return new ExecutionStrategyPlanningResult(state.CreatePlan(), state.Decisions);
@@ -30,15 +36,23 @@ internal static class ExecutionStrategyPlanner
         CteExecutionPlan? cteExecutionPlan,
         IPlanningShapeResolver shapeResolver,
         PhysicalNodeIdentityMap identityMap,
-        ParallelSourcePermissionPolicy permissions)
+        ParallelSourcePermissionPolicy permissions
+    )
     {
         private readonly ParallelStrategyPlanner _parallelStrategyPlanner = new(
             compilationOptions,
             cteExecutionPlan,
-            shapeResolver, permissions);
-        private readonly Dictionary<PhysicalCteNode, CteStrategyDecision> _cteStrategies = new(ReferenceComparer<PhysicalCteNode>.Instance);
-        private readonly Dictionary<PhysicalCteNode, CteSidecarIndexPlan> _cteSidecarIndexPlans = new(ReferenceComparer<PhysicalCteNode>.Instance);
-        private readonly Dictionary<PhysicalSetOperationNode, SetOperationStrategyDecision> _setOperationStrategies = new(ReferenceComparer<PhysicalSetOperationNode>.Instance);
+            shapeResolver,
+            permissions
+        );
+        private readonly Dictionary<PhysicalCteNode, CteStrategyDecision> _cteStrategies = new(
+            ReferenceComparer<PhysicalCteNode>.Instance
+        );
+        private readonly Dictionary<PhysicalCteNode, CteSidecarIndexPlan> _cteSidecarIndexPlans = new(
+            ReferenceComparer<PhysicalCteNode>.Instance
+        );
+        private readonly Dictionary<PhysicalSetOperationNode, SetOperationStrategyDecision> _setOperationStrategies =
+            new(ReferenceComparer<PhysicalSetOperationNode>.Instance);
         private readonly List<PlanningDecision> _decisions = [];
         private int _nextCteSidecarIndexSlot;
 
@@ -46,7 +60,10 @@ internal static class ExecutionStrategyPlanner
 
         public void Visit(PhysicalNode node)
         {
-            if (ExecutionStrategyPipelineDecomposer.TryDecomposeSingleKeyAggregatePipeline(node) is { } aggregatePipeline)
+            if (
+                ExecutionStrategyPipelineDecomposer.TryDecomposeSingleKeyAggregatePipeline(node) is
+                { } aggregatePipeline
+            )
                 AddDecision(_parallelStrategyPlanner.AddAggregateCandidate(aggregatePipeline));
 
             if (ExecutionStrategyPipelineDecomposer.TryDecomposeSupportedPipeline(node) is { } supportedPipeline)
@@ -78,7 +95,8 @@ internal static class ExecutionStrategyPlanner
                 _setOperationStrategies,
                 new Dictionary<string, SourceBoundaryStrategyPlan>(StringComparer.Ordinal),
                 new Dictionary<BoundaryRowShapeKind, RowWidthPruningPlan[]>(),
-                []);
+                []
+            );
         }
 
         private void AddCteStrategy(PhysicalCteNode node)
@@ -91,13 +109,16 @@ internal static class ExecutionStrategyPlanner
 
             foreach (var definition in strategy.DefinitionsByName.Values)
             {
-                _decisions.Add(new PlanningDecision(
-                    PlanningDecisionCategory.CteStrategy,
-                    "CteReuseStrategy",
-                    $"cte:{definition.Name}",
-                    definition.Kind.ToString(),
-                    PlanningConfidence.High,
-                    definition.Reason));
+                _decisions.Add(
+                    new PlanningDecision(
+                        PlanningDecisionCategory.CteStrategy,
+                        "CteReuseStrategy",
+                        $"cte:{definition.Name}",
+                        definition.Kind.ToString(),
+                        PlanningConfidence.High,
+                        definition.Reason
+                    )
+                );
             }
         }
 
@@ -114,7 +135,8 @@ internal static class ExecutionStrategyPlanner
                 compilationOptions,
                 strategy,
                 _nextCteSidecarIndexSlot,
-                _parallelStrategyPlanner.EvaluateFilterProjectEligibility);
+                _parallelStrategyPlanner.EvaluateFilterProjectEligibility
+            );
 
             _nextCteSidecarIndexSlot = result.NextIndexSlot;
             if (result.Plan.DefinitionsByName.Count > 0 || result.Plan.ConsumersByJoin.Count > 0)
@@ -130,13 +152,16 @@ internal static class ExecutionStrategyPlanner
 
             var strategy = SetOperationStrategyPlanner.Choose(node);
             _setOperationStrategies.Add(node, strategy);
-            _decisions.Add(new PlanningDecision(
-                PlanningDecisionCategory.SetOperationStrategy,
-                "SetOperationStrategy",
-                node.Kind.ToString(),
-                strategy.Outcome,
-                PlanningConfidence.High,
-                strategy.Reason));
+            _decisions.Add(
+                new PlanningDecision(
+                    PlanningDecisionCategory.SetOperationStrategy,
+                    "SetOperationStrategy",
+                    node.Kind.ToString(),
+                    strategy.Outcome,
+                    PlanningConfidence.High,
+                    strategy.Reason
+                )
+            );
         }
 
         private void AddDecision(PlanningDecision? decision)

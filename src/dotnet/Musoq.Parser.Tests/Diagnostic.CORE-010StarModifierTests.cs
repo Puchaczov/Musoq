@@ -13,8 +13,8 @@ public sealed class DiagnosticCore010StarModifierTests
     public void QualifiedStarModifierChain_ShouldPreserveScopeOrderAndCase()
     {
         const string query =
-            "select a.* like '%o%' exclude (country) replace (Population * 3 as population) " +
-            "rename (population as Population3x) from #some.entities() a";
+            "select a.* like '%o%' exclude (country) replace (Population * 3 as population) "
+            + "rename (population as Population3x) from #some.entities() a";
 
         var result = ParseWithDiagnostics(query);
 
@@ -47,7 +47,8 @@ public sealed class DiagnosticCore010StarModifierTests
         var fields = GetQuery(result.Root!).Select.Fields;
         CollectionAssert.AreEqual(
             new[] { "exclude", "replace", "rename" },
-            fields.Select(static field => field.FieldName).ToArray());
+            fields.Select(static field => field.FieldName).ToArray()
+        );
     }
 
     [TestMethod]

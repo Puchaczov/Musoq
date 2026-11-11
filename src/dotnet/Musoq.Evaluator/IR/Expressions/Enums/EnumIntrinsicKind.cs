@@ -6,5 +6,5 @@ internal enum EnumIntrinsicKind
     EnumName,
     IsDefined,
     HasAnyFlags,
-    HasAllFlags
+    HasAllFlags,
 }

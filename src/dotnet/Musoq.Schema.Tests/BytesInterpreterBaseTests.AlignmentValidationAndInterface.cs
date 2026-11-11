@@ -48,8 +48,7 @@ public partial class BytesInterpreterBaseTests
     public void AlignToBits_ZeroBits_ThrowsInvalidSizeParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        var exception = Assert.Throws<ParseException>(() =>
-            interpreter.TestAlignToBits(new byte[10], 0));
+        var exception = Assert.Throws<ParseException>(() => interpreter.TestAlignToBits(new byte[10], 0));
         Assert.AreEqual(ParseErrorCode.InvalidSize, exception.ErrorCode);
     }
 
@@ -57,8 +56,7 @@ public partial class BytesInterpreterBaseTests
     public void AlignToBits_NegativeBits_ThrowsInvalidSizeParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        var exception = Assert.Throws<ParseException>(() =>
-            interpreter.TestAlignToBits(new byte[10], -1));
+        var exception = Assert.Throws<ParseException>(() => interpreter.TestAlignToBits(new byte[10], -1));
         Assert.AreEqual(ParseErrorCode.InvalidSize, exception.ErrorCode);
     }
 
@@ -86,8 +84,7 @@ public partial class BytesInterpreterBaseTests
     public void Validate_ConditionFalse_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        var ex = Assert.Throws<ParseException>(() =>
-            interpreter.TestValidate(false, "testField", "validation failed"));
+        var ex = Assert.Throws<ParseException>(() => interpreter.TestValidate(false, "testField", "validation failed"));
         Assert.AreEqual("testField", ex.FieldName);
         Assert.AreEqual("validation failed", ex.Details);
     }
@@ -175,8 +172,7 @@ public partial class BytesInterpreterBaseTests
     public void EnsureBytes_NotEnough_ThrowsParseException()
     {
         var interpreter = new TestBytesInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestEnsureBytes([0x01], 10));
+        Assert.Throws<ParseException>(() => interpreter.TestEnsureBytes([0x01], 10));
     }
 
     #endregion

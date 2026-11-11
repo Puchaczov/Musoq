@@ -146,7 +146,8 @@ public class ParserOrderByAndDistinctTests
     [TestMethod]
     public void OrderByDescWithComments_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             select Name from #some.a()
             order by
                 Name desc -- sort by name descending
@@ -187,7 +188,8 @@ public class ParserOrderByAndDistinctTests
     [TestMethod]
     public void OrderByDescMultiline_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             select Name
             from #some.a()
             order by
@@ -207,11 +209,11 @@ public class ParserOrderByAndDistinctTests
     public void WhenTwoCommentsWithEmptyLineThenQuery_ShouldParse()
     {
         var query = """
-                    --comment 1
-                    --comment 2
+            --comment 1
+            --comment 2
 
-                    select 1 from #some.a()
-                    """;
+            select 1 from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -223,13 +225,13 @@ public class ParserOrderByAndDistinctTests
     public void WhenThreeCommentsWithEmptyLinesThenQuery_ShouldParse()
     {
         var query = """
-                    --comment 1
-                    --comment 2
-                    --comment 3
+            --comment 1
+            --comment 2
+            --comment 3
 
 
-                    select 1 from #some.a()
-                    """;
+            select 1 from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -241,12 +243,12 @@ public class ParserOrderByAndDistinctTests
     public void WhenEmptyLineBetweenCommentsThenQuery_ShouldParse()
     {
         var query = """
-                    --comment 1
+            --comment 1
 
-                    --comment 2
+            --comment 2
 
-                    select 1 from #some.a()
-                    """;
+            select 1 from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -258,11 +260,11 @@ public class ParserOrderByAndDistinctTests
     public void WhenMultiLineCommentWithEmptyLineThenQuery_ShouldParse()
     {
         var query = """
-                    /* comment 1
-                       comment 2 */
+            /* comment 1
+               comment 2 */
 
-                    select 1 from #some.a()
-                    """;
+            select 1 from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -274,12 +276,12 @@ public class ParserOrderByAndDistinctTests
     public void WhenMixedCommentsWithEmptyLinesThenQuery_ShouldParse()
     {
         var query = """
-                    --single line comment
-                    /* multi-line
-                       comment */
+            --single line comment
+            /* multi-line
+               comment */
 
-                    select 1 from #some.a()
-                    """;
+            select 1 from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -294,15 +296,19 @@ public class ParserOrderByAndDistinctTests
 
         var lexer = new Lexer(query, true);
 
-
         var token1 = lexer.Next();
-        Assert.AreEqual(TokenType.Select, token1.TokenType,
-            $"Token 1 should be Select, got {token1.TokenType} with value '{token1.Value}'");
-
+        Assert.AreEqual(
+            TokenType.Select,
+            token1.TokenType,
+            $"Token 1 should be Select, got {token1.TokenType} with value '{token1.Value}'"
+        );
 
         var token2 = lexer.Next();
-        Assert.AreEqual(TokenType.Distinct, token2.TokenType,
-            $"Token 2 should be Distinct, got {token2.TokenType} with value '{token2.Value}'");
+        Assert.AreEqual(
+            TokenType.Distinct,
+            token2.TokenType,
+            $"Token 2 should be Distinct, got {token2.TokenType} with value '{token2.Value}'"
+        );
     }
 
     [TestMethod]
@@ -315,7 +321,6 @@ public class ParserOrderByAndDistinctTests
         var result = parser.ComposeAll();
 
         Assert.IsNotNull(result);
-
 
         var statementsArray = result.Expression as StatementsArrayNode;
         Assert.IsNotNull(statementsArray);
@@ -431,6 +436,4 @@ public class ParserOrderByAndDistinctTests
 
         ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
-
-
 }

@@ -5,4 +5,5 @@ internal sealed record ExecutionTablePostOperationMetadata(
     ExecutionVariable Target,
     ExecutionCapacityHint? CapacityHint,
     ExecutionAppendMode AppendMode,
-    ExecutionColumnMetadata? ColumnMetadata);
+    ExecutionColumnMetadata? ColumnMetadata
+);

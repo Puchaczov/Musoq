@@ -23,7 +23,9 @@ public sealed class GeneratedInterpretationCodeDumpTests
     }
 
     [TestMethod]
-    [Ignore("Local snapshot refresh utility. Run intentionally when interpretation generated-code changes are expected.")]
+    [Ignore(
+        "Local snapshot refresh utility. Run intentionally when interpretation generated-code changes are expected."
+    )]
     public void Refresh_Local_Interpretation_Samples()
     {
         foreach (var sample in GeneratedCodeSamplesCatalog.InterpretationSamples)
@@ -36,13 +38,15 @@ public sealed class GeneratedInterpretationCodeDumpTests
         var samplePath = GeneratedCodeSampleArtifacts.GetSamplePath(sample);
         Assert.IsTrue(
             File.Exists(samplePath),
-            $"Generated interpretation snapshot is missing: {samplePath}. Run the ignored refresh utility intentionally when snapshots change.");
+            $"Generated interpretation snapshot is missing: {samplePath}. Run the ignored refresh utility intentionally when snapshots change."
+        );
 
         var expected = File.ReadAllText(samplePath);
         var actual = GeneratedCodeSampleArtifacts.Generate(sample, _loggerResolver);
 
         Assert.AreEqual(
             GeneratedCodeSampleArtifacts.NormalizeForComparison(expected),
-            GeneratedCodeSampleArtifacts.NormalizeForComparison(actual));
+            GeneratedCodeSampleArtifacts.NormalizeForComparison(actual)
+        );
     }
 }

@@ -22,9 +22,7 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         LogicalOperationVisitorHelper.ProcessAndOperation(nodes, IdentityRewriter);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -43,9 +41,7 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         LogicalOperationVisitorHelper.ProcessOrOperation(nodes, IdentityRewriter);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -62,9 +58,7 @@ public class LogicalOperationVisitorHelperTests
         var operandNode = new BooleanNode(true);
         nodes.Push(operandNode);
 
-
         LogicalOperationVisitorHelper.ProcessNotOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -82,9 +76,7 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-
         LogicalOperationVisitorHelper.ProcessContainsOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -101,9 +93,7 @@ public class LogicalOperationVisitorHelperTests
         var operandNode = new IdentifierNode("x");
         nodes.Push(operandNode);
 
-
         LogicalOperationVisitorHelper.ProcessIsNullOperation(nodes, true);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -118,21 +108,14 @@ public class LogicalOperationVisitorHelperTests
     {
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
-        var argsNode = new ArgsListNode([
-            new IntegerNode("1"),
-            new IntegerNode("2"),
-            new IntegerNode("3")
-        ]);
+        var argsNode = new ArgsListNode([new IntegerNode("1"), new IntegerNode("2"), new IntegerNode("3")]);
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
-
         LogicalOperationVisitorHelper.ProcessInOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-
 
         Assert.IsInstanceOfType<InNode>(result);
         Assert.AreSame(leftNode, ((InNode)result).Left);
@@ -156,9 +139,7 @@ public class LogicalOperationVisitorHelperTests
             return node;
         }
 
-
         LogicalOperationVisitorHelper.ProcessAndOperation(nodes, TestRewriter);
-
 
         Assert.IsTrue(rewriterCalled);
         Assert.HasCount(1, nodes);
@@ -183,9 +164,7 @@ public class LogicalOperationVisitorHelperTests
             return node;
         }
 
-
         LogicalOperationVisitorHelper.ProcessOrOperation(nodes, TestRewriter);
-
 
         Assert.IsTrue(rewriterCalled);
         Assert.HasCount(1, nodes);
@@ -198,15 +177,11 @@ public class LogicalOperationVisitorHelperTests
     {
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
-        var argsNode = new ArgsListNode([
-            new IntegerNode("42")
-        ]);
+        var argsNode = new ArgsListNode([new IntegerNode("42")]);
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
-
         LogicalOperationVisitorHelper.ProcessInOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -223,9 +198,7 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
-
         LogicalOperationVisitorHelper.ProcessInOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -245,9 +218,7 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
-
         LogicalOperationVisitorHelper.ProcessInOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -270,9 +241,7 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
-
         LogicalOperationVisitorHelper.ProcessInOperation(nodes);
-
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();

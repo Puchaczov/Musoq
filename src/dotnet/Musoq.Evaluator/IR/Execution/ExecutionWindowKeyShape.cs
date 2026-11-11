@@ -9,7 +9,8 @@ public sealed record ExecutionWindowKeyShape
         bool IsTyped,
         string? GeneratedElementTypeName = null,
         bool IsGeneratedOrderKey = false,
-        IReadOnlyList<ExecutionWindowGeneratedKeyPart>? GeneratedParts = null)
+        IReadOnlyList<ExecutionWindowGeneratedKeyPart>? GeneratedParts = null
+    )
     {
         this.ElementType = ElementType;
         this.IsTyped = IsTyped;
@@ -36,13 +37,13 @@ public sealed record ExecutionWindowKeyShape
         bool isTyped,
         string? generatedElementTypeName = null,
         bool isGeneratedOrderKey = false,
-        IReadOnlyList<ExecutionWindowGeneratedKeyPart>? generatedParts = null)
+        IReadOnlyList<ExecutionWindowGeneratedKeyPart>? generatedParts = null
+    )
         : this(
             ExecutionClrBindingFactory.FromClr(elementType),
             isTyped,
             generatedElementTypeName,
             isGeneratedOrderKey,
-            generatedParts)
-    {
-    }
+            generatedParts
+        ) { }
 }

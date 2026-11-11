@@ -4,4 +4,5 @@ public sealed record ExecutionCreateTable(
     ExecutionVariable Table,
     GeneratedRowShape RowShape,
     ExecutionCapacityHint? CapacityHint = null,
-    ExecutionColumnMetadata? ColumnMetadata = null) : ExecutionNode;
+    ExecutionColumnMetadata? ColumnMetadata = null
+) : ExecutionNode;

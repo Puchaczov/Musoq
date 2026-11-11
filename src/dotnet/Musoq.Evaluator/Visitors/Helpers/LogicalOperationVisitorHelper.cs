@@ -11,28 +11,45 @@ namespace Musoq.Evaluator.Visitors.Helpers;
 public static class LogicalOperationVisitorHelper
 {
     /// <summary>Processes an And operation with nullable boolean expression rewriting.</summary>
-    public static void ProcessAndOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions,
-        TextSpan span = default)
+    public static void ProcessAndOperation(
+        Stack<Node> nodes,
+        Func<Node, Node> rewriteNullableBoolExpressions,
+        TextSpan span = default
+    )
     {
         ArgumentNullException.ThrowIfNull(nodes);
         ArgumentNullException.ThrowIfNull(rewriteNullableBoolExpressions);
-        ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new AndNode(left, right), span);
+        ProcessLogicalBinaryOperation(
+            nodes,
+            rewriteNullableBoolExpressions,
+            (left, right) => new AndNode(left, right),
+            span
+        );
     }
 
     /// <summary>Processes an Or operation with nullable boolean expression rewriting.</summary>
-    public static void ProcessOrOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions,
-        TextSpan span = default)
+    public static void ProcessOrOperation(
+        Stack<Node> nodes,
+        Func<Node, Node> rewriteNullableBoolExpressions,
+        TextSpan span = default
+    )
     {
         ArgumentNullException.ThrowIfNull(nodes);
         ArgumentNullException.ThrowIfNull(rewriteNullableBoolExpressions);
-        ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new OrNode(left, right), span);
+        ProcessLogicalBinaryOperation(
+            nodes,
+            rewriteNullableBoolExpressions,
+            (left, right) => new OrNode(left, right),
+            span
+        );
     }
 
     private static void ProcessLogicalBinaryOperation(
         Stack<Node> nodes,
         Func<Node, Node> rewriteNullableBoolExpressions,
         Func<Node, Node, Node> nodeFactory,
-        TextSpan span)
+        TextSpan span
+    )
     {
         ValidateBinaryOperation(nodes);
         ArgumentNullException.ThrowIfNull(rewriteNullableBoolExpressions);

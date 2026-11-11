@@ -20,12 +20,13 @@ public sealed class ExecutionShapeResolverSourceFieldTests
         var columns = new ISchemaColumn[]
         {
             new SchemaColumn("Who", 7, typeof(string)),
-            new SchemaColumn("Age", 7, typeof(int))
+            new SchemaColumn("Age", 7, typeof(int)),
         };
         var resolver = CreateResolver(alias, typeof(IReadOnlyDictionary<string, object>), columns);
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => resolver.ResolveSourceShape(CreateScan(alias)));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            resolver.ResolveSourceShape(CreateScan(alias))
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }
@@ -37,7 +38,7 @@ public sealed class ExecutionShapeResolverSourceFieldTests
         var columns = new ISchemaColumn[]
         {
             new SchemaColumn("Who", 4, typeof(string)),
-            new SchemaColumn("Age", 1, typeof(int))
+            new SchemaColumn("Age", 1, typeof(int)),
         };
         var resolver = CreateResolver(alias, typeof(object[]), columns);
 
@@ -46,12 +47,11 @@ public sealed class ExecutionShapeResolverSourceFieldTests
         CollectionAssert.AreEqual(new[] { 0, 1 }, shape.Fields.Select(static field => field.OutputIndex).ToArray());
         CollectionAssert.AreEqual(
             new[] { 4, 1 },
-            shape.Fields
-                .Select(static field => Assert.IsInstanceOfType<PositionalAccess>(field.AccessStrategy).Index)
-                .ToArray());
-        CollectionAssert.AreEqual(
-            new[] { "Who", "Age" },
-            shape.Fields.Select(static field => field.Name).ToArray());
+            shape
+                .Fields.Select(static field => Assert.IsInstanceOfType<PositionalAccess>(field.AccessStrategy).Index)
+                .ToArray()
+        );
+        CollectionAssert.AreEqual(new[] { "Who", "Age" }, shape.Fields.Select(static field => field.Name).ToArray());
     }
 
     [TestMethod]
@@ -61,12 +61,13 @@ public sealed class ExecutionShapeResolverSourceFieldTests
         var columns = new ISchemaColumn[]
         {
             new SchemaColumn("Age", 7, typeof(int)),
-            new SchemaColumn("Who", 7, typeof(string))
+            new SchemaColumn("Who", 7, typeof(string)),
         };
         var resolver = CreateResolver(alias, typeof(IReadOnlyDictionary<string, object>), columns);
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => resolver.ResolveSourceShape(CreateScan(alias, ["Age", "Who"])));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            resolver.ResolveSourceShape(CreateScan(alias, ["Age", "Who"]))
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }
@@ -74,17 +75,16 @@ public sealed class ExecutionShapeResolverSourceFieldTests
     private static ExecutionShapeResolver CreateResolver(
         string alias,
         Type entityType,
-        IReadOnlyList<ISchemaColumn> columns)
+        IReadOnlyList<ISchemaColumn> columns
+    )
     {
         return new ExecutionShapeResolver(
             inferredColumns: new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal)
             {
-                [alias] = columns.ToArray()
+                [alias] = columns.ToArray(),
             },
-            entityTypesByAlias: new Dictionary<string, Type>(StringComparer.Ordinal)
-            {
-                [alias] = entityType
-            });
+            entityTypesByAlias: new Dictionary<string, Type>(StringComparer.Ordinal) { [alias] = entityType }
+        );
     }
 
     private static PhysicalSchemaScanNode CreateScan(string alias, string[]? projectedColumns = null)

@@ -15,7 +15,7 @@ public sealed class SourcePlanningTable : ISchemaTable
         new SchemaColumn(nameof(SourcePlanningEntity.Score), 3, typeof(int)),
         new SchemaColumn(nameof(SourcePlanningEntity.CreatedAt), 4, typeof(DateTime)),
         new SchemaColumn(nameof(SourcePlanningEntity.JoinKey), 5, typeof(int)),
-        new SchemaColumn(nameof(SourcePlanningEntity.ExpensivePayload), 6, typeof(string))
+        new SchemaColumn(nameof(SourcePlanningEntity.ExpensivePayload), 6, typeof(string)),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(SourcePlanningEntity));

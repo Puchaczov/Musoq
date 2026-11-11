@@ -14,17 +14,13 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class SpecExplorationCoreLanguageTests
 {
-
     #region §6 FROM Clause
 
     [TestMethod]
     public void Spec_From_WithoutHashPrefix_ShouldBeEquivalent()
     {
         var query = "select Name from A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Alice")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Alice")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -44,12 +40,13 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Country = "POLAND" },
                     new BasicEntity("b") { Country = "POLAND" },
-                    new BasicEntity("c") { Country = "GERMANY" }
+                    new BasicEntity("c") { Country = "GERMANY" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -72,20 +69,13 @@ public partial class SpecExplorationCoreLanguageTests
         var query = "select RowNumber(), Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob"),
-                    new BasicEntity("Charlie")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(3, table.Count);
-
 
         var rowNumbers = table.Select(r => (int)r.ReadValues()[0]).OrderBy(x => x).ToList();
         Assert.AreEqual(1, rowNumbers[0]);
@@ -103,12 +93,7 @@ public partial class SpecExplorationCoreLanguageTests
         var query = "select Name from #A.Entities() where Name = 'alice'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("alice")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("alice")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -128,12 +113,7 @@ public partial class SpecExplorationCoreLanguageTests
         var query = "select Name from #A.Entities() where Match('\\d+', Name)";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("test123"),
-                    new BasicEntity("nope")
-                ]
-            }
+            { "#A", [new BasicEntity("test123"), new BasicEntity("nope")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -144,5 +124,4 @@ public partial class SpecExplorationCoreLanguageTests
     }
 
     #endregion
-
 }

@@ -32,5 +32,4 @@ public partial class RewriteQueryVisitorTests
         // Assert
         AssertSingleResult<TakeNode>();
     }
-
 }

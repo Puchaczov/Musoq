@@ -18,9 +18,11 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_Rest_ShouldCaptureRemainingText()
     {
         // Arrange: text Schema { Prefix: chars[3], Suffix: rest }
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
             CreateTextField("Prefix", TextFieldType.Chars, "3"),
-            CreateTextField("Suffix", TextFieldType.Rest));
+            CreateTextField("Suffix", TextFieldType.Rest)
+        );
 
         var data = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij";
 
@@ -42,8 +44,7 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_UntilDelimiter_ShouldParseCorrectly()
     {
         // Arrange: text Schema { Key: until ':' }
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreateTextField("Key", TextFieldType.Until, ":"));
+        var interpreter = CreateAndCompileInterpreter("TestSchema", CreateTextField("Key", TextFieldType.Until, ":"));
 
         var data = "Hello:World";
 
@@ -60,9 +61,11 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     {
         // Arrange: text Schema { Key: until ':', Value: rest trim }
         // Note: ReadUntil consumes the delimiter ':', so we just need to skip the space after
-        var interpreter = CreateAndCompileInterpreter("KeyValue",
+        var interpreter = CreateAndCompileInterpreter(
+            "KeyValue",
             CreateTextField("Key", TextFieldType.Until, ":"),
-            CreateTextField("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim));
+            CreateTextField("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim)
+        );
 
         var data = "Name: John Doe";
 
@@ -84,8 +87,10 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_BetweenDelimiters_ShouldParseCorrectly()
     {
         // Arrange: text Schema { Value: between '[' ']' }
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreateTextField("Value", TextFieldType.Between, "[", "]"));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreateTextField("Value", TextFieldType.Between, "[", "]")
+        );
 
         var data = "[Hello World]";
 
@@ -101,8 +106,10 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_BetweenWithQuotes_ShouldParseCorrectly()
     {
         // Arrange: text Schema { Value: between '"' '"' }
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreateTextField("Value", TextFieldType.Between, "\"", "\""));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreateTextField("Value", TextFieldType.Between, "\"", "\"")
+        );
 
         var data = "\"quoted text\"";
 
@@ -122,8 +129,7 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_FixedChars_ShouldParseCorrectly()
     {
         // Arrange: text Schema { Code: chars[5] }
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreateTextField("Code", TextFieldType.Chars, "5"));
+        var interpreter = CreateAndCompileInterpreter("TestSchema", CreateTextField("Code", TextFieldType.Chars, "5"));
 
         var data = "ABCDEFGHIJ";
 
@@ -139,8 +145,10 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_FixedCharsWithTrim_ShouldTrimResult()
     {
         // Arrange: text Schema { Code: chars[10] trim }
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreateTextField("Code", TextFieldType.Chars, "10", modifiers: TextFieldModifier.Trim));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreateTextField("Code", TextFieldType.Chars, "10", modifiers: TextFieldModifier.Trim)
+        );
 
         var data = "  ABC     ";
 
@@ -160,8 +168,7 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_Token_ShouldParseCorrectly()
     {
         // Arrange: text Schema { Word: token }
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreateTextField("Word", TextFieldType.Token));
+        var interpreter = CreateAndCompileInterpreter("TestSchema", CreateTextField("Word", TextFieldType.Token));
 
         var data = "Hello World";
 
@@ -177,10 +184,12 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_TokenWithWhitespace_ShouldParseMultipleTokens()
     {
         // Arrange: text Schema { Word1: token, _: whitespace, Word2: token }
-        var interpreter = CreateAndCompileInterpreter("TwoWords",
+        var interpreter = CreateAndCompileInterpreter(
+            "TwoWords",
             CreateTextField("Word1", TextFieldType.Token),
             CreateTextField("_", TextFieldType.Whitespace),
-            CreateTextField("Word2", TextFieldType.Token));
+            CreateTextField("Word2", TextFieldType.Token)
+        );
 
         var data = "Hello World";
 
@@ -208,12 +217,14 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
         //     _: literal ' ',       // Space after ':'
         //     Message: rest
         // }
-        var interpreter = CreateAndCompileInterpreter("LogEntry",
+        var interpreter = CreateAndCompileInterpreter(
+            "LogEntry",
             CreateTextField("Timestamp", TextFieldType.Between, "[", "]"),
             CreateTextField("_", TextFieldType.Literal, " "),
             CreateTextField("Level", TextFieldType.Until, ":"),
             CreateTextField("_", TextFieldType.Literal, " "), // Only space, colon was consumed by Until
-            CreateTextField("Message", TextFieldType.Rest));
+            CreateTextField("Message", TextFieldType.Rest)
+        );
 
         var data = "[2024-01-15 10:30:45] INFO: Application started successfully";
 
@@ -238,10 +249,12 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
         //     City: rest
         // }
         // Note: No literal needed after 'until' since it consumes the delimiter
-        var interpreter = CreateAndCompileInterpreter("CsvRow",
+        var interpreter = CreateAndCompileInterpreter(
+            "CsvRow",
             CreateTextField("Name", TextFieldType.Until, ","),
             CreateTextField("Age", TextFieldType.Until, ","),
-            CreateTextField("City", TextFieldType.Rest));
+            CreateTextField("City", TextFieldType.Rest)
+        );
 
         var data = "John Doe,30,New York";
 
@@ -265,11 +278,13 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_OptionalField_WhenPresent_ShouldCaptureValue()
     {
         // Arrange: text Schema { Key: until ':', _: literal ' ', Value: optional until '\t', Extra: rest }
-        var interpreter = CreateAndCompileInterpreter("LogEntry",
+        var interpreter = CreateAndCompileInterpreter(
+            "LogEntry",
             CreateTextField("Key", TextFieldType.Until, ":"),
             CreateTextField("_", TextFieldType.Literal, " "),
             CreateTextField("Value", TextFieldType.Until, "\t", null, TextFieldModifier.Optional),
-            CreateTextField("Extra", TextFieldType.Rest));
+            CreateTextField("Extra", TextFieldType.Rest)
+        );
 
         // Tab exists, so Value should capture "Hello"
         var data = "Name: Hello\tWorld";
@@ -290,11 +305,13 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_OptionalField_WhenAbsent_ShouldReturnNull()
     {
         // Arrange: text Schema { Key: until ':', _: literal ' ', Value: optional until '\t', Extra: rest }
-        var interpreter = CreateAndCompileInterpreter("LogEntry",
+        var interpreter = CreateAndCompileInterpreter(
+            "LogEntry",
             CreateTextField("Key", TextFieldType.Until, ":"),
             CreateTextField("_", TextFieldType.Literal, " "),
             CreateTextField("Value", TextFieldType.Until, "\t", null, TextFieldModifier.Optional),
-            CreateTextField("Extra", TextFieldType.Rest));
+            CreateTextField("Extra", TextFieldType.Rest)
+        );
 
         // No tab exists, so Value should be null and cursor should not advance
         var data = "Name: Hello World";
@@ -315,10 +332,12 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_OptionalLiteral_WhenPresent_ShouldConsumeLiteral()
     {
         // Arrange: text Schema { Key: until ':', _: optional literal '\t', Value: rest }
-        var interpreter = CreateAndCompileInterpreter("TabSeparated",
+        var interpreter = CreateAndCompileInterpreter(
+            "TabSeparated",
             CreateTextField("Key", TextFieldType.Until, ":"),
             CreateTextField("_", TextFieldType.Literal, "\t", null, TextFieldModifier.Optional),
-            CreateTextField("Value", TextFieldType.Rest));
+            CreateTextField("Value", TextFieldType.Rest)
+        );
 
         // Tab exists after colon
         var data = "Name:\tJohn";
@@ -337,10 +356,12 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_OptionalLiteral_WhenAbsent_ShouldNotConsumeLiteral()
     {
         // Arrange: text Schema { Key: until ':', _: optional literal '\t', Value: rest }
-        var interpreter = CreateAndCompileInterpreter("TabSeparated",
+        var interpreter = CreateAndCompileInterpreter(
+            "TabSeparated",
             CreateTextField("Key", TextFieldType.Until, ":"),
             CreateTextField("_", TextFieldType.Literal, "\t", null, TextFieldModifier.Optional),
-            CreateTextField("Value", TextFieldType.Rest));
+            CreateTextField("Value", TextFieldType.Rest)
+        );
 
         // No tab after colon (space instead)
         var data = "Name: John";
@@ -359,10 +380,12 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_OptionalPattern_WhenPresent_ShouldCaptureMatch()
     {
         // Arrange: text Schema { Prefix: until ' ', TraceId: optional pattern '[a-f0-9]{8}', Rest: rest }
-        var interpreter = CreateAndCompileInterpreter("TraceLog",
+        var interpreter = CreateAndCompileInterpreter(
+            "TraceLog",
             CreateTextField("Prefix", TextFieldType.Until, " "),
             CreateTextField("TraceId", TextFieldType.Pattern, "[a-f0-9]{8}", null, TextFieldModifier.Optional),
-            CreateTextField("Rest", TextFieldType.Rest));
+            CreateTextField("Rest", TextFieldType.Rest)
+        );
 
         // Hex trace ID present
         var data = "INFO deadbeef remaining";
@@ -383,10 +406,12 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     public void Parse_OptionalPattern_WhenAbsent_ShouldReturnNull()
     {
         // Arrange: text Schema { Prefix: until ' ', TraceId: optional pattern '[a-f0-9]{8}', Rest: rest }
-        var interpreter = CreateAndCompileInterpreter("TraceLog",
+        var interpreter = CreateAndCompileInterpreter(
+            "TraceLog",
             CreateTextField("Prefix", TextFieldType.Until, " "),
             CreateTextField("TraceId", TextFieldType.Pattern, "[a-f0-9]{8}", null, TextFieldModifier.Optional),
-            CreateTextField("Rest", TextFieldType.Rest));
+            CreateTextField("Rest", TextFieldType.Rest)
+        );
 
         // No valid hex trace ID
         var data = "INFO xyz12345";
@@ -413,21 +438,22 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
         var schema = new TextSchemaNode(schemaName, fields);
         registry.Register(schemaName, schema);
 
-
         return CompileFromRegistry(registry, schemaName);
     }
 
-    private static object InvokeParse(object interpreter, string data) => ((ICompiledTextFixture)interpreter).Parse(data);
+    private static object InvokeParse(object interpreter, string data) =>
+        ((ICompiledTextFixture)interpreter).Parse(data);
 
-    private static T? GetNullablePropertyValue<T>(object obj, string propertyName) where T : class =>
-        (T?)((System.Collections.Generic.IReadOnlyDictionary<string, object?>)obj)[propertyName];
+    private static T? GetNullablePropertyValue<T>(object obj, string propertyName)
+        where T : class => (T?)((System.Collections.Generic.IReadOnlyDictionary<string, object?>)obj)[propertyName];
 
     private static TextFieldDefinitionNode CreateTextField(
         string name,
         TextFieldType fieldType,
         string? primaryValue = null,
         string? secondaryValue = null,
-        TextFieldModifier modifiers = TextFieldModifier.None)
+        TextFieldModifier modifiers = TextFieldModifier.None
+    )
     {
         return new TextFieldDefinitionNode(name, fieldType, primaryValue, secondaryValue, modifiers);
     }
@@ -442,8 +468,10 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Parse_Rest_WithTrim_ShouldTrimWhitespace()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreateTextField("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreateTextField("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim)
+        );
 
         var data = "   Hello World   ";
 
@@ -459,9 +487,11 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Parse_Chars_ExactWidth_ShouldParseCorrectly()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
             CreateTextField("Code", TextFieldType.Chars, "5"),
-            CreateTextField("Name", TextFieldType.Rest));
+            CreateTextField("Name", TextFieldType.Rest)
+        );
 
         var data = "ABCDEJohn Doe";
 
@@ -479,10 +509,12 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Parse_MultipleUntilFields_ShouldParseSequentially()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
             CreateTextField("Field1", TextFieldType.Until, "|"),
             CreateTextField("Field2", TextFieldType.Until, "|"),
-            CreateTextField("Field3", TextFieldType.Rest));
+            CreateTextField("Field3", TextFieldType.Rest)
+        );
 
         var data = "A|B|C";
 
@@ -499,14 +531,15 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Parse_Between_NestedDelimiters_CapturesUpToFirstEndDelimiter()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreateTextField("Content", TextFieldType.Between, "(", ")"));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreateTextField("Content", TextFieldType.Between, "(", ")")
+        );
 
         var data = "(outer (inner) value)";
 
         var result = InvokeParse(interpreter, data);
         var content = GetPropertyValue<string>(result, "Content");
-
 
         Assert.AreEqual("outer (inner", content);
     }
@@ -517,9 +550,11 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Parse_Until_EmptyValue_ShouldReturnEmptyString()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
             CreateTextField("Key", TextFieldType.Until, "="),
-            CreateTextField("Value", TextFieldType.Rest));
+            CreateTextField("Value", TextFieldType.Rest)
+        );
 
         var data = "=SomeValue";
 
@@ -535,11 +570,13 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Parse_CsvLine_MultipleColumns_ShouldParseAll()
     {
-        var interpreter = CreateAndCompileInterpreter("CsvLine",
+        var interpreter = CreateAndCompileInterpreter(
+            "CsvLine",
             CreateTextField("Col1", TextFieldType.Until, ","),
             CreateTextField("Col2", TextFieldType.Until, ","),
             CreateTextField("Col3", TextFieldType.Until, ","),
-            CreateTextField("Col4", TextFieldType.Rest));
+            CreateTextField("Col4", TextFieldType.Rest)
+        );
 
         var data = "John,Doe,30,Engineer";
 
@@ -557,9 +594,11 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Parse_KeyValueWithTrim_ShouldTrimBothParts()
     {
-        var interpreter = CreateAndCompileInterpreter("KeyValue",
+        var interpreter = CreateAndCompileInterpreter(
+            "KeyValue",
             CreateTextField("Key", TextFieldType.Until, ":", null, TextFieldModifier.Trim),
-            CreateTextField("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim));
+            CreateTextField("Value", TextFieldType.Rest, null, null, TextFieldModifier.Trim)
+        );
 
         var data = "  Name  :  John Doe  ";
 
@@ -575,9 +614,11 @@ public partial class TextInterpretationTests : BinaryInterpretationTestBase
     [TestMethod]
     public void Parse_Until_MultiCharDelimiter_ShouldWork()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
             CreateTextField("Before", TextFieldType.Until, "::"),
-            CreateTextField("After", TextFieldType.Rest));
+            CreateTextField("After", TextFieldType.Rest)
+        );
 
         var data = "Key::Value";
 

@@ -62,12 +62,19 @@ public sealed class BoundedRuntimeCacheTests
         var factoryCalls = 0;
 
         using var contention = new SynchronousContention();
-        var results = contention.Run(() => cache.GetOrAdd("shared", _ =>
-        {
-            var value = Interlocked.Increment(ref factoryCalls);
-            contention.HoldOwner();
-            return value;
-        }), 32);
+        var results = contention.Run(
+            () =>
+                cache.GetOrAdd(
+                    "shared",
+                    _ =>
+                    {
+                        var value = Interlocked.Increment(ref factoryCalls);
+                        contention.HoldOwner();
+                        return value;
+                    }
+                ),
+            32
+        );
 
         CollectionAssert.AreEqual(Enumerable.Repeat(1, 32).ToArray(), results);
         Assert.AreEqual(1, factoryCalls);
@@ -81,17 +88,24 @@ public sealed class BoundedRuntimeCacheTests
         cache.GetOrAdd("cached", static _ => 7);
         using var factoryEntered = new ManualResetEventSlim();
         using var releaseFactory = new ManualResetEventSlim();
-        var blockedMiss = StartDedicated(() => cache.GetOrAdd("blocked", _ =>
-        {
-            factoryEntered.Set();
-            releaseFactory.Wait();
-            return 11;
-        }));
+        var blockedMiss = StartDedicated(() =>
+            cache.GetOrAdd(
+                "blocked",
+                _ =>
+                {
+                    factoryEntered.Set();
+                    releaseFactory.Wait();
+                    return 11;
+                }
+            )
+        );
 
         try
         {
             Assert.IsTrue(factoryEntered.Wait(TimeSpan.FromSeconds(5)), "The cache miss factory did not start.");
-            var cachedHit = StartDedicated(() => cache.GetOrAdd("cached", static _ => throw new AssertFailedException()));
+            var cachedHit = StartDedicated(() =>
+                cache.GetOrAdd("cached", static _ => throw new AssertFailedException())
+            );
             Assert.AreEqual(7, await cachedHit.WaitAsync(TimeSpan.FromSeconds(5)));
         }
         finally
@@ -113,15 +127,20 @@ public sealed class BoundedRuntimeCacheTests
         var replacementCalls = 0;
 
         using var contention = new SynchronousContention();
-        var results = contention.Run(() => cache.GetOrAdd(
-                "a",
-                _ =>
-                {
-                    var value = Interlocked.Increment(ref replacementCalls) + 1;
-                    contention.HoldOwner();
-                    return value;
-                },
-                static value => value > 1), 32);
+        var results = contention.Run(
+            () =>
+                cache.GetOrAdd(
+                    "a",
+                    _ =>
+                    {
+                        var value = Interlocked.Increment(ref replacementCalls) + 1;
+                        contention.HoldOwner();
+                        return value;
+                    },
+                    static value => value > 1
+                ),
+            32
+        );
         CollectionAssert.AreEqual(Enumerable.Repeat(2, 32).ToArray(), results);
         cache.GetOrAdd("c", static _ => 3);
 
@@ -137,11 +156,15 @@ public sealed class BoundedRuntimeCacheTests
         var cache = new BoundedRuntimeCache<int, int>(32);
         cache.GetOrAdd(0, static key => key);
 
-        Parallel.For(0, 256, index =>
-        {
-            cache.GetOrAdd(index % 64, static key => key);
-            cache.TryGetValue(index % 64, out _);
-        });
+        Parallel.For(
+            0,
+            256,
+            index =>
+            {
+                cache.GetOrAdd(index % 64, static key => key);
+                cache.TryGetValue(index % 64, out _);
+            }
+        );
 
         Assert.IsTrue(cache.Count <= 32);
         cache.GetOrAdd(63, static key => key);

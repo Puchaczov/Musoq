@@ -8,7 +8,8 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static GeneratedRowShape? ResolveCteGeneratedRowShape(
         PhysicalCteRefNode cteRef,
-        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName)
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName
+    )
     {
         var rowShape = ResolveCteStoredRowShape(cteRef, cteShapesByName);
 
@@ -17,7 +18,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static GeneratedRowShape? ResolveCteStoredRowShape(
         PhysicalCteRefNode cteRef,
-        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName)
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName
+    )
     {
         return cteShapesByName != null && cteShapesByName.TryGetValue(cteRef.CteName, out var rowShape)
             ? rowShape
@@ -26,7 +28,9 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool CanUseTypedStoredRows(GeneratedRowShape rowShape)
     {
-        return rowShape.SupportsGeneratedFieldAccess &&
-               !rowShape.Contexts.Any(static context => DynamicEntityBoundary.IsStringObjectDictionaryContext(context.Type.ResolveClrType()));
+        return rowShape.SupportsGeneratedFieldAccess
+            && !rowShape.Contexts.Any(static context =>
+                DynamicEntityBoundary.IsStringObjectDictionaryContext(context.Type.ResolveClrType())
+            );
     }
 }

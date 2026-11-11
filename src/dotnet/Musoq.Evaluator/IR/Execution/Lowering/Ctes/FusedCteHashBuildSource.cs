@@ -13,4 +13,5 @@ internal sealed record FusedCteHashBuildSource(
     IReadOnlyList<ExecutionExpression> ContextValues,
     ExecutionContextLayout? ContextLayout,
     int SchemaSourceCount,
-    HashPayloadShape? HashPayloadShape);
+    HashPayloadShape? HashPayloadShape
+);

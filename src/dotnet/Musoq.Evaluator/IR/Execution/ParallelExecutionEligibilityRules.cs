@@ -17,75 +17,100 @@ internal static class ParallelExecutionEligibilityRules
 
     private static ParallelExecutionEligibilityCheck CanUseExpression(
         ExecutionExpression? expression,
-        Func<ExecutionFieldRead, ParallelExecutionEligibilityCheck> fieldReadEligibility)
+        Func<ExecutionFieldRead, ParallelExecutionEligibilityCheck> fieldReadEligibility
+    )
     {
         return expression switch
         {
             null => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionFieldRead { Stability: Musoq.Schema.ColumnStability.Volatile } fieldRead =>
-                ParallelExecutionEligibilityCheck.Skipped($"Expression reads volatile field {fieldRead.Alias}.{fieldRead.FieldName}."),
+                ParallelExecutionEligibilityCheck.Skipped(
+                    $"Expression reads volatile field {fieldRead.Alias}.{fieldRead.FieldName}."
+                ),
             ExecutionFieldRead fieldRead => fieldReadEligibility(fieldRead),
             ExecutionUnionMemberRead union => CanUseExpression(union.Receiver, fieldReadEligibility),
             ExecutionMemberRead memberRead when !ExpressionStabilityAnalyzer.IsStable(memberRead) =>
                 ParallelExecutionEligibilityCheck.Skipped($"Expression reads unstable member {memberRead.MemberName}."),
             ExecutionMemberRead memberRead => CanUseExpression(memberRead.Receiver, fieldReadEligibility),
             ExecutionLiteral => ParallelExecutionEligibilityCheck.Enabled,
-            ExecutionStringConcatenation concatenation => Combine(concatenation.Expressions.Select(value => CanUseExpression(value, fieldReadEligibility)).ToArray()),
+            ExecutionStringConcatenation concatenation => Combine(
+                concatenation.Expressions.Select(value => CanUseExpression(value, fieldReadEligibility)).ToArray()
+            ),
             ExecutionBinary binary => Combine(
                 CanUseExpression(binary.Left, fieldReadEligibility),
-                CanUseExpression(binary.Right, fieldReadEligibility)),
+                CanUseExpression(binary.Right, fieldReadEligibility)
+            ),
             ExecutionUnary unary => CanUseExpression(unary.Operand, fieldReadEligibility),
             ExecutionArrayAccess arrayAccess => Combine(
                 CanUseExpression(arrayAccess.Array, fieldReadEligibility),
-                CanUseExpression(arrayAccess.Index, fieldReadEligibility)),
+                CanUseExpression(arrayAccess.Index, fieldReadEligibility)
+            ),
             ExecutionIsNullCheck isNull => CanUseExpression(isNull.Expression, fieldReadEligibility),
             ExecutionRowPresence rowPresence => CanUseExpression(rowPresence.PresenceSource, fieldReadEligibility),
             ExecutionInCheck inCheck => Combine(
-                inCheck.Values
-                    .Select(value => CanUseExpression(value, fieldReadEligibility))
+                inCheck
+                    .Values.Select(value => CanUseExpression(value, fieldReadEligibility))
                     .Prepend(CanUseExpression(inCheck.Expression, fieldReadEligibility))
-                    .ToArray()),
+                    .ToArray()
+            ),
             ExecutionPatternMatch patternMatch => Combine(
                 CanUseExpression(patternMatch.Expression, fieldReadEligibility),
-                CanUseExpression(patternMatch.Pattern, fieldReadEligibility)),
+                CanUseExpression(patternMatch.Pattern, fieldReadEligibility)
+            ),
             ExecutionStringMatch stringMatch => CanUseExpression(stringMatch.Input, fieldReadEligibility),
             ExecutionPrepareLikeMatcher prepareLike => CanUseExpression(prepareLike.Pattern, fieldReadEligibility),
             ExecutionPreparedLikeMatch preparedLike => Combine(
                 CanUseExpression(preparedLike.Input, fieldReadEligibility),
-                CanUseExpression(preparedLike.Matcher, fieldReadEligibility)),
+                CanUseExpression(preparedLike.Matcher, fieldReadEligibility)
+            ),
             ExecutionDynamicLikeMatch dynamicLike => Combine(
                 CanUseExpression(dynamicLike.Input, fieldReadEligibility),
                 CanUseExpression(dynamicLike.Pattern, fieldReadEligibility),
-                CanUseExpression(dynamicLike.CacheSlot, fieldReadEligibility)),
+                CanUseExpression(dynamicLike.CacheSlot, fieldReadEligibility)
+            ),
             ExecutionLikeMatcherCacheSlot => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionPrepareRLikeMatcher prepareRLike => CanUseExpression(prepareRLike.Pattern, fieldReadEligibility),
             ExecutionPreparedRLikeMatch preparedRLike => Combine(
                 CanUseExpression(preparedRLike.Input, fieldReadEligibility),
-                CanUseExpression(preparedRLike.Matcher, fieldReadEligibility)),
+                CanUseExpression(preparedRLike.Matcher, fieldReadEligibility)
+            ),
             ExecutionDynamicRLikeMatch dynamicRLike => Combine(
                 CanUseExpression(dynamicRLike.Input, fieldReadEligibility),
                 CanUseExpression(dynamicRLike.Pattern, fieldReadEligibility),
-                CanUseExpression(dynamicRLike.CacheSlot, fieldReadEligibility)),
+                CanUseExpression(dynamicRLike.CacheSlot, fieldReadEligibility)
+            ),
             ExecutionRLikeMatcherCacheSlot => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionBetween between => Combine(
                 CanUseExpression(between.Expression, fieldReadEligibility),
                 CanUseExpression(between.Low, fieldReadEligibility),
-                CanUseExpression(between.High, fieldReadEligibility)),
+                CanUseExpression(between.High, fieldReadEligibility)
+            ),
             ExecutionCaseWhen caseWhen => Combine(
-                caseWhen.Branches
-                    .Select(branch => Combine(
-                        CanUseExpression(branch.Condition, fieldReadEligibility),
-                        CanUseExpression(branch.Result, fieldReadEligibility)))
+                caseWhen
+                    .Branches.Select(branch =>
+                        Combine(
+                            CanUseExpression(branch.Condition, fieldReadEligibility),
+                            CanUseExpression(branch.Result, fieldReadEligibility)
+                        )
+                    )
                     .Append(CanUseExpression(caseWhen.ElseExpression, fieldReadEligibility))
-                    .ToArray()),
+                    .ToArray()
+            ),
             ExecutionCoalesce { Expressions.Count: > 0 } coalesce => Combine(
-                coalesce.Expressions.Select(part => CanUseExpression(part, fieldReadEligibility)).ToArray()),
+                coalesce.Expressions.Select(part => CanUseExpression(part, fieldReadEligibility)).ToArray()
+            ),
             ExecutionCoalesce => ParallelExecutionEligibilityCheck.Skipped("Coalesce expression has no operands."),
-            ExecutionRowStream stream => ParallelExecutionEligibilityCheck.Skipped(stream.Kind == ExecutionRowStreamKind.Chunks
-                ? "Expression reads chunked rows directly."
-                : "Expression reads a row source directly."),
-            ExecutionStoredTable => ParallelExecutionEligibilityCheck.Skipped("Expression reads a stored table directly."),
-            ExecutionStoredTableRows => ParallelExecutionEligibilityCheck.Skipped("Expression reads stored table rows directly."),
+            ExecutionRowStream stream => ParallelExecutionEligibilityCheck.Skipped(
+                stream.Kind == ExecutionRowStreamKind.Chunks
+                    ? "Expression reads chunked rows directly."
+                    : "Expression reads a row source directly."
+            ),
+            ExecutionStoredTable => ParallelExecutionEligibilityCheck.Skipped(
+                "Expression reads a stored table directly."
+            ),
+            ExecutionStoredTableRows => ParallelExecutionEligibilityCheck.Skipped(
+                "Expression reads stored table rows directly."
+            ),
             ExecutionVariableRead => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionScriptParameterRead => ParallelExecutionEligibilityCheck.Enabled,
             ExecutionScriptVariableRead => ParallelExecutionEligibilityCheck.Enabled,
@@ -93,17 +118,31 @@ internal static class ParallelExecutionEligibilityRules
             ExecutionNullContextArray => ParallelExecutionEligibilityCheck.Enabled,
 
             ExecutionValueTupleKey valueTupleKey => Combine(
-                valueTupleKey.Parts.Select(part => CanUseExpression(part, fieldReadEligibility)).ToArray()),
+                valueTupleKey.Parts.Select(part => CanUseExpression(part, fieldReadEligibility)).ToArray()
+            ),
             ExecutionWindowValueRead => ParallelExecutionEligibilityCheck.Skipped("Expression reads a window value."),
             ExecutionAggregateCall => ParallelExecutionEligibilityCheck.Skipped("Expression invokes aggregate state."),
-            ExecutionGroupKeyRead => ParallelExecutionEligibilityCheck.Skipped("Expression reads aggregate group state."),
-            ExecutionAggregateCapturedValueRead => ParallelExecutionEligibilityCheck.Skipped("Expression reads aggregate captured state."),
+            ExecutionGroupKeyRead => ParallelExecutionEligibilityCheck.Skipped(
+                "Expression reads aggregate group state."
+            ),
+            ExecutionAggregateCapturedValueRead => ParallelExecutionEligibilityCheck.Skipped(
+                "Expression reads aggregate captured state."
+            ),
             ExecutionMethodCall methodCall => CanUseMethodCall(methodCall, fieldReadEligibility),
             ExecutionStrictCast strictCast => CanUseExpression(strictCast.Expression, fieldReadEligibility),
-            ExecutionMethodTargetReuseCandidate candidate => CanUseMethodCall(candidate.MethodCall, fieldReadEligibility),
-            ExecutionAggregateResultRef => ParallelExecutionEligibilityCheck.Skipped("Aggregate result reference must be resolved before parallel execution."),
-            ExecutionWindowResultRef => ParallelExecutionEligibilityCheck.Skipped("Window result reference must be resolved before parallel execution."),
-            _ => ParallelExecutionEligibilityCheck.Skipped($"Expression kind {expression.GetType().Name} is not parallel-safe.")
+            ExecutionMethodTargetReuseCandidate candidate => CanUseMethodCall(
+                candidate.MethodCall,
+                fieldReadEligibility
+            ),
+            ExecutionAggregateResultRef => ParallelExecutionEligibilityCheck.Skipped(
+                "Aggregate result reference must be resolved before parallel execution."
+            ),
+            ExecutionWindowResultRef => ParallelExecutionEligibilityCheck.Skipped(
+                "Window result reference must be resolved before parallel execution."
+            ),
+            _ => ParallelExecutionEligibilityCheck.Skipped(
+                $"Expression kind {expression.GetType().Name} is not parallel-safe."
+            ),
         };
     }
 
@@ -118,67 +157,71 @@ internal static class ParallelExecutionEligibilityRules
             ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(ContainsMethodCall),
             ExecutionBinary binary => ContainsMethodCall(binary.Left) || ContainsMethodCall(binary.Right),
             ExecutionUnary unary => ContainsMethodCall(unary.Operand),
-            ExecutionArrayAccess arrayAccess => ContainsMethodCall(arrayAccess.Array) ||
-                                                ContainsMethodCall(arrayAccess.Index),
+            ExecutionArrayAccess arrayAccess => ContainsMethodCall(arrayAccess.Array)
+                || ContainsMethodCall(arrayAccess.Index),
             ExecutionIsNullCheck isNull => ContainsMethodCall(isNull.Expression),
             ExecutionRowPresence rowPresence => ContainsMethodCall(rowPresence.PresenceSource),
-            ExecutionInCheck inCheck => ContainsMethodCall(inCheck.Expression) ||
-                                        inCheck.Values.Any(ContainsMethodCall),
-            ExecutionPatternMatch patternMatch => ContainsMethodCall(patternMatch.Expression) ||
-                                                  ContainsMethodCall(patternMatch.Pattern),
+            ExecutionInCheck inCheck => ContainsMethodCall(inCheck.Expression)
+                || inCheck.Values.Any(ContainsMethodCall),
+            ExecutionPatternMatch patternMatch => ContainsMethodCall(patternMatch.Expression)
+                || ContainsMethodCall(patternMatch.Pattern),
             ExecutionStringMatch stringMatch => ContainsMethodCall(stringMatch.Input),
             ExecutionPrepareLikeMatcher prepareLike => ContainsMethodCall(prepareLike.Pattern),
-            ExecutionPreparedLikeMatch preparedLike => ContainsMethodCall(preparedLike.Input) ||
-                                                        ContainsMethodCall(preparedLike.Matcher),
-            ExecutionDynamicLikeMatch dynamicLike => ContainsMethodCall(dynamicLike.Input) ||
-                                                      ContainsMethodCall(dynamicLike.Pattern) ||
-                                                      ContainsMethodCall(dynamicLike.CacheSlot),
+            ExecutionPreparedLikeMatch preparedLike => ContainsMethodCall(preparedLike.Input)
+                || ContainsMethodCall(preparedLike.Matcher),
+            ExecutionDynamicLikeMatch dynamicLike => ContainsMethodCall(dynamicLike.Input)
+                || ContainsMethodCall(dynamicLike.Pattern)
+                || ContainsMethodCall(dynamicLike.CacheSlot),
             ExecutionPrepareRLikeMatcher prepareRLike => ContainsMethodCall(prepareRLike.Pattern),
-            ExecutionPreparedRLikeMatch preparedRLike => ContainsMethodCall(preparedRLike.Input) ||
-                                                          ContainsMethodCall(preparedRLike.Matcher),
-            ExecutionDynamicRLikeMatch dynamicRLike => ContainsMethodCall(dynamicRLike.Input) ||
-                                                        ContainsMethodCall(dynamicRLike.Pattern) ||
-                                                        ContainsMethodCall(dynamicRLike.CacheSlot),
-            ExecutionBetween between => ContainsMethodCall(between.Expression) ||
-                                        ContainsMethodCall(between.Low) ||
-                                        ContainsMethodCall(between.High),
+            ExecutionPreparedRLikeMatch preparedRLike => ContainsMethodCall(preparedRLike.Input)
+                || ContainsMethodCall(preparedRLike.Matcher),
+            ExecutionDynamicRLikeMatch dynamicRLike => ContainsMethodCall(dynamicRLike.Input)
+                || ContainsMethodCall(dynamicRLike.Pattern)
+                || ContainsMethodCall(dynamicRLike.CacheSlot),
+            ExecutionBetween between => ContainsMethodCall(between.Expression)
+                || ContainsMethodCall(between.Low)
+                || ContainsMethodCall(between.High),
             ExecutionCaseWhen caseWhen => caseWhen.Branches.Any(static branch =>
-                                              ContainsMethodCall(branch.Condition) ||
-                                              ContainsMethodCall(branch.Result)) ||
-                                          ContainsMethodCall(caseWhen.ElseExpression),
+                ContainsMethodCall(branch.Condition) || ContainsMethodCall(branch.Result)
+            ) || ContainsMethodCall(caseWhen.ElseExpression),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(ContainsMethodCall),
 
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(ContainsMethodCall),
             ExecutionAggregateCall aggregateCall => aggregateCall.Arguments.Any(ContainsMethodCall),
-            _ => false
+            _ => false,
         };
     }
 
     private static ParallelExecutionEligibilityCheck CanUseMethodCall(
         ExecutionMethodCall methodCall,
-        Func<ExecutionFieldRead, ParallelExecutionEligibilityCheck> fieldReadEligibility)
+        Func<ExecutionFieldRead, ParallelExecutionEligibilityCheck> fieldReadEligibility
+    )
     {
-        if (ExpressionStabilityAnalyzer.TryGetMethodInstabilityReason(
+        if (
+            ExpressionStabilityAnalyzer.TryGetMethodInstabilityReason(
                 methodCall.Method.ResolveClrMethod(),
                 "Expression",
-                out var instabilityReason))
+                out var instabilityReason
+            )
+        )
         {
             return ParallelExecutionEligibilityCheck.Skipped(instabilityReason);
         }
 
         return Combine(
-            methodCall.Arguments
-                .Select(argument => CanUseExpression(argument, fieldReadEligibility))
+            methodCall
+                .Arguments.Select(argument => CanUseExpression(argument, fieldReadEligibility))
                 .Append(CanUseExpression(methodCall.InjectedSource, fieldReadEligibility))
-                .ToArray());
+                .ToArray()
+        );
     }
 
     private static ParallelExecutionEligibilityCheck CanUseFilterProjectFieldRead(ExecutionFieldRead fieldRead)
     {
-        return fieldRead.AccessStrategy is ReflectedMemberAccess
-            or NestedClrPropertyAccess
-            or NestedPositionalAccess
-            ? ParallelExecutionEligibilityCheck.Skipped($"Expression reads field {fieldRead.Alias}.{fieldRead.FieldName} through dynamic or reflected access.")
+        return fieldRead.AccessStrategy is ReflectedMemberAccess or NestedClrPropertyAccess or NestedPositionalAccess
+            ? ParallelExecutionEligibilityCheck.Skipped(
+                $"Expression reads field {fieldRead.Alias}.{fieldRead.FieldName} through dynamic or reflected access."
+            )
             : ParallelExecutionEligibilityCheck.Enabled;
     }
 

@@ -16,7 +16,8 @@ internal sealed class TypedContextTransportLowering : ExecutionIrRewriter
         if (!plan.Shapes.OfType<GeneratedRowShape>().Any(static shape => shape.Contexts.Count > 0))
             return plan;
 
-        _shapes = plan.Shapes.OfType<GeneratedRowShape>()
+        _shapes = plan
+            .Shapes.OfType<GeneratedRowShape>()
             .GroupBy(static shape => shape.TypeName, StringComparer.Ordinal)
             .ToDictionary(static group => group.Key, static group => group.First(), StringComparer.Ordinal);
         _variableTypes = GeneratedRowVariableTypes.Collect(plan.Body);
@@ -30,7 +31,11 @@ internal sealed class TypedContextTransportLowering : ExecutionIrRewriter
         if (layout == null)
             return rewritten;
 
-        return rewritten with { Contexts = layout.Segments.Select(static segment => segment.Value).ToArray(), ContextLayout = layout };
+        return rewritten with
+        {
+            Contexts = layout.Segments.Select(static segment => segment.Value).ToArray(),
+            ContextLayout = layout,
+        };
     }
 
     protected override ExecutionNode RewriteCreateGeneratedRow(ExecutionCreateGeneratedRow node)
@@ -40,13 +45,19 @@ internal sealed class TypedContextTransportLowering : ExecutionIrRewriter
         if (layout == null)
             return rewritten;
 
-        return rewritten with { Contexts = layout.Segments.Select(static segment => segment.Value).ToArray(), ContextLayout = layout };
+        return rewritten with
+        {
+            Contexts = layout.Segments.Select(static segment => segment.Value).ToArray(),
+            ContextLayout = layout,
+        };
     }
 
     private ExecutionContextLayout? Expand(ExecutionContextLayout? layout, IReadOnlyList<FieldBinding> fields)
     {
-        if (layout == null || layout.Segments.All(static segment =>
-                segment is { Kind: ExecutionContextSegmentKind.Single, Count: 1 }))
+        if (
+            layout == null
+            || layout.Segments.All(static segment => segment is { Kind: ExecutionContextSegmentKind.Single, Count: 1 })
+        )
             return null;
 
         var segments = new List<ExecutionContextSegment>();
@@ -54,13 +65,19 @@ internal sealed class TypedContextTransportLowering : ExecutionIrRewriter
         {
             if (!Append(segment, segments, fields))
                 throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
-                    "Execution source contexts require concrete carrier types and presence information.", Musoq.Parser.TextSpan.Empty);
+                    "Execution source contexts require concrete carrier types and presence information.",
+                    Musoq.Parser.TextSpan.Empty
+                );
         }
 
         return new ExecutionContextLayout(segments);
     }
 
-    private bool Append(ExecutionContextSegment segment, List<ExecutionContextSegment> result, IReadOnlyList<FieldBinding> fields)
+    private bool Append(
+        ExecutionContextSegment segment,
+        List<ExecutionContextSegment> result,
+        IReadOnlyList<FieldBinding> fields
+    )
     {
         if (segment is { Kind: ExecutionContextSegmentKind.Single, Count: 1 })
         {
@@ -92,7 +109,7 @@ internal sealed class TypedContextTransportLowering : ExecutionIrRewriter
         {
             ExecutionVariableRead read => read.Variable,
             ExecutionRowContextsRead read => read.Row,
-            _ => null
+            _ => null,
         };
         if (row == null)
             return false;
@@ -105,16 +122,24 @@ internal sealed class TypedContextTransportLowering : ExecutionIrRewriter
         for (var index = 0; index < shape.Contexts.Count; index++)
         {
             var field = shape.Contexts[index];
-            var read = new ExecutionFieldRead(row.Name, field.Name, field.Type,
-                new GeneratedRowContextAccess(typeName, index), field.GeneratedTypeName);
+            var read = new ExecutionFieldRead(
+                row.Name,
+                field.Name,
+                field.Type,
+                new GeneratedRowContextAccess(typeName, index),
+                field.GeneratedTypeName
+            );
             result.Add(new ExecutionContextSegment(ExecutionContextSegmentKind.Single, read, 1));
         }
 
         return true;
     }
 
-    private static bool AppendNulls(ExecutionNullContextArray nulls, List<ExecutionContextSegment> result,
-        IReadOnlyList<FieldBinding> fields)
+    private static bool AppendNulls(
+        ExecutionNullContextArray nulls,
+        List<ExecutionContextSegment> result,
+        IReadOnlyList<FieldBinding> fields
+    )
     {
         if (result.Count + nulls.Count > fields.Count)
             return false;
@@ -122,8 +147,13 @@ internal sealed class TypedContextTransportLowering : ExecutionIrRewriter
         for (var index = 0; index < nulls.Count; index++)
         {
             var field = fields[result.Count];
-            result.Add(new ExecutionContextSegment(ExecutionContextSegmentKind.Single,
-                new ExecutionLiteral((object?)null, field.Type), 1));
+            result.Add(
+                new ExecutionContextSegment(
+                    ExecutionContextSegmentKind.Single,
+                    new ExecutionLiteral((object?)null, field.Type),
+                    1
+                )
+            );
         }
 
         return true;

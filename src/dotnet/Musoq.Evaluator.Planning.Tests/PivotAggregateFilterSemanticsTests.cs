@@ -10,16 +10,16 @@ public class PivotAggregateFilterSemanticsTests : BasicEntityTestBase
     [TestMethod]
     public void Pivot_WithCountFormsAndCustomArgumentlessAggregates_ShouldUseAggregateFilters()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Month in ('Jan' as Jan, 'Feb' as Feb)
-                             using Count(*) as CountStar,
-                                   Count() as CountNoArgs,
-                                   CustomRowCount() as CustomNoArgs,
-                                   CustomRowCount(*) as CustomStar
-                             group by City
-                             order by City
-                             """;
+        const string query = (
+            "pivot #A.Entities()\n"
+            + "on Month in ('Jan' as Jan, 'Feb' as Feb)\n"
+            + "using Count(*) as CountStar,\n"
+            + "      Count() as CountNoArgs,\n"
+            + "      CustomRowCount() as CustomNoArgs,\n"
+            + "      CustomRowCount(*) as CustomStar\n"
+            + "group by City\n"
+            + "order by City"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateCountSources()).Run();
 
@@ -33,23 +33,25 @@ public class PivotAggregateFilterSemanticsTests : BasicEntityTestBase
             ("Feb_CountStar", typeof(long)),
             ("Feb_CountNoArgs", typeof(long)),
             ("Feb_CustomNoArgs", typeof(long)),
-            ("Feb_CustomStar", typeof(long)));
+            ("Feb_CustomStar", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["LA", 1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L],
-            ["NY", 2L, 2L, 2L, 2L, 1L, 1L, 1L, 1L]);
+            ["NY", 2L, 2L, 2L, 2L, 1L, 1L, 1L, 1L]
+        );
     }
 
     [TestMethod]
     public void Pivot_WithExplicitMeasureFilter_ShouldCombineFilterWithPivotPredicate()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Month in ('Jan' as Jan, 'Feb' as Feb)
-                             using Sum(Money) filter (where Money > 0) as PositiveSales
-                             group by City
-                             order by City
-                             """;
+        const string query = (
+            "pivot #A.Entities()\n"
+            + "on Month in ('Jan' as Jan, 'Feb' as Feb)\n"
+            + "using Sum(Money) filter (where Money > 0) as PositiveSales\n"
+            + "group by City\n"
+            + "order by City"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateFilteredMeasureSources()).Run();
 
@@ -57,11 +59,13 @@ public class PivotAggregateFilterSemanticsTests : BasicEntityTestBase
             table,
             ("City", typeof(string)),
             ("Jan", typeof(decimal?)),
-            ("Feb", typeof(decimal?)));
+            ("Feb", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             new object?[] { "LA", null, 7m },
-            new object?[] { "NY", 10m, null });
+            new object?[] { "NY", 10m, null }
+        );
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateCountSources()
@@ -70,16 +74,43 @@ public class PivotAggregateFilterSemanticsTests : BasicEntityTestBase
             new BasicEntity { City = "NY", Month = "Jan" },
             new BasicEntity { City = "NY", Month = "Jan" },
             new BasicEntity { City = "NY", Month = "Feb" },
-            new BasicEntity { City = "LA", Month = "Jan" });
+            new BasicEntity { City = "LA", Month = "Jan" }
+        );
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateFilteredMeasureSources()
     {
         return CreateSingleSource(
-            new BasicEntity { City = "NY", Month = "Jan", Money = 10m },
-            new BasicEntity { City = "NY", Month = "Jan", Money = -5m },
-            new BasicEntity { City = "NY", Month = "Feb", Money = -2m },
-            new BasicEntity { City = "LA", Month = "Jan", Money = -3m },
-            new BasicEntity { City = "LA", Month = "Feb", Money = 7m });
+            new BasicEntity
+            {
+                City = "NY",
+                Month = "Jan",
+                Money = 10m,
+            },
+            new BasicEntity
+            {
+                City = "NY",
+                Month = "Jan",
+                Money = -5m,
+            },
+            new BasicEntity
+            {
+                City = "NY",
+                Month = "Feb",
+                Money = -2m,
+            },
+            new BasicEntity
+            {
+                City = "LA",
+                Month = "Jan",
+                Money = -3m,
+            },
+            new BasicEntity
+            {
+                City = "LA",
+                Month = "Feb",
+                Money = 7m,
+            }
+        );
     }
 }

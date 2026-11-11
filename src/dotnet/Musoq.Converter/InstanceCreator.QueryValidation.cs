@@ -10,8 +10,8 @@ public static partial class InstanceCreator
         if (rawQueryTree?.Expression is not StatementsArrayNode statementsArray)
             return;
 
-        var resultProducingStatements = statementsArray.Statements
-            .Where(s => IsResultProducingStatement(s.Node))
+        var resultProducingStatements = statementsArray
+            .Statements.Where(s => IsResultProducingStatement(s.Node))
             .ToArray();
 
         if (resultProducingStatements.Length > 1)
@@ -20,15 +20,16 @@ public static partial class InstanceCreator
 
     private static bool IsResultProducingStatement(Node? node)
     {
-        return node is not (
-            null
-            or ParameterBlockNode
-            or ScriptVariableDeclarationNode
-            or EnumDeclarationNode
-            or CreateTableNode
-            or CoupleNode
-            or Parser.Nodes.InterpretationSchema.BinarySchemaNode
-            or Parser.Nodes.InterpretationSchema.TextSchemaNode);
+        return node
+            is not (
+                null
+                or ParameterBlockNode
+                or ScriptVariableDeclarationNode
+                or EnumDeclarationNode
+                or CreateTableNode
+                or CoupleNode
+                or Parser.Nodes.InterpretationSchema.BinarySchemaNode
+                or Parser.Nodes.InterpretationSchema.TextSchemaNode
+            );
     }
-
 }

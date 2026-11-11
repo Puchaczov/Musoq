@@ -15,7 +15,8 @@ internal static class AsOfTieBreakComparerFactory
     private sealed class AsOfTieBreakComparer<TTie>(
         IComparer<TTie> valueComparer,
         bool descending,
-        NullOrdering nullOrdering) : IComparer<TTie>
+        NullOrdering nullOrdering
+    ) : IComparer<TTie>
     {
         private static readonly bool AllowsNull =
             !typeof(TTie).IsValueType || Nullable.GetUnderlyingType(typeof(TTie)) != null;
@@ -35,7 +36,7 @@ internal static class AsOfTieBreakComparerFactory
                     {
                         NullOrdering.First => true,
                         NullOrdering.Last => false,
-                        _ => !descending
+                        _ => !descending,
                     };
 
                     return leftIsNull == nullsFirst ? -1 : 1;

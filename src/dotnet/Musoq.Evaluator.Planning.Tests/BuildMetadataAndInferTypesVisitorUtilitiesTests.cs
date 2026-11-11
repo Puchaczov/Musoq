@@ -12,9 +12,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var stringType = typeof(string);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(stringType, stringType);
-
 
         Assert.AreEqual(stringType, result);
     }
@@ -25,9 +23,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
         var parentType = typeof(Exception);
         var childType = typeof(ArgumentException);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(parentType, childType);
-
 
         Assert.AreEqual(parentType, result);
     }
@@ -38,9 +34,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
         var parentType = typeof(Exception);
         var childType = typeof(ArgumentException);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(childType, parentType);
-
 
         Assert.AreEqual(parentType, result);
     }
@@ -51,9 +45,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
         var type1 = typeof(string);
         var type2 = typeof(int);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(type1, type2);
-
 
         Assert.AreEqual(typeof(object), result);
     }
@@ -63,9 +55,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var intType = typeof(int);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(intType);
-
 
         Assert.AreEqual(typeof(int?), result);
     }
@@ -75,9 +65,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var stringType = typeof(string);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(stringType);
-
 
         Assert.AreEqual(stringType, result);
     }
@@ -87,9 +75,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var nullableIntType = typeof(int?);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(nullableIntType);
-
 
         Assert.AreEqual(nullableIntType, result);
     }
@@ -105,9 +91,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var nullableIntType = typeof(int?);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.StripNullable(nullableIntType);
-
 
         Assert.AreEqual(typeof(int), result);
     }
@@ -117,9 +101,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var intType = typeof(int);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.StripNullable(intType);
-
 
         Assert.AreEqual(intType, result);
     }

@@ -6,12 +6,14 @@ public partial class QueryInspectionTests
 {
     private static string CreatePrimitiveArrayBinaryInterpretQuery()
     {
-        return @"
-            binary ArrayPacket {
-                Count: byte,
-                Values: short[Count] le
-            };
-            select i.Name, p.Count, v.Value as Number from #apply.items() i cross apply Interpret<ArrayPacket>(i.Content) p cross apply p.Values v";
+        return (
+            "\n"
+            + "            binary ArrayPacket {\n"
+            + "                Count: byte,\n"
+            + "                Values: short[Count] le\n"
+            + "            };\n"
+            + "            select i.Name, p.Count, v.Value as Number from #apply.items() i cross apply Interpret<ArrayPacket>(i.Content) p cross apply p.Values v"
+        );
     }
 
     private static byte[] CreatePrimitiveArrayPacketContent()
@@ -26,39 +28,31 @@ public partial class QueryInspectionTests
 
     private static string CreateStringArrayBinaryInterpretQuery()
     {
-        return @"
-            binary StringArrayPacket {
-                Count: byte,
-                Names: string[3] ascii[Count]
-            };
-            select i.Name, p.Count, n.Value as Text from #apply.items() i cross apply Interpret<StringArrayPacket>(i.Content) p cross apply p.Names n";
+        return (
+            "\n"
+            + "            binary StringArrayPacket {\n"
+            + "                Count: byte,\n"
+            + "                Names: string[3] ascii[Count]\n"
+            + "            };\n"
+            + "            select i.Name, p.Count, n.Value as Text from #apply.items() i cross apply Interpret<StringArrayPacket>(i.Content) p cross apply p.Names n"
+        );
     }
 
     private static byte[] CreateStringArrayPacketContent()
     {
-        return
-        [
-            3,
-            (byte)'A',
-            (byte)'d',
-            (byte)'a',
-            (byte)'B',
-            (byte)'e',
-            (byte)'a',
-            (byte)'C',
-            (byte)'a',
-            (byte)'l'
-        ];
+        return [3, (byte)'A', (byte)'d', (byte)'a', (byte)'B', (byte)'e', (byte)'a', (byte)'C', (byte)'a', (byte)'l'];
     }
 
     private static string CreateInlineSchemaArrayBinaryInterpretQuery()
     {
-        return @"
-            binary InlineArrayPacket {
-                Count: byte,
-                Items: { Tag: byte, Value: short le }[Count]
-            };
-            select i.Name, p.Count, it.Tag, it.Value from #apply.items() i cross apply Interpret<InlineArrayPacket>(i.Content) p cross apply p.Items it";
+        return (
+            "\n"
+            + "            binary InlineArrayPacket {\n"
+            + "                Count: byte,\n"
+            + "                Items: { Tag: byte, Value: short le }[Count]\n"
+            + "            };\n"
+            + "            select i.Name, p.Count, it.Tag, it.Value from #apply.items() i cross apply Interpret<InlineArrayPacket>(i.Content) p cross apply p.Items it"
+        );
     }
 
     private static byte[] CreateInlineSchemaArrayPacketContent()
@@ -74,11 +68,13 @@ public partial class QueryInspectionTests
 
     private static string CreatePrimitiveRepeatUntilBinaryInterpretQuery()
     {
-        return @"
-            binary PrimitiveRepeatPacket {
-                Values: byte repeat until Values = 0
-            };
-            select i.Name, v.Value as Number from #apply.items() i cross apply Interpret<PrimitiveRepeatPacket>(i.Content) p cross apply p.Values v";
+        return (
+            "\n"
+            + "            binary PrimitiveRepeatPacket {\n"
+            + "                Values: byte repeat until Values = 0\n"
+            + "            };\n"
+            + "            select i.Name, v.Value as Number from #apply.items() i cross apply Interpret<PrimitiveRepeatPacket>(i.Content) p cross apply p.Values v"
+        );
     }
 
     private static byte[] CreatePrimitiveRepeatUntilPacketContent()
@@ -88,11 +84,13 @@ public partial class QueryInspectionTests
 
     private static string CreateBitsRepeatUntilBinaryInterpretQuery()
     {
-        return @"
-            binary BitsRepeatPacket {
-                Flags: bits[1] repeat until Flags = 0
-            };
-            select i.Name, f.Value as FlagValue from #apply.items() i cross apply Interpret<BitsRepeatPacket>(i.Content) p cross apply p.Flags f";
+        return (
+            "\n"
+            + "            binary BitsRepeatPacket {\n"
+            + "                Flags: bits[1] repeat until Flags = 0\n"
+            + "            };\n"
+            + "            select i.Name, f.Value as FlagValue from #apply.items() i cross apply Interpret<BitsRepeatPacket>(i.Content) p cross apply p.Flags f"
+        );
     }
 
     private static byte[] CreateBitsRepeatUntilPacketContent()
@@ -102,11 +100,13 @@ public partial class QueryInspectionTests
 
     private static string CreateStringRepeatUntilBinaryInterpretQuery()
     {
-        return @"
-            binary StringRepeatPacket {
-                Names: string[3] ascii repeat until Names = 'END'
-            };
-            select i.Name, n.Value as Text from #apply.items() i cross apply Interpret<StringRepeatPacket>(i.Content) p cross apply p.Names n";
+        return (
+            "\n"
+            + "            binary StringRepeatPacket {\n"
+            + "                Names: string[3] ascii repeat until Names = 'END'\n"
+            + "            };\n"
+            + "            select i.Name, n.Value as Text from #apply.items() i cross apply Interpret<StringRepeatPacket>(i.Content) p cross apply p.Names n"
+        );
     }
 
     private static byte[] CreateStringRepeatUntilPacketContent()
@@ -116,11 +116,13 @@ public partial class QueryInspectionTests
 
     private static string CreateInlineSchemaRepeatUntilBinaryInterpretQuery()
     {
-        return @"
-            binary InlineRepeatPacket {
-                Items: { Tag: byte, Value: short le } repeat until Items.Tag = 0
-            };
-            select i.Name, it.Tag, it.Value from #apply.items() i cross apply Interpret<InlineRepeatPacket>(i.Content) p cross apply p.Items it";
+        return (
+            "\n"
+            + "            binary InlineRepeatPacket {\n"
+            + "                Items: { Tag: byte, Value: short le } repeat until Items.Tag = 0\n"
+            + "            };\n"
+            + "            select i.Name, it.Tag, it.Value from #apply.items() i cross apply Interpret<InlineRepeatPacket>(i.Content) p cross apply p.Items it"
+        );
     }
 
     private static byte[] CreateInlineSchemaRepeatUntilPacketContent()
@@ -137,15 +139,17 @@ public partial class QueryInspectionTests
 
     private static string CreateSchemaReferenceArrayBinaryInterpretQuery()
     {
-        return @"
-            binary Item {
-                Value: byte
-            };
-            binary SchemaArrayPacket {
-                Count: byte,
-                Items: Item[Count]
-            };
-            select i.Name, p.Count, it.Value as ItemValue from #apply.items() i cross apply Interpret<SchemaArrayPacket>(i.Content) p cross apply p.Items it";
+        return (
+            "\n"
+            + "            binary Item {\n"
+            + "                Value: byte\n"
+            + "            };\n"
+            + "            binary SchemaArrayPacket {\n"
+            + "                Count: byte,\n"
+            + "                Items: Item[Count]\n"
+            + "            };\n"
+            + "            select i.Name, p.Count, it.Value as ItemValue from #apply.items() i cross apply Interpret<SchemaArrayPacket>(i.Content) p cross apply p.Items it"
+        );
     }
 
     private static byte[] CreateSchemaReferenceArrayPacketContent()
@@ -160,14 +164,16 @@ public partial class QueryInspectionTests
 
     private static string CreateSchemaReferenceRepeatUntilBinaryInterpretQuery()
     {
-        return @"
-            binary RepeatItem {
-                Value: byte
-            };
-            binary SchemaRepeatPacket {
-                Items: RepeatItem repeat until Items.Value = 0
-            };
-            select i.Name, it.Value as ItemValue from #apply.items() i cross apply Interpret<SchemaRepeatPacket>(i.Content) p cross apply p.Items it";
+        return (
+            "\n"
+            + "            binary RepeatItem {\n"
+            + "                Value: byte\n"
+            + "            };\n"
+            + "            binary SchemaRepeatPacket {\n"
+            + "                Items: RepeatItem repeat until Items.Value = 0\n"
+            + "            };\n"
+            + "            select i.Name, it.Value as ItemValue from #apply.items() i cross apply Interpret<SchemaRepeatPacket>(i.Content) p cross apply p.Items it"
+        );
     }
 
     private static byte[] CreateSchemaReferenceRepeatUntilPacketContent()

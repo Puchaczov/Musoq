@@ -18,13 +18,15 @@ public partial class JoinRowPresencePredicateTests
     [TestProperty("Phase", "3")]
     public void MissingRightRowRemainsAvailableToLeftJoinPresencePredicate()
     {
-        const string query = "table Record { Name: string }; couple A.Entities with table Record as First; couple A.Entities with table Record as Second; select l.Name as LeftName from First(true, 'left') l left join Second(true, 'right') r on l.Name = r.Name where r is missing";
+        const string query =
+            "table Record { Name: string }; couple A.Entities with table Record as First; couple A.Entities with table Record as Second; select l.Name as LeftName from First(true, 'left') l left join Second(true, 'right') r on l.Name = r.Name where r is missing";
         using var compiled = InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             new SpecStressCoupledSchemaProvider(),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var result = TableMaterializationTestHelper.Materialize(compiled.Run());
 
         TableMaterializationTestHelper.AssertColumns(result, ("LeftName", typeof(string)));
@@ -43,18 +45,29 @@ public partial class JoinRowPresencePredicateTests
     [TestProperty("Phase", "4")]
     public void Current_P4_0062_FullJoinPreservesBothMissingSides()
     {
-        const string query = "table FullJoinInput {\r\n    Name: string\r\n};\r\ncouple A.Entities with table FullJoinInput as Coupled;\r\nwith LeftRows as (\r\n    select c.Name as Name\r\n    from Coupled(true, 'A') c\r\n)\r\nselect l.Name as LeftName,\r\n       r.Name as RightName,\r\n       l is missing as LeftMissing,\r\n       r is missing as RightMissing\r\nfrom LeftRows l\r\nfull outer join Coupled(true, 'B') r on l.Name = r.Name";
+        const string query =
+            "table FullJoinInput {\r\n    Name: string\r\n};\r\ncouple A.Entities with table FullJoinInput as Coupled;\r\nwith LeftRows as (\r\n    select c.Name as Name\r\n    from Coupled(true, 'A') c\r\n)\r\nselect l.Name as LeftName,\r\n       r.Name as RightName,\r\n       l is missing as LeftMissing,\r\n       r is missing as RightMissing\r\nfrom LeftRows l\r\nfull outer join Coupled(true, 'B') r on l.Name = r.Name";
 
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), new SpecStressCoupledSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new SpecStressCoupledSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
+        TableMaterializationTestHelper.AssertColumns(
+            result,
             ("LeftName", typeof(System.String)),
             ("RightName", typeof(System.String)),
             ("LeftMissing", typeof(System.Boolean)),
-            ("RightMissing", typeof(System.Boolean)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
+            ("RightMissing", typeof(System.Boolean))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
             new object?[] { "A", null, false, true },
-            new object?[] { null, "B", true, false });
+            new object?[] { null, "B", true, false }
+        );
     }
 
     [TestMethod]
@@ -62,10 +75,22 @@ public partial class JoinRowPresencePredicateTests
     [DataRow("left join", "r", "right", "missing")]
     [DataRow("right join", "l", "left", "present")]
     [DataRow("right join", "l", "right", "missing")]
-    public void CoupledStructJoin_PresenceClassifiesMatchedAndUnmatchedRows(string join, string optionalAlias, string retainedName, string expectedState)
+    public void CoupledStructJoin_PresenceClassifiesMatchedAndUnmatchedRows(
+        string join,
+        string optionalAlias,
+        string retainedName,
+        string expectedState
+    )
     {
-        var query = $"table Record {{ Name: string }}; couple A.Entities with table Record as Coupled; select case when {optionalAlias} is missing then 'missing' else 'present' end as State from Coupled(true, 'left') l {join} Coupled(true, '{retainedName}') r on l.Name = r.Name";
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), new SpecStressCoupledSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        var query =
+            $"table Record {{ Name: string }}; couple A.Entities with table Record as Coupled; select case when {optionalAlias} is missing then 'missing' else 'present' end as State from Coupled(true, 'left') l {join} Coupled(true, '{retainedName}') r on l.Name = r.Name";
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new SpecStressCoupledSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = TableMaterializationTestHelper.Materialize(compiled.Run());
         TableMaterializationTestHelper.AssertColumns(result, ("State", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { expectedState });

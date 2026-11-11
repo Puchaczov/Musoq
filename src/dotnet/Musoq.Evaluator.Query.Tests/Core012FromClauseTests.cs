@@ -19,37 +19,32 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
     [TestMethod]
     public void CteReference_NaturalNameRemainsVisibleAlongsideAnotherSource()
     {
-        const string query = """
-            with source as (
-                select a.City from #A.Entities() a
-            )
-            select source.City, b.City
-            from source
-            inner join #B.Entities() b on source.City = b.City
-            order by source.City
-            """;
+        const string query = (
+            "with source as (\n"
+            + "    select a.City from #A.Entities() a\n"
+            + ")\n"
+            + "select source.City, b.City\n"
+            + "from source\n"
+            + "inner join #B.Entities() b on source.City = b.City\n"
+            + "order by source.City"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateFromSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["BERLIN", "BERLIN"], ["WARSAW", "WARSAW"]);
     }
 
     [TestMethod]
     public void CteReference_AliasHidesOriginalNameWithRepairableDiagnostic()
     {
-        const string query = """
-            with p as (
-                select a.City from #A.Entities() a
-            )
-            select p.City from p c
-            """;
+        const string query = (
+            "with p as (\n" + "    select a.City from #A.Entities() a\n" + ")\n" + "select p.City from p c"
+        );
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateFromSources()));
+            CreateAndRunVirtualMachine(query, CreateFromSources())
+        );
         var aliasStart = query.LastIndexOf("p.City", StringComparison.Ordinal);
         var envelope = exception.PrimaryEnvelope;
 
@@ -70,17 +65,18 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
     [TestMethod]
     public void CteDefinition_CannotConsumeOuterAliasAndReportsReferenceSpan()
     {
-        const string query = """
-            with p as (
-                select b.City from #B.Entities() b
-                where b.Country = a.Country
-            )
-            select a.City from #A.Entities() a
-            where a.City in (select City from p)
-            """;
+        const string query = (
+            "with p as (\n"
+            + "    select b.City from #B.Entities() b\n"
+            + "    where b.Country = a.Country\n"
+            + ")\n"
+            + "select a.City from #A.Entities() a\n"
+            + "where a.City in (select City from p)"
+        );
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateFromSources()));
+            CreateAndRunVirtualMachine(query, CreateFromSources())
+        );
         var referenceStart = query.IndexOf("a.Country", StringComparison.Ordinal);
         var envelope = exception.PrimaryEnvelope;
 
@@ -101,16 +97,17 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
     [TestMethod]
     public void DerivedTable_OuterReferenceRequiresApplyWithRepairableDiagnostic()
     {
-        const string query = """
-            select a.City, d.City from #A.Entities() a
-            inner join (
-                select b.City, b.Country from #B.Entities() b
-                where b.Country = a.Country
-            ) d on a.Country = d.Country
-            """;
+        const string query = (
+            "select a.City, d.City from #A.Entities() a\n"
+            + "inner join (\n"
+            + "    select b.City, b.Country from #B.Entities() b\n"
+            + "    where b.Country = a.Country\n"
+            + ") d on a.Country = d.Country"
+        );
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateFromSources()));
+            CreateAndRunVirtualMachine(query, CreateFromSources())
+        );
         var opening = query.IndexOf('(', query.IndexOf("inner join", StringComparison.OrdinalIgnoreCase));
         var closing = query.IndexOf(") d", opening, StringComparison.Ordinal);
         var envelope = exception.PrimaryEnvelope;
@@ -133,26 +130,20 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
     [TestMethod]
     public void CoupledSource_UsesDeclaredTableShapeAndUnderlyingRows()
     {
-        const string query = """
-            table Snapshot {
-                City: string,
-                Population: decimal
-            };
-            couple #A.Entities with table Snapshot as CoupledRows;
-            select rows.City, rows.Population from CoupledRows() rows
-            order by rows.City
-            """;
+        const string query = (
+            "table Snapshot {\n"
+            + "    City: string,\n"
+            + "    Population: decimal\n"
+            + "};\n"
+            + "couple #A.Entities with table Snapshot as CoupledRows;\n"
+            + "select rows.City, rows.Population from CoupledRows() rows\n"
+            + "order by rows.City"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateFromSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Population", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["BERLIN", 250m],
-            ["WARSAW", 500m]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["BERLIN", 250m], ["WARSAW", 500m]);
     }
 
     [TestMethod]
@@ -160,32 +151,24 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
     {
         const string query = "select Value from system.range(1, 5)";
 
-        var table = CreateAndRunVirtualMachine(
-                query,
-                schemaProvider: new RangeSchemaProvider())
+        var table = CreateAndRunVirtualMachine(query, schemaProvider: new RangeSchemaProvider())
             .Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
-        CollectionAssert.AreEqual(
-            new object[] { 1, 2, 3, 4 },
-            table.Select(row => row.ReadValues()[0]).ToArray());
+        CollectionAssert.AreEqual(new object[] { 1, 2, 3, 4 }, table.Select(row => row.ReadValues()[0]).ToArray());
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateFromSources()
     {
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] =
-            [
-                new BasicEntity("WARSAW", "POLAND", 500),
-                new BasicEntity("BERLIN", "GERMANY", 250)
-            ],
+            ["#A"] = [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("BERLIN", "GERMANY", 250)],
             ["#B"] =
             [
                 new BasicEntity("WARSAW", "POLAND", 100),
                 new BasicEntity("BERLIN", "GERMANY", 200),
-                new BasicEntity("PARIS", "FRANCE", 300)
-            ]
+                new BasicEntity("PARIS", "FRANCE", 300),
+            ],
         };
     }
 
@@ -209,10 +192,15 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
             AddTable<RangeTable>("range");
         }
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name,
-            SourceExecutionContext context, TArguments arguments)
-            => EnsureSourceType<T, RangeRow>(name,
-                new RangeSource(arguments.GetValue<int>(0), arguments.GetValue<int>(1)));
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext context,
+            TArguments arguments
+        ) =>
+            EnsureSourceType<T, RangeRow>(
+                name,
+                new RangeSource(arguments.GetValue<int>(0), arguments.GetValue<int>(1))
+            );
     }
 
     public sealed class RangeSource(int start, int end) : RowSourceBase<RangeRow>
@@ -230,27 +218,24 @@ public sealed class Core012FromClauseTests : BasicEntityTestBase
 
     public sealed class RangeTable : ISchemaTable
     {
-        public RangeTable(int start, int end)
-        {
-        }
+        public RangeTable(int start, int end) { }
 
-        public ISchemaColumn[] Columns { get; } =
-        [
-            new SchemaColumn(nameof(RangeRow.Value), 0, typeof(int))
-        ];
+        public ISchemaColumn[] Columns { get; } = [new SchemaColumn(nameof(RangeRow.Value), 0, typeof(int))];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(RangeRow));
 
         public ISchemaColumn? GetColumnByName(string name)
         {
             return Columns.SingleOrDefault(column =>
-                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+            );
         }
 
         public ISchemaColumn[] GetColumnsByName(string name)
         {
-            return Columns.Where(column =>
-                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            return Columns
+                .Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
         }
     }
 

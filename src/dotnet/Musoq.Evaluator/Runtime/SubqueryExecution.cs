@@ -24,7 +24,9 @@ public static class SubqueryExecution
         token.ThrowIfCancellationRequested();
         var value = read(iterator.Current);
         if (iterator.MoveNext())
-            return CorrelatedScalarSubqueryResultExtractor.GetValue(new CorrelatedScalarSubqueryResult<TValue>(default!, 2));
+            return CorrelatedScalarSubqueryResultExtractor.GetValue(
+                new CorrelatedScalarSubqueryResult<TValue>(default!, 2)
+            );
         token.ThrowIfCancellationRequested();
         return value;
     }
@@ -39,19 +41,38 @@ public static class SubqueryExecution
         return exists;
     }
 
-    public static bool? In<TRow, TLeft, TValue>(TLeft left, IEnumerable<TRow> rows, Func<TRow, TValue> read,
-        Func<TLeft, TValue, bool?> compare, CancellationToken token) => Any(left, rows, read, compare, token);
+    public static bool? In<TRow, TLeft, TValue>(
+        TLeft left,
+        IEnumerable<TRow> rows,
+        Func<TRow, TValue> read,
+        Func<TLeft, TValue, bool?> compare,
+        CancellationToken token
+    ) => Any(left, rows, read, compare, token);
 
-    public static bool? Any<TRow, TLeft, TValue>(TLeft left, IEnumerable<TRow> rows, Func<TRow, TValue> read,
-        Func<TLeft, TValue, bool?> compare, CancellationToken token) =>
-        Reduce(left, rows, read, compare, token, QuantifiedReduction.Any);
+    public static bool? Any<TRow, TLeft, TValue>(
+        TLeft left,
+        IEnumerable<TRow> rows,
+        Func<TRow, TValue> read,
+        Func<TLeft, TValue, bool?> compare,
+        CancellationToken token
+    ) => Reduce(left, rows, read, compare, token, QuantifiedReduction.Any);
 
-    public static bool? All<TRow, TLeft, TValue>(TLeft left, IEnumerable<TRow> rows, Func<TRow, TValue> read,
-        Func<TLeft, TValue, bool?> compare, CancellationToken token) =>
-        Reduce(left, rows, read, compare, token, QuantifiedReduction.All);
+    public static bool? All<TRow, TLeft, TValue>(
+        TLeft left,
+        IEnumerable<TRow> rows,
+        Func<TRow, TValue> read,
+        Func<TLeft, TValue, bool?> compare,
+        CancellationToken token
+    ) => Reduce(left, rows, read, compare, token, QuantifiedReduction.All);
 
-    private static bool? Reduce<TRow, TLeft, TValue>(TLeft left, IEnumerable<TRow> rows, Func<TRow, TValue> read,
-        Func<TLeft, TValue, bool?> compare, CancellationToken token, QuantifiedReduction reduction)
+    private static bool? Reduce<TRow, TLeft, TValue>(
+        TLeft left,
+        IEnumerable<TRow> rows,
+        Func<TRow, TValue> read,
+        Func<TLeft, TValue, bool?> compare,
+        CancellationToken token,
+        QuantifiedReduction reduction
+    )
     {
         ArgumentNullException.ThrowIfNull(rows);
         ArgumentNullException.ThrowIfNull(read);
@@ -72,5 +93,9 @@ public static class SubqueryExecution
         return unknown ? null : !decisive;
     }
 
-    private enum QuantifiedReduction { Any, All }
+    private enum QuantifiedReduction
+    {
+        Any,
+        All,
+    }
 }

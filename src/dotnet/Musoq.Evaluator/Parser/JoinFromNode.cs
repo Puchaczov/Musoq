@@ -9,7 +9,8 @@ public class JoinFromNode(
     Node expression,
     JoinType joinType,
     FieldOrderedNode? tieBreak = null,
-    bool withOrdinality = false)
+    bool withOrdinality = false
+)
     : Musoq.Parser.Nodes.From.JoinFromNode(
         joinFrom,
         from,
@@ -17,4 +18,5 @@ public class JoinFromNode(
         joinType,
         typeof(RowSource<>),
         tieBreak,
-        withOrdinality);
+        withOrdinality
+    );

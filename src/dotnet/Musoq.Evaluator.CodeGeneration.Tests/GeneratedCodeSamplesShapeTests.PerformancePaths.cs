@@ -66,13 +66,21 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void PacketBenchmarkSample_CarriesOnlyLivePassthroughFields(string carrier, string expected)
     {
         var code = ReadSample("X08_PacketAnalytics_BenchmarkTable.cs").Content;
-        var declaration = CSharpSyntaxTree.ParseText(code).GetRoot().DescendantNodes()
-            .OfType<ClassDeclarationSyntax>().Single(type => type.Identifier.ValueText == carrier);
-        var fields = declaration.Members.OfType<PropertyDeclarationSyntax>()
+        var declaration = CSharpSyntaxTree
+            .ParseText(code)
+            .GetRoot()
+            .DescendantNodes()
+            .OfType<ClassDeclarationSyntax>()
+            .Single(type => type.Identifier.ValueText == carrier);
+        var fields = declaration
+            .Members.OfType<PropertyDeclarationSyntax>()
             .Select(static property => property.Identifier.ValueText)
-            .Where(static name => name.StartsWith("r_", StringComparison.Ordinal) ||
-                                  name.StartsWith("p_", StringComparison.Ordinal) ||
-                                  name.StartsWith("t_", StringComparison.Ordinal)).ToArray();
+            .Where(static name =>
+                name.StartsWith("r_", StringComparison.Ordinal)
+                || name.StartsWith("p_", StringComparison.Ordinal)
+                || name.StartsWith("t_", StringComparison.Ordinal)
+            )
+            .ToArray();
         CollectionAssert.AreEquivalent(expected.Split(','), fields);
         Assert.Contains("p_Tail", code);
         Assert.Contains("new Musoq.Generated.Interpreters.Entry()", code);

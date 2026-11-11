@@ -14,11 +14,14 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
-        if (!_compilationOptions.UseCteSidecarIndexes ||
-            scope.SuppressSidecarJoinPipeline ||
-            multiStatement.Statements.Length < 2)
+        if (
+            !_compilationOptions.UseCteSidecarIndexes
+            || scope.SuppressSidecarJoinPipeline
+            || multiStatement.Statements.Length < 2
+        )
         {
             return null;
         }
@@ -35,19 +38,22 @@ internal sealed partial class PhysicalLoweringImplementation
                 resultShapeName,
                 indexes,
                 scopeAggregateVariables,
-                scope);
+                scope
+            );
         }
 
         return TryBuildSidecarJoinPipelineTable(
-            stages,
-            resultTableName,
-            resultShapeName,
-            indexes.CteIndexes,
-            indexes.CteShapesByName,
-            schemaFromIndex: DefaultSchemaFromIndex,
-            scope: scope) ??
-            TableBuildResult.Unsupported(
-                "Execution IR CTE sidecar join-chain lowering selected a sidecar pipeline but could not materialize it; the lowerer must not fall back to regular multi-statement lowering silently.");
+                stages,
+                resultTableName,
+                resultShapeName,
+                indexes.CteIndexes,
+                indexes.CteShapesByName,
+                schemaFromIndex: DefaultSchemaFromIndex,
+                scope: scope
+            )
+            ?? TableBuildResult.Unsupported(
+                "Execution IR CTE sidecar join-chain lowering selected a sidecar pipeline but could not materialize it; the lowerer must not fall back to regular multi-statement lowering silently."
+            );
     }
 
     private TableBuildResult BuildDelegatedSidecarEnabledMultiStatementTable(
@@ -56,7 +62,8 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         return BuildMultiStatementTable(
             multiStatement,
@@ -64,17 +71,20 @@ internal sealed partial class PhysicalLoweringImplementation
             resultShapeName,
             indexes,
             scopeAggregateVariables,
-            scope.WithSidecarJoinPipelineSuppressed());
+            scope.WithSidecarJoinPipelineSuppressed()
+        );
     }
 
     private bool CanUseStreamingSidecarJoinPipeline(IReadOnlyList<SidecarJoinPipelineStage> stages)
     {
         return stages
             .Select(AnalyzeSidecarJoinPipelineStage)
-            .All(static analysis => analysis.Kind is
-                SidecarJoinPipelineStageKind.Projection or
-                SidecarJoinPipelineStageKind.IndexedHashJoin or
-                SidecarJoinPipelineStageKind.IndexedKeySetJoin);
+            .All(static analysis =>
+                analysis.Kind
+                    is SidecarJoinPipelineStageKind.Projection
+                        or SidecarJoinPipelineStageKind.IndexedHashJoin
+                        or SidecarJoinPipelineStageKind.IndexedKeySetJoin
+            );
     }
 
     private SidecarJoinPipelineStageAnalysis AnalyzeSidecarJoinPipelineStage(SidecarJoinPipelineStage stage)
@@ -82,33 +92,38 @@ internal sealed partial class PhysicalLoweringImplementation
         if (IsSidecarProjectionStage(stage))
             return new SidecarJoinPipelineStageAnalysis(
                 SidecarJoinPipelineStageKind.Projection,
-                "Projection over the previous sidecar pipeline output.");
+                "Projection over the previous sidecar pipeline output."
+            );
 
-        if (stage.Pipeline.Source is PhysicalHashJoinNode hashJoin &&
-            !stage.Pipeline.Project.IsDistinct &&
-            stage.Pipeline.PostOperations.Count == 0 &&
-            TryResolveSidecarBuildCteRef(hashJoin, out _, out var sidecar) &&
-            IsSupportedSidecarPipelineJoin(hashJoin, sidecar))
+        if (
+            stage.Pipeline.Source is PhysicalHashJoinNode hashJoin
+            && !stage.Pipeline.Project.IsDistinct
+            && stage.Pipeline.PostOperations.Count == 0
+            && TryResolveSidecarBuildCteRef(hashJoin, out _, out var sidecar)
+            && IsSupportedSidecarPipelineJoin(hashJoin, sidecar)
+        )
         {
             return new SidecarJoinPipelineStageAnalysis(
                 sidecar.Kind == CteSidecarIndexKind.KeySet
                     ? SidecarJoinPipelineStageKind.IndexedKeySetJoin
                     : SidecarJoinPipelineStageKind.IndexedHashJoin,
-                $"Indexed sidecar {sidecar.Kind} join.");
+                $"Indexed sidecar {sidecar.Kind} join."
+            );
         }
 
         return new SidecarJoinPipelineStageAnalysis(
             ResolveDelegatedSidecarStageKind(stage.Pipeline.Source),
-            "Delegated to standard Execution IR lowering under sidecar-enabled options.");
+            "Delegated to standard Execution IR lowering under sidecar-enabled options."
+        );
     }
 
     private static bool IsSidecarProjectionStage(SidecarJoinPipelineStage stage)
     {
-        return stage.Pipeline.Source is PhysicalCteRefNode cteRef &&
-               !stage.Pipeline.Project.IsDistinct &&
-               stage.Pipeline.PostOperations.Count == 0 &&
-               !string.IsNullOrWhiteSpace(stage.ExpectedInputCteName) &&
-               string.Equals(cteRef.CteName, stage.ExpectedInputCteName, StringComparison.OrdinalIgnoreCase);
+        return stage.Pipeline.Source is PhysicalCteRefNode cteRef
+            && !stage.Pipeline.Project.IsDistinct
+            && stage.Pipeline.PostOperations.Count == 0
+            && !string.IsNullOrWhiteSpace(stage.ExpectedInputCteName)
+            && string.Equals(cteRef.CteName, stage.ExpectedInputCteName, StringComparison.OrdinalIgnoreCase);
     }
 
     private static SidecarJoinPipelineStageKind ResolveDelegatedSidecarStageKind(PhysicalNode source)
@@ -117,9 +132,11 @@ internal sealed partial class PhysicalLoweringImplementation
         {
             PhysicalNestedLoopApplyNode => SidecarJoinPipelineStageKind.Apply,
             PhysicalNestedLoopJoinNode { Kind: JoinKind.Cross } => SidecarJoinPipelineStageKind.CrossJoin,
-            PhysicalNestedLoopJoinNode { Kind: JoinKind.AsofInner or JoinKind.AsofLeft } => SidecarJoinPipelineStageKind.AsOfJoin,
-            PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode => SidecarJoinPipelineStageKind.StandardJoin,
-            _ => SidecarJoinPipelineStageKind.StandardJoin
+            PhysicalNestedLoopJoinNode { Kind: JoinKind.AsofInner or JoinKind.AsofLeft } =>
+                SidecarJoinPipelineStageKind.AsOfJoin,
+            PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode =>
+                SidecarJoinPipelineStageKind.StandardJoin,
+            _ => SidecarJoinPipelineStageKind.StandardJoin,
         };
     }
 
@@ -133,21 +150,26 @@ internal sealed partial class PhysicalLoweringImplementation
         Dictionary<string, int> schemaFromIndexes,
         IReadOnlyList<ParallelCteLevel>? parallelLevels,
         CteDefinitionPruningPlan pruningPlan,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
-        if (!_compilationOptions.UseCteSidecarIndexes ||
-            scope.SuppressSidecarJoinPipeline ||
-            parallelLevels != null ||
-            cte.Definitions.Length == 0)
+        if (
+            !_compilationOptions.UseCteSidecarIndexes
+            || scope.SuppressSidecarJoinPipeline
+            || parallelLevels != null
+            || cte.Definitions.Length == 0
+        )
         {
             return null;
         }
 
         var finalPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(cte.Query));
-        if (finalPipeline is not { Source: PhysicalHashJoinNode finalJoin } ||
-            finalPipeline.Project.IsDistinct ||
-            finalPipeline.PostOperations.Count != 0 ||
-            !TryResolveSidecarBuildCteRef(finalJoin, out _, out _))
+        if (
+            finalPipeline is not { Source: PhysicalHashJoinNode finalJoin }
+            || finalPipeline.Project.IsDistinct
+            || finalPipeline.PostOperations.Count != 0
+            || !TryResolveSidecarBuildCteRef(finalJoin, out _, out _)
+        )
         {
             return null;
         }
@@ -156,14 +178,17 @@ internal sealed partial class PhysicalLoweringImplementation
         var producer = cte.Definitions[producerIndex];
         var classifications = ClassifyCteReferences(cte);
         var lowerer = CreateSidecarJoinCteLowerer();
-        if (!CanFuseReadOnceCte(producer.Name, classifications) ||
-            !lowerer.TryCreateReadOnceCteStages(
+        if (
+            !CanFuseReadOnceCte(producer.Name, classifications)
+            || !lowerer.TryCreateReadOnceCteStages(
                 producer,
                 cteDefinitionNames,
                 cteIndexes,
                 cteShapesByName,
                 finalPipeline,
-                out var stages))
+                out var stages
+            )
+        )
         {
             return null;
         }
@@ -178,7 +203,8 @@ internal sealed partial class PhysicalLoweringImplementation
             schemaFromIndexes,
             pruningPlan,
             applySidecarIndexes: true,
-            scope);
+            scope
+        );
         if (!prefix.IsBuilt)
             return TableBuildResult.Unsupported(prefix.UnsupportedReason);
 
@@ -191,21 +217,27 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             cteShapesByName,
             schemaFromIndexes[producer.Name],
-            scope);
+            scope
+        );
         if (pipeline == null)
         {
             return TableBuildResult.Unsupported(
-                "Execution IR read-once CTE sidecar lowering selected a sidecar pipeline but could not materialize it; the lowerer must not fall back to regular CTE materialization silently.");
+                "Execution IR read-once CTE sidecar lowering selected a sidecar pipeline but could not materialize it; the lowerer must not fall back to regular CTE materialization silently."
+            );
         }
 
         if (!pipeline.IsBuilt)
             return pipeline;
 
         return TableBuildResult.Success(
-            [..prefix.Shapes, ..pipeline.Shapes],
-            [..prefix.Nodes, new ExecutionCteReadOnceFusionCandidate(producerIndex, new ExecutionBlock(pipeline.Nodes))],
+            [.. prefix.Shapes, .. pipeline.Shapes],
+            [
+                .. prefix.Nodes,
+                new ExecutionCteReadOnceFusionCandidate(producerIndex, new ExecutionBlock(pipeline.Nodes)),
+            ],
             pipeline.Table,
-            pipeline.RowShape);
+            pipeline.RowShape
+        );
     }
 
     private static SidecarJoinCteLowerer CreateSidecarJoinCteLowerer()
@@ -217,7 +249,7 @@ internal sealed partial class PhysicalLoweringImplementation
             CanFuseReadOnceCte,
             ResolveStatementCteName,
             CreateMultiStatementIndexes,
-            CreateCteTableName);
+            CreateCteTableName
+        );
     }
-
 }

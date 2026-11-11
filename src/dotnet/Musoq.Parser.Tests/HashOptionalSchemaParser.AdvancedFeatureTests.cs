@@ -24,7 +24,8 @@ public class HashOptionalSchemaParserAdvancedFeatureTests
     [TestMethod]
     public void HashOptional_MultipleUnions_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             select Col from schemaA.methodA()
             union (Col) select Col from schemaB.methodB()
             union (Col) select Col from schemaC.methodC()";
@@ -37,7 +38,8 @@ public class HashOptionalSchemaParserAdvancedFeatureTests
     [TestMethod]
     public void HashOptional_MixedSetOperators_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             select Col from schemaA.methodA()
             union (Col) select Col from schemaB.methodB()
             except (Col) select Col from schemaC.methodC()
@@ -87,7 +89,8 @@ public class HashOptionalSchemaParserAdvancedFeatureTests
     [TestMethod]
     public void HashOptional_MultipleCtes_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             with cte1 as (select Col1 from schemaA.methodA()),
             cte2 as (select Col2 from schemaB.methodB())
             select cte1.Col1, cte2.Col2 from cte1 inner join cte2 on 1 = 1";
@@ -100,7 +103,8 @@ public class HashOptionalSchemaParserAdvancedFeatureTests
     [TestMethod]
     public void HashOptional_CteWithSetOperators_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             with cte as (
                 select Col from schemaA.methodA()
                 union (Col)
@@ -116,7 +120,8 @@ public class HashOptionalSchemaParserAdvancedFeatureTests
     [TestMethod]
     public void HashOptional_CteWithGroupBy_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             with cte as (
                 select Col, Count(*) as Cnt from schema.method() group by Col
             )
@@ -130,7 +135,8 @@ public class HashOptionalSchemaParserAdvancedFeatureTests
     [TestMethod]
     public void HashOptional_CteReferencingOtherCte_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             with cte1 as (select Col from schema.method()),
             cte2 as (select Col from cte1 where Col = 'test')
             select Col from cte2";
@@ -143,7 +149,8 @@ public class HashOptionalSchemaParserAdvancedFeatureTests
     [TestMethod]
     public void HashOptional_CteWithMixedHashSyntax_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             with cte1 as (select Col from #schemaA.methodA()),
             cte2 as (select Col from schemaB.methodB())
             select * from cte1 inner join cte2 on cte1.Col = cte2.Col";
@@ -284,7 +291,8 @@ public class HashOptionalSchemaParserAdvancedFeatureTests
     [TestMethod]
     public void HashOptional_ComplexQueryWithAllFeatures_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             with cte as (
                 select
                     a.Name,
@@ -313,7 +321,8 @@ public class HashOptionalSchemaParserAdvancedFeatureTests
     [TestMethod]
     public void HashOptional_MixedHashAndNonHash_ComplexQuery_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             with cte1 as (select Col from #schemaA.methodA()),
             cte2 as (select Col from schemaB.methodB())
             select c1.Col, c2.Col

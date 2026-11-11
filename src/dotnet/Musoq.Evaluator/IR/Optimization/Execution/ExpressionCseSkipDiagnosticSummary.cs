@@ -7,14 +7,15 @@ internal sealed record ExpressionCseSkipDiagnosticSummary(
     int ProbePredicateGroups,
     int AggregateHelperBodyGroups,
     int WindowHelperBodyGroups,
-    int GeneratedHelperBodyGroups)
+    int GeneratedHelperBodyGroups
+)
 {
     public bool HasSkippedOpportunities =>
-        HashKeyGroups > 0 ||
-        ProbePredicateGroups > 0 ||
-        AggregateHelperBodyGroups > 0 ||
-        WindowHelperBodyGroups > 0 ||
-        GeneratedHelperBodyGroups > 0;
+        HashKeyGroups > 0
+        || ProbePredicateGroups > 0
+        || AggregateHelperBodyGroups > 0
+        || WindowHelperBodyGroups > 0
+        || GeneratedHelperBodyGroups > 0;
 
     public string Format()
     {
@@ -33,4 +34,3 @@ internal sealed record ExpressionCseSkipDiagnosticSummary(
             parts.Add($"{name}={count}");
     }
 }
-

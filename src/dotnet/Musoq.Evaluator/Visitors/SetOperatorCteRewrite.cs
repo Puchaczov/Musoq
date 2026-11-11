@@ -22,35 +22,65 @@ public partial class SubqueryToCteRewriteVisitor
         SetOperatorNode rewritten = node switch
         {
             UnionNode => new UnionNode(
-                node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                orderBy, skip, take)
+                node.ResultTableName,
+                node.Keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                orderBy,
+                skip,
+                take
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
             UnionAllNode => new UnionAllNode(
-                node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                orderBy, skip, take)
+                node.ResultTableName,
+                node.Keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                orderBy,
+                skip,
+                take
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
             ExceptNode => new ExceptNode(
-                node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                orderBy, skip, take)
+                node.ResultTableName,
+                node.Keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                orderBy,
+                skip,
+                take
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
             IntersectNode => new IntersectNode(
-                node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                orderBy, skip, take)
+                node.ResultTableName,
+                node.Keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                orderBy,
+                skip,
+                take
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
-            _ => throw new NotSupportedException($"Set operator '{node.GetType().Name}' is not supported.")
+            _ => throw new NotSupportedException($"Set operator '{node.GetType().Name}' is not supported."),
         };
 
-        Nodes.Push(cteDefinitions.Count == 0
-            ? rewritten
-            : new CteExpressionNode(cteDefinitions.ToArray(), rewritten));
+        Nodes.Push(cteDefinitions.Count == 0 ? rewritten : new CteExpressionNode(cteDefinitions.ToArray(), rewritten));
     }
 
     private static Node UnwrapSetOperandCtes(Node operand, List<CteInnerExpressionNode> definitions)
@@ -68,30 +98,67 @@ public partial class SubqueryToCteRewriteVisitor
     {
         return node switch
         {
-            UnionNode => new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake)
+            UnionNode => new UnionNode(
+                node.ResultTableName,
+                node.Keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                node.ResultOrderBy,
+                node.ResultSkip,
+                node.ResultTake
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
-            UnionAllNode => new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake)
+            UnionAllNode => new UnionAllNode(
+                node.ResultTableName,
+                node.Keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                node.ResultOrderBy,
+                node.ResultSkip,
+                node.ResultTake
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
-            ExceptNode => new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake)
+            ExceptNode => new ExceptNode(
+                node.ResultTableName,
+                node.Keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                node.ResultOrderBy,
+                node.ResultSkip,
+                node.ResultTake
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
-            IntersectNode => new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                node.ResultOrderBy, node.ResultSkip, node.ResultTake)
+            IntersectNode => new IntersectNode(
+                node.ResultTableName,
+                node.Keys,
+                left,
+                right,
+                node.IsNested,
+                node.IsTheLastOne,
+                node.ResultOrderBy,
+                node.ResultSkip,
+                node.ResultTake
+            )
             {
-                KeySpans = node.KeySpans
+                KeySpans = node.KeySpans,
             },
             _ => throw SubqueryDiagnosticFactory.InvalidSubquery(
                 "EXISTS subquery projection",
                 $"Unsupported set operator {node.GetType().Name} in EXISTS subquery.",
-                node)
+                node
+            ),
         };
     }
 }

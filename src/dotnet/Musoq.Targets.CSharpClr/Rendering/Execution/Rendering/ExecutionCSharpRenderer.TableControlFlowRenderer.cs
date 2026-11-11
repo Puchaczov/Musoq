@@ -6,24 +6,40 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private sealed class TableControlFlowRenderer(ExecutionCSharpRenderer renderer, ExecutionRenderContext renderContext)
+    private sealed class TableControlFlowRenderer(
+        ExecutionCSharpRenderer renderer,
+        ExecutionRenderContext renderContext
+    )
     {
-        public bool TryRender(ExecutionNode node, out IEnumerable<StatementSyntax> statements) {
+        public bool TryRender(ExecutionNode node, out IEnumerable<StatementSyntax> statements)
+        {
             statements = node switch
             {
                 ExecutionSourceScan sourceScan => renderer.RenderSourceScan(sourceScan, renderContext),
-                ExecutionPrepareStructuralInput structuralInput => [StructuralInputSyntaxFactory.RenderPrepare(structuralInput, renderContext, renderer)],
+                ExecutionPrepareStructuralInput structuralInput =>
+                [
+                    StructuralInputSyntaxFactory.RenderPrepare(structuralInput, renderContext, renderer),
+                ],
                 ExecutionInterpretSource interpret => renderer.RenderInterpretSource(interpret, renderContext),
                 ExecutionEnumerableSource enumerable => [renderer.RenderEnumerableSource(enumerable, renderContext)],
                 ExecutionCreateTable createTable => renderer.RenderCreateTable(createTable, renderContext),
                 ExecutionCreateValuesRows valuesRows => [renderer.RenderCreateValuesRows(valuesRows, renderContext)],
                 ExecutionCreateRecordList createList => [renderer.RenderCreateRecordList(createList, renderContext)],
                 ExecutionCreateBoundedRecordList createList => [RenderCreateBoundedRecordList(createList)],
-                ExecutionEnsureTableCapacity ensureCapacity => [renderer.RenderEnsureTableCapacity(ensureCapacity, renderContext)],
+                ExecutionEnsureTableCapacity ensureCapacity =>
+                [
+                    renderer.RenderEnsureTableCapacity(ensureCapacity, renderContext),
+                ],
                 ExecutionForEach forEach => renderer.RenderForEachStream(forEach, renderContext),
-                ExecutionForEachWithOrdinality forEach => renderer.RenderForEachWithOrdinalityStream(forEach, renderContext),
+                ExecutionForEachWithOrdinality forEach => renderer.RenderForEachWithOrdinalityStream(
+                    forEach,
+                    renderContext
+                ),
                 ExecutionScopedBlock scopedBlock => [renderer.RenderBlock(scopedBlock.Body, renderContext)],
-                ExecutionForEachIndexed forEachIndexed => [renderer.RenderForEachIndexed(forEachIndexed, renderContext)],
+                ExecutionForEachIndexed forEachIndexed =>
+                [
+                    renderer.RenderForEachIndexed(forEachIndexed, renderContext),
+                ],
                 ExecutionParallelBlock parallel => renderer.RenderParallelBlock(parallel, renderContext),
                 ExecutionFusedCteProducer fusedCte => renderer.RenderFusedCteProducer(fusedCte, renderContext),
                 ExecutionLet let => [renderer.RenderLet(let, renderContext)],
@@ -37,13 +53,24 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionIf branch => [renderer.RenderIf(branch, renderContext)],
                 ExecutionCreateGeneratedRow createRow => [renderer.RenderCreateGeneratedRow(createRow, renderContext)],
                 ExecutionRecursiveCte recursiveCte => renderer.RenderRecursiveCte(recursiveCte, renderContext),
-                ExecutionRecursiveCteAppend recursiveAppend => renderer.RenderRecursiveCteAppend(recursiveAppend, renderContext),
-                ExecutionRecursiveCteSnapshotRowGuard snapshotGuard => RenderRecursiveCteSnapshotRowGuard(snapshotGuard),
+                ExecutionRecursiveCteAppend recursiveAppend => renderer.RenderRecursiveCteAppend(
+                    recursiveAppend,
+                    renderContext
+                ),
+                ExecutionRecursiveCteSnapshotRowGuard snapshotGuard => RenderRecursiveCteSnapshotRowGuard(
+                    snapshotGuard
+                ),
                 ExecutionAppendRow appendRow => [renderer.RenderAppendRow(appendRow, renderContext)],
                 ExecutionAppendExistingRow appendRow => [renderer.RenderAppendExistingRow(appendRow, renderContext)],
                 ExecutionAppendRecord appendRecord => [renderer.RenderAppendRecord(appendRecord, renderContext)],
-                ExecutionMaterializeList materialize => [renderer.RenderMaterializeListStream(materialize, renderContext)],
-                ExecutionMaterializeFilteredList materialize => renderer.RenderMaterializeFilteredListStream(materialize, renderContext),
+                ExecutionMaterializeList materialize =>
+                [
+                    renderer.RenderMaterializeListStream(materialize, renderContext),
+                ],
+                ExecutionMaterializeFilteredList materialize => renderer.RenderMaterializeFilteredListStream(
+                    materialize,
+                    renderContext
+                ),
                 ExecutionSetOperation setOperation => renderer.RenderSetOperation(setOperation, renderContext),
                 ExecutionDistinctTable distinct => renderer.RenderDistinctTable(distinct, renderContext),
                 ExecutionSortTable sort => renderer.RenderSortTable(sort, renderContext),
@@ -54,15 +81,27 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionSliceTable slice => renderer.RenderSliceTable(slice, renderContext),
                 ExecutionProjectTable project => renderer.RenderProjectTable(project, renderContext),
                 ExecutionOrderRecordList orderRecords => [RenderOrderRecordList(orderRecords)],
-                ExecutionMaterializeRecordListToTable materializeRecords => renderer.RenderMaterializeRecordListToTable(materializeRecords, renderContext),
+                ExecutionMaterializeRecordListToTable materializeRecords => renderer.RenderMaterializeRecordListToTable(
+                    materializeRecords,
+                    renderContext
+                ),
                 ExecutionStoreTable store => [renderer.RenderStoreTable(store, renderContext)],
                 ExecutionPhaseBoundary boundary => renderer.RenderPhaseBoundary(boundary, renderContext),
                 ExecutionStoreCteIndex storeCteIndex => [RenderStoreCteIndex(storeCteIndex)],
                 ExecutionLoadCteIndex loadCteIndex => [RenderLoadCteIndex(loadCteIndex)],
-                ExecutionRelatedCtePhase phase => [QueryEmitter.GeneratePhaseChangeStatement($"{renderContext.Session.QueryIdentifier}:cte{phase.TableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}", QueryPhase.Begin)],
+                ExecutionRelatedCtePhase phase =>
+                [
+                    QueryEmitter.GeneratePhaseChangeStatement(
+                        $"{renderContext.Session.QueryIdentifier}:cte{phase.TableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}",
+                        QueryPhase.Begin
+                    ),
+                ],
                 ExecutionReturnDesc desc => renderer.RenderReturnDesc(desc, renderContext),
-                ExecutionReturnTable returnTable => [StatementEmitter.CreateReturn(SyntaxFactory.IdentifierName(returnTable.Table.Name))],
-                _ => null!
+                ExecutionReturnTable returnTable =>
+                [
+                    StatementEmitter.CreateReturn(SyntaxFactory.IdentifierName(returnTable.Table.Name)),
+                ],
+                _ => null!,
             };
 
             return statements != null;

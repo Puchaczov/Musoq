@@ -62,7 +62,11 @@ public partial class ErrorQualityDialectConfusionTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should produce a parser error
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "OFFSET..FETCH should suggest TAKE/SKIP");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2009_InvalidOrderByExpression,
+            "OFFSET..FETCH should suggest TAKE/SKIP"
+        );
     }
 
     [TestMethod]

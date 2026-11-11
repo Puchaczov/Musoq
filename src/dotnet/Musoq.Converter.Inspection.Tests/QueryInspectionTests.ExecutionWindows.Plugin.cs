@@ -10,16 +10,20 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForCustomPluginWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()
-                )
-                select c.Name,
-                       RunningProduct(c.Population) over (partition by c.City order by c.Name) as Product
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       RunningProduct(c.Population) over (partition by c.City order by c.Name) as Product\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeRunningProductWindowKernel[BoundedRows] [", result.ExecutionPlanText);
@@ -30,29 +34,40 @@ public partial class QueryInspectionTests
         Assert.Contains("Kernel.Get(in ", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".AccumulateValue(", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".GetCurrentValue(", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("SetArguments(Array.Empty<object?>())", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("SetArguments(Array.Empty<object?>())", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("RunningProductValues", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("RunningProductArguments", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeTypedPluginWindowFunction<object, decimal>", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "ComputeTypedPluginWindowFunction<object, decimal>",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputePluginWindowFunction", StringComparison.Ordinal));
     }
 
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForCustomRunningFramedPluginWindow_ShouldStreamExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()
-                )
-                select c.Name,
-                       RunningProduct(c.Population) over (
-                           partition by c.City
-                           order by c.Name
-                           rows between unbounded preceding and current row) as Product
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       RunningProduct(c.Population) over (\n"
+                + "                           partition by c.City\n"
+                + "                           order by c.Name\n"
+                + "                           rows between unbounded preceding and current row) as Product\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeRunningProductWindowKernel[Running] [", result.ExecutionPlanText);
@@ -63,26 +78,39 @@ public partial class QueryInspectionTests
         Assert.Contains("Kernel.Get(in ", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".AccumulateValue(", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".GetCurrentValue(", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("SetArguments(Array.Empty<object?>())", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("SetArguments(Array.Empty<object?>())", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("RunningProductValues", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("RunningProductArguments", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeTypedPluginWindowFunction<object, decimal>", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "ComputeTypedPluginWindowFunction<object, decimal>",
+                StringComparison.Ordinal
+            )
+        );
     }
 
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForCustomPluginWindowArguments_ShouldEmitTypedArgumentDispatch()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()
-                )
-                select c.Name,
-                       ScaledRunningProduct(c.Population, 2) over (partition by c.City order by c.Name) as Product
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       ScaledRunningProduct(c.Population, 2) over (partition by c.City order by c.Name) as Product\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ScaledRunningProductKernel.Set(ref ", result.GeneratedCSharpCode);
@@ -101,19 +129,23 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererUsesCustomPluginWindowArguments_ShouldRunTypedArgumentDispatch()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Diana' as Name, 'LA' as City, 4 as Population from #system.dual()
-                )
-                select c.Name,
-                       c.City,
-                       ScaledRunningProduct(c.Population, 2) over (partition by c.City order by c.Name) as Product
-                from c
-                order by c.City, c.Name",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Diana' as Name, 'LA' as City, 4 as Population from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       c.City,\n"
+                + "                       ScaledRunningProduct(c.Population, 2) over (partition by c.City order by c.Name) as Product\n"
+                + "                from c\n"
+                + "                order by c.City, c.Name"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -135,13 +167,19 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenCustomPluginWindowIsObjectShaped_ShouldRejectNoBoxingExecution()
     {
-        var exception = Assert.Throws<global::Musoq.Evaluator.Exceptions.SourcePlanContractException>(() => Inspect(@"
-                with c as (
-                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()
-                )
-                select ObjectRunningProduct(c.Population) over (partition by c.City order by c.Name) as Product
-                from c",
-            new CompilationOptions()));
+        var exception = Assert.Throws<global::Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            Inspect(
+                (
+                    "\n"
+                    + "                with c as (\n"
+                    + "                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()\n"
+                    + "                )\n"
+                    + "                select ObjectRunningProduct(c.Population) over (partition by c.City order by c.Name) as Product\n"
+                    + "                from c"
+                ),
+                new CompilationOptions()
+            )
+        );
 
         var envelope = MusoqErrorEnvelope.FromException(exception);
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, envelope.Code);
@@ -155,20 +193,24 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForCustomPluginWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()
-                    union all (Name, City, Population) select 'Diana' as Name, 'LA' as City, 4 as Population from #system.dual()
-                )
-                select c.Name,
-                       c.City,
-                       RunningProduct(c.Population) over (partition by c.City order by c.Name) as Product,
-                       Sum(c.Population) over (partition by c.City order by c.Name) as RunningSum
-                from c
-                order by c.City, c.Name",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'Charlie' as Name, 'NYC' as City, 5 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Alice' as Name, 'LA' as City, 2 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Bob' as Name, 'NYC' as City, 3 as Population from #system.dual()\n"
+                + "                    union all (Name, City, Population) select 'Diana' as Name, 'LA' as City, 4 as Population from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       c.City,\n"
+                + "                       RunningProduct(c.Population) over (partition by c.City order by c.Name) as Product,\n"
+                + "                       Sum(c.Population) over (partition by c.City order by c.Name) as RunningSum\n"
+                + "                from c\n"
+                + "                order by c.City, c.Name"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -190,5 +232,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual(15m, table[3].ReadValue(2));
         Assert.AreEqual(8, table[3].ReadValue(3));
     }
-
 }

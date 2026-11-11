@@ -1,6 +1,8 @@
-using System.Linq;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Evaluator.Tests.Architecture;
@@ -18,24 +20,20 @@ public sealed class BuildItemKeyOwnershipGuardrailTests
     private static readonly Regex UpperSnakeStringLiteral = new("\"[A-Z][A-Z0-9_]{2,}\"", RegexOptions.Compiled);
     private static readonly Regex BuildItemsDictionaryContract = new(
         "\\b(?:I?Dictionary)<string, ?object>\\b.*\\bBuildItems\\b|\\bBuildItems\\b.*\\b(?:I?Dictionary)<string, ?object>\\b",
-        RegexOptions.Compiled);
-    private static readonly Regex BuildItemsMethodParameter = new(
-        @"\b(?:public|internal|private|protected|static|sealed|partial|async|virtual|override|readonly|extern|new|unsafe|\s)+[\w<>\[\], ?]+\s+\w+\s*\([^)]*\bBuildItems\b[^)]*\)",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled
+    );
 
     [TestMethod]
     public void BuildItemsAccessors_ShouldNotContainInlineKeyLiterals()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var accessorFiles = RepositorySourceScan
-            .FilesUnder(repositoryRoot, BuildDirectory, "BuildItems*.cs")
-            .ToArray();
+        var accessorFiles = RepositorySourceScan.FilesUnder(repositoryRoot, BuildDirectory, "BuildItems*.cs").ToArray();
 
         var offenders = accessorFiles
             .Select(file => new
             {
                 File = RepositorySourceScan.ToRelative(repositoryRoot, file),
-                Hits = RepositorySourceScan.CountMatchingLines(file, UpperSnakeStringLiteral)
+                Hits = RepositorySourceScan.CountMatchingLines(file, UpperSnakeStringLiteral),
             })
             .Where(entry => entry.Hits > 0)
             .Select(entry => $"{entry.File}: {entry.Hits}")
@@ -43,8 +41,9 @@ public sealed class BuildItemKeyOwnershipGuardrailTests
 
         Assert.IsEmpty(
             offenders,
-            "BuildItems accessor files must reference BuildItemKeys constants, not inline key literals: " +
-            string.Join(", ", offenders));
+            "BuildItems accessor files must reference BuildItemKeys constants, not inline key literals: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -60,7 +59,8 @@ public sealed class BuildItemKeyOwnershipGuardrailTests
         Assert.IsGreaterThanOrEqualTo(
             38,
             registryKeys,
-            $"BuildItemKeys must declare every build item key constant; only found {registryKeys}.");
+            $"BuildItemKeys must declare every build item key constant; only found {registryKeys}."
+        );
     }
 
     [TestMethod]
@@ -76,7 +76,7 @@ public sealed class BuildItemKeyOwnershipGuardrailTests
             .Select(file => new
             {
                 File = RepositorySourceScan.ToRelative(repositoryRoot, file),
-                Hits = RepositorySourceScan.CountMatchingLines(file, BuildItemsDictionaryContract)
+                Hits = RepositorySourceScan.CountMatchingLines(file, BuildItemsDictionaryContract),
             })
             .Where(entry => entry.Hits > 0)
             .Select(entry => $"{entry.File}: {entry.Hits}")
@@ -84,18 +84,17 @@ public sealed class BuildItemKeyOwnershipGuardrailTests
 
         Assert.IsEmpty(
             offenders,
-            "BuildItems inherits Dictionary<string, object> for public compatibility only. " +
-            "Production code must consume typed BuildItems members or BuildArtifactStore helpers instead: " +
-            string.Join(", ", offenders));
+            "BuildItems inherits Dictionary<string, object> for public compatibility only. "
+                + "Production code must consume typed BuildItems members or BuildArtifactStore helpers instead: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void BuildItemsDictionaryInheritance_ShouldStayDocumentedAsLegacyCompatibility()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var buildItemsFile = Path.Combine(
-            repositoryRoot,
-            "src", "dotnet", "Musoq.Converter", "Build", "BuildItems.cs");
+        var buildItemsFile = Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter", "Build", "BuildItems.cs");
         var text = File.ReadAllText(buildItemsFile);
 
         Assert.Contains("public partial class BuildItems : Dictionary<string, object>", text);
@@ -110,42 +109,82 @@ public sealed class BuildItemKeyOwnershipGuardrailTests
         var productionFiles = RepositorySourceScan.ProductionSourceFiles(
             repositoryRoot,
             "Musoq.Converter",
-            "Musoq.Evaluator");
+            "Musoq.Evaluator"
+        );
 
         var offenders = productionFiles
-            .SelectMany(file => File
-                .ReadLines(file)
-                .Select((line, index) => new
-                {
-                    File = RepositorySourceScan.ToRelative(repositoryRoot, file),
-                    Line = index + 1,
-                    Text = line.Trim()
-                }))
-            .Where(item => BuildItemsMethodParameter.IsMatch(item.Text))
-            .Where(item => !IsAllowedBuildItemsBoundary(item.File, item.Text))
-            .Select(item => $"{item.File}:{item.Line}: {item.Text}")
+            .SelectMany(file =>
+                CSharpSyntaxTree
+                    .ParseText(File.ReadAllText(file))
+                    .GetRoot()
+                    .DescendantNodes()
+                    .OfType<MethodDeclarationSyntax>()
+                    .Where(method =>
+                        method.ParameterList.Parameters.Any(parameter => parameter.Type?.ToString() == "BuildItems")
+                    )
+                    .Select(method => new
+                    {
+                        File = RepositorySourceScan.ToRelative(repositoryRoot, file),
+                        Line = method.GetLocation().GetLineSpan().StartLinePosition.Line + 1,
+                        Method = method,
+                    })
+            )
+            .Where(item => !IsAllowedBuildItemsBoundary(item.File, item.Method))
+            .Select(item => $"{item.File}:{item.Line}: {item.Method.Identifier.ValueText}")
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "BuildItems parameters are allowed only at build-chain boundaries and explicit compatibility adapters: " +
-            string.Join(System.Environment.NewLine, offenders));
+            "BuildItems parameters are allowed only at build-chain boundaries and explicit compatibility adapters: "
+                + string.Join(System.Environment.NewLine, offenders)
+        );
     }
 
-    private static bool IsAllowedBuildItemsBoundary(string relativePath, string text)
+    private static bool IsAllowedBuildItemsBoundary(string relativePath, MethodDeclarationSyntax method)
     {
         if (relativePath.StartsWith("src/dotnet/Musoq.Converter/Build/", System.StringComparison.Ordinal))
-            return text.Contains("Build(BuildItems items)", System.StringComparison.Ordinal) ||
-                   text.Contains("From(BuildItems items)", System.StringComparison.Ordinal);
+            return method.Identifier.ValueText is "Build" or "From"
+                && method.ParameterList.Parameters.All(parameter =>
+                    parameter.Type?.ToString() is "BuildItems" or "CancellationToken"
+                );
 
         if (relativePath == "src/dotnet/Musoq.Converter/TransformTree.Pipeline.cs")
-            return text.Contains("Build(BuildItems items)", System.StringComparison.Ordinal);
+            return method.Identifier.ValueText == "Build";
 
         if (relativePath.StartsWith("src/dotnet/Musoq.Converter/InstanceCreator", System.StringComparison.Ordinal))
             return true;
 
-        return relativePath is
-            "src/dotnet/Musoq.Converter/CompiledQueryArtifactSupport.cs" or
-            "src/dotnet/Musoq.Converter/Diagnostics/DiagnosticSqlCommandCompiler.cs";
+        return relativePath
+                is "src/dotnet/Musoq.Converter/CompiledQueryArtifactSupport.cs"
+                    or "src/dotnet/Musoq.Converter/Diagnostics/DiagnosticSqlCommandCompiler.cs"
+            // These pre-existing phase boundaries were missed by the former single-line regex.
+            || (relativePath, method.Identifier.ValueText)
+                is
+                    (
+                        "src/dotnet/Musoq.Converter/CanonicalExecutionArtifactContract.cs",
+                        "CreateCanonicalExecutionArtifactContract"
+                    )
+                    or
+                    ("src/dotnet/Musoq.Converter/TargetPackageBuildResult.cs", "Success")
+                    or
+                    (
+                        "src/dotnet/Musoq.Converter/ExecutionTargets/CSharpClrCompiledArtifactLoader.cs",
+                        "ValidateArtifactCompatibility"
+                    );
+    }
+
+    [TestMethod]
+    [DataRow("public void Build(BuildItems items) {}", true)]
+    [DataRow("public void From(\nBuildItems items,\nCancellationToken cancellationToken) {}", true)]
+    [DataRow("public void From(BuildItems items, object unrelated) {}", false)]
+    [DataRow("public void Accumulate(BuildItems items) {}", false)]
+    public void BuildItemsBoundaryRecognition_ShouldPreserveAllowedSignatureMeaning(string declaration, bool expected)
+    {
+        var method = SyntaxFactory.ParseMemberDeclaration(declaration) as MethodDeclarationSyntax;
+        Assert.IsNotNull(method);
+
+        var allowed = IsAllowedBuildItemsBoundary("src/dotnet/Musoq.Converter/Build/Fixture.cs", method);
+
+        Assert.AreEqual(expected, allowed);
     }
 }

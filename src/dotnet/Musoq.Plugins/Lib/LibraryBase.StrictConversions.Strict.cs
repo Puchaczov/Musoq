@@ -4,7 +4,6 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-
     /// <summary>
     ///     Attempts to convert a value to Int32 with strict validation, rejecting any conversions that would lose precision.
     /// </summary>

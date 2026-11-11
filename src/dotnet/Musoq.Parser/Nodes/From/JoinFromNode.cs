@@ -8,7 +8,8 @@ public class JoinFromNode : BinaryFromNode
         Node expression,
         JoinType joinType,
         FieldOrderedNode? tieBreak = null,
-        bool withOrdinality = false)
+        bool withOrdinality = false
+    )
         : base(source, with, CreateAlias(source, with))
     {
         Expression = expression;
@@ -26,7 +27,8 @@ public class JoinFromNode : BinaryFromNode
         JoinType joinType,
         Type returnType,
         FieldOrderedNode? tieBreak = null,
-        bool withOrdinality = false)
+        bool withOrdinality = false
+    )
         : base(source, with, CreateAlias(source, with), returnType)
     {
         Expression = expression;
@@ -41,7 +43,8 @@ public class JoinFromNode : BinaryFromNode
     public JoinType JoinType { get; }
     public FieldOrderedNode? TieBreak { get; }
     public bool WithOrdinality { get; }
-    public override string Id => $"{nameof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}{TieBreak?.Id}{(WithOrdinality ? "WithOrdinality" : string.Empty)}";
+    public override string Id =>
+        $"{nameof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}{TieBreak?.Id}{(WithOrdinality ? "WithOrdinality" : string.Empty)}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
@@ -56,9 +59,7 @@ public class JoinFromNode : BinaryFromNode
         if (!JoinTypeSql.PrintsCondition(JoinType))
             return $"{Source.ToString()} {joinType} {With.ToString()}";
 
-        var tieBreak = TieBreak == null
-            ? string.Empty
-            : $" tie break by {TieBreak.ToString()}";
+        var tieBreak = TieBreak == null ? string.Empty : $" tie break by {TieBreak.ToString()}";
 
         return $"{Source.ToString()} {joinType} {With.ToString()} on {Expression.ToString()}{tieBreak}";
     }

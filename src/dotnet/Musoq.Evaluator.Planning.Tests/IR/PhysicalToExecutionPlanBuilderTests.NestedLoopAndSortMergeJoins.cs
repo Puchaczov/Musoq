@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public sealed partial class PhysicalToExecutionPlanBuilderTests
 {
-
     [TestMethod]
     public void Build_WhenPlanHasInnerNestedLoopJoin_ShouldReturnNestedLoopExecutionPlan()
     {
@@ -18,20 +17,23 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("p", "Age", typeof(int)),
             new ColumnRef("o", "PersonAge", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var join = new PhysicalNestedLoopJoinNode(JoinKind.Inner, predicate, people, orders);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            join);
+            join
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_NestedJoin");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_NestedJoin]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -53,7 +55,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      ForEach [o in oRowsBuffer]",
             "        If [(p.Age > o.PersonAge)]",
             "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -63,23 +66,21 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     {
         var people = CreateScan();
         var orders = CreateOrderScan();
-        var join = new PhysicalNestedLoopJoinNode(
-            JoinKind.Cross,
-            new Literal(true, typeof(bool)),
-            people,
-            orders);
+        var join = new PhysicalNestedLoopJoinNode(JoinKind.Cross, new Literal(true, typeof(bool)), people, orders);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            join);
+            join
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_CrossJoin");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_CrossJoin]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -100,7 +101,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    ChunkedForEach [p in pRows]",
             "      ForEach [o in oRowsBuffer]",
             "        AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -114,7 +116,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("p", "Age", typeof(int)),
             new ColumnRef("o", "PersonAge", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var join = new PhysicalSortMergeJoinNode(
             JoinKind.Inner,
             new ColumnRef("p", "Age", typeof(int)),
@@ -122,19 +125,22 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.GreaterThan,
             predicate,
             people,
-            orders);
+            orders
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            join);
+            join
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_SortMergeJoin");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_SortMergeJoin]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -156,9 +162,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      RangeProbe [o <- resultRangeIndex where p.Age]",
             "        If [(p.Age > o.PersonAge)]",
             "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
-
 }

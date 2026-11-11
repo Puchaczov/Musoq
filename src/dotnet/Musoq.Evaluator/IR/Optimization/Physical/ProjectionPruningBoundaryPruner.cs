@@ -25,9 +25,7 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
         var requiredNames = ColumnUsage.CollectAggregateRequiredNames(aggregate.Bindings);
         var prunedInput = PruneBoundaryInput(input, requiredNames, RewriteBoundaryKind.Aggregate);
 
-        return ReferenceEquals(prunedInput, aggregate.Input)
-            ? aggregate
-            : aggregate with { Input = prunedInput };
+        return ReferenceEquals(prunedInput, aggregate.Input) ? aggregate : aggregate with { Input = prunedInput };
     }
 
     public PhysicalNode RewriteSingleKeyAggregate(PhysicalSingleKeyAggregateNode aggregate)
@@ -36,9 +34,7 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
         var requiredNames = ColumnUsage.CollectAggregateRequiredNames([aggregate.GroupKey], aggregate.Bindings);
         var prunedInput = PruneBoundaryInput(input, requiredNames, RewriteBoundaryKind.Aggregate);
 
-        return ReferenceEquals(prunedInput, aggregate.Input)
-            ? aggregate
-            : aggregate with { Input = prunedInput };
+        return ReferenceEquals(prunedInput, aggregate.Input) ? aggregate : aggregate with { Input = prunedInput };
     }
 
     public PhysicalNode RewriteValueTupleAggregate(PhysicalValueTupleAggregateNode aggregate)
@@ -47,9 +43,7 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
         var requiredNames = ColumnUsage.CollectAggregateRequiredNames(aggregate.GroupKeys, aggregate.Bindings);
         var prunedInput = PruneBoundaryInput(input, requiredNames, RewriteBoundaryKind.Aggregate);
 
-        return ReferenceEquals(prunedInput, aggregate.Input)
-            ? aggregate
-            : aggregate with { Input = prunedInput };
+        return ReferenceEquals(prunedInput, aggregate.Input) ? aggregate : aggregate with { Input = prunedInput };
     }
 
     public PhysicalNode RewriteSetOperation(PhysicalSetOperationNode setOperation)
@@ -64,7 +58,8 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
                 left,
                 right,
                 setOperation.FieldIndexes,
-                setOperation.FieldTypes);
+                setOperation.FieldTypes
+            );
     }
 
     public PhysicalProjectNode RewriteProjectBoundaries(PhysicalProjectNode project)
@@ -76,13 +71,16 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
 
     private PhysicalProjectNode RewriteJoinInputProjects(PhysicalProjectNode project)
     {
-        if (!PhysicalProjectionBoundaryClassifier.TryGetPrunableJoin(
+        if (
+            !PhysicalProjectionBoundaryClassifier.TryGetPrunableJoin(
                 project.Input,
                 out var kind,
                 out var leftInput,
                 out var rightInput,
                 out var joinRefs,
-                out var createJoin))
+                out var createJoin
+            )
+        )
         {
             return project;
         }
@@ -90,9 +88,7 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
         var downstreamRefs = ColumnUsage.CollectReferencedColumns(project.Fields);
         var allRefs = downstreamRefs.Concat(joinRefs).ToArray();
         var leftRefs = allRefs;
-        var rightRefs = JoinKindSemantics.ProducesLeftOnly(kind)
-            ? joinRefs
-            : allRefs;
+        var rightRefs = JoinKindSemantics.ProducesLeftOnly(kind) ? joinRefs : allRefs;
         var leftRequired = ColumnUsage.CollectRequiredNamesForSide(leftInput, leftRefs);
         var rightRequired = ColumnUsage.CollectRequiredNamesForSide(rightInput, rightRefs);
         var left = PruneBoundaryInput(leftInput, leftRequired, RewriteBoundaryKind.JoinInput);
@@ -101,12 +97,7 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
         if (ReferenceEquals(left, leftInput) && ReferenceEquals(right, rightInput))
             return project;
 
-        return new PhysicalProjectNode(
-            project.Fields,
-            createJoin(left, right))
-        {
-            IsDistinct = project.IsDistinct
-        };
+        return new PhysicalProjectNode(project.Fields, createJoin(left, right)) { IsDistinct = project.IsDistinct };
     }
 
     private PhysicalProjectNode RewriteWindowInputProjects(PhysicalProjectNode project)
@@ -130,11 +121,13 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
         var left = PhysicalProjectionBoundaryInputPruner.PruneSetOperationArm(
             setOperation.Left,
             retainedIndexes,
-            out var leftPruned);
+            out var leftPruned
+        );
         var right = PhysicalProjectionBoundaryInputPruner.PruneSetOperationArm(
             setOperation.Right,
             retainedIndexes,
-            out var rightPruned);
+            out var rightPruned
+        );
         if (!leftPruned && !rightPruned)
             return project;
 
@@ -155,21 +148,18 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
         RewrittenSetOperationInputs++;
         return new PhysicalProjectNode(
             project.Fields,
-            new PhysicalSetOperationNode(
-                setOperation.Kind,
-                left,
-                right,
-                fieldIndexes.ToArray(),
-                fieldTypes.ToArray()))
+            new PhysicalSetOperationNode(setOperation.Kind, left, right, fieldIndexes.ToArray(), fieldTypes.ToArray())
+        )
         {
-            IsDistinct = project.IsDistinct
+            IsDistinct = project.IsDistinct,
         };
     }
 
     private bool TryRewriteWindowInput(
         PhysicalNode input,
         HashSet<string> requiredNames,
-        out PhysicalNode rewrittenInput)
+        out PhysicalNode rewrittenInput
+    )
     {
         if (input is PhysicalQualifyFilterNode qualify)
         {
@@ -206,10 +196,7 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
         return true;
     }
 
-    private PhysicalNode PruneBoundaryInput(
-        PhysicalNode input,
-        HashSet<string> requiredNames,
-        RewriteBoundaryKind kind)
+    private PhysicalNode PruneBoundaryInput(PhysicalNode input, HashSet<string> requiredNames, RewriteBoundaryKind kind)
     {
         var pruned = PhysicalProjectionBoundaryInputPruner.Prune(input, requiredNames);
         if (ReferenceEquals(pruned.Node, input))
@@ -230,7 +217,6 @@ internal sealed class ProjectionPruningBoundaryPruner(Func<PhysicalNode, Physica
     {
         Aggregate,
         Window,
-        JoinInput
+        JoinInput,
     }
 }
-

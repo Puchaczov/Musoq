@@ -26,23 +26,31 @@ public partial class BugProbeTextRepeatFieldTests
     [TestMethod]
     public void Text_RepeatSchemaUntilEnd_ShouldProduceArray()
     {
-        var query = @"
-            text Pair { Key: until '=', Value: rest };
-            text Config { Entries: repeat Pair until end };
-            select e.Key, e.Value from #test.lines() l
-            cross apply Parse<Config>(l.Line) c
-            cross apply c.Entries e
-            order by e.Key asc";
+        var query = (
+            "\n"
+            + "            text Pair { Key: until '=', Value: rest };\n"
+            + "            text Config { Entries: repeat Pair until end };\n"
+            + "            select e.Key, e.Value from #test.lines() l\n"
+            + "            cross apply Parse<Config>(l.Line) c\n"
+            + "            cross apply c.Entries e\n"
+            + "            order by e.Key asc"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "host=localhost" }
+            new TextEntity { Name = "1.txt", Text = "host=localhost" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

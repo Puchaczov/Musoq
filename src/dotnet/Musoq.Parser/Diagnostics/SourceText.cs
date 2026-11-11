@@ -59,7 +59,8 @@ public sealed class SourceText
             }
             else if (c == '\r')
             {
-                if (i + 1 < text.Length && text[i + 1] == '\n') i++;
+                if (i + 1 < text.Length && text[i + 1] == '\n')
+                    i++;
                 lineStarts.Add(i + 1);
             }
         }
@@ -211,7 +212,6 @@ public sealed class SourceText
         var startLine = Math.Max(1, location.Line - maxContextLines);
         var endLine = Math.Min(LineCount, location.Line + maxContextLines);
 
-
         var lineNumWidth = endLine.ToString(System.Globalization.CultureInfo.InvariantCulture).Length;
 
         for (var line = startLine; line <= endLine; line++)
@@ -222,7 +222,6 @@ public sealed class SourceText
             if (line == location.Line)
             {
                 lines.Add($"  {lineNum} | {lineText}");
-
 
                 var pointerPadding = new string(' ', lineNumWidth + 3 + location.Column - 1);
                 var pointerLength = Math.Max(1, Math.Min(span.Length, lineText.Length - location.Column + 1));

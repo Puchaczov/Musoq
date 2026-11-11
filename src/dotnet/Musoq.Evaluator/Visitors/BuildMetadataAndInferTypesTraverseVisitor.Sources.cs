@@ -78,7 +78,10 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
         join.Expression.Accept(this);
         join.TieBreak?.Accept(this);
-        Scope.ScopeSymbolTable.UpdateSymbol(id, CreateJoinOutputSymbol(join.JoinType, id, firstTableSymbol, secondTableSymbol));
+        Scope.ScopeSymbolTable.UpdateSymbol(
+            id,
+            CreateJoinOutputSymbol(join.JoinType, id, firstTableSymbol, secondTableSymbol)
+        );
         join.Accept(Visitor);
 
         while (joins.Count > 0)
@@ -110,7 +113,10 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
             join.Expression.Accept(this);
             join.TieBreak?.Accept(this);
-            Scope.ScopeSymbolTable.UpdateSymbol(id, CreateJoinOutputSymbol(join.JoinType, id, previousTableSymbol, currentTableSymbol));
+            Scope.ScopeSymbolTable.UpdateSymbol(
+                id,
+                CreateJoinOutputSymbol(join.JoinType, id, previousTableSymbol, currentTableSymbol)
+            );
             join.Accept(Visitor);
         }
     }
@@ -153,7 +159,8 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
         Scope.ScopeSymbolTable.AddSymbol(
             id,
-            CreateApplyOutputSymbol(apply.ApplyType, firstTableSymbol, secondTableSymbol));
+            CreateApplyOutputSymbol(apply.ApplyType, firstTableSymbol, secondTableSymbol)
+        );
         Scope[MetaAttributes.ProcessedQueryId] = id;
 
         apply.Accept(Visitor);
@@ -184,7 +191,8 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
             Scope.ScopeSymbolTable.AddSymbol(
                 id,
-                CreateApplyOutputSymbol(apply.ApplyType, previousTableSymbol, currentTableSymbol));
+                CreateApplyOutputSymbol(apply.ApplyType, previousTableSymbol, currentTableSymbol)
+            );
             Scope[MetaAttributes.ProcessedQueryId] = id;
 
             apply.Accept(Visitor);
@@ -197,16 +205,13 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
             metadataVisitor.SetApplyInputSource(identifier);
     }
 
-    private TableSymbol ApplyOrdinalityIfNeeded(
-        FromNode sourceNode,
-        string rightAlias,
-        TableSymbol rightTableSymbol)
+    private TableSymbol ApplyOrdinalityIfNeeded(FromNode sourceNode, string rightAlias, TableSymbol rightTableSymbol)
     {
         var withOrdinality = sourceNode switch
         {
             ApplyFromNode apply => apply.WithOrdinality,
             JoinFromNode join => join.WithOrdinality,
-            _ => false
+            _ => false,
         };
         if (!withOrdinality)
             return rightTableSymbol;
@@ -219,13 +224,15 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
                 nameof(ApplyOrdinalityIfNeeded),
                 $"WITH ORDINALITY cannot be used because apply alias '{rightAlias}' already exposes an Ordinal column.",
                 DiagnosticCode.MQ2030_UnsupportedSyntax,
-                TextSpan.Empty);
+                TextSpan.Empty
+            );
         }
 
         var ordinalColumn = new SchemaColumn(
             ordinalityColumnName,
             rightTableSymbol.GetColumns(rightAlias).Length,
-            typeof(int));
+            typeof(int)
+        );
         var updatedSymbol = rightTableSymbol.WithAdditionalColumn(rightAlias, ordinalColumn);
 
         Scope.ScopeSymbolTable.UpdateSymbol(rightAlias, updatedSymbol);

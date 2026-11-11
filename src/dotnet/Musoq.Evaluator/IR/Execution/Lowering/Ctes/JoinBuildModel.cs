@@ -5,9 +5,7 @@ using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
-internal sealed record InterpretSourceValidationResult(
-    bool IsBuilt,
-    string UnsupportedReason)
+internal sealed record InterpretSourceValidationResult(bool IsBuilt, string UnsupportedReason)
 {
     public static InterpretSourceValidationResult Success()
     {
@@ -20,10 +18,7 @@ internal sealed record InterpretSourceValidationResult(
     }
 }
 
-internal sealed record SourceBuildResult(
-    bool IsBuilt,
-    JoinSource Source,
-    string UnsupportedReason)
+internal sealed record SourceBuildResult(bool IsBuilt, JoinSource Source, string UnsupportedReason)
 {
     public static SourceBuildResult Success(JoinSource source)
     {
@@ -41,15 +36,14 @@ internal sealed record SourceBuildResult(
                 [],
                 new ExecutionVariableRead(new ExecutionVariable(string.Empty, typeof(object))),
                 [],
-                0),
-            reason);
+                0
+            ),
+            reason
+        );
     }
 }
 
-internal sealed record JoinSourcesBuildResult(
-    bool IsBuilt,
-    JoinSources Source,
-    string UnsupportedReason)
+internal sealed record JoinSourcesBuildResult(bool IsBuilt, JoinSources Source, string UnsupportedReason)
 {
     public static JoinSourcesBuildResult Success(JoinSource left, JoinSource right)
     {
@@ -71,34 +65,30 @@ internal sealed record HashJoinTableLowering(
     ExecutionBlock MatchedBody,
     ExecutionBlock? NoMatchBody = null,
     ExecutionVariable? HasMatch = null,
-    IReadOnlyList<ExecutionNode>? PreludeNodes = null);
+    IReadOnlyList<ExecutionNode>? PreludeNodes = null
+);
 
 internal sealed record OuterNestedLoopSides(JoinSource Outer, JoinSource Inner);
 
-internal readonly record struct JoinKeyExpressions(
-    IrExpression Left,
-    IrExpression Right);
+internal readonly record struct JoinKeyExpressions(IrExpression Left, IrExpression Right);
 
 internal readonly record struct AsOfJoinPredicateParts(
     JoinKeyExpressions[] EqualityKeys,
     IrExpression LeftInequalityKey,
     IrExpression RightInequalityKey,
-    BinaryOpKind ComparisonKind);
+    BinaryOpKind ComparisonKind
+);
 
-internal readonly record struct NormalizedAsOfJoinKey(
-    IrExpression Left,
-    IrExpression Right,
-    BinaryOpKind Kind);
+internal readonly record struct NormalizedAsOfJoinKey(IrExpression Left, IrExpression Right, BinaryOpKind Kind);
 
 internal sealed record AsOfProbeBuildResult(
     bool IsBuilt,
     GeneratedRowShape ResultShape,
     ExecutionAsOfProbe Probe,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
-    public static AsOfProbeBuildResult Success(
-        GeneratedRowShape resultShape,
-        ExecutionAsOfProbe probe)
+    public static AsOfProbeBuildResult Success(GeneratedRowShape resultShape, ExecutionAsOfProbe probe)
     {
         return new AsOfProbeBuildResult(true, resultShape, probe, string.Empty);
     }
@@ -117,7 +107,9 @@ internal sealed record AsOfProbeBuildResult(
                 new ExecutionLiteral(null, typeof(object)),
                 BinaryOpKind.Equal,
                 ExecutionBlock.Empty,
-                ComparisonKeyType: (ExecutionTypeRef?)null),
-            reason);
+                ComparisonKeyType: (ExecutionTypeRef?)null
+            ),
+            reason
+        );
     }
 }

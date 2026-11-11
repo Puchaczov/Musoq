@@ -15,9 +15,7 @@ public partial class StarModifierTests
     {
         const string query = "select * rename (Name as EntityName) from #A.entities()";
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            CreateSingleEntitySource(new BasicEntity { Name = "january" }));
+        var vm = CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity { Name = "january" }));
         var table = vm.Run(TestContext.CancellationToken);
 
         var columnNames = table.Columns.Select(c => c.ColumnName).ToArray();
@@ -31,7 +29,8 @@ public partial class StarModifierTests
     [TestMethod]
     public void WhenStarRenameAfterReplace_ShouldRenameReplacedOutput()
     {
-        const string query = "select * replace (Population * 2 as Population) rename (Population as Pop2) from #A.entities()";
+        const string query =
+            "select * replace (Population * 2 as Population) rename (Population as Pop2) from #A.entities()";
 
         var source = new BasicEntity("january", 50m) { Population = 100m };
         var vm = CreateAndRunVirtualMachine(query, CreateSingleEntitySource(source));
@@ -48,7 +47,8 @@ public partial class StarModifierTests
     [TestMethod]
     public void WhenStarLikeExcludeRename_ShouldComposeInOrder()
     {
-        const string query = "select * like 'C%' exclude (Country) replace (City + '-x' as City) rename (City as Location) from #A.entities()";
+        const string query =
+            "select * like 'C%' exclude (Country) replace (City + '-x' as City) rename (City as Location) from #A.entities()";
 
         var source = new BasicEntity("january", 50m) { City = "London", Country = "UK" };
         var vm = CreateAndRunVirtualMachine(query, CreateSingleEntitySource(source));
@@ -63,9 +63,7 @@ public partial class StarModifierTests
     {
         const string query = "select a.* rename (a.Name as EntityName) from #A.entities() a";
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            CreateSingleEntitySource(new BasicEntity { Name = "january" }));
+        var vm = CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity { Name = "january" }));
         using var table = vm.Run(TestContext.CancellationToken);
 
         var columnNames = table.Columns.Select(c => c.ColumnName).ToArray();
@@ -79,7 +77,8 @@ public partial class StarModifierTests
         const string query = "select * rename (Name as EntityName, name as OtherName) from #A.entities()";
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity("january", 50m))));
+            CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity("january", 50m)))
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3068_StarRenameDuplicateSource, DiagnosticPhase.Bind, "name");
     }
@@ -90,7 +89,8 @@ public partial class StarModifierTests
         const string query = "select * rename (Name as Label, City as Label) from #A.entities()";
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity("january", 50m))));
+            CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity("january", 50m)))
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3069_StarRenameDuplicateTarget, DiagnosticPhase.Bind, "Label");
     }
@@ -101,7 +101,8 @@ public partial class StarModifierTests
         const string query = "select * rename (Name as City) from #A.entities()";
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity("january", 50m))));
+            CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity("january", 50m)))
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3069_StarRenameDuplicateTarget, DiagnosticPhase.Bind, "City");
     }
@@ -112,16 +113,14 @@ public partial class StarModifierTests
         const string query = "select * exclude (City) rename (City as Location) from #A.entities()";
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity("january", 50m))));
+            CreateAndRunVirtualMachine(query, CreateSingleEntitySource(new BasicEntity("january", 50m)))
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3070_StarRenameColumnNotFound, DiagnosticPhase.Bind, "City");
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateSingleEntitySource(BasicEntity entity)
     {
-        return new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [entity] }
-        };
+        return new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [entity] } };
     }
 }

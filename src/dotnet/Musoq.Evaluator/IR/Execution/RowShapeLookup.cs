@@ -15,31 +15,23 @@ internal static class RowShapeLookup
 
     public static IReadOnlyDictionary<string, RowShape> CreateSourceShapeLookupOrEmpty(RowShape? source)
     {
-        return source == null
-            ? EmptySourceShapeLookup()
-            : CreateSourceShapeLookup(source);
+        return source == null ? EmptySourceShapeLookup() : CreateSourceShapeLookup(source);
     }
 
-    public static IReadOnlyDictionary<string, RowShape> CreateSourceShapeLookup(
-        RowShape left,
-        RowShape right)
+    public static IReadOnlyDictionary<string, RowShape> CreateSourceShapeLookup(RowShape left, RowShape right)
     {
-        return CreateSourceShapeLookup(
-            new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase),
-            left,
-            right);
+        return CreateSourceShapeLookup(new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase), left, right);
     }
 
     public static IReadOnlyDictionary<string, RowShape> CreateSourceShapeLookup(RowShape source)
     {
-        return CreateSourceShapeLookup(
-            new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase),
-            source);
+        return CreateSourceShapeLookup(new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase), source);
     }
 
     public static IReadOnlyDictionary<string, RowShape> CreateSourceShapeLookup(
         IReadOnlyDictionary<string, RowShape> inherited,
-        params RowShape[] sources)
+        params RowShape[] sources
+    )
     {
         var lookup = new Dictionary<string, RowShape>(inherited, StringComparer.OrdinalIgnoreCase);
 
@@ -54,7 +46,8 @@ internal static class RowShapeLookup
     }
 
     public static IReadOnlyDictionary<string, RowShape> CreateTransitionAliasLookup(
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var lookup = new Dictionary<string, RowShape>(sourceLookup, StringComparer.OrdinalIgnoreCase);
 
@@ -107,7 +100,7 @@ internal static class RowShapeLookup
             TableRowShape tableRow => tableRow.Alias,
             ValuesRowShape values => values.Alias,
             GeneratedRowShape generated when generated.IsQueryScopedRow => generated.SourceAlias ?? string.Empty,
-            _ => string.Empty
+            _ => string.Empty,
         };
 
         return !string.IsNullOrWhiteSpace(alias);
@@ -117,12 +110,14 @@ internal static class RowShapeLookup
     {
         return sourceShape switch
         {
-            SourceEntityShape source when UsesReflectedMemberAccess(source) || !CanReferenceType(source.EntityType.ResolveClrType()) => typeof(object),
+            SourceEntityShape source
+                when UsesReflectedMemberAccess(source) || !CanReferenceType(source.EntityType.ResolveClrType()) =>
+                typeof(object),
             SourceEntityShape source => source.EntityType.ResolveClrType(),
             TableRowShape => typeof(Row),
             ValuesRowShape => typeof(object),
             GeneratedRowShape => typeof(object),
-            _ => typeof(object)
+            _ => typeof(object),
         };
     }
 
@@ -134,7 +129,7 @@ internal static class RowShapeLookup
             TableRowShape => typeof(Row),
             ValuesRowShape => typeof(object),
             GeneratedRowShape => typeof(object),
-            _ => typeof(object)
+            _ => typeof(object),
         };
     }
 
@@ -151,7 +146,8 @@ internal static class RowShapeLookup
     public static FieldBinding? ResolveProjectedField(
         GeneratedRowShape rowShape,
         OrderField key,
-        IReadOnlyList<ProjectedField> projectedFields)
+        IReadOnlyList<ProjectedField> projectedFields
+    )
     {
         var outputIndex = SortKeyProjectionResolver.TryResolveOutputIndex(key.Expression, projectedFields);
         if (outputIndex != null)
@@ -165,9 +161,7 @@ internal static class RowShapeLookup
         }
 
         var outputName = SortKeyProjectionResolver.TryResolveOutputName(key.Expression, projectedFields);
-        return outputName == null
-            ? null
-            : ResolveProjectedField(rowShape, outputName);
+        return outputName == null ? null : ResolveProjectedField(rowShape, outputName);
     }
 
     public static FieldBinding? ResolveProjectedField(GeneratedRowShape rowShape, ColumnRef columnRef)
@@ -181,9 +175,13 @@ internal static class RowShapeLookup
 
     public static FieldBinding? ResolveProjectedField(GeneratedRowShape rowShape, string fieldName)
     {
-        var matches = rowShape.Fields.Where(field =>
-            string.Equals(field.Name, fieldName, StringComparison.Ordinal) ||
-            string.Equals(field.QualifiedName, fieldName, StringComparison.Ordinal)).Take(2).ToArray();
+        var matches = rowShape
+            .Fields.Where(field =>
+                string.Equals(field.Name, fieldName, StringComparison.Ordinal)
+                || string.Equals(field.QualifiedName, fieldName, StringComparison.Ordinal)
+            )
+            .Take(2)
+            .ToArray();
         return matches.Length == 1 ? matches[0] : null;
     }
 }

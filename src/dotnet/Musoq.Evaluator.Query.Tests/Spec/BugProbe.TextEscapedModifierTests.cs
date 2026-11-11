@@ -27,22 +27,30 @@ public partial class BugProbeTextEscapedModifierTests
     [TestMethod]
     public void Text_BetweenEscaped_ShouldHandleEscapedDelimiters()
     {
-        var query = @"
-            text Data { Value: between '""' '""' escaped, Rest: rest };
-            select d.Value from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { Value: between '\"' '\"' escaped, Rest: rest };\n"
+            + "            select d.Value from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
             // The input is: "hello \"world\" end"more
             // Escaped quotes are decoded without terminating the field.
-            new TextEntity { Name = "1.txt", Text = "\"hello \\\"world\\\" end\"more" }
+            new TextEntity { Name = "1.txt", Text = "\"hello \\\"world\\\" end\"more" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

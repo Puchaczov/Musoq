@@ -5,5 +5,5 @@ public enum CardinalityKind
     Unknown,
     Estimate,
     Bounded,
-    Exact
+    Exact,
 }

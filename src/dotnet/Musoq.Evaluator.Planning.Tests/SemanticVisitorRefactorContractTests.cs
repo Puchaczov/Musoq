@@ -26,8 +26,7 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
     [TestMethod]
     public void SourceBinding_WhenUnknownProjectionColumn_ShouldKeepBindDiagnostic()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileBasic("select MissingColumn from #A.Entities()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileBasic("select MissingColumn from #A.Entities()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "MissingColumn");
     }
@@ -36,9 +35,10 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
     public void SetOperator_WhenKeyTargetsAliasedField_ShouldRecordFieldPositionAndType()
     {
         var visitor = AnalyzeVisitor(
-            "select Name as Label, City as CityKey from #A.Entities() " +
-            "union (CityKey) " +
-            "select Name as Label, City as CityKey from #A.Entities()");
+            "select Name as Label, City as CityKey from #A.Entities() "
+                + "union (CityKey) "
+                + "select Name as Label, City as CityKey from #A.Entities()"
+        );
 
         CollectionAssert.AreEqual(new[] { 1 }, visitor.SetOperatorFieldPositions.Values.Single());
         CollectionAssert.AreEqual(new[] { typeof(string) }, visitor.SetOperatorFieldTypes.Values.Single());
@@ -48,21 +48,26 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
     public void SetOperator_WhenKeysAreOmitted_ShouldRecordAllFieldPositionsAndTypes()
     {
         var visitor = AnalyzeVisitor(
-            "select Name as Label, City as CityKey from #A.Entities() " +
-            "union " +
-            "select Name as Label, City as CityKey from #A.Entities()");
+            "select Name as Label, City as CityKey from #A.Entities() "
+                + "union "
+                + "select Name as Label, City as CityKey from #A.Entities()"
+        );
 
         CollectionAssert.AreEqual(new[] { 0, 1 }, visitor.SetOperatorFieldPositions.Values.Single());
-        CollectionAssert.AreEqual(new[] { typeof(string), typeof(string) }, visitor.SetOperatorFieldTypes.Values.Single());
+        CollectionAssert.AreEqual(
+            new[] { typeof(string), typeof(string) },
+            visitor.SetOperatorFieldTypes.Values.Single()
+        );
     }
 
     [TestMethod]
     public void WindowMetadata_WhenRankingAndOffsetFunctionsAreBound_ShouldPreserveReturnTypesAndSpecification()
     {
         var visitor = AnalyzeVisitor(
-            "select RowNumber() over (partition by City order by Name) as RowNum, " +
-            "Lag(Population) over (order by Name) as PrevPopulation " +
-            "from #A.Entities()");
+            "select RowNumber() over (partition by City order by Name) as RowNum, "
+                + "Lag(Population) over (order by Name) as PrevPopulation "
+                + "from #A.Entities()"
+        );
 
         var query = GetQuery(visitor);
         var rowNumber = (WindowFunctionNode)query.Select.Fields[0].Expression;
@@ -84,7 +89,8 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
     {
         var vm = CompileBasic(
             "with p as (select Name as PersonName from #A.Entities()) select p.PersonName from p",
-            new BasicEntity("Alice"));
+            new BasicEntity("Alice")
+        );
 
         var table = vm.Run();
 
@@ -96,19 +102,21 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
     [TestMethod]
     public void InterpretationSchemaReference_WhenNestedBinarySchemaFieldIsProjected_ShouldPreserveColumnPath()
     {
-        const string query = @"
-            binary Inner {
-                Value: short le
-            };
-            binary Packet {
-                Header: Inner,
-                Tail: byte
-            };
-            select
-                p.Header.Value,
-                p.Tail
-            from #test.files() f
-            cross apply Interpret<Packet>(f.Content) p";
+        const string query = (
+            "\n"
+            + "            binary Inner {\n"
+            + "                Value: short le\n"
+            + "            };\n"
+            + "            binary Packet {\n"
+            + "                Header: Inner,\n"
+            + "                Tail: byte\n"
+            + "            };\n"
+            + "            select\n"
+            + "                p.Header.Value,\n"
+            + "                p.Tail\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Packet>(f.Content) p"
+        );
 
         var buildItems = InstanceCreator.CreateForAnalyze(
             query,
@@ -116,15 +124,18 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
             new BinarySchemaProvider(
                 new Dictionary<string, IEnumerable<BinaryEntity>>
                 {
-                    ["#test"] = [new BinaryEntity { Name = "packet.bin", Content = [0x01, 0x00, 0xFF] }]
-                }),
-            LoggerResolver);
+                    ["#test"] = [new BinaryEntity { Name = "packet.bin", Content = [0x01, 0x00, 0xFF] }],
+                }
+            ),
+            LoggerResolver
+        );
 
         var logicalProject = (ProjectNode)PipelinePlanAssertions.UnwrapMultiStatement(buildItems.RequireLogicalPlan());
         Assert.AreEqual("p.Header.Value", IrExpressionPrinter.Print(logicalProject.Fields[0].Expression));
         Assert.AreEqual("p.Tail", IrExpressionPrinter.Print(logicalProject.Fields[1].Expression));
 
-        var physicalProject = (PhysicalProjectNode)PipelinePlanAssertions.UnwrapPhysicalMultiStatement(buildItems.RequirePhysicalPlan());
+        var physicalProject = (PhysicalProjectNode)
+            PipelinePlanAssertions.UnwrapPhysicalMultiStatement(buildItems.RequirePhysicalPlan());
         Assert.AreEqual("p.Header.Value", IrExpressionPrinter.Print(physicalProject.Fields[0].Expression));
         Assert.AreEqual("p.Tail", IrExpressionPrinter.Print(physicalProject.Fields[1].Expression));
     }
@@ -136,7 +147,8 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
             Guid.NewGuid().ToString(),
             CreateBasicSchemaProvider(entities),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 
     private static BuildMetadataAndInferTypesVisitor AnalyzeVisitor(string query)
@@ -149,7 +161,8 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
         var visitor = new BuildMetadataAndInferTypesVisitor(
             CreateBasicSchemaProvider(),
             new Dictionary<string, string[]>(),
-            logger.Object);
+            logger.Object
+        );
 
         var traverser = new BuildMetadataAndInferTypesTraverseVisitor(visitor);
         tree.Accept(traverser);
@@ -163,16 +176,14 @@ public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
         {
             QueryNode query => query,
             StatementsArrayNode { Statements: [{ Node: QueryNode query }] } => query,
-            var node => throw new InvalidOperationException($"Expected query root, got {node.GetType().Name}.")
+            var node => throw new InvalidOperationException($"Expected query root, got {node.GetType().Name}."),
         };
     }
 
     private static BasicSchemaProvider<BasicEntity> CreateBasicSchemaProvider(params BasicEntity[] entities)
     {
         return new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = entities
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = entities }
+        );
     }
 }

@@ -26,8 +26,11 @@ public static class DecimalSumWindowBatch
         }
     }
 
-    private static byte? TryCreatePrefixes(in WindowBatchContext<decimal?, decimal?> context,
-        Span<Int128> totals, Span<int> values)
+    private static byte? TryCreatePrefixes(
+        in WindowBatchContext<decimal?, decimal?> context,
+        Span<Int128> totals,
+        Span<int> values
+    )
     {
         byte scale = 0;
         var hasScale = false;
@@ -42,8 +45,7 @@ public static class DecimalSumWindowBatch
             {
                 decimal.GetBits(value.GetValueOrDefault(), bits);
                 var currentScale = (byte)((uint)bits[3] >> 16);
-                if (bits[3] < 0 || bits[2] != 0 || (uint)bits[1] > int.MaxValue ||
-                    hasScale && currentScale != scale)
+                if (bits[3] < 0 || bits[2] != 0 || (uint)bits[1] > int.MaxValue || hasScale && currentScale != scale)
                     return null;
                 scale = currentScale;
                 hasScale = true;
@@ -55,8 +57,12 @@ public static class DecimalSumWindowBatch
         return scale;
     }
 
-    private static void WriteFrames(in WindowBatchContext<decimal?, decimal?> context,
-        ReadOnlySpan<Int128> totals, ReadOnlySpan<int> values, byte scale)
+    private static void WriteFrames(
+        in WindowBatchContext<decimal?, decimal?> context,
+        ReadOnlySpan<Int128> totals,
+        ReadOnlySpan<int> values,
+        byte scale
+    )
     {
         for (var position = 0; position < context.Indices.Length; position++)
         {
@@ -66,8 +72,13 @@ public static class DecimalSumWindowBatch
             if (first <= last && values[last + 1] != values[first])
             {
                 var coefficient = totals[last + 1] - totals[first];
-                result = new decimal(unchecked((int)(uint)coefficient), unchecked((int)(uint)(coefficient >> 32)),
-                    unchecked((int)(uint)(coefficient >> 64)), false, scale);
+                result = new decimal(
+                    unchecked((int)(uint)coefficient),
+                    unchecked((int)(uint)(coefficient >> 32)),
+                    unchecked((int)(uint)(coefficient >> 64)),
+                    false,
+                    scale
+                );
             }
             context.Results[context.Indices[position]] = result;
         }

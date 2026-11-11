@@ -89,27 +89,37 @@ public class CSharpTypeNameHelperTests
     public void GetCSharpTypeName_GenericTypesWithNullableArguments_ReturnsCorrectFormat()
     {
         Assert.AreEqual("List<int?>", CSharpTypeNameHelper.GetCSharpTypeName(typeof(List<int?>)));
-        Assert.AreEqual("IEnumerable<DateTime?>",
-            CSharpTypeNameHelper.GetCSharpTypeName(typeof(IEnumerable<DateTime?>)));
+        Assert.AreEqual(
+            "IEnumerable<DateTime?>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(IEnumerable<DateTime?>))
+        );
     }
 
     [TestMethod]
     public void GetCSharpTypeName_GenericTypesWithMultipleArguments_ReturnsCorrectFormat()
     {
-        Assert.AreEqual("Dictionary<int, string>",
-            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<int, string>)));
-        Assert.AreEqual("Dictionary<string, List<int>>",
-            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, List<int>>)));
-        Assert.AreEqual("KeyValuePair<int, string>",
-            CSharpTypeNameHelper.GetCSharpTypeName(typeof(KeyValuePair<int, string>)));
+        Assert.AreEqual(
+            "Dictionary<int, string>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<int, string>))
+        );
+        Assert.AreEqual(
+            "Dictionary<string, List<int>>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, List<int>>))
+        );
+        Assert.AreEqual(
+            "KeyValuePair<int, string>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(KeyValuePair<int, string>))
+        );
     }
 
     [TestMethod]
     public void GetCSharpTypeName_NestedGenericTypes_ReturnsCorrectFormat()
     {
         Assert.AreEqual("List<List<int>>", CSharpTypeNameHelper.GetCSharpTypeName(typeof(List<List<int>>)));
-        Assert.AreEqual("Dictionary<string, List<int?>>",
-            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, List<int?>>)));
+        Assert.AreEqual(
+            "Dictionary<string, List<int?>>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, List<int?>>))
+        );
     }
 
     [TestMethod]
@@ -134,8 +144,10 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void GetCSharpTypeName_CustomType_ReturnsSimpleName()
     {
-        Assert.AreEqual("CSharpTypeNameHelperTests",
-            CSharpTypeNameHelper.GetCSharpTypeName(typeof(CSharpTypeNameHelperTests)));
+        Assert.AreEqual(
+            "CSharpTypeNameHelperTests",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(CSharpTypeNameHelperTests))
+        );
         Assert.AreEqual("TestClass", CSharpTypeNameHelper.GetCSharpTypeName(typeof(TestClass)));
     }
 
@@ -143,8 +155,10 @@ public class CSharpTypeNameHelperTests
     public void GetCSharpTypeName_GenericArrays_ReturnsCorrectFormat()
     {
         Assert.AreEqual("List<int>[]", CSharpTypeNameHelper.GetCSharpTypeName(typeof(List<int>[])));
-        Assert.AreEqual("Dictionary<string, int>[]",
-            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, int>[])));
+        Assert.AreEqual(
+            "Dictionary<string, int>[]",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, int>[]))
+        );
     }
 
     #endregion
@@ -263,10 +277,14 @@ public class CSharpTypeNameHelperTests
 
     #region Helper Methods and Test Classes
 
-    private static MethodInfo GetRequiredMethod(Type type, string name, BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.Instance)
+    private static MethodInfo GetRequiredMethod(
+        Type type,
+        string name,
+        BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.Instance
+    )
     {
-        return type.GetMethod(name, bindingFlags) ??
-               throw new InvalidOperationException($"Method {type.FullName}.{name} was not found.");
+        return type.GetMethod(name, bindingFlags)
+            ?? throw new InvalidOperationException($"Method {type.FullName}.{name} was not found.");
     }
 
     private static T GenericMethod<T>(T value)
@@ -283,9 +301,7 @@ public class CSharpTypeNameHelperTests
 
     public class TestClass
     {
-        public void SimpleMethod()
-        {
-        }
+        public void SimpleMethod() { }
 
         public int MethodWithParameters(int x, string y)
         {

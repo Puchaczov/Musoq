@@ -27,9 +27,7 @@ internal sealed class SemanticSetOperatorFactService
         ArgumentNullException.ThrowIfNull(keys);
 
         if (keys.Length == 0)
-            return node.Select.Fields
-                .Select(static field => field.ReturnType ?? typeof(object))
-                .ToArray();
+            return node.Select.Fields.Select(static field => field.ReturnType ?? typeof(object)).ToArray();
 
         var types = new Type[keys.Length];
 
@@ -66,8 +64,10 @@ internal sealed class SemanticSetOperatorFactService
         if (string.Equals(field.FieldName, key, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (!string.IsNullOrWhiteSpace(field.FieldName) &&
-            field.FieldName.EndsWith($".{key}", StringComparison.OrdinalIgnoreCase))
+        if (
+            !string.IsNullOrWhiteSpace(field.FieldName)
+            && field.FieldName.EndsWith($".{key}", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return true;
         }

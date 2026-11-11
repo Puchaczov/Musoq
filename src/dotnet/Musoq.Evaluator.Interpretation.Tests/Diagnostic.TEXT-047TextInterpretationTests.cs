@@ -10,10 +10,12 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextPattern_ShouldMatchAtCurrentPositionAndAdvanceCursor()
     {
-        var interpreter = CreateAndCompileInterpreter("PatternRecord",
+        var interpreter = CreateAndCompileInterpreter(
+            "PatternRecord",
             CreateTextField("Number", TextFieldType.Pattern, @"\d+"),
             CreateTextField("Marker", TextFieldType.Literal, ":"),
-            CreateTextField("Tail", TextFieldType.Rest));
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "123:tail");
 
@@ -24,11 +26,12 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextPatternMismatch_ShouldReportFieldAndPosition()
     {
-        var interpreter = CreateAndCompileInterpreter("PatternRecord",
-            CreateTextField("Number", TextFieldType.Pattern, @"\d+"));
+        var interpreter = CreateAndCompileInterpreter(
+            "PatternRecord",
+            CreateTextField("Number", TextFieldType.Pattern, @"\d+")
+        );
 
-        var exception = Assert.ThrowsExactly<ParseException>(
-            () => InvokeParse(interpreter, "abc"));
+        var exception = Assert.ThrowsExactly<ParseException>(() => InvokeParse(interpreter, "abc"));
         Assert.AreEqual(ParseErrorCode.PatternMismatch, exception.ErrorCode);
         Assert.AreEqual("Number", exception.FieldName);
         Assert.AreEqual(0, exception.Position);
@@ -37,9 +40,11 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextLiteral_ShouldBeCaseSensitiveAndAdvanceCursor()
     {
-        var interpreter = CreateAndCompileInterpreter("LiteralRecord",
+        var interpreter = CreateAndCompileInterpreter(
+            "LiteralRecord",
             CreateTextField("Marker", TextFieldType.Literal, "OK"),
-            CreateTextField("Tail", TextFieldType.Rest));
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "OKvalue");
 
@@ -50,11 +55,12 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextLiteralMismatch_ShouldReportFieldAndPosition()
     {
-        var interpreter = CreateAndCompileInterpreter("LiteralRecord",
-            CreateTextField("Marker", TextFieldType.Literal, "OK"));
+        var interpreter = CreateAndCompileInterpreter(
+            "LiteralRecord",
+            CreateTextField("Marker", TextFieldType.Literal, "OK")
+        );
 
-        var exception = Assert.ThrowsExactly<ParseException>(
-            () => InvokeParse(interpreter, "ok"));
+        var exception = Assert.ThrowsExactly<ParseException>(() => InvokeParse(interpreter, "ok"));
         Assert.AreEqual(ParseErrorCode.LiteralMismatch, exception.ErrorCode);
         Assert.AreEqual("Marker", exception.FieldName);
         Assert.AreEqual(0, exception.Position);
@@ -63,9 +69,11 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextUntil_ShouldConsumeDelimiterBeforeFollowingBetween()
     {
-        var interpreter = CreateAndCompileInterpreter("DelimiterRecord",
+        var interpreter = CreateAndCompileInterpreter(
+            "DelimiterRecord",
             CreateTextField("Prefix", TextFieldType.Until, ":"),
-            CreateTextField("Value", TextFieldType.Between, ":", ";"));
+            CreateTextField("Value", TextFieldType.Between, ":", ";")
+        );
 
         var result = InvokeParse(interpreter, "key::body;");
 
@@ -76,9 +84,11 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextBetweenNested_ShouldCaptureExclusiveBalancedContent()
     {
-        var interpreter = CreateAndCompileInterpreter("NestedRecord",
+        var interpreter = CreateAndCompileInterpreter(
+            "NestedRecord",
             CreateTextField("Value", TextFieldType.Between, "(", ")", TextFieldModifier.Nested),
-            CreateTextField("Tail", TextFieldType.Rest));
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "(a(b)c)tail");
 
@@ -89,9 +99,11 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextBetweenEscaped_ShouldUseCustomEscapeCharacter()
     {
-        var interpreter = CreateAndCompileInterpreter("EscapedRecord",
+        var interpreter = CreateAndCompileInterpreter(
+            "EscapedRecord",
             new TextFieldDefinitionNode("Value", TextFieldType.Between, "[", "]", TextFieldModifier.Escaped, "~"),
-            CreateTextField("Tail", TextFieldType.Rest));
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "[a~]b]tail");
 

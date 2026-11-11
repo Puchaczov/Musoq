@@ -3,6 +3,4 @@ using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Targets.CSharpClr.Optimization.Codegen;
 
-internal interface ICodegenReadabilityOptimizationPass : IPlanOptimizationPass<CompilationUnitSyntax>
-{
-}
+internal interface ICodegenReadabilityOptimizationPass : IPlanOptimizationPass<CompilationUnitSyntax> { }

@@ -12,8 +12,11 @@ public partial class BinarySpecificationRegressionTests
     [DataRow("Size")]
     public void DottedAndComputedArraySize_ShouldReadExactBytes(string size)
     {
-        var table = RunBinary($"binary Header {{ P: byte }}; binary Rec {{ F: Header, Size: F.P, Values: byte[{size}], Tail: byte }};",
-            "r.Values[0], r.Tail", [2, 3, 4, 99]);
+        var table = RunBinary(
+            $"binary Header {{ P: byte }}; binary Rec {{ F: Header, Size: F.P, Values: byte[{size}], Tail: byte }};",
+            "r.Values[0], r.Tail",
+            [2, 3, 4, 99]
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)3, (byte)99]);
     }
@@ -25,8 +28,11 @@ public partial class BinarySpecificationRegressionTests
     public void DottedTypedArraySize_ShouldResolveElementType(string element, string projection)
     {
         var suffix = element == "short" ? " le" : string.Empty;
-        var table = RunBinary($"binary Item {{ V: byte }}; binary Header {{ P: byte }}; binary Rec {{ F: Header, Values: {element}[F.P]{suffix} }};",
-            $"r.Values{projection}", [1, 3, 0]);
+        var table = RunBinary(
+            $"binary Item {{ V: byte }}; binary Header {{ P: byte }}; binary Rec {{ F: Header, Values: {element}[F.P]{suffix} }};",
+            $"r.Values{projection}",
+            [1, 3, 0]
+        );
 
         Assert.AreEqual(3, System.Convert.ToInt32(table[0].ReadValues()[0]));
     }
@@ -38,7 +44,8 @@ public partial class BinarySpecificationRegressionTests
     public void InvalidDynamicSize_ShouldReportInvalidSize(string field, byte[] input)
     {
         var exception = Assert.Throws<ParseException>(() =>
-            RunBinary($"binary Rec {{ Flag: byte, {field}, Values: byte[N] }};", "r.Flag", input));
+            RunBinary($"binary Rec {{ Flag: byte, {field}, Values: byte[N] }};", "r.Flag", input)
+        );
 
         Assert.AreEqual(ParseErrorCode.InvalidSize, exception.ErrorCode);
     }
@@ -46,8 +53,11 @@ public partial class BinarySpecificationRegressionTests
     [TestMethod]
     public void FalseGuard_ShouldNotEvaluateInvalidSize()
     {
-        var table = RunBinary("binary Rec { Flag: byte, N: int le when Flag = 1, Values: byte[N] when Flag = 1, Tail: byte };",
-            "r.Tail", [0, 99]);
+        var table = RunBinary(
+            "binary Rec { Flag: byte, N: int le when Flag = 1, Values: byte[N] when Flag = 1, Tail: byte };",
+            "r.Tail",
+            [0, 99]
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)99]);
     }

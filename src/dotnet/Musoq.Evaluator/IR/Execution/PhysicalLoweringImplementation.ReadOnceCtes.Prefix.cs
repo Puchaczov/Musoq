@@ -15,7 +15,8 @@ internal sealed partial class PhysicalLoweringImplementation
         Dictionary<string, int> schemaFromIndexes,
         CteDefinitionPruningPlan pruningPlan,
         bool applySidecarIndexes,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
@@ -23,7 +24,7 @@ internal sealed partial class PhysicalLoweringImplementation
             ? ClassifyCteReferences(cte)
             : new Dictionary<string, CteReferenceClassification>(StringComparer.OrdinalIgnoreCase);
 
-        for (var index = 0; index < exclusiveEndIndex;)
+        for (var index = 0; index < exclusiveEndIndex; )
         {
             var definition = definitions[index];
             if (definition.Plan is PhysicalRecursiveCteNode recursive)
@@ -37,11 +38,12 @@ internal sealed partial class PhysicalLoweringImplementation
                     cteIndexes,
                     cteShapesByName,
                     schemaFromIndexes[definition.Name],
-                    scope);
+                    scope
+                );
                 if (!recursiveResult.IsBuilt)
                     return CteDefinitionPrefixBuildResult.Unsupported(recursiveResult.UnsupportedReason) with
                     {
-                        UpdatedScope = scope
+                        UpdatedScope = scope,
                     };
 
                 cteShapesByName[definition.Name] = recursiveResult.RowShape;
@@ -52,8 +54,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 continue;
             }
 
-            if (applySidecarIndexes &&
-                TryBuildFusedPrefixSiblings(
+            if (
+                applySidecarIndexes
+                && TryBuildFusedPrefixSiblings(
                     cte,
                     index,
                     exclusiveEndIndex,
@@ -67,7 +70,9 @@ internal sealed partial class PhysicalLoweringImplementation
                     nodes,
                     scope,
                     out var fusedDefinitionCount,
-                    out var fusedUpdatedScope))
+                    out var fusedUpdatedScope
+                )
+            )
             {
                 scope = fusedUpdatedScope;
                 index += fusedDefinitionCount;
@@ -82,7 +87,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 cteShapesByName,
                 schemaFromIndexes[definition.Name],
                 pruningPlan,
-                scope);
+                scope
+            );
 
             if (applySidecarIndexes)
             {
@@ -95,13 +101,14 @@ internal sealed partial class PhysicalLoweringImplementation
                     result,
                     scope,
                     out var storage,
-                    out var sidecarUpdatedScope);
+                    out var sidecarUpdatedScope
+                );
                 scope = sidecarUpdatedScope;
 
                 if (!result.IsBuilt)
                     return CteDefinitionPrefixBuildResult.Unsupported(result.UnsupportedReason) with
                     {
-                        UpdatedScope = scope
+                        UpdatedScope = scope,
                     };
 
                 cteShapesByName[definition.Name] = result.RowShape;
@@ -117,7 +124,7 @@ internal sealed partial class PhysicalLoweringImplementation
             if (!result.IsBuilt)
                 return CteDefinitionPrefixBuildResult.Unsupported(result.UnsupportedReason) with
                 {
-                    UpdatedScope = scope
+                    UpdatedScope = scope,
                 };
 
             cteShapesByName[definition.Name] = result.RowShape;
@@ -129,7 +136,7 @@ internal sealed partial class PhysicalLoweringImplementation
 
         return CteDefinitionPrefixBuildResult.Success(shapes, nodes) with
         {
-            UpdatedScope = scope
+            UpdatedScope = scope,
         };
     }
 
@@ -147,7 +154,8 @@ internal sealed partial class PhysicalLoweringImplementation
         List<ExecutionNode> nodes,
         LoweringScope scope,
         out int definitionCount,
-        out LoweringScope updatedScope)
+        out LoweringScope updatedScope
+    )
     {
         definitionCount = 0;
         updatedScope = scope;
@@ -163,7 +171,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteReferenceClassifications,
             new Dictionary<string, FusedCteHashBuildSource>(StringComparer.OrdinalIgnoreCase),
             scope,
-            out updatedScope);
+            out updatedScope
+        );
 
         if (siblingFusion == null)
             return false;
@@ -171,13 +180,15 @@ internal sealed partial class PhysicalLoweringImplementation
         foreach (var (name, rowShape) in siblingFusion.RowShapesByName)
             cteShapesByName[name] = rowShape;
 
-        var producer = CteSourceBackedSiblingFusion.TryRewrite(
-            nodes,
-            shapes,
-            cteIndexes,
-            cteReferenceClassifications,
-            SourceInteractionPlans,
-            siblingFusion.Producer) ?? siblingFusion.Producer;
+        var producer =
+            CteSourceBackedSiblingFusion.TryRewrite(
+                nodes,
+                shapes,
+                cteIndexes,
+                cteReferenceClassifications,
+                SourceInteractionPlans,
+                siblingFusion.Producer
+            ) ?? siblingFusion.Producer;
         shapes.AddRange(siblingFusion.Shapes);
         nodes.Add(CreateCteFusedProducerCandidate(producer));
         definitionCount = siblingFusion.DefinitionCount;
@@ -185,7 +196,8 @@ internal sealed partial class PhysicalLoweringImplementation
     }
 
     private static ExecutionCteFusedProducerCandidate CreateCteFusedProducerCandidate(
-        ExecutionFusedCteProducer producer)
+        ExecutionFusedCteProducer producer
+    )
     {
         return new ExecutionCteFusedProducerCandidate(producer.Outputs, producer.Body);
     }

@@ -20,7 +20,12 @@ public sealed partial class StructuralInputFailureTests
     {
         const string query = "param(value: string) select d.Value from #specstressutf16.probe(value: $value) d";
         using var compiled = CompileUtf16Source(query);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", "abc");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "value",
+            "abc"
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() =>
         {
@@ -37,8 +42,14 @@ public sealed partial class StructuralInputFailureTests
     public void Utf16LimitAtFourBytes_ShouldAcceptScalarParameter(string value)
     {
         using var compiled = CompileUtf16Source(
-            "param(value: string) select d.Value from #specstressutf16.probe(value: $value) d");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", value);
+            "param(value: string) select d.Value from #specstressutf16.probe(value: $value) d"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "value",
+            value
+        );
 
         using var result = compiled.Run(TestContext.CancellationToken);
 
@@ -65,8 +76,13 @@ public sealed partial class StructuralInputFailureTests
     private CompiledQuery CompileUtf16Source(string query)
     {
         return InstanceCreator.CompileForExecution(
-            query, Guid.NewGuid().ToString(), new Utf16SchemaProvider(), new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false), TestContext.CancellationToken);
+            query,
+            Guid.NewGuid().ToString(),
+            new Utf16SchemaProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false),
+            TestContext.CancellationToken
+        );
     }
 
     private sealed class Utf16SchemaProvider : ISchemaProvider
@@ -82,11 +98,14 @@ public sealed partial class StructuralInputFailureTests
 
     private sealed class Utf16Schema : SchemaBase
     {
-        public Utf16Schema() : base("specstressutf16", new MethodsAggregator(new MethodsManager()))
+        public Utf16Schema()
+            : base("specstressutf16", new MethodsAggregator(new MethodsManager()))
         {
             AddTable<StructuredInputTable<StrictLimitRow>>("probe");
-            AddTypedSource<Utf16Source>("probe",
-                new TypedSourceRegistrationOptions(new StructuralInputLimits(32, 100, 4)));
+            AddTypedSource<Utf16Source>(
+                "probe",
+                new TypedSourceRegistrationOptions(new StructuralInputLimits(32, 100, 4))
+            );
         }
     }
 

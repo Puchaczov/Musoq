@@ -33,11 +33,14 @@ public sealed class EnumScalarContractTests
     public void ScalarValue_FromRawShouldRejectBitsOutsideCarrierWidth()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            EnumScalarValue.FromRaw(EnumUnderlyingKind.Byte, byte.MaxValue + 1UL));
+            EnumScalarValue.FromRaw(EnumUnderlyingKind.Byte, byte.MaxValue + 1UL)
+        );
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            EnumScalarValue.FromRaw(EnumUnderlyingKind.Int16, ushort.MaxValue + 1UL));
+            EnumScalarValue.FromRaw(EnumUnderlyingKind.Int16, ushort.MaxValue + 1UL)
+        );
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            EnumScalarValue.FromRaw(EnumUnderlyingKind.UInt32, (ulong)uint.MaxValue + 1UL));
+            EnumScalarValue.FromRaw(EnumUnderlyingKind.UInt32, (ulong)uint.MaxValue + 1UL)
+        );
     }
 
     [TestMethod]
@@ -47,7 +50,8 @@ public sealed class EnumScalarContractTests
 
         CollectionAssert.AreEqual(
             new[] { "Queued", "Waiting", "Running" },
-            descriptor.Members.Select(static member => member.Name).ToArray());
+            descriptor.Members.Select(static member => member.Name).ToArray()
+        );
         Assert.AreEqual("Queued", descriptor.Aliases["Waiting"]);
         Assert.IsTrue(descriptor.TryGetValue("Waiting", out var aliasValue));
         Assert.AreEqual(10, aliasValue.AsInt32());
@@ -70,13 +74,15 @@ public sealed class EnumScalarContractTests
             EnumTypeOrigin.QueryLocal,
             EnumUnderlyingKind.Int32,
             false,
-            first.Members);
+            first.Members
+        );
         var reordered = new EnumTypeDescriptor(
             first.DisplayName,
             first.Origin,
             first.UnderlyingKind,
             first.IsFlags,
-            first.Members.Reverse().ToArray());
+            first.Members.Reverse().ToArray()
+        );
 
         Assert.AreEqual(first.Fingerprint, equivalent.Fingerprint);
         Assert.AreEqual(first, equivalent);
@@ -91,15 +97,12 @@ public sealed class EnumScalarContractTests
         var members = new[]
         {
             new EnumMemberDescriptor("Ready", EnumScalarValue.FromByte(1)),
-            new EnumMemberDescriptor("ready", EnumScalarValue.FromByte(2))
+            new EnumMemberDescriptor("ready", EnumScalarValue.FromByte(2)),
         };
 
-        Assert.Throws<ArgumentException>(() => new EnumTypeDescriptor(
-            "State",
-            EnumTypeOrigin.QueryLocal,
-            EnumUnderlyingKind.Byte,
-            false,
-            members));
+        Assert.Throws<ArgumentException>(() =>
+            new EnumTypeDescriptor("State", EnumTypeOrigin.QueryLocal, EnumUnderlyingKind.Byte, false, members)
+        );
     }
 
     [TestMethod]
@@ -142,8 +145,9 @@ public sealed class EnumScalarContractTests
             [
                 new EnumMemberDescriptor("Queued", EnumScalarValue.FromInt32(10)),
                 new EnumMemberDescriptor("Waiting", EnumScalarValue.FromInt32(10)),
-                new EnumMemberDescriptor("Running", EnumScalarValue.FromInt32(20))
-            ]);
+                new EnumMemberDescriptor("Running", EnumScalarValue.FromInt32(20)),
+            ]
+        );
     }
 
     [Flags]
@@ -152,12 +156,12 @@ public sealed class EnumScalarContractTests
         None = 0,
         Read = 1,
         Open = Read,
-        Write = 2
+        Write = 2,
     }
 
     public enum CaseCollision : byte
     {
         Ready = 1,
-        ready = 2
+        ready = 2,
     }
 }

@@ -21,9 +21,10 @@ public partial class SubqueryToCteRewriteVisitor
         var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
         var from = SafeCast<FromNode>(Nodes.Pop(), nameof(Visit));
 
-        var sourceQuery = (QueryNode)new QueryNode(
-                select, from, where, groupBy, orderBy, skip, take, window, qualify, node.Span)
-            .WithFullSpan(node.FullSpan);
+        var sourceQuery = (QueryNode)
+            new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, node.Span).WithFullSpan(
+                node.FullSpan
+            );
         RegisterReservedAliases(CollectFromAliases(from));
         var analysis = AnalyzeSubqueries(sourceQuery);
         ValidateSubqueryAnalysis(analysis);
@@ -37,9 +38,8 @@ public partial class SubqueryToCteRewriteVisitor
         window = sourceQuery.Window;
         qualify = sourceQuery.Qualify;
         analysis = AnalyzeSubqueries(sourceQuery);
-        var (remainingExpr, subqueries) = where != null
-            ? AttachCorrelation(ExtractPredicateSubqueries(where.Expression), analysis)
-            : (null, []);
+        var (remainingExpr, subqueries) =
+            where != null ? AttachCorrelation(ExtractPredicateSubqueries(where.Expression), analysis) : (null, []);
         var cteInnerExpressions = new List<CteInnerExpressionNode>();
         var currentFrom = UnwrapFromForJoin(from);
         currentFrom = RewriteDerivedTablesToCtes(currentFrom, cteInnerExpressions);
@@ -47,25 +47,35 @@ public partial class SubqueryToCteRewriteVisitor
         if (subqueries.Count > 0)
         {
             (currentFrom, remainingExpr) = RewriteSubqueriesToJoins(
-                subqueries, currentFrom, remainingExpr, cteInnerExpressions);
+                subqueries,
+                currentFrom,
+                remainingExpr,
+                cteInnerExpressions
+            );
         }
 
         if (groupBy?.Having != null)
         {
             var (havingExpression, havingSubqueries) = AttachCorrelation(
                 ExtractPredicateSubqueries(groupBy.Having.Expression),
-                analysis);
+                analysis
+            );
 
             if (havingSubqueries.Count > 0)
             {
                 ValidateHavingPredicateSubqueriesCanMoveBeforeGrouping(havingSubqueries, groupBy);
                 (currentFrom, havingExpression) = RewriteSubqueriesToJoins(
-                    havingSubqueries, currentFrom, havingExpression, cteInnerExpressions);
+                    havingSubqueries,
+                    currentFrom,
+                    havingExpression,
+                    cteInnerExpressions
+                );
                 groupBy = new GroupByNode(
                     groupBy.Fields,
                     havingExpression != null ? new HavingNode(havingExpression) : null,
                     groupBy.IsAll,
-                    groupBy.Span);
+                    groupBy.Span
+                );
             }
         }
 
@@ -78,7 +88,8 @@ public partial class SubqueryToCteRewriteVisitor
             window,
             qualify,
             analysis,
-            cteInnerExpressions);
+            cteInnerExpressions
+        );
         select = predicateApplyRewrite.Select;
         currentFrom = predicateApplyRewrite.From;
         remainingExpr = predicateApplyRewrite.WhereExpression;
@@ -96,7 +107,8 @@ public partial class SubqueryToCteRewriteVisitor
             window,
             qualify,
             analysis,
-            cteInnerExpressions);
+            cteInnerExpressions
+        );
         select = scalarRewrite.Select;
         currentFrom = scalarRewrite.From;
         remainingExpr = scalarRewrite.WhereExpression;
@@ -107,17 +119,39 @@ public partial class SubqueryToCteRewriteVisitor
 
         if (cteInnerExpressions.Count == 0)
         {
-            Nodes.Push((QueryNode)new QueryNode(
-                    select, from, where, groupBy, orderBy, skip, take, window, qualify, node.Span)
-                .WithFullSpan(node.FullSpan));
+            Nodes.Push(
+                (QueryNode)
+                    new QueryNode(
+                        select,
+                        from,
+                        where,
+                        groupBy,
+                        orderBy,
+                        skip,
+                        take,
+                        window,
+                        qualify,
+                        node.Span
+                    ).WithFullSpan(node.FullSpan)
+            );
             return;
         }
 
         var wrappedFrom = WrapJoinedFrom(currentFrom);
         var newWhere = remainingExpr != null ? new WhereNode(remainingExpr) : null;
-        var newQuery = (QueryNode)new QueryNode(
-                select, wrappedFrom, newWhere, groupBy, orderBy, skip, take, window, qualify, node.Span)
-            .WithFullSpan(node.FullSpan);
+        var newQuery = (QueryNode)
+            new QueryNode(
+                select,
+                wrappedFrom,
+                newWhere,
+                groupBy,
+                orderBy,
+                skip,
+                take,
+                window,
+                qualify,
+                node.Span
+            ).WithFullSpan(node.FullSpan);
 
         Nodes.Push(new CteExpressionNode(cteInnerExpressions.ToArray(), newQuery));
     }

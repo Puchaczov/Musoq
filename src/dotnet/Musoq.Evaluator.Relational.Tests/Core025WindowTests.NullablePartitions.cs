@@ -18,22 +18,27 @@ public sealed partial class Core025WindowTests
     [TestProperty("Phase", "4")]
     public void Current_P4_0045_ImplicitRangeIncludesNullablePartitionPeers()
     {
-        const string query = "select v.Bucket as Bucket,\r\n       v.Ordinal as Ordinal,\r\n       v.Score as Score,\r\n       Sum(v.Score) over (\r\n           partition by v.Bucket\r\n           order by v.Score asc\r\n       ) as RunningTotal\r\nfrom values {\r\n    (Bucket: 'N', Ordinal: 1, Score: 1),\r\n    (Bucket: 'N', Ordinal: 2, Score: 2),\r\n    (Bucket: 'N', Ordinal: 3, Score: 2),\r\n    (Bucket: null, Ordinal: 4, Score: 1),\r\n    (Bucket: null, Ordinal: 5, Score: 1),\r\n    (Bucket: null, Ordinal: 6, Score: 3)\r\n} v";
+        const string query =
+            "select v.Bucket as Bucket,\r\n       v.Ordinal as Ordinal,\r\n       v.Score as Score,\r\n       Sum(v.Score) over (\r\n           partition by v.Bucket\r\n           order by v.Score asc\r\n       ) as RunningTotal\r\nfrom values {\r\n    (Bucket: 'N', Ordinal: 1, Score: 1),\r\n    (Bucket: 'N', Ordinal: 2, Score: 2),\r\n    (Bucket: 'N', Ordinal: 3, Score: 2),\r\n    (Bucket: null, Ordinal: 4, Score: 1),\r\n    (Bucket: null, Ordinal: 5, Score: 1),\r\n    (Bucket: null, Ordinal: 6, Score: 3)\r\n} v";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
+        TableMaterializationTestHelper.AssertColumns(
+            result,
             ("Bucket", typeof(System.String)),
             ("Ordinal", typeof(System.Int32)),
             ("Score", typeof(System.Int32)),
-            ("RunningTotal", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
+            ("RunningTotal", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
             new object?[] { "N", 1, 1, 1 },
             new object?[] { "N", 2, 2, 5 },
             new object?[] { "N", 3, 2, 5 },
             new object?[] { null, 4, 1, 2 },
             new object?[] { null, 5, 1, 2 },
-            new object?[] { null, 6, 3, 5 });
+            new object?[] { null, 6, 3, 5 }
+        );
     }
 
     // Candidate: SPECSTRESS-2026-09-29-P4-0057
@@ -48,17 +53,22 @@ public sealed partial class Core025WindowTests
     [TestProperty("Phase", "4")]
     public void Current_P4_0057_QualifyCountsOnlyPresentJoinMatches()
     {
-        const string query = "select l.Name as LeftName,\r\n       r.Name as RightName,\r\n       Count(r.Name) over (partition by l.Id) as MatchCount\r\nfrom values {\r\n    (Id: 1, Name: 'A'),\r\n    (Id: 2, Name: 'B'),\r\n    (Id: 3, Name: 'C')\r\n} l\r\nleft join values {\r\n    (Id: 1, Name: 'A-1'),\r\n    (Id: 1, Name: 'A-2'),\r\n    (Id: 2, Name: 'B-1')\r\n} r\r\n    on l.Id = r.Id\r\nqualify MatchCount <> 1";
+        const string query =
+            "select l.Name as LeftName,\r\n       r.Name as RightName,\r\n       Count(r.Name) over (partition by l.Id) as MatchCount\r\nfrom values {\r\n    (Id: 1, Name: 'A'),\r\n    (Id: 2, Name: 'B'),\r\n    (Id: 3, Name: 'C')\r\n} l\r\nleft join values {\r\n    (Id: 1, Name: 'A-1'),\r\n    (Id: 1, Name: 'A-2'),\r\n    (Id: 2, Name: 'B-1')\r\n} r\r\n    on l.Id = r.Id\r\nqualify MatchCount <> 1";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
+        TableMaterializationTestHelper.AssertColumns(
+            result,
             ("LeftName", typeof(System.String)),
             ("RightName", typeof(System.String)),
-            ("MatchCount", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
+            ("MatchCount", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
             new object?[] { "A", "A-1", 2L },
             new object?[] { "A", "A-2", 2L },
-            new object?[] { "C", null, 0L });
+            new object?[] { "C", null, 0L }
+        );
     }
 }

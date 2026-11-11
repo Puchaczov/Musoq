@@ -12,8 +12,8 @@ public sealed partial class SourcePlanningSchema(
     string schemaName,
     IReadOnlyList<SourcePlanningEntity> rows,
     SourcePlanningMode mode,
-    SourcePlanningRecorder recorder)
-    : SchemaBase(schemaName, CreateLibrary())
+    SourcePlanningRecorder recorder
+) : SchemaBase(schemaName, CreateLibrary())
 {
     public const string Items = "items";
 
@@ -22,7 +22,8 @@ public sealed partial class SourcePlanningSchema(
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         if (string.Equals(name, Items, StringComparison.OrdinalIgnoreCase))
             return new SourcePlanningTable();
@@ -33,7 +34,8 @@ public sealed partial class SourcePlanningSchema(
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         recorder.RecordDescribe();
         var descriptor = base.DescribeSource(name, context, parameters);
@@ -41,45 +43,42 @@ public sealed partial class SourcePlanningSchema(
         {
             SourcePlanningMode.AcceptTypedStringPredicate => descriptor with
             {
-                PredicateCapabilities = CreateStringPredicateCapabilities()
+                PredicateCapabilities = CreateStringPredicateCapabilities(),
             },
-            SourcePlanningMode.MalformedTypedMissingApplication or
-                SourcePlanningMode.MalformedTypedDuplicateApplication or
-                SourcePlanningMode.MalformedTypedAlteredApplication or
-                SourcePlanningMode.MalformedTypedNestedAccepted => descriptor with
-                {
-                    PredicateCapabilities = CreateStringPredicateCapabilities()
-                },
+            SourcePlanningMode.MalformedTypedMissingApplication
+            or SourcePlanningMode.MalformedTypedDuplicateApplication
+            or SourcePlanningMode.MalformedTypedAlteredApplication
+            or SourcePlanningMode.MalformedTypedNestedAccepted => descriptor with
+            {
+                PredicateCapabilities = CreateStringPredicateCapabilities(),
+            },
             SourcePlanningMode.AcceptTypedStringPrefixPredicate => descriptor with
             {
-                PredicateCapabilities = CreateStringPredicateCapabilities(SourceStringMatchOperations.Prefix)
+                PredicateCapabilities = CreateStringPredicateCapabilities(SourceStringMatchOperations.Prefix),
             },
             SourcePlanningMode.AcceptTypedStringPredicateUnknownVersion => descriptor with
             {
                 PredicateCapabilities = CreateStringPredicateCapabilities(SourceStringMatchOperations.All) with
                 {
-                    ContractVersion = SourcePredicateCapabilities.CurrentContractVersion + 100
-                }
+                    ContractVersion = SourcePredicateCapabilities.CurrentContractVersion + 100,
+                },
             },
             SourcePlanningMode.MalformedTypedUnknownVersionApplication => descriptor with
             {
                 PredicateCapabilities = CreateStringPredicateCapabilities() with
                 {
-                    ContractVersion = SourcePredicateCapabilities.CurrentContractVersion + 100
-                }
+                    ContractVersion = SourcePredicateCapabilities.CurrentContractVersion + 100,
+                },
             },
             SourcePlanningMode.MalformedTypedUnadvertisedPhaseApplication => descriptor with
             {
-                PredicateCapabilities = CreateRowFilterOnlyStringPredicateCapabilities()
+                PredicateCapabilities = CreateRowFilterOnlyStringPredicateCapabilities(),
             },
-            _ => descriptor
+            _ => descriptor,
         };
     }
 
-    public override SourcePlanResult TryPlanSource(
-        string name,
-        SourcePlanRequest request,
-        params object?[] parameters)
+    public override SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
     {
         if (!string.Equals(name, Items, StringComparison.OrdinalIgnoreCase))
             return SourcePlanResult.RejectAll(request);
@@ -93,14 +92,16 @@ public sealed partial class SourcePlanningSchema(
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         if (string.Equals(name, Items, StringComparison.OrdinalIgnoreCase))
         {
             recorder.RecordExecutionPlan(executionContext.Plan);
             return EnsureSourceType<T, SourcePlanningEntity>(
                 name,
-                new SourcePlanningRowSource(rows, executionContext.Plan, recorder));
+                new SourcePlanningRowSource(rows, executionContext.Plan, recorder)
+            );
         }
 
         return base.GetRowSource<T, TArguments>(name, executionContext, nativeArguments);
@@ -113,11 +114,16 @@ public sealed partial class SourcePlanningSchema(
             SourcePlanningMode.RejectAll => SourcePlanResult.RejectAll(request),
             SourcePlanningMode.RejectAllWithExactCardinality => SourcePlanResult.RejectAll(request) with
             {
-                Cardinality = CardinalityEstimate.Exact(rows.Count, "Test source knows its exact row count.")
+                Cardinality = CardinalityEstimate.Exact(rows.Count, "Test source knows its exact row count."),
             },
             SourcePlanningMode.RejectAllWithLowConfidenceCardinality => SourcePlanResult.RejectAll(request) with
             {
-                Cardinality = CardinalityEstimate.Bounded(0, rows.Count, 0.25d, "Test source row count is low confidence.")
+                Cardinality = CardinalityEstimate.Bounded(
+                    0,
+                    rows.Count,
+                    0.25d,
+                    "Test source row count is low confidence."
+                ),
             },
             SourcePlanningMode.AcceptProjection => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
@@ -126,7 +132,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedSkip: null,
                 residualSkip: request.Skip,
                 acceptedTake: null,
-                residualTake: request.Take),
+                residualTake: request.Take
+            ),
             SourcePlanningMode.AcceptPredicate => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: [],
@@ -136,29 +143,40 @@ public sealed partial class SourcePlanningSchema(
                 acceptedTake: null,
                 residualTake: request.Take,
                 acceptedPredicate: request.Predicate,
-                predicateAccepted: true),
-            SourcePlanningMode.AcceptTypedStringPredicate or
-                SourcePlanningMode.AcceptTypedStringPrefixPredicate or
-                SourcePlanningMode.AcceptTypedStringPredicateUnknownVersion => SourcePlanningPlanResultBuilder.CreateAccepted(
-                request,
-                acceptedOrderBy: [],
-                residualOrderBy: request.OrderBy,
-                acceptedSkip: null,
-                residualSkip: request.Skip,
-                acceptedTake: null,
-                residualTake: request.Take,
-                acceptedPredicate: request.Predicate,
-                predicateAccepted: request.Predicate != null),
+                predicateAccepted: true
+            ),
+            SourcePlanningMode.AcceptTypedStringPredicate
+            or SourcePlanningMode.AcceptTypedStringPrefixPredicate
+            or SourcePlanningMode.AcceptTypedStringPredicateUnknownVersion =>
+                SourcePlanningPlanResultBuilder.CreateAccepted(
+                    request,
+                    acceptedOrderBy: [],
+                    residualOrderBy: request.OrderBy,
+                    acceptedSkip: null,
+                    residualSkip: request.Skip,
+                    acceptedTake: null,
+                    residualTake: request.Take,
+                    acceptedPredicate: request.Predicate,
+                    predicateAccepted: request.Predicate != null
+                ),
             SourcePlanningMode.MalformedTypedMissingApplication => CreateMalformedTypedResult(
-                request, MalformedTypedResultKind.MissingApplication),
+                request,
+                MalformedTypedResultKind.MissingApplication
+            ),
             SourcePlanningMode.MalformedTypedDuplicateApplication => CreateMalformedTypedResult(
-                request, MalformedTypedResultKind.DuplicateApplication),
+                request,
+                MalformedTypedResultKind.DuplicateApplication
+            ),
             SourcePlanningMode.MalformedTypedAlteredApplication => CreateMalformedTypedResult(
-                request, MalformedTypedResultKind.AlteredApplication),
+                request,
+                MalformedTypedResultKind.AlteredApplication
+            ),
             SourcePlanningMode.MalformedTypedNestedAccepted => CreateMalformedNestedTypedResult(request),
             SourcePlanningMode.MalformedTypedUnknownVersionApplication => CreateMalformedUnknownVersionResult(request),
             SourcePlanningMode.MalformedTypedUnadvertisedPhaseApplication => CreateMalformedTypedResult(
-                request, MalformedTypedResultKind.UnadvertisedPhase),
+                request,
+                MalformedTypedResultKind.UnadvertisedPhase
+            ),
             SourcePlanningMode.AcceptFirstPredicate => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: [],
@@ -169,7 +187,8 @@ public sealed partial class SourcePlanningSchema(
                 residualTake: request.Take,
                 acceptedPredicate: SourcePlanningPlanResultBuilder.GetFirstConjunct(request.Predicate),
                 residualPredicate: SourcePlanningPlanResultBuilder.RemoveFirstConjunct(request.Predicate),
-                predicateAccepted: SourcePlanningPlanResultBuilder.GetFirstConjunct(request.Predicate) != null),
+                predicateAccepted: SourcePlanningPlanResultBuilder.GetFirstConjunct(request.Predicate) != null
+            ),
             SourcePlanningMode.AcceptPredicateOrderSkipTake => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: request.OrderBy,
@@ -181,7 +200,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedPredicate: request.Predicate,
                 predicateAccepted: request.Predicate != null,
                 strategyPropertyName: StrategyProperty,
-                strategy: SourcePlanningExecutionStrategy.TopN),
+                strategy: SourcePlanningExecutionStrategy.TopN
+            ),
             SourcePlanningMode.AcceptTake => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: [],
@@ -189,7 +209,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedSkip: null,
                 residualSkip: request.Skip,
                 acceptedTake: request.Take,
-                residualTake: null),
+                residualTake: null
+            ),
             SourcePlanningMode.AcceptSkipTake => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: [],
@@ -197,7 +218,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedSkip: request.Skip,
                 residualSkip: null,
                 acceptedTake: request.Take,
-                residualTake: null),
+                residualTake: null
+            ),
             SourcePlanningMode.AcceptOrder => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: request.OrderBy,
@@ -207,7 +229,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedTake: null,
                 residualTake: request.Take,
                 strategyPropertyName: StrategyProperty,
-                strategy: SourcePlanningExecutionStrategy.NaiveSort),
+                strategy: SourcePlanningExecutionStrategy.NaiveSort
+            ),
             SourcePlanningMode.AcceptOrderSkipTake => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: request.OrderBy,
@@ -217,7 +240,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedTake: request.Take,
                 residualTake: null,
                 strategyPropertyName: StrategyProperty,
-                strategy: SourcePlanningExecutionStrategy.NaiveSort),
+                strategy: SourcePlanningExecutionStrategy.NaiveSort
+            ),
             SourcePlanningMode.AcceptNaiveOrder => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: request.OrderBy,
@@ -227,7 +251,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedTake: null,
                 residualTake: request.Take,
                 strategyPropertyName: StrategyProperty,
-                strategy: SourcePlanningExecutionStrategy.NaiveSort),
+                strategy: SourcePlanningExecutionStrategy.NaiveSort
+            ),
             SourcePlanningMode.AcceptNaiveOrderSkipTake => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: request.OrderBy,
@@ -237,7 +262,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedTake: request.Take,
                 residualTake: null,
                 strategyPropertyName: StrategyProperty,
-                strategy: SourcePlanningExecutionStrategy.NaiveSort),
+                strategy: SourcePlanningExecutionStrategy.NaiveSort
+            ),
             SourcePlanningMode.AcceptTopNOrder => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: request.OrderBy,
@@ -247,7 +273,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedTake: null,
                 residualTake: request.Take,
                 strategyPropertyName: StrategyProperty,
-                strategy: SourcePlanningExecutionStrategy.TopN),
+                strategy: SourcePlanningExecutionStrategy.TopN
+            ),
             SourcePlanningMode.AcceptTopNOrderSkipTake => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: request.OrderBy,
@@ -257,7 +284,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedTake: request.Take,
                 residualTake: null,
                 strategyPropertyName: StrategyProperty,
-                strategy: SourcePlanningExecutionStrategy.TopN),
+                strategy: SourcePlanningExecutionStrategy.TopN
+            ),
             SourcePlanningMode.AcceptNaturalOrder => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: request.OrderBy,
@@ -267,7 +295,8 @@ public sealed partial class SourcePlanningSchema(
                 acceptedTake: null,
                 residualTake: request.Take,
                 strategyPropertyName: StrategyProperty,
-                strategy: SourcePlanningExecutionStrategy.NaturalOrder),
+                strategy: SourcePlanningExecutionStrategy.NaturalOrder
+            ),
             SourcePlanningMode.AcceptNaturalOrderSkipTake => SourcePlanningPlanResultBuilder.CreateAccepted(
                 request,
                 acceptedOrderBy: request.OrderBy,
@@ -277,21 +306,23 @@ public sealed partial class SourcePlanningSchema(
                 acceptedTake: request.Take,
                 residualTake: null,
                 strategyPropertyName: StrategyProperty,
-                strategy: SourcePlanningExecutionStrategy.NaturalOrder),
-            _ => SourcePlanResult.RejectAll(request)
+                strategy: SourcePlanningExecutionStrategy.NaturalOrder
+            ),
+            _ => SourcePlanResult.RejectAll(request),
         };
     }
 
     private static SourcePredicateCapabilities CreateStringPredicateCapabilities(
-        SourceStringMatchOperations operations = SourceStringMatchOperations.All)
+        SourceStringMatchOperations operations = SourceStringMatchOperations.All
+    )
     {
         return new SourcePredicateCapabilities
         {
             StringMatches =
             [
                 CreateStringMatchCapability(nameof(SourcePlanningEntity.Name), operations),
-                CreateStringMatchCapability(nameof(SourcePlanningEntity.Category), operations)
-            ]
+                CreateStringMatchCapability(nameof(SourcePlanningEntity.Category), operations),
+            ],
         };
     }
 
@@ -304,21 +335,24 @@ public sealed partial class SourcePlanningSchema(
                 new SourceStringMatchCapability(
                     new SourceColumnRef(nameof(SourcePlanningEntity.Name)),
                     SourceStringMatchOperations.All,
-                    phases: SourcePredicateEvaluationPhases.RowFiltering)
-            ]
+                    phases: SourcePredicateEvaluationPhases.RowFiltering
+                ),
+            ],
         };
     }
 
     private static SourceStringMatchCapability CreateStringMatchCapability(
         string columnName,
-        SourceStringMatchOperations operations)
+        SourceStringMatchOperations operations
+    )
     {
         return new SourceStringMatchCapability(
             new SourceColumnRef(columnName),
             operations,
             SourceStringComparison.LikeIgnoreCase,
             supportsNegation: true,
-            SourcePredicateEvaluationPhases.All);
+            SourcePredicateEvaluationPhases.All
+        );
     }
 
     private static MethodsAggregator CreateLibrary()

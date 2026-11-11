@@ -16,11 +16,17 @@ public sealed partial class ExecutionCSharpRenderer
     private InvocationExpressionSyntax CreateRuntimeHelperInvocation(
         string functionName,
         IReadOnlyList<CapturedLocal> captures,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        var invocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(functionName))
-            .WithArgumentList(CreateArgumentList(
-                [..CreateRuntimeHelperArguments(context), ..captures.Select(CreateCapturedLocalArgument)]));
+        var invocation = SyntaxFactory
+            .InvocationExpression(SyntaxFactory.IdentifierName(functionName))
+            .WithArgumentList(
+                CreateArgumentList([
+                    .. CreateRuntimeHelperArguments(context),
+                    .. captures.Select(CreateCapturedLocalArgument),
+                ])
+            );
         return CodegenHelperExtractionMetadata.AnnotateCallSite(invocation, functionName);
     }
 
@@ -35,7 +41,7 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName("token"),
             SyntaxFactory.IdentifierName("__musoqProgressContext"),
             SyntaxFactory.IdentifierName("OnDataSourceProgress"),
-            SyntaxFactory.IdentifierName("OnQueryProgress")
+            SyntaxFactory.IdentifierName("OnQueryProgress"),
         };
 
         arguments.Add(SyntaxFactory.IdentifierName("OnPhaseChanged"));
@@ -57,10 +63,15 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ParameterListSyntax CreateRuntimeHelperParameterList(
         IReadOnlyList<CapturedLocal> captures,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
-            [..CreateRuntimeHelperParameters(context), ..captures.Select(CreateCapturedLocalParameter)]));
+        return SyntaxFactory.ParameterList(
+            SyntaxFactory.SeparatedList([
+                .. CreateRuntimeHelperParameters(context),
+                .. captures.Select(CreateCapturedLocalParameter),
+            ])
+        );
     }
 
     private IReadOnlyList<ParameterSyntax> CreateRuntimeHelperParameters(ExecutionRenderContext context)
@@ -70,28 +81,44 @@ public sealed partial class ExecutionCSharpRenderer
             CreateParameter("provider", CreateTypeSyntax(typeof(ISchemaProvider))),
             CreateParameter(
                 "sourceRuntimeSettingsBySourceContextId",
-                SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>")),
+                SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>")
+            ),
             CreateParameter(
                 "sourceExecutionPlans",
-                SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, SourceExecutionPlan>")),
+                SyntaxFactory.ParseTypeName("IReadOnlyDictionary<string, SourceExecutionPlan>")
+            ),
             CreateParameter("logger", CreateTypeSyntax(typeof(ILogger))),
             CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken))),
             CreateParameter("__musoqProgressContext", SyntaxFactory.ParseTypeName("QueryRunContext?")),
             CreateParameter("OnDataSourceProgress", CreateTypeSyntax(typeof(DataSourceEventHandler))),
-            CreateParameter("OnQueryProgress", CreateTypeSyntax(typeof(QueryProgressEventHandler)))
+            CreateParameter("OnQueryProgress", CreateTypeSyntax(typeof(QueryProgressEventHandler))),
         };
 
         parameters.Add(CreateParameter("OnPhaseChanged", SyntaxFactory.ParseTypeName("Action<string, QueryPhase>")));
 
         if (IsInstrumentationEnabled)
-            parameters.Add(CreateParameter(ProfileRecorderVariableName, CreateTypeSyntax(typeof(QueryProfileRecorder))));
+            parameters.Add(
+                CreateParameter(ProfileRecorderVariableName, CreateTypeSyntax(typeof(QueryProfileRecorder)))
+            );
 
         if (context.Session.IncludeTableResults)
         {
-            parameters.Add(CreateParameter("_tableResults", SyntaxFactory.ArrayType(CreateTypeSyntax(typeof(Table)))
-                .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                    SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                        SyntaxFactory.OmittedArraySizeExpression()))))));
+            parameters.Add(
+                CreateParameter(
+                    "_tableResults",
+                    SyntaxFactory
+                        .ArrayType(CreateTypeSyntax(typeof(Table)))
+                        .WithRankSpecifiers(
+                            SyntaxFactory.SingletonList(
+                                SyntaxFactory.ArrayRankSpecifier(
+                                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                        SyntaxFactory.OmittedArraySizeExpression()
+                                    )
+                                )
+                            )
+                        )
+                )
+            );
         }
 
         if (context.Session.IncludeCteRowResults)
@@ -120,7 +147,9 @@ public sealed partial class ExecutionCSharpRenderer
     private void AddProfileRecorderParameter(List<ParameterSyntax> parameters)
     {
         if (IsInstrumentationEnabled)
-            parameters.Add(CreateParameter(ProfileRecorderVariableName, CreateTypeSyntax(typeof(QueryProfileRecorder))));
+            parameters.Add(
+                CreateParameter(ProfileRecorderVariableName, CreateTypeSyntax(typeof(QueryProfileRecorder)))
+            );
     }
 
     private void AddProfileRecorderExcludedName(ISet<string> excludedNames)
@@ -141,7 +170,7 @@ public sealed partial class ExecutionCSharpRenderer
             "__musoqProgressContext",
             "OnDataSourceProgress",
             "OnQueryProgress",
-            "OnPhaseChanged"
+            "OnPhaseChanged",
         };
 
         if (IsInstrumentationEnabled)
@@ -163,6 +192,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return SyntaxFactory.TokenList(
             SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-            SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            SyntaxFactory.Token(SyntaxKind.StaticKeyword)
+        );
     }
 }

@@ -12,12 +12,11 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
 {
-    private const string EnumPrefix =
-        "enum JobStatus : short { Queued = 10, Running = 20, Finished = 30 };";
+    private const string EnumPrefix = "enum JobStatus : short { Queued = 10, Running = 20, Finished = 30 };";
 
     private static readonly REC101EnumEntity[] Rows =
     [
-        new(REC101PrimaryStatus.Running, REC101SecondaryStatus.Running, "Running", new object(), 20)
+        new(REC101PrimaryStatus.Running, REC101SecondaryStatus.Running, "Running", new object(), 20),
     ];
 
     public static IEnumerable<object[]> ContextualMemberCases()
@@ -28,7 +27,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where 'running' = e.Status",
             "'running'",
             DiagnosticCode.MQ3108_UnknownEnumMember,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -36,7 +35,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where e.Status != 'RUNNING'",
             "'RUNNING'",
             DiagnosticCode.MQ3108_UnknownEnumMember,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -44,7 +43,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where e.Status is distinct from 'running'",
             "'running'",
             DiagnosticCode.MQ3108_UnknownEnumMember,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -52,7 +51,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where e.Status is not distinct from 'RUNNING'",
             "'RUNNING'",
             DiagnosticCode.MQ3108_UnknownEnumMember,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -60,7 +59,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where e.Status in ('Running', 'running')",
             "'running'",
             DiagnosticCode.MQ3108_UnknownEnumMember,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -68,7 +67,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where e.Status not in ('Finished', 'finished')",
             "'finished'",
             DiagnosticCode.MQ3108_UnknownEnumMember,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
     }
 
@@ -80,7 +79,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select Running from #schema.first() e",
             "Running",
             DiagnosticCode.MQ3001_UnknownColumn,
-            "Core Spec - Column References"
+            "Core Spec - Column References",
         };
         yield return new object[]
         {
@@ -88,7 +87,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select JobStatus.Running from #schema.first() e",
             "JobStatus",
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -96,7 +95,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where e.Status = 20",
             "20",
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -104,7 +103,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where e.Status = e.Label",
             "Label",
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -112,7 +111,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where e.Status = e.Payload",
             "Payload",
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -120,7 +119,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status::JobStatus as Value from #schema.first() e",
             "Status::JobStatus",
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -128,7 +127,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Number::JobStatus as Value from #schema.first() e",
             "Number::JobStatus",
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
         yield return new object[]
         {
@@ -136,31 +135,27 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
             EnumPrefix + "select e.Status from #schema.first() e where e.Status = true",
             "true",
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
-            "Core Spec - Enum Types"
+            "Core Spec - Enum Types",
         };
     }
 
     public static IEnumerable<object[]> ContextlessLiteralCases()
     {
-        yield return new object[]
-        {
-            "REC-101-ORD01",
-            EnumPrefix + "select 'Queued' as Value from #schema.first() e"
-        };
+        yield return new object[] { "REC-101-ORD01", EnumPrefix + "select 'Queued' as Value from #schema.first() e" };
         yield return new object[]
         {
             "REC-101-ORD02",
-            EnumPrefix + "select 1 from #schema.first() e where 'Status' = 'Running'"
+            EnumPrefix + "select 1 from #schema.first() e where 'Status' = 'Running'",
         };
         yield return new object[]
         {
             "REC-101-ORD03",
-            EnumPrefix + "select 1 from #schema.first() e where 'Running' in ('Queued', 'Running')"
+            EnumPrefix + "select 1 from #schema.first() e where 'Running' in ('Queued', 'Running')",
         };
         yield return new object[]
         {
             "REC-101-ORD04",
-            EnumPrefix + "select case when true then 'Running' else 'Queued' end as Value from #schema.first() e"
+            EnumPrefix + "select case when true then 'Running' else 'Queued' end as Value from #schema.first() e",
         };
     }
 
@@ -170,37 +165,37 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
         {
             "REC-101-BRIDGE01",
             EnumPrefix + "select EnumValue(e.Status) as Value from #schema.first() e",
-            true
+            true,
         };
         yield return new object[]
         {
             "REC-101-BRIDGE02",
             EnumPrefix + "select EnumName(e.Status) as Value from #schema.first() e",
-            true
+            true,
         };
         yield return new object[]
         {
             "REC-101-BRIDGE03",
             EnumPrefix + "select EnumValue(e.Status) as Value, EnumName(e.Status) as Name from #schema.first() e",
-            true
+            true,
         };
         yield return new object[]
         {
             "REC-101-BRIDGE04",
             EnumPrefix + "select e.Status from #schema.first() e where EnumValue(e.Status) = 20",
-            true
+            true,
         };
         yield return new object[]
         {
             "REC-101-BRIDGE05",
             EnumPrefix + "select e.Status from #schema.first() e where e.Status is distinct from e.Other",
-            false
+            false,
         };
         yield return new object[]
         {
             "REC-101-BRIDGE06",
             EnumPrefix + "select case when true then e.Status else e.Other end as Value from #schema.first() e",
-            false
+            false,
         };
     }
 
@@ -211,7 +206,8 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
         string query,
         string expectedSpanText,
         DiagnosticCode expectedCode,
-        string expectedDocsReference)
+        string expectedDocsReference
+    )
     {
         AssertSemanticDiagnostic(caseId, query, expectedSpanText, expectedCode, expectedDocsReference);
     }
@@ -223,7 +219,8 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
         string query,
         string expectedSpanText,
         DiagnosticCode expectedCode,
-        string expectedDocsReference)
+        string expectedDocsReference
+    )
     {
         AssertSemanticDiagnostic(caseId, query, expectedSpanText, expectedCode, expectedDocsReference);
     }
@@ -240,10 +237,7 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
 
     [TestMethod]
     [DynamicData(nameof(ExplicitBridgeCases))]
-    public void ExplicitEnumHelpers_ShouldBeTheOnlyNumericOrTextualBridge(
-        string caseId,
-        string query,
-        bool shouldRun)
+    public void ExplicitEnumHelpers_ShouldBeTheOnlyNumericOrTextualBridge(string caseId, string query, bool shouldRun)
     {
         Assert.IsFalse(string.IsNullOrWhiteSpace(caseId));
 
@@ -258,18 +252,20 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
         var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, Rows));
         AssertSingleError(exception, DiagnosticCode.MQ3109_EnumIdentityMismatch, DiagnosticPhase.Bind);
         AssertHasGuidance(exception);
-        Assert.IsTrue(exception.PrimaryEnvelope.SuggestedFixes.Any(fix =>
-            fix.Contains("EnumValue", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            exception.PrimaryEnvelope.SuggestedFixes.Any(fix => fix.Contains("EnumValue", StringComparison.Ordinal))
+        );
     }
 
     [TestMethod]
     public void ExactContextualMembers_ShouldBindInEqualityAndMembership()
     {
         using var compiledQuery = CreateAndRunVirtualMachine(
-            EnumPrefix +
-            "select e.Status from #schema.first() e " +
-            "where 'Running' = e.Status and e.Status in ('Queued', 'Running')",
-            Rows);
+            EnumPrefix
+                + "select e.Status from #schema.first() e "
+                + "where 'Running' = e.Status and e.Status in ('Queued', 'Running')",
+            Rows
+        );
         using var table = compiledQuery.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
@@ -279,10 +275,11 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
     public void EnumHelpers_ShouldExposeExplicitBridges()
     {
         using var compiledQuery = CreateAndRunVirtualMachine(
-            EnumPrefix +
-            "select EnumValue(e.Status) as NumericValue, EnumName(e.Status) as TextValue " +
-            "from #schema.first() e",
-            Rows);
+            EnumPrefix
+                + "select EnumValue(e.Status) as NumericValue, EnumName(e.Status) as TextValue "
+                + "from #schema.first() e",
+            Rows
+        );
         using var table = compiledQuery.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
@@ -292,25 +289,34 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
     [TestMethod]
     public void CrossIdentityFailure_ShouldNotSuggestChangingTheMemberCase()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-            EnumPrefix + "select e.Status from #schema.first() e where e.Status = e.Other",
-            Rows));
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                EnumPrefix + "select e.Status from #schema.first() e where e.Status = e.Other",
+                Rows
+            )
+        );
 
         AssertSingleError(exception, DiagnosticCode.MQ3109_EnumIdentityMismatch, DiagnosticPhase.Bind);
-        Assert.IsTrue(exception.PrimaryEnvelope.SuggestedFixes.All(fix =>
-            !fix.Contains("case", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            exception.PrimaryEnvelope.SuggestedFixes.All(fix =>
+                !fix.Contains("case", StringComparison.OrdinalIgnoreCase)
+            )
+        );
     }
 
     [TestMethod]
     public void EnumCastFailure_ShouldNotSuggestAContextualQuotedMember()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-            EnumPrefix + "select e.Status::JobStatus from #schema.first() e",
-            Rows));
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(EnumPrefix + "select e.Status::JobStatus from #schema.first() e", Rows)
+        );
 
         AssertSingleError(exception, DiagnosticCode.MQ3110_UnsupportedEnumOperator, DiagnosticPhase.Bind);
-        Assert.IsTrue(exception.PrimaryEnvelope.SuggestedFixes.All(fix =>
-            !fix.Contains("quoted", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            exception.PrimaryEnvelope.SuggestedFixes.All(fix =>
+                !fix.Contains("quoted", StringComparison.OrdinalIgnoreCase)
+            )
+        );
     }
 
     [TestMethod]
@@ -336,7 +342,8 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
         string query,
         string expectedSpanText,
         DiagnosticCode expectedCode,
-        string expectedDocsReference)
+        string expectedDocsReference
+    )
     {
         Assert.IsFalse(string.IsNullOrWhiteSpace(caseId));
 
@@ -355,22 +362,26 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
         MusoqQueryException exception,
         string caseId,
         string query,
-        string expectedSpanText)
+        string expectedSpanText
+    )
     {
         var envelope = exception.PrimaryEnvelope;
         var expectedStart = query.LastIndexOf(expectedSpanText, StringComparison.Ordinal);
         Assert.IsGreaterThanOrEqualTo(0, expectedStart);
-        var actualText = envelope.Offset.HasValue && envelope.Length.HasValue
-            ? query.Substring(envelope.Offset.Value, envelope.Length.Value)
-            : "<unknown>";
+        var actualText =
+            envelope.Offset.HasValue && envelope.Length.HasValue
+                ? query.Substring(envelope.Offset.Value, envelope.Length.Value)
+                : "<unknown>";
         Assert.AreEqual(
             expectedStart,
             envelope.Offset,
-            $"{caseId}: expected span '{expectedSpanText}' at {expectedStart}, actual '{actualText}' at {envelope.Offset} length {envelope.Length}.");
+            $"{caseId}: expected span '{expectedSpanText}' at {expectedStart}, actual '{actualText}' at {envelope.Offset} length {envelope.Length}."
+        );
         Assert.AreEqual(
             expectedSpanText.Length,
             envelope.Length,
-            $"{caseId}: expected span '{expectedSpanText}', actual '{actualText}' at {envelope.Offset} length {envelope.Length}.");
+            $"{caseId}: expected span '{expectedSpanText}', actual '{actualText}' at {envelope.Offset} length {envelope.Length}."
+        );
     }
 }
 
@@ -379,18 +390,19 @@ public sealed record REC101EnumEntity(
     REC101SecondaryStatus Other,
     string Label,
     object Payload,
-    int Number);
+    int Number
+);
 
 public enum REC101PrimaryStatus : short
 {
     Queued = 10,
     Running = 20,
-    Finished = 30
+    Finished = 30,
 }
 
 public enum REC101SecondaryStatus : short
 {
     Queued = 10,
     Running = 20,
-    Finished = 30
+    Finished = 30,
 }

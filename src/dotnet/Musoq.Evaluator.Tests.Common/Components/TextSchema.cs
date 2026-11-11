@@ -13,18 +13,25 @@ public class TextSchema(IEnumerable<TextEntity> entities) : SchemaBase("test", C
 {
     private readonly IReadOnlyList<TextEntity> _entities = entities as IReadOnlyList<TextEntity> ?? entities.ToArray();
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
-        params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return new TextEntityTable();
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
-        return EnsureSourceType<T, TextEntity>(name, new TestEntitySource<TextEntity>(
-            [_entities],
-            TextEntity.NameToIndexMap,
-            TextEntity.IndexToObjectAccessMap));
+        return EnsureSourceType<T, TextEntity>(
+            name,
+            new TestEntitySource<TextEntity>([_entities], TextEntity.NameToIndexMap, TextEntity.IndexToObjectAccessMap)
+        );
     }
 
     private static MethodsAggregator CreateLibrary()

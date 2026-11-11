@@ -16,7 +16,7 @@ public sealed partial class ExecutionCSharpRenderer
             InterpretSourceKind.TryParse => "Parse",
             InterpretSourceKind.PartialInterpret => "PartialInterpret",
             InterpretSourceKind.PartialParse => "PartialParse",
-            _ => throw UnsupportedShape.Of($"Interpret source kind {kind}")
+            _ => throw UnsupportedShape.Of($"Interpret source kind {kind}"),
         };
     }
 

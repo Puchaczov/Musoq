@@ -32,11 +32,17 @@ public class DescParserQueryTests : DescParserTestBase
     [DataRow("desc query (select Name from #schema.method() except (Name) select Name from #schema.method())")]
     [DataRow("desc query (select Name from #schema.method() intersect (Name) select Name from #schema.method())")]
     [DataRow("desc query (from #schema.method() select Name as Label)")]
-    [DataRow("desc query (select * exclude (City) replace (Population * 2 as Population) rename (Name as EntityName, Population as WeightedPopulation) from #schema.method())")]
+    [DataRow(
+        "desc query (select * exclude (City) replace (Population * 2 as Population) rename (Name as EntityName, Population as WeightedPopulation) from #schema.method())"
+    )]
     [DataRow("desc query (with cte as (select Name from #schema.method()) select Name from cte)")]
     [DataRow("desc query (select a.Name, b.City from #schema.method() a inner join #schema.method() b on a.Id = b.Id)")]
-    [DataRow("desc query (select a.Name, n.Value, n.Ordinal from #schema.method() a cross apply a.Numbers n with ordinality)")]
-    [DataRow("desc query (select Name, RowNumber() over (order by NullableValue nulls last) as RowNo from #schema.method())")]
+    [DataRow(
+        "desc query (select a.Name, n.Value, n.Ordinal from #schema.method() a cross apply a.Numbers n with ordinality)"
+    )]
+    [DataRow(
+        "desc query (select Name, RowNumber() over (order by NullableValue nulls last) as RowNo from #schema.method())"
+    )]
     public void DescQuery_WithBroadInnerQuerySyntax_ShouldParse(string query)
     {
         var desc = ParseDesc(query);

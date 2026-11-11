@@ -11,9 +11,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public byte? ToByte(string? value)
     {
-        return byte.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result)
-            ? result
-            : null;
+        return byte.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result) ? result : null;
     }
 
     [BindableMethod]
@@ -62,7 +60,12 @@ public partial class LibraryBase
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public byte? ToByte(bool? value) => value.HasValue ? value.Value ? (byte)1 : (byte)0 : null;
+    public byte? ToByte(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? (byte)1
+                : (byte)0
+            : null;
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]

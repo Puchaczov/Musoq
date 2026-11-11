@@ -33,7 +33,8 @@ public class IndexBasedContextsPositionsSymbol : Symbol
         foreach (var context in System.Linq.Enumerable.OrderBy(_contextsPositions, static pair => pair.Key))
             clone._contextsPositions.Add(
                 context.Key,
-                ((string[])context.Value.Left.Clone(), (string[])context.Value.Right.Clone()));
+                ((string[])context.Value.Left.Clone(), (string[])context.Value.Right.Clone())
+            );
         return clone;
     }
 }

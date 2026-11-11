@@ -12,16 +12,24 @@ public partial class BinarySpecificationRegressionTests
     [TestMethod]
     public void ExplicitParentLen_ShouldParseTheDocumentedThreeByteFixture()
     {
-        var table = RunBinary("binary Inner { Payload: byte[parent.Len] }; binary Rec { Len: byte, Body: Inner };",
-            "r.Len, r.Body.Payload[0], r.Body.Payload[1]", [2, 10, 20]);
+        var table = RunBinary(
+            "binary Inner { Payload: byte[parent.Len] }; binary Rec { Len: byte, Body: Inner };",
+            "r.Len, r.Body.Payload[0], r.Body.Payload[1]",
+            [2, 10, 20]
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, (byte)10, (byte)20]);
     }
 
     [TestMethod]
     public void NamedSchemaBareEnclosingField_ShouldExplainLocalScopeAndExplicitParent()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() => RunBinary(
-            "binary Inner { Payload: byte[Len] }; binary Rec { Len: byte, Body: Inner };", "r.Len", [2, 10, 20]));
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            RunBinary(
+                "binary Inner { Payload: byte[Len] }; binary Rec { Len: byte, Body: Inner };",
+                "r.Len",
+                [2, 10, 20]
+            )
+        );
         Assert.Contains("MQ2030", exception.Message);
         Assert.Contains("local scope", exception.Message);
         Assert.Contains("parent.Len", exception.Message);
@@ -43,8 +51,9 @@ public partial class BinarySpecificationRegressionTests
     [TestMethod]
     public void AnonymousUnknownField_ShouldNotSuggestNamedSchemaEnclosingLookup()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() => RunBinary(
-            "binary Rec { Body: { Payload: byte[Missing] } };", "r.Body", [1]));
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            RunBinary("binary Rec { Body: { Payload: byte[Missing] } };", "r.Body", [1])
+        );
         Assert.Contains("unknown field 'Missing'", exception.Message);
         Assert.DoesNotContain("parent.Missing", exception.Message);
     }
@@ -62,8 +71,9 @@ public partial class BinarySpecificationRegressionTests
     [TestMethod]
     public void UnknownFieldAfterAnonymousSchema_ShouldRestoreNamedScopeGuidance()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() => RunBinary(
-            "binary Rec { Body: { Value: byte }, Payload: byte[Missing] };", "r.Body", [1]));
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            RunBinary("binary Rec { Body: { Value: byte }, Payload: byte[Missing] };", "r.Body", [1])
+        );
         Assert.Contains("unknown field 'Missing'", exception.Message);
         Assert.Contains("parent.Missing", exception.Message);
     }
@@ -71,32 +81,44 @@ public partial class BinarySpecificationRegressionTests
     [TestMethod]
     public void LocalLen_ShouldShadowAnEnclosingLen()
     {
-        var table = RunBinary("binary Inner { Len: byte, Payload: byte[Len] }; binary Rec { Len: byte, Body: Inner, Tail: byte };",
-            "r.Len, r.Body.Len, r.Body.Payload[0], r.Tail", [2, 1, 10, 99]);
+        var table = RunBinary(
+            "binary Inner { Len: byte, Payload: byte[Len] }; binary Rec { Len: byte, Body: Inner, Tail: byte };",
+            "r.Len, r.Body.Len, r.Body.Payload[0], r.Tail",
+            [2, 1, 10, 99]
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, (byte)1, (byte)10, (byte)99]);
     }
 
     [TestMethod]
     public void ExplicitParentLen_ShouldRemainDistinctFromALocalLen()
     {
-        var table = RunBinary("binary Inner { Len: byte, Payload: byte[parent.Len] }; binary Rec { Len: byte, Body: Inner };",
-            "r.Body.Len, r.Body.Payload[0], r.Body.Payload[1]", [2, 1, 10, 20]);
+        var table = RunBinary(
+            "binary Inner { Len: byte, Payload: byte[parent.Len] }; binary Rec { Len: byte, Body: Inner };",
+            "r.Body.Len, r.Body.Payload[0], r.Body.Payload[1]",
+            [2, 1, 10, 20]
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, (byte)10, (byte)20]);
     }
 
     [TestMethod]
     public void ExplicitAncestorLen_ShouldFollowRecordNesting()
     {
-        var table = RunBinary("binary Leaf { Payload: byte[parent.parent.Len] }; binary Inner { Body: Leaf }; binary Rec { Len: byte, Body: Inner };",
-            "r.Body.Body.Payload[0], r.Body.Body.Payload[1]", [2, 10, 20]);
+        var table = RunBinary(
+            "binary Leaf { Payload: byte[parent.parent.Len] }; binary Inner { Body: Leaf }; binary Rec { Len: byte, Body: Inner };",
+            "r.Body.Body.Payload[0], r.Body.Body.Payload[1]",
+            [2, 10, 20]
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)10, (byte)20]);
     }
 
     [TestMethod]
     public void NamedParentSizedSchema_ShouldBindEachEmbeddingIndependently()
     {
-        var table = RunBinary("binary Inner { Payload: byte[parent.Len] }; binary Outer { Len: byte, Body: Inner }; binary Rec { Left: Outer, Right: Outer };",
-            "r.Left.Body.Payload[0], r.Right.Body.Payload[0], r.Right.Body.Payload[1]", [1, 10, 2, 20, 30]);
+        var table = RunBinary(
+            "binary Inner { Payload: byte[parent.Len] }; binary Outer { Len: byte, Body: Inner }; binary Rec { Left: Outer, Right: Outer };",
+            "r.Left.Body.Payload[0], r.Right.Body.Payload[0], r.Right.Body.Payload[1]",
+            [1, 10, 2, 20, 30]
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)10, (byte)20, (byte)30]);
     }
 
@@ -114,15 +136,26 @@ public partial class BinarySpecificationRegressionTests
     [TestMethod]
     public void ExplicitParentLen_ShouldEmitTypedAccessWithoutBoxingOrRuntimeDiscovery()
     {
-        const string sql = "binary Inner { Payload: byte[parent.Len] }; binary Rec { Len: byte, Body: Inner }; " +
-            "select r.Len, r.Body.Payload[0], r.Body.Payload[1] from #test.files() f cross apply Interpret<Rec>(f.Content) r";
-        var provider = new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-        { ["#test"] = [new() { Content = [2, 10, 20] }] });
+        const string sql =
+            "binary Inner { Payload: byte[parent.Len] }; binary Rec { Len: byte, Body: Inner }; "
+            + "select r.Len, r.Body.Payload[0], r.Body.Payload[1] from #test.files() f cross apply Interpret<Rec>(f.Content) r";
+        var provider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { ["#test"] = [new() { Content = [2, 10, 20] }] }
+        );
         var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(), provider, LoggerResolver);
         Assert.Contains("r.Body.Payload", inspection.GeneratedCSharpCode);
-        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, LoggerResolver);
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver
+        );
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, (byte)10, (byte)20]);
-        Assert.IsFalse(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query).Any(GeneratedExecutionIlInspection.ContainsBoxOpcode));
+        Assert.IsFalse(
+            GeneratedExecutionIlInspection
+                .GetGeneratedComputeMethods(query)
+                .Any(GeneratedExecutionIlInspection.ContainsBoxOpcode)
+        );
     }
 }

@@ -12,5 +12,5 @@ internal enum ExecutionTargetRequirementKind
     NullTypeCoercion,
     ProfilingDiagnostics,
     Cancellation,
-    ClrOnlyConstant
+    ClrOnlyConstant,
 }

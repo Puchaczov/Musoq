@@ -18,7 +18,8 @@ public partial class Parser
                     "The WHERE clause ends unexpectedly at end of input.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2017_UnexpectedEndOfFile,
-                    new TextSpan(Current.Span.Start, 0));
+                    new TextSpan(Current.Span.Start, 0)
+                );
             return new WhereNode(ComposeOperations());
         }
 

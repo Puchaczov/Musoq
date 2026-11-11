@@ -13,10 +13,9 @@ internal static class ValuesStaticExpressionRules
             NullNode => true,
             ParameterReferenceNode parameter => !IsCollectionParameter(parameter),
             ScriptVariableReferenceNode => true,
-            BinaryNode binary => IsStaticScalarExpression(binary.Left) &&
-                                 IsStaticScalarExpression(binary.Right),
+            BinaryNode binary => IsStaticScalarExpression(binary.Left) && IsStaticScalarExpression(binary.Right),
             UnaryNode unary => IsStaticScalarExpression(unary.Expression),
-            _ => false
+            _ => false,
         };
     }
 
@@ -24,7 +23,6 @@ internal static class ValuesStaticExpressionRules
     {
         ArgumentNullException.ThrowIfNull(parameter);
         var type = parameter.ReturnType;
-        return type != null && type != typeof(string) &&
-               (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type));
+        return type != null && type != typeof(string) && (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type));
     }
 }

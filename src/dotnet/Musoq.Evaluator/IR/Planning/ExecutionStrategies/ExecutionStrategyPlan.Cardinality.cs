@@ -19,14 +19,20 @@ internal sealed partial class ExecutionStrategyPlan
             setOperationStrategies,
             sourceBoundaryStrategies,
             rowWidthPruningPlans,
-            facts);
+            facts
+        );
     }
 
-    public bool TryResolveCardinalityCapacity(
-        PhysicalNode node,
-        out int capacity)
+    public bool TryResolveCardinalityCapacity(PhysicalNode node, out int capacity)
     {
-        if (CardinalityFactAdvisor.TryResolveHighConfidenceCapacity(cardinalityFacts, node, out var resolvedCapacity, out _))
+        if (
+            CardinalityFactAdvisor.TryResolveHighConfidenceCapacity(
+                cardinalityFacts,
+                node,
+                out var resolvedCapacity,
+                out _
+            )
+        )
         {
             capacity = resolvedCapacity;
             return true;

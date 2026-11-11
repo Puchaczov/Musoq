@@ -15,8 +15,10 @@ public sealed class FormattingResult
 
     /// <summary>True when a complete formatted script is available.</summary>
     public bool IsSuccess => FormattedText != null;
+
     /// <summary>Complete output on success, including an empty string for blank input; null on failure.</summary>
     public string? FormattedText { get; }
+
     /// <summary>Immutable diagnostics ordered by original input location.</summary>
     public IReadOnlyList<Diagnostic> Diagnostics { get; }
 }

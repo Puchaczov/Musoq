@@ -24,13 +24,13 @@ public sealed partial class DiagnosticCore010StarModifierTests
 
     private void AssertInlineWindowReplacement(string ordinalName, string sortKeyName)
     {
-        using var compiled = CreateAndRunVirtualMachine(InlineWindowReplacementQuery,
-            new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var compiled = CreateAndRunVirtualMachine(
+            InlineWindowReplacementQuery,
+            new Dictionary<string, IEnumerable<BasicEntity>>()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(result,
-            (ordinalName, typeof(long)), (sortKeyName, typeof(int)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
-            new object?[] { 1L, 1 }, new object?[] { 2L, 2 });
+        TableMaterializationTestHelper.AssertColumns(result, (ordinalName, typeof(long)), (sortKeyName, typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { 1L, 1 }, new object?[] { 2L, 2 });
     }
 }

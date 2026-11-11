@@ -25,20 +25,31 @@ public class BinaryCheckConstraintFeatureTests
     [TestMethod]
     public void Binary_CheckConstraint_ValidValue_ShouldPass()
     {
-        var query = @"
-            binary Header { 
-                Magic: int le check Magic = 0x12345678
-            };
-            select h.Magic from #test.files() b
-            cross apply Interpret<Header>(b.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header { \n"
+            + "                Magic: int le check Magic = 0x12345678\n"
+            + "            };\n"
+            + "            select h.Magic from #test.files() b\n"
+            + "            cross apply Interpret<Header>(b.Content) h"
+        );
 
         var testData = new byte[] { 0x78, 0x56, 0x34, 0x12 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -55,20 +66,31 @@ public class BinaryCheckConstraintFeatureTests
     [TestMethod]
     public void Binary_CheckConstraint_RangeValid_ShouldPass()
     {
-        var query = @"
-            binary Data { 
-                Version: byte check Version >= 1 AND Version <= 10
-            };
-            select d.Version from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Version: byte check Version >= 1 AND Version <= 10\n"
+            + "            };\n"
+            + "            select d.Version from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var testData = new byte[] { 0x05 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -85,20 +107,31 @@ public class BinaryCheckConstraintFeatureTests
     [TestMethod]
     public void Binary_CheckConstraint_FailedWithTryInterpret_ShouldReturnNull()
     {
-        var query = @"
-            binary Header { 
-                Magic: int le check Magic = 0xDEADBEEF
-            };
-            select h.Magic from #test.files() b
-            outer apply TryInterpret<Header>(b.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header { \n"
+            + "                Magic: int le check Magic = 0xDEADBEEF\n"
+            + "            };\n"
+            + "            select h.Magic from #test.files() b\n"
+            + "            outer apply TryInterpret<Header>(b.Content) h"
+        );
 
         var testData = "\u0000\u0000\u0000\u0000"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -115,27 +148,33 @@ public class BinaryCheckConstraintFeatureTests
     [TestMethod]
     public void Binary_CheckConstraint_MultipleFields_ShouldValidateAll()
     {
-        var query = @"
-            binary Record { 
-                Magic: int le check Magic = 0xCAFE,
-                Version: byte check Version >= 1,
-                Length: short le
-            };
-            select r.Magic, r.Version, r.Length from #test.files() b
-            cross apply Interpret<Record>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Record { \n"
+            + "                Magic: int le check Magic = 0xCAFE,\n"
+            + "                Version: byte check Version >= 1,\n"
+            + "                Length: short le\n"
+            + "            };\n"
+            + "            select r.Magic, r.Version, r.Length from #test.files() b\n"
+            + "            cross apply Interpret<Record>(b.Content) r"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0xFE, 0xCA, 0x00, 0x00, 0x03, 0x0A, 0x00 };
+        var entities = new[]
         {
-            0xFE, 0xCA, 0x00, 0x00,
-            0x03,
-            0x0A, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -154,27 +193,35 @@ public class BinaryCheckConstraintFeatureTests
     [TestMethod]
     public void Binary_CheckConstraint_FilterValidFilesOnly_ShouldWork()
     {
-        var query = @"
-            binary ValidFile { 
-                Magic: int le check Magic = 0xABCD,
-                Size: int le
-            };
-            select b.Name, h.Size from #test.files() b
-            outer apply TryInterpret<ValidFile>(b.Content) h
-            where h.Magic is not null";
+        var query = (
+            "\n"
+            + "            binary ValidFile { \n"
+            + "                Magic: int le check Magic = 0xABCD,\n"
+            + "                Size: int le\n"
+            + "            };\n"
+            + "            select b.Name, h.Size from #test.files() b\n"
+            + "            outer apply TryInterpret<ValidFile>(b.Content) h\n"
+            + "            where h.Magic is not null"
+        );
 
         var validData = "\u036B\u0000\u0000d\u0000\u0000\u0000"u8.ToArray();
         var invalidData = "\u0000\u0000\u0000\u0000d\u0000\u0000\u0000"u8.ToArray();
         var entities = new[]
         {
             new BinaryEntity { Name = "valid.bin", Content = validData },
-            new BinaryEntity { Name = "invalid.bin", Content = invalidData }
+            new BinaryEntity { Name = "invalid.bin", Content = invalidData },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

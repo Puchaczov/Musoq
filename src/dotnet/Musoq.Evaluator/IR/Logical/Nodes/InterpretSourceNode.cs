@@ -11,7 +11,8 @@ public sealed record InterpretSourceNode(
     string Alias,
     Type ResultType,
     ApplyKind ApplyKind,
-    OutputSchema OutputSchema) : LogicalNode(OutputSchema)
+    OutputSchema OutputSchema
+) : LogicalNode(OutputSchema)
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = Array.Empty<LogicalNode>();
 }

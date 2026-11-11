@@ -18,7 +18,8 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select p.Ip, p.User, p.Message
                     from #test.lines() f
-                    cross apply Parse<Patterned>(f.Line) p"),
+                    cross apply Parse<Patterned>(f.Line) p"
+            ),
             TextInterpretationSample(
                 "Q315_SpecTextUntilBetweenCharsRestNested",
                 @"
@@ -30,7 +31,8 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select s.Prefix, s.Tag, s.Key, s.Value
                     from #test.lines() f
-                    cross apply Parse<Structured>(f.Line) s"),
+                    cross apply Parse<Structured>(f.Line) s"
+            ),
             TextInterpretationSample(
                 "Q316_SpecTextOptionalRepeatWhitespaceModifiers",
                 @"
@@ -46,7 +48,8 @@ internal static partial class EvaluatorSampleFixtures
                     select d.Prefix, d.OptionalCode, i.Value, d.Tail
                     from #test.lines() f
                     cross apply Parse<Document>(f.Line) d
-                    cross apply d.Items i"),
+                    cross apply d.Items i"
+            ),
             TextInterpretationSample(
                 "Q317_SpecTextSwitch",
                 @"
@@ -60,11 +63,12 @@ internal static partial class EvaluatorSampleFixtures
                     };
                     select c.Content.Key, c.Content.Text
                     from #test.lines() f
-                    cross apply Parse<ConfigLine>(f.Line) c") with
+                    cross apply Parse<ConfigLine>(f.Line) c"
+            ) with
             {
                 CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                     .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse()
+                    .WithStabilityAwareScalarReuse(),
             },
             TextInterpretationSample(
                 "Q318_SpecTextTryParseAndPartialParse",
@@ -76,12 +80,13 @@ internal static partial class EvaluatorSampleFixtures
                     select t.Key, t.Value, p.ErrorField, p.ErrorMessage, p.BytesConsumed
                     from #test.lines() f
                     outer apply TryParse<KeyValue>(f.Line) t
-                    cross apply PartialParse<KeyValue>(f.Line) p") with
+                    cross apply PartialParse<KeyValue>(f.Line) p"
+            ) with
             {
                 CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                     .WithTableResultMaterialization()
-                    .WithStabilityAwareScalarReuse()
-            }
+                    .WithStabilityAwareScalarReuse(),
+            },
         ];
     }
 }

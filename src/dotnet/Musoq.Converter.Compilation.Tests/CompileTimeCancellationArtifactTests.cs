@@ -22,17 +22,20 @@ public sealed class CompileTimeCancellationArtifactTests
 
         var token = await CancelAtStageAsync(
             fixture,
-            cancellationToken => InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
-                Query,
-                artifact,
-                fixture.Provider,
-                _loggerResolver,
-                new CompiledQueryArtifactLoadOptions
-                {
-                    ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
-                },
-                fixture.CreateCompilationOptions(),
-                cancellationToken));
+            cancellationToken =>
+                InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+                    Query,
+                    artifact,
+                    fixture.Provider,
+                    _loggerResolver,
+                    new CompiledQueryArtifactLoadOptions
+                    {
+                        ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash,
+                    },
+                    fixture.CreateCompilationOptions(),
+                    cancellationToken
+                )
+        );
 
         Assert.IsTrue(fixture.MetadataTokens.All(received => received == token));
         Assert.IsFalse(fixture.StageCompleted);
@@ -49,30 +52,35 @@ public sealed class CompileTimeCancellationArtifactTests
         TestLifetimeOwner? owner = null;
         CancellationToken? observedToken = null;
 
-        var operation = Task.Run(() => InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
-            Query,
-            artifact,
-            fixture.Provider,
-            _loggerResolver,
-            CompiledQueryArtifactLoadOptions.Default,
-            fixture.CreateCompilationOptions(),
-            loader: (loadedArtifact, token) =>
-            {
-                observedToken = token;
-                owner = new TestLifetimeOwner();
-                var runnableType = Assembly.Load(loadedArtifact.AssemblyBytes)
-                    .GetType(loadedArtifact.RunnableTypeName)!;
-                loaderEntered.TrySetResult(true);
-                loaderRelease.Task.WaitAsync(TestSynchronization.DeadlockTimeout).GetAwaiter().GetResult();
-                return new CompiledQueryArtifactLoadResult(runnableType, owner);
-            },
-            cancellation.Token));
+        var operation = Task.Run(() =>
+            InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+                Query,
+                artifact,
+                fixture.Provider,
+                _loggerResolver,
+                CompiledQueryArtifactLoadOptions.Default,
+                fixture.CreateCompilationOptions(),
+                loader: (loadedArtifact, token) =>
+                {
+                    observedToken = token;
+                    owner = new TestLifetimeOwner();
+                    var runnableType = Assembly
+                        .Load(loadedArtifact.AssemblyBytes)
+                        .GetType(loadedArtifact.RunnableTypeName)!;
+                    loaderEntered.TrySetResult(true);
+                    loaderRelease.Task.WaitAsync(TestSynchronization.DeadlockTimeout).GetAwaiter().GetResult();
+                    return new CompiledQueryArtifactLoadResult(runnableType, owner);
+                },
+                cancellation.Token
+            )
+        );
 
         try
         {
             var firstCompleted = await Task.WhenAny(
                 loaderEntered.Task,
-                operation.WaitAsync(TestSynchronization.DeadlockTimeout));
+                operation.WaitAsync(TestSynchronization.DeadlockTimeout)
+            );
             Assert.AreSame(loaderEntered.Task, firstCompleted);
             Assert.IsFalse(operation.IsCompleted);
 
@@ -124,11 +132,14 @@ public sealed class CompileTimeCancellationArtifactTests
             cancellation.Cancel();
         });
 
-        var exception = Assert.Throws<OperationCanceledException>(() => InstanceCreator.LoadTypedArtifact<TypedOutput>(
-            artifact,
-            fixture.Provider,
-            _loggerResolver,
-            cancellation.Token));
+        var exception = Assert.Throws<OperationCanceledException>(() =>
+            InstanceCreator.LoadTypedArtifact<TypedOutput>(
+                artifact,
+                fixture.Provider,
+                _loggerResolver,
+                cancellation.Token
+            )
+        );
 
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
         Assert.IsNotNull(loadedRunnableType);
@@ -150,17 +161,25 @@ public sealed class CompileTimeCancellationArtifactTests
             Assert.AreEqual(entry.Value, secondValue);
         }
 
-        Assert.IsFalse(firstArtifact.Metadata.Keys.Any(key =>
-            key.Contains("Cancellation", StringComparison.OrdinalIgnoreCase)));
-        Assert.IsFalse(firstArtifact.Metadata.Values.Any(value =>
-            value.Contains("CancellationToken", StringComparison.OrdinalIgnoreCase)));
-        Assert.IsFalse(firstArtifact.Metadata.Values.Any(value =>
-            value.Contains("cooperative", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsFalse(
+            firstArtifact.Metadata.Keys.Any(key => key.Contains("Cancellation", StringComparison.OrdinalIgnoreCase))
+        );
+        Assert.IsFalse(
+            firstArtifact.Metadata.Values.Any(value =>
+                value.Contains("CancellationToken", StringComparison.OrdinalIgnoreCase)
+            )
+        );
+        Assert.IsFalse(
+            firstArtifact.Metadata.Values.Any(value =>
+                value.Contains("cooperative", StringComparison.OrdinalIgnoreCase)
+            )
+        );
     }
 
     private ICompiledQueryArtifact CompileArtifact(
         CancellationToken cancellationToken = default,
-        string? assemblyName = null)
+        string? assemblyName = null
+    )
     {
         using var fixture = new CooperativeCompileTimeFixture(CooperativeCompileTimeStage.None);
         var result = InstanceCreator.CompileArtifactWithDiagnostics(
@@ -169,13 +188,16 @@ public sealed class CompileTimeCancellationArtifactTests
             fixture.Provider,
             _loggerResolver,
             fixture.CreateCompilationOptions(),
-            cancellationToken);
+            cancellationToken
+        );
 
         Assert.IsTrue(
             result.Succeeded,
             string.Join(
                 Environment.NewLine,
-                result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
+                result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            )
+        );
         return result.Artifact!;
     }
 
@@ -187,14 +209,16 @@ public sealed class CompileTimeCancellationArtifactTests
             $"TypedCancellationArtifact_{Guid.NewGuid():N}",
             fixture.Provider,
             _loggerResolver,
-            fixture.CreateCompilationOptions());
+            fixture.CreateCompilationOptions()
+        );
     }
 
     public sealed record TypedOutput(string Value);
 
     private static async Task<CancellationToken> CancelAtStageAsync(
         CooperativeCompileTimeFixture fixture,
-        Func<CancellationToken, object?> operation)
+        Func<CancellationToken, object?> operation
+    )
     {
         using var cancellation = new CancellationTokenSource();
         var operationTask = Task.Run(() => operation(cancellation.Token));
@@ -203,7 +227,8 @@ public sealed class CompileTimeCancellationArtifactTests
         {
             var firstCompleted = await Task.WhenAny(
                 fixture.Entered,
-                operationTask.WaitAsync(TestSynchronization.DeadlockTimeout));
+                operationTask.WaitAsync(TestSynchronization.DeadlockTimeout)
+            );
             Assert.AreSame(fixture.Entered, firstCompleted);
             Assert.IsFalse(operationTask.IsCompleted);
 
@@ -231,9 +256,7 @@ public sealed class CompileTimeCancellationArtifactTests
                 {
                     await operationTask.WaitAsync(TestSynchronization.DeadlockTimeout);
                 }
-                catch (OperationCanceledException)
-                {
-                }
+                catch (OperationCanceledException) { }
             }
         }
     }

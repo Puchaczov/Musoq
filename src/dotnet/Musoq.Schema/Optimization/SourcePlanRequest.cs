@@ -16,8 +16,7 @@ public sealed record SourcePlanRequest
     /// </summary>
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
 
-    public IReadOnlyDictionary<string, string> SourceRuntimeSettings { get; init; } =
-        new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, string> SourceRuntimeSettings { get; init; } = new Dictionary<string, string>();
 
     public IReadOnlyList<SourceColumnRef> RequiredColumns { get; init; } = [];
 

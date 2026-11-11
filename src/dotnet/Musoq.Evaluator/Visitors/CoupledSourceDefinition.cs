@@ -5,4 +5,5 @@ namespace Musoq.Evaluator.Visitors;
 internal sealed record CoupledSourceDefinition(
     SchemaMethodFromNode SchemaMethodNode,
     string? TableName,
-    string? ProfileName);
+    string? ProfileName
+);

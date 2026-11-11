@@ -5,5 +5,5 @@ internal enum JoinExpressionSide
     Constant,
     Left,
     Right,
-    Mixed
+    Mixed,
 }

@@ -11,5 +11,5 @@ internal enum CodegenHelperExtractionRole
     WindowRankingKeyExtraction,
     WindowSortedCopy,
     AggregatePopulate,
-    AggregateFinalize
+    AggregateFinalize,
 }

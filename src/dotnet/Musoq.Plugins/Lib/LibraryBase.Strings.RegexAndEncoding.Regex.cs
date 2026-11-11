@@ -20,8 +20,7 @@ public partial class LibraryBase
         if (value == null || pattern == null || replacement == null)
             return null;
 
-        var compiledRegex = StringRegexCache.GetOrAdd(pattern, p =>
-            new Regex(p, RegexOptions.Compiled));
+        var compiledRegex = StringRegexCache.GetOrAdd(pattern, p => new Regex(p, RegexOptions.Compiled));
 
         return compiledRegex.Replace(value, replacement);
     }
@@ -39,8 +38,7 @@ public partial class LibraryBase
         if (regex == null || content == null)
             return null;
 
-        var compiledRegex = StringRegexCache.GetOrAdd(regex, p =>
-            new Regex(p, RegexOptions.Compiled));
+        var compiledRegex = StringRegexCache.GetOrAdd(regex, p => new Regex(p, RegexOptions.Compiled));
 
         var matches = compiledRegex.Matches(content);
         var result = new string[matches.Count];

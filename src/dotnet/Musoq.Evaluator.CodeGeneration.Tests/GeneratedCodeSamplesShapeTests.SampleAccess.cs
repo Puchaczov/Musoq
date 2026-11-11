@@ -20,7 +20,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         return new GeneratedCodeSampleFile(
             sample.FileName,
             sample.Category,
-            GeneratedCodeSampleArtifacts.Generate(sample, LoggerResolver));
+            GeneratedCodeSampleArtifacts.Generate(sample, LoggerResolver)
+        );
     }
 
     private static GeneratedCodeSampleFile[] ReadAllSamples()
@@ -33,10 +34,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         return fileNames.Select(ReadSample).ToArray();
     }
 
-    private static string ReadGeneratedSampleSection(
-        string content,
-        string sectionName,
-        string? nextSectionName)
+    private static string ReadGeneratedSampleSection(string content, string sectionName, string? nextSectionName)
     {
         var marker = $"// === {sectionName} ===";
         var start = content.IndexOf(marker, StringComparison.Ordinal);
@@ -55,7 +53,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     }
 
     private static IEnumerable<GeneratedRowCastOccurrence> CreateGeneratedRowCastOccurrences(
-        GeneratedCodeSampleFile sample)
+        GeneratedCodeSampleFile sample
+    )
     {
         return GeneratedRowCastPattern
             .Matches(sample.Content)
@@ -65,7 +64,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static GeneratedRowCastOccurrence CreateGeneratedRowCastOccurrence(
         GeneratedCodeSampleFile sample,
-        Match match)
+        Match match
+    )
     {
         var rowType = match.Groups["rowType"].Value;
         var sourceName = match.Groups["sourceName"].Value;
@@ -74,14 +74,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         return new GeneratedRowCastOccurrence(
             sample.FileName,
             line,
-            CategorizeGeneratedRowCast(sample.FileName, line, rowType, sourceName));
+            CategorizeGeneratedRowCast(sample.FileName, line, rowType, sourceName)
+        );
     }
 
     private static GeneratedRowCastCategory CategorizeGeneratedRowCast(
         string fileName,
         string line,
         string rowType,
-        string sourceName)
+        string sourceName
+    )
     {
         if (fileName == DynamicCteBackedAsOfJoinSampleFileName)
             return GeneratedRowCastCategory.DynamicFallback;
@@ -111,9 +113,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static bool IsWindowSourceGeneratedRowCast(string rowType, string sourceName)
     {
-        return rowType == "WindowSourceRow0" ||
-               rowType == "apply_0_i_n_mRow0" ||
-               sourceName is "ab" or "ba" or "inmScore";
+        return rowType == "WindowSourceRow0"
+            || rowType == "apply_0_i_n_mRow0"
+            || sourceName is "ab" or "ba" or "inmScore";
     }
 
     private static string GetLine(string content, int index)
@@ -135,12 +137,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             $"GeneratedSample_{Path.GetFileNameWithoutExtension(sample.FileName)}",
             sample.CreateSchemaProvider(),
             new TestsLoggerResolver(),
-            sample.CompilationOptions);
+            sample.CompilationOptions
+        );
     }
 
     private static QueryInspectionResult CompileSampleForInspection(
         string fileName,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions
+    )
     {
         var sample = GeneratedCodeSamplesCatalog.GetByFileName(fileName);
 
@@ -149,7 +153,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             $"GeneratedSample_{Path.GetFileNameWithoutExtension(sample.FileName)}",
             sample.CreateSchemaProvider(),
             new TestsLoggerResolver(),
-            compilationOptions);
+            compilationOptions
+        );
     }
 
     private static CompiledQuery CompileSampleForExecution(string fileName)
@@ -161,7 +166,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             $"GeneratedSample_{Path.GetFileNameWithoutExtension(sample.FileName)}_Execution",
             sample.CreateSchemaProvider(),
             new TestsLoggerResolver(),
-            sample.CompilationOptions);
+            sample.CompilationOptions
+        );
     }
 
     private static QueryInspectionResult CompileBasicQueryForInspection(string query)
@@ -170,55 +176,56 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             query,
             "GeneratedSample_BasicInspection",
             new BasicSchemaProvider<BasicEntity>(
-                new Dictionary<string, IEnumerable<BasicEntity>>
-                {
-                    { "#A", Array.Empty<BasicEntity>() }
-                }),
-            new TestsLoggerResolver());
+                new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", Array.Empty<BasicEntity>() } }
+            ),
+            new TestsLoggerResolver()
+        );
     }
 
     private static void AssertUsesExecutionBackendWithoutRetiredHelperPatterns(QueryInspectionResult result)
     {
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, ConvertTableToSourcePattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, ContextsAccessPattern));
     }
 
-    private static void AssertUsesTypedAggregateState(
-        QueryInspectionResult result,
-        params string[] legacySetMethods)
+    private static void AssertUsesTypedAggregateState(QueryInspectionResult result, params string[] legacySetMethods)
     {
         Assert.Contains("AggregateGroup [", result.ExecutionPlanText);
         Assert.Contains("TypedAggregateSet [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("CreateAggregateLibrary [", StringComparison.Ordinal));
         Assert.IsTrue(
-            result.GeneratedCSharpCode.Contains(".Accumulate(", StringComparison.Ordinal) ||
-            result.GeneratedCSharpCode.Contains(".Set(ref ", StringComparison.Ordinal) ||
-            result.GeneratedCSharpCode.Contains(".Count = checked(", StringComparison.Ordinal) ||
-            result.GeneratedCSharpCode.Contains(".HasValue = true", StringComparison.Ordinal),
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode.Contains(".Accumulate(", StringComparison.Ordinal)
+                || result.GeneratedCSharpCode.Contains(".Set(ref ", StringComparison.Ordinal)
+                || result.GeneratedCSharpCode.Contains(".Count = checked(", StringComparison.Ordinal)
+                || result.GeneratedCSharpCode.Contains(".HasValue = true", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
         Assert.IsTrue(
-            result.GeneratedCSharpCode.Contains(".GetValue()", StringComparison.Ordinal) ||
-            result.GeneratedCSharpCode.Contains(".Get(in ", StringComparison.Ordinal) ||
-            result.GeneratedCSharpCode.Contains("finalGroup.__agg", StringComparison.Ordinal) ||
-            result.GeneratedCSharpCode.Contains("finalGroup.__owner", StringComparison.Ordinal) ||
-            result.GeneratedCSharpCode.Contains("FinalGroup.__agg", StringComparison.Ordinal) ||
-            result.GeneratedCSharpCode.Contains("FinalGroup.__owner", StringComparison.Ordinal),
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode.Contains(".GetValue()", StringComparison.Ordinal)
+                || result.GeneratedCSharpCode.Contains(".Get(in ", StringComparison.Ordinal)
+                || result.GeneratedCSharpCode.Contains("finalGroup.__agg", StringComparison.Ordinal)
+                || result.GeneratedCSharpCode.Contains("finalGroup.__owner", StringComparison.Ordinal)
+                || result.GeneratedCSharpCode.Contains("FinalGroup.__agg", StringComparison.Ordinal)
+                || result.GeneratedCSharpCode.Contains("FinalGroup.__owner", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
 
         foreach (var methodName in legacySetMethods)
         {
             Assert.IsFalse(
                 result.ExecutionPlanText.Contains($"AggregateSet [{methodName}(", StringComparison.Ordinal),
-                result.ExecutionPlanText);
+                result.ExecutionPlanText
+            );
             Assert.IsFalse(
                 result.GeneratedCSharpCode.Contains($".{methodName}(", StringComparison.Ordinal),
-                result.GeneratedCSharpCode);
+                result.GeneratedCSharpCode
+            );
         }
     }
-
 }

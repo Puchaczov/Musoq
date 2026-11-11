@@ -15,7 +15,8 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
         IReadOnlyList<Type> additionalReferenceTypes,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var items = BuildTypedItems<TOut>(
             script,
@@ -26,14 +27,16 @@ public static partial class InstanceCreator
             additionalReferenceTypes,
             CreateExecutableBuildChain,
             QueryResultMode.Table,
-            cancellationToken: cancellationToken);
+            cancellationToken: cancellationToken
+        );
 
         using var loadedRunnableType = LoadRunnableTypeWithLifetime(items);
         cancellationToken.ThrowIfCancellationRequested();
         var product = CreateTypedBuildProduct(
             items,
             loadedRunnableType.RunnableType,
-            TypedQueryProfileMode.TableBacked);
+            TypedQueryProfileMode.TableBacked
+        );
         var factory = CreateTypedProfileRunnableFactory<TOut>(product, loggerResolver);
         cancellationToken.ThrowIfCancellationRequested();
         loadedRunnableType.RetainForTypeLifetime();

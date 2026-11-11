@@ -20,18 +20,13 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column NonExistent.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var exception = Assert.Throws<UnknownColumnOrAliasException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+        var exception = Assert.Throws<UnknownColumnOrAliasException>(() =>
+            _ = vm.Run(TestContext.CancellationToken).Count
+        );
         Assert.Contains("NonExistent", exception.Message, "Exception message should contain the column name");
     }
 
@@ -43,18 +38,13 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Self.NonExistentProperty";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var exception = Assert.Throws<UnknownColumnOrAliasException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+        var exception = Assert.Throws<UnknownColumnOrAliasException>(() =>
+            _ = vm.Run(TestContext.CancellationToken).Count
+        );
         Assert.Contains("NonExistentProperty", exception.Message, "Exception message should contain the property name");
     }
 
@@ -66,17 +56,9 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Id.Something";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-
 
         Assert.Throws<UnknownColumnOrAliasException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
     }
@@ -91,14 +73,7 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Self";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -107,20 +82,23 @@ public partial class DescColumnNestedPropertyTests
 
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
-
-        Assert.IsTrue(columnNames.Any(c => c.Equals("Name", StringComparison.OrdinalIgnoreCase)),
-            "Should show Name property");
-        Assert.IsTrue(columnNames.Any(c => c.Equals("Children", StringComparison.OrdinalIgnoreCase)),
-            "Should show Children array property for further exploration");
-        Assert.IsTrue(columnNames.Any(c => c.Equals("Array", StringComparison.OrdinalIgnoreCase)),
-            "Should show Array property for further exploration");
+        Assert.IsTrue(
+            columnNames.Any(c => c.Equals("Name", StringComparison.OrdinalIgnoreCase)),
+            "Should show Name property"
+        );
+        Assert.IsTrue(
+            columnNames.Any(c => c.Equals("Children", StringComparison.OrdinalIgnoreCase)),
+            "Should show Children array property for further exploration"
+        );
+        Assert.IsTrue(
+            columnNames.Any(c => c.Equals("Array", StringComparison.OrdinalIgnoreCase)),
+            "Should show Array property for further exploration"
+        );
     }
 
     /// <summary>
     ///     Tests that primitive/string types cannot be described (they have no meaningful properties).
     /// </summary>
-
-
     /// <summary>
     ///     Tests that an exception is thrown for intermediate property that is not a complex type.
     /// </summary>
@@ -129,17 +107,9 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Name.Length.Something";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-
 
         Assert.Throws<UnknownColumnOrAliasException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
     }
@@ -185,7 +155,8 @@ public partial class DescColumnNestedPropertyTests
         var table = new BasicEntityTable();
 
         var exception = Assert.Throws<UnknownColumnOrAliasException>(() =>
-            EvaluationHelper.GetSpecificColumnDescription(table, "Self.NonExistent"));
+            EvaluationHelper.GetSpecificColumnDescription(table, "Self.NonExistent")
+        );
 
         Assert.Contains("NonExistent", exception.Message, "Exception message should contain the property name");
     }

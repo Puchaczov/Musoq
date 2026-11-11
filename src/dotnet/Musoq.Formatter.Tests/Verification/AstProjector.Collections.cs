@@ -22,8 +22,11 @@ internal sealed partial class AstProjector
         structure?.Append(']');
     }
 
-    private void Dictionary<TKey, TValue>(IReadOnlyDictionary<TKey, TValue>? values,
-        Action<AstProjector, TKey> key, Action<AstProjector, TValue> item)
+    private void Dictionary<TKey, TValue>(
+        IReadOnlyDictionary<TKey, TValue>? values,
+        Action<AstProjector, TKey> key,
+        Action<AstProjector, TValue> item
+    )
     {
         if (values == null)
         {
@@ -39,14 +42,16 @@ internal sealed partial class AstProjector
         structure?.Append(']');
     }
 
-    private void Pair<T>(T value, Action<AstProjector, T> project) where T : struct
+    private void Pair<T>(T value, Action<AstProjector, T> project)
+        where T : struct
     {
         structure?.Append("tuple{");
         project(this, value);
         structure?.Append('}');
     }
 
-    private void Optional<T>(T? value, Action<AstProjector, T> project) where T : struct
+    private void Optional<T>(T? value, Action<AstProjector, T> project)
+        where T : struct
     {
         if (value.HasValue)
             project(this, value.Value);

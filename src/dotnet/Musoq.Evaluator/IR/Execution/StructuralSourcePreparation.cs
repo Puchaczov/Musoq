@@ -10,7 +10,8 @@ internal static class StructuralSourcePreparation
         IReadOnlyList<ExecutionStructuralLimitPlan?>? structuralArgumentLimits,
         string sourceAlias,
         string? scope = null,
-        string? sourceContextId = null)
+        string? sourceContextId = null
+    )
     {
         var state = new StructuralPreparationState(sourceAlias, scope);
         var preparedArguments = new ExecutionExpression[arguments.Count];
@@ -18,16 +19,18 @@ internal static class StructuralSourcePreparation
         {
             var original = arguments[index];
             var prepared = state.Prepare(original);
-            preparedArguments[index] = structuralArgumentLimits is { Count: > 0 } &&
-                                       index < structuralArgumentLimits.Count &&
-                                       structuralArgumentLimits[index] is { } limits
-                ? AttachLimitBinding(
-                    prepared,
-                    limits,
-                    DetermineOrigin(original),
-                    DeterminePath(original, sourceAlias, index),
-                    sourceContextId)
-                : prepared;
+            preparedArguments[index] =
+                structuralArgumentLimits is { Count: > 0 }
+                && index < structuralArgumentLimits.Count
+                && structuralArgumentLimits[index] is { } limits
+                    ? AttachLimitBinding(
+                        prepared,
+                        limits,
+                        DetermineOrigin(original),
+                        DeterminePath(original, sourceAlias, index),
+                        sourceContextId
+                    )
+                    : prepared;
         }
 
         return new PreparedStructuralArguments(preparedArguments, state.Preparations);
@@ -35,7 +38,8 @@ internal static class StructuralSourcePreparation
 
     internal sealed record PreparedStructuralArguments(
         IReadOnlyList<ExecutionExpression> Arguments,
-        IReadOnlyList<ExecutionNode> Preparations);
+        IReadOnlyList<ExecutionNode> Preparations
+    );
 
     private sealed class StructuralPreparationState
     {
@@ -56,7 +60,7 @@ internal static class StructuralSourcePreparation
                 ExecutionStructuralRecord record => PrepareRecord(record),
                 ExecutionStructuralArray array => PrepareArray(array),
                 ExecutionStructuralConversion conversion => PrepareConversion(conversion),
-                _ => expression
+                _ => expression,
             };
         }
 
@@ -74,7 +78,10 @@ internal static class StructuralSourcePreparation
                 // is rendered in constructor order.  Retaining every scalar
                 // field here gives the renderer typed locals to consume and
                 // prevents C# argument evaluation from reordering user code.
-                if (field.Value is not (ExecutionStructuralRecord or ExecutionStructuralArray or ExecutionStructuralConversion))
+                if (
+                    field.Value
+                    is not (ExecutionStructuralRecord or ExecutionStructuralArray or ExecutionStructuralConversion)
+                )
                     value = Retain(value);
 
                 fields[index] = new ExecutionStructuralField(field.Name, value, field.IsPresent);
@@ -83,9 +90,7 @@ internal static class StructuralSourcePreparation
             var preparedRecord = new ExecutionStructuralRecord(record.ReturnType, fields, record.ConstructionPlan);
             if (record.ConstructionPlan is { } plan)
             {
-                var target = new ExecutionVariable(
-                    $"{_prefix}_{_ordinal++}",
-                    plan.TargetType);
+                var target = new ExecutionVariable($"{_prefix}_{_ordinal++}", plan.TargetType);
                 Preparations.Add(new ExecutionPrepareStructuralInput(target, preparedRecord, plan));
                 return new ExecutionVariableRead(target);
             }
@@ -110,9 +115,7 @@ internal static class StructuralSourcePreparation
 
         private ExecutionExpression Retain(ExecutionExpression expression)
         {
-            var variable = new ExecutionVariable(
-                $"{_prefix}_{_ordinal++}",
-                expression.ReturnType);
+            var variable = new ExecutionVariable($"{_prefix}_{_ordinal++}", expression.ReturnType);
             Preparations.Add(new ExecutionLet(variable, expression, ExecutionLetCacheMode.SuppressMethodCache));
             return new ExecutionVariableRead(variable);
         }
@@ -126,21 +129,18 @@ internal static class StructuralSourcePreparation
             ExecutionScriptParameterRead => ExecutionStructuralInputOrigin.Parameter,
             ExecutionScriptVariableRead => ExecutionStructuralInputOrigin.Let,
             ExecutionStructuralConversion conversion => DetermineOrigin(conversion.Input),
-            _ => ExecutionStructuralInputOrigin.Inline
+            _ => ExecutionStructuralInputOrigin.Inline,
         };
     }
 
-    private static string DeterminePath(
-        ExecutionExpression expression,
-        string sourceAlias,
-        int argumentIndex)
+    private static string DeterminePath(ExecutionExpression expression, string sourceAlias, int argumentIndex)
     {
         return expression switch
         {
             ExecutionScriptParameterRead parameter => "$" + parameter.Name,
             ExecutionScriptVariableRead variable => "$" + variable.Name,
             ExecutionStructuralConversion conversion => DeterminePath(conversion.Input, sourceAlias, argumentIndex),
-            _ => $"{sourceAlias}.argument[{argumentIndex}]"
+            _ => $"{sourceAlias}.argument[{argumentIndex}]",
         };
     }
 
@@ -149,7 +149,8 @@ internal static class StructuralSourcePreparation
         ExecutionStructuralLimitPlan limits,
         ExecutionStructuralInputOrigin origin,
         string path,
-        string? sourceContextId)
+        string? sourceContextId
+    )
     {
         var binding = new ExecutionStructuralLimitBinding(limits, origin, path, sourceContextId);
 
@@ -164,23 +165,20 @@ internal static class StructuralSourcePreparation
         // The preparation pass retains the root in a typed local.  Wrapping
         // that local in a conversion-shaped guard lets the renderer insert a
         // single demand check without changing the expression's static type.
-        return new ExecutionStructuralConversion(
-            expression,
-            expression.ReturnType)
-        {
-            LimitBinding = binding
-        };
+        return new ExecutionStructuralConversion(expression, expression.ReturnType) { LimitBinding = binding };
     }
 
     private static string CreateStructuralPreparationPrefix(string sourceAlias, string? scope)
     {
-        var aliasChars = sourceAlias.Select(static character =>
-            char.IsLetterOrDigit(character) || character == '_' ? character : '_').ToArray();
+        var aliasChars = sourceAlias
+            .Select(static character => char.IsLetterOrDigit(character) || character == '_' ? character : '_')
+            .ToArray();
         if (string.IsNullOrWhiteSpace(scope))
             return $"__musoqStructural_{new string(aliasChars)}";
 
-        var scopeChars = scope.Select(static character =>
-            char.IsLetterOrDigit(character) || character == '_' ? character : '_').ToArray();
+        var scopeChars = scope
+            .Select(static character => char.IsLetterOrDigit(character) || character == '_' ? character : '_')
+            .ToArray();
         return $"__musoqStructural_{new string(scopeChars)}_{new string(aliasChars)}";
     }
 }

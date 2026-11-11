@@ -12,17 +12,24 @@ public sealed partial class ExecutionCSharpRenderer
         bool includePhaseAlias = true,
         bool includeProgressAlias = true,
         bool includeProgressContextAlias = true,
-        string? queryIdentifier = null)
+        string? queryIdentifier = null
+    )
     {
         if (useQueryRunContext)
         {
             return
             [
                 SyntaxFactory.ParseStatement("var token = queryContext.CancellationToken;"),
-                SyntaxFactory.ParseStatement("var __musoqProgressContext = queryContext.QueryProgress == null ? null : queryContext;"),
-                SyntaxFactory.ParseStatement("Action<string, QueryPhase> OnPhaseChanged = queryContext.NotifyPhaseChanged;"),
-                SyntaxFactory.ParseStatement("DataSourceEventHandler OnDataSourceProgress = queryContext.NotifyDataSourceProgress;"),
-                SyntaxFactory.ParseStatement("QueryProgressEventHandler OnQueryProgress = queryContext.QueryProgress;")
+                SyntaxFactory.ParseStatement(
+                    "var __musoqProgressContext = queryContext.QueryProgress == null ? null : queryContext;"
+                ),
+                SyntaxFactory.ParseStatement(
+                    "Action<string, QueryPhase> OnPhaseChanged = queryContext.NotifyPhaseChanged;"
+                ),
+                SyntaxFactory.ParseStatement(
+                    "DataSourceEventHandler OnDataSourceProgress = queryContext.NotifyDataSourceProgress;"
+                ),
+                SyntaxFactory.ParseStatement("QueryProgressEventHandler OnQueryProgress = queryContext.QueryProgress;"),
             ];
         }
 
@@ -35,10 +42,15 @@ public sealed partial class ExecutionCSharpRenderer
         if (includeProgressAlias)
             statements.Add(SyntaxFactory.ParseStatement("QueryProgressEventHandler OnQueryProgress = QueryProgress;"));
         if (includeProgressContextAlias)
-            statements.Add(SyntaxFactory.ParseStatement(
-                $"var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: {sender}, queryId: \"{escapedQueryIdentifier}\");"));
+            statements.Add(
+                SyntaxFactory.ParseStatement(
+                    $"var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: {sender}, queryId: \"{escapedQueryIdentifier}\");"
+                )
+            );
         if (includePhaseAlias)
-            statements.Add(SyntaxFactory.ParseStatement("Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;"));
+            statements.Add(
+                SyntaxFactory.ParseStatement("Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;")
+            );
         return statements;
     }
 }

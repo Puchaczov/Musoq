@@ -9,7 +9,8 @@ public class SourceMetadataContext(
     CancellationToken endWorkToken,
     IReadOnlyCollection<ISchemaColumn> originallyInferredColumns,
     IReadOnlyDictionary<string, string> sourceRuntimeSettings,
-    ILogger logger)
+    ILogger logger
+)
 {
     public string QueryId { get; } = queryId;
 

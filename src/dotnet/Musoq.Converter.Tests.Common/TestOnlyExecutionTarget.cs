@@ -15,7 +15,8 @@ internal static class TestOnlyExecutionTarget
         Func<TargetRenderInputBuildContext, TargetBackendRenderInputs>? createRenderInputs = null,
         Func<TargetFinalizationOptionsContext, TargetFinalizationOptions>? createFinalizationOptions = null,
         Func<RenderedQueryArtifact, RenderedArtifactBuildContribution>? createRenderBuildContribution = null,
-        Func<TargetArtifactPackagingContext, TargetArtifactPackage>? createArtifactPackage = null)
+        Func<TargetArtifactPackagingContext, TargetArtifactPackage>? createArtifactPackage = null
+    )
     {
         return ExecutionTargetDescriptor.Create(
             TestExecutionTargetIds.TestOnlyNonClr,
@@ -26,7 +27,8 @@ internal static class TestOnlyExecutionTarget
             createRenderInputs: createRenderInputs,
             createFinalizationOptions: createFinalizationOptions,
             createRenderBuildContribution: createRenderBuildContribution,
-            createArtifactPackage: createArtifactPackage);
+            createArtifactPackage: createArtifactPackage
+        );
     }
 
     internal sealed class Backend : IQueryExecutionBackend
@@ -55,7 +57,10 @@ internal static class TestOnlyExecutionTarget
     {
         public ExecutionTargetId TargetId => TestExecutionTargetIds.TestOnlyNonClr;
 
-        public ExecutableQueryArtifact CreateLoadedExecutableArtifact(Type runnableType, IDisposable? lifetimeOwner = null)
+        public ExecutableQueryArtifact CreateLoadedExecutableArtifact(
+            Type runnableType,
+            IDisposable? lifetimeOwner = null
+        )
         {
             throw new NotSupportedException("Test-only activator does not create loaded executable artifacts.");
         }
@@ -77,10 +82,7 @@ internal static class TestOnlyExecutionTarget
 
         public RenderedQueryInspection Inspect(RenderedQueryArtifact artifact)
         {
-            return new RenderedQueryInspection(
-                TargetId,
-                null,
-                new Dictionary<string, string>(StringComparer.Ordinal));
+            return new RenderedQueryInspection(TargetId, null, new Dictionary<string, string>(StringComparer.Ordinal));
         }
     }
 }

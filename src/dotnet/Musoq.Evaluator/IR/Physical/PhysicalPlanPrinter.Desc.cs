@@ -15,6 +15,10 @@ public static partial class PhysicalPlanPrinter
             return;
         }
 
-        sb.Append(prefix).AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalDesc [{PlanPrinterHelpers.FormatSchemaName(desc.SchemaName)}.{desc.MethodName}()] [{desc.Type}] [{desc.Column}]");
+        sb.Append(prefix)
+            .AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"PhysicalDesc [{PlanPrinterHelpers.FormatSchemaName(desc.SchemaName)}.{desc.MethodName}()] [{desc.Type}] [{desc.Column}]"
+            );
     }
 }

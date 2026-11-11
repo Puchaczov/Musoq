@@ -20,10 +20,7 @@ public sealed partial class ExecutionCSharpRendererTests
     public void CanRender_IndexedLoopWithGeneratedRowObjectDirectItem_ShouldReturnTrue()
     {
         var renderer = new ExecutionCSharpRenderer();
-        var plan = CreateIndexedRowAccessPlan(
-            typeof(object),
-            "GeneratedItemRow",
-            ExecutionRowAccessMode.Direct);
+        var plan = CreateIndexedRowAccessPlan(typeof(object), "GeneratedItemRow", ExecutionRowAccessMode.Direct);
 
         Assert.IsTrue(renderer.CanRender(plan), renderer.GetUnsupportedReason(plan));
     }
@@ -37,7 +34,8 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.IsFalse(renderer.CanRender(plan));
         Assert.AreEqual(
             "Execution IR C# backend cannot render node ExecutionForEachIndexed.",
-            renderer.GetUnsupportedReason(plan));
+            renderer.GetUnsupportedReason(plan)
+        );
     }
 
     [TestMethod]
@@ -47,28 +45,23 @@ public sealed partial class ExecutionCSharpRendererTests
         var plan = CreateIndexedRowAccessPlan(typeof(object), null, (ExecutionRowAccessMode)99);
 
         Assert.IsFalse(renderer.CanRender(plan));
-        Assert.AreEqual("Execution IR C# backend cannot render node ExecutionForEachIndexed.",
-            renderer.GetUnsupportedReason(plan));
+        Assert.AreEqual(
+            "Execution IR C# backend cannot render node ExecutionForEachIndexed.",
+            renderer.GetUnsupportedReason(plan)
+        );
     }
 
     private static ExecutionPlan CreateIndexedRowAccessPlan(
         Type itemType,
         string? generatedRowTypeName,
-        ExecutionRowAccessMode rowAccessMode)
+        ExecutionRowAccessMode rowAccessMode
+    )
     {
         var item = new ExecutionVariable("item", itemType, generatedRowTypeName);
         var index = new ExecutionVariable("rowIndex", typeof(int));
         var source = new ExecutionVariable("rows", typeof(object[]));
-        var loop = new ExecutionForEachIndexed(
-            item,
-            index,
-            source,
-            rowAccessMode,
-            ExecutionBlock.Empty);
+        var loop = new ExecutionForEachIndexed(item, index, source, rowAccessMode, ExecutionBlock.Empty);
 
-        return new ExecutionPlan(
-            "Q_IndexedRowAccessCapability",
-            [],
-            new ExecutionBlock([loop]));
+        return new ExecutionPlan("Q_IndexedRowAccessCapability", [], new ExecutionBlock([loop]));
     }
 }

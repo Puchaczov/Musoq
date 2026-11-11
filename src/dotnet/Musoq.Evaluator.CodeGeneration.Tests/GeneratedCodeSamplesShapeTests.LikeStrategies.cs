@@ -17,24 +17,32 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "Q372_ConstantRLike.cs",
             "Q373_DynamicColumnRLike.cs",
             "Q374_CorrelatedApplyRLike.cs",
-            "Q375_LiteralAndFallbackRLike.cs");
+            "Q375_LiteralAndFallbackRLike.cs"
+        );
 
         foreach (var sample in samples)
         {
             Assert.IsFalse(
                 sample.Content.Contains("new Musoq.Evaluator.Operators().Like", StringComparison.Ordinal),
-                sample.FileName);
+                sample.FileName
+            );
         }
 
         Assert.Contains("Operators.LikeDynamic", samples[1].Content);
-        Assert.Contains("new Musoq.Evaluator.LikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))", samples[1].Content);
+        Assert.Contains(
+            "new Musoq.Evaluator.LikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))",
+            samples[1].Content
+        );
         Assert.Contains("Operators.LikeDynamic", samples[2].Content);
         Assert.Contains("Operators.PrepareLike", samples[3].Content);
         Assert.Contains("Operators.LikePrepared", samples[3].Content);
         Assert.Contains("Operators.PrepareRLike", samples[4].Content);
         Assert.Contains("Operators.RLikePrepared", samples[4].Content);
         Assert.Contains("Operators.RLikeDynamic", samples[5].Content);
-        Assert.Contains("new Musoq.Evaluator.RLikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))", samples[5].Content);
+        Assert.Contains(
+            "new Musoq.Evaluator.RLikeMatcherCacheSlot(false, TimeSpan.FromTicks(20000000L))",
+            samples[5].Content
+        );
         Assert.Contains("Operators.PrepareRLike", samples[6].Content);
         Assert.Contains("Operators.RLikePrepared", samples[6].Content);
         Assert.Contains("comparison=Ordinal", samples[7].Content);
@@ -43,7 +51,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("Operators.PrepareRLike", samples[7].Content);
         Assert.Contains("Operators.RLikePrepared", samples[7].Content);
         Assert.IsFalse(
-            samples.Skip(4).Any(static sample =>
-                sample.Content.Contains("new Musoq.Evaluator.Operators().RLike", StringComparison.Ordinal)));
+            samples
+                .Skip(4)
+                .Any(static sample =>
+                    sample.Content.Contains("new Musoq.Evaluator.Operators().RLike", StringComparison.Ordinal)
+                )
+        );
     }
 }

@@ -39,9 +39,7 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
 
     /// <summary>Creates a structured interpretation failure using the historical character-offset default.</summary>
     public ParseException(ParseErrorCode errorCode, string schemaName, string? fieldName, int position, string details)
-        : this(errorCode, schemaName, fieldName, position, details, null, InputPositionUnit.CharacterOffset)
-    {
-    }
+        : this(errorCode, schemaName, fieldName, position, details, null, InputPositionUnit.CharacterOffset) { }
 
     /// <summary>Creates a structured interpretation failure using the historical character-offset default.</summary>
     public ParseException(
@@ -50,10 +48,10 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
         string? fieldName,
         int position,
         string details,
-        Exception innerException)
+        Exception innerException
+    )
         : this(errorCode, schemaName, fieldName, position, details, innerException, InputPositionUnit.CharacterOffset)
-    {
-    }
+    { }
 
     private ParseException(
         ParseErrorCode errorCode,
@@ -62,7 +60,8 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
         int position,
         string details,
         Exception? innerException,
-        InputPositionUnit positionUnit)
+        InputPositionUnit positionUnit
+    )
         : base(GetSafeExceptionMessage(errorCode, schemaName, fieldName, position), innerException)
     {
         ErrorCode = Enum.IsDefined(errorCode) ? errorCode : ParseErrorCode.GeneralError;
@@ -81,9 +80,18 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
         string? fieldName,
         int position,
         string details,
-        Exception? innerException = null)
+        Exception? innerException = null
+    )
     {
-        return new ParseException(errorCode, schemaName, fieldName, position, details, innerException, InputPositionUnit.ByteOffset);
+        return new ParseException(
+            errorCode,
+            schemaName,
+            fieldName,
+            position,
+            details,
+            innerException,
+            InputPositionUnit.ByteOffset
+        );
     }
 
     /// <summary>Creates a structured interpretation failure whose position is a character offset.</summary>
@@ -93,9 +101,18 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
         string? fieldName,
         int position,
         string details,
-        Exception? innerException = null)
+        Exception? innerException = null
+    )
     {
-        return new ParseException(errorCode, schemaName, fieldName, position, details, innerException, InputPositionUnit.CharacterOffset);
+        return new ParseException(
+            errorCode,
+            schemaName,
+            fieldName,
+            position,
+            details,
+            innerException,
+            InputPositionUnit.CharacterOffset
+        );
     }
 
     /// <summary>Gets the specific error code for this parse failure.</summary>
@@ -123,10 +140,7 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
         var inputLocation = CreateInputLocation();
-        var arguments = new List<KeyValuePair<string, string>>
-        {
-            new("interpretationCode", FormattedErrorCode)
-        };
+        var arguments = new List<KeyValuePair<string, string>> { new("interpretationCode", FormattedErrorCode) };
 
         return new Diagnostic(
             Code,
@@ -136,7 +150,8 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
             SourceLocation.None,
             phase: DiagnosticPhase.Runtime,
             sourceKind: DiagnosticSourceKind.Runtime,
-            arguments: arguments).WithInputLocation(inputLocation);
+            arguments: arguments
+        ).WithInputLocation(inputLocation);
     }
 
     public string GetVerboseDiagnosticDetails()
@@ -145,9 +160,7 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
         if (string.IsNullOrEmpty(Details))
             return innerMessage ?? string.Empty;
 
-        return string.IsNullOrEmpty(innerMessage)
-            ? Details
-            : $"{Details}{Environment.NewLine}{innerMessage}";
+        return string.IsNullOrEmpty(innerMessage) ? Details : $"{Details}{Environment.NewLine}{innerMessage}";
     }
 
     /// <summary>Returns a partial-result message with the ISE code and field context, excluding parser details.</summary>
@@ -156,11 +169,18 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
         return FormatPartialMessage(ErrorCode, SchemaName, FieldName, Position, _hasPosition);
     }
 
-    internal static string FormatPartialMessage(ParseErrorCode errorCode, string schemaName, string? fieldName,
-        int errorPosition, bool positionAvailable)
+    internal static string FormatPartialMessage(
+        ParseErrorCode errorCode,
+        string schemaName,
+        string? fieldName,
+        int errorPosition,
+        bool positionAvailable
+    )
     {
-        var target = string.IsNullOrEmpty(fieldName) ? schemaName :
-            string.IsNullOrEmpty(schemaName) ? fieldName : $"{schemaName}.{fieldName}";
+        var target =
+            string.IsNullOrEmpty(fieldName) ? schemaName
+            : string.IsNullOrEmpty(schemaName) ? fieldName
+            : $"{schemaName}.{fieldName}";
         var formattedErrorCode = FormatErrorCode(errorCode);
         var hasPosition = positionAvailable && errorPosition >= 0;
         if (string.IsNullOrEmpty(target) && !hasPosition)
@@ -180,7 +200,7 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
         {
             InputPositionUnit.ByteOffset => new DiagnosticInputLocation(byteOffset: Position),
             InputPositionUnit.CharacterOffset => new DiagnosticInputLocation(characterOffset: Position),
-            _ => null
+            _ => null,
         };
     }
 
@@ -194,7 +214,8 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
         ParseErrorCode errorCode,
         string schemaName,
         string? fieldName,
-        int position)
+        int position
+    )
     {
         var safeErrorCode = Enum.IsDefined(errorCode) ? errorCode : ParseErrorCode.GeneralError;
         var target = string.Empty;
@@ -218,6 +239,6 @@ public class ParseException : Exception, IDiagnosticException, IVerboseDiagnosti
     private enum InputPositionUnit
     {
         CharacterOffset,
-        ByteOffset
+        ByteOffset,
     }
 }

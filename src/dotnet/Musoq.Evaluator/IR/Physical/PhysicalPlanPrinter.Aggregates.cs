@@ -10,7 +10,8 @@ public static partial class PhysicalPlanPrinter
         PhysicalAggregateCandidateNode aggregateCandidate,
         StringBuilder sb,
         string prefix,
-        int indent)
+        int indent
+    )
     {
         sb.Append(prefix).Append("PhysicalAggregateCandidate [keys: ");
         PlanPrinterHelpers.AppendNames(sb, aggregateCandidate.GroupKeyNames);

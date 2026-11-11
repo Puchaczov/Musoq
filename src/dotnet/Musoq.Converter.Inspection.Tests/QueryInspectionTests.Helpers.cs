@@ -19,14 +19,16 @@ public partial class QueryInspectionTests
     private QueryInspectionResult Inspect(
         string query,
         ISchemaProvider schemaProvider,
-        CompilationOptions? compilationOptions = null)
+        CompilationOptions? compilationOptions = null
+    )
     {
         return InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
     }
 
     private CompiledQuery CompileForExecution(string query, CompilationOptions? compilationOptions = null)
@@ -37,20 +39,18 @@ public partial class QueryInspectionTests
     private CompiledQuery CompileForExecution(
         string query,
         ISchemaProvider schemaProvider,
-        CompilationOptions? compilationOptions = null)
+        CompilationOptions? compilationOptions = null
+    )
     {
         return compilationOptions == null
-            ? InstanceCreator.CompileForExecution(
-                query,
-                Guid.NewGuid().ToString(),
-                schemaProvider,
-                _loggerResolver)
+            ? InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, _loggerResolver)
             : InstanceCreator.CompileForExecution(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,
                 _loggerResolver,
-                compilationOptions);
+                compilationOptions
+            );
     }
 
     private string GetGeneratedCSharpCode(string query)
@@ -59,6 +59,7 @@ public partial class QueryInspectionTests
             query,
             Guid.NewGuid().ToString(),
             _schemaProvider,
-            _loggerResolver);
+            _loggerResolver
+        );
     }
 }

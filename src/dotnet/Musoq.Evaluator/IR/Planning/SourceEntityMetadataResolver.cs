@@ -17,9 +17,7 @@ internal static class SourceEntityMetadataResolver
         var (_, table, _) = tableSymbol.GetTableByAlias(alias);
         var entityType = table.Metadata?.TableEntityType ?? typeof(object);
 
-        return entityType == typeof(object)
-            ? null
-            : entityType;
+        return entityType == typeof(object) ? null : entityType;
     }
 
     public static bool IsDynamicEntity(Type entityType)
@@ -41,11 +39,14 @@ internal static class SourceEntityMetadataResolver
         Scope scope,
         string alias,
         ref TableSymbol? firstMatch,
-        ref TableSymbol? firstTypedMatch)
+        ref TableSymbol? firstTypedMatch
+    )
     {
-        if (scope.ScopeSymbolTable.TryGetSymbol(alias, out TableSymbol? tableSymbol) &&
-            tableSymbol is not null &&
-            tableSymbol.ContainsAlias(alias))
+        if (
+            scope.ScopeSymbolTable.TryGetSymbol(alias, out TableSymbol? tableSymbol)
+            && tableSymbol is not null
+            && tableSymbol.ContainsAlias(alias)
+        )
         {
             firstMatch ??= tableSymbol;
 

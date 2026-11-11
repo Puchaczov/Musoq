@@ -23,17 +23,16 @@ public partial class SubqueryToCteRewriteVisitor
         WindowNode? window,
         QualifyNode? qualify,
         SubqueryCorrelationAnalysis analysis,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var rewriter = new ScalarSubqueryExpressionRewriter(this, analysis, cteInnerExpressions);
         var context = RewriteExpressionContext(
             new SubqueryRewriteContext(select, from, whereExpression, groupBy, orderBy, window, qualify),
             rewriter,
-            static (currentFrom, join) => new Parser.JoinFromNode(
-                currentFrom,
-                join.CteRef,
-                join.JoinExpression,
-                join.JoinType));
+            static (currentFrom, join) =>
+                new Parser.JoinFromNode(currentFrom, join.CteRef, join.JoinExpression, join.JoinType)
+        );
 
         return new ScalarRewriteResult(
             context.Select,
@@ -42,13 +41,15 @@ public partial class SubqueryToCteRewriteVisitor
             context.GroupBy,
             context.OrderBy,
             context.Window,
-            context.Qualify);
+            context.Qualify
+        );
     }
 
     private ScalarSubqueryJoin PrepareScalarSubquery(
         ScalarSubqueryNode node,
         SubqueryCorrelationAnalysis analysis,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var cteName = CreateUniqueSubqueryName();
         var valueColumnName = GeneratedSubqueryContract.CreateValueColumnName(cteName);
@@ -61,13 +62,14 @@ public partial class SubqueryToCteRewriteVisitor
             throw SubqueryDiagnosticFactory.InvalidSubquery(
                 "scalar subquery validation",
                 "Scalar subquery must return exactly one column.",
-                node);
+                node
+            );
 
         var queryNode = subqueryBody switch
         {
             QueryNode query => query,
             SingleSetNode singleSet => singleSet.Query,
-            _ => null
+            _ => null,
         };
 
         ScalarSubqueryRewrite scalarRewrite;
@@ -80,14 +82,16 @@ public partial class SubqueryToCteRewriteVisitor
                     cteName,
                     valueColumnName,
                     node,
-                    cteInnerExpressions)
+                    cteInnerExpressions
+                )
                 : RewriteMaterializedUncorrelatedScalarSubquery(
                     subqueryBody,
                     GetSubqueryOutputColumnName(leafQuery.Select.Fields[0]),
                     cteName,
                     keyColumnName,
                     valueColumnName,
-                    cteInnerExpressions);
+                    cteInnerExpressions
+                );
         }
         else
         {
@@ -101,13 +105,15 @@ public partial class SubqueryToCteRewriteVisitor
                     cteName,
                     valueColumnName,
                     node,
-                    cteInnerExpressions)
+                    cteInnerExpressions
+                )
                 : RewriteUncorrelatedScalarSubquery(
                     rewrittenSubquery,
                     cteName,
                     keyColumnName,
                     valueColumnName,
-                    cteInnerExpressions);
+                    cteInnerExpressions
+                );
         }
 
         cteInnerExpressions.Add(new CteInnerExpressionNode(scalarRewrite.Query, cteName));
@@ -118,7 +124,8 @@ public partial class SubqueryToCteRewriteVisitor
         {
             replacement = CreateCorrelatedScalarResultAccessor(
                 replacement,
-                correlation.CorrelatedAliases.Order(StringComparer.OrdinalIgnoreCase).First());
+                correlation.CorrelatedAliases.Order(StringComparer.OrdinalIgnoreCase).First()
+            );
             joinType = JoinType.LeftSingle;
         }
 
@@ -132,11 +139,11 @@ public partial class SubqueryToCteRewriteVisitor
         string cteName,
         string valueColumnName,
         ScalarSubqueryNode node,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var valueExpression = query.Select.Fields[0].Expression;
-        if (RequiresResultMaterialization(query) &&
-            !RequiresUnsupportedCombinedScalarShape(query))
+        if (RequiresResultMaterialization(query) && !RequiresUnsupportedCombinedScalarShape(query))
         {
             return RewriteMaterializedCorrelatedScalarSubquery(
                 query,
@@ -144,7 +151,8 @@ public partial class SubqueryToCteRewriteVisitor
                 cteName,
                 valueColumnName,
                 node,
-                cteInnerExpressions);
+                cteInnerExpressions
+            );
         }
 
         if (RequiresCorrelatedAggregateApply(query))
@@ -159,16 +167,24 @@ public partial class SubqueryToCteRewriteVisitor
             .Where(predicate => ReferencesAnyAlias(predicate, correlation.CorrelatedAliases))
             .ToArray();
 
-        if (TryRewriteRangeCorrelatedScalarSubquery(
-                query, correlation, cteName, valueColumnName, valueExpression, conjuncts, correlated, out var rangeRewrite))
+        if (
+            TryRewriteRangeCorrelatedScalarSubquery(
+                query,
+                correlation,
+                cteName,
+                valueColumnName,
+                valueExpression,
+                conjuncts,
+                correlated,
+                out var rangeRewrite
+            )
+        )
             return rangeRewrite;
 
         if (correlated.Length == 0 || correlated.Any(predicate => predicate is not EqualityNode))
             ThrowUnsupportedScalarCorrelation(node);
 
-        var local = conjuncts
-            .Where(predicate => !correlated.Contains(predicate))
-            .ToArray();
+        var local = conjuncts.Where(predicate => !correlated.Contains(predicate)).ToArray();
         var projections = CollectCorrelationProjections(correlated, correlation.LocalAliases, cteName);
         if (projections.Length == 0)
             ThrowUnsupportedScalarCorrelation(node);
@@ -184,7 +200,8 @@ public partial class SubqueryToCteRewriteVisitor
                 projection.Alias,
                 projection.ReturnType ?? typeof(object),
                 projection.Span,
-                projection.IntendedTypeName);
+                projection.IntendedTypeName
+            );
             fields[i] = new FieldNode(access, i, projection.CteColumnName);
             groupByFields[i] = new FieldNode(access, i, string.Empty);
         }
@@ -192,7 +209,8 @@ public partial class SubqueryToCteRewriteVisitor
         fields[^1] = new FieldNode(
             CreateDeferredCorrelatedScalarAggregate(valueExpression),
             fields.Length - 1,
-            valueColumnName);
+            valueColumnName
+        );
 
         var rewritten = new QueryNode(
             new SelectNode(fields),
@@ -204,12 +222,14 @@ public partial class SubqueryToCteRewriteVisitor
             query.Take,
             query.Window,
             query.Qualify,
-            default);
+            default
+        );
         var joinPredicate = RewriteCorrelatedPredicatesForJoin(
             correlated,
             projections,
             correlation.LocalAliases,
-            cteName);
+            cteName
+        );
 
         return new ScalarSubqueryRewrite(rewritten, joinPredicate);
     }
@@ -220,7 +240,11 @@ public partial class SubqueryToCteRewriteVisitor
             new FunctionToken(ScalarSubqueryAggregateName, default),
             new ArgsListNode([expression]),
             null,
-            false) { IsCompilerGenerated = true };
+            false
+        )
+        {
+            IsCompilerGenerated = true,
+        };
     }
 
     private static AccessMethodNode CreateDeferredScalarAggregate(Node expression)
@@ -229,10 +253,11 @@ public partial class SubqueryToCteRewriteVisitor
             new FunctionToken(ScalarSubqueryAggregateName, default),
             new ArgsListNode([expression]),
             null,
-            false)
+            false
+        )
         {
             IsScalarSubqueryValueWrapper = true,
-            IsCompilerGenerated = true
+            IsCompilerGenerated = true,
         };
     }
 
@@ -242,7 +267,8 @@ public partial class SubqueryToCteRewriteVisitor
         throw SubqueryDiagnosticFactory.InvalidSubquery(
             "correlated scalar subquery rewrite",
             "Correlated scalar subqueries require equality predicates with at most one comparable range predicate in the subquery WHERE clause. Range-correlated aggregate forms are not supported.",
-            node);
+            node
+        );
     }
 
     [DoesNotReturn]
@@ -251,7 +277,7 @@ public partial class SubqueryToCteRewriteVisitor
         throw SubqueryDiagnosticFactory.InvalidSubquery(
             "correlated scalar subquery result materialization",
             "Correlated scalar subqueries that combine SKIP or TAKE with DISTINCT, GROUP BY, WINDOW, or QUALIFY require a post-shaping partition stage and are not supported yet.",
-            node);
+            node
+        );
     }
-
 }

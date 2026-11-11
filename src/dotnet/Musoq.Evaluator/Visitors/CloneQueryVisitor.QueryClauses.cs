@@ -5,9 +5,8 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class CloneQueryVisitor
 {
-    public override void Visit(WhereNode node) => Nodes.Push(new WhereNode(Nodes.Pop())
-        .WithSpan(node.Span)
-        .WithFullSpan(node.FullSpan));
+    public override void Visit(WhereNode node) =>
+        Nodes.Push(new WhereNode(Nodes.Pop()).WithSpan(node.Span).WithFullSpan(node.FullSpan));
 
     public override void Visit(GroupByNode node)
     {
@@ -25,46 +24,57 @@ public partial class CloneQueryVisitor
         Nodes.Push(new GroupByNode(fields, having, node.IsAll, node.Span));
     }
 
-    public override void Visit(HavingNode node) => Nodes.Push(new HavingNode(Nodes.Pop())
-        .WithSpan(node.Span)
-        .WithFullSpan(node.FullSpan));
+    public override void Visit(HavingNode node) =>
+        Nodes.Push(new HavingNode(Nodes.Pop()).WithSpan(node.Span).WithFullSpan(node.FullSpan));
 
-    public override void Visit(QualifyNode node) => Nodes.Push(new QualifyNode(Nodes.Pop())
-        .WithSpan(node.Span)
-        .WithFullSpan(node.FullSpan));
+    public override void Visit(QualifyNode node) =>
+        Nodes.Push(new QualifyNode(Nodes.Pop()).WithSpan(node.Span).WithFullSpan(node.FullSpan));
 
     public override void Visit(SkipNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new SkipNode(Nodes.Pop())
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(new SkipNode(Nodes.Pop()).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(TakeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new TakeNode(Nodes.Pop())
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(new TakeNode(Nodes.Pop()).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(SchemaFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var cloned =
-            node is Parser.SchemaFromNode schemaFromNode
-                ? new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
-                    node.QueryId, schemaFromNode.HasExternallyProvidedTypes)
-                : new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
-                    node.QueryId, false);
-        if (node.HasSpan) cloned.WithSpan(node.Span);
-        if (node.SchemaSpan is { } schemaSpan) cloned.WithSchemaSpan(schemaSpan); if (node.MethodSpan is { } methodSpan) cloned.WithMethodSpan(methodSpan);
-        if (node is Parser.SchemaFromNode boundSource &&
-            boundSource.BoundInvocation is { } boundInvocation)
+        var cloned = node is Parser.SchemaFromNode schemaFromNode
+            ? new Parser.SchemaFromNode(
+                node.Schema,
+                node.Method,
+                (ArgsListNode)Nodes.Pop(),
+                node.Alias,
+                node.QueryId,
+                schemaFromNode.HasExternallyProvidedTypes
+            )
+            : new Parser.SchemaFromNode(
+                node.Schema,
+                node.Method,
+                (ArgsListNode)Nodes.Pop(),
+                node.Alias,
+                node.QueryId,
+                false
+            );
+        if (node.HasSpan)
+            cloned.WithSpan(node.Span);
+        if (node.SchemaSpan is { } schemaSpan)
+            cloned.WithSchemaSpan(schemaSpan);
+        if (node.MethodSpan is { } methodSpan)
+            cloned.WithMethodSpan(methodSpan);
+        if (node is Parser.SchemaFromNode boundSource && boundSource.BoundInvocation is { } boundInvocation)
             cloned.SetBoundInvocation(boundInvocation);
         if (node is Parser.SchemaFromNode metadataSource)
-            cloned.SetStaticMetadataArguments(metadataSource.StaticMetadataArguments, metadataSource.HasRequiredRuntimeArguments);
+            cloned.SetStaticMetadataArguments(
+                metadataSource.StaticMetadataArguments,
+                metadataSource.HasRequiredRuntimeArguments
+            );
         Nodes.Push(cloned);
     }
 
@@ -140,8 +150,14 @@ public partial class CloneQueryVisitor
         var expression = Nodes.Pop();
         var joinedTable = (FromNode)Nodes.Pop();
         var source = (FromNode)Nodes.Pop();
-        var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType, tieBreak, node.WithOrdinality)
-            .CopySpansFrom(node);
+        var joinedFrom = new Parser.JoinFromNode(
+            source,
+            joinedTable,
+            expression,
+            node.JoinType,
+            tieBreak,
+            node.WithOrdinality
+        ).CopySpansFrom(node);
         Nodes.Push(joinedFrom);
     }
 
@@ -150,27 +166,44 @@ public partial class CloneQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var appliedTable = (FromNode)Nodes.Pop();
         var source = (FromNode)Nodes.Pop();
-        var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType, node.WithOrdinality)
-            .CopySpansFrom(node);
+        var appliedFrom = new Parser.ApplyFromNode(
+            source,
+            appliedTable,
+            node.ApplyType,
+            node.WithOrdinality
+        ).CopySpansFrom(node);
         Nodes.Push(appliedFrom);
     }
 
-    public override void Visit(ExpressionFromNode node) => Nodes.Push(
-        new Parser.ExpressionFromNode((FromNode)Nodes.Pop()).CopySpansFrom(node));
+    public override void Visit(ExpressionFromNode node) =>
+        Nodes.Push(new Parser.ExpressionFromNode((FromNode)Nodes.Pop()).CopySpansFrom(node));
 
     public override void Visit(InterpretFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var interpretCall = Nodes.Pop();
-        Nodes.Push(new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType ?? typeof(object))
-            .CopySpansFrom(node));
+        Nodes.Push(
+            new Parser.InterpretFromNode(
+                node.Alias,
+                interpretCall,
+                node.ApplyType,
+                node.ReturnType ?? typeof(object)
+            ).CopySpansFrom(node)
+        );
     }
 
     public override void Visit(AccessMethodFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var accessMethod = (AccessMethodNode)Nodes.Pop();
-        Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethod, node.ReturnType ?? typeof(object)));
+        Nodes.Push(
+            new Parser.AccessMethodFromNode(
+                node.Alias,
+                node.SourceAlias,
+                accessMethod,
+                node.ReturnType ?? typeof(object)
+            )
+        );
     }
 
     public override void Visit(PropertyFromNode node)
@@ -204,7 +237,11 @@ public partial class CloneQueryVisitor
 
     public override void Visit(TranslatedSetTreeNode node) { }
 
-    public override void Visit(IntoNode node) { ArgumentNullException.ThrowIfNull(node); Nodes.Push(new IntoNode(node.Name)); }
+    public override void Visit(IntoNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        Nodes.Push(new IntoNode(node.Name));
+    }
 
     public override void Visit(QueryScope node) { }
 
@@ -231,9 +268,11 @@ public partial class CloneQueryVisitor
         for (var i = node.PartitionFields.Length - 1; i >= 0; i--)
             partitionFields[i] = (FieldNode)Nodes.Pop();
 
-        Nodes.Push(((WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, frame))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            ((WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, frame))
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(WindowFrameNode node)
@@ -244,15 +283,21 @@ public partial class CloneQueryVisitor
         Nodes.Push(new WindowFrameNode(node.FrameType, start, end));
     }
 
-    public override void Visit(WindowFrameBoundNode node) { ArgumentNullException.ThrowIfNull(node); Nodes.Push(new WindowFrameBoundNode(node.BoundType, node.Offset)); }
+    public override void Visit(WindowFrameBoundNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        Nodes.Push(new WindowFrameBoundNode(node.BoundType, node.Offset));
+    }
 
     public override void Visit(WindowDefinitionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var spec = (WindowSpecificationNode)Nodes.Pop();
-        Nodes.Push(((WindowDefinitionNode)new WindowDefinitionNode(node.Name, spec))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            ((WindowDefinitionNode)new WindowDefinitionNode(node.Name, spec))
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(WindowNode node)
@@ -262,8 +307,6 @@ public partial class CloneQueryVisitor
         for (var i = node.Definitions.Length - 1; i >= 0; i--)
             definitions[i] = (WindowDefinitionNode)Nodes.Pop();
 
-        Nodes.Push(((WindowNode)new WindowNode(definitions))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(((WindowNode)new WindowNode(definitions)).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 }

@@ -13,7 +13,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static GenericNameSyntax CreateEnumerableTypeSyntax(TypeSyntax itemType)
     {
-        return SyntaxFactory.GenericName(nameof(IEnumerable<object>))
+        return SyntaxFactory
+            .GenericName(nameof(IEnumerable<object>))
             .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(itemType)));
     }
 

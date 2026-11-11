@@ -14,14 +14,18 @@ public sealed record SourceStringMatchCapability
         SourceStringMatchOperations operations,
         SourceStringComparison comparison = SourceStringComparison.LikeIgnoreCase,
         bool supportsNegation = false,
-        SourcePredicateEvaluationPhases phases = SourcePredicateEvaluationPhases.RowFiltering)
+        SourcePredicateEvaluationPhases phases = SourcePredicateEvaluationPhases.RowFiltering
+    )
     {
         ArgumentNullException.ThrowIfNull(column);
         ArgumentException.ThrowIfNullOrWhiteSpace(column.Name);
-        if (operations == SourceStringMatchOperations.None ||
-            (operations & ~SourceStringMatchOperations.All) != 0)
+        if (operations == SourceStringMatchOperations.None || (operations & ~SourceStringMatchOperations.All) != 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(operations), operations, "Unknown source string-match operation.");
+            throw new ArgumentOutOfRangeException(
+                nameof(operations),
+                operations,
+                "Unknown source string-match operation."
+            );
         }
 
         if (comparison != SourceStringComparison.LikeIgnoreCase)
@@ -29,11 +33,11 @@ public sealed record SourceStringMatchCapability
             throw new ArgumentOutOfRangeException(
                 nameof(comparison),
                 comparison,
-                "Source string matches currently require LIKE-equivalent case-insensitive comparison.");
+                "Source string matches currently require LIKE-equivalent case-insensitive comparison."
+            );
         }
 
-        if (phases == SourcePredicateEvaluationPhases.None ||
-            (phases & ~SourcePredicateEvaluationPhases.All) != 0)
+        if (phases == SourcePredicateEvaluationPhases.None || (phases & ~SourcePredicateEvaluationPhases.All) != 0)
         {
             throw new ArgumentOutOfRangeException(nameof(phases), phases, "Unknown source predicate evaluation phase.");
         }
@@ -64,24 +68,22 @@ public sealed record SourceStringMatchCapability
     /// <param name="predicate">The typed predicate.</param>
     /// <param name="phase">The requested application phase.</param>
     /// <returns><see langword="true"/> when all advertised dimensions match; otherwise <see langword="false"/>.</returns>
-    public bool Supports(
-        SourcePredicateStringMatch predicate,
-        SourcePredicateEvaluationPhase phase)
+    public bool Supports(SourcePredicateStringMatch predicate, SourcePredicateEvaluationPhase phase)
     {
         ArgumentNullException.ThrowIfNull(predicate);
         var phaseFlag = phase switch
         {
             SourcePredicateEvaluationPhase.RowFiltering => SourcePredicateEvaluationPhases.RowFiltering,
             SourcePredicateEvaluationPhase.CandidateMetadata => SourcePredicateEvaluationPhases.CandidateMetadata,
-            _ => SourcePredicateEvaluationPhases.None
+            _ => SourcePredicateEvaluationPhases.None,
         };
 
-        return phaseFlag != SourcePredicateEvaluationPhases.None &&
-               (Phases & phaseFlag) == phaseFlag &&
-               string.Equals(Column.Name, predicate.Column.Name, StringComparison.OrdinalIgnoreCase) &&
-               Comparison == predicate.Comparison &&
-               (!predicate.IsNegated || SupportsNegation) &&
-               (Operations & ToOperation(predicate.Kind)) != 0;
+        return phaseFlag != SourcePredicateEvaluationPhases.None
+            && (Phases & phaseFlag) == phaseFlag
+            && string.Equals(Column.Name, predicate.Column.Name, StringComparison.OrdinalIgnoreCase)
+            && Comparison == predicate.Comparison
+            && (!predicate.IsNegated || SupportsNegation)
+            && (Operations & ToOperation(predicate.Kind)) != 0;
     }
 
     private static SourceStringMatchOperations ToOperation(SourceStringMatchKind kind)
@@ -92,7 +94,7 @@ public sealed record SourceStringMatchCapability
             SourceStringMatchKind.Prefix => SourceStringMatchOperations.Prefix,
             SourceStringMatchKind.Suffix => SourceStringMatchOperations.Suffix,
             SourceStringMatchKind.Contains => SourceStringMatchOperations.Contains,
-            _ => SourceStringMatchOperations.None
+            _ => SourceStringMatchOperations.None,
         };
     }
 }

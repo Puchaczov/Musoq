@@ -8,7 +8,8 @@ public static class RowChunking
 
     public static IEnumerable<IReadOnlyList<T>> FromEnumerableOutput<T>(
         IEnumerable<T>? rows,
-        int chunkSize = DefaultChunkSize)
+        int chunkSize = DefaultChunkSize
+    )
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(chunkSize);
 
@@ -42,7 +43,8 @@ public static class RowChunking
 
     public static IEnumerable<IReadOnlyList<T>> NormalizeSourceChunks<T>(
         IEnumerable<IReadOnlyList<T>>? chunks,
-        int chunkSize = DefaultChunkSize)
+        int chunkSize = DefaultChunkSize
+    )
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(chunkSize);
 
@@ -58,7 +60,8 @@ public static class RowChunking
 
     public static IEnumerable<IReadOnlyList<T>> NormalizeSourceChunk<T>(
         IReadOnlyList<T>? chunk,
-        int chunkSize = DefaultChunkSize)
+        int chunkSize = DefaultChunkSize
+    )
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(chunkSize);
 
@@ -94,20 +97,16 @@ public static class RowChunking
         IReadOnlyList<T> rows,
         int offset,
         int count,
-        int chunkSize)
+        int chunkSize
+    )
     {
         for (var chunkOffset = 0; chunkOffset < count; chunkOffset += chunkSize)
         {
-            yield return new RowChunk<T>(
-                rows,
-                offset + chunkOffset,
-                Math.Min(chunkSize, count - chunkOffset));
+            yield return new RowChunk<T>(rows, offset + chunkOffset, Math.Min(chunkSize, count - chunkOffset));
         }
     }
 
-    private static IEnumerable<IReadOnlyList<T>> CreateBufferedChunks<T>(
-        IEnumerable<T> rows,
-        int chunkSize)
+    private static IEnumerable<IReadOnlyList<T>> CreateBufferedChunks<T>(IEnumerable<T> rows, int chunkSize)
     {
         var buffer = new T[chunkSize];
         var count = 0;

@@ -6,33 +6,35 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class DistinctOrderByBugTests
 {
-
     #region Multiple CTEs with DISTINCT and ORDER BY
 
     [TestMethod]
     public void WhenMultipleCtes_WithDistinct_OuterOrderBy_ShouldOrderCorrectly()
     {
-        var query = @"
-            with
-                countries as (
-                    select distinct Country from #A.Entities()
-                ),
-                cities as (
-                    select distinct City from #A.Entities()
-                )
-            select Country from countries order by Country desc";
+        var query = (
+            "\n"
+            + "            with\n"
+            + "                countries as (\n"
+            + "                    select distinct Country from #A.Entities()\n"
+            + "                ),\n"
+            + "                cities as (\n"
+            + "                    select distinct City from #A.Entities()\n"
+            + "                )\n"
+            + "            select Country from countries order by Country desc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Berlin", "Germany", 350),
                     new BasicEntity("Warsaw", "Poland", 500),
                     new BasicEntity("Krakow", "Poland", 400),
                     new BasicEntity("Berlin", "Germany", 100),
-                    new BasicEntity("Paris", "France", 600)
+                    new BasicEntity("Paris", "France", 600),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -59,20 +61,20 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Berlin", "Germany", 350),
                     new BasicEntity("Berlin", "Austria", 200),
                     new BasicEntity("Warsaw", "Poland", 500),
                     new BasicEntity("Krakow", "Poland", 400),
                     new BasicEntity("Paris", "France", 600),
-                    new BasicEntity("Paris", "Belgium", 100)
+                    new BasicEntity("Paris", "Belgium", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Berlin"], ["Krakow"], ["Paris"], ["Warsaw"]);
@@ -86,15 +88,16 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Berlin", "Germany", 350),
                     new BasicEntity("Berlin", "Austria", 200),
                     new BasicEntity("Warsaw", "Poland", 500),
                     new BasicEntity("Krakow", "Poland", 400),
                     new BasicEntity("Paris", "France", 600),
-                    new BasicEntity("Paris", "Belgium", 100)
+                    new BasicEntity("Paris", "Belgium", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -105,5 +108,4 @@ public partial class DistinctOrderByBugTests
     }
 
     #endregion
-
 }

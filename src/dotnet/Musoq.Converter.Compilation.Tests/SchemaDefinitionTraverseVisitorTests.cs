@@ -22,7 +22,8 @@ public sealed class SchemaDefinitionTraverseVisitorTests
 
         CollectionAssert.AreEqual(
             new[] { "Header", "LogLine" },
-            registry.Schemas.Select(static schema => schema.Name).ToArray());
+            registry.Schemas.Select(static schema => schema.Name).ToArray()
+        );
     }
 
     [TestMethod]
@@ -54,7 +55,7 @@ public sealed class SchemaDefinitionTraverseVisitorTests
         var statements = new[]
         {
             new StatementNode(new BinarySchemaNode(binaryName, [])),
-            new StatementNode(new TextSchemaNode(textName, []))
+            new StatementNode(new TextSchemaNode(textName, [])),
         };
 
         return new RootNode(new StatementsArrayNode(statements));

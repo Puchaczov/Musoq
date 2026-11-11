@@ -25,8 +25,10 @@ internal sealed record SemanticMetadataSnapshot
 
     public required IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> SourcePlanRequestsPerSchema { get; init; }
 
-    public required IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>
-        SourceContractDiagnosticLocationsPerSchema { get; init; }
+    public required IReadOnlyDictionary<
+        SchemaFromNode,
+        SourceContractDiagnosticLocationMap
+    > SourceContractDiagnosticLocationsPerSchema { get; init; }
 
     public required IReadOnlyList<BoundSourceContract> SourceContracts { get; init; }
 
@@ -34,11 +36,15 @@ internal sealed record SemanticMetadataSnapshot
 
     public required IReadOnlyList<ScriptVariableDefinition> ScriptVariableDefinitions { get; init; }
 
-    public required IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>
-        SourceRuntimeSettingsBySourceContextId { get; init; }
+    public required IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > SourceRuntimeSettingsBySourceContextId { get; init; }
 
-    public required IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>
-        SourceRuntimeSettingDescriptionsBySourceContextId { get; init; }
+    public required IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId { get; init; }
 
     public required bool HasDeclaredSourceRuntimeSettings { get; init; }
 
@@ -53,7 +59,6 @@ internal sealed record SemanticMetadataSnapshot
     public required IReadOnlyDictionary<string, IReadOnlyList<Type>> SetOperatorFieldTypes { get; init; }
 
     public required SemanticResultShapeSnapshot ResultShape { get; init; }
-
 }
 
 internal sealed record SemanticResultShapeSnapshot
@@ -65,5 +70,4 @@ internal sealed record SemanticResultShapeSnapshot
     public required IReadOnlyDictionary<string, Node> SelectFieldAliases { get; init; }
 
     public IdentifierNode? TheMostInnerIdentifier { get; init; }
-
 }

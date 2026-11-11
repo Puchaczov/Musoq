@@ -8,5 +8,5 @@ public enum SourceRegexSemantics
     /// execution-time current culture, and Core's non-backtracking engine with backtracking fallback.
     /// Null input matches false before negation. The predicate's finite match timeout applies.
     /// </summary>
-    MusoqRLike
+    MusoqRLike,
 }

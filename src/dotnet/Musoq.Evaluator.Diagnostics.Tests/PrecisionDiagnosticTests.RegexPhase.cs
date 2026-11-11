@@ -17,7 +17,12 @@ public sealed partial class PrecisionDiagnosticTests
     {
         var exception = Assert.Throws<MusoqQueryException>(() => CompileRegexPhaseCandidate());
 
-        MusoqExceptionAssertions.AssertSingleError(exception, DiagnosticCode.MQ3094_InvalidConstantRegex, DiagnosticPhase.Bind, "regex");
+        MusoqExceptionAssertions.AssertSingleError(
+            exception,
+            DiagnosticCode.MQ3094_InvalidConstantRegex,
+            DiagnosticPhase.Bind,
+            "regex"
+        );
         MusoqExceptionAssertions.AssertHasGuidance(exception);
         Assert.AreEqual(75, exception.PrimaryEnvelope.Offset);
         Assert.AreEqual(3, exception.PrimaryEnvelope.Length);

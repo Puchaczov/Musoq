@@ -1,6 +1,6 @@
-using System.Threading;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
@@ -33,7 +33,7 @@ internal static class ByteBufferPlanner
                 PhysicalProjectNode project => RewriteProject(project),
                 PhysicalInterpretSourceNode source => RewriteInterpret(source),
                 PhysicalFilterNode filter => RewriteFilter(filter),
-                _ => rewritten
+                _ => rewritten,
             };
         }
 
@@ -44,7 +44,8 @@ internal static class ByteBufferPlanner
             {
                 var field = project.Fields[index];
                 var expression = expressions.Visit(field.Expression);
-                hasOwnedProjection |= expression is MethodCall { BufferPlan.Program.Result: ByteBufferResultKind.Snapshot };
+                hasOwnedProjection |=
+                    expression is MethodCall { BufferPlan.Program.Result: ByteBufferResultKind.Snapshot };
                 if (ReferenceEquals(expression, field.Expression))
                     continue;
                 fields ??= (ProjectedField[])project.Fields.Clone();
@@ -59,10 +60,21 @@ internal static class ByteBufferPlanner
             for (var index = 0; index < source.Arguments.Length; index++)
             {
                 var argument = expressions.Visit(source.Arguments[index]);
-                if (index == 0 && source.Kind is not (InterpretSourceKind.Parse or InterpretSourceKind.TryParse or InterpretSourceKind.PartialParse))
+                if (
+                    index == 0
+                    && source.Kind
+                        is not (
+                            InterpretSourceKind.Parse
+                            or InterpretSourceKind.TryParse
+                            or InterpretSourceKind.PartialParse
+                        )
+                )
                 {
-                    var maximum = source.Kind == InterpretSourceKind.InterpretAt ? null : bounds?.MaximumBytes(source.SchemaName);
-                    var requirement = maximum.HasValue ? ByteBufferRequirement.Prefix(maximum.Value) : ByteBufferRequirement.Complete;
+                    var maximum =
+                        source.Kind == InterpretSourceKind.InterpretAt ? null : bounds?.MaximumBytes(source.SchemaName);
+                    var requirement = maximum.HasValue
+                        ? ByteBufferRequirement.Prefix(maximum.Value)
+                        : ByteBufferRequirement.Complete;
                     argument = expressions.Producer(argument, requirement);
                 }
                 if (ReferenceEquals(argument, source.Arguments[index]))
@@ -83,8 +95,12 @@ internal static class ByteBufferPlanner
     private sealed class ProducerPlanner(CancellationToken cancellationToken) : IrExpressionRewriter
     {
         private int _nextValue;
-        private readonly ScalarEvaluationRegion _region = new("byte-buffers",
-            ScalarEvaluationRegionKind.Materialization, false, false);
+        private readonly ScalarEvaluationRegion _region = new(
+            "byte-buffers",
+            ScalarEvaluationRegionKind.Materialization,
+            false,
+            false
+        );
 
         protected override IrExpression VisitMethodCall(MethodCall node)
         {
@@ -93,11 +109,23 @@ internal static class ByteBufferPlanner
             if (call.BufferSemantics is { Kind: ByteBufferCallableKind.FixedWidthRead } reader)
             {
                 var input = Producer(call.Arguments[0], ByteBufferRequirement.Prefix(reader.ReadWidth));
-                return ReferenceEquals(input, call.Arguments[0]) ? call : call with { Arguments = [input, ..call.Arguments.Skip(1)] };
+                return ReferenceEquals(input, call.Arguments[0])
+                    ? call
+                    : call with
+                    {
+                        Arguments = [input, .. call.Arguments.Skip(1)],
+                    };
             }
-            if (call.BufferSemantics is { Kind: ByteBufferCallableKind.Length } && call.Arguments[0] is MethodCall producer)
+            if (
+                call.BufferSemantics is { Kind: ByteBufferCallableKind.Length }
+                && call.Arguments[0] is MethodCall producer
+            )
             {
-                var lengthProgram = ByteBufferProgramBuilder.Build(producer, ByteBufferRequirement.Length, ByteBufferResultKind.Length);
+                var lengthProgram = ByteBufferProgramBuilder.Build(
+                    producer,
+                    ByteBufferRequirement.Length,
+                    ByteBufferResultKind.Length
+                );
                 if (lengthProgram is not null)
                     return call with { BufferPlan = ProgramPlan(call, lengthProgram) };
             }
@@ -108,18 +136,25 @@ internal static class ByteBufferPlanner
             {
                 ByteBufferCallableKind.Materialize => ByteBufferOperationKind.Materialize,
                 ByteBufferCallableKind.Concatenate => ByteBufferOperationKind.Concatenate,
-                ByteBufferCallableKind.Skip or ByteBufferCallableKind.Take or ByteBufferCallableKind.SkipAndTake => ByteBufferOperationKind.Range,
-                _ => (ByteBufferOperationKind?)null
+                ByteBufferCallableKind.Skip or ByteBufferCallableKind.Take or ByteBufferCallableKind.SkipAndTake =>
+                    ByteBufferOperationKind.Range,
+                _ => (ByteBufferOperationKind?)null,
             };
             if (!operation.HasValue)
                 return call;
             var arguments = ImmutableArray.CreateBuilder<ByteBufferValuePlan?>(call.Arguments.Count);
             foreach (var argument in call.Arguments)
-                arguments.Add(argument.ReturnType == typeof(byte[]) && argument is not MethodCall { BufferPlan: not null }
-                    ? Borrow(argument) : null);
+                arguments.Add(
+                    argument.ReturnType == typeof(byte[]) && argument is not MethodCall { BufferPlan: not null }
+                        ? Borrow(argument)
+                        : null
+                );
             return call with
             {
-                BufferPlan = CreatePlan(operation.Value, call.Arguments) with { ArgumentPlans = arguments.ToImmutable() }
+                BufferPlan = CreatePlan(operation.Value, call.Arguments) with
+                {
+                    ArgumentPlans = arguments.ToImmutable(),
+                },
             };
         }
 
@@ -136,34 +171,49 @@ internal static class ByteBufferPlanner
             {
                 Program = program,
                 Requirement = program.Requirement,
-                Materialization = ByteBufferMaterialization.PlannedOperations
+                Materialization = ByteBufferMaterialization.PlannedOperations,
             };
 
         private ByteBufferValuePlan Borrow(IrExpression argument)
         {
             var plan = CreatePlan(ByteBufferOperationKind.BorrowArray, [argument]);
             return argument is MethodCall
-                ? plan with { Facts = plan.Facts with { Provenance = ByteBufferProvenance.OpaqueProducer } }
+                ? plan with
+                {
+                    Facts = plan.Facts with { Provenance = ByteBufferProvenance.OpaqueProducer },
+                }
                 : plan;
         }
 
-        private ByteBufferValuePlan CreatePlan(ByteBufferOperationKind operation,
-            System.Collections.Generic.IEnumerable<IrExpression> arguments)
+        private ByteBufferValuePlan CreatePlan(
+            ByteBufferOperationKind operation,
+            System.Collections.Generic.IEnumerable<IrExpression> arguments
+        )
         {
             var identity = _nextValue++;
             var borrowed = operation is ByteBufferOperationKind.BorrowArray or ByteBufferOperationKind.Range;
-            return new(operation,
-                new(identity, borrowed ? ByteBufferOwnership.Borrowed : ByteBufferOwnership.Owned,
-                    ByteBufferNullState.Unknown, _region, identity)
+            return new(
+                operation,
+                new(
+                    identity,
+                    borrowed ? ByteBufferOwnership.Borrowed : ByteBufferOwnership.Owned,
+                    ByteBufferNullState.Unknown,
+                    _region,
+                    identity
+                )
                 {
                     Provenance = operation switch
                     {
                         ByteBufferOperationKind.Concatenate => ByteBufferProvenance.Concatenation,
-                        ByteBufferOperationKind.BorrowArray or ByteBufferOperationKind.Range => ByteBufferProvenance.OriginalArray,
-                        _ => ByteBufferProvenance.Snapshot
+                        ByteBufferOperationKind.BorrowArray or ByteBufferOperationKind.Range =>
+                            ByteBufferProvenance.OriginalArray,
+                        _ => ByteBufferProvenance.Snapshot,
                     },
-                    LogicalLength = new(identity, null)
-                }, arguments, ByteBufferRequirement.Complete);
+                    LogicalLength = new(identity, null),
+                },
+                arguments,
+                ByteBufferRequirement.Complete
+            );
         }
     }
 }

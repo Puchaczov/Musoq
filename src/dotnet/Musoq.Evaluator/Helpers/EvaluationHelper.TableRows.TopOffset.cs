@@ -60,7 +60,8 @@ public static partial class EvaluationHelper
     private static PriorityQueue<TopOffsetRow, TopOffsetRow> CollectTopOffsetCandidates(
         IEnumerable<Row> rows,
         int limit,
-        IReadOnlyList<RowOrderKey> orderKeys)
+        IReadOnlyList<RowOrderKey> orderKeys
+    )
     {
         var rowComparer = new TopOffsetRowComparer(orderKeys);
         var heapComparer = new ReverseTopOffsetRowComparer(rowComparer);
@@ -92,7 +93,8 @@ public static partial class EvaluationHelper
     private static Row[] CopySelectedTopOffsetRows(
         PriorityQueue<TopOffsetRow, TopOffsetRow> queue,
         int skipCount,
-        int takeCount)
+        int takeCount
+    )
     {
         var candidates = DrainTopOffsetCandidates(queue);
         var startIndex = Math.Min(Math.Max(skipCount, 0), candidates.Length);
@@ -111,7 +113,8 @@ public static partial class EvaluationHelper
         PriorityQueue<TopOffsetRow, TopOffsetRow> queue,
         Table target,
         int skipCount,
-        int takeCount)
+        int takeCount
+    )
     {
         var candidates = DrainTopOffsetCandidates(queue);
         var startIndex = Math.Min(Math.Max(skipCount, 0), candidates.Length);
@@ -136,7 +139,8 @@ public static partial class EvaluationHelper
     private static PriorityQueue<TopOffsetRecord<T>, TopOffsetRecord<T>> CollectTopOffsetCandidates<T>(
         IEnumerable<T> rows,
         int limit,
-        IComparer<T> comparer)
+        IComparer<T> comparer
+    )
     {
         var recordComparer = new TopOffsetRecordComparer<T>(comparer);
         var heapComparer = new ReverseTopOffsetRecordComparer<T>(recordComparer);
@@ -168,7 +172,8 @@ public static partial class EvaluationHelper
     private static List<T> CopySelectedTopOffsetRecords<T>(
         PriorityQueue<TopOffsetRecord<T>, TopOffsetRecord<T>> queue,
         int skipCount,
-        int takeCount)
+        int takeCount
+    )
     {
         var candidates = DrainTopOffsetCandidates(queue);
         var startIndex = Math.Min(Math.Max(skipCount, 0), candidates.Length);
@@ -183,10 +188,7 @@ public static partial class EvaluationHelper
         return selectedRows;
     }
 
-    private static List<T> CopySelectedTopOffsetRecords<T>(
-        List<T> rows,
-        int skipCount,
-        int takeCount)
+    private static List<T> CopySelectedTopOffsetRecords<T>(List<T> rows, int skipCount, int takeCount)
     {
         var startIndex = Math.Min(Math.Max(skipCount, 0), rows.Count);
         var selectedCount = Math.Min(takeCount, rows.Count - startIndex);
@@ -201,7 +203,8 @@ public static partial class EvaluationHelper
     }
 
     private static TopOffsetRecord<T>[] DrainTopOffsetCandidates<T>(
-        PriorityQueue<TopOffsetRecord<T>, TopOffsetRecord<T>> queue)
+        PriorityQueue<TopOffsetRecord<T>, TopOffsetRecord<T>> queue
+    )
     {
         if (queue.Count == 0)
             return [];
@@ -218,5 +221,4 @@ public static partial class EvaluationHelper
         var limit = (long)Math.Max(skipCount, 0) + takeCount;
         return limit > int.MaxValue ? int.MaxValue : (int)limit;
     }
-
 }

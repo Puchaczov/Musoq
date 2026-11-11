@@ -13,24 +13,21 @@ internal static partial class PredicateMovementPlanner
         LogicalNode logicalPlan,
         IReadOnlyDictionary<string, SourcePlanProperties> sources,
         IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlans,
-        IReadOnlyDictionary<string, SourceInteractionPlan> sourceInteractionPlans)
+        IReadOnlyDictionary<string, SourceInteractionPlan> sourceInteractionPlans
+    )
     {
         private readonly IReadOnlyDictionary<string, SourcePredicateTransferBoundary> _whereBoundaries =
             SourcePredicateTransferBoundaryPlanner.Plan(logicalPlan);
-        private readonly Dictionary<string, SourcePlanProperties[]> _sourcesByAlias = sources.Values
-            .GroupBy(static source => source.Alias, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(
-                static group => group.Key,
-                static group => group.ToArray(),
-                StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, IrExpression[]> _wherePredicatesByAlias =
-            CreateWherePredicatesByAlias(logicalPlan, sourcePredicatePlans);
-        private readonly Dictionary<string, SourceInteractionPlan[]> _interactionsByAlias = sourceInteractionPlans.Values
-            .GroupBy(static plan => plan.Alias, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(
-                static group => group.Key,
-                static group => group.ToArray(),
-                StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, SourcePlanProperties[]> _sourcesByAlias = sources
+            .Values.GroupBy(static source => source.Alias, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(static group => group.Key, static group => group.ToArray(), StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IrExpression[]> _wherePredicatesByAlias = CreateWherePredicatesByAlias(
+            logicalPlan,
+            sourcePredicatePlans
+        );
+        private readonly Dictionary<string, SourceInteractionPlan[]> _interactionsByAlias = sourceInteractionPlans
+            .Values.GroupBy(static plan => plan.Alias, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(static group => group.Key, static group => group.ToArray(), StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _movedWherePredicates = new(StringComparer.Ordinal);
         private readonly List<PredicateMovementPlan> _plans = [];
         private readonly List<PlanningDecision> _decisions = [];
@@ -59,11 +56,18 @@ internal static partial class PredicateMovementPlanner
 
         private void AddWhereMovements(JoinNode join)
         {
-            foreach (var entry in _wherePredicatesByAlias.OrderBy(static entry => entry.Key, StringComparer.OrdinalIgnoreCase))
+            foreach (
+                var entry in _wherePredicatesByAlias.OrderBy(
+                    static entry => entry.Key,
+                    StringComparer.OrdinalIgnoreCase
+                )
+            )
             {
                 var alias = entry.Key;
-                if (_sourcesByAlias.TryGetValue(alias, out var scopedSources) &&
-                    scopedSources.Any(source => _whereBoundaries.ContainsKey(source.SourceContextId)))
+                if (
+                    _sourcesByAlias.TryGetValue(alias, out var scopedSources)
+                    && scopedSources.Any(source => _whereBoundaries.ContainsKey(source.SourceContextId))
+                )
                     continue;
                 foreach (var predicate in entry.Value)
                 {
@@ -75,10 +79,22 @@ internal static partial class PredicateMovementPlanner
                     if (!side.IsEligible)
                         continue;
 
-                    var result = CreatePlan(join, side.Side, PredicatePlacementOrigin.Where, alias, predicate, side.Reason);
+                    var result = CreatePlan(
+                        join,
+                        side.Side,
+                        PredicatePlacementOrigin.Where,
+                        alias,
+                        predicate,
+                        side.Reason
+                    );
                     if (!result.IsCreated)
                     {
-                        AddDecision(CreateSkippedId(PredicatePlacementOrigin.Where, alias, predicate), "Skipped", PlanningConfidence.Medium, result.SkipReason);
+                        AddDecision(
+                            CreateSkippedId(PredicatePlacementOrigin.Where, alias, predicate),
+                            "Skipped",
+                            PlanningConfidence.Medium,
+                            result.SkipReason
+                        );
                         continue;
                     }
 
@@ -103,10 +119,22 @@ internal static partial class PredicateMovementPlanner
                 if (!side.IsEligible)
                     continue;
 
-                var result = CreatePlan(join, side.Side, PredicatePlacementOrigin.JoinOn, alias, predicate, side.Reason);
+                var result = CreatePlan(
+                    join,
+                    side.Side,
+                    PredicatePlacementOrigin.JoinOn,
+                    alias,
+                    predicate,
+                    side.Reason
+                );
                 if (!result.IsCreated)
                 {
-                    AddDecision(CreateSkippedId(PredicatePlacementOrigin.JoinOn, alias, predicate), "Skipped", PlanningConfidence.Medium, result.SkipReason);
+                    AddDecision(
+                        CreateSkippedId(PredicatePlacementOrigin.JoinOn, alias, predicate),
+                        "Skipped",
+                        PlanningConfidence.Medium,
+                        result.SkipReason
+                    );
                     continue;
                 }
 
@@ -137,7 +165,8 @@ internal static partial class PredicateMovementPlanner
             PredicatePlacementOrigin origin,
             string alias,
             IrExpression predicate,
-            string sideReason)
+            string sideReason
+        )
         {
             var predicateText = IrExpressionPrinter.Print(predicate);
             var safety = CanMovePredicate(predicate);
@@ -145,7 +174,8 @@ internal static partial class PredicateMovementPlanner
                 return PlanCreationResult.Skipped(safety.Reason);
 
             var movementId = CreateMovementId(origin, side, alias, predicate);
-            var reason = $"Predicate is deterministic, source-local, and mapped to the {FormatSide(side)} side of an inner join. {sideReason} Original predicate remains in place as a semantic safety net.";
+            var reason =
+                $"Predicate is deterministic, source-local, and mapped to the {FormatSide(side)} side of an inner join. {sideReason} Original predicate remains in place as a semantic safety net.";
             var plan = new PredicateMovementPlan(
                 movementId,
                 join,
@@ -155,7 +185,8 @@ internal static partial class PredicateMovementPlanner
                 predicate,
                 predicateText,
                 PlanningConfidence.High,
-                reason);
+                reason
+            );
             return PlanCreationResult.Created(plan);
         }
 
@@ -165,7 +196,7 @@ internal static partial class PredicateMovementPlanner
             {
                 PredicateMovementSide.Left => "left",
                 PredicateMovementSide.Right => "right",
-                _ => side.ToString()
+                _ => side.ToString(),
             };
         }
 
@@ -177,13 +208,16 @@ internal static partial class PredicateMovementPlanner
 
         private void AddDecision(string target, string outcome, PlanningConfidence confidence, string reason)
         {
-            _decisions.Add(new PlanningDecision(
-                PlanningDecisionCategory.PredicateMovement,
-                "PredicateMovementPlan",
-                target,
-                outcome,
-                confidence,
-                reason));
+            _decisions.Add(
+                new PlanningDecision(
+                    PlanningDecisionCategory.PredicateMovement,
+                    "PredicateMovementPlan",
+                    target,
+                    outcome,
+                    confidence,
+                    reason
+                )
+            );
         }
 
         private AliasEligibility ResolveMovableSourceAlias(string alias)
@@ -196,35 +230,41 @@ internal static partial class PredicateMovementPlanner
 
             var shapeKind = interactions[0].ShapeKind;
             if (shapeKind != SourceShapeKind.KnownClr)
-                return AliasEligibility.NotEligible($"Alias {alias} has {shapeKind} row shape, so movement stays conservative.");
+                return AliasEligibility.NotEligible(
+                    $"Alias {alias} has {shapeKind} row shape, so movement stays conservative."
+                );
 
             return AliasEligibility.Eligible();
         }
 
         private static Dictionary<string, IrExpression[]> CreateWherePredicatesByAlias(
             LogicalNode logicalPlan,
-            IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlans)
+            IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlans
+        )
         {
             var result = new Dictionary<string, Dictionary<string, IrExpression>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var plan in sourcePredicatePlans.Values)
-                foreach (var predicate in plan.PushedPredicates)
-                    AddWherePredicate(result, plan.Alias, predicate);
+            foreach (var predicate in plan.PushedPredicates)
+                AddWherePredicate(result, plan.Alias, predicate);
 
             AddFilterPredicates(logicalPlan, result);
 
             return result.ToDictionary(
                 static entry => entry.Key,
-                static entry => entry.Value
-                    .OrderBy(static predicate => predicate.Key, StringComparer.Ordinal)
-                    .Select(static predicate => predicate.Value)
-                    .ToArray(),
-                StringComparer.OrdinalIgnoreCase);
+                static entry =>
+                    entry
+                        .Value.OrderBy(static predicate => predicate.Key, StringComparer.Ordinal)
+                        .Select(static predicate => predicate.Value)
+                        .ToArray(),
+                StringComparer.OrdinalIgnoreCase
+            );
         }
 
         private static void AddFilterPredicates(
             LogicalNode node,
-            Dictionary<string, Dictionary<string, IrExpression>> result)
+            Dictionary<string, Dictionary<string, IrExpression>> result
+        )
         {
             if (node is FilterNode filter && CanMovePredicate(filter.Predicate).IsSafe)
             {
@@ -243,7 +283,8 @@ internal static partial class PredicateMovementPlanner
         private static void AddWherePredicate(
             Dictionary<string, Dictionary<string, IrExpression>> result,
             string alias,
-            IrExpression predicate)
+            IrExpression predicate
+        )
         {
             if (string.IsNullOrWhiteSpace(alias))
                 return;
@@ -254,7 +295,10 @@ internal static partial class PredicateMovementPlanner
                 result[alias] = predicates;
             }
 
-            if (ExtractAliases(predicate).Any(reference => !string.Equals(reference, alias, StringComparison.OrdinalIgnoreCase)))
+            if (
+                ExtractAliases(predicate)
+                    .Any(reference => !string.Equals(reference, alias, StringComparison.OrdinalIgnoreCase))
+            )
                 return;
             predicates.TryAdd(IrExpressionPrinter.Print(predicate), predicate);
         }

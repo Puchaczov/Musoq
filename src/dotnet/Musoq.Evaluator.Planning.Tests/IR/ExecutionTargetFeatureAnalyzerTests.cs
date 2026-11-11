@@ -20,20 +20,28 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
             typeof(int),
             FieldNullability.NotNullable,
             new ClrPropertyAccess(nameof(FeatureSource.Value)),
-            readModifiers: new System.Collections.Generic.Dictionary<string, string>
-            {
-                ["json"] = "$.value"
-            });
+            readModifiers: new System.Collections.Generic.Dictionary<string, string> { ["json"] = "$.value" }
+        );
         var sourceShape = new SourceEntityShape("s", typeof(FeatureSource), [field]);
         var source = new ExecutionSourceScan(
             new ExecutionVariable("s", typeof(FeatureSource)),
             new ExecutionVariable("rows", typeof(object)),
-            new ExecutionSourceBinding("sample", "rows", "s:0", 0, [], [field], SourceType: ExecutionClrBindingFactory.FromClr(typeof(FeatureSource))));
+            new ExecutionSourceBinding(
+                "sample",
+                "rows",
+                "s:0",
+                0,
+                [],
+                [field],
+                SourceType: ExecutionClrBindingFactory.FromClr(typeof(FeatureSource))
+            )
+        );
         var binary = new ExecutionBinary(
             BinaryOpKind.Add,
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(2, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var unary = new ExecutionUnary(UnaryOpKind.Negate, binary, typeof(int));
         var cast = new ExecutionStrictCast(unary, "int", typeof(int));
         var method = typeof(string).GetMethod(nameof(string.ToUpper), Type.EmptyTypes)!;
@@ -41,16 +49,17 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
             method,
             [new ExecutionLiteral("value", typeof(string))],
             "upper",
-            typeof(string));
+            typeof(string)
+        );
         var plan = new ExecutionPlan(
             "Q_Features",
             [sourceShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 source,
                 new ExecutionLet(new ExecutionVariable("result", typeof(int)), cast),
-                new ExecutionLet(new ExecutionVariable("upper", typeof(string)), methodCall)
-            ]));
+                new ExecutionLet(new ExecutionVariable("upper", typeof(string)), methodCall),
+            ])
+        );
 
         var report = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
@@ -62,14 +71,17 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
         AssertFeature(report, ExecutionTargetFeatureKind.UnaryOperation, "unary:negate");
         AssertFeature(report, ExecutionTargetFeatureKind.StrictCastTarget, "strict-cast:primitive:int32");
         AssertFeature(report, ExecutionTargetFeatureKind.CallableKind, "callable-kind:clr-method");
-        Assert.IsTrue(report.Features.Any(feature =>
-            feature.Kind == ExecutionTargetFeatureKind.Callable &&
-            feature.StableId.Contains("string", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            report.Features.Any(feature =>
+                feature.Kind == ExecutionTargetFeatureKind.Callable
+                && feature.StableId.Contains("string", StringComparison.Ordinal)
+            )
+        );
         AssertFeature(report, ExecutionTargetFeatureKind.TypePortability, "type-portability:portable");
         AssertFeature(report, ExecutionTargetFeatureKind.DynamicValue, "dynamic:host-opaque");
 
-        var ordered = report.Features
-            .OrderBy(static feature => feature.Kind)
+        var ordered = report
+            .Features.OrderBy(static feature => feature.Kind)
             .ThenBy(static feature => feature.StableId, StringComparer.Ordinal)
             .ToArray();
         CollectionAssert.AreEqual(ordered, report.Features.ToArray());
@@ -82,12 +94,13 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
         var plan = new ExecutionPlan(
             "Q_ContainerFeature",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("values", listType),
-                    new ExecutionLiteral((object?)null, listType))
-            ]));
+                    new ExecutionLiteral((object?)null, listType)
+                ),
+            ])
+        );
 
         var report = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
@@ -104,13 +117,10 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
             Enum.GetValues<ExecutionPortableSymbolPortability>(),
             [],
             [ExecutionSemanticsContract.Current.Version],
-            [ExecutionTargetFeatureKind.ConstantKind]);
-        var report = new ExecutionTargetFeatureReport(
-        [
-            new ExecutionTargetFeature(
-                ExecutionTargetFeatureKind.BinaryOperation,
-                "binary:add",
-                "Add")
+            [ExecutionTargetFeatureKind.ConstantKind]
+        );
+        var report = new ExecutionTargetFeatureReport([
+            new ExecutionTargetFeature(ExecutionTargetFeatureKind.BinaryOperation, "binary:add", "Add"),
         ]);
 
         var validation = capabilities.Validate(report);
@@ -120,7 +130,8 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
         Assert.AreEqual("binary:add", validation.UnsupportedFeatures[0].StableId);
         Assert.AreEqual(
             "Execution target 'PortableSubset' does not support: feature: binary:add",
-            validation.FormatUnsupportedRequirements("PortableSubset"));
+            validation.FormatUnsupportedRequirements("PortableSubset")
+        );
     }
 
     [TestMethod]
@@ -132,13 +143,13 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
             "Google",
             ExecutionStringMatchKind.Prefix,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
         var plan = new ExecutionPlan(
             "Q_StringMatchFeatures",
             [],
-            new ExecutionBlock([
-                new ExecutionLet(new ExecutionVariable("matched", typeof(bool)), match)
-            ]));
+            new ExecutionBlock([new ExecutionLet(new ExecutionVariable("matched", typeof(bool)), match)])
+        );
 
         var report = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
@@ -146,7 +157,8 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
         AssertFeature(
             report,
             ExecutionTargetFeatureKind.StringMatchComparison,
-            "string-match-comparison:like-ignore-case");
+            "string-match-comparison:like-ignore-case"
+        );
         Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(report).IsSupported);
     }
 
@@ -167,13 +179,17 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
                     new ExecutionPrepareLikeMatcher(
                         new ExecutionLiteral("a%", typeof(string)),
                         ExecutionStringMatchComparison.LikeIgnoreCase,
-                        matcherType)),
+                        matcherType
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("prepared", typeof(bool)),
                     new ExecutionPreparedLikeMatch(
                         new ExecutionLiteral("alpha", typeof(string)),
                         new ExecutionVariableRead(matcher),
-                        ExecutionClrBindingFactory.FromClr(typeof(bool)))),
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("dynamic", typeof(bool)),
                     new ExecutionDynamicLikeMatch(
@@ -181,8 +197,11 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
                         new ExecutionLiteral("a%", typeof(string)),
                         new ExecutionVariableRead(cache),
                         ExecutionStringMatchComparison.LikeIgnoreCase,
-                        ExecutionClrBindingFactory.FromClr(typeof(bool))))
-            ]));
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))
+                    )
+                ),
+            ])
+        );
 
         var report = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
@@ -193,7 +212,8 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
         AssertFeature(
             report,
             ExecutionTargetFeatureKind.StringMatchComparison,
-            "string-match-comparison:like-ignore-case");
+            "string-match-comparison:like-ignore-case"
+        );
         Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(report).IsSupported);
     }
 
@@ -211,21 +231,27 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
                 new ExecutionLet(cache, new ExecutionRLikeMatcherCacheSlot(cacheType)),
                 new ExecutionLet(
                     matcher,
-                    new ExecutionPrepareRLikeMatcher(new ExecutionLiteral("^a", typeof(string)), matcherType)),
+                    new ExecutionPrepareRLikeMatcher(new ExecutionLiteral("^a", typeof(string)), matcherType)
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("prepared", typeof(bool)),
                     new ExecutionPreparedRLikeMatch(
                         new ExecutionLiteral("alpha", typeof(string)),
                         new ExecutionVariableRead(matcher),
-                        ExecutionClrBindingFactory.FromClr(typeof(bool)))),
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("dynamic", typeof(bool)),
                     new ExecutionDynamicRLikeMatch(
                         new ExecutionLiteral("alpha", typeof(string)),
                         new ExecutionLiteral("^a", typeof(string)),
                         new ExecutionVariableRead(cache),
-                        ExecutionClrBindingFactory.FromClr(typeof(bool))))
-            ]));
+                        ExecutionClrBindingFactory.FromClr(typeof(bool))
+                    )
+                ),
+            ])
+        );
 
         var report = ExecutionTargetFeatureAnalyzer.Analyze(plan);
 
@@ -239,11 +265,13 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
     private static void AssertFeature(
         ExecutionTargetFeatureReport report,
         ExecutionTargetFeatureKind kind,
-        string stableId)
+        string stableId
+    )
     {
         Assert.IsTrue(
             report.Features.Any(feature => feature.Kind == kind && feature.StableId == stableId),
-            $"Expected target feature '{kind}:{stableId}'.");
+            $"Expected target feature '{kind}:{stableId}'."
+        );
     }
 
     private sealed class FeatureSource

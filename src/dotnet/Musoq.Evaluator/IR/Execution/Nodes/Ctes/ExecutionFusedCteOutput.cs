@@ -4,4 +4,5 @@ public sealed record ExecutionFusedCteOutput(
     int TableIndex,
     ExecutionVariable Table,
     GeneratedRowShape RowShape,
-    bool StoreRows = true);
+    bool StoreRows = true
+);

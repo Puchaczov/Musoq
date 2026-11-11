@@ -22,13 +22,26 @@ public sealed class FixtureProfileTests
     public void ManyGroups_EightRowsProduceEightIndependentGroups()
     {
         var scenario = ScenarioCatalog.Get("B14_Group_ManyGroups");
-        var expected = new ExpectedResult([("Id", typeof(int)), ("Total", typeof(decimal?)), ("Present", typeof(long))],
-        [
-            [0, 1m, 0L], [1, 2m, 0L], [2, 3m, 1L], [3, 4m, 0L],
-            [4, 5m, 1L], [5, 6m, 0L], [6, 7m, 0L], [7, 8m, 0L]
-        ]);
-        using var query = InstanceCreator.CompileForExecution(scenario.Sql, "many-groups-eight",
-            FixtureCatalog.Prepare(scenario, 8).CreateSchemaProvider(), BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, 8));
+        var expected = new ExpectedResult(
+            [("Id", typeof(int)), ("Total", typeof(decimal?)), ("Present", typeof(long))],
+            [
+                [0, 1m, 0L],
+                [1, 2m, 0L],
+                [2, 3m, 1L],
+                [3, 4m, 0L],
+                [4, 5m, 1L],
+                [5, 6m, 0L],
+                [6, 7m, 0L],
+                [7, 8m, 0L],
+            ]
+        );
+        using var query = InstanceCreator.CompileForExecution(
+            scenario.Sql,
+            "many-groups-eight",
+            FixtureCatalog.Prepare(scenario, 8).CreateSchemaProvider(),
+            BenchmarkLogger.Instance,
+            ExecutionSettings.Create(scenario, 8)
+        );
         ResultAssertions.Execution(expected, query, scenario);
         ResultAssertions.Execution(expected, query, scenario);
     }
@@ -46,7 +59,10 @@ public sealed class FixtureProfileTests
     [TestMethod]
     public void ShuffledRows_PreserveEveryField()
     {
-        var actual = Rows("B07_EqualityJoin_Shuffled", 8).OrderBy(row => row.Id).Select(FixturePreparationTests.Snapshot).ToArray();
+        var actual = Rows("B07_EqualityJoin_Shuffled", 8)
+            .OrderBy(row => row.Id)
+            .Select(FixturePreparationTests.Snapshot)
+            .ToArray();
         var expected = Rows("B07_EqualityJoin", 8).Select(FixturePreparationTests.Snapshot).ToArray();
         CollectionAssert.AreEqual(expected, actual);
     }
@@ -54,9 +70,15 @@ public sealed class FixtureProfileTests
     [TestMethod]
     public void FanoutEight_PreservesThreeKeysAndEightOccurrencesPerKey()
     {
-        var provider = FixtureCatalog.Prepare(ScenarioCatalog.Get("B07_DuplicateJoin_Fanout8"), 4).CreateSchemaProvider();
-        var actual = FixturePreparationTests.ReadRows(provider, "twice").GroupBy(row => row.Key)
-            .Select(group => (group.Key, group.Count())).OrderBy(item => item.Key).ToArray();
+        var provider = FixtureCatalog
+            .Prepare(ScenarioCatalog.Get("B07_DuplicateJoin_Fanout8"), 4)
+            .CreateSchemaProvider();
+        var actual = FixturePreparationTests
+            .ReadRows(provider, "twice")
+            .GroupBy(row => row.Key)
+            .Select(group => (group.Key, group.Count()))
+            .OrderBy(item => item.Key)
+            .ToArray();
         (int, int)[] expected = [(0, 8), (1, 8), (2, 8)];
         CollectionAssert.AreEqual(expected, actual);
     }
@@ -68,7 +90,8 @@ public sealed class FixtureProfileTests
     [DataRow("B14_Group_ManyGroups", 1_007)]
     [DataRow("B07_EqualityJoin_Shuffled", 1_007)]
     [DataRow("B07_DuplicateJoin_Fanout8", 1_007)]
-    public void Profiles_PreserveTheRequestedMainInputCount(string id, int count) => Assert.HasCount(count, Rows(id, count));
+    public void Profiles_PreserveTheRequestedMainInputCount(string id, int count) =>
+        Assert.HasCount(count, Rows(id, count));
 
     [TestMethod]
     [DataRow("B14_Group_ManyGroups")]
@@ -78,31 +101,47 @@ public sealed class FixtureProfileTests
     {
         var scenario = ScenarioCatalog.Get(id);
         var expected = new ExpectedResult(Expectations.Get(id).Columns, []);
-        using var query = InstanceCreator.CompileForExecution(scenario.Sql, "empty-profile",
-            FixtureCatalog.Prepare(scenario, 0).CreateSchemaProvider(), BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, 0));
+        using var query = InstanceCreator.CompileForExecution(
+            scenario.Sql,
+            "empty-profile",
+            FixtureCatalog.Prepare(scenario, 0).CreateSchemaProvider(),
+            BenchmarkLogger.Instance,
+            ExecutionSettings.Create(scenario, 0)
+        );
         ResultAssertions.Execution(expected, query, scenario);
     }
 
     [TestMethod]
     public void VariantCases_AddExactlyNineExecutionCases()
     {
-        var variants = ScenarioCatalog.All.Where(scenario => scenario.FixtureId == "standard" && scenario.DataProfileId != "default")
-            .Select(scenario => scenario.Id).ToHashSet(StringComparer.Ordinal);
-        var cases = CampaignCases.CreateComplete(new CampaignOptions(), Path.GetTempPath()).Where(item => variants.Contains(item.Definition.ScenarioId)).ToArray();
+        var variants = ScenarioCatalog
+            .All.Where(scenario => scenario.FixtureId == "standard" && scenario.DataProfileId != "default")
+            .Select(scenario => scenario.Id)
+            .ToHashSet(StringComparer.Ordinal);
+        var cases = CampaignCases
+            .CreateComplete(new CampaignOptions(), Path.GetTempPath())
+            .Where(item => variants.Contains(item.Definition.ScenarioId))
+            .ToArray();
         Assert.HasCount(9, cases);
         Assert.IsTrue(cases.All(item => item.Definition.Phase == "execution" && item.Definition.ResultApi == "Table"));
-        CollectionAssert.AreEqual(new[] { 1_000, 10_000, 100_000 }, cases.Select(item => item.Definition.InputCount).Distinct().Order().ToArray());
+        CollectionAssert.AreEqual(
+            new[] { 1_000, 10_000, 100_000 },
+            cases.Select(item => item.Definition.InputCount).Distinct().Order().ToArray()
+        );
     }
 
     [TestMethod]
     public void VariantCases_ExportSelectedDistributionAndProfile()
     {
-        var definition = CampaignCases.Create(new CampaignOptions(Size: 7, Filter: "*Fanout8*"), Path.GetTempPath()).Single().Definition;
+        var definition = CampaignCases
+            .Create(new CampaignOptions(Size: 7, Filter: "*Fanout8*"), Path.GetTempPath())
+            .Single()
+            .Definition;
         Assert.AreEqual("standard", definition.Arguments!["fixtureId"]);
         Assert.AreEqual("fanout8", definition.Arguments["dataProfileId"]);
         StringAssert.Contains(definition.Distribution, "24 dimension rows");
     }
 
-    private static FixtureRow[] Rows(string id, int count) => FixturePreparationTests.ReadRows(
-        FixtureCatalog.Prepare(ScenarioCatalog.Get(id), count).CreateSchemaProvider());
+    private static FixtureRow[] Rows(string id, int count) =>
+        FixturePreparationTests.ReadRows(FixtureCatalog.Prepare(ScenarioCatalog.Get(id), count).CreateSchemaProvider());
 }

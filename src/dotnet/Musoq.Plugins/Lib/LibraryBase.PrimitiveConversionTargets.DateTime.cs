@@ -126,7 +126,15 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(value))
             return null;
 
-        if (!DateTime.TryParseExact(value, format, CultureInfo.GetCultureInfo(culture), DateTimeStyles.None, out var result))
+        if (
+            !DateTime.TryParseExact(
+                value,
+                format,
+                CultureInfo.GetCultureInfo(culture),
+                DateTimeStyles.None,
+                out var result
+            )
+        )
             return null;
 
         return result;

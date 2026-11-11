@@ -46,5 +46,4 @@ public partial class Parser
 
         return (whenThenNodes.ToArray(), elseNode, caseToken.Span.Through(endToken.Span));
     }
-
 }

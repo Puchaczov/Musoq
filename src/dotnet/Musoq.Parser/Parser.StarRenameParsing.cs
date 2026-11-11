@@ -15,7 +15,8 @@ public partial class Parser
                 $"RENAME requires a parenthesized list. Expected '(' but found '{Current.Value}'. Usage: RENAME (OldName AS NewName).",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2001_UnexpectedToken,
-                Current.Span);
+                Current.Span
+            );
 
         Consume(TokenType.LeftParenthesis);
 
@@ -24,7 +25,8 @@ public partial class Parser
                 "RENAME list must contain at least one rename. Usage: RENAME (OldName AS NewName).",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2003_InvalidExpression,
-                Current.Span);
+                Current.Span
+            );
 
         var items = new List<StarRenameItemNode>();
 
@@ -40,7 +42,8 @@ public partial class Parser
                     $"Expected AS keyword after source column in RENAME item but found '{Current.Value}'. Usage: RENAME (OldName AS NewName).",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2001_UnexpectedToken,
-                    Current.Span);
+                    Current.Span
+                );
 
             Consume(TokenType.As);
 
@@ -52,7 +55,8 @@ public partial class Parser
                 $"Expected ')' to close RENAME list but found '{Current.Value}'. Check for missing commas between items.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2001_UnexpectedToken,
-                Current.Span);
+                Current.Span
+            );
 
         Consume(TokenType.RightParenthesis);
 

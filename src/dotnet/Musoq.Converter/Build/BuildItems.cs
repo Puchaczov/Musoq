@@ -60,15 +60,22 @@ public partial class BuildItems : Dictionary<string, object>
 
     public string RawQuery
     {
-        get => TryGetArtifact<string>(BuildItemKeys.RawQuery, out var str)
-            ? str
-            : throw AstValidationException.ForInvalidNodeStructure("BuildItems", "RawQuery access",
-                "RawQuery is not set or is null");
+        get =>
+            TryGetArtifact<string>(BuildItemKeys.RawQuery, out var str)
+                ? str
+                : throw AstValidationException.ForInvalidNodeStructure(
+                    "BuildItems",
+                    "RawQuery access",
+                    "RawQuery is not set or is null"
+                );
         set
         {
             if (string.IsNullOrWhiteSpace(value))
-                throw AstValidationException.ForInvalidNodeStructure("BuildItems", "RawQuery setting",
-                    "RawQuery cannot be null or whitespace");
+                throw AstValidationException.ForInvalidNodeStructure(
+                    "BuildItems",
+                    "RawQuery setting",
+                    "RawQuery cannot be null or whitespace"
+                );
             SetRequired(BuildItemKeys.RawQuery, value);
         }
     }
@@ -87,13 +94,22 @@ public partial class BuildItems : Dictionary<string, object>
 
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId
     {
-        get => GetRequired<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>(BuildItemKeys.SourceRuntimeSettingsBySourceContextId);
+        get =>
+            GetRequired<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>(
+                BuildItemKeys.SourceRuntimeSettingsBySourceContextId
+            );
         set => SetRequired(BuildItemKeys.SourceRuntimeSettingsBySourceContextId, value);
     }
 
-    public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId
+    public IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId
     {
-        get => GetRequired<IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>>(BuildItemKeys.SourceRuntimeSettingDescriptionsBySourceContextId);
+        get =>
+            GetRequired<IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>>(
+                BuildItemKeys.SourceRuntimeSettingDescriptionsBySourceContextId
+            );
         set => SetRequired(BuildItemKeys.SourceRuntimeSettingDescriptionsBySourceContextId, value);
     }
 
@@ -135,15 +151,22 @@ public partial class BuildItems : Dictionary<string, object>
 
     public IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> SourcePlanRequestsPerSchema
     {
-        get => GetRequired<IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>>(BuildItemKeys.SourcePlanRequestsPerSchema);
+        get =>
+            GetRequired<IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>>(
+                BuildItemKeys.SourcePlanRequestsPerSchema
+            );
         set => SetRequired(BuildItemKeys.SourcePlanRequestsPerSchema, value);
     }
 
-    internal IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap> SourceContractDiagnosticLocationsPerSchema
+    internal IReadOnlyDictionary<
+        SchemaFromNode,
+        SourceContractDiagnosticLocationMap
+    > SourceContractDiagnosticLocationsPerSchema
     {
-        get => GetOptional<IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>>(
-                   BuildItemKeys.SourceContractDiagnosticLocationsPerSchema) ??
-               new Dictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>();
+        get =>
+            GetOptional<IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>>(
+                BuildItemKeys.SourceContractDiagnosticLocationsPerSchema
+            ) ?? new Dictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>();
         set => SetRequired(BuildItemKeys.SourceContractDiagnosticLocationsPerSchema, value);
     }
 
@@ -153,11 +176,26 @@ public partial class BuildItems : Dictionary<string, object>
         set => SetRequired(BuildItemKeys.ScriptParameterDefinitions, value);
     }
 
-    public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry?, ILogger<BuildMetadataAndInferTypesVisitor>, BuildMetadataAndInferTypesVisitor>?
-        CreateBuildMetadataAndInferTypesVisitor
+    public Func<
+        ISchemaProvider,
+        IReadOnlyDictionary<string, string[]>,
+        CompilationOptions,
+        SchemaRegistry?,
+        ILogger<BuildMetadataAndInferTypesVisitor>,
+        BuildMetadataAndInferTypesVisitor
+    >? CreateBuildMetadataAndInferTypesVisitor
     {
-        get => GetOptional<Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry?, ILogger<BuildMetadataAndInferTypesVisitor>, BuildMetadataAndInferTypesVisitor>>(
-            BuildItemKeys.CreateBuildMetadataAndInferTypesVisitor);
+        get =>
+            GetOptional<
+                Func<
+                    ISchemaProvider,
+                    IReadOnlyDictionary<string, string[]>,
+                    CompilationOptions,
+                    SchemaRegistry?,
+                    ILogger<BuildMetadataAndInferTypesVisitor>,
+                    BuildMetadataAndInferTypesVisitor
+                >
+            >(BuildItemKeys.CreateBuildMetadataAndInferTypesVisitor);
         set => SetOptional(BuildItemKeys.CreateBuildMetadataAndInferTypesVisitor, value);
     }
 
@@ -233,14 +271,29 @@ public partial class BuildItems : Dictionary<string, object>
         set => SetOptional(BuildItemKeys.ExecutionPlanText, value);
     }
 
-    internal ExecutionTargetCompatibilityReport? ExecutionTargetCompatibilityReport { get => GetOptional<ExecutionTargetCompatibilityReport>(BuildItemKeys.ExecutionTargetCompatibilityReport); set => SetOptional(BuildItemKeys.ExecutionTargetCompatibilityReport, value); }
+    internal ExecutionTargetCompatibilityReport? ExecutionTargetCompatibilityReport
+    {
+        get => GetOptional<ExecutionTargetCompatibilityReport>(BuildItemKeys.ExecutionTargetCompatibilityReport);
+        set => SetOptional(BuildItemKeys.ExecutionTargetCompatibilityReport, value);
+    }
 
-    internal TargetRuntimeContract? TargetRuntimeContract { get => GetOptional<TargetRuntimeContract>(BuildItemKeys.TargetRuntimeContract); set => SetOptional(BuildItemKeys.TargetRuntimeContract, value); }
+    internal TargetRuntimeContract? TargetRuntimeContract
+    {
+        get => GetOptional<TargetRuntimeContract>(BuildItemKeys.TargetRuntimeContract);
+        set => SetOptional(BuildItemKeys.TargetRuntimeContract, value);
+    }
 
-    internal ExecutionTargetReadinessReport? ExecutionTargetReadinessReport { get => GetOptional<ExecutionTargetReadinessReport>(BuildItemKeys.ExecutionTargetReadinessReport); set => SetOptional(BuildItemKeys.ExecutionTargetReadinessReport, value); }
+    internal ExecutionTargetReadinessReport? ExecutionTargetReadinessReport
+    {
+        get => GetOptional<ExecutionTargetReadinessReport>(BuildItemKeys.ExecutionTargetReadinessReport);
+        set => SetOptional(BuildItemKeys.ExecutionTargetReadinessReport, value);
+    }
 
-    internal ExecutionSemanticsContract? ExecutionSemanticsContract { get => GetOptional<ExecutionSemanticsContract>(BuildItemKeys.ExecutionSemanticsContract); set => SetOptional(BuildItemKeys.ExecutionSemanticsContract, value); }
-
+    internal ExecutionSemanticsContract? ExecutionSemanticsContract
+    {
+        get => GetOptional<ExecutionSemanticsContract>(BuildItemKeys.ExecutionSemanticsContract);
+        set => SetOptional(BuildItemKeys.ExecutionSemanticsContract, value);
+    }
 
     public SourceText? SourceText
     {

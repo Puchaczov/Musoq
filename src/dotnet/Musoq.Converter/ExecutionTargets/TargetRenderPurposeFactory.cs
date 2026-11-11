@@ -10,7 +10,7 @@ internal static class TargetRenderPurposeFactory
             CompilationPurpose.Inspection => TargetRenderPurpose.Inspection,
             CompilationPurpose.PortableArtifactPackaging => TargetRenderPurpose.PortablePackaging,
             CompilationPurpose.ArtifactValidation => TargetRenderPurpose.StrictValidation,
-            _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unknown compilation purpose.")
+            _ => throw new ArgumentOutOfRangeException(nameof(purpose), purpose, "Unknown compilation purpose."),
         };
     }
 

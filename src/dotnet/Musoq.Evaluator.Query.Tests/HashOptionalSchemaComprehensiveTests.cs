@@ -12,8 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
 {
-
-
     [TestMethod]
     public void HashOptional_Distinct_ShouldWork()
     {
@@ -21,13 +19,9 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("Test"),
-                    new BasicEntity("Test"),
-                    new BasicEntity("Other"),
-                    new BasicEntity("Test")
-                ]
-            }
+                "#A",
+                [new BasicEntity("Test"), new BasicEntity("Test"), new BasicEntity("Other"), new BasicEntity("Test")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -37,15 +31,13 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Test"], ["Other"]);
     }
 
-
-
     [TestMethod]
     public void HashOptional_ArithmeticOperations_ShouldWork()
     {
         var query = "select Population + 10, Population - 5, Population * 2, Population / 2 from A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Population = 100 }] }
+            { "#A", [new BasicEntity { Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -53,12 +45,13 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Population + 10", typeof(decimal)), ("Population - 5", typeof(decimal)),
-            ("Population * 2", typeof(decimal)), ("Population / 2", typeof(decimal)));
+            ("Population + 10", typeof(decimal)),
+            ("Population - 5", typeof(decimal)),
+            ("Population * 2", typeof(decimal)),
+            ("Population / 2", typeof(decimal))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [110m, 95m, 200m, 50m]);
     }
-
-
 
     [TestMethod]
     public void HashOptional_SelectMultipleColumns_ShouldWork()
@@ -66,7 +59,17 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var query = "select Name, City, Population from A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "Test1", City = "Warsaw", Population = 100 }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Test1",
+                        City = "Warsaw",
+                        Population = 100,
+                    },
+                ]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -74,7 +77,10 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("City", typeof(string)), ("Population", typeof(decimal)));
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Population", typeof(decimal))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Test1", "Warsaw", 100m]);
     }
 
@@ -84,7 +90,17 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var query = "select Population * 2 as DoubledPopulation from A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "Test", City = "City", Population = 50 }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Test",
+                        City = "City",
+                        Population = 50,
+                    },
+                ]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -94,15 +110,13 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertRowsInOrder(table, [100m]);
     }
 
-
-
     [TestMethod]
     public void HashOptional_WhereEquals_ShouldWork()
     {
         var query = "select Name from A.Entities() where Name = 'Match'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Match"), new BasicEntity("NoMatch"), new BasicEntity("Match")] }
+            { "#A", [new BasicEntity("Match"), new BasicEntity("NoMatch"), new BasicEntity("Match")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -119,12 +133,13 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "Low", Population = 30 },
                     new BasicEntity { Name = "High", Population = 100 },
-                    new BasicEntity { Name = "Medium", Population = 50 }
+                    new BasicEntity { Name = "Medium", Population = 50 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -140,7 +155,7 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var query = "select Name from A.Entities() where Name = 'A' or Name = 'B'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C")] }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -156,7 +171,7 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var query = "select Name from A.Entities() where Name like '%est%'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test"), new BasicEntity("Testing"), new BasicEntity("NoMatch")] }
+            { "#A", [new BasicEntity("Test"), new BasicEntity("Testing"), new BasicEntity("NoMatch")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -172,7 +187,7 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var query = "select Name from A.Entities() where Name in ('A', 'B', 'C')";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("D"), new BasicEntity("E")] }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("D"), new BasicEntity("E")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -189,11 +204,12 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("NullValue") { NullableValue = null },
-                    new BasicEntity("HasValue") { NullableValue = 5 }
+                    new BasicEntity("HasValue") { NullableValue = 5 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -203,8 +219,6 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["NullValue"]);
     }
 
-
-
     [TestMethod]
     public void HashOptional_GroupByWithCount_ShouldWork()
     {
@@ -212,14 +226,15 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { City = "Warsaw" },
                     new BasicEntity { City = "Warsaw" },
                     new BasicEntity { City = "Berlin" },
                     new BasicEntity { City = "Berlin" },
-                    new BasicEntity { City = "Berlin" }
+                    new BasicEntity { City = "Berlin" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -236,18 +251,23 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Country = "Poland", Population = 100 },
                     new BasicEntity { Country = "Poland", Population = 200 },
-                    new BasicEntity { Country = "Germany", Population = 150 }
+                    new BasicEntity { Country = "Germany", Population = 150 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("Sum(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Sum(Population)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland", 300m], ["Germany", 150m]);
     }
 
@@ -258,22 +278,25 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Country = "Poland" },
                     new BasicEntity { Country = "Poland" },
-                    new BasicEntity { Country = "Germany" }
+                    new BasicEntity { Country = "Germany" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("Count(Country)", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Count(Country)", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Poland", 2L]);
     }
-
-
 
     [TestMethod]
     public void HashOptional_OrderByAscending_ShouldWork()
@@ -281,7 +304,7 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var query = "select Name from A.Entities() order by Name asc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("C"), new BasicEntity("A"), new BasicEntity("B")] }
+            { "#A", [new BasicEntity("C"), new BasicEntity("A"), new BasicEntity("B")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -297,7 +320,7 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var query = "select Name from A.Entities() order by Name desc";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("C"), new BasicEntity("A"), new BasicEntity("B")] }
+            { "#A", [new BasicEntity("C"), new BasicEntity("A"), new BasicEntity("B")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -306,5 +329,4 @@ public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["C"], ["B"], ["A"]);
     }
-
 }

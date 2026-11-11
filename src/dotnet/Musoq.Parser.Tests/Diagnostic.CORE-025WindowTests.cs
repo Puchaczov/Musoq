@@ -14,9 +14,11 @@ public sealed class DiagnosticCore025WindowTests
     public void WindowSpecification_CompositePartitionAndNullOrdering_ShouldParse()
     {
         var query = ParseQuery(
-            "select RowNumber() over (partition by Country, City order by Name desc nulls last) from #A.entities()");
+            "select RowNumber() over (partition by Country, City order by Name desc nulls last) from #A.entities()"
+        );
         var window = Assert.IsInstanceOfType<WindowFunctionNode>(query.Select.Fields[0].Expression);
-        var specification = window.WindowSpecification ?? throw new AssertFailedException("Expected window specification.");
+        var specification =
+            window.WindowSpecification ?? throw new AssertFailedException("Expected window specification.");
 
         Assert.HasCount(2, specification.PartitionFields);
         Assert.HasCount(1, specification.OrderByFields);
@@ -33,7 +35,8 @@ public sealed class DiagnosticCore025WindowTests
             query,
             DiagnosticCode.MQ2014_TrailingComma,
             "Window PARTITION BY list has a trailing comma. Add another expression or remove the comma.",
-            SpanOf(query, "order by"));
+            SpanOf(query, "order by")
+        );
     }
 
     [TestMethod]
@@ -45,7 +48,8 @@ public sealed class DiagnosticCore025WindowTests
             query,
             DiagnosticCode.MQ2014_TrailingComma,
             "Window ORDER BY list has a trailing comma. Add another expression or remove the comma.",
-            new TextSpan(query.IndexOf(",)", StringComparison.Ordinal) + 1, 1));
+            new TextSpan(query.IndexOf(",)", StringComparison.Ordinal) + 1, 1)
+        );
     }
 
     [TestMethod]
@@ -57,14 +61,16 @@ public sealed class DiagnosticCore025WindowTests
             query,
             DiagnosticCode.MQ2009_InvalidOrderByExpression,
             "Expected FIRST or LAST after NULLS in ORDER BY.",
-            SpanOf(query, "middle"));
+            SpanOf(query, "middle")
+        );
     }
 
     private static void AssertParseDiagnostic(
         string query,
         DiagnosticCode expectedCode,
         string expectedMessage,
-        TextSpan expectedSpan)
+        TextSpan expectedSpan
+    )
     {
         var lexer = new Lexer(query, true, recoverOnError: true);
         var result = new Parser(lexer, lexer.Diagnostics).ParseWithDiagnostics();
@@ -79,7 +85,11 @@ public sealed class DiagnosticCore025WindowTests
         Assert.AreEqual(expectedSpan, diagnostic.Span);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
-        Assert.AreEqual("Core Spec - " + (expectedCode == DiagnosticCode.MQ2009_InvalidOrderByExpression ? "ORDER BY Clause" : "Lists"), diagnostic.DocsReference);
+        Assert.AreEqual(
+            "Core Spec - "
+                + (expectedCode == DiagnosticCode.MQ2009_InvalidOrderByExpression ? "ORDER BY Clause" : "Lists"),
+            diagnostic.DocsReference
+        );
         Assert.IsNotEmpty(diagnostic.SuggestedFixes);
     }
 

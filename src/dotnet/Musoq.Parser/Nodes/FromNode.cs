@@ -5,14 +5,10 @@ public abstract class FromNode : Node
     private readonly Type? _returnType;
 
     protected FromNode(string alias)
-        : this(alias, null, default)
-    {
-    }
+        : this(alias, null, default) { }
 
     protected FromNode(string alias, Type? returnType)
-        : this(alias, returnType, default)
-    {
-    }
+        : this(alias, returnType, default) { }
 
     protected FromNode(string alias, Type? returnType, TextSpan span)
     {

@@ -5,19 +5,13 @@ namespace Musoq.Parser.Nodes;
 public class GroupByNode : Node
 {
     public GroupByNode(FieldNode[] fields, HavingNode? node)
-        : this(fields, node, false, default)
-    {
-    }
+        : this(fields, node, false, default) { }
 
     public GroupByNode(FieldNode[] fields, HavingNode? node, TextSpan span)
-        : this(fields, node, false, span)
-    {
-    }
+        : this(fields, node, false, span) { }
 
     public GroupByNode(FieldNode[] fields, HavingNode? node, bool isAll)
-        : this(fields, node, isAll, default)
-    {
-    }
+        : this(fields, node, isAll, default) { }
 
     public GroupByNode(FieldNode[] fields, HavingNode? node, bool isAll, TextSpan span)
     {
@@ -60,10 +54,9 @@ public class GroupByNode : Node
 
     public override string ToString()
     {
-        var fields = IsAll
-            ? "all"
-            : Fields.Length == 0
-            ? string.Empty
+        var fields =
+            IsAll ? "all"
+            : Fields.Length == 0 ? string.Empty
             : string.Join(", ", Fields.Select(f => f.ToString()));
         var groupBy = $"group by {fields}";
 

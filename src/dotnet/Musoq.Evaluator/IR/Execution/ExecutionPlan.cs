@@ -13,7 +13,8 @@ public sealed record ExecutionPlan
         FinalShapeResult? finalResult = null,
         ExecutionSemanticsContract? semanticsContract = null,
         int executionIrVersion = TargetContractVersions.ExecutionIr,
-        IEnumerable<ExecutionStoredTableRepresentationPlan>? storedTableRepresentations = null)
+        IEnumerable<ExecutionStoredTableRepresentationPlan>? storedTableRepresentations = null
+    )
     {
         if (executionIrVersion <= 0)
             throw new ArgumentOutOfRangeException(nameof(executionIrVersion));

@@ -45,13 +45,17 @@ public partial class CloneQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         Nodes.Push(new BooleanNode(node.Value, node.Span));
     }
+
     public override void Visit(WordNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(node is AggregateIdentifierNode aggregateIdentifier
-            ? new AggregateIdentifierNode(aggregateIdentifier.Value, aggregateIdentifier.DisplayName)
-            : new WordNode(node.Value, node.Span));
+        Nodes.Push(
+            node is AggregateIdentifierNode aggregateIdentifier
+                ? new AggregateIdentifierNode(aggregateIdentifier.Value, aggregateIdentifier.DisplayName)
+                : new WordNode(node.Value, node.Span)
+        );
     }
+
     public override void Visit(NullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -86,9 +90,15 @@ public partial class CloneQueryVisitor
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(new ContainsNode(
-            left,
-            right as ArgsListNode ?? throw new InvalidOperationException("Contains clone requires an argument list on the right side.")));
+        Nodes.Push(
+            new ContainsNode(
+                left,
+                right as ArgsListNode
+                    ?? throw new InvalidOperationException(
+                        "Contains clone requires an argument list on the right side."
+                    )
+            )
+        );
     }
 
     public override void Visit(AccessMethodNode node)
@@ -96,15 +106,26 @@ public partial class CloneQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var args = (ArgsListNode)Nodes.Pop();
         var filterExpression = node.FilterExpression is null ? null : Nodes.Pop();
-        Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource,
-            node.Method, node.Alias, node.Span, node.IsDistinct)
-        {
-            HasFilter = node.HasFilter,
-            FilterExpression = filterExpression,
-            FilterExpressionText = node.FilterExpressionText,
-            IsPivotGenerated = node.IsPivotGenerated, IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper,
-            IsCompilerGenerated = node.IsCompilerGenerated
-        });
+        Nodes.Push(
+            new AccessMethodNode(
+                node.FunctionToken,
+                args,
+                null,
+                node.CanSkipInjectSource,
+                node.Method,
+                node.Alias,
+                node.Span,
+                node.IsDistinct
+            )
+            {
+                HasFilter = node.HasFilter,
+                FilterExpression = filterExpression,
+                FilterExpressionText = node.FilterExpressionText,
+                IsPivotGenerated = node.IsPivotGenerated,
+                IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper,
+                IsCompilerGenerated = node.IsCompilerGenerated,
+            }
+        );
     }
 
     public override void Visit(AccessRawIdentifierNode node)
@@ -119,9 +140,7 @@ public partial class CloneQueryVisitor
         Nodes.Push(new IsNullNode(Nodes.Pop(), node.IsNegated).CopySpansFrom(node));
     }
 
-    public override void Visit(AccessRefreshAggregationScoreNode node)
-    {
-    }
+    public override void Visit(AccessRefreshAggregationScoreNode node) { }
 
     public override void Visit(AccessColumnNode node)
     {
@@ -143,13 +162,16 @@ public partial class CloneQueryVisitor
             }
         }
 
-        Nodes.Push(new AllColumnsNode(
-            node.Alias,
-            node.LikePattern,
-            node.IsNotLike,
-            node.ExcludeColumns,
-            clonedReplaceItems ?? node.ReplaceItems,
-            node.RenameItems).CopySpansFrom(node));
+        Nodes.Push(
+            new AllColumnsNode(
+                node.Alias,
+                node.LikePattern,
+                node.IsNotLike,
+                node.ExcludeColumns,
+                clonedReplaceItems ?? node.ReplaceItems,
+                node.RenameItems
+            ).CopySpansFrom(node)
+        );
     }
 
     public override void Visit(IdentifierNode node)
@@ -191,7 +213,9 @@ public partial class CloneQueryVisitor
     public override void Visit(AccessCallChainNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props, node.Alias).WithSpan(node.Span));
+        Nodes.Push(
+            new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props, node.Alias).WithSpan(node.Span)
+        );
     }
 
     public override void Visit(ArgsListNode node)

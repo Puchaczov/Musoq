@@ -94,8 +94,13 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
     /// <summary>
     ///     Creates and adds a diagnostic.
     /// </summary>
-    public bool Add(DiagnosticCode code, DiagnosticSeverity severity, string message,
-        SourceLocation location, SourceLocation? endLocation = null)
+    public bool Add(
+        DiagnosticCode code,
+        DiagnosticSeverity severity,
+        string message,
+        SourceLocation location,
+        SourceLocation? endLocation = null
+    )
     {
         string? contextSnippet = null;
         if (SourceText != null && location.IsValid)
@@ -196,8 +201,9 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
             .ToHashSet();
 
         var ordered = diagnostics
-            .Where(diagnostic => diagnostic.Location.IsValid ||
-                                !knownContent.Contains(DiagnosticContentIdentity.Create(diagnostic)))
+            .Where(diagnostic =>
+                diagnostic.Location.IsValid || !knownContent.Contains(DiagnosticContentIdentity.Create(diagnostic))
+            )
             .OrderBy(static d => d.SourceKind)
             .ThenBy(static d => d.Location.FilePath, StringComparer.Ordinal)
             .ThenBy(static d => d.Location.Offset < 0 ? int.MaxValue : d.Location.Offset)
@@ -233,9 +239,7 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
     /// </summary>
     public void Clear()
     {
-        while (_diagnostics.TryTake(out _))
-        {
-        }
+        while (_diagnostics.TryTake(out _)) { }
 
         _diagnosticKeys.Clear();
         _diagnosticOrder.Clear();
@@ -247,8 +251,7 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
     private (SourceLocation Start, SourceLocation End) GetLocations(TextSpan span)
     {
         if (SourceText == null)
-            return (new SourceLocation(span.Start, 1, span.Start + 1),
-                new SourceLocation(span.End, 1, span.End + 1));
+            return (new SourceLocation(span.Start, 1, span.Start + 1), new SourceLocation(span.End, 1, span.End + 1));
 
         return SourceText.GetLocations(span);
     }
@@ -256,7 +259,10 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
     private static string? GetProviderReportIdentity(Diagnostic diagnostic)
     {
         // Different providers and source occurrences may share the same public message and Core code.
-        return diagnostic.Code is DiagnosticCode.MQ5027_ReportedDataSourceWarning or DiagnosticCode.MQ7020_ReportedDataSourceFailure
+        return
+            diagnostic.Code
+                is DiagnosticCode.MQ5027_ReportedDataSourceWarning
+                    or DiagnosticCode.MQ7020_ReportedDataSourceFailure
             ? MusoqErrorEnvelopeFormatter.FormatJson(MusoqErrorEnvelope.FromDiagnostic(diagnostic))
             : null;
     }
@@ -272,7 +278,8 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         int Column,
         string? FilePath,
         string Message,
-        string? ProviderReportIdentity)
+        string? ProviderReportIdentity
+    )
     {
         public static DiagnosticIdentity Create(Diagnostic diagnostic)
         {
@@ -287,7 +294,8 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
                 diagnostic.Location.Column,
                 diagnostic.Location.FilePath,
                 diagnostic.Message,
-                GetProviderReportIdentity(diagnostic));
+                GetProviderReportIdentity(diagnostic)
+            );
         }
     }
 
@@ -297,7 +305,8 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
         DiagnosticPhase Phase,
         DiagnosticSourceKind SourceKind,
         string Message,
-        string? ProviderReportIdentity)
+        string? ProviderReportIdentity
+    )
     {
         public static DiagnosticContentIdentity Create(Diagnostic diagnostic)
         {
@@ -307,7 +316,8 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
                 diagnostic.Phase,
                 diagnostic.SourceKind,
                 diagnostic.Message,
-                GetProviderReportIdentity(diagnostic));
+                GetProviderReportIdentity(diagnostic)
+            );
         }
     }
 }

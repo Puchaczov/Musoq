@@ -19,15 +19,16 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
         var nodes = registry.Schemas.ToDictionary(
             registration => registration.Name,
             registration => new InterpretationSchemaGraphNode(registration.Name, registration),
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
 
         foreach (var node in nodes.Values)
-            foreach (var dependency in ExtractSchemaDependencies(node.Node))
-                if (nodes.TryGetValue(dependency, out var dependencyNode))
-                {
-                    node.Dependencies.Add(dependencyNode.Name);
-                    dependencyNode.Dependents.Add(node.Name);
-                }
+        foreach (var dependency in ExtractSchemaDependencies(node.Node))
+            if (nodes.TryGetValue(dependency, out var dependencyNode))
+            {
+                node.Dependencies.Add(dependencyNode.Name);
+                dependencyNode.Dependents.Add(node.Name);
+            }
 
         var directlyUsedSchemaNames = CollectDirectlyUsedSchemaNames(queryTree, nodes.Keys);
 
@@ -38,7 +39,8 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
 
     private static HashSet<string> CollectDirectlyUsedSchemaNames(
         RootNode queryTree,
-        IEnumerable<string> knownSchemaNames)
+        IEnumerable<string> knownSchemaNames
+    )
     {
         var usedSchemas = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var knownSchemas = new HashSet<string>(knownSchemaNames, StringComparer.OrdinalIgnoreCase);
@@ -52,7 +54,8 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
 
     private static void MarkReachable(
         Dictionary<string, InterpretationSchemaGraphNode> nodes,
-        IEnumerable<string> directlyUsedSchemaNames)
+        IEnumerable<string> directlyUsedSchemaNames
+    )
     {
         var pending = new Stack<string>(directlyUsedSchemaNames);
 
@@ -76,7 +79,7 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
         {
             BinarySchemaNode binarySchema => ExtractBinarySchemaDependencies(binarySchema),
             TextSchemaNode textSchema => ExtractTextSchemaDependencies(textSchema),
-            _ => []
+            _ => [],
         };
     }
 
@@ -89,7 +92,9 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
 
         foreach (var field in schema.Fields)
             if (field is FieldDefinitionNode fieldDefinition)
-                foreach (var dependency in ExtractTypeAnnotationDependencies(fieldDefinition.TypeAnnotation, typeParameters))
+                foreach (
+                    var dependency in ExtractTypeAnnotationDependencies(fieldDefinition.TypeAnnotation, typeParameters)
+                )
                     yield return dependency;
     }
 
@@ -110,7 +115,8 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
 
     private static IEnumerable<string> ExtractTypeAnnotationDependencies(
         TypeAnnotationNode typeAnnotation,
-        HashSet<string> typeParameters)
+        HashSet<string> typeParameters
+    )
     {
         switch (typeAnnotation)
         {
@@ -120,10 +126,10 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
                     yield return schemaReference.SchemaName;
 
                 foreach (var typeArgument in schemaReference.TypeArguments)
-                    foreach (var dependency in InterpretationSchemaTypeDependencyExtractor.Extract(
-                                 typeArgument,
-                                 typeParameters))
-                        yield return dependency;
+                foreach (
+                    var dependency in InterpretationSchemaTypeDependencyExtractor.Extract(typeArgument, typeParameters)
+                )
+                    yield return dependency;
 
                 break;
             }
@@ -145,15 +151,21 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
             {
                 foreach (var field in inlineSchema.Fields)
                     if (field is FieldDefinitionNode fieldDefinition)
-                        foreach (var dependency in ExtractTypeAnnotationDependencies(fieldDefinition.TypeAnnotation,
-                                     typeParameters))
+                        foreach (
+                            var dependency in ExtractTypeAnnotationDependencies(
+                                fieldDefinition.TypeAnnotation,
+                                typeParameters
+                            )
+                        )
                             yield return dependency;
 
                 break;
             }
             case RepeatUntilTypeNode repeatUntilType:
             {
-                foreach (var dependency in ExtractTypeAnnotationDependencies(repeatUntilType.ElementType, typeParameters))
+                foreach (
+                    var dependency in ExtractTypeAnnotationDependencies(repeatUntilType.ElementType, typeParameters)
+                )
                     yield return dependency;
 
                 break;
@@ -161,8 +173,8 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
             case BinarySwitchTypeNode switchType:
             {
                 foreach (var switchCase in switchType.Cases)
-                    foreach (var dependency in ExtractTypeAnnotationDependencies(switchCase.BranchType, typeParameters))
-                        yield return dependency;
+                foreach (var dependency in ExtractTypeAnnotationDependencies(switchCase.BranchType, typeParameters))
+                    yield return dependency;
 
                 break;
             }
@@ -176,9 +188,7 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
         }
     }
 
-    private sealed class InterpretationSchemaUsageVisitor(
-        HashSet<string> usedSchemas,
-        HashSet<string> knownSchemas)
+    private sealed class InterpretationSchemaUsageVisitor(HashSet<string> usedSchemas, HashSet<string> knownSchemas)
         : NoOpExpressionVisitor
     {
         public override void Visit(AccessMethodNode node)
@@ -244,12 +254,12 @@ public sealed class InterpretationSchemaDependencyGraphBuilder
         private static bool IsInterpretationFunction(string functionName)
         {
             return functionName.Equals("Interpret", StringComparison.OrdinalIgnoreCase)
-                   || functionName.Equals("Parse", StringComparison.OrdinalIgnoreCase)
-                   || functionName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase)
-                   || functionName.Equals("TryParse", StringComparison.OrdinalIgnoreCase)
-                   || functionName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase)
-                   || functionName.Equals("PartialParse", StringComparison.OrdinalIgnoreCase)
-                   || functionName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase);
+                || functionName.Equals("Parse", StringComparison.OrdinalIgnoreCase)
+                || functionName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase)
+                || functionName.Equals("TryParse", StringComparison.OrdinalIgnoreCase)
+                || functionName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase)
+                || functionName.Equals("PartialParse", StringComparison.OrdinalIgnoreCase)
+                || functionName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase);
         }
     }
 

@@ -27,7 +27,7 @@ public sealed class PhysicalColumnUsageFactsTests
         var fields = new[]
         {
             new ProjectedField("Name", new ColumnRef("person", "Name", typeof(string)), 0),
-            new ProjectedField("name", new ColumnRef("person", "Name", typeof(string)), 1)
+            new ProjectedField("name", new ColumnRef("person", "Name", typeof(string)), 1),
         };
 
         Assert.IsTrue(PhysicalColumnUsageFacts.HasAmbiguousOutputNames(fields));
@@ -40,24 +40,22 @@ public sealed class PhysicalColumnUsageFactsTests
             "left",
             ("City", typeof(string)),
             ("Comparer", typeof(int)),
-            ("Payload", typeof(string)));
+            ("Payload", typeof(string))
+        );
         var right = CreateValuesScan(
             "right",
             ("City", typeof(string)),
             ("Comparer", typeof(int)),
-            ("Payload", typeof(string)));
-        var setOperation = new PhysicalSetOperationNode(
-            SetOpKind.Union,
-            left,
-            right,
-            [1],
-            [typeof(int)]);
+            ("Payload", typeof(string))
+        );
+        var setOperation = new PhysicalSetOperationNode(SetOpKind.Union, left, right, [1], [typeof(int)]);
         var requiredNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "City" };
 
         var selected = PhysicalColumnUsageFacts.TrySelectSetOperationRetainedIndexes(
             setOperation,
             requiredNames,
-            out var retainedIndexes);
+            out var retainedIndexes
+        );
 
         Assert.IsTrue(selected);
         CollectionAssert.AreEqual(new[] { 0, 1 }, retainedIndexes);
@@ -73,16 +71,15 @@ public sealed class PhysicalColumnUsageFactsTests
             "person",
             [],
             [],
-            CreateSchema(("Name", typeof(string)), ("Age", typeof(int))));
+            CreateSchema(("Name", typeof(string)), ("Age", typeof(int)))
+        );
 
         var columns = PhysicalColumnUsageFacts.ResolveAvailableColumnNames(scan);
 
         CollectionAssert.AreEqual(new[] { "person.Name", "person.Age" }, columns);
     }
 
-    private static PhysicalValuesScanNode CreateValuesScan(
-        string alias,
-        params (string Name, Type Type)[] columns)
+    private static PhysicalValuesScanNode CreateValuesScan(string alias, params (string Name, Type Type)[] columns)
     {
         return new PhysicalValuesScanNode(alias, [], CreateSchema(columns));
     }
@@ -93,10 +90,7 @@ public sealed class PhysicalColumnUsageFactsTests
 
         for (var index = 0; index < columns.Length; index++)
         {
-            schemaColumns[index] = new ColumnSchema(
-                columns[index].Name,
-                columns[index].Type,
-                index);
+            schemaColumns[index] = new ColumnSchema(columns[index].Name, columns[index].Type, index);
         }
 
         return new OutputSchema(schemaColumns);

@@ -8,7 +8,7 @@ public sealed partial class Lexer
     {
         WhitespaceOrEnd,
         WordBoundary,
-        WhitespaceRightParenOrEnd
+        WhitespaceRightParenOrEnd,
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -64,12 +64,7 @@ public sealed partial class Lexer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryMatchThreeWords(
-        string first,
-        string second,
-        string third,
-        PhraseBoundary boundary,
-        out int end)
+    private bool TryMatchThreeWords(string first, string second, string third, PhraseBoundary boundary, out int end)
     {
         var firstEnd = Position;
         end = firstEnd;
@@ -79,8 +74,10 @@ public sealed partial class Lexer
         }
 
         firstEnd += first.Length;
-        if (!TryReadSeparatedWord(firstEnd, second, out var secondEnd) ||
-            !TryReadSeparatedWord(secondEnd, third, out end))
+        if (
+            !TryReadSeparatedWord(firstEnd, second, out var secondEnd)
+            || !TryReadSeparatedWord(secondEnd, third, out end)
+        )
             return false;
 
         if (!MatchesBoundary(end, boundary))
@@ -97,7 +94,8 @@ public sealed partial class Lexer
         string third,
         string fourth,
         PhraseBoundary boundary,
-        out int end)
+        out int end
+    )
     {
         var firstEnd = Position;
         end = firstEnd;
@@ -107,9 +105,11 @@ public sealed partial class Lexer
         }
 
         firstEnd += first.Length;
-        if (!TryReadSeparatedWord(firstEnd, second, out var secondEnd) ||
-            !TryReadSeparatedWord(secondEnd, third, out var thirdEnd) ||
-            !TryReadSeparatedWord(thirdEnd, fourth, out end))
+        if (
+            !TryReadSeparatedWord(firstEnd, second, out var secondEnd)
+            || !TryReadSeparatedWord(secondEnd, third, out var thirdEnd)
+            || !TryReadSeparatedWord(thirdEnd, fourth, out end)
+        )
             return false;
 
         if (!MatchesBoundary(end, boundary))
@@ -139,8 +139,9 @@ public sealed partial class Lexer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool MatchesAt(int start, string value)
     {
-        return start >= 0 && start + value.Length <= Input.Length &&
-               Input.AsSpan(start, value.Length).Equals(value, StringComparison.OrdinalIgnoreCase);
+        return start >= 0
+            && start + value.Length <= Input.Length
+            && Input.AsSpan(start, value.Length).Equals(value, StringComparison.OrdinalIgnoreCase);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -148,21 +149,20 @@ public sealed partial class Lexer
     {
         return boundary switch
         {
-            PhraseBoundary.WhitespaceOrEnd => end == Input.Length ||
-                                              FastCharacterClassifier.IsWhitespace(Input[end]),
-            PhraseBoundary.WordBoundary => end == Input.Length ||
-                                           !FastCharacterClassifier.IsIdentifierContinue(Input.AsSpan(), end),
-            PhraseBoundary.WhitespaceRightParenOrEnd => end == Input.Length ||
-                                                         Input[end] == ')' ||
-                                                         FastCharacterClassifier.IsWhitespace(Input[end]),
-            _ => false
+            PhraseBoundary.WhitespaceOrEnd => end == Input.Length || FastCharacterClassifier.IsWhitespace(Input[end]),
+            PhraseBoundary.WordBoundary => end == Input.Length
+                || !FastCharacterClassifier.IsIdentifierContinue(Input.AsSpan(), end),
+            PhraseBoundary.WhitespaceRightParenOrEnd => end == Input.Length
+                || Input[end] == ')'
+                || FastCharacterClassifier.IsWhitespace(Input[end]),
+            _ => false,
         };
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsHashSourceCharacter(ReadOnlySpan<char> input, int index)
     {
-        return index < input.Length &&
-            (input[index] is '*' or '?' || FastCharacterClassifier.IsIdentifierContinue(input, index));
+        return index < input.Length
+            && (input[index] is '*' or '?' || FastCharacterClassifier.IsIdentifierContinue(input, index));
     }
 }

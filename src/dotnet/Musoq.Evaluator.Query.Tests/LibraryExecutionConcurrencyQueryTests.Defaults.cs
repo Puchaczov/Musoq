@@ -5,7 +5,6 @@ using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionConcurrencyQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -16,14 +15,35 @@ public sealed partial class LibraryExecutionConcurrencyQueryTests
     [DataRow("DefaultCount", true)]
     [DataRow("ExplicitSerialCount", false)]
     [DataRow("DescendantCount", false)]
-    public void CustomCountQuery_WhenLibraryDefaultsAreDeclared_ShouldRespectMethodOwnershipAndExplicitNone(string function, bool parallel)
+    public void CustomCountQuery_WhenLibraryDefaultsAreDeclared_ShouldRespectMethodOwnershipAndExplicitNone(
+        string function,
+        bool parallel
+    )
     {
         var provider = LibraryExecutionFixture.CreateProvider<LibraryExecutionEntity, DescendantDefaultsLibrary>(
-            LibraryExecutionFixture.CreateRows(), SourceExecutionPermissions.ConcurrentRowProcessing);
+            LibraryExecutionFixture.CreateRows(),
+            SourceExecutionPermissions.ConcurrentRowProcessing
+        );
         var query = $"select Partition, {function}(Integral) as Total from #schema.first() group by Partition";
-        var inspection = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
-        Assert.AreEqual(parallel, inspection.GeneratedCSharpCode.Contains("ParallelSingleKeyAggregateChunkWorker_", StringComparison.Ordinal), inspection.PlanningText);
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
+        Assert.AreEqual(
+            parallel,
+            inspection.GeneratedCSharpCode.Contains("ParallelSingleKeyAggregateChunkWorker_", StringComparison.Ordinal),
+            inspection.PlanningText
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
         TableMaterializationTestHelper.AssertColumns(result, ("Partition", typeof(string)), ("Total", typeof(long)));

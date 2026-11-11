@@ -6,23 +6,20 @@ using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
+
 public partial class SubqueryToCteRewriteVisitor
 {
     private (FromNode CurrentFrom, Node? RemainingExpr) RewriteSubqueriesToJoins(
         List<SubqueryInfo> subqueries,
         FromNode currentFrom,
         Node? remainingExpr,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         foreach (var subqueryInfo in subqueries)
         {
             var join = PreparePredicateSubqueryJoin(subqueryInfo, cteInnerExpressions);
-            if (TryRewriteNullAwareNotIn(
-                    subqueryInfo,
-                    join,
-                    ref currentFrom,
-                    ref remainingExpr,
-                    cteInnerExpressions))
+            if (TryRewriteNullAwareNotIn(subqueryInfo, join, ref currentFrom, ref remainingExpr, cteInnerExpressions))
                 continue;
 
             if (subqueryInfo.RequiresLeftJoin)
@@ -33,7 +30,12 @@ public partial class SubqueryToCteRewriteVisitor
             }
             else if (subqueryInfo.IsNegated)
             {
-                currentFrom = new Parser.JoinFromNode(currentFrom, join.CteRef, join.JoinExpression, JoinType.LeftAntiSemi);
+                currentFrom = new Parser.JoinFromNode(
+                    currentFrom,
+                    join.CteRef,
+                    join.JoinExpression,
+                    JoinType.LeftAntiSemi
+                );
             }
             else
             {
@@ -46,7 +48,8 @@ public partial class SubqueryToCteRewriteVisitor
 
     private PredicateSubqueryJoin PreparePredicateSubqueryJoin(
         SubqueryInfo subqueryInfo,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var cteName = CreateUniqueSubqueryName();
         var subquery = subqueryInfo.Subquery;
@@ -62,8 +65,10 @@ public partial class SubqueryToCteRewriteVisitor
         Node joinExpression = new EqualityNode(rewrite.LeftSide, cteColumnRef).WithSpan(diagnosticSpan);
         if (rewrite.CorrelationJoinExpression != null)
         {
-            if (subqueryInfo.RequiresLeftJoin &&
-                !IsCardinalitySafeApplyCorrelation(subqueryInfo, rewrite.CorrelationJoinExpression))
+            if (
+                subqueryInfo.RequiresLeftJoin
+                && !IsCardinalitySafeApplyCorrelation(subqueryInfo, rewrite.CorrelationJoinExpression)
+            )
             {
                 ThrowUnsupportedPredicateApplyCorrelation(subqueryInfo);
             }
@@ -74,7 +79,8 @@ public partial class SubqueryToCteRewriteVisitor
         var cteRef = new Parser.InMemoryTableFromNode(cteName, cteName);
         var replacement = new IsNullNode(
             new AccessColumnNode(rewrite.CteColumnName, cteName, default),
-            !subqueryInfo.IsNegated);
+            !subqueryInfo.IsNegated
+        );
 
         return new PredicateSubqueryJoin(cteRef, joinExpression, replacement);
     }
@@ -83,10 +89,11 @@ public partial class SubqueryToCteRewriteVisitor
         SubqueryInfo subqueryInfo,
         Node subqueryBody,
         string cteName,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
-        var inQueryNode = subqueryInfo.InQueryNode ??
-                          throw new InvalidOperationException("IN subquery rewrite requires an IN node.");
+        var inQueryNode =
+            subqueryInfo.InQueryNode ?? throw new InvalidOperationException("IN subquery rewrite requires an IN node.");
         var leafQuery = GetLeftmostQuery(subqueryBody);
 
         if (leafQuery.Select.Fields.Length != 1)
@@ -95,7 +102,8 @@ public partial class SubqueryToCteRewriteVisitor
                 "IN subquery validation",
                 "Subquery used with IN must return exactly one column.",
                 DiagnosticCode.MQ3049_InSubqueryMultipleColumns,
-                inQueryNode.Span);
+                inQueryNode.Span
+            );
 
         if (leafQuery.Select.Fields[0].Expression is AllColumnsNode { HasModifiers: true })
             throw new VisitorException(
@@ -103,14 +111,14 @@ public partial class SubqueryToCteRewriteVisitor
                 "IN subquery validation",
                 "Star modifiers (EXCLUDE, REPLACE, LIKE) are not supported inside IN subqueries. Use an explicit column reference instead.",
                 DiagnosticCode.MQ3054_StarModifierInInSubquery,
-                inQueryNode.Span);
+                inQueryNode.Span
+            );
 
         var columnName = GetSubqueryOutputColumnName(leafQuery.Select.Fields[0]);
         var leftSide = NormalizeSubqueryLeftSide(inQueryNode.Left);
         var leftNeedsRename = leftSide is AccessColumnNode { Alias: null or "" };
         var cteColumnName = leftNeedsRename ? GeneratedSubqueryContract.CreateKeyColumnName(cteName) : columnName;
-        var cteOutputNeedsRename = leftNeedsRename ||
-                                   ShouldRenameSubqueryOutput(leafQuery.Select.Fields[0]);
+        var cteOutputNeedsRename = leftNeedsRename || ShouldRenameSubqueryOutput(leafQuery.Select.Fields[0]);
 
         Node cteBody;
         Node? correlationJoinExpression = null;
@@ -118,16 +126,11 @@ public partial class SubqueryToCteRewriteVisitor
         {
             var (rewrittenSubquery, innerCtes) = RewriteNestedInSubqueries(queryNode);
             cteInnerExpressions.AddRange(innerCtes);
-            var correlatedSubquery = RewriteCorrelatedSubqueryIfNeeded(
-                rewrittenSubquery,
-                subqueryInfo,
-                cteName);
+            var correlatedSubquery = RewriteCorrelatedSubqueryIfNeeded(rewrittenSubquery, subqueryInfo, cteName);
             rewrittenSubquery = correlatedSubquery.Query;
             correlationJoinExpression = correlatedSubquery.JoinPredicate;
 
-            cteBody = cteOutputNeedsRename
-                ? RenameSelectColumn(rewrittenSubquery, cteColumnName)
-                : rewrittenSubquery;
+            cteBody = cteOutputNeedsRename ? RenameSelectColumn(rewrittenSubquery, cteColumnName) : rewrittenSubquery;
         }
         else
         {
@@ -139,14 +142,16 @@ public partial class SubqueryToCteRewriteVisitor
             leftSide,
             cteColumnName,
             correlationJoinExpression,
-            leafQuery.Select.Fields[0].Expression);
+            leafQuery.Select.Fields[0].Expression
+        );
     }
 
     private SubqueryJoinRewrite PrepareExistsSubquery(
         SubqueryInfo subqueryInfo,
         Node subqueryBody,
         string cteName,
-        List<CteInnerExpressionNode> cteInnerExpressions)
+        List<CteInnerExpressionNode> cteInnerExpressions
+    )
     {
         var cteColumnName = GeneratedSubqueryContract.CreateKeyColumnName(cteName);
         var leftSide = new IntegerNode(1);
@@ -159,10 +164,7 @@ public partial class SubqueryToCteRewriteVisitor
             cteInnerExpressions.AddRange(innerCtes);
             rewrittenSubquery = ProjectExistsKey(rewrittenSubquery, cteColumnName);
 
-            var correlatedSubquery = RewriteCorrelatedSubqueryIfNeeded(
-                rewrittenSubquery,
-                subqueryInfo,
-                cteName);
+            var correlatedSubquery = RewriteCorrelatedSubqueryIfNeeded(rewrittenSubquery, subqueryInfo, cteName);
             rewrittenSubquery = correlatedSubquery.Query;
             correlationJoinExpression = correlatedSubquery.JoinPredicate;
 
@@ -178,7 +180,8 @@ public partial class SubqueryToCteRewriteVisitor
             leftSide,
             cteColumnName,
             correlationJoinExpression,
-            subqueryInfo.PredicateNode);
+            subqueryInfo.PredicateNode
+        );
     }
 
     private sealed record SubqueryJoinRewrite(
@@ -186,10 +189,8 @@ public partial class SubqueryToCteRewriteVisitor
         Node LeftSide,
         string CteColumnName,
         Node? CorrelationJoinExpression,
-        Node DiagnosticNode);
+        Node DiagnosticNode
+    );
 
-    private sealed record PredicateSubqueryJoin(
-        InMemoryTableFromNode CteRef,
-        Node JoinExpression,
-        Node Replacement);
+    private sealed record PredicateSubqueryJoin(InMemoryTableFromNode CteRef, Node JoinExpression, Node Replacement);
 }

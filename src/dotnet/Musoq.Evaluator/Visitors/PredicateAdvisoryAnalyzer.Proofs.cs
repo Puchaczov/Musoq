@@ -9,13 +9,16 @@ internal static partial class PredicateAdvisoryAnalyzer
     private static void ReportProvenAnd(
         SemanticAdvisoryContext context,
         PredicateConstantResolver resolver,
-        AndNode node)
+        AndNode node
+    )
     {
-        if (!TryCreateFact(resolver, node.Left, out var left) ||
-            !TryCreateFact(resolver, node.Right, out var right) ||
-            !string.Equals(left.Column, right.Column, StringComparison.Ordinal) ||
-            IsNullSensitive(left) ||
-            IsNullSensitive(right))
+        if (
+            !TryCreateFact(resolver, node.Left, out var left)
+            || !TryCreateFact(resolver, node.Right, out var right)
+            || !string.Equals(left.Column, right.Column, StringComparison.Ordinal)
+            || IsNullSensitive(left)
+            || IsNullSensitive(right)
+        )
             return;
 
         if (!FactsContradict(left, right))
@@ -24,27 +27,30 @@ internal static partial class PredicateAdvisoryAnalyzer
         context.Report(
             DiagnosticCode.MQ5011_ContradictoryCondition,
             "Predicate conditions cannot be true at the same time.",
-            node.Span);
+            node.Span
+        );
     }
 
-    private static void ReportProvenOr(
-        SemanticAdvisoryContext context,
-        PredicateConstantResolver resolver,
-        OrNode node)
+    private static void ReportProvenOr(SemanticAdvisoryContext context, PredicateConstantResolver resolver, OrNode node)
     {
-        if (!TryCreateFact(resolver, node.Left, out var left) ||
-            !TryCreateFact(resolver, node.Right, out var right) ||
-            !string.Equals(left.Column, right.Column, StringComparison.Ordinal) ||
-            IsNullSensitive(left) ||
-            IsNullSensitive(right) ||
-            !((left.Kind == FactKind.IsNull && right.Kind == FactKind.IsNotNull) ||
-              (left.Kind == FactKind.IsNotNull && right.Kind == FactKind.IsNull)))
+        if (
+            !TryCreateFact(resolver, node.Left, out var left)
+            || !TryCreateFact(resolver, node.Right, out var right)
+            || !string.Equals(left.Column, right.Column, StringComparison.Ordinal)
+            || IsNullSensitive(left)
+            || IsNullSensitive(right)
+            || !(
+                (left.Kind == FactKind.IsNull && right.Kind == FactKind.IsNotNull)
+                || (left.Kind == FactKind.IsNotNull && right.Kind == FactKind.IsNull)
+            )
+        )
             return;
 
         context.Report(
             DiagnosticCode.MQ5010_TautologicalCondition,
             "Predicate always evaluates to true because every value is either NULL or not NULL.",
-            node.Span);
+            node.Span
+        );
     }
 
     private static bool IsNullSensitive(PredicateFact fact)
@@ -52,14 +58,16 @@ internal static partial class PredicateAdvisoryAnalyzer
         return fact.Kind is FactKind.IsNull or FactKind.IsNotNull;
     }
 
-    private static bool TryCreateFact(
-        PredicateConstantResolver resolver,
-        Node node,
-        out PredicateFact fact)
+    private static bool TryCreateFact(PredicateConstantResolver resolver, Node node, out PredicateFact fact)
     {
         if (node is IsNullNode isNull && isNull.Expression is AccessColumnNode column)
         {
-            fact = new PredicateFact(ColumnKey(column), isNull.IsNegated ? FactKind.IsNotNull : FactKind.IsNull, null, false);
+            fact = new PredicateFact(
+                ColumnKey(column),
+                isNull.IsNegated ? FactKind.IsNotNull : FactKind.IsNull,
+                null,
+                false
+            );
             return true;
         }
 
@@ -69,13 +77,19 @@ internal static partial class PredicateAdvisoryAnalyzer
             return false;
         }
 
-        if (comparison.Left is AccessColumnNode leftColumn && TryGetValue(resolver, comparison.Right, out var rightValue))
+        if (
+            comparison.Left is AccessColumnNode leftColumn
+            && TryGetValue(resolver, comparison.Right, out var rightValue)
+        )
         {
             fact = CreateFact(ColumnKey(leftColumn), node, rightValue, false);
             return true;
         }
 
-        if (comparison.Right is AccessColumnNode rightColumn && TryGetValue(resolver, comparison.Left, out var leftValue))
+        if (
+            comparison.Right is AccessColumnNode rightColumn
+            && TryGetValue(resolver, comparison.Left, out var leftValue)
+        )
         {
             fact = CreateFact(ColumnKey(rightColumn), node, leftValue, true);
             return true;
@@ -94,15 +108,17 @@ internal static partial class PredicateAdvisoryAnalyzer
             GreaterOrEqualNode => reversed ? FactKind.UpperInclusive : FactKind.LowerInclusive,
             LessNode => reversed ? FactKind.Lower : FactKind.Upper,
             LessOrEqualNode => reversed ? FactKind.LowerInclusive : FactKind.UpperInclusive,
-            _ => FactKind.Equal
+            _ => FactKind.Equal,
         };
         return new PredicateFact(column, kind, value, true);
     }
 
     private static bool FactsContradict(PredicateFact left, PredicateFact right)
     {
-        if (left.Kind == FactKind.IsNull && right.Kind == FactKind.IsNotNull ||
-            left.Kind == FactKind.IsNotNull && right.Kind == FactKind.IsNull)
+        if (
+            left.Kind == FactKind.IsNull && right.Kind == FactKind.IsNotNull
+            || left.Kind == FactKind.IsNotNull && right.Kind == FactKind.IsNull
+        )
             return true;
 
         if (!left.HasValue || !right.HasValue)
@@ -133,7 +149,7 @@ internal static partial class PredicateAdvisoryAnalyzer
             FactKind.LowerInclusive => actual >= bound,
             FactKind.Upper => actual < bound,
             FactKind.UpperInclusive => actual <= bound,
-            _ => true
+            _ => true,
         };
     }
 
@@ -158,10 +174,7 @@ internal static partial class PredicateAdvisoryAnalyzer
         return value is not float and not double;
     }
 
-    private static bool TryFindNullOperand(
-        PredicateConstantResolver resolver,
-        Node node,
-        out Node nullOperand)
+    private static bool TryFindNullOperand(PredicateConstantResolver resolver, Node node, out Node nullOperand)
     {
         if (node is not BinaryNode comparison)
         {
@@ -225,16 +238,36 @@ internal static partial class PredicateAdvisoryAnalyzer
     {
         switch (value)
         {
-            case byte number: result = number; return true;
-            case sbyte number: result = number; return true;
-            case short number: result = number; return true;
-            case ushort number: result = number; return true;
-            case int number: result = number; return true;
-            case uint number: result = number; return true;
-            case long number: result = number; return true;
-            case ulong number: result = number; return true;
-            case decimal number: result = number; return true;
-            default: result = default; return false;
+            case byte number:
+                result = number;
+                return true;
+            case sbyte number:
+                result = number;
+                return true;
+            case short number:
+                result = number;
+                return true;
+            case ushort number:
+                result = number;
+                return true;
+            case int number:
+                result = number;
+                return true;
+            case uint number:
+                result = number;
+                return true;
+            case long number:
+                result = number;
+                return true;
+            case ulong number:
+                result = number;
+                return true;
+            case decimal number:
+                result = number;
+                return true;
+            default:
+                result = default;
+                return false;
         }
     }
 
@@ -246,7 +279,7 @@ internal static partial class PredicateAdvisoryAnalyzer
         Upper,
         UpperInclusive,
         IsNull,
-        IsNotNull
+        IsNotNull,
     }
 
     private readonly record struct PredicateFact(string Column, FactKind Kind, object? Value, bool HasValue);

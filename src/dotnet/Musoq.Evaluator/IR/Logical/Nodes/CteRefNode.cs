@@ -3,10 +3,7 @@ using Musoq.Evaluator.IR.Bindings;
 
 namespace Musoq.Evaluator.IR.Logical.Nodes;
 
-public sealed record CteRefNode(
-    string CteName,
-    string Alias,
-    OutputSchema OutputSchema) : LogicalNode(OutputSchema)
+public sealed record CteRefNode(string CteName, string Alias, OutputSchema OutputSchema) : LogicalNode(OutputSchema)
 {
     internal IntermediateProducerId? IntermediateProducerId { get; init; }
 

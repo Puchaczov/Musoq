@@ -61,18 +61,15 @@ public class ParserScriptVariablesTests
     [DataRow(
         "let string topic = 'important'; select 1 from #test.rows()",
         "string topic",
-        DisplayName = "C# style order")]
-    [DataRow(
-        "let topic: string; select 1 from #test.rows()",
-        "topic: string;",
-        DisplayName = "missing initializer")]
+        DisplayName = "C# style order"
+    )]
+    [DataRow("let topic: string; select 1 from #test.rows()", "topic: string;", DisplayName = "missing initializer")]
     [DataRow(
         "let $topic: string = 'important'; select 1 from #test.rows()",
         "$topic",
-        DisplayName = "PowerShell style name")]
-    public void Parser_InvalidLetDeclaration_ShouldReportStructuredDiagnostic(
-        string query,
-        string offendingText)
+        DisplayName = "PowerShell style name"
+    )]
+    public void Parser_InvalidLetDeclaration_ShouldReportStructuredDiagnostic(string query, string offendingText)
     {
         var result = ParseWithDiagnostics(query);
 

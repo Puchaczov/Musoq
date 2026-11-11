@@ -13,7 +13,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class LargeDataJoinTests : MultiSchemaTestBase
 {
-
     [TestMethod]
     public void InnerJoin_LargeDataset_ShouldWorkCorrectly()
     {
@@ -39,7 +38,9 @@ public class LargeDataJoinTests : MultiSchemaTestBase
             "select first.FirstItem, second.FirstItem from #schema.first() first left outer join #schema.second() second on first.FirstItem = second.FirstItem";
 
         var first = Enumerable.Range(0, size).Select(i => new FirstEntity { FirstItem = i.ToString() }).ToArray();
-        var second = Enumerable.Range(size / 2, size).Select(i => new SecondEntity { FirstItem = i.ToString() })
+        var second = Enumerable
+            .Range(size / 2, size)
+            .Select(i => new SecondEntity { FirstItem = i.ToString() })
             .ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
@@ -63,7 +64,9 @@ public class LargeDataJoinTests : MultiSchemaTestBase
             "select first.FirstItem, second.FirstItem from #schema.first() first right outer join #schema.second() second on first.FirstItem = second.FirstItem";
 
         var first = Enumerable.Range(0, size).Select(i => new FirstEntity { FirstItem = i.ToString() }).ToArray();
-        var second = Enumerable.Range(size / 2, size).Select(i => new SecondEntity { FirstItem = i.ToString() })
+        var second = Enumerable
+            .Range(size / 2, size)
+            .Select(i => new SecondEntity { FirstItem = i.ToString() })
             .ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, first, second, new CompilationOptions(useHashJoin: true));
@@ -83,28 +86,23 @@ public class LargeDataJoinTests : MultiSchemaTestBase
         string script,
         FirstEntity[] first,
         SecondEntity[] second,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
-        var schema = new MultiSchema(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
+        var schema = new MultiSchema(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                "first",
-                (new FirstEntityTable(), new MultiRowSource<FirstEntity>(first))
-            },
-            {
-                "second",
-                (new SecondEntityTable(), new MultiRowSource<SecondEntity>(second))
+                { "first", (new FirstEntityTable(), new MultiRowSource<FirstEntity>(first)) },
+                { "second", (new SecondEntityTable(), new MultiRowSource<SecondEntity>(second)) },
             }
-        });
+        );
 
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
-            new MultiSchemaProvider(new Dictionary<string, ISchema>
-            {
-                { "#schema", schema }
-            }),
+            new MultiSchemaProvider(new Dictionary<string, ISchema> { { "#schema", schema } }),
             LoggerResolver,
-            options);
+            options
+        );
     }
 }

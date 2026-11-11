@@ -16,21 +16,30 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        if (_sourceBinding.ExplicitlyDefinedTables.Keys.Any(
-                existingName => string.Equals(existingName, node.Name, StringComparison.Ordinal)))
+        if (
+            _sourceBinding.ExplicitlyDefinedTables.Keys.Any(existingName =>
+                string.Equals(existingName, node.Name, StringComparison.Ordinal)
+            )
+        )
             TryReportInvalidSchemaDefinition(
                 $"TABLE '{node.Name}' is already defined in this query batch. Table names must be unique.",
-                node.SpanOrEmpty());
+                node.SpanOrEmpty()
+            );
 
         if (node.Columns.Count == 0)
         {
-            if (TryReportInvalidSchemaDefinition(
+            if (
+                TryReportInvalidSchemaDefinition(
                     $"TABLE '{node.Name}' must declare at least one column.",
-                    node.SpanOrEmpty()))
+                    node.SpanOrEmpty()
+                )
+            )
             {
-                PushSemanticNode(((CreateTableNode)new CreateTableNode(node.Name, node.Columns))
-                    .WithSpan(node.Span)
-                    .WithFullSpan(node.FullSpan));
+                PushSemanticNode(
+                    ((CreateTableNode)new CreateTableNode(node.Name, node.Columns))
+                        .WithSpan(node.Span)
+                        .WithFullSpan(node.FullSpan)
+                );
                 return;
             }
         }
@@ -44,9 +53,12 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (!columnNames.Add(column.ColumnName))
             {
                 var duplicateSpan = column.ColumnNameSpan.IsEmpty ? node.SpanOrEmpty() : column.ColumnNameSpan;
-                if (TryReportInvalidSchemaDefinition(
+                if (
+                    TryReportInvalidSchemaDefinition(
                         $"TABLE '{node.Name}' declares duplicate column '{column.ColumnName}'. Column names must be unique.",
-                        duplicateSpan))
+                        duplicateSpan
+                    )
+                )
                     continue;
             }
 
@@ -60,19 +72,26 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (_enumBinding.QueryLocalTypes.TryGetValue(declaredTypeName, out var queryLocalEnum))
             {
                 var carrierType = EnumScalarTypeFacts.GetCarrierType(queryLocalEnum.UnderlyingKind);
-                tableColumns.Add(CreateLogicalEnumSchemaColumn(
-                    column,
-                    i,
-                    BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(carrierType),
-                    queryLocalEnum));
+                tableColumns.Add(
+                    CreateLogicalEnumSchemaColumn(
+                        column,
+                        i,
+                        BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(carrierType),
+                        queryLocalEnum
+                    )
+                );
                 continue;
             }
 
             var remappedType = EvaluationHelper.RemapPrimitiveTypes(declaredTypeName);
             var type = EvaluationHelper.RemapPrimitiveTypeAsNullable(remappedType);
 
-            new NativeTableEnumDeclarationValidator(_provider, _methodResolution.Assemblies)
-                .Validate(node, column, declaredTypeName, type);
+            new NativeTableEnumDeclarationValidator(_provider, _methodResolution.Assemblies).Validate(
+                node,
+                column,
+                declaredTypeName,
+                type
+            );
 
             if (type == null)
             {
@@ -91,9 +110,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.ExplicitlyDefinedTableDiagnosticLocations[node.Name] =
             SourceContractDiagnosticLocationMap.FromTable(node);
 
-        PushSemanticNode(((CreateTableNode)new CreateTableNode(node.Name, node.Columns))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(
+            ((CreateTableNode)new CreateTableNode(node.Name, node.Columns))
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     private bool TryReportInvalidSchemaDefinition(string message, TextSpan span)
@@ -103,7 +124,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             "ValidateTableDefinition",
             message,
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-            span);
+            span
+        );
 
         if (DiagnosticContext != null)
         {

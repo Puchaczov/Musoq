@@ -96,6 +96,5 @@ public static partial class SafeArrayAccess
         return normalized < values.Count ? values[normalized] : default;
     }
 
-    private static int NormalizeIndex(int index, int length)
-        => (index % length + length) % length;
+    private static int NormalizeIndex(int index, int length) => (index % length + length) % length;
 }

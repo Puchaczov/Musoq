@@ -20,9 +20,7 @@ internal static class AggregateCollectionCore
 
     public static string Join(List<string>? values, string delimiter)
     {
-        return values is { Count: > 0 }
-            ? string.Join(delimiter, values)
-            : string.Empty;
+        return values is { Count: > 0 } ? string.Join(delimiter, values) : string.Empty;
     }
 
     public static void AddNullableDistinct<T>(ref HashSet<T>? values, T? value)

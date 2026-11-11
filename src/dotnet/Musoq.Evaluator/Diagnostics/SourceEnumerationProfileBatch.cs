@@ -14,4 +14,5 @@ internal readonly record struct SourceEnumerationProfileBatch(
     string? ExceptionMessage,
     bool IsTimingEstimated,
     long TimedMoveNextCalls,
-    long UntimedMoveNextCalls);
+    long UntimedMoveNextCalls
+);

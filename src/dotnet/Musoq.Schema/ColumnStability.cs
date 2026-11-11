@@ -13,5 +13,5 @@ public enum ColumnStability
     /// <summary>
     ///     The value may change, have observable access effects, or depend on invocation timing.
     /// </summary>
-    Volatile
+    Volatile,
 }

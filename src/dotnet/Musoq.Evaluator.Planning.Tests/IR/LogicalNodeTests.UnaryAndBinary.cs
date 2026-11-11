@@ -14,10 +14,12 @@ public partial class LogicalNodeTests
     public void FilterNode_WhenConstructed_ShouldPassThroughSchema()
     {
         var scan = CreateScan();
-        var predicate = new BinaryOp(BinaryOpKind.GreaterThan,
+        var predicate = new BinaryOp(
+            BinaryOpKind.GreaterThan,
             new ColumnRef("t", "Id", typeof(int)),
             new Literal(10, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var filter = new FilterNode(predicate, scan);
 
         Assert.AreEqual(scan.OutputSchema, filter.OutputSchema);
@@ -32,7 +34,7 @@ public partial class LogicalNodeTests
         var fields = new[]
         {
             new ProjectedField("Name", new ColumnRef("t", "Name", typeof(string)), 0),
-            new ProjectedField("IdSquared", new Literal(0, typeof(int)), 1)
+            new ProjectedField("IdSquared", new Literal(0, typeof(int)), 1),
         };
         var project = new ProjectNode(fields, scan);
 
@@ -50,17 +52,15 @@ public partial class LogicalNodeTests
         var scan = CreateScan();
         var setMethod = typeof(string).GetMethod("Concat", [typeof(string), typeof(string)])!;
         var getMethod = typeof(string).GetMethod("ToUpper", Type.EmptyTypes)!;
-        var bindings = new[]
-        {
-            new AggregateBinding("Count", "Count", setMethod, [], getMethod, [], typeof(int))
-        };
+        var bindings = new[] { new AggregateBinding("Count", "Count", setMethod, [], getMethod, [], typeof(int)) };
 
         var aggNode = new AggregateNode(
             [new ColumnRef("t", "Name", typeof(string))],
             ["Name"],
             [typeof(string)],
             bindings,
-            scan);
+            scan
+        );
 
         Assert.HasCount(2, aggNode.OutputSchema.Columns);
         Assert.AreEqual("Name", aggNode.OutputSchema.Columns[0].Name);
@@ -74,10 +74,12 @@ public partial class LogicalNodeTests
     public void HavingFilterNode_WhenConstructed_ShouldPassThroughSchema()
     {
         var scan = CreateScan();
-        var predicate = new BinaryOp(BinaryOpKind.GreaterThan,
+        var predicate = new BinaryOp(
+            BinaryOpKind.GreaterThan,
             new ColumnRef("t", "Id", typeof(int)),
             new Literal(5, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var having = new HavingFilterNode(predicate, scan);
 
         Assert.AreEqual(scan.OutputSchema, having.OutputSchema);
@@ -122,10 +124,7 @@ public partial class LogicalNodeTests
     {
         var scan = CreateScan();
         var method = typeof(string).GetMethod("ToUpper", Type.EmptyTypes)!;
-        var registrations = new[]
-        {
-            new WindowRegistration(method, method.Name, [], [], [], 0, typeof(decimal))
-        };
+        var registrations = new[] { new WindowRegistration(method, method.Name, [], [], [], 0, typeof(decimal)) };
         var window = new WindowNode(registrations, scan);
 
         Assert.HasCount(3, window.OutputSchema.Columns);
@@ -140,10 +139,12 @@ public partial class LogicalNodeTests
     public void QualifyFilterNode_WhenConstructed_ShouldPassThroughSchema()
     {
         var scan = CreateScan();
-        var predicate = new BinaryOp(BinaryOpKind.GreaterThan,
+        var predicate = new BinaryOp(
+            BinaryOpKind.GreaterThan,
             new ColumnRef("t", "Id", typeof(int)),
             new Literal(1, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var qualify = new QualifyFilterNode(predicate, scan);
 
         Assert.AreEqual(scan.OutputSchema, qualify.OutputSchema);
@@ -159,10 +160,12 @@ public partial class LogicalNodeTests
     {
         var left = CreateScan("a", ("Id", typeof(int)));
         var right = CreateScan("b", ("Name", typeof(string)));
-        var on = new BinaryOp(BinaryOpKind.Equal,
+        var on = new BinaryOp(
+            BinaryOpKind.Equal,
             new ColumnRef("a", "Id", typeof(int)),
             new ColumnRef("b", "Id", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
 
         var join = new JoinNode(JoinKind.Inner, on, left, right);
 

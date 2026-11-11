@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Musoq.Tests.Common;
 using System.Runtime.Loader;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
@@ -10,6 +9,7 @@ using Musoq.Converter.Tests.Components;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Schema;
+using Musoq.Tests.Common;
 
 namespace Musoq.Converter.Tests;
 
@@ -32,7 +32,8 @@ public sealed class QueryScopedRowCacheTests
     {
         var query = QueryWithDeterministicThreshold(
             "select r.Value from #queryrowcache.rows() r where r.Value >= {0}",
-            FreshProviderThreshold);
+            FreshProviderThreshold
+        );
         var firstProvider = new QueryRowCacheSchemaProvider(NarrowState(11));
         var first = Compile(query, "QueryRowCacheFreshFirst", firstProvider);
         Assert.IsFalse(first.BuildItems!.StopAfterPlanning);
@@ -43,7 +44,10 @@ public sealed class QueryScopedRowCacheTests
 
         var secondProvider = new QueryRowCacheSchemaProvider(NarrowState(22));
         var second = Compile(query, "QueryRowCacheFreshSecond", secondProvider);
-        Assert.IsTrue(second.BuildItems!.StopAfterPlanning, "The identical semantic shape did not hit the execution artifact cache.");
+        Assert.IsTrue(
+            second.BuildItems!.StopAfterPlanning,
+            "The identical semantic shape did not hit the execution artifact cache."
+        );
         var secondRuntime = GetGeneratedRuntime(second.CompiledQuery!);
 
         Assert.AreEqual(firstRuntime.Type.Module.ModuleVersionId, secondRuntime.Type.Module.ModuleVersionId);
@@ -60,7 +64,8 @@ public sealed class QueryScopedRowCacheTests
     {
         var query = QueryWithDeterministicThreshold(
             "select * from #queryrowcache.rows() r where {0} <= 0",
-            MutatedMetadataThreshold);
+            MutatedMetadataThreshold
+        );
         var state = NarrowState(7);
         var provider = new QueryRowCacheSchemaProvider(state);
         var first = Compile(query, $"QueryRowCacheShapeFirst_{Guid.NewGuid():N}", provider);
@@ -72,7 +77,10 @@ public sealed class QueryScopedRowCacheTests
 
         state.Configure(
             [new QueryRowCacheColumn(nameof(QueryRowCacheEntity.Text), 0, typeof(string))],
-            [["changed"]]);
+            [
+                ["changed"],
+            ]
+        );
         SemanticTemplateCache.Clear();
 
         var second = Compile(query, $"QueryRowCacheShapeSecond_{Guid.NewGuid():N}", provider);
@@ -86,7 +94,10 @@ public sealed class QueryScopedRowCacheTests
         second.CompiledQuery.Dispose();
 
         var third = Compile(query, $"QueryRowCacheShapeThird_{Guid.NewGuid():N}", provider);
-        Assert.IsTrue(third.BuildItems!.StopAfterPlanning, "The updated semantic contract was not installed under the colliding exact key.");
+        Assert.IsTrue(
+            third.BuildItems!.StopAfterPlanning,
+            "The updated semantic contract was not installed under the colliding exact key."
+        );
         using (var table = third.CompiledQuery!.Run())
             Assert.AreEqual("changed", table[0].ReadValue(0));
         third.CompiledQuery.Dispose();
@@ -97,20 +108,25 @@ public sealed class QueryScopedRowCacheTests
     {
         var query = QueryWithDeterministicThreshold(
             "select r.Value from #queryrowcache.rows() r where r.Value >= {0}",
-            CapabilityThreshold);
+            CapabilityThreshold
+        );
         var state = NarrowState(31);
         var provider = new QueryRowCacheSchemaProvider(state);
         var queryScoped = Compile(query, "QueryRowCacheCapabilityQueryScoped", provider);
         var queryScopedEntry = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
             queryScoped.BuildItems!,
-            provider);
+            provider
+        );
         Assert.AreEqual(SourceTransferMode.QueryScopedRows, Transfer(queryScoped.BuildItems!).Mode);
         queryScoped.CompiledQuery!.Dispose();
 
         state.Configure(
             state.Columns,
-            [[31]],
-            SourceTransferCapabilities.None);
+            [
+                [31],
+            ],
+            SourceTransferCapabilities.None
+        );
         SemanticTemplateCache.Clear();
 
         var legacy = Compile(query, "QueryRowCacheCapabilityLegacy", provider);
@@ -134,21 +150,25 @@ public sealed class QueryScopedRowCacheTests
         var scanLocal = Compile(
             QueryWithDeterministicThreshold(
                 "select r.Value from #queryrowcache.rows() r where r.Value >= {0}",
-                NarrowCarrierThreshold),
+                NarrowCarrierThreshold
+            ),
             "QueryRowCacheStruct",
-            narrowProvider);
+            narrowProvider
+        );
         var scanLocalEntry = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
             scanLocal.BuildItems!,
-            narrowProvider);
+            narrowProvider
+        );
 
-        var wideProvider = new QueryRowCacheSchemaProvider(
-            new QueryRowCacheState(WideColumns(), [WideValues()]));
+        var wideProvider = new QueryRowCacheSchemaProvider(new QueryRowCacheState(WideColumns(), [WideValues()]));
         var wide = Compile(
             QueryWithDeterministicThreshold(
                 "select r.G0, r.G1, r.G2, r.G3, r.G4 from #queryrowcache.rows() r where {0} <= 0",
-                WideCarrierThreshold),
+                WideCarrierThreshold
+            ),
             "QueryRowCacheClass",
-            wideProvider);
+            wideProvider
+        );
         var scanLocalTransfer = Transfer(scanLocal.BuildItems!);
         var wideTransfer = Transfer(wide.BuildItems!);
 
@@ -156,7 +176,8 @@ public sealed class QueryScopedRowCacheTests
         Assert.AreEqual(SourceQueryRowCarrier.SealedClass, wideTransfer.Carrier);
         Assert.AreNotEqual(
             scanLocalEntry,
-            InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(wide.BuildItems!, wideProvider));
+            InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(wide.BuildItems!, wideProvider)
+        );
 
         scanLocal.CompiledQuery!.Dispose();
         wide.CompiledQuery!.Dispose();
@@ -170,13 +191,15 @@ public sealed class QueryScopedRowCacheTests
             $"{assemblyName}_{Guid.NewGuid():N}",
             provider,
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Errors));
         Assert.IsNotNull(result.BuildItems);
         Assert.IsNotNull(result.CompiledQuery);
         var entry = (query, Transfer(result.BuildItems).Mode);
         var type = ResolveGeneratedType(result.BuildItems, entry, capture);
-        var context = AssemblyLoadContext.GetLoadContext(type.Assembly)
+        var context =
+            AssemblyLoadContext.GetLoadContext(type.Assembly)
             ?? throw new AssertFailedException("The generated assembly has no load context.");
         var runtime = new GeneratedRuntime(type, context);
         _generatedRuntimes.Add(result.CompiledQuery, runtime);
@@ -184,8 +207,11 @@ public sealed class QueryScopedRowCacheTests
         return result;
     }
 
-    private Type ResolveGeneratedType(BuildItems items, (string Query, SourceTransferMode Mode) entry,
-        GeneratedAssemblyCapture capture)
+    private Type ResolveGeneratedType(
+        BuildItems items,
+        (string Query, SourceTransferMode Mode) entry,
+        GeneratedAssemblyCapture capture
+    )
     {
         if (items.ExecutableArtifact is ClrLoadedExecutableArtifact loaded)
             return loaded.RunnableType;
@@ -204,19 +230,24 @@ public sealed class QueryScopedRowCacheTests
     {
         return new QueryRowCacheState(
             [new QueryRowCacheColumn(nameof(QueryRowCacheEntity.Value), 0, typeof(int))],
-            [[value]]);
+            [
+                [value],
+            ]
+        );
     }
 
     private static IReadOnlyList<QueryRowCacheColumn> WideColumns()
     {
-        return Enumerable.Range(0, 5)
+        return Enumerable
+            .Range(0, 5)
             .Select(index => new QueryRowCacheColumn($"G{index}", index, typeof(Guid)))
             .ToArray();
     }
 
     private static object?[] WideValues()
     {
-        return Enumerable.Range(0, 5)
+        return Enumerable
+            .Range(0, 5)
             .Select(index => (object?)Guid.Parse($"00000000-0000-0000-0000-{index + 1:000000000000}"))
             .ToArray();
     }
@@ -228,14 +259,15 @@ public sealed class QueryScopedRowCacheTests
 
     private static SourceTransferStrategyPlan Transfer(BuildItems items)
     {
-        return items.PlanningResult?.ExecutionArtifacts.SourceTransferPlansBySourceId?
-                   .Values
-                   .Single() ??
-               throw new AssertFailedException("The compilation did not expose a source-transfer plan.");
+        return items.PlanningResult?.ExecutionArtifacts.SourceTransferPlansBySourceId?.Values.Single()
+            ?? throw new AssertFailedException("The compilation did not expose a source-transfer plan.");
     }
 
-    private GeneratedRuntime GetGeneratedRuntime(CompiledQuery query) => _generatedRuntimes.GetValue(query,
-        static _ => throw new AssertFailedException("No assembly-load receipt for this compiled query."));
+    private GeneratedRuntime GetGeneratedRuntime(CompiledQuery query) =>
+        _generatedRuntimes.GetValue(
+            query,
+            static _ => throw new AssertFailedException("No assembly-load receipt for this compiled query.")
+        );
 
     private sealed record GeneratedRuntime(Type Type, AssemblyLoadContext Context);
 }

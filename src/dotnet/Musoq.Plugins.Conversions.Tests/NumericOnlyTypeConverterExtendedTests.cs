@@ -1,6 +1,6 @@
 using System;
-using Musoq.Plugins.Lib.TypeConversion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Plugins.Lib.TypeConversion;
 
 namespace Musoq.Plugins.Tests;
 

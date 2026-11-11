@@ -1,6 +1,3 @@
-global using Musoq.Schema.Optimization;
-global using Musoq.Targets.CSharpClr;
-global using Musoq.Tests.Common;
 global using Musoq.Evaluator.IR.Execution.Lowering;
 global using Musoq.Evaluator.IR.Execution.Lowering.Aggregates;
 global using Musoq.Evaluator.IR.Execution.Lowering.Ctes;
@@ -10,3 +7,6 @@ global using Musoq.Evaluator.IR.Execution.Lowering.SetOperations;
 global using Musoq.Evaluator.IR.Execution.Lowering.Sources;
 global using Musoq.Evaluator.IR.Execution.Lowering.Tables;
 global using Musoq.Evaluator.IR.Execution.Lowering.Windows;
+global using Musoq.Schema.Optimization;
+global using Musoq.Targets.CSharpClr;
+global using Musoq.Tests.Common;

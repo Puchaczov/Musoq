@@ -36,7 +36,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         bw.Write("ABC"u8.ToArray());
         bw.Flush();
 
-        var query = @"
+        var query =
+            @"
             binary Pkt {
                 Size: uint le,
                 Data: string[Size] ascii
@@ -45,12 +46,21 @@ public class BugProbeSizeExpressionEdgeCaseTests
             cross apply Interpret<Pkt>(b.Content) p";
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -70,7 +80,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         bw.Write((ushort)4);
         ms.Write([0xDE, 0xAD, 0xBE, 0xEF], 0, 4);
 
-        var query = @"
+        var query =
+            @"
             binary Chunk {
                 Len: ushort le,
                 Blob: byte[Len]
@@ -79,12 +90,21 @@ public class BugProbeSizeExpressionEdgeCaseTests
             cross apply Interpret<Chunk>(b.Content) c";
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -104,7 +124,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         bw.Write(new byte[16]); // padding
         bw.Flush();
 
-        var query = @"
+        var query =
+            @"
             binary Broken {
                 Len: short le,
                 Data: string[Len] ascii
@@ -113,16 +134,24 @@ public class BugProbeSizeExpressionEdgeCaseTests
             cross apply Interpret<Broken>(f.Content) b";
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Negative size should throw ParseException with clear error message
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
-        var ex = Assert.Throws<ParseException>(() =>
-            _ = vm.Run(CancellationToken.None).Count);
+        var ex = Assert.Throws<ParseException>(() => _ = vm.Run(CancellationToken.None).Count);
         Assert.AreEqual(ParseErrorCode.InvalidSize, ex.ErrorCode);
     }
 
@@ -138,7 +167,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         bw.Write("Musoq!"u8.ToArray());
         bw.Flush();
 
-        var query = @"
+        var query =
+            @"
             binary Chunk {
                 Len: int le,
                 Name: string[Len] utf8
@@ -147,12 +177,21 @@ public class BugProbeSizeExpressionEdgeCaseTests
             cross apply Interpret<Chunk>(b.Content) c";
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -175,7 +214,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         bw.Write((byte)0x00); // null terminator (part of the 6 bytes total)
         bw.Flush();
 
-        var query = @"
+        var query =
+            @"
             binary Msg {
                 TotalLen: byte,
                 Text: string[TotalLen - 1] ascii
@@ -184,12 +224,21 @@ public class BugProbeSizeExpressionEdgeCaseTests
             cross apply Interpret<Msg>(b.Content) m";
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -210,7 +259,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         bw.Write("ABCDEF"u8.ToArray()); // 3*2 = 6 chars
         bw.Flush();
 
-        var query = @"
+        var query =
+            @"
             binary Msg {
                 HalfLen: byte,
                 Text: string[HalfLen * 2] ascii
@@ -219,12 +269,21 @@ public class BugProbeSizeExpressionEdgeCaseTests
             cross apply Interpret<Msg>(b.Content) m";
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -244,7 +303,8 @@ public class BugProbeSizeExpressionEdgeCaseTests
         bw.Write(2L);
         ms.Write([0xAB, 0xCD], 0, 2);
 
-        var query = @"
+        var query =
+            @"
             binary Chunk {
                 Size: long le,
                 Data: byte[Size]
@@ -253,12 +313,21 @@ public class BugProbeSizeExpressionEdgeCaseTests
             cross apply Interpret<Chunk>(b.Content) c";
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

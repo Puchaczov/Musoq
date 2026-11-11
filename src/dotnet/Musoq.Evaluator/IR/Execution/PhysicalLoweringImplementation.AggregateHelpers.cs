@@ -4,6 +4,7 @@ using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using AggregateRefRewriter = Musoq.Evaluator.IR.Expressions.AggregateRefRewriter;
+
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
@@ -11,7 +12,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ExecutionExpression[] ConvertAggregateArguments(
         IReadOnlyList<IrExpression> arguments,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets = null)
+        IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets = null
+    )
     {
         return arguments
             .Select(argument => ExecutionExpressionConverter.Convert(argument, sourceLookup, null, methodTargets))
@@ -26,7 +28,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IrExpression? havingPredicate,
         IReadOnlyList<PostOperation> postOperations,
         out AggregateGroupLowering aggregateGroup,
-        out string unsupportedReason)
+        out string unsupportedReason
+    )
     {
         aggregateGroup = null!;
         unsupportedReason = string.Empty;
@@ -40,7 +43,9 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         var accumulators = new List<AggregateAccumulatorField>(bindings.Count);
-        var accumulatorsByIdentifier = new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase);
+        var accumulatorsByIdentifier = new Dictionary<string, AggregateAccumulatorField>(
+            StringComparer.OrdinalIgnoreCase
+        );
         var keys = CreateAggregateGroupKeyFields(groupKeys);
 
         for (var index = 0; index < bindings.Count; index++)
@@ -70,7 +75,8 @@ internal sealed partial class PhysicalLoweringImplementation
             CreateAggregateGroupShapeName(resultTableName),
             keys,
             capturedFields,
-            accumulators);
+            accumulators
+        );
 
         aggregateGroup = new AggregateGroupLowering(plan, accumulatorsByIdentifier, capturedFieldsByName);
         return true;
@@ -85,14 +91,14 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         var keyType = Nullable.GetUnderlyingType(type) ?? type;
 
-        return keyType.IsPrimitive ||
-               keyType.IsEnum ||
-               keyType == typeof(string) ||
-               keyType == typeof(decimal) ||
-               keyType == typeof(DateTime) ||
-               keyType == typeof(DateTimeOffset) ||
-               keyType == typeof(TimeSpan) ||
-               keyType == typeof(Guid);
+        return keyType.IsPrimitive
+            || keyType.IsEnum
+            || keyType == typeof(string)
+            || keyType == typeof(decimal)
+            || keyType == typeof(DateTime)
+            || keyType == typeof(DateTimeOffset)
+            || keyType == typeof(TimeSpan)
+            || keyType == typeof(Guid);
     }
 
     private static bool IsUnsupportedTypedAggregateGroupKeyType(Type type)
@@ -104,7 +110,8 @@ internal sealed partial class PhysicalLoweringImplementation
         AggregateBinding binding,
         int ordinal,
         int groupKeyCount,
-        out AggregateAccumulatorField accumulator)
+        out AggregateAccumulatorField accumulator
+    )
     {
         accumulator = null!;
         if (binding.Kernel is null)
@@ -112,16 +119,16 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var parentDepth = Math.Min(Math.Max(binding.ParentDepth, 0), groupKeyCount);
         var ownerPrefixLength = Math.Max(0, groupKeyCount - parentDepth);
-        var ownerFieldName = ownerPrefixLength == groupKeyCount
-            ? null
-            : AggregateGroupPlanner.CreateOwnerFieldName(ownerPrefixLength);
+        var ownerFieldName =
+            ownerPrefixLength == groupKeyCount ? null : AggregateGroupPlanner.CreateOwnerFieldName(ownerPrefixLength);
         accumulator = new AggregateAccumulatorField(
             binding.Identifier,
             $"__agg{ordinal.ToString(CultureInfo.InvariantCulture)}",
             binding.Kernel,
             parentDepth,
             ownerPrefixLength,
-            ownerFieldName);
+            ownerFieldName
+        );
         return true;
     }
 
@@ -129,7 +136,8 @@ internal sealed partial class PhysicalLoweringImplementation
         AggregateFinalizationGroupKeys groupKeys,
         IReadOnlyList<ProjectedField> fields,
         IrExpression? havingPredicate,
-        IReadOnlyList<PostOperation> postOperations)
+        IReadOnlyList<PostOperation> postOperations
+    )
     {
         var capturedFields = new List<AggregateCapturedField>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -144,19 +152,14 @@ internal sealed partial class PhysicalLoweringImplementation
         return capturedFields;
     }
 
-    private static AggregateCapturedField CreateAggregateCapturedField(
-        string name,
-        Type type,
-        int index)
+    private static AggregateCapturedField CreateAggregateCapturedField(string name, Type type, int index)
     {
-        return new AggregateCapturedField(
-            name,
-            $"__slot{index.ToString(CultureInfo.InvariantCulture)}",
-            type);
+        return new AggregateCapturedField(name, $"__slot{index.ToString(CultureInfo.InvariantCulture)}", type);
     }
 
     private static Dictionary<string, AggregateCapturedField> CreateAggregateCapturedFieldsLookup(
-        IReadOnlyList<AggregateCapturedField> capturedFields)
+        IReadOnlyList<AggregateCapturedField> capturedFields
+    )
     {
         var lookup = new Dictionary<string, AggregateCapturedField>(StringComparer.Ordinal);
         foreach (var capturedField in capturedFields)
@@ -165,7 +168,8 @@ internal sealed partial class PhysicalLoweringImplementation
             AddAggregateCapturedFieldLookup(
                 lookup,
                 AggregateRefRewriter.NormalizeIdentifier(capturedField.Name),
-                capturedField);
+                capturedField
+            );
         }
 
         return lookup;
@@ -174,7 +178,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static void AddAggregateCapturedFieldLookup(
         IDictionary<string, AggregateCapturedField> lookup,
         string? key,
-        AggregateCapturedField capturedField)
+        AggregateCapturedField capturedField
+    )
     {
         if (string.IsNullOrWhiteSpace(key))
             return;
@@ -182,17 +187,19 @@ internal sealed partial class PhysicalLoweringImplementation
         lookup.TryAdd(key, capturedField);
     }
 
-    private static List<AggregateGroupKeyField> CreateAggregateGroupKeyFields(
-        AggregateFinalizationGroupKeys groupKeys)
+    private static List<AggregateGroupKeyField> CreateAggregateGroupKeyFields(AggregateFinalizationGroupKeys groupKeys)
     {
         var keys = new List<AggregateGroupKeyField>(groupKeys.Names.Count);
 
         for (var index = 0; index < groupKeys.Names.Count; index++)
         {
-            keys.Add(new AggregateGroupKeyField(
-                groupKeys.Names[index],
-                $"__key{index.ToString(CultureInfo.InvariantCulture)}",
-                groupKeys.Types[index]));
+            keys.Add(
+                new AggregateGroupKeyField(
+                    groupKeys.Names[index],
+                    $"__key{index.ToString(CultureInfo.InvariantCulture)}",
+                    groupKeys.Types[index]
+                )
+            );
         }
 
         return keys;
@@ -201,16 +208,15 @@ internal sealed partial class PhysicalLoweringImplementation
     private static string CreateAggregateGroupShapeName(string resultTableName)
     {
         var candidate = CreateIdentifierCandidate($"{CreateGeneratedTypeNamePrefix(resultTableName)}AggregateGroup", 0);
-        return ExecutionSymbolicNamePolicy.IsReservedIdentifier(candidate)
-            ? $"_{candidate}"
-            : candidate;
+        return ExecutionSymbolicNamePolicy.IsReservedIdentifier(candidate) ? $"_{candidate}" : candidate;
     }
 
     private static IReadOnlyList<RowShape> CreateAggregateResultShapes(
         IReadOnlyList<RowShape> sourceShapes,
         AggregateGroupPlan aggregateGroupPlan,
-        GeneratedRowShape resultShape)
+        GeneratedRowShape resultShape
+    )
     {
-        return [..sourceShapes, ..aggregateGroupPlan.Levels.Select(static level => level.Shape), resultShape];
+        return [.. sourceShapes, .. aggregateGroupPlan.Levels.Select(static level => level.Shape), resultShape];
     }
 }

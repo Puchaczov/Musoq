@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 
 internal static partial class EvaluatorSampleFixtures
 {
-
     private static ISchemaProvider CreateTypedTypeMatrixSampleProvider()
     {
         return new TypedTypeMatrixSampleProvider();
@@ -29,14 +28,15 @@ internal static partial class EvaluatorSampleFixtures
     private static ISchemaProvider CreateSettingsProfileSampleProvider()
     {
         return new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(
-            SourceRuntimeSettingsLifecycleTestsFixtures.SettingsDeclarationMode.RequiredAndOptional);
+            SourceRuntimeSettingsLifecycleTestsFixtures.SettingsDeclarationMode.RequiredAndOptional
+        );
     }
 
     private static CompilationOptions CreateSettingsProfileCompilationOptions()
     {
         return new CompilationOptions(
-            sourceRuntimeSettingsResolver: new DeterministicSettingsProfileResolver())
-            .WithStabilityAwareScalarReuse();
+            sourceRuntimeSettingsResolver: new DeterministicSettingsProfileResolver()
+        ).WithStabilityAwareScalarReuse();
     }
 
     private static ISchemaProvider CreateTableCoupleSampleProvider()
@@ -46,33 +46,56 @@ internal static partial class EvaluatorSampleFixtures
             {
                 ["#A"] =
                 [
-                    new BasicEntity { Id = 1, Name = "alpha", Population = 10m },
-                    new BasicEntity { Id = 2, Name = "beta", Population = 20m }
+                    new BasicEntity
+                    {
+                        Id = 1,
+                        Name = "alpha",
+                        Population = 10m,
+                    },
+                    new BasicEntity
+                    {
+                        Id = 2,
+                        Name = "beta",
+                        Population = 20m,
+                    },
                 ],
                 ["#B"] =
                 [
-                    new BasicEntity { Id = 1, Name = "alpha", Population = 11m },
-                    new BasicEntity { Id = 3, Name = "gamma", Population = 30m }
-                ]
-            });
+                    new BasicEntity
+                    {
+                        Id = 1,
+                        Name = "alpha",
+                        Population = 11m,
+                    },
+                    new BasicEntity
+                    {
+                        Id = 3,
+                        Name = "gamma",
+                        Population = 30m,
+                    },
+                ],
+            }
+        );
     }
 
     private sealed class TableCoupleArgumentsSampleProvider : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
-            if (schema.Equals("named", StringComparison.OrdinalIgnoreCase) ||
-                schema.Equals("#named", StringComparison.OrdinalIgnoreCase))
+            if (
+                schema.Equals("named", StringComparison.OrdinalIgnoreCase)
+                || schema.Equals("#named", StringComparison.OrdinalIgnoreCase)
+            )
                 return new NamedDatasourceSampleSchema();
 
-            if (schema.Equals("unknown", StringComparison.OrdinalIgnoreCase) ||
-                schema.Equals("#unknown", StringComparison.OrdinalIgnoreCase))
+            if (
+                schema.Equals("unknown", StringComparison.OrdinalIgnoreCase)
+                || schema.Equals("#unknown", StringComparison.OrdinalIgnoreCase)
+            )
             {
-                return new UnknownSchema(
-                    [new Dictionary<string, object?>(StringComparer.Ordinal)
-                    {
-                        ["Text"] = "cte"
-                    }]);
+                return new UnknownSchema([
+                    new Dictionary<string, object?>(StringComparer.Ordinal) { ["Text"] = "cte" },
+                ]);
             }
 
             throw new NotSupportedException(schema);
@@ -81,16 +104,10 @@ internal static partial class EvaluatorSampleFixtures
 
     private sealed class DeterministicSettingsProfileResolver : ISourceRuntimeSettingsResolver
     {
-        public IReadOnlyDictionary<string, string> Resolve(
-            SourceRuntimeSettingsResolutionRequest request)
+        public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
         {
-            var profile = string.IsNullOrWhiteSpace(request.ProfileName)
-                ? "default"
-                : request.ProfileName;
-            return new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["TOKEN"] = $"{profile}-token"
-            };
+            var profile = string.IsNullOrWhiteSpace(request.ProfileName) ? "default" : request.ProfileName;
+            return new Dictionary<string, string>(StringComparer.Ordinal) { ["TOKEN"] = $"{profile}-token" };
         }
     }
 
@@ -98,8 +115,10 @@ internal static partial class EvaluatorSampleFixtures
     {
         public ISchema GetSchema(string schema)
         {
-            if (!schema.Equals("unknown", StringComparison.OrdinalIgnoreCase) &&
-                !schema.Equals("#unknown", StringComparison.OrdinalIgnoreCase))
+            if (
+                !schema.Equals("unknown", StringComparison.OrdinalIgnoreCase)
+                && !schema.Equals("#unknown", StringComparison.OrdinalIgnoreCase)
+            )
                 throw new NotSupportedException(schema);
 
             return new TypedTypeMatrixSampleSchema();
@@ -110,13 +129,13 @@ internal static partial class EvaluatorSampleFixtures
     {
         public TypedTypeMatrixSampleSchema()
             : base("unknown", new Musoq.Schema.Managers.MethodsAggregator(new Musoq.Schema.Managers.MethodsManager()))
-        {
-        }
+        { }
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (!name.Equals("rows", StringComparison.OrdinalIgnoreCase))
                 throw new NotSupportedException(name);
@@ -127,14 +146,16 @@ internal static partial class EvaluatorSampleFixtures
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             if (!name.Equals("rows", StringComparison.OrdinalIgnoreCase))
                 throw new NotSupportedException(name);
 
             return EnsureSourceType<T, SpecificationTypeMatrixEntity>(
                 name,
-                new EmptyTypedRowSource<SpecificationTypeMatrixEntity>());
+                new EmptyTypedRowSource<SpecificationTypeMatrixEntity>()
+            );
         }
     }
 
@@ -164,7 +185,7 @@ internal static partial class EvaluatorSampleFixtures
             new SchemaColumn(nameof(SpecificationTypeMatrixEntity.GuidCol), 19, typeof(Guid)),
             new SchemaColumn(nameof(SpecificationTypeMatrixEntity.ConcreteCol), 20, typeof(string)),
             new SchemaColumn(nameof(SpecificationTypeMatrixEntity.FullyQualified), 21, typeof(int)),
-            new SchemaColumn(nameof(SpecificationTypeMatrixEntity.NullableInt), 22, typeof(int?))
+            new SchemaColumn(nameof(SpecificationTypeMatrixEntity.NullableInt), 22, typeof(int?)),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(SpecificationTypeMatrixEntity));
@@ -180,8 +201,10 @@ internal static partial class EvaluatorSampleFixtures
     {
         public ISchema GetSchema(string schema)
         {
-            if (!schema.Equals("readmods", StringComparison.OrdinalIgnoreCase) &&
-                !schema.Equals("#readmods", StringComparison.OrdinalIgnoreCase))
+            if (
+                !schema.Equals("readmods", StringComparison.OrdinalIgnoreCase)
+                && !schema.Equals("#readmods", StringComparison.OrdinalIgnoreCase)
+            )
                 throw new NotSupportedException(schema);
 
             return new TypedReadModifiersSampleSchema();
@@ -192,13 +215,13 @@ internal static partial class EvaluatorSampleFixtures
     {
         public TypedReadModifiersSampleSchema()
             : base("readmods", new Musoq.Schema.Managers.MethodsAggregator(new Musoq.Schema.Managers.MethodsManager()))
-        {
-        }
+        { }
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (!name.Equals("records", StringComparison.OrdinalIgnoreCase))
                 throw new NotSupportedException(name);
@@ -209,14 +232,16 @@ internal static partial class EvaluatorSampleFixtures
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             if (!name.Equals("records", StringComparison.OrdinalIgnoreCase))
                 throw new NotSupportedException(name);
 
             return EnsureSourceType<T, SpecificationReadModifiersEntity>(
                 name,
-                new EmptyTypedRowSource<SpecificationReadModifiersEntity>());
+                new EmptyTypedRowSource<SpecificationReadModifiersEntity>()
+            );
         }
     }
 
@@ -231,8 +256,9 @@ internal static partial class EvaluatorSampleFixtures
                 new Dictionary<string, string>
                 {
                     [ColumnReadModifiers.Encoding] = "windows-1250",
-                    [ColumnReadModifiers.Trim] = string.Empty
-                }),
+                    [ColumnReadModifiers.Trim] = string.Empty,
+                }
+            ),
             new SchemaColumn(
                 nameof(SpecificationReadModifiersEntity.CustomerName),
                 1,
@@ -240,8 +266,9 @@ internal static partial class EvaluatorSampleFixtures
                 new Dictionary<string, string>
                 {
                     [ColumnReadModifiers.Encoding] = "windows-1250",
-                    [ColumnReadModifiers.Trim] = string.Empty
-                }),
+                    [ColumnReadModifiers.Trim] = string.Empty,
+                }
+            ),
             new SchemaColumn(
                 nameof(SpecificationReadModifiersEntity.Total),
                 2,
@@ -249,16 +276,15 @@ internal static partial class EvaluatorSampleFixtures
                 new Dictionary<string, string>
                 {
                     [ColumnReadModifiers.Culture] = "pl-PL",
-                    [ColumnReadModifiers.Format] = "#,##0.00"
-                }),
+                    [ColumnReadModifiers.Format] = "#,##0.00",
+                }
+            ),
             new SchemaColumn(
                 nameof(SpecificationReadModifiersEntity.Attachment),
                 3,
                 typeof(string),
-                new Dictionary<string, string>
-                {
-                    [$"{ColumnReadModifiers.SourcePrefix}codec"] = "base64"
-                })
+                new Dictionary<string, string> { [$"{ColumnReadModifiers.SourcePrefix}codec"] = "base64" }
+            ),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(SpecificationReadModifiersEntity));
@@ -272,9 +298,7 @@ internal static partial class EvaluatorSampleFixtures
 
     private sealed class EmptyTypedRowSource<T> : RowSourceBase<T>
     {
-        protected override void CollectChunks(IChunkWriter<T> writer)
-        {
-        }
+        protected override void CollectChunks(IChunkWriter<T> writer) { }
     }
 }
 

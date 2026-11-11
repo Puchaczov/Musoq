@@ -9,4 +9,5 @@ internal sealed record ResolvedSourceRuntimeSettings(
     IReadOnlyList<SourceRuntimeSettingDescription> Descriptions,
     bool HasDeclaredRequirements,
     bool HasResolvedValues,
-    bool HasMissingRequired);
+    bool HasMissingRequired
+);

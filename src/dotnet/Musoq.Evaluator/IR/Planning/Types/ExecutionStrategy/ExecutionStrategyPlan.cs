@@ -32,7 +32,8 @@ internal sealed partial class ExecutionStrategyPlan
         IReadOnlyDictionary<PhysicalNodeId, SetOperationStrategyDecision> setOperationStrategies,
         IReadOnlyDictionary<string, SourceBoundaryStrategyPlan> sourceBoundaryStrategies,
         IReadOnlyDictionary<BoundaryRowShapeKind, RowWidthPruningPlan[]> rowWidthPruningPlans,
-        IReadOnlyList<CardinalityFact> cardinalityFacts)
+        IReadOnlyList<CardinalityFact> cardinalityFacts
+    )
     {
         ArgumentNullException.ThrowIfNull(identityMap);
         ArgumentNullException.ThrowIfNull(parallelAggregateCandidateIds);
@@ -69,7 +70,8 @@ internal sealed partial class ExecutionStrategyPlan
         IReadOnlyDictionary<PhysicalSetOperationNode, SetOperationStrategyDecision> setOperationStrategies,
         IReadOnlyDictionary<string, SourceBoundaryStrategyPlan> sourceBoundaryStrategies,
         IReadOnlyDictionary<BoundaryRowShapeKind, RowWidthPruningPlan[]> rowWidthPruningPlans,
-        IReadOnlyList<CardinalityFact> cardinalityFacts)
+        IReadOnlyList<CardinalityFact> cardinalityFacts
+    )
     {
         ArgumentNullException.ThrowIfNull(identityMap);
 
@@ -84,7 +86,8 @@ internal sealed partial class ExecutionStrategyPlan
             ToIdDictionary(identityMap, setOperationStrategies),
             sourceBoundaryStrategies,
             rowWidthPruningPlans,
-            cardinalityFacts);
+            cardinalityFacts
+        );
     }
 
     public ExecutionStrategyPlan WithSourceBoundaryStrategies(IReadOnlyList<SourceBoundaryStrategyPlan> strategies)
@@ -105,7 +108,8 @@ internal sealed partial class ExecutionStrategyPlan
             setOperationStrategies,
             strategiesByBoundaryId,
             rowWidthPruningPlans,
-            cardinalityFacts);
+            cardinalityFacts
+        );
     }
 
     public ExecutionStrategyPlan WithRowWidthPruningPlans(IReadOnlyList<RowWidthPruningPlan> plans)
@@ -114,7 +118,8 @@ internal sealed partial class ExecutionStrategyPlan
             .GroupBy(static plan => plan.Kind)
             .ToDictionary(
                 static group => group.Key,
-                static group => group.OrderBy(static plan => plan.BoundaryId, StringComparer.Ordinal).ToArray());
+                static group => group.OrderBy(static plan => plan.BoundaryId, StringComparer.Ordinal).ToArray()
+            );
 
         return new ExecutionStrategyPlan(
             identityMap,
@@ -127,7 +132,8 @@ internal sealed partial class ExecutionStrategyPlan
             setOperationStrategies,
             sourceBoundaryStrategies,
             plansByKind,
-            cardinalityFacts);
+            cardinalityFacts
+        );
     }
 
     public bool HasRowWidthPruningPlans => rowWidthPruningPlans.Count > 0;
@@ -139,14 +145,12 @@ internal sealed partial class ExecutionStrategyPlan
 
     public bool CanUseParallelSingleKeyAggregate(PhysicalSingleKeyAggregateNode node)
     {
-        return identityMap.TryGetId(node, out var id) &&
-               parallelAggregateCandidateIds.Contains(id);
+        return identityMap.TryGetId(node, out var id) && parallelAggregateCandidateIds.Contains(id);
     }
 
     public bool CanUseParallelFilterProject(PhysicalProjectNode node)
     {
-        return identityMap.TryGetId(node, out var id) &&
-               parallelFilterProjectCandidateIds.Contains(id);
+        return identityMap.TryGetId(node, out var id) && parallelFilterProjectCandidateIds.Contains(id);
     }
 
     public bool TryResolvePhysicalNodeId(PhysicalNode node, out PhysicalNodeId id)
@@ -156,24 +160,21 @@ internal sealed partial class ExecutionStrategyPlan
 
     public IReadOnlyList<PlannedParallelCteLevel> GetParallelCteLevels(PhysicalCteNode node)
     {
-        return identityMap.TryGetId(node, out var id) &&
-               parallelCteLevels.TryGetValue(id, out var levels)
+        return identityMap.TryGetId(node, out var id) && parallelCteLevels.TryGetValue(id, out var levels)
             ? levels
             : [];
     }
 
     public CteStrategyDecision GetCteStrategy(PhysicalCteNode node)
     {
-        return identityMap.TryGetId(node, out var id) &&
-               cteStrategies.TryGetValue(id, out var strategy)
+        return identityMap.TryGetId(node, out var id) && cteStrategies.TryGetValue(id, out var strategy)
             ? strategy
             : throw new InvalidOperationException($"No CTE strategy was planned for {node.GetType().Name}.");
     }
 
     public IReadOnlyList<CteSidecarIndexSpec> GetCteSidecarIndexSpecs(PhysicalCteNode node, string definitionName)
     {
-        if (!identityMap.TryGetId(node, out var id) ||
-            !cteSidecarIndexPlans.TryGetValue(id, out var plan))
+        if (!identityMap.TryGetId(node, out var id) || !cteSidecarIndexPlans.TryGetValue(id, out var plan))
         {
             return [];
         }
@@ -181,10 +182,12 @@ internal sealed partial class ExecutionStrategyPlan
         return plan.DefinitionsByName.TryGetValue(definitionName, out var specs) ? specs : [];
     }
 
-    public bool TryGetCteSidecarIndexConsumer(PhysicalHashJoinNode join, [NotNullWhen(true)] out CteSidecarIndexSpec? spec)
+    public bool TryGetCteSidecarIndexConsumer(
+        PhysicalHashJoinNode join,
+        [NotNullWhen(true)] out CteSidecarIndexSpec? spec
+    )
     {
-        if (identityMap.TryGetId(join, out var id) &&
-            cteSidecarConsumersByJoinId.TryGetValue(id, out spec))
+        if (identityMap.TryGetId(join, out var id) && cteSidecarConsumersByJoinId.TryGetValue(id, out spec))
         {
             return true;
         }
@@ -195,8 +198,7 @@ internal sealed partial class ExecutionStrategyPlan
 
     public SetOperationStrategyDecision GetSetOperationStrategy(PhysicalSetOperationNode node)
     {
-        return identityMap.TryGetId(node, out var id) &&
-               setOperationStrategies.TryGetValue(id, out var strategy)
+        return identityMap.TryGetId(node, out var id) && setOperationStrategies.TryGetValue(id, out var strategy)
             ? strategy
             : throw new InvalidOperationException($"No execution strategy was planned for {node.GetType().Name}.");
     }
@@ -214,9 +216,7 @@ internal sealed partial class ExecutionStrategyPlan
         return plans.FirstOrDefault(static plan => plan.Strategy == RowWidthPruningStrategy.Applied);
     }
 
-    private static HashSet<PhysicalNodeId> ToIdSet<TNode>(
-        PhysicalNodeIdentityMap identityMap,
-        IEnumerable<TNode> nodes)
+    private static HashSet<PhysicalNodeId> ToIdSet<TNode>(PhysicalNodeIdentityMap identityMap, IEnumerable<TNode> nodes)
         where TNode : PhysicalNode
     {
         var result = new HashSet<PhysicalNodeId>();
@@ -229,7 +229,8 @@ internal sealed partial class ExecutionStrategyPlan
 
     private static Dictionary<PhysicalNodeId, TValue> ToIdDictionary<TNode, TValue>(
         PhysicalNodeIdentityMap identityMap,
-        IReadOnlyDictionary<TNode, TValue> source)
+        IReadOnlyDictionary<TNode, TValue> source
+    )
         where TNode : PhysicalNode
     {
         var result = new Dictionary<PhysicalNodeId, TValue>();
@@ -242,7 +243,8 @@ internal sealed partial class ExecutionStrategyPlan
 
     private static Dictionary<PhysicalNodeId, CteSidecarIndexSpec> ToCteSidecarConsumerIds(
         PhysicalNodeIdentityMap identityMap,
-        IEnumerable<CteSidecarIndexPlan> plans)
+        IEnumerable<CteSidecarIndexPlan> plans
+    )
     {
         var result = new Dictionary<PhysicalNodeId, CteSidecarIndexSpec>();
 

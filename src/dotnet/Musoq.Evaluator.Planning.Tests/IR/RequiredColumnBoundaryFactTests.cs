@@ -10,7 +10,8 @@ public sealed class RequiredColumnBoundaryFactTests : BasicEntityTestBase
     public void PlanningText_WhenAggregateBoundaryExists_ShouldReportRequiredColumnBoundaryFacts()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select e.City, Count(e.Name) as NameCount from #A.Entities() e group by e.City");
+            "select e.City, Count(e.Name) as NameCount from #A.Entities() e group by e.City"
+        );
 
         AssertHasRequiredColumnBoundaryFact(buildItems.RequirePlanningText(), "Aggregate");
     }
@@ -19,7 +20,8 @@ public sealed class RequiredColumnBoundaryFactTests : BasicEntityTestBase
     public void PlanningText_WhenWindowBoundaryExists_ShouldReportRequiredColumnBoundaryFacts()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select e.City, RowNumber() over (partition by e.Country order by e.Population) as RowNum from #A.Entities() e");
+            "select e.City, RowNumber() over (partition by e.Country order by e.Population) as RowNum from #A.Entities() e"
+        );
 
         AssertHasRequiredColumnBoundaryFact(buildItems.RequirePlanningText(), "Window");
     }
@@ -28,9 +30,11 @@ public sealed class RequiredColumnBoundaryFactTests : BasicEntityTestBase
     public void PlanningText_WhenSetAndCteBoundariesExist_ShouldReportRequiredColumnBoundaryFacts()
     {
         var setBuildItems = CreateBuildItems<BasicEntity>(
-            "select Name from #A.Entities() union all (Name) select Name from #B.Entities()");
+            "select Name from #A.Entities() union all (Name) select Name from #B.Entities()"
+        );
         var cteBuildItems = CreateBuildItems<BasicEntity>(
-            "with people as (select Name, City, Country from #A.Entities()) select Name from people");
+            "with people as (select Name, City, Country from #A.Entities()) select Name from people"
+        );
 
         AssertHasRequiredColumnBoundaryFact(setBuildItems.RequirePlanningText(), "SetOperation");
         AssertHasRequiredColumnBoundaryFact(cteBuildItems.RequirePlanningText(), "CteMaterialization");
@@ -40,7 +44,8 @@ public sealed class RequiredColumnBoundaryFactTests : BasicEntityTestBase
     public void PlanningText_WhenHashJoinExists_ShouldReportJoinEdgeRequiredColumnBoundaryFacts()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name from #A.Entities() a inner join #B.Entities() b on a.City = b.City");
+            "select a.Name from #A.Entities() a inner join #B.Entities() b on a.City = b.City"
+        );
         var planningText = buildItems.RequirePlanningText();
 
         AssertHasRequiredColumnBoundaryFact(planningText, "HashJoinBuild");

@@ -5,12 +5,14 @@ namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed class SidecarJoinRuntimePlanner(
     Func<SidecarJoinRuntimeStep, ExecutionBlock, ExecutionBlock> createStepBlock,
-    Func<SidecarJoinRuntimeGuard, ExecutionBlock, ExecutionBlock> createGuardBlock)
+    Func<SidecarJoinRuntimeGuard, ExecutionBlock, ExecutionBlock> createGuardBlock
+)
 {
     public ExecutionBlock CreateRuntimeBody(
         IReadOnlyList<SidecarJoinRuntimeOperation> operations,
         RowShape baseShape,
-        ExecutionBlock continuation)
+        ExecutionBlock continuation
+    )
     {
         var scheduled = TryScheduleRuntimeOperations(operations, baseShape) ?? operations;
         var body = continuation;
@@ -23,7 +25,8 @@ internal sealed class SidecarJoinRuntimePlanner(
 
     public IReadOnlyList<SidecarJoinRuntimeOperation>? TryScheduleRuntimeOperations(
         IReadOnlyList<SidecarJoinRuntimeOperation> operations,
-        RowShape baseShape)
+        RowShape baseShape
+    )
     {
         if (operations.Count < 2)
             return operations;
@@ -53,21 +56,22 @@ internal sealed class SidecarJoinRuntimePlanner(
         return scheduled;
     }
 
-    public ExecutionBlock CreateOperationBlock(
-        SidecarJoinRuntimeOperation operation,
-        ExecutionBlock continuation)
+    public ExecutionBlock CreateOperationBlock(SidecarJoinRuntimeOperation operation, ExecutionBlock continuation)
     {
         return operation switch
         {
             SidecarJoinRuntimeStep step => createStepBlock(step, continuation),
             SidecarJoinRuntimeGuard guard => createGuardBlock(guard, continuation),
-            _ => throw new InvalidOperationException($"Sidecar join runtime operation '{operation.GetType().Name}' is not supported.")
+            _ => throw new InvalidOperationException(
+                $"Sidecar join runtime operation '{operation.GetType().Name}' is not supported."
+            ),
         };
     }
 
     private static int FindNextOperationIndex(
         IReadOnlyList<SidecarJoinRuntimeOperation> operations,
-        IReadOnlySet<string> activeAliases)
+        IReadOnlySet<string> activeAliases
+    )
     {
         var firstReadyIndex = -1;
 
@@ -91,7 +95,7 @@ internal sealed class SidecarJoinRuntimePlanner(
         {
             SidecarJoinRuntimeGuard => true,
             SidecarJoinRuntimeStep { Sidecar.Kind: CteSidecarIndexKind.KeySet, Residual: null, Filter: null } => true,
-            _ => false
+            _ => false,
         };
     }
 

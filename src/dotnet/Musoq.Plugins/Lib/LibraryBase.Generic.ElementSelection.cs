@@ -176,7 +176,7 @@ public partial class LibraryBase
         {
             List<T> list => list.ElementAtOrDefault(list.Count - index - 1),
             T[] array => array.ElementAtOrDefault(array.Length - index - 1),
-            _ => values.Reverse().ElementAtOrDefault(index)
+            _ => values.Reverse().ElementAtOrDefault(index),
         };
     }
 }

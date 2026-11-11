@@ -1,7 +1,3 @@
-
 namespace Musoq.Targets.CSharpClr;
 
-public sealed partial class ExecutionCSharpRenderer
-{
-
-}
+public sealed partial class ExecutionCSharpRenderer { }

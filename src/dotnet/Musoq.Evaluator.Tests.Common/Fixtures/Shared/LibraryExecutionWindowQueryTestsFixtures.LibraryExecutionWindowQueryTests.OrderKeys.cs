@@ -1,16 +1,15 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Plugins;
 using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
+using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionWindowQueryTestsFixtures
 {
-
     public sealed record NullableOrderKeyRow(int Position, int? Key, int? Value);
 
     public sealed record OrderKeyRow(int Partition, int Position, int? Value, string Label);
@@ -34,19 +33,30 @@ public partial class LibraryExecutionWindowQueryTestsFixtures
             return value;
         }
 
-        [WindowFunction(KernelType = typeof(KeyWeightedKernel), ContextType = typeof(WindowFrameContext<,>),
-            Modes = WindowEvaluationModes.WholePartition | WindowEvaluationModes.Running | WindowEvaluationModes.RecomputeFrames,
-            EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+        [WindowFunction(
+            KernelType = typeof(KeyWeightedKernel),
+            ContextType = typeof(WindowFrameContext<,>),
+            Modes = WindowEvaluationModes.WholePartition
+                | WindowEvaluationModes.Running
+                | WindowEvaluationModes.RecomputeFrames,
+            EmptyResultBehavior = AggregateEmptyResultBehavior.Null
+        )]
         public decimal? KeyWeighted(int? value) => AggregateFunction.NotInvoked<decimal?>();
 
-        [WindowFunction(KernelType = typeof(NullableKeyTotalKernel), ContextType = typeof(WindowFrameContext<,>),
+        [WindowFunction(
+            KernelType = typeof(NullableKeyTotalKernel),
+            ContextType = typeof(WindowFrameContext<,>),
             Modes = WindowEvaluationModes.Running | WindowEvaluationModes.RecomputeFrames,
-            EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+            EmptyResultBehavior = AggregateEmptyResultBehavior.Null
+        )]
         public decimal? NullableKeyTotal(int? value) => AggregateFunction.NotInvoked<decimal?>();
 
-        [WindowFunction(KernelType = typeof(FirstLabelKernel), ContextType = typeof(WindowFrameContext<,>),
+        [WindowFunction(
+            KernelType = typeof(FirstLabelKernel),
+            ContextType = typeof(WindowFrameContext<,>),
             Modes = WindowEvaluationModes.Running | WindowEvaluationModes.RecomputeFrames,
-            EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+            EmptyResultBehavior = AggregateEmptyResultBehavior.Null
+        )]
         public string? FirstLabel(int? value) => AggregateFunction.NotInvoked<string?>();
     }
 
@@ -88,5 +98,4 @@ public partial class LibraryExecutionWindowQueryTestsFixtures
         public static string? Get(in WindowFrameContext<int?, (int, string)> context) =>
             context.IsEmpty ? null : context.ReadOrderKey(context.FrameStart).Item2;
     }
-
 }

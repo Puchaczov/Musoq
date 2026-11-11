@@ -24,9 +24,12 @@ public sealed class ExecutionRendererDispatchTests
         var next = new ExecutionVariable("next", typeof(object), "List<RecursiveRow>");
         var snapshotRows = new ExecutionVariable("snapshotRows", typeof(int));
         var anchor = new ExecutionBlock([new ExecutionContinue()]);
-        var invariantSetup = new ExecutionBlock([new ExecutionLet(
-            new ExecutionVariable("snapshot", typeof(object)),
-            new ExecutionLiteral(null, typeof(object)))]);
+        var invariantSetup = new ExecutionBlock([
+            new ExecutionLet(
+                new ExecutionVariable("snapshot", typeof(object)),
+                new ExecutionLiteral(null, typeof(object))
+            ),
+        ]);
         var member = new ExecutionBlock([new ExecutionBreak()]);
         var appendRow = new ExecutionAppendRow(current, rowShape, []);
         var append = new ExecutionRecursiveCteAppend("walk", result, current, null, [], 10, appendRow);
@@ -47,15 +50,25 @@ public sealed class ExecutionRendererDispatchTests
             member,
             5,
             10,
-            10);
+            10
+        );
 
-        Assert.AreEqual(ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeRegistry.GetRendererFamily(recursive));
+        Assert.AreEqual(
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeRegistry.GetRendererFamily(recursive)
+        );
         Assert.AreEqual(ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeRegistry.GetRendererFamily(append));
-        Assert.AreEqual(ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeRegistry.GetRendererFamily(snapshotGuard));
+        Assert.AreEqual(
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeRegistry.GetRendererFamily(snapshotGuard)
+        );
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(recursive));
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(append));
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(snapshotGuard));
-        CollectionAssert.AreEqual(new[] { anchor, invariantSetup, member }, ExecutionNodeRegistry.GetChildBlocks(recursive).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { anchor, invariantSetup, member },
+            ExecutionNodeRegistry.GetChildBlocks(recursive).ToArray()
+        );
         Assert.AreSame(appendRow, ExecutionNodeRegistry.GetChildBlocks(append).Single().Nodes.Single());
     }
 
@@ -68,20 +81,23 @@ public sealed class ExecutionRendererDispatchTests
             0,
             ExecutionClrBindingFactory.FromClr(typeof(int)),
             FieldNullability.NotNullable,
-            new GeneratedFieldAccess("Id"));
+            new GeneratedFieldAccess("Id")
+        );
         var shape = new GeneratedRowShape("InvariantRow", [field]);
         var counter = new ExecutionVariable("snapshotRows", typeof(int));
         var row = new ExecutionVariable("row", typeof(object), shape.TypeName);
         var append = new ExecutionAppendRow(
             new ExecutionVariable("working", typeof(object)),
             shape,
-            [new ExecutionRowValue("Id", new ExecutionLiteral(1, typeof(int)))]);
+            [new ExecutionRowValue("Id", new ExecutionLiteral(1, typeof(int)))]
+        );
         var snapshotSink = new RecursiveCteInvariantSnapshotSink(
             "walk",
-            new ExecutionVariable("snapshot", typeof(object), $"List<{shape.TypeName}>") ,
+            new ExecutionVariable("snapshot", typeof(object), $"List<{shape.TypeName}>"),
             shape,
             counter,
-            7);
+            7
+        );
         var hashSink = new RecursiveCteInvariantHashSink(
             "walk",
             new ExecutionVariable("hash", typeof(object)),
@@ -90,7 +106,8 @@ public sealed class ExecutionRendererDispatchTests
             new ExecutionLiteral(1, typeof(int)),
             ExecutionClrBindingFactory.FromClr(typeof(int)),
             counter,
-            7);
+            7
+        );
 
         var snapshotBlock = Assert.IsInstanceOfType<ExecutionScopedBlock>(snapshotSink.CreateAppend(append));
         var hashBlock = Assert.IsInstanceOfType<ExecutionScopedBlock>(hashSink.CreateAppend(append));
@@ -110,7 +127,8 @@ public sealed class ExecutionRendererDispatchTests
             new ExecutionVariable("cteIndex", typeof(object)),
             0,
             ExecutionCteSidecarIndexKind.KeySet,
-            typeof(int));
+            typeof(int)
+        );
 
         var family = ExecutionNodeRegistry.GetRendererFamily(node);
 
@@ -120,7 +138,10 @@ public sealed class ExecutionRendererDispatchTests
     [TestMethod]
     public void GetFamily_WhenAggregateNode_ShouldReturnAggregate()
     {
-        var node = new ExecutionCreateAggregateLibrary(new ExecutionVariable("library", typeof(object)), typeof(object));
+        var node = new ExecutionCreateAggregateLibrary(
+            new ExecutionVariable("library", typeof(object)),
+            typeof(object)
+        );
 
         var family = ExecutionNodeRegistry.GetRendererFamily(node);
 
@@ -133,7 +154,8 @@ public sealed class ExecutionRendererDispatchTests
         var node = new ExecutionCreateHashPayload(
             new ExecutionVariable("payload", typeof(object), "PayloadRow"),
             new HashPayloadShape("PayloadRow", []),
-            []);
+            []
+        );
 
         var family = ExecutionNodeRegistry.GetRendererFamily(node);
 
@@ -143,10 +165,7 @@ public sealed class ExecutionRendererDispatchTests
     [TestMethod]
     public void GetFamily_WhenWindowNode_ShouldReturnWindow()
     {
-        var node = new ExecutionWindowKernelPlan(
-            "window:empty",
-            ExecutionWindowKernelPlanStrategy.NoPartition,
-            []);
+        var node = new ExecutionWindowKernelPlan("window:empty", ExecutionWindowKernelPlanStrategy.NoPartition, []);
 
         var family = ExecutionNodeRegistry.GetRendererFamily(node);
 
@@ -164,8 +183,9 @@ public sealed class ExecutionRendererDispatchTests
                 new ExecutionLiteral(1, typeof(int)),
                 typeof(int),
                 typeof(object),
-                new ExecutionBlock([new ExecutionContinue()])),
-            new ExecutionCreateKeySet(new ExecutionVariable("keys", typeof(object)), typeof(int))
+                new ExecutionBlock([new ExecutionContinue()])
+            ),
+            new ExecutionCreateKeySet(new ExecutionVariable("keys", typeof(object)), typeof(int)),
         };
 
         foreach (var node in nodes)
@@ -183,8 +203,8 @@ public sealed class ExecutionRendererDispatchTests
     [TestMethod]
     public void Registry_WhenRenderableNodesAreRegistered_ShouldExposeDescriptors()
     {
-        var registeredTypes = ExecutionNodeRegistry.Descriptors
-            .Select(static descriptor => descriptor.NodeType)
+        var registeredTypes = ExecutionNodeRegistry
+            .Descriptors.Select(static descriptor => descriptor.NodeType)
             .ToHashSet();
 
         Assert.Contains(typeof(ExecutionContinue), registeredTypes);
@@ -217,13 +237,17 @@ public sealed class ExecutionRendererDispatchTests
             new ExecutionForEach(
                 new ExecutionVariable("item", typeof(object)),
                 new ExecutionStoredTableRows(0),
-                loopBody));
+                loopBody
+            )
+        );
         var parallelBlocks = ExecutionNodeRegistry.GetChildBlocks(
             new ExecutionParallelBlock(
                 "parallel",
                 2,
                 [new ExecutionParallelTask("task", new ExecutionVariable("output", typeof(object)), taskBody)],
-                new ExecutionParallelMerge(mergeBody)));
+                new ExecutionParallelMerge(mergeBody)
+            )
+        );
         var probeBlocks = ExecutionNodeRegistry.GetChildBlocks(
             new ExecutionHashProbe(
                 new ExecutionVariable("hash", typeof(object)),
@@ -232,12 +256,12 @@ public sealed class ExecutionRendererDispatchTests
                 typeof(int),
                 typeof(object),
                 probeBody,
-                noMatchBody));
+                noMatchBody
+            )
+        );
         var windowBlocks = ExecutionNodeRegistry.GetChildBlocks(
-            new ExecutionWindowKernelPlan(
-                "window:one",
-                ExecutionWindowKernelPlanStrategy.NoPartition,
-                [kernel]));
+            new ExecutionWindowKernelPlan("window:one", ExecutionWindowKernelPlanStrategy.NoPartition, [kernel])
+        );
 
         Assert.AreSame(loopBody, loopBlocks.Single());
         CollectionAssert.AreEqual(new[] { taskBody, mergeBody }, parallelBlocks.ToArray());
@@ -251,7 +275,9 @@ public sealed class ExecutionRendererDispatchTests
         var body = new ExecutionBlock([new ExecutionContinue()]);
         var candidate = new ExecutionSingleUsePipelineFusionCandidate(1, body);
 
-        var descriptor = ExecutionNodeRegistry.Descriptors.Single(item => item.NodeType == typeof(ExecutionSingleUsePipelineFusionCandidate));
+        var descriptor = ExecutionNodeRegistry.Descriptors.Single(item =>
+            item.NodeType == typeof(ExecutionSingleUsePipelineFusionCandidate)
+        );
 
         Assert.AreEqual(ExecutionRendererNodeFamily.Unsupported, descriptor.RendererFamily);
         Assert.IsFalse(ExecutionCSharpRenderer.CanRenderNode(candidate));
@@ -262,24 +288,37 @@ public sealed class ExecutionRendererDispatchTests
     public void CanRenderNode_WhenRenderableNodesAreProvided_ShouldReturnTrue()
     {
         Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(new ExecutionContinue()));
-        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(
-            new ExecutionCreateAggregateLibrary(new ExecutionVariable("library", typeof(object)), typeof(object))));
-        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(
-            new ExecutionCreateKeySet(new ExecutionVariable("keys", typeof(object)), typeof(int))));
-        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(
-            new ExecutionWindowKernelPlan("window:empty", ExecutionWindowKernelPlanStrategy.NoPartition, [])));
+        Assert.IsTrue(
+            ExecutionCSharpRenderer.CanRenderNode(
+                new ExecutionCreateAggregateLibrary(new ExecutionVariable("library", typeof(object)), typeof(object))
+            )
+        );
+        Assert.IsTrue(
+            ExecutionCSharpRenderer.CanRenderNode(
+                new ExecutionCreateKeySet(new ExecutionVariable("keys", typeof(object)), typeof(int))
+            )
+        );
+        Assert.IsTrue(
+            ExecutionCSharpRenderer.CanRenderNode(
+                new ExecutionWindowKernelPlan("window:empty", ExecutionWindowKernelPlanStrategy.NoPartition, [])
+            )
+        );
     }
 
     [TestMethod]
     public void CanRenderNode_WhenUnsupportedOrInvalidNodesAreProvided_ShouldReturnFalse()
     {
         Assert.IsFalse(ExecutionCSharpRenderer.CanRenderNode(new UnsupportedExecutionNode()));
-        Assert.IsFalse(ExecutionCSharpRenderer.CanRenderNode(
-            new ExecutionLoadCteIndex(
-                new ExecutionVariable("hashIndex", typeof(object)),
-                0,
-                ExecutionCteSidecarIndexKind.Hash,
-                typeof(int))));
+        Assert.IsFalse(
+            ExecutionCSharpRenderer.CanRenderNode(
+                new ExecutionLoadCteIndex(
+                    new ExecutionVariable("hashIndex", typeof(object)),
+                    0,
+                    ExecutionCteSidecarIndexKind.Hash,
+                    typeof(int)
+                )
+            )
+        );
     }
 
     private sealed record UnsupportedExecutionNode : ExecutionNode;

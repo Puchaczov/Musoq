@@ -48,7 +48,11 @@ public sealed class StructuralSyntaxRecoveryTests
         yield return ["array.missing-close", "select * from #inputs.numbers(values: array { 1, 2 ) n"];
         yield return ["array.missing-keyword", "select * from #inputs.numbers(values: { 1, 2 }) n"];
         yield return ["record.missing-colon", "select * from #inputs.configure(options: (Enabled true)) c"];
-        yield return ["record.missing-comma", "select * from #inputs.configure(options: (Enabled: true Codes: array { 1 })) c"];
+        yield return
+        [
+            "record.missing-comma",
+            "select * from #inputs.configure(options: (Enabled: true Codes: array { 1 })) c",
+        ];
         yield return ["record.empty", "select * from #inputs.configure(options: ()) c"];
         yield return ["values.legacy-row", "select * from values { { Name: 'A' } } v"];
         yield return ["values.mixed-row", "select * from values { ( Name: 'A' ), { Name: 'B' } } v"];

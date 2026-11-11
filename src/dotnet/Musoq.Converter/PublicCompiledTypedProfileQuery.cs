@@ -5,7 +5,10 @@ using Musoq.Schema;
 
 namespace Musoq.Converter;
 
-internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProfileQuery<TOut>, IQueryProgressSource, ITypedQueryDiagnosticsProvider
+internal sealed class PublicCompiledTypedProfileQuery<TOut>
+    : ICompiledTypedProfileQuery<TOut>,
+        IQueryProgressSource,
+        ITypedQueryDiagnosticsProvider
 {
     private readonly TypedProfileRunnableFactory<TOut> _factory;
     private readonly InMemorySourceBinding _sourceBinding;
@@ -15,17 +18,17 @@ internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProf
         string query,
         InMemorySourceBinding sourceBinding,
         ILoggerResolver loggerResolver,
-        CompilationOptions compilationOptions)
-        : this(query, sourceBinding, loggerResolver, compilationOptions, CancellationToken.None)
-    {
-    }
+        CompilationOptions compilationOptions
+    )
+        : this(query, sourceBinding, loggerResolver, compilationOptions, CancellationToken.None) { }
 
     public PublicCompiledTypedProfileQuery(
         string query,
         InMemorySourceBinding sourceBinding,
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         _sourceBinding = sourceBinding ?? throw new ArgumentNullException(nameof(sourceBinding));
 
@@ -36,7 +39,8 @@ internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProf
             loggerResolver ?? throw new ArgumentNullException(nameof(loggerResolver)),
             compilationOptions ?? throw new ArgumentNullException(nameof(compilationOptions)),
             _sourceBinding.AdditionalReferenceTypes,
-            cancellationToken);
+            cancellationToken
+        );
         _runState = new TypedRunState(_factory.ParameterDefinitions);
     }
 

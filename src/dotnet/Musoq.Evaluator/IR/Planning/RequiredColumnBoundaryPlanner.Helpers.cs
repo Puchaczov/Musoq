@@ -19,10 +19,7 @@ internal static partial class RequiredColumnBoundaryPlanner
     private static string[] ResolveSetOperationColumns(PhysicalNode input, IReadOnlyList<int> indexes)
     {
         var columns = ResolveAvailableColumns(input);
-        return indexes
-            .Where(index => index >= 0 && index < columns.Length)
-            .Select(index => columns[index])
-            .ToArray();
+        return indexes.Where(index => index >= 0 && index < columns.Length).Select(index => columns[index]).ToArray();
     }
 
     private static string[] ResolveAvailableColumns(PhysicalNode node)
@@ -30,19 +27,24 @@ internal static partial class RequiredColumnBoundaryPlanner
         return node switch
         {
             PhysicalSchemaScanNode scan => ResolveSchemaScanColumns(scan),
-            PhysicalCteRefNode cteRef => cteRef.OutputSchema.Columns.Select(column => Qualify(cteRef.Alias, column.Name)).ToArray(),
-            PhysicalValuesScanNode values => values.OutputSchema.Columns.Select(column => Qualify(values.Alias, column.Name)).ToArray(),
+            PhysicalCteRefNode cteRef => cteRef
+                .OutputSchema.Columns.Select(column => Qualify(cteRef.Alias, column.Name))
+                .ToArray(),
+            PhysicalValuesScanNode values => values
+                .OutputSchema.Columns.Select(column => Qualify(values.Alias, column.Name))
+                .ToArray(),
             PhysicalProjectNode project => project.Fields.Select(static field => field.OutputName).ToArray(),
             PhysicalMaterializeNode materialize => ResolveAvailableColumns(materialize.Input),
-            _ => SchemaColumns(node.OutputSchema)
+            _ => SchemaColumns(node.OutputSchema),
         };
     }
 
     private static string[] ResolveSchemaScanColumns(PhysicalSchemaScanNode scan)
     {
-        var columns = scan.ProjectedColumns.Length == 0
-            ? scan.OutputSchema.Columns.Select(static column => column.Name)
-            : scan.ProjectedColumns;
+        var columns =
+            scan.ProjectedColumns.Length == 0
+                ? scan.OutputSchema.Columns.Select(static column => column.Name)
+                : scan.ProjectedColumns;
 
         return columns.Select(column => Qualify(scan.Alias, column)).ToArray();
     }
@@ -54,7 +56,8 @@ internal static partial class RequiredColumnBoundaryPlanner
                 CollectColumns(registration.PartitionKeys)
                     .Concat(CollectOrderColumns(registration.OrderKeys))
                     .Concat(CollectColumns(registration.ValueArguments))
-                    .Concat(OptionalColumns(registration.FilterPredicate)))
+                    .Concat(OptionalColumns(registration.FilterPredicate))
+            )
             .ToArray();
     }
 
@@ -63,7 +66,10 @@ internal static partial class RequiredColumnBoundaryPlanner
         return CollectColumns([groupKey]).Concat(CollectAggregateColumns(bindings)).ToArray();
     }
 
-    private static string[] CollectAggregateColumns(IReadOnlyList<IrExpression> groupKeys, IReadOnlyList<AggregateBinding> bindings)
+    private static string[] CollectAggregateColumns(
+        IReadOnlyList<IrExpression> groupKeys,
+        IReadOnlyList<AggregateBinding> bindings
+    )
     {
         return CollectColumns(groupKeys).Concat(CollectAggregateColumns(bindings)).ToArray();
     }
@@ -71,9 +77,11 @@ internal static partial class RequiredColumnBoundaryPlanner
     private static string[] CollectAggregateColumns(IReadOnlyList<AggregateBinding> bindings)
     {
         return bindings
-            .SelectMany(binding => CollectColumns(binding.SetArguments)
-                .Concat(OptionalColumns(binding.FilterPredicate))
-                .Concat(CollectColumns(binding.GetArguments)))
+            .SelectMany(binding =>
+                CollectColumns(binding.SetArguments)
+                    .Concat(OptionalColumns(binding.FilterPredicate))
+                    .Concat(CollectColumns(binding.GetArguments))
+            )
             .ToArray();
     }
 
@@ -114,9 +122,7 @@ internal static partial class RequiredColumnBoundaryPlanner
 
     private static string[] CreateMappings(IEnumerable<string> columns)
     {
-        return OrderColumns(columns)
-            .Select(static column => $"{column}->{GetColumnName(column)}")
-            .ToArray();
+        return OrderColumns(columns).Select(static column => $"{column}->{GetColumnName(column)}").ToArray();
     }
 
     private static string[] Merge(IEnumerable<string> left, IEnumerable<string> right)
@@ -136,8 +142,9 @@ internal static partial class RequiredColumnBoundaryPlanner
     private static bool ContainsColumn(IReadOnlyList<string> columns, string column)
     {
         return columns.Any(candidate =>
-            string.Equals(candidate, column, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(GetColumnName(candidate), GetColumnName(column), StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate, column, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(GetColumnName(candidate), GetColumnName(column), StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     private static string GetColumnName(string column)

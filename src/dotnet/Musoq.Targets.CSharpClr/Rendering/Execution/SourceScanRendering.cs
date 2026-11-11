@@ -8,9 +8,7 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> RenderSourceScan(
-        ExecutionSourceScan sourceScan,
-        ExecutionRenderContext context)
+    private List<StatementSyntax> RenderSourceScan(ExecutionSourceScan sourceScan, ExecutionRenderContext context)
     {
         ValidateSourceScan(sourceScan);
 
@@ -26,8 +24,14 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (fieldName == null)
         {
-            statements.Add(SyntaxFactory.LocalDeclarationStatement(
-                SchemaNodeEmitter.CreateTableInfoDeclaration(infoTableName, CreateSchemaColumns(sourceScan.Binding.Fields))));
+            statements.Add(
+                SyntaxFactory.LocalDeclarationStatement(
+                    SchemaNodeEmitter.CreateTableInfoDeclaration(
+                        infoTableName,
+                        CreateSchemaColumns(sourceScan.Binding.Fields)
+                    )
+                )
+            );
         }
 
         statements.Add(CreateSchemaDeclaration(schemaName, sourceScan.Binding.SchemaName));

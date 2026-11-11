@@ -1,10 +1,7 @@
 namespace Musoq.Schema.StructuralInputs;
 
 /// <summary>Measured resource usage for one structural input root.</summary>
-public readonly record struct StructuralInputMetrics(
-    int MaxDepth,
-    long NodeCount,
-    long StringBytes)
+public readonly record struct StructuralInputMetrics(int MaxDepth, long NodeCount, long StringBytes)
 {
     public static StructuralInputMetrics Empty { get; } = new(0, 0, 0);
 }
@@ -14,5 +11,5 @@ public enum StructuralInputLimitKind
 {
     Depth,
     Nodes,
-    StringBytes
+    StringBytes,
 }

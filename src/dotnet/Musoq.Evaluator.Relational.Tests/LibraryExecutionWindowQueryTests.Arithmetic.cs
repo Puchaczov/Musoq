@@ -3,22 +3,38 @@ using System.Linq;
 using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
 public sealed partial class LibraryExecutionWindowQueryTests
 {
-    [TestMethod] public void ByteWindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(byte.MaxValue);
-    [TestMethod] public void SByteWindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(sbyte.MaxValue);
-    [TestMethod] public void Int16WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(short.MaxValue);
-    [TestMethod] public void UInt16WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(ushort.MaxValue);
-    [TestMethod] public void Int32WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(int.MaxValue);
-    [TestMethod] public void UInt32WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(uint.MaxValue);
-    [TestMethod] public void Int64WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(long.MaxValue);
-    [TestMethod] public void UInt64WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(ulong.MaxValue);
-    [TestMethod] public void DecimalWindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(decimal.MaxValue);
+    [TestMethod]
+    public void ByteWindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(byte.MaxValue);
+
+    [TestMethod]
+    public void SByteWindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(sbyte.MaxValue);
+
+    [TestMethod]
+    public void Int16WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(short.MaxValue);
+
+    [TestMethod]
+    public void UInt16WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(ushort.MaxValue);
+
+    [TestMethod]
+    public void Int32WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(int.MaxValue);
+
+    [TestMethod]
+    public void UInt32WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(uint.MaxValue);
+
+    [TestMethod]
+    public void Int64WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(long.MaxValue);
+
+    [TestMethod]
+    public void UInt64WindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(ulong.MaxValue);
+
+    [TestMethod]
+    public void DecimalWindowSum_ShouldThrowCheckedOverflow() => AssertWindowOverflow(decimal.MaxValue);
 
     [TestMethod]
     public void FloatingFrames_WhenValuesAreOrderSensitive_ShouldAccumulateEachFrameInOrder()
@@ -34,8 +50,12 @@ public sealed partial class LibraryExecutionWindowQueryTests
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)),
-            ("Running", typeof(double?)), ("Bounded", typeof(double?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Position", typeof(int)),
+            ("Running", typeof(double?)),
+            ("Bounded", typeof(double?))
+        );
         Assert.HasCount(4, rows);
         double[] running = [1e16, 1e16, 0d, 1d];
         double[] bounded = [1e16, 1e16, -1e16, -1e16];
@@ -68,7 +88,8 @@ public sealed partial class LibraryExecutionWindowQueryTests
         }
     }
 
-    private void AssertWindowOverflow<T>(T maximum) where T : struct, INumber<T>
+    private void AssertWindowOverflow<T>(T maximum)
+        where T : struct, INumber<T>
     {
         const string query = """
             select Sum(Value) over (order by Position rows between unbounded preceding and current row) as Total

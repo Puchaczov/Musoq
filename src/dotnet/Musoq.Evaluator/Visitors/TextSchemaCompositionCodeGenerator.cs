@@ -8,20 +8,26 @@ public partial class InterpreterCodeGenerator
 {
     private string GenerateSchemaReferenceCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
-        var schemaName = field.PrimaryValue ??
-                         throw new InvalidOperationException("Text schema reference field must specify a schema name");
+        var schemaName =
+            field.PrimaryValue
+            ?? throw new InvalidOperationException("Text schema reference field must specify a schema name");
         _ = RequireTextSchema(field, schemaName);
 
-        var variableName = localVar == "_"
-            ? $"discard{_discardCounter++}"
-            : localVar.TrimStart('_');
+        var variableName = localVar == "_" ? $"discard{_discardCounter++}" : localVar.TrimStart('_');
         var interpreterVar = $"_interp_{variableName}";
         var resultVar = $"_result_{variableName}";
 
         var builder = new StringBuilder();
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {interpreterVar} = new {schemaName}();");
-        builder.Append(StatusRead(resultVar,
-            $"base.ParseNestedStatus({interpreterVar}, ref {_textInputName}, \"{InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field))}\")"));
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"var {interpreterVar} = new {schemaName}();"
+        );
+        builder.Append(
+            StatusRead(
+                resultVar,
+                $"base.ParseNestedStatus({interpreterVar}, ref {_textInputName}, \"{InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field))}\")"
+            )
+        );
 
         if (isDiscard)
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"_ = {resultVar};");
@@ -34,14 +40,17 @@ public partial class InterpreterCodeGenerator
     private TextSchemaNode RequireTextSchema(
         TextFieldDefinitionNode field,
         string schemaName,
-        string context = "schema reference")
+        string context = "schema reference"
+    )
     {
         var registration = _registry.Schemas.FirstOrDefault(s =>
-            string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase)
+        );
         if (registration?.Node is TextSchemaNode textNode)
             return textNode;
 
         throw new InvalidOperationException(
-            $"Text {context} field '{field.Name}' references '{schemaName}', which is not a registered text schema.");
+            $"Text {context} field '{field.Name}' references '{schemaName}', which is not a registered text schema."
+        );
     }
 }

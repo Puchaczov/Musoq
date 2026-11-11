@@ -4,4 +4,5 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal sealed record PhysicalStrategyPlanningResult(
     PhysicalStrategyPlan Strategies,
-    IReadOnlyList<PlanningDecision> Decisions);
+    IReadOnlyList<PlanningDecision> Decisions
+);

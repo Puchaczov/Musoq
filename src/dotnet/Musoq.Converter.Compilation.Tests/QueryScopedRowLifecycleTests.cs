@@ -24,7 +24,8 @@ public sealed class QueryScopedRowLifecycleTests
     [DataRow(QueryRowLifecycleReaderStyle.Property)]
     [DataRow(QueryRowLifecycleReaderStyle.Path)]
     public void CompiledQuery_WhenReaderStyleChanges_ShouldMaterializeNullableAndMissingFields(
-        QueryRowLifecycleReaderStyle readerStyle)
+        QueryRowLifecycleReaderStyle readerStyle
+    )
     {
         var scenario = new QueryRowLifecycleScenario
         {
@@ -32,12 +33,13 @@ public sealed class QueryScopedRowLifecycleTests
             Rows =
             [
                 new QueryRowLifecycleRawRow(1, "first", "a", 10, "present"),
-                new QueryRowLifecycleRawRow(2, "second", "b", null, null, omitNullableFields: true)
-            ]
+                new QueryRowLifecycleRawRow(2, "second", "b", null, null, omitNullableFields: true),
+            ],
         };
         using var compiled = Compile(
             "select r.Id, r.Label, r.MaybeNumber, r.MaybeText from #lifecycle.rows() r order by r.Id",
-            scenario);
+            scenario
+        );
 
         var rows = Execute(compiled);
 
@@ -59,11 +61,9 @@ public sealed class QueryScopedRowLifecycleTests
             AcceptPredicate = true,
             AcceptTake = true,
             PushedPredicate = static row => row.Id >= 8,
-            ChunkSize = 4
+            ChunkSize = 4,
         };
-        using var compiled = Compile(
-            "select r.Id from #lifecycle.rows() r where r.Id >= 8 take 2",
-            scenario);
+        using var compiled = Compile("select r.Id from #lifecycle.rows() r where r.Id >= 8 take 2", scenario);
         var progress = new List<DataSourceEventArgs>();
         compiled.DataSourceProgress += (_, args) => progress.Add(args);
 
@@ -79,7 +79,8 @@ public sealed class QueryScopedRowLifecycleTests
         Assert.AreEqual(1, scenario.Recorder.SourcesDisposed);
         CollectionAssert.AreEqual(
             new[] { DataSourcePhase.Begin, DataSourcePhase.RowsKnown, DataSourcePhase.RowsRead, DataSourcePhase.End },
-            progress.Select(static item => item.Phase).Distinct().ToArray());
+            progress.Select(static item => item.Phase).Distinct().ToArray()
+        );
     }
 
     [TestMethod]
@@ -89,7 +90,7 @@ public sealed class QueryScopedRowLifecycleTests
         {
             ReaderStyle = QueryRowLifecycleReaderStyle.Property,
             Rows = CreateNumberedRows(20),
-            ChunkSize = 1
+            ChunkSize = 1,
         };
         using var compiled = Compile("select r.Id from #lifecycle.rows() r take 2", scenario);
 
@@ -109,11 +110,9 @@ public sealed class QueryScopedRowLifecycleTests
         {
             ReaderStyle = QueryRowLifecycleReaderStyle.Ordinal,
             Rows = CreateNumberedRows(20),
-            ChunkSize = 1
+            ChunkSize = 1,
         };
-        using var compiled = Compile(
-            "select r.Id from #lifecycle.rows() r where r.Id >= 8 take 2",
-            scenario);
+        using var compiled = Compile("select r.Id from #lifecycle.rows() r where r.Id >= 8 take 2", scenario);
 
         var rows = Execute(compiled);
 
@@ -133,7 +132,8 @@ public sealed class QueryScopedRowLifecycleTests
             "select r.Id from #lifecycle.rows() r",
             $"query-row-lifecycle-profile-{Guid.NewGuid():N}",
             new QueryRowLifecycleSchemaProvider(scenario),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var profileResult = compiled.RunWithProfile();
         using var result = profileResult.Result;
@@ -172,7 +172,7 @@ public sealed class QueryScopedRowLifecycleTests
             {
                 if (count == 3)
                     cancellation.Cancel();
-            }
+            },
         };
         using var compiled = Compile("select r.Id from #lifecycle.rows() r", scenario);
 
@@ -186,17 +186,15 @@ public sealed class QueryScopedRowLifecycleTests
             QueryRowLifecycleEvent.Begin,
             QueryRowLifecycleEvent.Cancellation,
             QueryRowLifecycleEvent.End,
-            QueryRowLifecycleEvent.Dispose);
+            QueryRowLifecycleEvent.Dispose
+        );
     }
 
     [TestMethod]
     public void CompiledQuery_WhenQueryScopedSourceOpenFails_ShouldPreserveContextAndInnerException()
     {
         var original = new IOException("query-row-open-failure");
-        var scenario = CreateDefaultScenario(QueryRowLifecycleReaderStyle.Ordinal) with
-        {
-            OpenFailure = original
-        };
+        var scenario = CreateDefaultScenario(QueryRowLifecycleReaderStyle.Ordinal) with { OpenFailure = original };
         using var compiled = Compile("select r.Id from #lifecycle.rows() r", scenario);
 
         var exception = Assert.Throws<QueryExecutionException>(() => Execute(compiled));
@@ -207,10 +205,7 @@ public sealed class QueryScopedRowLifecycleTests
     [TestMethod]
     public void CompiledQuery_WhenQueryScopedSourceReturnsNull_ShouldProduceContextualOpenFailure()
     {
-        var scenario = CreateDefaultScenario(QueryRowLifecycleReaderStyle.Ordinal) with
-        {
-            ReturnNullSource = true
-        };
+        var scenario = CreateDefaultScenario(QueryRowLifecycleReaderStyle.Ordinal) with { ReturnNullSource = true };
         using var compiled = Compile("select r.Id from #lifecycle.rows() r", scenario);
 
         var exception = Assert.Throws<QueryExecutionException>(() => Execute(compiled));
@@ -227,7 +222,7 @@ public sealed class QueryScopedRowLifecycleTests
         {
             RawReadFailure = original,
             RawReadFailureIndex = 1,
-            ChunkSize = 1
+            ChunkSize = 1,
         };
         using var compiled = Compile("select r.Id from #lifecycle.rows() r", scenario);
 
@@ -240,7 +235,8 @@ public sealed class QueryScopedRowLifecycleTests
             QueryRowLifecycleEvent.Begin,
             QueryRowLifecycleEvent.Failure,
             QueryRowLifecycleEvent.End,
-            QueryRowLifecycleEvent.Dispose);
+            QueryRowLifecycleEvent.Dispose
+        );
     }
 
     [TestMethod]
@@ -250,7 +246,7 @@ public sealed class QueryScopedRowLifecycleTests
         var scenario = CreateDefaultScenario(QueryRowLifecycleReaderStyle.Path) with
         {
             FieldReadFailure = original,
-            FieldReadFailureSourceOrdinal = 1
+            FieldReadFailureSourceOrdinal = 1,
         };
         using var compiled = Compile("select r.Label from #lifecycle.rows() r", scenario);
 
@@ -266,12 +262,10 @@ public sealed class QueryScopedRowLifecycleTests
     [DynamicData(nameof(FeatureQueries))]
     public void CompiledQuery_WhenUsingRetainingFeatures_ShouldFlowThroughRecordedChunkedSource(
         string query,
-        int expectedRows)
+        int expectedRows
+    )
     {
-        var scenario = CreateDefaultScenario(QueryRowLifecycleReaderStyle.Path) with
-        {
-            ChunkSize = 2
-        };
+        var scenario = CreateDefaultScenario(QueryRowLifecycleReaderStyle.Path) with { ChunkSize = 2 };
         using var compiled = Compile(query, scenario);
 
         var rows = Execute(compiled);
@@ -289,33 +283,17 @@ public sealed class QueryScopedRowLifecycleTests
             yield return
             [
                 "select l.Id, r.Id from #lifecycle.rows() l inner join #lifecycle.rows() r on l.Id = r.Id",
-                3
+                3,
             ];
-            yield return
-            [
-                "select l.Id, r.Id from #lifecycle.rows() l left join #lifecycle.rows() r on r.Id = 99",
-                3
-            ];
-            yield return
-            [
-                "select r.Category, Count(*) from #lifecycle.rows() r group by r.Category",
-                2
-            ];
-            yield return
-            [
-                "select r.Id, RowNumber() over (order by r.Id) from #lifecycle.rows() r",
-                3
-            ];
+            yield return ["select l.Id, r.Id from #lifecycle.rows() l left join #lifecycle.rows() r on r.Id = 99", 3];
+            yield return ["select r.Category, Count(*) from #lifecycle.rows() r group by r.Category", 2];
+            yield return ["select r.Id, RowNumber() over (order by r.Id) from #lifecycle.rows() r", 3];
             yield return
             [
                 "with valuesCte as (select r.Id as Id from #lifecycle.rows() r) select v.Id from valuesCte v",
-                3
+                3,
             ];
-            yield return
-            [
-                "select r.Id from #lifecycle.rows() r union all select s.Id from #lifecycle.rows() s",
-                6
-            ];
+            yield return ["select r.Id from #lifecycle.rows() r union all select s.Id from #lifecycle.rows() s", 6];
         }
     }
 
@@ -325,11 +303,13 @@ public sealed class QueryScopedRowLifecycleTests
             query,
             $"query-row-lifecycle-{Guid.NewGuid():N}",
             new QueryRowLifecycleSchemaProvider(scenario),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(
             result.Succeeded,
-            $"{result.CaughtException}{Environment.NewLine}{string.Join(Environment.NewLine, result.Diagnostics)}");
+            $"{result.CaughtException}{Environment.NewLine}{string.Join(Environment.NewLine, result.Diagnostics)}"
+        );
         return result.CompiledQuery!;
     }
 
@@ -356,14 +336,15 @@ public sealed class QueryScopedRowLifecycleTests
             [
                 new QueryRowLifecycleRawRow(1, "one", "a", 10, "first"),
                 new QueryRowLifecycleRawRow(2, "two", "a", 20, "second"),
-                new QueryRowLifecycleRawRow(3, "three", "b", null, null)
-            ]
+                new QueryRowLifecycleRawRow(3, "three", "b", null, null),
+            ],
         };
     }
 
     private static IReadOnlyList<QueryRowLifecycleRawRow> CreateNumberedRows(int count)
     {
-        return Enumerable.Range(0, count)
+        return Enumerable
+            .Range(0, count)
             .Select(index => new QueryRowLifecycleRawRow(index, $"row-{index}", "number", index, null))
             .ToArray();
     }
@@ -372,7 +353,8 @@ public sealed class QueryScopedRowLifecycleTests
         QueryExecutionException exception,
         DiagnosticCode code,
         string operation,
-        Exception? original = null)
+        Exception? original = null
+    )
     {
         var envelope = exception.Envelope ?? throw new AssertFailedException("Expected a datasource envelope.");
         Assert.AreEqual(code, envelope.Code);
@@ -382,15 +364,17 @@ public sealed class QueryScopedRowLifecycleTests
         Assert.AreEqual(operation, envelope.Arguments["operation"]);
         Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Arguments["sourceContextId"]));
 
-        var lifecycle = exception.InnerException as DataSourceLifecycleException ??
-                        throw new AssertFailedException("Expected the datasource lifecycle exception.");
+        var lifecycle =
+            exception.InnerException as DataSourceLifecycleException
+            ?? throw new AssertFailedException("Expected the datasource lifecycle exception.");
         if (original != null)
             Assert.AreSame(original, lifecycle.InnerException);
     }
 
     private static void AssertLifecycleSequenceContains(
         QueryRowLifecycleScenario scenario,
-        params QueryRowLifecycleEvent[] expected)
+        params QueryRowLifecycleEvent[] expected
+    )
     {
         var events = scenario.Recorder.Events;
         var nextIndex = 0;
@@ -403,6 +387,7 @@ public sealed class QueryScopedRowLifecycleTests
         Assert.AreEqual(
             expected.Length,
             nextIndex,
-            $"Expected lifecycle subsequence [{string.Join(", ", expected)}], actual [{string.Join(", ", events)}].");
+            $"Expected lifecycle subsequence [{string.Join(", ", expected)}], actual [{string.Join(", ", events)}]."
+        );
     }
 }

@@ -12,13 +12,15 @@ public sealed record SourceProfileSnapshot(
     int ExceptionCount,
     string? ExceptionType,
     string? ExceptionMessage,
-    SourceProfileDiagnosis Diagnosis)
+    SourceProfileDiagnosis Diagnosis
+)
 {
     public long RowsProduced { get; init; }
 
     public long BytesRead { get; init; }
 
-    public IReadOnlyDictionary<string, long> Metrics { get; init; } = new Dictionary<string, long>(StringComparer.Ordinal);
+    public IReadOnlyDictionary<string, long> Metrics { get; init; } =
+        new Dictionary<string, long>(StringComparer.Ordinal);
 
     public IReadOnlyList<SourceOperationProfileSnapshot> Operations { get; init; } =
         Array.Empty<SourceOperationProfileSnapshot>();

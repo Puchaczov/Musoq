@@ -15,7 +15,8 @@ internal sealed class FusedSiblingCteLowerer
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         int schemaFromIndex,
-        CteDefinitionPruningPlan pruningPlan);
+        CteDefinitionPruningPlan pruningPlan
+    );
 
     public delegate TableBuildResult ApplySidecarOptimizations(
         string definitionName,
@@ -23,12 +24,14 @@ internal sealed class FusedSiblingCteLowerer
         IReadOnlyDictionary<string, CteReferenceClassification> cteReferenceClassifications,
         CteDefinitionPruningPlan pruningPlan,
         TableBuildResult result,
-        out CteSidecarStorageDecision storage);
+        out CteSidecarStorageDecision storage
+    );
 
     public delegate FusedSiblingCteBuildResult CreateBuildResult(
         IReadOnlyList<FusedSiblingCteCandidate> candidates,
         IReadOnlyList<RowShape> shapes,
-        IReadOnlyDictionary<string, GeneratedRowShape> rowShapesByName);
+        IReadOnlyDictionary<string, GeneratedRowShape> rowShapesByName
+    );
 
     private readonly Func<PhysicalNode, PhysicalNode> _unwrapSingleStatement;
     private readonly Func<PhysicalCteNode, string, IReadOnlyList<CteSidecarIndexSpec>> _getSidecarIndexSpecs;
@@ -41,7 +44,8 @@ internal sealed class FusedSiblingCteLowerer
         Func<PhysicalCteNode, string, IReadOnlyList<CteSidecarIndexSpec>> getSidecarIndexSpecs,
         BuildCteDefinitionTable buildCteDefinitionTable,
         ApplySidecarOptimizations applySidecarOptimizations,
-        CreateBuildResult createBuildResult)
+        CreateBuildResult createBuildResult
+    )
     {
         _unwrapSingleStatement = unwrapSingleStatement;
         _getSidecarIndexSpecs = getSidecarIndexSpecs;
@@ -60,11 +64,14 @@ internal sealed class FusedSiblingCteLowerer
         IReadOnlyDictionary<string, int> schemaFromIndexes,
         CteDefinitionPruningPlan pruningPlan,
         IReadOnlyDictionary<string, CteReferenceClassification> cteReferenceClassifications,
-        IReadOnlyDictionary<string, FusedCteHashBuildSource> fusedHashBuildSources)
+        IReadOnlyDictionary<string, FusedCteHashBuildSource> fusedHashBuildSources
+    )
     {
-        if (!TryGetSimpleSiblingSourceCte(cte.Definitions[startIndex], out var sourceCteName) ||
-            !cteIndexes.TryGetValue(sourceCteName, out var sourceTableIndex) ||
-            !cteShapesByName.ContainsKey(sourceCteName))
+        if (
+            !TryGetSimpleSiblingSourceCte(cte.Definitions[startIndex], out var sourceCteName)
+            || !cteIndexes.TryGetValue(sourceCteName, out var sourceTableIndex)
+            || !cteShapesByName.ContainsKey(sourceCteName)
+        )
         {
             return null;
         }
@@ -76,9 +83,11 @@ internal sealed class FusedSiblingCteLowerer
         for (var index = startIndex; index < exclusiveEndIndex; index++)
         {
             var definition = cte.Definitions[index];
-            if (fusedHashBuildSources.ContainsKey(definition.Name) ||
-                !TryGetSimpleSiblingSourceCte(definition, out var currentSourceCteName) ||
-                !string.Equals(sourceCteName, currentSourceCteName, StringComparison.OrdinalIgnoreCase))
+            if (
+                fusedHashBuildSources.ContainsKey(definition.Name)
+                || !TryGetSimpleSiblingSourceCte(definition, out var currentSourceCteName)
+                || !string.Equals(sourceCteName, currentSourceCteName, StringComparison.OrdinalIgnoreCase)
+            )
             {
                 break;
             }
@@ -94,51 +103,50 @@ internal sealed class FusedSiblingCteLowerer
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndexes[definition.Name],
-                pruningPlan);
+                pruningPlan
+            );
             result = _applySidecarOptimizations(
                 definition.Name,
                 sidecarSpecs,
                 cteReferenceClassifications,
                 pruningPlan,
                 result,
-                out var storage);
+                out var storage
+            );
 
-            if (!result.IsBuilt ||
-                ContainsSideEffectSensitiveSiblingExpression(result.Nodes) ||
-                !TryExtractFusibleBuild(result, sourceTableIndex, out var setupNodes, out var loop, out var storeIndexNodes))
+            if (
+                !result.IsBuilt
+                || ContainsSideEffectSensitiveSiblingExpression(result.Nodes)
+                || !TryExtractFusibleBuild(
+                    result,
+                    sourceTableIndex,
+                    out var setupNodes,
+                    out var loop,
+                    out var storeIndexNodes
+                )
+            )
             {
                 break;
             }
 
             shapes.AddRange(result.Shapes);
             rowShapesByName[definition.Name] = result.RowShape;
-            candidates.Add(new FusedSiblingCteCandidate(
-                definition.Name,
-                index,
-                result,
-                storage,
-                setupNodes,
-                loop,
-                storeIndexNodes));
+            candidates.Add(
+                new FusedSiblingCteCandidate(definition.Name, index, result, storage, setupNodes, loop, storeIndexNodes)
+            );
         }
 
-        return candidates.Count < 2
-            ? null
-            : _createBuildResult(candidates, shapes, rowShapesByName);
+        return candidates.Count < 2 ? null : _createBuildResult(candidates, shapes, rowShapesByName);
     }
 
-    private bool TryGetSimpleSiblingSourceCte(
-        PhysicalCteDefinition definition,
-        out string sourceCteName)
+    private bool TryGetSimpleSiblingSourceCte(PhysicalCteDefinition definition, out string sourceCteName)
     {
         sourceCteName = string.Empty;
         var plan = _unwrapSingleStatement(definition.Plan);
         if (plan is not PhysicalProjectNode { IsDistinct: false } project)
             return false;
 
-        var source = project.Input is PhysicalFilterNode filter
-            ? filter.Input
-            : project.Input;
+        var source = project.Input is PhysicalFilterNode filter ? filter.Input : project.Input;
         if (source is not PhysicalCteRefNode cteRef)
             return false;
 
@@ -157,7 +165,8 @@ internal sealed class FusedSiblingCteLowerer
         int sourceTableIndex,
         out IReadOnlyList<ExecutionNode> setupNodes,
         [NotNullWhen(true)] out ExecutionForEach? loop,
-        out IReadOnlyList<ExecutionNode> storeIndexNodes)
+        out IReadOnlyList<ExecutionNode> storeIndexNodes
+    )
     {
         setupNodes = [];
         loop = null;
@@ -165,12 +174,14 @@ internal sealed class FusedSiblingCteLowerer
 
         var nodes = result.Nodes.ToArray();
         var loopIndex = Array.FindIndex(nodes, static node => node is ExecutionForEach);
-        if (loopIndex < 0 ||
-            Array.FindIndex(nodes, loopIndex + 1, static node => node is ExecutionForEach) >= 0 ||
-            nodes[loopIndex] is not ExecutionForEach currentLoop ||
-            currentLoop.Source is not ExecutionStoredTableRows { TableIndex: var tableIndex } ||
-            tableIndex != sourceTableIndex ||
-            ContainsNestedLoop(currentLoop.Body))
+        if (
+            loopIndex < 0
+            || Array.FindIndex(nodes, loopIndex + 1, static node => node is ExecutionForEach) >= 0
+            || nodes[loopIndex] is not ExecutionForEach currentLoop
+            || currentLoop.Source is not ExecutionStoredTableRows { TableIndex: var tableIndex }
+            || tableIndex != sourceTableIndex
+            || ContainsNestedLoop(currentLoop.Body)
+        )
         {
             return false;
         }
@@ -180,8 +191,7 @@ internal sealed class FusedSiblingCteLowerer
             return false;
 
         var stores = nodes[(loopIndex + 1)..];
-        if (stores.Length == 0 ||
-            stores.Any(static node => node is not ExecutionCteSidecarIndexStoreCandidate))
+        if (stores.Length == 0 || stores.Any(static node => node is not ExecutionCteSidecarIndexStoreCandidate))
         {
             return false;
         }
@@ -200,15 +210,15 @@ internal sealed class FusedSiblingCteLowerer
             ExecutionCreateTable or ExecutionCreateHash or ExecutionCreateKeySet => true,
             ExecutionCteSidecarIndexBuildCandidate => true,
             ExecutionCteIndexOnlyStorageCandidate => true,
-            _ => false
+            _ => false,
         };
     }
 
     private static bool ContainsNestedLoop(ExecutionBlock block)
     {
-        return ExecutionIrAnalysis.CollectNodes<ExecutionForEach>(block).Any() ||
-               ExecutionIrAnalysis.CollectNodes<ExecutionForEachIndexed>(block).Any() ||
-               ExecutionIrAnalysis.CollectNodes<ExecutionParallelBlock>(block).Any() ||
-               ExecutionIrAnalysis.CollectNodes<ExecutionParallelFilterProjectLoop>(block).Any();
+        return ExecutionIrAnalysis.CollectNodes<ExecutionForEach>(block).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionForEachIndexed>(block).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionParallelBlock>(block).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionParallelFilterProjectLoop>(block).Any();
     }
 }

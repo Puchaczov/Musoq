@@ -23,15 +23,18 @@ public partial class InterpreterCodeGenerator
         StringBuilder builder,
         string localVar,
         string fieldName,
-        BinarySwitchTypeNode switchType)
+        BinarySwitchTypeNode switchType
+    )
     {
         var selectorVar = GetLocalVarName(switchType.Selector);
         var selectorType = GetSwitchSelectorType(switchType.Selector);
 
         builder.AppendLine(CultureInfo.InvariantCulture, $"string {SwitchCaseVariable(localVar)} = null;");
         foreach (var switchCase in switchType.Cases)
-            builder.AppendLine(CultureInfo.InvariantCulture,
-                $"{GetSwitchBranchClrTypeName(fieldName, switchCase)} {SwitchBranchHolder(localVar, switchCase.BranchAlias)} = default;");
+            builder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"{GetSwitchBranchClrTypeName(fieldName, switchCase)} {SwitchBranchHolder(localVar, switchCase.BranchAlias)} = default;"
+            );
 
         var isFirstCase = true;
         foreach (var switchCase in switchType.Cases)
@@ -67,27 +70,39 @@ public partial class InterpreterCodeGenerator
     private void AppendBinarySwitchNoMatch(StringBuilder builder, string fieldName, string selectorVar)
     {
         builder.AppendLine("{");
-        builder.AppendLine(StatusFailure(
-            $"global::Musoq.Schema.Interpreters.ParseFailure.ForText(" +
-            $"Musoq.Schema.Interpreters.ParseErrorCode.NoAlternativeMatched, SchemaName, " +
-            $"\"{EscapeString(fieldName)}\", ParsePosition, " +
-            $"\"No switch branch matched selector value \" + " +
-            $"System.Convert.ToString({selectorVar}, System.Globalization.CultureInfo.InvariantCulture))"));
+        builder.AppendLine(
+            StatusFailure(
+                $"global::Musoq.Schema.Interpreters.ParseFailure.ForText("
+                    + $"Musoq.Schema.Interpreters.ParseErrorCode.NoAlternativeMatched, SchemaName, "
+                    + $"\"{EscapeString(fieldName)}\", ParsePosition, "
+                    + $"\"No switch branch matched selector value \" + "
+                    + $"System.Convert.ToString({selectorVar}, System.Globalization.CultureInfo.InvariantCulture))"
+            )
+        );
         builder.AppendLine("}");
     }
 
-    private void AppendBinarySwitchBranch(StringBuilder builder, string localVar, BinarySwitchCaseNode switchCase,
-        string fieldName)
+    private void AppendBinarySwitchBranch(
+        StringBuilder builder,
+        string localVar,
+        BinarySwitchCaseNode switchCase,
+        string fieldName
+    )
     {
         var holder = SwitchBranchHolder(localVar, switchCase.BranchAlias);
         var temp = $"{holder}_value";
 
         builder.AppendLine("{");
-        var readName = switchCase.BranchType is SchemaReferenceTypeNode
-            ? fieldName : SwitchBranchFieldName(fieldName, switchCase.BranchAlias);
+        var readName =
+            switchCase.BranchType is SchemaReferenceTypeNode
+                ? fieldName
+                : SwitchBranchFieldName(fieldName, switchCase.BranchAlias);
         builder.Append(Indent(GenerateBinaryValueRead(temp, readName, switchCase.BranchType), 1));
         builder.AppendLine(CultureInfo.InvariantCulture, $"    {holder} = {temp};");
-        builder.AppendLine(CultureInfo.InvariantCulture, $"    {SwitchCaseVariable(localVar)} = \"{switchCase.BranchAlias}\";");
+        builder.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"    {SwitchCaseVariable(localVar)} = \"{switchCase.BranchAlias}\";"
+        );
         builder.AppendLine("}");
     }
 
@@ -95,15 +110,18 @@ public partial class InterpreterCodeGenerator
         string assignmentTarget,
         string localVar,
         string className,
-        BinarySwitchTypeNode switchType)
+        BinarySwitchTypeNode switchType
+    )
     {
         var builder = new StringBuilder();
         builder.AppendLine(CultureInfo.InvariantCulture, $"{assignmentTarget} = new {className}");
         builder.AppendLine("{");
         builder.AppendLine(CultureInfo.InvariantCulture, $"    {SwitchCaseProperty} = {SwitchCaseVariable(localVar)},");
 
-        var branchInitializers = switchType.Cases
-            .Select(c => $"    {EscapeCSharpIdentifier(c.BranchAlias)} = {SwitchBranchHolder(localVar, c.BranchAlias)}")
+        var branchInitializers = switchType
+            .Cases.Select(c =>
+                $"    {EscapeCSharpIdentifier(c.BranchAlias)} = {SwitchBranchHolder(localVar, c.BranchAlias)}"
+            )
             .ToArray();
 
         for (var i = 0; i < branchInitializers.Length; i++)
@@ -119,7 +137,8 @@ public partial class InterpreterCodeGenerator
     private string GetOrRegisterSwitchClassName(string fieldName, BinarySwitchTypeNode switchType)
     {
         var registered = _switchSchemas.FirstOrDefault(item => ReferenceEquals(item.Switch, switchType));
-        if (registered.Switch != null) return registered.ClassName;
+        if (registered.Switch != null)
+            return registered.ClassName;
         var className = SwitchClassName(fieldName);
         if (_switchSchemas.All(x => x.ClassName != className))
             _switchSchemas.Add((className, switchType));
@@ -131,7 +150,10 @@ public partial class InterpreterCodeGenerator
         var fieldName = className["Switch_".Length..];
         var builder = new StringBuilder();
         builder.AppendLine("/// <summary>");
-        builder.AppendLine(CultureInfo.InvariantCulture, $"/// Generated tagged-union value for binary switch '{className}'.");
+        builder.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"/// Generated tagged-union value for binary switch '{className}'."
+        );
         builder.AppendLine("/// </summary>");
         builder.AppendLine(CultureInfo.InvariantCulture, $"public sealed class {className}");
         builder.AppendLine("{");
@@ -142,8 +164,14 @@ public partial class InterpreterCodeGenerator
         foreach (var switchCase in switchType.Cases)
         {
             var branchTypeName = GetSwitchBranchClrTypeName(fieldName, switchCase);
-            builder.AppendLine(CultureInfo.InvariantCulture, $"    /// <summary>Gets the '{switchCase.BranchAlias}' branch value; non-null only when selected.</summary>");
-            builder.AppendLine(CultureInfo.InvariantCulture, $"    public {branchTypeName} {EscapeCSharpIdentifier(switchCase.BranchAlias)} {{ get; init; }}");
+            builder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"    /// <summary>Gets the '{switchCase.BranchAlias}' branch value; non-null only when selected.</summary>"
+            );
+            builder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"    public {branchTypeName} {EscapeCSharpIdentifier(switchCase.BranchAlias)} {{ get; init; }}"
+            );
             builder.AppendLine();
         }
 
@@ -177,13 +205,15 @@ public partial class InterpreterCodeGenerator
 
     private Type? GetSwitchSelectorType(string selector)
     {
-        if (!_registry.TryGetSchema(_currentSchemaName, out var registration) ||
-            registration?.Node is not BinarySchemaNode schema)
+        if (
+            !_registry.TryGetSchema(_currentSchemaName, out var registration)
+            || registration?.Node is not BinarySchemaNode schema
+        )
             return null;
 
         return GetAllFieldsIncludingInherited(schema)
-            .FirstOrDefault(field => string.Equals(field.Name, selector, StringComparison.OrdinalIgnoreCase))?
-            .ReturnType;
+            .FirstOrDefault(field => string.Equals(field.Name, selector, StringComparison.OrdinalIgnoreCase))
+            ?.ReturnType;
     }
 
     private string GenerateSwitchCaseLiteral(Node caseValue, Type? selectorType)
@@ -193,8 +223,9 @@ public partial class InterpreterCodeGenerator
 
         return targetType switch
         {
-            { } type when type == typeof(float) || type == typeof(double) => $"({GetClrTypeNameForSelector(type)})({expression})",
-            _ => expression
+            { } type when type == typeof(float) || type == typeof(double) =>
+                $"({GetClrTypeNameForSelector(type)})({expression})",
+            _ => expression,
         };
     }
 

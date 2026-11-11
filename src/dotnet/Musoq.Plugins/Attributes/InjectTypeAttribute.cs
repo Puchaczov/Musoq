@@ -9,9 +9,7 @@ public abstract class InjectTypeAttribute : Attribute
     /// <summary>
     ///     Initialize object.
     /// </summary>
-    internal InjectTypeAttribute()
-    {
-    }
+    internal InjectTypeAttribute() { }
 
     /// <summary>
     ///     Gets the type have to be injected when dynamic invocation performed.

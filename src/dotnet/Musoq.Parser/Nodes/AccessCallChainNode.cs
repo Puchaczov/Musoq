@@ -5,8 +5,12 @@ namespace Musoq.Parser.Nodes;
 
 public class AccessCallChainNode : Node
 {
-    public AccessCallChainNode(string columnName, Type columnType, (PropertyInfo Property, object? Arg)[] props,
-        string alias)
+    public AccessCallChainNode(
+        string columnName,
+        Type columnType,
+        (PropertyInfo Property, object? Arg)[] props,
+        string alias
+    )
     {
         ColumnName = columnName;
         ColumnType = columnType;
@@ -66,7 +70,10 @@ public class AccessCallChainNode : Node
             if (prop.Arg == null)
                 callChain.Append(System.Globalization.CultureInfo.InvariantCulture, $"{prop.Property.Name}.");
             else
-                callChain.Append(System.Globalization.CultureInfo.InvariantCulture, $"{prop.Property.Name}[{prop.Arg}]");
+                callChain.Append(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $"{prop.Property.Name}[{prop.Arg}]"
+                );
         }
 
         if (Props.Length == 0)

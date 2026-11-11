@@ -17,6 +17,5 @@ public static class TypedColumnVisit
     /// <summary>Visits a value without a boxed argument or boxed visitor.</summary>
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public static void Apply<TVisitor, TValue>(int columnIndex, TValue value, ref TVisitor visitor)
-        where TVisitor : IColumnValueVisitor, allows ref struct
-        => visitor.Visit(columnIndex, in value);
+        where TVisitor : IColumnValueVisitor, allows ref struct => visitor.Visit(columnIndex, in value);
 }

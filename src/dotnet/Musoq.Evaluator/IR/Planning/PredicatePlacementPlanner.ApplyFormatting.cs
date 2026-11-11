@@ -12,7 +12,7 @@ internal static partial class PredicatePlacementPlanner
             PredicateEarliestPlacement.PostJoin => "post-join",
             PredicateEarliestPlacement.PostAggregate => "post-aggregate",
             PredicateEarliestPlacement.PostWindow => "post-window",
-            _ => placement.ToString()
+            _ => placement.ToString(),
         };
     }
 }

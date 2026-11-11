@@ -25,9 +25,7 @@ public partial class SchemaExtendedTests
             NullLogger.Instance
         );
 
-        using (ctx.Diagnostics.Measure("setup", SourceDiagnosticOperation.Setup))
-        {
-        }
+        using (ctx.Diagnostics.Measure("setup", SourceDiagnosticOperation.Setup)) { }
 
         ctx.Diagnostics.AddRowsProduced(10);
         ctx.Diagnostics.AddBytesRead(256);
@@ -84,7 +82,11 @@ public partial class SchemaExtendedTests
             NullLogger.Instance
         );
 
-        var source = schema.GetRowSource<DiagnosticsCompatibilityEntity, EmptySourceArguments>("items", ctx, SourceArguments.Empty);
+        var source = schema.GetRowSource<DiagnosticsCompatibilityEntity, EmptySourceArguments>(
+            "items",
+            ctx,
+            SourceArguments.Empty
+        );
         var rows = source.Chunks.SelectMany(static chunk => chunk).ToArray();
 
         Assert.HasCount(1, rows);
@@ -144,12 +146,14 @@ public partial class SchemaExtendedTests
             AddSource<DiagnosticsCompatibilitySource>("items");
         }
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name,
-            SourceExecutionContext context, TArguments arguments)
-            => EnsureSourceType<T, DiagnosticsCompatibilityEntity>(name, new DiagnosticsCompatibilitySource(context));
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext context,
+            TArguments arguments
+        ) => EnsureSourceType<T, DiagnosticsCompatibilityEntity>(name, new DiagnosticsCompatibilitySource(context));
     }
 
-        // Native source construction is explicit; execution does not reflect constructors.
+    // Native source construction is explicit; execution does not reflect constructors.
     private sealed class DiagnosticsCompatibilityTable : ISchemaTable
     {
         public ISchemaColumn[] Columns { get; } = [new SchemaColumn("Value", 0, typeof(int))];

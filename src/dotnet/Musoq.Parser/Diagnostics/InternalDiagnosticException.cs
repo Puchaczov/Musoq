@@ -16,7 +16,8 @@ public sealed class InternalDiagnosticException : Exception, IDiagnosticExceptio
         DiagnosticSourceKind sourceKind,
         string correlationId,
         TextSpan? span,
-        Exception innerException)
+        Exception innerException
+    )
         : base(message, innerException)
     {
         Code = code;
@@ -55,7 +56,8 @@ public sealed class InternalDiagnosticException : Exception, IDiagnosticExceptio
             DiagnosticSourceKind.Internal,
             correlationId,
             span,
-            innerException);
+            innerException
+        );
     }
 
     /// <summary>
@@ -72,7 +74,8 @@ public sealed class InternalDiagnosticException : Exception, IDiagnosticExceptio
             DiagnosticSourceKind.Internal,
             correlationId,
             span,
-            innerException);
+            innerException
+        );
     }
 
     /// <inheritdoc />
@@ -92,9 +95,11 @@ public sealed class InternalDiagnosticException : Exception, IDiagnosticExceptio
                 new KeyValuePair<string, string>("correlationId", CorrelationId),
                 new KeyValuePair<string, string>(
                     "exceptionType",
-                    InnerException?.GetType().FullName ?? GetType().FullName ?? "unknown")
+                    InnerException?.GetType().FullName ?? GetType().FullName ?? "unknown"
+                ),
             },
-            correlationId: CorrelationId);
+            correlationId: CorrelationId
+        );
     }
 
     private static (SourceLocation Start, SourceLocation End) ResolveLocations(SourceText? sourceText, TextSpan? span)

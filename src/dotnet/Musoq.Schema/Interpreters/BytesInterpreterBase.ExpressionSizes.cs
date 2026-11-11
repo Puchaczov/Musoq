@@ -5,7 +5,8 @@ namespace Musoq.Schema.Interpreters;
 public abstract partial class BytesInterpreterBase<TOut>
 {
     /// <summary>Evaluates a checked numeric size or position without truncating or substituting null.</summary>
-    protected int ResolveExpressionSize<T>(Func<T?> readValue, ParseErrorCode errorCode = ParseErrorCode.InvalidSize) where T : struct, INumberBase<T>
+    protected int ResolveExpressionSize<T>(Func<T?> readValue, ParseErrorCode errorCode = ParseErrorCode.InvalidSize)
+        where T : struct, INumberBase<T>
     {
         try
         {
@@ -20,8 +21,14 @@ public abstract partial class BytesInterpreterBase<TOut>
         throw InvalidExpressionSize(errorCode);
     }
 
-    private ParseException InvalidExpressionSize(ParseErrorCode errorCode) => ParseException.ForBytes(
-        errorCode,
-        SchemaName, _currentFieldName, ParsePosition,
-        errorCode == ParseErrorCode.InvalidPosition ? "Position must be a non-negative representable integer." : "Size must be a non-negative representable integer.");
+    private ParseException InvalidExpressionSize(ParseErrorCode errorCode) =>
+        ParseException.ForBytes(
+            errorCode,
+            SchemaName,
+            _currentFieldName,
+            ParsePosition,
+            errorCode == ParseErrorCode.InvalidPosition
+                ? "Position must be a non-negative representable integer."
+                : "Size must be a non-negative representable integer."
+        );
 }

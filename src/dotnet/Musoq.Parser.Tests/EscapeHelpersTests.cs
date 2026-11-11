@@ -121,7 +121,8 @@ public class EscapeHelpersTests
         // Arrange
         var input = new StringBuilder();
         const string pattern = "text\\simple\\pattern";
-        for (var i = 0; i < 200000; i++) input.Append(pattern);
+        for (var i = 0; i < 200000; i++)
+            input.Append(pattern);
 
         // Act
         var result = input.ToString().Unescape();
@@ -137,7 +138,8 @@ public class EscapeHelpersTests
         // Arrange
         var input = new StringBuilder();
         const string pattern = "text\\n\\\\text\\\\\\pattern\\t";
-        for (var i = 0; i < 200000; i++) input.Append(pattern);
+        for (var i = 0; i < 200000; i++)
+            input.Append(pattern);
 
         // Act
         var result = input.ToString().Unescape();
@@ -281,7 +283,8 @@ public class EscapeHelpersTests
     public void Unescape_LargeString()
     {
         var sb = new StringBuilder();
-        for (var i = 0; i < 1000; i++) sb.Append(@"Hello\nWorld\t\u0394\u2665\\test");
+        for (var i = 0; i < 1000; i++)
+            sb.Append(@"Hello\nWorld\t\u0394\u2665\\test");
         var result = sb.ToString().Unescape();
         Assert.Contains("\n", result);
         Assert.Contains("\t", result);

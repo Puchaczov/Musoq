@@ -12,12 +12,13 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingHavingWithStringColumnComparison_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Category: string," +
-                             "  Size: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Category, Count(Category) from Items() group by Category having Count(Category) > 1";
+        const string query =
+            "table Items {"
+            + "  Category: string,"
+            + "  Size: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Category, Count(Category) from Items() group by Category having Count(Category) > 1";
 
         dynamic item1 = new ExpandoObject();
         item1.Category = "A";
@@ -41,12 +42,13 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenFilteringBeforeGroupByWithStringColumn_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Category: string," +
-                             "  Size: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Category, Sum(ToInt32(Size)) from Items() where Size > 100 group by Category";
+        const string query =
+            "table Items {"
+            + "  Category: string,"
+            + "  Size: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Category, Sum(ToInt32(Size)) from Items() where Size > 100 group by Category";
 
         dynamic item1 = new ExpandoObject();
         item1.Category = "A";
@@ -69,13 +71,14 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenComparingStringColumnInWhereBeforeAggregate_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Category: string," +
-                             "  Size: string," +
-                             "  Price: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Category from Items() where Size >= 1000 and Price <= 100 group by Category";
+        const string query =
+            "table Items {"
+            + "  Category: string,"
+            + "  Size: string,"
+            + "  Price: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Category from Items() where Size >= 1000 and Price <= 100 group by Category";
 
         dynamic item1 = new ExpandoObject();
         item1.Category = "A";
@@ -102,12 +105,13 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenUsingCountWithStringColumnFilter_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Count(Name) from Items() where Size > 1000";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Count(Name) from Items() where Size > 1000";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "500";
@@ -131,16 +135,17 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     [TestMethod]
     public void WhenCombiningMultipleStringColumnFiltersWithGroupBy_ShouldAutoConvert()
     {
-        const string query = "table Items {" +
-                             "  Category: string," +
-                             "  Size: string," +
-                             "  Price: string," +
-                             "  Quantity: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Category from Items() " +
-                             "where Size > 1000 and Price < 100 and Quantity >= 5 " +
-                             "group by Category";
+        const string query =
+            "table Items {"
+            + "  Category: string,"
+            + "  Size: string,"
+            + "  Price: string,"
+            + "  Quantity: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Category from Items() "
+            + "where Size > 1000 and Price < 100 and Quantity >= 5 "
+            + "group by Category";
 
         dynamic item1 = new ExpandoObject();
         item1.Category = "A";
@@ -160,7 +165,6 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("A", table[0].ReadValues()[0]);
     }
-
 
     #endregion
 }

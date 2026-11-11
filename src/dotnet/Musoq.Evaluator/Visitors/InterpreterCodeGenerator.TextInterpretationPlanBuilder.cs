@@ -28,7 +28,7 @@ public partial class InterpreterCodeGenerator
         {
             SchemaName = schema.Name,
             Extends = string.IsNullOrEmpty(schema.Extends) ? null : schema.Extends,
-            Fields = boundFields
+            Fields = boundFields,
         };
     }
 
@@ -37,12 +37,18 @@ public partial class InterpreterCodeGenerator
         var bound = BindTextFieldCore(field);
         return bound with
         {
-            PreparedPattern = field.FieldType == TextFieldType.Pattern
-                ? new BoundTextPattern(field.PrimaryValue ?? string.Empty, BindPatternModifiers(field.Modifiers),
-                    bound.CaptureGroups)
-                : null,
+            PreparedPattern =
+                field.FieldType == TextFieldType.Pattern
+                    ? new BoundTextPattern(
+                        field.PrimaryValue ?? string.Empty,
+                        BindPatternModifiers(field.Modifiers),
+                        bound.CaptureGroups
+                    )
+                    : null,
             RepeatElement = field.RepeatElement is { } element ? BindTextField(element) : null,
-            SwitchArms = field.SwitchCases.Select(arm => new BoundTextSwitchArm(arm.Pattern, BindTextField(arm.Body))).ToArray()
+            SwitchArms = field
+                .SwitchCases.Select(arm => new BoundTextSwitchArm(arm.Pattern, BindTextField(arm.Body)))
+                .ToArray(),
         };
     }
 
@@ -74,7 +80,7 @@ public partial class InterpreterCodeGenerator
                 Source = field,
                 Name = field.Name,
                 LocalVariableName = localVariableName,
-                IsDiscard = true
+                IsDiscard = true,
             };
 
         if (field is { FieldType: TextFieldType.Pattern, CaptureGroups.Length: > 0 })
@@ -87,7 +93,7 @@ public partial class InterpreterCodeGenerator
                 PropertyName = EscapeCSharpIdentifier(field.Name),
                 PropertyClrType = GetTextFieldPropertyClrType(field),
                 IsCaptureResult = true,
-                CaptureGroups = field.CaptureGroups
+                CaptureGroups = field.CaptureGroups,
             };
 
         var propertyClrType = GetTextFieldPropertyClrType(field);
@@ -99,7 +105,7 @@ public partial class InterpreterCodeGenerator
             LocalVariableName = localVariableName,
             IsDiscard = false,
             PropertyName = EscapeCSharpIdentifier(field.Name),
-            PropertyClrType = propertyClrType
+            PropertyClrType = propertyClrType,
         };
     }
 
@@ -116,13 +122,16 @@ public partial class InterpreterCodeGenerator
             TextFieldType.Repeat => $"{field.PrimaryValue ?? "object"}[]?",
             TextFieldType.Switch => GetTextSwitchResultClrType(field),
             TextFieldType.SchemaReference => $"{field.PrimaryValue ?? "object"}?",
-            _ => "string?"
+            _ => "string?",
         };
     }
 
     private static string GetTextSwitchResultClrType(TextFieldDefinitionNode field)
     {
-        var types = field.SwitchCases.Select(arm => GetTextFieldPropertyClrType(arm.Body)).Distinct(StringComparer.Ordinal).ToArray();
+        var types = field
+            .SwitchCases.Select(arm => GetTextFieldPropertyClrType(arm.Body))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
         return types.Length == 1 ? types[0] : "object?";
     }
 
@@ -130,9 +139,11 @@ public partial class InterpreterCodeGenerator
     {
         var fields = new List<TextFieldDefinitionNode>();
 
-        if (!string.IsNullOrWhiteSpace(textSchema.Extends) &&
-            _registry.TryGetSchema(textSchema.Extends, out var registration) &&
-            registration?.Node is TextSchemaNode parent)
+        if (
+            !string.IsNullOrWhiteSpace(textSchema.Extends)
+            && _registry.TryGetSchema(textSchema.Extends, out var registration)
+            && registration?.Node is TextSchemaNode parent
+        )
         {
             fields.AddRange(GetAllTextSchemaFields(parent));
         }
@@ -146,8 +157,8 @@ public partial class InterpreterCodeGenerator
             }
 
             var existingIndex = fields.FindIndex(existing =>
-                !existing.IsDiscard &&
-                string.Equals(existing.Name, field.Name, StringComparison.OrdinalIgnoreCase));
+                !existing.IsDiscard && string.Equals(existing.Name, field.Name, StringComparison.OrdinalIgnoreCase)
+            );
             if (existingIndex >= 0)
                 fields[existingIndex] = field;
             else

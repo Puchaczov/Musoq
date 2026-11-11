@@ -26,15 +26,8 @@ internal static class LogicalSourceOrdinalFacts
             return false;
 
         var separatorIndex = sourceContextId.LastIndexOf(':');
-        var ordinalText = separatorIndex >= 0
-            ? sourceContextId[(separatorIndex + 1)..]
-            : sourceContextId;
+        var ordinalText = separatorIndex >= 0 ? sourceContextId[(separatorIndex + 1)..] : sourceContextId;
 
-        return int.TryParse(
-            ordinalText,
-            NumberStyles.Integer,
-            CultureInfo.InvariantCulture,
-            out ordinal);
+        return int.TryParse(ordinalText, NumberStyles.Integer, CultureInfo.InvariantCulture, out ordinal);
     }
 }
-

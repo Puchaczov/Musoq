@@ -15,8 +15,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace (1 as Name) replace (2 as City) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
-            "Duplicate or out-of-order star modifier");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2041_InvalidStarModifierOrder,
+            "Duplicate or out-of-order star modifier"
+        );
     }
 
     [TestMethod]
@@ -25,8 +28,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * like '%a' like '%b' from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
-            "Duplicate or out-of-order star modifier");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2041_InvalidStarModifierOrder,
+            "Duplicate or out-of-order star modifier"
+        );
     }
 
     [TestMethod]
@@ -35,8 +41,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace (1 as Name) like '%a' from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
-            "Duplicate or out-of-order star modifier");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2041_InvalidStarModifierOrder,
+            "Duplicate or out-of-order star modifier"
+        );
     }
 
     [TestMethod]
@@ -45,8 +54,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replace (1 as Name) exclude (City) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2041_InvalidStarModifierOrder,
-            "Duplicate or out-of-order star modifier");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2041_InvalidStarModifierOrder,
+            "Duplicate or out-of-order star modifier"
+        );
     }
 
     [TestMethod]
@@ -55,8 +67,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * exclud (Name) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "Did you mean EXCLUDE or REPLACE");
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken, "Did you mean EXCLUDE or REPLACE");
     }
 
     [TestMethod]
@@ -65,8 +76,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * exlude (Name) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "Did you mean EXCLUDE or REPLACE");
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken, "Did you mean EXCLUDE or REPLACE");
     }
 
     [TestMethod]
@@ -75,8 +85,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * replac (1 as Name) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "Did you mean EXCLUDE or REPLACE");
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken, "Did you mean EXCLUDE or REPLACE");
     }
 
     [TestMethod]
@@ -85,8 +94,7 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select * rplace (1 as Name) from #A.entities()");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "Did you mean EXCLUDE or REPLACE");
+        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken, "Did you mean EXCLUDE or REPLACE");
     }
 
     [TestMethod]
@@ -104,8 +112,11 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select a.* exclude Name from #A.entities() a");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "EXCLUDE requires a parenthesized column list");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            "EXCLUDE requires a parenthesized column list"
+        );
     }
 
     [TestMethod]
@@ -114,17 +125,18 @@ public partial class StarModifierTests
         var analyzer = CreateAnalyzer();
         var result = analyzer.ValidateSyntax("select a.* replace (Name) from #A.entities() a");
 
-        AssertHasErrorWithMessage(result, DiagnosticCode.MQ2001_UnexpectedToken,
-            "Expected AS keyword after expression in REPLACE item");
+        AssertHasErrorWithMessage(
+            result,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            "Expected AS keyword after expression in REPLACE item"
+        );
     }
-
-
 
     private static BasicSchemaProvider<BasicEntity> CreateSchemaProvider()
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] }
+            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -136,25 +148,23 @@ public partial class StarModifierTests
 
     private static void AssertHasError(QueryAnalysisResult result, string context)
     {
-        Assert.IsNotEmpty(result.Errors,
-            $"Expected an error diagnostic ({context}) but query succeeded.");
+        Assert.IsNotEmpty(result.Errors, $"Expected an error diagnostic ({context}) but query succeeded.");
     }
 
     private static void AssertHasErrorWithMessage(
         QueryAnalysisResult result,
         DiagnosticCode expectedCode,
-        string expectedMessageSubstring)
+        string expectedMessageSubstring
+    )
     {
-        var match = DiagnosticContractTestAssertions.AssertSingleError(
-            result, expectedCode, expectedMessageSubstring);
+        var match = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, expectedMessageSubstring);
 
         StringAssert.Contains(
             match.Message,
             expectedMessageSubstring,
-            $"Expected message containing '{expectedMessageSubstring}' but got: '{match.Message}'");
+            $"Expected message containing '{expectedMessageSubstring}' but got: '{match.Message}'"
+        );
     }
-
-
 
     [TestMethod]
     public void WhenStarExclude_WithWhereClause_ShouldFilterThenExcludeColumns()
@@ -164,11 +174,22 @@ public partial class StarModifierTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London", Country = "UK", Population = 50m },
-                    new BasicEntity("february", 70m) { City = "Paris", Country = "FR", Population = 200m }
+                "#A",
+                [
+                    new BasicEntity("january", 50m)
+                    {
+                        City = "London",
+                        Country = "UK",
+                        Population = 50m,
+                    },
+                    new BasicEntity("february", 70m)
+                    {
+                        City = "Paris",
+                        Country = "FR",
+                        Population = 200m,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -187,12 +208,13 @@ public partial class StarModifierTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("january", 50m) { City = "London", Population = 100m },
                     new BasicEntity("february", 70m) { City = "Paris", Population = 300m },
-                    new BasicEntity("march", 90m) { City = "Berlin", Population = 200m }
+                    new BasicEntity("march", 90m) { City = "Berlin", Population = 200m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -211,20 +233,23 @@ public partial class StarModifierTests
     [TestMethod]
     public void WhenStarExclude_WithGroupBy_ShouldWork()
     {
-        const string query = @"
-            select a.Country, Count(a.Country) as Cnt
-            from #A.entities() a
-            group by a.Country";
+        const string query = (
+            "\n"
+            + "            select a.Country, Count(a.Country) as Cnt\n"
+            + "            from #A.entities() a\n"
+            + "            group by a.Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("january", 50m) { Country = "UK", City = "London" },
                     new BasicEntity("february", 70m) { Country = "UK", City = "Paris" },
-                    new BasicEntity("march", 90m) { Country = "FR", City = "Berlin" }
+                    new BasicEntity("march", 90m) { Country = "FR", City = "Berlin" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -238,20 +263,23 @@ public partial class StarModifierTests
     [TestMethod]
     public void WhenStarReplace_WithGroupBy_ShouldUseReplacedValue()
     {
-        const string query = @"
-            select a.Country, Sum(a.Population) as TotalPop
-            from #A.entities() a
-            group by a.Country";
+        const string query = (
+            "\n"
+            + "            select a.Country, Sum(a.Population) as TotalPop\n"
+            + "            from #A.entities() a\n"
+            + "            group by a.Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("january", 50m) { Country = "UK", Population = 100m },
                     new BasicEntity("february", 70m) { Country = "UK", Population = 200m },
-                    new BasicEntity("march", 90m) { Country = "FR", Population = 300m }
+                    new BasicEntity("march", 90m) { Country = "FR", Population = 300m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -265,22 +293,26 @@ public partial class StarModifierTests
     [TestMethod]
     public void WhenStarExclude_WithInnerJoin_ShouldExcludeFromJoinedResult()
     {
-        const string query = @"
-            select a.* exclude (City) from #A.entities() a
-            inner join #B.entities() b on a.Country = b.Country";
+        const string query = (
+            "\n"
+            + "            select a.* exclude (City) from #A.entities() a\n"
+            + "            inner join #B.entities() b on a.Country = b.Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London", Country = "UK", Population = 100m }
+                "#A",
+                [
+                    new BasicEntity("january", 50m)
+                    {
+                        City = "London",
+                        Country = "UK",
+                        Population = 100m,
+                    },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("february", 70m) { Country = "UK" }
-                ]
-            }
+            { "#B", [new BasicEntity("february", 70m) { Country = "UK" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -295,23 +327,32 @@ public partial class StarModifierTests
     [TestMethod]
     public void WhenStarExclude_WithLeftJoin_ShouldExcludeFromJoinedResult()
     {
-        const string query = @"
-            select a.* exclude (City) from #A.entities() a
-            left outer join #B.entities() b on a.Country = b.Country";
+        const string query = (
+            "\n"
+            + "            select a.* exclude (City) from #A.entities() a\n"
+            + "            left outer join #B.entities() b on a.Country = b.Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London", Country = "UK", Population = 100m },
-                    new BasicEntity("february", 70m) { City = "Paris", Country = "FR", Population = 200m }
+                "#A",
+                [
+                    new BasicEntity("january", 50m)
+                    {
+                        City = "London",
+                        Country = "UK",
+                        Population = 100m,
+                    },
+                    new BasicEntity("february", 70m)
+                    {
+                        City = "Paris",
+                        Country = "FR",
+                        Population = 200m,
+                    },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("march", 90m) { Country = "UK" }
-                ]
-            }
+            { "#B", [new BasicEntity("march", 90m) { Country = "UK" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -321,5 +362,4 @@ public partial class StarModifierTests
         var columnNames = table.Columns.Select(c => c.ColumnName).ToList();
         Assert.IsFalse(columnNames.Any(c => c.Contains("City")));
     }
-
 }

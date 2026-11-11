@@ -35,8 +35,14 @@ public sealed class ExecutionConstantValueTests
 
         Assert.AreEqual(unchecked((uint)BitConverter.SingleToInt32Bits(-0.0f)), single.FloatingPointBits);
         Assert.AreEqual(0x7ff8000000000042UL, doubleValue.FloatingPointBits);
-        Assert.AreEqual(BitConverter.SingleToInt32Bits(-0.0f), BitConverter.SingleToInt32Bits((float)single.ToClrValue()!));
-        Assert.AreEqual(BitConverter.DoubleToInt64Bits(nan), BitConverter.DoubleToInt64Bits((double)doubleValue.ToClrValue()!));
+        Assert.AreEqual(
+            BitConverter.SingleToInt32Bits(-0.0f),
+            BitConverter.SingleToInt32Bits((float)single.ToClrValue()!)
+        );
+        Assert.AreEqual(
+            BitConverter.DoubleToInt64Bits(nan),
+            BitConverter.DoubleToInt64Bits((double)doubleValue.ToClrValue()!)
+        );
     }
 
     [TestMethod]
@@ -48,8 +54,14 @@ public sealed class ExecutionConstantValueTests
         var guid = Guid.Parse("00112233-4455-6677-8899-aabbccddeeff");
 
         var stringValue = ExecutionConstantValue.FromClr(text, ExecutionClrBindingFactory.FromClr(typeof(string)));
-        var dateTimeValue = ExecutionConstantValue.FromClr(dateTime, ExecutionClrBindingFactory.FromClr(typeof(DateTime)));
-        var offsetValue = ExecutionConstantValue.FromClr(dateTimeOffset, ExecutionClrBindingFactory.FromClr(typeof(DateTimeOffset)));
+        var dateTimeValue = ExecutionConstantValue.FromClr(
+            dateTime,
+            ExecutionClrBindingFactory.FromClr(typeof(DateTime))
+        );
+        var offsetValue = ExecutionConstantValue.FromClr(
+            dateTimeOffset,
+            ExecutionClrBindingFactory.FromClr(typeof(DateTimeOffset))
+        );
         var guidValue = ExecutionConstantValue.FromClr(guid, ExecutionClrBindingFactory.FromClr(typeof(Guid)));
 
         CollectionAssert.AreEqual(new ushort[] { 0x0041, 0xD83D, 0xDE00 }, stringValue.Utf16CodeUnits.ToArray());
@@ -66,9 +78,15 @@ public sealed class ExecutionConstantValueTests
     [TestMethod]
     public void FromClr_WhenEnumOrUnsupportedValueIsProvided_ShouldUseExplicitKinds()
     {
-        var enumValue = ExecutionConstantValue.FromClr(DayOfWeek.Friday, ExecutionClrBindingFactory.FromClr(typeof(DayOfWeek)));
+        var enumValue = ExecutionConstantValue.FromClr(
+            DayOfWeek.Friday,
+            ExecutionClrBindingFactory.FromClr(typeof(DayOfWeek))
+        );
         var unsupported = new UnsupportedConstant("value");
-        var clrOnly = ExecutionConstantValue.FromClr(unsupported, ExecutionClrBindingFactory.FromClr(typeof(UnsupportedConstant)));
+        var clrOnly = ExecutionConstantValue.FromClr(
+            unsupported,
+            ExecutionClrBindingFactory.FromClr(typeof(UnsupportedConstant))
+        );
 
         Assert.AreEqual(ExecutionConstantKind.Enum, enumValue.Kind);
         Assert.AreEqual(DayOfWeek.Friday, enumValue.ToClrValue());
@@ -86,18 +104,15 @@ public sealed class ExecutionConstantValueTests
         var set = new ExecutionConstantInSet(
             ExecutionClrBindingFactory.FromClr(typeof(int)),
             values,
-            ExecutionConstantInSetKind.Array);
+            ExecutionConstantInSetKind.Array
+        );
 
         values[0] = ExecutionConstantValue.FromClr(2, ExecutionClrBindingFactory.FromClr(typeof(int)));
 
         Assert.AreSame(first, set.Values[0]);
     }
 
-    private static void AssertRoundTrip(
-        object? expected,
-        Type type,
-        ExecutionConstantKind kind,
-        int bitWidth = 0)
+    private static void AssertRoundTrip(object? expected, Type type, ExecutionConstantKind kind, int bitWidth = 0)
     {
         var value = ExecutionConstantValue.FromClr(expected, ExecutionClrBindingFactory.FromClr(type));
 

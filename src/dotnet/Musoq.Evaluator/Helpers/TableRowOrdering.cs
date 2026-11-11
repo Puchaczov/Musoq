@@ -6,9 +6,7 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    public static IOrderedEnumerable<Row> OrderRows(
-        IEnumerable<Row> rows,
-        IReadOnlyList<RowOrderKey> orderKeys)
+    public static IOrderedEnumerable<Row> OrderRows(IEnumerable<Row> rows, IReadOnlyList<RowOrderKey> orderKeys)
     {
         return rows.OrderBy(static row => row, new RowOrderComparer(orderKeys));
     }
@@ -32,7 +30,8 @@ public static partial class EvaluationHelper
                     key.Selector(left),
                     key.Selector(right),
                     key.Descending,
-                    key.NullOrdering);
+                    key.NullOrdering
+                );
                 if (comparison != 0)
                     return comparison;
             }

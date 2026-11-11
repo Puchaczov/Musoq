@@ -13,8 +13,7 @@ public sealed class DiagnosticText048TextFieldsTests : SchemaParserTestsBase
     public void TextSchema_FixedTokenRestWhitespace_ShouldPreserveDefinitions()
     {
         const string schemaText =
-            "text Fields { Fixed: chars[3] trim upper, Word: token lower, " +
-            "Tail: rest ltrim, Gap: whitespace* }";
+            "text Fields { Fixed: chars[3] trim upper, Word: token lower, " + "Tail: rest ltrim, Gap: whitespace* }";
 
         var schema = ParseTextSchema(schemaText);
 

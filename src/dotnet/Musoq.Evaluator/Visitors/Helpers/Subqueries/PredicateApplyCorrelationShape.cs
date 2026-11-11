@@ -10,9 +10,9 @@ internal static class PredicateApplyCorrelationShape
         var predicates = SubqueryCorrelationUtilities.SplitConjuncts(expression);
         var guardedRanges = predicates.Where(static predicate => predicate is OrNode).ToArray();
 
-        return guardedRanges.Length == 1 &&
-               predicates.All(predicate => predicate is EqualityNode || ReferenceEquals(predicate, guardedRanges[0])) &&
-               IsNullGuardedRangeDisjunction(guardedRanges[0]);
+        return guardedRanges.Length == 1
+            && predicates.All(predicate => predicate is EqualityNode || ReferenceEquals(predicate, guardedRanges[0]))
+            && IsNullGuardedRangeDisjunction(guardedRanges[0]);
     }
 
     private static bool IsNullGuardedRangeDisjunction(Node expression)
@@ -24,7 +24,8 @@ internal static class PredicateApplyCorrelationShape
         if (ranges.Length != 1 || nullGuards.Length != 2 || terms.Length != 3)
             return false;
 
-        var rangeColumns = SubqueryCorrelationUtilities.CollectAccessColumns(ranges[0])
+        var rangeColumns = SubqueryCorrelationUtilities
+            .CollectAccessColumns(ranges[0])
             .Select(CreateColumnKey)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var guardedColumns = nullGuards
@@ -40,7 +41,7 @@ internal static class PredicateApplyCorrelationShape
         if (expression is not OrNode or)
             return [expression];
 
-        return [..SplitDisjuncts(or.Left), ..SplitDisjuncts(or.Right)];
+        return [.. SplitDisjuncts(or.Left), .. SplitDisjuncts(or.Right)];
     }
 
     private static string CreateColumnKey(AccessColumnNode column) => $"{column.Alias}.{column.Name}";

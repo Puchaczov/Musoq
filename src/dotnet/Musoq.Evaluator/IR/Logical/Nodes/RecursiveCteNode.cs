@@ -8,7 +8,8 @@ public sealed record RecursiveCteNode(
     LogicalNode RecursiveMember,
     RecursiveCteUnionKind UnionKind,
     string[] Keys,
-    int[] IdentityFieldIndexes) : LogicalNode(Anchor.OutputSchema)
+    int[] IdentityFieldIndexes
+) : LogicalNode(Anchor.OutputSchema)
 {
     public override IReadOnlyList<LogicalNode> Children { get; } = [Anchor, RecursiveMember];
 }

@@ -9,21 +9,21 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class RegexPatternAdvisoryAnalyzer
 {
-    private static readonly Dictionary<string, int> PatternIndexes =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Match"] = 0,
-            ["RegexMatches"] = 0,
-            ["RegexReplace"] = 1,
-            ["RegexExtract"] = 1,
-            ["RegexExtractAll"] = 1,
-            ["IsMatch"] = 1
-        };
+    private static readonly Dictionary<string, int> PatternIndexes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Match"] = 0,
+        ["RegexMatches"] = 0,
+        ["RegexReplace"] = 1,
+        ["RegexExtract"] = 1,
+        ["RegexExtractAll"] = 1,
+        ["IsMatch"] = 1,
+    };
 
     internal static IReadOnlyList<Diagnostic> FilterSyntaxDiagnostics(
         RootNode query,
         SourceText sourceText,
-        IEnumerable<Diagnostic> diagnostics)
+        IEnumerable<Diagnostic> diagnostics
+    )
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(sourceText);
@@ -31,22 +31,21 @@ internal static class RegexPatternAdvisoryAnalyzer
 
         var suppressedSpans = new HashSet<(int Start, int End)>();
         var literals = new LiteralOriginResolver(query, sourceText);
-        CollectRegexPatterns(
-            query,
-            literals,
-            suppressedSpans,
-            new HashSet<Node>(ReferenceEqualityComparer.Instance));
+        CollectRegexPatterns(query, literals, suppressedSpans, new HashSet<Node>(ReferenceEqualityComparer.Instance));
 
         return diagnostics
-            .Where(diagnostic => diagnostic.Code != DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape ||
-                                !suppressedSpans.Contains((diagnostic.Span.Start, diagnostic.Span.End)))
+            .Where(diagnostic =>
+                diagnostic.Code != DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+                || !suppressedSpans.Contains((diagnostic.Span.Start, diagnostic.Span.End))
+            )
             .ToArray();
     }
 
     internal static void SuppressLexicalDiagnostics(
         RootNode query,
         SourceText sourceText,
-        DiagnosticContext diagnostics)
+        DiagnosticContext diagnostics
+    )
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(sourceText);
@@ -57,11 +56,13 @@ internal static class RegexPatternAdvisoryAnalyzer
             query,
             new LiteralOriginResolver(query, sourceText),
             suppressedSpans,
-            new HashSet<Node>(ReferenceEqualityComparer.Instance));
+            new HashSet<Node>(ReferenceEqualityComparer.Instance)
+        );
 
         diagnostics.SuppressDiagnostics(diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape &&
-            suppressedSpans.Contains((diagnostic.Span.Start, diagnostic.Span.End)));
+            diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+            && suppressedSpans.Contains((diagnostic.Span.Start, diagnostic.Span.End))
+        );
     }
 
     public static void Analyze(SemanticAdvisoryContext context)
@@ -91,14 +92,14 @@ internal static class RegexPatternAdvisoryAnalyzer
             Visit(context, child, visited);
     }
 
-    private static void ReportMethodPatternIfHazardous(
-        SemanticAdvisoryContext context,
-        AccessMethodNode method)
+    private static void ReportMethodPatternIfHazardous(SemanticAdvisoryContext context, AccessMethodNode method)
     {
-        if (method.Method is not { DeclaringType: { } declaringType } boundMethod ||
-            !typeof(LibraryBase).IsAssignableFrom(declaringType) ||
-            !PatternIndexes.TryGetValue(boundMethod.Name, out var patternIndex) ||
-            patternIndex >= method.Arguments.Args.Length)
+        if (
+            method.Method is not { DeclaringType: { } declaringType } boundMethod
+            || !typeof(LibraryBase).IsAssignableFrom(declaringType)
+            || !PatternIndexes.TryGetValue(boundMethod.Name, out var patternIndex)
+            || patternIndex >= method.Arguments.Args.Length
+        )
         {
             return;
         }
@@ -119,7 +120,8 @@ internal static class RegexPatternAdvisoryAnalyzer
         context.Report(
             DiagnosticCode.MQ5015_SuspiciousRegexEscape,
             ErrorCatalog.GetMessage(DiagnosticCode.MQ5015_SuspiciousRegexEscape, "\\b"),
-            span);
+            span
+        );
     }
 
     private static bool TryFindWordBoundary(LiteralOrigin origin, out TextSpan span)
@@ -164,7 +166,8 @@ internal static class RegexPatternAdvisoryAnalyzer
         Node node,
         LiteralOriginResolver literals,
         HashSet<(int Start, int End)> suppressedSpans,
-        HashSet<Node> visited)
+        HashSet<Node> visited
+    )
     {
         if (!visited.Add(node))
             return;
@@ -174,8 +177,9 @@ internal static class RegexPatternAdvisoryAnalyzer
             case RLikeNode rLike:
                 AddSuppressibleSpan(literals, rLike.Right, suppressedSpans);
                 break;
-            case AccessMethodNode method when PatternIndexes.TryGetValue(method.Name, out var patternIndex) &&
-                                             patternIndex < method.Arguments.Args.Length:
+            case AccessMethodNode method
+                when PatternIndexes.TryGetValue(method.Name, out var patternIndex)
+                    && patternIndex < method.Arguments.Args.Length:
                 AddSuppressibleSpan(literals, method.Arguments.Args[patternIndex], suppressedSpans);
                 break;
         }
@@ -187,11 +191,14 @@ internal static class RegexPatternAdvisoryAnalyzer
     private static void AddSuppressibleSpan(
         LiteralOriginResolver literals,
         Node pattern,
-        HashSet<(int Start, int End)> suppressedSpans)
+        HashSet<(int Start, int End)> suppressedSpans
+    )
     {
-        if (literals.TryResolve(pattern, out var origin) &&
-            !origin.IsRaw &&
-            IsLeadingWordBoundaryEncoding(origin.Content))
+        if (
+            literals.TryResolve(pattern, out var origin)
+            && !origin.IsRaw
+            && IsLeadingWordBoundaryEncoding(origin.Content)
+        )
         {
             suppressedSpans.Add((origin.ContentStart, origin.ContentStart + 2));
         }
@@ -199,9 +206,8 @@ internal static class RegexPatternAdvisoryAnalyzer
 
     private static bool IsLeadingWordBoundaryEncoding(ReadOnlySpan<char> content)
     {
-        return content.Length >= 2 &&
-               content[0] == '\\' &&
-               (content[1] == 'b' ||
-                content.Length >= 3 && content[1] == '\\' && content[2] == 'b');
+        return content.Length >= 2
+            && content[0] == '\\'
+            && (content[1] == 'b' || content.Length >= 3 && content[1] == '\\' && content[2] == 'b');
     }
 }

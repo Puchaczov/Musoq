@@ -6,5 +6,5 @@ public enum WindowFrameBoundType
     UnboundedFollowing,
     CurrentRow,
     OffsetPreceding,
-    OffsetFollowing
+    OffsetFollowing,
 }

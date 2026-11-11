@@ -1,7 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Parser;
 using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Tests.Visitors.Helpers;
@@ -14,9 +14,7 @@ public class QueryRewriteUtilitiesTests
     {
         var node = new IntegerNode("42");
 
-
         var result = QueryRewriteUtilities.RewriteNullableBoolExpressions(node);
-
 
         Assert.AreEqual(node, result);
     }
@@ -26,9 +24,7 @@ public class QueryRewriteUtilitiesTests
     {
         var binaryNode = new AndNode(new BooleanNode(true), new BooleanNode(false));
 
-
         var result = QueryRewriteUtilities.RewriteNullableBoolExpressions(binaryNode);
-
 
         Assert.AreEqual(binaryNode, result);
     }

@@ -9,7 +9,8 @@ internal static partial class SourcePredicateConjunctMatcher
     public static IReadOnlyList<IrExpression> MatchAcceptedConjuncts(
         SourcePredicateExpression acceptedPredicate,
         SourcePredicatePlan sourcePredicatePlan,
-        bool allowWholePredicateMatch = false)
+        bool allowWholePredicateMatch = false
+    )
     {
         if (!TryCollectSourceAndConjuncts(acceptedPredicate, out var acceptedSourceConjuncts))
         {
@@ -22,16 +23,23 @@ internal static partial class SourcePredicateConjunctMatcher
         var acceptedPredicates = new List<IrExpression>();
         foreach (var pushedPredicate in sourcePredicatePlan.PushedPredicates)
         {
-            if (!SourcePredicateExpressionConverter.TryConvertPredicate(
+            if (
+                !SourcePredicateExpressionConverter.TryConvertPredicate(
                     pushedPredicate,
                     sourcePredicatePlan.Alias,
-                    out var sourcePredicate, sourcePredicatePlan.RegexMatchTimeout))
+                    out var sourcePredicate,
+                    sourcePredicatePlan.RegexMatchTimeout
+                )
+            )
             {
                 continue;
             }
 
-            if (acceptedSourceConjuncts.Any(accepted =>
-                    SourcePredicateExpressionComparer.Instance.Equals(accepted, sourcePredicate)))
+            if (
+                acceptedSourceConjuncts.Any(accepted =>
+                    SourcePredicateExpressionComparer.Instance.Equals(accepted, sourcePredicate)
+                )
+            )
             {
                 acceptedPredicates.Add(pushedPredicate);
             }
@@ -42,7 +50,8 @@ internal static partial class SourcePredicateConjunctMatcher
 
     public static IrExpression? RemoveAcceptedConjuncts(
         IrExpression predicate,
-        IReadOnlyList<IrExpression> acceptedPredicates)
+        IReadOnlyList<IrExpression> acceptedPredicates
+    )
     {
         var remainingAccepted = acceptedPredicates.ToList();
         var remainingConjuncts = new List<IrExpression>();
@@ -79,5 +88,4 @@ internal static partial class SourcePredicateConjunctMatcher
 
         return [predicate];
     }
-
 }

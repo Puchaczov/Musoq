@@ -10,10 +10,19 @@ namespace Musoq.Evaluator.Tests;
 public sealed class ColumnInstanceMethodDiagnosticTests : BasicEntityTestBase
 {
     [TestMethod]
-    [DataRow("select NullableValue.ToString() from #A.Entities()", DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod)]
+    [DataRow(
+        "select NullableValue.ToString() from #A.Entities()",
+        DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod
+    )]
     [DataRow("select UnknownOwner.ToString() from #A.Entities()", DiagnosticCode.MQ3015_UnknownAlias)]
-    [DataRow("select Self.ToString() from #A.Entities() a inner join #B.Entities() b on a.Name = b.Name", DiagnosticCode.MQ3002_AmbiguousColumn)]
-    [DataRow("select Self.ToString() from values { (Marker: 1) } m left join #A.Entities() e on m.Marker = e.Id", DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod)]
+    [DataRow(
+        "select Self.ToString() from #A.Entities() a inner join #B.Entities() b on a.Name = b.Name",
+        DiagnosticCode.MQ3002_AmbiguousColumn
+    )]
+    [DataRow(
+        "select Self.ToString() from values { (Marker: 1) } m left join #A.Entities() e on m.Marker = e.Id",
+        DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod
+    )]
     public void MethodOwner_ShouldDistinguishColumnUnknownAndAmbiguousPrefixes(string query, DiagnosticCode code)
     {
         var failure = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, Sources()));
@@ -39,9 +48,10 @@ public sealed class ColumnInstanceMethodDiagnosticTests : BasicEntityTestBase
         Assert.AreEqual("Alice", result[0].ReadValues()[0]);
     }
 
-    private static Dictionary<string, IEnumerable<BasicEntity>> Sources() => new()
-    {
-        ["#A"] = [new BasicEntity { Name = "Alice", Population = 7m }],
-        ["#B"] = [new BasicEntity { Name = "Alice" }]
-    };
+    private static Dictionary<string, IEnumerable<BasicEntity>> Sources() =>
+        new()
+        {
+            ["#A"] = [new BasicEntity { Name = "Alice", Population = 7m }],
+            ["#B"] = [new BasicEntity { Name = "Alice" }],
+        };
 }

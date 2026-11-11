@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
+using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -17,13 +17,12 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var cteTableName = CreateCteTableName(index, cteDefinitionNames);
         var rowShapeName = $"Cte{index.ToString(CultureInfo.InvariantCulture)}Row0";
-        var currentFrontier = new ExecutionVariable(
-            $"{cteTableName}CurrentFrontier",
-            typeof(IReadOnlyList<Row>));
+        var currentFrontier = new ExecutionVariable($"{cteTableName}CurrentFrontier", typeof(IReadOnlyList<Row>));
         var nextFrontier = new ExecutionVariable($"{cteTableName}NextFrontier", typeof(object));
         var snapshotRows = new ExecutionVariable($"__{cteTableName}SnapshotRows", typeof(int));
         var result = new ExecutionVariable(cteTableName, typeof(object));
@@ -31,27 +30,31 @@ internal sealed partial class PhysicalLoweringImplementation
         if (UnwrapSingleStatement(recursive.Anchor) is not PhysicalProjectNode anchorProject)
         {
             return TableBuildResult.Unsupported(
-                $"Recursive CTE '{recursive.Name}' branches must end in direct projections.");
+                $"Recursive CTE '{recursive.Name}' branches must end in direct projections."
+            );
         }
 
         var canonicalShape = CreateGeneratedShape(rowShapeName, anchorProject.Fields) with
         {
             Contexts = [],
             RequiresRowBase = false,
-            EmitAsValueType = true
+            EmitAsValueType = true,
         };
         result = result with { GeneratedRowTypeName = $"List<{canonicalShape.TypeName}>" };
         currentFrontier = currentFrontier with { GeneratedRowTypeName = $"List<{canonicalShape.TypeName}>" };
         nextFrontier = nextFrontier with { GeneratedRowTypeName = $"List<{canonicalShape.TypeName}>" };
 
-        if (!TryResolveRecursiveIdentity(
+        if (
+            !TryResolveRecursiveIdentity(
                 recursive,
                 canonicalShape,
                 cteTableName,
                 out var identityMode,
                 out var identityFieldIndexes,
                 out var seen,
-                out var identityReason))
+                out var identityReason
+            )
+        )
         {
             return TableBuildResult.Unsupported(identityReason);
         }
@@ -66,7 +69,8 @@ internal sealed partial class PhysicalLoweringImplementation
             seen,
             identityFieldIndexes,
             canonicalShape,
-            limits.MaxRows);
+            limits.MaxRows
+        );
 
         var anchor = BuildPlanTable(
             recursive.Anchor,
@@ -76,13 +80,17 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             scopeAggregateVariables: true,
-            scope: scope.WithRecursiveCteSink(anchorSink));
+            scope: scope.WithRecursiveCteSink(anchorSink)
+        );
         if (!anchor.IsBuilt)
             return anchor;
 
-        var memberCteShapes = new Dictionary<string, GeneratedRowShape>(cteShapesByName, StringComparer.OrdinalIgnoreCase)
+        var memberCteShapes = new Dictionary<string, GeneratedRowShape>(
+            cteShapesByName,
+            StringComparer.OrdinalIgnoreCase
+        )
         {
-            [recursive.Name] = canonicalShape
+            [recursive.Name] = canonicalShape,
         };
         var invariantInputs = BuildRecursiveInvariantInputs(
             owningCte,
@@ -93,7 +101,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             memberCteShapes,
             schemaFromIndex + CountSchemaScans(recursive.Anchor),
-            scope);
+            scope
+        );
         if (!invariantInputs.IsBuilt)
             return TableBuildResult.Unsupported(invariantInputs.UnsupportedReason);
 
@@ -106,9 +115,8 @@ internal sealed partial class PhysicalLoweringImplementation
             memberCteShapes,
             invariantInputs.NextSchemaFromIndex,
             scopeAggregateVariables: true,
-            scope: scope
-                .WithRecursiveCteInvariantInputs(invariantInputs.Inputs)
-                .WithRecursiveCteSink(memberSink));
+            scope: scope.WithRecursiveCteInvariantInputs(invariantInputs.Inputs).WithRecursiveCteSink(memberSink)
+        );
         if (!recursiveMember.IsBuilt)
             return recursiveMember;
 
@@ -128,23 +136,30 @@ internal sealed partial class PhysicalLoweringImplementation
             new ExecutionBlock(recursiveMember.Nodes),
             limits.MaxIterations,
             limits.MaxRows,
-            limits.MaxSnapshotRows);
-        var shapes = anchor.Shapes
-            .Concat(invariantInputs.Shapes)
-            .Concat(recursiveMember.Shapes.Where(shape =>
-                shape is not GeneratedRowShape generated ||
-                !string.Equals(generated.TypeName, canonicalShape.TypeName, StringComparison.Ordinal)))
-            .Select(shape => shape is GeneratedRowShape generated &&
-                             string.Equals(generated.TypeName, canonicalShape.TypeName, StringComparison.Ordinal)
-                ? canonicalShape
-                : shape)
+            limits.MaxSnapshotRows
+        );
+        var shapes = anchor
+            .Shapes.Concat(invariantInputs.Shapes)
+            .Concat(
+                recursiveMember.Shapes.Where(shape =>
+                    shape is not GeneratedRowShape generated
+                    || !string.Equals(generated.TypeName, canonicalShape.TypeName, StringComparison.Ordinal)
+                )
+            )
+            .Select(shape =>
+                shape is GeneratedRowShape generated
+                && string.Equals(generated.TypeName, canonicalShape.TypeName, StringComparison.Ordinal)
+                    ? canonicalShape
+                    : shape
+            )
             .DistinctBy(static shape => shape.Name, StringComparer.Ordinal)
             .ToArray();
 
         var nodes = ExecutionPhaseBoundaryPlanner.AddScopeClauseBoundaries(
             recursive,
             [recursiveNode],
-            ExecutionPhaseBoundaryPlanner.CreateCteSuffix(index));
+            ExecutionPhaseBoundaryPlanner.CreateCteSuffix(index)
+        );
         return TableBuildResult.Success(shapes, nodes, result, canonicalShape);
     }
 
@@ -155,7 +170,8 @@ internal sealed partial class PhysicalLoweringImplementation
         out ExecutionRecursiveCteIdentityMode mode,
         out int[] fieldIndexes,
         out ExecutionVariable? seen,
-        out string reason)
+        out string reason
+    )
     {
         switch (recursive.UnionKind)
         {
@@ -175,22 +191,28 @@ internal sealed partial class PhysicalLoweringImplementation
                 if (fieldIndexes.Length != recursive.Keys.Length)
                 {
                     throw new InvalidOperationException(
-                        $"Recursive CTE '{recursive.Name}' has {recursive.Keys.Length} identity keys but " +
-                        $"{fieldIndexes.Length} resolved identity fields.");
+                        $"Recursive CTE '{recursive.Name}' has {recursive.Keys.Length} identity keys but "
+                            + $"{fieldIndexes.Length} resolved identity fields."
+                    );
                 }
 
                 for (var keyIndex = 0; keyIndex < fieldIndexes.Length; keyIndex++)
                 {
                     var fieldIndex = fieldIndexes[keyIndex];
-                    if (fieldIndex < 0 || fieldIndex >= rowShape.Fields.Count ||
-                        !string.Equals(
+                    if (
+                        fieldIndex < 0
+                        || fieldIndex >= rowShape.Fields.Count
+                        || !string.Equals(
                             rowShape.Fields[fieldIndex].Name,
                             recursive.Keys[keyIndex],
-                            StringComparison.OrdinalIgnoreCase))
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    )
                     {
                         throw new InvalidOperationException(
-                            $"Recursive CTE '{recursive.Name}' identity field {fieldIndex} does not match " +
-                            $"exported key '{recursive.Keys[keyIndex]}'.");
+                            $"Recursive CTE '{recursive.Name}' identity field {fieldIndex} does not match "
+                                + $"exported key '{recursive.Keys[keyIndex]}'."
+                        );
                     }
                 }
 

@@ -6,7 +6,8 @@ internal static partial class ExecutionNodeFacts
 {
     internal static bool TryGetTablePostOperation(
         ExecutionNode node,
-        [NotNullWhen(true)] out ExecutionTablePostOperationMetadata? metadata)
+        [NotNullWhen(true)] out ExecutionTablePostOperationMetadata? metadata
+    )
     {
         metadata = node switch
         {
@@ -15,56 +16,65 @@ internal static partial class ExecutionNodeFacts
                 distinct.Target,
                 null,
                 ExecutionAppendMode.Checked,
-                null),
+                null
+            ),
             ExecutionSortTable sort => new ExecutionTablePostOperationMetadata(
                 sort.Source,
                 sort.Target,
                 sort.CapacityHint,
                 sort.AppendMode,
-                sort.ColumnMetadata),
+                sort.ColumnMetadata
+            ),
             ExecutionTopNTable topN => new ExecutionTablePostOperationMetadata(
                 topN.Source,
                 topN.Target,
                 topN.CapacityHint,
                 topN.AppendMode,
-                topN.ColumnMetadata),
+                topN.ColumnMetadata
+            ),
             ExecutionTopOffsetTable topOffset => new ExecutionTablePostOperationMetadata(
                 topOffset.Source,
                 topOffset.Target,
                 topOffset.CapacityHint,
                 topOffset.AppendMode,
-                topOffset.ColumnMetadata),
+                topOffset.ColumnMetadata
+            ),
             ExecutionSkipTable skip => new ExecutionTablePostOperationMetadata(
                 skip.Source,
                 skip.Target,
                 skip.CapacityHint,
                 skip.AppendMode,
-                skip.ColumnMetadata),
+                skip.ColumnMetadata
+            ),
             ExecutionTakeTable take => new ExecutionTablePostOperationMetadata(
                 take.Source,
                 take.Target,
                 take.CapacityHint,
                 take.AppendMode,
-                take.ColumnMetadata),
+                take.ColumnMetadata
+            ),
             ExecutionSliceTable slice => new ExecutionTablePostOperationMetadata(
                 slice.Source,
                 slice.Target,
                 slice.CapacityHint,
                 slice.AppendMode,
-                slice.ColumnMetadata),
+                slice.ColumnMetadata
+            ),
             ExecutionProjectTable project => new ExecutionTablePostOperationMetadata(
                 project.Source,
                 project.Target,
                 project.CapacityHint,
                 project.AppendMode,
-                null),
+                null
+            ),
             ExecutionMaterializeRecordListToTable materialize => new ExecutionTablePostOperationMetadata(
                 materialize.Source,
                 materialize.Target,
                 materialize.CapacityHint,
                 materialize.AppendMode,
-                null),
-            _ => null
+                null
+            ),
+            _ => null,
         };
 
         return metadata != null;
@@ -72,7 +82,8 @@ internal static partial class ExecutionNodeFacts
 
     internal static bool TryGetWindowComputation(
         ExecutionNode node,
-        [NotNullWhen(true)] out ExecutionWindowComputationMetadata? metadata)
+        [NotNullWhen(true)] out ExecutionWindowComputationMetadata? metadata
+    )
     {
         metadata = node switch
         {
@@ -86,7 +97,8 @@ internal static partial class ExecutionNodeFacts
                 ranking.PartitionKeyArray,
                 ranking.OrderKeyArray,
                 ranking.Partitions,
-                ranking.SortedPartitions),
+                ranking.SortedPartitions
+            ),
             ExecutionComputeOffsetWindow offset => new ExecutionWindowComputationMetadata(
                 offset.Buffer,
                 offset.Item,
@@ -97,7 +109,8 @@ internal static partial class ExecutionNodeFacts
                 offset.PartitionKeyArray,
                 offset.OrderKeyArray,
                 offset.Partitions,
-                offset.SortedPartitions),
+                offset.SortedPartitions
+            ),
             ExecutionComputePluginWindow plugin => new ExecutionWindowComputationMetadata(
                 plugin.Buffer,
                 plugin.Item,
@@ -108,7 +121,8 @@ internal static partial class ExecutionNodeFacts
                 plugin.PartitionKeyArray,
                 plugin.OrderKeyArray,
                 plugin.Partitions,
-                plugin.SortedPartitions),
+                plugin.SortedPartitions
+            ),
             ExecutionWindowAggregateKernel kernel => new ExecutionWindowComputationMetadata(
                 kernel.Buffer,
                 kernel.Item,
@@ -119,8 +133,9 @@ internal static partial class ExecutionNodeFacts
                 kernel.PartitionKeyArray,
                 kernel.OrderKeyArray,
                 kernel.Partitions,
-                kernel.SortedPartitions),
-            _ => null
+                kernel.SortedPartitions
+            ),
+            _ => null,
         };
 
         return metadata != null;

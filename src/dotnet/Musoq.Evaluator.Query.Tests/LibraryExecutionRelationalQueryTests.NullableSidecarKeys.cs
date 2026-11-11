@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionNullableSidecarKeyQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -22,15 +21,27 @@ public sealed class LibraryExecutionNullableSidecarKeyQueryTests : GenericEntity
                 on a.NullableKey = b.Key and a.Tag = b.Tag
             order by FirstPosition, SecondPosition
             """;
-        NullableKeyInput[] input = [new(1, 10, 10, "A"), new(2, 10, null, "A"),
-            new(3, 10, 10, "B"), new(4, 99, 99, "A")];
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(input), LoggerResolver,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false, useCteSidecarIndexes: true));
+        NullableKeyInput[] input =
+        [
+            new(1, 10, 10, "A"),
+            new(2, 10, null, "A"),
+            new(3, 10, 10, "B"),
+            new(4, 99, 99, "A"),
+        ];
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(input),
+            LoggerResolver,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false, useCteSidecarIndexes: true)
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table,
-            ("FirstPosition", typeof(int)), ("SecondPosition", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("FirstPosition", typeof(int)),
+            ("SecondPosition", typeof(int))
+        );
         Assert.HasCount(4, rows);
         (int First, int Second)[] expected = [(1, 1), (1, 2), (3, 3), (4, 4)];
         for (var index = 0; index < rows.Length; index++)
@@ -43,10 +54,16 @@ public sealed class LibraryExecutionNullableSidecarKeyQueryTests : GenericEntity
     [TestMethod]
     public void Window_WhenPartitionKeyIsNullableNumeric_ShouldPreserveTheNullGroup()
     {
-        const string query = "select Position, Sum(Key) over (partition by NullableKey) as Total " +
-            "from #schema.first() order by Position";
-        NullableKeyInput[] input = [new(1, 10, 10, "A"), new(2, 5, null, "A"),
-            new(3, 20, 10, "B"), new(4, 7, null, "B")];
+        const string query =
+            "select Position, Sum(Key) over (partition by NullableKey) as Total "
+            + "from #schema.first() order by Position";
+        NullableKeyInput[] input =
+        [
+            new(1, 10, 10, "A"),
+            new(2, 5, null, "A"),
+            new(3, 20, 10, "B"),
+            new(4, 7, null, "B"),
+        ];
         using var compiled = CreateAndRunVirtualMachine(query, input);
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();

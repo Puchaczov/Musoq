@@ -108,7 +108,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenAsofJoinUsed_ShouldProduceAsofJoinInBothPlans()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b on a.Country = b.Country and a.Population >= b.Population");
+            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b on a.Country = b.Country and a.Population >= b.Population"
+        );
 
         var logicalPrinted = LogicalPlanPrinter.Print(RequireLogicalPlan(buildItems));
         StringAssert.Contains(logicalPrinted, "Join [AsofInner]");
@@ -131,7 +132,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenAsofLeftJoinUsed_ShouldProduceAsofLeftJoinInBothPlans()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a asof left join #B.Entities() b on a.Population >= b.Population");
+            "select a.Name, b.Name from #A.Entities() a asof left join #B.Entities() b on a.Population >= b.Population"
+        );
 
         var logicalPrinted = LogicalPlanPrinter.Print(RequireLogicalPlan(buildItems));
         StringAssert.Contains(logicalPrinted, "Join [AsofLeft]");
@@ -154,7 +156,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenRightOuterEquiJoinUsed_ShouldProduceHashJoinInPhysicalPlan()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a right outer join #B.Entities() b on a.Id = b.Id");
+            "select a.Name, b.Name from #A.Entities() a right outer join #B.Entities() b on a.Id = b.Id"
+        );
 
         var logicalPrinted = LogicalPlanPrinter.Print(RequireLogicalPlan(buildItems));
         StringAssert.Contains(logicalPrinted, "Join [RightOuter]");
@@ -177,7 +180,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenRightOuterNonEquiJoinUsed_ShouldProduceNestedLoopJoinInPhysicalPlan()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a right outer join #B.Entities() b on a.Population > b.Population");
+            "select a.Name, b.Name from #A.Entities() a right outer join #B.Entities() b on a.Population > b.Population"
+        );
 
         var logicalPrinted = LogicalPlanPrinter.Print(RequireLogicalPlan(buildItems));
         StringAssert.Contains(logicalPrinted, "Join [RightOuter]");
@@ -200,7 +204,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenFullOuterJoinUsed_ShouldProduceFullOuterJoinInBothPlans()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a full outer join #B.Entities() b on a.Id = b.Id");
+            "select a.Name, b.Name from #A.Entities() a full outer join #B.Entities() b on a.Id = b.Id"
+        );
 
         var logicalPrinted = LogicalPlanPrinter.Print(RequireLogicalPlan(buildItems));
         StringAssert.Contains(logicalPrinted, "Join [FullOuter]");
@@ -222,16 +227,20 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRightOuterJoinBetweenCtesUsed_ShouldProduceHashJoinAndFinalCteProjection()
     {
-        var buildItems = CreateBuildItems<BasicEntity>(@"
-            with cteA as (
-                select Name, Population from #A.entities()
-            ),
-            cteB as (
-                select Name, Population from #B.entities()
+        var buildItems = CreateBuildItems<BasicEntity>(
+            (
+                "\n"
+                + "            with cteA as (\n"
+                + "                select Name, Population from #A.entities()\n"
+                + "            ),\n"
+                + "            cteB as (\n"
+                + "                select Name, Population from #B.entities()\n"
+                + "            )\n"
+                + "            select a.Name, b.Name\n"
+                + "            from cteA a\n"
+                + "            right outer join cteB b on a.Population = b.Population"
             )
-            select a.Name, b.Name
-            from cteA a
-            right outer join cteB b on a.Population = b.Population");
+        );
 
         Assert.IsNotNull(buildItems.Compilation);
         Assert.IsInstanceOfType<CteNode>(RequireLogicalPlan(buildItems));
@@ -266,8 +275,7 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenGroupBy_ShouldProducePlans()
     {
-        var buildItems = CreateBuildItems<BasicEntity>(
-            "select City, Count(City) from #A.Entities() group by City");
+        var buildItems = CreateBuildItems<BasicEntity>("select City, Count(City) from #A.Entities() group by City");
 
         Assert.IsNotNull(RequireLogicalPlan(buildItems));
         Assert.IsNotNull(RequirePhysicalPlan(buildItems));
@@ -283,8 +291,7 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderBy_ShouldProduceSortNode()
     {
-        var buildItems = CreateBuildItems<BasicEntity>(
-            "select Name from #A.Entities() order by Name");
+        var buildItems = CreateBuildItems<BasicEntity>("select Name from #A.Entities() order by Name");
 
         var logical = UnwrapMultiStatement(RequireLogicalPlan(buildItems));
         Assert.IsInstanceOfType<SortNode>(logical);
@@ -298,8 +305,7 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderByTakeWithoutSkip_ShouldProduceTopNNode()
     {
-        var buildItems = CreateBuildItems<BasicEntity>(
-            "select Name from #A.Entities() order by Name take 2");
+        var buildItems = CreateBuildItems<BasicEntity>("select Name from #A.Entities() order by Name take 2");
 
         var logical = UnwrapMultiStatement(RequireLogicalPlan(buildItems));
         Assert.IsInstanceOfType<TakeNode>(logical);
@@ -313,8 +319,7 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenOrderBySkipTake_ShouldProduceTopOffsetNode()
     {
-        var buildItems = CreateBuildItems<BasicEntity>(
-            "select Name from #A.Entities() order by Name skip 5 take 10");
+        var buildItems = CreateBuildItems<BasicEntity>("select Name from #A.Entities() order by Name skip 5 take 10");
 
         var logical = UnwrapMultiStatement(RequireLogicalPlan(buildItems));
         Assert.IsInstanceOfType<TakeNode>(logical);
@@ -332,7 +337,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenWindowFunctionUsed_ShouldProduceWindowInBothPlans()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select Name, RowNumber() over (order by Name) as RowNum from #A.Entities()");
+            "select Name, RowNumber() over (order by Name) as RowNum from #A.Entities()"
+        );
 
         var logical = UnwrapMultiStatement(RequireLogicalPlan(buildItems));
         Assert.IsInstanceOfType<ProjectNode>(logical);
@@ -353,7 +359,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenGroupedProjectionFeedsWindow_ShouldLowerViaIntermediateSourceInPhysicalPlan()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select City, Count(City) as CityCount, RowNumber() over (order by City) as RowNum from #A.Entities() group by City");
+            "select City, Count(City) as CityCount, RowNumber() over (order by City) as RowNum from #A.Entities() group by City"
+        );
 
         Assert.IsNotNull(buildItems.Compilation);
         Assert.IsInstanceOfType<PhysicalMultiStatementNode>(RequirePhysicalPlan(buildItems));
@@ -373,17 +380,22 @@ public class PipelineIntegrationTests : BasicEntityTestBase
         var materialize = (PhysicalMaterializeNode)window.Input;
         Assert.IsTrue(
             materialize.Input is PhysicalProjectNode or PhysicalCteRefNode,
-            $"Expected grouped window input to flow through an intermediate projection or CTE ref, but encountered {materialize.Input.GetType().Name}.");
+            $"Expected grouped window input to flow through an intermediate projection or CTE ref, but encountered {materialize.Input.GetType().Name}."
+        );
     }
 
     [TestMethod]
     public void WhenWindowInsideCte_ShouldBuildWindowDefinitionAndOuterFilterOverCteRef()
     {
-        var buildItems = CreateBuildItems<BasicEntity>(@"
-            with ranked as (
-                select Name, RowNumber() over (order by Name) as RowNum from #A.entities()
+        var buildItems = CreateBuildItems<BasicEntity>(
+            (
+                "\n"
+                + "            with ranked as (\n"
+                + "                select Name, RowNumber() over (order by Name) as RowNum from #A.entities()\n"
+                + "            )\n"
+                + "            select Name, RowNum from ranked where RowNum <= 2"
             )
-            select Name, RowNum from ranked where RowNum <= 2");
+        );
 
         Assert.IsNotNull(buildItems.Compilation);
         Assert.IsInstanceOfType<CteNode>(RequireLogicalPlan(buildItems));
@@ -420,11 +432,15 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenWindowOverAggregatedCte_ShouldBuildCteAggregateAndOuterWindowOverCteRef()
     {
-        var buildItems = CreateBuildItems<BasicEntity>(@"
-            with agg as (
-                select City, Sum(Population) as CityPop from #A.entities() group by City
+        var buildItems = CreateBuildItems<BasicEntity>(
+            (
+                "\n"
+                + "            with agg as (\n"
+                + "                select City, Sum(Population) as CityPop from #A.entities() group by City\n"
+                + "            )\n"
+                + "            select City, CityPop, Sum(CityPop) over (order by City) as RunningPop from agg"
             )
-            select City, CityPop, Sum(CityPop) over (order by City) as RunningPop from agg");
+        );
 
         Assert.IsNotNull(buildItems.Compilation);
         Assert.IsInstanceOfType<CteNode>(RequireLogicalPlan(buildItems));
@@ -465,16 +481,20 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenAggregateValuesInCteWithOuterQualify_ShouldBuildQualifyOverWindowOnCteResult()
     {
-        var buildItems = CreateBuildItems<BasicEntity>(@"
-            with grouped as (
-                select Country, AggregateValues(Name, ', ') as Names, Count(Name) as Cnt
-                from #A.entities()
-                group by Country
+        var buildItems = CreateBuildItems<BasicEntity>(
+            (
+                "\n"
+                + "            with grouped as (\n"
+                + "                select Country, AggregateValues(Name, ', ') as Names, Count(Name) as Cnt\n"
+                + "                from #A.entities()\n"
+                + "                group by Country\n"
+                + "            )\n"
+                + "            select Country, Names, Cnt,\n"
+                + "                   RowNumber() over (order by Country) as rn\n"
+                + "            from grouped\n"
+                + "            qualify RowNumber() over (order by Country) <= 1"
             )
-            select Country, Names, Cnt,
-                   RowNumber() over (order by Country) as rn
-            from grouped
-            qualify RowNumber() over (order by Country) <= 1");
+        );
 
         Assert.IsNotNull(buildItems.Compilation);
         Assert.IsInstanceOfType<CteNode>(RequireLogicalPlan(buildItems));
@@ -523,7 +543,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenQualifyUsesWindowFunction_ShouldProduceQualifyOverWindowInBothPlans()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select Name, RowNumber() over (order by Name) as RowNum from #A.Entities() qualify RowNumber() over (order by Name) <= 2");
+            "select Name, RowNumber() over (order by Name) as RowNum from #A.Entities() qualify RowNumber() over (order by Name) <= 2"
+        );
 
         var logical = UnwrapMultiStatement(RequireLogicalPlan(buildItems));
         Assert.IsInstanceOfType<ProjectNode>(logical);
@@ -546,7 +567,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenSelectAndQualifyReuseSameWindowFunction_ShouldDeduplicateWindowRegistration()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select Name, RowNumber() over (order by Name) as RowNum from #A.Entities() qualify RowNumber() over (order by Name) <= 2");
+            "select Name, RowNumber() over (order by Name) as RowNum from #A.Entities() qualify RowNumber() over (order by Name) <= 2"
+        );
 
         var logical = UnwrapMultiStatement(RequireLogicalPlan(buildItems));
         var logicalProject = (ProjectNode)logical;
@@ -590,7 +612,8 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     public void WhenGroupByUsed_ExistingPipelineShouldStillWork()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select City, Count(City) from #A.Entities() group by City having Count(City) > 1 order by City");
+            "select City, Count(City) from #A.Entities() group by City having Count(City) > 1 order by City"
+        );
 
         Assert.IsNotNull(buildItems.Compilation);
         Assert.IsNotNull(buildItems.UsedColumns);
@@ -600,8 +623,7 @@ public class PipelineIntegrationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenMultipleColumns_ShouldTrackAllProjectedFields()
     {
-        var buildItems = CreateBuildItems<BasicEntity>(
-            "select Name, City, Country from #A.Entities()");
+        var buildItems = CreateBuildItems<BasicEntity>("select Name, City, Country from #A.Entities()");
 
         var logical = UnwrapMultiStatement(RequireLogicalPlan(buildItems));
         Assert.IsInstanceOfType<ProjectNode>(logical);

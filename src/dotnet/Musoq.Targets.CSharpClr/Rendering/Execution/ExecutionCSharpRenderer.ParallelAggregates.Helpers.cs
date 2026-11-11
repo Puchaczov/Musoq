@@ -8,48 +8,61 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static IfStatementSyntax CreatePeriodicCancellationCheck(
-        string indexName,
-        string cancellationTokenName)
+    private static IfStatementSyntax CreatePeriodicCancellationCheck(string indexName, string cancellationTokenName)
     {
         return SyntaxFactory.IfStatement(
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.EqualsExpression,
-                SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(
-                    SyntaxKind.BitwiseAndExpression,
-                    SyntaxFactory.IdentifierName(indexName),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1023)))),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
-            StatementEmitter.CreateBlock(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(cancellationTokenName),
-                        SyntaxFactory.IdentifierName(nameof(CancellationToken.ThrowIfCancellationRequested)))))));
+                SyntaxFactory.ParenthesizedExpression(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.BitwiseAndExpression,
+                        SyntaxFactory.IdentifierName(indexName),
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(1023)
+                        )
+                    )
+                ),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+            ),
+            StatementEmitter.CreateBlock(
+                SyntaxFactory.ExpressionStatement(
+                    SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(cancellationTokenName),
+                            SyntaxFactory.IdentifierName(nameof(CancellationToken.ThrowIfCancellationRequested))
+                        )
+                    )
+                )
+            )
+        );
     }
 
     private static BinaryExpressionSyntax CreateShardBoundaryExpression(
         string rowsName,
         ExpressionSyntax shardIndex,
-        string workerCountName)
+        string workerCountName
+    )
     {
         return SyntaxFactory.BinaryExpression(
             SyntaxKind.DivideExpression,
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.MultiplyExpression,
                 CreateRowsCountExpression(rowsName),
-                shardIndex),
-            SyntaxFactory.IdentifierName(workerCountName));
+                shardIndex
+            ),
+            SyntaxFactory.IdentifierName(workerCountName)
+        );
     }
 
     private static BinaryExpressionSyntax CreateShardBoundaryExpression(
         string rowsName,
         string shardIndexName,
-        string workerCountName)
+        string workerCountName
+    )
     {
-        return CreateShardBoundaryExpression(
-            rowsName,
-            SyntaxFactory.IdentifierName(shardIndexName),
-            workerCountName);
+        return CreateShardBoundaryExpression(rowsName, SyntaxFactory.IdentifierName(shardIndexName), workerCountName);
     }
 
     private static MemberAccessExpressionSyntax CreateRowsCountExpression(string rowsName)
@@ -57,12 +70,14 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(rowsName),
-            SyntaxFactory.IdentifierName(nameof(IReadOnlyCollection<object>.Count)));
+            SyntaxFactory.IdentifierName(nameof(IReadOnlyCollection<object>.Count))
+        );
     }
 
     private static GenericNameSyntax CreateReadOnlyListTypeSyntax(TypeSyntax itemType)
     {
-        return SyntaxFactory.GenericName(nameof(IReadOnlyList<object>))
+        return SyntaxFactory
+            .GenericName(nameof(IReadOnlyList<object>))
             .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(itemType)));
     }
 
@@ -78,10 +93,17 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static ArrayTypeSyntax CreateSingleDimensionArrayTypeSyntax(TypeSyntax itemType)
     {
-        return SyntaxFactory.ArrayType(itemType)
-            .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                    SyntaxFactory.OmittedArraySizeExpression()))));
+        return SyntaxFactory
+            .ArrayType(itemType)
+            .WithRankSpecifiers(
+                SyntaxFactory.SingletonList(
+                    SyntaxFactory.ArrayRankSpecifier(
+                        SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                            SyntaxFactory.OmittedArraySizeExpression()
+                        )
+                    )
+                )
+            );
     }
 
     private static AggregateGroupKeyField GetSingleAggregateGroupKey(AggregateGroupShape shape)
@@ -89,18 +111,22 @@ public sealed partial class ExecutionCSharpRenderer
         if (shape.Keys.Count != 1)
         {
             throw new InvalidOperationException(
-                $"Parallel single-key aggregate group '{shape.TypeName}' expected exactly one key, but found {shape.Keys.Count.ToString(CultureInfo.InvariantCulture)}.");
+                $"Parallel single-key aggregate group '{shape.TypeName}' expected exactly one key, but found {shape.Keys.Count.ToString(CultureInfo.InvariantCulture)}."
+            );
         }
 
         return shape.Keys[0];
     }
 
-    private static void ValidateParallelSingleKeyAggregateShape(ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+    private static void ValidateParallelSingleKeyAggregateShape(
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate
+    )
     {
         if (parallelAggregate.GroupShape.RequiresParentLinks)
         {
             throw new InvalidOperationException(
-                $"Parallel single-key aggregate group '{parallelAggregate.GroupShape.TypeName}' cannot use parent prefix groups yet.");
+                $"Parallel single-key aggregate group '{parallelAggregate.GroupShape.TypeName}' cannot use parent prefix groups yet."
+            );
         }
 
         _ = GetSingleAggregateGroupKey(parallelAggregate.GroupShape);
@@ -113,53 +139,62 @@ public sealed partial class ExecutionCSharpRenderer
 
     private string CreateParallelSingleKeyAggregateShardFunctionName(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateParallelSingleKeyAggregateRelatedName(
             parallelAggregate,
             context,
             "ParallelSingleKeyAggregateShard_",
-            "Shard");
+            "Shard"
+        );
     }
 
     private string CreateParallelSingleKeyAggregateWorkerTypeName(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateParallelSingleKeyAggregateRelatedName(
             parallelAggregate,
             context,
             "ParallelSingleKeyAggregateWorker_",
-            "Worker");
+            "Worker"
+        );
     }
 
     private string CreateParallelSingleKeyAggregateChunkFunctionName(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateParallelSingleKeyAggregateRelatedName(
             parallelAggregate,
             context,
             "ParallelSingleKeyAggregateChunk_",
-            "Chunk");
+            "Chunk"
+        );
     }
 
     private string CreateParallelSingleKeyAggregateChunkWorkerTypeName(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateParallelSingleKeyAggregateRelatedName(
             parallelAggregate,
             context,
             "ParallelSingleKeyAggregateChunkWorker_",
-            "ChunkWorker");
+            "ChunkWorker"
+        );
     }
 
     private string CreateParallelSingleKeyAggregateRelatedName(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
         ExecutionRenderContext context,
         string sharedPrefix,
-        string fallbackSuffix)
+        string fallbackSuffix
+    )
     {
         var functionName = CreateParallelSingleKeyAggregateFunctionName(parallelAggregate, context);
         const string prefix = "ParallelSingleKeyAggregate_";

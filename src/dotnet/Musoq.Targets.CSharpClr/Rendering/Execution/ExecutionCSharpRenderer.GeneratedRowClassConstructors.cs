@@ -12,21 +12,26 @@ public sealed partial class ExecutionCSharpRenderer
         string typeName,
         IReadOnlyList<FieldBinding> fields,
         IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
-        IReadOnlyList<FieldBinding> contexts)
+        IReadOnlyList<FieldBinding> contexts
+    )
     {
         var constructors = GetGeneratedRowConstructors(usedConstructors);
 
         foreach (var constructor in constructors)
         {
-            var signature = CreateGeneratedRowConstructorSignature(
-                constructor,
-                contexts);
-            yield return CreateGeneratedRowConstructor(typeName, fields, signature.Parameters, signature.ContextAssignments);
+            var signature = CreateGeneratedRowConstructorSignature(constructor, contexts);
+            yield return CreateGeneratedRowConstructor(
+                typeName,
+                fields,
+                signature.Parameters,
+                signature.ContextAssignments
+            );
         }
     }
 
     private static GeneratedRowContextConstructor[] GetGeneratedRowConstructors(
-        IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors)
+        IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors
+    )
     {
         return usedConstructors is { Count: > 0 }
             ? usedConstructors.OrderBy(static constructor => constructor).ToArray()
@@ -35,7 +40,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static GeneratedRowConstructorSignature CreateGeneratedRowConstructorSignature(
         GeneratedRowContextConstructor constructor,
-        IReadOnlyList<FieldBinding> contexts)
+        IReadOnlyList<FieldBinding> contexts
+    )
     {
         var contextParameters = CreateGeneratedRowContextParameters(constructor, contexts);
         var parameters = contextParameters
@@ -43,9 +49,12 @@ public sealed partial class ExecutionCSharpRenderer
             .ToArray();
 
         var contextAssignments = contextParameters
-            .Select(static contextParameter => CreateGeneratedRowThisAssignment(
-                contextParameter.FieldName,
-                SyntaxFactory.IdentifierName(contextParameter.ParameterName)))
+            .Select(static contextParameter =>
+                CreateGeneratedRowThisAssignment(
+                    contextParameter.FieldName,
+                    SyntaxFactory.IdentifierName(contextParameter.ParameterName)
+                )
+            )
             .ToArray();
 
         return new(parameters, contextAssignments);
@@ -55,13 +64,17 @@ public sealed partial class ExecutionCSharpRenderer
         string typeName,
         IReadOnlyList<FieldBinding> fields,
         IReadOnlyList<ParameterSyntax> contextParameters,
-        IReadOnlyList<StatementSyntax> contextAssignments)
+        IReadOnlyList<StatementSyntax> contextAssignments
+    )
     {
         var valueParameters = fields.Select(CreateGeneratedRowValueParameter);
         var assignments = fields.Select(CreateGeneratedRowFieldAssignment);
-        return SyntaxFactory.ConstructorDeclaration(typeName)
+        return SyntaxFactory
+            .ConstructorDeclaration(typeName)
             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(valueParameters.Concat(contextParameters))))
+            .WithParameterList(
+                SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(valueParameters.Concat(contextParameters)))
+            )
             .WithBody(StatementEmitter.CreateBlock(assignments.Concat(contextAssignments)));
     }
 
@@ -76,7 +89,9 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 CreateIdentifierName(GetGeneratedFieldName(field)),
-                SyntaxFactory.IdentifierName(CreateGeneratedRowValueParameterName(index))));
+                SyntaxFactory.IdentifierName(CreateGeneratedRowValueParameterName(index))
+            )
+        );
     }
 
     private static string CreateGeneratedRowValueParameterName(int index)
@@ -86,18 +101,21 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static ParameterSyntax CreateParameter(string name, TypeSyntax type)
     {
-        return SyntaxFactory.Parameter(SyntaxFactory.Identifier(name))
-            .WithType(type);
+        return SyntaxFactory.Parameter(SyntaxFactory.Identifier(name)).WithType(type);
     }
 
     private static ExpressionStatementSyntax CreateGeneratedRowThisAssignment(string fieldName, ExpressionSyntax value)
     {
-        return SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-            SyntaxKind.SimpleAssignmentExpression,
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.ThisExpression(),
-                SyntaxFactory.IdentifierName(fieldName)),
-            value));
+        return SyntaxFactory.ExpressionStatement(
+            SyntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.ThisExpression(),
+                    SyntaxFactory.IdentifierName(fieldName)
+                ),
+                value
+            )
+        );
     }
 }

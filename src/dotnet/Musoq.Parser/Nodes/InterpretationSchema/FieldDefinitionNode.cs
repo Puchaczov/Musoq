@@ -22,10 +22,9 @@ public class FieldDefinitionNode : SchemaFieldNode
         TypeAnnotationNode typeAnnotation,
         FieldConstraintNode? constraint = null,
         Node? atOffset = null,
-        Node? whenCondition = null)
-        : this(name, typeAnnotation, constraint, atOffset, whenCondition, null)
-    {
-    }
+        Node? whenCondition = null
+    )
+        : this(name, typeAnnotation, constraint, atOffset, whenCondition, null) { }
 
     /// <summary>
     ///     Creates a new field definition with an optional value validation.
@@ -42,7 +41,8 @@ public class FieldDefinitionNode : SchemaFieldNode
         FieldConstraintNode? constraint,
         Node? atOffset,
         Node? whenCondition,
-        FieldValueValidationNode? valueValidation)
+        FieldValueValidationNode? valueValidation
+    )
         : base(name)
     {
         TypeAnnotation = typeAnnotation ?? throw new ArgumentNullException(nameof(typeAnnotation));
@@ -118,13 +118,17 @@ public class FieldDefinitionNode : SchemaFieldNode
         builder.Append(": ");
         builder.Append(TypeAnnotation.ToString());
 
-        if (ValueValidation != null) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" {ValueValidation.ToString()}");
+        if (ValueValidation != null)
+            builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" {ValueValidation.ToString()}");
 
-        if (AtOffset != null) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" at {AtOffset.ToString()}");
+        if (AtOffset != null)
+            builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" at {AtOffset.ToString()}");
 
-        if (Constraint != null) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" {Constraint.ToString()}");
+        if (Constraint != null)
+            builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" {Constraint.ToString()}");
 
-        if (WhenCondition != null) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" when {WhenCondition.ToString()}");
+        if (WhenCondition != null)
+            builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" when {WhenCondition.ToString()}");
 
         return builder.ToString();
     }

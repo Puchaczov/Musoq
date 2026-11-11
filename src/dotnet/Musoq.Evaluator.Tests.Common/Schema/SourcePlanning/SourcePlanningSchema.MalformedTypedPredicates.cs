@@ -10,12 +10,10 @@ public sealed partial class SourcePlanningSchema
         MissingApplication,
         DuplicateApplication,
         AlteredApplication,
-        UnadvertisedPhase
+        UnadvertisedPhase,
     }
 
-    private static SourcePlanResult CreateMalformedTypedResult(
-        SourcePlanRequest request,
-        MalformedTypedResultKind kind)
+    private static SourcePlanResult CreateMalformedTypedResult(SourcePlanRequest request, MalformedTypedResultKind kind)
     {
         var match = (SourcePredicateStringMatch)request.Predicate!;
         IReadOnlyList<SourcePredicateApplication> applications = kind switch
@@ -24,7 +22,7 @@ public sealed partial class SourcePlanningSchema
             MalformedTypedResultKind.DuplicateApplication =>
             [
                 new SourcePredicateApplication(match, SourcePredicateEvaluationPhase.RowFiltering),
-                new SourcePredicateApplication(match, SourcePredicateEvaluationPhase.RowFiltering)
+                new SourcePredicateApplication(match, SourcePredicateEvaluationPhase.RowFiltering),
             ],
             MalformedTypedResultKind.AlteredApplication =>
             [
@@ -35,12 +33,16 @@ public sealed partial class SourcePlanningSchema
                         match.OriginalPattern,
                         string.Concat(match.Needle, "-altered"),
                         match.Comparison,
-                        match.IsNegated),
-                    SourcePredicateEvaluationPhase.RowFiltering)
+                        match.IsNegated
+                    ),
+                    SourcePredicateEvaluationPhase.RowFiltering
+                ),
             ],
             MalformedTypedResultKind.UnadvertisedPhase =>
-            [new SourcePredicateApplication(match, SourcePredicateEvaluationPhase.CandidateMetadata)],
-            _ => throw new InvalidOperationException($"Unknown malformed typed result kind '{kind}'.")
+            [
+                new SourcePredicateApplication(match, SourcePredicateEvaluationPhase.CandidateMetadata),
+            ],
+            _ => throw new InvalidOperationException($"Unknown malformed typed result kind '{kind}'."),
         };
 
         return CreateTypedResult(request, match, applications);
@@ -52,11 +54,13 @@ public sealed partial class SourcePlanningSchema
         var nested = new SourcePredicateLogical(
             SourcePredicateLogicalOperator.Or,
             first,
-            CreateMatch("Category", SourceStringMatchKind.Exact, "alpha", "alpha"));
+            CreateMatch("Category", SourceStringMatchKind.Exact, "alpha", "alpha")
+        );
         return CreateTypedResult(
             request,
             nested,
-            [new SourcePredicateApplication(first, SourcePredicateEvaluationPhase.RowFiltering)]);
+            [new SourcePredicateApplication(first, SourcePredicateEvaluationPhase.RowFiltering)]
+        );
     }
 
     private static SourcePlanResult CreateMalformedUnknownVersionResult(SourcePlanRequest request)
@@ -65,13 +69,15 @@ public sealed partial class SourcePlanningSchema
         return CreateTypedResult(
             request,
             acceptedPredicate: null,
-            applications: [new SourcePredicateApplication(match, SourcePredicateEvaluationPhase.RowFiltering)]);
+            applications: [new SourcePredicateApplication(match, SourcePredicateEvaluationPhase.RowFiltering)]
+        );
     }
 
     private static SourcePlanResult CreateTypedResult(
         SourcePlanRequest request,
         SourcePredicateExpression? acceptedPredicate,
-        IReadOnlyList<SourcePredicateApplication> applications)
+        IReadOnlyList<SourcePredicateApplication> applications
+    )
     {
         return new SourcePlanResult
         {
@@ -80,10 +86,10 @@ public sealed partial class SourcePlanningSchema
                 Identity = request.Identity,
                 AcceptedColumns = request.RequiredColumns,
                 AcceptedPredicate = acceptedPredicate,
-                PredicateApplications = applications
+                PredicateApplications = applications,
             },
             AcceptedColumns = request.RequiredColumns,
-            AcceptedPredicate = acceptedPredicate
+            AcceptedPredicate = acceptedPredicate,
         };
     }
 
@@ -91,5 +97,6 @@ public sealed partial class SourcePlanningSchema
         string column,
         SourceStringMatchKind kind,
         string pattern,
-        string needle) => new(new SourceColumnRef(column), kind, pattern, needle);
+        string needle
+    ) => new(new SourceColumnRef(column), kind, pattern, needle);
 }

@@ -11,12 +11,15 @@ public sealed partial class ExecutionCSharpRenderer
         {
             statements = node switch
             {
-                ExecutionWindowKernelPlan plan when renderContext.Session != null => renderer.RenderWindowKernelPlan(plan, renderContext),
+                ExecutionWindowKernelPlan plan when renderContext.Session != null => renderer.RenderWindowKernelPlan(
+                    plan,
+                    renderContext
+                ),
                 ExecutionComputeRankingWindow ranking => renderer.RenderComputeRankingWindow(ranking),
                 ExecutionComputeOffsetWindow offset => renderer.RenderComputeOffsetWindow(offset),
                 ExecutionComputePluginWindow plugin => renderer.RenderComputePluginWindow(plugin),
                 ExecutionWindowAggregateKernel kernel => renderer.RenderWindowAggregateKernel(kernel),
-                _ => null!
+                _ => null!,
             };
 
             return statements != null;

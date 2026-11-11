@@ -36,9 +36,7 @@ public static class AvgAggregateKernel<T>
             return;
 
         var current = value.GetValueOrDefault();
-        state.Sum = state.HasValue
-            ? checked(state.Sum + current)
-            : current;
+        state.Sum = state.HasValue ? checked(state.Sum + current) : current;
         state.Count = checked(state.Count + 1);
         state.HasValue = true;
     }
@@ -48,9 +46,7 @@ public static class AvgAggregateKernel<T>
     /// </summary>
     public static T? Get(in State state)
     {
-        return state.HasValue
-            ? state.Sum / T.CreateChecked(state.Count)
-            : null;
+        return state.HasValue ? state.Sum / T.CreateChecked(state.Count) : null;
     }
 
     /// <summary>
@@ -61,9 +57,7 @@ public static class AvgAggregateKernel<T>
         if (!source.HasValue)
             return;
 
-        target.Sum = target.HasValue
-            ? checked(target.Sum + source.Sum)
-            : source.Sum;
+        target.Sum = target.HasValue ? checked(target.Sum + source.Sum) : source.Sum;
         target.Count = checked(target.Count + source.Count);
         target.HasValue = true;
     }

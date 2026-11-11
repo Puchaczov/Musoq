@@ -18,9 +18,7 @@ public static partial class EvaluationHelper
         private int _seenCount;
 
         public BoundedTopRecordList(int takeCount, IComparer<T> comparer)
-            : this(0, takeCount, comparer)
-        {
-        }
+            : this(0, takeCount, comparer) { }
 
         public BoundedTopRecordList(int skipCount, int takeCount, IComparer<T> comparer)
         {
@@ -34,10 +32,12 @@ public static partial class EvaluationHelper
                 _overflowRows = [];
                 return;
             }
-            _queue = _limit <= 0
-                ? null
-                : new PriorityQueue<TopOffsetRecord<T>, TopOffsetRecord<T>>(
-                    new ReverseTopOffsetRecordComparer<T>(_recordComparer));
+            _queue =
+                _limit <= 0
+                    ? null
+                    : new PriorityQueue<TopOffsetRecord<T>, TopOffsetRecord<T>>(
+                        new ReverseTopOffsetRecordComparer<T>(_recordComparer)
+                    );
         }
 
         public int Count => _selectedRows?.Count ?? _seenCount;
@@ -88,13 +88,15 @@ public static partial class EvaluationHelper
             if (_overflowRows != null)
             {
                 _overflowRows.Sort(_recordComparer);
-                _selectedRows = _overflowRows.Skip(_skipCount).Take(_takeCount).Select(static item => item.Record).ToList();
+                _selectedRows = _overflowRows
+                    .Skip(_skipCount)
+                    .Take(_takeCount)
+                    .Select(static item => item.Record)
+                    .ToList();
                 return _selectedRows;
             }
 
-            _selectedRows = _queue == null
-                ? []
-                : CopySelectedTopOffsetRecords(_queue, _skipCount, _takeCount);
+            _selectedRows = _queue == null ? [] : CopySelectedTopOffsetRecords(_queue, _skipCount, _takeCount);
 
             return _selectedRows;
         }

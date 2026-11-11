@@ -17,14 +17,15 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c1") { Country = "poland" },
                     new BasicEntity("c2") { Country = "Germany" },
                     new BasicEntity("c3") { Country = "POLAND" },
                     new BasicEntity("c4") { Country = "germany" },
-                    new BasicEntity("c5") { Country = "France" }
+                    new BasicEntity("c5") { Country = "France" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -46,14 +47,15 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c1") { Country = "poland" },
                     new BasicEntity("c2") { Country = "Germany" },
                     new BasicEntity("c3") { Country = "POLAND" },
                     new BasicEntity("c4") { Country = "germany" },
-                    new BasicEntity("c5") { Country = "France" }
+                    new BasicEntity("c5") { Country = "France" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -74,13 +76,14 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c1") { Country = "Poland" },
                     new BasicEntity("c2") { Country = "Germany" },
                     new BasicEntity("c3") { Country = "Poland" },
-                    new BasicEntity("c4") { Country = "France" }
+                    new BasicEntity("c4") { Country = "France" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -102,15 +105,16 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c5", "Poland", 500),
                     new BasicEntity("c1", "Germany", 200),
                     new BasicEntity("c3", "Poland", 150),
                     new BasicEntity("c4", "France", 300),
                     new BasicEntity("c2", "Germany", 250),
-                    new BasicEntity("c6", "Austria", 100)
+                    new BasicEntity("c6", "Austria", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -128,15 +132,16 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c5", "Poland", 500),
                     new BasicEntity("c1", "Germany", 200),
                     new BasicEntity("c3", "Poland", 150),
                     new BasicEntity("c4", "France", 300),
                     new BasicEntity("c2", "Germany", 250),
-                    new BasicEntity("c6", "Austria", 100)
+                    new BasicEntity("c6", "Austria", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -154,15 +159,16 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c5", "Poland", 500),
                     new BasicEntity("c1", "Germany", 200),
                     new BasicEntity("c3", "Poland", 150),
                     new BasicEntity("c4", "France", 300),
                     new BasicEntity("c2", "Germany", 250),
-                    new BasicEntity("c6", "Austria", 100)
+                    new BasicEntity("c6", "Austria", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -173,5 +179,4 @@ public partial class DistinctOrderByBugTests
     }
 
     #endregion
-
 }

@@ -12,12 +12,18 @@ namespace Musoq.Evaluator.Tests.Schema.Wildcard;
 
 public sealed class ProjectionSensitiveWildcardSchemaProvider(
     ProjectionSensitiveWildcardRecorder recorder,
-    bool queryScopedRowsEnabled = true) : ISchemaProvider
+    bool queryScopedRowsEnabled = true
+) : ISchemaProvider
 {
     public ISchema GetSchema(string schema)
     {
-        if (!string.Equals(schema.TrimStart('#'), ProjectionSensitiveWildcardSchema.SchemaName,
-                StringComparison.OrdinalIgnoreCase))
+        if (
+            !string.Equals(
+                schema.TrimStart('#'),
+                ProjectionSensitiveWildcardSchema.SchemaName,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
             throw new NotSupportedException(schema);
 
         return new ProjectionSensitiveWildcardSchema(recorder, queryScopedRowsEnabled);
@@ -26,7 +32,8 @@ public sealed class ProjectionSensitiveWildcardSchemaProvider(
 
 public sealed class ProjectionSensitiveWildcardSchema(
     ProjectionSensitiveWildcardRecorder recorder,
-    bool queryScopedRowsEnabled = true) : SchemaBase(SchemaName, CreateMethods()), IQueryScopedRowSourceSchema
+    bool queryScopedRowsEnabled = true
+) : SchemaBase(SchemaName, CreateMethods()), IQueryScopedRowSourceSchema
 {
     public const string SchemaName = "wildcard";
     public const string SourceName = "rows";
@@ -36,7 +43,7 @@ public sealed class ProjectionSensitiveWildcardSchema(
         new SchemaColumn("Id", 0, typeof(int)),
         new SchemaColumn("Name", 1, typeof(string)),
         new SchemaColumn("Other", 2, typeof(string)),
-        new SchemaColumn("Score", 3, typeof(int))
+        new SchemaColumn("Score", 3, typeof(int)),
     ];
 
     private static object[] FullRow { get; } = [1, "Ada", "source-column", 10];
@@ -44,27 +51,32 @@ public sealed class ProjectionSensitiveWildcardSchema(
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         EnsureSourceName(name);
         var requestedColumns = metadataContext.AllColumns.ToArray();
         recorder.MetadataRequests.Add(requestedColumns.Select(static column => column.ColumnName).ToArray());
         recorder.MetadataContexts.Add(ProjectionSensitiveWildcardContextSnapshot.Create(metadataContext));
 
-        var columns = requestedColumns.Length == 0
-            ? FullColumns
-            : FullColumns
-                .Where(column => requestedColumns.Any(requested =>
-                    string.Equals(requested.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase)))
-                .Select((column, index) => (ISchemaColumn)new SchemaColumn(column.ColumnName, index, column.ColumnType))
-                .ToArray();
+        var columns =
+            requestedColumns.Length == 0
+                ? FullColumns
+                : FullColumns
+                    .Where(column =>
+                        requestedColumns.Any(requested =>
+                            string.Equals(requested.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase)
+                        )
+                    )
+                    .Select(
+                        (column, index) => (ISchemaColumn)new SchemaColumn(column.ColumnName, index, column.ColumnType)
+                    )
+                    .ToArray();
 
         return new ProjectionSensitiveWildcardTable(columns);
     }
 
-    public override SchemaMethodInfo[] GetRawConstructors(
-        string methodName,
-        SourceMetadataContext metadataContext)
+    public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
     {
         return string.Equals(methodName, SourceName, StringComparison.OrdinalIgnoreCase)
             ? [new SchemaMethodInfo(methodName, SchemaConstructorInfo.Empty())]
@@ -74,21 +86,23 @@ public sealed class ProjectionSensitiveWildcardSchema(
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         EnsureSourceName(name);
         return base.DescribeSource(name, context, parameters) with
         {
             TransferCapabilities = queryScopedRowsEnabled
                 ? SourceTransferCapabilities.QueryScopedRows
-                : SourceTransferCapabilities.None
+                : SourceTransferCapabilities.None,
         };
     }
 
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         EnsureSourceName(name);
         var requestedColumns = executionContext.AllColumns.ToArray();
@@ -103,7 +117,8 @@ public sealed class ProjectionSensitiveWildcardSchema(
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
@@ -112,18 +127,22 @@ public sealed class ProjectionSensitiveWildcardSchema(
 
         EnsureSourceName(name);
         recorder.QueryScopedExecutionContexts.Add(
-            ProjectionSensitiveWildcardContextSnapshot.Create(request.ExecutionContext));
+            ProjectionSensitiveWildcardContextSnapshot.Create(request.ExecutionContext)
+        );
         recorder.QueryScopedShapes.Add(
-            request.Shape.Fields
-                .Select(static field => new ProjectionSensitiveWildcardShapeField(
+            request
+                .Shape.Fields.Select(static field => new ProjectionSensitiveWildcardShapeField(
                     field.Name,
                     field.SourceColumnIndex,
-                    field.FieldType))
-                .ToArray());
+                    field.FieldType
+                ))
+                .ToArray()
+        );
 
         return new ProjectionSensitiveWildcardQueryScopedRowSource<TRow, TMaterializer>(
             [FullRow.ToArray()],
-            request.Shape.Fields);
+            request.Shape.Fields
+        );
     }
 
     private static void EnsureSourceName(string name)
@@ -155,22 +174,18 @@ public sealed class ProjectionSensitiveWildcardRecorder
     public List<ProjectionSensitiveWildcardShapeField[]> QueryScopedShapes { get; } = [];
 }
 
-public sealed record ProjectionSensitiveWildcardContextSnapshot(
-    string QueryId,
-    string[] Columns)
+public sealed record ProjectionSensitiveWildcardContextSnapshot(string QueryId, string[] Columns)
 {
     public static ProjectionSensitiveWildcardContextSnapshot Create(SourceMetadataContext context)
     {
         return new ProjectionSensitiveWildcardContextSnapshot(
             context.QueryId,
-            context.AllColumns.Select(static column => column.ColumnName).ToArray());
+            context.AllColumns.Select(static column => column.ColumnName).ToArray()
+        );
     }
 }
 
-public sealed record ProjectionSensitiveWildcardShapeField(
-    string Name,
-    int SourceColumnIndex,
-    Type FieldType);
+public sealed record ProjectionSensitiveWildcardShapeField(string Name, int SourceColumnIndex, Type FieldType);
 
 public sealed class ProjectionSensitiveWildcardTable(ISchemaColumn[] columns) : ISchemaTable
 {
@@ -179,24 +194,21 @@ public sealed class ProjectionSensitiveWildcardTable(ISchemaColumn[] columns) : 
     public SchemaTableMetadata Metadata { get; } = new(typeof(object[]));
 
     public ISchemaColumn? GetColumnByName(string name) =>
-        Columns.FirstOrDefault(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+        Columns.FirstOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
 
     public ISchemaColumn[] GetColumnsByName(string name) =>
-        Columns.Where(column =>
-                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase))
-            .ToArray();
+        Columns.Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
 }
 
-public sealed class ProjectionSensitiveWildcardRowSource(IReadOnlyList<object[]> rows)
-    : RowSourceBase<object[]>
+public sealed class ProjectionSensitiveWildcardRowSource(IReadOnlyList<object[]> rows) : RowSourceBase<object[]>
 {
     protected override void CollectChunks(IChunkWriter<object[]> writer) => writer.Write(rows);
 }
 
 public sealed class ProjectionSensitiveWildcardQueryScopedRowSource<TRow, TMaterializer>(
     IReadOnlyList<object[]> rows,
-    IReadOnlyList<QueryRowField> fields) : RowSourceBase<TRow>
+    IReadOnlyList<QueryRowField> fields
+) : RowSourceBase<TRow>
     where TMaterializer : struct, IQueryRowMaterializer<TRow>
 {
     protected override void CollectChunks(IChunkWriter<TRow> writer)
@@ -212,9 +224,8 @@ public sealed class ProjectionSensitiveWildcardQueryScopedRowSource<TRow, TMater
     }
 }
 
-public ref struct ProjectionSensitiveWildcardQueryRowReader(
-    object[] row,
-    IReadOnlyList<QueryRowField> fields) : IQuerySourceFieldReader
+public ref struct ProjectionSensitiveWildcardQueryRowReader(object[] row, IReadOnlyList<QueryRowField> fields)
+    : IQuerySourceFieldReader
 {
     public T Read<T>(int slot)
     {

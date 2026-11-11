@@ -21,7 +21,8 @@ public sealed partial class ExecutionShapeResolver
         IReadOnlyDictionary<string, Type>? entityTypesByAlias = null,
         SchemaRegistry? schemaRegistry = null,
         IReadOnlyList<ScriptVariableDefinition>? scriptVariables = null,
-        IReadOnlyList<ScriptParameterDefinition>? scriptParameters = null)
+        IReadOnlyList<ScriptParameterDefinition>? scriptParameters = null
+    )
     {
         _scope = scope;
         _inferredColumns = inferredColumns ?? new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal);

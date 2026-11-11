@@ -16,7 +16,8 @@ internal static class SchemaSourceCompatibility
         out int cost,
         out StructuralConstructionPlan? constructionPlan,
         out bool relationAmbiguous,
-        out string error)
+        out string error
+    )
     {
         ArgumentNullException.ThrowIfNull(argument);
         ArgumentNullException.ThrowIfNull(parameter);
@@ -68,21 +69,18 @@ internal static class SchemaSourceCompatibility
         CteRelationBinding relation,
         out int cost,
         out bool relationAmbiguous,
-        out string error)
+        out string error
+    )
     {
         relationAmbiguous = false;
-        var scalarCompatible = TryGetScalarCost(
-            argument,
-            parameter,
-            relation,
-            out _,
-            out _);
+        var scalarCompatible = TryGetScalarCost(argument, parameter, relation, out _, out _);
         var relationCompatible = TryGetRelationOnlyCost(relation, parameter, out _, out error);
         if (relationCompatible && scalarCompatible)
         {
             relationAmbiguous = true;
             cost = 0;
-            error = $"Datasource argument '{relation.Name}' is ambiguous between a scalar column and a complete CTE relation.";
+            error =
+                $"Datasource argument '{relation.Name}' is ambiguous between a scalar column and a complete CTE relation.";
             return false;
         }
 
@@ -107,7 +105,8 @@ internal static class SchemaSourceCompatibility
         CteRelationBinding relation,
         SchemaSourceParameter parameter,
         out int cost,
-        out string error)
+        out string error
+    )
     {
         if (SchemaSourceArgumentBinder.TryValidateRelation(relation, parameter, out error))
         {
@@ -129,7 +128,8 @@ internal static class SchemaSourceCompatibility
         SchemaSourceParameter parameter,
         CteRelationBinding? relation,
         out int cost,
-        out string error)
+        out string error
+    )
     {
         ArgumentNullException.ThrowIfNull(argument);
         ArgumentNullException.ThrowIfNull(parameter);
@@ -138,9 +138,10 @@ internal static class SchemaSourceCompatibility
         if (argumentType == null)
         {
             cost = SchemaConversionClassifier.Incompatible;
-            error = relation == null
-                ? "The scalar argument has no resolved type."
-                : $"CTE relation '{relation.Name}' has no visible scalar column interpretation.";
+            error =
+                relation == null
+                    ? "The scalar argument has no resolved type."
+                    : $"CTE relation '{relation.Name}' has no visible scalar column interpretation.";
             return false;
         }
 
@@ -189,10 +190,7 @@ internal static class SchemaSourceCompatibility
         return false;
     }
 
-    private static bool TryGetNullCost(
-        SchemaSourceParameter parameter,
-        out int cost,
-        out string error)
+    private static bool TryGetNullCost(SchemaSourceParameter parameter, out int cost, out string error)
     {
         if (!parameter.ParameterType.IsValueType || Nullable.GetUnderlyingType(parameter.ParameterType) != null)
         {
@@ -210,7 +208,8 @@ internal static class SchemaSourceCompatibility
         RecordLiteralNode record,
         StructuralTypeDescriptor receiver,
         out int cost,
-        out string error)
+        out string error
+    )
     {
         if (receiver.Kind != StructuralTypeKind.Record)
         {
@@ -230,7 +229,8 @@ internal static class SchemaSourceCompatibility
             }
 
             var receiverField = receiver.Fields.FirstOrDefault(candidate =>
-                string.Equals(candidate.Name, field.Name, StringComparison.OrdinalIgnoreCase));
+                string.Equals(candidate.Name, field.Name, StringComparison.OrdinalIgnoreCase)
+            );
             if (receiverField == null)
             {
                 error = $"Structural input contains unexpected field '{field.Name}'.";
@@ -259,7 +259,8 @@ internal static class SchemaSourceCompatibility
         ArrayLiteralNode array,
         StructuralTypeDescriptor receiver,
         out int cost,
-        out string error)
+        out string error
+    )
     {
         if (receiver.Kind != StructuralTypeKind.Collection || receiver.ElementType == null)
         {
@@ -280,11 +281,7 @@ internal static class SchemaSourceCompatibility
         return true;
     }
 
-    private static bool TryBindNode(
-        Node expression,
-        StructuralTypeDescriptor receiver,
-        out int cost,
-        out string error)
+    private static bool TryBindNode(Node expression, StructuralTypeDescriptor receiver, out int cost, out string error)
     {
         if (expression is NullNode)
             return TryGetNullDescriptorCost(receiver, out cost, out error);
@@ -301,8 +298,11 @@ internal static class SchemaSourceCompatibility
             return true;
         }
 
-        if (receiver.Kind != StructuralTypeKind.Scalar || receiver.ScalarType == null ||
-            !SchemaConversionClassifier.TryGetCost(actualType, receiver.ScalarType, out cost))
+        if (
+            receiver.Kind != StructuralTypeKind.Scalar
+            || receiver.ScalarType == null
+            || !SchemaConversionClassifier.TryGetCost(actualType, receiver.ScalarType, out cost)
+        )
         {
             error = $"Expression type '{actualType.Name}' is incompatible with '{receiver.ToCanonicalSql()}'.";
             cost = SchemaConversionClassifier.Incompatible;
@@ -313,10 +313,7 @@ internal static class SchemaSourceCompatibility
         return true;
     }
 
-    private static bool TryGetNullDescriptorCost(
-        StructuralTypeDescriptor receiver,
-        out int cost,
-        out string error)
+    private static bool TryGetNullDescriptorCost(StructuralTypeDescriptor receiver, out int cost, out string error)
     {
         if (receiver.IsNullable)
         {
@@ -334,7 +331,8 @@ internal static class SchemaSourceCompatibility
         StructuralTypeDescriptor supplied,
         StructuralTypeDescriptor receiver,
         out int cost,
-        out string error)
+        out string error
+    )
     {
         cost = 0;
         if (supplied.Kind != receiver.Kind)
@@ -352,10 +350,14 @@ internal static class SchemaSourceCompatibility
         switch (supplied.Kind)
         {
             case StructuralTypeKind.Scalar:
-                if (supplied.ScalarType == null || receiver.ScalarType == null ||
-                    !SchemaConversionClassifier.TryGetCost(supplied.ScalarType, receiver.ScalarType, out cost))
+                if (
+                    supplied.ScalarType == null
+                    || receiver.ScalarType == null
+                    || !SchemaConversionClassifier.TryGetCost(supplied.ScalarType, receiver.ScalarType, out cost)
+                )
                 {
-                    error = $"Structural scalar '{supplied.ToCanonicalSql()}' is incompatible with receiver '{receiver.ToCanonicalSql()}'.";
+                    error =
+                        $"Structural scalar '{supplied.ToCanonicalSql()}' is incompatible with receiver '{receiver.ToCanonicalSql()}'.";
                     return false;
                 }
                 error = string.Empty;
@@ -366,7 +368,8 @@ internal static class SchemaSourceCompatibility
                 foreach (var suppliedField in supplied.Fields)
                 {
                     var receiverField = receiver.Fields.FirstOrDefault(candidate =>
-                        string.Equals(candidate.Name, suppliedField.Name, StringComparison.OrdinalIgnoreCase));
+                        string.Equals(candidate.Name, suppliedField.Name, StringComparison.OrdinalIgnoreCase)
+                    );
                     if (receiverField == null)
                     {
                         error = $"Structural input contains unexpected field '{suppliedField.Name}'.";
@@ -380,8 +383,11 @@ internal static class SchemaSourceCompatibility
 
                 foreach (var receiverField in receiver.Fields)
                 {
-                    if (supplied.Fields.All(field => !string.Equals(field.Name, receiverField.Name, StringComparison.OrdinalIgnoreCase)) &&
-                        receiverField.Required)
+                    if (
+                        supplied.Fields.All(field =>
+                            !string.Equals(field.Name, receiverField.Name, StringComparison.OrdinalIgnoreCase)
+                        ) && receiverField.Required
+                    )
                     {
                         error = $"Structural input is missing required field '{receiverField.Name}'.";
                         return false;
@@ -398,15 +404,22 @@ internal static class SchemaSourceCompatibility
 
     private static StructuralConstructionPlan? CreateConstructionPlan(
         StructuralTypeDescriptor supplied,
-        StructuralTypeDescriptor receiver)
+        StructuralTypeDescriptor receiver
+    )
     {
-        if (supplied.Kind == StructuralTypeKind.Record && receiver.Kind == StructuralTypeKind.Record &&
-            StructuralConstructionPlanBinder.TryBind(supplied, receiver, out var plan, out _))
+        if (
+            supplied.Kind == StructuralTypeKind.Record
+            && receiver.Kind == StructuralTypeKind.Record
+            && StructuralConstructionPlanBinder.TryBind(supplied, receiver, out var plan, out _)
+        )
             return plan;
 
-        if (supplied.Kind == StructuralTypeKind.Collection && supplied.ElementType is { Kind: StructuralTypeKind.Record } suppliedElement &&
-            receiver.ElementType is { Kind: StructuralTypeKind.Record } receiverElement &&
-            StructuralConstructionPlanBinder.TryBind(suppliedElement, receiverElement, out var elementPlan, out _))
+        if (
+            supplied.Kind == StructuralTypeKind.Collection
+            && supplied.ElementType is { Kind: StructuralTypeKind.Record } suppliedElement
+            && receiver.ElementType is { Kind: StructuralTypeKind.Record } receiverElement
+            && StructuralConstructionPlanBinder.TryBind(suppliedElement, receiverElement, out var elementPlan, out _)
+        )
             return elementPlan;
 
         return null;

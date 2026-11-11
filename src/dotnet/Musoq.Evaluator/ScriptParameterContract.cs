@@ -16,7 +16,8 @@ public sealed record ScriptParameterContract(
     bool HasDefaultValue,
     ScriptParameterDefaultKind DefaultKind,
     object? DefaultValue,
-    StructuralTypeDescriptor? StructuralType = null)
+    StructuralTypeDescriptor? StructuralType = null
+)
 {
     /// <summary>Gets whether this contract carries a recursive structural shape.</summary>
     public bool IsStructured => StructuralType != null;
@@ -29,17 +30,17 @@ public sealed record ScriptParameterContract(
         string declaredTypeName,
         StructuralTypeDescriptor structuralType,
         bool hasDefaultValue,
-        object? defaultValue)
+        object? defaultValue
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(declaredTypeName);
         ArgumentNullException.ThrowIfNull(structuralType);
 
-        var defaultKind = !hasDefaultValue
-            ? ScriptParameterDefaultKind.None
-            : defaultValue == null
-                ? ScriptParameterDefaultKind.Null
-                : ScriptParameterDefaultKind.Structured;
+        var defaultKind =
+            !hasDefaultValue ? ScriptParameterDefaultKind.None
+            : defaultValue == null ? ScriptParameterDefaultKind.Null
+            : ScriptParameterDefaultKind.Structured;
         var isCollection = structuralType.Kind == StructuralTypeKind.Collection;
         var elementType = isCollection ? structuralType.ElementType?.CoreValueType : null;
 
@@ -55,14 +56,17 @@ public sealed record ScriptParameterContract(
             hasDefaultValue,
             defaultKind,
             defaultValue,
-            structuralType);
+            structuralType
+        );
     }
+
     public static ScriptParameterContract Create(
         string name,
         string declaredTypeName,
         Type clrType,
         bool hasDefaultValue,
-        object? defaultValue)
+        object? defaultValue
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(declaredTypeName);
@@ -70,13 +74,16 @@ public sealed record ScriptParameterContract(
 
         var isCollection = clrType.IsArray;
         var elementClrType = isCollection
-            ? clrType.GetElementType() ?? throw new ArgumentException("Collection parameter type must expose an element type.", nameof(clrType))
+            ? clrType.GetElementType()
+                ?? throw new ArgumentException(
+                    "Collection parameter type must expose an element type.",
+                    nameof(clrType)
+                )
             : null;
-        var defaultKind = !hasDefaultValue
-            ? ScriptParameterDefaultKind.None
-            : defaultValue == null
-                ? ScriptParameterDefaultKind.Null
-                : ScriptParameterDefaultKind.Literal;
+        var defaultKind =
+            !hasDefaultValue ? ScriptParameterDefaultKind.None
+            : defaultValue == null ? ScriptParameterDefaultKind.Null
+            : ScriptParameterDefaultKind.Literal;
 
         return new ScriptParameterContract(
             name,
@@ -89,31 +96,29 @@ public sealed record ScriptParameterContract(
             elementClrType != null ? GetCanonicalClrTypeName(elementClrType) : null,
             hasDefaultValue,
             defaultKind,
-            defaultValue);
+            defaultValue
+        );
     }
 
     public static ScriptParameterContract FromLegacy(
         string name,
         Type clrType,
         bool hasDefaultValue,
-        object? defaultValue)
+        object? defaultValue
+    )
     {
         ArgumentNullException.ThrowIfNull(clrType);
 
-        return Create(
-            name,
-            GetCanonicalClrTypeName(clrType),
-            clrType,
-            hasDefaultValue,
-            defaultValue);
+        return Create(name, GetCanonicalClrTypeName(clrType), clrType, hasDefaultValue, defaultValue);
     }
 
     private static string GetCanonicalClrTypeName(Type type)
     {
         if (type.IsArray)
         {
-            var elementType = type.GetElementType() ??
-                              throw new ArgumentException("Array type must expose an element type.", nameof(type));
+            var elementType =
+                type.GetElementType()
+                ?? throw new ArgumentException("Array type must expose an element type.", nameof(type));
             return $"{GetCanonicalClrTypeName(elementType)}[]";
         }
 

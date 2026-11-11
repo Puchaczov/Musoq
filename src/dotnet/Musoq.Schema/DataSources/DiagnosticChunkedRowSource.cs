@@ -13,7 +13,8 @@ public abstract class DiagnosticChunkedRowSource<T> : RowSource<T>
     protected DiagnosticChunkedRowSource(
         SourceExecutionContext context,
         string sourceName,
-        DiagnosticChunkedRowSourceOptions? options = null)
+        DiagnosticChunkedRowSourceOptions? options = null
+    )
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceName);
@@ -25,8 +26,7 @@ public abstract class DiagnosticChunkedRowSource<T> : RowSource<T>
             throw new ArgumentOutOfRangeException(nameof(options), "Chunk capacity must be greater than zero.");
     }
 
-    public override IEnumerable<IReadOnlyList<T>> Chunks =>
-        CreateChunks();
+    public override IEnumerable<IReadOnlyList<T>> Chunks => CreateChunks();
 
     protected abstract void CollectChunks(DiagnosticChunkWriter<T> writer);
 
@@ -40,6 +40,7 @@ public abstract class DiagnosticChunkedRowSource<T> : RowSource<T>
             (chunks, token) => new DiagnosticChunkWriter<T>(chunks, metrics, token),
             CollectChunks,
             () => _context.EndWorkToken.IsCancellationRequested,
-            metrics);
+            metrics
+        );
     }
 }

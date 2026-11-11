@@ -15,7 +15,8 @@ public static class SourceProfileDiagnosisClassifier
             snapshot.MoveNextWaitTime,
             snapshot.ConsumerGapTime,
             snapshot.ExceptionCount,
-            snapshot.Metrics);
+            snapshot.Metrics
+        );
     }
 
     public static SourceProfileDiagnosis Classify(
@@ -23,7 +24,8 @@ public static class SourceProfileDiagnosisClassifier
         TimeSpan moveNextWaitTime,
         TimeSpan consumerGapTime,
         int exceptionCount = 0,
-        IReadOnlyDictionary<string, long>? metrics = null)
+        IReadOnlyDictionary<string, long>? metrics = null
+    )
     {
         if (rowsRead <= 0 || exceptionCount > 0)
             return SourceProfileDiagnosis.Unknown;
@@ -48,7 +50,8 @@ public static class SourceProfileDiagnosisClassifier
 
     private static bool TryClassifyChunkedBackpressure(
         IReadOnlyDictionary<string, long>? metrics,
-        out SourceProfileDiagnosis diagnosis)
+        out SourceProfileDiagnosis diagnosis
+    )
     {
         diagnosis = SourceProfileDiagnosis.Unknown;
 

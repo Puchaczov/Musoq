@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-
 namespace Musoq.Evaluator.Tests;
 
 public partial class CrossApplyUnusedAliasTests
 {
-
     /// <summary>
     ///     Test multiple cross applies on different properties from same source.
     ///     Pattern: m.A a cross apply m.B b - where both A and B are properties of m.
@@ -14,7 +12,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_TwoPropertiesFromSameSource_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select 1
             from #schema.first() m
             cross apply m.Values1 a
@@ -22,13 +21,15 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyMultiProperty>
         {
-            new() { Name = "Test1", Values1 = [1, 2], Values2 = [10, 20] }
+            new()
+            {
+                Name = "Test1",
+                Values1 = [1, 2],
+                Values2 = [10, 20],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -42,7 +43,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_TwoPropertiesFromSameSource_SelectFromBoth_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.Value, b.Value
             from #schema.first() m
             cross apply m.Values1 a
@@ -50,20 +52,20 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyMultiProperty>
         {
-            new() { Name = "Test1", Values1 = [1, 2], Values2 = [10, 20] }
+            new()
+            {
+                Name = "Test1",
+                Values1 = [1, 2],
+                Values2 = [10, 20],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)), ("Value", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [1, 10], [1, 20], [2, 10], [2, 20]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1, 10], [1, 20], [2, 10], [2, 20]);
     }
 
     /// <summary>
@@ -72,7 +74,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_TwoPropertiesFromSameSource_SelectOnlyFromSecond_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select b.Value
             from #schema.first() m
             cross apply m.Values1 a
@@ -80,13 +83,15 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyMultiProperty>
         {
-            new() { Name = "Test1", Values1 = [1, 2], Values2 = [10, 20] }
+            new()
+            {
+                Name = "Test1",
+                Values1 = [1, 2],
+                Values2 = [10, 20],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -100,7 +105,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_TwoPropertiesFromSameSource_SelectFromOriginal_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select m.Name, a.Value, b.Value
             from #schema.first() m
             cross apply m.Values1 a
@@ -108,22 +114,31 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyMultiProperty>
         {
-            new() { Name = "Test1", Values1 = [1, 2], Values2 = [10, 20] }
+            new()
+            {
+                Name = "Test1",
+                Values1 = [1, 2],
+                Values2 = [10, 20],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Value", typeof(int)), ("Value", typeof(int)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int)),
+            ("Value", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Test1", 1, 10], ["Test1", 1, 20], ["Test1", 2, 10], ["Test1", 2, 20]);
+            ["Test1", 1, 10],
+            ["Test1", 1, 20],
+            ["Test1", 2, 10],
+            ["Test1", 2, 20]
+        );
     }
 
     /// <summary>
@@ -132,7 +147,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_ThreePropertiesFromSameSource_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.Value, b.Value, c.Value
             from #schema.first() m
             cross apply m.Values1 a
@@ -141,19 +157,25 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyMultiProperty>
         {
-            new() { Name = "Test1", Values1 = [1], Values2 = [10], Values3 = [100] }
+            new()
+            {
+                Name = "Test1",
+                Values1 = [1],
+                Values2 = [10],
+                Values3 = [100],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Value", typeof(int)), ("Value", typeof(int)), ("Value", typeof(int)));
+            ("Value", typeof(int)),
+            ("Value", typeof(int)),
+            ("Value", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 10, 100]);
     }
 
@@ -163,7 +185,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void Cte_CrossApply_TwoPropertiesFromSameSource_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             with cte as (
                 select m.Name as Name, m.Values1 as Values1, m.Values2 as Values2
                 from #schema.first() m
@@ -175,22 +198,31 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyMultiProperty>
         {
-            new() { Name = "Test1", Values1 = [1, 2], Values2 = [10, 20] }
+            new()
+            {
+                Name = "Test1",
+                Values1 = [1, 2],
+                Values2 = [10, 20],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Value", typeof(int)), ("Value", typeof(int)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int)),
+            ("Value", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Test1", 1, 10], ["Test1", 1, 20], ["Test1", 2, 10], ["Test1", 2, 20]);
+            ["Test1", 1, 10],
+            ["Test1", 1, 20],
+            ["Test1", 2, 10],
+            ["Test1", 2, 20]
+        );
     }
 
     /// <summary>
@@ -199,7 +231,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_PropertyThenMethodOnSameSource_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.Value, b.Value
             from #schema.first() m
             cross apply m.Values1 a
@@ -207,22 +240,29 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyMultiProperty>
         {
-            new() { Name = "A,B,C", Values1 = [1, 2], Values2 = [10, 20], Values3 = [100] }
+            new()
+            {
+                Name = "A,B,C",
+                Values1 = [1, 2],
+                Values2 = [10, 20],
+                Values3 = [100],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Value", typeof(int)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            [1, "A"], [1, "B"], [1, "C"], [2, "A"], [2, "B"], [2, "C"]);
+            [1, "A"],
+            [1, "B"],
+            [1, "C"],
+            [2, "A"],
+            [2, "B"],
+            [2, "C"]
+        );
     }
 
     /// <summary>
@@ -231,26 +271,22 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_ChainedPropertyAccess_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select m.Name, a.Value
             from #schema.first() m
             cross apply m.NestedValues a";
 
         var firstSource = new List<CrossApplyNestedProperty>
         {
-            new() { Name = "Test1", NestedValues = [new NestedValue { Value = 1 }, new NestedValue { Value = 2 }] }
+            new() { Name = "Test1", NestedValues = [new NestedValue { Value = 1 }, new NestedValue { Value = 2 }] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)), ("Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Test1", 1], ["Test1", 2]);
     }
 
@@ -260,7 +296,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void OuterApply_TwoPropertiesFromSameSource_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select m.Name, a.Value, b.Value
             from #schema.first() m
             outer apply m.Values1 a
@@ -268,24 +305,38 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyMultiProperty>
         {
-            new() { Name = "Test1", Values1 = [1, 2], Values2 = [10, 20] },
-            new() { Name = "Test2", Values1 = [], Values2 = [30] }
+            new()
+            {
+                Name = "Test1",
+                Values1 = [1, 2],
+                Values2 = [10, 20],
+            },
+            new()
+            {
+                Name = "Test2",
+                Values1 = [],
+                Values2 = [30],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Value", typeof(int?)), ("Value", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int?)),
+            ("Value", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Test1", 1, 10], ["Test1", 1, 20], ["Test1", 2, 10], ["Test1", 2, 20],
-            ["Test2", null, 30]);
+            ["Test1", 1, 10],
+            ["Test1", 1, 20],
+            ["Test1", 2, 10],
+            ["Test1", 2, 20],
+            ["Test2", null, 30]
+        );
     }
 
     /// <summary>
@@ -294,7 +345,8 @@ public partial class CrossApplyUnusedAliasTests
     [TestMethod]
     public void CrossApply_ThenOuterApply_OnPropertiesFromSameSource_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select m.Name, a.Value, b.Value
             from #schema.first() m
             cross apply m.Values1 a
@@ -302,20 +354,24 @@ public partial class CrossApplyUnusedAliasTests
 
         var firstSource = new List<CrossApplyMultiProperty>
         {
-            new() { Name = "Test1", Values1 = [1, 2], Values2 = [] }
+            new()
+            {
+                Name = "Test1",
+                Values1 = [1, 2],
+                Values2 = [],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Value", typeof(int)), ("Value", typeof(int?)));
+            ("Name", typeof(string)),
+            ("Value", typeof(int)),
+            ("Value", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Test1", 1, null], ["Test1", 2, null]);
     }
-
 }

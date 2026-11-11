@@ -18,10 +18,17 @@ public sealed class RuleBasedOptimizationTraceCoverageTests : BasicEntityTestBas
     public void OptimizerTraceText_WhenAnalyzeBuildRunsRuleBasedPipeline_ShouldIncludeAllStagesWithReasons()
     {
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(
-            "select e.Name from #A.Entities() e where e.Population > 100 order by e.Name take 2");
+            "select e.Name from #A.Entities() e where e.Population > 100 order by e.Name take 2"
+        );
         var traceText = buildItems.OptimizerTraceText;
 
-        Assert.IsNotNull(traceText, string.Join(Environment.NewLine, buildItems.DiagnosticContext.Diagnostics.Select(static diagnostic => diagnostic.Message)));
+        Assert.IsNotNull(
+            traceText,
+            string.Join(
+                Environment.NewLine,
+                buildItems.DiagnosticContext.Diagnostics.Select(static diagnostic => diagnostic.Message)
+            )
+        );
         Assert.Contains("OptimizerTrace", traceText);
         Assert.Contains("PreLogicalNormalization [DistinctToGroupByNormalization]", traceText);
         Assert.Contains("PreLogicalNormalization [SubqueryToCteNormalization]", traceText);
@@ -42,20 +49,28 @@ public sealed class RuleBasedOptimizationTraceCoverageTests : BasicEntityTestBas
     [TestMethod]
     public void OptimizerTraceText_WhenSubqueryNormalizationChangesTree_ShouldReportGeneratedKinds()
     {
-        var buildItems = CreateBuildItems<BasicEntity>("""
-            select a.City, (
-                select b.City from #B.entities() b
-                where b.Country = 'FRANCE'
-            ) as MatchCity
-            from #A.entities() a
-            where exists (
-                select c.City from #C.entities() c
-                where c.Country = a.Country
+        var buildItems = CreateBuildItems<BasicEntity>(
+            (
+                "select a.City, (\n"
+                + "    select b.City from #B.entities() b\n"
+                + "    where b.Country = 'FRANCE'\n"
+                + ") as MatchCity\n"
+                + "from #A.entities() a\n"
+                + "where exists (\n"
+                + "    select c.City from #C.entities() c\n"
+                + "    where c.Country = a.Country\n"
+                + ")"
             )
-            """);
+        );
         var traceText = buildItems.OptimizerTraceText;
 
-        Assert.IsNotNull(traceText, string.Join(Environment.NewLine, buildItems.DiagnosticContext.Diagnostics.Select(static diagnostic => diagnostic.Message)));
+        Assert.IsNotNull(
+            traceText,
+            string.Join(
+                Environment.NewLine,
+                buildItems.DiagnosticContext.Diagnostics.Select(static diagnostic => diagnostic.Message)
+            )
+        );
         Assert.Contains("PreLogicalNormalization [SubqueryToCteNormalization]", traceText);
         Assert.Contains("changed: yes", traceText);
         Assert.Contains("Predicate=1", traceText);
@@ -65,41 +80,33 @@ public sealed class RuleBasedOptimizationTraceCoverageTests : BasicEntityTestBas
     [TestMethod]
     public void PhysicalOptimizerTrace_WhenRuleBasedPassesSkip_ShouldNameSkippedFamilies()
     {
-        var plan = new PhysicalValuesScanNode(
-            "v",
-            [],
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+        var plan = new PhysicalValuesScanNode("v", [], new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
 
         var result = new PhysicalOptimizer().Optimize(
             plan,
             CreateEmptyProperties(),
             new CompilationOptions(),
-            ConservativeTestPlanningShapeResolver.Instance);
+            ConservativeTestPlanningShapeResolver.Instance
+        );
 
-        AssertTraceReason(
-            result.Trace.Entries,
-            "SourcePredicateMetadata",
-            "No source predicate metadata was applied.");
+        AssertTraceReason(result.Trace.Entries, "SourcePredicateMetadata", "No source predicate metadata was applied.");
         AssertTraceReason(
             result.Trace.Entries,
             "SourceProjectionMetadata",
-            "No source projection metadata was applied.");
-        AssertTraceReason(
-            result.Trace.Entries,
-            "ProjectionPruning",
-            "No simple projection chains were safe to prune.");
-        AssertTraceReason(
-            result.Trace.Entries,
-            "PredicateMovement",
-            "No physical predicate movements were applied.");
+            "No source projection metadata was applied."
+        );
+        AssertTraceReason(result.Trace.Entries, "ProjectionPruning", "No simple projection chains were safe to prune.");
+        AssertTraceReason(result.Trace.Entries, "PredicateMovement", "No physical predicate movements were applied.");
         AssertTraceReason(
             result.Trace.Entries,
             "SourcePredicatePhysicalRewrite",
-            "No accepted source predicate conjuncts were removed from the physical plan.");
+            "No accepted source predicate conjuncts were removed from the physical plan."
+        );
         AssertTraceReason(
             result.Trace.Entries,
             "SourcePlanPhysicalRewrite",
-            "No source-local order or slice operations were removed from the physical plan.");
+            "No source-local order or slice operations were removed from the physical plan."
+        );
     }
 
     private static void AssertTraceLinesHaveReasons(string traceText)
@@ -112,15 +119,17 @@ public sealed class RuleBasedOptimizationTraceCoverageTests : BasicEntityTestBas
         Assert.IsTrue(traceLines.Length > 0, traceText);
         Assert.IsTrue(
             traceLines.All(static line =>
-                line.Contains(" - ", StringComparison.Ordinal) &&
-                !line.EndsWith(" - ", StringComparison.Ordinal)),
-            traceText);
+                line.Contains(" - ", StringComparison.Ordinal) && !line.EndsWith(" - ", StringComparison.Ordinal)
+            ),
+            traceText
+        );
     }
 
     private static void AssertTraceReason(
         IReadOnlyList<OptimizationTraceEntry> entries,
         string passName,
-        string expectedReason)
+        string expectedReason
+    )
     {
         var entry = entries.Single(entry => string.Equals(entry.PassName, passName, StringComparison.Ordinal));
 

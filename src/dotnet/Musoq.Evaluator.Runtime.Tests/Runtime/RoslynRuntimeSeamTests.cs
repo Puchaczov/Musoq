@@ -103,7 +103,8 @@ public sealed class RoslynRuntimeSeamTests
         var provider = new RuntimeReferenceProvider(
             cache,
             () => directory.DirectoryPath,
-            ["System.Runtime.dll", "System.Collections.dll", "System.Linq.dll"]);
+            ["System.Runtime.dll", "System.Collections.dll", "System.Linq.dll"]
+        );
 
         var references = provider.References;
 
@@ -130,15 +131,19 @@ public sealed class RoslynRuntimeSeamTests
         var provider = new RuntimeReferenceProvider(
             cache,
             () => directory.DirectoryPath,
-            ["System.Runtime.dll", "System.Collections.dll"]);
+            ["System.Runtime.dll", "System.Collections.dll"]
+        );
         var results = contention.Run(() => provider.References, 16);
 
         var first = results.First();
         Assert.AreEqual(2, first.Length);
         Assert.IsTrue(results.Skip(1).All(result => !ReferenceEquals(first, result)));
-        Assert.IsTrue(results.All(result =>
-            result.Length == first.Length &&
-            result.Zip(first).All(static pair => ReferenceEquals(pair.First, pair.Second))));
+        Assert.IsTrue(
+            results.All(result =>
+                result.Length == first.Length
+                && result.Zip(first).All(static pair => ReferenceEquals(pair.First, pair.Second))
+            )
+        );
         Assert.AreEqual(1, cache.RequestCount("System.Runtime.dll"));
         Assert.AreEqual(1, cache.RequestCount("System.Collections.dll"));
     }
@@ -146,8 +151,9 @@ public sealed class RoslynRuntimeSeamTests
     [TestMethod]
     public void RoslynCompilationFactory_WhenCompilationIsCreatedRepeatedly_ShouldReuseTemplateReferences()
     {
-        var runtimeProvider = new CountingRuntimeReferenceProvider(
-            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+        var runtimeProvider = new CountingRuntimeReferenceProvider([
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+        ]);
         using var factory = new RoslynCompilationFactory(runtimeProvider, new DefaultMetadataReferenceCache());
 
         var first = factory.CreateCompilation("first");
@@ -203,7 +209,9 @@ public sealed class RoslynRuntimeSeamTests
         Assert.Throws<ObjectDisposedException>(() => _ = environment.Workspace);
         Assert.Throws<ObjectDisposedException>(() => _ = environment.Generator);
         Assert.Throws<ObjectDisposedException>(() => environment.CreateCompilation("after-dispose"));
-        Assert.Throws<ObjectDisposedException>(() => environment.GetOrCreateMetadataReference(typeof(object).Assembly.Location));
+        Assert.Throws<ObjectDisposedException>(() =>
+            environment.GetOrCreateMetadataReference(typeof(object).Assembly.Location)
+        );
     }
 
     [TestMethod]
@@ -256,7 +264,8 @@ public sealed class RoslynRuntimeSeamTests
                             failures.Enqueue(exception);
                         }
                     }
-                });
+                }
+            );
 
             Assert.IsEmpty(failures);
         }
@@ -282,7 +291,8 @@ public sealed class RoslynRuntimeSeamTests
     {
         var factory = new RoslynCompilationFactory(
             new RuntimeReferenceProvider(new DefaultMetadataReferenceCache()),
-            new DefaultMetadataReferenceCache());
+            new DefaultMetadataReferenceCache()
+        );
         _ = factory.Workspace;
         _ = factory.Generator;
 
@@ -294,7 +304,8 @@ public sealed class RoslynRuntimeSeamTests
         Assert.Throws<ObjectDisposedException>(() => factory.CreateCompilation("after-dispose"));
     }
 
-    private sealed class DelegateMetadataReferenceCache(Func<string, MetadataReference> getOrCreate) : IMetadataReferenceCache
+    private sealed class DelegateMetadataReferenceCache(Func<string, MetadataReference> getOrCreate)
+        : IMetadataReferenceCache
     {
         private readonly ConcurrentDictionary<string, int> _requests = new(StringComparer.OrdinalIgnoreCase);
 
@@ -336,19 +347,14 @@ public sealed class RoslynRuntimeSeamTests
             }
         }
 
-        public void CreateReferences()
-        {
-        }
+        public void CreateReferences() { }
     }
 
     private sealed class TempDirectory : IDisposable
     {
         public TempDirectory()
         {
-            DirectoryPath = Path.Combine(
-                Path.GetTempPath(),
-                "Musoq.Evaluator.Tests",
-                Guid.NewGuid().ToString("N"));
+            DirectoryPath = Path.Combine(Path.GetTempPath(), "Musoq.Evaluator.Tests", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(DirectoryPath);
         }
 

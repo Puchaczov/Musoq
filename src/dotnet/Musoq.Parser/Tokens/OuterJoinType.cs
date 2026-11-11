@@ -4,5 +4,5 @@ public enum OuterJoinType
 {
     Left,
     Right,
-    Full
+    Full,
 }

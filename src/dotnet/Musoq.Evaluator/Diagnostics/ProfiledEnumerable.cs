@@ -37,7 +37,8 @@ public sealed class ProfiledEnumerable<T> : IEnumerable<T>
     private sealed class CountPreservingProfiledEnumerable<TItem>(
         IEnumerable<TItem> source,
         SourceProfileRecorder recorder,
-        int count) : ICollection<TItem>, IReadOnlyCollection<TItem>
+        int count
+    ) : ICollection<TItem>, IReadOnlyCollection<TItem>
     {
         public int Count { get; } = count;
 
@@ -82,7 +83,8 @@ public sealed class ProfiledEnumerable<T> : IEnumerable<T>
 
     private static IEnumerator<TItem> CreateSourceEnumerator<TItem>(
         IEnumerable<TItem> source,
-        SourceProfileRecorder recorder)
+        SourceProfileRecorder recorder
+    )
     {
         var clock = recorder.Clock;
         var startedTimestamp = clock.GetTimestamp();
@@ -95,21 +97,24 @@ public sealed class ProfiledEnumerable<T> : IEnumerable<T>
         {
             var endTimestamp = clock.GetTimestamp();
             var sourceWaitTime = clock.GetElapsedTime(startedTimestamp, endTimestamp);
-            recorder.RecordEnumeration(new SourceEnumerationProfileBatch(
-                true,
-                startedTimestamp,
-                0,
-                false,
-                0,
-                0,
-                sourceWaitTime,
-                TimeSpan.Zero,
-                1,
-                exception.GetType().FullName,
-                exception.Message,
-                false,
-                1,
-                0));
+            recorder.RecordEnumeration(
+                new SourceEnumerationProfileBatch(
+                    true,
+                    startedTimestamp,
+                    0,
+                    false,
+                    0,
+                    0,
+                    sourceWaitTime,
+                    TimeSpan.Zero,
+                    1,
+                    exception.GetType().FullName,
+                    exception.Message,
+                    false,
+                    1,
+                    0
+                )
+            );
             operatorExclusionTarget.ExcludeElapsedTicks(sourceWaitTime.Ticks);
             throw;
         }

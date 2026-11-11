@@ -27,20 +27,28 @@ public class BugProbeTextModifierLowerUpperTests
     [TestMethod]
     public void Text_LowerModifier_ShouldConvertToLowerCase()
     {
-        var query = @"
-            text Data { Key: until ':' lower, Value: rest };
-            select d.Key, d.Value from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { Key: until ':' lower, Value: rest };\n"
+            + "            select d.Key, d.Value from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "HOST:localhost" }
+            new TextEntity { Name = "1.txt", Text = "HOST:localhost" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -56,20 +64,28 @@ public class BugProbeTextModifierLowerUpperTests
     [TestMethod]
     public void Text_UpperModifier_ShouldConvertToUpperCase()
     {
-        var query = @"
-            text Data { Key: until ':', Value: rest upper };
-            select d.Key, d.Value from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { Key: until ':', Value: rest upper };\n"
+            + "            select d.Key, d.Value from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "host:localhost" }
+            new TextEntity { Name = "1.txt", Text = "host:localhost" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -84,20 +100,28 @@ public class BugProbeTextModifierLowerUpperTests
     [TestMethod]
     public void Text_LowerModifierOnBetween_ShouldConvertToLowerCase()
     {
-        var query = @"
-            text Data { Value: between '[' ']' lower };
-            select d.Value from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { Value: between '[' ']' lower };\n"
+            + "            select d.Value from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "[WARNING]" }
+            new TextEntity { Name = "1.txt", Text = "[WARNING]" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -111,20 +135,28 @@ public class BugProbeTextModifierLowerUpperTests
     [TestMethod]
     public void Text_UpperModifierOnChars_ShouldConvertToUpperCase()
     {
-        var query = @"
-            text Data { Code: chars[3] upper, Rest: rest };
-            select d.Code, d.Rest from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data { Code: chars[3] upper, Rest: rest };\n"
+            + "            select d.Code, d.Rest from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "abc123" }
+            new TextEntity { Name = "1.txt", Text = "abc123" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

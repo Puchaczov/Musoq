@@ -29,11 +29,13 @@ internal sealed class LiteralOriginResolver
         {
             ScriptVariableReferenceNode reference => reference.Name,
             ParameterReferenceNode reference => reference.Name,
-            _ => null
+            _ => null,
         };
-        if (referenceName is null ||
-            !_declarations.TryGetValue(referenceName, out var declaration) ||
-            !resolving.Add(referenceName))
+        if (
+            referenceName is null
+            || !_declarations.TryGetValue(referenceName, out var declaration)
+            || !resolving.Add(referenceName)
+        )
         {
             origin = null!;
             return false;
@@ -46,11 +48,13 @@ internal sealed class LiteralOriginResolver
 
     private bool TryCreateLiteral(Node node, out LiteralOrigin origin)
     {
-        if (node is not WordNode and not StringNode ||
-            _sourceText is not { } sourceText ||
-            !node.HasSpan ||
-            node.Span.Start < 0 ||
-            node.Span.End > sourceText.Text.Length)
+        if (
+            node is not WordNode and not StringNode
+            || _sourceText is not { } sourceText
+            || !node.HasSpan
+            || node.Span.Start < 0
+            || node.Span.End > sourceText.Text.Length
+        )
         {
             origin = null!;
             return false;
@@ -59,16 +63,29 @@ internal sealed class LiteralOriginResolver
         var source = sourceText.Text.Substring(node.Span.Start, node.Span.Length);
         if (source.Length >= 2 && source[0] == '\'' && source[^1] == '\'')
         {
-            origin = new LiteralOrigin(node, GetValue(node), node.Span, source,
-                node.Span.Start + 1, source.Length - 2, false);
+            origin = new LiteralOrigin(
+                node,
+                GetValue(node),
+                node.Span,
+                source,
+                node.Span.Start + 1,
+                source.Length - 2,
+                false
+            );
             return true;
         }
 
-        if (source.Length >= 3 && (source[0] == 'r' || source[0] == 'R') &&
-            source[1] == '\'' && source[^1] == '\'')
+        if (source.Length >= 3 && (source[0] == 'r' || source[0] == 'R') && source[1] == '\'' && source[^1] == '\'')
         {
-            origin = new LiteralOrigin(node, GetValue(node), node.Span, source,
-                node.Span.Start + 2, source.Length - 3, true);
+            origin = new LiteralOrigin(
+                node,
+                GetValue(node),
+                node.Span,
+                source,
+                node.Span.Start + 2,
+                source.Length - 3,
+                true
+            );
             return true;
         }
 
@@ -85,10 +102,11 @@ internal sealed class LiteralOriginResolver
             CollectDeclarations(child);
     }
 
-    private static string GetValue(Node node) => node switch
-    {
-        WordNode word => word.Value,
-        StringNode stringNode => stringNode.Value,
-        _ => string.Empty
-    };
+    private static string GetValue(Node node) =>
+        node switch
+        {
+            WordNode word => word.Value,
+            StringNode stringNode => stringNode.Value,
+            _ => string.Empty,
+        };
 }

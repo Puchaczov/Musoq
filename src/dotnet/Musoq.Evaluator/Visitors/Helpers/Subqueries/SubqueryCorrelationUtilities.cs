@@ -12,7 +12,7 @@ internal static class SubqueryCorrelationUtilities
         if (expression is not AndNode and)
             return [expression];
 
-        return [..SplitConjuncts(and.Left), ..SplitConjuncts(and.Right)];
+        return [.. SplitConjuncts(and.Left), .. SplitConjuncts(and.Right)];
     }
 
     public static Node? CombineConjuncts(IReadOnlyList<Node> expressions)
@@ -38,8 +38,10 @@ internal static class SubqueryCorrelationUtilities
     public static bool IsIndexedRangeCorrelation(Node expression)
     {
         var predicates = SplitConjuncts(expression);
-        return predicates.Count(IsSingleRangeCorrelation) == 1 &&
-               predicates.All(static predicate => predicate is EqualityNode or IsNullNode || IsSingleRangeCorrelation(predicate));
+        return predicates.Count(IsSingleRangeCorrelation) == 1
+            && predicates.All(static predicate =>
+                predicate is EqualityNode or IsNullNode || IsSingleRangeCorrelation(predicate)
+            );
     }
 
     public static AccessColumnNode[] CollectAccessColumns(Node expression)
@@ -52,7 +54,8 @@ internal static class SubqueryCorrelationUtilities
     public static CorrelationProjection[] CollectCorrelationProjections(
         IReadOnlyList<Node> predicates,
         IReadOnlySet<string> localAliases,
-        string cteName)
+        string cteName
+    )
     {
         var projections = new List<CorrelationProjection>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -66,13 +69,16 @@ internal static class SubqueryCorrelationUtilities
             if (!seen.Add(key))
                 continue;
 
-            projections.Add(new CorrelationProjection(
-                alias,
-                column.Name,
-                GeneratedSubqueryContract.CreateCorrelationColumnName(cteName, projections.Count),
-                column.ReturnType,
-                column.Span,
-                column.IntendedTypeName));
+            projections.Add(
+                new CorrelationProjection(
+                    alias,
+                    column.Name,
+                    GeneratedSubqueryContract.CreateCorrelationColumnName(cteName, projections.Count),
+                    column.ReturnType,
+                    column.Span,
+                    column.IntendedTypeName
+                )
+            );
         }
 
         return projections.ToArray();
@@ -82,11 +88,14 @@ internal static class SubqueryCorrelationUtilities
         IReadOnlyList<Node> predicates,
         IReadOnlyList<CorrelationProjection> projections,
         IReadOnlySet<string> localAliases,
-        string cteName)
+        string cteName
+    )
     {
         var rewriter = new CorrelationPredicateJoinRewriter(projections, localAliases, cteName);
-        return CombineConjuncts(predicates.Select(rewriter.Rewrite).ToArray()) ??
-               throw new InvalidOperationException("Correlated predicate join rewrite requires at least one predicate.");
+        return CombineConjuncts(predicates.Select(rewriter.Rewrite).ToArray())
+            ?? throw new InvalidOperationException(
+                "Correlated predicate join rewrite requires at least one predicate."
+            );
     }
 
     private static void CollectAccessColumns(Node node, List<AccessColumnNode> columns)
@@ -96,12 +105,15 @@ internal static class SubqueryCorrelationUtilities
             case null:
                 return;
             case AccessColumnNode accessColumn:
-                columns.Add(new AccessColumnNode(
-                    accessColumn.Name,
-                    accessColumn.Alias,
-                    accessColumn.ReturnType ?? typeof(void),
-                    accessColumn.Span,
-                    accessColumn.IntendedTypeName));
+                columns.Add(
+                    new AccessColumnNode(
+                        accessColumn.Name,
+                        accessColumn.Alias,
+                        accessColumn.ReturnType ?? typeof(void),
+                        accessColumn.Span,
+                        accessColumn.IntendedTypeName
+                    )
+                );
                 return;
             case DotNode { Root: IdentifierNode alias, Expression: IdentifierNode column }:
                 columns.Add(new AccessColumnNode(column.Name, alias.Name, node.ReturnType ?? typeof(void), node.Span));
@@ -130,7 +142,8 @@ internal static class SubqueryCorrelationUtilities
     private static bool TryResolveLocalColumnAlias(
         AccessColumnNode column,
         IReadOnlySet<string> localAliases,
-        [NotNullWhen(true)] out string? alias)
+        [NotNullWhen(true)] out string? alias
+    )
     {
         if (!string.IsNullOrWhiteSpace(column.Alias) && localAliases.Contains(column.Alias))
         {
@@ -153,12 +166,13 @@ internal static class SubqueryCorrelationUtilities
     private sealed class CorrelationPredicateJoinRewriter(
         IReadOnlyList<CorrelationProjection> projections,
         IReadOnlySet<string> localAliases,
-        string cteName)
-        : CloneQueryVisitor
+        string cteName
+    ) : CloneQueryVisitor
     {
         private readonly Dictionary<string, CorrelationProjection> _projections = projections.ToDictionary(
             projection => CreateCorrelationColumnKey(projection.Alias, projection.ColumnName),
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
 
         public Node Rewrite(Node node)
         {
@@ -168,15 +182,20 @@ internal static class SubqueryCorrelationUtilities
 
         public override void Visit(AccessColumnNode node)
         {
-            if (TryResolveLocalColumnAlias(node, localAliases, out var alias) &&
-                _projections.TryGetValue(CreateCorrelationColumnKey(alias, node.Name), out var projection))
+            if (
+                TryResolveLocalColumnAlias(node, localAliases, out var alias)
+                && _projections.TryGetValue(CreateCorrelationColumnKey(alias, node.Name), out var projection)
+            )
             {
-                Nodes.Push(new AccessColumnNode(
-                    projection.CteColumnName,
-                    cteName,
-                    projection.ReturnType,
-                    node.Span,
-                    node.IntendedTypeName));
+                Nodes.Push(
+                    new AccessColumnNode(
+                        projection.CteColumnName,
+                        cteName,
+                        projection.ReturnType,
+                        node.Span,
+                        node.IntendedTypeName
+                    )
+                );
                 return;
             }
 
@@ -185,16 +204,14 @@ internal static class SubqueryCorrelationUtilities
 
         public override void Visit(DotNode node)
         {
-            if (node is { Root: IdentifierNode alias, Expression: IdentifierNode column } &&
-                _projections.TryGetValue(CreateCorrelationColumnKey(alias.Name, column.Name), out var projection))
+            if (
+                node is { Root: IdentifierNode alias, Expression: IdentifierNode column }
+                && _projections.TryGetValue(CreateCorrelationColumnKey(alias.Name, column.Name), out var projection)
+            )
             {
                 Nodes.Pop();
                 Nodes.Pop();
-                Nodes.Push(new AccessColumnNode(
-                    projection.CteColumnName,
-                    cteName,
-                    projection.ReturnType,
-                    node.Span));
+                Nodes.Push(new AccessColumnNode(projection.CteColumnName, cteName, projection.ReturnType, node.Span));
                 return;
             }
 

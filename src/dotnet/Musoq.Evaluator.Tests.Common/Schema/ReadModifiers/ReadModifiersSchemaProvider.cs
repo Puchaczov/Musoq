@@ -12,15 +12,17 @@ namespace Musoq.Evaluator.Tests.Schema.ReadModifiers;
 public sealed class ReadModifiersSchemaProvider(
     IReadOnlyList<IReadOnlyDictionary<string, object?>> rows,
     ReadModifiersValidationMode validationMode = ReadModifiersValidationMode.None,
-    IReadOnlyDictionary<string, Type>? sourceColumnKinds = null)
-    : ISchemaProvider
+    IReadOnlyDictionary<string, Type>? sourceColumnKinds = null
+) : ISchemaProvider
 {
     public ReadModifiersRecorder Recorder { get; } = new();
 
     public ISchema GetSchema(string schema)
     {
-        if (!string.Equals(schema, "readmods", StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(schema, "#readmods", StringComparison.OrdinalIgnoreCase))
+        if (
+            !string.Equals(schema, "readmods", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(schema, "#readmods", StringComparison.OrdinalIgnoreCase)
+        )
         {
             throw new NotSupportedException(schema);
         }
@@ -29,7 +31,8 @@ public sealed class ReadModifiersSchemaProvider(
             rows,
             validationMode,
             sourceColumnKinds ?? new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase),
-            Recorder);
+            Recorder
+        );
     }
 }
 
@@ -40,20 +43,21 @@ public enum ReadModifiersValidationMode
     LenientUnsupportedModifiers = 1,
     StrictUtf8Encoding = 2,
     ReportInfo = 4,
-    ValidateSourceKinds = 8
+    ValidateSourceKinds = 8,
 }
 
 internal sealed class ReadModifiersSchema(
     IReadOnlyList<IReadOnlyDictionary<string, object?>> rows,
     ReadModifiersValidationMode validationMode,
     IReadOnlyDictionary<string, Type> sourceColumnKinds,
-    ReadModifiersRecorder recorder)
-    : SchemaBase("readmods", new MethodsAggregator(new MethodsManager())), IQueryScopedRowSourceSchema
+    ReadModifiersRecorder recorder
+) : SchemaBase("readmods", new MethodsAggregator(new MethodsManager())), IQueryScopedRowSourceSchema
 {
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         EnsureRecords(name);
         var columns = metadataContext.AllColumns.ToArray();
@@ -64,7 +68,8 @@ internal sealed class ReadModifiersSchema(
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         EnsureRecords(name);
         var columns = context.MetadataContext.AllColumns.ToArray();
@@ -75,14 +80,11 @@ internal sealed class ReadModifiersSchema(
             RowType = typeof(QueryScopedRowContract),
             TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
             Columns = columns,
-            ContractDiagnostics = CreateDescriptorDiagnostics(columns)
+            ContractDiagnostics = CreateDescriptorDiagnostics(columns),
         };
     }
 
-    public override SourcePlanResult TryPlanSource(
-        string name,
-        SourcePlanRequest request,
-        params object?[] parameters)
+    public override SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
     {
         EnsureRecords(name);
         recorder.PlanRequests.Add(request);
@@ -93,33 +95,39 @@ internal sealed class ReadModifiersSchema(
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         EnsureRecords(name);
         recorder.ExecutionColumns.Add(executionContext.AllColumns.ToArray());
-        var materializedRows = rows
-            .Select(row => MaterializeRow(row, executionContext.AllColumns, validationMode))
+        var materializedRows = rows.Select(row => MaterializeRow(row, executionContext.AllColumns, validationMode))
             .ToArray();
         return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(
             name,
-            new ReadModifiersRowSource(materializedRows));
+            new ReadModifiersRowSource(materializedRows)
+        );
     }
 
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
-        string name, QueryScopedRowSourceRequest request, TArguments parameters)
+        string name,
+        QueryScopedRowSourceRequest request,
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, ISourceArguments
     {
         EnsureRecords(name);
         recorder.ExecutionColumns.Add(request.ExecutionContext.AllColumns.ToArray());
-        var converted = rows.Select(row => MaterializeRow(row, request.ExecutionContext.AllColumns, validationMode)).ToArray();
+        var converted = rows.Select(row => MaterializeRow(row, request.ExecutionContext.AllColumns, validationMode))
+            .ToArray();
         return new NativeDictionaryTestSource<TRow, TMaterializer>(converted, request.Shape.Fields);
     }
 
     private static IReadOnlyDictionary<string, object?> MaterializeRow(
         IReadOnlyDictionary<string, object?> row,
         IReadOnlyCollection<ISchemaColumn> columns,
-        ReadModifiersValidationMode validationMode)
+        ReadModifiersValidationMode validationMode
+    )
     {
         var result = new Dictionary<string, object?>(StringComparer.Ordinal);
 
@@ -140,9 +148,9 @@ internal sealed class ReadModifiersSchema(
             diagnostics.AddRange(CreateSourceKindDiagnostics(columns));
 
         if (validationMode.HasFlag(ReadModifiersValidationMode.ReportInfo))
-            diagnostics.Add(SourceContractDiagnostic.Info(
-                "#readmods.records() inspected descriptor metadata.",
-                "ReadModifiersInfo"));
+            diagnostics.Add(
+                SourceContractDiagnostic.Info("#readmods.records() inspected descriptor metadata.", "ReadModifiersInfo")
+            );
 
         return diagnostics.ToArray();
     }
@@ -152,9 +160,9 @@ internal sealed class ReadModifiersSchema(
         var diagnostics = CreateColumnDiagnostics(columns).ToList();
 
         if (validationMode.HasFlag(ReadModifiersValidationMode.ReportInfo))
-            diagnostics.Add(SourceContractDiagnostic.Info(
-                "#readmods.records() inspected plan metadata.",
-                "ReadModifiersInfo"));
+            diagnostics.Add(
+                SourceContractDiagnostic.Info("#readmods.records() inspected plan metadata.", "ReadModifiersInfo")
+            );
 
         return diagnostics.ToArray();
     }
@@ -198,36 +206,43 @@ internal sealed class ReadModifiersSchema(
 
             yield return SourceContractDiagnostic.Error(
                 $"Source column '{column.ColumnName}' is {sourceKind.Name}, but the table contract declares {declaredType.Name}.",
-                "ColumnKindMismatch") with
+                "ColumnKindMismatch"
+            ) with
             {
-                ColumnName = column.ColumnName
+                ColumnName = column.ColumnName,
             };
         }
     }
 
     private SourceContractDiagnostic? CreateEncodingDiagnostic(string columnName, string encoding)
     {
-        if (validationMode.HasFlag(ReadModifiersValidationMode.StrictUtf8Encoding) &&
-            !string.Equals(encoding, "utf-8", StringComparison.OrdinalIgnoreCase))
+        if (
+            validationMode.HasFlag(ReadModifiersValidationMode.StrictUtf8Encoding)
+            && !string.Equals(encoding, "utf-8", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return SourceContractDiagnostic.Error(
                 $"Only utf-8 encoding is supported, but column '{columnName}' requested '{encoding}'.",
-                "UnsupportedEncoding") with
+                "UnsupportedEncoding"
+            ) with
             {
                 ColumnName = columnName,
-                ModifierKey = ColumnReadModifiers.Encoding
+                ModifierKey = ColumnReadModifiers.Encoding,
             };
         }
 
-        if (validationMode.HasFlag(ReadModifiersValidationMode.LenientUnsupportedModifiers) &&
-            !ReadModifiersValueConverter.IsSupportedEncoding(encoding))
+        if (
+            validationMode.HasFlag(ReadModifiersValidationMode.LenientUnsupportedModifiers)
+            && !ReadModifiersValueConverter.IsSupportedEncoding(encoding)
+        )
         {
             return SourceContractDiagnostic.Warning(
                 $"Encoding modifier '{encoding}' is ignored by #readmods.records().",
-                "UnsupportedEncoding") with
+                "UnsupportedEncoding"
+            ) with
             {
                 ColumnName = columnName,
-                ModifierKey = ColumnReadModifiers.Encoding
+                ModifierKey = ColumnReadModifiers.Encoding,
             };
         }
 
@@ -259,7 +274,8 @@ internal sealed class ReadModifiersTable(ISchemaColumn[] columns) : ISchemaTable
     public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)
@@ -269,15 +285,14 @@ internal sealed class ReadModifiersTable(ISchemaColumn[] columns) : ISchemaTable
             .ToArray();
     }
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+    public SchemaTableMetadata Metadata { get; } =
+        new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 }
 
-internal sealed class ReadModifiersRowSource(
-    IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
+internal sealed class ReadModifiersRowSource(IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     : RowSourceBase<IReadOnlyDictionary<string, object?>>
 {
-    protected override void CollectChunks(
-        IChunkWriter<IReadOnlyDictionary<string, object?>> writer)
+    protected override void CollectChunks(IChunkWriter<IReadOnlyDictionary<string, object?>> writer)
     {
         writer.Write(rows);
     }
@@ -285,10 +300,7 @@ internal sealed class ReadModifiersRowSource(
 
 internal static class ReadModifiersValueConverter
 {
-    public static object? Convert(
-        object? rawValue,
-        ISchemaColumn column,
-        ReadModifiersValidationMode validationMode)
+    public static object? Convert(object? rawValue, ISchemaColumn column, ReadModifiersValidationMode validationMode)
     {
         if (rawValue == null)
             return null;
@@ -313,9 +325,7 @@ internal static class ReadModifiersValueConverter
         return System.Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
     }
 
-    private static object ApplySourceCodec(
-        object rawValue,
-        IReadOnlyDictionary<string, string> modifiers)
+    private static object ApplySourceCodec(object rawValue, IReadOnlyDictionary<string, string> modifiers)
     {
         if (!modifiers.TryGetValue($"{ColumnReadModifiers.SourcePrefix}codec", out var codec))
             return rawValue;
@@ -327,16 +337,13 @@ internal static class ReadModifiersValueConverter
         {
             byte[] bytes => Encoding.UTF8.GetString(bytes),
             string text => text,
-            _ => rawValue.ToString() ?? string.Empty
+            _ => rawValue.ToString() ?? string.Empty,
         };
 
         return System.Convert.FromBase64String(base64);
     }
 
-    private static object ConvertText(
-        string text,
-        Type columnType,
-        IReadOnlyDictionary<string, string> modifiers)
+    private static object ConvertText(string text, Type columnType, IReadOnlyDictionary<string, string> modifiers)
     {
         var targetType = Nullable.GetUnderlyingType(columnType) ?? columnType;
         var culture = ResolveCulture(modifiers);
@@ -359,7 +366,8 @@ internal static class ReadModifiersValueConverter
     private static DateTime ParseDateTime(
         string text,
         IReadOnlyDictionary<string, string> modifiers,
-        CultureInfo culture)
+        CultureInfo culture
+    )
     {
         return modifiers.TryGetValue(ColumnReadModifiers.Format, out var format)
             ? DateTime.ParseExact(text, format, culture)
@@ -369,7 +377,8 @@ internal static class ReadModifiersValueConverter
     private static DateTimeOffset ParseDateTimeOffset(
         string text,
         IReadOnlyDictionary<string, string> modifiers,
-        CultureInfo culture)
+        CultureInfo culture
+    )
     {
         return modifiers.TryGetValue(ColumnReadModifiers.Format, out var format)
             ? DateTimeOffset.ParseExact(text, format, culture)
@@ -385,17 +394,16 @@ internal static class ReadModifiersValueConverter
 
     public static bool IsSupportedEncoding(string encoding)
     {
-        return string.Equals(encoding, "utf-8", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(encoding, "utf-16le", StringComparison.OrdinalIgnoreCase);
+        return string.Equals(encoding, "utf-8", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(encoding, "utf-16le", StringComparison.OrdinalIgnoreCase);
     }
 
     private static Encoding ResolveEncoding(
         IReadOnlyDictionary<string, string> modifiers,
-        ReadModifiersValidationMode validationMode)
+        ReadModifiersValidationMode validationMode
+    )
     {
-        var encoding = modifiers.TryGetValue(ColumnReadModifiers.Encoding, out var requested)
-            ? requested
-            : "utf-8";
+        var encoding = modifiers.TryGetValue(ColumnReadModifiers.Encoding, out var requested) ? requested : "utf-8";
 
         if (string.Equals(encoding, "utf-8", StringComparison.OrdinalIgnoreCase))
             return Encoding.UTF8;

@@ -14,17 +14,11 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void WhenMissingSchema_ShouldFail()
     {
         var query = "select Name from #B.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -44,9 +38,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                     new BasicEntity("ABCAACBA"),
                     new BasicEntity("AAeqwgQEW"),
                     new BasicEntity("XXX"),
-                    new BasicEntity("dadsqqAA")
+                    new BasicEntity("dadsqqAA"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -58,17 +52,11 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "ABCAACBA"),
-            "Row with ABCAACBA not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ABCAACBA"), "Row with ABCAACBA not found");
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "AAeqwgQEW"),
-            "Row with AAeqwgQEW not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "AAeqwgQEW"), "Row with AAeqwgQEW not found");
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "dadsqqAA"),
-            "Row with dadsqqAA not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "dadsqqAA"), "Row with dadsqqAA not found");
     }
 
     [TestMethod]
@@ -80,10 +68,12 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
-                    new BasicEntity("dadsqqAA")
+                    new BasicEntity("ABCAACBA"),
+                    new BasicEntity("AAeqwgQEW"),
+                    new BasicEntity("XXX"),
+                    new BasicEntity("dadsqqAA"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -107,10 +97,12 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("ABCAACBA"), new BasicEntity("AAeqwgQEW"), new BasicEntity("XXX"),
-                    new BasicEntity("dadsqqAA")
+                    new BasicEntity("ABCAACBA"),
+                    new BasicEntity("AAeqwgQEW"),
+                    new BasicEntity("XXX"),
+                    new BasicEntity("dadsqqAA"),
                 ]
-            }
+            },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -131,9 +123,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
                     new BasicEntity("david.jones@proseware.com"),
-                    new BasicEntity("ma@hostname.com")
+                    new BasicEntity("ma@hostname.com"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -146,8 +138,10 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "12@hostname.com"), "Missing 12@hostname.com");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "david.jones@proseware.com"),
-            "Missing david.jones@proseware.com");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "david.jones@proseware.com"),
+            "Missing david.jones@proseware.com"
+        );
         Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ma@hostname.com"), "Missing ma@hostname.com");
     }
 
@@ -164,9 +158,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
                     new BasicEntity("david.jones@proseware.com"),
-                    new BasicEntity("ma@hostname.com")
+                    new BasicEntity("ma@hostname.com"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -192,9 +186,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                     new BasicEntity { Name = null, City = "CityA" },
                     new BasicEntity { Name = "test123", City = "CityB" },
                     new BasicEntity { Name = null, City = "CityC" },
-                    new BasicEntity { Name = "testValue", City = "CityD" }
+                    new BasicEntity { Name = "testValue", City = "CityD" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -217,9 +211,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                 [
                     new BasicEntity { Name = "test", City = null },
                     new BasicEntity { Name = "match", City = "match" },
-                    new BasicEntity { Name = "other", City = null }
+                    new BasicEntity { Name = "other", City = null },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -241,9 +235,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                 [
                     new BasicEntity { Name = null, City = null },
                     new BasicEntity { Name = "test", City = "test" },
-                    new BasicEntity { Name = null, City = null }
+                    new BasicEntity { Name = null, City = null },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -266,9 +260,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                     new BasicEntity { Name = null },
                     new BasicEntity { Name = "test123" },
                     new BasicEntity { Name = "other" },
-                    new BasicEntity { Name = null }
+                    new BasicEntity { Name = null },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -292,9 +286,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                     new BasicEntity { Name = null },
                     new BasicEntity { Name = "test123" },
                     new BasicEntity { Name = null },
-                    new BasicEntity { Name = "testValue" }
+                    new BasicEntity { Name = "testValue" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -317,9 +311,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                 [
                     new BasicEntity { Name = "test", City = null },
                     new BasicEntity { Name = "abc", City = "a.*" },
-                    new BasicEntity { Name = "xyz", City = null }
+                    new BasicEntity { Name = "xyz", City = null },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -341,9 +335,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                 [
                     new BasicEntity { Name = null, City = null },
                     new BasicEntity { Name = "test", City = "test" },
-                    new BasicEntity { Name = null, City = null }
+                    new BasicEntity { Name = null, City = null },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -366,9 +360,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                     new BasicEntity { Name = null },
                     new BasicEntity { Name = "test123" },
                     new BasicEntity { Name = "other" },
-                    new BasicEntity { Name = null }
+                    new BasicEntity { Name = null },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -392,9 +386,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
                     new BasicEntity("david.jones@proseware.com"),
-                    new BasicEntity("ma@hostname.com")
+                    new BasicEntity("ma@hostname.com"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -420,9 +414,9 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
                     new BasicEntity("12@hostname.com"),
                     new BasicEntity("ma@hostname.comcom"),
                     new BasicEntity("david.jones@proseware.com"),
-                    new BasicEntity("ma@hostname.com")
+                    new BasicEntity("ma@hostname.com"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -439,16 +433,11 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
     [TestMethod]
     public void WrongColumnNameTest()
     {
-        var query =
-            "select Populationr from #A.Entities()";
+        var query = "select Populationr from #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -459,16 +448,11 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
     [TestMethod]
     public void EmptyStringTest()
     {
-        var query =
-            "select '' from #A.Entities()";
+        var query = "select '' from #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500)
-                ]
-            }
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -480,5 +464,4 @@ public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 
         Assert.AreEqual(string.Empty, table[0].ReadValue(0));
     }
-
 }

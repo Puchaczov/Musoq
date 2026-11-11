@@ -11,8 +11,9 @@ internal static class TypedTupleOutputBinding
         if (!typeof(ITuple).IsAssignableFrom(outputType) || outputType.Namespace != "System")
             return null;
 
-        var constructor = outputType.GetConstructors().SingleOrDefault(candidate =>
-            candidate.GetParameters().Length == columns.Count);
+        var constructor = outputType
+            .GetConstructors()
+            .SingleOrDefault(candidate => candidate.GetParameters().Length == columns.Count);
         if (constructor is null)
             throw new InvalidOperationException("Tuple result arity must match the selected column count.");
 
@@ -24,7 +25,8 @@ internal static class TypedTupleOutputBinding
             var target = parameters[index].ParameterType;
             if (!TypedOutputBinder.CanAssign(column.Type, target))
                 throw new InvalidOperationException(
-                    $"Tuple item {index + 1} expects '{target}', but column '{column.Name}' has type '{column.Type}'.");
+                    $"Tuple item {index + 1} expects '{target}', but column '{column.Name}' has type '{column.Type}'."
+                );
             bindings[index] = new TypedOutputConstructorBinding(column, target);
         }
 

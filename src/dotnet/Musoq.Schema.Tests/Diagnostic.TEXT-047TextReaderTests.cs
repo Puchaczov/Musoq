@@ -10,8 +10,14 @@ public partial class TextInterpreterBaseTests
     {
         var interpreter = new TestTextInterpreter();
 
-        var result = interpreter.TestReadBetween("[a~]b]tail".AsSpan(), "[", "]", escaped: true,
-            escapeCharacter: "~", fieldName: "Value");
+        var result = interpreter.TestReadBetween(
+            "[a~]b]tail".AsSpan(),
+            "[",
+            "]",
+            escaped: true,
+            escapeCharacter: "~",
+            fieldName: "Value"
+        );
 
         Assert.AreEqual("a]b", result);
         Assert.AreEqual(6, interpreter.GetPosition());
@@ -23,7 +29,8 @@ public partial class TextInterpreterBaseTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(() =>
-            interpreter.TestReadPattern("abc".AsSpan(), @"\d+", fieldName: "Digits"));
+            interpreter.TestReadPattern("abc".AsSpan(), @"\d+", fieldName: "Digits")
+        );
 
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.PatternMismatch, exception.ErrorCode);
         Assert.AreEqual("Digits", exception.FieldName);
@@ -36,7 +43,8 @@ public partial class TextInterpreterBaseTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(() =>
-            interpreter.TestExpectLiteral("abc".AsSpan(), "def", "Marker"));
+            interpreter.TestExpectLiteral("abc".AsSpan(), "def", "Marker")
+        );
 
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.LiteralMismatch, exception.ErrorCode);
         Assert.AreEqual("Marker", exception.FieldName);
@@ -49,7 +57,8 @@ public partial class TextInterpreterBaseTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(() =>
-            interpreter.TestReadUntil("abc".AsSpan(), ":", fieldName: "Value"));
+            interpreter.TestReadUntil("abc".AsSpan(), ":", fieldName: "Value")
+        );
 
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.DelimiterNotFound, exception.ErrorCode);
         Assert.AreEqual("Value", exception.FieldName);
@@ -62,7 +71,8 @@ public partial class TextInterpreterBaseTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(() =>
-            interpreter.TestReadBetween("abc]".AsSpan(), "[", "]", fieldName: "Value"));
+            interpreter.TestReadBetween("abc]".AsSpan(), "[", "]", fieldName: "Value")
+        );
 
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.ExpectedDelimiter, exception.ErrorCode);
         Assert.AreEqual("Value", exception.FieldName);
@@ -75,7 +85,8 @@ public partial class TextInterpreterBaseTests
         var interpreter = new TestTextInterpreter();
 
         var exception = Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(() =>
-            interpreter.TestReadPattern("abc".AsSpan(), "(?=a)abc", fieldName: "Value"));
+            interpreter.TestReadPattern("abc".AsSpan(), "(?=a)abc", fieldName: "Value")
+        );
 
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.GeneralError, exception.ErrorCode);
         Assert.AreEqual("Value", exception.FieldName);

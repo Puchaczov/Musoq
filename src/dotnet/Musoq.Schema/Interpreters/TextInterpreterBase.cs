@@ -62,8 +62,13 @@ public abstract partial class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
     /// <summary>
     ///     Applies string modifiers to a captured value.
     /// </summary>
-    protected static string ApplyModifiers(string value, bool ltrim = false, bool rtrim = false, bool lower = false,
-        bool upper = false)
+    protected static string ApplyModifiers(
+        string value,
+        bool ltrim = false,
+        bool rtrim = false,
+        bool lower = false,
+        bool upper = false
+    )
     {
         ArgumentNullException.ThrowIfNull(value);
         if (!ltrim && !rtrim && !lower && !upper)
@@ -95,5 +100,4 @@ public abstract partial class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
     ///     Whether to consume the delimiter (default true).
     ///     Set to false to leave the delimiter in place for the next read.
     /// </param>
-
 }

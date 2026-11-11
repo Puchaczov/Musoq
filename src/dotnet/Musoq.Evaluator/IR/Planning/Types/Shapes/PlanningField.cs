@@ -11,7 +11,8 @@ internal sealed record PlanningField(
     PlanningFieldAccessKind AccessKind,
     Type? PublicType = null,
     Type? SourceReadType = null,
-    EnumTypeDescriptor? EnumType = null)
+    EnumTypeDescriptor? EnumType = null
+)
 {
     public Type ColumnType => PublicType ?? Type;
 

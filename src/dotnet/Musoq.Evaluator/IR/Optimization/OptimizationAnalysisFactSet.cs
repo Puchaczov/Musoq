@@ -17,15 +17,14 @@ internal sealed class OptimizationAnalysisFactSet
 
     public IReadOnlyList<OptimizationAnalysisFact> Snapshot()
     {
-        return _facts.Values
-            .OrderBy(static fact => fact.Key, StringComparer.Ordinal)
-            .ToArray();
+        return _facts.Values.OrderBy(static fact => fact.Key, StringComparer.Ordinal).ToArray();
     }
 
     public void Set<T>(
         string key,
         T value,
-        OptimizationAnalysisInvalidationRule invalidationRule = OptimizationAnalysisInvalidationRule.OnPlanChanged)
+        OptimizationAnalysisInvalidationRule invalidationRule = OptimizationAnalysisInvalidationRule.OnPlanChanged
+    )
     {
         ValidateKey(key);
 
@@ -37,9 +36,10 @@ internal sealed class OptimizationAnalysisFactSet
             _currentStage,
             _currentPassName,
             _currentIteration,
-            [])
+            []
+        )
         {
-            ProducedInPassRun = _currentPassRunId
+            ProducedInPassRun = _currentPassRunId,
         };
         _currentPassRecomputedFacts.Add(key);
     }
@@ -48,8 +48,7 @@ internal sealed class OptimizationAnalysisFactSet
     {
         ValidateKey(key);
 
-        if (!_facts.TryGetValue(key, out var fact) ||
-            !TryCastFactValue(fact, out value))
+        if (!_facts.TryGetValue(key, out var fact) || !TryCastFactValue(fact, out value))
         {
             value = default;
             return false;
@@ -64,17 +63,13 @@ internal sealed class OptimizationAnalysisFactSet
         if (string.IsNullOrWhiteSpace(consumer))
             throw new ArgumentException("Analysis fact consumer cannot be null or whitespace.", nameof(consumer));
 
-        if (!_facts.TryGetValue(key, out var fact) ||
-            !TryCastFactValue(fact, out value))
+        if (!_facts.TryGetValue(key, out var fact) || !TryCastFactValue(fact, out value))
         {
             value = default;
             return false;
         }
 
-        _facts[key] = fact with
-        {
-            Consumers = [.. fact.Consumers, consumer]
-        };
+        _facts[key] = fact with { Consumers = [.. fact.Consumers, consumer] };
         _currentPassConsumedFacts.Add(key);
         return true;
     }
@@ -96,8 +91,9 @@ internal sealed class OptimizationAnalysisFactSet
     {
         var invalidatedKeys = _facts
             .Where(pair =>
-                pair.Value.InvalidationRule == OptimizationAnalysisInvalidationRule.OnPlanChanged &&
-                pair.Value.ProducedInPassRun != _currentPassRunId)
+                pair.Value.InvalidationRule == OptimizationAnalysisInvalidationRule.OnPlanChanged
+                && pair.Value.ProducedInPassRun != _currentPassRunId
+            )
             .Select(static pair => pair.Key)
             .ToArray();
 
@@ -109,16 +105,15 @@ internal sealed class OptimizationAnalysisFactSet
 
     internal string? CreateCurrentPassFactDiagnostic(int invalidatedFactCount)
     {
-        if (_currentPassConsumedFacts.Count == 0 &&
-            _currentPassRecomputedFacts.Count == 0 &&
-            invalidatedFactCount == 0)
+        if (_currentPassConsumedFacts.Count == 0 && _currentPassRecomputedFacts.Count == 0 && invalidatedFactCount == 0)
         {
             return null;
         }
 
         return string.Create(
             System.Globalization.CultureInfo.InvariantCulture,
-            $"analysis facts: consumed {_currentPassConsumedFacts.Count}, recomputed {_currentPassRecomputedFacts.Count}, invalidated {invalidatedFactCount}.");
+            $"analysis facts: consumed {_currentPassConsumedFacts.Count}, recomputed {_currentPassRecomputedFacts.Count}, invalidated {invalidatedFactCount}."
+        );
     }
 
     private static bool TryCastFactValue<T>(OptimizationAnalysisFact fact, out T? value)

@@ -12,7 +12,8 @@ internal sealed class OptimizationPassPipeline<TPlan>
     public OptimizationPassPipeline(
         OptimizationStage stage,
         OptimizationPassRunMode runMode,
-        IReadOnlyList<OptimizationPassStep<TPlan>> steps)
+        IReadOnlyList<OptimizationPassStep<TPlan>> steps
+    )
     {
         ArgumentNullException.ThrowIfNull(steps);
 
@@ -21,7 +22,10 @@ internal sealed class OptimizationPassPipeline<TPlan>
             ArgumentNullException.ThrowIfNull(step);
             ArgumentNullException.ThrowIfNull(step.Pass);
             if (string.IsNullOrWhiteSpace(step.Reason))
-                throw new ArgumentException("Optimization pipeline step reason cannot be null or whitespace.", nameof(steps));
+                throw new ArgumentException(
+                    "Optimization pipeline step reason cannot be null or whitespace.",
+                    nameof(steps)
+                );
 
             OptimizerClassificationRegistry.Require(step.Pass);
         }

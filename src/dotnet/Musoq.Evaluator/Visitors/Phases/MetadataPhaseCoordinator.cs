@@ -12,7 +12,8 @@ internal sealed class SemanticMetadataPhaseCoordinator
     public SemanticMetadataPhaseResult Analyze(
         RootNode query,
         BuildMetadataAndInferTypesVisitor visitor,
-        RootNode? sourceQuery = null)
+        RootNode? sourceQuery = null
+    )
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(visitor);
@@ -27,11 +28,13 @@ internal sealed class SemanticMetadataPhaseCoordinator
         return new SemanticMetadataPhaseResult(
             visitor.Root,
             visitor.CreateSemanticMetadataSnapshot(),
-            SemanticScopeArtifact.Capture(traversal.Scope));
+            SemanticScopeArtifact.Capture(traversal.Scope)
+        );
     }
 }
 
 internal sealed record SemanticMetadataPhaseResult(
     RootNode Query,
     SemanticMetadataSnapshot Metadata,
-    SemanticScopeArtifact Scope);
+    SemanticScopeArtifact Scope
+);

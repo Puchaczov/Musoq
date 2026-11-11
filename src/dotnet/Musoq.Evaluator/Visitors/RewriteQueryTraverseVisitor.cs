@@ -22,29 +22,34 @@ public partial class RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor vi
         ArgumentNullException.ThrowIfNull(node);
         node.Root.Accept(this);
 
-
-        if (node is { Root: IdentifierNode ident, Expression: AccessObjectArrayNode { IsColumnAccess: false } arrayNode } &&
-            _walker.Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
+        if (
+            node
+                is { Root: IdentifierNode ident, Expression: AccessObjectArrayNode { IsColumnAccess: false } arrayNode }
+            && _walker.Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name)
+        )
         {
             var tableSymbol = _walker.Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(ident.Name);
             if (tableSymbol is null)
                 throw new InvalidOperationException($"Table symbol '{ident.Name}' was not found.");
             var columnInfo = tableSymbol.GetColumnByAliasAndName(ident.Name, arrayNode.ObjectName);
             if (columnInfo is null)
-                throw new InvalidOperationException($"Column '{arrayNode.ObjectName}' was not found for alias '{ident.Name}'.");
+                throw new InvalidOperationException(
+                    $"Column '{arrayNode.ObjectName}' was not found for alias '{ident.Name}'."
+                );
 
             string? elementIntendedTypeName = null;
-            if (!string.IsNullOrEmpty(columnInfo.IntendedTypeName) && columnInfo.IntendedTypeName.EndsWith("[]", StringComparison.Ordinal))
-                elementIntendedTypeName =
-                    columnInfo.IntendedTypeName[..^2];
-
+            if (
+                !string.IsNullOrEmpty(columnInfo.IntendedTypeName)
+                && columnInfo.IntendedTypeName.EndsWith("[]", StringComparison.Ordinal)
+            )
+                elementIntendedTypeName = columnInfo.IntendedTypeName[..^2];
 
             var enhancedArrayNode = new AccessObjectArrayNode(
                 arrayNode.Token,
                 columnInfo.ColumnType,
                 ident.Name,
-                elementIntendedTypeName);
-
+                elementIntendedTypeName
+            );
 
             enhancedArrayNode.Accept(this);
             node.Accept(Visitor);
@@ -69,7 +74,6 @@ public partial class RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor vi
     {
         ArgumentNullException.ThrowIfNull(node);
         node.First.Accept(this);
-
 
         _currentApplyType = node.ApplyType;
         node.Second.Accept(this);
@@ -106,7 +110,8 @@ public partial class RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor vi
             join.Accept(Visitor);
         }
 
-        if (joins.Count <= 0) return;
+        if (joins.Count <= 0)
+            return;
 
         join = joins.Pop();
         join.With.Accept(this);
@@ -130,7 +135,6 @@ public partial class RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor vi
 
         apply.Source.Accept(this);
 
-
         _currentApplyType = apply.ApplyType;
         apply.With.Accept(this);
         _currentApplyType = null;
@@ -141,7 +145,6 @@ public partial class RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor vi
         {
             apply = applies.Pop();
 
-
             _currentApplyType = apply.ApplyType;
             apply.With.Accept(this);
             _currentApplyType = null;
@@ -149,10 +152,10 @@ public partial class RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor vi
             apply.Accept(Visitor);
         }
 
-        if (applies.Count <= 0) return;
+        if (applies.Count <= 0)
+            return;
 
         apply = applies.Pop();
-
 
         _currentApplyType = apply.ApplyType;
         apply.With.Accept(this);
@@ -168,15 +171,12 @@ public partial class RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor vi
         {
             var interpretCallNode = CreateInterpretCallNode(node.AccessMethod);
 
-
             interpretCallNode.Accept(this);
-
 
             var interpretFromNode = new InterpretFromNode(node.Alias, interpretCallNode, _currentApplyType.Value);
             interpretFromNode.Accept(Visitor);
             return;
         }
-
 
         node.Accept(Visitor);
     }
@@ -188,13 +188,14 @@ public partial class RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor vi
         {
             var interpretCallNode = CreateInterpretCallNodeFromAliasedFrom(node);
 
-
             interpretCallNode.Accept(this);
 
-
-            var interpretFromNode =
-                new InterpretFromNode(node.Alias, interpretCallNode, _currentApplyType.Value,
-                    node.ReturnType ?? typeof(object));
+            var interpretFromNode = new InterpretFromNode(
+                node.Alias,
+                interpretCallNode,
+                _currentApplyType.Value,
+                node.ReturnType ?? typeof(object)
+            );
             interpretFromNode.Accept(Visitor);
             return;
         }

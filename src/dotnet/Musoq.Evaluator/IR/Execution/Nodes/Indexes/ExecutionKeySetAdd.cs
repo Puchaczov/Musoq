@@ -6,7 +6,8 @@ public sealed record ExecutionKeySetAdd(
     ExecutionTypeRef KeyType,
     ExecutionVariable? PrecomputedKey = null,
     string? KeyVariableName = null,
-    ExecutionKeyBuildNullHandling NullHandling = ExecutionKeyBuildNullHandling.Continue) : ExecutionNode
+    ExecutionKeyBuildNullHandling NullHandling = ExecutionKeyBuildNullHandling.Continue
+) : ExecutionNode
 {
     internal ExecutionKeySetAdd(
         ExecutionVariable set,
@@ -14,8 +15,7 @@ public sealed record ExecutionKeySetAdd(
         Type keyType,
         ExecutionVariable? precomputedKey = null,
         string? keyVariableName = null,
-        ExecutionKeyBuildNullHandling nullHandling = ExecutionKeyBuildNullHandling.Continue)
-        : this(set, key, ExecutionClrBindingFactory.FromClr(keyType), precomputedKey, keyVariableName, nullHandling)
-    {
-    }
+        ExecutionKeyBuildNullHandling nullHandling = ExecutionKeyBuildNullHandling.Continue
+    )
+        : this(set, key, ExecutionClrBindingFactory.FromClr(keyType), precomputedKey, keyVariableName, nullHandling) { }
 }

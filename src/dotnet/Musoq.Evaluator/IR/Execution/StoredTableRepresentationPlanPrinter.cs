@@ -10,14 +10,15 @@ internal static class StoredTableRepresentationPlanPrinter
             ExecutionStoredTableRepresentationKind.GeneratedRowList => $"List<{representation.RowShape.TypeName}>",
             ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer =>
                 $"GeneratedColumnarBuffer<{representation.RowShape.TypeName}>",
-            _ => representation.Kind.ToString()
+            _ => representation.Kind.ToString(),
         };
 
     public static bool ShouldPrint(
         ExecutionStoredTableRepresentationPlan representation,
-        IReadOnlySet<int> structuralTableIndexes) =>
-        representation.Kind != ExecutionStoredTableRepresentationKind.GeneratedRowList ||
-        structuralTableIndexes.Contains(representation.TableIndex) ||
-        representation.Ownership != ExecutionStructuralOwnershipMode.ConstructFresh ||
-        representation.Lifetime != ExecutionStructuralPreparationLifetime.Execution;
+        IReadOnlySet<int> structuralTableIndexes
+    ) =>
+        representation.Kind != ExecutionStoredTableRepresentationKind.GeneratedRowList
+        || structuralTableIndexes.Contains(representation.TableIndex)
+        || representation.Ownership != ExecutionStructuralOwnershipMode.ConstructFresh
+        || representation.Lifetime != ExecutionStructuralPreparationLifetime.Execution;
 }

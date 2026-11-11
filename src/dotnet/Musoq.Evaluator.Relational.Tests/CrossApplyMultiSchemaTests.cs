@@ -18,7 +18,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class CrossApplyMultiSchemaTests : MSTestContextTestBase
 {
-
     private ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
     /// <summary>
@@ -35,24 +34,26 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
     [TestMethod]
     public void WhenCteWithCrossApplyToDifferentSchema_ShouldNotThrowKeyNotFound()
     {
-        const string query = @"
-            with files as (
-                select f.FullPath as FullPath from first.data() f
-                where f.FullPath like '%test%'
-            )
-            select f.FullPath, s.Country, s.Money from files f cross apply second.data() s";
+        const string query = (
+            "\n"
+            + "            with files as (\n"
+            + "                select f.FullPath as FullPath from first.data() f\n"
+            + "                where f.FullPath like '%test%'\n"
+            + "            )\n"
+            + "            select f.FullPath, s.Country, s.Money from files f cross apply second.data() s"
+        );
 
         var firstSource = new[]
         {
             new FileEntity { FullPath = "/path/to/test/file1.txt" },
             new FileEntity { FullPath = "/path/to/test/file2.txt" },
-            new FileEntity { FullPath = "/path/to/other/file3.txt" }
+            new FileEntity { FullPath = "/path/to/other/file3.txt" },
         };
 
         var secondSource = new[]
         {
             new DataEntity { Country = "Country1", Money = 1000m },
-            new DataEntity { Country = "Country2", Money = 2000m }
+            new DataEntity { Country = "Country2", Money = 2000m },
         };
 
         var vm = CreateVirtualMachineWithTwoSchemas(query, firstSource, secondSource);
@@ -63,13 +64,15 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
             table,
             ("FullPath", typeof(string)),
             ("Country", typeof(string)),
-            ("Money", typeof(decimal)));
+            ("Money", typeof(decimal))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["/path/to/test/file1.txt", "Country1", 1000m],
             ["/path/to/test/file1.txt", "Country2", 2000m],
             ["/path/to/test/file2.txt", "Country1", 1000m],
-            ["/path/to/test/file2.txt", "Country2", 2000m]);
+            ["/path/to/test/file2.txt", "Country2", 2000m]
+        );
     }
 
     /// <summary>
@@ -78,20 +81,22 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
     [TestMethod]
     public void WhenDirectCrossApplyToDifferentSchema_ShouldWork()
     {
-        const string query = @"
-            select f.FullPath, s.Country, s.Money 
-            from first.data() f 
-            cross apply second.data() s";
+        const string query = (
+            "\n"
+            + "            select f.FullPath, s.Country, s.Money \n"
+            + "            from first.data() f \n"
+            + "            cross apply second.data() s"
+        );
 
         var firstSource = new[]
         {
             new FileEntity { FullPath = "/path/to/file1.txt" },
-            new FileEntity { FullPath = "/path/to/file2.txt" }
+            new FileEntity { FullPath = "/path/to/file2.txt" },
         };
 
         var secondSource = new[]
         {
-            new DataEntity { Country = "Country1", Money = 1000m }
+            new DataEntity { Country = "Country1", Money = 1000m },
         };
 
         var vm = CreateVirtualMachineWithTwoSchemas(query, firstSource, secondSource);
@@ -102,11 +107,13 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
             table,
             ("FullPath", typeof(string)),
             ("Country", typeof(string)),
-            ("Money", typeof(decimal)));
+            ("Money", typeof(decimal))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["/path/to/file1.txt", "Country1", 1000m],
-            ["/path/to/file2.txt", "Country1", 1000m]);
+            ["/path/to/file2.txt", "Country1", 1000m]
+        );
     }
 
     /// <summary>
@@ -115,60 +122,52 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
     [TestMethod]
     public void WhenNestedCteWithCrossApplyToDifferentSchema_ShouldWork()
     {
-        const string query = @"
-            with 
-                files as (
-                    select f.FullPath as FullPath from first.data() f
-                ),
-                enrichedFiles as (
-                    select f.FullPath, s.Country from files f cross apply second.data() s
-                )
-            select * from enrichedFiles";
+        const string query = (
+            "\n"
+            + "            with \n"
+            + "                files as (\n"
+            + "                    select f.FullPath as FullPath from first.data() f\n"
+            + "                ),\n"
+            + "                enrichedFiles as (\n"
+            + "                    select f.FullPath, s.Country from files f cross apply second.data() s\n"
+            + "                )\n"
+            + "            select * from enrichedFiles"
+        );
 
-        var firstSource = new[]
-        {
-            new FileEntity { FullPath = "/path/to/file1.txt" }
-        };
+        var firstSource = new[] { new FileEntity { FullPath = "/path/to/file1.txt" } };
 
         var secondSource = new[]
         {
             new DataEntity { Country = "Country1", Money = 1000m },
-            new DataEntity { Country = "Country2", Money = 2000m }
+            new DataEntity { Country = "Country2", Money = 2000m },
         };
 
         var vm = CreateVirtualMachineWithTwoSchemas(query, firstSource, secondSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("FullPath", typeof(string)),
-            ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("FullPath", typeof(string)), ("Country", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["/path/to/file1.txt", "Country1"],
-            ["/path/to/file1.txt", "Country2"]);
+            ["/path/to/file1.txt", "Country2"]
+        );
     }
 
     private CompiledQuery CreateVirtualMachineWithTwoSchemas(
         string script,
         FileEntity[] firstSource,
-        DataEntity[] secondSource)
+        DataEntity[] secondSource
+    )
     {
         var firstSchema = new TestSchema<FileEntity>("first", firstSource);
         var secondSchema = new TestSchema<DataEntity>("second", secondSource);
 
-        var provider = new TestMultiSchemaProvider(new Dictionary<string, ISchema>
-        {
-            { "#first", firstSchema },
-            { "#second", secondSchema }
-        });
+        var provider = new TestMultiSchemaProvider(
+            new Dictionary<string, ISchema> { { "#first", firstSchema }, { "#second", secondSchema } }
+        );
 
-        return InstanceCreator.CompileForExecution(
-            script,
-            Guid.NewGuid().ToString(),
-            provider,
-            LoggerResolver);
+        return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), provider, LoggerResolver);
     }
 
     #region Test Entities and Schemas
@@ -178,15 +177,11 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
         public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>
         {
             { nameof(FullPath), 0 },
-            { nameof(Country), 1 }
+            { nameof(Country), 1 },
         };
 
         public static readonly IReadOnlyDictionary<int, Func<FileEntity, object?>> IndexToObjectAccessMap =
-            new Dictionary<int, Func<FileEntity, object?>>
-            {
-                { 0, e => e.FullPath },
-                { 1, e => e.Country }
-            };
+            new Dictionary<int, Func<FileEntity, object?>> { { 0, e => e.FullPath }, { 1, e => e.Country } };
 
         public string FullPath { get; set; } = string.Empty;
         public string Country { get; set; } = string.Empty;
@@ -197,15 +192,11 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
         public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>
         {
             { nameof(Country), 0 },
-            { nameof(Money), 1 }
+            { nameof(Money), 1 },
         };
 
         public static readonly IReadOnlyDictionary<int, Func<DataEntity, object?>> IndexToObjectAccessMap =
-            new Dictionary<int, Func<DataEntity, object?>>
-            {
-                { 0, e => e.Country },
-                { 1, e => e.Money }
-            };
+            new Dictionary<int, Func<DataEntity, object?>> { { 0, e => e.Country }, { 1, e => e.Money } };
 
         public string Country { get; set; } = string.Empty;
         public decimal Money { get; set; }
@@ -214,25 +205,36 @@ public class CrossApplyMultiSchemaTests : MSTestContextTestBase
     private sealed class TestSchema<TEntity>(
         string name,
         TEntity[] source,
-        Func<object?[], GenericChunkSource<TEntity>, RowSource<TEntity>>? filter = null)
-        : SchemaBase(name, CreateLibrary())
+        Func<object?[], GenericChunkSource<TEntity>, RowSource<TEntity>>? filter = null
+    ) : SchemaBase(name, CreateLibrary())
     {
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
-            params object?[] parameters)
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters
+        )
         {
             return new GenericEntityTable<TEntity>();
         }
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext executionContext,
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             var nameToIndex =
                 typeof(TEntity).GetField("NameToIndexMap")?.GetValue(null) as IReadOnlyDictionary<string, int>
-                ?? throw new InvalidOperationException($"Missing {nameof(GenericChunkSource<object>)} name-to-index map.");
+                ?? throw new InvalidOperationException(
+                    $"Missing {nameof(GenericChunkSource<object>)} name-to-index map."
+                );
             var indexToAccess =
-                typeof(TEntity).GetField("IndexToObjectAccessMap")?.GetValue(null) as
-                    IReadOnlyDictionary<int, Func<TEntity, object?>>
-                ?? throw new InvalidOperationException($"Missing {nameof(GenericChunkSource<object>)} index access map.");
+                typeof(TEntity).GetField("IndexToObjectAccessMap")?.GetValue(null)
+                    as IReadOnlyDictionary<int, Func<TEntity, object?>>
+                ?? throw new InvalidOperationException(
+                    $"Missing {nameof(GenericChunkSource<object>)} index access map."
+                );
 
             var source1 = new GenericChunkSource<TEntity>(source, nameToIndex, indexToAccess);
 

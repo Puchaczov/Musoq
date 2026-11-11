@@ -8,9 +8,6 @@ internal sealed partial class LogicalConstantExpressionFolder
     protected override IrExpression VisitCollectionInCheck(CollectionInCheck node)
     {
         var expression = Visit(node.Expression);
-        return ReferenceEquals(expression, node.Expression)
-            ? node
-            : node with { Expression = expression };
+        return ReferenceEquals(expression, node.Expression) ? node : node with { Expression = expression };
     }
 }
-

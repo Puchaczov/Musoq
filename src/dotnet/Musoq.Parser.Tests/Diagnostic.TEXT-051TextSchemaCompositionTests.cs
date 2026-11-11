@@ -33,13 +33,14 @@ public sealed class DiagnosticText051TextSchemaCompositionTests : SchemaParserTe
     [TestMethod]
     public void TextSchema_Comments_ShouldRetainOnlyCommentsInsideSchemaSpan()
     {
-        const string schemaText = "-- outside before\n" +
-                                  "text Record {\n" +
-                                  "    -- field comment\n" +
-                                  "    Value: rest, /* inline block */\n" +
-                                  "    _: literal 'x' -- trailing field comment\n" +
-                                  "}\n" +
-                                  "-- outside after";
+        const string schemaText =
+            "-- outside before\n"
+            + "text Record {\n"
+            + "    -- field comment\n"
+            + "    Value: rest, /* inline block */\n"
+            + "    _: literal 'x' -- trailing field comment\n"
+            + "}\n"
+            + "-- outside after";
 
         var schema = ParseTextSchema(schemaText);
 
@@ -48,12 +49,22 @@ public sealed class DiagnosticText051TextSchemaCompositionTests : SchemaParserTe
         Assert.AreEqual("/* inline block */", schema.Comments[1].Text);
         Assert.AreEqual("-- trailing field comment", schema.Comments[2].Text);
         Assert.AreEqual(
-            new Musoq.Parser.TextSpan(schemaText.IndexOf("-- field comment", System.StringComparison.Ordinal), "-- field comment".Length),
-            schema.Comments[0].Span);
+            new Musoq.Parser.TextSpan(
+                schemaText.IndexOf("-- field comment", System.StringComparison.Ordinal),
+                "-- field comment".Length
+            ),
+            schema.Comments[0].Span
+        );
         Assert.AreEqual(
-            new Musoq.Parser.TextSpan(schemaText.IndexOf("/* inline block */", System.StringComparison.Ordinal), "/* inline block */".Length),
-            schema.Comments[1].Span);
-        Assert.IsFalse(schema.Comments.Any(comment => comment.Text.Contains("outside", System.StringComparison.Ordinal)));
+            new Musoq.Parser.TextSpan(
+                schemaText.IndexOf("/* inline block */", System.StringComparison.Ordinal),
+                "/* inline block */".Length
+            ),
+            schema.Comments[1].Span
+        );
+        Assert.IsFalse(
+            schema.Comments.Any(comment => comment.Text.Contains("outside", System.StringComparison.Ordinal))
+        );
     }
 
     [TestMethod]

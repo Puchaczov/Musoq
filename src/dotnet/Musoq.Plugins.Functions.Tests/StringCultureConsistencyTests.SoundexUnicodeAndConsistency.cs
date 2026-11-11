@@ -51,11 +51,9 @@ public partial class StringCultureConsistencyTests
     {
         var text = "Hello World";
 
-
         Assert.IsTrue(Library.Contains(text, "hello"), "Contains should be case-insensitive");
         Assert.AreEqual(0, Library.IndexOf(text, "hello"), "IndexOf should be case-insensitive");
         Assert.IsTrue(Library.StartsWith(text, "hello"), "StartsWith should be case-insensitive");
-
 
         Assert.IsTrue(Library.Contains(text, "WORLD"), "Contains should find WORLD");
         Assert.AreEqual(6, Library.IndexOf(text, "WORLD"), "IndexOf should find WORLD");
@@ -67,14 +65,11 @@ public partial class StringCultureConsistencyTests
     {
         var text = "Hello World Hello";
 
-
         var indexOfResult = Library.IndexOf(text, "hello");
-
 
         var nthResult = Library.NthIndexOf(text, "hello", 0);
 
-        Assert.AreEqual(indexOfResult, nthResult,
-            "IndexOf and NthIndexOf(0) should return the same position");
+        Assert.AreEqual(indexOfResult, nthResult, "IndexOf and NthIndexOf(0) should return the same position");
     }
 
     [TestMethod]
@@ -82,19 +77,16 @@ public partial class StringCultureConsistencyTests
     {
         var text = "test";
 
-
         var indexOfResult = Library.IndexOf(text, "TEST");
         var lastIndexOfResult = Library.LastIndexOf(text, "TEST");
 
-        Assert.AreEqual(indexOfResult, lastIndexOfResult,
-            "IndexOf and LastIndexOf should agree for single occurrence");
+        Assert.AreEqual(indexOfResult, lastIndexOfResult, "IndexOf and LastIndexOf should agree for single occurrence");
     }
 
     [TestMethod]
     public void Replace_And_Contains_ConsistentBehavior()
     {
         var text = "Hello World";
-
 
         Assert.IsTrue(Library.Contains(text, "world"));
         var replaced = Library.Replace(text, "world", "Earth");
@@ -106,7 +98,6 @@ public partial class StringCultureConsistencyTests
     {
         var text = "HelloWorld";
 
-
         Assert.IsTrue(Library.StartsWith(text, "HELLO"));
         var result = Library.RemovePrefix(text, "HELLO");
         Assert.AreEqual("World", result);
@@ -116,7 +107,6 @@ public partial class StringCultureConsistencyTests
     public void EndsWith_And_RemoveSuffix_ConsistentBehavior()
     {
         var text = "HelloWorld";
-
 
         Assert.IsTrue(Library.EndsWith(text, "WORLD"));
         var result = Library.RemoveSuffix(text, "WORLD");

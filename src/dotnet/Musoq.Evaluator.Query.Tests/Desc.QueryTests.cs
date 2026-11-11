@@ -18,7 +18,8 @@ public partial class DescStatementTests
     [TestMethod]
     public void DescQuery_DuplicateLabelsWithDifferentTypes_ShouldDescribeBothPositions()
     {
-        const string query = "desc query (select l.Id, r.Id from values { (Id: 7) } l cross join values { (Id: 'seven') } r)";
+        const string query =
+            "desc query (select l.Id, r.Id from values { (Id: 7) } l cross join values { (Id: 'seven') } r)";
         using var compiled = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
         using var table = compiled.Run(TestContext.CancellationToken);
 
@@ -28,16 +29,12 @@ public partial class DescStatementTests
     [TestMethod]
     public void DescQuery_WithProjectedAlias_ShouldReturnProjectedMetadata()
     {
-        const string query =
-            "desc query (select Name as PersonName, Population + Money as Total from #A.entities())";
+        const string query = "desc query (select Name as PersonName, Population + Money as Total from #A.entities())";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionRows(
-            table,
-            ("PersonName", typeof(string)),
-            ("Total", typeof(decimal)));
+        AssertDescriptionRows(table, ("PersonName", typeof(string)), ("Total", typeof(decimal)));
     }
 
     [TestMethod]
@@ -58,13 +55,15 @@ public partial class DescStatementTests
             ("Month", typeof(string)),
             ("Time", typeof(DateTime)),
             ("Id", typeof(int)),
-            ("NullableValue", typeof(int?)));
+            ("NullableValue", typeof(int?))
+        );
     }
 
     [TestMethod]
     public void DescQuery_WithParametersAndLets_ShouldBindInnerQueryNormally()
     {
-        const string query = @"
+        const string query =
+            @"
 param(adjust: decimal)
 let suffix: string = '_tag'
 desc query (
@@ -74,13 +73,15 @@ desc query (
 )";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "adjust", 10m);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "adjust",
+            10m
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionRows(
-            table,
-            ("Label", typeof(string)),
-            ("Adjusted", typeof(decimal)));
+        AssertDescriptionRows(table, ("Label", typeof(string)), ("Adjusted", typeof(decimal)));
     }
 
     [TestMethod]
@@ -90,7 +91,8 @@ desc query (
     [DataRow("intersect")]
     public void DescQuery_WithSetOperator_ShouldReturnLeftProjectionMetadata(string setOperator)
     {
-        var query = $@"
+        var query =
+            $@"
 desc query (
     select Name as Label, Population as Amount
     from #A.entities()
@@ -102,31 +104,25 @@ desc query (
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionRows(
-            table,
-            ("Label", typeof(string)),
-            ("Amount", typeof(decimal)));
+        AssertDescriptionRows(table, ("Label", typeof(string)), ("Amount", typeof(decimal)));
     }
 
     [TestMethod]
     public void DescQuery_WithFromFirstSyntax_ShouldReturnProjectedMetadata()
     {
-        const string query =
-            "desc query (from #A.entities() select Name as Label, Population + Money as Total)";
+        const string query = "desc query (from #A.entities() select Name as Label, Population + Money as Total)";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionRows(
-            table,
-            ("Label", typeof(string)),
-            ("Total", typeof(decimal)));
+        AssertDescriptionRows(table, ("Label", typeof(string)), ("Total", typeof(decimal)));
     }
 
     [TestMethod]
     public void DescQuery_WithStarModifiers_ShouldReturnFinalProjectedNames()
     {
-        const string query = @"
+        const string query =
+            @"
 desc query (
     select * exclude (City)
              replace (Population * 2 as Population)
@@ -146,13 +142,15 @@ desc query (
             ("Month", typeof(string)),
             ("Time", typeof(DateTime)),
             ("Id", typeof(int)),
-            ("NullableValue", typeof(int?)));
+            ("NullableValue", typeof(int?))
+        );
     }
 
     [TestMethod]
     public void DescQuery_WithCteParametersAndLets_ShouldReturnProjectedMetadata()
     {
-        const string query = @"
+        const string query =
+            @"
 param(prefix: string, adjust: decimal)
 let suffix: string = '_tag'
 desc query (
@@ -167,20 +165,28 @@ desc query (
 )";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "prefix", "person:");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "adjust", 10m);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "prefix",
+            "person:"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "adjust",
+            10m
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionRows(
-            table,
-            ("FinalLabel", typeof(string)),
-            ("FinalAdjusted", typeof(decimal)));
+        AssertDescriptionRows(table, ("FinalLabel", typeof(string)), ("FinalAdjusted", typeof(decimal)));
     }
 
     [TestMethod]
     public void DescQuery_WithJoinAndApply_ShouldBindWithoutExecutingInnerSource()
     {
-        const string query = @"
+        const string query =
+            @"
 desc query (
     select a.Name as LeftName,
            b.Score as RightScore,
@@ -197,7 +203,8 @@ desc query (
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(0, schemaProvider.RowSourceCalls);
@@ -206,13 +213,15 @@ desc query (
             ("LeftName", typeof(string)),
             ("RightScore", typeof(int)),
             ("Number", typeof(int)),
-            ("NumberOrdinal", typeof(int)));
+            ("NumberOrdinal", typeof(int))
+        );
     }
 
     [TestMethod]
     public void DescQuery_WithOuterApplyOrdinality_ShouldReturnNullableOrdinalWithoutExecutingInnerSource()
     {
-        const string query = @"
+        const string query =
+            @"
 desc query (
     select n.Ordinal as MaybeOrdinal
     from #A.entities() a
@@ -225,19 +234,19 @@ desc query (
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(0, schemaProvider.RowSourceCalls);
-        AssertDescriptionRows(
-            table,
-            ("MaybeOrdinal", typeof(int?)));
+        AssertDescriptionRows(table, ("MaybeOrdinal", typeof(int?)));
     }
 
     [TestMethod]
     public void DescQuery_WithWindowProjections_ShouldReturnWindowMetadata()
     {
-        const string query = @"
+        const string query =
+            @"
 desc query (
     select Name,
            RowNumber() over (order by NullableValue nulls last) as RowNo,
@@ -254,13 +263,15 @@ desc query (
             table,
             ("Name", typeof(string)),
             ("RowNo", typeof(long)),
-            ("RunningPopulation", typeof(decimal?)));
+            ("RunningPopulation", typeof(decimal?))
+        );
     }
 
     [TestMethod]
     public void DescQuery_WithNullableAndTypeEdgeCases_ShouldReturnInferredMetadata()
     {
-        const string query = @"
+        const string query =
+            @"
 desc query (
     select a.NullableValue as MaybeSource,
            case when a.NullableValue is null then 0 else null end as MaybeCase,
@@ -275,7 +286,8 @@ desc query (
             table,
             ("MaybeSource", typeof(int?)),
             ("MaybeCase", typeof(int?)),
-            ("IsDifferent", typeof(bool)));
+            ("IsDifferent", typeof(bool))
+        );
     }
 
     [TestMethod]
@@ -284,7 +296,8 @@ desc query (
         const string query = "desc query (select Missing from #A.entities())";
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada"))));
+            CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")))
+        );
 
         AssertAnyEnvelopeHasCode(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind);
     }
@@ -300,14 +313,12 @@ desc query (
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(0, schemaProvider.RowSourceCalls);
-        AssertDescriptionRows(
-            table,
-            ("Label", typeof(string)),
-            ("NextScore", typeof(int)));
+        AssertDescriptionRows(table, ("Label", typeof(string)), ("NextScore", typeof(int)));
     }
 
     private static void AssertDescriptionShape(Table table)
@@ -316,7 +327,8 @@ desc query (
             table,
             ("Name", typeof(string)),
             ("Index", typeof(int)),
-            ("Type", typeof(string)));
+            ("Type", typeof(string))
+        );
     }
 
     private static void AssertDescriptionRows(Table table, params (string Name, Type Type)[] expectedRows)
@@ -350,7 +362,8 @@ desc query (
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new MetadataOnlyTable();
         }
@@ -358,7 +371,8 @@ desc query (
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             provider.RecordRowSourceCall();
             throw new InvalidOperationException("DESC QUERY should not execute the inner source.");
@@ -378,7 +392,7 @@ desc query (
         [
             new Components.SchemaColumn(nameof(MetadataOnlyEntity.Name), 0, typeof(string)),
             new Components.SchemaColumn(nameof(MetadataOnlyEntity.Score), 1, typeof(int)),
-            new Components.SchemaColumn(nameof(MetadataOnlyEntity.Numbers), 2, typeof(int[]))
+            new Components.SchemaColumn(nameof(MetadataOnlyEntity.Numbers), 2, typeof(int[])),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(MetadataOnlyEntity));

@@ -47,8 +47,7 @@ public partial class LibraryBase
         if (!date.HasValue)
             return null;
 
-        return date.Value.DayOfWeek != System.DayOfWeek.Saturday &&
-               date.Value.DayOfWeek != System.DayOfWeek.Sunday;
+        return date.Value.DayOfWeek != System.DayOfWeek.Saturday && date.Value.DayOfWeek != System.DayOfWeek.Sunday;
     }
 
     /// <summary>
@@ -63,9 +62,9 @@ public partial class LibraryBase
         if (!date.HasValue)
             return null;
 
-        return date.Value.DayOfWeek != System.DayOfWeek.Saturday &&
-               date.Value.DayOfWeek != System.DayOfWeek.Sunday;
+        return date.Value.DayOfWeek != System.DayOfWeek.Saturday && date.Value.DayOfWeek != System.DayOfWeek.Sunday;
     }
+
     /// <summary>
     ///     Returns the week of the year for the given date
     /// </summary>
@@ -81,7 +80,8 @@ public partial class LibraryBase
         return CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(
             date.Value,
             CalendarWeekRule.FirstFourDayWeek,
-            System.DayOfWeek.Monday);
+            System.DayOfWeek.Monday
+        );
     }
 
     /// <summary>
@@ -99,7 +99,8 @@ public partial class LibraryBase
         return CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(
             date.Value.DateTime,
             CalendarWeekRule.FirstFourDayWeek,
-            System.DayOfWeek.Monday);
+            System.DayOfWeek.Monday
+        );
     }
 
     /// <summary>

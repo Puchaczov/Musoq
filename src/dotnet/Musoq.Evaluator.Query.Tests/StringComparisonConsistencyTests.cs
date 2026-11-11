@@ -21,8 +21,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 {
-
-
     [TestMethod]
     public void NotLike_CaseInsensitive_ExcludesAllCases()
     {
@@ -35,9 +33,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
                     new BasicEntity("HELLO WORLD"),
                     new BasicEntity("Hello There"),
                     new BasicEntity("hello everyone"),
-                    new BasicEntity("goodbye")
+                    new BasicEntity("goodbye"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -46,8 +44,6 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count, "NOT LIKE should exclude all case variations");
         Assert.AreEqual("goodbye", table[0].ReadValues()[0]);
     }
-
-
 
     [TestMethod]
     public void Like_CaseInsensitive_LowercasePatternMatchesUppercaseData()
@@ -61,9 +57,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
                     new BasicEntity("HELLO WORLD"),
                     new BasicEntity("Hello There"),
                     new BasicEntity("hello everyone"),
-                    new BasicEntity("goodbye")
+                    new BasicEntity("goodbye"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -88,9 +84,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
                     new BasicEntity("hello world"),
                     new BasicEntity("HELLO WORLD"),
                     new BasicEntity("Hello World"),
-                    new BasicEntity("goodbye")
+                    new BasicEntity("goodbye"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -115,9 +111,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
                     new BasicEntity("Testing"),
                     new BasicEntity("TEST123"),
                     new BasicEntity("test_value"),
-                    new BasicEntity("notest")
+                    new BasicEntity("notest"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -137,12 +133,12 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
         var inspection = InstanceCreator.CompileForInspection(
             query,
             System.Guid.NewGuid().ToString(),
-            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [new BasicEntity("Testing")]
-            }),
+            new BasicSchemaProvider<BasicEntity>(
+                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity("Testing")] }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         Assert.Contains(".StartsWith(\"test\", StringComparison.OrdinalIgnoreCase)", inspection.GeneratedCSharpCode);
         Assert.Contains("Operators.LikeLegacyRegex(", inspection.GeneratedCSharpCode);
@@ -161,9 +157,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
                     new BasicEntity("Testing"),
                     new BasicEntity("RUNNING"),
                     new BasicEntity("coding"),
-                    new BasicEntity("test")
+                    new BasicEntity("test"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -184,13 +180,8 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
         {
             {
                 "#A",
-                [
-                    new BasicEntity("Hello"),
-                    new BasicEntity("HELLO"),
-                    new BasicEntity("hello"),
-                    new BasicEntity("world")
-                ]
-            }
+                [new BasicEntity("Hello"), new BasicEntity("HELLO"), new BasicEntity("hello"), new BasicEntity("world")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -211,13 +202,8 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
         {
             {
                 "#A",
-                [
-                    new BasicEntity("test"),
-                    new BasicEntity("TEST"),
-                    new BasicEntity("TesT"),
-                    new BasicEntity("testing")
-                ]
-            }
+                [new BasicEntity("test"), new BasicEntity("TEST"), new BasicEntity("TesT"), new BasicEntity("testing")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -241,9 +227,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
                 [
                     new BasicEntity("Zażółć gęślą jaźń"),
                     new BasicEntity("ZAŻÓŁĆ GĘŚLĄ JAŹŃ"),
-                    new BasicEntity("No match here")
+                    new BasicEntity("No match here"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -261,14 +247,7 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
         var query = "select Name from #A.entities() where Name like '%ünch%'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("München"),
-                    new BasicEntity("MÜNCHEN"),
-                    new BasicEntity("Berlin")
-                ]
-            }
+            { "#A", [new BasicEntity("München"), new BasicEntity("MÜNCHEN"), new BasicEntity("Berlin")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -292,9 +271,9 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
                     new BasicEntity("Привет мир"),
                     new BasicEntity("ПРИВЕТ МИР"),
                     new BasicEntity("привет всем"),
-                    new BasicEntity("Пока")
+                    new BasicEntity("Пока"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -306,7 +285,4 @@ public partial class StringComparisonConsistencyTests : BasicEntityTestBase
         Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "ПРИВЕТ МИР"));
         Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "привет всем"));
     }
-
-
-
 }

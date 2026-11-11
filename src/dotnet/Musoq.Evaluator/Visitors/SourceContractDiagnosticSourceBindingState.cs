@@ -8,6 +8,8 @@ internal sealed partial record SourceBindingState
     public Dictionary<string, SourceContractDiagnosticLocationMap> ExplicitlyDefinedTableDiagnosticLocations { get; } =
         new();
 
-    public Dictionary<SchemaFromNode, SourceContractDiagnosticLocationMap> SourceContractDiagnosticLocationsPerSchema { get; } =
-        new();
+    public Dictionary<
+        SchemaFromNode,
+        SourceContractDiagnosticLocationMap
+    > SourceContractDiagnosticLocationsPerSchema { get; } = new();
 }

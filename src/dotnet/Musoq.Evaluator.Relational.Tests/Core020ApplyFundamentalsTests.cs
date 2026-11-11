@@ -16,20 +16,20 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
     public void CrossApply_CorrelatedSchemaArguments_ShouldEvaluatePerLeftRowIncludingNull()
     {
         const string query =
-            "select a.Key, b.FilterKey, b.Score from #schema.first() a " +
-            "cross apply #schema.second(a.Key, a.Text) b";
+            "select a.Key, b.FilterKey, b.Score from #schema.first() a "
+            + "cross apply #schema.second(a.Key, a.Text) b";
 
         var parents = new[]
         {
             new ApplyParent { Key = "one", Text = "alpha" },
             new ApplyParent { Key = null, Text = "none" },
-            new ApplyParent { Key = "two", Text = "beta" }
+            new ApplyParent { Key = "two", Text = "beta" },
         };
         var children = new[]
         {
             new ApplyChild { FilterKey = "one", Score = 10 },
             new ApplyChild { FilterKey = null, Score = 0 },
-            new ApplyChild { FilterKey = "two", Score = 20 }
+            new ApplyChild { FilterKey = "two", Score = 20 },
         };
         var observedKeys = new List<object?>();
         var observedTexts = new List<object?>();
@@ -44,7 +44,8 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
                 observedTexts.Add(parameters[1]);
                 var key = parameters[0];
                 return source.Filter(row => Equals(row.FilterKey, key)).ToArray();
-            });
+            }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -52,36 +53,33 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
             table,
             ("Key", typeof(string)),
             ("FilterKey", typeof(string)),
-            ("Score", typeof(int)));
+            ("Score", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["one", "one", 10],
             [null, null, 0],
-            ["two", "two", 20]);
-        CollectionAssert.AreEqual(
-            new object?[] { "one", null, "two" },
-            observedKeys.ToArray());
-        CollectionAssert.AreEqual(
-            new object?[] { "alpha", "none", "beta" },
-            observedTexts.ToArray());
+            ["two", "two", 20]
+        );
+        CollectionAssert.AreEqual(new object?[] { "one", null, "two" }, observedKeys.ToArray());
+        CollectionAssert.AreEqual(new object?[] { "alpha", "none", "beta" }, observedTexts.ToArray());
     }
 
     [TestMethod]
     public void OuterApply_CorrelatedSchemaWithoutMatch_ShouldPreserveLeftAndNullExtend()
     {
         const string query =
-            "select a.Key, b.FilterKey, b.Score from #schema.first() a " +
-            "outer apply #schema.second(a.Key) b";
+            "select a.Key, b.FilterKey, b.Score from #schema.first() a " + "outer apply #schema.second(a.Key) b";
 
         var parents = new[]
         {
             new ApplyParent { Key = "one", Text = "alpha" },
             new ApplyParent { Key = "missing", Text = "none" },
-            new ApplyParent { Key = null, Text = "null-key" }
+            new ApplyParent { Key = null, Text = "null-key" },
         };
         var children = new[]
         {
-            new ApplyChild { FilterKey = "one", Score = 10 }
+            new ApplyChild { FilterKey = "one", Score = 10 },
         };
         var observedKeys = new List<object?>();
 
@@ -94,7 +92,8 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
                 observedKeys.Add(parameters[0]);
                 var key = parameters[0];
                 return source.Filter(row => Equals(row.FilterKey, key)).ToArray();
-            });
+            }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -102,31 +101,26 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
             table,
             ("Key", typeof(string)),
             ("FilterKey", typeof(string)),
-            ("Score", typeof(int?)));
+            ("Score", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["one", "one", 10],
             ["missing", null, null],
-            [null, null, null]);
-        CollectionAssert.AreEqual(
-            new object?[] { "one", "missing", null },
-            observedKeys.ToArray());
+            [null, null, null]
+        );
+        CollectionAssert.AreEqual(new object?[] { "one", "missing", null }, observedKeys.ToArray());
     }
 
     [TestMethod]
     public void OuterApply_EmptyComplexCollection_ShouldPromoteValueColumnsAndPreserveLeft()
     {
-        const string query =
-            "select a.Key, b.Label, b.Score from #schema.first() a outer apply a.Items b";
+        const string query = "select a.Key, b.Label, b.Score from #schema.first() a outer apply a.Items b";
 
         var parents = new[]
         {
-            new ApplyParent
-            {
-                Key = "matched",
-                Items = [new ApplyItem { Label = "item", Score = 7 }]
-            },
-            new ApplyParent { Key = "empty", Items = [] }
+            new ApplyParent { Key = "matched", Items = [new ApplyItem { Label = "item", Score = 7 }] },
+            new ApplyParent { Key = "empty", Items = [] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, parents);
@@ -136,25 +130,23 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
             table,
             ("Key", typeof(string)),
             ("Label", typeof(string)),
-            ("Score", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["matched", "item", 7],
-            ["empty", null, null]);
+            ("Score", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["matched", "item", 7], ["empty", null, null]);
     }
 
     [TestMethod]
     public void CrossApply_RowMethodChain_ShouldExposeOnlyMatchingPrimitiveRows()
     {
         const string query =
-            "select a.Key, b.Value, c.Value from #schema.first() a " +
-            "cross apply a.Split(a.Text, '|') b " +
-            "cross apply b.ToCharArray(b.Value) c";
+            "select a.Key, b.Value, c.Value from #schema.first() a "
+            + "cross apply a.Split(a.Text, '|') b "
+            + "cross apply b.ToCharArray(b.Value) c";
 
         var parents = new[]
         {
             new ApplyParent { Key = "words", Text = "a|bc" },
-            new ApplyParent { Key = "empty", Text = string.Empty }
+            new ApplyParent { Key = "empty", Text = string.Empty },
         };
 
         var vm = CreateAndRunVirtualMachine(query, parents);
@@ -164,33 +156,31 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
             table,
             ("Key", typeof(string)),
             ("Value", typeof(string)),
-            ("Value", typeof(char)));
+            ("Value", typeof(char))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["words", "a", 'a'],
             ["words", "bc", 'b'],
-            ["words", "bc", 'c']);
+            ["words", "bc", 'c']
+        );
     }
 
     [TestMethod]
     public void CrossApply_PrimitiveAndComplexCollections_ShouldExposeDistinctElementShapes()
     {
         const string query =
-            "select n.Value, i.Label, i.Score from #schema.first() a " +
-            "cross apply a.Numbers n " +
-            "cross apply a.Items i";
+            "select n.Value, i.Label, i.Score from #schema.first() a "
+            + "cross apply a.Numbers n "
+            + "cross apply a.Items i";
 
         var parents = new[]
         {
             new ApplyParent
             {
                 Numbers = [1, 2],
-                Items =
-                [
-                    new ApplyItem { Label = "x", Score = 10 },
-                    new ApplyItem { Label = "y", Score = 20 }
-                ]
-            }
+                Items = [new ApplyItem { Label = "x", Score = 10 }, new ApplyItem { Label = "y", Score = 20 }],
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, parents);
@@ -200,54 +190,45 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
             table,
             ("Value", typeof(int)),
             ("Label", typeof(string)),
-            ("Score", typeof(int)));
+            ("Score", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             [1, "x", 10],
             [1, "y", 20],
             [2, "x", 10],
-            [2, "y", 20]);
+            [2, "y", 20]
+        );
     }
 
     [TestMethod]
     public void CrossApply_NestedCollectionPropertyChain_ShouldExposeComplexRows()
     {
-        const string query =
-            "select b.Label, b.Score from #schema.first() a " +
-            "cross apply a.Container.Items b";
+        const string query = "select b.Label, b.Score from #schema.first() a " + "cross apply a.Container.Items b";
 
         var parents = new[]
         {
             new ApplyParent
             {
-                Container = new ApplyContainer
-                {
-                    Items = [new ApplyItem { Label = "nested", Score = 3 }]
-                }
-            }
+                Container = new ApplyContainer { Items = [new ApplyItem { Label = "nested", Score = 3 }] },
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, parents);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Label", typeof(string)),
-            ("Score", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Label", typeof(string)), ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["nested", 3]);
     }
 
     [TestMethod]
     public void MissingOuterApplyAlias_ShouldReportExactRequiredAliasContract()
     {
-        const string query =
-            "select 1 from #schema.first() a outer apply #schema.second() where 1 = 1";
+        const string query = "select 1 from #schema.first() a outer apply #schema.second() where 1 = 1";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(
-                query,
-                [new ApplyParent()],
-                [new ApplyChild()]));
+            CreateAndRunVirtualMachine(query, [new ApplyParent()], [new ApplyChild()])
+        );
 
         var source = "#schema.second()";
         var expectedOffset = query.IndexOf(source, StringComparison.Ordinal) + source.Length;
@@ -262,8 +243,9 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
             "Core Spec - Aliasing",
             [
                 "Add an alias immediately after the source, for example: FROM #schema.items() items.",
-                "Use AS for clarity, or bracket an alias that is also a SQL keyword."
-            ]);
+                "Use AS for clarity, or bracket an alias that is also a SQL keyword.",
+            ]
+        );
 
         Assert.HasCount(5, envelope.Arguments);
         Assert.AreEqual("required-source-alias", envelope.Arguments["aliasKind"]);
@@ -276,11 +258,11 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApplyScalarProperty_ShouldReportExactArrayDiagnostic()
     {
-        const string query =
-            "select b.Value from #schema.first() a cross apply a.Scalar as b";
+        const string query = "select b.Value from #schema.first() a cross apply a.Scalar as b";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, [new ScalarApplyParent { Scalar = 5 }]));
+            CreateAndRunVirtualMachine(query, [new ScalarApplyParent { Scalar = 5 }])
+        );
 
         var expectedOffset = query.LastIndexOf("b", StringComparison.Ordinal);
         AssertExactEnvelope(
@@ -294,20 +276,19 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
             "Core Spec - APPLY and Arrays",
             [
                 "Use a column that returns an array or IEnumerable value.",
-                "Remove the array operation if the source value is scalar."
-            ]);
+                "Remove the array operation if the source value is scalar.",
+            ]
+        );
     }
 
     [TestMethod]
     public void CrossApplyInvalidBindableProperty_ShouldReportExactBindableDiagnostic()
     {
-        const string query =
-            "select b.Value from #schema.first() a cross apply a.NotACollection as b";
+        const string query = "select b.Value from #schema.first() a cross apply a.NotACollection as b";
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(
-                query,
-                [new InvalidBindableApplyParent { NotACollection = new ApplyItem() }]));
+            CreateAndRunVirtualMachine(query, [new InvalidBindableApplyParent { NotACollection = new ApplyItem() }])
+        );
 
         var expectedOffset = query.LastIndexOf("b", StringComparison.Ordinal);
         AssertExactEnvelope(
@@ -321,8 +302,9 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
             "Core Spec - Bindable Properties",
             [
                 "Expose the property as bindable in the schema when it should be used as a nested table.",
-                "Use a regular property reference if the value should stay scalar."
-            ]);
+                "Use a regular property reference if the value should stay scalar.",
+            ]
+        );
     }
 
     private static MusoqErrorEnvelope AssertExactEnvelope(
@@ -334,10 +316,14 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
         int expectedLength,
         string expectedExplanation,
         string expectedDocsReference,
-        string[] expectedFixes)
+        string[] expectedFixes
+    )
     {
-        Assert.HasCount(1, exception.Envelopes,
-            $"Expected one diagnostic but got: {string.Join(" | ", exception.Envelopes.Select(item => item.Code))}");
+        Assert.HasCount(
+            1,
+            exception.Envelopes,
+            $"Expected one diagnostic but got: {string.Join(" | ", exception.Envelopes.Select(item => item.Code))}"
+        );
 
         var envelope = exception.PrimaryEnvelope;
         Assert.AreEqual(expectedCode, envelope.Code);
@@ -353,11 +339,12 @@ public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
         Assert.AreEqual(expectedDocsReference, envelope.DocsReference);
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
-        CollectionAssert.AreEqual(
-            expectedFixes,
-            envelope.Actions.Select(static action => action.Title).ToArray());
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        CollectionAssert.AreEqual(expectedFixes, envelope.Actions.Select(static action => action.Title).ToArray());
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
 
         return envelope;
     }

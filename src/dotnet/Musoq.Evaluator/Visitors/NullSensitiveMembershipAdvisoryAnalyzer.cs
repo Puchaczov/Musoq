@@ -17,7 +17,8 @@ internal static class NullSensitiveMembershipAdvisoryAnalyzer
         SemanticAdvisoryContext context,
         PredicateConstantResolver resolver,
         Node node,
-        HashSet<Node> visited)
+        HashSet<Node> visited
+    )
     {
         if (!visited.Add(node))
             return;
@@ -54,17 +55,18 @@ internal static class NullSensitiveMembershipAdvisoryAnalyzer
     private static void AnalyzePredicate(
         SemanticAdvisoryContext context,
         PredicateConstantResolver resolver,
-        Node predicate)
+        Node predicate
+    )
     {
-        VisitPredicate(context, resolver, predicate,
-            new HashSet<Node>(ReferenceEqualityComparer.Instance));
+        VisitPredicate(context, resolver, predicate, new HashSet<Node>(ReferenceEqualityComparer.Instance));
     }
 
     private static void VisitPredicate(
         SemanticAdvisoryContext context,
         PredicateConstantResolver resolver,
         Node node,
-        HashSet<Node> visited)
+        HashSet<Node> visited
+    )
     {
         if (!visited.Add(node))
             return;
@@ -78,7 +80,8 @@ internal static class NullSensitiveMembershipAdvisoryAnalyzer
                     context.Report(
                         DiagnosticCode.MQ5024_NullSensitiveNotIn,
                         ErrorCatalog.GetMessage(DiagnosticCode.MQ5024_NullSensitiveNotIn),
-                        nullValue.HasSpan ? nullValue.Span : membership.Span);
+                        nullValue.HasSpan ? nullValue.Span : membership.Span
+                    );
                     break;
                 }
             }

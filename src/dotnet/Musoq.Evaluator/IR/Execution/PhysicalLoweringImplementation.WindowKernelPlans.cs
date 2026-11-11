@@ -5,7 +5,8 @@ namespace Musoq.Evaluator.IR.Execution;
 internal sealed partial class PhysicalLoweringImplementation
 {
     private static IReadOnlyList<ExecutionNode> CreateWindowKernelPlanNodes(
-        IReadOnlyList<WindowComputationBuildResult> computations)
+        IReadOnlyList<WindowComputationBuildResult> computations
+    )
     {
         var nodes = new List<ExecutionNode>(computations.Count);
         var pending = new List<ExecutionNode>();
@@ -24,9 +25,12 @@ internal sealed partial class PhysicalLoweringImplementation
                 continue;
             }
 
-            if (pending.Count > 0 &&
-                (!string.Equals(pendingSignature, signature, StringComparison.Ordinal) ||
-                 pendingStrategy != strategy))
+            if (
+                pending.Count > 0
+                && (
+                    !string.Equals(pendingSignature, signature, StringComparison.Ordinal) || pendingStrategy != strategy
+                )
+            )
             {
                 FlushWindowKernelPlan(nodes, pending, pendingSignature, pendingStrategy);
                 pending.Clear();
@@ -45,7 +49,8 @@ internal sealed partial class PhysicalLoweringImplementation
         List<ExecutionNode> nodes,
         List<ExecutionNode> pending,
         string? signature,
-        ExecutionWindowKernelPlanStrategy? strategy)
+        ExecutionWindowKernelPlanStrategy? strategy
+    )
     {
         if (pending.Count == 0)
             return;
@@ -64,7 +69,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool TryCreateWindowKernelPlanSignature(
         ExecutionNode node,
         out string signature,
-        out ExecutionWindowKernelPlanStrategy strategy)
+        out ExecutionWindowKernelPlanStrategy strategy
+    )
     {
         signature = string.Empty;
         strategy = default;
@@ -84,14 +90,16 @@ internal sealed partial class PhysicalLoweringImplementation
             partitionVariable,
             sortedPartitionVariable,
             ranking.PartitionKeyArray?.Variable.Name ?? string.Empty,
-            ranking.OrderKeyArray?.Variable.Name ?? string.Empty);
+            ranking.OrderKeyArray?.Variable.Name ?? string.Empty
+        );
         strategy = CreateWindowKernelPlanStrategy(ranking.PartitionKeyArray, ranking.OrderKeyArray);
         return true;
     }
 
     private static ExecutionWindowKernelPlanStrategy CreateWindowKernelPlanStrategy(
         ExecutionWindowKeyArray? partitionKeys,
-        ExecutionWindowKeyArray? orderKeys)
+        ExecutionWindowKeyArray? orderKeys
+    )
     {
         if (partitionKeys == null && orderKeys == null)
             return ExecutionWindowKernelPlanStrategy.NoPartition;

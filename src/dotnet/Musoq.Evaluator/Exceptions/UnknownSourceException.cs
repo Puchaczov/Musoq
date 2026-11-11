@@ -10,7 +10,8 @@ internal sealed class UnknownSourceException : Exception, IDiagnosticException
         string schemaName,
         string sourceName,
         TextSpan span,
-        Exception? providerFailure = null)
+        Exception? providerFailure = null
+    )
         : base($"Source '{sourceName}' does not exist in schema '{schemaName}'.")
     {
         SchemaName = schemaName;
@@ -41,10 +42,7 @@ internal sealed class UnknownSourceException : Exception, IDiagnosticException
             Message,
             Span,
             sourceText,
-            new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["schema"] = SchemaName,
-                ["source"] = SourceName
-            });
+            new Dictionary<string, string>(StringComparer.Ordinal) { ["schema"] = SchemaName, ["source"] = SourceName }
+        );
     }
 }

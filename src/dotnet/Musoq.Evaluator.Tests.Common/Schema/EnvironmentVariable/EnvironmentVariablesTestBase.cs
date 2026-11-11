@@ -10,12 +10,12 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 
 public class EnvironmentVariablesTestBase : MSTestContextTestBase
 {
-
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
-        IDictionary<string, IEnumerable<EnvironmentVariableEntity>> sources)
+        IDictionary<string, IEnumerable<EnvironmentVariableEntity>> sources
+    )
     {
         return GeneratedExecutionIlInspection.CompileForExecution(
             script,
@@ -24,30 +24,30 @@ public class EnvironmentVariablesTestBase : MSTestContextTestBase
             LoggerResolver,
             () =>
             {
-                var chain =
-                    new CreateTree(
-                        new TransformTree(
-                            new TurnQueryIntoRunnableCode(null),
-                            LoggerResolver
-                        )
-                    );
+                var chain = new CreateTree(new TransformTree(new TurnQueryIntoRunnableCode(null), LoggerResolver));
 
                 return chain;
-            }, items =>
+            },
+            items =>
             {
-                items.CreateBuildMetadataAndInferTypesVisitor =
-                    (provider, columns, compilationOptions, _, _) =>
-                        new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources,
-                            LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
-                            compilationOptions);
-            });
+                items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns, compilationOptions, _, _) =>
+                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(
+                        provider,
+                        columns,
+                        sources,
+                        LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
+                        compilationOptions
+                    );
+            }
+        );
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IDictionary<string, IEnumerable<BasicEntity>> basicSources,
         IDictionary<string, IEnumerable<EnvironmentVariableEntity>> environmentSources,
-        IDictionary<string, IEnumerable<EnvironmentVariableEntity>> sources)
+        IDictionary<string, IEnumerable<EnvironmentVariableEntity>> sources
+    )
     {
         var schemas = new Dictionary<string, ISchemaProvider>();
 
@@ -60,17 +60,20 @@ public class EnvironmentVariablesTestBase : MSTestContextTestBase
         return GeneratedExecutionIlInspection.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
-            new MultipleSchemasSchemaProvider(schemas), LoggerResolver, () => new CreateTree(
-                new TransformTree(
-                    new TurnQueryIntoRunnableCode(null), LoggerResolver)
-            ),
+            new MultipleSchemasSchemaProvider(schemas),
+            LoggerResolver,
+            () => new CreateTree(new TransformTree(new TurnQueryIntoRunnableCode(null), LoggerResolver)),
             items =>
             {
-                items.CreateBuildMetadataAndInferTypesVisitor =
-                    (provider, columns, compilationOptions, _, _) =>
-                        new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources,
-                            LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
-                            compilationOptions);
-            });
+                items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns, compilationOptions, _, _) =>
+                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(
+                        provider,
+                        columns,
+                        sources,
+                        LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
+                        compilationOptions
+                    );
+            }
+        );
     }
 }

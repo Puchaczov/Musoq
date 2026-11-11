@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
@@ -43,15 +44,29 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (generatedCode.Contains("Statement0Row0", StringComparison.Ordinal))
             failures.Add($"{fileName}: still emits statement transition row");
 
-        if (!generatedCode.Contains("var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema", StringComparison.Ordinal) ||
-            !generatedCode.Contains("var bRows = ", StringComparison.Ordinal) || !generatedCode.Contains("bRowsSource.Chunks", StringComparison.Ordinal))
+        if (
+            !generatedCode.Contains(
+                "var bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__bSchema",
+                StringComparison.Ordinal
+            )
+            || !generatedCode.Contains("var bRows = ", StringComparison.Ordinal)
+            || !generatedCode.Contains("bRowsSource.Chunks", StringComparison.Ordinal)
+        )
             failures.Add($"{fileName}: missing scoped right-side generic source rows");
 
         var bRowsIndex = generatedCode.IndexOf("var bRows = ", StringComparison.Ordinal);
         var leftLoopIndex = generatedCode.IndexOf("foreach (var aChunk in aRows)", StringComparison.Ordinal);
         var rightLoopIndex = generatedCode.IndexOf("foreach (var bChunk in bRows)", StringComparison.Ordinal);
-        if (bRowsIndex < 0 || leftLoopIndex < 0 || rightLoopIndex < 0 || bRowsIndex < leftLoopIndex || bRowsIndex > rightLoopIndex)
-            failures.Add($"{fileName}: right-side scan is not scoped inside the left APPLY loop before right iteration");
+        if (
+            bRowsIndex < 0
+            || leftLoopIndex < 0
+            || rightLoopIndex < 0
+            || bRowsIndex < leftLoopIndex
+            || bRowsIndex > rightLoopIndex
+        )
+            failures.Add(
+                $"{fileName}: right-side scan is not scoped inside the left APPLY loop before right iteration"
+            );
 
         if (!Regex.IsMatch(generatedCode, @"foreach \(var bChunk in [A-Za-z0-9_]*bRows\)"))
             failures.Add($"{fileName}: missing direct right typed-row loop");
@@ -64,7 +79,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             if (!generatedCode.Contains("bHasMatch = true;", StringComparison.Ordinal))
                 failures.Add($"{fileName}: missing outer-apply matched-row marker");
 
-            if (!Regex.IsMatch(generatedCode, @"new ResultRow0\([A-Za-z_][A-Za-z0-9_]*,\s*null\)", RegexOptions.CultureInvariant))
+            if (
+                !Regex.IsMatch(
+                    generatedCode,
+                    @"new ResultRow0\([A-Za-z_][A-Za-z0-9_]*,\s*null\)",
+                    RegexOptions.CultureInvariant
+                )
+            )
                 failures.Add($"{fileName}: missing outer-apply null extension");
         }
 
@@ -74,7 +95,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private static string[] GetDirectInterpretationProjectionShapeFailures(
         string fileName,
         string planText,
-        string generatedCode)
+        string generatedCode
+    )
     {
         var failures = GetRetiredHelperShapeFailures(fileName, generatedCode).ToList();
 
@@ -108,14 +130,20 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private static string[] GetNestedInterpretationExpansionShapeFailures(
         string fileName,
         string planText,
-        string generatedCode)
+        string generatedCode
+    )
     {
         var failures = GetRetiredHelperShapeFailures(fileName, generatedCode).ToList();
 
         if (planText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal))
             failures.Add($"{fileName}: execution IR fallback was used");
 
-        if (!planText.Contains("StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]", StringComparison.Ordinal))
+        if (
+            !planText.Contains(
+                "StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]",
+                StringComparison.Ordinal
+            )
+        )
             failures.Add($"{fileName}: missing first interpretation materialization boundary");
 
         if (!planText.Contains("PhaseBoundary [Begin:cte1]", StringComparison.Ordinal))
@@ -208,10 +236,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (!content.Contains("__musoqFinalShapeRows.Add(new", StringComparison.Ordinal))
             failures.Add($"{fileName}: missing final shape set output append");
 
-        if (content.Contains("Union(", StringComparison.Ordinal) ||
-            content.Contains("Except(", StringComparison.Ordinal) ||
-            content.Contains("Intersect(", StringComparison.Ordinal) ||
-            content.Contains("UnionAll(", StringComparison.Ordinal))
+        if (
+            content.Contains("Union(", StringComparison.Ordinal)
+            || content.Contains("Except(", StringComparison.Ordinal)
+            || content.Contains("Intersect(", StringComparison.Ordinal)
+            || content.Contains("UnionAll(", StringComparison.Ordinal)
+        )
         {
             failures.Add($"{fileName}: still uses helper set-operation call");
         }
@@ -242,7 +272,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var failures = GetRetiredHelperShapeFailures(AsOfJoinSampleFileName, content).ToList();
 
-        if (!content.Contains("EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool>", StringComparison.Ordinal))
+        if (
+            !content.Contains(
+                "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool>",
+                StringComparison.Ordinal
+            )
+        )
             failures.Add($"{AsOfJoinSampleFileName}: missing typed ASOF index");
 
         if (content.Contains("EvaluationHelper.FindAsOfMatch<", StringComparison.Ordinal))
@@ -261,9 +296,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var failures = GetRetiredHelperShapeFailures(AsOfTieBreakSampleFileName, content).ToList();
 
-        if (!content.Contains(
+        if (
+            !content.Contains(
                 "EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, decimal, bool, decimal>",
-                StringComparison.Ordinal))
+                StringComparison.Ordinal
+            )
+        )
             failures.Add($"{AsOfTieBreakSampleFileName}: missing typed ASOF tie-break index");
 
         if (!content.Contains("Musoq.Evaluator.IR.Bindings.NullOrdering.Last", StringComparison.Ordinal))
@@ -305,10 +343,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var escapedRowVariable = Regex.Escape(rowVariable);
         var escapedRowsVariable = Regex.Escape(rowsVariable);
 
-        if (!Regex.IsMatch(
-            content,
-            $@"foreach \(var {escapedRowVariable}Chunk in [A-Za-z0-9_]*{escapedRowsVariable}\)\s+\{{",
-            RegexOptions.Singleline))
+        if (
+            !Regex.IsMatch(
+                content,
+                $@"foreach \(var {escapedRowVariable}Chunk in [A-Za-z0-9_]*{escapedRowsVariable}\)\s+\{{",
+                RegexOptions.Singleline
+            )
+        )
         {
             return false;
         }
@@ -316,11 +357,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         [
             $@"var {escapedRowVariable} = {escapedRowVariable}ChunkViewArray\[{escapedRowVariable}ChunkViewOffset \+ {escapedRowVariable}Index\];",
             $@"var {escapedRowVariable} = {escapedRowVariable}ChunkViewList\[{escapedRowVariable}ChunkViewOffset \+ {escapedRowVariable}Index\];",
-            $@"var {escapedRowVariable} = {escapedRowVariable}Chunk\[{escapedRowVariable}Index\];"
+            $@"var {escapedRowVariable} = {escapedRowVariable}Chunk\[{escapedRowVariable}Index\];",
         ];
 
         return rowLoadPatterns.Any(pattern => Regex.IsMatch(content, pattern, RegexOptions.Singleline));
     }
-
-
 }

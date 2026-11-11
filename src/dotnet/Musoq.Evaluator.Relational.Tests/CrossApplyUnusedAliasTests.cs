@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
 
-
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>
@@ -13,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 {
-
     /// <summary>
     ///     Test case where cross apply alias 't' is defined but only columns from 'a' are selected.
     ///     The alias 't' is completely unused in the query.
@@ -26,16 +24,46 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -46,14 +74,13 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["City1"], ["City1"], ["City2"], ["City2"], ["City3"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1"], ["City1"], ["City2"], ["City2"], ["City3"]);
     }
 
     /// <summary>
@@ -62,7 +89,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApply_WithSecondUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, b.Money 
             from #schema.first() a 
             cross apply #schema.second(a.Country) b 
@@ -70,24 +98,30 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var thirdSource = new List<CrossApplyClass3>
         {
-            new() { Id = 1, Description = "Desc1" }
+            new() { Id = 1, Description = "Desc1" },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource,
-            secondSource,
-            thirdSource);
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource, thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -106,20 +140,15 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
         var firstSource = new List<CrossApplyClass1>
         {
             new() { City = "City1", Values = [1, 2, 3] },
-            new() { City = "City2", Values = [4, 5] }
+            new() { City = "City2", Values = [4, 5] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["City1"], ["City1"], ["City1"], ["City2"], ["City2"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1"], ["City1"], ["City1"], ["City2"], ["City2"]);
     }
 
     /// <summary>
@@ -128,7 +157,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApply_AliasUsedOnlyInWhere_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City 
             from #schema.first() a 
             cross apply #schema.second(a.Country) t 
@@ -136,15 +166,40 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country2", Population = 200 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country2",
+                Population = 200,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -155,7 +210,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -173,12 +229,22 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -189,7 +255,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -207,12 +274,22 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -223,7 +300,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -237,7 +315,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApply_CteWithUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        const string query = @"
+        const string query =
+            @"
             with cte as (
                 select a.City as City, a.Country as Country 
                 from #schema.first() a
@@ -246,12 +325,22 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -262,7 +351,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -276,20 +366,23 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApply_MethodCallWithUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City
             from #schema.first() a
             cross apply a.Split(a.City, ',') t2";
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1,City2", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1,City2",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -303,7 +396,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApply_CteWithMethodCallAndUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        const string query = @"
+        const string query =
+            @"
             with testX as (
                 select 'hello world' as Text
                 from #schema.first() a
@@ -330,12 +424,22 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -346,7 +450,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -354,7 +459,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             table,
             ("City", typeof(string)),
             ("Country", typeof(string)),
-            ("Population", typeof(int)));
+            ("Population", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1", "Country1", 100]);
     }
 
@@ -364,7 +470,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApply_ChainedWithMiddleAliasUnused_ShouldNotThrowKeyNotFound()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, c.Money
             from #schema.first() a
             cross apply #schema.second(a.Country) b
@@ -372,25 +479,35 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
-
 
         var thirdSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Any", Money = 5000, Month = "March" }
+            new()
+            {
+                Country = "Any",
+                Money = 5000,
+                Month = "March",
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource,
-            secondSource,
-            thirdSource);
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource, thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -404,7 +521,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApply_MultipleChained_WithIntermediateUnusedAliases_ShouldNotThrowKeyNotFound()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City
             from #schema.first() a
             cross apply #schema.second(a.Country) b
@@ -412,12 +530,22 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -428,7 +556,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -446,13 +575,28 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "NoMatch", Population = 200 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "NoMatch",
+                Population = 200,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -463,7 +607,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -477,7 +622,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
     [TestMethod]
     public void CrossApply_WithCountAggregation_UnusedAliasInSelect_ShouldNotThrowKeyNotFound()
     {
-        const string query = @"
+        const string query =
+            @"
             select a.City, a.Count(1) as Cnt
             from #schema.first() a
             cross apply #schema.second(a.Country) t
@@ -485,13 +631,28 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<CrossApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -502,7 +663,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -520,13 +682,16 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100, Values = [1, 2, 3] }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+                Values = [1, 2, 3],
+            },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource
-        );
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 

@@ -9,7 +9,10 @@ internal static class ExecutionValueCaptureSyntax
     {
         var receiver = input is ParenthesizedExpressionSyntax ? input : SyntaxFactory.ParenthesizedExpression(input);
         var pattern = SyntaxFactory.VarPattern(SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(name)));
-        return SyntaxFactory.ParenthesizedExpression(SyntaxFactory.SwitchExpression(receiver)
-            .WithArms(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.SwitchExpressionArm(pattern, body))));
+        return SyntaxFactory.ParenthesizedExpression(
+            SyntaxFactory
+                .SwitchExpression(receiver)
+                .WithArms(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.SwitchExpressionArm(pattern, body)))
+        );
     }
 }

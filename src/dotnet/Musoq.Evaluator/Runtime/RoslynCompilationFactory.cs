@@ -27,14 +27,17 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory, IDis
 
     public RoslynCompilationFactory(
         IRuntimeReferenceProvider runtimeReferenceProvider,
-        IMetadataReferenceCache referenceCache)
+        IMetadataReferenceCache referenceCache
+    )
     {
-        _runtimeReferenceProvider = runtimeReferenceProvider ?? throw new ArgumentNullException(nameof(runtimeReferenceProvider));
+        _runtimeReferenceProvider =
+            runtimeReferenceProvider ?? throw new ArgumentNullException(nameof(runtimeReferenceProvider));
         _referenceCache = referenceCache ?? throw new ArgumentNullException(nameof(referenceCache));
         _threadLocalWorkspace = new ThreadLocal<AdhocWorkspace>(() => new AdhocWorkspace(), true);
         _threadLocalGenerator = new ThreadLocal<SyntaxGenerator>(
             () => SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp),
-            true);
+            true
+        );
         _templateCompilation = new Lazy<CSharpCompilation>(CreateTemplateCompilation);
     }
 
@@ -56,8 +59,8 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory, IDis
         get
         {
             ThrowIfDisposed();
-            return _threadLocalWorkspace.Value ??
-                   throw new InvalidOperationException("Roslyn workspace was not initialized for the current thread.");
+            return _threadLocalWorkspace.Value
+                ?? throw new InvalidOperationException("Roslyn workspace was not initialized for the current thread.");
         }
     }
 
@@ -66,8 +69,10 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory, IDis
         get
         {
             ThrowIfDisposed();
-            return _threadLocalGenerator.Value ??
-                   throw new InvalidOperationException("Roslyn syntax generator was not initialized for the current thread.");
+            return _threadLocalGenerator.Value
+                ?? throw new InvalidOperationException(
+                    "Roslyn syntax generator was not initialized for the current thread."
+                );
         }
     }
 
@@ -101,13 +106,15 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory, IDis
 
         return compilation.WithOptions(
             new CSharpCompilationOptions(
-                    OutputKind.DynamicallyLinkedLibrary,
-                    optimizationLevel: OptimizationLevel.Release,
-                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
-                    deterministic: false)
+                OutputKind.DynamicallyLinkedLibrary,
+                optimizationLevel: OptimizationLevel.Release,
+                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
+                deterministic: false
+            )
                 .WithConcurrentBuild(false)
                 .WithMetadataImportOptions(MetadataImportOptions.Public)
-                .WithPlatform(Platform.AnyCpu));
+                .WithPlatform(Platform.AnyCpu)
+        );
     }
 
     private List<MetadataReference> CollectCoreTypeReferences()
@@ -122,14 +129,15 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory, IDis
             typeof(SyntaxFactory),
             typeof(ExpandoObject),
             typeof(SchemaFromNode),
-            typeof(ILogger)
+            typeof(ILogger),
         };
 
         var references = new List<MetadataReference>(coreTypes.Length + 2);
 
         var abstractionDll = Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory,
-            "Microsoft.Extensions.Logging.Abstractions.dll");
+            "Microsoft.Extensions.Logging.Abstractions.dll"
+        );
 
         if (File.Exists(abstractionDll) && AddPreloadedPath(abstractionDll))
             references.Add(_referenceCache.GetOrCreate(abstractionDll));

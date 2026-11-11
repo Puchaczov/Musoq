@@ -18,7 +18,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, CteReferenceClassification> cteReferenceClassifications,
         IReadOnlyDictionary<string, FusedCteHashBuildSource> fusedHashBuildSources,
         LoweringScope scope,
-        out LoweringScope updatedScope)
+        out LoweringScope updatedScope
+    )
     {
         updatedScope = scope;
         if (!_compilationOptions.UseCteSidecarIndexes)
@@ -28,14 +29,24 @@ internal sealed partial class PhysicalLoweringImplementation
             UnwrapSingleStatement,
             (node, definitionName) => ExecutionStrategies.GetCteSidecarIndexSpecs(node, definitionName),
             (definition, index, definitionNames, indexes, shapesByName, schemaFromIndex, plan) =>
-                BuildCteDefinitionTable(definition, index, definitionNames, indexes, shapesByName, schemaFromIndex, plan, scope),
+                BuildCteDefinitionTable(
+                    definition,
+                    index,
+                    definitionNames,
+                    indexes,
+                    shapesByName,
+                    schemaFromIndex,
+                    plan,
+                    scope
+                ),
             (
                 string definitionName,
                 IReadOnlyList<CteSidecarIndexSpec> specs,
                 IReadOnlyDictionary<string, CteReferenceClassification> classifications,
                 CteDefinitionPruningPlan plan,
                 TableBuildResult result,
-                out CteSidecarStorageDecision storage) =>
+                out CteSidecarStorageDecision storage
+            ) =>
             {
                 var optimized = ApplyCteSidecarOptimizations(
                     definitionName,
@@ -45,11 +56,13 @@ internal sealed partial class PhysicalLoweringImplementation
                     result,
                     scope,
                     out storage,
-                    out var nextScope);
+                    out var nextScope
+                );
                 scope = nextScope;
                 return optimized;
             },
-            CreateFusedSiblingCteBuildResult);
+            CreateFusedSiblingCteBuildResult
+        );
 
         var result = lowerer.TryBuild(
             cte,
@@ -61,7 +74,8 @@ internal sealed partial class PhysicalLoweringImplementation
             schemaFromIndexes,
             pruningPlan,
             cteReferenceClassifications,
-            fusedHashBuildSources);
+            fusedHashBuildSources
+        );
         updatedScope = scope;
         return result;
     }
@@ -69,17 +83,17 @@ internal sealed partial class PhysicalLoweringImplementation
     private static FusedSiblingCteBuildResult CreateFusedSiblingCteBuildResult(
         IReadOnlyList<FusedSiblingCteCandidate> candidates,
         IReadOnlyList<RowShape> shapes,
-        IReadOnlyDictionary<string, GeneratedRowShape> rowShapesByName)
+        IReadOnlyDictionary<string, GeneratedRowShape> rowShapesByName
+    )
     {
         var canonicalLoop = candidates[0].Loop;
         var bodyNodes = new List<ExecutionNode>();
 
         foreach (var candidate in candidates)
         {
-            var body = new FusedSiblingAliasRewriter(
-                    candidate.Loop.Item,
-                    canonicalLoop.Item)
-                .RewriteBlock(candidate.Loop.Body);
+            var body = new FusedSiblingAliasRewriter(candidate.Loop.Item, canonicalLoop.Item).RewriteBlock(
+                candidate.Loop.Body
+            );
             bodyNodes.AddRange(body.Nodes);
         }
 
@@ -93,15 +107,11 @@ internal sealed partial class PhysicalLoweringImplementation
                 candidate.TableIndex,
                 candidate.Result.Table,
                 candidate.Result.RowShape,
-                candidate.Storage.StoreRows))
+                candidate.Storage.StoreRows
+            ))
             .ToArray();
         var producer = new ExecutionFusedCteProducer(outputs, new ExecutionBlock(producerBody));
 
-        return new FusedSiblingCteBuildResult(
-            candidates.Count,
-            shapes,
-            producer,
-            rowShapesByName);
+        return new FusedSiblingCteBuildResult(candidates.Count, shapes, producer, rowShapesByName);
     }
-
 }

@@ -1,10 +1,12 @@
-
 namespace Musoq.Evaluator.Helpers;
 
 public static partial class WindowFunctionHelpers
 {
     public static WindowPartitionSet SortStructPartitionSet<T>(
-        WindowPartitionSet partitions, T[] orderKeys, bool descending)
+        WindowPartitionSet partitions,
+        T[] orderKeys,
+        bool descending
+    )
         where T : struct, IComparable<T>
     {
         ArgumentNullException.ThrowIfNull(partitions);
@@ -13,7 +15,10 @@ public static partial class WindowFunctionHelpers
     }
 
     public static WindowPartitionSet SortStructPartitionSetInPlace<T>(
-        WindowPartitionSet partitions, T[] orderKeys, bool descending)
+        WindowPartitionSet partitions,
+        T[] orderKeys,
+        bool descending
+    )
         where T : struct, IComparable<T>
     {
         ArgumentNullException.ThrowIfNull(partitions);
@@ -22,8 +27,7 @@ public static partial class WindowFunctionHelpers
         return partitions;
     }
 
-    private static void SortPartitionSetByStructKeys<T>(
-        WindowPartitionSet partitions, T[] orderKeys, bool descending)
+    private static void SortPartitionSetByStructKeys<T>(WindowPartitionSet partitions, T[] orderKeys, bool descending)
         where T : struct, IComparable<T>
     {
         var indices = partitions.Indices;

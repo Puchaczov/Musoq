@@ -10,7 +10,13 @@ namespace Musoq.Parser;
 
 internal static class PivotQueryBuilder
 {
-    public static SelectNode BuildSelectNode(Node[] keys, PivotValue[] values, FieldNode[] measures, GroupByNode? groupBy, string queryPart)
+    public static SelectNode BuildSelectNode(
+        Node[] keys,
+        PivotValue[] values,
+        FieldNode[] measures,
+        GroupByNode? groupBy,
+        string queryPart
+    )
     {
         var fields = new List<FieldNode>();
         var outputNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -19,13 +25,25 @@ internal static class PivotQueryBuilder
             foreach (var groupField in groupBy.Fields)
             {
                 AddOutputName(outputNames, groupField.FieldName, groupField.Span, queryPart);
-                fields.Add(new FieldNode(groupField.Expression, fields.Count, groupField.HasExplicitFieldName ? groupField.FieldName : null, groupField.HasExplicitFieldName, groupField.Span));
+                fields.Add(
+                    new FieldNode(
+                        groupField.Expression,
+                        fields.Count,
+                        groupField.HasExplicitFieldName ? groupField.FieldName : null,
+                        groupField.HasExplicitFieldName,
+                        groupField.Span
+                    )
+                );
             }
 
         foreach (var measure in measures)
             if (measure.Expression is not AccessMethodNode)
-                throw new SyntaxException("PIVOT USING accepts aggregate function calls only. Use a form like USING Sum(Amount) as Sales.",
-                    queryPart, DiagnosticCode.MQ2003_InvalidExpression, measure.Span);
+                throw new SyntaxException(
+                    "PIVOT USING accepts aggregate function calls only. Use a form like USING Sum(Amount) as Sales.",
+                    queryPart,
+                    DiagnosticCode.MQ2003_InvalidExpression,
+                    measure.Span
+                );
 
         foreach (var value in values)
         foreach (var measure in measures)
@@ -33,7 +51,15 @@ internal static class PivotQueryBuilder
             var method = (AccessMethodNode)measure.Expression;
             var outputName = CreateOutputName(value, measure, method, measures.Length == 1);
             AddOutputName(outputNames, outputName, measure.Span, queryPart);
-            fields.Add(new FieldNode(CreateFilteredMeasure(keys, value.Expressions, method), fields.Count, outputName, true, measure.Span));
+            fields.Add(
+                new FieldNode(
+                    CreateFilteredMeasure(keys, value.Expressions, method),
+                    fields.Count,
+                    outputName,
+                    true,
+                    measure.Span
+                )
+            );
         }
 
         return new SelectNode(fields.ToArray());
@@ -53,15 +79,24 @@ internal static class PivotQueryBuilder
             WordNode word => word.Value,
             NullNode => "null",
             ConstantValueNode constant => FormatConstantAlias(constant.ObjValue),
-            _ => expression.ToString()
+            _ => expression.ToString(),
         };
     }
 
     public static bool IsMeasureTerminator(TokenType tokenType)
     {
-        return tokenType is TokenType.GroupBy or TokenType.OrderBy or TokenType.Skip or TokenType.Take
-            or TokenType.RightParenthesis or TokenType.Semicolon or TokenType.EndOfFile
-            or TokenType.Union or TokenType.UnionAll or TokenType.Except or TokenType.Intersect;
+        return tokenType
+            is TokenType.GroupBy
+                or TokenType.OrderBy
+                or TokenType.Skip
+                or TokenType.Take
+                or TokenType.RightParenthesis
+                or TokenType.Semicolon
+                or TokenType.EndOfFile
+                or TokenType.Union
+                or TokenType.UnionAll
+                or TokenType.Except
+                or TokenType.Intersect;
     }
 
     private static AccessMethodNode CreateFilteredMeasure(Node[] keys, Node[] values, AccessMethodNode method)
@@ -71,13 +106,21 @@ internal static class PivotQueryBuilder
             ? predicate
             : new AndNode(method.FilterExpression, predicate);
 
-        return new AccessMethodNode(method.FunctionToken, method.Arguments, method.ExtraAggregateArguments,
-            method.CanSkipInjectSource, null, method.Alias, method.Span, method.IsDistinct)
+        return new AccessMethodNode(
+            method.FunctionToken,
+            method.Arguments,
+            method.ExtraAggregateArguments,
+            method.CanSkipInjectSource,
+            null,
+            method.Alias,
+            method.Span,
+            method.IsDistinct
+        )
         {
             HasFilter = true,
             FilterExpression = filterExpression,
             FilterExpressionText = filterExpression.ToString(),
-            IsPivotGenerated = true
+            IsPivotGenerated = true,
         };
     }
 
@@ -93,9 +136,7 @@ internal static class PivotQueryBuilder
 
     private static Node CreatePivotComparison(Node key, Node value)
     {
-        return value is NullNode
-            ? new IsNullNode(key, false)
-            : new EqualityNode(key, value);
+        return value is NullNode ? new IsNullNode(key, false) : new EqualityNode(key, value);
     }
 
     private static void AddOutputName(HashSet<string> outputNames, string outputName, TextSpan span, string queryPart)
@@ -103,13 +144,24 @@ internal static class PivotQueryBuilder
         if (outputNames.Add(outputName))
             return;
 
-        throw new SyntaxException($"PIVOT generated duplicate output column name '{outputName}'. Use unique pivot value aliases or measure aliases.",
-            queryPart, DiagnosticCode.MQ2008_DuplicateAlias, span);
+        throw new SyntaxException(
+            $"PIVOT generated duplicate output column name '{outputName}'. Use unique pivot value aliases or measure aliases.",
+            queryPart,
+            DiagnosticCode.MQ2008_DuplicateAlias,
+            span
+        );
     }
 
-    private static string CreateOutputName(PivotValue value, FieldNode measure, AccessMethodNode method, bool hasSingleMeasure)
+    private static string CreateOutputName(
+        PivotValue value,
+        FieldNode measure,
+        AccessMethodNode method,
+        bool hasSingleMeasure
+    )
     {
-        return hasSingleMeasure ? value.Alias : $"{value.Alias}_{(measure.HasExplicitFieldName ? measure.FieldName : method.Name)}";
+        return hasSingleMeasure
+            ? value.Alias
+            : $"{value.Alias}_{(measure.HasExplicitFieldName ? measure.FieldName : method.Name)}";
     }
 
     private static string FormatConstantAlias(object value)

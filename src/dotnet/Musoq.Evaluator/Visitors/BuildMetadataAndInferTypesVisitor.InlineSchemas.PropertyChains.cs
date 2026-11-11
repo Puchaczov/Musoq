@@ -9,7 +9,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 {
     private (Type ClrType, string? IntendedTypeName)? ResolveSchemaPropertyChain(
         string intendedTypeName,
-        PropertyFromNode.PropertyNameAndTypePair[] remainingProperties)
+        PropertyFromNode.PropertyNameAndTypePair[] remainingProperties
+    )
     {
         if (SchemaRegistry == null || remainingProperties.Length == 0)
             return null;
@@ -27,36 +28,52 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private (Type ClrType, string? IntendedTypeName)? ResolveSchemaFieldFromIntendedTypeName(
         string intendedTypeName,
-        string propertyName)
+        string propertyName
+    )
     {
         if (SchemaRegistry == null)
             return null;
 
-        var captureType = TextCapturePropertyResolver.Resolve(SchemaRegistry, GetAllTextSchemaFields, intendedTypeName, propertyName);
+        var captureType = TextCapturePropertyResolver.Resolve(
+            SchemaRegistry,
+            GetAllTextSchemaFields,
+            intendedTypeName,
+            propertyName
+        );
         if (captureType.HasValue)
             return captureType;
 
-        var switchType = TextSwitchPropertyResolver.Resolve(SchemaRegistry, GetAllTextSchemaFields, intendedTypeName, propertyName);
+        var switchType = TextSwitchPropertyResolver.Resolve(
+            SchemaRegistry,
+            GetAllTextSchemaFields,
+            intendedTypeName,
+            propertyName
+        );
         if (switchType.HasValue)
             return switchType;
 
         var reference = ParseSchemaReferenceFromTypeName(intendedTypeName);
         if (!SchemaRegistry.TryGetSchema(reference.SchemaName, out var schemaRegistration))
             return ResolveSwitchSchemaField(reference.SchemaName, propertyName)
-                   ?? ResolveInlineSchemaField(reference.SchemaName, propertyName);
+                ?? ResolveInlineSchemaField(reference.SchemaName, propertyName);
 
         if (schemaRegistration?.Node is BinarySchemaNode binaryNode)
         {
             var allFields = GetAllBinarySchemaFields(binaryNode);
-            if (allFields.OfType<ComputedFieldNode>().FirstOrDefault(f =>
-                    string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase)) is { } computed)
+            if (
+                allFields
+                    .OfType<ComputedFieldNode>()
+                    .FirstOrDefault(f => string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase)) is
+                { } computed
+            )
             {
                 var alias = BinarySchemaRecordAliases.Resolve(computed.Expression, allFields);
                 var intended = alias is null ? null : ResolveBinaryFieldClrTypeWithIntendedName(alias).IntendedTypeName;
                 return (BinarySchemaExpressionTypes.Resolve(computed.Expression, allFields, SchemaRegistry), intended);
             }
-            var field = allFields.OfType<FieldDefinitionNode>().FirstOrDefault(f =>
-                string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
+            var field = allFields
+                .OfType<FieldDefinitionNode>()
+                .FirstOrDefault(f => string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
             if (field == null)
                 return null;
 
@@ -68,15 +85,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var field = GetAllTextSchemaFields(textNode)
                 .FirstOrDefault(f => string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
-            return field is null ? null : InterpretationTextFieldTypeResolver.Resolve(textNode.Name, field, SchemaRegistry);
+            return field is null
+                ? null
+                : InterpretationTextFieldTypeResolver.Resolve(textNode.Name, field, SchemaRegistry);
         }
 
         return null;
     }
 
-    private (Type ClrType, string? IntendedTypeName)? ResolveInlineSchemaField(
-        string schemaName,
-        string propertyName)
+    private (Type ClrType, string? IntendedTypeName)? ResolveInlineSchemaField(string schemaName, string propertyName)
     {
         if (!schemaName.StartsWith("Inline_", StringComparison.Ordinal))
             return null;
@@ -84,7 +101,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         var inlineFieldName = schemaName["Inline_".Length..];
         var inlineFields = FindInlineSchemaFields(inlineFieldName);
         var field = inlineFields?.FirstOrDefault(f =>
-            string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(f.Name, propertyName, StringComparison.OrdinalIgnoreCase)
+        );
 
         if (field is ComputedFieldNode computed)
         {
@@ -93,15 +111,17 @@ public partial class BuildMetadataAndInferTypesVisitor
             return (BinarySchemaExpressionTypes.Resolve(computed.Expression, inlineFields!, SchemaRegistry), intended);
         }
 
-        if (field is not FieldDefinitionNode fieldDefinition) return null;
+        if (field is not FieldDefinitionNode fieldDefinition)
+            return null;
         var resolved = ResolveBinaryFieldClrTypeWithIntendedName(fieldDefinition);
-        return (resolved.ClrType, BinaryCompositionTypes.IntendedTypeName($"{inlineFieldName}_{field.Name}",
-            fieldDefinition.TypeAnnotation) ?? resolved.IntendedTypeName);
+        return (
+            resolved.ClrType,
+            BinaryCompositionTypes.IntendedTypeName($"{inlineFieldName}_{field.Name}", fieldDefinition.TypeAnnotation)
+                ?? resolved.IntendedTypeName
+        );
     }
 
-    private (Type ClrType, string? IntendedTypeName)? ResolveSwitchSchemaField(
-        string schemaName,
-        string propertyName)
+    private (Type ClrType, string? IntendedTypeName)? ResolveSwitchSchemaField(string schemaName, string propertyName)
     {
         if (!schemaName.StartsWith("Switch_", StringComparison.Ordinal))
             return null;
@@ -115,13 +135,15 @@ public partial class BuildMetadataAndInferTypesVisitor
             return (typeof(string), null);
 
         var branch = switchType.Cases.FirstOrDefault(c =>
-            string.Equals(c.BranchAlias, propertyName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(c.BranchAlias, propertyName, StringComparison.OrdinalIgnoreCase)
+        );
 
         if (branch is null)
             return null;
 
         var resolved = ResolveBinaryFieldClrTypeWithIntendedName(
-            new FieldDefinitionNode($"{switchFieldName}_{branch.BranchAlias}", branch.BranchType));
+            new FieldDefinitionNode($"{switchFieldName}_{branch.BranchAlias}", branch.BranchType)
+        );
         if (branch.BranchType is PrimitiveTypeNode or BitsTypeNode && resolved.ClrType.IsValueType)
             return (typeof(Nullable<>).MakeGenericType(resolved.ClrType), resolved.IntendedTypeName);
 
@@ -130,7 +152,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private static Dictionary<string, string> CreateTypeParameterMap(
         BinarySchemaNode binaryNode,
-        string[] typeArguments)
+        string[] typeArguments
+    )
     {
         var typeParamMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -142,14 +165,16 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private (Type ClrType, string? IntendedTypeName) ResolveTypeAnnotationWithSubstitution(
         TypeAnnotationNode typeAnnotation,
-        IReadOnlyDictionary<string, string> typeParamMap)
+        IReadOnlyDictionary<string, string> typeParamMap
+    )
     {
         if (typeAnnotation is SubstreamTypeNode { Target: not null } substream)
             return ResolveTypeAnnotationWithSubstitution(substream.Target, typeParamMap);
 
         if (typeAnnotation is SchemaReferenceTypeNode schemaRef)
             return ResolveSchemaReferenceTypeWithIntendedName(
-                ResolveSchemaReferenceWithSubstitution(schemaRef, typeParamMap));
+                ResolveSchemaReferenceWithSubstitution(schemaRef, typeParamMap)
+            );
 
         if (typeAnnotation is ArrayTypeNode arrayType)
         {
@@ -161,20 +186,22 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var (elemType, elemIntended) = ResolveTypeAnnotationWithSubstitution(
                 repeatUntilType.ElementType,
-                typeParamMap);
+                typeParamMap
+            );
             return (elemType.MakeArrayType(), elemIntended != null ? $"{elemIntended}[]" : null);
         }
-
 
         return ResolveTypeAnnotationClrTypeWithIntendedName(typeAnnotation);
     }
 
     private SchemaReferenceTypeNode ResolveSchemaReferenceWithSubstitution(
         SchemaReferenceTypeNode schemaRef,
-        IReadOnlyDictionary<string, string> typeParamMap)
+        IReadOnlyDictionary<string, string> typeParamMap
+    )
     {
-        if (!schemaRef.IsGenericInstantiation &&
-            typeParamMap.TryGetValue(schemaRef.SchemaName, out var substitutedName))
+        if (
+            !schemaRef.IsGenericInstantiation && typeParamMap.TryGetValue(schemaRef.SchemaName, out var substitutedName)
+        )
         {
             return ParseSchemaReferenceFromTypeName(substitutedName);
         }
@@ -182,8 +209,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!schemaRef.IsGenericInstantiation)
             return schemaRef;
 
-        var typeArguments = schemaRef.TypeArguments
-            .Select(typeArgument => ResolveTypeArgumentWithSubstitution(typeArgument, typeParamMap))
+        var typeArguments = schemaRef
+            .TypeArguments.Select(typeArgument => ResolveTypeArgumentWithSubstitution(typeArgument, typeParamMap))
             .ToArray();
 
         return new SchemaReferenceTypeNode(schemaRef.SchemaName, typeArguments);
@@ -191,7 +218,8 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private string ResolveTypeArgumentWithSubstitution(
         string typeArgument,
-        IReadOnlyDictionary<string, string> typeParamMap)
+        IReadOnlyDictionary<string, string> typeParamMap
+    )
     {
         var reference = ParseSchemaReferenceFromTypeName(typeArgument);
         return ResolveSchemaReferenceWithSubstitution(reference, typeParamMap).FullTypeName;

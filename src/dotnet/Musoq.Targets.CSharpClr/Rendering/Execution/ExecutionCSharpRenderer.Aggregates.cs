@@ -17,79 +17,95 @@ public sealed partial class ExecutionCSharpRenderer
             throw new InvalidOperationException("Typed aggregate set requires an input expression.");
 
         var setParameters = kernel.SetMethod.GetParameters().Skip(1).ToArray();
-        var setArguments = AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(
-            aggregateSet.Arguments);
-        var useExplicitAccumulatorInput = setArguments.Length == 0 &&
-                                          input is not null &&
-                                          setParameters.Length == 1;
+        var setArguments = AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregateSet.Arguments);
+        var useExplicitAccumulatorInput = setArguments.Length == 0 && input is not null && setParameters.Length == 1;
         if (!useExplicitAccumulatorInput && setParameters.Length != setArguments.Length)
         {
             throw new InvalidOperationException(
-                $"Typed aggregate kernel {kernel.KernelType.FullName}.Set expects {setParameters.Length.ToString(CultureInfo.InvariantCulture)} value arguments, but aggregate set has {setArguments.Length.ToString(CultureInfo.InvariantCulture)}.");
+                $"Typed aggregate kernel {kernel.KernelType.FullName}.Set expects {setParameters.Length.ToString(CultureInfo.InvariantCulture)} value arguments, but aggregate set has {setArguments.Length.ToString(CultureInfo.InvariantCulture)}."
+            );
         }
 
         var inlineSet = TryRenderInlineAggregateSet(
             aggregateSet,
             setArguments,
             setParameters,
-            new AggregateInlineRenderingContext(useExplicitAccumulatorInput, context));
+            new AggregateInlineRenderingContext(useExplicitAccumulatorInput, context)
+        );
         if (inlineSet is not null)
             return WrapAggregateSetWithFilter(aggregateSet.FilterPredicate, inlineSet, context);
 
         var arguments = new List<ArgumentSyntax>
         {
-            SyntaxFactory.Argument(CreateAggregateAccumulatorAccess(aggregateSet.Group, aggregateSet.Accumulator))
-                .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.RefKeyword))
+            SyntaxFactory
+                .Argument(CreateAggregateAccumulatorAccess(aggregateSet.Group, aggregateSet.Accumulator))
+                .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.RefKeyword)),
         };
 
         if (useExplicitAccumulatorInput)
         {
-            arguments.Add(SyntaxFactory.Argument(CastIfNeeded(
-                RenderExpression(input!, context),
-                setParameters[0].ParameterType)));
+            arguments.Add(
+                SyntaxFactory.Argument(CastIfNeeded(RenderExpression(input!, context), setParameters[0].ParameterType))
+            );
         }
         else
         {
             for (var index = 0; index < setArguments.Length; index++)
             {
-                arguments.Add(SyntaxFactory.Argument(CastIfNeeded(
-                    RenderExpression(setArguments[index], context),
-                    setParameters[index].ParameterType)));
+                arguments.Add(
+                    SyntaxFactory.Argument(
+                        CastIfNeeded(RenderExpression(setArguments[index], context), setParameters[index].ParameterType)
+                    )
+                );
             }
         }
 
-        var kernelInvocation = SyntaxFactory.InvocationExpression(
+        var kernelInvocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     CreateTypeSyntax(kernel.KernelType),
-                    SyntaxFactory.IdentifierName("Set")))
+                    SyntaxFactory.IdentifierName("Set")
+                )
+            )
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
 
         return WrapAggregateSetWithFilter(
             aggregateSet.FilterPredicate,
-            SyntaxFactory.ExpressionStatement(kernelInvocation), context);
+            SyntaxFactory.ExpressionStatement(kernelInvocation),
+            context
+        );
     }
 
     private StatementSyntax WrapAggregateSetWithFilter(
         ExecutionExpression? filterPredicate,
-        StatementSyntax statement, ExecutionRenderContext context)
+        StatementSyntax statement,
+        ExecutionRenderContext context
+    )
     {
         if (filterPredicate == null)
             return statement;
 
         return StatementEmitter.CreateIf(
             this.RenderBooleanCondition(filterPredicate, context),
-            StatementEmitter.CreateBlock(statement));
+            StatementEmitter.CreateBlock(statement)
+        );
     }
 
-    private ExpressionStatementSyntax RenderAggregateCapturedValueSet(ExecutionAggregateCapturedValueSet capturedValueSet)
+    private ExpressionStatementSyntax RenderAggregateCapturedValueSet(
+        ExecutionAggregateCapturedValueSet capturedValueSet
+    )
     {
-        return SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-            SyntaxKind.SimpleAssignmentExpression,
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(capturedValueSet.Group.Name),
-                SyntaxFactory.IdentifierName(capturedValueSet.CapturedField.FieldName)),
-            CastIfNeeded(RenderExpression(capturedValueSet.Value), capturedValueSet.CapturedField.Type)));
+        return SyntaxFactory.ExpressionStatement(
+            SyntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(capturedValueSet.Group.Name),
+                    SyntaxFactory.IdentifierName(capturedValueSet.CapturedField.FieldName)
+                ),
+                CastIfNeeded(RenderExpression(capturedValueSet.Value), capturedValueSet.CapturedField.Type)
+            )
+        );
     }
 }

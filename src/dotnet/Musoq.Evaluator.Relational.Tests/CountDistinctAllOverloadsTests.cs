@@ -17,66 +17,105 @@ public sealed class CountDistinctAllOverloadsTests : BasicEntityTestBase
     [TestMethod]
     public void CountDistinct_AllSupportedOverloads_ShouldBindAndCountUngroupedValues()
     {
-        const string query = """
-            select
-                Count(distinct StringValue) as StringCount,
-                Count(distinct DecimalValue) as DecimalCount,
-                Count(distinct DateTimeOffsetValue) as DateTimeOffsetCount,
-                Count(distinct DateTimeValue) as DateTimeCount,
-                Count(distinct ByteValue) as ByteCount,
-                Count(distinct SByteValue) as SByteCount,
-                Count(distinct ShortValue) as ShortCount,
-                Count(distinct UShortValue) as UShortCount,
-                Count(distinct IntValue) as IntCount,
-                Count(distinct UIntValue) as UIntCount,
-                Count(distinct LongValue) as LongCount,
-                Count(distinct ULongValue) as ULongCount,
-                Count(distinct FloatValue) as FloatCount,
-                Count(distinct DoubleValue) as DoubleCount,
-                Count(distinct BoolValue) as BoolCount
-            from #A.entities()
-            """;
+        const string query = (
+            "select\n"
+            + "    Count(distinct StringValue) as StringCount,\n"
+            + "    Count(distinct DecimalValue) as DecimalCount,\n"
+            + "    Count(distinct DateTimeOffsetValue) as DateTimeOffsetCount,\n"
+            + "    Count(distinct DateTimeValue) as DateTimeCount,\n"
+            + "    Count(distinct ByteValue) as ByteCount,\n"
+            + "    Count(distinct SByteValue) as SByteCount,\n"
+            + "    Count(distinct ShortValue) as ShortCount,\n"
+            + "    Count(distinct UShortValue) as UShortCount,\n"
+            + "    Count(distinct IntValue) as IntCount,\n"
+            + "    Count(distinct UIntValue) as UIntCount,\n"
+            + "    Count(distinct LongValue) as LongCount,\n"
+            + "    Count(distinct ULongValue) as ULongCount,\n"
+            + "    Count(distinct FloatValue) as FloatCount,\n"
+            + "    Count(distinct DoubleValue) as DoubleCount,\n"
+            + "    Count(distinct BoolValue) as BoolCount\n"
+            + "from #A.entities()"
+        );
 
         var table = Run(query, CreateRows());
 
-        AssertColumns(table, false, "StringCount", "DecimalCount", "DateTimeOffsetCount", "DateTimeCount", "ByteCount", "SByteCount", "ShortCount", "UShortCount", "IntCount", "UIntCount", "LongCount", "ULongCount", "FloatCount", "DoubleCount", "BoolCount");
+        AssertColumns(
+            table,
+            false,
+            "StringCount",
+            "DecimalCount",
+            "DateTimeOffsetCount",
+            "DateTimeCount",
+            "ByteCount",
+            "SByteCount",
+            "ShortCount",
+            "UShortCount",
+            "IntCount",
+            "UIntCount",
+            "LongCount",
+            "ULongCount",
+            "FloatCount",
+            "DoubleCount",
+            "BoolCount"
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            [2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L]);
+            [2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L]
+        );
     }
 
     [TestMethod]
     public void CountDistinct_AllSupportedOverloads_ShouldCountWithinEachGroup()
     {
-        const string query = """
-            select
-                Bucket,
-                Count(distinct StringValue) as StringCount,
-                Count(distinct DecimalValue) as DecimalCount,
-                Count(distinct DateTimeOffsetValue) as DateTimeOffsetCount,
-                Count(distinct DateTimeValue) as DateTimeCount,
-                Count(distinct ByteValue) as ByteCount,
-                Count(distinct SByteValue) as SByteCount,
-                Count(distinct ShortValue) as ShortCount,
-                Count(distinct UShortValue) as UShortCount,
-                Count(distinct IntValue) as IntCount,
-                Count(distinct UIntValue) as UIntCount,
-                Count(distinct LongValue) as LongCount,
-                Count(distinct ULongValue) as ULongCount,
-                Count(distinct FloatValue) as FloatCount,
-                Count(distinct DoubleValue) as DoubleCount,
-                Count(distinct BoolValue) as BoolCount
-            from #A.entities()
-            group by Bucket
-            """;
+        const string query = (
+            "select\n"
+            + "    Bucket,\n"
+            + "    Count(distinct StringValue) as StringCount,\n"
+            + "    Count(distinct DecimalValue) as DecimalCount,\n"
+            + "    Count(distinct DateTimeOffsetValue) as DateTimeOffsetCount,\n"
+            + "    Count(distinct DateTimeValue) as DateTimeCount,\n"
+            + "    Count(distinct ByteValue) as ByteCount,\n"
+            + "    Count(distinct SByteValue) as SByteCount,\n"
+            + "    Count(distinct ShortValue) as ShortCount,\n"
+            + "    Count(distinct UShortValue) as UShortCount,\n"
+            + "    Count(distinct IntValue) as IntCount,\n"
+            + "    Count(distinct UIntValue) as UIntCount,\n"
+            + "    Count(distinct LongValue) as LongCount,\n"
+            + "    Count(distinct ULongValue) as ULongCount,\n"
+            + "    Count(distinct FloatValue) as FloatCount,\n"
+            + "    Count(distinct DoubleValue) as DoubleCount,\n"
+            + "    Count(distinct BoolValue) as BoolCount\n"
+            + "from #A.entities()\n"
+            + "group by Bucket"
+        );
 
         var table = Run(query, CreateRows());
 
-        AssertColumns(table, true, "Bucket", "StringCount", "DecimalCount", "DateTimeOffsetCount", "DateTimeCount", "ByteCount", "SByteCount", "ShortCount", "UShortCount", "IntCount", "UIntCount", "LongCount", "ULongCount", "FloatCount", "DoubleCount", "BoolCount");
+        AssertColumns(
+            table,
+            true,
+            "Bucket",
+            "StringCount",
+            "DecimalCount",
+            "DateTimeOffsetCount",
+            "DateTimeCount",
+            "ByteCount",
+            "SByteCount",
+            "ShortCount",
+            "UShortCount",
+            "IntCount",
+            "UIntCount",
+            "LongCount",
+            "ULongCount",
+            "FloatCount",
+            "DoubleCount",
+            "BoolCount"
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["A", 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L],
-            ["B", 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L]);
+            ["B", 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L]
+        );
     }
 
     private Table Run(string query, IEnumerable<CountDistinctEntity> rows)
@@ -85,23 +124,23 @@ public sealed class CountDistinctAllOverloadsTests : BasicEntityTestBase
         var rowSource = new EntitySource<CountDistinctEntity>(
             [rowList],
             GenericEntityTable<CountDistinctEntity>.NameToIndexMap,
-            GenericEntityTable<CountDistinctEntity>.IndexToObjectAccessMap);
+            GenericEntityTable<CountDistinctEntity>.IndexToObjectAccessMap
+        );
         var schema = new GenericSchema<GenericLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                { "entities", (new GenericEntityTable<CountDistinctEntity>(), rowSource) }
-            });
-        var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            { "#A", schema }
-        });
+                { "entities", (new GenericEntityTable<CountDistinctEntity>(), rowSource) },
+            }
+        );
+        var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#A", schema } });
 
         var vm = InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         return vm.Run(CancellationToken.None);
     }
 
@@ -119,7 +158,7 @@ public sealed class CountDistinctAllOverloadsTests : BasicEntityTestBase
             Create("A", "beta", 2m, secondDateTimeOffset, secondDateTime, 2, 2, 2, 2, 2, 2, 2, 2, 2f, 2d, false),
             Create("A", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null),
             Create("B", "alpha", 1m, firstDateTimeOffset, firstDateTime, 1, 1, 1, 1, 1, 1, 1, 1, 1f, 1d, true),
-            Create("B", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
+            Create("B", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null),
         ];
     }
 
@@ -139,7 +178,8 @@ public sealed class CountDistinctAllOverloadsTests : BasicEntityTestBase
         ulong? uLongValue,
         float? floatValue,
         double? doubleValue,
-        bool? boolValue)
+        bool? boolValue
+    )
     {
         return new CountDistinctEntity
         {
@@ -158,7 +198,7 @@ public sealed class CountDistinctAllOverloadsTests : BasicEntityTestBase
             ULongValue = uLongValue,
             FloatValue = floatValue,
             DoubleValue = doubleValue,
-            BoolValue = boolValue
+            BoolValue = boolValue,
         };
     }
 

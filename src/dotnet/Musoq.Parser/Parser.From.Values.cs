@@ -41,7 +41,8 @@ public partial class Parser
                 "VALUES",
                 "the closing brace",
                 _lexer.AlreadyResolvedQueryPart,
-                closingToken.Span);
+                closingToken.Span
+            );
 
         RegisterFromAlias(alias);
 
@@ -51,8 +52,7 @@ public partial class Parser
         if (!aliasSpan.IsEmpty)
             fromNode.WithFullSpan(fromNode.Span.Through(aliasSpan));
 
-        return ParsedSource.Create(fromNode, SourceKind.Values, valuesToken.Span.Start, closingToken.Span,
-            aliasResult);
+        return ParsedSource.Create(fromNode, SourceKind.Values, valuesToken.Span.Start, closingToken.Span, aliasResult);
     }
 
     private ValuesRowNode ComposeValuesRow()

@@ -13,7 +13,8 @@ public sealed class InterpretationSchemaDependencyGraph
 
     public InterpretationSchemaDependencyGraph(
         Dictionary<string, InterpretationSchemaGraphNode> nodes,
-        HashSet<string> directlyUsedSchemaNames)
+        HashSet<string> directlyUsedSchemaNames
+    )
     {
         ArgumentNullException.ThrowIfNull(nodes);
         _nodes = nodes;

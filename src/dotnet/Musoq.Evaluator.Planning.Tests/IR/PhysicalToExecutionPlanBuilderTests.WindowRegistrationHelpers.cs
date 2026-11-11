@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public sealed partial class PhysicalToExecutionPlanBuilderTests
 {
-
     private static WindowRegistration CreateRowNumberRegistration(OrderField orderField)
     {
         return CreateRowNumberRegistration([orderField], []);
@@ -19,16 +18,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         return CreateRowNumberRegistration(orderFields, []);
     }
 
-    private static WindowRegistration CreateRowNumberRegistration(
-        OrderField orderField,
-        IrExpression[] partitionKeys)
+    private static WindowRegistration CreateRowNumberRegistration(OrderField orderField, IrExpression[] partitionKeys)
     {
         return CreateRowNumberRegistration([orderField], partitionKeys);
     }
 
     private static WindowRegistration CreateRowNumberRegistration(
         OrderField[] orderFields,
-        IrExpression[] partitionKeys)
+        IrExpression[] partitionKeys
+    )
     {
         return CreateRankingRegistration(nameof(LibraryBase.RowNumber), "RowNumber", orderFields, partitionKeys);
     }
@@ -40,7 +38,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
 
     private static WindowRegistration CreateDenseRankRegistration(
         OrderField[] orderFields,
-        IrExpression[] partitionKeys)
+        IrExpression[] partitionKeys
+    )
     {
         return CreateRankingRegistration(nameof(LibraryBase.DenseRank), "DenseRank", orderFields, partitionKeys);
     }
@@ -48,7 +47,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     private static WindowRegistration CreatePercentRankRegistration(
         OrderField[] orderFields,
         IrExpression[] partitionKeys,
-        int windowIndex = 0)
+        int windowIndex = 0
+    )
     {
         return CreateRankingRegistration(
             nameof(LibraryBase.PercentRank),
@@ -56,13 +56,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             orderFields,
             partitionKeys,
             typeof(double),
-            windowIndex);
+            windowIndex
+        );
     }
 
     private static WindowRegistration CreateCumeDistRegistration(
         OrderField[] orderFields,
         IrExpression[] partitionKeys,
-        int windowIndex = 0)
+        int windowIndex = 0
+    )
     {
         return CreateRankingRegistration(
             nameof(LibraryBase.CumeDist),
@@ -70,7 +72,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             orderFields,
             partitionKeys,
             typeof(double),
-            windowIndex);
+            windowIndex
+        );
     }
 
     private static WindowRegistration CreateLagRegistration(
@@ -78,7 +81,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         OrderField[] orderFields,
         IrExpression[] partitionKeys,
         IrExpression[] arguments,
-        int windowIndex = 0)
+        int windowIndex = 0
+    )
     {
         return CreateOffsetRegistration("Lag", value, orderFields, partitionKeys, arguments, windowIndex);
     }
@@ -88,7 +92,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         OrderField[] orderFields,
         IrExpression[] partitionKeys,
         IrExpression[] arguments,
-        int windowIndex = 0)
+        int windowIndex = 0
+    )
     {
         return CreateOffsetRegistration("Lead", value, orderFields, partitionKeys, arguments, windowIndex);
     }
@@ -96,19 +101,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     private static WindowRegistration CreateFirstValueRegistration(
         IrExpression value,
         OrderField[] orderFields,
-        WindowFrameNode? frame = null)
+        WindowFrameNode? frame = null
+    )
     {
         var method = ResolveTypedWindowDeclaration("FirstValue", value);
 
-        return new WindowRegistration(
-            method,
-            "FirstValue",
-            [],
-            orderFields,
-            [value],
-            0,
-            method.ReturnType,
-            frame);
+        return new WindowRegistration(method, "FirstValue", [], orderFields, [value], 0, method.ReturnType, frame);
     }
 
     private static WindowRegistration CreateOffsetRegistration(
@@ -117,7 +115,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         OrderField[] orderFields,
         IrExpression[] partitionKeys,
         IrExpression[] arguments,
-        int windowIndex)
+        int windowIndex
+    )
     {
         var method = ResolveTypedWindowDeclaration(functionName, value);
         return new WindowRegistration(
@@ -127,13 +126,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             orderFields,
             [value, .. arguments],
             windowIndex,
-            method.ReturnType);
+            method.ReturnType
+        );
     }
 
     private static System.Reflection.MethodInfo ResolveTypedWindowDeclaration(string name, IrExpression value)
     {
-        var method = Musoq.Evaluator.Visitors.WindowDeclarationBinding.ResolveStandard(name, [value.ReturnType]) ??
-                     throw new InvalidOperationException($"Window declaration '{name}' was not found.");
+        var method =
+            Musoq.Evaluator.Visitors.WindowDeclarationBinding.ResolveStandard(name, [value.ReturnType])
+            ?? throw new InvalidOperationException($"Window declaration '{name}' was not found.");
         if (!method.IsGenericMethodDefinition)
             return method;
         return method.MakeGenericMethod(Nullable.GetUnderlyingType(value.ReturnType) ?? value.ReturnType);
@@ -145,10 +146,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         OrderField[] orderFields,
         IrExpression[] partitionKeys,
         Type? returnType = null,
-        int windowIndex = 0)
+        int windowIndex = 0
+    )
     {
-        var method = typeof(LibraryBase).GetMethod(methodName, Type.EmptyTypes) ??
-                     throw new InvalidOperationException($"{functionName} window method was not found.");
+        var method =
+            typeof(LibraryBase).GetMethod(methodName, Type.EmptyTypes)
+            ?? throw new InvalidOperationException($"{functionName} window method was not found.");
 
         return new WindowRegistration(
             method,
@@ -157,7 +160,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             orderFields,
             [],
             windowIndex,
-            returnType ?? typeof(long));
+            returnType ?? typeof(long)
+        );
     }
-
 }

@@ -8,11 +8,7 @@ namespace Musoq.Parser;
 
 public partial class Parser
 {
-    private readonly record struct ParsedNamedField(
-        string Name,
-        Node Expression,
-        TextSpan NameSpan,
-        TextSpan Span);
+    private readonly record struct ParsedNamedField(string Name, Node Expression, TextSpan NameSpan, TextSpan Span);
 
     private bool IsContextualArrayLiteralStart()
     {
@@ -21,8 +17,10 @@ public partial class Parser
 
     private bool IsContextualConstructStart(string keyword, TokenType openingTokenType)
     {
-        if (Current.TokenType is not (TokenType.Identifier or TokenType.Word or TokenType.Function) ||
-            !Current.Value.Equals(keyword, StringComparison.OrdinalIgnoreCase))
+        if (
+            Current.TokenType is not (TokenType.Identifier or TokenType.Word or TokenType.Function)
+            || !Current.Value.Equals(keyword, StringComparison.OrdinalIgnoreCase)
+        )
             return false;
 
         return PeekSignificantToken().TokenType == openingTokenType;
@@ -73,8 +71,7 @@ public partial class Parser
 
     private bool IsRecordLiteralStart()
     {
-        return IsStructuralFieldNameToken(Current.TokenType) &&
-               PeekSignificantToken().TokenType == TokenType.Colon;
+        return IsStructuralFieldNameToken(Current.TokenType) && PeekSignificantToken().TokenType == TokenType.Colon;
     }
 
     private bool IsParenthesizedRecordLiteralStart()
@@ -83,21 +80,25 @@ public partial class Parser
             return false;
 
         var field = PeekSignificantToken();
-        return IsStructuralFieldNameToken(field.TokenType) &&
-               PeekSignificantToken(2).TokenType == TokenType.Colon;
+        return IsStructuralFieldNameToken(field.TokenType) && PeekSignificantToken(2).TokenType == TokenType.Colon;
     }
 
     private static bool IsStructuralFieldNameToken(TokenType tokenType)
     {
-        return tokenType is TokenType.Identifier or TokenType.Word or TokenType.Function ||
-               IsSchemaKeywordToken(tokenType) ||
-               tokenType is TokenType.Window or TokenType.Rows or TokenType.Range or TokenType.Over or
-                   TokenType.CurrentRow or TokenType.Following or TokenType.Preceding or TokenType.Unbounded;
+        return tokenType is TokenType.Identifier or TokenType.Word or TokenType.Function
+            || IsSchemaKeywordToken(tokenType)
+            || tokenType
+                is TokenType.Window
+                    or TokenType.Rows
+                    or TokenType.Range
+                    or TokenType.Over
+                    or TokenType.CurrentRow
+                    or TokenType.Following
+                    or TokenType.Preceding
+                    or TokenType.Unbounded;
     }
 
-    private (List<ParsedNamedField> Fields, Token Closing) ComposeNamedFields(
-        bool allowEmpty,
-        string constructName)
+    private (List<ParsedNamedField> Fields, Token Closing) ComposeNamedFields(bool allowEmpty, string constructName)
     {
         var fields = new List<ParsedNamedField>();
         if (Current.TokenType == TokenType.RightParenthesis)
@@ -107,7 +108,8 @@ public partial class Parser
                     $"A {constructName} must contain at least one named field.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2001_UnexpectedToken,
-                    Current.Span);
+                    Current.Span
+                );
 
             return (fields, ConsumeAndGetToken(TokenType.RightParenthesis));
         }
@@ -119,16 +121,20 @@ public partial class Parser
                     $"A {constructName} field must start with a field name.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2001_UnexpectedToken,
-                    Current.Span);
+                    Current.Span
+                );
 
             var nameToken = ConsumeAndGetToken(Current.TokenType);
             Consume(TokenType.Colon);
             var expression = ComposeOperations();
-            fields.Add(new ParsedNamedField(
-                nameToken.Value,
-                expression,
-                nameToken.Span,
-                nameToken.Span.Through(expression.Span)));
+            fields.Add(
+                new ParsedNamedField(
+                    nameToken.Value,
+                    expression,
+                    nameToken.Span,
+                    nameToken.Span.Through(expression.Span)
+                )
+            );
 
             if (Current.TokenType != TokenType.Comma)
                 break;

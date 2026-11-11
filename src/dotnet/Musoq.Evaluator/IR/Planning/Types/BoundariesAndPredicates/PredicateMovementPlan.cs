@@ -12,4 +12,5 @@ internal sealed record PredicateMovementPlan(
     IrExpression Predicate,
     string PredicateText,
     PlanningConfidence Confidence,
-    string Reason);
+    string Reason
+);

@@ -7,12 +7,16 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionWindowQueryTestsFixtures
 {
-
     public sealed class FrameLibrary : LibraryBase
     {
-        [WindowFunction(KernelType = typeof(PositiveAverageKernel), ContextType = typeof(WindowFrameContext<>),
-            Modes = WindowEvaluationModes.RecomputeFrames | WindowEvaluationModes.Running | WindowEvaluationModes.WholePartition,
-            EmptyResultBehavior = AggregateEmptyResultBehavior.Null)]
+        [WindowFunction(
+            KernelType = typeof(PositiveAverageKernel),
+            ContextType = typeof(WindowFrameContext<>),
+            Modes = WindowEvaluationModes.RecomputeFrames
+                | WindowEvaluationModes.Running
+                | WindowEvaluationModes.WholePartition,
+            EmptyResultBehavior = AggregateEmptyResultBehavior.Null
+        )]
         public decimal? PositiveAverage(int? value) => AggregateFunction.NotInvoked<decimal?>();
     }
 
@@ -33,5 +37,4 @@ public partial class LibraryExecutionWindowQueryTestsFixtures
             return count == 0 ? null : total / count;
         }
     }
-
 }

@@ -9,12 +9,20 @@ public partial class SchemaParser
 {
     private static bool IsTypeKeyword(TokenType tokenType)
     {
-        return tokenType is TokenType.ByteType or TokenType.SByteType or
-            TokenType.ShortType or TokenType.UShortType or
-            TokenType.IntType or TokenType.UIntType or
-            TokenType.LongType or TokenType.ULongType or
-            TokenType.FloatType or TokenType.DoubleType or
-            TokenType.StringType or TokenType.BitsType or TokenType.Align;
+        return tokenType
+            is TokenType.ByteType
+                or TokenType.SByteType
+                or TokenType.ShortType
+                or TokenType.UShortType
+                or TokenType.IntType
+                or TokenType.UIntType
+                or TokenType.LongType
+                or TokenType.ULongType
+                or TokenType.FloatType
+                or TokenType.DoubleType
+                or TokenType.StringType
+                or TokenType.BitsType
+                or TokenType.Align;
     }
 
     private TypeAnnotationNode ComposeTypeAnnotation(string? fieldName = null)
@@ -22,8 +30,7 @@ public partial class SchemaParser
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.TypeSyntax, Current);
         var type = Current.TokenType switch
         {
-            TokenType.ByteType when PeekNextTokenType() == TokenType.LeftSquareBracket =>
-                ComposeByteArrayType(),
+            TokenType.ByteType when PeekNextTokenType() == TokenType.LeftSquareBracket => ComposeByteArrayType(),
             TokenType.ByteType => ComposePrimitiveType(PrimitiveTypeName.Byte, false),
             TokenType.SByteType => ComposePrimitiveType(PrimitiveTypeName.SByte, false),
             TokenType.ShortType => ComposePrimitiveType(PrimitiveTypeName.Short, true),
@@ -55,7 +62,8 @@ public partial class SchemaParser
 
             _ => throw new SyntaxException(
                 $"Expected type annotation but found '{Current.TokenType}' ({Current.Value})",
-                _lexer.AlreadyResolvedQueryPart)
+                _lexer.AlreadyResolvedQueryPart
+            ),
         };
         while (Current.TokenType is TokenType.LeftSquareBracket or TokenType.Repeat)
         {
@@ -67,7 +75,10 @@ public partial class SchemaParser
                 continue;
             }
             if (type is BinarySwitchTypeNode or AlignmentNode)
-                throw InvalidBinarySchemaField("Direct arrays of binary switches and alignment directives are not supported.", Current.Span);
+                throw InvalidBinarySchemaField(
+                    "Direct arrays of binary switches and alignment directives are not supported.",
+                    Current.Span
+                );
             type = ComposeArrayOfType(type);
         }
         return type;
@@ -92,14 +103,20 @@ public partial class SchemaParser
             {
                 TokenType.LittleEndian => Endianness.LittleEndian,
                 TokenType.BigEndian => Endianness.BigEndian,
-                _ => throw InvalidBinarySchemaEndianness($"Multi-byte type '{typeName}' requires endianness specifier (le or be)", Current.Span)
+                _ => throw InvalidBinarySchemaEndianness(
+                    $"Multi-byte type '{typeName}' requires endianness specifier (le or be)",
+                    Current.Span
+                ),
             };
             Consume(Current.TokenType);
         }
         else
         {
             if (Current.TokenType is TokenType.LittleEndian or TokenType.BigEndian)
-                throw InvalidBinarySchemaEndianness($"Single-byte type '{typeName}' does not accept an endianness specifier", Current.Span);
+                throw InvalidBinarySchemaEndianness(
+                    $"Single-byte type '{typeName}' does not accept an endianness specifier",
+                    Current.Span
+                );
 
             endianness = Endianness.NotApplicable;
         }
@@ -117,7 +134,10 @@ public partial class SchemaParser
             return primitiveType;
 
         if (IsNegativeConstantSizeExpression(arraySizeExpr, out var negativeArrayValue))
-            throw InvalidBinarySchemaField($"{typeName}[] size must be non-negative, but got {negativeArrayValue}.", arraySizeExpr.Span);
+            throw InvalidBinarySchemaField(
+                $"{typeName}[] size must be non-negative, but got {negativeArrayValue}.",
+                arraySizeExpr.Span
+            );
 
         return new ArrayTypeNode(primitiveType, arraySizeExpr);
     }

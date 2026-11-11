@@ -11,7 +11,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreatePrimitiveArrayBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [ArrayPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [ArrayPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Values: short[]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -21,16 +24,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreatePrimitiveArrayBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "arrays",
                     Line = "INFO arrays",
                     Numbers = [],
-                    Content = CreatePrimitiveArrayPacketContent()
-                }
-            ]));
+                    Content = CreatePrimitiveArrayPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -47,7 +50,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateStringArrayBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [StringArrayPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [StringArrayPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Names: string[]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -57,16 +63,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateStringArrayBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "string-arrays",
                     Line = "INFO string arrays",
                     Numbers = [],
-                    Content = CreateStringArrayPacketContent()
-                }
-            ]));
+                    Content = CreateStringArrayPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -83,7 +89,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateInlineSchemaArrayBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [InlineArrayPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [InlineArrayPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Items:", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -93,16 +102,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateInlineSchemaArrayBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "inline-arrays",
                     Line = "INFO inline arrays",
                     Numbers = [],
-                    Content = CreateInlineSchemaArrayPacketContent()
-                }
-            ]));
+                    Content = CreateInlineSchemaArrayPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -121,7 +130,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreatePrimitiveRepeatUntilBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [PrimitiveRepeatPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [PrimitiveRepeatPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Values: byte[]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -131,16 +143,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreatePrimitiveRepeatUntilBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "repeat-primitives",
                     Line = "INFO repeat primitives",
                     Numbers = [],
-                    Content = CreatePrimitiveRepeatUntilPacketContent()
-                }
-            ]));
+                    Content = CreatePrimitiveRepeatUntilPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -156,7 +168,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateBitsRepeatUntilBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [BitsRepeatPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [BitsRepeatPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Flags: byte[]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -166,16 +181,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateBitsRepeatUntilBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "repeat-bits",
                     Line = "INFO repeat bits",
                     Numbers = [],
-                    Content = CreateBitsRepeatUntilPacketContent()
-                }
-            ]));
+                    Content = CreateBitsRepeatUntilPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -191,7 +206,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateStringRepeatUntilBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [StringRepeatPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [StringRepeatPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Names: string[]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -201,16 +219,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateStringRepeatUntilBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "repeat-strings",
                     Line = "INFO repeat strings",
                     Numbers = [],
-                    Content = CreateStringRepeatUntilPacketContent()
-                }
-            ]));
+                    Content = CreateStringRepeatUntilPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -226,7 +244,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateInlineSchemaRepeatUntilBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [InlineRepeatPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [InlineRepeatPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Items:", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -236,16 +257,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateInlineSchemaRepeatUntilBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "repeat-inline",
                     Line = "INFO repeat inline",
                     Numbers = [],
-                    Content = CreateInlineSchemaRepeatUntilPacketContent()
-                }
-            ]));
+                    Content = CreateInlineSchemaRepeatUntilPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -265,7 +286,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateSchemaReferenceArrayBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [SchemaArrayPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [SchemaArrayPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Items: object[]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -275,16 +299,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateSchemaReferenceArrayBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "schema-arrays",
                     Line = "INFO schema arrays",
                     Numbers = [],
-                    Content = CreateSchemaReferenceArrayPacketContent()
-                }
-            ]));
+                    Content = CreateSchemaReferenceArrayPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -298,10 +322,16 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderSchemaReferenceRepeatUntilBinaryInterpretSource_ShouldUseExecutionBackend()
     {
-        var result = Inspect(CreateSchemaReferenceRepeatUntilBinaryInterpretQuery(), CreateApplyCandidateSchemaProvider());
+        var result = Inspect(
+            CreateSchemaReferenceRepeatUntilBinaryInterpretQuery(),
+            CreateApplyCandidateSchemaProvider()
+        );
 
         AssertUsesExecutionBackend(result);
-        AssertExecutionPlanContains("InterpretSource [SchemaRepeatPacket.Interpret(i.Content) -> pRows]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "InterpretSource [SchemaRepeatPacket.Interpret(i.Content) -> pRows]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("Items:", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -311,16 +341,16 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             CreateSchemaReferenceRepeatUntilBinaryInterpretQuery(),
-            new ApplyCandidateSchemaProvider(
-            [
+            new ApplyCandidateSchemaProvider([
                 new ApplyCandidateEntity
                 {
                     Name = "repeat-schemas",
                     Line = "INFO repeat schemas",
                     Numbers = [],
-                    Content = CreateSchemaReferenceRepeatUntilPacketContent()
-                }
-            ]));
+                    Content = CreateSchemaReferenceRepeatUntilPacketContent(),
+                },
+            ])
+        );
 
         var table = compiled.Run();
 
@@ -329,5 +359,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual((byte)0xAA, table[0].ReadValue(1));
         Assert.AreEqual((byte)0x00, table[2].ReadValue(1));
     }
-
 }

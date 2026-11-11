@@ -4,8 +4,8 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Converter.Exceptions;
-using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Tests.Components;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -19,12 +19,15 @@ public sealed class SourceRuntimeSettingsSnapshotTests
         var resolver = new RetainedSettingsResolver();
         var compiled = InstanceCreator.CompileForExecution(
             "couple settings.items with settings MiXeD as Data; select Token from Data();",
-            Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(),
-            new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+        );
 
         Assert.IsTrue(resolver.Profiles.All(profile => profile == "MiXeD"));
-        var establishedBeforeExecution = provider.Schema.MetadataSettings
-            .Concat(provider.Schema.PlanSettings)
+        var establishedBeforeExecution = provider
+            .Schema.MetadataSettings.Concat(provider.Schema.PlanSettings)
             .Where(settings => settings.ContainsKey("TOKEN"))
             .ToArray();
         resolver.Values["TOKEN"] = "resolver-mutated";
@@ -48,10 +51,13 @@ public sealed class SourceRuntimeSettingsSnapshotTests
         var provider = new SourceRuntimeSettingsLifecycleTestsFixtures.SettingsSchemaProvider(declareRequirement: true);
         var resolver = new RetainedSettingsResolver(useContext: true);
         var compiled = InstanceCreator.CompileForExecution(
-            "couple settings.items with settings MiXeD as Data; " +
-            "select l.Token, r.Token from Data() l cross join Data() r;",
-            Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(),
-            new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
+            "couple settings.items with settings MiXeD as Data; "
+                + "select l.Token, r.Token from Data() l cross join Data() r;",
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+        );
         resolver.Values.Clear();
 
         var table = compiled.Run();
@@ -68,8 +74,12 @@ public sealed class SourceRuntimeSettingsSnapshotTests
         resolver.Values["TOKEN"] = string.Empty;
         resolver.Values["token"] = "distinct-key";
         var compiled = InstanceCreator.CompileForExecution(
-            "select Token from settings.items()", Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
+            "select Token from settings.items()",
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+        );
 
         Assert.AreEqual(string.Empty, compiled.Run()[0].ReadValue(0));
         var settings = provider.Schema.ExecutionSettings.Single();
@@ -85,8 +95,12 @@ public sealed class SourceRuntimeSettingsSnapshotTests
         resolver.Values.Clear();
         resolver.Values["token"] = "wrong-case";
         var result = InstanceCreator.CompileWithDiagnostics(
-            "select Token from settings.items()", Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
+            "select Token from settings.items()",
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+        );
 
         Assert.IsFalse(result.Succeeded);
         Assert.IsTrue(result.Errors.Any(error => error.Code == DiagnosticCode.MQ3067_MissingSourceRuntimeSetting));
@@ -101,8 +115,12 @@ public sealed class SourceRuntimeSettingsSnapshotTests
         var exception = Assert.ThrowsExactly<MusoqQueryException>(() =>
             InstanceCreator.CompileForExecution(
                 "couple settings.items with settings MiXeD as Data; select Token from Data();",
-                Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(),
-                new CompilationOptions(sourceRuntimeSettingsResolver: resolver)));
+                Guid.NewGuid().ToString(),
+                provider,
+                new TestsLoggerResolver(),
+                new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+            )
+        );
 
         Assert.IsNotEmpty(exception.Envelopes);
         Assert.AreEqual("MiXeD", resolver.Profile);
@@ -111,10 +129,7 @@ public sealed class SourceRuntimeSettingsSnapshotTests
 
     private sealed class RetainedSettingsResolver(bool useContext = false) : ISourceRuntimeSettingsResolver
     {
-        public Dictionary<string, string> Values { get; } = new(StringComparer.Ordinal)
-        {
-            ["TOKEN"] = "stable-token"
-        };
+        public Dictionary<string, string> Values { get; } = new(StringComparer.Ordinal) { ["TOKEN"] = "stable-token" };
 
         public List<string?> Profiles { get; } = [];
         public List<string> Contexts { get; } = [];

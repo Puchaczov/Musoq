@@ -11,7 +11,8 @@ internal static class ExpressionHoistPlanner
     public static ExpressionHoistPlan Create(
         IEnumerable<ExecutionExpressionCseFacts.HoistOccurrence> occurrences,
         HashSet<string> usedNames,
-        HashSet<string>? requiredSignatures = null)
+        HashSet<string>? requiredSignatures = null
+    )
     {
         var counts = new Dictionary<string, ExpressionHoistCandidate>(StringComparer.Ordinal);
 
@@ -27,7 +28,9 @@ internal static class ExpressionHoistPlanner
                         occurrence.Depth,
                         1,
                         occurrence.IsSafeOrigin ? 1 : 0,
-                        counts.Count));
+                        counts.Count
+                    )
+                );
                 continue;
             }
 
@@ -35,12 +38,12 @@ internal static class ExpressionHoistPlanner
             {
                 Count = candidate.Count + 1,
                 SafeCount = candidate.SafeCount + (occurrence.IsSafeOrigin ? 1 : 0),
-                Depth = Math.Min(candidate.Depth, occurrence.Depth)
+                Depth = Math.Min(candidate.Depth, occurrence.Depth),
             };
         }
 
-        var candidates = counts.Values
-            .Where(static candidate => candidate is { Count: > 1, SafeCount: > 0 })
+        var candidates = counts
+            .Values.Where(static candidate => candidate is { Count: > 1, SafeCount: > 0 })
             .Where(candidate => requiredSignatures == null || requiredSignatures.Contains(candidate.Signature))
             .OrderBy(static candidate => candidate.Depth)
             .ThenBy(static candidate => candidate.Ordinal)
@@ -51,7 +54,8 @@ internal static class ExpressionHoistPlanner
         var variables = candidates.ToDictionary(
             static candidate => candidate.Signature,
             candidate => CreateHoistedVariable(candidate.Expression, usedNames),
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
 
         var lets = new List<ExecutionLet>(candidates.Length);
         var availableVariables = new Dictionary<string, ExecutionVariable>(StringComparer.Ordinal);
@@ -66,23 +70,26 @@ internal static class ExpressionHoistPlanner
         return new ExpressionHoistPlan(lets, variables);
     }
 
-    private static ExecutionVariable CreateHoistedVariable(
-        ExecutionExpression expression,
-        HashSet<string> usedNames)
+    private static ExecutionVariable CreateHoistedVariable(ExecutionExpression expression, HashSet<string> usedNames)
     {
         var candidate = expression switch
         {
             ExecutionFieldRead fieldRead => fieldRead.FieldName,
             ExecutionMemberRead memberRead => memberRead.MemberName,
             ExecutionMethodCall methodCall => methodCall.Method.MethodName,
-            ExecutionMethodTargetReuseCandidate methodTargetCandidate => methodTargetCandidate.MethodCall.Method.MethodName,
+            ExecutionMethodTargetReuseCandidate methodTargetCandidate => methodTargetCandidate
+                .MethodCall
+                .Method
+                .MethodName,
             ExecutionStrictCast strictCast => CreateCastHoistVariableName(strictCast),
-            _ => "__expr"
+            _ => "__expr",
         };
 
         return new ExecutionVariable(
             CreateHoistedVariableName(candidate, usedNames),
-            expression.ReturnType, ExecutionGeneratedTypeName.For(expression));
+            expression.ReturnType,
+            ExecutionGeneratedTypeName.For(expression)
+        );
     }
 
     private static string CreateCastHoistVariableName(ExecutionStrictCast strictCast)
@@ -90,21 +97,27 @@ internal static class ExpressionHoistPlanner
         var targetName = NormalizeCastTargetName(strictCast);
         return strictCast.Expression switch
         {
-            ExecutionFieldRead fieldRead when !string.IsNullOrWhiteSpace(fieldRead.FieldName) => $"{fieldRead.FieldName}{targetName}",
-            ExecutionVariableRead variableRead when !string.IsNullOrWhiteSpace(variableRead.Variable.Name) => $"{variableRead.Variable.Name}{targetName}",
-            _ => $"cast{targetName}"
+            ExecutionFieldRead fieldRead when !string.IsNullOrWhiteSpace(fieldRead.FieldName) =>
+                $"{fieldRead.FieldName}{targetName}",
+            ExecutionVariableRead variableRead when !string.IsNullOrWhiteSpace(variableRead.Variable.Name) =>
+                $"{variableRead.Variable.Name}{targetName}",
+            _ => $"cast{targetName}",
         };
     }
 
     private static string NormalizeCastTargetName(ExecutionStrictCast strictCast)
     {
-        var targetType = Nullable.GetUnderlyingType(strictCast.ReturnType.ResolveClrType()) ?? strictCast.ReturnType.ResolveClrType();
+        var targetType =
+            Nullable.GetUnderlyingType(strictCast.ReturnType.ResolveClrType())
+            ?? strictCast.ReturnType.ResolveClrType();
         return targetType == typeof(string) ? nameof(String) : targetType.Name;
     }
 
     private static string CreateHoistedVariableName(string candidate, HashSet<string> usedNames)
     {
-        var normalized = SyntaxHelper.ToCamelCase(ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(candidate, usedNames.Count));
+        var normalized = SyntaxHelper.ToCamelCase(
+            ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(candidate, usedNames.Count)
+        );
         if (string.IsNullOrWhiteSpace(normalized))
             normalized = "__expr";
         if (ExecutionSymbolicNamePolicy.IsReservedIdentifier(normalized))
@@ -127,6 +140,6 @@ internal static class ExpressionHoistPlanner
         int Depth,
         int Count,
         int SafeCount,
-        int Ordinal);
+        int Ordinal
+    );
 }
-

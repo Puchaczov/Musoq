@@ -18,7 +18,9 @@ public sealed partial class LogicalPlanBuilder : IExpressionVisitor
     private readonly List<OrderField> _orderFields = [];
     private readonly List<WindowRegistration> _windowRegistrations = [];
     private readonly List<IrNodes.CteDefinition> _cteDefinitions = [];
-    private readonly Dictionary<string, WindowSpecificationNode> _windowDefinitions = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, WindowSpecificationNode> _windowDefinitions = new(
+        StringComparer.OrdinalIgnoreCase
+    );
     private readonly List<RefreshMethodCapture> _refreshMethods = [];
 
     private bool _selectVisited;
@@ -34,22 +36,27 @@ public sealed partial class LogicalPlanBuilder : IExpressionVisitor
     private PagingCount? _takeValue;
 
     public LogicalPlanBuilder(IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns)
-        : this(inferredColumns, null)
-    {
-    }
+        : this(inferredColumns, null) { }
 
-    private LogicalPlanBuilder(IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns, Func<string>? subqueryNameGenerator)
+    private LogicalPlanBuilder(
+        IReadOnlyDictionary<string, ISchemaColumn[]> inferredColumns,
+        Func<string>? subqueryNameGenerator
+    )
     {
         _inferredColumns = inferredColumns ?? throw new ArgumentNullException(nameof(inferredColumns));
         _subqueryNameGenerator = subqueryNameGenerator ?? (() => $"Subquery{_subqueryIndex++}");
         var metadata = new LogicalColumnMetadata(inferredColumns);
-        _converter = new ExpressionConverter(RegisterWindowFunction, metadata.ResolveColumnStability, metadata.ResolveColumnEnumType,
-            BuildSubquery, _subqueryNameGenerator);
+        _converter = new ExpressionConverter(
+            RegisterWindowFunction,
+            metadata.ResolveColumnStability,
+            metadata.ResolveColumnEnumType,
+            BuildSubquery,
+            _subqueryNameGenerator
+        );
     }
 
-    public LogicalPlanBuilder() : this(new Dictionary<string, ISchemaColumn[]>())
-    {
-    }
+    public LogicalPlanBuilder()
+        : this(new Dictionary<string, ISchemaColumn[]>()) { }
 
     private LogicalNode BuildSubquery(Node node)
     {
@@ -59,5 +66,4 @@ public sealed partial class LogicalPlanBuilder : IExpressionVisitor
     }
 
     public LogicalNode? Result => _nodeStack.Count > 0 ? _nodeStack.Peek() : null;
-
 }

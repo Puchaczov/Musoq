@@ -19,40 +19,28 @@ public sealed partial class ExecutionShapeResolver
         }
         else
         {
-            columns = scan.OutputSchema.Columns
-                .Select(static column => column.ToSchemaColumn())
-                .ToArray();
+            columns = scan.OutputSchema.Columns.Select(static column => column.ToSchemaColumn()).ToArray();
         }
 
         return FilterProjectedColumns(columns, scan.ProjectedColumns);
     }
 
-    private static ISchemaColumn[] FilterProjectedColumns(
-        ISchemaColumn[] columns,
-        string[] projectedColumns)
+    private static ISchemaColumn[] FilterProjectedColumns(ISchemaColumn[] columns, string[] projectedColumns)
     {
         if (projectedColumns.Length == 0)
             return columns;
 
         var projectedColumnNames = new HashSet<string>(projectedColumns, StringComparer.OrdinalIgnoreCase);
-        var filteredColumns = columns
-            .Where(column => projectedColumnNames.Contains(column.ColumnName))
-            .ToArray();
+        var filteredColumns = columns.Where(column => projectedColumnNames.Contains(column.ColumnName)).ToArray();
 
-        return filteredColumns.Length == projectedColumns.Length
-            ? filteredColumns
-            : columns;
+        return filteredColumns.Length == projectedColumns.Length ? filteredColumns : columns;
     }
 
-    private static ISchemaColumn[] ResolveColumns(
-        Type entityType,
-        IReadOnlyList<ColumnSchema> columns)
+    private static ISchemaColumn[] ResolveColumns(Type entityType, IReadOnlyList<ColumnSchema> columns)
     {
         if (columns.Count > 0)
         {
-            return columns
-                .Select(static column => column.ToSchemaColumn())
-                .ToArray();
+            return columns.Select(static column => column.ToSchemaColumn()).ToArray();
         }
 
         return CreateFallbackColumns(entityType);
@@ -83,7 +71,8 @@ public sealed partial class ExecutionShapeResolver
     private static FieldBinding[] CreateFieldBindings(
         string alias,
         IReadOnlyList<ISchemaColumn> columns,
-        Func<ISchemaColumn, FieldAccessStrategy> resolveAccessStrategy)
+        Func<ISchemaColumn, FieldAccessStrategy> resolveAccessStrategy
+    )
     {
         var fields = new FieldBinding[columns.Count];
 
@@ -99,10 +88,11 @@ public sealed partial class ExecutionShapeResolver
                 resolveAccessStrategy(column),
                 readModifiers: column.ReadModifiers,
                 sourceReadType: column.SourceReadType,
-                enumType: column.EnumType) with
+                enumType: column.EnumType
+            ) with
             {
                 GeneratedTypeName = InterpretationTypeNames.Executable(column.IntendedTypeName),
-                Stability = column.Stability
+                Stability = column.Stability,
             };
         }
 
@@ -116,8 +106,10 @@ public sealed partial class ExecutionShapeResolver
             return new PositionalAccess(column.ColumnIndex, ExecutionClrBindingFactory.FromClr(column.SourceReadType));
         }
 
-        if (DynamicEntityBoundary.IsDynamicObject(entityType) &&
-            !ExecutionSourceCodeGenerationPolicy.IsSupportedDictionary(entityType))
+        if (
+            DynamicEntityBoundary.IsDynamicObject(entityType)
+            && !ExecutionSourceCodeGenerationPolicy.IsSupportedDictionary(entityType)
+        )
         {
             if (HasPublicClrMember(entityType, column.ColumnName))
             {
@@ -127,8 +119,10 @@ public sealed partial class ExecutionShapeResolver
             return new RuntimeDynamicMemberAccess(column.ColumnName);
         }
 
-        if (ExecutionSourceCodeGenerationPolicy.IsSupportedDictionary(entityType) &&
-            !HasPublicClrMember(entityType, column.ColumnName))
+        if (
+            ExecutionSourceCodeGenerationPolicy.IsSupportedDictionary(entityType)
+            && !HasPublicClrMember(entityType, column.ColumnName)
+        )
             return new NestedClrPropertyAccess(column.ColumnName);
 
         if (column.ColumnName.Contains('.', StringComparison.Ordinal))
@@ -152,11 +146,13 @@ public sealed partial class ExecutionShapeResolver
     {
         return entityType
             .GetMember(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
-            .FirstOrDefault(member => member switch
-            {
-                PropertyInfo property => property.GetMethod is { IsPublic: true },
-                FieldInfo field => field.IsPublic,
-                _ => false
-            });
+            .FirstOrDefault(member =>
+                member switch
+                {
+                    PropertyInfo property => property.GetMethod is { IsPublic: true },
+                    FieldInfo field => field.IsPublic,
+                    _ => false,
+                }
+            );
     }
 }

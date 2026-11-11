@@ -33,11 +33,13 @@ public sealed class JoinSemiAntiCrossJoinDiagnosticsTests : BasicEntityTestBase
     [TestMethod]
     public void SemiJoin_WhenWhereReferencesRightSideColumn_ShouldRejectAlias()
     {
-        const string query = @"
-select a.Name
-from #A.entities() a
-semi join #B.entities() b on a.Id = b.Id
-where b.Name = 'B1'";
+        const string query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "semi join #B.entities() b on a.Id = b.Id\n"
+            + "where b.Name = 'B1'"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
@@ -47,11 +49,13 @@ where b.Name = 'B1'";
     [TestMethod]
     public void SemiJoin_WhenRowPresenceReferencesOutputAlias_ShouldReportAlwaysPresentAlias()
     {
-        const string query = @"
-select a.Name
-from #A.entities() a
-semi join #B.entities() b on a.Id = b.Id
-where a is missing";
+        const string query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "semi join #B.entities() b on a.Id = b.Id\n"
+            + "where a is missing"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
@@ -62,11 +66,13 @@ where a is missing";
     [TestMethod]
     public void AntiJoin_WhenRowPresenceReferencesOutputAlias_ShouldReportAlwaysPresentAlias()
     {
-        const string query = @"
-select a.Name
-from #A.entities() a
-anti join #B.entities() b on a.Id = b.Id
-where a is missing";
+        const string query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "anti join #B.entities() b on a.Id = b.Id\n"
+            + "where a is missing"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
@@ -77,11 +83,13 @@ where a is missing";
     [TestMethod]
     public void SemiJoin_WhenRowPresenceReferencesHiddenRightAlias_ShouldRejectAlias()
     {
-        const string query = @"
-select a.Name
-from #A.entities() a
-semi join #B.entities() b on a.Id = b.Id
-where b is missing";
+        const string query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "semi join #B.entities() b on a.Id = b.Id\n"
+            + "where b is missing"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
@@ -91,11 +99,13 @@ where b is missing";
     [TestMethod]
     public void AntiJoin_WhenRowPresenceReferencesHiddenRightAlias_ShouldRejectAlias()
     {
-        const string query = @"
-select a.Name
-from #A.entities() a
-anti join #B.entities() b on a.Id = b.Id
-where b is missing";
+        const string query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "anti join #B.entities() b on a.Id = b.Id\n"
+            + "where b is missing"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
@@ -107,7 +117,7 @@ where b is missing";
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("A1") { Id = 1 }] },
-            { "#B", [new BasicEntity("B1") { Id = 1 }] }
+            { "#B", [new BasicEntity("B1") { Id = 1 }] },
         };
     }
 }

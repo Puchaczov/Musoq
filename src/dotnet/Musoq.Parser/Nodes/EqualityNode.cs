@@ -2,7 +2,8 @@ namespace Musoq.Parser.Nodes;
 
 public class EqualityNode : BinaryNode
 {
-    public EqualityNode(Node left, Node right) : base(left, right)
+    public EqualityNode(Node left, Node right)
+        : base(left, right)
     {
         Id = CalculateId(this);
     }

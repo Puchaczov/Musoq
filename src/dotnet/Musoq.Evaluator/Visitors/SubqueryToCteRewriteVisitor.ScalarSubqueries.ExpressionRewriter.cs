@@ -9,8 +9,8 @@ public partial class SubqueryToCteRewriteVisitor
     private sealed class ScalarSubqueryExpressionRewriter(
         SubqueryToCteRewriteVisitor owner,
         SubqueryCorrelationAnalysis analysis,
-        List<CteInnerExpressionNode> cteInnerExpressions)
-        : CloneQueryVisitor, ISubqueryExpressionContextRewriter<ScalarSubqueryJoin>
+        List<CteInnerExpressionNode> cteInnerExpressions
+    ) : CloneQueryVisitor, ISubqueryExpressionContextRewriter<ScalarSubqueryJoin>
     {
         private readonly List<ScalarSubqueryJoin> _joins = [];
         private readonly Dictionary<string, ScalarSubqueryJoin> _preparedSubqueries = new();
@@ -65,9 +65,11 @@ public partial class SubqueryToCteRewriteVisitor
             for (var i = node.PartitionFields.Length - 1; i >= 0; i--)
                 partitionFields[i] = (FieldNode)Nodes.Pop();
 
-            Nodes.Push(((WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, node.Frame))
-                .WithSpan(node.Span)
-                .WithFullSpan(node.FullSpan));
+            Nodes.Push(
+                ((WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, node.Frame))
+                    .WithSpan(node.Span)
+                    .WithFullSpan(node.FullSpan)
+            );
         }
     }
 

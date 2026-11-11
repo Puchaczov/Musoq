@@ -33,12 +33,14 @@ public sealed class ChunkingArchitectureGuardrailTests
             "Rendering",
             "Execution",
             "Rendering",
-            "ExecutionCSharpRenderer.ExpressionRenderer.cs");
+            "ExecutionCSharpRenderer.ExpressionRenderer.cs"
+        );
         var content = File.ReadAllText(file);
 
         Assert.IsFalse(
             content.Contains("_tableRowShapesByVariableName.ContainsKey(rows.Variable.Name)", StringComparison.Ordinal),
-            "ExecutionRowStream must carry explicit table-row access metadata; renderer-side variable-name inference is forbidden.");
+            "ExecutionRowStream must carry explicit table-row access metadata; renderer-side variable-name inference is forbidden."
+        );
     }
 
     [TestMethod]
@@ -53,11 +55,13 @@ public sealed class ChunkingArchitectureGuardrailTests
             "Rendering",
             "Execution",
             "Rendering",
-            "ExecutionCSharpRenderer.TableControlFlowRenderer.cs");
+            "ExecutionCSharpRenderer.TableControlFlowRenderer.cs"
+        );
         var content = File.ReadAllText(file);
 
         Assert.IsFalse(
             content.Contains("ExecutionRowStreams.IsChunked", StringComparison.Ordinal),
-            "Chunk-vs-row rendering strategy must stay centralized outside the table control-flow switch.");
+            "Chunk-vs-row rendering strategy must stay centralized outside the table control-flow switch."
+        );
     }
 }

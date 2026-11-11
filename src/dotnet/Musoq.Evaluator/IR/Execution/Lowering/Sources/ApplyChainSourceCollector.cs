@@ -7,9 +7,7 @@ namespace Musoq.Evaluator.IR.Execution.Lowering.Sources;
 
 internal sealed class ApplyChainSourceCollector
 {
-    public bool TryCollectCrossApplySources(
-        PhysicalNode source,
-        out IReadOnlyList<ApplyChainPhysicalSource> sources)
+    public bool TryCollectCrossApplySources(PhysicalNode source, out IReadOnlyList<ApplyChainPhysicalSource> sources)
     {
         var collected = new List<ApplyChainPhysicalSource>();
         if (!CollectCrossApplySources(source, collected))
@@ -22,9 +20,7 @@ internal sealed class ApplyChainSourceCollector
         return true;
     }
 
-    private static bool CollectCrossApplySources(
-        PhysicalNode source,
-        List<ApplyChainPhysicalSource> sources)
+    private static bool CollectCrossApplySources(PhysicalNode source, List<ApplyChainPhysicalSource> sources)
     {
         if (source is not PhysicalNestedLoopApplyNode apply)
         {
@@ -38,10 +34,12 @@ internal sealed class ApplyChainSourceCollector
         if (!CollectCrossApplySources(apply.Left, sources))
             return false;
 
-        sources.Add(new ApplyChainPhysicalSource(apply.Right, apply.WithOrdinality)
-        {
-            ApplyPredicateMovementPlans = apply.ApplyPredicateMovementPlans
-        });
+        sources.Add(
+            new ApplyChainPhysicalSource(apply.Right, apply.WithOrdinality)
+            {
+                ApplyPredicateMovementPlans = apply.ApplyPredicateMovementPlans,
+            }
+        );
         return true;
     }
 }

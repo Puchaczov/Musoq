@@ -8,13 +8,24 @@ internal sealed partial class ParallelStrategyPlanner(
     CompilationOptions compilationOptions,
     CteExecutionPlan? cteExecutionPlan,
     IPlanningShapeResolver shapeResolver,
-    ParallelSourcePermissionPolicy sourcePermissions)
+    ParallelSourcePermissionPolicy sourcePermissions
+)
 {
-    private readonly HashSet<PhysicalSingleKeyAggregateNode> _aggregateCandidates = new(ReferenceComparer<PhysicalSingleKeyAggregateNode>.Instance);
-    private readonly HashSet<PhysicalProjectNode> _filterProjectCandidates = new(ReferenceComparer<PhysicalProjectNode>.Instance);
-    private readonly Dictionary<PhysicalCteNode, IReadOnlyList<PlannedParallelCteLevel>> _cteLevels = new(ReferenceComparer<PhysicalCteNode>.Instance);
-    private readonly HashSet<PhysicalSingleKeyAggregateNode> _visitedAggregates = new(ReferenceComparer<PhysicalSingleKeyAggregateNode>.Instance);
-    private readonly HashSet<PhysicalProjectNode> _visitedFilterProjects = new(ReferenceComparer<PhysicalProjectNode>.Instance);
+    private readonly HashSet<PhysicalSingleKeyAggregateNode> _aggregateCandidates = new(
+        ReferenceComparer<PhysicalSingleKeyAggregateNode>.Instance
+    );
+    private readonly HashSet<PhysicalProjectNode> _filterProjectCandidates = new(
+        ReferenceComparer<PhysicalProjectNode>.Instance
+    );
+    private readonly Dictionary<PhysicalCteNode, IReadOnlyList<PlannedParallelCteLevel>> _cteLevels = new(
+        ReferenceComparer<PhysicalCteNode>.Instance
+    );
+    private readonly HashSet<PhysicalSingleKeyAggregateNode> _visitedAggregates = new(
+        ReferenceComparer<PhysicalSingleKeyAggregateNode>.Instance
+    );
+    private readonly HashSet<PhysicalProjectNode> _visitedFilterProjects = new(
+        ReferenceComparer<PhysicalProjectNode>.Instance
+    );
 
     public IReadOnlySet<PhysicalSingleKeyAggregateNode> AggregateCandidates => _aggregateCandidates;
 
@@ -40,7 +51,8 @@ internal sealed partial class ParallelStrategyPlanner(
                 pipeline.Aggregate.GetType().Name,
                 eligibility.Outcome,
                 PlanningConfidence.High,
-                eligibility.Reason);
+                eligibility.Reason
+            );
         }
 
         _aggregateCandidates.Add(pipeline.Aggregate);
@@ -49,7 +61,8 @@ internal sealed partial class ParallelStrategyPlanner(
             pipeline.Aggregate.GetType().Name,
             "Enabled",
             PlanningConfidence.High,
-            eligibility.Reason);
+            eligibility.Reason
+        );
     }
 
     public PlanningDecision? AddFilterProjectCandidate(SupportedPipeline pipeline)
@@ -65,7 +78,8 @@ internal sealed partial class ParallelStrategyPlanner(
                 pipeline.Project.GetType().Name,
                 eligibility.Outcome,
                 PlanningConfidence.High,
-                eligibility.Reason);
+                eligibility.Reason
+            );
         }
 
         _filterProjectCandidates.Add(pipeline.Project);
@@ -74,7 +88,8 @@ internal sealed partial class ParallelStrategyPlanner(
             pipeline.Project.GetType().Name,
             "Enabled",
             PlanningConfidence.High,
-            eligibility.Reason);
+            eligibility.Reason
+        );
     }
 
     public PlanningDecision AddCteLevels(PhysicalCteNode node)
@@ -87,17 +102,11 @@ internal sealed partial class ParallelStrategyPlanner(
                 node.GetType().Name,
                 "Skipped",
                 PlanningConfidence.High,
-                reason);
+                reason
+            );
         }
 
         _cteLevels.Add(node, levels);
-        return CreateParallelDecision(
-            "ParallelCte",
-            node.GetType().Name,
-            "Candidate",
-            PlanningConfidence.High,
-            reason);
+        return CreateParallelDecision("ParallelCte", node.GetType().Name, "Candidate", PlanningConfidence.High, reason);
     }
-
-
 }

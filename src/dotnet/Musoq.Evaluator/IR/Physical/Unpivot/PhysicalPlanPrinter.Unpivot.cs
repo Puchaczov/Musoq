@@ -12,7 +12,11 @@ public static partial class PhysicalPlanPrinter
 {
     private static void PrintUnpivot(PhysicalUnpivotNode unpivot, StringBuilder sb, string prefix, int indent)
     {
-        sb.Append(prefix).Append(System.Globalization.CultureInfo.InvariantCulture, $"PhysicalUnpivot [name: {unpivot.NameColumn}; value: {unpivot.ValueColumn}; entries: ");
+        sb.Append(prefix)
+            .Append(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"PhysicalUnpivot [name: {unpivot.NameColumn}; value: {unpivot.ValueColumn}; entries: "
+            );
         AppendUnpivotEntries(sb, unpivot.Entries);
         sb.Append("; keep: ");
         PlanPrinterHelpers.AppendProjectedFields(sb, unpivot.KeepFields.ToArray());
@@ -24,7 +28,8 @@ public static partial class PhysicalPlanPrinter
     {
         for (var i = 0; i < entries.Count; i++)
         {
-            if (i > 0) sb.Append(", ");
+            if (i > 0)
+                sb.Append(", ");
             sb.Append(IrExpressionPrinter.Print(entries[i].Value));
             sb.Append(" as ");
             sb.Append(entries[i].NameValue);

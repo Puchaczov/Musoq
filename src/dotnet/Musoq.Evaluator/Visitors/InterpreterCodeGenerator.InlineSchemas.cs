@@ -14,67 +14,122 @@ public partial class InterpreterCodeGenerator
         var outerRefs = CollectOuterFieldReferences(inlineSchema);
 
         builder.AppendLine("/// <summary>");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"/// Generated nested interpreter for inline schema '{className}'.");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"/// Generated nested interpreter for inline schema '{className}'."
+        );
         builder.AppendLine("/// </summary>");
-        builder.AppendLine("[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"public sealed class {className} : BytesInterpreterBase<{className}>, IBytesInterpreterStatus<{className}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload");
+        builder.AppendLine(
+            "[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]"
+        );
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"public sealed class {className} : BytesInterpreterBase<{className}>, IBytesInterpreterStatus<{className}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload"
+        );
         builder.AppendLine("{");
         builder.Append(PartialPayloadCodeEmitter.Members(className));
 
         var fields = inlineSchema.Fields;
-        _expressionFields = fields.Concat(outerRefs.Select(name => (SchemaFieldNode)new FieldDefinitionNode(name,
-            new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian)))).ToArray();
-        var completion = CompletionLayoutCodeEmitter.Create(fields.Where(static field =>
-            field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode }).Select(static field => field.Name));
+        _expressionFields = fields
+            .Concat(
+                outerRefs.Select(name =>
+                    (SchemaFieldNode)
+                        new FieldDefinitionNode(
+                            name,
+                            new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian)
+                        )
+                )
+            )
+            .ToArray();
+        var completion = CompletionLayoutCodeEmitter.Create(
+            fields
+                .Where(static field =>
+                    field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode }
+                )
+                .Select(static field => field.Name)
+        );
         builder.Append(completion);
         builder.Append(GenerateParentContextMembers(className));
-        builder.Append(PartialPayloadCodeEmitter.JsonMembers(fields
-            .Where(static field => field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode })
-            .Select(field => (field.Name, EscapeCSharpIdentifier(field.Name)))));
+        builder.Append(
+            PartialPayloadCodeEmitter.JsonMembers(
+                fields
+                    .Where(static field =>
+                        field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode }
+                    )
+                    .Select(field => (field.Name, EscapeCSharpIdentifier(field.Name)))
+            )
+        );
         foreach (var field in fields)
         {
-            if (field.Name == "_") continue;
+            if (field.Name == "_")
+                continue;
 
-            if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode }) continue;
+            if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode })
+                continue;
 
             var clrTypeName = GetClrTypeNameForFieldInline(field);
-            var isConditional = field.IsConditional ||
-                                (field is ComputedFieldNode inlineComputed &&
-                                 BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(inlineComputed.Expression, fields, _registry)));
+            var isConditional =
+                field.IsConditional
+                || (
+                    field is ComputedFieldNode inlineComputed
+                    && BinarySchemaExpressionTypes.IsNullable(
+                        BinarySchemaExpressionTypes.Resolve(inlineComputed.Expression, fields, _registry)
+                    )
+                );
             var isTypeParam = IsTypeParameter(clrTypeName);
 
-            var propertyTypeName = isConditional && !IsReferenceType(clrTypeName) && !isTypeParam
-                ? $"{clrTypeName}?"
-                : clrTypeName;
+            var propertyTypeName =
+                isConditional && !IsReferenceType(clrTypeName) && !isTypeParam ? $"{clrTypeName}?" : clrTypeName;
 
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    /// <summary>Gets the {field.Name} field value.</summary>");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public {propertyTypeName} {EscapeCSharpIdentifier(field.Name)} {{ get; set; }}");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    /// <summary>Gets the {field.Name} field value.</summary>"
+            );
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    public {propertyTypeName} {EscapeCSharpIdentifier(field.Name)} {{ get; set; }}"
+            );
             builder.AppendLine();
         }
 
         foreach (var outerRef in outerRefs)
         {
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    /// <summary>Outer scope reference for '{outerRef}'.</summary>");
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    internal int Outer{EscapeCSharpIdentifier(outerRef)} {{ get; set; }}");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    /// <summary>Outer scope reference for '{outerRef}'.</summary>"
+            );
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"    internal int Outer{EscapeCSharpIdentifier(outerRef)} {{ get; set; }}"
+            );
             builder.AppendLine();
         }
 
         builder.AppendLine("    /// <inheritdoc />");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    public override string SchemaName => \"{className}\";");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"    public override string SchemaName => \"{className}\";"
+        );
         builder.AppendLine();
 
         BeginStatusMethod(className);
         builder.Append(InterpreterStatusCodeEmitter.BeginBinary(className));
         builder.Append(StatusCheck("base.InitializeParsePositionStatus(data, offset)"));
         builder.AppendLine("        SetCurrentField(null);");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        __parsedValue = new {className}();");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"        __parsedValue = new {className}();"
+        );
         builder.AppendLine("        RecordParsedValue(__parsedValue);");
         builder.AppendLine();
 
         foreach (var outerRef in outerRefs)
         {
             var localVar = GetLocalVarName(outerRef);
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"        var {localVar} = Outer{EscapeCSharpIdentifier(outerRef)};");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"        var {localVar} = Outer{EscapeCSharpIdentifier(outerRef)};"
+            );
         }
 
         if (outerRefs.Count > 0)
@@ -88,13 +143,16 @@ public partial class InterpreterCodeGenerator
             {
                 FieldDefinitionNode parsed => GenerateFieldReadCodeWithModifiers(parsed),
                 ComputedFieldNode computed => GenerateComputedFieldCode(computed, fields.ToList()),
-                _ => throw new InvalidOperationException("Unsupported inline binary field.")
+                _ => throw new InvalidOperationException("Unsupported inline binary field."),
             };
             builder.Append(Indent(readCode, 2));
 
             if (field.Name != "_" && field is not FieldDefinitionNode { TypeAnnotation: AlignmentNode })
             {
-                AppendGeneratedLine(builder, $"        __parsedValue.{EscapeCSharpIdentifier(field.Name)} = {GetLocalVarName(field.Name)};");
+                AppendGeneratedLine(
+                    builder,
+                    $"        __parsedValue.{EscapeCSharpIdentifier(field.Name)} = {GetLocalVarName(field.Name)};"
+                );
                 AppendGeneratedLine(builder, $"        base.RecordParsedFieldSlot({completionIndex++});");
             }
         }
@@ -114,21 +172,31 @@ public partial class InterpreterCodeGenerator
         var inlineClassName = GetOrRegisterInlineSchemaClassName(fieldName, inlineSchema, null);
         var tempInterpreter = $"_{localVar}_interpreter";
         var builder = new StringBuilder();
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {tempInterpreter} = {CreateNestedInterpreter(inlineClassName)};");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"var {tempInterpreter} = {CreateNestedInterpreter(inlineClassName)};"
+        );
         builder.Append(GenerateOuterRefAssignments(tempInterpreter, inlineSchema));
-        builder.Append(StatusRead(localVar, $"base.InterpretNestedStatus({tempInterpreter}, data, \"{EscapeString(fieldName)}\")"));
+        builder.Append(
+            StatusRead(localVar, $"base.InterpretNestedStatus({tempInterpreter}, data, \"{EscapeString(fieldName)}\")")
+        );
         return builder.ToString();
     }
 
-    private string GetOrRegisterInlineSchemaClassName(string fieldName, InlineSchemaTypeNode inlineSchema,
-        string? parentPrefix)
+    private string GetOrRegisterInlineSchemaClassName(
+        string fieldName,
+        InlineSchemaTypeNode inlineSchema,
+        string? parentPrefix
+    )
     {
         var registered = _inlineSchemas.FirstOrDefault(item => ReferenceEquals(item.Schema, inlineSchema));
-        if (registered.Schema != null) return registered.ClassName;
+        if (registered.Schema != null)
+            return registered.ClassName;
         var className = $"Inline_{fieldName}";
 
         var existing = _inlineSchemas.FirstOrDefault(x => x.ClassName == className);
-        if (existing.Schema == null) _inlineSchemas.Add((className, inlineSchema, parentPrefix));
+        if (existing.Schema == null)
+            _inlineSchemas.Add((className, inlineSchema, parentPrefix));
 
         return className;
     }
@@ -137,13 +205,15 @@ public partial class InterpreterCodeGenerator
     {
         var inlineFieldNames = new HashSet<string>(
             inlineSchema.Fields.Select(f => f.Name),
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
 
         var outerRefs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var field in inlineSchema.Fields)
         {
-            if (field is not FieldDefinitionNode parsedField) continue;
+            if (field is not FieldDefinitionNode parsedField)
+                continue;
             CollectFieldRefsFromTypeAnnotation(parsedField.TypeAnnotation, inlineFieldNames, outerRefs);
 
             if (parsedField.WhenCondition != null)
@@ -153,8 +223,11 @@ public partial class InterpreterCodeGenerator
         return outerRefs;
     }
 
-    private static void CollectFieldRefsFromTypeAnnotation(TypeAnnotationNode type, HashSet<string> localNames,
-        HashSet<string> outerRefs)
+    private static void CollectFieldRefsFromTypeAnnotation(
+        TypeAnnotationNode type,
+        HashSet<string> localNames,
+        HashSet<string> outerRefs
+    )
     {
         switch (type)
         {
@@ -199,8 +272,10 @@ public partial class InterpreterCodeGenerator
         foreach (var outerRef in outerRefs)
         {
             var localVar = GetLocalVarName(outerRef);
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture,
-                $"{interpreterVar}.Outer{EscapeCSharpIdentifier(outerRef)} = Convert.ToInt32({localVar});");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"{interpreterVar}.Outer{EscapeCSharpIdentifier(outerRef)} = Convert.ToInt32({localVar});"
+            );
         }
 
         return builder.ToString();

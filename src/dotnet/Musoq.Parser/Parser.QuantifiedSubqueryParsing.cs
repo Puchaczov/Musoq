@@ -22,12 +22,13 @@ public partial class Parser
                 $"{quantifier.ToString().ToUpperInvariant()} requires a SELECT or FROM subquery.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2024_InvalidSubquery,
-                Current.Span);
+                Current.Span
+            );
 
         var subquery = ComposeSetOperators(1);
         var closingParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
-        var quantifiedSpan = left.Span
-            .Through(quantifierToken.Span)
+        var quantifiedSpan = left
+            .Span.Through(quantifierToken.Span)
             .Through(openingParenthesis.Span)
             .Through(subquery.Span)
             .Through(closingParenthesis.Span);
@@ -36,11 +37,19 @@ public partial class Parser
         while (firstQuery is SetOperatorNode set)
             firstQuery = set.Left;
         if (firstQuery is QueryNode { Select.Fields.Length: not 1 } wide)
-            throw new SyntaxException("Quantified subquery must return exactly one column.",
-                _lexer.AlreadyResolvedQueryPart, DiagnosticCode.MQ2024_InvalidSubquery, wide.Select.Span);
+            throw new SyntaxException(
+                "Quantified subquery must return exactly one column.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2024_InvalidSubquery,
+                wide.Select.Span
+            );
 
-        return new QuantifiedSubqueryNode(QualifyQuantifiedColumn(left, outerAlias), operatorType,
-            quantifier, subquery).WithSpan(quantifiedSpan);
+        return new QuantifiedSubqueryNode(
+            QualifyQuantifiedColumn(left, outerAlias),
+            operatorType,
+            quantifier,
+            subquery
+        ).WithSpan(quantifiedSpan);
     }
 
     private static Node QualifyQuantifiedColumn(Node node, string? alias)
@@ -48,8 +57,12 @@ public partial class Parser
         if (node is not IdentifierNode identifier || string.IsNullOrEmpty(alias))
             return node;
 
-        return new AccessColumnNode(identifier.Name, alias, identifier.ReturnType ?? typeof(void), identifier.Span)
-            .WithFullSpan(identifier.FullSpan);
+        return new AccessColumnNode(
+            identifier.Name,
+            alias,
+            identifier.ReturnType ?? typeof(void),
+            identifier.Span
+        ).WithFullSpan(identifier.FullSpan);
     }
 
     private string? GetSingleQuantifiedOuterAlias()
@@ -70,7 +83,7 @@ public partial class Parser
             TokenType.Less => new LessNode(left, right),
             TokenType.Equality => new EqualityNode(left, right),
             TokenType.Diff => new DiffNode(left, right),
-            _ => throw new InvalidOperationException($"{operatorType} is not a comparison operator.")
+            _ => throw new InvalidOperationException($"{operatorType} is not a comparison operator."),
         };
     }
 

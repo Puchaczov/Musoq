@@ -12,6 +12,7 @@ internal sealed class ByteBufferFlowValue(int identity, MethodCall producer)
     internal ByteBufferFlowValue? Input { get; set; }
     internal ByteBufferRequirement Requirement { get; private set; } = ByteBufferRequirement.Prefix(0);
     internal bool UsesView => !Requirement.RequiresCompleteArray && Requirement.ObservesLength;
+
     internal void Require(ByteBufferRequirement requirement) => Requirement = Requirement.Combine(requirement);
 }
 
@@ -21,32 +22,46 @@ internal sealed class ByteBufferFlowBindings
     private readonly Dictionary<string, ByteBufferFlowValue?> _names = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _aliases = new(StringComparer.OrdinalIgnoreCase);
     internal IReadOnlyList<(string Name, ByteBufferFlowValue? Value)> Columns { get; private set; } = [];
-    internal IEnumerable<ByteBufferFlowValue> Values => _names.Values.Concat(Columns.Select(column => column.Value))
-        .OfType<ByteBufferFlowValue>().Distinct();
+    internal IEnumerable<ByteBufferFlowValue> Values =>
+        _names.Values.Concat(Columns.Select(column => column.Value)).OfType<ByteBufferFlowValue>().Distinct();
 
     internal ByteBufferFlowValue? Resolve(ColumnRef column)
     {
         if (_names.TryGetValue($"{column.Alias}.{column.ColumnName}", out var qualified))
             return qualified;
-        if (column.ColumnName.Contains('.', StringComparison.Ordinal) || string.IsNullOrEmpty(column.Alias) || _aliases.Contains(column.Alias))
+        if (
+            column.ColumnName.Contains('.', StringComparison.Ordinal)
+            || string.IsNullOrEmpty(column.Alias)
+            || _aliases.Contains(column.Alias)
+        )
             return _names.GetValueOrDefault(column.ColumnName);
         return null;
     }
 
     internal ByteBufferFlowValue? ResolveName(string name) => _names.GetValueOrDefault(name);
+
     internal void RequireComplete()
     {
         foreach (var value in Values)
             value.Require(ByteBufferRequirement.Complete);
     }
 
-    internal static ByteBufferFlowBindings Source(OutputSchema schema, string alias, ByteBufferFlowBindings? producer = null)
+    internal static ByteBufferFlowBindings Source(
+        OutputSchema schema,
+        string alias,
+        ByteBufferFlowBindings? producer = null
+    )
     {
         var result = new ByteBufferFlowBindings();
         result._aliases.Add(alias);
-        result.Columns = schema.Columns.Length == 0 && producer is not null
-            ? producer.Columns : schema.Columns.Select(column => (column.Name, producer?.ResolveName(column.Name))).ToArray();
-        if (producer is not null && schema.Columns.Any(column => column.Type == typeof(byte[]) && producer.ResolveName(column.Name) is null))
+        result.Columns =
+            schema.Columns.Length == 0 && producer is not null
+                ? producer.Columns
+                : schema.Columns.Select(column => (column.Name, producer?.ResolveName(column.Name))).ToArray();
+        if (
+            producer is not null
+            && schema.Columns.Any(column => column.Type == typeof(byte[]) && producer.ResolveName(column.Name) is null)
+        )
             producer.RequireComplete();
         foreach (var (name, value) in result.Columns)
         {
@@ -56,8 +71,11 @@ internal sealed class ByteBufferFlowBindings
         return result;
     }
 
-    internal static ByteBufferFlowBindings Project(IReadOnlyList<ProjectedField> fields,
-        IReadOnlyList<ByteBufferFlowValue?> values, ByteBufferFlowBindings input)
+    internal static ByteBufferFlowBindings Project(
+        IReadOnlyList<ProjectedField> fields,
+        IReadOnlyList<ByteBufferFlowValue?> values,
+        ByteBufferFlowBindings input
+    )
     {
         var result = new ByteBufferFlowBindings();
         result._aliases.UnionWith(input._aliases);

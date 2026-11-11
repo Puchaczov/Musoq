@@ -9,7 +9,12 @@ internal static class PredicateSubqueryCloner
     {
         var query = nodes.Pop();
         if (node is QuantifiedSubqueryNode quantified)
-            return new QuantifiedSubqueryNode(nodes.Pop(), quantified.Comparison, quantified.Quantifier, query).CopySpansFrom(node);
+            return new QuantifiedSubqueryNode(
+                nodes.Pop(),
+                quantified.Comparison,
+                quantified.Quantifier,
+                query
+            ).CopySpansFrom(node);
         return new ExistsQueryNode(query).CopySpansFrom(node);
     }
 }

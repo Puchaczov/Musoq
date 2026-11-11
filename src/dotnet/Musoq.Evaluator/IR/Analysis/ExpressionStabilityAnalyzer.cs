@@ -24,24 +24,22 @@ internal static class ExpressionStabilityAnalyzer
             StrictCast cast => IsStable(cast.Expression),
             BinaryOp binary => IsStable(binary.Left) && IsStable(binary.Right),
             UnaryOp unary => IsStable(unary.Operand),
-            MethodCall method => method.ReturnType != typeof(void) &&
-                                 method.BufferPlan?.Facts.Region.AllowsHoisting != false &&
-                                 (method.ReturnType != typeof(byte[]) || method.BufferSemantics is not null) &&
-                                 IsStableMethod(method.Method) &&
-                                 method.Arguments.All(IsStable),
+            MethodCall method => method.ReturnType != typeof(void)
+                && method.BufferPlan?.Facts.Region.AllowsHoisting != false
+                && (method.ReturnType != typeof(byte[]) || method.BufferSemantics is not null)
+                && IsStableMethod(method.Method)
+                && method.Arguments.All(IsStable),
             IsNullCheck check => IsStable(check.Expression),
             InCheck check => IsStable(check.Expression) && check.Values.All(IsStable),
             CollectionInCheck check => IsStable(check.Expression) && IsStable(check.Collection),
             PatternMatch match => IsStable(match.Expression) && IsStable(match.Pattern),
-            Between between => IsStable(between.Expression) &&
-                               IsStable(between.Low) &&
-                               IsStable(between.High),
-            CaseWhen caseWhen => caseWhen.Branches.All(branch => IsStable(branch.Condition) && IsStable(branch.Result)) &&
-                                 (caseWhen.ElseExpression == null || IsStable(caseWhen.ElseExpression)),
+            Between between => IsStable(between.Expression) && IsStable(between.Low) && IsStable(between.High),
+            CaseWhen caseWhen => caseWhen.Branches.All(branch => IsStable(branch.Condition) && IsStable(branch.Result))
+                && (caseWhen.ElseExpression == null || IsStable(caseWhen.ElseExpression)),
             Coalesce coalesce => coalesce.Expressions.All(IsStable),
             ArrayAccess access => IsStable(access.Array) && IsStable(access.Index),
             AggregateRef or WindowFunctionRef or CteTableRef or CteCollectionInput => false,
-            _ => false
+            _ => false,
         };
     }
 
@@ -56,9 +54,10 @@ internal static class ExpressionStabilityAnalyzer
             ExecutionUnionMemberRead union => IsStable(union.Receiver),
             ExecutionMemberRead member => IsStableMember(member),
             ExecutionMethodTargetReuseCandidate candidate => IsStable(candidate.MethodCall),
-            ExecutionMethodCall call => !call.IsOpaqueBufferProducer && call.InjectedSource == null &&
-                                         call.Method.Descriptor.IsStable &&
-                                         call.Arguments.All(IsStable),
+            ExecutionMethodCall call => !call.IsOpaqueBufferProducer
+                && call.InjectedSource == null
+                && call.Method.Descriptor.IsStable
+                && call.Arguments.All(IsStable),
             ExecutionStrictCast cast => IsStable(cast.Expression),
             ExecutionBinary binary => IsStable(binary.Left) && IsStable(binary.Right),
             ExecutionUnary unary => IsStable(unary.Operand),
@@ -76,19 +75,23 @@ internal static class ExpressionStabilityAnalyzer
             ExecutionPreparedRLikeMatch match => IsStable(match.Input) && IsStable(match.Matcher),
             ExecutionDynamicRLikeMatch match => IsStable(match.Input) && IsStable(match.Pattern),
             ExecutionRLikeMatcherCacheSlot => false,
-            ExecutionBetween between => IsStable(between.Expression) &&
-                                        IsStable(between.Low) &&
-                                        IsStable(between.High),
-            ExecutionCaseWhen caseWhen => caseWhen.Branches.All(branch => IsStable(branch.Condition) && IsStable(branch.Result)) &&
-                                          (caseWhen.ElseExpression == null || IsStable(caseWhen.ElseExpression)),
+            ExecutionBetween between => IsStable(between.Expression) && IsStable(between.Low) && IsStable(between.High),
+            ExecutionCaseWhen caseWhen => caseWhen.Branches.All(branch =>
+                IsStable(branch.Condition) && IsStable(branch.Result)
+            ) && (caseWhen.ElseExpression == null || IsStable(caseWhen.ElseExpression)),
             ExecutionCoalesce coalesce => coalesce.Expressions.All(IsStable),
             ExecutionStringConcatenation concatenation => concatenation.Expressions.All(IsStable),
 
             ExecutionValueTupleKey key => key.Parts.All(IsStable),
             ExecutionRowPresence presence => IsStable(presence.PresenceSource),
-            ExecutionAggregateCall aggregate => aggregate.Method.Descriptor.IsStable && aggregate.Arguments.All(IsStable),
-            ExecutionStoredTable or ExecutionStoredTableRows or ExecutionCteCollectionInput or ExecutionRowStream or ExecutionScalarRowStream => false,
-            _ => false
+            ExecutionAggregateCall aggregate => aggregate.Method.Descriptor.IsStable
+                && aggregate.Arguments.All(IsStable),
+            ExecutionStoredTable
+            or ExecutionStoredTableRows
+            or ExecutionCteCollectionInput
+            or ExecutionRowStream
+            or ExecutionScalarRowStream => false,
+            _ => false,
         };
     }
 
@@ -99,13 +102,9 @@ internal static class ExpressionStabilityAnalyzer
         return !TryGetMethodInstabilityReason(method, "Expression", out _);
     }
 
-    public static bool IsStableMethod(ExecutionCallableRef method) =>
-        method.Descriptor.IsStable;
+    public static bool IsStableMethod(ExecutionCallableRef method) => method.Descriptor.IsStable;
 
-    public static bool TryGetMethodInstabilityReason(
-        MethodInfo method,
-        string subject,
-        out string reason)
+    public static bool TryGetMethodInstabilityReason(MethodInfo method, string subject, out string reason)
     {
         ArgumentNullException.ThrowIfNull(method);
         ArgumentException.ThrowIfNullOrWhiteSpace(subject);
@@ -124,8 +123,10 @@ internal static class ExpressionStabilityAnalyzer
                 return true;
             }
 
-            if (parameter.GetCustomAttribute<InjectSpecificSourceAttribute>() != null ||
-                parameter.GetCustomAttribute<InjectSourceAttribute>() != null)
+            if (
+                parameter.GetCustomAttribute<InjectSpecificSourceAttribute>() != null
+                || parameter.GetCustomAttribute<InjectSourceAttribute>() != null
+            )
             {
                 reason = $"{subject} calls {method.Name}, which injects a source row.";
                 return true;
@@ -147,11 +148,13 @@ internal static class ExpressionStabilityAnalyzer
         if (member.IsDynamic || !IsStable(member.Receiver))
             return false;
 
-        var receiverType = Nullable.GetUnderlyingType(member.Receiver.ReturnType.ResolveClrType()) ??
-                           member.Receiver.ReturnType.ResolveClrType();
+        var receiverType =
+            Nullable.GetUnderlyingType(member.Receiver.ReturnType.ResolveClrType())
+            ?? member.Receiver.ReturnType.ResolveClrType();
         var property = receiverType.GetProperty(
             member.MemberName,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase
+        );
         return property?.GetCustomAttribute<NonDeterministicAttribute>() == null;
     }
 }

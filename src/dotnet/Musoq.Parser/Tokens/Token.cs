@@ -6,9 +6,7 @@ namespace Musoq.Parser.Tokens;
 public class Token : GenericToken<TokenType>, IEquatable<Token>
 {
     protected Token(string value, TokenType type, TextSpan span)
-        : base(value, type, span)
-    {
-    }
+        : base(value, type, span) { }
 
     public bool Equals(Token? other)
     {

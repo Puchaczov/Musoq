@@ -9,12 +9,12 @@ internal static class CsvColumnReadModifiers
 
     public static bool IsSupported(string modifier)
     {
-        return modifier is
-            ColumnReadModifiers.Encoding or
-            ColumnReadModifiers.Culture or
-            ColumnReadModifiers.Format or
-            ColumnReadModifiers.Trim or
-            SourceIndex or
-            SourceName;
+        return modifier
+            is ColumnReadModifiers.Encoding
+                or ColumnReadModifiers.Culture
+                or ColumnReadModifiers.Format
+                or ColumnReadModifiers.Trim
+                or SourceIndex
+                or SourceName;
     }
 }

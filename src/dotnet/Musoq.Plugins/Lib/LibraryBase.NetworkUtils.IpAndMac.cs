@@ -24,18 +24,14 @@ public partial class LibraryBase
         if (bytes.Length != 4)
             return false;
 
-
         if (bytes[0] == 10)
             return true;
-
 
         if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
             return true;
 
-
         if (bytes[0] == 192 && bytes[1] == 168)
             return true;
-
 
         if (bytes[0] == 127)
             return true;
@@ -100,9 +96,11 @@ public partial class LibraryBase
             if (parts.Length != 2)
                 return null;
 
-            if (!IPAddress.TryParse(ipAddress, out _) ||
-                !IPAddress.TryParse(parts[0], out _) ||
-                !int.TryParse(parts[1], out var prefixLength))
+            if (
+                !IPAddress.TryParse(ipAddress, out _)
+                || !IPAddress.TryParse(parts[0], out _)
+                || !int.TryParse(parts[1], out var prefixLength)
+            )
                 return null;
 
             if (prefixLength is < 0 or > 32)
@@ -141,7 +139,8 @@ public partial class LibraryBase
             return null;
 
         var parts = new string[6];
-        for (var i = 0; i < 6; i++) parts[i] = clean.Substring(i * 2, 2).ToUpperInvariant();
+        for (var i = 0; i < 6; i++)
+            parts[i] = clean.Substring(i * 2, 2).ToUpperInvariant();
 
         return string.Join(separator, parts);
     }

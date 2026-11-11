@@ -5,22 +5,27 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.StructuralInputs;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
 public sealed partial class LibraryExecutionBoundaryQueryTests
 {
-
     [TestMethod]
     [DataRow("Records", "Payload")]
     [DataRow("Records (Renamed)", "Renamed")]
-    public void NativeRecordThroughCte_WhenSelectingNestedMembers_ShouldPreserveConcreteNullableValues(string declaration, string payload)
+    public void NativeRecordThroughCte_WhenSelectingNestedMembers_ShouldPreserveConcreteNullableValues(
+        string declaration,
+        string payload
+    )
     {
-        var query = $"with {declaration} as (select (Position: Position, Detail: (Value: Value)) as Payload " +
-            $"from #schema.first()) select {payload}.Position as Position, {payload}.Detail.Value as Value from Records order by Position";
-        using var compiled = CreateAndRunVirtualMachine<NativeRecordInput, LibraryBase>(query, [new(1, 10), new(2, null)]);
+        var query =
+            $"with {declaration} as (select (Position: Position, Detail: (Value: Value)) as Payload "
+            + $"from #schema.first()) select {payload}.Position as Position, {payload}.Detail.Value as Value from Records order by Position";
+        using var compiled = CreateAndRunVirtualMachine<NativeRecordInput, LibraryBase>(
+            query,
+            [new(1, 10), new(2, null)]
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)), ("Value", typeof(int?)));
@@ -41,11 +46,25 @@ public sealed partial class LibraryExecutionBoundaryQueryTests
         Assert.AreEqual("Payload", column.ColumnName);
         Assert.IsTrue(column.ColumnType.IsValueType);
         Assert.IsNull(ConcreteValueShape.FindUnresolvedMember(column.ColumnType));
-        var shape = StructuralTypeDescriptor.Record(typeof(StructuralValue),
-            [new("Position", StructuralTypeDescriptor.Scalar(typeof(int)), true),
-                new("Detail", StructuralTypeDescriptor.Record(typeof(StructuralValue),
-                    [new("Value", StructuralTypeDescriptor.Scalar(typeof(int), nullable: true), true)]), true),
-                new("Items", StructuralTypeDescriptor.Collection(typeof(int[]), StructuralTypeDescriptor.Scalar(typeof(int))), true)]);
+        var shape = StructuralTypeDescriptor.Record(
+            typeof(StructuralValue),
+            [
+                new("Position", StructuralTypeDescriptor.Scalar(typeof(int)), true),
+                new(
+                    "Detail",
+                    StructuralTypeDescriptor.Record(
+                        typeof(StructuralValue),
+                        [new("Value", StructuralTypeDescriptor.Scalar(typeof(int), nullable: true), true)]
+                    ),
+                    true
+                ),
+                new(
+                    "Items",
+                    StructuralTypeDescriptor.Collection(typeof(int[]), StructuralTypeDescriptor.Scalar(typeof(int))),
+                    true
+                ),
+            ]
+        );
         for (var index = 0; index < rows.Length; index++)
         {
             var visitor = new NativeRecordVisitor(shape);
@@ -53,11 +72,16 @@ public sealed partial class LibraryExecutionBoundaryQueryTests
             Assert.AreEqual(column.ColumnType, visitor.ValueType);
             Assert.AreEqual(index + 1, visitor.Value!.Fields["Position"].Scalar);
             Assert.AreEqual(input[index].Value, visitor.Value.Fields["Detail"].Fields["Value"].Scalar);
-            CollectionAssert.AreEqual(new[] { index + 1, index + 2 },
-                visitor.Value.Fields["Items"].Elements.Select(item => (int)item.Scalar!).ToArray());
-            Assert.AreEqual(index == 0
-                ? "{\"Position\":1,\"Detail\":{\"Value\":10},\"Items\":[1,2]}"
-                : "{\"Position\":2,\"Detail\":{\"Value\":null},\"Items\":[2,3]}", visitor.Json);
+            CollectionAssert.AreEqual(
+                new[] { index + 1, index + 2 },
+                visitor.Value.Fields["Items"].Elements.Select(item => (int)item.Scalar!).ToArray()
+            );
+            Assert.AreEqual(
+                index == 0
+                    ? "{\"Position\":1,\"Detail\":{\"Value\":10},\"Items\":[1,2]}"
+                    : "{\"Position\":2,\"Detail\":{\"Value\":null},\"Items\":[2,3]}",
+                visitor.Json
+            );
         }
     }
 }

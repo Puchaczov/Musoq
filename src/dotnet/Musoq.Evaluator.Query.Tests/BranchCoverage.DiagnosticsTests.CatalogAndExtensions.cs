@@ -213,8 +213,7 @@ public partial class BranchCoverageImprovementTests
     [TestMethod]
     public void DiagnosticExceptionExtensions_TryToDiagnostic_WithNull_ShouldThrow()
     {
-        Assert.Throws<ArgumentNullException>(() =>
-            ((Exception)null!).TryToDiagnostic(null, out _));
+        Assert.Throws<ArgumentNullException>(() => ((Exception)null!).TryToDiagnostic(null, out _));
     }
 
     #endregion

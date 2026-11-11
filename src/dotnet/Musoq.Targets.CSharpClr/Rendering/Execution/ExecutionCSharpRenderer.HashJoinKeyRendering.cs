@@ -13,7 +13,8 @@ public sealed partial class ExecutionCSharpRenderer
             hashAdd.PrecomputedKey,
             hashAdd.KeyVariableName ?? "key",
             hashAdd.NullHandling,
-            keyName => CreateHashBucketAddOrCreateStatement(hashAdd, keyName, HashBuildBucketNaming.Resolve(hashAdd)));
+            keyName => CreateHashBucketAddOrCreateStatement(hashAdd, keyName, HashBuildBucketNaming.Resolve(hashAdd))
+        );
     }
 
     private List<StatementSyntax> RenderKeySetAdd(ExecutionKeySetAdd keySetAdd)
@@ -24,7 +25,8 @@ public sealed partial class ExecutionCSharpRenderer
             keySetAdd.PrecomputedKey,
             keySetAdd.KeyVariableName ?? "key",
             keySetAdd.NullHandling,
-            keyName => CreateKeySetAddStatement(keySetAdd.Set.Name, keyName));
+            keyName => CreateKeySetAddStatement(keySetAdd.Set.Name, keyName)
+        );
     }
 
     private List<StatementSyntax> RenderKeySetProbe(ExecutionKeySetProbe keySetProbe, ExecutionRenderContext context)
@@ -37,7 +39,8 @@ public sealed partial class ExecutionCSharpRenderer
             keySetProbe.MatchFound,
             keySetProbe.KeyVariableName ?? "key",
             keyName => CreateKeySetContainsExpression(keySetProbe.Set.Name, keyName),
-            context);
+            context
+        );
     }
 
     private List<StatementSyntax> RenderKeyBuild(
@@ -46,7 +49,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable? precomputedKey,
         string keyVariableName,
         ExecutionKeyBuildNullHandling nullHandling,
-        Func<string, StatementSyntax> createAddStatement)
+        Func<string, StatementSyntax> createAddStatement
+    )
     {
         var statements = new List<StatementSyntax>();
         if (precomputedKey is { } precomputed)
@@ -65,5 +69,4 @@ public sealed partial class ExecutionCSharpRenderer
         statements.Add(createAddStatement(keyVariableName));
         return statements;
     }
-
 }

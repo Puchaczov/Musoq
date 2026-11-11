@@ -175,7 +175,6 @@ public partial class NetworkUtilsTests
     {
         var result = Library.IpToLong("192.168.1.1");
 
-
         Assert.AreEqual(3232235777L, result);
     }
 
@@ -183,7 +182,6 @@ public partial class NetworkUtilsTests
     public void IpToLong_When10_0_0_1Provided_ShouldReturnCorrectValue()
     {
         var result = Library.IpToLong("10.0.0.1");
-
 
         Assert.AreEqual(167772161L, result);
     }

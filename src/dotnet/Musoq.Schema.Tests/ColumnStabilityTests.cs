@@ -31,10 +31,9 @@ public class ColumnStabilityTests
     [TestMethod]
     public void DynamicTable_MergesConflictingStabilityConservatively()
     {
-        var table = new DynamicTable(
-        [
+        var table = new DynamicTable([
             new SchemaColumn("Value", 0, typeof(int), ColumnStability.Stable),
-            new SchemaColumn("Value", 0, typeof(int), ColumnStability.Volatile)
+            new SchemaColumn("Value", 0, typeof(int), ColumnStability.Volatile),
         ]);
 
         Assert.AreEqual(ColumnStability.Volatile, table.GetColumnByName("Value")!.Stability);
@@ -45,8 +44,14 @@ public class ColumnStabilityTests
     {
         var (_, _, columns) = TypeHelper.GetEntityMap<MarkedEntity>();
 
-        Assert.AreEqual(ColumnStability.Stable, columns.Single(column => column.ColumnName == nameof(MarkedEntity.Stable)).Stability);
-        Assert.AreEqual(ColumnStability.Volatile, columns.Single(column => column.ColumnName == nameof(MarkedEntity.Volatile)).Stability);
+        Assert.AreEqual(
+            ColumnStability.Stable,
+            columns.Single(column => column.ColumnName == nameof(MarkedEntity.Stable)).Stability
+        );
+        Assert.AreEqual(
+            ColumnStability.Volatile,
+            columns.Single(column => column.ColumnName == nameof(MarkedEntity.Volatile)).Stability
+        );
     }
 
     private sealed class LegacyColumn : ISchemaColumn

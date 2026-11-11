@@ -17,9 +17,7 @@ public sealed class SemanticAnalysisResult
     /// <summary>
     ///     Creates a new SemanticAnalysisResult.
     /// </summary>
-    public SemanticAnalysisResult(
-        Node rootNode,
-        IEnumerable<Diagnostic>? diagnostics = null)
+    public SemanticAnalysisResult(Node rootNode, IEnumerable<Diagnostic>? diagnostics = null)
     {
         RootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
         _diagnostics = diagnostics?.ToList() ?? [];
@@ -96,7 +94,8 @@ public sealed class SemanticAnalysisResult
             var firstError = Errors.First();
             throw new SemanticAnalysisException(
                 $"Semantic analysis failed with {ErrorCount} error(s): {firstError.Message}",
-                firstError);
+                firstError
+            );
         }
     }
 

@@ -1,6 +1,6 @@
 using System.Buffers;
-using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -30,7 +30,7 @@ public static class EscapeHelpers
         ('b', '\b'),
         ('f', '\f'),
         ('e', '\u001B'),
-        ('0', '\0')
+        ('0', '\0'),
     ];
 
     /// <summary>
@@ -140,11 +140,11 @@ public static class EscapeHelpers
                 }
             }
 
-
             var found = false;
             foreach (var (escapeChar, value) in EscapeMap)
             {
-                if (next != escapeChar) continue;
+                if (next != escapeChar)
+                    continue;
 
                 result.Append(value);
                 i++;
@@ -152,7 +152,8 @@ public static class EscapeHelpers
                 break;
             }
 
-            if (found) continue;
+            if (found)
+                continue;
 
             result.Append(EscapeChar).Append(next);
             i++;
@@ -172,17 +173,20 @@ public static class EscapeHelpers
 
             foreach (var (escapeChar, value) in EscapeMap)
             {
-                if (current != value) continue;
+                if (current != value)
+                    continue;
 
                 result.Append(EscapeChar).Append(escapeChar);
                 found = true;
                 break;
             }
 
-            if (found) continue;
+            if (found)
+                continue;
 
             if (char.IsControl(current))
-                result.Append(EscapeChar)
+                result
+                    .Append(EscapeChar)
                     .Append(UnicodePrefix)
                     .Append(((int)current).ToString("X4", CultureInfo.InvariantCulture));
             else
@@ -201,8 +205,10 @@ public static class EscapeHelpers
             return false;
 
         var unicodeSpan = value.Slice(startIndex + 2, UnicodeEscapeLength);
-        if (!int.TryParse(unicodeSpan, NumberStyles.HexNumber, null, out var unicodeChar)
-            || unicodeChar > char.MaxValue)
+        if (
+            !int.TryParse(unicodeSpan, NumberStyles.HexNumber, null, out var unicodeChar)
+            || unicodeChar > char.MaxValue
+        )
             return false;
 
         if (unicodeChar == 0)

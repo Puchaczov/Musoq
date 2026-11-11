@@ -13,15 +13,24 @@ public partial class AsOfJoinTests
     [TestMethod]
     public void WhenAsOfJoinInequalityReferencesOneSide_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= a.Money";
+        var query = (
+            "\n" + "select a.Name\n" + "from #A.entities() a\n" + "asof join #B.entities() b on a.Population >= a.Money"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A1", Population = 100, Money = 50m }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Population = 100,
+                        Money = 50m,
+                    },
+                ]
+            },
+            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -32,15 +41,17 @@ asof join #B.entities() b on a.Population >= a.Money";
     [TestMethod]
     public void WhenAsOfJoinWithOrCondition_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population or a.Name = b.Name";
+        var query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population or a.Name = b.Name"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] }
+            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -51,15 +62,37 @@ asof join #B.entities() b on a.Population >= b.Population or a.Name = b.Name";
     [TestMethod]
     public void WhenAsOfJoinWithMultipleInequalities_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population and a.Money > b.Money";
+        var query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population and a.Money > b.Money"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A1", Population = 100, Money = 1m }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90, Money = 2m }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Population = 100,
+                        Money = 1m,
+                    },
+                ]
+            },
+            {
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Population = 90,
+                        Money = 2m,
+                    },
+                ]
+            },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -70,15 +103,14 @@ asof join #B.entities() b on a.Population >= b.Population and a.Money > b.Money"
     [TestMethod]
     public void WhenAsOfJoinWithNoInequality_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof join #B.entities() b on a.Name = b.Name";
+        var query = (
+            "\n" + "select a.Name\n" + "from #A.entities() a\n" + "asof join #B.entities() b on a.Name = b.Name"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1" }] },
-            { "#B", [new BasicEntity { Name = "B1" }] }
+            { "#B", [new BasicEntity { Name = "B1" }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -89,27 +121,25 @@ asof join #B.entities() b on a.Name = b.Name";
     [TestMethod]
     public void WhenAsOfJoinWithReversedOperandOrder_ShouldSwapAndMatch()
     {
-        var query = @"
-select
-    a.Name,
-    b.Name
-from #A.entities() a
-asof join #B.entities() b on b.Population >= a.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on b.Population >= a.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 10 },
-                    new BasicEntity { Name = "A2", Population = 50 }
-                ]
+                "#A",
+                [new BasicEntity { Name = "A1", Population = 10 }, new BasicEntity { Name = "A2", Population = 50 }]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 20 },
-                    new BasicEntity { Name = "B2", Population = 60 }
-                ]
-            }
+                "#B",
+                [new BasicEntity { Name = "B1", Population = 20 }, new BasicEntity { Name = "B2", Population = 60 }]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -132,28 +162,27 @@ asof join #B.entities() b on b.Population >= a.Population";
     [TestMethod]
     public void WhenAsOfJoinWithDuplicateRightKeys_ShouldPickOne()
     {
-        var query = @"
-select
-    a.Name,
-    b.Name,
-    b.Population
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name,\n"
+            + "    b.Population\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 }
-                ]
-            },
-            {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B1", Population = 90 },
                     new BasicEntity { Name = "B2", Population = 90 },
-                    new BasicEntity { Name = "B3", Population = 50 }
+                    new BasicEntity { Name = "B3", Population = 50 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -169,27 +198,31 @@ asof join #B.entities() b on a.Population >= b.Population";
     [TestMethod]
     public void WhenAsOfLeftJoinWithNullInequalityKey_ShouldReturnNulls()
     {
-        var query = @"
-select
-    a.Name,
-    b.Name
-from #A.entities() a
-asof left join #B.entities() b on a.NullableValue >= b.NullableValue";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.NullableValue >= b.NullableValue"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "A1", NullableValue = null },
-                    new BasicEntity { Name = "A2", NullableValue = 50 }
+                    new BasicEntity { Name = "A2", NullableValue = 50 },
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B1", NullableValue = 30 },
-                    new BasicEntity { Name = "B2", NullableValue = 60 }
+                    new BasicEntity { Name = "B2", NullableValue = 60 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -209,32 +242,22 @@ asof left join #B.entities() b on a.NullableValue >= b.NullableValue";
     [TestMethod]
     public void WhenAsOfJoinChainedWithAsOfJoin_ShouldWorkCorrectly()
     {
-        var query = @"
-select
-    a.Name,
-    b.Name,
-    c.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population
-asof join #C.entities() c on a.Population >= c.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name,\n"
+            + "    c.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population\n"
+            + "asof join #C.entities() c on a.Population >= c.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 100 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Name = "B1", Population = 90 }
-                ]
-            },
-            {
-                "#C", [
-                    new BasicEntity { Name = "C1", Population = 80 }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 80 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -249,30 +272,29 @@ asof join #C.entities() c on a.Population >= c.Population";
     [TestMethod]
     public void WhenAsOfJoinGreaterThanWithDuplicateExactKeys_ShouldSkipAllDuplicates()
     {
-        var query = @"
-select
-    a.Name,
-    b.Name,
-    b.Population
-from #A.entities() a
-asof join #B.entities() b on a.Population > b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name,\n"
+            + "    b.Population\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population > b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Population = 50 }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 50 }
-                ]
-            },
-            {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B1", Population = 10 },
                     new BasicEntity { Name = "B2", Population = 50 },
                     new BasicEntity { Name = "B3", Population = 50 },
                     new BasicEntity { Name = "B4", Population = 50 },
-                    new BasicEntity { Name = "B5", Population = 90 }
+                    new BasicEntity { Name = "B5", Population = 90 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -286,29 +308,28 @@ asof join #B.entities() b on a.Population > b.Population";
     [TestMethod]
     public void WhenAsOfJoinLessThanWithDuplicateExactKeys_ShouldSkipAllDuplicates()
     {
-        var query = @"
-select
-    a.Name,
-    b.Name,
-    b.Population
-from #A.entities() a
-asof join #B.entities() b on a.Population < b.Population";
+        var query = (
+            "\n"
+            + "select\n"
+            + "    a.Name,\n"
+            + "    b.Name,\n"
+            + "    b.Population\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population < b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Name = "A1", Population = 50 }] },
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Population = 50 }
-                ]
-            },
-            {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "B1", Population = 10 },
                     new BasicEntity { Name = "B2", Population = 50 },
                     new BasicEntity { Name = "B3", Population = 50 },
-                    new BasicEntity { Name = "B4", Population = 90 }
+                    new BasicEntity { Name = "B4", Population = 90 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -322,34 +343,70 @@ asof join #B.entities() b on a.Population < b.Population";
     [TestMethod]
     public void WhenAsOfJoinInequalityReferencesOnlyRightSide_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof join #B.entities() b on b.Population >= b.Money";
+        var query = (
+            "\n" + "select a.Name\n" + "from #A.entities() a\n" + "asof join #B.entities() b on b.Population >= b.Money"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90, Money = 50m }] }
+            {
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Population = 90,
+                        Money = 50m,
+                    },
+                ]
+            },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides, DiagnosticPhase.Bind, "both sides");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides,
+            DiagnosticPhase.Bind,
+            "both sides"
+        );
     }
 
     [TestMethod]
     public void WhenAsOfJoinWithOrNestedInsideAnd_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof join #B.entities() b on a.Name = b.Name and (a.City = b.City or a.Country = b.Country)";
+        var query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Name = b.Name and (a.City = b.City or a.Country = b.Country)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A1", City = "C1", Country = "US" }] },
-            { "#B", [new BasicEntity { Name = "B1", City = "C2", Country = "UK" }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        City = "C1",
+                        Country = "US",
+                    },
+                ]
+            },
+            {
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        City = "C2",
+                        Country = "UK",
+                    },
+                ]
+            },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -360,15 +417,17 @@ asof join #B.entities() b on a.Name = b.Name and (a.City = b.City or a.Country =
     [TestMethod]
     public void WhenAsOfJoinWithMultipleEqualitiesAndNoInequality_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof join #B.entities() b on a.Name = b.Name and a.City = b.City";
+        var query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Name = b.Name and a.City = b.City"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", City = "C1" }] },
-            { "#B", [new BasicEntity { Name = "B1", City = "C1" }] }
+            { "#B", [new BasicEntity { Name = "B1", City = "C1" }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -379,53 +438,99 @@ asof join #B.entities() b on a.Name = b.Name and a.City = b.City";
     [TestMethod]
     public void WhenAsOfJoinWithMixedInequalityOperators_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population and a.Money <= b.Money";
+        var query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population and a.Money <= b.Money"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A1", Population = 100, Money = 1m }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90, Money = 2m }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Population = 100,
+                        Money = 1m,
+                    },
+                ]
+            },
+            {
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Population = 90,
+                        Money = 2m,
+                    },
+                ]
+            },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities, DiagnosticPhase.Bind, "exactly one");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities,
+            DiagnosticPhase.Bind,
+            "exactly one"
+        );
     }
 
     [TestMethod]
     public void WhenAsOfLeftJoinInequalityReferencesOneSide_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= a.Money";
+        var query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= a.Money"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A1", Population = 100, Money = 50m }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Population = 100,
+                        Money = 50m,
+                    },
+                ]
+            },
+            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides, DiagnosticPhase.Bind, "both sides");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides,
+            DiagnosticPhase.Bind,
+            "both sides"
+        );
     }
 
     [TestMethod]
     public void WhenAsOfLeftJoinWithOrCondition_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= b.Population or a.Name = b.Name";
+        var query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= b.Population or a.Name = b.Name"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] }
+            { "#B", [new BasicEntity { Name = "B1", Population = 90 }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -436,34 +541,60 @@ asof left join #B.entities() b on a.Population >= b.Population or a.Name = b.Nam
     [TestMethod]
     public void WhenAsOfLeftJoinWithMultipleInequalities_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= b.Population and a.Money > b.Money";
+        var query = (
+            "\n"
+            + "select a.Name\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= b.Population and a.Money > b.Money"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A1", Population = 100, Money = 1m }] },
-            { "#B", [new BasicEntity { Name = "B1", Population = 90, Money = 2m }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Population = 100,
+                        Money = 1m,
+                    },
+                ]
+            },
+            {
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Population = 90,
+                        Money = 2m,
+                    },
+                ]
+            },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities, DiagnosticPhase.Bind, "exactly one");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities,
+            DiagnosticPhase.Bind,
+            "exactly one"
+        );
     }
 
     [TestMethod]
     public void WhenAsOfLeftJoinWithNoInequality_ShouldThrow()
     {
-        var query = @"
-select a.Name
-from #A.entities() a
-asof left join #B.entities() b on a.Name = b.Name";
+        var query = (
+            "\n" + "select a.Name\n" + "from #A.entities() a\n" + "asof left join #B.entities() b on a.Name = b.Name"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1" }] },
-            { "#B", [new BasicEntity { Name = "B1" }] }
+            { "#B", [new BasicEntity { Name = "B1" }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));

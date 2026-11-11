@@ -9,11 +9,14 @@ internal static partial class SourcePlanningPlanner
     private static SourceColumnRef[] ResolveRequiredColumns(
         PlanningContext context,
         SchemaScanNode scan,
-        IReadOnlyDictionary<string, RequiredColumnUsage[]> requiredColumnUsagesBySourceId)
+        IReadOnlyDictionary<string, RequiredColumnUsage[]> requiredColumnUsagesBySourceId
+    )
     {
-        if (string.IsNullOrWhiteSpace(scan.SourceContextId) ||
-            !requiredColumnUsagesBySourceId.TryGetValue(scan.SourceContextId, out var usages) ||
-            usages.Length == 0)
+        if (
+            string.IsNullOrWhiteSpace(scan.SourceContextId)
+            || !requiredColumnUsagesBySourceId.TryGetValue(scan.SourceContextId, out var usages)
+            || usages.Length == 0
+        )
         {
             return [];
         }
@@ -26,9 +29,14 @@ internal static partial class SourcePlanningPlanner
             .Select(static usage => usage.ColumnName)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(static columnName => columnName, StringComparer.Ordinal)
-            .Select(columnName => columnsByName.TryGetValue(columnName, out var column)
-                ? new SourceColumnRef(column.ColumnName, column.ReadModifiers) { ValueTypeName = column.ColumnType.AssemblyQualifiedName }
-                : new SourceColumnRef(columnName))
+            .Select(columnName =>
+                columnsByName.TryGetValue(columnName, out var column)
+                    ? new SourceColumnRef(column.ColumnName, column.ReadModifiers)
+                    {
+                        ValueTypeName = column.ColumnType.AssemblyQualifiedName,
+                    }
+                    : new SourceColumnRef(columnName)
+            )
             .ToArray();
     }
 }

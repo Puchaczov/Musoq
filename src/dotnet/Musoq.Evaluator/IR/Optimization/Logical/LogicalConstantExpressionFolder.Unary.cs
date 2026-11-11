@@ -17,11 +17,15 @@ internal sealed partial class LogicalConstantExpressionFolder
         {
             return node.Kind switch
             {
-                UnaryOpKind.Not when literal.Value is bool value =>
-                    Succeed(CreateFoldedLiteral(!value, node), out folded),
-                UnaryOpKind.Negate when ConstantOperatorEvaluator.IsNumeric(literal.Value) =>
-                    Succeed(CreateFoldedLiteral(Negate(literal.Value, node.ReturnType), node), out folded),
-                _ => false
+                UnaryOpKind.Not when literal.Value is bool value => Succeed(
+                    CreateFoldedLiteral(!value, node),
+                    out folded
+                ),
+                UnaryOpKind.Negate when ConstantOperatorEvaluator.IsNumeric(literal.Value) => Succeed(
+                    CreateFoldedLiteral(Negate(literal.Value, node.ReturnType), node),
+                    out folded
+                ),
+                _ => false,
             };
         }
         catch (OverflowException)

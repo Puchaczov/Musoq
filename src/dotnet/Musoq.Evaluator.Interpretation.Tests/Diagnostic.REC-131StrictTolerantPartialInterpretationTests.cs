@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Exceptions;
@@ -74,7 +74,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Value",
                     "ISE0001",
                     1,
-                    1);
+                    1
+                );
                 return;
             case "ST-10":
                 AssertPartialBinary(
@@ -85,7 +86,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Prefix",
                     "ISE0001",
                     0,
-                    0);
+                    0
+                );
                 return;
             case "ST-11":
                 AssertPartialText(
@@ -96,7 +98,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Value",
                     "ISE0001",
                     5,
-                    5);
+                    5
+                );
                 return;
             case "ST-12":
                 AssertPartialText(
@@ -107,7 +110,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Key",
                     "ISE0005",
                     0,
-                    0);
+                    0
+                );
                 return;
             default:
                 Assert.Fail($"Unknown strict/tolerant case '{caseId}'.");
@@ -201,8 +205,10 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                 AssertCircularTextSchemaReference();
                 return;
             case "EB-04":
-                AssertSchemaFailure("binary Broken { Value: byte, Value: byte }; select 1 from #test.files();",
-                    DiagnosticCode.MQ4008_DuplicateSchemaField);
+                AssertSchemaFailure(
+                    "binary Broken { Value: byte, Value: byte }; select 1 from #test.files();",
+                    DiagnosticCode.MQ4008_DuplicateSchemaField
+                );
                 return;
             case "EB-05":
             case "EB-06":
@@ -252,7 +258,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Value",
                     "ISE0001",
                     1,
-                    1);
+                    1
+                );
                 return;
             case "PF-02":
                 AssertPartialBinary(
@@ -263,7 +270,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Value",
                     "ISE0001",
                     0,
-                    0);
+                    0
+                );
                 return;
             case "PF-03":
                 AssertPartialBinary(
@@ -274,7 +282,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Value",
                     "ISE0002",
                     1,
-                    1);
+                    1
+                );
                 return;
             case "PF-04":
                 AssertPartialBinary(
@@ -285,7 +294,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     null,
                     null,
                     5,
-                    5);
+                    5
+                );
                 return;
             case "PF-05":
                 AssertPartialText(
@@ -296,7 +306,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Value",
                     "ISE0001",
                     5,
-                    5);
+                    5
+                );
                 return;
             case "PF-06":
                 AssertPartialText(
@@ -307,7 +318,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Value",
                     "ISE0003",
                     2,
-                    2);
+                    2
+                );
                 return;
             case "PF-07":
                 AssertPartialBinary(
@@ -318,7 +330,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Payload.Value",
                     "ISE0001",
                     1,
-                    1);
+                    1
+                );
                 return;
             case "PF-08":
                 AssertPartialText(
@@ -329,7 +342,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Payload.Value",
                     "ISE0001",
                     2,
-                    2);
+                    2
+                );
                 return;
             case "PF-09":
                 AssertPartialBinary(
@@ -340,7 +354,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Value",
                     "ISE0002",
                     2,
-                    2);
+                    2
+                );
                 return;
             case "PF-10":
                 AssertPartialBinary(
@@ -351,7 +366,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     "Value",
                     "ISE0010",
                     1,
-                    1);
+                    1
+                );
                 return;
             case "PF-11":
                 AssertPartialBinary(
@@ -362,18 +378,11 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                     null,
                     null,
                     1,
-                    1);
+                    1
+                );
                 return;
             case "PF-12":
-                AssertPartialText(
-                    "text Pair { Value: chars[1] }",
-                    "a",
-                    string.Empty,
-                    [],
-                    "Value",
-                    "ISE0001",
-                    0,
-                    0);
+                AssertPartialText("text Pair { Value: chars[1] }", "a", string.Empty, [], "Value", "ISE0001", 0, 0);
                 return;
             default:
                 Assert.Fail($"Unknown partial-metadata case '{caseId}'.");
@@ -383,12 +392,14 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
 
     private void AssertStrictBinaryFailure()
     {
-        const string query = @"
-            binary Packet { Prefix: byte, Value: int le, Tail: byte };
-            select f.Name, p.Value
-            from #test.files() f
-            cross apply Interpret<Packet>(f.Content) p
-            order by f.Name";
+        const string query = (
+            "\n"
+            + "            binary Packet { Prefix: byte, Value: int le, Tail: byte };\n"
+            + "            select f.Name, p.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Packet>(f.Content) p\n"
+            + "            order by f.Name"
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
         {
@@ -396,7 +407,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                 query,
                 new BinaryEntity { Name = "01-valid.bin", Content = [0x07, 0x2A, 0x00, 0x00, 0x00, 0xA5] },
                 new BinaryEntity { Name = "02-bad.bin", Content = [0x07, 0x2A] },
-                new BinaryEntity { Name = "03-valid.bin", Content = [0x07, 0x2A, 0x00, 0x00, 0x00, 0xA5] });
+                new BinaryEntity { Name = "03-valid.bin", Content = [0x07, 0x2A, 0x00, 0x00, 0x00, 0xA5] }
+            );
             _ = table.Count;
         });
 
@@ -408,12 +420,14 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
 
     private void AssertStrictBinaryValidationFailure()
     {
-        const string query = @"
-            binary Packet { Value: byte check Value = 0x2A };
-            select f.Name, p.Value
-            from #test.files() f
-            cross apply Interpret<Packet>(f.Content) p
-            order by f.Name";
+        const string query = (
+            "\n"
+            + "            binary Packet { Value: byte check Value = 0x2A };\n"
+            + "            select f.Name, p.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Packet>(f.Content) p\n"
+            + "            order by f.Name"
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
         {
@@ -421,7 +435,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                 query,
                 new BinaryEntity { Name = "01-valid.bin", Content = [0x2A] },
                 new BinaryEntity { Name = "02-bad.bin", Content = [0x01] },
-                new BinaryEntity { Name = "03-valid.bin", Content = [0x2A] });
+                new BinaryEntity { Name = "03-valid.bin", Content = [0x2A] }
+            );
             _ = table.Count;
         });
 
@@ -433,12 +448,14 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
 
     private void AssertStrictTextFailure()
     {
-        const string query = @"
-            text Pair { Key: until '=', Value: rest };
-            select f.Name, p.Key
-            from #test.lines() f
-            cross apply Parse<Pair>(f.Text) p
-            order by f.Name";
+        const string query = (
+            "\n"
+            + "            text Pair { Key: until '=', Value: rest };\n"
+            + "            select f.Name, p.Key\n"
+            + "            from #test.lines() f\n"
+            + "            cross apply Parse<Pair>(f.Text) p\n"
+            + "            order by f.Name"
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
         {
@@ -446,7 +463,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                 query,
                 new TextEntity { Name = "01-valid.txt", Text = "host=ok" },
                 new TextEntity { Name = "02-bad.txt", Text = "missing-delimiter" },
-                new TextEntity { Name = "03-valid.txt", Text = "host=ok" });
+                new TextEntity { Name = "03-valid.txt", Text = "host=ok" }
+            );
             _ = table.Count;
         });
 
@@ -458,12 +476,14 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
 
     private void AssertStrictTextLiteralFailure()
     {
-        const string query = @"
-            text Status { Prefix: literal 'OK', Tail: rest };
-            select f.Name, p.Tail
-            from #test.lines() f
-            cross apply Parse<Status>(f.Text) p
-            order by f.Name";
+        const string query = (
+            "\n"
+            + "            text Status { Prefix: literal 'OK', Tail: rest };\n"
+            + "            select f.Name, p.Tail\n"
+            + "            from #test.lines() f\n"
+            + "            cross apply Parse<Status>(f.Text) p\n"
+            + "            order by f.Name"
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
         {
@@ -471,7 +491,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                 query,
                 new TextEntity { Name = "01-valid.txt", Text = "OK-ready" },
                 new TextEntity { Name = "02-bad.txt", Text = "NO-ready" },
-                new TextEntity { Name = "03-valid.txt", Text = "OK-ready" });
+                new TextEntity { Name = "03-valid.txt", Text = "OK-ready" }
+            );
             _ = table.Count;
         });
 
@@ -487,18 +508,15 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
             ? "binary Packet { Value: byte check Value = 0x2A }"
             : "binary Packet { Value: int le }";
         byte[] validData = validation ? [0x2A] : [0x2A, 0x00, 0x00, 0x00];
-        var query = $@"
-            {schema};
-            select f.Name, p.Value
-            from #test.files() f
-            {applyKind} apply TryInterpret<Packet>(f.Content) p
-            order by f.Name";
+        var query =
+            $"\n            {schema};\n            select f.Name, p.Value\n            from #test.files() f\n            {applyKind} apply TryInterpret<Packet>(f.Content) p\n            order by f.Name";
 
         var table = RunBinaryQuery(
             query,
             new BinaryEntity { Name = "01-valid.bin", Content = validData },
             new BinaryEntity { Name = "02-bad.bin", Content = failingData },
-            new BinaryEntity { Name = "03-valid.bin", Content = validData });
+            new BinaryEntity { Name = "03-valid.bin", Content = validData }
+        );
 
         Assert.AreEqual(applyKind == "cross" ? 2 : 3, table.Count);
         Assert.AreEqual("01-valid.bin", table[0].ReadValue(0));
@@ -519,19 +537,22 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
 
     private void AssertTryText(string applyKind, string failingText)
     {
-        const string query = @"
-            text Pair { Key: until '=', Value: rest };
-            select f.Name, p.Key, p.Value
-            from #test.lines() f
-            APPLY_PLACEHOLDER TryParse<Pair>(f.Text) p
-            order by f.Name";
+        const string query = (
+            "\n"
+            + "            text Pair { Key: until '=', Value: rest };\n"
+            + "            select f.Name, p.Key, p.Value\n"
+            + "            from #test.lines() f\n"
+            + "            APPLY_PLACEHOLDER TryParse<Pair>(f.Text) p\n"
+            + "            order by f.Name"
+        );
         var actualQuery = query.Replace("APPLY_PLACEHOLDER", $"{applyKind} apply", StringComparison.Ordinal);
 
         var table = RunTextQuery(
             actualQuery,
             new TextEntity { Name = "01-valid.txt", Text = "host=ok" },
             new TextEntity { Name = "02-bad.txt", Text = failingText },
-            new TextEntity { Name = "03-valid.txt", Text = "host=ok" });
+            new TextEntity { Name = "03-valid.txt", Text = "host=ok" }
+        );
 
         Assert.AreEqual(applyKind == "cross" ? 2 : 3, table.Count);
         Assert.AreEqual("01-valid.txt", table[0].ReadValue(0));
@@ -551,18 +572,21 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
 
     private void AssertTryTextPattern(string applyKind)
     {
-        const string query = @"
-            text Digits { Value: pattern '\d+' };
-            select f.Name, p.Value
-            from #test.lines() f
-            APPLY_PLACEHOLDER TryParse<Digits>(f.Text) p
-            order by f.Name";
+        const string query = (
+            "\n"
+            + "            text Digits { Value: pattern '\\d+' };\n"
+            + "            select f.Name, p.Value\n"
+            + "            from #test.lines() f\n"
+            + "            APPLY_PLACEHOLDER TryParse<Digits>(f.Text) p\n"
+            + "            order by f.Name"
+        );
         var actualQuery = query.Replace("APPLY_PLACEHOLDER", $"{applyKind} apply", StringComparison.Ordinal);
         var table = RunTextQuery(
             actualQuery,
             new TextEntity { Name = "01-valid.txt", Text = "123" },
             new TextEntity { Name = "02-bad.txt", Text = "abc" },
-            new TextEntity { Name = "03-valid.txt", Text = "456" });
+            new TextEntity { Name = "03-valid.txt", Text = "456" }
+        );
 
         Assert.AreEqual(applyKind == "cross" ? 2 : 3, table.Count);
         Assert.AreEqual("01-valid.txt", table[0].ReadValue(0));
@@ -582,20 +606,18 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         string? expectedErrorField,
         string? expectedErrorCode,
         int expectedFailurePosition,
-        int expectedFailureConsumed)
+        int expectedFailureConsumed
+    )
     {
         var schemaName = GetLastSchemaName(schema);
-        var query = $@"
-            {schema};
-            select f.Name, p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed
-            from #test.files() f
-            cross apply PartialInterpret<{schemaName}>(f.Content) p
-            order by f.Name";
+        var query =
+            $"\n            {schema};\n            select f.Name, p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed\n            from #test.files() f\n            cross apply PartialInterpret<{schemaName}>(f.Content) p\n            order by f.Name";
         var table = RunBinaryQuery(
             query,
             new BinaryEntity { Name = "01-valid.bin", Content = validData },
             new BinaryEntity { Name = "02-bad.bin", Content = failingData },
-            new BinaryEntity { Name = "03-valid.bin", Content = validData });
+            new BinaryEntity { Name = "03-valid.bin", Content = validData }
+        );
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("01-valid.bin", table[0].ReadValue(0));
@@ -603,8 +625,14 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         Assert.AreEqual("03-valid.bin", table[2].ReadValue(0));
         AssertPartialRow(table[0], expectedFields, validData.Length, null, null, null);
         AssertPartialRow(table[2], expectedFields, validData.Length, null, null, null);
-        AssertPartialRow(table[1], expectedFields, expectedFailureConsumed, expectedErrorField,
-            expectedErrorCode, expectedFailurePosition);
+        AssertPartialRow(
+            table[1],
+            expectedFields,
+            expectedFailureConsumed,
+            expectedErrorField,
+            expectedErrorCode,
+            expectedFailurePosition
+        );
     }
 
     private void AssertPartialText(
@@ -615,20 +643,18 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         string? expectedErrorField,
         string? expectedErrorCode,
         int expectedFailurePosition,
-        int expectedFailureConsumed)
+        int expectedFailureConsumed
+    )
     {
         var schemaName = GetLastSchemaName(schema);
-        var query = $@"
-            {schema};
-            select f.Name, p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed
-            from #test.lines() f
-            cross apply PartialParse<{schemaName}>(f.Text) p
-            order by f.Name";
+        var query =
+            $"\n            {schema};\n            select f.Name, p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed\n            from #test.lines() f\n            cross apply PartialParse<{schemaName}>(f.Text) p\n            order by f.Name";
         var table = RunTextQuery(
             query,
             new TextEntity { Name = "01-valid.txt", Text = validText },
             new TextEntity { Name = "02-bad.txt", Text = failingText },
-            new TextEntity { Name = "03-valid.txt", Text = validText });
+            new TextEntity { Name = "03-valid.txt", Text = validText }
+        );
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("01-valid.txt", table[0].ReadValue(0));
@@ -636,8 +662,14 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         Assert.AreEqual("03-valid.txt", table[2].ReadValue(0));
         AssertPartialRow(table[0], expectedFields, validText.Length, null, null, null);
         AssertPartialRow(table[2], expectedFields, validText.Length, null, null, null);
-        AssertPartialRow(table[1], expectedFields, expectedFailureConsumed, expectedErrorField,
-            expectedErrorCode, expectedFailurePosition);
+        AssertPartialRow(
+            table[1],
+            expectedFields,
+            expectedFailureConsumed,
+            expectedErrorField,
+            expectedErrorCode,
+            expectedFailurePosition
+        );
     }
 
     private static void AssertPartialRow(
@@ -646,7 +678,8 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         int expectedConsumed,
         string? expectedErrorField,
         string? expectedErrorCode,
-        int? expectedPosition)
+        int? expectedPosition
+    )
     {
         var fields = PartialPayloadAssertions.CompletedValues(row.ReadValue(1)!);
         foreach (var field in expectedFields)
@@ -674,12 +707,16 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
             CompileGeneratedQuery(
                 query,
                 Guid.NewGuid().ToString(),
-                new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-                {
-                    ["#test"] = [new BinaryEntity { Name = "seed.bin", Content = [0x01] }]
-                }),
+                new BinarySchemaProvider(
+                    new Dictionary<string, IEnumerable<BinaryEntity>>
+                    {
+                        ["#test"] = [new BinaryEntity { Name = "seed.bin", Content = [0x01] }],
+                    }
+                ),
                 LoggerResolver,
-                TestCompilationOptions));
+                TestCompilationOptions
+            )
+        );
 
         AssertErrorEnvelope(exception, expectedCode, DiagnosticPhase.Schema);
         Assert.IsFalse(exception.Message.Contains("ISE", StringComparison.Ordinal));
@@ -690,10 +727,13 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         var registry = new SchemaRegistry();
         var visitor = new SchemaDefinitionVisitor(registry);
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() =>
-            visitor.Visit(new TextSchemaNode(
-                "Broken",
-                [new TextFieldDefinitionNode("Value", TextFieldType.SchemaReference, "Missing")])))
-            ;
+            visitor.Visit(
+                new TextSchemaNode(
+                    "Broken",
+                    [new TextFieldDefinitionNode("Value", TextFieldType.SchemaReference, "Missing")]
+                )
+            )
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4003_UndefinedSchemaReference, exception.Code);
     }
@@ -704,9 +744,12 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         var visitor = new SchemaDefinitionVisitor(registry);
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() =>
         {
-            visitor.Visit(new TextSchemaNode(
-                "Broken",
-                [new TextFieldDefinitionNode("Value", TextFieldType.SchemaReference, "Later")]));
+            visitor.Visit(
+                new TextSchemaNode(
+                    "Broken",
+                    [new TextFieldDefinitionNode("Value", TextFieldType.SchemaReference, "Later")]
+                )
+            );
         });
 
         Assert.AreEqual(DiagnosticCode.MQ4003_UndefinedSchemaReference, exception.Code);
@@ -717,10 +760,13 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         var registry = new SchemaRegistry();
         var visitor = new SchemaDefinitionVisitor(registry);
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() =>
-            visitor.Visit(new TextSchemaNode(
-                "Broken",
-                [new TextFieldDefinitionNode("Child", TextFieldType.SchemaReference, "Broken")])))
-            ;
+            visitor.Visit(
+                new TextSchemaNode(
+                    "Broken",
+                    [new TextFieldDefinitionNode("Child", TextFieldType.SchemaReference, "Broken")]
+                )
+            )
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4004_CircularSchemaReference, exception.Code);
     }
@@ -734,7 +780,9 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
                 Guid.NewGuid().ToString(),
                 new FailingSchemaProvider(),
                 LoggerResolver,
-                TestCompilationOptions));
+                TestCompilationOptions
+            )
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ7010_DataSourceOpenFailed, DiagnosticPhase.DataSource);
         Assert.AreEqual(DiagnosticSourceKind.DataSource, exception.PrimaryEnvelope.SourceKind);
@@ -743,24 +791,31 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
 
     private void AssertCancellation()
     {
-        const string query = @"
-            binary Packet { Value: int le };
-            select p.Value
-            from #test.files() f
-            outer apply TryInterpret<Packet>(f.Content) p";
+        const string query = (
+            "\n"
+            + "            binary Packet { Value: int le };\n"
+            + "            select p.Value\n"
+            + "            from #test.files() f\n"
+            + "            outer apply TryInterpret<Packet>(f.Content) p"
+        );
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
-            new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-            {
-                ["#test"] = [new BinaryEntity { Name = "valid.bin", Content = [0x2A, 0x00, 0x00, 0x00] }]
-            }),
+            new BinarySchemaProvider(
+                new Dictionary<string, IEnumerable<BinaryEntity>>
+                {
+                    ["#test"] = [new BinaryEntity { Name = "valid.bin", Content = [0x2A, 0x00, 0x00, 0x00] }],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
-        var exception = Assert.ThrowsExactly<OperationCanceledException>(() => _ = compiled.Run(cancellation.Token).Count);
+        var exception = Assert.ThrowsExactly<OperationCanceledException>(() =>
+            _ = compiled.Run(cancellation.Token).Count
+        );
         Assert.AreEqual(cancellation.Token, exception.CancellationToken);
     }
 
@@ -769,20 +824,36 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
-            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [overflow
-                    ? new BasicEntity { Population = decimal.MaxValue, Money = 1m }
-                    : new BasicEntity { Population = 10m, Money = 1m }]
-            }),
+            new BasicSchemaProvider<BasicEntity>(
+                new Dictionary<string, IEnumerable<BasicEntity>>
+                {
+                    ["#A"] =
+                    [
+                        overflow
+                            ? new BasicEntity { Population = decimal.MaxValue, Money = 1m }
+                            : new BasicEntity { Population = 10m, Money = 1m },
+                    ],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
-        var exception = Assert.ThrowsExactly<QueryExecutionException>(() => _ = compiled.Run(CancellationToken.None).Count);
+        var exception = Assert.ThrowsExactly<QueryExecutionException>(() =>
+            _ = compiled.Run(CancellationToken.None).Count
+        );
         Assert.IsNotNull(exception.Envelope);
         var expected = overflow
-            ? (Code: DiagnosticCode.MQ7018_NumericOverflow, Phase: DiagnosticPhase.Runtime, Source: DiagnosticSourceKind.Runtime)
-            : (Code: DiagnosticCode.MQ9002_InternalExecutionError, Phase: DiagnosticPhase.Internal, Source: DiagnosticSourceKind.Internal);
+            ? (
+                Code: DiagnosticCode.MQ7018_NumericOverflow,
+                Phase: DiagnosticPhase.Runtime,
+                Source: DiagnosticSourceKind.Runtime
+            )
+            : (
+                Code: DiagnosticCode.MQ9002_InternalExecutionError,
+                Phase: DiagnosticPhase.Internal,
+                Source: DiagnosticSourceKind.Internal
+            );
         Assert.AreEqual(expected.Code, exception.Envelope!.Code);
         Assert.AreEqual(expected.Phase, exception.Envelope.Phase);
         Assert.AreEqual(expected.Source, exception.Envelope.SourceKind);
@@ -795,38 +866,37 @@ public sealed class REC131StrictTolerantPartialInterpretationTests : BinaryOrTex
         var matches = Regex.Matches(
             schema,
             @"\b(?:binary|text)\s+([A-Za-z_][A-Za-z0-9_]*)",
-            RegexOptions.CultureInvariant);
+            RegexOptions.CultureInvariant
+        );
         Assert.IsGreaterThan(0, matches.Count);
         return matches[matches.Count - 1].Groups[1].Value;
     }
 
     private Table RunBinaryQuery(string query, params BinaryEntity[] entities)
     {
-        var provider = new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-        {
-            ["#test"] = entities
-        });
+        var provider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { ["#test"] = entities }
+        );
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         return TableMaterializationTestHelper.Materialize(compiled.Run(CancellationToken.None));
     }
 
     private Table RunTextQuery(string query, params TextEntity[] entities)
     {
-        var provider = new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>>
-        {
-            ["#test"] = entities
-        });
+        var provider = new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>> { ["#test"] = entities });
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         return TableMaterializationTestHelper.Materialize(compiled.Run(CancellationToken.None));
     }
 

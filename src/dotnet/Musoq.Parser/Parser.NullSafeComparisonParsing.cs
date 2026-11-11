@@ -24,9 +24,14 @@ public partial class Parser
             TokenType.Word when IsContextualKeyword("missing") => ConsumeContextualRowPresence(node, false),
             TokenType.Identifier when IsContextualKeyword("present") => ConsumeContextualRowPresence(node, true),
             TokenType.Identifier when IsContextualKeyword("missing") => ConsumeContextualRowPresence(node, false),
-            TokenType.Null => new IsNullNode(node, false).WithSpan(node.Span.Through(ConsumeAndGetToken(TokenType.Null).Span)),
-            _ => throw ParserDiagnosticFacts.MissingToken("IS must be followed by NULL, DISTINCT FROM, PRESENT, or MISSING.",
-                _lexer.AlreadyResolvedQueryPart, new TextSpan(Current.Span.Start, 0))
+            TokenType.Null => new IsNullNode(node, false).WithSpan(
+                node.Span.Through(ConsumeAndGetToken(TokenType.Null).Span)
+            ),
+            _ => throw ParserDiagnosticFacts.MissingToken(
+                "IS must be followed by NULL, DISTINCT FROM, PRESENT, or MISSING.",
+                _lexer.AlreadyResolvedQueryPart,
+                new TextSpan(Current.Span.Start, 0)
+            ),
         };
     }
 
@@ -41,22 +46,23 @@ public partial class Parser
     private Token ConsumeIsNullToken(string phrase)
     {
         if (Current.TokenType != TokenType.Null)
-            throw ParserDiagnosticFacts.MissingToken($"{phrase} must be followed by NULL or DISTINCT FROM.",
-                _lexer.AlreadyResolvedQueryPart, new TextSpan(Current.Span.Start, 0));
+            throw ParserDiagnosticFacts.MissingToken(
+                $"{phrase} must be followed by NULL or DISTINCT FROM.",
+                _lexer.AlreadyResolvedQueryPart,
+                new TextSpan(Current.Span.Start, 0)
+            );
         return ConsumeAndGetToken(TokenType.Null);
     }
 
     private RowPresenceNode ConsumeContextualRowPresence(Node node, bool isPresent)
     {
         var presenceToken = ConsumeAndGetToken();
-        return (RowPresenceNode)new RowPresenceNode(node, isPresent)
-            .WithSpan(node.Span.Through(presenceToken.Span));
+        return (RowPresenceNode)new RowPresenceNode(node, isPresent).WithSpan(node.Span.Through(presenceToken.Span));
     }
 
     private RowPresenceNode ConsumeRowPresence(Node node, bool isPresent)
     {
         var presenceToken = ConsumeAndGetToken();
-        return (RowPresenceNode)new RowPresenceNode(node, isPresent)
-            .WithSpan(node.Span.Through(presenceToken.Span));
+        return (RowPresenceNode)new RowPresenceNode(node, isPresent).WithSpan(node.Span.Through(presenceToken.Span));
     }
 }

@@ -11,20 +11,24 @@ internal sealed partial class PhysicalLoweringImplementation
         CteSupportedPipeline pipeline,
         string resultTableName,
         string resultShapeName,
-        JoinSources joinSources)
+        JoinSources joinSources
+    )
     {
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(joinSources.Left.Shape, joinSources.Right.Shape);
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
         var leftAlias = RowShapeLookup.ResolveSourceAlias(joinSources.Left.Shape);
         var rightAlias = RowShapeLookup.ResolveSourceAlias(joinSources.Right.Shape);
-        var projection = CreateFullOuterNullExtendedProjection(new NullExtendedProjectionContext(
+        var projection = CreateFullOuterNullExtendedProjection(
+            new NullExtendedProjectionContext(
                 resultShapeName,
                 resultTable,
                 pipeline.Project.Fields,
                 sourceLookup,
-                rightAlias),
+                rightAlias
+            ),
             leftAlias,
-            rightAlias);
+            rightAlias
+        );
         if (!projection.IsBuilt)
             return TableBuildResult.Unsupported(projection.UnsupportedReason);
 
@@ -33,7 +37,8 @@ internal sealed partial class PhysicalLoweringImplementation
             projection.MatchedAppendRow,
             projection.LeftOnlyAppendRow,
             sourceLookup,
-            rightAlias);
+            rightAlias
+        );
         if (!leftOnlyAppendBlocks.IsBuilt)
             return TableBuildResult.Unsupported(leftOnlyAppendBlocks.UnsupportedReason);
 
@@ -42,7 +47,8 @@ internal sealed partial class PhysicalLoweringImplementation
             projection.MatchedAppendRow,
             projection.RightOnlyAppendRow,
             sourceLookup,
-            leftAlias);
+            leftAlias
+        );
         if (!rightOnlyAppendBlocks.IsBuilt)
             return TableBuildResult.Unsupported(rightOnlyAppendBlocks.UnsupportedReason);
 
@@ -56,7 +62,8 @@ internal sealed partial class PhysicalLoweringImplementation
             rightMatched,
             rightIndex,
             projection.MatchedAppendRow,
-            sourceLookup);
+            sourceLookup
+        );
         var nodes = CreateJoinPrelude(joinSources, resultTable, projection.ResultShape);
         var leftRows = CreateFullOuterReusableRows(joinSources.Left, nodes);
         var rightRows = CreateFullOuterReusableRows(joinSources.Right, nodes);
@@ -66,29 +73,27 @@ internal sealed partial class PhysicalLoweringImplementation
             rightRows.Variable,
             joinSources.Right.Variable,
             rightIndex,
-            matchedBody);
+            matchedBody
+        );
         var leftPhase = CreateSourceLoop(
             joinSources.Left.Shape,
             leftRows,
             joinSources.Left.Variable,
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(leftHasMatch, new ExecutionLiteral(false, typeof(bool))),
                 leftPhaseInnerLoop,
                 new ExecutionIf(
-                    new ExecutionUnary(
-                        UnaryOpKind.Not,
-                        new ExecutionVariableRead(leftHasMatch),
-                        typeof(bool)),
-                    leftOnlyAppendBlocks.UnmatchedAppendBlock)
-            ]));
+                    new ExecutionUnary(UnaryOpKind.Not, new ExecutionVariableRead(leftHasMatch), typeof(bool)),
+                    leftOnlyAppendBlocks.UnmatchedAppendBlock
+                ),
+            ])
+        );
         var rightPhase = ExecutionRowStreams.CreateForEachIndexed(
             joinSources.Right.Shape,
             rightRows.Variable,
             joinSources.Right.Variable,
             rightIndex,
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionIf(
                     new ExecutionUnary(
                         UnaryOpKind.Not,
@@ -96,30 +101,34 @@ internal sealed partial class PhysicalLoweringImplementation
                             new ExecutionVariableRead(rightMatched),
                             new ExecutionVariableRead(rightIndex),
                             typeof(bool),
-                            typeof(bool)),
-                        typeof(bool)),
-                    rightOnlyAppendBlocks.UnmatchedAppendBlock)
-            ]));
+                            typeof(bool)
+                        ),
+                        typeof(bool)
+                    ),
+                    rightOnlyAppendBlocks.UnmatchedAppendBlock
+                ),
+            ])
+        );
 
         nodes.Add(leftPhase);
         nodes.Add(rightPhase);
 
         return CompleteTableBuild(
-            [..joinSources.Left.Shapes, ..joinSources.Right.Shapes, projection.ResultShape],
+            [.. joinSources.Left.Shapes, .. joinSources.Right.Shapes, projection.ResultShape],
             nodes,
             resultTable,
             projection.ResultShape,
             pipeline.PostOperations,
-            pipeline.Project.IsDistinct);
+            pipeline.Project.IsDistinct
+        );
     }
 
-    private static ExecutionVariableRead CreateFullOuterReusableRows(
-        JoinSource source,
-        List<ExecutionNode> nodes)
+    private static ExecutionVariableRead CreateFullOuterReusableRows(JoinSource source, List<ExecutionNode> nodes)
     {
         var buffer = CreateMaterializedRowsBufferVariable(
             CreateIdentifierCandidate($"{source.Variable.Name}RowsBuffer", 0),
-            source.GeneratedRowShape);
+            source.GeneratedRowShape
+        );
 
         nodes.Add(CreateMaterializeListNode(source.Rows, buffer, source.GeneratedRowShape));
 

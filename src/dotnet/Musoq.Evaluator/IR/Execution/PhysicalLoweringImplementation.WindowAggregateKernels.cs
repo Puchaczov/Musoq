@@ -10,7 +10,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static (bool IsBuilt, WindowComputationBuildResult Computation) CreateWindowAggregateKernel(
         WindowComputationContext context,
         PluginWindowArgumentsBuildResult arguments,
-        string resultsName)
+        string resultsName
+    )
     {
         var registration = context.RegistrationResult.Registration!;
         if (!CanUseWindowAggregateKernel(registration))
@@ -25,18 +26,20 @@ internal sealed partial class PhysicalLoweringImplementation
             context.RegistrationResult.SqlDeclaration!,
             registration.FunctionName,
             arguments.Value.ReturnType.ResolveClrType(),
-            registration.UseRunningPeers ? ExecutionWindowAggregateMode.Running : mode.Mode);
+            registration.UseRunningPeers ? ExecutionWindowAggregateMode.Running : mode.Mode
+        );
         if (!descriptor.IsBuilt || descriptor.Descriptor is null)
             return (false, WindowComputationBuildResult.Unsupported(string.Empty));
 
-        var filterPredicate = registration.FilterPredicate == null
-            ? null
-            : ExecutionExpressionConverter.Convert(registration.FilterPredicate, context.SourceLookup);
-        var results = new ExecutionVariable(resultsName, descriptor.Descriptor.ResultType.ResolveClrType().MakeArrayType());
-        var resources = CreateWindowComputationResources(
-            context,
-            results,
-            canBuildPartitionSetFromKeys: true);
+        var filterPredicate =
+            registration.FilterPredicate == null
+                ? null
+                : ExecutionExpressionConverter.Convert(registration.FilterPredicate, context.SourceLookup);
+        var results = new ExecutionVariable(
+            resultsName,
+            descriptor.Descriptor.ResultType.ResolveClrType().MakeArrayType()
+        );
+        var resources = CreateWindowComputationResources(context, results, canBuildPartitionSetFromKeys: true);
         var node = new ExecutionWindowAggregateKernel(
             context.Buffer,
             context.Item,
@@ -51,17 +54,18 @@ internal sealed partial class PhysicalLoweringImplementation
                 CaptureArguments = registration.CaptureArguments,
                 Mode = mode.Mode,
                 UseRunningPeers = registration.UseRunningPeers,
-                LibraryBatch = registration.UseBatchEvaluation ? descriptor.Descriptor.LibraryBatch : null
+                LibraryBatch = registration.UseBatchEvaluation ? descriptor.Descriptor.LibraryBatch : null,
             },
             results,
             resources.PartitionKeyArray,
             resources.OrderKeyArray,
             resources.Partitions,
             resources.SortedPartitions,
-            arguments.MethodTargets)
+            arguments.MethodTargets
+        )
         {
             LibraryArguments = arguments.Arguments,
-            UseIntegerOrderIndex = registration.UseIntegerOrderIndex
+            UseIntegerOrderIndex = registration.UseIntegerOrderIndex,
         };
 
         return (true, WindowComputationBuildResult.Success(registration, node, results));
@@ -69,7 +73,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool CanUseWindowAggregateKernel(WindowRegistration registration)
     {
-        return registration.Function?.GetCustomAttribute<WindowFunctionAttribute>() is { KernelType: not null, ContextType: null };
+        return registration.Function?.GetCustomAttribute<WindowFunctionAttribute>()
+            is { KernelType: not null, ContextType: null };
     }
 
     private static ExecutionWindowFrame? CreateAggregateWindowFrame(WindowRegistration registration)
@@ -82,11 +87,13 @@ internal sealed partial class PhysicalLoweringImplementation
             : new ExecutionWindowFrame(
                 ExecutionWindowFrameKind.Range,
                 new ExecutionWindowFrameBound(ExecutionWindowFrameBoundKind.UnboundedPreceding, 0),
-                new ExecutionWindowFrameBound(ExecutionWindowFrameBoundKind.CurrentRow, 0));
+                new ExecutionWindowFrameBound(ExecutionWindowFrameBoundKind.CurrentRow, 0)
+            );
     }
 
     private static (bool IsBuilt, ExecutionWindowAggregateMode Mode) ResolveWindowAggregateMode(
-        ExecutionWindowFrame? frame)
+        ExecutionWindowFrame? frame
+    )
     {
         if (frame == null)
             return (true, ExecutionWindowAggregateMode.WholePartition);
@@ -102,21 +109,25 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool IsUnboundedPrecedingToCurrentRow(ExecutionWindowFrame frame)
     {
-        return frame.Start.Kind == ExecutionWindowFrameBoundKind.UnboundedPreceding &&
-               frame.End.Kind == ExecutionWindowFrameBoundKind.CurrentRow;
+        return frame.Start.Kind == ExecutionWindowFrameBoundKind.UnboundedPreceding
+            && frame.End.Kind == ExecutionWindowFrameBoundKind.CurrentRow;
     }
 
     private static bool IsUnboundedPrecedingToUnboundedFollowing(ExecutionWindowFrame frame)
     {
-        return frame.Start.Kind == ExecutionWindowFrameBoundKind.UnboundedPreceding &&
-               frame.End.Kind == ExecutionWindowFrameBoundKind.UnboundedFollowing;
+        return frame.Start.Kind == ExecutionWindowFrameBoundKind.UnboundedPreceding
+            && frame.End.Kind == ExecutionWindowFrameBoundKind.UnboundedFollowing;
     }
 
-    private static (bool IsBuilt, ExecutionWindowAggregateKernelDescriptor? Descriptor) ResolveWindowAggregateCapability(
+    private static (
+        bool IsBuilt,
+        ExecutionWindowAggregateKernelDescriptor? Descriptor
+    ) ResolveWindowAggregateCapability(
         MethodInfo factoryMethod,
         string functionName,
         Type inputType,
-        ExecutionWindowAggregateMode mode)
+        ExecutionWindowAggregateMode mode
+    )
     {
         if (factoryMethod.GetCustomAttribute<WindowFunctionAttribute>() is { KernelType: not null } declaration)
         {
@@ -124,21 +135,33 @@ internal sealed partial class PhysicalLoweringImplementation
             {
                 ExecutionWindowAggregateMode.WholePartition => WindowEvaluationModes.WholePartition,
                 ExecutionWindowAggregateMode.Running => WindowEvaluationModes.Running,
-                _ => WindowEvaluationModes.RecomputeFrames
+                _ => WindowEvaluationModes.RecomputeFrames,
             };
             if ((declaration.Modes & required) == 0)
                 throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
-                    $"Window '{functionName}' does not support evaluation mode {required}.", Musoq.Parser.TextSpan.Empty);
+                    $"Window '{functionName}' does not support evaluation mode {required}.",
+                    Musoq.Parser.TextSpan.Empty
+                );
             var kernel = CreateValidatedWindowKernel(factoryMethod);
-            return (true, new ExecutionWindowAggregateKernelDescriptor(ExecutionWindowAggregateFunction.Library,
-                mode, inputType, kernel.ResultType, kernel.StateType)
-            {
-                LibraryKernel = new ExecutionAggregateKernelOperations(kernel),
-                LibraryBatch = CreateWindowBatchLibraryOperation(factoryMethod)
-            });
+            return (
+                true,
+                new ExecutionWindowAggregateKernelDescriptor(
+                    ExecutionWindowAggregateFunction.Library,
+                    mode,
+                    inputType,
+                    kernel.ResultType,
+                    kernel.StateType
+                )
+                {
+                    LibraryKernel = new ExecutionAggregateKernelOperations(kernel),
+                    LibraryBatch = CreateWindowBatchLibraryOperation(factoryMethod),
+                }
+            );
         }
         throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
-            $"Window '{functionName}' must register a concrete typed library kernel; legacy capability providers are unsupported.", Musoq.Parser.TextSpan.Empty);
+            $"Window '{functionName}' must register a concrete typed library kernel; legacy capability providers are unsupported.",
+            Musoq.Parser.TextSpan.Empty
+        );
     }
 
     private static AggregateKernelDescriptor CreateValidatedWindowKernel(MethodInfo declaration)
@@ -149,11 +172,14 @@ internal sealed partial class PhysicalLoweringImplementation
         }
         catch (InvalidOperationException exception)
         {
-            throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(exception.Message,
-                Musoq.Parser.TextSpan.Empty);
+            throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
+                exception.Message,
+                Musoq.Parser.TextSpan.Empty
+            );
         }
     }
 
     private static object CreateClrDefaultValue(Type type) =>
-        Activator.CreateInstance(type) ?? throw new InvalidOperationException($"Type {type.FullName} has no non-null CLR default value.");
+        Activator.CreateInstance(type)
+        ?? throw new InvalidOperationException($"Type {type.FullName} has no non-null CLR default value.");
 }

@@ -15,20 +15,18 @@ internal sealed class CompiledQueryBatchRepository<TKey> : IDisposable
     private bool _disposed;
 
     public CompiledQueryBatchRepository(Func<IReadOnlyDictionary<TKey, CompiledQuery>> factory)
-        : this(() => factory()
-            .ToDictionary(
-                static entry => entry.Key,
-                static entry => CompiledQueryBatchEntry.Success(entry.Value)))
-    {
-    }
+        : this(() =>
+            factory()
+                .ToDictionary(static entry => entry.Key, static entry => CompiledQueryBatchEntry.Success(entry.Value))
+        ) { }
 
-    internal CompiledQueryBatchRepository(
-        Func<IReadOnlyDictionary<TKey, CompiledQueryBatchEntry>> factory)
+    internal CompiledQueryBatchRepository(Func<IReadOnlyDictionary<TKey, CompiledQueryBatchEntry>> factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
         _factory = new Lazy<IReadOnlyDictionary<TKey, CompiledQueryBatchEntry>>(
             factory,
-            LazyThreadSafetyMode.ExecutionAndPublication);
+            LazyThreadSafetyMode.ExecutionAndPublication
+        );
     }
 
     internal bool IsValueCreated => _factory.IsValueCreated;
@@ -47,7 +45,8 @@ internal sealed class CompiledQueryBatchRepository<TKey> : IDisposable
 
                 throw new InvalidOperationException(
                     $"Compiled query batch key '{key}' failed to compile.",
-                    entry.Exception);
+                    entry.Exception
+                );
             }
 
             if (_knownKeys!.Contains(key))
@@ -66,10 +65,12 @@ internal sealed class CompiledQueryBatchRepository<TKey> : IDisposable
                 return;
 
             _disposed = true;
-            unconsumed = _remaining?.Values
-                .Where(static entry => entry.Query is not null)
-                .Select(static entry => entry.Query!)
-                .ToArray() ?? [];
+            unconsumed =
+                _remaining
+                    ?.Values.Where(static entry => entry.Query is not null)
+                    .Select(static entry => entry.Query!)
+                    .ToArray()
+                ?? [];
             _remaining?.Clear();
         }
 
@@ -82,16 +83,14 @@ internal sealed class CompiledQueryBatchRepository<TKey> : IDisposable
         if (_remaining is not null)
             return;
 
-        var queries = _factory.Value ??
-                      throw new InvalidOperationException("Compiled query batch factory returned null.");
+        var queries =
+            _factory.Value ?? throw new InvalidOperationException("Compiled query batch factory returned null.");
         _remaining = new Dictionary<TKey, CompiledQueryBatchEntry>(queries);
         _knownKeys = new HashSet<TKey>(_remaining.Keys);
     }
 }
 
-internal sealed record CompiledQueryBatchEntry(
-    CompiledQuery? Query,
-    Exception? Exception)
+internal sealed record CompiledQueryBatchEntry(CompiledQuery? Query, Exception? Exception)
 {
     internal static CompiledQueryBatchEntry Success(CompiledQuery query)
     {

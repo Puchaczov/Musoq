@@ -9,7 +9,6 @@ namespace Musoq.Plugins.Tests;
 /// </summary>
 public partial class StringMethodsExtendedTests
 {
-
     [TestMethod]
     public void Truncate_ShorterThanMax_ReturnsSame()
     {
@@ -213,5 +212,4 @@ public partial class StringMethodsExtendedTests
     {
         Assert.AreEqual(string.Empty, Library.RemoveSuffix("hello", "hello"));
     }
-
 }

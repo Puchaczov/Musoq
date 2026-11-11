@@ -15,5 +15,4 @@ public partial class LibraryExecutionCoverageQueryTestsFixtures
         select Partition, Total, Present, UniqueTotal, Avg(Total) over () as AverageTotal
         from totals
         """;
-
 }

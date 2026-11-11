@@ -18,8 +18,10 @@ public partial class TextInterpretationTests
                 TextFieldType.Pattern,
                 @"(?<Digits>\d+)",
                 modifiers: TextFieldModifier.Optional,
-                captureGroups: ["Digits"]),
-            CreateTextField("Tail", TextFieldType.Rest));
+                captureGroups: ["Digits"]
+            ),
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var present = InvokeParse(interpreter, "123tail");
         var capture = GetPropertyValue<object>(present, "Code");
@@ -37,9 +39,8 @@ public partial class TextInterpretationTests
         var registry = new SchemaRegistry();
         registry.Register(
             "RequiredItem",
-            new TextSchemaNode(
-                "RequiredItem",
-                [new TextFieldDefinitionNode("Value", TextFieldType.Literal, "X")]));
+            new TextSchemaNode("RequiredItem", [new TextFieldDefinitionNode("Value", TextFieldType.Literal, "X")])
+        );
         registry.Register(
             "Container",
             new TextSchemaNode(
@@ -50,9 +51,12 @@ public partial class TextInterpretationTests
                         TextFieldType.Repeat,
                         "RequiredItem",
                         "\n",
-                        TextFieldModifier.Optional),
-                    new TextFieldDefinitionNode("Tail", TextFieldType.Rest)
-                ]));
+                        TextFieldModifier.Optional
+                    ),
+                    new TextFieldDefinitionNode("Tail", TextFieldType.Rest),
+                ]
+            )
+        );
 
         var interpreter = CompileFromRegistry(registry, "Container");
 
@@ -77,8 +81,10 @@ public partial class TextInterpretationTests
                 "Branch",
                 [
                     new TextFieldDefinitionNode("Marker", TextFieldType.Literal, "X"),
-                    new TextFieldDefinitionNode("Value", TextFieldType.Rest)
-                ]));
+                    new TextFieldDefinitionNode("Value", TextFieldType.Rest),
+                ]
+            )
+        );
         registry.Register(
             "Container",
             new TextSchemaNode(
@@ -87,9 +93,12 @@ public partial class TextInterpretationTests
                     new TextFieldDefinitionNode(
                         "Content",
                         [new TextSwitchCaseNode("X", "Branch")],
-                        TextFieldModifier.Optional),
-                    new TextFieldDefinitionNode("Tail", TextFieldType.Rest)
-                ]));
+                        TextFieldModifier.Optional
+                    ),
+                    new TextFieldDefinitionNode("Tail", TextFieldType.Rest),
+                ]
+            )
+        );
 
         var interpreter = CompileFromRegistry(registry, "Container");
 
@@ -109,15 +118,18 @@ public partial class TextInterpretationTests
         var registry = new SchemaRegistry();
         registry.Register(
             "Item",
-            new TextSchemaNode("Item", [new TextFieldDefinitionNode("Value", TextFieldType.Token)]));
+            new TextSchemaNode("Item", [new TextFieldDefinitionNode("Value", TextFieldType.Token)])
+        );
         registry.Register(
             "Container",
             new TextSchemaNode(
                 "Container",
                 [
                     new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Item", "|"),
-                    new TextFieldDefinitionNode("Tail", TextFieldType.Rest)
-                ]));
+                    new TextFieldDefinitionNode("Tail", TextFieldType.Rest),
+                ]
+            )
+        );
 
         var interpreter = CompileFromRegistry(registry, "Container");
         var result = InvokeParse(interpreter, "|tail");
@@ -133,13 +145,11 @@ public partial class TextInterpretationTests
         registry.Register("Empty", new TextSchemaNode("Empty", []));
         registry.Register(
             "Container",
-            new TextSchemaNode(
-                "Container",
-                [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Empty")]));
+            new TextSchemaNode("Container", [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Empty")])
+        );
 
         var interpreter = CompileFromRegistry(registry, "Container");
-        var exception = Assert.ThrowsExactly<ParseException>(
-            () => InvokeParse(interpreter, "x"));
+        var exception = Assert.ThrowsExactly<ParseException>(() => InvokeParse(interpreter, "x"));
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("Container", exception.SchemaName);
@@ -155,16 +165,15 @@ public partial class TextInterpretationTests
         var registry = new SchemaRegistry();
         registry.Register(
             "Character",
-            new TextSchemaNode("Character", [new TextFieldDefinitionNode("Value", TextFieldType.Chars, "1")]));
+            new TextSchemaNode("Character", [new TextFieldDefinitionNode("Value", TextFieldType.Chars, "1")])
+        );
         registry.Register(
             "Container",
-            new TextSchemaNode(
-                "Container",
-                [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Character")]));
+            new TextSchemaNode("Container", [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Character")])
+        );
 
         var interpreter = CompileFromRegistry(registry, "Container");
-        var exception = Assert.ThrowsExactly<ParseException>(
-            () => InvokeParse(interpreter, new string('x', 10_001)));
+        var exception = Assert.ThrowsExactly<ParseException>(() => InvokeParse(interpreter, new string('x', 10_001)));
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("Container", exception.SchemaName);
@@ -184,26 +193,32 @@ public partial class TextInterpretationTests
                 "First",
                 [
                     new TextFieldDefinitionNode("Marker", TextFieldType.Literal, "a"),
-                    new TextFieldDefinitionNode("Value", TextFieldType.Rest)
-                ]));
+                    new TextFieldDefinitionNode("Value", TextFieldType.Rest),
+                ]
+            )
+        );
         registry.Register(
             "Second",
             new TextSchemaNode(
                 "Second",
                 [
                     new TextFieldDefinitionNode("Marker", TextFieldType.Literal, "a"),
-                    new TextFieldDefinitionNode("Other", TextFieldType.Rest)
-                ]));
+                    new TextFieldDefinitionNode("Other", TextFieldType.Rest),
+                ]
+            )
+        );
         registry.Register(
             "Container",
             new TextSchemaNode(
                 "Container",
-                [new TextFieldDefinitionNode(
-                    "Content",
-                    [
-                        new TextSwitchCaseNode("a", "First"),
-                        new TextSwitchCaseNode("a", "Second")
-                    ])]));
+                [
+                    new TextFieldDefinitionNode(
+                        "Content",
+                        [new TextSwitchCaseNode("a", "First"), new TextSwitchCaseNode("a", "Second")]
+                    ),
+                ]
+            )
+        );
 
         var interpreter = CompileFromRegistry(registry, "Container");
         var result = InvokeParse(interpreter, "adata");
@@ -219,18 +234,18 @@ public partial class TextInterpretationTests
         var registry = new SchemaRegistry();
         registry.Register(
             "Branch",
-            new TextSchemaNode("Branch", [new TextFieldDefinitionNode("Value", TextFieldType.Rest)]));
+            new TextSchemaNode("Branch", [new TextFieldDefinitionNode("Value", TextFieldType.Rest)])
+        );
         registry.Register(
             "Container",
             new TextSchemaNode(
                 "Container",
-                [new TextFieldDefinitionNode(
-                    "Content",
-                    [new TextSwitchCaseNode("x", "Branch")])]));
+                [new TextFieldDefinitionNode("Content", [new TextSwitchCaseNode("x", "Branch")])]
+            )
+        );
 
         var interpreter = CompileFromRegistry(registry, "Container");
-        var exception = Assert.ThrowsExactly<ParseException>(
-            () => InvokeParse(interpreter, "y"));
+        var exception = Assert.ThrowsExactly<ParseException>(() => InvokeParse(interpreter, "y"));
 
         Assert.AreEqual(ParseErrorCode.NoAlternativeMatched, exception.ErrorCode);
         Assert.AreEqual("Container", exception.SchemaName);
@@ -238,6 +253,4 @@ public partial class TextInterpretationTests
         Assert.AreEqual(0, exception.Position);
         Assert.AreEqual("ISE0012", exception.FormattedErrorCode);
     }
-
-
 }

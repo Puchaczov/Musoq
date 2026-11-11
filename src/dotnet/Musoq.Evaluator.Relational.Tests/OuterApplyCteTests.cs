@@ -10,35 +10,66 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class OuterApplyCteTests : GenericEntityTestBase
 {
-
     [TestMethod]
     public void WhenSchemaMethodOuterAppliedWithAnotherSchema_WithinCte_ShouldPass()
     {
-        const string query = @"
-with p as (
-    select
-        a.City as City,
-        a.Country as SourceCountry,
-        a.Population as Population,
-        b.Country as AppliedCountry,
-        b.Money as Money,
-        b.Month as Month
-    from #schema.first() a outer apply #schema.second(a.Country) b
-)
-select City, SourceCountry, Population, AppliedCountry, Money, Month from p";
+        const string query = (
+            "\n"
+            + "with p as (\n"
+            + "    select\n"
+            + "        a.City as City,\n"
+            + "        a.Country as SourceCountry,\n"
+            + "        a.Population as Population,\n"
+            + "        b.Country as AppliedCountry,\n"
+            + "        b.Money as Money,\n"
+            + "        b.Month as Month\n"
+            + "    from #schema.first() a outer apply #schema.second(a.Country) b\n"
+            + ")\n"
+            + "select City, SourceCountry, Population, AppliedCountry, Money, Month from p"
+        );
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<OuterApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -49,48 +80,87 @@ select City, SourceCountry, Population, AppliedCountry, Money, Month from p";
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("City", typeof(string)), ("SourceCountry", typeof(string)), ("Population", typeof(int)),
-            ("AppliedCountry", typeof(string)), ("Money", typeof(decimal?)), ("Month", typeof(string)));
+            ("City", typeof(string)),
+            ("SourceCountry", typeof(string)),
+            ("Population", typeof(int)),
+            ("AppliedCountry", typeof(string)),
+            ("Money", typeof(decimal?)),
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 100, "Country1", 1000m, "January"],
             ["City1", "Country1", 100, "Country1", 2000m, "February"],
             ["City2", "Country1", 200, "Country1", 1000m, "January"],
             ["City2", "Country1", 200, "Country1", 2000m, "February"],
-            ["City3", "Country2", 300, "Country2", 3000m, "March"]);
+            ["City3", "Country2", 300, "Country2", 3000m, "March"]
+        );
     }
 
     [TestMethod]
     public void WhenSchemaMethodOuterAppliedWithAnotherSchema_UsesCte_ShouldPass()
     {
-        const string query = @"
-with p as (
-    select 
-        f.City as City, 
-        f.Country as Country, 
-        f.Population as Population 
-    from #schema.first() f
-)
-select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a outer apply #schema.second(a.Country) b";
+        const string query = (
+            "\n"
+            + "with p as (\n"
+            + "    select \n"
+            + "        f.City as City, \n"
+            + "        f.Country as Country, \n"
+            + "        f.Population as Population \n"
+            + "    from #schema.first() f\n"
+            + ")\n"
+            + "select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a outer apply #schema.second(a.Country) b"
+        );
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<OuterApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -101,83 +171,102 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a out
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("City", typeof(string)), ("Country", typeof(string)), ("Population", typeof(int)),
-            ("Country", typeof(string)), ("Money", typeof(decimal?)), ("Month", typeof(string)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(int)),
+            ("Country", typeof(string)),
+            ("Money", typeof(decimal?)),
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 100, "Country1", 1000m, "January"],
             ["City1", "Country1", 100, "Country1", 2000m, "February"],
             ["City2", "Country1", 200, "Country1", 1000m, "January"],
             ["City2", "Country1", 200, "Country1", 2000m, "February"],
-            ["City3", "Country2", 300, "Country2", 3000m, "March"]);
+            ["City3", "Country2", 300, "Country2", 3000m, "March"]
+        );
     }
 
     [TestMethod]
     public void WhenSchemaMethodOuterAppliedSelfProperty_WithinCte_ShouldPass()
     {
-        const string query = @"
-with p as (
-    select a.Name, b.Value from #schema.first() a outer apply a.Skills b
-)
-select Name, Value from p";
+        const string query = (
+            "\n"
+            + "with p as (\n"
+            + "    select a.Name, b.Value from #schema.first() a outer apply a.Skills b\n"
+            + ")\n"
+            + "select Name, Value from p"
+        );
 
         var firstSource = new List<OuterApplyClass3>
         {
             new() { Name = "Name1", Skills = ["Skill1", "Skill2", "Skill3"] },
             new() { Name = "Name2", Skills = ["Skill4", "Skill5", "Skill6"] },
-            new() { Name = "Name3", Skills = ["Skill7", "Skill8", "Skill9"] }
+            new() { Name = "Name3", Skills = ["Skill7", "Skill8", "Skill9"] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource);
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Name1", "Skill1"], ["Name1", "Skill2"], ["Name1", "Skill3"],
-            ["Name2", "Skill4"], ["Name2", "Skill5"], ["Name2", "Skill6"],
-            ["Name3", "Skill7"], ["Name3", "Skill8"], ["Name3", "Skill9"]);
+            ["Name1", "Skill1"],
+            ["Name1", "Skill2"],
+            ["Name1", "Skill3"],
+            ["Name2", "Skill4"],
+            ["Name2", "Skill5"],
+            ["Name2", "Skill6"],
+            ["Name3", "Skill7"],
+            ["Name3", "Skill8"],
+            ["Name3", "Skill9"]
+        );
     }
 
     [TestMethod]
     public void WhenSchemaMethodOuterAppliedSelfProperty_UsesCte_ShouldPass()
     {
-        const string query = @"
-with first as (
-    select a.Name as Name, a.Skills as Skills from #schema.first() a
-)
-select a.Name, b.Value from first a outer apply a.Skills b";
+        const string query = (
+            "\n"
+            + "with first as (\n"
+            + "    select a.Name as Name, a.Skills as Skills from #schema.first() a\n"
+            + ")\n"
+            + "select a.Name, b.Value from first a outer apply a.Skills b"
+        );
 
         var firstSource = new List<OuterApplyClass3>
         {
             new() { Name = "Name1", Skills = ["Skill1", "Skill2", "Skill3"] },
             new() { Name = "Name2", Skills = ["Skill4", "Skill5", "Skill6"] },
-            new() { Name = "Name3", Skills = ["Skill7", "Skill8", "Skill9"] }
+            new() { Name = "Name3", Skills = ["Skill7", "Skill8", "Skill9"] },
         }.ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource);
+        var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table, ("Name", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["Name1", "Skill1"], ["Name1", "Skill2"], ["Name1", "Skill3"],
-            ["Name2", "Skill4"], ["Name2", "Skill5"], ["Name2", "Skill6"],
-            ["Name3", "Skill7"], ["Name3", "Skill8"], ["Name3", "Skill9"]);
+            ["Name1", "Skill1"],
+            ["Name1", "Skill2"],
+            ["Name1", "Skill3"],
+            ["Name2", "Skill4"],
+            ["Name2", "Skill5"],
+            ["Name2", "Skill6"],
+            ["Name3", "Skill7"],
+            ["Name3", "Skill8"],
+            ["Name3", "Skill9"]
+        );
     }
 
     public sealed class OuterApplyClass1
@@ -202,6 +291,7 @@ select a.Name, b.Value from first a outer apply a.Skills b";
     {
         public string Name { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public string[] Skills { get; set; } = [];
+        [BindablePropertyAsTable]
+        public string[] Skills { get; set; } = [];
     }
 }

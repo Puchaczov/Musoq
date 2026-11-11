@@ -23,17 +23,15 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.ExpressionHoisting.Replacement.cs",
             "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.ExpressionHoisting.Signatures.cs",
             "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.ExpressionHoisting.Usage.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.Types.HoistingAndResults.cs"
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.Types.HoistingAndResults.cs",
         ];
 
-        var existing = retiredFiles
-            .Where(path => File.Exists(ToAbsolutePath(repositoryRoot, path)))
-            .ToArray();
+        var existing = retiredFiles.Where(path => File.Exists(ToAbsolutePath(repositoryRoot, path))).ToArray();
 
         Assert.IsEmpty(
             existing,
-            "Retired lowerer-owned field-read hoisting files must not be reintroduced: " +
-            string.Join(", ", existing));
+            "Retired lowerer-owned field-read hoisting files must not be reintroduced: " + string.Join(", ", existing)
+        );
     }
 
     [TestMethod]
@@ -41,93 +39,112 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var executionLoweringDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
-        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionLoweringDirectory, "PhysicalLoweringImplementation*.cs")
+        var lowererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
+                executionLoweringDirectory,
+                "PhysicalLoweringImplementation*.cs"
+            )
             .ToArray();
         string[] hoistingMarkers =
         [
             "CreateHoistCandidateLets(",
             "HoistRepeatedExpressions(",
             "HoistExpressionsSharedWithCondition(",
-            "HoistExpressionsSharedWithBlock("
+            "HoistExpressionsSharedWithBlock(",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, lowererFiles, hoistingMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Execution IR lowering must leave expression hoisting to Execution IR passes: " +
-            string.Join(", ", offenders));
+            "Execution IR lowering must leave expression hoisting to Execution IR passes: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void OptimizerOwnership_TransformTree_ShouldNotInvokeRetiredAstOptimizationVisitors()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var transformTreeFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter", "Build"), "TransformTree*.cs")
+        var transformTreeFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
+                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter", "Build"),
+                "TransformTree*.cs"
+            )
             .ToArray();
         string[] retiredInvocationMarkers =
         [
             "new ConstantFoldingVisitor",
             "new ConstantFoldingTraverseVisitor",
-            "DeadCteEliminator."
+            "DeadCteEliminator.",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, transformTreeFiles, retiredInvocationMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Pre-logical AST optimization visitors must not be invoked from TransformTree: " +
-            string.Join(", ", offenders));
+            "Pre-logical AST optimization visitors must not be invoked from TransformTree: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void OptimizerOwnership_Renderer_ShouldNotSynthesizeReusableMethodTargets()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "ExecutionCSharpRenderer*.cs")
+        var rendererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
+                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"),
+                "ExecutionCSharpRenderer*.cs"
+            )
             .ToArray();
         string[] synthesisMarkers =
         [
             "new LibraryBase(",
             "new LibraryBase()",
-            "Activator.CreateInstance(methodCall.Method.DeclaringType"
+            "Activator.CreateInstance(methodCall.Method.DeclaringType",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, rendererFiles, synthesisMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Renderer must reject unbound reusable method calls instead of synthesizing targets: " +
-            string.Join(", ", offenders));
+            "Renderer must reject unbound reusable method calls instead of synthesizing targets: "
+                + string.Join(", ", offenders)
+        );
 
         var guardFile = ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.RendererMethodTargetGuard.cs");
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.RendererMethodTargetGuard.cs"
+        );
         var guardText = File.ReadAllText(guardFile);
         Assert.Contains(
             "requires a reusable target assigned by MethodTargetReusePass",
             guardText,
-            "Renderer method-target diagnostics must keep pointing ownership at MethodTargetReusePass.");
+            "Renderer method-target diagnostics must keep pointing ownership at MethodTargetReusePass."
+        );
     }
 
     [TestMethod]
     public void OptimizerOwnership_CteLowerer_ShouldEmitCandidatesInsteadOfFinalStoreLoadNodes()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "PhysicalLoweringImplementation*.cs", SearchOption.AllDirectories)
+        var lowererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
+                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"),
+                "PhysicalLoweringImplementation*.cs",
+                SearchOption.AllDirectories
+            )
             .ToArray();
-        string[] finalNodeMarkers =
-        [
-            "new ExecutionStoreCteIndex(",
-            "new ExecutionLoadCteIndex("
-        ];
+        string[] finalNodeMarkers = ["new ExecutionStoreCteIndex(", "new ExecutionLoadCteIndex("];
 
         var offenders = FindFilesContainingAny(repositoryRoot, lowererFiles, finalNodeMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "CTE lowering must emit CTE strategy candidates and leave final store/load nodes to CteSidecarIndexLoweringPass: " +
-            string.Join(", ", offenders));
+            "CTE lowering must emit CTE strategy candidates and leave final store/load nodes to CteSidecarIndexLoweringPass: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -136,8 +153,14 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         string[] sidecarLowererFiles =
         [
-            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.CteSidecarIndexes.cs"),
-            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.CteSidecarIndexAppends.cs")
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.CteSidecarIndexes.cs"
+            ),
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.CteSidecarIndexAppends.cs"
+            ),
         ];
         string[] finalRuntimeNodeMarkers =
         [
@@ -149,75 +172,86 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "new ExecutionHashAdd(",
             "new ExecutionKeySetAdd(",
             "new ExecutionCteSidecarIndexBuildCandidate(new ExecutionBlock",
-            "new ExecutionCteSidecarAppendRewriteCandidate(new ExecutionBlock"
+            "new ExecutionCteSidecarAppendRewriteCandidate(new ExecutionBlock",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, sidecarLowererFiles, finalRuntimeNodeMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "CTE sidecar lowering must emit structured strategy candidates; final build/append runtime nodes belong to CteSidecarIndexLoweringPass: " +
-            string.Join(", ", offenders));
+            "CTE sidecar lowering must emit structured strategy candidates; final build/append runtime nodes belong to CteSidecarIndexLoweringPass: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void OptimizerOwnership_CteLowerer_ShouldNotDisablePlannerSelectedSidecars()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "PhysicalLoweringImplementation*.cs", SearchOption.AllDirectories)
+        var lowererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
+                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"),
+                "PhysicalLoweringImplementation*.cs",
+                SearchOption.AllDirectories
+            )
             .ToArray();
-        string[] disabledSidecarMarkers =
-        [
-            "DisableCteSidecarIndexes",
-            "_disabledCteSidecarIndexSlots"
-        ];
+        string[] disabledSidecarMarkers = ["DisableCteSidecarIndexes", "_disabledCteSidecarIndexSlots"];
 
         var offenders = FindFilesContainingAny(repositoryRoot, lowererFiles, disabledSidecarMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Execution IR lowering must fail clearly instead of disabling planner-selected CTE sidecar indexes: " +
-            string.Join(", ", offenders));
+            "Execution IR lowering must fail clearly instead of disabling planner-selected CTE sidecar indexes: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void OptimizerOwnership_ExecutionLowerer_ShouldNotPlanStrategies()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "*.cs")
+        var lowererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
+                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"),
+                "*.cs"
+            )
             .ToArray();
-        string[] planningMarkers =
-        [
-            "ExecutionStrategyPlanner.Plan("
-        ];
+        string[] planningMarkers = ["ExecutionStrategyPlanner.Plan("];
 
         var offenders = FindFilesContainingAny(repositoryRoot, lowererFiles, planningMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Execution IR lowering must consume planner-owned execution strategies instead of self-planning: " +
-            string.Join(", ", offenders));
+            "Execution IR lowering must consume planner-owned execution strategies instead of self-planning: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void OptimizerOwnership_ExecutionLowerer_ShouldNotCreateJoinStrategyFallbacks()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "PhysicalLoweringImplementation*.cs", SearchOption.AllDirectories)
+        var lowererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
+                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"),
+                "PhysicalLoweringImplementation*.cs",
+                SearchOption.AllDirectories
+            )
             .ToArray();
         string[] fallbackMarkers =
         [
             "CreateNestedLoopJoinFallback",
             "RequiresNestedLoopHashJoinFallback",
-            "Hash join fallback requires"
+            "Hash join fallback requires",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, lowererFiles, fallbackMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Execution IR lowering must not create replacement physical join strategies: " +
-            string.Join(", ", offenders));
+            "Execution IR lowering must not create replacement physical join strategies: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -225,7 +259,11 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var executionLoweringDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
-        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionLoweringDirectory, "PhysicalLoweringImplementation*.cs")
+        var lowererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
+                executionLoweringDirectory,
+                "PhysicalLoweringImplementation*.cs"
+            )
             .ToArray();
         string[] registryMarkers =
         [
@@ -233,21 +271,19 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "new WindowMethodTargetRegistry(",
             "CreateMethodTargetDeclarations(",
             "RegisterMethodTargetCandidates(",
-            "RegisterWindowMethodTargetCandidates("
+            "RegisterWindowMethodTargetCandidates(",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, lowererFiles, registryMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Execution IR lowering must leave method-target binding to MethodTargetReusePass: " +
-            string.Join(", ", offenders));
+            "Execution IR lowering must leave method-target binding to MethodTargetReusePass: "
+                + string.Join(", ", offenders)
+        );
     }
 
-    private static string[] FindFilesContainingAny(
-        string repositoryRoot,
-        string[] files,
-        string[] markers)
+    private static string[] FindFilesContainingAny(string repositoryRoot, string[] files, string[] markers)
     {
         Assert.IsNotEmpty(files, "A violation scan requires its intended source inventory.");
         return files

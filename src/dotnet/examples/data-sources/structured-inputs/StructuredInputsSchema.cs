@@ -47,7 +47,8 @@ public sealed class StructuredInputsSchema : SchemaBase
         AddTable<StructuredInputTable<StrictLimitRow>>(Strict);
         AddTypedSource<StrictLimitSource>(
             Strict,
-            new TypedSourceRegistrationOptions(new StructuralInputLimits(8, 3, 1024)));
+            new TypedSourceRegistrationOptions(new StructuralInputLimits(8, 3, 1024))
+        );
         AddTable<StructuredInputTable<MutableProbeRow>>(Mutable);
         AddTypedSource<MutableProbeSource>(Mutable);
         AddTable<StructuredInputTable<StrictLimitRow>>(Throwing);
@@ -69,7 +70,8 @@ public sealed class StructuredInputsSchema : SchemaBase
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         ArgumentNullException.ThrowIfNull(metadataContext);
         metadataContext.EndWorkToken.ThrowIfCancellationRequested();
@@ -90,7 +92,7 @@ public sealed class StructuredInputsSchema : SchemaBase
             Ambiguous => new StructuredInputTable<OverloadRow>(),
             CollectionColumn => new StructuredInputTable<CollectionColumnRow>(),
             RelationAmbiguity => new StructuredInputTable<OverloadRow>(),
-            _ => base.GetTableByName(name, metadataContext, parameters)
+            _ => base.GetTableByName(name, metadataContext, parameters),
         };
     }
 

@@ -4,38 +4,37 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-    #pragma warning disable CS1591
+#pragma warning disable CS1591
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Bitwise)]
-    public byte? Not(byte? value)
-        => BitwiseOperation(value, static value => (byte)~value);
+    public byte? Not(byte? value) => BitwiseOperation(value, static value => (byte)~value);
+
     [BindableMethod]
     [MethodCategory(MethodCategories.Bitwise)]
-    public short? Not(short? value)
-        => BitwiseOperation(value, static value => (short)~value);
+    public short? Not(short? value) => BitwiseOperation(value, static value => (short)~value);
+
     [BindableMethod]
     [MethodCategory(MethodCategories.Bitwise)]
-    public int? Not(int? value)
-        => BitwiseOperation(value, static value => ~value);
+    public int? Not(int? value) => BitwiseOperation(value, static value => ~value);
+
     [BindableMethod]
     [MethodCategory(MethodCategories.Bitwise)]
-    public long? Not(long? value)
-        => BitwiseOperation(value, static value => ~value);
+    public long? Not(long? value) => BitwiseOperation(value, static value => ~value);
+
     [BindableMethod]
     [MethodCategory(MethodCategories.Bitwise)]
-    public sbyte? Not(sbyte? value)
-        => BitwiseOperation(value, static value => (sbyte)~value);
+    public sbyte? Not(sbyte? value) => BitwiseOperation(value, static value => (sbyte)~value);
+
     [BindableMethod]
     [MethodCategory(MethodCategories.Bitwise)]
-    public ushort? Not(ushort? value)
-        => BitwiseOperation(value, static value => (ushort)~value);
+    public ushort? Not(ushort? value) => BitwiseOperation(value, static value => (ushort)~value);
+
     [BindableMethod]
     [MethodCategory(MethodCategories.Bitwise)]
-    public uint? Not(uint? value)
-        => BitwiseOperation(value, static value => ~value);
+    public uint? Not(uint? value) => BitwiseOperation(value, static value => ~value);
+
     [BindableMethod]
     [MethodCategory(MethodCategories.Bitwise)]
-    public ulong? Not(ulong? value)
-        => BitwiseOperation(value, static value => ~value);
+    public ulong? Not(ulong? value) => BitwiseOperation(value, static value => ~value);
 }

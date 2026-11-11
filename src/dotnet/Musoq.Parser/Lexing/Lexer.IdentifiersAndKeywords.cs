@@ -8,7 +8,6 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public sealed partial class Lexer
 {
-
     private Token ScanIdentifierOrKeyword()
     {
         var start = Position;
@@ -34,7 +33,9 @@ public sealed partial class Lexer
         if (identifierEnd < Input.Length && Input[identifierEnd] == '(')
         {
             Position = identifierEnd;
-            return AssignToken(new FunctionToken(Input[start..identifierEnd], new TextSpan(start, identifierEnd - start)));
+            return AssignToken(
+                new FunctionToken(Input[start..identifierEnd], new TextSpan(start, identifierEnd - start))
+            );
         }
 
         if (TryScanMethodAccess(start, identifierEnd, out var methodToken))
@@ -46,8 +47,12 @@ public sealed partial class Lexer
             return AssignToken(new AliasedStarToken(Input[start..Position], new TextSpan(start, Position - start)));
         }
 
-        if (!IsSchemaContext && identifierEnd < Input.Length && Input[identifierEnd] == '[' &&
-            TryScanAccessToken(start, identifierEnd, out var accessToken))
+        if (
+            !IsSchemaContext
+            && identifierEnd < Input.Length
+            && Input[identifierEnd] == '['
+            && TryScanAccessToken(start, identifierEnd, out var accessToken)
+        )
         {
             return AssignToken(accessToken);
         }
@@ -89,5 +94,4 @@ public sealed partial class Lexer
 
         return AssignToken(new ColumnToken(textSpan.ToString(), span));
     }
-
 }

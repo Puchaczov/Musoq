@@ -8,7 +8,8 @@ internal sealed record SubqueryCorrelationFacts(
     IReadOnlySet<string> CorrelatedAliases,
     IReadOnlyList<SubqueryCorrelationKeyFact> EqualityKeys,
     SubqueryCorrelationNullSemantics NullSemantics,
-    IReadOnlyList<SubqueryCardinalityContextFact> CardinalitySensitiveContexts)
+    IReadOnlyList<SubqueryCardinalityContextFact> CardinalitySensitiveContexts
+)
 {
     public bool HasEqualityKeys => EqualityKeys.Count > 0;
 

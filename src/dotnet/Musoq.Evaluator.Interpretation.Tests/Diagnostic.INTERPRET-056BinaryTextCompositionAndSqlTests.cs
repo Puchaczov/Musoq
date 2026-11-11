@@ -15,19 +15,21 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_BinaryStringAsText_ShouldExposeNestedValuesAndContinueToTrailer()
     {
-        var query = @"
-            text KeyValue {
-                Key: until '=',
-                Value: rest trim
-            };
-            binary Envelope {
-                Length: byte,
-                Payload: string[Length] utf8 as KeyValue,
-                Trailer: short le
-            };
-            select e.Length, e.Payload.Key, e.Payload.Value, e.Trailer
-            from #test.files() f
-            cross apply Interpret<Envelope>(f.Content) e";
+        var query = (
+            "\n"
+            + "            text KeyValue {\n"
+            + "                Key: until '=',\n"
+            + "                Value: rest trim\n"
+            + "            };\n"
+            + "            binary Envelope {\n"
+            + "                Length: byte,\n"
+            + "                Payload: string[Length] utf8 as KeyValue,\n"
+            + "                Trailer: short le\n"
+            + "            };\n"
+            + "            select e.Length, e.Payload.Key, e.Payload.Value, e.Trailer\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Envelope>(f.Content) e"
+        );
 
         var payload = Encoding.UTF8.GetBytes("name=Łódź");
         var data = new byte[payload.Length + 3];
@@ -39,15 +41,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
             {
-                { "#test", [new BinaryEntity { Name = "envelope.bin", Content = data }] }
-            });
+                { "#test", [new BinaryEntity { Name = "envelope.bin", Content = data }] },
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -55,30 +59,31 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("Length", typeof(byte)),
             ("e.Payload.Key", typeof(string)),
             ("e.Payload.Value", typeof(string)),
-            ("Trailer", typeof(short)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [(byte)payload.Length, "name", "Łódź", (short)0x1234]);
+            ("Trailer", typeof(short))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)payload.Length, "name", "Łódź", (short)0x1234]);
     }
 
     [TestMethod]
     public void Query_InterpretedNestedArray_ShouldExpandThroughApplyAndRespectSqlFilterAndOrder()
     {
-        const string query = @"
-            binary Item {
-                Id: byte,
-                Score: short le
-            };
-            binary Batch {
-                Count: byte,
-                Items: Item[Count]
-            };
-            select f.Name, i.Id, i.Score
-            from #test.files() f
-            cross apply Interpret<Batch>(f.Content) b
-            cross apply b.Items i
-            where i.Score >= 20
-            order by i.Score desc";
+        const string query = (
+            "\n"
+            + "            binary Item {\n"
+            + "                Id: byte,\n"
+            + "                Score: short le\n"
+            + "            };\n"
+            + "            binary Batch {\n"
+            + "                Count: byte,\n"
+            + "                Items: Item[Count]\n"
+            + "            };\n"
+            + "            select f.Name, i.Id, i.Score\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Batch>(f.Content) b\n"
+            + "            cross apply b.Items i\n"
+            + "            where i.Score >= 20\n"
+            + "            order by i.Score desc"
+        );
 
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
@@ -86,69 +91,67 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                 {
                     "#test",
                     [
-                        new BinaryEntity
-                        {
-                            Name = "a.bin",
-                            Content = CreateBatch((1, 10), (2, 20), (3, 30))
-                        },
-                        new BinaryEntity
-                        {
-                            Name = "b.bin",
-                            Content = CreateBatch((4, 40), (5, 5))
-                        }
+                        new BinaryEntity { Name = "a.bin", Content = CreateBatch((1, 10), (2, 20), (3, 30)) },
+                        new BinaryEntity { Name = "b.bin", Content = CreateBatch((4, 40), (5, 5)) },
                     ]
-                }
-            });
+                },
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Name", typeof(string)),
             ("Id", typeof(byte)),
-            ("Score", typeof(short)));
+            ("Score", typeof(short))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["b.bin", (byte)4, (short)40],
             ["a.bin", (byte)3, (short)30],
-            ["a.bin", (byte)2, (short)20]);
+            ["a.bin", (byte)2, (short)20]
+        );
     }
 
     [TestMethod]
     public void Query_BinaryAndTextCtes_ShouldJoinFilterGroupAndOrderTogether()
     {
-        const string query = @"
-            binary BinRecord {
-                Id: byte,
-                Score: short le
-            };
-            text TxtRecord {
-                Id: until ':',
-                Label: rest trim
-            };
-            with BinData as (
-                select ToString(b.Id) as BinId, b.Score as Score
-                from #bin.files() bf
-                cross apply Interpret<BinRecord>(bf.Content) b
-                where b.Score >= 100
-            ),
-            TextData as (
-                select r.Id as TxtId, r.Label as Label
-                from #txt.files() tf
-                cross apply Parse<TxtRecord>(tf.Text) r
-            )
-            select bd.BinId, Count(t.Label) as MatchCount, Sum(bd.Score) as ScoreTotal
-            from BinData bd
-            inner join TextData t on bd.BinId = t.TxtId
-            where t.Label <> 'ignore'
-            group by bd.BinId
-            order by bd.BinId desc";
+        const string query = (
+            "\n"
+            + "            binary BinRecord {\n"
+            + "                Id: byte,\n"
+            + "                Score: short le\n"
+            + "            };\n"
+            + "            text TxtRecord {\n"
+            + "                Id: until ':',\n"
+            + "                Label: rest trim\n"
+            + "            };\n"
+            + "            with BinData as (\n"
+            + "                select ToString(b.Id) as BinId, b.Score as Score\n"
+            + "                from #bin.files() bf\n"
+            + "                cross apply Interpret<BinRecord>(bf.Content) b\n"
+            + "                where b.Score >= 100\n"
+            + "            ),\n"
+            + "            TextData as (\n"
+            + "                select r.Id as TxtId, r.Label as Label\n"
+            + "                from #txt.files() tf\n"
+            + "                cross apply Parse<TxtRecord>(tf.Text) r\n"
+            + "            )\n"
+            + "            select bd.BinId, Count(t.Label) as MatchCount, Sum(bd.Score) as ScoreTotal\n"
+            + "            from BinData bd\n"
+            + "            inner join TextData t on bd.BinId = t.TxtId\n"
+            + "            where t.Label <> 'ignore'\n"
+            + "            group by bd.BinId\n"
+            + "            order by bd.BinId desc"
+        );
 
         var schemaProvider = new MixedSchemaProvider(
             new Dictionary<string, IEnumerable<ComponentBinaryEntity>>
@@ -158,9 +161,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                     [
                         new ComponentBinaryEntity { Name = "1.bin", Content = [1, 100, 0] },
                         new ComponentBinaryEntity { Name = "2.bin", Content = [2, 200, 0] },
-                        new ComponentBinaryEntity { Name = "3.bin", Content = [3, 50, 0] }
+                        new ComponentBinaryEntity { Name = "3.bin", Content = [3, 50, 0] },
                     ]
-                }
+                },
             },
             new Dictionary<string, IEnumerable<ComponentTextEntity>>
             {
@@ -170,55 +173,59 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                         new ComponentTextEntity { Name = "1.txt", Text = "1:Alpha" },
                         new ComponentTextEntity { Name = "1-ignore.txt", Text = "1:ignore" },
                         new ComponentTextEntity { Name = "2.txt", Text = "2:Beta" },
-                        new ComponentTextEntity { Name = "3.txt", Text = "3:Gamma" }
+                        new ComponentTextEntity { Name = "3.txt", Text = "3:Gamma" },
                     ]
-                }
-            });
+                },
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("BinId", typeof(string)),
             ("MatchCount", typeof(long)),
-            ("ScoreTotal", typeof(short?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["2", 1L, (short)200],
-            ["1", 1L, (short)100]);
+            ("ScoreTotal", typeof(short?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["2", 1L, (short)200], ["1", 1L, (short)100]);
     }
 
     [TestMethod]
     public void Query_BinaryTextBoundaryFailure_ShouldReportQualifiedFieldPath()
     {
-        const string query = @"
-            text KeyValue {
-                Key: until '=',
-                Value: chars[3]
-            };
-            binary Envelope {
-                Length: byte,
-                Payload: string[Length] utf8 as KeyValue
-            };
-            select e.Payload.Key
-            from #test.files() f
-            cross apply Interpret<Envelope>(f.Content) e";
+        const string query = (
+            "\n"
+            + "            text KeyValue {\n"
+            + "                Key: until '=',\n"
+            + "                Value: chars[3]\n"
+            + "            };\n"
+            + "            binary Envelope {\n"
+            + "                Length: byte,\n"
+            + "                Payload: string[Length] utf8 as KeyValue\n"
+            + "            };\n"
+            + "            select e.Payload.Key\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Envelope>(f.Content) e"
+        );
 
         var schemaProvider = CreateBinaryProvider(
             "malformed.bin",
-            [6, (byte)'k', (byte)'e', (byte)'y', (byte)'=', (byte)'a', (byte)'b']);
+            [6, (byte)'k', (byte)'e', (byte)'y', (byte)'=', (byte)'a', (byte)'b']
+        );
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
         {
@@ -236,30 +243,34 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialInterpret_BinaryTextBoundaryFailure_ShouldRetainParentFieldsAndMetadata()
     {
-        const string query = @"
-            text KeyValue {
-                Key: until '=',
-                Value: chars[3]
-            };
-            binary Envelope {
-                Header: byte,
-                Length: byte,
-                Payload: string[Length] utf8 as KeyValue,
-                Trailer: byte
-            };
-            select p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed
-            from #test.files() f
-            cross apply PartialInterpret<Envelope>(f.Content) p";
+        const string query = (
+            "\n"
+            + "            text KeyValue {\n"
+            + "                Key: until '=',\n"
+            + "                Value: chars[3]\n"
+            + "            };\n"
+            + "            binary Envelope {\n"
+            + "                Header: byte,\n"
+            + "                Length: byte,\n"
+            + "                Payload: string[Length] utf8 as KeyValue,\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed\n"
+            + "            from #test.files() f\n"
+            + "            cross apply PartialInterpret<Envelope>(f.Content) p"
+        );
 
         var schemaProvider = CreateBinaryProvider(
             "partial-malformed.bin",
-            [7, 6, (byte)'k', (byte)'e', (byte)'y', (byte)'=', (byte)'a', (byte)'b']);
+            [7, 6, (byte)'k', (byte)'e', (byte)'y', (byte)'=', (byte)'a', (byte)'b']
+        );
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -276,27 +287,32 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_SchemaDefinitions_ShouldRemainScopedToEachCompilationBatch()
     {
-        const string firstQuery = @"
-            binary BatchScoped {
-                Value: byte
-            };
-            select p.Value
-            from #test.files() f
-            cross apply Interpret<BatchScoped>(f.Content) p";
-        const string secondQuery = @"
-            binary BatchScoped {
-                Value: short le
-            };
-            select p.Value
-            from #test.files() f
-            cross apply Interpret<BatchScoped>(f.Content) p";
+        const string firstQuery = (
+            "\n"
+            + "            binary BatchScoped {\n"
+            + "                Value: byte\n"
+            + "            };\n"
+            + "            select p.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<BatchScoped>(f.Content) p"
+        );
+        const string secondQuery = (
+            "\n"
+            + "            binary BatchScoped {\n"
+            + "                Value: short le\n"
+            + "            };\n"
+            + "            select p.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<BatchScoped>(f.Content) p"
+        );
 
         var firstVm = CompileGeneratedQuery(
             firstQuery,
             Guid.NewGuid().ToString(),
             CreateBinaryProvider("byte.bin", [7]),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var firstTable = firstVm.Run(CancellationToken.None);
         Assert.AreEqual((byte)7, firstTable[0].ReadValue(0));
 
@@ -305,7 +321,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             Guid.NewGuid().ToString(),
             CreateBinaryProvider("short.bin", [0x34, 0x12]),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var secondTable = secondVm.Run(CancellationToken.None);
         Assert.AreEqual((short)0x1234, secondTable[0].ReadValue(0));
     }
@@ -331,7 +348,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         return new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>>
             {
-                { "#test", [new BinaryEntity { Name = name, Content = content }] }
-            });
+                { "#test", [new BinaryEntity { Name = name, Content = content }] },
+            }
+        );
     }
 }

@@ -14,12 +14,14 @@ public sealed class CteExecutionStrategyPassTests
         var table = new ExecutionVariable("result", typeof(object));
         var candidate = new ExecutionCteReadOnceFusionCandidate(
             9,
-            new ExecutionBlock([new ExecutionReturnTable(table)]));
+            new ExecutionBlock([new ExecutionReturnTable(table)])
+        );
         var plan = new ExecutionPlan("compiled", [], new ExecutionBlock([candidate]));
 
         var result = new CteReadOnceFusionPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
         Assert.IsTrue(result.IsChanged);
         Assert.HasCount(3, result.Plan.Body.Nodes);
@@ -39,15 +41,30 @@ public sealed class CteExecutionStrategyPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
-                new ExecutionCteSidecarIndexStoreCandidate(index, 3, ExecutionCteSidecarIndexKind.Hash, typeof(int), typeof(object), "PayloadRow"),
-                new ExecutionCteSidecarIndexLoadCandidate(index, 3, ExecutionCteSidecarIndexKind.Hash, typeof(int), typeof(object), "PayloadRow")
-            ]));
+            new ExecutionBlock([
+                new ExecutionCteSidecarIndexStoreCandidate(
+                    index,
+                    3,
+                    ExecutionCteSidecarIndexKind.Hash,
+                    typeof(int),
+                    typeof(object),
+                    "PayloadRow"
+                ),
+                new ExecutionCteSidecarIndexLoadCandidate(
+                    index,
+                    3,
+                    ExecutionCteSidecarIndexKind.Hash,
+                    typeof(int),
+                    typeof(object),
+                    "PayloadRow"
+                ),
+            ])
+        );
 
         var result = new CteSidecarIndexLoweringPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
         Assert.IsTrue(result.IsChanged);
         var store = (ExecutionStoreCteIndex)result.Plan.Body.Nodes[0];
@@ -69,34 +86,37 @@ public sealed class CteExecutionStrategyPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
-                new ExecutionCteSidecarIndexBuildCandidate(
-                [
+            new ExecutionBlock([
+                new ExecutionCteSidecarIndexBuildCandidate([
                     new ExecutionCteSidecarIndexCreateSpec(
                         index,
                         ExecutionCteSidecarIndexKind.Hash,
                         typeof(int),
                         null,
                         typeof(object),
-                        "PayloadRow")
+                        "PayloadRow"
+                    ),
                 ]),
                 new ExecutionCteSidecarAppendRewriteCandidate(
                     new ExecutionAppendRow(table, rowShape, []),
-                [
-                    new ExecutionCteSidecarAppendIndexSpec(
-                        index,
-                        new ExecutionLiteral(1, typeof(int)),
-                        ExecutionCteSidecarIndexKind.Hash,
-                        typeof(int),
-                        null,
-                        [])
-                ])
-            ]));
+                    [
+                        new ExecutionCteSidecarAppendIndexSpec(
+                            index,
+                            new ExecutionLiteral(1, typeof(int)),
+                            ExecutionCteSidecarIndexKind.Hash,
+                            typeof(int),
+                            null,
+                            []
+                        ),
+                    ]
+                ),
+            ])
+        );
 
         var result = new CteSidecarIndexLoweringPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
         Assert.IsTrue(result.IsChanged);
         Assert.IsInstanceOfType<ExecutionCreateHash>(result.Plan.Body.Nodes[0]);
@@ -114,16 +134,15 @@ public sealed class CteExecutionStrategyPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [rowShape],
-            new ExecutionBlock(
-            [
-                new ExecutionCteFusedProducerCandidate(
-                    [output],
-                    new ExecutionBlock([new ExecutionReturnTable(table)]))
-            ]));
+            new ExecutionBlock([
+                new ExecutionCteFusedProducerCandidate([output], new ExecutionBlock([new ExecutionReturnTable(table)])),
+            ])
+        );
 
         var result = new CteSidecarIndexLoweringPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
         Assert.IsTrue(result.IsChanged);
         var producer = (ExecutionFusedCteProducer)result.Plan.Body.Nodes[0];
@@ -142,17 +161,18 @@ public sealed class CteExecutionStrategyPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [rowShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCteIndexOnlyStorageCandidate(table.Name, rowShape.TypeName, KeepPayloadRows: false),
                 new ExecutionCreateTable(table, rowShape),
                 new ExecutionCreateGeneratedRow(row, rowShape, [], []),
-                new ExecutionAppendExistingRow(table, row)
-            ]));
+                new ExecutionAppendExistingRow(table, row),
+            ])
+        );
 
         var result = new CteSidecarIndexLoweringPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
         Assert.IsTrue(result.IsChanged);
         Assert.IsEmpty(result.Plan.Body.Nodes);
@@ -165,14 +185,17 @@ public sealed class CteExecutionStrategyPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock([new ExecutionReturnTable(new ExecutionVariable("result", typeof(object)))]));
+            new ExecutionBlock([new ExecutionReturnTable(new ExecutionVariable("result", typeof(object)))])
+        );
 
         var readOnce = new CteReadOnceFusionPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
         var sidecar = new CteSidecarIndexLoweringPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
         Assert.IsFalse(readOnce.IsChanged);
         Assert.AreSame(plan, readOnce.Plan);

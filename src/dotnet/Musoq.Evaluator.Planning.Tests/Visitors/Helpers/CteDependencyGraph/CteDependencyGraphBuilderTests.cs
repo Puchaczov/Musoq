@@ -72,8 +72,13 @@ public partial class CteDependencyGraphBuilderTests
         // Outer query references both CTEs via a join
         var outerFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteA", outerFromB, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            outerFromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB], outerQuery);
 

@@ -34,7 +34,8 @@ internal static partial class RequiredColumnUsagePlanner
         private void AddSetOperationKeys(
             LogicalNode node,
             IReadOnlySet<string> keys,
-            SetOperationKeyMatchMode keyMatchMode)
+            SetOperationKeyMatchMode keyMatchMode
+        )
         {
             _cancellationToken.ThrowIfCancellationRequested();
             switch (node)
@@ -74,7 +75,8 @@ internal static partial class RequiredColumnUsagePlanner
         private void AddProjectSetOperationKeys(
             ProjectNode project,
             IReadOnlySet<string> keys,
-            SetOperationKeyMatchMode keyMatchMode)
+            SetOperationKeyMatchMode keyMatchMode
+        )
         {
             foreach (var field in project.Fields)
             {
@@ -87,14 +89,14 @@ internal static partial class RequiredColumnUsagePlanner
         private static bool ShouldAddSetOperationKey(
             ProjectedField field,
             IReadOnlySet<string> keys,
-            SetOperationKeyMatchMode keyMatchMode)
+            SetOperationKeyMatchMode keyMatchMode
+        )
         {
-            return keyMatchMode == SetOperationKeyMatchMode.IncludeAllProjectedFields || keys.Contains(field.OutputName);
+            return keyMatchMode == SetOperationKeyMatchMode.IncludeAllProjectedFields
+                || keys.Contains(field.OutputName);
         }
 
-        private void AddExpressions(
-            IReadOnlyList<IrExpression> expressions,
-            RequiredColumnUsageReason reason)
+        private void AddExpressions(IReadOnlyList<IrExpression> expressions, RequiredColumnUsageReason reason)
         {
             foreach (var expression in expressions)
             {

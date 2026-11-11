@@ -3,11 +3,31 @@ using System.Text.Json;
 
 namespace Musoq.Benchmarks;
 
-public sealed record CampaignReceipt(string Outcome, string RunDirectory, string Mode, string Status,
-    string SchemaVersion, int Expected, int Completed, int Failed, int Missing, int Interrupted,
-    bool Active, string? ActiveCase, DateTimeOffset LastProgressUtc, bool ResumeEligible,
-    bool WebsiteEligible, string[] Reasons, string? ResumeCommand, string EngineVersion, string RunId,
-    SourceStamp Source, DateTimeOffset? CompletedUtc, string[]? RecoveryNotes = null, bool Verified = false);
+public sealed record CampaignReceipt(
+    string Outcome,
+    string RunDirectory,
+    string Mode,
+    string Status,
+    string SchemaVersion,
+    int Expected,
+    int Completed,
+    int Failed,
+    int Missing,
+    int Interrupted,
+    bool Active,
+    string? ActiveCase,
+    DateTimeOffset LastProgressUtc,
+    bool ResumeEligible,
+    bool WebsiteEligible,
+    string[] Reasons,
+    string? ResumeCommand,
+    string EngineVersion,
+    string RunId,
+    SourceStamp Source,
+    DateTimeOffset? CompletedUtc,
+    string[]? RecoveryNotes = null,
+    bool Verified = false
+);
 
 public sealed record LatestCampaigns(CampaignReceipt[] Selected, string[] Excluded);
 
@@ -25,13 +45,22 @@ public static class CampaignInspection
                 BundleFiles.Validate(receipt.RunDirectory, attempt.RawReports ?? []);
             return receipt;
         }
-        if (progress.Attempts.Count == 0 || progress.Receipt.RecoveryNotes!.Any(note => note.StartsWith("Invalid attempt", StringComparison.Ordinal)))
+        if (
+            progress.Attempts.Count == 0
+            || progress.Receipt.RecoveryNotes!.Any(note => note.StartsWith("Invalid attempt", StringComparison.Ordinal))
+        )
             throw new InvalidDataException("Completed campaign contains invalid attempt records.");
-        var completedUtc = VerifyCompletion(receipt.RunDirectory, progress.Definition, receipt.Completed, progress.Attempts);
+        var completedUtc = VerifyCompletion(
+            receipt.RunDirectory,
+            progress.Definition,
+            receipt.Completed,
+            progress.Attempts
+        );
         return receipt with
         {
-            Verified = true, CompletedUtc = completedUtc,
-            WebsiteEligible = receipt.Mode == "Official" && receipt.Reasons.Length == 0
+            Verified = true,
+            CompletedUtc = completedUtc,
+            WebsiteEligible = receipt.Mode == "Official" && receipt.Reasons.Length == 0,
         };
     }
 
@@ -43,7 +72,11 @@ public static class CampaignInspection
         var definition = CampaignStore.Definition(directory);
         ValidateCases(definition);
         var loaded = CampaignStore.ReadAttempts(directory, definition);
-        var successes = loaded.Attempts.Where(item => item.Status == "complete").Select(item => item.CaseId).Distinct().Count();
+        var successes = loaded
+            .Attempts.Where(item => item.Status == "complete")
+            .Select(item => item.CaseId)
+            .Distinct()
+            .Count();
         var latest = loaded.Attempts.GroupBy(item => item.CaseId).Select(group => group.Last()).ToArray();
         var started = ReadStarts(directory);
         var unfinished = started.Where(item => !loaded.Attempts.Any(result => result.AttemptId == item.Id)).ToArray();
@@ -60,17 +93,46 @@ public static class CampaignInspection
         var status = completedRun ? "complete" : "incomplete";
         if (active)
             status = "running";
-        var lastProgress = latest.Select(item => item.FinishedUtc).Concat(started.Select(item => item.StartedUtc))
-            .Append(definition.StartedUtc).Max();
-        var resumeCommand = "./scripts/benchmarks/Run-Benchmarks.ps1 -Resume '" + directory.Replace("'", "''", StringComparison.Ordinal) + "' -Json";
-        var receipt = new CampaignReceipt(status, directory, definition.Provenance.Environment.Mode, status, definition.SchemaVersion,
-            definition.Cases.Length, successes, latest.Count(item => item.Status == "failed"),
+        var lastProgress = latest
+            .Select(item => item.FinishedUtc)
+            .Concat(started.Select(item => item.StartedUtc))
+            .Append(definition.StartedUtc)
+            .Max();
+        var resumeCommand =
+            "./scripts/benchmarks/Run-Benchmarks.ps1 -Resume '"
+            + directory.Replace("'", "''", StringComparison.Ordinal)
+            + "' -Json";
+        var receipt = new CampaignReceipt(
+            status,
+            directory,
+            definition.Provenance.Environment.Mode,
+            status,
+            definition.SchemaVersion,
+            definition.Cases.Length,
+            successes,
+            latest.Count(item => item.Status == "failed"),
             definition.Cases.Count(item => !started.Any(start => start.CaseId == item.Id)),
-            unfinished.Select(item => item.CaseId).Concat(latest.Where(item => item.Status == "interrupted").Select(item => item.CaseId))
-                .Where(id => id != activeCase && !loaded.Attempts.Any(item => item.CaseId == id && item.Status == "complete")).Distinct().Count(),
-            active, activeCase, lastProgress, !completedRun && !active,
-            false, reasons, completedRun ? null : resumeCommand,
-            definition.Provenance.Build.EngineVersion, definition.RunId, definition.Provenance.Source, finished, loaded.Notes.ToArray());
+            unfinished
+                .Select(item => item.CaseId)
+                .Concat(latest.Where(item => item.Status == "interrupted").Select(item => item.CaseId))
+                .Where(id =>
+                    id != activeCase && !loaded.Attempts.Any(item => item.CaseId == id && item.Status == "complete")
+                )
+                .Distinct()
+                .Count(),
+            active,
+            activeCase,
+            lastProgress,
+            !completedRun && !active,
+            false,
+            reasons,
+            completedRun ? null : resumeCommand,
+            definition.Provenance.Build.EngineVersion,
+            definition.RunId,
+            definition.Provenance.Source,
+            finished,
+            loaded.Notes.ToArray()
+        );
         return new(receipt, definition, loaded.Attempts);
     }
 
@@ -105,9 +167,12 @@ public static class CampaignInspection
     {
         if (!Directory.Exists(root))
             return new([], [$"History root does not exist: {Path.GetFullPath(root)}"]);
-        var directories = Directory.GetFiles(root, "manifest.json", SearchOption.AllDirectories)
+        var directories = Directory
+            .GetFiles(root, "manifest.json", SearchOption.AllDirectories)
             .Concat(Directory.GetFiles(root, "definition.json", SearchOption.AllDirectories))
-            .Select(path => Path.GetDirectoryName(path)!).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal);
+            .Select(path => Path.GetDirectoryName(path)!)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal);
         List<CampaignReceipt> eligible = [];
         List<string> excluded = [];
         foreach (var directory in directories)
@@ -120,43 +185,77 @@ public static class CampaignInspection
                 else
                     excluded.Add($"{directory}: {string.Join("; ", receipt.Reasons)}");
             }
-            catch (Exception exception) when (exception is IOException or InvalidDataException or JsonException or UnauthorizedAccessException)
+            catch (Exception exception)
+                when (exception is IOException or InvalidDataException or JsonException or UnauthorizedAccessException)
             {
                 excluded.Add($"{directory}: {exception.Message}");
             }
         }
-        var selected = eligible.GroupBy(item => item.EngineVersion, StringComparer.Ordinal)
-            .Select(group => group.OrderByDescending(item => item.CompletedUtc).ThenBy(item => item.RunId, StringComparer.Ordinal).First())
-            .OrderBy(item => item.EngineVersion, StringComparer.Ordinal).ToArray();
+        var selected = eligible
+            .GroupBy(item => item.EngineVersion, StringComparer.Ordinal)
+            .Select(group =>
+                group
+                    .OrderByDescending(item => item.CompletedUtc)
+                    .ThenBy(item => item.RunId, StringComparer.Ordinal)
+                    .First()
+            )
+            .OrderBy(item => item.EngineVersion, StringComparer.Ordinal)
+            .ToArray();
         return new(selected, excluded.ToArray());
     }
 
     private static void ValidateCases(RunManifest manifest)
     {
-        manifest.CaseCatalog?.ValidateSelection(manifest.Cases.Select(item => item.Id), manifest.Provenance.Environment.Mode == "Official");
-        if (manifest.Cases.Length == 0 || manifest.Cases.Select(item => item.Id).Distinct().Count() != manifest.Cases.Length)
+        manifest.CaseCatalog?.ValidateSelection(
+            manifest.Cases.Select(item => item.Id),
+            manifest.Provenance.Environment.Mode == "Official"
+        );
+        if (
+            manifest.Cases.Length == 0
+            || manifest.Cases.Select(item => item.Id).Distinct().Count() != manifest.Cases.Length
+        )
             throw new InvalidDataException("Case manifest is empty or contains duplicate registrations.");
         if (manifest.Cases.Any(item => string.IsNullOrWhiteSpace(item.Sql) || item.InputCount < 0))
             throw new InvalidDataException("Case SQL or input count is invalid.");
     }
 
-    private static DateTimeOffset VerifyCompletion(string directory, RunManifest definition, int completed, List<Measurement> attempts)
+    private static DateTimeOffset VerifyCompletion(
+        string directory,
+        RunManifest definition,
+        int completed,
+        List<Measurement> attempts
+    )
     {
         var marker = ArtifactJson.Read<CampaignCompletion>(Path.Combine(directory, "complete.json"));
         var manifest = ArtifactJson.Read<RunManifest>(Path.Combine(directory, "manifest.json"));
-        if (marker.SchemaVersion != definition.SchemaVersion || marker.RunId != definition.RunId ||
-            marker.Expected != definition.Cases.Length || marker.Completed != completed || completed != marker.Expected ||
-            manifest.SchemaVersion != definition.SchemaVersion || manifest.RunId != definition.RunId ||
-            manifest.SuiteVersion != definition.SuiteVersion || manifest.Status != "complete" || manifest.FinishedUtc != marker.CompletedUtc ||
-            !CampaignComparison.SameCases(manifest.Cases, definition.Cases) ||
-            (definition.CaseCatalog is null ? manifest.CaseCatalog is not null : !definition.CaseCatalog.SameAs(manifest.CaseCatalog)) ||
-            !CampaignComparison.SameProvenance(manifest.Provenance, definition.Provenance))
+        if (
+            marker.SchemaVersion != definition.SchemaVersion
+            || marker.RunId != definition.RunId
+            || marker.Expected != definition.Cases.Length
+            || marker.Completed != completed
+            || completed != marker.Expected
+            || manifest.SchemaVersion != definition.SchemaVersion
+            || manifest.RunId != definition.RunId
+            || manifest.SuiteVersion != definition.SuiteVersion
+            || manifest.Status != "complete"
+            || manifest.FinishedUtc != marker.CompletedUtc
+            || !CampaignComparison.SameCases(manifest.Cases, definition.Cases)
+            || (
+                definition.CaseCatalog is null
+                    ? manifest.CaseCatalog is not null
+                    : !definition.CaseCatalog.SameAs(manifest.CaseCatalog)
+            )
+            || !CampaignComparison.SameProvenance(manifest.Provenance, definition.Provenance)
+        )
             throw new InvalidDataException("Completion marker is inconsistent or successful cases are missing.");
         ValidateDerivedResults(directory, attempts);
         foreach (var attempt in attempts)
         {
             BundleFiles.Validate(directory, attempt.RawReports ?? []);
-            if (attempt.Status == "complete" && (attempt.RawReports?.Length > 0 || definition.Provenance.Environment.Mode == "Official"))
+            if (
+                attempt.Status == "complete"
+                && (attempt.RawReports?.Length > 0 || definition.Provenance.Environment.Mode == "Official")
+            )
                 CampaignIntegrity.ValidateEvidence(directory, definition, attempt);
         }
         if (definition.Provenance.Environment.Mode == "Official")
@@ -166,8 +265,11 @@ public static class CampaignInspection
 
     private static void ValidateDerivedResults(string directory, List<Measurement> attempts)
     {
-        var expected = attempts.GroupBy(item => item.CaseId).Select(group => group.Last())
-            .OrderBy(item => item.CaseId, StringComparer.Ordinal).ToArray();
+        var expected = attempts
+            .GroupBy(item => item.CaseId)
+            .Select(group => group.Last())
+            .OrderBy(item => item.CaseId, StringComparer.Ordinal)
+            .ToArray();
         var recorded = ArtifactJson.Read<Measurement[]>(Path.Combine(directory, "measurements.json"));
         if (!CampaignComparison.SameMeasurements(expected, recorded))
             throw new InvalidDataException("Recorded measurements differ from finalized attempts.");
@@ -178,7 +280,11 @@ public static class CampaignInspection
 
     private static void VerifyOfficial(string directory, RunManifest manifest)
     {
-        if (manifest.Preflight != "passed" || manifest.Provenance.Source.Dirty || manifest.Provenance.Environment.InProcess)
+        if (
+            manifest.Preflight != "passed"
+            || manifest.Provenance.Source.Dirty
+            || manifest.Provenance.Environment.InProcess
+        )
             throw new InvalidDataException("Official provenance or preflight is invalid.");
         var preflight = Path.Combine(directory, "raw", "preflight");
         if (!Directory.Exists(preflight))
@@ -196,7 +302,10 @@ public static class CampaignInspection
         List<AttemptStart> starts = [];
         foreach (var path in Directory.GetFiles(root, "start.json", SearchOption.AllDirectories))
         {
-            try { starts.Add(ArtifactJson.Read<AttemptStart>(path)); }
+            try
+            {
+                starts.Add(ArtifactJson.Read<AttemptStart>(path));
+            }
             catch (Exception exception) when (exception is JsonException or IOException)
             {
                 Console.Error.WriteLine($"Unreadable attempt start retained: {path}: {exception.Message}");
@@ -223,6 +332,9 @@ public static class CampaignInspection
             using var process = Process.GetProcessById(session.ProcessId);
             return process.StartTime.ToUniversalTime() == session.ProcessStartedUtc && !process.HasExited;
         }
-        catch (ArgumentException) { return false; }
+        catch (ArgumentException)
+        {
+            return false;
+        }
     }
 }

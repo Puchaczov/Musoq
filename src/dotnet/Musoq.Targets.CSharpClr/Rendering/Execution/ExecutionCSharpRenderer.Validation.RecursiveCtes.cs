@@ -6,13 +6,13 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private static bool CanRenderRecursiveCte(ExecutionRecursiveCte recursiveCte)
     {
-        return recursiveCte.MaxIterations > 0 &&
-               recursiveCte.MaxRows > 0 &&
-               recursiveCte.MaxSnapshotRows > 0 &&
-               CanRenderRecursiveIdentity(recursiveCte) &&
-               CanRenderBlock(recursiveCte.Anchor) &&
-               CanRenderBlock(recursiveCte.InvariantSetup) &&
-               CanRenderBlock(recursiveCte.RecursiveMember);
+        return recursiveCte.MaxIterations > 0
+            && recursiveCte.MaxRows > 0
+            && recursiveCte.MaxSnapshotRows > 0
+            && CanRenderRecursiveIdentity(recursiveCte)
+            && CanRenderBlock(recursiveCte.Anchor)
+            && CanRenderBlock(recursiveCte.InvariantSetup)
+            && CanRenderBlock(recursiveCte.RecursiveMember);
     }
 
     private static bool CanRenderRecursiveCteAppend(ExecutionRecursiveCteAppend append)
@@ -24,8 +24,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return recursiveCte.IdentityMode == ExecutionRecursiveCteIdentityMode.None
             ? recursiveCte.Seen == null && recursiveCte.IdentityFieldIndexes.Length == 0
-            : recursiveCte.Seen != null &&
-              CanRenderRecursiveIdentityFields(recursiveCte.RowShape, recursiveCte.IdentityFieldIndexes);
+            : recursiveCte.Seen != null
+                && CanRenderRecursiveIdentityFields(recursiveCte.RowShape, recursiveCte.IdentityFieldIndexes);
     }
 
     private static bool CanRenderRecursiveIdentity(ExecutionRecursiveCteAppend append)
@@ -37,17 +37,18 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanRenderRecursiveIdentityFields(GeneratedRowShape rowShape, int[] fieldIndexes)
     {
-        return fieldIndexes.Length > 0 &&
-               fieldIndexes.Distinct().Count() == fieldIndexes.Length &&
-               fieldIndexes.All(index => index >= 0 &&
-                                         index < rowShape.Fields.Count &&
-                                         CanReferenceType(rowShape.Fields[index].Type));
+        return fieldIndexes.Length > 0
+            && fieldIndexes.Distinct().Count() == fieldIndexes.Length
+            && fieldIndexes.All(index =>
+                index >= 0 && index < rowShape.Fields.Count && CanReferenceType(rowShape.Fields[index].Type)
+            );
     }
 
     private static void ValidateSourceScan(ExecutionSourceScan sourceScan)
     {
         if (!CanRenderIdentifier(sourceScan.Rows.Name))
             throw new InvalidOperationException(
-                $"Execution source rows variable '{sourceScan.Rows.Name}' is not a supported C# identifier.");
+                $"Execution source rows variable '{sourceScan.Rows.Name}' is not a supported C# identifier."
+            );
     }
 }

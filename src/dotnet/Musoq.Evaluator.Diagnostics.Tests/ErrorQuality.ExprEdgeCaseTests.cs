@@ -13,13 +13,12 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class ErrorQualityExprEdgeCaseTests : BasicEntityTestBase
 {
-
     private static BasicSchemaProvider<BasicEntity> CreateSchemaProvider()
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -34,8 +33,7 @@ public partial class ErrorQualityExprEdgeCaseTests : BasicEntityTestBase
         DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -49,11 +47,9 @@ public partial class ErrorQualityExprEdgeCaseTests : BasicEntityTestBase
         }
     }
 
-
     // ============================================================================
     // E-CEXPR: Complex Expression Evaluation Errors
     // ============================================================================
-
 
     [TestMethod]
     public void E_CEXPR_01_DeeplyNestedFunctionWithTypeMismatch()
@@ -74,17 +70,23 @@ public partial class ErrorQualityExprEdgeCaseTests : BasicEntityTestBase
     {
         // Arrange — CASE with int, string, and boolean branches
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT CASE
-    WHEN 1 = 1 THEN 42
-    WHEN 1 = 2 THEN 'hello'
-    ELSE true
-END FROM #A.Entities()";
+        var query = (
+            "SELECT CASE\n"
+            + "    WHEN 1 = 1 THEN 42\n"
+            + "    WHEN 1 = 2 THEN 'hello'\n"
+            + "    ELSE true\n"
+            + "END FROM #A.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain CASE branches must return same type
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3027_InvalidExpressionType, "CASE branches with three different types");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3027_InvalidExpressionType,
+            "CASE branches with three different types"
+        );
     }
 
     [TestMethod]
@@ -120,11 +122,13 @@ END FROM #A.Entities()";
     {
         // Arrange — Nested CASE expressions
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT CASE
-    WHEN CASE WHEN 1=1 THEN true ELSE false END
-    THEN CASE WHEN 2=2 THEN 'yes' ELSE 'no' END
-    ELSE 'other'
-END FROM #A.Entities()";
+        var query = (
+            "SELECT CASE\n"
+            + "    WHEN CASE WHEN 1=1 THEN true ELSE false END\n"
+            + "    THEN CASE WHEN 2=2 THEN 'yes' ELSE 'no' END\n"
+            + "    ELSE 'other'\n"
+            + "END FROM #A.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -197,10 +201,7 @@ END FROM #A.Entities()";
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ3028_UnknownProperty, "property access on null");
     }
 
-
     // ============================================================================
     // E-TAKE: TAKE / SKIP Edge Cases
     // ============================================================================
-
-
 }

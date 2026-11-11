@@ -64,17 +64,16 @@ public partial class LogicalPlanBuilderTests
             "p",
             interpretCall,
             ApplyType.Cross,
-            typeof(PacketInterpreter));
+            typeof(PacketInterpreter)
+        );
         var select = CreateSelect(Field(Column("Value", "p", typeof(string)), 0, "Value"));
         var query = CreateQuery(select, from);
         var root = new RootNode(new SingleSetNode(query));
 
         var result = Build(
             root,
-            new Dictionary<string, ISchemaColumn[]>
-            {
-                ["p"] = [new SchemaColumn("Value", 0, typeof(string))]
-            });
+            new Dictionary<string, ISchemaColumn[]> { ["p"] = [new SchemaColumn("Value", 0, typeof(string))] }
+        );
 
         var project = (ProjectNode)result;
         var interpret = (InterpretSourceNode)project.Input;
@@ -86,10 +85,10 @@ public partial class LogicalPlanBuilderTests
         Assert.AreEqual("payload", ((Literal)interpret.Arguments[0]).Value);
     }
 
-internal sealed class PacketInterpreter
-{
-    public string Value { get; set; } = string.Empty;
-}
+    internal sealed class PacketInterpreter
+    {
+        public string Value { get; set; } = string.Empty;
+    }
 
     #endregion
 
@@ -202,7 +201,7 @@ internal sealed class PacketInterpreter
         var groupBy = new GroupByNode([groupField], null);
         var select = CreateSelect(Field(Column("Name", "t", typeof(string)), 0, "Name"));
         var orderBy = new OrderByNode([
-            new FieldOrderedNode(Column("Name", "t", typeof(string)), 0, "Name", Order.Ascending)
+            new FieldOrderedNode(Column("Name", "t", typeof(string)), 0, "Name", Order.Ascending),
         ]);
         var query = CreateQuery(select, from, where, groupBy, orderBy: orderBy);
         var root = new RootNode(new SingleSetNode(query));

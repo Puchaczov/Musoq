@@ -16,7 +16,8 @@ public sealed record ExecutionComputeRankingWindow : ExecutionNode
         ExecutionWindowKeyArray? orderKeyArray = null,
         ExecutionWindowPartitionSet? partitions = null,
         ExecutionWindowPartitionSet? sortedPartitions = null,
-        long? qualifyUpperBound = null)
+        long? qualifyUpperBound = null
+    )
     {
         Buffer = buffer;
         Item = item;
@@ -33,6 +34,7 @@ public sealed record ExecutionComputeRankingWindow : ExecutionNode
     }
 
     public ExecutionVariable Buffer { get; init; }
+
     /// <summary>Gets the planner-selected integer ordering strategy.</summary>
     public bool UseIntegerOrderIndex { get; init; }
     public ExecutionVariable Item { get; init; }
@@ -46,8 +48,10 @@ public sealed record ExecutionComputeRankingWindow : ExecutionNode
     public ExecutionWindowPartitionSet? Partitions { get; init; }
     public ExecutionWindowPartitionSet? SortedPartitions { get; init; }
     public long? QualifyUpperBound { get; init; }
+
     /// <summary>Gets the validated library operation for concrete partition and peer context.</summary>
     public ExecutionCallableRef? LibraryGet { get; init; }
+
     /// <summary>Gets whether the registered operation requires peer bounds and dense rank.</summary>
     public bool RequiresPeerMetadata { get; init; } = true;
 }

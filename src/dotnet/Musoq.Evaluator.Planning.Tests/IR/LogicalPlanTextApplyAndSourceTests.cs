@@ -14,9 +14,24 @@ public sealed class LogicalPlanTextApplyAndSourceTests
     {
         var buildItems = _buildHarness.BuildForThreeSources(
             "select a.City, b.Money from #schema.first() a cross apply #schema.second(a.Country) b",
-            [new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1 { City = "City1", Country = "Country1", Population = 100 }],
-            [new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2 { Country = "Country1", Money = 1000, Month = "January" }],
-            Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass3>());
+            [
+                new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1
+                {
+                    City = "City1",
+                    Country = "Country1",
+                    Population = 100,
+                },
+            ],
+            [
+                new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2
+                {
+                    Country = "Country1",
+                    Money = 1000,
+                    Month = "January",
+                },
+            ],
+            Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass3>()
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -28,8 +43,10 @@ public sealed class LogicalPlanTextApplyAndSourceTests
                 "      SchemaScan [#schema.first() as a]",
                 "      SchemaScan [#schema.second(a.Country) as b]",
                 "  Project [a.City as City, b.Money as Money]",
-                "    CteRef [ab as ab]"),
-            planText);
+                "    CteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
@@ -37,9 +54,17 @@ public sealed class LogicalPlanTextApplyAndSourceTests
     {
         var buildItems = _buildHarness.BuildForThreeSources(
             "select b.Value from #schema.first() a cross apply a.JustReturnArrayOfString() b",
-            [new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1 { City = "City1", Country = "Country1", Population = 100 }],
+            [
+                new CrossApplyUnusedAliasTestsFixtures.CrossApplyClass1
+                {
+                    City = "City1",
+                    Country = "Country1",
+                    Population = 100,
+                },
+            ],
             Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass2>(),
-            Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass3>());
+            Array.Empty<CrossApplyUnusedAliasTestsFixtures.CrossApplyClass3>()
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -51,8 +76,10 @@ public sealed class LogicalPlanTextApplyAndSourceTests
                 "      SchemaScan [#schema.first() as a]",
                 "      AccessMethodSource [JustReturnArrayOfString() as b] [apply: Cross] [type: String[]]",
                 "  Project [b.Value as Value]",
-                "    CteRef [ab as ab]"),
-            planText);
+                "    CteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
@@ -60,9 +87,17 @@ public sealed class LogicalPlanTextApplyAndSourceTests
     {
         var buildItems = _buildHarness.BuildForThreeSources(
             "select p.Name, t.Value from #schema.first() p cross apply p.Tags t",
-            [new ExploratoryEvaluatorTestsBase.Person { Name = "John", Age = 30, Tags = ["vip"] }],
+            [
+                new ExploratoryEvaluatorTestsBase.Person
+                {
+                    Name = "John",
+                    Age = 30,
+                    Tags = ["vip"],
+                },
+            ],
             Array.Empty<ExploratoryEvaluatorTestsBase.Order>(),
-            Array.Empty<ExploratoryEvaluatorTestsBase.TreeNode>());
+            Array.Empty<ExploratoryEvaluatorTestsBase.TreeNode>()
+        );
 
         var planText = LogicalPlanPrinter.Print(buildItems.RequireLogicalPlan());
 
@@ -74,7 +109,9 @@ public sealed class LogicalPlanTextApplyAndSourceTests
                 "      SchemaScan [#schema.first() as p]",
                 "      PropertySource [p.Tags as t] [apply: Cross] [type: String[]]",
                 "  Project [p.Name as Name, t.Value as Value]",
-                "    CteRef [pt as pt]"),
-            planText);
+                "    CteRef [pt as pt]"
+            ),
+            planText
+        );
     }
 }

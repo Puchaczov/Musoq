@@ -7,7 +7,8 @@ namespace Musoq.Evaluator;
 /// </summary>
 internal sealed class NullLogger<T> : ILogger<T>
 {
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+    public IDisposable? BeginScope<TState>(TState state)
+        where TState : notnull
     {
         return null;
     }
@@ -17,8 +18,11 @@ internal sealed class NullLogger<T> : ILogger<T>
         return false;
     }
 
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
-        Func<TState, Exception?, string> formatter)
-    {
-    }
+    public void Log<TState>(
+        LogLevel logLevel,
+        EventId eventId,
+        TState state,
+        Exception? exception,
+        Func<TState, Exception?, string> formatter
+    ) { }
 }

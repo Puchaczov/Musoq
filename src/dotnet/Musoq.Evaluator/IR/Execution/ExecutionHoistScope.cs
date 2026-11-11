@@ -5,5 +5,5 @@ public enum ExecutionHoistScope
     AppendValues,
     FilterCondition,
     Block,
-    ConditionBlock
+    ConditionBlock,
 }

@@ -1,8 +1,8 @@
-using Musoq.Evaluator.IR.CodeGeneration;
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution;
 using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;
 
@@ -20,11 +20,30 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.Contains("var pRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks", code);
         Assert.Contains(": pRowsSource.Chunks;", code);
         Assert.Contains("foreach (var pChunk in pRows)", code);
-        Assert.IsFalse(code.Contains("pChunk is Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person[]", StringComparison.Ordinal));
-        Assert.IsFalse(code.Contains("pChunk is List<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person>", StringComparison.Ordinal));
-        Assert.Contains("if (pChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person> pChunkView)", code);
-        Assert.Contains("if (pChunkView.Source is Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person[] pChunkViewArray)", code);
-        Assert.Contains("if (pChunkView.Source is List<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person> pChunkViewList)", code);
+        Assert.IsFalse(
+            code.Contains(
+                "pChunk is Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person[]",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.IsFalse(
+            code.Contains(
+                "pChunk is List<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person>",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.Contains(
+            "if (pChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person> pChunkView)",
+            code
+        );
+        Assert.Contains(
+            "if (pChunkView.Source is Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person[] pChunkViewArray)",
+            code
+        );
+        Assert.Contains(
+            "if (pChunkView.Source is List<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.Person> pChunkViewList)",
+            code
+        );
         Assert.Contains("for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)", code);
         Assert.Contains("if ((pIndex & 1023) == 0)", code);
         Assert.Contains("token.ThrowIfCancellationRequested();", code);
@@ -36,7 +55,10 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         var renderer = new ExecutionCSharpRenderer();
         var first = renderer.RenderMethod(CreatePlan(), "ExecutePlain").NormalizeWhitespace().ToFullString();
-        var second = renderer.RenderMethod(CreateParallelProjectionPlan(), "ExecuteParallel").NormalizeWhitespace().ToFullString();
+        var second = renderer
+            .RenderMethod(CreateParallelProjectionPlan(), "ExecuteParallel")
+            .NormalizeWhitespace()
+            .ToFullString();
 
         Assert.Contains("ExecutePlain", first);
         Assert.IsFalse(first.Contains("PopulateResult(result, pRows, token)", StringComparison.Ordinal));
@@ -70,16 +92,24 @@ public sealed partial class ExecutionCSharpRendererTests
                 finalResult.TableName,
                 finalResult.Shape.TypeName,
                 finalResult.Shape.Fields,
-                outputPlan: FinalOutputPlanner.Plan(plan, new TableViaRowsResultInfo(
-                    finalResult.TableName, finalResult.Shape.TypeName, finalResult.Shape.TypeName,
-                    finalResult.Shape.Fields, finalResult.ColumnMetadata.Fields)) with { BufferFinalRows = true })
+                outputPlan: FinalOutputPlanner.Plan(
+                    plan,
+                    new TableViaRowsResultInfo(
+                        finalResult.TableName,
+                        finalResult.Shape.TypeName,
+                        finalResult.Shape.TypeName,
+                        finalResult.Shape.Fields,
+                        finalResult.ColumnMetadata.Fields
+                    )
+                ) with
+                {
+                    BufferFinalRows = true,
+                }
+            )
             .NormalizeWhitespace()
             .ToFullString();
 
-        var regularMethod = renderer
-            .RenderMethod(plan, "ExecutePlain")
-            .NormalizeWhitespace()
-            .ToFullString();
+        var regularMethod = renderer.RenderMethod(plan, "ExecutePlain").NormalizeWhitespace().ToFullString();
 
         Assert.Contains("__musoqFinalShapeRows", finalRowsMethod);
         Assert.IsFalse(regularMethod.Contains("__musoqFinalShapeRows", StringComparison.Ordinal));
@@ -104,9 +134,20 @@ public sealed partial class ExecutionCSharpRendererTests
                 finalResult.TableName,
                 finalResult.Shape.TypeName,
                 finalResult.Shape.Fields,
-                outputPlan: FinalOutputPlanner.Plan(plan, new TableViaRowsResultInfo(
-                    finalResult.TableName, finalResult.Shape.TypeName, finalResult.Shape.TypeName,
-                    finalResult.Shape.Fields, finalResult.ColumnMetadata.Fields)) with { BufferFinalRows = true })
+                outputPlan: FinalOutputPlanner.Plan(
+                    plan,
+                    new TableViaRowsResultInfo(
+                        finalResult.TableName,
+                        finalResult.Shape.TypeName,
+                        finalResult.Shape.TypeName,
+                        finalResult.Shape.Fields,
+                        finalResult.ColumnMetadata.Fields
+                    )
+                ) with
+                {
+                    BufferFinalRows = true,
+                }
+            )
             .NormalizeWhitespace()
             .ToFullString();
         var typedSinkExpression = renderer
@@ -133,10 +174,7 @@ public sealed partial class ExecutionCSharpRendererTests
                 .ToFullString();
         }
 
-        var regularMethod = renderer
-            .RenderMethod(CreatePlan(), "ExecutePlain")
-            .NormalizeWhitespace()
-            .ToFullString();
+        var regularMethod = renderer.RenderMethod(CreatePlan(), "ExecutePlain").NormalizeWhitespace().ToFullString();
 
         Assert.Contains("var token = queryContext.CancellationToken;", scopedMethod);
         Assert.IsFalse(regularMethod.Contains("queryContext.CancellationToken", StringComparison.Ordinal));
@@ -146,14 +184,18 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public async Task RenderMethod_WhenSeparateRendererInstancesRunInParallel_ShouldKeepMethodStateIndependent()
     {
-        var firstTask = Task.Run(() => new ExecutionCSharpRenderer()
-            .RenderMethod(CreatePlan(), "ExecutePlain")
-            .NormalizeWhitespace()
-            .ToFullString());
-        var secondTask = Task.Run(() => new ExecutionCSharpRenderer()
-            .RenderMethod(CreateParallelProjectionPlan(), "ExecuteParallel")
-            .NormalizeWhitespace()
-            .ToFullString());
+        var firstTask = Task.Run(() =>
+            new ExecutionCSharpRenderer()
+                .RenderMethod(CreatePlan(), "ExecutePlain")
+                .NormalizeWhitespace()
+                .ToFullString()
+        );
+        var secondTask = Task.Run(() =>
+            new ExecutionCSharpRenderer()
+                .RenderMethod(CreateParallelProjectionPlan(), "ExecuteParallel")
+                .NormalizeWhitespace()
+                .ToFullString()
+        );
 
         var first = await firstTask.ConfigureAwait(false);
         var second = await secondTask.ConfigureAwait(false);
@@ -168,14 +210,15 @@ public sealed partial class ExecutionCSharpRendererTests
     public async Task RenderMethod_WhenSameRendererInstanceRunsInParallel_ShouldKeepMethodStateIndependent()
     {
         var renderer = new ExecutionCSharpRenderer();
-        var firstTask = Task.Run(() => renderer
-            .RenderMethod(CreatePlan(), "ExecutePlain")
-            .NormalizeWhitespace()
-            .ToFullString());
-        var secondTask = Task.Run(() => renderer
-            .RenderMethod(CreateParallelProjectionPlan(), "ExecuteParallel")
-            .NormalizeWhitespace()
-            .ToFullString());
+        var firstTask = Task.Run(() =>
+            renderer.RenderMethod(CreatePlan(), "ExecutePlain").NormalizeWhitespace().ToFullString()
+        );
+        var secondTask = Task.Run(() =>
+            renderer
+                .RenderMethod(CreateParallelProjectionPlan(), "ExecuteParallel")
+                .NormalizeWhitespace()
+                .ToFullString()
+        );
 
         var first = await firstTask.ConfigureAwait(false);
         var second = await secondTask.ConfigureAwait(false);
@@ -222,7 +265,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var code = method.NormalizeWhitespace().ToFullString();
 
         Assert.Contains("var sourceRowsBuffer = EvaluationHelper.MaterializeGeneratedRows<SourceRow0>(source);", code);
-        Assert.Contains("for (int sourceRowsBufferIndex = 0; sourceRowsBufferIndex < sourceRowsBuffer.Count; ++sourceRowsBufferIndex)", code);
+        Assert.Contains(
+            "for (int sourceRowsBufferIndex = 0; sourceRowsBufferIndex < sourceRowsBuffer.Count; ++sourceRowsBufferIndex)",
+            code
+        );
         Assert.Contains("SourceRow0 s = (SourceRow0)sourceRowsBuffer[sourceRowsBufferIndex];", code);
         Assert.IsFalse(code.Contains("foreach (var s in sourceRowsBuffer)", StringComparison.Ordinal));
     }
@@ -302,7 +348,8 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.Contains(
             "var hash = new Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tables.Row>>(rows.TryGetNonEnumeratedCount(out var hashCapacity) ? hashCapacity : 0);",
-            code);
+            code
+        );
     }
 
     [TestMethod]
@@ -312,7 +359,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateValueTupleHashPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains("var hash = new Dictionary<ValueTuple<int, int>, HashJoinBucket<Musoq.Evaluator.Tables.Row>>();", code);
+        Assert.Contains(
+            "var hash = new Dictionary<ValueTuple<int, int>, HashJoinBucket<Musoq.Evaluator.Tables.Row>>();",
+            code
+        );
         Assert.Contains("var key = (1, 2);", code);
         Assert.IsFalse(code.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
     }
@@ -335,9 +385,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var method = renderer.RenderMethod(CreateContextLayoutAppendPlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains(
-            "result.AddDirect(new ResultRow0(p.Name, q.Name));",
-            code);
+        Assert.Contains("result.AddDirect(new ResultRow0(p.Name, q.Name));", code);
         Assert.IsFalse(code.Contains("(object)p", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("(object)q", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
@@ -383,7 +431,8 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.Contains(
             "var sRows = (IEnumerable<string>)((string[])library0.JustReturnArrayOfString()) ?? Array.Empty<string>();",
-            code);
+            code
+        );
         Assert.Contains("is string[] sIndexArray", code);
         Assert.Contains("string s = sIndexArray[sIndex];", code);
         Assert.Contains("var library0 = new Musoq.Evaluator.Tests.Schema.Basic.Library();", code);

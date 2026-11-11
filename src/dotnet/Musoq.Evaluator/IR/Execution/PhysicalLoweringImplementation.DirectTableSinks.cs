@@ -6,10 +6,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private ExecutionBlock CreateLoopBody(
-        PhysicalFilterNode? filter,
-        ExecutionNode appendNode,
-        RowShape sourceShape)
+    private ExecutionBlock CreateLoopBody(PhysicalFilterNode? filter, ExecutionNode appendNode, RowShape sourceShape)
     {
         if (filter == null)
             return new ExecutionBlock([appendNode]);
@@ -21,7 +18,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private ExecutionBlock CreateLoopBody(
         PhysicalFilterNode? filter,
         ExecutionNode appendNode,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         if (filter == null)
             return new ExecutionBlock([appendNode]);
@@ -30,9 +28,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return new ExecutionBlock([new ExecutionIf(condition, new ExecutionBlock([appendNode]))]);
     }
 
-    private static ExecutionBlock CreateFilteredAppendBlock(
-        ExecutionExpression condition,
-        ExecutionNode appendNode) =>
+    private static ExecutionBlock CreateFilteredAppendBlock(ExecutionExpression condition, ExecutionNode appendNode) =>
         new([new ExecutionIf(condition, new ExecutionBlock([appendNode]))]);
 
     private static List<ExecutionNode> CreateJoinPrelude(
@@ -40,7 +36,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         LoweringScope scope,
-        ExecutionCapacityHint? capacityHint = null)
+        ExecutionCapacityHint? capacityHint = null
+    )
     {
         var nodes = new List<ExecutionNode>(sources.Left.Setup.Count + sources.Right.Setup.Count + 1);
 
@@ -55,14 +52,16 @@ internal sealed partial class PhysicalLoweringImplementation
         IrExpression? joinCondition,
         PhysicalFilterNode? filter,
         ExecutionNode appendNode,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         if (joinCondition == null && filter == null)
             return new ExecutionBlock([appendNode]);
 
-        var condition = joinCondition == null
-            ? ExecutionExpressionConverter.Convert(filter!.Predicate, sourceLookup)
-            : ExecutionExpressionConverter.Convert(joinCondition, sourceLookup);
+        var condition =
+            joinCondition == null
+                ? ExecutionExpressionConverter.Convert(filter!.Predicate, sourceLookup)
+                : ExecutionExpressionConverter.Convert(joinCondition, sourceLookup);
 
         if (joinCondition != null && filter != null)
         {
@@ -70,15 +69,14 @@ internal sealed partial class PhysicalLoweringImplementation
                 BinaryOpKind.And,
                 condition,
                 ExecutionExpressionConverter.Convert(filter.Predicate, sourceLookup),
-                typeof(bool));
+                typeof(bool)
+            );
         }
 
         return new ExecutionBlock([new ExecutionIf(condition, new ExecutionBlock([appendNode]))]);
     }
 
-    private static ExecutionNode CreateOutputAppend(
-        ExecutionAppendRow appendRow,
-        LoweringScope scope) =>
+    private static ExecutionNode CreateOutputAppend(ExecutionAppendRow appendRow, LoweringScope scope) =>
         scope.DirectTableSink?.CreateAppend(appendRow) ?? appendRow;
 
     private static void AddOutputTableCreation(
@@ -86,7 +84,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable table,
         GeneratedRowShape shape,
         LoweringScope scope,
-        ExecutionCapacityHint? capacityHint = null)
+        ExecutionCapacityHint? capacityHint = null
+    )
     {
         if (scope.DirectTableSink == null)
             nodes.Add(CreateTable(table, shape, capacityHint));
@@ -100,22 +99,10 @@ internal sealed partial class PhysicalLoweringImplementation
         GeneratedRowShape resultShape,
         IReadOnlyList<PostOperation> postOperations,
         bool isDistinct = false,
-        TableProjection? finalProjection = null)
+        TableProjection? finalProjection = null
+    )
     {
-        return scope.DirectTableSink?.Complete(
-                   shapes,
-                   nodes,
-                   resultShape,
-                   postOperations,
-                   isDistinct,
-                   finalProjection)
-               ?? CompleteTableBuild(
-                   shapes,
-                   nodes,
-                   resultTable,
-                   resultShape,
-                   postOperations,
-                   isDistinct,
-                   finalProjection);
+        return scope.DirectTableSink?.Complete(shapes, nodes, resultShape, postOperations, isDistinct, finalProjection)
+            ?? CompleteTableBuild(shapes, nodes, resultTable, resultShape, postOperations, isDistinct, finalProjection);
     }
 }

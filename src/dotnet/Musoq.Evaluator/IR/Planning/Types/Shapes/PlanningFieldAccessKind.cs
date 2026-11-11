@@ -12,5 +12,5 @@ internal enum PlanningFieldAccessKind
     NestedPositional,
     GeneratedNested,
     DirectScalar,
-    ApplyOrdinality
+    ApplyOrdinality,
 }

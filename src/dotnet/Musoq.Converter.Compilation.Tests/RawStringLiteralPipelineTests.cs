@@ -19,7 +19,8 @@ public sealed class RawStringLiteralPipelineTests
             @"select f.Path from #raw.files(r'C:\new\test', true) f",
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var plan = result.ExecutionPlan;
         Assert.IsNotNull(plan);
@@ -29,9 +30,7 @@ public sealed class RawStringLiteralPipelineTests
 
         var path = sourceScan.Binding.Arguments[0];
         Assert.IsInstanceOfType<ExecutionLiteral>(path);
-        Assert.AreEqual(
-            @"C:\new\test",
-            ((ExecutionLiteral)path).Value.ToClrValue());
+        Assert.AreEqual(@"C:\new\test", ((ExecutionLiteral)path).Value.ToClrValue());
 
         var recursive = sourceScan.Binding.Arguments[1];
         Assert.IsInstanceOfType<ExecutionLiteral>(recursive);
@@ -46,8 +45,7 @@ public sealed class RawStringLiteralPipelineTests
     [DataRow(@"\\?\C:\Directory")]
     [DataRow(@"\\.\pipe\name")]
     [DataRow(@"C:\Temp\")]
-    public void CompileForExecution_WhenRawSourceArgumentContainsWindowsPath_ShouldPreserveIt(
-        string expectedPath)
+    public void CompileForExecution_WhenRawSourceArgumentContainsWindowsPath_ShouldPreserveIt(string expectedPath)
     {
         var query = $"select f.Path, f.Recursive from #raw.files(r'{expectedPath}', true) f";
 
@@ -55,7 +53,8 @@ public sealed class RawStringLiteralPipelineTests
             query,
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var table = compiled.Run();
 
@@ -68,21 +67,24 @@ public sealed class RawStringLiteralPipelineTests
     public void CompileForExecution_WhenRawLiteralIsUsedAcrossExpressions_ShouldPreserveValue()
     {
         var compiled = InstanceCreator.CompileForExecution(
-            @"
-select
-    f.Path as Path,
-    r'C:\A' as LiteralPath,
-    case when f.Path = r'C:\A' then r'C:\new\test' else r'not matched' end as CasePath,
-    f.Path in (r'C:\A', r'C:\B') as InMatch,
-    f.Path like r'%A' as LikeMatch,
-    f.Path rlike r'.*A' as RlikeMatch,
-    Length(r'C:\A') as PathLength
-from #raw.files(r'C:\A', true) f
-where f.Path = r'C:\A'
-order by r'C:\A'",
+            (
+                "\n"
+                + "select\n"
+                + "    f.Path as Path,\n"
+                + "    r'C:\\A' as LiteralPath,\n"
+                + "    case when f.Path = r'C:\\A' then r'C:\\new\\test' else r'not matched' end as CasePath,\n"
+                + "    f.Path in (r'C:\\A', r'C:\\B') as InMatch,\n"
+                + "    f.Path like r'%A' as LikeMatch,\n"
+                + "    f.Path rlike r'.*A' as RlikeMatch,\n"
+                + "    Length(r'C:\\A') as PathLength\n"
+                + "from #raw.files(r'C:\\A', true) f\n"
+                + "where f.Path = r'C:\\A'\n"
+                + "order by r'C:\\A'"
+            ),
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var table = compiled.Run();
 
@@ -100,15 +102,18 @@ order by r'C:\A'",
     public void CompileForExecution_WhenRawLiteralIsUsedInHaving_ShouldPreserveValue()
     {
         var compiled = InstanceCreator.CompileForExecution(
-            @"
-select f.Path, Count(f.Path)
-from #raw.files(r'C:\A', true) f
-group by f.Path
-having Count(f.Path) > Length(r'')
-order by f.Path",
+            (
+                "\n"
+                + "select f.Path, Count(f.Path)\n"
+                + "from #raw.files(r'C:\\A', true) f\n"
+                + "group by f.Path\n"
+                + "having Count(f.Path) > Length(r'')\n"
+                + "order by f.Path"
+            ),
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var table = compiled.Run();
 
@@ -121,14 +126,17 @@ order by f.Path",
     public void CompileForExecution_WhenRawLiteralIsAssignedToScriptVariable_ShouldPreserveValue()
     {
         var compiled = InstanceCreator.CompileForExecution(
-            @"
-let path: string = r'C:\A';
-select f.Path
-from #raw.files($path, true) f
-where f.Path = $path",
+            (
+                "\n"
+                + "let path: string = r'C:\\A';\n"
+                + "select f.Path\n"
+                + "from #raw.files($path, true) f\n"
+                + "where f.Path = $path"
+            ),
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var table = compiled.Run();
 
@@ -143,7 +151,8 @@ where f.Path = $path",
             @"select r'\n', '\n', '\'', r'\''' from #raw.files(r'row', true)",
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var table = compiled.Run();
 

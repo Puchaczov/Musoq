@@ -6,11 +6,11 @@ using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 using ComponentBinaryEntity = Musoq.Evaluator.Tests.Components.BinaryEntity;
 using ComponentBinarySchemaProvider = Musoq.Evaluator.Tests.Components.BinarySchemaProvider;
 using ComponentTextEntity = Musoq.Evaluator.Tests.Components.TextEntity;
 using ComponentTextSchemaProvider = Musoq.Evaluator.Tests.Components.TextSchemaProvider;
-using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -19,46 +19,46 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void InterpretationSchemas_WithTableCoupleCtesSetsAndWindows_ShouldComposeSqlPipeline()
     {
-        const string query = """
-            table TextSourceRow { Name: string, Text: string };
-            couple #txt.lines with table TextSourceRow as Lines;
-            binary Packet {
-                Id: byte,
-                Score: short le
-            };
-            text LabelRecord {
-                Id: until ':',
-                Label: rest trim
-            };
-            with binaryRows as (
-                select ToString(p.Id) as BinaryId, p.Score as Score
-                from #bin.files() f
-                cross apply Interpret<Packet>(f.Content) p
-            ),
-            textRows as (
-                select p.Id as TextId, p.Label as Label
-                from Lines() l
-                cross apply Parse<LabelRecord>(l.Text) p
-                where p.Label <> ''
-            ),
-            combined as (
-                select t.Label as Label, ToInt32(b.Score) as Score
-                from binaryRows b
-                inner join textRows t on b.BinaryId = t.TextId
-                union all (Label, Score)
-                select 'Alpha' as Label, ToInt32(0::Short) as Score
-                from values { ( Marker: 1 ) } marker
-            )
-            select c.Label,
-                   Sum(c.Score) as TotalScore,
-                   Count(c.Label) as Records,
-                   RowNumber() over (order by Sum(c.Score) desc) as Rank
-            from combined c
-            group by c.Label
-            having Sum(c.Score) > 0
-            qualify RowNumber() over (order by Sum(c.Score) desc) <= 2
-            order by TotalScore desc
-            """;
+        const string query = (
+            "table TextSourceRow { Name: string, Text: string };\n"
+            + "couple #txt.lines with table TextSourceRow as Lines;\n"
+            + "binary Packet {\n"
+            + "    Id: byte,\n"
+            + "    Score: short le\n"
+            + "};\n"
+            + "text LabelRecord {\n"
+            + "    Id: until ':',\n"
+            + "    Label: rest trim\n"
+            + "};\n"
+            + "with binaryRows as (\n"
+            + "    select ToString(p.Id) as BinaryId, p.Score as Score\n"
+            + "    from #bin.files() f\n"
+            + "    cross apply Interpret<Packet>(f.Content) p\n"
+            + "),\n"
+            + "textRows as (\n"
+            + "    select p.Id as TextId, p.Label as Label\n"
+            + "    from Lines() l\n"
+            + "    cross apply Parse<LabelRecord>(l.Text) p\n"
+            + "    where p.Label <> ''\n"
+            + "),\n"
+            + "combined as (\n"
+            + "    select t.Label as Label, ToInt32(b.Score) as Score\n"
+            + "    from binaryRows b\n"
+            + "    inner join textRows t on b.BinaryId = t.TextId\n"
+            + "    union all (Label, Score)\n"
+            + "    select 'Alpha' as Label, ToInt32(0::Short) as Score\n"
+            + "    from values { ( Marker: 1 ) } marker\n"
+            + ")\n"
+            + "select c.Label,\n"
+            + "       Sum(c.Score) as TotalScore,\n"
+            + "       Count(c.Label) as Records,\n"
+            + "       RowNumber() over (order by Sum(c.Score) desc) as Rank\n"
+            + "from combined c\n"
+            + "group by c.Label\n"
+            + "having Sum(c.Score) > 0\n"
+            + "qualify RowNumber() over (order by Sum(c.Score) desc) <= 2\n"
+            + "order by TotalScore desc"
+        );
 
         var schemaProvider = new MixedSchemaProvider(
             new Dictionary<string, IEnumerable<ComponentBinaryEntity>>
@@ -67,8 +67,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                 [
                     new ComponentBinaryEntity { Name = "1.bin", Content = [1, 100, 0] },
                     new ComponentBinaryEntity { Name = "2.bin", Content = [2, 200, 0] },
-                    new ComponentBinaryEntity { Name = "3.bin", Content = [3, 50, 0] }
-                ]
+                    new ComponentBinaryEntity { Name = "3.bin", Content = [3, 50, 0] },
+                ],
             },
             new Dictionary<string, IEnumerable<ComponentTextEntity>>
             {
@@ -76,16 +76,18 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                 [
                     new ComponentTextEntity { Name = "1.txt", Text = "1:Alpha" },
                     new ComponentTextEntity { Name = "2.txt", Text = "2:Alpha" },
-                    new ComponentTextEntity { Name = "3.txt", Text = "3:Beta" }
-                ]
-            });
+                    new ComponentTextEntity { Name = "3.txt", Text = "3:Beta" },
+                ],
+            }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -93,36 +95,34 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("Label", typeof(string)),
             ("TotalScore", typeof(int?)),
             ("Records", typeof(long)),
-            ("Rank", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Alpha", 300, 3L, 1L],
-            ["Beta", 50, 1L, 2L]);
+            ("Rank", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alpha", 300, 3L, 1L], ["Beta", 50, 1L, 2L]);
     }
 
     [TestMethod]
     public void SafeInterpretation_WithOuterApplyCtesAndAggregate_ShouldPreserveFailedRows()
     {
-        const string binaryQuery = """
-            binary Packet {
-                Id: byte,
-                Value: short le
-            };
-            text LabelRecord {
-                Id: until ':',
-                Value: rest trim
-            };
-            with binarySafe as (
-                select f.Name as Name, ToString(p.Id) as Key, ToString(p.Value) as Value
-                from #bin.files() f
-                outer apply TryInterpret<Packet>(f.Content) p
-            )
-            select r.Name, r.Key, Count(r.Value) as ParsedValues,
-                   RowNumber() over (order by r.Name) as Sequence
-            from binarySafe r
-            group by r.Name, r.Key
-            order by Sequence
-            """;
+        const string binaryQuery = (
+            "binary Packet {\n"
+            + "    Id: byte,\n"
+            + "    Value: short le\n"
+            + "};\n"
+            + "text LabelRecord {\n"
+            + "    Id: until ':',\n"
+            + "    Value: rest trim\n"
+            + "};\n"
+            + "with binarySafe as (\n"
+            + "    select f.Name as Name, ToString(p.Id) as Key, ToString(p.Value) as Value\n"
+            + "    from #bin.files() f\n"
+            + "    outer apply TryInterpret<Packet>(f.Content) p\n"
+            + ")\n"
+            + "select r.Name, r.Key, Count(r.Value) as ParsedValues,\n"
+            + "       RowNumber() over (order by r.Name) as Sequence\n"
+            + "from binarySafe r\n"
+            + "group by r.Name, r.Key\n"
+            + "order by Sequence"
+        );
 
         var binaryVm = CompileGeneratedQuery(
             binaryQuery,
@@ -133,11 +133,13 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                     ["#bin"] =
                     [
                         new ComponentBinaryEntity { Name = "01-invalid.bin", Content = [1] },
-                        new ComponentBinaryEntity { Name = "02-valid.bin", Content = [1, 10, 0] }
-                    ]
-                }),
+                        new ComponentBinaryEntity { Name = "02-valid.bin", Content = [1, 10, 0] },
+                    ],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var binaryTable = binaryVm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -145,28 +147,30 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("Name", typeof(string)),
             ("Key", typeof(string)),
             ("ParsedValues", typeof(long)),
-            ("Sequence", typeof(long)));
+            ("Sequence", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             binaryTable,
             ["01-invalid.bin", null, 0L, 1L],
-            ["02-valid.bin", "1", 1L, 2L]);
+            ["02-valid.bin", "1", 1L, 2L]
+        );
 
-        const string textQuery = """
-            text LabelRecord {
-                Id: until ':',
-                Value: rest trim
-            };
-            with textSafe as (
-                select f.Name as Name, p.Id as Key, p.Value as Value
-                from #txt.files() f
-                outer apply TryParse<LabelRecord>(f.Text) p
-            )
-            select r.Name, r.Key, Count(r.Value) as ParsedValues,
-                   RowNumber() over (order by r.Name) as Sequence
-            from textSafe r
-            group by r.Name, r.Key
-            order by Sequence
-            """;
+        const string textQuery = (
+            "text LabelRecord {\n"
+            + "    Id: until ':',\n"
+            + "    Value: rest trim\n"
+            + "};\n"
+            + "with textSafe as (\n"
+            + "    select f.Name as Name, p.Id as Key, p.Value as Value\n"
+            + "    from #txt.files() f\n"
+            + "    outer apply TryParse<LabelRecord>(f.Text) p\n"
+            + ")\n"
+            + "select r.Name, r.Key, Count(r.Value) as ParsedValues,\n"
+            + "       RowNumber() over (order by r.Name) as Sequence\n"
+            + "from textSafe r\n"
+            + "group by r.Name, r.Key\n"
+            + "order by Sequence"
+        );
 
         var textVm = CompileGeneratedQuery(
             textQuery,
@@ -177,11 +181,13 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                     ["#txt"] =
                     [
                         new ComponentTextEntity { Name = "01-invalid.txt", Text = "malformed" },
-                        new ComponentTextEntity { Name = "02-valid.txt", Text = "1:Alpha" }
-                    ]
-                }),
+                        new ComponentTextEntity { Name = "02-valid.txt", Text = "1:Alpha" },
+                    ],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var textTable = textVm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -189,35 +195,37 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("Name", typeof(string)),
             ("Key", typeof(string)),
             ("ParsedValues", typeof(long)),
-            ("Sequence", typeof(long)));
+            ("Sequence", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             textTable,
             ["01-invalid.txt", null, 0L, 1L],
-            ["02-valid.txt", "1", 1L, 2L]);
+            ["02-valid.txt", "1", 1L, 2L]
+        );
     }
 
     [TestMethod]
     public void PartialInterpretation_WithCteProjectionAndWindows_ShouldRetainBinaryAndTextDiagnostics()
     {
-        const string binaryQuery = """
-            binary Packet {
-                Id: byte,
-                Value: short le
-            };
-            with diagnostics as (
-                select f.Name as Name,
-                       p.ParsedFields as ParsedFields,
-                       p.ErrorField as ErrorField,
-                       p.ErrorMessage as ErrorMessage,
-                       p.BytesConsumed as BytesConsumed
-                from #test.files() f
-                cross apply PartialInterpret<Packet>(f.Content) p
-            )
-            select d.Name, d.ParsedFields, d.ErrorField, d.ErrorMessage, d.BytesConsumed,
-                   RowNumber() over (order by d.Name) as Sequence
-            from diagnostics d
-            order by Sequence
-            """;
+        const string binaryQuery = (
+            "binary Packet {\n"
+            + "    Id: byte,\n"
+            + "    Value: short le\n"
+            + "};\n"
+            + "with diagnostics as (\n"
+            + "    select f.Name as Name,\n"
+            + "           p.ParsedFields as ParsedFields,\n"
+            + "           p.ErrorField as ErrorField,\n"
+            + "           p.ErrorMessage as ErrorMessage,\n"
+            + "           p.BytesConsumed as BytesConsumed\n"
+            + "    from #test.files() f\n"
+            + "    cross apply PartialInterpret<Packet>(f.Content) p\n"
+            + ")\n"
+            + "select d.Name, d.ParsedFields, d.ErrorField, d.ErrorMessage, d.BytesConsumed,\n"
+            + "       RowNumber() over (order by d.Name) as Sequence\n"
+            + "from diagnostics d\n"
+            + "order by Sequence"
+        );
 
         var binaryVm = CompileGeneratedQuery(
             binaryQuery,
@@ -228,11 +236,13 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                     ["#test"] =
                     [
                         new ComponentBinaryEntity { Name = "01-valid.bin", Content = [1, 10, 0] },
-                        new ComponentBinaryEntity { Name = "02-truncated.bin", Content = [2, 0x10] }
-                    ]
-                }),
+                        new ComponentBinaryEntity { Name = "02-truncated.bin", Content = [2, 0x10] },
+                    ],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var binaryTable = binaryVm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -242,7 +252,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("ErrorField", typeof(string)),
             ("ErrorMessage", typeof(string)),
             ("BytesConsumed", typeof(int)),
-            ("Sequence", typeof(long)));
+            ("Sequence", typeof(long))
+        );
 
         var binaryRows = TableMaterializationTestHelper.Materialize(binaryTable);
         Assert.AreEqual(2, binaryRows.Count);
@@ -264,25 +275,25 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         Assert.AreEqual(1, binaryRows[1].ReadValue(4));
         Assert.AreEqual(2L, binaryRows[1].ReadValue(5));
 
-        const string textQuery = """
-            text Record {
-                Id: until ':',
-                Value: chars[3]
-            };
-            with diagnostics as (
-                select f.Name as Name,
-                       p.ParsedFields as ParsedFields,
-                       p.ErrorField as ErrorField,
-                       p.ErrorMessage as ErrorMessage,
-                       p.BytesConsumed as BytesConsumed
-                from #test.lines() f
-                cross apply PartialParse<Record>(f.Text) p
-            )
-            select d.Name, d.ParsedFields, d.ErrorField, d.ErrorMessage, d.BytesConsumed,
-                   RowNumber() over (order by d.Name) as Sequence
-            from diagnostics d
-            order by Sequence
-            """;
+        const string textQuery = (
+            "text Record {\n"
+            + "    Id: until ':',\n"
+            + "    Value: chars[3]\n"
+            + "};\n"
+            + "with diagnostics as (\n"
+            + "    select f.Name as Name,\n"
+            + "           p.ParsedFields as ParsedFields,\n"
+            + "           p.ErrorField as ErrorField,\n"
+            + "           p.ErrorMessage as ErrorMessage,\n"
+            + "           p.BytesConsumed as BytesConsumed\n"
+            + "    from #test.lines() f\n"
+            + "    cross apply PartialParse<Record>(f.Text) p\n"
+            + ")\n"
+            + "select d.Name, d.ParsedFields, d.ErrorField, d.ErrorMessage, d.BytesConsumed,\n"
+            + "       RowNumber() over (order by d.Name) as Sequence\n"
+            + "from diagnostics d\n"
+            + "order by Sequence"
+        );
 
         var textVm = CompileGeneratedQuery(
             textQuery,
@@ -293,11 +304,13 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                     ["#test"] =
                     [
                         new ComponentTextEntity { Name = "01-valid.txt", Text = "1:abc" },
-                        new ComponentTextEntity { Name = "02-truncated.txt", Text = "2:x" }
-                    ]
-                }),
+                        new ComponentTextEntity { Name = "02-truncated.txt", Text = "2:x" },
+                    ],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var textTable = textVm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -307,7 +320,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("ErrorField", typeof(string)),
             ("ErrorMessage", typeof(string)),
             ("BytesConsumed", typeof(int)),
-            ("Sequence", typeof(long)));
+            ("Sequence", typeof(long))
+        );
 
         var textRows = TableMaterializationTestHelper.Materialize(textTable);
         Assert.AreEqual(2, textRows.Count);
@@ -333,17 +347,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void CrossDomainInterpretation_ShouldReportUnsupportedSyntaxWithPreciseSpan()
     {
-        const string query = """
-            binary Packet {
-                Id: byte
-            };
-            text LabelRecord {
-                Id: until ':'
-            };
-            select p.Id
-            from #test.files() f
-            cross apply Interpret<LabelRecord>(f.Content) p
-            """;
+        const string query = (
+            "binary Packet {\n"
+            + "    Id: byte\n"
+            + "};\n"
+            + "text LabelRecord {\n"
+            + "    Id: until ':'\n"
+            + "};\n"
+            + "select p.Id\n"
+            + "from #test.files() f\n"
+            + "cross apply Interpret<LabelRecord>(f.Content) p"
+        );
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CompileGeneratedQuery(
@@ -352,17 +366,20 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                 new ComponentBinarySchemaProvider(
                     new Dictionary<string, IEnumerable<ComponentBinaryEntity>>
                     {
-                        ["#test"] =
-                        [new ComponentBinaryEntity { Name = "row.bin", Content = [1] }]
-                    }),
+                        ["#test"] = [new ComponentBinaryEntity { Name = "row.bin", Content = [1] }],
+                    }
+                ),
                 LoggerResolver,
-                TestCompilationOptions));
+                TestCompilationOptions
+            )
+        );
 
         AssertErrorEnvelope(
             exception,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticPhase.Parse,
-            "binary interpretation schema");
+            "binary interpretation schema"
+        );
         var envelope = exception.PrimaryEnvelope;
         Assert.AreEqual(DiagnosticSourceKind.Query, envelope.SourceKind);
         Assert.IsNotNull(envelope.Offset);
@@ -378,5 +395,4 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         Assert.IsNotEmpty(envelope.SuggestedFixes);
         Assert.IsNotEmpty(envelope.Actions);
     }
-
 }

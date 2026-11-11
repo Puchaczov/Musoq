@@ -17,14 +17,16 @@ internal sealed class PhysicalLoweringFacade
         ExecutionPlanningArtifacts executionArtifacts,
         SchemaRegistry? schemaRegistry = null,
         CompilationOptions? compilationOptions = null,
-        CteExecutionPlan? cteExecutionPlan = null)
+        CteExecutionPlan? cteExecutionPlan = null
+    )
     {
         _implementation = new PhysicalLoweringImplementation(
             shapeResolver,
             executionArtifacts,
             schemaRegistry,
             compilationOptions,
-            cteExecutionPlan);
+            cteExecutionPlan
+        );
     }
 
     internal PhysicalLoweringFacade(
@@ -32,19 +34,19 @@ internal sealed class PhysicalLoweringFacade
         SchemaRegistry? schemaRegistry,
         CompilationOptions? compilationOptions,
         CteExecutionPlan? cteExecutionPlan,
-        ExecutionPlanningArtifacts executionArtifacts)
+        ExecutionPlanningArtifacts executionArtifacts
+    )
     {
         _implementation = new PhysicalLoweringImplementation(
             shapeResolver,
             schemaRegistry,
             compilationOptions,
             cteExecutionPlan,
-            executionArtifacts);
+            executionArtifacts
+        );
     }
 
-    internal ExecutionPlanBuildResult Build(
-        PhysicalNode physicalPlan,
-        string identifier)
+    internal ExecutionPlanBuildResult Build(PhysicalNode physicalPlan, string identifier)
     {
         return _implementation.Build(physicalPlan, identifier);
     }

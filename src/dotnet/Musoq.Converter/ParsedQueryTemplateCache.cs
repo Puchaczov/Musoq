@@ -31,28 +31,27 @@ internal static class ParsedQueryTemplateCache
                     Entries.Count,
                     _retainedTextCharacters,
                     Interlocked.Read(ref _hits),
-                    Interlocked.Read(ref _misses));
+                    Interlocked.Read(ref _misses)
+                );
             }
         }
     }
 
-    internal static RootNode GetOrAdd(
-        string script,
-        string parserContract,
-        Func<RootNode> factory)
+    internal static RootNode GetOrAdd(string script, string parserContract, Func<RootNode> factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
         return GetOrAddTemplate(
-                script,
-                parserContract,
-                () => new ParsedQueryTemplate(factory(), ImmutableArray<Diagnostic>.Empty))
-            .Root;
+            script,
+            parserContract,
+            () => new ParsedQueryTemplate(factory(), ImmutableArray<Diagnostic>.Empty)
+        ).Root;
     }
 
     internal static ParsedQueryTemplate GetOrAddWithDiagnostics(
         string script,
         string parserContract,
-        Func<ParsedQueryTemplate> factory)
+        Func<ParsedQueryTemplate> factory
+    )
     {
         ArgumentNullException.ThrowIfNull(factory);
         return GetOrAddTemplate(script, parserContract, factory);
@@ -61,7 +60,8 @@ internal static class ParsedQueryTemplateCache
     private static ParsedQueryTemplate GetOrAddTemplate(
         string script,
         string parserContract,
-        Func<ParsedQueryTemplate> factory)
+        Func<ParsedQueryTemplate> factory
+    )
     {
         ArgumentNullException.ThrowIfNull(script);
         ArgumentNullException.ThrowIfNull(parserContract);
@@ -83,7 +83,8 @@ internal static class ParsedQueryTemplateCache
                 var template = factory();
                 return new CacheEntry(template.Root, template.Diagnostics);
             },
-            LazyThreadSafetyMode.ExecutionAndPublication);
+            LazyThreadSafetyMode.ExecutionAndPublication
+        );
         var winner = Entries.GetOrAdd(key, candidate);
         if (!ReferenceEquals(candidate, winner))
         {
@@ -158,8 +159,11 @@ internal static class ParsedQueryTemplateCache
 
     private static void RemoveEntry(CacheKey key, Lazy<CacheEntry> value)
     {
-        if (!((ICollection<KeyValuePair<CacheKey, Lazy<CacheEntry>>>)Entries)
-                .Remove(new KeyValuePair<CacheKey, Lazy<CacheEntry>>(key, value)))
+        if (
+            !((ICollection<KeyValuePair<CacheKey, Lazy<CacheEntry>>>)Entries).Remove(
+                new KeyValuePair<CacheKey, Lazy<CacheEntry>>(key, value)
+            )
+        )
             return;
 
         _retainedTextCharacters = Math.Max(0, _retainedTextCharacters - key.Script.Length);
@@ -190,4 +194,5 @@ internal readonly record struct ParsedQueryTemplateCacheSnapshot(
     int Count,
     int RetainedTextCharacters,
     long Hits,
-    long Misses);
+    long Misses
+);

@@ -8,7 +8,8 @@ internal sealed record ExecutionCteSidecarAppendIndexSpec(
     ExecutionCteSidecarIndexKind Kind,
     ExecutionTypeRef KeyType,
     HashPayloadShape? PayloadShape,
-    IReadOnlyList<ExecutionRowValue> PayloadValues)
+    IReadOnlyList<ExecutionRowValue> PayloadValues
+)
 {
     internal ExecutionCteSidecarAppendIndexSpec(
         ExecutionVariable index,
@@ -16,8 +17,7 @@ internal sealed record ExecutionCteSidecarAppendIndexSpec(
         ExecutionCteSidecarIndexKind kind,
         Type keyType,
         HashPayloadShape? payloadShape,
-        IReadOnlyList<ExecutionRowValue> payloadValues)
-        : this(index, key, kind, ExecutionClrBindingFactory.FromClr(keyType), payloadShape, payloadValues)
-    {
-    }
+        IReadOnlyList<ExecutionRowValue> payloadValues
+    )
+        : this(index, key, kind, ExecutionClrBindingFactory.FromClr(keyType), payloadShape, payloadValues) { }
 }

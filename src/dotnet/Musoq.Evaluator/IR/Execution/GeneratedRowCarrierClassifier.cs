@@ -6,11 +6,13 @@ internal static class GeneratedRowCarrierClassifier
         GeneratedRowShape shape,
         GeneratedRowCarrierBoundary boundary,
         GeneratedRowContextCarrierKind contextKind,
-        bool requiresRowBaseAccess)
+        bool requiresRowBaseAccess
+    )
     {
         return shape with
         {
-            RequiresRowBase = Classify(shape, boundary, contextKind, requiresRowBaseAccess) == GeneratedRowCarrierKind.PublicRow
+            RequiresRowBase =
+                Classify(shape, boundary, contextKind, requiresRowBaseAccess) == GeneratedRowCarrierKind.PublicRow,
         };
     }
 
@@ -18,12 +20,15 @@ internal static class GeneratedRowCarrierClassifier
         GeneratedRowShape shape,
         GeneratedRowCarrierBoundary boundary,
         GeneratedRowContextCarrierKind contextKind,
-        bool requiresRowBaseAccess)
+        bool requiresRowBaseAccess
+    )
     {
-        if (boundary == GeneratedRowCarrierBoundary.Public ||
-            !shape.SupportsGeneratedFieldAccess ||
-            requiresRowBaseAccess ||
-            contextKind == GeneratedRowContextCarrierKind.RequiresRowContexts)
+        if (
+            boundary == GeneratedRowCarrierBoundary.Public
+            || !shape.SupportsGeneratedFieldAccess
+            || requiresRowBaseAccess
+            || contextKind == GeneratedRowContextCarrierKind.RequiresRowContexts
+        )
         {
             return GeneratedRowCarrierKind.PublicRow;
         }
@@ -34,6 +39,6 @@ internal static class GeneratedRowCarrierClassifier
     private enum GeneratedRowCarrierKind
     {
         PublicRow,
-        LeanInternal
+        LeanInternal,
     }
 }

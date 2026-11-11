@@ -9,8 +9,16 @@ public abstract partial class TextInterpreterBase<TOut>
         return value is ' ' or '\t' or '\r' or '\n';
     }
 
-    protected ParseAttempt<string> ReadWhitespaceStatus(ReadOnlySpan<char> text, string quantifier = "+", bool trim = false,
-        bool ltrim = false, bool rtrim = false, bool lower = false, bool upper = false, string? fieldName = null)
+    protected ParseAttempt<string> ReadWhitespaceStatus(
+        ReadOnlySpan<char> text,
+        string quantifier = "+",
+        bool trim = false,
+        bool ltrim = false,
+        bool rtrim = false,
+        bool lower = false,
+        bool upper = false,
+        string? fieldName = null
+    )
     {
         if (CheckTextPositionStatus(text, fieldName) is { } failure)
             return ParseAttempt<string>.Failed(default, failure);
@@ -18,10 +26,13 @@ public abstract partial class TextInterpreterBase<TOut>
         var maximum = quantifier == "?" ? 1 : int.MaxValue;
 
         if (quantifier is not ("+" or "*" or "?"))
-            return FailText<string>(ParseErrorCode.GeneralError, fieldName, $"Unknown whitespace quantifier '{quantifier}'");
+            return FailText<string>(
+                ParseErrorCode.GeneralError,
+                fieldName,
+                $"Unknown whitespace quantifier '{quantifier}'"
+            );
 
-        while (ParsePosition < text.Length && ParsePosition - start < maximum &&
-               IsTextWhitespace(text[ParsePosition]))
+        while (ParsePosition < text.Length && ParsePosition - start < maximum && IsTextWhitespace(text[ParsePosition]))
             ParsePosition++;
 
         if (quantifier == "+" && ParsePosition == start)

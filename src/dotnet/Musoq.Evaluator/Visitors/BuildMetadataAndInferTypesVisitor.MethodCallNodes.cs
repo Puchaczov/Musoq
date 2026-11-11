@@ -11,32 +11,37 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (TryBindEnumIntrinsic(node) || TryRejectUnsupportedEnumMethod(node))
             return;
 
-        VisitAccessMethod(node,
+        VisitAccessMethod(
+            node,
             (token, modifiedNode, exArgs, arg3, alias, canSkipInjectSource) =>
-                (AccessMethodNode)(new AccessMethodNode(
-                        token,
-                        modifiedNode,
-                        exArgs,
-                        canSkipInjectSource,
-                        arg3,
-                        alias,
-                        node.Span,
-                        node.IsDistinct)
-                    {
-                        HasFilter = node.HasFilter,
-                        FilterExpression = node.FilterExpression,
-                        FilterExpressionText = node.FilterExpressionText,
-                        IsPivotGenerated = node.IsPivotGenerated,
-                        IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper,
-                        IsCompilerGenerated = node.IsCompilerGenerated
-                    }).WithFullSpan(node.FullSpan));
+                (AccessMethodNode)
+                    (
+                        new AccessMethodNode(
+                            token,
+                            modifiedNode,
+                            exArgs,
+                            canSkipInjectSource,
+                            arg3,
+                            alias,
+                            node.Span,
+                            node.IsDistinct
+                        )
+                        {
+                            HasFilter = node.HasFilter,
+                            FilterExpression = node.FilterExpression,
+                            FilterExpressionText = node.FilterExpressionText,
+                            IsPivotGenerated = node.IsPivotGenerated,
+                            IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper,
+                            IsCompilerGenerated = node.IsCompilerGenerated,
+                        }
+                    ).WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(InterpretCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitInterpretCallNode);
-
 
         PushSemanticNode(new InterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
@@ -46,7 +51,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitParseCallNode);
 
-
         PushSemanticNode(new ParseCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
@@ -54,7 +58,6 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitTryInterpretCallNode);
-
 
         PushSemanticNode(new TryInterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
@@ -64,7 +67,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitTryParseCallNode);
 
-
         PushSemanticNode(new TryParseCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
     }
 
@@ -73,8 +75,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitPartialInterpretCallNode);
 
-
-        PushSemanticNode(new PartialInterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node));
+        PushSemanticNode(
+            new PartialInterpretCallNode(dataSource, node.SchemaName, node.ReturnType).CopySpansFrom(node)
+        );
     }
 
     public override void Visit(InterpretAtCallNode node)
@@ -84,25 +87,34 @@ public partial class BuildMetadataAndInferTypesVisitor
         InterpretationOffsetBinding.RequireInt(offset);
         var dataSource = PopSemanticNode(VisitorOperationNames.VisitInterpretAtCallNodeDataSource);
 
-
-        PushSemanticNode(new InterpretAtCallNode(dataSource, offset, node.SchemaName, node.ReturnType).CopySpansFrom(node));
+        PushSemanticNode(
+            new InterpretAtCallNode(dataSource, offset, node.SchemaName, node.ReturnType).CopySpansFrom(node)
+        );
     }
 
     public override void Visit(AccessRefreshAggregationScoreNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        VisitAccessMethod(node,
+        VisitAccessMethod(
+            node,
             (token, node1, exArgs, arg3, alias, _) =>
-                new AccessRefreshAggregationScoreNode(token, node1, exArgs ?? ArgsListNode.Empty, node.CanSkipInjectSource,
-                    arg3, alias)
+                new AccessRefreshAggregationScoreNode(
+                    token,
+                    node1,
+                    exArgs ?? ArgsListNode.Empty,
+                    node.CanSkipInjectSource,
+                    arg3,
+                    alias
+                )
                 {
                     HasFilter = node.HasFilter,
                     FilterExpression = node.FilterExpression,
                     FilterExpressionText = node.FilterExpressionText,
                     IsPivotGenerated = node.IsPivotGenerated,
                     IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper,
-                    IsCompilerGenerated = node.IsCompilerGenerated
-                });
+                    IsCompilerGenerated = node.IsCompilerGenerated,
+                }
+        );
     }
 
     private void ThrowFilterOnNonAggregate(AccessMethodNode node)

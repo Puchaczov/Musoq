@@ -14,4 +14,3 @@ internal static partial class LogicalCteUsageFacts
         }
     }
 }
-

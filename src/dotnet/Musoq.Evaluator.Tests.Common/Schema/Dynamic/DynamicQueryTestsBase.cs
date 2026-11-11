@@ -18,38 +18,49 @@ public class DynamicQueryTestsBase : MSTestContextTestBase
         string script,
         IReadOnlyCollection<dynamic> values,
         IReadOnlyDictionary<string, Type>? schema = null,
-        CompilationOptions? compilationOptions = null)
+        CompilationOptions? compilationOptions = null
+    )
     {
-        schema ??= ((IDictionary<string, object?>)values.First()).ToDictionary(f => f.Key, f => f.Value?.GetType() ?? typeof(object));
+        schema ??= ((IDictionary<string, object?>)values.First()).ToDictionary(
+            f => f.Key,
+            f => f.Value?.GetType() ?? typeof(object)
+        );
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             new AnySchemaNameProvider(
                 new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
                 {
-                    { "dynamic", (schema, values) }
-                }),
+                    { "dynamic", (schema, values) },
+                }
+            ),
             LoggerResolver,
-            compilationOptions ?? TestCompilationOptions);
+            compilationOptions ?? TestCompilationOptions
+        );
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
-        IEnumerable<(string Name, IReadOnlyCollection<dynamic> Values, IReadOnlyDictionary<string, Type> Schema)>
-            sources
+        IEnumerable<(
+            string Name,
+            IReadOnlyCollection<dynamic> Values,
+            IReadOnlyDictionary<string, Type> Schema
+        )> sources
     )
     {
-        var schemas = sources
-            .ToDictionary<(string Name, IReadOnlyCollection<dynamic> Values, IReadOnlyDictionary<string, Type> Schema),
-                string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>(source => source.Name,
-                source => (source.Schema, source.Values));
+        var schemas = sources.ToDictionary<
+            (string Name, IReadOnlyCollection<dynamic> Values, IReadOnlyDictionary<string, Type> Schema),
+            string,
+            (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)
+        >(source => source.Name, source => (source.Schema, source.Values));
 
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             new DynamicSchemaProvider(schemas),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 
     protected static ExpandoObject CreateExpandoObject(ExpandoObject complex)

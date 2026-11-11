@@ -14,7 +14,8 @@ public class ParserPivotDiagnosticsTests
         AssertPivotSyntaxError(
             "pivot #sales.orders() in ('Q1' as Q1) using Sum(Amount) as Sales",
             DiagnosticCode.MQ2002_MissingToken,
-            "requires an ON clause");
+            "requires an ON clause"
+        );
     }
 
     [TestMethod]
@@ -23,7 +24,8 @@ public class ParserPivotDiagnosticsTests
         AssertPivotSyntaxError(
             "pivot #sales.orders() on Quarter using Sum(Amount) as Sales",
             DiagnosticCode.MQ2002_MissingToken,
-            "requires a static IN");
+            "requires a static IN"
+        );
     }
 
     [TestMethod]
@@ -32,7 +34,8 @@ public class ParserPivotDiagnosticsTests
         AssertPivotSyntaxError(
             "pivot #sales.orders() on Quarter in ('Q1' as Q1) group by Region",
             DiagnosticCode.MQ2002_MissingToken,
-            "requires a USING clause");
+            "requires a USING clause"
+        );
     }
 
     [TestMethod]
@@ -41,7 +44,8 @@ public class ParserPivotDiagnosticsTests
         AssertPivotSyntaxError(
             "pivot #sales.orders() on Quarter in (Region as Region) using Sum(Amount) as Sales",
             DiagnosticCode.MQ2003_InvalidExpression,
-            "must be constants");
+            "must be constants"
+        );
     }
 
     [TestMethod]
@@ -50,7 +54,8 @@ public class ParserPivotDiagnosticsTests
         AssertPivotSyntaxError(
             "pivot #sales.orders() on Quarter in ('Q1' as Q, 'Q2' as Q) using Sum(Amount) as Sales",
             DiagnosticCode.MQ2008_DuplicateAlias,
-            "duplicate output column name");
+            "duplicate output column name"
+        );
     }
 
     [TestMethod]
@@ -59,7 +64,8 @@ public class ParserPivotDiagnosticsTests
         AssertPivotSyntaxError(
             "pivot #sales.orders() on Quarter in ('Q1' as A_B, 'Q2' as A) using Sum(Amount) as C, Count(*) as B_C",
             DiagnosticCode.MQ2008_DuplicateAlias,
-            "duplicate output column name");
+            "duplicate output column name"
+        );
     }
 
     [TestMethod]
@@ -68,7 +74,8 @@ public class ParserPivotDiagnosticsTests
         AssertPivotSyntaxError(
             "pivot #sales.orders() on Quarter in ('Q1' as Q1) using Amount as Sales",
             DiagnosticCode.MQ2003_InvalidExpression,
-            "USING accepts aggregate function calls only");
+            "USING accepts aggregate function calls only"
+        );
     }
 
     [TestMethod]
@@ -77,7 +84,8 @@ public class ParserPivotDiagnosticsTests
         AssertPivotSyntaxError(
             "pivot #sales.orders() on Year, Country in ((2000) as y2000) using Sum(Amount) as Sales",
             DiagnosticCode.MQ2003_InvalidExpression,
-            "tuple length mismatch");
+            "tuple length mismatch"
+        );
     }
 
     private static void AssertPivotSyntaxError(string query, DiagnosticCode code, string messageFragment)

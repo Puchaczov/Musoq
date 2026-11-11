@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public partial class ExpressionIrTests
 {
-
     [TestMethod]
     public void Printer_WhenColumnRef_ShouldPrintAliasAndName()
     {
@@ -62,7 +61,12 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void Printer_WhenBinaryAdd_ShouldPrintParenthesized()
     {
-        var expr = new BinaryOp(BinaryOpKind.Add, new Literal(1, typeof(int)), new Literal(2, typeof(int)), typeof(int));
+        var expr = new BinaryOp(
+            BinaryOpKind.Add,
+            new Literal(1, typeof(int)),
+            new Literal(2, typeof(int)),
+            typeof(int)
+        );
 
         Assert.AreEqual("(1 + 2)", IrExpressionPrinter.Print(expr));
     }
@@ -71,7 +75,12 @@ public partial class ExpressionIrTests
     public void Printer_WhenNestedArithmetic_ShouldPrintFullTree()
     {
         // 1 + 2 * 3
-        var mul = new BinaryOp(BinaryOpKind.Multiply, new Literal(2, typeof(int)), new Literal(3, typeof(int)), typeof(int));
+        var mul = new BinaryOp(
+            BinaryOpKind.Multiply,
+            new Literal(2, typeof(int)),
+            new Literal(3, typeof(int)),
+            typeof(int)
+        );
         var add = new BinaryOp(BinaryOpKind.Add, new Literal(1, typeof(int)), mul, typeof(int));
 
         Assert.AreEqual("(1 + (2 * 3))", IrExpressionPrinter.Print(add));
@@ -80,7 +89,12 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void Printer_WhenComparison_ShouldPrintOperator()
     {
-        var expr = new BinaryOp(BinaryOpKind.Equal, new ColumnRef("a", "Name", typeof(string)), new Literal("John", typeof(string)), typeof(bool));
+        var expr = new BinaryOp(
+            BinaryOpKind.Equal,
+            new ColumnRef("a", "Name", typeof(string)),
+            new Literal("John", typeof(string)),
+            typeof(bool)
+        );
 
         Assert.AreEqual("(a.Name = 'John')", IrExpressionPrinter.Print(expr));
     }
@@ -88,8 +102,18 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void Printer_WhenLogicalAnd_ShouldPrintAndKeyword()
     {
-        var left = new BinaryOp(BinaryOpKind.GreaterThan, new ColumnRef("t", "Age", typeof(int)), new Literal(18, typeof(int)), typeof(bool));
-        var right = new BinaryOp(BinaryOpKind.Equal, new ColumnRef("t", "City", typeof(string)), new Literal("NYC", typeof(string)), typeof(bool));
+        var left = new BinaryOp(
+            BinaryOpKind.GreaterThan,
+            new ColumnRef("t", "Age", typeof(int)),
+            new Literal(18, typeof(int)),
+            typeof(bool)
+        );
+        var right = new BinaryOp(
+            BinaryOpKind.Equal,
+            new ColumnRef("t", "City", typeof(string)),
+            new Literal("NYC", typeof(string)),
+            typeof(bool)
+        );
         var expr = new BinaryOp(BinaryOpKind.And, left, right, typeof(bool));
 
         Assert.AreEqual("((t.Age > 18) AND (t.City = 'NYC'))", IrExpressionPrinter.Print(expr));
@@ -98,7 +122,12 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void Printer_WhenUnaryNot_ShouldPrintNotKeyword()
     {
-        var operand = new BinaryOp(BinaryOpKind.Equal, new ColumnRef("t", "Active", typeof(bool)), new Literal(true, typeof(bool)), typeof(bool));
+        var operand = new BinaryOp(
+            BinaryOpKind.Equal,
+            new ColumnRef("t", "Active", typeof(bool)),
+            new Literal(true, typeof(bool)),
+            typeof(bool)
+        );
         var expr = new UnaryOp(UnaryOpKind.Not, operand, typeof(bool));
 
         Assert.AreEqual("NOT (t.Active = TRUE)", IrExpressionPrinter.Print(expr));
@@ -143,7 +172,8 @@ public partial class ExpressionIrTests
         var expr = new InCheck(
             new ColumnRef("t", "City", typeof(string)),
             [new Literal("NYC", typeof(string)), new Literal("LA", typeof(string))],
-            typeof(bool));
+            typeof(bool)
+        );
 
         Assert.AreEqual("t.City IN ('NYC', 'LA')", IrExpressionPrinter.Print(expr));
     }
@@ -155,7 +185,8 @@ public partial class ExpressionIrTests
             new ColumnRef("t", "Name", typeof(string)),
             new Literal("%John%", typeof(string)),
             PatternKind.Like,
-            typeof(bool));
+            typeof(bool)
+        );
 
         Assert.AreEqual("t.Name LIKE '%John%'", IrExpressionPrinter.Print(expr));
     }
@@ -167,7 +198,8 @@ public partial class ExpressionIrTests
             new ColumnRef("t", "Name", typeof(string)),
             new Literal("^J.*n$", typeof(string)),
             PatternKind.RLike,
-            typeof(bool));
+            typeof(bool)
+        );
 
         Assert.AreEqual("t.Name RLIKE '^J.*n$'", IrExpressionPrinter.Print(expr));
     }
@@ -179,7 +211,8 @@ public partial class ExpressionIrTests
             new ColumnRef("t", "Age", typeof(int)),
             new Literal(18, typeof(int)),
             new Literal(65, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
 
         Assert.AreEqual("t.Age BETWEEN 18 AND 65", IrExpressionPrinter.Print(expr));
     }
@@ -190,8 +223,14 @@ public partial class ExpressionIrTests
         var branches = new[]
         {
             new CaseWhenBranch(
-                new BinaryOp(BinaryOpKind.GreaterThan, new ColumnRef("t", "Age", typeof(int)), new Literal(18, typeof(int)), typeof(bool)),
-                new Literal("Adult", typeof(string)))
+                new BinaryOp(
+                    BinaryOpKind.GreaterThan,
+                    new ColumnRef("t", "Age", typeof(int)),
+                    new Literal(18, typeof(int)),
+                    typeof(bool)
+                ),
+                new Literal("Adult", typeof(string))
+            ),
         };
         var expr = new CaseWhen(branches, new Literal("Minor", typeof(string)), typeof(string));
 
@@ -203,7 +242,8 @@ public partial class ExpressionIrTests
     {
         var expr = new Coalesce(
             [new ColumnRef("t", "Name", typeof(string)), new Literal("Unknown", typeof(string))],
-            typeof(string));
+            typeof(string)
+        );
 
         Assert.AreEqual("COALESCE(t.Name, 'Unknown')", IrExpressionPrinter.Print(expr));
     }
@@ -231,21 +271,65 @@ public partial class ExpressionIrTests
         var right = new Literal(2, typeof(int));
 
         Assert.AreEqual("(1 + 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Add, left, right, typeof(int))));
-        Assert.AreEqual("(1 - 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Subtract, left, right, typeof(int))));
-        Assert.AreEqual("(1 * 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Multiply, left, right, typeof(int))));
-        Assert.AreEqual("(1 / 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Divide, left, right, typeof(int))));
-        Assert.AreEqual("(1 % 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Modulo, left, right, typeof(int))));
-        Assert.AreEqual("(1 = 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Equal, left, right, typeof(bool))));
-        Assert.AreEqual("(1 <> 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.NotEqual, left, right, typeof(bool))));
-        Assert.AreEqual("(1 > 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.GreaterThan, left, right, typeof(bool))));
-        Assert.AreEqual("(1 < 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.LessThan, left, right, typeof(bool))));
-        Assert.AreEqual("(1 >= 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.GreaterOrEqual, left, right, typeof(bool))));
-        Assert.AreEqual("(1 <= 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.LessOrEqual, left, right, typeof(bool))));
-        Assert.AreEqual("(1 & 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.BitwiseAnd, left, right, typeof(int))));
-        Assert.AreEqual("(1 | 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.BitwiseOr, left, right, typeof(int))));
-        Assert.AreEqual("(1 ^ 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.BitwiseXor, left, right, typeof(int))));
-        Assert.AreEqual("(1 << 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.LeftShift, left, right, typeof(int))));
-        Assert.AreEqual("(1 >> 2)", IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.RightShift, left, right, typeof(int))));
+        Assert.AreEqual(
+            "(1 - 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Subtract, left, right, typeof(int)))
+        );
+        Assert.AreEqual(
+            "(1 * 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Multiply, left, right, typeof(int)))
+        );
+        Assert.AreEqual(
+            "(1 / 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Divide, left, right, typeof(int)))
+        );
+        Assert.AreEqual(
+            "(1 % 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Modulo, left, right, typeof(int)))
+        );
+        Assert.AreEqual(
+            "(1 = 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.Equal, left, right, typeof(bool)))
+        );
+        Assert.AreEqual(
+            "(1 <> 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.NotEqual, left, right, typeof(bool)))
+        );
+        Assert.AreEqual(
+            "(1 > 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.GreaterThan, left, right, typeof(bool)))
+        );
+        Assert.AreEqual(
+            "(1 < 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.LessThan, left, right, typeof(bool)))
+        );
+        Assert.AreEqual(
+            "(1 >= 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.GreaterOrEqual, left, right, typeof(bool)))
+        );
+        Assert.AreEqual(
+            "(1 <= 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.LessOrEqual, left, right, typeof(bool)))
+        );
+        Assert.AreEqual(
+            "(1 & 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.BitwiseAnd, left, right, typeof(int)))
+        );
+        Assert.AreEqual(
+            "(1 | 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.BitwiseOr, left, right, typeof(int)))
+        );
+        Assert.AreEqual(
+            "(1 ^ 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.BitwiseXor, left, right, typeof(int)))
+        );
+        Assert.AreEqual(
+            "(1 << 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.LeftShift, left, right, typeof(int)))
+        );
+        Assert.AreEqual(
+            "(1 >> 2)",
+            IrExpressionPrinter.Print(new BinaryOp(BinaryOpKind.RightShift, left, right, typeof(int)))
+        );
     }
-
 }

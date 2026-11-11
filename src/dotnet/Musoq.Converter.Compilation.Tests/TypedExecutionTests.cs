@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
+using Musoq.Evaluator;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Converter.Tests;
@@ -14,7 +14,6 @@ namespace Musoq.Converter.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class TypedExecutionTests
 {
-
     [TestMethod]
     public void CompileForTypedExecution_WhenOutputHasMatchingConstructor_ShouldReturnTypedRows()
     {
@@ -52,8 +51,14 @@ public class TypedExecutionTests
     public void CompileForTypedExecution_WhenQueryHasParameter_ShouldUseExistingParameterBinding()
     {
         var query = Compile<PropertyDto>(
-            "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "expected", "single");
+            "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "expected",
+            "single"
+        );
 
         var rows = query.Run(CancellationToken.None).ToArray();
 
@@ -65,10 +70,16 @@ public class TypedExecutionTests
     public void TypedRun_WithPerRunOptions_WhenParametersChangeAfterRun_ShouldUseSnapshot()
     {
         var query = Compile<PropertyDto>(
-            "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected");
+            "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected"
+        );
         var parameters = new Dictionary<string, object?> { ["expected"] = "single" };
 
-        var rows = query.Run(new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters)));
+        var rows = query.Run(
+            new TypedQueryRunOptions(
+                CancellationToken.None,
+                global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters)
+            )
+        );
         parameters["expected"] = "missing";
 
         var materialized = rows.ToArray();
@@ -81,10 +92,16 @@ public class TypedExecutionTests
     public void TypedRun_WithObjectInitializerOptions_WhenParametersChangeAfterRun_ShouldUseSnapshot()
     {
         var query = Compile<PropertyDto>(
-            "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected");
+            "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected"
+        );
         var parameters = new Dictionary<string, object?> { ["expected"] = "single" };
 
-        var rows = query.Run(new TypedQueryRunOptions { TypedParameters = global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters) });
+        var rows = query.Run(
+            new TypedQueryRunOptions
+            {
+                TypedParameters = global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters),
+            }
+        );
         parameters["expected"] = "missing";
 
         var materialized = rows.ToArray();
@@ -96,8 +113,7 @@ public class TypedExecutionTests
     [TestMethod]
     public void TypedRun_WhenCompatibilityEventsChangeAfterRun_ShouldUseSnapshot()
     {
-        var query = Compile<PropertyDto>(
-            "select d.Dummy as Dummy from #system.dual() d order by d.Dummy");
+        var query = Compile<PropertyDto>("select d.Dummy as Dummy from #system.dual() d order by d.Dummy");
         var firstPhaseCount = 0;
         var secondPhaseCount = 0;
         query.PhaseChanged += (_, _) => firstPhaseCount++;
@@ -116,22 +132,31 @@ public class TypedExecutionTests
         var query = Compile<PropertyDto>("select d.Dummy as Dummy from #system.dual() d");
         var snapshots = new List<QueryProgressEventArgs>();
 
-        var rows = query.Run(new TypedQueryRunOptions
-        {
-            QueryProgress = (_, args) => snapshots.Add(args),
-            QueryProgressOptions = new QueryProgressOptions
-            {
-                RowsPerUpdate = 1,
-                MinimumInterval = TimeSpan.FromDays(1)
-            }
-        }).ToArray();
+        var rows = query
+            .Run(
+                new TypedQueryRunOptions
+                {
+                    QueryProgress = (_, args) => snapshots.Add(args),
+                    QueryProgressOptions = new QueryProgressOptions
+                    {
+                        RowsPerUpdate = 1,
+                        MinimumInterval = TimeSpan.FromDays(1),
+                    },
+                }
+            )
+            .ToArray();
 
         Assert.AreEqual(1, rows.Length);
         Assert.IsTrue(snapshots.Count > 0);
         Assert.IsTrue(
             snapshots[^1].IsFinal,
-            string.Join(", ", snapshots.Select(static snapshot =>
-                $"{snapshot.QueryRowsProcessed}:{snapshot.SourceContextId}:{snapshot.IsFinal}")));
+            string.Join(
+                ", ",
+                snapshots.Select(static snapshot =>
+                    $"{snapshot.QueryRowsProcessed}:{snapshot.SourceContextId}:{snapshot.IsFinal}"
+                )
+            )
+        );
         Assert.AreEqual(1, snapshots.Count(static snapshot => snapshot.IsFinal));
         Assert.AreEqual(1, snapshots[^1].QueryRowsProcessed);
     }
@@ -142,15 +167,21 @@ public class TypedExecutionTests
         var query = Compile<ThrowingConstructorDto>("select d.Dummy as Dummy from #system.dual() d");
         var snapshots = new List<QueryProgressEventArgs>();
 
-        Assert.Throws<QueryExecutionException>(() => query.Run(new TypedQueryRunOptions
-        {
-            QueryProgress = (_, args) => snapshots.Add(args),
-            QueryProgressOptions = new QueryProgressOptions
-            {
-                RowsPerUpdate = 1,
-                MinimumInterval = TimeSpan.FromDays(1)
-            }
-        }).ToArray());
+        Assert.Throws<QueryExecutionException>(() =>
+            query
+                .Run(
+                    new TypedQueryRunOptions
+                    {
+                        QueryProgress = (_, args) => snapshots.Add(args),
+                        QueryProgressOptions = new QueryProgressOptions
+                        {
+                            RowsPerUpdate = 1,
+                            MinimumInterval = TimeSpan.FromDays(1),
+                        },
+                    }
+                )
+                .ToArray()
+        );
 
         Assert.IsTrue(snapshots.Count > 0);
         Assert.IsTrue(snapshots[^1].IsFinal);
@@ -163,7 +194,8 @@ public class TypedExecutionTests
         var query = Compile<ThrowingConstructorDto>("select d.Dummy as Dummy from #system.dual() d");
 
         var exception = Assert.Throws<QueryExecutionException>(() =>
-            query.Run(new TypedQueryRunOptions(CancellationToken.None)).ToArray());
+            query.Run(new TypedQueryRunOptions(CancellationToken.None)).ToArray()
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope!.Code);
         Assert.AreEqual("Projection failed.", exception.InnerException!.Message);
@@ -193,21 +225,24 @@ public class TypedExecutionTests
     public void CompileForTypedExecution_WhenAliasesAreDuplicated_ShouldRejectAtCompileTime()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            Compile<TwoColumnConstructorDto>("select d.Dummy as Dummy, d.Dummy as Dummy from #system.dual() d"));
+            Compile<TwoColumnConstructorDto>("select d.Dummy as Dummy, d.Dummy as Dummy from #system.dual() d")
+        );
     }
 
     [TestMethod]
     public void CompileForTypedExecution_WhenOutputMemberIsMissing_ShouldRejectAtCompileTime()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            Compile<MissingMemberDto>("select d.Dummy as Dummy from #system.dual() d"));
+            Compile<MissingMemberDto>("select d.Dummy as Dummy from #system.dual() d")
+        );
     }
 
     [TestMethod]
     public void CompileForTypedExecution_WhenOutputMemberTypeIsIncompatible_ShouldRejectAtCompileTime()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            Compile<IncompatibleMemberDto>("select d.Dummy as Dummy from #system.dual() d"));
+            Compile<IncompatibleMemberDto>("select d.Dummy as Dummy from #system.dual() d")
+        );
     }
 
     private static CompiledTypedQuery<TOut> Compile<TOut>(string query)
@@ -216,7 +251,8 @@ public class TypedExecutionTests
             query,
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
     }
 
     public sealed record ConstructorDto(string Dummy);

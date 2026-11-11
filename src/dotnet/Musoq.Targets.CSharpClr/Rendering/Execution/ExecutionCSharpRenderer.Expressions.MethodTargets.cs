@@ -12,10 +12,22 @@ public sealed partial class ExecutionCSharpRenderer
         var method = call.Method.RequireClrMethod();
         if (call.GeneratedGenericArguments.Count == 0)
             return CreateMethodNameSyntax(method);
-        return SyntaxFactory.GenericName(method.Name).WithTypeArgumentList(
-            SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(method.GetGenericArguments()
-                .Select((type, index) => call.GeneratedGenericArguments.TryGetValue(index, out var name)
-                    ? SyntaxFactory.ParseTypeName(name) : CreateTypeSyntax(type)))));
+        return SyntaxFactory
+            .GenericName(method.Name)
+            .WithTypeArgumentList(
+                SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SeparatedList(
+                        method
+                            .GetGenericArguments()
+                            .Select(
+                                (type, index) =>
+                                    call.GeneratedGenericArguments.TryGetValue(index, out var name)
+                                        ? SyntaxFactory.ParseTypeName(name)
+                                        : CreateTypeSyntax(type)
+                            )
+                    )
+                )
+            );
     }
 
     private static SimpleNameSyntax CreateMethodNameSyntax(MethodInfo method)
@@ -23,8 +35,12 @@ public sealed partial class ExecutionCSharpRenderer
         if (!method.IsGenericMethod || !method.IsConstructedGenericMethod)
             return SyntaxFactory.IdentifierName(method.Name);
 
-        return SyntaxFactory.GenericName(method.Name)
-            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(
-                method.GetGenericArguments().Select(CreateTypeSyntax))));
+        return SyntaxFactory
+            .GenericName(method.Name)
+            .WithTypeArgumentList(
+                SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SeparatedList(method.GetGenericArguments().Select(CreateTypeSyntax))
+                )
+            );
     }
 }

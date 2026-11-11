@@ -35,13 +35,17 @@ public abstract class IrExpressionVisitor<T>
             StructuralRecordLiteral node => VisitStructuralRecordLiteral(node),
             StructuralArrayLiteral node => VisitStructuralArrayLiteral(node),
             StructuralConversion node => VisitStructuralConversion(node),
-            _ => throw UnsupportedShape.Of($"IR expression type '{expression.GetType().Name}'")
+            _ => throw UnsupportedShape.Of($"IR expression type '{expression.GetType().Name}'"),
         };
     }
 
     protected abstract T VisitColumnRef(ColumnRef node);
+
     protected virtual T VisitSubquery(SubqueryExpression node) => throw UnsupportedShape.Of("IR subquery expression");
-    protected virtual T VisitSubqueryParameter(SubqueryParameterRef node) => throw UnsupportedShape.Of("IR outer reference");
+
+    protected virtual T VisitSubqueryParameter(SubqueryParameterRef node) =>
+        throw UnsupportedShape.Of("IR outer reference");
+
     protected abstract T VisitScriptParameterRef(ScriptParameterRef node);
     protected abstract T VisitScriptVariableRef(ScriptVariableRef node);
     protected abstract T VisitLiteral(Literal node);
@@ -62,8 +66,16 @@ public abstract class IrExpressionVisitor<T>
     protected abstract T VisitWindowFunctionRef(WindowFunctionRef node);
     protected abstract T VisitArrayAccess(ArrayAccess node);
     protected abstract T VisitCteTableRef(CteTableRef node);
-    protected virtual T VisitCteCollectionInput(CteCollectionInput node) => throw UnsupportedShape.Of("IR CTE collection input");
-    protected virtual T VisitStructuralRecordLiteral(StructuralRecordLiteral node) => throw UnsupportedShape.Of("IR structural record");
-    protected virtual T VisitStructuralArrayLiteral(StructuralArrayLiteral node) => throw UnsupportedShape.Of("IR structural array");
-    protected virtual T VisitStructuralConversion(StructuralConversion node) => throw UnsupportedShape.Of("IR structural conversion");
+
+    protected virtual T VisitCteCollectionInput(CteCollectionInput node) =>
+        throw UnsupportedShape.Of("IR CTE collection input");
+
+    protected virtual T VisitStructuralRecordLiteral(StructuralRecordLiteral node) =>
+        throw UnsupportedShape.Of("IR structural record");
+
+    protected virtual T VisitStructuralArrayLiteral(StructuralArrayLiteral node) =>
+        throw UnsupportedShape.Of("IR structural array");
+
+    protected virtual T VisitStructuralConversion(StructuralConversion node) =>
+        throw UnsupportedShape.Of("IR structural conversion");
 }

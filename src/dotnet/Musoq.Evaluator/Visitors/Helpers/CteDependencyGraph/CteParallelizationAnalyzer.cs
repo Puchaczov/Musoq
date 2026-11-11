@@ -28,9 +28,7 @@ public static class CteParallelizationAnalyzer
     /// <param name="cteExpression">The CTE expression to analyze.</param>
     /// <param name="cancellationToken">Token used to cancel CTE analysis.</param>
     /// <returns>An execution plan for parallel CTE execution.</returns>
-    public static CteExecutionPlan CreatePlan(
-        CteExpressionNode cteExpression,
-        CancellationToken cancellationToken)
+    public static CteExecutionPlan CreatePlan(CteExpressionNode cteExpression, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var builder = new CteDependencyGraphBuilder();
@@ -56,20 +54,18 @@ public static class CteParallelizationAnalyzer
     /// <param name="graph">The dependency graph to create a plan from.</param>
     /// <param name="cancellationToken">Token used to cancel plan construction.</param>
     /// <returns>An execution plan for parallel CTE execution.</returns>
-    public static CteExecutionPlan CreatePlan(
-        CteDependencyGraph graph,
-        CancellationToken cancellationToken)
+    public static CteExecutionPlan CreatePlan(CteDependencyGraph graph, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(graph);
         cancellationToken.ThrowIfCancellationRequested();
         var levels = new List<CteExecutionLevel>();
 
-
         for (var i = 0; i < graph.ExecutionLevels.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var ctesAtLevel = graph.ExecutionLevels[i];
-            if (ctesAtLevel.Count > 0) levels.Add(new CteExecutionLevel(i, ctesAtLevel.ToList()));
+            if (ctesAtLevel.Count > 0)
+                levels.Add(new CteExecutionLevel(i, ctesAtLevel.ToList()));
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -95,7 +91,8 @@ public static class CteParallelizationAnalyzer
     /// <returns>True if parallelization is possible and beneficial.</returns>
     public static bool CanBenefitFromParallelization(
         CteExpressionNode cteExpression,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var builder = new CteDependencyGraphBuilder();
@@ -120,9 +117,7 @@ public static class CteParallelizationAnalyzer
     /// <param name="graph">The dependency graph to check.</param>
     /// <param name="cancellationToken">Token used to cancel the check.</param>
     /// <returns>True if parallelization is possible and beneficial.</returns>
-    public static bool CanBenefitFromParallelization(
-        CteDependencyGraph graph,
-        CancellationToken cancellationToken)
+    public static bool CanBenefitFromParallelization(CteDependencyGraph graph, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(graph);
         cancellationToken.ThrowIfCancellationRequested();
@@ -148,7 +143,8 @@ public static class CteParallelizationAnalyzer
     /// <returns>A list of CTE names at each execution level.</returns>
     public static IReadOnlyList<IReadOnlyList<string>> GetExecutionLevelNames(
         CteExpressionNode cteExpression,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var plan = CreatePlan(cteExpression, cancellationToken);

@@ -35,9 +35,12 @@ public sealed class InterpretationExecutionLimitsTests
     {
         var limits = new InterpretationExecutionLimits(17);
         var original = new CompilationOptions().WithInterpretationLimits(limits);
-        var clone = original.WithInstrumentationMode(QueryInstrumentationMode.Disabled)
-            .WithTableResultMaterialization().WithLoopInvariantCodeMotion(false)
-            .WithStabilityAwareScalarReuse(false).WithRecursiveCteLimits(new(7, 11, 13))
+        var clone = original
+            .WithInstrumentationMode(QueryInstrumentationMode.Disabled)
+            .WithTableResultMaterialization()
+            .WithLoopInvariantCodeMotion(false)
+            .WithStabilityAwareScalarReuse(false)
+            .WithRecursiveCteLimits(new(7, 11, 13))
             .WithRegexMatchTimeout(TimeSpan.FromSeconds(2));
         var replacement = clone.WithInterpretationLimits(new(19));
 
@@ -60,7 +63,13 @@ public sealed class InterpretationExecutionLimitsTests
         var equivalent = new CompilationOptions().WithInterpretationLimits(new(17));
         var different = new CompilationOptions().WithInterpretationLimits(new(19));
 
-        Assert.AreEqual(CompilationOptionsFingerprint.Compute(first), CompilationOptionsFingerprint.Compute(equivalent));
-        Assert.AreNotEqual(CompilationOptionsFingerprint.Compute(first), CompilationOptionsFingerprint.Compute(different));
+        Assert.AreEqual(
+            CompilationOptionsFingerprint.Compute(first),
+            CompilationOptionsFingerprint.Compute(equivalent)
+        );
+        Assert.AreNotEqual(
+            CompilationOptionsFingerprint.Compute(first),
+            CompilationOptionsFingerprint.Compute(different)
+        );
     }
 }

@@ -14,15 +14,16 @@ public sealed class WindowLoweringModelTests
     public void WindowRegistrationBuildResult_Factories_ShouldPreserveWindowKind()
     {
         var registration = CreateRegistration("row_number", typeof(long));
-        var pluginFactory = typeof(WindowLoweringModelTests)
-            .GetMethod(nameof(TestWindow), BindingFlags.Public | BindingFlags.Static)!;
+        var pluginFactory = typeof(WindowLoweringModelTests).GetMethod(
+            nameof(TestWindow),
+            BindingFlags.Public | BindingFlags.Static
+        )!;
 
         var ranking = WindowRegistrationBuildResult.SuccessRanking(
             registration,
-            ExecutionRankingWindowFunction.RowNumber);
-        var offset = WindowRegistrationBuildResult.SuccessOffset(
-            registration,
-            ExecutionOffsetWindowFunction.Lag);
+            ExecutionRankingWindowFunction.RowNumber
+        );
+        var offset = WindowRegistrationBuildResult.SuccessOffset(registration, ExecutionOffsetWindowFunction.Lag);
         var plugin = WindowRegistrationBuildResult.SuccessPlugin(registration, pluginFactory);
         var unsupported = WindowRegistrationBuildResult.Unsupported("unsupported frame");
 
@@ -82,15 +83,9 @@ public sealed class WindowLoweringModelTests
     public void PluginWindowArgumentsBuildResult_Factories_ShouldPreserveArgumentsAndTargets()
     {
         var value = new ExecutionLiteral(10, typeof(int));
-        var arguments = new ExecutionExpression[]
-        {
-            new ExecutionLiteral("arg", typeof(string))
-        };
+        var arguments = new ExecutionExpression[] { new ExecutionLiteral("arg", typeof(string)) };
         var rowScoped = new[] { true };
-        var methodTargets = new[]
-        {
-            new ExecutionVariable("target", typeof(object))
-        };
+        var methodTargets = new[] { new ExecutionVariable("target", typeof(object)) };
 
         var success = PluginWindowArgumentsBuildResult.Success(value, arguments, rowScoped, methodTargets);
         var unsupported = PluginWindowArgumentsBuildResult.Unsupported("bad plugin");
@@ -112,7 +107,8 @@ public sealed class WindowLoweringModelTests
     {
         var registration = WindowRegistrationBuildResult.SuccessRanking(
             CreateRegistration("row_number", typeof(long)),
-            ExecutionRankingWindowFunction.RowNumber);
+            ExecutionRankingWindowFunction.RowNumber
+        );
         var keyArrays = new WindowKeyArrayRegistry();
         var partitions = new WindowPartitionSetRegistry();
         var sortedPartitions = new WindowPartitionSetRegistry();
@@ -137,7 +133,8 @@ public sealed class WindowLoweringModelTests
             null,
             new HashSet<string>(StringComparer.Ordinal),
             new HashSet<string>(StringComparer.Ordinal),
-            QualifyUpperBound: 10);
+            QualifyUpperBound: 10
+        );
 
         Assert.AreSame(registration, context.RegistrationResult);
         Assert.AreSame(keyArrays, context.KeyArrays);
@@ -154,13 +151,6 @@ public sealed class WindowLoweringModelTests
 
     private static WindowRegistration CreateRegistration(string functionName, Type returnType)
     {
-        return new WindowRegistration(
-            null,
-            functionName,
-            [],
-            [],
-            [],
-            WindowIndex: 0,
-            returnType);
+        return new WindowRegistration(null, functionName, [], [], [], WindowIndex: 0, returnType);
     }
 }

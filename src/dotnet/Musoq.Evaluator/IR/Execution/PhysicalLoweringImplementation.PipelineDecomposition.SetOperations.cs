@@ -14,14 +14,17 @@ internal sealed partial class PhysicalLoweringImplementation
         return current is PhysicalSetOperationNode setOperation
             ? new SetOperationPipeline(
                 setOperation,
-                CreatePostOperations(operations, CreateProjectedFields(setOperation.OutputSchema)))
+                CreatePostOperations(operations, CreateProjectedFields(setOperation.OutputSchema))
+            )
             : null;
     }
 
     private static SetOperationArmNames CreateSetOperationArmNames(string resultTableName, string resultShapeName)
     {
-        if (string.Equals(resultTableName, "result", StringComparison.Ordinal) &&
-            string.Equals(resultShapeName, "ResultRow0", StringComparison.Ordinal))
+        if (
+            string.Equals(resultTableName, "result", StringComparison.Ordinal)
+            && string.Equals(resultShapeName, "ResultRow0", StringComparison.Ordinal)
+        )
         {
             return new SetOperationArmNames("left", "LeftRow0", "right", "RightRow0");
         }
@@ -30,7 +33,8 @@ internal sealed partial class PhysicalLoweringImplementation
             $"{resultTableName}Left",
             CreateSetOperationArmShapeName(resultShapeName, "Left"),
             $"{resultTableName}Right",
-            CreateSetOperationArmShapeName(resultShapeName, "Right"));
+            CreateSetOperationArmShapeName(resultShapeName, "Right")
+        );
     }
 
     private static string CreateSetOperationArmShapeName(string resultShapeName, string armName)

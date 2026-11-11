@@ -43,8 +43,8 @@ public sealed class ParserIsDistinctFromTests
         var statements = (StatementsArrayNode)root.Expression;
         var singleSet = (SingleSetNode)statements.Statements[0].Node;
 
-        return singleSet.Query.Where?.Expression ??
-               throw new InvalidOperationException("Expected the parsed query to contain a WHERE clause.");
+        return singleSet.Query.Where?.Expression
+            ?? throw new InvalidOperationException("Expected the parsed query to contain a WHERE clause.");
     }
 
     private static Node ParseSingleSelectExpression(string expression)

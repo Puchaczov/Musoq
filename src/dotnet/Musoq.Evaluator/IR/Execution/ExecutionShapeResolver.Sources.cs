@@ -1,7 +1,7 @@
-using System.Linq;
-using Musoq.Evaluator.IR.Logical.Nodes;
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Plugins;
 
@@ -13,12 +13,10 @@ public sealed partial class ExecutionShapeResolver
     {
         ArgumentNullException.ThrowIfNull(scan);
 
-        if (scan.SourceTransferStrategy is
-            {
-                Mode: SourceTransferMode.QueryScopedRows,
-                Carrier: not null,
-                Shape: not null
-            } transfer)
+        if (
+            scan.SourceTransferStrategy is
+            { Mode: SourceTransferMode.QueryScopedRows, Carrier: not null, Shape: not null } transfer
+        )
         {
             return QueryRowSourceShapeFactory.Create(scan.Alias, transfer);
         }
@@ -34,15 +32,13 @@ public sealed partial class ExecutionShapeResolver
         if (DynamicEntityBoundary.IsNameIndexedSource(entityType))
             throw new Musoq.Evaluator.Exceptions.SourcePlanContractException(
                 $"Source '{scan.Alias}' requires native query-scoped rows; erased dictionary transfer is unsupported.",
-                Musoq.Parser.TextSpan.Empty);
+                Musoq.Parser.TextSpan.Empty
+            );
 
         if (!CanUseSourceEntityShape(entityType))
             return CreateReflectedSourceShape(scan.Alias, entityType, columns);
 
-        var fields = CreateFieldBindings(
-            scan.Alias,
-            columns,
-            column => ResolveAccessStrategy(entityType, column));
+        var fields = CreateFieldBindings(scan.Alias, columns, column => ResolveAccessStrategy(entityType, column));
         return new SourceEntityShape(scan.Alias, entityType, fields);
     }
 
@@ -60,28 +56,35 @@ public sealed partial class ExecutionShapeResolver
                 interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
                     ? $"Musoq.Schema.Interpreters.PartialInterpretResult<{registration?.GeneratedTypeName}>"
                     : registration?.GeneratedTypeName,
-                column => column == "ParsedFields" &&
-                    interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
-                    ? registration?.GeneratedTypeName
-                    : InterpretationPropertyTypeNameResolver.ResolvePropertyTypeName(
-                    interpret.SchemaName,
-                    column,
-                    _schemaRegistry));
+                column =>
+                    column == "ParsedFields"
+                    && interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
+                        ? registration?.GeneratedTypeName
+                        : InterpretationPropertyTypeNameResolver.ResolvePropertyTypeName(
+                            interpret.SchemaName,
+                            column,
+                            _schemaRegistry
+                        )
+            );
             if (registration?.Node is not Musoq.Parser.Nodes.InterpretationSchema.TextSchemaNode)
                 return shape;
             var result = new TextResultShapeBinding(_schemaRegistry).Schema(interpret.SchemaName);
             var partial = interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse;
             return shape with
             {
-                Fields = shape.Fields.Select(field =>
-                {
-                    var value = partial && field.Name == "ParsedFields" ? result : result.Member(field.Name);
-                    return value == null ? field : field with
+                Fields = shape
+                    .Fields.Select(field =>
                     {
-                        InterpretationShape = new ExecutionInterpretationShape(value),
-                        GeneratedTypeName = value.TypeName
-                    };
-                }).ToArray()
+                        var value = partial && field.Name == "ParsedFields" ? result : result.Member(field.Name);
+                        return value == null
+                            ? field
+                            : field with
+                            {
+                                InterpretationShape = new ExecutionInterpretationShape(value),
+                                GeneratedTypeName = value.TypeName,
+                            };
+                    })
+                    .ToArray(),
             };
         }
 
@@ -95,7 +98,8 @@ public sealed partial class ExecutionShapeResolver
         {
             var generatedTypeName = InterpretationPropertyTypeNameResolver.ResolveEnumerableTypeName(
                 property,
-                _schemaRegistry);
+                _schemaRegistry
+            );
             if (generatedTypeName?.EndsWith("[]", StringComparison.Ordinal) == true)
                 generatedTypeName = generatedTypeName[..^2];
 
@@ -103,10 +107,13 @@ public sealed partial class ExecutionShapeResolver
                 property.Alias,
                 property.OutputSchema.Columns,
                 generatedTypeName,
-                column => InterpretationPropertyTypeNameResolver.ResolvePropertyTypeNameFromGeneratedType(
-                    generatedTypeName!,
-                    column,
-                    _schemaRegistry));
+                column =>
+                    InterpretationPropertyTypeNameResolver.ResolvePropertyTypeNameFromGeneratedType(
+                        generatedTypeName!,
+                        column,
+                        _schemaRegistry
+                    )
+            );
         }
 
         return ResolveEnumerableSourceShape(property.Alias, property.ResultType, property.OutputSchema.Columns);
@@ -115,18 +122,21 @@ public sealed partial class ExecutionShapeResolver
     public RowShape ResolveAccessMethodSourceShape(PhysicalAccessMethodSourceNode accessMethod)
     {
         ArgumentNullException.ThrowIfNull(accessMethod);
-        return ResolveEnumerableSourceShape(accessMethod.Alias, accessMethod.ResultType, accessMethod.OutputSchema.Columns);
+        return ResolveEnumerableSourceShape(
+            accessMethod.Alias,
+            accessMethod.ResultType,
+            accessMethod.OutputSchema.Columns
+        );
     }
 
     private static RowShape ResolveEnumerableSourceShape(
         string alias,
         Type resultType,
-        IReadOnlyList<ColumnSchema> columns)
+        IReadOnlyList<ColumnSchema> columns
+    )
     {
         var elementType = ResolveEnumerableElementType(resultType);
-        var scalarShape = IsScalar(elementType)
-            ? CreateEnumerableScalarSourceShape(alias, elementType, columns)
-            : null;
+        var scalarShape = IsScalar(elementType) ? CreateEnumerableScalarSourceShape(alias, elementType, columns) : null;
         if (scalarShape != null)
             return scalarShape;
 
@@ -137,18 +147,27 @@ public sealed partial class ExecutionShapeResolver
     }
 
     private static SourceEntityShape? CreateEnumerableScalarSourceShape(
-        string alias, Type elementType, IReadOnlyList<ColumnSchema> columns)
+        string alias,
+        Type elementType,
+        IReadOnlyList<ColumnSchema> columns
+    )
     {
         var resolvedColumns = ResolveColumns(elementType, columns);
-        if (!CanUseSourceEntityShape(elementType) ||
-            !resolvedColumns.Any(static column => column.ColumnName == nameof(PrimitiveTypeEntity<int>.Value)) ||
-            resolvedColumns.Any(static column => column.ColumnName is not ("Value" or "Ordinal")))
+        if (
+            !CanUseSourceEntityShape(elementType)
+            || !resolvedColumns.Any(static column => column.ColumnName == nameof(PrimitiveTypeEntity<int>.Value))
+            || resolvedColumns.Any(static column => column.ColumnName is not ("Value" or "Ordinal"))
+        )
             return null;
 
-        var fields = CreateFieldBindings(alias, resolvedColumns,
-            static column => column.ColumnName == nameof(PrimitiveTypeEntity<int>.Value)
-                ? new DirectScalarValueAccess()
-                : new ClrPropertyAccess(column.ColumnName));
+        var fields = CreateFieldBindings(
+            alias,
+            resolvedColumns,
+            static column =>
+                column.ColumnName == nameof(PrimitiveTypeEntity<int>.Value)
+                    ? new DirectScalarValueAccess()
+                    : new ClrPropertyAccess(column.ColumnName)
+        );
         return new SourceEntityShape(alias, elementType, fields);
     }
 }

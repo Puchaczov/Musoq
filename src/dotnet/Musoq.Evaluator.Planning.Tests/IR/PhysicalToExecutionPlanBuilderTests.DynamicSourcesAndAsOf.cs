@@ -19,16 +19,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var scan = CreateScan();
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            scan);
+            scan
+        );
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["p"] = typeof(ExpandoObject)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["p"] = typeof(ExpandoObject) }
+        );
         var builder = new PlannedExecutionBuilder(shapeResolver);
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => builder.Build(project, "Q_ErasedSource"));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            builder.Build(project, "Q_ErasedSource")
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }
@@ -42,20 +42,19 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.GreaterOrEqual,
             new ColumnRef("p", "Age", typeof(int)),
             new ColumnRef("q", "Age", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var join = new PhysicalNestedLoopJoinNode(JoinKind.AsofInner, predicate, left, right);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("LeftName", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("RightName", new ColumnRef("q", "Name", typeof(string)), 1)
+                new ProjectedField("RightName", new ColumnRef("q", "Name", typeof(string)), 1),
             ],
-            join);
+            join
+        );
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["p"] = typeof(Person),
-                ["q"] = typeof(Person)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["p"] = typeof(Person), ["q"] = typeof(Person) }
+        );
         var builder = new PlannedExecutionBuilder(shapeResolver);
 
         var result = builder.Build(project, "Q_AsOf");
@@ -80,24 +79,24 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.GreaterOrEqual,
             new ColumnRef("p", "Age", typeof(int)),
             new ColumnRef("q", "Age", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var join = new PhysicalNestedLoopJoinNode(JoinKind.AsofInner, predicate, left, right);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("LeftName", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("RightName", new ColumnRef("q", "Name", typeof(string)), 1)
+                new ProjectedField("RightName", new ColumnRef("q", "Name", typeof(string)), 1),
             ],
-            join);
+            join
+        );
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["p"] = typeof(Person),
-                ["q"] = typeof(ExpandoObject)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["p"] = typeof(Person), ["q"] = typeof(ExpandoObject) }
+        );
         var builder = new PlannedExecutionBuilder(shapeResolver);
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => builder.Build(project, "Q_DynamicAsOf"));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            builder.Build(project, "Q_DynamicAsOf")
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }

@@ -11,7 +11,8 @@ public static partial class PhysicalPlanPrinter
         PhysicalRecursiveCteNode recursiveCte,
         StringBuilder builder,
         string prefix,
-        int indent)
+        int indent
+    )
     {
         builder.Append(prefix).Append("PhysicalRecursiveCte [");
         builder.Append(recursiveCte.Name);
@@ -28,11 +29,17 @@ public static partial class PhysicalPlanPrinter
         PrintNode(recursiveCte.Anchor, builder, indent + 4);
         foreach (var invariant in recursiveCte.Invariants)
         {
-            builder.Append(prefix).Append("  Invariant [").Append(invariant.Name).Append("; ")
-                .Append(invariant.StorageKind).Append("; fields ");
+            builder
+                .Append(prefix)
+                .Append("  Invariant [")
+                .Append(invariant.Name)
+                .Append("; ")
+                .Append(invariant.StorageKind)
+                .Append("; fields ");
             PlanPrinterHelpers.AppendNames(
                 builder,
-                invariant.Fields.Select(static field => field.OutputName).ToArray());
+                invariant.Fields.Select(static field => field.OutputName).ToArray()
+            );
             builder.AppendLine("]");
             PrintNode(invariant.Plan, builder, indent + 4);
         }

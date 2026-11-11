@@ -23,5 +23,5 @@ public enum DiagnosticSeverity
     /// <summary>
     ///     A hint or suggestion for improvement.
     /// </summary>
-    Hint = 4
+    Hint = 4,
 }

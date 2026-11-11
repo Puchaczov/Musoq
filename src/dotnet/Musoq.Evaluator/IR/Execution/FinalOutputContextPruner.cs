@@ -11,45 +11,49 @@ internal static partial class GeneratedRowContextPruner
         if (contextCarryingTypeNames.Count == 0)
             return plan;
 
-        var contextConsumerTypeNames = ResolveContextConsumerGeneratedRowTypeNames(
-            plan,
-            contextCarryingTypeNames);
+        var contextConsumerTypeNames = ResolveContextConsumerGeneratedRowTypeNames(plan, contextCarryingTypeNames);
         var hasContextWritesToContextFreeShapes = HasContextWritesToContextFreeShapes(plan);
-        if (contextConsumerTypeNames.Count == contextCarryingTypeNames.Count &&
-            !hasContextWritesToContextFreeShapes)
+        if (contextConsumerTypeNames.Count == contextCarryingTypeNames.Count && !hasContextWritesToContextFreeShapes)
         {
             return plan;
         }
 
-        var prunedShapesByTypeName = plan.Shapes
-            .SelectMany(GetGeneratedRowShapes)
-            .Where(shape => contextCarryingTypeNames.Contains(shape.TypeName) &&
-                            !contextConsumerTypeNames.Contains(shape.TypeName))
+        var prunedShapesByTypeName = plan
+            .Shapes.SelectMany(GetGeneratedRowShapes)
+            .Where(shape =>
+                contextCarryingTypeNames.Contains(shape.TypeName) && !contextConsumerTypeNames.Contains(shape.TypeName)
+            )
             .GroupBy(static shape => shape.TypeName, StringComparer.Ordinal)
             .Select(static group => group.First())
             .ToDictionary(
                 static shape => shape.TypeName,
                 static shape => shape with { Contexts = [] },
-                StringComparer.Ordinal);
-        var prunedHashPayloadShapesByTypeName = plan.Shapes
-            .OfType<HashPayloadShape>()
-            .Where(shape => contextCarryingTypeNames.Contains(shape.TypeName) &&
-                            !contextConsumerTypeNames.Contains(shape.TypeName))
+                StringComparer.Ordinal
+            );
+        var prunedHashPayloadShapesByTypeName = plan
+            .Shapes.OfType<HashPayloadShape>()
+            .Where(shape =>
+                contextCarryingTypeNames.Contains(shape.TypeName) && !contextConsumerTypeNames.Contains(shape.TypeName)
+            )
             .GroupBy(static shape => shape.TypeName, StringComparer.Ordinal)
             .Select(static group => group.First())
             .ToDictionary(
                 static shape => shape.TypeName,
                 static shape => shape with { Contexts = [] },
-                StringComparer.Ordinal);
+                StringComparer.Ordinal
+            );
 
         foreach (var appendRow in ExecutionIrAnalysis.CollectNodes<ExecutionAppendRow>(plan.Body))
         {
-            if (ShouldPruneContextWrite(
+            if (
+                ShouldPruneContextWrite(
                     appendRow.RowShape,
                     appendRow.Contexts,
                     appendRow.ContextLayout,
                     contextCarryingTypeNames,
-                    contextConsumerTypeNames))
+                    contextConsumerTypeNames
+                )
+            )
             {
                 prunedShapesByTypeName.TryAdd(appendRow.RowShape.TypeName, appendRow.RowShape with { Contexts = [] });
             }
@@ -57,12 +61,15 @@ internal static partial class GeneratedRowContextPruner
 
         foreach (var createRow in ExecutionIrAnalysis.CollectNodes<ExecutionCreateGeneratedRow>(plan.Body))
         {
-            if (ShouldPruneContextWrite(
+            if (
+                ShouldPruneContextWrite(
                     createRow.RowShape,
                     createRow.Contexts,
                     createRow.ContextLayout,
                     contextCarryingTypeNames,
-                    contextConsumerTypeNames))
+                    contextConsumerTypeNames
+                )
+            )
             {
                 prunedShapesByTypeName.TryAdd(createRow.RowShape.TypeName, createRow.RowShape with { Contexts = [] });
             }
@@ -107,18 +114,23 @@ internal static partial class GeneratedRowContextPruner
     private static bool HasContextWritesToContextFreeShapes(ExecutionPlan plan)
     {
         return ExecutionIrAnalysis
-                   .CollectNodes<ExecutionAppendRow>(plan.Body)
-                   .Any(static appendRow => appendRow.RowShape.Contexts.Count == 0 &&
-                                            (appendRow.Contexts.Count > 0 || appendRow.ContextLayout != null)) ||
-               ExecutionIrAnalysis
-                   .CollectNodes<ExecutionParallelFilterProjectLoop>(plan.Body)
-                   .Any(static parallelProject => parallelProject.AppendRow.RowShape.Contexts.Count == 0 &&
-                                                  (parallelProject.AppendRow.Contexts.Count > 0 ||
-                                                   parallelProject.AppendRow.ContextLayout != null)) ||
-               ExecutionIrAnalysis
-                   .CollectNodes<ExecutionCreateGeneratedRow>(plan.Body)
-                   .Any(static createRow => createRow.RowShape.Contexts.Count == 0 &&
-                                            (createRow.Contexts.Count > 0 || createRow.ContextLayout != null));
+                .CollectNodes<ExecutionAppendRow>(plan.Body)
+                .Any(static appendRow =>
+                    appendRow.RowShape.Contexts.Count == 0
+                    && (appendRow.Contexts.Count > 0 || appendRow.ContextLayout != null)
+                )
+            || ExecutionIrAnalysis
+                .CollectNodes<ExecutionParallelFilterProjectLoop>(plan.Body)
+                .Any(static parallelProject =>
+                    parallelProject.AppendRow.RowShape.Contexts.Count == 0
+                    && (parallelProject.AppendRow.Contexts.Count > 0 || parallelProject.AppendRow.ContextLayout != null)
+                )
+            || ExecutionIrAnalysis
+                .CollectNodes<ExecutionCreateGeneratedRow>(plan.Body)
+                .Any(static createRow =>
+                    createRow.RowShape.Contexts.Count == 0
+                    && (createRow.Contexts.Count > 0 || createRow.ContextLayout != null)
+                );
     }
 
     private static bool ShouldPruneContextWrite(
@@ -126,11 +138,14 @@ internal static partial class GeneratedRowContextPruner
         IReadOnlyList<ExecutionExpression> contexts,
         ExecutionContextLayout? contextLayout,
         IReadOnlySet<string> contextCarryingTypeNames,
-        IReadOnlySet<string> contextConsumerTypeNames)
+        IReadOnlySet<string> contextConsumerTypeNames
+    )
     {
-        return (rowShape.Contexts.Count == 0 && (contexts.Count > 0 || contextLayout != null)) ||
-               (contextCarryingTypeNames.Contains(rowShape.TypeName) &&
-                !contextConsumerTypeNames.Contains(rowShape.TypeName));
+        return (rowShape.Contexts.Count == 0 && (contexts.Count > 0 || contextLayout != null))
+            || (
+                contextCarryingTypeNames.Contains(rowShape.TypeName)
+                && !contextConsumerTypeNames.Contains(rowShape.TypeName)
+            );
     }
 
     private static IEnumerable<GeneratedRowShape> GetGeneratedRowShapes(RowShape shape)
@@ -139,23 +154,22 @@ internal static partial class GeneratedRowContextPruner
         {
             GeneratedRowShape generated => [generated],
             ValuesRowShape values => [values.GeneratedShape],
-            _ => []
+            _ => [],
         };
     }
 
     private static HashSet<string> ResolveContextConsumerGeneratedRowTypeNames(
         ExecutionPlan plan,
-        IReadOnlySet<string> contextCarryingTypeNames)
+        IReadOnlySet<string> contextCarryingTypeNames
+    )
     {
         var variableTypeNamesByName = GeneratedRowVariableTypes.Collect(plan.Body);
         var result = ResolveDirectContextConsumerGeneratedRowTypeNames(
             plan.Body,
             variableTypeNamesByName,
-            contextCarryingTypeNames);
-        var contextWrites = CollectContextWriteConsumers(
-            plan.Body,
-            variableTypeNamesByName,
-            contextCarryingTypeNames);
+            contextCarryingTypeNames
+        );
+        var contextWrites = CollectContextWriteConsumers(plan.Body, variableTypeNamesByName, contextCarryingTypeNames);
 
         var changed = true;
         while (changed)
@@ -177,12 +191,14 @@ internal static partial class GeneratedRowContextPruner
     private static HashSet<string> ResolveDirectContextConsumerGeneratedRowTypeNames(
         ExecutionBlock block,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
-        IReadOnlySet<string> contextCarryingTypeNames)
+        IReadOnlySet<string> contextCarryingTypeNames
+    )
     {
         var result = new HashSet<string>(StringComparer.Ordinal);
 
-        var visitor = new NonContextWriteVisitor(new ContextConsumerState(
-            variableTypeNamesByName, contextCarryingTypeNames, result));
+        var visitor = new NonContextWriteVisitor(
+            new ContextConsumerState(variableTypeNamesByName, contextCarryingTypeNames, result)
+        );
         ExecutionIrTraversal.VisitNodes(block, ref visitor);
 
         return result;
@@ -191,7 +207,8 @@ internal static partial class GeneratedRowContextPruner
     private static IReadOnlyList<ContextWriteConsumer> CollectContextWriteConsumers(
         ExecutionBlock block,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
-        IReadOnlySet<string> contextCarryingTypeNames)
+        IReadOnlySet<string> contextCarryingTypeNames
+    )
     {
         var result = new List<ContextWriteConsumer>();
 
@@ -202,7 +219,8 @@ internal static partial class GeneratedRowContextPruner
                 appendRow.Contexts,
                 appendRow.ContextLayout,
                 variableTypeNamesByName,
-                contextCarryingTypeNames);
+                contextCarryingTypeNames
+            );
 
         foreach (var parallelProject in ExecutionIrAnalysis.CollectNodes<ExecutionParallelFilterProjectLoop>(block))
             AddContextWriteConsumer(
@@ -211,7 +229,8 @@ internal static partial class GeneratedRowContextPruner
                 parallelProject.AppendRow.Contexts,
                 parallelProject.AppendRow.ContextLayout,
                 variableTypeNamesByName,
-                contextCarryingTypeNames);
+                contextCarryingTypeNames
+            );
 
         foreach (var createRow in ExecutionIrAnalysis.CollectNodes<ExecutionCreateGeneratedRow>(block))
             AddContextWriteConsumer(
@@ -220,7 +239,8 @@ internal static partial class GeneratedRowContextPruner
                 createRow.Contexts,
                 createRow.ContextLayout,
                 variableTypeNamesByName,
-                contextCarryingTypeNames);
+                contextCarryingTypeNames
+            );
 
         return result;
     }
@@ -231,7 +251,8 @@ internal static partial class GeneratedRowContextPruner
         IReadOnlyList<ExecutionExpression> contexts,
         ExecutionContextLayout? contextLayout,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
-        IReadOnlySet<string> contextCarryingTypeNames)
+        IReadOnlySet<string> contextCarryingTypeNames
+    )
     {
         if (contexts.Count == 0 && contextLayout == null)
             return;
@@ -242,7 +263,8 @@ internal static partial class GeneratedRowContextPruner
             contextLayout,
             variableTypeNamesByName,
             contextCarryingTypeNames,
-            sourceTypeNames);
+            sourceTypeNames
+        );
 
         if (sourceTypeNames.Count > 0)
             result.Add(new ContextWriteConsumer(targetTypeName, sourceTypeNames));
@@ -252,7 +274,8 @@ internal static partial class GeneratedRowContextPruner
         ExecutionExpression expression,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
         IReadOnlySet<string> contextCarryingTypeNames,
-        HashSet<string> result)
+        HashSet<string> result
+    )
     {
         switch (expression)
         {
@@ -262,11 +285,7 @@ internal static partial class GeneratedRowContextPruner
                 break;
 
             case ExecutionFieldRead { AccessStrategy: ContextAccess, Alias: { } alias }:
-                TryAddAliasGeneratedRowTypes(
-                    alias,
-                    variableTypeNamesByName,
-                    contextCarryingTypeNames,
-                    result);
+                TryAddAliasGeneratedRowTypes(alias, variableTypeNamesByName, contextCarryingTypeNames, result);
                 break;
 
             case ExecutionFieldRead
@@ -274,11 +293,7 @@ internal static partial class GeneratedRowContextPruner
                 AccessStrategy: GeneratedFieldAccess { FieldName: var fieldName },
                 Alias: { } alias
             } when fieldName.StartsWith("__context", StringComparison.Ordinal):
-                TryAddAliasGeneratedRowTypes(
-                    alias,
-                    variableTypeNamesByName,
-                    contextCarryingTypeNames,
-                    result);
+                TryAddAliasGeneratedRowTypes(alias, variableTypeNamesByName, contextCarryingTypeNames, result);
                 break;
 
             case ExecutionRowContextsRead rowContextsRead:
@@ -286,7 +301,8 @@ internal static partial class GeneratedRowContextPruner
                     rowContextsRead.Row,
                     variableTypeNamesByName,
                     contextCarryingTypeNames,
-                    result);
+                    result
+                );
                 break;
         }
     }
@@ -296,7 +312,8 @@ internal static partial class GeneratedRowContextPruner
         ExecutionContextLayout? contextLayout,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
         IReadOnlySet<string> contextCarryingTypeNames,
-        HashSet<string> result)
+        HashSet<string> result
+    )
     {
         foreach (var context in contexts)
             AddContextExpressionConsumer(context, variableTypeNamesByName, contextCarryingTypeNames, result);
@@ -313,10 +330,13 @@ internal static partial class GeneratedRowContextPruner
         ExecutionExpression expression,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
         IReadOnlySet<string> contextCarryingTypeNames,
-        HashSet<string> result)
+        HashSet<string> result
+    )
     {
-        var visitor = new ContextExpressionVisitor(new ContextConsumerState(
-            variableTypeNamesByName, contextCarryingTypeNames, result), ContextReadPolicy.IncludeVariables);
+        var visitor = new ContextExpressionVisitor(
+            new ContextConsumerState(variableTypeNamesByName, contextCarryingTypeNames, result),
+            ContextReadPolicy.IncludeVariables
+        );
         ExecutionIrTraversal.VisitExpressions(expression, ref visitor);
     }
 
@@ -324,17 +344,19 @@ internal static partial class GeneratedRowContextPruner
         string? alias,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
         IReadOnlySet<string> contextCarryingTypeNames,
-        HashSet<string> result)
+        HashSet<string> result
+    )
     {
-        return !string.IsNullOrWhiteSpace(alias) &&
-               TryAddGeneratedRowTypes(alias, variableTypeNamesByName, contextCarryingTypeNames, result);
+        return !string.IsNullOrWhiteSpace(alias)
+            && TryAddGeneratedRowTypes(alias, variableTypeNamesByName, contextCarryingTypeNames, result);
     }
 
     private static bool TryAddVariableGeneratedRowTypes(
         ExecutionVariable variable,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
         IReadOnlySet<string> contextCarryingTypeNames,
-        HashSet<string> result)
+        HashSet<string> result
+    )
     {
         if (!string.IsNullOrWhiteSpace(variable.GeneratedRowTypeName))
         {
@@ -350,7 +372,8 @@ internal static partial class GeneratedRowContextPruner
         string variableName,
         IReadOnlyDictionary<string, HashSet<string>> variableTypeNamesByName,
         IReadOnlySet<string> contextCarryingTypeNames,
-        HashSet<string> result)
+        HashSet<string> result
+    )
     {
         if (!variableTypeNamesByName.TryGetValue(variableName, out var typeNames))
             return false;
@@ -362,13 +385,12 @@ internal static partial class GeneratedRowContextPruner
         return true;
     }
 
-    private sealed record ContextWriteConsumer(
-        string TargetTypeName,
-        IReadOnlySet<string> SourceTypeNames);
+    private sealed record ContextWriteConsumer(string TargetTypeName, IReadOnlySet<string> SourceTypeNames);
 
     private sealed class Rewriter(
         IReadOnlyDictionary<string, GeneratedRowShape> prunedShapesByTypeName,
-        IReadOnlyDictionary<string, HashPayloadShape> prunedHashPayloadShapesByTypeName) : ExecutionIrRewriter
+        IReadOnlyDictionary<string, HashPayloadShape> prunedHashPayloadShapesByTypeName
+    ) : ExecutionIrRewriter
     {
         public override ExecutionPlan RewritePlan(ExecutionPlan plan)
         {
@@ -376,17 +398,22 @@ internal static partial class GeneratedRowContextPruner
             var shapes = RewriteShapes(plan.Shapes);
             var finalResult = RewriteFinalResult(plan.FinalResult);
 
-            return ReferenceEquals(body, plan.Body) &&
-                   ReferenceEquals(shapes, plan.Shapes) &&
-                   ReferenceEquals(finalResult, plan.FinalResult)
+            return
+                ReferenceEquals(body, plan.Body)
+                && ReferenceEquals(shapes, plan.Shapes)
+                && ReferenceEquals(finalResult, plan.FinalResult)
                 ? plan
-                : plan with { Shapes = shapes, Body = body, FinalResult = finalResult };
+                : plan with
+                {
+                    Shapes = shapes,
+                    Body = body,
+                    FinalResult = finalResult,
+                };
         }
 
         private FinalShapeResult? RewriteFinalResult(FinalShapeResult? finalResult)
         {
-            if (finalResult == null ||
-                !TryRewriteGeneratedRowShape(finalResult.Shape, out var rowShape))
+            if (finalResult == null || !TryRewriteGeneratedRowShape(finalResult.Shape, out var rowShape))
             {
                 return finalResult;
             }
@@ -396,10 +423,11 @@ internal static partial class GeneratedRowContextPruner
                 Shape = rowShape,
                 ColumnMetadata = new ExecutionColumnMetadata(
                     finalResult.ColumnMetadata.ReferenceName,
-                    rowShape.Fields
-                        .Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field))
+                    rowShape
+                        .Fields.Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field))
                         .ToArray(),
-                    finalResult.ColumnMetadata.Kind)
+                    finalResult.ColumnMetadata.Kind
+                ),
             };
         }
 
@@ -407,7 +435,11 @@ internal static partial class GeneratedRowContextPruner
         {
             var rewritten = (ExecutionCreateTable)base.RewriteCreateTable(node);
             return TryRewriteGeneratedRowShape(rewritten.RowShape, out var rowShape)
-                ? rewritten with { RowShape = rowShape, ColumnMetadata = ReboundTableColumnMetadata.Create(rewritten.ColumnMetadata, rowShape) }
+                ? rewritten with
+                {
+                    RowShape = rowShape,
+                    ColumnMetadata = ReboundTableColumnMetadata.Create(rewritten.ColumnMetadata, rowShape),
+                }
                 : rewritten;
         }
 
@@ -415,7 +447,10 @@ internal static partial class GeneratedRowContextPruner
         {
             var rewritten = (ExecutionCreateValuesRows)base.RewriteCreateValuesRows(node);
             return TryRewriteGeneratedRowShape(rewritten.RowShape, out var rowShape)
-                ? rewritten with { RowShape = rowShape }
+                ? rewritten with
+                {
+                    RowShape = rowShape,
+                }
                 : rewritten;
         }
 
@@ -423,7 +458,12 @@ internal static partial class GeneratedRowContextPruner
         {
             var rewritten = (ExecutionCreateGeneratedRow)base.RewriteCreateGeneratedRow(node);
             return TryRewriteGeneratedRowShape(rewritten.RowShape, out var rowShape)
-                ? rewritten with { RowShape = rowShape, Contexts = [], ContextLayout = null }
+                ? rewritten with
+                {
+                    RowShape = rowShape,
+                    Contexts = [],
+                    ContextLayout = null,
+                }
                 : rewritten;
         }
 
@@ -434,44 +474,57 @@ internal static partial class GeneratedRowContextPruner
                 ? rewritten with
                 {
                     PayloadShape = payloadShape,
-                    Values = rewritten.Values.Take(payloadShape.Fields.Count).ToArray()
+                    Values = rewritten.Values.Take(payloadShape.Fields.Count).ToArray(),
                 }
                 : rewritten;
         }
 
         protected override ExecutionNode RewriteCteSidecarAppendRewriteCandidate(
-            ExecutionCteSidecarAppendRewriteCandidate node)
+            ExecutionCteSidecarAppendRewriteCandidate node
+        )
         {
-            var rewritten = (ExecutionCteSidecarAppendRewriteCandidate)base.RewriteCteSidecarAppendRewriteCandidate(node);
+            var rewritten = (ExecutionCteSidecarAppendRewriteCandidate)
+                base.RewriteCteSidecarAppendRewriteCandidate(node);
             var indexes = RewriteCteSidecarAppendIndexes(rewritten.Indexes);
-            return ReferenceEquals(indexes, rewritten.Indexes)
-                ? rewritten
-                : rewritten with { Indexes = indexes };
+            return ReferenceEquals(indexes, rewritten.Indexes) ? rewritten : rewritten with { Indexes = indexes };
         }
 
         protected override ExecutionNode RewriteAppendRow(ExecutionAppendRow node)
         {
             var rewritten = (ExecutionAppendRow)base.RewriteAppendRow(node);
             return TryRewriteGeneratedRowShape(rewritten.RowShape, out var rowShape)
-                ? rewritten with { RowShape = rowShape, Contexts = [], ContextLayout = null }
+                ? rewritten with
+                {
+                    RowShape = rowShape,
+                    Contexts = [],
+                    ContextLayout = null,
+                }
                 : rewritten;
         }
 
         protected override ExecutionNode RewriteMaterializeList(ExecutionMaterializeList node)
         {
             var rewritten = (ExecutionMaterializeList)base.RewriteMaterializeList(node);
-            return rewritten.GeneratedRowShape is not null &&
-                   TryRewriteGeneratedRowShape(rewritten.GeneratedRowShape, out var rowShape)
-                ? rewritten with { GeneratedRowShape = rowShape }
+            return
+                rewritten.GeneratedRowShape is not null
+                && TryRewriteGeneratedRowShape(rewritten.GeneratedRowShape, out var rowShape)
+                ? rewritten with
+                {
+                    GeneratedRowShape = rowShape,
+                }
                 : rewritten;
         }
 
         protected override ExecutionNode RewriteMaterializeFilteredList(ExecutionMaterializeFilteredList node)
         {
             var rewritten = (ExecutionMaterializeFilteredList)base.RewriteMaterializeFilteredList(node);
-            return rewritten.GeneratedRowShape is not null &&
-                   TryRewriteGeneratedRowShape(rewritten.GeneratedRowShape, out var rowShape)
-                ? rewritten with { GeneratedRowShape = rowShape }
+            return
+                rewritten.GeneratedRowShape is not null
+                && TryRewriteGeneratedRowShape(rewritten.GeneratedRowShape, out var rowShape)
+                ? rewritten with
+                {
+                    GeneratedRowShape = rowShape,
+                }
                 : rewritten;
         }
 
@@ -479,25 +532,34 @@ internal static partial class GeneratedRowContextPruner
         {
             var rewritten = (ExecutionProjectTable)base.RewriteProjectTable(node);
             return TryRewriteGeneratedRowShape(rewritten.RowShape, out var rowShape)
-                ? rewritten with { RowShape = rowShape }
+                ? rewritten with
+                {
+                    RowShape = rowShape,
+                }
                 : rewritten;
         }
 
-        protected override ExecutionNode RewriteMaterializeRecordListToTable(
-            ExecutionMaterializeRecordListToTable node)
+        protected override ExecutionNode RewriteMaterializeRecordListToTable(ExecutionMaterializeRecordListToTable node)
         {
             var rewritten = (ExecutionMaterializeRecordListToTable)base.RewriteMaterializeRecordListToTable(node);
             return TryRewriteGeneratedRowShape(rewritten.RowShape, out var rowShape)
-                ? rewritten with { RowShape = rowShape }
+                ? rewritten with
+                {
+                    RowShape = rowShape,
+                }
                 : rewritten;
         }
 
         protected override ExecutionExpression RewriteStoredTableRows(ExecutionStoredTableRows expression)
         {
             var rewritten = (ExecutionStoredTableRows)base.RewriteStoredTableRows(expression);
-            return rewritten.GeneratedRowShape is not null &&
-                   TryRewriteGeneratedRowShape(rewritten.GeneratedRowShape, out var rowShape)
-                ? rewritten with { GeneratedRowShape = rowShape }
+            return
+                rewritten.GeneratedRowShape is not null
+                && TryRewriteGeneratedRowShape(rewritten.GeneratedRowShape, out var rowShape)
+                ? rewritten with
+                {
+                    GeneratedRowShape = rowShape,
+                }
                 : rewritten;
         }
 
@@ -526,9 +588,12 @@ internal static partial class GeneratedRowContextPruner
             {
                 GeneratedRowShape generated when TryRewriteGeneratedRowShape(generated, out var pruned) => pruned,
                 ValuesRowShape values when TryRewriteGeneratedRowShape(values.GeneratedShape, out var pruned) =>
-                    values with { GeneratedShape = pruned },
+                    values with
+                    {
+                        GeneratedShape = pruned,
+                    },
                 HashPayloadShape payload when TryRewriteHashPayloadShape(payload, out var pruned) => pruned,
-                _ => shape
+                _ => shape,
             };
         }
 
@@ -543,7 +608,8 @@ internal static partial class GeneratedRowContextPruner
         }
 
         private IReadOnlyList<ExecutionCteSidecarAppendIndexSpec> RewriteCteSidecarAppendIndexes(
-            IReadOnlyList<ExecutionCteSidecarAppendIndexSpec> indexes)
+            IReadOnlyList<ExecutionCteSidecarAppendIndexSpec> indexes
+        )
         {
             ExecutionCteSidecarAppendIndexSpec[]? rewritten = null;
 
@@ -568,10 +634,10 @@ internal static partial class GeneratedRowContextPruner
         }
 
         private ExecutionCteSidecarAppendIndexSpec RewriteCteSidecarAppendIndex(
-            ExecutionCteSidecarAppendIndexSpec index)
+            ExecutionCteSidecarAppendIndexSpec index
+        )
         {
-            if (index.PayloadShape == null ||
-                !TryRewriteHashPayloadShape(index.PayloadShape, out var payloadShape))
+            if (index.PayloadShape == null || !TryRewriteHashPayloadShape(index.PayloadShape, out var payloadShape))
             {
                 return index;
             }
@@ -579,7 +645,7 @@ internal static partial class GeneratedRowContextPruner
             return index with
             {
                 PayloadShape = payloadShape,
-                PayloadValues = index.PayloadValues.Take(payloadShape.Fields.Count).ToArray()
+                PayloadValues = index.PayloadValues.Take(payloadShape.Fields.Count).ToArray(),
             };
         }
 

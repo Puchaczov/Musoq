@@ -8,7 +8,8 @@ public sealed record AggregateAccumulatorField(
     AggregateKernelDescriptor Kernel,
     int ParentDepth = 0,
     int OwnerPrefixLength = 0,
-    string? OwnerFieldName = null)
+    string? OwnerFieldName = null
+)
 {
     public ExecutionTypeRef InputType => ExecutionClrBindingFactory.FromClr(Kernel.InputShape.InputType);
 

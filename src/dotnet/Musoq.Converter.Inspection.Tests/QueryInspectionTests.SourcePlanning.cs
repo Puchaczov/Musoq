@@ -18,9 +18,7 @@ public partial class QueryInspectionTests
     public void CompileForInspection_WhenSourceAcceptsSourceLocalOrderSkipTake_ShouldReportAcceptedPlan()
     {
         var provider = new PlanningSchemaProvider(static request => SourcePlanResult.AcceptAll(request));
-        var result = Inspect(
-            "select p.Name from #planning.items() p order by p.Name desc skip 1 take 2",
-            provider);
+        var result = Inspect("select p.Name from #planning.items() p order by p.Name desc skip 1 take 2", provider);
 
         var requests = provider.Requests.ToArray();
         Assert.AreEqual(1, requests.Length);
@@ -36,7 +34,9 @@ public partial class QueryInspectionTests
         Assert.Contains("source plan accepted: columns=[Name], orderBy=1, skip=1, take=2", result.PlanningText);
         Assert.Contains("source plan residual: orderBy=0, skip=null, take=null", result.PlanningText);
         Assert.Contains("SourcePlanning [SourcePlan]", result.PlanningText);
-        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.IsFalse(
+            result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        );
     }
 
     [TestMethod]
@@ -51,16 +51,24 @@ public partial class QueryInspectionTests
                 Diagnostics =
                 [
                     OptimizationDiagnostic.Info("source estimate is exact"),
-                    OptimizationDiagnostic.Warning("source declined ordering")
-                ]
+                    OptimizationDiagnostic.Warning("source declined ordering"),
+                ],
             };
         });
         var result = Inspect("select p.Name from #planning.items() p", provider);
 
-        Assert.Contains("source plan cardinality: Exact, exact=42, lower=42, upper=42, confidence=1, reason=test source knows its row count", result.PlanningText);
+        Assert.Contains(
+            "source plan cardinality: Exact, exact=42, lower=42, upper=42, confidence=1, reason=test source knows its row count",
+            result.PlanningText
+        );
         Assert.Contains("source plan diagnostic [TryPlanSource]: Info - source estimate is exact", result.PlanningText);
-        Assert.Contains("source plan diagnostic [TryPlanSource]: Warning - source declined ordering", result.PlanningText);
-        Assert.IsTrue(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.Contains(
+            "source plan diagnostic [TryPlanSource]: Warning - source declined ordering",
+            result.PlanningText
+        );
+        Assert.IsTrue(
+            result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        );
     }
 
     [TestMethod]
@@ -69,19 +77,14 @@ public partial class QueryInspectionTests
         var provider = new PlanningSchemaProvider(static request =>
         {
             var rejected = SourcePlanResult.RejectAll(request);
-            return rejected with
-            {
-                Diagnostics =
-                [
-                    OptimizationDiagnostic.Warning("source declined ordering")
-                ]
-            };
+            return rejected with { Diagnostics = [OptimizationDiagnostic.Warning("source declined ordering")] };
         });
         var result = InstanceCreator.CompileWithDiagnostics(
             "select p.Name from #planning.items() p",
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning);
 
@@ -98,17 +101,15 @@ public partial class QueryInspectionTests
             var rejected = SourcePlanResult.RejectAll(request);
             return rejected with
             {
-                Diagnostics =
-                [
-                    OptimizationDiagnostic.Warning("source-specific reason for declined ordering")
-                ]
+                Diagnostics = [OptimizationDiagnostic.Warning("source-specific reason for declined ordering")],
             };
         });
         var result = InstanceCreator.CompileWithDiagnostics(
             "select p.Name from #planning.items() p order by p.Name take 1",
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning);
 
@@ -122,19 +123,14 @@ public partial class QueryInspectionTests
         var provider = new PlanningSchemaProvider(static request =>
         {
             var rejected = SourcePlanResult.RejectAll(request);
-            return rejected with
-            {
-                Diagnostics =
-                [
-                    OptimizationDiagnostic.Info("source estimate is exact")
-                ]
-            };
+            return rejected with { Diagnostics = [OptimizationDiagnostic.Info("source estimate is exact")] };
         });
         var result = InstanceCreator.CompileWithDiagnostics(
             "select p.Name from #planning.items() p",
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
@@ -146,7 +142,8 @@ public partial class QueryInspectionTests
         var provider = new PlanningSchemaProvider(static request => SourcePlanResult.AcceptAll(request));
         var result = Inspect(
             "select l.Name from #planning.items() l inner join #planning.items() r on l.Name = r.Name order by l.Name take 1",
-            provider);
+            provider
+        );
 
         Assert.AreEqual(2, provider.Requests.Length);
         Assert.IsTrue(provider.Requests.All(static request => request.OrderBy.Count == 0));
@@ -171,7 +168,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenSourceAcceptsSkipTake_ShouldPassPlanAndUseSourceSlice()
     {
-        var provider = new PlanningSchemaProvider(static request => SourcePlanResult.AcceptAll(request), CreatePlanningRows());
+        var provider = new PlanningSchemaProvider(
+            static request => SourcePlanResult.AcceptAll(request),
+            CreatePlanningRows()
+        );
         var compiled = CompileForExecution("select p.Name from #planning.items() p skip 1 take 2", provider);
 
         var table = compiled.Run();
@@ -189,13 +189,15 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenSourceAcceptsFullOrderSkipTake_ShouldUseSourcePlanOnly()
     {
-        var provider = new PlanningSchemaProvider(static request => SourcePlanResult.AcceptAll(request), CreatePlanningRows());
-        var inspection = Inspect(
-            "select p.Name from #planning.items() p order by p.Name skip 1 take 2",
-            provider);
+        var provider = new PlanningSchemaProvider(
+            static request => SourcePlanResult.AcceptAll(request),
+            CreatePlanningRows()
+        );
+        var inspection = Inspect("select p.Name from #planning.items() p order by p.Name skip 1 take 2", provider);
         var compiled = CompileForExecution(
             "select p.Name from #planning.items() p order by p.Name skip 1 take 2",
-            provider);
+            provider
+        );
 
         var table = compiled.Run();
         Assert.AreEqual(2, table.Count);
@@ -214,19 +216,20 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenSourceRejectsOrdering_ShouldKeepResidualSort()
     {
-        var provider = new PlanningSchemaProvider(static request => SourcePlanResult.RejectAll(request), CreatePlanningRows());
-        var inspection = Inspect(
-            "select p.Name from #planning.items() p order by p.Name take 2",
-            provider);
-        var compiled = CompileForExecution(
-            "select p.Name from #planning.items() p order by p.Name take 2",
-            provider);
+        var provider = new PlanningSchemaProvider(
+            static request => SourcePlanResult.RejectAll(request),
+            CreatePlanningRows()
+        );
+        var inspection = Inspect("select p.Name from #planning.items() p order by p.Name take 2", provider);
+        var compiled = CompileForExecution("select p.Name from #planning.items() p order by p.Name take 2", provider);
 
         var table = compiled.Run();
 
         Assert.Contains("PhysicalTopN", inspection.PhysicalPlanText);
         Assert.Contains("source plan residual: orderBy=1, skip=null, take=2", inspection.PlanningText);
-        Assert.IsFalse(inspection.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.IsFalse(
+            inspection.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        );
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("alpha", table[0].ReadValue(0));
         Assert.AreEqual("bravo", table[1].ReadValue(0));
@@ -239,8 +242,13 @@ public partial class QueryInspectionTests
         var inspection = Inspect("select p.Name from #planning.items() p where p.Value > 1", provider);
 
         Assert.Contains("PhysicalFilter", inspection.PhysicalPlanText);
-        Assert.Contains("source plan residual: orderBy=0, skip=null, take=null, predicate=yes", inspection.PlanningText);
-        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.Contains(
+            "source plan residual: orderBy=0, skip=null, take=null, predicate=yes",
+            inspection.PlanningText
+        );
+        Assert.IsFalse(
+            inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        );
     }
 
     [TestMethod]
@@ -249,27 +257,32 @@ public partial class QueryInspectionTests
         var provider = new PlanningSchemaProvider(static request => SourcePlanResult.RejectAll(request));
         var inspection = Inspect("select p.Name from #planning.items() p", provider);
 
-        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.IsFalse(
+            inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        );
     }
 
     [TestMethod]
     public void CompileForInspection_WhenMovedPredicateCannotBeSourcePredicateDto_ShouldKeepRuntimeFilterWithoutFallbackWarning()
     {
         var inspection = Inspect(
-            "select d.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy and ToUpper(d.Dummy) = 'SINGLE'");
+            "select d.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy and ToUpper(d.Dummy) = 'SINGLE'"
+        );
 
         Assert.Contains("SourcePredicateMovementExpansion", inspection.PlanningText);
         Assert.Contains("cannot be represented by the source predicate DTO", inspection.PlanningText);
         Assert.Contains("PhysicalFilter [(ToUpper(d.Dummy) = 'SINGLE')]", inspection.PhysicalPlanText);
-        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.IsFalse(
+            inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        );
     }
 
     [TestMethod]
     public void CompileWithDiagnostics_WhenCachedCompilationIsReused_ShouldKeepNoSourceFallbackWarning()
     {
         var query =
-            $"select d.Dummy, '{Guid.NewGuid():N}' as CacheColdMarker from #system.dual() d " +
-            "order by d.Dummy take 1";
+            $"select d.Dummy, '{Guid.NewGuid():N}' as CacheColdMarker from #system.dual() d "
+            + "order by d.Dummy take 1";
         var assemblyName = Guid.NewGuid().ToString();
         var provider = new SystemSchemaProvider();
 
@@ -287,7 +300,9 @@ public partial class QueryInspectionTests
         var secondItems = GetBuildItems(second);
         Assert.IsTrue(firstItems.ContainsKey("COMPILATION"));
         Assert.IsTrue(secondItems.ContainsKey("PLANNING_RESULT"));
-        Assert.IsTrue(secondItems.TryGetValue("STOP_AFTER_PLANNING", out var stopAfterPlanning) && stopAfterPlanning is true);
+        Assert.IsTrue(
+            secondItems.TryGetValue("STOP_AFTER_PLANNING", out var stopAfterPlanning) && stopAfterPlanning is true
+        );
         Assert.IsFalse(secondItems.ContainsKey("COMPILATION"));
     }
 
@@ -299,17 +314,25 @@ public partial class QueryInspectionTests
             descriptorDiagnostics:
             [
                 OptimizationDiagnostic.Info("descriptor found exact shape"),
-                OptimizationDiagnostic.Warning("descriptor declined source-local optimization")
-            ]);
+                OptimizationDiagnostic.Warning("descriptor declined source-local optimization"),
+            ]
+        );
         var inspection = Inspect("select p.Name from #planning.items() p", provider);
         var result = InstanceCreator.CompileWithDiagnostics(
             "select p.Name from #planning.items() p",
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
-        Assert.Contains("source plan diagnostic [DescribeSource]: Info - descriptor found exact shape", inspection.PlanningText);
-        Assert.Contains("source plan diagnostic [DescribeSource]: Warning - descriptor declined source-local optimization", inspection.PlanningText);
+        Assert.Contains(
+            "source plan diagnostic [DescribeSource]: Info - descriptor found exact shape",
+            inspection.PlanningText
+        );
+        Assert.Contains(
+            "source plan diagnostic [DescribeSource]: Warning - descriptor declined source-local optimization",
+            inspection.PlanningText
+        );
         Assert.IsTrue(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
         Assert.IsTrue(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
     }
@@ -319,15 +342,14 @@ public partial class QueryInspectionTests
     {
         var provider = new PlanningSchemaProvider(
             static request => SourcePlanResult.RejectAll(request),
-            descriptorDiagnostics:
-            [
-                OptimizationDiagnostic.Info("descriptor found exact shape")
-            ]);
+            descriptorDiagnostics: [OptimizationDiagnostic.Info("descriptor found exact shape")]
+        );
         var result = InstanceCreator.CompileWithDiagnostics(
             "select p.Name from #planning.items() p",
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
@@ -337,12 +359,8 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenSourceAcceptsOnlyOrdering_ShouldLowerResidualTake()
     {
         var provider = new PlanningSchemaProvider(AcceptOnlyOrdering, CreatePlanningRows());
-        var inspection = Inspect(
-            "select p.Name from #planning.items() p order by p.Name take 2",
-            provider);
-        var compiled = CompileForExecution(
-            "select p.Name from #planning.items() p order by p.Name take 2",
-            provider);
+        var inspection = Inspect("select p.Name from #planning.items() p order by p.Name take 2", provider);
+        var compiled = CompileForExecution("select p.Name from #planning.items() p order by p.Name take 2", provider);
 
         var table = compiled.Run();
         Assert.AreEqual(2, table.Count);
@@ -362,14 +380,10 @@ public partial class QueryInspectionTests
     {
         return new SourcePlanResult
         {
-            ExecutionPlan = new SourceExecutionPlan
-            {
-                Identity = request.Identity,
-                AcceptedOrderBy = request.OrderBy
-            },
+            ExecutionPlan = new SourceExecutionPlan { Identity = request.Identity, AcceptedOrderBy = request.OrderBy },
             AcceptedOrderBy = request.OrderBy,
             ResidualSkip = request.Skip,
-            ResidualTake = request.Take
+            ResidualTake = request.Take,
         };
     }
 
@@ -380,7 +394,7 @@ public partial class QueryInspectionTests
             new PlanningEntity { Name = "delta", Value = 4 },
             new PlanningEntity { Name = "bravo", Value = 2 },
             new PlanningEntity { Name = "alpha", Value = 1 },
-            new PlanningEntity { Name = "charlie", Value = 3 }
+            new PlanningEntity { Name = "charlie", Value = 3 },
         ];
     }
 
@@ -392,16 +406,14 @@ public partial class QueryInspectionTests
     private sealed class PlanningSchemaProvider(
         Func<SourcePlanRequest, SourcePlanResult> planner,
         IReadOnlyList<PlanningEntity>? rows = null,
-        IReadOnlyList<OptimizationDiagnostic>? descriptorDiagnostics = null) : ISchemaProvider
+        IReadOnlyList<OptimizationDiagnostic>? descriptorDiagnostics = null
+    ) : ISchemaProvider
     {
         private readonly ConcurrentBag<SourcePlanRequest> _requests = [];
         private readonly ConcurrentBag<SourceExecutionPlan> _executionPlans = [];
         private readonly IReadOnlyList<OptimizationDiagnostic> _descriptorDiagnostics = descriptorDiagnostics ?? [];
-        private readonly IReadOnlyList<PlanningEntity> _rows = rows ??
-        [
-            new PlanningEntity { Name = "left", Value = 1 },
-            new PlanningEntity { Name = "right", Value = 2 }
-        ];
+        private readonly IReadOnlyList<PlanningEntity> _rows =
+            rows ?? [new PlanningEntity { Name = "left", Value = 1 }, new PlanningEntity { Name = "right", Value = 2 }];
 
         public int DescribeCount { get; private set; }
 
@@ -414,7 +426,14 @@ public partial class QueryInspectionTests
             if (!PlanningSchema.MatchesName(schema))
                 throw new NotSupportedException(schema);
 
-            return new PlanningSchema(planner, _requests, _executionPlans, _rows, _descriptorDiagnostics, () => DescribeCount++);
+            return new PlanningSchema(
+                planner,
+                _requests,
+                _executionPlans,
+                _rows,
+                _descriptorDiagnostics,
+                () => DescribeCount++
+            );
         }
     }
 
@@ -424,8 +443,8 @@ public partial class QueryInspectionTests
         ConcurrentBag<SourceExecutionPlan> executionPlans,
         IReadOnlyList<PlanningEntity> rows,
         IReadOnlyList<OptimizationDiagnostic> descriptorDiagnostics,
-        Action onDescribe)
-        : SchemaBase(SchemaName, CreateLibrary())
+        Action onDescribe
+    ) : SchemaBase(SchemaName, CreateLibrary())
     {
         public const string SchemaName = "planning";
 
@@ -433,14 +452,15 @@ public partial class QueryInspectionTests
 
         public static bool MatchesName(string schema)
         {
-            return string.Equals(schema, SchemaName, StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(schema, $"#{SchemaName}", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(schema, SchemaName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(schema, $"#{SchemaName}", StringComparison.OrdinalIgnoreCase);
         }
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (string.Equals(name, Items, StringComparison.OrdinalIgnoreCase))
                 return new PlanningTable();
@@ -451,19 +471,24 @@ public partial class QueryInspectionTests
         public override SourceDescriptor DescribeSource(
             string name,
             SourceDescribeContext context,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             onDescribe();
             var descriptor = base.DescribeSource(name, context, parameters);
             return descriptorDiagnostics.Count == 0
                 ? descriptor
-                : descriptor with { Diagnostics = descriptor.Diagnostics.Concat(descriptorDiagnostics).ToArray() };
+                : descriptor with
+                {
+                    Diagnostics = descriptor.Diagnostics.Concat(descriptorDiagnostics).ToArray(),
+                };
         }
 
         public override SourcePlanResult TryPlanSource(
             string name,
             SourcePlanRequest request,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             requests.Add(request);
             return planner(request);
@@ -472,20 +497,22 @@ public partial class QueryInspectionTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             if (string.Equals(name, Items, StringComparison.OrdinalIgnoreCase))
             {
                 executionPlans.Add(executionContext.Plan);
-                return EnsureSourceType<T, PlanningEntity>(name, new PlanningRowSource(ApplyPlan(rows, executionContext.Plan)));
+                return EnsureSourceType<T, PlanningEntity>(
+                    name,
+                    new PlanningRowSource(ApplyPlan(rows, executionContext.Plan))
+                );
             }
 
             throw new NotSupportedException(name);
         }
 
-        private static PlanningEntity[] ApplyPlan(
-            IReadOnlyList<PlanningEntity> sourceRows,
-            SourceExecutionPlan plan)
+        private static PlanningEntity[] ApplyPlan(IReadOnlyList<PlanningEntity> sourceRows, SourceExecutionPlan plan)
         {
             IEnumerable<PlanningEntity> query = sourceRows;
             IOrderedEnumerable<PlanningEntity>? ordered = null;
@@ -493,9 +520,10 @@ public partial class QueryInspectionTests
             foreach (var order in plan.AcceptedOrderBy)
             {
                 var keySelector = CreateKeySelector(order.Column.Name);
-                ordered = ordered == null
-                    ? ApplyFirstOrdering(query, keySelector, order.Direction)
-                    : ApplyNextOrdering(ordered, keySelector, order.Direction);
+                ordered =
+                    ordered == null
+                        ? ApplyFirstOrdering(query, keySelector, order.Direction)
+                        : ApplyNextOrdering(ordered, keySelector, order.Direction);
             }
 
             if (ordered != null)
@@ -516,14 +544,15 @@ public partial class QueryInspectionTests
             {
                 nameof(PlanningEntity.Name) => static entity => entity.Name,
                 nameof(PlanningEntity.Value) => static entity => entity.Value,
-                _ => static entity => entity.Name
+                _ => static entity => entity.Name,
             };
         }
 
         private static IOrderedEnumerable<PlanningEntity> ApplyFirstOrdering(
             IEnumerable<PlanningEntity> rows,
             Func<PlanningEntity, object> keySelector,
-            OrderDirection direction)
+            OrderDirection direction
+        )
         {
             return direction == OrderDirection.Descending
                 ? rows.OrderByDescending(keySelector)
@@ -533,7 +562,8 @@ public partial class QueryInspectionTests
         private static IOrderedEnumerable<PlanningEntity> ApplyNextOrdering(
             IOrderedEnumerable<PlanningEntity> rows,
             Func<PlanningEntity, object> keySelector,
-            OrderDirection direction)
+            OrderDirection direction
+        )
         {
             return direction == OrderDirection.Descending
                 ? rows.ThenByDescending(keySelector)
@@ -553,7 +583,7 @@ public partial class QueryInspectionTests
         public ISchemaColumn[] Columns { get; } =
         [
             new SchemaColumn(nameof(PlanningEntity.Name), 0, typeof(string)),
-            new SchemaColumn(nameof(PlanningEntity.Value), 1, typeof(int))
+            new SchemaColumn(nameof(PlanningEntity.Value), 1, typeof(int)),
         ];
 
         public ISchemaColumn? GetColumnByName(string name)

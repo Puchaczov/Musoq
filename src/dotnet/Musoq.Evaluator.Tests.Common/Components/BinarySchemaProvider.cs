@@ -11,7 +11,8 @@ public class BinarySchemaProvider(IDictionary<string, IEnumerable<BinaryEntity>>
 {
     public ISchema GetSchema(string schema)
     {
-        if (values.TryGetValue(schema, out var entities)) return new BinarySchema(entities);
+        if (values.TryGetValue(schema, out var entities))
+            return new BinarySchema(entities);
         throw new InvalidOperationException($"Schema '{schema}' not found");
     }
 }

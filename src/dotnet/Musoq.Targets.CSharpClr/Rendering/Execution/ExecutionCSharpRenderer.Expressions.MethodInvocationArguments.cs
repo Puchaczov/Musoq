@@ -10,27 +10,32 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private List<ArgumentSyntax> CreateMethodInvocationArguments(
         ExecutionMethodCall methodCall,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var renderedArguments = new List<ArgumentSyntax>();
         var argumentIndex = 0;
 
         foreach (var parameter in methodCall.Method.RequireClrMethod().GetParameters())
         {
-            var injectAttribute = parameter.GetCustomAttributes(true)
-                .OfType<InjectTypeAttribute>()
-                .FirstOrDefault();
+            var injectAttribute = parameter.GetCustomAttributes(true).OfType<InjectTypeAttribute>().FirstOrDefault();
 
             if (injectAttribute != null)
             {
-                renderedArguments.Add(SyntaxFactory.Argument(CreateInjectedMethodArgument(methodCall, parameter, injectAttribute, context)));
+                renderedArguments.Add(
+                    SyntaxFactory.Argument(
+                        CreateInjectedMethodArgument(methodCall, parameter, injectAttribute, context)
+                    )
+                );
                 continue;
             }
 
             if (global::Musoq.Plugins.VariadicParameter.IsVariadic(parameter))
             {
                 while (argumentIndex < methodCall.Arguments.Count)
-                    renderedArguments.Add(SyntaxFactory.Argument(RenderExpression(methodCall.Arguments[argumentIndex++], context)));
+                    renderedArguments.Add(
+                        SyntaxFactory.Argument(RenderExpression(methodCall.Arguments[argumentIndex++], context))
+                    );
 
                 continue;
             }
@@ -43,13 +48,16 @@ public sealed partial class ExecutionCSharpRenderer
                     continue;
                 }
 
-                throw new NotSupportedException($"Method {methodCall.Method.MethodName} is missing argument {parameter.Name}.");
+                throw new NotSupportedException(
+                    $"Method {methodCall.Method.MethodName} is missing argument {parameter.Name}."
+                );
             }
 
             var argument = methodCall.Arguments[argumentIndex++];
-            var renderedArgument = parameter.ParameterType == typeof(bool) && argument.RequiresNullableBoolean()
-                ? this.RenderBooleanCondition(argument, context)
-                : RenderExpression(argument, context);
+            var renderedArgument =
+                parameter.ParameterType == typeof(bool) && argument.RequiresNullableBoolean()
+                    ? this.RenderBooleanCondition(argument, context)
+                    : RenderExpression(argument, context);
             if (argument is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null })
             {
                 var parameterType = parameter.ParameterType.IsByRef
@@ -57,9 +65,7 @@ public sealed partial class ExecutionCSharpRenderer
                     : parameter.ParameterType;
                 if (!parameterType.IsValueType || Nullable.GetUnderlyingType(parameterType) != null)
                 {
-                    renderedArgument = SyntaxFactory.CastExpression(
-                        CreateTypeSyntax(parameterType),
-                        renderedArgument);
+                    renderedArgument = SyntaxFactory.CastExpression(CreateTypeSyntax(parameterType), renderedArgument);
                 }
             }
 
@@ -67,7 +73,9 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         if (argumentIndex != methodCall.Arguments.Count)
-            throw new NotSupportedException($"Method {methodCall.Method.MethodName} received {methodCall.Arguments.Count} IR arguments, but used {argumentIndex}.");
+            throw new NotSupportedException(
+                $"Method {methodCall.Method.MethodName} received {methodCall.Arguments.Count} IR arguments, but used {argumentIndex}."
+            );
 
         return renderedArguments;
     }

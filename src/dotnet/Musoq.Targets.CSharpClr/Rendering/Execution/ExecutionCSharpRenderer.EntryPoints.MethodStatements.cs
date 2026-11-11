@@ -6,9 +6,7 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> RenderMethodStatements(
-        ExecutionBlock block,
-        ExecutionRenderContext context)
+    private List<StatementSyntax> RenderMethodStatements(ExecutionBlock block, ExecutionRenderContext context)
     {
         _ = context.Session;
         var statements = new List<StatementSyntax>();
@@ -25,27 +23,27 @@ public sealed partial class ExecutionCSharpRenderer
             .ToArray();
         var hashBuildHelpersByIndex = hashJoinHelperSets.ToDictionary(
             static helperSet => helperSet.BuildLoopIndex,
-            static helperSet => helperSet.Build);
+            static helperSet => helperSet.Build
+        );
         var hashProbeHelpersByIndex = hashJoinHelperSets.ToDictionary(
             static helperSet => helperSet.ProbeLoopIndex,
-            static helperSet => helperSet.Probe);
+            static helperSet => helperSet.Probe
+        );
         var keySetBuildHelpersByIndex = keySetHelperSets.ToDictionary(
             static helperSet => helperSet.BuildLoopIndex,
-            static helperSet => helperSet.Build);
+            static helperSet => helperSet.Build
+        );
         var keySetProbeHelpersByIndex = keySetHelperSets.ToDictionary(
             static helperSet => helperSet.ProbeLoopIndex,
-            static helperSet => helperSet.Probe);
+            static helperSet => helperSet.Probe
+        );
         var windowAppendHelpersByIndex = CollectWindowAppendRowsHelpersWithIndexes(block)
             .Where(item => CanUseWindowAppendRowsHelperInCurrentSink(item.Helper, context))
-            .ToDictionary(
-            static item => item.Index,
-            static item => item.Helper);
+            .ToDictionary(static item => item.Index, static item => item.Helper);
         var sortedCopyHelpersByIndex = CollectSortedCopyHelpersWithIndexes(block)
             .Where(static item => item.Helper is not null)
             .Where(item => CanUseSortedCopyHelperInCurrentSink(item.Helper, context))
-            .ToDictionary(
-            static item => item.Index,
-            static item => item.Helper);
+            .ToDictionary(static item => item.Index, static item => item.Helper);
 
         for (var index = 0; index < nodes.Count; index++)
         {
@@ -95,41 +93,61 @@ public sealed partial class ExecutionCSharpRenderer
             }
 
             var aggregateHelper = CreateValueTupleAggregateHelper(nodes, index);
-            if (aggregateHelper is not null &&
-                CanUseAggregateFinalizeHelperInCurrentSink(aggregateHelper.EnsureCapacity.Table.Name, context))
+            if (
+                aggregateHelper is not null
+                && CanUseAggregateFinalizeHelperInCurrentSink(aggregateHelper.EnsureCapacity.Table.Name, context)
+            )
             {
                 aggregateHelper = AssignValueTupleAggregateHelperNames(aggregateHelper, valueTupleAggregateHelperIndex);
                 valueTupleAggregateHelperIndex++;
 
                 FlushPendingMethodNodes(statements, pending, context);
                 statements.AddRange(RenderNode(aggregateHelper.Context, context));
-                statements.Add(CreateHelperInvocation(
-                    aggregateHelper.PopulateFunctionName,
-                    CreateValueTuplePopulateArguments(aggregateHelper, context)));
-                statements.Add(CreateHelperInvocation(
-                    aggregateHelper.FinalizeFunctionName,
-                    CreateValueTupleFinalizeArguments(aggregateHelper)));
+                statements.Add(
+                    CreateHelperInvocation(
+                        aggregateHelper.PopulateFunctionName,
+                        CreateValueTuplePopulateArguments(aggregateHelper, context)
+                    )
+                );
+                statements.Add(
+                    CreateHelperInvocation(
+                        aggregateHelper.FinalizeFunctionName,
+                        CreateValueTupleFinalizeArguments(aggregateHelper)
+                    )
+                );
                 index += 3;
                 continue;
             }
 
             var singleKeyAggregateHelper = CreateSingleKeyHashAggregateHelper(nodes, index);
-            if (singleKeyAggregateHelper is not null &&
-                CanUseAggregateFinalizeHelperInCurrentSink(singleKeyAggregateHelper.EnsureCapacity.Table.Name, context))
+            if (
+                singleKeyAggregateHelper is not null
+                && CanUseAggregateFinalizeHelperInCurrentSink(
+                    singleKeyAggregateHelper.EnsureCapacity.Table.Name,
+                    context
+                )
+            )
             {
                 singleKeyAggregateHelper = AssignSingleKeyAggregateHelperNames(
                     singleKeyAggregateHelper,
-                    singleKeyAggregateHelperIndex);
+                    singleKeyAggregateHelperIndex
+                );
                 singleKeyAggregateHelperIndex++;
 
                 FlushPendingMethodNodes(statements, pending, context);
                 statements.AddRange(RenderNode(singleKeyAggregateHelper.Context, context));
-                statements.Add(CreateHelperInvocationWithArguments(
-                    singleKeyAggregateHelper.PopulateFunctionName,
-                    CreateSingleKeyPopulateArguments(singleKeyAggregateHelper, context)));
-                statements.Add(CreateHelperInvocation(
-                    singleKeyAggregateHelper.FinalizeFunctionName,
-                    CreateSingleKeyFinalizeArguments(singleKeyAggregateHelper)));
+                statements.Add(
+                    CreateHelperInvocationWithArguments(
+                        singleKeyAggregateHelper.PopulateFunctionName,
+                        CreateSingleKeyPopulateArguments(singleKeyAggregateHelper, context)
+                    )
+                );
+                statements.Add(
+                    CreateHelperInvocation(
+                        singleKeyAggregateHelper.FinalizeFunctionName,
+                        CreateSingleKeyFinalizeArguments(singleKeyAggregateHelper)
+                    )
+                );
                 index += 3;
                 continue;
             }
@@ -148,19 +166,22 @@ public sealed partial class ExecutionCSharpRenderer
                 continue;
             }
 
-            if (node is ExecutionStoreTable store &&
-                extractedStoredTableIndexes.Add(store.TableIndex) &&
-                TryCreateStoredTableBuild(nodes, index, pending, store, out var storedTableBuild))
+            if (
+                node is ExecutionStoreTable store
+                && extractedStoredTableIndexes.Add(store.TableIndex)
+                && TryCreateStoredTableBuild(nodes, index, pending, store, out var storedTableBuild)
+            )
             {
                 if (storedTableBuild.EnclosingNodes.Count > 0)
                 {
-                    statements.AddRange(RenderBlock(
-                        new ExecutionBlock(storedTableBuild.EnclosingNodes), context).Statements);
+                    statements.AddRange(
+                        RenderBlock(new ExecutionBlock(storedTableBuild.EnclosingNodes), context).Statements
+                    );
                 }
 
                 storedTableBuild = storedTableBuild with
                 {
-                    Captures = CollectStoredTableBuildCaptures(storedTableBuild, context)
+                    Captures = CollectStoredTableBuildCaptures(storedTableBuild, context),
                 };
                 statements.Add(CreateStoredTableBuildInvocation(storedTableBuild, context));
                 pending.Clear();
@@ -179,7 +200,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void FlushPendingMethodNodes(
         List<StatementSyntax> statements,
         List<ExecutionNode> pending,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (pending.Count == 0)
             return;
@@ -193,7 +215,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context,
         bool profileRecorderInScope = false,
         bool emitChunkLoopCancellationChecks = false,
-        IEnumerable<StatementSyntax>? trailingStatements = null)
+        IEnumerable<StatementSyntax>? trailingStatements = null
+    )
     {
         var session = context.Session;
         var previousDeclaredStoredRowsCaches = session.DeclaredStoredRowsCaches;

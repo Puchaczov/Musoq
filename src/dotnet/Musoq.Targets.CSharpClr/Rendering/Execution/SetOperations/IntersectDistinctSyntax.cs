@@ -11,12 +11,21 @@ internal sealed class IntersectDistinctSyntax(ExecutionCSharpRenderer renderer, 
     {
         var name = $"{operation.Target.Name}DistinctRows";
         if (operation.Strategy == ExecutionSetOperationStrategy.HashSet)
-            return ExecutionCSharpRenderer.CreateSetKeyHashSetDeclaration(name, operation.DistinctFieldTypes.RequireClrTypes(), null);
+            return ExecutionCSharpRenderer.CreateSetKeyHashSetDeclaration(
+                name,
+                operation.DistinctFieldTypes.RequireClrTypes(),
+                null
+            );
 
-        var rowType = context.Session.TypedRowBufferVariables.GetValueOrDefault(operation.Left.Name)?.TypeName ?? nameof(Row);
-        return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), name,
-            SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(rowType))
-                .WithArgumentList(SyntaxFactory.ArgumentList()));
+        var rowType =
+            context.Session.TypedRowBufferVariables.GetValueOrDefault(operation.Left.Name)?.TypeName ?? nameof(Row);
+        return CreateLocalDeclaration(
+            SyntaxFactory.IdentifierName("var"),
+            name,
+            SyntaxFactory
+                .ObjectCreationExpression(CreateListTypeSyntax(rowType))
+                .WithArgumentList(SyntaxFactory.ArgumentList())
+        );
     }
 
     internal StatementSyntax CreateOutput(ExecutionSetOperation operation, string rowName, StatementSyntax output)
@@ -25,21 +34,41 @@ internal sealed class IntersectDistinctSyntax(ExecutionCSharpRenderer renderer, 
         var completeRow = operation with
         {
             FieldIndexes = operation.DistinctFieldIndexes,
-            FieldTypes = operation.DistinctFieldTypes
+            FieldTypes = operation.DistinctFieldTypes,
         };
         if (operation.Strategy == ExecutionSetOperationStrategy.HashSet)
             return SyntaxFactory.IfStatement(
                 renderer.CreateHashSetInvocation(name, "Add", rowName, completeRow, operation.Left, context),
-                StatementEmitter.CreateBlock(output));
+                StatementEmitter.CreateBlock(output)
+            );
 
         return SyntaxFactory.IfStatement(
-            SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
-                renderer.CreateSetRowsAnyMatch(SyntaxFactory.IdentifierName(name), $"{name}Existing", rowName,
-                    operation.Left, operation.Left, completeRow, context)),
+            SyntaxFactory.PrefixUnaryExpression(
+                SyntaxKind.LogicalNotExpression,
+                renderer.CreateSetRowsAnyMatch(
+                    SyntaxFactory.IdentifierName(name),
+                    $"{name}Existing",
+                    rowName,
+                    operation.Left,
+                    operation.Left,
+                    completeRow,
+                    context
+                )
+            ),
             StatementEmitter.CreateBlock(
                 SyntaxFactory.ExpressionStatement(
-                    SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(name), SyntaxFactory.IdentifierName("Add")))
-                    .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(rowName)))), output));
+                    SyntaxFactory
+                        .InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName(name),
+                                SyntaxFactory.IdentifierName("Add")
+                            )
+                        )
+                        .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(rowName)))
+                ),
+                output
+            )
+        );
     }
 }

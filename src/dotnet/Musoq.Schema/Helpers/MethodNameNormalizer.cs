@@ -27,15 +27,18 @@ public static class MethodNameNormalizer
         if (string.IsNullOrWhiteSpace(methodName))
             throw new ArgumentException("Method name cannot be empty or whitespace.", nameof(methodName));
 
-        return NormalizedNameCache.GetOrAdd(methodName, static name =>
-        {
-            var needsNormalization = name.Any(c => c is '_' or >= 'A' and <= 'Z');
+        return NormalizedNameCache.GetOrAdd(
+            methodName,
+            static name =>
+            {
+                var needsNormalization = name.Any(c => c is '_' or >= 'A' and <= 'Z');
 
-            if (!needsNormalization)
-                return name;
+                if (!needsNormalization)
+                    return name;
 
-            return RemoveUnderscoresAndLower(name);
-        });
+                return RemoveUnderscoresAndLower(name);
+            }
+        );
     }
 
     private static string RemoveUnderscoresAndLower(string name)

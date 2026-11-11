@@ -1,7 +1,7 @@
-using Musoq.Tests.Common;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Tests.Common;
 
 namespace Musoq.Examples.DataSources.StructuredInputs.Tests;
 
@@ -19,10 +19,23 @@ public sealed class StructuredInputDescriptionTests
         CollectionAssert.AreEqual(
             new[]
             {
-                "Overload", "Path", "Kind", "Type", "Required", "Nullable", "HasDefault",
-                "Default", "MaxDepth", "MaxNodes", "MaxStringBytes"
+                "Overload",
+                "Path",
+                "Kind",
+                "Type",
+                "Required",
+                "Nullable",
+                "HasDefault",
+                "Default",
+                "MaxDepth",
+                "MaxNodes",
+                "MaxStringBytes",
             },
-            table.Columns.OrderBy(static column => column.ColumnIndex).Select(static column => column.ColumnName).ToArray());
+            table
+                .Columns.OrderBy(static column => column.ColumnIndex)
+                .Select(static column => column.ColumnName)
+                .ToArray()
+        );
         Assert.IsTrue(table.Rows.Count > 0);
         Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
 
@@ -46,8 +59,7 @@ public sealed class StructuredInputDescriptionTests
     public void DescArguments_ConcreteCallReportsSelectedContractWithoutEvaluatingValues()
     {
         StructuredInputSourceCounters.Reset();
-        const string query =
-            "desc arguments #inputs.match('TODO', patterns: array { (Id: 'todo', Pattern: 'TODO') })";
+        const string query = "desc arguments #inputs.match('TODO', patterns: array { (Id: 'todo', Pattern: 'TODO') })";
         using var compiled = Compile(query, "structured-input-desc-concrete");
 
         var table = compiled.Run();
@@ -66,9 +78,9 @@ public sealed class StructuredInputDescriptionTests
     {
         StructuredInputSourceCounters.Reset();
         const string query =
-            "table MatchRows { PatternId: string };" +
-            "couple #inputs.match with table MatchRows as Matches;" +
-            "desc arguments Matches";
+            "table MatchRows { PatternId: string };"
+            + "couple #inputs.match with table MatchRows as Matches;"
+            + "desc arguments Matches";
         using var compiled = Compile(query, "structured-input-desc-coupled");
 
         var table = compiled.Run();
@@ -76,21 +88,22 @@ public sealed class StructuredInputDescriptionTests
         Assert.IsTrue(table.Rows.Any(row => Equals(row.ReadValue(1), "patterns[].Mode")));
         Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
     }
+
     [TestMethod]
     public void DescArguments_DeclaredParameterNeedsNoHostValue()
     {
         StructuredInputSourceCounters.Reset();
         const string query =
-            "param(patterns: (Id: string, Pattern: string)[])" +
-            "desc arguments #inputs.match('TODO', patterns: $patterns)";
+            "param(patterns: (Id: string, Pattern: string)[])"
+            + "desc arguments #inputs.match('TODO', patterns: $patterns)";
         using var compiled = Compile(query, "structured-input-desc-parameter");
-
 
         var table = compiled.Run();
 
         Assert.IsTrue(table.Rows.Any(row => Equals(row.ReadValue(1), "patterns[].Id")));
         Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed);
     }
+
     private static CompiledQuery Compile(string query, string name)
     {
         var build = InstanceCreator.CompileWithDiagnostics(
@@ -98,15 +111,23 @@ public sealed class StructuredInputDescriptionTests
             name,
             new StructuredInputsSchemaProvider(),
             new NullLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         if (!build.Succeeded)
-            Assert.Fail(build.CaughtException?.ToString() ?? string.Join(System.Environment.NewLine, build.Diagnostics.Select(static diagnostic => diagnostic.ToString())));
+            Assert.Fail(
+                build.CaughtException?.ToString()
+                    ?? string.Join(
+                        System.Environment.NewLine,
+                        build.Diagnostics.Select(static diagnostic => diagnostic.ToString())
+                    )
+            );
         return build.CompiledQuery!;
     }
 
     private sealed class NullLoggerResolver : ILoggerResolver
     {
         public Microsoft.Extensions.Logging.ILogger ResolveLogger() => NullLogger.Instance;
+
         public Microsoft.Extensions.Logging.ILogger<T> ResolveLogger<T>() => NullLogger<T>.Instance;
     }
 }

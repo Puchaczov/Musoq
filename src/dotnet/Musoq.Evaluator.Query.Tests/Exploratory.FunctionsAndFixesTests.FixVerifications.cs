@@ -10,13 +10,13 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenCoalesceWithNullAndString_ShouldReturnFallback()
     {
-        const string query = @"
-            select Coalesce(null, 'fallback') as Result
-            from #schema.first() p";
+        const string query = (
+            "\n" + "            select Coalesce(null, 'fallback') as Result\n" + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -30,13 +30,13 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenIfNullWithNullAndString_ShouldReturnDefault()
     {
-        const string query = @"
-            select IfNull(null, 'fallback') as Result
-            from #schema.first() p";
+        const string query = (
+            "\n" + "            select IfNull(null, 'fallback') as Result\n" + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -50,13 +50,13 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenIfNullWithNullAndInteger_ShouldReturnInteger()
     {
-        const string query = @"
-            select IfNull(null, 42) as V
-            from #schema.first() p";
+        const string query = (
+            "\n" + "            select IfNull(null, 42) as V\n" + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30 }
+            new() { Name = "John", Age = 30 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -70,13 +70,13 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenCoalesceWithNullAndColumnValue_ShouldReturnColumnValue()
     {
-        const string query = @"
-            select Coalesce(null, p.Name) as Result
-            from #schema.first() p";
+        const string query = (
+            "\n" + "            select Coalesce(null, p.Name) as Result\n" + "            from #schema.first() p"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "Alice", Age = 25 }
+            new() { Name = "Alice", Age = 25 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -94,18 +94,20 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenStringGreaterThanOrEqual_ShouldCompareCorrectly()
     {
-        const string query = @"
-            select p.Name
-            from #schema.first() p
-            where p.Name >= 'Charlie'
-            order by p.Name asc";
+        const string query = (
+            "\n"
+            + "            select p.Name\n"
+            + "            from #schema.first() p\n"
+            + "            where p.Name >= 'Charlie'\n"
+            + "            order by p.Name asc"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "Alice", Age = 30 },
             new() { Name = "Charlie", Age = 25 },
             new() { Name = "Eve", Age = 20 },
-            new() { Name = "Bob", Age = 35 }
+            new() { Name = "Bob", Age = 35 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -120,18 +122,20 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenStringLessThan_ShouldCompareCorrectly()
     {
-        const string query = @"
-            select p.Name
-            from #schema.first() p
-            where p.Name < 'Charlie'
-            order by p.Name asc";
+        const string query = (
+            "\n"
+            + "            select p.Name\n"
+            + "            from #schema.first() p\n"
+            + "            where p.Name < 'Charlie'\n"
+            + "            order by p.Name asc"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "Alice", Age = 30 },
             new() { Name = "Charlie", Age = 25 },
             new() { Name = "Eve", Age = 20 },
-            new() { Name = "Bob", Age = 35 }
+            new() { Name = "Bob", Age = 35 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -146,16 +150,18 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenStringGreaterThan_ShouldCompareCorrectly()
     {
-        const string query = @"
-            select p.Name
-            from #schema.first() p
-            where p.Name > 'Charlie'";
+        const string query = (
+            "\n"
+            + "            select p.Name\n"
+            + "            from #schema.first() p\n"
+            + "            where p.Name > 'Charlie'"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "Alice", Age = 30 },
             new() { Name = "Charlie", Age = 25 },
-            new() { Name = "Eve", Age = 20 }
+            new() { Name = "Eve", Age = 20 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -169,18 +175,20 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenStringLessThanOrEqual_ShouldCompareCorrectly()
     {
-        const string query = @"
-            select p.Name
-            from #schema.first() p
-            where p.Name <= 'Charlie'
-            order by p.Name asc";
+        const string query = (
+            "\n"
+            + "            select p.Name\n"
+            + "            from #schema.first() p\n"
+            + "            where p.Name <= 'Charlie'\n"
+            + "            order by p.Name asc"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "Alice", Age = 30 },
             new() { Name = "Charlie", Age = 25 },
             new() { Name = "Eve", Age = 20 },
-            new() { Name = "Bob", Age = 35 }
+            new() { Name = "Bob", Age = 35 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -200,20 +208,22 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenGroupByArithmeticExpression_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Age / 10 * 10 as AgeDecade,
-                Count(p.Name) as PersonCount
-            from #schema.first() p
-            group by p.Age / 10 * 10
-            order by p.Age / 10 * 10 asc";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Age / 10 * 10 as AgeDecade,\n"
+            + "                Count(p.Name) as PersonCount\n"
+            + "            from #schema.first() p\n"
+            + "            group by p.Age / 10 * 10\n"
+            + "            order by p.Age / 10 * 10 asc"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "John", Age = 31 },
             new() { Name = "Jane", Age = 35 },
             new() { Name = "Bob", Age = 42 },
-            new() { Name = "Sue", Age = 48 }
+            new() { Name = "Sue", Age = 48 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -230,18 +240,20 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenGroupByAddExpression_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Age + 100 as AgeShifted,
-                Count(p.Name) as PersonCount
-            from #schema.first() p
-            group by p.Age + 100";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Age + 100 as AgeShifted,\n"
+            + "                Count(p.Name) as PersonCount\n"
+            + "            from #schema.first() p\n"
+            + "            group by p.Age + 100"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "John", Age = 30 },
             new() { Name = "Jane", Age = 30 },
-            new() { Name = "Bob", Age = 25 }
+            new() { Name = "Bob", Age = 25 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -258,21 +270,23 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenSimpleCaseWithIntegerValues_ShouldWork()
     {
-        const string query = @"
-            select
-                case p.Age
-                    when 30 then 'thirty'
-                    when 25 then 'twenty-five'
-                    else 'other'
-                end as AgeLabel
-            from #schema.first() p
-            order by p.Name asc";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                case p.Age\n"
+            + "                    when 30 then 'thirty'\n"
+            + "                    when 25 then 'twenty-five'\n"
+            + "                    else 'other'\n"
+            + "                end as AgeLabel\n"
+            + "            from #schema.first() p\n"
+            + "            order by p.Name asc"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "Alice", Age = 30 },
             new() { Name = "Bob", Age = 25 },
-            new() { Name = "Charlie", Age = 40 }
+            new() { Name = "Charlie", Age = 40 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -288,21 +302,23 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void WhenSimpleCaseWithStringValues_ShouldWork()
     {
-        const string query = @"
-            select
-                case p.Name
-                    when 'Alice' then 1
-                    when 'Bob' then 2
-                    else 0
-                end as NameCode
-            from #schema.first() p
-            order by p.Name asc";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                case p.Name\n"
+            + "                    when 'Alice' then 1\n"
+            + "                    when 'Bob' then 2\n"
+            + "                    else 0\n"
+            + "                end as NameCode\n"
+            + "            from #schema.first() p\n"
+            + "            order by p.Name asc"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "Alice", Age = 30 },
             new() { Name = "Bob", Age = 25 },
-            new() { Name = "Charlie", Age = 40 }
+            new() { Name = "Charlie", Age = 40 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);

@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class TypeRelatedMistakesTests
 {
-
     [TestMethod]
     public void Arithmetic_StringPlusNumber_ShouldHandle()
     {
@@ -129,7 +128,12 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-        AssertTypeHandling(result, "mixed types in IN clause", DiagnosticCode.MQ3005_TypeMismatch, DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(
+            result,
+            "mixed types in IN clause",
+            DiagnosticCode.MQ3005_TypeMismatch,
+            DiagnosticCode.MQ3005_TypeMismatch
+        );
     }
 
     [TestMethod]
@@ -213,7 +217,11 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-        AssertTypeHandling(result, "NOT on string (non-boolean)", DiagnosticCode.MQ3007_InvalidOperandTypes, DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(
+            result,
+            "NOT on string (non-boolean)",
+            DiagnosticCode.MQ3007_InvalidOperandTypes,
+            DiagnosticCode.MQ3005_TypeMismatch
+        );
     }
-
 }

@@ -10,7 +10,7 @@ internal static class ExecutionBinaryLowering
             return new ExecutionStringConcatenation([left, right]);
         return new ExecutionBinary(binary.Kind, left, right, binary.ReturnType)
         {
-            UsesSqlNullSemantics = binary.UsesSqlNullSemantics
+            UsesSqlNullSemantics = binary.UsesSqlNullSemantics,
         };
     }
 }

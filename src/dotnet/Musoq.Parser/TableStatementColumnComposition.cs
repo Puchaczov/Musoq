@@ -31,12 +31,15 @@ public partial class Parser
             if (readModifiers.Count > 0)
                 columnEndSpan = readModifiers[^1].Span;
 
-            columns.Add(new CreateTableColumnDefinition(
-                fieldName,
-                typeName,
-                readModifiers,
-                fieldToken.Span.Through(columnEndSpan),
-                fieldToken.Span));
+            columns.Add(
+                new CreateTableColumnDefinition(
+                    fieldName,
+                    typeName,
+                    readModifiers,
+                    fieldToken.Span.Through(columnEndSpan),
+                    fieldToken.Span
+                )
+            );
 
             if (Current.TokenType == TokenType.Comma)
                 Consume(TokenType.Comma);
@@ -53,7 +56,7 @@ public partial class Parser
             "The TABLE definition ends unexpectedly; expected a closing '}'.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2017_UnexpectedEndOfFile,
-            new TextSpan(Current.Span.Start, 0));
+            new TextSpan(Current.Span.Start, 0)
+        );
     }
-
 }

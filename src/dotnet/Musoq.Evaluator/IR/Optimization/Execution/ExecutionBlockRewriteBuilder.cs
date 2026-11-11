@@ -42,9 +42,7 @@ internal sealed class ExecutionBlockRewriteBuilder(ExecutionBlock block, int add
 
     public ExecutionBlock ToBlock()
     {
-        return _nodes == null
-            ? block
-            : block with { Nodes = _nodes };
+        return _nodes == null ? block : block with { Nodes = _nodes };
     }
 
     private List<ExecutionNode> StartedNodes =>

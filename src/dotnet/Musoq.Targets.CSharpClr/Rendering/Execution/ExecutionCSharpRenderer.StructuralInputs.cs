@@ -9,7 +9,8 @@ internal static class StructuralInputSyntaxFactory
     internal static LocalDeclarationStatementSyntax RenderPrepare(
         ExecutionPrepareStructuralInput input,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         var value = input.Input switch
         {
@@ -18,29 +19,46 @@ internal static class StructuralInputSyntaxFactory
                 record,
                 record.ConstructionPlan ?? input.Plan,
                 context,
-                renderer),
-            _ => throw UnsupportedShape.Of(
-                $"Structural input '{input.Input.GetType().Name}",
-                "the C# backend")
+                renderer
+            ),
+            _ => throw UnsupportedShape.Of($"Structural input '{input.Input.GetType().Name}", "the C# backend"),
         };
 
         return ExecutionSyntaxFactory.CreateLocalDeclaration(
             ExecutionSyntaxFactory.CreateVariableTypeSyntax(input.Target),
             input.Target.Name,
-            value);
+            value
+        );
     }
 
     internal static ExpressionSyntax RenderArray(
         ExecutionStructuralArray array,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         var elements = array.Elements.Select(element => renderer.RenderExpression(element, context));
         ExpressionSyntax rendered = array.GeneratedElementTypeName is { } nativeElement
-            ? SyntaxFactory.ArrayCreationExpression(SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(nativeElement))
-                .WithRankSpecifiers(SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(
-                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))))
-                .WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, SyntaxFactory.SeparatedList(elements)))
+            ? SyntaxFactory
+                .ArrayCreationExpression(
+                    SyntaxFactory
+                        .ArrayType(SyntaxFactory.ParseTypeName(nativeElement))
+                        .WithRankSpecifiers(
+                            SyntaxFactory.SingletonList(
+                                SyntaxFactory.ArrayRankSpecifier(
+                                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                        SyntaxFactory.OmittedArraySizeExpression()
+                                    )
+                                )
+                            )
+                        )
+                )
+                .WithInitializer(
+                    SyntaxFactory.InitializerExpression(
+                        SyntaxKind.ArrayInitializerExpression,
+                        SyntaxFactory.SeparatedList(elements)
+                    )
+                )
             : ExecutionSyntaxFactory.CreateArrayCreation(array.ElementType, elements);
         return array.LimitBinding is { } binding
             ? StructuralInputLimitSyntaxFactory.RenderGuard(
@@ -48,14 +66,16 @@ internal static class StructuralInputSyntaxFactory
                 array.ReturnType.RequireClrType(),
                 binding,
                 context,
-                renderer)
+                renderer
+            )
             : rendered;
     }
 
     internal static ExpressionSyntax RenderConversion(
         ExecutionStructuralConversion conversion,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         if (conversion.LimitBinding is { } limitBinding)
         {
@@ -69,7 +89,8 @@ internal static class StructuralInputSyntaxFactory
                 conversion,
                 renderer,
                 context,
-                out var guardedCarrierExpression)
+                out var guardedCarrierExpression
+            )
                 ? guardedCarrierExpression
                 : renderer.RenderExpression(conversion.Input, context);
             return StructuralInputLimitSyntaxFactory.RenderGuard(
@@ -77,36 +98,46 @@ internal static class StructuralInputSyntaxFactory
                 conversion.TargetType.RequireClrType(),
                 limitBinding,
                 context,
-                renderer);
+                renderer
+            );
         }
 
-        if (StructuralCarrierSyntaxFactory.TryCreateConversion(
+        if (
+            StructuralCarrierSyntaxFactory.TryCreateConversion(
                 renderer.StructuralScriptVariableDefinitions,
                 renderer.StructuralScriptParameterDefinitions,
                 conversion,
                 renderer,
                 context,
-                out var carrierExpression))
+                out var carrierExpression
+            )
+        )
         {
             return carrierExpression;
         }
 
         throw UnsupportedShape.Of(
             $"Structural conversion to '{conversion.TargetType.DisplayName}' has no typed execution lowering",
-            "the C# backend");
+            "the C# backend"
+        );
     }
 
     internal static ExpressionSyntax RenderCteCollection(
         ExecutionCteCollectionInput input,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         var helperName = StructuralCtePreparationMembers.GetHelperName(input);
 
-        return SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(helperName))
-            .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(
-                renderer.RenderExpression(input.Rows, context),
-                SyntaxFactory.IdentifierName("token")));
+        return SyntaxFactory
+            .InvocationExpression(SyntaxFactory.IdentifierName(helperName))
+            .WithArgumentList(
+                ExecutionSyntaxFactory.CreateArgumentList(
+                    renderer.RenderExpression(input.Rows, context),
+                    SyntaxFactory.IdentifierName("token")
+                )
+            );
     }
 
     internal static ExpressionSyntax CreateCteElementConstruction(
@@ -114,7 +145,8 @@ internal static class StructuralInputSyntaxFactory
         GeneratedRowShape sourceShape,
         string rowName,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         if (input.ConstructionPlan is { } plan)
         {
@@ -133,43 +165,48 @@ internal static class StructuralInputSyntaxFactory
                         sourceShape,
                         input.Fields[sourceFieldIndex],
                         rowName,
-                        parameters[index].ParameterType);
+                        parameters[index].ParameterType
+                    );
                     continue;
                 }
 
                 var defaultExpression = plan.Defaults[index];
-                arguments[index] = defaultExpression == null
-                    ? SyntaxFactory.DefaultExpression(ExecutionSyntaxFactory.CreateTypeSyntax(parameters[index].ParameterType))
-                    : renderer.RenderExpression(defaultExpression, context);
+                arguments[index] =
+                    defaultExpression == null
+                        ? SyntaxFactory.DefaultExpression(
+                            ExecutionSyntaxFactory.CreateTypeSyntax(parameters[index].ParameterType)
+                        )
+                        : renderer.RenderExpression(defaultExpression, context);
             }
 
-            return SyntaxFactory.ObjectCreationExpression(ExecutionSyntaxFactory.CreateTypeSyntax(plan.TargetType))
+            return SyntaxFactory
+                .ObjectCreationExpression(ExecutionSyntaxFactory.CreateTypeSyntax(plan.TargetType))
                 .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(arguments));
         }
 
         if (input.Fields.Count != 1)
             throw new InvalidOperationException("A primitive CTE collection requires exactly one output field.");
 
-        return RenderCteFieldRead(
-            sourceShape,
-            input.Fields[0],
-            rowName,
-            input.ElementType.RequireClrType());
+        return RenderCteFieldRead(sourceShape, input.Fields[0], rowName, input.ElementType.RequireClrType());
     }
 
     internal static ExpressionSyntax RenderCteFieldRead(
         GeneratedRowShape sourceShape,
         ExecutionCteCollectionField field,
         string rowName,
-        Type targetType)
+        Type targetType
+    )
     {
-        var generatedField = sourceShape.Fields.FirstOrDefault(candidate => candidate.OutputIndex == field.Index)
+        var generatedField =
+            sourceShape.Fields.FirstOrDefault(candidate => candidate.OutputIndex == field.Index)
             ?? throw new InvalidOperationException(
-                $"CTE structural field '{field.Name}' at output index {field.Index} is absent from the generated row shape.");
+                $"CTE structural field '{field.Name}' at output index {field.Index} is absent from the generated row shape."
+            );
         var value = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             ExecutionSyntaxFactory.CreateIdentifierName(rowName),
-            ExecutionSyntaxFactory.CreateIdentifierName(GeneratedRowNamingPolicy.GetGeneratedFieldName(generatedField)));
+            ExecutionSyntaxFactory.CreateIdentifierName(GeneratedRowNamingPolicy.GetGeneratedFieldName(generatedField))
+        );
 
         var sourceClrType = generatedField.Type.RequireClrType();
         if (targetType == typeof(object) || sourceClrType == targetType)
@@ -177,11 +214,13 @@ internal static class StructuralInputSyntaxFactory
 
         return SyntaxFactory.CastExpression(ExecutionSyntaxFactory.CreateTypeSyntax(targetType), value);
     }
+
     internal static ExpressionSyntax RenderConstruction(
         ExecutionStructuralRecord record,
         ExecutionStructuralConstructionPlan plan,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         var arguments = new ExpressionSyntax[plan.SourceFieldIndexes.Count];
 
@@ -192,21 +231,26 @@ internal static class StructuralInputSyntaxFactory
             {
                 if (sourceFieldIndex >= record.Fields.Count)
                     throw new InvalidOperationException(
-                        $"Structural construction field index {sourceFieldIndex} is outside the authored record.");
+                        $"Structural construction field index {sourceFieldIndex} is outside the authored record."
+                    );
 
                 arguments[index] = renderer.RenderExpression(record.Fields[sourceFieldIndex].Value, context);
                 continue;
             }
 
             var defaultExpression = plan.Defaults[index];
-            arguments[index] = defaultExpression == null
-                ? SyntaxFactory.DefaultExpression(
-                    ExecutionSyntaxFactory.CreateTypeSyntax(
-                        plan.Constructor.RequireClrConstructor().GetParameters()[index].ParameterType))
-                : renderer.RenderExpression(defaultExpression, context);
+            arguments[index] =
+                defaultExpression == null
+                    ? SyntaxFactory.DefaultExpression(
+                        ExecutionSyntaxFactory.CreateTypeSyntax(
+                            plan.Constructor.RequireClrConstructor().GetParameters()[index].ParameterType
+                        )
+                    )
+                    : renderer.RenderExpression(defaultExpression, context);
         }
 
-        var rendered = SyntaxFactory.ObjectCreationExpression(ExecutionSyntaxFactory.CreateTypeSyntax(plan.TargetType))
+        var rendered = SyntaxFactory
+            .ObjectCreationExpression(ExecutionSyntaxFactory.CreateTypeSyntax(plan.TargetType))
             .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(arguments));
         return record.LimitBinding is { } binding
             ? StructuralInputLimitSyntaxFactory.RenderGuard(
@@ -214,26 +258,29 @@ internal static class StructuralInputSyntaxFactory
                 record.ReturnType.RequireClrType(),
                 binding,
                 context,
-                renderer)
+                renderer
+            )
             : rendered;
     }
 
     internal static bool CanRenderPreparation(
         ExecutionPrepareStructuralInput input,
-        Func<ExecutionExpression, bool> canRenderExpression)
+        Func<ExecutionExpression, bool> canRenderExpression
+    )
     {
-        if (!canRenderExpression(input.Input) &&
-            input.Input is not ExecutionStructuralRecord)
+        if (!canRenderExpression(input.Input) && input.Input is not ExecutionStructuralRecord)
             return false;
 
-        if (input.Input is ExecutionStructuralRecord record &&
-            record.Fields.Any(field => !canRenderExpression(field.Value)))
+        if (
+            input.Input is ExecutionStructuralRecord record
+            && record.Fields.Any(field => !canRenderExpression(field.Value))
+        )
             return false;
 
-        return input.Plan.SourceFieldIndexes.Count == input.Plan.Defaults.Count &&
-               input.Plan.SourceFieldIndexes.All(index => index >= -1) &&
-               input.Plan.Defaults.Where(static value => value != null).All(value => canRenderExpression(value!)) &&
-               input.Plan.TargetType.Descriptor.Portability !=
-               Musoq.Targets.Abstractions.ExecutionPortableSymbolPortability.HostImport;
+        return input.Plan.SourceFieldIndexes.Count == input.Plan.Defaults.Count
+            && input.Plan.SourceFieldIndexes.All(index => index >= -1)
+            && input.Plan.Defaults.Where(static value => value != null).All(value => canRenderExpression(value!))
+            && input.Plan.TargetType.Descriptor.Portability
+                != Musoq.Targets.Abstractions.ExecutionPortableSymbolPortability.HostImport;
     }
 }

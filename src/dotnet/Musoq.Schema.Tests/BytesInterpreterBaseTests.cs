@@ -33,11 +33,7 @@ public partial class BytesInterpreterBaseTests
         public override TestResult InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
             ParsePosition = offset;
-            return new TestResult
-            {
-                Value = data.Length > 0 ? ReadByte(data) : 0,
-                Name = "Test"
-            };
+            return new TestResult { Value = data.Length > 0 ? ReadByte(data) : 0, Name = "Test" };
         }
 
         // Expose protected methods for testing

@@ -31,8 +31,8 @@ public sealed class ApplyCandidateSchema(IReadOnlyList<ApplyCandidateEntity> row
 
     public static bool MatchesName(string schema)
     {
-        return string.Equals(schema, SchemaName, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(schema, $"#{SchemaName}", StringComparison.OrdinalIgnoreCase);
+        return string.Equals(schema, SchemaName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(schema, $"#{SchemaName}", StringComparison.OrdinalIgnoreCase);
     }
 
     private static readonly SchemaMethodInfo[] RawConstructors =
@@ -40,20 +40,20 @@ public sealed class ApplyCandidateSchema(IReadOnlyList<ApplyCandidateEntity> row
         new(
             Related,
             new SchemaConstructorInfo(
-                typeof(RelatedSourceSignature)
-                    .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
-                    .Single(),
+                typeof(RelatedSourceSignature).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single(),
                 false,
                 ("name", typeof(string)),
-                ("limit", typeof(int)))),
+                ("limit", typeof(int))
+            )
+        ),
         new(
             Related,
             new SchemaConstructorInfo(
-                typeof(RelatedLegacySignature)
-                    .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
-                    .Single(),
+                typeof(RelatedLegacySignature).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single(),
                 false,
-                ("numbers", typeof(int[]))))
+                ("numbers", typeof(int[]))
+            )
+        ),
     ];
 
     public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext)
@@ -61,10 +61,16 @@ public sealed class ApplyCandidateSchema(IReadOnlyList<ApplyCandidateEntity> row
         return RawConstructors;
     }
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
-        if (string.Equals(name, Items, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(name, Related, StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(name, Items, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(name, Related, StringComparison.OrdinalIgnoreCase)
+        )
         {
             return new ApplyCandidateTable();
         }
@@ -72,14 +78,21 @@ public sealed class ApplyCandidateSchema(IReadOnlyList<ApplyCandidateEntity> row
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
         if (string.Equals(name, Items, StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, ApplyCandidateEntity>(name, new ApplyCandidateRowSource(rows));
 
         if (string.Equals(name, Related, StringComparison.OrdinalIgnoreCase))
-            return EnsureSourceType<T, ApplyCandidateEntity>(name, new ApplyCandidateRowSource(CreateRelatedRows(parameters)));
+            return EnsureSourceType<T, ApplyCandidateEntity>(
+                name,
+                new ApplyCandidateRowSource(CreateRelatedRows(parameters))
+            );
 
         throw new NotSupportedException(name);
     }
@@ -125,7 +138,7 @@ public sealed class ApplyCandidateTable : ISchemaTable
         new SchemaColumn(nameof(ApplyCandidateEntity.Name), 0, typeof(string)),
         new SchemaColumn(nameof(ApplyCandidateEntity.Line), 1, typeof(string)),
         new SchemaColumn(nameof(ApplyCandidateEntity.Numbers), 2, typeof(int[])),
-        new SchemaColumn(nameof(ApplyCandidateEntity.Content), 3, typeof(byte[]))
+        new SchemaColumn(nameof(ApplyCandidateEntity.Content), 3, typeof(byte[])),
     ];
 
     public ISchemaColumn? GetColumnByName(string name)
@@ -152,14 +165,13 @@ public sealed class ApplyCandidateRowSource(IReadOnlyList<ApplyCandidateEntity> 
 
 public sealed class ApplyCandidateEntity
 {
-    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap =
-        new Dictionary<string, int>
-        {
-            [nameof(Name)] = 0,
-            [nameof(Line)] = 1,
-            [nameof(Numbers)] = 2,
-            [nameof(Content)] = 3
-        };
+    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>
+    {
+        [nameof(Name)] = 0,
+        [nameof(Line)] = 1,
+        [nameof(Numbers)] = 2,
+        [nameof(Content)] = 3,
+    };
 
     public static readonly IReadOnlyDictionary<int, Func<ApplyCandidateEntity, object>> IndexToObjectAccessMap =
         new Dictionary<int, Func<ApplyCandidateEntity, object>>
@@ -167,7 +179,7 @@ public sealed class ApplyCandidateEntity
             [0] = entity => entity.Name,
             [1] = entity => entity.Line,
             [2] = entity => entity.Numbers,
-            [3] = entity => entity.Content
+            [3] = entity => entity.Content,
         };
 
     public string Name { get; init; } = string.Empty;

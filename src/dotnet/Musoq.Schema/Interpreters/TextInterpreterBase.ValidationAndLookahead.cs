@@ -21,7 +21,8 @@ public abstract partial class TextInterpreterBase<TOut>
             SchemaName,
             fieldName,
             ParsePosition,
-            $"Parse position {ParsePosition} is {reason}; valid range is 0 through {text.Length}");
+            $"Parse position {ParsePosition} is {reason}; valid range is 0 through {text.Length}"
+        );
     }
 
     protected ReadOnlySpan<char> GetTextRemaining(ReadOnlySpan<char> text, string? fieldName = null)
@@ -38,7 +39,8 @@ public abstract partial class TextInterpreterBase<TOut>
                 SchemaName,
                 fieldName,
                 ParsePosition,
-                $"Negative character count: {count}");
+                $"Negative character count: {count}"
+            );
 
         EnsureValidParsePosition(text, fieldName);
         if (count > text.Length - ParsePosition)
@@ -52,7 +54,8 @@ public abstract partial class TextInterpreterBase<TOut>
             SchemaName,
             fieldName,
             ParsePosition,
-            $"Attempted to read {count} characters at parse position {ParsePosition}, but only {Math.Max(0, dataLength - ParsePosition)} characters available");
+            $"Attempted to read {count} characters at parse position {ParsePosition}, but only {Math.Max(0, dataLength - ParsePosition)} characters available"
+        );
     }
 
     private static int FindBalancedClose(ReadOnlySpan<char> text, string open, string close)
@@ -155,7 +158,8 @@ public abstract partial class TextInterpreterBase<TOut>
                 SchemaName,
                 fieldName,
                 ParsePosition,
-                message);
+                message
+            );
     }
 
     /// <summary>
@@ -191,15 +195,12 @@ public abstract partial class TextInterpreterBase<TOut>
         ArgumentNullException.ThrowIfNull(pattern);
         var remaining = GetTextRemaining(text, fieldName).ToString();
 
-
         var normalizedPattern = TextPatternCompiler.Normalize(pattern);
         var anchoredPattern = normalizedPattern.StartsWith('^') ? normalizedPattern : "^" + normalizedPattern;
         Match match;
         try
         {
-            var regex = RegexCache.GetOrAdd(
-                anchoredPattern,
-                static key => TextPatternCompiler.Compile(key, null));
+            var regex = RegexCache.GetOrAdd(anchoredPattern, static key => TextPatternCompiler.Compile(key, null));
             match = regex.Match(remaining);
         }
         catch (ArgumentException exception)
@@ -210,7 +211,8 @@ public abstract partial class TextInterpreterBase<TOut>
                 fieldName,
                 ParsePosition,
                 $"Switch lookahead pattern '{pattern}' is invalid: {exception.Message}",
-                exception);
+                exception
+            );
         }
         catch (NotSupportedException exception)
         {
@@ -220,7 +222,8 @@ public abstract partial class TextInterpreterBase<TOut>
                 fieldName,
                 ParsePosition,
                 $"Switch lookahead pattern '{pattern}' uses an unsupported construct: {exception.Message}",
-                exception);
+                exception
+            );
         }
 
         return match is { Success: true, Index: 0 };

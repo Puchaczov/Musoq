@@ -14,13 +14,12 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class UserMistakesTests : BasicEntityTestBase
 {
-
     private static BasicSchemaProvider<BasicEntity> CreateSchemaProvider()
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100)] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200)] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200)] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -35,8 +34,7 @@ public partial class UserMistakesTests : BasicEntityTestBase
         DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -49,8 +47,6 @@ public partial class UserMistakesTests : BasicEntityTestBase
             Assert.Fail($"Expected no errors but got:\n{errorMessages}");
         }
     }
-
-
 
     [TestMethod]
     public void Typo_InColumnName_SimilarToExisting()
@@ -108,8 +104,6 @@ public partial class UserMistakesTests : BasicEntityTestBase
         AssertHasErrorCode(result, DiagnosticCode.MQ3010_UnknownSchema, "unknown schema '#X'");
     }
 
-
-
     [TestMethod]
     public void Missing_SelectKeyword()
     {
@@ -141,14 +135,16 @@ public partial class UserMistakesTests : BasicEntityTestBase
     [TestMethod]
     public void Missing_ColumnInSelect()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2005_InvalidSelectList, nameof(Missing_ColumnInSelect));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2005_InvalidSelectList,
+            nameof(Missing_ColumnInSelect)
+        );
     }
 
     [TestMethod]
@@ -193,8 +189,6 @@ public partial class UserMistakesTests : BasicEntityTestBase
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing ORDER BY column");
     }
 
-
-
     [TestMethod]
     public void Unclosed_Parenthesis_InMethod()
     {
@@ -220,7 +214,11 @@ public partial class UserMistakesTests : BasicEntityTestBase
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - the parser identifies the missing grouping delimiter.
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2010_MissingClosingParenthesis, "unclosed parenthesis in expression");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2010_MissingClosingParenthesis,
+            "unclosed parenthesis in expression"
+        );
     }
 
     [TestMethod]
@@ -266,5 +264,4 @@ public partial class UserMistakesTests : BasicEntityTestBase
         // Assert - invalid bracketed identifier syntax
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ2011_MissingClosingBracket, "unclosed square bracket");
     }
-
 }

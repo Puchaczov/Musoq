@@ -1,6 +1,6 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Schema.Tests;
@@ -50,10 +50,7 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void SchemaColumn_ReadModifiersConstructor_ShouldCopyValues()
     {
-        var modifiers = new Dictionary<string, string>
-        {
-            [ColumnReadModifiers.Encoding] = "windows-1250"
-        };
+        var modifiers = new Dictionary<string, string> { [ColumnReadModifiers.Encoding] = "windows-1250" };
 
         var column = new SchemaColumn("Name", 0, typeof(string), modifiers);
         modifiers[ColumnReadModifiers.Encoding] = "utf8";
@@ -64,10 +61,12 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void SchemaColumn_ReadModifiers_ShouldBeReadOnly()
     {
-        var column = new SchemaColumn("Name", 0, typeof(string), new Dictionary<string, string>
-        {
-            [ColumnReadModifiers.Trim] = "true"
-        });
+        var column = new SchemaColumn(
+            "Name",
+            0,
+            typeof(string),
+            new Dictionary<string, string> { [ColumnReadModifiers.Trim] = "true" }
+        );
 
         Assert.IsInstanceOfType<ReadOnlyDictionary<string, string>>(column.ReadModifiers);
     }
@@ -75,10 +74,13 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void SchemaColumn_IntendedTypeNameConstructor_ShouldPreserveReadModifiers()
     {
-        var column = new SchemaColumn("Nested", 0, typeof(object), "Example.Nested", new Dictionary<string, string>
-        {
-            [ColumnReadModifiers.Format] = "json"
-        });
+        var column = new SchemaColumn(
+            "Nested",
+            0,
+            typeof(object),
+            "Example.Nested",
+            new Dictionary<string, string> { [ColumnReadModifiers.Format] = "json" }
+        );
 
         Assert.AreEqual("Example.Nested", column.IntendedTypeName);
         Assert.AreEqual("json", column.ReadModifiers[ColumnReadModifiers.Format]);
@@ -96,10 +98,7 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void SourceColumnRef_ReadModifiersConstructor_ShouldCopyValues()
     {
-        var modifiers = new Dictionary<string, string>
-        {
-            [ColumnReadModifiers.Culture] = "pl-PL"
-        };
+        var modifiers = new Dictionary<string, string> { [ColumnReadModifiers.Culture] = "pl-PL" };
 
         var sourceColumnRef = new SourceColumnRef("Amount", modifiers);
         modifiers[ColumnReadModifiers.Culture] = "en-US";
@@ -151,5 +150,4 @@ public partial class SchemaExtendedTests
     }
 
     #endregion
-
 }

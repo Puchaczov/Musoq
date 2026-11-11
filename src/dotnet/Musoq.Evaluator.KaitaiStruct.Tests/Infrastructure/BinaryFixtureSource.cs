@@ -17,15 +17,25 @@ internal sealed class BinaryFixtureSource(byte[] content) : SchemaBase("fixture"
         return this;
     }
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
-        params object?[] parameters) => new FixtureTable();
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    ) => new FixtureTable();
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name,
-        SourceExecutionContext executionContext, TArguments nativeArguments) =>
-        EnsureSourceType<T, BinaryFixture>(name, new EntitySource<BinaryFixture>(
-            [new BinaryFixture[] { new(content) }],
-            new Dictionary<string, int> { [nameof(BinaryFixture.Content)] = 0 },
-            new Dictionary<int, Func<BinaryFixture, object?>> { [0] = row => row.Content }));
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    ) =>
+        EnsureSourceType<T, BinaryFixture>(
+            name,
+            new EntitySource<BinaryFixture>(
+                [new BinaryFixture[] { new(content) }],
+                new Dictionary<string, int> { [nameof(BinaryFixture.Content)] = 0 },
+                new Dictionary<int, Func<BinaryFixture, object?>> { [0] = row => row.Content }
+            )
+        );
 
     private static MethodsAggregator CreateLibrary()
     {
@@ -38,7 +48,9 @@ internal sealed class BinaryFixtureSource(byte[] content) : SchemaBase("fixture"
     {
         public ISchemaColumn[] Columns => [new FixtureColumn()];
         public SchemaTableMetadata Metadata => new(typeof(BinaryFixture));
+
         public ISchemaColumn? GetColumnByName(string name) => name == "Content" ? new FixtureColumn() : null;
+
         public ISchemaColumn[] GetColumnsByName(string name) => name == "Content" ? Columns : [];
     }
 

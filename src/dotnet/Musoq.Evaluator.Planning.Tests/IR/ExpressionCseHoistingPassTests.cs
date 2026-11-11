@@ -21,7 +21,8 @@ public sealed class ExpressionCseHoistingPassTests
             BinaryOpKind.Add,
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(2, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(CreateAppendRow(expression, expression));
 
         var result = Optimize(plan);
@@ -44,10 +45,12 @@ public sealed class ExpressionCseHoistingPassTests
             BinaryOpKind.Add,
             new ExecutionLiteral(10, typeof(int)),
             new ExecutionLiteral(20, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(
             CreateAppendRow(expression, new ExecutionLiteral(1, typeof(int))),
-            CreateAppendRow(expression, new ExecutionLiteral(2, typeof(int))));
+            CreateAppendRow(expression, new ExecutionLiteral(2, typeof(int)))
+        );
 
         var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
 
@@ -68,11 +71,13 @@ public sealed class ExpressionCseHoistingPassTests
             new ExecutionVariable("generated", typeof(object)),
             CreateRowShape(),
             [new ExecutionRowValue("First", expression)],
-            []);
+            []
+        );
         var plan = CreatePlan(
             generatedRow,
             CreateAppendRow(expression, new ExecutionLiteral(1, typeof(int))),
-            CreateAppendRow(expression, new ExecutionLiteral(2, typeof(int))));
+            CreateAppendRow(expression, new ExecutionLiteral(2, typeof(int)))
+        );
 
         var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
 
@@ -99,11 +104,13 @@ public sealed class ExpressionCseHoistingPassTests
             [],
             expression,
             BinaryOpKind.GreaterOrEqual,
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(
             createIndex,
             CreateAppendRow(expression, new ExecutionLiteral(1, typeof(int))),
-            CreateAppendRow(expression, new ExecutionLiteral(2, typeof(int))));
+            CreateAppendRow(expression, new ExecutionLiteral(2, typeof(int)))
+        );
 
         var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
 
@@ -132,7 +139,8 @@ public sealed class ExpressionCseHoistingPassTests
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(0, typeof(int)),
             ExecutionOffsetWindowFunction.Lag,
-            new ExecutionVariable("windowResults", typeof(object)));
+            new ExecutionVariable("windowResults", typeof(object))
+        );
         var plan = CreatePlan(window, CreateAppendRow(expression, expression));
 
         var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
@@ -162,14 +170,16 @@ public sealed class ExpressionCseHoistingPassTests
             candidates,
             expression,
             typeof(int),
-            BinaryOpKind.LessThan);
+            BinaryOpKind.LessThan
+        );
         var second = new ExecutionCreateRangeIndex(
             index,
             candidate,
             candidates,
             expression,
             typeof(int),
-            BinaryOpKind.LessThan);
+            BinaryOpKind.LessThan
+        );
         var plan = CreatePlan(first, second);
 
         var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
@@ -214,7 +224,8 @@ public sealed class ExpressionCseHoistingPassTests
         var accumulator = new AggregateAccumulatorField(
             "Count(Age)",
             "__countAge",
-            AggregateKernelDescriptor.Create(aggregateMethod));
+            AggregateKernelDescriptor.Create(aggregateMethod)
+        );
         var first = new ExecutionAggregateSet(
             group,
             aggregateMethod,
@@ -223,9 +234,11 @@ public sealed class ExpressionCseHoistingPassTests
                 BinaryOpKind.GreaterThan,
                 expression,
                 new ExecutionLiteral(0, typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             accumulator,
-            null);
+            null
+        );
         var second = first with { FilterPredicate = first.FilterPredicate };
         var plan = CreatePlan(first, second);
 
@@ -252,11 +265,10 @@ public sealed class ExpressionCseHoistingPassTests
     {
         var expression = new ExecutionFieldRead("p", "Age", typeof(int));
         var conditional = new ExecutionCaseWhen(
-            [new ExecutionCaseWhenBranch(
-                new ExecutionLiteral(true, typeof(bool)),
-                expression)],
+            [new ExecutionCaseWhenBranch(new ExecutionLiteral(true, typeof(bool)), expression)],
             expression,
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(CreateAppendRow(conditional, conditional));
 
         var result = Optimize(plan, enableExpressionCse: false, enableStabilityAwareReuse: true);
@@ -272,7 +284,8 @@ public sealed class ExpressionCseHoistingPassTests
             GetType().GetMethod(nameof(RandomValue), BindingFlags.Public | BindingFlags.Static)!,
             [],
             null,
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(CreateAppendRow(method, method));
 
         var result = Optimize(plan);
@@ -288,7 +301,8 @@ public sealed class ExpressionCseHoistingPassTests
             GetType().GetMethod(nameof(Identity), BindingFlags.Public | BindingFlags.Static)!,
             [new ExecutionLiteral(1, typeof(int))],
             null,
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(CreateAppendRow(method, method));
 
         var result = Optimize(plan);
@@ -315,27 +329,30 @@ public sealed class ExpressionCseHoistingPassTests
             GetType().GetMethod(nameof(Identity), BindingFlags.Public | BindingFlags.Static)!,
             [new ExecutionVariableRead(value)],
             null,
-            typeof(int));
+            typeof(int)
+        );
         var condition = new ExecutionBinary(
             BinaryOpKind.And,
             new ExecutionBinary(
                 BinaryOpKind.GreaterThan,
                 new ExecutionVariableRead(value),
                 new ExecutionLiteral(100, typeof(int)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             new ExecutionBinary(
                 BinaryOpKind.And,
                 new ExecutionBinary(
                     BinaryOpKind.GreaterThan,
                     call,
                     new ExecutionLiteral(50, typeof(int)),
-                    typeof(bool)),
+                    typeof(bool)
+                ),
                 new ExecutionIsNullCheck(new ExecutionVariableRead(name), true, typeof(bool)),
-                typeof(bool)),
-            typeof(bool));
-        var plan = CreatePlan(new ExecutionIf(
-            condition,
-            new ExecutionBlock([CreateAppendRow(call, call)])));
+                typeof(bool)
+            ),
+            typeof(bool)
+        );
+        var plan = CreatePlan(new ExecutionIf(condition, new ExecutionBlock([CreateAppendRow(call, call)])));
 
         var result = Optimize(plan, enableCrossNodeExpressionCse: true);
 
@@ -361,7 +378,8 @@ public sealed class ExpressionCseHoistingPassTests
             typeof(InstanceLibrary).GetMethod(nameof(InstanceLibrary.Normalize), [typeof(int)])!,
             [new ExecutionLiteral(1, typeof(int))],
             null,
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(CreateAppendRow(method, method));
 
         var result = Optimize(plan);
@@ -378,7 +396,8 @@ public sealed class ExpressionCseHoistingPassTests
             [new ExecutionLiteral(1, typeof(int))],
             null,
             typeof(int),
-            new ExecutionLiteral("source", typeof(string)));
+            new ExecutionLiteral("source", typeof(string))
+        );
         var plan = CreatePlan(CreateAppendRow(method, method));
 
         var result = Optimize(plan);
@@ -394,7 +413,8 @@ public sealed class ExpressionCseHoistingPassTests
             GetType().GetMethod(nameof(Box), BindingFlags.Public | BindingFlags.Static)!,
             [new ExecutionLiteral(1, typeof(int))],
             null,
-            typeof(object));
+            typeof(object)
+        );
         var plan = CreatePlan(CreateAppendRow(method, method));
 
         var result = Optimize(plan);
@@ -410,12 +430,14 @@ public sealed class ExpressionCseHoistingPassTests
             GetType().GetMethod(nameof(Identity), BindingFlags.Public | BindingFlags.Static)!,
             [new ExecutionLiteral(1, typeof(int))],
             null,
-            typeof(int));
+            typeof(int)
+        );
         var expression = new ExecutionBinary(
             BinaryOpKind.Add,
             method,
             new ExecutionLiteral(1, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(CreateAppendRow(expression, new ExecutionLiteral(0, typeof(int))));
 
         var result = Optimize(plan);
@@ -431,7 +453,8 @@ public sealed class ExpressionCseHoistingPassTests
             BinaryOpKind.Add,
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(2, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(CreateAppendRow(expression, expression));
 
         var result = Optimize(plan, enableExpressionCse: false);
@@ -449,7 +472,8 @@ public sealed class ExpressionCseHoistingPassTests
             source,
             new ExecutionLiteral(0, typeof(int)),
             typeof(int),
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(CreateAppendRow(expression, expression));
 
         var result = Optimize(plan);
@@ -489,7 +513,8 @@ public sealed class ExpressionCseHoistingPassTests
             BinaryOpKind.GreaterThan,
             cast,
             new ExecutionLiteral(1000, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var append = CreateAppendRow(cast, new ExecutionLiteral(0, typeof(int)));
         var plan = CreatePlan(new ExecutionIf(condition, new ExecutionBlock([append])));
 
@@ -547,8 +572,7 @@ public sealed class ExpressionCseHoistingPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionGetOrAddSingleKeyAggregateGroup(
                     rootGroup,
                     groups,
@@ -558,14 +582,11 @@ public sealed class ExpressionCseHoistingPassTests
                     "Population::Int32",
                     typeof(int?),
                     null,
-                    aggregatePlan),
-                new ExecutionAggregateCapturedValueSet(
-                    group,
-                    "population",
-                    cast,
-                    typeof(int?),
-                    capturedField)
-            ]));
+                    aggregatePlan
+                ),
+                new ExecutionAggregateCapturedValueSet(group, "population", cast, typeof(int?), capturedField),
+            ])
+        );
 
         var result = Optimize(plan, enableCrossNodeExpressionCse: true);
 
@@ -600,12 +621,9 @@ public sealed class ExpressionCseHoistingPassTests
             BinaryOpKind.GreaterThan,
             new ExecutionLiteral(2, typeof(int)),
             new ExecutionLiteral(1, typeof(int)),
-            typeof(bool));
-        var expression = new ExecutionBinary(
-            BinaryOpKind.And,
-            left,
-            left,
-            typeof(bool));
+            typeof(bool)
+        );
+        var expression = new ExecutionBinary(BinaryOpKind.And, left, left, typeof(bool));
         var plan = CreatePlan(CreateAppendRow(expression, expression));
 
         var result = Optimize(plan);
@@ -624,14 +642,18 @@ public sealed class ExpressionCseHoistingPassTests
             BinaryOpKind.Add,
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(2, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var body = new ExecutionBlock([CreateAppendRow(expression, expression)]);
-        var plan = CreatePlan(new ExecutionForEachIndexed(
-            new ExecutionVariable("item", typeof(object)),
-            new ExecutionVariable("index", typeof(int)),
-            new ExecutionVariable("rows", typeof(object)),
-            ExecutionRowAccessMode.Direct,
-            body));
+        var plan = CreatePlan(
+            new ExecutionForEachIndexed(
+                new ExecutionVariable("item", typeof(object)),
+                new ExecutionVariable("index", typeof(int)),
+                new ExecutionVariable("rows", typeof(object)),
+                ExecutionRowAccessMode.Direct,
+                body
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -655,21 +677,23 @@ public sealed class ExpressionCseHoistingPassTests
             BinaryOpKind.Add,
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(2, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var body = new ExecutionBlock([CreateAppendRow(expression, new ExecutionLiteral(3, typeof(int)))]);
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 CreateAppendRow(expression, new ExecutionLiteral(4, typeof(int))),
                 new ExecutionForEachIndexed(
                     new ExecutionVariable("item", typeof(object)),
                     new ExecutionVariable("index", typeof(int)),
                     new ExecutionVariable("rows", typeof(object)),
                     ExecutionRowAccessMode.Direct,
-                    body)
-            ]));
+                    body
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -685,7 +709,8 @@ public sealed class ExpressionCseHoistingPassTests
             BinaryOpKind.GreaterThan,
             fieldRead,
             new ExecutionLiteral(18, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var append = CreateAppendRow(fieldRead, new ExecutionLiteral(0, typeof(int)));
         var plan = CreatePlan(new ExecutionIf(condition, new ExecutionBlock([append])));
 
@@ -717,8 +742,7 @@ public sealed class ExpressionCseHoistingPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionGetOrAddSingleKeyAggregateGroup(
                     rootGroup,
                     groups,
@@ -728,14 +752,11 @@ public sealed class ExpressionCseHoistingPassTests
                     "p.Name",
                     typeof(string),
                     null,
-                    aggregatePlan),
-                new ExecutionAggregateCapturedValueSet(
-                    group,
-                    "name",
-                    fieldRead,
-                    typeof(string),
-                    capturedField)
-            ]));
+                    aggregatePlan
+                ),
+                new ExecutionAggregateCapturedValueSet(group, "name", fieldRead, typeof(string), capturedField),
+            ])
+        );
 
         var result = Optimize(plan, enableCrossNodeExpressionCse: true);
 
@@ -762,16 +783,30 @@ public sealed class ExpressionCseHoistingPassTests
         var groupsToFinalize = new ExecutionVariable("groupsToFinalize", typeof(object));
         var group = new ExecutionVariable("group", typeof(object));
         var capturedField = new AggregateCapturedField("category", "__category", typeof(string));
-        var rowShape = new GeneratedRowShape("NativeCategoryRow",
-            [new FieldBinding("Category", "Category", 0, typeof(string), FieldNullability.Unknown,
-                new GeneratedFieldAccess("Category"))], []);
+        var rowShape = new GeneratedRowShape(
+            "NativeCategoryRow",
+            [
+                new FieldBinding(
+                    "Category",
+                    "Category",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Category")
+                ),
+            ],
+            []
+        );
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
-                new ExecutionCreateGeneratedRow(adapter, rowShape,
-                    [new ExecutionRowValue("Category", new ExecutionLiteral("category", typeof(string)))], []),
+            new ExecutionBlock([
+                new ExecutionCreateGeneratedRow(
+                    adapter,
+                    rowShape,
+                    [new ExecutionRowValue("Category", new ExecutionLiteral("category", typeof(string)))],
+                    []
+                ),
                 new ExecutionGetOrAddSingleKeyAggregateGroup(
                     rootGroup,
                     groups,
@@ -781,14 +816,11 @@ public sealed class ExpressionCseHoistingPassTests
                     "Category",
                     typeof(string),
                     null,
-                    aggregatePlan),
-                new ExecutionAggregateCapturedValueSet(
-                    group,
-                    "category",
-                    fieldRead,
-                    typeof(string),
-                    capturedField)
-            ]));
+                    aggregatePlan
+                ),
+                new ExecutionAggregateCapturedValueSet(group, "category", fieldRead, typeof(string), capturedField),
+            ])
+        );
 
         var result = Optimize(plan, enableCrossNodeExpressionCse: true);
 
@@ -817,26 +849,24 @@ public sealed class ExpressionCseHoistingPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
-                new ExecutionEnsureAggregateGroup(
-                    rootGroup,
-                    currentGroup,
-                    groups,
-                    aggregatePlan),
+            new ExecutionBlock([
+                new ExecutionEnsureAggregateGroup(rootGroup, currentGroup, groups, aggregatePlan),
                 new ExecutionAggregateCapturedValueSet(
                     currentGroup,
                     "population",
                     fieldRead,
                     typeof(decimal),
-                    capturedField),
+                    capturedField
+                ),
                 new ExecutionAggregateCapturedValueSet(
                     currentGroup,
                     "population",
                     fieldRead,
                     typeof(decimal),
-                    capturedField)
-            ]));
+                    capturedField
+                ),
+            ])
+        );
 
         var result = Optimize(plan, enableCrossNodeExpressionCse: true);
 
@@ -869,8 +899,7 @@ public sealed class ExpressionCseHoistingPassTests
         _ = new ExecutionForEach(
             source,
             new ExecutionVariableRead(sourceRows),
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionGetOrAddSingleKeyAggregateGroup(
                     rootGroup,
                     groups,
@@ -880,28 +909,14 @@ public sealed class ExpressionCseHoistingPassTests
                     "p.Name",
                     typeof(string),
                     null,
-                    aggregatePlan),
-                new ExecutionAggregateCapturedValueSet(
-                    group,
-                    "name",
-                    fieldRead,
-                    typeof(string),
-                    capturedField)
-            ]));
-        var parallelBody = new ExecutionBlock(
-        [
-            new ExecutionAggregateCapturedValueSet(
-                group,
-                "name",
-                fieldRead,
-                typeof(string),
-                capturedField),
-            new ExecutionAggregateCapturedValueSet(
-                group,
-                "name",
-                fieldRead,
-                typeof(string),
-                capturedField)
+                    aggregatePlan
+                ),
+                new ExecutionAggregateCapturedValueSet(group, "name", fieldRead, typeof(string), capturedField),
+            ])
+        );
+        var parallelBody = new ExecutionBlock([
+            new ExecutionAggregateCapturedValueSet(group, "name", fieldRead, typeof(string), capturedField),
+            new ExecutionAggregateCapturedValueSet(group, "name", fieldRead, typeof(string), capturedField),
         ]);
         var loop = new ExecutionParallelSingleKeyAggregateLoop(
             source,
@@ -917,7 +932,8 @@ public sealed class ExpressionCseHoistingPassTests
             4096,
             512,
             128,
-            24);
+            24
+        );
         var plan = CreatePlan(loop);
 
         var result = Optimize(plan, enableCrossNodeExpressionCse: true);
@@ -946,13 +962,13 @@ public sealed class ExpressionCseHoistingPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionHashAdd(hash, expression, row, typeof(int), typeof(object)),
                 new ExecutionHashProbe(hash, matches, expression, typeof(int), typeof(object), ExecutionBlock.Empty),
                 new ExecutionKeySetAdd(keySet, expression, typeof(int)),
-                new ExecutionKeySetProbe(keySet, expression, typeof(int), ExecutionBlock.Empty)
-            ]));
+                new ExecutionKeySetProbe(keySet, expression, typeof(int), ExecutionBlock.Empty),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -998,7 +1014,8 @@ public sealed class ExpressionCseHoistingPassTests
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(0, typeof(int)),
             ExecutionOffsetWindowFunction.Lag,
-            new ExecutionVariable("windowResults", typeof(object)));
+            new ExecutionVariable("windowResults", typeof(object))
+        );
         var plan = CreatePlan(window);
 
         var result = Optimize(plan);
@@ -1026,8 +1043,7 @@ public sealed class ExpressionCseHoistingPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionComputeOffsetWindow(
                     windowBuffer,
                     row,
@@ -1038,18 +1054,20 @@ public sealed class ExpressionCseHoistingPassTests
                     new ExecutionLiteral(1, typeof(int)),
                     new ExecutionLiteral(0, typeof(int)),
                     ExecutionOffsetWindowFunction.Lag,
-                    windowResults),
+                    windowResults
+                ),
                 new ExecutionForEachIndexed(
                     row,
                     new ExecutionVariable("index", typeof(int)),
                     new ExecutionVariable("rows", typeof(object)),
                     ExecutionRowAccessMode.Direct,
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionLet(new ExecutionVariable("first", typeof(int)), expression),
-                        new ExecutionLet(new ExecutionVariable("second", typeof(int)), expression)
-                    ]))
-            ]));
+                        new ExecutionLet(new ExecutionVariable("second", typeof(int)), expression),
+                    ])
+                ),
+            ])
+        );
 
         var result = Optimize(plan, enableCrossNodeExpressionCse: true);
 
@@ -1087,13 +1105,14 @@ public sealed class ExpressionCseHoistingPassTests
         ExecutionPlan plan,
         bool? enableExpressionCse = null,
         bool enableCrossNodeExpressionCse = false,
-        bool enableStabilityAwareReuse = false)
+        bool enableStabilityAwareReuse = false
+    )
     {
         var options = new OptimizationOptions
         {
             ExpressionCseEnabled = enableExpressionCse ?? true,
             CrossNodeExpressionCseEnabled = enableCrossNodeExpressionCse,
-            StabilityAwareScalarReuseEnabled = enableStabilityAwareReuse
+            StabilityAwareScalarReuseEnabled = enableStabilityAwareReuse,
         };
 
         return new ExpressionCseHoistingPass().Optimize(
@@ -1102,7 +1121,9 @@ public sealed class ExpressionCseHoistingPassTests
                 OptimizationStage.ExecutionIrOptimization,
                 trace: null,
                 options,
-                OptimizationContextState.Empty));
+                OptimizationContextState.Empty
+            )
+        );
     }
 
     private static ExecutionPlan CreatePlan(params ExecutionNode[] nodes)
@@ -1110,17 +1131,13 @@ public sealed class ExpressionCseHoistingPassTests
         return new ExecutionPlan("compiled", [], new ExecutionBlock(nodes));
     }
 
-    private static ExecutionAppendRow CreateAppendRow(
-        ExecutionExpression first,
-        ExecutionExpression second)
+    private static ExecutionAppendRow CreateAppendRow(ExecutionExpression first, ExecutionExpression second)
     {
         return new ExecutionAppendRow(
             new ExecutionVariable("result", typeof(object)),
             CreateRowShape(),
-            [
-                new ExecutionRowValue("First", first),
-                new ExecutionRowValue("Second", second)
-            ]);
+            [new ExecutionRowValue("First", first), new ExecutionRowValue("Second", second)]
+        );
     }
 
     private static GeneratedRowShape CreateRowShape()
@@ -1128,9 +1145,24 @@ public sealed class ExpressionCseHoistingPassTests
         return new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("First", "First", 0, typeof(object), FieldNullability.Unknown, new GeneratedFieldAccess("First")),
-                new FieldBinding("Second", "Second", 1, typeof(object), FieldNullability.Unknown, new GeneratedFieldAccess("Second"))
-            ]);
+                new FieldBinding(
+                    "First",
+                    "First",
+                    0,
+                    typeof(object),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("First")
+                ),
+                new FieldBinding(
+                    "Second",
+                    "Second",
+                    1,
+                    typeof(object),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Second")
+                ),
+            ]
+        );
     }
 
     private static ExecutionExpression CreateRepeatedFieldExpression(string alias, string fieldName)
@@ -1145,13 +1177,15 @@ public sealed class ExpressionCseHoistingPassTests
             BinaryOpKind.Add,
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(2, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
     }
 
     private static ExecutionStrictCast CreateStrictCast(
         ExecutionExpression expression,
         string targetTypeName,
-        Type returnType)
+        Type returnType
+    )
     {
         return new ExecutionStrictCast(expression, targetTypeName, returnType);
     }
@@ -1166,7 +1200,7 @@ public sealed class ExpressionCseHoistingPassTests
             ExecutionHashProbe hashProbe => hashProbe.Key,
             ExecutionKeySetAdd keySetAdd => keySetAdd.Key,
             ExecutionKeySetProbe keySetProbe => keySetProbe.Key,
-            _ => throw new AssertFailedException($"Unexpected node type {indexedNode.GetType().Name}.")
+            _ => throw new AssertFailedException($"Unexpected node type {indexedNode.GetType().Name}."),
         };
         var expression = (ExecutionBinary)key;
         var left = (ExecutionVariableRead)expression.Left;

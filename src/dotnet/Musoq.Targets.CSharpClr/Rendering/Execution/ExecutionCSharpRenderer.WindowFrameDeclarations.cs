@@ -13,17 +13,17 @@ public sealed partial class ExecutionCSharpRenderer
         string partitionIndex,
         string partitionCount,
         string frameStart,
-        string frameEnd)
+        string frameEnd
+    )
     {
         if (plugin.Frame == null)
         {
-            var end = plugin.OrderKeys.Count == 0
-                ? $"{partitionCount} - 1"
-                : partitionIndex;
+            var end = plugin.OrderKeys.Count == 0 ? $"{partitionCount} - 1" : partitionIndex;
 
-            return
-                $"        var {frameStart} = 0;" + Environment.NewLine +
-                $"        var {frameEnd} = {end};" + Environment.NewLine;
+            return $"        var {frameStart} = 0;"
+                + Environment.NewLine
+                + $"        var {frameEnd} = {end};"
+                + Environment.NewLine;
         }
 
         var start = WindowRangeFrameSyntax.CreatePluginWindowFrameExpression(
@@ -35,7 +35,8 @@ public sealed partial class ExecutionCSharpRenderer
             partitionIndices,
             partitionStart,
             partitionIndex,
-            partitionCount);
+            partitionCount
+        );
         var endExpression = WindowRangeFrameSyntax.CreatePluginWindowFrameExpression(
             plugin,
             plugin.Frame.End,
@@ -45,11 +46,12 @@ public sealed partial class ExecutionCSharpRenderer
             partitionIndices,
             partitionStart,
             partitionIndex,
-            partitionCount);
+            partitionCount
+        );
 
-        return
-            $"        var {frameStart} = {start.NormalizeWhitespace().ToFullString()};" + Environment.NewLine +
-            $"        var {frameEnd} = {endExpression.NormalizeWhitespace().ToFullString()};" + Environment.NewLine;
+        return $"        var {frameStart} = {start.NormalizeWhitespace().ToFullString()};"
+            + Environment.NewLine
+            + $"        var {frameEnd} = {endExpression.NormalizeWhitespace().ToFullString()};"
+            + Environment.NewLine;
     }
-
 }

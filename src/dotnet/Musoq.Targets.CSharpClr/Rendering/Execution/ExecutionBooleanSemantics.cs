@@ -7,9 +7,12 @@ namespace Musoq.Targets.CSharpClr;
 internal static class ExecutionBooleanSemantics
 {
     internal static bool RequiresSqlNullPropagation(this ExecutionBinary binary) =>
-        binary.UsesSqlNullSemantics && ExecutionSyntaxFactory.IsSqlComparison(binary.Kind) &&
-        (ExecutionSyntaxFactory.CanExecutionExpressionBeNull(binary.Left) ||
-         ExecutionSyntaxFactory.CanExecutionExpressionBeNull(binary.Right));
+        binary.UsesSqlNullSemantics
+        && ExecutionSyntaxFactory.IsSqlComparison(binary.Kind)
+        && (
+            ExecutionSyntaxFactory.CanExecutionExpressionBeNull(binary.Left)
+            || ExecutionSyntaxFactory.CanExecutionExpressionBeNull(binary.Right)
+        );
 
     internal static bool RequiresNullableBoolean(this ExecutionExpression expression) =>
         ExecutionSyntaxFactory.RequiresNullableBoolean(expression);
@@ -17,15 +20,18 @@ internal static class ExecutionBooleanSemantics
     internal static ExpressionSyntax RenderBooleanCondition(
         this ExecutionCSharpRenderer renderer,
         ExecutionExpression expression,
-        ExecutionRenderContext context) =>
+        ExecutionRenderContext context
+    ) =>
         ExecutionSyntaxFactory.CreateBooleanCondition(
             renderer.RenderNullableOperand(expression, context),
-            expression.RequiresNullableBoolean());
+            expression.RequiresNullableBoolean()
+        );
 
     internal static ExpressionSyntax RenderNullableOperand(
         this ExecutionCSharpRenderer renderer,
         ExecutionExpression expression,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var rendered = renderer.RenderExpression(expression, context);
         return expression is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null }
@@ -36,58 +42,92 @@ internal static class ExecutionBooleanSemantics
     internal static ExpressionSyntax RenderNullableLogical(
         this ExecutionCSharpRenderer renderer,
         ExecutionBinary binary,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var isAnd = binary.Kind == BinaryOpKind.And;
         var left = renderer.RenderNullableOperand(binary.Left, context);
         var right = renderer.RenderNullableOperand(binary.Right, context);
         var nullableRight = SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), right);
-        var decisiveValue = SyntaxFactory.LiteralExpression(isAnd ? SyntaxKind.FalseLiteralExpression : SyntaxKind.TrueLiteralExpression);
-        var otherValue = SyntaxFactory.LiteralExpression(isAnd ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
-        var unknown = SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
-        var nullableLeft = SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), SyntaxFactory.ParenthesizedExpression(left));
-        return SyntaxFactory.ParenthesizedExpression(SyntaxFactory.SwitchExpression(SyntaxFactory.ParenthesizedExpression(nullableLeft))
-            .WithArms(SyntaxFactory.SeparatedList<SwitchExpressionArmSyntax>([
-                SyntaxFactory.SwitchExpressionArm(SyntaxFactory.ConstantPattern(decisiveValue),
-                    SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), decisiveValue)),
-                SyntaxFactory.SwitchExpressionArm(SyntaxFactory.ConstantPattern(otherValue), nullableRight),
-                SyntaxFactory.SwitchExpressionArm(SyntaxFactory.DiscardPattern(),
-                    SyntaxFactory.BinaryExpression(isAnd ? SyntaxKind.BitwiseAndExpression : SyntaxKind.BitwiseOrExpression,
-                        nullableRight, unknown))
-            ])));
+        var decisiveValue = SyntaxFactory.LiteralExpression(
+            isAnd ? SyntaxKind.FalseLiteralExpression : SyntaxKind.TrueLiteralExpression
+        );
+        var otherValue = SyntaxFactory.LiteralExpression(
+            isAnd ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression
+        );
+        var unknown = SyntaxFactory.CastExpression(
+            CreateTypeSyntax(typeof(bool?)),
+            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+        );
+        var nullableLeft = SyntaxFactory.CastExpression(
+            CreateTypeSyntax(typeof(bool?)),
+            SyntaxFactory.ParenthesizedExpression(left)
+        );
+        return SyntaxFactory.ParenthesizedExpression(
+            SyntaxFactory
+                .SwitchExpression(SyntaxFactory.ParenthesizedExpression(nullableLeft))
+                .WithArms(
+                    SyntaxFactory.SeparatedList<SwitchExpressionArmSyntax>([
+                        SyntaxFactory.SwitchExpressionArm(
+                            SyntaxFactory.ConstantPattern(decisiveValue),
+                            SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(bool?)), decisiveValue)
+                        ),
+                        SyntaxFactory.SwitchExpressionArm(SyntaxFactory.ConstantPattern(otherValue), nullableRight),
+                        SyntaxFactory.SwitchExpressionArm(
+                            SyntaxFactory.DiscardPattern(),
+                            SyntaxFactory.BinaryExpression(
+                                isAnd ? SyntaxKind.BitwiseAndExpression : SyntaxKind.BitwiseOrExpression,
+                                nullableRight,
+                                unknown
+                            )
+                        ),
+                    ])
+                )
+        );
     }
 
     internal static ExpressionSyntax RenderSqlNullComparison(
         this ExecutionCSharpRenderer renderer,
         ExecutionBinary binary,
-        ExecutionRenderContext context) =>
-        SyntaxFactory.ParenthesizedExpression(ExecutionSyntaxFactory.CreateSqlNullComparison(
-            binary,
-            renderer.RenderExpression(binary.Left, context),
-            renderer.RenderExpression(binary.Right, context)));
+        ExecutionRenderContext context
+    ) =>
+        SyntaxFactory.ParenthesizedExpression(
+            ExecutionSyntaxFactory.CreateSqlNullComparison(
+                binary,
+                renderer.RenderExpression(binary.Left, context),
+                renderer.RenderExpression(binary.Right, context)
+            )
+        );
 
     internal static ParenthesizedExpressionSyntax RenderBetween(
         this ExecutionCSharpRenderer renderer,
         ExecutionBetween between,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var greaterOrEqual = CreateBetweenComparison(BinaryOpKind.GreaterOrEqual, between.Expression, between.Low);
         var lessOrEqual = CreateBetweenComparison(BinaryOpKind.LessOrEqual, between.Expression, between.High);
         if (between.RequiresNullableBoolean())
         {
-            return (ParenthesizedExpressionSyntax)renderer.RenderNullableLogical(
-                new ExecutionBinary(BinaryOpKind.And, greaterOrEqual, lessOrEqual, typeof(bool?)), context);
+            return (ParenthesizedExpressionSyntax)
+                renderer.RenderNullableLogical(
+                    new ExecutionBinary(BinaryOpKind.And, greaterOrEqual, lessOrEqual, typeof(bool?)),
+                    context
+                );
         }
 
-        return SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(
-            SyntaxKind.LogicalAndExpression,
-            renderer.RenderExpression(greaterOrEqual, context),
-            renderer.RenderExpression(lessOrEqual, context)));
+        return SyntaxFactory.ParenthesizedExpression(
+            SyntaxFactory.BinaryExpression(
+                SyntaxKind.LogicalAndExpression,
+                renderer.RenderExpression(greaterOrEqual, context),
+                renderer.RenderExpression(lessOrEqual, context)
+            )
+        );
     }
 
     private static ExecutionBinary CreateBetweenComparison(
         BinaryOpKind kind,
         ExecutionExpression expression,
-        ExecutionExpression bound) =>
-        new(kind, expression, bound, typeof(bool)) { UsesSqlNullSemantics = true };
+        ExecutionExpression bound
+    ) => new(kind, expression, bound, typeof(bool)) { UsesSqlNullSemantics = true };
 }

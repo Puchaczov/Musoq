@@ -8,14 +8,14 @@ public class SecondEntity : ICommonInterface
     public static readonly IReadOnlyDictionary<string, int> TestNameToIndexMap = new Dictionary<string, int>
     {
         { nameof(ZeroItem), 0 },
-        { nameof(FirstItem), 1 }
+        { nameof(FirstItem), 1 },
     };
 
     public static readonly IReadOnlyDictionary<int, Func<SecondEntity, object?>> TestIndexToObjectAccessMap =
         new Dictionary<int, Func<SecondEntity, object?>>
         {
             { 0, entity => entity.ZeroItem },
-            { 1, entity => entity.FirstItem }
+            { 1, entity => entity.FirstItem },
         };
 
     public string ZeroItem { get; set; } = string.Empty;

@@ -26,36 +26,46 @@ public sealed class ExecutionSemanticsContractTests
         Assert.AreEqual("clr-128-bit-decimal-checked", contract.RequireRule("decimal"));
         Assert.AreEqual("ordinal", contract.RequireRule("string.equality-ordering-hashing"));
         Assert.AreEqual("invariant-culture", contract.RequireRule("strict-cast"));
+        Assert.AreEqual("sql-three-valued", contract.RequireRule(ExecutionSemanticsRuleId.NullLogic));
         Assert.AreEqual(
-            "sql-three-valued",
-            contract.RequireRule(ExecutionSemanticsRuleId.NullLogic));
-        Assert.AreEqual("string-only;null-propagating;left-to-right;eager-operands",
-            contract.RequireRule(ExecutionSemanticsRuleId.SqlStringConcatenation));
+            "string-only;null-propagating;left-to-right;eager-operands",
+            contract.RequireRule(ExecutionSemanticsRuleId.SqlStringConcatenation)
+        );
         Assert.HasCount(14, contract.RuleDefinitions);
         Assert.AreEqual(64, contract.Fingerprint.Length);
         Assert.AreEqual("8A2F2DDB7040FE616FBAA27166D9BABC348A1310FB233A5A6C8CFAAB7525F4DB", contract.Fingerprint);
         Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, string>)contract.Rules)["integer.divide"] = "changed");
+            ((IDictionary<string, string>)contract.Rules)["integer.divide"] = "changed"
+        );
     }
 
     [TestMethod]
     public void Version2_ShouldDeclareLazyThreeValuedLogicWithoutChangingVersion1()
     {
         Assert.AreEqual(2, ExecutionSemanticsContract.Current.Version);
-        Assert.AreEqual("sql-three-valued;left-to-right;short-circuit-and-or",
-            ExecutionSemanticsContract.Version2.RequireRule(ExecutionSemanticsRuleId.NullLogic));
-        Assert.AreNotEqual(ExecutionSemanticsContract.Version1.Fingerprint, ExecutionSemanticsContract.Version2.Fingerprint);
+        Assert.AreEqual(
+            "sql-three-valued;left-to-right;short-circuit-and-or",
+            ExecutionSemanticsContract.Version2.RequireRule(ExecutionSemanticsRuleId.NullLogic)
+        );
+        Assert.AreNotEqual(
+            ExecutionSemanticsContract.Version1.Fingerprint,
+            ExecutionSemanticsContract.Version2.Fingerprint
+        );
     }
 
     [TestMethod]
     public void CurrentContract_ShouldInvalidateArtifactsWithoutInterpretationExpressionSemantics()
     {
         var current = ExecutionSemanticsContract.Current;
-        var previous = new ExecutionSemanticsContract(current.Version,
-            current.RuleDefinitions.Where(rule => rule.Id != ExecutionSemanticsRuleId.InterpretationExpressions));
+        var previous = new ExecutionSemanticsContract(
+            current.Version,
+            current.RuleDefinitions.Where(rule => rule.Id != ExecutionSemanticsRuleId.InterpretationExpressions)
+        );
         Assert.AreNotEqual(previous.Fingerprint, current.Fingerprint);
-        Assert.AreEqual("lossless-coalesce;lazy-three-valued-logic;checked-int32-cursor-domain;typed-parse-recovery;precise-partial-cursor;recursive-binary-values;direct-text-switch-values;payload-json-converters",
-            current.RequireRule(ExecutionSemanticsRuleId.InterpretationExpressions));
+        Assert.AreEqual(
+            "lossless-coalesce;lazy-three-valued-logic;checked-int32-cursor-domain;typed-parse-recovery;precise-partial-cursor;recursive-binary-values;direct-text-switch-values;payload-json-converters",
+            current.RequireRule(ExecutionSemanticsRuleId.InterpretationExpressions)
+        );
     }
 
     [TestMethod]
@@ -63,7 +73,12 @@ public sealed class ExecutionSemanticsContractTests
     {
         var defaultPlan = new ExecutionPlan("Q_Default", [], new ExecutionBlock([]));
         var legacyContract = ExecutionSemanticsContract.Version1;
-        var explicitPlan = new ExecutionPlan("Q_Explicit", [], new ExecutionBlock([]), semanticsContract: legacyContract);
+        var explicitPlan = new ExecutionPlan(
+            "Q_Explicit",
+            [],
+            new ExecutionBlock([]),
+            semanticsContract: legacyContract
+        );
 
         Assert.AreSame(ExecutionSemanticsContract.Version2, defaultPlan.SemanticsContract);
         Assert.AreSame(legacyContract, explicitPlan.SemanticsContract);
@@ -82,7 +97,11 @@ public sealed class ExecutionSemanticsContractTests
         Assert.IsFalse(unsupported.IsSupported);
         CollectionAssert.AreEqual(new[] { 3 }, unsupported.UnsupportedSemanticsVersions.ToArray());
 
-        var readiness = ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(compatibility, runtime, unsupportedContract);
+        var readiness = ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(
+            compatibility,
+            runtime,
+            unsupportedContract
+        );
         Assert.AreSame(unsupportedContract, readiness.SemanticsContract);
     }
 
@@ -91,7 +110,7 @@ public sealed class ExecutionSemanticsContractTests
     {
         var changedRules = new Dictionary<string, string>(ExecutionSemanticsContract.Version2.Rules)
         {
-            ["integer.divide"] = "target-specific"
+            ["integer.divide"] = "target-specific",
         };
         var changedContract = new ExecutionSemanticsContract(2, changedRules);
 
@@ -101,7 +120,8 @@ public sealed class ExecutionSemanticsContractTests
         Assert.IsEmpty(validation.UnsupportedSemanticsVersions);
         CollectionAssert.AreEqual(
             new[] { changedContract.Fingerprint },
-            validation.UnsupportedSemanticsFingerprints.ToArray());
+            validation.UnsupportedSemanticsFingerprints.ToArray()
+        );
     }
 
     private static TargetRuntimeContract CreateEmptyRuntimeContract() =>
@@ -113,5 +133,6 @@ public sealed class ExecutionSemanticsContractTests
             new TargetNullBehaviorContract(false, false, false, "none"),
             new TargetCancellationContract(false, false),
             new TargetDiagnosticsContract(false, false, false),
-            new TargetProfilingContract(false, false, 0, 0));
+            new TargetProfilingContract(false, false, 0, 0)
+        );
 }

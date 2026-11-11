@@ -17,12 +17,14 @@ internal static class SemanticNodeCloneSupport
     internal static void CloneShortCircuit(Node node, Stack<Node> nodes)
     {
         ArgumentNullException.ThrowIfNull(node);
-        nodes.Push(node switch
-        {
-            ShortCircuitingNodeLeft left => new ShortCircuitingNodeLeft(nodes.Pop(), left.UsedFor),
-            ShortCircuitingNodeRight right => new ShortCircuitingNodeRight(nodes.Pop(), right.UsedFor),
-            _ => throw new ArgumentException("Expected a short-circuit node.", nameof(node))
-        });
+        nodes.Push(
+            node switch
+            {
+                ShortCircuitingNodeLeft left => new ShortCircuitingNodeLeft(nodes.Pop(), left.UsedFor),
+                ShortCircuitingNodeRight right => new ShortCircuitingNodeRight(nodes.Pop(), right.UsedFor),
+                _ => throw new ArgumentException("Expected a short-circuit node.", nameof(node)),
+            }
+        );
     }
 
     public static void Visit(Node node, Stack<Node> nodes)

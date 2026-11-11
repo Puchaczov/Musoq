@@ -12,20 +12,21 @@ internal static class InternalErrorMetadataCatalog
             "The compiler reached an invariant failure without a user-owned query classification. The diagnostic is intentionally safe and does not expose engine exception details.",
             [
                 "Record the correlation identifier and the smallest query that reproduces the issue.",
-                "Report the diagnostic with the query text and engine version."
+                "Report the diagnostic with the query text and engine version.",
             ],
             "Diagnostics - Internal Compiler Errors",
-            DiagnosticPhase.Internal);
+            DiagnosticPhase.Internal
+        );
 
         yield return Entry(
             DiagnosticCode.MQ9002_InternalExecutionError,
             "The execution engine reached an invariant failure while evaluating a compiled query.",
             [
                 "Record the correlation identifier and the query shape that triggered the failure.",
-                "Report the diagnostic without including secret source arguments."
+                "Report the diagnostic without including secret source arguments.",
             ],
             "Diagnostics - Internal Execution Errors",
-            DiagnosticPhase.Internal);
-
+            DiagnosticPhase.Internal
+        );
     }
 }

@@ -14,7 +14,8 @@ internal static partial class CteSidecarIndexPlanner
         CompilationOptions options,
         CteStrategyDecision cteStrategy,
         int nextIndexSlot,
-        Func<SupportedPipeline, ParallelPlanEligibility>? evaluateParallelFilterProject = null)
+        Func<SupportedPipeline, ParallelPlanEligibility>? evaluateParallelFilterProject = null
+    )
     {
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(options);
@@ -24,15 +25,21 @@ internal static partial class CteSidecarIndexPlanner
             return CteSidecarIndexPlanningResult.Empty(nextIndexSlot);
 
         var decisions = new List<PlanningDecision>();
-        var definitionsByName = new Dictionary<string, IReadOnlyList<CteSidecarIndexSpec>>(StringComparer.OrdinalIgnoreCase);
-        var consumersByJoin = new Dictionary<PhysicalHashJoinNode, CteSidecarIndexSpec>(ReferenceComparer<PhysicalHashJoinNode>.Instance);
+        var definitionsByName = new Dictionary<string, IReadOnlyList<CteSidecarIndexSpec>>(
+            StringComparer.OrdinalIgnoreCase
+        );
+        var consumersByJoin = new Dictionary<PhysicalHashJoinNode, CteSidecarIndexSpec>(
+            ReferenceComparer<PhysicalHashJoinNode>.Instance
+        );
         var specsByStableKey = new Dictionary<string, CteSidecarIndexSpec>(StringComparer.OrdinalIgnoreCase);
         var currentSlot = nextIndexSlot;
 
         for (var definitionIndex = 0; definitionIndex < node.Definitions.Length; definitionIndex++)
         {
             var definition = node.Definitions[definitionIndex];
-            if (!TryGetDefinitionEligibility(definition, cteStrategy, evaluateParallelFilterProject, out var skipReason))
+            if (
+                !TryGetDefinitionEligibility(definition, cteStrategy, evaluateParallelFilterProject, out var skipReason)
+            )
             {
                 decisions.Add(CreateSkippedDecision(definition.Name, "definition", skipReason));
                 continue;
@@ -42,28 +49,39 @@ internal static partial class CteSidecarIndexPlanner
             {
                 if (consumer.HashJoin == null || consumer.CteRef == null)
                 {
-                    decisions.Add(CreateSkippedDecision(
-                        definition.Name,
-                        consumer.HashJoin == null ? "join" : CreateConsumerTarget(definition.Name, consumer.HashJoin),
-                        string.IsNullOrWhiteSpace(consumer.SkipReason)
-                            ? "Consumer is not an eligible direct hash-build CTE reference."
-                            : consumer.SkipReason));
+                    decisions.Add(
+                        CreateSkippedDecision(
+                            definition.Name,
+                            consumer.HashJoin == null
+                                ? "join"
+                                : CreateConsumerTarget(definition.Name, consumer.HashJoin),
+                            string.IsNullOrWhiteSpace(consumer.SkipReason)
+                                ? "Consumer is not an eligible direct hash-build CTE reference."
+                                : consumer.SkipReason
+                        )
+                    );
                     continue;
                 }
 
-                if (!TryCreateConsumerSpec(
+                if (
+                    !TryCreateConsumerSpec(
                         definition.Name,
                         definition.Plan.OutputSchema,
                         consumer.HashJoin,
                         consumer.CteRef,
                         currentSlot,
                         out var candidate,
-                        out var consumerSkipReason))
+                        out var consumerSkipReason
+                    )
+                )
                 {
-                    decisions.Add(CreateSkippedDecision(
-                        definition.Name,
-                        CreateConsumerTarget(definition.Name, consumer.HashJoin),
-                        string.IsNullOrWhiteSpace(consumer.SkipReason) ? consumerSkipReason : consumer.SkipReason));
+                    decisions.Add(
+                        CreateSkippedDecision(
+                            definition.Name,
+                            CreateConsumerTarget(definition.Name, consumer.HashJoin),
+                            string.IsNullOrWhiteSpace(consumer.SkipReason) ? consumerSkipReason : consumer.SkipReason
+                        )
+                    );
                     continue;
                 }
 
@@ -80,12 +98,11 @@ internal static partial class CteSidecarIndexPlanner
             }
         }
 
-        foreach (var group in specsByStableKey.Values
-                     .GroupBy(static spec => spec.CteName, StringComparer.OrdinalIgnoreCase))
+        foreach (
+            var group in specsByStableKey.Values.GroupBy(static spec => spec.CteName, StringComparer.OrdinalIgnoreCase)
+        )
         {
-            definitionsByName[group.Key] = group
-                .OrderBy(static spec => spec.IndexSlot)
-                .ToArray();
+            definitionsByName[group.Key] = group.OrderBy(static spec => spec.IndexSlot).ToArray();
         }
 
         if (definitionsByName.Count == 0 && consumersByJoin.Count == 0)
@@ -94,26 +111,21 @@ internal static partial class CteSidecarIndexPlanner
         return new CteSidecarIndexPlanningResult(
             new CteSidecarIndexPlan(definitionsByName, consumersByJoin),
             decisions,
-            currentSlot);
+            currentSlot
+        );
     }
 
-    public static string CreateStableKey(
-        string cteName,
-        CteSidecarIndexKind kind,
-        IReadOnlyList<string> keyColumns)
+    public static string CreateStableKey(string cteName, CteSidecarIndexKind kind, IReadOnlyList<string> keyColumns)
     {
-        return string.Join(
-            "|",
-            cteName,
-            kind.ToString(),
-            string.Join("\u001f", keyColumns));
+        return string.Join("|", cteName, kind.ToString(), string.Join("\u001f", keyColumns));
     }
 
     private static bool TryGetDefinitionEligibility(
         PhysicalCteDefinition definition,
         CteStrategyDecision cteStrategy,
         Func<SupportedPipeline, ParallelPlanEligibility>? evaluateParallelFilterProject,
-        out string reason)
+        out string reason
+    )
     {
         if (GeneratedSubqueryContract.IsGeneratedSubqueryCteName(definition.Name))
         {
@@ -127,14 +139,18 @@ internal static partial class CteSidecarIndexPlanner
             return false;
         }
 
-        if (strategy.Kind is not (CteDefinitionStrategyKind.MaterializeSingleUse or CteDefinitionStrategyKind.MaterializeReuse))
+        if (
+            strategy.Kind
+            is not (CteDefinitionStrategyKind.MaterializeSingleUse or CteDefinitionStrategyKind.MaterializeReuse)
+        )
         {
             reason = $"CTE strategy is {strategy.Kind}, so there is no materialized table append path to decorate.";
             return false;
         }
 
         var pipeline = ExecutionStrategyPipelineDecomposer.TryDecomposeSupportedPipeline(
-            ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(definition.Plan));
+            ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(definition.Plan)
+        );
         if (pipeline == null)
         {
             reason = "CTE output is not a supported direct filter/project table pipeline for sidecar index production.";
@@ -166,7 +182,8 @@ internal static partial class CteSidecarIndexPlanner
     private static IEnumerable<CteHashJoinConsumer> FindLaterDirectConsumers(
         PhysicalCteNode cteNode,
         int definitionIndex,
-        string cteName)
+        string cteName
+    )
     {
         for (var index = definitionIndex + 1; index < cteNode.Definitions.Length; index++)
         {
@@ -184,13 +201,17 @@ internal static partial class CteSidecarIndexPlanner
     private static IEnumerable<CteHashJoinConsumer> FindDirectConsumers(
         PhysicalNode node,
         string cteName,
-        string referenceName)
+        string referenceName
+    )
     {
         if (node is PhysicalRecursiveCteNode recursive)
         {
-            foreach (var invariant in recursive.Invariants.Where(invariant =>
-                         invariant.StorageKind == PhysicalRecursiveCteInvariantStorageKind.ExistingHashIndex &&
-                         string.Equals(invariant.ExistingCteName, cteName, StringComparison.OrdinalIgnoreCase)))
+            foreach (
+                var invariant in recursive.Invariants.Where(invariant =>
+                    invariant.StorageKind == PhysicalRecursiveCteInvariantStorageKind.ExistingHashIndex
+                    && string.Equals(invariant.ExistingCteName, cteName, StringComparison.OrdinalIgnoreCase)
+                )
+            )
             {
                 foreach (var consumer in FindDirectConsumers(recursive.RecursiveMember, cteName, invariant.Name))
                     yield return consumer;
@@ -205,7 +226,11 @@ internal static partial class CteSidecarIndexPlanner
                 if (hashJoin.Kind == JoinKind.FullOuter)
                 {
                     if (HasDirectCteRef(hashJoin.Left, referenceName) || HasDirectCteRef(hashJoin.Right, referenceName))
-                        yield return new CteHashJoinConsumer(null, null, "Full outer hash joins track per-build-row match state and do not use CTE sidecar indexes.");
+                        yield return new CteHashJoinConsumer(
+                            null,
+                            null,
+                            "Full outer hash joins track per-build-row match state and do not use CTE sidecar indexes."
+                        );
 
                     break;
                 }
@@ -214,19 +239,35 @@ internal static partial class CteSidecarIndexPlanner
                 {
                     yield return new CteHashJoinConsumer(hashJoin, cteRef);
                 }
-                else if (HasDirectCteRef(hashJoin.Left, referenceName) || HasDirectCteRef(hashJoin.Right, referenceName))
+                else if (
+                    HasDirectCteRef(hashJoin.Left, referenceName) || HasDirectCteRef(hashJoin.Right, referenceName)
+                )
                 {
                     yield return new CteHashJoinConsumer(hashJoin, null, skipReason);
                 }
 
                 break;
             case PhysicalSortMergeJoinNode sortMergeJoin:
-                if (HasDirectCteRef(sortMergeJoin.Left, referenceName) || HasDirectCteRef(sortMergeJoin.Right, referenceName))
-                    yield return new CteHashJoinConsumer(null, null, "Sort-merge joins keep their existing range/order-oriented lowering.");
+                if (
+                    HasDirectCteRef(sortMergeJoin.Left, referenceName)
+                    || HasDirectCteRef(sortMergeJoin.Right, referenceName)
+                )
+                    yield return new CteHashJoinConsumer(
+                        null,
+                        null,
+                        "Sort-merge joins keep their existing range/order-oriented lowering."
+                    );
                 break;
             case PhysicalNestedLoopJoinNode nestedLoopJoin:
-                if (HasDirectCteRef(nestedLoopJoin.Left, referenceName) || HasDirectCteRef(nestedLoopJoin.Right, referenceName))
-                    yield return new CteHashJoinConsumer(null, null, "Nested-loop joins do not use a hash-build consumer.");
+                if (
+                    HasDirectCteRef(nestedLoopJoin.Left, referenceName)
+                    || HasDirectCteRef(nestedLoopJoin.Right, referenceName)
+                )
+                    yield return new CteHashJoinConsumer(
+                        null,
+                        null,
+                        "Nested-loop joins do not use a hash-build consumer."
+                    );
                 break;
         }
 
@@ -241,20 +282,25 @@ internal static partial class CteSidecarIndexPlanner
         PhysicalHashJoinNode hashJoin,
         string cteName,
         out PhysicalCteRefNode cteRef,
-        out string reason)
+        out string reason
+    )
     {
         var candidates = new List<PhysicalCteRefNode>(2);
 
-        if (hashJoin.Left is PhysicalCteRefNode left &&
-            string.Equals(left.CteName, cteName, StringComparison.OrdinalIgnoreCase) &&
-            HashBuildAliasUsage.BuildKeysReferenceAlias(hashJoin, left.Alias))
+        if (
+            hashJoin.Left is PhysicalCteRefNode left
+            && string.Equals(left.CteName, cteName, StringComparison.OrdinalIgnoreCase)
+            && HashBuildAliasUsage.BuildKeysReferenceAlias(hashJoin, left.Alias)
+        )
         {
             candidates.Add(left);
         }
 
-        if (hashJoin.Right is PhysicalCteRefNode right &&
-            string.Equals(right.CteName, cteName, StringComparison.OrdinalIgnoreCase) &&
-            HashBuildAliasUsage.BuildKeysReferenceAlias(hashJoin, right.Alias))
+        if (
+            hashJoin.Right is PhysicalCteRefNode right
+            && string.Equals(right.CteName, cteName, StringComparison.OrdinalIgnoreCase)
+            && HashBuildAliasUsage.BuildKeysReferenceAlias(hashJoin, right.Alias)
+        )
         {
             candidates.Add(right);
         }
@@ -267,20 +313,22 @@ internal static partial class CteSidecarIndexPlanner
         }
 
         cteRef = null!;
-        reason = candidates.Count == 0
-            ? "The CTE is not the direct physical hash-build side for this consumer."
-            : "The hash-build side is ambiguous for this CTE consumer.";
+        reason =
+            candidates.Count == 0
+                ? "The CTE is not the direct physical hash-build side for this consumer."
+                : "The hash-build side is ambiguous for this CTE consumer.";
         return false;
     }
 
     private static bool HasDirectCteRef(PhysicalNode node, string cteName)
     {
-        return node is PhysicalCteRefNode cteRef &&
-               string.Equals(cteRef.CteName, cteName, StringComparison.OrdinalIgnoreCase);
+        return node is PhysicalCteRefNode cteRef
+            && string.Equals(cteRef.CteName, cteName, StringComparison.OrdinalIgnoreCase);
     }
 
     private readonly record struct CteHashJoinConsumer(
         PhysicalHashJoinNode? HashJoin,
         PhysicalCteRefNode? CteRef,
-        string SkipReason = "");
+        string SkipReason = ""
+    );
 }

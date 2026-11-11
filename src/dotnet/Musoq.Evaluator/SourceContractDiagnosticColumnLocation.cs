@@ -5,4 +5,5 @@ namespace Musoq.Evaluator;
 
 internal sealed record SourceContractDiagnosticColumnLocation(
     TextSpan ColumnSpan,
-    IReadOnlyDictionary<string, TextSpan> ModifierSpans);
+    IReadOnlyDictionary<string, TextSpan> ModifierSpans
+);

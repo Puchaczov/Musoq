@@ -13,15 +13,17 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
         return selection.Result;
     }
 
-    private static bool HasUnqualifiedReference(Node node) => node switch
-    {
-        DotNode { Root: IdentifierNode, Expression: IdentifierNode } => false,
-        AccessColumnNode column => string.IsNullOrEmpty(column.Alias),
-        IdentifierNode => true,
-        _ => ParserNodeChildTraversal.EnumerateChildren(node).Any(HasUnqualifiedReference)
-    };
+    private static bool HasUnqualifiedReference(Node node) =>
+        node switch
+        {
+            DotNode { Root: IdentifierNode, Expression: IdentifierNode } => false,
+            AccessColumnNode column => string.IsNullOrEmpty(column.Alias),
+            IdentifierNode => true,
+            _ => ParserNodeChildTraversal.EnumerateChildren(node).Any(HasUnqualifiedReference),
+        };
 
-    private sealed class FallbackSelection(SubqueryToCteRewriteVisitor owner, SubqueryCorrelationAnalysis analysis) : CloneQueryVisitor
+    private sealed class FallbackSelection(SubqueryToCteRewriteVisitor owner, SubqueryCorrelationAnalysis analysis)
+        : CloneQueryVisitor
     {
         internal QueryNode Result => (QueryNode)Nodes.Pop();
         internal int GuardDepth { get; set; }
@@ -53,14 +55,26 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
                 return;
             }
             var operand = Nodes.Pop();
-            if (ReferenceEquals(DirectFilter, node) && GuardDepth == 0 && QuantifiedFilterPredicate.Create(quantified, operand) is { } predicate)
+            if (
+                ReferenceEquals(DirectFilter, node)
+                && GuardDepth == 0
+                && QuantifiedFilterPredicate.Create(quantified, operand) is { } predicate
+            )
             {
                 Nodes.Push(predicate);
                 return;
             }
             owner.RecordFallback(node, "Quantified value requires three-valued reduction after inner result shaping.");
-            var kind = quantified.Quantifier == Musoq.Parser.Tokens.TokenType.All ? SubqueryApplyKind.All : SubqueryApplyKind.Any;
-            Nodes.Push(new SubqueryApplyNode(node.Subquery, kind, operand) { Comparison = quantified.Comparison }.CopySpansFrom(node));
+            var kind =
+                quantified.Quantifier == Musoq.Parser.Tokens.TokenType.All
+                    ? SubqueryApplyKind.All
+                    : SubqueryApplyKind.Any;
+            Nodes.Push(
+                new SubqueryApplyNode(node.Subquery, kind, operand)
+                {
+                    Comparison = quantified.Comparison,
+                }.CopySpansFrom(node)
+            );
         }
 
         private Node Select(Node original, Node query, SubqueryApplyKind kind, Node? operand)
@@ -74,25 +88,40 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
             return original switch
             {
                 InQueryNode => new InQueryNode(operand!, query).CopySpansFrom(original),
-                _ => original
+                _ => original,
             };
         }
 
         private string? GetFallbackReason(Node original, Node query, SubqueryApplyKind kind)
         {
             if (kind == SubqueryApplyKind.Scalar && SubqueryBindingScope.GetSubqueryFields(query).Length != 1)
-                throw SubqueryDiagnosticFactory.InvalidSubquery("scalar subquery validation", "Scalar subquery must return exactly one column.", original);
+                throw SubqueryDiagnosticFactory.InvalidSubquery(
+                    "scalar subquery validation",
+                    "Scalar subquery must return exactly one column.",
+                    original
+                );
             var correlation = analysis.Subqueries.FirstOrDefault(info => ReferenceEquals(info.Node, original));
             if (HasUnqualifiedReference(query))
                 return "Unqualified references require lexical scope binding before selecting an execution strategy.";
             if (GuardDepth > 0)
                 return "The enclosing evaluation guard requires on-demand execution.";
-            if (kind == SubqueryApplyKind.Scalar && correlation is { IsCorrelated: true } &&
-                SubqueryBindingScope.GetSubqueryFields(query).Any(field =>
-                    SubqueryCorrelationUtilities.ReferencesAnyAlias(field.Expression, correlation.CorrelatedAliases)))
+            if (
+                kind == SubqueryApplyKind.Scalar
+                && correlation is { IsCorrelated: true }
+                && SubqueryBindingScope
+                    .GetSubqueryFields(query)
+                    .Any(field =>
+                        SubqueryCorrelationUtilities.ReferencesAnyAlias(field.Expression, correlation.CorrelatedAliases)
+                    )
+            )
                 return "The projection contains typed outer references.";
-            if (kind == SubqueryApplyKind.In && correlation is { IsCorrelated: true, Facts.HasEqualityKeys: false } &&
-                !owner.RewriteRequests.Any(request => ReferenceEquals(request.Node, original) && request.IsDirectFilter))
+            if (
+                kind == SubqueryApplyKind.In
+                && correlation is { IsCorrelated: true, Facts.HasEqualityKeys: false }
+                && !owner.RewriteRequests.Any(request =>
+                    ReferenceEquals(request.Node, original) && request.IsDirectFilter
+                )
+            )
                 return "The membership value requires per-binding comparison without an equality partition.";
             return owner.ProbeSubquerySpecialization(original, analysis);
         }
@@ -112,7 +141,8 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
         public override void Visit(QueryNode node)
         {
             var previous = _filteredProjection;
-            _filteredProjection = node.Where is not null || node.Qualify is not null || node.GroupBy?.Having is not null;
+            _filteredProjection =
+                node.Where is not null || node.Qualify is not null || node.GroupBy?.Having is not null;
             base.Visit(node);
             _filteredProjection = previous;
         }
@@ -127,6 +157,7 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
         }
 
         public override void Visit(ScalarSubqueryNode node) => node.Accept(selection);
+
         public override void Visit(ExistsQueryNode node)
         {
             if (node is QuantifiedSubqueryNode quantified)
@@ -140,6 +171,7 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
             base.Visit(node);
             selection.DirectFilter = null;
         }
+
         public override void Visit(InQueryNode node)
         {
             node.Left.Accept(this);
@@ -147,7 +179,9 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
         }
 
         public override void Visit(AndNode node) => VisitGuardedBinary(node);
+
         public override void Visit(OrNode node) => VisitGuardedBinary(node);
+
         public override void Visit(CoalesceNode node) => VisitGuardedBinary(node);
 
         private void VisitGuardedBinary(BinaryNode node)

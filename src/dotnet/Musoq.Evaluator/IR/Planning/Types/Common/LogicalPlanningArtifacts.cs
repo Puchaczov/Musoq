@@ -3,4 +3,8 @@ using Musoq.Evaluator.IR.Optimization;
 
 namespace Musoq.Evaluator.IR.Planning;
 
-internal sealed record LogicalPlanningArtifacts(LogicalNode InitialLogicalPlan, LogicalNode OptimizedLogicalPlan, OptimizationTrace OptimizerTrace);
+internal sealed record LogicalPlanningArtifacts(
+    LogicalNode InitialLogicalPlan,
+    LogicalNode OptimizedLogicalPlan,
+    OptimizationTrace OptimizerTrace
+);

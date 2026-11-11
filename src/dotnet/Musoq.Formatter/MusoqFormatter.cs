@@ -36,7 +36,9 @@ public static class MusoqFormatter
         if (significant.All(t => t.Role == SyntaxTokenRole.Comment))
             document = Document.Join(significant.SelectMany(t => new[] { Document.SourceText(t.Text), Document.Line }));
         else
-            document = new ScriptLayout(new LayoutContext(new SyntaxIndex(syntax), new TokenDocuments(options), source)).Build(elements);
+            document = new ScriptLayout(
+                new LayoutContext(new SyntaxIndex(syntax), new TokenDocuments(options), source)
+            ).Build(elements);
         var output = new DocumentRenderer(options, newline).Render(document);
         if (!Parser.Parser.ParseSyntax(output).Success)
             return Unsupported(syntax, significant[0], "The generated layout did not preserve valid syntax.");
@@ -45,13 +47,22 @@ public static class MusoqFormatter
 
     private static bool Supports(SyntaxToken token) => token.Role != SyntaxTokenRole.Unknown;
 
-    private static FormattingResult Unsupported(SyntaxParseResult syntax, SyntaxToken token,
-        string message = "This syntax does not yet have a formatting rule.")
+    private static FormattingResult Unsupported(
+        SyntaxParseResult syntax,
+        SyntaxToken token,
+        string message = "This syntax does not yet have a formatting rule."
+    )
     {
         var locations = syntax.SourceText.GetLocations(token.Span);
-        var diagnostic = new Diagnostic(DiagnosticCode.MQ9001_InternalCompilerError, DiagnosticSeverity.Error,
-            message, locations.Start, locations.End,
-            phase: DiagnosticPhase.Internal, sourceKind: DiagnosticSourceKind.Query);
+        var diagnostic = new Diagnostic(
+            DiagnosticCode.MQ9001_InternalCompilerError,
+            DiagnosticSeverity.Error,
+            message,
+            locations.Start,
+            locations.End,
+            phase: DiagnosticPhase.Internal,
+            sourceKind: DiagnosticSourceKind.Query
+        );
         return new FormattingResult(null, syntax.Diagnostics.Append(diagnostic));
     }
 

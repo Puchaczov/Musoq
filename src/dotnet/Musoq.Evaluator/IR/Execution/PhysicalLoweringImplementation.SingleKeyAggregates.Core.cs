@@ -7,7 +7,8 @@ internal sealed partial class PhysicalLoweringImplementation
         SingleKeyAggregateExecutionSource source,
         string resultTableName,
         string resultShapeName,
-        bool scopeAggregateVariables)
+        bool scopeAggregateVariables
+    )
     {
         var groupKey = ExecutionExpressionConverter.Convert(pipeline.GroupKey, source.Lookup);
         if (CanUseLeanDistinct(pipeline))
@@ -20,44 +21,49 @@ internal sealed partial class PhysicalLoweringImplementation
                 groupKey,
                 resultTableName,
                 resultShapeName,
-                scopeAggregateVariables);
+                scopeAggregateVariables
+            );
         }
 
         var outputFields = NormalizeProjectedFieldIndexes(pipeline.Project.Fields);
         var resultShape = CreateGeneratedShape(resultShapeName, outputFields);
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
         var aggregateScopeName = CreateAggregateScopeName(resultTableName, scopeAggregateVariables);
-        var finalizationGroupKeys = new AggregateFinalizationGroupKeys([pipeline.GroupKey], [pipeline.GroupKeyName], [pipeline.GroupKeyType]);
+        var finalizationGroupKeys = new AggregateFinalizationGroupKeys(
+            [pipeline.GroupKey],
+            [pipeline.GroupKeyName],
+            [pipeline.GroupKeyType]
+        );
         var rootGroup = CreateAggregateGroupVariable(aggregateScopeName, "rootGroup");
         var groupsToFinalize = CreateAggregateGroupVariable(aggregateScopeName, "groupsToFinalize");
-        var groups = CreateAggregateVariable(
-            aggregateScopeName,
-            "groups",
-            typeof(object));
-        var nullGroup = pipeline.GroupKeyType.IsValueType && Nullable.GetUnderlyingType(pipeline.GroupKeyType) is null
-            ? null
-            : CreateAggregateGroupVariable(aggregateScopeName, "nullGroup");
+        var groups = CreateAggregateVariable(aggregateScopeName, "groups", typeof(object));
+        var nullGroup =
+            pipeline.GroupKeyType.IsValueType && Nullable.GetUnderlyingType(pipeline.GroupKeyType) is null
+                ? null
+                : CreateAggregateGroupVariable(aggregateScopeName, "nullGroup");
         var currentGroup = CreateAggregateGroupVariable(aggregateScopeName, "group");
         var finalGroup = CreateAggregateGroupVariable(aggregateScopeName, "finalGroup");
-        var aggregateResources = CreateAggregateLoweringResources(new AggregateLoweringResourceRequest(
-            resultTableName,
-            aggregateScopeName,
-            pipeline.Bindings,
-            outputFields,
-            pipeline.HavingPredicate,
-            pipeline.PostOperations,
-            finalizationGroupKeys,
-            currentGroup,
-            finalGroup,
-            source.Lookup,
-            "single-key aggregate"));
+        var aggregateResources = CreateAggregateLoweringResources(
+            new AggregateLoweringResourceRequest(
+                resultTableName,
+                aggregateScopeName,
+                pipeline.Bindings,
+                outputFields,
+                pipeline.HavingPredicate,
+                pipeline.PostOperations,
+                finalizationGroupKeys,
+                currentGroup,
+                finalGroup,
+                source.Lookup,
+                "single-key aggregate"
+            )
+        );
         if (!aggregateResources.IsBuilt)
             return TableBuildResult.Unsupported(aggregateResources.UnsupportedReason);
 
         var aggregate = aggregateResources.Value;
-        var aggregateBody = new ExecutionBlock([..aggregate.SetNodes.Nodes, ..aggregate.ValueCapture.Nodes]);
-        var serialAggregateBody = new ExecutionBlock(
-        [
+        var aggregateBody = new ExecutionBlock([.. aggregate.SetNodes.Nodes, .. aggregate.ValueCapture.Nodes]);
+        var serialAggregateBody = new ExecutionBlock([
             new ExecutionGetOrAddSingleKeyAggregateGroup(
                 rootGroup,
                 groups,
@@ -67,56 +73,68 @@ internal sealed partial class PhysicalLoweringImplementation
                 pipeline.GroupKeyName,
                 pipeline.GroupKeyType,
                 nullGroup,
-                aggregate.Group.Plan),
-            ..aggregateBody.Nodes
+                aggregate.Group.Plan
+            ),
+            .. aggregateBody.Nodes,
         ]);
         var accumulationBlock = CreateAggregateAccumulationBlock(
             pipeline.Source.Filter,
             source.Lookup,
-            serialAggregateBody);
+            serialAggregateBody
+        );
         var loop = source.CreateLoop(accumulationBlock);
-        ExecutionNode aggregateLoop = TryCreateParallelSingleKeyAggregateLoop(
-            pipeline,
-            source,
-            groupKey,
-            currentGroup,
-            rootGroup,
-            groupsToFinalize,
-            aggregateBody,
-            aggregate.Group.Shape,
-            aggregate.SetNodes)
-            ?? (ExecutionNode)loop;
+        ExecutionNode aggregateLoop =
+            TryCreateParallelSingleKeyAggregateLoop(
+                pipeline,
+                source,
+                groupKey,
+                currentGroup,
+                rootGroup,
+                groupsToFinalize,
+                aggregateBody,
+                aggregate.Group.Shape,
+                aggregate.SetNodes
+            ) ?? (ExecutionNode)loop;
         var appendRow = CreateGroupedAggregateAppendRow(
             resultTable,
             resultShape,
             outputFields,
-            aggregate.FinalizationContext);
+            aggregate.FinalizationContext
+        );
 
         if (!appendRow.IsBuilt)
             return TableBuildResult.Unsupported(appendRow.UnsupportedReason);
 
-        var finalBlock = CreateAggregateFinalBlock(pipeline.HavingPredicate, aggregate.FinalizationContext, appendRow.Value);
+        var finalBlock = CreateAggregateFinalBlock(
+            pipeline.HavingPredicate,
+            aggregate.FinalizationContext,
+            appendRow.Value
+        );
         if (!finalBlock.IsBuilt)
             return TableBuildResult.Unsupported(finalBlock.UnsupportedReason);
 
-        return CompleteAggregateTableBuild(new AggregateTableCompletion(
-            source.Shapes,
-            source.Setup,
-            aggregate,
-            resultTable,
-            resultShape,
-            new ExecutionCreateSingleKeyAggregateContext(
-                rootGroup,
-                groups,
+        return CompleteAggregateTableBuild(
+            new AggregateTableCompletion(
+                source.Shapes,
+                source.Setup,
+                aggregate,
+                resultTable,
+                resultShape,
+                new ExecutionCreateSingleKeyAggregateContext(
+                    rootGroup,
+                    groups,
+                    groupsToFinalize,
+                    nullGroup,
+                    pipeline.GroupKeyType,
+                    aggregate.Group.Plan
+                ),
+                aggregateLoop,
                 groupsToFinalize,
-                nullGroup,
-                pipeline.GroupKeyType,
-                aggregate.Group.Plan),
-            aggregateLoop,
-            groupsToFinalize,
-            finalGroup,
-            finalBlock.Value,
-            pipeline.PostOperations,
-            pipeline.Project.IsDistinct));
+                finalGroup,
+                finalBlock.Value,
+                pipeline.PostOperations,
+                pipeline.Project.IsDistinct
+            )
+        );
     }
 }

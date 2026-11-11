@@ -23,7 +23,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -38,8 +38,7 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -125,15 +124,21 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
     {
         // Arrange — JOIN condition using arithmetic operator with incompatible types
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-    FROM #A.Entities() a
-    INNER JOIN #B.Entities() b ON a.Name % 2 = 0";
+        var query = (
+            "SELECT a.Name, b.Name\n"
+            + "    FROM #A.Entities() a\n"
+            + "    INNER JOIN #B.Entities() b ON a.Name % 2 = 0"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
 
         // Assert — Should report type mismatch in JOIN condition
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3007_InvalidOperandTypes, "JOIN condition with incompatible types");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3007_InvalidOperandTypes,
+            "JOIN condition with incompatible types"
+        );
     }
 
     [TestMethod]
@@ -245,7 +250,11 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain Substring requires string
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3088_NoMatchingCallableOverload, "Substring with integer first argument");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            "Substring with integer first argument"
+        );
     }
 
     [TestMethod]
@@ -259,7 +268,11 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain CASE branches must return same type
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3027_InvalidExpressionType, "CASE branches with different types");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3027_InvalidExpressionType,
+            "CASE branches with different types"
+        );
     }
 
     #endregion
@@ -303,9 +316,11 @@ public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
     {
         // Arrange — b.NonExistent in JOIN
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.NonExistent
-FROM #A.Entities() a
-INNER JOIN #B.Entities() b ON a.Name = b.Name";
+        var query = (
+            "SELECT a.Name, b.NonExistent\n"
+            + "FROM #A.Entities() a\n"
+            + "INNER JOIN #B.Entities() b ON a.Name = b.Name"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -319,9 +334,7 @@ INNER JOIN #B.Entities() b ON a.Name = b.Name";
     {
         // Arrange — 'Name' exists in both tables without alias
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name
-FROM #A.Entities() a
-INNER JOIN #B.Entities() b ON a.Name = b.Name";
+        var query = ("SELECT Name\n" + "FROM #A.Entities() a\n" + "INNER JOIN #B.Entities() b ON a.Name = b.Name");
 
         // Act
         var result = analyzer.Analyze(query);
@@ -350,8 +363,7 @@ INNER JOIN #B.Entities() b ON a.Name = b.Name";
     {
         // Arrange — Unqualified column Name with single CTE source is auto-resolved in Musoq
         var analyzer = CreateAnalyzer();
-        var query = @"WITH MyData AS (SELECT Name FROM #A.Entities())
-SELECT Name FROM MyData md";
+        var query = ("WITH MyData AS (SELECT Name FROM #A.Entities())\n" + "SELECT Name FROM MyData md");
 
         // Act
         var result = analyzer.Analyze(query);
@@ -415,8 +427,11 @@ SELECT Name FROM MyData md";
         // Assert — SELECT * expands to all columns. Columns not in GROUP BY and
         // not inside aggregate functions should be flagged as MQ3012 violations.
         // Standard SQL rejects this query, and Musoq now enforces the same rule.
-        AssertHasErrorCode(result, DiagnosticCode.MQ3012_NonAggregateInSelect,
-            "SELECT * includes columns not in GROUP BY");
+        AssertHasErrorCode(
+            result,
+            DiagnosticCode.MQ3012_NonAggregateInSelect,
+            "SELECT * includes columns not in GROUP BY"
+        );
     }
 
     #endregion

@@ -91,8 +91,9 @@ public class ParserNodesExtendedAccessAndQueryTests
         var node = new AccessMethodNode(token, args, extraArgs, false);
         Assert.IsNull(node.Method);
 
-        var method = typeof(string).GetMethod("ToUpper", Type.EmptyTypes) ??
-                     throw new InvalidOperationException("string.ToUpper() was not found.");
+        var method =
+            typeof(string).GetMethod("ToUpper", Type.EmptyTypes)
+            ?? throw new InvalidOperationException("string.ToUpper() was not found.");
         node.ChangeMethod(method);
 
         Assert.IsNotNull(node.Method);

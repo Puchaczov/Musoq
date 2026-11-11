@@ -5,9 +5,7 @@ namespace Musoq.Evaluator.IR.CodeGeneration;
 
 internal static partial class FinalOutputPlanner
 {
-    private static bool CanStreamSerialFinalAppendRows(
-        ExecutionPlan plan,
-        TableViaRowsResultInfo resultInfo)
+    private static bool CanStreamSerialFinalAppendRows(ExecutionPlan plan, TableViaRowsResultInfo resultInfo)
     {
         if (!plan.Body.Nodes.OfType<ExecutionCreateTable>().Any(create => create.Table.Name == resultInfo.TableName))
             return false;
@@ -20,33 +18,39 @@ internal static partial class FinalOutputPlanner
         if (plan.Body.Nodes.Any(node => !IsAllowedSerialShapeStreamNode(node, resultInfo.TableName, loop)))
             return false;
 
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionParallelFilterProjectLoop>(plan.Body).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionParallelBlock>(plan.Body).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionAppendExistingRow>(plan.Body)
-                .Any(append => append.Table.Name == resultInfo.TableName))
+        if (
+            ExecutionIrAnalysis.CollectNodes<ExecutionParallelFilterProjectLoop>(plan.Body).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionParallelBlock>(plan.Body).Any()
+            || ExecutionIrAnalysis
+                .CollectNodes<ExecutionAppendExistingRow>(plan.Body)
+                .Any(append => append.Table.Name == resultInfo.TableName)
+        )
         {
             return false;
         }
 
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionEnumerableSource>(loop.Body).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddSingleKeyAggregateGroup>(loop.Body).Any() ||
-            ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddValueTupleAggregateGroup>(loop.Body).Any())
+        if (
+            ExecutionIrAnalysis.CollectNodes<ExecutionEnumerableSource>(loop.Body).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddSingleKeyAggregateGroup>(loop.Body).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddValueTupleAggregateGroup>(loop.Body).Any()
+        )
         {
             return false;
         }
 
-        var appendRows = ExecutionIrAnalysis.CollectNodes<ExecutionAppendRow>(loop)
+        var appendRows = ExecutionIrAnalysis
+            .CollectNodes<ExecutionAppendRow>(loop)
             .Where(append => append.Table.Name == resultInfo.TableName)
             .ToArray();
 
-        return appendRows.Length == 1 &&
-               appendRows[0].Values.Count == resultInfo.Columns.Count;
+        return appendRows.Length == 1 && appendRows[0].Values.Count == resultInfo.Columns.Count;
     }
 
     private static bool IsAllowedSerialShapeStreamNode(
         ExecutionNode node,
         string finalTableName,
-        ExecutionSourceLoop loop)
+        ExecutionSourceLoop loop
+    )
     {
         return node switch
         {
@@ -61,29 +65,37 @@ internal static partial class FinalOutputPlanner
             ExecutionReturnTable returnTable => returnTable.Table.Name == finalTableName,
             ExecutionLet => true,
             _ when ReferenceEquals(node, loop) => true,
-            _ => false
+            _ => false,
         };
     }
 
-    private static bool HasSupportedFinalShapeWriter(
-        ExecutionBlock block,
-        string finalTableName,
-        int columnCount)
+    private static bool HasSupportedFinalShapeWriter(ExecutionBlock block, string finalTableName, int columnCount)
     {
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionAppendRow>(block)
-            .Any(append => append.Table.Name == finalTableName && append.Values.Count == columnCount))
+        if (
+            ExecutionIrAnalysis
+                .CollectNodes<ExecutionAppendRow>(block)
+                .Any(append => append.Table.Name == finalTableName && append.Values.Count == columnCount)
+        )
         {
             return true;
         }
 
-        if (ExecutionIrAnalysis.CollectNodes<ExecutionAppendExistingRow>(block)
-            .Any(append => append.Table.Name == finalTableName))
+        if (
+            ExecutionIrAnalysis
+                .CollectNodes<ExecutionAppendExistingRow>(block)
+                .Any(append => append.Table.Name == finalTableName)
+        )
         {
             return true;
         }
 
-        if (block.Nodes.OfType<ExecutionMaterializeRecordListToTable>()
-            .Any(materialize => materialize.Target.Name == finalTableName && materialize.FieldIndexes.Count == columnCount))
+        if (
+            block
+                .Nodes.OfType<ExecutionMaterializeRecordListToTable>()
+                .Any(materialize =>
+                    materialize.Target.Name == finalTableName && materialize.FieldIndexes.Count == columnCount
+                )
+        )
         {
             return true;
         }
@@ -105,8 +117,7 @@ internal static partial class FinalOutputPlanner
             ExecutionSkipTable skip => skip.Target.Name == finalTableName,
             ExecutionTakeTable take => take.Target.Name == finalTableName,
             ExecutionSliceTable slice => slice.Target.Name == finalTableName,
-            _ => false
+            _ => false,
         };
     }
-
 }

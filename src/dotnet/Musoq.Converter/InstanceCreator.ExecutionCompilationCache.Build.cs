@@ -18,7 +18,8 @@ public static partial class InstanceCreator
         CompilationOptions compilationOptions,
         ExecutionCompilationCacheKey cacheKey,
         EvaluatorPerformanceTelemetry.CompilationScope telemetry,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var lookupStarted = Stopwatch.GetTimestamp();
@@ -94,13 +95,17 @@ public static partial class InstanceCreator
         var semanticContractFingerprint = CreateSemanticExecutionContractFingerprint(
             items,
             schemaProvider,
-            cancellationToken);
+            cancellationToken
+        );
         cancellationToken.ThrowIfCancellationRequested();
         telemetry.SetSemanticContractFingerprint(semanticContractFingerprint);
-        if (!string.Equals(
+        if (
+            !string.Equals(
                 cachedCompilation.SemanticContractFingerprint,
                 semanticContractFingerprint,
-                StringComparison.Ordinal))
+                StringComparison.Ordinal
+            )
+        )
             return null;
 
         if (!CanUseExecutionCompilationCache(items))
@@ -124,7 +129,8 @@ public static partial class InstanceCreator
             telemetry.SetArtifactIdentity(
                 cachedCompilation.Template.RunnableTypeName,
                 emitted: false,
-                loaded: ContainsQueryScopedRowTransfer(items));
+                loaded: ContainsQueryScopedRowTransfer(items)
+            );
             telemetry.SetBindingIdentity($"{schemaProvider.GetType().AssemblyQualifiedName}|{items.QueryResultMode}");
             compiledQuery = new CompiledQuery(runnable);
             runnable = null;

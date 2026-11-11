@@ -14,9 +14,7 @@ public sealed class GitCommitsSource : DiagnosticChunkedRowSource<GitCommitRow>
     private readonly IGitHistoryStore _store;
 
     public GitCommitsSource(IGitHistoryStore store, SourceExecutionContext context)
-        : this(repository: null, store, context)
-    {
-    }
+        : this(repository: null, store, context) { }
 
     public GitCommitsSource(string? repository, IGitHistoryStore store, SourceExecutionContext context)
         : base(context, SourceName)
@@ -42,8 +40,7 @@ public sealed class GitCommitsSource : DiagnosticChunkedRowSource<GitCommitRow>
             var commits = _store.GetCommits(_repository);
             _context.ReportDataSourceRowsKnown(SourceName, commits.Count);
 
-            var rows = commits
-                .Select(commit => new GitCommitRow(commit, _store.GetStats));
+            var rows = commits.Select(commit => new GitCommitRow(commit, _store.GetStats));
             var plannedRows = GitCommitPlan.Apply(rows, _plan);
             var chunk = new List<GitCommitRow>(ChunkSize);
 
@@ -78,20 +75,21 @@ public sealed class GitCommitsSource : DiagnosticChunkedRowSource<GitCommitRow>
         if (!string.IsNullOrWhiteSpace(explicitRepository))
             return explicitRepository;
 
-        if (context.Plan.Properties.TryGetValue(GitSourcePlanProperties.Repository, out var plannedRepository) &&
-            plannedRepository is string repositoryFromPlan &&
-            !string.IsNullOrWhiteSpace(repositoryFromPlan))
+        if (
+            context.Plan.Properties.TryGetValue(GitSourcePlanProperties.Repository, out var plannedRepository)
+            && plannedRepository is string repositoryFromPlan
+            && !string.IsNullOrWhiteSpace(repositoryFromPlan)
+        )
             return repositoryFromPlan;
 
-        return context.SourceRuntimeSettings.TryGetValue(GitSchema.RepositoryRuntimeSetting, out var repository) &&
-            !string.IsNullOrWhiteSpace(repository)
-                ? repository
-                : null;
+        return
+            context.SourceRuntimeSettings.TryGetValue(GitSchema.RepositoryRuntimeSetting, out var repository)
+            && !string.IsNullOrWhiteSpace(repository)
+            ? repository
+            : null;
     }
 
-    private static int WriteChunk(
-        DiagnosticChunkWriter<GitCommitRow> writer,
-        List<GitCommitRow> chunk)
+    private static int WriteChunk(DiagnosticChunkWriter<GitCommitRow> writer, List<GitCommitRow> chunk)
     {
         if (chunk.Count == 0)
             return 0;

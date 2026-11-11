@@ -14,7 +14,8 @@ public partial class SchemaExtendedTests
         var sink = new CapturingChunkDiagnosticsSink();
         var source = new NonCooperativeDiagnosticChunkedSource(
             CreateSourceContext(new SourceDiagnostics(sink)),
-            "items");
+            "items"
+        );
 
         using (var enumerator = source.Chunks.GetEnumerator())
         {

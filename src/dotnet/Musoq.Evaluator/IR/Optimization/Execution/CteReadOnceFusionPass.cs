@@ -18,23 +18,23 @@ internal sealed class CteReadOnceFusionPass : IExecutionIrOptimizationPass
         {
             return OptimizationResult<ExecutionPlan>.Changed(
                 optimized,
-                $"Expanded {rewriter.ExpandedCandidates} selected read-once CTE fusion candidate(s).");
+                $"Expanded {rewriter.ExpandedCandidates} selected read-once CTE fusion candidate(s)."
+            );
         }
 
         var relatedPhaseCount = ExecutionIrAnalysis.CollectNodes<ExecutionRelatedCtePhase>(plan.Body).Count();
 
         return OptimizationResult<ExecutionPlan>.NoChange(
             plan,
-            $"Observed {relatedPhaseCount} related CTE phase marker(s); no selected read-once fusion candidates required expansion.");
+            $"Observed {relatedPhaseCount} related CTE phase marker(s); no selected read-once fusion candidates required expansion."
+        );
     }
 
     private sealed class CteReadOnceFusionRewriter : ExecutionCteCandidateExpansionRewriter
     {
         public int ExpandedCandidates { get; private set; }
 
-        protected override bool TryExpandCandidate(
-            ExecutionNode node,
-            out IReadOnlyList<ExecutionNode> expandedNodes)
+        protected override bool TryExpandCandidate(ExecutionNode node, out IReadOnlyList<ExecutionNode> expandedNodes)
         {
             if (node is not ExecutionCteReadOnceFusionCandidate candidate)
             {
@@ -47,11 +47,13 @@ internal sealed class CteReadOnceFusionPass : IExecutionIrOptimizationPass
             [
                 new ExecutionPhaseBoundary(
                     QueryPhase.Begin,
-                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"),
+                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"
+                ),
                 .. body.Nodes,
                 new ExecutionPhaseBoundary(
                     QueryPhase.End,
-                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}")
+                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"
+                ),
             ];
             ExpandedCandidates++;
             return true;

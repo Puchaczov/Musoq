@@ -16,7 +16,8 @@ public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> us
     {
         get
         {
-            if (_where is not null) return _where;
+            if (_where is not null)
+                return _where;
 
             _where = (WhereNode)Nodes.Pop();
 
@@ -28,7 +29,8 @@ public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> us
     {
         get
         {
-            if (_from is not null) return _from;
+            if (_from is not null)
+                return _from;
 
             _from = (FromNode)Nodes.Pop();
 
@@ -39,26 +41,42 @@ public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> us
     public override void Visit(AccessColumnNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        base.Visit(usedTables.TryGetValue(node.Alias, out var alias)
-            ? new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), alias, node.ReturnType,
-                TextSpan.Empty, node.IntendedTypeName)
-            : node);
+        base.Visit(
+            usedTables.TryGetValue(node.Alias, out var alias)
+                ? new AccessColumnNode(
+                    NamingHelper.ToColumnName(node.Alias, node.Name),
+                    alias,
+                    node.ReturnType,
+                    TextSpan.Empty,
+                    node.IntendedTypeName
+                )
+                : node
+        );
     }
 
     public override void Visit(PropertyFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        base.Visit(usedTables.TryGetValue(node.SourceAlias, out var alias)
-            ? new Parser.PropertyFromNode(node.Alias, alias, node.PropertiesChain.Select((p, i) =>
-            {
-                if (i == 0)
-                    return p with
-                    {
-                        PropertyName = NamingHelper.ToColumnName(node.SourceAlias, p.PropertyName)
-                    };
+        base.Visit(
+            usedTables.TryGetValue(node.SourceAlias, out var alias)
+                ? new Parser.PropertyFromNode(
+                    node.Alias,
+                    alias,
+                    node.PropertiesChain.Select(
+                            (p, i) =>
+                            {
+                                if (i == 0)
+                                    return p with
+                                    {
+                                        PropertyName = NamingHelper.ToColumnName(node.SourceAlias, p.PropertyName),
+                                    };
 
-                return p;
-            }).ToArray())
-            : node);
+                                return p;
+                            }
+                        )
+                        .ToArray()
+                )
+                : node
+        );
     }
 }

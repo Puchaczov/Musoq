@@ -21,7 +21,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CompilationOptions? compilationOptions = null)
+        CompilationOptions? compilationOptions = null
+    )
     {
         return CompileArtifactWithDiagnostics(
             script,
@@ -29,7 +30,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             compilationOptions,
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     public static ArtifactBuildResult CompileArtifactWithDiagnostics(
@@ -37,7 +39,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CompileArtifactWithDiagnostics(
             script,
@@ -45,7 +48,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static ArtifactBuildResult CompileArtifactWithDiagnostics(
@@ -54,7 +58,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var packageResult = CompileTargetPackageWithDiagnostics(
@@ -64,7 +69,8 @@ public static partial class InstanceCreator
             loggerResolver,
             ExecutionTargetIds.CSharpClr,
             compilationOptions,
-            cancellationToken);
+            cancellationToken
+        );
 
         cancellationToken.ThrowIfCancellationRequested();
         if (!packageResult.Succeeded)
@@ -79,7 +85,8 @@ public static partial class InstanceCreator
                 CompiledQueryArtifactSupport.CurrentEngineVersion,
                 CompiledQueryArtifact.CurrentArtifactFormatVersion,
                 packageResult.CompilationOptionsSignature,
-                cancellationToken);
+                cancellationToken
+            );
         }
         catch (OperationCanceledException)
         {
@@ -103,7 +110,8 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         ExecutionTargetId executionTarget,
         CompilationOptions? compilationOptions = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         return CompileTargetPackageWithDiagnosticsCore(
             script,
@@ -113,7 +121,8 @@ public static partial class InstanceCreator
             executionTarget,
             compilationOptions,
             configureItems: null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     internal static TargetPackageBuildResult CompileTargetPackageWithDiagnostics<TOut>(
@@ -123,7 +132,8 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         ExecutionTargetId executionTarget,
         CompilationOptions? compilationOptions = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         return CompileTargetPackageWithDiagnosticsCore(
             script,
@@ -138,7 +148,8 @@ public static partial class InstanceCreator
                 items.OutputType = typeof(TOut);
                 items.AdditionalReferenceTypes = CreateTypedReferenceTypes<TOut>([]);
             },
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     private static TargetPackageBuildResult CompileTargetPackageWithDiagnosticsCore(
@@ -149,7 +160,8 @@ public static partial class InstanceCreator
         ExecutionTargetId executionTarget,
         CompilationOptions? compilationOptions,
         Action<BuildItems>? configureItems,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(schemaProvider);
         ArgumentNullException.ThrowIfNull(loggerResolver);
@@ -169,8 +181,9 @@ public static partial class InstanceCreator
                 return TargetPackageBuildResult.Failure(parserDiagnostics.ToArray());
 
             if (diagnosticCommand != null)
-                return TargetPackageBuildResult.Failure(
-                    [CreateArtifactDiagnostic("Diagnostic SQL commands cannot be compiled into reusable artifacts.")]);
+                return TargetPackageBuildResult.Failure([
+                    CreateArtifactDiagnostic("Diagnostic SQL commands cannot be compiled into reusable artifacts."),
+                ]);
         }
 
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
@@ -228,11 +241,15 @@ public static partial class InstanceCreator
         cancellationToken.ThrowIfCancellationRequested();
         if (items.ExecutableArtifact is not { } executableArtifact)
         {
-            diagnostics.Add(CreateArtifactDiagnostic("Compilation succeeded but did not produce an executable artifact."));
+            diagnostics.Add(
+                CreateArtifactDiagnostic("Compilation succeeded but did not produce an executable artifact.")
+            );
             return TargetPackageBuildResult.Failure(diagnostics, buildItems: items);
         }
 
-        var compilationOptionsSignature = CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(effectiveCompilationOptions);
+        var compilationOptionsSignature = CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(
+            effectiveCompilationOptions
+        );
         cancellationToken.ThrowIfCancellationRequested();
         var renderingArtifacts = items.RenderingArtifacts;
         var renderingArtifact = renderingArtifacts.Artifact;
@@ -240,18 +257,22 @@ public static partial class InstanceCreator
             renderingArtifact,
             diagnostics,
             cancellationToken,
-            out caughtException);
+            out caughtException
+        );
         cancellationToken.ThrowIfCancellationRequested();
         if (caughtException != null)
             return TargetPackageBuildResult.Failure(diagnostics, caughtException, items);
 
         cancellationToken.ThrowIfCancellationRequested();
-        if (!TryGetTargetAnalysisForPackage(
+        if (
+            !TryGetTargetAnalysisForPackage(
                 renderingArtifacts,
                 diagnostics,
                 out var runtimeContract,
                 out var readinessReport,
-                out var semanticsContract))
+                out var semanticsContract
+            )
+        )
         {
             return TargetPackageBuildResult.Failure(diagnostics, buildItems: items);
         }
@@ -275,7 +296,9 @@ public static partial class InstanceCreator
                     semanticsContract,
                     runtimeContract,
                     readinessReport,
-                    items.ExecutionPlan?.ExecutionIrVersion ?? TargetContractVersions.ExecutionIr));
+                    items.ExecutionPlan?.ExecutionIrVersion ?? TargetContractVersions.ExecutionIr
+                )
+            );
         }
         catch (OperationCanceledException)
         {
@@ -289,12 +312,7 @@ public static partial class InstanceCreator
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        return TargetPackageBuildResult.Success(
-            package,
-            inspection,
-            diagnostics,
-            items,
-            compilationOptionsSignature);
+        return TargetPackageBuildResult.Success(package, inspection, diagnostics, items, compilationOptionsSignature);
     }
 
     private static void ConfigureReusableArtifactRendering(BuildItems items)
@@ -307,19 +325,25 @@ public static partial class InstanceCreator
         ICollection<Diagnostic> diagnostics,
         out TargetRuntimeContract runtimeContract,
         out ExecutionTargetReadinessReport readinessReport,
-        out ExecutionSemanticsContract semanticsContract)
+        out ExecutionSemanticsContract semanticsContract
+    )
     {
         runtimeContract = null!;
         readinessReport = null!;
         semanticsContract = null!;
 
-        if (renderingArtifacts.CompatibilityReport == null ||
-            renderingArtifacts.RuntimeContract == null ||
-            renderingArtifacts.ReadinessReport == null ||
-            renderingArtifacts.SemanticsContract == null)
+        if (
+            renderingArtifacts.CompatibilityReport == null
+            || renderingArtifacts.RuntimeContract == null
+            || renderingArtifacts.ReadinessReport == null
+            || renderingArtifacts.SemanticsContract == null
+        )
         {
-            diagnostics.Add(CreateArtifactDiagnostic(
-                $"Compiled artifact packaging failed: target analysis artifacts are missing for execution target '{renderingArtifacts.Artifact.TargetId}'."));
+            diagnostics.Add(
+                CreateArtifactDiagnostic(
+                    $"Compiled artifact packaging failed: target analysis artifacts are missing for execution target '{renderingArtifacts.Artifact.TargetId}'."
+                )
+            );
             return false;
         }
 
@@ -335,7 +359,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions = null,
-        CompiledQueryArtifactTypeLoader? typeLoader = null)
+        CompiledQueryArtifactTypeLoader? typeLoader = null
+    )
     {
         return CreateExecutableFromArtifactWithDiagnostics(
             script,
@@ -344,7 +369,8 @@ public static partial class InstanceCreator
             loggerResolver,
             compilationOptions,
             typeLoader,
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
@@ -352,7 +378,8 @@ public static partial class InstanceCreator
         ICompiledQueryArtifact artifact,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateExecutableFromArtifactWithDiagnosticsCore(
             script,
@@ -362,7 +389,8 @@ public static partial class InstanceCreator
             compilationOptions: null,
             loadOptions: null,
             loader: null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
@@ -371,7 +399,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateExecutableFromArtifactWithDiagnostics(
             script,
@@ -380,7 +409,8 @@ public static partial class InstanceCreator
             loggerResolver,
             compilationOptions,
             null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
@@ -390,7 +420,8 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
         CompiledQueryArtifactTypeLoader? typeLoader,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateExecutableFromArtifactWithDiagnosticsCore(
             script,
@@ -402,7 +433,8 @@ public static partial class InstanceCreator
             typeLoader == null
                 ? null
                 : loadedArtifact => new CompiledQueryArtifactLoadResult(typeLoader(loadedArtifact)),
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
@@ -411,7 +443,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompiledQueryArtifactTypeLoaderWithCancellation? typeLoader,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateExecutableFromArtifactWithDiagnosticsCore(
             script,
@@ -423,7 +456,8 @@ public static partial class InstanceCreator
             typeLoader == null
                 ? null
                 : loadedArtifact => new CompiledQueryArtifactLoadResult(typeLoader(loadedArtifact, cancellationToken)),
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
@@ -433,7 +467,8 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         CompiledQueryArtifactLoadOptions? loadOptions,
         CompilationOptions? compilationOptions = null,
-        CompiledQueryArtifactLoader? loader = null)
+        CompiledQueryArtifactLoader? loader = null
+    )
     {
         return CreateExecutableFromArtifactWithDiagnostics(
             script,
@@ -443,7 +478,8 @@ public static partial class InstanceCreator
             loadOptions,
             compilationOptions,
             loader,
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
@@ -452,7 +488,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompiledQueryArtifactLoadOptions? loadOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateExecutableFromArtifactWithDiagnosticsCore(
             script,
@@ -462,7 +499,8 @@ public static partial class InstanceCreator
             compilationOptions: null,
             loadOptions,
             loader: null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
@@ -472,7 +510,8 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         CompiledQueryArtifactLoadOptions? loadOptions,
         CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateExecutableFromArtifactWithDiagnosticsCore(
             script,
@@ -482,7 +521,8 @@ public static partial class InstanceCreator
             compilationOptions,
             loadOptions,
             loader: null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
@@ -493,7 +533,8 @@ public static partial class InstanceCreator
         CompiledQueryArtifactLoadOptions? loadOptions,
         CompilationOptions? compilationOptions,
         CompiledQueryArtifactLoader? loader,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateExecutableFromArtifactWithDiagnosticsCore(
             script,
@@ -503,7 +544,8 @@ public static partial class InstanceCreator
             compilationOptions,
             loadOptions,
             loader == null ? null : loadedArtifact => loader(loadedArtifact),
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
@@ -514,7 +556,8 @@ public static partial class InstanceCreator
         CompiledQueryArtifactLoadOptions? loadOptions,
         CompilationOptions? compilationOptions,
         CompiledQueryArtifactLoaderWithCancellation? loader,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateExecutableFromArtifactWithDiagnosticsCore(
             script,
@@ -523,10 +566,9 @@ public static partial class InstanceCreator
             loggerResolver,
             compilationOptions,
             loadOptions,
-            loader == null
-                ? null
-                : loadedArtifact => loader(loadedArtifact, cancellationToken),
-            cancellationToken);
+            loader == null ? null : loadedArtifact => loader(loadedArtifact, cancellationToken),
+            cancellationToken
+        );
     }
 
     private static BuildResult CreateExecutableFromArtifactWithDiagnosticsCore(
@@ -537,7 +579,8 @@ public static partial class InstanceCreator
         CompilationOptions? compilationOptions,
         CompiledQueryArtifactLoadOptions? loadOptions,
         Func<ICompiledQueryArtifact, CompiledQueryArtifactLoadResult>? loader,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(artifact);
         ArgumentNullException.ThrowIfNull(schemaProvider);
@@ -548,11 +591,14 @@ public static partial class InstanceCreator
             return BuildResult.Failure(CreateEmptyQueryDiagnostics(script), script ?? string.Empty);
 
         var artifactDiagnostics = new List<Diagnostic>();
-        if (!CSharpClrCompiledArtifactLoader.TryGetRequiredMetadata(
+        if (
+            !CSharpClrCompiledArtifactLoader.TryGetRequiredMetadata(
                 artifact,
                 CompiledQueryArtifactSupport.MetadataAssemblyName,
                 artifactDiagnostics,
-                out var assemblyName))
+                out var assemblyName
+            )
+        )
         {
             return BuildResult.Failure(artifactDiagnostics, script);
         }
@@ -574,7 +620,8 @@ public static partial class InstanceCreator
             if (diagnosticCommand != null)
                 return BuildResult.Failure(
                     [CreateArtifactDiagnostic("Diagnostic SQL commands cannot be loaded from reusable artifacts.")],
-                    script);
+                    script
+                );
         }
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -584,8 +631,7 @@ public static partial class InstanceCreator
         items.EmitPdb = false;
         items.CompilationOptions = effectiveCompilationOptions;
         ConfigureReusableArtifactRendering(items);
-        items.StopAfterPlanning =
-            effectiveLoadOptions.ValidationMode == CompiledQueryArtifactValidationMode.Fast;
+        items.StopAfterPlanning = effectiveLoadOptions.ValidationMode == CompiledQueryArtifactValidationMode.Fast;
 
         Exception? caughtException = null;
         try
@@ -636,7 +682,8 @@ public static partial class InstanceCreator
             effectiveLoadOptions.ValidationMode,
             items,
             diagnostics,
-            cancellationToken);
+            cancellationToken
+        );
         cancellationToken.ThrowIfCancellationRequested();
         if (diagnostics.Any(static diagnostic => diagnostic.IsError))
             return BuildResult.Failure(diagnostics, script, buildItems: items);
@@ -645,9 +692,16 @@ public static partial class InstanceCreator
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            loadedExecutable = loader != null
-                ? CSharpClrCompiledArtifactLoader.CreateLoadedExecutableArtifact(loader(artifact), cancellationToken)
-                : CSharpClrCompiledArtifactLoader.LoadExecutableArtifactFromArtifactBytes(artifact, cancellationToken);
+            loadedExecutable =
+                loader != null
+                    ? CSharpClrCompiledArtifactLoader.CreateLoadedExecutableArtifact(
+                        loader(artifact),
+                        cancellationToken
+                    )
+                    : CSharpClrCompiledArtifactLoader.LoadExecutableArtifactFromArtifactBytes(
+                        artifact,
+                        cancellationToken
+                    );
             cancellationToken.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException)
@@ -669,7 +723,8 @@ public static partial class InstanceCreator
                 artifact,
                 loadedExecutable.RunnableType,
                 diagnostics,
-                cancellationToken);
+                cancellationToken
+            );
             cancellationToken.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException)
@@ -696,11 +751,13 @@ public static partial class InstanceCreator
             var activator = ExecutionTargetCatalog.ResolveActivator(loadedExecutable.TargetId);
             runnable = activator.ActivateTable(
                 loadedExecutable,
-                    new QueryRuntimeBinding(
-                        items.SchemaProvider,
-                        items.SourceRuntimeSettingsBySourceContextId,
-                        items.SourceRuntimeSettingDescriptionsBySourceContextId,
-                        CreateSourceExecutionPlans(items)));
+                new QueryRuntimeBinding(
+                    items.SchemaProvider,
+                    items.SourceRuntimeSettingsBySourceContextId,
+                    items.SourceRuntimeSettingDescriptionsBySourceContextId,
+                    CreateSourceExecutionPlans(items)
+                )
+            );
             cancellationToken.ThrowIfCancellationRequested();
             runnable.Logger = loggerResolver.ResolveLogger();
             cancellationToken.ThrowIfCancellationRequested();
@@ -731,16 +788,23 @@ public static partial class InstanceCreator
 
     private static bool TryValidateLoadOptions(
         CompiledQueryArtifactLoadOptions loadOptions,
-        ICollection<Diagnostic> diagnostics)
+        ICollection<Diagnostic> diagnostics
+    )
     {
-        if (loadOptions.ValidationMode is CompiledQueryArtifactValidationMode.Fast or
-            CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash)
+        if (
+            loadOptions.ValidationMode
+            is CompiledQueryArtifactValidationMode.Fast
+                or CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
+        )
         {
             return true;
         }
 
-        diagnostics.Add(CreateArtifactDiagnostic(
-            $"Compiled artifact validation mode '{loadOptions.ValidationMode}' is not supported."));
+        diagnostics.Add(
+            CreateArtifactDiagnostic(
+                $"Compiled artifact validation mode '{loadOptions.ValidationMode}' is not supported."
+            )
+        );
         return false;
     }
 
@@ -748,7 +812,8 @@ public static partial class InstanceCreator
         RenderedQueryArtifact renderedArtifact,
         ICollection<Diagnostic> diagnostics,
         CancellationToken cancellationToken,
-        out Exception? caughtException)
+        out Exception? caughtException
+    )
     {
         caughtException = null;
         try
@@ -778,7 +843,8 @@ public static partial class InstanceCreator
         emptyContext.ReportError(
             DiagnosticCode.MQ2016_IncompleteStatement,
             "The query is empty. Provide a valid SQL query starting with SELECT, WITH, DESC, TABLE, COUPLE, or an optional param(...) block.",
-            TextSpan.Empty);
+            TextSpan.Empty
+        );
         return emptyContext.Diagnostics.ToList();
     }
 
@@ -787,6 +853,7 @@ public static partial class InstanceCreator
         return Diagnostic.ErrorUnknownLocation(
             DiagnosticCode.MQ8002_CompiledArtifactIncompatible,
             message,
-            sourceKind: DiagnosticSourceKind.GeneratedSource);
+            sourceKind: DiagnosticSourceKind.GeneratedSource
+        );
     }
 }

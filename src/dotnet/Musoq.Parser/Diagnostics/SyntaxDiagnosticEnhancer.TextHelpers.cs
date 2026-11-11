@@ -61,5 +61,4 @@ internal static partial class SyntaxDiagnosticEnhancer
 
         return message.EndsWith('.') ? $"{message} {sentence}" : $"{message}. {sentence}";
     }
-
 }

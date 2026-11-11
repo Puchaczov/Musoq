@@ -12,17 +12,25 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForUnionAll_ShouldStreamIntoFinalRows()
     {
-        var result = Inspect("select d.Dummy as Dummy from #system.dual() d union all (Dummy) select e.Dummy as Dummy from #system.dual() e",
-            new CompilationOptions());
+        var result = Inspect(
+            "select d.Dummy as Dummy from #system.dual() d union all (Dummy) select e.Dummy as Dummy from #system.dual() e",
+            new CompilationOptions()
+        );
 
         Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: d.Dummy)]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: e.Dummy)]", result.ExecutionPlanText);
         Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(d.Dummy));", result.GeneratedCSharpCode);
         Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(e.Dummy));", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("result.AddDirect(new ResultRow0", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("result.AddDirect(new ResultRow0", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("private sealed class LeftRow0", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("private sealed class RightRow0", StringComparison.Ordinal));
@@ -31,13 +39,14 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenUnionAllUsesFilteredDirectSources_ShouldStreamDirectlyIntoResult()
     {
-        var result = Inspect(CreateFilteredUnionAllQuery(),
-            new CompilationOptions());
+        var result = Inspect(CreateFilteredUnionAllQuery(), new CompilationOptions());
 
         Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: dummy)]", result.ExecutionPlanText);
         Assert.Contains("If [", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("private sealed class LeftRow0", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("private sealed class RightRow0", StringComparison.Ordinal));
@@ -46,13 +55,17 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenDefaultExecutionIrRoutingCanRenderUnionAll_ShouldUseExecutionBackend()
     {
-        var result = Inspect("select d.Dummy as Dummy from #system.dual() d union all (Dummy) select e.Dummy as Dummy from #system.dual() e");
+        var result = Inspect(
+            "select d.Dummy as Dummy from #system.dual() d union all (Dummy) select e.Dummy as Dummy from #system.dual() e"
+        );
 
         AssertUsesExecutionBackend(result);
         Assert.Contains("CreateShapeRows [result: ResultRow0 from ResultRow0]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: d.Dummy)]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: e.Dummy)]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -60,8 +73,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForUnionAll_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select d.Dummy as Dummy from #system.dual() d union all (Dummy) select e.Dummy as Dummy from #system.dual() e",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            "select d.Dummy as Dummy from #system.dual() d union all (Dummy) select e.Dummy as Dummy from #system.dual() e",
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -73,8 +88,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenUnionAllUsesFilteredDirectSources_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(CreateFilteredUnionAllQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateFilteredUnionAllQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -85,8 +99,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForCteUnionAll_ShouldStreamStoredCtesIntoResult()
     {
-        var result = Inspect(CreateCteUnionAllQuery(),
-            new CompilationOptions());
+        var result = Inspect(CreateCteUnionAllQuery(), new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
@@ -97,15 +110,16 @@ public partial class QueryInspectionTests
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: l.Dummy)]", result.ExecutionPlanText);
         Assert.Contains("ForEach [r in _cteRowResults.Slot1]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(Dummy: r.Dummy)]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right]", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForCteUnionAll_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(CreateCteUnionAllQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateCteUnionAllQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -117,23 +131,26 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForNestedUnionAll_ShouldStreamNestedLeftArm()
     {
-        var result = Inspect(CreateNestedUnionAllQuery(),
-            new CompilationOptions());
+        var result = Inspect(CreateNestedUnionAllQuery(), new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("CreateRowBuffer [left: List<LeftRow0>]", result.ExecutionPlanText);
         Assert.Contains("AppendRowBuffer [left <- LeftRow0(Dummy: d.Dummy)]", result.ExecutionPlanText);
         Assert.Contains("AppendRowBuffer [left <- LeftRow0(Dummy: e.Dummy)]", result.ExecutionPlanText);
         Assert.Contains("SetOperation [result = left UnionAll right, AppendLoop]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [left = leftLeft UnionAll leftRight]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains(
+                "SetOperation [left = leftLeft UnionAll leftRight]",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(", StringComparison.Ordinal));
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForNestedUnionAll_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(CreateNestedUnionAllQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateNestedUnionAllQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -146,8 +163,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForComputedUnionAll_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(CreateComputedUnionAllQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateComputedUnionAllQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -167,9 +183,15 @@ public partial class QueryInspectionTests
         var schemaProvider = CreateEntitySetSchemaProvider();
         var result = Inspect(query, schemaProvider, new CompilationOptions());
 
-        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", result.PlanningText);
+        Assert.Contains(
+            "SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll",
+            result.PlanningText
+        );
         AssertNoSetOperationFallbackPath(result);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right", StringComparison.Ordinal), result.ExecutionPlanText);
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right", StringComparison.Ordinal),
+            result.ExecutionPlanText
+        );
 
         var table = CompileForExecution(query, schemaProvider, new CompilationOptions()).Run();
 
@@ -234,12 +256,19 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForComputedUnionAll_ShouldExplainStreamingStrategy()
     {
-        var result = Inspect(CreateComputedUnionAllQuery(),
-            new CompilationOptions());
+        var result = Inspect(CreateComputedUnionAllQuery(), new CompilationOptions());
 
-        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", result.PlanningText);
-        Assert.Contains("UnionAll arms use directly streamable row sources with optional filters, projected expressions, and no post-operations", result.PlanningText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right", StringComparison.Ordinal));
+        Assert.Contains(
+            "SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll",
+            result.PlanningText
+        );
+        Assert.Contains(
+            "UnionAll arms use directly streamable row sources with optional filters, projected expressions, and no post-operations",
+            result.PlanningText
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
     }
 
@@ -247,29 +276,46 @@ public partial class QueryInspectionTests
     public void CompileForInspection_WhenUnionAllArmUsesJoinSource_ShouldExplainAppendLoopStrategy()
     {
         var result = CreateApplyInspection(
-            "select l.Name as Name from #apply.items() l inner join #apply.items() r on l.Line = r.Line union all (Name) select i.Name as Name from #apply.items() i");
+            "select l.Name as Name from #apply.items() l inner join #apply.items() r on l.Line = r.Line union all (Name) select i.Name as Name from #apply.items() i"
+        );
 
         Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> AppendLoop", result.PlanningText);
-        Assert.Contains("UnionAll uses generated append lowering because at least one arm is not a directly streamable row-source pipeline with optional filters, projected expressions, and no post-operations", result.PlanningText);
-        Assert.IsFalse(result.PlanningText.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", StringComparison.Ordinal));
+        Assert.Contains(
+            "UnionAll uses generated append lowering because at least one arm is not a directly streamable row-source pipeline with optional filters, projected expressions, and no post-operations",
+            result.PlanningText
+        );
+        Assert.IsFalse(
+            result.PlanningText.Contains(
+                "SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll",
+                StringComparison.Ordinal
+            )
+        );
     }
 
     [TestMethod]
     public void CompileForInspection_WhenUnionAllArmUsesApplySource_ShouldExplainAppendLoopStrategy()
     {
         var result = CreateApplyInspection(
-            "select r.Line as Line from #apply.items() i cross apply #apply.related(i.Name) r union all (Line) select j.Line as Line from #apply.items() j");
+            "select r.Line as Line from #apply.items() i cross apply #apply.related(i.Name) r union all (Line) select j.Line as Line from #apply.items() j"
+        );
 
         Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> AppendLoop", result.PlanningText);
-        Assert.Contains("UnionAll uses generated append lowering because at least one arm is not a directly streamable row-source pipeline with optional filters, projected expressions, and no post-operations", result.PlanningText);
-        Assert.IsFalse(result.PlanningText.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", StringComparison.Ordinal));
+        Assert.Contains(
+            "UnionAll uses generated append lowering because at least one arm is not a directly streamable row-source pipeline with optional filters, projected expressions, and no post-operations",
+            result.PlanningText
+        );
+        Assert.IsFalse(
+            result.PlanningText.Contains(
+                "SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll",
+                StringComparison.Ordinal
+            )
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForAggregateUnionAllArms_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(CreateAggregateUnionAllQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateAggregateUnionAllQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -287,10 +333,21 @@ public partial class QueryInspectionTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("SetOperation [result = left UnionAll right, AppendLoop]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("CreateAggregateLibrary [leftLibraryBase0: LibraryBase]", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("CreateAggregateLibrary [rightLibraryBase0: LibraryBase]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains(
+                "CreateAggregateLibrary [leftLibraryBase0: LibraryBase]",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains(
+                "CreateAggregateLibrary [rightLibraryBase0: LibraryBase]",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetColumnValue", result.GeneratedCSharpCode);
@@ -300,21 +357,21 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenUnionAllHasTrailingOrderBy_ShouldSortTheCombinedResult()
     {
-        var result = Inspect(
-            CreateGloballySortedUnionAllQuery(),
-            new CompilationOptions());
+        var result = Inspect(CreateGloballySortedUnionAllQuery(), new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultShape0(Dummy: 'b')]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultShape0(Dummy: 'a')]", result.ExecutionPlanText);
-        Assert.Contains("SortOwnedBuffer [result by Dummy ASC, stable sequence __musoqSequence]", result.ExecutionPlanText);
+        Assert.Contains(
+            "SortOwnedBuffer [result by Dummy ASC, stable sequence __musoqSequence]",
+            result.ExecutionPlanText
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenUnionAllHasTrailingOrderBy_ShouldReturnGloballySortedRows()
     {
-        var compiled = CompileForExecution(CreateGloballySortedUnionAllQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateGloballySortedUnionAllQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -329,10 +386,13 @@ public partial class QueryInspectionTests
     [DataRow("intersect", 1)]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForSetOperationKind_ShouldRunExecutableQuery(
         string operation,
-        int expectedRows)
+        int expectedRows
+    )
     {
-        var compiled = CompileForExecution($"select d.Dummy as Dummy from #system.dual() d {operation} (Dummy) select e.Dummy as Dummy from #system.dual() e",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            $"select d.Dummy as Dummy from #system.dual() d {operation} (Dummy) select e.Dummy as Dummy from #system.dual() e",
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -346,10 +406,13 @@ public partial class QueryInspectionTests
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForSetOperationKind_ShouldUseHashSetStrategy(
         string operation,
         string planKind,
-        string helperCall)
+        string helperCall
+    )
     {
-        var result = Inspect($"select d.Dummy as Dummy from #system.dual() d {operation} (Dummy) select e.Dummy as Dummy from #system.dual() e",
-            new CompilationOptions());
+        var result = Inspect(
+            $"select d.Dummy as Dummy from #system.dual() d {operation} (Dummy) select e.Dummy as Dummy from #system.dual() e",
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains($"SetOperationStrategy [SetOperationStrategy] {planKind} -> HashSet", result.PlanningText);
@@ -357,7 +420,9 @@ public partial class QueryInspectionTests
         Assert.Contains("new HashSet<string>(", result.GeneratedCSharpCode);
         Assert.Contains("__musoqFinalShapeRows.Add(new LeftShape0(", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("result.AddDirect(", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".AddUnchecked(", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(helperCall, StringComparison.Ordinal));
     }
@@ -379,11 +444,13 @@ public partial class QueryInspectionTests
         string operation,
         int keyCount,
         bool makeRightDistinct,
-        int expectedRows)
+        int expectedRows
+    )
     {
         var compiled = CompileForExecution(
             CreateWideSetOperationQuery(operation, keyCount, makeRightDistinct),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -401,11 +468,13 @@ public partial class QueryInspectionTests
         string operation,
         string planKind,
         string helperCall,
-        int keyCount)
+        int keyCount
+    )
     {
         var result = Inspect(
             CreateWideSetOperationQuery(operation, keyCount, makeRightDistinct: false),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains($"SetOperationStrategy [SetOperationStrategy] {planKind} -> HashSet", result.PlanningText);
@@ -432,20 +501,37 @@ public partial class QueryInspectionTests
         string operation,
         string planKind,
         string columnName,
-        string hashSetTypeName)
+        string hashSetTypeName
+    )
     {
         var result = Inspect(
             CreateNanSetOperationQuery(operation, columnName),
             CreateNanSetOperationSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains($"SetOperationStrategy [SetOperationStrategy] {planKind} -> GeneratedEqualityLoop", result.PlanningText);
-        Assert.Contains("uses NaN-sensitive equality semantics, so Execution IR emits an explicit generated equality loop instead of HashSet lowering", result.PlanningText);
+        Assert.Contains(
+            $"SetOperationStrategy [SetOperationStrategy] {planKind} -> GeneratedEqualityLoop",
+            result.PlanningText
+        );
+        Assert.Contains(
+            "uses NaN-sensitive equality semantics, so Execution IR emits an explicit generated equality loop instead of HashSet lowering",
+            result.PlanningText
+        );
         Assert.Contains($"SetOperation [result = left {planKind} right]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("HashSet", StringComparison.Ordinal), result.ExecutionPlanText);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains($"new HashSet<{hashSetTypeName}>", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains($"{planKind}(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("HashSet", StringComparison.Ordinal),
+            result.ExecutionPlanText
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains($"new HashSet<{hashSetTypeName}>", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains($"{planKind}(left, right", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
     }
 
     [TestMethod]
@@ -465,12 +551,14 @@ public partial class QueryInspectionTests
         string operation,
         string columnName,
         bool expectDouble,
-        int expectedRows)
+        int expectedRows
+    )
     {
         var compiled = CompileForExecution(
             CreateNanSetOperationQuery(operation, columnName),
             CreateNanSetOperationSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -492,7 +580,7 @@ public partial class QueryInspectionTests
             ["DoubleValue"] = typeof(double),
             ["FloatValue"] = typeof(float),
             ["NullableDoubleValue"] = typeof(double?),
-            ["NullableFloatValue"] = typeof(float?)
+            ["NullableFloatValue"] = typeof(float?),
         };
         var rows = new List<IReadOnlyDictionary<string, object>>
         {
@@ -502,7 +590,7 @@ public partial class QueryInspectionTests
                 ["DoubleValue"] = double.NaN,
                 ["FloatValue"] = float.NaN,
                 ["NullableDoubleValue"] = double.NaN,
-                ["NullableFloatValue"] = float.NaN
+                ["NullableFloatValue"] = float.NaN,
             },
             new Dictionary<string, object>
             {
@@ -510,8 +598,8 @@ public partial class QueryInspectionTests
                 ["DoubleValue"] = double.NaN,
                 ["FloatValue"] = float.NaN,
                 ["NullableDoubleValue"] = double.NaN,
-                ["NullableFloatValue"] = float.NaN
-            }
+                ["NullableFloatValue"] = float.NaN,
+            },
         };
 
         return new DynamicRowsSchemaProvider(columns, rows);
@@ -522,31 +610,27 @@ public partial class QueryInspectionTests
         return $"select d.{columnName} as Value from #dynamic.all() d where d.Side = 'L' {operation} (Value) select r.{columnName} as Value from #dynamic.all() r where r.Side = 'R'";
     }
 
-    private static string CreateWideSetOperationQuery(
-        string operation,
-        int keyCount,
-        bool makeRightDistinct)
+    private static string CreateWideSetOperationQuery(string operation, int keyCount, bool makeRightDistinct)
     {
-        var keys = Enumerable.Range(0, keyCount)
-            .Select(index => $"K{index}")
-            .ToArray();
+        var keys = Enumerable.Range(0, keyCount).Select(index => $"K{index}").ToArray();
         var leftFields = CreateWideSetOperationFields(keyCount, distinctLastValue: false);
         var rightFields = CreateWideSetOperationFields(keyCount, makeRightDistinct);
 
-        return
-            $"select {leftFields} from #system.dual() d {operation} ({string.Join(", ", keys)}) select {rightFields} from #system.dual() e";
+        return $"select {leftFields} from #system.dual() d {operation} ({string.Join(", ", keys)}) select {rightFields} from #system.dual() e";
     }
 
     private static string CreateWideSetOperationFields(int keyCount, bool distinctLastValue)
     {
-        return string.Join(", ", Enumerable.Range(0, keyCount)
-            .Select(index =>
-            {
-                var value = distinctLastValue && index == keyCount - 1
-                    ? index + 101
-                    : index + 1;
-                return $"{value} as K{index}";
-            }));
+        return string.Join(
+            ", ",
+            Enumerable
+                .Range(0, keyCount)
+                .Select(index =>
+                {
+                    var value = distinctLastValue && index == keyCount - 1 ? index + 101 : index + 1;
+                    return $"{value} as K{index}";
+                })
+        );
     }
 
     private static string CreateWideSetOperationHashSetText(int keyCount)
@@ -557,10 +641,21 @@ public partial class QueryInspectionTests
     private static void AssertNoSetOperationFallbackPath(QueryInspectionResult result)
     {
         Assert.IsFalse(result.PlanningText.Contains("RowComparer", StringComparison.Ordinal), result.PlanningText);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("Union(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("Except(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("Intersect(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("Union(left, right", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("Except(left, right", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("Intersect(left, right", StringComparison.Ordinal),
+            result.GeneratedCSharpCode
+        );
     }
-
 }

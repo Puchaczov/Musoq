@@ -3,16 +3,12 @@ namespace Musoq.Parser.Nodes;
 public class OctalIntegerNode : ConstantValueNode
 {
     public OctalIntegerNode(string value)
-        : this(value, default)
-    {
-    }
+        : this(value, default) { }
 
     public OctalIntegerNode(string value, TextSpan span)
     {
         ArgumentNullException.ThrowIfNull(value);
-        var octalValue = value.StartsWith("0o", StringComparison.OrdinalIgnoreCase)
-            ? value.Substring(2)
-            : value;
+        var octalValue = value.StartsWith("0o", StringComparison.OrdinalIgnoreCase) ? value.Substring(2) : value;
 
         ObjValue = ParseOctalValue(octalValue, value);
         Id = $"{nameof(OctalIntegerNode)}{value}{ReturnType.Name}";
@@ -21,9 +17,7 @@ public class OctalIntegerNode : ConstantValueNode
     }
 
     public OctalIntegerNode(object objValue)
-        : this(objValue, default)
-    {
-    }
+        : this(objValue, default) { }
 
     public OctalIntegerNode(object objValue, TextSpan span)
     {

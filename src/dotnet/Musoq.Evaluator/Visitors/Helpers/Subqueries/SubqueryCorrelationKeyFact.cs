@@ -12,4 +12,5 @@ internal sealed record SubqueryCorrelationKeyFact(
     string OuterColumn,
     Type OuterType,
     TextSpan OuterSpan,
-    string? OuterIntendedTypeName);
+    string? OuterIntendedTypeName
+);

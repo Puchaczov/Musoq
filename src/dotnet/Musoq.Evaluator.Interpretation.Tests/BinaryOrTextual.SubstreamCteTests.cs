@@ -20,26 +20,37 @@ public partial class BinaryOrTextualSubstreamTests
     [TestProperty("Phase", "4")]
     public void Current_P4_0068_LaxSubstreamCteExposesNestedFields()
     {
-        const string query = "binary PayloadBody {\r\n    Value: byte,\r\n    Mirror: byte at 1\r\n};\r\nbinary Packet {\r\n    Prefix: byte,\r\n    Length: byte,\r\n    Payload: substream[Length] as PayloadBody lax,\r\n    Trailer: byte\r\n};\r\nwith Parsed as (\r\n    select p.Prefix as Prefix,\r\n           p.Payload.Value as PayloadValue,\r\n           p.Payload.Mirror as PayloadMirror,\r\n           p.Trailer as Trailer\r\n    from test.entities() e\r\n    cross apply Interpret<Packet>(e.Content) p\r\n)\r\nselect p.Prefix as Prefix,\r\n       p.PayloadValue as PayloadValue,\r\n       p.PayloadMirror as PayloadMirror,\r\n       p.Trailer as Trailer\r\nfrom Parsed p";
+        const string query =
+            "binary PayloadBody {\r\n    Value: byte,\r\n    Mirror: byte at 1\r\n};\r\nbinary Packet {\r\n    Prefix: byte,\r\n    Length: byte,\r\n    Payload: substream[Length] as PayloadBody lax,\r\n    Trailer: byte\r\n};\r\nwith Parsed as (\r\n    select p.Prefix as Prefix,\r\n           p.Payload.Value as PayloadValue,\r\n           p.Payload.Mirror as PayloadMirror,\r\n           p.Trailer as Trailer\r\n    from test.entities() e\r\n    cross apply Interpret<Packet>(e.Content) p\r\n)\r\nselect p.Prefix as Prefix,\r\n       p.PayloadValue as PayloadValue,\r\n       p.PayloadMirror as PayloadMirror,\r\n       p.Trailer as Trailer\r\nfrom Parsed p";
         var entities = new[]
         {
             new ComponentBinaryEntity { Name = "filtered", Content = [160, 2, 17, 34, 127] },
-            new ComponentBinaryEntity { Name = "kept", Content = [176, 3, 68, 68, 85, 110] }
+            new ComponentBinaryEntity { Name = "kept", Content = [176, 3, 68, 68, 85, 110] },
         };
         var sources = new Dictionary<string, IEnumerable<ComponentBinaryEntity>>(StringComparer.OrdinalIgnoreCase)
         {
             ["test"] = entities,
-            ["#test"] = entities
+            ["#test"] = entities,
         };
-        using var compiled = CompileGeneratedQuery(query, Guid.NewGuid().ToString(), new ComponentBinarySchemaProvider(sources), LoggerResolver, TestCompilationOptions);
+        using var compiled = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            new ComponentBinarySchemaProvider(sources),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
+        TableMaterializationTestHelper.AssertColumns(
+            result,
             ("Prefix", typeof(byte)),
             ("PayloadValue", typeof(byte)),
             ("PayloadMirror", typeof(byte)),
-            ("Trailer", typeof(byte)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
+            ("Trailer", typeof(byte))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
             new object?[] { (byte)160, (byte)17, (byte)34, (byte)127 },
-            new object?[] { (byte)176, (byte)68, (byte)68, (byte)110 });
+            new object?[] { (byte)176, (byte)68, (byte)68, (byte)110 }
+        );
     }
 }

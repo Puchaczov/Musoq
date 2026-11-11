@@ -10,8 +10,7 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers.CteDependencyGraph;
 [TestClass]
 public class CteDependencyGraphTests
 {
-    private static CteDependencyGraphClass BuildGraph(
-        CteExpressionNode cteExpression)
+    private static CteDependencyGraphClass BuildGraph(CteExpressionNode cteExpression)
     {
         var builder = new CteDependencyGraphBuilder();
         return builder.Build(cteExpression);
@@ -53,8 +52,13 @@ public class CteDependencyGraphTests
 
         var outerFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteA", outerFromB, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            outerFromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB, cteC], outerQuery);
 
@@ -80,8 +84,13 @@ public class CteDependencyGraphTests
 
         var outerFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteA", outerFromB, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            outerFromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB], outerQuery);
 
@@ -311,8 +320,13 @@ public class CteDependencyGraphTests
 
         var outerFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteA", outerFromB, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            outerFromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB], outerQuery);
 
@@ -395,8 +409,13 @@ public class CteDependencyGraphTests
 
         var outerFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var outerQuery =
-            new JoinInMemoryWithSourceTableFromNode("cteA", outerFromB, joinCondition, JoinType.Inner, typeof(object));
+        var outerQuery = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            outerFromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteExpression = new CteExpressionNode([cteA, cteB], outerQuery);
 
@@ -427,8 +446,13 @@ public class CteDependencyGraphTests
 
         var cteDFromC = new InMemoryTableFromNode("cteC", "c", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var cteDValue =
-            new JoinInMemoryWithSourceTableFromNode("cteB", cteDFromC, joinCondition, JoinType.Inner, typeof(object));
+        var cteDValue = new JoinInMemoryWithSourceTableFromNode(
+            "cteB",
+            cteDFromC,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var cteEValue = new IntegerNode("5"); // Dead CTE
 
@@ -478,9 +502,9 @@ public class CteDependencyGraphTests
     public void Build_ChainWithMiddleReferenced_ShouldMarkAllAsReachable()
     {
         // Arrange
-        // WITH cteA AS (SELECT 1), 
-        //      cteB AS (SELECT * FROM cteA), 
-        //      cteC AS (SELECT * FROM cteB) 
+        // WITH cteA AS (SELECT 1),
+        //      cteB AS (SELECT * FROM cteA),
+        //      cteC AS (SELECT * FROM cteB)
         // SELECT * FROM cteB  -- References middle of chain
         var cteAValue = new IntegerNode("1");
         var cteBValue = new InMemoryTableFromNode("cteA", "a", typeof(object));
@@ -569,8 +593,13 @@ public class CteDependencyGraphTests
         // Outer references all three via nested joins
         var joinFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCond1 = new BooleanNode(true);
-        var joinAb =
-            new JoinInMemoryWithSourceTableFromNode("cteA", joinFromB, joinCond1, JoinType.Inner, typeof(object));
+        var joinAb = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            joinFromB,
+            joinCond1,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         var joinFromC = new InMemoryTableFromNode("cteC", "c", typeof(object));
         var joinCond2 = new BooleanNode(true);

@@ -18,7 +18,7 @@ internal sealed class DefaultInterpreterReferenceProvider : IInterpreterReferenc
         "System.Dynamic.Runtime.dll",
         "System.Linq.Expressions.dll",
         "System.ObjectModel.dll",
-        "System.Collections.dll"
+        "System.Collections.dll",
     ];
 
     private readonly IMetadataReferenceCache _referenceCache;

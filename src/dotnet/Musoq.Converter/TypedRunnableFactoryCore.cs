@@ -9,8 +9,14 @@ namespace Musoq.Converter;
 internal sealed class TypedRunnableFactoryCore<TRunnable>
     where TRunnable : class, IQueryRunnable
 {
-    private readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> _sourceRuntimeSettingsBySourceContextId;
-    private readonly IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> _sourceRuntimeSettingDescriptionsBySourceContextId;
+    private readonly IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > _sourceRuntimeSettingsBySourceContextId;
+    private readonly IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > _sourceRuntimeSettingDescriptionsBySourceContextId;
     private readonly IReadOnlyDictionary<string, SourceExecutionPlan> _sourceExecutionPlans;
     private readonly ILoggerResolver _loggerResolver;
     private readonly Func<TRunnable> _createRunnable;
@@ -18,18 +24,24 @@ internal sealed class TypedRunnableFactoryCore<TRunnable>
     public TypedRunnableFactoryCore(
         Type runnableType,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId,
-        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> sourceRuntimeSettingDescriptionsBySourceContextId,
+        IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > sourceRuntimeSettingDescriptionsBySourceContextId,
         IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans,
         IReadOnlyList<ScriptParameterDefinition> parameterDefinitions,
         TypedQueryDiagnostics diagnostics,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver
+    )
     {
         RunnableType = runnableType ?? throw new ArgumentNullException(nameof(runnableType));
         _createRunnable = RunnableActivator.Create<TRunnable>(RunnableType);
-        _sourceRuntimeSettingsBySourceContextId = sourceRuntimeSettingsBySourceContextId ??
-                                                  throw new ArgumentNullException(nameof(sourceRuntimeSettingsBySourceContextId));
-        _sourceRuntimeSettingDescriptionsBySourceContextId = sourceRuntimeSettingDescriptionsBySourceContextId ??
-                                                             throw new ArgumentNullException(nameof(sourceRuntimeSettingDescriptionsBySourceContextId));
+        _sourceRuntimeSettingsBySourceContextId =
+            sourceRuntimeSettingsBySourceContextId
+            ?? throw new ArgumentNullException(nameof(sourceRuntimeSettingsBySourceContextId));
+        _sourceRuntimeSettingDescriptionsBySourceContextId =
+            sourceRuntimeSettingDescriptionsBySourceContextId
+            ?? throw new ArgumentNullException(nameof(sourceRuntimeSettingDescriptionsBySourceContextId));
         _sourceExecutionPlans = sourceExecutionPlans ?? throw new ArgumentNullException(nameof(sourceExecutionPlans));
         ParameterDefinitions = parameterDefinitions ?? throw new ArgumentNullException(nameof(parameterDefinitions));
         Diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
@@ -40,9 +52,8 @@ internal sealed class TypedRunnableFactoryCore<TRunnable>
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; }
 
-    public IReadOnlyList<ScriptParameterContract> ParameterContracts => ParameterDefinitions
-        .Select(static definition => definition.Contract)
-        .ToArray();
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts =>
+        ParameterDefinitions.Select(static definition => definition.Contract).ToArray();
 
     public TypedQueryDiagnostics Diagnostics { get; }
 

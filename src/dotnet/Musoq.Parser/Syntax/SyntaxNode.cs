@@ -20,5 +20,6 @@ public sealed class SyntaxNode
     public SyntaxKind Kind { get; }
     public TextSpan Span { get; }
     public IReadOnlyList<SyntaxNode> Children { get; }
+
     public string ToFullString() => _source.GetText(Span);
 }

@@ -7,5 +7,5 @@ public enum SourcePredicateComparisonOperator
     GreaterThan,
     GreaterOrEqual,
     LessThan,
-    LessOrEqual
+    LessOrEqual,
 }

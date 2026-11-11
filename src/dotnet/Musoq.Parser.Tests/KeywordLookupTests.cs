@@ -13,19 +13,27 @@ public sealed class KeywordLookupTests
     {
         foreach (var (text, expectedType) in KeywordCollisionCatalog.SqlKeywords)
         {
-            AssertLookupParity(text, expectedType, KeywordLookup.TryGetKeyword, KeywordLookup.TryGetKeyword, $"SQL keyword '{text}'");
+            AssertLookupParity(
+                text,
+                expectedType,
+                KeywordLookup.TryGetKeyword,
+                KeywordLookup.TryGetKeyword,
+                $"SQL keyword '{text}'"
+            );
             AssertLookupParity(
                 text.ToUpperInvariant(),
                 expectedType,
                 KeywordLookup.TryGetKeyword,
                 KeywordLookup.TryGetKeyword,
-                $"SQL keyword '{text}' uppercase");
+                $"SQL keyword '{text}' uppercase"
+            );
             AssertLookupParity(
                 ToMixedCase(text),
                 expectedType,
                 KeywordLookup.TryGetKeyword,
                 KeywordLookup.TryGetKeyword,
-                $"SQL keyword '{text}' mixed case");
+                $"SQL keyword '{text}' mixed case"
+            );
         }
     }
 
@@ -34,28 +42,44 @@ public sealed class KeywordLookupTests
     {
         foreach (var (text, expectedType) in KeywordCollisionCatalog.SchemaKeywords)
         {
-            AssertLookupParity(text, expectedType, KeywordLookup.TryGetSchemaKeyword, KeywordLookup.TryGetSchemaKeyword, $"schema keyword '{text}'");
+            AssertLookupParity(
+                text,
+                expectedType,
+                KeywordLookup.TryGetSchemaKeyword,
+                KeywordLookup.TryGetSchemaKeyword,
+                $"schema keyword '{text}'"
+            );
             AssertLookupParity(
                 text.ToUpperInvariant(),
                 expectedType,
                 KeywordLookup.TryGetSchemaKeyword,
                 KeywordLookup.TryGetSchemaKeyword,
-                $"schema keyword '{text}' uppercase");
+                $"schema keyword '{text}' uppercase"
+            );
             AssertLookupParity(
                 ToMixedCase(text),
                 expectedType,
                 KeywordLookup.TryGetSchemaKeyword,
                 KeywordLookup.TryGetSchemaKeyword,
-                $"schema keyword '{text}' mixed case");
+                $"schema keyword '{text}' mixed case"
+            );
 
-            Assert.AreEqual(expectedType, KeywordLookup.GetSchemaKeywordType(text),
-                $"schema keyword '{text}' string get mismatch.");
-            Assert.AreEqual(expectedType, KeywordLookup.GetSchemaKeywordType(text.ToUpperInvariant()),
-                $"schema keyword '{text}' uppercase string get mismatch.");
+            Assert.AreEqual(
+                expectedType,
+                KeywordLookup.GetSchemaKeywordType(text),
+                $"schema keyword '{text}' string get mismatch."
+            );
+            Assert.AreEqual(
+                expectedType,
+                KeywordLookup.GetSchemaKeywordType(text.ToUpperInvariant()),
+                $"schema keyword '{text}' uppercase string get mismatch."
+            );
 
             Assert.IsTrue(KeywordLookup.IsSchemaKeyword(text), $"Schema membership missing '{text}'.");
-            Assert.IsTrue(KeywordLookup.IsSchemaKeyword(text.ToUpperInvariant()),
-                $"Schema membership is not case-insensitive for '{text}'.");
+            Assert.IsTrue(
+                KeywordLookup.IsSchemaKeyword(text.ToUpperInvariant()),
+                $"Schema membership is not case-insensitive for '{text}'."
+            );
         }
     }
 
@@ -84,7 +108,8 @@ public sealed class KeywordLookupTests
         TokenType expectedType,
         KeywordLookupStringLookup stringLookup,
         KeywordLookupSpanLookup spanLookup,
-        string description)
+        string description
+    )
     {
         Assert.IsTrue(stringLookup(text, out var stringType), $"{description} string lookup failed.");
         Assert.AreEqual(expectedType, stringType, $"{description} string token type mismatch.");

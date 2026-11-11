@@ -11,9 +11,15 @@ public interface IQueryRunnable
 {
     ISchemaProvider Provider { get; set; }
 
-    IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
+    IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > SourceRuntimeSettingsBySourceContextId { get; set; }
 
-    IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
+    IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
 
     IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
 

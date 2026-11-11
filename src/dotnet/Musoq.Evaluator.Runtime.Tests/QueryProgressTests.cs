@@ -28,15 +28,9 @@ public sealed class QueryProgressTests
         var events = new List<QueryProgressEventArgs>();
         var context = CreateContext(
             (_, args) => events.Add(args),
-            new QueryProgressOptions
-            {
-                RowsPerUpdate = 4,
-                MinimumInterval = TimeSpan.FromDays(1)
-            });
-        var wrapped = QueryProgressRuntime.WrapChunks(
-            CreateChunks(2, 2, 1),
-            context,
-            "source");
+            new QueryProgressOptions { RowsPerUpdate = 4, MinimumInterval = TimeSpan.FromDays(1) }
+        );
+        var wrapped = QueryProgressRuntime.WrapChunks(CreateChunks(2, 2, 1), context, "source");
 
         _ = wrapped.ToArray();
         context.CompleteQueryProgress();
@@ -64,11 +58,8 @@ public sealed class QueryProgressTests
         var events = new List<QueryProgressEventArgs>();
         var context = CreateContext(
             (_, args) => events.Add(args),
-            new QueryProgressOptions
-            {
-                RowsPerUpdate = 100,
-                MinimumInterval = TimeSpan.FromDays(1)
-            });
+            new QueryProgressOptions { RowsPerUpdate = 100, MinimumInterval = TimeSpan.FromDays(1) }
+        );
         var wrapped = QueryProgressRuntime.WrapChunks(CreateChunks(3, 3), context, "source");
 
         using (var enumerator = wrapped.GetEnumerator())
@@ -96,8 +87,9 @@ public sealed class QueryProgressTests
             {
                 RowsPerUpdate = 100,
                 MinimumInterval = TimeSpan.FromSeconds(5),
-                TimeProvider = clock
-            });
+                TimeProvider = clock,
+            }
+        );
         var wrapped = QueryProgressRuntime.WrapChunks(CreateChunks(2, 2), context, "source");
 
         using var enumerator = wrapped.GetEnumerator();
@@ -117,11 +109,7 @@ public sealed class QueryProgressTests
     {
         var first = new List<QueryProgressEventArgs>();
         var second = new List<QueryProgressEventArgs>();
-        var options = new QueryProgressOptions
-        {
-            RowsPerUpdate = 100,
-            MinimumInterval = TimeSpan.FromDays(1)
-        };
+        var options = new QueryProgressOptions { RowsPerUpdate = 100, MinimumInterval = TimeSpan.FromDays(1) };
         var firstContext = CreateContext((_, args) => first.Add(args), options, "first");
         var secondContext = CreateContext((_, args) => second.Add(args), options, "second");
 
@@ -146,24 +134,25 @@ public sealed class QueryProgressTests
         var events = new ConcurrentQueue<QueryProgressEventArgs>();
         var context = CreateContext(
             (_, args) => events.Enqueue(args),
-            new QueryProgressOptions
-            {
-                RowsPerUpdate = 1,
-                MinimumInterval = TimeSpan.FromDays(1)
-            });
+            new QueryProgressOptions { RowsPerUpdate = 1, MinimumInterval = TimeSpan.FromDays(1) }
+        );
         var wrapped = QueryProgressRuntime.WrapChunks(CreateChunks(1, 1, 1), context, "source");
 
-        Parallel.For(0, 4, workerIndex =>
-        {
-            foreach (var chunk in wrapped)
+        Parallel.For(
+            0,
+            4,
+            workerIndex =>
             {
+                foreach (var chunk in wrapped) { }
             }
-        });
+        );
         context.CompleteQueryProgress();
 
         var snapshots = events.ToArray();
         Assert.IsTrue(snapshots.Length >= 2 && snapshots.Length <= 13);
-        Assert.IsTrue(snapshots.Zip(snapshots.Skip(1), (left, right) => right.Sequence > left.Sequence).All(static value => value));
+        Assert.IsTrue(
+            snapshots.Zip(snapshots.Skip(1), (left, right) => right.Sequence > left.Sequence).All(static value => value)
+        );
         Assert.AreEqual(12, snapshots[^1].QueryRowsProcessed);
         Assert.IsTrue(snapshots[^1].IsFinal);
     }
@@ -183,11 +172,8 @@ public sealed class QueryProgressTests
                     throw new InvalidOperationException("progress handler failure");
                 }
             },
-            new QueryProgressOptions
-            {
-                RowsPerUpdate = 100,
-                MinimumInterval = TimeSpan.FromDays(1)
-            });
+            new QueryProgressOptions { RowsPerUpdate = 100, MinimumInterval = TimeSpan.FromDays(1) }
+        );
         var wrapped = QueryProgressRuntime.WrapChunks(CreateChunks(1), context, "source");
 
         using var enumerator = wrapped.GetEnumerator();
@@ -203,20 +189,20 @@ public sealed class QueryProgressTests
     private static QueryRunContext CreateContext(
         QueryProgressEventHandler handler,
         QueryProgressOptions options,
-        string queryId = "query")
+        string queryId = "query"
+    )
     {
         return new QueryRunContext(
             CancellationToken.None,
             queryId: queryId,
             queryProgress: handler,
-            queryProgressOptions: options);
+            queryProgressOptions: options
+        );
     }
 
     private static IReadOnlyList<IReadOnlyList<int>> CreateChunks(params int[] counts)
     {
-        return counts
-            .Select(count => (IReadOnlyList<int>)Enumerable.Range(0, count).ToArray())
-            .ToArray();
+        return counts.Select(count => (IReadOnlyList<int>)Enumerable.Range(0, count).ToArray()).ToArray();
     }
 
     private sealed class ManualTimeProvider : TimeProvider

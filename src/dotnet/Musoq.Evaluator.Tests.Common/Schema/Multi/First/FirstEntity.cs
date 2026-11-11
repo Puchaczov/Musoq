@@ -7,14 +7,11 @@ public class FirstEntity : ICommonInterface
 {
     public static readonly IReadOnlyDictionary<string, int> TestNameToIndexMap = new Dictionary<string, int>
     {
-        { nameof(FirstItem), 0 }
+        { nameof(FirstItem), 0 },
     };
 
     public static readonly IReadOnlyDictionary<int, Func<FirstEntity, object?>> TestIndexToObjectAccessMap =
-        new Dictionary<int, Func<FirstEntity, object?>>
-        {
-            { 0, entity => entity.FirstItem }
-        };
+        new Dictionary<int, Func<FirstEntity, object?>> { { 0, entity => entity.FirstItem } };
 
     public string FirstItem { get; set; } = string.Empty;
 }

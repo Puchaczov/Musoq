@@ -10,13 +10,13 @@ public class PivotMultiColumnTests : BasicEntityTestBase
     [TestMethod]
     public void Pivot_WithMultiColumnKeys_ShouldMatchTupleValues()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Id, Country in ((2000, 'NL') as y2000_nl, (2001, 'US') as y2001_us)
-                             using Sum(Population) as Total
-                             group by City
-                             order by City
-                             """;
+        const string query = (
+            "pivot #A.Entities()\n"
+            + "on Id, Country in ((2000, 'NL') as y2000_nl, (2001, 'US') as y2001_us)\n"
+            + "using Sum(Population) as Total\n"
+            + "group by City\n"
+            + "order by City"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run();
 
@@ -35,10 +35,41 @@ public class PivotMultiColumnTests : BasicEntityTestBase
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources()
     {
         return CreateSingleSource(
-            new BasicEntity { City = "Amsterdam", Id = 2000, Country = "NL", Population = 10m },
-            new BasicEntity { City = "Amsterdam", Id = 2001, Country = "US", Population = 20m },
-            new BasicEntity { City = "Amsterdam", Id = 2000, Country = "US", Population = 99m },
-            new BasicEntity { City = "Rotterdam", Id = 2000, Country = "NL", Population = 7m },
-            new BasicEntity { City = "Rotterdam", Id = 2001, Country = "US", Population = 3m });
+            new BasicEntity
+            {
+                City = "Amsterdam",
+                Id = 2000,
+                Country = "NL",
+                Population = 10m,
+            },
+            new BasicEntity
+            {
+                City = "Amsterdam",
+                Id = 2001,
+                Country = "US",
+                Population = 20m,
+            },
+            new BasicEntity
+            {
+                City = "Amsterdam",
+                Id = 2000,
+                Country = "US",
+                Population = 99m,
+            },
+            new BasicEntity
+            {
+                City = "Rotterdam",
+                Id = 2000,
+                Country = "NL",
+                Population = 7m,
+            },
+            new BasicEntity
+            {
+                City = "Rotterdam",
+                Id = 2001,
+                Country = "US",
+                Population = 3m,
+            }
+        );
     }
 }

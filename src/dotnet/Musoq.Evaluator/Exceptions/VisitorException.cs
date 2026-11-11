@@ -11,18 +11,13 @@ namespace Musoq.Evaluator.Exceptions;
 public class VisitorException : Exception, IDiagnosticException
 {
     public VisitorException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public VisitorException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public VisitorException()
-    {
-    }
+    public VisitorException() { }
+
     /// <summary>
     ///     Initializes a new instance of the VisitorException class.
     /// </summary>
@@ -71,7 +66,8 @@ public class VisitorException : Exception, IDiagnosticException
         DiagnosticCode code,
         TextSpan span,
         IReadOnlyDictionary<string, string>? arguments = null,
-        IReadOnlyList<DiagnosticAction>? suggestedFixes = null)
+        IReadOnlyList<DiagnosticAction>? suggestedFixes = null
+    )
         : base($"Visitor '{visitorName}' failed during '{operation}': {message}")
     {
         VisitorName = visitorName ?? "Unknown";
@@ -81,7 +77,7 @@ public class VisitorException : Exception, IDiagnosticException
         Arguments = arguments is null
             ? new Dictionary<string, string>(StringComparer.Ordinal)
             : new Dictionary<string, string>(arguments, StringComparer.Ordinal);
-        SuggestedFixes = suggestedFixes is null ? [] : [..suggestedFixes];
+        SuggestedFixes = suggestedFixes is null ? [] : [.. suggestedFixes];
     }
 
     /// <summary>
@@ -140,15 +136,19 @@ public class VisitorException : Exception, IDiagnosticException
     /// <param name="expectedItems">Number of items expected on the stack.</param>
     /// <param name="actualItems">Number of items actually on the stack.</param>
     /// <returns>A configured VisitorException instance.</returns>
-    public static VisitorException CreateForStackUnderflow(string visitorName, string operation, int expectedItems,
-        int actualItems)
+    public static VisitorException CreateForStackUnderflow(
+        string visitorName,
+        string operation,
+        int expectedItems,
+        int actualItems
+    )
     {
         return CreateForInternalFailure(
             visitorName,
             operation,
-            $"Stack underflow detected. Expected at least {expectedItems} item(s) on the stack, but found {actualItems}. " +
-            "This typically indicates an AST processing error or malformed query structure. " +
-            "Please verify the query syntax and structure."
+            $"Stack underflow detected. Expected at least {expectedItems} item(s) on the stack, but found {actualItems}. "
+                + "This typically indicates an AST processing error or malformed query structure. "
+                + "Please verify the query syntax and structure."
         );
     }
 
@@ -164,9 +164,9 @@ public class VisitorException : Exception, IDiagnosticException
         return CreateForInternalFailure(
             visitorName,
             operation,
-            $"Expected '{nodeType}' node but received null. " +
-            "This indicates an internal AST processing error. " +
-            "Please verify the query structure and report this issue if it persists."
+            $"Expected '{nodeType}' node but received null. "
+                + "This indicates an internal AST processing error. "
+                + "Please verify the query structure and report this issue if it persists."
         );
     }
 
@@ -178,15 +178,19 @@ public class VisitorException : Exception, IDiagnosticException
     /// <param name="expectedType">The expected node type.</param>
     /// <param name="actualType">The actual node type.</param>
     /// <returns>A configured VisitorException instance.</returns>
-    public static VisitorException CreateForInvalidNodeType(string visitorName, string operation, string expectedType,
-        string actualType)
+    public static VisitorException CreateForInvalidNodeType(
+        string visitorName,
+        string operation,
+        string expectedType,
+        string actualType
+    )
     {
         return CreateForInternalFailure(
             visitorName,
             operation,
-            $"Invalid node type. Expected '{expectedType}' but got '{actualType}'. " +
-            "This indicates an AST structure mismatch. " +
-            "Please verify the query syntax matches the expected pattern."
+            $"Invalid node type. Expected '{expectedType}' but got '{actualType}'. "
+                + "This indicates an AST structure mismatch. "
+                + "Please verify the query syntax matches the expected pattern."
         );
     }
 
@@ -198,11 +202,16 @@ public class VisitorException : Exception, IDiagnosticException
     /// <param name="context">Additional context about the failure.</param>
     /// <param name="suggestion">Suggested resolution.</param>
     /// <returns>A configured VisitorException instance.</returns>
-    public static VisitorException CreateForProcessingFailure(string visitorName, string operation, string context,
-        string? suggestion = null)
+    public static VisitorException CreateForProcessingFailure(
+        string visitorName,
+        string operation,
+        string context,
+        string? suggestion = null
+    )
     {
         var message = $"Processing failed: {context}";
-        if (!string.IsNullOrEmpty(suggestion)) message += $" {suggestion}";
+        if (!string.IsNullOrEmpty(suggestion))
+            message += $" {suggestion}";
 
         return new VisitorException(visitorName, operation, message);
     }
@@ -214,7 +223,8 @@ public class VisitorException : Exception, IDiagnosticException
             operation,
             message,
             DiagnosticCode.MQ9001_InternalCompilerError,
-            TextSpan.Empty);
+            TextSpan.Empty
+        );
     }
 
     private static (DiagnosticCode code, TextSpan? span) ResolveDiagnosticData(Exception? exception = null)

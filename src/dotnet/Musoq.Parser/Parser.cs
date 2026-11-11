@@ -11,10 +11,30 @@ namespace Musoq.Parser;
 public partial class Parser
 {
     private static readonly TokenType[] SetOperators =
-        [TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect];
+    [
+        TokenType.Union,
+        TokenType.UnionAll,
+        TokenType.Except,
+        TokenType.Intersect,
+    ];
 
     private static readonly string[] ClauseKeywords =
-            ["WHERE", "GROUP", "ORDER", "HAVING", "TAKE", "SKIP", "UNION", "EXCEPT", "INTERSECT", "JOIN", "INNER", "OUTER", "CROSS", "QUALIFY"];
+    [
+        "WHERE",
+        "GROUP",
+        "ORDER",
+        "HAVING",
+        "TAKE",
+        "SKIP",
+        "UNION",
+        "EXCEPT",
+        "INTERSECT",
+        "JOIN",
+        "INNER",
+        "OUTER",
+        "CROSS",
+        "QUALIFY",
+    ];
 
     private const int MinLengthForLargerDistance = 5;
     private const int ShortWordMaxDistance = 1;
@@ -35,8 +55,12 @@ public partial class Parser
     /// </summary>
     public Parser(ILexer lexer)
     {
-        _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer),
-            "Lexer cannot be null. Please provide a valid lexer instance.");
+        _lexer =
+            lexer
+            ?? throw new ArgumentNullException(
+                nameof(lexer),
+                "Lexer cannot be null. Please provide a valid lexer instance."
+            );
         _enableRecovery = false;
         _hasReplacedToken = false;
         _replacedToken = null;
@@ -107,7 +131,8 @@ public partial class Parser
                         RecordError(
                             DiagnosticCode.MQ2016_IncompleteStatement,
                             "Failed to compose statement. The SQL query structure is invalid.",
-                            Current.Span);
+                            Current.Span
+                        );
                         break;
                     }
                 }
@@ -136,35 +161,42 @@ public partial class Parser
                     // Parser-owned unsupported shapes are query syntax failures.  Convert them
                     // to the typed syntax diagnostic at this boundary so internal NotSupported
                     // exceptions can never leak into the public diagnostic classifier.
-                    RecordSyntaxExceptionIfNeeded(new SyntaxException(
-                        ex.Message,
-                        _lexer.AlreadyResolvedQueryPart,
-                        DiagnosticCode.MQ2030_UnsupportedSyntax,
-                        Current.Span,
-                        ex));
+                    RecordSyntaxExceptionIfNeeded(
+                        new SyntaxException(
+                            ex.Message,
+                            _lexer.AlreadyResolvedQueryPart,
+                            DiagnosticCode.MQ2030_UnsupportedSyntax,
+                            Current.Span,
+                            ex
+                        )
+                    );
                     if (!TryRecoverToNextStatement())
                         break;
                 }
 
-            if (statements.Count == 1 && statements[0].Node is ParameterBlockNode &&
-                !diagnostics.HasErrors && !HasLexicalDiagnostic())
+            if (
+                statements.Count == 1
+                && statements[0].Node is ParameterBlockNode
+                && !diagnostics.HasErrors
+                && !HasLexicalDiagnostic()
+            )
             {
                 RecordError(
                     DiagnosticCode.MQ2016_IncompleteStatement,
                     "A parameter block must be followed by a query or another script statement.",
-                    Current.Span);
+                    Current.Span
+                );
             }
             else if (statements.Count == 0 && !diagnostics.HasErrors && !HasLexicalDiagnostic())
             {
                 RecordError(
                     DiagnosticCode.MQ2016_IncompleteStatement,
                     "The query contains no executable statement. Provide a SELECT query or another supported statement.",
-                    Current.Span);
+                    Current.Span
+                );
             }
 
-            var root = statements.Count > 0
-                ? new RootNode(new StatementsArrayNode(statements.ToArray()))
-                : null;
+            var root = statements.Count > 0 ? new RootNode(new StatementsArrayNode(statements.ToArray())) : null;
 
             return CreateParseResult(root, sourceText, diagnostics);
         }
@@ -172,20 +204,14 @@ public partial class Parser
         {
             if (ex.TryToDiagnostic(sourceText, out var diagnostic) && diagnostic != null)
             {
-                RecordError(
-                    diagnostic.Code,
-                    diagnostic.Message,
-                    diagnostic.Span);
+                RecordError(diagnostic.Code, diagnostic.Message, diagnostic.Span);
 
                 return CreateFailedParseResult(sourceText, diagnostics);
             }
 
             var fallbackDiagnostic = ex.ToDiagnosticOrGeneric(sourceText);
             var span = fallbackDiagnostic.Span == TextSpan.Empty ? Current.Span : fallbackDiagnostic.Span;
-            RecordError(
-                fallbackDiagnostic.Code,
-                fallbackDiagnostic.Message,
-                span);
+            RecordError(fallbackDiagnostic.Code, fallbackDiagnostic.Message, span);
 
             return CreateFailedParseResult(sourceText, diagnostics);
         }
@@ -202,8 +228,11 @@ public partial class Parser
         }
         catch (Exception exception) when (exception is not SyntaxException)
         {
-            throw new SyntaxException($"An error occurred while parsing the SQL query: {exception.Message}",
-                _lexer.AlreadyResolvedQueryPart, exception);
+            throw new SyntaxException(
+                $"An error occurred while parsing the SQL query: {exception.Message}",
+                _lexer.AlreadyResolvedQueryPart,
+                exception
+            );
         }
     }
 
@@ -216,8 +245,10 @@ public partial class Parser
             EnsureStatementSeparator(statements);
             var statement = ComposeStatement();
             if (statement == null)
-                throw new SyntaxException("Failed to compose statement. The SQL query structure is invalid.",
-                    _lexer.AlreadyResolvedQueryPart);
+                throw new SyntaxException(
+                    "Failed to compose statement. The SQL query structure is invalid.",
+                    _lexer.AlreadyResolvedQueryPart
+                );
 
             statements.Add(statement);
         }
@@ -227,28 +258,41 @@ public partial class Parser
                 "A parameter block must be followed by a query or another script statement.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2016_IncompleteStatement,
-                Current.Span);
+                Current.Span
+            );
 
         return new RootNode(new StatementsArrayNode(statements.ToArray()));
     }
 
     private void EnsureStatementSeparator(IReadOnlyList<StatementNode> statements)
     {
-        if (statements.Count == 0 || Previous?.TokenType == TokenType.Semicolon ||
-            statements[^1].Node is ParameterBlockNode or ScriptVariableDeclarationNode or EnumDeclarationNode or CreateTableNode or
-            CoupleNode or BinarySchemaNode or TextSchemaNode || Current.TokenType != TokenType.Select)
+        if (
+            statements.Count == 0
+            || Previous?.TokenType == TokenType.Semicolon
+            || statements[^1].Node
+                is ParameterBlockNode
+                    or ScriptVariableDeclarationNode
+                    or EnumDeclarationNode
+                    or CreateTableNode
+                    or CoupleNode
+                    or BinarySchemaNode
+                    or TextSchemaNode
+            || Current.TokenType != TokenType.Select
+        )
             return;
 
         throw new SyntaxException(
             "Multiple statements in a batch must be separated by a semicolon.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2001_UnexpectedToken,
-            Current.Span);
+            Current.Span
+        );
     }
 
     private void RecordError(DiagnosticCode code, string message, TextSpan span)
     {
-        if (_diagnostics == null) return;
+        if (_diagnostics == null)
+            return;
 
         var diagnostic = SyntaxDiagnosticEnhancer.CreateDiagnostic(code, message, span, Current, _lexer.SourceText);
         _diagnostics.Add(diagnostic);
@@ -256,7 +300,8 @@ public partial class Parser
 
     private void RecordSyntaxException(SyntaxException ex)
     {
-        if (_diagnostics == null) return;
+        if (_diagnostics == null)
+            return;
 
         var span = ex.Span ?? Current.Span;
         var diagnostic = IsLexicalDiagnostic(ex.Code)
@@ -299,8 +344,6 @@ public partial class Parser
     private static bool IsLexicalDiagnostic(DiagnosticCode code)
     {
         var numericCode = (int)code;
-        return numericCode is >= 1001 and <= 1009 ||
-               code == DiagnosticCode.MQ2011_MissingClosingBracket;
+        return numericCode is >= 1001 and <= 1009 || code == DiagnosticCode.MQ2011_MissingClosingBracket;
     }
-
 }

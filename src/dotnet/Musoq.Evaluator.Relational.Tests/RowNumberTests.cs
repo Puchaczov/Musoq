@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class RowNumberTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void WhenRowNumberSimpleTest_ShouldPass()
     {
@@ -16,12 +15,7 @@ public class RowNumberTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Country = "Poland" },
-                    new BasicEntity { Country = "Brazil" }
-                ]
-            }
+            { "#A", [new BasicEntity { Country = "Poland" }, new BasicEntity { Country = "Brazil" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -47,7 +41,7 @@ public class RowNumberTests : BasicEntityTestBase
     //     INSERT INTO Cities VALUES ('WARSAW', 'POLAND', 500);
     //     INSERT INTO Cities VALUES ('MUNICH', 'GERMANY', 350);
     //
-    // -- fetch 
+    // -- fetch
     // SELECT Country, row_number() over (ORDER BY Country) FROM Cities order by Country;
     [TestMethod]
     public void WhenRowNumberWithOrderBySimpleTest_ShouldPass()
@@ -56,12 +50,7 @@ public class RowNumberTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Country = "Poland" },
-                    new BasicEntity { Country = "Germany" }
-                ]
-            }
+            { "#A", [new BasicEntity { Country = "Poland" }, new BasicEntity { Country = "Germany" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -84,12 +73,13 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Country = "Poland" },
                     new BasicEntity { Country = "Germany" },
-                    new BasicEntity { Country = "Poland" }
+                    new BasicEntity { Country = "Poland" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -97,10 +87,14 @@ public class RowNumberTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Poland" && (int)row.ReadValues()[1] == 1),
-            "Expected row with Poland, 1 not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Poland" && (int)row.ReadValues()[1] == 2),
-            "Expected row with Poland, 2 not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Poland" && (int)row.ReadValues()[1] == 1),
+            "Expected row with Poland, 1 not found"
+        );
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Poland" && (int)row.ReadValues()[1] == 2),
+            "Expected row with Poland, 2 not found"
+        );
     }
 
     [TestMethod]
@@ -111,12 +105,13 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Country = "Poland" },
                     new BasicEntity { Country = "Germany" },
-                    new BasicEntity { Country = "Poland" }
+                    new BasicEntity { Country = "Poland" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -141,7 +136,7 @@ public class RowNumberTests : BasicEntityTestBase
     // INSERT INTO Cities VALUES ('MUNICH', 'GERMANY', 350);
     // INSERT INTO Cities VALUES ('CZESTOCHOWA', 'POLAND', 250);
     //
-    // -- fetch 
+    // -- fetch
     // SELECT Country, row_number() over (ORDER BY Country) FROM Cities group by Country order by Country offset 1;
     [TestMethod]
     public void WhenRowNumberWithGroupByAndSkipTest_ShouldPass()
@@ -151,12 +146,13 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Country = "Poland" },
                     new BasicEntity { Country = "Germany" },
-                    new BasicEntity { Country = "Poland" }
+                    new BasicEntity { Country = "Poland" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -181,7 +177,7 @@ public class RowNumberTests : BasicEntityTestBase
     // INSERT INTO Cities VALUES ('MUNICH', 'GERMANY', 350);
     // INSERT INTO Cities VALUES ('CZESTOCHOWA', 'POLAND', 250);
     //
-    // -- fetch 
+    // -- fetch
     // SELECT Country, row_number() over (ORDER BY Country) FROM Cities group by Country order by Country limit 1;
     [TestMethod]
     public void WhenRowNumberWithGroupByAndTakeTest_ShouldPass()
@@ -191,12 +187,13 @@ public class RowNumberTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Country = "Poland" },
                     new BasicEntity { Country = "Germany" },
-                    new BasicEntity { Country = "Poland" }
+                    new BasicEntity { Country = "Poland" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

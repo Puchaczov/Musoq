@@ -11,17 +11,16 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class ProviderMethodTransitionMatrixTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void RightOuterJoin_ShouldNullLiftProviderMethodsOnMissingLeftRows()
     {
-        const string query = @"
-select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry
-from #A.entities() a
-right outer join #B.entities() b on a.Id = b.Id";
-        var sources = Sources(
-            [],
-            [new BasicEntity("Poland", "Warsaw") { Id = 2 }]);
+        const string query = (
+            "\n"
+            + "select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry\n"
+            + "from #A.entities() a\n"
+            + "right outer join #B.entities() b on a.Id = b.Id"
+        );
+        var sources = Sources([], [new BasicEntity("Poland", "Warsaw") { Id = 2 }]);
 
         var table = Run(query, sources);
 
@@ -31,14 +30,20 @@ right outer join #B.entities() b on a.Id = b.Id";
     [TestMethod]
     public void LeftOuterJoin_WithOrdering_ShouldNullLiftProviderMethodsOnMissingRightRows()
     {
-        const string query = @"
-select a.Id, b.GetCountry() as RightCountry
-from #A.entities() a
-left outer join #B.entities() b on a.Id = b.Id
-order by a.Id";
-        var table = Run(query, Sources(
-            [new BasicEntity { Id = 1 }, new BasicEntity("Poland", "Warsaw") { Id = 2 }],
-            [new BasicEntity("Poland", "Warsaw") { Id = 2 }]));
+        const string query = (
+            "\n"
+            + "select a.Id, b.GetCountry() as RightCountry\n"
+            + "from #A.entities() a\n"
+            + "left outer join #B.entities() b on a.Id = b.Id\n"
+            + "order by a.Id"
+        );
+        var table = Run(
+            query,
+            Sources(
+                [new BasicEntity { Id = 1 }, new BasicEntity("Poland", "Warsaw") { Id = 2 }],
+                [new BasicEntity("Poland", "Warsaw") { Id = 2 }]
+            )
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, null], [2, "Poland"]);
     }
@@ -46,14 +51,20 @@ order by a.Id";
     [TestMethod]
     public void OrderByProviderMethod_ShouldNullLiftMissingSourceBeforeSorting()
     {
-        const string query = @"
-select a.Id, b.GetCountry() as RightCountry
-from #A.entities() a
-left outer join #B.entities() b on a.Id = b.Id
-order by b.GetCountry(), a.Id";
-        var table = Run(query, Sources(
-            [new BasicEntity { Id = 1 }, new BasicEntity("Poland", "Warsaw") { Id = 2 }],
-            [new BasicEntity("Poland", "Warsaw") { Id = 2 }]));
+        const string query = (
+            "\n"
+            + "select a.Id, b.GetCountry() as RightCountry\n"
+            + "from #A.entities() a\n"
+            + "left outer join #B.entities() b on a.Id = b.Id\n"
+            + "order by b.GetCountry(), a.Id"
+        );
+        var table = Run(
+            query,
+            Sources(
+                [new BasicEntity { Id = 1 }, new BasicEntity("Poland", "Warsaw") { Id = 2 }],
+                [new BasicEntity("Poland", "Warsaw") { Id = 2 }]
+            )
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, null], [2, "Poland"]);
     }
@@ -61,38 +72,40 @@ order by b.GetCountry(), a.Id";
     [TestMethod]
     public void FullOuterJoin_ShouldNullLiftProviderMethodsOnEitherMissingSide()
     {
-        const string query = @"
-select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry
-from #A.entities() a
-full outer join #B.entities() b on a.Id = b.Id";
+        const string query = (
+            "\n"
+            + "select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry\n"
+            + "from #A.entities() a\n"
+            + "full outer join #B.entities() b on a.Id = b.Id"
+        );
         var sources = Sources(
             [new BasicEntity("France", "Paris") { Id = 1 }],
-            [new BasicEntity("Poland", "Warsaw") { Id = 2 }]);
+            [new BasicEntity("Poland", "Warsaw") { Id = 2 }]
+        );
 
         var table = Run(query, sources);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["France", null],
-            [null, "Poland"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["France", null], [null, "Poland"]);
     }
 
     [TestMethod]
     public void ChainedOuterJoins_ShouldPreserveProviderOwnersAcrossCompoundNullableSide()
     {
-        const string query = @"
-select a.GetCountry() as LeftCountry,
-       b.GetCountry() as MiddleCountry,
-       c.GetCountry() as RightCountry
-from #A.entities() a
-left outer join #B.entities() b on a.Id = b.Id
-left outer join #C.entities() c on b.Id = c.Id
-order by a.Id";
+        const string query = (
+            "\n"
+            + "select a.GetCountry() as LeftCountry,\n"
+            + "       b.GetCountry() as MiddleCountry,\n"
+            + "       c.GetCountry() as RightCountry\n"
+            + "from #A.entities() a\n"
+            + "left outer join #B.entities() b on a.Id = b.Id\n"
+            + "left outer join #C.entities() c on b.Id = c.Id\n"
+            + "order by a.Id"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity("France", "Paris") { Id = 1 }],
             ["#B"] = [],
-            ["#C"] = [new BasicEntity("Poland", "Warsaw") { Id = 2 }]
+            ["#C"] = [new BasicEntity("Poland", "Warsaw") { Id = 2 }],
         };
 
         var table = Run(query, sources);
@@ -103,13 +116,16 @@ order by a.Id";
     [TestMethod]
     public void AsOfLeftJoin_ShouldNullLiftProviderMethodsOnUnmatchedRows()
     {
-        const string query = @"
-select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= b.Population";
+        const string query = (
+            "\n"
+            + "select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= b.Population"
+        );
         var sources = Sources(
             [new BasicEntity("France", "Paris") { Population = 100 }],
-            [new BasicEntity("Poland", "Warsaw") { Population = 200 }]);
+            [new BasicEntity("Poland", "Warsaw") { Population = 200 }]
+        );
 
         var table = Run(query, sources);
 
@@ -119,14 +135,17 @@ asof left join #B.entities() b on a.Population >= b.Population";
     [TestMethod]
     public void ProviderMethods_ShouldRemainBoundInJoinPredicatesAndFilters()
     {
-        const string query = @"
-select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry
-from #A.entities() a
-inner join #B.entities() b on a.GetCountry() = b.GetCountry()
-where a.GetCountry() = 'Poland'";
+        const string query = (
+            "\n"
+            + "select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry\n"
+            + "from #A.entities() a\n"
+            + "inner join #B.entities() b on a.GetCountry() = b.GetCountry()\n"
+            + "where a.GetCountry() = 'Poland'"
+        );
         var sources = Sources(
             [new BasicEntity("Poland", "Warsaw") { Id = 1 }],
-            [new BasicEntity("Poland", "Krakow") { Id = 2 }]);
+            [new BasicEntity("Poland", "Krakow") { Id = 2 }]
+        );
 
         var table = Run(query, sources);
 
@@ -136,13 +155,13 @@ where a.GetCountry() = 'Poland'";
     [TestMethod]
     public void GuardedCase_ShouldEvaluateProviderMethodOnlyForPresentRows()
     {
-        const string query = @"
-select case when b is missing then 'missing' else b.GetCountry() end as Country
-from #A.entities() a
-left outer join #B.entities() b on a.Id = b.Id";
-        var sources = Sources(
-            [new BasicEntity { Id = 1 }],
-            []);
+        const string query = (
+            "\n"
+            + "select case when b is missing then 'missing' else b.GetCountry() end as Country\n"
+            + "from #A.entities() a\n"
+            + "left outer join #B.entities() b on a.Id = b.Id"
+        );
+        var sources = Sources([new BasicEntity { Id = 1 }], []);
 
         var table = Run(query, sources);
 
@@ -152,44 +171,48 @@ left outer join #B.entities() b on a.Id = b.Id";
     [TestMethod]
     public void ProviderMethods_ShouldRemainBoundInAggregateArgumentsAndWindows()
     {
-        const string aggregateQuery = @"
-select a.GetCountry() as Country,
-       Sum(a.GetPopulation()) as TotalPopulation,
-       CustomRowCount() as RowCount
-from #A.entities() a
-group by a.GetCountry()
-having a.GetCountry() = 'Poland'";
+        const string aggregateQuery = (
+            "\n"
+            + "select a.GetCountry() as Country,\n"
+            + "       Sum(a.GetPopulation()) as TotalPopulation,\n"
+            + "       CustomRowCount() as RowCount\n"
+            + "from #A.entities() a\n"
+            + "group by a.GetCountry()\n"
+            + "having a.GetCountry() = 'Poland'"
+        );
         var sources = Sources(
             [
                 new BasicEntity("Poland", "Warsaw") { Population = 3 },
-                new BasicEntity("Poland", "Krakow") { Population = 5 }
+                new BasicEntity("Poland", "Krakow") { Population = 5 },
             ],
-            []);
+            []
+        );
 
         var table = Run(aggregateQuery, sources);
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Poland", 8m, 2L]);
 
-        const string windowQuery = @"
-select a.GetCountry() as Country,
-       RowNumber() over (order by a.GetPopulation()) as Rank,
-       RunningProduct(a.GetPopulation()) over (order by a.GetPopulation()) as Product
-from #A.entities() a";
+        const string windowQuery = (
+            "\n"
+            + "select a.GetCountry() as Country,\n"
+            + "       RowNumber() over (order by a.GetPopulation()) as Rank,\n"
+            + "       RunningProduct(a.GetPopulation()) over (order by a.GetPopulation()) as Product\n"
+            + "from #A.entities() a"
+        );
         var windowTable = Run(windowQuery, sources);
 
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            windowTable,
-            ["Poland", 1L, 3m],
-            ["Poland", 2L, 15m]);
+        TableMaterializationTestHelper.AssertRowsInOrder(windowTable, ["Poland", 1L, 3m], ["Poland", 2L, 15m]);
     }
 
     [TestMethod]
     public void ProviderMethods_ShouldSupportExplicitAndGenericArguments()
     {
-        const string query = @"
-select a.GetCountryOrDefault('fallback') as ExplicitValue,
-       a.GetCountryOrDefaultGeneric('generic') as GenericValue
-from #A.entities() a";
+        const string query = (
+            "\n"
+            + "select a.GetCountryOrDefault('fallback') as ExplicitValue,\n"
+            + "       a.GetCountryOrDefaultGeneric('generic') as GenericValue\n"
+            + "from #A.entities() a"
+        );
         var table = Run(query, Sources([new BasicEntity { Id = 1 }], []));
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["fallback", "generic"]);
@@ -198,13 +221,13 @@ from #A.entities() a";
     [TestMethod]
     public void CrossApplyProviderMethod_ShouldBindInjectedSourceWithExplicitArguments()
     {
-        const string query = @"
-select b as Value
-from #A.entities() a
-cross apply a.MethodArrayOfStrings(a.GetCountry(), a.GetCity()) b";
-        var table = Run(query, Sources(
-            [new BasicEntity("Poland", "Warsaw")],
-            []));
+        const string query = (
+            "\n"
+            + "select b as Value\n"
+            + "from #A.entities() a\n"
+            + "cross apply a.MethodArrayOfStrings(a.GetCountry(), a.GetCity()) b"
+        );
+        var table = Run(query, Sources([new BasicEntity("Poland", "Warsaw")], []));
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland"], ["Warsaw"]);
     }
@@ -212,14 +235,14 @@ cross apply a.MethodArrayOfStrings(a.GetCountry(), a.GetCity()) b";
     [TestMethod]
     public void CrossApplyProviderMethod_WithOrdinality_ShouldPreserveInjectedSourceBinding()
     {
-        const string query = @"
-select b.Value, b.Ordinal
-from #A.entities() a
-cross apply a.MethodArrayOfStrings(a.GetCountry(), a.GetCity()) b with ordinality
-order by b.Ordinal";
-        var table = Run(query, Sources(
-            [new BasicEntity("Poland", "Warsaw")],
-            []));
+        const string query = (
+            "\n"
+            + "select b.Value, b.Ordinal\n"
+            + "from #A.entities() a\n"
+            + "cross apply a.MethodArrayOfStrings(a.GetCountry(), a.GetCity()) b with ordinality\n"
+            + "order by b.Ordinal"
+        );
+        var table = Run(query, Sources([new BasicEntity("Poland", "Warsaw")], []));
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Poland", 0], ["Warsaw", 1]);
     }
@@ -227,11 +250,13 @@ order by b.Ordinal";
     [TestMethod]
     public void OuterApplyPropertySource_ShouldBindProviderMethodWithOrdinality()
     {
-        const string query = @"
-select child.Name() as ChildName, child.Ordinal
-from #A.entities() a
-outer apply a.Children child with ordinality
-order by child.Ordinal";
+        const string query = (
+            "\n"
+            + "select child.Name() as ChildName, child.Ordinal\n"
+            + "from #A.entities() a\n"
+            + "outer apply a.Children child with ordinality\n"
+            + "order by child.Ordinal"
+        );
         var table = Run(query, Sources([new BasicEntity { Id = 1 }], []));
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["child1", 0], ["child2", 1]);
@@ -240,10 +265,12 @@ order by child.Ordinal";
     [TestMethod]
     public void RowIndependentProviderMethod_ShouldRemainExecutableOnMissingAlias()
     {
-        const string query = @"
-select b.GetOne() as Value
-from #A.entities() a
-left outer join #B.entities() b on a.Id = b.Id";
+        const string query = (
+            "\n"
+            + "select b.GetOne() as Value\n"
+            + "from #A.entities() a\n"
+            + "left outer join #B.entities() b on a.Id = b.Id"
+        );
         var table = Run(query, Sources([new BasicEntity { Id = 1 }], []));
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1m]);
@@ -252,12 +279,14 @@ left outer join #B.entities() b on a.Id = b.Id";
     [TestMethod]
     public void ProviderMethodInsideCte_ShouldExecuteBeforeProviderNeutralBoundary()
     {
-        const string query = @"
-with countries as (
-    select a.GetCountry() as Country
-    from #A.entities() a
-)
-select Country from countries";
+        const string query = (
+            "\n"
+            + "with countries as (\n"
+            + "    select a.GetCountry() as Country\n"
+            + "    from #A.entities() a\n"
+            + ")\n"
+            + "select Country from countries"
+        );
         var table = Run(query, Sources([new BasicEntity("Poland", "Warsaw")], []));
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Poland"]);
@@ -266,75 +295,66 @@ select Country from countries";
     [TestMethod]
     public void ProviderMethodAfterCteBoundary_ShouldRemainUnavailable()
     {
-        const string query = @"
-with countries as (
-    select a.GetCountry() as Country
-    from #A.entities() a
-)
-select countries.GetCountry() from countries";
+        const string query = (
+            "\n"
+            + "with countries as (\n"
+            + "    select a.GetCountry() as Country\n"
+            + "    from #A.entities() a\n"
+            + ")\n"
+            + "select countries.GetCountry() from countries"
+        );
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, Sources([new BasicEntity("Poland", "Warsaw")], [])));
+            CreateAndRunVirtualMachine(query, Sources([new BasicEntity("Poland", "Warsaw")], []))
+        );
 
-        AssertErrorEnvelope(
-            exception,
-            DiagnosticCode.MQ3086_UnknownCallable,
-            DiagnosticPhase.Bind,
-            "GetCountry");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3086_UnknownCallable, DiagnosticPhase.Bind, "GetCountry");
     }
 
     [TestMethod]
     public void ProviderMethodAfterValuesBoundary_ShouldRemainUnavailable()
     {
-        const string query = @"
-select values.GetCountry()
-from values {
-    ( Name: 'Poland' )
-} values";
+        const string query = (
+            "\n" + "select values.GetCountry()\n" + "from values {\n" + "    ( Name: 'Poland' )\n" + "} values"
+        );
 
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, Sources([], [])));
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, Sources([], [])));
 
-        AssertErrorEnvelope(
-            exception,
-            DiagnosticCode.MQ3086_UnknownCallable,
-            DiagnosticPhase.Bind,
-            "GetCountry");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3086_UnknownCallable, DiagnosticPhase.Bind, "GetCountry");
     }
 
     [TestMethod]
     public void ProviderMethodAfterUnpivotBoundary_ShouldRemainUnavailable()
     {
-        const string query = @"
-with unpivoted as (
-    unpivot #A.entities() s
-    on Metric in (s.Population as Population)
-    using Amount
-    keep s.Country as Country
-)
-select unpivoted.GetCountry()
-from unpivoted";
+        const string query = (
+            "\n"
+            + "with unpivoted as (\n"
+            + "    unpivot #A.entities() s\n"
+            + "    on Metric in (s.Population as Population)\n"
+            + "    using Amount\n"
+            + "    keep s.Country as Country\n"
+            + ")\n"
+            + "select unpivoted.GetCountry()\n"
+            + "from unpivoted"
+        );
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, Sources([new BasicEntity { Country = "Poland", Population = 1m }], [])));
+            CreateAndRunVirtualMachine(query, Sources([new BasicEntity { Country = "Poland", Population = 1m }], []))
+        );
 
-        AssertErrorEnvelope(
-            exception,
-            DiagnosticCode.MQ3086_UnknownCallable,
-            DiagnosticPhase.Bind,
-            "GetCountry");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3086_UnknownCallable, DiagnosticPhase.Bind, "GetCountry");
     }
 
     [TestMethod]
     public void ProviderMethods_ShouldRemainBoundAcrossSetBranches()
     {
-        const string query = @"
-select a.GetCountry() as Country from #A.entities() a
-union all
-select b.GetCountry() as Country from #B.entities() b";
-        var table = Run(query, Sources(
-            [new BasicEntity("France", "Paris")],
-            [new BasicEntity("Poland", "Warsaw")]));
+        const string query = (
+            "\n"
+            + "select a.GetCountry() as Country from #A.entities() a\n"
+            + "union all\n"
+            + "select b.GetCountry() as Country from #B.entities() b"
+        );
+        var table = Run(query, Sources([new BasicEntity("France", "Paris")], [new BasicEntity("Poland", "Warsaw")]));
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["France"], ["Poland"]);
     }
@@ -342,17 +362,22 @@ select b.GetCountry() as Country from #B.entities() b";
     [TestMethod]
     public void SemiAndAntiJoins_ShouldPreserveLeftProviderMethods()
     {
-        const string semiQuery = @"
-select a.GetCountry() as Country
-from #A.entities() a
-semi join #B.entities() b on a.Id = b.Id";
-        const string antiQuery = @"
-select a.GetCountry() as Country
-from #A.entities() a
-anti join #B.entities() b on a.Id = b.Id";
+        const string semiQuery = (
+            "\n"
+            + "select a.GetCountry() as Country\n"
+            + "from #A.entities() a\n"
+            + "semi join #B.entities() b on a.Id = b.Id"
+        );
+        const string antiQuery = (
+            "\n"
+            + "select a.GetCountry() as Country\n"
+            + "from #A.entities() a\n"
+            + "anti join #B.entities() b on a.Id = b.Id"
+        );
         var sources = Sources(
             [new BasicEntity("France", "Paris") { Id = 1 }, new BasicEntity("Poland", "Warsaw") { Id = 2 }],
-            [new BasicEntity("Poland", "Warsaw") { Id = 2 }]);
+            [new BasicEntity("Poland", "Warsaw") { Id = 2 }]
+        );
 
         var semi = Run(semiQuery, sources);
         var anti = Run(antiQuery, sources);
@@ -364,14 +389,17 @@ anti join #B.entities() b on a.Id = b.Id";
     [TestMethod]
     public void BuiltInUtility_ShouldRemainCheapAndBoundAcrossJoinTransition()
     {
-        const string query = @"
-select a.ToDecimal(a.Id) as LeftId, b.ToDecimal(b.Id) as RightId
-from #A.entities() a
-left outer join #B.entities() b on a.Id = b.Id
-order by a.Id";
-        var table = Run(query, Sources(
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 2 }]));
+        const string query = (
+            "\n"
+            + "select a.ToDecimal(a.Id) as LeftId, b.ToDecimal(b.Id) as RightId\n"
+            + "from #A.entities() a\n"
+            + "left outer join #B.entities() b on a.Id = b.Id\n"
+            + "order by a.Id"
+        );
+        var table = Run(
+            query,
+            Sources([new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }], [new BasicEntity { Id = 2 }])
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1m, null], [2m, 2m]);
     }
@@ -379,17 +407,15 @@ order by a.Id";
     private Table Run(string query, IDictionary<string, IEnumerable<BasicEntity>> sources)
     {
         return TableMaterializationTestHelper.Materialize(
-            CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken));
+            CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken)
+        );
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> Sources(
         IEnumerable<BasicEntity> left,
-        IEnumerable<BasicEntity> right)
+        IEnumerable<BasicEntity> right
+    )
     {
-        return new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] = left,
-            ["#B"] = right
-        };
+        return new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = left, ["#B"] = right };
     }
 }

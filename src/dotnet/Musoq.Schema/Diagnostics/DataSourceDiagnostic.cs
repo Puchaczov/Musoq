@@ -11,9 +11,8 @@ public sealed class DataSourceDiagnostic
 {
     /// <summary>Creates a report without optional correction or location details.</summary>
     public DataSourceDiagnostic(string code, string category, DataSourceDiagnosticSeverity severity, string message)
-        : this(code, category, message, new DataSourceDiagnosticOptions { Severity = severity })
-    {
-    }
+        : this(code, category, message, new DataSourceDiagnosticOptions { Severity = severity }) { }
+
     public DataSourceDiagnostic(string code, string category, string message, DataSourceDiagnosticOptions options)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
@@ -26,10 +25,18 @@ public sealed class DataSourceDiagnostic
         Category = DiagnosticSafety.SanitizeForDisplay(category);
         Severity = options.Severity;
         var details = CopyDetails(options.Details);
-        var context = new Diagnostic(DiagnosticCode.MQ7020_ReportedDataSourceFailure, DiagnosticSeverity.Error,
-            message, SourceLocation.None, arguments: details, sourceKind: DiagnosticSourceKind.DataSource);
+        var context = new Diagnostic(
+            DiagnosticCode.MQ7020_ReportedDataSourceFailure,
+            DiagnosticSeverity.Error,
+            message,
+            SourceLocation.None,
+            arguments: details,
+            sourceKind: DiagnosticSourceKind.DataSource
+        );
         Message = PublicText(message, context, details);
-        SuggestedFixes = Array.AsReadOnly(options.SuggestedFixes.Take(8).Select(fix => PublicText(fix, context, details)).ToArray());
+        SuggestedFixes = Array.AsReadOnly(
+            options.SuggestedFixes.Take(8).Select(fix => PublicText(fix, context, details)).ToArray()
+        );
         FailureKind = options.FailureKind;
         if (FailureKind is null && Severity == DataSourceDiagnosticSeverity.Error)
             FailureKind = DataSourceFailureKind.ProviderFailure;
@@ -43,18 +50,34 @@ public sealed class DataSourceDiagnostic
 
     private static void ValidateCode(string code)
     {
-        if (code.Length > 128 || code.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not '.' and not '_' and not '-'))
-            throw new ArgumentException("Provider codes must contain at most 128 ASCII letters, digits, dots, underscores or hyphens.", nameof(code));
+        if (
+            code.Length > 128
+            || code.Any(character =>
+                !char.IsAsciiLetterOrDigit(character) && character is not '.' and not '_' and not '-'
+            )
+        )
+            throw new ArgumentException(
+                "Provider codes must contain at most 128 ASCII letters, digits, dots, underscores or hyphens.",
+                nameof(code)
+            );
     }
 
     private static void ValidateOptions(DataSourceDiagnosticOptions options)
     {
         if (options.Severity is not DataSourceDiagnosticSeverity.Warning and not DataSourceDiagnosticSeverity.Error)
             throw new ArgumentOutOfRangeException(nameof(options), "Unknown report severity.");
-        if (options.FailureKind.HasValue && (options.FailureKind < DataSourceFailureKind.InvalidInput || options.FailureKind > DataSourceFailureKind.ProviderFailure))
+        if (
+            options.FailureKind.HasValue
+            && (
+                options.FailureKind < DataSourceFailureKind.InvalidInput
+                || options.FailureKind > DataSourceFailureKind.ProviderFailure
+            )
+        )
             throw new ArgumentOutOfRangeException(nameof(options), "Unknown failure kind.");
-        if (options.ArgumentIndex is < 0) throw new ArgumentOutOfRangeException(nameof(options), "Argument indexes must be zero based.");
-        if (options.RetryAfter < TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(options), "Retry delays cannot be negative.");
+        if (options.ArgumentIndex is < 0)
+            throw new ArgumentOutOfRangeException(nameof(options), "Argument indexes must be zero based.");
+        if (options.RetryAfter < TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(options), "Retry delays cannot be negative.");
         ArgumentNullException.ThrowIfNull(options.SuggestedFixes);
         ArgumentNullException.ThrowIfNull(options.Details);
     }
@@ -72,20 +95,30 @@ public sealed class DataSourceDiagnostic
         var result = DiagnosticSafety.SanitizeText(text, context) ?? string.Empty;
         var publicDetails = DiagnosticSafety.SanitizeArguments(context);
         foreach (var item in details)
-            if ((IsPathKey(item.Key) || publicDetails[item.Key] == DiagnosticSafety.RedactedValue) && !string.IsNullOrEmpty(item.Value))
+            if (
+                (IsPathKey(item.Key) || publicDetails[item.Key] == DiagnosticSafety.RedactedValue)
+                && !string.IsNullOrEmpty(item.Value)
+            )
                 result = result.Replace(item.Value, DiagnosticSafety.RedactedValue, StringComparison.Ordinal);
         return DiagnosticSafety.SanitizeForDisplay(result);
     }
 
-    private static IReadOnlyDictionary<string, string> FreezePublicDetails(Diagnostic context, IReadOnlyDictionary<string, string> details)
+    private static IReadOnlyDictionary<string, string> FreezePublicDetails(
+        Diagnostic context,
+        IReadOnlyDictionary<string, string> details
+    )
     {
         var safe = new Dictionary<string, string>(DiagnosticSafety.SanitizeArguments(context), StringComparer.Ordinal);
         foreach (var item in details)
-            safe[item.Key] = IsPathKey(item.Key) ? DiagnosticSafety.RedactedValue : DiagnosticSafety.SanitizeForDisplay(safe[item.Key]);
+            safe[item.Key] = IsPathKey(item.Key)
+                ? DiagnosticSafety.RedactedValue
+                : DiagnosticSafety.SanitizeForDisplay(safe[item.Key]);
         return new ReadOnlyDictionary<string, string>(safe);
     }
 
-    private static bool IsPathKey(string key) => key.EndsWith("path", StringComparison.OrdinalIgnoreCase) || key.Equals("paths", StringComparison.OrdinalIgnoreCase);
+    private static bool IsPathKey(string key) =>
+        key.EndsWith("path", StringComparison.OrdinalIgnoreCase)
+        || key.Equals("paths", StringComparison.OrdinalIgnoreCase);
 
     public string Code { get; }
     public string Category { get; }
@@ -107,20 +140,41 @@ public sealed class DataSourceDiagnostic
         {
             ["providerCode"] = Code,
             ["providerCategory"] = Category,
-            ["canRetry"] = CanRetry ? "true" : "false"
+            ["canRetry"] = CanRetry ? "true" : "false",
         };
-        if (FailureKind.HasValue) arguments["failureKind"] = FailureKind.Value.ToString();
-        if (ArgumentName is not null) arguments["argumentName"] = ArgumentName;
-        if (ArgumentIndex.HasValue) arguments["argumentIndex"] = ArgumentIndex.Value.ToString(CultureInfo.InvariantCulture);
-        if (RetryAfter.HasValue) arguments["retryAfterMilliseconds"] = RetryAfter.Value.TotalMilliseconds.ToString(CultureInfo.InvariantCulture);
-        foreach (var item in Details) arguments["detail." + item.Key] = item.Value;
+        if (FailureKind.HasValue)
+            arguments["failureKind"] = FailureKind.Value.ToString();
+        if (ArgumentName is not null)
+            arguments["argumentName"] = ArgumentName;
+        if (ArgumentIndex.HasValue)
+            arguments["argumentIndex"] = ArgumentIndex.Value.ToString(CultureInfo.InvariantCulture);
+        if (RetryAfter.HasValue)
+            arguments["retryAfterMilliseconds"] = RetryAfter.Value.TotalMilliseconds.ToString(
+                CultureInfo.InvariantCulture
+            );
+        foreach (var item in Details)
+            arguments["detail." + item.Key] = item.Value;
         return new Diagnostic(
-            Severity == DataSourceDiagnosticSeverity.Error ? DiagnosticCode.MQ7020_ReportedDataSourceFailure : DiagnosticCode.MQ5027_ReportedDataSourceWarning,
+            Severity == DataSourceDiagnosticSeverity.Error
+                ? DiagnosticCode.MQ7020_ReportedDataSourceFailure
+                : DiagnosticCode.MQ5027_ReportedDataSourceWarning,
             Severity == DataSourceDiagnosticSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
-            Message, SourceLocation.None,
+            Message,
+            SourceLocation.None,
             suggestedFixes: SuggestedFixes.Select(DiagnosticAction.Suggestion),
-            phase: DiagnosticPhase.DataSource, sourceKind: DiagnosticSourceKind.DataSource,
-            arguments: arguments).WithInputLocation(InputLocation is null ? null : new DiagnosticInputLocation(
-                InputLocation.Line, InputLocation.Column, InputLocation.ByteOffset, InputLocation.CharacterOffset, InputLocation.BytePositionInLine));
+            phase: DiagnosticPhase.DataSource,
+            sourceKind: DiagnosticSourceKind.DataSource,
+            arguments: arguments
+        ).WithInputLocation(
+            InputLocation is null
+                ? null
+                : new DiagnosticInputLocation(
+                    InputLocation.Line,
+                    InputLocation.Column,
+                    InputLocation.ByteOffset,
+                    InputLocation.CharacterOffset,
+                    InputLocation.BytePositionInLine
+                )
+        );
     }
 }

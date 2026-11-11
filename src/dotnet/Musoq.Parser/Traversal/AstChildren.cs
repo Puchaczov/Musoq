@@ -14,7 +14,7 @@ internal static class AstChildren
         nameof(Node.Id),
         nameof(Node.Span),
         nameof(Node.FullSpan),
-        nameof(Node.HasSpan)
+        nameof(Node.HasSpan),
     ];
 
     public static IReadOnlyList<AstChild> Of(Node node)
@@ -32,7 +32,10 @@ internal static class AstChildren
         ArgumentNullException.ThrowIfNull(nodeType);
 
         if (!typeof(Node).IsAssignableFrom(nodeType))
-            throw new ArgumentException("Traversal metadata can only be requested for parser node types.", nameof(nodeType));
+            throw new ArgumentException(
+                "Traversal metadata can only be requested for parser node types.",
+                nameof(nodeType)
+            );
 
         return GetProperties(nodeType)
             .Where(property => CanContainNode(property.PropertyType))
@@ -45,7 +48,8 @@ internal static class AstChildren
         string path,
         object? value,
         HashSet<object> visited,
-        bool inspectNodeProperties)
+        bool inspectNodeProperties
+    )
     {
         if (value == null)
             return;
@@ -91,8 +95,7 @@ internal static class AstChildren
 
     private static PropertyInfo[] GetProperties(Type type)
     {
-        return type
-            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+        return type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .Where(static property => property.GetIndexParameters().Length == 0)
             .Where(static property => !ExcludedNodeProperties.Contains(property.Name, StringComparer.Ordinal))
             .OrderBy(static property => property.DeclaringType == typeof(Node) ? 0 : 1)
@@ -102,8 +105,7 @@ internal static class AstChildren
 
     private static FieldInfo[] GetFields(Type type)
     {
-        return type
-            .GetFields(BindingFlags.Instance | BindingFlags.Public)
+        return type.GetFields(BindingFlags.Instance | BindingFlags.Public)
             .OrderBy(static field => field.MetadataToken)
             .ToArray();
     }
@@ -124,9 +126,11 @@ internal static class AstChildren
 
     private static bool ShouldInspectContainer(Type type)
     {
-        return IsValueTuple(type) ||
-               (type.Namespace?.StartsWith("Musoq.Parser.Nodes", StringComparison.Ordinal) == true &&
-                !typeof(Node).IsAssignableFrom(type));
+        return IsValueTuple(type)
+            || (
+                type.Namespace?.StartsWith("Musoq.Parser.Nodes", StringComparison.Ordinal) == true
+                && !typeof(Node).IsAssignableFrom(type)
+            );
     }
 
     private static bool IsValueTuple(Type type)

@@ -6,9 +6,7 @@ namespace Musoq.Evaluator.IR.Optimization;
 /// self-documenting and intentional repeats (such as running the same pass twice)
 /// are visible at the declaration site.
 /// </summary>
-internal sealed record OptimizationPassStep<TPlan>(
-    IPlanOptimizationPass<TPlan> Pass,
-    string Reason)
+internal sealed record OptimizationPassStep<TPlan>(IPlanOptimizationPass<TPlan> Pass, string Reason)
 {
     public string Name => Pass.Name;
 }

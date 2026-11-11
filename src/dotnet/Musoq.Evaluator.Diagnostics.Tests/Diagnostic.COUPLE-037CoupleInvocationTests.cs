@@ -20,8 +20,7 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class DiagnosticCouple037CoupleInvocationTests
 {
-    private static readonly CompilationOptions CompilationOptions =
-        new(usePrimitiveTypeValidation: false);
+    private static readonly CompilationOptions CompilationOptions = new(usePrimitiveTypeValidation: false);
 
     [TestMethod]
     [DataRow("desc Data(PAGESIZE: 5, SOURCEPATH: 'named')")]
@@ -31,9 +30,11 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     {
         var provider = new Couple037SchemaProvider();
         var table = Run(
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple couple037.items with table Published as Data;" + description,
-            provider);
+            "table Published { DisplayName: string, RankValue: int };"
+                + "couple couple037.items with table Published as Data;"
+                + description,
+            provider
+        );
 
         Assert.IsNotNull(table);
         Assert.AreEqual(0, provider.RuntimeArguments.Count);
@@ -44,15 +45,17 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     {
         var provider = new Couple037SchemaProvider();
         var table = Run(
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select d.DisplayName, d.RankValue from data() d;",
-            provider);
+            "table Published { DisplayName: string, RankValue: int };"
+                + "couple #couple037.items with table Published as Data;"
+                + "select d.DisplayName, d.RankValue from data() d;",
+            provider
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("DisplayName", typeof(string)),
-            ("RankValue", typeof(int?)));
+            ("RankValue", typeof(int?))
+        );
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("<no-arguments>", table[0].ReadValue(0));
         Assert.AreEqual(0, table[0].ReadValue(1));
@@ -64,22 +67,25 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     {
         var provider = new Couple037SchemaProvider();
         var table = Run(
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select d.DisplayName, d.RankValue from Data('positional', 12) d;",
-            provider);
+            "table Published { DisplayName: string, RankValue: int };"
+                + "couple #couple037.items with table Published as Data;"
+                + "select d.DisplayName, d.RankValue from Data('positional', 12) d;",
+            provider
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("DisplayName", typeof(string)),
-            ("RankValue", typeof(int?)));
+            ("RankValue", typeof(int?))
+        );
         Assert.AreEqual("positional", table[0].ReadValue(0));
         Assert.AreEqual(12, table[0].ReadValue(1));
-        CollectionAssert.AreEqual(
-            new object?[] { "positional", 12 },
-            provider.RuntimeArguments.Single());
-        Assert.IsTrue(provider.MetadataColumns.Any(columns =>
-            columns.Select(column => column.ColumnName).SequenceEqual(["DisplayName", "RankValue"])));
+        CollectionAssert.AreEqual(new object?[] { "positional", 12 }, provider.RuntimeArguments.Single());
+        Assert.IsTrue(
+            provider.MetadataColumns.Any(columns =>
+                columns.Select(column => column.ColumnName).SequenceEqual(["DisplayName", "RankValue"])
+            )
+        );
     }
 
     [TestMethod]
@@ -87,9 +93,9 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     {
         var provider = new Couple037SchemaProvider();
         const string query =
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select DisplayName, RankValue from Data(PAGESIZE: 5, SOURCEPATH: 'named');";
+            "table Published { DisplayName: string, RankValue: int };"
+            + "couple #couple037.items with table Published as Data;"
+            + "select DisplayName, RankValue from Data(PAGESIZE: 5, SOURCEPATH: 'named');";
         var table = Run(query, provider);
 
         Assert.AreEqual(1, table.Count);
@@ -101,10 +107,11 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     {
         var provider = new Couple037SchemaProvider();
         var table = Run(
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select DisplayName, RankValue from Data('mixed', pageSize: 6);",
-            provider);
+            "table Published { DisplayName: string, RankValue: int };"
+                + "couple #couple037.items with table Published as Data;"
+                + "select DisplayName, RankValue from Data('mixed', pageSize: 6);",
+            provider
+        );
 
         Assert.AreEqual(1, table.Count);
         AssertCapturedArguments(provider, "mixed", 6);
@@ -115,10 +122,11 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     {
         var provider = new Couple037SchemaProvider();
         var table = Run(
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select DisplayName, RankValue from Data('defaulted');",
-            provider);
+            "table Published { DisplayName: string, RankValue: int };"
+                + "couple #couple037.items with table Published as Data;"
+                + "select DisplayName, RankValue from Data('defaulted');",
+            provider
+        );
 
         Assert.AreEqual(1, table.Count);
         AssertCapturedArguments(provider, "defaulted", 7);
@@ -128,9 +136,9 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     public void CoupledAlias_PositionalAfterNamedArgumentReportsParserDiagnostic()
     {
         const string query =
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select 1 from Data(pageSize: 2, 'after');";
+            "table Published { DisplayName: string, RankValue: int };"
+            + "couple #couple037.items with table Published as Data;"
+            + "select 1 from Data(pageSize: 2, 'after');";
         var expectedSpan = SpanOf(query, "'after'");
 
         var diagnostic = AssertCoupledDiagnostic(
@@ -138,7 +146,8 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
             DiagnosticCode.MQ2034_InvalidNamedSourceArgument,
             expectedSpan,
             "positional after named coupled argument",
-            DiagnosticPhase.Parse);
+            DiagnosticPhase.Parse
+        );
 
         Assert.AreEqual("positional-after-named", diagnostic.Arguments["argumentKind"]);
     }
@@ -147,16 +156,17 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     public void CoupledAlias_UnknownNamedArgumentReportsLabelSpanAndSuggestion()
     {
         const string query =
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select 1 from Data(sourcePah: 'unknown');";
+            "table Published { DisplayName: string, RankValue: int };"
+            + "couple #couple037.items with table Published as Data;"
+            + "select 1 from Data(sourcePah: 'unknown');";
         var expectedSpan = SpanOf(query, "sourcePah");
 
         var diagnostic = AssertCoupledDiagnostic(
             query,
             DiagnosticCode.MQ3079_UnknownSourceArgument,
             expectedSpan,
-            "unknown coupled constructor argument");
+            "unknown coupled constructor argument"
+        );
 
         Assert.AreEqual("sourcePah", diagnostic.Arguments["argument"]);
         StringAssert.Contains(diagnostic.Arguments["candidateParameters"], "sourcePath");
@@ -168,16 +178,17 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     public void CoupledAlias_DuplicateNamedArgumentReportsSecondLabelSpan()
     {
         const string query =
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select 1 from Data(sourcePath: 'first', SOURCEPATH: 'second');";
+            "table Published { DisplayName: string, RankValue: int };"
+            + "couple #couple037.items with table Published as Data;"
+            + "select 1 from Data(sourcePath: 'first', SOURCEPATH: 'second');";
         var expectedSpan = SpanOf(query, "SOURCEPATH");
 
         var diagnostic = AssertCoupledDiagnostic(
             query,
             DiagnosticCode.MQ3080_DuplicateSourceArgument,
             expectedSpan,
-            "duplicate coupled constructor argument");
+            "duplicate coupled constructor argument"
+        );
 
         Assert.AreEqual("SOURCEPATH", diagnostic.Arguments["argument"]);
         Assert.AreEqual("sourcePath", diagnostic.Arguments["parameter"]);
@@ -187,16 +198,17 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     public void CoupledAlias_MissingRequiredArgumentReportsInsertionSpan()
     {
         const string query =
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select 1 from Data(pageSize: 2);";
+            "table Published { DisplayName: string, RankValue: int };"
+            + "couple #couple037.items with table Published as Data;"
+            + "select 1 from Data(pageSize: 2);";
         var expectedSpan = new TextSpan(query.IndexOf(')', StringComparison.Ordinal), 0);
 
         var diagnostic = AssertCoupledDiagnostic(
             query,
             DiagnosticCode.MQ3081_MissingRequiredSourceArgument,
             expectedSpan,
-            "missing coupled constructor argument");
+            "missing coupled constructor argument"
+        );
 
         Assert.AreEqual("sourcePath", diagnostic.Arguments["missingArgument"]);
         Assert.AreEqual("String", diagnostic.Arguments["expectedType"]);
@@ -206,16 +218,17 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     public void CoupledAlias_WrongArityReportsArgumentsSpanAndExpectedCounts()
     {
         const string query =
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select 1 from Data('too', 1, 2);";
+            "table Published { DisplayName: string, RankValue: int };"
+            + "couple #couple037.items with table Published as Data;"
+            + "select 1 from Data('too', 1, 2);";
         var expectedSpan = SpanOf(query, "('too', 1, 2)");
 
         var diagnostic = AssertCoupledDiagnostic(
             query,
             DiagnosticCode.MQ3087_InvalidCallableArity,
             expectedSpan,
-            "wrong coupled constructor arity");
+            "wrong coupled constructor arity"
+        );
 
         StringAssert.Contains(diagnostic.Arguments["expectedCounts"], "1..2");
         StringAssert.Contains(diagnostic.Arguments["candidateSignatures"], "sourcePath");
@@ -225,25 +238,23 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
     public void CoupledAlias_WrongArgumentTypeReportsArgumentsSpanAndCandidates()
     {
         const string query =
-            "table Published { DisplayName: string, RankValue: int };" +
-            "couple #couple037.items with table Published as Data;" +
-            "select 1 from Data(1, 2);";
+            "table Published { DisplayName: string, RankValue: int };"
+            + "couple #couple037.items with table Published as Data;"
+            + "select 1 from Data(1, 2);";
         var expectedSpan = SpanOf(query, "(1, 2)");
 
         var diagnostic = AssertCoupledDiagnostic(
             query,
             DiagnosticCode.MQ3088_NoMatchingCallableOverload,
             expectedSpan,
-            "wrong coupled constructor argument type");
+            "wrong coupled constructor argument type"
+        );
 
         StringAssert.Contains(diagnostic.Arguments["actualTypes"], "Int32");
         StringAssert.Contains(diagnostic.Arguments["candidateSignatures"], "sourcePath");
     }
 
-    private static void AssertCapturedArguments(
-        Couple037SchemaProvider provider,
-        string sourcePath,
-        int pageSize)
+    private static void AssertCapturedArguments(Couple037SchemaProvider provider, string sourcePath, int pageSize)
     {
         var expected = new object?[] { sourcePath, pageSize };
         Assert.IsTrue(provider.MetadataArguments.Any(arguments => arguments.SequenceEqual(expected)));
@@ -252,10 +263,7 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
 
     private static QueryAnalysisResult Analyze(string query)
     {
-        return new QueryAnalyzer(
-                new Couple037SchemaProvider(),
-                compilationOptions: CompilationOptions)
-            .Analyze(query);
+        return new QueryAnalyzer(new Couple037SchemaProvider(), compilationOptions: CompilationOptions).Analyze(query);
     }
 
     private static Diagnostic AssertCoupledDiagnostic(
@@ -263,7 +271,8 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
         DiagnosticCode expectedCode,
         TextSpan expectedSpan,
         string context,
-        DiagnosticPhase expectedPhase = DiagnosticPhase.Bind)
+        DiagnosticPhase expectedPhase = DiagnosticPhase.Bind
+    )
     {
         var result = Analyze(query);
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
@@ -301,7 +310,8 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            CompilationOptions);
+            CompilationOptions
+        );
         return compiled.Run(CancellationToken.None);
     }
 
@@ -328,7 +338,9 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
                     typeof(Couple037NoArgumentConstructor)
                         .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                         .Single(),
-                    false)),
+                    false
+                )
+            ),
             new(
                 "items",
                 new SchemaConstructorInfo(
@@ -337,13 +349,13 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
                         .Single(),
                     false,
                     ("sourcePath", typeof(string)),
-                    ("pageSize", typeof(int))))
+                    ("pageSize", typeof(int))
+                )
+            ),
         ];
 
         public Couple037Schema()
-            : base("couple037", new MethodsAggregator(new MethodsManager()))
-        {
-        }
+            : base("couple037", new MethodsAggregator(new MethodsManager())) { }
 
         public List<object?[]> MetadataArguments { get; } = [];
 
@@ -356,7 +368,8 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             MetadataArguments.Add(parameters.ToArray());
             var columns = metadataContext.AllColumns.ToArray();
@@ -364,11 +377,21 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
             return new Couple037Table(columns);
         }
 
-        public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-            => base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
+        public override SourceDescriptor DescribeSource(
+            string name,
+            SourceDescribeContext context,
+            params object?[] parameters
+        ) =>
+            base.DescribeSource(name, context, parameters) with
+            {
+                TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
+            };
 
         public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
-            string name, QueryScopedRowSourceRequest request, TArguments nativeArguments)
+            string name,
+            QueryScopedRowSourceRequest request,
+            TArguments nativeArguments
+        )
             where TMaterializer : struct, IQueryRowMaterializer<TRow>
             where TArguments : struct, ISourceArguments
         {
@@ -377,16 +400,15 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
             var sourcePath = parameters.Length == 0 ? "<no-arguments>" : (string)parameters[0]!;
             var pageSize = parameters.Length < 2 ? 0 : (int)parameters[1]!;
             return new Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>(
-                [new Dictionary<string, object?> { ["DisplayName"] = sourcePath, ["RankValue"] = pageSize }], request.Shape.Fields);
+                [new Dictionary<string, object?> { ["DisplayName"] = sourcePath, ["RankValue"] = pageSize }],
+                request.Shape.Fields
+            );
         }
-
     }
 
     private sealed class Couple037NoArgumentConstructor
     {
-        public Couple037NoArgumentConstructor()
-        {
-        }
+        public Couple037NoArgumentConstructor() { }
     }
 
     private sealed class Couple037ParameterizedConstructor
@@ -402,12 +424,10 @@ public sealed class DiagnosticCouple037CoupleInvocationTests
         public ISchemaColumn[] Columns { get; } = columns.ToArray();
 
         public ISchemaColumn? GetColumnByName(string name) =>
-            Columns.SingleOrDefault(column =>
-                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));
+            Columns.SingleOrDefault(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));
 
         public ISchemaColumn[] GetColumnsByName(string name) =>
-            Columns.Where(column =>
-                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            Columns.Where(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
 
         public SchemaTableMetadata Metadata { get; } =
             new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };

@@ -12,43 +12,47 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_SelectInterpret_WithAggregation_ShouldSumValues()
     {
-        var query = @"
-            binary Amount {
-                Value: int le
-            };
-            select
-                Sum(a.Value) as TotalValue,
-                Count(a.Value) as RecordCount,
-                Avg(a.Value) as AvgValue
-            from #test.files() f
-            cross apply Interpret<Amount>(f.Content) a";
+        var query = (
+            "\n"
+            + "            binary Amount {\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                Sum(a.Value) as TotalValue,\n"
+            + "                Count(a.Value) as RecordCount,\n"
+            + "                Avg(a.Value) as AvgValue\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Amount>(f.Content) a"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "a1.bin", Content = BitConverter.GetBytes(100) },
             new BinaryEntity { Name = "a2.bin", Content = BitConverter.GetBytes(200) },
             new BinaryEntity { Name = "a3.bin", Content = BitConverter.GetBytes(300) },
-            new BinaryEntity { Name = "a4.bin", Content = BitConverter.GetBytes(400) }
+            new BinaryEntity { Name = "a4.bin", Content = BitConverter.GetBytes(400) },
         };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
-
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("TotalValue", typeof(int?)),
             ("RecordCount", typeof(long)),
-            ("AvgValue", typeof(decimal?)));
+            ("AvgValue", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1000, 4L, 250m]);
     }
 
@@ -56,19 +60,21 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     public void Query_SelectInterpret_WithGroupBy_ShouldGroupByField()
     {
         // Arrange: Group by category and sum values
-        var query = @"
-            binary Transaction {
-                Category: byte,
-                Amount: int le
-            };
-            select
-                t.Category,
-                Sum(t.Amount) as TotalAmount,
-                Count(t.Amount) as TransactionCount
-            from #test.files() f
-            cross apply Interpret<Transaction>(f.Content) t
-            group by t.Category
-            order by t.Category";
+        var query = (
+            "\n"
+            + "            binary Transaction {\n"
+            + "                Category: byte,\n"
+            + "                Amount: int le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                t.Category,\n"
+            + "                Sum(t.Amount) as TotalAmount,\n"
+            + "                Count(t.Amount) as TransactionCount\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Transaction>(f.Content) t\n"
+            + "            group by t.Category\n"
+            + "            order by t.Category"
+        );
 
         var entities = new[]
         {
@@ -80,18 +86,21 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             CreateTransactionEntity("t4.bin", 2, 250),
             CreateTransactionEntity("t5.bin", 2, 300),
             // Category 3
-            CreateTransactionEntity("t6.bin", 3, 500)
+            CreateTransactionEntity("t6.bin", 3, 500),
         };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -99,31 +108,35 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             table,
             ("Category", typeof(byte)),
             ("TotalAmount", typeof(int?)),
-            ("TransactionCount", typeof(long)));
+            ("TransactionCount", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             [(byte)1, 250, 2L],
             [(byte)2, 750, 3L],
-            [(byte)3, 500, 1L]);
+            [(byte)3, 500, 1L]
+        );
     }
 
     [TestMethod]
     public void Query_SelectInterpret_WithHaving_ShouldFilterGroups()
     {
         // Arrange: Filter groups by aggregate value
-        var query = @"
-            binary Sale {
-                Region: byte,
-                Amount: int le
-            };
-            select
-                s.Region,
-                Sum(s.Amount) as TotalSales
-            from #test.files() f
-            cross apply Interpret<Sale>(f.Content) s
-            group by s.Region
-            having Sum(s.Amount) > 500
-            order by Sum(s.Amount) desc";
+        var query = (
+            "\n"
+            + "            binary Sale {\n"
+            + "                Region: byte,\n"
+            + "                Amount: int le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                s.Region,\n"
+            + "                Sum(s.Amount) as TotalSales\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Sale>(f.Content) s\n"
+            + "            group by s.Region\n"
+            + "            having Sum(s.Amount) > 500\n"
+            + "            order by Sum(s.Amount) desc"
+        );
 
         var entities = new[]
         {
@@ -135,29 +148,26 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             CreateTransactionEntity("s4.bin", 2, 500),
             // Region 3: Total = 600
             CreateTransactionEntity("s5.bin", 3, 250),
-            CreateTransactionEntity("s6.bin", 3, 350)
+            CreateTransactionEntity("s6.bin", 3, 350),
         };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Region", typeof(byte)),
-            ("TotalSales", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [(byte)2, 900],
-            [(byte)3, 600]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Region", typeof(byte)), ("TotalSales", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, 900], [(byte)3, 600]);
     }
 
     private static BinaryEntity CreateTransactionEntity(string name, byte category, int amount)

@@ -6,5 +6,5 @@ namespace Musoq.Schema;
 public enum EnumTypeOrigin : byte
 {
     QueryLocal,
-    NativeClr
+    NativeClr,
 }

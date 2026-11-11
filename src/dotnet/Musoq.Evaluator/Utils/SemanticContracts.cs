@@ -21,7 +21,8 @@ internal sealed class BoundSchemaColumn : ISchemaColumn
         EnumTypeDescriptor? enumType,
         string? intendedTypeName,
         IReadOnlyDictionary<string, string> readModifiers,
-        ColumnStability stability)
+        ColumnStability stability
+    )
     {
         ColumnName = columnName;
         ColumnIndex = columnIndex;
@@ -64,9 +65,14 @@ internal sealed class BoundSchemaColumn : ISchemaColumn
             column.EnumType,
             column.IntendedTypeName,
             new ReadOnlyDictionary<string, string>(
-                (column.ReadModifiers ?? new Dictionary<string, string>())
-                .ToDictionary(static pair => pair.Key, static pair => pair.Value, StringComparer.Ordinal)),
-            column.Stability);
+                (column.ReadModifiers ?? new Dictionary<string, string>()).ToDictionary(
+                    static pair => pair.Key,
+                    static pair => pair.Value,
+                    StringComparer.Ordinal
+                )
+            ),
+            column.Stability
+        );
     }
 }
 
@@ -75,41 +81,46 @@ internal sealed record BoundSourceContract(
     SourceIdentity Identity,
     IReadOnlyList<BoundSchemaColumn> Columns,
     IReadOnlyList<string> RequiredMemberSignatures,
-    string RequiredMethodSignature);
+    string RequiredMethodSignature
+);
 
 internal sealed record BoundTableSymbolContract(
     bool HasAlias,
     IReadOnlyList<BoundTableContract> Tables,
-    IReadOnlySet<string> MaybeMissingAliases)
+    IReadOnlySet<string> MaybeMissingAliases
+)
 {
     public static BoundTableSymbolContract Capture(TableSymbol symbol)
     {
         ArgumentNullException.ThrowIfNull(symbol);
 
-        var tables = symbol.CompoundTables
-            .Select(alias =>
+        var tables = symbol
+            .CompoundTables.Select(alias =>
             {
                 if (!symbol.TryGetColumns(alias, out var columns))
                     throw new InvalidOperationException($"Table symbol alias '{alias}' has no column contract.");
 
-                var table = symbol.GetTableByAlias(alias).Table ??
-                            throw new InvalidOperationException($"Table symbol alias '{alias}' has no table contract.");
+                var table =
+                    symbol.GetTableByAlias(alias).Table
+                    ?? throw new InvalidOperationException($"Table symbol alias '{alias}' has no table contract.");
 
                 return new BoundTableContract(
                     alias,
                     table.Metadata?.TableEntityType,
-                    Array.AsReadOnly(columns.Select(BoundSchemaColumn.Capture).ToArray()));
+                    Array.AsReadOnly(columns.Select(BoundSchemaColumn.Capture).ToArray())
+                );
             })
             .ToArray();
 
-        var maybeMissingAliases = symbol.CompoundTables
-            .Where(symbol.CanAliasBeMissing)
+        var maybeMissingAliases = symbol
+            .CompoundTables.Where(symbol.CanAliasBeMissing)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         return new BoundTableSymbolContract(
             symbol.HasAlias,
             Array.AsReadOnly(tables),
-            new ReadOnlySet<string>(maybeMissingAliases));
+            new ReadOnlySet<string>(maybeMissingAliases)
+        );
     }
 
     public TableSymbol Restore()
@@ -118,7 +129,10 @@ internal sealed record BoundTableSymbolContract(
 
         foreach (var tableContract in Tables)
         {
-            var table = new DynamicTable(tableContract.Columns.Cast<ISchemaColumn>().ToArray(), tableContract.EntityType);
+            var table = new DynamicTable(
+                tableContract.Columns.Cast<ISchemaColumn>().ToArray(),
+                tableContract.EntityType
+            );
             var schema = new TransitionSchema(tableContract.Alias, table);
             var current = new TableSymbol(tableContract.Alias, schema, table, HasAlias);
             restored = restored == null ? current : restored.MergeSymbols(current);
@@ -127,16 +141,11 @@ internal sealed record BoundTableSymbolContract(
         if (restored == null)
             throw new InvalidOperationException("A table symbol must contain at least one table contract.");
 
-        return MaybeMissingAliases.Count == 0
-            ? restored
-            : restored.MarkAliasesAsMaybeMissing(MaybeMissingAliases);
+        return MaybeMissingAliases.Count == 0 ? restored : restored.MarkAliasesAsMaybeMissing(MaybeMissingAliases);
     }
 }
 
-internal sealed record BoundTableContract(
-    string Alias,
-    Type? EntityType,
-    IReadOnlyList<BoundSchemaColumn> Columns);
+internal sealed record BoundTableContract(string Alias, Type? EntityType, IReadOnlyList<BoundSchemaColumn> Columns);
 
 internal sealed class ReadOnlySet<T>(IEnumerable<T> values) : IReadOnlySet<T>
     where T : notnull

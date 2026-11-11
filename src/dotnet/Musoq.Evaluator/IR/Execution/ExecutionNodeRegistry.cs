@@ -5,15 +5,15 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class ExecutionNodeRegistry
 {
-    private static readonly IReadOnlyList<ExecutionNodeDescriptor> DescriptorList =
-        ExecutionNodeDefinitionCatalog.Definitions
-            .Select(static definition => new ExecutionNodeDescriptor(
-                definition.NodeType,
-                definition.RendererFamily,
-                definition.ChildBlockShape,
-                definition.GetChildRegion,
-                definition.Behavior))
-            .ToArray();
+    private static readonly IReadOnlyList<ExecutionNodeDescriptor> DescriptorList = ExecutionNodeDefinitionCatalog
+        .Definitions.Select(static definition => new ExecutionNodeDescriptor(
+            definition.NodeType,
+            definition.RendererFamily,
+            definition.ChildBlockShape,
+            definition.GetChildRegion,
+            definition.Behavior
+        ))
+        .ToArray();
 
     private static readonly IReadOnlyDictionary<Type, ExecutionNodeDescriptor> DescriptorsByType =
         DescriptorList.ToDictionary(static descriptor => descriptor.NodeType);
@@ -34,11 +34,8 @@ internal static class ExecutionNodeRegistry
 
     public static IReadOnlyList<ExecutionBlock> GetChildBlocks(ExecutionNode node)
     {
-        return TryGetDescriptor(node, out var descriptor)
-            ? descriptor.GetChildBlocks(node)
-            : [];
+        return TryGetDescriptor(node, out var descriptor) ? descriptor.GetChildBlocks(node) : [];
     }
-
 }
 
 internal sealed record ExecutionNodeDescriptor(
@@ -46,7 +43,8 @@ internal sealed record ExecutionNodeDescriptor(
     ExecutionRendererNodeFamily RendererFamily,
     ExecutionNodeChildBlockShape ChildBlockShape,
     Func<ExecutionNode, int, ExecutionChildRegion> GetChildRegion,
-    ExecutionNodeBehaviorDefinition Behavior)
+    ExecutionNodeBehaviorDefinition Behavior
+)
 {
     public IReadOnlyList<ExecutionBlock> GetChildBlocks(ExecutionNode node)
     {

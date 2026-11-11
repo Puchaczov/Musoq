@@ -71,8 +71,13 @@ public class SyntaxException : Exception, IDiagnosticException
     /// <summary>
     ///     Initializes a new instance of SyntaxException with full diagnostic information and inner exception.
     /// </summary>
-    public SyntaxException(string message, string queryPart, DiagnosticCode code, TextSpan span,
-        Exception innerException)
+    public SyntaxException(
+        string message,
+        string queryPart,
+        DiagnosticCode code,
+        TextSpan span,
+        Exception innerException
+    )
         : base(message, innerException)
     {
         QueryPart = queryPart;
@@ -90,18 +95,18 @@ public class SyntaxException : Exception, IDiagnosticException
         DiagnosticCode code,
         TextSpan span,
         IEnumerable<KeyValuePair<string, string>>? arguments,
-        IEnumerable<DiagnosticAction>? suggestedFixes = null)
+        IEnumerable<DiagnosticAction>? suggestedFixes = null
+    )
         : base(message)
     {
         QueryPart = queryPart;
         Code = code;
         Span = span;
-        Arguments = arguments != null
-            ? new Dictionary<string, string>(arguments, StringComparer.Ordinal)
-            : new Dictionary<string, string>(StringComparer.Ordinal);
-        SuggestedFixes = suggestedFixes != null
-            ? [..suggestedFixes]
-            : [];
+        Arguments =
+            arguments != null
+                ? new Dictionary<string, string>(arguments, StringComparer.Ordinal)
+                : new Dictionary<string, string>(StringComparer.Ordinal);
+        SuggestedFixes = suggestedFixes != null ? [.. suggestedFixes] : [];
     }
 
     /// <summary>
@@ -141,9 +146,16 @@ public class SyntaxException : Exception, IDiagnosticException
             effectiveSourceText = new SourceText(QueryPart);
 
         var numericCode = (int)Code;
-        var diagnostic = numericCode is >= 1001 and <= 1009 || Code == DiagnosticCode.MQ2011_MissingClosingBracket
-            ? SyntaxDiagnosticEnhancer.EnhanceLexerDiagnostic(Code, Message, span, effectiveSourceText)
-            : SyntaxDiagnosticEnhancer.CreateDiagnostic(Code, Message, span, currentToken: null, effectiveSourceText);
+        var diagnostic =
+            numericCode is >= 1001 and <= 1009 || Code == DiagnosticCode.MQ2011_MissingClosingBracket
+                ? SyntaxDiagnosticEnhancer.EnhanceLexerDiagnostic(Code, Message, span, effectiveSourceText)
+                : SyntaxDiagnosticEnhancer.CreateDiagnostic(
+                    Code,
+                    Message,
+                    span,
+                    currentToken: null,
+                    effectiveSourceText
+                );
 
         foreach (var argument in Arguments)
             diagnostic = diagnostic.WithArgument(argument.Key, argument.Value);
@@ -188,8 +200,12 @@ public class SyntaxException : Exception, IDiagnosticException
     /// </summary>
     public static SyntaxException UnclosedString(string queryPart, TextSpan span)
     {
-        return new SyntaxException("Unclosed string literal.", queryPart, DiagnosticCode.MQ1002_UnterminatedString,
-            span);
+        return new SyntaxException(
+            "Unclosed string literal.",
+            queryPart,
+            DiagnosticCode.MQ1002_UnterminatedString,
+            span
+        );
     }
 
     /// <summary>

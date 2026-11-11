@@ -14,7 +14,10 @@ public partial class SchemaParser
         Consume(TokenType.RightSquareBracket);
 
         if (IsNegativeConstantSizeExpression(sizeExpr, out var negativeValue))
-            throw InvalidBinarySchemaField($"string[] size must be non-negative, but got {negativeValue}.", sizeExpr.Span);
+            throw InvalidBinarySchemaField(
+                $"string[] size must be non-negative, but got {negativeValue}.",
+                sizeExpr.Span
+            );
 
         var encoding = ComposeStringEncoding();
         var modifiers = ComposeStringModifiers();
@@ -27,17 +30,21 @@ public partial class SchemaParser
             if (Current.TokenType != TokenType.Identifier)
                 throw new SyntaxException(
                     $"Expected text schema name after 'as' but found '{Current.TokenType}'",
-                    _lexer.AlreadyResolvedQueryPart);
+                    _lexer.AlreadyResolvedQueryPart
+                );
             var schemaNameToken = Current;
             asTextSchemaName = Current.Value;
             Consume(TokenType.Identifier);
             stringTypeEndSpan = schemaNameToken.Span;
         }
 
-        var stringType = (StringTypeNode)new StringTypeNode(sizeExpr, encoding, modifiers, asTextSchemaName)
-            .WithSpan(stringToken.Span.Through(stringTypeEndSpan));
+        var stringType = (StringTypeNode)
+            new StringTypeNode(sizeExpr, encoding, modifiers, asTextSchemaName).WithSpan(
+                stringToken.Span.Through(stringTypeEndSpan)
+            );
 
-        if (Current.TokenType == TokenType.LeftSquareBracket) return ComposeArrayOfType(stringType);
+        if (Current.TokenType == TokenType.LeftSquareBracket)
+            return ComposeArrayOfType(stringType);
 
         return stringType;
     }
@@ -54,7 +61,8 @@ public partial class SchemaParser
             TokenType.Ebcdic => StringEncoding.Ebcdic,
             _ => throw InvalidBinarySchemaField(
                 $"Expected string encoding (utf8, utf16le, utf16be, ascii, latin1, ebcdic) but found '{Current.TokenType}'",
-                Current.Span)
+                Current.Span
+            ),
         };
         Consume(Current.TokenType);
         return encoding;

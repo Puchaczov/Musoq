@@ -15,33 +15,39 @@ public partial class MultiJoinHashJoinTests
     [TestMethod]
     public void ThreeWayCteInnerJoin_WithHashJoinEnabled_ShouldProduceCorrectResults()
     {
-        const string query = @"
-            WITH
-                cteA AS (SELECT Name, Population FROM A.Entities()),
-                cteB AS (SELECT Name, Population FROM B.Entities()),
-                cteC AS (SELECT Name, Population FROM C.Entities())
-            SELECT a.Name, b.Name, c.Name
-            FROM cteA a
-            INNER JOIN cteB b ON a.Population = b.Population
-            INNER JOIN cteC c ON b.Population = c.Population";
+        const string query = (
+            "\n"
+            + "            WITH\n"
+            + "                cteA AS (SELECT Name, Population FROM A.Entities()),\n"
+            + "                cteB AS (SELECT Name, Population FROM B.Entities()),\n"
+            + "                cteC AS (SELECT Name, Population FROM C.Entities())\n"
+            + "            SELECT a.Name, b.Name, c.Name\n"
+            + "            FROM cteA a\n"
+            + "            INNER JOIN cteB b ON a.Population = b.Population\n"
+            + "            INNER JOIN cteC c ON b.Population = c.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
-            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Name", typeof(string)), ("Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Name", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B1", "C1"]);
     }
 
@@ -51,52 +57,51 @@ public partial class MultiJoinHashJoinTests
     [TestMethod]
     public void FourWayCteJoin_MixedTypes_WithHashJoinEnabled_ShouldProduceCorrectResults()
     {
-        const string query = @"
-            WITH
-                cteA AS (SELECT Name, Population FROM A.Entities()),
-                cteB AS (SELECT Name, Population FROM B.Entities()),
-                cteC AS (SELECT Name, Population FROM C.Entities()),
-                cteD AS (SELECT Name, Population FROM D.Entities())
-            SELECT a.Name, b.Name, c.Name, d.Name
-            FROM cteA a
-            INNER JOIN cteB b ON a.Population = b.Population
-            LEFT OUTER JOIN cteC c ON b.Population = c.Population
-            LEFT OUTER JOIN cteD d ON a.Population = d.Population
-            ORDER BY a.Name";
+        const string query = (
+            "\n"
+            + "            WITH\n"
+            + "                cteA AS (SELECT Name, Population FROM A.Entities()),\n"
+            + "                cteB AS (SELECT Name, Population FROM B.Entities()),\n"
+            + "                cteC AS (SELECT Name, Population FROM C.Entities()),\n"
+            + "                cteD AS (SELECT Name, Population FROM D.Entities())\n"
+            + "            SELECT a.Name, b.Name, c.Name, d.Name\n"
+            + "            FROM cteA a\n"
+            + "            INNER JOIN cteB b ON a.Population = b.Population\n"
+            + "            LEFT OUTER JOIN cteC c ON b.Population = c.Population\n"
+            + "            LEFT OUTER JOIN cteD d ON a.Population = d.Population\n"
+            + "            ORDER BY a.Name"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
-                [
-                    new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 200 }
-                ]
+                [new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 200 }]
             },
             {
                 "#B",
-                [
-                    new BasicEntity { Name = "B1", Population = 100 }, new BasicEntity { Name = "B2", Population = 200 }
-                ]
+                [new BasicEntity { Name = "B1", Population = 100 }, new BasicEntity { Name = "B2", Population = 200 }]
             },
             { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
-            { "#D", [new BasicEntity { Name = "D1", Population = 100 }] }
+            { "#D", [new BasicEntity { Name = "D1", Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Name", typeof(string)),
-            ("Name", typeof(string)), ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["A1", "B1", "C1", "D1"],
-            ["A2", "B2", null, null]);
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Name", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B1", "C1", "D1"], ["A2", "B2", null, null]);
     }
 
     #endregion
@@ -114,47 +119,54 @@ public partial class MultiJoinHashJoinTests
     [TestMethod]
     public void ThreeWayInnerJoin_GeneratedCode_AllJoinsUseHashJoin()
     {
-        const string query = @"
-            SELECT a.Name, b.Name, c.Name
-            FROM #A.Entities() a
-            INNER JOIN #B.Entities() b ON a.Population = b.Population
-            INNER JOIN #C.Entities() c ON b.Population = c.Population";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name, b.Name, c.Name\n"
+            + "            FROM #A.Entities() a\n"
+            + "            INNER JOIN #B.Entities() b ON a.Population = b.Population\n"
+            + "            INNER JOIN #C.Entities() c ON b.Population = c.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
-            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
         };
 
-        var generatedCode = CompileAndGetGeneratedCode(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var generatedCode = CompileAndGetGeneratedCode(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         Console.WriteLine("=== Generated Code for Three-Way Inner Join ===");
         Console.WriteLine(generatedCode);
         Console.WriteLine("=== End of Generated Code ===");
 
-
         var hashDictionaryCount = CountHashDictionaryDeclarations(generatedCode);
 
-
-        Assert.AreEqual(2, hashDictionaryCount,
-            $"Expected 2 hash dictionaries for a three-way join, but found {hashDictionaryCount}. " +
-            "Both the A-B join and the AB-C join should use hash join.");
-
+        Assert.AreEqual(
+            2,
+            hashDictionaryCount,
+            $"Expected 2 hash dictionaries for a three-way join, but found {hashDictionaryCount}. "
+                + "Both the A-B join and the AB-C join should use hash join."
+        );
 
         AssertContainsAny(
             generatedCode,
             "First join should create a hash dictionary for b",
             "bHashed = new Dictionary<",
             "bHash = new Dictionary<",
-            "BHash = new Dictionary<");
+            "BHash = new Dictionary<"
+        );
         AssertContainsAny(
             generatedCode,
             "Second join should create a hash dictionary for the intermediate result",
             "abHashed = new Dictionary<",
             "abHash = new Dictionary<",
-            "AbHash = new Dictionary<");
+            "AbHash = new Dictionary<"
+        );
     }
 
     /// <summary>
@@ -163,23 +175,28 @@ public partial class MultiJoinHashJoinTests
     [TestMethod]
     public void FourWayInnerJoin_GeneratedCode_AllJoinsUseHashJoin()
     {
-        const string query = @"
-            SELECT a.Name, b.Name, c.Name, d.Name
-            FROM #A.Entities() a
-            INNER JOIN #B.Entities() b ON a.Population = b.Population
-            INNER JOIN #C.Entities() c ON b.Population = c.Population
-            INNER JOIN #D.Entities() d ON c.Population = d.Population";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name, b.Name, c.Name, d.Name\n"
+            + "            FROM #A.Entities() a\n"
+            + "            INNER JOIN #B.Entities() b ON a.Population = b.Population\n"
+            + "            INNER JOIN #C.Entities() c ON b.Population = c.Population\n"
+            + "            INNER JOIN #D.Entities() d ON c.Population = d.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
             { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
-            { "#D", [new BasicEntity { Name = "D1", Population = 100 }] }
+            { "#D", [new BasicEntity { Name = "D1", Population = 100 }] },
         };
 
-        var generatedCode = CompileAndGetGeneratedCode(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var generatedCode = CompileAndGetGeneratedCode(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         Console.WriteLine("=== Generated Code for Four-Way Inner Join ===");
         Console.WriteLine(generatedCode);
@@ -187,10 +204,12 @@ public partial class MultiJoinHashJoinTests
 
         var hashDictionaryCount = CountHashDictionaryDeclarations(generatedCode);
 
-
-        Assert.AreEqual(3, hashDictionaryCount,
-            $"Expected 3 hash dictionaries for a four-way join, but found {hashDictionaryCount}. " +
-            "All three joins should use hash join.");
+        Assert.AreEqual(
+            3,
+            hashDictionaryCount,
+            $"Expected 3 hash dictionaries for a four-way join, but found {hashDictionaryCount}. "
+                + "All three joins should use hash join."
+        );
     }
 
     /// <summary>
@@ -200,21 +219,26 @@ public partial class MultiJoinHashJoinTests
     [TestMethod]
     public void ThreeWayLeftOuterJoin_GeneratedCode_AllJoinsUseHashJoin()
     {
-        const string query = @"
-            SELECT a.Name, b.Name, c.Name
-            FROM #A.Entities() a
-            LEFT OUTER JOIN #B.Entities() b ON a.Population = b.Population
-            LEFT OUTER JOIN #C.Entities() c ON b.Population = c.Population";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name, b.Name, c.Name\n"
+            + "            FROM #A.Entities() a\n"
+            + "            LEFT OUTER JOIN #B.Entities() b ON a.Population = b.Population\n"
+            + "            LEFT OUTER JOIN #C.Entities() c ON b.Population = c.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
-            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
         };
 
-        var generatedCode = CompileAndGetGeneratedCode(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var generatedCode = CompileAndGetGeneratedCode(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         Console.WriteLine("=== Generated Code for Three-Way Left Outer Join ===");
         Console.WriteLine(generatedCode);
@@ -222,9 +246,11 @@ public partial class MultiJoinHashJoinTests
 
         var hashDictionaryCount = CountHashDictionaryDeclarations(generatedCode);
 
-
-        Assert.AreEqual(2, hashDictionaryCount,
-            $"Expected 2 hash dictionaries (all joins use hash join), but found {hashDictionaryCount}.");
+        Assert.AreEqual(
+            2,
+            hashDictionaryCount,
+            $"Expected 2 hash dictionaries (all joins use hash join), but found {hashDictionaryCount}."
+        );
     }
 
     /// <summary>
@@ -233,21 +259,26 @@ public partial class MultiJoinHashJoinTests
     [TestMethod]
     public void MixedJoins_GeneratedCode_AllJoinsUseHashJoin()
     {
-        const string query = @"
-            SELECT a.Name, b.Name, c.Name
-            FROM #A.Entities() a
-            INNER JOIN #B.Entities() b ON a.Population = b.Population
-            LEFT OUTER JOIN #C.Entities() c ON b.Population = c.Population";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name, b.Name, c.Name\n"
+            + "            FROM #A.Entities() a\n"
+            + "            INNER JOIN #B.Entities() b ON a.Population = b.Population\n"
+            + "            LEFT OUTER JOIN #C.Entities() c ON b.Population = c.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
-            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
         };
 
-        var generatedCode = CompileAndGetGeneratedCode(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var generatedCode = CompileAndGetGeneratedCode(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         Console.WriteLine("=== Generated Code for Mixed Join Types ===");
         Console.WriteLine(generatedCode);
@@ -255,9 +286,11 @@ public partial class MultiJoinHashJoinTests
 
         var hashDictionaryCount = CountHashDictionaryDeclarations(generatedCode);
 
-
-        Assert.AreEqual(2, hashDictionaryCount,
-            $"Expected 2 hash dictionaries (all joins use hash join), but found {hashDictionaryCount}.");
+        Assert.AreEqual(
+            2,
+            hashDictionaryCount,
+            $"Expected 2 hash dictionaries (all joins use hash join), but found {hashDictionaryCount}."
+        );
     }
 
     /// <summary>
@@ -266,21 +299,26 @@ public partial class MultiJoinHashJoinTests
     [TestMethod]
     public void ThreeWayInnerJoin_WithoutHashJoin_ShouldNotContainHashDictionaries()
     {
-        const string query = @"
-            SELECT a.Name, b.Name, c.Name
-            FROM #A.Entities() a
-            INNER JOIN #B.Entities() b ON a.Population = b.Population
-            INNER JOIN #C.Entities() c ON b.Population = c.Population";
+        const string query = (
+            "\n"
+            + "            SELECT a.Name, b.Name, c.Name\n"
+            + "            FROM #A.Entities() a\n"
+            + "            INNER JOIN #B.Entities() b ON a.Population = b.Population\n"
+            + "            INNER JOIN #C.Entities() c ON b.Population = c.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
             { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
-            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
         };
 
-        var generatedCode = CompileAndGetGeneratedCode(query, sources,
-            new CompilationOptions(useHashJoin: false, useSortMergeJoin: false));
+        var generatedCode = CompileAndGetGeneratedCode(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: false, useSortMergeJoin: false)
+        );
 
         Console.WriteLine("=== Generated Code WITHOUT Hash Join ===");
         Console.WriteLine(generatedCode);
@@ -288,9 +326,12 @@ public partial class MultiJoinHashJoinTests
 
         var hashDictionaryCount = CountHashDictionaryDeclarations(generatedCode);
 
-        Assert.AreEqual(0, hashDictionaryCount,
-            $"Expected 0 hash dictionaries when hash join is disabled, but found {hashDictionaryCount}. " +
-            $"\n\nGenerated code:\n{generatedCode}");
+        Assert.AreEqual(
+            0,
+            hashDictionaryCount,
+            $"Expected 0 hash dictionaries when hash join is disabled, but found {hashDictionaryCount}. "
+                + $"\n\nGenerated code:\n{generatedCode}"
+        );
     }
 
     #endregion

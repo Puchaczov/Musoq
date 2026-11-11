@@ -24,8 +24,11 @@ internal sealed class StringConcatenationCodeEmitter(string callbackTypeName)
         return Emit(operands);
     }
 
-    private static void CollectOperands(Musoq.Parser.Nodes.Node expression,
-        Func<Musoq.Parser.Nodes.Node, string> render, List<string> operands)
+    private static void CollectOperands(
+        Musoq.Parser.Nodes.Node expression,
+        Func<Musoq.Parser.Nodes.Node, string> render,
+        List<string> operands
+    )
     {
         if (expression is Musoq.Parser.Nodes.StringConcatenationNode concatenation)
         {
@@ -77,15 +80,21 @@ internal sealed class StringConcatenationCodeEmitter(string callbackTypeName)
     private static void EmitCallback(StringBuilder code, int arity)
     {
         var tuple = $"({string.Join(", ", Enumerable.Repeat("string", arity))})";
-        code.AppendLine(CultureInfo.InvariantCulture,
-            $"internal static readonly global::System.Buffers.SpanAction<char, {tuple}> Write{arity} = Write{arity}Core;");
-        code.AppendLine(CultureInfo.InvariantCulture,
-            $"private static void Write{arity}Core(global::System.Span<char> destination, {tuple} state) {{");
+        code.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"internal static readonly global::System.Buffers.SpanAction<char, {tuple}> Write{arity} = Write{arity}Core;"
+        );
+        code.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"private static void Write{arity}Core(global::System.Span<char> destination, {tuple} state) {{"
+        );
         for (var index = 1; index <= arity; index++)
         {
             var item = $"state.Item{index}";
-            code.AppendLine(CultureInfo.InvariantCulture,
-                $"global::System.MemoryExtensions.AsSpan({item}).CopyTo(destination);");
+            code.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"global::System.MemoryExtensions.AsSpan({item}).CopyTo(destination);"
+            );
             if (index != arity)
                 code.AppendLine(CultureInfo.InvariantCulture, $"destination = destination.Slice({item}.Length);");
         }

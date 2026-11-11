@@ -10,7 +10,8 @@ internal static class ScriptParameterDefaultValueBinder
         ParameterDeclarationNode declaration,
         Type parameterType,
         out object? value,
-        out string error)
+        out string error
+    )
     {
         value = null;
         error = string.Empty;
@@ -40,7 +41,8 @@ internal static class ScriptParameterDefaultValueBinder
         ParameterDeclarationNode declaration,
         StructuralTypeDescriptor structuralType,
         out object? value,
-        out string error)
+        out string error
+    )
     {
         ArgumentNullException.ThrowIfNull(declaration);
         ArgumentNullException.ThrowIfNull(structuralType);
@@ -52,7 +54,8 @@ internal static class ScriptParameterDefaultValueBinder
 
         var evaluation = ScriptVariableInitializerEvaluator.EvaluateStaticExpression(
             declaration.DefaultValue!,
-            new Dictionary<string, ScriptVariableDefinition>(StringComparer.Ordinal));
+            new Dictionary<string, ScriptVariableDefinition>(StringComparer.Ordinal)
+        );
         if (!evaluation.Success)
         {
             error = evaluation.Error;
@@ -64,21 +67,25 @@ internal static class ScriptParameterDefaultValueBinder
             structuralType,
             $"parameter '{declaration.Name}'",
             out value,
-            out error);
+            out error
+        );
     }
+
     private static bool ConvertDefaultValue(
         ParameterDeclarationNode declaration,
         Type parameterType,
         object? rawValue,
         out object? value,
-        out string error)
+        out string error
+    )
     {
         var result = ScriptValueConverter.ConvertValue(
             "Parameter",
             declaration.Name,
             declaration.DeclaredTypeName,
             parameterType,
-            rawValue);
+            rawValue
+        );
 
         value = result.Value;
         error = result.Error;

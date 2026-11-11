@@ -18,12 +18,16 @@ internal static class MusoqExceptionAssertions
     internal static void AssertErrorEnvelope(
         MusoqQueryException exception,
         DiagnosticCode expectedCode,
-        DiagnosticPhase expectedPhase)
+        DiagnosticPhase expectedPhase
+    )
     {
         var envelope = exception.PrimaryEnvelope;
 
-        Assert.AreEqual(expectedCode, envelope.Code,
-            $"Expected diagnostic code {expectedCode} but got {envelope.Code}. Message: {envelope.Message}");
+        Assert.AreEqual(
+            expectedCode,
+            envelope.Code,
+            $"Expected diagnostic code {expectedCode} but got {envelope.Code}. Message: {envelope.Message}"
+        );
         Assert.AreEqual(DiagnosticSeverity.Error, envelope.Severity);
         Assert.AreEqual(expectedPhase, envelope.Phase);
         Assert.AreEqual(ExpectedSourceKind(expectedCode), envelope.SourceKind);
@@ -46,14 +50,16 @@ internal static class MusoqExceptionAssertions
         MusoqQueryException exception,
         DiagnosticCode expectedCode,
         DiagnosticPhase expectedPhase,
-        string expectedMessageSubstring)
+        string expectedMessageSubstring
+    )
     {
         AssertErrorEnvelope(exception, expectedCode, expectedPhase);
 
         StringAssert.Contains(
             exception.PrimaryEnvelope.Message,
             expectedMessageSubstring,
-            $"Expected message containing '{expectedMessageSubstring}' but got: '{exception.PrimaryEnvelope.Message}'");
+            $"Expected message containing '{expectedMessageSubstring}' but got: '{exception.PrimaryEnvelope.Message}'"
+        );
     }
 
     /// <summary>
@@ -75,7 +81,8 @@ internal static class MusoqExceptionAssertions
         StringAssert.Contains(
             exception.PrimaryEnvelope.Message,
             substring,
-            $"Expected message containing '{substring}' but got: '{exception.PrimaryEnvelope.Message}'");
+            $"Expected message containing '{substring}' but got: '{exception.PrimaryEnvelope.Message}'"
+        );
     }
 
     /// <summary>
@@ -85,19 +92,27 @@ internal static class MusoqExceptionAssertions
         MusoqQueryException exception,
         int envelopeIndex,
         DiagnosticCode expectedCode,
-        string expectedMessageSubstring)
+        string expectedMessageSubstring
+    )
     {
-        Assert.IsGreaterThan(envelopeIndex, exception.Envelopes.Count,
-            $"Expected at least {envelopeIndex + 1} envelopes but got {exception.Envelopes.Count}");
+        Assert.IsGreaterThan(
+            envelopeIndex,
+            exception.Envelopes.Count,
+            $"Expected at least {envelopeIndex + 1} envelopes but got {exception.Envelopes.Count}"
+        );
 
         var envelope = exception.Envelopes[envelopeIndex];
 
-        Assert.AreEqual(expectedCode, envelope.Code,
-            $"Expected secondary code {expectedCode} but got {envelope.Code}. Message: {envelope.Message}");
+        Assert.AreEqual(
+            expectedCode,
+            envelope.Code,
+            $"Expected secondary code {expectedCode} but got {envelope.Code}. Message: {envelope.Message}"
+        );
         StringAssert.Contains(
             envelope.Message,
             expectedMessageSubstring,
-            $"Expected secondary message containing '{expectedMessageSubstring}' but got: '{envelope.Message}'");
+            $"Expected secondary message containing '{expectedMessageSubstring}' but got: '{envelope.Message}'"
+        );
     }
 
     /// <summary>
@@ -108,12 +123,15 @@ internal static class MusoqExceptionAssertions
     internal static void AssertAnyEnvelopeHasCode(
         MusoqQueryException exception,
         DiagnosticCode expectedCode,
-        DiagnosticPhase expectedPhase)
+        DiagnosticPhase expectedPhase
+    )
     {
         var match = exception.Envelopes.FirstOrDefault(e => e.Code == expectedCode);
 
-        Assert.IsNotNull(match,
-            $"Expected any envelope to contain {expectedCode} but found: [{string.Join(", ", exception.Envelopes.Select(e => e.Code))}]");
+        Assert.IsNotNull(
+            match,
+            $"Expected any envelope to contain {expectedCode} but found: [{string.Join(", ", exception.Envelopes.Select(e => e.Code))}]"
+        );
         Assert.AreEqual(DiagnosticSeverity.Error, match.Severity);
         Assert.AreEqual(expectedPhase, match.Phase);
     }
@@ -125,10 +143,14 @@ internal static class MusoqExceptionAssertions
     internal static void AssertSingleError(
         MusoqQueryException exception,
         DiagnosticCode expectedCode,
-        DiagnosticPhase expectedPhase)
+        DiagnosticPhase expectedPhase
+    )
     {
-        Assert.HasCount(1, exception.Envelopes,
-            $"Expected exactly 1 error but got {exception.Envelopes.Count}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
+        Assert.HasCount(
+            1,
+            exception.Envelopes,
+            $"Expected exactly 1 error but got {exception.Envelopes.Count}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]"
+        );
 
         AssertErrorEnvelope(exception, expectedCode, expectedPhase);
     }
@@ -141,10 +163,14 @@ internal static class MusoqExceptionAssertions
         MusoqQueryException exception,
         DiagnosticCode expectedCode,
         DiagnosticPhase expectedPhase,
-        string expectedMessageSubstring)
+        string expectedMessageSubstring
+    )
     {
-        Assert.HasCount(1, exception.Envelopes,
-            $"Expected exactly 1 error but got {exception.Envelopes.Count}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
+        Assert.HasCount(
+            1,
+            exception.Envelopes,
+            $"Expected exactly 1 error but got {exception.Envelopes.Count}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]"
+        );
 
         AssertErrorEnvelope(exception, expectedCode, expectedPhase, expectedMessageSubstring);
     }
@@ -153,27 +179,29 @@ internal static class MusoqExceptionAssertions
     ///     Asserts the exception contains exactly the expected set of error codes in order.
     ///     Verifies no unexpected cascading or duplicate errors are present.
     /// </summary>
-    internal static void AssertExactErrors(
-        MusoqQueryException exception,
-        params DiagnosticCode[] expectedCodes)
+    internal static void AssertExactErrors(MusoqQueryException exception, params DiagnosticCode[] expectedCodes)
     {
         var actualCodes = exception.Envelopes.Select(e => e.Code).ToArray();
 
-        Assert.HasCount(expectedCodes.Length, actualCodes,
-            $"Expected {expectedCodes.Length} error(s) [{string.Join(", ", expectedCodes)}] but got {actualCodes.Length}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
+        Assert.HasCount(
+            expectedCodes.Length,
+            actualCodes,
+            $"Expected {expectedCodes.Length} error(s) [{string.Join(", ", expectedCodes)}] but got {actualCodes.Length}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]"
+        );
 
         for (var i = 0; i < expectedCodes.Length; i++)
-            Assert.AreEqual(expectedCodes[i], actualCodes[i],
-                $"Error at index {i}: expected {expectedCodes[i]} but got {actualCodes[i]}. " +
-                $"Actual envelopes: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
+            Assert.AreEqual(
+                expectedCodes[i],
+                actualCodes[i],
+                $"Error at index {i}: expected {expectedCodes[i]} but got {actualCodes[i]}. "
+                    + $"Actual envelopes: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]"
+            );
     }
 
     /// <summary>
     ///     Asserts a runtime failure has one structured expression envelope.
     /// </summary>
-    internal static void AssertRuntimeError(
-        QueryExecutionException exception,
-        DiagnosticCode expectedCode)
+    internal static void AssertRuntimeError(QueryExecutionException exception, DiagnosticCode expectedCode)
     {
         Assert.IsNotNull(exception.Envelope, "Expected a structured runtime diagnostic envelope.");
         if (expectedCode == DiagnosticCode.MQ9002_InternalExecutionError)
@@ -199,19 +227,20 @@ internal static class MusoqExceptionAssertions
             >= 7010 and <= 7012 => DiagnosticSourceKind.DataSource,
             >= 8001 and <= 8002 => DiagnosticSourceKind.GeneratedSource,
             >= 9001 and <= 9002 => DiagnosticSourceKind.Internal,
-            _ => DiagnosticSourceKind.Query
+            _ => DiagnosticSourceKind.Query,
         };
     }
 
     private static void AssertEnvelopeLocationConsistency(MusoqErrorEnvelope envelope)
     {
-        var hasLocation = envelope.Offset.HasValue ||
-                          envelope.EndOffset.HasValue ||
-                          envelope.Length.HasValue ||
-                          envelope.Line.HasValue ||
-                          envelope.Column.HasValue ||
-                          envelope.EndLine.HasValue ||
-                          envelope.EndColumn.HasValue;
+        var hasLocation =
+            envelope.Offset.HasValue
+            || envelope.EndOffset.HasValue
+            || envelope.Length.HasValue
+            || envelope.Line.HasValue
+            || envelope.Column.HasValue
+            || envelope.EndLine.HasValue
+            || envelope.EndColumn.HasValue;
 
         if (!hasLocation)
             return;
@@ -239,6 +268,7 @@ internal static class MusoqExceptionAssertions
         Assert.AreEqual(
             envelope.Offset.Value + envelope.Length.Value,
             envelope.EndOffset.Value,
-            "A diagnostic span must end at offset plus length.");
+            "A diagnostic span must end at offset plus length."
+        );
     }
 }

@@ -23,5 +23,4 @@ public partial class SubqueryToCteRewriteVisitor
     {
         RewriteSetOperator(node);
     }
-
 }

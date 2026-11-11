@@ -7,9 +7,7 @@ internal static partial class PreviousExecutionNodeFacts
 {
     internal static IEnumerable<ExecutionExpression> GetContextLayoutExpressions(ExecutionContextLayout? contextLayout)
     {
-        return contextLayout == null
-            ? []
-            : contextLayout.Segments.Select(static segment => segment.Value);
+        return contextLayout == null ? [] : contextLayout.Segments.Select(static segment => segment.Value);
     }
 
     internal static IEnumerable<ExecutionExpression> GetLocalExpressions(ExecutionNode node)
@@ -59,17 +57,20 @@ internal static partial class PreviousExecutionNodeFacts
             case ExecutionIf ifNode:
                 return [ifNode.Condition];
             case ExecutionCreateGeneratedRow createRow:
-                return createRow.Values.Select(static value => value.Value)
+                return createRow
+                    .Values.Select(static value => value.Value)
                     .Concat(createRow.Contexts)
                     .Concat(GetContextLayoutExpressions(createRow.ContextLayout));
             case ExecutionRecursiveCteAppend append:
-                return append.AppendRow.Values.Select(static value => value.Value)
+                return append
+                    .AppendRow.Values.Select(static value => value.Value)
                     .Concat(append.AppendRow.Contexts)
                     .Concat(GetContextLayoutExpressions(append.AppendRow.ContextLayout));
             case ExecutionCreateHashPayload createPayload:
                 return createPayload.Values.Select(static value => value.Value);
             case ExecutionAppendRow appendRow:
-                return appendRow.Values.Select(static value => value.Value)
+                return appendRow
+                    .Values.Select(static value => value.Value)
                     .Concat(appendRow.Contexts)
                     .Concat(GetContextLayoutExpressions(appendRow.ContextLayout));
             case ExecutionAppendExistingRow:
@@ -118,7 +119,8 @@ internal static partial class PreviousExecutionNodeFacts
             case ExecutionGetOrAddValueTupleAggregateGroup getOrAdd:
                 return getOrAdd.Keys;
             case ExecutionAggregateSet aggregateSet:
-                return AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregateSet.Arguments)
+                return AggregateKernelArgumentSelector
+                    .SelectValueArgumentsAfterGroup(aggregateSet.Arguments)
                     .Concat(OptionalExpression(aggregateSet.FilterPredicate))
                     .Concat(OptionalExpression(aggregateSet.AccumulatorInput));
             case ExecutionAggregateCapturedValueSet capturedValueSet:
@@ -141,11 +143,17 @@ internal static partial class PreviousExecutionNodeFacts
         return node switch
         {
             ExecutionComputeRankingWindow => keyExpressions,
-            ExecutionComputeOffsetWindow offset => keyExpressions.Concat([offset.Value, offset.Offset, offset.DefaultValue]),
+            ExecutionComputeOffsetWindow offset => keyExpressions.Concat([
+                offset.Value,
+                offset.Offset,
+                offset.DefaultValue,
+            ]),
             ExecutionComputePluginWindow plugin => keyExpressions.Concat([plugin.Value]).Concat(plugin.Arguments),
-            ExecutionWindowAggregateKernel kernel => keyExpressions.Concat([kernel.Value])
-                .Concat(kernel.LibraryArguments).Concat(OptionalExpression(kernel.FilterPredicate)),
-            _ => keyExpressions
+            ExecutionWindowAggregateKernel kernel => keyExpressions
+                .Concat([kernel.Value])
+                .Concat(kernel.LibraryArguments)
+                .Concat(OptionalExpression(kernel.FilterPredicate)),
+            _ => keyExpressions,
         };
     }
 

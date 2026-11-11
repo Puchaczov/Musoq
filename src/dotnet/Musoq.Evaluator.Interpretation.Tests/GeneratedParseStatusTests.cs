@@ -17,12 +17,21 @@ public sealed class GeneratedParseStatusTests
     [DataRow("binary Child { Value: int le }; binary Record { Tag: byte, Child: Child };", "Child.Value", 3, 1)]
     [DataRow("binary Record { A: bits[5], B: bits[12] };", "B", 1, 1)]
     public void PartialBinary_WithTruncatedInput_ShouldPreserveCursorAndPathWithoutThrowing(
-        string schema, string field, int inputLength, int consumed)
+        string schema,
+        string field,
+        int inputLength,
+        int consumed
+    )
     {
         // Three bytes allow the first field, but never the four-byte payload. The
         // bit example consumes all available bits before its later read fails.
-        using var query = Compile(schema + " select p.BytesConsumed, p.ErrorField from #schema.first() f cross apply PartialInterpret<Record>(f.Content) p",
-            new byte[] { 7, 1, 2 }.AsSpan(0, inputLength).ToArray());
+        using var query = Compile(
+            schema
+                + " select p.BytesConsumed, p.ErrorField from #schema.first() f cross apply PartialInterpret<Record>(f.Content) p",
+            new byte[] { 7, 1, 2 }
+                .AsSpan(0, inputLength)
+                .ToArray()
+        );
         using var counter = new ThreadParseExceptionCounter();
         using var result = query.Run();
         var row = result.Single();
@@ -37,7 +46,10 @@ public sealed class GeneratedParseStatusTests
     [DataRow("text Record { Tail: until ':' };", "Tail")]
     public void TolerantText_WithOrdinaryMismatch_ShouldRetainLeftRowWithoutThrowing(string schema, string field)
     {
-        using var query = Compile(schema + $" select f.Name, p.{field} from #schema.first() f outer apply TryParse<Record>(f.Name) p", []);
+        using var query = Compile(
+            schema + $" select f.Name, p.{field} from #schema.first() f outer apply TryParse<Record>(f.Name) p",
+            []
+        );
         using var counter = new ThreadParseExceptionCounter();
         using var result = query.Run();
         var row = result.Single();
@@ -49,7 +61,8 @@ public sealed class GeneratedParseStatusTests
     [TestMethod]
     public void PartialNestedText_ShouldRetainCompletedPrefixAndSafeDiagnosticsWithoutThrowing()
     {
-        const string sql = "text Child { Value: chars[4] }; text Record { Tag: chars[1], Child: Child }; select p.BytesConsumed, p.ErrorField, p.ErrorMessage from #schema.first() f cross apply PartialParse<Record>(f.Name) p";
+        const string sql =
+            "text Child { Value: chars[4] }; text Record { Tag: chars[1], Child: Child }; select p.BytesConsumed, p.ErrorField, p.ErrorMessage from #schema.first() f cross apply PartialParse<Record>(f.Name) p";
         using var query = Compile(sql, []);
         using var counter = new ThreadParseExceptionCounter();
         using var result = query.Run();
@@ -61,10 +74,14 @@ public sealed class GeneratedParseStatusTests
         Assert.AreEqual(0, counter.Count);
     }
 
-    private static CompiledQuery Compile(string sql, byte[] data) => InstanceCreator.CompileForExecution(sql,
-        Guid.NewGuid().ToString(), LibraryExecutionFixture.CreateProvider<BinaryEntity>(
-            [new() { Name = "bad", Content = data }]), new TestsLoggerResolver(),
-        new CompilationOptions(usePrimitiveTypeValidation: false));
+    private static CompiledQuery Compile(string sql, byte[] data) =>
+        InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider<BinaryEntity>([new() { Name = "bad", Content = data }]),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
     private sealed class ThreadParseExceptionCounter : IDisposable
     {

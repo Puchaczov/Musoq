@@ -3,8 +3,8 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
-public partial class RawTraverseVisitor<TExpressionVisitor>    where TExpressionVisitor : class, IExpressionVisitor
-
+public partial class RawTraverseVisitor<TExpressionVisitor>
+    where TExpressionVisitor : class, IExpressionVisitor
 {
     public virtual void Visit(OrNode node) => VisitBinaryNode(node);
 

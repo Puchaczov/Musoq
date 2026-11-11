@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionConcurrencyQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -14,16 +13,35 @@ public sealed partial class LibraryExecutionConcurrencyQueryTests
     [DataRow(false, true)]
     [DataRow(true, false)]
     [DataRow(true, true)]
-    public void CustomCountQuery_WhenSourceAndKernelPermissionsIntersect_ShouldOwnIndependentState(bool sourceAllowed, bool functionAllowed)
+    public void CustomCountQuery_WhenSourceAndKernelPermissionsIntersect_ShouldOwnIndependentState(
+        bool sourceAllowed,
+        bool functionAllowed
+    )
     {
         using var probe = new ConcurrencyProbe(false);
         var provider = CreateProvider(probe, sourceAllowed);
         var function = functionAllowed ? "PermittedCount" : "SerialCount";
-        var query = $"select Position % 8 as Partition, {function}(Position) as Total from #schema.first() group by Position % 8";
-        var inspection = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
-        Assert.AreEqual(sourceAllowed && functionAllowed,
-            inspection.GeneratedCSharpCode.Contains("ParallelSingleKeyAggregateChunkWorker_", StringComparison.Ordinal), inspection.PlanningText);
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
+        var query =
+            $"select Position % 8 as Partition, {function}(Position) as Total from #schema.first() group by Position % 8";
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
+        Assert.AreEqual(
+            sourceAllowed && functionAllowed,
+            inspection.GeneratedCSharpCode.Contains("ParallelSingleKeyAggregateChunkWorker_", StringComparison.Ordinal),
+            inspection.PlanningText
+        );
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
         TableMaterializationTestHelper.AssertColumns(result, ("Partition", typeof(int)), ("Total", typeof(long)));
@@ -38,10 +56,23 @@ public sealed partial class LibraryExecutionConcurrencyQueryTests
     {
         using var probe = new ConcurrencyProbe(false);
         var provider = CreateProvider(probe, true);
-        const string query = "select Position % 8 as Partition, Count(Position) as Total from #schema.first() group by Position % 8";
-        var inspection = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
+        const string query =
+            "select Position % 8 as Partition, Count(Position) as Total from #schema.first() group by Position % 8";
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
         Assert.Contains("ParallelSingleKeyAggregateChunkWorker_", inspection.GeneratedCSharpCode);
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
         for (var execution = 0; execution < 3; execution++)
         {
             using var result = compiled.Run(TestContext.CancellationToken);
@@ -59,11 +90,24 @@ public sealed partial class LibraryExecutionConcurrencyQueryTests
     {
         using var probe = new ConcurrencyProbe(false);
         var provider = CreateProvider(probe, true);
-        const string query = "select Position % 8 as Partition, Sum(Position) as Total from #schema.first() group by Position % 8";
-        var inspection = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
+        const string query =
+            "select Position % 8 as Partition, Sum(Position) as Total from #schema.first() group by Position % 8";
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
         Assert.DoesNotContain("ParallelSingleKeyAggregateChunkWorker_", inspection.GeneratedCSharpCode);
         Assert.Contains("equivalent partial merging", inspection.PlanningText);
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString("N"), provider, _logger, ParallelOptions);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            ParallelOptions
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
         TableMaterializationTestHelper.AssertColumns(result, ("Partition", typeof(int)), ("Total", typeof(int?)));

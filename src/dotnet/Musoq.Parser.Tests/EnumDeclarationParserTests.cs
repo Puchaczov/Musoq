@@ -24,18 +24,22 @@ public sealed class EnumDeclarationParserTests
         Assert.AreEqual(new TextSpan(0, query.IndexOf('}') + 1), declaration.Span);
         CollectionAssert.AreEqual(
             new[] { "Queued", "Running", "Finished" },
-            declaration.Members.Select(static member => member.Name).ToArray());
+            declaration.Members.Select(static member => member.Name).ToArray()
+        );
         CollectionAssert.AreEqual(
             new ulong[] { 10, 20, 30 },
-            declaration.Members.Select(static member => member.RawValue).ToArray());
+            declaration.Members.Select(static member => member.RawValue).ToArray()
+        );
         CollectionAssert.AreEqual(
             new[] { "10", "20i", "0x1e" },
-            declaration.Members.Select(static member => member.LiteralText).ToArray());
+            declaration.Members.Select(static member => member.LiteralText).ToArray()
+        );
         Assert.AreEqual(SpanOf(query, "Queued = 10"), declaration.Members[0].Span);
         Assert.AreEqual(SpanOf(query, "10"), declaration.Members[0].ValueSpan);
         Assert.AreEqual(
             "enum JobStatus : int { Queued = 10, Running = 20i, Finished = 0x1e };",
-            declaration.ToString());
+            declaration.ToString()
+        );
     }
 
     [TestMethod]
@@ -50,29 +54,31 @@ public sealed class EnumDeclarationParserTests
         Assert.AreEqual("uint", declaration.UnderlyingTypeName);
         CollectionAssert.AreEqual(
             new ulong[] { 0, 1, 1, 2, 3 },
-            declaration.Members.Select(static member => member.RawValue).ToArray());
+            declaration.Members.Select(static member => member.RawValue).ToArray()
+        );
     }
 
     [TestMethod]
     public void EnumDeclarations_ShouldSupportEveryIntegralBackingAndBoundary()
     {
-        const string query = """
-                             enum EByte : byte { Min = 0ub, Max = 255ub };
-                             enum ESByte : sbyte { Min = -128, Max = 127b };
-                             enum EShort : short { Min = -32768, Max = 32767s };
-                             enum EUShort : ushort { Min = 0us, Max = 65535us };
-                             enum EInt : int { Min = -2147483648, Max = 2147483647i };
-                             enum EUInt : uint { Min = 0ui, Max = 4294967295ui };
-                             enum ELong : long { Min = -9223372036854775808, Max = 9223372036854775807l };
-                             enum EULong : ulong { Min = 0ul, Max = 18446744073709551615ul };
-                             """;
+        const string query = (
+            "enum EByte : byte { Min = 0ub, Max = 255ub };\n"
+            + "enum ESByte : sbyte { Min = -128, Max = 127b };\n"
+            + "enum EShort : short { Min = -32768, Max = 32767s };\n"
+            + "enum EUShort : ushort { Min = 0us, Max = 65535us };\n"
+            + "enum EInt : int { Min = -2147483648, Max = 2147483647i };\n"
+            + "enum EUInt : uint { Min = 0ui, Max = 4294967295ui };\n"
+            + "enum ELong : long { Min = -9223372036854775808, Max = 9223372036854775807l };\n"
+            + "enum EULong : ulong { Min = 0ul, Max = 18446744073709551615ul };"
+        );
 
         var declarations = ParseEnums(query);
 
         Assert.HasCount(8, declarations);
         CollectionAssert.AreEqual(
             new[] { "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong" },
-            declarations.Select(static declaration => declaration.UnderlyingTypeName).ToArray());
+            declarations.Select(static declaration => declaration.UnderlyingTypeName).ToArray()
+        );
         Assert.AreEqual(128ul, declarations[1].Members[0].RawValue);
         Assert.AreEqual(32768ul, declarations[2].Members[0].RawValue);
         Assert.AreEqual(2147483648ul, declarations[4].Members[0].RawValue);
@@ -89,14 +95,14 @@ public sealed class EnumDeclarationParserTests
 
         CollectionAssert.AreEqual(
             new ulong[] { 10, 10, 10 },
-            declaration.Members.Select(static member => member.RawValue).ToArray());
+            declaration.Members.Select(static member => member.RawValue).ToArray()
+        );
     }
 
     [TestMethod]
     public void LaterTableDeclaration_ShouldAcceptNullableQueryLocalEnumReference()
     {
-        const string query =
-            "enum State : byte { Ready = 1ub }; table Jobs { Status: State?, Previous: State };";
+        const string query = "enum State : byte { Ready = 1ub }; table Jobs { Status: State?, Previous: State };";
 
         var root = new Parser(new Lexer(query, true)).ComposeAll();
         var statements = (StatementsArrayNode)root.Expression;
@@ -104,7 +110,8 @@ public sealed class EnumDeclarationParserTests
 
         CollectionAssert.AreEqual(
             new[] { "State?", "State" },
-            table.Columns.Select(static column => column.TypeName).ToArray());
+            table.Columns.Select(static column => column.TypeName).ToArray()
+        );
     }
 
     [TestMethod]
@@ -118,9 +125,8 @@ public sealed class EnumDeclarationParserTests
 
         CollectionAssert.AreEqual(
             new[] { "enum", "flags" },
-            queryNode.Select.Fields
-                .Select(static field => ((IdentifierNode)field.Expression).Name)
-                .ToArray());
+            queryNode.Select.Fields.Select(static field => ((IdentifierNode)field.Expression).Name).ToArray()
+        );
     }
 
     private static EnumDeclarationNode ParseSingleEnum(string query)
@@ -132,10 +138,7 @@ public sealed class EnumDeclarationParserTests
     {
         var root = new Parser(new Lexer(query, true)).ComposeAll();
         var statements = (StatementsArrayNode)root.Expression;
-        return statements.Statements
-            .Select(static statement => statement.Node)
-            .OfType<EnumDeclarationNode>()
-            .ToArray();
+        return statements.Statements.Select(static statement => statement.Node).OfType<EnumDeclarationNode>().ToArray();
     }
 
     private static TextSpan SpanOf(string query, string text)
@@ -144,5 +147,4 @@ public sealed class EnumDeclarationParserTests
         Assert.IsGreaterThanOrEqualTo(0, start);
         return new TextSpan(start, text.Length);
     }
-
 }

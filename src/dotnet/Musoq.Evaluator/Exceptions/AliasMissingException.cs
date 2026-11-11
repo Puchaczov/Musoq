@@ -21,18 +21,12 @@ public class AliasMissingException : Exception, IDiagnosticException
     }
 
     public AliasMissingException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public AliasMissingException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public AliasMissingException()
-    {
-    }
+    public AliasMissingException() { }
 
     /// <summary>
     ///     Initializes a new instance with node.

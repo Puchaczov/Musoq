@@ -244,5 +244,4 @@ public partial class StringCultureConsistencyTests : PluginsTestBase
     }
 
     #endregion
-
 }

@@ -5,4 +5,5 @@ internal sealed record CteSourceBackedMaterialization(
     int StoreTableIndex,
     ExecutionCreateTable CreateTable,
     ExecutionSourceLoop Loop,
-    ExecutionAppendRow AppendRow);
+    ExecutionAppendRow AppendRow
+);

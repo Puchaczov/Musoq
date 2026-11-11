@@ -9,38 +9,86 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         Assert.Contains("var _cteIndexResults = new CteIndexResults();", generatedCSharpCode);
         Assert.Contains("private sealed class CteIndexResults", generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("private readonly CteIndexResults _cteIndexResults = new CteIndexResults();", StringComparison.Ordinal), generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("_cteIndexResults = new object[", StringComparison.Ordinal), generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("object[] _cteIndexResults", StringComparison.Ordinal), generatedCSharpCode);
+        Assert.IsFalse(
+            generatedCSharpCode.Contains(
+                "private readonly CteIndexResults _cteIndexResults = new CteIndexResults();",
+                StringComparison.Ordinal
+            ),
+            generatedCSharpCode
+        );
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("_cteIndexResults = new object[", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("object[] _cteIndexResults", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
     }
 
     private static void AssertGeneratedCodeUsesTypedCteRowResults(string generatedCSharpCode)
     {
         Assert.Contains("var _cteRowResults = new CteRowResults();", generatedCSharpCode);
         Assert.Contains("private sealed class CteRowResults", generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("private readonly CteRowResults _cteRowResults = new CteRowResults();", StringComparison.Ordinal), generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("Musoq.Evaluator.Tables.Table BuildCte", StringComparison.Ordinal), generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("Musoq.Evaluator.Tables.Table[] _tableResults", StringComparison.Ordinal), generatedCSharpCode);
+        Assert.IsFalse(
+            generatedCSharpCode.Contains(
+                "private readonly CteRowResults _cteRowResults = new CteRowResults();",
+                StringComparison.Ordinal
+            ),
+            generatedCSharpCode
+        );
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("Musoq.Evaluator.Tables.Table BuildCte", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("Musoq.Evaluator.Tables.Table[] _tableResults", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
         Assert.IsFalse(generatedCSharpCode.Contains("_tableResults[", StringComparison.Ordinal), generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal), generatedCSharpCode);
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
     }
 
     private static void AssertGeneratedCodeDoesNotUseCteRowResults(string generatedCSharpCode)
     {
-        Assert.IsFalse(generatedCSharpCode.Contains("private readonly CteRowResults _cteRowResults", StringComparison.Ordinal), generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("private sealed class CteRowResults", StringComparison.Ordinal), generatedCSharpCode);
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("private readonly CteRowResults _cteRowResults", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("private sealed class CteRowResults", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
         Assert.IsFalse(generatedCSharpCode.Contains("_cteRowResults.", StringComparison.Ordinal), generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("Musoq.Evaluator.Tables.Table BuildCte", StringComparison.Ordinal), generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("Musoq.Evaluator.Tables.Table[] _tableResults", StringComparison.Ordinal), generatedCSharpCode);
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("Musoq.Evaluator.Tables.Table BuildCte", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("Musoq.Evaluator.Tables.Table[] _tableResults", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
         Assert.IsFalse(generatedCSharpCode.Contains("_tableResults[", StringComparison.Ordinal), generatedCSharpCode);
-        Assert.IsFalse(generatedCSharpCode.Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal), generatedCSharpCode);
+        Assert.IsFalse(
+            generatedCSharpCode.Contains("EvaluationHelper.CastGeneratedRows<", StringComparison.Ordinal),
+            generatedCSharpCode
+        );
     }
 
     private static void AssertSampleUsesTypedCteIndexResults(string content)
     {
         Assert.Contains("var _cteIndexResults = new CteIndexResults();", content);
         Assert.Contains("private sealed class CteIndexResults", content);
-        Assert.IsFalse(content.Contains("private readonly CteIndexResults _cteIndexResults = new CteIndexResults();", StringComparison.Ordinal), content);
+        Assert.IsFalse(
+            content.Contains(
+                "private readonly CteIndexResults _cteIndexResults = new CteIndexResults();",
+                StringComparison.Ordinal
+            ),
+            content
+        );
         Assert.IsFalse(content.Contains("_cteIndexResults = new object[", StringComparison.Ordinal), content);
         Assert.IsFalse(content.Contains("object[] _cteIndexResults", StringComparison.Ordinal), content);
         Assert.IsFalse(content.Contains(")_cteIndexResults[", StringComparison.Ordinal), content);

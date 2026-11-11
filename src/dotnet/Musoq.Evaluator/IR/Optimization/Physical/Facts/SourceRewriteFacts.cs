@@ -8,7 +8,8 @@ internal sealed record SourceRewriteFacts(
     IReadOnlyDictionary<string, IrExpression[]> PushedPredicatesBySourceId,
     IReadOnlyDictionary<string, string[]> ProjectedColumnsBySourceId,
     IReadOnlyDictionary<string, SourcePredicatePlan> SourcePredicatePlansBySourceId,
-    IReadOnlyDictionary<string, SourcePlanResult> SourcePlanResultsBySourceId)
+    IReadOnlyDictionary<string, SourcePlanResult> SourcePlanResultsBySourceId
+)
 {
     public static SourceRewriteFacts From(PlanProperties properties)
     {
@@ -18,17 +19,19 @@ internal sealed record SourceRewriteFacts(
             properties.SourcePlanning.PushedPredicatesBySourceId,
             properties.SourcePlanning.ProjectedColumnsBySourceId,
             properties.SourcePlanning.SourcePredicatePlansBySourceId,
-            properties.SourcePlanning.SourcePlanResultsBySourceId);
+            properties.SourcePlanning.SourcePlanResultsBySourceId
+        );
     }
 
     public SourceRewriteFacts WithSourcePlanResults(
-        IReadOnlyDictionary<string, SourcePlanResult> sourcePlanResultsBySourceId)
+        IReadOnlyDictionary<string, SourcePlanResult> sourcePlanResultsBySourceId
+    )
     {
         ArgumentNullException.ThrowIfNull(sourcePlanResultsBySourceId);
 
         return this with
         {
-            SourcePlanResultsBySourceId = sourcePlanResultsBySourceId
+            SourcePlanResultsBySourceId = sourcePlanResultsBySourceId,
         };
     }
 
@@ -41,8 +44,7 @@ internal sealed record SourceRewriteFacts(
             PushedPredicatesBySourceId = PushedPredicatesBySourceId,
             ProjectedColumnsBySourceId = ProjectedColumnsBySourceId,
             SourcePredicatePlansBySourceId = SourcePredicatePlansBySourceId,
-            SourcePlanResultsBySourceId = SourcePlanResultsBySourceId
+            SourcePlanResultsBySourceId = SourcePlanResultsBySourceId,
         };
     }
 }
-

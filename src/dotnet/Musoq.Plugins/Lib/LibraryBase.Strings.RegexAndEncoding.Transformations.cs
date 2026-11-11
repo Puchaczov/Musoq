@@ -20,7 +20,8 @@ public partial class LibraryBase
             return null;
 
         var sb = new StringBuilder();
-        foreach (var c in value) sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\\u{(int)c:X4}");
+        foreach (var c in value)
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\\u{(int)c:X4}");
         return sb.ToString();
     }
 
@@ -38,8 +39,7 @@ public partial class LibraryBase
 
         try
         {
-            return UnicodeEscapeRegex().Replace(value, m =>
-                ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
+            return UnicodeEscapeRegex().Replace(value, m => ((char)Convert.ToInt32(m.Groups[1].Value, 16)).ToString());
         }
         catch
         {

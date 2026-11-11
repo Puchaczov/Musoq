@@ -8,7 +8,8 @@ internal static partial class ScriptVariableInitializerEvaluator
     private static ScriptConstantEvaluationResult EvaluateNumeric(
         object left,
         object right,
-        ConstantOperatorKind operation)
+        ConstantOperatorKind operation
+    )
     {
         if (!ConstantOperatorEvaluator.IsNumeric(left) || !ConstantOperatorEvaluator.IsNumeric(right))
             return InvalidOperandFailure("numeric expression");
@@ -20,18 +21,21 @@ internal static partial class ScriptVariableInitializerEvaluator
             var result = ConstantOperatorEvaluator.EvaluateDecimalArithmetic(operation, leftValue, rightValue);
             return ScriptConstantEvaluationResult.Evaluated(result, typeof(decimal));
         }
-        catch (Exception ex) when (ex is InvalidCastException or FormatException or OverflowException or DivideByZeroException)
+        catch (Exception ex)
+            when (ex is InvalidCastException or FormatException or OverflowException or DivideByZeroException)
         {
             return ScriptConstantEvaluationResult.Failed(
                 DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
-                $"Script variable initializer numeric expression failed: {ex.Message}");
+                $"Script variable initializer numeric expression failed: {ex.Message}"
+            );
         }
     }
 
     private static ScriptConstantEvaluationResult EvaluateBitwise(
         object? left,
         object? right,
-        ConstantOperatorKind operation)
+        ConstantOperatorKind operation
+    )
     {
         if (left == null || right == null)
             return ScriptConstantEvaluationResult.Evaluated(null, typeof(object));
@@ -43,13 +47,15 @@ internal static partial class ScriptVariableInitializerEvaluator
         var rightValue = Convert.ToInt64(right, CultureInfo.InvariantCulture);
         return ScriptConstantEvaluationResult.Evaluated(
             ConstantOperatorEvaluator.EvaluateIntegralBitwise(operation, leftValue, rightValue),
-            typeof(long));
+            typeof(long)
+        );
     }
 
     private static ScriptConstantEvaluationResult EvaluateShift(
         object? left,
         object? right,
-        ConstantOperatorKind operation)
+        ConstantOperatorKind operation
+    )
     {
         if (left == null || right == null)
             return ScriptConstantEvaluationResult.Evaluated(null, typeof(object));
@@ -61,6 +67,7 @@ internal static partial class ScriptVariableInitializerEvaluator
         var rightValue = Convert.ToInt32(right, CultureInfo.InvariantCulture);
         return ScriptConstantEvaluationResult.Evaluated(
             ConstantOperatorEvaluator.EvaluateIntegralShift(operation, leftValue, rightValue),
-            typeof(long));
+            typeof(long)
+        );
     }
 }

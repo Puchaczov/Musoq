@@ -3,16 +3,12 @@ namespace Musoq.Parser.Nodes;
 public class HexIntegerNode : ConstantValueNode
 {
     public HexIntegerNode(string value)
-        : this(value, default)
-    {
-    }
+        : this(value, default) { }
 
     public HexIntegerNode(string value, TextSpan span)
     {
         ArgumentNullException.ThrowIfNull(value);
-        var hexValue = value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-            ? value.Substring(2)
-            : value;
+        var hexValue = value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? value.Substring(2) : value;
 
         ObjValue = ParseHexValue(hexValue, value);
         Id = $"{nameof(HexIntegerNode)}{value}{ReturnType.Name}";
@@ -21,9 +17,7 @@ public class HexIntegerNode : ConstantValueNode
     }
 
     public HexIntegerNode(object objValue)
-        : this(objValue, default)
-    {
-    }
+        : this(objValue, default) { }
 
     public HexIntegerNode(object objValue, TextSpan span)
     {

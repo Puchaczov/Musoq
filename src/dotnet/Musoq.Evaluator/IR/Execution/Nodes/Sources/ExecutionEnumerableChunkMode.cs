@@ -4,5 +4,5 @@ public enum ExecutionEnumerableChunkMode
 {
     ObjectOrReflected,
     Direct,
-    DirectScalar
+    DirectScalar,
 }

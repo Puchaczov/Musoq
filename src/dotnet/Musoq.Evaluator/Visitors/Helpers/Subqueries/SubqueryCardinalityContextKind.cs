@@ -10,5 +10,5 @@ internal enum SubqueryCardinalityContextKind
     Take,
     Window,
     Qualify,
-    SetOperation
+    SetOperation,
 }

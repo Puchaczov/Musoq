@@ -476,12 +476,6 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
         TestMethodTemplate<decimal>("1ul + 1d", 2);
     }
 
-
-
-
-
-
-
     [TestMethod]
     public void WhenFloatAndSByteUsed_ShouldHaveColumnOfThatType()
     {

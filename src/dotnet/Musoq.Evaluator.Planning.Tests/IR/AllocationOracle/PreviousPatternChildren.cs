@@ -16,9 +16,17 @@ internal static class PreviousPatternChildren
             ExecutionLikeMatcherCacheSlot => [],
             ExecutionPrepareRLikeMatcher prepareRLike => [prepareRLike.Pattern],
             ExecutionPreparedRLikeMatch preparedRLike => [preparedRLike.Input, preparedRLike.Matcher],
-            ExecutionDynamicRLikeMatch dynamicRLike => [dynamicRLike.Input, dynamicRLike.Pattern, dynamicRLike.CacheSlot],
+            ExecutionDynamicRLikeMatch dynamicRLike =>
+            [
+                dynamicRLike.Input,
+                dynamicRLike.Pattern,
+                dynamicRLike.CacheSlot,
+            ],
             ExecutionRLikeMatcherCacheSlot => [],
-            _ => throw new ArgumentOutOfRangeException(nameof(expression), expression.GetType().Name, "Unknown pattern expression.")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(expression),
+                expression.GetType().Name,
+                "Unknown pattern expression."
+            ),
         };
-
 }

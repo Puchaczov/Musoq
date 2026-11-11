@@ -24,81 +24,83 @@ public class WindowFunctionBenchmarkParityTests
         [
             "RowNumber_NoPartition",
             "select Name, RowNumber() over (order by Salary desc) as rn from #test.entities()",
-            5
+            5,
         ];
 
         yield return
         [
             "RowNumber_Partitioned",
             "select Name, Department, RowNumber() over (partition by Department order by Salary desc) as rn from #test.entities()",
-            5
+            5,
         ];
 
         yield return
         [
             "Rank_Partitioned",
             "select Name, Department, Rank() over (partition by Department order by Salary desc) as rn from #test.entities()",
-            5
+            5,
         ];
 
         yield return
         [
             "DenseRank_Partitioned",
             "select Name, Department, DenseRank() over (partition by Department order by Salary desc) as rn from #test.entities()",
-            5
+            5,
         ];
 
         yield return
         [
             "Lag_Partitioned",
             "select Name, Department, Lag(Salary, 1) over (partition by Department order by Salary desc) as prev from #test.entities()",
-            5
+            5,
         ];
 
         yield return
         [
             "Lead_Partitioned",
             "select Name, Department, Lead(Salary, 1) over (partition by Department order by Salary desc) as nxt from #test.entities()",
-            5
+            5,
         ];
 
         yield return
         [
             "SumAggregate_WholePartition",
             "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department) as total from #test.entities()",
-            5
+            5,
         ];
 
         yield return
         [
             "SumAggregate_Running",
             "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department order by Salary) as running from #test.entities()",
-            5
+            5,
         ];
 
         yield return
         [
             "MultipleWindows",
-            @"select Name, Department,
-                    RowNumber() over (partition by Department order by Salary desc) as rn,
-                    Sum(ToDecimal(Salary)) over (partition by Department) as total,
-                    Lag(Salary, 1) over (partition by Department order by Salary desc) as prev
-                from #test.entities()",
-            5
+            (
+                "select Name, Department,\n"
+                + "                    RowNumber() over (partition by Department order by Salary desc) as rn,\n"
+                + "                    Sum(ToDecimal(Salary)) over (partition by Department) as total,\n"
+                + "                    Lag(Salary, 1) over (partition by Department order by Salary desc) as prev\n"
+                + "                from #test.entities()"
+            ),
+            5,
         ];
 
         yield return
         [
             "CountAggregate_WholePartition",
             "select Name, Department, Count(Name) over (partition by Department) as cnt from #test.entities()",
-            5
+            5,
         ];
 
         yield return
         [
             "AvgAggregate_Running",
             "select Name, Department, Avg(ToDecimal(Salary)) over (partition by Department order by Salary) as running_avg from #test.entities()",
-            5
+            5,
         ];
     }
 
@@ -107,95 +109,95 @@ public class WindowFunctionBenchmarkParityTests
         yield return
         [
             "Frame_RunningSum",
-            "select Name, Sum(ToDecimal(Salary)) over (order by Name rows between unbounded preceding and current row) as RunSum " +
-            "from #test.entities()",
-            5
+            "select Name, Sum(ToDecimal(Salary)) over (order by Name rows between unbounded preceding and current row) as RunSum "
+                + "from #test.entities()",
+            5,
         ];
 
         yield return
         [
             "Frame_SlidingWindow3",
-            "select Name, Sum(ToDecimal(Salary)) over (order by Name rows between 1 preceding and 1 following) as SlideSum " +
-            "from #test.entities()",
-            5
+            "select Name, Sum(ToDecimal(Salary)) over (order by Name rows between 1 preceding and 1 following) as SlideSum "
+                + "from #test.entities()",
+            5,
         ];
 
         yield return
         [
             "Frame_FullPartition",
-            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department rows between unbounded preceding and unbounded following) as Total " +
-            "from #test.entities()",
-            5
+            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department rows between unbounded preceding and unbounded following) as Total "
+                + "from #test.entities()",
+            5,
         ];
 
         yield return
         [
             "Frame_Partitioned_RunningSum",
-            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunSum " +
-            "from #test.entities()",
-            5
+            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunSum "
+                + "from #test.entities()",
+            5,
         ];
 
         yield return
         [
             "Qualify_RowNumber_TopN",
-            "select Name, Department, RowNumber() over (partition by Department order by Salary desc) as rn " +
-            "from #test.entities() " +
-            "qualify RowNumber() over (partition by Department order by Salary desc) <= 3",
-            5
+            "select Name, Department, RowNumber() over (partition by Department order by Salary desc) as rn "
+                + "from #test.entities() "
+                + "qualify RowNumber() over (partition by Department order by Salary desc) <= 3",
+            5,
         ];
 
         yield return
         [
             "Qualify_FramedSum_Filter",
-            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunSum " +
-            "from #test.entities() " +
-            "qualify Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) > 100000",
-            4
+            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunSum "
+                + "from #test.entities() "
+                + "qualify Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) > 100000",
+            4,
         ];
 
         yield return
         [
             "Qualify_Rank_TopN",
-            "select Name, Department, Rank() over (partition by Department order by Salary desc) as rnk " +
-            "from #test.entities() " +
-            "qualify Rank() over (partition by Department order by Salary desc) <= 5",
-            5
+            "select Name, Department, Rank() over (partition by Department order by Salary desc) as rnk "
+                + "from #test.entities() "
+                + "qualify Rank() over (partition by Department order by Salary desc) <= 5",
+            5,
         ];
 
         yield return
         [
             "Frame_Count_Sliding",
-            "select Name, Count(Name) over (order by Name rows between 2 preceding and current row) as Cnt " +
-            "from #test.entities()",
-            5
+            "select Name, Count(Name) over (order by Name rows between 2 preceding and current row) as Cnt "
+                + "from #test.entities()",
+            5,
         ];
 
         yield return
         [
             "Frame_Avg_Running",
-            "select Name, Avg(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunAvg " +
-            "from #test.entities()",
-            5
+            "select Name, Avg(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunAvg "
+                + "from #test.entities()",
+            5,
         ];
 
         yield return
         [
             "Frame_MultipleFrames",
-            "select Name, Department, " +
-            "Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunSum, " +
-            "Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between 1 preceding and 1 following) as SlideSum " +
-            "from #test.entities()",
-            5
+            "select Name, Department, "
+                + "Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunSum, "
+                + "Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between 1 preceding and 1 following) as SlideSum "
+                + "from #test.entities()",
+            5,
         ];
 
         yield return
         [
             "Qualify_WithWhere",
-            "select Name, Department, RowNumber() over (partition by Department order by Salary desc) as rn " +
-            "from #test.entities() where Salary > 50000 " +
-            "qualify RowNumber() over (partition by Department order by Salary desc) <= 3",
-            5
+            "select Name, Department, RowNumber() over (partition by Department order by Salary desc) as rn "
+                + "from #test.entities() where Salary > 50000 "
+                + "qualify RowNumber() over (partition by Department order by Salary desc) <= 3",
+            5,
         ];
     }
 
@@ -204,7 +206,8 @@ public class WindowFunctionBenchmarkParityTests
     public void BenchmarkWindowScenario_WhenEntityTypeIsPrivate_ShouldCompileAndRunWithExecutionIr(
         string scenario,
         string query,
-        int expectedRows)
+        int expectedRows
+    )
     {
         AssertBenchmarkWindowScenarioCompilesAndRunsWithExecutionIr(scenario, query, expectedRows);
     }
@@ -214,7 +217,8 @@ public class WindowFunctionBenchmarkParityTests
     public void BenchmarkFrameAndQualifyScenario_WhenEntityTypeIsPrivate_ShouldCompileAndRunWithExecutionIr(
         string scenario,
         string query,
-        int expectedRows)
+        int expectedRows
+    )
     {
         AssertBenchmarkWindowScenarioCompilesAndRunsWithExecutionIr(scenario, query, expectedRows);
     }
@@ -223,9 +227,10 @@ public class WindowFunctionBenchmarkParityTests
     public void QualifyFramedSumBenchmarkScenario_WhenEntityTypeIsPrivate_ShouldFilterOnRenderedWindowResult()
     {
         var table = Run(
-            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunSum " +
-            "from #test.entities() " +
-            "qualify Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) > 100000");
+            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) as RunSum "
+                + "from #test.entities() "
+                + "qualify Sum(ToDecimal(Salary)) over (partition by Department order by Name rows between unbounded preceding and current row) > 100000"
+        );
 
         var names = table.Select(row => (string)row.ReadValues()[0]).OrderBy(name => name).ToArray();
 
@@ -235,12 +240,14 @@ public class WindowFunctionBenchmarkParityTests
     private static void AssertBenchmarkWindowScenarioCompilesAndRunsWithExecutionIr(
         string scenario,
         string query,
-        int expectedRows)
+        int expectedRows
+    )
     {
         using var measurement = EvaluatorTestCaseMeasurement.Begin(
             nameof(BenchmarkWindowScenario_WhenEntityTypeIsPrivate_ShouldCompileAndRunWithExecutionIr),
             scenario,
-            scenario);
+            scenario
+        );
         var entities = CreateEntities();
         var inspection = measurement.MeasureCompilation(() => CompileForInspection(query, entities));
 
@@ -256,8 +263,7 @@ public class WindowFunctionBenchmarkParityTests
     [TestMethod]
     public void RowNumberWindow_WhenEntityTypeIsPrivate_ShouldMatchBenchmarkOrdering()
     {
-        var table = Run(
-            "select Name, RowNumber() over (order by Salary desc) as rn from #test.entities()");
+        var table = Run("select Name, RowNumber() over (order by Salary desc) as rn from #test.entities()");
 
         var rows = table.OrderBy(row => Convert.ToInt64(row.ReadValues()[1])).ToArray();
 
@@ -277,7 +283,8 @@ public class WindowFunctionBenchmarkParityTests
     public void LagWindow_WhenEntityTypeIsPrivate_ShouldReadResolverBackedRows()
     {
         var table = Run(
-            "select Name, Department, Lag(Salary, 1) over (partition by Department order by Salary desc) as prev from #test.entities()");
+            "select Name, Department, Lag(Salary, 1) over (partition by Department order by Salary desc) as prev from #test.entities()"
+        );
 
         AssertLagValue(table, "Bea", null);
         AssertLagValue(table, "Cal", 200000);
@@ -290,7 +297,8 @@ public class WindowFunctionBenchmarkParityTests
     public void RunningSumWindow_WhenEntityTypeIsPrivate_ShouldEvaluatePluginWindowAggregate()
     {
         var table = Run(
-            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department order by Salary) as running from #test.entities()");
+            "select Name, Department, Sum(ToDecimal(Salary)) over (partition by Department order by Salary) as running from #test.entities()"
+        );
 
         AssertWindowDecimal(table, "Ada", 100000m);
         AssertWindowDecimal(table, "Cal", 250000m);
@@ -310,7 +318,8 @@ public class WindowFunctionBenchmarkParityTests
             query,
             Guid.NewGuid().ToString(),
             new WinSchemaProvider(entities),
-            LoggerResolver);
+            LoggerResolver
+        );
     }
 
     private static QueryInspectionResult CompileForInspection(string query, IReadOnlyList<WinEntity> entities)
@@ -319,18 +328,21 @@ public class WindowFunctionBenchmarkParityTests
             query,
             Guid.NewGuid().ToString(),
             new WinSchemaProvider(entities),
-            LoggerResolver);
+            LoggerResolver
+        );
     }
 
     private static void AssertExecutionIrWindowSupported(string scenario, string executionPlanText)
     {
         Assert.IsFalse(
             executionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            $"{scenario} should be renderable by Execution IR, but inspection returned:{Environment.NewLine}{executionPlanText}");
+            $"{scenario} should be renderable by Execution IR, but inspection returned:{Environment.NewLine}{executionPlanText}"
+        );
         Assert.IsTrue(
-            executionPlanText.Contains("Compute", StringComparison.Ordinal) &&
-            executionPlanText.Contains("Window", StringComparison.Ordinal),
-            $"{scenario} should produce rendered window Execution IR:{Environment.NewLine}{executionPlanText}");
+            executionPlanText.Contains("Compute", StringComparison.Ordinal)
+                && executionPlanText.Contains("Window", StringComparison.Ordinal),
+            $"{scenario} should produce rendered window Execution IR:{Environment.NewLine}{executionPlanText}"
+        );
     }
 
     private static void AssertLagValue(Table table, string name, int? expected)
@@ -358,11 +370,36 @@ public class WindowFunctionBenchmarkParityTests
     {
         return
         [
-            new() { Name = "Ada", Department = "Engineering", Salary = 100000 },
-            new() { Name = "Bea", Department = "Engineering", Salary = 200000 },
-            new() { Name = "Cal", Department = "Engineering", Salary = 150000 },
-            new() { Name = "Dana", Department = "Sales", Salary = 120000 },
-            new() { Name = "Eli", Department = "Sales", Salary = 80000 }
+            new()
+            {
+                Name = "Ada",
+                Department = "Engineering",
+                Salary = 100000,
+            },
+            new()
+            {
+                Name = "Bea",
+                Department = "Engineering",
+                Salary = 200000,
+            },
+            new()
+            {
+                Name = "Cal",
+                Department = "Engineering",
+                Salary = 150000,
+            },
+            new()
+            {
+                Name = "Dana",
+                Department = "Sales",
+                Salary = 120000,
+            },
+            new()
+            {
+                Name = "Eli",
+                Department = "Sales",
+                Salary = 80000,
+            },
         ];
     }
 
@@ -383,14 +420,25 @@ public class WindowFunctionBenchmarkParityTests
 
     private sealed class WinSchema(IReadOnlyList<WinEntity> entities) : SchemaBase("test", CreateLibrary())
     {
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters
+        )
         {
             return new WinTable();
         }
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext executionContext,
+            TArguments nativeArguments
+        )
         {
-            return EnsureSourceType<T, WinEntity>(name, new EntitySource<WinEntity>([entities], WinTable.NameToIndexMap, WinTable.IndexToObjectAccessMap));
+            return EnsureSourceType<T, WinEntity>(
+                name,
+                new EntitySource<WinEntity>([entities], WinTable.NameToIndexMap, WinTable.IndexToObjectAccessMap)
+            );
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -407,7 +455,7 @@ public class WindowFunctionBenchmarkParityTests
         {
             { nameof(WinEntity.Name), 0 },
             { nameof(WinEntity.Department), 1 },
-            { nameof(WinEntity.Salary), 2 }
+            { nameof(WinEntity.Salary), 2 },
         };
 
         public static readonly IReadOnlyDictionary<int, Func<WinEntity, object?>> IndexToObjectAccessMap =
@@ -415,15 +463,15 @@ public class WindowFunctionBenchmarkParityTests
             {
                 { 0, entity => entity.Name },
                 { 1, entity => entity.Department },
-                { 2, entity => entity.Salary }
+                { 2, entity => entity.Salary },
             };
 
         public ISchemaColumn[] Columns =>
-        [
-            new SchemaColumn(nameof(WinEntity.Name), 0, typeof(string)),
-            new SchemaColumn(nameof(WinEntity.Department), 1, typeof(string)),
-            new SchemaColumn(nameof(WinEntity.Salary), 2, typeof(int))
-        ];
+            [
+                new SchemaColumn(nameof(WinEntity.Name), 0, typeof(string)),
+                new SchemaColumn(nameof(WinEntity.Department), 1, typeof(string)),
+                new SchemaColumn(nameof(WinEntity.Salary), 2, typeof(int)),
+            ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(WinEntity));
 

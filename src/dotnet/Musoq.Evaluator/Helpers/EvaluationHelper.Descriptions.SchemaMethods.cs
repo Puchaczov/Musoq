@@ -14,8 +14,11 @@ public static partial class EvaluationHelper
         return CreateTableFromConstructors(() => schema.GetRawConstructors(executionContext));
     }
 
-    public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName,
-        SourceExecutionContext executionContext)
+    public static Table GetConstructorsForSpecificMethod(
+        ISchema schema,
+        string methodName,
+        SourceExecutionContext executionContext
+    )
     {
         return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName, executionContext));
     }
@@ -28,13 +31,15 @@ public static partial class EvaluationHelper
 
         var libraryFunctions = schema.GetAllLibraryFunctions();
 
-        var newTable = new Table("desc", [
-            new Column("Method", typeof(string), 0),
-            new Column("Description", typeof(string), 1),
-            new Column("Category", typeof(string), 2),
-            new Column("Source", typeof(string), 3)
-        ]);
-
+        var newTable = new Table(
+            "desc",
+            [
+                new Column("Method", typeof(string), 0),
+                new Column("Description", typeof(string), 1),
+                new Column("Category", typeof(string), 2),
+                new Column("Source", typeof(string), 3),
+            ]
+        );
 
         var methodRows =
             new List<(string Signature, string Description, string Category, string Source, int SortOrder)>();
@@ -55,7 +60,6 @@ public static partial class EvaluationHelper
 
             methodRows.Add((signature, description, category, source, sortOrder));
         }
-
 
         var sortedRows = methodRows
             .OrderBy(row => row.SortOrder)

@@ -9,20 +9,23 @@ public partial class EndToEndQueryExecutionTests
     [TestMethod]
     public void Query_GroupByWithHaving_ShouldWork()
     {
-        var query = @"
-            select City, Count(City) as Cnt
-            from #A.Entities()
-            group by City
-            having Count(City) > 1";
+        var query = (
+            "\n"
+            + "            select City, Count(City) as Cnt\n"
+            + "            from #A.Entities()\n"
+            + "            group by City\n"
+            + "            having Count(City) > 1"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "A", City = "NYC" },
                     new BasicEntity { Name = "B", City = "NYC" },
-                    new BasicEntity { Name = "C", City = "LA" }
+                    new BasicEntity { Name = "C", City = "LA" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -35,19 +38,37 @@ public partial class EndToEndQueryExecutionTests
     [TestMethod]
     public void Query_GroupByMultipleColumns_ShouldWork()
     {
-        var query = @"
-            select City, Country, Count(City) as Cnt
-            from #A.Entities()
-            group by City, Country";
+        var query = (
+            "\n"
+            + "            select City, Country, Count(City) as Cnt\n"
+            + "            from #A.Entities()\n"
+            + "            group by City, Country"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A", City = "NYC", Country = "USA" },
-                    new BasicEntity { Name = "B", City = "NYC", Country = "USA" },
-                    new BasicEntity { Name = "C", City = "LA", Country = "USA" }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A",
+                        City = "NYC",
+                        Country = "USA",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B",
+                        City = "NYC",
+                        Country = "USA",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "C",
+                        City = "LA",
+                        Country = "USA",
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -55,26 +76,29 @@ public partial class EndToEndQueryExecutionTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("City", typeof(string)), ("Country", typeof(string)), ("Cnt", typeof(long)));
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Cnt", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["NYC", "USA", 2L], ["LA", "USA", 1L]);
     }
-
-
 
     [TestMethod]
     public void Query_LeftJoin_ShouldWork()
     {
-        var query = @"
-            select a.Name, b.Name
-            from #A.Entities() a
-            left outer join #B.Entities() b on a.City = b.City";
+        var query = (
+            "\n"
+            + "            select a.Name, b.Name\n"
+            + "            from #A.Entities() a\n"
+            + "            left outer join #B.Entities() b on a.City = b.City"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
                 [new BasicEntity { Name = "PersonA", City = "NYC" }, new BasicEntity { Name = "PersonC", City = "LA" }]
             },
-            { "#B", [new BasicEntity { Name = "PersonB", City = "NYC" }] }
+            { "#B", [new BasicEntity { Name = "PersonB", City = "NYC" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -87,17 +111,19 @@ public partial class EndToEndQueryExecutionTests
     [TestMethod]
     public void Query_RightJoin_ShouldWork()
     {
-        var query = @"
-            select a.Name, b.Name
-            from #A.Entities() a
-            right outer join #B.Entities() b on a.City = b.City";
+        var query = (
+            "\n"
+            + "            select a.Name, b.Name\n"
+            + "            from #A.Entities() a\n"
+            + "            right outer join #B.Entities() b on a.City = b.City"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "PersonA", City = "NYC" }] },
             {
                 "#B",
                 [new BasicEntity { Name = "PersonB", City = "NYC" }, new BasicEntity { Name = "PersonC", City = "LA" }]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -110,38 +136,70 @@ public partial class EndToEndQueryExecutionTests
     [TestMethod]
     public void Query_CrossJoin_ShouldWork()
     {
-        var query = @"
-            select a.Name, b.Name
-            from #A.Entities() a
-            cross join #B.Entities() b";
+        var query = (
+            "\n"
+            + "            select a.Name, b.Name\n"
+            + "            from #A.Entities() a\n"
+            + "            cross join #B.Entities() b"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "A1" }, new BasicEntity { Name = "A2" }] },
-            { "#B", [new BasicEntity { Name = "B1" }, new BasicEntity { Name = "B2" }] }
+            { "#B", [new BasicEntity { Name = "B1" }, new BasicEntity { Name = "B2" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["A1", "B1"], ["A1", "B2"], ["A2", "B1"], ["A2", "B2"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B1"], ["A1", "B2"], ["A2", "B1"], ["A2", "B2"]);
     }
 
     [TestMethod]
     public void Query_MultipleJoins_ShouldWork()
     {
-        var query = @"
-            select a.Name, b.Name, c.Name
-            from #A.Entities() a
-            inner join #B.Entities() b on a.City = b.City
-            inner join #C.Entities() c on b.Country = c.Country";
+        var query = (
+            "\n"
+            + "            select a.Name, b.Name, c.Name\n"
+            + "            from #A.Entities() a\n"
+            + "            inner join #B.Entities() b on a.City = b.City\n"
+            + "            inner join #C.Entities() c on b.Country = c.Country"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A", City = "NYC", Country = "USA" }] },
-            { "#B", [new BasicEntity { Name = "B", City = "NYC", Country = "USA" }] },
-            { "#C", [new BasicEntity { Name = "C", City = "LA", Country = "USA" }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A",
+                        City = "NYC",
+                        Country = "USA",
+                    },
+                ]
+            },
+            {
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B",
+                        City = "NYC",
+                        Country = "USA",
+                    },
+                ]
+            },
+            {
+                "#C",
+                [
+                    new BasicEntity
+                    {
+                        Name = "C",
+                        City = "LA",
+                        Country = "USA",
+                    },
+                ]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -149,24 +207,29 @@ public partial class EndToEndQueryExecutionTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Name", typeof(string)), ("Name", typeof(string)));
+            ("Name", typeof(string)),
+            ("Name", typeof(string)),
+            ("Name", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A", "B", "C"]);
     }
 
     [TestMethod]
     public void Query_SelfJoin_ShouldWork()
     {
-        var query = @"
-            select a.Name, b.Name
-            from #A.Entities() a
-            inner join #A.Entities() b on a.City = b.City
-            where a.Name <> b.Name";
+        var query = (
+            "\n"
+            + "            select a.Name, b.Name\n"
+            + "            from #A.Entities() a\n"
+            + "            inner join #A.Entities() b on a.City = b.City\n"
+            + "            where a.Name <> b.Name"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
                 [new BasicEntity { Name = "PersonA", City = "NYC" }, new BasicEntity { Name = "PersonB", City = "NYC" }]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -176,19 +239,19 @@ public partial class EndToEndQueryExecutionTests
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["PersonA", "PersonB"], ["PersonB", "PersonA"]);
     }
 
-
-
     [TestMethod]
     public void Query_UnionAll_ShouldWork()
     {
-        var query = @"
-            select Name from #A.Entities()
-            union all (Name)
-            select Name from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name from #A.Entities()\n"
+            + "            union all (Name)\n"
+            + "            select Name from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("A"), new BasicEntity("B")] },
-            { "#B", [new BasicEntity("B"), new BasicEntity("C")] }
+            { "#B", [new BasicEntity("B"), new BasicEntity("C")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -201,14 +264,16 @@ public partial class EndToEndQueryExecutionTests
     [TestMethod]
     public void Query_Union_ShouldWork()
     {
-        var query = @"
-            select Name from #A.Entities()
-            union (Name)
-            select Name from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name from #A.Entities()\n"
+            + "            union (Name)\n"
+            + "            select Name from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("A"), new BasicEntity("B")] },
-            { "#B", [new BasicEntity("B"), new BasicEntity("C")] }
+            { "#B", [new BasicEntity("B"), new BasicEntity("C")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -221,14 +286,16 @@ public partial class EndToEndQueryExecutionTests
     [TestMethod]
     public void Query_Except_ShouldWork()
     {
-        var query = @"
-            select Name from #A.Entities()
-            except (Name)
-            select Name from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name from #A.Entities()\n"
+            + "            except (Name)\n"
+            + "            select Name from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C")] },
-            { "#B", [new BasicEntity("B")] }
+            { "#B", [new BasicEntity("B")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -241,14 +308,16 @@ public partial class EndToEndQueryExecutionTests
     [TestMethod]
     public void Query_Intersect_ShouldWork()
     {
-        var query = @"
-            select Name from #A.Entities()
-            intersect (Name)
-            select Name from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name from #A.Entities()\n"
+            + "            intersect (Name)\n"
+            + "            select Name from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C")] },
-            { "#B", [new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] }
+            { "#B", [new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -258,25 +327,26 @@ public partial class EndToEndQueryExecutionTests
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["B"], ["C"]);
     }
 
-
-
     [TestMethod]
     public void Query_WithCTE_ShouldWork()
     {
-        var query = @"
-            with filtered as (
-                select Name, Population from #A.Entities() where Population > 100
-            )
-            select Name from filtered";
+        var query = (
+            "\n"
+            + "            with filtered as (\n"
+            + "                select Name, Population from #A.Entities() where Population > 100\n"
+            + "            )\n"
+            + "            select Name from filtered"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
                 [
-                    new BasicEntity { Name = "A", Population = 50 }, new BasicEntity { Name = "B", Population = 200 },
-                    new BasicEntity { Name = "C", Population = 150 }
+                    new BasicEntity { Name = "A", Population = 50 },
+                    new BasicEntity { Name = "B", Population = 200 },
+                    new BasicEntity { Name = "C", Population = 150 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -289,25 +359,28 @@ public partial class EndToEndQueryExecutionTests
     [TestMethod]
     public void Query_MultipleCTEs_ShouldWork()
     {
-        var query = @"
-            with high as (
-                select Name, Population from #A.Entities() where Population > 150
-            ),
-            medium as (
-                select Name, Population from #A.Entities() where Population > 50 and Population <= 150
-            )
-            select Name from high
-            union all (Name)
-            select Name from medium";
+        var query = (
+            "\n"
+            + "            with high as (\n"
+            + "                select Name, Population from #A.Entities() where Population > 150\n"
+            + "            ),\n"
+            + "            medium as (\n"
+            + "                select Name, Population from #A.Entities() where Population > 50 and Population <= 150\n"
+            + "            )\n"
+            + "            select Name from high\n"
+            + "            union all (Name)\n"
+            + "            select Name from medium"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
                 [
-                    new BasicEntity { Name = "A", Population = 50 }, new BasicEntity { Name = "B", Population = 200 },
-                    new BasicEntity { Name = "C", Population = 100 }
+                    new BasicEntity { Name = "A", Population = 50 },
+                    new BasicEntity { Name = "B", Population = 200 },
+                    new BasicEntity { Name = "C", Population = 100 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -317,8 +390,6 @@ public partial class EndToEndQueryExecutionTests
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["B"], ["C"]);
     }
 
-
-
     [TestMethod]
     public void Query_DistinctMultipleColumns_ShouldWork()
     {
@@ -326,12 +397,28 @@ public partial class EndToEndQueryExecutionTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A", City = "NYC", Country = "USA" },
-                    new BasicEntity { Name = "B", City = "NYC", Country = "USA" },
-                    new BasicEntity { Name = "C", City = "LA", Country = "USA" }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A",
+                        City = "NYC",
+                        Country = "USA",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B",
+                        City = "NYC",
+                        Country = "USA",
+                    },
+                    new BasicEntity
+                    {
+                        Name = "C",
+                        City = "LA",
+                        Country = "USA",
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -348,12 +435,13 @@ public partial class EndToEndQueryExecutionTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "A", City = "NYC" },
                     new BasicEntity { Name = "B", City = "LA" },
-                    new BasicEntity { Name = "C", City = "NYC" }
+                    new BasicEntity { Name = "C", City = "NYC" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -362,7 +450,4 @@ public partial class EndToEndQueryExecutionTests
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["LA"], ["NYC"]);
     }
-
-
-
 }

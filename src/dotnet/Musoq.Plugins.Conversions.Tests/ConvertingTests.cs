@@ -20,7 +20,11 @@ public sealed class ConvertingTests : PluginsTestBase
     public static IEnumerable<object?[]> ObjectCases()
     {
         yield return ObjectCase("ToDecimal_WithPolishCulture", library => library.ToDecimal("1,23", "pl-PL"), 1.23m);
-        yield return ObjectCase("ToDecimal_NegativeWithPolishCulture", library => library.ToDecimal("-1,23", "pl-PL"), -1.23m);
+        yield return ObjectCase(
+            "ToDecimal_NegativeWithPolishCulture",
+            library => library.ToDecimal("-1,23", "pl-PL"),
+            -1.23m
+        );
         yield return ObjectCase("ToDecimal_Long", library => library.ToDecimal(64L), 64m);
         yield return ObjectCase("ToInt64_String", library => library.ToInt64("12321"), 12321L);
         yield return ObjectCase("ToInt64_NullString", library => library.ToInt64((string?)null), null);
@@ -83,8 +87,16 @@ public sealed class ConvertingTests : PluginsTestBase
 
     private static IEnumerable<object?[]> ToStringCases()
     {
-        yield return StringCase("ToString_DateTimeOffset", library => library.ToString(DateTimeOffset.Parse("01.01.2015 00:00:00 +00:00"), "dd.MM.yyyy HH:mm:ss zzz"), "01.01.2015 00:00:00 +00:00");
-        yield return StringCase("ToString_NullDateTimeOffset", library => library.ToString((DateTimeOffset?)null), null);
+        yield return StringCase(
+            "ToString_DateTimeOffset",
+            library => library.ToString(DateTimeOffset.Parse("01.01.2015 00:00:00 +00:00"), "dd.MM.yyyy HH:mm:ss zzz"),
+            "01.01.2015 00:00:00 +00:00"
+        );
+        yield return StringCase(
+            "ToString_NullDateTimeOffset",
+            library => library.ToString((DateTimeOffset?)null),
+            null
+        );
         yield return StringCase("ToString_Decimal", library => library.ToString(32.22m), "32.22");
         yield return StringCase("ToString_NullDecimal", library => library.ToString((decimal?)null), null);
         yield return StringCase("ToString_Long", library => library.ToString(32L), "32");
@@ -121,7 +133,11 @@ public sealed class ConvertingTests : PluginsTestBase
         yield return StringCase("ToBin_DBNull", library => library.ToBin(DBNull.Value), ConversionNotSupported);
         yield return StringCase("ToBin_Single", library => library.ToBin(3.14f), ConversionNotSupported);
         yield return StringCase("ToBin_String", library => library.ToBin("test"), ConversionNotSupported);
-        yield return StringCase("ToBin_BytesWithDelimiter", library => library.ToBin([0x01, 0x02], " "), "00000001 00000010 ");
+        yield return StringCase(
+            "ToBin_BytesWithDelimiter",
+            library => library.ToBin([0x01, 0x02], " "),
+            "00000001 00000010 "
+        );
         yield return StringCase("ToBin_NullBytes", library => library.ToBin(null), null);
     }
 
@@ -161,7 +177,11 @@ public sealed class ConvertingTests : PluginsTestBase
 
     private static IEnumerable<object?[]> ToHexCases()
     {
-        yield return StringCase("ToHex_BytesWithDelimiter", library => library.ToHex("Hel"u8.ToArray(), "-"), "48-65-6C");
+        yield return StringCase(
+            "ToHex_BytesWithDelimiter",
+            library => library.ToHex("Hel"u8.ToArray(), "-"),
+            "48-65-6C"
+        );
         yield return StringCase("ToHex_EmptyBytes", library => library.ToHex(Array.Empty<byte>()), string.Empty);
         yield return StringCase("ToHex_NullBytes", library => library.ToHex(null), null);
         yield return StringCase("ToHex_DateTime", library => library.ToHex(DateTime.Now), ConversionNotSupported);
@@ -170,28 +190,80 @@ public sealed class ConvertingTests : PluginsTestBase
     private static IEnumerable<object?[]> HexStringCases()
     {
         yield return StringCase("FromHexToString", library => library.FromHexToString("48656C6C6F"), "Hello");
-        yield return StringCase("FromHexToString_WithEncoding", library => library.FromHexToString("48656C6C6F", "UTF-8"), "Hello");
+        yield return StringCase(
+            "FromHexToString_WithEncoding",
+            library => library.FromHexToString("48656C6C6F", "UTF-8"),
+            "Hello"
+        );
         yield return StringCase("ToHexFromString", library => library.ToHexFromString("Hello"), "48656C6C6F");
-        yield return StringCase("ToHexFromString_WithEncoding", library => library.ToHexFromString("Hello", "UTF-8"), "48656C6C6F");
+        yield return StringCase(
+            "ToHexFromString_WithEncoding",
+            library => library.ToHexFromString("Hello", "UTF-8"),
+            "48656C6C6F"
+        );
     }
 
     private static IEnumerable<object?[]> TextCases()
     {
         yield return StringCase("ToText_NullBytes", library => library.ToText(null!, "utf-8"), string.Empty);
-        yield return StringCase("ToText_EmptyBytes", library => library.ToText(Array.Empty<byte>(), "utf-8"), string.Empty);
+        yield return StringCase(
+            "ToText_EmptyBytes",
+            library => library.ToText(Array.Empty<byte>(), "utf-8"),
+            string.Empty
+        );
         yield return StringCase("ToText_Utf8", library => library.ToText("Hello"u8.ToArray(), "utf-8"), "Hello");
         yield return StringCase("ToText_Utf8Short", library => library.ToText("Hello"u8.ToArray(), "utf8"), "Hello");
-        yield return StringCase("ToText_Utf16", library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "utf-16"), "Hello");
-        yield return StringCase("ToText_Utf16Short", library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "utf16"), "Hello");
-        yield return StringCase("ToText_Unicode", library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "unicode"), "Hello");
-        yield return StringCase("ToText_Utf16LE", library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "utf-16le"), "Hello");
-        yield return StringCase("ToText_Utf16LEShort", library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "utf16le"), "Hello");
-        yield return StringCase("ToText_Utf16BE", library => library.ToText(Encoding.BigEndianUnicode.GetBytes("Hello"), "utf-16be"), "Hello");
-        yield return StringCase("ToText_Utf16BEShort", library => library.ToText(Encoding.BigEndianUnicode.GetBytes("Hello"), "utf16be"), "Hello");
+        yield return StringCase(
+            "ToText_Utf16",
+            library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "utf-16"),
+            "Hello"
+        );
+        yield return StringCase(
+            "ToText_Utf16Short",
+            library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "utf16"),
+            "Hello"
+        );
+        yield return StringCase(
+            "ToText_Unicode",
+            library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "unicode"),
+            "Hello"
+        );
+        yield return StringCase(
+            "ToText_Utf16LE",
+            library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "utf-16le"),
+            "Hello"
+        );
+        yield return StringCase(
+            "ToText_Utf16LEShort",
+            library => library.ToText(Encoding.Unicode.GetBytes("Hello"), "utf16le"),
+            "Hello"
+        );
+        yield return StringCase(
+            "ToText_Utf16BE",
+            library => library.ToText(Encoding.BigEndianUnicode.GetBytes("Hello"), "utf-16be"),
+            "Hello"
+        );
+        yield return StringCase(
+            "ToText_Utf16BEShort",
+            library => library.ToText(Encoding.BigEndianUnicode.GetBytes("Hello"), "utf16be"),
+            "Hello"
+        );
         yield return StringCase("ToText_Ascii", library => library.ToText("Hello"u8.ToArray(), "ascii"), "Hello");
-        yield return StringCase("ToText_Latin1", library => library.ToText(Encoding.Latin1.GetBytes("Hello"), "latin1"), "Hello");
-        yield return StringCase("ToText_Iso88591", library => library.ToText(Encoding.Latin1.GetBytes("Hello"), "iso-8859-1"), "Hello");
-        yield return StringCase("ToText_UnknownEncoding", library => library.ToText("Hello"u8.ToArray(), "unknown-encoding"), "Hello");
+        yield return StringCase(
+            "ToText_Latin1",
+            library => library.ToText(Encoding.Latin1.GetBytes("Hello"), "latin1"),
+            "Hello"
+        );
+        yield return StringCase(
+            "ToText_Iso88591",
+            library => library.ToText(Encoding.Latin1.GetBytes("Hello"), "iso-8859-1"),
+            "Hello"
+        );
+        yield return StringCase(
+            "ToText_UnknownEncoding",
+            library => library.ToText("Hello"u8.ToArray(), "unknown-encoding"),
+            "Hello"
+        );
         yield return StringCase("ToText_NullEncoding", library => library.ToText("Hello"u8.ToArray(), null!), "Hello");
     }
 
@@ -199,12 +271,24 @@ public sealed class ConvertingTests : PluginsTestBase
     {
         yield return StringCase("ToBase64_Bytes", library => library.ToBase64("Hello"u8.ToArray()), "SGVsbG8=");
         yield return StringCase("ToBase64_EmptyBytes", library => library.ToBase64(Array.Empty<byte>()), string.Empty);
-        yield return StringCase("ToBase64_BytesWithOffsetAndLength", library => library.ToBase64("Hello World"u8.ToArray(), 0, 5), "SGVsbG8=");
+        yield return StringCase(
+            "ToBase64_BytesWithOffsetAndLength",
+            library => library.ToBase64("Hello World"u8.ToArray(), 0, 5),
+            "SGVsbG8="
+        );
         yield return StringCase("ToBase64_BytesSlice", library => library.ToBase64([1, 2, 3, 4, 5], 1, 3), "AgME");
         yield return StringCase("ToBase64_String", library => library.ToBase64("Hello"), "SGVsbG8=");
-        yield return StringCase("ToBase64_StringWithEncoding", library => library.ToBase64("Hello", "UTF-8"), "SGVsbG8=");
+        yield return StringCase(
+            "ToBase64_StringWithEncoding",
+            library => library.ToBase64("Hello", "UTF-8"),
+            "SGVsbG8="
+        );
         yield return StringCase("FromBase64ToString", library => library.FromBase64ToString("SGVsbG8="), "Hello");
-        yield return StringCase("FromBase64ToString_WithEncoding", library => library.FromBase64ToString("SGVsbG8=", "UTF-8"), "Hello");
+        yield return StringCase(
+            "FromBase64ToString_WithEncoding",
+            library => library.FromBase64ToString("SGVsbG8=", "UTF-8"),
+            "Hello"
+        );
     }
 
     [TestMethod]
@@ -224,8 +308,14 @@ public sealed class ConvertingTests : PluginsTestBase
         yield return NullCase("FromBase64_Empty", library => library.FromBase64(string.Empty));
         yield return NullCase("FromBase64ToString_Null", library => library.FromBase64ToString(null));
         yield return NullCase("FromBase64ToString_Empty", library => library.FromBase64ToString(string.Empty));
-        yield return NullCase("FromBase64ToString_WithEncodingNull", library => library.FromBase64ToString(null, "UTF-8"));
-        yield return NullCase("FromBase64ToString_WithEncodingEmpty", library => library.FromBase64ToString(string.Empty, "UTF-8"));
+        yield return NullCase(
+            "FromBase64ToString_WithEncodingNull",
+            library => library.FromBase64ToString(null, "UTF-8")
+        );
+        yield return NullCase(
+            "FromBase64ToString_WithEncodingEmpty",
+            library => library.FromBase64ToString(string.Empty, "UTF-8")
+        );
         yield return NullCase("FromHex_Null", library => library.FromHex(null));
         yield return NullCase("FromHex_Empty", library => library.FromHex(string.Empty));
         yield return NullCase("FromHex_Whitespace", library => library.FromHex("   "));
@@ -276,7 +366,12 @@ public sealed class ConvertingTests : PluginsTestBase
 
     [TestMethod]
     [DynamicData(nameof(ByteTextCases))]
-    public void ByteText_Cases_ReturnExpectedText(string name, Func<LibraryBase, byte[]?> execute, Encoding encoding, string expected)
+    public void ByteText_Cases_ReturnExpectedText(
+        string name,
+        Func<LibraryBase, byte[]?> execute,
+        Encoding encoding,
+        string expected
+    )
     {
         Assert.AreEqual(expected, encoding.GetString(execute(Library)!), name);
     }
@@ -284,11 +379,36 @@ public sealed class ConvertingTests : PluginsTestBase
     public static IEnumerable<object?[]> ByteTextCases()
     {
         yield return ByteTextCase("FromBase64", library => library.FromBase64("SGVsbG8="), Encoding.UTF8, "Hello");
-        yield return ByteTextCase("FromHexToBytes_WithSpaces", library => library.FromHexToBytes("48 65 6C 6C 6F"), Encoding.ASCII, "Hello");
-        yield return ByteTextCase("FromHexToBytes_WithDashes", library => library.FromHexToBytes("48-65-6C-6C-6F"), Encoding.ASCII, "Hello");
-        yield return ByteTextCase("FromHexToBytes_WithColons", library => library.FromHexToBytes("48:65:6C:6C:6F"), Encoding.ASCII, "Hello");
-        yield return ByteTextCase("FromHexToBytes_With0xPrefix", library => library.FromHexToBytes("0x48656C6C6F"), Encoding.ASCII, "Hello");
-        yield return ByteTextCase("FromHexToBytes_With0XPrefix", library => library.FromHexToBytes("0X48656C6C6F"), Encoding.ASCII, "Hello");
+        yield return ByteTextCase(
+            "FromHexToBytes_WithSpaces",
+            library => library.FromHexToBytes("48 65 6C 6C 6F"),
+            Encoding.ASCII,
+            "Hello"
+        );
+        yield return ByteTextCase(
+            "FromHexToBytes_WithDashes",
+            library => library.FromHexToBytes("48-65-6C-6C-6F"),
+            Encoding.ASCII,
+            "Hello"
+        );
+        yield return ByteTextCase(
+            "FromHexToBytes_WithColons",
+            library => library.FromHexToBytes("48:65:6C:6C:6F"),
+            Encoding.ASCII,
+            "Hello"
+        );
+        yield return ByteTextCase(
+            "FromHexToBytes_With0xPrefix",
+            library => library.FromHexToBytes("0x48656C6C6F"),
+            Encoding.ASCII,
+            "Hello"
+        );
+        yield return ByteTextCase(
+            "FromHexToBytes_With0XPrefix",
+            library => library.FromHexToBytes("0X48656C6C6F"),
+            Encoding.ASCII,
+            "Hello"
+        );
     }
 
     [TestMethod]
@@ -335,7 +455,12 @@ public sealed class ConvertingTests : PluginsTestBase
         return [name, execute];
     }
 
-    private static object?[] ByteTextCase(string name, Func<LibraryBase, byte[]?> execute, Encoding encoding, string expected)
+    private static object?[] ByteTextCase(
+        string name,
+        Func<LibraryBase, byte[]?> execute,
+        Encoding encoding,
+        string expected
+    )
     {
         return [name, execute, encoding, expected];
     }

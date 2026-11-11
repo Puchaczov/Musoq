@@ -11,8 +11,13 @@ internal sealed class CoupledTableSchema(ISchemaTable source, ISchemaColumn[] co
 
     public ISchemaColumn? GetColumnByName(string name) => GetColumnsByName(name).SingleOrDefault();
 
-    public ISchemaColumn[] GetColumnsByName(string name) => source.GetColumnsByName(name)
-        .Where(candidate => Columns.Any(column => column.ColumnIndex == candidate.ColumnIndex &&
-                                                column.ColumnName == candidate.ColumnName))
-        .ToArray();
+    public ISchemaColumn[] GetColumnsByName(string name) =>
+        source
+            .GetColumnsByName(name)
+            .Where(candidate =>
+                Columns.Any(column =>
+                    column.ColumnIndex == candidate.ColumnIndex && column.ColumnName == candidate.ColumnName
+                )
+            )
+            .ToArray();
 }

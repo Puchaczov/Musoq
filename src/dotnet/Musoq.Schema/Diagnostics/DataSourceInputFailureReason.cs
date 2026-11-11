@@ -5,5 +5,5 @@ public enum DataSourceInputFailureReason
 {
     MalformedInput = 0,
     UnterminatedQuotedField = 1,
-    MalformedJson = 2
+    MalformedJson = 2,
 }

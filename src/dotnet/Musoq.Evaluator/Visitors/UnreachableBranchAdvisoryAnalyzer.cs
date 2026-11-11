@@ -10,8 +10,10 @@ internal static class UnreachableBranchAdvisoryAnalyzer
 {
     public static void Analyze(SemanticAdvisoryContext context)
     {
-        var variables = context.Metadata.ScriptVariableDefinitions
-            .ToDictionary(static definition => definition.Name, StringComparer.Ordinal);
+        var variables = context.Metadata.ScriptVariableDefinitions.ToDictionary(
+            static definition => definition.Name,
+            StringComparer.Ordinal
+        );
 
         Visit(context, context.Query, variables, new HashSet<Node>(ReferenceEqualityComparer.Instance));
 
@@ -25,7 +27,8 @@ internal static class UnreachableBranchAdvisoryAnalyzer
         SemanticAdvisoryContext context,
         Node node,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
-        HashSet<Node> visited)
+        HashSet<Node> visited
+    )
     {
         if (!visited.Add(node))
             return;
@@ -47,7 +50,8 @@ internal static class UnreachableBranchAdvisoryAnalyzer
     private static void AnalyzeCase(
         SemanticAdvisoryContext context,
         CaseNode caseNode,
-        IReadOnlyDictionary<string, ScriptVariableDefinition> variables)
+        IReadOnlyDictionary<string, ScriptVariableDefinition> variables
+    )
     {
         var seenDeterministicConditions = new HashSet<string>(StringComparer.Ordinal);
         var tailIsUnreachable = false;
@@ -90,7 +94,11 @@ internal static class UnreachableBranchAdvisoryAnalyzer
             if (IsDeterministic(condition))
             {
                 if (!seenDeterministicConditions.Add(condition.Id))
-                    Report(context, pair.When, "A deterministic CASE WHEN condition is duplicated and cannot be selected.");
+                    Report(
+                        context,
+                        pair.When,
+                        "A deterministic CASE WHEN condition is duplicated and cannot be selected."
+                    );
             }
         }
 
@@ -101,7 +109,8 @@ internal static class UnreachableBranchAdvisoryAnalyzer
     private static void AnalyzeCoalesce(
         SemanticAdvisoryContext context,
         CoalesceNode coalesce,
-        IReadOnlyDictionary<string, ScriptVariableDefinition> variables)
+        IReadOnlyDictionary<string, ScriptVariableDefinition> variables
+    )
     {
         if (!IsProvablyNonNull(coalesce.Left, variables))
             return;
@@ -110,12 +119,14 @@ internal static class UnreachableBranchAdvisoryAnalyzer
         context.Report(
             DiagnosticCode.MQ5008_UnreachableCode,
             ErrorCatalog.GetMessage(DiagnosticCode.MQ5008_UnreachableCode),
-            span);
+            span
+        );
     }
 
     private static bool IsProvablyNonNull(
         Node expression,
-        IReadOnlyDictionary<string, ScriptVariableDefinition> variables)
+        IReadOnlyDictionary<string, ScriptVariableDefinition> variables
+    )
     {
         if (TryEvaluate(expression, variables, out var value))
             return value != null;
@@ -124,15 +135,14 @@ internal static class UnreachableBranchAdvisoryAnalyzer
             return false;
 
         var type = expression.ReturnType;
-        return type is { IsValueType: true } &&
-               Nullable.GetUnderlyingType(type) == null &&
-               type != typeof(void);
+        return type is { IsValueType: true } && Nullable.GetUnderlyingType(type) == null && type != typeof(void);
     }
 
     private static bool TryEvaluate(
         Node expression,
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables,
-        out object? value)
+        out object? value
+    )
     {
         var result = ScriptVariableInitializerEvaluator.EvaluateStaticExpression(expression, variables);
         if (!result.Success)
@@ -150,8 +160,14 @@ internal static class UnreachableBranchAdvisoryAnalyzer
         if (node is AccessMethodNode or CaseNode or CoalesceNode)
             return false;
 
-        if (node is ConstantValueNode or NullNode or AccessColumnNode or
-            ScriptVariableReferenceNode or ParameterReferenceNode)
+        if (
+            node
+            is ConstantValueNode
+                or NullNode
+                or AccessColumnNode
+                or ScriptVariableReferenceNode
+                or ParameterReferenceNode
+        )
             return true;
 
         var children = ParserNodeTraversalRegistry.EnumerateChildren(node).ToArray();

@@ -15,7 +15,8 @@ public sealed record AggregateBinding(
     Type ReturnType,
     AggregateKernelDescriptor? Kernel = null,
     int ParentDepth = 0,
-    string? DisplayName = null)
+    string? DisplayName = null
+)
 {
     public AggregateBinding(
         string identifier,
@@ -27,7 +28,8 @@ public sealed record AggregateBinding(
         Type returnType,
         AggregateKernelDescriptor? kernel = null,
         int parentDepth = 0,
-        string? displayName = null)
+        string? displayName = null
+    )
         : this(
             identifier,
             columnName,
@@ -39,7 +41,6 @@ public sealed record AggregateBinding(
             returnType,
             kernel,
             parentDepth,
-            displayName)
-    {
-    }
+            displayName
+        ) { }
 }

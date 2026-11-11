@@ -11,7 +11,8 @@ public sealed class ExecutionIrArtifactImmutabilityTests
     [TestMethod]
     public void GeneratedScalarBindings_ShouldSnapshotTypeNamesAndDistinguishSpecializations()
     {
-        var method = typeof(Musoq.Plugins.LibraryBase).GetMethod(nameof(Musoq.Plugins.LibraryBase.ToJson))!
+        var method = typeof(Musoq.Plugins.LibraryBase)
+            .GetMethod(nameof(Musoq.Plugins.LibraryBase.ToJson))!
             .MakeGenericMethod(typeof(object));
         var names = new Dictionary<int, string> { [0] = "Packet" };
         var call = new ExecutionMethodCall(method, [], null, typeof(string)) { GeneratedGenericArguments = names };
@@ -20,7 +21,10 @@ public sealed class ExecutionIrArtifactImmutabilityTests
         var changed = call with { GeneratedGenericArguments = names };
         names.Clear();
         Assert.AreEqual("Changed", changed.GeneratedGenericArguments[0]);
-        Assert.AreNotEqual(ExecutionExpressionFingerprint.ForHoist(call), ExecutionExpressionFingerprint.ForHoist(changed));
+        Assert.AreNotEqual(
+            ExecutionExpressionFingerprint.ForHoist(call),
+            ExecutionExpressionFingerprint.ForHoist(changed)
+        );
     }
 
     [TestMethod]
@@ -35,7 +39,7 @@ public sealed class ExecutionIrArtifactImmutabilityTests
 
         var rewrittenNodes = new List<ExecutionNode>
         {
-            new ExecutionReturnDesc("schema", "method", DescType.Query, null, [], "ctx", 0)
+            new ExecutionReturnDesc("schema", "method", DescType.Query, null, [], "ctx", 0),
         };
         var rewritten = block with { Nodes = rewrittenNodes };
         rewrittenNodes.Clear();
@@ -51,13 +55,16 @@ public sealed class ExecutionIrArtifactImmutabilityTests
         var shapes = new List<RowShape> { shape };
         var plan = new ExecutionPlan("query", shapes, ExecutionBlock.Empty);
 
-        fields.Add(new FieldBinding(
-            "Name",
-            "Row.Name",
-            0,
-            ExecutionClrBindingFactory.FromClr(typeof(string)),
-            FieldNullability.NotNullable,
-            new GeneratedFieldAccess("Name")));
+        fields.Add(
+            new FieldBinding(
+                "Name",
+                "Row.Name",
+                0,
+                ExecutionClrBindingFactory.FromClr(typeof(string)),
+                FieldNullability.NotNullable,
+                new GeneratedFieldAccess("Name")
+            )
+        );
         shapes.Clear();
 
         Assert.AreEqual(1, plan.Shapes.Count);
@@ -65,15 +72,18 @@ public sealed class ExecutionIrArtifactImmutabilityTests
 
         var rewrittenFields = new List<FieldBinding>();
         var rewrittenShape = (GeneratedRowShape)shape with { Fields = rewrittenFields };
-        rewrittenFields.Add(shape.Fields.Count == 0
-            ? new FieldBinding(
-                "Id",
-                "Row.Id",
-                0,
-                ExecutionClrBindingFactory.FromClr(typeof(int)),
-                FieldNullability.NotNullable,
-                new GeneratedFieldAccess("Id"))
-            : shape.Fields[0]);
+        rewrittenFields.Add(
+            shape.Fields.Count == 0
+                ? new FieldBinding(
+                    "Id",
+                    "Row.Id",
+                    0,
+                    ExecutionClrBindingFactory.FromClr(typeof(int)),
+                    FieldNullability.NotNullable,
+                    new GeneratedFieldAccess("Id")
+                )
+                : shape.Fields[0]
+        );
 
         Assert.AreEqual(0, rewrittenShape.Fields.Count);
     }
@@ -84,7 +94,7 @@ public sealed class ExecutionIrArtifactImmutabilityTests
         var parts = new List<ExecutionExpression>
         {
             new ExecutionLiteral(1, typeof(int)),
-            new ExecutionLiteral(2, typeof(int))
+            new ExecutionLiteral(2, typeof(int)),
         };
         var expression = new ExecutionValueTupleKey(parts, typeof((int, int)));
 

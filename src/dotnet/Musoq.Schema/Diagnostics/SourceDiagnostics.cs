@@ -15,11 +15,10 @@ public sealed class SourceDiagnostics
 
     public SourceDiagnosticScope Measure(
         string name,
-        SourceDiagnosticOperation operation = SourceDiagnosticOperation.Other)
+        SourceDiagnosticOperation operation = SourceDiagnosticOperation.Other
+    )
     {
-        return _sink == null
-            ? default
-            : new SourceDiagnosticScope(_sink.Measure(name, operation));
+        return _sink == null ? default : new SourceDiagnosticScope(_sink.Measure(name, operation));
     }
 
     public void AddRowsProduced(long count)

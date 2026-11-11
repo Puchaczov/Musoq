@@ -15,7 +15,8 @@ public sealed class SemanticPhaseArtifactTests
             "select 1 as Value from #system.dual()",
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         var phase = items.SemanticArtifacts.Phase;
 
@@ -35,7 +36,8 @@ public sealed class SemanticPhaseArtifactTests
             "select 1 as Value from #system.dual()",
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Errors));
         Assert.IsNotNull(result.BuildItems);
@@ -49,7 +51,8 @@ public sealed class SemanticPhaseArtifactTests
             "select 1 as Value from #system.dual()",
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
 
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Errors));
         Assert.IsNotNull(result.BuildItems);

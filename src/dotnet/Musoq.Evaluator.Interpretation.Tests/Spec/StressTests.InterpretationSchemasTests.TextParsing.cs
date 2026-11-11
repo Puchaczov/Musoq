@@ -17,20 +17,31 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_PatternSimpleDigits_ShouldCapture()
     {
-        var query = @"
-            text Data {
-                Digits: pattern '\d+',
-                Rest: rest
-            };
-            select d.Digits, d.Rest from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Digits: pattern '\\d+',\n"
+            + "                Rest: rest\n"
+            + "            };\n"
+            + "            select d.Digits, d.Rest from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "12345abc" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "12345abc" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -44,20 +55,31 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_PatternIpAddress_ShouldCapture()
     {
-        var query = @"
-            text Data {
-                Ip: pattern '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',
-                Rest: rest
-            };
-            select d.Ip from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Ip: pattern '\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}',\n"
+            + "                Rest: rest\n"
+            + "            };\n"
+            + "            select d.Ip from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "192.168.1.100 connected" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "192.168.1.100 connected" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -70,21 +92,32 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_PatternHexValue_ShouldCapture()
     {
-        var query = @"
-            text Data {
-                _: pattern '0x',
-                Hex: pattern '[0-9A-Fa-f]+',
-                Rest: rest
-            };
-            select d.Hex, d.Rest from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                _: pattern '0x',\n"
+            + "                Hex: pattern '[0-9A-Fa-f]+',\n"
+            + "                Rest: rest\n"
+            + "            };\n"
+            + "            select d.Hex, d.Rest from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "0xDEADBEEF end" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "0xDEADBEEF end" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -98,23 +131,34 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_PatternCombinedWithUntilAndBetween_ShouldParseAll()
     {
-        var query = @"
-            text LogLine {
-                Timestamp: between '[' ']',
-                _: pattern '\s+',
-                Level: pattern '[A-Z]+',
-                _: pattern '\s+',
-                Message: rest
-            };
-            select d.Timestamp, d.Level, d.Message from #test.lines() l
-            cross apply Parse<LogLine>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text LogLine {\n"
+            + "                Timestamp: between '[' ']',\n"
+            + "                _: pattern '\\s+',\n"
+            + "                Level: pattern '[A-Z]+',\n"
+            + "                _: pattern '\\s+',\n"
+            + "                Message: rest\n"
+            + "            };\n"
+            + "            select d.Timestamp, d.Level, d.Message from #test.lines() l\n"
+            + "            cross apply Parse<LogLine>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "[2024-01-15] ERROR something failed" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "[2024-01-15] ERROR something failed" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -129,28 +173,36 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_PatternMultipleRowsWithFilter_ShouldFilter()
     {
-        var query = @"
-            text Data {
-                Code: pattern '[A-Z]+',
-                _: pattern '-',
-                Number: rest
-            };
-            select d.Code, d.Number from #test.lines() l
-            cross apply Parse<Data>(l.Line) d
-            where d.Code = 'ERR'";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Code: pattern '[A-Z]+',\n"
+            + "                _: pattern '-',\n"
+            + "                Number: rest\n"
+            + "            };\n"
+            + "            select d.Code, d.Number from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d\n"
+            + "            where d.Code = 'ERR'"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "l1", Text = "ERR-404" },
             new TextEntity { Name = "l2", Text = "OK-200" },
             new TextEntity { Name = "l3", Text = "ERR-500" },
-            new TextEntity { Name = "l4", Text = "WARN-301" }
+            new TextEntity { Name = "l4", Text = "WARN-301" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -167,21 +219,32 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_LiteralAsDiscard_ShouldAdvanceCursor()
     {
-        var query = @"
-            text Data {
-                Key: until ':',
-                _: literal ' ',
-                Value: rest
-            };
-            select d.Key, d.Value from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Key: until ':',\n"
+            + "                _: literal ' ',\n"
+            + "                Value: rest\n"
+            + "            };\n"
+            + "            select d.Key, d.Value from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "host: localhost" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "host: localhost" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -195,20 +258,31 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_LiteralMultiChar_ShouldMatch()
     {
-        var query = @"
-            text Data {
-                _: literal '---',
-                Content: rest
-            };
-            select d.Content from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                _: literal '---',\n"
+            + "                Content: rest\n"
+            + "            };\n"
+            + "            select d.Content from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "---Hello World" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "---Hello World" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -221,23 +295,34 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_Token_ShouldCaptureNonWhitespace()
     {
-        var query = @"
-            text Data {
-                First: token,
-                _: whitespace,
-                Second: token,
-                _: whitespace,
-                Third: rest
-            };
-            select d.First, d.Second, d.Third from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                First: token,\n"
+            + "                _: whitespace,\n"
+            + "                Second: token,\n"
+            + "                _: whitespace,\n"
+            + "                Third: rest\n"
+            + "            };\n"
+            + "            select d.First, d.Second, d.Third from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "hello world remainder" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "hello world remainder" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -252,21 +337,32 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_WhitespaceStar_NoWhitespace_ShouldSucceed()
     {
-        var query = @"
-            text Data {
-                A: until ',',
-                _: whitespace*,
-                B: rest
-            };
-            select d.A, d.B from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                A: until ',',\n"
+            + "                _: whitespace*,\n"
+            + "                B: rest\n"
+            + "            };\n"
+            + "            select d.A, d.B from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "hello,world" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "hello,world" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -280,21 +376,32 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_WhitespaceStar_MultipleSpacesAndTabs_ShouldConsume()
     {
-        var query = @"
-            text Data {
-                A: until ':',
-                _: whitespace*,
-                B: rest
-            };
-            select d.A, d.B from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                A: until ':',\n"
+            + "                _: whitespace*,\n"
+            + "                B: rest\n"
+            + "            };\n"
+            + "            select d.A, d.B from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "key:   \t  value" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "key:   \t  value" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -312,21 +419,32 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_OptionalPresent_ShouldCapture()
     {
-        var query = @"
-            text Data {
-                Name: until '=',
-                Value: until ';',
-                Extra: optional rest
-            };
-            select d.Name, d.Value, d.Extra from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Name: until '=',\n"
+            + "                Value: until ';',\n"
+            + "                Extra: optional rest\n"
+            + "            };\n"
+            + "            select d.Name, d.Value, d.Extra from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "key=value;extra info" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "key=value;extra info" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -341,21 +459,32 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_OptionalAbsent_ShouldReturnNull()
     {
-        var query = @"
-            text Data {
-                Name: until ':',
-                Value: rest,
-                TraceId: optional pattern '[a-f0-9]{8}'
-            };
-            select d.Name, d.Value, d.TraceId from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Name: until ':',\n"
+            + "                Value: rest,\n"
+            + "                TraceId: optional pattern '[a-f0-9]{8}'\n"
+            + "            };\n"
+            + "            select d.Name, d.Value, d.TraceId from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "key:value" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "key:value" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -370,22 +499,33 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Text_OptionalLiteralAbsent_ShouldNotConsume()
     {
-        var query = @"
-            text Data {
-                A: until ',',
-                _: optional literal ' - ',
-                B: rest
-            };
-            select d.A, d.B from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                A: until ',',\n"
+            + "                _: optional literal ' - ',\n"
+            + "                B: rest\n"
+            + "            };\n"
+            + "            select d.A, d.B from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         // No ' - ' separator, so optional should fail silently and B gets rest
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "hello,world" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "hello,world" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

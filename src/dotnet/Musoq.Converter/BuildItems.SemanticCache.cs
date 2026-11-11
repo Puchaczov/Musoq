@@ -1,4 +1,3 @@
-
 namespace Musoq.Converter.Build;
 
 public partial class BuildItems

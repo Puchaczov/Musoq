@@ -10,60 +10,84 @@ internal static partial class SourcePredicateExpressionConverter
         IrExpression expression,
         string sourceAlias,
         [NotNullWhen(true)] out SourcePredicateExpression? predicate,
-        TimeSpan? regexMatchTimeout = null)
+        TimeSpan? regexMatchTimeout = null
+    )
     {
         if (!SourcePredicateGraphValidator.IsWithinBudget(expression, System.Threading.CancellationToken.None))
         {
             predicate = null;
             return false;
         }
-        return TryConvertPredicateCore(expression, sourceAlias, regexMatchTimeout ?? Runtime.RuntimeCacheOptions.DefaultRegexTimeout, out predicate);
+        return TryConvertPredicateCore(
+            expression,
+            sourceAlias,
+            regexMatchTimeout ?? Runtime.RuntimeCacheOptions.DefaultRegexTimeout,
+            out predicate
+        );
     }
 
     private static bool TryConvertPredicateCore(
         IrExpression expression,
         string sourceAlias,
         TimeSpan regexMatchTimeout,
-        [NotNullWhen(true)] out SourcePredicateExpression? predicate)
+        [NotNullWhen(true)] out SourcePredicateExpression? predicate
+    )
     {
         switch (expression)
         {
-            case ColumnRef columnRef when string.Equals(columnRef.Alias, sourceAlias, StringComparison.OrdinalIgnoreCase):
+            case ColumnRef columnRef
+                when string.Equals(columnRef.Alias, sourceAlias, StringComparison.OrdinalIgnoreCase):
                 predicate = new SourcePredicateColumn(new SourceColumnRef(columnRef.ColumnName));
                 return true;
             case Literal literal:
                 predicate = new SourcePredicateLiteral(literal.Value);
                 return true;
             case BinaryOp { Kind: BinaryOpKind.And or BinaryOpKind.Or } logical:
-                if (TryConvertPredicateCore(logical.Left, sourceAlias, regexMatchTimeout, out var leftLogical) &&
-                    TryConvertPredicateCore(logical.Right, sourceAlias, regexMatchTimeout, out var rightLogical))
+                if (
+                    TryConvertPredicateCore(logical.Left, sourceAlias, regexMatchTimeout, out var leftLogical)
+                    && TryConvertPredicateCore(logical.Right, sourceAlias, regexMatchTimeout, out var rightLogical)
+                )
                 {
                     predicate = new SourcePredicateLogical(
                         logical.Kind == BinaryOpKind.And
                             ? SourcePredicateLogicalOperator.And
                             : SourcePredicateLogicalOperator.Or,
                         leftLogical,
-                        rightLogical);
+                        rightLogical
+                    );
                     return true;
                 }
 
                 break;
             case BinaryOp comparison when TryConvertComparisonOperator(comparison.Kind, out var comparisonOperator):
                 var comparisonEnum = comparison.Left.EnumType ?? comparison.Right.EnumType;
-                if (comparisonEnum != null &&
-                    comparisonOperator is not (SourcePredicateComparisonOperator.Equal or
-                        SourcePredicateComparisonOperator.NotEqual))
+                if (
+                    comparisonEnum != null
+                    && comparisonOperator
+                        is not (SourcePredicateComparisonOperator.Equal or SourcePredicateComparisonOperator.NotEqual)
+                )
                 {
                     break;
                 }
 
-                if (TryConvertPredicateOperand(comparison.Left, sourceAlias, comparisonEnum, regexMatchTimeout, out var leftComparison) &&
-                    TryConvertPredicateOperand(comparison.Right, sourceAlias, comparisonEnum, regexMatchTimeout, out var rightComparison))
+                if (
+                    TryConvertPredicateOperand(
+                        comparison.Left,
+                        sourceAlias,
+                        comparisonEnum,
+                        regexMatchTimeout,
+                        out var leftComparison
+                    )
+                    && TryConvertPredicateOperand(
+                        comparison.Right,
+                        sourceAlias,
+                        comparisonEnum,
+                        regexMatchTimeout,
+                        out var rightComparison
+                    )
+                )
                 {
-                    predicate = new SourcePredicateComparison(
-                        comparisonOperator,
-                        leftComparison,
-                        rightComparison);
+                    predicate = new SourcePredicateComparison(comparisonOperator, leftComparison, rightComparison);
                     return true;
                 }
 
@@ -74,12 +98,15 @@ internal static partial class SourcePredicateExpressionConverter
                     var values = new List<SourcePredicateExpression>(inCheck.Values.Count);
                     foreach (var value in inCheck.Values)
                     {
-                        if (!TryConvertPredicateOperand(
+                        if (
+                            !TryConvertPredicateOperand(
                                 value,
                                 sourceAlias,
                                 inCheck.Expression.EnumType,
                                 regexMatchTimeout,
-                                out var convertedValue))
+                                out var convertedValue
+                            )
+                        )
                         {
                             predicate = null;
                             return false;
@@ -93,22 +120,40 @@ internal static partial class SourcePredicateExpressionConverter
                 }
 
                 break;
-            case MethodCall methodCall when TryConvertEnumFlagsPredicate(methodCall, sourceAlias, regexMatchTimeout, out predicate):
+            case MethodCall methodCall
+                when TryConvertEnumFlagsPredicate(methodCall, sourceAlias, regexMatchTimeout, out predicate):
                 return true;
             case PatternMatch patternMatch:
-                if (TryConvertPatternMatch(patternMatch, sourceAlias, regexMatchTimeout, isNegated: false, out predicate))
+                if (
+                    TryConvertPatternMatch(
+                        patternMatch,
+                        sourceAlias,
+                        regexMatchTimeout,
+                        isNegated: false,
+                        out predicate
+                    )
+                )
                     return true;
 
                 break;
             case UnaryOp { Kind: UnaryOpKind.Not, Operand: PatternMatch patternMatch }:
-                if (TryConvertPatternMatch(patternMatch, sourceAlias, regexMatchTimeout, isNegated: true, out predicate))
+                if (
+                    TryConvertPatternMatch(patternMatch, sourceAlias, regexMatchTimeout, isNegated: true, out predicate)
+                )
                 {
                     return true;
                 }
 
                 break;
             case IsNullCheck nullCheck:
-                if (TryConvertPredicateCore(nullCheck.Expression, sourceAlias, regexMatchTimeout, out var nullExpression))
+                if (
+                    TryConvertPredicateCore(
+                        nullCheck.Expression,
+                        sourceAlias,
+                        regexMatchTimeout,
+                        out var nullExpression
+                    )
+                )
                 {
                     predicate = new SourcePredicateNullCheck(nullExpression, nullCheck.IsNegated);
                     return true;
@@ -120,5 +165,4 @@ internal static partial class SourcePredicateExpressionConverter
         predicate = null;
         return false;
     }
-
 }

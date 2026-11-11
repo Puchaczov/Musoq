@@ -30,7 +30,10 @@ public sealed class CultureTestClassAttributeTests
             AssertDefaultCulture();
             return expected;
         })
-        { DisplayName = "preserved display name", UnfoldingStrategy = TestDataSourceUnfoldingStrategy.Fold };
+        {
+            DisplayName = "preserved display name",
+            UnfoldingStrategy = TestDataSourceUnfoldingStrategy.Fold,
+        };
         var wrapper = new CultureTestClassAttribute().GetTestMethodAttribute(original);
 
         var actual = await wrapper.ExecuteAsync(method);
@@ -58,7 +61,9 @@ public sealed class CultureTestClassAttributeTests
         });
         var wrapper = new CultureTestClassAttribute().GetTestMethodAttribute(original);
 
-        var actual = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => wrapper.ExecuteAsync(Mock.Of<ITestMethod>()));
+        var actual = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() =>
+            wrapper.ExecuteAsync(Mock.Of<ITestMethod>())
+        );
 
         Assert.AreSame(expected, actual);
         Assert.AreEqual("en-US", CultureInfo.CurrentCulture.Name);
@@ -80,7 +85,9 @@ public sealed class CultureTestClassAttributeTests
         });
         var wrapper = new CultureTestClassAttribute().GetTestMethodAttribute(original);
 
-        var actual = await Assert.ThrowsAsync<OperationCanceledException>(() => wrapper.ExecuteAsync(Mock.Of<ITestMethod>()));
+        var actual = await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            wrapper.ExecuteAsync(Mock.Of<ITestMethod>())
+        );
 
         Assert.AreSame(expected, actual);
         Assert.AreEqual(cancellation.Token, actual.CancellationToken);
@@ -91,7 +98,9 @@ public sealed class CultureTestClassAttributeTests
     [TestMethod]
     public void Wrapper_RejectsMissingOriginalAttribute()
     {
-        var failure = Assert.ThrowsExactly<ArgumentNullException>(() => new CultureTestClassAttribute().GetTestMethodAttribute(null!));
+        var failure = Assert.ThrowsExactly<ArgumentNullException>(() =>
+            new CultureTestClassAttribute().GetTestMethodAttribute(null!)
+        );
 
         Assert.AreEqual("testMethodAttribute", failure.ParamName);
     }
@@ -121,7 +130,8 @@ public sealed class CultureTestClassAttributeTests
         Func<ITestMethod, Task<TestResult[]>> execute,
         bool missingMetadata = false,
         [CallerFilePath] string filePath = "",
-        [CallerLineNumber] int lineNumber = 0) : TestMethodAttribute(missingMetadata ? null! : filePath, missingMetadata ? 0 : lineNumber)
+        [CallerLineNumber] int lineNumber = 0
+    ) : TestMethodAttribute(missingMetadata ? null! : filePath, missingMetadata ? 0 : lineNumber)
     {
         public override Task<TestResult[]> ExecuteAsync(ITestMethod testMethod) => execute(testMethod);
     }

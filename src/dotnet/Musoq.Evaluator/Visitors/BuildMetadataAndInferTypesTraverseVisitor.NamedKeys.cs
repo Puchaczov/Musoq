@@ -17,7 +17,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
         var access = new AccessObjectKeyNode(key.Token, column.ColumnType, identifier.Name)
         {
-            DestinationKind = key.DestinationKind
+            DestinationKind = key.DestinationKind,
         };
         access.Accept(Visitor);
         return true;

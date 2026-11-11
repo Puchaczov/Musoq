@@ -136,7 +136,12 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(bool? value) => value.HasValue ? value.Value ? 1f : 0f : null;
+    public float? ToFloat(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? 1f
+                : 0f
+            : null;
 
     /// <summary>
     ///     Converts given value to float

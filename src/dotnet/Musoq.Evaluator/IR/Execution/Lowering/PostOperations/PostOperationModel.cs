@@ -12,54 +12,49 @@ internal sealed record PostOperationProjection(
     ExecutionVariable WorkingTable,
     IReadOnlyList<PostOperation> PostOperations,
     TableProjection? FinalProjection,
-    IReadOnlyList<GeneratedRowShape> Shapes);
+    IReadOnlyList<GeneratedRowShape> Shapes
+);
 
-internal sealed record FinalJoinProjectionRewrite(
-    PhysicalProjectNode Project,
-    PhysicalFilterNode? Filter);
+internal sealed record FinalJoinProjectionRewrite(PhysicalProjectNode Project, PhysicalFilterNode? Filter);
 
 internal sealed record TableProjection(
     ExecutionVariable Table,
     GeneratedRowShape RowShape,
-    IReadOnlyList<int> FieldIndexes);
+    IReadOnlyList<int> FieldIndexes
+);
 
 internal sealed record StreamingSlice(
     PagingCount SkipCount,
     PagingCount? TakeCount,
     ExecutionVariable? SkipRemaining,
-    ExecutionVariable? TakeRemaining);
+    ExecutionVariable? TakeRemaining
+);
 
-internal sealed record SortOperation(
-    OrderField[] Keys,
-    IReadOnlyList<ProjectedField> ProjectedFields) : PostOperation
+internal sealed record SortOperation(OrderField[] Keys, IReadOnlyList<ProjectedField> ProjectedFields) : PostOperation
 {
     public SortOperation(OrderField[] keys)
-        : this(keys, [])
-    {
-    }
+        : this(keys, []) { }
 }
 
 internal sealed record TopNOperation(
     PagingCount Count,
     OrderField[] Keys,
-    IReadOnlyList<ProjectedField> ProjectedFields) : PostOperation
+    IReadOnlyList<ProjectedField> ProjectedFields
+) : PostOperation
 {
     public TopNOperation(PagingCount count, OrderField[] keys)
-        : this(count, keys, [])
-    {
-    }
+        : this(count, keys, []) { }
 }
 
 internal sealed record TopOffsetOperation(
     PagingCount SkipCount,
     PagingCount TakeCount,
     OrderField[] Keys,
-    IReadOnlyList<ProjectedField> ProjectedFields) : PostOperation
+    IReadOnlyList<ProjectedField> ProjectedFields
+) : PostOperation
 {
     public TopOffsetOperation(PagingCount skipCount, PagingCount takeCount, OrderField[] keys)
-        : this(skipCount, takeCount, keys, [])
-    {
-    }
+        : this(skipCount, takeCount, keys, []) { }
 }
 
 internal sealed record SkipOperation(PagingCount Count) : PostOperation;

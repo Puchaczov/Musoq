@@ -9,15 +9,15 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class DateTimeOffsetTests : UnknownQueryTestsBase
 {
-
     [TestMethod]
     public void MinDateTimeOffsetTest()
     {
-        const string query = "table Dates {" +
-                             "  Date: datetimeoffset" +
-                             "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
-                             "select MinDateTimeOffset(Date) from Dates()";
+        const string query =
+            "table Dates {"
+            + "  Date: datetimeoffset"
+            + "};"
+            + "couple #test.whatever with table Dates as Dates; "
+            + "select MinDateTimeOffset(Date) from Dates()";
 
         dynamic first = new ExpandoObject();
         first.Date = new DateTimeOffset(new DateTime(2023, 1, 1));
@@ -25,10 +25,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         dynamic second = new ExpandoObject();
         second.Date = new DateTimeOffset(new DateTime(2023, 2, 1));
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -43,11 +40,12 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
     [TestMethod]
     public void MinMaxDateTimeOffset_WhenAllValuesAreNull_ShouldReturnNull()
     {
-        const string query = "table Dates {" +
-                             "  Date: datetimeoffset" +
-                             "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
-                             "select MinDateTimeOffset(Date), MaxDateTimeOffset(Date) from Dates()";
+        const string query =
+            "table Dates {"
+            + "  Date: datetimeoffset"
+            + "};"
+            + "couple #test.whatever with table Dates as Dates; "
+            + "select MinDateTimeOffset(Date), MaxDateTimeOffset(Date) from Dates()";
 
         dynamic first = new ExpandoObject();
         first.Date = null;
@@ -55,10 +53,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         dynamic second = new ExpandoObject();
         second.Date = null;
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -70,11 +65,12 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
     [TestMethod]
     public void MaxDateTimeOffsetTest()
     {
-        const string query = "table Dates {" +
-                             "  Date: datetimeoffset" +
-                             "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
-                             "select MaxDateTimeOffset(Date) from Dates()";
+        const string query =
+            "table Dates {"
+            + "  Date: datetimeoffset"
+            + "};"
+            + "couple #test.whatever with table Dates as Dates; "
+            + "select MaxDateTimeOffset(Date) from Dates()";
 
         dynamic first = new ExpandoObject();
         first.Date = new DateTimeOffset(new DateTime(2023, 1, 1));
@@ -82,10 +78,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         dynamic second = new ExpandoObject();
         second.Date = new DateTimeOffset(new DateTime(2023, 2, 1));
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -100,21 +93,19 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
     [TestMethod]
     public void SubtractDateTimeOffsetsTest()
     {
-        const string query = "table Dates {" +
-                             "  Date1: datetimeoffset," +
-                             "  Date2: datetimeoffset" +
-                             "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
-                             "select SubtractDateTimeOffsets(Date1, Date2) from Dates()";
+        const string query =
+            "table Dates {"
+            + "  Date1: datetimeoffset,"
+            + "  Date2: datetimeoffset"
+            + "};"
+            + "couple #test.whatever with table Dates as Dates; "
+            + "select SubtractDateTimeOffsets(Date1, Date2) from Dates()";
 
         dynamic first = new ExpandoObject();
         first.Date1 = new DateTimeOffset(new DateTime(2023, 1, 1));
         first.Date2 = new DateTimeOffset(new DateTime(2023, 1, 1));
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -129,21 +120,19 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
     [TestMethod]
     public void SubtractDateTimeOffsets_MinusOperatorTest()
     {
-        const string query = "table Dates {" +
-                             "  Date1: datetimeoffset," +
-                             "  Date2: datetimeoffset" +
-                             "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
-                             "select Date1 - Date2 from Dates()";
+        const string query =
+            "table Dates {"
+            + "  Date1: datetimeoffset,"
+            + "  Date2: datetimeoffset"
+            + "};"
+            + "couple #test.whatever with table Dates as Dates; "
+            + "select Date1 - Date2 from Dates()";
 
         dynamic first = new ExpandoObject();
         first.Date1 = new DateTimeOffset(new DateTime(2023, 1, 1));
         first.Date2 = new DateTimeOffset(new DateTime(2023, 1, 1));
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first]);
 
         var table = vm.Run(TestContext.CancellationToken);
 

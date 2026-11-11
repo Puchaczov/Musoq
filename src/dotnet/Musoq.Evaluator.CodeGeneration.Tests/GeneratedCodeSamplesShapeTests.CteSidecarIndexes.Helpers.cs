@@ -1,9 +1,7 @@
-
 namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-
     private static CompilationOptions CreateParallelCteSidecarOptions()
     {
         return new CompilationOptions(
@@ -11,6 +9,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             useHashJoin: true,
             useSortMergeJoin: false,
             useCteParallelization: true,
-            useCteSidecarIndexes: true);
+            useCteSidecarIndexes: true
+        );
     }
 }

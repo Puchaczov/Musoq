@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class OuterApplyTests : GenericEntityTestBase
 {
-
     [TestMethod]
     public void OuterApply_NoMatchesShouldReturnNull_ShouldPass()
     {
@@ -18,14 +17,34 @@ public partial class OuterApplyTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<OuterApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -36,7 +55,8 @@ public partial class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -47,12 +67,14 @@ public partial class OuterApplyTests : GenericEntityTestBase
             ("Population", typeof(int)),
             ("Country", typeof(string)),
             ("Money", typeof(decimal?)),
-            ("Month", typeof(string)));
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 100, "Country1", 1000m, "January"],
             ["City2", "Country1", 200, "Country1", 1000m, "January"],
-            ["City3", "Country2", 300, null, null, null]);
+            ["City3", "Country2", 300, null, null, null]
+        );
     }
 
     [TestMethod]
@@ -63,14 +85,34 @@ public partial class OuterApplyTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
         }.ToArray();
 
         var secondSource = new List<OuterApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -81,7 +123,8 @@ public partial class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -90,13 +133,15 @@ public partial class OuterApplyTests : GenericEntityTestBase
             ("City", typeof(string)),
             ("Country", typeof(string)),
             ("Money", typeof(decimal?)),
-            ("Month", typeof(string)));
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 1000m, "January"],
             ["City1", "Country1", 2000m, "February"],
             ["City2", "Country1", 1000m, "January"],
-            ["City2", "Country1", 2000m, "February"]);
+            ["City2", "Country1", 2000m, "February"]
+        );
     }
 
     [TestMethod]
@@ -107,12 +152,22 @@ public partial class OuterApplyTests : GenericEntityTestBase
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
         }.ToArray();
 
         var secondSource = new List<OuterApplyClass2>
         {
-            new() { Country = "Country2", Money = 1000, Month = "January" }
+            new()
+            {
+                Country = "Country2",
+                Money = 1000,
+                Month = "January",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -123,7 +178,8 @@ public partial class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -132,37 +188,58 @@ public partial class OuterApplyTests : GenericEntityTestBase
             ("City", typeof(string)),
             ("Country", typeof(string)),
             ("Money", typeof(decimal?)),
-            ("Month", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["City1", "Country1", null, null]);
+            ("Month", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1", "Country1", null, null]);
     }
 
     [TestMethod]
     public void OuterApply_TripleApply_ShouldPass()
     {
-        const string query = @"
-            select a.City, a.Country, b.Money, b.Month, c.Address 
-            from #schema.first() a 
-            outer apply #schema.second(a.Country) b
-            outer apply #schema.third(a.Country) c";
+        const string query = (
+            "\n"
+            + "            select a.City, a.Country, b.Money, b.Month, c.Address \n"
+            + "            from #schema.first() a \n"
+            + "            outer apply #schema.second(a.Country) b\n"
+            + "            outer apply #schema.third(a.Country) c"
+        );
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country2", Population = 200 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country2",
+                Population = 200,
+            },
         }.ToArray();
 
         var secondSource = new List<OuterApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country2", Money = 2000, Month = "February" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 2000,
+                Month = "February",
+            },
         }.ToArray();
 
         var thirdSource = new List<OuterApplyClass3>
         {
             new() { Country = "Country1", Address = "Address1" },
-            new() { Country = "Country3", Address = "Address3" }
+            new() { Country = "Country3", Address = "Address3" },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -177,7 +254,8 @@ public partial class OuterApplyTests : GenericEntityTestBase
             (parameters, source) =>
                 source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray(),
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -187,35 +265,74 @@ public partial class OuterApplyTests : GenericEntityTestBase
             ("Country", typeof(string)),
             ("Money", typeof(decimal?)),
             ("Month", typeof(string)),
-            ("Address", typeof(string)));
+            ("Address", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 1000m, "January", "Address1"],
-            ["City2", "Country2", 2000m, "February", null]);
+            ["City2", "Country2", 2000m, "February", null]
+        );
     }
 
     [TestMethod]
     public void OuterApply_WithAggregation_ShouldPass()
     {
-        const string query = @"
-            select a.Country, b.Sum(b.Money) as TotalMoney, b.Count(b.Money) as TransactionCount
-            from #schema.first() a 
-            outer apply #schema.second(a.Country) b
-            group by a.Country";
+        const string query = (
+            "\n"
+            + "            select a.Country, b.Sum(b.Money) as TotalMoney, b.Count(b.Money) as TransactionCount\n"
+            + "            from #schema.first() a \n"
+            + "            outer apply #schema.second(a.Country) b\n"
+            + "            group by a.Country"
+        );
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country1", Population = 200 },
-            new() { City = "City3", Country = "Country2", Population = 300 },
-            new() { City = "City4", Country = "Country3", Population = 400 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country1",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country2",
+                Population = 300,
+            },
+            new()
+            {
+                City = "City4",
+                Country = "Country3",
+                Population = 400,
+            },
         }.ToArray();
 
         var secondSource = new List<OuterApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -226,7 +343,8 @@ public partial class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -234,35 +352,69 @@ public partial class OuterApplyTests : GenericEntityTestBase
             table,
             ("Country", typeof(string)),
             ("TotalMoney", typeof(decimal?)),
-            ("TransactionCount", typeof(long)));
+            ("TransactionCount", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Country1", 6000m, 4L],
             ["Country2", 3000m, 1L],
-            ["Country3", null, 0L]);
+            ["Country3", null, 0L]
+        );
     }
 
     [TestMethod]
     public void OuterApply_WithWhereClause_ShouldPass()
     {
-        const string query = @"
-            select a.City, a.Country, b.Money, b.Month 
-            from #schema.first() a 
-            outer apply #schema.second(a.Country) b
-            where b.Money > 1500 or b.Money is null";
+        const string query = (
+            "\n"
+            + "            select a.City, a.Country, b.Money, b.Month \n"
+            + "            from #schema.first() a \n"
+            + "            outer apply #schema.second(a.Country) b\n"
+            + "            where b.Money > 1500 or b.Money is null"
+        );
 
         var firstSource = new List<OuterApplyClass1>
         {
-            new() { City = "City1", Country = "Country1", Population = 100 },
-            new() { City = "City2", Country = "Country2", Population = 200 },
-            new() { City = "City3", Country = "Country3", Population = 300 }
+            new()
+            {
+                City = "City1",
+                Country = "Country1",
+                Population = 100,
+            },
+            new()
+            {
+                City = "City2",
+                Country = "Country2",
+                Population = 200,
+            },
+            new()
+            {
+                City = "City3",
+                Country = "Country3",
+                Population = 300,
+            },
         }.ToArray();
 
         var secondSource = new List<OuterApplyClass2>
         {
-            new() { Country = "Country1", Money = 1000, Month = "January" },
-            new() { Country = "Country1", Money = 2000, Month = "February" },
-            new() { Country = "Country2", Money = 3000, Month = "March" }
+            new()
+            {
+                Country = "Country1",
+                Money = 1000,
+                Month = "January",
+            },
+            new()
+            {
+                Country = "Country1",
+                Money = 2000,
+                Month = "February",
+            },
+            new()
+            {
+                Country = "Country2",
+                Money = 3000,
+                Month = "March",
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -273,7 +425,8 @@ public partial class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -282,12 +435,14 @@ public partial class OuterApplyTests : GenericEntityTestBase
             ("City", typeof(string)),
             ("Country", typeof(string)),
             ("Money", typeof(decimal?)),
-            ("Month", typeof(string)));
+            ("Month", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["City1", "Country1", 2000m, "February"],
             ["City2", "Country2", 3000m, "March"],
-            ["City3", "Country3", null, null]);
+            ["City3", "Country3", null, null]
+        );
     }
 
     public sealed class OuterApplyClass1

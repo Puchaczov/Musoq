@@ -7,7 +7,8 @@ namespace Musoq.Evaluator.Visitors;
 internal sealed class PagingCountBinder(
     ScriptParameterMetadataBinder parameters,
     ScriptVariableMetadataBinder variables,
-    Func<DiagnosticCode, string, Node, bool> reportError)
+    Func<DiagnosticCode, string, Node, bool> reportError
+)
 {
     internal Node Bind(Node operand, string clause)
     {
@@ -25,7 +26,7 @@ internal sealed class PagingCountBinder(
         {
             IntegerNode integer => integer.ObjValue,
             ScriptVariableReferenceNode variable => variables.DefinitionsByName[variable.Name].Value,
-            _ => null
+            _ => null,
         };
         if (!PagingCountBinding.IsInRange(value))
             return ReportInvalidPagingCount(operand, clause);
@@ -35,9 +36,13 @@ internal sealed class PagingCountBinder(
 
     private Node ReportInvalidPagingCount(Node operand, string clause)
     {
-        var message = $"{clause} count '{operand.ToString()}' must be an integral value between 0 and {int.MaxValue}, inclusive; null is not allowed.";
+        var message =
+            $"{clause} count '{operand.ToString()}' must be an integral value between 0 and {int.MaxValue}, inclusive; null is not allowed.";
         if (reportError(DiagnosticCode.MQ3118_InvalidPagingCount, message, operand))
             return new IntegerNode(0, operand.Span);
-        throw new SemanticAnalysisException(message, Diagnostic.Error(DiagnosticCode.MQ3118_InvalidPagingCount, message, operand.Span));
+        throw new SemanticAnalysisException(
+            message,
+            Diagnostic.Error(DiagnosticCode.MQ3118_InvalidPagingCount, message, operand.Span)
+        );
     }
 }

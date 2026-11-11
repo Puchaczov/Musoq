@@ -15,13 +15,16 @@ public partial class SubqueryToCteRewriteVisitor
         Node valueExpression,
         Node[] conjuncts,
         Node[] correlated,
-        out ScalarSubqueryRewrite rewrite)
+        out ScalarSubqueryRewrite rewrite
+    )
     {
         rewrite = null!;
-        if (correlated.Length == 0 ||
-            correlated.Count(IsSingleRangeCorrelation) != 1 ||
-            correlated.Any(static predicate => predicate is not EqualityNode && !IsSingleRangeCorrelation(predicate)) ||
-            BuildMetadataAndInferTypesVisitorUtilities.ContainsAggregateFunction(valueExpression))
+        if (
+            correlated.Length == 0
+            || correlated.Count(IsSingleRangeCorrelation) != 1
+            || correlated.Any(static predicate => predicate is not EqualityNode && !IsSingleRangeCorrelation(predicate))
+            || BuildMetadataAndInferTypesVisitorUtilities.ContainsAggregateFunction(valueExpression)
+        )
             return false;
 
         rewrite = RewriteRangeCorrelatedScalarSubquery(
@@ -30,7 +33,8 @@ public partial class SubqueryToCteRewriteVisitor
             cteName,
             valueColumnName,
             correlated,
-            conjuncts.Where(predicate => !correlated.Contains(predicate)).ToArray());
+            conjuncts.Where(predicate => !correlated.Contains(predicate)).ToArray()
+        );
         return true;
     }
 
@@ -40,7 +44,8 @@ public partial class SubqueryToCteRewriteVisitor
         string cteName,
         string valueColumnName,
         Node[] correlated,
-        Node[] local)
+        Node[] local
+    )
     {
         var projections = CollectCorrelationProjections(correlated, correlation.LocalAliases, cteName);
         if (projections.Length == 0)
@@ -56,9 +61,11 @@ public partial class SubqueryToCteRewriteVisitor
                     projection.Alias,
                     projection.ReturnType ?? typeof(object),
                     projection.Span,
-                    projection.IntendedTypeName),
+                    projection.IntendedTypeName
+                ),
                 index,
-                projection.CteColumnName);
+                projection.CteColumnName
+            );
         }
 
         fields[^1] = new FieldNode(query.Select.Fields[0].Expression, fields.Length - 1, valueColumnName);
@@ -72,12 +79,14 @@ public partial class SubqueryToCteRewriteVisitor
             null,
             null,
             null,
-            default);
+            default
+        );
         var joinPredicate = RewriteCorrelatedPredicatesForJoin(
             correlated,
             projections,
             correlation.LocalAliases,
-            cteName);
+            cteName
+        );
 
         return new ScalarSubqueryRewrite(rewritten, joinPredicate);
     }

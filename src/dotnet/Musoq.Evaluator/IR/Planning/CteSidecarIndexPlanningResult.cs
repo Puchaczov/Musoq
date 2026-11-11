@@ -5,7 +5,8 @@ namespace Musoq.Evaluator.IR.Planning;
 internal sealed record CteSidecarIndexPlanningResult(
     CteSidecarIndexPlan Plan,
     IReadOnlyList<PlanningDecision> Decisions,
-    int NextIndexSlot)
+    int NextIndexSlot
+)
 {
     public static CteSidecarIndexPlanningResult Empty(int nextIndexSlot)
     {

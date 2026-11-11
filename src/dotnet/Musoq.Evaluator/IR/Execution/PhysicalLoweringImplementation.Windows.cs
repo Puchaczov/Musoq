@@ -12,7 +12,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var registrationsResult = ResolveSupportedWindowRegistrations(pipeline.Registrations);
         if (!registrationsResult.IsBuilt)
@@ -24,7 +25,8 @@ internal sealed partial class PhysicalLoweringImplementation
             cteShapesByName,
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
-            scope);
+            scope
+        );
         if (!windowSource.IsBuilt)
             return TableBuildResult.Unsupported(windowSource.UnsupportedReason);
 
@@ -36,11 +38,13 @@ internal sealed partial class PhysicalLoweringImplementation
             resultShapeName,
             pipeline.Project.Fields,
             pipeline.PostOperations,
-            sourceLookup);
+            sourceLookup
+        );
         if (!projection.IsBuilt)
             return TableBuildResult.Unsupported(projection.UnsupportedReason);
 
-        var postOperationProjection = projection.Value
+        var postOperationProjection =
+            projection.Value
             ?? throw new InvalidOperationException("Supported post-operation projection requires projection data.");
 
         var resultShape = postOperationProjection.WorkingShape;
@@ -51,25 +55,27 @@ internal sealed partial class PhysicalLoweringImplementation
         var buffer = CreateWindowRowsBufferVariable(
             $"{resultTableName}WindowRows",
             source,
-            windowSource.Source.GeneratedRowShape);
+            windowSource.Source.GeneratedRowShape
+        );
         var windowIndex = new ExecutionVariable("windowIndex", typeof(int));
         var rowAccessMode = ExecutionRowAccessMode.Direct;
-        var materialization = CreateWindowMaterialization(new WindowMaterializationContext(
-            pipeline.Source,
-            sourceRows,
-            buffer,
-            source,
-            sourceShape,
-            rowAccessMode,
-            sourceLookup,
-            windowSource.Source.GeneratedRowShape));
+        var materialization = CreateWindowMaterialization(
+            new WindowMaterializationContext(
+                pipeline.Source,
+                sourceRows,
+                buffer,
+                source,
+                sourceShape,
+                rowAccessMode,
+                sourceLookup,
+                windowSource.Source.GeneratedRowShape
+            )
+        );
 
         if (!materialization.IsBuilt)
             return TableBuildResult.Unsupported(materialization.UnsupportedReason);
 
-        var qualifyTopRankPlan = CreateWindowQualifyTopRankPlan(
-            pipeline.QualifyPredicate,
-            registrationsResult.Value);
+        var qualifyTopRankPlan = CreateWindowQualifyTopRankPlan(pipeline.QualifyPredicate, registrationsResult.Value);
 
         var computations = CreateWindowComputations(
             registrationsResult.Value,
@@ -79,16 +85,20 @@ internal sealed partial class PhysicalLoweringImplementation
             sourceLookup,
             aggregateSourceFields,
             resultTableName,
-            qualifyTopRankPlan.UpperBounds);
+            qualifyTopRankPlan.UpperBounds
+        );
 
         if (!computations.IsBuilt)
             return TableBuildResult.Unsupported(computations.UnsupportedReason);
 
         var windowResults = computations.Value.ToDictionary(
             computation => computation.Registration!.WindowIndex,
-            computation => computation.Results);
+            computation => computation.Results
+        );
 
-        var preserveWindowAppendContexts = ShouldPreserveWindowAppendContexts(pipeline) || !string.Equals(resultTableName, "result", StringComparison.Ordinal);
+        var preserveWindowAppendContexts =
+            ShouldPreserveWindowAppendContexts(pipeline)
+            || !string.Equals(resultTableName, "result", StringComparison.Ordinal);
         var appendRow = CreateWindowAppendRow(
             resultTable,
             resultShape,
@@ -97,7 +107,8 @@ internal sealed partial class PhysicalLoweringImplementation
             aggregateSourceFields,
             windowResults,
             windowIndex,
-            preserveWindowAppendContexts);
+            preserveWindowAppendContexts
+        );
 
         if (!appendRow.IsBuilt)
             return TableBuildResult.Unsupported(appendRow.UnsupportedReason);
@@ -108,36 +119,44 @@ internal sealed partial class PhysicalLoweringImplementation
             sourceLookup,
             aggregateSourceFields,
             windowResults,
-            windowIndex);
+            windowIndex
+        );
 
         if (!appendBlock.IsBuilt)
             return TableBuildResult.Unsupported(appendBlock.UnsupportedReason);
 
         var windowKernelNodes = CreateWindowKernelPlanNodes(computations.Value);
-        var nodes = new List<ExecutionNode>(sourceSetup.Count + pipeline.PostOperations.Count + windowKernelNodes.Count + 4);
+        var nodes = new List<ExecutionNode>(
+            sourceSetup.Count + pipeline.PostOperations.Count + windowKernelNodes.Count + 4
+        );
         nodes.AddRange(sourceSetup);
         nodes.Add(materialization.Value);
         nodes.AddRange(windowKernelNodes);
-        nodes.Add(CreateTable(
-            resultTable,
-            resultShape,
-            ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(resultTable, buffer)));
+        nodes.Add(
+            CreateTable(
+                resultTable,
+                resultShape,
+                ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(resultTable, buffer)
+            )
+        );
         nodes.Add(new ExecutionForEachIndexed(source, windowIndex, buffer, rowAccessMode, appendBlock.Value));
 
         return CompleteTableBuild(
-            [..windowSource.Source.Shapes, ..postOperationProjection.Shapes],
+            [.. windowSource.Source.Shapes, .. postOperationProjection.Shapes],
             nodes,
             resultTable,
             resultShape,
             postOperationProjection.PostOperations,
             pipeline.Project.IsDistinct,
-            postOperationProjection.FinalProjection);
+            postOperationProjection.FinalProjection
+        );
     }
 
     private static ExecutionVariable CreateWindowRowsBufferVariable(
         string name,
         ExecutionVariable source,
-        GeneratedRowShape? generatedRowShape)
+        GeneratedRowShape? generatedRowShape
+    )
     {
         return string.IsNullOrWhiteSpace(generatedRowShape?.TypeName)
             ? new ExecutionVariable(name, CreateWindowBufferType(source))
@@ -153,9 +172,6 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool ShouldPreserveWindowAppendContexts(WindowPipeline pipeline)
     {
-        return pipeline.QualifyPredicate != null ||
-               pipeline.PostOperations.Count != 0 ||
-               pipeline.Project.IsDistinct;
+        return pipeline.QualifyPredicate != null || pipeline.PostOperations.Count != 0 || pipeline.Project.IsDistinct;
     }
-
 }

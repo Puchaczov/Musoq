@@ -9,18 +9,11 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 {
-
     [TestMethod]
     public void WhenDescEnvironmentVariables_ShouldListAllColumns()
     {
         var query = "desc #EnvironmentVariables.All()";
-        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
-        {
-            {
-                "*",
-                []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>> { { "*", [] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -40,11 +33,8 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         {
             {
                 "*",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
-                ]
-            }
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_1"), new EnvironmentVariableEntity("KEY_2", "VALUE_2")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -53,9 +43,14 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.All(row =>
-                new[] { ("KEY_1", "VALUE_1"), ("KEY_2", "VALUE_2") }.Contains(((string)row.ReadValue(0), (string)row.ReadValue(1)))),
-            "Expected rows with values: (KEY_1,VALUE_1), (KEY_2,VALUE_2)");
+        Assert.IsTrue(
+            table.All(row =>
+                new[] { ("KEY_1", "VALUE_1"), ("KEY_2", "VALUE_2") }.Contains(
+                    ((string)row.ReadValue(0), (string)row.ReadValue(1))
+                )
+            ),
+            "Expected rows with values: (KEY_1,VALUE_1), (KEY_2,VALUE_2)"
+        );
     }
 
     [TestMethod]
@@ -67,18 +62,12 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         {
             {
                 "e1:1",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
-                ]
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_1"), new EnvironmentVariableEntity("KEY_2", "VALUE_2")]
             },
             {
                 "e2:1",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_3"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_4")
-                ]
-            }
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_3"), new EnvironmentVariableEntity("KEY_2", "VALUE_4")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -86,17 +75,23 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValue(0) == "KEY_1" &&
-            (string)entry.ReadValue(1) == "VALUE_1" &&
-            (string)entry.ReadValue(2) == "VALUE_3"
-        ), "First entry should be KEY_1, VALUE_1, VALUE_3");
+        Assert.IsTrue(
+            table.Any(entry =>
+                (string)entry.ReadValue(0) == "KEY_1"
+                && (string)entry.ReadValue(1) == "VALUE_1"
+                && (string)entry.ReadValue(2) == "VALUE_3"
+            ),
+            "First entry should be KEY_1, VALUE_1, VALUE_3"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValue(0) == "KEY_2" &&
-            (string)entry.ReadValue(1) == "VALUE_2" &&
-            (string)entry.ReadValue(2) == "VALUE_4"
-        ), "Second entry should be KEY_2, VALUE_2, VALUE_4");
+        Assert.IsTrue(
+            table.Any(entry =>
+                (string)entry.ReadValue(0) == "KEY_2"
+                && (string)entry.ReadValue(1) == "VALUE_2"
+                && (string)entry.ReadValue(2) == "VALUE_4"
+            ),
+            "Second entry should be KEY_2, VALUE_2, VALUE_4"
+        );
     }
 
     [TestMethod]
@@ -108,18 +103,12 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         {
             {
                 "leftEnv:1",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
-                ]
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_1"), new EnvironmentVariableEntity("KEY_2", "VALUE_2")]
             },
             {
                 "rightEnv:2",
-                [
-                    new EnvironmentVariableEntity("KEY_3", "VALUE_3"),
-                    new EnvironmentVariableEntity("KEY_4", "VALUE_4")
-                ]
-            }
+                [new EnvironmentVariableEntity("KEY_3", "VALUE_3"), new EnvironmentVariableEntity("KEY_4", "VALUE_4")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -127,85 +116,75 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValue(0) == "KEY_1" &&
-            (string)entry.ReadValue(1) == "VALUE_1"
-        ), "First entry should be KEY_1, VALUE_1");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValue(0) == "KEY_1" && (string)entry.ReadValue(1) == "VALUE_1"),
+            "First entry should be KEY_1, VALUE_1"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValue(0) == "KEY_2" &&
-            (string)entry.ReadValue(1) == "VALUE_2"
-        ), "Second entry should be KEY_2, VALUE_2");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValue(0) == "KEY_2" && (string)entry.ReadValue(1) == "VALUE_2"),
+            "Second entry should be KEY_2, VALUE_2"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValue(0) == "KEY_3" &&
-            (string)entry.ReadValue(1) == "VALUE_3"
-        ), "Third entry should be KEY_3, VALUE_3");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValue(0) == "KEY_3" && (string)entry.ReadValue(1) == "VALUE_3"),
+            "Third entry should be KEY_3, VALUE_3"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValue(0) == "KEY_4" &&
-            (string)entry.ReadValue(1) == "VALUE_4"
-        ), "Fourth entry should be KEY_4, VALUE_4");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValue(0) == "KEY_4" && (string)entry.ReadValue(1) == "VALUE_4"),
+            "Fourth entry should be KEY_4, VALUE_4"
+        );
     }
 
     [TestMethod]
     public void WhenPreviouslyCteExpressionSaw_ShouldPass()
     {
-        const string query = @"
-with p as ( 
-    select 1 from #A.entities()
-)
-select Key, Value from #EnvironmentVariables.All()";
+        const string query = (
+            "\n"
+            + "with p as ( \n"
+            + "    select 1 from #A.entities()\n"
+            + ")\n"
+            + "select Key, Value from #EnvironmentVariables.All()"
+        );
 
-        var basicEntitiesSource = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                []
-            }
-        };
+        var basicEntitiesSource = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var environmentVariablesEntitiesSource = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
                 "#EnvironmentVariables",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
-                ]
-            }
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_1"), new EnvironmentVariableEntity("KEY_2", "VALUE_2")]
+            },
         };
 
         var environmentVariablesSource = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
                 "*",
-                [
-                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
-                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
-                ]
-            }
+                [new EnvironmentVariableEntity("KEY_1", "VALUE_1"), new EnvironmentVariableEntity("KEY_2", "VALUE_2")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(
             query,
             basicEntitiesSource,
             environmentVariablesEntitiesSource,
-            environmentVariablesSource);
+            environmentVariablesSource
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValue(0) == "KEY_1" &&
-            (string)entry.ReadValue(1) == "VALUE_1"
-        ), "First entry should be KEY_1, VALUE_1");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValue(0) == "KEY_1" && (string)entry.ReadValue(1) == "VALUE_1"),
+            "First entry should be KEY_1, VALUE_1"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.ReadValue(0) == "KEY_2" &&
-            (string)entry.ReadValue(1) == "VALUE_2"
-        ), "Second entry should be KEY_2, VALUE_2");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValue(0) == "KEY_2" && (string)entry.ReadValue(1) == "VALUE_2"),
+            "Second entry should be KEY_2, VALUE_2"
+        );
     }
-
 }

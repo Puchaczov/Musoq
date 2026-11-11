@@ -1,4 +1,3 @@
-using GenericLibrary = Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.GenericLibrary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +7,8 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures;
+using GenericLibrary = Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.GenericLibrary;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -40,16 +39,19 @@ public sealed partial class LibraryExecutionNativeGenericQueryTests : GenericEnt
     {
         const string sql = "select NeedsStruct(Label) as Value from #schema.first()";
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<Input, GenericLibrary>(sql, [new(1)]));
+            CreateAndRunVirtualMachine<Input, GenericLibrary>(sql, [new(1)])
+        );
         Assert.AreEqual(DiagnosticCode.MQ3088_NoMatchingCallableOverload, error.PrimaryEnvelope.Code);
     }
 
     [TestMethod]
     public void GeneratedRecordConstraintFailure_ShouldReportCallableDiagnosticBeforeRendering()
     {
-        const string sql = "param(items: (Value: int)[]) select ReferenceElements($items) as Length from #schema.first()";
+        const string sql =
+            "param(items: (Value: int)[]) select ReferenceElements($items) as Length from #schema.first()";
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<Input, GenericLibrary>(sql, [new(1)]));
+            CreateAndRunVirtualMachine<Input, GenericLibrary>(sql, [new(1)])
+        );
         Assert.AreEqual(DiagnosticCode.MQ3088_NoMatchingCallableOverload, error.PrimaryEnvelope.Code);
         Assert.Contains("generated record carrier is a value type", error.Message);
     }
@@ -58,7 +60,10 @@ public sealed partial class LibraryExecutionNativeGenericQueryTests : GenericEnt
     [DataRow("NativeEcho", false)]
     [DataRow("StructEcho", false)]
     [DataRow("StructEcho", true)]
-    public void GeneratedGenericResult_ShouldExposeItsConcreteCollectionThroughColumnVisitation(string function, bool throughCte)
+    public void GeneratedGenericResult_ShouldExposeItsConcreteCollectionThroughColumnVisitation(
+        string function,
+        bool throughCte
+    )
     {
         var sql = throughCte
             ? $"param(items: (Value: int)[]) with echoed as (select {function}($items) as Echo from #schema.first()) select e.Echo as Echo from echoed e"

@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class StarModifierTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void WhenStarExcludeSingleColumn_ShouldRemoveColumn()
     {
@@ -20,13 +19,17 @@ public partial class StarModifierTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("january", 50m)
                     {
-                        City = "London", Country = "UK", Population = 9000000m, Id = 1
-                    }
+                        City = "London",
+                        Country = "UK",
+                        Population = 9000000m,
+                        Id = 1,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -49,10 +52,16 @@ public partial class StarModifierTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London", Country = "UK", Population = 9000000m }
+                "#A",
+                [
+                    new BasicEntity("january", 50m)
+                    {
+                        City = "London",
+                        Country = "UK",
+                        Population = 9000000m,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -74,11 +83,7 @@ public partial class StarModifierTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London" }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { City = "London" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -98,11 +103,7 @@ public partial class StarModifierTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { Population = 100m }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { Population = 100m }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -111,8 +112,7 @@ public partial class StarModifierTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
 
-        var populationIdx = table.Columns.Select((c, i) => (c, i))
-            .First(x => x.c.ColumnName.Contains("Population")).i;
+        var populationIdx = table.Columns.Select((c, i) => (c, i)).First(x => x.c.ColumnName.Contains("Population")).i;
         Assert.AreEqual(200m, table[0].ReadValues()[populationIdx]);
     }
 
@@ -124,11 +124,7 @@ public partial class StarModifierTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { Population = 100m }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { Population = 100m }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -137,10 +133,8 @@ public partial class StarModifierTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
 
-        var populationIdx = table.Columns.Select((c, i) => (c, i))
-            .First(x => x.c.ColumnName.Contains("Population")).i;
-        var moneyIdx = table.Columns.Select((c, i) => (c, i))
-            .First(x => x.c.ColumnName.Contains("Money")).i;
+        var populationIdx = table.Columns.Select((c, i) => (c, i)).First(x => x.c.ColumnName.Contains("Population")).i;
+        var moneyIdx = table.Columns.Select((c, i) => (c, i)).First(x => x.c.ColumnName.Contains("Money")).i;
 
         Assert.AreEqual(200m, table[0].ReadValues()[populationIdx]);
         Assert.AreEqual(60m, table[0].ReadValues()[moneyIdx]);
@@ -153,11 +147,7 @@ public partial class StarModifierTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London", Country = "UK" }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { City = "London", Country = "UK" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -177,11 +167,7 @@ public partial class StarModifierTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London", Country = "UK" }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { City = "London", Country = "UK" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -203,10 +189,16 @@ public partial class StarModifierTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London", Country = "UK", Population = 9000000m }
+                "#A",
+                [
+                    new BasicEntity("january", 50m)
+                    {
+                        City = "London",
+                        Country = "UK",
+                        Population = 9000000m,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -230,10 +222,16 @@ public partial class StarModifierTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m) { City = "London", Country = "UK", Population = 100m }
+                "#A",
+                [
+                    new BasicEntity("january", 50m)
+                    {
+                        City = "London",
+                        Country = "UK",
+                        Population = 100m,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -246,8 +244,7 @@ public partial class StarModifierTests : BasicEntityTestBase
         Assert.IsFalse(columnNames.Any(c => c.Contains("City")));
         Assert.IsFalse(columnNames.Any(c => c.Contains("Country")));
 
-        var populationIdx = table.Columns.Select((c, i) => (c, i))
-            .First(x => x.c.ColumnName.Contains("Population")).i;
+        var populationIdx = table.Columns.Select((c, i) => (c, i)).First(x => x.c.ColumnName.Contains("Population")).i;
         Assert.AreEqual(200m, table[0].ReadValues()[populationIdx]);
     }
 
@@ -259,11 +256,7 @@ public partial class StarModifierTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m) { Country = "UK", Population = 100m }
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m) { Country = "UK", Population = 100m }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -275,8 +268,7 @@ public partial class StarModifierTests : BasicEntityTestBase
         Assert.IsFalse(columnNames.Any(c => c.Contains("Country")));
         Assert.IsTrue(columnNames.Any(c => c.Contains("Population")));
 
-        var populationIdx = table.Columns.Select((c, i) => (c, i))
-            .First(x => x.c.ColumnName.Contains("Population")).i;
+        var populationIdx = table.Columns.Select((c, i) => (c, i)).First(x => x.c.ColumnName.Contains("Population")).i;
         Assert.AreEqual(300m, table[0].ReadValues()[populationIdx]);
     }
 
@@ -285,10 +277,7 @@ public partial class StarModifierTests : BasicEntityTestBase
     {
         const string query = "select * exclude (NonExistent) from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("january", 50m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -301,10 +290,7 @@ public partial class StarModifierTests : BasicEntityTestBase
         const string query =
             "select * exclude (Name, City, Country, Population, Money, Month, Time, Id, NullableValue) from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("january", 50m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -316,10 +302,7 @@ public partial class StarModifierTests : BasicEntityTestBase
     {
         const string query = "select * replace (1 as NonExistent) from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("january", 50m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -331,14 +314,10 @@ public partial class StarModifierTests : BasicEntityTestBase
     {
         const string query = "select * exclude (City) replace (1 as City) from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("january", 50m)] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3044_StarColumnInBothExcludeAndReplace, DiagnosticPhase.Bind, "City");
     }
-
 }

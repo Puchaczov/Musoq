@@ -12,8 +12,7 @@ public static class CorrelatedScalarSubqueryAggregateKernel<T>
         public byte Cardinality;
     }
 
-    [System.Runtime.CompilerServices.MethodImpl(
-        System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public static void Set(ref State state, T value)
     {
         if (state.Cardinality == 0)
@@ -23,15 +22,13 @@ public static class CorrelatedScalarSubqueryAggregateKernel<T>
             state.Cardinality++;
     }
 
-    [System.Runtime.CompilerServices.MethodImpl(
-        System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public static CorrelatedScalarSubqueryResult<T> Get(in State state)
     {
         return new CorrelatedScalarSubqueryResult<T>(state.Value, state.Cardinality);
     }
 
-    [System.Runtime.CompilerServices.MethodImpl(
-        System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     public static void Merge(ref State target, in State source)
     {
         if (source.Cardinality == 0)

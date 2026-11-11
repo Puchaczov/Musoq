@@ -71,8 +71,6 @@ internal sealed class BuildArtifactStore(IDictionary<string, object> backing)
 
     public IReadOnlyList<T> GetListOrEmpty<T>(BuildArtifactSlot<IReadOnlyList<T>> slot)
     {
-        return backing.TryGetValue(slot.Key, out var value)
-            ? (IReadOnlyList<T>)value
-            : [];
+        return backing.TryGetValue(slot.Key, out var value) ? (IReadOnlyList<T>)value : [];
     }
 }

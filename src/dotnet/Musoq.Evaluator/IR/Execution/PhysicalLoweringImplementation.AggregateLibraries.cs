@@ -13,28 +13,30 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultTableName,
         out IReadOnlyDictionary<Type, ExecutionVariable> libraries,
         out IReadOnlyList<ExecutionNode> nodes,
-        out string unsupportedReason)
+        out string unsupportedReason
+    )
     {
         var libraryNodes = new List<ExecutionNode>();
         var librariesByType = new Dictionary<Type, ExecutionVariable>();
 
-        foreach (var type in bindings
-                     .SelectMany(EnumerateAggregateLibraryTypes)
-                     .Distinct())
+        foreach (var type in bindings.SelectMany(EnumerateAggregateLibraryTypes).Distinct())
         {
             if (type.GetConstructor(Type.EmptyTypes) == null)
             {
                 libraries = new Dictionary<Type, ExecutionVariable>();
                 nodes = [];
-                unsupportedReason = $"Execution IR aggregate lowering cannot instantiate aggregate library {type.FullName}.";
+                unsupportedReason =
+                    $"Execution IR aggregate lowering cannot instantiate aggregate library {type.FullName}.";
                 return false;
             }
 
             var library = new ExecutionVariable(
                 CreateScopedAggregateName(
                     resultTableName,
-                    CreateAggregateLibraryIdentifier(type, librariesByType.Count)),
-                type);
+                    CreateAggregateLibraryIdentifier(type, librariesByType.Count)
+                ),
+                type
+            );
             librariesByType[type] = library;
             libraryNodes.Add(new ExecutionCreateAggregateLibrary(library, type));
         }
@@ -144,6 +146,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 break;
         }
     }
+
     private static string CreateAggregateLibraryIdentifier(Type type, int ordinal)
     {
         var baseName = type.Name;
@@ -154,18 +157,22 @@ internal sealed partial class PhysicalLoweringImplementation
             return $"aggregateLibrary{ordinal.ToString(CultureInfo.InvariantCulture)}";
         return $"{char.ToLowerInvariant(baseName[0])}{baseName[1..]}{ordinal.ToString(CultureInfo.InvariantCulture)}";
     }
+
     private static ExecutionVariable CreateAggregateVariable(string resultTableName, string baseName, Type type)
     {
         return new ExecutionVariable(CreateScopedAggregateName(resultTableName, baseName), type);
     }
+
     private static ExecutionVariable CreateAggregateGroupVariable(string resultTableName, string baseName)
     {
         return CreateAggregateVariable(resultTableName, baseName, typeof(object));
     }
+
     private static string CreateAggregateScopeName(string resultTableName, bool scopeAggregateVariables)
     {
         return scopeAggregateVariables ? resultTableName : DefaultAggregateScopeName;
     }
+
     private static string CreateScopedAggregateName(string resultTableName, string baseName)
     {
         if (string.Equals(resultTableName, DefaultAggregateScopeName, StringComparison.Ordinal))
@@ -174,6 +181,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return resultTableName;
         return $"{resultTableName}{char.ToUpperInvariant(baseName[0])}{baseName[1..]}";
     }
+
     private static string CreateScopedHashName(string resultTableName, string baseName)
     {
         return CreateScopedAggregateName(resultTableName, baseName);

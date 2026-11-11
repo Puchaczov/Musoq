@@ -13,8 +13,10 @@ public sealed class LibraryFunctionCatalogTests
     [TestMethod]
     public void OpenGenericOverloads_WhenArrayAndEnumerableInputsDiffer_ShouldRemainDistinct()
     {
-        var functions = LibraryFunctionCatalog.For(typeof(GenericLibrary)).Functions
-            .Where(static function => function.Name == nameof(GenericLibrary.Items)).ToArray();
+        var functions = LibraryFunctionCatalog
+            .For(typeof(GenericLibrary))
+            .Functions.Where(static function => function.Name == nameof(GenericLibrary.Items))
+            .ToArray();
 
         Assert.HasCount(2, functions);
         Assert.IsTrue(functions.Any(static function => function.Parameters[0].Type.IsArray));
@@ -28,15 +30,19 @@ public sealed class LibraryFunctionCatalogTests
         var second = LibraryFunctionCatalog.For(typeof(GenericLibrary));
 
         Assert.AreSame(first, second);
-        Assert.IsTrue(first.Functions.Where(static function => function.Declaration.DeclaringType == typeof(GenericLibrary)).All(static function =>
-            function.ExecutionPermissions == FunctionExecutionPermissions.None));
+        Assert.IsTrue(
+            first
+                .Functions.Where(static function => function.Declaration.DeclaringType == typeof(GenericLibrary))
+                .All(static function => function.ExecutionPermissions == FunctionExecutionPermissions.None)
+        );
     }
 
     [TestMethod]
     public void AggregateAliases_WhenEqualPrecedenceSignaturesCompete_ShouldRejectRegistration()
     {
         var error = Assert.Throws<System.InvalidOperationException>(() =>
-            LibraryFunctionCatalog.For(typeof(ConflictingLibrary)));
+            LibraryFunctionCatalog.For(typeof(ConflictingLibrary))
+        );
 
         Assert.Contains("Competing Aggregate declarations", error.Message);
     }
@@ -62,10 +68,14 @@ public sealed class LibraryFunctionCatalogTests
         var functions = methods.GetAllFunctions().Where(static function => function.Name == "Measure").ToArray();
 
         Assert.HasCount(2, functions);
-        Assert.AreEqual(typeof(AggregateOverrideLibrary), functions.Single(static function =>
-            function.Kind == SqlFunctionKind.Aggregate).Declaration.DeclaringType);
-        Assert.AreEqual(typeof(CombinedLibrary), functions.Single(static function =>
-            function.Kind == SqlFunctionKind.Window).Declaration.DeclaringType);
+        Assert.AreEqual(
+            typeof(AggregateOverrideLibrary),
+            functions.Single(static function => function.Kind == SqlFunctionKind.Aggregate).Declaration.DeclaringType
+        );
+        Assert.AreEqual(
+            typeof(CombinedLibrary),
+            functions.Single(static function => function.Kind == SqlFunctionKind.Window).Declaration.DeclaringType
+        );
         Assert.IsTrue(methods.TryGetWindowFunction("measure", out var window));
         Assert.AreEqual(typeof(CombinedLibrary), window.DeclaringType);
     }

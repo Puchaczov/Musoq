@@ -19,21 +19,15 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenSameTextDifferentContext_ShouldNotConfuse()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT a.Name, Length(a.Name) as L1
             FROM #A.Entities() a
             WHERE Length(a.Name) > 2";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABC"),
-                    new BasicEntity("ABCDE")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABC"), new BasicEntity("ABCDE")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -51,7 +45,8 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenNonDeterministicFunctionUsedMultipleTimes_ShouldNotCache()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT NextTestValue() as R1, NextTestValue() as R2, NextTestValue() as R3
             FROM #A.Entities()";
 
@@ -71,7 +66,8 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenComplexArithmeticWithSharedSubexpressions_ShouldReturnCorrectResults()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT 
                 (Population + 10) * 2 as Doubled,
                 (Population + 10) / 2 as Halved,
@@ -81,14 +77,7 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 30),
-                    new BasicEntity("B", 50),
-                    new BasicEntity("C", 90)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 30), new BasicEntity("B", 50), new BasicEntity("C", 90)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -112,20 +101,15 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenSameExpressionOnDifferentTables_ShouldNotConfuse()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT a.Name, Length(a.Name) as Len
             FROM #A.Entities() a
             WHERE Length(a.Name) > 2";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABCD")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABCD")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -142,21 +126,15 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenMethodWithDifferentParameterTypes_ShouldNotConfuse()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT Inc(Population), Inc(Population) + 10
             FROM #A.Entities()
             WHERE Inc(Population) > 100";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 50),
-                    new BasicEntity("B", 100),
-                    new BasicEntity("C", 200)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 50), new BasicEntity("B", 100), new BasicEntity("C", 200)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -174,28 +152,21 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenProcessingMultipleRows_CacheShouldResetPerRow()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT Name, Length(Name) as Len
             FROM #A.Entities()
             WHERE Length(Name) > 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABCDE"),
-                    new BasicEntity("XYZ")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABCDE"), new BasicEntity("XYZ")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-
 
         Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "AB" && Convert.ToInt32(row.ReadValue(1)) == 2));
         Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "ABCDE" && Convert.ToInt32(row.ReadValue(1)) == 5));
@@ -209,21 +180,15 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenNestedCall_InnerExpressionInWhere_OuterInSelect_ShouldReturnCorrectResults()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT ToUpper(ToString(Population)) 
             FROM #A.Entities() 
             WHERE ToString(Population) = '100'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 100),
-                    new BasicEntity("B", 200),
-                    new BasicEntity("C", 100)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 100), new BasicEntity("B", 200), new BasicEntity("C", 100)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -236,7 +201,8 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenNestedCall_SameInnerExpressionTwice_ShouldReturnCorrectResults()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT 
                 ToUpper(ToString(Population)), 
                 Length(ToString(Population)) 
@@ -245,14 +211,7 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 100),
-                    new BasicEntity("B", 200),
-                    new BasicEntity("C", 1500)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 100), new BasicEntity("B", 200), new BasicEntity("C", 1500)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -270,21 +229,15 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenDeeplyNestedCalls_ShouldReturnCorrectResults()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT Length(ToUpper(ToString(Population))) 
             FROM #A.Entities() 
             WHERE Length(ToUpper(ToString(Population))) > 2";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 10),
-                    new BasicEntity("B", 100),
-                    new BasicEntity("C", 1000)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 10), new BasicEntity("B", 100), new BasicEntity("C", 1000)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -298,7 +251,8 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     [TestMethod]
     public void WhenNestedCallWithDifferentOuterMethods_ShouldReturnCorrectResults()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT 
                 Coalesce(ToString(Population), 'N/A') as Str,
                 Length(ToString(Population)) as Len
@@ -306,13 +260,7 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 100),
-                    new BasicEntity("B", 12345)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 100), new BasicEntity("B", 12345)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

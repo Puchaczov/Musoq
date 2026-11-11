@@ -4,7 +4,7 @@ public enum ExternalStatus
 {
     Unknown,
     Ready,
-    Closed
+    Closed,
 }
 
 public interface IExternalMarker
@@ -59,7 +59,8 @@ public class ExternalPayload : IExternalConstraint
     public string Marker => "external-payload";
 }
 
-public sealed class ConstrainedEnvelope<T> where T : IExternalConstraint
+public sealed class ConstrainedEnvelope<T>
+    where T : IExternalConstraint
 {
     public T Value { get; init; } = default!;
 }

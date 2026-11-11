@@ -8,9 +8,7 @@ public sealed record SourcePredicateApplication
     /// <summary>Initializes an application record.</summary>
     /// <param name="predicate">The exact accepted typed predicate being applied.</param>
     /// <param name="phase">The phase at which the source applies it.</param>
-    public SourcePredicateApplication(
-        SourcePredicatePatternMatch predicate,
-        SourcePredicateEvaluationPhase phase)
+    public SourcePredicateApplication(SourcePredicatePatternMatch predicate, SourcePredicateEvaluationPhase phase)
     {
         ArgumentNullException.ThrowIfNull(predicate);
         if (!Enum.IsDefined(phase))
@@ -29,8 +27,7 @@ public sealed record SourcePredicateApplication
     /// <summary>Creates row-filtering applications for direct top-level <c>AND</c> pattern conjuncts.</summary>
     /// <param name="predicate">The accepted predicate tree.</param>
     /// <returns>An immutable list preserving direct-conjunct order and multiplicity.</returns>
-    public static IReadOnlyList<SourcePredicateApplication> ForRowFiltering(
-        SourcePredicateExpression? predicate)
+    public static IReadOnlyList<SourcePredicateApplication> ForRowFiltering(SourcePredicateExpression? predicate)
     {
         var applications = new List<SourcePredicateApplication>();
         AddTopLevelConjuncts(predicate, applications);
@@ -39,7 +36,8 @@ public sealed record SourcePredicateApplication
 
     private static void AddTopLevelConjuncts(
         SourcePredicateExpression? predicate,
-        ICollection<SourcePredicateApplication> applications)
+        ICollection<SourcePredicateApplication> applications
+    )
     {
         if (predicate is SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } logical)
         {

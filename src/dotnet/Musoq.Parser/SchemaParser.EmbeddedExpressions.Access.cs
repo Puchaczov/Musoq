@@ -30,7 +30,7 @@ public partial class SchemaParser
 
             Consume(TokenType.RightParenthesis);
             var funcToken = new FunctionToken(name, token.Span);
-            return new AccessMethodNode(funcToken, new ArgsListNode([..args]), null, false);
+            return new AccessMethodNode(funcToken, new ArgsListNode([.. args]), null, false);
         }
 
         Node result = new IdentifierNode(name, null, token.Span);
@@ -44,18 +44,37 @@ public partial class SchemaParser
             {
                 Consume(TokenType.Dot);
 
-                if (Current.TokenType is TokenType.LeftParenthesis or TokenType.RightParenthesis
-                    or TokenType.LeftSquareBracket or TokenType.RightSquareBracket
-                    or TokenType.LBracket or TokenType.RBracket
-                    or TokenType.Comma or TokenType.Semicolon
-                    or TokenType.Plus or TokenType.Hyphen or TokenType.Star or TokenType.FSlash
-                    or TokenType.Mod or TokenType.Equality or TokenType.GreaterEqual
-                    or TokenType.LessEqual or TokenType.Greater or TokenType.Less
-                    or TokenType.Diff or TokenType.Dot or TokenType.EndOfFile
-                    or TokenType.Integer or TokenType.Decimal or TokenType.Function)
+                if (
+                    Current.TokenType
+                    is TokenType.LeftParenthesis
+                        or TokenType.RightParenthesis
+                        or TokenType.LeftSquareBracket
+                        or TokenType.RightSquareBracket
+                        or TokenType.LBracket
+                        or TokenType.RBracket
+                        or TokenType.Comma
+                        or TokenType.Semicolon
+                        or TokenType.Plus
+                        or TokenType.Hyphen
+                        or TokenType.Star
+                        or TokenType.FSlash
+                        or TokenType.Mod
+                        or TokenType.Equality
+                        or TokenType.GreaterEqual
+                        or TokenType.LessEqual
+                        or TokenType.Greater
+                        or TokenType.Less
+                        or TokenType.Diff
+                        or TokenType.Dot
+                        or TokenType.EndOfFile
+                        or TokenType.Integer
+                        or TokenType.Decimal
+                        or TokenType.Function
+                )
                     throw new SyntaxException(
                         $"Expected identifier after '.' but found '{Current.TokenType}' ({Current.Value})",
-                        _lexer.AlreadyResolvedQueryPart);
+                        _lexer.AlreadyResolvedQueryPart
+                    );
 
                 var memberToken = ConsumeAndGetToken(Current.TokenType);
                 var memberNode = new IdentifierNode(memberToken.Value, null, memberToken.Span);

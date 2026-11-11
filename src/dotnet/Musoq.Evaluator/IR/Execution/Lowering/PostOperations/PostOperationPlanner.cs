@@ -16,14 +16,15 @@ internal sealed class PostOperationPlanner
 
     public PostOperationPlanner(Func<string, int, string>? createIdentifierCandidate = null)
     {
-        _createIdentifierCandidate = createIdentifierCandidate ??
-                                     ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate;
+        _createIdentifierCandidate =
+            createIdentifierCandidate ?? ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate;
     }
 
     public PostOperationResult CreatePostOperation(
         PostOperation operation,
         ExecutionVariable sourceTable,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         return operation switch
         {
@@ -33,41 +34,49 @@ internal sealed class PostOperationPlanner
             SkipOperation skip => CreateSkipOperation(skip, sourceTable, rowShape),
             TakeOperation take => CreateTakeOperation(take, sourceTable, rowShape),
             SliceOperation slice => CreateSliceOperation(slice, sourceTable, rowShape),
-            _ => PostOperationResult.Unsupported($"Execution IR post operation '{operation.GetType().Name}' is not supported.")
+            _ => PostOperationResult.Unsupported(
+                $"Execution IR post operation '{operation.GetType().Name}' is not supported."
+            ),
         };
     }
 
     public IReadOnlyList<PostOperation> CreatePostOperations(
         List<PostOperation> operations,
-        IReadOnlyList<ProjectedField> projectedFields)
+        IReadOnlyList<ProjectedField> projectedFields
+    )
     {
         operations.Reverse();
 
-        var projectedOperations = operations.Any(operation => operation is SortOperation or TopNOperation or TopOffsetOperation)
+        var projectedOperations = operations.Any(operation =>
+            operation is SortOperation or TopNOperation or TopOffsetOperation
+        )
             ? operations
-                .Select(operation => operation switch
-                {
-                    SortOperation sort => sort with { ProjectedFields = projectedFields },
-                    TopNOperation topN => topN with { ProjectedFields = projectedFields },
-                    TopOffsetOperation topOffset => topOffset with { ProjectedFields = projectedFields },
-                    _ => operation
-                })
+                .Select(operation =>
+                    operation switch
+                    {
+                        SortOperation sort => sort with { ProjectedFields = projectedFields },
+                        TopNOperation topN => topN with { ProjectedFields = projectedFields },
+                        TopOffsetOperation topOffset => topOffset with { ProjectedFields = projectedFields },
+                        _ => operation,
+                    }
+                )
                 .ToArray()
             : (IReadOnlyList<PostOperation>)operations;
 
         return CombineAdjacentSkipTakeOperations(projectedOperations);
     }
 
-    public IReadOnlyList<PostOperation> CombineAdjacentSkipTakeOperations(
-        IReadOnlyList<PostOperation> operations)
+    public IReadOnlyList<PostOperation> CombineAdjacentSkipTakeOperations(IReadOnlyList<PostOperation> operations)
     {
         List<PostOperation>? combined = null;
 
         for (var index = 0; index < operations.Count; index++)
         {
-            if (index + 1 < operations.Count &&
-                operations[index] is SkipOperation skip &&
-                operations[index + 1] is TakeOperation take)
+            if (
+                index + 1 < operations.Count
+                && operations[index] is SkipOperation skip
+                && operations[index + 1] is TakeOperation take
+            )
             {
                 combined ??= operations.Take(index).ToList();
                 combined.Add(new SliceOperation(skip.Count, take.Count));
@@ -87,14 +96,17 @@ internal sealed class PostOperationPlanner
         bool isDistinct,
         TableProjection? finalProjection,
         IReadOnlyList<ProjectedField> projectedFields,
-        out IReadOnlyList<PostOperation> remainingPostOperations)
+        out IReadOnlyList<PostOperation> remainingPostOperations
+    )
     {
         remainingPostOperations = postOperations;
 
-        if (isDistinct ||
-            finalProjection != null ||
-            postOperations.Count != 1 ||
-            projectedFields.Any(static field => IsRowNumberProjection(field.Expression)))
+        if (
+            isDistinct
+            || finalProjection != null
+            || postOperations.Count != 1
+            || projectedFields.Any(static field => IsRowNumberProjection(field.Expression))
+        )
         {
             return null;
         }
@@ -127,9 +139,10 @@ internal sealed class PostOperationPlanner
         var skipRemaining = skipCount.Constant is not 0
             ? new ExecutionVariable(_createIdentifierCandidate($"__{resultTableName}SkipRemaining", 0), typeof(int))
             : null;
-        var takeRemaining = takeCount != null
-            ? new ExecutionVariable(_createIdentifierCandidate($"__{resultTableName}TakeRemaining", 0), typeof(int))
-            : null;
+        var takeRemaining =
+            takeCount != null
+                ? new ExecutionVariable(_createIdentifierCandidate($"__{resultTableName}TakeRemaining", 0), typeof(int))
+                : null;
 
         remainingPostOperations = [];
         return new StreamingSlice(skipCount, takeCount, skipRemaining, takeRemaining);
@@ -137,7 +150,8 @@ internal sealed class PostOperationPlanner
 
     public ExecutionCapacityHint? CreateStreamingSliceCapacityCandidate(
         ExecutionVariable target,
-        StreamingSlice? streamingSlice)
+        StreamingSlice? streamingSlice
+    )
     {
         return streamingSlice?.TakeCount is { } takeCount
             ? ExecutionCapacityHintCandidates.CreateConstantCandidate(target, takeCount)
@@ -153,21 +167,21 @@ internal sealed class PostOperationPlanner
         {
             yield return new ExecutionLet(
                 streamingSlice.SkipRemaining,
-                PagingCountExecution.Read(streamingSlice.SkipCount));
+                PagingCountExecution.Read(streamingSlice.SkipCount)
+            );
         }
 
         if (streamingSlice is { TakeRemaining: not null, TakeCount: { } takeCount })
         {
-            yield return new ExecutionLet(
-                streamingSlice.TakeRemaining,
-                PagingCountExecution.Read(takeCount));
+            yield return new ExecutionLet(streamingSlice.TakeRemaining, PagingCountExecution.Read(takeCount));
         }
     }
 
     private static PostOperationResult CreateSortOperation(
         SortOperation operation,
         ExecutionVariable sourceTable,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         var keys = CreatePostOperationOrderFields("sort", operation.Keys, operation.ProjectedFields, rowShape);
         if (!keys.IsBuilt)
@@ -183,14 +197,17 @@ internal sealed class PostOperationPlanner
                 renumberFieldIndexes,
                 ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(target, sourceTable),
                 ExecutionAppendMode.Direct,
-                CreateTablePostOperationMetadata(target, rowShape)),
-            target);
+                CreateTablePostOperationMetadata(target, rowShape)
+            ),
+            target
+        );
     }
 
     private static PostOperationResult CreateTopNOperation(
         TopNOperation operation,
         ExecutionVariable sourceTable,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         var keys = CreatePostOperationOrderFields("top-n", operation.Keys, operation.ProjectedFields, rowShape);
         if (!keys.IsBuilt)
@@ -207,14 +224,17 @@ internal sealed class PostOperationPlanner
                 renumberFieldIndexes,
                 ExecutionCapacityHintCandidates.CreateTakeCandidate(target, sourceTable, operation.Count),
                 ExecutionAppendMode.Direct,
-                CreateTablePostOperationMetadata(target, rowShape)),
-            target);
+                CreateTablePostOperationMetadata(target, rowShape)
+            ),
+            target
+        );
     }
 
     private static PostOperationResult CreateTopOffsetOperation(
         TopOffsetOperation operation,
         ExecutionVariable sourceTable,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         var keys = CreatePostOperationOrderFields("top-offset", operation.Keys, operation.ProjectedFields, rowShape);
         if (!keys.IsBuilt)
@@ -238,16 +258,20 @@ internal sealed class PostOperationPlanner
                     target,
                     sourceTable,
                     operation.SkipCount,
-                    operation.TakeCount),
+                    operation.TakeCount
+                ),
                 ExecutionAppendMode.Direct,
-                CreateTablePostOperationMetadata(target, rowShape)),
-            target);
+                CreateTablePostOperationMetadata(target, rowShape)
+            ),
+            target
+        );
     }
 
     private static PostOperationResult CreateSkipOperation(
         SkipOperation operation,
         ExecutionVariable sourceTable,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         var target = new ExecutionVariable($"{sourceTable.Name}Skipped", typeof(object));
         return PostOperationResult.Success(
@@ -257,14 +281,17 @@ internal sealed class PostOperationPlanner
                 operation.Count,
                 ExecutionCapacityHintCandidates.CreateSkipCandidate(target, sourceTable, operation.Count),
                 ExecutionAppendMode.Direct,
-                CreateTablePostOperationMetadata(target, rowShape)),
-            target);
+                CreateTablePostOperationMetadata(target, rowShape)
+            ),
+            target
+        );
     }
 
     private static PostOperationResult CreateTakeOperation(
         TakeOperation operation,
         ExecutionVariable sourceTable,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         var target = new ExecutionVariable($"{sourceTable.Name}Taken", typeof(object));
         return PostOperationResult.Success(
@@ -274,14 +301,17 @@ internal sealed class PostOperationPlanner
                 operation.Count,
                 ExecutionCapacityHintCandidates.CreateTakeCandidate(target, sourceTable, operation.Count),
                 ExecutionAppendMode.Direct,
-                CreateTablePostOperationMetadata(target, rowShape)),
-            target);
+                CreateTablePostOperationMetadata(target, rowShape)
+            ),
+            target
+        );
     }
 
     private static PostOperationResult CreateSliceOperation(
         SliceOperation operation,
         ExecutionVariable sourceTable,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         var target = new ExecutionVariable($"{sourceTable.Name}Sliced", typeof(object));
         return PostOperationResult.Success(
@@ -294,17 +324,21 @@ internal sealed class PostOperationPlanner
                     target,
                     sourceTable,
                     operation.SkipCount,
-                    operation.TakeCount),
+                    operation.TakeCount
+                ),
                 ExecutionAppendMode.Direct,
-                CreateTablePostOperationMetadata(target, rowShape)),
-            target);
+                CreateTablePostOperationMetadata(target, rowShape)
+            ),
+            target
+        );
     }
 
     private static LoweringAttempt<IReadOnlyList<ExecutionOrderField>> CreatePostOperationOrderFields(
         string operationName,
         IReadOnlyList<OrderField> orderKeys,
         IReadOnlyList<ProjectedField> projectedFields,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         var keys = new List<ExecutionOrderField>(orderKeys.Count);
 
@@ -314,10 +348,13 @@ internal sealed class PostOperationPlanner
             if (field == null)
             {
                 return LoweringAttempt<IReadOnlyList<ExecutionOrderField>>.Unsupported(
-                    $"Execution IR {operationName} lowering cannot resolve order key '{IrExpressionPrinter.Print(key.Expression)}' in projected fields.");
+                    $"Execution IR {operationName} lowering cannot resolve order key '{IrExpressionPrinter.Print(key.Expression)}' in projected fields."
+                );
             }
 
-            keys.Add(new ExecutionOrderField(field.Name, field.OutputIndex, field.Type, key.Descending, key.NullOrdering));
+            keys.Add(
+                new ExecutionOrderField(field.Name, field.OutputIndex, field.Type, key.Descending, key.NullOrdering)
+            );
         }
 
         return LoweringAttempt<IReadOnlyList<ExecutionOrderField>>.Built(keys);
@@ -325,14 +362,14 @@ internal sealed class PostOperationPlanner
 
     private static ExecutionColumnMetadata CreateTablePostOperationMetadata(
         ExecutionVariable target,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         return new ExecutionColumnMetadata(
             target.Name,
-            rowShape.Fields
-                .Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field))
-                .ToArray(),
-            ExecutionColumnMetadataKind.TableColumns);
+            rowShape.Fields.Select(static field => ExecutionColumnMetadataFields.FromFieldBinding(field)).ToArray(),
+            ExecutionColumnMetadataKind.TableColumns
+        );
     }
 
     private static bool CanUseBoundedTopOffset(IReadOnlyList<ExecutionOrderField> keys)
@@ -344,17 +381,18 @@ internal sealed class PostOperationPlanner
     {
         type = Nullable.GetUnderlyingType(type) ?? type;
 
-        return type == typeof(string) ||
-               type == typeof(decimal) ||
-               type == typeof(DateTime) ||
-               type == typeof(DateTimeOffset) ||
-               type == typeof(Guid) ||
-               type.IsPrimitive;
+        return type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(DateTime)
+            || type == typeof(DateTimeOffset)
+            || type == typeof(Guid)
+            || type.IsPrimitive;
     }
 
     public static IReadOnlyList<int> ResolveRenumberFieldIndexes(
         IReadOnlyList<ProjectedField> projectedFields,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         List<int>? indexes = null;
 

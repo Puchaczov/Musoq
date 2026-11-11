@@ -7,10 +7,7 @@ internal static partial class RequiredColumnUsagePlanner
 {
     private sealed partial class RequiredColumnUsageCollector
     {
-        private void AddColumn(
-            string alias,
-            string columnName,
-            RequiredColumnUsageReason reason)
+        private void AddColumn(string alias, string columnName, RequiredColumnUsageReason reason)
         {
             AddCteColumn(alias, columnName);
 
@@ -28,9 +25,7 @@ internal static partial class RequiredColumnUsagePlanner
 
             AddRequiredColumn(alias, matchingSourceReferences[0].ColumnName);
 
-            var confidence = matchingSourceReferences.Length == 1
-                ? PlanningConfidence.High
-                : PlanningConfidence.Medium;
+            var confidence = matchingSourceReferences.Length == 1 ? PlanningConfidence.High : PlanningConfidence.Medium;
 
             foreach (var match in matchingSourceReferences)
                 AddSourceUsage(match.Source, match.ColumnName, reason, confidence);
@@ -72,7 +67,8 @@ internal static partial class RequiredColumnUsagePlanner
             SourceReference source,
             string columnName,
             RequiredColumnUsageReason reason,
-            PlanningConfidence confidence)
+            PlanningConfidence confidence
+        )
         {
             if (string.IsNullOrWhiteSpace(source.SourceContextId))
                 return;
@@ -84,12 +80,7 @@ internal static partial class RequiredColumnUsagePlanner
             }
 
             var key = new RequiredColumnUsageKey(source.SourceContextId, source.Alias, columnName, reason);
-            usages[key] = new RequiredColumnUsage(
-                source.SourceContextId,
-                source.Alias,
-                columnName,
-                reason,
-                confidence);
+            usages[key] = new RequiredColumnUsage(source.SourceContextId, source.Alias, columnName, reason, confidence);
         }
 
         private Dictionary<string, RequiredColumnUsage[]> CreateUsagesBySourceId()
@@ -99,8 +90,8 @@ internal static partial class RequiredColumnUsagePlanner
             foreach (var item in _usagesBySourceId.OrderBy(static item => item.Key, StringComparer.Ordinal))
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                result[item.Key] = item.Value.Values
-                    .OrderBy(static usage => usage.ColumnName, StringComparer.Ordinal)
+                result[item.Key] = item
+                    .Value.Values.OrderBy(static usage => usage.ColumnName, StringComparer.Ordinal)
                     .ThenBy(static usage => usage.UsageReason.ToString(), StringComparer.Ordinal)
                     .ThenBy(static usage => usage.Alias, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
@@ -113,9 +104,14 @@ internal static partial class RequiredColumnUsagePlanner
 
         private Dictionary<string, IReadOnlySet<string>> CreateRequiredColumnsByAlias()
         {
-            var result = new Dictionary<string, IReadOnlySet<string>>(_requiredColumnsByAlias.Count, StringComparer.OrdinalIgnoreCase);
+            var result = new Dictionary<string, IReadOnlySet<string>>(
+                _requiredColumnsByAlias.Count,
+                StringComparer.OrdinalIgnoreCase
+            );
 
-            foreach (var item in _requiredColumnsByAlias.OrderBy(static item => item.Key, StringComparer.OrdinalIgnoreCase))
+            foreach (
+                var item in _requiredColumnsByAlias.OrderBy(static item => item.Key, StringComparer.OrdinalIgnoreCase)
+            )
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 result[item.Key] = new HashSet<string>(item.Value, StringComparer.Ordinal);
@@ -125,12 +121,13 @@ internal static partial class RequiredColumnUsagePlanner
             return result;
         }
 
-        private List<PlanningDecision> CreateDecisions(
-            Dictionary<string, RequiredColumnUsage[]> usagesBySourceId)
+        private List<PlanningDecision> CreateDecisions(Dictionary<string, RequiredColumnUsage[]> usagesBySourceId)
         {
             var decisions = new List<PlanningDecision>();
 
-            foreach (var source in _sources.All.OrderBy(static source => source.SourceContextId, StringComparer.Ordinal))
+            foreach (
+                var source in _sources.All.OrderBy(static source => source.SourceContextId, StringComparer.Ordinal)
+            )
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(source.SourceContextId))
@@ -138,13 +135,16 @@ internal static partial class RequiredColumnUsagePlanner
 
                 usagesBySourceId.TryGetValue(source.SourceContextId, out var usages);
                 var usageCount = usages?.Length ?? 0;
-                decisions.Add(new PlanningDecision(
-                    PlanningDecisionCategory.RequiredColumns,
-                    "RequiredColumnUsage",
-                    source.SourceContextId,
-                    usageCount == 0 ? "None" : "Derived",
-                    usageCount == 0 ? PlanningConfidence.Low : PlanningConfidence.High,
-                    CreateDecisionReason(source, usageCount)));
+                decisions.Add(
+                    new PlanningDecision(
+                        PlanningDecisionCategory.RequiredColumns,
+                        "RequiredColumnUsage",
+                        source.SourceContextId,
+                        usageCount == 0 ? "None" : "Derived",
+                        usageCount == 0 ? PlanningConfidence.Low : PlanningConfidence.High,
+                        CreateDecisionReason(source, usageCount)
+                    )
+                );
             }
 
             _cancellationToken.ThrowIfCancellationRequested();

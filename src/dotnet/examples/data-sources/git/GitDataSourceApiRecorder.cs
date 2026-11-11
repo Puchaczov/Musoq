@@ -38,7 +38,8 @@ internal sealed record GitSourceMetadataSnapshot(
     IReadOnlyList<ISchemaColumn> AllColumns,
     IReadOnlyDictionary<string, string> SourceRuntimeSettings,
     Type LoggerType,
-    bool CancellationCanBeCanceled)
+    bool CancellationCanBeCanceled
+)
 {
     public static GitSourceMetadataSnapshot From(SourceMetadataContext context)
     {
@@ -49,7 +50,8 @@ internal sealed record GitSourceMetadataSnapshot(
             context.AllColumns.ToArray(),
             new Dictionary<string, string>(context.SourceRuntimeSettings, StringComparer.Ordinal),
             context.Logger.GetType(),
-            context.EndWorkToken.CanBeCanceled);
+            context.EndWorkToken.CanBeCanceled
+        );
     }
 }
 
@@ -60,7 +62,8 @@ internal sealed record GitSourceExecutionSnapshot(
     IReadOnlyDictionary<string, string> SourceRuntimeSettings,
     Type LoggerType,
     bool CancellationCanBeCanceled,
-    SourceDiagnostics Diagnostics)
+    SourceDiagnostics Diagnostics
+)
 {
     public static GitSourceExecutionSnapshot From(SourceExecutionContext context)
     {
@@ -73,25 +76,26 @@ internal sealed record GitSourceExecutionSnapshot(
             new Dictionary<string, string>(context.SourceRuntimeSettings, StringComparer.Ordinal),
             context.Logger.GetType(),
             context.EndWorkToken.CanBeCanceled,
-            context.Diagnostics);
+            context.Diagnostics
+        );
     }
 }
 
-internal sealed record GitRawConstructorCall(
-    string? MethodName,
-    GitSourceMetadataSnapshot Metadata);
+internal sealed record GitRawConstructorCall(string? MethodName, GitSourceMetadataSnapshot Metadata);
 
 internal sealed record GitGetTableCall(
     string Name,
     GitSourceMetadataSnapshot Metadata,
     IReadOnlyList<object?> Parameters,
-    IReadOnlyList<ISchemaColumn> Columns);
+    IReadOnlyList<ISchemaColumn> Columns
+);
 
 internal sealed record GitRuntimeSettingsCall(
     string Name,
     SourceIdentity Identity,
     GitSourceMetadataSnapshot Metadata,
-    IReadOnlyList<object?> Parameters);
+    IReadOnlyList<object?> Parameters
+);
 
 internal sealed record GitDescribeSourceCall(
     string Name,
@@ -99,15 +103,14 @@ internal sealed record GitDescribeSourceCall(
     GitSourceMetadataSnapshot Metadata,
     IReadOnlyList<object?> Parameters,
     IReadOnlyList<ISchemaColumn> Columns,
-    Type? RowType);
+    Type? RowType
+);
 
-internal sealed record GitPlanCall(
-    string Name,
-    SourcePlanRequest Request,
-    IReadOnlyList<object?> Parameters);
+internal sealed record GitPlanCall(string Name, SourcePlanRequest Request, IReadOnlyList<object?> Parameters);
 
 internal sealed record GitRowSourceCall(
     string Name,
     GitSourceExecutionSnapshot Execution,
     string? Parameters,
-    Type RequestedRowType);
+    Type RequestedRowType
+);

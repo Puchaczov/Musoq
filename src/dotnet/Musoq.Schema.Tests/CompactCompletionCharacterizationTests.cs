@@ -35,7 +35,9 @@ public sealed class CompactCompletionCharacterizationTests
         Assert.IsFalse(first.CompletedFields.IsProperSupersetOf(first.CompletedFields));
     }
 
-    private sealed class SlotParser(ParserCompletionLayout layout) : BytesInterpreterBase<byte[]>, IParserCompletionLayoutSource
+    private sealed class SlotParser(ParserCompletionLayout layout)
+        : BytesInterpreterBase<byte[]>,
+            IParserCompletionLayoutSource
     {
         ParserCompletionLayout IParserCompletionLayoutSource.CompletionLayout => layout;
         public override string SchemaName => "Slots";

@@ -7,7 +7,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-
     private static string? GetUnsupportedExpressionReason(ExecutionExpression expression)
     {
         if (CanRenderExpression(expression))
@@ -43,29 +42,36 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return expression switch
         {
-            ExecutionSubquery subquery => subquery.Plan.FinalResult is not null && CanRenderBlock(subquery.Plan.Body) &&
-                subquery.Bindings.All(CanRenderExpression) && (subquery.Operand is null || CanRenderExpression(subquery.Operand)),
+            ExecutionSubquery subquery => subquery.Plan.FinalResult is not null
+                && CanRenderBlock(subquery.Plan.Body)
+                && subquery.Bindings.All(CanRenderExpression)
+                && (subquery.Operand is null || CanRenderExpression(subquery.Operand)),
             ExecutionFieldRead fieldRead => CanRenderFieldRead(fieldRead),
-            ExecutionStructuralArray structuralArray => structuralArray.Elements.All(CanRenderExpression) && CanReferenceType(structuralArray.ElementType),
-            ExecutionStructuralConversion conversion => CanRenderExpression(conversion.Input) && CanReferenceType(conversion.TargetType.RequireClrType()),
-            ExecutionCteCollectionInput cteCollection => cteCollection.Rows is ExecutionStoredTableRows { GeneratedRowShape: not null } &&
-                                                         CanReferenceType(cteCollection.ElementType) &&
-                                                         (cteCollection.ConstructionPlan == null ||
-                                                          CanReferenceType(cteCollection.ConstructionPlan.TargetType)),
+            ExecutionStructuralArray structuralArray => structuralArray.Elements.All(CanRenderExpression)
+                && CanReferenceType(structuralArray.ElementType),
+            ExecutionStructuralConversion conversion => CanRenderExpression(conversion.Input)
+                && CanReferenceType(conversion.TargetType.RequireClrType()),
+            ExecutionCteCollectionInput cteCollection => cteCollection.Rows
+                is ExecutionStoredTableRows { GeneratedRowShape: not null }
+                && CanReferenceType(cteCollection.ElementType)
+                && (
+                    cteCollection.ConstructionPlan == null
+                    || CanReferenceType(cteCollection.ConstructionPlan.TargetType)
+                ),
             ExecutionStructuralRecord structuralRecord when structuralRecord.ConstructionPlan is { } plan =>
-                                                       structuralRecord.Fields.All(field => CanRenderExpression(field.Value)) &&
-                                                       plan.SourceFieldIndexes.Count == plan.Defaults.Count &&
-                                                       plan.Defaults.Where(static value => value != null).All(value => CanRenderExpression(value!)) &&
-                                                       CanReferenceType(plan.TargetType),
-            ExecutionStructuralRecord structuralRecord =>
-                structuralRecord.ReturnType.RequireClrType() == typeof(Musoq.Schema.StructuralInputs.StructuralValue) &&
-                structuralRecord.Fields.All(field => CanRenderExpression(field.Value)),
+                structuralRecord.Fields.All(field => CanRenderExpression(field.Value))
+                    && plan.SourceFieldIndexes.Count == plan.Defaults.Count
+                    && plan.Defaults.Where(static value => value != null).All(value => CanRenderExpression(value!))
+                    && CanReferenceType(plan.TargetType),
+            ExecutionStructuralRecord structuralRecord => structuralRecord.ReturnType.RequireClrType()
+                == typeof(Musoq.Schema.StructuralInputs.StructuralValue)
+                && structuralRecord.Fields.All(field => CanRenderExpression(field.Value)),
             ExecutionUnionMemberRead union => CanRenderExpression(union.Receiver),
             ExecutionMemberRead memberRead => CanRenderMemberRead(memberRead),
-            ExecutionScriptParameterRead parameterRead => !string.IsNullOrWhiteSpace(parameterRead.Name) &&
-                                                          CanReferenceType(parameterRead.ReturnType),
-            ExecutionScriptVariableRead variableRead => !string.IsNullOrWhiteSpace(variableRead.Name) &&
-                                                        CanReferenceType(variableRead.ReturnType),
+            ExecutionScriptParameterRead parameterRead => !string.IsNullOrWhiteSpace(parameterRead.Name)
+                && CanReferenceType(parameterRead.ReturnType),
+            ExecutionScriptVariableRead variableRead => !string.IsNullOrWhiteSpace(variableRead.Name)
+                && CanReferenceType(variableRead.ReturnType),
             ExecutionLiteral literal => CanRenderLiteral(literal.Value),
             ExecutionBinary binary => CanRenderBinary(binary),
             ExecutionUnary unary => CanRenderUnary(unary),
@@ -74,59 +80,78 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionByteBufferSnapshot snapshot => snapshot.Arguments.All(CanRenderExpression),
             ExecutionByteBufferOperation { Program: { } program } => program.Children.All(CanRenderExpression),
             ExecutionByteBufferOperation { ViewAccess: not null } view => CanRenderExpression(view.Original),
-            ExecutionByteBufferOperation buffer => buffer.Materialization == ExecutionByteBufferMaterialization.OriginalCallable && CanRenderExpression(buffer.Original),
+            ExecutionByteBufferOperation buffer => buffer.Materialization
+                == ExecutionByteBufferMaterialization.OriginalCallable
+                && CanRenderExpression(buffer.Original),
             ExecutionByteBufferArgument => true,
-            ExecutionStrictCast strictCast => CanRenderExpression(strictCast.Expression) &&
-                                              CanReferenceType(strictCast.ReturnType),
+            ExecutionStrictCast strictCast => CanRenderExpression(strictCast.Expression)
+                && CanReferenceType(strictCast.ReturnType),
             ExecutionMethodTargetReuseCandidate candidate => CanRenderMethodCall(candidate.MethodCall),
-            ExecutionArrayAccess arrayAccess => CanRenderExpression(arrayAccess.Array) &&
-                                                CanRenderExpression(arrayAccess.Index) &&
-                                                CanReferenceType(arrayAccess.ElementType),
+            ExecutionArrayAccess arrayAccess => CanRenderExpression(arrayAccess.Array)
+                && CanRenderExpression(arrayAccess.Index)
+                && CanReferenceType(arrayAccess.ElementType),
             ExecutionIndexedHashRowCreate indexedRowCreate => CanReferenceType(indexedRowCreate.ReturnType),
             ExecutionIndexedHashRowRowRead rowRead => CanReferenceType(rowRead.ReturnType),
             ExecutionIndexedHashRowIndexRead => true,
             ExecutionIsNullCheck isNull => CanRenderExpression(isNull.Expression),
             ExecutionRowPresence rowPresence => CanRenderExpression(rowPresence.PresenceSource),
-            ExecutionInCheck inCheck => CanRenderExpression(inCheck.Expression) &&
-                                        inCheck.Values.All(CanRenderExpression) &&
-                                        (inCheck.Values.Count == 0 || inCheck.ConstantSet != null || inCheck.TypedBinding != null) &&
-                                        (inCheck.ConstantSet == null || CanRenderConstantInSet(inCheck.ConstantSet)),
+            ExecutionInCheck inCheck => CanRenderExpression(inCheck.Expression)
+                && inCheck.Values.All(CanRenderExpression)
+                && (inCheck.Values.Count == 0 || inCheck.ConstantSet != null || inCheck.TypedBinding != null)
+                && (inCheck.ConstantSet == null || CanRenderConstantInSet(inCheck.ConstantSet)),
             ExecutionCollectionInCheck collectionInCheck => CanRenderCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => CanRenderPatternMatch(patternMatch),
-            ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.CanRender(expression, CanRenderExpression, CanReferenceType),
-            ExecutionBetween between => CanRenderExpression(between.Expression) &&
-                                        CanRenderExpression(between.Low) &&
-                                        CanRenderExpression(between.High),
+            ExecutionStringMatch
+            or ExecutionPrepareLikeMatcher
+            or ExecutionPreparedLikeMatch
+            or ExecutionDynamicLikeMatch
+            or ExecutionLikeMatcherCacheSlot
+            or ExecutionPrepareRLikeMatcher
+            or ExecutionPreparedRLikeMatch
+            or ExecutionDynamicRLikeMatch
+            or ExecutionRLikeMatcherCacheSlot => ExecutionLikeMatcherSyntaxFactory.CanRender(
+                expression,
+                CanRenderExpression,
+                CanReferenceType
+            ),
+            ExecutionBetween between => CanRenderExpression(between.Expression)
+                && CanRenderExpression(between.Low)
+                && CanRenderExpression(between.High),
             ExecutionCaseWhen caseWhen => caseWhen.Branches.All(branch =>
-                                              CanRenderExpression(branch.Condition) &&
-                                              CanRenderExpression(branch.Result)) &&
-                                          (caseWhen.ElseExpression == null ||
-                                           CanRenderExpression(caseWhen.ElseExpression)),
-            ExecutionStringConcatenation concatenation => concatenation.Expressions.Count >= 2 && concatenation.Expressions.All(value => value.ReturnType.RequireClrType() == typeof(string) && CanRenderExpression(value)),
-            ExecutionCoalesce coalesce => coalesce.Expressions.Count > 0 &&
-                                          coalesce.Expressions.All(CanRenderExpression),
+                CanRenderExpression(branch.Condition) && CanRenderExpression(branch.Result)
+            ) && (caseWhen.ElseExpression == null || CanRenderExpression(caseWhen.ElseExpression)),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.Count >= 2
+                && concatenation.Expressions.All(value =>
+                    value.ReturnType.RequireClrType() == typeof(string) && CanRenderExpression(value)
+                ),
+            ExecutionCoalesce coalesce => coalesce.Expressions.Count > 0
+                && coalesce.Expressions.All(CanRenderExpression),
             ExecutionRowStream => true,
             ExecutionScalarRowStream => true,
             ExecutionStoredTable => true,
             ExecutionStoredTableRows => true,
             ExecutionVariableRead => true,
-            ExecutionRowContextsRead contextsRead => typeof(Row).IsAssignableFrom(contextsRead.Row.Type.RequireClrType()),
+            ExecutionRowContextsRead contextsRead => typeof(Row).IsAssignableFrom(
+                contextsRead.Row.Type.RequireClrType()
+            ),
             ExecutionNullContextArray nullContextArray => nullContextArray.Count >= 0,
-            ExecutionContextArray contextArray => contextArray.Segments.All(static segment => segment.Count >= 0) &&
-                                                  contextArray.Segments.Select(static segment => segment.Value).All(CanRenderExpression),
-            ExecutionValueTupleKey valueTupleKey =>
-                                                    ValueTupleTypeShape.TryGetElementTypes(valueTupleKey.ReturnType.RequireClrType(), out var tupleElementTypes) &&
-                                                    tupleElementTypes.Length == valueTupleKey.Parts.Count &&
-                                                    valueTupleKey.Parts.All(CanRenderExpression),
+            ExecutionContextArray contextArray => contextArray.Segments.All(static segment => segment.Count >= 0)
+                && contextArray.Segments.Select(static segment => segment.Value).All(CanRenderExpression),
+            ExecutionValueTupleKey valueTupleKey => ValueTupleTypeShape.TryGetElementTypes(
+                valueTupleKey.ReturnType.RequireClrType(),
+                out var tupleElementTypes
+            )
+                && tupleElementTypes.Length == valueTupleKey.Parts.Count
+                && valueTupleKey.Parts.All(CanRenderExpression),
             ExecutionWindowValueRead => true,
-            ExecutionAggregateCall aggregateCall => CanReferenceType(aggregateCall.Accumulator.InputType) &&
-                                                    CanReferenceType(aggregateCall.Accumulator.ResultType) &&
-                                                    CanReferenceType(aggregateCall.Accumulator.AccumulatorType) &&
-                                                    CanReferenceType(aggregateCall.Accumulator.Kernel.KernelType),
+            ExecutionAggregateCall aggregateCall => CanReferenceType(aggregateCall.Accumulator.InputType)
+                && CanReferenceType(aggregateCall.Accumulator.ResultType)
+                && CanReferenceType(aggregateCall.Accumulator.AccumulatorType)
+                && CanReferenceType(aggregateCall.Accumulator.Kernel.KernelType),
             ExecutionGroupKeyRead groupKeyRead => groupKeyRead.Key != null,
-            ExecutionAggregateCapturedValueRead capturedValueRead => CanReferenceType(capturedValueRead.ReturnType) &&
-                                                                     CanReferenceType(capturedValueRead.CapturedField.Type),
-            _ => false
+            ExecutionAggregateCapturedValueRead capturedValueRead => CanReferenceType(capturedValueRead.ReturnType)
+                && CanReferenceType(capturedValueRead.CapturedField.Type),
+            _ => false,
         };
     }
 
@@ -135,61 +160,78 @@ public sealed partial class ExecutionCSharpRenderer
         if (fieldRead.AccessStrategy is ReflectedMemberAccess)
             return false;
 
-        return fieldRead.AccessStrategy is not (
-                   PositionalAccess or
-                   ContextAccess or
-                   GeneratedRowContextAccess or
-                   GeneratedRowTypeAccess or
-                   GeneratedRowNestedAccess or
-                   NestedClrPropertyAccess) ||
-               !string.IsNullOrWhiteSpace(fieldRead.Alias);
+        return fieldRead.AccessStrategy
+                is not (
+                    PositionalAccess
+                    or ContextAccess
+                    or GeneratedRowContextAccess
+                    or GeneratedRowTypeAccess
+                    or GeneratedRowNestedAccess
+                    or NestedClrPropertyAccess
+                )
+            || !string.IsNullOrWhiteSpace(fieldRead.Alias);
     }
 
     private static bool CanRenderMemberRead(ExecutionMemberRead memberRead)
     {
-        return CanReferenceType(memberRead.ReturnType) &&
-               CanRenderExpression(memberRead.Receiver);
+        return CanReferenceType(memberRead.ReturnType) && CanRenderExpression(memberRead.Receiver);
     }
 
     private static bool CanRenderLiteral(object? value)
     {
-        return value is null or string or bool or char or byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
+        return value
+            is null
+                or string
+                or bool
+                or char
+                or byte
+                or sbyte
+                or short
+                or ushort
+                or int
+                or uint
+                or long
+                or ulong
+                or float
+                or double
+                or decimal;
     }
 
     private static bool CanRenderLiteral(ExecutionConstantValue value) =>
-        value.Kind is ExecutionConstantKind.Null or
-            ExecutionConstantKind.Boolean or
-            ExecutionConstantKind.Character or
-            ExecutionConstantKind.SignedInteger or
-            ExecutionConstantKind.UnsignedInteger or
-            ExecutionConstantKind.FloatingPoint or
-            ExecutionConstantKind.Decimal or
-            ExecutionConstantKind.String;
+        value.Kind
+            is ExecutionConstantKind.Null
+                or ExecutionConstantKind.Boolean
+                or ExecutionConstantKind.Character
+                or ExecutionConstantKind.SignedInteger
+                or ExecutionConstantKind.UnsignedInteger
+                or ExecutionConstantKind.FloatingPoint
+                or ExecutionConstantKind.Decimal
+                or ExecutionConstantKind.String;
 
     private static bool CanRenderBinary(ExecutionBinary binary)
     {
-        return CanRenderBinaryKind(binary.Kind) &&
-               CanRenderExpression(binary.Left) &&
-               CanRenderExpression(binary.Right);
+        return CanRenderBinaryKind(binary.Kind)
+            && CanRenderExpression(binary.Left)
+            && CanRenderExpression(binary.Right);
     }
 
     private static bool CanRenderUnary(ExecutionUnary unary)
     {
-        return CanRenderUnaryKind(unary.Kind) &&
-               CanRenderExpression(unary.Operand);
+        return CanRenderUnaryKind(unary.Kind) && CanRenderExpression(unary.Operand);
     }
 
     private static bool ContainsMethodCall(ExecutionExpression expression)
     {
-        return ExecutionIrAnalysis.FlattenExpressions(expression)
-            .Any(static current => current is ExecutionMethodCall);
+        return ExecutionIrAnalysis.FlattenExpressions(expression).Any(static current => current is ExecutionMethodCall);
     }
 
     private static bool CanRenderPatternMatch(ExecutionPatternMatch patternMatch)
     {
-        if (patternMatch.Kind is not (PatternKind.Like or PatternKind.RLike) ||
-            !CanRenderExpression(patternMatch.Expression) ||
-            !CanRenderExpression(patternMatch.Pattern))
+        if (
+            patternMatch.Kind is not (PatternKind.Like or PatternKind.RLike)
+            || !CanRenderExpression(patternMatch.Expression)
+            || !CanRenderExpression(patternMatch.Pattern)
+        )
         {
             return false;
         }
@@ -199,39 +241,41 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanRenderConstantInSet(ExecutionConstantInSet constantSet)
     {
-        return CanReferenceType(constantSet.ElementType) &&
-               constantSet.Values.All(CanRenderLiteral);
+        return CanReferenceType(constantSet.ElementType) && constantSet.Values.All(CanRenderLiteral);
     }
 
     private static bool CanRenderBinaryKind(BinaryOpKind kind)
     {
-        return kind is BinaryOpKind.Add
-            or BinaryOpKind.StringConcatenate
-            or BinaryOpKind.Subtract
-            or BinaryOpKind.Multiply
-            or BinaryOpKind.Divide
-            or BinaryOpKind.Modulo
-            or BinaryOpKind.And
-            or BinaryOpKind.Or
-            or BinaryOpKind.Equal
-            or BinaryOpKind.NotEqual or BinaryOpKind.IsDistinctFrom or BinaryOpKind.IsNotDistinctFrom
-            or BinaryOpKind.GreaterThan
-            or BinaryOpKind.LessThan
-            or BinaryOpKind.GreaterOrEqual
-            or BinaryOpKind.LessOrEqual
-            or BinaryOpKind.BitwiseAnd
-            or BinaryOpKind.BitwiseOr
-            or BinaryOpKind.BitwiseXor
-            or BinaryOpKind.LeftShift
-            or BinaryOpKind.RightShift;
+        return kind
+            is BinaryOpKind.Add
+                or BinaryOpKind.StringConcatenate
+                or BinaryOpKind.Subtract
+                or BinaryOpKind.Multiply
+                or BinaryOpKind.Divide
+                or BinaryOpKind.Modulo
+                or BinaryOpKind.And
+                or BinaryOpKind.Or
+                or BinaryOpKind.Equal
+                or BinaryOpKind.NotEqual
+                or BinaryOpKind.IsDistinctFrom
+                or BinaryOpKind.IsNotDistinctFrom
+                or BinaryOpKind.GreaterThan
+                or BinaryOpKind.LessThan
+                or BinaryOpKind.GreaterOrEqual
+                or BinaryOpKind.LessOrEqual
+                or BinaryOpKind.BitwiseAnd
+                or BinaryOpKind.BitwiseOr
+                or BinaryOpKind.BitwiseXor
+                or BinaryOpKind.LeftShift
+                or BinaryOpKind.RightShift;
     }
 
     private static bool RequiresNullableTemporalSubtraction(ExecutionBinary binary)
     {
-        return binary.Kind == BinaryOpKind.Subtract &&
-               binary.ReturnType.RequireClrType() == typeof(TimeSpan) &&
-               IsNullableTemporal(binary.Left.ReturnType.RequireClrType()) &&
-               IsNullableTemporal(binary.Right.ReturnType.RequireClrType());
+        return binary.Kind == BinaryOpKind.Subtract
+            && binary.ReturnType.RequireClrType() == typeof(TimeSpan)
+            && IsNullableTemporal(binary.Left.ReturnType.RequireClrType())
+            && IsNullableTemporal(binary.Right.ReturnType.RequireClrType());
     }
 
     private static bool IsNullableTemporal(Type type)

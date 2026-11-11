@@ -16,7 +16,8 @@ public sealed class EnumDeclarationNode : Node
         IReadOnlyList<EnumMemberNode> members,
         TextSpan nameSpan,
         TextSpan underlyingTypeSpan,
-        TextSpan span)
+        TextSpan span
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(underlyingTypeName);
@@ -30,7 +31,8 @@ public sealed class EnumDeclarationNode : Node
         UnderlyingTypeSpan = underlyingTypeSpan;
         Span = span;
         FullSpan = span;
-        Id = $"{nameof(EnumDeclarationNode)}{Name}{UnderlyingTypeName}{IsFlags}{string.Join(string.Empty, Members.Select(static member => member.Id))}";
+        Id =
+            $"{nameof(EnumDeclarationNode)}{Name}{UnderlyingTypeName}{IsFlags}{string.Join(string.Empty, Members.Select(static member => member.Id))}";
     }
 
     public string Name { get; }

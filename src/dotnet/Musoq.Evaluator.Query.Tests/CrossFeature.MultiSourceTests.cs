@@ -8,34 +8,31 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class CrossFeatureMultiSourceTests : BasicEntityTestBase
 {
-
     #region QUALIFY + IN Subquery
 
     [TestMethod]
     public void WhenQualifyWithInSubquery_ShouldFilterBeforeQualify()
     {
-        var query = @"
-            select a.Name, a.City, RowNumber() over (order by a.Name) as rn
-            from #A.entities() a
-            where a.City in (select b.City from #B.entities() b)
-            qualify RowNumber() over (order by a.Name) <= 2";
+        var query = (
+            "\n"
+            + "            select a.Name, a.City, RowNumber() over (order by a.Name) as rn\n"
+            + "            from #A.entities() a\n"
+            + "            where a.City in (select b.City from #B.entities() b)\n"
+            + "            qualify RowNumber() over (order by a.Name) <= 2"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { City = "NYC", Population = 100 },
                     new BasicEntity("Bob") { City = "LA", Population = 200 },
                     new BasicEntity("Charlie") { City = "NYC", Population = 300 },
-                    new BasicEntity("Diana") { City = "SF", Population = 400 }
+                    new BasicEntity("Diana") { City = "SF", Population = 400 },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("X") { City = "NYC" },
-                    new BasicEntity("Y") { City = "LA" }
-                ]
-            }
+            { "#B", [new BasicEntity("X") { City = "NYC" }, new BasicEntity("Y") { City = "LA" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -45,11 +42,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("rn", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", "NYC", 1L],
-            ["Bob", "LA", 2L]);
+            ("rn", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", "NYC", 1L], ["Bob", "LA", 2L]);
     }
 
     #endregion
@@ -59,27 +54,25 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenInSubqueryWithWindowFunction_ShouldWork()
     {
-        var query = @"
-            select a.Name, a.City, RowNumber() over (partition by a.City order by a.Name) as rn
-            from #A.entities() a
-            where a.City in (select b.City from #B.entities() b)";
+        var query = (
+            "\n"
+            + "            select a.Name, a.City, RowNumber() over (partition by a.City order by a.Name) as rn\n"
+            + "            from #A.entities() a\n"
+            + "            where a.City in (select b.City from #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { City = "NYC", Population = 100 },
                     new BasicEntity("Bob") { City = "LA", Population = 200 },
                     new BasicEntity("Charlie") { City = "NYC", Population = 300 },
-                    new BasicEntity("Diana") { City = "SF", Population = 400 }
+                    new BasicEntity("Diana") { City = "SF", Population = 400 },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("X") { City = "NYC" },
-                    new BasicEntity("Y") { City = "LA" }
-                ]
-            }
+            { "#B", [new BasicEntity("X") { City = "NYC" }, new BasicEntity("Y") { City = "LA" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -89,12 +82,14 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("City", typeof(string)),
-            ("rn", typeof(long)));
+            ("rn", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "NYC", 1L],
             ["Charlie", "NYC", 2L],
-            ["Bob", "LA", 1L]);
+            ["Bob", "LA", 1L]
+        );
     }
 
     #endregion
@@ -104,39 +99,31 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenInSubqueryWithNotEquals_ShouldWork()
     {
-        var query = @"
-            select a.Name, a.City from #A.entities() a
-            where a.City in (select b.City from #B.entities() b)
-              and a.Name != 'Alice'";
+        var query = (
+            "\n"
+            + "            select a.Name, a.City from #A.entities() a\n"
+            + "            where a.City in (select b.City from #B.entities() b)\n"
+            + "              and a.Name != 'Alice'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { City = "NYC", Population = 100 },
                     new BasicEntity("Bob") { City = "LA", Population = 200 },
-                    new BasicEntity("Charlie") { City = "NYC", Population = 300 }
+                    new BasicEntity("Charlie") { City = "NYC", Population = 300 },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("X") { City = "NYC" },
-                    new BasicEntity("Y") { City = "LA" }
-                ]
-            }
+            { "#B", [new BasicEntity("X") { City = "NYC" }, new BasicEntity("Y") { City = "LA" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Bob", "LA"],
-            ["Charlie", "NYC"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Bob", "LA"], ["Charlie", "NYC"]);
     }
 
     #endregion
@@ -146,27 +133,25 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenAsOfJoinWithWindowRowNumber_ShouldWork()
     {
-        var query = @"
-            select a.Name, a.Population, b.Name as MatchedName, b.Population as MatchedPop,
-                   RowNumber() over (order by a.Name) as rn
-            from #A.entities() a
-            asof join #B.entities() b on a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "            select a.Name, a.Population, b.Name as MatchedName, b.Population as MatchedPop,\n"
+            + "                   RowNumber() over (order by a.Name) as rn\n"
+            + "            from #A.entities() a\n"
+            + "            asof join #B.entities() b on a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { Population = 300 },
                     new BasicEntity("Bob") { Population = 200 },
-                    new BasicEntity("Charlie") { Population = 100 }
+                    new BasicEntity("Charlie") { Population = 100 },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("X") { Population = 150 },
-                    new BasicEntity("Y") { Population = 250 }
-                ]
-            }
+            { "#B", [new BasicEntity("X") { Population = 150 }, new BasicEntity("Y") { Population = 250 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -179,11 +164,13 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             ("Population", typeof(decimal)),
             ("MatchedName", typeof(string)),
             ("MatchedPop", typeof(decimal)),
-            ("rn", typeof(long)));
+            ("rn", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 300m, "Y", 250m, 1L],
-            ["Bob", 200m, "X", 150m, 2L]);
+            ["Bob", 200m, "X", 150m, 2L]
+        );
     }
 
     #endregion
@@ -193,33 +180,26 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenAsOfJoinWithInSubquery_ShouldFilterCorrectly()
     {
-        var query = @"
-            select a.Name, a.Population, b.Name as MatchedName
-            from #A.entities() a
-            asof join #B.entities() b on a.Population >= b.Population
-            where a.Name in (select c.Name from #C.entities() c)";
+        var query = (
+            "\n"
+            + "            select a.Name, a.Population, b.Name as MatchedName\n"
+            + "            from #A.entities() a\n"
+            + "            asof join #B.entities() b on a.Population >= b.Population\n"
+            + "            where a.Name in (select c.Name from #C.entities() c)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { Population = 300 },
                     new BasicEntity("Bob") { Population = 200 },
-                    new BasicEntity("Charlie") { Population = 100 }
+                    new BasicEntity("Charlie") { Population = 100 },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("X") { Population = 150 },
-                    new BasicEntity("Y") { Population = 50 }
-                ]
-            },
-            {
-                "#C", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Charlie")
-                ]
-            }
+            { "#B", [new BasicEntity("X") { Population = 150 }, new BasicEntity("Y") { Population = 50 }] },
+            { "#C", [new BasicEntity("Alice"), new BasicEntity("Charlie")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -229,11 +209,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("MatchedName", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", 300m, "X"],
-            ["Charlie", 100m, "Y"]);
+            ("MatchedName", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", 300m, "X"], ["Charlie", 100m, "Y"]);
     }
 
     #endregion
@@ -243,26 +221,19 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenAsOfJoinWithQualify_ShouldWork()
     {
-        var query = @"
-            select a.Name, a.Population, b.Population as MatchedPop,
-                   RowNumber() over (order by a.Name) as rn
-            from #A.entities() a
-            asof join #B.entities() b on a.Population >= b.Population
-            qualify RowNumber() over (order by a.Name) <= 1";
+        var query = (
+            "\n"
+            + "            select a.Name, a.Population, b.Population as MatchedPop,\n"
+            + "                   RowNumber() over (order by a.Name) as rn\n"
+            + "            from #A.entities() a\n"
+            + "            asof join #B.entities() b on a.Population >= b.Population\n"
+            + "            qualify RowNumber() over (order by a.Name) <= 1"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice") { Population = 300 },
-                    new BasicEntity("Bob") { Population = 200 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("X") { Population = 150 }
-                ]
-            }
+            { "#A", [new BasicEntity("Alice") { Population = 300 }, new BasicEntity("Bob") { Population = 200 }] },
+            { "#B", [new BasicEntity("X") { Population = 150 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -273,7 +244,8 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
             ("MatchedPop", typeof(decimal)),
-            ("rn", typeof(long)));
+            ("rn", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", 300m, 150m, 1L]);
     }
 
@@ -284,30 +256,34 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenFilterWithInSubqueryInWhere_ShouldWork()
     {
-        var query = @"
-            select a.Country as Country,
-                   a.Count(a.Country) filter (where a.Population > 100) as BigCount,
-                   a.Count(a.Country) as AllCount
-            from #A.entities() a
-            where a.City in (select b.City from #B.entities() b)
-            group by a.Country";
+        var query = (
+            "\n"
+            + "            select a.Country as Country,\n"
+            + "                   a.Count(a.Country) filter (where a.Population > 100) as BigCount,\n"
+            + "                   a.Count(a.Country) as AllCount\n"
+            + "            from #A.entities() a\n"
+            + "            where a.City in (select b.City from #B.entities() b)\n"
+            + "            group by a.Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("W", "PL", 500) { City = "WARSAW" },
                     new BasicEntity("B", "DE", 50) { City = "BERLIN" },
                     new BasicEntity("P", "FR", 300) { City = "PARIS" },
-                    new BasicEntity("L", "UK", 200) { City = "LONDON" }
+                    new BasicEntity("L", "UK", 200) { City = "LONDON" },
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity("W", "PL", 500) { City = "WARSAW" },
-                    new BasicEntity("B", "DE", 50) { City = "BERLIN" }
+                    new BasicEntity("B", "DE", 50) { City = "BERLIN" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -317,11 +293,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             table,
             ("Country", typeof(string)),
             ("BigCount", typeof(long)),
-            ("AllCount", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["PL", 1L, 1L],
-            ["DE", 0L, 1L]);
+            ("AllCount", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PL", 1L, 1L], ["DE", 0L, 1L]);
     }
 
     #endregion
@@ -331,28 +305,26 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRowsFrameWithInSubqueryInWhere_ShouldWork()
     {
-        var query = @"
-            select a.Name, a.Population,
-                   Sum(a.Population) over (order by a.Name rows between unbounded preceding and current row) as RunSum
-            from #A.entities() a
-            where a.City in (select b.City from #B.entities() b)";
+        var query = (
+            "\n"
+            + "            select a.Name, a.Population,\n"
+            + "                   Sum(a.Population) over (order by a.Name rows between unbounded preceding and current row) as RunSum\n"
+            + "            from #A.entities() a\n"
+            + "            where a.City in (select b.City from #B.entities() b)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { City = "NYC", Population = 100 },
                     new BasicEntity("Bob") { City = "LA", Population = 200 },
                     new BasicEntity("Charlie") { City = "NYC", Population = 300 },
-                    new BasicEntity("Diana") { City = "SF", Population = 400 }
+                    new BasicEntity("Diana") { City = "SF", Population = 400 },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("X") { City = "NYC" },
-                    new BasicEntity("Y") { City = "LA" }
-                ]
-            }
+            { "#B", [new BasicEntity("X") { City = "NYC" }, new BasicEntity("Y") { City = "LA" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -362,12 +334,14 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("RunSum", typeof(decimal?)));
+            ("RunSum", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 100m, 100m],
             ["Bob", 200m, 300m],
-            ["Charlie", 300m, 600m]);
+            ["Charlie", 300m, 600m]
+        );
     }
 
     #endregion
@@ -377,25 +351,18 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRowsFrameWithAsOfJoin_ShouldWork()
     {
-        var query = @"
-            select a.Name, a.Population,
-                   Sum(a.Population) over (order by a.Name rows between unbounded preceding and current row) as RunSum
-            from #A.entities() a
-            asof join #B.entities() b on a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "            select a.Name, a.Population,\n"
+            + "                   Sum(a.Population) over (order by a.Name rows between unbounded preceding and current row) as RunSum\n"
+            + "            from #A.entities() a\n"
+            + "            asof join #B.entities() b on a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice") { Population = 300 },
-                    new BasicEntity("Bob") { Population = 200 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("X") { Population = 150 }
-                ]
-            }
+            { "#A", [new BasicEntity("Alice") { Population = 300 }, new BasicEntity("Bob") { Population = 200 }] },
+            { "#B", [new BasicEntity("X") { Population = 150 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -405,11 +372,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
-            ("RunSum", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", 300m, 300m],
-            ["Bob", 200m, 500m]);
+            ("RunSum", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", 300m, 300m], ["Bob", 200m, 500m]);
     }
 
     #endregion
@@ -419,22 +384,25 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenAggregateValuesWithFilter_ShouldWork()
     {
-        var query = @"
-            select a.Country,
-                   AggregateValues(a.Name, ', ') as AllNames,
-                   Count(a.Name) filter (where a.Population > 200) as BigCityCount
-            from #A.entities() a
-            group by a.Country";
+        var query = (
+            "\n"
+            + "            select a.Country,\n"
+            + "                   AggregateValues(a.Name, ', ') as AllNames,\n"
+            + "                   Count(a.Name) filter (where a.Population > 200) as BigCityCount\n"
+            + "            from #A.entities() a\n"
+            + "            group by a.Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { Country = "PL", Population = 100 },
                     new BasicEntity("Bob") { Country = "PL", Population = 300 },
-                    new BasicEntity("Charlie") { Country = "DE", Population = 500 }
+                    new BasicEntity("Charlie") { Country = "DE", Population = 500 },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -444,11 +412,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             table,
             ("Country", typeof(string)),
             ("AllNames", typeof(string)),
-            ("BigCityCount", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["PL", "Alice, Bob", 1L],
-            ["DE", "Charlie", 1L]);
+            ("BigCityCount", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PL", "Alice, Bob", 1L], ["DE", "Charlie", 1L]);
     }
 
     #endregion
@@ -458,21 +424,24 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenAggregateValuesInCteWithOuterQualify_ShouldWork()
     {
-        var query = @"
-            with grouped as (
-                select Country, AggregateValues(Name, ', ') as Names, Count(Name) as Cnt
-                from #A.entities()
-                group by Country
-            )
-            select Country, Names, Cnt,
-                   RowNumber() over (order by Country) as rn
-            from grouped
-            qualify RowNumber() over (order by Country) <= 1";
+        var query = (
+            "\n"
+            + "            with grouped as (\n"
+            + "                select Country, AggregateValues(Name, ', ') as Names, Count(Name) as Cnt\n"
+            + "                from #A.entities()\n"
+            + "                group by Country\n"
+            + "            )\n"
+            + "            select Country, Names, Cnt,\n"
+            + "                   RowNumber() over (order by Country) as rn\n"
+            + "            from grouped\n"
+            + "            qualify RowNumber() over (order by Country) <= 1"
+        );
 
         var sources = CreateSingleSource(
             new BasicEntity("Alice") { Country = "PL", Population = 100 },
             new BasicEntity("Bob") { Country = "PL", Population = 300 },
-            new BasicEntity("Charlie") { Country = "DE", Population = 500 });
+            new BasicEntity("Charlie") { Country = "DE", Population = 500 }
+        );
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -482,10 +451,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             ("Country", typeof(string)),
             ("Names", typeof(string)),
             ("Cnt", typeof(long)),
-            ("rn", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["DE", "Charlie", 1L, 1L]);
+            ("rn", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["DE", "Charlie", 1L, 1L]);
     }
 
     #endregion
@@ -495,28 +463,27 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenAsOfJoinWithGroupByAndFilter_ShouldWork()
     {
-        var query = @"
-            select a.Country as Country,
-                   Count(a.Name) as Total,
-                   Count(a.Name) filter (where a.Population > 200) as BigCount
-            from #A.entities() a
-            asof join #B.entities() b on a.Population >= b.Population
-            group by a.Country";
+        var query = (
+            "\n"
+            + "            select a.Country as Country,\n"
+            + "                   Count(a.Name) as Total,\n"
+            + "                   Count(a.Name) filter (where a.Population > 200) as BigCount\n"
+            + "            from #A.entities() a\n"
+            + "            asof join #B.entities() b on a.Population >= b.Population\n"
+            + "            group by a.Country"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { Country = "PL", Population = 300 },
                     new BasicEntity("Bob") { Country = "PL", Population = 100 },
-                    new BasicEntity("Charlie") { Country = "DE", Population = 500 }
+                    new BasicEntity("Charlie") { Country = "DE", Population = 500 },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("X") { Population = 50 }
-                ]
-            }
+            { "#B", [new BasicEntity("X") { Population = 50 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -527,11 +494,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             table,
             ("Country", typeof(string)),
             ("Total", typeof(long)),
-            ("BigCount", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["PL", 2L, 1L],
-            ["DE", 1L, 1L]);
+            ("BigCount", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PL", 2L, 1L], ["DE", 1L, 1L]);
     }
 
     #endregion
@@ -541,32 +506,19 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [TestMethod]
     public void WhenTwoAsOfJoins_ShouldChainCorrectly()
     {
-        var query = @"
-            select a.Name, a.Population, b.Name as Match1, c.Name as Match2
-            from #A.entities() a
-            asof join #B.entities() b on a.Population >= b.Population
-            asof join #C.entities() c on a.Population >= c.Population";
+        var query = (
+            "\n"
+            + "            select a.Name, a.Population, b.Name as Match1, c.Name as Match2\n"
+            + "            from #A.entities() a\n"
+            + "            asof join #B.entities() b on a.Population >= b.Population\n"
+            + "            asof join #C.entities() c on a.Population >= c.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice") { Population = 500 },
-                    new BasicEntity("Bob") { Population = 300 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("X") { Population = 200 },
-                    new BasicEntity("Y") { Population = 400 }
-                ]
-            },
-            {
-                "#C", [
-                    new BasicEntity("P") { Population = 100 },
-                    new BasicEntity("Q") { Population = 250 }
-                ]
-            }
+            { "#A", [new BasicEntity("Alice") { Population = 500 }, new BasicEntity("Bob") { Population = 300 }] },
+            { "#B", [new BasicEntity("X") { Population = 200 }, new BasicEntity("Y") { Population = 400 }] },
+            { "#C", [new BasicEntity("P") { Population = 100 }, new BasicEntity("Q") { Population = 250 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -577,11 +529,9 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             ("Name", typeof(string)),
             ("Population", typeof(decimal)),
             ("Match1", typeof(string)),
-            ("Match2", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice", 500m, "Y", "Q"],
-            ["Bob", 300m, "X", "Q"]);
+            ("Match2", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", 500m, "Y", "Q"], ["Bob", 300m, "X", "Q"]);
     }
 
     #endregion
@@ -592,25 +542,34 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     [Description("ASOF JOIN + star exclude with alias prefix should work")]
     public void WhenAsOfJoinWithStarExclude_ShouldWork()
     {
-        var query = @"
-            select a.* exclude (a.City, a.Country),
-                   b.Name as MatchedName
-            from #A.entities() a
-            asof join #B.entities() b on a.Population >= b.Population";
+        var query = (
+            "\n"
+            + "            select a.* exclude (a.City, a.Country),\n"
+            + "                   b.Name as MatchedName\n"
+            + "            from #A.entities() a\n"
+            + "            asof join #B.entities() b on a.Population >= b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("Alice") { Population = 300, City = "NYC", Country = "US" },
-                    new BasicEntity("Bob") { Population = 200, City = "LA", Country = "US" }
+                "#A",
+                [
+                    new BasicEntity("Alice")
+                    {
+                        Population = 300,
+                        City = "NYC",
+                        Country = "US",
+                    },
+                    new BasicEntity("Bob")
+                    {
+                        Population = 200,
+                        City = "LA",
+                        Country = "US",
+                    },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity("X") { Population = 150 }
-                ]
-            }
+            { "#B", [new BasicEntity("X") { Population = 150 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -625,11 +584,13 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
             ("Time", typeof(DateTime)),
             ("Id", typeof(int)),
             ("NullableValue", typeof(int?)),
-            ("MatchedName", typeof(string)));
+            ("MatchedName", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 300m, 0m, "", default(DateTime), 0, null, "X"],
-            ["Bob", 200m, 0m, "", default(DateTime), 0, null, "X"]);
+            ["Bob", 200m, 0m, "", default(DateTime), 0, null, "X"]
+        );
     }
 
     #endregion

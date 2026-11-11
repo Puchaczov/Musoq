@@ -10,7 +10,8 @@ public sealed record ExecutionHashProbe(
     ExecutionBlock? NoMatchBody = null,
     ExecutionVariable? MatchFound = null,
     string? GeneratedRowTypeName = null,
-    string? KeyVariableName = null) : ExecutionNode
+    string? KeyVariableName = null
+) : ExecutionNode
 {
     internal ExecutionHashProbe(
         ExecutionVariable hash,
@@ -22,7 +23,8 @@ public sealed record ExecutionHashProbe(
         ExecutionBlock? noMatchBody = null,
         ExecutionVariable? matchFound = null,
         string? generatedRowTypeName = null,
-        string? keyVariableName = null)
+        string? keyVariableName = null
+    )
         : this(
             hash,
             matches,
@@ -33,7 +35,6 @@ public sealed record ExecutionHashProbe(
             noMatchBody,
             matchFound,
             generatedRowTypeName,
-            keyVariableName)
-    {
-    }
+            keyVariableName
+        ) { }
 }

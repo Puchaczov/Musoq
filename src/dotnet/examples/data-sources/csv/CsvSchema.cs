@@ -17,9 +17,7 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
     private readonly HashSet<string> _dynamicMetadataQueryIds = new(StringComparer.Ordinal);
 
     public CsvSchema()
-        : this(null, true)
-    {
-    }
+        : this(null, true) { }
 
     internal CsvSchema(CsvDataSourceApiRecorder? recorder, bool enableQueryScopedRows = true)
         : base(SchemaName, CreateLibrary())
@@ -34,22 +32,19 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         EnsureFile(name);
         ArgumentNullException.ThrowIfNull(metadataContext);
 
         var dynamicColumns = DiscoverDynamicColumns(metadataContext.AllColumns, parameters);
-        var columns = dynamicColumns.Length > 0
-            ? dynamicColumns
-            : metadataContext.AllColumns.ToArray();
+        var columns = dynamicColumns.Length > 0 ? dynamicColumns : metadataContext.AllColumns.ToArray();
         if (dynamicColumns.Length > 0)
             _dynamicMetadataQueryIds.Add(metadataContext.QueryId);
-        _recorder?.GetTableCalls.Add(new CsvGetTableCall(
-            name,
-            CsvSourceMetadataSnapshot.From(metadataContext),
-            parameters.ToArray(),
-            columns));
+        _recorder?.GetTableCalls.Add(
+            new CsvGetTableCall(name, CsvSourceMetadataSnapshot.From(metadataContext), parameters.ToArray(), columns)
+        );
 
         return dynamicColumns.Length > 0
             ? new CsvFileTable(columns, typeof(QueryScopedRowContract))
@@ -59,14 +54,16 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         EnsureFile(name);
         ArgumentNullException.ThrowIfNull(context);
 
         var dynamicColumns = DiscoverDynamicColumns(context.MetadataContext.AllColumns, parameters);
-        var dynamicMetadata = dynamicColumns.Length > 0 ||
-            (_enableQueryScopedRows && _dynamicMetadataQueryIds.Contains(context.MetadataContext.QueryId));
+        var dynamicMetadata =
+            dynamicColumns.Length > 0
+            || (_enableQueryScopedRows && _dynamicMetadataQueryIds.Contains(context.MetadataContext.QueryId));
         var columns = dynamicMetadata
             ? (dynamicColumns.Length > 0 ? dynamicColumns : CsvDynamicMetadata.Discover(parameters))
             : context.MetadataContext.AllColumns.ToArray();
@@ -74,17 +71,26 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
             columns = CsvDynamicMetadata.Discover(parameters);
         if (dynamicMetadata && columns.Length > 0)
             _dynamicMetadataQueryIds.Add(context.MetadataContext.QueryId);
-        _recorder?.DescribeSourceCalls.Add(new CsvDescribeSourceCall(
-            name,
-            context.Identity,
-            CsvSourceMetadataSnapshot.From(context.MetadataContext),
-            parameters.ToArray(),
-            columns));
+        _recorder?.DescribeSourceCalls.Add(
+            new CsvDescribeSourceCall(
+                name,
+                context.Identity,
+                CsvSourceMetadataSnapshot.From(context.MetadataContext),
+                parameters.ToArray(),
+                columns
+            )
+        );
 
         var diagnostics = CsvContractDiagnostics.Describe(columns, parameters);
         if (!_enableQueryScopedRows)
-            diagnostics = diagnostics.Append(SourceContractDiagnostic.Error(
-                "CSV sources require a native typed positional accessor through query-scoped rows.", "CsvNativeTransferRequired")).ToArray();
+            diagnostics = diagnostics
+                .Append(
+                    SourceContractDiagnostic.Error(
+                        "CSV sources require a native typed positional accessor through query-scoped rows.",
+                        "CsvNativeTransferRequired"
+                    )
+                )
+                .ToArray();
         if (_recorder?.DescribeSourceContractDiagnostics.Count > 0)
             diagnostics = diagnostics.Concat(_recorder.DescribeSourceContractDiagnostics).ToArray();
 
@@ -96,31 +102,32 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
             ContractDiagnostics = diagnostics,
             TransferCapabilities = _enableQueryScopedRows
                 ? SourceTransferCapabilities.QueryScopedRows
-                : SourceTransferCapabilities.None
+                : SourceTransferCapabilities.None,
         };
     }
 
     public override IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
         string name,
         SourceRuntimeSettingsDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         EnsureFile(name);
         ArgumentNullException.ThrowIfNull(context);
 
-        _recorder?.RuntimeSettingsCalls.Add(new CsvRuntimeSettingsCall(
-            name,
-            context.Identity,
-            CsvSourceMetadataSnapshot.From(context.MetadataContext),
-            parameters.ToArray()));
+        _recorder?.RuntimeSettingsCalls.Add(
+            new CsvRuntimeSettingsCall(
+                name,
+                context.Identity,
+                CsvSourceMetadataSnapshot.From(context.MetadataContext),
+                parameters.ToArray()
+            )
+        );
 
         return _recorder?.RuntimeSettingRequirements.ToArray() ?? [];
     }
 
-    public override SourcePlanResult TryPlanSource(
-        string name,
-        SourcePlanRequest request,
-        params object?[] parameters)
+    public override SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
     {
         EnsureFile(name);
         ArgumentNullException.ThrowIfNull(request);
@@ -128,12 +135,19 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
         _recorder?.PlanCalls.Add(new CsvPlanCall(name, request, parameters.ToArray()));
         var result = _recorder?.PlanResultFactory?.Invoke(request) ?? CsvSourcePlan.Create(request);
         if (_recorder?.PlanContractDiagnostics.Count > 0)
-            result = result with { ContractDiagnostics = result.ContractDiagnostics.Concat(_recorder.PlanContractDiagnostics).ToArray() };
+            result = result with
+            {
+                ContractDiagnostics = result.ContractDiagnostics.Concat(_recorder.PlanContractDiagnostics).ToArray(),
+            };
         if (result.ExecutionPlan is null)
             return result;
         try
         {
-            var properties = result.ExecutionPlan.Properties.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+            var properties = result.ExecutionPlan.Properties.ToDictionary(
+                pair => pair.Key,
+                pair => pair.Value,
+                StringComparer.Ordinal
+            );
             properties[CsvNativeExecutionPlan.PropertyName] = CsvNativeExecutionPlan.Bind(result);
             return result with { ExecutionPlan = result.ExecutionPlan with { Properties = properties } };
         }
@@ -141,7 +155,9 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
         {
             return result with
             {
-                ContractDiagnostics = result.ContractDiagnostics.Append(SourceContractDiagnostic.Error(exception.Message, "CsvNativeBinding")).ToArray()
+                ContractDiagnostics = result
+                    .ContractDiagnostics.Append(SourceContractDiagnostic.Error(exception.Message, "CsvNativeBinding"))
+                    .ToArray(),
             };
         }
     }
@@ -149,16 +165,20 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments parameters)
+        TArguments parameters
+    )
     {
         EnsureFile(name);
         ArgumentNullException.ThrowIfNull(executionContext);
 
-        _recorder?.RowSourceCalls.Add(new CsvRowSourceCall(
-            name,
-            CsvSourceExecutionSnapshot.From(executionContext),
-            CsvSourceOptions.FromNative(parameters),
-            typeof(T)));
+        _recorder?.RowSourceCalls.Add(
+            new CsvRowSourceCall(
+                name,
+                CsvSourceExecutionSnapshot.From(executionContext),
+                CsvSourceOptions.FromNative(parameters),
+                typeof(T)
+            )
+        );
 
         throw new InvalidOperationException("CSV sources require native query-scoped rows.");
     }
@@ -166,7 +186,8 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
@@ -174,26 +195,28 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
         ArgumentNullException.ThrowIfNull(request);
         if (!_enableQueryScopedRows)
         {
-            throw new InvalidOperationException(
-                "CSV query-scoped rows are disabled for this schema instance.");
+            throw new InvalidOperationException("CSV query-scoped rows are disabled for this schema instance.");
         }
 
-        _recorder?.QueryRowSourceCalls.Add(new CsvQueryRowSourceCall(
-            name,
-            CsvSourceExecutionSnapshot.From(request.ExecutionContext),
-            CsvSourceOptions.FromNative(parameters),
-            typeof(TRow),
-            request.Shape.Fingerprint));
+        _recorder?.QueryRowSourceCalls.Add(
+            new CsvQueryRowSourceCall(
+                name,
+                CsvSourceExecutionSnapshot.From(request.ExecutionContext),
+                CsvSourceOptions.FromNative(parameters),
+                typeof(TRow),
+                request.Shape.Fingerprint
+            )
+        );
 
-        return new CsvQueryRowSource<TRow, TMaterializer>(
-            CsvSourceOptions.FromNative(parameters),
-            request);
+        return new CsvQueryRowSource<TRow, TMaterializer>(CsvSourceOptions.FromNative(parameters), request);
     }
 
     public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext)
     {
         ArgumentNullException.ThrowIfNull(metadataContext);
-        _recorder?.RawConstructorCalls.Add(new CsvRawConstructorCall(null, CsvSourceMetadataSnapshot.From(metadataContext)));
+        _recorder?.RawConstructorCalls.Add(
+            new CsvRawConstructorCall(null, CsvSourceMetadataSnapshot.From(metadataContext))
+        );
         return base.GetRawConstructors(metadataContext);
     }
 
@@ -201,7 +224,9 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(methodName);
         ArgumentNullException.ThrowIfNull(metadataContext);
-        _recorder?.RawConstructorCalls.Add(new CsvRawConstructorCall(methodName, CsvSourceMetadataSnapshot.From(metadataContext)));
+        _recorder?.RawConstructorCalls.Add(
+            new CsvRawConstructorCall(methodName, CsvSourceMetadataSnapshot.From(metadataContext))
+        );
         return base.GetRawConstructors(metadataContext)
             .Where(constructor => string.Equals(constructor.MethodName, methodName, StringComparison.Ordinal))
             .ToArray();
@@ -215,7 +240,8 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
 
     private ISchemaColumn[] DiscoverDynamicColumns(
         IReadOnlyCollection<ISchemaColumn> columns,
-        IReadOnlyList<object?> parameters)
+        IReadOnlyList<object?> parameters
+    )
     {
         if (!_enableQueryScopedRows)
             return [];
@@ -233,9 +259,7 @@ public sealed class CsvSchema : SchemaBase, IQueryScopedRowSourceSchema
         var discoveredNames = discovered
             .Select(static column => column.ColumnName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        return columns.All(column => discoveredNames.Contains(column.ColumnName))
-            ? discovered
-            : [];
+        return columns.All(column => discoveredNames.Contains(column.ColumnName)) ? discovered : [];
     }
 
     private static MethodsAggregator CreateLibrary()

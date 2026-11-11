@@ -16,58 +16,104 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
     public void AsOfJoin_NullEqualityAndInequalityKeys_ShouldNotMatch()
     {
         const string query =
-            "select a.Name, b.Name from #A.Entities() a asof left join #B.Entities() b " +
-            "on a.Country = b.Country and a.NullableValue >= b.NullableValue";
+            "select a.Name, b.Name from #A.Entities() a asof left join #B.Entities() b "
+            + "on a.Country = b.Country and a.NullableValue >= b.NullableValue";
 
-        var table = Run(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new BasicEntity { Name = "A-null-country", Country = null, NullableValue = 100 },
-                new BasicEntity { Name = "A-null-probe", Country = "US", NullableValue = null },
-                new BasicEntity { Name = "A-match", Country = "US", NullableValue = 100 }
-            ],
-            ["#B"] =
-            [
-                new BasicEntity { Name = "B-null-country", Country = null, NullableValue = 90 },
-                new BasicEntity { Name = "B-null-key", Country = "US", NullableValue = null },
-                new BasicEntity { Name = "B-match", Country = "US", NullableValue = 90 }
-            ]
-        });
+        var table = Run(
+            query,
+            new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#A"] =
+                [
+                    new BasicEntity
+                    {
+                        Name = "A-null-country",
+                        Country = null,
+                        NullableValue = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A-null-probe",
+                        Country = "US",
+                        NullableValue = null,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A-match",
+                        Country = "US",
+                        NullableValue = 100,
+                    },
+                ],
+                ["#B"] =
+                [
+                    new BasicEntity
+                    {
+                        Name = "B-null-country",
+                        Country = null,
+                        NullableValue = 90,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B-null-key",
+                        Country = "US",
+                        NullableValue = null,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B-match",
+                        Country = "US",
+                        NullableValue = 90,
+                    },
+                ],
+            }
+        );
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             new object?[] { "A-null-country", null },
             new object?[] { "A-null-probe", null },
-            new object?[] { "A-match", "B-match" });
+            new object?[] { "A-match", "B-match" }
+        );
     }
 
     [TestMethod]
     public void AsOfJoin_TieBreak_ShouldOrderOnlyTheNearestKeyAndHonorNullPlacement()
     {
         const string ascendingQuery =
-            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b " +
-            "on a.Population >= b.Population tie break by b.NullableValue asc";
+            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b "
+            + "on a.Population >= b.Population tie break by b.NullableValue asc";
         const string descendingQuery =
-            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b " +
-            "on a.Population >= b.Population tie break by b.NullableValue desc";
+            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b "
+            + "on a.Population >= b.Population tie break by b.NullableValue desc";
         const string explicitLastQuery =
-            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b " +
-            "on a.Population >= b.Population tie break by b.NullableValue asc nulls last";
+            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b "
+            + "on a.Population >= b.Population tie break by b.NullableValue asc nulls last";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity { Name = "A1", Population = 100 }],
             ["#B"] =
             [
-                new BasicEntity { Name = "B-far", Population = 80, NullableValue = 100 },
-                new BasicEntity { Name = "B-nearest-null", Population = 90, NullableValue = null },
-                new BasicEntity { Name = "B-nearest-value", Population = 90, NullableValue = 5 }
-            ]
+                new BasicEntity
+                {
+                    Name = "B-far",
+                    Population = 80,
+                    NullableValue = 100,
+                },
+                new BasicEntity
+                {
+                    Name = "B-nearest-null",
+                    Population = 90,
+                    NullableValue = null,
+                },
+                new BasicEntity
+                {
+                    Name = "B-nearest-value",
+                    Population = 90,
+                    NullableValue = 5,
+                },
+            ],
         };
 
         AssertTieBreakResult(ascendingQuery, sources, "B-nearest-null");
@@ -78,8 +124,7 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
     [TestMethod]
     public void AsOfJoin_MissingInequality_ShouldReportExactSemanticContract()
     {
-        const string query =
-            "select a.Name from #A.Entities() a asof join #B.Entities() b on a.Name = b.Name";
+        const string query = "select a.Name from #A.Entities() a asof join #B.Entities() b on a.Name = b.Name";
 
         AssertSemanticDiagnosticContract(
             query,
@@ -89,16 +134,17 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
             "An ASOF JOIN requires exactly one inequality condition to identify the nearest match.",
             [
                 "Add one inequality predicate between the left and right sources.",
-                "Keep equality predicates for partitioning and one inequality for the as-of ordering."
-            ]);
+                "Keep equality predicates for partitioning and one inequality for the as-of ordering.",
+            ]
+        );
     }
 
     [TestMethod]
     public void AsOfJoin_MultipleInequalities_ShouldReportExactSemanticContract()
     {
         const string query =
-            "select a.Name from #A.Entities() a asof join #B.Entities() b " +
-            "on a.Population >= b.Population and a.Money > b.Money";
+            "select a.Name from #A.Entities() a asof join #B.Entities() b "
+            + "on a.Population >= b.Population and a.Money > b.Money";
 
         AssertSemanticDiagnosticContract(
             query,
@@ -108,16 +154,17 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
             "An ASOF JOIN contains more than one inequality condition.",
             [
                 "Keep only the inequality that defines the as-of ordering.",
-                "Move additional range checks to WHERE when they are row filters."
-            ]);
+                "Move additional range checks to WHERE when they are row filters.",
+            ]
+        );
     }
 
     [TestMethod]
     public void AsOfJoin_OrCondition_ShouldReportExactSemanticContract()
     {
         const string query =
-            "select a.Name from #A.Entities() a asof join #B.Entities() b " +
-            "on a.Population >= b.Population or a.Name = b.Name";
+            "select a.Name from #A.Entities() a asof join #B.Entities() b "
+            + "on a.Population >= b.Population or a.Name = b.Name";
 
         AssertSemanticDiagnosticContract(
             query,
@@ -127,15 +174,15 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
             "The ASOF JOIN ON clause does not support OR conditions.",
             [
                 "Rewrite the join condition using AND predicates.",
-                "Split OR alternatives into separate queries when needed."
-            ]);
+                "Split OR alternatives into separate queries when needed.",
+            ]
+        );
     }
 
     [TestMethod]
     public void AsOfJoin_OneSidedInequality_ShouldReportExactSemanticContract()
     {
-        const string query =
-            "select a.Name from #A.Entities() a asof join #B.Entities() b on a.Population >= a.Money";
+        const string query = "select a.Name from #A.Entities() a asof join #B.Entities() b on a.Population >= a.Money";
 
         AssertSemanticDiagnosticContract(
             query,
@@ -145,15 +192,15 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
             "The ASOF JOIN inequality must compare values from the left and right sources.",
             [
                 "Reference one column from each side of the join in the inequality.",
-                "Use source aliases to make each side explicit."
-            ]);
+                "Use source aliases to make each side explicit.",
+            ]
+        );
     }
 
     [TestMethod]
     public void AsOfJoin_NonOrderableInequality_ShouldReportExactSemanticContract()
     {
-        const string query =
-            "select a.Name from #A.Entities() a asof join #B.Entities() b on a.Array >= b.Array";
+        const string query = "select a.Name from #A.Entities() a asof join #B.Entities() b on a.Array >= b.Array";
 
         AssertSemanticDiagnosticContract(
             query,
@@ -163,16 +210,17 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
             "The ASOF JOIN inequality uses a column type that cannot be ordered.",
             [
                 "Use a numeric, date, or other comparable column for the as-of inequality.",
-                "Convert the column to an orderable type before joining."
-            ]);
+                "Convert the column to an orderable type before joining.",
+            ]
+        );
     }
 
     [TestMethod]
     public void AsOfJoin_TieBreakReferencingLeftSide_ShouldReportExactSemanticContract()
     {
         const string query =
-            "select a.Name from #A.Entities() a asof join #B.Entities() b " +
-            "on a.Population >= b.Population tie break by a.Name";
+            "select a.Name from #A.Entities() a asof join #B.Entities() b "
+            + "on a.Population >= b.Population tie break by a.Name";
 
         AssertSemanticDiagnosticContract(
             query,
@@ -182,16 +230,17 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
             "The ASOF JOIN inequality must compare values from the left and right sources.",
             [
                 "Reference one column from each side of the join in the inequality.",
-                "Use source aliases to make each side explicit."
-            ]);
+                "Use source aliases to make each side explicit.",
+            ]
+        );
     }
 
     [TestMethod]
     public void AsOfJoin_NonOrderableTieBreak_ShouldReportExactSemanticContract()
     {
         const string query =
-            "select a.Name from #A.Entities() a asof join #B.Entities() b " +
-            "on a.Population >= b.Population tie break by b.Array";
+            "select a.Name from #A.Entities() a asof join #B.Entities() b "
+            + "on a.Population >= b.Population tie break by b.Array";
 
         AssertSemanticDiagnosticContract(
             query,
@@ -201,8 +250,9 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
             "The ASOF JOIN inequality uses a column type that cannot be ordered.",
             [
                 "Use a numeric, date, or other comparable column for the as-of inequality.",
-                "Convert the column to an orderable type before joining."
-            ]);
+                "Convert the column to an orderable type before joining.",
+            ]
+        );
     }
 
     [TestMethod]
@@ -218,14 +268,14 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
             "tie",
             "TIE BREAK BY is defined only for ASOF JOIN and ASOF LEFT JOIN.",
             "Core Spec - ASOF JOIN",
-            ["Move TIE BREAK BY to an ASOF join or remove the clause."]);
+            ["Move TIE BREAK BY to an ASOF join or remove the clause."]
+        );
     }
 
     [TestMethod]
     public void AsOfRightJoin_ShouldReportExactUnsupportedSyntaxContract()
     {
-        const string query =
-            "select 1 from #A.Entities() a asof right join #B.Entities() b on a.Id >= b.Id";
+        const string query = "select 1 from #A.Entities() a asof right join #B.Entities() b on a.Id >= b.Id";
 
         AssertParserDiagnosticContract(
             query,
@@ -238,9 +288,10 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
                 "Use ASOF LEFT JOIN when left-preserving semantics match the intended query.",
                 "Otherwise reverse the sources and inequality explicitly, then verify the result.",
                 "Check for missing keywords, commas, or parentheses near this location.",
-                "Verify the query follows Musoq SQL syntax."
+                "Verify the query follows Musoq SQL syntax.",
             ],
-            expectKeywordQuickFix: false);
+            expectKeywordQuickFix: false
+        );
     }
 
     private Table Run(string query, IDictionary<string, IEnumerable<BasicEntity>> sources)
@@ -252,7 +303,8 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
     private void AssertTieBreakResult(
         string query,
         IDictionary<string, IEnumerable<BasicEntity>> sources,
-        string expectedRightName)
+        string expectedRightName
+    )
     {
         var table = Run(query, sources);
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", expectedRightName]);
@@ -264,7 +316,8 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
         string expectedMessage,
         string expectedExpression,
         string expectedExplanation,
-        string[] expectedFixes)
+        string[] expectedFixes
+    )
     {
         var diagnostic = GetSingleDiagnostic(query, expectedCode, DiagnosticPhase.Bind);
         var expectedStart = query.LastIndexOf(expectedExpression, StringComparison.Ordinal);
@@ -289,11 +342,12 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
         Assert.AreEqual("Core Spec - ASOF JOIN", envelope.DocsReference);
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
-        CollectionAssert.AreEqual(
-            expectedFixes,
-            envelope.Actions.Select(static action => action.Title).ToArray());
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        CollectionAssert.AreEqual(expectedFixes, envelope.Actions.Select(static action => action.Title).ToArray());
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
     }
 
     private static void AssertParserDiagnosticContract(
@@ -304,7 +358,8 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
         string expectedExplanation,
         string expectedDocsReference,
         string[] expectedFixes,
-        bool expectKeywordQuickFix = false)
+        bool expectKeywordQuickFix = false
+    )
     {
         var diagnostic = GetSingleDiagnostic(query, expectedCode, DiagnosticPhase.Parse);
         var expectedStart = query.LastIndexOf(expectedExpression, StringComparison.Ordinal);
@@ -329,9 +384,7 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
         Assert.AreEqual(expectedDocsReference, envelope.DocsReference);
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
-        CollectionAssert.AreEqual(
-            expectedFixes,
-            envelope.Actions.Select(static action => action.Title).ToArray());
+        CollectionAssert.AreEqual(expectedFixes, envelope.Actions.Select(static action => action.Title).ToArray());
         if (expectKeywordQuickFix)
         {
             var quickFix = envelope.Actions[0];
@@ -339,20 +392,27 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
             Assert.IsNotNull(quickFix.TextEdit);
             Assert.AreEqual(expectedSpan, quickFix.TextEdit.Span);
             Assert.AreEqual("ASC", quickFix.TextEdit.NewText);
-            Assert.IsTrue(envelope.Actions.Skip(1).All(static action =>
-                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+            Assert.IsTrue(
+                envelope
+                    .Actions.Skip(1)
+                    .All(static action => action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null)
+            );
         }
         else
         {
-            Assert.IsTrue(envelope.Actions.All(static action =>
-                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+            Assert.IsTrue(
+                envelope.Actions.All(static action =>
+                    action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+                )
+            );
         }
     }
 
     private static Diagnostic GetSingleDiagnostic(
         string query,
         DiagnosticCode expectedCode,
-        DiagnosticPhase expectedPhase)
+        DiagnosticPhase expectedPhase
+    )
     {
         var result = Analyze(query);
         Assert.IsFalse(result.IsSuccess, FormatDiagnostics(result));
@@ -368,21 +428,20 @@ public sealed class Core018AsOfJoinSemanticsTests : BasicEntityTestBase
     private static QueryAnalysisResult Analyze(string query)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [],
-                ["#B"] = []
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [], ["#B"] = [] }
+        );
 
         return new QueryAnalyzer(
             provider,
-            compilationOptions: new CompilationOptions(usePrimitiveTypeValidation: false))
-            .Analyze(query);
+            compilationOptions: new CompilationOptions(usePrimitiveTypeValidation: false)
+        ).Analyze(query);
     }
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code}: {diagnostic.Message}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic => $"{diagnostic.Code}: {diagnostic.Message}")
+        );
     }
 }

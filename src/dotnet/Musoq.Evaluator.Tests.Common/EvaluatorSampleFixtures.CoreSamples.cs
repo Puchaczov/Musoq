@@ -7,20 +7,60 @@ internal static partial class EvaluatorSampleFixtures
         return
         [
             Basic("Q01_SimpleSelectWhere", "Scan", "select Name, Population from #A.entities() where Population > 0"),
-            Basic("Q02_CteDownstream", "CTE", "with cte as (select Name, Population from #A.entities() where Population > 0) select Name, Population from cte"),
-            Basic("Q03_InnerJoin", "Join", "select a.Name, b.Country from #A.entities() a inner join #A.entities() b on a.Id = b.Id"),
-            Basic("Q04_LeftJoin", "Join", "select a.Name, b.Country from #A.entities() a left outer join #A.entities() b on a.Id = b.Id"),
+            Basic(
+                "Q02_CteDownstream",
+                "CTE",
+                "with cte as (select Name, Population from #A.entities() where Population > 0) select Name, Population from cte"
+            ),
+            Basic(
+                "Q03_InnerJoin",
+                "Join",
+                "select a.Name, b.Country from #A.entities() a inner join #A.entities() b on a.Id = b.Id"
+            ),
+            Basic(
+                "Q04_LeftJoin",
+                "Join",
+                "select a.Name, b.Country from #A.entities() a left outer join #A.entities() b on a.Id = b.Id"
+            ),
             Basic("Q05_GroupBySingle", "Grouping", "select City, Count(City) from #A.entities() group by City"),
-            Basic("Q06_GroupByMulti", "Grouping", "select City, Country, Count(Name) from #A.entities() group by City, Country"),
-            Basic("Q07_GroupByHavingOrderBy", "Grouping", "select City, Country, Sum(Population) from #A.entities() group by City, Country having Count(City) > 0 order by Sum(Population) desc"),
+            Basic(
+                "Q06_GroupByMulti",
+                "Grouping",
+                "select City, Country, Count(Name) from #A.entities() group by City, Country"
+            ),
+            Basic(
+                "Q07_GroupByHavingOrderBy",
+                "Grouping",
+                "select City, Country, Sum(Population) from #A.entities() group by City, Country having Count(City) > 0 order by Sum(Population) desc"
+            ),
             Basic("Q08_Distinct", "Set", "select distinct City, Country from #A.entities()"),
             Basic("Q09_Union", "Set", "select Name from #A.entities() union (Name) select Name from #A.entities()"),
-            Basic("Q10_WindowRowNumber", "Window", "select Name, City, RowNumber() over (partition by City order by Population desc) as rn from #A.entities()"),
-            Basic("Q11_WindowSumAggregate", "Window", "select Name, City, Sum(Population) over (partition by City) as total from #A.entities()"),
-            Basic("Q12_WindowLag", "Window", "select Name, City, Lag(Population, 1) over (partition by City order by Population desc) as prev from #A.entities()"),
-            Basic("Q13_MultipleWindows", "Window", "select Name, City, RowNumber() over (partition by City order by Population desc) as rn, Sum(Population) over (partition by City) as total from #A.entities()"),
+            Basic(
+                "Q10_WindowRowNumber",
+                "Window",
+                "select Name, City, RowNumber() over (partition by City order by Population desc) as rn from #A.entities()"
+            ),
+            Basic(
+                "Q11_WindowSumAggregate",
+                "Window",
+                "select Name, City, Sum(Population) over (partition by City) as total from #A.entities()"
+            ),
+            Basic(
+                "Q12_WindowLag",
+                "Window",
+                "select Name, City, Lag(Population, 1) over (partition by City order by Population desc) as prev from #A.entities()"
+            ),
+            Basic(
+                "Q13_MultipleWindows",
+                "Window",
+                "select Name, City, RowNumber() over (partition by City order by Population desc) as rn, Sum(Population) over (partition by City) as total from #A.entities()"
+            ),
             Basic("Q14_Except", "Set", "select Name from #A.entities() except (Name) select Name from #A.entities()"),
-            Basic("Q15_CteWithJoin", "CTE", "with cte as (select Name, City, Population from #A.entities() where Population > 0) select c.Name, a.Country from cte c inner join #A.entities() a on c.Name = a.Name"),
+            Basic(
+                "Q15_CteWithJoin",
+                "CTE",
+                "with cte as (select Name, City, Population from #A.entities() where Population > 0) select c.Name, a.Country from cte c inner join #A.entities() a on c.Name = a.Name"
+            ),
             BinaryInterpretation(),
             TextInterpretation(),
             BinaryConditionalInterpretation(),
@@ -60,49 +100,75 @@ internal static partial class EvaluatorSampleFixtures
                 "Q76_NonEquiJoinSortMergeEnabled",
                 "Join",
                 "select a.Name, b.Name from #A.entities() a inner join #A.entities() b on a.Population > b.Population + 950",
-                new CompilationOptions(useSortMergeJoin: true).WithStabilityAwareScalarReuse()),
+                new CompilationOptions(useSortMergeJoin: true).WithStabilityAwareScalarReuse()
+            ),
             BasicWithOptions(
                 "Q77_NonEquiJoinSortMergeDisabled",
                 "Join",
                 "select a.Name, b.Name from #A.entities() a inner join #A.entities() b on a.Population > b.Population + 950",
-                new CompilationOptions(useSortMergeJoin: false).WithStabilityAwareScalarReuse()),
-            Basic("Q78_WindowSumWholePartitionDecimal", "Window", "select Name, City, Sum(ToDecimal(Population)) over (partition by City) as total from #A.entities()"),
-            Basic("Q79_WindowSumRunningDecimal", "Window", "select Name, City, Sum(ToDecimal(Population)) over (partition by City order by Population) as running from #A.entities()"),
-            Basic("Q80_WindowAvgRunningDecimal", "Window", "select Name, City, Avg(ToDecimal(Population)) over (partition by City order by Population) as running_avg from #A.entities()"),
-            Basic("Q81_WindowRunningProductPlugin", "Window", "select Name, City, RunningProduct(ToDecimal(Population)) over (partition by City order by Population) as running_product from #A.entities()"),
+                new CompilationOptions(useSortMergeJoin: false).WithStabilityAwareScalarReuse()
+            ),
+            Basic(
+                "Q78_WindowSumWholePartitionDecimal",
+                "Window",
+                "select Name, City, Sum(ToDecimal(Population)) over (partition by City) as total from #A.entities()"
+            ),
+            Basic(
+                "Q79_WindowSumRunningDecimal",
+                "Window",
+                "select Name, City, Sum(ToDecimal(Population)) over (partition by City order by Population) as running from #A.entities()"
+            ),
+            Basic(
+                "Q80_WindowAvgRunningDecimal",
+                "Window",
+                "select Name, City, Avg(ToDecimal(Population)) over (partition by City order by Population) as running_avg from #A.entities()"
+            ),
+            Basic(
+                "Q81_WindowRunningProductPlugin",
+                "Window",
+                "select Name, City, RunningProduct(ToDecimal(Population)) over (partition by City order by Population) as running_product from #A.entities()"
+            ),
             BasicWithOptions(
                 "Q82_ParallelIndependentCtes",
                 "CTE",
                 "with p as (select Name as Name from #A.entities()), q as (select Name as Name from #B.entities()) select p.Name, q.Name from p inner join q on p.Name = q.Name",
-                new CompilationOptions(useCteParallelization: true).WithStabilityAwareScalarReuse()),
+                new CompilationOptions(useCteParallelization: true).WithStabilityAwareScalarReuse()
+            ),
             Basic(
                 "Q83_CompositeHashJoin",
                 "Join",
-                "select a.Name, b.Name from #A.entities() a inner join #B.entities() b on a.Id = b.Id and a.Population = b.Population"),
+                "select a.Name, b.Name from #A.entities() a inner join #B.entities() b on a.Id = b.Id and a.Population = b.Population"
+            ),
             Basic(
                 "Q84_RepeatedCteSelfJoin",
                 "CTE",
-                "with c as (select Name, City from #A.entities()) select l.Name, r.City from c l inner join c r on l.Name = r.Name"),
+                "with c as (select Name, City from #A.entities()) select l.Name, r.City from c l inner join c r on l.Name = r.Name"
+            ),
             Basic(
                 "Q85_OrderByTake",
                 "Pagination",
-                "select Name, Population from #A.entities() order by Population desc take 5"),
+                "select Name, Population from #A.entities() order by Population desc take 5"
+            ),
             Basic(
                 "Q86_WindowRunningProductFramedPlugin",
                 "Window",
-                "select Name, City, RunningProduct(ToDecimal(Population)) over (partition by City order by Population rows between unbounded preceding and current row) as running_product from #A.entities()"),
+                "select Name, City, RunningProduct(ToDecimal(Population)) over (partition by City order by Population rows between unbounded preceding and current row) as running_product from #A.entities()"
+            ),
             Basic(
                 "Q165_WindowAggregateFilter",
                 "Window",
-                "select Name, Sum(Population) filter (where Population > 100) over (order by Name) as FilteredPopulation from #A.entities()"),
+                "select Name, Sum(Population) filter (where Population > 100) over (order by Name) as FilteredPopulation from #A.entities()"
+            ),
             Basic(
                 "Q166_WindowRangeFrame",
                 "Window",
-                "select Name, Sum(Population) over (order by Population range between 100 preceding and current row) as RangePopulation from #A.entities()"),
+                "select Name, Sum(Population) over (order by Population range between 100 preceding and current row) as RangePopulation from #A.entities()"
+            ),
             Basic(
                 "Q167_MultiSourceAggregateOwnerResolution",
                 "Grouping",
-                "select a.Country, Count(a.Name) as NameCount from #A.entities() a inner join #B.entities() b on a.Id = b.Id group by a.Country"),
+                "select a.Country, Count(a.Name) as NameCount from #A.entities() a inner join #B.entities() b on a.Id = b.Id group by a.Country"
+            ),
             Basic(
                 "Q168_IsDistinctFromNullSafeComparison",
                 "Values",
@@ -114,58 +180,66 @@ internal static partial class EvaluatorSampleFixtures
 } pairs
 select pairs.Label,
        pairs.LeftValue is distinct from pairs.RightValue as IsDifferent,
-       pairs.LeftValue is not distinct from pairs.RightValue as IsSame"),
+       pairs.LeftValue is not distinct from pairs.RightValue as IsSame"
+            ),
             Basic(
                 "Q169_NullsFirstLastOrdering",
                 "Ordering",
-                "select Name, City, NullableValue from #A.entities() order by NullableValue nulls last, City desc nulls first"),
+                "select Name, City, NullableValue from #A.entities() order by NullableValue nulls last, City desc nulls first"
+            ),
             Basic(
                 "Q170_SelectStarRename",
                 "Scan",
-                "select * replace (Population * 2 as Population) rename (Name as EntityName, Population as WeightedPopulation) from #A.entities()"),
+                "select * replace (Population * 2 as Population) rename (Name as EntityName, Population as WeightedPopulation) from #A.entities()"
+            ),
             Basic(
                 "Q175_DescQuery",
                 "Description",
-                "desc query (select Name as PersonName, Population + Money as Total from #A.entities())"),
+                "desc query (select Name as PersonName, Population + Money as Total from #A.entities())"
+            ),
             Basic(
                 "Q242_WindowDistributionRankings",
                 "Window",
-                "select Name, City, PercentRank() over (partition by City order by NullableValue desc nulls last, Country) as PercentRankValue, CumeDist() over (partition by City order by NullableValue desc nulls last, Country) as CumeDistValue from #A.entities()"),
+                "select Name, City, PercentRank() over (partition by City order by NullableValue desc nulls last, Country) as PercentRankValue, CumeDist() over (partition by City order by NullableValue desc nulls last, Country) as CumeDistValue from #A.entities()"
+            ),
             Basic(
                 "Q87_CompilationSimpleSelect",
                 "Compilation",
-                "select City, Country, Population from #A.Entities() where Population > 500000"),
+                "select City, Country, Population from #A.Entities() where Population > 500000"
+            ),
             Basic(
                 "Q88_CompilationComplexGroupedSort",
                 "Compilation",
-                "select City, Country, Population, City + ' (' + Country + ')' as CityCountry from #A.Entities() where Population > 500000 group by City, Country, Population having Count(City) > 0 order by Population desc"),
+                "select City, Country, Population, City + ' (' + Country + ')' as CityCountry from #A.Entities() where Population > 500000 group by City, Country, Population having Count(City) > 0 order by Population desc"
+            ),
             BasicWithOptions(
                 "Q89_CompilationCseDisabled",
                 "Compilation",
                 "select Population as LeftPopulation, Population as RightPopulation from #A.Entities() where Population = Population",
-                new CompilationOptions(useCommonSubexpressionElimination: false)
-                    .WithStabilityAwareScalarReuse(false)),
+                new CompilationOptions(useCommonSubexpressionElimination: false).WithStabilityAwareScalarReuse(false)
+            ),
             BasicWithOptions(
                 "Q90_CompilationCseEnabled",
                 "Compilation",
                 "select Population as LeftPopulation, Population as RightPopulation from #A.Entities() where Population = Population",
-                new CompilationOptions(useCommonSubexpressionElimination: true).WithStabilityAwareScalarReuse()),
-            Basic(
-                "Q91_OrderBySimple",
-                "Ordering",
-                "select Name, Population from #A.entities() order by Population"),
+                new CompilationOptions(useCommonSubexpressionElimination: true).WithStabilityAwareScalarReuse()
+            ),
+            Basic("Q91_OrderBySimple", "Ordering", "select Name, Population from #A.entities() order by Population"),
             Basic(
                 "Q92_OrderByMultipleKeys",
                 "Ordering",
-                "select City, Country, Name, Population from #A.entities() order by Country, City desc, Population desc, Name"),
+                "select City, Country, Name, Population from #A.entities() order by Country, City desc, Population desc, Name"
+            ),
             Basic(
                 "Q93_OrderByAlias",
                 "Ordering",
-                "select Name, Population * 2 as WeightedPopulation from #A.entities() order by WeightedPopulation desc, Name"),
+                "select Name, Population * 2 as WeightedPopulation from #A.entities() order by WeightedPopulation desc, Name"
+            ),
             Basic(
                 "Q94_OrderByHiddenComputedKey",
                 "Ordering",
-                "select Name, City from #A.entities() order by Population + Money desc, Country"),
+                "select Name, City from #A.entities() order by Population + Money desc, Country"
+            ),
             BasicWithOptions(
                 "Q146_CteSidecarHashJoin",
                 "CTE",
@@ -173,7 +247,9 @@ select pairs.Label,
                 new CompilationOptions(
                     useHashJoin: true,
                     useSortMergeJoin: false,
-                    useCteSidecarIndexes: true).WithStabilityAwareScalarReuse()),
+                    useCteSidecarIndexes: true
+                ).WithStabilityAwareScalarReuse()
+            ),
             BasicWithOptions(
                 "Q147_CteSidecarKeySetSemiJoin",
                 "CTE",
@@ -181,7 +257,9 @@ select pairs.Label,
                 new CompilationOptions(
                     useHashJoin: true,
                     useSortMergeJoin: false,
-                    useCteSidecarIndexes: true).WithStabilityAwareScalarReuse()),
+                    useCteSidecarIndexes: true
+                ).WithStabilityAwareScalarReuse()
+            ),
             BasicWithOptions(
                 "Q148_CteSidecarFanoutThreeHashes",
                 "CTE",
@@ -189,7 +267,9 @@ select pairs.Label,
                 new CompilationOptions(
                     useHashJoin: true,
                     useSortMergeJoin: false,
-                    useCteSidecarIndexes: true).WithStabilityAwareScalarReuse()),
+                    useCteSidecarIndexes: true
+                ).WithStabilityAwareScalarReuse()
+            ),
             BasicWithOptions(
                 "Q149_CteSidecarStagedGraphMixed",
                 "CTE",
@@ -198,7 +278,9 @@ select pairs.Label,
                     useHashJoin: true,
                     useSortMergeJoin: false,
                     useCteParallelization: false,
-                    useCteSidecarIndexes: true).WithStabilityAwareScalarReuse())
+                    useCteSidecarIndexes: true
+                ).WithStabilityAwareScalarReuse()
+            ),
         ];
     }
 }

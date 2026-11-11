@@ -17,10 +17,11 @@ public sealed class FieldBindingRebinderTests
             typeof(string),
             FieldNullability.Nullable,
             new PositionalAccess(1),
-            readModifiers: new Dictionary<string, string> { ["encoding"] = "utf-8" }) with
+            readModifiers: new Dictionary<string, string> { ["encoding"] = "utf-8" }
+        ) with
         {
             GeneratedTypeName = "SourceRow",
-            GeneratedMemberTypeNames = new Dictionary<string, string> { ["Value"] = "string" }
+            GeneratedMemberTypeNames = new Dictionary<string, string> { ["Value"] = "string" },
         };
 
         var rebound = FieldBindingRebinder.Rebind(field, new GeneratedFieldAccess("Value"));

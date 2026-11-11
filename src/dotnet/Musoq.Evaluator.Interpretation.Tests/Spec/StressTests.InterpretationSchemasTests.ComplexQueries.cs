@@ -19,7 +19,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_MultipleCrossApplyChains_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             binary Header {
                 Magic: int le,
                 Count: short le
@@ -41,12 +42,21 @@ public partial class StressTestsInterpretationSchemasTests
         bw.Write(3.14d); // Record.Value
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -62,7 +72,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_GroupByOnInterpretedField_ShouldAggregate()
     {
-        var query = @"
+        var query =
+            @"
             binary Data {
                 Category: byte,
                 Value: int le
@@ -91,13 +102,19 @@ public partial class StressTestsInterpretationSchemasTests
             new BinaryEntity { Name = "f1.bin", Content = ms1.ToArray() },
             new BinaryEntity { Name = "f2.bin", Content = ms2.ToArray() },
             new BinaryEntity { Name = "f3.bin", Content = ms3.ToArray() },
-            new BinaryEntity { Name = "f4.bin", Content = ms4.ToArray() }
+            new BinaryEntity { Name = "f4.bin", Content = ms4.ToArray() },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         // Only category 1 has count > 1 (3 entries)
@@ -113,7 +130,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_OrderByOnInterpretedField_ShouldSort()
     {
-        var query = @"
+        var query =
+            @"
             binary Data {
                 Priority: byte,
                 Name: string[10] ascii trim
@@ -135,13 +153,19 @@ public partial class StressTestsInterpretationSchemasTests
         {
             new BinaryEntity { Name = "f1.bin", Content = makeData(3, "Low") },
             new BinaryEntity { Name = "f2.bin", Content = makeData(1, "Critical") },
-            new BinaryEntity { Name = "f3.bin", Content = makeData(2, "Medium") }
+            new BinaryEntity { Name = "f3.bin", Content = makeData(2, "Medium") },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -159,7 +183,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_CteWithInterpret_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             binary Data {
                 Tag: byte,
                 Value: int le
@@ -187,13 +212,19 @@ public partial class StressTestsInterpretationSchemasTests
         {
             new BinaryEntity { Name = "f1.bin", Content = ms1.ToArray() },
             new BinaryEntity { Name = "f2.bin", Content = ms2.ToArray() },
-            new BinaryEntity { Name = "f3.bin", Content = ms3.ToArray() }
+            new BinaryEntity { Name = "f3.bin", Content = ms3.ToArray() },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         // Tag=0 is filtered out; Tag=2 (Value=100) comes first, then Tag=1 (Value=300)
@@ -210,7 +241,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_TextGroupByMultipleRows_ShouldAggregate()
     {
-        var query = @"
+        var query =
+            @"
             text LogEntry {
                 Level: until ':',
                 Message: rest trim
@@ -228,13 +260,19 @@ public partial class StressTestsInterpretationSchemasTests
             new TextEntity { Name = "l3", Text = "ERROR: timeout" },
             new TextEntity { Name = "l4", Text = "ERROR: crash" },
             new TextEntity { Name = "l5", Text = "INFO: started" },
-            new TextEntity { Name = "l6", Text = "WARN: slow query" }
+            new TextEntity { Name = "l6", Text = "WARN: slow query" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -252,7 +290,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_SchemaArrayWithCrossApplyAndAggregation_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             binary Item { Id: int le, Score: int le };
             binary Container { Count: byte, Items: Item[Count] };
             select Sum(i.Score), Min(i.Score), Max(i.Score)
@@ -273,12 +312,21 @@ public partial class StressTestsInterpretationSchemasTests
         bw.Write(40); // Item 4
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -293,7 +341,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_MixedBinaryAndTextSources_ShouldQueryBoth()
     {
-        var query = @"
+        var query =
+            @"
             binary BinData {
                 Value: int le
             };
@@ -310,20 +359,26 @@ public partial class StressTestsInterpretationSchemasTests
         {
             new BinaryEntity { Name = "f1.bin", Content = BitConverter.GetBytes(100) },
             new BinaryEntity { Name = "f2.bin", Content = BitConverter.GetBytes(25) },
-            new BinaryEntity { Name = "f3.bin", Content = BitConverter.GetBytes(75) }
+            new BinaryEntity { Name = "f3.bin", Content = BitConverter.GetBytes(75) },
         };
 
         var textEntities = new[]
         {
-            new TextEntity { Name = "l1", Text = "host=localhost" }
+            new TextEntity { Name = "l1", Text = "host=localhost" },
         };
 
         var schemaProvider = new MixedSchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#bin", binaryEntities } },
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#txt", textEntities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#txt", textEntities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count); // 100 and 75
@@ -335,7 +390,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_AbsolutePositionWithArrays_ShouldParseCorrectly()
     {
-        var query = @"
+        var query =
+            @"
             binary Header {
                 Magic: int le at 0,
                 RecordCount: short le at 4,
@@ -352,12 +408,21 @@ public partial class StressTestsInterpretationSchemasTests
         bw.Write(100); // DataStart at 6
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -373,7 +438,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_TwoSchemasOnSameData_ShouldParseBoth()
     {
-        var query = @"
+        var query =
+            @"
             binary AsInts { A: int le, B: int le };
             binary AsBytes { X: byte[8] };
             select i.A, i.B, b.X
@@ -387,12 +453,21 @@ public partial class StressTestsInterpretationSchemasTests
         bw.Write(99);
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -408,7 +483,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_ComputedFieldComplexExpression_ShouldEvaluate()
     {
-        var query = @"
+        var query =
+            @"
             binary Data {
                 Width: short le,
                 Height: short le,
@@ -427,12 +503,21 @@ public partial class StressTestsInterpretationSchemasTests
         bw.Write((byte)3); // Depth
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -451,7 +536,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_DiscardCheckNested_ShouldParseCorrectly()
     {
-        var query = @"
+        var query =
+            @"
             binary Inner { X: int le, Y: int le };
             binary Outer {
                 Magic: int le check Magic = 42,
@@ -474,12 +560,21 @@ public partial class StressTestsInterpretationSchemasTests
         bw.Write((byte)0xFF); // Footer
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -495,7 +590,8 @@ public partial class StressTestsInterpretationSchemasTests
     [TestMethod]
     public void Stress_Complex_RealisticFileFormat_ShouldParseEntirely()
     {
-        var query = @"
+        var query =
+            @"
             binary Record {
                 Id: int le,
                 NameLen: byte,
@@ -548,12 +644,21 @@ public partial class StressTestsInterpretationSchemasTests
         bw.Write((short)91);
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "data.dat", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "data.dat", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         // Scores >= 80: Alice(95), Charlie(88), Dana(91) - ordered desc: 95, 91, 88

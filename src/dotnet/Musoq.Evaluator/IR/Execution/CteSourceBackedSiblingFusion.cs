@@ -11,23 +11,36 @@ internal static class CteSourceBackedSiblingFusion
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, CteReferenceClassification> classifications,
         IReadOnlyDictionary<string, SourceInteractionPlan> sourceInteractionPlans,
-        ExecutionFusedCteProducer producer)
+        ExecutionFusedCteProducer producer
+    )
     {
-        if (producer.Outputs.Any(static output => output.StoreRows) ||
-            !CteSourceBackedMaterializationDiscovery.TryFindStoredRowsLoop(
+        if (
+            producer.Outputs.Any(static output => output.StoreRows)
+            || !CteSourceBackedMaterializationDiscovery.TryFindStoredRowsLoop(
                 producer.Body,
                 out var producerLoopIndex,
                 out var producerLoop,
-                out var sourceTableIndex) ||
-            !CteSourceBackedMaterializationDiscovery.TryResolveCteName(cteIndexes, sourceTableIndex, out var sourceCteName) ||
-            !classifications.TryGetValue(sourceCteName, out var classification) ||
-            classification.ReferenceCount != producer.Outputs.Count ||
-            !CteSourceBackedMaterializationDiscovery.TryExtractSourceMaterialization(
+                out var sourceTableIndex
+            )
+            || !CteSourceBackedMaterializationDiscovery.TryResolveCteName(
+                cteIndexes,
+                sourceTableIndex,
+                out var sourceCteName
+            )
+            || !classifications.TryGetValue(sourceCteName, out var classification)
+            || classification.ReferenceCount != producer.Outputs.Count
+            || !CteSourceBackedMaterializationDiscovery.TryExtractSourceMaterialization(
                 builtNodes,
                 sourceTableIndex,
                 sourceInteractionPlans,
-                out var materialization) ||
-            !CteSourceBackedExpressionRewriter.TryCreateSourceBackedLoop(materialization, producerLoop, out var sourceLoop))
+                out var materialization
+            )
+            || !CteSourceBackedExpressionRewriter.TryCreateSourceBackedLoop(
+                materialization,
+                producerLoop,
+                out var sourceLoop
+            )
+        )
         {
             return null;
         }
@@ -39,23 +52,37 @@ internal static class CteSourceBackedSiblingFusion
             bodyNodes[index] = CteSourceBackedCapacityHintRewriter.RewriteNode(
                 bodyNodes[index],
                 sourceTableIndex,
-                materialization.Loop.Source);
+                materialization.Loop.Source
+            );
         }
 
         builtNodes.RemoveRange(
             materialization.CreateTableIndex,
-            materialization.StoreTableIndex - materialization.CreateTableIndex + 1);
+            materialization.StoreTableIndex - materialization.CreateTableIndex + 1
+        );
 
         var sourceSuffix = ExecutionPhaseBoundaryPlanner.CreateCteSuffix(sourceTableIndex);
-        builtNodes.RemoveAll(node => node is ExecutionPhaseBoundary boundary &&
-                                     string.Equals(boundary.QueryIdSuffix, sourceSuffix, StringComparison.Ordinal));
+        builtNodes.RemoveAll(node =>
+            node is ExecutionPhaseBoundary boundary
+            && string.Equals(boundary.QueryIdSuffix, sourceSuffix, StringComparison.Ordinal)
+        );
 
         builtNodes.Insert(
             Math.Min(materialization.CreateTableIndex, builtNodes.Count),
-            new ExecutionCteReadOnceFusionCandidate(sourceTableIndex, new ExecutionBlock([])));
-        shapes.RemoveAll(shape => shape is GeneratedRowShape generated &&
-                                  string.Equals(generated.TypeName, materialization.CreateTable.RowShape.TypeName, StringComparison.Ordinal));
+            new ExecutionCteReadOnceFusionCandidate(sourceTableIndex, new ExecutionBlock([]))
+        );
+        shapes.RemoveAll(shape =>
+            shape is GeneratedRowShape generated
+            && string.Equals(
+                generated.TypeName,
+                materialization.CreateTable.RowShape.TypeName,
+                StringComparison.Ordinal
+            )
+        );
 
-        return producer with { Body = new ExecutionBlock(bodyNodes) };
+        return producer with
+        {
+            Body = new ExecutionBlock(bodyNodes),
+        };
     }
 }

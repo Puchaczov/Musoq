@@ -13,7 +13,8 @@ internal sealed class ExecutionRenderSession
     internal Dictionary<string, string> AggregateGroupTypeNames { get; } = new(StringComparer.Ordinal);
     internal Dictionary<ExecutionParallelFilterProjectLoop, string> ParallelFilterProjectFunctionNames { get; } = [];
     internal Dictionary<string, string> ParallelSingleKeyAggregateFunctionNames { get; } = new(StringComparer.Ordinal);
-    internal ExecutionPlanOperatorCatalog OperatorCatalog { get; set; } = ExecutionPlanOperatorCatalog.Create(string.Empty);
+    internal ExecutionPlanOperatorCatalog OperatorCatalog { get; set; } =
+        ExecutionPlanOperatorCatalog.Create(string.Empty);
     internal bool ProfileRecorderInScope { get; set; }
     internal bool IsSubqueryHelper { get; set; }
     internal IReadOnlyDictionary<int, string> StoredRowsCacheNames { get; set; } = new Dictionary<int, string>();
@@ -28,16 +29,30 @@ internal sealed class ExecutionRenderSession
         new Dictionary<string, TypedStoredTableResult>(StringComparer.Ordinal);
     internal IReadOnlyDictionary<string, GeneratedRowShape> TypedRowBufferVariables { get; set; } =
         new Dictionary<string, GeneratedRowShape>(StringComparer.Ordinal);
-    internal IReadOnlyDictionary<ExecutionBlock, ExecutionCSharpRenderer.SingleKeyAggregateUpdateHelper> SingleKeyAggregateUpdateHelpersByBlock { get; set; } =
+    internal IReadOnlyDictionary<
+        ExecutionBlock,
+        ExecutionCSharpRenderer.SingleKeyAggregateUpdateHelper
+    > SingleKeyAggregateUpdateHelpersByBlock { get; set; } =
         new Dictionary<ExecutionBlock, ExecutionCSharpRenderer.SingleKeyAggregateUpdateHelper>();
-    internal IReadOnlyDictionary<ExecutionBlock, ExecutionCSharpRenderer.EnumerableTraversalHelper> EnumerableTraversalHelpersByBlock { get; set; } =
+    internal IReadOnlyDictionary<
+        ExecutionBlock,
+        ExecutionCSharpRenderer.EnumerableTraversalHelper
+    > EnumerableTraversalHelpersByBlock { get; set; } =
         new Dictionary<ExecutionBlock, ExecutionCSharpRenderer.EnumerableTraversalHelper>();
     internal HashSet<ExecutionBlock> SuppressedEnumerableTraversalHelperBlocks { get; } = [];
-    internal IReadOnlyDictionary<string, IReadOnlySet<ExecutionCSharpRenderer.GeneratedRowContextConstructor>> GeneratedRowConstructorUsagesByType { get; set; } =
-        new Dictionary<string, IReadOnlySet<ExecutionCSharpRenderer.GeneratedRowContextConstructor>>(StringComparer.Ordinal);
-    internal IReadOnlySet<string> GeneratedRowTypesUsedAsRowContexts { get; set; } = new HashSet<string>(StringComparer.Ordinal);
-    internal IReadOnlySet<string> GeneratedRowTypesUsedAtPublicBoundary { get; set; } = new HashSet<string>(StringComparer.Ordinal);
-    internal IReadOnlySet<string> GeneratedRowTypesRequiringRowBase { get; set; } = new HashSet<string>(StringComparer.Ordinal);
+    internal IReadOnlyDictionary<
+        string,
+        IReadOnlySet<ExecutionCSharpRenderer.GeneratedRowContextConstructor>
+    > GeneratedRowConstructorUsagesByType { get; set; } =
+        new Dictionary<string, IReadOnlySet<ExecutionCSharpRenderer.GeneratedRowContextConstructor>>(
+            StringComparer.Ordinal
+        );
+    internal IReadOnlySet<string> GeneratedRowTypesUsedAsRowContexts { get; set; } =
+        new HashSet<string>(StringComparer.Ordinal);
+    internal IReadOnlySet<string> GeneratedRowTypesUsedAtPublicBoundary { get; set; } =
+        new HashSet<string>(StringComparer.Ordinal);
+    internal IReadOnlySet<string> GeneratedRowTypesRequiringRowBase { get; set; } =
+        new HashSet<string>(StringComparer.Ordinal);
     internal Dictionary<int, int> StoredGeneratedRowsLoopNameCounts { get; set; } = [];
     internal int ChunkedLoopBreakTargetCount { get; set; }
     internal int EnumIntrinsicPatternCount { get; set; }
@@ -45,7 +60,8 @@ internal sealed class ExecutionRenderSession
     internal int StringPredicateCaptureCount { get; set; }
     internal ExecutionBlock? ValueCaptureScope { get; set; }
     internal HashSet<string>? ValueCaptureNames { get; set; }
-    internal Musoq.Evaluator.Visitors.StringConcatenationCodeEmitter StringConcatenation { get; } = new("__MusoqQueryConcat");
+    internal Musoq.Evaluator.Visitors.StringConcatenationCodeEmitter StringConcatenation { get; } =
+        new("__MusoqQueryConcat");
     internal bool IncludeCteIndexResults { get; set; }
     internal bool IncludeCteRowResults { get; set; }
     internal bool IncludeTableResults { get; set; } = true;

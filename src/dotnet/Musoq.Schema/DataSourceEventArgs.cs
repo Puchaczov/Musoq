@@ -5,8 +5,8 @@ public class DataSourceEventArgs(
     string dataSourceName,
     DataSourcePhase phase,
     long? totalRows = null,
-    long? rowsProcessed = null)
-    : EventArgs
+    long? rowsProcessed = null
+) : EventArgs
 {
     public string QueryId { get; } = queryId;
 

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Reflection;
+using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.Attributes;
@@ -52,24 +52,31 @@ public sealed class StructuralInputContractTests
     public void Metadata_RejectsAmbiguousAndMultiplyMarkedConstructors()
     {
         Assert.ThrowsExactly<InvalidOperationException>(() =>
-            StructuralInputMetadata.SelectConstructor(typeof(AmbiguousRecord)));
+            StructuralInputMetadata.SelectConstructor(typeof(AmbiguousRecord))
+        );
         Assert.ThrowsExactly<InvalidOperationException>(() =>
-            StructuralInputMetadata.SelectConstructor(typeof(MultiplyMarkedRecord)));
+            StructuralInputMetadata.SelectConstructor(typeof(MultiplyMarkedRecord))
+        );
     }
 
     [TestMethod]
     public void Metadata_RejectsUnsupportedOpenRefAndCyclicTypes()
     {
         Assert.ThrowsExactly<InvalidOperationException>(() =>
-            StructuralTypeDescriptor.FromClrType(typeof(OpenRecord<>)));
+            StructuralTypeDescriptor.FromClrType(typeof(OpenRecord<>))
+        );
         Assert.ThrowsExactly<InvalidOperationException>(() =>
-            StructuralTypeDescriptor.FromClrType(typeof(CyclicRecord)));
+            StructuralTypeDescriptor.FromClrType(typeof(CyclicRecord))
+        );
         Assert.ThrowsExactly<InvalidOperationException>(() =>
-            StructuralInputMetadata.SelectConstructor(typeof(PrivateRecord)));
+            StructuralInputMetadata.SelectConstructor(typeof(PrivateRecord))
+        );
         Assert.ThrowsExactly<InvalidOperationException>(() =>
             StructuralInputMetadata.CreateContract(
                 "ref",
-                typeof(RefRecord).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single()));
+                typeof(RefRecord).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single()
+            )
+        );
     }
 
     [TestMethod]
@@ -77,7 +84,7 @@ public sealed class StructuralInputContractTests
     {
         var fields = new Dictionary<string, StructuralValue>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Id"] = StructuralValue.FromScalar("todo")
+            ["Id"] = StructuralValue.FromScalar("todo"),
         };
         var value = StructuralValue.FromRecord(fields);
         fields["Id"] = StructuralValue.FromScalar("changed");
@@ -87,16 +94,21 @@ public sealed class StructuralInputContractTests
 
         Assert.AreEqual("todo", value.Fields["id"].Scalar);
         Assert.HasCount(1, collection.Elements);
-        Assert.ThrowsExactly<ArgumentException>(() => StructuralValue.FromRecord([
-            new KeyValuePair<string, StructuralValue>("Id", StructuralValue.FromScalar(1)),
-            new KeyValuePair<string, StructuralValue>("id", StructuralValue.FromScalar(2))]));
+        Assert.ThrowsExactly<ArgumentException>(() =>
+            StructuralValue.FromRecord([
+                new KeyValuePair<string, StructuralValue>("Id", StructuralValue.FromScalar(1)),
+                new KeyValuePair<string, StructuralValue>("id", StructuralValue.FromScalar(2)),
+            ])
+        );
 
         var plan = new StructuralConstructionPlan(
             typeof(PatternRecord),
             new StructuralConstructorDescriptor(
                 StructuralInputMetadata.SelectConstructor(typeof(PatternRecord)),
-                StructuralTypeDescriptor.FromClrType(typeof(PatternRecord)).Fields),
-            [1, 0]);
+                StructuralTypeDescriptor.FromClrType(typeof(PatternRecord)).Fields
+            ),
+            [1, 0]
+        );
         Assert.AreEqual(2, plan.SourceFieldIndexes.Count);
     }
 
@@ -131,7 +143,9 @@ public sealed class StructuralInputContractTests
         Assert.AreEqual(typeof(TypedRowSource), registration.SourceType);
         Assert.AreEqual(typeof(TypedRow), registration.RowType);
         Assert.AreEqual(0, registration.Overloads.Single().Contract.Parameters.Count);
-        Assert.IsTrue(schema.GetRawConstructors(CreateMetadataContext()).All(static item => item.StructuralContract == null));
+        Assert.IsTrue(
+            schema.GetRawConstructors(CreateMetadataContext()).All(static item => item.StructuralContract == null)
+        );
         Assert.IsNotNull(schema.GetConstructors("typed_source").Single().StructuralContract);
         Assert.IsFalse(schema.TryGetTypedSourceRegistration("missing", out _));
     }
@@ -148,6 +162,7 @@ public sealed class StructuralInputContractTests
         Assert.AreEqual("(Id: string, Mode: string = 'literal')[]?", parameter.Type.ToCanonicalSql());
         Assert.AreEqual(typeof(InputPattern[]), parameter.Type.ClrType);
     }
+
     [TestMethod]
     public void SchemaBase_RejectsDuplicateTypedRegistrationAndKeepsLegacySourceApis()
     {
@@ -166,7 +181,11 @@ public sealed class StructuralInputContractTests
         Assert.HasCount(2, registration.Overloads);
         CollectionAssert.AreEqual(
             new[] { "text", "value" },
-            registration.Overloads.SelectMany(static overload => overload.Contract.Parameters).Select(static parameter => parameter.Name).ToArray());
+            registration
+                .Overloads.SelectMany(static overload => overload.Contract.Parameters)
+                .Select(static parameter => parameter.Name)
+                .ToArray()
+        );
         Assert.IsTrue(registration.Overloads.All(static overload => overload.InjectsExecutionContext));
     }
 
@@ -181,6 +200,7 @@ public sealed class StructuralInputContractTests
         Assert.AreEqual(9, limits.MaxNodes);
         Assert.AreEqual(20, limits.MaxStringBytes);
     }
+
     [TestMethod]
     public void TypedSourceRegistration_RejectsMisplacedExecutionContext()
     {
@@ -196,8 +216,11 @@ public sealed class StructuralInputContractTests
         Assert.AreEqual(StructuralTypeKind.Collection, list.Kind);
         Assert.AreEqual(StructuralTypeKind.Collection, enumerable.Kind);
         Assert.ThrowsExactly<InvalidOperationException>(() => StructuralTypeDescriptor.FromClrType(typeof(List<int>)));
-        Assert.ThrowsExactly<InvalidOperationException>(() => StructuralTypeDescriptor.FromClrType(typeof(IReadOnlyCollection<int>)));
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            StructuralTypeDescriptor.FromClrType(typeof(IReadOnlyCollection<int>))
+        );
     }
+
     private static SourceMetadataContext CreateMetadataContext()
     {
         return new SourceMetadataContext(
@@ -205,7 +228,8 @@ public sealed class StructuralInputContractTests
             new CancellationTokenSource().Token,
             [],
             new Dictionary<string, string>(),
-            NullLogger.Instance);
+            NullLogger.Instance
+        );
     }
 
     private sealed record PatternRecord(string Id, string Mode = "literal");
@@ -213,8 +237,10 @@ public sealed class StructuralInputContractTests
     private sealed class MarkedRecord
     {
         public MarkedRecord(string text) => Text = text;
+
         [StructuralInputConstructor]
         public MarkedRecord(int value) => Value = value;
+
         public string? Text { get; }
         public int Value { get; }
     }
@@ -222,7 +248,9 @@ public sealed class StructuralInputContractTests
     private sealed class AmbiguousRecord
     {
         public AmbiguousRecord(int value) => Value = value;
+
         public AmbiguousRecord(string value) => Text = value;
+
         public int Value { get; }
         public string? Text { get; }
     }
@@ -231,8 +259,10 @@ public sealed class StructuralInputContractTests
     {
         [StructuralInputConstructor]
         public MultiplyMarkedRecord(int value) => Value = value;
+
         [StructuralInputConstructor]
         public MultiplyMarkedRecord(string value) => Text = value;
+
         public int Value { get; }
         public string? Text { get; }
     }
@@ -240,23 +270,28 @@ public sealed class StructuralInputContractTests
     private sealed class OpenRecord<T>
     {
         public OpenRecord(T value) => Value = value;
+
         public T Value { get; }
     }
 
     private sealed class CyclicRecord
     {
         public CyclicRecord(CyclicRecord child) => Child = child;
+
         public CyclicRecord Child { get; }
     }
 
     private sealed class PrivateRecord
     {
         private PrivateRecord(int value) => Value = value;
+
         public int Value { get; }
     }
+
     private sealed class RefRecord
     {
         public RefRecord(ref int value) => Value = value;
+
         public int Value { get; }
     }
 
@@ -265,7 +300,11 @@ public sealed class StructuralInputContractTests
     private sealed class TypedRowSource : RowSource<TypedRow>
     {
         public TypedRowSource(SourceExecutionContext context) => _ = context;
-        public override IEnumerable<IReadOnlyList<TypedRow>> Chunks => [[new TypedRow(1)]];
+
+        public override IEnumerable<IReadOnlyList<TypedRow>> Chunks =>
+            [
+                [new TypedRow(1)],
+            ];
     }
 
     private sealed class TypedTable : ISchemaTable
@@ -273,8 +312,12 @@ public sealed class StructuralInputContractTests
         private static readonly ISchemaColumn[] SchemaColumns = [new SchemaColumn("Value", 0, typeof(int))];
         public ISchemaColumn[] Columns => SchemaColumns;
         public SchemaTableMetadata Metadata { get; } = new(typeof(TypedRow));
+
         public ISchemaColumn? GetColumnByName(string name) =>
-            SchemaColumns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            SchemaColumns.SingleOrDefault(column =>
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+            );
+
         public ISchemaColumn[] GetColumnsByName(string name) => GetColumnByName(name) is { } column ? [column] : [];
     }
 
@@ -288,12 +331,16 @@ public sealed class StructuralInputContractTests
             _ = context;
         }
 
-        public override IEnumerable<IReadOnlyList<TypedRow>> Chunks => [[new TypedRow(1)]];
+        public override IEnumerable<IReadOnlyList<TypedRow>> Chunks =>
+            [
+                [new TypedRow(1)],
+            ];
     }
 
     private sealed class InputTypedFixtureSchema : SchemaBase
     {
-        public InputTypedFixtureSchema() : base("input", CreateLibrary())
+        public InputTypedFixtureSchema()
+            : base("input", CreateLibrary())
         {
             AddTable<TypedTable>("input");
             AddTypedSource<InputTypedSource>("input");
@@ -306,9 +353,11 @@ public sealed class StructuralInputContractTests
             return new MethodsAggregator(manager);
         }
     }
+
     private sealed class TypedFixtureSchema : SchemaBase
     {
-        public TypedFixtureSchema() : base("typed", CreateLibrary())
+        public TypedFixtureSchema()
+            : base("typed", CreateLibrary())
         {
             AddTable<TypedTable>("typed");
             AddTypedSource<TypedRowSource>("typed");
@@ -326,7 +375,8 @@ public sealed class StructuralInputContractTests
 
     private sealed class LegacyFixtureSchema : SchemaBase
     {
-        public LegacyFixtureSchema() : base("legacy", CreateLibrary()) => AddTable<TypedTable>("typed");
+        public LegacyFixtureSchema()
+            : base("legacy", CreateLibrary()) => AddTable<TypedTable>("typed");
 
         private static MethodsAggregator CreateLibrary()
         {
@@ -335,6 +385,7 @@ public sealed class StructuralInputContractTests
             return new MethodsAggregator(manager);
         }
     }
+
     private sealed class OverloadedSource : RowSource<TypedRow>
     {
         public OverloadedSource(string text, SourceExecutionContext context)
@@ -349,12 +400,16 @@ public sealed class StructuralInputContractTests
             _ = context;
         }
 
-        public override IEnumerable<IReadOnlyList<TypedRow>> Chunks => [[new TypedRow(1)]];
+        public override IEnumerable<IReadOnlyList<TypedRow>> Chunks =>
+            [
+                [new TypedRow(1)],
+            ];
     }
 
     private sealed class OverloadedFixtureSchema : SchemaBase
     {
-        public OverloadedFixtureSchema() : base("overloaded", CreateLibrary()) => AddTypedSource<OverloadedSource>("overloaded");
+        public OverloadedFixtureSchema()
+            : base("overloaded", CreateLibrary()) => AddTypedSource<OverloadedSource>("overloaded");
 
         private static MethodsAggregator CreateLibrary()
         {
@@ -366,8 +421,12 @@ public sealed class StructuralInputContractTests
 
     private sealed class LimitedFixtureSchema : SchemaBase
     {
-        public LimitedFixtureSchema() : base("limited", CreateLibrary()) =>
-            AddTypedSource<TypedRowSource>("limited", new TypedSourceRegistrationOptions(new StructuralInputLimits(4, 9, 20)));
+        public LimitedFixtureSchema()
+            : base("limited", CreateLibrary()) =>
+            AddTypedSource<TypedRowSource>(
+                "limited",
+                new TypedSourceRegistrationOptions(new StructuralInputLimits(4, 9, 20))
+            );
 
         private static MethodsAggregator CreateLibrary()
         {
@@ -376,6 +435,7 @@ public sealed class StructuralInputContractTests
             return new MethodsAggregator(manager);
         }
     }
+
     private sealed class InvalidContextSource : RowSource<TypedRow>
     {
         public InvalidContextSource(SourceExecutionContext context, int value)
@@ -384,12 +444,16 @@ public sealed class StructuralInputContractTests
             _ = value;
         }
 
-        public override IEnumerable<IReadOnlyList<TypedRow>> Chunks => [[new TypedRow(1)]];
+        public override IEnumerable<IReadOnlyList<TypedRow>> Chunks =>
+            [
+                [new TypedRow(1)],
+            ];
     }
 
     private sealed class InvalidContextFixtureSchema : SchemaBase
     {
-        public InvalidContextFixtureSchema() : base("invalid-context", CreateLibrary()) => AddTypedSource<InvalidContextSource>("invalid");
+        public InvalidContextFixtureSchema()
+            : base("invalid-context", CreateLibrary()) => AddTypedSource<InvalidContextSource>("invalid");
 
         private static MethodsAggregator CreateLibrary()
         {
@@ -397,4 +461,5 @@ public sealed class StructuralInputContractTests
             manager.RegisterLibraries(new Musoq.Plugins.LibraryBase());
             return new MethodsAggregator(manager);
         }
-    }}
+    }
+}

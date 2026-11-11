@@ -60,8 +60,6 @@ public partial class CloneQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(factory(left, right)
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(factory(left, right).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 }

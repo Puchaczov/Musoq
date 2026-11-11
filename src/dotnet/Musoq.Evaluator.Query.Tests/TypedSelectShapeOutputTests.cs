@@ -14,10 +14,12 @@ public sealed class TypedSelectShapeOutputTests
     {
         var rows = new[] { new[] { new TypedInput("Ada", 37), new TypedInput("Linus", 55) } };
 
-        var result = MusoqApi.CompileAndRun<TypedInput, ConstructorOutput>(
+        var result = MusoqApi
+            .CompileAndRun<TypedInput, ConstructorOutput>(
                 "select Name, Age from #A.entities()",
                 rows,
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .ToArray();
 
         Assert.HasCount(2, result);
@@ -30,10 +32,12 @@ public sealed class TypedSelectShapeOutputTests
     {
         var rows = new[] { new[] { new TypedInput("Ada", 37) } };
 
-        var result = MusoqApi.CompileAndRun<TypedInput, MemberOutput>(
+        var result = MusoqApi
+            .CompileAndRun<TypedInput, MemberOutput>(
                 "select Name, Age from #A.entities()",
                 rows,
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .Single();
 
         Assert.AreEqual("Ada", result.Name);
@@ -43,23 +47,30 @@ public sealed class TypedSelectShapeOutputTests
     [TestMethod]
     public void CompileAndRun_WhenTypedFinalShapeUsesHiddenOrderByColumn_ShouldConstructSortedRowsDirectly()
     {
-        var rows = new[] { new[] { new TypedInput("Ada", 37), new TypedInput("Linus", 55), new TypedInput("Grace", 28) } };
+        var rows = new[]
+        {
+            new[] { new TypedInput("Ada", 37), new TypedInput("Linus", 55), new TypedInput("Grace", 28) },
+        };
 
-        var result = MusoqApi.CompileAndRun<TypedInput, NameOutput>(
+        var result = MusoqApi
+            .CompileAndRun<TypedInput, NameOutput>(
                 "select Name from #A.entities() order by Age",
                 rows,
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .ToArray();
 
         CollectionAssert.AreEqual(
             new[] { new NameOutput("Grace"), new NameOutput("Ada"), new NameOutput("Linus") },
-            result);
+            result
+        );
     }
 
     [TestMethod]
     public void InspectTyped_WhenTypedFinalShapeUsesHiddenOrderByColumn_ShouldReportDirectRows()
     {
-        var result = MusoqApi.Query("select Name from #A.entities() order by Age")
+        var result = MusoqApi
+            .Query("select Name from #A.entities() order by Age")
             .Source<TypedInput>("#A", "entities")
             .InspectTyped<NameOutput>();
 

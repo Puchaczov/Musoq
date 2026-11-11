@@ -8,8 +8,6 @@ public abstract partial class ExpressionArrayRewriter
     {
         ArgumentNullException.ThrowIfNull(node);
         var expression = Visit(node.Expression);
-        return ReferenceEquals(expression, node.Expression)
-            ? node
-            : node with { Expression = expression };
+        return ReferenceEquals(expression, node.Expression) ? node : node with { Expression = expression };
     }
 }

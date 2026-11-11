@@ -15,7 +15,8 @@ public sealed record FieldBinding
         ExecutionTypeRef? publicType = null,
         IReadOnlyDictionary<string, string>? readModifiers = null,
         ExecutionTypeRef? sourceReadType = null,
-        EnumTypeDescriptor? enumType = null)
+        EnumTypeDescriptor? enumType = null
+    )
     {
         Name = name;
         QualifiedName = qualifiedName;
@@ -39,7 +40,8 @@ public sealed record FieldBinding
         Type? publicType = null,
         IReadOnlyDictionary<string, string>? readModifiers = null,
         Type? sourceReadType = null,
-        EnumTypeDescriptor? enumType = null)
+        EnumTypeDescriptor? enumType = null
+    )
         : this(
             name,
             qualifiedName,
@@ -50,9 +52,8 @@ public sealed record FieldBinding
             ExecutionClrBindingFactory.FromOptionalClr(publicType),
             readModifiers,
             ExecutionClrBindingFactory.FromOptionalClr(sourceReadType),
-            enumType)
-    {
-    }
+            enumType
+        ) { }
 
     public string Name { get; init; }
 

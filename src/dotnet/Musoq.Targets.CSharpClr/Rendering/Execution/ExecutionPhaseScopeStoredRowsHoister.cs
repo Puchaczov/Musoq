@@ -3,9 +3,7 @@ using System.Linq;
 
 namespace Musoq.Targets.CSharpClr;
 
-internal sealed record ExecutionPhaseScopeStoredRowsCache(
-    ExecutionStoredTableRows StoredRows,
-    string CacheName);
+internal sealed record ExecutionPhaseScopeStoredRowsCache(ExecutionStoredTableRows StoredRows, string CacheName);
 
 internal static class ExecutionPhaseScopeStoredRowsHoister
 {
@@ -15,7 +13,8 @@ internal static class ExecutionPhaseScopeStoredRowsHoister
         int endIndex,
         IReadOnlyList<ExecutionNode> bodyNodes,
         IReadOnlyDictionary<int, string> cacheNames,
-        HashSet<int> declaredCaches)
+        HashSet<int> declaredCaches
+    )
     {
         if (cacheNames.Count == 0)
             return [];
@@ -26,8 +25,7 @@ internal static class ExecutionPhaseScopeStoredRowsHoister
             .Select(static store => store.TableIndex)
             .ToHashSet();
         var usedLater = ExecutionIrAnalysis
-            .CollectExpressions<ExecutionStoredTableRows>(
-                new ExecutionBlock(nodes.Skip(endIndex + 1).ToArray()))
+            .CollectExpressions<ExecutionStoredTableRows>(new ExecutionBlock(nodes.Skip(endIndex + 1).ToArray()))
             .Select(static storedRows => storedRows.TableIndex)
             .ToHashSet();
 
@@ -39,9 +37,7 @@ internal static class ExecutionPhaseScopeStoredRowsHoister
             .Where(storedRows => usedLater.Contains(storedRows.TableIndex))
             .Where(storedRows => cacheNames.ContainsKey(storedRows.TableIndex))
             .Where(storedRows => declaredCaches.Add(storedRows.TableIndex))
-            .Select(storedRows => new ExecutionPhaseScopeStoredRowsCache(
-                storedRows,
-                cacheNames[storedRows.TableIndex]))
+            .Select(storedRows => new ExecutionPhaseScopeStoredRowsCache(storedRows, cacheNames[storedRows.TableIndex]))
             .ToArray();
     }
 }

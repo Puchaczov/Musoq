@@ -22,10 +22,11 @@ public sealed class WildcardMetadataExtractionTests
     [TestMethod]
     public void QualifiedStar_WithJoinPredicate_ShouldRequestCompleteSchemaOnlyForQualifiedSource()
     {
-        var columns = ExtractColumns(
-            "select a.* from #A.entities() a inner join #B.entities() b on a.Id = b.Id");
+        var columns = ExtractColumns("select a.* from #A.entities() a inner join #B.entities() b on a.Id = b.Id");
 
-        var qualifiedSource = columns.Single(pair => pair.Key.StartsWith("a", System.StringComparison.OrdinalIgnoreCase));
+        var qualifiedSource = columns.Single(pair =>
+            pair.Key.StartsWith("a", System.StringComparison.OrdinalIgnoreCase)
+        );
         var joinedSource = columns.Single(pair => pair.Key.StartsWith("b", System.StringComparison.OrdinalIgnoreCase));
 
         Assert.AreEqual(0, qualifiedSource.Value.Length);
@@ -35,8 +36,7 @@ public sealed class WildcardMetadataExtractionTests
     [TestMethod]
     public void BareStar_WithJoinPredicate_ShouldRequestCompleteSchemaForEveryCurrentSource()
     {
-        var columns = ExtractColumns(
-            "select * from #A.entities() a inner join #B.entities() b on a.Id = b.Id");
+        var columns = ExtractColumns("select * from #A.entities() a inner join #B.entities() b on a.Id = b.Id");
 
         Assert.HasCount(2, columns);
         Assert.IsTrue(columns.Values.All(static sourceColumns => sourceColumns.Length == 0));
@@ -76,7 +76,8 @@ public sealed class WildcardMetadataExtractionTests
     public void PivotMeasureStar_ShouldRetainPivotColumnHints()
     {
         var columns = ExtractColumns(
-            "pivot #A.entities() on Name in ('Ada' as Ada) using Count(*) as Matches group by Id");
+            "pivot #A.entities() on Name in ('Ada' as Ada) using Count(*) as Matches group by Id"
+        );
 
         var sourceColumns = columns.Single().Value;
 

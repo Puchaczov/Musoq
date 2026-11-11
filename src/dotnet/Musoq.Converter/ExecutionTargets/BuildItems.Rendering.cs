@@ -28,8 +28,10 @@ public partial class BuildItems
             if (TryGetArtifact<RenderedQueryArtifact>(BuildItemKeys.RenderingArtifact, out var artifact))
                 return artifact;
 
-            if (TryGetArtifact<CSharpCompilation>(BuildItemKeys.Compilation, out var compilation) &&
-                TryGetArtifact<string>(BuildItemKeys.AccessToClassPath, out var accessToClassPath))
+            if (
+                TryGetArtifact<CSharpCompilation>(BuildItemKeys.Compilation, out var compilation)
+                && TryGetArtifact<string>(BuildItemKeys.AccessToClassPath, out var accessToClassPath)
+            )
             {
                 artifact = CSharpClrArtifactCompatibility.CreateRenderedArtifact(compilation, accessToClassPath);
                 SetRequired(BuildItemKeys.RenderingArtifact, artifact);
@@ -73,18 +75,22 @@ public partial class BuildItems
             SetRequired(BuildItemKeys.AccessToClassPath, csharpArtifact.AccessToClassPath);
             SetRequired(
                 BuildItemKeys.QueryMethodRenderMetadata,
-                CSharpClrArtifactCompatibility.GetQueryMethodRenderMetadata(artifact));
+                CSharpClrArtifactCompatibility.GetQueryMethodRenderMetadata(artifact)
+            );
         }
     }
 
     private void TryRefreshCSharpRenderingArtifact()
     {
-        if (TryGetArtifact<CSharpCompilation>(BuildItemKeys.Compilation, out var compilation) &&
-            TryGetArtifact<string>(BuildItemKeys.AccessToClassPath, out var accessToClassPath))
+        if (
+            TryGetArtifact<CSharpCompilation>(BuildItemKeys.Compilation, out var compilation)
+            && TryGetArtifact<string>(BuildItemKeys.AccessToClassPath, out var accessToClassPath)
+        )
         {
             SetRequired(
                 BuildItemKeys.RenderingArtifact,
-                CSharpClrArtifactCompatibility.CreateRenderedArtifact(compilation, accessToClassPath));
+                CSharpClrArtifactCompatibility.CreateRenderedArtifact(compilation, accessToClassPath)
+            );
         }
     }
 }
@@ -99,20 +105,23 @@ internal static class CSharpClrBatchCompatibility
         ExecutionTargetId executionTarget,
         ExecutableQueryArtifact executable,
         IReadOnlyList<CSharpClrBatchActivationRequest> requests,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var activator = ExecutionTargetCatalog.ResolveActivator(executionTarget)
-            as ClrAssemblyExecutableActivator ??
-            throw new InvalidOperationException(
-                $"Execution target '{executionTarget}' does not expose CLR batch activation.");
+        var activator =
+            ExecutionTargetCatalog.ResolveActivator(executionTarget) as ClrAssemblyExecutableActivator
+            ?? throw new InvalidOperationException(
+                $"Execution target '{executionTarget}' does not expose CLR batch activation."
+            );
         var activationRequests = new ClrBatchTableActivationRequest[requests.Count];
         for (var index = 0; index < requests.Count; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             activationRequests[index] = new ClrBatchTableActivationRequest(
                 requests[index].RunnableTypeName,
-                requests[index].Binding);
+                requests[index].Binding
+            );
         }
 
         IReadOnlyList<ClrBatchTableActivationResult>? results = null;
@@ -126,7 +135,8 @@ internal static class CSharpClrBatchCompatibility
                 cancellationToken.ThrowIfCancellationRequested();
                 converted[index] = new CSharpClrBatchActivationResult(
                     results[index].Runnable,
-                    results[index].Exception);
+                    results[index].Exception
+                );
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -148,19 +158,21 @@ internal static class CSharpClrBatchCompatibility
         bool emitPdb,
         bool hasInterpreter,
         QueryResultMode resultMode,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var compilation = rendering.Compilation;
         var references = string.Join(
             "\u001f",
-            compilation.References
-                .Select(reference =>
+            compilation
+                .References.Select(reference =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     return reference.Display ?? reference.ToString();
                 })
-                .Order(StringComparer.Ordinal));
+                .Order(StringComparer.Ordinal)
+        );
         cancellationToken.ThrowIfCancellationRequested();
         var syntaxShape = hasInterpreter ? "interpreter-fallback" : "no-interpreter";
         return string.Join(
@@ -170,14 +182,16 @@ internal static class CSharpClrBatchCompatibility
             references,
             syntaxShape,
             emitPdb,
-            resultMode);
+            resultMode
+        );
     }
 
     internal static TargetFinalizationResult FinalizeBatch(
         IReadOnlyList<RenderingBuildArtifacts> renderings,
         ExecutionTargetId executionTarget,
         bool emitPdb,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(renderings);
@@ -185,40 +199,47 @@ internal static class CSharpClrBatchCompatibility
             throw new ArgumentException("At least one rendered item is required.", nameof(renderings));
 
         var first = renderings[0];
-        var compilation = first.Compilation
-            .RemoveAllSyntaxTrees()
-            .AddSyntaxTrees(renderings.SelectMany(item =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return item.Compilation.SyntaxTrees;
-            }));
+        var compilation = first
+            .Compilation.RemoveAllSyntaxTrees()
+            .AddSyntaxTrees(
+                renderings.SelectMany(item =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return item.Compilation.SyntaxTrees;
+                })
+            );
         cancellationToken.ThrowIfCancellationRequested();
         var renderedArtifact = CSharpClrArtifactCompatibility.CreateRenderedArtifact(
             compilation,
-            first.AccessToClassPath);
+            first.AccessToClassPath
+        );
         cancellationToken.ThrowIfCancellationRequested();
         var options = ExecutionTargetCatalog.CreateFinalizationOptions(
             executionTarget,
-            new TargetFinalizationOptionsContext(emitPdb, CancellationToken: cancellationToken));
+            new TargetFinalizationOptionsContext(emitPdb, CancellationToken: cancellationToken)
+        );
         return ExecutionTargetCatalog.FinalizeArtifact(renderedArtifact, options);
     }
 
     internal static ExecutableQueryArtifact CreateBatchExecutable(
         TargetFinalizationResult finalization,
         string runnableTypeName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(finalization);
         if (!finalization.Success || finalization.Artifact is null)
             throw new InvalidOperationException("Cannot create a batch executable from failed finalization.");
 
-        var dllFile = CSharpClrArtifactCompatibility.GetDllFile(finalization.Artifact) ??
-                      throw new InvalidOperationException("Batch finalization produced no DLL.");
+        var dllFile =
+            CSharpClrArtifactCompatibility.GetDllFile(finalization.Artifact)
+            ?? throw new InvalidOperationException("Batch finalization produced no DLL.");
         var executable = CSharpClrArtifactCompatibility.CreateAssemblyExecutable(
             dllFile,
             CSharpClrArtifactCompatibility.GetPdbFile(finalization.Artifact),
-            runnableTypeName);
+            runnableTypeName
+        );
         cancellationToken.ThrowIfCancellationRequested();
         return executable;
     }
@@ -226,7 +247,8 @@ internal static class CSharpClrBatchCompatibility
 
 internal sealed record CSharpArtifactCompilationIdentity(
     string OrderedReferenceFingerprint,
-    CSharpCompilationOptions Options);
+    CSharpCompilationOptions Options
+);
 
 internal static class CSharpClrGeneratedCodeCompatibility
 {
@@ -235,9 +257,13 @@ internal static class CSharpClrGeneratedCodeCompatibility
 
     internal static CSharpArtifactCompilationIdentity? TryGetCompilationIdentity(
         RenderedQueryArtifact artifact,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var compilation = CSharpClrArtifactCompatibility.RequireCompilation(artifact, "executable compilation identity");
+        var compilation = CSharpClrArtifactCompatibility.RequireCompilation(
+            artifact,
+            "executable compilation identity"
+        );
         var identity = new StringBuilder();
         foreach (var reference in compilation.References)
         {
@@ -250,7 +276,8 @@ internal static class CSharpClrGeneratedCodeCompatibility
             {
                 metadata = portable.GetMetadataId();
             }
-            catch (Exception exception) when (exception is IOException or BadImageFormatException or UnauthorizedAccessException)
+            catch (Exception exception)
+                when (exception is IOException or BadImageFormatException or UnauthorizedAccessException)
             {
                 // Let normal emission report an unavailable reference.
                 return null;
@@ -258,13 +285,20 @@ internal static class CSharpClrGeneratedCodeCompatibility
 
             // Roslyn identifies the exact immutable images selected by the
             // compiler. Weak keys retain neither the image nor the reference.
-            var id = ReferenceIds.GetValue(metadata, static _ => new ReferenceId(
-                Interlocked.Increment(ref _nextReferenceId)));
+            var id = ReferenceIds.GetValue(
+                metadata,
+                static _ => new ReferenceId(Interlocked.Increment(ref _nextReferenceId))
+            );
             var properties = portable.Properties;
-            identity.Append(id.Value).Append('|')
-                .Append((int)properties.Kind).Append('|')
-                .Append(properties.EmbedInteropTypes).Append('|')
-                .Append(properties.Aliases.Length).Append('|');
+            identity
+                .Append(id.Value)
+                .Append('|')
+                .Append((int)properties.Kind)
+                .Append('|')
+                .Append(properties.EmbedInteropTypes)
+                .Append('|')
+                .Append(properties.Aliases.Length)
+                .Append('|');
             foreach (var alias in properties.Aliases)
                 identity.Append(alias.Length).Append(':').Append(alias);
         }
@@ -272,14 +306,16 @@ internal static class CSharpClrGeneratedCodeCompatibility
         cancellationToken.ThrowIfCancellationRequested();
         return new CSharpArtifactCompilationIdentity(
             CanonicalIdentityHash.Compute(identity.ToString(), cancellationToken),
-            compilation.Options);
+            compilation.Options
+        );
     }
 
     private sealed record ReferenceId(long Value);
 
     internal static CSharpGeneratedSyntaxIdentity CreateStructuralIdentity(
         RenderedQueryArtifact artifact,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CreateStructuralIdentity(artifact, cancellationToken, ArrayPool<char>.Shared);
     }
@@ -287,13 +323,21 @@ internal static class CSharpClrGeneratedCodeCompatibility
     internal static CSharpGeneratedSyntaxIdentity CreateStructuralIdentity(
         RenderedQueryArtifact artifact,
         CancellationToken cancellationToken,
-        ArrayPool<char> pool)
+        ArrayPool<char> pool
+    )
     {
         ArgumentNullException.ThrowIfNull(artifact);
         cancellationToken.ThrowIfCancellationRequested();
-        var compilation = CSharpClrArtifactCompatibility.RequireCompilation(artifact, "canonical generated artifact identity");
-        var accessPath = CSharpClrArtifactCompatibility.RequireAccessToClassPath(artifact, "canonical generated artifact identity");
-        var identityParts = accessPath.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        var compilation = CSharpClrArtifactCompatibility.RequireCompilation(
+            artifact,
+            "canonical generated artifact identity"
+        );
+        var accessPath = CSharpClrArtifactCompatibility.RequireAccessToClassPath(
+            artifact,
+            "canonical generated artifact identity"
+        );
+        var identityParts = accessPath
+            .Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Distinct(StringComparer.Ordinal)
             .Select((part, index) => (part, Replacement: $"__generated_identity_{index}__"))
             .ToDictionary(item => item.part, item => item.Replacement, StringComparer.Ordinal);
@@ -306,7 +350,10 @@ internal static class CSharpClrGeneratedCodeCompatibility
                 AppendTree(ref writer, tree, treeIndex++, context);
             cancellationToken.ThrowIfCancellationRequested();
             var descriptor = writer.CreateDescriptor();
-            return new CSharpGeneratedSyntaxIdentity(descriptor, CanonicalIdentityHash.Compute(descriptor, cancellationToken));
+            return new CSharpGeneratedSyntaxIdentity(
+                descriptor,
+                CanonicalIdentityHash.Compute(descriptor, cancellationToken)
+            );
         }
         finally
         {
@@ -318,7 +365,8 @@ internal static class CSharpClrGeneratedCodeCompatibility
         ref CanonicalIdentityWriter writer,
         SyntaxTree tree,
         int treeIndex,
-        DescriptorContext context)
+        DescriptorContext context
+    )
     {
         context.CancellationToken.ThrowIfCancellationRequested();
         writer.Append("tree:");
@@ -328,7 +376,10 @@ internal static class CSharpClrGeneratedCodeCompatibility
         {
             context.CancellationToken.ThrowIfCancellationRequested();
             var value = token.Text;
-            if (token.IsKind(SyntaxKind.IdentifierToken) && context.IdentityParts.TryGetValue(token.ValueText, out var replacement))
+            if (
+                token.IsKind(SyntaxKind.IdentifierToken)
+                && context.IdentityParts.TryGetValue(token.ValueText, out var replacement)
+            )
                 value = replacement;
             writer.Append(token.RawKind);
             writer.Append(':');
@@ -344,7 +395,8 @@ internal static class CSharpClrGeneratedCodeCompatibility
     private static void AppendStructuredTrivia(
         ref CanonicalIdentityWriter writer,
         SyntaxTriviaList trivia,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         foreach (var item in trivia)
         {
@@ -364,18 +416,15 @@ internal static class CSharpClrGeneratedCodeCompatibility
 
     private readonly record struct DescriptorContext(
         Dictionary<string, string> IdentityParts,
-        CancellationToken CancellationToken);
+        CancellationToken CancellationToken
+    );
 }
 
 internal readonly record struct CSharpGeneratedSyntaxIdentity(string Descriptor, string Hash);
 
-internal sealed record CSharpClrBatchActivationRequest(
-    string RunnableTypeName,
-    QueryRuntimeBinding Binding);
+internal sealed record CSharpClrBatchActivationRequest(string RunnableTypeName, QueryRuntimeBinding Binding);
 
-internal sealed record CSharpClrBatchActivationResult(
-    ITableRunnable? Runnable,
-    Exception? Exception)
+internal sealed record CSharpClrBatchActivationResult(ITableRunnable? Runnable, Exception? Exception)
 {
     public bool Succeeded => Runnable is not null && Exception is null;
 }

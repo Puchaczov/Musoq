@@ -5,9 +5,7 @@ namespace Musoq.Targets.CSharpClr;
 
 internal static class NestedPositionalFieldReadRenderer
 {
-    internal static ExpressionSyntax Render(
-        ExecutionFieldRead fieldRead,
-        NestedPositionalAccess nestedPositional)
+    internal static ExpressionSyntax Render(ExecutionFieldRead fieldRead, NestedPositionalAccess nestedPositional)
     {
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             throw new InvalidOperationException("Nested positional field reads require a source alias.");
@@ -16,20 +14,20 @@ internal static class NestedPositionalFieldReadRenderer
             throw new InvalidOperationException("Nested positional field reads require the indexed cell type.");
 
         var indexedCell = ExecutionCSharpRenderer.CreateNativeRowValueRead(
-            CreateIdentifierName(fieldRead.Alias), nestedPositional.Index,
-            SyntaxFactory.ParseTypeName(fieldRead.GeneratedTypeName));
+            CreateIdentifierName(fieldRead.Alias),
+            nestedPositional.Index,
+            SyntaxFactory.ParseTypeName(fieldRead.GeneratedTypeName)
+        );
 
-        var separator = nestedPositional.PropertyPath.StartsWith("[", StringComparison.Ordinal) ||
-                         nestedPositional.PropertyPath.StartsWith(".", StringComparison.Ordinal)
-            ? string.Empty
-            : ".";
-        var value = SyntaxFactory.ParseExpression(
-            $"{indexedCell}{separator}{nestedPositional.PropertyPath}");
+        var separator =
+            nestedPositional.PropertyPath.StartsWith("[", StringComparison.Ordinal)
+            || nestedPositional.PropertyPath.StartsWith(".", StringComparison.Ordinal)
+                ? string.Empty
+                : ".";
+        var value = SyntaxFactory.ParseExpression($"{indexedCell}{separator}{nestedPositional.PropertyPath}");
 
         return fieldRead.ReturnType.RequireClrType() == typeof(object)
             ? value
-            : SyntaxFactory.CastExpression(
-                CreateTypeSyntax(fieldRead.ReturnType),
-                value);
+            : SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), value);
     }
 }

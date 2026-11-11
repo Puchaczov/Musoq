@@ -11,16 +11,15 @@ internal static partial class SourcePredicatePlanContractValidator
         SourcePlanRequest request,
         SourcePlanResult result,
         SourcePredicateCapabilities capabilities,
-        TextSpan span)
+        TextSpan span
+    )
     {
         ValidateCapabilities(capabilities, span);
         Validate(request, result, span);
         ValidateTypedApplications(result, capabilities, span);
     }
 
-    public static void ValidateCapabilities(
-        SourcePredicateCapabilities capabilities,
-        TextSpan span)
+    public static void ValidateCapabilities(SourcePredicateCapabilities capabilities, TextSpan span)
     {
         if (capabilities == null)
             ThrowContract("the source predicate capability declaration is missing", span);
@@ -38,7 +37,8 @@ internal static partial class SourcePredicatePlanContractValidator
     private static void ValidateTypedApplications(
         SourcePlanResult result,
         SourcePredicateCapabilities capabilities,
-        TextSpan span)
+        TextSpan span
+    )
     {
         var acceptedMatches = CollectTopLevelPatternMatches(result.AcceptedPredicate, span);
         var applications = result.ExecutionPlan.PredicateApplications;
@@ -52,7 +52,8 @@ internal static partial class SourcePredicatePlanContractValidator
             {
                 ThrowContract(
                     "the execution plan applies a typed pattern predicate at an unadvertised capability or phase",
-                    span);
+                    span
+                );
             }
 
             var matchIndex = FindMatch(acceptedMatches, patternMatch, consumed);
@@ -66,13 +67,15 @@ internal static partial class SourcePredicatePlanContractValidator
         {
             ThrowContract(
                 "the execution plan is missing an evaluation application for an accepted typed pattern predicate",
-                span);
+                span
+            );
         }
     }
 
     private static List<SourcePredicatePatternMatch> CollectTopLevelPatternMatches(
         SourcePredicateExpression? predicate,
-        TextSpan span)
+        TextSpan span
+    )
     {
         var result = new List<SourcePredicatePatternMatch>();
         foreach (var conjunct in FlattenConjunction(predicate))
@@ -87,7 +90,8 @@ internal static partial class SourcePredicatePlanContractValidator
             {
                 ThrowContract(
                     "the accepted predicate contains a typed pattern match outside a direct top-level AND conjunct",
-                    span);
+                    span
+                );
             }
         }
 
@@ -97,7 +101,8 @@ internal static partial class SourcePredicatePlanContractValidator
     private static int FindMatch(
         IReadOnlyList<SourcePredicatePatternMatch> acceptedMatches,
         SourcePredicatePatternMatch candidate,
-        IReadOnlyList<bool> consumed)
+        IReadOnlyList<bool> consumed
+    )
     {
         var comparer = SourcePredicateExpressionComparer.Instance;
         for (var index = 0; index < acceptedMatches.Count; index++)

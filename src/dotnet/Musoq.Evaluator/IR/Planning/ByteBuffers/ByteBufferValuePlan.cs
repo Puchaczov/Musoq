@@ -11,27 +11,27 @@ internal enum ByteBufferOperationKind
     Range,
     Snapshot,
     Concatenate,
-    Materialize
+    Materialize,
 }
 
 internal enum ByteBufferOwnership
 {
     External,
     Borrowed,
-    Owned
+    Owned,
 }
 
 internal enum ByteBufferNullState
 {
     Unknown,
     NonNull,
-    Null
+    Null,
 }
 
 internal enum ByteBufferMaterialization
 {
     OriginalCallable,
-    PlannedOperations
+    PlannedOperations,
 }
 
 internal enum ByteBufferProvenance
@@ -39,7 +39,7 @@ internal enum ByteBufferProvenance
     OriginalArray,
     OpaqueProducer,
     Snapshot,
-    Concatenation
+    Concatenation,
 }
 
 internal readonly record struct ByteBufferLogicalLength(int ValueId, int? Constant);
@@ -49,7 +49,8 @@ internal sealed record ByteBufferValueFacts(
     ByteBufferOwnership Ownership,
     ByteBufferNullState NullState,
     ScalarEvaluationRegion Region,
-    int MaterializationPoint)
+    int MaterializationPoint
+)
 {
     internal ByteBufferProvenance Provenance { get; init; }
     internal ByteBufferLogicalLength LogicalLength { get; init; }
@@ -57,8 +58,12 @@ internal sealed record ByteBufferValueFacts(
 
 internal sealed record ByteBufferValuePlan
 {
-    internal ByteBufferValuePlan(ByteBufferOperationKind operation, ByteBufferValueFacts facts,
-        IEnumerable<IrExpression> arguments, ByteBufferRequirement requirement)
+    internal ByteBufferValuePlan(
+        ByteBufferOperationKind operation,
+        ByteBufferValueFacts facts,
+        IEnumerable<IrExpression> arguments,
+        ByteBufferRequirement requirement
+    )
     {
         Operation = operation;
         Facts = facts;

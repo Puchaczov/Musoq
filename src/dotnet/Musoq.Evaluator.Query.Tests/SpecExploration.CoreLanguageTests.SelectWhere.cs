@@ -21,7 +21,17 @@ public partial class SpecExplorationCoreLanguageTests
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Alice") { City = "NYC", Country = "USA", Population = 100m }] }
+            {
+                "#A",
+                [
+                    new BasicEntity("Alice")
+                    {
+                        City = "NYC",
+                        Country = "USA",
+                        Population = 100m,
+                    },
+                ]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -35,10 +45,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_Select_QualifiedColumnReference()
     {
         var query = "select a.Name from #A.Entities() a";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Alice")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Alice")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -57,10 +64,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_Select_ColumnAlias_WithAs()
     {
         var query = "select Name as FullName from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Alice")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Alice")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -83,12 +87,13 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Country = "POLAND" },
                     new BasicEntity("b") { Country = "POLAND" },
-                    new BasicEntity("c") { Country = "GERMANY" }
+                    new BasicEntity("c") { Country = "GERMANY" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -101,10 +106,7 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_Select_Star_ShouldExpandAllColumns()
     {
         var query = "select * from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Alice")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Alice")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -124,12 +126,13 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Population = 100m },
                     new BasicEntity("b") { Population = 300m },
-                    new BasicEntity("c") { Population = 500m }
+                    new BasicEntity("c") { Population = 500m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -145,12 +148,13 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Country = "POLAND", Population = 100m },
                     new BasicEntity("b") { Country = "POLAND", Population = 300m },
-                    new BasicEntity("c") { Country = "GERMANY", Population = 500m }
+                    new BasicEntity("c") { Country = "GERMANY", Population = 500m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -167,12 +171,13 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { City = "WARSAW" },
                     new BasicEntity("b") { City = "BERLIN" },
-                    new BasicEntity("c") { City = "PARIS" }
+                    new BasicEntity("c") { City = "PARIS" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -187,12 +192,7 @@ public partial class SpecExplorationCoreLanguageTests
         var query = "select Name from #A.Entities() where NullableValue is null";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("a") { NullableValue = null },
-                    new BasicEntity("b") { NullableValue = 42 }
-                ]
-            }
+            { "#A", [new BasicEntity("a") { NullableValue = null }, new BasicEntity("b") { NullableValue = 42 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -208,12 +208,7 @@ public partial class SpecExplorationCoreLanguageTests
         var query = "select Name from #A.Entities() where NullableValue is not null";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("a") { NullableValue = null },
-                    new BasicEntity("b") { NullableValue = 42 }
-                ]
-            }
+            { "#A", [new BasicEntity("a") { NullableValue = null }, new BasicEntity("b") { NullableValue = 42 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -229,13 +224,7 @@ public partial class SpecExplorationCoreLanguageTests
         var query = "select Name from #A.Entities() where Name like '%lic%'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob"),
-                    new BasicEntity("MALICE")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob"), new BasicEntity("MALICE")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -251,12 +240,13 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Population = 100m },
                     new BasicEntity("b") { Population = 200m },
-                    new BasicEntity("c") { Population = 300m }
+                    new BasicEntity("c") { Population = 300m },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -271,12 +261,7 @@ public partial class SpecExplorationCoreLanguageTests
         var query = "select Name from #A.Entities() where Name <> 'Bob'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -291,17 +276,10 @@ public partial class SpecExplorationCoreLanguageTests
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob")] },
         };
 
-        var vm = CreateAndRunVirtualMachine(
-            "select Name from #A.Entities() where Name != 'Bob'",
-            sources);
+        var vm = CreateAndRunVirtualMachine("select Name from #A.Entities() where Name != 'Bob'", sources);
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
@@ -314,17 +292,16 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("a") { Population = 100m },
                     new BasicEntity("b") { Population = 200m },
-                    new BasicEntity("c") { Population = 300m }
+                    new BasicEntity("c") { Population = 300m },
                 ]
-            }
+            },
         };
 
-        var vm = CreateAndRunVirtualMachine(
-            "select Name from #A.Entities() where Population != 200",
-            sources);
+        var vm = CreateAndRunVirtualMachine("select Name from #A.Entities() where Population != 200", sources);
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
@@ -336,17 +313,19 @@ public partial class SpecExplorationCoreLanguageTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { City = "NYC" },
                     new BasicEntity("Bob") { City = "LA" },
-                    new BasicEntity("Carol") { City = "NYC" }
+                    new BasicEntity("Carol") { City = "NYC" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(
             "select Name from #A.Entities() where Name != 'Bob' and City != 'LA'",
-            sources);
+            sources
+        );
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
@@ -357,23 +336,13 @@ public partial class SpecExplorationCoreLanguageTests
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob"),
-                    new BasicEntity("Carol")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob"), new BasicEntity("Carol")] },
         };
 
-        var vm1 = CreateAndRunVirtualMachine(
-            "select Name from #A.Entities() where Name <> 'Bob'",
-            sources);
+        var vm1 = CreateAndRunVirtualMachine("select Name from #A.Entities() where Name <> 'Bob'", sources);
         var table1 = vm1.Run(TokenSource.Token);
 
-        var vm2 = CreateAndRunVirtualMachine(
-            "select Name from #A.Entities() where Name != 'Bob'",
-            sources);
+        var vm2 = CreateAndRunVirtualMachine("select Name from #A.Entities() where Name != 'Bob'", sources);
         var table2 = vm2.Run(TokenSource.Token);
 
         Assert.AreEqual(table1.Count, table2.Count);

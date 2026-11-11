@@ -22,7 +22,11 @@ internal abstract partial class ExecutionIrRewriter
         var result = RewriteExpression(branch.Result);
         return ReferenceEquals(condition, branch.Condition) && ReferenceEquals(result, branch.Result)
             ? branch
-            : branch with { Condition = condition, Result = result };
+            : branch with
+            {
+                Condition = condition,
+                Result = result,
+            };
     }
 
     protected virtual ExecutionContextLayout? RewriteContextLayout(ExecutionContextLayout? layout)
@@ -52,7 +56,11 @@ internal abstract partial class ExecutionIrRewriter
         var right = RewriteExpression(key.Right);
         return ReferenceEquals(left, key.Left) && ReferenceEquals(right, key.Right)
             ? key
-            : key with { Left = left, Right = right };
+            : key with
+            {
+                Left = left,
+                Right = right,
+            };
     }
 
     protected virtual ExecutionAsOfTieBreak? RewriteAsOfTieBreak(ExecutionAsOfTieBreak? tieBreak)
@@ -69,16 +77,16 @@ internal abstract partial class ExecutionIrRewriter
         return capacityHint switch
         {
             ExecutionRowsCapacityHintCandidate candidate => RewriteRowsCapacityHintCandidate(candidate),
-            _ => capacityHint
+            _ => capacityHint,
         };
     }
 
-    protected virtual ExecutionCapacityHint RewriteRowsCapacityHintCandidate(ExecutionRowsCapacityHintCandidate candidate)
+    protected virtual ExecutionCapacityHint RewriteRowsCapacityHintCandidate(
+        ExecutionRowsCapacityHintCandidate candidate
+    )
     {
         var rows = RewriteExpression(candidate.Rows);
-        return ReferenceEquals(rows, candidate.Rows)
-            ? candidate
-            : candidate with { Rows = rows };
+        return ReferenceEquals(rows, candidate.Rows) ? candidate : candidate with { Rows = rows };
     }
 
     protected virtual ExecutionParallelTask RewriteParallelTask(ExecutionParallelTask task)
@@ -111,7 +119,8 @@ internal abstract partial class ExecutionIrRewriter
     protected T RewriteCapacityHintOwner<T>(
         T owner,
         ExecutionCapacityHint? capacityHint,
-        Func<ExecutionCapacityHint?, T> replace)
+        Func<ExecutionCapacityHint?, T> replace
+    )
         where T : class
     {
         var rewritten = RewriteOptionalCapacityHint(capacityHint);
@@ -121,27 +130,22 @@ internal abstract partial class ExecutionIrRewriter
     protected T RewriteRequiredCapacityHintOwner<T>(
         T owner,
         ExecutionCapacityHint capacityHint,
-        Func<ExecutionCapacityHint, T> replace)
+        Func<ExecutionCapacityHint, T> replace
+    )
         where T : class
     {
         var rewritten = RewriteCapacityHint(capacityHint);
         return ReferenceEquals(rewritten, capacityHint) ? owner : replace(rewritten);
     }
 
-    protected T RewriteBlockOwner<T>(
-        T owner,
-        ExecutionBlock body,
-        Func<ExecutionBlock, T> replace)
+    protected T RewriteBlockOwner<T>(T owner, ExecutionBlock body, Func<ExecutionBlock, T> replace)
         where T : class
     {
         var rewritten = RewriteBlock(body);
         return ReferenceEquals(rewritten, body) ? owner : replace(rewritten);
     }
 
-    protected T RewriteExpressionOwner<T>(
-        T owner,
-        ExecutionExpression expression,
-        Func<ExecutionExpression, T> replace)
+    protected T RewriteExpressionOwner<T>(T owner, ExecutionExpression expression, Func<ExecutionExpression, T> replace)
         where T : class
     {
         var rewritten = RewriteExpression(expression);
@@ -152,7 +156,8 @@ internal abstract partial class ExecutionIrRewriter
         T owner,
         ExecutionExpression expression,
         ExecutionBlock body,
-        Func<ExecutionExpression, ExecutionBlock, T> replace)
+        Func<ExecutionExpression, ExecutionBlock, T> replace
+    )
         where T : class
     {
         var rewrittenExpression = RewriteExpression(expression);
@@ -167,15 +172,17 @@ internal abstract partial class ExecutionIrRewriter
         ExecutionExpression key,
         ExecutionBlock body,
         ExecutionBlock? noMatchBody,
-        Func<ExecutionExpression, ExecutionBlock, ExecutionBlock?, T> replace)
+        Func<ExecutionExpression, ExecutionBlock, ExecutionBlock?, T> replace
+    )
         where T : class
     {
         var rewrittenKey = RewriteExpression(key);
         var rewrittenBody = RewriteBlock(body);
         var rewrittenNoMatchBody = RewriteOptionalBlock(noMatchBody);
-        return ReferenceEquals(rewrittenKey, key) &&
-               ReferenceEquals(rewrittenBody, body) &&
-               ReferenceEquals(rewrittenNoMatchBody, noMatchBody)
+        return
+            ReferenceEquals(rewrittenKey, key)
+            && ReferenceEquals(rewrittenBody, body)
+            && ReferenceEquals(rewrittenNoMatchBody, noMatchBody)
             ? owner
             : replace(rewrittenKey, rewrittenBody, rewrittenNoMatchBody);
     }
@@ -183,7 +190,8 @@ internal abstract partial class ExecutionIrRewriter
     protected T RewriteRowValuesOwner<T>(
         T owner,
         IReadOnlyList<ExecutionRowValue> values,
-        Func<IReadOnlyList<ExecutionRowValue>, T> replace)
+        Func<IReadOnlyList<ExecutionRowValue>, T> replace
+    )
         where T : class
     {
         var rewritten = RewriteRowValues(values);
@@ -195,15 +203,17 @@ internal abstract partial class ExecutionIrRewriter
         IReadOnlyList<ExecutionRowValue> values,
         IReadOnlyList<ExecutionExpression> contexts,
         ExecutionContextLayout? contextLayout,
-        Func<IReadOnlyList<ExecutionRowValue>, IReadOnlyList<ExecutionExpression>, ExecutionContextLayout?, T> replace)
+        Func<IReadOnlyList<ExecutionRowValue>, IReadOnlyList<ExecutionExpression>, ExecutionContextLayout?, T> replace
+    )
         where T : class
     {
         var rewrittenValues = RewriteRowValues(values);
         var rewrittenContexts = RewriteExpressionList(contexts);
         var rewrittenContextLayout = RewriteContextLayout(contextLayout);
-        return ReferenceEquals(rewrittenValues, values) &&
-               ReferenceEquals(rewrittenContexts, contexts) &&
-               ReferenceEquals(rewrittenContextLayout, contextLayout)
+        return
+            ReferenceEquals(rewrittenValues, values)
+            && ReferenceEquals(rewrittenContexts, contexts)
+            && ReferenceEquals(rewrittenContextLayout, contextLayout)
             ? owner
             : replace(rewrittenValues, rewrittenContexts, rewrittenContextLayout);
     }
@@ -219,25 +229,27 @@ internal abstract partial class ExecutionIrRewriter
     }
 
     protected IReadOnlyList<IReadOnlyList<ExecutionRowValue>> RewriteRowValueRows(
-        IReadOnlyList<IReadOnlyList<ExecutionRowValue>> values)
+        IReadOnlyList<IReadOnlyList<ExecutionRowValue>> values
+    )
     {
         return RewriteList(values, RewriteRowValues);
     }
 
     protected IReadOnlyList<ExecutionContextSegment> RewriteContextSegments(
-        IReadOnlyList<ExecutionContextSegment> segments)
+        IReadOnlyList<ExecutionContextSegment> segments
+    )
     {
         return RewriteList(segments, RewriteContextSegment);
     }
 
-    protected IReadOnlyList<ExecutionWindowOrderKey> RewriteWindowOrderKeys(
-        IReadOnlyList<ExecutionWindowOrderKey> keys)
+    protected IReadOnlyList<ExecutionWindowOrderKey> RewriteWindowOrderKeys(IReadOnlyList<ExecutionWindowOrderKey> keys)
     {
         return RewriteList(keys, RewriteWindowOrderKey);
     }
 
     protected IReadOnlyList<ExecutionAsOfEqualityKey> RewriteAsOfEqualityKeys(
-        IReadOnlyList<ExecutionAsOfEqualityKey> keys)
+        IReadOnlyList<ExecutionAsOfEqualityKey> keys
+    )
     {
         return RewriteList(keys, RewriteAsOfEqualityKey);
     }

@@ -7,12 +7,10 @@ namespace Musoq.Evaluator.IR.Analysis;
 internal sealed record ScalarReuseCostModel(
     int MinimumDynamicUses = 2,
     int MaximumAdditionalPayloadBytes = 1024,
-    double MaximumPayloadGrowthRatio = 0.03)
+    double MaximumPayloadGrowthRatio = 0.03
+)
 {
-    public bool ShouldMaterialize(
-        ScalarReuseCandidate candidate,
-        int existingRowWidthBytes,
-        int predictedOutputUses)
+    public bool ShouldMaterialize(ScalarReuseCandidate candidate, int existingRowWidthBytes, int predictedOutputUses)
     {
         ArgumentNullException.ThrowIfNull(candidate);
         if (existingRowWidthBytes < 0)
@@ -26,8 +24,10 @@ internal sealed record ScalarReuseCostModel(
             return false;
         if (candidate.EstimatedPayloadBytes > MaximumAdditionalPayloadBytes)
             return false;
-        if (existingRowWidthBytes > 0 &&
-            candidate.EstimatedPayloadBytes > existingRowWidthBytes * MaximumPayloadGrowthRatio)
+        if (
+            existingRowWidthBytes > 0
+            && candidate.EstimatedPayloadBytes > existingRowWidthBytes * MaximumPayloadGrowthRatio
+        )
             return false;
 
         return predictedOutputUses >= MinimumDynamicUses || candidate.EstimatedRepeatCount >= MinimumDynamicUses;

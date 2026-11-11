@@ -5,4 +5,5 @@ public sealed record ExecutionHoistCandidateLet(
     ExecutionExpression Value,
     ExecutionHoistKind Kind,
     ExecutionHoistScope Scope,
-    string Signature) : ExecutionNode;
+    string Signature
+) : ExecutionNode;

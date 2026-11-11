@@ -7,7 +7,8 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor visitor)
-    : InterpretationSchemaDefinitionSkippingTraverseVisitor<IAwareExpressionVisitor>(visitor), IQueryPartAwareExpressionVisitor
+    : InterpretationSchemaDefinitionSkippingTraverseVisitor<IAwareExpressionVisitor>(visitor),
+        IQueryPartAwareExpressionVisitor
 {
     private readonly Stack<Scope> _scopes = new();
 
@@ -41,10 +42,14 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionV
                 if (columnInfo != null)
                 {
                     string? elementIntendedTypeName = null;
-                    if (!string.IsNullOrEmpty(columnInfo.IntendedTypeName) &&
-                        columnInfo.IntendedTypeName.EndsWith("[]", StringComparison.Ordinal))
-                        elementIntendedTypeName =
-                            columnInfo.IntendedTypeName.Substring(0, columnInfo.IntendedTypeName.Length - 2);
+                    if (
+                        !string.IsNullOrEmpty(columnInfo.IntendedTypeName)
+                        && columnInfo.IntendedTypeName.EndsWith("[]", StringComparison.Ordinal)
+                    )
+                        elementIntendedTypeName = columnInfo.IntendedTypeName.Substring(
+                            0,
+                            columnInfo.IntendedTypeName.Length - 2
+                        );
 
                     var enhancedArrayNode = new AccessObjectArrayNode(
                         arrayNode.Token,
@@ -70,15 +75,17 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionV
             }
         }
 
-        if (ident != null && node == theMostOuter &&
-            !Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name) &&
-            !Visitor.IsCurrentContextColumn(ident.Name))
+        if (
+            ident != null
+            && node == theMostOuter
+            && !Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name)
+            && !Visitor.IsCurrentContextColumn(ident.Name)
+        )
         {
             var column = theMostOuter.Expression as IdentifierNode;
             if (column != null)
             {
-                Visit(new AccessColumnNode(column.Name, ident.Name,
-                    ident.SpanOrEmpty()));
+                Visit(new AccessColumnNode(column.Name, ident.Name, ident.SpanOrEmpty()));
                 return;
             }
         }
@@ -87,7 +94,8 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionV
         if (_theMostInnerIdentifier is null)
         {
             _theMostInnerIdentifier = node.Expression as IdentifierNode;
-            if (_theMostInnerIdentifier != null) setTheMostInnerIdentifier = true;
+            if (_theMostInnerIdentifier != null)
+                setTheMostInnerIdentifier = true;
         }
 
         if (_theMostInnerIdentifier is not null && setTheMostInnerIdentifier)

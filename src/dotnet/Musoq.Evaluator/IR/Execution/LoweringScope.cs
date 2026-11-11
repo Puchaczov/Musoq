@@ -1,23 +1,20 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed class LoweringScope
 {
     public LoweringScope(PhysicalLoweringFacts facts)
-        : this(
-            facts,
-            CteLoweringContext.Empty,
-            DirectTableLoweringContext.Empty)
-    {
-    }
+        : this(facts, CteLoweringContext.Empty, DirectTableLoweringContext.Empty) { }
 
     private LoweringScope(
         PhysicalLoweringFacts facts,
         CteLoweringContext cte,
         DirectTableLoweringContext directTable,
         string generatedTypePrefix = "",
-        IReadOnlyList<SubqueryCteBinding>? subqueryCtes = null)
+        IReadOnlyList<SubqueryCteBinding>? subqueryCtes = null
+    )
     {
         Facts = facts ?? throw new ArgumentNullException(nameof(facts));
         Cte = cte ?? throw new ArgumentNullException(nameof(cte));
@@ -29,8 +26,10 @@ internal sealed class LoweringScope
     public PhysicalLoweringFacts Facts { get; }
     public string GeneratedTypePrefix { get; }
     internal IReadOnlyList<SubqueryCteBinding> SubqueryCtes { get; }
+
     internal LoweringScope WithSubqueryCtes(IReadOnlyList<SubqueryCteBinding> bindings) =>
         new(Facts, Cte, DirectTable, GeneratedTypePrefix, bindings);
+
     public LoweringScope WithGeneratedTypePrefix(string prefix) => new(Facts, Cte, DirectTable, prefix, SubqueryCtes);
 
     public CteLoweringContext Cte { get; }
@@ -39,8 +38,7 @@ internal sealed class LoweringScope
 
     public ExecutionStrategyPlan ExecutionStrategies => Facts.ExecutionStrategies;
 
-    public IReadOnlyDictionary<string, FusedCteHashBuildSource>? FusedCteHashBuildSources =>
-        Cte.FusedHashBuildSources;
+    public IReadOnlyDictionary<string, FusedCteHashBuildSource>? FusedCteHashBuildSources => Cte.FusedHashBuildSources;
 
     public CteSidecarHashPayloadState CteSidecarHashPayloads => Cte.SidecarHashPayloads;
 
@@ -57,46 +55,59 @@ internal sealed class LoweringScope
         Cte.RecursiveCte.InvariantInputs;
 
     public LoweringScope WithFusedCteHashBuildSources(
-        IReadOnlyDictionary<string, FusedCteHashBuildSource>? fusedCteHashBuildSources) =>
-        Create(Cte with
-        {
-            FusedHashBuildSources = fusedCteHashBuildSources == null
-                ? null
-                : new ReadOnlyDictionary<string, FusedCteHashBuildSource>(
-                    new Dictionary<string, FusedCteHashBuildSource>(
-                        fusedCteHashBuildSources,
-                        StringComparer.OrdinalIgnoreCase))
-        });
+        IReadOnlyDictionary<string, FusedCteHashBuildSource>? fusedCteHashBuildSources
+    ) =>
+        Create(
+            Cte with
+            {
+                FusedHashBuildSources =
+                    fusedCteHashBuildSources == null
+                        ? null
+                        : new ReadOnlyDictionary<string, FusedCteHashBuildSource>(
+                            new Dictionary<string, FusedCteHashBuildSource>(
+                                fusedCteHashBuildSources,
+                                StringComparer.OrdinalIgnoreCase
+                            )
+                        ),
+            }
+        );
 
-    public LoweringScope WithCteSidecarHashPayloads(
-        CteSidecarHashPayloadState sidecarHashPayloads)
+    public LoweringScope WithCteSidecarHashPayloads(CteSidecarHashPayloadState sidecarHashPayloads)
     {
         ArgumentNullException.ThrowIfNull(sidecarHashPayloads);
         return Create(Cte with { SidecarHashPayloads = sidecarHashPayloads });
     }
 
-    public LoweringScope WithSidecarJoinPipelineSuppressed() =>
-        Create(Cte with { SuppressSidecarJoinPipeline = true });
+    public LoweringScope WithSidecarJoinPipelineSuppressed() => Create(Cte with { SuppressSidecarJoinPipeline = true });
 
     public LoweringScope WithScalarSubqueryEmptyResults(
-        IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> scalarSubqueryEmptyResults)
+        IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> scalarSubqueryEmptyResults
+    )
     {
         ArgumentNullException.ThrowIfNull(scalarSubqueryEmptyResults);
-        return Create(Cte with
-        {
-            ScalarSubqueryEmptyResults = new ReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec>(
-                new Dictionary<string, ScalarSubqueryEmptyResultSpec>(
-                    scalarSubqueryEmptyResults,
-                    StringComparer.OrdinalIgnoreCase))
-        });
+        return Create(
+            Cte with
+            {
+                ScalarSubqueryEmptyResults = new ReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec>(
+                    new Dictionary<string, ScalarSubqueryEmptyResultSpec>(
+                        scalarSubqueryEmptyResults,
+                        StringComparer.OrdinalIgnoreCase
+                    )
+                ),
+            }
+        );
     }
 
     public LoweringScope WithRecursiveCteSink(RecursiveCteTableSink recursiveCteSink)
     {
         ArgumentNullException.ThrowIfNull(recursiveCteSink);
         return Create(
-            Cte with { RecursiveCte = Cte.RecursiveCte with { Sink = recursiveCteSink } },
-            new DirectTableLoweringContext(recursiveCteSink));
+            Cte with
+            {
+                RecursiveCte = Cte.RecursiveCte with { Sink = recursiveCteSink },
+            },
+            new DirectTableLoweringContext(recursiveCteSink)
+        );
     }
 
     public LoweringScope WithDirectTableSink(IDirectTableSink directTableSink)
@@ -105,27 +116,29 @@ internal sealed class LoweringScope
         return Create(Cte, new DirectTableLoweringContext(directTableSink));
     }
 
-    public LoweringScope WithoutDirectTableSink() =>
-        Create(Cte, DirectTableLoweringContext.Empty);
+    public LoweringScope WithoutDirectTableSink() => Create(Cte, DirectTableLoweringContext.Empty);
 
     public LoweringScope WithRecursiveCteInvariantInputs(
-        IReadOnlyDictionary<string, RecursiveCteInvariantInput> recursiveCteInvariantInputs)
+        IReadOnlyDictionary<string, RecursiveCteInvariantInput> recursiveCteInvariantInputs
+    )
     {
         ArgumentNullException.ThrowIfNull(recursiveCteInvariantInputs);
-        return Create(Cte with
-        {
-            RecursiveCte = Cte.RecursiveCte with
+        return Create(
+            Cte with
             {
-                InvariantInputs = new ReadOnlyDictionary<string, RecursiveCteInvariantInput>(
-                    new Dictionary<string, RecursiveCteInvariantInput>(
-                        recursiveCteInvariantInputs,
-                        StringComparer.Ordinal))
+                RecursiveCte = Cte.RecursiveCte with
+                {
+                    InvariantInputs = new ReadOnlyDictionary<string, RecursiveCteInvariantInput>(
+                        new Dictionary<string, RecursiveCteInvariantInput>(
+                            recursiveCteInvariantInputs,
+                            StringComparer.Ordinal
+                        )
+                    ),
+                },
             }
-        });
+        );
     }
 
-    private LoweringScope Create(
-        CteLoweringContext cte,
-        DirectTableLoweringContext? directTable = null) =>
+    private LoweringScope Create(CteLoweringContext cte, DirectTableLoweringContext? directTable = null) =>
         new(Facts, cte, directTable ?? DirectTable, GeneratedTypePrefix, SubqueryCtes);
 }

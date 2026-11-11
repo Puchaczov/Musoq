@@ -22,5 +22,5 @@ public enum DiagnosticSourceKind
     Runtime = 5,
 
     /// <summary>An engine-owned invariant or implementation failure.</summary>
-    Internal = 6
+    Internal = 6,
 }

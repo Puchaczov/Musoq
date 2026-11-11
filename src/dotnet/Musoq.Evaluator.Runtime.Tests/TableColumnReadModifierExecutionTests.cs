@@ -15,16 +15,16 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
     public void TableColumnReadModifiers_ShouldReachMetadataPlanningAndExecutionContexts()
     {
         const string query =
-            "table LegacyRecord { Id: int, Name: string encoding 'windows-1250' trim, Payload: string source codec 'base64' };" +
-            "couple #capture.items with table LegacyRecord as Records;" +
-            "select Id, Name, Payload from Records()";
+            "table LegacyRecord { Id: int, Name: string encoding 'windows-1250' trim, Payload: string source codec 'base64' };"
+            + "couple #capture.items with table LegacyRecord as Records;"
+            + "select Id, Name, Payload from Records()";
         var provider = new CapturingReadModifierSchemaProvider([
             new Dictionary<string, object?>
             {
                 ["Id"] = 1,
                 ["Name"] = "Zosia",
-                ["Payload"] = "cGF5bG9hZA=="
-            }
+                ["Payload"] = "cGF5bG9hZA==",
+            },
         ]);
 
         var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run();
@@ -33,15 +33,22 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
             table,
             ("Id", typeof(int?)),
             ("Name", typeof(string)),
-            ("Payload", typeof(string)));
+            ("Payload", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "Zosia", "cGF5bG9hZA=="]);
         AssertReadModifiers(provider.Recorder.GetTableColumns.Last());
         AssertReadModifiers(provider.Recorder.DescriptorColumns.Single());
         AssertReadModifiers(provider.Recorder.ExecutionColumns.Single());
 
         var request = provider.Recorder.PlanRequests.Single();
-        Assert.AreEqual("windows-1250", request.RequiredColumns.Single(column => column.Name == "Name").ReadModifiers["encoding"]);
-        Assert.AreEqual("base64", request.RequiredColumns.Single(column => column.Name == "Payload").ReadModifiers["source.codec"]);
+        Assert.AreEqual(
+            "windows-1250",
+            request.RequiredColumns.Single(column => column.Name == "Name").ReadModifiers["encoding"]
+        );
+        Assert.AreEqual(
+            "base64",
+            request.RequiredColumns.Single(column => column.Name == "Payload").ReadModifiers["source.codec"]
+        );
     }
 
     private static void AssertReadModifiers(IReadOnlyCollection<ISchemaColumn> columns)
@@ -67,13 +74,14 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
 
     private sealed class CapturingReadModifierSchema(
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows,
-        ReadModifierRecorder recorder)
-        : SchemaBase("capture", new MethodsAggregator(new MethodsManager())), IQueryScopedRowSourceSchema
+        ReadModifierRecorder recorder
+    ) : SchemaBase("capture", new MethodsAggregator(new MethodsManager())), IQueryScopedRowSourceSchema
     {
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             recorder.GetTableColumns.Add(metadataContext.AllColumns.ToArray());
             return new CapturingReadModifierTable(metadataContext.AllColumns.ToArray());
@@ -82,7 +90,8 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
         public override SourceDescriptor DescribeSource(
             string name,
             SourceDescribeContext context,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             var columns = context.MetadataContext.AllColumns.ToArray();
             recorder.DescriptorColumns.Add(columns);
@@ -91,28 +100,31 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
                 Identity = context.Identity,
                 RowType = typeof(QueryScopedRowContract),
                 TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
-                Columns = columns
+                Columns = columns,
             };
         }
 
         public override SourcePlanResult TryPlanSource(
             string name,
             SourcePlanRequest request,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             recorder.PlanRequests.Add(request);
             return SourcePlanResult.AcceptAll(request);
         }
 
         public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
-            string name, QueryScopedRowSourceRequest request, TArguments parameters)
+            string name,
+            QueryScopedRowSourceRequest request,
+            TArguments parameters
+        )
             where TMaterializer : struct, IQueryRowMaterializer<TRow>
             where TArguments : struct, ISourceArguments
         {
             recorder.ExecutionColumns.Add(request.ExecutionContext.AllColumns.ToArray());
             return new Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>(rows, request.Shape.Fields);
         }
-
     }
 
     private sealed class CapturingReadModifierTable(ISchemaColumn[] columns) : ISchemaTable
@@ -129,7 +141,8 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
             return Columns.Where(column => column.ColumnName == name).ToArray();
         }
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+        public SchemaTableMetadata Metadata { get; } =
+            new(typeof(QueryScopedRowContract)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
     private sealed class ReadModifierRecorder

@@ -16,11 +16,13 @@ public sealed class IrExpressionTraversalFactsTests
     public void KnownExpressionKinds_ShouldCoverEveryConcreteIrExpression()
     {
         var samples = CreateSamples();
-        var concreteTypes = typeof(IrExpression).Assembly
-            .GetTypes()
-            .Where(static type => type is { IsAbstract: false } &&
-                                  typeof(IrExpression).IsAssignableFrom(type) &&
-                                  type.Namespace?.StartsWith("Musoq.Evaluator.IR.Expressions", StringComparison.Ordinal) == true)
+        var concreteTypes = typeof(IrExpression)
+            .Assembly.GetTypes()
+            .Where(static type =>
+                type is { IsAbstract: false }
+                && typeof(IrExpression).IsAssignableFrom(type)
+                && type.Namespace?.StartsWith("Musoq.Evaluator.IR.Expressions", StringComparison.Ordinal) == true
+            )
             .OrderBy(static type => type.FullName, StringComparer.Ordinal)
             .ToArray();
 
@@ -29,7 +31,10 @@ public sealed class IrExpressionTraversalFactsTests
             .Select(static type => type.FullName)
             .ToArray();
 
-        Assert.IsEmpty(missing, "Every concrete IrExpression kind should have traversal/facts coverage: " + string.Join(", ", missing));
+        Assert.IsEmpty(
+            missing,
+            "Every concrete IrExpression kind should have traversal/facts coverage: " + string.Join(", ", missing)
+        );
 
         foreach (var sample in samples)
             Assert.IsTrue(IrExpressionTraversal.IsKnownExpressionKind(sample.Value), sample.Key.Name);
@@ -43,9 +48,11 @@ public sealed class IrExpressionTraversalFactsTests
             new CaseWhen(
                 [new CaseWhenBranch(new Literal(true, typeof(bool)), new Coalesce([methodCall], typeof(string)))],
                 new Literal("fallback", typeof(string)),
-                typeof(string)),
+                typeof(string)
+            ),
             "string",
-            typeof(string));
+            typeof(string)
+        );
 
         Assert.IsTrue(IrExpressionFacts.ContainsMethodCall(expression));
         Assert.IsTrue(ParallelPlanningEligibilityRules.ContainsMethodCall(expression));
@@ -55,7 +62,8 @@ public sealed class IrExpressionTraversalFactsTests
     public void ParallelEligibility_WhenExpressionKindIsUnknown_ShouldSkip()
     {
         var result = ParallelPlanningEligibilityRules.CanUseAggregateGroupKeyExpression(
-            new UnknownExpression(typeof(object)));
+            new UnknownExpression(typeof(object))
+        );
 
         Assert.IsFalse(result.IsEligible);
         StringAssert.Contains(result.Reason, nameof(UnknownExpression));
@@ -71,25 +79,57 @@ public sealed class IrExpressionTraversalFactsTests
 
         return new Dictionary<Type, IrExpression>
         {
-            [typeof(SubqueryExpression)] = new SubqueryExpression("inner", SubqueryResultKind.Scalar,
-                new Musoq.Evaluator.IR.Logical.Nodes.ProjectNode([], new Musoq.Evaluator.IR.Logical.Nodes.MultiStatementNode([])),
-                [column], null, typeof(int?)),
+            [typeof(SubqueryExpression)] = new SubqueryExpression(
+                "inner",
+                SubqueryResultKind.Scalar,
+                new Musoq.Evaluator.IR.Logical.Nodes.ProjectNode(
+                    [],
+                    new Musoq.Evaluator.IR.Logical.Nodes.MultiStatementNode([])
+                ),
+                [column],
+                null,
+                typeof(int?)
+            ),
             [typeof(SubqueryParameterRef)] = new SubqueryParameterRef(0, typeof(int)),
             [typeof(AggregateRef)] = new AggregateRef("p.Count", typeof(long)),
-            [typeof(ArrayAccess)] = new ArrayAccess(new Literal(new[] { 1 }, typeof(int[])), literal, typeof(int), typeof(int)),
-            [typeof(Between)] = new Between(column, new Literal(0, typeof(int)), new Literal(10, typeof(int)), typeof(bool)),
+            [typeof(ArrayAccess)] = new ArrayAccess(
+                new Literal(new[] { 1 }, typeof(int[])),
+                literal,
+                typeof(int),
+                typeof(int)
+            ),
+            [typeof(Between)] = new Between(
+                column,
+                new Literal(0, typeof(int)),
+                new Literal(10, typeof(int)),
+                typeof(bool)
+            ),
             [typeof(BinaryOp)] = new BinaryOp(BinaryOpKind.Equal, column, literal, typeof(bool)),
-            [typeof(CaseWhen)] = new CaseWhen([new CaseWhenBranch(new Literal(true, typeof(bool)), literal)], new Literal(0, typeof(int)), typeof(int)),
+            [typeof(CaseWhen)] = new CaseWhen(
+                [new CaseWhenBranch(new Literal(true, typeof(bool)), literal)],
+                new Literal(0, typeof(int)),
+                typeof(int)
+            ),
             [typeof(Coalesce)] = new Coalesce([textLiteral], typeof(string)),
             [typeof(CollectionInCheck)] = new CollectionInCheck(column, scriptParameter, typeof(int), typeof(bool)),
             [typeof(ColumnRef)] = column,
             [typeof(CteTableRef)] = new CteTableRef("cte"),
-            [typeof(CteCollectionInput)] = new CteCollectionInput("cte", typeof(int[]), typeof(int), [new CteCollectionInputField("Value", 0, typeof(int))]),
+            [typeof(CteCollectionInput)] = new CteCollectionInput(
+                "cte",
+                typeof(int[]),
+                typeof(int),
+                [new CteCollectionInputField("Value", 0, typeof(int))]
+            ),
             [typeof(InCheck)] = new InCheck(column, [literal], typeof(bool)),
             [typeof(IsNullCheck)] = new IsNullCheck(column, IsNegated: false, typeof(bool)),
             [typeof(Literal)] = literal,
             [typeof(MethodCall)] = methodCall,
-            [typeof(PatternMatch)] = new PatternMatch(textLiteral, new Literal("a%", typeof(string)), PatternKind.Like, typeof(bool)),
+            [typeof(PatternMatch)] = new PatternMatch(
+                textLiteral,
+                new Literal("a%", typeof(string)),
+                PatternKind.Like,
+                typeof(bool)
+            ),
             [typeof(RowPresence)] = new RowPresence("p", IsPresent: true, typeof(bool)),
             [typeof(ScriptParameterRef)] = scriptParameter,
             [typeof(ScriptVariableRef)] = new ScriptVariableRef("threshold", typeof(int)),
@@ -97,16 +137,21 @@ public sealed class IrExpressionTraversalFactsTests
             [typeof(UnaryOp)] = new UnaryOp(UnaryOpKind.Negate, literal, typeof(int)),
             [typeof(WildcardLiteral)] = new WildcardLiteral(typeof(object)),
             [typeof(WindowFunctionRef)] = new WindowFunctionRef(0, typeof(int)),
-            [typeof(StructuralRecordLiteral)] = new StructuralRecordLiteral(typeof(object), [new StructuralFieldExpression("Value", literal)]),
+            [typeof(StructuralRecordLiteral)] = new StructuralRecordLiteral(
+                typeof(object),
+                [new StructuralFieldExpression("Value", literal)]
+            ),
             [typeof(StructuralArrayLiteral)] = new StructuralArrayLiteral(typeof(int[]), typeof(int), [literal]),
-            [typeof(StructuralConversion)] = new StructuralConversion(new Literal(1, typeof(int)), typeof(long))
+            [typeof(StructuralConversion)] = new StructuralConversion(new Literal(1, typeof(int)), typeof(long)),
         };
     }
 
     private static MethodCall CreateMethodCall()
     {
-        var method = typeof(IrExpressionTraversalFactsTests)
-            .GetMethod(nameof(StableMethod), BindingFlags.Public | BindingFlags.Static)!;
+        var method = typeof(IrExpressionTraversalFactsTests).GetMethod(
+            nameof(StableMethod),
+            BindingFlags.Public | BindingFlags.Static
+        )!;
 
         return new MethodCall(method, [new Literal("alpha", typeof(string))], null, typeof(string));
     }

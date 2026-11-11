@@ -8,7 +8,8 @@ public class QueryScope(Node[] statements) : Node
 
     public override Type? ReturnType => null;
 
-    public override string Id { get; } = $"{nameof(QueryScope)}{string.Concat(statements.Select(statement => statement.Id))}";
+    public override string Id { get; } =
+        $"{nameof(QueryScope)}{string.Concat(statements.Select(statement => statement.Id))}";
 
     public override void Accept(IExpressionVisitor visitor)
     {

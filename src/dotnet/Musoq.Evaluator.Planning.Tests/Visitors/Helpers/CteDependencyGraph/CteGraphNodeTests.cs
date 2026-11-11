@@ -150,7 +150,12 @@ public class CteGraphNodeTests
     public void CteGraphNode_ToString_ShouldIncludeRelevantInfo()
     {
         // Arrange
-        var node = new CteGraphNode("myCte", null) { IsReachable = true, ExecutionLevel = 1, Dependencies = { "dep1" } };
+        var node = new CteGraphNode("myCte", null)
+        {
+            IsReachable = true,
+            ExecutionLevel = 1,
+            Dependencies = { "dep1" },
+        };
 
         // Act
         var result = node.ToString();
@@ -315,7 +320,12 @@ public class CteGraphNodeTests
     public void CteGraphNode_ToString_WithMultipleDeps_ShouldListAll()
     {
         // Arrange
-        var node = new CteGraphNode("myCte", null) { IsReachable = true, ExecutionLevel = 0, Dependencies = { "dep1", "dep2" } };
+        var node = new CteGraphNode("myCte", null)
+        {
+            IsReachable = true,
+            ExecutionLevel = 0,
+            Dependencies = { "dep1", "dep2" },
+        };
 
         // Act
         var result = node.ToString();

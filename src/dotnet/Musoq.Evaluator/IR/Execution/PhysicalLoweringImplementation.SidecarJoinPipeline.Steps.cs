@@ -15,18 +15,21 @@ internal sealed partial class PhysicalLoweringImplementation
         List<SidecarJoinRuntimeOperation> runtimeOperations,
         ref ProjectedField[]? finalFields,
         ref IReadOnlyDictionary<string, RowShape>? finalOutputLookup,
-        out Dictionary<string, IrExpression>? projectedMap)
+        out Dictionary<string, IrExpression>? projectedMap
+    )
     {
         projectedMap = null;
 
         if (stage.Pipeline.Source is not PhysicalCteRefNode cteRef)
             return false;
 
-        if (stage.Pipeline.Project.IsDistinct ||
-            stage.Pipeline.PostOperations.Count != 0 ||
-            string.IsNullOrWhiteSpace(stage.ExpectedInputCteName) ||
-            !string.Equals(cteRef.CteName, stage.ExpectedInputCteName, StringComparison.OrdinalIgnoreCase) ||
-            currentProjectionMap == null)
+        if (
+            stage.Pipeline.Project.IsDistinct
+            || stage.Pipeline.PostOperations.Count != 0
+            || string.IsNullOrWhiteSpace(stage.ExpectedInputCteName)
+            || !string.Equals(cteRef.CteName, stage.ExpectedInputCteName, StringComparison.OrdinalIgnoreCase)
+            || currentProjectionMap == null
+        )
         {
             return false;
         }
@@ -34,7 +37,8 @@ internal sealed partial class PhysicalLoweringImplementation
         var rewrittenFields = RewriteSidecarJoinProjectedFields(
             stage.Pipeline.Project.Fields,
             currentProjectionMap,
-            cteRef);
+            cteRef
+        );
         if (rewrittenFields == null)
             return false;
 
@@ -44,11 +48,14 @@ internal sealed partial class PhysicalLoweringImplementation
 
         if (rewrittenFilter != null)
         {
-            if (!TryCreateSidecarJoinRuntimeGuard(
+            if (
+                !TryCreateSidecarJoinRuntimeGuard(
                     rewrittenFilter.Predicate,
                     activeLookup,
                     runtimeOperations.Count,
-                    out var guard))
+                    out var guard
+                )
+            )
             {
                 return false;
             }
@@ -73,7 +80,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private bool TryResolveSidecarBuildCteRef(
         PhysicalHashJoinNode join,
         out PhysicalCteRefNode buildCteRef,
-        out CteSidecarIndexSpec sidecar)
+        out CteSidecarIndexSpec sidecar
+    )
     {
         buildCteRef = null!;
         sidecar = null!;
@@ -83,17 +91,21 @@ internal sealed partial class PhysicalLoweringImplementation
 
         sidecar = resolvedSidecar;
 
-        if (join.Left is PhysicalCteRefNode left &&
-            string.Equals(left.CteName, sidecar.CteName, StringComparison.OrdinalIgnoreCase) &&
-            HashBuildAliasUsage.BuildKeysReferenceAlias(join, left.Alias))
+        if (
+            join.Left is PhysicalCteRefNode left
+            && string.Equals(left.CteName, sidecar.CteName, StringComparison.OrdinalIgnoreCase)
+            && HashBuildAliasUsage.BuildKeysReferenceAlias(join, left.Alias)
+        )
         {
             buildCteRef = left;
             return true;
         }
 
-        if (join.Right is PhysicalCteRefNode right &&
-            string.Equals(right.CteName, sidecar.CteName, StringComparison.OrdinalIgnoreCase) &&
-            HashBuildAliasUsage.BuildKeysReferenceAlias(join, right.Alias))
+        if (
+            join.Right is PhysicalCteRefNode right
+            && string.Equals(right.CteName, sidecar.CteName, StringComparison.OrdinalIgnoreCase)
+            && HashBuildAliasUsage.BuildKeysReferenceAlias(join, right.Alias)
+        )
         {
             buildCteRef = right;
             return true;
@@ -102,22 +114,21 @@ internal sealed partial class PhysicalLoweringImplementation
         return false;
     }
 
-    private static bool IsSupportedSidecarPipelineJoin(
-        PhysicalHashJoinNode join,
-        CteSidecarIndexSpec sidecar)
+    private static bool IsSupportedSidecarPipelineJoin(PhysicalHashJoinNode join, CteSidecarIndexSpec sidecar)
     {
         return join.Kind switch
         {
             JoinKind.Inner => sidecar.Kind == CteSidecarIndexKind.Hash,
             JoinKind.LeftSemi => sidecar.Kind == CteSidecarIndexKind.KeySet && join.Residual == null,
-            _ => false
+            _ => false,
         };
     }
 
     private static ExecutionNode CreateSidecarJoinIndexLoad(
         ExecutionVariable indexVariable,
         JoinSource buildSource,
-        CteSidecarIndexSpec sidecar)
+        CteSidecarIndexSpec sidecar
+    )
     {
         return sidecar.Kind switch
         {
@@ -127,13 +138,15 @@ internal sealed partial class PhysicalLoweringImplementation
                 ExecutionCteSidecarIndexKind.Hash,
                 sidecar.KeyType,
                 buildSource.Variable.Type.ResolveClrType(),
-                buildSource.Variable.GeneratedRowTypeName),
+                buildSource.Variable.GeneratedRowTypeName
+            ),
             CteSidecarIndexKind.KeySet => new ExecutionCteSidecarIndexLoadCandidate(
                 indexVariable,
                 sidecar.IndexSlot,
                 ExecutionCteSidecarIndexKind.KeySet,
-                sidecar.KeyType),
-            _ => throw new NotSupportedException($"Unsupported CTE sidecar index kind '{sidecar.Kind}'.")
+                sidecar.KeyType
+            ),
+            _ => throw new NotSupportedException($"Unsupported CTE sidecar index kind '{sidecar.Kind}'."),
         };
     }
 
@@ -142,54 +155,43 @@ internal sealed partial class PhysicalLoweringImplementation
         string? stageOutputName,
         string buildAlias,
         CteSidecarIndexKind kind,
-        int stageIndex)
+        int stageIndex
+    )
     {
-        var scope = string.IsNullOrWhiteSpace(stageOutputName)
-            ? resultTableName
-            : stageOutputName;
+        var scope = string.IsNullOrWhiteSpace(stageOutputName) ? resultTableName : stageOutputName;
         var suffix = kind == CteSidecarIndexKind.KeySet ? "Keys" : "Hash";
 
         return new ExecutionVariable(
-            CreateIdentifierCandidate(
-                CreateScopedHashName(scope, $"{buildAlias}{suffix}"),
-                stageIndex),
-            typeof(object));
+            CreateIdentifierCandidate(CreateScopedHashName(scope, $"{buildAlias}{suffix}"), stageIndex),
+            typeof(object)
+        );
     }
 
-    private static ExecutionBlock CreateSidecarJoinStepBlock(
-        SidecarJoinRuntimeStep step,
-        ExecutionBlock continuation)
+    private static ExecutionBlock CreateSidecarJoinStepBlock(SidecarJoinRuntimeStep step, ExecutionBlock continuation)
     {
-        var conditioned = CreateSidecarJoinConditionBlock(
-            step.Residual,
-            step.Filter,
-            step.SourceLookup,
-            continuation);
-        var probeKey = CreateHashJoinKeyExpression(
-            step.ProbeKeys,
-            step.SourceLookup,
-            step.Sidecar.KeyType);
+        var conditioned = CreateSidecarJoinConditionBlock(step.Residual, step.Filter, step.SourceLookup, continuation);
+        var probeKey = CreateHashJoinKeyExpression(step.ProbeKeys, step.SourceLookup, step.Sidecar.KeyType);
 
         if (step.Sidecar.Kind == CteSidecarIndexKind.KeySet)
         {
-            return new ExecutionBlock(
-            [
+            return new ExecutionBlock([
                 new ExecutionKeySetProbe(
                     step.Index,
                     probeKey,
                     ExecutionClrBindingFactory.FromClr(step.Sidecar.KeyType),
                     conditioned,
-                    KeyVariableName: $"{step.Index.Name}Key")
+                    KeyVariableName: $"{step.Index.Name}Key"
+                ),
             ]);
         }
 
         var matchesLoop = new ExecutionForEach(
             step.Build.Variable,
             new ExecutionVariableRead(step.Matches!),
-            conditioned);
+            conditioned
+        );
 
-        return new ExecutionBlock(
-        [
+        return new ExecutionBlock([
             new ExecutionHashProbe(
                 step.Index,
                 step.Matches!,
@@ -198,7 +200,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 step.Build.Variable.Type,
                 new ExecutionBlock([matchesLoop]),
                 GeneratedRowTypeName: step.Build.Variable.GeneratedRowTypeName,
-                KeyVariableName: $"{step.Index.Name}Key")
+                KeyVariableName: $"{step.Index.Name}Key"
+            ),
         ]);
     }
 
@@ -206,12 +209,10 @@ internal sealed partial class PhysicalLoweringImplementation
         IrExpression? residual,
         PhysicalFilterNode? filter,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        ExecutionBlock body)
+        ExecutionBlock body
+    )
     {
         var condition = AppendPredicate(residual, filter?.Predicate);
-        return condition == null
-            ? body
-            : CreateConditionalJoinBlock(condition, sourceLookup, body);
+        return condition == null ? body : CreateConditionalJoinBlock(condition, sourceLookup, body);
     }
-
 }

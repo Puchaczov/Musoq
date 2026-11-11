@@ -6,5 +6,5 @@ internal enum OptimizationEvaluationClassification
     EvaluationPreserving,
     StabilityChecked,
     RegionChecked,
-    NotApplicable
+    NotApplicable,
 }

@@ -11,37 +11,26 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class DistinctComprehensiveTests
 {
-
     [TestMethod]
     public void Distinct_BeforeUnionAll_WithAlias_ShouldDeduplicateEachSide()
     {
-        var query = @"
-            select distinct Country as c from #A.Entities()
-            union all (Country)
-            select distinct Country as c from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select distinct Country as c from #A.Entities()\n"
+            + "            union all (Country)\n"
+            + "            select distinct Country as c from #B.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Warsaw", "Poland", 500),
-                    new BasicEntity("Krakow", "Poland", 400)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("Berlin", "Germany", 350),
-                    new BasicEntity("Munich", "Germany", 300)
-                ]
-            }
+            { "#A", [new BasicEntity("Warsaw", "Poland", 500), new BasicEntity("Krakow", "Poland", 400)] },
+            { "#B", [new BasicEntity("Berlin", "Germany", 350), new BasicEntity("Munich", "Germany", 300)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         TableMaterializationTestHelper.AssertColumns(table, ("c", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["Germany"], ["Poland"]);
     }
-
 }

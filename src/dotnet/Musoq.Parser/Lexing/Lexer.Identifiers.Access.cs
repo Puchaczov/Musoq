@@ -26,7 +26,8 @@ public sealed partial class Lexer
         token = new GenericFunctionToken(
             Input[start..identifierEnd],
             Input[typeStart..typeEnd],
-            new TextSpan(start, Position - start));
+            new TextSpan(start, Position - start)
+        );
         return true;
     }
 
@@ -77,7 +78,8 @@ public sealed partial class Lexer
                 name,
                 Input[innerStart..position],
                 new TextSpan(start, Position - start),
-                IsSchemaContext);
+                IsSchemaContext
+            );
             return true;
         }
 
@@ -87,16 +89,19 @@ public sealed partial class Lexer
             while (position < Input.Length && IsKeyAccessConstChar(Input[position]))
                 position++;
 
-            if (position > innerStart + 1 &&
-                position + 1 < Input.Length &&
-                Input[position] == '\'' &&
-                Input[position + 1] == ']')
+            if (
+                position > innerStart + 1
+                && position + 1 < Input.Length
+                && Input[position] == '\''
+                && Input[position + 1] == ']'
+            )
             {
                 Position = position + 2;
                 token = new KeyAccessToken(
                     name,
                     Input[innerStart..(position + 1)],
-                    new TextSpan(start, Position - start));
+                    new TextSpan(start, Position - start)
+                );
                 return true;
             }
         }
@@ -108,10 +113,7 @@ public sealed partial class Lexer
         if (position > innerStart && position < Input.Length && Input[position] == ']')
         {
             Position = position + 1;
-            token = new KeyAccessToken(
-                name,
-                Input[innerStart..position],
-                new TextSpan(start, Position - start));
+            token = new KeyAccessToken(name, Input[innerStart..position], new TextSpan(start, Position - start));
             return true;
         }
 
@@ -120,14 +122,13 @@ public sealed partial class Lexer
 
     private static bool IsMethodNameStart(ReadOnlySpan<char> input, int index)
     {
-        return index < input.Length &&
-            (input[index] == '-' || FastCharacterClassifier.IsIdentifierStart(input, index));
+        return index < input.Length && (input[index] == '-' || FastCharacterClassifier.IsIdentifierStart(input, index));
     }
 
     private static bool IsMethodNameContinue(ReadOnlySpan<char> input, int index)
     {
-        return index < input.Length &&
-            (input[index] == '-' || FastCharacterClassifier.IsIdentifierContinue(input, index));
+        return index < input.Length
+            && (input[index] == '-' || FastCharacterClassifier.IsIdentifierContinue(input, index));
     }
 
     private static bool IsKeyAccessConstChar(char value)
@@ -137,7 +138,24 @@ public sealed partial class Lexer
 
     private static bool IsKeyAccessVarChar(char value)
     {
-        return value is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_' or
-            ' ' or '\t' or '\r' or '\n' or '+' or '-' or '*' or '/' or '%' or '(' or ')';
+        return value
+            is >= 'a'
+                and <= 'z'
+                or >= 'A'
+                and <= 'Z'
+                or >= '0'
+                and <= '9'
+                or '_'
+                or ' '
+                or '\t'
+                or '\r'
+                or '\n'
+                or '+'
+                or '-'
+                or '*'
+                or '/'
+                or '%'
+                or '('
+                or ')';
     }
 }

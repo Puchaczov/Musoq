@@ -1,8 +1,8 @@
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
-using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -28,8 +28,15 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
             Nodes.Push(node);
             return;
         }
-        base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), alias, node.ReturnType,
-            node.Span, node.IntendedTypeName));
+        base.Visit(
+            new AccessColumnNode(
+                NamingHelper.ToColumnName(node.Alias, node.Name),
+                alias,
+                node.ReturnType,
+                node.Span,
+                node.IntendedTypeName
+            )
+        );
     }
 
     public override void Visit(AccessObjectArrayNode node)
@@ -38,7 +45,11 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
         if (node.IsColumnAccess)
         {
             var newColumnName = NamingHelper.ToColumnName(node.TableAlias, node.Token.Name);
-            var newToken = new NumericAccessToken(newColumnName, node.Token.Index.ToString(System.Globalization.CultureInfo.InvariantCulture), TextSpan.Empty);
+            var newToken = new NumericAccessToken(
+                newColumnName,
+                node.Token.Index.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                TextSpan.Empty
+            );
             Nodes.Push(new AccessObjectArrayNode(newToken, node.ColumnType, alias, node.IntendedTypeName));
         }
         else
@@ -74,7 +85,8 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
         ArgumentNullException.ThrowIfNull(node);
         var fields = new FieldNode[node.Fields.Length];
 
-        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode)Nodes.Pop();
+        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--)
+            fields[j] = (FieldNode)Nodes.Pop();
 
         ChangedSelect = new SelectNode(fields);
     }
@@ -88,7 +100,8 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
         if (node.Having != null)
             having = (HavingNode)Nodes.Pop();
 
-        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode)Nodes.Pop();
+        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--)
+            fields[j] = (FieldNode)Nodes.Pop();
 
         ChangedGroupBy = new GroupByNode(fields, having, node.IsAll, node.Span);
     }
@@ -103,7 +116,8 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
         ArgumentNullException.ThrowIfNull(node);
         var fields = new FieldOrderedNode[node.Fields.Length];
 
-        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldOrderedNode)Nodes.Pop();
+        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--)
+            fields[j] = (FieldOrderedNode)Nodes.Pop();
 
         ChangedOrderBy = new OrderByNode(fields);
     }
@@ -126,7 +140,12 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
         for (var i = 0; i < fields.Length; i++)
         {
             var rewritten = RewriteExpressionNode(fields[i].Expression);
-            result[i] = new FieldNode(rewritten, fields[i].FieldOrder, fields[i].FieldName, fields[i].HasExplicitFieldName);
+            result[i] = new FieldNode(
+                rewritten,
+                fields[i].FieldOrder,
+                fields[i].FieldName,
+                fields[i].HasExplicitFieldName
+            );
         }
 
         return result;
@@ -139,7 +158,14 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
         for (var i = 0; i < fields.Length; i++)
         {
             var rewritten = RewriteExpressionNode(fields[i].Expression);
-            result[i] = new FieldOrderedNode(rewritten, fields[i].FieldOrder, fields[i].FieldName, fields[i].HasExplicitFieldName, fields[i].Order, fields[i].NullOrdering);
+            result[i] = new FieldOrderedNode(
+                rewritten,
+                fields[i].FieldOrder,
+                fields[i].FieldName,
+                fields[i].HasExplicitFieldName,
+                fields[i].Order,
+                fields[i].NullOrdering
+            );
         }
 
         return result;
@@ -147,17 +173,15 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
 
     private AccessMethodNode RewriteFunctionCall(AccessMethodNode funcCall)
     {
-        if (funcCall.Arguments.Args.Length == 0 &&
-            funcCall.FilterExpression == null)
+        if (funcCall.Arguments.Args.Length == 0 && funcCall.FilterExpression == null)
             return funcCall;
 
         var newArgs = new Node[funcCall.Arguments.Args.Length];
         for (var i = 0; i < newArgs.Length; i++)
             newArgs[i] = RewriteExpressionNode(funcCall.Arguments.Args[i]);
 
-        var filterExpression = funcCall.FilterExpression == null
-            ? null
-            : RewriteExpressionNode(funcCall.FilterExpression);
+        var filterExpression =
+            funcCall.FilterExpression == null ? null : RewriteExpressionNode(funcCall.FilterExpression);
 
         return new AccessMethodNode(
             funcCall.FunctionToken,
@@ -167,14 +191,15 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
             funcCall.Method,
             funcCall.Alias,
             funcCall.Span,
-            funcCall.IsDistinct)
+            funcCall.IsDistinct
+        )
         {
             HasFilter = funcCall.HasFilter,
             FilterExpression = filterExpression,
             FilterExpressionText = funcCall.FilterExpressionText,
             IsPivotGenerated = funcCall.IsPivotGenerated,
             IsScalarSubqueryValueWrapper = funcCall.IsScalarSubqueryValueWrapper,
-            IsCompilerGenerated = funcCall.IsCompilerGenerated
+            IsCompilerGenerated = funcCall.IsCompilerGenerated,
         };
     }
 

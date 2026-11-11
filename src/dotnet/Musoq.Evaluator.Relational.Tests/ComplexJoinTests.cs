@@ -10,54 +10,47 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class ComplexJoinTests : BasicEntityTestBase
 {
-
     private CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IDictionary<string, IEnumerable<BasicEntity>> sources,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            options);
+            options
+        );
     }
 
     [TestMethod]
     public void HashJoin_ComplexEqui_Numeric_ShouldMatch()
     {
-        var query = @"
-select 
-    a.Id, 
-    b.Id 
-from #A.entities() a 
-inner join #B.entities() b on a.Id = b.Id + 1";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Id, \n"
+            + "    b.Id \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Id = b.Id + 1"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Id = 1 },
-                    new BasicEntity { Id = 2 },
-                    new BasicEntity { Id = 3 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Id = 0 },
-                    new BasicEntity { Id = 1 },
-                    new BasicEntity { Id = 2 }
-                ]
-            }
+            { "#A", [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }] },
+            { "#B", [new BasicEntity { Id = 0 }, new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }] },
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-
 
         var rows = table.OrderBy(r => (int)r.ReadValue(0)).ToList();
 
@@ -74,33 +67,40 @@ inner join #B.entities() b on a.Id = b.Id + 1";
     [TestMethod]
     public void HashJoin_ComplexEqui_String_ShouldMatch()
     {
-        var query = @"
-select 
-    a.Name, 
-    b.Name 
-from #A.entities() a 
-inner join #B.entities() b on a.Name = b.Name + '_Suffix'";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Name, \n"
+            + "    b.Name \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Name = b.Name + '_Suffix'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "Item1_Suffix" },
                     new BasicEntity { Name = "Item2_Suffix" },
-                    new BasicEntity { Name = "NoMatch" }
+                    new BasicEntity { Name = "NoMatch" },
                 ]
             },
             {
-                "#B", [
+                "#B",
+                [
                     new BasicEntity { Name = "Item1" },
                     new BasicEntity { Name = "Item2" },
-                    new BasicEntity { Name = "Item3" }
+                    new BasicEntity { Name = "Item3" },
                 ]
-            }
+            },
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -117,45 +117,37 @@ inner join #B.entities() b on a.Name = b.Name + '_Suffix'";
     [TestMethod]
     public void SortMergeJoin_ComplexInequality_Numeric_ShouldMatch()
     {
-        var query = @"
-select 
-    a.Population, 
-    b.Population 
-from #A.entities() a 
-inner join #B.entities() b on a.Population > b.Population + 100";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Population, \n"
+            + "    b.Population \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Population > b.Population + 100"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Population = 200 },
-                    new BasicEntity { Population = 300 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Population = 50 },
-                    new BasicEntity { Population = 150 }
-                ]
-            }
+            { "#A", [new BasicEntity { Population = 200 }, new BasicEntity { Population = 300 }] },
+            { "#B", [new BasicEntity { Population = 50 }, new BasicEntity { Population = 150 }] },
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
 
         var rows = table.OrderBy(r => (decimal)r.ReadValue(0)).ThenBy(r => (decimal)r.ReadValue(1)).ToList();
 
-
         Assert.AreEqual(200m, rows[0].ReadValue(0));
         Assert.AreEqual(50m, rows[0].ReadValue(1));
 
-
         Assert.AreEqual(300m, rows[1].ReadValue(0));
         Assert.AreEqual(50m, rows[1].ReadValue(1));
-
 
         Assert.AreEqual(300m, rows[2].ReadValue(0));
         Assert.AreEqual(150m, rows[2].ReadValue(1));
@@ -164,30 +156,32 @@ inner join #B.entities() b on a.Population > b.Population + 100";
     [TestMethod]
     public void SortMergeJoin_ComplexInequality_DateTime_ShouldMatch()
     {
-        var query = @"
-select 
-    a.Time, 
-    b.Time 
-from #A.entities() a 
-inner join #B.entities() b on a.Time > b.AddDays(b.Time, 1)";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Time, \n"
+            + "    b.Time \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Time > b.AddDays(b.Time, 1)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
+            { "#A", [new BasicEntity { Time = new DateTime(2023, 1, 5) }] },
             {
-                "#A", [
-                    new BasicEntity { Time = new DateTime(2023, 1, 5) }
+                "#B",
+                [
+                    new BasicEntity { Time = new DateTime(2023, 1, 1) },
+                    new BasicEntity { Time = new DateTime(2023, 1, 3) },
                 ]
             },
-            {
-                "#B", [
-                    new BasicEntity { Time = new DateTime(2023, 1, 1) },
-                    new BasicEntity { Time = new DateTime(2023, 1, 3) }
-                ]
-            }
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -204,31 +198,26 @@ inner join #B.entities() b on a.Time > b.AddDays(b.Time, 1)";
     [TestMethod]
     public void HashJoin_MixedComplexAndSimple_ShouldMatch()
     {
-        var query = @"
-select 
-    a.Id, 
-    b.Id 
-from #A.entities() a 
-inner join #B.entities() b on a.Id = b.Id + 1 AND a.Name = b.Name";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Id, \n"
+            + "    b.Id \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Id = b.Id + 1 AND a.Name = b.Name"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Id = 2, Name = "X" },
-                    new BasicEntity { Id = 3, Name = "Y" }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Id = 1, Name = "X" },
-                    new BasicEntity { Id = 2, Name = "Z" }
-                ]
-            }
+            { "#A", [new BasicEntity { Id = 2, Name = "X" }, new BasicEntity { Id = 3, Name = "Y" }] },
+            { "#B", [new BasicEntity { Id = 1, Name = "X" }, new BasicEntity { Id = 2, Name = "Z" }] },
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -239,31 +228,26 @@ inner join #B.entities() b on a.Id = b.Id + 1 AND a.Name = b.Name";
     [TestMethod]
     public void HashJoin_LeftModified_ShouldMatch()
     {
-        var query = @"
-select 
-    a.Id, 
-    b.Id 
-from #A.entities() a 
-inner join #B.entities() b on a.Id + 1 = b.Id";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Id, \n"
+            + "    b.Id \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Id + 1 = b.Id"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Id = 1 },
-                    new BasicEntity { Id = 2 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Id = 2 },
-                    new BasicEntity { Id = 3 }
-                ]
-            }
+            { "#A", [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }] },
+            { "#B", [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }] },
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -280,31 +264,26 @@ inner join #B.entities() b on a.Id + 1 = b.Id";
     [TestMethod]
     public void HashJoin_BothModified_ShouldMatch()
     {
-        var query = @"
-select 
-    a.Id, 
-    b.Id 
-from #A.entities() a 
-inner join #B.entities() b on a.Id + 1 = b.Id - 1";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Id, \n"
+            + "    b.Id \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Id + 1 = b.Id - 1"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Id = 1 },
-                    new BasicEntity { Id = 2 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Id = 3 },
-                    new BasicEntity { Id = 4 }
-                ]
-            }
+            { "#A", [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }] },
+            { "#B", [new BasicEntity { Id = 3 }, new BasicEntity { Id = 4 }] },
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -321,29 +300,26 @@ inner join #B.entities() b on a.Id + 1 = b.Id - 1";
     [TestMethod]
     public void SortMergeJoin_LeftModified_ShouldMatch()
     {
-        var query = @"
-select 
-    a.Population, 
-    b.Population 
-from #A.entities() a 
-inner join #B.entities() b on a.Population - 50 > b.Population";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Population, \n"
+            + "    b.Population \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Population - 50 > b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Population = 200 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity { Population = 200 }] },
+            { "#B", [new BasicEntity { Population = 100 }] },
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -355,29 +331,26 @@ inner join #B.entities() b on a.Population - 50 > b.Population";
     [TestMethod]
     public void SortMergeJoin_BothModified_ShouldMatch()
     {
-        var query = @"
-select 
-    a.Population, 
-    b.Population 
-from #A.entities() a 
-inner join #B.entities() b on a.Population / 2 > b.Population * 2";
+        var query = (
+            "\n"
+            + "select \n"
+            + "    a.Population, \n"
+            + "    b.Population \n"
+            + "from #A.entities() a \n"
+            + "inner join #B.entities() b on a.Population / 2 > b.Population * 2"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity { Population = 500 }
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity { Population = 100 }
-                ]
-            }
+            { "#A", [new BasicEntity { Population = 500 }] },
+            { "#B", [new BasicEntity { Population = 100 }] },
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources,
-            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true)
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);

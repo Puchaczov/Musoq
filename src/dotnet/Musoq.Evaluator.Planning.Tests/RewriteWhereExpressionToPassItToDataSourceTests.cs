@@ -204,11 +204,13 @@ public partial class RewriteWhereExpressionToPassItToDataSourceTests : BasicEnti
     [TestMethod]
     public void WhenCteUsedWithExchangeParametersBetweenSources_ShouldPass()
     {
-        var query = @"
-with a as (
-    select City, Population from #A.entities() x where x.Population > 100d 
-)
-select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.City inner join #C.entities() c on b.City = c.City where firstTable.Population > b.Population and c.Population = 200d";
+        var query = (
+            "\n"
+            + "with a as (\n"
+            + "    select City, Population from #A.entities() x where x.Population > 100d \n"
+            + ")\n"
+            + "select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.City inner join #C.entities() c on b.City = c.City where firstTable.Population > b.Population and c.Population = 200d"
+        );
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
 
@@ -276,7 +278,6 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
 
-
         Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
         Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());
     }
@@ -299,7 +300,6 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
 
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
-
 
         Assert.AreEqual("a.City = 'NYC' and 1 = 1", firstWhereNode.Expression.ToString());
 
@@ -325,7 +325,6 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
 
-
         Assert.AreEqual("a.Population > 100 or a.City = 'NYC'", firstWhereNode.Expression.ToString());
 
         Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());
@@ -347,7 +346,6 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
 
-
         Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
         Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());
     }
@@ -368,7 +366,6 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
 
-
         Assert.AreEqual("a.Population > 0 and 1 = 1 and 1 = 1", firstWhereNode.Expression.ToString());
 
         Assert.AreEqual("1 = 1 and b.Population > 0 and 1 = 1", secondWhereNode.Expression.ToString());
@@ -377,11 +374,13 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
     [TestMethod]
     public void WhenOrWithThreeDataSources_ShouldRewriteOrForAll()
     {
-        var query = @"
-            select 1 from #A.entities() a 
-            inner join #B.entities() b on a.City = b.City 
-            inner join #C.entities() c on b.City = c.City 
-            where a.Population > 100d or b.Population > 200d or c.Population > 300d";
+        var query = (
+            "\n"
+            + "            select 1 from #A.entities() a \n"
+            + "            inner join #B.entities() b on a.City = b.City \n"
+            + "            inner join #C.entities() c on b.City = c.City \n"
+            + "            where a.Population > 100d or b.Population > 200d or c.Population > 300d"
+        );
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
 
@@ -394,7 +393,6 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
         var thirdWhereNode = thirdWhereNodePair.First().Value;
-
 
         Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
         Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());
@@ -413,17 +411,18 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
         var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
         var firstWhereNode = firstWhereNodePair.First().Value;
 
-
         Assert.AreEqual("a.Population > 100 or 1 = 0", firstWhereNode.Expression.ToString());
     }
 
     [TestMethod]
     public void WhenComplexAndOrCombination_ShouldRewriteCorrectly()
     {
-        var query = @"
-            select 1 from #A.entities() a 
-            inner join #B.entities() b on a.City = b.City 
-            where (a.Population > 100d and a.City = 'NYC') or (b.Population > 200d and b.City = 'LA')";
+        var query = (
+            "\n"
+            + "            select 1 from #A.entities() a \n"
+            + "            inner join #B.entities() b on a.City = b.City \n"
+            + "            where (a.Population > 100d and a.City = 'NYC') or (b.Population > 200d and b.City = 'LA')"
+        );
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
 
@@ -434,7 +433,6 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
 
         var firstWhereNode = firstWhereNodePair.First().Value;
         var secondWhereNode = secondWhereNodePair.First().Value;
-
 
         Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
         Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());

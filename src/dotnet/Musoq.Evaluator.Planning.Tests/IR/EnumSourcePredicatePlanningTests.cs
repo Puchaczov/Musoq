@@ -17,17 +17,16 @@ public sealed class EnumSourcePredicatePlanningTests
     {
         var descriptor = CreateDescriptor();
         var column = CreateColumn(descriptor);
-        var equality = new BinaryOp(
-            BinaryOpKind.Equal,
-            column,
-            new Literal(1u, typeof(uint)),
-            typeof(bool));
+        var equality = new BinaryOp(BinaryOpKind.Equal, column, new Literal(1u, typeof(uint)), typeof(bool));
         var inCheck = new InCheck(
             column,
             [new Literal(1u, typeof(uint)), new Literal(2u, typeof(uint))],
             typeof(bool),
-            IsNegated: true)
-        { SqlSemantics = true };
+            IsNegated: true
+        )
+        {
+            SqlSemantics = true,
+        };
 
         Assert.IsTrue(SourcePredicateExpressionConverter.TryConvertPredicate(equality, "s", out var equalityPredicate));
         Assert.IsTrue(SourcePredicateExpressionConverter.TryConvertPredicate(inCheck, "s", out var inPredicate));
@@ -67,7 +66,8 @@ public sealed class EnumSourcePredicatePlanningTests
         var negated = new UnaryOp(
             UnaryOpKind.Not,
             CreateFlagsCall(EnumIntrinsicKind.HasAnyFlags, descriptor),
-            typeof(bool));
+            typeof(bool)
+        );
 
         Assert.IsFalse(SourcePredicateExpressionConverter.TryConvertPredicate(negated, "s", out _));
     }
@@ -95,7 +95,7 @@ public sealed class EnumSourcePredicatePlanningTests
         {
             ExecutionPlan = SourceExecutionPlan.Empty(request.Identity) with { AcceptedPredicate = first },
             AcceptedPredicate = first,
-            ResidualPredicate = second
+            ResidualPredicate = second,
         };
 
         SourcePredicatePlanContractValidator.Validate(request, result, TextSpan.Empty);
@@ -110,15 +110,17 @@ public sealed class EnumSourcePredicatePlanningTests
         var corrupted = new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             new SourcePredicateColumn(new SourceColumnRef("Access")),
-            new SourcePredicateEnumLiteral(EnumScalarValue.FromUInt32(1), new string('A', 64)));
+            new SourcePredicateEnumLiteral(EnumScalarValue.FromUInt32(1), new string('A', 64))
+        );
         var result = new SourcePlanResult
         {
             ExecutionPlan = SourceExecutionPlan.Empty(request.Identity) with { AcceptedPredicate = corrupted },
-            AcceptedPredicate = corrupted
+            AcceptedPredicate = corrupted,
         };
 
         Assert.Throws<EnumDescriptorMismatchException>(() =>
-            SourcePredicatePlanContractValidator.Validate(request, result, TextSpan.Empty));
+            SourcePredicatePlanContractValidator.Validate(request, result, TextSpan.Empty)
+        );
     }
 
     [TestMethod]
@@ -130,11 +132,12 @@ public sealed class EnumSourcePredicatePlanningTests
         {
             ExecutionPlan = SourceExecutionPlan.Empty(request.Identity) with { AcceptedPredicate = predicate },
             AcceptedPredicate = predicate,
-            ResidualPredicate = predicate
+            ResidualPredicate = predicate,
         };
 
         Assert.Throws<SourcePlanContractException>(() =>
-            SourcePredicatePlanContractValidator.Validate(request, result, TextSpan.Empty));
+            SourcePredicatePlanContractValidator.Validate(request, result, TextSpan.Empty)
+        );
     }
 
     [TestMethod]
@@ -145,11 +148,12 @@ public sealed class EnumSourcePredicatePlanningTests
         var result = new SourcePlanResult
         {
             ExecutionPlan = SourceExecutionPlan.Empty(request.Identity),
-            AcceptedPredicate = predicate
+            AcceptedPredicate = predicate,
         };
 
         Assert.Throws<SourcePlanContractException>(() =>
-            SourcePredicatePlanContractValidator.Validate(request, result, TextSpan.Empty));
+            SourcePredicatePlanContractValidator.Validate(request, result, TextSpan.Empty)
+        );
     }
 
     private static MethodCall CreateFlagsCall(EnumIntrinsicKind kind, EnumTypeDescriptor descriptor)
@@ -158,11 +162,12 @@ public sealed class EnumSourcePredicatePlanningTests
             EnumIntrinsicMethodFacts.Bind(kind, typeof(uint)),
             [CreateColumn(descriptor), new Literal(3u, typeof(uint))],
             null,
-            typeof(bool))
+            typeof(bool)
+        )
         {
             EnumIntrinsic = kind,
             OperandEnumType = descriptor,
-            EnumMask = EnumScalarValue.FromUInt32(3)
+            EnumMask = EnumScalarValue.FromUInt32(3),
         };
     }
 
@@ -176,7 +181,8 @@ public sealed class EnumSourcePredicatePlanningTests
         return new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             new SourcePredicateColumn(new SourceColumnRef("Access")),
-            new SourcePredicateEnumLiteral(EnumScalarValue.FromUInt32(value), descriptor.Fingerprint));
+            new SourcePredicateEnumLiteral(EnumScalarValue.FromUInt32(value), descriptor.Fingerprint)
+        );
     }
 
     private static SourcePlanRequest CreateRequest(SourcePredicateExpression predicate)
@@ -184,7 +190,7 @@ public sealed class EnumSourcePredicatePlanningTests
         return new SourcePlanRequest
         {
             Identity = new SourceIdentity("test", "rows", "source:0", "s"),
-            Predicate = predicate
+            Predicate = predicate,
         };
     }
 
@@ -199,7 +205,8 @@ public sealed class EnumSourcePredicatePlanningTests
                 new EnumMemberDescriptor("None", EnumScalarValue.FromUInt32(0)),
                 new EnumMemberDescriptor("Read", EnumScalarValue.FromUInt32(1)),
                 new EnumMemberDescriptor("Write", EnumScalarValue.FromUInt32(2)),
-                new EnumMemberDescriptor("ReadWrite", EnumScalarValue.FromUInt32(3))
-            ]);
+                new EnumMemberDescriptor("ReadWrite", EnumScalarValue.FromUInt32(3)),
+            ]
+        );
     }
 }

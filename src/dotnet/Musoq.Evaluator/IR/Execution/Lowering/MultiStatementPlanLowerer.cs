@@ -8,7 +8,8 @@ internal interface IMultiStatementLoweringService
     LoweringAttempt<ExecutionPlan> BuildMultiStatement(
         PhysicalMultiStatementNode statement,
         string identifier,
-        LoweringScope scope);
+        LoweringScope scope
+    );
 
     bool CanBuildTableProducingMultiStatement(PhysicalMultiStatementNode statement);
 
@@ -16,7 +17,8 @@ internal interface IMultiStatementLoweringService
         PhysicalMultiStatementNode statement,
         IReadOnlyDictionary<string, int>? existingCteIndexes = null,
         IReadOnlyDictionary<string, GeneratedRowShape>? existingCteShapesByName = null,
-        string? statementNamePrefix = null);
+        string? statementNamePrefix = null
+    );
 
     LoweringAttempt<LoweredTable> BuildMultiStatementTable(
         PhysicalMultiStatementNode statement,
@@ -24,26 +26,25 @@ internal interface IMultiStatementLoweringService
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope);
+        LoweringScope scope
+    );
 }
 
-internal sealed class MultiStatementPlanLowerer(
-    IMultiStatementLoweringService service)
+internal sealed class MultiStatementPlanLowerer(IMultiStatementLoweringService service)
 {
     public LoweringAttempt<ExecutionPlan> TryBuildPlan(PhysicalToExecutionLoweringContext context)
     {
         return context.Plan is PhysicalMultiStatementNode statement
-            ? service.BuildMultiStatement(
-                statement,
-                context.Identifier,
-                context.Scope)
+            ? service.BuildMultiStatement(statement, context.Identifier, context.Scope)
             : LoweringAttempt<ExecutionPlan>.NoMatch();
     }
 
     public LoweringAttempt<LoweredTable> TryBuildTable(PhysicalToExecutionTableLoweringContext context)
     {
-        if (context.Plan is not PhysicalMultiStatementNode statement ||
-            !service.CanBuildTableProducingMultiStatement(statement))
+        if (
+            context.Plan is not PhysicalMultiStatementNode statement
+            || !service.CanBuildTableProducingMultiStatement(statement)
+        )
         {
             return LoweringAttempt<LoweredTable>.NoMatch();
         }
@@ -56,13 +57,13 @@ internal sealed class MultiStatementPlanLowerer(
                 statement,
                 context.CteIndexes,
                 context.CteShapesByName,
-                ResolveStatementNamePrefix(context.ResultTableName)),
+                ResolveStatementNamePrefix(context.ResultTableName)
+            ),
             context.ScopeAggregateVariables,
-            context.Scope);
+            context.Scope
+        );
     }
 
     private static string? ResolveStatementNamePrefix(string resultTableName) =>
-        string.Equals(resultTableName, "result", StringComparison.Ordinal)
-            ? null
-            : resultTableName;
+        string.Equals(resultTableName, "result", StringComparison.Ordinal) ? null : resultTableName;
 }

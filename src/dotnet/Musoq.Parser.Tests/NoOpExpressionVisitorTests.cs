@@ -25,8 +25,7 @@ public partial class NoOpExpressionVisitorTests
     public void NoOpExpressionVisitor_VisitDescNode_DoesNotThrow()
     {
         var visitor = new TestableNoOpVisitor();
-        var schemaFrom = new SchemaFromNode("schema", "method", new ArgsListNode([]), "alias",
-            typeof(object), 0);
+        var schemaFrom = new SchemaFromNode("schema", "method", new ArgsListNode([]), "alias", typeof(object), 0);
         var node = new DescNode(schemaFrom, DescForType.Schema);
 
         visitor.Visit(node);
@@ -285,6 +284,7 @@ public partial class NoOpExpressionVisitorTests
 
         visitor.Visit(node);
     }
+
     /// <summary>
     ///     Concrete implementation of abstract NoOpExpressionVisitor for testing
     /// </summary>

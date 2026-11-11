@@ -16,8 +16,6 @@ public partial class DateTimeExtendedTests
         Assert.AreEqual(45, result.Value.Seconds);
     }
 
-
-
     [TestMethod]
     public void ToDateTimeWithFormat_WithCulture_NullValue_ReturnsNull()
     {
@@ -45,8 +43,6 @@ public partial class DateTimeExtendedTests
     {
         Assert.IsNull(Library.ToDateTimeWithFormat("2024-06-15", "dd/MM/yyyy HH:mm", "en-US"));
     }
-
-
 
     [TestMethod]
     public void ToDateTimeOffsetWithFormat_NullValue_ReturnsNull()
@@ -78,8 +74,6 @@ public partial class DateTimeExtendedTests
         Assert.IsNull(Library.ToDateTimeOffsetWithFormat("2024-06-15", "dd/MM/yyyy HH:mm"));
     }
 
-
-
     [TestMethod]
     public void ToDateTimeOffsetWithFormat_WithCulture_NullValue_ReturnsNull()
     {
@@ -95,7 +89,11 @@ public partial class DateTimeExtendedTests
     [TestMethod]
     public void ToDateTimeOffsetWithFormat_WithCulture_ValidValue_ReturnsDateTimeOffset()
     {
-        var result = Library.ToDateTimeOffsetWithFormat("15/06/2024 14:30:00 +02:00", "dd/MM/yyyy HH:mm:ss zzz", "en-GB");
+        var result = Library.ToDateTimeOffsetWithFormat(
+            "15/06/2024 14:30:00 +02:00",
+            "dd/MM/yyyy HH:mm:ss zzz",
+            "en-GB"
+        );
         Assert.IsNotNull(result);
         Assert.AreEqual(2024, result.Value.Year);
         Assert.AreEqual(6, result.Value.Month);
@@ -107,5 +105,4 @@ public partial class DateTimeExtendedTests
     {
         Assert.IsNull(Library.ToDateTimeOffsetWithFormat("2024-06-15", "dd/MM/yyyy HH:mm", "en-US"));
     }
-
 }

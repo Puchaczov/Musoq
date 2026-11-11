@@ -10,32 +10,33 @@ public partial class InterpreterCodeGenerator
 {
     private List<SchemaFieldNode> GetAllFieldsIncludingInherited(BinarySchemaNode schema)
     {
-        return GetAllFieldsIncludingInherited(
-            schema,
-            new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        return GetAllFieldsIncludingInherited(schema, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
     }
 
-    private List<SchemaFieldNode> GetAllFieldsIncludingInherited(
-        BinarySchemaNode schema,
-        ISet<string> inheritancePath)
+    private List<SchemaFieldNode> GetAllFieldsIncludingInherited(BinarySchemaNode schema, ISet<string> inheritancePath)
     {
         if (!inheritancePath.Add(schema.Name))
             throw CreateInvalidInheritanceException(
-                $"Binary schema inheritance contains a cycle involving '{schema.Name}'.");
+                $"Binary schema inheritance contains a cycle involving '{schema.Name}'."
+            );
 
         try
         {
             if (string.IsNullOrEmpty(schema.Extends))
                 return schema.Fields.ToList();
 
-            if (!_registry.TryGetSchema(schema.Extends, out var parentRegistration) ||
-                parentRegistration?.Node is not BinarySchemaNode parentSchema)
+            if (
+                !_registry.TryGetSchema(schema.Extends, out var parentRegistration)
+                || parentRegistration?.Node is not BinarySchemaNode parentSchema
+            )
                 throw CreateInvalidInheritanceException(
-                    $"Binary schema '{schema.Name}' extends undefined or non-binary schema '{schema.Extends}'.");
+                    $"Binary schema '{schema.Name}' extends undefined or non-binary schema '{schema.Extends}'."
+                );
 
             if (parentSchema.IsGeneric)
                 throw CreateInvalidInheritanceException(
-                    $"Binary schema '{schema.Name}' cannot extend generic schema '{parentSchema.Name}' without type arguments.");
+                    $"Binary schema '{schema.Name}' cannot extend generic schema '{parentSchema.Name}' without type arguments."
+                );
 
             var allFields = GetAllFieldsIncludingInherited(parentSchema, inheritancePath);
 
@@ -63,8 +64,6 @@ public partial class InterpreterCodeGenerator
 
     private static ConstructionNotYetSupported CreateInvalidInheritanceException(string message)
     {
-        return new ConstructionNotYetSupported(
-            message,
-            DiagnosticCode.MQ4016_UnsupportedSchemaConstruction);
+        return new ConstructionNotYetSupported(message, DiagnosticCode.MQ4016_UnsupportedSchemaConstruction);
     }
 }

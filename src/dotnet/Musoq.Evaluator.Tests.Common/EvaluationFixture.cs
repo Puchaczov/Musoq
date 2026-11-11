@@ -15,26 +15,29 @@ public sealed class EvaluationFixture
     private readonly EvaluationRow[] _rows;
 
     public EvaluationFixture(params string[] names)
-        : this(new GenericSchemaProvider(new Dictionary<string, ISchema>()), names)
-    {
-    }
+        : this(new GenericSchemaProvider(new Dictionary<string, ISchema>()), names) { }
 
     public EvaluationFixture(ISchemaProvider otherSources, params string[] names)
     {
         ArgumentNullException.ThrowIfNull(otherSources);
         ArgumentNullException.ThrowIfNull(names);
-        _rows = names.Select((name, index) => new EvaluationRow(name, index * 10, new EvaluationCounter())
-        {
-            Id = index + 1,
-            NullableValue = 2
-        }).ToArray();
-        var source = new EntitySource<EvaluationRow>([_rows], new Dictionary<string, int>(),
-            new Dictionary<int, Func<EvaluationRow, object?>>());
+        _rows = names
+            .Select(
+                (name, index) =>
+                    new EvaluationRow(name, index * 10, new EvaluationCounter()) { Id = index + 1, NullableValue = 2 }
+            )
+            .ToArray();
+        var source = new EntitySource<EvaluationRow>(
+            [_rows],
+            new Dictionary<string, int>(),
+            new Dictionary<int, Func<EvaluationRow, object?>>()
+        );
         var schema = new GenericSchema<EvaluationLibrary>(
             new Dictionary<string, (ISchemaTable, object)>(StringComparer.OrdinalIgnoreCase)
             {
-                ["entities"] = (new EvaluationTable(), source)
-            });
+                ["entities"] = (new EvaluationTable(), source),
+            }
+        );
         Provider = new ProviderWithOtherSources(schema, otherSources);
     }
 
@@ -56,6 +59,7 @@ public sealed class EvaluationFixture
     {
         private int _calls;
         public int Calls => Volatile.Read(ref _calls);
+
         public int Next() => Interlocked.Increment(ref _calls);
     }
 
@@ -79,10 +83,15 @@ public sealed class EvaluationFixture
         [
             new SchemaColumn("Name", 0, typeof(string)),
             new SchemaColumn("Id", 1, typeof(int)),
-            new SchemaColumn("NullableValue", 2, typeof(int?))
+            new SchemaColumn("NullableValue", 2, typeof(int?)),
         ];
-        public ISchemaColumn? GetColumnByName(string name) => Columns.SingleOrDefault(column => column.ColumnName == name);
-        public ISchemaColumn[] GetColumnsByName(string name) => Columns.Where(column => column.ColumnName == name).ToArray();
+
+        public ISchemaColumn? GetColumnByName(string name) =>
+            Columns.SingleOrDefault(column => column.ColumnName == name);
+
+        public ISchemaColumn[] GetColumnsByName(string name) =>
+            Columns.Where(column => column.ColumnName == name).ToArray();
+
         public SchemaTableMetadata Metadata { get; } = new(typeof(EvaluationRow));
     }
 }

@@ -10,14 +10,13 @@ internal static class InterpretationPropertyTypeNameResolver
     public static string? ResolvePropertyTypeName(
         string schemaName,
         string propertyPath,
-        SchemaRegistry? schemaRegistry)
+        SchemaRegistry? schemaRegistry
+    )
     {
         if (schemaRegistry == null || string.IsNullOrWhiteSpace(schemaName))
             return null;
 
-        var currentTypeName = CreateGeneratedTypeName(
-            new SchemaReferenceTypeNode(schemaName),
-            schemaRegistry);
+        var currentTypeName = CreateGeneratedTypeName(new SchemaReferenceTypeNode(schemaName), schemaRegistry);
         var properties = CreatePropertyPathSegments(propertyPath);
         if (properties.Length == 0)
             return currentTypeName;
@@ -35,7 +34,8 @@ internal static class InterpretationPropertyTypeNameResolver
     public static string? ResolvePropertyTypeNameFromGeneratedType(
         string generatedTypeName,
         string propertyPath,
-        SchemaRegistry? schemaRegistry)
+        SchemaRegistry? schemaRegistry
+    )
     {
         if (string.IsNullOrWhiteSpace(generatedTypeName))
             return null;
@@ -81,9 +81,7 @@ internal static class InterpretationPropertyTypeNameResolver
         return null;
     }
 
-    public static string? ResolveEnumerableTypeName(
-        PhysicalPropertySourceNode property,
-        SchemaRegistry? schemaRegistry)
+    public static string? ResolveEnumerableTypeName(PhysicalPropertySourceNode property, SchemaRegistry? schemaRegistry)
     {
         string? currentTypeName = null;
 
@@ -110,22 +108,19 @@ internal static class InterpretationPropertyTypeNameResolver
 
     public static bool HasGeneratedEnumerableElementType(
         PhysicalPropertySourceNode property,
-        SchemaRegistry? schemaRegistry)
+        SchemaRegistry? schemaRegistry
+    )
     {
         return !string.IsNullOrWhiteSpace(ResolveEnumerableTypeName(property, schemaRegistry));
     }
 
-    internal static string? ResolveFieldTypeName(
-        string typeName,
-        string fieldName,
-        SchemaRegistry? schemaRegistry)
+    internal static string? ResolveFieldTypeName(string typeName, string fieldName, SchemaRegistry? schemaRegistry)
     {
         if (schemaRegistry == null)
             return null;
 
         var reference = ParseSchemaReference(typeName);
-        if (!schemaRegistry.TryGetSchema(reference.SchemaName, out var registration) ||
-            registration?.Node is null)
+        if (!schemaRegistry.TryGetSchema(reference.SchemaName, out var registration) || registration?.Node is null)
         {
             return null;
         }
@@ -133,9 +128,7 @@ internal static class InterpretationPropertyTypeNameResolver
         if (registration.Node is TextSchemaNode text)
         {
             var textField = FindTextField(text, fieldName, schemaRegistry);
-            return textField == null
-                ? null
-                : ResolveTextFieldTypeName(text, textField, schemaRegistry);
+            return textField == null ? null : ResolveTextFieldTypeName(text, textField, schemaRegistry);
         }
 
         if (registration.Node is not BinarySchemaNode binary)
@@ -145,14 +138,13 @@ internal static class InterpretationPropertyTypeNameResolver
         var field = FindBinaryField(binary, fieldName, schemaRegistry);
         if (field is ComputedFieldNode computed)
             field = Visitors.BinarySchemaRecordAliases.Resolve(computed.Expression, binary.Fields);
-        return field == null
-            ? null
-            : ResolveFieldTypeName(field, bindings, schemaRegistry);
+        return field == null ? null : ResolveFieldTypeName(field, bindings, schemaRegistry);
     }
 
     private static IReadOnlyDictionary<string, SchemaReferenceTypeNode> CreateBindings(
         BinarySchemaNode binary,
-        SchemaReferenceTypeNode reference)
+        SchemaReferenceTypeNode reference
+    )
     {
         if (!binary.IsGeneric || reference.TypeArguments.Length == 0)
             return BinarySchemaGenericResolver.CreateEmptyBindings();
@@ -160,35 +152,43 @@ internal static class InterpretationPropertyTypeNameResolver
         return BinarySchemaGenericResolver.CreateBindings(
             binary,
             reference,
-            BinarySchemaGenericResolver.CreateEmptyBindings());
+            BinarySchemaGenericResolver.CreateEmptyBindings()
+        );
     }
 
     private static SchemaFieldNode? FindBinaryField(
         BinarySchemaNode binary,
         string fieldName,
-        SchemaRegistry schemaRegistry)
+        SchemaRegistry schemaRegistry
+    )
     {
-        if (!string.IsNullOrWhiteSpace(binary.Extends) &&
-            schemaRegistry.TryGetSchema(binary.Extends, out var parentRegistration) &&
-            parentRegistration?.Node is BinarySchemaNode parent)
+        if (
+            !string.IsNullOrWhiteSpace(binary.Extends)
+            && schemaRegistry.TryGetSchema(binary.Extends, out var parentRegistration)
+            && parentRegistration?.Node is BinarySchemaNode parent
+        )
         {
             var inherited = FindBinaryField(parent, fieldName, schemaRegistry);
             if (inherited != null)
                 return inherited;
         }
 
-        return binary.Fields.FirstOrDefault(
-            field => string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase));
+        return binary.Fields.FirstOrDefault(field =>
+            string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     private static TextFieldDefinitionNode? FindTextField(
         TextSchemaNode text,
         string fieldName,
-        SchemaRegistry schemaRegistry)
+        SchemaRegistry schemaRegistry
+    )
     {
-        if (!string.IsNullOrWhiteSpace(text.Extends) &&
-            schemaRegistry.TryGetSchema(text.Extends, out var parentRegistration) &&
-            parentRegistration?.Node is TextSchemaNode parent)
+        if (
+            !string.IsNullOrWhiteSpace(text.Extends)
+            && schemaRegistry.TryGetSchema(text.Extends, out var parentRegistration)
+            && parentRegistration?.Node is TextSchemaNode parent
+        )
         {
             var inherited = FindTextField(parent, fieldName, schemaRegistry);
             if (inherited != null)
@@ -196,13 +196,15 @@ internal static class InterpretationPropertyTypeNameResolver
         }
 
         return text.Fields.FirstOrDefault(field =>
-            string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     private static string? ResolveTextFieldTypeName(
         TextSchemaNode text,
         TextFieldDefinitionNode field,
-        SchemaRegistry schemaRegistry)
+        SchemaRegistry schemaRegistry
+    )
     {
         if (field.RepeatElement != null || field.FieldType == TextFieldType.Switch)
             return new TextResultShapeBinding(schemaRegistry).Field(text.Name, field).TypeName;
@@ -211,19 +213,21 @@ internal static class InterpretationPropertyTypeNameResolver
         {
             TextFieldType.SchemaReference => CreateGeneratedTypeName(
                 new SchemaReferenceTypeNode(field.PrimaryValue ?? "object"),
-                schemaRegistry),
+                schemaRegistry
+            ),
             TextFieldType.Repeat =>
                 $"{CreateGeneratedTypeName(new SchemaReferenceTypeNode(field.PrimaryValue ?? "object"), schemaRegistry)}[]",
             TextFieldType.Pattern when field.CaptureGroups.Length > 0 =>
                 $"Musoq.Generated.Interpreters.{text.Name}.CaptureResult_{field.Name}",
-            _ => null
+            _ => null,
         };
     }
 
     internal static string? ResolveFieldTypeName(
         SchemaFieldNode field,
         IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings,
-        SchemaRegistry? schemaRegistry)
+        SchemaRegistry? schemaRegistry
+    )
     {
         if (field is not FieldDefinitionNode definition)
             return null;
@@ -231,25 +235,44 @@ internal static class InterpretationPropertyTypeNameResolver
         return ResolveBinaryTypeName(field.Name, definition.TypeAnnotation, bindings, schemaRegistry);
     }
 
-    private static string? ResolveBinaryTypeName(string fieldName, TypeAnnotationNode type,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings, SchemaRegistry? registry)
+    private static string? ResolveBinaryTypeName(
+        string fieldName,
+        TypeAnnotationNode type,
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings,
+        SchemaRegistry? registry
+    )
     {
         var composed = Musoq.Evaluator.Visitors.BinaryCompositionTypes.IntendedTypeName(fieldName, type);
-        if (composed != null) return composed;
+        if (composed != null)
+            return composed;
         return type switch
         {
-            SchemaReferenceTypeNode reference => CreateGeneratedTypeName(BinarySchemaGenericResolver.ResolveReference(reference, bindings), registry),
-            StringTypeNode { AsTextSchemaName: { } name } => CreateGeneratedTypeName(new SchemaReferenceTypeNode(name), registry),
+            SchemaReferenceTypeNode reference => CreateGeneratedTypeName(
+                BinarySchemaGenericResolver.ResolveReference(reference, bindings),
+                registry
+            ),
+            StringTypeNode { AsTextSchemaName: { } name } => CreateGeneratedTypeName(
+                new SchemaReferenceTypeNode(name),
+                registry
+            ),
             SubstreamTypeNode { Target: { } target } => ResolveBinaryTypeName(fieldName, target, bindings, registry),
             ArrayTypeNode array => ResolveBinaryElementTypeName(fieldName, array.ElementType, bindings, registry),
-            RepeatUntilTypeNode repeat => ResolveBinaryElementTypeName(fieldName, repeat.ElementType, bindings, registry),
-            _ => null
+            RepeatUntilTypeNode repeat => ResolveBinaryElementTypeName(
+                fieldName,
+                repeat.ElementType,
+                bindings,
+                registry
+            ),
+            _ => null,
         };
     }
 
-    private static string? ResolveBinaryElementTypeName(string fieldName, TypeAnnotationNode element,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings, SchemaRegistry? registry) =>
-        ResolveBinaryTypeName(fieldName, element, bindings, registry) is { } name ? $"{name}[]" : null;
+    private static string? ResolveBinaryElementTypeName(
+        string fieldName,
+        TypeAnnotationNode element,
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings,
+        SchemaRegistry? registry
+    ) => ResolveBinaryTypeName(fieldName, element, bindings, registry) is { } name ? $"{name}[]" : null;
 
     private static SchemaReferenceTypeNode ParseSchemaReference(string typeName)
     {
@@ -261,26 +284,31 @@ internal static class InterpretationPropertyTypeNameResolver
 
         var schemaName = simpleTypeName[..genericStart].Trim();
         var genericEnd = simpleTypeName.LastIndexOf('>');
-        var argumentText = genericEnd > genericStart
-            ? simpleTypeName.Substring(genericStart + 1, genericEnd - genericStart - 1)
-            : string.Empty;
+        var argumentText =
+            genericEnd > genericStart
+                ? simpleTypeName.Substring(genericStart + 1, genericEnd - genericStart - 1)
+                : string.Empty;
 
         return new SchemaReferenceTypeNode(
             schemaName,
             SplitGenericTypeArguments(argumentText)
                 .Select(argument => ParseSchemaReference(argument).FullTypeName)
-                .ToArray());
+                .ToArray()
+        );
     }
 
     private static string? ResolveFromRegisteredSchemaPath(
         PhysicalPropertySourceNode property,
-        SchemaRegistry? schemaRegistry)
+        SchemaRegistry? schemaRegistry
+    )
     {
         if (schemaRegistry == null)
             return null;
 
-        var path = property.PropertiesChain
-            .SelectMany(part => part.PropertyName.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        var path = property
+            .PropertiesChain.SelectMany(part =>
+                part.PropertyName.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            )
             .ToArray();
         if (path.Length == 0)
             return null;
@@ -304,7 +332,8 @@ internal static class InterpretationPropertyTypeNameResolver
     private static string? ResolvePathFromTypeName(
         string rootTypeName,
         ReadOnlySpan<string> path,
-        SchemaRegistry schemaRegistry)
+        SchemaRegistry schemaRegistry
+    )
     {
         var currentTypeName = rootTypeName;
 
@@ -318,14 +347,14 @@ internal static class InterpretationPropertyTypeNameResolver
         return currentTypeName;
     }
 
-    private static string CreateGeneratedTypeName(
-        SchemaReferenceTypeNode reference,
-        SchemaRegistry? schemaRegistry)
+    private static string CreateGeneratedTypeName(SchemaReferenceTypeNode reference, SchemaRegistry? schemaRegistry)
     {
         var typeName = reference.SchemaName;
-        if (schemaRegistry != null &&
-            schemaRegistry.TryGetSchema(reference.SchemaName, out var registration) &&
-            !string.IsNullOrWhiteSpace(registration?.GeneratedTypeName))
+        if (
+            schemaRegistry != null
+            && schemaRegistry.TryGetSchema(reference.SchemaName, out var registration)
+            && !string.IsNullOrWhiteSpace(registration?.GeneratedTypeName)
+        )
         {
             typeName = registration.GeneratedTypeName;
         }
@@ -333,16 +362,15 @@ internal static class InterpretationPropertyTypeNameResolver
         if (!reference.IsGenericInstantiation)
             return typeName;
 
-        var arguments = reference.TypeArguments
-            .Select(argument => CreateGeneratedTypeName(ParseSchemaReference(argument), schemaRegistry));
+        var arguments = reference.TypeArguments.Select(argument =>
+            CreateGeneratedTypeName(ParseSchemaReference(argument), schemaRegistry)
+        );
         return $"{typeName}<{string.Join(",", arguments)}>";
     }
 
     private static string RemoveArraySuffix(string typeName)
     {
-        return typeName.EndsWith("[]", StringComparison.Ordinal)
-            ? typeName[..^2]
-            : typeName;
+        return typeName.EndsWith("[]", StringComparison.Ordinal) ? typeName[..^2] : typeName;
     }
 
     private static string StripNamespaceFromTypeName(string typeName)
@@ -364,9 +392,7 @@ internal static class InterpretationPropertyTypeNameResolver
                 lastDotOutsideAngles = index;
         }
 
-        return lastDotOutsideAngles >= 0
-            ? typeName[(lastDotOutsideAngles + 1)..]
-            : typeName;
+        return lastDotOutsideAngles >= 0 ? typeName[(lastDotOutsideAngles + 1)..] : typeName;
     }
 
     private static string[] SplitGenericTypeArguments(string argumentText)

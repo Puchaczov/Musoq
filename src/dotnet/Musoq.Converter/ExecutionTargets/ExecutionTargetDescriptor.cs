@@ -9,7 +9,8 @@ internal sealed record ExecutionTargetDescriptor(
     Func<TargetRenderInputBuildContext, TargetBackendRenderInputs> CreateRenderInputs,
     Func<TargetFinalizationOptionsContext, TargetFinalizationOptions> CreateFinalizationOptions,
     Func<RenderedQueryArtifact, RenderedArtifactBuildContribution> CreateRenderBuildContribution,
-    Func<TargetArtifactPackagingContext, TargetArtifactPackage>? CreateArtifactPackage)
+    Func<TargetArtifactPackagingContext, TargetArtifactPackage>? CreateArtifactPackage
+)
 {
     public ExecutionTargetCapabilities Capabilities =>
         RenderPhase?.Capabilities ?? ExecutionTargetCapabilities.Create();
@@ -23,7 +24,8 @@ internal sealed record ExecutionTargetDescriptor(
         Func<TargetRenderInputBuildContext, TargetBackendRenderInputs>? createRenderInputs = null,
         Func<TargetFinalizationOptionsContext, TargetFinalizationOptions>? createFinalizationOptions = null,
         Func<RenderedQueryArtifact, RenderedArtifactBuildContribution>? createRenderBuildContribution = null,
-        Func<TargetArtifactPackagingContext, TargetArtifactPackage>? createArtifactPackage = null)
+        Func<TargetArtifactPackagingContext, TargetArtifactPackage>? createArtifactPackage = null
+    )
     {
         if (renderPhase is not null)
             ValidateTargetId(targetId, renderPhase.TargetId, nameof(renderPhase));
@@ -43,19 +45,22 @@ internal sealed record ExecutionTargetDescriptor(
             createRenderInputs ?? (_ => new EmptyTargetBackendRenderInputs(targetId)),
             createFinalizationOptions ?? (_ => TargetFinalizationOptions.Empty),
             createRenderBuildContribution ?? (_ => RenderedArtifactBuildContribution.Empty),
-            createArtifactPackage);
+            createArtifactPackage
+        );
     }
 
     private static void ValidateTargetId(
         ExecutionTargetId descriptorTargetId,
         ExecutionTargetId componentTargetId,
-        string componentName)
+        string componentName
+    )
     {
         if (descriptorTargetId == componentTargetId)
             return;
 
         throw new ArgumentException(
             $"Execution target descriptor '{descriptorTargetId}' cannot use {componentName} for target '{componentTargetId}'.",
-            componentName);
+            componentName
+        );
     }
 }

@@ -12,8 +12,9 @@ internal static partial class SemanticErrorMetadataCatalog
             "A data source requires a runtime setting that was not provided.",
             [
                 "Provide the setting through the configured source runtime settings resolver.",
-                "Use DESC SETTINGS to inspect required settings without revealing secret values."
+                "Use DESC SETTINGS to inspect required settings without revealing secret values.",
             ],
-            "Data Source Runtime Settings");
+            "Data Source Runtime Settings"
+        );
     }
 }

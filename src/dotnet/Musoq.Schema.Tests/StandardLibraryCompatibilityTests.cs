@@ -31,7 +31,7 @@ public class StandardLibraryCompatibilityTests
             ("ToUpper", [typeof(string)]),
             ("ToLower", [typeof(string)]),
             ("Abs", new[] { typeof(int?) }),
-            ("NewId", Type.EmptyTypes)
+            ("NewId", Type.EmptyTypes),
         };
 
         foreach (var (methodName, paramTypes) in testCases)
@@ -39,23 +39,32 @@ public class StandardLibraryCompatibilityTests
             var exactSuccess = _methodsManager.TryGetMethod(methodName, paramTypes, null, out _);
             Assert.IsTrue(exactSuccess, $"Exact case should resolve: {methodName}");
 
-
-            var lowerSuccess =
-                _methodsManager.TryGetMethod(methodName.ToLowerInvariant(), paramTypes, null, out var lowerMethod);
+            var lowerSuccess = _methodsManager.TryGetMethod(
+                methodName.ToLowerInvariant(),
+                paramTypes,
+                null,
+                out var lowerMethod
+            );
             Assert.IsTrue(lowerSuccess, $"Lowercase should resolve: {methodName}");
             lowerMethod = TestNullabilityGuards.Require(lowerMethod, $"lowercase method {methodName}");
             Assert.AreEqual(methodName, lowerMethod.Name, $"Should preserve original name for: {methodName}");
 
-
-            var upperSuccess =
-                _methodsManager.TryGetMethod(methodName.ToUpperInvariant(), paramTypes, null, out var upperMethod);
+            var upperSuccess = _methodsManager.TryGetMethod(
+                methodName.ToUpperInvariant(),
+                paramTypes,
+                null,
+                out var upperMethod
+            );
             Assert.IsTrue(upperSuccess, $"Uppercase should resolve: {methodName}");
             upperMethod = TestNullabilityGuards.Require(upperMethod, $"uppercase method {methodName}");
             Assert.AreEqual(methodName, upperMethod.Name, $"Should preserve original name for: {methodName}");
 
-
-            var underscoreSuccess = _methodsManager.TryGetMethod(InsertUnderscores(methodName), paramTypes, null,
-                out var underscoreMethod);
+            var underscoreSuccess = _methodsManager.TryGetMethod(
+                InsertUnderscores(methodName),
+                paramTypes,
+                null,
+                out var underscoreMethod
+            );
             Assert.IsTrue(underscoreSuccess, $"Underscore variant should resolve: {methodName}");
             underscoreMethod = TestNullabilityGuards.Require(underscoreMethod, $"underscore method {methodName}");
             Assert.AreEqual(methodName, underscoreMethod.Name, $"Should preserve original name for: {methodName}");
@@ -86,7 +95,7 @@ public class StandardLibraryCompatibilityTests
             ("Trim", [typeof(string)]),
             ("ToUpper", [typeof(string)]),
             ("ToLower", new[] { typeof(string) }),
-            ("NewId", Type.EmptyTypes)
+            ("NewId", Type.EmptyTypes),
         };
 
         foreach (var (methodName, paramTypes) in commonMethods)
@@ -94,14 +103,20 @@ public class StandardLibraryCompatibilityTests
             var exactSuccess = _methodsManager.TryGetMethod(methodName, paramTypes, null, out var exactMethod);
             Assert.IsTrue(exactSuccess, $"Exact match should work for {methodName}");
 
-
-            var lowerSuccess =
-                _methodsManager.TryGetMethod(methodName.ToLowerInvariant(), paramTypes, null, out var lowerMethod);
+            var lowerSuccess = _methodsManager.TryGetMethod(
+                methodName.ToLowerInvariant(),
+                paramTypes,
+                null,
+                out var lowerMethod
+            );
             Assert.IsTrue(lowerSuccess, $"Lowercase should work for {methodName}");
             lowerMethod = TestNullabilityGuards.Require(lowerMethod, $"lowercase method {methodName}");
 
-            Assert.AreEqual(exactMethod, lowerMethod,
-                $"Exact and case-insensitive should resolve to same method for {methodName}");
+            Assert.AreEqual(
+                exactMethod,
+                lowerMethod,
+                $"Exact and case-insensitive should resolve to same method for {methodName}"
+            );
             Assert.AreEqual(methodName, lowerMethod.Name, $"Original method name should be preserved for {methodName}");
         }
     }
@@ -113,7 +128,7 @@ public class StandardLibraryCompatibilityTests
         {
             ([typeof(decimal?)], "decimal?"),
             ([typeof(long?)], "long?"),
-            (new[] { typeof(int?) }, "int?")
+            (new[] { typeof(int?) }, "int?"),
         };
 
         foreach (var (paramTypes, expectedType) in absTests)
@@ -121,22 +136,24 @@ public class StandardLibraryCompatibilityTests
             var exactSuccess = _methodsManager.TryGetMethod("Abs", paramTypes, null, out var exactMethod);
             Assert.IsTrue(exactSuccess, $"Exact 'Abs' should resolve for {expectedType}");
 
-
             var lowerSuccess = _methodsManager.TryGetMethod("abs", paramTypes, null, out var lowerMethod);
             Assert.IsTrue(lowerSuccess, $"Lowercase 'abs' should resolve for {expectedType}");
             lowerMethod = TestNullabilityGuards.Require(lowerMethod, $"lowercase Abs {expectedType}");
-
 
             var upperSuccess = _methodsManager.TryGetMethod("ABS", paramTypes, null, out var upperMethod);
             Assert.IsTrue(upperSuccess, $"Uppercase 'ABS' should resolve for {expectedType}");
             upperMethod = TestNullabilityGuards.Require(upperMethod, $"uppercase Abs {expectedType}");
 
-
-            Assert.AreEqual(exactMethod, lowerMethod,
-                $"Case variations should resolve to same method for {expectedType}");
-            Assert.AreEqual(exactMethod, upperMethod,
-                $"Case variations should resolve to same method for {expectedType}");
-
+            Assert.AreEqual(
+                exactMethod,
+                lowerMethod,
+                $"Case variations should resolve to same method for {expectedType}"
+            );
+            Assert.AreEqual(
+                exactMethod,
+                upperMethod,
+                $"Case variations should resolve to same method for {expectedType}"
+            );
 
             Assert.AreEqual("Abs", lowerMethod.Name);
             Assert.AreEqual("Abs", upperMethod.Name);
@@ -158,15 +175,16 @@ public class StandardLibraryCompatibilityTests
             var methodName = methodGroup.Key;
             var normalizedName = methodName.ToLowerInvariant().Replace("_", "");
 
-
             var conflictingMethods = standardMethods
                 .Where(g => g.Key != methodName)
                 .Where(g => g.Key.ToLowerInvariant().Replace("_", "") == normalizedName)
                 .ToArray();
 
-            Assert.IsEmpty(conflictingMethods,
-                $"Method '{methodName}' has potential naming conflicts after normalization: " +
-                $"{string.Join(", ", conflictingMethods.Select(g => g.Key))}");
+            Assert.IsEmpty(
+                conflictingMethods,
+                $"Method '{methodName}' has potential naming conflicts after normalization: "
+                    + $"{string.Join(", ", conflictingMethods.Select(g => g.Key))}"
+            );
         }
     }
 
@@ -193,8 +211,10 @@ public class StandardLibraryCompatibilityTests
     [TestMethod]
     public void StandardLibrary_AllMethodsPreserveOriginalName()
     {
-        var registered = _methodsManager.GetAllFunctions()
-            .Where(function => function.Kind != SqlFunctionKind.Window).ToArray();
+        var registered = _methodsManager
+            .GetAllFunctions()
+            .Where(function => function.Kind != SqlFunctionKind.Window)
+            .ToArray();
         Assert.IsNotEmpty(registered);
         foreach (var function in registered)
             Assert.AreEqual(function.Declaration.Name, function.Name);
@@ -210,7 +230,7 @@ public class StandardLibraryCompatibilityTests
             (nameof(LibraryBase.Avg), [typeof(short?), typeof(int)]),
             (nameof(LibraryBase.Avg), [typeof(ushort?), typeof(int)]),
             (nameof(LibraryBase.Avg), [typeof(int?), typeof(int)]),
-            (nameof(LibraryBase.Avg), [typeof(uint?), typeof(int)])
+            (nameof(LibraryBase.Avg), [typeof(uint?), typeof(int)]),
         ];
         foreach (var binding in bindings)
         {
@@ -220,8 +240,11 @@ public class StandardLibraryCompatibilityTests
 
             Assert.IsTrue(success, $"Should resolve {binding.Name} via lowercase {lowerName}");
             resolvedMethod = TestNullabilityGuards.Require(resolvedMethod, $"resolved method {lowerName}");
-            Assert.AreEqual(binding.Name, resolvedMethod.Name,
-                $"Should preserve original method name {binding.Name}, not return {resolvedMethod.Name}");
+            Assert.AreEqual(
+                binding.Name,
+                resolvedMethod.Name,
+                $"Should preserve original method name {binding.Name}, not return {resolvedMethod.Name}"
+            );
         }
     }
 
@@ -231,27 +254,24 @@ public class StandardLibraryCompatibilityTests
         var success1 = _methodsManager.TryGetMethod("nonexistentmethod", Type.EmptyTypes, null, out _);
         Assert.IsFalse(success1, "Non-existent method should not resolve");
 
-
         var success2 = _methodsManager.TryGetMethod("abs", [typeof(string)], null, out _);
         Assert.IsFalse(success2, "Wrong parameter types should not resolve");
 
+        Assert.Throws<ArgumentNullException>(() => _methodsManager.TryGetMethod(null!, Type.EmptyTypes, null, out _));
 
-        Assert.Throws<ArgumentNullException>(() =>
-            _methodsManager.TryGetMethod(null!, Type.EmptyTypes, null, out _));
-
-
-        Assert.Throws<ArgumentException>(() =>
-            _methodsManager.TryGetMethod("", Type.EmptyTypes, null, out _));
+        Assert.Throws<ArgumentException>(() => _methodsManager.TryGetMethod("", Type.EmptyTypes, null, out _));
     }
 
     private static string InsertUnderscores(string methodName)
     {
-        if (string.IsNullOrEmpty(methodName)) return methodName;
+        if (string.IsNullOrEmpty(methodName))
+            return methodName;
 
         var result = "";
         for (var i = 0; i < methodName.Length; i++)
         {
-            if (i > 0 && char.IsUpper(methodName[i]) && char.IsLower(methodName[i - 1])) result += "_";
+            if (i > 0 && char.IsUpper(methodName[i]) && char.IsLower(methodName[i - 1]))
+                result += "_";
             result += char.ToLowerInvariant(methodName[i]);
         }
 

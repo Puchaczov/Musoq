@@ -18,21 +18,23 @@ public sealed class DiagnosticBinary044SchemaDefinitionTests
         var visitor = new SchemaDefinitionVisitor(registry);
         var parent = new BinarySchemaNode(
             "Base",
-            [new FieldDefinitionNode("Type", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))]);
+            [new FieldDefinitionNode("Type", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))]
+        );
         visitor.Visit(parent);
 
         var switchType = new BinarySwitchTypeNode(
             "Type",
-            [new BinarySwitchCaseNode(
-                new IntegerNode("1", "i"),
-                "Code",
-                new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))],
-            new TextSpan(20, 4));
+            [
+                new BinarySwitchCaseNode(
+                    new IntegerNode("1", "i"),
+                    "Code",
+                    new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)
+                ),
+            ],
+            new TextSpan(20, 4)
+        );
 
-        visitor.Visit(new BinarySchemaNode(
-            "Derived",
-            [new FieldDefinitionNode("Payload", switchType)],
-            "Base"));
+        visitor.Visit(new BinarySchemaNode("Derived", [new FieldDefinitionNode("Payload", switchType)], "Base"));
 
         Assert.IsTrue(registry.ContainsSchema("Derived"));
     }
@@ -42,22 +44,33 @@ public sealed class DiagnosticBinary044SchemaDefinitionTests
     {
         var registry = new SchemaRegistry();
         var visitor = new SchemaDefinitionVisitor(registry);
-        visitor.Visit(new BinarySchemaNode(
-            "Base",
-            [new FieldDefinitionNode("Type", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))]));
+        visitor.Visit(
+            new BinarySchemaNode(
+                "Base",
+                [
+                    new FieldDefinitionNode(
+                        "Type",
+                        new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)
+                    ),
+                ]
+            )
+        );
 
         var switchType = new BinarySwitchTypeNode(
             "Missing",
-            [new BinarySwitchCaseNode(
-                new IntegerNode("1", "i"),
-                "Code",
-                new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))],
-            new TextSpan(30, 7));
+            [
+                new BinarySwitchCaseNode(
+                    new IntegerNode("1", "i"),
+                    "Code",
+                    new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)
+                ),
+            ],
+            new TextSpan(30, 7)
+        );
 
-        var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(new BinarySchemaNode(
-            "Derived",
-            [new FieldDefinitionNode("Payload", switchType)],
-            "Base")));
+        var exception = Assert.ThrowsExactly<QuerySyntaxException>(() =>
+            visitor.Visit(new BinarySchemaNode("Derived", [new FieldDefinitionNode("Payload", switchType)], "Base"))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField, exception.Code);
         Assert.AreEqual(new TextSpan(30, 7), exception.Span!.Value);
@@ -75,7 +88,8 @@ public sealed class DiagnosticBinary044SchemaDefinitionTests
         var visitor = new SchemaDefinitionVisitor(registry);
         var type = new FieldDefinitionNode(
             "Type",
-            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable));
+            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable)
+        );
         var schema = new BinarySchemaNode(
             "Packet",
             [
@@ -84,11 +98,11 @@ public sealed class DiagnosticBinary044SchemaDefinitionTests
                     "Payload",
                     new BinarySwitchTypeNode(
                         "Type",
-                        [new BinarySwitchCaseNode(
-                            new IntegerNode("1", "i"),
-                            "Flags",
-                            new AlignmentNode(8))]))
-            ]);
+                        [new BinarySwitchCaseNode(new IntegerNode("1", "i"), "Flags", new AlignmentNode(8))]
+                    )
+                ),
+            ]
+        );
 
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(schema));
 

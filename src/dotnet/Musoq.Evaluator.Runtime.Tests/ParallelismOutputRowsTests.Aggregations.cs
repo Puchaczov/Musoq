@@ -17,13 +17,11 @@ public partial class ParallelismOutputRowsTests
         var cities = new[] { "CityA", "CityB", "CityC", "CityD", "CityE" };
         const string query = "select City, Count(City), Sum(Population) from #A.Entities() group by City";
 
-        var entities = cities.SelectMany(city =>
-            Enumerable.Range(0, rowsPerCity).Select(i => new BasicEntity(city, "Country", i + 1))).ToList();
+        var entities = cities
+            .SelectMany(city => Enumerable.Range(0, rowsPerCity).Select(i => new BasicEntity(city, "Country", i + 1)))
+            .ToList();
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities } };
 
         var vm = CreateVirtualMachineWithOptions(query, sources, new CompilationOptions(ParallelizationMode.Full));
         var table = vm.Run();
@@ -50,13 +48,11 @@ public partial class ParallelismOutputRowsTests
         var cities = new[] { "CityA", "CityB", "CityC", "CityD", "CityE" };
         const string query = "select City, Count(City), Sum(Population) from #A.Entities() group by City";
 
-        var entities = cities.SelectMany(city =>
-            Enumerable.Range(0, rowsPerCity).Select(i => new BasicEntity(city, "Country", i + 1))).ToList();
+        var entities = cities
+            .SelectMany(city => Enumerable.Range(0, rowsPerCity).Select(i => new BasicEntity(city, "Country", i + 1)))
+            .ToList();
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities } };
 
         var vm = CreateVirtualMachineWithOptions(query, sources, new CompilationOptions(ParallelizationMode.None));
         var table = vm.Run();
@@ -84,50 +80,60 @@ public partial class ParallelismOutputRowsTests
         const string query =
             "select City, Count(City), Sum(Population), Avg(Population) from #A.Entities() group by City";
 
-        var entities = cities.SelectMany(city =>
-            Enumerable.Range(0, rowsPerCity).Select(i => new BasicEntity(city, "Country", i + 1))).ToList();
+        var entities = cities
+            .SelectMany(city => Enumerable.Range(0, rowsPerCity).Select(i => new BasicEntity(city, "Country", i + 1)))
+            .ToList();
 
-        var sourcesParallel = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities.ToList() }
-        };
-        var sourcesNonParallel = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities.ToList() }
-        };
+        var sourcesParallel = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities.ToList() } };
+        var sourcesNonParallel = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities.ToList() } };
 
-        var vmParallel =
-            CreateVirtualMachineWithOptions(query, sourcesParallel, new CompilationOptions(ParallelizationMode.Full));
-        var vmNonParallel = CreateVirtualMachineWithOptions(query, sourcesNonParallel,
-            new CompilationOptions(ParallelizationMode.None));
+        var vmParallel = CreateVirtualMachineWithOptions(
+            query,
+            sourcesParallel,
+            new CompilationOptions(ParallelizationMode.Full)
+        );
+        var vmNonParallel = CreateVirtualMachineWithOptions(
+            query,
+            sourcesNonParallel,
+            new CompilationOptions(ParallelizationMode.None)
+        );
 
         var tableParallel = vmParallel.Run();
         var tableNonParallel = vmNonParallel.Run();
 
-        Assert.AreEqual(tableNonParallel.Count, tableParallel.Count,
-            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
+        Assert.AreEqual(
+            tableNonParallel.Count,
+            tableParallel.Count,
+            $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}"
+        );
 
-
-        var parallelResults = tableParallel.ToDictionary(row => (string)row.ReadValue(0), row => (
-            Count: Convert.ToInt32(row.ReadValue(1)),
-            Sum: Convert.ToDecimal(row.ReadValue(2)),
-            Avg: Convert.ToDecimal(row.ReadValue(3))));
-        var nonParallelResults = tableNonParallel.ToDictionary(row => (string)row.ReadValue(0), row => (
-            Count: Convert.ToInt32(row.ReadValue(1)),
-            Sum: Convert.ToDecimal(row.ReadValue(2)),
-            Avg: Convert.ToDecimal(row.ReadValue(3))));
+        var parallelResults = tableParallel.ToDictionary(
+            row => (string)row.ReadValue(0),
+            row =>
+                (
+                    Count: Convert.ToInt32(row.ReadValue(1)),
+                    Sum: Convert.ToDecimal(row.ReadValue(2)),
+                    Avg: Convert.ToDecimal(row.ReadValue(3))
+                )
+        );
+        var nonParallelResults = tableNonParallel.ToDictionary(
+            row => (string)row.ReadValue(0),
+            row =>
+                (
+                    Count: Convert.ToInt32(row.ReadValue(1)),
+                    Sum: Convert.ToDecimal(row.ReadValue(2)),
+                    Avg: Convert.ToDecimal(row.ReadValue(3))
+                )
+        );
 
         foreach (var city in cities)
         {
             Assert.IsTrue(parallelResults.ContainsKey(city), $"City {city} missing from parallel results");
             Assert.IsTrue(nonParallelResults.ContainsKey(city), $"City {city} missing from non-parallel results");
 
-            Assert.AreEqual(nonParallelResults[city].Count, parallelResults[city].Count,
-                $"Count mismatch for {city}");
-            Assert.AreEqual(nonParallelResults[city].Sum, parallelResults[city].Sum,
-                $"Sum mismatch for {city}");
-            Assert.AreEqual(nonParallelResults[city].Avg, parallelResults[city].Avg,
-                $"Avg mismatch for {city}");
+            Assert.AreEqual(nonParallelResults[city].Count, parallelResults[city].Count, $"Count mismatch for {city}");
+            Assert.AreEqual(nonParallelResults[city].Sum, parallelResults[city].Sum, $"Sum mismatch for {city}");
+            Assert.AreEqual(nonParallelResults[city].Avg, parallelResults[city].Avg, $"Avg mismatch for {city}");
         }
     }
 
@@ -161,16 +167,18 @@ public partial class ParallelismOutputRowsTests
     {
         const int rowCount = 12288;
         const int cityCount = 8;
-        const string query = @"
-            select
-                City,
-                Count(City),
-                Sum(Population),
-                Min(Population),
-                Max(Population),
-                Avg(Population)
-            from #A.Entities()
-            group by City";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                City,\n"
+            + "                Count(City),\n"
+            + "                Sum(Population),\n"
+            + "                Min(Population),\n"
+            + "                Max(Population),\n"
+            + "                Avg(Population)\n"
+            + "            from #A.Entities()\n"
+            + "            group by City"
+        );
 
         var entities = CreateGroupedEntities(rowCount, cityCount);
 

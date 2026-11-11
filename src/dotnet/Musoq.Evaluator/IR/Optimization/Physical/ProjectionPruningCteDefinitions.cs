@@ -59,12 +59,11 @@ internal static partial class ProjectionPruningCteDefinitions
         return new ProjectionPruningCteResult(
             new PhysicalCteNode(definitions, query),
             prunedFields,
-            rewrittenDefinitions);
+            rewrittenDefinitions
+        );
     }
 
-    private static CteProjectionPruning PruneDefinitionOutput(
-        PhysicalNode plan,
-        IReadOnlySet<string> requiredColumns)
+    private static CteProjectionPruning PruneDefinitionOutput(PhysicalNode plan, IReadOnlySet<string> requiredColumns)
     {
         if (plan is PhysicalMultiStatementNode multiStatement && multiStatement.Statements.Length > 0)
         {
@@ -75,22 +74,30 @@ internal static partial class ProjectionPruningCteDefinitions
 
             statements[^1] = pruning.Plan;
             return new CteProjectionPruning(
-                new PhysicalMultiStatementNode(statements) { IntermediateProducers = multiStatement.IntermediateProducers },
+                new PhysicalMultiStatementNode(statements)
+                {
+                    IntermediateProducers = multiStatement.IntermediateProducers,
+                },
                 pruning.PrunedFieldCount,
-                IsChanged: true);
+                IsChanged: true
+            );
         }
 
-        if (plan is not PhysicalProjectNode { IsDistinct: false } project ||
-            ColumnUsage.HasAmbiguousOutputNames(project.Fields) ||
-            requiredColumns.Count == 0 ||
-            requiredColumns.Count >= project.Fields.Length ||
-            requiredColumns.Any(required => !project.Fields.Any(field => ColumnUsage.NameEquals(field.OutputName, required))))
+        if (
+            plan is not PhysicalProjectNode { IsDistinct: false } project
+            || ColumnUsage.HasAmbiguousOutputNames(project.Fields)
+            || requiredColumns.Count == 0
+            || requiredColumns.Count >= project.Fields.Length
+            || requiredColumns.Any(required =>
+                !project.Fields.Any(field => ColumnUsage.NameEquals(field.OutputName, required))
+            )
+        )
         {
             return CteProjectionPruning.NoChange(plan);
         }
 
-        var fields = project.Fields
-            .Where(field => requiredColumns.Contains(field.OutputName))
+        var fields = project
+            .Fields.Where(field => requiredColumns.Contains(field.OutputName))
             .Select((field, index) => field with { OutputIndex = index })
             .ToArray();
 
@@ -100,22 +107,21 @@ internal static partial class ProjectionPruningCteDefinitions
         return new CteProjectionPruning(
             new PhysicalProjectNode(fields, project.Input),
             project.Fields.Length - fields.Length,
-            IsChanged: true);
+            IsChanged: true
+        );
     }
 
     private static PhysicalNode RewriteCteRefSchemas(
         PhysicalNode node,
-        IReadOnlyDictionary<string, OutputSchema> schemasByName)
+        IReadOnlyDictionary<string, OutputSchema> schemasByName
+    )
     {
-        if (node is PhysicalCteRefNode cteRef &&
-            schemasByName.TryGetValue(cteRef.CteName, out var schema))
+        if (node is PhysicalCteRefNode cteRef && schemasByName.TryGetValue(cteRef.CteName, out var schema))
         {
             return cteRef with { OutputSchema = schema };
         }
 
-        return PhysicalPlanRewriter.RewriteChildren(
-            node,
-            child => RewriteCteRefSchemas(child, schemasByName));
+        return PhysicalPlanRewriter.RewriteChildren(node, child => RewriteCteRefSchemas(child, schemasByName));
     }
 
     private sealed class CteConsumerRequirementCollector(IReadOnlySet<string> cteNames)
@@ -125,8 +131,8 @@ internal static partial class ProjectionPruningCteDefinitions
 
         public static IReadOnlyDictionary<string, IReadOnlySet<string>> Collect(PhysicalCteNode cte)
         {
-            var names = cte.Definitions
-                .Select(static definition => definition.Name)
+            var names = cte
+                .Definitions.Select(static definition => definition.Name)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var collector = new CteConsumerRequirementCollector(names);
 
@@ -179,17 +185,24 @@ internal static partial class ProjectionPruningCteDefinitions
                         joinCandidate.Left,
                         joinCandidate.Right,
                         requiredAfter,
-                        CollectPredicateJoinColumns(joinCandidate.OnPredicate, joinCandidate.TieBreak));
+                        CollectPredicateJoinColumns(joinCandidate.OnPredicate, joinCandidate.TieBreak)
+                    );
                     return;
                 case PhysicalNestedLoopJoinNode nestedLoopJoin:
                     VisitJoin(
                         nestedLoopJoin.Left,
                         nestedLoopJoin.Right,
                         requiredAfter,
-                        CollectPredicateJoinColumns(nestedLoopJoin.OnPredicate, nestedLoopJoin.TieBreak));
+                        CollectPredicateJoinColumns(nestedLoopJoin.OnPredicate, nestedLoopJoin.TieBreak)
+                    );
                     return;
                 case PhysicalSortMergeJoinNode sortMergeJoin:
-                    VisitJoin(sortMergeJoin.Left, sortMergeJoin.Right, requiredAfter, CollectJoinColumns(sortMergeJoin));
+                    VisitJoin(
+                        sortMergeJoin.Left,
+                        sortMergeJoin.Right,
+                        requiredAfter,
+                        CollectJoinColumns(sortMergeJoin)
+                    );
                     return;
                 case PhysicalSetOperationNode setOperation:
                     VisitSetOperationArm(setOperation.Left, setOperation.FieldIndexes, requiredAfter);
@@ -207,43 +220,41 @@ internal static partial class ProjectionPruningCteDefinitions
 
         private void VisitProject(PhysicalProjectNode project, IReadOnlyList<string> requiredAfter)
         {
-            var requiredFields = project.Fields
-                .Where(field => requiredAfter.Count == 0 || ColumnUsage.ContainsColumn(requiredAfter, field.OutputName))
+            var requiredFields = project
+                .Fields.Where(field =>
+                    requiredAfter.Count == 0 || ColumnUsage.ContainsColumn(requiredAfter, field.OutputName)
+                )
                 .ToArray();
             var fields = requiredFields.Length == 0 ? project.Fields : requiredFields;
 
             Visit(project.Input, ColumnUsage.CollectColumnNames(fields.Select(static field => field.Expression)));
         }
 
-        private static IReadOnlyList<string> CollectPredicateJoinColumns(
-            IrExpression predicate,
-            OrderField? tieBreak)
+        private static IReadOnlyList<string> CollectPredicateJoinColumns(IrExpression predicate, OrderField? tieBreak)
         {
             return tieBreak == null
                 ? ColumnUsage.CollectColumnNames(predicate)
                 : ColumnUsage.Merge(
                     ColumnUsage.CollectColumnNames(predicate),
-                    ColumnUsage.CollectColumnNames(tieBreak.Expression));
+                    ColumnUsage.CollectColumnNames(tieBreak.Expression)
+                );
         }
 
-        private void VisitFilteredInput(
-            PhysicalNode input,
-            IrExpression predicate,
-            IReadOnlyList<string> requiredAfter)
+        private void VisitFilteredInput(PhysicalNode input, IrExpression predicate, IReadOnlyList<string> requiredAfter)
         {
-            Visit(
-                input,
-                ColumnUsage.Merge(requiredAfter, ColumnUsage.CollectColumnNames(predicate)));
+            Visit(input, ColumnUsage.Merge(requiredAfter, ColumnUsage.CollectColumnNames(predicate)));
         }
 
         private void VisitOrderedInput(
             PhysicalNode input,
             IReadOnlyList<OrderField> keys,
-            IReadOnlyList<string> requiredAfter)
+            IReadOnlyList<string> requiredAfter
+        )
         {
             var requiredColumns = ColumnUsage.Merge(
                 requiredAfter,
-                keys.SelectMany(static key => ColumnUsage.CollectColumnNames(key.Expression)));
+                keys.SelectMany(static key => ColumnUsage.CollectColumnNames(key.Expression))
+            );
 
             Visit(input, requiredColumns);
         }
@@ -251,11 +262,13 @@ internal static partial class ProjectionPruningCteDefinitions
         private void VisitSetOperationArm(
             PhysicalNode arm,
             IReadOnlyList<int> fieldIndexes,
-            IReadOnlyList<string> requiredAfter)
+            IReadOnlyList<string> requiredAfter
+        )
         {
             var requiredColumns = ColumnUsage.Merge(
                 requiredAfter,
-                ColumnUsage.ResolveSetOperationColumns(arm, fieldIndexes));
+                ColumnUsage.ResolveSetOperationColumns(arm, fieldIndexes)
+            );
 
             Visit(arm, requiredColumns);
         }
@@ -264,18 +277,23 @@ internal static partial class ProjectionPruningCteDefinitions
             PhysicalNode left,
             PhysicalNode right,
             IReadOnlyList<string> requiredAfter,
-            IReadOnlyList<string> joinColumns)
+            IReadOnlyList<string> joinColumns
+        )
         {
             Visit(
                 left,
                 ColumnUsage.Merge(
                     ColumnUsage.FilterProducedColumns(left, requiredAfter),
-                    ColumnUsage.FilterProducedColumns(left, joinColumns)));
+                    ColumnUsage.FilterProducedColumns(left, joinColumns)
+                )
+            );
             Visit(
                 right,
                 ColumnUsage.Merge(
                     ColumnUsage.FilterProducedColumns(right, requiredAfter),
-                    ColumnUsage.FilterProducedColumns(right, joinColumns)));
+                    ColumnUsage.FilterProducedColumns(right, joinColumns)
+                )
+            );
         }
 
         private void Record(PhysicalCteRefNode cteRef, IReadOnlyList<string> requiredAfter)
@@ -284,11 +302,15 @@ internal static partial class ProjectionPruningCteDefinitions
                 return;
 
             var available = ColumnUsage.SchemaColumns(cteRef.OutputSchema);
-            var required = requiredAfter.Count == 0
-                ? available
-                : available.Where(column =>
-                    ColumnUsage.ContainsColumn(requiredAfter, column) ||
-                    ColumnUsage.ContainsColumn(requiredAfter, $"{cteRef.Alias}.{column}")).ToArray();
+            var required =
+                requiredAfter.Count == 0
+                    ? available
+                    : available
+                        .Where(column =>
+                            ColumnUsage.ContainsColumn(requiredAfter, column)
+                            || ColumnUsage.ContainsColumn(requiredAfter, $"{cteRef.Alias}.{column}")
+                        )
+                        .ToArray();
 
             if (required.Length == 0 || required.Length >= available.Length)
             {
@@ -307,16 +329,19 @@ internal static partial class ProjectionPruningCteDefinitions
         }
 
         private IReadOnlyDictionary<string, IReadOnlySet<string>> CreateResult(
-            IReadOnlyList<PhysicalCteDefinition> definitions)
+            IReadOnlyList<PhysicalCteDefinition> definitions
+        )
         {
             var result = new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var definition in definitions)
             {
-                if (_requiresAll.Contains(definition.Name) ||
-                    !_requiredByName.TryGetValue(definition.Name, out var required) ||
-                    required.Count == 0 ||
-                    required.Count >= definition.Plan.OutputSchema.Columns.Length)
+                if (
+                    _requiresAll.Contains(definition.Name)
+                    || !_requiredByName.TryGetValue(definition.Name, out var required)
+                    || required.Count == 0
+                    || required.Count >= definition.Plan.OutputSchema.Columns.Length
+                )
                 {
                     continue;
                 }
@@ -331,7 +356,8 @@ internal static partial class ProjectionPruningCteDefinitions
     private static string[] CollectJoinColumns(PhysicalHashJoinNode join)
     {
         var residualColumns = join.Residual != null ? ColumnUsage.CollectColumnNames(join.Residual) : [];
-        return ColumnUsage.CollectColumnNames(join.BuildKeys)
+        return ColumnUsage
+            .CollectColumnNames(join.BuildKeys)
             .Concat(ColumnUsage.CollectColumnNames(join.ProbeKeys))
             .Concat(residualColumns)
             .ToArray();
@@ -339,7 +365,8 @@ internal static partial class ProjectionPruningCteDefinitions
 
     private static string[] CollectJoinColumns(PhysicalSortMergeJoinNode join)
     {
-        return ColumnUsage.CollectColumnNames(join.LeftKey)
+        return ColumnUsage
+            .CollectColumnNames(join.LeftKey)
             .Concat(ColumnUsage.CollectColumnNames(join.RightKey))
             .Concat(ColumnUsage.CollectColumnNames(join.LeftPartitionKeys))
             .Concat(ColumnUsage.CollectColumnNames(join.RightPartitionKeys))
@@ -347,10 +374,7 @@ internal static partial class ProjectionPruningCteDefinitions
             .ToArray();
     }
 
-    private sealed record CteProjectionPruning(
-        PhysicalNode Plan,
-        int PrunedFieldCount,
-        bool IsChanged)
+    private sealed record CteProjectionPruning(PhysicalNode Plan, int PrunedFieldCount, bool IsChanged)
     {
         public static CteProjectionPruning NoChange(PhysicalNode plan)
         {
@@ -358,4 +382,3 @@ internal static partial class ProjectionPruningCteDefinitions
         }
     }
 }
-

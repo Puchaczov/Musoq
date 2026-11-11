@@ -33,8 +33,10 @@ internal static class SemanticTypeInferenceService
             if (currentType.IsAssignableTo(greatestCommonSubtype))
                 continue;
 
-            greatestCommonSubtype =
-                BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(greatestCommonSubtype, currentType);
+            greatestCommonSubtype = BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(
+                greatestCommonSubtype,
+                currentType
+            );
         }
 
         return greatestCommonSubtype;

@@ -6,4 +6,5 @@ internal sealed record OptimizationTraceEntry(
     int Iteration,
     bool IsChanged,
     string Outcome,
-    string Reason);
+    string Reason
+);

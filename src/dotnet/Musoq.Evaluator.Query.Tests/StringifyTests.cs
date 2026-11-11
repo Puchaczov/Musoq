@@ -17,18 +17,23 @@ public class StringifyTests : BasicEntityTestBase
     [DataRow("select 1 from #A.entities() a left outer join #B.entities() b on a.Id = b.Id")]
     [DataRow("select 1 from #A.entities() a right outer join #B.entities() b on a.Id = b.Id")]
     [DataRow(
-        "select 1 from #A.entities() a inner join #B.entities() b on a.Id = b.Id inner join #C.entities() c on a.Id = c.Id")]
+        "select 1 from #A.entities() a inner join #B.entities() b on a.Id = b.Id inner join #C.entities() c on a.Id = c.Id"
+    )]
     [DataRow(
-        "select 1 from #A.entities() a inner join #B.entities() b on a.Id = b.Id left outer join #C.entities() c on a.Id = c.Id")]
+        "select 1 from #A.entities() a inner join #B.entities() b on a.Id = b.Id left outer join #C.entities() c on a.Id = c.Id"
+    )]
     [DataRow(
-        "select 1 from #A.entities() a inner join #B.entities() b on a.Id = b.Id right outer join #C.entities() c on a.Id = c.Id")]
+        "select 1 from #A.entities() a inner join #B.entities() b on a.Id = b.Id right outer join #C.entities() c on a.Id = c.Id"
+    )]
     [DataRow(
-        "select c.ContainerName, c2.ImageName, c.ContainerId from #stdin.text('Ollama', 'llama3.1') c inner join #stdin.text('Ollama', 'llama3.1') c2 on c.ContainerId = c2.ContainerId")]
+        "select c.ContainerName, c2.ImageName, c.ContainerId from #stdin.text('Ollama', 'llama3.1') c inner join #stdin.text('Ollama', 'llama3.1') c2 on c.ContainerId = c2.ContainerId"
+    )]
     [DataRow("table Example {};")]
     [DataRow("table Example { Id: int };")]
     [DataRow("table Example { Id: int, Name: string };")]
     [DataRow(
-        "table Example { Id: int, Name: string };\ncouple #a.b with table Example as SourceOfExamples;\nselect 1 from SourceOfExamples('a', 'b')")]
+        "table Example { Id: int, Name: string };\ncouple #a.b with table Example as SourceOfExamples;\nselect 1 from SourceOfExamples('a', 'b')"
+    )]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column1 = 4")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s group by s.Column2")]
     [DataRow("select s.Column1, Count(s.Column2) from #some.thing() s group by all")]
@@ -46,29 +51,37 @@ public class StringifyTests : BasicEntityTestBase
     [DataRow("select s.Column1, s.Column2 from #some.thing() s order by s.Column1 take 12")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s skip 20 take 10")]
     [DataRow(
-        "select s.Column1, s.Column2 from #some.thing() s where s.Column1 >= 5 group by s.Column2 order by s.Column1")]
+        "select s.Column1, s.Column2 from #some.thing() s where s.Column1 >= 5 group by s.Column2 order by s.Column1"
+    )]
     [DataRow(
-        "select s.Column1, s.Column2 from #some.thing() s where s.Column2 like '%test%' group by s.Column1 skip 3")]
+        "select s.Column1, s.Column2 from #some.thing() s where s.Column2 like '%test%' group by s.Column1 skip 3"
+    )]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column1 <= 15 group by s.Column2 take 6")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column2 is not null order by s.Column1 skip 8")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column1 = 10 order by s.Column2 take 4")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column1 in (1, 2, 3) skip 2 take 5")]
     [DataRow(
-        "select s.Column1, s.Column2 from #some.thing() s group by s.Column1, s.Column2 order by s.Column1 skip 10")]
+        "select s.Column1, s.Column2 from #some.thing() s group by s.Column1, s.Column2 order by s.Column1 skip 10"
+    )]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s group by s.Column2 order by s.Column1 desc take 7")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s group by s.Column1 skip 5 take 15")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s order by s.Column2, s.Column1 skip 12 take 8")]
     [DataRow(
-        "select s.Column1, s.Column2 from #some.thing() s where s.Column1 <> 0 group by s.Column2 order by s.Column1 skip 6")]
+        "select s.Column1, s.Column2 from #some.thing() s where s.Column1 <> 0 group by s.Column2 order by s.Column1 skip 6"
+    )]
     [DataRow(
-        "select s.Column1, s.Column2 from #some.thing() s where s.Column2 = 'Value' group by s.Column1 order by s.Column2 take 9")]
+        "select s.Column1, s.Column2 from #some.thing() s where s.Column2 = 'Value' group by s.Column1 order by s.Column2 take 9"
+    )]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column1 > 100 group by s.Column2 skip 3 take 7")]
     [DataRow(
-        "select s.Column1, s.Column2 from #some.thing() s where s.Column2 like 'A%' order by s.Column1 skip 4 take 8")]
+        "select s.Column1, s.Column2 from #some.thing() s where s.Column2 like 'A%' order by s.Column1 skip 4 take 8"
+    )]
     [DataRow(
-        "select s.Column1, s.Column2 from #some.thing() s group by s.Column1, s.Column2 order by s.Column1 skip 5 take 10")]
+        "select s.Column1, s.Column2 from #some.thing() s group by s.Column1, s.Column2 order by s.Column1 skip 5 take 10"
+    )]
     [DataRow(
-        "select s.Column1, s.Column2 from #some.thing() s where s.Column1 > 0 group by s.Column2 order by s.Column1 skip 2 take 5")]
+        "select s.Column1, s.Column2 from #some.thing() s where s.Column1 > 0 group by s.Column2 order by s.Column1 skip 2 take 5"
+    )]
     [DataRow("select a.City from #A.entities() a where a.City in (select b.City from #B.entities() b)")]
     [DataRow("select t.Name, Count(t.Name) from #some.thing(true) t group by t.Name having Count(t.Name) > 1")]
     [DataRow("select t.* from #some.thing(true) t")]
@@ -98,7 +111,6 @@ public class StringifyTests : BasicEntityTestBase
         root.Accept(cloneQueryTraverseVisitor);
 
         var stringifiedQuery = cloneQueryVisitor.Root.ToString();
-
 
         var normalizedQuery = query.Replace("\r\n", "\n").Replace("\r", "\n");
         var normalizedStringifiedQuery = stringifiedQuery.Replace("\r\n", "\n").Replace("\r", "\n");

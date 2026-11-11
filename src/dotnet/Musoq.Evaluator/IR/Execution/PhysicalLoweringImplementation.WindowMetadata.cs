@@ -19,25 +19,31 @@ internal sealed partial class PhysicalLoweringImplementation
             ExecutionBinary binary => ContainsRowScopedRead(binary.Left) || ContainsRowScopedRead(binary.Right),
             ExecutionUnary unary => ContainsRowScopedRead(unary.Operand),
             ExecutionStrictCast strictCast => ContainsRowScopedRead(strictCast.Expression),
-            ExecutionMethodCall method => method.Arguments.Any(ContainsRowScopedRead) ||
-                                          (method.InjectedSource != null &&
-                                           ContainsRowScopedRead(method.InjectedSource)),
+            ExecutionMethodCall method => method.Arguments.Any(ContainsRowScopedRead)
+                || (method.InjectedSource != null && ContainsRowScopedRead(method.InjectedSource)),
             ExecutionIsNullCheck isNull => ContainsRowScopedRead(isNull.Expression),
-            ExecutionInCheck inCheck => ContainsRowScopedRead(inCheck.Expression) ||
-                                        inCheck.Values.Any(ContainsRowScopedRead),
-            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, ContainsRowScopedRead),
-            ExecutionBetween between => ContainsRowScopedRead(between.Expression) ||
-                                        ContainsRowScopedRead(between.Low) ||
-                                        ContainsRowScopedRead(between.High),
+            ExecutionInCheck inCheck => ContainsRowScopedRead(inCheck.Expression)
+                || inCheck.Values.Any(ContainsRowScopedRead),
+            ExecutionPatternMatch
+            or ExecutionStringMatch
+            or ExecutionPrepareLikeMatcher
+            or ExecutionPreparedLikeMatch
+            or ExecutionDynamicLikeMatch
+            or ExecutionLikeMatcherCacheSlot
+            or ExecutionPrepareRLikeMatcher
+            or ExecutionPreparedRLikeMatch
+            or ExecutionDynamicRLikeMatch
+            or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, ContainsRowScopedRead),
+            ExecutionBetween between => ContainsRowScopedRead(between.Expression)
+                || ContainsRowScopedRead(between.Low)
+                || ContainsRowScopedRead(between.High),
             ExecutionCaseWhen caseWhen => caseWhen.Branches.Any(branch =>
-                                                 ContainsRowScopedRead(branch.Condition) ||
-                                                 ContainsRowScopedRead(branch.Result)) ||
-                                             (caseWhen.ElseExpression != null &&
-                                              ContainsRowScopedRead(caseWhen.ElseExpression)),
+                ContainsRowScopedRead(branch.Condition) || ContainsRowScopedRead(branch.Result)
+            ) || (caseWhen.ElseExpression != null && ContainsRowScopedRead(caseWhen.ElseExpression)),
             ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(ContainsRowScopedRead),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(ContainsRowScopedRead),
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(ContainsRowScopedRead),
-            _ => false
+            _ => false,
         };
     }
 
@@ -45,25 +51,28 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultTableName,
         ExecutionRankingWindowFunction function,
         int windowIndex,
-        WindowResultNameMode mode)
+        WindowResultNameMode mode
+    )
     {
         return FormatWindowResultVariableName(
             RankingWindowMetadata.CreateResultVariableName(resultTableName, function),
             windowIndex,
-            mode);
+            mode
+        );
     }
 
     private static string CreateOffsetResultVariableName(
         string resultTableName,
         ExecutionOffsetWindowFunction function,
         int windowIndex,
-        WindowResultNameMode mode)
+        WindowResultNameMode mode
+    )
     {
         var name = function switch
         {
             ExecutionOffsetWindowFunction.Lag => $"{resultTableName}Lags",
             ExecutionOffsetWindowFunction.Lead => $"{resultTableName}Leads",
-            _ => throw new ArgumentOutOfRangeException(nameof(function), function, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(function), function, null),
         };
 
         return FormatWindowResultVariableName(name, windowIndex, mode);
@@ -73,7 +82,8 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultTableName,
         string functionName,
         int windowIndex,
-        WindowResultNameMode mode)
+        WindowResultNameMode mode
+    )
     {
         var name = $"{resultTableName}{NormalizeWindowFunctionName(functionName)}s";
         return FormatWindowResultVariableName(name, windowIndex, mode);
@@ -90,14 +100,15 @@ internal sealed partial class PhysicalLoweringImplementation
         {
             WindowResultNameMode.Standard => name,
             WindowResultNameMode.IndexedByWindow => $"{name}{windowIndex.ToString(CultureInfo.InvariantCulture)}",
-            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null),
         };
     }
 
     private static LoweringAttempt<OptionalValue<ExecutionExpression>> CreateWindowPartitionKey(
         IrExpression[] partitionKeys,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        IReadOnlyDictionary<string, string> aggregateSourceFields)
+        IReadOnlyDictionary<string, string> aggregateSourceFields
+    )
     {
         if (partitionKeys.Length == 0)
             return LoweringAttempt<OptionalValue<ExecutionExpression>>.Built(OptionalValue<ExecutionExpression>.None());
@@ -110,25 +121,32 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         if (parts.Count == 1)
-            return LoweringAttempt<OptionalValue<ExecutionExpression>>.Built(OptionalValue<ExecutionExpression>.Some(parts[0]));
+            return LoweringAttempt<OptionalValue<ExecutionExpression>>.Built(
+                OptionalValue<ExecutionExpression>.Some(parts[0])
+            );
 
         var partTypes = parts.Select(part => part.ReturnType.ResolveClrType()).ToArray();
-        if (partTypes.Length >= 2 &&
-            partTypes.All(WindowRegistrationLoweringHelpers.CanUseTypedWindowKeyElement) &&
-            ValueTupleTypeShape.TryCreate(partTypes, out var partitionKeyType))
+        if (
+            partTypes.Length >= 2
+            && partTypes.All(WindowRegistrationLoweringHelpers.CanUseTypedWindowKeyElement)
+            && ValueTupleTypeShape.TryCreate(partTypes, out var partitionKeyType)
+        )
         {
             return LoweringAttempt<OptionalValue<ExecutionExpression>>.Built(
-                OptionalValue<ExecutionExpression>.Some(new ExecutionValueTupleKey(parts, partitionKeyType)));
+                OptionalValue<ExecutionExpression>.Some(new ExecutionValueTupleKey(parts, partitionKeyType))
+            );
         }
 
         return LoweringAttempt<OptionalValue<ExecutionExpression>>.Unsupported(
-            "Window partition keys require concrete typed carriers.");
+            "Window partition keys require concrete typed carriers."
+        );
     }
 
     private static LoweringAttempt<IReadOnlyList<ExecutionWindowOrderKey>> CreateWindowOrderKeys(
         OrderField[] orderKeys,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        IReadOnlyDictionary<string, string> aggregateSourceFields)
+        IReadOnlyDictionary<string, string> aggregateSourceFields
+    )
     {
         var keys = new List<ExecutionWindowOrderKey>(orderKeys.Length);
         foreach (var orderKey in orderKeys)
@@ -139,5 +157,4 @@ internal sealed partial class PhysicalLoweringImplementation
 
         return LoweringAttempt<IReadOnlyList<ExecutionWindowOrderKey>>.Built(keys);
     }
-
 }

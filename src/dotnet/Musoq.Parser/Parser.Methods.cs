@@ -22,7 +22,7 @@ public partial class Parser
             {
                 HasFilter = hasFilter,
                 FilterExpression = filterExpression,
-                FilterExpressionText = filterExpressionText
+                FilterExpressionText = filterExpressionText,
             };
         }
 
@@ -34,12 +34,11 @@ public partial class Parser
             (args, isDistinct) = ComposeArgsWithDistinct(allowNamedArguments);
             var (hasFilter2, filterExpression2, filterExpressionText2) = TryApplyFilterClause();
 
-            return new AccessMethodNode(token, args, null, false,
-                null, alias, default, isDistinct)
+            return new AccessMethodNode(token, args, null, false, null, alias, default, isDistinct)
             {
                 HasFilter = hasFilter2,
                 FilterExpression = filterExpression2,
-                FilterExpressionText = filterExpressionText2
+                FilterExpressionText = filterExpressionText2,
             };
         }
 
@@ -47,9 +46,9 @@ public partial class Parser
             $"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ2001_UnexpectedToken,
-            Current.Span);
+            Current.Span
+        );
     }
-
 
     private (bool HasFilter, Node? FilterExpression, string? FilterExpressionText) TryApplyFilterClause()
     {

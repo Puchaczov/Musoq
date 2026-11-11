@@ -9,9 +9,13 @@ public partial class TextInterpreterBaseTests
 {
     private sealed partial class TestTextInterpreter
     {
-        public System.Text.RegularExpressions.Match TestReadPatternMatch(ReadOnlySpan<char> text, string pattern,
-            string? fieldName = null, bool greedy = false, bool lazy = false)
-            => ReadPatternMatch(text, pattern, fieldName, greedy, lazy);
+        public System.Text.RegularExpressions.Match TestReadPatternMatch(
+            ReadOnlySpan<char> text,
+            string pattern,
+            string? fieldName = null,
+            bool greedy = false,
+            bool lazy = false
+        ) => ReadPatternMatch(text, pattern, fieldName, greedy, lazy);
 
         public string TestReadPreparedPattern(ReadOnlySpan<char> text, PreparedTextPattern pattern, string fieldName) =>
             ReadPreparedPatternStatus(text, pattern, fieldName).GetValueOrThrow();
@@ -55,7 +59,8 @@ public partial class TextInterpreterBaseTests
         Assert.AreEqual("123", interpreter.TestReadPatternMatch("123".AsSpan(), @"\d+", "First").Value);
         interpreter.SetPosition(2);
         var exception = Assert.Throws<ParseException>(() =>
-            interpreter.TestReadPatternMatch("--abc".AsSpan(), @"\d+", "Second"));
+            interpreter.TestReadPatternMatch("--abc".AsSpan(), @"\d+", "Second")
+        );
         Assert.AreEqual(ParseErrorCode.PatternMismatch, exception.ErrorCode);
         Assert.AreEqual("Second", exception.FieldName);
         Assert.AreEqual(2, exception.Position);
@@ -70,10 +75,13 @@ public partial class TextInterpreterBaseTests
         var prepared = new PreparedTextPattern(pattern, TextPatternModifiers.None);
         var original = ReadPatternFailure(interpreter, pattern, 2);
         var actual = Assert.Throws<ParseException>(() =>
-            interpreter.TestReadPreparedPattern("aaaa".AsSpan(), prepared, "Field2"));
+            interpreter.TestReadPreparedPattern("aaaa".AsSpan(), prepared, "Field2")
+        );
 
-        Assert.AreEqual((original.ErrorCode, original.SchemaName, original.FieldName, original.Position, original.Details),
-            (actual.ErrorCode, actual.SchemaName, actual.FieldName, actual.Position, actual.Details));
+        Assert.AreEqual(
+            (original.ErrorCode, original.SchemaName, original.FieldName, original.Position, original.Details),
+            (actual.ErrorCode, actual.SchemaName, actual.FieldName, actual.Position, actual.Details)
+        );
         Assert.AreEqual(original.InnerException?.Message, actual.InnerException?.Message);
     }
 
@@ -83,8 +91,11 @@ public partial class TextInterpreterBaseTests
         for (var iteration = 0; iteration < 8; iteration++)
         {
             interpreter.SetPosition(2);
-            var match = interpreter.TestReadPatternMatch("--abc:123!".AsSpan(),
-                @"\G(?<word>[a-z]+):(?<number>\d+)", "Value");
+            var match = interpreter.TestReadPatternMatch(
+                "--abc:123!".AsSpan(),
+                @"\G(?<word>[a-z]+):(?<number>\d+)",
+                "Value"
+            );
             Assert.AreEqual("abc", match.Groups["word"].Value);
             Assert.AreEqual("123", match.Groups["number"].Value);
             Assert.AreEqual(9, interpreter.GetPosition());
@@ -103,6 +114,7 @@ public partial class TextInterpreterBaseTests
     {
         interpreter.SetPosition(position);
         return Assert.Throws<ParseException>(() =>
-            interpreter.TestReadPatternMatch("aaaa".AsSpan(), pattern, $"Field{position}"));
+            interpreter.TestReadPatternMatch("aaaa".AsSpan(), pattern, $"Field{position}")
+        );
     }
 }

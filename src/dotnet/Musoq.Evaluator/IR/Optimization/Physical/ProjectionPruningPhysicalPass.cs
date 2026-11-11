@@ -17,12 +17,11 @@ internal sealed class ProjectionPruningPhysicalPass : IPhysicalOptimizationPass
         var rewritten = rewriter.Rewrite(plan);
 
         return ReferenceEquals(plan, rewritten)
-            ? OptimizationResult<PhysicalNode>.NoChange(
-                plan,
-                "No simple projection chains were safe to prune.")
+            ? OptimizationResult<PhysicalNode>.NoChange(plan, "No simple projection chains were safe to prune.")
             : OptimizationResult<PhysicalNode>.Changed(
                 rewritten,
-                $"Pruned {rewriter.PrunedFields} unused projected field(s) from {rewriter.RewrittenProjects} simple projection chain(s), {rewriter.RewrittenAggregateInputs} aggregate input(s), {rewriter.RewrittenWindowInputs} window input(s), {rewriter.RewrittenJoinInputs} join input(s), {rewriter.RewrittenSetOperationInputs} set-operation input(s), and {rewriter.RewrittenCteDefinitions} CTE definition(s).");
+                $"Pruned {rewriter.PrunedFields} unused projected field(s) from {rewriter.RewrittenProjects} simple projection chain(s), {rewriter.RewrittenAggregateInputs} aggregate input(s), {rewriter.RewrittenWindowInputs} window input(s), {rewriter.RewrittenJoinInputs} join input(s), {rewriter.RewrittenSetOperationInputs} set-operation input(s), and {rewriter.RewrittenCteDefinitions} CTE definition(s)."
+            );
     }
 
     private sealed class ProjectionPruningRewriter
@@ -62,9 +61,13 @@ internal sealed class ProjectionPruningPhysicalPass : IPhysicalOptimizationPass
                 PhysicalMultiStatementNode statements => RewriteIntermediateOutputs(statements),
                 PhysicalSetOperationNode setOperation => _boundaryPruner.RewriteSetOperation(setOperation),
                 PhysicalAggregateOnlyNode aggregateOnly => _boundaryPruner.RewriteAggregateOnly(aggregateOnly),
-                PhysicalSingleKeyAggregateNode singleKeyAggregate => _boundaryPruner.RewriteSingleKeyAggregate(singleKeyAggregate),
-                PhysicalValueTupleAggregateNode valueTupleAggregate => _boundaryPruner.RewriteValueTupleAggregate(valueTupleAggregate),
-                _ => PhysicalPlanRewriter.RewriteChildren(node, Rewrite)
+                PhysicalSingleKeyAggregateNode singleKeyAggregate => _boundaryPruner.RewriteSingleKeyAggregate(
+                    singleKeyAggregate
+                ),
+                PhysicalValueTupleAggregateNode valueTupleAggregate => _boundaryPruner.RewriteValueTupleAggregate(
+                    valueTupleAggregate
+                ),
+                _ => PhysicalPlanRewriter.RewriteChildren(node, Rewrite),
             };
         }
 
@@ -116,14 +119,21 @@ internal sealed class ProjectionPruningPhysicalPass : IPhysicalOptimizationPass
 
             current = _boundaryPruner.RewriteProjectBoundaries(current);
 
-            if (!PhysicalProjectionBoundaryInputPruner.TryFindPrunableInnerProject(
+            if (
+                !PhysicalProjectionBoundaryInputPruner.TryFindPrunableInnerProject(
                     current.Input,
                     ColumnUsage.CollectReferencedNames(current.Fields),
                     out var inner,
                     out var requiredNames,
-                    out var rebuildInput) ||
-                inner.IsDistinct ||
-                !PhysicalProjectionBoundaryInputPruner.TrySelectRequiredInnerFields(requiredNames, inner.Fields, out var prunedFields))
+                    out var rebuildInput
+                )
+                || inner.IsDistinct
+                || !PhysicalProjectionBoundaryInputPruner.TrySelectRequiredInnerFields(
+                    requiredNames,
+                    inner.Fields,
+                    out var prunedFields
+                )
+            )
             {
                 return current;
             }
@@ -131,18 +141,12 @@ internal sealed class ProjectionPruningPhysicalPass : IPhysicalOptimizationPass
             _prunedFields += inner.Fields.Length - prunedFields.Length;
             _rewrittenProjects++;
 
-            var prunedInner = new PhysicalProjectNode(prunedFields, inner.Input)
-            {
-                IsDistinct = inner.IsDistinct
-            };
+            var prunedInner = new PhysicalProjectNode(prunedFields, inner.Input) { IsDistinct = inner.IsDistinct };
 
-            return new PhysicalProjectNode(
-                current.Fields,
-                rebuildInput(prunedInner))
+            return new PhysicalProjectNode(current.Fields, rebuildInput(prunedInner))
             {
-                IsDistinct = current.IsDistinct
+                IsDistinct = current.IsDistinct,
             };
         }
     }
 }
-

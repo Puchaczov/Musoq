@@ -13,26 +13,41 @@ public sealed class DiagnosticBinary044SwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_ScalarLabels_ShouldParseAndPreserveSourceSpans()
     {
-        const string schema = "binary Packet { Type: byte, Payload: switch Type { 0b1 => Binary: byte, 0o2 => Octal: byte, 0x3 => Hex: byte } }";
+        const string schema =
+            "binary Packet { Type: byte, Payload: switch Type { 0b1 => Binary: byte, 0o2 => Octal: byte, 0x3 => Hex: byte } }";
 
         var result = ParseBinarySchema(schema);
         var switchType = ((FieldDefinitionNode)result.Fields[1]).TypeAnnotation as BinarySwitchTypeNode;
 
         Assert.IsNotNull(switchType);
-        Assert.AreEqual(new TextSpan(schema.IndexOf("switch Type", StringComparison.Ordinal) + 7, 4), switchType.SelectorSpan);
+        Assert.AreEqual(
+            new TextSpan(schema.IndexOf("switch Type", StringComparison.Ordinal) + 7, 4),
+            switchType.SelectorSpan
+        );
         Assert.IsInstanceOfType<BinaryIntegerNode>(switchType.Cases[0].CaseValue);
         Assert.IsInstanceOfType<OctalIntegerNode>(switchType.Cases[1].CaseValue);
         Assert.IsInstanceOfType<HexIntegerNode>(switchType.Cases[2].CaseValue);
-        Assert.AreEqual(new TextSpan(schema.IndexOf("0b1", StringComparison.Ordinal), 3), switchType.Cases[0].CaseLabelSpan);
-        Assert.AreEqual(new TextSpan(schema.IndexOf("Binary:", StringComparison.Ordinal), 6), switchType.Cases[0].BranchAliasSpan);
-        var binaryTypeStart = schema.IndexOf("byte", schema.IndexOf("Binary:", StringComparison.Ordinal), StringComparison.Ordinal);
+        Assert.AreEqual(
+            new TextSpan(schema.IndexOf("0b1", StringComparison.Ordinal), 3),
+            switchType.Cases[0].CaseLabelSpan
+        );
+        Assert.AreEqual(
+            new TextSpan(schema.IndexOf("Binary:", StringComparison.Ordinal), 6),
+            switchType.Cases[0].BranchAliasSpan
+        );
+        var binaryTypeStart = schema.IndexOf(
+            "byte",
+            schema.IndexOf("Binary:", StringComparison.Ordinal),
+            StringComparison.Ordinal
+        );
         Assert.AreEqual(new TextSpan(binaryTypeStart, 4), switchType.Cases[0].BranchTypeSpan);
     }
 
     [TestMethod]
     public void BinarySwitch_StringSelector_ShouldAcceptStringLiteralLabel()
     {
-        const string schema = "binary Packet { Kind: string[1] ascii, Payload: switch Kind { 'A' => Letter: byte, _ => Raw: byte[1] } }";
+        const string schema =
+            "binary Packet { Kind: string[1] ascii, Payload: switch Kind { 'A' => Letter: byte, _ => Raw: byte[1] } }";
 
         var result = ParseBinarySchema(schema);
         var switchType = ((FieldDefinitionNode)result.Fields[1]).TypeAnnotation as BinarySwitchTypeNode;
@@ -45,7 +60,8 @@ public sealed class DiagnosticBinary044SwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_ComputedBooleanSelector_ShouldAcceptBooleanLabel()
     {
-        const string schema = "binary Packet { Type: byte, IsLogin: Type = 1, Payload: switch IsLogin { true => Login: byte, _ => Raw: byte[1] } }";
+        const string schema =
+            "binary Packet { Type: byte, IsLogin: Type = 1, Payload: switch IsLogin { true => Login: byte, _ => Raw: byte[1] } }";
 
         var result = ParseBinarySchema(schema);
         var switchType = ((FieldDefinitionNode)result.Fields[2]).TypeAnnotation as BinarySwitchTypeNode;
@@ -117,7 +133,8 @@ public sealed class DiagnosticBinary044SwitchTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySwitch_DefaultNotLast_ShouldReportMq4013AtDefaultLabel()
     {
-        const string schema = "binary Packet { Type: byte, Payload: switch Type { _ => Raw: byte[1], 1 => Login: byte } }";
+        const string schema =
+            "binary Packet { Type: byte, Payload: switch Type { _ => Raw: byte[1], 1 => Login: byte } }";
         var defaultStart = schema.IndexOf('_');
 
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));

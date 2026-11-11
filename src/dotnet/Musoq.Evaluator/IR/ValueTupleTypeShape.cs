@@ -34,9 +34,9 @@ internal static class ValueTupleTypeShape
 
     public static bool IsValueTuple(Type type)
     {
-        return type.IsGenericType &&
-               type.GetGenericTypeDefinition().Namespace == typeof(ValueTuple).Namespace &&
-               type.GetGenericTypeDefinition().Name.StartsWith("ValueTuple`", StringComparison.Ordinal);
+        return type.IsGenericType
+            && type.GetGenericTypeDefinition().Namespace == typeof(ValueTuple).Namespace
+            && type.GetGenericTypeDefinition().Name.StartsWith("ValueTuple`", StringComparison.Ordinal);
     }
 
     private static Type Create(IReadOnlyList<Type> elementTypes, int offset)
@@ -81,7 +81,7 @@ internal static class ValueTupleTypeShape
             5 => typeof(ValueTuple<,,,,>),
             6 => typeof(ValueTuple<,,,,,>),
             7 => typeof(ValueTuple<,,,,,,>),
-            _ => throw new ArgumentOutOfRangeException(nameof(elementTypes))
+            _ => throw new ArgumentOutOfRangeException(nameof(elementTypes)),
         };
 
         return tupleDefinition.MakeGenericType(elementTypes);

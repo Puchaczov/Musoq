@@ -9,12 +9,13 @@ public static class ExecutionPlanOperatorIdAnnotator
     public static string Annotate(ExecutionPlan executionPlan) =>
         ExecutionPlanOperatorCatalog.Create(executionPlan).AnnotatedExecutionPlanText;
 
-    public static string Annotate(string executionPlanText)
-        => ExecutionPlanOperatorCatalog.Create(executionPlanText).AnnotatedExecutionPlanText;
+    public static string Annotate(string executionPlanText) =>
+        ExecutionPlanOperatorCatalog.Create(executionPlanText).AnnotatedExecutionPlanText;
 
     public static IReadOnlyList<OperatorProfileSnapshot> CreateOperatorSnapshots(
         ExecutionPlan executionPlan,
-        QueryProfileSnapshot profile)
+        QueryProfileSnapshot profile
+    )
     {
         ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(executionPlan);
@@ -24,35 +25,44 @@ public static class ExecutionPlanOperatorIdAnnotator
 
     public static IReadOnlyList<OperatorProfileSnapshot> CreateOperatorSnapshots(
         ExecutionPlanOperatorCatalog catalog,
-        QueryProfileSnapshot profile)
+        QueryProfileSnapshot profile
+    )
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(profile);
 
-        return catalog.Operators
-            .Select(descriptor => ResolveActualSnapshot(descriptor, profile) ??
-                                  new OperatorProfileSnapshot(
-                                      descriptor.Id,
-                                      descriptor.NodeKind,
-                                      0,
-                                      0,
-                                      TimeSpan.Zero,
-                                      HasActualStats: false))
+        return catalog
+            .Operators.Select(descriptor =>
+                ResolveActualSnapshot(descriptor, profile)
+                ?? new OperatorProfileSnapshot(
+                    descriptor.Id,
+                    descriptor.NodeKind,
+                    0,
+                    0,
+                    TimeSpan.Zero,
+                    HasActualStats: false
+                )
+            )
             .ToArray();
     }
 
     public static IReadOnlyList<OperatorProfileSnapshot> CreateOperatorSnapshots(
         string annotatedExecutionPlanText,
         QueryProfileSnapshot profile,
-        long resultRows)
+        long resultRows
+    )
     {
         ArgumentNullException.ThrowIfNull(profile);
-        return CreateOperatorSnapshots(ExecutionPlanOperatorCatalog.Create(RemoveOperatorAnnotations(annotatedExecutionPlanText)), profile);
+        return CreateOperatorSnapshots(
+            ExecutionPlanOperatorCatalog.Create(RemoveOperatorAnnotations(annotatedExecutionPlanText)),
+            profile
+        );
     }
 
     private static OperatorProfileSnapshot? ResolveActualSnapshot(
         ExecutionPlanOperatorDescriptor descriptor,
-        QueryProfileSnapshot profile)
+        QueryProfileSnapshot profile
+    )
     {
         return profile.Operators.FirstOrDefault(operation => operation.Id == descriptor.Id);
     }
@@ -79,6 +89,7 @@ public static class ExecutionPlanOperatorIdAnnotator
 
                     var indentLength = line.Length - trimmed.Length;
                     return line[..indentLength] + trimmed[(closeIndex + 1)..].TrimStart();
-                }));
+                })
+        );
     }
 }

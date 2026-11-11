@@ -8,5 +8,5 @@ internal enum OptimizationStage
     PhysicalSelection,
     PhysicalOptimization,
     ExecutionIrOptimization,
-    CodegenReadability
+    CodegenReadability,
 }

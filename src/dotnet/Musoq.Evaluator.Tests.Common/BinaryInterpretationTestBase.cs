@@ -18,7 +18,8 @@ public abstract class BinaryInterpretationTestBase
         _fixtures.Clear();
     }
 
-    protected T OwnFixture<T>(T fixture) where T : IDisposable
+    protected T OwnFixture<T>(T fixture)
+        where T : IDisposable
     {
         _fixtures.Add(fixture);
         return fixture;
@@ -38,12 +39,19 @@ public abstract class BinaryInterpretationTestBase
         return CompileFixture(registry, schemaName, []);
     }
 
-    protected object CompileInterpreterForGenericInstantiation(SchemaRegistry registry, string genericSchemaName,
-        string[] typeArguments) => CompileFixture(registry, genericSchemaName, typeArguments);
+    protected object CompileInterpreterForGenericInstantiation(
+        SchemaRegistry registry,
+        string genericSchemaName,
+        string[] typeArguments
+    ) => CompileFixture(registry, genericSchemaName, typeArguments);
 
     private object CompileFixture(SchemaRegistry registry, string schemaName, string[] typeArguments)
     {
-        var fixture = new CompiledBinaryFixture(new InterpreterCodeGenerator(registry).GenerateAll(), schemaName, typeArguments);
+        var fixture = new CompiledBinaryFixture(
+            new InterpreterCodeGenerator(registry).GenerateAll(),
+            schemaName,
+            typeArguments
+        );
         _fixtures.Add(fixture);
         return fixture;
     }
@@ -57,7 +65,8 @@ public abstract class BinaryInterpretationTestBase
     protected static FieldDefinitionNode CreatePrimitiveField(
         string name,
         PrimitiveTypeName typeName,
-        Endianness endianness)
+        Endianness endianness
+    )
     {
         var typeNode = new PrimitiveTypeNode(typeName, endianness);
         return new FieldDefinitionNode(name, typeNode);

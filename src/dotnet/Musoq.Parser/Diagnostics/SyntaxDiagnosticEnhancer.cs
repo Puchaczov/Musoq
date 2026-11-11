@@ -10,13 +10,57 @@ namespace Musoq.Parser.Diagnostics;
 /// </summary>
 internal static partial class SyntaxDiagnosticEnhancer
 {
-    private static readonly string[] StatementStarts = ["PARAM", "LET", "SELECT", "FROM", "WITH", "DESC", "TABLE", "COUPLE"];
+    private static readonly string[] StatementStarts =
+    [
+        "PARAM",
+        "LET",
+        "SELECT",
+        "FROM",
+        "WITH",
+        "DESC",
+        "TABLE",
+        "COUPLE",
+    ];
 
     private static readonly string[] KnownKeywords =
     [
-        "SELECT", "FROM", "WHERE", "GROUP", "BY", "HAVING", "ORDER", "ASC", "DESC", "TAKE", "SKIP", "WITH",
-        "AS", "JOIN", "INNER", "OUTER", "CROSS", "APPLY", "ON", "CASE", "WHEN", "THEN", "ELSE", "END", "IN",
-        "NOT", "NULL", "UNION", "ALL", "EXCEPT", "INTERSECT", "DISTINCT", "PARAM", "LET", "TABLE", "COUPLE", "LIKE"
+        "SELECT",
+        "FROM",
+        "WHERE",
+        "GROUP",
+        "BY",
+        "HAVING",
+        "ORDER",
+        "ASC",
+        "DESC",
+        "TAKE",
+        "SKIP",
+        "WITH",
+        "AS",
+        "JOIN",
+        "INNER",
+        "OUTER",
+        "CROSS",
+        "APPLY",
+        "ON",
+        "CASE",
+        "WHEN",
+        "THEN",
+        "ELSE",
+        "END",
+        "IN",
+        "NOT",
+        "NULL",
+        "UNION",
+        "ALL",
+        "EXCEPT",
+        "INTERSECT",
+        "DISTINCT",
+        "PARAM",
+        "LET",
+        "TABLE",
+        "COUPLE",
+        "LIKE",
     ];
 
     public static Diagnostic CreateDiagnostic(
@@ -24,25 +68,25 @@ internal static partial class SyntaxDiagnosticEnhancer
         string message,
         TextSpan span,
         Token? currentToken,
-        SourceText? sourceText)
+        SourceText? sourceText
+    )
     {
         var metadata = ErrorMetadataCatalog.Get(code);
-        var allowKeywordEnhancement = code is DiagnosticCode.MQ2001_UnexpectedToken or
-            DiagnosticCode.MQ2004_MissingFromClause or DiagnosticCode.MQ2030_UnsupportedSyntax;
-        var allowDialectEnhancement = allowKeywordEnhancement || code is DiagnosticCode.MQ2009_InvalidOrderByExpression or
-            DiagnosticCode.MQ2021_UnclosedFunctionCall;
-        var keywordCandidate = allowKeywordEnhancement
-            ? GetKeywordCandidate(currentToken, sourceText, span)
-            : null;
-        var keywordSuggestion = allowKeywordEnhancement
-            ? GetKeywordSuggestion(currentToken, sourceText, span)
-            : null;
-        var dialectHelp = allowDialectEnhancement
-            ? GetDialectKeywordHelp(currentToken, sourceText, span)
-            : null;
-        var enhancedMessage = code == DiagnosticCode.MQ2035_MissingRequiredAlias
-            ? message
-            : BuildMessage(message, span, keywordCandidate, keywordSuggestion, dialectHelp);
+        var allowKeywordEnhancement =
+            code
+            is DiagnosticCode.MQ2001_UnexpectedToken
+                or DiagnosticCode.MQ2004_MissingFromClause
+                or DiagnosticCode.MQ2030_UnsupportedSyntax;
+        var allowDialectEnhancement =
+            allowKeywordEnhancement
+            || code is DiagnosticCode.MQ2009_InvalidOrderByExpression or DiagnosticCode.MQ2021_UnclosedFunctionCall;
+        var keywordCandidate = allowKeywordEnhancement ? GetKeywordCandidate(currentToken, sourceText, span) : null;
+        var keywordSuggestion = allowKeywordEnhancement ? GetKeywordSuggestion(currentToken, sourceText, span) : null;
+        var dialectHelp = allowDialectEnhancement ? GetDialectKeywordHelp(currentToken, sourceText, span) : null;
+        var enhancedMessage =
+            code == DiagnosticCode.MQ2035_MissingRequiredAlias
+                ? message
+                : BuildMessage(message, span, keywordCandidate, keywordSuggestion, dialectHelp);
         var explanation = BuildExplanation(metadata, keywordCandidate, keywordSuggestion, dialectHelp);
         var docsReference = dialectHelp?.DocsReference ?? metadata?.DocsReference;
         var suggestedFixes = BuildSuggestedFixes(metadata, keywordCandidate, span, keywordSuggestion, dialectHelp);
@@ -58,7 +102,8 @@ internal static partial class SyntaxDiagnosticEnhancer
             contextSnippet,
             suggestedFixes: suggestedFixes,
             explanation: explanation,
-            docsReference: docsReference);
+            docsReference: docsReference
+        );
     }
 
     public static Diagnostic EnhanceLexerDiagnostic(
@@ -66,7 +111,8 @@ internal static partial class SyntaxDiagnosticEnhancer
         string message,
         TextSpan span,
         SourceText? sourceText,
-        IEnumerable<string>? relatedInfo = null)
+        IEnumerable<string>? relatedInfo = null
+    )
     {
         var metadata = ErrorMetadataCatalog.Get(code);
         var (location, endLocation) = GetLocations(sourceText, span);
@@ -83,7 +129,8 @@ internal static partial class SyntaxDiagnosticEnhancer
             relatedInfo: relatedInfo,
             suggestedFixes: suggestedFixes,
             explanation: metadata?.Explanation,
-            docsReference: metadata?.DocsReference);
+            docsReference: metadata?.DocsReference
+        );
     }
 
     private sealed record DialectKeywordHelp(string Message, string[] SuggestedFixes, string DocsReference);

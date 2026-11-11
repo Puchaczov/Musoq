@@ -15,8 +15,11 @@ internal static class EmbeddedSyntax
         {
             var syntax = Parser.ParseSyntax(command.InnerQueryText);
             capture.Include(syntax, command.InnerStart);
-            diagnostics.AddRange(syntax.Diagnostics.Select(d => d.WithSourceContext(source,
-                new TextSpan(command.InnerStart + d.Span.Start, d.Span.Length))));
+            diagnostics.AddRange(
+                syntax.Diagnostics.Select(d =>
+                    d.WithSourceContext(source, new TextSpan(command.InnerStart + d.Span.Start, d.Span.Length))
+                )
+            );
         }
         return diagnostics.AsReadOnly();
     }

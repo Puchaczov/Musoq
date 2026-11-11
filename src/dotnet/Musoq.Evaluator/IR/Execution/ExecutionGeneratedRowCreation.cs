@@ -12,7 +12,8 @@ public sealed record ExecutionCreateGeneratedRow : ExecutionNode
         GeneratedRowShape rowShape,
         IReadOnlyList<ExecutionRowValue> values,
         IReadOnlyList<ExecutionExpression> contexts,
-        ExecutionContextLayout? contextLayout = null)
+        ExecutionContextLayout? contextLayout = null
+    )
     {
         Row = row;
         RowShape = rowShape;

@@ -24,8 +24,10 @@ public sealed class FullOuterMatchTrackingTests : GenericEntityTestBase
     {
         var entity = new MatchTrackingEntity { Id = 1 };
         using var query = CreateAndRunVirtualMachine<MatchTrackingEntity, MatchTrackingLibrary>(
-            $"select a.Id, b.Id from #schema.first() a full outer join values {{ (Id: 2) }} b " +
-            $"on a.Id < b.Id and a.Matches({matchingCall})", [entity]);
+            $"select a.Id, b.Id from #schema.first() a full outer join values {{ (Id: 2) }} b "
+                + $"on a.Id < b.Id and a.Matches({matchingCall})",
+            [entity]
+        );
 
         var table = query.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertRowsInOrder(table, expected);
@@ -37,8 +39,10 @@ public sealed class FullOuterMatchTrackingTests : GenericEntityTestBase
     {
         var entity = new MatchTrackingEntity { Id = 1 };
         using var query = CreateAndRunVirtualMachine<MatchTrackingEntity, MatchTrackingLibrary>(
-            "select a.Id, b.Id from #schema.first() a " +
-            "full outer join values { (Id: 2), (Id: 2) } b on a.Id < b.Id and a.Matches(1)", [entity]);
+            "select a.Id, b.Id from #schema.first() a "
+                + "full outer join values { (Id: 2), (Id: 2) } b on a.Id < b.Id and a.Matches(1)",
+            [entity]
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(query.Run(TestContext.CancellationToken), [1, 2], [null, 2]);
         Assert.AreEqual(2, entity.Calls);
@@ -49,8 +53,10 @@ public sealed class FullOuterMatchTrackingTests : GenericEntityTestBase
     {
         var entity = new MatchTrackingEntity { Id = 1 };
         using var query = CreateAndRunVirtualMachine<MatchTrackingEntity, MatchTrackingLibrary>(
-            "select a.Id, b.Id from #schema.first() a full outer join values { (Id: 2) } b " +
-            "on a.Id < b.Id and a.Matches(1) where a.Id is null", [entity]);
+            "select a.Id, b.Id from #schema.first() a full outer join values { (Id: 2) } b "
+                + "on a.Id < b.Id and a.Matches(1) where a.Id is null",
+            [entity]
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(query.Run(TestContext.CancellationToken));
         Assert.AreEqual(1, entity.Calls);
@@ -60,8 +66,10 @@ public sealed class FullOuterMatchTrackingTests : GenericEntityTestBase
     public void EmptyLeft_DoesNotEvaluatePredicate()
     {
         using var query = CreateAndRunVirtualMachine<MatchTrackingEntity, MatchTrackingLibrary>(
-            "select a.Id, b.Id from #schema.first() a full outer join values { (Id: 2) } b " +
-            "on a.Id < b.Id and a.Matches(1)", []);
+            "select a.Id, b.Id from #schema.first() a full outer join values { (Id: 2) } b "
+                + "on a.Id < b.Id and a.Matches(1)",
+            []
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(query.Run(TestContext.CancellationToken), [null, 2]);
     }
@@ -70,6 +78,7 @@ public sealed class FullOuterMatchTrackingTests : GenericEntityTestBase
     {
         public int Id { get; init; }
         public int Calls { get; private set; }
+
         public bool Matches(int call) => ++Calls == call;
     }
 
@@ -77,7 +86,7 @@ public sealed class FullOuterMatchTrackingTests : GenericEntityTestBase
     {
         [BindableMethod]
         [NonDeterministic]
-        public bool Matches([InjectSpecificSource(typeof(MatchTrackingEntity))] MatchTrackingEntity entity, int call)
-            => entity.Matches(call);
+        public bool Matches([InjectSpecificSource(typeof(MatchTrackingEntity))] MatchTrackingEntity entity, int call) =>
+            entity.Matches(call);
     }
 }

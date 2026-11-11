@@ -40,7 +40,8 @@ public class GenericEntityTestBase : MSTestContextTestBase
             return value;
 
         throw new AssertFailedException(
-            $"Expected parameter {index} to be {typeof(T).Name}, but got {parameters[index]?.GetType().Name ?? "null"}.");
+            $"Expected parameter {index} to be {typeof(T).Name}, but got {parameters[index]?.GetType().Name ?? "null"}."
+        );
     }
 
     protected BuildItems CreateBuildItems<TFirstEntity, TSecondEntity, TThirdEntity>(
@@ -53,21 +54,23 @@ public class GenericEntityTestBase : MSTestContextTestBase
         Func<TThirdEntity, bool>? filterThird = null,
         Func<object?[], RowSourceFilterInput, object?>? filterFirstRowsSource = null,
         Func<object?[], RowSourceFilterInput, object?>? filterSecondRowsSource = null,
-        Func<object?[], RowSourceFilterInput, object?>? filterThirdRowsSource = null)
+        Func<object?[], RowSourceFilterInput, object?>? filterThirdRowsSource = null
+    )
     {
         var schema = new GenericSchema<GenericLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
                 { "first", CreateEntitySource(first, filterFirst) },
                 { "second", CreateEntitySource(second, filterSecond) },
-                { "third", CreateEntitySource(third, filterThird) }
+                { "third", CreateEntitySource(third, filterThird) },
             },
             new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
             {
                 { "first", filterFirstRowsSource },
                 { "second", filterSecondRowsSource },
-                { "third", filterThirdRowsSource }
-            });
+                { "third", filterThirdRowsSource },
+            }
+        );
 
         return CreateBuildItems(script, schema);
     }
@@ -82,11 +85,10 @@ public class GenericEntityTestBase : MSTestContextTestBase
         var schema = new GenericSchema<GenericLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                { "first", CreateEntitySource(first, filterFirst) }
-            }, new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
-            {
-                { "first", filter }
-            });
+                { "first", CreateEntitySource(first, filterFirst) },
+            },
+            new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?> { { "first", filter } }
+        );
 
         return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
     }
@@ -96,15 +98,16 @@ public class GenericEntityTestBase : MSTestContextTestBase
         TFirstEntity[] first,
         Func<TFirstEntity, bool>? filterFirst = null,
         Func<object?[], RowSourceFilterInput, object?>? filter = null
-    ) where TLibrary : LibraryBase, new()
+    )
+        where TLibrary : LibraryBase, new()
     {
-        var schema = new GenericSchema<TLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
-            { "first", CreateEntitySource(first, filterFirst) }
-        }, new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
-        {
-            { "first", filter }
-        });
+        var schema = new GenericSchema<TLibrary>(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
+            {
+                { "first", CreateEntitySource(first, filterFirst) },
+            },
+            new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?> { { "first", filter } }
+        );
 
         return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
     }
@@ -123,12 +126,14 @@ public class GenericEntityTestBase : MSTestContextTestBase
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
                 { "first", CreateEntitySource(first, filterFirst) },
-                { "second", CreateEntitySource(second, filterSecond) }
-            }, new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
+                { "second", CreateEntitySource(second, filterSecond) },
+            },
+            new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
             {
                 { "first", filterFirstRowsSource },
-                { "second", filterSecondRowsSource }
-            });
+                { "second", filterSecondRowsSource },
+            }
+        );
 
         return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
     }
@@ -151,13 +156,15 @@ public class GenericEntityTestBase : MSTestContextTestBase
             {
                 { "first", CreateEntitySource(first, filterFirst) },
                 { "second", CreateEntitySource(second, filterSecond) },
-                { "third", CreateEntitySource(third, filterThird) }
-            }, new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
+                { "third", CreateEntitySource(third, filterThird) },
+            },
+            new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
             {
                 { "first", filterFirstRowsSource },
                 { "second", filterSecondRowsSource },
-                { "third", filterThirdRowsSource }
-            });
+                { "third", filterThirdRowsSource },
+            }
+        );
 
         return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
     }
@@ -165,18 +172,17 @@ public class GenericEntityTestBase : MSTestContextTestBase
     private CompiledQuery CreateAndRunVirtualMachine(
         string script,
         ISchema schema,
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? SourceRuntimeSettingsBySourceContextId = null)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? SourceRuntimeSettingsBySourceContextId = null
+    )
     {
         _ = SourceRuntimeSettingsBySourceContextId;
 
         var result = StableTypedExecutionCompilationCoordinator.Submit(
             script,
-            new GenericSchemaProvider(new Dictionary<string, ISchema>
-            {
-                { "#schema", schema }
-            }),
+            new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#schema", schema } }),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         if (!result.Result.Succeeded)
         {
@@ -199,19 +205,25 @@ public class GenericEntityTestBase : MSTestContextTestBase
         return InstanceCreator.CreateForAnalyze(
             script,
             Guid.NewGuid().ToString(),
-            new GenericSchemaProvider(new Dictionary<string, ISchema>
-            {
-                { "#schema", schema }
-            }),
-            LoggerResolver);
+            new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#schema", schema } }),
+            LoggerResolver
+        );
     }
 
     private static (ISchemaTable SchemaTable, object RowSource) CreateEntitySource<T>(
-        T[] entities, Func<T, bool>? filter = null)
+        T[] entities,
+        Func<T, bool>? filter = null
+    )
     {
-        return (new GenericEntityTable<T>(),
-            new GenericChunkSource<T>(entities, GenericEntityTable<T>.NameToIndexMap,
-                GenericEntityTable<T>.IndexToObjectAccessMap, filter));
+        return (
+            new GenericEntityTable<T>(),
+            new GenericChunkSource<T>(
+                entities,
+                GenericEntityTable<T>.NameToIndexMap,
+                GenericEntityTable<T>.IndexToObjectAccessMap,
+                filter
+            )
+        );
     }
 
     private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()

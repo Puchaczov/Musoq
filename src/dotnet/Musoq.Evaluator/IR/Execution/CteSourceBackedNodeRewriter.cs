@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Musoq.Evaluator.IR.Execution;
+
 internal sealed class CteSourceBackedNodeRewriter
 {
     private readonly string _sourceAlias;
@@ -11,7 +12,8 @@ internal sealed class CteSourceBackedNodeRewriter
     private CteSourceBackedNodeRewriter(
         string sourceAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
-        ExecutionAppendRow sourceAppend)
+        ExecutionAppendRow sourceAppend
+    )
     {
         _sourceAlias = sourceAlias;
         _fieldMap = fieldMap;
@@ -23,15 +25,16 @@ internal sealed class CteSourceBackedNodeRewriter
         string sourceAlias,
         IReadOnlyDictionary<string, ExecutionExpression> fieldMap,
         ExecutionAppendRow sourceAppend,
-        [NotNullWhen(true)] out ExecutionBlock? rewritten)
+        [NotNullWhen(true)] out ExecutionBlock? rewritten
+    )
     {
-        return new CteSourceBackedNodeRewriter(sourceAlias, fieldMap, sourceAppend)
-            .TryRewriteBlock(block, out rewritten);
+        return new CteSourceBackedNodeRewriter(sourceAlias, fieldMap, sourceAppend).TryRewriteBlock(
+            block,
+            out rewritten
+        );
     }
 
-    private bool TryRewriteBlock(
-        ExecutionBlock block,
-        [NotNullWhen(true)] out ExecutionBlock? rewritten)
+    private bool TryRewriteBlock(ExecutionBlock block, [NotNullWhen(true)] out ExecutionBlock? rewritten)
     {
         var nodes = new ExecutionNode[block.Nodes.Count];
         for (var index = 0; index < block.Nodes.Count; index++)
@@ -49,15 +52,15 @@ internal sealed class CteSourceBackedNodeRewriter
         return true;
     }
 
-    private bool TryRewriteNode(
-        ExecutionNode node,
-        [NotNullWhen(true)] out ExecutionNode? rewritten)
+    private bool TryRewriteNode(ExecutionNode node, [NotNullWhen(true)] out ExecutionNode? rewritten)
     {
         switch (node)
         {
             case ExecutionIf branch:
-                if (!TryRewriteExpression(branch.Condition, out var condition) ||
-                    !TryRewriteBlock(branch.Body, out var body))
+                if (
+                    !TryRewriteExpression(branch.Condition, out var condition)
+                    || !TryRewriteBlock(branch.Body, out var body)
+                )
                     return Fail(out rewritten);
                 rewritten = branch with { Condition = condition, Body = body };
                 return true;
@@ -67,8 +70,10 @@ internal sealed class CteSourceBackedNodeRewriter
                 rewritten = payload with { Values = payloadValues };
                 return true;
             case ExecutionCteSidecarAppendRewriteCandidate candidate:
-                if (!TryRewriteAppendRow(candidate.AppendRow, out var appendRow) ||
-                    !TryRewriteSidecarAppendIndexes(candidate.Indexes, out var indexes))
+                if (
+                    !TryRewriteAppendRow(candidate.AppendRow, out var appendRow)
+                    || !TryRewriteSidecarAppendIndexes(candidate.Indexes, out var indexes)
+                )
                     return Fail(out rewritten);
                 rewritten = candidate with { AppendRow = appendRow, Indexes = indexes };
                 return true;
@@ -102,7 +107,8 @@ internal sealed class CteSourceBackedNodeRewriter
 
     private bool TryRewriteValues(
         IReadOnlyList<ExecutionRowValue> values,
-        [NotNullWhen(true)] out IReadOnlyList<ExecutionRowValue>? rewritten)
+        [NotNullWhen(true)] out IReadOnlyList<ExecutionRowValue>? rewritten
+    )
     {
         var results = new ExecutionRowValue[values.Count];
         for (var index = 0; index < values.Count; index++)
@@ -122,35 +128,36 @@ internal sealed class CteSourceBackedNodeRewriter
 
     private bool TryRewriteAppendRow(
         ExecutionAppendRow appendRow,
-        [NotNullWhen(true)] out ExecutionAppendRow? rewritten)
+        [NotNullWhen(true)] out ExecutionAppendRow? rewritten
+    )
     {
-        if (!TryRewriteValues(appendRow.Values, out var values) ||
-            !TryRewriteExpressionList(appendRow.Contexts, out var contexts) ||
-            !TryRewriteContextLayout(appendRow.ContextLayout, out var contextLayout))
+        if (
+            !TryRewriteValues(appendRow.Values, out var values)
+            || !TryRewriteExpressionList(appendRow.Contexts, out var contexts)
+            || !TryRewriteContextLayout(appendRow.ContextLayout, out var contextLayout)
+        )
         {
             rewritten = null;
             return false;
         }
 
-        rewritten = appendRow with
-        {
-            Values = values,
-            Contexts = contexts,
-            ContextLayout = contextLayout
-        };
+        rewritten = appendRow with { Values = values, Contexts = contexts, ContextLayout = contextLayout };
         return true;
     }
 
     private bool TryRewriteSidecarAppendIndexes(
         IReadOnlyList<ExecutionCteSidecarAppendIndexSpec> indexes,
-        [NotNullWhen(true)] out IReadOnlyList<ExecutionCteSidecarAppendIndexSpec>? rewritten)
+        [NotNullWhen(true)] out IReadOnlyList<ExecutionCteSidecarAppendIndexSpec>? rewritten
+    )
     {
         var results = new ExecutionCteSidecarAppendIndexSpec[indexes.Count];
         for (var index = 0; index < indexes.Count; index++)
         {
             var spec = indexes[index];
-            if (!TryRewriteExpression(spec.Key, out var key) ||
-                !TryRewriteValues(spec.PayloadValues, out var payloadValues))
+            if (
+                !TryRewriteExpression(spec.Key, out var key)
+                || !TryRewriteValues(spec.PayloadValues, out var payloadValues)
+            )
             {
                 rewritten = null;
                 return false;
@@ -165,14 +172,18 @@ internal sealed class CteSourceBackedNodeRewriter
 
     private bool TryRewriteExpression(
         ExecutionExpression expression,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         switch (expression)
         {
-            case ExecutionFieldRead fieldRead when string.Equals(fieldRead.Alias, _sourceAlias, StringComparison.OrdinalIgnoreCase):
+            case ExecutionFieldRead fieldRead
+                when string.Equals(fieldRead.Alias, _sourceAlias, StringComparison.OrdinalIgnoreCase):
                 return CteSourceBackedFieldMap.TryResolveFieldRead(fieldRead, _fieldMap, _sourceAppend, out rewritten);
-            case ExecutionVariableRead variableRead when string.Equals(variableRead.Variable.Name, _sourceAlias, StringComparison.Ordinal):
-            case ExecutionRowContextsRead contextsRead when string.Equals(contextsRead.Row.Name, _sourceAlias, StringComparison.Ordinal):
+            case ExecutionVariableRead variableRead
+                when string.Equals(variableRead.Variable.Name, _sourceAlias, StringComparison.Ordinal):
+            case ExecutionRowContextsRead contextsRead
+                when string.Equals(contextsRead.Row.Name, _sourceAlias, StringComparison.Ordinal):
                 return Fail(out rewritten);
             case ExecutionFieldRead:
             case ExecutionLiteral:
@@ -184,17 +195,31 @@ internal sealed class CteSourceBackedNodeRewriter
             case ExecutionBinary binary:
                 return TryRewriteBinary(binary, out rewritten);
             case ExecutionUnary unary:
-                return TryRewriteSingle(unary.Operand, operand =>
-                    unary with { Operand = operand }, out rewritten);
+                return TryRewriteSingle(unary.Operand, operand => unary with { Operand = operand }, out rewritten);
             case ExecutionStrictCast strictCast:
-                return TryRewriteSingle(strictCast.Expression, value =>
-                    strictCast with { Expression = value }, out rewritten);
+                return TryRewriteSingle(
+                    strictCast.Expression,
+                    value => strictCast with { Expression = value },
+                    out rewritten
+                );
             case ExecutionIsNullCheck isNull:
-                return TryRewriteSingle(isNull.Expression, rewrittenExpression =>
-                    isNull with { Expression = rewrittenExpression }, out rewritten);
+                return TryRewriteSingle(
+                    isNull.Expression,
+                    rewrittenExpression => isNull with { Expression = rewrittenExpression },
+                    out rewritten
+                );
             case ExecutionInCheck inCheck:
                 return TryRewriteInCheck(inCheck, out rewritten);
-            case ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot:
+            case ExecutionPatternMatch
+            or ExecutionStringMatch
+            or ExecutionPrepareLikeMatcher
+            or ExecutionPreparedLikeMatch
+            or ExecutionDynamicLikeMatch
+            or ExecutionLikeMatcherCacheSlot
+            or ExecutionPrepareRLikeMatcher
+            or ExecutionPreparedRLikeMatch
+            or ExecutionDynamicRLikeMatch
+            or ExecutionRLikeMatcherCacheSlot:
                 return PatternExpressionFacts.TryRewriteChildren(expression, TryRewriteExpression, out rewritten);
             case ExecutionBetween between:
                 return TryRewriteBetween(between, out rewritten);
@@ -222,58 +247,54 @@ internal sealed class CteSourceBackedNodeRewriter
         }
     }
 
-    private bool TryRewriteBinary(
-        ExecutionBinary binary,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+    private bool TryRewriteBinary(ExecutionBinary binary, [NotNullWhen(true)] out ExecutionExpression? rewritten)
     {
-        if (!TryRewriteExpression(binary.Left, out var left) ||
-            !TryRewriteExpression(binary.Right, out var right))
+        if (!TryRewriteExpression(binary.Left, out var left) || !TryRewriteExpression(binary.Right, out var right))
             return Fail(out rewritten);
 
         return Succeed(binary with { Left = left, Right = right }, out rewritten);
     }
 
-    private bool TryRewriteInCheck(
-        ExecutionInCheck inCheck,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+    private bool TryRewriteInCheck(ExecutionInCheck inCheck, [NotNullWhen(true)] out ExecutionExpression? rewritten)
     {
-        if (!TryRewriteExpression(inCheck.Expression, out var expression) ||
-            !TryRewriteExpressionList(inCheck.Values, out var values))
+        if (
+            !TryRewriteExpression(inCheck.Expression, out var expression)
+            || !TryRewriteExpressionList(inCheck.Values, out var values)
+        )
             return Fail(out rewritten);
 
         return Succeed(inCheck with { Expression = expression, Values = values }, out rewritten);
     }
 
-    private bool TryRewriteBetween(
-        ExecutionBetween between,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+    private bool TryRewriteBetween(ExecutionBetween between, [NotNullWhen(true)] out ExecutionExpression? rewritten)
     {
-        if (!TryRewriteExpression(between.Expression, out var expression) ||
-            !TryRewriteExpression(between.Low, out var low) ||
-            !TryRewriteExpression(between.High, out var high))
+        if (
+            !TryRewriteExpression(between.Expression, out var expression)
+            || !TryRewriteExpression(between.Low, out var low)
+            || !TryRewriteExpression(between.High, out var high)
+        )
             return Fail(out rewritten);
 
         return Succeed(between with { Expression = expression, Low = low, High = high }, out rewritten);
     }
 
-    private bool TryRewriteCaseWhen(
-        ExecutionCaseWhen caseWhen,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+    private bool TryRewriteCaseWhen(ExecutionCaseWhen caseWhen, [NotNullWhen(true)] out ExecutionExpression? rewritten)
     {
         var branches = new ExecutionCaseWhenBranch[caseWhen.Branches.Count];
         for (var index = 0; index < caseWhen.Branches.Count; index++)
         {
             var branch = caseWhen.Branches[index];
-            if (!TryRewriteExpression(branch.Condition, out var condition) ||
-                !TryRewriteExpression(branch.Result, out var result))
+            if (
+                !TryRewriteExpression(branch.Condition, out var condition)
+                || !TryRewriteExpression(branch.Result, out var result)
+            )
                 return Fail(out rewritten);
 
             branches[index] = branch with { Condition = condition, Result = result };
         }
 
         ExecutionExpression? elseExpression = null;
-        if (caseWhen.ElseExpression != null &&
-            !TryRewriteExpression(caseWhen.ElseExpression, out elseExpression))
+        if (caseWhen.ElseExpression != null && !TryRewriteExpression(caseWhen.ElseExpression, out elseExpression))
             return Fail(out rewritten);
 
         return Succeed(caseWhen with { Branches = branches, ElseExpression = elseExpression }, out rewritten);
@@ -281,10 +302,13 @@ internal sealed class CteSourceBackedNodeRewriter
 
     private bool TryRewriteArrayAccess(
         ExecutionArrayAccess arrayAccess,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
-        if (!TryRewriteExpression(arrayAccess.Array, out var array) ||
-            !TryRewriteExpression(arrayAccess.Index, out var index))
+        if (
+            !TryRewriteExpression(arrayAccess.Array, out var array)
+            || !TryRewriteExpression(arrayAccess.Index, out var index)
+        )
             return Fail(out rewritten);
 
         return Succeed(arrayAccess with { Array = array, Index = index }, out rewritten);
@@ -292,7 +316,8 @@ internal sealed class CteSourceBackedNodeRewriter
 
     private bool TryRewriteContextArray(
         ExecutionContextArray contextArray,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         var segments = new ExecutionContextSegment[contextArray.Segments.Count];
         for (var index = 0; index < contextArray.Segments.Count; index++)
@@ -307,9 +332,7 @@ internal sealed class CteSourceBackedNodeRewriter
         return Succeed(contextArray with { Segments = segments }, out rewritten);
     }
 
-    private bool TryRewriteContextLayout(
-        ExecutionContextLayout? contextLayout,
-        out ExecutionContextLayout? rewritten)
+    private bool TryRewriteContextLayout(ExecutionContextLayout? contextLayout, out ExecutionContextLayout? rewritten)
     {
         if (contextLayout == null)
         {
@@ -336,7 +359,8 @@ internal sealed class CteSourceBackedNodeRewriter
 
     private bool TryRewriteExpressionList(
         IReadOnlyList<ExecutionExpression> expressions,
-        [NotNullWhen(true)] out IReadOnlyList<ExecutionExpression>? rewritten)
+        [NotNullWhen(true)] out IReadOnlyList<ExecutionExpression>? rewritten
+    )
     {
         var results = new ExecutionExpression[expressions.Count];
         for (var index = 0; index < expressions.Count; index++)
@@ -357,7 +381,8 @@ internal sealed class CteSourceBackedNodeRewriter
     private bool TryRewriteSingle(
         ExecutionExpression expression,
         Func<ExecutionExpression, ExecutionExpression> create,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
         if (!TryRewriteExpression(expression, out var result))
             return Fail(out rewritten);
@@ -365,9 +390,7 @@ internal sealed class CteSourceBackedNodeRewriter
         return Succeed(create(result), out rewritten);
     }
 
-    private static bool Succeed(
-        ExecutionExpression value,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+    private static bool Succeed(ExecutionExpression value, [NotNullWhen(true)] out ExecutionExpression? rewritten)
     {
         rewritten = value;
         return true;

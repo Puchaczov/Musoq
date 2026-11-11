@@ -64,13 +64,19 @@ public sealed class RenderContext
         ArgumentNullException.ThrowIfNull(member);
         var sharedName = member switch
         {
-            TypeDeclarationSyntax type when type.Identifier.ValueText.StartsWith("QueryRow_", StringComparison.Ordinal) ||
-                                            type.Identifier.ValueText.StartsWith("QueryRowMaterializer_", StringComparison.Ordinal)
-                => type.Identifier.ValueText,
-            FieldDeclarationSyntax { Declaration.Variables.Count: 1 } field when
-                field.Declaration.Variables[0].Identifier.ValueText.StartsWith("__queryRowShape_", StringComparison.Ordinal)
-                => field.Declaration.Variables[0].Identifier.ValueText,
-            _ => null
+            TypeDeclarationSyntax type
+                when type.Identifier.ValueText.StartsWith("QueryRow_", StringComparison.Ordinal)
+                    || type.Identifier.ValueText.StartsWith("QueryRowMaterializer_", StringComparison.Ordinal) =>
+                type.Identifier.ValueText,
+            FieldDeclarationSyntax { Declaration.Variables.Count: 1 } field
+                when field
+                    .Declaration.Variables[0]
+                    .Identifier.ValueText.StartsWith("__queryRowShape_", StringComparison.Ordinal) => field
+                .Declaration
+                .Variables[0]
+                .Identifier
+                .ValueText,
+            _ => null,
         };
         if (sharedName != null)
         {

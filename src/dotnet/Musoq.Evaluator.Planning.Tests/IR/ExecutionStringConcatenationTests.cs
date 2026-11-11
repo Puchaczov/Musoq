@@ -13,12 +13,18 @@ public sealed class ExecutionStringConcatenationTests
     [TestMethod]
     public void Chain_ShouldFlattenAndOwnItsOperandsBeforeCse()
     {
-        var input = new ExecutionExpression[] { Literal("a"), new ExecutionStringConcatenation([Literal("b"), Literal("c")]) };
+        var input = new ExecutionExpression[]
+        {
+            Literal("a"),
+            new ExecutionStringConcatenation([Literal("b"), Literal("c")]),
+        };
         var expression = new ExecutionStringConcatenation(input);
         input[0] = Literal("changed");
 
-        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, expression.Expressions.Cast<ExecutionLiteral>()
-            .Select(value => (string)value.Value.ToClrValue()!).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "a", "b", "c" },
+            expression.Expressions.Cast<ExecutionLiteral>().Select(value => (string)value.Value.ToClrValue()!).ToArray()
+        );
         Assert.HasCount(3, ExecutionIrAnalysis.GetChildExpressions(expression).ToArray());
         Assert.AreEqual("expr.string-concatenation", ExecutionOperationCatalog.Resolve(expression).Value);
         StringAssert.Contains(ExecutionExpressionFingerprint.ForHoist(expression), "sql-concat:");

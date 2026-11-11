@@ -8,20 +8,31 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
 {
-
     [TestMethod]
     public void ChainedOuterApplyWithEmptyIntermediate_ShouldPreserveOuterRowAndResetOrdinals()
     {
-        const string query = @"
-            select a.Name, first.Value, first.Ordinal, second.Value, second.Ordinal
-            from #schema.first() a
-            outer apply a.FirstValues first with ordinality
-            outer apply a.SecondValues second with ordinality
-            order by a.Name, first.Ordinal, second.Ordinal";
+        const string query = (
+            "\n"
+            + "            select a.Name, first.Value, first.Ordinal, second.Value, second.Ordinal\n"
+            + "            from #schema.first() a\n"
+            + "            outer apply a.FirstValues first with ordinality\n"
+            + "            outer apply a.SecondValues second with ordinality\n"
+            + "            order by a.Name, first.Ordinal, second.Ordinal"
+        );
         var source = new[]
         {
-            new ChainedApplyRow { Name = "Empty", FirstValues = [], SecondValues = [7, 8] },
-            new ChainedApplyRow { Name = "Full", FirstValues = [1, 2], SecondValues = [9] }
+            new ChainedApplyRow
+            {
+                Name = "Empty",
+                FirstValues = [],
+                SecondValues = [7, 8],
+            },
+            new ChainedApplyRow
+            {
+                Name = "Full",
+                FirstValues = [1, 2],
+                SecondValues = [9],
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
@@ -32,32 +43,32 @@ public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
             ("Value", typeof(int?)),
             ("Ordinal", typeof(int?)),
             ("Value", typeof(int?)),
-            ("Ordinal", typeof(int?)));
+            ("Ordinal", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Empty", null, null, 7, 0],
             ["Empty", null, null, 8, 1],
             ["Full", 1, 0, 9, 0],
-            ["Full", 2, 1, 9, 0]);
+            ["Full", 2, 1, 9, 0]
+        );
     }
 
     [TestMethod]
     public void OuterApplyObjectRowsWithWindowAndQualify_ShouldRetainNullExtendedMetadata()
     {
-        const string query = @"
-            select a.Name, child.Value, child.Ordinal,
-                   RowNumber() over (partition by a.Name order by child.Ordinal) as rn
-            from #schema.first() a
-            outer apply a.Children child with ordinality
-            qualify RowNumber() over (partition by a.Name order by child.Ordinal) <= 2
-            order by a.Name, child.Ordinal";
+        const string query = (
+            "\n"
+            + "            select a.Name, child.Value, child.Ordinal,\n"
+            + "                   RowNumber() over (partition by a.Name order by child.Ordinal) as rn\n"
+            + "            from #schema.first() a\n"
+            + "            outer apply a.Children child with ordinality\n"
+            + "            qualify RowNumber() over (partition by a.Name order by child.Ordinal) <= 2\n"
+            + "            order by a.Name, child.Ordinal"
+        );
         var source = new[]
         {
-            new ObjectApplyRow
-            {
-                Name = "Empty",
-                Children = [],
-            },
+            new ObjectApplyRow { Name = "Empty", Children = [] },
             new ObjectApplyRow
             {
                 Name = "Full",
@@ -65,9 +76,9 @@ public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
                 [
                     new ObjectApplyChild { Value = "A" },
                     new ObjectApplyChild { Value = "B" },
-                    new ObjectApplyChild { Value = "C" }
-                ]
-            }
+                    new ObjectApplyChild { Value = "C" },
+                ],
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
@@ -77,40 +88,36 @@ public sealed class ThirdRoundApplyResultTests : GenericEntityTestBase
             ("Name", typeof(string)),
             ("Value", typeof(string)),
             ("Ordinal", typeof(int?)),
-            ("rn", typeof(long)));
+            ("rn", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Empty", null, null, 1L],
             ["Full", "A", 0, 1L],
-            ["Full", "B", 1, 2L]);
+            ["Full", "B", 1, 2L]
+        );
     }
 
     [TestMethod]
     public void CrossApplyDuplicateAndNullRows_ShouldPreserveMultiplicityAndValues()
     {
-        const string query = @"
-            select a.Name, value.Value
-            from #schema.first() a
-            cross apply a.Values value with ordinality
-            order by a.Name, value.Ordinal";
+        const string query = (
+            "\n"
+            + "            select a.Name, value.Value\n"
+            + "            from #schema.first() a\n"
+            + "            cross apply a.Values value with ordinality\n"
+            + "            order by a.Name, value.Ordinal"
+        );
         var source = new[]
         {
             new NullableApplyRow { Name = "A", Values = [1, 1, null] },
-            new NullableApplyRow { Name = "B", Values = [2] }
+            new NullableApplyRow { Name = "B", Values = [2] },
         };
 
         var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Value", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["A", 1],
-            ["A", 1],
-            ["A", null],
-            ["B", 2]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A", 1], ["A", 1], ["A", null], ["B", 2]);
     }
 
     public sealed class ChainedApplyRow

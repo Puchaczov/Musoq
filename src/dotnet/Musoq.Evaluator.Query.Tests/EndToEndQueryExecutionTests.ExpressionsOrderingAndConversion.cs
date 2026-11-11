@@ -14,10 +14,9 @@ public partial class EndToEndQueryExecutionTests
         var query = "select ((Population * 2) + 10) / 5 from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A", Population = 100 }] }
+            { "#A", [new BasicEntity { Name = "A", Population = 100 }] },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [42m]);
@@ -29,7 +28,7 @@ public partial class EndToEndQueryExecutionTests
         var query = "select ToUpperInvariant(Name), ToLowerInvariant(City), Length(Name) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "Test", City = "NYC" }] }
+            { "#A", [new BasicEntity { Name = "Test", City = "NYC" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -47,21 +46,13 @@ public partial class EndToEndQueryExecutionTests
         var query = "select Coalesce(NullableValue, -1) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("A") { NullableValue = 5 },
-                    new BasicEntity("B") { NullableValue = null }
-                ]
-            }
+            { "#A", [new BasicEntity("A") { NullableValue = 5 }, new BasicEntity("B") { NullableValue = null }] },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [5], [-1]);
     }
-
-
 
     [TestMethod]
     public void Query_OrderByMultipleColumns_ShouldWork()
@@ -70,15 +61,15 @@ public partial class EndToEndQueryExecutionTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "B", City = "NYC" },
                     new BasicEntity { Name = "A", City = "NYC" },
-                    new BasicEntity { Name = "C", City = "LA" }
+                    new BasicEntity { Name = "C", City = "LA" },
                 ]
-            }
+            },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["C", "LA"], ["B", "NYC"], ["A", "NYC"]);
@@ -91,15 +82,15 @@ public partial class EndToEndQueryExecutionTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("A") { NullableValue = 10 },
                     new BasicEntity("B") { NullableValue = null },
-                    new BasicEntity("C") { NullableValue = 5 }
+                    new BasicEntity("C") { NullableValue = 5 },
                 ]
-            }
+            },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["B", null], ["C", 5], ["A", 10]);
@@ -112,21 +103,19 @@ public partial class EndToEndQueryExecutionTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "B", Population = 200 },
                     new BasicEntity { Name = "A", Population = 100 },
-                    new BasicEntity { Name = "C", Population = 50 }
+                    new BasicEntity { Name = "C", Population = 50 },
                 ]
-            }
+            },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["C", 50m], ["A", 100m], ["B", 200m]);
     }
-
-
 
     [TestMethod]
     public void Query_ImplicitTypeConversion_ShouldWork()
@@ -134,10 +123,9 @@ public partial class EndToEndQueryExecutionTests
         var query = "select Population + 1.5 from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A", Population = 100 }] }
+            { "#A", [new BasicEntity { Name = "A", Population = 100 }] },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [101.5m]);
@@ -149,7 +137,7 @@ public partial class EndToEndQueryExecutionTests
         var query = "select ToString(Population) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A", Population = 100 }] }
+            { "#A", [new BasicEntity { Name = "A", Population = 100 }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -163,10 +151,7 @@ public partial class EndToEndQueryExecutionTests
     public void Query_ToInt32_ShouldWork()
     {
         var query = "select ToInt32('123') from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("A")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("A")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
@@ -175,16 +160,11 @@ public partial class EndToEndQueryExecutionTests
         Assert.AreEqual(123, table[0].ReadValue(0));
     }
 
-
-
     [TestMethod]
     public void Query_EmptyResult_ShouldWork()
     {
         var query = "select Name from #A.Entities() where 1 = 0";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("A")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("A")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
@@ -196,10 +176,7 @@ public partial class EndToEndQueryExecutionTests
     public void Query_NoSourceRows_ShouldWork()
     {
         var query = "select Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
@@ -214,7 +191,7 @@ public partial class EndToEndQueryExecutionTests
         var query = $"select Name from #A.Entities() where Name in ({inList})";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("25"), new BasicEntity("100")] }
+            { "#A", [new BasicEntity("25"), new BasicEntity("100")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -223,8 +200,6 @@ public partial class EndToEndQueryExecutionTests
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("25", table[0].ReadValue(0));
     }
-
-
 
     [TestMethod]
     public void Query_BooleanExpression_ShouldWork()
@@ -235,10 +210,9 @@ public partial class EndToEndQueryExecutionTests
             {
                 "#A",
                 [new BasicEntity { Name = "A", Population = 50 }, new BasicEntity { Name = "B", Population = 200 }]
-            }
+            },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [false], [true]);
@@ -247,28 +221,27 @@ public partial class EndToEndQueryExecutionTests
     [TestMethod]
     public void Query_AllComparisonOperators_ShouldWork()
     {
-        var query = @"
-            select
-                Population > 100,
-                Population >= 100,
-                Population < 100,
-                Population <= 100,
-                Population = 100,
-                Population <> 100
-            from #A.Entities()
-            where Population = 100";
+        var query = (
+            "\n"
+            + "            select\n"
+            + "                Population > 100,\n"
+            + "                Population >= 100,\n"
+            + "                Population < 100,\n"
+            + "                Population <= 100,\n"
+            + "                Population = 100,\n"
+            + "                Population <> 100\n"
+            + "            from #A.Entities()\n"
+            + "            where Population = 100"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A", Population = 100 }] }
+            { "#A", [new BasicEntity { Name = "A", Population = 100 }] },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [false, true, false, true, true, false]);
     }
-
-
 
     [TestMethod]
     public void Query_SkipOnly_ShouldWork()
@@ -276,10 +249,9 @@ public partial class EndToEndQueryExecutionTests
         var query = "select Name from #A.Entities() order by Name skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["C"], ["D"]);
@@ -291,10 +263,9 @@ public partial class EndToEndQueryExecutionTests
         var query = "select Name from #A.Entities() order by Name take 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["A"], ["B"]);
@@ -306,7 +277,7 @@ public partial class EndToEndQueryExecutionTests
         var query = "select Name from #A.Entities() order by Name skip 100";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("A"), new BasicEntity("B")] }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -321,15 +292,11 @@ public partial class EndToEndQueryExecutionTests
         var query = "select Name from #A.Entities() order by Name skip 1 take 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] },
         };
-        using
-                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var vm = CreateAndRunVirtualMachine(query, sources);
         using var table = vm.Run();
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["B"], ["C"]);
     }
-
-
-
 }

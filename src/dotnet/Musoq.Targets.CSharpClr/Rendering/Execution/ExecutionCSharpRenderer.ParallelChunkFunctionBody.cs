@@ -9,7 +9,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private List<StatementSyntax> CreateParallelSingleKeyAggregateChunkedFunctionBody(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         const string rowsName = "rows";
         const string maxDegreeName = "maxDegreeOfParallelism";
@@ -32,49 +33,53 @@ public sealed partial class ExecutionCSharpRenderer
                 shardsName,
                 cancellationTokenName,
                 captures,
-                context)
+                context
+            ),
         };
 
-        body.AddRange(CreateParallelAggregateMergeStatements(
-            parallelAggregate,
-            groupType,
-            shardsName));
+        body.AddRange(CreateParallelAggregateMergeStatements(parallelAggregate, groupType, shardsName));
 
         return body;
     }
 
     private static LocalDeclarationStatementSyntax CreateChunkedWorkerCountDeclaration(
         string maxDegreeName,
-        string workerCountName)
+        string workerCountName
+    )
     {
-        var maxExpression = SyntaxFactory.InvocationExpression(
+        var maxExpression = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(Math)),
-                    SyntaxFactory.IdentifierName(nameof(Math.Max))))
-            .WithArgumentList(CreateArgumentList(
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)),
-                SyntaxFactory.IdentifierName(maxDegreeName)));
+                    SyntaxFactory.IdentifierName(nameof(Math.Max))
+                )
+            )
+            .WithArgumentList(
+                CreateArgumentList(
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)),
+                    SyntaxFactory.IdentifierName(maxDegreeName)
+                )
+            );
 
-        return CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            workerCountName,
-            maxExpression);
+        return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), workerCountName, maxExpression);
     }
 
     private static LocalDeclarationStatementSyntax CreateConcurrentShardQueueDeclaration(
         TypeSyntax groupType,
-        string shardsName)
+        string shardsName
+    )
     {
         var shardType = CreateListTypeSyntax(groupType);
         var queueType = SyntaxFactory.ParseTypeName(
-            $"global::System.Collections.Concurrent.ConcurrentQueue<{shardType.ToFullString()}>");
+            $"global::System.Collections.Concurrent.ConcurrentQueue<{shardType.ToFullString()}>"
+        );
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             shardsName,
-            SyntaxFactory.ObjectCreationExpression(queueType)
-                .WithArgumentList(SyntaxFactory.ArgumentList()));
+            SyntaxFactory.ObjectCreationExpression(queueType).WithArgumentList(SyntaxFactory.ArgumentList())
+        );
     }
 
     private StatementSyntax CreateParallelAggregateChunkedForEachStatement(
@@ -84,32 +89,19 @@ public sealed partial class ExecutionCSharpRenderer
         string shardsName,
         string cancellationTokenName,
         IReadOnlyList<CapturedLocal> captures,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var rowType = CreateVariableTypeSyntax(parallelAggregate.Source).ToFullString();
         var chunkType = CreateReadOnlyListTypeSyntax(CreateVariableTypeSyntax(parallelAggregate.Source)).ToFullString();
         var workerType = CreateParallelSingleKeyAggregateChunkWorkerTypeName(parallelAggregate, context);
-        var captureArguments = captures.Count == 0
-            ? string.Empty
-            : ", " + string.Join(", ", captures.Select(static capture => capture.Name));
+        var captureArguments =
+            captures.Count == 0
+                ? string.Empty
+                : ", " + string.Join(", ", captures.Select(static capture => capture.Name));
 
-        return SyntaxFactory.ParseStatement($$"""
-            Parallel.ForEach<{{chunkType}}, {{workerType}}>(
-                {{rowsName}},
-                {{optionsName}},
-                () => new {{workerType}}({{cancellationTokenName}}{{captureArguments}}),
-                (chunk, _, worker) =>
-                {
-                    worker.ProcessChunk(chunk ?? Array.Empty<{{rowType}}>());
-                    return worker;
-                },
-                worker =>
-                {
-                    if (worker.OrderedGroups.Count != 0)
-                    {
-                        {{shardsName}}.Enqueue(worker.OrderedGroups);
-                    }
-                });
-            """);
+        return SyntaxFactory.ParseStatement(
+            $"Parallel.ForEach<{chunkType}, {workerType}>(\n    {rowsName},\n    {optionsName},\n    () => new {workerType}({cancellationTokenName}{captureArguments}),\n    (chunk, _, worker) =>\n    {{\n        worker.ProcessChunk(chunk ?? Array.Empty<{rowType}>());\n        return worker;\n    }},\n    worker =>\n    {{\n        if (worker.OrderedGroups.Count != 0)\n        {{\n            {shardsName}.Enqueue(worker.OrderedGroups);\n        }}\n    }});"
+        );
     }
 }

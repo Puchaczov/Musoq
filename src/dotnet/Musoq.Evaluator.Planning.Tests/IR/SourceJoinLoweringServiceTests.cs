@@ -78,6 +78,7 @@ public sealed class SourceJoinLoweringServiceTests
             alias,
             [],
             [],
-            new OutputSchema([new ColumnSchema("Id", typeof(int), 0)]));
+            new OutputSchema([new ColumnSchema("Id", typeof(int), 0)])
+        );
     }
 }

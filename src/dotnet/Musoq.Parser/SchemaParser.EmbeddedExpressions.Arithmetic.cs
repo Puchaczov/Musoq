@@ -48,7 +48,7 @@ public partial class SchemaParser
                 TokenType.Star => new StarNode(left, right),
                 TokenType.FSlash => new FSlashNode(left, right),
                 TokenType.Mod => new ModuloNode(left, right),
-                _ => throw new InvalidOperationException($"Unexpected operator: {op}")
+                _ => throw new InvalidOperationException($"Unexpected operator: {op}"),
             };
         }
 
@@ -115,7 +115,9 @@ public partial class SchemaParser
             case TokenType.Hyphen:
                 var minusToken = ConsumeAndGetToken(TokenType.Hyphen);
                 var operand = ComposePrimaryExpression();
-                return new HyphenNode(new IntegerNode("0", "i"), operand).WithSpan(minusToken.Span.Through(operand.Span));
+                return new HyphenNode(new IntegerNode("0", "i"), operand).WithSpan(
+                    minusToken.Span.Through(operand.Span)
+                );
 
             default:
                 if (AllowedKeywordTokenTypes.Contains(Current.TokenType))
@@ -123,7 +125,8 @@ public partial class SchemaParser
 
                 throw new SyntaxException(
                     $"Expected integer, identifier, or expression but found '{Current.TokenType}'",
-                    _lexer.AlreadyResolvedQueryPart);
+                    _lexer.AlreadyResolvedQueryPart
+                );
         }
     }
 }

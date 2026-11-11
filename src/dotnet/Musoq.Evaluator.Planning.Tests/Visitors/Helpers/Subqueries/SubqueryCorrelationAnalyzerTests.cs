@@ -14,7 +14,8 @@ public sealed class SubqueryCorrelationAnalyzerTests
     public void Analyze_UncorrelatedInSubquery_ShouldReportNoCorrelation()
     {
         var analysis = Analyze(
-            "select a.City from #A.entities() a where a.City in (select b.City from #B.entities() b)");
+            "select a.City from #A.entities() a where a.City in (select b.City from #B.entities() b)"
+        );
 
         var subquery = AssertSingleSubquery(analysis);
         Assert.IsFalse(subquery.IsCorrelated);
@@ -29,11 +30,15 @@ public sealed class SubqueryCorrelationAnalyzerTests
     [TestMethod]
     public void Analyze_CorrelatedInSubquery_ShouldReportOuterAlias()
     {
-        var analysis = Analyze(@"
-            select a.City from #A.entities() a
-            where a.City in (
-                select b.City from #B.entities() b
-                where b.Country = a.Country)");
+        var analysis = Analyze(
+            (
+                "\n"
+                + "            select a.City from #A.entities() a\n"
+                + "            where a.City in (\n"
+                + "                select b.City from #B.entities() b\n"
+                + "                where b.Country = a.Country)"
+            )
+        );
 
         var subquery = AssertSingleSubquery(analysis);
         Assert.IsTrue(subquery.IsCorrelated);
@@ -51,11 +56,15 @@ public sealed class SubqueryCorrelationAnalyzerTests
     [TestMethod]
     public void Analyze_NonEqualityCorrelation_ShouldReportResidualNullSemantics()
     {
-        var analysis = Analyze(@"
-            select a.City from #A.entities() a
-            where a.City in (
-                select b.City from #B.entities() b
-                where b.Population < a.Population)");
+        var analysis = Analyze(
+            (
+                "\n"
+                + "            select a.City from #A.entities() a\n"
+                + "            where a.City in (\n"
+                + "                select b.City from #B.entities() b\n"
+                + "                where b.Population < a.Population)"
+            )
+        );
 
         var subquery = AssertSingleSubquery(analysis);
         Assert.IsTrue(subquery.IsCorrelated);
@@ -66,19 +75,21 @@ public sealed class SubqueryCorrelationAnalyzerTests
     [TestMethod]
     public void Analyze_CorrelatedScalarWithOrderingAndTake_ShouldReportCardinalitySensitiveContexts()
     {
-        var analysis = Analyze(@"
-            select a.City, (
-                select b.City from #B.entities() b
-                where b.Country = a.Country
-                order by b.Population desc
-                take 1
-            ) as MatchCity
-            from #A.entities() a");
+        var analysis = Analyze(
+            (
+                "\n"
+                + "            select a.City, (\n"
+                + "                select b.City from #B.entities() b\n"
+                + "                where b.Country = a.Country\n"
+                + "                order by b.Population desc\n"
+                + "                take 1\n"
+                + "            ) as MatchCity\n"
+                + "            from #A.entities() a"
+            )
+        );
 
         var subquery = AssertSingleSubquery(analysis);
-        var contexts = subquery.Facts.CardinalitySensitiveContexts
-            .Select(static context => context.Kind)
-            .ToArray();
+        var contexts = subquery.Facts.CardinalitySensitiveContexts.Select(static context => context.Kind).ToArray();
 
         CollectionAssert.Contains(contexts, SubqueryCardinalityContextKind.ScalarSubquery);
         CollectionAssert.Contains(contexts, SubqueryCardinalityContextKind.OrderBy);
@@ -89,14 +100,18 @@ public sealed class SubqueryCorrelationAnalyzerTests
     [TestMethod]
     public void Analyze_CteBodySubquery_ShouldCorrelateToCteBodyLocalQuery()
     {
-        var analysis = Analyze(@"
-            with p as (
-                select a.City from #A.entities() a
-                where a.City in (
-                    select b.City from #B.entities() b
-                    where b.Country = a.Country)
+        var analysis = Analyze(
+            (
+                "\n"
+                + "            with p as (\n"
+                + "                select a.City from #A.entities() a\n"
+                + "                where a.City in (\n"
+                + "                    select b.City from #B.entities() b\n"
+                + "                    where b.Country = a.Country)\n"
+                + "            )\n"
+                + "            select City from p"
             )
-            select City from p");
+        );
 
         var subquery = AssertSingleSubquery(analysis);
         Assert.IsTrue(subquery.IsInsideCteDefinition);
@@ -108,31 +123,39 @@ public sealed class SubqueryCorrelationAnalyzerTests
     [TestMethod]
     public void Analyze_CteDefinitionReferencingConsumerAlias_ShouldReportIllegalOuterConsumingReference()
     {
-        const string query = @"
-            with p as (
-                select b.City from #B.entities() b
-                where b.Country = a.Country
-            )
-            select a.City from #A.entities() a
-            where a.City in (select City from p)";
+        const string query = (
+            "\n"
+            + "            with p as (\n"
+            + "                select b.City from #B.entities() b\n"
+            + "                where b.Country = a.Country\n"
+            + "            )\n"
+            + "            select a.City from #A.entities() a\n"
+            + "            where a.City in (select City from p)"
+        );
         var analysis = Analyze(query);
 
         Assert.IsTrue(analysis.HasIllegalOuterConsumingCteReferences);
         CollectionAssert.AreEquivalent(new[] { "a" }, analysis.IllegalOuterConsumingCteAliases.ToArray());
         Assert.Contains("a", analysis.IllegalOuterConsumingCteAliases);
         var referenceStart = query.IndexOf("a.Country", StringComparison.Ordinal);
-        Assert.AreEqual(new TextSpan(referenceStart, "a.Country".Length),
-            analysis.IllegalOuterConsumingCteReferenceSpan);
+        Assert.AreEqual(
+            new TextSpan(referenceStart, "a.Country".Length),
+            analysis.IllegalOuterConsumingCteReferenceSpan
+        );
     }
 
     [TestMethod]
     public void Analyze_SubqueryAliasShadowingOuterAlias_ShouldNotMarkCorrelation()
     {
-        var analysis = Analyze(@"
-            select a.City from #A.entities() a
-            where a.City in (
-                select a.City from #B.entities() a
-                where a.Country = 'POLAND')");
+        var analysis = Analyze(
+            (
+                "\n"
+                + "            select a.City from #A.entities() a\n"
+                + "            where a.City in (\n"
+                + "                select a.City from #B.entities() a\n"
+                + "                where a.Country = 'POLAND')"
+            )
+        );
 
         var subquery = AssertSingleSubquery(analysis);
         Assert.Contains("a", subquery.OuterAliases);
@@ -143,18 +166,24 @@ public sealed class SubqueryCorrelationAnalyzerTests
     [TestMethod]
     public void Analyze_NestedSubqueryCorrelation_ShouldNotLeakInnerCorrelationToParent()
     {
-        var analysis = Analyze(@"
-            select a.City from #A.entities() a
-            where a.City in (
-                select b.City from #B.entities() b
-                where b.Country in (
-                    select c.Country from #C.entities() c
-                    where c.City = b.City))");
+        var analysis = Analyze(
+            (
+                "\n"
+                + "            select a.City from #A.entities() a\n"
+                + "            where a.City in (\n"
+                + "                select b.City from #B.entities() b\n"
+                + "                where b.Country in (\n"
+                + "                    select c.Country from #C.entities() c\n"
+                + "                    where c.City = b.City))"
+            )
+        );
 
         Assert.HasCount(2, analysis.Subqueries);
 
         var inner = analysis.Subqueries.Single(item => item.CorrelatedAliases.Contains("b"));
-        var outer = analysis.Subqueries.Single(item => item.OuterAliases.Contains("a") && !item.OuterAliases.Contains("b"));
+        var outer = analysis.Subqueries.Single(item =>
+            item.OuterAliases.Contains("a") && !item.OuterAliases.Contains("b")
+        );
 
         Assert.Contains("b", inner.CorrelatedAliases);
         Assert.IsFalse(outer.IsCorrelated);

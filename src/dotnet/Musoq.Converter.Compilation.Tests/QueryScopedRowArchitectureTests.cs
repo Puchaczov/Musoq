@@ -24,34 +24,41 @@ public sealed class QueryScopedRowArchitectureTests
     {
         var query = string.Create(
             CultureInfo.InvariantCulture,
-            $"select p.Name, p.Value from #queryrows.items() p where p.Value > {DeterministicThreshold}");
+            $"select p.Name, p.Value from #queryrows.items() p where p.Value > {DeterministicThreshold}"
+        );
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             $"query-row-architecture-{Guid.NewGuid():N}",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
 
         try
         {
-            var items = result.BuildItems ??
-                        throw new AssertFailedException("Compilation did not retain build artifacts.");
-            var planner = items.PlanningResult?.ExecutionArtifacts.SourceTransferPlansBySourceId?
-                              .Values.Single() ??
-                          throw new AssertFailedException("The planner did not expose a source-transfer decision.");
+            var items =
+                result.BuildItems ?? throw new AssertFailedException("Compilation did not retain build artifacts.");
+            var planner =
+                items.PlanningResult?.ExecutionArtifacts.SourceTransferPlansBySourceId?.Values.Single()
+                ?? throw new AssertFailedException("The planner did not expose a source-transfer decision.");
             var physical = FlattenPhysical(items.PhysicalPlan!).OfType<PhysicalSchemaScanNode>().Single();
-            var execution = ExecutionIrAnalysis.FlattenNodes(items.ExecutionPlan!.Body)
+            var execution = ExecutionIrAnalysis
+                .FlattenNodes(items.ExecutionPlan!.Body)
                 .OfType<ExecutionSourceScan>()
                 .Single();
-            var executionTransfer = execution.Binding.QueryRowSourceTransfer ??
-                                    throw new AssertFailedException("Execution IR lost the query-row transfer.");
-            var target = items.TargetRuntimeContract?.QueryRowSourceAccess.Single() ??
-                         throw new AssertFailedException("The target contract lost the query-row transfer.");
-            var hostImport = TargetHostAbiInventoryBuilder.Build(items.TargetRuntimeContract!)
+            var executionTransfer =
+                execution.Binding.QueryRowSourceTransfer
+                ?? throw new AssertFailedException("Execution IR lost the query-row transfer.");
+            var target =
+                items.TargetRuntimeContract?.QueryRowSourceAccess.Single()
+                ?? throw new AssertFailedException("The target contract lost the query-row transfer.");
+            var hostImport = TargetHostAbiInventoryBuilder
+                .Build(items.TargetRuntimeContract!)
                 .Imports.Single(static import => import.Kind == TargetHostAbiImportKind.QueryRowSourceAccess);
             var abi = Assert.IsInstanceOfType<TargetQueryRowSourceAccessAbiDetails>(hostImport.Details);
-            var generatedCode = ExecutionTargetCatalog.InspectArtifact(items.RenderingArtifact).GeneratedCSharpCode ??
-                                throw new AssertFailedException("The rendered artifact has no generated C# inspection.");
+            var generatedCode =
+                ExecutionTargetCatalog.InspectArtifact(items.RenderingArtifact).GeneratedCSharpCode
+                ?? throw new AssertFailedException("The rendered artifact has no generated C# inspection.");
 
             Assert.AreEqual(SourceTransferMode.QueryScopedRows, planner.Mode);
             Assert.AreSame(planner, physical.SourceTransferStrategy);
@@ -69,7 +76,8 @@ public sealed class QueryScopedRowArchitectureTests
 
             var carrierName = QueryRowSourceNaming.CreateCarrierTypeName(
                 planner.Shape.Fingerprint,
-                planner.Carrier.Value);
+                planner.Carrier.Value
+            );
             StringAssert.Contains(generatedCode, $"QuerySourceInvocation<{carrierName},");
             StringAssert.Contains(generatedCode, planner.Shape.Fingerprint);
             StringAssert.Contains(generatedCode, "reader.Read<string>(0)");
@@ -85,7 +93,8 @@ public sealed class QueryScopedRowArchitectureTests
         SourceTransferStrategyPlan planner,
         ExecutionQueryRowSourceTransfer execution,
         TargetQueryRowSourceAccessContract target,
-        TargetQueryRowSourceAccessAbiDetails abi)
+        TargetQueryRowSourceAccessAbiDetails abi
+    )
     {
         Assert.AreEqual(planner.Shape!.Fields.Count, execution.Fields.Count);
         Assert.AreEqual(planner.Shape.Fields.Count, target.Fields.Count);

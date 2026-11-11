@@ -18,9 +18,21 @@ public sealed class SqlConcatenationEvaluationOrderTests : BasicEntityTestBase
 {
     [TestMethod]
     [DataRow("Touch(null, 1) || Touch('a', 2)", new[] { 1, 2 }, null)]
-    [DataRow("Touch(null, 1) || Touch('a', 2) || Touch('b', 3) || Touch('c', 4) || Touch('d', 5)", new[] { 1, 2, 3, 4, 5 }, null)]
-    [DataRow("Touch('a', 1) || Touch('b', 2) || Touch('c', 3) || Touch('d', 4) || Touch('e', 5)", new[] { 1, 2, 3, 4, 5 }, "abcde")]
-    public void Operands_ShouldExecuteOnceInOrderIncludingAfterNull(string expression, int[] expectedCalls, string? expected)
+    [DataRow(
+        "Touch(null, 1) || Touch('a', 2) || Touch('b', 3) || Touch('c', 4) || Touch('d', 5)",
+        new[] { 1, 2, 3, 4, 5 },
+        null
+    )]
+    [DataRow(
+        "Touch('a', 1) || Touch('b', 2) || Touch('c', 3) || Touch('d', 4) || Touch('e', 5)",
+        new[] { 1, 2, 3, 4, 5 },
+        "abcde"
+    )]
+    public void Operands_ShouldExecuteOnceInOrderIncludingAfterNull(
+        string expression,
+        int[] expectedCalls,
+        string? expected
+    )
     {
         ConcatenationOrderLibrary.Calls = [];
         using var query = Compile($"select {expression} as A from #test.entities() e");
@@ -58,14 +70,21 @@ public sealed class SqlConcatenationEvaluationOrderTests : BasicEntityTestBase
 
     private CompiledQuery Compile(string sql)
     {
-        var rows = new EntitySource<BasicEntity>(new[] { new[] { new BasicEntity("fixture") } },
+        var rows = new EntitySource<BasicEntity>(
+            new[] { new[] { new BasicEntity("fixture") } },
             new Dictionary<string, int>(BasicEntity.TestNameToIndexMap),
-            new Dictionary<int, Func<BasicEntity, object?>>(BasicEntity.TestIndexToObjectAccessMap));
+            new Dictionary<int, Func<BasicEntity, object?>>(BasicEntity.TestIndexToObjectAccessMap)
+        );
         var schema = new GenericSchema<ConcatenationOrderLibrary>(
-            new Dictionary<string, (ISchemaTable, object)> { ["entities"] = (new BasicEntityTable(), rows) });
-        return InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(),
+            new Dictionary<string, (ISchemaTable, object)> { ["entities"] = (new BasicEntityTable(), rows) }
+        );
+        return InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
             new GenericSchemaProvider(new Dictionary<string, ISchema> { ["#test"] = schema }),
-            new TestsLoggerResolver(), new CompilationOptions(ParallelizationMode.None));
+            new TestsLoggerResolver(),
+            new CompilationOptions(ParallelizationMode.None)
+        );
     }
 }
 

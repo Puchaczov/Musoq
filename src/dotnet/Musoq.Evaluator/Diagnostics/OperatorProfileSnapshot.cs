@@ -9,7 +9,8 @@ public sealed record OperatorProfileSnapshot(
     bool HasActualStats = true,
     int ExceptionCount = 0,
     string? ExceptionType = null,
-    string? ExceptionMessage = null)
+    string? ExceptionMessage = null
+)
 {
     public bool HasElapsedTime { get; init; } = HasActualStats;
 }

@@ -25,7 +25,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var full = ReadSample("Q283_SpecCoreFullOuterJoinRowPresence.cs").Content;
         Assert.Contains("[FullOuter]", full);
         Assert.Contains("NULL", full);
-        Assert.Contains("PhysicalNestedLoopJoin [FullOuter]", ReadSample("Q284_SpecCoreFullOuterJoinNonEqui.cs").Content);
+        Assert.Contains(
+            "PhysicalNestedLoopJoin [FullOuter]",
+            ReadSample("Q284_SpecCoreFullOuterJoinNonEqui.cs").Content
+        );
 
         var asOf = ReadSample("Q285_SpecCoreAsOfLeftJoinRowPresence.cs").Content;
         Assert.Contains("[AsofLeft]", asOf);

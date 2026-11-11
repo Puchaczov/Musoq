@@ -15,7 +15,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         BinaryOperatorKind operatorKind,
         Node errorContext,
         out Node boundLeft,
-        out Node boundRight)
+        out Node boundRight
+    )
     {
         boundLeft = left;
         boundRight = right;
@@ -30,7 +31,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                 $"Operator '{GetEnumOperatorDisplayName(errorContext)}' is not supported for enum type '{descriptor.DisplayName}'.",
-                errorContext);
+                errorContext
+            );
             return true;
         }
 
@@ -59,14 +61,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         ReportEnumSemanticError(
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
             $"Enum type '{enumType.DisplayName}' can be compared only with the same enum identity, an exact quoted member name, or NULL; received '{otherType}'. Implicit numeric and string conversions are not supported.",
-            other);
+            other
+        );
         return true;
     }
 
-    private bool TryBindEnumMemberLiteral(
-        EnumTypeDescriptor enumType,
-        Node candidate,
-        out Node boundLiteral)
+    private bool TryBindEnumMemberLiteral(EnumTypeDescriptor enumType, Node candidate, out Node boundLiteral)
     {
         if (candidate is not ConstantValueNode { ObjValue: string memberName })
         {
@@ -79,7 +79,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3108_UnknownEnumMember,
                 $"Enum member '{memberName}' is not defined by enum type '{enumType.DisplayName}'. Member names are case-sensitive.",
-                candidate);
+                candidate
+            );
             boundLiteral = candidate;
             return true;
         }
@@ -93,7 +94,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         Node expression,
         ArgsListNode items,
         Node errorContext,
-        out ArgsListNode boundItems)
+        out ArgsListNode boundItems
+    )
     {
         var hasExpressionEnum = TryGetEnumExpressionType(expression, out var enumType);
         if (!hasExpressionEnum)
@@ -106,7 +108,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 ReportEnumSemanticError(
                     DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                     $"Enum type '{itemEnum.DisplayName}' cannot be compared with a non-enum IN expression.",
-                    errorContext);
+                    errorContext
+                );
                 boundItems = items;
                 return true;
             }
@@ -142,7 +145,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                 $"IN items for enum type '{enumType.DisplayName}' must be exact quoted member names, NULL, or expressions of the same enum identity.",
-                item);
+                item
+            );
             bound[index] = item;
         }
 
@@ -162,21 +166,19 @@ public partial class BuildMetadataAndInferTypesVisitor
             EnumUnderlyingKind.UInt32 => value.AsUInt32(),
             EnumUnderlyingKind.Int64 => value.AsInt64(),
             EnumUnderlyingKind.UInt64 => value.AsUInt64(),
-            _ => throw new ArgumentOutOfRangeException(nameof(value), value.Kind, "Unknown enum backing kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value.Kind, "Unknown enum backing kind."),
         };
 
         return new IntegerNode(primitive, span);
     }
 
-    private void ReportEnumIdentityMismatch(
-        EnumTypeDescriptor left,
-        EnumTypeDescriptor right,
-        Node errorContext)
+    private void ReportEnumIdentityMismatch(EnumTypeDescriptor left, EnumTypeDescriptor right, Node errorContext)
     {
         ReportEnumSemanticError(
             DiagnosticCode.MQ3109_EnumIdentityMismatch,
             $"Enum types '{left.DisplayName}' and '{right.DisplayName}' cannot be combined. Enums are nominal even when their backing types match.",
-            errorContext);
+            errorContext
+        );
     }
 
     private bool TryBindEnumCaseResults(
@@ -184,7 +186,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         Node elseNode,
         out List<(Node When, Node Then)> boundWhenThenPairs,
         out Node boundElseNode,
-        out EnumTypeDescriptor descriptor)
+        out EnumTypeDescriptor descriptor
+    )
     {
         descriptor = null!;
         foreach (var pair in whenThenPairs)
@@ -203,9 +206,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         boundWhenThenPairs = new List<(Node When, Node Then)>(whenThenPairs.Count);
         foreach (var pair in whenThenPairs)
         {
-            boundWhenThenPairs.Add((
-                pair.When,
-                BindEnumCaseResult(pair.Then, descriptor)));
+            boundWhenThenPairs.Add((pair.When, BindEnumCaseResult(pair.Then, descriptor)));
         }
 
         boundElseNode = BindEnumCaseResult(elseNode, descriptor);
@@ -218,7 +219,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             ThenNode then => then.Expression,
             ElseNode @else => @else.Expression,
-            _ => result
+            _ => result,
         };
 
         if (expression is NullNode)
@@ -237,7 +238,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         ReportEnumSemanticError(
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
             $"CASE results for enum type '{descriptor.DisplayName}' must be NULL, exact quoted member names, or expressions of the same enum identity.",
-            expression);
+            expression
+        );
         return result;
     }
 
@@ -247,7 +249,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             ThenNode => new ThenNode(expression),
             ElseNode => new ElseNode(expression),
-            _ => expression
+            _ => expression,
         };
     }
 
@@ -261,7 +263,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                 $"Operator '{operatorName}' is not supported for enum type '{enumType.DisplayName}'.",
-                errorContext);
+                errorContext
+            );
             return true;
         }
 
@@ -281,7 +284,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                 $"Window function '{normalizedName}' is not supported for enum type '{enumType.DisplayName}'. Enum values may be used as PARTITION BY keys, and COUNT is supported.",
-                context);
+                context
+            );
             return;
         }
     }
@@ -294,12 +298,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return;
         }
 
-        throw new VisitorException(
-            VisitorName,
-            "BindEnumExpression",
-            message,
-            code,
-            node.SpanOrEmpty());
+        throw new VisitorException(VisitorName, "BindEnumExpression", message, code, node.SpanOrEmpty());
     }
 
     private static string GetEnumOperatorDisplayName(Node node)
@@ -324,7 +323,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             BitwiseXorNode => "^",
             LeftShiftNode => "<<",
             RightShiftNode => ">>",
-            _ => node.GetType().Name
+            _ => node.GetType().Name,
         };
     }
 }

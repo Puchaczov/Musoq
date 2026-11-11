@@ -26,7 +26,10 @@ public sealed class RowLayout
         foreach (var name in names)
         {
             if (name.Index < 0 || name.Index >= count)
-                throw new ArgumentOutOfRangeException(nameof(names), $"Column name '{name.Name}' points to invalid index {name.Index}.");
+                throw new ArgumentOutOfRangeException(
+                    nameof(names),
+                    $"Column name '{name.Name}' points to invalid index {name.Index}."
+                );
 
             indexesByName.TryAdd(name.Name, name.Index);
         }
@@ -40,7 +43,7 @@ public sealed class RowLayout
         {
             FrozenDictionary<string, int> frozen => frozen,
             Dictionary<string, int> dictionary => dictionary.ToFrozenDictionary(dictionary.Comparer),
-            _ => indexesByName.ToFrozenDictionary()
+            _ => indexesByName.ToFrozenDictionary(),
         };
     }
 

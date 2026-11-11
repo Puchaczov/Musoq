@@ -11,13 +11,13 @@ public class PivotEdgeTests : BasicEntityTestBase
     [TestMethod]
     public void Pivot_WithNullPivotKey_ShouldMatchNullBucket()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Month in (null as Missing, 'Jan' as Jan)
-                             using Count(*) as Orders
-                             group by City
-                             order by City
-                             """;
+        const string query = (
+            "pivot #A.Entities()\n"
+            + "on Month in (null as Missing, 'Jan' as Jan)\n"
+            + "using Count(*) as Orders\n"
+            + "group by City\n"
+            + "order by City"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateNullKeySources()).Run();
 
@@ -33,13 +33,13 @@ public class PivotEdgeTests : BasicEntityTestBase
     [TestMethod]
     public void Pivot_WithDistinctAggregate_ShouldFilterBeforeDistinct()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Month in ('Jan' as Jan, 'Feb' as Feb)
-                             using Count(distinct Name) as Customers
-                             group by City
-                             order by City
-                             """;
+        const string query = (
+            "pivot #A.Entities()\n"
+            + "on Month in ('Jan' as Jan, 'Feb' as Feb)\n"
+            + "using Count(distinct Name) as Customers\n"
+            + "group by City\n"
+            + "order by City"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateDistinctSources()).Run();
 
@@ -52,14 +52,14 @@ public class PivotEdgeTests : BasicEntityTestBase
     [TestMethod]
     public void Pivot_WithStringNumericAndDateValues_ShouldMatchAllLiteralKinds()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Month, Id, Time in (
-                                 ('Jan', 1, '2024-01-01') as JanFirst,
-                                 ('Feb', 2, '2024-01-02') as FebSecond
-                             )
-                             using Sum(Money) as Total
-                             """;
+        const string query = (
+            "pivot #A.Entities()\n"
+            + "on Month, Id, Time in (\n"
+            + "    ('Jan', 1, '2024-01-01') as JanFirst,\n"
+            + "    ('Feb', 2, '2024-01-02') as FebSecond\n"
+            + ")\n"
+            + "using Sum(Money) as Total"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateLiteralKindSources()).Run();
 
@@ -73,13 +73,13 @@ public class PivotEdgeTests : BasicEntityTestBase
     [TestMethod]
     public void Pivot_WithMultipleMeasures_ShouldPreserveGeneratedColumnOrdering()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Month in ('Feb' as Feb, 'Jan' as Jan)
-                             using Sum(Money) as Sales, Count(*) as Orders
-                             group by City
-                             order by City
-                             """;
+        const string query = (
+            "pivot #A.Entities()\n"
+            + "on Month in ('Feb' as Feb, 'Jan' as Jan)\n"
+            + "using Sum(Money) as Sales, Count(*) as Orders\n"
+            + "group by City\n"
+            + "order by City"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateOrderingSources()).Run();
 
@@ -100,30 +100,82 @@ public class PivotEdgeTests : BasicEntityTestBase
     {
         return CreateSingleSource(
             new BasicEntity { City = "NY", Month = null },
-            new BasicEntity { City = "NY", Month = "Jan" });
+            new BasicEntity { City = "NY", Month = "Jan" }
+        );
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateDistinctSources()
     {
         return CreateSingleSource(
-            new BasicEntity { City = "NY", Month = "Jan", Name = "Alice" },
-            new BasicEntity { City = "NY", Month = "Jan", Name = "Alice" },
-            new BasicEntity { City = "NY", Month = "Jan", Name = "Bob" },
-            new BasicEntity { City = "NY", Month = "Feb", Name = "Alice" });
+            new BasicEntity
+            {
+                City = "NY",
+                Month = "Jan",
+                Name = "Alice",
+            },
+            new BasicEntity
+            {
+                City = "NY",
+                Month = "Jan",
+                Name = "Alice",
+            },
+            new BasicEntity
+            {
+                City = "NY",
+                Month = "Jan",
+                Name = "Bob",
+            },
+            new BasicEntity
+            {
+                City = "NY",
+                Month = "Feb",
+                Name = "Alice",
+            }
+        );
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateLiteralKindSources()
     {
         return CreateSingleSource(
-            new BasicEntity { Month = "Jan", Id = 1, Time = new DateTime(2024, 1, 1), Money = 10m },
-            new BasicEntity { Month = "Feb", Id = 2, Time = new DateTime(2024, 1, 2), Money = 20m },
-            new BasicEntity { Month = "Jan", Id = 2, Time = new DateTime(2024, 1, 1), Money = 99m });
+            new BasicEntity
+            {
+                Month = "Jan",
+                Id = 1,
+                Time = new DateTime(2024, 1, 1),
+                Money = 10m,
+            },
+            new BasicEntity
+            {
+                Month = "Feb",
+                Id = 2,
+                Time = new DateTime(2024, 1, 2),
+                Money = 20m,
+            },
+            new BasicEntity
+            {
+                Month = "Jan",
+                Id = 2,
+                Time = new DateTime(2024, 1, 1),
+                Money = 99m,
+            }
+        );
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateOrderingSources()
     {
         return CreateSingleSource(
-            new BasicEntity { City = "NY", Month = "Jan", Money = 10m },
-            new BasicEntity { City = "NY", Month = "Feb", Money = 20m });
+            new BasicEntity
+            {
+                City = "NY",
+                Month = "Jan",
+                Money = 10m,
+            },
+            new BasicEntity
+            {
+                City = "NY",
+                Month = "Feb",
+                Money = 20m,
+            }
+        );
     }
 }

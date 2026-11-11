@@ -18,23 +18,24 @@ public sealed class TypedRunState
 
     public TypedRunState(
         IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null,
-        TypedParameterSnapshot? parameters = null)
+        TypedParameterSnapshot? parameters = null
+    )
     {
         if (parameters is not null)
             TypedParameters.ReplaceWith(parameters);
         _parameterDefinitions = parameterDefinitions?.ToArray() ?? Array.Empty<ScriptParameterDefinition>();
-        _parameterContracts = _parameterDefinitions
-            .Select(static definition => definition.Contract)
-            .ToArray();
-        _requiredParameters = _parameterDefinitions
-            .Where(static definition => definition.IsRequired)
-            .ToArray();
+        _parameterContracts = _parameterDefinitions.Select(static definition => definition.Contract).ToArray();
+        _requiredParameters = _parameterDefinitions.Where(static definition => definition.IsRequired).ToArray();
     }
 
     /// <summary>Gets typed slots for the next execution.</summary>
     public TypedParameterValues TypedParameters
     {
-        get { lock (_runtimeGate) return _typedParameters ??= new TypedParameterValues(_runtimeGate, null); }
+        get
+        {
+            lock (_runtimeGate)
+                return _typedParameters ??= new TypedParameterValues(_runtimeGate, null);
+        }
     }
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _parameterDefinitions;
@@ -81,14 +82,16 @@ public sealed class TypedRunState
             PhaseChangedHandlers,
             DataSourceProgressHandlers,
             QueryProgressHandlers,
-            null)
+            null
+        )
         {
-            TypedParameters = CaptureTypedParameters()
+            TypedParameters = CaptureTypedParameters(),
         };
     }
 
     private TypedParameterSnapshot CaptureTypedParameters()
     {
-        lock (_runtimeGate) return _typedParameters?.Capture() ?? TypedParameterSnapshot.Empty;
+        lock (_runtimeGate)
+            return _typedParameters?.Capture() ?? TypedParameterSnapshot.Empty;
     }
 }

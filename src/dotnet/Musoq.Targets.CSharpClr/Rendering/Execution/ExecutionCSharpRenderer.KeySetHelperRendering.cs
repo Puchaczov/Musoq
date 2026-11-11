@@ -9,7 +9,8 @@ public sealed partial class ExecutionCSharpRenderer
         int BuildLoopIndex,
         int ProbeLoopIndex,
         KeySetBuildHelper Build,
-        KeySetProbeHelper Probe);
+        KeySetProbeHelper Probe
+    );
 
     private sealed record KeySetBuildHelper(
         string FunctionName,
@@ -17,7 +18,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionSourceLoop Loop,
         ExecutionKeySetAdd KeySetAdd,
         GeneratedRowShape? RawRowsShape,
-        IReadOnlyList<CapturedLocal> Captures);
+        IReadOnlyList<CapturedLocal> Captures
+    );
 
     private sealed record KeySetProbeHelper(
         string FunctionName,
@@ -25,11 +27,15 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionSourceLoop Loop,
         ExecutionKeySetProbe KeySetProbe,
         IReadOnlyList<ExecutionVariable> AppendTargets,
-        IReadOnlyList<CapturedLocal> Captures);
+        IReadOnlyList<CapturedLocal> Captures
+    );
 
     private List<KeySetHelperSet> CollectKeySetHelperSets(ExecutionBlock block)
     {
-        var buildLoopsBySetName = new Dictionary<string, (int Index, ExecutionSourceLoop Loop, ExecutionKeySetAdd KeySetAdd)>(StringComparer.Ordinal);
+        var buildLoopsBySetName = new Dictionary<
+            string,
+            (int Index, ExecutionSourceLoop Loop, ExecutionKeySetAdd KeySetAdd)
+        >(StringComparer.Ordinal);
         var helperSets = new List<KeySetHelperSet>();
         var usedFunctionNames = new Dictionary<string, int>(StringComparer.Ordinal);
         var nodes = block.Nodes;
@@ -38,8 +44,7 @@ public sealed partial class ExecutionCSharpRenderer
         for (var index = 0; index < nodes.Count; index++)
         {
             var node = nodes[index];
-            if (node is ExecutionStoreTable store &&
-                TryCreateStoredTableBuild(nodes, index, pending, store, out _))
+            if (node is ExecutionStoreTable store && TryCreateStoredTableBuild(nodes, index, pending, store, out _))
             {
                 pending.Clear();
                 continue;
@@ -58,16 +63,24 @@ public sealed partial class ExecutionCSharpRenderer
                 continue;
             }
 
-            if (!TryCreateKeySetProbeHelperCandidate(node, out var probeLoop, out var keySetProbe) ||
-                !buildLoopsBySetName.TryGetValue(keySetProbe.Set.Name, out var build))
+            if (
+                !TryCreateKeySetProbeHelperCandidate(node, out var probeLoop, out var keySetProbe)
+                || !buildLoopsBySetName.TryGetValue(keySetProbe.Set.Name, out var build)
+            )
             {
                 pending.Add(node);
                 continue;
             }
 
             buildLoopsBySetName.Remove(keySetProbe.Set.Name);
-            var buildFunctionName = ReserveFunctionName(CreateKeySetBuildFunctionBaseName(build.KeySetAdd), usedFunctionNames);
-            var probeFunctionName = ReserveFunctionName(CreateKeySetProbeFunctionBaseName(keySetProbe), usedFunctionNames);
+            var buildFunctionName = ReserveFunctionName(
+                CreateKeySetBuildFunctionBaseName(build.KeySetAdd),
+                usedFunctionNames
+            );
+            var probeFunctionName = ReserveFunctionName(
+                CreateKeySetProbeFunctionBaseName(keySetProbe),
+                usedFunctionNames
+            );
             var buildHelper = CreateKeySetBuildHelper(buildFunctionName, build.Loop, build.KeySetAdd);
             var probeHelper = CreateKeySetProbeHelper(probeFunctionName, probeLoop, keySetProbe);
 
@@ -81,11 +94,14 @@ public sealed partial class ExecutionCSharpRenderer
     private static bool TryCreateKeySetBuildHelperCandidate(
         ExecutionNode node,
         out ExecutionSourceLoop loop,
-        out ExecutionKeySetAdd keySetAdd)
+        out ExecutionKeySetAdd keySetAdd
+    )
     {
-        if (node is ExecutionSourceLoop { Body.Nodes: [ExecutionKeySetAdd add] } sourceLoop &&
-            CanExtractHashBuildLoop(sourceLoop) &&
-            !ContainsStoredTableRows(add.Key))
+        if (
+            node is ExecutionSourceLoop { Body.Nodes: [ExecutionKeySetAdd add] } sourceLoop
+            && CanExtractHashBuildLoop(sourceLoop)
+            && !ContainsStoredTableRows(add.Key)
+        )
         {
             loop = sourceLoop;
             keySetAdd = add;
@@ -100,12 +116,15 @@ public sealed partial class ExecutionCSharpRenderer
     private static bool TryCreateKeySetProbeHelperCandidate(
         ExecutionNode node,
         out ExecutionSourceLoop loop,
-        out ExecutionKeySetProbe keySetProbe)
+        out ExecutionKeySetProbe keySetProbe
+    )
     {
-        if (node is ExecutionSourceLoop { Body.Nodes: [ExecutionKeySetProbe probe] } sourceLoop &&
-            CanExtractHashProbeLoop(sourceLoop) &&
-            CanExtractKeySetProbe(probe) &&
-            CollectKeySetProbeAppendTargets(probe).Length > 0)
+        if (
+            node is ExecutionSourceLoop { Body.Nodes: [ExecutionKeySetProbe probe] } sourceLoop
+            && CanExtractHashProbeLoop(sourceLoop)
+            && CanExtractKeySetProbe(probe)
+            && CollectKeySetProbeAppendTargets(probe).Length > 0
+        )
         {
             loop = sourceLoop;
             keySetProbe = probe;
@@ -119,15 +138,19 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanExtractKeySetProbe(ExecutionKeySetProbe probe)
     {
-        if (ContainsStoredTableRows(probe.Key) ||
-            ContainsStoredTableRows(probe.Body) ||
-            probe.NoMatchBody is not null && ContainsStoredTableRows(probe.NoMatchBody))
+        if (
+            ContainsStoredTableRows(probe.Key)
+            || ContainsStoredTableRows(probe.Body)
+            || probe.NoMatchBody is not null && ContainsStoredTableRows(probe.NoMatchBody)
+        )
         {
             return false;
         }
 
-        if (ContainsNode<ExecutionIf>(probe.Body) ||
-            probe.NoMatchBody is not null && ContainsNode<ExecutionIf>(probe.NoMatchBody))
+        if (
+            ContainsNode<ExecutionIf>(probe.Body)
+            || probe.NoMatchBody is not null && ContainsNode<ExecutionIf>(probe.NoMatchBody)
+        )
         {
             return false;
         }
@@ -138,7 +161,8 @@ public sealed partial class ExecutionCSharpRenderer
     private KeySetBuildHelper CreateKeySetBuildHelper(
         string functionName,
         ExecutionSourceLoop loop,
-        ExecutionKeySetAdd keySetAdd)
+        ExecutionKeySetAdd keySetAdd
+    )
     {
         var rowsParameterName = CreateValueTupleRowsParameterName(loop);
         var captures = CollectKeySetBuildCaptures(loop, keySetAdd);
@@ -150,7 +174,8 @@ public sealed partial class ExecutionCSharpRenderer
     private KeySetProbeHelper CreateKeySetProbeHelper(
         string functionName,
         ExecutionSourceLoop loop,
-        ExecutionKeySetProbe keySetProbe)
+        ExecutionKeySetProbe keySetProbe
+    )
     {
         var rowsParameterName = CreateValueTupleRowsParameterName(loop);
         var appendTargets = CollectKeySetProbeAppendTargets(keySetProbe);
@@ -159,15 +184,9 @@ public sealed partial class ExecutionCSharpRenderer
         return new KeySetProbeHelper(functionName, rowsParameterName, loop, keySetProbe, appendTargets, captures);
     }
 
-    private CapturedLocal[] CollectKeySetBuildCaptures(
-        ExecutionSourceLoop loop,
-        ExecutionKeySetAdd keySetAdd)
+    private CapturedLocal[] CollectKeySetBuildCaptures(ExecutionSourceLoop loop, ExecutionKeySetAdd keySetAdd)
     {
-        var excludedNames = new HashSet<string>(StringComparer.Ordinal)
-        {
-            loop.Item.Name,
-            keySetAdd.Set.Name
-        };
+        var excludedNames = new HashSet<string>(StringComparer.Ordinal) { loop.Item.Name, keySetAdd.Set.Name };
         foreach (var variableName in CollectHashJoinDeclaredVariableNames(loop.Body))
             excludedNames.Add(variableName);
 
@@ -179,13 +198,10 @@ public sealed partial class ExecutionCSharpRenderer
     private CapturedLocal[] CollectKeySetProbeCaptures(
         ExecutionSourceLoop loop,
         ExecutionKeySetProbe keySetProbe,
-        IReadOnlyList<ExecutionVariable> appendTargets)
+        IReadOnlyList<ExecutionVariable> appendTargets
+    )
     {
-        var excludedNames = new HashSet<string>(StringComparer.Ordinal)
-        {
-            loop.Item.Name,
-            keySetProbe.Set.Name
-        };
+        var excludedNames = new HashSet<string>(StringComparer.Ordinal) { loop.Item.Name, keySetProbe.Set.Name };
 
         if (keySetProbe.MatchFound is not null)
             excludedNames.Add(keySetProbe.MatchFound.Name);

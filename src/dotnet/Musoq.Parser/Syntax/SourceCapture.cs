@@ -21,13 +21,19 @@ internal sealed class SourceCapture(SourceText source)
             _roles[new TextSpan(token.Span.Start + offset, token.Span.Length)] = token.Role;
     }
 
-
     internal Region Begin(SyntaxKind kind, Token token)
     {
         var region = new Region(this, kind, token.Span.Start);
         _regions.Push(region);
-        if (kind is SyntaxKind.ParameterBlock or SyntaxKind.VariableDeclaration or SyntaxKind.EnumDeclaration
-            or SyntaxKind.UtilityStatement or SyntaxKind.ValuesSource or SyntaxKind.ArrayLiteral)
+        if (
+            kind
+            is SyntaxKind.ParameterBlock
+                or SyntaxKind.VariableDeclaration
+                or SyntaxKind.EnumDeclaration
+                or SyntaxKind.UtilityStatement
+                or SyntaxKind.ValuesSource
+                or SyntaxKind.ArrayLiteral
+        )
             Mark(token, SyntaxTokenRole.Keyword);
         return region;
     }
@@ -42,23 +48,43 @@ internal sealed class SourceCapture(SourceText source)
     {
         Observe(token);
         _consumedEnd = Math.Max(_consumedEnd, extent?.End ?? token.Span.End);
-        if (_regions.TryPeek(out var typeRegion) && typeRegion.Kind == SyntaxKind.TypeArgumentList &&
-            token.TokenType is TokenType.Less or TokenType.Greater or TokenType.RightShift)
+        if (
+            _regions.TryPeek(out var typeRegion)
+            && typeRegion.Kind == SyntaxKind.TypeArgumentList
+            && token.TokenType is TokenType.Less or TokenType.Greater or TokenType.RightShift
+        )
             Mark(token, SyntaxTokenRole.Punctuation);
-        if (_regions.TryPeek(out var keywordRegion) && keywordRegion.Kind is SyntaxKind.Keyword or SyntaxKind.WindowFrame &&
-            SyntaxTokenRoles.Of(token) is SyntaxTokenRole.Identifier or SyntaxTokenRole.Keyword)
+        if (
+            _regions.TryPeek(out var keywordRegion)
+            && keywordRegion.Kind is SyntaxKind.Keyword or SyntaxKind.WindowFrame
+            && SyntaxTokenRoles.Of(token) is SyntaxTokenRole.Identifier or SyntaxTokenRole.Keyword
+        )
             Mark(token, SyntaxTokenRole.Keyword);
         if (_regions.TryPeek(out var region) && region.Kind is SyntaxKind.Identifier or SyntaxKind.Alias)
         {
-            if (token.TokenType != TokenType.As && SyntaxTokenRoles.Of(token) is not
-                (SyntaxTokenRole.Operator or SyntaxTokenRole.Punctuation or SyntaxTokenRole.Comment or SyntaxTokenRole.Whitespace))
+            if (
+                token.TokenType != TokenType.As
+                && SyntaxTokenRoles.Of(token)
+                    is not (
+                        SyntaxTokenRole.Operator
+                        or SyntaxTokenRole.Punctuation
+                        or SyntaxTokenRole.Comment
+                        or SyntaxTokenRole.Whitespace
+                    )
+            )
                 Mark(token, SyntaxTokenRole.Identifier);
         }
     }
 
     internal void Mark(Token token, SyntaxTokenRole role) => _roles[token.Span] = role;
 
-    internal SyntaxNode Root() => new(SyntaxKind.Document, new TextSpan(0, source.Length), source, SourceComposition.Attach(_roots, _embedded, source));
+    internal SyntaxNode Root() =>
+        new(
+            SyntaxKind.Document,
+            new TextSpan(0, source.Length),
+            source,
+            SourceComposition.Attach(_roots, _embedded, source)
+        );
 
     internal IReadOnlyList<SyntaxToken> Tokens()
     {
@@ -93,7 +119,12 @@ internal sealed class SourceCapture(SourceText source)
             throw new InvalidOperationException("Source regions must close in nesting order.");
         if (_consumedEnd <= region.Start)
             return;
-        var node = new SyntaxNode(region.Kind, new TextSpan(region.Start, _consumedEnd - region.Start), source, region.Children);
+        var node = new SyntaxNode(
+            region.Kind,
+            new TextSpan(region.Start, _consumedEnd - region.Start),
+            source,
+            region.Children
+        );
         if (_regions.TryPeek(out var parent))
             parent.Children.Add(node);
         else
@@ -105,6 +136,7 @@ internal sealed class SourceCapture(SourceText source)
         internal SyntaxKind Kind { get; } = kind;
         internal int Start { get; } = start;
         internal List<SyntaxNode> Children { get; } = [];
+
         public void Dispose() => owner.End(this);
     }
 }

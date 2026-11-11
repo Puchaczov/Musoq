@@ -9,15 +9,13 @@ internal static partial class FinalOutputPlanner
         ExecutionBlock block,
         string finalTableName,
         string shapeTypeName,
-        IReadOnlyList<FieldBinding> shapeFields)
+        IReadOnlyList<FieldBinding> shapeFields
+    )
     {
         var rowShapesByTableName = CreateTableRowShapeMap(block);
         Dictionary<string, string>? buffers = null;
 
-        var requiredTargets = new HashSet<string>(StringComparer.Ordinal)
-        {
-            finalTableName
-        };
+        var requiredTargets = new HashSet<string>(StringComparer.Ordinal) { finalTableName };
 
         var changed = true;
         while (changed)
@@ -25,10 +23,12 @@ internal static partial class FinalOutputPlanner
             changed = false;
             foreach (var node in block.Nodes)
             {
-                if (GetPostOperationTransfer(node) is not { } transfer ||
-                    !requiredTargets.Contains(transfer.Target.Name) ||
-                    !rowShapesByTableName.TryGetValue(transfer.Source.Name, out var sourceShape) ||
-                    !CanUseFinalShapeSourceBuffer(sourceShape, shapeFields))
+                if (
+                    GetPostOperationTransfer(node) is not { } transfer
+                    || !requiredTargets.Contains(transfer.Target.Name)
+                    || !rowShapesByTableName.TryGetValue(transfer.Source.Name, out var sourceShape)
+                    || !CanUseFinalShapeSourceBuffer(sourceShape, shapeFields)
+                )
                 {
                     continue;
                 }
@@ -39,8 +39,7 @@ internal static partial class FinalOutputPlanner
             }
         }
 
-        return buffers ?? (IReadOnlyDictionary<string, string>)
-            new Dictionary<string, string>(StringComparer.Ordinal);
+        return buffers ?? (IReadOnlyDictionary<string, string>)new Dictionary<string, string>(StringComparer.Ordinal);
     }
 
     private static (ExecutionVariable Source, ExecutionVariable Target)? GetPostOperationTransfer(ExecutionNode node)
@@ -54,7 +53,7 @@ internal static partial class FinalOutputPlanner
             ExecutionSkipTable skip => (skip.Source, skip.Target),
             ExecutionTakeTable take => (take.Source, take.Target),
             ExecutionSliceTable slice => (slice.Source, slice.Target),
-            _ => null
+            _ => null,
         };
     }
 
@@ -75,11 +74,13 @@ internal static partial class FinalOutputPlanner
                 case ExecutionMaterializeRecordListToTable materialize:
                     result[materialize.Target.Name] = materialize.RowShape;
                     break;
-                case var postOperation when GetPostOperationTransfer(postOperation) is { } transfer &&
-                                            result.TryGetValue(transfer.Source.Name, out var sourceShape):
+                case var postOperation
+                    when GetPostOperationTransfer(postOperation) is { } transfer
+                        && result.TryGetValue(transfer.Source.Name, out var sourceShape):
                     result[transfer.Target.Name] = sourceShape;
                     break;
-                case ExecutionSetOperation setOperation when result.TryGetValue(setOperation.Left.Name, out var setOperationShape):
+                case ExecutionSetOperation setOperation
+                    when result.TryGetValue(setOperation.Left.Name, out var setOperationShape):
                     result[setOperation.Target.Name] = setOperationShape;
                     break;
             }
@@ -90,7 +91,8 @@ internal static partial class FinalOutputPlanner
 
     private static bool CanUseFinalShapeSourceBuffer(
         GeneratedRowShape sourceShape,
-        IReadOnlyList<FieldBinding> shapeFields)
+        IReadOnlyList<FieldBinding> shapeFields
+    )
     {
         if (sourceShape.Fields.Count != shapeFields.Count)
             return false;
@@ -99,8 +101,14 @@ internal static partial class FinalOutputPlanner
         {
             var sourceField = sourceShape.Fields[index];
             var shapeField = shapeFields[index];
-            if (sourceField.Type != shapeField.Type ||
-                !string.Equals(ExecutionSymbolicNamePolicy.GetGeneratedFieldName(sourceField), ExecutionSymbolicNamePolicy.GetGeneratedFieldName(shapeField), StringComparison.Ordinal))
+            if (
+                sourceField.Type != shapeField.Type
+                || !string.Equals(
+                    ExecutionSymbolicNamePolicy.GetGeneratedFieldName(sourceField),
+                    ExecutionSymbolicNamePolicy.GetGeneratedFieldName(shapeField),
+                    StringComparison.Ordinal
+                )
+            )
             {
                 return false;
             }
@@ -108,5 +116,4 @@ internal static partial class FinalOutputPlanner
 
         return true;
     }
-
 }

@@ -24,12 +24,16 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             AnalyzeShape(plan.FinalResult.Shape, sink);
         }
 
-        foreach (var node in ExecutionSubqueryPlans.SelfAndDescendants(plan).SelectMany(static scope => ExecutionIrAnalysis.FlattenNodes(scope.Body)))
+        foreach (
+            var node in ExecutionSubqueryPlans
+                .SelfAndDescendants(plan)
+                .SelectMany(static scope => ExecutionIrAnalysis.FlattenNodes(scope.Body))
+        )
             AnalyzeNode(node, sink);
 
         foreach (var scope in ExecutionSubqueryPlans.SelfAndDescendants(plan))
-            foreach (var expression in ExecutionIrAnalysis.FlattenExpressions(scope.Body))
-                AnalyzeExpression(expression, scope.Shapes, sink);
+        foreach (var expression in ExecutionIrAnalysis.FlattenExpressions(scope.Body))
+            AnalyzeExpression(expression, scope.Shapes, sink);
 
         return new ExecutionTargetCompatibilityReport(sink.ToArray());
     }
@@ -41,7 +45,8 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             case SourceEntityShape source:
                 sink.Add(
                     ExecutionTargetRequirementKind.SchemaProviderBinding,
-                    $"source entity '{source.Alias}' uses {FormatType(source.EntityType)}");
+                    $"source entity '{source.Alias}' uses {FormatType(source.EntityType)}"
+                );
                 sink.AddClrType(source.EntityType);
                 AddFields(source.Fields, sink);
                 AddClrPropertyPathTypes(source, sink);
@@ -90,7 +95,8 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             case ExecutionSourceScan sourceScan:
                 sink.Add(
                     ExecutionTargetRequirementKind.SchemaProviderBinding,
-                    $"source scan '{sourceScan.Binding.SchemaName}.{sourceScan.Binding.MethodName}'");
+                    $"source scan '{sourceScan.Binding.SchemaName}.{sourceScan.Binding.MethodName}'"
+                );
                 sink.AddClrType(sourceScan.Source.Type);
                 sink.AddClrType(sourceScan.Rows.Type);
                 if (sourceScan.Binding.SourceType != null)
@@ -98,18 +104,24 @@ internal static class ExecutionTargetCompatibilityAnalyzer
                 AddFields(sourceScan.Binding.Fields, sink);
                 if (sourceScan.Binding.QueryRowSourceTransfer is { } transfer)
                 {
-                    foreach (var computed in transfer.Fields.Select(field => field.ComputedProjection).OfType<ExecutionSourceComputedProjection>())
-                        foreach (var expression in ExecutionSourceComputedProjection.Nodes(computed.Expression))
-                            sink.AddClrType(expression.ResultType);
+                    foreach (
+                        var computed in transfer
+                            .Fields.Select(field => field.ComputedProjection)
+                            .OfType<ExecutionSourceComputedProjection>()
+                    )
+                    foreach (var expression in ExecutionSourceComputedProjection.Nodes(computed.Expression))
+                        sink.AddClrType(expression.ResultType);
                     sink.Add(
                         ExecutionTargetRequirementKind.QueryRowSourceAccess,
-                        $"{sourceScan.Binding.RuntimeContextId}:{sourceScan.Binding.SchemaName}.{sourceScan.Binding.MethodName}:{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}");
+                        $"{sourceScan.Binding.RuntimeContextId}:{sourceScan.Binding.SchemaName}.{sourceScan.Binding.MethodName}:{transfer.Carrier}:{transfer.Lifetime}:{transfer.ShapeFingerprint}"
+                    );
                 }
                 break;
             case ExecutionInterpretSource interpret:
                 sink.Add(
                     ExecutionTargetRequirementKind.SchemaProviderBinding,
-                    $"interpret source '{interpret.SchemaName}' via {interpret.InterpreterTypeName}");
+                    $"interpret source '{interpret.SchemaName}' via {interpret.InterpreterTypeName}"
+                );
                 sink.AddClrType(interpret.Rows.Type);
                 break;
             case ExecutionEnumerableSource enumerable:
@@ -140,16 +152,19 @@ internal static class ExecutionTargetCompatibilityAnalyzer
     private static void AnalyzeExpression(
         ExecutionExpression expression,
         IReadOnlyList<RowShape> shapes,
-        RequirementSink sink)
+        RequirementSink sink
+    )
     {
         sink.AddClrType(expression.ReturnType);
 
         switch (expression)
         {
             case ExecutionFieldRead fieldRead
-                when fieldRead.Alias is { Length: > 0 } alias &&
-                     (fieldRead.FieldName.Contains('.', StringComparison.Ordinal) ||
-                      fieldRead.FieldName.Contains('[', StringComparison.Ordinal)):
+                when fieldRead.Alias is { Length: > 0 } alias
+                    && (
+                        fieldRead.FieldName.Contains('.', StringComparison.Ordinal)
+                        || fieldRead.FieldName.Contains('[', StringComparison.Ordinal)
+                    ):
                 if (TryGetSourceEntityShape(shapes, alias) is { } sourceShape)
                     AddClrPropertyPathTypes(sourceShape, fieldRead.FieldName, sink);
                 break;
@@ -157,7 +172,8 @@ internal static class ExecutionTargetCompatibilityAnalyzer
                 sink.Add(
                     ExecutionTargetRequirementKind.ClrOnlyConstant,
                     literal.Value.ClrOnlyType?.DisplayName ?? "unknown CLR literal",
-                    typeSymbol: literal.Value.ClrOnlyType?.Descriptor);
+                    typeSymbol: literal.Value.ClrOnlyType?.Descriptor
+                );
                 break;
             case ExecutionMethodCall methodCall:
                 AddCallable(methodCall.Method, methodCall.Method.MethodName, sink);
@@ -169,14 +185,14 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         }
     }
 
-    private static SourceEntityShape? TryGetSourceEntityShape(
-        IReadOnlyList<RowShape> shapes,
-        string alias)
+    private static SourceEntityShape? TryGetSourceEntityShape(IReadOnlyList<RowShape> shapes, string alias)
     {
         foreach (var shape in shapes)
         {
-            if (shape is SourceEntityShape source &&
-                string.Equals(source.Alias, alias, StringComparison.OrdinalIgnoreCase))
+            if (
+                shape is SourceEntityShape source
+                && string.Equals(source.Alias, alias, StringComparison.OrdinalIgnoreCase)
+            )
                 return source;
         }
 
@@ -212,7 +228,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             {
                 ClrPropertyAccess property => property.PropertyName,
                 NestedClrPropertyAccess nested => nested.PropertyPath,
-                _ => null
+                _ => null,
             };
 
             if (string.IsNullOrWhiteSpace(path))
@@ -222,25 +238,22 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         }
     }
 
-    private static void AddClrPropertyPathTypes(
-        SourceEntityShape source,
-        string path,
-        RequirementSink sink)
+    private static void AddClrPropertyPathTypes(SourceEntityShape source, string path, RequirementSink sink)
     {
         try
         {
             AddClrPropertyPathTypes(source.EntityType.ResolveClrType(), path, sink);
         }
-        catch (NotSupportedException)
-        {
-        }
+        catch (NotSupportedException) { }
     }
 
     private static void AddClrPropertyPathTypes(Type entityType, string path, RequirementSink sink)
     {
         var currentType = entityType;
-        var segments = path
-            .Split(new[] { '.', '[', ']' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var segments = path.Split(
+            new[] { '.', '[', ']' },
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+        );
 
         foreach (var segment in segments)
         {
@@ -258,7 +271,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             {
                 PropertyInfo property => property.PropertyType,
                 FieldInfo field => field.FieldType,
-                _ => null
+                _ => null,
             };
             if (memberType is null)
                 return;
@@ -270,14 +283,15 @@ internal static class ExecutionTargetCompatibilityAnalyzer
 
     private static MemberInfo? ResolvePublicMember(Type type, string name)
     {
-        return type
-            .GetMember(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
-            .FirstOrDefault(member => member switch
-            {
-                PropertyInfo property => property.GetMethod is { IsPublic: true },
-                FieldInfo field => field.IsPublic,
-                _ => false
-            });
+        return type.GetMember(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
+            .FirstOrDefault(member =>
+                member switch
+                {
+                    PropertyInfo property => property.GetMethod is { IsPublic: true },
+                    FieldInfo field => field.IsPublic,
+                    _ => false,
+                }
+            );
     }
 
     private static void AddAggregateGroupShape(AggregateGroupShape shape, RequirementSink sink)
@@ -300,18 +314,24 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         sink.AddClrType(accumulator.InputType);
         sink.AddClrType(accumulator.ResultType);
         sink.AddClrType(accumulator.AccumulatorType);
-        AddCallable(ExecutionClrBindingFactory.FromClr(accumulator.Kernel.ResetMethod), accumulator.Kernel.FunctionName, sink);
+        AddCallable(
+            ExecutionClrBindingFactory.FromClr(accumulator.Kernel.ResetMethod),
+            accumulator.Kernel.FunctionName,
+            sink
+        );
     }
 
     private static IEnumerable<ExecutionPortableRowFieldDescriptor> CreateAggregatePortableFields(
-        AggregateGroupShape shape)
+        AggregateGroupShape shape
+    )
     {
         foreach (var key in shape.Keys)
         {
             yield return new ExecutionPortableRowFieldDescriptor(
                 key.FieldName,
                 key.Type.Descriptor,
-                FieldNullability.Unknown.ToString());
+                FieldNullability.Unknown.ToString()
+            );
         }
 
         foreach (var captured in shape.CapturedFields)
@@ -319,7 +339,8 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             yield return new ExecutionPortableRowFieldDescriptor(
                 captured.FieldName,
                 captured.Type.Descriptor,
-                FieldNullability.Unknown.ToString());
+                FieldNullability.Unknown.ToString()
+            );
         }
 
         foreach (var accumulator in shape.Accumulators)
@@ -327,7 +348,8 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             yield return new ExecutionPortableRowFieldDescriptor(
                 accumulator.FieldName,
                 accumulator.ResultType.Descriptor,
-                FieldNullability.Unknown.ToString());
+                FieldNullability.Unknown.ToString()
+            );
         }
 
         foreach (var owner in shape.OwnerFields)
@@ -336,54 +358,58 @@ internal static class ExecutionTargetCompatibilityAnalyzer
                 owner.FieldName,
                 ExecutionPortableSymbolFactory.GeneratedRow(
                     owner.Shape.TypeName,
-                    CreateAggregatePortableFields(owner.Shape)),
-                FieldNullability.Unknown.ToString());
+                    CreateAggregatePortableFields(owner.Shape)
+                ),
+                FieldNullability.Unknown.ToString()
+            );
         }
     }
 
-    private static void AddGeneratedRow(
-        string typeName,
-        IEnumerable<FieldBinding> fields,
-        RequirementSink sink)
+    private static void AddGeneratedRow(string typeName, IEnumerable<FieldBinding> fields, RequirementSink sink)
     {
         AddGeneratedRow(
             typeName,
             fields.Select(static field => new ExecutionPortableRowFieldDescriptor(
                 field.Name,
                 field.Type.Descriptor,
-                field.Nullability.ToString())),
-            sink);
+                field.Nullability.ToString()
+            )),
+            sink
+        );
     }
 
     private static void AddGeneratedRow(
         string typeName,
         IEnumerable<ExecutionPortableRowFieldDescriptor> fields,
-        RequirementSink sink)
+        RequirementSink sink
+    )
     {
         sink.Add(
             ExecutionTargetRequirementKind.GeneratedClrRow,
             typeName,
-            typeSymbol: ExecutionPortableSymbolFactory.GeneratedRow(typeName, fields));
+            typeSymbol: ExecutionPortableSymbolFactory.GeneratedRow(typeName, fields)
+        );
     }
 
     private static void AddKernelOperation(ExecutionCallableRef operation, string functionName, RequirementSink sink)
     {
         AddCallable(operation, functionName, sink);
-        sink.Add(ExecutionTargetRequirementKind.PluginInvocation,
-            $"{functionName} -> {operation.DisplayName}", callableSymbol: operation.Descriptor);
+        sink.Add(
+            ExecutionTargetRequirementKind.PluginInvocation,
+            $"{functionName} -> {operation.DisplayName}",
+            callableSymbol: operation.Descriptor
+        );
     }
 
     private static void AddCallable(ExecutionCallableRef method, string functionName, RequirementSink sink)
     {
         var callable = method.Descriptor;
-        sink.Add(
-            ExecutionTargetRequirementKind.MethodInfoCall,
-            method.DisplayName,
-            callableSymbol: callable);
+        sink.Add(ExecutionTargetRequirementKind.MethodInfoCall, method.DisplayName, callableSymbol: callable);
 
-        if (callable.Kind is not (
-                ExecutionPortableCallableKind.HostPlugin or
-                ExecutionPortableCallableKind.HostAggregate))
+        if (
+            callable.Kind
+            is not (ExecutionPortableCallableKind.HostPlugin or ExecutionPortableCallableKind.HostAggregate)
+        )
         {
             return;
         }
@@ -391,7 +417,8 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         sink.Add(
             ExecutionTargetRequirementKind.PluginInvocation,
             $"{functionName} -> {method.DisplayName}",
-            callableSymbol: callable);
+            callableSymbol: callable
+        );
     }
 
     private static string FormatType(Type type)
@@ -421,20 +448,18 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             ExecutionTargetRequirementKind kind,
             string detail,
             ExecutionPortableTypeDescriptor? typeSymbol = null,
-            ExecutionPortableCallableDescriptor? callableSymbol = null)
+            ExecutionPortableCallableDescriptor? callableSymbol = null
+        )
         {
             var requirement = new ExecutionTargetRequirement(kind, detail, typeSymbol, callableSymbol);
-            var identity = new RequirementIdentity(
-                kind,
-                detail,
-                typeSymbol?.StableName,
-                callableSymbol?.StableName);
+            var identity = new RequirementIdentity(kind, detail, typeSymbol?.StableName, callableSymbol?.StableName);
             if (_seen.TryGetValue(identity, out var existing))
             {
                 if (!RequirementDefinitionsMatch(existing, requirement))
                 {
                     throw new InvalidOperationException(
-                        $"Execution target requirement '{kind}:{detail}' has conflicting symbol definitions.");
+                        $"Execution target requirement '{kind}:{detail}' has conflicting symbol definitions."
+                    );
                 }
 
                 return;
@@ -452,15 +477,13 @@ internal static class ExecutionTargetCompatibilityAnalyzer
             Add(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
                 FormatType(type),
-                typeSymbol: ExecutionPortableSymbolFactory.FromType(type));
+                typeSymbol: ExecutionPortableSymbolFactory.FromType(type)
+            );
         }
 
         public void AddClrType(ExecutionTypeRef type)
         {
-            Add(
-                ExecutionTargetRequirementKind.ClrTypeUsage,
-                type.ClrDisplayName(),
-                typeSymbol: type.Descriptor);
+            Add(ExecutionTargetRequirementKind.ClrTypeUsage, type.ClrDisplayName(), typeSymbol: type.Descriptor);
         }
 
         public IReadOnlyList<ExecutionTargetRequirement> ToArray()
@@ -470,18 +493,20 @@ internal static class ExecutionTargetCompatibilityAnalyzer
 
         private static bool RequirementDefinitionsMatch(
             ExecutionTargetRequirement left,
-            ExecutionTargetRequirement right)
+            ExecutionTargetRequirement right
+        )
         {
-            return left.Kind == right.Kind &&
-                   string.Equals(left.Detail, right.Detail, StringComparison.Ordinal) &&
-                   ExecutionPortableSymbolDefinitionComparer.AreEquivalent(left.TypeSymbol, right.TypeSymbol) &&
-                   ExecutionPortableSymbolDefinitionComparer.AreEquivalent(left.CallableSymbol, right.CallableSymbol);
+            return left.Kind == right.Kind
+                && string.Equals(left.Detail, right.Detail, StringComparison.Ordinal)
+                && ExecutionPortableSymbolDefinitionComparer.AreEquivalent(left.TypeSymbol, right.TypeSymbol)
+                && ExecutionPortableSymbolDefinitionComparer.AreEquivalent(left.CallableSymbol, right.CallableSymbol);
         }
 
         private readonly record struct RequirementIdentity(
             ExecutionTargetRequirementKind Kind,
             string Detail,
             string? TypeStableName,
-            string? CallableStableName);
+            string? CallableStableName
+        );
     }
 }

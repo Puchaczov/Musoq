@@ -5,5 +5,5 @@ public enum ExecutionWindowKernelPlanStrategy
     NoPartition,
     HashPartitionPerPartitionSort,
     GlobalSort,
-    AlreadySortedSource
+    AlreadySortedSource,
 }

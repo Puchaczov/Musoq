@@ -20,7 +20,6 @@ internal sealed class SourcePlanContractException : Exception, IDiagnosticExcept
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText)
-            .WithArgument("detail", Detail);
+        return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText).WithArgument("detail", Detail);
     }
 }

@@ -43,14 +43,15 @@ public abstract partial class Row
         {
             if (typeof(TValue) != typeof(T))
                 throw new InvalidOperationException(
-                    $"Column {columnIndex} has type '{typeof(TValue)}', not '{typeof(T)}'.");
+                    $"Column {columnIndex} has type '{typeof(TValue)}', not '{typeof(T)}'."
+                );
 
             Value = Unsafe.As<TValue, T>(ref Unsafe.AsRef(in value));
         }
     }
 
-    private ref struct SelectedColumnVisitor<TVisitor>(int selectedIndex, TVisitor visitor)
-        : IColumnValueVisitor where TVisitor : IColumnValueVisitor, allows ref struct
+    private ref struct SelectedColumnVisitor<TVisitor>(int selectedIndex, TVisitor visitor) : IColumnValueVisitor
+        where TVisitor : IColumnValueVisitor, allows ref struct
     {
         private readonly int _selectedIndex = selectedIndex;
         public TVisitor Visitor = visitor;

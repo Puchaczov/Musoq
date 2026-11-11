@@ -9,13 +9,12 @@ public sealed partial class ExpressionConverter
     private IrExpression ConvertRecordLiteral(RecordLiteralNode node, Type? expectedType)
     {
         var descriptor = TryGetDescriptor(expectedType, StructuralTypeKind.Record);
-        var targetType = descriptor?.ClrType is { } concrete && concrete != typeof(StructuralValue)
-            ? concrete
-            : null;
-        var fields = node.Fields
-            .Select(field => new StructuralFieldExpression(
+        var targetType = descriptor?.ClrType is { } concrete && concrete != typeof(StructuralValue) ? concrete : null;
+        var fields = node
+            .Fields.Select(field => new StructuralFieldExpression(
                 field.Name,
-                Convert(field.Expression, FindFieldType(descriptor, field.Name))))
+                Convert(field.Expression, FindFieldType(descriptor, field.Name))
+            ))
             .ToArray();
         return new StructuralRecordLiteral(targetType ?? typeof(StructuralValue), fields, targetType);
     }
@@ -25,9 +24,7 @@ public sealed partial class ExpressionConverter
         var descriptor = TryGetDescriptor(expectedType, StructuralTypeKind.Collection);
         var elementType = descriptor?.ElementType?.ClrType ?? InferElementType(node);
         var returnType = expectedType ?? elementType.MakeArrayType();
-        var elements = node.Elements
-            .Select(element => Convert(element, elementType))
-            .ToArray();
+        var elements = node.Elements.Select(element => Convert(element, elementType)).ToArray();
         return new StructuralArrayLiteral(returnType, elementType, elements);
     }
 
@@ -45,8 +42,8 @@ public sealed partial class ExpressionConverter
         if (descriptor?.Fields == null)
             return null;
 
-        var fieldType = descriptor.Fields
-            .FirstOrDefault(field => string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase))
+        var fieldType = descriptor
+            .Fields.FirstOrDefault(field => string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase))
             ?.Type;
         if (fieldType?.Kind == StructuralTypeKind.Scalar)
             return fieldType.CoreValueType;
@@ -56,8 +53,8 @@ public sealed partial class ExpressionConverter
 
     private static Type InferElementType(ArrayLiteralNode node)
     {
-        var types = node.Elements
-            .Select(element => element.ReturnType)
+        var types = node
+            .Elements.Select(element => element.ReturnType)
             .Where(static type => type != null)
             .Cast<Type>()
             .Distinct()

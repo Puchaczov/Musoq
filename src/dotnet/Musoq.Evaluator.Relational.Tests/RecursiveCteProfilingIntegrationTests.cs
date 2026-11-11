@@ -40,17 +40,19 @@ public sealed class RecursiveCteProfilingIntegrationTests
 
     private static Musoq.Evaluator.Diagnostics.QueryProfileSnapshot RunProfiled(
         string sampleName,
-        int expectedResultRows)
+        int expectedResultRows
+    )
     {
         var testCase = RecursiveCteSupportedCaseCatalog.GetBySampleName(sampleName);
-        var schemaProvider = testCase.CreateSchemaProvider?.Invoke() ??
-                             EvaluatorSampleFixtures.CreateBasicSchemaProvider();
+        var schemaProvider =
+            testCase.CreateSchemaProvider?.Invoke() ?? EvaluatorSampleFixtures.CreateBasicSchemaProvider();
         var query = InstanceCreator.CompileForExecution(
             testCase.Query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             new TestsLoggerResolver(),
-            testCase.CompilationOptions.WithInstrumentationMode(QueryInstrumentationMode.Full));
+            testCase.CompilationOptions.WithInstrumentationMode(QueryInstrumentationMode.Full)
+        );
 
         var result = query.RunWithProfile(CancellationToken.None);
 

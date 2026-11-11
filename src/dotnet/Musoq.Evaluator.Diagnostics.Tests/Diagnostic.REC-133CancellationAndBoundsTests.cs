@@ -119,13 +119,16 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         cancellation.Cancel();
 
         var query = $"select r.Id from #rec133.items() r /* {caseId}-fault */";
-        var exception = Assert.ThrowsExactly<OperationCanceledException>(() => InstanceCreator.CompileWithDiagnostics(
-            query,
-            $"REC133_{caseId}_{Guid.NewGuid():N}",
-            provider,
-            new TestsLoggerResolver(),
-            new CompilationOptions(),
-            cancellation.Token));
+        var exception = Assert.ThrowsExactly<OperationCanceledException>(() =>
+            InstanceCreator.CompileWithDiagnostics(
+                query,
+                $"REC133_{caseId}_{Guid.NewGuid():N}",
+                provider,
+                new TestsLoggerResolver(),
+                new CompilationOptions(),
+                cancellation.Token
+            )
+        );
 
         Assert.AreEqual(cancellation.Token, exception.CancellationToken, caseId);
         Assert.AreEqual(0, provider.GetSchemaCount, caseId);
@@ -140,18 +143,23 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
             $"REC133_{caseId}_{Guid.NewGuid():N}",
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var cancellation = new CancellationTokenSource();
 
         var run = Task.Run(() => ObserveCancellation(compiled, cancellation.Token));
         OperationCanceledException? observed = null;
         try
         {
-            Assert.IsTrue(session.ProducerStarted.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT producer did not start for {caseId}.");
+            Assert.IsTrue(
+                session.ProducerStarted.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT producer did not start for {caseId}."
+            );
             cancellation.Cancel();
-            Assert.IsTrue(session.CancellationObserved.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT producer did not observe cancellation for {caseId}.");
+            Assert.IsTrue(
+                session.CancellationObserved.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT producer did not observe cancellation for {caseId}."
+            );
             observed = await run.WaitAsync(HarnessBudget);
         }
         finally
@@ -159,8 +167,10 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
             cancellation.Cancel();
             session.ReleaseProducer.Set();
             await run.WaitAsync(HarnessBudget);
-            Assert.IsTrue(session.ProducerExited.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}.");
+            Assert.IsTrue(
+                session.ProducerExited.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}."
+            );
         }
 
         Assert.IsNotNull(observed, $"{caseId} completed normally after cancellation.");
@@ -189,10 +199,13 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         var exception = Assert.ThrowsExactly<BinaryParseException>(() => interpreter.Interpret(fixture.Data), caseId);
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode, caseId);
         Assert.AreEqual("ISE0009", exception.FormattedErrorCode, caseId);
-        StringAssert.Contains(exception.Details, caseId is "ZP-01" or "ZP-02" or "ZP-03" or "ZP-04" or
-                "ZP-05" or "ZP-06" or "ZP-07" or "ZP-08"
+        StringAssert.Contains(
+            exception.Details,
+            caseId is "ZP-01" or "ZP-02" or "ZP-03" or "ZP-04" or "ZP-05" or "ZP-06" or "ZP-07" or "ZP-08"
                 ? "made no progress"
-                : "maximum of 10000 iterations", caseId);
+                : "maximum of 10000 iterations",
+            caseId
+        );
         return Task.CompletedTask;
     }
 
@@ -205,10 +218,12 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         {
             var repeat = RepeatUntilTypeNode.EndOfInput(
                 new ByteArrayTypeNode(new IntegerNode(0, new TextSpan(0, 0))),
-                $"Chunks{suffix}");
-            registry.Register($"ZeroProgress{suffix}", new BinarySchemaNode(
+                $"Chunks{suffix}"
+            );
+            registry.Register(
                 $"ZeroProgress{suffix}",
-                [new FieldDefinitionNode($"Chunks{suffix}", repeat)]));
+                new BinarySchemaNode($"ZeroProgress{suffix}", [new FieldDefinitionNode($"Chunks{suffix}", repeat)])
+            );
             var data = new byte[] { 0xAA, 0xBB };
             return (CompileInterpreter(registry, $"ZeroProgress{suffix}"), data);
         }
@@ -217,13 +232,12 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         {
             var emptyName = $"Empty{suffix}";
             registry.Register(emptyName, new BinarySchemaNode(emptyName, []));
-            var repeat = RepeatUntilTypeNode.EndOfInput(
-                new SchemaReferenceTypeNode(emptyName),
-                $"Items{suffix}");
+            var repeat = RepeatUntilTypeNode.EndOfInput(new SchemaReferenceTypeNode(emptyName), $"Items{suffix}");
             var outerName = $"Outer{suffix}";
-            registry.Register(outerName, new BinarySchemaNode(
+            registry.Register(
                 outerName,
-                [new FieldDefinitionNode($"Items{suffix}", repeat)]));
+                new BinarySchemaNode(outerName, [new FieldDefinitionNode($"Items{suffix}", repeat)])
+            );
             byte[] data = caseId is "ZP-05" or "ZP-06" ? [0x01] : [0x01, 0x02, 0x03];
             return (CompileInterpreter(registry, outerName), data);
         }
@@ -231,11 +245,13 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         var limitedRepeat = new RepeatUntilTypeNode(
             new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
             new BooleanNode(false),
-            $"Values{suffix}");
+            $"Values{suffix}"
+        );
         var limitedName = $"Limit{suffix}";
-        registry.Register(limitedName, new BinarySchemaNode(
+        registry.Register(
             limitedName,
-            [new FieldDefinitionNode($"Values{suffix}", limitedRepeat)]));
+            new BinarySchemaNode(limitedName, [new FieldDefinitionNode($"Values{suffix}", limitedRepeat)])
+        );
         return (CompileInterpreter(registry, limitedName), new byte[10_001]);
     }
 
@@ -249,7 +265,8 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
             CreateSourceContext(),
             session,
             finite: caseId is "CL-09" or "CL-10" or "CL-11" or "CL-12",
-            waitForCancellation: true);
+            waitForCancellation: true
+        );
 
         if (caseId is "CL-09" or "CL-10" or "CL-11" or "CL-12")
         {
@@ -273,12 +290,18 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         {
             session.ReleaseProducer.Set();
             await read.WaitAsync(HarnessBudget);
-            Assert.IsTrue(session.ProducerExited.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT finite producer did not finish for {caseId}.");
+            Assert.IsTrue(
+                session.ProducerExited.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT finite producer did not finish for {caseId}."
+            );
         }
     }
 
-    private static async Task AssertDisposalCancelsProducer(ControlledSource source, ControlledSession session, string caseId)
+    private static async Task AssertDisposalCancelsProducer(
+        ControlledSource source,
+        ControlledSession session,
+        string caseId
+    )
     {
         var read = Task.Run(() =>
         {
@@ -289,15 +312,19 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         try
         {
             await read.WaitAsync(HarnessBudget);
-            Assert.IsTrue(session.CancellationObserved.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT cleanup cancellation was not observed for {caseId}.");
+            Assert.IsTrue(
+                session.CancellationObserved.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT cleanup cancellation was not observed for {caseId}."
+            );
         }
         finally
         {
             session.ReleaseProducer.Set();
             await read.WaitAsync(HarnessBudget);
-            Assert.IsTrue(session.ProducerExited.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}.");
+            Assert.IsTrue(
+                session.ProducerExited.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}."
+            );
         }
     }
 
@@ -310,7 +337,8 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
             new BasicEntityTable().Columns,
             new Dictionary<string, string>(),
             NullLogger.Instance,
-            sourceDiagnostics: SourceDiagnostics.None);
+            sourceDiagnostics: SourceDiagnostics.None
+        );
     }
 
     private sealed class NeverEnteredProvider : ISchemaProvider
@@ -335,13 +363,13 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         }
     }
 
-    private sealed class ControlledSchema(ControlledSession session)
-        : SchemaBase("rec133", CreateLibrary())
+    private sealed class ControlledSchema(ControlledSession session) : SchemaBase("rec133", CreateLibrary())
     {
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (!string.Equals(name, "items", StringComparison.Ordinal))
                 throw new InvalidOperationException($"Unexpected table '{name}'.");
@@ -352,11 +380,13 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             return EnsureSourceType<T, BasicEntity>(
                 name,
-                new ControlledSource(executionContext, session, finite: false, waitForCancellation: true));
+                new ControlledSource(executionContext, session, finite: false, waitForCancellation: true)
+            );
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -387,11 +417,8 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         SourceExecutionContext context,
         ControlledSession session,
         bool finite,
-        bool waitForCancellation)
-        : DiagnosticChunkedRowSource<BasicEntity>(
-            context,
-            "rec133-items",
-            new DiagnosticChunkedRowSourceOptions(4))
+        bool waitForCancellation
+    ) : DiagnosticChunkedRowSource<BasicEntity>(context, "rec133-items", new DiagnosticChunkedRowSourceOptions(4))
     {
         protected override void CollectChunks(DiagnosticChunkWriter<BasicEntity> writer)
         {

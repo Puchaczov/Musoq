@@ -17,20 +17,14 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Array";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var items = InstanceCreator.CreateForAnalyze(
             query,
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
-            LoggerResolver);
+            LoggerResolver
+        );
 
         var sourceCode = items.Compilation?.SyntaxTrees.ElementAt(0).GetRoot().ToFullString();
         TestContext.WriteLine("Generated source code:");
@@ -45,14 +39,7 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Array";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -76,14 +63,7 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column array";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -99,26 +79,24 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsGreaterThan(1, table.Count,
-            "Should return multiple rows for complex array element type with nested properties");
+        Assert.IsGreaterThan(
+            1,
+            table.Count,
+            "Should return multiple rows for complex array element type with nested properties"
+        );
 
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
         Assert.Contains("Children", columnNames, "Should contain the Children column itself");
-        Assert.IsTrue(columnNames.Any(n => n.Contains('.')),
-            "Should contain nested properties like Name, Id from BasicEntity");
+        Assert.IsTrue(
+            columnNames.Any(n => n.Contains('.')),
+            "Should contain nested properties like Name, Id from BasicEntity"
+        );
     }
 
     [TestMethod]
@@ -126,18 +104,13 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column NonExistentColumn";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var exception = Assert.Throws<UnknownColumnOrAliasException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+        var exception = Assert.Throws<UnknownColumnOrAliasException>(() =>
+            _ = vm.Run(TestContext.CancellationToken).Count
+        );
         Assert.Contains("NonExistentColumn", exception.Message, "Exception message should contain the column name");
     }
 
@@ -146,19 +119,13 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Name";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-
-        Assert.Throws<ColumnMustBeAnArrayOrImplementIEnumerableException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+        Assert.Throws<ColumnMustBeAnArrayOrImplementIEnumerableException>(() =>
+            _ = vm.Run(TestContext.CancellationToken).Count
+        );
     }
 
     [TestMethod]
@@ -166,23 +133,17 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Self";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.IsGreaterThan(0, table.Count, "Complex type should show its properties");
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
-        Assert.IsTrue(columnNames.Any(c => c.Equals("Children", StringComparison.OrdinalIgnoreCase)),
-            "Should show Children property for exploratory navigation");
+        Assert.IsTrue(
+            columnNames.Any(c => c.Equals("Children", StringComparison.OrdinalIgnoreCase)),
+            "Should show Children property for exploratory navigation"
+        );
     }
 
     [TestMethod]
@@ -190,14 +151,7 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Array;";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -210,14 +164,7 @@ public partial class DescStatementTests
     {
         var query = "desc A.entities() column Array";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -230,14 +177,7 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Array";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -253,14 +193,7 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Dictionary";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -276,18 +209,10 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Self.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -300,21 +225,19 @@ public partial class DescStatementTests
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
 
-
         Assert.IsGreaterThan(0, table.Count, "Should return nested property info");
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.Contains("Children", columnNames, "Should contain base column name");
 
-
-        Assert.IsFalse(columnNames.Any(c => c.StartsWith("Self.")),
-            "Property names should be relative to Self.Children, not include Self prefix");
-
+        Assert.IsFalse(
+            columnNames.Any(c => c.StartsWith("Self.")),
+            "Property names should be relative to Self.Children, not include Self prefix"
+        );
 
         var childrenRow = table.FirstOrDefault(row => (string)row.ReadValue(0) == "Children");
         Assert.IsNotNull(childrenRow, "Should have Children row");
         var childrenType = (string)childrenRow.ReadValue(2);
-        Assert.Contains("BasicEntity",
-            childrenType, $"Children should be BasicEntity type, got: {childrenType}");
+        Assert.Contains("BasicEntity", childrenType, $"Children should be BasicEntity type, got: {childrenType}");
     }
 
     [TestMethod]
@@ -322,18 +245,10 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Self.Other.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -343,17 +258,12 @@ public partial class DescStatementTests
         Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
-
         Assert.IsGreaterThan(0, table.Count, "Should support three-level nested paths");
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.Contains("Children", columnNames, "Should contain Children base name");
 
-
-        Assert.IsFalse(columnNames.Any(c => c.StartsWith("Self.")),
-            "Property names should not include Self prefix");
-        Assert.IsFalse(columnNames.Any(c => c.StartsWith("Other.")),
-            "Property names should not include Other prefix");
-
+        Assert.IsFalse(columnNames.Any(c => c.StartsWith("Self.")), "Property names should not include Self prefix");
+        Assert.IsFalse(columnNames.Any(c => c.StartsWith("Other.")), "Property names should not include Other prefix");
 
         foreach (var row in table)
         {

@@ -38,7 +38,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 field.FieldOrder,
                 field.HasExplicitFieldName ? field.FieldName : string.Empty,
                 field.HasExplicitFieldName,
-                field.Span);
+                field.Span
+            );
             if (TryReportAggregateInGroupBy(normalizedField))
             {
                 needsDiagnosticRecovery = true;
@@ -85,10 +86,17 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private static GroupByNode CreateGroupByDiagnosticRecovery(SelectNode select, GroupByNode groupBy)
     {
-        var fields = select.Fields
-            .Where(field => !BuildMetadataAndInferTypesVisitorUtilities.ContainsAggregateFunction(field.Expression))
-            .Select((field, index) => (FieldNode)new FieldNode(CloneExpression(field.Expression), index, string.Empty, field.Span)
-                .WithFullSpan(field.FullSpan))
+        var fields = select
+            .Fields.Where(field =>
+                !BuildMetadataAndInferTypesVisitorUtilities.ContainsAggregateFunction(field.Expression)
+            )
+            .Select(
+                (field, index) =>
+                    (FieldNode)
+                        new FieldNode(CloneExpression(field.Expression), index, string.Empty, field.Span).WithFullSpan(
+                            field.FullSpan
+                        )
+            )
             .ToArray();
 
         if (fields.Length == 0)

@@ -1,13 +1,13 @@
-using System.Reflection;
 using System.Collections.Generic;
-using Musoq.Schema;
-using Musoq.Plugins.Attributes;
 using System.Linq;
+using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
+using Musoq.Plugins.Attributes;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -27,12 +27,14 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         ValidateNamedWindowReference(node);
-        var spec = node.WindowSpecification != null
-            ? PopSemanticNode("Visit(WindowFunctionNode).WindowSpec") as WindowSpecificationNode
-            : null;
-        var filterExpression = node.FunctionCall.FilterExpression != null
-            ? PopSemanticNode("Visit(WindowFunctionNode).FilterExpression")
-            : null;
+        var spec =
+            node.WindowSpecification != null
+                ? PopSemanticNode("Visit(WindowFunctionNode).WindowSpec") as WindowSpecificationNode
+                : null;
+        var filterExpression =
+            node.FunctionCall.FilterExpression != null
+                ? PopSemanticNode("Visit(WindowFunctionNode).FilterExpression")
+                : null;
 
         var funcArgCount = node.FunctionCall.Arguments?.Args.Length ?? 0;
         var funcArgs = new Node[funcArgCount];
@@ -44,11 +46,20 @@ public partial class BuildMetadataAndInferTypesVisitor
         var (returnType, resolvedFactory) = InferWindowFunctionReturnType(node.FunctionCall, funcArgs);
         var argsListNode = new ArgsListNode(funcArgs);
 
-        var normalizedName = node.FunctionCall.Name.Replace("_", string.Empty, StringComparison.Ordinal)
+        var normalizedName = node
+            .FunctionCall.Name.Replace("_", string.Empty, StringComparison.Ordinal)
             .ToUpperInvariant();
         ValidateWindowEnumArguments(normalizedName, funcArgs, node);
-        var requiresOrderBy = normalizedName is
-            "ROWNUMBER" or "RANK" or "DENSERANK" or "PERCENTRANK" or "CUMEDIST" or "NTILE" or "LAG" or "LEAD";
+        var requiresOrderBy =
+            normalizedName
+            is "ROWNUMBER"
+                or "RANK"
+                or "DENSERANK"
+                or "PERCENTRANK"
+                or "CUMEDIST"
+                or "NTILE"
+                or "LAG"
+                or "LEAD";
         if (resolvedFactory?.GetCustomAttribute<WindowFunctionAttribute>() is { KernelType: not null } declaration)
             requiresOrderBy = declaration.RequiresOrderBy;
 
@@ -57,16 +68,20 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportWindowException(
                 DiagnosticCode.MQ3099_WindowOrderByRequired,
                 $"Window function '{node.FunctionCall.Name}' requires ORDER BY inside its OVER specification.",
-                spec.SpanOrEmpty());
+                spec.SpanOrEmpty()
+            );
         }
 
-        if (Array.Exists(funcArgs, WindowExpressionPresence.Contains) ||
-            filterExpression != null && WindowExpressionPresence.Contains(filterExpression))
+        if (
+            Array.Exists(funcArgs, WindowExpressionPresence.Contains)
+            || filterExpression != null && WindowExpressionPresence.Contains(filterExpression)
+        )
         {
             ReportWindowException(
                 DiagnosticCode.MQ3100_NestedWindowFunction,
                 "Window functions cannot be nested inside another window function. Move the inner expression into a CTE or derived query.",
-                node.SpanOrEmpty());
+                node.SpanOrEmpty()
+            );
         }
 
         if (_queryState.QueryPart is QueryPart.Where or QueryPart.Having)
@@ -75,7 +90,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportWindowException(
                 DiagnosticCode.MQ3101_WindowFunctionInFilter,
                 $"Window functions are not allowed in {clause}; use QUALIFY to filter window results.",
-                node.SpanOrEmpty());
+                node.SpanOrEmpty()
+            );
         }
 
         var functionCall = new AccessMethodNode(
@@ -86,25 +102,28 @@ public partial class BuildMetadataAndInferTypesVisitor
             resolvedFactory,
             node.FunctionCall.Alias,
             node.FunctionCall.Span,
-            node.FunctionCall.IsDistinct)
+            node.FunctionCall.IsDistinct
+        )
         {
             HasFilter = node.FunctionCall.HasFilter,
             FilterExpression = filterExpression,
             FilterExpressionText = node.FunctionCall.FilterExpressionText,
             IsPivotGenerated = node.FunctionCall.IsPivotGenerated,
             IsScalarSubqueryValueWrapper = node.FunctionCall.IsScalarSubqueryValueWrapper,
-            IsCompilerGenerated = node.FunctionCall.IsCompilerGenerated
+            IsCompilerGenerated = node.FunctionCall.IsCompilerGenerated,
         };
 
         WindowFunctionNode result;
         if (node.IsNamedWindowReference)
             result = new WindowFunctionNode(
                 functionCall,
-                node.WindowName ?? throw new InvalidOperationException("Named window reference requires a window name."));
+                node.WindowName ?? throw new InvalidOperationException("Named window reference requires a window name.")
+            );
         else
             result = new WindowFunctionNode(
                 functionCall,
-                spec ?? throw new InvalidOperationException("Window function requires a window specification."));
+                spec ?? throw new InvalidOperationException("Window function requires a window specification.")
+            );
 
         result.SetReturnType(returnType);
         result.WithSpan(node.Span);
@@ -127,7 +146,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                 $"Window ORDER BY is not supported for enum type '{enumType.DisplayName}' in v1.",
-                orderByField);
+                orderByField
+            );
         }
 
         var partitionFields = new FieldNode[node.PartitionFields.Length];
@@ -139,9 +159,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         WindowFrameSemanticValidator.Validate(node, orderByFields, ReportWindowException);
 
-        var result = (WindowSpecificationNode)new WindowSpecificationNode(partitionFields, orderByFields, node.Frame)
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan);
+        var result = (WindowSpecificationNode)
+            new WindowSpecificationNode(partitionFields, orderByFields, node.Frame)
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan);
         PushSemanticNode(result);
     }
 
@@ -149,9 +170,11 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var spec = (WindowSpecificationNode)PopSemanticNode("Visit(WindowDefinitionNode).Spec");
-        PushSemanticNode(((WindowDefinitionNode)new WindowDefinitionNode(node.Name, spec))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(
+            ((WindowDefinitionNode)new WindowDefinitionNode(node.Name, spec))
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(WindowNode node)
@@ -161,19 +184,23 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = node.Definitions.Length - 1; i >= 0; i--)
             definitions[i] = (WindowDefinitionNode)PopSemanticNode("Visit(WindowNode).Definition");
 
-        PushSemanticNode(((WindowNode)new WindowNode(definitions))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(((WindowNode)new WindowNode(definitions)).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 
-    private (Type ReturnType, MethodInfo? ResolvedFactory) InferWindowFunctionReturnType(AccessMethodNode call, Node[] args)
+    private (Type ReturnType, MethodInfo? ResolvedFactory) InferWindowFunctionReturnType(
+        AccessMethodNode call,
+        Node[] args
+    )
     {
         var functionName = call.Name;
         var normalizedName = functionName.Replace("_", "", StringComparison.Ordinal).ToUpperInvariant();
         var libraries = EnumerateWindowLibraries(call.Alias).ToArray();
         WindowDeclarationBinding.ValidateArguments(call, args, libraries);
-        var resolvedFactory = WindowDeclarationBinding.Bind(functionName,
-            args.Select(static argument => argument.ReturnType ?? typeof(object)).ToArray(), libraries);
+        var resolvedFactory = WindowDeclarationBinding.Bind(
+            functionName,
+            args.Select(static argument => argument.ReturnType ?? typeof(object)).ToArray(),
+            libraries
+        );
         return (WindowFunctionReturnTypeResolver.Resolve(normalizedName, args, resolvedFactory), resolvedFactory);
     }
 
@@ -204,6 +231,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             yield return new TransitionSchema(tableName, table);
         }
     }
+
     private void ValidateQualifyReferencesWindowFunction(QualifyNode qualify)
     {
         if (WindowExpressionPresence.Contains(qualify.Expression))
@@ -214,7 +242,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         ReportWindowException(
             DiagnosticCode.MQ3050_QualifyRequiresWindowFunction,
             "QUALIFY clause requires at least one window function in its expression.",
-            span);
+            span
+        );
     }
 
     private void ThrowRangeFrameRequiresOrderBy(WindowSpecificationNode node)

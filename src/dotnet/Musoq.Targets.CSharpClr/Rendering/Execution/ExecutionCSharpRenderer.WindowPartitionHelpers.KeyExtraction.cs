@@ -11,17 +11,15 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionWindowKeyArray partitionKeys,
         ExecutionVariable? partitionBuilder,
         string indexVariableName,
-        ExpressionSyntax partitionKeyExpression)
+        ExpressionSyntax partitionKeyExpression
+    )
     {
         if (partitionBuilder == null)
         {
             if (!partitionKeys.ShouldMaterialize)
                 throw new InvalidOperationException("Builder-only window partition keys require a partition builder.");
 
-            yield return CreateWindowKeyArrayAssignment(
-                partitionKeys,
-                indexVariableName,
-                partitionKeyExpression);
+            yield return CreateWindowKeyArrayAssignment(partitionKeys, indexVariableName, partitionKeyExpression);
             yield break;
         }
 
@@ -30,27 +28,32 @@ public sealed partial class ExecutionCSharpRenderer
             ? partitionKeyExpression
             : CastIfNeeded(partitionKeyExpression, GetArrayElementType(partitionKeys.Variable));
 
-        yield return CreateLocalDeclaration(
-            CreateWindowKeyElementTypeSyntax(partitionKeys),
-            keyName,
-            keyValue);
+        yield return CreateLocalDeclaration(CreateWindowKeyElementTypeSyntax(partitionKeys), keyName, keyValue);
 
         if (partitionKeys.ShouldMaterialize)
         {
             yield return CreateWindowKeyArrayAssignment(
                 partitionKeys,
                 indexVariableName,
-                SyntaxFactory.IdentifierName(keyName));
+                SyntaxFactory.IdentifierName(keyName)
+            );
         }
 
         yield return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(partitionBuilder.Name),
-                        SyntaxFactory.IdentifierName(nameof(WindowPartitionBuilder<object>.Add))))
-                .WithArgumentList(CreateArgumentList(
-                    SyntaxFactory.IdentifierName(keyName),
-                    SyntaxFactory.IdentifierName(indexVariableName))));
+                        SyntaxFactory.IdentifierName(nameof(WindowPartitionBuilder<object>.Add))
+                    )
+                )
+                .WithArgumentList(
+                    CreateArgumentList(
+                        SyntaxFactory.IdentifierName(keyName),
+                        SyntaxFactory.IdentifierName(indexVariableName)
+                    )
+                )
+        );
     }
 }

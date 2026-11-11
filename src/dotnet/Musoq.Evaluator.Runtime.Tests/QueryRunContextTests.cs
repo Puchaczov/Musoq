@@ -56,7 +56,8 @@ public sealed class QueryRunContextTests
                 progressArgs = args;
             },
             sender: sender,
-            queryId: "query-1");
+            queryId: "query-1"
+        );
 
         context.NotifyPhaseChanged(QueryPhase.Select);
         context.NotifyDataSourceProgress(new object(), dataSourceArgs);
@@ -96,7 +97,10 @@ public sealed class QueryRunContextTests
     public void Capture_WhenOptionsAreProvided_ShouldSnapshotOptions()
     {
         var parameters = new Dictionary<string, object?> { ["limit"] = 10 };
-        var options = new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters));
+        var options = new TypedQueryRunOptions(
+            CancellationToken.None,
+            global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters)
+        );
         var sender = new object();
         var context = QueryRunContext.Capture(options, sender, "query");
 

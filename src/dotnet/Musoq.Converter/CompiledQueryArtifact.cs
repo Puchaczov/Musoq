@@ -22,7 +22,8 @@ public sealed class CompiledQueryArtifact : ICompiledQueryArtifact
         string engineVersion,
         string artifactFormatVersion,
         string compilationOptionsSignature,
-        IReadOnlyDictionary<string, string> metadata)
+        IReadOnlyDictionary<string, string> metadata
+    )
     {
         ArgumentNullException.ThrowIfNull(assemblyBytes);
         ArgumentNullException.ThrowIfNull(metadata);

@@ -20,5 +20,6 @@ internal static class CaseExpressionSyntax
             "CASE is reserved and starts a CASE expression here, but no WHEN branch or subject expression follows. Use [case] when the word is intended as an identifier.",
             queryPart,
             DiagnosticCode.MQ2027_MissingWhenClause,
-            caseSpan);
+            caseSpan
+        );
 }

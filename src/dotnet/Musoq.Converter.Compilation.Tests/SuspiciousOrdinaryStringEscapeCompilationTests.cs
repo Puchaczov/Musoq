@@ -25,7 +25,8 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
             query,
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.IsNotNull(result.CompiledQuery);
@@ -33,9 +34,7 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
         Assert.IsEmpty(result.ToEnvelopes());
         Assert.HasCount(1, result.Warnings, FormatDiagnostics(result.Diagnostics));
         Assert.AreEqual(DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, result.Warnings[0].Code);
-        Assert.AreEqual(
-            "C:\n" + "ew\t" + "est",
-            result.CompiledQuery.Run()[0].ReadValue(0));
+        Assert.AreEqual("C:\n" + "ew\t" + "est", result.CompiledQuery.Run()[0].ReadValue(0));
     }
 
     [TestMethod]
@@ -48,7 +47,8 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.HasCount(1, result.Warnings, FormatDiagnostics(result.Diagnostics));
@@ -64,7 +64,8 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
             query,
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.HasCount(1, result.Warnings);
         Assert.HasCount(1, result.Diagnostics);
@@ -86,7 +87,8 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
             query,
             Guid.NewGuid().ToString(),
             new SystemSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var warnings = items.DiagnosticContext.Warnings.ToList();
         Assert.HasCount(1, warnings);
@@ -102,7 +104,8 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
             query,
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.HasCount(1, result.Warnings);
@@ -117,12 +120,14 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
             @"select f.Path from #raw.files(r'C:\new\test', true) f",
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         var doubled = InstanceCreator.CompileWithDiagnostics(
             @"select f.Path from #raw.files('C:\\new\\test', true) f",
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(raw.Succeeded, FormatDiagnostics(raw.Diagnostics));
         Assert.IsTrue(doubled.Succeeded, FormatDiagnostics(doubled.Diagnostics));
@@ -143,13 +148,15 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         var second = InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.IsTrue(first.Succeeded, FormatDiagnostics(first.Diagnostics));
         Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
@@ -169,14 +176,16 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
             $"SuspiciousCanonicalFirst_{suffix}",
             new ArtifactSchemaProvider(new ArtifactSchema("first")),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         var secondProvider = new ArtifactSchemaProvider(new ArtifactSchema("second"));
         var second = InstanceCreator.CompileWithDiagnostics(
             $"select  'C:\\new\\test'  as  Path,  'token-{suffix}'  as  Token  from  #artifact.items()  i",
             $"SuspiciousCanonicalSecond_{suffix}",
             secondProvider,
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.IsTrue(first.Succeeded, FormatDiagnostics(first.Diagnostics));
         Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
@@ -187,17 +196,20 @@ public sealed class SuspiciousOrdinaryStringEscapeCompilationTests
         Assert.AreEqual(first.Warnings[0].Message, second.Warnings[0].Message);
         Assert.AreEqual(
             first.Warnings[0].EndLocation.Offset - first.Warnings[0].Location.Offset,
-            second.Warnings[0].EndLocation.Offset - second.Warnings[0].Location.Offset);
+            second.Warnings[0].EndLocation.Offset - second.Warnings[0].Location.Offset
+        );
         Assert.AreEqual(first.Warnings[0].Location.Offset + 1, second.Warnings[0].Location.Offset);
         Assert.AreEqual(first.Warnings[0].EndLocation.Offset + 1, second.Warnings[0].EndLocation.Offset);
         Assert.IsNotNull(first.BuildItems);
         Assert.IsNotNull(second.BuildItems);
         var firstIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
             first.BuildItems!,
-            new ArtifactSchemaProvider(new ArtifactSchema("first")));
+            new ArtifactSchemaProvider(new ArtifactSchema("first"))
+        );
         var secondIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
             second.BuildItems,
-            secondProvider);
+            secondProvider
+        );
         Assert.AreNotEqual(0, firstIdentity);
         Assert.AreEqual(firstIdentity, secondIdentity);
 

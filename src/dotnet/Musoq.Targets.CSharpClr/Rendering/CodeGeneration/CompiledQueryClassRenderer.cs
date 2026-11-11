@@ -24,7 +24,7 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
         "Musoq.Evaluator.Tables",
         "Musoq.Evaluator.Helpers",
         "Musoq.Schema.DataSources",
-        "System.Linq"
+        "System.Linq",
     ];
 
     private readonly RenderContext _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -33,7 +33,8 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
         string queryIdentifier,
         int inMemoryTableCount = 0,
         int cteIndexResultCount = 0,
-        string? runMethodNameOverride = null)
+        string? runMethodNameOverride = null
+    )
     {
         var runMethodName = ResolveRunMethodName(queryIdentifier, runMethodNameOverride);
         var members = CreateClassMembers(runMethodName);
@@ -41,11 +42,11 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
         var namespaceDeclaration = ClassEmitter.CreateNamespaceDeclaration(
             ResolveNamespaceName(),
             ResolveNamespaces(members),
-            classDeclaration);
+            classDeclaration
+        );
 
         return ClassEmitter.CreateCompilationUnit(namespaceDeclaration);
     }
-
 
     private bool IsInstrumentationEnabled => _context.InstrumentationMode != QueryInstrumentationMode.Disabled;
 
@@ -53,14 +54,16 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
     {
         if (_context.ResultMode == QueryResultMode.TypedEnumerable)
         {
-            var outputType = _context.OutputType
-                             ?? throw new InvalidOperationException("Typed enumerable result mode requires an output type.");
+            var outputType =
+                _context.OutputType
+                ?? throw new InvalidOperationException("Typed enumerable result mode requires an output type.");
             return ClassEmitter.CreateTypedClassDeclaration(
                 _context.Generator,
                 DefaultClassName,
                 outputType,
                 members,
-                _context.IsMetadataOnly);
+                _context.IsMetadataOnly
+            );
         }
 
         return ClassEmitter.CreateClassDeclaration(
@@ -70,25 +73,31 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
             IsInstrumentationEnabled,
             _context.EnableContextualExecution,
             IsInstrumentationEnabled && _context.EnableContextualExecution,
-            _context.IsMetadataOnly);
+            _context.IsMetadataOnly
+        );
     }
 
-    private List<SyntaxNode> CreateClassMembers(
-        string computeMethodName)
+    private List<SyntaxNode> CreateClassMembers(string computeMethodName)
     {
         var members = new List<SyntaxNode>();
         var profiledComputeMethodName = QueryMethodNameResolver.ResolveProfiled(computeMethodName);
 
         for (var index = 0; index < _context.ScriptParameterDefinitions.Count; index++)
             if (_context.ScriptParameterDefinitions[index].Contract.StructuralType is { } descriptor)
-                members.AddRange(new TypedStructuredJsonSyntax(_context.ScriptVariableDefinitions.Count + index)
-                    .Create(descriptor, _context.ScriptParameterDefinitions[index]));
+                members.AddRange(
+                    new TypedStructuredJsonSyntax(_context.ScriptVariableDefinitions.Count + index).Create(
+                        descriptor,
+                        _context.ScriptParameterDefinitions[index]
+                    )
+                );
 
         foreach (var classMember in _context.ClassMembers)
         {
             if (classMember is not MemberDeclarationSyntax)
                 throw UnsupportedShape.Of(
-                    $"Class member type {classMember.GetType().Name}", "CompiledQueryClassRenderer");
+                    $"Class member type {classMember.GetType().Name}",
+                    "CompiledQueryClassRenderer"
+                );
 
             members.Add(classMember);
         }
@@ -98,18 +107,23 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
 
         if (_context.ResultMode == QueryResultMode.TypedEnumerable)
         {
-            var outputType = _context.OutputType
-                             ?? throw new InvalidOperationException("Typed enumerable result mode requires an output type.");
+            var outputType =
+                _context.OutputType
+                ?? throw new InvalidOperationException("Typed enumerable result mode requires an output type.");
             ClassEmitter.AddTypedRunnableMembers(
                 members,
                 computeMethodName,
                 outputType,
-                _context.ScriptParameterDefinitions);
+                _context.ScriptParameterDefinitions
+            );
         }
         else if (_context.ResultMode == QueryResultMode.TableViaRows)
         {
-            var resultInfo = _context.TableViaRowsResult
-                             ?? throw new InvalidOperationException("TableViaRows result mode requires final select-shape result metadata.");
+            var resultInfo =
+                _context.TableViaRowsResult
+                ?? throw new InvalidOperationException(
+                    "TableViaRows result mode requires final select-shape result metadata."
+                );
             if (IsInstrumentationEnabled)
             {
                 ClassEmitter.AddProfiledTableViaRowsRunnableMembers(
@@ -119,7 +133,8 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
                     resultInfo,
                     _context.ScriptParameterDefinitions,
                     _context.ForceTableResultMaterialization,
-                    _context.EnableContextualExecution);
+                    _context.EnableContextualExecution
+                );
             }
             else
             {
@@ -129,7 +144,8 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
                     resultInfo,
                     _context.ScriptParameterDefinitions,
                     forceTableResultMaterialization: _context.ForceTableResultMaterialization,
-                    enableContextualExecution: _context.EnableContextualExecution);
+                    enableContextualExecution: _context.EnableContextualExecution
+                );
             }
         }
         else if (_context.TableViaRowsResult != null)
@@ -143,7 +159,8 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
                     _context.TableViaRowsResult,
                     _context.ScriptParameterDefinitions,
                     _context.ForceTableResultMaterialization,
-                    _context.EnableContextualExecution);
+                    _context.EnableContextualExecution
+                );
             }
             else
             {
@@ -154,7 +171,8 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
                     _context.ScriptParameterDefinitions,
                     useLifecycleWrapper: false,
                     forceTableResultMaterialization: _context.ForceTableResultMaterialization,
-                    enableContextualExecution: _context.EnableContextualExecution);
+                    enableContextualExecution: _context.EnableContextualExecution
+                );
             }
         }
         else if (IsInstrumentationEnabled)
@@ -166,7 +184,8 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
                 _context.ScriptParameterDefinitions,
                 $"{computeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken)",
                 _context.EnableContextualExecution,
-                $"{profiledComputeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken, profileRecorder)");
+                $"{profiledComputeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken, profileRecorder)"
+            );
         }
         else
         {
@@ -175,7 +194,8 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
                 $"{computeMethodName}(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token)",
                 _context.ScriptParameterDefinitions,
                 $"{computeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken)",
-                _context.EnableContextualExecution);
+                _context.EnableContextualExecution
+            );
         }
 
         return members;
@@ -196,16 +216,12 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
 
     private string ResolveNamespaceName()
     {
-        return string.IsNullOrWhiteSpace(_context.AssemblyName)
-            ? DefaultNamespaceName
-            : _context.AssemblyName;
+        return string.IsNullOrWhiteSpace(_context.AssemblyName) ? DefaultNamespaceName : _context.AssemblyName;
     }
 
     private static bool ContainsMethod(IEnumerable<SyntaxNode> members, string methodName)
     {
-        return members
-            .OfType<MethodDeclarationSyntax>()
-            .Any(method => method.Identifier.ValueText == methodName);
+        return members.OfType<MethodDeclarationSyntax>().Any(method => method.Identifier.ValueText == methodName);
     }
 
     private MethodDeclarationSyntax CreatePlaceholderComputeMethod(string computeMethodName)
@@ -215,54 +231,84 @@ public sealed partial class CompiledQueryClassRenderer(RenderContext context)
             return CreatePlaceholderTypedComputeMethod(
                 computeMethodName,
                 _context.OutputType
-                ?? throw new InvalidOperationException("Typed enumerable result mode requires an output type."));
+                    ?? throw new InvalidOperationException("Typed enumerable result mode requires an output type.")
+            );
         }
 
         if (_context.TableViaRowsResult is { } resultInfo)
             return CreatePlaceholderRowsComputeMethod(computeMethodName, resultInfo.RowTypeName);
 
-        var exception = SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.IdentifierName(nameof(NotImplementedException)))
+        var exception = SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(NotImplementedException)))
             .WithArgumentList(SyntaxFactory.ArgumentList());
         var body = StatementEmitter.CreateBlock(StatementEmitter.CreateThrow(exception));
 
         return MethodDeclarationHelper.CreateStandardPrivateMethod(computeMethodName, body);
     }
 
-    private static MethodDeclarationSyntax CreatePlaceholderTypedComputeMethod(string computeMethodName, Type outputType)
+    private static MethodDeclarationSyntax CreatePlaceholderTypedComputeMethod(
+        string computeMethodName,
+        Type outputType
+    )
     {
-        var exception = SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.IdentifierName(nameof(InvalidOperationException)))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression,
-                    SyntaxFactory.Literal("Typed enumerable query method was not generated."))))));
+        var exception = SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(InvalidOperationException)))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal("Typed enumerable query method was not generated.")
+                            )
+                        )
+                    )
+                )
+            );
         var body = StatementEmitter.CreateBlock(StatementEmitter.CreateThrow(exception));
 
-        return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.GenericName(nameof(IEnumerable<object>))
-                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            CreateTypeSyntax(outputType)))),
-                SyntaxFactory.Identifier(computeMethodName))
+        return SyntaxFactory
+            .MethodDeclaration(
+                SyntaxFactory
+                    .GenericName(nameof(IEnumerable<object>))
+                    .WithTypeArgumentList(
+                        SyntaxFactory.TypeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(CreateTypeSyntax(outputType))
+                        )
+                    ),
+                SyntaxFactory.Identifier(computeMethodName)
+            )
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(MethodDeclarationHelper.CreateTypedRunContextParameterList())
             .WithBody(body);
     }
 
-    private static MethodDeclarationSyntax CreatePlaceholderRowsComputeMethod(string computeMethodName, string rowTypeName)
+    private static MethodDeclarationSyntax CreatePlaceholderRowsComputeMethod(
+        string computeMethodName,
+        string rowTypeName
+    )
     {
-        var exception = SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.IdentifierName(nameof(InvalidOperationException)))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression,
-                    SyntaxFactory.Literal("Table rows query method was not generated."))))));
+        var exception = SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(InvalidOperationException)))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal("Table rows query method was not generated.")
+                            )
+                        )
+                    )
+                )
+            );
         var body = StatementEmitter.CreateBlock(StatementEmitter.CreateThrow(exception));
 
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.ParseTypeName($"IEnumerable<{rowTypeName}>"),
-                SyntaxFactory.Identifier(computeMethodName))
+                SyntaxFactory.Identifier(computeMethodName)
+            )
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(MethodDeclarationHelper.CreateStandardParameterList())
             .WithBody(body);

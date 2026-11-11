@@ -15,12 +15,12 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : SchemaParserTest
     public void BinaryRepetitionAndConditionalDiscard_ShouldPreserveSchemaShape()
     {
         const string schema =
-            "binary Stream {" +
-            " Count: byte," +
-            " Items: byte repeat until Items[-1] = 0," +
-            " Chunks: byte[2] repeat until EOF," +
-            " _: byte when Count = 1" +
-            "}";
+            "binary Stream {"
+            + " Count: byte,"
+            + " Items: byte repeat until Items[-1] = 0,"
+            + " Chunks: byte[2] repeat until EOF,"
+            + " _: byte when Count = 1"
+            + "}";
 
         var result = ParseBinarySchema(schema);
 

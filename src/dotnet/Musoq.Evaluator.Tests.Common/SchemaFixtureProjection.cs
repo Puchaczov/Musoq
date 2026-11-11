@@ -19,28 +19,45 @@ internal sealed class SchemaFixtureProjection
         var metadataName = SchemaNamespace + "." + schemaName;
         if (typeArguments.Length > 0)
             metadataName += "`" + typeArguments.Length;
-        var root = compilation.GetTypeByMetadataName(metadataName)
+        var root =
+            compilation.GetTypeByMetadataName(metadataName)
             ?? throw new InvalidOperationException("Missing generated schema: " + metadataName);
         if (typeArguments.Length > 0)
-            root = root.Construct(typeArguments.Select(name => compilation.GetTypeByMetadataName(SchemaNamespace + "." + name)
-                ?? throw new InvalidOperationException("Missing schema argument: " + name)).ToArray());
+            root = root.Construct(
+                typeArguments
+                    .Select(name =>
+                        compilation.GetTypeByMetadataName(SchemaNamespace + "." + name)
+                        ?? throw new InvalidOperationException("Missing schema argument: " + name)
+                    )
+                    .ToArray()
+            );
 
         return Discover(compilation, root).Render(root);
     }
 
     internal static string CreateText(CSharpCompilation compilation, string schemaName)
     {
-        var root = compilation.GetTypeByMetadataName(SchemaNamespace + "." + schemaName)
+        var root =
+            compilation.GetTypeByMetadataName(SchemaNamespace + "." + schemaName)
             ?? throw new InvalidOperationException("Missing generated text schema: " + schemaName);
-        return Discover(compilation, root).RenderAdapter(root, "TextFixtureAdapter", "ICompiledTextFixture",
-            "public object Parse(string text) => Snapshot0(_interpreter.Parse(text));");
+        return Discover(compilation, root)
+            .RenderAdapter(
+                root,
+                "TextFixtureAdapter",
+                "ICompiledTextFixture",
+                "public object Parse(string text) => Snapshot0(_interpreter.Parse(text));"
+            );
     }
 
     private static SchemaFixtureProjection Discover(CSharpCompilation compilation, INamedTypeSymbol root)
     {
         var projection = new SchemaFixtureProjection();
         projection.Register(root);
-        foreach (var declaration in compilation.SyntaxTrees.SelectMany(tree => tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>()))
+        foreach (
+            var declaration in compilation.SyntaxTrees.SelectMany(tree =>
+                tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>()
+            )
+        )
         {
             var type = compilation.GetSemanticModel(declaration.SyntaxTree).GetDeclaredSymbol(declaration)!;
             if (type.ContainingNamespace.ToDisplayString() == SchemaNamespace && !type.IsGenericType)
@@ -56,7 +73,11 @@ internal sealed class SchemaFixtureProjection
             Register(array.ElementType);
             return;
         }
-        if (type is not INamedTypeSymbol named || named.ContainingNamespace.ToDisplayString() != SchemaNamespace || _types.ContainsKey(type))
+        if (
+            type is not INamedTypeSymbol named
+            || named.ContainingNamespace.ToDisplayString() != SchemaNamespace
+            || _types.ContainsKey(type)
+        )
             return;
         _types.Add(type, _types.Count);
         foreach (var property in Properties(named))
@@ -65,7 +86,11 @@ internal sealed class SchemaFixtureProjection
 
     private static IEnumerable<IPropertySymbol> Properties(INamedTypeSymbol type)
     {
-        for (var current = type; current != null && current.ContainingNamespace.ToDisplayString() == SchemaNamespace; current = current.BaseType)
+        for (
+            var current = type;
+            current != null && current.ContainingNamespace.ToDisplayString() == SchemaNamespace;
+            current = current.BaseType
+        )
             foreach (var property in current.GetMembers().OfType<IPropertySymbol>())
                 if (!property.IsStatic && !property.IsIndexer && property.DeclaredAccessibility == Accessibility.Public)
                     yield return property;
@@ -114,7 +139,8 @@ internal sealed class SchemaFixtureProjection
     private string RenderAdapter(INamedTypeSymbol root, string adapterName, string contract, string entryPoints)
     {
         var typeName = root.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        var result = new StringBuilder($$"""
+        var result = new StringBuilder(
+            $$"""
 
             namespace Musoq.Generated.Interpreters
             {
@@ -122,18 +148,23 @@ internal sealed class SchemaFixtureProjection
                 {
                     private readonly {{typeName}} _interpreter = new();
                     {{entryPoints}}
-            """);
+            """
+        );
         foreach (var pair in _types.OrderBy(pair => pair.Value))
         {
             var name = pair.Key.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            result.AppendLine($"private static object Snapshot{pair.Value}({name} value) => value == null ? null : new global::System.Collections.Generic.Dictionary<string, object> {{");
+            result.AppendLine(
+                $"private static object Snapshot{pair.Value}({name} value) => value == null ? null : new global::System.Collections.Generic.Dictionary<string, object> {{"
+            );
             foreach (var property in Properties((INamedTypeSymbol)pair.Key))
                 result.AppendLine($"[\"{property.Name}\"] = {Value(property.Type, "value.@" + property.Name)},");
             result.AppendLine("};");
         }
         result.AppendLine("private static object SnapshotObject(object value) => value switch {");
         foreach (var pair in _types)
-            result.AppendLine($"{pair.Key.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} item => Snapshot{pair.Value}(item),");
+            result.AppendLine(
+                $"{pair.Key.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} item => Snapshot{pair.Value}(item),"
+            );
         result.AppendLine("_ => value }; } }");
         return result.ToString();
     }

@@ -17,22 +17,26 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "p.Name",
             typeof(string),
             [binding],
-            scan);
+            scan
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1)
+                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1),
             ],
-            aggregate);
+            aggregate
+        );
         var sort = new PhysicalSortNode(
             [new OrderField(new AggregateRef("p.Count", typeof(long)), Descending: true)],
-            project);
+            project
+        );
         var builder = CreateSerialBuilder();
 
         var result = builder.Build(sort, "Q_SingleKeyAggregateOrderBy");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_SingleKeyAggregateOrderBy]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -54,7 +58,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    ForEach [finalGroup in groupsToFinalize]",
             "      AppendShape [result <- ResultShape0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
             "    SortOwnedBuffer [result by Count DESC, stable sequence __musoqSequence]",
-            "    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]");
+            "    ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -68,25 +73,23 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.Add,
             new ColumnRef("p", "Age", typeof(int)),
             new Literal(1, typeof(int)),
-            typeof(int));
-        var aggregate = new PhysicalSingleKeyAggregateNode(
-            groupKey,
-            "p.AgePlusOne",
-            typeof(int),
-            [binding],
-            scan);
+            typeof(int)
+        );
+        var aggregate = new PhysicalSingleKeyAggregateNode(groupKey, "p.AgePlusOne", typeof(int), [binding], scan);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("AgePlusOne", groupKey, 0),
-                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1)
+                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1),
             ],
-            aggregate);
+            aggregate
+        );
         var builder = CreateSerialBuilder();
 
         var result = builder.Build(project, "Q_SingleKeyAggregateComputedGroupKey");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_SingleKeyAggregateComputedGroupKey]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -107,7 +110,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
             "      AppendShape [result <- ResultRow0(AgePlusOne: finalGroup.p.AgePlusOne, Count: Count('p.Count'))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -122,26 +126,31 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "p.Name",
             typeof(string),
             [binding],
-            scan);
+            scan
+        );
         var having = new PhysicalHavingFilterNode(
             new BinaryOp(
                 BinaryOpKind.GreaterThan,
                 new AggregateRef("p.Count", typeof(long)),
                 new Literal(1, typeof(int)),
-                typeof(bool)),
-            aggregate);
+                typeof(bool)
+            ),
+            aggregate
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1)
+                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 1),
             ],
-            having);
+            having
+        );
         var builder = CreateSerialBuilder();
 
         var result = builder.Build(project, "Q_SingleKeyAggregateHaving");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_SingleKeyAggregateHaving]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -163,7 +172,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    ForEach [finalGroup in groupsToFinalize]",
             "      If [(Count('p.Count') > 1)]",
             "        AppendShape [result <- ResultRow0(Name: finalGroup.p.Name, Count: Count('p.Count'))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -178,20 +188,23 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             ["p.Name", "p.Age"],
             [typeof(string), typeof(int)],
             [binding],
-            scan);
+            scan
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
                 new ProjectedField("Age", new ColumnRef("p", "Age", typeof(int)), 1),
-                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 2)
+                new ProjectedField("Count", new AggregateRef("p.Count", typeof(long)), 2),
             ],
-            aggregate);
+            aggregate
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_ValueTupleAggregate");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_ValueTupleAggregate]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -213,7 +226,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    EnsureShapeCapacity [result <- Candidate(result <- groupsToFinalize.Count)]",
             "    ForEach [finalGroup in groupsToFinalize]",
             "      AppendShape [result <- ResultRow0(Name: finalGroup.p.Name, Age: finalGroup.p.Age, Count: Count('p.Count'))]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

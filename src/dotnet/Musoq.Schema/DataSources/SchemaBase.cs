@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Collections.Immutable;
 using Musoq.Plugins;
 using Musoq.Schema.Attributes;
 using Musoq.Schema.Exceptions;
@@ -28,8 +28,9 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
             throw SchemaArgumentException.ForEmptyString(nameof(name), "initializing a schema");
 
         Name = name;
-        _aggregator = methodsAggregator ??
-                      throw SchemaArgumentException.ForNullArgument(nameof(methodsAggregator), "initializing a schema");
+        _aggregator =
+            methodsAggregator
+            ?? throw SchemaArgumentException.ForNullArgument(nameof(methodsAggregator), "initializing a schema");
 
         AddTable<SingleRowSchemaTable>("empty");
         AddSource<SingleRowSource>("empty");
@@ -41,7 +42,11 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
 
     public string Name { get; }
 
-    public virtual ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public virtual ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         if (string.IsNullOrWhiteSpace(name))
             throw SchemaArgumentException.ForEmptyString(nameof(name), "getting a table by name");
@@ -57,7 +62,11 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         return table;
     }
 
-    public virtual SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
+    public virtual SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters
+    )
     {
         if (string.IsNullOrWhiteSpace(name))
             throw SchemaArgumentException.ForEmptyString(nameof(name), "describing a source");
@@ -73,14 +82,15 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         {
             Identity = context.Identity,
             RowType = table.Metadata?.TableEntityType,
-            Columns = table.Columns
+            Columns = table.Columns,
         };
     }
 
     public virtual IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
         string name,
         SourceRuntimeSettingsDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         if (string.IsNullOrWhiteSpace(name))
             throw SchemaArgumentException.ForEmptyString(nameof(name), "describing source runtime settings");
@@ -94,8 +104,10 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         var sourceName = $"{NormalizeSchemaMemberName(name)}{SourcePart}";
         var requirements = new Dictionary<string, SourceRuntimeSettingRequirement>(StringComparer.Ordinal);
 
-        foreach (var constructor in GetMatchingConstructors(tableName, parameters)
-                     .Concat(GetMatchingConstructors(sourceName, parameters)))
+        foreach (
+            var constructor in GetMatchingConstructors(tableName, parameters)
+                .Concat(GetMatchingConstructors(sourceName, parameters))
+        )
         {
             context.MetadataContext.EndWorkToken.ThrowIfCancellationRequested();
             var originConstructor = constructor.OriginConstructor;
@@ -126,7 +138,12 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         return SourcePlanResult.RejectAll(request);
     }
 
-    public virtual RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters) where TArguments : struct, global::Musoq.Schema.ISourceArguments
+    public virtual RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments parameters
+    )
+        where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
         if (string.IsNullOrWhiteSpace(name))
             throw SchemaArgumentException.ForEmptyString(nameof(name), "getting a row source");
@@ -135,10 +152,15 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
             throw SchemaArgumentException.ForNullArgument(nameof(executionContext), "getting a row source");
 
         throw new NotSupportedException(
-            $"Source '{Name}.{name}' must provide native typed construction or override GetRowSource<T, TArguments>.");
+            $"Source '{Name}.{name}' must provide native typed construction or override GetRowSource<T, TArguments>."
+        );
     }
 
-    protected void ValidateRequestedRowType<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    protected void ValidateRequestedRowType<T>(
+        string name,
+        SourceExecutionContext executionContext,
+        params object?[] parameters
+    )
     {
         ArgumentNullException.ThrowIfNull(executionContext);
         var metadataContext = new SourceMetadataContext(
@@ -146,7 +168,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
             executionContext.EndWorkToken,
             executionContext.AllColumns,
             executionContext.SourceRuntimeSettings,
-            executionContext.Logger);
+            executionContext.Logger
+        );
         var table = GetTableByName(name, metadataContext, parameters);
         var entityType = table.Metadata?.TableEntityType;
 
@@ -154,17 +177,17 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
             return;
 
         throw new InvalidOperationException(
-            $"Schema table '{name}' declares row type '{entityType.FullName}', but source was requested as '{typeof(T).FullName}'.");
+            $"Schema table '{name}' declares row type '{entityType.FullName}', but source was requested as '{typeof(T).FullName}'."
+        );
     }
 
-    protected static RowSource<TRequested> EnsureSourceType<TRequested, TActual>(
-        string name,
-        RowSource<TActual> source)
+    protected static RowSource<TRequested> EnsureSourceType<TRequested, TActual>(string name, RowSource<TActual> source)
     {
         if (typeof(TRequested) != typeof(TActual))
         {
             throw new InvalidOperationException(
-                $"Schema source '{name}' produces row type '{typeof(TActual).FullName}', but source was requested as '{typeof(TRequested).FullName}'.");
+                $"Schema source '{name}' produces row type '{typeof(TActual).FullName}', but source was requested as '{typeof(TRequested).FullName}'."
+            );
         }
 
         return (RowSource<TRequested>)(object)source;
@@ -177,7 +200,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
 
         var sourceType = source?.GetType().FullName ?? "<null>";
         throw new InvalidOperationException(
-            $"Schema source '{name}' cannot be returned as '{typeof(RowSource<T>).FullName}'. Actual source type is '{sourceType}'.");
+            $"Schema source '{name}' cannot be returned as '{typeof(RowSource<T>).FullName}'. Actual source type is '{sourceType}'."
+        );
     }
 
     private T ResolveAndCreate<T>(
@@ -185,17 +209,16 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         string resolvedName,
         Func<string> getAvailableNames,
         object?[] parameters,
-        Func<ConstructorInfo, object?[], object?[]>? transformParameters = null) where T : class
+        Func<ConstructorInfo, object?[], object?[]>? transformParameters = null
+    )
+        where T : class
     {
         var methods = GetConstructors(resolvedName).Select(c => c.ConstructorInfo).ToArray();
 
         if (methods.Length == 0)
         {
             var available = getAvailableNames();
-            throw SchemaArgumentException.ForInvalidMethodName(
-                displayName,
-                available,
-                reason: "unknown-source");
+            throw SchemaArgumentException.ForInvalidMethodName(displayName, available, reason: "unknown-source");
         }
 
         if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
@@ -206,7 +229,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
                 displayName,
                 providedTypes,
                 availableSignatures,
-                resolutionReason: "no-matching-overload");
+                resolutionReason: "no-matching-overload"
+            );
         }
 
         if (transformParameters != null)
@@ -214,8 +238,11 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
 
         try
         {
-            var originConstructor = constructorInfo.OriginConstructor ??
-                throw new InvalidOperationException($"Constructor metadata for '{displayName}' has no origin constructor.");
+            var originConstructor =
+                constructorInfo.OriginConstructor
+                ?? throw new InvalidOperationException(
+                    $"Constructor metadata for '{displayName}' has no origin constructor."
+                );
             return (T)originConstructor.Invoke(parameters);
         }
         catch (OperationCanceledException)
@@ -237,7 +264,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
 
     private static void AddOrMergeRequirement(
         IDictionary<string, SourceRuntimeSettingRequirement> requirements,
-        SourceRuntimeSettingRequirement requirement)
+        SourceRuntimeSettingRequirement requirement
+    )
     {
         if (!requirements.TryGetValue(requirement.Name, out var existing))
         {
@@ -253,7 +281,7 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
             Required = existing.Required || requirement.Required,
             Secret = existing.Secret || requirement.Secret,
             Phases = existing.Phases | requirement.Phases,
-            Description = description
+            Description = description,
         };
     }
 
@@ -270,7 +298,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
                 var index = cm.MethodName.IndexOf(TablePart, StringComparison.Ordinal);
                 var rawMethodName = cm.MethodName[..index];
                 return new SchemaMethodInfo(rawMethodName, cm.ConstructorInfo);
-            }).ToArray();
+            })
+            .ToArray();
         metadataContext.EndWorkToken.ThrowIfCancellationRequested();
         return constructors;
     }
@@ -285,8 +314,12 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         return result;
     }
 
-    public bool TryResolveAggregationMethod(string method, Type[] parameters, Type? entityType,
-        [NotNullWhen(true)] out MethodInfo? methodInfo)
+    public bool TryResolveAggregationMethod(
+        string method,
+        Type[] parameters,
+        Type? entityType,
+        [NotNullWhen(true)] out MethodInfo? methodInfo
+    )
     {
         return _aggregator.TryResolveAggregationMethod(method, parameters, entityType, out methodInfo);
     }
@@ -296,7 +329,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         Type[] parameters,
         Type? entityType,
         Func<MethodInfo, bool> methodFilter,
-        [NotNullWhen(true)] out MethodInfo? methodInfo)
+        [NotNullWhen(true)] out MethodInfo? methodInfo
+    )
     {
         return _aggregator.TryResolveAggregationMethod(method, parameters, entityType, methodFilter, out methodInfo);
     }
@@ -306,10 +340,18 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         return _aggregator.TryResolveWindowFunction(method, out methodInfo);
     }
 
-    public bool TryResolveWindowFunction(string method, Type[] argumentTypes, [NotNullWhen(true)] out MethodInfo? methodInfo)
-        => _aggregator.TryResolveWindowFunction(method, argumentTypes, out methodInfo);
+    public bool TryResolveWindowFunction(
+        string method,
+        Type[] argumentTypes,
+        [NotNullWhen(true)] out MethodInfo? methodInfo
+    ) => _aggregator.TryResolveWindowFunction(method, argumentTypes, out methodInfo);
 
-    public bool TryResolveMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo)
+    public bool TryResolveMethod(
+        string method,
+        Type[] parameters,
+        Type? entityType,
+        [NotNullWhen(true)] out MethodInfo? methodInfo
+    )
     {
         return _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);
     }
@@ -335,13 +377,15 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
     }
 
     /// <summary>Registers a source with its complete typed structural overload set.</summary>
-    public void AddTypedSource<TType>(string name) where TType : class
+    public void AddTypedSource<TType>(string name)
+        where TType : class
     {
         AddTypedSource<TType>(name, TypedSourceRegistrationOptions.Default);
     }
 
     /// <summary>Registers a source with its complete typed structural overload set and limits.</summary>
-    public void AddTypedSource<TType>(string name, TypedSourceRegistrationOptions options) where TType : class
+    public void AddTypedSource<TType>(string name, TypedSourceRegistrationOptions options)
+        where TType : class
     {
         if (string.IsNullOrWhiteSpace(name))
             throw SchemaArgumentException.ForEmptyString(nameof(name), "adding a typed source");
@@ -363,7 +407,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
                     CreateStableSourceOverloadId(normalizedName, constructor),
                     constructor,
                     contract,
-                    injectsContext);
+                    injectsContext
+                );
             })
             .OrderBy(static descriptor => CanonicalContractSignature(descriptor.Contract), StringComparer.Ordinal)
             .ThenBy(static descriptor => descriptor.StableId, StringComparer.Ordinal)
@@ -400,19 +445,27 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
             .Select(static parameter => parameter.Position)
             .ToArray();
         if (contextIndexes.Length > 1)
-            throw new InvalidOperationException($"Source constructor '{constructor}' may contain at most one {nameof(SourceExecutionContext)} parameter.");
+            throw new InvalidOperationException(
+                $"Source constructor '{constructor}' may contain at most one {nameof(SourceExecutionContext)} parameter."
+            );
         if (contextIndexes.Length == 1 && contextIndexes[0] != parameters.Length - 1)
-            throw new InvalidOperationException($"Source constructor '{constructor}' must place {nameof(SourceExecutionContext)} last.");
+            throw new InvalidOperationException(
+                $"Source constructor '{constructor}' must place {nameof(SourceExecutionContext)} last."
+            );
         return contextIndexes.Length == 1;
     }
 
     private static string CreateStableSourceOverloadId(
         string normalizedName,
-        System.Reflection.ConstructorInfo constructor)
+        System.Reflection.ConstructorInfo constructor
+    )
     {
         var parameterTypes = string.Join(
             ";",
-            constructor.GetParameters().Select(static parameter => parameter.ParameterType.FullName ?? parameter.ParameterType.Name));
+            constructor
+                .GetParameters()
+                .Select(static parameter => parameter.ParameterType.FullName ?? parameter.ParameterType.Name)
+        );
         return $"{normalizedName}:{constructor.DeclaringType?.FullName}:{parameterTypes}";
     }
 
@@ -421,8 +474,11 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
         return string.Join(
             "|",
             contract.Parameters.Select(static parameter =>
-                $"{parameter.Name.ToLowerInvariant()}:{parameter.Type.ToCanonicalSql()}:{parameter.Required}:{parameter.Default.CanonicalText}"));
+                $"{parameter.Name.ToLowerInvariant()}:{parameter.Type.ToCanonicalSql()}:{parameter.Required}:{parameter.Default.CanonicalText}"
+            )
+        );
     }
+
     public void AddSource<TType>(string name, params object?[] args)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -443,6 +499,7 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
 
         throw new InvalidOperationException($"Typed source '{sourceType.FullName}' must derive from RowSource<T>.");
     }
+
     private static string NormalizeSchemaMemberName(string name)
     {
         var normalized = new char[name.Length];
@@ -478,7 +535,8 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
     private static bool TryMatchConstructorWithParams(
         ConstructorInfo[] constructors,
         object?[] parameters,
-        [NotNullWhen(true)] out ConstructorInfo? foundedConstructor)
+        [NotNullWhen(true)] out ConstructorInfo? foundedConstructor
+    )
     {
         foreach (var constructor in constructors)
         {
@@ -503,8 +561,7 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
 
     private void AddToConstructors<TType>(string name)
     {
-        var schemaMethodInfos = TypeHelper
-            .GetSchemaMethodInfosForType<TType>(name);
+        var schemaMethodInfos = TypeHelper.GetSchemaMethodInfosForType<TType>(name);
 
         ConstructorsMethods.AddRange(schemaMethodInfos);
     }
@@ -524,8 +581,9 @@ public abstract class SchemaBase : ISchema, ITypedSourceSchema
 
     private static string GetMethodSignature(ConstructorInfo constructorInfo)
     {
-        var originConstructor = constructorInfo.OriginConstructor ??
-            throw new InvalidOperationException("Constructor metadata has no origin constructor.");
+        var originConstructor =
+            constructorInfo.OriginConstructor
+            ?? throw new InvalidOperationException("Constructor metadata has no origin constructor.");
         var parameters = originConstructor.GetParameters();
         var paramTypes = parameters.Select(p => p.ParameterType.Name).ToArray();
         return $"({string.Join(", ", paramTypes)})";

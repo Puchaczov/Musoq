@@ -24,10 +24,7 @@ internal sealed record ClrAssemblyExecutableArtifact : ExecutableQueryArtifact, 
         RunnableTypeName = runnableTypeName;
     }
 
-    internal ClrAssemblyExecutableArtifact(
-        Stream dllStream,
-        Stream? pdbStream,
-        string runnableTypeName)
+    internal ClrAssemblyExecutableArtifact(Stream dllStream, Stream? pdbStream, string runnableTypeName)
         : base(ExecutionTargetIds.CSharpClr)
     {
         if (dllStream is null || !dllStream.CanRead)
@@ -44,9 +41,8 @@ internal sealed record ClrAssemblyExecutableArtifact : ExecutableQueryArtifact, 
 
     public byte[] DllFile => (byte[])GetBytes(ref _dllFile, _dllStream).Clone();
 
-    public byte[]? PdbFile => _pdbStream is null && _pdbFile is null
-        ? null
-        : (byte[])GetBytes(ref _pdbFile, _pdbStream).Clone();
+    public byte[]? PdbFile =>
+        _pdbStream is null && _pdbFile is null ? null : (byte[])GetBytes(ref _pdbFile, _pdbStream).Clone();
 
     public string RunnableTypeName { get; }
 
@@ -70,9 +66,11 @@ internal sealed record ClrAssemblyExecutableArtifact : ExecutableQueryArtifact, 
 
     internal Stream? OpenPdbStream(out bool disposeAfterUse)
     {
-        if ((_pdbStream is null && _pdbFile is null) ||
-            (_pdbStream is { CanSeek: true, Length: 0 }) ||
-            (_pdbFile is { Length: 0 }))
+        if (
+            (_pdbStream is null && _pdbFile is null)
+            || (_pdbStream is { CanSeek: true, Length: 0 })
+            || (_pdbFile is { Length: 0 })
+        )
         {
             disposeAfterUse = false;
             return null;
@@ -87,9 +85,11 @@ internal sealed record ClrAssemblyExecutableArtifact : ExecutableQueryArtifact, 
         {
             if (stream is not null)
             {
-                if (stream is MemoryStream memoryStream &&
-                    memoryStream.TryGetBuffer(out var buffer) &&
-                    memoryStream.Length <= int.MaxValue)
+                if (
+                    stream is MemoryStream memoryStream
+                    && memoryStream.TryGetBuffer(out var buffer)
+                    && memoryStream.Length <= int.MaxValue
+                )
                 {
                     disposeAfterUse = true;
                     return new MemoryStream(
@@ -97,7 +97,8 @@ internal sealed record ClrAssemblyExecutableArtifact : ExecutableQueryArtifact, 
                         buffer.Offset,
                         (int)memoryStream.Length,
                         writable: false,
-                        publiclyVisible: true);
+                        publiclyVisible: true
+                    );
                 }
 
                 using var copy = new MemoryStream();
@@ -137,6 +138,5 @@ internal sealed record ClrAssemblyExecutableArtifact : ExecutableQueryArtifact, 
     }
 }
 
-internal sealed record ClrLoadedExecutableArtifact(
-    Type RunnableType,
-    IDisposable? LifetimeOwner = null) : ExecutableQueryArtifact(ExecutionTargetIds.CSharpClr);
+internal sealed record ClrLoadedExecutableArtifact(Type RunnableType, IDisposable? LifetimeOwner = null)
+    : ExecutableQueryArtifact(ExecutionTargetIds.CSharpClr);

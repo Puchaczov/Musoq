@@ -21,20 +21,25 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         var descriptor = new ExecutionPortableTypeDescriptor(
             ExecutionPortableTypeKind.ClrOnly,
             "clr:Missing.Type@Missing.Assembly",
-            "Missing.Type");
+            "Missing.Type"
+        );
 
-        var exception = Assert.Throws<CSharpClrReferenceDiscoveryException>(
-            () => Collect(
+        var exception = Assert.Throws<CSharpClrReferenceDiscoveryException>(() =>
+            Collect(
                 new ExecutionTargetRequirement(
                     ExecutionTargetRequirementKind.ClrTypeUsage,
                     "unresolvable source row",
-                    descriptor)));
+                    descriptor
+                )
+            )
+        );
 
         AssertMissingReferenceDiagnostic(
             exception,
             "clr:Missing.Type@Missing.Assembly",
             "unresolvable source row",
-            "the CLR descriptor could not be resolved");
+            "the CLR descriptor could not be resolved"
+        );
     }
 
     [TestMethod]
@@ -42,55 +47,54 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
     {
         var assembly = AssemblyBuilder.DefineDynamicAssembly(
             new AssemblyName("Musoq.Wave5.Dynamic"),
-            AssemblyBuilderAccess.Run);
-        var type = assembly
-            .DefineDynamicModule("main")
-            .DefineType("DynamicRow", TypeAttributes.Public)
-            .CreateType()!;
+            AssemblyBuilderAccess.Run
+        );
+        var type = assembly.DefineDynamicModule("main").DefineType("DynamicRow", TypeAttributes.Public).CreateType()!;
 
-        var exception = Assert.Throws<CSharpClrReferenceDiscoveryException>(
-            () => Collect(
-                new[]
-                {
-                    assembly
-                },
+        var exception = Assert.Throws<CSharpClrReferenceDiscoveryException>(() =>
+            Collect(
+                new[] { assembly },
                 new ExecutionTargetRequirement(
                     ExecutionTargetRequirementKind.ClrTypeUsage,
                     "dynamic source row",
-                    ExecutionPortableSymbolFactory.FromType(type))));
+                    ExecutionPortableSymbolFactory.FromType(type)
+                )
+            )
+        );
 
         AssertMissingReferenceDiagnostic(
             exception,
             assembly.FullName!,
             "dynamic source row",
-            "the assembly has no file-backed location");
+            "the assembly has no file-backed location"
+        );
     }
 
     [TestMethod]
     [DataRow(typeof(FileNotFoundException), "the assembly file could not be found")]
     [DataRow(typeof(BadImageFormatException), "the assembly file is not a valid CLR metadata image")]
     [DataRow(typeof(FileLoadException), "the assembly file could not be loaded")]
-    public void MetadataReferenceFailures_ShouldUseStableMt1005Reasons(
-        Type exceptionType,
-        string expectedReason)
+    public void MetadataReferenceFailures_ShouldUseStableMt1005Reasons(Type exceptionType, string expectedReason)
     {
         var factories = new Dictionary<Type, Func<Exception>>
         {
             [typeof(FileNotFoundException)] = static () => new FileNotFoundException(),
             [typeof(BadImageFormatException)] = static () => new BadImageFormatException(),
-            [typeof(FileLoadException)] = static () => new FileLoadException()
+            [typeof(FileLoadException)] = static () => new FileLoadException(),
         };
         var innerException = factories[exceptionType]();
         var exception = CSharpClrReferenceDiscoveryException.ForMetadataReference(
             typeof(ExternalPayload).Assembly,
             "external payload output",
-            innerException);
+            innerException
+        );
 
         AssertMissingReferenceDiagnostic(
             exception,
             typeof(ExternalPayload).Assembly.FullName!,
             "external payload output",
-            expectedReason);
+            expectedReason
+        );
     }
 
     [TestMethod]
@@ -103,18 +107,18 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         try
         {
             var context = new CompilationContextManager(CSharpCompilation.Create("wave5"));
-            var exception = Assert.Throws<CSharpClrReferenceDiscoveryException>(
-                () => context.InitializeCoreReferences(
-                    new Assembly[]
-                    {
-                        new AssemblyReferenceStub(badPath, "Wave5.BadMetadata")
-                    }));
+            var exception = Assert.Throws<CSharpClrReferenceDiscoveryException>(() =>
+                context.InitializeCoreReferences(
+                    new Assembly[] { new AssemblyReferenceStub(badPath, "Wave5.BadMetadata") }
+                )
+            );
 
             AssertMissingReferenceDiagnostic(
                 exception,
                 "Wave5.BadMetadata",
                 "execution-plan CLR reference",
-                "the assembly file is not a valid CLR metadata image");
+                "the assembly file is not a valid CLR metadata image"
+            );
         }
         finally
         {
@@ -131,18 +135,18 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         try
         {
             var context = new CompilationContextManager(CSharpCompilation.Create("wave5"));
-            var exception = Assert.Throws<CSharpClrReferenceDiscoveryException>(
-                () => context.InitializeCoreReferences(
-                    new Assembly[]
-                    {
-                        new AssemblyReferenceStub(missingPath, "Wave5.Missing")
-                    }));
+            var exception = Assert.Throws<CSharpClrReferenceDiscoveryException>(() =>
+                context.InitializeCoreReferences(
+                    new Assembly[] { new AssemblyReferenceStub(missingPath, "Wave5.Missing") }
+                )
+            );
 
             AssertMissingReferenceDiagnostic(
                 exception,
                 "Wave5.Missing",
                 "execution-plan CLR reference",
-                "the assembly file could not be found");
+                "the assembly file could not be found"
+            );
         }
         finally
         {
@@ -154,28 +158,30 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         CSharpClrReferenceDiscoveryException exception,
         string assemblyIdentity,
         string requirementDetail,
-        string reason)
+        string reason
+    )
     {
         var result = CSharpClrExecutionBackend.CreateMissingReferenceResult(exception);
         var diagnostic = result.Diagnostics.Single();
 
         Assert.AreEqual(TargetDiagnosticCodes.MissingClrReference, diagnostic.Code);
         Assert.AreEqual(
-            $"Required CLR assembly '{assemblyIdentity}' for execution requirement " +
-            $"'{requirementDetail}' could not be referenced: {reason}.",
-            diagnostic.Message);
+            $"Required CLR assembly '{assemblyIdentity}' for execution requirement "
+                + $"'{requirementDetail}' could not be referenced: {reason}.",
+            diagnostic.Message
+        );
         Assert.IsFalse(diagnostic.Message.Contains("CS0234", StringComparison.Ordinal));
         Assert.IsFalse(diagnostic.Message.Contains("CS0246", StringComparison.Ordinal));
         Assert.IsFalse(diagnostic.Message.Contains("CS0012", StringComparison.Ordinal));
     }
 
-    private static IReadOnlyList<Assembly> Collect(
-        params ExecutionTargetRequirement[] requirements) =>
+    private static IReadOnlyList<Assembly> Collect(params ExecutionTargetRequirement[] requirements) =>
         Collect([], requirements);
 
     private static IReadOnlyList<Assembly> Collect(
         IReadOnlyList<Assembly> semanticAssemblies,
-        params ExecutionTargetRequirement[] requirements)
+        params ExecutionTargetRequirement[] requirements
+    )
     {
         return CSharpClrReferenceAssemblyCollector.Collect(
             new ExecutionTargetCompatibilityReport(requirements),
@@ -183,14 +189,15 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
             semanticAssemblies,
             [],
             null,
-            PreloadedPaths());
+            PreloadedPaths()
+        );
     }
 
     private static IReadOnlySet<string> PreloadedPaths() =>
         new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             Path.GetFullPath(typeof(object).Assembly.Location),
-            Path.GetFullPath(typeof(System.ComponentModel.Component).Assembly.Location)
+            Path.GetFullPath(typeof(System.ComponentModel.Component).Assembly.Location),
         };
 
     private static string CreateDirectory()
@@ -221,5 +228,4 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
 
         public override string FullName => identity;
     }
-
 }

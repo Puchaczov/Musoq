@@ -43,7 +43,8 @@ internal static class PipelinePlanAssertions
         var multi = (PhysicalMultiStatementNode)plan;
         var applyProject = Array.Find(
             multi.Statements,
-            statement => statement is PhysicalProjectNode { Input: PhysicalNestedLoopApplyNode });
+            statement => statement is PhysicalProjectNode { Input: PhysicalNestedLoopApplyNode }
+        );
 
         Assert.IsNotNull(applyProject);
         return (PhysicalProjectNode)applyProject;

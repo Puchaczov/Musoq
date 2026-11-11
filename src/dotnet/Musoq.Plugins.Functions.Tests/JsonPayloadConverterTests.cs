@@ -18,6 +18,7 @@ public sealed class JsonPayloadConverterTests
     public sealed class Payload<T> : IJsonPayload
     {
         public int InterpreterState => 99;
+
         public void WriteJson(Utf8JsonWriter writer, JsonSerializerOptions? options = null)
         {
             writer.WriteStartObject();

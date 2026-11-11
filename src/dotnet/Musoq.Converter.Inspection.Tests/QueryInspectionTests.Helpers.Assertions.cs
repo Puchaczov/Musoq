@@ -82,7 +82,9 @@ public partial class QueryInspectionTests
     {
         var normalized = NormalizeGeneratedCSharpCode(generatedCSharp);
 
-        Assert.IsFalse(normalized.Contains("private sealed class ResultAggregateGroup : Group", StringComparison.Ordinal));
+        Assert.IsFalse(
+            normalized.Contains("private sealed class ResultAggregateGroup : Group", StringComparison.Ordinal)
+        );
         Assert.IsFalse(normalized.Contains("GroupLayout", StringComparison.Ordinal));
         Assert.IsFalse(normalized.Contains("GroupSlot", StringComparison.Ordinal));
         Assert.IsFalse(normalized.Contains(".GetValue<", StringComparison.Ordinal));
@@ -99,10 +101,12 @@ public partial class QueryInspectionTests
 
         Assert.IsFalse(
             normalized.Contains("CreateTable [apply_0_i_nTable: apply_0_i_nRow0]", StringComparison.Ordinal),
-            normalized);
+            normalized
+        );
         Assert.IsFalse(
             normalized.Contains("ForEach [apply_0_i_n in apply_0_i_nTable.Rows]", StringComparison.Ordinal),
-            normalized);
+            normalized
+        );
         Assert.Contains("EnumerableSource [i.Numbers -> nRows]", normalized);
         Assert.Contains("ForEach [n in nRows]", normalized);
         Assert.Contains("EnumerableSource [i.Numbers -> mRows]", normalized);
@@ -115,13 +119,16 @@ public partial class QueryInspectionTests
 
         Assert.IsFalse(
             normalized.Contains("CreateTable [apply_0_i_n_mTable: apply_0_i_n_mRow0]", StringComparison.Ordinal),
-            normalized);
+            normalized
+        );
         Assert.IsFalse(
             normalized.Contains("ForEach [apply_0_i_n_m in apply_0_i_n_mTable.Rows]", StringComparison.Ordinal),
-            normalized);
+            normalized
+        );
         Assert.IsFalse(
             normalized.Contains("Materialize [apply_0_i_n_mTable.Rows ->", StringComparison.Ordinal),
-            normalized);
+            normalized
+        );
     }
 
     private static void AssertGeneratedCSharpContains(string expected, string actual)
@@ -139,8 +146,7 @@ public partial class QueryInspectionTests
 
     private static string NormalizeGeneratedCSharpCode(string text)
     {
-        return NormalizeScopedGeneratedNames(
-            Regex.Replace(text, @"\b(?:statement|cte)\d+_", string.Empty));
+        return NormalizeScopedGeneratedNames(Regex.Replace(text, @"\b(?:statement|cte)\d+_", string.Empty));
     }
 
     private static string NormalizeScopedGeneratedNames(string text)
@@ -152,6 +158,7 @@ public partial class QueryInspectionTests
             {
                 var name = match.Groups[1].Value;
                 return char.ToLowerInvariant(name[0]) + name[1..];
-            });
+            }
+        );
     }
 }

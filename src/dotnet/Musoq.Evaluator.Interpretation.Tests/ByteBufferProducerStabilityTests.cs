@@ -18,10 +18,15 @@ public sealed class ByteBufferProducerStabilityTests
     public void OpaqueProducerOccurrences_RemainIndependentAcrossRowsAndRuns(string first)
     {
         var entity = new BufferFlowEntity();
-        var sql = $"select Length(EnumerableToArray(Take({first}, 0))) as A, Length(EnumerableToArray(Take({first}, 0))) as B from #schema.first() f";
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(),
+        var sql =
+            $"select Length(EnumerableToArray(Take({first}, 0))) as A, Length(EnumerableToArray(Take({first}, 0))) as B from #schema.first() f";
+        using var query = InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
             LibraryExecutionFixture.CreateProvider<BufferFlowEntity, BufferFlowLibrary>([entity, entity]),
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         using var initial = query.Run();
         CollectionAssert.AreEqual(new int?[] { 0, 0 }, initial.Select(row => row.GetValue<int?>(0)).ToArray());
         Assert.AreEqual(4, entity.Calls);

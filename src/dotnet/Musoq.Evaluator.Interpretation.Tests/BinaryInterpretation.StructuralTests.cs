@@ -18,7 +18,7 @@ public class BinaryInterpretationStructuralTests : BinaryInterpretationTestBase
         var pointFields = new[]
         {
             CreatePrimitiveField("X", PrimitiveTypeName.Float, Endianness.LittleEndian),
-            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian)
+            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian),
         };
         var pointSchema = new BinarySchemaNode("Point", [.. pointFields]);
         registry.Register("Point", pointSchema);
@@ -26,7 +26,7 @@ public class BinaryInterpretationStructuralTests : BinaryInterpretationTestBase
         var vertexFields = new[]
         {
             new FieldDefinitionNode("Id", new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian)),
-            new FieldDefinitionNode("Position", new SchemaReferenceTypeNode("Point"))
+            new FieldDefinitionNode("Position", new SchemaReferenceTypeNode("Point")),
         };
         var vertexSchema = new BinarySchemaNode("Vertex", [.. vertexFields]);
         registry.Register("Vertex", vertexSchema);
@@ -59,7 +59,7 @@ public class BinaryInterpretationStructuralTests : BinaryInterpretationTestBase
         {
             CreatePrimitiveField("R", PrimitiveTypeName.Byte, Endianness.NotApplicable),
             CreatePrimitiveField("G", PrimitiveTypeName.Byte, Endianness.NotApplicable),
-            CreatePrimitiveField("B", PrimitiveTypeName.Byte, Endianness.NotApplicable)
+            CreatePrimitiveField("B", PrimitiveTypeName.Byte, Endianness.NotApplicable),
         };
         var colorSchema = new BinarySchemaNode("Color", [.. colorFields]);
         registry.Register("Color", colorSchema);
@@ -67,7 +67,7 @@ public class BinaryInterpretationStructuralTests : BinaryInterpretationTestBase
         var pointFields = new[]
         {
             CreatePrimitiveField("X", PrimitiveTypeName.Float, Endianness.LittleEndian),
-            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian)
+            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian),
         };
         var pointSchema = new BinarySchemaNode("Point", [.. pointFields]);
         registry.Register("Point", pointSchema);
@@ -75,7 +75,7 @@ public class BinaryInterpretationStructuralTests : BinaryInterpretationTestBase
         var vertexFields = new[]
         {
             new FieldDefinitionNode("Position", new SchemaReferenceTypeNode("Point")),
-            new FieldDefinitionNode("Color", new SchemaReferenceTypeNode("Color"))
+            new FieldDefinitionNode("Color", new SchemaReferenceTypeNode("Color")),
         };
         var vertexSchema = new BinarySchemaNode("Vertex", [.. vertexFields]);
         registry.Register("Vertex", vertexSchema);
@@ -109,10 +109,7 @@ public class BinaryInterpretationStructuralTests : BinaryInterpretationTestBase
         var primitiveType = new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian);
         var arrayType = new ArrayTypeNode(primitiveType, new IntegerNode(3));
 
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Values", arrayType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Values", arrayType) };
         var schema = new BinarySchemaNode("IntArray", [.. fields]);
         registry.Register("IntArray", schema);
 
@@ -178,7 +175,7 @@ public class BinaryInterpretationStructuralTests : BinaryInterpretationTestBase
         var pointFields = new[]
         {
             CreatePrimitiveField("X", PrimitiveTypeName.Float, Endianness.LittleEndian),
-            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian)
+            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian),
         };
         var pointSchema = new BinarySchemaNode("Point", [.. pointFields]);
         registry.Register("Point", pointSchema);
@@ -221,7 +218,7 @@ public class BinaryInterpretationStructuralTests : BinaryInterpretationTestBase
         var pointFields = new[]
         {
             CreatePrimitiveField("X", PrimitiveTypeName.Float, Endianness.LittleEndian),
-            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian)
+            CreatePrimitiveField("Y", PrimitiveTypeName.Float, Endianness.LittleEndian),
         };
         var pointSchema = new BinarySchemaNode("Point", [.. pointFields]);
         registry.Register("Point", pointSchema);

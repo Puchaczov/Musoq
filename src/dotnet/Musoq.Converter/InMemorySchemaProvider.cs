@@ -21,7 +21,8 @@ internal sealed class InMemorySchemaProvider : ISchemaProvider
 
     public static InMemorySchemaProvider Create(
         IReadOnlyList<InMemorySourceSlot> slots,
-        IReadOnlyList<MusoqSourceRows> rows)
+        IReadOnlyList<MusoqSourceRows> rows
+    )
     {
         ArgumentNullException.ThrowIfNull(slots);
         ArgumentNullException.ThrowIfNull(rows);
@@ -32,7 +33,8 @@ internal sealed class InMemorySchemaProvider : ISchemaProvider
             .ToDictionary(
                 static group => group.Key,
                 group => new InMemorySchema(group.Key, group.ToArray(), bindings),
-                StringComparer.OrdinalIgnoreCase);
+                StringComparer.OrdinalIgnoreCase
+            );
 
         return new InMemorySchemaProvider(schemas);
     }
@@ -48,7 +50,8 @@ internal sealed class InMemorySchemaProvider : ISchemaProvider
 
     private static Dictionary<string, MusoqSourceRows> CreateBindingMap(
         IReadOnlyList<InMemorySourceSlot> slots,
-        IReadOnlyList<MusoqSourceRows> rows)
+        IReadOnlyList<MusoqSourceRows> rows
+    )
     {
         var declared = slots.ToDictionary(static slot => slot.Key, StringComparer.OrdinalIgnoreCase);
         var bindings = new Dictionary<string, MusoqSourceRows>(StringComparer.OrdinalIgnoreCase);
@@ -56,16 +59,21 @@ internal sealed class InMemorySchemaProvider : ISchemaProvider
         {
             var key = InMemorySourceNames.CreateKey(sourceRows.SchemaName, sourceRows.SourceName);
             if (!declared.TryGetValue(key, out var slot))
-                throw new InvalidOperationException($"Rows were supplied for undeclared source '#{sourceRows.SchemaName}.{sourceRows.SourceName}()'.");
+                throw new InvalidOperationException(
+                    $"Rows were supplied for undeclared source '#{sourceRows.SchemaName}.{sourceRows.SourceName}()'."
+                );
 
             if (!slot.RowType.IsAssignableFrom(sourceRows.RowType))
             {
                 throw new InvalidOperationException(
-                    $"Rows for '#{sourceRows.SchemaName}.{sourceRows.SourceName}()' have type '{sourceRows.RowType.FullName}', but the source was declared as '{slot.RowType.FullName}'.");
+                    $"Rows for '#{sourceRows.SchemaName}.{sourceRows.SourceName}()' have type '{sourceRows.RowType.FullName}', but the source was declared as '{slot.RowType.FullName}'."
+                );
             }
 
             if (!bindings.TryAdd(key, sourceRows))
-                throw new InvalidOperationException($"Rows for source '#{sourceRows.SchemaName}.{sourceRows.SourceName}()' were supplied more than once.");
+                throw new InvalidOperationException(
+                    $"Rows for source '#{sourceRows.SchemaName}.{sourceRows.SourceName}()' were supplied more than once."
+                );
         }
 
         return bindings;

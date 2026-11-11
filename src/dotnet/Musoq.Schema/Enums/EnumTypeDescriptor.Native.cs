@@ -16,9 +16,7 @@ public sealed partial class EnumTypeDescriptor
         var fields = enumType
             .GetFields(BindingFlags.Public | BindingFlags.Static)
             .OrderBy(static field => field.MetadataToken)
-            .Select(field => new EnumMemberDescriptor(
-                field.Name,
-                CreateScalar(kind, field.GetRawConstantValue())))
+            .Select(field => new EnumMemberDescriptor(field.Name, CreateScalar(kind, field.GetRawConstantValue())))
             .ToArray();
 
         return new EnumTypeDescriptor(
@@ -26,13 +24,15 @@ public sealed partial class EnumTypeDescriptor
             EnumTypeOrigin.NativeClr,
             kind,
             enumType.IsDefined(typeof(FlagsAttribute), inherit: false),
-            fields);
+            fields
+        );
     }
 
     public static bool TryNormalizeClrEnum(
         Type sourceReadType,
         out Type carrierType,
-        out EnumTypeDescriptor? descriptor)
+        out EnumTypeDescriptor? descriptor
+    )
     {
         ArgumentNullException.ThrowIfNull(sourceReadType);
 
@@ -46,9 +46,8 @@ public sealed partial class EnumTypeDescriptor
         }
 
         var primitiveCarrier = Enum.GetUnderlyingType(enumType);
-        carrierType = nullableUnderlying == null
-            ? primitiveCarrier
-            : typeof(Nullable<>).MakeGenericType(primitiveCarrier);
+        carrierType =
+            nullableUnderlying == null ? primitiveCarrier : typeof(Nullable<>).MakeGenericType(primitiveCarrier);
         descriptor = FromClrEnum(enumType);
         return true;
     }
@@ -65,7 +64,7 @@ public sealed partial class EnumTypeDescriptor
             EnumUnderlyingKind.UInt32 => EnumScalarValue.FromUInt32((uint)RequireRawConstant(rawConstant)),
             EnumUnderlyingKind.Int64 => EnumScalarValue.FromInt64((long)RequireRawConstant(rawConstant)),
             EnumUnderlyingKind.UInt64 => EnumScalarValue.FromUInt64((ulong)RequireRawConstant(rawConstant)),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown enum backing kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown enum backing kind."),
         };
     }
 

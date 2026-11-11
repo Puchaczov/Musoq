@@ -12,11 +12,17 @@ internal sealed class QueryPlanner
         context.CancellationToken.ThrowIfCancellationRequested();
         var subqueries = new SubqueryFallbackPlanner(context);
         var logicalPlan = subqueries.Rewrite(context.LogicalPlan);
-        context = context with { LogicalArtifacts = context.LogicalArtifacts with { OptimizedLogicalPlan = logicalPlan } };
+        context = context with
+        {
+            LogicalArtifacts = context.LogicalArtifacts with { OptimizedLogicalPlan = logicalPlan },
+        };
         var propertyResult = PlanningPropertyDeriver.Derive(context);
         context.CancellationToken.ThrowIfCancellationRequested();
-        var sourceTransferResult = SourceTransferPlanner.Plan(context, propertyResult.Facts.SourcePlanning,
-            propertyResult.ComputedTransfers);
+        var sourceTransferResult = SourceTransferPlanner.Plan(
+            context,
+            propertyResult.Facts.SourcePlanning,
+            propertyResult.ComputedTransfers
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var decisions = new List<PlanningDecision>(propertyResult.Decisions)
         {
@@ -26,7 +32,8 @@ internal sealed class QueryPlanner
                 "logical-plan",
                 "Planned",
                 PlanningConfidence.High,
-                "Physical planning is routed through QueryPlanner.")
+                "Physical planning is routed through QueryPlanner."
+            ),
         };
         decisions.AddRange(sourceTransferResult.Decisions);
         decisions.AddRange(subqueries.Decisions);
@@ -35,7 +42,8 @@ internal sealed class QueryPlanner
             context,
             propertyResult.Facts,
             context.ShapeResolver,
-            sourceTransferResult.PlansBySourceId);
+            sourceTransferResult.PlansBySourceId
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var physicalPlanningArtifacts = physicalPlanningResult.Artifacts;
         decisions.AddRange(physicalPlanningArtifacts.Decisions);
@@ -46,25 +54,27 @@ internal sealed class QueryPlanner
         context.CancellationToken.ThrowIfCancellationRequested();
         var rowShapePlanningResult = BoundaryRowShapePlanner.Plan(physicalPlan, sourceRewrittenFacts.RequiredColumns);
         context.CancellationToken.ThrowIfCancellationRequested();
-        var requiredColumnBoundaryResult = RequiredColumnBoundaryPlanner.Plan(physicalPlan, rowShapePlanningResult.Plans);
+        var requiredColumnBoundaryResult = RequiredColumnBoundaryPlanner.Plan(
+            physicalPlan,
+            rowShapePlanningResult.Plans
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var rowWidthPruningResult = RowWidthPruningPlanner.Plan(rowShapePlanningResult.Plans);
         context.CancellationToken.ThrowIfCancellationRequested();
         var cardinalityFactResult = CardinalityFactPlanner.Plan(
             physicalPlan,
             sourceRewrittenFacts.SourcePlanning,
-            context.CancellationToken);
+            context.CancellationToken
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var planFacts = sourceRewrittenFacts with
         {
             RequiredColumns = sourceRewrittenFacts.RequiredColumns with
             {
-                RequiredColumnBoundaryPlans = requiredColumnBoundaryResult.Plans
+                RequiredColumnBoundaryPlans = requiredColumnBoundaryResult.Plans,
             },
-            BoundaryPruning = new BoundaryPruningFacts(
-                rowShapePlanningResult.Plans,
-                rowWidthPruningResult.Plans),
-            Cardinality = new CardinalityPlanningFacts(cardinalityFactResult.Facts)
+            BoundaryPruning = new BoundaryPruningFacts(rowShapePlanningResult.Plans, rowWidthPruningResult.Plans),
+            Cardinality = new CardinalityPlanningFacts(cardinalityFactResult.Facts),
         };
         decisions.AddRange(requiredColumnBoundaryResult.Decisions);
         decisions.AddRange(rowShapePlanningResult.Decisions);
@@ -75,17 +85,23 @@ internal sealed class QueryPlanner
             physicalPlan,
             context.CompilationOptions,
             context.CteExecutionPlan,
-            context.ShapeResolver, planFacts.SourcePlanning.SourceDescriptorsBySourceId);
+            context.ShapeResolver,
+            planFacts.SourcePlanning.SourceDescriptorsBySourceId
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
-        var executionStrategies = executionStrategyResult.Strategies
-            .WithSourceBoundaryStrategies(planFacts.SourcePlanning.SourceBoundaryStrategyPlans)
+        var executionStrategies = executionStrategyResult
+            .Strategies.WithSourceBoundaryStrategies(planFacts.SourcePlanning.SourceBoundaryStrategyPlans)
             .WithRowWidthPruningPlans(rowWidthPruningResult.Plans)
             .WithCardinalityFacts(cardinalityFactResult.Facts);
         var executionPlanningArtifacts = new ExecutionPlanningArtifacts(
             executionStrategies,
             planFacts.SourcePlanning.SourceInteractionPlansBySourceId,
             executionStrategyResult.Decisions,
-            sourceTransferResult.PlansBySourceId) { ShapeBindings = context.ShapeResolver };
+            sourceTransferResult.PlansBySourceId
+        )
+        {
+            ShapeBindings = context.ShapeResolver,
+        };
         decisions.AddRange(executionPlanningArtifacts.Decisions);
         decisions.AddRange(MaterializationPlanner.Plan(physicalPlan, executionPlanningArtifacts.ExecutionStrategies));
         context.CancellationToken.ThrowIfCancellationRequested();
@@ -95,6 +111,7 @@ internal sealed class QueryPlanner
             physicalPlanningArtifacts,
             executionPlanningArtifacts,
             planFacts,
-            decisions);
+            decisions
+        );
     }
 }

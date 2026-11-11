@@ -5,7 +5,8 @@ public sealed record ExecutionPreparedLikeMatch : ExecutionExpression
     public ExecutionPreparedLikeMatch(
         ExecutionExpression input,
         ExecutionExpression matcher,
-        ExecutionTypeRef returnType)
+        ExecutionTypeRef returnType
+    )
         : base(returnType)
     {
         Input = input ?? throw new ArgumentNullException(nameof(input));

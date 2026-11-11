@@ -8,8 +8,8 @@ using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Evaluator.Tests.Schema.ReadModifiers;
-using Musoq.Schema;
 using Musoq.Parser.Diagnostics;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -21,8 +21,7 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
 {
-    private static readonly CompilationOptions CompilationOptions =
-        new(usePrimitiveTypeValidation: false);
+    private static readonly CompilationOptions CompilationOptions = new(usePrimitiveTypeValidation: false);
 
     [TestMethod]
     [DataRow("AS-01")]
@@ -59,11 +58,9 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
     [DataRow("MD-12")]
     public void ModifierAndLogicalMetadataMatrix_ShouldSurvivePlanningAndExecution(string caseId)
     {
-        var provider = new ReadModifiersSchemaProvider(
-            [
-                Row(("Name", "  Name  "), ("Amount", "12,50"), ("Payload", "cGF5bG9hZA=="),
-                    ("Plain", "plain"))
-            ]);
+        var provider = new ReadModifiersSchemaProvider([
+            Row(("Name", "  Name  "), ("Amount", "12,50"), ("Payload", "cGF5bG9hZA=="), ("Plain", "plain")),
+        ]);
         var query = BuildMetadataQuery(caseId);
         using var compiled = Compile(query, provider);
         var table = TableMaterializationTestHelper.Materialize(compiled.Run());
@@ -91,16 +88,15 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
         var provider = new ReadModifiersSchemaProvider(
             [Row(("Value", "12.50"))],
             ReadModifiersValidationMode.ValidateSourceKinds,
-            new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Value"] = typeof(string)
-            });
+            new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase) { ["Value"] = typeof(string) }
+        );
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            CompilationOptions);
+            CompilationOptions
+        );
 
         Assert.IsFalse(result.Succeeded, caseId);
         var error = result.Errors.Single();
@@ -144,7 +140,11 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
             var actual = dynamic[rowIndex].ReadValues();
             Assert.AreEqual(expected.Length, actual.Length, caseId);
             for (var columnIndex = 0; columnIndex < expected.Length; columnIndex++)
-                Assert.AreEqual(expected[columnIndex], actual[columnIndex], $"{caseId} row {rowIndex}, column {columnIndex}");
+                Assert.AreEqual(
+                    expected[columnIndex],
+                    actual[columnIndex],
+                    $"{caseId} row {rowIndex}, column {columnIndex}"
+                );
         }
     }
 
@@ -152,7 +152,10 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
     {
         var variant = Variant(caseId);
         var query = BuildAsOfQuery(variant, dynamicPath);
-        using var compiled = Compile(query, dynamicPath ? CreateDynamicProvider(variant) : CreateTypedProvider(variant));
+        using var compiled = Compile(
+            query,
+            dynamicPath ? CreateDynamicProvider(variant) : CreateTypedProvider(variant)
+        );
         return TableMaterializationTestHelper.Materialize(compiled.Run());
     }
 
@@ -163,16 +166,17 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            CompilationOptions);
+            CompilationOptions
+        );
     }
 
     private static string BuildAsOfQuery(int variant, bool dynamicPath)
     {
         var prefix = dynamicPath
-            ? "table Events { Country: string, Population: decimal, Name: string };" +
-              "table Snapshots { Country: string, Population: decimal, Name: string };" +
-              "couple #events.entities with table Events as Events;" +
-              "couple #snapshots.entities with table Snapshots as Snapshots;"
+            ? "table Events { Country: string, Population: decimal, Name: string };"
+                + "table Snapshots { Country: string, Population: decimal, Name: string };"
+                + "couple #events.entities with table Events as Events;"
+                + "couple #snapshots.entities with table Snapshots as Snapshots;"
             : string.Empty;
         var left = dynamicPath ? "Events()" : "#events.entities()";
         var right = dynamicPath ? "Snapshots()" : "#snapshots.entities()";
@@ -184,14 +188,14 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
             7 or 8 => $"asof left join {right} s on e.Country = s.Country and e.Population >= s.Population",
             9 or 10 => $"asof left join {right} s on e.Population >= s.Population tie break by s.Name asc",
             11 or 12 => $"asof left join {right} s on e.Population >= s.Population",
-            _ => throw new ArgumentOutOfRangeException(nameof(variant))
+            _ => throw new ArgumentOutOfRangeException(nameof(variant)),
         };
 
         if (variant is 11 or 12)
         {
-            return prefix +
-                   $"with EventsData as (select e.Name, e.Country, e.Population from {left} e) " +
-                   $"select e.Name, s.Name from EventsData e {join} order by e.Name;";
+            return prefix
+                + $"with EventsData as (select e.Name, e.Country, e.Population from {left} e) "
+                + $"select e.Name, s.Name from EventsData e {join} order by e.Name;";
         }
 
         return prefix + $"select e.Name, s.Name from {left} e {join} order by e.Name;";
@@ -200,11 +204,13 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
     private static ISchemaProvider CreateTypedProvider(int variant)
     {
         var rows = CreateEntities(variant);
-        return new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#events"] = rows.Events,
-            ["#snapshots"] = rows.Snapshots
-        });
+        return new BasicSchemaProvider<BasicEntity>(
+            new Dictionary<string, IEnumerable<BasicEntity>>
+            {
+                ["#events"] = rows.Events,
+                ["#snapshots"] = rows.Snapshots,
+            }
+        );
     }
 
     private static ISchemaProvider CreateDynamicProvider(int variant)
@@ -214,51 +220,110 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
         {
             ["Country"] = typeof(string),
             ["Population"] = typeof(decimal),
-            ["Name"] = typeof(string)
+            ["Name"] = typeof(string),
         };
-        return new DynamicSchemaProvider(new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
-        {
-            ["#events"] = (schema, rows.Events.Select(ToRow)),
-            ["#snapshots"] = (schema, rows.Snapshots.Select(ToRow))
-        });
+        return new DynamicSchemaProvider(
+            new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
+            {
+                ["#events"] = (schema, rows.Events.Select(ToRow)),
+                ["#snapshots"] = (schema, rows.Snapshots.Select(ToRow)),
+            }
+        );
     }
 
     private static (BasicEntity[] Events, BasicEntity[] Snapshots) CreateEntities(int variant)
     {
         var events = new[]
         {
-            new BasicEntity { Name = "event-100", Country = "A", Population = 100m },
-            new BasicEntity { Name = "event-250", Country = "A", Population = 250m },
-            new BasicEntity { Name = "event-b", Country = "B", Population = 50m }
-        };
-        var snapshots = variant is 9 or 10
-            ? new[]
+            new BasicEntity
             {
-                new BasicEntity { Name = "snapshot-old", Country = "A", Population = 80m },
-                new BasicEntity { Name = "zeta", Country = "A", Population = 200m },
-                new BasicEntity { Name = "alpha", Country = "A", Population = 200m }
-            }
+                Name = "event-100",
+                Country = "A",
+                Population = 100m,
+            },
+            new BasicEntity
+            {
+                Name = "event-250",
+                Country = "A",
+                Population = 250m,
+            },
+            new BasicEntity
+            {
+                Name = "event-b",
+                Country = "B",
+                Population = 50m,
+            },
+        };
+        var snapshots =
+            variant is 9 or 10
+                ? new[]
+                {
+                    new BasicEntity
+                    {
+                        Name = "snapshot-old",
+                        Country = "A",
+                        Population = 80m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "zeta",
+                        Country = "A",
+                        Population = 200m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "alpha",
+                        Country = "A",
+                        Population = 200m,
+                    },
+                }
             : variant is 7 or 8
                 ? new[]
                 {
-                    new BasicEntity { Name = "snapshot-old", Country = "A", Population = 80m },
-                    new BasicEntity { Name = "snapshot-new", Country = "A", Population = 200m },
-                    new BasicEntity { Name = "snapshot-b", Country = "B", Population = 100m }
+                    new BasicEntity
+                    {
+                        Name = "snapshot-old",
+                        Country = "A",
+                        Population = 80m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "snapshot-new",
+                        Country = "A",
+                        Population = 200m,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "snapshot-b",
+                        Country = "B",
+                        Population = 100m,
+                    },
                 }
-                : new[]
+            : new[]
             {
-                new BasicEntity { Name = "snapshot-old", Country = "A", Population = 80m },
-                new BasicEntity { Name = "snapshot-new", Country = "A", Population = 200m }
+                new BasicEntity
+                {
+                    Name = "snapshot-old",
+                    Country = "A",
+                    Population = 80m,
+                },
+                new BasicEntity
+                {
+                    Name = "snapshot-new",
+                    Country = "A",
+                    Population = 200m,
+                },
             };
         return (events, snapshots);
     }
 
-    private static Dictionary<string, object?> ToRow(BasicEntity entity) => new(StringComparer.Ordinal)
-    {
-        ["Country"] = entity.Country,
-        ["Population"] = entity.Population,
-        ["Name"] = entity.Name
-    };
+    private static Dictionary<string, object?> ToRow(BasicEntity entity) =>
+        new(StringComparer.Ordinal)
+        {
+            ["Country"] = entity.Country,
+            ["Population"] = entity.Population,
+            ["Name"] = entity.Name,
+        };
 
     private static void AssertAsOfRows(Table table, int variant)
     {
@@ -267,7 +332,8 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
             TableMaterializationTestHelper.AssertRowsInOrder(
                 table,
                 ["event-100", "snapshot-old"],
-                ["event-250", "snapshot-new"]);
+                ["event-250", "snapshot-new"]
+            );
             return;
         }
 
@@ -277,7 +343,8 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
                 table,
                 ["event-100", "snapshot-old"],
                 ["event-250", "alpha"],
-                ["event-b", null]);
+                ["event-b", null]
+            );
             return;
         }
 
@@ -286,7 +353,8 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
             TableMaterializationTestHelper.AssertRowsInOrder(
                 table,
                 ["event-100", "snapshot-new"],
-                ["event-b", "snapshot-old"]);
+                ["event-b", "snapshot-old"]
+            );
             return;
         }
 
@@ -294,14 +362,15 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
             table,
             ["event-100", "snapshot-old"],
             ["event-250", "snapshot-new"],
-            ["event-b", null]);
+            ["event-b", null]
+        );
     }
 
     private static string BuildMetadataQuery(string caseId)
     {
         const string prefix =
-            "table RecordsShape { Name: string encoding 'utf-8' trim, Amount: decimal culture 'pl-PL' format '#,##0.00', Payload: string source codec 'base64', Plain: string };" +
-            "couple #readmods.records with table RecordsShape as Records;";
+            "table RecordsShape { Name: string encoding 'utf-8' trim, Amount: decimal culture 'pl-PL' format '#,##0.00', Payload: string source codec 'base64', Plain: string };"
+            + "couple #readmods.records with table RecordsShape as Records;";
         return caseId switch
         {
             "MD-01" => prefix + "select r.Name from Records() r;",
@@ -309,14 +378,16 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
             "MD-03" => prefix + "select r.Payload from Records() r;",
             "MD-04" => prefix + "select r.Name, r.Amount, r.Payload, r.Plain from Records() r;",
             "MD-05" => prefix + "select r.Name, r.Plain from Records() r order by r.Name;",
-            "MD-06" => prefix + "with rows as (select r.Name, r.Amount from Records() r) select Name, Amount from rows;",
+            "MD-06" => prefix
+                + "with rows as (select r.Name, r.Amount from Records() r) select Name, Amount from rows;",
             "MD-07" => prefix + "select r.Name from Records() r group by r.Name;",
             "MD-08" => prefix + "select r.Amount from Records() r order by r.Amount desc take 1;",
             "MD-09" => prefix + "select r.Name, s.Plain from Records() r inner join Records() s on r.Name = s.Name;",
             "MD-10" => prefix + "select r.Payload from Records() r where r.Plain is not null;",
             "MD-11" => prefix + "select r.Name, r.Amount from Records() r skip 0 take 1;",
-            "MD-12" => prefix + "with rows as (select r.Name, r.Payload from Records() r) select Name, Payload from rows order by Name;",
-            _ => throw new ArgumentOutOfRangeException(nameof(caseId))
+            "MD-12" => prefix
+                + "with rows as (select r.Name, r.Payload from Records() r) select Name, Payload from rows order by Name;",
+            _ => throw new ArgumentOutOfRangeException(nameof(caseId)),
         };
     }
 
@@ -363,8 +434,8 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
 
     private static void AssertMetadataContract(ReadModifiersSchemaProvider provider, string caseId)
     {
-        var columns = provider.Recorder.GetTableColumns
-            .Concat(provider.Recorder.DescriptorColumns)
+        var columns = provider
+            .Recorder.GetTableColumns.Concat(provider.Recorder.DescriptorColumns)
             .Concat(provider.Recorder.ExecutionColumns)
             .SelectMany(static item => item)
             .ToArray();
@@ -397,7 +468,8 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
         IReadOnlyDictionary<string, string> modifiers,
         string key,
         string expected,
-        string caseId)
+        string caseId
+    )
     {
         Assert.IsTrue(modifiers.TryGetValue(key, out var actual), $"{caseId}: missing modifier {key}");
         Assert.AreEqual(expected, actual, caseId);
@@ -409,7 +481,7 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
         {
             "PC-01" or "PC-02" or "PC-03" or "PC-04" => "decimal",
             "PC-05" or "PC-06" or "PC-07" or "PC-08" => "int",
-            _ => "DateTime"
+            _ => "DateTime",
         };
         return caseId switch
         {
@@ -420,7 +492,7 @@ public sealed class DiagnosticRec132TypedDynamicSourceShapeTests
             "PC-03" or "PC-07" or "PC-11" =>
                 $"table RecordsShape {{ Value: {shape} }};couple #readmods.records with table RecordsShape as Records;with rows as (select r.Value from Records() r) select Value from rows;",
             _ =>
-                $"table RecordsShape {{ Value: {shape} }};couple #readmods.records with table RecordsShape as Records;select Value from Records() order by Value;"
+                $"table RecordsShape {{ Value: {shape} }};couple #readmods.records with table RecordsShape as Records;select Value from Records() order by Value;",
         };
     }
 

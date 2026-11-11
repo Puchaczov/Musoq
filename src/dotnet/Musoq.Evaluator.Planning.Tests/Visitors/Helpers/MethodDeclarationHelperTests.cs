@@ -34,7 +34,6 @@ public class MethodDeclarationHelperTests
     {
         var parameterList = MethodDeclarationHelper.CreateStandardParameterList();
 
-
         Assert.IsNotNull(parameterList);
         Assert.AreEqual(5, parameterList.Parameters.Count);
 
@@ -55,18 +54,13 @@ public class MethodDeclarationHelperTests
         // Assert
         var parameters = parameterList.Parameters.ToArray();
 
-
         Assert.Contains("ISchemaProvider", RequireTypeText(parameters[0]));
-
 
         Assert.Contains("IReadOnlyDictionary", RequireTypeText(parameters[1]));
 
-
         Assert.Contains("IReadOnlyDictionary", RequireTypeText(parameters[2]));
 
-
         Assert.Contains("ILogger", RequireTypeText(parameters[3]));
-
 
         Assert.Contains("CancellationToken", RequireTypeText(parameters[4]));
     }
@@ -97,9 +91,7 @@ public class MethodDeclarationHelperTests
     {
         var body = SyntaxFactory.Block();
 
-
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreateStandardPrivateMethod(null!, body));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreateStandardPrivateMethod(null!, body));
     }
 
     [TestMethod]
@@ -107,9 +99,7 @@ public class MethodDeclarationHelperTests
     {
         var body = SyntaxFactory.Block();
 
-
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreateStandardPrivateMethod("", body));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreateStandardPrivateMethod("", body));
     }
 
     [TestMethod]
@@ -117,16 +107,15 @@ public class MethodDeclarationHelperTests
     {
         var body = SyntaxFactory.Block();
 
-
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreateStandardPrivateMethod("   ", body));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreateStandardPrivateMethod("   ", body));
     }
 
     [TestMethod]
     public void CreateStandardPrivateMethod_WithNullBody_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            MethodDeclarationHelper.CreateStandardPrivateMethod("TestMethod", null!));
+            MethodDeclarationHelper.CreateStandardPrivateMethod("TestMethod", null!)
+        );
     }
 
     [TestMethod]
@@ -135,9 +124,7 @@ public class MethodDeclarationHelperTests
         var typeName = "string";
         var propertyName = "TestProperty";
 
-
         var property = MethodDeclarationHelper.CreatePublicProperty(typeName, propertyName);
-
 
         Assert.IsNotNull(property);
         Assert.AreEqual(propertyName, property.Identifier.ValueText);
@@ -153,36 +140,31 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreatePublicProperty_WithNullTypeName_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreatePublicProperty(null!, "TestProperty"));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreatePublicProperty(null!, "TestProperty"));
     }
 
     [TestMethod]
     public void CreatePublicProperty_WithEmptyTypeName_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreatePublicProperty("", "TestProperty"));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreatePublicProperty("", "TestProperty"));
     }
 
     [TestMethod]
     public void CreatePublicProperty_WithNullPropertyName_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreatePublicProperty("string", null!));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreatePublicProperty("string", null!));
     }
 
     [TestMethod]
     public void CreatePublicProperty_WithEmptyPropertyName_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreatePublicProperty("string", ""));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreatePublicProperty("string", ""));
     }
 
     [TestMethod]
     public void CreateSourceRuntimeSettingsBySourceContextIdProperty_ReturnsCorrectPropertyDeclaration()
     {
         var property = MethodDeclarationHelper.CreateSourceRuntimeSettingsBySourceContextIdProperty();
-
 
         Assert.IsNotNull(property);
         Assert.AreEqual("SourceRuntimeSettingsBySourceContextId", property.Identifier.ValueText);
@@ -198,7 +180,6 @@ public class MethodDeclarationHelperTests
     public void CreateSourceExecutionPlansProperty_ReturnsCorrectPropertyDeclaration()
     {
         var property = MethodDeclarationHelper.CreateSourceExecutionPlansProperty();
-
 
         Assert.IsNotNull(property);
         Assert.AreEqual("SourceExecutionPlans", property.Identifier.ValueText);
@@ -230,7 +211,6 @@ public class MethodDeclarationHelperTests
         Assert.AreEqual("token", method.ParameterList.Parameters[0].Identifier.ValueText);
         Assert.Contains("CancellationToken", RequireTypeText(method.ParameterList.Parameters[0]));
 
-
         var bodyText = RequireBody(method).ToString();
         Assert.Contains("return", bodyText);
         Assert.Contains(methodCallExpression, bodyText);
@@ -239,22 +219,19 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreateRunMethod_WithNullMethodCallExpression_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreateRunMethod(null!));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreateRunMethod(null!));
     }
 
     [TestMethod]
     public void CreateRunMethod_WithEmptyMethodCallExpression_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreateRunMethod(""));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreateRunMethod(""));
     }
 
     [TestMethod]
     public void CreateRunMethod_WithWhitespaceMethodCallExpression_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreateRunMethod("   "));
+        Assert.Throws<ArgumentException>(() => MethodDeclarationHelper.CreateRunMethod("   "));
     }
 
     [TestMethod]
@@ -266,7 +243,8 @@ public class MethodDeclarationHelperTests
         Assert.AreEqual("OnDataSourceProgress", method.Identifier.ValueText);
         Assert.Contains(
             "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]",
-            methodText);
+            methodText
+        );
     }
 
     [TestMethod]
@@ -278,7 +256,8 @@ public class MethodDeclarationHelperTests
         Assert.AreEqual("OnPhaseChanged", method.Identifier.ValueText);
         Assert.Contains(
             "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]",
-            methodText);
+            methodText
+        );
     }
 
     [TestMethod]
@@ -287,7 +266,6 @@ public class MethodDeclarationHelperTests
         var parameterList = MethodDeclarationHelper.CreateStandardParameterList();
         var posProperty = MethodDeclarationHelper.CreateSourceRuntimeSettingsBySourceContextIdProperty();
         var queriesProperty = MethodDeclarationHelper.CreateSourceExecutionPlansProperty();
-
 
         var posParam = parameterList.Parameters[1];
         Assert.AreEqual(RequireTypeText(posParam), posProperty.Type.ToString());
@@ -309,7 +287,6 @@ public class MethodDeclarationHelperTests
         var runMethod = MethodDeclarationHelper.CreateRunMethod("TestCall()");
         var onDataSourceProgressMethod = MethodDeclarationHelper.CreateOnDataSourceProgressMethod();
         var onPhaseChangedMethod = MethodDeclarationHelper.CreateOnPhaseChangedMethod();
-
 
         Assert.IsFalse(parameterList.ContainsDiagnostics);
         Assert.IsFalse(method.ContainsDiagnostics);

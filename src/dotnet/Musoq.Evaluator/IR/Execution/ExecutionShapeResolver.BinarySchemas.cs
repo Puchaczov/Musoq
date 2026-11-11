@@ -10,7 +10,8 @@ public sealed partial class ExecutionShapeResolver
     private static IReadOnlyList<ColumnSchema> CreateBinaryColumns(
         BinarySchemaNode binary,
         SchemaRegistry? schemaRegistry,
-        Type? generatedType)
+        Type? generatedType
+    )
     {
         return CreateBinaryColumns(
             binary,
@@ -18,13 +19,16 @@ public sealed partial class ExecutionShapeResolver
             new BinaryColumnResolutionContext(
                 schemaRegistry,
                 new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-                BinarySchemaGenericResolver.CreateEmptyBindings()));
+                BinarySchemaGenericResolver.CreateEmptyBindings()
+            )
+        );
     }
 
     private static IReadOnlyList<ColumnSchema> CreateBinaryColumns(
         BinarySchemaNode binary,
         Type? generatedType,
-        BinaryColumnResolutionContext context)
+        BinaryColumnResolutionContext context
+    )
     {
         var schemaKey = BinarySchemaGenericResolver.CreateSchemaKey(binary, context.GenericBindings);
         if (!context.ExpandedSchemas.Add(schemaKey))
@@ -46,20 +50,28 @@ public sealed partial class ExecutionShapeResolver
             context.ExpandedSchemas.Remove(schemaKey);
         }
     }
+
     private static List<ColumnSchema> CreateInlineBinaryColumns(
         InlineSchemaTypeNode inlineSchema,
         Type? generatedType,
-        BinaryColumnResolutionContext context)
+        BinaryColumnResolutionContext context
+    )
     {
         return CreateBinaryColumnsFromFields(
             inlineSchema.Fields,
             generatedType,
-            context with { GenericBindings = BinarySchemaGenericResolver.CreateEmptyBindings() });
+            context with
+            {
+                GenericBindings = BinarySchemaGenericResolver.CreateEmptyBindings(),
+            }
+        );
     }
+
     private static List<ColumnSchema> CreateBinaryColumnsFromFields(
         IEnumerable<SchemaFieldNode> fields,
         Type? generatedType,
-        BinaryColumnResolutionContext context)
+        BinaryColumnResolutionContext context
+    )
     {
         var columns = new List<ColumnSchema>();
         var topLevelIndex = 0;
@@ -75,19 +87,24 @@ public sealed partial class ExecutionShapeResolver
 
             var fieldType = ResolveBinaryFieldType(field, generatedType, context, schemaFields);
 
-            if (field is FieldDefinitionNode { IsConditional: true } &&
-                fieldType.IsValueType &&
-                Nullable.GetUnderlyingType(fieldType) == null)
+            if (
+                field is FieldDefinitionNode { IsConditional: true }
+                && fieldType.IsValueType
+                && Nullable.GetUnderlyingType(fieldType) == null
+            )
             {
                 fieldType = typeof(Nullable<>).MakeGenericType(fieldType);
             }
 
             var shapeField = field is ComputedFieldNode computed
-                ? (SchemaFieldNode?)Visitors.BinarySchemaRecordAliases.Resolve(computed.Expression, schemaFields) ?? field : field;
+                ? (SchemaFieldNode?)Visitors.BinarySchemaRecordAliases.Resolve(computed.Expression, schemaFields)
+                    ?? field
+                : field;
             var intendedTypeName = InterpretationPropertyTypeNameResolver.ResolveFieldTypeName(
                 shapeField,
                 context.GenericBindings,
-                context.SchemaRegistry);
+                context.SchemaRegistry
+            );
             var column = new ColumnSchema(field.Name, fieldType, topLevelIndex, intendedTypeName);
             columns.Add(column);
             AddNestedBinaryColumns(shapeField, columns, column, context);
@@ -96,16 +113,20 @@ public sealed partial class ExecutionShapeResolver
 
         return columns;
     }
+
     private static Type ResolveSchemaReferenceFieldType(
         SchemaReferenceTypeNode reference,
-        BinaryColumnResolutionContext context)
+        BinaryColumnResolutionContext context
+    )
     {
         var resolvedReference = BinarySchemaGenericResolver.ResolveReference(reference, context.GenericBindings);
 
-        if (!resolvedReference.IsGenericInstantiation &&
-            context.SchemaRegistry != null &&
-            context.SchemaRegistry.TryGetSchema(resolvedReference.SchemaName, out var registration) &&
-            registration?.GeneratedType != null)
+        if (
+            !resolvedReference.IsGenericInstantiation
+            && context.SchemaRegistry != null
+            && context.SchemaRegistry.TryGetSchema(resolvedReference.SchemaName, out var registration)
+            && registration?.GeneratedType != null
+        )
         {
             return registration.GeneratedType;
         }
@@ -116,12 +137,15 @@ public sealed partial class ExecutionShapeResolver
     private static void AddInheritedBinaryFields(
         BinarySchemaNode binary,
         IDictionary<string, SchemaFieldNode> fieldsByName,
-        SchemaRegistry? schemaRegistry)
+        SchemaRegistry? schemaRegistry
+    )
     {
-        if (string.IsNullOrWhiteSpace(binary.Extends) ||
-            schemaRegistry == null ||
-            !schemaRegistry.TryGetSchema(binary.Extends, out var registration) ||
-            registration?.Node is not BinarySchemaNode parent)
+        if (
+            string.IsNullOrWhiteSpace(binary.Extends)
+            || schemaRegistry == null
+            || !schemaRegistry.TryGetSchema(binary.Extends, out var registration)
+            || registration?.Node is not BinarySchemaNode parent
+        )
         {
             return;
         }
@@ -135,10 +159,12 @@ public sealed partial class ExecutionShapeResolver
     private sealed record NestedBinarySchema(
         SchemaRegistration Registration,
         BinarySchemaNode Schema,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> GenericBindings);
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> GenericBindings
+    );
 
     private sealed record BinaryColumnResolutionContext(
         SchemaRegistry? SchemaRegistry,
         ISet<string> ExpandedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> GenericBindings);
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> GenericBindings
+    );
 }

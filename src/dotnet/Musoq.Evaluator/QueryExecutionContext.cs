@@ -10,9 +10,13 @@ namespace Musoq.Evaluator;
 internal sealed record EvaluatorQueryRuntimeBinding(
     ISchemaProvider Provider,
     IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId,
-    IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId,
+    IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId,
     IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans,
-    ILogger Logger)
+    ILogger Logger
+)
 {
     internal static EvaluatorQueryRuntimeBinding Capture(IQueryRunnable runnable)
     {
@@ -23,29 +27,40 @@ internal sealed record EvaluatorQueryRuntimeBinding(
             FreezeNestedStringDictionary(runnable.SourceRuntimeSettingsBySourceContextId),
             FreezeNestedList(runnable.SourceRuntimeSettingDescriptionsBySourceContextId),
             new ReadOnlyDictionary<string, SourceExecutionPlan>(
-                new Dictionary<string, SourceExecutionPlan>(runnable.SourceExecutionPlans, StringComparer.Ordinal)),
-            runnable.Logger);
+                new Dictionary<string, SourceExecutionPlan>(runnable.SourceExecutionPlans, StringComparer.Ordinal)
+            ),
+            runnable.Logger
+        );
     }
 
     private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> FreezeNestedStringDictionary(
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> values)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> values
+    )
     {
         return new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(
             values.ToDictionary(
                 static item => item.Key,
-                static item => (IReadOnlyDictionary<string, string>)new ReadOnlyDictionary<string, string>(
-                    new Dictionary<string, string>(item.Value, StringComparer.Ordinal)),
-                StringComparer.Ordinal));
+                static item =>
+                    (IReadOnlyDictionary<string, string>)
+                        new ReadOnlyDictionary<string, string>(
+                            new Dictionary<string, string>(item.Value, StringComparer.Ordinal)
+                        ),
+                StringComparer.Ordinal
+            )
+        );
     }
 
     private static IReadOnlyDictionary<string, IReadOnlyList<T>> FreezeNestedList<T>(
-        IReadOnlyDictionary<string, IReadOnlyList<T>> values)
+        IReadOnlyDictionary<string, IReadOnlyList<T>> values
+    )
     {
         return new ReadOnlyDictionary<string, IReadOnlyList<T>>(
             values.ToDictionary(
                 static item => item.Key,
                 static item => (IReadOnlyList<T>)Array.AsReadOnly(item.Value.ToArray()),
-                StringComparer.Ordinal));
+                StringComparer.Ordinal
+            )
+        );
     }
 }
 
@@ -58,7 +73,8 @@ internal sealed record QueryExecutionContext(
     QueryProgressEventHandler? QueryProgress,
     QueryProgressOptions? QueryProgressOptions,
     object Sender,
-    string QueryId)
+    string QueryId
+)
 {
     internal Musoq.Schema.Diagnostics.DataSourceWarningCollector? DataSourceWarnings { get; init; }
 
@@ -71,7 +87,8 @@ internal sealed record QueryExecutionContext(
         QueryProgressEventHandler? queryProgress = null,
         QueryProgressOptions? queryProgressOptions = null,
         object? sender = null,
-        string? queryId = null)
+        string? queryId = null
+    )
     {
         ArgumentNullException.ThrowIfNull(runnable);
         ArgumentNullException.ThrowIfNull(parameters);
@@ -85,7 +102,8 @@ internal sealed record QueryExecutionContext(
             queryProgress,
             queryProgressOptions,
             sender ?? runnable,
-            queryId ?? runnable.GetType().FullName ?? string.Empty);
+            queryId ?? runnable.GetType().FullName ?? string.Empty
+        );
     }
 
     internal QueryRunContext ToRunContext()
@@ -100,7 +118,8 @@ internal sealed record QueryExecutionContext(
             QueryProgressOptions,
             Sender,
             QueryId,
-            DataSourceWarnings);
+            DataSourceWarnings
+        );
         return context;
     }
 }

@@ -15,7 +15,8 @@ internal static class PhysicalProjectionBoundaryClassifier
         out PhysicalNode left,
         out PhysicalNode right,
         out ColumnRef[] joinRefs,
-        out Func<PhysicalNode, PhysicalNode, PhysicalNode> createJoin)
+        out Func<PhysicalNode, PhysicalNode, PhysicalNode> createJoin
+    )
     {
         switch (node)
         {
@@ -24,37 +25,43 @@ internal static class PhysicalProjectionBoundaryClassifier
                 kind = join.Kind;
                 left = join.Left;
                 right = join.Right;
-                joinRefs = ColumnUsage.CollectReferencedColumns(join.OnPredicate)
+                joinRefs = ColumnUsage
+                    .CollectReferencedColumns(join.OnPredicate)
                     .Concat(join.TieBreak != null ? ColumnUsage.CollectReferencedColumns(join.TieBreak.Expression) : [])
                     .Concat(ColumnUsage.CollectReferencedColumns(join.LeftMovedPredicates))
                     .Concat(ColumnUsage.CollectReferencedColumns(join.RightMovedPredicates))
                     .ToArray();
-                createJoin = (rewrittenLeft, rewrittenRight) => new PhysicalJoinCandidateNode(
-                    join.Kind,
-                    join.OnPredicate,
-                    rewrittenLeft,
-                    rewrittenRight,
-                    join.LeftMovedPredicates,
-                    join.RightMovedPredicates,
-                    join.TieBreak,
-                    join.WithOrdinality);
+                createJoin = (rewrittenLeft, rewrittenRight) =>
+                    new PhysicalJoinCandidateNode(
+                        join.Kind,
+                        join.OnPredicate,
+                        rewrittenLeft,
+                        rewrittenRight,
+                        join.LeftMovedPredicates,
+                        join.RightMovedPredicates,
+                        join.TieBreak,
+                        join.WithOrdinality
+                    );
                 return true;
             case PhysicalHashJoinNode join
                 when join.Kind is JoinKind.Inner or JoinKind.LeftSemi or JoinKind.LeftAntiSemi:
                 kind = join.Kind;
                 left = join.Left;
                 right = join.Right;
-                joinRefs = ColumnUsage.CollectReferencedColumns(join.BuildKeys)
+                joinRefs = ColumnUsage
+                    .CollectReferencedColumns(join.BuildKeys)
                     .Concat(ColumnUsage.CollectReferencedColumns(join.ProbeKeys))
                     .Concat(join.Residual != null ? ColumnUsage.CollectReferencedColumns(join.Residual) : [])
                     .ToArray();
-                createJoin = (rewrittenLeft, rewrittenRight) => new PhysicalHashJoinNode(
-                    join.Kind,
-                    join.BuildKeys,
-                    join.ProbeKeys,
-                    join.Residual,
-                    rewrittenLeft,
-                    rewrittenRight);
+                createJoin = (rewrittenLeft, rewrittenRight) =>
+                    new PhysicalHashJoinNode(
+                        join.Kind,
+                        join.BuildKeys,
+                        join.ProbeKeys,
+                        join.Residual,
+                        rewrittenLeft,
+                        rewrittenRight
+                    );
                 return true;
             default:
                 kind = default;

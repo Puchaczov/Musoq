@@ -8,16 +8,12 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class ColumnMustBeMarkedAsBindablePropertyAsTableException : Exception, IDiagnosticException
 {
-
     public ColumnMustBeMarkedAsBindablePropertyAsTableException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public ColumnMustBeMarkedAsBindablePropertyAsTableException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
+
     /// <summary>
     ///     Initializes a new instance.
     /// </summary>

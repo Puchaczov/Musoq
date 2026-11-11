@@ -13,12 +13,11 @@ internal sealed record CorrelationScalarReuseFact(
     ColumnStability Stability,
     bool IsMaterialized,
     bool UsedByMultipleProbes,
-    bool CrossesHelperBoundary)
+    bool CrossesHelperBoundary
+)
 {
     public bool CanCarry =>
-        Stability == ColumnStability.Stable &&
-        (IsMaterialized || !CrossesHelperBoundary) &&
-        UsedByMultipleProbes;
+        Stability == ColumnStability.Stable && (IsMaterialized || !CrossesHelperBoundary) && UsedByMultipleProbes;
 
     public bool MustEvaluatePerProducedRow => Stability == ColumnStability.Volatile && IsMaterialized;
 }

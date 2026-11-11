@@ -54,7 +54,8 @@ public partial class CompilationOptions(
     ISourceRuntimeSettingsResolver? sourceRuntimeSettingsResolver = null,
     QueryInstrumentationMode instrumentationMode = QueryInstrumentationMode.Disabled,
     int? maxDegreeOfParallelismOverride = null,
-    bool forceTableResultMaterialization = false)
+    bool forceTableResultMaterialization = false
+)
 {
     /// <summary>
     ///     Gets the parallelization mode for query execution.
@@ -115,15 +116,17 @@ public partial class CompilationOptions(
     ///     Gets the generated execution max degree of parallelism override.
     ///     Null preserves the default runtime behavior and resolves parallelism from the current machine.
     /// </summary>
-    public int? MaxDegreeOfParallelismOverride { get; } = maxDegreeOfParallelismOverride switch
-    {
-        null => null,
-        > 0 => maxDegreeOfParallelismOverride,
-        _ => throw new ArgumentOutOfRangeException(
-            nameof(maxDegreeOfParallelismOverride),
-            maxDegreeOfParallelismOverride,
-            "Max degree of parallelism override must be a positive integer.")
-    };
+    public int? MaxDegreeOfParallelismOverride { get; } =
+        maxDegreeOfParallelismOverride switch
+        {
+            null => null,
+            > 0 => maxDegreeOfParallelismOverride,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(maxDegreeOfParallelismOverride),
+                maxDegreeOfParallelismOverride,
+                "Max degree of parallelism override must be a positive integer."
+            ),
+        };
 
     /// <summary>
     ///     Gets a value indicating whether table-mode query results should be materialized before Run returns.
@@ -190,7 +193,8 @@ public partial class CompilationOptions(
         bool? stabilityAwareScalarReuse = null,
         RecursiveCteExecutionLimits? recursiveCteLimits = null,
         TimeSpan? regexMatchTimeout = null,
-        InterpretationExecutionLimits? interpretationLimits = null)
+        InterpretationExecutionLimits? interpretationLimits = null
+    )
     {
         return new CompilationOptions(
             ParallelizationMode,
@@ -204,13 +208,14 @@ public partial class CompilationOptions(
             SourceRuntimeSettingsResolver,
             instrumentationMode ?? InstrumentationMode,
             MaxDegreeOfParallelismOverride,
-            forceTableResultMaterialization ?? ForceTableResultMaterialization)
+            forceTableResultMaterialization ?? ForceTableResultMaterialization
+        )
         {
             UseLoopInvariantCodeMotion = loopInvariantCodeMotion ?? UseLoopInvariantCodeMotion,
             UseStabilityAwareScalarReuse = stabilityAwareScalarReuse ?? UseStabilityAwareScalarReuse,
             RecursiveCteLimits = recursiveCteLimits ?? RecursiveCteLimits,
             RegexMatchTimeout = regexMatchTimeout ?? RegexMatchTimeout,
-            InterpretationLimits = interpretationLimits ?? InterpretationLimits
+            InterpretationLimits = interpretationLimits ?? InterpretationLimits,
         };
     }
 }

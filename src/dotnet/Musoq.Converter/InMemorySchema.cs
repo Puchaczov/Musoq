@@ -19,20 +19,29 @@ internal sealed class InMemorySchema : SchemaBase
     private readonly IReadOnlyDictionary<string, InMemorySchemaTable> _tablesBySourceName;
     private readonly IReadOnlyDictionary<string, MusoqSourceRows> _bindingsBySourceKey;
 
-    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-        => base.DescribeSource(name, context, parameters) with { ExecutionPermissions = GetSlot(name).ExecutionPermissions };
+    public override SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters
+    ) =>
+        base.DescribeSource(name, context, parameters) with
+        {
+            ExecutionPermissions = GetSlot(name).ExecutionPermissions,
+        };
 
     public InMemorySchema(
         string name,
         IReadOnlyList<InMemorySourceSlot> slots,
-        IReadOnlyDictionary<string, MusoqSourceRows> bindingsBySourceKey)
+        IReadOnlyDictionary<string, MusoqSourceRows> bindingsBySourceKey
+    )
         : base(name, SharedMethodsAggregator)
     {
         _slotsBySourceName = slots.ToDictionary(static slot => slot.SourceName, StringComparer.OrdinalIgnoreCase);
         _tablesBySourceName = slots.ToDictionary(
             static slot => slot.SourceName,
             static slot => new InMemorySchemaTable(InMemorySourceShape.For(slot.RowType)),
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
         _bindingsBySourceKey = bindingsBySourceKey;
     }
 
@@ -46,7 +55,8 @@ internal sealed class InMemorySchema : SchemaBase
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         if (parameters.Length != 0)
             throw new InvalidOperationException($"In-memory source '{name}' does not accept constructor arguments.");
@@ -58,7 +68,8 @@ internal sealed class InMemorySchema : SchemaBase
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments parameters)
+        TArguments parameters
+    )
     {
         if (parameters.Count != 0)
             throw new InvalidOperationException($"In-memory source '{name}' does not accept constructor arguments.");
@@ -67,33 +78,31 @@ internal sealed class InMemorySchema : SchemaBase
         if (slot.RowType != typeof(T))
         {
             throw new InvalidOperationException(
-                $"In-memory source '#{slot.SchemaName}.{slot.SourceName}()' declares row type '{slot.RowType.FullName}', but was requested as '{typeof(T).FullName}'.");
+                $"In-memory source '#{slot.SchemaName}.{slot.SourceName}()' declares row type '{slot.RowType.FullName}', but was requested as '{typeof(T).FullName}'."
+            );
         }
 
         if (!_bindingsBySourceKey.TryGetValue(slot.Key, out var rows))
-            throw new InvalidOperationException($"Rows for in-memory source '#{slot.SchemaName}.{slot.SourceName}()' were not supplied.");
+            throw new InvalidOperationException(
+                $"Rows for in-memory source '#{slot.SchemaName}.{slot.SourceName}()' were not supplied."
+            );
 
         return new InMemoryChunkSource<T>(rows.GetChunks<T>());
     }
 
-    public override SourcePlanResult TryPlanSource(
-        string name,
-        SourcePlanRequest request,
-        params object?[] parameters)
+    public override SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
     {
         return SourcePlanResult.RejectAll(request);
     }
 
     public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext)
     {
-        return _slotsBySourceName.Values
-            .Select(static slot => new SchemaMethodInfo(slot.SourceName, SchemaConstructorInfo.Empty()))
+        return _slotsBySourceName
+            .Values.Select(static slot => new SchemaMethodInfo(slot.SourceName, SchemaConstructorInfo.Empty()))
             .ToArray();
     }
 
-    public override SchemaMethodInfo[] GetRawConstructors(
-        string methodName,
-        SourceMetadataContext metadataContext)
+    public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
     {
         return GetRawConstructors(metadataContext)
             .Where(constructor => string.Equals(constructor.MethodName, methodName, StringComparison.OrdinalIgnoreCase))

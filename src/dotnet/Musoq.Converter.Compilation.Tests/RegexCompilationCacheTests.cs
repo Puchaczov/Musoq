@@ -17,12 +17,24 @@ public sealed class RegexCompilationCacheTests
         var first = new CompilationOptions().WithRegexMatchTimeout(TimeSpan.FromSeconds(1));
         var second = first.WithRegexMatchTimeout(TimeSpan.FromSeconds(3));
         var logger = new TestsLoggerResolver();
-        using var firstQuery = InstanceCreator.CompileForExecution(query, "RegexBudgetCacheFirst", provider, logger, first);
+        using var firstQuery = InstanceCreator.CompileForExecution(
+            query,
+            "RegexBudgetCacheFirst",
+            provider,
+            logger,
+            first
+        );
 
         Assert.IsTrue(InstanceCreator.HasExecutionCompilationCacheEntryForTests(query, provider, first));
         Assert.IsFalse(InstanceCreator.HasExecutionCompilationCacheEntryForTests(query, provider, second));
 
-        using var secondQuery = InstanceCreator.CompileForExecution(query, "RegexBudgetCacheSecond", provider, logger, second);
+        using var secondQuery = InstanceCreator.CompileForExecution(
+            query,
+            "RegexBudgetCacheSecond",
+            provider,
+            logger,
+            second
+        );
 
         Assert.IsTrue(InstanceCreator.HasExecutionCompilationCacheEntryForTests(query, provider, second));
     }

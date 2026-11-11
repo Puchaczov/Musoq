@@ -1,10 +1,9 @@
+using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-using Musoq.Converter.Exceptions;
-using System.Numerics;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionAggregateQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -25,7 +24,11 @@ public sealed partial class LibraryExecutionAggregateQueryTests
         var query = $"select {function}(Amount) as Value from #schema.first()";
 
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<LibraryExecutionEntity, InvalidKernelLibrary>(query, LibraryExecutionFixture.CreateRows()));
+            CreateAndRunVirtualMachine<LibraryExecutionEntity, InvalidKernelLibrary>(
+                query,
+                LibraryExecutionFixture.CreateRows()
+            )
+        );
 
         Assert.Contains("MQ3071", error.Message);
         Assert.Contains(function, error.Message);

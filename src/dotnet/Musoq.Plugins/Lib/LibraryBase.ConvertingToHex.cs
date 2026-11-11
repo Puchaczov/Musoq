@@ -21,7 +21,8 @@ public partial class LibraryBase
 
         var hexBuilder = new StringBuilder();
 
-        if (bytes.Length <= 0) return hexBuilder.ToString();
+        if (bytes.Length <= 0)
+            return hexBuilder.ToString();
 
         for (var i = 0; i < bytes.Length - 1; i++)
         {
@@ -42,7 +43,8 @@ public partial class LibraryBase
     /// <returns>Hex representation of a given bytes</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public string? ToHex<T>(T value) where T : IConvertible
+    public string? ToHex<T>(T value)
+        where T : IConvertible
     {
         return Type.GetTypeCode(typeof(T)) switch
         {
@@ -64,7 +66,7 @@ public partial class LibraryBase
             TypeCode.UInt16 => ToHex(GetBytes(value.ToUInt16(CultureInfo.CurrentCulture))),
             TypeCode.UInt32 => ToHex(GetBytes(value.ToUInt32(CultureInfo.CurrentCulture))),
             TypeCode.UInt64 => ToHex(GetBytes(value.ToUInt64(CultureInfo.CurrentCulture))),
-            _ => "CONVERSION_NOT_SUPPORTED"
+            _ => "CONVERSION_NOT_SUPPORTED",
         };
     }
 
@@ -81,7 +83,6 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(hexString))
             return null;
 
-
         var cleanHex = hexString
             .Replace(" ", "", StringComparison.Ordinal)
             .Replace("-", "", StringComparison.Ordinal)
@@ -95,7 +96,8 @@ public partial class LibraryBase
         try
         {
             var bytes = new byte[cleanHex.Length / 2];
-            for (var i = 0; i < bytes.Length; i++) bytes[i] = Convert.ToByte(cleanHex.Substring(i * 2, 2), 16);
+            for (var i = 0; i < bytes.Length; i++)
+                bytes[i] = Convert.ToByte(cleanHex.Substring(i * 2, 2), 16);
             return bytes;
         }
         catch

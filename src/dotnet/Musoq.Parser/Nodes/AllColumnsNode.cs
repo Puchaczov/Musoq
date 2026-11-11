@@ -8,12 +8,11 @@ public class AllColumnsNode(
     bool isNotLike,
     string[]? excludeColumns,
     StarReplaceItemNode[]? replaceItems,
-    StarRenameItemNode[]? renameItems)
-    : Node
+    StarRenameItemNode[]? renameItems
+) : Node
 {
-    public AllColumnsNode(string? alias = null) : this(alias, null, false, null, null, null)
-    {
-    }
+    public AllColumnsNode(string? alias = null)
+        : this(alias, null, false, null, null, null) { }
 
     public string? Alias { get; } = alias;
 
@@ -28,8 +27,10 @@ public class AllColumnsNode(
     public StarRenameItemNode[]? RenameItems { get; } = renameItems;
 
     public bool HasModifiers =>
-        LikePattern != null || ExcludeColumns is { Length: > 0 } ||
-        ReplaceItems is { Length: > 0 } || RenameItems is { Length: > 0 };
+        LikePattern != null
+        || ExcludeColumns is { Length: > 0 }
+        || ReplaceItems is { Length: > 0 }
+        || RenameItems is { Length: > 0 };
 
     public override Type ReturnType => typeof(object[]);
 

@@ -34,7 +34,8 @@ public partial class Parser
 
                 return new DescNode(
                     new SchemaFromNode(schemaName, string.Empty, ArgsListNode.Empty, string.Empty, 1),
-                    DescForType.FunctionsForSchema);
+                    DescForType.FunctionsForSchema
+                );
             }
 
             var schemaNameForFunctions = ComposeSchemaName();
@@ -48,16 +49,24 @@ public partial class Parser
                 {
                     ComposeAccessMethod(string.Empty);
                     return new DescNode(
-                        new SchemaFromNode(schemaNameForFunctions, string.Empty, ArgsListNode.Empty,
-                            string.Empty, 1), DescForType.FunctionsForSchema);
+                        new SchemaFromNode(schemaNameForFunctions, string.Empty, ArgsListNode.Empty, string.Empty, 1),
+                        DescForType.FunctionsForSchema
+                    );
                 }
 
                 ConsumeAndGetToken(TokenType.Property);
             }
 
             return new DescNode(
-                new SchemaFromNode(schemaNameForFunctions, string.Empty, ArgsListNode.Empty, string.Empty,
-                    schemaToken.Span.Start), DescForType.FunctionsForSchema);
+                new SchemaFromNode(
+                    schemaNameForFunctions,
+                    string.Empty,
+                    ArgsListNode.Empty,
+                    string.Empty,
+                    schemaToken.Span.Start
+                ),
+                DescForType.FunctionsForSchema
+            );
         }
 
         if (Current.TokenType == TokenType.MethodAccess)
@@ -97,15 +106,17 @@ public partial class Parser
 
         return new DescNode(
             new SchemaFromNode(name, string.Empty, ArgsListNode.Empty, string.Empty, startToken.Span.Start),
-            DescForType.Schema);
+            DescForType.Schema
+        );
     }
 
     private AliasedFromNode ComposeDescriptionAliasCall()
     {
         var token = Current;
         var method = ComposeAccessMethod(string.Empty, true);
-        return new AliasedFromNode(method.Name, method.Arguments, string.Empty, token.Span.Start)
-            .WithMethodSpan(token.Span);
+        return new AliasedFromNode(method.Name, method.Arguments, string.Empty, token.Span.Start).WithMethodSpan(
+            token.Span
+        );
     }
 
     private DescNode ComposeDescQuery()
@@ -113,28 +124,29 @@ public partial class Parser
         Consume(Current.TokenType);
         var opening = ConsumeAndGetToken(TokenType.LeftParenthesis);
 
-        if (Current.TokenType is not (TokenType.Select or TokenType.From or TokenType.Pivot or TokenType.Unpivot or TokenType.With))
+        if (
+            Current.TokenType
+            is not (TokenType.Select or TokenType.From or TokenType.Pivot or TokenType.Unpivot or TokenType.With)
+        )
             throw new SyntaxException(
                 "DESC QUERY requires a SELECT, FROM, PIVOT, UNPIVOT, or WITH query inside parentheses.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2024_InvalidSubquery,
-                opening.Span);
+                opening.Span
+            );
 
-        var query = Current.TokenType == TokenType.With
-            ? ComposeCteExpression()
-            : ComposeSetOperators(1);
+        var query = Current.TokenType == TokenType.With ? ComposeCteExpression() : ComposeSetOperators(1);
 
         ConsumeAndGetToken(TokenType.RightParenthesis);
 
         return new DescNode(query);
     }
 
-
     private DescNode TryParseColumnClause(FromNode fromNode)
     {
-        var isColumnKeyword = Current.TokenType is TokenType.Word or TokenType.Identifier &&
-                              string.Equals(Current.Value, ColumnKeywordToken.TokenText,
-                                  StringComparison.OrdinalIgnoreCase);
+        var isColumnKeyword =
+            Current.TokenType is TokenType.Word or TokenType.Identifier
+            && string.Equals(Current.Value, ColumnKeywordToken.TokenText, StringComparison.OrdinalIgnoreCase);
 
         if (!isColumnKeyword)
             return new DescNode(fromNode, DescForType.SpecificConstructor);
@@ -144,14 +156,12 @@ public partial class Parser
         return new DescNode(fromNode, DescForType.SpecificColumn, column);
     }
 
-
     private Node ParseColumnAccess()
     {
         var node = ComposeArithmeticExpression(0);
         ValidateColumnAccessNode(node);
         return node;
     }
-
 
     private void ValidateColumnAccessNode(Node node)
     {
@@ -168,10 +178,10 @@ public partial class Parser
             default:
                 throw new SyntaxException(
                     $"Invalid column path. Expected property path but received {node.GetType().Name}",
-                    _lexer.AlreadyResolvedQueryPart);
+                    _lexer.AlreadyResolvedQueryPart
+                );
         }
     }
-
 
     private string ComposeSchemaName()
     {
@@ -184,16 +194,16 @@ public partial class Parser
             return EnsureHashPrefix(identifier);
         }
 
-        throw new SyntaxException($"Expected schema name (Word or Identifier) but received {Current.TokenType}",
-            _lexer.AlreadyResolvedQueryPart);
+        throw new SyntaxException(
+            $"Expected schema name (Word or Identifier) but received {Current.TokenType}",
+            _lexer.AlreadyResolvedQueryPart
+        );
     }
-
 
     private static string EnsureHashPrefix(string name)
     {
         return name.StartsWith('#') ? name : $"#{name}";
     }
-
 
     private CoupleNode ComposeCouple()
     {
@@ -205,7 +215,8 @@ public partial class Parser
                 "COUPLE schema methods are declarations and must not include parentheses; pass arguments when invoking the coupled alias.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2030_UnsupportedSyntax,
-                Current.Span);
+                Current.Span
+            );
 
         var from = ComposeSchemaMethod();
 
@@ -217,8 +228,9 @@ public partial class Parser
 
         var identifierNode = (IdentifierNode)ComposeBaseTypes();
 
-        return (CoupleNode)new CoupleNode(from, tableName, profileName, identifierNode.Name)
-            .WithSpan(coupleToken.Span.Through(identifierNode.Span));
+        return (CoupleNode)
+            new CoupleNode(from, tableName, profileName, identifierNode.Name).WithSpan(
+                coupleToken.Span.Through(identifierNode.Span)
+            );
     }
-
 }

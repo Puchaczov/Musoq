@@ -9,8 +9,11 @@ public static partial class ExecutionPlanPrinter
     {
         return string.Join(
             ", ",
-            outputs.Select(static output => output.StoreRows
-                ? $"{output.Table.Name} -> _tableResults[{output.TableIndex}]"
-                : $"{output.Table.Name} -> sidecar-only"));
+            outputs.Select(static output =>
+                output.StoreRows
+                    ? $"{output.Table.Name} -> _tableResults[{output.TableIndex}]"
+                    : $"{output.Table.Name} -> sidecar-only"
+            )
+        );
     }
 }

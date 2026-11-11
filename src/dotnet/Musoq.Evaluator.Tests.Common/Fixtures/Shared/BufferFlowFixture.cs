@@ -67,7 +67,10 @@ public sealed class BufferFlowLibrary : LibraryBase
 
     [BindableMethod]
     [NonDeterministic]
-    public IEnumerable<byte> Sequence([InjectSpecificSource(typeof(BufferFlowEntity))] BufferFlowEntity entity, byte[] value)
+    public IEnumerable<byte> Sequence(
+        [InjectSpecificSource(typeof(BufferFlowEntity))] BufferFlowEntity entity,
+        byte[] value
+    )
     {
         foreach (var item in value)
         {

@@ -9,7 +9,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static List<StatementSyntax> CreateParallelAggregateMergeStatements(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
         TypeSyntax groupType,
-        string shardsName)
+        string shardsName
+    )
     {
         const string mergedGroupsName = "mergedGroups";
         const string groupsToFinalizeName = "groupsToFinalize";
@@ -21,34 +22,50 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 mergedGroupsName,
-                SyntaxFactory.ObjectCreationExpression(CreateGroupDictionaryTypeSyntax(parallelAggregate.KeyType, groupType))
-                    .WithArgumentList(SyntaxFactory.ArgumentList())),
+                SyntaxFactory
+                    .ObjectCreationExpression(CreateGroupDictionaryTypeSyntax(parallelAggregate.KeyType, groupType))
+                    .WithArgumentList(SyntaxFactory.ArgumentList())
+            ),
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 groupsToFinalizeName,
-                SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(groupType))
-                    .WithArgumentList(SyntaxFactory.ArgumentList()))
+                SyntaxFactory
+                    .ObjectCreationExpression(CreateListTypeSyntax(groupType))
+                    .WithArgumentList(SyntaxFactory.ArgumentList())
+            ),
         };
 
         if (CanBeNull(parallelAggregate.KeyType))
         {
-            statements.Add(CreateLocalDeclaration(
-                groupType,
-                CreateParallelNullGroupName(),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+            statements.Add(
+                CreateLocalDeclaration(
+                    groupType,
+                    CreateParallelNullGroupName(),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                )
+            );
         }
 
-        statements.Add(StatementEmitter.CreateForeach(
-            shardName,
-            SyntaxFactory.IdentifierName(shardsName),
-            StatementEmitter.CreateBlock(StatementEmitter.CreateForeach(
-                    sourceGroupName,
-                    SyntaxFactory.IdentifierName(shardName),
-                    StatementEmitter.CreateBlock(CreateParallelAggregateMergeGroupStatements(
-                        parallelAggregate,
-                        mergedGroupsName,
-                        groupsToFinalizeName,
-                        sourceGroupName))))));
+        statements.Add(
+            StatementEmitter.CreateForeach(
+                shardName,
+                SyntaxFactory.IdentifierName(shardsName),
+                StatementEmitter.CreateBlock(
+                    StatementEmitter.CreateForeach(
+                        sourceGroupName,
+                        SyntaxFactory.IdentifierName(shardName),
+                        StatementEmitter.CreateBlock(
+                            CreateParallelAggregateMergeGroupStatements(
+                                parallelAggregate,
+                                mergedGroupsName,
+                                groupsToFinalizeName,
+                                sourceGroupName
+                            )
+                        )
+                    )
+                )
+            )
+        );
 
         statements.Add(SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(groupsToFinalizeName)));
         return statements;
@@ -58,7 +75,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
         string mergedGroupsName,
         string groupsToFinalizeName,
-        string sourceGroupName)
+        string sourceGroupName
+    )
     {
         const string groupKeyName = "groupKey";
         var keyField = GetSingleAggregateGroupKey(parallelAggregate.GroupShape);
@@ -70,26 +88,39 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(sourceGroupName),
-                    SyntaxFactory.IdentifierName(keyField.FieldName)))
-,CanBeNull(parallelAggregate.KeyType)
-            ? SyntaxFactory.IfStatement(
-                SyntaxFactory.BinaryExpression(
-                    SyntaxKind.NotEqualsExpression,
-                    SyntaxFactory.IdentifierName(groupKeyName),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                StatementEmitter.CreateBlock(CreateParallelAggregateMergeNonNullGroupStatements(
-                    mergedGroupsName,
-                    groupsToFinalizeName,
-                    sourceGroupName,
-                    groupKeyName)),
-                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(CreateParallelAggregateMergeNullGroupStatements(
-                    groupsToFinalizeName,
-                    sourceGroupName))))
-            : StatementEmitter.CreateBlock(CreateParallelAggregateMergeNonNullGroupStatements(
-                mergedGroupsName,
-                groupsToFinalizeName,
-                sourceGroupName,
-                groupKeyName))        };
+                    SyntaxFactory.IdentifierName(keyField.FieldName)
+                )
+            ),
+            CanBeNull(parallelAggregate.KeyType)
+                ? SyntaxFactory.IfStatement(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.NotEqualsExpression,
+                        SyntaxFactory.IdentifierName(groupKeyName),
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                    ),
+                    StatementEmitter.CreateBlock(
+                        CreateParallelAggregateMergeNonNullGroupStatements(
+                            mergedGroupsName,
+                            groupsToFinalizeName,
+                            sourceGroupName,
+                            groupKeyName
+                        )
+                    ),
+                    SyntaxFactory.ElseClause(
+                        StatementEmitter.CreateBlock(
+                            CreateParallelAggregateMergeNullGroupStatements(groupsToFinalizeName, sourceGroupName)
+                        )
+                    )
+                )
+                : StatementEmitter.CreateBlock(
+                    CreateParallelAggregateMergeNonNullGroupStatements(
+                        mergedGroupsName,
+                        groupsToFinalizeName,
+                        sourceGroupName,
+                        groupKeyName
+                    )
+                ),
+        };
 
         return statements;
     }
@@ -98,7 +129,8 @@ public sealed partial class ExecutionCSharpRenderer
         string mergedGroupsName,
         string groupsToFinalizeName,
         string sourceGroupName,
-        string groupKeyName)
+        string groupKeyName
+    )
     {
         const string mergeGroupName = "mergedGroup";
         var groupRefName = CreateGroupRefVariableName(mergeGroupName);
@@ -110,23 +142,34 @@ public sealed partial class ExecutionCSharpRenderer
                 mergedGroupsName,
                 SyntaxFactory.IdentifierName(groupKeyName),
                 groupRefName,
-                existsName),
+                existsName
+            ),
             SyntaxFactory.IfStatement(
                 SyntaxFactory.PrefixUnaryExpression(
                     SyntaxKind.LogicalNotExpression,
-                    SyntaxFactory.IdentifierName(existsName)),
-                StatementEmitter.CreateBlock(SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        SyntaxFactory.IdentifierName(groupRefName),
-                        SyntaxFactory.IdentifierName(sourceGroupName))),
-                    CreateCollectionAddStatement(groupsToFinalizeName, SyntaxFactory.IdentifierName(sourceGroupName))),
-                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(CreateMergeAggregateGroupsStatement(groupRefName, sourceGroupName))))
+                    SyntaxFactory.IdentifierName(existsName)
+                ),
+                StatementEmitter.CreateBlock(
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(
+                            SyntaxKind.SimpleAssignmentExpression,
+                            SyntaxFactory.IdentifierName(groupRefName),
+                            SyntaxFactory.IdentifierName(sourceGroupName)
+                        )
+                    ),
+                    CreateCollectionAddStatement(groupsToFinalizeName, SyntaxFactory.IdentifierName(sourceGroupName))
+                ),
+                SyntaxFactory.ElseClause(
+                    StatementEmitter.CreateBlock(CreateMergeAggregateGroupsStatement(groupRefName, sourceGroupName))
+                )
+            ),
         ];
     }
 
     private static IReadOnlyList<StatementSyntax> CreateParallelAggregateMergeNullGroupStatements(
         string groupsToFinalizeName,
-        string sourceGroupName)
+        string sourceGroupName
+    )
     {
         var nullGroupName = CreateParallelNullGroupName();
 
@@ -136,25 +179,40 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.EqualsExpression,
                     SyntaxFactory.IdentifierName(nullGroupName),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                StatementEmitter.CreateBlock(SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        SyntaxFactory.IdentifierName(nullGroupName),
-                        SyntaxFactory.IdentifierName(sourceGroupName))),
-                    CreateCollectionAddStatement(groupsToFinalizeName, SyntaxFactory.IdentifierName(sourceGroupName))),
-                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(CreateMergeAggregateGroupsStatement(nullGroupName, sourceGroupName))))
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                ),
+                StatementEmitter.CreateBlock(
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(
+                            SyntaxKind.SimpleAssignmentExpression,
+                            SyntaxFactory.IdentifierName(nullGroupName),
+                            SyntaxFactory.IdentifierName(sourceGroupName)
+                        )
+                    ),
+                    CreateCollectionAddStatement(groupsToFinalizeName, SyntaxFactory.IdentifierName(sourceGroupName))
+                ),
+                SyntaxFactory.ElseClause(
+                    StatementEmitter.CreateBlock(CreateMergeAggregateGroupsStatement(nullGroupName, sourceGroupName))
+                )
+            ),
         ];
     }
 
     private static ExpressionStatementSyntax CreateMergeAggregateGroupsStatement(
         string targetGroupName,
-        string sourceGroupName)
+        string sourceGroupName
+    )
     {
-        return SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(targetGroupName),
-                    SyntaxFactory.IdentifierName("MergeFrom")))
-            .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(sourceGroupName))));
+        return SyntaxFactory.ExpressionStatement(
+            SyntaxFactory
+                .InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(targetGroupName),
+                        SyntaxFactory.IdentifierName("MergeFrom")
+                    )
+                )
+                .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(sourceGroupName)))
+        );
     }
 }

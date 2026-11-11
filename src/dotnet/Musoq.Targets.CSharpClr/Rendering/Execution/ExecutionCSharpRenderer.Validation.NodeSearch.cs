@@ -4,8 +4,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-
-
     private static bool ContainsNode<TNode>(ExecutionBlock block)
         where TNode : ExecutionNode
     {

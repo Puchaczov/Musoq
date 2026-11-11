@@ -14,11 +14,14 @@ internal sealed class TableCompletionPlanner(PostOperationPlanner postOperationP
         if (request.IsDistinct)
         {
             var distinctTable = new ExecutionVariable($"{currentTable.Name}Distinct", typeof(object));
-            request.Nodes.Add(new ExecutionDistinctTable(currentTable, distinctTable)
-            {
-                KeyFields = request.FinalProjection is null ? [] :
-                    request.FinalProjection.FieldIndexes.Select(index => resultShape.Fields[index]).ToArray()
-            });
+            request.Nodes.Add(
+                new ExecutionDistinctTable(currentTable, distinctTable)
+                {
+                    KeyFields = request.FinalProjection is null
+                        ? []
+                        : request.FinalProjection.FieldIndexes.Select(index => resultShape.Fields[index]).ToArray(),
+                }
+            );
             currentTable = distinctTable;
         }
 
@@ -34,15 +37,19 @@ internal sealed class TableCompletionPlanner(PostOperationPlanner postOperationP
 
         if (request.FinalProjection != null)
         {
-            request.Nodes.Add(new ExecutionProjectTable(
-                currentTable,
-                request.FinalProjection.Table,
-                request.FinalProjection.RowShape,
-                request.FinalProjection.FieldIndexes,
-                ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(
+            request.Nodes.Add(
+                new ExecutionProjectTable(
+                    currentTable,
                     request.FinalProjection.Table,
-                    currentTable),
-                ExecutionAppendMode.Direct));
+                    request.FinalProjection.RowShape,
+                    request.FinalProjection.FieldIndexes,
+                    ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(
+                        request.FinalProjection.Table,
+                        currentTable
+                    ),
+                    ExecutionAppendMode.Direct
+                )
+            );
             currentTable = request.FinalProjection.Table;
             resultShape = request.FinalProjection.RowShape;
         }

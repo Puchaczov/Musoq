@@ -21,7 +21,8 @@ public sealed class DiagnosticREC090ExactQuickFixTargetingTests : NegativeTestsB
         string misspelling,
         string query,
         string expectedQuery,
-        string faultText)
+        string faultText
+    )
     {
         Assert.IsFalse(string.IsNullOrWhiteSpace(caseId));
         AssertAliasEditAndExecute(query, expectedQuery, faultText, alias, misspelling);
@@ -320,10 +321,12 @@ public sealed class DiagnosticREC090ExactQuickFixTargetingTests : NegativeTestsB
                 Query: "with raw as (select Name, Id from #test.people()), names as (select Name from raw where (select peple.Id from #test.people() people where people.Id = raw.Id) = raw.Id) select Name from names",
                 ExpectedQuery: "with raw as (select Name, Id from #test.people()), names as (select Name from raw where (select people.Id from #test.people() people where people.Id = raw.Id) = raw.Id) select Name from names",
                 FaultText: "peple.Id"
-            )
+            ),
         };
 
-        return cases.Select(static item => new object[] { item.CaseId, alias, misspelling, item.Query, item.ExpectedQuery, item.FaultText });
+        return cases.Select(static item =>
+            new object[] { item.CaseId, alias, misspelling, item.Query, item.ExpectedQuery, item.FaultText }
+        );
     }
 
     private void AssertAliasEditAndExecute(
@@ -331,10 +334,16 @@ public sealed class DiagnosticREC090ExactQuickFixTargetingTests : NegativeTestsB
         string expectedQuery,
         string faultText,
         string expectedAlias,
-        string misspelling)
+        string misspelling
+    )
     {
         var exception = Assert.Throws<MusoqQueryException>(() => CompileQuery(query));
-        AssertSingleError(exception, DiagnosticCode.MQ3015_UnknownAlias, DiagnosticPhase.Bind, $"Did you mean '{expectedAlias}'?");
+        AssertSingleError(
+            exception,
+            DiagnosticCode.MQ3015_UnknownAlias,
+            DiagnosticPhase.Bind,
+            $"Did you mean '{expectedAlias}'?"
+        );
 
         var envelope = exception.PrimaryEnvelope;
         var faultStart = query.IndexOf(faultText, StringComparison.Ordinal);
@@ -353,7 +362,8 @@ public sealed class DiagnosticREC090ExactQuickFixTargetingTests : NegativeTestsB
         Assert.AreEqual(faultSpan, action.TextEdit!.Span);
         Assert.AreEqual(expectedAlias, action.TextEdit.NewText);
 
-        var repairedQuery = query.Remove(action.TextEdit.Span.Start, action.TextEdit.Span.Length)
+        var repairedQuery = query
+            .Remove(action.TextEdit.Span.Start, action.TextEdit.Span.Length)
             .Insert(action.TextEdit.Span.Start, action.TextEdit.NewText);
         Assert.AreEqual(expectedQuery, repairedQuery);
 

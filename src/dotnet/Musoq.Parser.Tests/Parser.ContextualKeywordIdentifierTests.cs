@@ -14,8 +14,7 @@ public class ParserContextualKeywordIdentifierTests
     [TestMethod]
     public void ReportedExistsColumnQuery_ShouldParseWithoutDiagnostics()
     {
-        const string query =
-            "select FullPath, Exists from os.files() take 5";
+        const string query = "select FullPath, Exists from os.files() take 5";
 
         var result = ParseWithDiagnostics(query);
 
@@ -87,8 +86,10 @@ public class ParserContextualKeywordIdentifierTests
             var identifier = ToMixedCase(keyword);
             var result = ParseWithDiagnostics($"select {identifier} from #some.files()");
 
-            Assert.IsTrue(result.Success,
-                $"Contextual identifier '{identifier}' failed:{Environment.NewLine}{result.FormatDiagnostics()}");
+            Assert.IsTrue(
+                result.Success,
+                $"Contextual identifier '{identifier}' failed:{Environment.NewLine}{result.FormatDiagnostics()}"
+            );
             var expression = GetSelectExpression(result.Root!, 0);
             Assert.IsInstanceOfType<IdentifierNode>(expression, $"'{identifier}' was not an identifier.");
             Assert.AreEqual(identifier, ((IdentifierNode)expression).Name);
@@ -102,8 +103,10 @@ public class ParserContextualKeywordIdentifierTests
         {
             var result = ParseWithDiagnostics($"select source.{keyword} from #some.files() source");
 
-            Assert.IsTrue(result.Success,
-                $"Qualified contextual identifier '{keyword}' failed:{Environment.NewLine}{result.FormatDiagnostics()}");
+            Assert.IsTrue(
+                result.Success,
+                $"Qualified contextual identifier '{keyword}' failed:{Environment.NewLine}{result.FormatDiagnostics()}"
+            );
         }
     }
 
@@ -118,7 +121,9 @@ public class ParserContextualKeywordIdentifierTests
 
             if (result.Diagnostics.Count != 1)
             {
-                failures.Add($"{keyword}: expected one diagnostic, got {result.Diagnostics.Count} ({result.FormatDiagnostics()})");
+                failures.Add(
+                    $"{keyword}: expected one diagnostic, got {result.Diagnostics.Count} ({result.FormatDiagnostics()})"
+                );
                 continue;
             }
 
@@ -140,8 +145,10 @@ public class ParserContextualKeywordIdentifierTests
             var result = ParseWithDiagnostics($"select {keyword} from #some.files()");
 
             Assert.IsTrue(result.Success, result.FormatDiagnostics());
-            Assert.IsFalse(GetSelectExpression(result.Root!, 0) is IdentifierNode,
-                $"Literal keyword '{keyword}' was incorrectly parsed as an identifier.");
+            Assert.IsFalse(
+                GetSelectExpression(result.Root!, 0) is IdentifierNode,
+                $"Literal keyword '{keyword}' was incorrectly parsed as an identifier."
+            );
         }
     }
 
@@ -166,8 +173,10 @@ public class ParserContextualKeywordIdentifierTests
                 continue;
             }
 
-            Assert.IsTrue(result.Success,
-                $"Schema keyword column '{keyword}' failed:{Environment.NewLine}{result.FormatDiagnostics()}");
+            Assert.IsTrue(
+                result.Success,
+                $"Schema keyword column '{keyword}' failed:{Environment.NewLine}{result.FormatDiagnostics()}"
+            );
             Assert.IsInstanceOfType<IdentifierNode>(GetSelectExpression(result.Root!, 0));
         }
     }
@@ -223,7 +232,8 @@ public class ParserContextualKeywordIdentifierTests
     {
         var expression = ParseSelectExpression(
             "select not exists (select 1 from #some.rows()) from #some.files()",
-            isCompleteQuery: true);
+            isCompleteQuery: true
+        );
 
         Assert.IsInstanceOfType<NotNode>(expression);
     }
@@ -231,8 +241,8 @@ public class ParserContextualKeywordIdentifierTests
     [TestMethod]
     public void BracketQuotedReservedKeywords_ShouldParseAsColumns()
     {
-        var keywords = KeywordCollisionCatalog.SqlKeywords
-            .Select(keyword => keyword.Text)
+        var keywords = KeywordCollisionCatalog
+            .SqlKeywords.Select(keyword => keyword.Text)
             .Concat(KeywordCollisionCatalog.SchemaKeywords.Select(keyword => keyword.Text))
             .Distinct(StringComparer.OrdinalIgnoreCase);
 
@@ -240,7 +250,10 @@ public class ParserContextualKeywordIdentifierTests
         {
             var result = ParseWithDiagnostics($"select [{keyword}] from #some.files()");
 
-            Assert.IsTrue(result.Success, $"Keyword '{keyword}' failed:{Environment.NewLine}{result.FormatDiagnostics()}");
+            Assert.IsTrue(
+                result.Success,
+                $"Keyword '{keyword}' failed:{Environment.NewLine}{result.FormatDiagnostics()}"
+            );
             Assert.IsInstanceOfType<IdentifierNode>(GetSelectExpression(result.Root!, 0));
         }
     }
@@ -252,8 +265,10 @@ public class ParserContextualKeywordIdentifierTests
         {
             var result = ParseWithDiagnostics($"select [{keyword}] from #some.files()");
 
-            Assert.IsTrue(result.Success,
-                $"Multi-word keyword '{keyword}' failed:{Environment.NewLine}{result.FormatDiagnostics()}");
+            Assert.IsTrue(
+                result.Success,
+                $"Multi-word keyword '{keyword}' failed:{Environment.NewLine}{result.FormatDiagnostics()}"
+            );
             Assert.IsInstanceOfType<IdentifierNode>(GetSelectExpression(result.Root!, 0));
         }
     }

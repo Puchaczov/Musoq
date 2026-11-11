@@ -17,7 +17,8 @@ public sealed class RegexMatchTimeoutBoundaryTests
         var regex = new TimeoutRegex();
 
         var failure = Assert.Throws<RegexExecutionTimeoutException>(() =>
-            RegexMatchExecutor.IsMatch(regex, "private input", patternOperator));
+            RegexMatchExecutor.IsMatch(regex, "private input", patternOperator)
+        );
 
         Assert.AreEqual(patternOperator, failure.PatternOperator);
         Assert.AreEqual("Backtracking", failure.Engine);
@@ -37,7 +38,8 @@ public sealed class RegexMatchTimeoutBoundaryTests
         internal RegexMatchTimeoutException Cause { get; } =
             new("private input", "private pattern", TimeSpan.FromSeconds(1));
 
-        internal TimeoutRegex() : base("private pattern", RegexOptions.None, TimeSpan.FromSeconds(1))
+        internal TimeoutRegex()
+            : base("private pattern", RegexOptions.None, TimeSpan.FromSeconds(1))
         {
             factory = new TimeoutRunnerFactory(Cause);
         }

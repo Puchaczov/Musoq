@@ -11,13 +11,14 @@ public sealed class DiagnosticBinary046SchemaCompositionTests : SchemaParserTest
     [TestMethod]
     public void BinarySchema_Comments_ShouldBeRetainedWithSourceSpans()
     {
-        const string schemaText = "binary Example {\n" +
-                                  "    -- first field\n" +
-                                  "    First: byte,\n" +
-                                  "    /* second field */\n" +
-                                  "    Second: short le,\n" +
-                                  "    Third: byte -- trailing field comment\n" +
-                                  "}";
+        const string schemaText =
+            "binary Example {\n"
+            + "    -- first field\n"
+            + "    First: byte,\n"
+            + "    /* second field */\n"
+            + "    Second: short le,\n"
+            + "    Third: byte -- trailing field comment\n"
+            + "}";
 
         var schema = ParseBinarySchema(schemaText);
 

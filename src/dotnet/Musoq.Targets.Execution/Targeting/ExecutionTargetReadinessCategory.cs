@@ -10,5 +10,5 @@ internal enum ExecutionTargetReadinessCategory
     HostSourceAccess = 6,
     NullTypeCoercion = 7,
     ProfilingDiagnostics = 8,
-    Cancellation = 9
+    Cancellation = 9,
 }

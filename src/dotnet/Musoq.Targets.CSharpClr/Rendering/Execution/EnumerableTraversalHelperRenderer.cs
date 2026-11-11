@@ -17,11 +17,13 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionForEach Loop,
         IReadOnlyList<CapturedLocal> Captures,
         IReadOnlySet<string> RefCaptureNames,
-        IReadOnlyDictionary<string, TypeSyntax> CaptureTypeOverrides);
+        IReadOnlyDictionary<string, TypeSyntax> CaptureTypeOverrides
+    );
 
     private IReadOnlyDictionary<ExecutionBlock, EnumerableTraversalHelper> CollectEnumerableTraversalHelpersByBlock(
         ExecutionBlock block,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var helpers = new Dictionary<ExecutionBlock, EnumerableTraversalHelper>();
         var functionNameCounts = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -30,7 +32,8 @@ public sealed partial class ExecutionCSharpRenderer
             helpers,
             functionNameCounts,
             new Dictionary<string, ExecutionVariable>(StringComparer.Ordinal),
-            context);
+            context
+        );
         return helpers;
     }
 
@@ -39,7 +42,8 @@ public sealed partial class ExecutionCSharpRenderer
         Dictionary<ExecutionBlock, EnumerableTraversalHelper> helpers,
         Dictionary<string, int> functionNameCounts,
         IReadOnlyDictionary<string, ExecutionVariable> scopedVariables,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (TryCreateEnumerableTraversalHelper(block, functionNameCounts, scopedVariables, context, out var helper))
             helpers.Add(block, helper);
@@ -52,12 +56,7 @@ public sealed partial class ExecutionCSharpRenderer
 
             foreach (var childBlock in ExecutionIrAnalysis.GetChildBlocks(node))
             {
-                CollectEnumerableTraversalHelpersByBlock(
-                    childBlock,
-                    helpers,
-                    functionNameCounts,
-                    nodeScope,
-                    context);
+                CollectEnumerableTraversalHelpersByBlock(childBlock, helpers, functionNameCounts, nodeScope, context);
             }
 
             AddDeclaredVariables(node, currentScope);
@@ -69,16 +68,21 @@ public sealed partial class ExecutionCSharpRenderer
         Dictionary<string, int> functionNameCounts,
         IReadOnlyDictionary<string, ExecutionVariable> scopedVariables,
         ExecutionRenderContext context,
-        out EnumerableTraversalHelper helper)
+        out EnumerableTraversalHelper helper
+    )
     {
         helper = null!;
 
-        if (block.Nodes.Count < 2 ||
-            block.Nodes[^1] is not ExecutionForEach loop ||
-            block.Nodes[^2] is not ExecutionEnumerableSource source ||
-            block.Nodes.Take(block.Nodes.Count - 2).Any(static node => node is not ExecutionLet and not ExecutionMethodTargetDeclarationCandidate) ||
-            !IsLoopOverRows(loop.Source, source.Rows.Name) ||
-            !ShouldExtractEnumerableTraversal(loop.Body))
+        if (
+            block.Nodes.Count < 2
+            || block.Nodes[^1] is not ExecutionForEach loop
+            || block.Nodes[^2] is not ExecutionEnumerableSource source
+            || block
+                .Nodes.Take(block.Nodes.Count - 2)
+                .Any(static node => node is not ExecutionLet and not ExecutionMethodTargetDeclarationCandidate)
+            || !IsLoopOverRows(loop.Source, source.Rows.Name)
+            || !ShouldExtractEnumerableTraversal(loop.Body)
+        )
         {
             return false;
         }
@@ -99,15 +103,16 @@ public sealed partial class ExecutionCSharpRenderer
             loop,
             CollectEnumerableTraversalCaptures(block, excludedNames, scopedVariables, captureTypeOverrides),
             refCaptureNames,
-            captureTypeOverrides);
+            captureTypeOverrides
+        );
         return true;
     }
 
     private static bool ShouldExtractEnumerableTraversal(ExecutionBlock body)
     {
-        return ExecutionIrAnalysis.CollectNodes<ExecutionEnumerableSource>(body).Any() ||
-               ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddSingleKeyAggregateGroup>(body).Any() ||
-               ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddValueTupleAggregateGroup>(body).Any();
+        return ExecutionIrAnalysis.CollectNodes<ExecutionEnumerableSource>(body).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddSingleKeyAggregateGroup>(body).Any()
+            || ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddValueTupleAggregateGroup>(body).Any();
     }
 
     private static bool IsLoopOverRows(ExecutionExpression source, string rowsName)
@@ -115,16 +120,18 @@ public sealed partial class ExecutionCSharpRenderer
         return source switch
         {
             ExecutionRowStream rowStream => string.Equals(rowStream.Variable.Name, rowsName, StringComparison.Ordinal),
-            ExecutionVariableRead variableRead => string.Equals(variableRead.Variable.Name, rowsName, StringComparison.Ordinal),
-            _ => false
+            ExecutionVariableRead variableRead => string.Equals(
+                variableRead.Variable.Name,
+                rowsName,
+                StringComparison.Ordinal
+            ),
+            _ => false,
         };
     }
 
     private static string CreateEnumerableTraversalFunctionName(string rowsName, int helperIndex = 0)
     {
-        var suffix = helperIndex == 0
-            ? string.Empty
-            : helperIndex.ToString(CultureInfo.InvariantCulture);
+        var suffix = helperIndex == 0 ? string.Empty : helperIndex.ToString(CultureInfo.InvariantCulture);
         return $"Traverse{CreatePascalIdentifier(rowsName)}{suffix}";
     }
 
@@ -132,15 +139,18 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionBlock block,
         HashSet<string> excludedNames,
         IReadOnlyDictionary<string, ExecutionVariable> scopedVariables,
-        IReadOnlyDictionary<string, TypeSyntax> captureTypeOverrides)
+        IReadOnlyDictionary<string, TypeSyntax> captureTypeOverrides
+    )
     {
         var captures = new Dictionary<string, CapturedLocal>(StringComparer.Ordinal);
         AddHelperCaptures(block, excludedNames, captures);
 
         foreach (var fieldRead in ExecutionIrAnalysis.CollectExpressions<ExecutionFieldRead>(block))
         {
-            if (!string.IsNullOrWhiteSpace(fieldRead.Alias) &&
-                scopedVariables.TryGetValue(fieldRead.Alias, out var variable))
+            if (
+                !string.IsNullOrWhiteSpace(fieldRead.Alias)
+                && scopedVariables.TryGetValue(fieldRead.Alias, out var variable)
+            )
             {
                 AddHelperCapture(variable, excludedNames, captures);
             }
@@ -171,7 +181,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private Dictionary<string, TypeSyntax> CollectEnumerableTraversalCaptureTypeOverrides(
         ExecutionBlock block,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var result = new Dictionary<string, TypeSyntax>(StringComparer.Ordinal);
 
@@ -203,7 +214,8 @@ public sealed partial class ExecutionCSharpRenderer
 
             result.TryAdd(
                 getOrAdd.GroupsToFinalize.Name,
-                CreateListTypeSyntax(CreateAggregateGroupType(getOrAdd.GroupShape, context)));
+                CreateListTypeSyntax(CreateAggregateGroupType(getOrAdd.GroupShape, context))
+            );
 
             foreach (var dictionary in getOrAdd.GroupDictionaries)
             {
@@ -213,7 +225,9 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateValueTupleGroupDictionaryTypeSyntax(
                         getOrAdd.KeyTypes,
                         dictionary.PrefixLength,
-                        CreateAggregateGroupType(level.Shape, context)));
+                        CreateAggregateGroupType(level.Shape, context)
+                    )
+                );
             }
         }
 
@@ -222,7 +236,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static HashSet<string> CollectEnumerableTraversalRefCaptureNames(
         ExecutionBlock block,
-        HashSet<string> excludedNames)
+        HashSet<string> excludedNames
+    )
     {
         var result = new HashSet<string>(StringComparer.Ordinal);
 
@@ -243,25 +258,31 @@ public sealed partial class ExecutionCSharpRenderer
 
     private MethodDeclarationSyntax CreateEnumerableTraversalFunction(
         EnumerableTraversalHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         context.Session.SuppressedEnumerableTraversalHelperBlocks.Add(helper.Block);
         try
         {
-            return SyntaxFactory.MethodDeclaration(
+            return SyntaxFactory
+                .MethodDeclaration(
                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                    helper.FunctionName)
+                    helper.FunctionName
+                )
                 .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
                 .WithModifiers(CreatePrivateStaticModifiers())
                 .WithParameterList(CreateEnumerableTraversalParameterList(helper))
-                .WithBody(StatementEmitter.CreateBlock([
-                    QueryEmitter.GenerateCancellationCheck(),
-                    ..RenderIsolatedHelperBlock(
-                        helper.Block,
-                        context,
-                        profileRecorderInScope: IsInstrumentationEnabled,
-                        emitChunkLoopCancellationChecks: true)
-                ]));
+                .WithBody(
+                    StatementEmitter.CreateBlock([
+                        QueryEmitter.GenerateCancellationCheck(),
+                        .. RenderIsolatedHelperBlock(
+                            helper.Block,
+                            context,
+                            profileRecorderInScope: IsInstrumentationEnabled,
+                            emitChunkLoopCancellationChecks: true
+                        ),
+                    ])
+                );
         }
         finally
         {
@@ -273,14 +294,15 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var parameters = new List<ParameterSyntax>
         {
-            CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken)))
+            CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken))),
         };
 
         AddProfileRecorderParameter(parameters);
-        parameters.AddRange(helper.Captures.Select(capture => CreateEnumerableTraversalCapturedParameter(
-            capture,
-            helper.RefCaptureNames,
-            helper.CaptureTypeOverrides)));
+        parameters.AddRange(
+            helper.Captures.Select(capture =>
+                CreateEnumerableTraversalCapturedParameter(capture, helper.RefCaptureNames, helper.CaptureTypeOverrides)
+            )
+        );
 
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
@@ -288,7 +310,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static ParameterSyntax CreateEnumerableTraversalCapturedParameter(
         CapturedLocal capture,
         IReadOnlySet<string> refCaptureNames,
-        IReadOnlyDictionary<string, TypeSyntax> captureTypeOverrides)
+        IReadOnlyDictionary<string, TypeSyntax> captureTypeOverrides
+    )
     {
         var parameter = captureTypeOverrides.TryGetValue(capture.Name, out var typeOverride)
             ? CreateParameter(capture.Name, typeOverride)
@@ -300,19 +323,18 @@ public sealed partial class ExecutionCSharpRenderer
 
     private StatementSyntax CreateEnumerableTraversalInvocation(EnumerableTraversalHelper helper)
     {
-        var arguments = new List<ArgumentSyntax>
-        {
-            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
-        };
+        var arguments = new List<ArgumentSyntax> { SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")) };
 
         AddProfileRecorderArgument(arguments);
-        arguments.AddRange(helper.Captures.Select(capture =>
-        {
-            var argument = SyntaxFactory.Argument(CreateCapturedLocalArgument(capture));
-            return helper.RefCaptureNames.Contains(capture.Name)
-                ? argument.WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.RefKeyword))
-                : argument;
-        }));
+        arguments.AddRange(
+            helper.Captures.Select(capture =>
+            {
+                var argument = SyntaxFactory.Argument(CreateCapturedLocalArgument(capture));
+                return helper.RefCaptureNames.Contains(capture.Name)
+                    ? argument.WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.RefKeyword))
+                    : argument;
+            })
+        );
 
         return CreateHelperInvocationWithArguments(helper.FunctionName, arguments);
     }

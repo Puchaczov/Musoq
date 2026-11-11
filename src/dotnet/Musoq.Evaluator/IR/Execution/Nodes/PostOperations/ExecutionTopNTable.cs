@@ -5,13 +5,17 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionTopNTable : ExecutionNode
 {
     public ExecutionTopNTable(
-        ExecutionVariable source, ExecutionVariable target, IReadOnlyList<ExecutionOrderField> keys,
-        int count, IReadOnlyList<int> renumberFieldIndexes,
-        ExecutionCapacityHint? capacityHint = null, ExecutionAppendMode appendMode = ExecutionAppendMode.Checked,
-        ExecutionColumnMetadata? columnMetadata = null)
+        ExecutionVariable source,
+        ExecutionVariable target,
+        IReadOnlyList<ExecutionOrderField> keys,
+        int count,
+        IReadOnlyList<int> renumberFieldIndexes,
+        ExecutionCapacityHint? capacityHint = null,
+        ExecutionAppendMode appendMode = ExecutionAppendMode.Checked,
+        ExecutionColumnMetadata? columnMetadata = null
+    )
         : this(source, target, keys, (PagingCount)count, renumberFieldIndexes, capacityHint, appendMode, columnMetadata)
-    {
-    }
+    { }
 
     public ExecutionTopNTable(
         ExecutionVariable source,
@@ -21,7 +25,8 @@ public sealed record ExecutionTopNTable : ExecutionNode
         IReadOnlyList<int> renumberFieldIndexes,
         ExecutionCapacityHint? capacityHint = null,
         ExecutionAppendMode appendMode = ExecutionAppendMode.Checked,
-        ExecutionColumnMetadata? columnMetadata = null)
+        ExecutionColumnMetadata? columnMetadata = null
+    )
     {
         Source = source;
         Target = target;

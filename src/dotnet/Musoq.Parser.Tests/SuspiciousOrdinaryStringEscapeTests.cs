@@ -28,7 +28,8 @@ public sealed class SuspiciousOrdinaryStringEscapeTests
     [DataRow(@"'\\.\pipe\name'", @"\\")]
     public void RootedOrExplicitRelativePath_WithValueChangingEscape_ShouldWarnAtFirstHazard(
         string source,
-        string hazardousEscape)
+        string hazardousEscape
+    )
     {
         var lexer = new Lexer(source, true);
 
@@ -39,8 +40,10 @@ public sealed class SuspiciousOrdinaryStringEscapeTests
         Assert.AreEqual(DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, warning.Code);
         Assert.AreEqual(DiagnosticSeverity.Warning, warning.Severity);
         Assert.AreEqual(DiagnosticPhase.Parse, warning.Phase);
-        Assert.AreEqual(new TextSpan(source.IndexOf(hazardousEscape, System.StringComparison.Ordinal), hazardousEscape.Length),
-            warning.Span);
+        Assert.AreEqual(
+            new TextSpan(source.IndexOf(hazardousEscape, System.StringComparison.Ordinal), hazardousEscape.Length),
+            warning.Span
+        );
         Assert.Contains(hazardousEscape, warning.Message);
     }
 
@@ -52,7 +55,8 @@ public sealed class SuspiciousOrdinaryStringEscapeTests
 
         lexer.Next();
 
-        var warnings = lexer.Diagnostics.ToSortedList()
+        var warnings = lexer
+            .Diagnostics.ToSortedList()
             .Where(diagnostic => diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape)
             .ToArray();
         Assert.HasCount(1, warnings);
@@ -65,11 +69,10 @@ public sealed class SuspiciousOrdinaryStringEscapeTests
         var query = @"select 'C:\new' from #system.dual(); select 'C:\temp' from #system.dual()";
         var lexer = new Lexer(query, true);
 
-        while (lexer.Next().TokenType != TokenType.EndOfFile)
-        {
-        }
+        while (lexer.Next().TokenType != TokenType.EndOfFile) { }
 
-        var warnings = lexer.Diagnostics.ToSortedList()
+        var warnings = lexer
+            .Diagnostics.ToSortedList()
             .Where(diagnostic => diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape)
             .ToArray();
         Assert.HasCount(2, warnings);
@@ -84,8 +87,9 @@ public sealed class SuspiciousOrdinaryStringEscapeTests
         var token = lexer.Next();
 
         Assert.AreEqual(@"C:\new\test", token.Value);
-        Assert.IsFalse(lexer.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+        Assert.IsFalse(
+            lexer.Diagnostics.Any(diagnostic => diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape)
+        );
     }
 
     [TestMethod]
@@ -95,8 +99,9 @@ public sealed class SuspiciousOrdinaryStringEscapeTests
 
         lexer.Next();
 
-        Assert.IsFalse(lexer.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+        Assert.IsFalse(
+            lexer.Diagnostics.Any(diagnostic => diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape)
+        );
     }
 
     [TestMethod]
@@ -106,8 +111,9 @@ public sealed class SuspiciousOrdinaryStringEscapeTests
 
         lexer.Next();
 
-        Assert.IsFalse(lexer.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+        Assert.IsFalse(
+            lexer.Diagnostics.Any(diagnostic => diagnostic.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape)
+        );
     }
 
     [TestMethod]
@@ -183,9 +189,7 @@ public sealed class SuspiciousOrdinaryStringEscapeTests
     private static ParseResult Parse(string query, bool useLexerDiagnostics)
     {
         var lexer = new Lexer(query, true);
-        var diagnostics = useLexerDiagnostics
-            ? lexer.Diagnostics
-            : new DiagnosticBag { SourceText = lexer.SourceText };
+        var diagnostics = useLexerDiagnostics ? lexer.Diagnostics : new DiagnosticBag { SourceText = lexer.SourceText };
         return new Parser(lexer, diagnostics).ParseWithDiagnostics();
     }
 }

@@ -17,8 +17,7 @@ public sealed class RowWidthPruningPlannerTests
     [TestMethod]
     public void Plan_WhenHashJoinBuildHasDroppablePayloadColumns_ShouldApplyPruning()
     {
-        var result = RowWidthPruningPlanner.Plan(
-        [
+        var result = RowWidthPruningPlanner.Plan([
             new BoundaryRowShapePlan(
                 "hash-join-build:0",
                 BoundaryRowShapeKind.HashJoinBuild,
@@ -27,7 +26,8 @@ public sealed class RowWidthPruningPlannerTests
                 ["b.Id"],
                 ["b.Id"],
                 PlanningConfidence.Medium,
-                "Hash join build boundary has a key-only payload column.")
+                "Hash join build boundary has a key-only payload column."
+            ),
         ]);
 
         var plan = result.Plans.Single();
@@ -44,8 +44,7 @@ public sealed class RowWidthPruningPlannerTests
     [TestMethod]
     public void Plan_WhenAggregateHasDroppableColumns_ShouldApplyPruning()
     {
-        var result = RowWidthPruningPlanner.Plan(
-        [
+        var result = RowWidthPruningPlanner.Plan([
             new BoundaryRowShapePlan(
                 "aggregate:0",
                 BoundaryRowShapeKind.Aggregate,
@@ -54,7 +53,8 @@ public sealed class RowWidthPruningPlannerTests
                 ["e.Age"],
                 ["e.Age"],
                 PlanningConfidence.Medium,
-                "Aggregate boundary has a future opportunity.")
+                "Aggregate boundary has a future opportunity."
+            ),
         ]);
 
         var plan = result.Plans.Single();
@@ -69,8 +69,7 @@ public sealed class RowWidthPruningPlannerTests
     [TestMethod]
     public void Plan_WhenDistinctHasPostBoundaryPayload_ShouldApplyPruning()
     {
-        var result = RowWidthPruningPlanner.Plan(
-        [
+        var result = RowWidthPruningPlanner.Plan([
             new BoundaryRowShapePlan(
                 "distinct:0",
                 BoundaryRowShapeKind.Distinct,
@@ -79,7 +78,8 @@ public sealed class RowWidthPruningPlannerTests
                 ["e.Payload"],
                 ["e.Payload"],
                 PlanningConfidence.Medium,
-                "Distinct boundary has a post-boundary payload pruning opportunity.")
+                "Distinct boundary has a post-boundary payload pruning opportunity."
+            ),
         ]);
 
         var plan = result.Plans.Single();
@@ -94,8 +94,7 @@ public sealed class RowWidthPruningPlannerTests
     [TestMethod]
     public void Plan_WhenSetOperationHasSymmetricPayload_ShouldApplyPruning()
     {
-        var result = RowWidthPruningPlanner.Plan(
-        [
+        var result = RowWidthPruningPlanner.Plan([
             new BoundaryRowShapePlan(
                 "setoperation:0",
                 BoundaryRowShapeKind.SetOperation,
@@ -104,7 +103,8 @@ public sealed class RowWidthPruningPlannerTests
                 ["left.City", "right.City"],
                 ["left.Payload", "right.Payload"],
                 PlanningConfidence.Medium,
-                "Set operation boundary has a future symmetric pruning opportunity.")
+                "Set operation boundary has a future symmetric pruning opportunity."
+            ),
         ]);
 
         var plan = result.Plans.Single();
@@ -119,8 +119,7 @@ public sealed class RowWidthPruningPlannerTests
     [TestMethod]
     public void Plan_WhenWindowHasDroppableColumns_ShouldApplyPruning()
     {
-        var result = RowWidthPruningPlanner.Plan(
-        [
+        var result = RowWidthPruningPlanner.Plan([
             new BoundaryRowShapePlan(
                 "window:0",
                 BoundaryRowShapeKind.Window,
@@ -129,7 +128,8 @@ public sealed class RowWidthPruningPlannerTests
                 ["e.Population"],
                 ["e.Population", "e.Country"],
                 PlanningConfidence.Medium,
-                "Window boundary has a future opportunity.")
+                "Window boundary has a future opportunity."
+            ),
         ]);
 
         var plan = result.Plans.Single();
@@ -144,8 +144,7 @@ public sealed class RowWidthPruningPlannerTests
     [TestMethod]
     public void Plan_WhenCteMaterializationHasDroppableColumns_ShouldApplyPruning()
     {
-        var result = RowWidthPruningPlanner.Plan(
-        [
+        var result = RowWidthPruningPlanner.Plan([
             new BoundaryRowShapePlan(
                 "cte:orders",
                 BoundaryRowShapeKind.CteMaterialization,
@@ -154,7 +153,8 @@ public sealed class RowWidthPruningPlannerTests
                 [],
                 ["cte.City", "cte.Payload"],
                 PlanningConfidence.Medium,
-                "CTE materialization has a future opportunity.")
+                "CTE materialization has a future opportunity."
+            ),
         ]);
 
         var plan = result.Plans.Single();
@@ -179,12 +179,15 @@ public sealed class RowWidthPruningPlannerTests
                 BinaryOpKind.Equal,
                 new ColumnRef("b", "Payload", typeof(string)),
                 new Literal("keep", typeof(string)),
-                typeof(bool)),
+                typeof(bool)
+            ),
             left,
-            right);
+            right
+        );
         var project = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0)],
-            join);
+            join
+        );
 
         var rowShape = BoundaryRowShapePlanner.Plan(project, CreateEmptyProperties().RequiredColumns);
         var pruning = RowWidthPruningPlanner.Plan(rowShape.Plans);
@@ -195,17 +198,14 @@ public sealed class RowWidthPruningPlannerTests
         Assert.IsFalse(plan.PrunedColumns.Contains("b.Payload"));
         Assert.Contains(
             "residual predicate columns",
-            rowShape.Plans.Single(static item => item.Kind == BoundaryRowShapeKind.HashJoinBuild).Reason);
+            rowShape.Plans.Single(static item => item.Kind == BoundaryRowShapeKind.HashJoinBuild).Reason
+        );
     }
 
     [TestMethod]
     public void BoundaryPlan_WhenHashJoinProbeHasUnusedPayload_ShouldApplyProbePayloadPruning()
     {
-        var left = CreateValuesScan(
-            "a",
-            ("Id", typeof(int)),
-            ("Name", typeof(string)),
-            ("Payload", typeof(string)));
+        var left = CreateValuesScan("a", ("Id", typeof(int)), ("Name", typeof(string)), ("Payload", typeof(string)));
         var right = CreateValuesScan("b", ("Id", typeof(int)));
         var join = new PhysicalHashJoinNode(
             JoinKind.Inner,
@@ -213,10 +213,12 @@ public sealed class RowWidthPruningPlannerTests
             [new ColumnRef("a", "Id", typeof(int))],
             null,
             left,
-            right);
+            right
+        );
         var project = new PhysicalProjectNode(
             [new ProjectedField("Id", new ColumnRef("b", "Id", typeof(int)), 0)],
-            join);
+            join
+        );
 
         var rowShape = BoundaryRowShapePlanner.Plan(project, CreateEmptyProperties().RequiredColumns);
         var probePlan = rowShape.Plans.Single(static item => item.Kind == BoundaryRowShapeKind.HashJoinProbe);
@@ -231,9 +233,7 @@ public sealed class RowWidthPruningPlannerTests
         Assert.Contains("probe-side payload columns", pruningPlan.Reason);
     }
 
-    private static PhysicalValuesScanNode CreateValuesScan(
-        string alias,
-        params (string Name, Type Type)[] columns)
+    private static PhysicalValuesScanNode CreateValuesScan(string alias, params (string Name, Type Type)[] columns)
     {
         var schemaColumns = new ColumnSchema[columns.Length];
 

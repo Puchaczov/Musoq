@@ -1,5 +1,5 @@
-using System.Threading;
 using System.Linq;
+using System.Threading;
 
 namespace Musoq.Converter.Build;
 
@@ -10,9 +10,7 @@ internal static class TargetArtifactSemanticFactsFactory
         return From(items, CancellationToken.None);
     }
 
-    public static TargetArtifactSemanticFacts From(
-        BuildItems items,
-        CancellationToken cancellationToken)
+    public static TargetArtifactSemanticFacts From(BuildItems items, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(items);
         cancellationToken.ThrowIfCancellationRequested();
@@ -24,15 +22,27 @@ internal static class TargetArtifactSemanticFactsFactory
             items.ScriptVariableDefinitions,
             items.UsedColumns,
             items.PipelineInferredColumns,
-            items.SourcePlanRequestsPerSchema.ToDictionary(entry => entry.Key, entry =>
-                items.PlanningResult?.Properties.SourcePlanRequestsBySourceId.TryGetValue(entry.Key.Id, out var planned) == true &&
-                planned.RequestedComputedProjections.Count > 0
-                    ? entry.Value with { RequestedComputedProjections = planned.RequestedComputedProjections }
-                    : entry.Value),
+            items.SourcePlanRequestsPerSchema.ToDictionary(
+                entry => entry.Key,
+                entry =>
+                    items.PlanningResult?.Properties.SourcePlanRequestsBySourceId.TryGetValue(
+                        entry.Key.Id,
+                        out var planned
+                    ) == true
+                    && planned.RequestedComputedProjections.Count > 0
+                        ? entry.Value with
+                        {
+                            RequestedComputedProjections = planned.RequestedComputedProjections,
+                        }
+                        : entry.Value
+            ),
             cancellationToken,
-            items.PlanningResult?.Facts.SourcePlanning.SourceDescriptorsBySourceId
-                .ToDictionary(static source => source.Key, static source => source.Value.ExecutionPermissions),
-            items.PlanningResult?.Properties.SourcePlanResultsBySourceId);
+            items.PlanningResult?.Facts.SourcePlanning.SourceDescriptorsBySourceId.ToDictionary(
+                static source => source.Key,
+                static source => source.Value.ExecutionPermissions
+            ),
+            items.PlanningResult?.Properties.SourcePlanResultsBySourceId
+        );
 
         cancellationToken.ThrowIfCancellationRequested();
         return facts;

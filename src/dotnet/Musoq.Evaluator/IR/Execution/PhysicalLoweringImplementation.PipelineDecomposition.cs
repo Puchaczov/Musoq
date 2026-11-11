@@ -26,7 +26,12 @@ internal sealed partial class PhysicalLoweringImplementation
         if (source == null)
             return null;
 
-        return new CteSupportedPipeline(project, source.Source, source.Filter, CreatePostOperations(operations, project.Fields));
+        return new CteSupportedPipeline(
+            project,
+            source.Source,
+            source.Filter,
+            CreatePostOperations(operations, project.Fields)
+        );
     }
 
     private static WindowPipeline? DecomposeWindowPipeline(PhysicalNode node)
@@ -36,7 +41,10 @@ internal sealed partial class PhysicalLoweringImplementation
 
         switch (current)
         {
-            case PhysicalProjectNode { Input: PhysicalWindowNode { Input: PhysicalMaterializeNode materialize } window } project:
+            case PhysicalProjectNode
+            {
+                Input: PhysicalWindowNode { Input: PhysicalMaterializeNode materialize } window
+            } project:
                 var source = DecomposeWindowSourcePipeline(materialize.Input);
                 if (source == null)
                     return null;
@@ -46,8 +54,15 @@ internal sealed partial class PhysicalLoweringImplementation
                     window.Registrations,
                     null,
                     source,
-                    CreatePostOperations(operations, project.Fields));
-            case PhysicalProjectNode { Input: PhysicalQualifyFilterNode { Input: PhysicalWindowNode { Input: PhysicalMaterializeNode materialize } window } qualify } project:
+                    CreatePostOperations(operations, project.Fields)
+                );
+            case PhysicalProjectNode
+            {
+                Input: PhysicalQualifyFilterNode
+                {
+                    Input: PhysicalWindowNode { Input: PhysicalMaterializeNode materialize } window
+                } qualify
+            } project:
                 var qualifySource = DecomposeWindowSourcePipeline(materialize.Input);
                 if (qualifySource == null)
                     return null;
@@ -57,7 +72,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     window.Registrations,
                     qualify.Predicate,
                     qualifySource,
-                    CreatePostOperations(operations, project.Fields));
+                    CreatePostOperations(operations, project.Fields)
+                );
             default:
                 return null;
         }
@@ -76,10 +92,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return current;
     }
 
-    private static bool TryPeelPostOperation(
-        PhysicalNode node,
-        out PostOperation operation,
-        out PhysicalNode input)
+    private static bool TryPeelPostOperation(PhysicalNode node, out PostOperation operation, out PhysicalNode input)
     {
         switch (node)
         {

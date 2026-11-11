@@ -18,7 +18,8 @@ public partial class ExpressionIrTests
             ArgsListNode.Empty,
             null,
             false,
-            method);
+            method
+        );
 
         var result = Assert.IsInstanceOfType<MethodCall>(_converter.Convert(node));
 
@@ -51,10 +52,7 @@ public partial class ExpressionIrTests
         var descriptor = CreateAccessDescriptor();
         var converter = new ExpressionConverter(columnEnumTypeResolver: (_, _) => descriptor);
         var operand = new AccessColumnNode("Access", "j", typeof(uint?), TextSpan.Empty);
-        var node = CreateIntrinsicNode(
-            EnumIntrinsicKind.HasAllFlags,
-            operand,
-            new IntegerNode(3u, TextSpan.Empty));
+        var node = CreateIntrinsicNode(EnumIntrinsicKind.HasAllFlags, operand, new IntegerNode(3u, TextSpan.Empty));
 
         var result = Assert.IsInstanceOfType<MethodCall>(converter.Convert(node));
 
@@ -67,17 +65,17 @@ public partial class ExpressionIrTests
     private static AccessMethodNode CreateIntrinsicNode(
         EnumIntrinsicKind kind,
         AccessColumnNode operand,
-        IntegerNode? mask = null)
+        IntegerNode? mask = null
+    )
     {
-        var arguments = mask == null
-            ? new Node[] { operand }
-            : [operand, mask];
+        var arguments = mask == null ? new Node[] { operand } : [operand, mask];
         return new AccessMethodNode(
             new FunctionToken(kind.ToString(), TextSpan.Empty),
             new ArgsListNode(arguments),
             null,
             false,
-            EnumIntrinsicMethodFacts.Bind(kind, operand.ReturnType));
+            EnumIntrinsicMethodFacts.Bind(kind, operand.ReturnType)
+        );
     }
 
     private static EnumTypeDescriptor CreateStatusDescriptor()
@@ -87,7 +85,8 @@ public partial class ExpressionIrTests
             EnumTypeOrigin.QueryLocal,
             EnumUnderlyingKind.Int32,
             false,
-            [new EnumMemberDescriptor("Running", EnumScalarValue.FromInt32(20))]);
+            [new EnumMemberDescriptor("Running", EnumScalarValue.FromInt32(20))]
+        );
     }
 
     private static EnumTypeDescriptor CreateAccessDescriptor()
@@ -99,8 +98,9 @@ public partial class ExpressionIrTests
             true,
             [
                 new EnumMemberDescriptor("Read", EnumScalarValue.FromUInt32(1)),
-                new EnumMemberDescriptor("Write", EnumScalarValue.FromUInt32(2))
-            ]);
+                new EnumMemberDescriptor("Write", EnumScalarValue.FromUInt32(2)),
+            ]
+        );
     }
 
     public static class EnumMethodFixture

@@ -27,7 +27,6 @@ public partial class BuildMetadataAndInferTypesVisitor
             : null;
 
         PushSemanticNode(StructuralNodeRebuildSupport.RebuildParameter(node, defaultValue));
-
     }
 
     public override void Visit(ParameterReferenceNode node)
@@ -46,16 +45,18 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         _scriptVariables.TryAddDefinition(node, _scriptParameters.DefinitionsByName);
-        if (node.TypeSyntax == null &&
-            PrimitiveTypeResolver.TryResolveDeclarationType(node.DeclaredTypeName, out var variableType) &&
-            variableType == typeof(string))
+        if (
+            node.TypeSyntax == null
+            && PrimitiveTypeResolver.TryResolveDeclarationType(node.DeclaredTypeName, out var variableType)
+            && variableType == typeof(string)
+        )
             SuspiciousOrdinaryStringEscapeDiagnostics.ReportRelativePathRisk(
                 DiagnosticContext,
                 node.Initializer,
-                SuspiciousOrdinaryStringEscapeDiagnostics.IsPathSensitiveName(node.Name));
+                SuspiciousOrdinaryStringEscapeDiagnostics.IsPathSensitiveName(node.Name)
+            );
 
         PushSemanticNode(StructuralNodeRebuildSupport.RebuildScriptVariable(node, node.Initializer));
-
     }
 
     public override void Visit(ScriptVariableReferenceNode node)
@@ -71,7 +72,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = node.Parameters.Length - 1; i >= 0; --i)
             parameters[i] = SafeCast<ParameterDeclarationNode>(
                 PopSemanticNode("Visit(ParameterBlockNode).Parameter"),
-                "Visit(ParameterBlockNode).Parameter");
+                "Visit(ParameterBlockNode).Parameter"
+            );
 
         return parameters;
     }

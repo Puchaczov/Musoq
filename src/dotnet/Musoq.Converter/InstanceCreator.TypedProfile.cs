@@ -11,7 +11,8 @@ public static partial class InstanceCreator
         string script,
         string assemblyName,
         ISchemaProvider schemaProvider,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver
+    )
     {
         return CompileForTypedProfile<TOut>(
             script,
@@ -19,7 +20,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             null,
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     public static CompiledTypedProfileQuery<TOut> CompileForTypedProfile<TOut>(
@@ -27,7 +29,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CompileForTypedProfile<TOut>(
             script,
@@ -35,7 +38,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static CompiledTypedProfileQuery<TOut> CompileForTypedProfile<TOut>(
@@ -43,7 +47,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CompilationOptions? compilationOptions)
+        CompilationOptions? compilationOptions
+    )
     {
         return CompileForTypedProfile<TOut>(
             script,
@@ -51,7 +56,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             compilationOptions,
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     public static CompiledTypedProfileQuery<TOut> CompileForTypedProfile<TOut>(
@@ -60,7 +66,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return CompileForTypedProfile<TOut>(
             script,
@@ -69,7 +76,8 @@ public static partial class InstanceCreator
             loggerResolver,
             compilationOptions,
             [],
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     internal static CompiledTypedProfileQuery<TOut> CompileForTypedProfile<TOut>(
@@ -79,7 +87,8 @@ public static partial class InstanceCreator
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
         IReadOnlyList<Type> additionalReferenceTypes,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(additionalReferenceTypes);
 
@@ -90,7 +99,8 @@ public static partial class InstanceCreator
             loggerResolver,
             compilationOptions,
             additionalReferenceTypes,
-            cancellationToken);
+            cancellationToken
+        );
 
         var result = factory.Create(schemaProvider);
         cancellationToken.ThrowIfCancellationRequested();

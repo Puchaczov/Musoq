@@ -4,14 +4,12 @@ using System.Linq;
 namespace Musoq.Evaluator.IR.Execution;
 
 /// <summary>One authored field expression in a structural record.</summary>
-public sealed record ExecutionStructuralField(
-    string Name,
-    ExecutionExpression Value,
-    bool IsPresent = true)
+public sealed record ExecutionStructuralField(string Name, ExecutionExpression Value, bool IsPresent = true)
 {
-    public string Name { get; } = string.IsNullOrWhiteSpace(Name)
-        ? throw new ArgumentException("Structural field name cannot be empty.", nameof(Name))
-        : Name;
+    public string Name { get; } =
+        string.IsNullOrWhiteSpace(Name)
+            ? throw new ArgumentException("Structural field name cannot be empty.", nameof(Name))
+            : Name;
 
     public ExecutionExpression Value { get; } = Value ?? throw new ArgumentNullException(nameof(Value));
 }
@@ -22,14 +20,17 @@ public sealed record ExecutionStructuralRecord : ExecutionExpression
     public ExecutionStructuralRecord(
         ExecutionTypeRef returnType,
         IEnumerable<ExecutionStructuralField> fields,
-        ExecutionStructuralConstructionPlan? constructionPlan = null)
+        ExecutionStructuralConstructionPlan? constructionPlan = null
+    )
         : base(returnType ?? throw new ArgumentNullException(nameof(returnType)))
     {
         ConstructionPlan = constructionPlan;
         Fields = Array.AsReadOnly((fields ?? throw new ArgumentNullException(nameof(fields))).ToArray());
         if (Fields.Any(static field => field is null))
             throw new ArgumentException("Structural record fields cannot be null.", nameof(fields));
-        if (Fields.Select(static field => field.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() != Fields.Count)
+        if (
+            Fields.Select(static field => field.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() != Fields.Count
+        )
             throw new ArgumentException("Structural record field names must be unique.", nameof(fields));
     }
 
@@ -49,7 +50,8 @@ public sealed record ExecutionStructuralArray : ExecutionExpression
     public ExecutionStructuralArray(
         ExecutionTypeRef returnType,
         ExecutionTypeRef elementType,
-        IEnumerable<ExecutionExpression> elements)
+        IEnumerable<ExecutionExpression> elements
+    )
         : base(returnType ?? throw new ArgumentNullException(nameof(returnType)))
     {
         ElementType = elementType ?? throw new ArgumentNullException(nameof(elementType));
@@ -67,11 +69,9 @@ public sealed record ExecutionStructuralArray : ExecutionExpression
     public ExecutionStructuralLimitBinding? LimitBinding { get; init; }
 }
 
-
 /// <summary>Converts an immutable Core structural value into a receiver-specific typed value.</summary>
-public sealed record ExecutionStructuralConversion(
-    ExecutionExpression Input,
-    ExecutionTypeRef TargetType) : ExecutionExpression(TargetType ?? throw new ArgumentNullException(nameof(TargetType)))
+public sealed record ExecutionStructuralConversion(ExecutionExpression Input, ExecutionTypeRef TargetType)
+    : ExecutionExpression(TargetType ?? throw new ArgumentNullException(nameof(TargetType)))
 {
     public ExecutionExpression Input { get; } = Input ?? throw new ArgumentNullException(nameof(Input));
 

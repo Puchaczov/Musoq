@@ -8,7 +8,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private LocalDeclarationStatementSyntax RenderCreateGeneratedRow(
         ExecutionCreateGeneratedRow createRow,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateLocalDeclaration(
             CreateVariableTypeSyntax(createRow.Row),
@@ -18,7 +19,9 @@ public sealed partial class ExecutionCSharpRenderer
                 createRow.Values,
                 createRow.Contexts,
                 createRow.ContextLayout,
-                context));
+                context
+            )
+        );
     }
 
     private ObjectCreationExpressionSyntax CreateGeneratedRowCreation(
@@ -26,13 +29,13 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<ExecutionRowValue> values,
         IReadOnlyList<ExecutionExpression> contexts,
         ExecutionContextLayout? contextLayout,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        var rowValues = values
-            .Select((value, index) => RenderRowConstructorValue(
-                value.Value,
-                rowShape.Fields[index].Type.RequireClrType(),
-                context));
+        var rowValues = values.Select(
+            (value, index) =>
+                RenderRowConstructorValue(value.Value, rowShape.Fields[index].Type.RequireClrType(), context)
+        );
 
         if (rowShape.Contexts.Count == 0 || !GeneratedRowTypeUsesContextConstructor(rowShape.TypeName, context))
             return CreateObjectCreation(rowShape.TypeName, rowValues.ToArray());
@@ -48,7 +51,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool GeneratedRowTypeUsesContextConstructor(string typeName, ExecutionRenderContext context)
     {
-        return context.Session.GeneratedRowConstructorUsagesByType.TryGetValue(typeName, out var usedConstructors) &&
-               RequiresGeneratedRowContextOverride(usedConstructors);
+        return context.Session.GeneratedRowConstructorUsagesByType.TryGetValue(typeName, out var usedConstructors)
+            && RequiresGeneratedRowContextOverride(usedConstructors);
     }
 }

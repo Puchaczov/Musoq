@@ -41,7 +41,7 @@ public partial class InterpreterCodeGenerator
             IsGeneric = schema.IsGeneric,
             TypeParameters = _currentTypeParameters,
             Extends = string.IsNullOrEmpty(schema.Extends) ? null : schema.Extends,
-            Fields = boundFields
+            Fields = boundFields,
         };
     }
 
@@ -51,9 +51,14 @@ public partial class InterpreterCodeGenerator
         var isDiscard = field.Name == "_";
         var isAlignment = field is FieldDefinitionNode { TypeAnnotation: AlignmentNode };
         var localVariableName = GetLocalVarName(field.Name);
-        var isConditional = field.IsConditional ||
-                            (field is ComputedFieldNode computed &&
-                             BinarySchemaExpressionTypes.IsNullable(BinarySchemaExpressionTypes.Resolve(computed.Expression, allFields, _registry)));
+        var isConditional =
+            field.IsConditional
+            || (
+                field is ComputedFieldNode computed
+                && BinarySchemaExpressionTypes.IsNullable(
+                    BinarySchemaExpressionTypes.Resolve(computed.Expression, allFields, _registry)
+                )
+            );
 
         if (isDiscard || isAlignment)
             return new BoundBinaryField
@@ -64,13 +69,11 @@ public partial class InterpreterCodeGenerator
                 LocalVariableName = localVariableName,
                 IsDiscard = isDiscard,
                 IsAlignment = isAlignment,
-                IsConditional = isConditional
+                IsConditional = isConditional,
             };
 
         var clrTypeName = GetClrTypeNameForFieldWithContext(field, allFields);
-        var isNullableProperty = isConditional &&
-                                 !IsReferenceType(clrTypeName) &&
-                                 !IsTypeParameter(clrTypeName);
+        var isNullableProperty = isConditional && !IsReferenceType(clrTypeName) && !IsTypeParameter(clrTypeName);
 
         return new BoundBinaryField
         {
@@ -84,7 +87,7 @@ public partial class InterpreterCodeGenerator
             PropertyName = EscapeCSharpIdentifier(field.Name),
             PropertyClrType = isNullableProperty ? $"{clrTypeName}?" : clrTypeName,
             IsNullableProperty = isNullableProperty,
-            Switch = BindBinarySwitch(field)
+            Switch = BindBinarySwitch(field),
         };
     }
 
@@ -95,12 +98,14 @@ public partial class InterpreterCodeGenerator
 
         var branches = new List<BoundBinarySwitchBranch>(switchType.Cases.Length);
         foreach (var switchCase in switchType.Cases)
-            branches.Add(new BoundBinarySwitchBranch
-            {
-                CaseValue = switchCase.CaseValue,
-                BranchAlias = switchCase.BranchAlias,
-                BranchType = switchCase.BranchType
-            });
+            branches.Add(
+                new BoundBinarySwitchBranch
+                {
+                    CaseValue = switchCase.CaseValue,
+                    BranchAlias = switchCase.BranchAlias,
+                    BranchType = switchCase.BranchType,
+                }
+            );
 
         var defaultCase = switchType.DefaultCase;
 
@@ -114,8 +119,8 @@ public partial class InterpreterCodeGenerator
                 {
                     CaseValue = defaultCase.CaseValue,
                     BranchAlias = defaultCase.BranchAlias,
-                    BranchType = defaultCase.BranchType
-                }
+                    BranchType = defaultCase.BranchType,
+                },
         };
     }
 }

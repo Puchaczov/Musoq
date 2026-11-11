@@ -25,26 +25,37 @@ public partial class BugProbeTextEscapedModifierTests
 
     private static void AssertOriginalEscapedRepeatResult(string escapedDelimiterValue)
     {
-        const string query = "text Entry {\r\n    Value: between '<' '>' escaped\r\n}\r\ntext Packet {\r\n    Entries: repeat Entry until '!',\r\n    Trailer: rest\r\n}\r\nselect e.Name as PacketName, item.Value as ParsedValue, p.Trailer as Trailer\r\nfrom #test.entities() e\r\ncross apply Parse<Packet>(e.Text) p\r\ncross apply p.Entries item";
+        const string query =
+            "text Entry {\r\n    Value: between '<' '>' escaped\r\n}\r\ntext Packet {\r\n    Entries: repeat Entry until '!',\r\n    Trailer: rest\r\n}\r\nselect e.Name as PacketName, item.Value as ParsedValue, p.Trailer as Trailer\r\nfrom #test.entities() e\r\ncross apply Parse<Packet>(e.Text) p\r\ncross apply p.Entries item";
         var entities = new[]
         {
             new TextEntity { Name = "escaped", Text = "<a\\>b><c\\\\d>!tail" },
-            new TextEntity { Name = "single", Text = "<x>!done" }
+            new TextEntity { Name = "single", Text = "<x>!done" },
         };
         var sources = new Dictionary<string, IEnumerable<TextEntity>>(StringComparer.OrdinalIgnoreCase)
         {
             ["test"] = entities,
-            ["#test"] = entities
+            ["#test"] = entities,
         };
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), new TextSchemaProvider(sources), LoggerResolver, TestCompilationOptions);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new TextSchemaProvider(sources),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
+        TableMaterializationTestHelper.AssertColumns(
+            result,
             ("PacketName", typeof(System.String)),
             ("ParsedValue", typeof(System.String)),
-            ("Trailer", typeof(System.String)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
+            ("Trailer", typeof(System.String))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
             new object?[] { "escaped", escapedDelimiterValue, "tail" },
             new object?[] { "escaped", "c\\d", "tail" },
-            new object?[] { "single", "x", "done" });
+            new object?[] { "single", "x", "done" }
+        );
     }
 }

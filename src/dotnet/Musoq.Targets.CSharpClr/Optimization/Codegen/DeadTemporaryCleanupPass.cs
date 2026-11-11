@@ -23,12 +23,14 @@ internal sealed class DeadTemporaryCleanupPass : ICodegenReadabilityOptimization
         {
             return OptimizationResult<CompilationUnitSyntax>.NoChange(
                 plan,
-                $"No unused literal/default local declaration was safe to remove; skipped {rewriter.SkippedDeclarations} local declaration(s).");
+                $"No unused literal/default local declaration was safe to remove; skipped {rewriter.SkippedDeclarations} local declaration(s)."
+            );
         }
 
         return OptimizationResult<CompilationUnitSyntax>.Changed(
             optimized,
-            $"Removed {rewriter.RemovedDeclarations} unused literal/default local declaration(s); skipped {rewriter.SkippedDeclarations} local declaration(s).");
+            $"Removed {rewriter.RemovedDeclarations} unused literal/default local declaration(s); skipped {rewriter.SkippedDeclarations} local declaration(s)."
+        );
     }
 
     private sealed class DeadTemporaryCleanupRewriter : CSharpSyntaxRewriter
@@ -64,18 +66,21 @@ internal sealed class DeadTemporaryCleanupPass : ICodegenReadabilityOptimization
         private bool CanRemove(
             LocalDeclarationStatementSyntax local,
             SyntaxList<StatementSyntax> blockStatements,
-            int statementIndex)
+            int statementIndex
+        )
         {
-            if (local.UsingKeyword.RawKind != 0 ||
-                local.AwaitKeyword.RawKind != 0 ||
-                local.Declaration.Variables.Count == 0)
+            if (
+                local.UsingKeyword.RawKind != 0
+                || local.AwaitKeyword.RawKind != 0
+                || local.Declaration.Variables.Count == 0
+            )
             {
                 SkippedDeclarations++;
                 return false;
             }
 
-            var variableNames = local.Declaration.Variables
-                .Select(static variable => variable.Identifier.ValueText)
+            var variableNames = local
+                .Declaration.Variables.Select(static variable => variable.Identifier.ValueText)
                 .Where(static name => !string.IsNullOrWhiteSpace(name))
                 .ToArray();
 
@@ -85,8 +90,11 @@ internal sealed class DeadTemporaryCleanupPass : ICodegenReadabilityOptimization
                 return false;
             }
 
-            if (local.Declaration.Variables.Any(static variable =>
-                    !CodegenReadabilitySyntaxFacts.IsSafelyRemovableInitializer(variable.Initializer)))
+            if (
+                local.Declaration.Variables.Any(static variable =>
+                    !CodegenReadabilitySyntaxFacts.IsSafelyRemovableInitializer(variable.Initializer)
+                )
+            )
             {
                 SkippedDeclarations++;
                 return false;
@@ -104,13 +112,12 @@ internal sealed class DeadTemporaryCleanupPass : ICodegenReadabilityOptimization
         private static bool IsUsedLater(
             IReadOnlyCollection<string> variableNames,
             SyntaxList<StatementSyntax> blockStatements,
-            int statementIndex)
+            int statementIndex
+        )
         {
             for (var index = statementIndex + 1; index < blockStatements.Count; index++)
             {
-                var identifiers = blockStatements[index]
-                    .DescendantNodes()
-                    .OfType<IdentifierNameSyntax>();
+                var identifiers = blockStatements[index].DescendantNodes().OfType<IdentifierNameSyntax>();
 
                 if (identifiers.Any(identifier => variableNames.Contains(identifier.Identifier.ValueText)))
                     return true;
@@ -120,4 +127,3 @@ internal sealed class DeadTemporaryCleanupPass : ICodegenReadabilityOptimization
         }
     }
 }
-

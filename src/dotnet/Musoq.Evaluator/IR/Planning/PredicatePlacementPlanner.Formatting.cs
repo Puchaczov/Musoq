@@ -3,6 +3,7 @@ using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using AliasRefExtractor = Musoq.Evaluator.IR.Expressions.AliasRefExtractor;
+
 namespace Musoq.Evaluator.IR.Planning;
 
 internal static partial class PredicatePlacementPlanner
@@ -15,7 +16,8 @@ internal static partial class PredicatePlacementPlanner
             plan.PredicateId,
             plan.EarliestPlacement.ToString(),
             plan.Confidence,
-            plan.Reason);
+            plan.Reason
+        );
     }
 
     private static string FormatApplyName(ApplyKind applyKind)
@@ -48,5 +50,4 @@ internal static partial class PredicatePlacementPlanner
     {
         return $"{origin}:{index}";
     }
-
 }

@@ -8,10 +8,12 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionAggregateQueryTestsFixtures
 {
-
     internal static void AssertReferenceGroup(Tables.Row row, IGrouping<int, GroupedNumericValue> expected)
     {
-        var values = expected.Where(static item => item.Value.HasValue).Select(static item => item.Value!.Value).ToArray();
+        var values = expected
+            .Where(static item => item.Value.HasValue)
+            .Select(static item => item.Value!.Value)
+            .ToArray();
         var distinct = values.Distinct().ToArray();
         Assert.AreEqual(expected.Key, row.GetValue<int>(0));
         Assert.AreEqual(values.Sum(), row.GetValue<int?>(1));
@@ -24,5 +26,4 @@ public partial class LibraryExecutionAggregateQueryTestsFixtures
     }
 
     public sealed record GroupedNumericValue(int Key, int? Value);
-
 }

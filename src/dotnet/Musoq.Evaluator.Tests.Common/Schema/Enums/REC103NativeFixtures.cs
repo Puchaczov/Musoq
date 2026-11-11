@@ -14,12 +14,11 @@ using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
 namespace Musoq.Evaluator.Tests;
 
-
 public enum REC103NativeStatus : short
 {
     Queued = 10,
     Running = 20,
-    Finished = 30
+    Finished = 30,
 }
 
 [Flags]
@@ -28,7 +27,7 @@ public enum REC103NativeAccess : uint
     None = 0,
     Read = 1,
     Write = 2,
-    ReadWrite = Read | Write
+    ReadWrite = Read | Write,
 }
 
 public sealed class REC103MetadataSchemaProvider : ISchemaProvider
@@ -47,9 +46,7 @@ public sealed class REC103MetadataSchemaProvider : ISchemaProvider
 public sealed class REC103MetadataSchema : SchemaBase, IQueryScopedRowSourceSchema
 {
     public REC103MetadataSchema()
-        : base("rec103", new MethodsAggregator(new MethodsManager()))
-    {
-    }
+        : base("rec103", new MethodsAggregator(new MethodsManager())) { }
 
     public List<ISchemaColumn[]> CapturedColumns { get; } = [];
 
@@ -58,19 +55,18 @@ public sealed class REC103MetadataSchema : SchemaBase, IQueryScopedRowSourceSche
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         var descriptor = base.DescribeSource(name, context, parameters);
         return descriptor with
         {
-            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows |
-                                   SourceTransferCapabilities.LogicalScalarReads
+            TransferCapabilities =
+                SourceTransferCapabilities.QueryScopedRows | SourceTransferCapabilities.LogicalScalarReads,
         };
     }
 
-    public override SchemaMethodInfo[] GetRawConstructors(
-        string methodName,
-        SourceMetadataContext metadataContext)
+    public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
     {
         return string.Equals(methodName, "native", StringComparison.OrdinalIgnoreCase)
             ? [new SchemaMethodInfo(methodName, SchemaConstructorInfo.Empty())]
@@ -80,7 +76,8 @@ public sealed class REC103MetadataSchema : SchemaBase, IQueryScopedRowSourceSche
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         var columns = metadataContext.AllColumns.ToArray();
         CapturedColumns.Add(columns);
@@ -90,7 +87,8 @@ public sealed class REC103MetadataSchema : SchemaBase, IQueryScopedRowSourceSche
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         RowSourceRequested = true;
         throw new NotSupportedException("REC-103 metadata-only provider must not execute rows.");
@@ -99,7 +97,8 @@ public sealed class REC103MetadataSchema : SchemaBase, IQueryScopedRowSourceSche
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
@@ -117,18 +116,21 @@ public sealed class REC103MetadataTable(ISchemaColumn[] columns) : ISchemaTable
 {
     public ISchemaColumn[] Columns { get; } = columns;
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(REC103NativeEntity)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+    public SchemaTableMetadata Metadata { get; } =
+        new(typeof(REC103NativeEntity)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
 
     public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)
     {
-        return Columns.Where(column =>
-            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+        return Columns
+            .Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
     }
 }
 
@@ -137,4 +139,5 @@ public sealed record REC103NativeEntity(
     REC103NativeAccess Access,
     REC103NativeStatus? OptionalStatus,
     REC103NativeAccess? OptionalAccess,
-    int Number);
+    int Number
+);

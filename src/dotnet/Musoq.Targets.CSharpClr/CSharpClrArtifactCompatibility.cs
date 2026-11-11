@@ -12,7 +12,8 @@ internal static class CSharpClrArtifactCompatibility
 {
     public static CSharpRenderedQueryArtifact CreateRenderedArtifact(
         CSharpCompilation compilation,
-        string accessToClassPath)
+        string accessToClassPath
+    )
     {
         return new CSharpRenderedQueryArtifact(compilation, accessToClassPath);
     }
@@ -20,14 +21,16 @@ internal static class CSharpClrArtifactCompatibility
     public static ClrAssemblyExecutableArtifact CreateAssemblyExecutable(
         byte[] dllFile,
         byte[]? pdbFile,
-        string runnableTypeName)
+        string runnableTypeName
+    )
     {
         return new ClrAssemblyExecutableArtifact(dllFile, pdbFile, runnableTypeName);
     }
 
     public static TargetFinalizationResult CreateFinalizationResult(
         EmitResult emitResult,
-        ExecutableQueryArtifact? artifact)
+        ExecutableQueryArtifact? artifact
+    )
     {
         return new CSharpClrFinalizationResult(emitResult, artifact);
     }
@@ -42,20 +45,20 @@ internal static class CSharpClrArtifactCompatibility
         return RequireRenderedArtifact(artifact, operation).AccessToClassPath;
     }
 
-    public static CSharpRenderedQueryArtifact RequireRenderedArtifact(
-        RenderedQueryArtifact artifact,
-        string operation)
+    public static CSharpRenderedQueryArtifact RequireRenderedArtifact(RenderedQueryArtifact artifact, string operation)
     {
         ArgumentNullException.ThrowIfNull(artifact);
 
-        return artifact as CSharpRenderedQueryArtifact ??
-               throw new InvalidOperationException(
-                   $"C# CLR compatibility requires a C# rendered artifact for {operation}, but got '{artifact.TargetId}'.");
+        return artifact as CSharpRenderedQueryArtifact
+            ?? throw new InvalidOperationException(
+                $"C# CLR compatibility requires a C# rendered artifact for {operation}, but got '{artifact.TargetId}'."
+            );
     }
 
     public static bool TryGetRenderedArtifact(
         RenderedQueryArtifact artifact,
-        out CSharpRenderedQueryArtifact csharpArtifact)
+        out CSharpRenderedQueryArtifact csharpArtifact
+    )
     {
         if (artifact is CSharpRenderedQueryArtifact rendered)
         {
@@ -76,7 +79,8 @@ internal static class CSharpClrArtifactCompatibility
 
     public static bool TryGetQueryMethodRenderMetadata(
         RenderedQueryArtifact artifact,
-        out QueryMethodRenderMetadata metadata)
+        out QueryMethodRenderMetadata metadata
+    )
     {
         if (artifact is CSharpRenderedQueryArtifact rendered)
         {
@@ -88,9 +92,7 @@ internal static class CSharpClrArtifactCompatibility
         return false;
     }
 
-    public static bool TryGetOptimizationTrace(
-        RenderedQueryArtifact artifact,
-        out OptimizationTrace? trace)
+    public static bool TryGetOptimizationTrace(RenderedQueryArtifact artifact, out OptimizationTrace? trace)
     {
         if (artifact is CSharpRenderedQueryArtifact rendered)
         {
@@ -104,7 +106,8 @@ internal static class CSharpClrArtifactCompatibility
 
     public static bool TryGetAssemblyExecutable(
         ExecutableQueryArtifact? artifact,
-        out ClrAssemblyExecutableArtifact clrArtifact)
+        out ClrAssemblyExecutableArtifact clrArtifact
+    )
     {
         if (artifact is ClrAssemblyExecutableArtifact executable)
         {
@@ -118,61 +121,59 @@ internal static class CSharpClrArtifactCompatibility
 
     public static ClrAssemblyExecutableArtifact RequireAssemblyExecutable(
         ExecutableQueryArtifact artifact,
-        string operation)
+        string operation
+    )
     {
         ArgumentNullException.ThrowIfNull(artifact);
 
-        return artifact as ClrAssemblyExecutableArtifact ??
-               throw new InvalidOperationException(
-                   $"C# CLR compatibility requires a CLR assembly executable artifact for {operation}, but got '{artifact.TargetId}'.");
+        return artifact as ClrAssemblyExecutableArtifact
+            ?? throw new InvalidOperationException(
+                $"C# CLR compatibility requires a CLR assembly executable artifact for {operation}, but got '{artifact.TargetId}'."
+            );
     }
 
     public static ClrLoadedExecutableArtifact RequireLoadedExecutable(
         ExecutableQueryArtifact artifact,
-        string operation)
+        string operation
+    )
     {
         ArgumentNullException.ThrowIfNull(artifact);
 
-        return artifact as ClrLoadedExecutableArtifact ??
-               throw new InvalidOperationException(
-                   $"C# CLR compatibility requires a loaded CLR executable artifact for {operation}, but got '{artifact.TargetId}'.");
+        return artifact as ClrLoadedExecutableArtifact
+            ?? throw new InvalidOperationException(
+                $"C# CLR compatibility requires a loaded CLR executable artifact for {operation}, but got '{artifact.TargetId}'."
+            );
     }
 
     public static byte[]? GetDllFile(ExecutableQueryArtifact? artifact)
     {
-        return artifact is ClrAssemblyExecutableArtifact clrArtifact
-            ? clrArtifact.DllFile
-            : null;
+        return artifact is ClrAssemblyExecutableArtifact clrArtifact ? clrArtifact.DllFile : null;
     }
 
     public static byte[]? GetPdbFile(ExecutableQueryArtifact? artifact)
     {
-        return artifact is ClrAssemblyExecutableArtifact clrArtifact
-            ? clrArtifact.PdbFile
-            : null;
+        return artifact is ClrAssemblyExecutableArtifact clrArtifact ? clrArtifact.PdbFile : null;
     }
 
     public static CSharpClrFinalizationResult RequireFinalizationResult(
         TargetFinalizationResult result,
-        string operation)
+        string operation
+    )
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        return result as CSharpClrFinalizationResult ??
-               throw new InvalidOperationException(
-                   $"C# CLR compatibility requires a C# finalization result for {operation}, but got '{result.TargetId}'.");
+        return result as CSharpClrFinalizationResult
+            ?? throw new InvalidOperationException(
+                $"C# CLR compatibility requires a C# finalization result for {operation}, but got '{result.TargetId}'."
+            );
     }
 
-    public static EmitResult RequireEmitResult(
-        TargetFinalizationResult result,
-        string operation)
+    public static EmitResult RequireEmitResult(TargetFinalizationResult result, string operation)
     {
         return RequireFinalizationResult(result, operation).EmitResult;
     }
 
-    public static bool TryGetEmitResult(
-        TargetFinalizationResult result,
-        out EmitResult emitResult)
+    public static bool TryGetEmitResult(TargetFinalizationResult result, out EmitResult emitResult)
     {
         if (result is CSharpClrFinalizationResult csharpResult)
         {
@@ -188,17 +189,17 @@ internal static class CSharpClrArtifactCompatibility
     {
         return ComputeGeneratedCodeHash(
             RequireRenderedArtifact(artifact, "generated code hashing").Compilation,
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
-    public static string ComputeGeneratedCodeHash(
-        RenderedQueryArtifact artifact,
-        CancellationToken cancellationToken)
+    public static string ComputeGeneratedCodeHash(RenderedQueryArtifact artifact, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         return ComputeGeneratedCodeHash(
             RequireRenderedArtifact(artifact, "generated code hashing").Compilation,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static string ComputeGeneratedCodeHash(CSharpCompilation compilation)
@@ -206,9 +207,7 @@ internal static class CSharpClrArtifactCompatibility
         return ComputeGeneratedCodeHash(compilation, CancellationToken.None);
     }
 
-    public static string ComputeGeneratedCodeHash(
-        CSharpCompilation compilation,
-        CancellationToken cancellationToken)
+    public static string ComputeGeneratedCodeHash(CSharpCompilation compilation, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(compilation);
 

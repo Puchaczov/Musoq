@@ -7,17 +7,24 @@ using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tables;
 
-internal class TransitionSchema(string name, ISchemaTable table)
-    : SchemaBase(name, GetOrCreateLibrary())
+internal class TransitionSchema(string name, ISchemaTable table) : SchemaBase(name, GetOrCreateLibrary())
 {
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return table;
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments parameters)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments parameters
+    )
     {
         return EnsureSourceType<T, object>(name, new TransientVariableSource(name));
     }

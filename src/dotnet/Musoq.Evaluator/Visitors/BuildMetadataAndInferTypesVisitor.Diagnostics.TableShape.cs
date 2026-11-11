@@ -57,7 +57,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3019_SetOperatorColumnCount,
                 "Set operator must have the same quantity of columns in both queries",
-                node);
+                node
+            );
             return true;
         }
 
@@ -79,7 +80,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3020_SetOperatorColumnTypes,
                 $"Set operator must have the same types of columns in both queries. Left column expression is {FormatSetOperatorColumnExpression(left)} and right column expression is {FormatSetOperatorColumnExpression(right)}",
-                node);
+                node
+            );
             return true;
         }
 
@@ -88,9 +90,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private static string FormatSetOperatorColumnExpression(FieldNode field)
     {
-        return field.Expression is AccessColumnNode
-            ? field.FieldName
-            : field.Expression.ToString();
+        return field.Expression is AccessColumnNode ? field.FieldName : field.Expression.ToString();
     }
 
     /// <summary>
@@ -108,7 +108,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3021_DuplicateAlias,
                 $"Alias '{alias}' is already used in query. Please use a different alias.",
-                node);
+                node
+            );
             return true;
         }
 
@@ -130,7 +131,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3022_MissingAlias,
                 AliasMissingException.CreateMethodCallMessage(methodNode.ToString()),
-                methodNode);
+                methodNode
+            );
             return true;
         }
 
@@ -152,7 +154,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3023_TableNotDefined,
                 $"Table '{tableName}' is not defined in query",
-                node);
+                node
+            );
             return true;
         }
 
@@ -173,7 +176,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3025_ColumnMustBeArray,
                 "Column must be an array or implement IEnumerable<T> interface",
-                node);
+                node
+            );
             return true;
         }
 

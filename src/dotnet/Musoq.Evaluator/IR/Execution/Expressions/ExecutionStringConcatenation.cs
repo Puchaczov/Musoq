@@ -20,7 +20,15 @@ public sealed record ExecutionStringConcatenation : ExecutionExpression
     public IReadOnlyList<ExecutionExpression> Expressions
     {
         get => _expressions;
-        init => _expressions = ExecutionIrCollections.Freeze(value.SelectMany(static expression =>
-            expression is ExecutionStringConcatenation concatenation ? concatenation.Expressions : [expression]).ToArray());
+        init =>
+            _expressions = ExecutionIrCollections.Freeze(
+                value
+                    .SelectMany(static expression =>
+                        expression is ExecutionStringConcatenation concatenation
+                            ? concatenation.Expressions
+                            : [expression]
+                    )
+                    .ToArray()
+            );
     }
 }

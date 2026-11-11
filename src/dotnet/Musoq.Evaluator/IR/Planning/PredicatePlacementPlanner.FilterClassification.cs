@@ -4,6 +4,7 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
+
 namespace Musoq.Evaluator.IR.Planning;
 
 internal static partial class PredicatePlacementPlanner
@@ -17,7 +18,8 @@ internal static partial class PredicatePlacementPlanner
         IReadOnlyList<ApplyNode> applyBoundaries,
         IReadOnlyDictionary<string, SourcePlanProperties[]> sourcesByAlias,
         IReadOnlyDictionary<string, IReadOnlySet<string>> pushedPredicatesBySourceId,
-        int index)
+        int index
+    )
     {
         var aliases = ExtractAliases(predicate);
         var predicateText = IrExpressionPrinter.Print(predicate);
@@ -30,10 +32,14 @@ internal static partial class PredicatePlacementPlanner
                 predicate,
                 PredicateEarliestPlacement.ConstantPredicate,
                 PlanningConfidence.High,
-                "Predicate does not reference source aliases and can be treated as a constant predicate.");
+                "Predicate does not reference source aliases and can be treated as a constant predicate."
+            );
         }
 
-        if (TryClassifyPostJoinFilter(input, ancestors, joinBoundaries, origin, index, predicate, aliases) is { } postJoinPlan)
+        if (
+            TryClassifyPostJoinFilter(input, ancestors, joinBoundaries, origin, index, predicate, aliases) is
+            { } postJoinPlan
+        )
             return postJoinPlan;
 
         if (TryClassifyApplyFilter(input, applyBoundaries, origin, index, predicate, aliases) is { } applyPlan)
@@ -49,7 +55,8 @@ internal static partial class PredicatePlacementPlanner
                     predicate,
                     PredicateEarliestPlacement.SourcePushdown,
                     PlanningConfidence.High,
-                    "Predicate is source-local and has a planner-owned source pushdown plan.");
+                    "Predicate is source-local and has a planner-owned source pushdown plan."
+                );
             }
 
             return CreatePlan(
@@ -58,7 +65,8 @@ internal static partial class PredicatePlacementPlanner
                 predicate,
                 PredicateEarliestPlacement.SourceRuntimeFilter,
                 PlanningConfidence.Medium,
-                "Predicate is source-local but remains a runtime filter under the current physical shape.");
+                "Predicate is source-local but remains a runtime filter under the current physical shape."
+            );
         }
 
         if (aliases.Length == 1 && HasAmbiguousSourceAlias(sourcesByAlias, aliases[0]))
@@ -69,7 +77,8 @@ internal static partial class PredicatePlacementPlanner
                 predicate,
                 PredicateEarliestPlacement.RuntimeFilter,
                 PlanningConfidence.Low,
-                "Predicate alias appears in multiple source scopes, so placement remains conservative.");
+                "Predicate alias appears in multiple source scopes, so placement remains conservative."
+            );
         }
 
         if (aliases.Length > 1)
@@ -80,7 +89,8 @@ internal static partial class PredicatePlacementPlanner
                 predicate,
                 PredicateEarliestPlacement.PostJoin,
                 PlanningConfidence.High,
-                "Predicate references multiple aliases and must wait until a combined row is available.");
+                "Predicate references multiple aliases and must wait until a combined row is available."
+            );
         }
 
         return CreatePlan(
@@ -89,7 +99,8 @@ internal static partial class PredicatePlacementPlanner
             predicate,
             PredicateEarliestPlacement.RuntimeFilter,
             PlanningConfidence.Low,
-            "Predicate alias could not be matched to a planned source.");
+            "Predicate alias could not be matched to a planned source."
+        );
     }
 
     private static PredicatePlacementPlan? TryClassifyPostJoinFilter(
@@ -99,11 +110,13 @@ internal static partial class PredicatePlacementPlanner
         PredicatePlacementOrigin origin,
         int index,
         IrExpression predicate,
-        string[] aliases)
+        string[] aliases
+    )
     {
-        var join = FindJoinBoundary(input) ??
-                   FindNearestJoinBoundary(ancestors) ??
-                   FindRelatedJoinBoundary(joinBoundaries, aliases);
+        var join =
+            FindJoinBoundary(input)
+            ?? FindNearestJoinBoundary(ancestors)
+            ?? FindRelatedJoinBoundary(joinBoundaries, aliases);
         if (join is null)
             return null;
 
@@ -115,7 +128,8 @@ internal static partial class PredicatePlacementPlanner
                 predicate,
                 PredicateEarliestPlacement.PostJoin,
                 PlanningConfidence.Medium,
-                CreateJoinBoundaryReason(join.Kind));
+                CreateJoinBoundaryReason(join.Kind)
+            );
         }
 
         if (aliases.Length <= 1)
@@ -127,7 +141,8 @@ internal static partial class PredicatePlacementPlanner
             predicate,
             PredicateEarliestPlacement.PostJoin,
             PlanningConfidence.High,
-            "WHERE predicate references multiple inner-join aliases and must wait until the post-join row is available.");
+            "WHERE predicate references multiple inner-join aliases and must wait until the post-join row is available."
+        );
     }
 
     private static PredicatePlacementPlan? TryClassifyApplyFilter(
@@ -136,14 +151,14 @@ internal static partial class PredicatePlacementPlanner
         PredicatePlacementOrigin origin,
         int index,
         IrExpression predicate,
-        string[] aliases)
+        string[] aliases
+    )
     {
         if (aliases.Length <= 1)
             return null;
 
-        var apply = input as ApplyNode ??
-                    FindApplyBoundary(input) ??
-                    FindRelatedApplyBoundary(applyBoundaries, aliases);
+        var apply =
+            input as ApplyNode ?? FindApplyBoundary(input) ?? FindRelatedApplyBoundary(applyBoundaries, aliases);
         if (apply is null)
             return null;
 
@@ -158,6 +173,7 @@ internal static partial class PredicatePlacementPlanner
             predicate,
             PredicateEarliestPlacement.RuntimeFilter,
             PlanningConfidence.Medium,
-            $"Predicate crosses a {FormatApplyName(apply.Kind)} boundary, so placement remains runtime-only until APPLY correlation movement is implemented.");
+            $"Predicate crosses a {FormatApplyName(apply.Kind)} boundary, so placement remains runtime-only until APPLY correlation movement is implemented."
+        );
     }
 }

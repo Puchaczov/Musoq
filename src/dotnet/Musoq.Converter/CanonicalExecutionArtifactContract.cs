@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Musoq.Converter.Build;
@@ -30,7 +30,8 @@ internal sealed record CanonicalExecutionArtifactContract(
     string OrderedReferenceIdentities,
     string ProviderContractFingerprint,
     string InterpreterState,
-    CSharpArtifactCompilationIdentity? InterpreterCompilationIdentity = null)
+    CSharpArtifactCompilationIdentity? InterpreterCompilationIdentity = null
+)
 {
     public string NormalizedGeneratedSyntax => GeneratedSyntaxIdentity.Descriptor;
 }
@@ -41,7 +42,8 @@ public static partial class InstanceCreator
         BuildItems items,
         ISchemaProvider schemaProvider,
         EvaluatorCompilationOptions compilationOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var interpreterSource = items.InterpreterSourceCode;
@@ -50,20 +52,22 @@ public static partial class InstanceCreator
             : InterpretationExecutableIdentity.TryCreate(
                 items.RenderingArtifacts,
                 TargetArtifactSemanticFactsFactory.From(items, cancellationToken),
-                cancellationToken);
+                cancellationToken
+            );
         if (interpreterSource is not null && interpretation is null)
             return null;
 
         var generatedSyntaxIdentity = CSharpClrGeneratedCodeCompatibility.CreateStructuralIdentity(
             items.RenderingArtifacts.Artifact,
-            cancellationToken);
+            cancellationToken
+        );
         cancellationToken.ThrowIfCancellationRequested();
-        var references = interpretation?.Compilation.OrderedReferenceFingerprint ??
-                         GetAdditionalReferenceIdentity(items.AdditionalReferenceTypes, cancellationToken);
+        var references =
+            interpretation?.Compilation.OrderedReferenceFingerprint
+            ?? GetAdditionalReferenceIdentity(items.AdditionalReferenceTypes, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        var runtimeContract = interpretation?.RuntimeFingerprint ??
-                              items.RenderingArtifacts.RuntimeContract?.ToString() ??
-                              string.Empty;
+        var runtimeContract =
+            interpretation?.RuntimeFingerprint ?? items.RenderingArtifacts.RuntimeContract?.ToString() ?? string.Empty;
         var outputType = items.OutputType?.AssemblyQualifiedName ?? string.Empty;
         var renderProfile = TargetRenderPurposeFactory.CreateProfile(items.CompilationPurpose, items.EmitPdb);
         // Interpretation compares the freshly rendered contract and receives a
@@ -86,7 +90,9 @@ public static partial class InstanceCreator
                 references,
                 providerContract,
                 runtimeContract,
-                interpreterSource ?? string.Empty));
+                interpreterSource ?? string.Empty
+            )
+        );
         cancellationToken.ThrowIfCancellationRequested();
 
         return new CanonicalExecutionArtifactContract(
@@ -103,12 +109,14 @@ public static partial class InstanceCreator
             references,
             providerContract,
             interpreterSource ?? string.Empty,
-            interpretation?.Compilation);
+            interpretation?.Compilation
+        );
     }
 
     private static string GetAdditionalReferenceIdentity(
         IReadOnlyCollection<Type> referenceTypes,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var referencesByName = new List<string>(referenceTypes.Count);
         foreach (var type in referenceTypes)
@@ -117,29 +125,36 @@ public static partial class InstanceCreator
             referencesByName.Add(type.AssemblyQualifiedName ?? type.FullName ?? type.Name);
         }
 
-        referencesByName.Sort((left, right) =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return StringComparer.Ordinal.Compare(left, right);
-        });
+        referencesByName.Sort(
+            (left, right) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return StringComparer.Ordinal.Compare(left, right);
+            }
+        );
         cancellationToken.ThrowIfCancellationRequested();
         return string.Join("\n", referencesByName);
     }
 
     private static string CreateCanonicalProviderContractSignature(
         ISchemaProvider schemaProvider,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var builder = new StringBuilder();
         builder.Append(schemaProvider.GetType().AssemblyQualifiedName ?? schemaProvider.GetType().FullName);
-        foreach (var field in GetOrderedInstanceFields(
-                     schemaProvider.GetType(),
-                     cancellationToken,
-                     useAssemblyQualifiedDeclaringType: true))
+        foreach (
+            var field in GetOrderedInstanceFields(
+                schemaProvider.GetType(),
+                cancellationToken,
+                useAssemblyQualifiedDeclaringType: true
+            )
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            builder.Append('|')
+            builder
+                .Append('|')
                 .Append(field.DeclaringType?.AssemblyQualifiedName)
                 .Append('.')
                 .Append(field.Name)
@@ -155,7 +170,8 @@ public static partial class InstanceCreator
         StringBuilder builder,
         object? value,
         int depth,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (value is null)
@@ -194,22 +210,22 @@ public static partial class InstanceCreator
                     entries.Add(CreateCanonicalDictionaryEntry(entry));
                 }
 
-                entries.Sort((left, right) =>
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var keyComparison = StringComparer.Ordinal.Compare(left.key, right.key);
-                    return keyComparison != 0
-                        ? keyComparison
-                        : StringComparer.Ordinal.Compare(left.valueType, right.valueType);
-                });
+                entries.Sort(
+                    (left, right) =>
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var keyComparison = StringComparer.Ordinal.Compare(left.key, right.key);
+                        return keyComparison != 0
+                            ? keyComparison
+                            : StringComparer.Ordinal.Compare(left.valueType, right.valueType);
+                    }
+                );
                 foreach (var (key, valueType) in entries)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     builder.Append("[key=");
                     builder.Append(key);
-                    builder.Append(",value-type=")
-                        .Append(valueType)
-                        .Append(']');
+                    builder.Append(",value-type=").Append(valueType).Append(']');
                 }
 
                 return;
@@ -218,13 +234,13 @@ public static partial class InstanceCreator
                 return;
         }
 
-        foreach (var field in GetOrderedInstanceFields(
-                     type,
-                     cancellationToken,
-                     useAssemblyQualifiedDeclaringType: true))
+        foreach (
+            var field in GetOrderedInstanceFields(type, cancellationToken, useAssemblyQualifiedDeclaringType: true)
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            builder.Append('|')
+            builder
+                .Append('|')
                 .Append(field.DeclaringType?.AssemblyQualifiedName)
                 .Append('.')
                 .Append(field.Name)
@@ -250,10 +266,8 @@ public static partial class InstanceCreator
         }
 
         return (
-            key is string stringKey
-                ? stringKey
-                : key?.GetType().AssemblyQualifiedName ?? "<null>",
-            value?.GetType().AssemblyQualifiedName ?? "<null>");
+            key is string stringKey ? stringKey : key?.GetType().AssemblyQualifiedName ?? "<null>",
+            value?.GetType().AssemblyQualifiedName ?? "<null>"
+        );
     }
-
 }

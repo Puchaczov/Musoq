@@ -11,7 +11,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ProjectedField[]? RewriteSidecarJoinProjectedFields(
         IReadOnlyList<ProjectedField> fields,
         IReadOnlyDictionary<string, IrExpression>? projectedExpressions,
-        PhysicalCteRefNode? cteRef)
+        PhysicalCteRefNode? cteRef
+    )
     {
         if (cteRef == null)
             return fields.ToArray();
@@ -35,7 +36,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static PhysicalFilterNode? RewriteSidecarJoinFilter(
         PhysicalFilterNode? filter,
         IReadOnlyDictionary<string, IrExpression>? projectedExpressions,
-        PhysicalCteRefNode? cteRef)
+        PhysicalCteRefNode? cteRef
+    )
     {
         if (filter == null)
             return null;
@@ -53,7 +55,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static IrExpression? RewriteSidecarJoinExpression(
         IrExpression? expression,
         IReadOnlyDictionary<string, IrExpression>? projectedExpressions,
-        PhysicalCteRefNode? cteRef)
+        PhysicalCteRefNode? cteRef
+    )
     {
         if (expression == null)
             return null;
@@ -69,7 +72,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static IrExpression[]? RewriteSidecarJoinExpressions(
         IReadOnlyList<IrExpression> expressions,
         IReadOnlyDictionary<string, IrExpression>? projectedExpressions,
-        PhysicalCteRefNode? cteRef)
+        PhysicalCteRefNode? cteRef
+    )
     {
         if (cteRef == null)
             return expressions.ToArray();
@@ -89,5 +93,4 @@ internal sealed partial class PhysicalLoweringImplementation
 
         return rewritten;
     }
-
 }

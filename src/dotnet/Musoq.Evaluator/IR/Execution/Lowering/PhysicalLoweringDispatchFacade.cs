@@ -15,7 +15,8 @@ internal sealed record PhysicalLoweringHandlers(
     Func<PhysicalToExecutionTableLoweringContext, LoweringAttempt<LoweredTable>> TryBuildSetOperationTable,
     Func<PhysicalToExecutionTableLoweringContext, LoweringAttempt<LoweredTable>> TryBuildWindowTable,
     Func<PhysicalToExecutionTableLoweringContext, LoweringAttempt<LoweredTable>> TryBuildPipelineTable,
-    Func<PhysicalToExecutionTableLoweringContext, LoweringAttempt<LoweredTable>> TryBuildAggregateTable);
+    Func<PhysicalToExecutionTableLoweringContext, LoweringAttempt<LoweredTable>> TryBuildAggregateTable
+);
 
 internal sealed class PhysicalLoweringDispatchFacade
 {
@@ -27,7 +28,7 @@ internal sealed class PhysicalLoweringDispatchFacade
         "set-operation",
         "aggregate",
         "window",
-        "pipeline"
+        "pipeline",
     ];
 
     internal static readonly IReadOnlyList<string> TableLoweringDescriptorNames =
@@ -36,7 +37,7 @@ internal sealed class PhysicalLoweringDispatchFacade
         "set-operation-table",
         "window-table",
         "pipeline-table",
-        "aggregate-table"
+        "aggregate-table",
     ];
 
     private readonly PhysicalLoweringRegistry _registry;
@@ -46,23 +47,22 @@ internal sealed class PhysicalLoweringDispatchFacade
         ArgumentNullException.ThrowIfNull(handlers);
         _registry = new PhysicalLoweringRegistry(
             CreatePlanLoweringDescriptors(handlers),
-            CreateTableLoweringDescriptors(handlers));
+            CreateTableLoweringDescriptors(handlers)
+        );
     }
 
-    public LoweringAttempt<ExecutionPlan> TryBuildPlan(
-        PhysicalToExecutionLoweringContext context) =>
+    public LoweringAttempt<ExecutionPlan> TryBuildPlan(PhysicalToExecutionLoweringContext context) =>
         _registry.TryBuildPlan(context);
 
-    public LoweringAttempt<LoweredTable> TryBuildTable(
-        PhysicalToExecutionTableLoweringContext context) =>
+    public LoweringAttempt<LoweredTable> TryBuildTable(PhysicalToExecutionTableLoweringContext context) =>
         _registry.TryBuildTable(context);
 
-    public LoweringScope CreateScope(PhysicalLoweringFacts facts) =>
-        new(facts);
+    public LoweringScope CreateScope(PhysicalLoweringFacts facts) => new(facts);
 
     public ExecutionPlanBuildResult BuildPlan(
         PhysicalToExecutionLoweringContext context,
-        Func<PhysicalNode, ExecutionPlanBuildResult> createUnsupported)
+        Func<PhysicalNode, ExecutionPlanBuildResult> createUnsupported
+    )
     {
         ArgumentNullException.ThrowIfNull(createUnsupported);
         var attempt = TryBuildPlan(context);
@@ -70,45 +70,48 @@ internal sealed class PhysicalLoweringDispatchFacade
         {
             LoweringAttemptKind.Built => ExecutionPlanBuildResult.CreateSupported(attempt.RequireValue()),
             LoweringAttemptKind.Unsupported => ExecutionPlanBuildResult.CreateUnsupported(
-                attempt.RequireUnsupportedReason()),
-            _ => createUnsupported(context.Plan)
+                attempt.RequireUnsupportedReason()
+            ),
+            _ => createUnsupported(context.Plan),
         };
     }
 
     public TableBuildResult BuildTable(
         PhysicalToExecutionTableLoweringContext context,
-        Func<PhysicalNode, TableBuildResult> createUnsupported)
+        Func<PhysicalNode, TableBuildResult> createUnsupported
+    )
     {
         ArgumentNullException.ThrowIfNull(createUnsupported);
         var attempt = TryBuildTable(context);
         return attempt.Kind switch
         {
             LoweringAttemptKind.Built => attempt.RequireValue().ToCompatibilityResult(),
-            LoweringAttemptKind.Unsupported => TableBuildResult.Unsupported(
-                attempt.RequireUnsupportedReason()),
-            _ => createUnsupported(context.Plan)
+            LoweringAttemptKind.Unsupported => TableBuildResult.Unsupported(attempt.RequireUnsupportedReason()),
+            _ => createUnsupported(context.Plan),
         };
     }
 
     private static IReadOnlyList<PhysicalPlanLoweringDescriptor> CreatePlanLoweringDescriptors(
-        PhysicalLoweringHandlers handlers) =>
-    [
-        new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[0], handlers.TryBuildMultiStatementPlan),
-        new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[1], handlers.TryBuildCtePlan),
-        new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[2], handlers.TryBuildDescPlan),
-        new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[3], handlers.TryBuildSetOperationPlan),
-        new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[4], handlers.TryBuildAggregatePlan),
-        new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[5], handlers.TryBuildWindowPlan),
-        new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[6], handlers.TryBuildPipelinePlan)
-    ];
+        PhysicalLoweringHandlers handlers
+    ) =>
+        [
+            new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[0], handlers.TryBuildMultiStatementPlan),
+            new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[1], handlers.TryBuildCtePlan),
+            new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[2], handlers.TryBuildDescPlan),
+            new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[3], handlers.TryBuildSetOperationPlan),
+            new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[4], handlers.TryBuildAggregatePlan),
+            new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[5], handlers.TryBuildWindowPlan),
+            new PhysicalPlanLoweringDescriptor(PlanLoweringDescriptorNames[6], handlers.TryBuildPipelinePlan),
+        ];
 
     private static IReadOnlyList<PhysicalTableLoweringDescriptor> CreateTableLoweringDescriptors(
-        PhysicalLoweringHandlers handlers) =>
-    [
-        new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[0], handlers.TryBuildMultiStatementTable),
-        new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[1], handlers.TryBuildSetOperationTable),
-        new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[2], handlers.TryBuildWindowTable),
-        new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[3], handlers.TryBuildPipelineTable),
-        new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[4], handlers.TryBuildAggregateTable)
-    ];
+        PhysicalLoweringHandlers handlers
+    ) =>
+        [
+            new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[0], handlers.TryBuildMultiStatementTable),
+            new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[1], handlers.TryBuildSetOperationTable),
+            new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[2], handlers.TryBuildWindowTable),
+            new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[3], handlers.TryBuildPipelineTable),
+            new PhysicalTableLoweringDescriptor(TableLoweringDescriptorNames[4], handlers.TryBuildAggregateTable),
+        ];
 }

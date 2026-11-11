@@ -18,7 +18,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             ".AccumulateValue(",
             ".GetCurrentValue(",
             "SetArguments(Array.Empty<object?>())",
-            "new bool[]"
+            "new bool[]",
         };
         var failures = ReadAllSamples()
             .Where(static sample => sample.Content.Contains("Window", StringComparison.Ordinal))
@@ -27,12 +27,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"Generated window samples should not emit boxed fallback paths: {string.Join("; ", failures)}");
+            $"Generated window samples should not emit boxed fallback paths: {string.Join("; ", failures)}"
+        );
     }
 
     private static IEnumerable<string> CreateBoxedWindowFallbackFailures(
         GeneratedCodeSampleFile sample,
-        IReadOnlyList<string> forbiddenPatterns)
+        IReadOnlyList<string> forbiddenPatterns
+    )
     {
         foreach (var forbiddenPattern in forbiddenPatterns)
         {
@@ -45,8 +47,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             if (!IsWindowInternalBufferLine(line))
                 continue;
 
-            if (line.Contains("object[]", StringComparison.Ordinal) ||
-                line.Contains("new object[", StringComparison.Ordinal))
+            if (
+                line.Contains("object[]", StringComparison.Ordinal)
+                || line.Contains("new object[", StringComparison.Ordinal)
+            )
             {
                 yield return $"{sample.FileName}: boxed window internal buffer: {line.Trim()}";
             }
@@ -55,9 +59,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static bool IsWindowInternalBufferLine(string line)
     {
-        return line.Contains("PartitionKeys", StringComparison.Ordinal) ||
-               line.Contains("OrderKeys", StringComparison.Ordinal) ||
-               line.Contains("Values", StringComparison.Ordinal) ||
-               line.Contains("Arguments", StringComparison.Ordinal);
+        return line.Contains("PartitionKeys", StringComparison.Ordinal)
+            || line.Contains("OrderKeys", StringComparison.Ordinal)
+            || line.Contains("Values", StringComparison.Ordinal)
+            || line.Contains("Arguments", StringComparison.Ordinal);
     }
 }

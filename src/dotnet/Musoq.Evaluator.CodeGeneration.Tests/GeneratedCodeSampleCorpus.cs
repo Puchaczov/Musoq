@@ -13,7 +13,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         private const string DegreeOfParallelismEnvironmentVariable = "MUSOQ_EVALUATOR_CORPUS_DEGREE";
         private static readonly Lazy<GeneratedCodeSampleFile[]> All = new(
             Create,
-            LazyThreadSafetyMode.ExecutionAndPublication);
+            LazyThreadSafetyMode.ExecutionAndPublication
+        );
 
         public static GeneratedCodeSampleFile[] ReadAll()
         {
@@ -40,8 +41,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                         generated[index] = new GeneratedCodeSampleFile(
                             sample.FileName,
                             sample.Category,
-                            GeneratedCodeSampleArtifacts.Generate(sample, LoggerResolver));
-                    });
+                            GeneratedCodeSampleArtifacts.Generate(sample, LoggerResolver)
+                        );
+                    }
+                );
 
                 return generated;
             }
@@ -53,7 +56,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                     degreeOfParallelism,
                     startedUtc,
                     DateTimeOffset.UtcNow,
-                    stopwatch.Elapsed);
+                    stopwatch.Elapsed
+                );
             }
         }
 

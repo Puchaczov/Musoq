@@ -14,20 +14,22 @@ public partial class BinaryRealWorldFormatTests
     //   Name: string[NameLength] ascii
     //   Extra: substream[ExtraLength] raw
     //   Data: substream[DataLength] raw
-    private const string ZipSchema = @"
-        binary ZipLocalFile {
-            Signature: uint le magic 0x04034B50,
-            Compression: ushort le oneOf [0, 8],
-            NameLength: ushort le,
-            ExtraLength: ushort le,
-            DataLength: uint le,
-            Name: string[NameLength] ascii,
-            Extra: substream[ExtraLength] raw,
-            Data: substream[DataLength] raw
-        };
-        binary ZipArchive {
-            Files: ZipLocalFile repeat until eof
-        };";
+    private const string ZipSchema = (
+        "\n"
+        + "        binary ZipLocalFile {\n"
+        + "            Signature: uint le magic 0x04034B50,\n"
+        + "            Compression: ushort le oneOf [0, 8],\n"
+        + "            NameLength: ushort le,\n"
+        + "            ExtraLength: ushort le,\n"
+        + "            DataLength: uint le,\n"
+        + "            Name: string[NameLength] ascii,\n"
+        + "            Extra: substream[ExtraLength] raw,\n"
+        + "            Data: substream[DataLength] raw\n"
+        + "        };\n"
+        + "        binary ZipArchive {\n"
+        + "            Files: ZipLocalFile repeat until eof\n"
+        + "        };"
+    );
 
     private static ByteWriter ZipLocalFile(int compression, string name, byte[] extra, byte[] data)
     {
@@ -45,9 +47,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_ZipStreamWithTwoLocalFiles_ShouldProjectCountAndNames()
     {
-        var query = ZipSchema + @"
-            select a.Files from #test.files() f
-            cross apply Interpret<ZipArchive>(f.Content) a";
+        var query =
+            ZipSchema
+            + (
+                "\n"
+                + "            select a.Files from #test.files() f\n"
+                + "            cross apply Interpret<ZipArchive>(f.Content) a"
+            );
 
         var data = Bytes()
             .Raw(ZipLocalFile(0, "a.txt", [0x01, 0x02], [0xAA, 0xBB, 0xCC]).ToArray())
@@ -63,12 +69,16 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_ZipSingleFile_ShouldProjectNameAndDataPayload()
     {
-        var query = ZipSchema + @"
-            binary ZipFirst {
-                File: ZipLocalFile
-            };
-            select z.File.Name, z.File.Compression, z.File.Data from #test.files() f
-            cross apply Interpret<ZipFirst>(f.Content) z";
+        var query =
+            ZipSchema
+            + (
+                "\n"
+                + "            binary ZipFirst {\n"
+                + "                File: ZipLocalFile\n"
+                + "            };\n"
+                + "            select z.File.Name, z.File.Compression, z.File.Data from #test.files() f\n"
+                + "            cross apply Interpret<ZipFirst>(f.Content) z"
+            );
 
         var data = ZipLocalFile(8, "hello.txt", [0x09], [0x10, 0x20, 0x30]).ToArray();
         var table = RunQuery(query, data);
@@ -82,12 +92,16 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_ZipZeroLengthExtraAndData_ShouldProjectEmptyPayloads()
     {
-        var query = ZipSchema + @"
-            binary ZipFirst {
-                File: ZipLocalFile
-            };
-            select z.File.Name, z.File.Extra, z.File.Data from #test.files() f
-            cross apply Interpret<ZipFirst>(f.Content) z";
+        var query =
+            ZipSchema
+            + (
+                "\n"
+                + "            binary ZipFirst {\n"
+                + "                File: ZipLocalFile\n"
+                + "            };\n"
+                + "            select z.File.Name, z.File.Extra, z.File.Data from #test.files() f\n"
+                + "            cross apply Interpret<ZipFirst>(f.Content) z"
+            );
 
         var data = ZipLocalFile(0, "empty", [], []).ToArray();
         var table = RunQuery(query, data);
@@ -101,12 +115,16 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_ZipBadSignature_ShouldThrowParseException()
     {
-        var query = ZipSchema + @"
-            binary ZipFirst {
-                File: ZipLocalFile
-            };
-            select z.File.Name from #test.files() f
-            cross apply Interpret<ZipFirst>(f.Content) z";
+        var query =
+            ZipSchema
+            + (
+                "\n"
+                + "            binary ZipFirst {\n"
+                + "                File: ZipLocalFile\n"
+                + "            };\n"
+                + "            select z.File.Name from #test.files() f\n"
+                + "            cross apply Interpret<ZipFirst>(f.Content) z"
+            );
 
         var good = ZipLocalFile(0, "x", [], [0x01]).ToArray();
         var data = (byte[])good.Clone();
@@ -122,24 +140,26 @@ public partial class BinaryRealWorldFormatTests
     // Minimal little-endian PCAP:
     //   Global header: Magic (uint le magic 0xA1B2C3D4), VersionMajor/Minor (ushort le), 4x uint le reserved-ish
     //   Per packet: TsSec/TsUsec (uint le), IncludedLength (uint le), OriginalLength (uint le), Data substream[IncludedLength] raw
-    private const string PcapSchema = @"
-        binary PcapPacket {
-            TsSec: uint le,
-            TsUsec: uint le,
-            IncludedLength: uint le,
-            OriginalLength: uint le,
-            Data: substream[IncludedLength] raw
-        };
-        binary PcapFile {
-            Magic: uint le magic 0xA1B2C3D4,
-            VersionMajor: ushort le,
-            VersionMinor: ushort le,
-            ThisZone: int le,
-            SigFigs: uint le,
-            SnapLen: uint le,
-            LinkType: uint le,
-            Packets: PcapPacket repeat until eof
-        };";
+    private const string PcapSchema = (
+        "\n"
+        + "        binary PcapPacket {\n"
+        + "            TsSec: uint le,\n"
+        + "            TsUsec: uint le,\n"
+        + "            IncludedLength: uint le,\n"
+        + "            OriginalLength: uint le,\n"
+        + "            Data: substream[IncludedLength] raw\n"
+        + "        };\n"
+        + "        binary PcapFile {\n"
+        + "            Magic: uint le magic 0xA1B2C3D4,\n"
+        + "            VersionMajor: ushort le,\n"
+        + "            VersionMinor: ushort le,\n"
+        + "            ThisZone: int le,\n"
+        + "            SigFigs: uint le,\n"
+        + "            SnapLen: uint le,\n"
+        + "            LinkType: uint le,\n"
+        + "            Packets: PcapPacket repeat until eof\n"
+        + "        };"
+    );
 
     private static ByteWriter PcapGlobalHeader()
     {
@@ -166,20 +186,24 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_PcapWithTwoPackets_ShouldProjectCountAndFirstPayloadByte()
     {
-        var query = PcapSchema + @"
-            binary PcapFirst {
-                Magic: uint le magic 0xA1B2C3D4,
-                VersionMajor: ushort le,
-                VersionMinor: ushort le,
-                ThisZone: int le,
-                SigFigs: uint le,
-                SnapLen: uint le,
-                LinkType: uint le,
-                First: PcapPacket,
-                Rest: PcapPacket repeat until eof
-            };
-            select p.First.IncludedLength, p.First.Data, p.Rest from #test.files() f
-            cross apply Interpret<PcapFirst>(f.Content) p";
+        var query =
+            PcapSchema
+            + (
+                "\n"
+                + "            binary PcapFirst {\n"
+                + "                Magic: uint le magic 0xA1B2C3D4,\n"
+                + "                VersionMajor: ushort le,\n"
+                + "                VersionMinor: ushort le,\n"
+                + "                ThisZone: int le,\n"
+                + "                SigFigs: uint le,\n"
+                + "                SnapLen: uint le,\n"
+                + "                LinkType: uint le,\n"
+                + "                First: PcapPacket,\n"
+                + "                Rest: PcapPacket repeat until eof\n"
+                + "            };\n"
+                + "            select p.First.IncludedLength, p.First.Data, p.Rest from #test.files() f\n"
+                + "            cross apply Interpret<PcapFirst>(f.Content) p"
+            );
 
         var data = Bytes()
             .Raw(PcapGlobalHeader().ToArray())
@@ -198,9 +222,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_PcapEmptyPacketSection_ShouldReturnZeroRecords()
     {
-        var query = PcapSchema + @"
-            select p.Packets from #test.files() f
-            cross apply Interpret<PcapFile>(f.Content) p";
+        var query =
+            PcapSchema
+            + (
+                "\n"
+                + "            select p.Packets from #test.files() f\n"
+                + "            cross apply Interpret<PcapFile>(f.Content) p"
+            );
 
         var data = PcapGlobalHeader().ToArray();
         var table = RunQuery(query, data);
@@ -212,23 +240,18 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void TryInterpret_PcapTruncatedPacket_ShouldReturnNull()
     {
-        var query = PcapSchema + @"
-            select f.Name, p.Packets from #test.files() f
-            outer apply TryInterpret<PcapFile>(f.Content) p";
+        var query =
+            PcapSchema
+            + (
+                "\n"
+                + "            select f.Name, p.Packets from #test.files() f\n"
+                + "            outer apply TryInterpret<PcapFile>(f.Content) p"
+            );
 
         // Packet claims IncludedLength=8 but only 2 payload bytes are present.
-        var truncatedPacket = Bytes()
-            .U32Le(1000)
-            .U32Le(500)
-            .U32Le(8)
-            .U32Le(8)
-            .Raw([0x01, 0x02])
-            .ToArray();
+        var truncatedPacket = Bytes().U32Le(1000).U32Le(500).U32Le(8).U32Le(8).Raw([0x01, 0x02]).ToArray();
 
-        var data = Bytes()
-            .Raw(PcapGlobalHeader().ToArray())
-            .Raw(truncatedPacket)
-            .ToArray();
+        var data = Bytes().Raw(PcapGlobalHeader().ToArray()).Raw(truncatedPacket).ToArray();
 
         var table = RunQuery(query, data);
 
@@ -239,9 +262,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Interpret_PcapBadMagic_ShouldThrowParseException()
     {
-        var query = PcapSchema + @"
-            select p.Packets from #test.files() f
-            cross apply Interpret<PcapFile>(f.Content) p";
+        var query =
+            PcapSchema
+            + (
+                "\n"
+                + "            select p.Packets from #test.files() f\n"
+                + "            cross apply Interpret<PcapFile>(f.Content) p"
+            );
 
         var data = PcapGlobalHeader().ToArray();
         data[0] = 0x00; // corrupt magic

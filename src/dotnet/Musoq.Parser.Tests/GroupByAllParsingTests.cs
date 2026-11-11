@@ -24,8 +24,7 @@ public class GroupByAllParsingTests
     [TestMethod]
     public void Parse_WhenGroupByAllWithHaving_ShouldKeepHaving()
     {
-        var query = ParseSingleQuery(
-            "select Col, Count(Col) from schema.method() group by all having Count(Col) > 1");
+        var query = ParseSingleQuery("select Col, Count(Col) from schema.method() group by all having Count(Col) > 1");
 
         Assert.IsNotNull(query.GroupBy);
         Assert.IsTrue(query.GroupBy.IsAll);
@@ -58,22 +57,22 @@ public class GroupByAllParsingTests
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
-        Assert.AreEqual(
-            "GROUP BY ALL cannot be combined with explicit GROUP BY fields.",
-            diagnostic.Message);
+        Assert.AreEqual("GROUP BY ALL cannot be combined with explicit GROUP BY fields.", diagnostic.Message);
         Assert.AreEqual(new TextSpan(query.IndexOf("all", System.StringComparison.Ordinal), 3), diagnostic.Span);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.AreEqual(
             "The parser encountered a token that does not fit the expected SQL grammar at this position.",
-            diagnostic.Explanation);
+            diagnostic.Explanation
+        );
         Assert.AreEqual("Core Spec - Statement Structure", diagnostic.DocsReference);
         CollectionAssert.AreEqual(
             new[]
             {
                 "Check for missing keywords, commas, or parentheses near this location.",
-                "Verify the query follows Musoq SQL syntax."
+                "Verify the query follows Musoq SQL syntax.",
             },
-            diagnostic.SuggestedFixes.Select(static action => action.Title).ToArray());
+            diagnostic.SuggestedFixes.Select(static action => action.Title).ToArray()
+        );
     }
 
     [TestMethod]

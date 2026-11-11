@@ -44,17 +44,21 @@ public sealed class CompiledQueryBatchRepositoryTests
         var taken = new ConcurrentBag<CompiledQuery>();
         var failures = new ConcurrentBag<Exception>();
 
-        Parallel.For(0, 8, _ =>
-        {
-            try
+        Parallel.For(
+            0,
+            8,
+            _ =>
             {
-                taken.Add(repository.Take("case"));
+                try
+                {
+                    taken.Add(repository.Take("case"));
+                }
+                catch (Exception exception)
+                {
+                    failures.Add(exception);
+                }
             }
-            catch (Exception exception)
-            {
-                failures.Add(exception);
-            }
-        });
+        );
 
         Assert.HasCount(1, taken);
         Assert.HasCount(7, failures);
@@ -73,8 +77,9 @@ public sealed class CompiledQueryBatchRepositoryTests
             new Dictionary<string, CompiledQueryBatchEntry>
             {
                 ["failed"] = CompiledQueryBatchEntry.Failure(new FormatException("invalid query")),
-                ["successful"] = CompiledQueryBatchEntry.Success(query)
-            });
+                ["successful"] = CompiledQueryBatchEntry.Success(query),
+            }
+        );
 
         var exception = Assert.ThrowsExactly<InvalidOperationException>(() => repository.Take("failed"));
         using var successful = repository.Take("successful");
@@ -102,9 +107,7 @@ public sealed class CompiledQueryBatchRepositoryTests
 
         using (selected)
         using (excluded)
-        using (selected.Take("case"))
-        {
-        }
+        using (selected.Take("case")) { }
 
         Assert.AreEqual(1, selectedCalls);
         Assert.AreEqual(0, excludedCalls);
@@ -115,7 +118,8 @@ public sealed class CompiledQueryBatchRepositoryTests
     {
         var (query, _) = CreateQuery();
         using var repository = new CompiledQueryBatchRepository<string>(() =>
-            new Dictionary<string, CompiledQuery> { ["case"] = query });
+            new Dictionary<string, CompiledQuery> { ["case"] = query }
+        );
         using var taken = repository.Take("case");
 
         var exception = Assert.ThrowsExactly<InvalidOperationException>(() => repository.Take("case"));
@@ -126,8 +130,7 @@ public sealed class CompiledQueryBatchRepositoryTests
     [TestMethod]
     public void Take_WhenKeyWasNotProduced_ShouldReportMissingKey()
     {
-        using var repository = new CompiledQueryBatchRepository<string>(() =>
-            new Dictionary<string, CompiledQuery>());
+        using var repository = new CompiledQueryBatchRepository<string>(() => new Dictionary<string, CompiledQuery>());
 
         var exception = Assert.ThrowsExactly<KeyNotFoundException>(() => repository.Take("missing"));
 
@@ -140,11 +143,8 @@ public sealed class CompiledQueryBatchRepositoryTests
         var (takenQuery, takenLifetime) = CreateQuery();
         var (unusedQuery, unusedLifetime) = CreateQuery();
         var repository = new CompiledQueryBatchRepository<string>(() =>
-            new Dictionary<string, CompiledQuery>
-            {
-                ["taken"] = takenQuery,
-                ["unused"] = unusedQuery
-            });
+            new Dictionary<string, CompiledQuery> { ["taken"] = takenQuery, ["unused"] = unusedQuery }
+        );
         var taken = repository.Take("taken");
 
         repository.Dispose();
@@ -176,14 +176,16 @@ public sealed class CompiledQueryBatchRepositoryTests
     {
         public ISchemaProvider Provider { get; set; } = new UnusedSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId
-        {
-            get;
-            set;
-        } = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
+            new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>
-            SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =

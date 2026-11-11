@@ -11,8 +11,7 @@ public static partial class ExecutionPlanPrinter
         if (!string.IsNullOrWhiteSpace(aggregateCall.DisplayName))
             return aggregateCall.DisplayName;
 
-        if (aggregateCall.Arguments.Count == 0 &&
-            aggregateCall.Accumulator is { Identifier.Length: > 0 } accumulator)
+        if (aggregateCall.Arguments.Count == 0 && aggregateCall.Accumulator is { Identifier.Length: > 0 } accumulator)
         {
             return $"{aggregateCall.Method.MethodName}('{accumulator.Identifier}')";
         }
@@ -22,23 +21,20 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatTypedAggregateSet(ExecutionAggregateSet aggregateSet)
     {
-        var input = aggregateSet.AccumulatorInput == null
-            ? string.Empty
-            : FormatExpression(aggregateSet.AccumulatorInput);
+        var input =
+            aggregateSet.AccumulatorInput == null ? string.Empty : FormatExpression(aggregateSet.AccumulatorInput);
         var owner = aggregateSet.Accumulator.OwnerFieldName is null
             ? aggregateSet.Group.Name
             : $"{aggregateSet.Group.Name}.{aggregateSet.Accumulator.OwnerFieldName}";
         var state = $"{owner}.{aggregateSet.Accumulator.FieldName}";
-        var arguments = string.IsNullOrEmpty(input)
-            ? state
-            : $"{state}, {input}";
-        var filter = aggregateSet.FilterPredicate == null
-            ? string.Empty
-            : $" filter {FormatExpression(aggregateSet.FilterPredicate)}";
+        var arguments = string.IsNullOrEmpty(input) ? state : $"{state}, {input}";
+        var filter =
+            aggregateSet.FilterPredicate == null
+                ? string.Empty
+                : $" filter {FormatExpression(aggregateSet.FilterPredicate)}";
 
         return $"TypedAggregateSet [Set({arguments}){filter}]";
     }
-
 
     private static string FormatAggregateArguments(IReadOnlyList<ExecutionExpression> arguments)
     {

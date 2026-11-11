@@ -32,7 +32,8 @@ internal sealed partial class SubqueryCorrelationAnalyzer : RawTraverseVisitor<S
         return new SubqueryCorrelationAnalysis(
             analyzer._subqueries,
             CopyAliasSet(analyzer._illegalOuterConsumingCteAliases),
-            analyzer._illegalOuterConsumingCteReferenceSpan);
+            analyzer._illegalOuterConsumingCteReferenceSpan
+        );
     }
 
     public override void Visit(QueryNode node)
@@ -64,10 +65,7 @@ internal sealed partial class SubqueryCorrelationAnalyzer : RawTraverseVisitor<S
     {
         node.Left.Accept(this);
 
-        var scope = new SubqueryScopeBuilder(
-            node,
-            GetVisibleAliases(),
-            _cteDefinitionDepth > 0);
+        var scope = new SubqueryScopeBuilder(node, GetVisibleAliases(), _cteDefinitionDepth > 0);
 
         _subqueryScopes.Push(scope);
         try
@@ -85,10 +83,7 @@ internal sealed partial class SubqueryCorrelationAnalyzer : RawTraverseVisitor<S
 
     public override void Visit(ExistsQueryNode node)
     {
-        var scope = new SubqueryScopeBuilder(
-            node,
-            GetVisibleAliases(),
-            _cteDefinitionDepth > 0);
+        var scope = new SubqueryScopeBuilder(node, GetVisibleAliases(), _cteDefinitionDepth > 0);
         var ignoredQueries = MarkExistsProjectionQueries(node.Subquery);
 
         _subqueryScopes.Push(scope);
@@ -109,10 +104,7 @@ internal sealed partial class SubqueryCorrelationAnalyzer : RawTraverseVisitor<S
 
     public override void Visit(ScalarSubqueryNode node)
     {
-        var scope = new SubqueryScopeBuilder(
-            node,
-            GetVisibleAliases(),
-            _cteDefinitionDepth > 0);
+        var scope = new SubqueryScopeBuilder(node, GetVisibleAliases(), _cteDefinitionDepth > 0);
 
         _subqueryScopes.Push(scope);
         try

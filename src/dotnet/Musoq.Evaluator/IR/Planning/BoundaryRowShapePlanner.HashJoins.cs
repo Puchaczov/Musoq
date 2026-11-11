@@ -19,7 +19,10 @@ internal static partial class BoundaryRowShapePlanner
             var buildRequiredColumns = Merge(buildColumns, buildResidualColumns);
             var probeRequiredColumns = Merge(probeColumns, probeResidualColumns);
             var buildNeededAfter = Merge(ResolveNeededAfter(requiredAfter), buildResidualColumns);
-            var probeNeededAfter = Merge(FilterColumnsProducedBy(probeSide, ResolveNeededAfter(requiredAfter)), probeResidualColumns);
+            var probeNeededAfter = Merge(
+                FilterColumnsProducedBy(probeSide, ResolveNeededAfter(requiredAfter)),
+                probeResidualColumns
+            );
 
             AddPlan(
                 BoundaryRowShapeKind.HashJoinBuild,
@@ -28,7 +31,8 @@ internal static partial class BoundaryRowShapePlanner
                 buildColumns,
                 buildResidualColumns.Length == 0
                     ? "Hash join build boundary uses build-key columns while preserving the current row shape; no physical pruning was applied."
-                    : "Hash join build boundary retains build-key and residual predicate columns while preserving the current row shape; no physical pruning was applied.");
+                    : "Hash join build boundary retains build-key and residual predicate columns while preserving the current row shape; no physical pruning was applied."
+            );
             AddPlan(
                 BoundaryRowShapeKind.HashJoinProbe,
                 probeSide,
@@ -36,7 +40,8 @@ internal static partial class BoundaryRowShapePlanner
                 probeColumns,
                 probeResidualColumns.Length == 0
                     ? "Hash join probe boundary uses probe-key columns while preserving the current row shape; no physical pruning was applied."
-                    : "Hash join probe boundary retains probe-key and residual predicate columns while preserving the current row shape; no physical pruning was applied.");
+                    : "Hash join probe boundary retains probe-key and residual predicate columns while preserving the current row shape; no physical pruning was applied."
+            );
 
             if (ReferenceEquals(buildSide, hashJoin.Left))
             {

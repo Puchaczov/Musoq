@@ -9,9 +9,8 @@ using Musoq.Parser.Diagnostics;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
-using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
-
 using static Musoq.Evaluator.Tests.MethodOwnerAutoResolutionTestsFixtures;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -27,31 +26,42 @@ public class MethodOwnerAutoResolutionTests : BasicEntityTestBase
             cross apply #A.entities(AmbiguousMethod(a.Population)) c
             """;
         var analysis = new QueryAnalyzer(
-            CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()).Analyze(query);
+            CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()
+        ).Analyze(query);
 
-        Assert.IsTrue(analysis.Errors.Any(error =>
-            error.Code == DiagnosticCode.MQ3035_AmbiguousMethodOwner &&
-            error.Phase == DiagnosticPhase.Bind &&
-            error.Span.Length > 0));
+        Assert.IsTrue(
+            analysis.Errors.Any(error =>
+                error.Code == DiagnosticCode.MQ3035_AmbiguousMethodOwner
+                && error.Phase == DiagnosticPhase.Bind
+                && error.Span.Length > 0
+            )
+        );
         Assert.IsFalse(analysis.Errors.Any(error => error.Code == DiagnosticCode.MQ9001_InternalCompilerError));
 
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-            query,
-            schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()));
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                query,
+                schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()
+            )
+        );
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind);
-        Assert.IsFalse(exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ9001_InternalCompilerError));
+        Assert.IsFalse(
+            exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ9001_InternalCompilerError)
+        );
     }
 
     [TestMethod]
     public void WhenUnqualifiedMethodExistsInCommonAncestor_ShouldAutoResolve()
     {
-        const string query = @"select a.City, ToDecimal(a.Population)
+        const string query =
+            @"select a.City, ToDecimal(a.Population)
 from #A.entities() a
 inner join #B.entities() b on a.City = b.City";
 
         var vm = CreateAndRunVirtualMachine(
             query,
-            schemaProvider: CreateTwoSchemaProvider<SharedOnlyLibraryA, SharedOnlyLibraryB>());
+            schemaProvider: CreateTwoSchemaProvider<SharedOnlyLibraryA, SharedOnlyLibraryB>()
+        );
 
         var table = vm.Run(TokenSource.Token);
 
@@ -63,13 +73,15 @@ inner join #B.entities() b on a.City = b.City";
     [TestMethod]
     public void WhenUnqualifiedMethodIsUniqueToOneSchema_ShouldAutoResolve()
     {
-        const string query = @"select a.City, UniqueToA(a.Population)
+        const string query =
+            @"select a.City, UniqueToA(a.Population)
 from #A.entities() a
 inner join #B.entities() b on a.City = b.City";
 
         var vm = CreateAndRunVirtualMachine(
             query,
-            schemaProvider: CreateTwoSchemaProvider<UniqueMethodLibraryA, SharedOnlyLibraryB>());
+            schemaProvider: CreateTwoSchemaProvider<UniqueMethodLibraryA, SharedOnlyLibraryB>()
+        );
 
         var table = vm.Run(TokenSource.Token);
 
@@ -81,16 +93,24 @@ inner join #B.entities() b on a.City = b.City";
     [TestMethod]
     public void WhenUnqualifiedMethodHasDifferentImplementations_ShouldReportAmbiguity()
     {
-        const string query = @"select a.City, AmbiguousMethod(a.Population)
+        const string query =
+            @"select a.City, AmbiguousMethod(a.Population)
 from #A.entities() a
 inner join #B.entities() b on a.City = b.City";
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-            query,
-            schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                query,
+                schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()
+            )
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind,
-            "AmbiguousMethod(a.Population)");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3035_AmbiguousMethodOwner,
+            DiagnosticPhase.Bind,
+            "AmbiguousMethod(a.Population)"
+        );
         AssertHasGuidance(ex);
         AssertMessageContains(ex, "a");
         AssertMessageContains(ex, "b");
@@ -103,16 +123,19 @@ inner join #B.entities() b on a.City = b.City";
     [DataRow("full outer join")]
     public void WhenDifferentImplementationsAreVisibleAcrossJoinKinds_ShouldReportAmbiguity(string joinKind)
     {
-        var query = $@"select AmbiguousMethod(a.Population ?? 0d)
+        var query =
+            $@"select AmbiguousMethod(a.Population ?? 0d)
 from #A.entities() a
 {joinKind} #B.entities() b on a.City = b.City";
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-            query,
-            schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                query,
+                schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()
+            )
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind,
-            "AmbiguousMethod");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind, "AmbiguousMethod");
         AssertMessageContains(ex, "a");
         AssertMessageContains(ex, "b");
     }
@@ -120,16 +143,24 @@ from #A.entities() a
     [TestMethod]
     public void WhenDifferentImplementationsChangeSourceOrder_ShouldRemainAmbiguous()
     {
-        const string query = @"select AmbiguousMethod(b.Population)
+        const string query =
+            @"select AmbiguousMethod(b.Population)
 from #B.entities() b
 inner join #A.entities() a on a.City = b.City";
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-            query,
-            schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(
+                query,
+                schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()
+            )
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind,
-            "AmbiguousMethod(b.Population)");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3035_AmbiguousMethodOwner,
+            DiagnosticPhase.Bind,
+            "AmbiguousMethod(b.Population)"
+        );
         AssertMessageContains(ex, "a");
         AssertMessageContains(ex, "b");
     }
@@ -137,16 +168,16 @@ inner join #A.entities() a on a.City = b.City";
     [TestMethod]
     public void WhenSameSourceInjectedImplementationIsVisibleThroughTwoAliases_ShouldReportAmbiguity()
     {
-        const string query = @"select GetCountry()
+        const string query =
+            @"select GetCountry()
 from #A.entities() a
 inner join #B.entities() b on a.City = b.City";
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-            query,
-            schemaProvider: CreateTwoSchemaProvider<Library, Library>()));
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine(query, schemaProvider: CreateTwoSchemaProvider<Library, Library>())
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind,
-            "GetCountry()");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3035_AmbiguousMethodOwner, DiagnosticPhase.Bind, "GetCountry()");
         AssertMessageContains(ex, "a");
         AssertMessageContains(ex, "b");
     }
@@ -154,14 +185,17 @@ inner join #B.entities() b on a.City = b.City";
     [TestMethod]
     public void WhenQualifiedSourceInjectedMethodsUseMissingAlias_ShouldNullLiftThatAliasOnly()
     {
-        const string query = @"select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry
+        const string query =
+            @"select a.GetCountry() as LeftCountry, b.GetCountry() as RightCountry
 from #A.entities() a
 left outer join #B.entities() b on a.Id = b.Id";
         var vm = CreateAndRunVirtualMachine(
             query,
             schemaProvider: CreateTwoSchemaProvider<Library, Library>(
                 [new BasicEntity("Poland", "Warsaw") { Id = 1 }],
-                []));
+                []
+            )
+        );
 
         var table = vm.Run(TokenSource.Token);
 
@@ -173,13 +207,15 @@ left outer join #B.entities() b on a.Id = b.Id";
     [TestMethod]
     public void WhenAmbiguousMethodIsQualified_ShouldUseRequestedOwner()
     {
-        const string query = @"select a.City, a.AmbiguousMethod(a.Population)
+        const string query =
+            @"select a.City, a.AmbiguousMethod(a.Population)
 from #A.entities() a
 inner join #B.entities() b on a.City = b.City";
 
         var vm = CreateAndRunVirtualMachine(
             query,
-            schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>());
+            schemaProvider: CreateTwoSchemaProvider<AmbiguousMethodLibraryA, AmbiguousMethodLibraryB>()
+        );
 
         var table = vm.Run(TokenSource.Token);
 
@@ -191,14 +227,16 @@ inner join #B.entities() b on a.City = b.City";
     [TestMethod]
     public void WhenAggregateAndNonAggregateMethodsBothUnqualified_ShouldAutoResolve()
     {
-        const string query = @"select a.City, Sum(ToDecimal(b.Population)) as TotalPop
+        const string query =
+            @"select a.City, Sum(ToDecimal(b.Population)) as TotalPop
 from #A.entities() a
 inner join #B.entities() b on a.City = b.City
 group by a.City";
 
         var vm = CreateAndRunVirtualMachine(
             query,
-            schemaProvider: CreateTwoSchemaProvider<SharedOnlyLibraryA, SharedOnlyLibraryA>());
+            schemaProvider: CreateTwoSchemaProvider<SharedOnlyLibraryA, SharedOnlyLibraryA>()
+        );
 
         var table = vm.Run(TokenSource.Token);
 
@@ -210,13 +248,15 @@ group by a.City";
     [TestMethod]
     public void WhenMultipleUnqualifiedSharedMethods_ShouldAutoResolveAll()
     {
-        const string query = @"select a.City, ToString(ToDecimal(a.Population))
+        const string query =
+            @"select a.City, ToString(ToDecimal(a.Population))
 from #A.entities() a
 inner join #B.entities() b on a.City = b.City";
 
         var vm = CreateAndRunVirtualMachine(
             query,
-            schemaProvider: CreateTwoSchemaProvider<SharedOnlyLibraryA, SharedOnlyLibraryB>());
+            schemaProvider: CreateTwoSchemaProvider<SharedOnlyLibraryA, SharedOnlyLibraryB>()
+        );
 
         var table = vm.Run(TokenSource.Token);
 
@@ -227,7 +267,8 @@ inner join #B.entities() b on a.City = b.City";
 
     private GenericSchemaProvider CreateTwoSchemaProvider<TLibA, TLibB>(
         BasicEntity[]? sourceA = null,
-        BasicEntity[]? sourceB = null)
+        BasicEntity[]? sourceB = null
+    )
         where TLibA : LibraryBase, new()
         where TLibB : LibraryBase, new()
     {
@@ -237,7 +278,7 @@ inner join #B.entities() b on a.City = b.City";
         var schemas = new Dictionary<string, ISchema>
         {
             { "#A", CreateSchema<TLibA>(sourceA) },
-            { "#B", CreateSchema<TLibB>(sourceB) }
+            { "#B", CreateSchema<TLibB>(sourceB) },
         };
 
         return new GenericSchemaProvider(schemas);

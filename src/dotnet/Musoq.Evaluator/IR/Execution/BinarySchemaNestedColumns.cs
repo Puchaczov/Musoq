@@ -10,23 +10,24 @@ public sealed partial class ExecutionShapeResolver
         SchemaFieldNode field,
         List<ColumnSchema> columns,
         ColumnSchema parentColumn,
-        BinaryColumnResolutionContext context)
+        BinaryColumnResolutionContext context
+    )
     {
         if (field is not FieldDefinitionNode definition)
             return;
 
         if (definition.TypeAnnotation is InlineSchemaTypeNode inlineSchema)
         {
-            foreach (var nestedColumn in CreateInlineBinaryColumns(
-                         inlineSchema,
-                         parentColumn.Type,
-                         context))
+            foreach (var nestedColumn in CreateInlineBinaryColumns(inlineSchema, parentColumn.Type, context))
             {
-                columns.Add(new ColumnSchema(
-                    $"{parentColumn.Name}.{nestedColumn.Name}",
-                    nestedColumn.Type,
-                    parentColumn.Index,
-                    nestedColumn.IntendedTypeName));
+                columns.Add(
+                    new ColumnSchema(
+                        $"{parentColumn.Name}.{nestedColumn.Name}",
+                        nestedColumn.Type,
+                        parentColumn.Index,
+                        nestedColumn.IntendedTypeName
+                    )
+                );
             }
 
             return;
@@ -42,30 +43,40 @@ public sealed partial class ExecutionShapeResolver
             return;
 
         var (registration, nestedBinary, nestedBindings) = nestedSchema;
-        var nestedType = parentColumn.Type == typeof(object)
-            ? registration.GeneratedType
-            : parentColumn.Type;
+        var nestedType = parentColumn.Type == typeof(object) ? registration.GeneratedType : parentColumn.Type;
 
-        foreach (var nestedColumn in CreateBinaryColumns(
-                     nestedBinary,
-                     nestedType,
-                     context with { GenericBindings = nestedBindings }))
+        foreach (
+            var nestedColumn in CreateBinaryColumns(
+                nestedBinary,
+                nestedType,
+                context with
+                {
+                    GenericBindings = nestedBindings,
+                }
+            )
+        )
         {
-            columns.Add(new ColumnSchema(
-                $"{parentColumn.Name}.{nestedColumn.Name}",
-                nestedColumn.Type,
-                parentColumn.Index,
-                nestedColumn.IntendedTypeName));
+            columns.Add(
+                new ColumnSchema(
+                    $"{parentColumn.Name}.{nestedColumn.Name}",
+                    nestedColumn.Type,
+                    parentColumn.Index,
+                    nestedColumn.IntendedTypeName
+                )
+            );
         }
     }
 
     private static NestedBinarySchema? ResolveNestedBinarySchema(
         SchemaReferenceTypeNode reference,
-        BinaryColumnResolutionContext context)
+        BinaryColumnResolutionContext context
+    )
     {
-        if (context.SchemaRegistry == null ||
-            !context.SchemaRegistry.TryGetSchema(reference.SchemaName, out var registration) ||
-            registration?.Node is not BinarySchemaNode nestedBinary)
+        if (
+            context.SchemaRegistry == null
+            || !context.SchemaRegistry.TryGetSchema(reference.SchemaName, out var registration)
+            || registration?.Node is not BinarySchemaNode nestedBinary
+        )
             return null;
 
         if (!reference.IsGenericInstantiation)
@@ -73,7 +84,8 @@ public sealed partial class ExecutionShapeResolver
             return new NestedBinarySchema(
                 registration,
                 nestedBinary,
-                BinarySchemaGenericResolver.CreateEmptyBindings());
+                BinarySchemaGenericResolver.CreateEmptyBindings()
+            );
         }
 
         if (!nestedBinary.IsGeneric || nestedBinary.TypeParameters.Length != reference.TypeArguments.Length)
@@ -82,7 +94,8 @@ public sealed partial class ExecutionShapeResolver
         var nestedBindings = BinarySchemaGenericResolver.CreateBindings(
             nestedBinary,
             reference,
-            context.GenericBindings);
+            context.GenericBindings
+        );
         return new NestedBinarySchema(registration, nestedBinary, nestedBindings);
     }
 }

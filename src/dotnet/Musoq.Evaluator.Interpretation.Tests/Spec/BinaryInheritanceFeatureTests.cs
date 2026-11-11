@@ -25,24 +25,35 @@ public class BinaryInheritanceFeatureTests
     [TestMethod]
     public void Binary_Extends_BasicInheritance_ShouldIncludeParentFields()
     {
-        var query = @"
-            binary Base { 
-                Id: byte,
-                Version: byte
-            };
-            binary Extended extends Base { 
-                Flags: byte
-            };
-            select e.Id, e.Version, e.Flags from #test.files() b
-            cross apply Interpret<Extended>(b.Content) e";
+        var query = (
+            "\n"
+            + "            binary Base { \n"
+            + "                Id: byte,\n"
+            + "                Version: byte\n"
+            + "            };\n"
+            + "            binary Extended extends Base { \n"
+            + "                Flags: byte\n"
+            + "            };\n"
+            + "            select e.Id, e.Version, e.Flags from #test.files() b\n"
+            + "            cross apply Interpret<Extended>(b.Content) e"
+        );
 
         var testData = new byte[] { 0x01, 0x02, 0x03 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -61,23 +72,34 @@ public class BinaryInheritanceFeatureTests
     [TestMethod]
     public void Binary_Extends_ComputedFieldFromParent_ShouldCompute()
     {
-        var query = @"
-            binary Base { 
-                Value: int le
-            };
-            binary Derived extends Base { 
-                Doubled: = Value * 2
-            };
-            select d.Value, d.Doubled from #test.files() b
-            cross apply Interpret<Derived>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Base { \n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            binary Derived extends Base { \n"
+            + "                Doubled: = Value * 2\n"
+            + "            };\n"
+            + "            select d.Value, d.Doubled from #test.files() b\n"
+            + "            cross apply Interpret<Derived>(b.Content) d"
+        );
 
         var testData = BitConverter.GetBytes(25);
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -95,24 +117,35 @@ public class BinaryInheritanceFeatureTests
     [TestMethod]
     public void Binary_Extends_ChildUsesParentLength_ShouldReadData()
     {
-        var query = @"
-            binary Header { 
-                MsgType: byte,
-                Length: short le
-            };
-            binary Packet extends Header { 
-                Data: byte[Length]
-            };
-            select p.MsgType, p.Length, p.Data from #test.files() b
-            cross apply Interpret<Packet>(b.Content) p";
+        var query = (
+            "\n"
+            + "            binary Header { \n"
+            + "                MsgType: byte,\n"
+            + "                Length: short le\n"
+            + "            };\n"
+            + "            binary Packet extends Header { \n"
+            + "                Data: byte[Length]\n"
+            + "            };\n"
+            + "            select p.MsgType, p.Length, p.Data from #test.files() b\n"
+            + "            cross apply Interpret<Packet>(b.Content) p"
+        );
 
         var testData = new byte[] { 0x01, 0x03, 0x00, 0xAA, 0xBB, 0xCC };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -135,26 +168,37 @@ public class BinaryInheritanceFeatureTests
     [TestMethod]
     public void Binary_Extends_MultiLevel_ShouldIncludeAllAncestorFields()
     {
-        var query = @"
-            binary Base { 
-                Id: byte
-            };
-            binary Child extends Base { 
-                Version: byte
-            };
-            binary Grandchild extends Child { 
-                Flags: byte
-            };
-            select g.Id, g.Version, g.Flags from #test.files() b
-            cross apply Interpret<Grandchild>(b.Content) g";
+        var query = (
+            "\n"
+            + "            binary Base { \n"
+            + "                Id: byte\n"
+            + "            };\n"
+            + "            binary Child extends Base { \n"
+            + "                Version: byte\n"
+            + "            };\n"
+            + "            binary Grandchild extends Child { \n"
+            + "                Flags: byte\n"
+            + "            };\n"
+            + "            select g.Id, g.Version, g.Flags from #test.files() b\n"
+            + "            cross apply Interpret<Grandchild>(b.Content) g"
+        );
 
         var testData = new byte[] { 0x0A, 0x02, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -173,29 +217,37 @@ public class BinaryInheritanceFeatureTests
     [TestMethod]
     public void Binary_Extends_FilterByParentField_ShouldWork()
     {
-        var query = @"
-            binary Header { 
-                Type: byte,
-                Length: byte
-            };
-            binary Message extends Header { 
-                Payload: byte[Length]
-            };
-            select m.Type, m.Length from #test.files() b
-            cross apply Interpret<Message>(b.Content) m
-            where m.Type = 2";
+        var query = (
+            "\n"
+            + "            binary Header { \n"
+            + "                Type: byte,\n"
+            + "                Length: byte\n"
+            + "            };\n"
+            + "            binary Message extends Header { \n"
+            + "                Payload: byte[Length]\n"
+            + "            };\n"
+            + "            select m.Type, m.Length from #test.files() b\n"
+            + "            cross apply Interpret<Message>(b.Content) m\n"
+            + "            where m.Type = 2"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "type1.bin", Content = [0x01, 0x02, 0xAA, 0xBB] },
             new BinaryEntity { Name = "type2.bin", Content = [0x02, 0x01, 0xCC] },
-            new BinaryEntity { Name = "type3.bin", Content = [0x02, 0x03, 0xDD, 0xEE, 0xFF] }
+            new BinaryEntity { Name = "type3.bin", Content = [0x02, 0x03, 0xDD, 0xEE, 0xFF] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -213,29 +265,35 @@ public class BinaryInheritanceFeatureTests
     [TestMethod]
     public void Binary_Extends_SiblingSchemas_ShouldParseIndependently()
     {
-        var query = @"
-            binary Base { 
-                Type: byte,
-                Value: int le
-            };
-            binary TypeA extends Base { 
-                Extra: short le
-            };
-            select a.Type, a.Value, a.Extra from #test.files() b
-            cross apply Interpret<TypeA>(b.Content) a";
+        var query = (
+            "\n"
+            + "            binary Base { \n"
+            + "                Type: byte,\n"
+            + "                Value: int le\n"
+            + "            };\n"
+            + "            binary TypeA extends Base { \n"
+            + "                Extra: short le\n"
+            + "            };\n"
+            + "            select a.Type, a.Value, a.Extra from #test.files() b\n"
+            + "            cross apply Interpret<TypeA>(b.Content) a"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x01, 0x0A, 0x00, 0x00, 0x00, 0x14, 0x00 };
+        var entities = new[]
         {
-            0x01,
-            0x0A, 0x00, 0x00, 0x00,
-            0x14, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

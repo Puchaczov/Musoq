@@ -1,11 +1,10 @@
 using System;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionConcurrencyQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -17,9 +16,15 @@ public sealed partial class LibraryExecutionConcurrencyQueryTests
     {
         const string query = "select Position, NextSerialValue() as Tick from #schema.first() order by Position";
         LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>[] input = [new(1, 10), new(2, 20), new(3, 30)];
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString("N"),
-            LibraryExecutionFixture.CreateProvider<LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>, ReceiverLifetimeLibrary>(input),
-            _logger);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString("N"),
+            LibraryExecutionFixture.CreateProvider<
+                LibraryExecutionWindowQueryTestsFixtures.NumericRow<int>,
+                ReceiverLifetimeLibrary
+            >(input),
+            _logger
+        );
         for (var run = 0; run < 2; run++)
         {
             using var table = compiled.Run(TestContext.CancellationToken);

@@ -16,5 +16,4 @@ internal static class InterpretationStringLiterals
             .Replace("\n", "\\n", StringComparison.Ordinal)
             .Replace("\t", "\\t", StringComparison.Ordinal);
     }
-
 }

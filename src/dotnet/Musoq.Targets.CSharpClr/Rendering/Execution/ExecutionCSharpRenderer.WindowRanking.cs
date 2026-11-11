@@ -21,53 +21,60 @@ public sealed partial class ExecutionCSharpRenderer
 
         if ((partitionKeys?.ShouldExtract ?? false) || orderKeys.ShouldExtract)
         {
-            extractionStatements.AddRange(CreateIndexedItemDeclarations(
-                ranking.Item,
-                ranking.Buffer,
-                index,
-                ranking.RowAccessMode));
+            extractionStatements.AddRange(
+                CreateIndexedItemDeclarations(ranking.Item, ranking.Buffer, index, ranking.RowAccessMode)
+            );
 
             if (partitionKeys is { ShouldExtract: true })
-                extractionStatements.AddRange(CreateWindowPartitionKeyExtractionStatements(
-                    partitionKeys,
-                    extractionHelper.PartitionBuilder,
-                    index.Name,
-                    CreateRankingPartitionKeyExpression(partitionKeys, ranking.PartitionKey!)));
+                extractionStatements.AddRange(
+                    CreateWindowPartitionKeyExtractionStatements(
+                        partitionKeys,
+                        extractionHelper.PartitionBuilder,
+                        index.Name,
+                        CreateRankingPartitionKeyExpression(partitionKeys, ranking.PartitionKey!)
+                    )
+                );
 
             if (orderKeys.ShouldExtract)
             {
-                extractionStatements.Add(CreateWindowKeyArrayAssignment(
-                    orderKeys,
-                    index.Name,
-                    CreateRankingOrderKeyExpression(orderKeys, ranking.OrderKeys)));
+                extractionStatements.Add(
+                    CreateWindowKeyArrayAssignment(
+                        orderKeys,
+                        index.Name,
+                        CreateRankingOrderKeyExpression(orderKeys, ranking.OrderKeys)
+                    )
+                );
             }
         }
 
         if (ShouldMaterializeWindowKeyArray(partitionKeys))
         {
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                partitionKeys.Variable.Name,
-                CreateWindowKeyArrayCreation(partitionKeys, CreateBufferCountExpression(ranking.Buffer))));
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    partitionKeys.Variable.Name,
+                    CreateWindowKeyArrayCreation(partitionKeys, CreateBufferCountExpression(ranking.Buffer))
+                )
+            );
         }
 
         if (extractionHelper.PartitionBuilder != null)
-            statements.Add(CreateWindowPartitionBuilderDeclaration(
-                extractionHelper.PartitionBuilder,
-                ranking.Buffer));
+            statements.Add(CreateWindowPartitionBuilderDeclaration(extractionHelper.PartitionBuilder, ranking.Buffer));
 
         if (orderKeys.ShouldExtract)
         {
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                orderKeys.Variable.Name,
-                CreateWindowKeyArrayCreation(orderKeys, CreateBufferCountExpression(ranking.Buffer))));
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    orderKeys.Variable.Name,
+                    CreateWindowKeyArrayCreation(orderKeys, CreateBufferCountExpression(ranking.Buffer))
+                )
+            );
         }
 
         if (extractionStatements.Count > 0)
         {
-            statements.Add(CreateRankingWindowKeyExtractionInvocation(
-                extractionHelper));
+            statements.Add(CreateRankingWindowKeyExtractionInvocation(extractionHelper));
         }
 
         AddWindowPartitionDeclarations(
@@ -75,27 +82,31 @@ public sealed partial class ExecutionCSharpRenderer
             ranking.Partitions,
             partitionKeys?.Variable,
             ranking.Buffer,
-            extractionHelper.PartitionBuilder);
+            extractionHelper.PartitionBuilder
+        );
 
         var rankingPartitions = ranking.Partitions;
         if (rankingPartitions == null)
         {
             rankingPartitions = new ExecutionWindowPartitionSet(
-                new ExecutionVariable($"{ranking.Results.Name}Partitions", typeof(Evaluator.Helpers.WindowPartitionSet)),
-                true);
-            statements.Add(CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                rankingPartitions.Variable.Name,
-                CreateWindowPartitionSetInvocation(ranking.Buffer)));
+                new ExecutionVariable(
+                    $"{ranking.Results.Name}Partitions",
+                    typeof(Evaluator.Helpers.WindowPartitionSet)
+                ),
+                true
+            );
+            statements.Add(
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    rankingPartitions.Variable.Name,
+                    CreateWindowPartitionSetInvocation(ranking.Buffer)
+                )
+            );
         }
 
-        var rankingSortedPartitions = ranking.SortedPartitions ??
-                                      new ExecutionWindowPartitionSet(rankingPartitions.Variable, true, true);
-        AddWindowSortedPartitionDeclarations(
-            statements,
-            rankingSortedPartitions,
-            rankingPartitions,
-            orderKeys);
+        var rankingSortedPartitions =
+            ranking.SortedPartitions ?? new ExecutionWindowPartitionSet(rankingPartitions.Variable, true, true);
+        AddWindowSortedPartitionDeclarations(statements, rankingSortedPartitions, rankingPartitions, orderKeys);
 
         statements.AddRange(CreateRankingKernelStatements(ranking, orderKeys, rankingSortedPartitions));
 
@@ -104,41 +115,47 @@ public sealed partial class ExecutionCSharpRenderer
 
     private List<StatementSyntax> RenderFusedIntOrderRankingWindow(
         ExecutionComputeRankingWindow ranking,
-        ExecutionWindowKeyArray? partitionKeys)
+        ExecutionWindowKeyArray? partitionKeys
+    )
     {
         const string indexVariableName = "windowIndex";
         var index = new ExecutionVariable(indexVariableName, typeof(int));
         var builder = CreateFusedIntOrderBuilderVariable(ranking, partitionKeys);
         var extractionStatements = new List<StatementSyntax>();
-        var statements = new List<StatementSyntax>
-        {
-            CreateFusedIntOrderBuilderDeclaration(builder, ranking.Buffer)
-        };
+        var statements = new List<StatementSyntax> { CreateFusedIntOrderBuilderDeclaration(builder, ranking.Buffer) };
 
-        extractionStatements.AddRange(CreateIndexedItemDeclarations(
-            ranking.Item,
-            ranking.Buffer,
-            index,
-            ranking.RowAccessMode));
-        extractionStatements.Add(CreateFusedIntOrderBuilderAddStatement(
-            builder,
-            partitionKeys,
-            ranking,
-            indexVariableName));
+        extractionStatements.AddRange(
+            CreateIndexedItemDeclarations(ranking.Item, ranking.Buffer, index, ranking.RowAccessMode)
+        );
+        extractionStatements.Add(
+            CreateFusedIntOrderBuilderAddStatement(builder, partitionKeys, ranking, indexVariableName)
+        );
 
-        statements.Add(CreateIndexedForLoop(
-            indexVariableName,
-            ranking.Buffer,
-            StatementEmitter.CreateBlock(extractionStatements)));
+        statements.Add(
+            CreateIndexedForLoop(indexVariableName, ranking.Buffer, StatementEmitter.CreateBlock(extractionStatements))
+        );
         AddFusedIntOrderPartitionDeclarations(statements, ranking, builder);
         if (ranking.LibraryGet is null)
             throw UnsupportedShape.Of("Ranking execution requires a registered library operation.");
         var keys = new ExecutionVariable($"{ranking.Results.Name}OrderKeys", typeof(int[]));
-        statements.Add(CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), keys.Name,
-            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(builder.Name), SyntaxFactory.IdentifierName("OrderKeys"))));
-        statements.AddRange(CreateRankingKernelStatements(ranking, new ExecutionWindowKeyArray(keys, false),
-            ranking.SortedPartitions ?? ranking.Partitions));
+        statements.Add(
+            CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                keys.Name,
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(builder.Name),
+                    SyntaxFactory.IdentifierName("OrderKeys")
+                )
+            )
+        );
+        statements.AddRange(
+            CreateRankingKernelStatements(
+                ranking,
+                new ExecutionWindowKeyArray(keys, false),
+                ranking.SortedPartitions ?? ranking.Partitions
+            )
+        );
         return statements;
     }
 }

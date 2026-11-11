@@ -13,7 +13,8 @@ public sealed class CallableResolutionDiagnosticsTests : Schema.NegativeTests.Ne
     public void UnknownCallable_ReportsNameAndSpellingFacts()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select MissingFunction(Name) from #test.people()"));
+            CompileQuery("select MissingFunction(Name) from #test.people()")
+        );
 
         AssertSingleError(exception, DiagnosticCode.MQ3086_UnknownCallable, DiagnosticPhase.Bind, "MissingFunction");
         AssertHasGuidance(exception);
@@ -25,30 +26,40 @@ public sealed class CallableResolutionDiagnosticsTests : Schema.NegativeTests.Ne
     public void KnownCallableWithWrongArity_ReportsAcceptedCounts()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select Substring(Name) from #test.people()"));
+            CompileQuery("select Substring(Name) from #test.people()")
+        );
 
         AssertSingleError(exception, DiagnosticCode.MQ3087_InvalidCallableArity, DiagnosticPhase.Bind, "Substring");
         Assert.AreEqual("String", exception.PrimaryEnvelope.Arguments["actualTypes"]);
         Assert.AreEqual("2, 3", exception.PrimaryEnvelope.Arguments["expectedCounts"]);
-        Assert.IsTrue(exception.PrimaryEnvelope.Arguments["candidateSignatures"].Contains("Substring", StringComparison.Ordinal));
+        Assert.IsTrue(
+            exception.PrimaryEnvelope.Arguments["candidateSignatures"].Contains("Substring", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void KnownCallableWithWrongTypes_ReportsActualTypesAndCandidates()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select Substring(Name, 'zero', 5) from #test.people()"));
+            CompileQuery("select Substring(Name, 'zero', 5) from #test.people()")
+        );
 
-        AssertSingleError(exception, DiagnosticCode.MQ3088_NoMatchingCallableOverload, DiagnosticPhase.Bind, "Substring");
+        AssertSingleError(
+            exception,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            DiagnosticPhase.Bind,
+            "Substring"
+        );
         Assert.AreEqual("String, String, Int32", exception.PrimaryEnvelope.Arguments["actualTypes"]);
-        Assert.IsTrue(exception.PrimaryEnvelope.Arguments["candidateSignatures"].Contains("Substring", StringComparison.Ordinal));
+        Assert.IsTrue(
+            exception.PrimaryEnvelope.Arguments["candidateSignatures"].Contains("Substring", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void AggregateWithWrongTypes_UsesOverloadDiagnostic()
     {
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select Sum(Name) from #test.people()"));
+        var exception = Assert.Throws<MusoqQueryException>(() => CompileQuery("select Sum(Name) from #test.people()"));
 
         AssertSingleError(exception, DiagnosticCode.MQ3088_NoMatchingCallableOverload, DiagnosticPhase.Bind, "Sum");
         Assert.AreEqual("String", exception.PrimaryEnvelope.Arguments["actualTypes"]);

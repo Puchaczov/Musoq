@@ -21,28 +21,39 @@ public sealed partial class ExecutionCSharpRenderer
 
         var methodName = GetLibraryConversionMethodName(StrictCastLibraryConversionFacts.GetCastTargetType(targetType));
         var sourceValueType = Nullable.GetUnderlyingType(sourceType) ?? sourceType;
-        if (StrictCastLibraryConversionFacts.GetCastTargetType(targetType) == typeof(string) &&
-            sourceValueType != typeof(string) && !typeof(IConvertible).IsAssignableFrom(sourceValueType) &&
-            sourceValueType != typeof(Guid) && sourceValueType != typeof(TimeSpan) && sourceValueType != typeof(DateTimeOffset))
+        if (
+            StrictCastLibraryConversionFacts.GetCastTargetType(targetType) == typeof(string)
+            && sourceValueType != typeof(string)
+            && !typeof(IConvertible).IsAssignableFrom(sourceValueType)
+            && sourceValueType != typeof(Guid)
+            && sourceValueType != typeof(TimeSpan)
+            && sourceValueType != typeof(DateTimeOffset)
+        )
             methodName = sourceValueType.IsValueType
-                ? nameof(StrictCastRuntime.ToValueString) : nameof(StrictCastRuntime.ToReferenceString);
-        var invocation = SyntaxFactory.InvocationExpression(
+                ? nameof(StrictCastRuntime.ToValueString)
+                : nameof(StrictCastRuntime.ToReferenceString);
+        var invocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.ParseExpression($"global::{typeof(StrictCastRuntime).FullName}"),
-                    SyntaxFactory.IdentifierName(methodName)))
+                    SyntaxFactory.IdentifierName(methodName)
+                )
+            )
             .WithArgumentList(CreateArgumentList(source));
 
-        var invocationType = targetType.IsValueType && Nullable.GetUnderlyingType(targetType) is null
-            ? typeof(Nullable<>).MakeGenericType(targetType)
-            : targetType;
+        var invocationType =
+            targetType.IsValueType && Nullable.GetUnderlyingType(targetType) is null
+                ? typeof(Nullable<>).MakeGenericType(targetType)
+                : targetType;
         return CastExpressionIfNeeded(invocation, targetType, invocationType);
     }
 
     private static ExpressionSyntax CastExpressionIfNeeded(
         ExpressionSyntax expression,
         Type targetType,
-        Type expressionType)
+        Type expressionType
+    )
     {
         return targetType == expressionType ? expression : CastIfNeeded(expression, targetType);
     }
@@ -51,7 +62,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return SyntaxFactory.CastExpression(
             CreateTypeSyntax(type),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+        );
     }
 
     private static string GetLibraryConversionMethodName(Type targetType)

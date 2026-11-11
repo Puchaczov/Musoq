@@ -30,8 +30,10 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        if (Visitor is not BuildMetadataAndInferTypesVisitor ||
-            !Array.Exists(node.Arguments.Args, static argument => argument is AllColumnsNode))
+        if (
+            Visitor is not BuildMetadataAndInferTypesVisitor
+            || !Array.Exists(node.Arguments.Args, static argument => argument is AllColumnsNode)
+        )
         {
             base.Visit(node);
             return;

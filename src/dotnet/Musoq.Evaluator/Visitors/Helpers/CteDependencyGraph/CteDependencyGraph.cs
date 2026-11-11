@@ -25,9 +25,7 @@ public class CteDependencyGraph
         _nodes = nodes;
         OuterQuery = outerQuery;
 
-        _deadCtes = nodes.Values
-            .Where(n => n is { IsReachable: false, IsOuterQuery: false })
-            .ToList();
+        _deadCtes = nodes.Values.Where(n => n is { IsReachable: false, IsOuterQuery: false }).ToList();
 
         _executionLevels = ComputeExecutionLevels(nodes);
     }
@@ -52,9 +50,8 @@ public class CteDependencyGraph
     /// <summary>
     ///     Gets CTEs that are reachable from the outer query.
     /// </summary>
-    public IReadOnlyList<CteGraphNode> ReachableCtes => _nodes.Values
-        .Where(n => n is { IsReachable: true, IsOuterQuery: false })
-        .ToList();
+    public IReadOnlyList<CteGraphNode> ReachableCtes =>
+        _nodes.Values.Where(n => n is { IsReachable: true, IsOuterQuery: false }).ToList();
 
     /// <summary>
     ///     Gets CTEs grouped by execution level for parallelization.
@@ -115,13 +112,13 @@ public class CteDependencyGraph
     {
         var levels = new List<IReadOnlyList<CteGraphNode>>();
 
-
-        var reachableNodes = nodes.Values
-            .Where(n => n is { IsReachable: true, IsOuterQuery: false, ExecutionLevel: >= 0 })
+        var reachableNodes = nodes
+            .Values.Where(n => n is { IsReachable: true, IsOuterQuery: false, ExecutionLevel: >= 0 })
             .GroupBy(n => n.ExecutionLevel)
             .OrderBy(g => g.Key);
 
-        foreach (var group in reachableNodes) levels.Add(group.ToList());
+        foreach (var group in reachableNodes)
+            levels.Add(group.ToList());
 
         return levels;
     }
@@ -133,10 +130,11 @@ public class CteDependencyGraph
     {
         var lines = new List<string>
         {
-            $"CteDependencyGraph: {CteCount} CTEs, {DeadCtes.Count} dead, CanParallelize={CanParallelize}"
+            $"CteDependencyGraph: {CteCount} CTEs, {DeadCtes.Count} dead, CanParallelize={CanParallelize}",
         };
 
-        foreach (var node in _nodes.Values) lines.Add($"  {node}");
+        foreach (var node in _nodes.Values)
+            lines.Add($"  {node}");
 
         lines.Add($"  {OuterQuery}");
 

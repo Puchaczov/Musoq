@@ -19,26 +19,30 @@ internal sealed class CapacityHintPass : IExecutionIrOptimizationPass
         {
             return OptimizationResult<ExecutionPlan>.Changed(
                 candidateOptimized,
-                FormatCandidateDiagnostics(candidateRewriter));
+                FormatCandidateDiagnostics(candidateRewriter)
+            );
         }
 
         if (candidateRewriter.SkippedCandidates > 0)
         {
             return ReferenceEquals(candidateOptimized, plan)
                 ? OptimizationResult<ExecutionPlan>.NoChange(plan, FormatCandidateDiagnostics(candidateRewriter))
-                : OptimizationResult<ExecutionPlan>.Changed(candidateOptimized, FormatCandidateDiagnostics(candidateRewriter));
+                : OptimizationResult<ExecutionPlan>.Changed(
+                    candidateOptimized,
+                    FormatCandidateDiagnostics(candidateRewriter)
+                );
         }
 
         return OptimizationResult<ExecutionPlan>.NoChange(
             plan,
-            $"Observed {CountCapacityHints(plan.Body)} finalized capacity hint(s); no capacity hint candidates were present.");
+            $"Observed {CountCapacityHints(plan.Body)} finalized capacity hint(s); no capacity hint candidates were present."
+        );
     }
 
     private static string FormatCandidateDiagnostics(CapacityHintCandidateLoweringRewriter rewriter)
     {
-        return
-            $"Consumed {rewriter.LoweredCandidates} capacity hint candidate(s){FormatCounts(rewriter.LoweredCandidateKinds)}; " +
-            $"skipped {rewriter.SkippedCandidates} unsupported candidate(s){FormatCounts(rewriter.SkippedCandidateKinds)}.";
+        return $"Consumed {rewriter.LoweredCandidates} capacity hint candidate(s){FormatCounts(rewriter.LoweredCandidateKinds)}; "
+            + $"skipped {rewriter.SkippedCandidates} unsupported candidate(s){FormatCounts(rewriter.SkippedCandidateKinds)}.";
     }
 
     private static string FormatCounts(IReadOnlyDictionary<string, int> counts)
@@ -50,23 +54,42 @@ internal sealed class CapacityHintPass : IExecutionIrOptimizationPass
 
     private static int CountCapacityHints(ExecutionBlock block)
     {
-        return ExecutionIrAnalysis.FlattenNodes(block).Count(static node => node switch
-        {
-            ExecutionCreateTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionCreateRecordList { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionEnsureTableCapacity { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionCreateHash { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionCreateKeySet { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionSortTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionTopNTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionTopOffsetTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionSkipTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionTakeTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionSliceTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionProjectTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            ExecutionMaterializeRecordListToTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
-            _ => false
-        });
+        return ExecutionIrAnalysis
+            .FlattenNodes(block)
+            .Count(static node =>
+                node switch
+                {
+                    ExecutionCreateTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(
+                        hint
+                    ),
+                    ExecutionCreateRecordList { CapacityHint: { } hint } =>
+                        !ExecutionCapacityHintCandidates.IsCandidate(hint),
+                    ExecutionEnsureTableCapacity { CapacityHint: { } hint } =>
+                        !ExecutionCapacityHintCandidates.IsCandidate(hint),
+                    ExecutionCreateHash { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(
+                        hint
+                    ),
+                    ExecutionCreateKeySet { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(
+                        hint
+                    ),
+                    ExecutionSortTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
+                    ExecutionTopNTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
+                    ExecutionTopOffsetTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(
+                        hint
+                    ),
+                    ExecutionSkipTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
+                    ExecutionTakeTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(hint),
+                    ExecutionSliceTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(
+                        hint
+                    ),
+                    ExecutionProjectTable { CapacityHint: { } hint } => !ExecutionCapacityHintCandidates.IsCandidate(
+                        hint
+                    ),
+                    ExecutionMaterializeRecordListToTable { CapacityHint: { } hint } =>
+                        !ExecutionCapacityHintCandidates.IsCandidate(hint),
+                    _ => false,
+                }
+            );
     }
 
     private sealed class CapacityHintCandidateLoweringRewriter : ExecutionIrRewriter
@@ -108,4 +131,3 @@ internal sealed class CapacityHintPass : IExecutionIrOptimizationPass
         }
     }
 }
-

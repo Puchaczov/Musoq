@@ -15,7 +15,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SourceScanSamples_WhenCheckedIn_ShouldUseTypedRowSourceBridge()
     {
-        var samplesByFileName = ReadNamedSamples(SourceScanShapeExpectations.Select(static expectation => expectation.FileName).Distinct(StringComparer.Ordinal).ToArray())
+        var samplesByFileName = ReadNamedSamples(
+                SourceScanShapeExpectations
+                    .Select(static expectation => expectation.FileName)
+                    .Distinct(StringComparer.Ordinal)
+                    .ToArray()
+            )
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var failures = SourceScanShapeExpectations
             .SelectMany(expectation => GetSourceScanShapeFailures(samplesByFileName, expectation))
@@ -32,7 +37,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .SelectMany(static sample => GetRetiredHelperShapeFailures(sample.FileName, sample.Content))
             .ToArray();
 
-        Assert.IsEmpty(failures, $"Context-preserving samples still use retired helper shapes: {string.Join(", ", failures)}");
+        Assert.IsEmpty(
+            failures,
+            $"Context-preserving samples still use retired helper shapes: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -48,7 +56,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             (ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName, MaxLines: 850),
             (ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName, MaxLines: 800),
             (ChainedApplyQualifyWindowSampleFileName, MaxLines: 850),
-            (ChainedApplyGroupedAggregateQualifyWindowSampleFileName, MaxLines: 950)
+            (ChainedApplyGroupedAggregateQualifyWindowSampleFileName, MaxLines: 950),
         };
         var samples = ReadNamedSamples(budgets.Select(static budget => budget.Item1).ToArray())
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
@@ -64,7 +72,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .Where(static failure => failure != null)
             .ToArray();
 
-        Assert.IsEmpty(failures, $"Generated chained-apply/window samples grew unexpectedly: {string.Join(", ", failures)}");
+        Assert.IsEmpty(
+            failures,
+            $"Generated chained-apply/window samples grew unexpectedly: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -73,24 +84,28 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var samples = ReadNamedSamples(
                 ChainedApplyGroupedAggregateWindowSampleFileName,
                 ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName,
-                ChainedApplyGroupedAggregateQualifyWindowSampleFileName)
+                ChainedApplyGroupedAggregateQualifyWindowSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         AssertChainedApplyTraversalHelperShape(
             samples[ChainedApplyGroupedAggregateWindowSampleFileName],
             "TraverseWindowSourceTableNRows",
             "TraverseWindowSourceTableMRows",
-            "UpdateGroupsAggregates");
+            "UpdateGroupsAggregates"
+        );
         AssertChainedApplyTraversalHelperShape(
             samples[ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName],
             "TraverseWindowSourceTableNRows",
             "TraverseWindowSourceTableMRows",
-            "UpdateGroupsAggregates");
+            "UpdateGroupsAggregates"
+        );
         AssertChainedApplyTraversalHelperShape(
             samples[ChainedApplyGroupedAggregateQualifyWindowSampleFileName],
             "TraverseStatement0NRows",
             "TraverseStatement0MRows",
-            null);
+            null
+        );
     }
 
     [TestMethod]
@@ -99,14 +114,23 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var samples = ReadNamedSamples(
                 ChainedApplyGroupedAggregateWindowSampleFileName,
                 ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName,
-                CorrelatedScalarAggregateSubquerySampleFileName)
+                CorrelatedScalarAggregateSubquerySampleFileName
+            )
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var q61 = samples[ChainedApplyGroupedAggregateWindowSampleFileName];
         var q72 = samples[ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName];
         var q140 = samples[CorrelatedScalarAggregateSubquerySampleFileName];
 
-        AssertAggregateCancellationShape(q61, "PopulateWindowSourceTableSingleKeyGroups", "FinalizeWindowSourceTableSingleKeyGroups");
-        AssertAggregateCancellationShape(q72, "PopulateWindowSourceTableSingleKeyGroups", "FinalizeWindowSourceTableSingleKeyGroups");
+        AssertAggregateCancellationShape(
+            q61,
+            "PopulateWindowSourceTableSingleKeyGroups",
+            "FinalizeWindowSourceTableSingleKeyGroups"
+        );
+        AssertAggregateCancellationShape(
+            q72,
+            "PopulateWindowSourceTableSingleKeyGroups",
+            "FinalizeWindowSourceTableSingleKeyGroups"
+        );
 
         Assert.DoesNotContain("ParallelSingleKeyAggregate", q140);
         Assert.Contains("foreach (var bChunk in cte0_bRows)", q140);
@@ -139,16 +163,15 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static int CountLines(string content)
     {
-        return content.Length == 0
-            ? 0
-            : content.Count(static character => character == '\n') + 1;
+        return content.Length == 0 ? 0 : content.Count(static character => character == '\n') + 1;
     }
 
     private static void AssertChainedApplyTraversalHelperShape(
         string sample,
         string outerHelper,
         string innerHelper,
-        string? aggregateUpdateHelper)
+        string? aggregateUpdateHelper
+    )
     {
         Assert.Contains($"private static void {outerHelper}(CancellationToken token", sample);
         Assert.Contains($"private static void {innerHelper}(CancellationToken token", sample);
@@ -173,13 +196,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         }
     }
 
-    private static void AssertAggregateCancellationShape(
-        string sample,
-        string populateHelper,
-        string finalizeHelper)
+    private static void AssertAggregateCancellationShape(string sample, string populateHelper, string finalizeHelper)
     {
-        var usesExtractedHelpers = sample.Contains($"{populateHelper}(", StringComparison.Ordinal) &&
-                                   sample.Contains($"{finalizeHelper}(", StringComparison.Ordinal);
+        var usesExtractedHelpers =
+            sample.Contains($"{populateHelper}(", StringComparison.Ordinal)
+            && sample.Contains($"{finalizeHelper}(", StringComparison.Ordinal);
         if (usesExtractedHelpers)
         {
             Assert.Contains($", token);", sample);
@@ -199,7 +220,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SetOperationSamples_WhenCheckedIn_ShouldUseStreamingUnionAllAndHashSetKeys()
     {
-        var samples = ReadNamedSamples(UnionSampleFileName, ExceptSampleFileName, UnionAllSampleFileName, IntersectSampleFileName)
+        var samples = ReadNamedSamples(
+                UnionSampleFileName,
+                ExceptSampleFileName,
+                UnionAllSampleFileName,
+                IntersectSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var union = samples[UnionSampleFileName];
         var except = samples[ExceptSampleFileName];
@@ -262,9 +288,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             var failures = GetDirectInterpretationProjectionShapeFailures(
                 fileName,
                 result.ExecutionPlanText,
-                result.GeneratedCSharpCode);
+                result.GeneratedCSharpCode
+            );
 
-            Assert.IsEmpty(failures, $"{fileName} has stale interpretation projection shape: {string.Join(", ", failures)}");
+            Assert.IsEmpty(
+                failures,
+                $"{fileName} has stale interpretation projection shape: {string.Join(", ", failures)}"
+            );
         }
     }
 
@@ -279,7 +309,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             var content = samples[fileName];
             var failures = GetDirectInterpretationProjectionShapeFailures(fileName, content, content);
 
-            Assert.IsEmpty(failures, $"{fileName} has stale interpretation projection shape: {string.Join(", ", failures)}");
+            Assert.IsEmpty(
+                failures,
+                $"{fileName} has stale interpretation projection shape: {string.Join(", ", failures)}"
+            );
         }
     }
 
@@ -292,9 +325,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             var failures = GetNestedInterpretationExpansionShapeFailures(
                 fileName,
                 result.ExecutionPlanText,
-                result.GeneratedCSharpCode);
+                result.GeneratedCSharpCode
+            );
 
-            Assert.IsEmpty(failures, $"{fileName} has stale nested interpretation expansion shape: {string.Join(", ", failures)}");
+            Assert.IsEmpty(
+                failures,
+                $"{fileName} has stale nested interpretation expansion shape: {string.Join(", ", failures)}"
+            );
         }
     }
 
@@ -309,7 +346,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             var content = samples[fileName];
             var failures = GetNestedInterpretationExpansionShapeFailures(fileName, content, content);
 
-            Assert.IsEmpty(failures, $"{fileName} has stale nested interpretation expansion shape: {string.Join(", ", failures)}");
+            Assert.IsEmpty(
+                failures,
+                $"{fileName} has stale nested interpretation expansion shape: {string.Join(", ", failures)}"
+            );
         }
     }
 }

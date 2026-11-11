@@ -10,12 +10,15 @@ internal static partial class SourcePredicateExpressionConverter
         string sourceAlias,
         TimeSpan regexMatchTimeout,
         bool isNegated,
-        [NotNullWhen(true)] out SourcePredicateExpression? predicate)
+        [NotNullWhen(true)] out SourcePredicateExpression? predicate
+    )
     {
-        if (patternMatch.Kind is not (PatternKind.Like or PatternKind.RLike) ||
-            patternMatch.Expression is not ColumnRef column ||
-            !string.Equals(column.Alias, sourceAlias, StringComparison.OrdinalIgnoreCase) ||
-            patternMatch.Pattern is not Literal { Value: string pattern })
+        if (
+            patternMatch.Kind is not (PatternKind.Like or PatternKind.RLike)
+            || patternMatch.Expression is not ColumnRef column
+            || !string.Equals(column.Alias, sourceAlias, StringComparison.OrdinalIgnoreCase)
+            || patternMatch.Pattern is not Literal { Value: string pattern }
+        )
         {
             predicate = null;
             return false;
@@ -24,8 +27,11 @@ internal static partial class SourcePredicateExpressionConverter
         if (patternMatch.Kind == PatternKind.RLike)
         {
             predicate = new SourcePredicateRegexMatch(
-                new SourceColumnRef(column.ColumnName), pattern,
-                regexMatchTimeout, isNegated: isNegated);
+                new SourceColumnRef(column.ColumnName),
+                pattern,
+                regexMatchTimeout,
+                isNegated: isNegated
+            );
             return true;
         }
 
@@ -44,12 +50,13 @@ internal static partial class SourcePredicateExpressionConverter
                 LikePatternMatchKind.Prefix => SourceStringMatchKind.Prefix,
                 LikePatternMatchKind.Suffix => SourceStringMatchKind.Suffix,
                 LikePatternMatchKind.Contains => SourceStringMatchKind.Contains,
-                _ => throw new InvalidOperationException($"Unknown LIKE classification '{match.Kind}'.")
+                _ => throw new InvalidOperationException($"Unknown LIKE classification '{match.Kind}'."),
             },
             pattern,
             pattern.Substring(match.LiteralStart, match.LiteralLength),
             SourceStringComparison.LikeIgnoreCase,
-            isNegated);
+            isNegated
+        );
         return true;
     }
 }

@@ -10,8 +10,8 @@ public class DetailedQueryNode(
     TakeNode? take,
     string returnVariableName,
     WindowNode? window = null,
-    QualifyNode? qualify = null)
-    : QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, default)
+    QualifyNode? qualify = null
+) : QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, default)
 {
     public string ReturnVariableName { get; } = returnVariableName;
 }

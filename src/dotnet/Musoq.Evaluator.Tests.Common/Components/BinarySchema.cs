@@ -11,20 +11,32 @@ namespace Musoq.Evaluator.Tests.Components;
 /// </summary>
 public class BinarySchema(IEnumerable<BinaryEntity> entities) : SchemaBase("test", CreateLibrary())
 {
-    private readonly IReadOnlyList<BinaryEntity> _entities = entities as IReadOnlyList<BinaryEntity> ?? entities.ToArray();
+    private readonly IReadOnlyList<BinaryEntity> _entities =
+        entities as IReadOnlyList<BinaryEntity> ?? entities.ToArray();
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
-        params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return new BinaryEntityTable();
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
-        return EnsureSourceType<T, BinaryEntity>(name, new TestEntitySource<BinaryEntity>(
-            [_entities],
-            BinaryEntity.NameToIndexMap,
-            BinaryEntity.IndexToObjectAccessMap));
+        return EnsureSourceType<T, BinaryEntity>(
+            name,
+            new TestEntitySource<BinaryEntity>(
+                [_entities],
+                BinaryEntity.NameToIndexMap,
+                BinaryEntity.IndexToObjectAccessMap
+            )
+        );
     }
 
     private static MethodsAggregator CreateLibrary()

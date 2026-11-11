@@ -15,9 +15,7 @@ internal static partial class SingleUseMaterializationPlanner
         return decisions;
     }
 
-    private static void Visit(
-        PhysicalNode node,
-        List<PlanningDecision> decisions)
+    private static void Visit(PhysicalNode node, List<PlanningDecision> decisions)
     {
         if (node is PhysicalCteNode cte)
         {
@@ -36,26 +34,25 @@ internal static partial class SingleUseMaterializationPlanner
             Visit(child, decisions);
     }
 
-    private static void AddCteCandidates(
-        PhysicalCteNode cte,
-        List<PlanningDecision> decisions)
+    private static void AddCteCandidates(PhysicalCteNode cte, List<PlanningDecision> decisions)
     {
-        var trackedNames = cte.Definitions
-            .Select(static definition => definition.Name)
+        var trackedNames = cte
+            .Definitions.Select(static definition => definition.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var referenceCounts = CountTrackedCteReferences(
-            cte.Children,
-            trackedNames);
+        var referenceCounts = CountTrackedCteReferences(cte.Children, trackedNames);
         var consumers = CollectConsumers(cte.Children, trackedNames);
 
         foreach (var definition in cte.Definitions)
         {
-            if (!TryCreateCandidate(
+            if (
+                !TryCreateCandidate(
                     $"cte:{definition.Name}",
                     referenceCounts.GetValueOrDefault(definition.Name),
                     ClassifyOutput(ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(definition.Plan)),
                     consumers.GetValueOrDefault(definition.Name),
-                    out var decision))
+                    out var decision
+                )
+            )
             {
                 continue;
             }
@@ -66,7 +63,8 @@ internal static partial class SingleUseMaterializationPlanner
 
     private static void AddMultiStatementCandidates(
         PhysicalMultiStatementNode multiStatement,
-        List<PlanningDecision> decisions)
+        List<PlanningDecision> decisions
+    )
     {
         var producerIndexByName = IntermediateSourceProducers.Resolve(multiStatement);
         if (producerIndexByName.Count == 0)
@@ -81,12 +79,19 @@ internal static partial class SingleUseMaterializationPlanner
             if (producerIndex < 0 || producerIndex >= multiStatement.Statements.Length)
                 continue;
 
-            if (!TryCreateCandidate(
+            if (
+                !TryCreateCandidate(
                     $"statement:{name}",
                     referenceCounts.GetValueOrDefault(name),
-                    ClassifyOutput(ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(multiStatement.Statements[producerIndex])),
+                    ClassifyOutput(
+                        ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(
+                            multiStatement.Statements[producerIndex]
+                        )
+                    ),
                     consumers.GetValueOrDefault(name),
-                    out var decision))
+                    out var decision
+                )
+            )
             {
                 continue;
             }
@@ -100,13 +105,12 @@ internal static partial class SingleUseMaterializationPlanner
         int referenceCount,
         CteOutputCharacteristics characteristics,
         IReadOnlyList<SingleUseConsumerKind>? consumers,
-        out PlanningDecision decision)
+        out PlanningDecision decision
+    )
     {
         decision = null!;
 
-        if (referenceCount != 1 ||
-            consumers is not { Count: 1 } ||
-            !CanPlanSingleUseFusion(characteristics))
+        if (referenceCount != 1 || consumers is not { Count: 1 } || !CanPlanSingleUseFusion(characteristics))
         {
             return false;
         }
@@ -115,8 +119,9 @@ internal static partial class SingleUseMaterializationPlanner
         var ruleName = consumer switch
         {
             SingleUseConsumerKind.HashBuild => "SingleUseHashBuildFusion",
-            SingleUseConsumerKind.FinalProjection or SingleUseConsumerKind.ProjectionChain => "SingleUseProjectionFusion",
-            _ => null
+            SingleUseConsumerKind.FinalProjection or SingleUseConsumerKind.ProjectionChain =>
+                "SingleUseProjectionFusion",
+            _ => null,
         };
 
         if (ruleName == null)
@@ -128,29 +133,38 @@ internal static partial class SingleUseMaterializationPlanner
             target,
             "Candidate",
             PlanningConfidence.High,
-            CreateCandidateReason(consumer, characteristics));
+            CreateCandidateReason(consumer, characteristics)
+        );
         return true;
     }
 
-    private static string CreateCandidateReason(SingleUseConsumerKind consumer, CteOutputCharacteristics characteristics)
+    private static string CreateCandidateReason(
+        SingleUseConsumerKind consumer,
+        CteOutputCharacteristics characteristics
+    )
     {
         var consumerText = consumer switch
         {
             SingleUseConsumerKind.HashBuild => "a hash-build boundary",
             SingleUseConsumerKind.FinalProjection => "the final projection",
             SingleUseConsumerKind.ProjectionChain => "another single-use projection/filter stage",
-            _ => "a supported consumer"
+            _ => "a supported consumer",
         };
 
-        return string.Format(CultureInfo.InvariantCulture, "Single-use stage is consumed only by {0}; characteristics: {1}.", consumerText, characteristics == CteOutputCharacteristics.None ? "None" : characteristics);
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "Single-use stage is consumed only by {0}; characteristics: {1}.",
+            consumerText,
+            characteristics == CteOutputCharacteristics.None ? "None" : characteristics
+        );
     }
 
     private static bool CanPlanSingleUseFusion(CteOutputCharacteristics characteristics)
     {
-        return !characteristics.HasFlag(CteOutputCharacteristics.OrderSensitive) &&
-               !characteristics.HasFlag(CteOutputCharacteristics.Window) &&
-               !characteristics.HasFlag(CteOutputCharacteristics.SetOperation) &&
-               !characteristics.HasFlag(CteOutputCharacteristics.SideEffectSensitive);
+        return !characteristics.HasFlag(CteOutputCharacteristics.OrderSensitive)
+            && !characteristics.HasFlag(CteOutputCharacteristics.Window)
+            && !characteristics.HasFlag(CteOutputCharacteristics.SetOperation)
+            && !characteristics.HasFlag(CteOutputCharacteristics.SideEffectSensitive);
     }
 
     private static CteOutputCharacteristics ClassifyOutput(PhysicalNode node)
@@ -160,18 +174,19 @@ internal static partial class SingleUseMaterializationPlanner
         return characteristics;
     }
 
-    private static void ClassifyOutput(
-        PhysicalNode node,
-        ref CteOutputCharacteristics characteristics)
+    private static void ClassifyOutput(PhysicalNode node, ref CteOutputCharacteristics characteristics)
     {
         characteristics |= node switch
         {
-            PhysicalSortNode or PhysicalSkipNode or PhysicalTakeNode or PhysicalTopNNode or PhysicalTopOffsetNode => CteOutputCharacteristics.OrderSensitive,
-            PhysicalAggregateOnlyNode or PhysicalSingleKeyAggregateNode or PhysicalValueTupleAggregateNode => CteOutputCharacteristics.Aggregate,
+            PhysicalSortNode or PhysicalSkipNode or PhysicalTakeNode or PhysicalTopNNode or PhysicalTopOffsetNode =>
+                CteOutputCharacteristics.OrderSensitive,
+            PhysicalAggregateOnlyNode or PhysicalSingleKeyAggregateNode or PhysicalValueTupleAggregateNode =>
+                CteOutputCharacteristics.Aggregate,
             PhysicalWindowNode => CteOutputCharacteristics.Window,
             PhysicalSetOperationNode => CteOutputCharacteristics.SetOperation,
-            PhysicalInterpretSourceNode or PhysicalAccessMethodSourceNode or PhysicalPropertySourceNode => CteOutputCharacteristics.SideEffectSensitive,
-            _ => CteOutputCharacteristics.None
+            PhysicalInterpretSourceNode or PhysicalAccessMethodSourceNode or PhysicalPropertySourceNode =>
+                CteOutputCharacteristics.SideEffectSensitive,
+            _ => CteOutputCharacteristics.None,
         };
 
         foreach (var child in node.Children)
@@ -182,6 +197,6 @@ internal static partial class SingleUseMaterializationPlanner
     {
         HashBuild,
         FinalProjection,
-        ProjectionChain
+        ProjectionChain,
     }
 }

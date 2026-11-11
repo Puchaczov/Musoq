@@ -4,8 +4,12 @@ namespace Musoq.Converter;
 
 public sealed record TypedArtifactSourceSlotIdentity
 {
-    public TypedArtifactSourceSlotIdentity(string schemaName, string sourceName, string rowTypeName,
-        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None)
+    public TypedArtifactSourceSlotIdentity(
+        string schemaName,
+        string sourceName,
+        string rowTypeName,
+        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None
+    )
     {
         SchemaName = InMemorySourceNames.NormalizeSchemaName(schemaName);
         SourceName = InMemorySourceNames.NormalizeSourceName(sourceName);
@@ -32,7 +36,9 @@ public sealed record TypedArtifactSourceSlotIdentity
         return new TypedArtifactSourceSlotIdentity(
             slot.SchemaName,
             slot.SourceName,
-            slot.RowType.AssemblyQualifiedName ?? slot.RowType.FullName ?? slot.RowType.Name, slot.ExecutionPermissions);
+            slot.RowType.AssemblyQualifiedName ?? slot.RowType.FullName ?? slot.RowType.Name,
+            slot.ExecutionPermissions
+        );
     }
 
     internal bool Matches(InMemorySourceSlot slot)

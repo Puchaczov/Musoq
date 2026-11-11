@@ -20,7 +20,8 @@ public partial class SchemaParser
                 $"substream size must be non-negative, but got {negativeValue}.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ4001_InvalidBinarySchemaField,
-                sizeExpr.Span);
+                sizeExpr.Span
+            );
 
         if (Current.TokenType == TokenType.As)
             return ComposeStructuredSubstream(sizeExpr, fieldName);
@@ -35,7 +36,8 @@ public partial class SchemaParser
             "Substream requires 'raw' or 'as <type>' after the size.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ4014_InvalidSubstreamModifier,
-            Current.Span);
+            Current.Span
+        );
     }
 
     private SubstreamTypeNode ComposeStructuredSubstream(Node sizeExpr, string? fieldName)
@@ -47,7 +49,8 @@ public partial class SchemaParser
                 "Substream 'as' requires a target type.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ4015_InvalidSubstreamTarget,
-                Current.Span);
+                Current.Span
+            );
 
         var target = ComposeTypeAnnotation(fieldName);
 
@@ -78,12 +81,13 @@ public partial class SchemaParser
             $"Invalid substream mode '{value}'. Use 'exact' or 'lax'.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ4014_InvalidSubstreamModifier,
-            Current.Span);
+            Current.Span
+        );
     }
 
     private bool IsSubstreamModeWord(string word)
     {
         return Current.TokenType is TokenType.Identifier or TokenType.Word
-               && Current.Value.Equals(word, StringComparison.OrdinalIgnoreCase);
+            && Current.Value.Equals(word, StringComparison.OrdinalIgnoreCase);
     }
 }

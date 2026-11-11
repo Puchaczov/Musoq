@@ -15,10 +15,12 @@ public class ParserSetOperatorOptionalKeysTests
     [DataRow("intersect", typeof(IntersectNode))]
     public void Parse_WhenSetOperatorOmitsKeys_ShouldCreateSetOperatorWithEmptyKeys(
         string setOperator,
-        Type expectedNodeType)
+        Type expectedNodeType
+    )
     {
         var node = ParseSetOperator(
-            $"select Col from schemaA.methodA() {setOperator} select Col from schemaB.methodB()");
+            $"select Col from schemaA.methodA() {setOperator} select Col from schemaB.methodB()"
+        );
 
         Assert.IsInstanceOfType(node, expectedNodeType);
         Assert.IsEmpty(node.Keys);
@@ -31,10 +33,12 @@ public class ParserSetOperatorOptionalKeysTests
     [DataRow("intersect", typeof(IntersectNode))]
     public void Parse_WhenSetOperatorUsesEmptyKeyList_ShouldCreateSetOperatorWithEmptyKeys(
         string setOperator,
-        Type expectedNodeType)
+        Type expectedNodeType
+    )
     {
         var node = ParseSetOperator(
-            $"select Col from schemaA.methodA() {setOperator} () select Col from schemaB.methodB()");
+            $"select Col from schemaA.methodA() {setOperator} () select Col from schemaB.methodB()"
+        );
 
         Assert.IsInstanceOfType(node, expectedNodeType);
         Assert.IsEmpty(node.Keys);
@@ -45,12 +49,11 @@ public class ParserSetOperatorOptionalKeysTests
     [DataRow("union all", typeof(UnionAllNode))]
     [DataRow("except", typeof(ExceptNode))]
     [DataRow("intersect", typeof(IntersectNode))]
-    public void Parse_WhenSetOperatorUsesExplicitKeys_ShouldPreserveKeys(
-        string setOperator,
-        Type expectedNodeType)
+    public void Parse_WhenSetOperatorUsesExplicitKeys_ShouldPreserveKeys(string setOperator, Type expectedNodeType)
     {
         var node = ParseSetOperator(
-            $"select Col1, Col2 from schemaA.methodA() {setOperator} (Col1, Col2) select Col1, Col2 from schemaB.methodB()");
+            $"select Col1, Col2 from schemaA.methodA() {setOperator} (Col1, Col2) select Col1, Col2 from schemaB.methodB()"
+        );
 
         Assert.IsInstanceOfType(node, expectedNodeType);
         CollectionAssert.AreEqual(new[] { "Col1", "Col2" }, node.Keys);
@@ -60,12 +63,13 @@ public class ParserSetOperatorOptionalKeysTests
     public void Parse_WhenChainedSetOperatorsMixKeyStyles_ShouldPreserveEachOperatorKeys()
     {
         var node = ParseSetOperator(
-            """
-            select Col from schemaA.methodA()
-            union select Col from schemaB.methodB()
-            except () select Col from schemaC.methodC()
-            intersect (Col) select Col from schemaD.methodD()
-            """);
+            (
+                "select Col from schemaA.methodA()\n"
+                + "union select Col from schemaB.methodB()\n"
+                + "except () select Col from schemaC.methodC()\n"
+                + "intersect (Col) select Col from schemaD.methodD()"
+            )
+        );
 
         Assert.IsInstanceOfType<UnionNode>(node);
         Assert.IsEmpty(node.Keys);
@@ -81,14 +85,15 @@ public class ParserSetOperatorOptionalKeysTests
     public void Parse_WhenCteBodyUsesOmittedSetOperatorKeys_ShouldParse()
     {
         var root = Parse(
-            """
-            with cte as (
-                select Col from schemaA.methodA()
-                union
-                select Col from schemaB.methodB()
+            (
+                "with cte as (\n"
+                + "    select Col from schemaA.methodA()\n"
+                + "    union\n"
+                + "    select Col from schemaB.methodB()\n"
+                + ")\n"
+                + "select Col from cte"
             )
-            select Col from cte
-            """);
+        );
 
         Assert.IsNotNull(root);
     }
@@ -96,7 +101,8 @@ public class ParserSetOperatorOptionalKeysTests
     [TestMethod]
     public void Parse_WhenSetExpressionHasTrailingModifiers_ShouldAttachThemOnlyToTheCombinedResult()
     {
-        const string query = "select Col as Result from schemaA.methodA() union select Other from schemaB.methodB() order by Result desc nulls first skip 2 take 3";
+        const string query =
+            "select Col as Result from schemaA.methodA() union select Other from schemaB.methodB() order by Result desc nulls first skip 2 take 3";
 
         var node = ParseSetOperator(query);
 
@@ -116,7 +122,8 @@ public class ParserSetOperatorOptionalKeysTests
     public void Parse_WhenChainedSetHasTrailingModifiers_ShouldAttachThemOnlyToTheRoot()
     {
         var node = ParseSetOperator(
-            "select Col from schemaA.methodA() union select Col from schemaB.methodB() intersect select Col from schemaC.methodC() order by Col take 1");
+            "select Col from schemaA.methodA() union select Col from schemaB.methodB() intersect select Col from schemaC.methodC() order by Col take 1"
+        );
 
         Assert.IsNotNull(node.ResultOrderBy);
         Assert.IsNotNull(node.ResultTake);
@@ -129,10 +136,10 @@ public class ParserSetOperatorOptionalKeysTests
     [TestMethod]
     public void SetOperatorId_ShouldIncludeResultModifiers()
     {
-        var plain = ParseSetOperator(
-            "select Col from schemaA.methodA() union select Col from schemaB.methodB()");
+        var plain = ParseSetOperator("select Col from schemaA.methodA() union select Col from schemaB.methodB()");
         var ordered = ParseSetOperator(
-            "select Col from schemaA.methodA() union select Col from schemaB.methodB() order by Col");
+            "select Col from schemaA.methodA() union select Col from schemaB.methodB() order by Col"
+        );
 
         Assert.AreNotEqual(plain.Id, ordered.Id);
     }

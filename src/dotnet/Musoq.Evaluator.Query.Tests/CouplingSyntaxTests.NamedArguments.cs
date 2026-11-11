@@ -7,8 +7,10 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class CouplingSyntaxTests
 {
-    private const string PositionalCapturedQuery = "table CapturedRows { Count: int, Enabled: bool }; couple #specstressnamedmix.capture with table CapturedRows as Captured; select c.Count as ReceivedCount, c.Enabled from Captured(7, true) c";
-    private const string NamedCapturedQuery = "table CapturedRows { Count: int, Enabled: bool }; couple #specstressnamedmix.capture with table CapturedRows as Captured; select c.Count as ReceivedCount, c.Enabled from Captured(count: 7, enabled: true) c";
+    private const string PositionalCapturedQuery =
+        "table CapturedRows { Count: int, Enabled: bool }; couple #specstressnamedmix.capture with table CapturedRows as Captured; select c.Count as ReceivedCount, c.Enabled from Captured(7, true) c";
+    private const string NamedCapturedQuery =
+        "table CapturedRows { Count: int, Enabled: bool }; couple #specstressnamedmix.capture with table CapturedRows as Captured; select c.Count as ReceivedCount, c.Enabled from Captured(count: 7, enabled: true) c";
 
     [TestMethod]
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P5-0008")]
@@ -26,10 +28,22 @@ public partial class CouplingSyntaxTests
     private void AssertNamedCapturedForms(string enabledName, Type countType, Type enabledType)
     {
         var provider = new SpecStressNamedMixSchemaProvider();
-        using var positional = InstanceCreator.CompileForExecution(PositionalCapturedQuery, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+        using var positional = InstanceCreator.CompileForExecution(
+            PositionalCapturedQuery,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var positionalResult = positional.Run();
         AssertNamedCapturedRows(positionalResult, enabledName, countType, enabledType);
-        using var named = InstanceCreator.CompileForExecution(NamedCapturedQuery, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+        using var named = InstanceCreator.CompileForExecution(
+            NamedCapturedQuery,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var namedResult = named.Run();
         AssertNamedCapturedRows(namedResult, enabledName, countType, enabledType);
     }

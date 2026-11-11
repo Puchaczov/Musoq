@@ -21,17 +21,17 @@ public class ChunkEnumerator<T> : IEnumerator<IReadOnlyList<T>>
         BlockingCollection<IReadOnlyList<T>> readRows,
         CancellationToken token,
         Action? disposeResources = null,
-        Action? throwIfProducerFailed = null)
-        : this(readRows, token, disposeResources, throwIfProducerFailed, null)
-    {
-    }
+        Action? throwIfProducerFailed = null
+    )
+        : this(readRows, token, disposeResources, throwIfProducerFailed, null) { }
 
     internal ChunkEnumerator(
         BlockingCollection<IReadOnlyList<T>> readRows,
         CancellationToken token,
         Action? disposeResources,
         Action? throwIfProducerFailed,
-        IChunkPipelineMetrics? metrics)
+        IChunkPipelineMetrics? metrics
+    )
     {
         _readRows = readRows;
         _token = token;

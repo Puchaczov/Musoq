@@ -5,9 +5,7 @@ namespace Musoq.Evaluator;
 
 public sealed class TypedQueryRunOptions
 {
-    public TypedQueryRunOptions()
-    {
-    }
+    public TypedQueryRunOptions() { }
 
     public TypedQueryRunOptions(CancellationToken cancellationToken)
     {
@@ -20,7 +18,8 @@ public sealed class TypedQueryRunOptions
         QueryPhaseEventHandler? phaseChanged = null,
         DataSourceEventHandler? dataSourceProgress = null,
         QueryProgressEventHandler? queryProgress = null,
-        QueryProgressOptions? queryProgressOptions = null)
+        QueryProgressOptions? queryProgressOptions = null
+    )
     {
         CancellationToken = cancellationToken;
         TypedParameters = parameters ?? TypedParameterSnapshot.Empty;
@@ -43,5 +42,4 @@ public sealed class TypedQueryRunOptions
     public QueryProgressEventHandler? QueryProgress { get; init; }
 
     public QueryProgressOptions? QueryProgressOptions { get; init; }
-
 }

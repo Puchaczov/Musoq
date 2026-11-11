@@ -22,7 +22,8 @@ public static partial class InstanceCreator
         Func<ILoggerResolver, BuildChain> createBuildChain,
         QueryResultMode resultMode = QueryResultMode.TypedEnumerable,
         bool emitExecutionPlanText = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(schemaProvider);
         ArgumentNullException.ThrowIfNull(loggerResolver);
@@ -49,9 +50,6 @@ public static partial class InstanceCreator
 
     private static Type[] CreateTypedReferenceTypes<TOut>(IEnumerable<Type> additionalReferenceTypes)
     {
-        return additionalReferenceTypes
-            .Concat([typeof(TOut)])
-            .Distinct()
-            .ToArray();
+        return additionalReferenceTypes.Concat([typeof(TOut)]).Distinct().ToArray();
     }
 }

@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.IR.Logical;
 
 public sealed partial class LogicalPlanBuilder
 {
-
     public void Visit(WindowNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -145,27 +144,31 @@ public sealed partial class LogicalPlanBuilder
 
         if (function is null && !IsBuiltInWindowFunctionWithoutFactory(functionName))
             throw new InvalidOperationException(
-                $"Window function '{functionName}' does not have a resolved factory method.");
+                $"Window function '{functionName}' does not have a resolved factory method."
+            );
 
         var partitionKeys = ConvertPartitionKeys(specification);
         var orderKeys = ConvertOrderKeys(specification);
         var valueArguments = ConvertWindowValueArguments(node);
-        var filterPredicate = node.FunctionCall.FilterExpression == null
-            ? null
-            : _converter.Convert(node.FunctionCall.FilterExpression);
-        var returnType = node.ReturnType ??
-                         throw new InvalidOperationException($"Window function '{functionName}' has no inferred return type.");
+        var filterPredicate =
+            node.FunctionCall.FilterExpression == null ? null : _converter.Convert(node.FunctionCall.FilterExpression);
+        var returnType =
+            node.ReturnType
+            ?? throw new InvalidOperationException($"Window function '{functionName}' has no inferred return type.");
 
-        _windowRegistrations.Add(new WindowRegistration(
-            function,
-            functionName,
-            partitionKeys,
-            orderKeys,
-            valueArguments,
-            filterPredicate,
-            windowIndex,
-            returnType,
-            specification?.Frame));
+        _windowRegistrations.Add(
+            new WindowRegistration(
+                function,
+                functionName,
+                partitionKeys,
+                orderKeys,
+                valueArguments,
+                filterPredicate,
+                windowIndex,
+                returnType,
+                specification?.Frame
+            )
+        );
 
         return new WindowFunctionRef(windowIndex, returnType);
     }
@@ -190,11 +193,12 @@ public sealed partial class LogicalPlanBuilder
         if (!node.IsNamedWindowReference)
             return node.WindowSpecification;
 
-        if (node.WindowName != null &&
-            _windowDefinitions.TryGetValue(node.WindowName, out var specification))
+        if (node.WindowName != null && _windowDefinitions.TryGetValue(node.WindowName, out var specification))
             return specification;
 
-        throw new InvalidOperationException($"Named window '{node.WindowName}' is not registered in the current query.");
+        throw new InvalidOperationException(
+            $"Named window '{node.WindowName}' is not registered in the current query."
+        );
     }
 
     private IrExpression[] ConvertPartitionKeys(WindowSpecificationNode? specification)
@@ -222,7 +226,9 @@ public sealed partial class LogicalPlanBuilder
             var orderField = specification.OrderByFields[index];
             orderKeys[index] = new OrderField(
                 _converter.Convert(orderField.Expression),
-                orderField.Order == Order.Descending, ConvertNullOrdering(orderField.NullOrdering));
+                orderField.Order == Order.Descending,
+                ConvertNullOrdering(orderField.NullOrdering)
+            );
         }
 
         return orderKeys;

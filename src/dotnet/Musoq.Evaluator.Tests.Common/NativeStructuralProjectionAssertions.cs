@@ -9,21 +9,46 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>Inspects runtime-generated native records in tests, preserving independent presence/value assertions.</summary>
 internal static class NativeStructuralProjectionAssertions
 {
-    internal static StructuralTypeDescriptor IdRecord => StructuralTypeDescriptor.Record(typeof(StructuralValue),
-        [new("Id", StructuralTypeDescriptor.Scalar(typeof(int)), true)]);
+    internal static StructuralTypeDescriptor IdRecord =>
+        StructuralTypeDescriptor.Record(
+            typeof(StructuralValue),
+            [new("Id", StructuralTypeDescriptor.Scalar(typeof(int)), true)]
+        );
 
-    internal static StructuralTypeDescriptor IdAndValueRecord => StructuralTypeDescriptor.Record(typeof(StructuralValue),
-        [new("Id", StructuralTypeDescriptor.Scalar(typeof(int)), true), new("Value", StructuralTypeDescriptor.Scalar(typeof(int)), true)]);
+    internal static StructuralTypeDescriptor IdAndValueRecord =>
+        StructuralTypeDescriptor.Record(
+            typeof(StructuralValue),
+            [
+                new("Id", StructuralTypeDescriptor.Scalar(typeof(int)), true),
+                new("Value", StructuralTypeDescriptor.Scalar(typeof(int)), true),
+            ]
+        );
 
-    internal static StructuralTypeDescriptor NestedRecord => StructuralTypeDescriptor.Record(typeof(StructuralValue),
-        [new("Payload", IdRecord, true),
-            new("Items", StructuralTypeDescriptor.Collection(typeof(int[]), StructuralTypeDescriptor.Scalar(typeof(int))), true),
-            new("Mode", StructuralTypeDescriptor.Scalar(typeof(DBNull), nullable: true), true)]);
+    internal static StructuralTypeDescriptor NestedRecord =>
+        StructuralTypeDescriptor.Record(
+            typeof(StructuralValue),
+            [
+                new("Payload", IdRecord, true),
+                new(
+                    "Items",
+                    StructuralTypeDescriptor.Collection(typeof(int[]), StructuralTypeDescriptor.Scalar(typeof(int))),
+                    true
+                ),
+                new("Mode", StructuralTypeDescriptor.Scalar(typeof(DBNull), nullable: true), true),
+            ]
+        );
 
-    internal static StructuralTypeDescriptor RecordsWithOptionalMode => StructuralTypeDescriptor.Collection(typeof(StructuralValue[]),
-        StructuralTypeDescriptor.Record(typeof(StructuralValue),
-            [new("Id", StructuralTypeDescriptor.Scalar(typeof(int)), true),
-                new("Mode", StructuralTypeDescriptor.Scalar(typeof(string), nullable: true), false)]));
+    internal static StructuralTypeDescriptor RecordsWithOptionalMode =>
+        StructuralTypeDescriptor.Collection(
+            typeof(StructuralValue[]),
+            StructuralTypeDescriptor.Record(
+                typeof(StructuralValue),
+                [
+                    new("Id", StructuralTypeDescriptor.Scalar(typeof(int)), true),
+                    new("Mode", StructuralTypeDescriptor.Scalar(typeof(string), nullable: true), false),
+                ]
+            )
+        );
 
     internal static StructuralValue Read(object? value, StructuralTypeDescriptor shape)
     {

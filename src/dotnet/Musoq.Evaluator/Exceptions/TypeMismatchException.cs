@@ -62,7 +62,8 @@ public sealed class TypeMismatchException : Exception, IDiagnosticException
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["expectedType"] = ExpectedType.Name,
-                ["actualType"] = ActualType.Name
-            });
+                ["actualType"] = ActualType.Name,
+            }
+        );
     }
 }

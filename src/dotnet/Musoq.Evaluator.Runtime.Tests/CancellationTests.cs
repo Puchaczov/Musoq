@@ -14,7 +14,7 @@ public class CancellationTests : BasicEntityTestBase
         var query = @"select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -26,33 +26,26 @@ public class CancellationTests : BasicEntityTestBase
     public void GroupByQueryCancellation()
     {
         var query = @"select Name, Count(Name) from #A.Entities() group by Name having Count(Name) >= 2";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("ABBA")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("ABBA")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
         Assert.Throws<OperationCanceledException>(() => _ = vm.Run(TokenSource.Token).Count);
     }
 
-
     [TestMethod]
     public void UnionQueryCancellation()
     {
-        var query =
-            @"
-select Name from #A.Entities() where Name = '001'
-union (Name)
-select Name from #A.Entities() where Name = '002'";
+        var query = (
+            "\n"
+            + "select Name from #A.Entities() where Name = '001'\n"
+            + "union (Name)\n"
+            + "select Name from #A.Entities() where Name = '002'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -63,29 +56,22 @@ select Name from #A.Entities() where Name = '002'";
     [TestMethod]
     public void ExceptQueryCancellation()
     {
-        var query =
-            @"select City, Sum(Population) from #A.Entities() group by City
-except (City)
-select City, Sum(Population) from #B.Entities() group by City
-except (City)
-select City, Sum(Population) from #C.Entities() group by City";
+        var query = (
+            "select City, Sum(Population) from #A.Entities() group by City\n"
+            + "except (City)\n"
+            + "select City, Sum(Population) from #B.Entities() group by City\n"
+            + "except (City)\n"
+            + "select City, Sum(Population) from #C.Entities() group by City"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
-                [
-                    new BasicEntity("001", "", 100), new BasicEntity("001", "", 100),
-                    new BasicEntity("002", "", 500)
-                ]
+                [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100), new BasicEntity("002", "", 500)]
             },
-            {
-                "#B",
-                [
-                    new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
-                ]
-            },
-            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
+            { "#B", [new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)] },
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -102,14 +88,13 @@ select City, Sum(Population) from #C.Entities() group by City";
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
             { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
-            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
         Assert.Throws<OperationCanceledException>(() => _ = vm.Run(TokenSource.Token).Count);
     }
-
 
     [TestMethod]
     public void UnionAllQueryCancellation()
@@ -118,7 +103,7 @@ select City, Sum(Population) from #C.Entities() group by City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] }
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -134,14 +119,15 @@ select City, Sum(Population) from #C.Entities() group by City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

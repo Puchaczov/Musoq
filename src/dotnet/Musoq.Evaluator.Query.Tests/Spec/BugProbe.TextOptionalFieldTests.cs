@@ -25,24 +25,32 @@ public class BugProbeTextOptionalFieldTests
     [TestMethod]
     public void Text_OptionalFieldPresent_ShouldCaptureValue()
     {
-        var query = @"
-            text Data {
-                Key: until ':',
-                Value: rest,
-                Extra: optional pattern '\d+'
-            };
-            select d.Key, d.Value from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Key: until ':',\n"
+            + "                Value: rest,\n"
+            + "                Extra: optional pattern '\\d+'\n"
+            + "            };\n"
+            + "            select d.Key, d.Value from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "host:local" }
+            new TextEntity { Name = "1.txt", Text = "host:local" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -57,24 +65,32 @@ public class BugProbeTextOptionalFieldTests
     [TestMethod]
     public void Text_OptionalLiteralAbsent_ShouldReturnNullWithoutFailing()
     {
-        var query = @"
-            text Data {
-                Main: until ';',
-                _: optional literal ' ',
-                Extra: optional rest
-            };
-            select d.Main, d.Extra from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Main: until ';',\n"
+            + "                _: optional literal ' ',\n"
+            + "                Extra: optional rest\n"
+            + "            };\n"
+            + "            select d.Main, d.Extra from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
         var entities = new[]
         {
-            new TextEntity { Name = "1.txt", Text = "value;" }
+            new TextEntity { Name = "1.txt", Text = "value;" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

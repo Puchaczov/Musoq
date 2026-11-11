@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class MethodInvocationTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void MethodInvocationOnAliasFinishedWithNumber_ShouldPass()
     {
@@ -17,14 +16,15 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -32,9 +32,10 @@ public class MethodInvocationTests : BasicEntityTestBase
 
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
-        Assert.IsTrue(table.All(row =>
-                new[] { 500m, 400m, 250m, 250m, 350m }.Contains((decimal)row.ReadValues()[0])),
-            "Expected values: 500, 400, 250, 250, 350");
+        Assert.IsTrue(
+            table.All(row => new[] { 500m, 400m, 250m, 250m, 350m }.Contains((decimal)row.ReadValues()[0])),
+            "Expected values: 500, 400, 250, 250, 350"
+        );
     }
 
     [TestMethod]
@@ -45,14 +46,15 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -73,14 +75,15 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -88,9 +91,10 @@ public class MethodInvocationTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.All(row =>
-                new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.ReadValues()[0])),
-            "Expected rows with cities: WARSAW, CZESTOCHOWA, KATOWICE");
+        Assert.IsTrue(
+            table.All(row => new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.ReadValues()[0])),
+            "Expected rows with cities: WARSAW, CZESTOCHOWA, KATOWICE"
+        );
     }
 
     [TestMethod]
@@ -102,14 +106,15 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -117,9 +122,10 @@ public class MethodInvocationTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.All(row =>
-                new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.ReadValues()[0])),
-            "Expected rows with cities: WARSAW, CZESTOCHOWA, KATOWICE");
+        Assert.IsTrue(
+            table.All(row => new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.ReadValues()[0])),
+            "Expected rows with cities: WARSAW, CZESTOCHOWA, KATOWICE"
+        );
     }
 
     [TestMethod]
@@ -130,14 +136,15 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -159,14 +166,15 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -188,14 +196,15 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("WARSAW", "POLAND", 500),
                     new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -204,9 +213,10 @@ public class MethodInvocationTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         var expectedCities = new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" };
-        Assert.IsTrue(expectedCities.All(city =>
-                table.Any(row => (string)row.ReadValues()[0] == city)),
-            "Not all expected cities found in table");
+        Assert.IsTrue(
+            expectedCities.All(city => table.Any(row => (string)row.ReadValues()[0] == city)),
+            "Not all expected cities found in table"
+        );
     }
 
     [TestMethod]
@@ -217,12 +227,8 @@ public class MethodInvocationTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [new BasicEntity("Poland", "Warsaw")]
-            },
-            {
-                "#B", [new BasicEntity("Poland", "Krakow")]
-            }
+            { "#A", [new BasicEntity("Poland", "Warsaw")] },
+            { "#B", [new BasicEntity("Poland", "Krakow")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -235,28 +241,21 @@ public class MethodInvocationTests : BasicEntityTestBase
     [TestMethod]
     public void WhenContextsOfInnerCteShouldTurnContextOfResultingTable_ShouldPass()
     {
-        var query = """
-                    with first as (
-                        select 
-                            x.Name as Name
-                        from #A.entities() x
-                        cross apply x.JustReturnArrayOfString() b
-                    )
-                    select 
-                        p.Value
-                    from first b
-                    inner join #A.entities() r on 1 = 1
-                    cross apply r.MethodArrayOfStrings(r.TestMethodWithInjectEntityAndParameter(b.Name), r.TestMethodWithInjectEntityAndParameter(b.Name)) p
-                    """;
+        var query = (
+            "with first as (\n"
+            + "    select \n"
+            + "        x.Name as Name\n"
+            + "    from #A.entities() x\n"
+            + "    cross apply x.JustReturnArrayOfString() b\n"
+            + ")\n"
+            + "select \n"
+            + "    p.Value\n"
+            + "from first b\n"
+            + "inner join #A.entities() r on 1 = 1\n"
+            + "cross apply r.MethodArrayOfStrings(r.TestMethodWithInjectEntityAndParameter(b.Name), r.TestMethodWithInjectEntityAndParameter(b.Name)) p"
+        );
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("TEST")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("TEST")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 

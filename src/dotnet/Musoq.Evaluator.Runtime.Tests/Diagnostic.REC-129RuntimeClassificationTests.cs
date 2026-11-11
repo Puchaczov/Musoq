@@ -32,7 +32,11 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
     public void DynamicInvalidRegexMatrix_ShouldReportRuntimePatternFailure(string caseId)
     {
         var (query, sources) = CreateRegexCase(caseId);
-        AssertRuntimeExpressionFailure(CreateAndRunVirtualMachine(query, sources), DiagnosticCode.MQ7015_InvalidRuntimeRegex, caseId);
+        AssertRuntimeExpressionFailure(
+            CreateAndRunVirtualMachine(query, sources),
+            DiagnosticCode.MQ7015_InvalidRuntimeRegex,
+            caseId
+        );
     }
 
     [TestMethod]
@@ -51,8 +55,11 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
     public void ScalarCardinalityMatrix_ShouldReportRuntimeCardinalityFailure(string caseId)
     {
         var (query, sources) = CreateScalarCase(caseId);
-        AssertRuntimeExpressionFailure(CreateAndRunVirtualMachine(query, sources),
-            DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation, caseId);
+        AssertRuntimeExpressionFailure(
+            CreateAndRunVirtualMachine(query, sources),
+            DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation,
+            caseId
+        );
     }
 
     [TestMethod]
@@ -69,9 +76,7 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
     public void StrictConversionMatrix_ShouldKeepDataDependentFailuresInternal(string caseId)
     {
         var (query, row) = CreateConversionCase(caseId);
-        AssertInternalRuntimeFailure(
-            CreateAndRunVirtualMachine(query, CreateSingleSource(row)),
-            caseId);
+        AssertInternalRuntimeFailure(CreateAndRunVirtualMachine(query, CreateSingleSource(row)), caseId);
     }
 
     [TestMethod]
@@ -80,8 +85,11 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
     public void StrictNumericConversionOverflow_ShouldReportNumericExecutionFailure(string caseId)
     {
         var (query, row) = CreateConversionCase(caseId);
-        AssertRuntimeExpressionFailure(CreateAndRunVirtualMachine(query, CreateSingleSource(row)),
-            DiagnosticCode.MQ7018_NumericOverflow, caseId);
+        AssertRuntimeExpressionFailure(
+            CreateAndRunVirtualMachine(query, CreateSingleSource(row)),
+            DiagnosticCode.MQ7018_NumericOverflow,
+            caseId
+        );
     }
 
     [TestMethod]
@@ -120,7 +128,8 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
         using (query)
         {
             var exception = Assert.Throws<QueryExecutionException>(() =>
-                _ = query.Run(TestContext.CancellationToken).Count);
+                _ = query.Run(TestContext.CancellationToken).Count
+            );
             var envelope = exception.Envelope ?? throw new AssertFailedException(caseId);
             Assert.AreEqual(code, envelope.Code, caseId);
             Assert.AreEqual(DiagnosticPhase.Runtime, envelope.Phase, caseId);
@@ -136,8 +145,10 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
     private void AssertInternalRuntimeFailure(CompiledQuery query, string caseId)
     {
         var exception = Assert.Throws<QueryExecutionException>(() =>
-            _ = query.Run(TestContext.CancellationToken).Count);
-        var envelope = exception.Envelope ?? throw new AssertFailedException($"Expected a runtime envelope for {caseId}.");
+            _ = query.Run(TestContext.CancellationToken).Count
+        );
+        var envelope =
+            exception.Envelope ?? throw new AssertFailedException($"Expected a runtime envelope for {caseId}.");
 
         Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, envelope.Code, caseId);
         Assert.AreEqual(DiagnosticPhase.Internal, envelope.Phase, caseId);
@@ -154,60 +165,114 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
     private static (string Query, IDictionary<string, IEnumerable<BasicEntity>> Sources) CreateRegexCase(string caseId)
     {
         const string invalid = "[invalid(";
-        var row = new BasicEntity { Name = "value", City = invalid, Country = "POLAND", Id = 1 };
+        var row = new BasicEntity
+        {
+            Name = "value",
+            City = invalid,
+            Country = "POLAND",
+            Id = 1,
+        };
         return caseId switch
         {
             "RX-01" => ("select Name from #A.Entities() where Name rlike City", Sources("#A", row)),
-            "RX-02" => ("select City from #A.Entities() where City rlike Name", Sources("#A", new BasicEntity { Name = invalid, City = "value" })),
+            "RX-02" => (
+                "select City from #A.Entities() where City rlike Name",
+                Sources("#A", new BasicEntity { Name = invalid, City = "value" })
+            ),
             "RX-03" => ("select Name rlike City as IsMatch from #A.Entities()", Sources("#A", row)),
-            "RX-04" => ("select case when Name rlike City then 'yes' else 'no' end from #A.Entities()", Sources("#A", row)),
+            "RX-04" => (
+                "select case when Name rlike City then 'yes' else 'no' end from #A.Entities()",
+                Sources("#A", row)
+            ),
             "RX-05" => ("select Name from #A.Entities() where not Name rlike City", Sources("#A", row)),
             "RX-06" => ("select Name from #A.Entities() where (Name rlike City) = true", Sources("#A", row)),
             "RX-07" => ("select Name from #A.Entities() where Name rlike (City + '')", Sources("#A", row)),
-            "RX-08" => ("select Name from #A.Entities() where Name rlike (case when Id = 1 then City else 'ok' end)", Sources("#A", row)),
+            "RX-08" => (
+                "select Name from #A.Entities() where Name rlike (case when Id = 1 then City else 'ok' end)",
+                Sources("#A", row)
+            ),
             "RX-09" => ("select Name from #A.Entities() where Name rlike (ToString(City))", Sources("#A", row)),
-            "RX-10" => ("select a.Name from #A.Entities() a where a.Name rlike (select b.City from #B.Entities() b)", new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [new BasicEntity { Name = "value" }],
-                ["#B"] = [new BasicEntity { City = invalid }]
-            }),
-            "RX-11" => ("select Name from #A.Entities() where Name rlike (case when Id = 1 then City else Name end)", Sources("#A", row)),
+            "RX-10" => (
+                "select a.Name from #A.Entities() a where a.Name rlike (select b.City from #B.Entities() b)",
+                new Dictionary<string, IEnumerable<BasicEntity>>
+                {
+                    ["#A"] = [new BasicEntity { Name = "value" }],
+                    ["#B"] = [new BasicEntity { City = invalid }],
+                }
+            ),
+            "RX-11" => (
+                "select Name from #A.Entities() where Name rlike (case when Id = 1 then City else Name end)",
+                Sources("#A", row)
+            ),
             "RX-12" => ("select Name from #A.Entities() where Name not rlike (City + 'x')", Sources("#A", row)),
-            _ => throw new AssertFailedException($"Unknown regex case '{caseId}'.")
+            _ => throw new AssertFailedException($"Unknown regex case '{caseId}'."),
         };
     }
 
     private static (string Query, IDictionary<string, IEnumerable<BasicEntity>> Sources) CreateScalarCase(string caseId)
     {
-        var single = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] = [new BasicEntity { Name = "outer" }]
-        };
+        var single = new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity { Name = "outer" }] };
         var multi = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity { Name = "outer" }],
             ["#B"] =
             [
                 new BasicEntity { Country = "POLAND", City = "WARSAW" },
-                new BasicEntity { Country = "POLAND", City = "KRAKOW" }
-            ]
+                new BasicEntity { Country = "POLAND", City = "KRAKOW" },
+            ],
         };
 
         return caseId switch
         {
-            "SC-01" => ("select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) as Value from #A.Entities() a", single),
-            "SC-02" => ("select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource order by Value) as Value from #A.Entities() a", single),
-            "SC-03" => ("select 1 from #A.Entities() a where (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) = 1", single),
-            "SC-04" => ("select case when (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) = 1 then 'yes' else 'no' end from #A.Entities() a", single),
-            "SC-05" => ("select ToString((select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource)) from #A.Entities() a", single),
-            "SC-06" => ("select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource take 2) from #A.Entities() a", single),
-            "SC-07" => ("select (select b.City from #B.Entities() b where b.Country = 'POLAND') as City from #A.Entities() a", multi),
-            "SC-08" => ("select a.Name from #A.Entities() a where (select b.City from #B.Entities() b where b.Country = 'POLAND') = 'WARSAW'", multi),
-            "SC-09" => ("select case when (select b.City from #B.Entities() b where b.Country = 'POLAND') = 'WARSAW' then 'yes' else 'no' end from #A.Entities() a", multi),
-            "SC-10" => ("select Coalesce((select b.City from #B.Entities() b where b.Country = 'POLAND'), 'fallback') from #A.Entities() a", multi),
-            "SC-11" => ("select a.Name from #A.Entities() a order by (select b.City from #B.Entities() b where b.Country = 'POLAND')", multi),
-            "SC-12" => ("select (select b.City from #B.Entities() b where b.Country = 'POLAND') + '' from #A.Entities() a", multi),
-            _ => throw new AssertFailedException($"Unknown scalar case '{caseId}'.")
+            "SC-01" => (
+                "select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) as Value from #A.Entities() a",
+                single
+            ),
+            "SC-02" => (
+                "select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource order by Value) as Value from #A.Entities() a",
+                single
+            ),
+            "SC-03" => (
+                "select 1 from #A.Entities() a where (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) = 1",
+                single
+            ),
+            "SC-04" => (
+                "select case when (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) = 1 then 'yes' else 'no' end from #A.Entities() a",
+                single
+            ),
+            "SC-05" => (
+                "select ToString((select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource)) from #A.Entities() a",
+                single
+            ),
+            "SC-06" => (
+                "select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource take 2) from #A.Entities() a",
+                single
+            ),
+            "SC-07" => (
+                "select (select b.City from #B.Entities() b where b.Country = 'POLAND') as City from #A.Entities() a",
+                multi
+            ),
+            "SC-08" => (
+                "select a.Name from #A.Entities() a where (select b.City from #B.Entities() b where b.Country = 'POLAND') = 'WARSAW'",
+                multi
+            ),
+            "SC-09" => (
+                "select case when (select b.City from #B.Entities() b where b.Country = 'POLAND') = 'WARSAW' then 'yes' else 'no' end from #A.Entities() a",
+                multi
+            ),
+            "SC-10" => (
+                "select Coalesce((select b.City from #B.Entities() b where b.Country = 'POLAND'), 'fallback') from #A.Entities() a",
+                multi
+            ),
+            "SC-11" => (
+                "select a.Name from #A.Entities() a order by (select b.City from #B.Entities() b where b.Country = 'POLAND')",
+                multi
+            ),
+            "SC-12" => (
+                "select (select b.City from #B.Entities() b where b.Country = 'POLAND') + '' from #A.Entities() a",
+                multi
+            ),
+            _ => throw new AssertFailedException($"Unknown scalar case '{caseId}'."),
         };
     }
 
@@ -219,48 +284,103 @@ public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
             "CV-02" => ("select Name::Guid from #A.Entities()", new BasicEntity { Name = "not-a-guid" }),
             "CV-03" => ("select Money::Byte from #A.Entities()", new BasicEntity { Money = 256m }),
             "CV-04" => ("select Name::DateTime from #A.Entities()", new BasicEntity { Name = "not-a-date" }),
-            "CV-05" => ("select Name from #A.Entities() where Name::Int32 > 0", new BasicEntity { Name = "not-a-number" }),
+            "CV-05" => (
+                "select Name from #A.Entities() where Name::Int32 > 0",
+                new BasicEntity { Name = "not-a-number" }
+            ),
             "CV-06" => ("select (Name + '')::Int32 from #A.Entities()", new BasicEntity { Name = "not-a-number" }),
             "CV-07" => ("select Name::UInt64 from #A.Entities()", new BasicEntity { Name = "not-a-number" }),
             "CV-08" => ("select Money::Int32 from #A.Entities()", new BasicEntity { Money = decimal.MaxValue }),
             "CV-09" => ("select Name::TimeSpan from #A.Entities()", new BasicEntity { Name = "not-a-duration" }),
             "CV-10" => ("select Name::Boolean from #A.Entities()", new BasicEntity { Name = "not-a-bool" }),
-            "CV-11" => ("select Name from #A.Entities() where (Name + '')::Guid is not null", new BasicEntity { Name = "not-a-guid" }),
+            "CV-11" => (
+                "select Name from #A.Entities() where (Name + '')::Guid is not null",
+                new BasicEntity { Name = "not-a-guid" }
+            ),
             "CV-12" => ("select Name::Decimal from #A.Entities()", new BasicEntity { Name = "not-a-decimal" }),
-            _ => throw new AssertFailedException($"Unknown conversion case '{caseId}'.")
+            _ => throw new AssertFailedException($"Unknown conversion case '{caseId}'."),
         };
     }
 
-    private static (string Query, IDictionary<string, IEnumerable<BasicEntity>> Sources, DiagnosticCode ExpectedCode, bool CompileTime)
-        CreateArithmeticCase(string caseId)
+    private static (
+        string Query,
+        IDictionary<string, IEnumerable<BasicEntity>> Sources,
+        DiagnosticCode ExpectedCode,
+        bool CompileTime
+    ) CreateArithmeticCase(string caseId)
     {
         var data = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = [new BasicEntity { Population = 10m, Money = 1m }]
+            ["#A"] = [new BasicEntity { Population = 10m, Money = 1m }],
         };
         var overflow = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = [new BasicEntity { Population = decimal.MaxValue, Money = 1m }]
+            ["#A"] = [new BasicEntity { Population = decimal.MaxValue, Money = 1m }],
         };
 
         return caseId switch
         {
-            "AR-01" => ("select Population / (Population - Population) from #A.Entities()", data, DiagnosticCode.MQ9002_InternalExecutionError, false),
-            "AR-02" => ("select Population % (Population - Population) from #A.Entities()", data, DiagnosticCode.MQ9002_InternalExecutionError, false),
-            "AR-03" => ("select Population + Money from #A.Entities()", overflow, DiagnosticCode.MQ7018_NumericOverflow, false),
-            "AR-04" => ("select Population - Money from #A.Entities()", new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = [new BasicEntity { Population = decimal.MinValue, Money = 1m }]
-            }, DiagnosticCode.MQ7018_NumericOverflow, false),
-            "AR-05" => ("select Population / (Population - (Money + 9)) from #A.Entities()", data, DiagnosticCode.MQ9002_InternalExecutionError, false),
-            "AR-06" => ("select Population * Population from #A.Entities()", overflow, DiagnosticCode.MQ7018_NumericOverflow, false),
+            "AR-01" => (
+                "select Population / (Population - Population) from #A.Entities()",
+                data,
+                DiagnosticCode.MQ9002_InternalExecutionError,
+                false
+            ),
+            "AR-02" => (
+                "select Population % (Population - Population) from #A.Entities()",
+                data,
+                DiagnosticCode.MQ9002_InternalExecutionError,
+                false
+            ),
+            "AR-03" => (
+                "select Population + Money from #A.Entities()",
+                overflow,
+                DiagnosticCode.MQ7018_NumericOverflow,
+                false
+            ),
+            "AR-04" => (
+                "select Population - Money from #A.Entities()",
+                new Dictionary<string, IEnumerable<BasicEntity>>
+                {
+                    ["#A"] = [new BasicEntity { Population = decimal.MinValue, Money = 1m }],
+                },
+                DiagnosticCode.MQ7018_NumericOverflow,
+                false
+            ),
+            "AR-05" => (
+                "select Population / (Population - (Money + 9)) from #A.Entities()",
+                data,
+                DiagnosticCode.MQ9002_InternalExecutionError,
+                false
+            ),
+            "AR-06" => (
+                "select Population * Population from #A.Entities()",
+                overflow,
+                DiagnosticCode.MQ7018_NumericOverflow,
+                false
+            ),
             "AR-07" => ("select 10 / 0 from #A.Entities()", data, DiagnosticCode.MQ3008_DivisionByZero, true),
             "AR-08" => ("select 10 % 0 from #A.Entities()", data, DiagnosticCode.MQ3008_DivisionByZero, true),
-            "AR-09" => ("select 2147483647i + 1i from #A.Entities()", data, DiagnosticCode.MQ3032_ArithmeticOverflow, true),
-            "AR-10" => ("select -2147483648i - 1i from #A.Entities()", data, DiagnosticCode.MQ3032_ArithmeticOverflow, true),
-            "AR-11" => ("select 9223372036854775807l * 2l from #A.Entities()", data, DiagnosticCode.MQ3032_ArithmeticOverflow, true),
+            "AR-09" => (
+                "select 2147483647i + 1i from #A.Entities()",
+                data,
+                DiagnosticCode.MQ3032_ArithmeticOverflow,
+                true
+            ),
+            "AR-10" => (
+                "select -2147483648i - 1i from #A.Entities()",
+                data,
+                DiagnosticCode.MQ3032_ArithmeticOverflow,
+                true
+            ),
+            "AR-11" => (
+                "select 9223372036854775807l * 2l from #A.Entities()",
+                data,
+                DiagnosticCode.MQ3032_ArithmeticOverflow,
+                true
+            ),
             "AR-12" => ("select 0ui - 1ui from #A.Entities()", data, DiagnosticCode.MQ3032_ArithmeticOverflow, true),
-            _ => throw new AssertFailedException($"Unknown arithmetic case '{caseId}'.")
+            _ => throw new AssertFailedException($"Unknown arithmetic case '{caseId}'."),
         };
     }
 

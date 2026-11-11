@@ -15,11 +15,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         var window = node.Window != null ? PopSemanticNode() as WindowNode : null;
         var take = node.Take != null ? PopSemanticNode() as TakeNode : null;
         var skip = node.Skip != null ? PopSemanticNode() as SkipNode : null;
-        var select = PopSemanticNode() as SelectNode
-                     ?? throw new VisitorException(
-                         VisitorName,
-                         "VisitQueryNode",
-                         "Expected SELECT node on visitor stack.");
+        var select =
+            PopSemanticNode() as SelectNode
+            ?? throw new VisitorException(VisitorName, "VisitQueryNode", "Expected SELECT node on visitor stack.");
         var groupBy = node.GroupBy != null ? PopSemanticNode() as GroupByNode : null;
         var where = node.Where != null ? PopSemanticNode() as WhereNode : null;
         var from = PopSemanticNode() as FromNode;
@@ -34,8 +32,10 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (groupBy == null && _methodResolution.RefreshMethods.Count > 0)
             groupBy = new GroupByNode([new FieldNode(new IntegerNode("1", "s"), 0, string.Empty)], null);
 
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(from.Alias.ToRefreshMethodsSymbolName(),
-            new RefreshMethodsSymbol(_methodResolution.RefreshMethods));
+        _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(
+            from.Alias.ToRefreshMethodsSymbolName(),
+            new RefreshMethodsSymbol(_methodResolution.RefreshMethods)
+        );
         _methodResolution.RefreshMethods.Clear();
 
         if (_sourceBinding.CurrentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
@@ -43,17 +43,10 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         TraversalFrame.PushMethod(from.Alias);
 
-        var queryNode = (QueryNode)(new QueryNode(
-                select,
-                from,
-                where,
-                groupBy,
-                orderBy,
-                skip,
-                take,
-                window,
-                qualify,
-                node.Span)).WithFullSpan(node.FullSpan);
+        var queryNode = (QueryNode)
+            (new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, node.Span)).WithFullSpan(
+                node.FullSpan
+            );
 
         ValidateSelectFieldsArePrimitive(queryNode.Select.Fields, "SELECT");
 
@@ -97,8 +90,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (groupBy != null)
             ValidateGroupBySemantics(select, groupBy);
 
-        long? skipValue = skip?.Expression is IntegerNode skipInt ? Convert.ToInt64(skipInt.ObjValue, System.Globalization.CultureInfo.InvariantCulture) : null;
-        long? takeValue = take?.Expression is IntegerNode takeInt ? Convert.ToInt64(takeInt.ObjValue, System.Globalization.CultureInfo.InvariantCulture) : null;
+        long? skipValue = skip?.Expression is IntegerNode skipInt
+            ? Convert.ToInt64(skipInt.ObjValue, System.Globalization.CultureInfo.InvariantCulture)
+            : null;
+        long? takeValue = take?.Expression is IntegerNode takeInt
+            ? Convert.ToInt64(takeInt.ObjValue, System.Globalization.CultureInfo.InvariantCulture)
+            : null;
         //    Note: DISTINCT creates an implicit GROUP BY
         var isSingleTableQuery = _sourceBinding.AliasToSchemaFromNodeMap.Count == 1;
         var hasOrderBy = orderBy != null;
@@ -116,11 +113,11 @@ public partial class BuildMetadataAndInferTypesVisitor
                     Identity = identity,
                     SourceRuntimeSettings = sourceRuntimeSettings,
                     Skip = skipValue,
-                    Take = takeValue
+                    Take = takeValue,
                 }
                 : SourcePlanRequest.Empty(identity) with
                 {
-                    SourceRuntimeSettings = sourceRuntimeSettings
+                    SourceRuntimeSettings = sourceRuntimeSettings,
                 };
         }
 
@@ -137,7 +134,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var span = node.SpanOrEmpty();
         throw new NotSupportedException(
-            $"Internal Query Node is not supported in this context at position {span.Start}");
+            $"Internal Query Node is not supported in this context at position {span.Start}"
+        );
     }
 
     public override void Visit(RootNode node)
@@ -147,15 +145,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             .ApplyTo(TraversalFrame);
     }
 
-    public override void Visit(SingleSetNode node)
-    {
-    }
+    public override void Visit(SingleSetNode node) { }
 
-    public override void Visit(RefreshNode node)
-    {
-    }
+    public override void Visit(RefreshNode node) { }
 
-    public override void Visit(QueryScope node)
-    {
-    }
+    public override void Visit(QueryScope node) { }
 }

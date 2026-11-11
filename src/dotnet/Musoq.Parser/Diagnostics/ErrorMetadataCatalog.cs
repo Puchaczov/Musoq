@@ -31,14 +31,16 @@ public static class ErrorMetadataCatalog
         string explanation,
         string[] suggestedFixes,
         string docsReference,
-        DiagnosticPhase? phase = null)
+        DiagnosticPhase? phase = null
+    )
     {
         return new ErrorMetadata(
             code,
             phase ?? DiagnosticPhaseMapping.FromCode(code),
             explanation,
             suggestedFixes,
-            docsReference);
+            docsReference
+        );
     }
 
     private static FrozenDictionary<DiagnosticCode, ErrorMetadata> BuildEntries()
@@ -52,7 +54,10 @@ public static class ErrorMetadataCatalog
         AddRange(entries, SchemaErrorMetadataCatalog.Build());
         AddRange(entries, WarningMetadataCatalog.Build());
         AddRange(entries, FeatureGateErrorMetadataCatalog.Build());
-        AddRange(entries, System.Linq.Enumerable.Concat(RuntimeErrorMetadataCatalog.Build(), DataSourceErrorMetadataCatalog.Build()));
+        AddRange(
+            entries,
+            System.Linq.Enumerable.Concat(RuntimeErrorMetadataCatalog.Build(), DataSourceErrorMetadataCatalog.Build())
+        );
         AddRange(entries, PagingErrorMetadata.Build());
         AddRange(entries, CodeGenerationErrorMetadataCatalog.Build());
         AddRange(entries, InternalErrorMetadataCatalog.Build());
@@ -60,7 +65,10 @@ public static class ErrorMetadataCatalog
         return entries.ToFrozenDictionary();
     }
 
-    private static void AddRange(Dictionary<DiagnosticCode, ErrorMetadata> entries, IEnumerable<ErrorMetadata> metadataEntries)
+    private static void AddRange(
+        Dictionary<DiagnosticCode, ErrorMetadata> entries,
+        IEnumerable<ErrorMetadata> metadataEntries
+    )
     {
         foreach (var metadata in metadataEntries)
         {

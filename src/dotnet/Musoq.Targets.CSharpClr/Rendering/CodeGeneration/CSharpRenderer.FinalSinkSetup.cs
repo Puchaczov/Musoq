@@ -11,7 +11,8 @@ public sealed partial class CSharpRenderer
         TypedProjectionLoop ProjectionLoop,
         IReadOnlyList<StatementSyntax> SourceSetupStatements,
         ExecutionRenderContext RenderContext,
-        int EntryStatementCount);
+        int EntryStatementCount
+    );
 
     private static bool TryCreateFinalSinkMethod(
         ExecutionPlan plan,
@@ -21,7 +22,8 @@ public sealed partial class CSharpRenderer
         Func<FinalSinkRenderSetup, MethodDeclarationSyntax> createMethod,
         bool useQueryRunContext,
         out MethodDeclarationSyntax method,
-        out QueryMethodRenderMetadata metadata)
+        out QueryMethodRenderMetadata metadata
+    )
     {
         method = null!;
         metadata = default;
@@ -35,7 +37,8 @@ public sealed partial class CSharpRenderer
             plan,
             sinkPlan.SourceScans,
             sinkPlan.SetupNodes,
-            useQueryRunContext);
+            useQueryRunContext
+        );
         var statements = new List<StatementSyntax>(leadingStatements);
         var leadingStatementCount = statements.Count;
         statements.AddRange(renderArtifacts.SetupStatements);
@@ -45,7 +48,8 @@ public sealed partial class CSharpRenderer
             sinkPlan.ProjectionLoop!,
             statements,
             renderArtifacts.RenderContext,
-            leadingStatementCount + renderArtifacts.EntryStatementCount);
+            leadingStatementCount + renderArtifacts.EntryStatementCount
+        );
         method = createMethod(setup);
         metadata = sinkPlan.ResultMetadata;
         return true;
@@ -55,18 +59,21 @@ public sealed partial class CSharpRenderer
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
         string sourceRowsName,
-        ExecutionRenderContext? renderContext = null)
+        ExecutionRenderContext? renderContext = null
+    )
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             sourceRowsName,
-            RenderFinalSinkExpression(executionRenderer, projectionLoop.SourceRows, renderContext));
+            RenderFinalSinkExpression(executionRenderer, projectionLoop.SourceRows, renderContext)
+        );
     }
 
     private static ExpressionSyntax RenderFinalSinkExpression(
         ExecutionCSharpRenderer executionRenderer,
         ExecutionExpression expression,
-        ExecutionRenderContext? renderContext = null) =>
+        ExecutionRenderContext? renderContext = null
+    ) =>
         renderContext == null
             ? executionRenderer.RenderFinalSinkExpression(expression)
             : executionRenderer.RenderFinalSinkExpression(expression, renderContext);
@@ -75,21 +82,20 @@ public sealed partial class CSharpRenderer
         ExecutionCSharpRenderer executionRenderer,
         ExecutionBlock optionalProjectionBody,
         ExecutionVariable source,
-        ExecutionRenderContext renderContext) =>
-        executionRenderer.RenderFinalSinkOptionalGeneratedRowProjection(
-            optionalProjectionBody,
-            source,
-            renderContext);
+        ExecutionRenderContext renderContext
+    ) => executionRenderer.RenderFinalSinkOptionalGeneratedRowProjection(optionalProjectionBody, source, renderContext);
 
     private static LocalDeclarationStatementSyntax CreateParallelRowsProbeDeclaration(
         TypedProjectionLoop projectionLoop,
         string sourceRowsName,
-        string parallelRowsName)
+        string parallelRowsName
+    )
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             parallelRowsName,
-            CreateGetParallelRowsInvocation(projectionLoop, sourceRowsName));
+            CreateGetParallelRowsInvocation(projectionLoop, sourceRowsName)
+        );
     }
 
     private static bool CanUseChunkedParallelProjection(TypedProjectionLoop projectionLoop)
@@ -99,21 +105,29 @@ public sealed partial class CSharpRenderer
 
     private static ExpressionSyntax CreateStreamingChunkedRowsCondition(
         TypedProjectionLoop projectionLoop,
-        string sourceRowsName)
+        string sourceRowsName
+    )
     {
         var sourceType = CreateSourceTypeSyntax(projectionLoop.Source);
-        var reusableChunksType = SyntaxFactory.GenericName(nameof(IReadOnlyList<object>))
-            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                SyntaxFactory.GenericName(nameof(IReadOnlyList<object>))
-                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(sourceType))))));
+        var reusableChunksType = SyntaxFactory
+            .GenericName(nameof(IReadOnlyList<object>))
+            .WithTypeArgumentList(
+                SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                        SyntaxFactory
+                            .GenericName(nameof(IReadOnlyList<object>))
+                            .WithTypeArgumentList(
+                                SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(sourceType))
+                            )
+                    )
+                )
+            );
 
         return SyntaxFactory.IsPatternExpression(
             SyntaxFactory.IdentifierName(sourceRowsName),
-            SyntaxFactory.UnaryPattern(SyntaxFactory.DeclarationPattern(
-                reusableChunksType,
-                SyntaxFactory.DiscardDesignation())));
+            SyntaxFactory.UnaryPattern(
+                SyntaxFactory.DeclarationPattern(reusableChunksType, SyntaxFactory.DiscardDesignation())
+            )
+        );
     }
-
-
 }

@@ -8,31 +8,38 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-
     private ExecutionExpression CreatePropertySourceExpression(
         PhysicalPropertySourceNode property,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         if (property.PropertiesChain.Length == 0)
         {
             throw new NotSupportedException(
-                $"Execution IR property-source lowering requires at least one property for alias '{property.Alias}'.");
+                $"Execution IR property-source lowering requires at least one property for alias '{property.Alias}'."
+            );
         }
 
         var propertyPath = string.Join(".", property.PropertiesChain.Select(item => item.PropertyName));
 
         var expression = ExecutionExpressionConverter.Convert(
             new ColumnRef(property.SourceAlias, propertyPath, property.ResultType)
-            { IsNullSafePath = property.PropertiesChain.Any(part => part.IntendedTypeName is not null) },
-            sourceLookup);
+            {
+                IsNullSafePath = property.PropertiesChain.Any(part => part.IntendedTypeName is not null),
+            },
+            sourceLookup
+        );
 
-        if (expression is ExecutionFieldRead fieldRead &&
-            sourceLookup.TryGetValue(property.SourceAlias, out var sourceShape) &&
-            sourceShape is TableRowShape tableRow &&
-            tableRow.GeneratedRowTypeName != null &&
-            fieldRead.AccessStrategy is NestedPositionalAccess nestedPositional &&
-            InterpretationPropertyTypeNameResolver.ResolveRootTypeName(property) is { } rootTypeName &&
-            ExecutionFieldAccessResolver.ResolveGeneratedRowFieldName(tableRow, nestedPositional.Index) is { } fieldName)
+        if (
+            expression is ExecutionFieldRead fieldRead
+            && sourceLookup.TryGetValue(property.SourceAlias, out var sourceShape)
+            && sourceShape is TableRowShape tableRow
+            && tableRow.GeneratedRowTypeName != null
+            && fieldRead.AccessStrategy is NestedPositionalAccess nestedPositional
+            && InterpretationPropertyTypeNameResolver.ResolveRootTypeName(property) is { } rootTypeName
+            && ExecutionFieldAccessResolver.ResolveGeneratedRowFieldName(tableRow, nestedPositional.Index)
+                is { } fieldName
+        )
         {
             return fieldRead with
             {
@@ -41,7 +48,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     fieldName,
                     nestedPositional.PropertyPath,
                     rootTypeName,
-                    IsRowCarrier: true)
+                    IsRowCarrier: true
+                ),
             };
         }
 
@@ -68,20 +76,27 @@ internal sealed partial class PhysicalLoweringImplementation
         int schemaFromIndex,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         IReadOnlyDictionary<string, int> cteIndexes,
-        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName)
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName
+    )
     {
         return new ExecutionSourceBinding(
             scan.SchemaName,
             scan.MethodName,
             scan.SourceContextId ?? CreateRuntimeContextIdentifier(scan.Alias),
             schemaFromIndex,
-            scan.Arguments
-                .Select(argument => AttachCteRowShape(
-                    ExecutionExpressionConverter.Convert(argument, sourceLookup, cteIndexes),
-                    cteShapesByName))
+            scan.Arguments.Select(argument =>
+                    AttachCteRowShape(
+                        ExecutionExpressionConverter.Convert(argument, sourceLookup, cteIndexes),
+                        cteShapesByName
+                    )
+                )
                 .ToArray(),
             sourceShape.Fields,
-            CreateColumnMetadata(scan.Alias, NativeSourceFields(scan, sourceShape), ExecutionColumnMetadataKind.SourceSchemaColumns),
+            CreateColumnMetadata(
+                scan.Alias,
+                NativeSourceFields(scan, sourceShape),
+                ExecutionColumnMetadataKind.SourceSchemaColumns
+            ),
             RowShapeLookup.ResolveSourceRequestType(sourceShape),
             scan.SourceTransferStrategy is { Mode: SourceTransferMode.QueryScopedRows } transfer
                 ? ExecutionQueryRowSourceTransfer.FromPlanner(transfer)
@@ -89,33 +104,42 @@ internal sealed partial class PhysicalLoweringImplementation
             scan.SourceConstructionType,
             scan.SourceConstructionSupportsContext,
             scan.SourceConstructorStableId,
-            scan.SourceConstructor, scan.StructuralArgumentLimits);
+            scan.SourceConstructor,
+            scan.StructuralArgumentLimits
+        );
     }
 
     private static IReadOnlyList<FieldBinding> NativeSourceFields(PhysicalSchemaScanNode scan, RowShape shape)
     {
         if (scan.SourceTransferStrategy is not { ComputedProjections.Count: > 0 } transfer)
             return shape.Fields;
-        var computed = transfer.ComputedProjections.Select(item => item.Projection.Name).ToHashSet(StringComparer.Ordinal);
+        var computed = transfer
+            .ComputedProjections.Select(item => item.Projection.Name)
+            .ToHashSet(StringComparer.Ordinal);
         return shape.Fields.Where(field => !computed.Contains(field.Name)).ToArray();
     }
 
     private static ExecutionExpression AttachCteRowShape(
         ExecutionExpression argument,
-        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName)
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName
+    )
     {
-        if (argument is not ExecutionCteCollectionInput relation ||
-            cteShapesByName == null ||
-            !cteShapesByName.TryGetValue(relation.CteName, out var rowShape) ||
-            relation.Rows is not ExecutionStoredTableRows storedRows)
+        if (
+            argument is not ExecutionCteCollectionInput relation
+            || cteShapesByName == null
+            || !cteShapesByName.TryGetValue(relation.CteName, out var rowShape)
+            || relation.Rows is not ExecutionStoredTableRows storedRows
+        )
             return argument;
 
-        return relation with { Rows = storedRows with { GeneratedRowShape = rowShape } };
+        return relation with
+        {
+            Rows = storedRows with { GeneratedRowShape = rowShape },
+        };
     }
+
     private static string CreateRuntimeContextIdentifier(string alias)
     {
         return $"{alias}:{SourceInstanceOrdinal}";
     }
-
-
 }

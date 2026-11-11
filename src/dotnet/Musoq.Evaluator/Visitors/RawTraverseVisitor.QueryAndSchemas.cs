@@ -4,7 +4,8 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
-public partial class RawTraverseVisitor<TExpressionVisitor> where TExpressionVisitor : class, IExpressionVisitor
+public partial class RawTraverseVisitor<TExpressionVisitor>
+    where TExpressionVisitor : class, IExpressionVisitor
 {
     public virtual void Visit(InternalQueryNode node) { }
 
@@ -22,7 +23,11 @@ public partial class RawTraverseVisitor<TExpressionVisitor> where TExpressionVis
 
     public virtual void Visit(IntersectNode node) => TraverseSetOperator(node);
 
-    public virtual void Visit(PutTrueNode node) { ArgumentNullException.ThrowIfNull(node); node.Accept(Visitor); }
+    public virtual void Visit(PutTrueNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        node.Accept(Visitor);
+    }
 
     public virtual void Visit(MultiStatementNode node) => VisitChildrenThenNode(node);
 
@@ -36,13 +41,25 @@ public partial class RawTraverseVisitor<TExpressionVisitor> where TExpressionVis
 
     public virtual void Visit(OrderByNode node) => VisitChildrenThenNode(node);
 
-    public virtual void Visit(CreateTableNode node) { ArgumentNullException.ThrowIfNull(node); node.Accept(Visitor); }
+    public virtual void Visit(CreateTableNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        node.Accept(Visitor);
+    }
 
     public virtual void Visit(EnumDeclarationNode node) => VisitChildrenThenNode(node);
 
-    public virtual void Visit(EnumMemberNode node) { ArgumentNullException.ThrowIfNull(node); node.Accept(Visitor); }
+    public virtual void Visit(EnumMemberNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        node.Accept(Visitor);
+    }
 
-    public virtual void Visit(CoupleNode node) { ArgumentNullException.ThrowIfNull(node); node.Accept(Visitor); }
+    public virtual void Visit(CoupleNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        node.Accept(Visitor);
+    }
 
     public virtual void Visit(StatementsArrayNode node) => VisitChildrenThenNode(node);
 
@@ -62,7 +79,11 @@ public partial class RawTraverseVisitor<TExpressionVisitor> where TExpressionVis
 
     public virtual void Visit(WindowFrameNode node) => VisitChildrenThenNode(node);
 
-    public virtual void Visit(WindowFrameBoundNode node) { ArgumentNullException.ThrowIfNull(node); node.Accept(Visitor); }
+    public virtual void Visit(WindowFrameBoundNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        node.Accept(Visitor);
+    }
 
     public virtual void Visit(WindowDefinitionNode node) => VisitChildrenThenNode(node);
 
@@ -70,7 +91,11 @@ public partial class RawTraverseVisitor<TExpressionVisitor> where TExpressionVis
 
     public virtual void Visit(QualifyNode node) => VisitChildrenThenNode(node);
 
-    public virtual void Visit(FromNode node) { ArgumentNullException.ThrowIfNull(node); node.Accept(Visitor); }
+    public virtual void Visit(FromNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        node.Accept(Visitor);
+    }
 
     private void TraverseSetOperator(SetOperatorNode node) => VisitChildrenThenNode(node);
 }

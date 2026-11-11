@@ -80,8 +80,6 @@ public readonly struct RowShard<TRow> : IReadOnlyList<TRow>
             _index = -1;
         }
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 }

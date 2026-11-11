@@ -11,9 +11,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public uint? ToUInt32(string? value)
     {
-        return uint.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result)
-            ? result
-            : null;
+        return uint.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result) ? result : null;
     }
 
     [BindableMethod]
@@ -62,7 +60,12 @@ public partial class LibraryBase
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public uint? ToUInt32(bool? value) => value.HasValue ? value.Value ? 1u : 0u : null;
+    public uint? ToUInt32(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? 1u
+                : 0u
+            : null;
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]

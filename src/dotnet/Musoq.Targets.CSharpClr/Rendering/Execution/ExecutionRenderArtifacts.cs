@@ -6,4 +6,5 @@ namespace Musoq.Targets.CSharpClr;
 internal sealed record ExecutionRenderArtifacts(
     ExecutionRenderContext RenderContext,
     IReadOnlyList<StatementSyntax> SetupStatements,
-    int EntryStatementCount);
+    int EntryStatementCount
+);

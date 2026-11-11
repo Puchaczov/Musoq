@@ -160,7 +160,8 @@ public partial class LibraryBase
         while (oldIndex < first.Length || newIndex < second.Length)
         {
             DiffBlock? currentBlock = null;
-            if (diffBlockIndex < diffResult.DiffBlocks.Count) currentBlock = diffResult.DiffBlocks[diffBlockIndex];
+            if (diffBlockIndex < diffResult.DiffBlocks.Count)
+                currentBlock = diffResult.DiffBlocks[diffBlockIndex];
 
             if (currentBlock == null)
             {
@@ -190,22 +191,21 @@ public partial class LibraryBase
 
             if (unchangedBuilder.Length > 0)
             {
-                segments.Add(new DiffSegmentEntity(
-                    unchangedBuilder.ToString(),
-                    KindUnchanged,
-                    unchangedStartSourcePos,
-                    unchangedBuilder.Length));
+                segments.Add(
+                    new DiffSegmentEntity(
+                        unchangedBuilder.ToString(),
+                        KindUnchanged,
+                        unchangedStartSourcePos,
+                        unchangedBuilder.Length
+                    )
+                );
                 unchangedBuilder.Clear();
             }
 
             if (currentBlock.DeleteCountA > 0)
             {
                 var deletedText = first.Substring(currentBlock.DeleteStartA, currentBlock.DeleteCountA);
-                segments.Add(new DiffSegmentEntity(
-                    deletedText,
-                    KindDeleted,
-                    sourcePos,
-                    deletedText.Length));
+                segments.Add(new DiffSegmentEntity(deletedText, KindDeleted, sourcePos, deletedText.Length));
                 sourcePos += currentBlock.DeleteCountA;
                 oldIndex += currentBlock.DeleteCountA;
             }
@@ -213,11 +213,7 @@ public partial class LibraryBase
             if (currentBlock.InsertCountB > 0)
             {
                 var insertedText = second.Substring(currentBlock.InsertStartB, currentBlock.InsertCountB);
-                segments.Add(new DiffSegmentEntity(
-                    insertedText,
-                    KindInserted,
-                    targetPos,
-                    insertedText.Length));
+                segments.Add(new DiffSegmentEntity(insertedText, KindInserted, targetPos, insertedText.Length));
                 targetPos += currentBlock.InsertCountB;
                 newIndex += currentBlock.InsertCountB;
             }
@@ -226,11 +222,14 @@ public partial class LibraryBase
         }
 
         if (unchangedBuilder.Length > 0)
-            segments.Add(new DiffSegmentEntity(
-                unchangedBuilder.ToString(),
-                KindUnchanged,
-                unchangedStartSourcePos,
-                unchangedBuilder.Length));
+            segments.Add(
+                new DiffSegmentEntity(
+                    unchangedBuilder.ToString(),
+                    KindUnchanged,
+                    unchangedStartSourcePos,
+                    unchangedBuilder.Length
+                )
+            );
 
         return segments;
     }

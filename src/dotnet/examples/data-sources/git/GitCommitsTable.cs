@@ -4,9 +4,7 @@ namespace Musoq.Examples.DataSources.Git;
 
 public sealed class GitCommitsTable : ISchemaTable
 {
-    public GitCommitsTable()
-    {
-    }
+    public GitCommitsTable() { }
 
     public GitCommitsTable(string repository)
     {
@@ -19,15 +17,11 @@ public sealed class GitCommitsTable : ISchemaTable
 
     public ISchemaColumn? GetColumnByName(string name)
     {
-        return GitCommitColumnCatalog.TryGetColumn(name, out var column)
-            ? column.SchemaColumn
-            : null;
+        return GitCommitColumnCatalog.TryGetColumn(name, out var column) ? column.SchemaColumn : null;
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)
     {
-        return GitCommitColumnCatalog.TryGetColumn(name, out var column)
-            ? [column.SchemaColumn]
-            : [];
+        return GitCommitColumnCatalog.TryGetColumn(name, out var column) ? [column.SchemaColumn] : [];
     }
 }

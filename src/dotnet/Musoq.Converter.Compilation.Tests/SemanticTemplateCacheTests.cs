@@ -1,11 +1,11 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Build;
 using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
-using Musoq.Converter.Build;
-using Musoq.Schema;
 using Musoq.Evaluator.IR.CodeGeneration;
+using Musoq.Schema;
 
 namespace Musoq.Converter.Tests;
 
@@ -25,7 +25,8 @@ public sealed class SemanticTemplateCacheTests
             "SemanticTemplateFirst",
             provider,
             logger,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         Assert.IsTrue(first.Succeeded, string.Join(Environment.NewLine, first.Errors));
         Assert.IsNotNull(first.BuildItems);
         Assert.IsNotNull(first.BuildItems.SemanticArtifacts);
@@ -36,7 +37,8 @@ public sealed class SemanticTemplateCacheTests
             "SemanticTemplateSecond",
             provider,
             logger,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         var keyAfter = CreateKey(query, provider, new CompilationOptions());
 
         Assert.IsTrue(second.Succeeded, string.Join(Environment.NewLine, second.Errors));
@@ -46,32 +48,40 @@ public sealed class SemanticTemplateCacheTests
         Assert.AreEqual(keyBefore, keyAfter);
         Assert.AreNotSame(
             first.BuildItems.SemanticArtifacts!.TransformedQueryTree,
-            second.BuildItems.SemanticArtifacts!.TransformedQueryTree);
+            second.BuildItems.SemanticArtifacts!.TransformedQueryTree
+        );
         Assert.AreNotSame(
             first.BuildItems.SemanticArtifacts.Phase.MetadataQuery,
-            second.BuildItems.SemanticArtifacts.Phase.MetadataQuery);
+            second.BuildItems.SemanticArtifacts.Phase.MetadataQuery
+        );
     }
 
     private static SemanticTemplateCacheKey CreateKey(
         string query,
         ISchemaProvider provider,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
-        return SemanticTemplateCache.CreateKey(new SemanticTemplateCacheInput(
-            query,
-            provider,
-            options,
-            CompilationPurpose.Execution,
-            ExecutionTargetIds.CSharpClr,
-            QueryResultMode.Table,
-            null,
-            false,
-            null,
-            false,
-            false,
-            false,
-            [],
-            string.Empty))!.Value;
+        return SemanticTemplateCache
+            .CreateKey(
+                new SemanticTemplateCacheInput(
+                    query,
+                    provider,
+                    options,
+                    CompilationPurpose.Execution,
+                    ExecutionTargetIds.CSharpClr,
+                    QueryResultMode.Table,
+                    null,
+                    false,
+                    null,
+                    false,
+                    false,
+                    false,
+                    [],
+                    string.Empty
+                )
+            )!
+            .Value;
     }
 
     [TestMethod]
@@ -88,13 +98,15 @@ public sealed class SemanticTemplateCacheTests
             "SemanticTemplateOptionsFirst",
             provider,
             logger,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         var second = InstanceCreator.CompileWithDiagnostics(
             query,
             "SemanticTemplateOptionsSecond",
             provider,
             logger,
-            new CompilationOptions(useConstantFolding: false));
+            new CompilationOptions(useConstantFolding: false)
+        );
 
         Assert.IsTrue(first.Succeeded, string.Join(Environment.NewLine, first.Errors));
         Assert.IsTrue(second.Succeeded, string.Join(Environment.NewLine, second.Errors));

@@ -15,14 +15,14 @@ internal sealed partial class PhysicalLoweringImplementation
         Dictionary<string, int> schemaFromIndexes,
         IReadOnlyList<ParallelCteLevel>? parallelLevels,
         CteDefinitionPruningPlan pruningPlan,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (parallelLevels != null || cte.Definitions.Length == 0)
             return null;
 
         var finalPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(cte.Query));
-        if (finalPipeline is not { Source: PhysicalCteRefNode finalCteRef } ||
-            finalPipeline.PostOperations.Count != 0)
+        if (finalPipeline is not { Source: PhysicalCteRefNode finalCteRef } || finalPipeline.PostOperations.Count != 0)
         {
             return null;
         }
@@ -32,7 +32,8 @@ internal sealed partial class PhysicalLoweringImplementation
             UnwrapSingleStatement,
             DecomposeSupportedPipeline,
             RewriteFinalJoinProjection,
-            CanInlineFinalProjectionSource);
+            CanInlineFinalProjectionSource
+        );
         var fusion = lowerer.TryCreateFusion(cte.Definitions, finalPipeline, finalCteRef, strategy);
         if (fusion == null)
             return null;
@@ -47,7 +48,8 @@ internal sealed partial class PhysicalLoweringImplementation
             schemaFromIndexes,
             pruningPlan,
             applySidecarIndexes: false,
-            scope);
+            scope
+        );
         if (!prefix.IsBuilt)
             return TableBuildResult.Unsupported(prefix.UnsupportedReason);
 
@@ -61,20 +63,25 @@ internal sealed partial class PhysicalLoweringImplementation
             cteIndexes,
             cteShapesByName,
             schemaFromIndexes[rootDefinition.Name],
-            scope: scope);
+            scope: scope
+        );
         if (!result.IsBuilt)
             return result;
 
         var resultNodes = ExecutionPhaseBoundaryPlanner.AddScopeClauseBoundaries(
             rootDefinition.Plan,
             result.Nodes,
-            ExecutionPhaseBoundaryPlanner.CreateCteSuffix(fusion.RootDefinitionIndex));
+            ExecutionPhaseBoundaryPlanner.CreateCteSuffix(fusion.RootDefinitionIndex)
+        );
 
         return TableBuildResult.Success(
-            [..prefix.Shapes, ..result.Shapes],
-            [..prefix.Nodes, ..ReadOnceCteProjectionLowerer.CreateCandidates(fusion.FusedDefinitionIndexes, resultNodes)],
+            [.. prefix.Shapes, .. result.Shapes],
+            [
+                .. prefix.Nodes,
+                .. ReadOnceCteProjectionLowerer.CreateCandidates(fusion.FusedDefinitionIndexes, resultNodes),
+            ],
             result.Table,
-            result.RowShape);
+            result.RowShape
+        );
     }
-
 }

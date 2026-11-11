@@ -14,7 +14,8 @@ public class TestEntitySource<T> : RowSource<T>
     public TestEntitySource(
         IEnumerable<IReadOnlyList<T>> chunks,
         IReadOnlyDictionary<string, int> nameToIndexMap,
-        IReadOnlyDictionary<int, Func<T, object?>> indexToObjectAccessMap)
+        IReadOnlyDictionary<int, Func<T, object?>> indexToObjectAccessMap
+    )
     {
         _ = nameToIndexMap;
         _ = indexToObjectAccessMap;

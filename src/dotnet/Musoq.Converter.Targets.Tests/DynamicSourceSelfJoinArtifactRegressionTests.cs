@@ -14,34 +14,31 @@ namespace Musoq.Converter.Tests;
 [TestClass]
 public sealed class DynamicSourceSelfJoinArtifactRegressionTests
 {
-    private const string Query = """
-        select p.Who, p2.Age
-        from #dynamic.all() p
-        inner join #dynamic.all() p2 on p.Who = p2.Who
-        where p.Age > 26
-        """;
+    private const string Query = (
+        "select p.Who, p2.Age\n"
+        + "from #dynamic.all() p\n"
+        + "inner join #dynamic.all() p2 on p.Who = p2.Who\n"
+        + "where p.Age > 26"
+    );
 
-    private const string SingleSourceQuery = """
-        select p.Who, p.Age
-        from #dynamic.all() p
-        """;
+    private const string SingleSourceQuery = ("select p.Who, p.Age\n" + "from #dynamic.all() p");
 
     private readonly TestsLoggerResolver _loggerResolver = new();
 
     [TestMethod]
     public void DynamicSelfJoin_ArtifactCompilationAndExecutionShouldMatchDirectCompilation()
     {
-        var provider = CreateProvider(
-        [
+        var provider = CreateProvider([
             new SchemaColumn("Who", 7, typeof(string)),
-            new SchemaColumn("Age", 8, typeof(int))
+            new SchemaColumn("Age", 8, typeof(int)),
         ]);
 
         var direct = InstanceCreator.CompileWithDiagnostics(
             Query,
             $"DynamicSelfJoin_Direct_{Guid.NewGuid():N}",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(direct.Succeeded, FormatDiagnostics(direct.Diagnostics, direct.CaughtException));
         var directRows = ReadRows(direct.CompiledQuery!);
@@ -51,7 +48,8 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
             Query,
             $"DynamicSelfJoin_Artifact_{Guid.NewGuid():N}",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(artifact.Succeeded, FormatDiagnostics(artifact.Diagnostics, artifact.CaughtException));
         Assert.IsNull(artifact.CaughtException, FormatDiagnostics(artifact.Diagnostics, artifact.CaughtException));
@@ -61,7 +59,8 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
             Query,
             artifact.Artifact!,
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(loaded.Succeeded, FormatDiagnostics(loaded.Diagnostics, loaded.CaughtException));
         Assert.IsNull(loaded.CaughtException, FormatDiagnostics(loaded.Diagnostics, loaded.CaughtException));
@@ -71,10 +70,9 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
     [TestMethod]
     public void DynamicSelfJoin_TargetPackageShouldExposeUniqueSourceAbiIndicesAndPreserveAliases()
     {
-        var provider = CreateProvider(
-        [
+        var provider = CreateProvider([
             new SchemaColumn("Who", 7, typeof(string)),
-            new SchemaColumn("Age", 8, typeof(int))
+            new SchemaColumn("Age", 8, typeof(int)),
         ]);
 
         var package = InstanceCreator.CompileTargetPackageWithDiagnostics(
@@ -82,7 +80,8 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
             $"DynamicSelfJoin_Package_{Guid.NewGuid():N}",
             provider,
             _loggerResolver,
-            ExecutionTargetIds.CSharpClr);
+            ExecutionTargetIds.CSharpClr
+        );
 
         Assert.IsTrue(package.Succeeded, FormatDiagnostics(package.Diagnostics, package.CaughtException));
         Assert.IsNull(package.CaughtException, FormatDiagnostics(package.Diagnostics, package.CaughtException));
@@ -90,8 +89,8 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
         Assert.IsNotNull(package.BuildItems!.TargetRuntimeContract);
         Assert.IsNotNull(package.Package);
 
-        var sourceContracts = package.BuildItems.TargetRuntimeContract!.SourceAccess
-            .Where(static source => source.Kind == "schema-source")
+        var sourceContracts = package
+            .BuildItems.TargetRuntimeContract!.SourceAccess.Where(static source => source.Kind == "schema-source")
             .ToArray();
         Assert.HasCount(2, sourceContracts);
 
@@ -105,10 +104,13 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
             sourceContracts
                 .SelectMany(static source => source.Fields)
                 .Select(static field => field.QualifiedName)
-                .ToArray());
+                .ToArray()
+        );
 
-        var sourceImports = package.Package!.HostAbiInventory.Imports
-            .Where(static import => import.Kind == TargetHostAbiImportKind.SourceAccess)
+        var sourceImports = package
+            .Package!.HostAbiInventory.Imports.Where(static import =>
+                import.Kind == TargetHostAbiImportKind.SourceAccess
+            )
             .ToArray();
         Assert.HasCount(2, sourceImports);
         foreach (var sourceImport in sourceImports)
@@ -121,10 +123,9 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
     [TestMethod]
     public void DynamicSource_WhenPhysicalIndicesAreSparseAndOutOfOrder_ShouldUseDenseAbiIndices()
     {
-        var provider = CreateProvider(
-        [
+        var provider = CreateProvider([
             new SchemaColumn("Who", 4, typeof(string)),
-            new SchemaColumn("Age", 1, typeof(int))
+            new SchemaColumn("Age", 1, typeof(int)),
         ]);
 
         var package = InstanceCreator.CompileTargetPackageWithDiagnostics(
@@ -132,24 +133,37 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
             $"DynamicSource_SparsePackage_{Guid.NewGuid():N}",
             provider,
             _loggerResolver,
-            ExecutionTargetIds.CSharpClr);
+            ExecutionTargetIds.CSharpClr
+        );
 
         Assert.IsTrue(package.Succeeded, FormatDiagnostics(package.Diagnostics, package.CaughtException));
         Assert.IsNull(package.CaughtException, FormatDiagnostics(package.Diagnostics, package.CaughtException));
 
-        var source = package.BuildItems!.TargetRuntimeContract!.SourceAccess
-            .Single(static candidate => candidate.Kind == "schema-source");
+        var source = package.BuildItems!.TargetRuntimeContract!.SourceAccess.Single(static candidate =>
+            candidate.Kind == "schema-source"
+        );
 
         CollectionAssert.AreEqual(new[] { 0, 1 }, source.Fields.Select(static field => field.Index).ToArray());
         CollectionAssert.AreEqual(new[] { "Age", "Who" }, source.Fields.Select(static field => field.Name).ToArray());
-        CollectionAssert.AreEqual(new[] { "p.Age", "p.Who" }, source.Fields.Select(static field => field.QualifiedName).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "p.Age", "p.Who" },
+            source.Fields.Select(static field => field.QualifiedName).ToArray()
+        );
     }
 
     [TestMethod]
     public void DynamicSource_WhenNativeColumnsHaveDuplicateOrdinals_ShouldDiagnoseInvalidShape()
     {
-        var provider = CreateProvider([new SchemaColumn("Who", 7, typeof(string)), new SchemaColumn("Age", 7, typeof(int))]);
-        var result = InstanceCreator.CompileWithDiagnostics(Query, $"DuplicateNativeShape_{Guid.NewGuid():N}", provider, _loggerResolver);
+        var provider = CreateProvider([
+            new SchemaColumn("Who", 7, typeof(string)),
+            new SchemaColumn("Age", 7, typeof(int)),
+        ]);
+        var result = InstanceCreator.CompileWithDiagnostics(
+            Query,
+            $"DuplicateNativeShape_{Guid.NewGuid():N}",
+            provider,
+            _loggerResolver
+        );
         Assert.IsFalse(result.Succeeded);
         Assert.HasCount(1, result.Errors);
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, result.Errors[0].Code);
@@ -161,20 +175,12 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
         var columns = new Dictionary<string, Type>(StringComparer.Ordinal)
         {
             ["Who"] = typeof(string),
-            ["Age"] = typeof(int)
+            ["Age"] = typeof(int),
         };
         var rows = new IReadOnlyDictionary<string, object>[]
         {
-            new Dictionary<string, object>(StringComparer.Ordinal)
-            {
-                ["Who"] = "Katarina",
-                ["Age"] = 43
-            },
-            new Dictionary<string, object>(StringComparer.Ordinal)
-            {
-                ["Who"] = "Marek",
-                ["Age"] = 25
-            }
+            new Dictionary<string, object>(StringComparer.Ordinal) { ["Who"] = "Katarina", ["Age"] = 43 },
+            new Dictionary<string, object>(StringComparer.Ordinal) { ["Who"] = "Marek", ["Age"] = 25 },
         };
 
         return new DynamicRowsSchemaProvider(columns, rows, schemaColumns);
@@ -194,7 +200,7 @@ public sealed class DynamicSourceSelfJoinArtifactRegressionTests
 
     private static string FormatDiagnostics(IEnumerable<Diagnostic> diagnostics, Exception? caughtException)
     {
-        return $"{caughtException}{Environment.NewLine}" +
-               string.Join(Environment.NewLine, diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
+        return $"{caughtException}{Environment.NewLine}"
+            + string.Join(Environment.NewLine, diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
     }
 }

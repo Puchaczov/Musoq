@@ -4,5 +4,5 @@ internal enum PlanningConfidence
 {
     Low,
     Medium,
-    High
+    High,
 }

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical.Nodes;
+
 namespace Musoq.Evaluator.IR.Execution.Lowering;
 
-internal sealed class JoinPlanLowerer(
-    IJoinLoweringService service)
+internal sealed class JoinPlanLowerer(IJoinLoweringService service)
 {
     public LoweringAttempt<LoweredTable> Build(
         CteSupportedPipeline pipeline,
@@ -12,7 +12,8 @@ internal sealed class JoinPlanLowerer(
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         return pipeline.Source switch
         {
@@ -24,7 +25,8 @@ internal sealed class JoinPlanLowerer(
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndex,
-                scope),
+                scope
+            ),
             PhysicalHashJoinNode hashJoin => service.BuildHashJoinTable(
                 hashJoin,
                 pipeline,
@@ -33,7 +35,8 @@ internal sealed class JoinPlanLowerer(
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndex,
-                scope),
+                scope
+            ),
             PhysicalSortMergeJoinNode sortMergeJoin => service.BuildSortMergeJoinTable(
                 sortMergeJoin,
                 pipeline,
@@ -42,9 +45,11 @@ internal sealed class JoinPlanLowerer(
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndex,
-                scope),
+                scope
+            ),
             _ => LoweringAttempt<LoweredTable>.Unsupported(
-                $"Execution IR join lowering does not support source node '{pipeline.Source.GetType().Name}'.")
+                $"Execution IR join lowering does not support source node '{pipeline.Source.GetType().Name}'."
+            ),
         };
     }
 }

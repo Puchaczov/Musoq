@@ -14,24 +14,24 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
     public void TableContract_ValidDefinition_ShouldPreserveOrderNullabilityAndQualifiedTypes()
     {
         const string query =
-            "table Contract { Id: int?, Label: string?, Payload: System.String };" +
-            "couple #test.whatever with table Contract as Source;" +
-            "select Id, Label, Payload from Source()";
+            "table Contract { Id: int?, Label: string?, Payload: System.String };"
+            + "couple #test.whatever with table Contract as Source;"
+            + "select Id, Label, Payload from Source()";
         var row = new Dictionary<string, object?>
         {
             ["Id"] = 7,
             ["Label"] = null,
-            ["Payload"] = "payload"
+            ["Payload"] = "payload",
         };
 
-        var table = CreateAndRunVirtualMachine(query, new dynamic[] { row })
-            .Run(TestContext.CancellationToken);
+        var table = CreateAndRunVirtualMachine(query, new dynamic[] { row }).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Id", typeof(int?)),
             ("Label", typeof(string)),
-            ("Payload", typeof(string)));
+            ("Payload", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, [7, null, "payload"]);
     }
 
@@ -39,22 +39,14 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
     public void TableContract_ColumnNames_ShouldRemainCaseSensitive()
     {
         const string query =
-            "table CaseColumns { Name: string, name: int };" +
-            "couple #test.whatever with table CaseColumns as Source;" +
-            "select source.Name, source.name from Source() source";
-        var row = new Dictionary<string, object?>
-        {
-            ["Name"] = "upper",
-            ["name"] = 42
-        };
+            "table CaseColumns { Name: string, name: int };"
+            + "couple #test.whatever with table CaseColumns as Source;"
+            + "select source.Name, source.name from Source() source";
+        var row = new Dictionary<string, object?> { ["Name"] = "upper", ["name"] = 42 };
 
-        var table = CreateAndRunVirtualMachine(query, new dynamic[] { row })
-            .Run(TestContext.CancellationToken);
+        var table = CreateAndRunVirtualMachine(query, new dynamic[] { row }).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("name", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("name", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["upper", 42]);
     }
 
@@ -62,25 +54,21 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
     public void TableContract_TableNames_ShouldRemainCaseSensitive()
     {
         const string query =
-            "table Names { UpperValue: string };" +
-            "table names { LowerValue: int };" +
-            "couple #test.whatever with table Names as UpperSource;" +
-            "couple #test.whatever with table names as LowerSource;" +
-            "select upper.UpperValue, lower.LowerValue from UpperSource() upper " +
-            "cross join LowerSource() lower";
-        var row = new Dictionary<string, object?>
-        {
-            ["UpperValue"] = "upper",
-            ["LowerValue"] = 42
-        };
+            "table Names { UpperValue: string };"
+            + "table names { LowerValue: int };"
+            + "couple #test.whatever with table Names as UpperSource;"
+            + "couple #test.whatever with table names as LowerSource;"
+            + "select upper.UpperValue, lower.LowerValue from UpperSource() upper "
+            + "cross join LowerSource() lower";
+        var row = new Dictionary<string, object?> { ["UpperValue"] = "upper", ["LowerValue"] = 42 };
 
-        var table = CreateAndRunVirtualMachine(query, new dynamic[] { row })
-            .Run(TestContext.CancellationToken);
+        var table = CreateAndRunVirtualMachine(query, new dynamic[] { row }).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("UpperValue", typeof(string)),
-            ("LowerValue", typeof(int?)));
+            ("LowerValue", typeof(int?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["upper", 42]);
     }
 
@@ -88,23 +76,20 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
     public void TableContract_DuplicateTable_ShouldReportTheSecondDefinitionSpan()
     {
         const string query =
-            "table T { First: string };" +
-            "table T { Second: int };" +
-            "select 1 from #test.whatever()";
+            "table T { First: string };" + "table T { Second: int };" + "select 1 from #test.whatever()";
 
         AssertTableDiagnostic(
             query,
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
             SpanOf(query, "table T { Second: int }"),
-            "duplicate TABLE definition");
+            "duplicate TABLE definition"
+        );
     }
 
     [TestMethod]
     public void TableContract_DuplicateColumn_ShouldReportTheSecondColumnNameSpan()
     {
-        const string query =
-            "table Dupes { Name: string, Name: int };" +
-            "select 1 from #test.whatever()";
+        const string query = "table Dupes { Name: string, Name: int };" + "select 1 from #test.whatever()";
         var secondColumnStart = query.IndexOf("Name: int", StringComparison.Ordinal);
         Assert.IsGreaterThanOrEqualTo(0, secondColumnStart);
 
@@ -112,7 +97,8 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
             query,
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
             new TextSpan(secondColumnStart, "Name".Length),
-            "duplicate TABLE column");
+            "duplicate TABLE column"
+        );
     }
 
     [TestMethod]
@@ -124,7 +110,8 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
             query,
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
             SpanOf(query, "table Empty {}"),
-            "empty TABLE definition");
+            "empty TABLE definition"
+        );
     }
 
     [TestMethod]
@@ -136,44 +123,48 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
             query,
             DiagnosticCode.MQ3005_TypeMismatch,
             SpanOf(query, "Value: banana"),
-            "unknown TABLE column type");
+            "unknown TABLE column type"
+        );
     }
 
     [TestMethod]
     public void TableContract_MismatchedTableName_ShouldReportUndefinedTable()
     {
         const string query =
-            "table Names { Value: string };" +
-            "couple #test.whatever with table names as Source;" +
-            "select Value from Source()";
+            "table Names { Value: string };"
+            + "couple #test.whatever with table names as Source;"
+            + "select Value from Source()";
 
         AssertTableDiagnostic(
             query,
             DiagnosticCode.MQ3023_TableNotDefined,
             SpanOf(query, "couple #test.whatever with table names as Source"),
-            "case-mismatched TABLE reference");
+            "case-mismatched TABLE reference"
+        );
     }
 
     [TestMethod]
     public void TableContract_ForwardCouple_ShouldReportInvalidStatementOrder()
     {
         const string query =
-            "couple #test.whatever with table Later as Source;" +
-            "table Later { Value: string };" +
-            "select 1 from #test.whatever()";
+            "couple #test.whatever with table Later as Source;"
+            + "table Later { Value: string };"
+            + "select 1 from #test.whatever()";
 
         AssertTableDiagnostic(
             query,
             DiagnosticCode.MQ3102_InvalidStatementOrder,
             SpanOf(query, "couple #test.whatever with table Later as Source"),
-            "forward TABLE reference");
+            "forward TABLE reference"
+        );
     }
 
     private static void AssertTableDiagnostic(
         string query,
         DiagnosticCode expectedCode,
         TextSpan expectedSpan,
-        string context)
+        string context
+    )
     {
         var result = Analyze(query);
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
@@ -192,8 +183,8 @@ public sealed class DiagnosticTable034TableContractTests : UnknownQueryTestsBase
     {
         return new QueryAnalyzer(
             new UnknownSchemaProvider(Array.Empty<dynamic>()),
-            compilationOptions: TestCompilationOptions)
-            .Analyze(query);
+            compilationOptions: TestCompilationOptions
+        ).Analyze(query);
     }
 
     private static TextSpan SpanOf(string query, string text)

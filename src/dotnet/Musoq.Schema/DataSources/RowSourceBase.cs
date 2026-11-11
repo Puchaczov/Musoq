@@ -12,7 +12,8 @@ public abstract class RowSourceBase<T> : RowSource<T>
             DefaultCapacityInChunks,
             static _ => new CancellationTokenSource(),
             static (chunks, token) => new ChunkWriter<T>(chunks, token),
-            CollectChunks);
+            CollectChunks
+        );
 
     protected abstract void CollectChunks(IChunkWriter<T> writer);
 }

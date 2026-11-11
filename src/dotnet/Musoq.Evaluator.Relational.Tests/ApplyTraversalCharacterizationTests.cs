@@ -22,7 +22,8 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select b.X from #counting.parents() a cross apply a.Children b where a.Name = 'keep'",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -39,7 +40,8 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select c.Value from #counting.parents() a cross apply a.Children b cross apply b.Other c where a.Name = 'keep' and b.X = 1",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -58,14 +60,12 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select a.Name, b.X from #counting.parents() a cross apply a.Children b where a.Name = 'empty'",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("X", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("X", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
@@ -75,14 +75,12 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where a.Name = 'empty'",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("X", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("X", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["empty", null]);
         Assert.AreEqual(0, fixture.Rejected.Children.EnumerationCount);
         Assert.AreEqual(0, fixture.Kept.Children.EnumerationCount);
@@ -96,7 +94,8 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where a.Name = 'keep'",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -110,14 +109,12 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where b.X = 1",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("X", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("X", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["keep", 1]);
         Assert.AreEqual(1, fixture.Rejected.Children.EnumerationCount);
         Assert.AreEqual(1, fixture.Kept.Children.EnumerationCount);
@@ -131,7 +128,8 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where a.Name = 'keep' and b.X = 2",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -148,7 +146,8 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select a.Name, b.X from #counting.parents() a outer apply a.Children b where b.X is null",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -165,7 +164,8 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select b.X, c.Value from #counting.parents() a cross apply a.Children b outer apply b.Other c where a.Name = 'keep' and b.X = 1",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -183,11 +183,9 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var inspection = InstanceCreator.CompileForInspection(
             "select b.X from #counting.parents() a outer apply a.Children b where a.Name = 'keep'",
             Guid.NewGuid().ToString(),
-            new GenericSchemaProvider(new Dictionary<string, ISchema>
-            {
-                ["#counting"] = fixture.Schema
-            }),
-            new TestsLoggerResolver());
+            new GenericSchemaProvider(new Dictionary<string, ISchema> { ["#counting"] = fixture.Schema }),
+            new TestsLoggerResolver()
+        );
 
         var planText = inspection.ExecutionPlanText;
         var guardIndex = planText.IndexOf("ContinueIf [NOT ((a.Name = 'keep') = TRUE)]", StringComparison.Ordinal);
@@ -203,7 +201,8 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select b.X from #counting.parents() a cross apply a.Children b where a.Enabled = true",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -217,7 +216,8 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var fixture = ApplyTraversalFixture.Create();
         using var query = Compile(
             "select b.Value from #counting.parents() a cross apply a.JustReturnArrayOfString() b where a.Name = 'keep'",
-            fixture);
+            fixture
+        );
 
         using var table = query.Run(TestContext.CancellationToken);
 
@@ -232,11 +232,9 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var inspection = InstanceCreator.CompileForInspection(
             "select b.X from #counting.parents() a cross apply a.Children b where a.Name = 'keep'",
             Guid.NewGuid().ToString(),
-            new GenericSchemaProvider(new Dictionary<string, ISchema>
-            {
-                ["#counting"] = fixture.Schema
-            }),
-            new TestsLoggerResolver());
+            new GenericSchemaProvider(new Dictionary<string, ISchema> { ["#counting"] = fixture.Schema }),
+            new TestsLoggerResolver()
+        );
 
         var planText = inspection.ExecutionPlanText;
         var childLoopIndex = planText.IndexOf("ChunkedForEach [b in", StringComparison.Ordinal);
@@ -254,11 +252,9 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var inspection = InstanceCreator.CompileForInspection(
             "select c.Value from #counting.parents() a cross apply a.Children b cross apply b.Other c where a.Name = 'keep' and b.X = 1 and c.Value = 11",
             Guid.NewGuid().ToString(),
-            new GenericSchemaProvider(new Dictionary<string, ISchema>
-            {
-                ["#counting"] = fixture.Schema
-            }),
-            new TestsLoggerResolver());
+            new GenericSchemaProvider(new Dictionary<string, ISchema> { ["#counting"] = fixture.Schema }),
+            new TestsLoggerResolver()
+        );
 
         var planText = inspection.ExecutionPlanText;
         var parentGuard = planText.IndexOf("ContinueIf [NOT ((a.Name = 'keep') = TRUE)]", StringComparison.Ordinal);
@@ -280,12 +276,10 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var inspection = InstanceCreator.CompileForInspection(
             "select a.Name, Sum(c.Value) as ValueSum from #counting.parents() a cross apply a.Children b cross apply b.Other c where a.Name = 'keep' and b.X = 1 group by a.Name",
             Guid.NewGuid().ToString(),
-            new GenericSchemaProvider(new Dictionary<string, ISchema>
-            {
-                ["#counting"] = fixture.Schema
-            }),
+            new GenericSchemaProvider(new Dictionary<string, ISchema> { ["#counting"] = fixture.Schema }),
             new TestsLoggerResolver(),
-            CompilationOptions);
+            CompilationOptions
+        );
 
         Assert.Contains("ApplyPredicateMovementPlan", inspection.PlanningText);
         Assert.Contains("ContinueIf [NOT ((a.Name = 'keep') = TRUE)]", inspection.ExecutionPlanText);
@@ -301,11 +295,9 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var inspection = InstanceCreator.CompileForInspection(
             "select b.Value from #counting.parents() a cross apply a.JustReturnArrayOfString() b where a.Name = 'keep'",
             Guid.NewGuid().ToString(),
-            new GenericSchemaProvider(new Dictionary<string, ISchema>
-            {
-                ["#counting"] = fixture.Schema
-            }),
-            new TestsLoggerResolver());
+            new GenericSchemaProvider(new Dictionary<string, ISchema> { ["#counting"] = fixture.Schema }),
+            new TestsLoggerResolver()
+        );
 
         var planText = inspection.ExecutionPlanText;
         var guardIndex = planText.IndexOf("ContinueIf [NOT ((a.Name = 'keep') = TRUE)]", StringComparison.Ordinal);
@@ -320,12 +312,10 @@ public sealed class ApplyTraversalCharacterizationTests : MSTestContextTestBase
         var result = InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
-            new GenericSchemaProvider(new Dictionary<string, ISchema>
-            {
-                ["#counting"] = fixture.Schema
-            }),
+            new GenericSchemaProvider(new Dictionary<string, ISchema> { ["#counting"] = fixture.Schema }),
             new TestsLoggerResolver(),
-            CompilationOptions);
+            CompilationOptions
+        );
 
         return result;
     }

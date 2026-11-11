@@ -11,9 +11,12 @@ public partial class SchemaParser
         Consume(TokenType.DoubleColon);
         var target = Current;
         if (target.TokenType != TokenType.Identifier && !AllowedKeywordTokenTypes.Contains(target.TokenType))
-            throw new SyntaxException("Expected cast target type name after '::'.",
+            throw new SyntaxException(
+                "Expected cast target type name after '::'.",
                 _lexer.AlreadyResolvedQueryPart,
-                Diagnostics.DiagnosticCode.MQ2001_UnexpectedToken, target.Span);
+                Diagnostics.DiagnosticCode.MQ2001_UnexpectedToken,
+                target.Span
+            );
         Consume(target.TokenType);
         var targetName = target.Value;
         if (Current.TokenType == TokenType.QuestionMark)

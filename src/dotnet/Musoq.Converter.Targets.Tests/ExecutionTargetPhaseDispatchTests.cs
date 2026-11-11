@@ -14,10 +14,12 @@ public sealed class ExecutionTargetPhaseDispatchTests
     public void Render_WhenBackendReturnsArtifactForDifferentTarget_ShouldReject()
     {
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(backend: new WrongTargetBackend()));
+            TestOnlyExecutionTarget.CreateDescriptor(backend: new WrongTargetBackend())
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            ExecutionTargetCatalog.Render(CreateMinimalRequest()));
+            ExecutionTargetCatalog.Render(CreateMinimalRequest())
+        );
 
         Assert.Contains("render result", exception.Message);
         Assert.Contains(ExecutionTargetIds.CSharpClr.ToString(), exception.Message);
@@ -28,10 +30,11 @@ public sealed class ExecutionTargetPhaseDispatchTests
     {
         var backend = new CapturingBackend();
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(backend: backend));
+            TestOnlyExecutionTarget.CreateDescriptor(backend: backend)
+        );
         var request = CreateMinimalRequest() with
         {
-            BackendInputs = new EmptyTargetBackendRenderInputs(ExecutionTargetIds.CSharpClr)
+            BackendInputs = new EmptyTargetBackendRenderInputs(ExecutionTargetIds.CSharpClr),
         };
 
         var exception = Assert.Throws<InvalidOperationException>(() => ExecutionTargetCatalog.Render(request));
@@ -44,7 +47,8 @@ public sealed class ExecutionTargetPhaseDispatchTests
     public void Render_WhenBackendReportsExpectedLimitation_ShouldReturnDiagnostics()
     {
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(backend: new FailingBackend()));
+            TestOnlyExecutionTarget.CreateDescriptor(backend: new FailingBackend())
+        );
 
         var result = ExecutionTargetCatalog.Render(CreateMinimalRequest());
 
@@ -61,7 +65,8 @@ public sealed class ExecutionTargetPhaseDispatchTests
     {
         var backend = new CapturingBackend();
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(backend: backend));
+            TestOnlyExecutionTarget.CreateDescriptor(backend: backend)
+        );
         var request = CreateMinimalRequest() with { HostAbiVersion = version };
 
         var result = ExecutionTargetCatalog.Render(request);
@@ -77,17 +82,19 @@ public sealed class ExecutionTargetPhaseDispatchTests
     {
         var backend = new CapturingBackend();
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(backend: backend));
+            TestOnlyExecutionTarget.CreateDescriptor(backend: backend)
+        );
         var plan = new ExecutionPlan(
             "Q_PreviousIr",
             [],
             new ExecutionBlock([]),
-            executionIrVersion: TargetContractVersions.ExecutionIr - 1);
+            executionIrVersion: TargetContractVersions.ExecutionIr - 1
+        );
         var request = CreateMinimalRequest() with
         {
             ExecutionPlan = plan,
             ExecutionIrVersion = plan.ExecutionIrVersion,
-            SemanticsContract = plan.SemanticsContract
+            SemanticsContract = plan.SemanticsContract,
         };
 
         var result = ExecutionTargetCatalog.Render(request);
@@ -106,21 +113,24 @@ public sealed class ExecutionTargetPhaseDispatchTests
         var warning = new TargetDiagnostic("MT-WARNING", TargetDiagnosticSeverity.Warning, "warning");
 
         Assert.Throws<ArgumentException>(() => TargetRenderResult.Succeeded(artifact, [error]));
-        Assert.Throws<ArgumentException>(() => TargetRenderResult.Failed(
-            TestExecutionTargetIds.TestOnlyNonClr,
-            [warning]));
+        Assert.Throws<ArgumentException>(() =>
+            TargetRenderResult.Failed(TestExecutionTargetIds.TestOnlyNonClr, [warning])
+        );
     }
 
     [TestMethod]
     public void FinalizeArtifact_WhenFinalizerReturnsResultForDifferentTarget_ShouldReject()
     {
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(finalizer: new WrongTargetFinalizer()));
+            TestOnlyExecutionTarget.CreateDescriptor(finalizer: new WrongTargetFinalizer())
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
             ExecutionTargetCatalog.FinalizeArtifact(
                 new TestRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr),
-                TargetFinalizationOptions.Empty));
+                TargetFinalizationOptions.Empty
+            )
+        );
 
         Assert.Contains("finalization result", exception.Message);
         Assert.Contains(ExecutionTargetIds.CSharpClr.ToString(), exception.Message);
@@ -130,11 +140,12 @@ public sealed class ExecutionTargetPhaseDispatchTests
     public void InspectArtifact_WhenInspectorReturnsResultForDifferentTarget_ShouldReject()
     {
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(
-            TestOnlyExecutionTarget.CreateDescriptor(inspector: new WrongTargetInspector()));
+            TestOnlyExecutionTarget.CreateDescriptor(inspector: new WrongTargetInspector())
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            ExecutionTargetCatalog.InspectArtifact(
-                new TestRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr)));
+            ExecutionTargetCatalog.InspectArtifact(new TestRenderedArtifact(TestExecutionTargetIds.TestOnlyNonClr))
+        );
 
         Assert.Contains("inspection result", exception.Message);
         Assert.Contains(ExecutionTargetIds.CSharpClr.ToString(), exception.Message);
@@ -144,11 +155,8 @@ public sealed class ExecutionTargetPhaseDispatchTests
     public void FinalizationResult_WhenSuccessHasNoArtifact_ShouldReject()
     {
         var exception = Assert.Throws<ArgumentException>(() =>
-            new TestFinalizationResult(
-                TestExecutionTargetIds.TestOnlyNonClr,
-                success: true,
-                [],
-                artifact: null));
+            new TestFinalizationResult(TestExecutionTargetIds.TestOnlyNonClr, success: true, [], artifact: null)
+        );
 
         Assert.Contains("must produce an executable artifact", exception.Message);
     }
@@ -161,7 +169,9 @@ public sealed class ExecutionTargetPhaseDispatchTests
                 TestExecutionTargetIds.TestOnlyNonClr,
                 success: true,
                 [],
-                new TestExecutableArtifact(ExecutionTargetIds.CSharpClr)));
+                new TestExecutableArtifact(ExecutionTargetIds.CSharpClr)
+            )
+        );
 
         Assert.Contains("cannot contain an executable artifact", exception.Message);
     }
@@ -193,9 +203,10 @@ public sealed class ExecutionTargetPhaseDispatchTests
                 new TargetNullBehaviorContract(false, false, false, "none"),
                 new TargetCancellationContract(false, false),
                 new TargetDiagnosticsContract(false, false, false),
-                new TargetProfilingContract(false, false, 0, 0)),
+                new TargetProfilingContract(false, false, 0, 0)
+            ),
             HostAbiVersion = TargetContractVersions.HostAbi,
-            BackendInputs = new EmptyTargetBackendRenderInputs(TestExecutionTargetIds.TestOnlyNonClr)
+            BackendInputs = new EmptyTargetBackendRenderInputs(TestExecutionTargetIds.TestOnlyNonClr),
         };
     }
 
@@ -240,7 +251,8 @@ public sealed class ExecutionTargetPhaseDispatchTests
         public TargetRenderResult Render(TargetRenderRequest request) =>
             TargetRenderResult.Failed(
                 TargetId,
-                [TargetDiagnostic.Error(TargetDiagnosticCodes.UnsupportedLowering, "test lowering is unavailable")]);
+                [TargetDiagnostic.Error(TargetDiagnosticCodes.UnsupportedLowering, "test lowering is unavailable")]
+            );
     }
 
     private sealed class WrongTargetFinalizer : IRenderedQueryFinalizer
@@ -252,7 +264,8 @@ public sealed class ExecutionTargetPhaseDispatchTests
                 ExecutionTargetIds.CSharpClr,
                 success: true,
                 [],
-                new TestExecutableArtifact(ExecutionTargetIds.CSharpClr));
+                new TestExecutableArtifact(ExecutionTargetIds.CSharpClr)
+            );
     }
 
     private sealed class WrongTargetInspector : IRenderedQueryInspector
@@ -269,9 +282,8 @@ public sealed class ExecutionTargetPhaseDispatchTests
             ExecutionTargetId targetId,
             bool success,
             IReadOnlyList<TargetDiagnostic> diagnostics,
-            ExecutableQueryArtifact? artifact)
-            : base(targetId, success, diagnostics, artifact)
-        {
-        }
+            ExecutableQueryArtifact? artifact
+        )
+            : base(targetId, success, diagnostics, artifact) { }
     }
 }

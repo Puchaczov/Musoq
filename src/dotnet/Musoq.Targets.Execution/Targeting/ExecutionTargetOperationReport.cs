@@ -9,7 +9,10 @@ internal sealed record ExecutionOperationUsage
     public ExecutionOperationUsage(ExecutionOperationId operationId, int occurrenceCount)
     {
         if (occurrenceCount <= 0)
-            throw new ArgumentOutOfRangeException(nameof(occurrenceCount), "Operation occurrence count must be positive.");
+            throw new ArgumentOutOfRangeException(
+                nameof(occurrenceCount),
+                "Operation occurrence count must be positive."
+            );
 
         OperationId = operationId;
         OccurrenceCount = occurrenceCount;
@@ -25,9 +28,8 @@ internal sealed record ExecutionTargetOperationReport
     public ExecutionTargetOperationReport(IEnumerable<ExecutionOperationUsage>? operations)
     {
         Operations = Array.AsReadOnly(
-            (operations ?? [])
-            .OrderBy(static usage => usage.OperationId.Value, StringComparer.Ordinal)
-            .ToArray());
+            (operations ?? []).OrderBy(static usage => usage.OperationId.Value, StringComparer.Ordinal).ToArray()
+        );
     }
 
     public IReadOnlyList<ExecutionOperationUsage> Operations { get; }

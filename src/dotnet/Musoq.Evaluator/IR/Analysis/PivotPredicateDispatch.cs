@@ -12,12 +12,13 @@ internal sealed record PivotPredicateDispatch(
     string DiscriminatorFingerprint,
     ColumnStability Stability,
     IReadOnlyList<string> Categories,
-    bool HasOverlappingPredicates)
+    bool HasOverlappingPredicates
+)
 {
     public bool CanShareDiscriminator =>
-        Stability == ColumnStability.Stable &&
-        !string.IsNullOrWhiteSpace(DiscriminatorFingerprint) &&
-        Categories.Count > 0;
+        Stability == ColumnStability.Stable
+        && !string.IsNullOrWhiteSpace(DiscriminatorFingerprint)
+        && Categories.Count > 0;
 
     public bool RetainsIndependentPredicates => HasOverlappingPredicates;
 }

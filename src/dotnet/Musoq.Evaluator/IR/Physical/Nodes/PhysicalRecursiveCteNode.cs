@@ -11,8 +11,9 @@ public sealed record PhysicalRecursiveCteNode(
     RecursiveCteUnionKind UnionKind,
     string[] Keys,
     int[] IdentityFieldIndexes,
-    PhysicalRecursiveCteInvariantDefinition[] Invariants) : PhysicalNode(Anchor.OutputSchema)
+    PhysicalRecursiveCteInvariantDefinition[] Invariants
+) : PhysicalNode(Anchor.OutputSchema)
 {
     public override IReadOnlyList<PhysicalNode> Children =>
-        [Anchor, ..Invariants.Select(static invariant => invariant.Plan), RecursiveMember];
+        [Anchor, .. Invariants.Select(static invariant => invariant.Plan), RecursiveMember];
 }

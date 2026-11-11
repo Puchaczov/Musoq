@@ -11,7 +11,8 @@ internal static partial class SubqueryCorrelationFactBuilder
         Node node,
         IReadOnlySet<string> localAliases,
         IReadOnlySet<string> outerAliases,
-        IReadOnlySet<string> correlatedAliases)
+        IReadOnlySet<string> correlatedAliases
+    )
     {
         var body = GetSubqueryBody(node);
         var equalityKeys = CollectEqualityKeys(body, localAliases, outerAliases);
@@ -23,7 +24,8 @@ internal static partial class SubqueryCorrelationFactBuilder
             CopyAliases(correlatedAliases),
             equalityKeys,
             ResolveNullSemantics(correlatedAliases, equalityKeys),
-            contexts);
+            contexts
+        );
     }
 
     private static Node GetSubqueryBody(Node node)
@@ -33,14 +35,15 @@ internal static partial class SubqueryCorrelationFactBuilder
             InQueryNode inQuery => inQuery.Subquery,
             ExistsQueryNode existsQuery => existsQuery.Subquery,
             ScalarSubqueryNode scalarSubquery => scalarSubquery.Subquery,
-            _ => node
+            _ => node,
         };
     }
 
     private static SubqueryCorrelationKeyFact[] CollectEqualityKeys(
         Node body,
         IReadOnlySet<string> localAliases,
-        IReadOnlySet<string> outerAliases)
+        IReadOnlySet<string> outerAliases
+    )
     {
         var keys = new List<SubqueryCorrelationKeyFact>();
         CollectEqualityKeys(body, localAliases, outerAliases, keys);
@@ -51,7 +54,8 @@ internal static partial class SubqueryCorrelationFactBuilder
         Node node,
         IReadOnlySet<string> localAliases,
         IReadOnlySet<string> outerAliases,
-        List<SubqueryCorrelationKeyFact> keys)
+        List<SubqueryCorrelationKeyFact> keys
+    )
     {
         switch (node)
         {
@@ -82,15 +86,18 @@ internal static partial class SubqueryCorrelationFactBuilder
         Node predicate,
         IReadOnlySet<string> localAliases,
         IReadOnlySet<string> outerAliases,
-        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out SubqueryCorrelationKeyFact? key)
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out SubqueryCorrelationKeyFact? key
+    )
     {
         key = null;
-        if (predicate is not EqualityNode equality ||
-            !TryGetDirectColumn(equality.Left, out var leftColumn) ||
-            !TryGetDirectColumn(equality.Right, out var rightColumn) ||
-            !TryCreateKeySide(leftColumn, localAliases, outerAliases, out var leftSide) ||
-            !TryCreateKeySide(rightColumn, localAliases, outerAliases, out var rightSide) ||
-            leftSide.Kind == rightSide.Kind)
+        if (
+            predicate is not EqualityNode equality
+            || !TryGetDirectColumn(equality.Left, out var leftColumn)
+            || !TryGetDirectColumn(equality.Right, out var rightColumn)
+            || !TryCreateKeySide(leftColumn, localAliases, outerAliases, out var leftSide)
+            || !TryCreateKeySide(rightColumn, localAliases, outerAliases, out var rightSide)
+            || leftSide.Kind == rightSide.Kind
+        )
         {
             return false;
         }
@@ -107,13 +114,15 @@ internal static partial class SubqueryCorrelationFactBuilder
             outer.ColumnName,
             outer.ReturnType,
             outer.Span,
-            outer.IntendedTypeName);
+            outer.IntendedTypeName
+        );
         return true;
     }
 
     private static bool TryGetDirectColumn(
         Node node,
-        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out AccessColumnNode? column)
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out AccessColumnNode? column
+    )
     {
         switch (node)
         {
@@ -135,7 +144,8 @@ internal static partial class SubqueryCorrelationFactBuilder
         AccessColumnNode column,
         IReadOnlySet<string> localAliases,
         IReadOnlySet<string> outerAliases,
-        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out CorrelationKeySide? side)
+        [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out CorrelationKeySide? side
+    )
     {
         if (!string.IsNullOrWhiteSpace(column.Alias))
         {
@@ -162,10 +172,7 @@ internal static partial class SubqueryCorrelationFactBuilder
         return false;
     }
 
-    private static CorrelationKeySide CreateSide(
-        CorrelationKeySideKind kind,
-        string alias,
-        AccessColumnNode column)
+    private static CorrelationKeySide CreateSide(CorrelationKeySideKind kind, string alias, AccessColumnNode column)
     {
         return new CorrelationKeySide(
             kind,
@@ -173,20 +180,20 @@ internal static partial class SubqueryCorrelationFactBuilder
             column.Name,
             column.ReturnType ?? typeof(void),
             column.Span,
-            column.IntendedTypeName);
+            column.IntendedTypeName
+        );
     }
 
     private static SubqueryCorrelationNullSemantics ResolveNullSemantics(
         IReadOnlySet<string> correlatedAliases,
-        IReadOnlyList<SubqueryCorrelationKeyFact> equalityKeys)
-        => correlatedAliases.Count == 0
-            ? SubqueryCorrelationNullSemantics.NotCorrelated
-            : equalityKeys.Count > 0
-                ? SubqueryCorrelationNullSemantics.EqualityComparison
-                : SubqueryCorrelationNullSemantics.ResidualOrUnknown;
+        IReadOnlyList<SubqueryCorrelationKeyFact> equalityKeys
+    ) =>
+        correlatedAliases.Count == 0 ? SubqueryCorrelationNullSemantics.NotCorrelated
+        : equalityKeys.Count > 0 ? SubqueryCorrelationNullSemantics.EqualityComparison
+        : SubqueryCorrelationNullSemantics.ResidualOrUnknown;
 
-    private static HashSet<string> CopyAliases(IEnumerable<string> aliases)
-        => new(aliases, StringComparer.OrdinalIgnoreCase);
+    private static HashSet<string> CopyAliases(IEnumerable<string> aliases) =>
+        new(aliases, StringComparer.OrdinalIgnoreCase);
 
     private sealed record CorrelationKeySide(
         CorrelationKeySideKind Kind,
@@ -194,11 +201,12 @@ internal static partial class SubqueryCorrelationFactBuilder
         string ColumnName,
         Type ReturnType,
         Musoq.Parser.TextSpan Span,
-        string? IntendedTypeName);
+        string? IntendedTypeName
+    );
 
     private enum CorrelationKeySideKind
     {
         Local,
-        Outer
+        Outer,
     }
 }

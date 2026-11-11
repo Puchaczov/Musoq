@@ -5,12 +5,15 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class SourceArgumentStaticValues
 {
-    private static readonly IReadOnlyDictionary<string, ScriptVariableDefinition> Empty =
-        new Dictionary<string, ScriptVariableDefinition>(StringComparer.Ordinal);
+    private static readonly IReadOnlyDictionary<string, ScriptVariableDefinition> Empty = new Dictionary<
+        string,
+        ScriptVariableDefinition
+    >(StringComparer.Ordinal);
 
     internal static IReadOnlyDictionary<string, ScriptVariableDefinition> Create(
         IReadOnlyDictionary<string, ScriptParameterDefinition>? parameters,
-        IReadOnlyDictionary<string, ScriptVariableDefinition>? variables)
+        IReadOnlyDictionary<string, ScriptVariableDefinition>? variables
+    )
     {
         variables ??= Empty;
         if (parameters == null || !parameters.Values.Any(static definition => definition.HasDefaultValue))
@@ -21,8 +24,10 @@ internal static class SourceArgumentStaticValues
         {
             if (!definition.HasDefaultValue)
                 continue;
-            values.Add(definition.Name, new ScriptVariableDefinition(
-                definition.Name, definition.ParameterType, definition.DefaultValue, false));
+            values.Add(
+                definition.Name,
+                new ScriptVariableDefinition(definition.Name, definition.ParameterType, definition.DefaultValue, false)
+            );
         }
         return values;
     }

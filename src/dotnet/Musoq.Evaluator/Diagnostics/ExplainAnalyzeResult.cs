@@ -6,4 +6,5 @@ public sealed record ExplainAnalyzeResult(
     Table Result,
     QueryProfileSnapshot Profile,
     string ExecutionPlanText,
-    string ExplainAnalyzeText);
+    string ExplainAnalyzeText
+);

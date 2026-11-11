@@ -17,13 +17,7 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
         const string query = "select Name from #A.Entities() where Name = null";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity { Name = null },
-                    new BasicEntity { Name = "value" }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = null }, new BasicEntity { Name = "value" }] },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -37,13 +31,7 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
         const string query = "select Name = null as ComparisonResult from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity { Name = null },
-                    new BasicEntity { Name = "value" }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = null }, new BasicEntity { Name = "value" }] },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -56,16 +44,11 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
     [TestMethod]
     public void ProjectionOrdinaryComparisonWithNullLeft_ShouldReturnUnknown()
     {
-        const string query = "select Name = 'value' as EqualResult, Name <> 'value' as NotEqualResult from #A.Entities()";
+        const string query =
+            "select Name = 'value' as EqualResult, Name <> 'value' as NotEqualResult from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity { Name = null },
-                    new BasicEntity { Name = "value" }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = null }, new BasicEntity { Name = "value" }] },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -80,22 +63,18 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity { Name = null },
-                    new BasicEntity { Name = "value" }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = null }, new BasicEntity { Name = "value" }] },
         };
 
         var nullRows = CreateAndRunVirtualMachine(
                 "select Name, Name is null as IsNull from #A.Entities() where Name is null",
-                sources)
+                sources
+            )
             .Run(TestContext.CancellationToken);
         var nonNullRows = CreateAndRunVirtualMachine(
                 "select Name, Name is not null as IsNotNull from #A.Entities() where Name is not null",
-                sources)
+                sources
+            )
             .Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, nullRows.Count);
@@ -110,16 +89,11 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
     [TestMethod]
     public void ProjectionOrdinaryComparisonsWithNull_ShouldReturnUnknownForEveryOperator()
     {
-        const string query = "select Name = null as EqualResult, Name <> null as NotEqualResult, Name != null as BangNotEqualResult, Name < null as LessResult, Name <= null as LessOrEqualResult, Name > null as GreaterResult, Name >= null as GreaterOrEqualResult from #A.Entities()";
+        const string query =
+            "select Name = null as EqualResult, Name <> null as NotEqualResult, Name != null as BangNotEqualResult, Name < null as LessResult, Name <= null as LessOrEqualResult, Name > null as GreaterResult, Name >= null as GreaterOrEqualResult from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity { Name = null },
-                    new BasicEntity { Name = "value" }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = null }, new BasicEntity { Name = "value" }] },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -136,26 +110,27 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
     [TestMethod]
     public void LogicalPredicatesAndBetween_ShouldPreserveThreeValuedResults()
     {
-        const string query = "select null and true as NullAndTrue, null and false as NullAndFalse, null or true as NullOrTrue, null or false as NullOrFalse, not null as NotNull, 5 between null and 10 as LowerNull, 5 between 1 and null as UpperNull, null between 1 and 10 as ExpressionNull from #A.Entities()";
+        const string query =
+            "select null and true as NullAndTrue, null and false as NullAndFalse, null or true as NullOrTrue, null or false as NullOrFalse, not null as NotNull, 5 between null and 10 as LowerNull, 5 between 1 and null as UpperNull, null between 1 and 10 as ExpressionNull from #A.Entities()";
 
         var table = CreateAndRunVirtualMachine(
                 query,
-                new Dictionary<string, IEnumerable<BasicEntity>>
-                {
-                    ["#A"] = [new BasicEntity()]
-                })
+                new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity()] }
+            )
             .Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
         CollectionAssert.AreEqual(
             new object?[] { null, false, true, null, null, null, null, null },
-            table[0].ReadValues());
+            table[0].ReadValues()
+        );
     }
 
     [TestMethod]
     public void Contains_ShouldUseLiteralMembershipAndHonorExplicitNullItems()
     {
-        const string query = "select Name contains ('ABC', 'CDA', null) as WithNull, Name contains ('ABC', 'CDA') as WithoutNull from #A.Entities()";
+        const string query =
+            "select Name contains ('ABC', 'CDA', null) as WithNull, Name contains ('ABC', 'CDA') as WithoutNull from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -164,9 +139,9 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
                     new BasicEntity { Name = "ABC" },
                     new BasicEntity { Name = "CDA" },
                     new BasicEntity { Name = "other" },
-                    new BasicEntity { Name = null }
+                    new BasicEntity { Name = null },
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -211,12 +186,16 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
             new[]
             {
                 "Replace the comparison with IS NULL or IS NOT NULL.",
-                "Use IS DISTINCT FROM when a total comparison is required."
+                "Use IS DISTINCT FROM when a total comparison is required.",
             },
-            envelope.SuggestedFixes.ToArray());
+            envelope.SuggestedFixes.ToArray()
+        );
         Assert.HasCount(2, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
         Assert.HasCount(0, envelope.Arguments);
     }
 
@@ -226,14 +205,13 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
         const string query = "select Name from #A.Entities() where Name rlike City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [new BasicEntity { Name = "value", City = "[invalid(" }]
-            }
+            { "#A", [new BasicEntity { Name = "value", City = "[invalid(" }] },
         };
 
         var queryObject = CreateAndRunVirtualMachine(query, sources);
-        var exception = Assert.Throws<QueryExecutionException>(() => _ = queryObject.Run(TestContext.CancellationToken).Count);
+        var exception = Assert.Throws<QueryExecutionException>(() =>
+            _ = queryObject.Run(TestContext.CancellationToken).Count
+        );
         var envelope = exception.Envelope;
 
         Assert.IsNotNull(envelope);
@@ -250,10 +228,8 @@ public sealed class Core013NullComparisonSemanticsTests : BasicEntityTestBase
     private static QueryAnalysisResult Analyze(string query)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = []
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }
+        );
         return new QueryAnalyzer(provider).Analyze(query);
     }
 }

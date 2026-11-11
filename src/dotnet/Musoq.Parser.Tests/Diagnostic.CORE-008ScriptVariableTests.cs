@@ -13,14 +13,10 @@ public sealed class DiagnosticCore008ScriptVariableTests
     [DataRow(
         "let string topic = 'important'; select 1 from #test.rows()",
         "string topic",
-        DisplayName = "C# declaration order")]
-    [DataRow(
-        "let topic: string; select 1 from #test.rows()",
-        "topic: string;",
-        DisplayName = "missing initializer")]
-    public void MalformedLetDeclarations_ShouldReportExactStructuredParseDiagnostic(
-        string query,
-        string offendingText)
+        DisplayName = "C# declaration order"
+    )]
+    [DataRow("let topic: string; select 1 from #test.rows()", "topic: string;", DisplayName = "missing initializer")]
+    public void MalformedLetDeclarations_ShouldReportExactStructuredParseDiagnostic(string query, string offendingText)
     {
         var result = ParseWithDiagnostics(query);
 

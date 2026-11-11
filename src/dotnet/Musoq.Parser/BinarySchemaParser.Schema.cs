@@ -39,7 +39,8 @@ public partial class SchemaParser
             extends,
             typeParameters,
             extendsSpan,
-            GetSchemaComments(schemaStartSpan.Through(closingToken.Span)));
+            GetSchemaComments(schemaStartSpan.Through(closingToken.Span))
+        );
 
         return (BinarySchemaNode)schema.WithSpan(schemaStartSpan.Through(closingToken.Span));
     }
@@ -56,7 +57,8 @@ public partial class SchemaParser
                 $"Binary schema field '{field.Name}' is declared more than once.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ4008_DuplicateSchemaField,
-                field.Span);
+                field.Span
+            );
         }
     }
 
@@ -73,7 +75,8 @@ public partial class SchemaParser
             else if (Current.TokenType != TokenType.RBracket)
                 throw new SyntaxException(
                     $"Expected ',' or '}}' after field definition, but found '{Current.TokenType}'",
-                    _lexer.AlreadyResolvedQueryPart);
+                    _lexer.AlreadyResolvedQueryPart
+                );
         }
 
         return fields.ToArray();
@@ -92,8 +95,9 @@ public partial class SchemaParser
             return (ComputedFieldNode)new ComputedFieldNode(name, expression).WithSpan(nameToken.Span);
         }
 
-        var startsWithCompletedField = !IsTypeKeyword(Current.TokenType) &&
-            precedingFields.Any(field => field.Name.Equals(Current.Value, StringComparison.OrdinalIgnoreCase));
+        var startsWithCompletedField =
+            !IsTypeKeyword(Current.TokenType)
+            && precedingFields.Any(field => field.Name.Equals(Current.Value, StringComparison.OrdinalIgnoreCase));
         if (startsWithCompletedField || IsComputedFieldStart())
         {
             var expression = ComposeExpression();
@@ -102,20 +106,21 @@ public partial class SchemaParser
 
         var typeAnnotation = ComposeTypeAnnotation(name);
 
-
         var valueValidation = ComposeOptionalFieldValueValidation(typeAnnotation, name);
         var atOffset = ComposeOptionalAtOffset();
         var whenCondition = ComposeOptionalWhenCondition();
         var constraint = ComposeOptionalConstraint();
         EnsureFieldValueValidationOrdering(name);
 
-        return (FieldDefinitionNode)new FieldDefinitionNode(
-            name,
-            typeAnnotation,
-            constraint,
-            atOffset,
-            whenCondition,
-            valueValidation).WithSpan(nameToken.Span);
+        return (FieldDefinitionNode)
+            new FieldDefinitionNode(
+                name,
+                typeAnnotation,
+                constraint,
+                atOffset,
+                whenCondition,
+                valueValidation
+            ).WithSpan(nameToken.Span);
     }
 
     private bool IsComputedFieldStart()
@@ -136,14 +141,38 @@ public partial class SchemaParser
         if (Current.TokenType is TokenType.Identifier or TokenType.Word)
         {
             var value = Current.Value.ToUpperInvariant();
-            if (value is "BYTE" or "SBYTE" or "SHORT" or "USHORT" or "INT" or "UINT"
-                or "LONG" or "ULONG" or "FLOAT" or "DOUBLE" or "STRING" or "BITS" or "ALIGN")
+            if (
+                value
+                is "BYTE"
+                    or "SBYTE"
+                    or "SHORT"
+                    or "USHORT"
+                    or "INT"
+                    or "UINT"
+                    or "LONG"
+                    or "ULONG"
+                    or "FLOAT"
+                    or "DOUBLE"
+                    or "STRING"
+                    or "BITS"
+                    or "ALIGN"
+            )
                 return false;
 
             var nextType = PeekNextTokenType();
-            if (nextType is TokenType.LittleEndian or TokenType.BigEndian or TokenType.LeftSquareBracket
-                or TokenType.Less or TokenType.At or TokenType.Check or TokenType.When or TokenType.Repeat
-                or TokenType.Comma or TokenType.RBracket)
+            if (
+                nextType
+                is TokenType.LittleEndian
+                    or TokenType.BigEndian
+                    or TokenType.LeftSquareBracket
+                    or TokenType.Less
+                    or TokenType.At
+                    or TokenType.Check
+                    or TokenType.When
+                    or TokenType.Repeat
+                    or TokenType.Comma
+                    or TokenType.RBracket
+            )
                 return false;
 
             if (MatchValidationKeyword(_tokens.Peek(1)) is not null)
@@ -152,17 +181,37 @@ public partial class SchemaParser
             return true;
         }
 
-        if (Current.TokenType is TokenType.Integer or TokenType.Decimal or TokenType.LeftParenthesis
-            or TokenType.Hyphen or TokenType.True or TokenType.False or TokenType.StringLiteral
-            or TokenType.HexadecimalInteger or TokenType.BinaryInteger or TokenType.OctalInteger)
+        if (
+            Current.TokenType
+            is TokenType.Integer
+                or TokenType.Decimal
+                or TokenType.LeftParenthesis
+                or TokenType.Hyphen
+                or TokenType.True
+                or TokenType.False
+                or TokenType.StringLiteral
+                or TokenType.HexadecimalInteger
+                or TokenType.BinaryInteger
+                or TokenType.OctalInteger
+        )
             return true;
 
         if (AllowedKeywordTokenTypes.Contains(Current.TokenType))
         {
             var nextType = PeekNextTokenType();
-            if (nextType is TokenType.LittleEndian or TokenType.BigEndian or TokenType.LeftSquareBracket
-                or TokenType.Less or TokenType.At or TokenType.Check or TokenType.When or TokenType.Repeat
-                or TokenType.Comma or TokenType.RBracket)
+            if (
+                nextType
+                is TokenType.LittleEndian
+                    or TokenType.BigEndian
+                    or TokenType.LeftSquareBracket
+                    or TokenType.Less
+                    or TokenType.At
+                    or TokenType.Check
+                    or TokenType.When
+                    or TokenType.Repeat
+                    or TokenType.Comma
+                    or TokenType.RBracket
+            )
                 return false;
 
             if (MatchValidationKeyword(_tokens.Peek(1)) is not null)

@@ -1,7 +1,6 @@
-﻿using Musoq.Parser.Nodes;
+﻿using Musoq.Evaluator.Visitors;
+using Musoq.Parser.Nodes;
 using Musoq.Schema.DataSources;
-
-using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Evaluator.Parser;
 
@@ -12,8 +11,7 @@ public class SchemaFromNode(
     string alias,
     int inSourcePosition,
     bool hasExternallyProvidedTypes
-)
-    : Musoq.Parser.Nodes.From.SchemaFromNode(schema, method, parameters, alias, typeof(RowSource<>), inSourcePosition)
+) : Musoq.Parser.Nodes.From.SchemaFromNode(schema, method, parameters, alias, typeof(RowSource<>), inSourcePosition)
 {
     private readonly string _positionalId = $"{alias}:{inSourcePosition}";
 

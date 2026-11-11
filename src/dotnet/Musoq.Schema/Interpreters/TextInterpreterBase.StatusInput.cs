@@ -8,21 +8,36 @@ public abstract partial class TextInterpreterBase<TOut>
         if ((uint)ParsePosition <= (uint)text.Length)
             return null;
         var reason = ParsePosition < 0 ? "negative" : "past the end of the input";
-        return ParseFailure.ForText(ParseErrorCode.InvalidPosition, SchemaName, fieldName, ParsePosition,
-            $"Parse position {ParsePosition} is {reason}; valid range is 0 through {text.Length}");
+        return ParseFailure.ForText(
+            ParseErrorCode.InvalidPosition,
+            SchemaName,
+            fieldName,
+            ParsePosition,
+            $"Parse position {ParsePosition} is {reason}; valid range is 0 through {text.Length}"
+        );
     }
 
     /// <summary>Checks a fixed character read without throwing an expected input error.</summary>
     protected ParseFailure? PrepareCharsStatus(ReadOnlySpan<char> text, int count, string? fieldName = null)
     {
         if (count < 0)
-            return ParseFailure.ForText(ParseErrorCode.InvalidSize, SchemaName, fieldName, ParsePosition,
-                $"Negative character count: {count}");
+            return ParseFailure.ForText(
+                ParseErrorCode.InvalidSize,
+                SchemaName,
+                fieldName,
+                ParsePosition,
+                $"Negative character count: {count}"
+            );
         if (CheckTextPositionStatus(text, fieldName) is { } position)
             return position;
         return count > text.Length - ParsePosition
-            ? ParseFailure.ForText(ParseErrorCode.InsufficientData, SchemaName, fieldName, ParsePosition,
-                $"Attempted to read {count} characters at parse position {ParsePosition}, but only {Math.Max(0, text.Length - ParsePosition)} characters available")
+            ? ParseFailure.ForText(
+                ParseErrorCode.InsufficientData,
+                SchemaName,
+                fieldName,
+                ParsePosition,
+                $"Attempted to read {count} characters at parse position {ParsePosition}, but only {Math.Max(0, text.Length - ParsePosition)} characters available"
+            )
             : null;
     }
 

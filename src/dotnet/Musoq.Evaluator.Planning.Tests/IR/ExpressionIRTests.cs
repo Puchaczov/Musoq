@@ -176,8 +176,18 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void BinaryOp_WhenLogicalAnd_ShouldReturnBool()
     {
-        var left = new BinaryOp(BinaryOpKind.GreaterThan, new ColumnRef("t", "Age", typeof(int)), new Literal(18, typeof(int)), typeof(bool));
-        var right = new BinaryOp(BinaryOpKind.Equal, new ColumnRef("t", "City", typeof(string)), new Literal("NYC", typeof(string)), typeof(bool));
+        var left = new BinaryOp(
+            BinaryOpKind.GreaterThan,
+            new ColumnRef("t", "Age", typeof(int)),
+            new Literal(18, typeof(int)),
+            typeof(bool)
+        );
+        var right = new BinaryOp(
+            BinaryOpKind.Equal,
+            new ColumnRef("t", "City", typeof(string)),
+            new Literal("NYC", typeof(string)),
+            typeof(bool)
+        );
         var op = new BinaryOp(BinaryOpKind.And, left, right, typeof(bool));
 
         Assert.AreEqual(typeof(bool), op.ReturnType);
@@ -198,7 +208,12 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void UnaryOp_WhenNot_ShouldPreserveKindAndOperand()
     {
-        var operand = new BinaryOp(BinaryOpKind.GreaterThan, new ColumnRef("t", "Age", typeof(int)), new Literal(18, typeof(int)), typeof(bool));
+        var operand = new BinaryOp(
+            BinaryOpKind.GreaterThan,
+            new ColumnRef("t", "Age", typeof(int)),
+            new Literal(18, typeof(int)),
+            typeof(bool)
+        );
         var op = new UnaryOp(UnaryOpKind.Not, operand, typeof(bool));
 
         Assert.AreEqual(UnaryOpKind.Not, op.Kind);
@@ -260,7 +275,7 @@ public partial class ExpressionIrTests
         {
             new Literal("NYC", typeof(string)),
             new Literal("LA", typeof(string)),
-            new Literal("SF", typeof(string))
+            new Literal("SF", typeof(string)),
         };
         var check = new InCheck(expr, values, typeof(bool));
 
@@ -311,7 +326,12 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void CaseWhen_WhenSingleBranch_ShouldPreserveBranchAndElse()
     {
-        var condition = new BinaryOp(BinaryOpKind.GreaterThan, new ColumnRef("t", "Age", typeof(int)), new Literal(18, typeof(int)), typeof(bool));
+        var condition = new BinaryOp(
+            BinaryOpKind.GreaterThan,
+            new ColumnRef("t", "Age", typeof(int)),
+            new Literal(18, typeof(int)),
+            typeof(bool)
+        );
         var result = new Literal("Adult", typeof(string));
         var elseExpr = new Literal("Minor", typeof(string));
         var branches = new[] { new CaseWhenBranch(condition, result) };
@@ -330,11 +350,23 @@ public partial class ExpressionIrTests
         var branches = new[]
         {
             new CaseWhenBranch(
-                new BinaryOp(BinaryOpKind.LessThan, new ColumnRef("t", "Age", typeof(int)), new Literal(13, typeof(int)), typeof(bool)),
-                new Literal("Child", typeof(string))),
+                new BinaryOp(
+                    BinaryOpKind.LessThan,
+                    new ColumnRef("t", "Age", typeof(int)),
+                    new Literal(13, typeof(int)),
+                    typeof(bool)
+                ),
+                new Literal("Child", typeof(string))
+            ),
             new CaseWhenBranch(
-                new BinaryOp(BinaryOpKind.LessThan, new ColumnRef("t", "Age", typeof(int)), new Literal(18, typeof(int)), typeof(bool)),
-                new Literal("Teen", typeof(string)))
+                new BinaryOp(
+                    BinaryOpKind.LessThan,
+                    new ColumnRef("t", "Age", typeof(int)),
+                    new Literal(18, typeof(int)),
+                    typeof(bool)
+                ),
+                new Literal("Teen", typeof(string))
+            ),
         };
         var caseWhen = new CaseWhen(branches, new Literal("Adult", typeof(string)), typeof(string));
 
@@ -347,8 +379,14 @@ public partial class ExpressionIrTests
         var branches = new[]
         {
             new CaseWhenBranch(
-                new BinaryOp(BinaryOpKind.Equal, new ColumnRef("t", "Status", typeof(int)), new Literal(1, typeof(int)), typeof(bool)),
-                new Literal("Active", typeof(string)))
+                new BinaryOp(
+                    BinaryOpKind.Equal,
+                    new ColumnRef("t", "Status", typeof(int)),
+                    new Literal(1, typeof(int)),
+                    typeof(bool)
+                ),
+                new Literal("Active", typeof(string))
+            ),
         };
         var caseWhen = new CaseWhen(branches, null, typeof(string));
 
@@ -362,7 +400,7 @@ public partial class ExpressionIrTests
         {
             new ColumnRef("t", "Name", typeof(string)),
             new ColumnRef("t", "Alias", typeof(string)),
-            new Literal("Unknown", typeof(string))
+            new Literal("Unknown", typeof(string)),
         };
         var coalesce = new Coalesce(expressions, typeof(string));
 
@@ -417,25 +455,45 @@ public partial class ExpressionIrTests
     private sealed class TypeNameVisitor : IrExpressionVisitor<string>
     {
         protected override string VisitColumnRef(ColumnRef node) => "ColumnRef";
+
         protected override string VisitScriptParameterRef(ScriptParameterRef node) => "ScriptParameterRef";
+
         protected override string VisitScriptVariableRef(ScriptVariableRef node) => "ScriptVariableRef";
+
         protected override string VisitLiteral(Literal node) => "Literal";
+
         protected override string VisitWildcardLiteral(WildcardLiteral node) => "WildcardLiteral";
+
         protected override string VisitBinaryOp(BinaryOp node) => "BinaryOp";
+
         protected override string VisitUnaryOp(UnaryOp node) => "UnaryOp";
+
         protected override string VisitMethodCall(MethodCall node) => "MethodCall";
+
         protected override string VisitStrictCast(StrictCast node) => "StrictCast";
+
         protected override string VisitIsNullCheck(IsNullCheck node) => "IsNullCheck";
+
         protected override string VisitRowPresence(RowPresence node) => "RowPresence";
+
         protected override string VisitInCheck(InCheck node) => "InCheck";
+
         protected override string VisitCollectionInCheck(CollectionInCheck node) => "CollectionInCheck";
+
         protected override string VisitPatternMatch(PatternMatch node) => "PatternMatch";
+
         protected override string VisitBetween(Between node) => "Between";
+
         protected override string VisitCaseWhen(CaseWhen node) => "CaseWhen";
+
         protected override string VisitCoalesce(Coalesce node) => "Coalesce";
+
         protected override string VisitAggregateRef(AggregateRef node) => "AggregateRef";
+
         protected override string VisitWindowFunctionRef(WindowFunctionRef node) => "WindowFunctionRef";
+
         protected override string VisitArrayAccess(ArrayAccess node) => "ArrayAccess";
+
         protected override string VisitCteTableRef(CteTableRef node) => "CteTableRef";
     }
 

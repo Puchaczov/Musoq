@@ -8,16 +8,12 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class SetOperatorMustHaveSameQuantityOfColumnsException : Exception, IDiagnosticException
 {
-
     public SetOperatorMustHaveSameQuantityOfColumnsException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public SetOperatorMustHaveSameQuantityOfColumnsException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
+
     /// <summary>
     ///     Initializes a new instance of SetOperatorMustHaveSameQuantityOfColumnsException.
     /// </summary>
@@ -32,7 +28,8 @@ public class SetOperatorMustHaveSameQuantityOfColumnsException : Exception, IDia
     /// </summary>
     public SetOperatorMustHaveSameQuantityOfColumnsException(int leftCount, int rightCount, TextSpan span)
         : base(
-            $"Set operator must have the same quantity of columns in both queries. Left has {leftCount} columns, right has {rightCount} columns.")
+            $"Set operator must have the same quantity of columns in both queries. Left has {leftCount} columns, right has {rightCount} columns."
+        )
     {
         Code = DiagnosticCode.MQ3019_SetOperatorColumnCount;
         Span = span;

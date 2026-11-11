@@ -8,18 +8,28 @@ internal static class GeneratedIndexSyntaxFactory
     public static LocalDeclarationStatementSyntax CreateIndexDeclaration(
         string variableName,
         TypeSyntax indexType,
-        ExpressionSyntax? capacity)
+        ExpressionSyntax? capacity
+    )
     {
-        var argumentList = capacity == null
-            ? SyntaxFactory.ArgumentList()
-            : SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(capacity)));
+        var argumentList =
+            capacity == null
+                ? SyntaxFactory.ArgumentList()
+                : SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(capacity)));
         return SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(variableName)
-                        .WithInitializer(SyntaxFactory.EqualsValueClause(
-                            SyntaxFactory.ObjectCreationExpression(indexType)
-                                .WithArgumentList(argumentList))))));
+            SyntaxFactory
+                .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                .WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory
+                            .VariableDeclarator(variableName)
+                            .WithInitializer(
+                                SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.ObjectCreationExpression(indexType).WithArgumentList(argumentList)
+                                )
+                            )
+                    )
+                )
+        );
     }
 
     public static ExpressionSyntax CreateRowsCountExpression(string rowsOwnerName)
@@ -29,15 +39,21 @@ internal static class GeneratedIndexSyntaxFactory
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName(rowsOwnerName),
-                SyntaxFactory.IdentifierName("Rows")),
-            SyntaxFactory.IdentifierName("Count"));
+                SyntaxFactory.IdentifierName("Rows")
+            ),
+            SyntaxFactory.IdentifierName("Count")
+        );
     }
 
-    public static ExpressionSyntax CreateCombinedRowsCountExpression(string leftRowsOwnerName, string rightRowsOwnerName)
+    public static ExpressionSyntax CreateCombinedRowsCountExpression(
+        string leftRowsOwnerName,
+        string rightRowsOwnerName
+    )
     {
         return SyntaxFactory.BinaryExpression(
             SyntaxKind.AddExpression,
             CreateRowsCountExpression(leftRowsOwnerName),
-            CreateRowsCountExpression(rightRowsOwnerName));
+            CreateRowsCountExpression(rightRowsOwnerName)
+        );
     }
 }

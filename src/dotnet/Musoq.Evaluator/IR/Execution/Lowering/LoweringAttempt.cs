@@ -4,7 +4,7 @@ internal enum LoweringAttemptKind
 {
     NoMatch,
     Built,
-    Unsupported
+    Unsupported,
 }
 
 internal readonly record struct LoweringAttempt<T>
@@ -20,10 +20,12 @@ internal readonly record struct LoweringAttempt<T>
 
     public LoweringAttemptKind Kind { get; }
 
-    public T Value => Kind == LoweringAttemptKind.Built
-        ? value!
-        : throw new InvalidOperationException(
-            $"A lowering attempt with kind '{Kind}' does not contain a built result.");
+    public T Value =>
+        Kind == LoweringAttemptKind.Built
+            ? value!
+            : throw new InvalidOperationException(
+                $"A lowering attempt with kind '{Kind}' does not contain a built result."
+            );
 
     public string UnsupportedReason { get; }
 
@@ -57,7 +59,8 @@ internal readonly record struct LoweringAttempt<T>
         return Kind == LoweringAttemptKind.Unsupported && !string.IsNullOrWhiteSpace(UnsupportedReason)
             ? UnsupportedReason
             : throw new InvalidOperationException(
-                $"A lowering attempt with kind '{Kind}' does not contain an unsupported reason.");
+                $"A lowering attempt with kind '{Kind}' does not contain an unsupported reason."
+            );
     }
 }
 
@@ -69,13 +72,13 @@ internal static class LoweringAttemptConversions
         if (!result.IsBuilt)
         {
             return LoweringAttempt<ExecutionPlan>.Unsupported(
-                result.UnsupportedReason ?? "The physical plan lowerer reported an unsupported shape.");
+                result.UnsupportedReason ?? "The physical plan lowerer reported an unsupported shape."
+            );
         }
 
         return result.ExecutionPlan is { } executionPlan
             ? LoweringAttempt<ExecutionPlan>.Built(executionPlan)
-            : throw new InvalidOperationException(
-                "A supported execution-plan result must expose an execution plan.");
+            : throw new InvalidOperationException("A supported execution-plan result must expose an execution plan.");
     }
 
     public static LoweringAttempt<LoweredTable> From(TableBuildResult result)
@@ -107,7 +110,6 @@ internal readonly record struct OptionalValue<T>
         return new OptionalValue<T>(true, value);
     }
 
-    public T RequireValue() => HasValue
-        ? Value!
-        : throw new InvalidOperationException("The optional lowering value is empty.");
+    public T RequireValue() =>
+        HasValue ? Value! : throw new InvalidOperationException("The optional lowering value is empty.");
 }

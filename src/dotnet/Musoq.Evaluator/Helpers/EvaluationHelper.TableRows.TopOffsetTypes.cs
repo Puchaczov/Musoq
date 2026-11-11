@@ -25,7 +25,12 @@ public static partial class EvaluationHelper
         {
             foreach (var key in orderKeys)
             {
-                var comparison = RowOrderingComparison.CompareValues(key.Selector(left.Row), key.Selector(right.Row), key.Descending, key.NullOrdering);
+                var comparison = RowOrderingComparison.CompareValues(
+                    key.Selector(left.Row),
+                    key.Selector(right.Row),
+                    key.Descending,
+                    key.NullOrdering
+                );
                 if (comparison == 0)
                     continue;
 
@@ -41,9 +46,7 @@ public static partial class EvaluationHelper
         public int Compare(TopOffsetRecord<T> left, TopOffsetRecord<T> right)
         {
             var comparison = comparer.Compare(left.Record, right.Record);
-            return comparison != 0
-                ? comparison
-                : left.Ordinal.CompareTo(right.Ordinal);
+            return comparison != 0 ? comparison : left.Ordinal.CompareTo(right.Ordinal);
         }
     }
 
@@ -55,7 +58,8 @@ public static partial class EvaluationHelper
         }
     }
 
-    private sealed class ReverseTopOffsetRecordComparer<T>(IComparer<TopOffsetRecord<T>> inner) : IComparer<TopOffsetRecord<T>>
+    private sealed class ReverseTopOffsetRecordComparer<T>(IComparer<TopOffsetRecord<T>> inner)
+        : IComparer<TopOffsetRecord<T>>
     {
         public int Compare(TopOffsetRecord<T> left, TopOffsetRecord<T> right)
         {

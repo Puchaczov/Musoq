@@ -16,10 +16,7 @@ public class UsedColumnsTests : BasicEntityTestBase
 
         Assert.HasCount(1, buildItems.UsedColumns);
 
-        var columns =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).First();
+        var columns = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).First();
 
         Assert.HasCount(1, columns);
         Assert.IsTrue(columns.Select(f => f.ColumnName).Contains("City"));
@@ -28,29 +25,25 @@ public class UsedColumnsTests : BasicEntityTestBase
     [TestMethod]
     public void WhenCteWithSameAliasExist2_ShouldPass()
     {
-        const string query = @"
-with q1 as (
-    select a.City as City from #A.entities() a where a.City = 'Warsaw'
-), q2 as (
-    select a.Population as Population from #A.entities() a where a.Population = 200d
-) select City from q1";
+        const string query = (
+            "\n"
+            + "with q1 as (\n"
+            + "    select a.City as City from #A.entities() a where a.City = 'Warsaw'\n"
+            + "), q2 as (\n"
+            + "    select a.Population as Population from #A.entities() a where a.Population = 200d\n"
+            + ") select City from q1"
+        );
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
 
         Assert.HasCount(2, buildItems.UsedColumns);
 
-        var columns =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).ElementAt(0);
+        var columns = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).ElementAt(0);
 
         Assert.HasCount(1, columns);
         Assert.IsTrue(columns.Select(f => f.ColumnName).Contains("City"));
 
-        columns =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).ElementAt(1);
+        columns = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).ElementAt(1);
 
         Assert.HasCount(1, columns);
     }
@@ -58,28 +51,24 @@ with q1 as (
     [TestMethod]
     public void WhenCteWithSameAliasExist_ShouldPass()
     {
-        const string query = @"
-with q1 as (
-    select a.City as City from #A.entities('1') a
-), q2 as (
-    select a.Population as Population from #A.entities('2') a
-) select City from q1";
+        const string query = (
+            "\n"
+            + "with q1 as (\n"
+            + "    select a.City as City from #A.entities('1') a\n"
+            + "), q2 as (\n"
+            + "    select a.Population as Population from #A.entities('2') a\n"
+            + ") select City from q1"
+        );
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
 
         Assert.HasCount(2, buildItems.UsedColumns);
 
-        var columns =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).ElementAt(0);
+        var columns = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).ElementAt(0);
 
         Assert.HasCount(1, columns);
 
-        columns =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).ElementAt(1);
+        columns = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).ElementAt(1);
 
         Assert.HasCount(1, columns);
 
@@ -89,12 +78,14 @@ with q1 as (
     [TestMethod]
     public void WhenCteReusesAliasAcrossScopes_ShouldPopulatePipelineInferredColumnsWithoutThrowing()
     {
-        const string query = @"
-with q1 as (
-    select a.City as City from #A.entities('1') a
-), q2 as (
-    select a.Population as Population from #A.entities('2') a
-) select City from q1";
+        const string query = (
+            "\n"
+            + "with q1 as (\n"
+            + "    select a.City as City from #A.entities('1') a\n"
+            + "), q2 as (\n"
+            + "    select a.Population as Population from #A.entities('2') a\n"
+            + ") select City from q1"
+        );
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
 
@@ -111,10 +102,7 @@ with q1 as (
 
         Assert.HasCount(1, buildItems.UsedColumns);
 
-        var columns =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).First();
+        var columns = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).First();
 
         Assert.HasCount(2, columns);
         Assert.IsTrue(columns.Select(f => f.ColumnName).Contains("City"));
@@ -130,10 +118,7 @@ with q1 as (
 
         Assert.HasCount(1, buildItems.UsedColumns);
 
-        var columns =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).First();
+        var columns = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).First();
 
         Assert.HasCount(2, columns);
         Assert.IsTrue(columns.Select(f => f.ColumnName).Contains("City"));
@@ -150,10 +135,7 @@ with q1 as (
 
         Assert.HasCount(1, buildItems.UsedColumns);
 
-        var columns =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).First();
+        var columns = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).First();
 
         Assert.HasCount(3, columns);
         Assert.IsTrue(columns.Select(f => f.ColumnName).Contains("City"));
@@ -170,10 +152,7 @@ with q1 as (
 
         Assert.HasCount(1, buildItems.UsedColumns);
 
-        var columns =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).First();
+        var columns = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).First();
 
         Assert.HasCount(3, columns);
         Assert.IsTrue(columns.Select(f => f.ColumnName).Contains("City"));
@@ -190,18 +169,12 @@ with q1 as (
 
         Assert.HasCount(2, buildItems.UsedColumns);
 
-        var columnsA =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).First();
+        var columnsA = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).First();
 
         Assert.HasCount(1, columnsA);
         Assert.IsTrue(columnsA.Select(f => f.ColumnName).Contains("City"));
 
-        var columnsB =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "b")
-                .Select(f => f.Value).First();
+        var columnsB = buildItems.UsedColumns.Where(f => f.Key.Alias == "b").Select(f => f.Value).First();
 
         Assert.HasCount(1, columnsB);
         Assert.IsTrue(columnsB.Select(f => f.ColumnName).Contains("City"));
@@ -217,17 +190,11 @@ with q1 as (
 
         Assert.HasCount(2, buildItems.UsedColumns);
 
-        var columnsA =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "a")
-                .Select(f => f.Value).First();
+        var columnsA = buildItems.UsedColumns.Where(f => f.Key.Alias == "a").Select(f => f.Value).First();
 
         Assert.HasCount(2, columnsA);
 
-        var columnsB =
-            buildItems.UsedColumns
-                .Where(f => f.Key.Alias == "b")
-                .Select(f => f.Value).First();
+        var columnsB = buildItems.UsedColumns.Where(f => f.Key.Alias == "b").Select(f => f.Value).First();
 
         Assert.HasCount(1, columnsB);
     }

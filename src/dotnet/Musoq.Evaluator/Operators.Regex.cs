@@ -1,5 +1,5 @@
-using System.Text.RegularExpressions;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator;
@@ -14,8 +14,10 @@ public partial class Operators
     internal static RLikeSimpleMatcher? GetOrCreateSimpleRLikeMatcher(string pattern, TimeSpan timeout)
     {
         var key = new RLikeMatcherCacheKey(pattern, CultureInfo.CurrentCulture.Name, timeout.Ticks);
-        return RLikeSimplePatternCache.GetOrAdd(key, static value =>
-            RLikeSimpleMatcher.TryCreate(value.Pattern, TimeSpan.FromTicks(value.TimeoutTicks)));
+        return RLikeSimplePatternCache.GetOrAdd(
+            key,
+            static value => RLikeSimpleMatcher.TryCreate(value.Pattern, TimeSpan.FromTicks(value.TimeoutTicks))
+        );
     }
 
     internal static Regex CreateRLikeRegex(string pattern, TimeSpan timeout) =>
@@ -24,7 +26,8 @@ public partial class Operators
     internal static Regex CreateRLikeRegex(
         string pattern,
         TimeSpan timeout,
-        Func<string, RegexOptions, TimeSpan, Regex> factory)
+        Func<string, RegexOptions, TimeSpan, Regex> factory
+    )
     {
         ArgumentNullException.ThrowIfNull(pattern);
         ArgumentNullException.ThrowIfNull(factory);

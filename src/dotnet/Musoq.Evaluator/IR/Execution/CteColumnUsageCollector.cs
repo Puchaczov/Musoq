@@ -15,7 +15,8 @@ internal static class CteColumnUsageCollector
         PhysicalNode node,
         IReadOnlySet<string> cteNames,
         IReadOnlyDictionary<string, OutputSchema> outputSchemas,
-        IDictionary<string, HashSet<string>> required)
+        IDictionary<string, HashSet<string>> required
+    )
     {
         var refsByAlias = CollectCteRefsByAlias(node, cteNames);
         if (refsByAlias.Count != 0)
@@ -29,7 +30,8 @@ internal static class CteColumnUsageCollector
 
     internal static HashSet<string> CollectContextRequiredCteDefinitions(
         PhysicalCteNode cte,
-        IReadOnlySet<string> cteNames)
+        IReadOnlySet<string> cteNames
+    )
     {
         var required = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -44,7 +46,8 @@ internal static class CteColumnUsageCollector
     private static void CollectContextRequiredCteDefinitions(
         PhysicalNode node,
         IReadOnlySet<string> cteNames,
-        ISet<string> required)
+        ISet<string> required
+    )
     {
         var refsByAlias = CollectCteRefsByAlias(node, cteNames);
         if (refsByAlias.Count != 0)
@@ -60,7 +63,8 @@ internal static class CteColumnUsageCollector
     private static void AddContextRequiredCteDefinitions(
         IrExpression expression,
         IReadOnlyDictionary<string, List<PhysicalCteRefNode>> refsByAlias,
-        ISet<string> required)
+        ISet<string> required
+    )
     {
         foreach (var alias in RowPresenceAliasExtractor.Extract(expression))
         {
@@ -76,20 +80,24 @@ internal static class CteColumnUsageCollector
         PhysicalNode node,
         CteConsumerScope scope,
         IReadOnlyDictionary<string, OutputSchema> outputSchemas,
-        IDictionary<string, HashSet<string>> required)
+        IDictionary<string, HashSet<string>> required
+    )
     {
         var refsByAlias = scope.RefsByAlias;
         foreach (var expression in EnumerateNodeExpressions(node))
             AddRequiredColumns(expression, scope, outputSchemas, required);
 
-        if (node is PhysicalPropertySourceNode source &&
-            source.PropertiesChain.Length != 0 &&
-            refsByAlias.TryGetValue(source.SourceAlias, out var refs))
+        if (
+            node is PhysicalPropertySourceNode source
+            && source.PropertiesChain.Length != 0
+            && refsByAlias.TryGetValue(source.SourceAlias, out var refs)
+        )
         {
             var column = new ColumnRef(
                 source.SourceAlias,
                 source.PropertiesChain[0].PropertyName,
-                source.PropertiesChain[0].PropertyType ?? source.ResultType);
+                source.PropertiesChain[0].PropertyType ?? source.ResultType
+            );
             AddRequiredColumns(column, refs, outputSchemas, required);
         }
 
@@ -99,7 +107,8 @@ internal static class CteColumnUsageCollector
 
     internal static Dictionary<string, List<PhysicalCteRefNode>> CollectCteRefsByAlias(
         PhysicalNode node,
-        IReadOnlySet<string> cteNames)
+        IReadOnlySet<string> cteNames
+    )
     {
         var refs = new Dictionary<string, List<PhysicalCteRefNode>>(StringComparer.OrdinalIgnoreCase);
         CollectCteRefsByAlias(node, cteNames, refs);
@@ -109,7 +118,8 @@ internal static class CteColumnUsageCollector
     private static void CollectCteRefsByAlias(
         PhysicalNode node,
         IReadOnlySet<string> cteNames,
-        IDictionary<string, List<PhysicalCteRefNode>> refs)
+        IDictionary<string, List<PhysicalCteRefNode>> refs
+    )
     {
         if (node is PhysicalCteRefNode cteRef && cteNames.Contains(cteRef.CteName))
         {
@@ -128,7 +138,8 @@ internal static class CteColumnUsageCollector
         IrExpression expression,
         CteConsumerScope scope,
         IReadOnlyDictionary<string, OutputSchema> outputSchemas,
-        IDictionary<string, HashSet<string>> required)
+        IDictionary<string, HashSet<string>> required
+    )
     {
         var refsByAlias = scope.RefsByAlias;
         foreach (var column in ColumnRefExtractor.Extract(expression))
@@ -156,8 +167,8 @@ internal static class CteColumnUsageCollector
                 continue;
             }
 
-            var matches = refsByAlias.Values
-                .SelectMany(static refs => refs)
+            var matches = refsByAlias
+                .Values.SelectMany(static refs => refs)
                 .Where(cteRef => MatchesCteColumn(cteRef, column.ColumnName, outputSchemas))
                 .ToArray();
 
@@ -169,14 +180,17 @@ internal static class CteColumnUsageCollector
         }
     }
 
-    private sealed record CteConsumerScope(PhysicalNode Root,
-        IReadOnlyDictionary<string, List<PhysicalCteRefNode>> RefsByAlias);
+    private sealed record CteConsumerScope(
+        PhysicalNode Root,
+        IReadOnlyDictionary<string, List<PhysicalCteRefNode>> RefsByAlias
+    );
 
     private static void AddRequiredColumns(
         ColumnRef column,
         IReadOnlyList<PhysicalCteRefNode> refs,
         IReadOnlyDictionary<string, OutputSchema> outputSchemas,
-        IDictionary<string, HashSet<string>> required)
+        IDictionary<string, HashSet<string>> required
+    )
     {
         if (refs.Count == 1)
             AddRequiredColumn(refs[0], column.ColumnName, outputSchemas, required);
@@ -189,7 +203,8 @@ internal static class CteColumnUsageCollector
         PhysicalCteRefNode cteRef,
         string columnName,
         IReadOnlyDictionary<string, OutputSchema> outputSchemas,
-        IDictionary<string, HashSet<string>> required)
+        IDictionary<string, HashSet<string>> required
+    )
     {
         var normalized = NormalizeColumnName(columnName, cteRef.Alias);
         var outputSchema = ResolveCteOutputSchema(cteRef, outputSchemas);
@@ -207,7 +222,8 @@ internal static class CteColumnUsageCollector
     private static void AddAllColumns(
         PhysicalCteRefNode cteRef,
         IReadOnlyDictionary<string, OutputSchema> outputSchemas,
-        IDictionary<string, HashSet<string>> required)
+        IDictionary<string, HashSet<string>> required
+    )
     {
         foreach (var column in ResolveCteOutputSchema(cteRef, outputSchemas).Columns)
             required[cteRef.CteName].Add(column.Name);
@@ -216,26 +232,30 @@ internal static class CteColumnUsageCollector
     private static bool MatchesCteColumn(
         PhysicalCteRefNode cteRef,
         string columnName,
-        IReadOnlyDictionary<string, OutputSchema> outputSchemas)
+        IReadOnlyDictionary<string, OutputSchema> outputSchemas
+    )
     {
         var normalized = NormalizeColumnName(columnName, cteRef.Alias);
         var outputSchema = ResolveCteOutputSchema(cteRef, outputSchemas);
         return FindRequiredColumn(outputSchema, normalized) != null;
     }
 
-    private static ColumnSchema? FindRequiredColumn(OutputSchema schema, string name)
-        => schema.FindByName(name) ?? schema.Columns
-            .Where(column => name.StartsWith(column.Name + ".", StringComparison.OrdinalIgnoreCase) ||
-                             name.StartsWith(column.Name + "[", StringComparison.OrdinalIgnoreCase))
-            .OrderByDescending(static column => column.Name.Length).FirstOrDefault();
+    private static ColumnSchema? FindRequiredColumn(OutputSchema schema, string name) =>
+        schema.FindByName(name)
+        ?? schema
+            .Columns.Where(column =>
+                name.StartsWith(column.Name + ".", StringComparison.OrdinalIgnoreCase)
+                || name.StartsWith(column.Name + "[", StringComparison.OrdinalIgnoreCase)
+            )
+            .OrderByDescending(static column => column.Name.Length)
+            .FirstOrDefault();
 
     private static OutputSchema ResolveCteOutputSchema(
         PhysicalCteRefNode cteRef,
-        IReadOnlyDictionary<string, OutputSchema> outputSchemas)
+        IReadOnlyDictionary<string, OutputSchema> outputSchemas
+    )
     {
-        return outputSchemas.TryGetValue(cteRef.CteName, out var outputSchema)
-            ? outputSchema
-            : cteRef.OutputSchema;
+        return outputSchemas.TryGetValue(cteRef.CteName, out var outputSchema) ? outputSchema : cteRef.OutputSchema;
     }
 
     internal static IEnumerable<IrExpression> EnumerateNodeExpressions(PhysicalNode node)
@@ -244,7 +264,8 @@ internal static class CteColumnUsageCollector
         {
             PhysicalProjectNode project => project.Fields.Select(static field => field.Expression),
             PhysicalJoinCandidateNode join => join.TieBreak == null
-                ? [join.OnPredicate] : [join.OnPredicate, join.TieBreak.Expression],
+                ? [join.OnPredicate]
+                : [join.OnPredicate, join.TieBreak.Expression],
             PhysicalFilterNode filter => [filter.Predicate],
             PhysicalHavingFilterNode filter => [filter.Predicate],
             PhysicalQualifyFilterNode filter => [filter.Predicate],
@@ -252,24 +273,38 @@ internal static class CteColumnUsageCollector
             PhysicalNestedLoopJoinNode join => join.TieBreak == null
                 ? [join.OnPredicate]
                 : [join.OnPredicate, join.TieBreak.Expression],
-            PhysicalSortMergeJoinNode join => [
+            PhysicalSortMergeJoinNode join =>
+            [
                 join.LeftKey,
                 join.RightKey,
-                ..join.LeftPartitionKeys,
-                ..join.RightPartitionKeys,
-                join.Residual],
+                .. join.LeftPartitionKeys,
+                .. join.RightPartitionKeys,
+                join.Residual,
+            ],
             PhysicalSortNode sort => sort.Keys.Select(static key => key.Expression),
             PhysicalTopNNode top => top.Keys.Select(static key => key.Expression),
             PhysicalTopOffsetNode top => top.Keys.Select(static key => key.Expression),
-            PhysicalSingleKeyAggregateNode aggregate => [aggregate.GroupKey, ..EnumerateAggregateArguments(aggregate.Bindings)],
-            PhysicalValueTupleAggregateNode aggregate => [..aggregate.GroupKeys, ..EnumerateAggregateArguments(aggregate.Bindings)],
+            PhysicalSingleKeyAggregateNode aggregate =>
+            [
+                aggregate.GroupKey,
+                .. EnumerateAggregateArguments(aggregate.Bindings),
+            ],
+            PhysicalValueTupleAggregateNode aggregate =>
+            [
+                .. aggregate.GroupKeys,
+                .. EnumerateAggregateArguments(aggregate.Bindings),
+            ],
             PhysicalAggregateOnlyNode aggregate => EnumerateAggregateArguments(aggregate.Bindings),
-            PhysicalAggregateCandidateNode aggregate => [..aggregate.GroupKeys, ..EnumerateAggregateArguments(aggregate.Bindings)],
+            PhysicalAggregateCandidateNode aggregate =>
+            [
+                .. aggregate.GroupKeys,
+                .. EnumerateAggregateArguments(aggregate.Bindings),
+            ],
             PhysicalWindowNode window => EnumerateWindowArguments(window.Registrations),
             PhysicalSchemaScanNode scan => scan.Arguments.Concat(scan.PushedPredicates),
             PhysicalInterpretSourceNode interpret => interpret.Arguments,
             PhysicalAccessMethodSourceNode access => [access.MethodCallExpression],
-            _ => []
+            _ => [],
         };
     }
 
@@ -319,7 +354,10 @@ internal static class CteColumnUsageCollector
     {
         var dotIndex = columnName.IndexOf('.', StringComparison.Ordinal);
         var bracketIndex = columnName.IndexOf('[', StringComparison.Ordinal);
-        var index = dotIndex < 0 ? bracketIndex : bracketIndex < 0 ? dotIndex : Math.Min(dotIndex, bracketIndex);
+        var index =
+            dotIndex < 0 ? bracketIndex
+            : bracketIndex < 0 ? dotIndex
+            : Math.Min(dotIndex, bracketIndex);
         return index < 0 ? columnName : columnName[..index];
     }
 }

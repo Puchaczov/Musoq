@@ -59,7 +59,8 @@ public class PluginsAttributesTests
     [BindableClass]
     private sealed class AttributeTargetsFixture
     {
-        [BindablePropertyAsTable] public string TableProperty { get; } = "table";
+        [BindablePropertyAsTable]
+        public string TableProperty { get; } = "table";
 
         [NonDeterministic]
         public int VolatileProperty => 1;
@@ -183,9 +184,12 @@ public class PluginsAttributesTests
     public void DynamicObjectPropertyTypeHintAttribute_AllowsMultiple()
     {
         // Arrange
-        var attributes = (DynamicObjectPropertyTypeHintAttribute[])Attribute
-            .GetCustomAttributes(typeof(AttributeTargetsFixture.WithMultipleHints),
-                typeof(DynamicObjectPropertyTypeHintAttribute), false);
+        var attributes = (DynamicObjectPropertyTypeHintAttribute[])
+            Attribute.GetCustomAttributes(
+                typeof(AttributeTargetsFixture.WithMultipleHints),
+                typeof(DynamicObjectPropertyTypeHintAttribute),
+                false
+            );
 
         // Assert
         Assert.HasCount(2, attributes);
@@ -212,8 +216,10 @@ public class PluginsAttributesTests
     public void DynamicObjectPropertyDefaultTypeHintAttribute_TargetsClass()
     {
         // Arrange
-        var attrUsage = typeof(DynamicObjectPropertyDefaultTypeHintAttribute)
-            .GetCustomAttributes(typeof(AttributeUsageAttribute), false);
+        var attrUsage = typeof(DynamicObjectPropertyDefaultTypeHintAttribute).GetCustomAttributes(
+            typeof(AttributeUsageAttribute),
+            false
+        );
 
         // Assert
         Assert.HasCount(1, attrUsage);
@@ -242,8 +248,7 @@ public class PluginsAttributesTests
     public void MethodCategoryAttribute_TargetsMethod()
     {
         // Arrange
-        var attrUsage = typeof(MethodCategoryAttribute)
-            .GetCustomAttributes(typeof(AttributeUsageAttribute), false);
+        var attrUsage = typeof(MethodCategoryAttribute).GetCustomAttributes(typeof(AttributeUsageAttribute), false);
 
         // Assert
         Assert.HasCount(1, attrUsage);
@@ -311,8 +316,8 @@ public class PluginsAttributesTests
     [TestMethod]
     public void MethodCategories_Network_IsCorrectValue()
     {
-        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.Network))
-            ?.GetRawConstantValue() as string;
+        var value =
+            typeof(MethodCategories).GetField(nameof(MethodCategories.Network))?.GetRawConstantValue() as string;
         Assert.AreEqual("Network", value);
     }
 
@@ -337,8 +342,7 @@ public class PluginsAttributesTests
     public void NonDeterministicAttribute_TargetsMethodAndProperty()
     {
         // Arrange
-        var attrUsage = typeof(NonDeterministicAttribute)
-            .GetCustomAttributes(typeof(AttributeUsageAttribute), false);
+        var attrUsage = typeof(NonDeterministicAttribute).GetCustomAttributes(typeof(AttributeUsageAttribute), false);
 
         // Assert
         Assert.HasCount(1, attrUsage);

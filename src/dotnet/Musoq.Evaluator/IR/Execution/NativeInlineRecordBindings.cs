@@ -14,9 +14,10 @@ internal sealed class NativeInlineRecordBindings(int firstDefinitionIndex) : Exe
     internal IEnumerable<ExecutionStructuralCarrier> Carriers => _carriers.Values;
     internal IReadOnlyDictionary<int, StructuralTypeDescriptor> RecordShapes => _recordShapes;
 
-    internal ExecutionExpression Bind(ExecutionExpression expression)
-        => expression is ExecutionStructuralRecord or ExecutionStructuralArray or ExecutionMethodCall
-            ? RewriteExpression(expression) : expression;
+    internal ExecutionExpression Bind(ExecutionExpression expression) =>
+        expression is ExecutionStructuralRecord or ExecutionStructuralArray or ExecutionMethodCall
+            ? RewriteExpression(expression)
+            : expression;
 
     protected override ExecutionExpression RewriteStructuralRecord(ExecutionStructuralRecord record)
     {
@@ -36,29 +37,51 @@ internal sealed class NativeInlineRecordBindings(int firstDefinitionIndex) : Exe
     protected override ExecutionExpression RewriteStructuralArray(ExecutionStructuralArray array)
     {
         var rewritten = (ExecutionStructuralArray)base.RewriteStructuralArray(array);
-        return rewritten.GeneratedElementTypeName is null &&
-               rewritten.Elements.FirstOrDefault() is ExecutionStructuralRecord { GeneratedTypeName: { } name }
-            ? rewritten with { GeneratedElementTypeName = name } : rewritten;
+        return
+            rewritten.GeneratedElementTypeName is null
+            && rewritten.Elements.FirstOrDefault() is ExecutionStructuralRecord { GeneratedTypeName: { } name }
+            ? rewritten with
+            {
+                GeneratedElementTypeName = name,
+            }
+            : rewritten;
     }
 
-    private static ExecutionExpression BindValue(ExecutionExpression value, StructuralTypeDescriptor shape,
-        int index, int[] path)
+    private static ExecutionExpression BindValue(
+        ExecutionExpression value,
+        StructuralTypeDescriptor shape,
+        int index,
+        int[] path
+    )
     {
         if (value is ExecutionStructuralRecord record)
-            return new ExecutionStructuralRecord(record.ReturnType,
-                record.Fields.Select((field, fieldIndex) => new ExecutionStructuralField(field.Name,
-                    BindValue(field.Value, shape.Fields[fieldIndex].Type, index, [.. path, fieldIndex]), field.IsPresent)))
+            return new ExecutionStructuralRecord(
+                record.ReturnType,
+                record.Fields.Select(
+                    (field, fieldIndex) =>
+                        new ExecutionStructuralField(
+                            field.Name,
+                            BindValue(field.Value, shape.Fields[fieldIndex].Type, index, [.. path, fieldIndex]),
+                            field.IsPresent
+                        )
+                )
+            )
             {
                 GeneratedTypeName = StructuralCarrierNaming.Create(index, path),
-                LimitBinding = record.LimitBinding
+                LimitBinding = record.LimitBinding,
             };
         if (value is ExecutionStructuralArray array)
-            return new ExecutionStructuralArray(array.ReturnType, array.ElementType,
-                array.Elements.Select(element => BindValue(element, shape.ElementType!, index, [.. path, -1])))
+            return new ExecutionStructuralArray(
+                array.ReturnType,
+                array.ElementType,
+                array.Elements.Select(element => BindValue(element, shape.ElementType!, index, [.. path, -1]))
+            )
             {
-                GeneratedElementTypeName = shape.ElementType?.Kind == StructuralTypeKind.Record
-                    ? StructuralCarrierNaming.Create(index, [.. path, -1]) : null,
-                LimitBinding = array.LimitBinding
+                GeneratedElementTypeName =
+                    shape.ElementType?.Kind == StructuralTypeKind.Record
+                        ? StructuralCarrierNaming.Create(index, [.. path, -1])
+                        : null,
+                LimitBinding = array.LimitBinding,
             };
         return value;
     }
@@ -66,21 +89,30 @@ internal sealed class NativeInlineRecordBindings(int firstDefinitionIndex) : Exe
     private static StructuralTypeDescriptor Describe(ExecutionExpression expression)
     {
         if (expression is ExecutionStructuralRecord record)
-            return StructuralTypeDescriptor.Record(typeof(StructuralValue), record.Fields.Select(field =>
-                new StructuralFieldDescriptor(field.Name, Describe(field.Value), field.IsPresent)));
+            return StructuralTypeDescriptor.Record(
+                typeof(StructuralValue),
+                record.Fields.Select(field => new StructuralFieldDescriptor(
+                    field.Name,
+                    Describe(field.Value),
+                    field.IsPresent
+                ))
+            );
         if (expression is ExecutionStructuralArray array)
         {
-            var element = array.Elements.Count == 0
-                ? StructuralTypeDescriptor.Scalar(array.ElementType.ResolveClrType())
-                : Describe(array.Elements[0]);
+            var element =
+                array.Elements.Count == 0
+                    ? StructuralTypeDescriptor.Scalar(array.ElementType.ResolveClrType())
+                    : Describe(array.Elements[0]);
             return StructuralTypeDescriptor.Collection(array.ReturnType.ResolveClrType(), element);
         }
         var type = expression.ReturnType.ResolveClrType();
         var unresolved = ConcreteValueShape.FindUnresolvedMember(type);
         if (unresolved is not null)
-            throw new SourcePlanContractException($"Structural field has an unresolved object-valued shape at '{unresolved}'.", TextSpan.Empty);
+            throw new SourcePlanContractException(
+                $"Structural field has an unresolved object-valued shape at '{unresolved}'.",
+                TextSpan.Empty
+            );
         var underlying = Nullable.GetUnderlyingType(type);
-        return StructuralTypeDescriptor.Scalar(underlying ?? type,
-            underlying is not null || !type.IsValueType);
+        return StructuralTypeDescriptor.Scalar(underlying ?? type, underlying is not null || !type.IsValueType);
     }
 }

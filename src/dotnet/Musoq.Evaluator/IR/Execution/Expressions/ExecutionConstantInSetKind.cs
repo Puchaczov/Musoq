@@ -5,5 +5,5 @@ public enum ExecutionConstantInSetKind
     Array,
     Switch,
     HashSet,
-    FrozenSet
+    FrozenSet,
 }

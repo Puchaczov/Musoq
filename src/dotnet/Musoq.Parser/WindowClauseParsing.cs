@@ -22,15 +22,18 @@ public partial class Parser
                 break;
 
             Consume(TokenType.Comma);
-            if (Current.TokenType == TokenType.RightParenthesis ||
-                Current.TokenType == TokenType.OrderBy ||
-                IsContextualKeyword("rows") ||
-                IsContextualKeyword("range"))
+            if (
+                Current.TokenType == TokenType.RightParenthesis
+                || Current.TokenType == TokenType.OrderBy
+                || IsContextualKeyword("rows")
+                || IsContextualKeyword("range")
+            )
                 throw new SyntaxException(
                     "Window PARTITION BY list has a trailing comma. Add another expression or remove the comma.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2014_TrailingComma,
-                    Current.Span);
+                    Current.Span
+                );
         } while (true);
 
         return fields.ToArray();
@@ -49,14 +52,17 @@ public partial class Parser
                 break;
 
             Consume(TokenType.Comma);
-            if (Current.TokenType == TokenType.RightParenthesis ||
-                IsContextualKeyword("rows") ||
-                IsContextualKeyword("range"))
+            if (
+                Current.TokenType == TokenType.RightParenthesis
+                || IsContextualKeyword("rows")
+                || IsContextualKeyword("range")
+            )
                 throw new SyntaxException(
                     "Window ORDER BY list has a trailing comma. Add another expression or remove the comma.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2014_TrailingComma,
-                    Current.Span);
+                    Current.Span
+                );
         } while (true);
 
         return fields.ToArray();

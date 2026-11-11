@@ -16,10 +16,7 @@ public partial class ParallelismOutputRowsTests
         const string query = "select Name, Id from #A.Entities()";
 
         var entities = CreateBasicEntitiesWithIds(rowCount);
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities } };
         var schemaProvider = new BasicSchemaProvider<BasicEntity>(sources);
         var options = new CompilationOptions(ParallelizationMode.Full);
 
@@ -30,7 +27,8 @@ public partial class ParallelismOutputRowsTests
                 "ParallelismStressRows",
                 schemaProvider,
                 LoggerResolver,
-                options);
+                options
+            );
             var table = TableMaterializationTestHelper.Materialize(vm.Run());
 
             Assert.AreEqual(rowCount, table.Count, $"Iteration {i}: Expected {rowCount} rows but got {table.Count}");
@@ -46,10 +44,7 @@ public partial class ParallelismOutputRowsTests
 
         var entities = CreateBasicEntitiesWithIds(rowCount);
         var expectedCount = entities.Count(e => e.Id % 5 == 0);
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities } };
         var schemaProvider = new BasicSchemaProvider<BasicEntity>(sources);
         var options = new CompilationOptions(ParallelizationMode.Full);
 
@@ -60,11 +55,15 @@ public partial class ParallelismOutputRowsTests
                 "ParallelismStressFilter",
                 schemaProvider,
                 LoggerResolver,
-                options);
+                options
+            );
             var table = TableMaterializationTestHelper.Materialize(vm.Run());
 
-            Assert.AreEqual(expectedCount, table.Count,
-                $"Iteration {i}: Expected {expectedCount} rows but got {table.Count}");
+            Assert.AreEqual(
+                expectedCount,
+                table.Count,
+                $"Iteration {i}: Expected {expectedCount} rows but got {table.Count}"
+            );
         }
     }
 }

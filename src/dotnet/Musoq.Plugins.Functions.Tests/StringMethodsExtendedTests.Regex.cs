@@ -9,7 +9,6 @@ namespace Musoq.Plugins.Tests;
 /// </summary>
 public partial class StringMethodsExtendedTests
 {
-
     [TestMethod]
     public void RegexExtract_EmptyValue_ReturnsNull()
     {
@@ -134,5 +133,4 @@ public partial class StringMethodsExtendedTests
     {
         Assert.IsFalse(Library.IsMatch("test", @"[invalid"));
     }
-
 }

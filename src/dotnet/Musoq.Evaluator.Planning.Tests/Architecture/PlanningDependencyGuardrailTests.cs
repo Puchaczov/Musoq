@@ -14,24 +14,28 @@ public sealed class PlanningDependencyGuardrailTests
         var planningFiles = RepositorySourceScan.FilesUnder(
             repositoryRoot,
             "src/dotnet/Musoq.Evaluator/IR/Planning",
-            "*.cs");
+            "*.cs"
+        );
         string[] forbiddenMarkers =
         [
             "using Musoq.Evaluator.IR.Execution",
             "Musoq.Evaluator.IR.Execution.",
-            "ExecutionExpressionConverter"
+            "ExecutionExpressionConverter",
         ];
 
         var offenders = planningFiles
-            .Where(file => forbiddenMarkers.Any(marker => File.ReadAllText(file).Contains(marker, System.StringComparison.Ordinal)))
+            .Where(file =>
+                forbiddenMarkers.Any(marker => File.ReadAllText(file).Contains(marker, System.StringComparison.Ordinal))
+            )
             .Select(file => RepositorySourceScan.ToRelative(repositoryRoot, file))
             .OrderBy(static file => file, System.StringComparer.Ordinal)
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Planning must consume planning-owned expression and shape facts instead of depending on execution IR: " +
-            string.Join(", ", offenders));
+            "Planning must consume planning-owned expression and shape facts instead of depending on execution IR: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -46,7 +50,8 @@ public sealed class PlanningDependencyGuardrailTests
             "IR",
             "Planning",
             "Permissions",
-            "ParallelPlanningEligibilityRules.cs");
+            "ParallelPlanningEligibilityRules.cs"
+        );
         var text = File.ReadAllText(file);
         string[] broadTraversalMarkers =
         [
@@ -57,7 +62,7 @@ public sealed class PlanningDependencyGuardrailTests
             "PatternMatch patternMatch =>",
             "Between between =>",
             "CaseWhen caseWhen =>",
-            "StrictCast strictCast =>"
+            "StrictCast strictCast =>",
         ];
         var offenders = broadTraversalMarkers
             .Where(marker => text.Contains(marker, System.StringComparison.Ordinal))
@@ -67,7 +72,8 @@ public sealed class PlanningDependencyGuardrailTests
         StringAssert.Contains(text, "IrExpressionFacts.ContainsMethodCall");
         Assert.IsEmpty(
             offenders,
-            "Parallel planning must use shared IrExpressionTraversal instead of owning a broad recursive expression inventory: " +
-            string.Join(", ", offenders));
+            "Parallel planning must use shared IrExpressionTraversal instead of owning a broad recursive expression inventory: "
+                + string.Join(", ", offenders)
+        );
     }
 }

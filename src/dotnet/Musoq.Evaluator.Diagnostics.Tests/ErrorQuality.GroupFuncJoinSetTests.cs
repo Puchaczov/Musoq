@@ -20,7 +20,7 @@ public class ErrorQualityGroupFuncJoinSetTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] },
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -35,8 +35,7 @@ public class ErrorQualityGroupFuncJoinSetTests : BasicEntityTestBase
         DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, expectedCode, context);
     }
 
-    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode,
-        string context)
+    private static void AssertHasDiagnosticCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
     {
         _ = DiagnosticContractTestAssertions.AssertSingleError(result, expectedCode, context);
     }
@@ -71,8 +70,11 @@ public class ErrorQualityGroupFuncJoinSetTests : BasicEntityTestBase
         // Assert — Standard SQL requires non-aggregated columns to appear in GROUP BY.
         // Musoq now enforces this: Population is not in GROUP BY and not inside an
         // aggregate, so MQ3012 should be reported.
-        AssertHasErrorCode(result, DiagnosticCode.MQ3012_NonAggregateInSelect,
-            "Population not in GROUP BY and not inside aggregate");
+        AssertHasErrorCode(
+            result,
+            DiagnosticCode.MQ3012_NonAggregateInSelect,
+            "Population not in GROUP BY and not inside aggregate"
+        );
     }
 
     [TestMethod]
@@ -80,9 +82,7 @@ public class ErrorQualityGroupFuncJoinSetTests : BasicEntityTestBase
     {
         // Arrange — HAVING referencing non-existent column
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name, Count(1) FROM #A.Entities()
-GROUP BY Name
-HAVING NonExistent > 5";
+        var query = ("SELECT Name, Count(1) FROM #A.Entities()\n" + "GROUP BY Name\n" + "HAVING NonExistent > 5");
 
         // Act
         var result = analyzer.Analyze(query);
@@ -96,15 +96,17 @@ HAVING NonExistent > 5";
     {
         // Arrange — Aggregate in WHERE (should be HAVING)
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name, Count(1) AS Cnt FROM #A.Entities()
-GROUP BY Name
-WHERE Count(1) > 2";
+        var query = ("SELECT Name, Count(1) AS Cnt FROM #A.Entities()\n" + "GROUP BY Name\n" + "WHERE Count(1) > 2");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — WHERE comes before GROUP BY; also aggregate not allowed in WHERE
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "aggregate in WHERE should suggest HAVING");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            "aggregate in WHERE should suggest HAVING"
+        );
     }
 
     [TestMethod]
@@ -159,15 +161,17 @@ WHERE Count(1) > 2";
     {
         // Arrange — ORDER BY on column not in GROUP BY or aggregate
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name, Count(1) FROM #A.Entities()
-GROUP BY Name
-ORDER BY NonExistent";
+        var query = ("SELECT Name, Count(1) FROM #A.Entities()\n" + "GROUP BY Name\n" + "ORDER BY NonExistent");
 
         // Act
         var result = analyzer.Analyze(query);
 
         // Assert — Should report unknown column in ORDER BY
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "ORDER BY non-existent column with GROUP BY");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3001_UnknownColumn,
+            "ORDER BY non-existent column with GROUP BY"
+        );
     }
 
     #endregion
@@ -217,7 +221,11 @@ ORDER BY NonExistent";
         var result = analyzer.Analyze(query);
 
         // Assert — Should report too many arguments
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3087_InvalidCallableArity, "Substring with too many arguments");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3087_InvalidCallableArity,
+            "Substring with too many arguments"
+        );
     }
 
     [TestMethod]
@@ -248,7 +256,11 @@ ORDER BY NonExistent";
         var result = analyzer.Analyze(query);
 
         // Assert — Should explain argument type mismatch
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3088_NoMatchingCallableOverload, "Replace with integer arguments");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            "Replace with integer arguments"
+        );
     }
 
     [TestMethod]
@@ -278,9 +290,11 @@ ORDER BY NonExistent";
     {
         // Arrange — ON condition that isn't boolean
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-FROM #A.Entities() a
-INNER JOIN #B.Entities() b ON a.Population + b.Population";
+        var query = (
+            "SELECT a.Name, b.Name\n"
+            + "FROM #A.Entities() a\n"
+            + "INNER JOIN #B.Entities() b ON a.Population + b.Population"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -297,9 +311,9 @@ INNER JOIN #B.Entities() b ON a.Population + b.Population";
     {
         // Arrange — ON condition referencing alias 'c' which doesn't exist
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-FROM #A.Entities() a
-INNER JOIN #B.Entities() b ON c.Name = b.Name";
+        var query = (
+            "SELECT a.Name, b.Name\n" + "FROM #A.Entities() a\n" + "INNER JOIN #B.Entities() b ON c.Name = b.Name"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -313,9 +327,7 @@ INNER JOIN #B.Entities() b ON c.Name = b.Name";
     {
         // Arrange — Two tables with same alias
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name
-FROM #A.Entities() a
-INNER JOIN #B.Entities() a ON a.Name = a.Name";
+        var query = ("SELECT a.Name\n" + "FROM #A.Entities() a\n" + "INNER JOIN #B.Entities() a ON a.Name = a.Name");
 
         // Act
         var result = analyzer.Analyze(query);
@@ -329,16 +341,22 @@ INNER JOIN #B.Entities() a ON a.Name = a.Name";
     {
         // Arrange — Third JOIN reuses alias 'a'
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name
-FROM #A.Entities() a
-INNER JOIN #A.Entities() b ON a.Name = b.Name
-INNER JOIN #A.Entities() a ON b.Name = a.Name";
+        var query = (
+            "SELECT a.Name\n"
+            + "FROM #A.Entities() a\n"
+            + "INNER JOIN #A.Entities() b ON a.Name = b.Name\n"
+            + "INNER JOIN #A.Entities() a ON b.Name = a.Name"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
 
         // Assert — Should report duplicate alias
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3021_DuplicateAlias, "conflicting alias 'a' in multiple JOINs");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3021_DuplicateAlias,
+            "conflicting alias 'a' in multiple JOINs"
+        );
     }
 
     #endregion
@@ -354,9 +372,9 @@ INNER JOIN #A.Entities() a ON b.Name = a.Name";
     {
         // Arrange — UNION ALL with non-existent column in key list
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
-UNION ALL (NonExistent)
-SELECT Name FROM #B.Entities()";
+        var query = (
+            "SELECT Name FROM #A.Entities()\n" + "UNION ALL (NonExistent)\n" + "SELECT Name FROM #B.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -370,9 +388,7 @@ SELECT Name FROM #B.Entities()";
     {
         // Arrange — UNION ALL with empty column list
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
-UNION ALL ()
-SELECT Name FROM #B.Entities()";
+        var query = ("SELECT Name FROM #A.Entities()\n" + "UNION ALL ()\n" + "SELECT Name FROM #B.Entities()");
 
         // Act
         var result = analyzer.Analyze(query);

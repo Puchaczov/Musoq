@@ -65,7 +65,9 @@ public sealed class DynamicEntityBoundaryGuardrailTests
     [TestMethod]
     public void NonGenericDictionaryResult_ShouldBeClassifiedAsDynamicResultShape()
     {
-        Assert.IsTrue(DynamicEntityBoundary.IsDynamicResultShape(typeof(System.Collections.Hashtable), static _ => false));
+        Assert.IsTrue(
+            DynamicEntityBoundary.IsDynamicResultShape(typeof(System.Collections.Hashtable), static _ => false)
+        );
     }
 
     [TestMethod]

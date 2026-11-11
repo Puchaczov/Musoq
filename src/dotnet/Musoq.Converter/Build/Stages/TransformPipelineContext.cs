@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Optimization;
@@ -49,12 +49,17 @@ internal sealed record TransformPipelineContext
 
     public IReadOnlyList<OptimizationTrace> OptimizerTraces { get; init; } = [];
 
-    public string? OptimizerTraceText => EmitExecutionPlanText
-        ? OptimizationTraceTextPrinter.Print(OptimizerTraces.ToArray())
-        : null;
+    public string? OptimizerTraceText =>
+        EmitExecutionPlanText ? OptimizationTraceTextPrinter.Print(OptimizerTraces.ToArray()) : null;
 
-    public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry?, ILogger<BuildMetadataAndInferTypesVisitor>, BuildMetadataAndInferTypesVisitor>?
-        CreateBuildMetadataAndInferTypesVisitor { get; init; }
+    public Func<
+        ISchemaProvider,
+        IReadOnlyDictionary<string, string[]>,
+        CompilationOptions,
+        SchemaRegistry?,
+        ILogger<BuildMetadataAndInferTypesVisitor>,
+        BuildMetadataAndInferTypesVisitor
+    >? CreateBuildMetadataAndInferTypesVisitor { get; init; }
 
     public static TransformPipelineContext From(BuildItems items)
     {
@@ -81,7 +86,7 @@ internal sealed record TransformPipelineContext
             AdditionalReferenceTypes = items.AdditionalReferenceTypes,
             InterpreterSourceCode = items.InterpreterSourceCode,
             OptimizerTraces = [],
-            CreateBuildMetadataAndInferTypesVisitor = items.CreateBuildMetadataAndInferTypesVisitor
+            CreateBuildMetadataAndInferTypesVisitor = items.CreateBuildMetadataAndInferTypesVisitor,
         };
     }
 
@@ -97,7 +102,7 @@ internal sealed record TransformPipelineContext
 
         return this with
         {
-            OptimizerTraces = traces
+            OptimizerTraces = traces,
         };
     }
 }

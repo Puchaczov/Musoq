@@ -4,10 +4,10 @@ namespace Musoq.Evaluator.Tests;
 
 internal static partial class EvaluatorSampleFixtures
 {
-
     private static GeneratedCodeSample BinaryInterpretation()
     {
-        const string query = @"
+        const string query =
+            @"
             binary TlvRecord {
                 Type: byte,
                 Length: byte,
@@ -24,7 +24,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample TextInterpretation()
     {
-        const string query = @"
+        const string query =
+            @"
             text LogLine {
                 Timestamp: until ' ',
                 Level: until ' ',
@@ -42,7 +43,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryConditionalInterpretation()
     {
-        const string query = @"
+        const string query =
+            @"
             binary OptionalPacket {
                 HasValue: byte,
                 Value: int le when HasValue = 1
@@ -58,7 +60,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryStringInterpretation()
     {
-        const string query = @"binary TextPacket {
+        const string query =
+            @"binary TextPacket {
                 Length: byte,
                 Text: string[Length] ascii trim
             };
@@ -73,7 +76,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryComputedInterpretation()
     {
-        const string query = @"binary Rectangle {
+        const string query =
+            @"binary Rectangle {
                 Width: int le,
                 Height: int le,
                 Area: Width * Height
@@ -90,7 +94,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryNestedInterpretation()
     {
-        const string query = @"binary Point {
+        const string query =
+            @"binary Point {
                 X: short le,
                 Y: short le
             };
@@ -110,7 +115,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryInlineArrayInterpretation()
     {
-        const string query = @"binary InlineArrayPacket {
+        const string query =
+            @"binary InlineArrayPacket {
                 Count: byte,
                 Items: { Tag: byte, Value: short le }[Count]
             };
@@ -127,7 +133,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryStringRepeatUntilInterpretation()
     {
-        const string query = @"binary StringRepeatPacket {
+        const string query =
+            @"binary StringRepeatPacket {
                 Names: string[3] ascii repeat until Names = 'END'
             };
             select
@@ -141,7 +148,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryInlineRepeatUntilInterpretation()
     {
-        const string query = @"binary InlineRepeatPacket {
+        const string query =
+            @"binary InlineRepeatPacket {
                 Items: { Tag: byte, Value: short le } repeat until Items.Tag = 0
             };
             select
@@ -156,7 +164,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryGenericInterpretation()
     {
-        const string query = @"binary GenericItem {
+        const string query =
+            @"binary GenericItem {
                 Value: byte
             };
             binary LengthPrefixed<T> {
@@ -177,7 +186,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryNestedGenericInterpretation()
     {
-        const string query = @"binary ByteValue {
+        const string query =
+            @"binary ByteValue {
                 Value: byte
             };
             binary ShortValue {
@@ -206,7 +216,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryBitsRepeatUntilInterpretation()
     {
-        const string query = @"binary BitsRepeatPacket {
+        const string query =
+            @"binary BitsRepeatPacket {
                 Flags: bits[1] repeat until Flags = 0
             };
             select
@@ -220,7 +231,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BenchmarkMultipleFilesInterpretation()
     {
-        const string query = @"binary SimpleHeader {
+        const string query =
+            @"binary SimpleHeader {
                 Id: int le,
                 Value: int le
             };
@@ -233,7 +245,8 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BenchmarkHighThroughputInterpretation()
     {
-        const string query = @"binary TinyHeader {
+        const string query =
+            @"binary TinyHeader {
                 Id: int le
             };
             select h.Id
@@ -245,37 +258,29 @@ internal static partial class EvaluatorSampleFixtures
 
     private static GeneratedCodeSample BinaryInterpretationSample(string name, string query)
     {
-        return Interpretation(
-            name,
-            query,
-            InterpretationSchemaProviderFactory.CreateBinary);
+        return Interpretation(name, query, InterpretationSchemaProviderFactory.CreateBinary);
     }
 
     private static GeneratedCodeSample TextInterpretationSample(string name, string query)
     {
-        return Interpretation(
-            name,
-            query,
-            InterpretationSchemaProviderFactory.CreateText);
+        return Interpretation(name, query, InterpretationSchemaProviderFactory.CreateText);
     }
 
     private static GeneratedCodeSample BenchmarkBinaryInterpretationSample(string name, string query)
     {
-        return Interpretation(
-            name,
-            query,
-            InterpretationSchemaProviderFactory.CreateBinary) with
+        return Interpretation(name, query, InterpretationSchemaProviderFactory.CreateBinary) with
         {
             CompilationOptions = new CompilationOptions(usePrimitiveTypeValidation: false)
                 .WithTableResultMaterialization()
-                .WithStabilityAwareScalarReuse()
+                .WithStabilityAwareScalarReuse(),
         };
     }
 
     private static GeneratedCodeSample Interpretation(
         string name,
         string query,
-        Func<Musoq.Schema.ISchemaProvider> createSchemaProvider)
+        Func<Musoq.Schema.ISchemaProvider> createSchemaProvider
+    )
     {
         return new GeneratedCodeSample
         {
@@ -284,7 +289,7 @@ internal static partial class EvaluatorSampleFixtures
             Query = query,
             Category = "Interpretation",
             Format = GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode,
-            CreateSchemaProvider = createSchemaProvider
+            CreateSchemaProvider = createSchemaProvider,
         };
     }
 }

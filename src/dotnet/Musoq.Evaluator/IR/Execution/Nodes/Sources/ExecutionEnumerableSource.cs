@@ -5,15 +5,15 @@ public sealed record ExecutionEnumerableSource(
     ExecutionExpression Source,
     ExecutionTypeRef EnumerableType,
     ExecutionEnumerableChunkMode ChunkMode = ExecutionEnumerableChunkMode.ObjectOrReflected,
-    string? EnumerableTypeName = null) : ExecutionNode
+    string? EnumerableTypeName = null
+) : ExecutionNode
 {
     internal ExecutionEnumerableSource(
         ExecutionVariable rows,
         ExecutionExpression source,
         Type enumerableType,
         ExecutionEnumerableChunkMode chunkMode = ExecutionEnumerableChunkMode.ObjectOrReflected,
-        string? enumerableTypeName = null)
-        : this(rows, source, ExecutionClrBindingFactory.FromClr(enumerableType), chunkMode, enumerableTypeName)
-    {
-    }
+        string? enumerableTypeName = null
+    )
+        : this(rows, source, ExecutionClrBindingFactory.FromClr(enumerableType), chunkMode, enumerableTypeName) { }
 }

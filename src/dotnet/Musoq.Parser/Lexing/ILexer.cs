@@ -1,5 +1,5 @@
-﻿using System.Text.RegularExpressions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Tokens;
 
@@ -66,7 +66,7 @@ public interface ILexer
     ///     Compute the next token from stream.
     /// </summary>
     /// <returns>The Token.</returns>
-   Token Next();
+    Token Next();
 
     /// <summary>
     ///     Peeks ahead without consuming or recording tokens.
@@ -74,6 +74,7 @@ public interface ILexer
     /// <param name="lookahead">One-based token distance from the current token.</param>
     /// <returns>The token at the requested distance.</returns>
     Token Peek(int lookahead = 1);
+
     /// <summary>
     ///     Gets the next token that matches the specified regex.
     /// </summary>

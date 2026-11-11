@@ -12,7 +12,8 @@ internal sealed class ExpensiveRowSource(IReadOnlyList<NonEquiEntity> entities, 
             var enumId = ExpensiveCteCounter.Increment();
             Console.WriteLine($"  [Enum {enumId}] Thread {Environment.CurrentManagedThreadId} starting enumeration");
 
-            if (simulatedWorkIterations > 0) SimulateWork(simulatedWorkIterations);
+            if (simulatedWorkIterations > 0)
+                SimulateWork(simulatedWorkIterations);
 
             yield return entities;
         }
@@ -21,7 +22,8 @@ internal sealed class ExpensiveRowSource(IReadOnlyList<NonEquiEntity> entities, 
     private static void SimulateWork(int iterations)
     {
         var result = 0.0;
-        for (var i = 0; i < iterations; i++) result += Math.Sin(i) * Math.Cos(i);
+        for (var i = 0; i < iterations; i++)
+            result += Math.Sin(i) * Math.Cos(i);
         GC.KeepAlive(result);
     }
 }

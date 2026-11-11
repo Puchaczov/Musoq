@@ -12,19 +12,20 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [DataRow("FromHexToBytes(ToHex(b.Content))")]
     public void FirstApply_RowDependentConversion_UsesEachLeftRow(string input)
     {
-        var query = $$"""
-            binary Header { Value: int le };
-            select h.Value as Value
-            from #test.bytes() b
-            cross apply Interpret<Header>({{input}}) h
-            order by h.Value
-            """;
+        var query =
+            $"binary Header {{ Value: int le }};\nselect h.Value as Value\nfrom #test.bytes() b\ncross apply Interpret<Header>({input}) h\norder by h.Value";
         var provider = CreateBinaryProvider(
             new BinaryEntity { Name = "2A000000", Content = [0x2A, 0, 0, 0] },
-            new BinaryEntity { Name = "2B000000", Content = [0x2B, 0, 0, 0] });
+            new BinaryEntity { Name = "2B000000", Content = [0x2B, 0, 0, 0] }
+        );
 
         var compiled = CompileGeneratedQuery(
-            query, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -35,16 +36,21 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void FirstApply_FunctionSourceWithConversion_ExpandsBothLines()
     {
-        const string query = """
-            select line.Value as Value
-            from #test.lines() t
-            cross apply Lines(FromHexToString('34320A3433')) line
-            order by line.Value
-            """;
+        const string query = (
+            "select line.Value as Value\n"
+            + "from #test.lines() t\n"
+            + "cross apply Lines(FromHexToString('34320A3433')) line\n"
+            + "order by line.Value"
+        );
         var provider = CreateTextProvider(new TextEntity { Name = "sample", Text = "unused" });
 
         var compiled = CompileGeneratedQuery(
-            query, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -57,17 +63,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [DataRow("with data as (select b.Name as Hex from #test.bytes() b)", "data d", "d.Hex")]
     public void FirstApply_ValuesOrCteLeftSource_ResolvesConversion(string declaration, string source, string hex)
     {
-        var query = $$"""
-            binary Header { Value: int le };
-            {{declaration}}
-            select h.Value as Value
-            from {{source}}
-            cross apply Interpret<Header>(FromHexToBytes({{hex}})) h
-            """;
+        var query =
+            $"binary Header {{ Value: int le }};\n{declaration}\nselect h.Value as Value\nfrom {source}\ncross apply Interpret<Header>(FromHexToBytes({hex})) h";
         var provider = CreateBinaryProvider(new BinaryEntity { Name = "2A000000", Content = [0x2A, 0, 0, 0] });
 
         var compiled = CompileGeneratedQuery(
-            query, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -79,17 +85,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [DataRow("inner join #test.bytes() peer on b.Name = peer.Name")]
     public void ApplyAfterJoinOrApply_UsesVisibleLeftSources(string previousSource)
     {
-        var query = $$"""
-            binary Header { Value: int le };
-            select h.Value as Value
-            from #test.bytes() b
-            {{previousSource}}
-            cross apply Interpret<Header>(FromHexToBytes(b.Name)) h
-            """;
+        var query =
+            $"binary Header {{ Value: int le }};\nselect h.Value as Value\nfrom #test.bytes() b\n{previousSource}\ncross apply Interpret<Header>(FromHexToBytes(b.Name)) h";
         var provider = CreateBinaryProvider(new BinaryEntity { Name = "2A000000", Content = [0x2A, 0, 0, 0] });
 
         var compiled = CompileGeneratedQuery(
-            query, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -110,8 +116,14 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void FirstApply_PartialInterpret_ReturnsDecodedField()
     {
-        var fields = PartialPayloadAssertions.CompletedValues(RunBinarySourceExpression(
-            "PartialInterpret", "FromHexToBytes('2A000000')", "cross apply", "h.ParsedFields")!);
+        var fields = PartialPayloadAssertions.CompletedValues(
+            RunBinarySourceExpression(
+                "PartialInterpret",
+                "FromHexToBytes('2A000000')",
+                "cross apply",
+                "h.ParsedFields"
+            )!
+        );
 
         Assert.AreEqual(42, fields["Value"]);
     }
@@ -128,24 +140,26 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void FirstApply_PartialParse_ReturnsDecodedField()
     {
-        var fields = PartialPayloadAssertions.CompletedValues(RunTextSourceExpression(
-            "PartialParse", "cross apply", "r.ParsedFields", "FromHexToString('34323A')")!);
+        var fields = PartialPayloadAssertions.CompletedValues(
+            RunTextSourceExpression("PartialParse", "cross apply", "r.ParsedFields", "FromHexToString('34323A')")!
+        );
 
         Assert.AreEqual("42", fields["Value"]);
     }
 
     private object? RunBinarySourceExpression(string function, string arguments, string apply, string field)
     {
-        var query = $$"""
-            binary Header { Value: int le };
-            select {{field}} as Value
-            from #test.bytes() b
-            {{apply}} {{function}}<Header>({{arguments}}) h
-            """;
+        var query =
+            $"binary Header {{ Value: int le }};\nselect {field} as Value\nfrom #test.bytes() b\n{apply} {function}<Header>({arguments}) h";
         var provider = CreateBinaryProvider(new BinaryEntity { Name = "sample", Content = [0x2A, 0, 0, 0] });
 
         var compiled = CompileGeneratedQuery(
-            query, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -154,16 +168,17 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
     private object? RunTextSourceExpression(string function, string apply, string field, string input)
     {
-        var query = $$"""
-            text Record { Value: until ':' };
-            select {{field}} as Value
-            from #test.lines() t
-            {{apply}} {{function}}<Record>({{input}}) r
-            """;
+        var query =
+            $"text Record {{ Value: until ':' }};\nselect {field} as Value\nfrom #test.lines() t\n{apply} {function}<Record>({input}) r";
         var provider = CreateTextProvider(new TextEntity { Name = "sample", Text = "42:" });
 
         var compiled = CompileGeneratedQuery(
-            query, Guid.NewGuid().ToString(), provider, LoggerResolver, TestCompilationOptions);
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = compiled.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

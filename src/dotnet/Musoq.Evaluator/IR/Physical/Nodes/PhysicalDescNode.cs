@@ -16,7 +16,8 @@ public sealed record PhysicalDescNode(
     OutputSchema OutputSchema,
     OutputSchema? QueryOutputSchema = null,
     TextSpan? ColumnSpan = null,
-    IReadOnlyList<StructuralArgumentDescription>? ArgumentDescriptions = null) : PhysicalNode(OutputSchema)
+    IReadOnlyList<StructuralArgumentDescription>? ArgumentDescriptions = null
+) : PhysicalNode(OutputSchema)
 {
     /// <summary>Gets bound output expressions used only to describe generated result shapes.</summary>
     public IReadOnlyList<ProjectedField>? QueryProjection { get; init; }

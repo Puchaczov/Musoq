@@ -70,8 +70,15 @@ public class DistinctAggregatesTests
             new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2024, 1, 2, 0, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2024, 1, 3, 0, 0, 0, TimeSpan.Zero),
-            3L);
-        AssertCountDistinctValueType(new DateTime(2024, 1, 1), new DateTime(2024, 1, 1), new DateTime(2024, 1, 2), new DateTime(2024, 1, 3), 3L);
+            3L
+        );
+        AssertCountDistinctValueType(
+            new DateTime(2024, 1, 1),
+            new DateTime(2024, 1, 1),
+            new DateTime(2024, 1, 2),
+            new DateTime(2024, 1, 3),
+            3L
+        );
         AssertCountDistinctValueType((byte)1, (byte)1, (byte)2, (byte)3, 3L);
         AssertCountDistinctValueType((sbyte)1, (sbyte)1, (sbyte)2, (sbyte)3, 3L);
         AssertCountDistinctValueType((short)1, (short)1, (short)2, (short)3, 3L);
@@ -214,12 +221,7 @@ public class DistinctAggregatesTests
         Assert.AreEqual(expected, SumDistinctAggregateKernel<T>.Get(in state));
     }
 
-    private static void AssertCountDistinctValueType<T>(
-        T first,
-        T duplicate,
-        T second,
-        T third,
-        long expectedDistinct)
+    private static void AssertCountDistinctValueType<T>(T first, T duplicate, T second, T third, long expectedDistinct)
         where T : struct
     {
         var state = new CountDistinctNullableAggregateKernel<T>.State();
@@ -266,13 +268,7 @@ public class DistinctAggregatesTests
         Assert.AreEqual(expected, AvgDistinctAggregateKernel<T>.Get(in state));
     }
 
-    private static void AssertMinMaxDistinct<T>(
-        T first,
-        T duplicate,
-        T second,
-        T third,
-        T expectedMin,
-        T expectedMax)
+    private static void AssertMinMaxDistinct<T>(T first, T duplicate, T second, T third, T expectedMin, T expectedMax)
         where T : struct, INumber<T>
     {
         var minState = new MinDistinctAggregateKernel<T>.State();

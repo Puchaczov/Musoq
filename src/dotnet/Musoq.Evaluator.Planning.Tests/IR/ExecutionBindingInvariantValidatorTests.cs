@@ -11,12 +11,11 @@ public sealed class ExecutionBindingInvariantValidatorTests
     public void Validate_WhenKnownFieldHasNoAccessStrategy_ShouldRejectBeforeRendering()
     {
         var source = CreatePositionalSource();
-        var plan = CreatePlan(
-            source,
-            new ExecutionFieldRead("entity", "Value", typeof(string)));
+        var plan = CreatePlan(source, new ExecutionFieldRead("entity", "Value", typeof(string)));
 
-        var exception = Assert.ThrowsExactly<InvalidOperationException>(
-            () => ExecutionBindingInvariantValidator.Validate(plan));
+        var exception = Assert.ThrowsExactly<InvalidOperationException>(() =>
+            ExecutionBindingInvariantValidator.Validate(plan)
+        );
 
         StringAssert.Contains(exception.Message, "has no access strategy");
     }
@@ -27,10 +26,12 @@ public sealed class ExecutionBindingInvariantValidatorTests
         var source = CreatePositionalSource();
         var plan = CreatePlan(
             source,
-            new ExecutionFieldRead("entity", "Key", typeof(string), new ClrPropertyAccess("Key")));
+            new ExecutionFieldRead("entity", "Key", typeof(string), new ClrPropertyAccess("Key"))
+        );
 
-        var exception = Assert.ThrowsExactly<InvalidOperationException>(
-            () => ExecutionBindingInvariantValidator.Validate(plan));
+        var exception = Assert.ThrowsExactly<InvalidOperationException>(() =>
+            ExecutionBindingInvariantValidator.Validate(plan)
+        );
 
         StringAssert.Contains(exception.Message, "declared binding");
     }
@@ -40,34 +41,40 @@ public sealed class ExecutionBindingInvariantValidatorTests
         return new SourceEntityShape(
             "entity",
             typeof(object[]),
-            [new FieldBinding(
-                "Key",
-                "entity.Key",
-                0,
-                typeof(string),
-                FieldNullability.Unknown,
-                new PositionalAccess(0))]);
+            [
+                new FieldBinding(
+                    "Key",
+                    "entity.Key",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new PositionalAccess(0)
+                ),
+            ]
+        );
     }
 
     private static ExecutionPlan CreatePlan(SourceEntityShape source, ExecutionExpression expression)
     {
         var outputShape = new GeneratedRowShape(
             "ResultRow",
-            [new FieldBinding(
-                "Value",
-                "Value",
-                0,
-                typeof(string),
-                FieldNullability.Unknown,
-                new GeneratedFieldAccess("Value"))]);
+            [
+                new FieldBinding(
+                    "Value",
+                    "Value",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Value")
+                ),
+            ]
+        );
         var append = new ExecutionAppendRow(
             new ExecutionVariable("result", typeof(object)),
             outputShape,
-            [new ExecutionRowValue("Value", expression)]);
+            [new ExecutionRowValue("Value", expression)]
+        );
 
-        return new ExecutionPlan(
-            "validator-test",
-            [source],
-            new ExecutionBlock([append]));
+        return new ExecutionPlan("validator-test", [source], new ExecutionBlock([append]));
     }
 }

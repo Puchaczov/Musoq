@@ -20,31 +20,31 @@ public class BasicEntity
         { nameof(Other), 20 },
         { nameof(Array), 21 },
         { nameof(Dictionary), 22 },
-        { nameof(Children), 23 }
+        { nameof(Children), 23 },
     };
 
-    public static readonly IDictionary<int, Func<BasicEntity, object?>> TestIndexToObjectAccessMap =
-        new Dictionary<int, Func<BasicEntity, object?>>
-        {
-            { 10, arg => arg.Name },
-            { 11, arg => arg.City },
-            { 12, arg => arg.Country },
-            { 13, arg => arg.Population },
-            { 14, arg => arg.Self },
-            { 15, arg => arg.Money },
-            { 16, arg => arg.Month },
-            { 17, arg => arg.Time },
-            { 18, arg => arg.Id },
-            { 19, arg => arg.NullableValue },
-            { 20, arg => arg.Other },
-            { 21, arg => arg.Array },
-            { 22, arg => arg.Dictionary },
-            { 23, arg => arg.Children }
-        };
-
-    public BasicEntity()
+    public static readonly IDictionary<int, Func<BasicEntity, object?>> TestIndexToObjectAccessMap = new Dictionary<
+        int,
+        Func<BasicEntity, object?>
+    >
     {
-    }
+        { 10, arg => arg.Name },
+        { 11, arg => arg.City },
+        { 12, arg => arg.Country },
+        { 13, arg => arg.Population },
+        { 14, arg => arg.Self },
+        { 15, arg => arg.Money },
+        { 16, arg => arg.Month },
+        { 17, arg => arg.Time },
+        { 18, arg => arg.Id },
+        { 19, arg => arg.NullableValue },
+        { 20, arg => arg.Other },
+        { 21, arg => arg.Array },
+        { 22, arg => arg.Dictionary },
+        { 23, arg => arg.Children },
+    };
+
+    public BasicEntity() { }
 
     public BasicEntity(string? name)
     {
@@ -112,13 +112,14 @@ public class BasicEntity
 
     public BasicEntity[] Children => [new("child1"), new("child2")];
 
-    public Dictionary<string, string> Dictionary => new()
-    {
-        { "A", "B" },
-        { "C", "D" },
-        { "AA", "BB" },
-        { "CC", "DD" }
-    };
+    public Dictionary<string, string> Dictionary =>
+        new()
+        {
+            { "A", "B" },
+            { "C", "D" },
+            { "AA", "BB" },
+            { "CC", "DD" },
+        };
 
     public int? NullableValue { get; set; }
 

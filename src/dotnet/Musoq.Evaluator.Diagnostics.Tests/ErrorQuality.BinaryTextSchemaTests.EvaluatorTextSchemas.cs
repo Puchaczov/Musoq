@@ -12,10 +12,12 @@ public partial class ErrorQualityBinaryTextSchemaTests
     {
         // Arrange — Parse() called on integer column
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: rest
-};
-select l.Data from #A.Entities() a cross apply Parse(a.Population) l";
+        var query = (
+            "text LogLine {\n"
+            + "    Data: rest\n"
+            + "};\n"
+            + "select l.Data from #A.Entities() a cross apply Parse(a.Population) l"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -51,10 +53,12 @@ select l.Data from #A.Entities() a cross apply Parse(a.Population) l";
     {
         // Arrange — Parse() with only 1 argument
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: rest
-};
-select l.Data from #A.Entities() a cross apply Parse(a.Name) l";
+        var query = (
+            "text LogLine {\n"
+            + "    Data: rest\n"
+            + "};\n"
+            + "select l.Data from #A.Entities() a cross apply Parse(a.Name) l"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -72,10 +76,12 @@ select l.Data from #A.Entities() a cross apply Parse(a.Name) l";
     {
         // Arrange — schema defines Data but query accesses Content
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: rest
-};
-select l.Content from #A.Entities() a cross apply Parse<LogLine>(a.Name) l";
+        var query = (
+            "text LogLine {\n"
+            + "    Data: rest\n"
+            + "};\n"
+            + "select l.Content from #A.Entities() a cross apply Parse<LogLine>(a.Name) l"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -93,10 +99,12 @@ select l.Content from #A.Entities() a cross apply Parse<LogLine>(a.Name) l";
     {
         // Arrange — Define binary schema but use Parse<Header>() (text function) with it
         var analyzer = CreateAnalyzer();
-        var query = @"binary Header {
-    Magic: int le
-};
-select l.Magic from #A.Entities() a cross apply Parse(a.Name) l";
+        var query = (
+            "binary Header {\n"
+            + "    Magic: int le\n"
+            + "};\n"
+            + "select l.Magic from #A.Entities() a cross apply Parse(a.Name) l"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -114,10 +122,12 @@ select l.Magic from #A.Entities() a cross apply Parse(a.Name) l";
     {
         // Arrange — Define text schema but use Interpret() (binary function) with it
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: rest
-};
-select h.Data from #A.Entities() a cross apply Interpret<LogLine>(a.Name) h";
+        var query = (
+            "text LogLine {\n"
+            + "    Data: rest\n"
+            + "};\n"
+            + "select h.Data from #A.Entities() a cross apply Interpret<LogLine>(a.Name) h"
+        );
 
         // Act
         var result = analyzer.Analyze(query);

@@ -2,7 +2,8 @@ namespace Musoq.Parser.Nodes;
 
 public class DiffNode : BinaryNode
 {
-    public DiffNode(Node left, Node right) : base(left, right)
+    public DiffNode(Node left, Node right)
+        : base(left, right)
     {
         Id = CalculateId(this);
     }

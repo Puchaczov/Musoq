@@ -10,7 +10,8 @@ public static class TypedProjectionRows
         IEnumerable<TSource> rows,
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return ProjectionRows.ProjectSerial(rows, predicate, project, cancellationToken);
     }
@@ -19,7 +20,8 @@ public static class TypedProjectionRows
         IEnumerable<IReadOnlyList<TSource>> chunks,
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         foreach (var chunk in chunks)
         {
@@ -38,7 +40,8 @@ public static class TypedProjectionRows
         int maxDegreeOfParallelism,
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return ProjectionRows.ProjectParallel(
             rows,
@@ -47,7 +50,8 @@ public static class TypedProjectionRows
             project,
             includeProjected: null,
             PublishValueShard,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static IEnumerable<TOut> ProjectChunkedValuesParallel<TSource, TOut>(
@@ -55,7 +59,8 @@ public static class TypedProjectionRows
         int maxDegreeOfParallelism,
         Func<TSource, bool> predicate,
         Func<TSource, TOut> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return ProjectionRows.ProjectChunksParallel(
             chunks,
@@ -63,14 +68,16 @@ public static class TypedProjectionRows
             predicate,
             project,
             includeProjected: null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static ValueShard<TOut>[] ProjectOptionalValuesParallel<TSource, TOut>(
         IReadOnlyList<TSource> rows,
         int maxDegreeOfParallelism,
         Func<TSource, TOut> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TOut : class
     {
         return ProjectionRows.ProjectParallel(
@@ -80,14 +87,16 @@ public static class TypedProjectionRows
             project,
             static value => value != null,
             PublishValueShard,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public static IEnumerable<TOut> ProjectChunkedOptionalValuesParallel<TSource, TOut>(
         IEnumerable<IReadOnlyList<TSource>> chunks,
         int maxDegreeOfParallelism,
         Func<TSource, TOut> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TOut : class
     {
         return ProjectionRows.ProjectChunksParallel(
@@ -96,13 +105,12 @@ public static class TypedProjectionRows
             static _ => true,
             project,
             static value => value != null,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     private static ValueShard<TOut> PublishValueShard<TOut>(TOut[] shard, int count)
     {
-        return count == 0
-            ? ValueShard<TOut>.Empty
-            : new ValueShard<TOut>(shard, count);
+        return count == 0 ? ValueShard<TOut>.Empty : new ValueShard<TOut>(shard, count);
     }
 }

@@ -13,7 +13,8 @@ public partial class Parser
     private readonly HashSet<string> _enumDeclarationNames = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly Dictionary<string, EnumBackingRange> EnumBackingRanges = new(
-        StringComparer.OrdinalIgnoreCase)
+        StringComparer.OrdinalIgnoreCase
+    )
     {
         ["byte"] = new("byte", 8, false),
         ["sbyte"] = new("sbyte", 8, true),
@@ -22,7 +23,7 @@ public partial class Parser
         ["int"] = new("int", 32, true),
         ["uint"] = new("uint", 32, false),
         ["long"] = new("long", 64, true),
-        ["ulong"] = new("ulong", 64, false)
+        ["ulong"] = new("ulong", 64, false),
     };
 
     private bool IsEnumDeclarationStart()
@@ -36,18 +37,22 @@ public partial class Parser
         {
             statement = ComposeAndSkipIfPresent(
                 parser => new StatementNode(parser.ComposeEnumDeclaration()),
-                TokenType.Semicolon);
+                TokenType.Semicolon
+            );
             return true;
         }
 
-        if (Current.TokenType == TokenType.Identifier &&
-            Current.Value.Equals("create", StringComparison.OrdinalIgnoreCase))
+        if (
+            Current.TokenType == TokenType.Identifier
+            && Current.Value.Equals("create", StringComparison.OrdinalIgnoreCase)
+        )
         {
             throw new SyntaxException(
                 "CREATE TYPE ... AS ENUM is not supported. Use Musoq syntax: enum Name : int { Member = 1 };",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2048_UnsupportedEnumSyntax,
-                Current.Span);
+                Current.Span
+            );
         }
 
         statement = null!;
@@ -56,8 +61,8 @@ public partial class Parser
 
     private bool IsContextualStatementWord(string value)
     {
-        return Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function &&
-               Current.Value.Equals(value, StringComparison.OrdinalIgnoreCase);
+        return Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function
+            && Current.Value.Equals(value, StringComparison.OrdinalIgnoreCase);
     }
 
     private EnumDeclarationNode ComposeEnumDeclaration()
@@ -73,20 +78,23 @@ public partial class Parser
                 throw EnumSyntaxException(
                     DiagnosticCode.MQ2042_InvalidEnumDeclaration,
                     "FLAGS must be followed by ENUM in a query-local enum declaration.",
-                    Current.Span);
+                    Current.Span
+                );
         }
 
         if (!IsContextualStatementWord("enum"))
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2042_InvalidEnumDeclaration,
                 "Expected ENUM at the start of a query-local enum declaration.",
-                Current.Span);
+                Current.Span
+            );
 
         if (Current.TokenType == TokenType.Function)
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2048_UnsupportedEnumSyntax,
                 "MySQL-style ENUM(...) declarations are not supported. Declare a named Musoq enum with an integral backing type.",
-                Current.Span);
+                Current.Span
+            );
 
         _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
         ConsumeAndGetToken();
@@ -96,13 +104,15 @@ public partial class Parser
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2042_InvalidEnumDeclaration,
                 $"Enum type '{nameToken.Value}' is declared more than once; query-local type names are case-insensitive.",
-                nameToken.Span);
+                nameToken.Span
+            );
 
         if (Current.TokenType != TokenType.Colon)
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2042_InvalidEnumDeclaration,
                 "An enum declaration requires ': <integral backing type>' after its name.",
-                Current.Span);
+                Current.Span
+            );
 
         Consume(TokenType.Colon);
         var backingToken = ConsumeEnumIdentifier("enum backing type");
@@ -110,20 +120,23 @@ public partial class Parser
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2043_InvalidEnumBackingType,
                 $"Enum backing type '{backingToken.Value}' is not supported. Use byte, sbyte, short, ushort, int, uint, long, or ulong.",
-                backingToken.Span);
+                backingToken.Span
+            );
 
         if (Current.TokenType != TokenType.LBracket)
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2042_InvalidEnumDeclaration,
                 "An enum declaration requires a '{ ... }' member body.",
-                Current.Span);
+                Current.Span
+            );
 
         Consume(TokenType.LBracket);
         if (Current.TokenType == TokenType.RBracket)
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2047_EmptyEnumDeclaration,
                 $"Enum '{nameToken.Value}' must declare at least one explicitly-valued member.",
-                Current.Span);
+                Current.Span
+            );
 
         var members = new List<EnumMemberNode>();
         var memberNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -134,7 +147,8 @@ public partial class Parser
                 throw EnumSyntaxException(
                     DiagnosticCode.MQ2017_UnexpectedEndOfFile,
                     "The enum declaration ends unexpectedly; expected a closing '}'.",
-                    new TextSpan(Current.Span.Start, 0));
+                    new TextSpan(Current.Span.Start, 0)
+                );
 
             var memberNameToken = ConsumeEnumIdentifier("enum member name");
             if (memberNames.TryGetValue(memberNameToken.Value, out var existingName))
@@ -142,10 +156,7 @@ public partial class Parser
                 var detail = existingName.Equals(memberNameToken.Value, StringComparison.Ordinal)
                     ? $"Enum member '{memberNameToken.Value}' is declared more than once."
                     : $"Enum members '{existingName}' and '{memberNameToken.Value}' differ only by casing, which is not allowed.";
-                throw EnumSyntaxException(
-                    DiagnosticCode.MQ2045_DuplicateEnumMember,
-                    detail,
-                    memberNameToken.Span);
+                throw EnumSyntaxException(DiagnosticCode.MQ2045_DuplicateEnumMember, detail, memberNameToken.Span);
             }
 
             memberNames.Add(memberNameToken.Value, memberNameToken.Value);
@@ -154,7 +165,8 @@ public partial class Parser
                 throw EnumSyntaxException(
                     DiagnosticCode.MQ2044_MissingEnumMemberValue,
                     $"Enum member '{memberNameToken.Value}' requires an explicit integral value.",
-                    memberNameToken.Span);
+                    memberNameToken.Span
+                );
 
             Consume(TokenType.Equality);
             var member = ComposeEnumMember(memberNameToken, backingRange);
@@ -166,7 +178,8 @@ public partial class Parser
                     throw EnumSyntaxException(
                         DiagnosticCode.MQ2042_InvalidEnumDeclaration,
                         "Enum members must be separated with commas.",
-                        Current.Span);
+                        Current.Span
+                    );
 
                 break;
             }
@@ -185,7 +198,8 @@ public partial class Parser
             members,
             nameToken.Span,
             backingToken.Span,
-            startToken.Span.Through(closingToken.Span));
+            startToken.Span.Through(closingToken.Span)
+        );
     }
 
     private EnumMemberNode ComposeEnumMember(Token nameToken, EnumBackingRange backingRange)
@@ -195,13 +209,21 @@ public partial class Parser
         if (hasSeparateNegativeSign)
             Consume(TokenType.Hyphen);
 
-        if (Current.TokenType is not (TokenType.Integer or TokenType.HexadecimalInteger or
-            TokenType.BinaryInteger or TokenType.OctalInteger))
+        if (
+            Current.TokenType
+            is not (
+                TokenType.Integer
+                or TokenType.HexadecimalInteger
+                or TokenType.BinaryInteger
+                or TokenType.OctalInteger
+            )
+        )
         {
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2044_MissingEnumMemberValue,
                 $"Enum member '{nameToken.Value}' requires an explicit integral literal value.",
-                Current.Span);
+                Current.Span
+            );
         }
 
         var valueToken = ConsumeAndGetToken();
@@ -221,7 +243,8 @@ public partial class Parser
                 DiagnosticCode.MQ2046_EnumMemberValueOutOfRange,
                 $"Enum member value '{literalText}' is not a valid integral literal.",
                 valueSpan,
-                ex);
+                ex
+            );
         }
 
         var numericValue = isNegative ? -magnitude : magnitude;
@@ -229,7 +252,8 @@ public partial class Parser
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2046_EnumMemberValueOutOfRange,
                 $"Enum member value '{literalText}' is outside the range of backing type '{backingRange.CanonicalName}'.",
-                valueSpan);
+                valueSpan
+            );
 
         var rawValue = backingRange.ToRawValue(numericValue);
         return new EnumMemberNode(
@@ -238,7 +262,8 @@ public partial class Parser
             literalText,
             nameToken.Span,
             valueSpan,
-            nameToken.Span.Through(valueSpan));
+            nameToken.Span.Through(valueSpan)
+        );
     }
 
     private Token ConsumeEnumIdentifier(string role)
@@ -248,7 +273,8 @@ public partial class Parser
             throw EnumSyntaxException(
                 DiagnosticCode.MQ2042_InvalidEnumDeclaration,
                 $"Expected an identifier for the {role}.",
-                Current.Span);
+                Current.Span
+            );
 
         return ConsumeAndGetToken(TokenType.Identifier);
     }
@@ -261,7 +287,7 @@ public partial class Parser
             TokenType.HexadecimalInteger => (token.Value[2..], 16),
             TokenType.BinaryInteger => (token.Value[2..], 2),
             TokenType.OctalInteger => (token.Value[2..], 8),
-            _ => throw new InvalidOperationException($"Token '{token.TokenType}' is not an integral literal.")
+            _ => throw new InvalidOperationException($"Token '{token.TokenType}' is not an integral literal."),
         };
 
         if (radix == 10)
@@ -275,7 +301,7 @@ public partial class Parser
                 >= '0' and <= '9' => character - '0',
                 >= 'a' and <= 'f' => character - 'a' + 10,
                 >= 'A' and <= 'F' => character - 'A' + 10,
-                _ => -1
+                _ => -1,
             };
 
             if (digit < 0 || digit >= radix)
@@ -291,7 +317,8 @@ public partial class Parser
         DiagnosticCode code,
         string message,
         TextSpan span,
-        Exception? innerException = null)
+        Exception? innerException = null
+    )
     {
         return innerException == null
             ? new SyntaxException(message, _lexer.AlreadyResolvedQueryPart, code, span)

@@ -9,4 +9,5 @@ public sealed record TableViaRowsResultInfo(
     string ShapeTypeName,
     IReadOnlyList<FieldBinding> ShapeFields,
     IReadOnlyList<ExecutionColumnMetadataField> Columns,
-    string? ColumnsFieldName = null);
+    string? ColumnsFieldName = null
+);

@@ -23,7 +23,8 @@ internal sealed class EnumSourceCapabilityException : Exception, IDiagnosticExce
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty)
+        return Diagnostic
+            .Error(Code, Message, Span ?? TextSpan.Empty)
             .WithArgument("source", SourceName)
             .WithArgument("column", ColumnName);
     }

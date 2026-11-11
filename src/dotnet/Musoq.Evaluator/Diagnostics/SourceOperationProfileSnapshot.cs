@@ -6,4 +6,5 @@ public sealed record SourceOperationProfileSnapshot(
     string Name,
     SourceDiagnosticOperation Operation,
     long Count,
-    TimeSpan ElapsedTime);
+    TimeSpan ElapsedTime
+);

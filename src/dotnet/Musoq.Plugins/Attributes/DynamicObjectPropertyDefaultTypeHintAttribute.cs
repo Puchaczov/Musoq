@@ -15,7 +15,6 @@ public sealed class DynamicObjectPropertyDefaultTypeHintAttribute : Attribute
         Type = type;
     }
 
-
     /// <summary>
     ///     Gets the type of the property.
     /// </summary>

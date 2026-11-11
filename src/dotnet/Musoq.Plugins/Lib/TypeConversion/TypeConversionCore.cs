@@ -22,9 +22,13 @@ internal static class TypeConversionCore
                 float floatValue => ConvertFloatingToInt32(floatValue, policy),
                 double doubleValue => ConvertFloatingToInt32(doubleValue, policy),
                 decimal decimalValue => ConvertDecimalToInt32(decimalValue, policy),
-                string stringValue when AllowsText(policy) => int.TryParse(stringValue, out var parsedInt) ? parsedInt : null,
+                string stringValue when AllowsText(policy) => int.TryParse(stringValue, out var parsedInt)
+                    ? parsedInt
+                    : null,
                 bool boolValue when AllowsBoolean(policy) => boolValue ? 1 : 0,
-                _ => policy == TypeConversionPolicy.NumericOnly ? null : Convert.ToInt32(value, CultureInfo.InvariantCulture)
+                _ => policy == TypeConversionPolicy.NumericOnly
+                    ? null
+                    : Convert.ToInt32(value, CultureInfo.InvariantCulture),
             };
         }
         catch
@@ -55,7 +59,9 @@ internal static class TypeConversionCore
                     ? parsedLong
                     : null,
                 bool boolValue when AllowsBoolean(policy) => boolValue ? 1L : 0L,
-                _ => policy == TypeConversionPolicy.NumericOnly ? null : Convert.ToInt64(value, CultureInfo.InvariantCulture)
+                _ => policy == TypeConversionPolicy.NumericOnly
+                    ? null
+                    : Convert.ToInt64(value, CultureInfo.InvariantCulture),
             };
         }
         catch
@@ -82,9 +88,13 @@ internal static class TypeConversionCore
                 ulong ulongValue => ulongValue,
                 float floatValue => ConvertFloatingToDecimal(floatValue, policy),
                 double doubleValue => ConvertFloatingToDecimal(doubleValue, policy),
-                string stringValue when AllowsText(policy) => decimal.TryParse(stringValue, out var parsedDecimal) ? parsedDecimal : null,
+                string stringValue when AllowsText(policy) => decimal.TryParse(stringValue, out var parsedDecimal)
+                    ? parsedDecimal
+                    : null,
                 bool boolValue when AllowsBoolean(policy) => boolValue ? 1m : 0m,
-                _ => policy == TypeConversionPolicy.NumericOnly ? null : Convert.ToDecimal(value, CultureInfo.InvariantCulture)
+                _ => policy == TypeConversionPolicy.NumericOnly
+                    ? null
+                    : Convert.ToDecimal(value, CultureInfo.InvariantCulture),
             };
         }
         catch
@@ -108,7 +118,7 @@ internal static class TypeConversionCore
                 double doubleValue => doubleValue,
                 float floatValue => floatValue,
                 string stringValue => double.TryParse(stringValue, out var parsed) ? parsed : double.NaN,
-                _ => Convert.ToDouble(value, CultureInfo.InvariantCulture)
+                _ => Convert.ToDouble(value, CultureInfo.InvariantCulture),
             };
 
             return double.IsNaN(result) || double.IsInfinity(result) ? null : result;
@@ -144,10 +154,7 @@ internal static class TypeConversionCore
             return null;
 
         var result = Convert.ToInt32(value);
-        return policy == TypeConversionPolicy.Comparison ||
-               Math.Abs(value - result) <= float.Epsilon
-            ? result
-            : null;
+        return policy == TypeConversionPolicy.Comparison || Math.Abs(value - result) <= float.Epsilon ? result : null;
     }
 
     private static int? ConvertFloatingToInt32(double value, TypeConversionPolicy policy)
@@ -159,10 +166,7 @@ internal static class TypeConversionCore
             return null;
 
         var result = Convert.ToInt32(value);
-        return policy == TypeConversionPolicy.Comparison ||
-               Math.Abs(value - result) <= double.Epsilon
-            ? result
-            : null;
+        return policy == TypeConversionPolicy.Comparison || Math.Abs(value - result) <= double.Epsilon ? result : null;
     }
 
     private static int? ConvertDecimalToInt32(decimal value, TypeConversionPolicy policy)
@@ -183,10 +187,7 @@ internal static class TypeConversionCore
             return null;
 
         var result = Convert.ToInt64(value);
-        return policy == TypeConversionPolicy.Comparison ||
-               Math.Abs(value - result) <= float.Epsilon
-            ? result
-            : null;
+        return policy == TypeConversionPolicy.Comparison || Math.Abs(value - result) <= float.Epsilon ? result : null;
     }
 
     private static long? ConvertFloatingToInt64(double value, TypeConversionPolicy policy)
@@ -198,10 +199,7 @@ internal static class TypeConversionCore
             return null;
 
         var result = Convert.ToInt64(value);
-        return policy == TypeConversionPolicy.Comparison ||
-               Math.Abs(value - result) <= double.Epsilon
-            ? result
-            : null;
+        return policy == TypeConversionPolicy.Comparison || Math.Abs(value - result) <= double.Epsilon ? result : null;
     }
 
     private static long? ConvertDecimalToInt64(decimal value, TypeConversionPolicy policy)
@@ -219,8 +217,7 @@ internal static class TypeConversionCore
             return null;
 
         var result = Convert.ToDecimal(value);
-        return policy != TypeConversionPolicy.NumericOnly ||
-               Math.Abs(value - Convert.ToSingle(result)) <= float.Epsilon
+        return policy != TypeConversionPolicy.NumericOnly || Math.Abs(value - Convert.ToSingle(result)) <= float.Epsilon
             ? result
             : null;
     }
@@ -231,8 +228,8 @@ internal static class TypeConversionCore
             return null;
 
         var result = Convert.ToDecimal(value);
-        return policy != TypeConversionPolicy.NumericOnly ||
-               Math.Abs(value - Convert.ToDouble(result)) <= double.Epsilon
+        return
+            policy != TypeConversionPolicy.NumericOnly || Math.Abs(value - Convert.ToDouble(result)) <= double.Epsilon
             ? result
             : null;
     }

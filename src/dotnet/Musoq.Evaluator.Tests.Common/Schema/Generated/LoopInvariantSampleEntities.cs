@@ -63,20 +63,20 @@ public static class LoopInvariantSampleCounters
         LeafStableValueReads++;
         return value;
     }
-
 }
 
 public sealed class LoopInvariantSampleOuter
 {
-    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap =
-        new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-        {
-            [nameof(Id)] = 0,
-            [nameof(Value)] = 1,
-            [nameof(VolatileValue)] = 2,
-            [nameof(Middles)] = 3,
-            [nameof(EmptyMiddles)] = 4
-        };
+    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>(
+        StringComparer.OrdinalIgnoreCase
+    )
+    {
+        [nameof(Id)] = 0,
+        [nameof(Value)] = 1,
+        [nameof(VolatileValue)] = 2,
+        [nameof(Middles)] = 3,
+        [nameof(EmptyMiddles)] = 4,
+    };
 
     public static readonly IReadOnlyDictionary<int, Func<LoopInvariantSampleOuter, object?>> IndexToObjectAccessMap =
         new Dictionary<int, Func<LoopInvariantSampleOuter, object?>>
@@ -85,7 +85,7 @@ public sealed class LoopInvariantSampleOuter
             [1] = row => row.Value,
             [2] = row => row.VolatileValue,
             [3] = row => row.Middles,
-            [4] = row => row.EmptyMiddles
+            [4] = row => row.EmptyMiddles,
         };
 
     public int Id { get; init; }
@@ -102,14 +102,15 @@ public sealed class LoopInvariantSampleOuter
 
 public sealed class LoopInvariantSampleMiddle
 {
-    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap =
-        new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-        {
-            [nameof(Id)] = 0,
-            [nameof(Value)] = 1,
-            [nameof(VolatileValue)] = 2,
-            [nameof(Leaves)] = 3
-        };
+    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>(
+        StringComparer.OrdinalIgnoreCase
+    )
+    {
+        [nameof(Id)] = 0,
+        [nameof(Value)] = 1,
+        [nameof(VolatileValue)] = 2,
+        [nameof(Leaves)] = 3,
+    };
 
     public static readonly IReadOnlyDictionary<int, Func<LoopInvariantSampleMiddle, object?>> IndexToObjectAccessMap =
         new Dictionary<int, Func<LoopInvariantSampleMiddle, object?>>
@@ -117,7 +118,7 @@ public sealed class LoopInvariantSampleMiddle
             [0] = row => row.Id,
             [1] = row => row.Value,
             [2] = row => row.VolatileValue,
-            [3] = row => row.Leaves
+            [3] = row => row.Leaves,
         };
 
     public int Id { get; init; }
@@ -132,22 +133,18 @@ public sealed class LoopInvariantSampleMiddle
 
 public sealed class LoopInvariantSampleLeaf
 {
-    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap =
-        new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-        {
-            [nameof(Id)] = 0,
-            [nameof(Value)] = 1
-        };
+    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>(
+        StringComparer.OrdinalIgnoreCase
+    )
+    {
+        [nameof(Id)] = 0,
+        [nameof(Value)] = 1,
+    };
 
     public static readonly IReadOnlyDictionary<int, Func<LoopInvariantSampleLeaf, object?>> IndexToObjectAccessMap =
-        new Dictionary<int, Func<LoopInvariantSampleLeaf, object?>>
-        {
-            [0] = row => row.Id,
-            [1] = row => row.Value
-        };
+        new Dictionary<int, Func<LoopInvariantSampleLeaf, object?>> { [0] = row => row.Id, [1] = row => row.Value };
 
     public int Id { get; init; }
 
     public int Value => LoopInvariantSampleCounters.ReadLeafStable(Id);
-
 }

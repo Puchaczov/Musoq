@@ -11,7 +11,8 @@ public sealed record ExecutionAggregateSet : ExecutionNode
         IReadOnlyList<ExecutionExpression> arguments,
         ExecutionExpression? filterPredicate,
         AggregateAccumulatorField accumulator,
-        ExecutionExpression? accumulatorInput)
+        ExecutionExpression? accumulatorInput
+    )
     {
         Group = group;
         Method = method;
@@ -38,10 +39,9 @@ public sealed record ExecutionAggregateSet : ExecutionNode
         MethodInfo method,
         IReadOnlyList<ExecutionExpression> arguments,
         AggregateAccumulatorField accumulator,
-        ExecutionExpression? accumulatorInput)
-        : this(group, ExecutionClrBindingFactory.FromClr(method), arguments, null, accumulator, accumulatorInput)
-    {
-    }
+        ExecutionExpression? accumulatorInput
+    )
+        : this(group, ExecutionClrBindingFactory.FromClr(method), arguments, null, accumulator, accumulatorInput) { }
 
     internal ExecutionAggregateSet(
         ExecutionVariable group,
@@ -49,8 +49,14 @@ public sealed record ExecutionAggregateSet : ExecutionNode
         IReadOnlyList<ExecutionExpression> arguments,
         ExecutionExpression? filterPredicate,
         AggregateAccumulatorField accumulator,
-        ExecutionExpression? accumulatorInput)
-        : this(group, ExecutionClrBindingFactory.FromClr(method), arguments, filterPredicate, accumulator, accumulatorInput)
-    {
-    }
+        ExecutionExpression? accumulatorInput
+    )
+        : this(
+            group,
+            ExecutionClrBindingFactory.FromClr(method),
+            arguments,
+            filterPredicate,
+            accumulator,
+            accumulatorInput
+        ) { }
 }

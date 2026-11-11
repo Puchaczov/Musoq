@@ -33,15 +33,16 @@ public abstract partial class TextInterpreterBase<TOut>
         }
     }
 
-    protected virtual void AttachPartialFieldNames(TOut value, IReadOnlySet<string> completedFields)
-    {
-    }
+    protected virtual void AttachPartialFieldNames(TOut value, IReadOnlySet<string> completedFields) { }
 
     /// <summary>
     ///     Parses a nested schema at the current cursor position and preserves its field path on failure.
     /// </summary>
-    protected TChild ParseNested<TChild>(ITextInterpreter<TChild> interpreter, ReadOnlySpan<char> text,
-        string fieldName)
+    protected TChild ParseNested<TChild>(
+        ITextInterpreter<TChild> interpreter,
+        ReadOnlySpan<char> text,
+        string fieldName
+    )
     {
         ArgumentNullException.ThrowIfNull(interpreter);
 
@@ -62,8 +63,12 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <summary>
     ///     Parses a nested schema at an explicit cursor position and preserves its field path on failure.
     /// </summary>
-    protected TChild ParseNestedAt<TChild>(ITextInterpreter<TChild> interpreter, ReadOnlySpan<char> text,
-        int offset, string fieldName)
+    protected TChild ParseNestedAt<TChild>(
+        ITextInterpreter<TChild> interpreter,
+        ReadOnlySpan<char> text,
+        int offset,
+        string fieldName
+    )
     {
         ArgumentNullException.ThrowIfNull(interpreter);
 
@@ -99,7 +104,8 @@ public abstract partial class TextInterpreterBase<TOut>
     private readonly record struct PartialCaptureState(
         ISet<string>? ParsedFields,
         TOut? ParsedValue,
-        string? FieldName);
+        string? FieldName
+    );
 
     private static ParseException AddNestedFieldContext(ParseException exception, string fieldName)
     {
@@ -109,6 +115,7 @@ public abstract partial class TextInterpreterBase<TOut>
             ParserFieldPath.Qualify(exception.FieldName, fieldName),
             exception.Position,
             exception.Details,
-            exception);
+            exception
+        );
     }
 }

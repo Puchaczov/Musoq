@@ -26,9 +26,7 @@ internal static class NullableAggregateCore
         if (!shouldInclude(current))
             return;
 
-        sum = hasValue
-            ? checked(sum + current)
-            : current;
+        sum = hasValue ? checked(sum + current) : current;
         hasValue = true;
     }
 
@@ -38,9 +36,7 @@ internal static class NullableAggregateCore
         if (!sourceHasValue)
             return;
 
-        targetSum = targetHasValue
-            ? checked(targetSum + sourceSum)
-            : sourceSum;
+        targetSum = targetHasValue ? checked(targetSum + sourceSum) : sourceSum;
         targetHasValue = true;
     }
 
@@ -57,7 +53,13 @@ internal static class NullableAggregateCore
         hasValue = true;
     }
 
-    public static void MergeBest<T>(ref bool targetHasValue, ref T targetBest, bool sourceHasValue, T sourceBest, Func<T, T, bool> isBetter)
+    public static void MergeBest<T>(
+        ref bool targetHasValue,
+        ref T targetBest,
+        bool sourceHasValue,
+        T sourceBest,
+        Func<T, T, bool> isBetter
+    )
         where T : struct
     {
         if (!sourceHasValue)

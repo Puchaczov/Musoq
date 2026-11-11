@@ -21,10 +21,12 @@ public sealed partial class ExecutionShapeResolver
             if (field.Name.StartsWith('_'))
                 continue;
 
-            var shape = schemaRegistry == null ? null : new TextResultShapeBinding(schemaRegistry).Field(text.Name, field);
-            var (columnType, intendedTypeName) = shape == null
-                ? InterpretationTextFieldTypeResolver.Resolve(text.Name, field)
-                : (shape.ClrType, shape.TypeName);
+            var shape =
+                schemaRegistry == null ? null : new TextResultShapeBinding(schemaRegistry).Field(text.Name, field);
+            var (columnType, intendedTypeName) =
+                shape == null
+                    ? InterpretationTextFieldTypeResolver.Resolve(text.Name, field)
+                    : (shape.ClrType, shape.TypeName);
 
             columns.Add(new ColumnSchema(field.Name, columnType, columns.Count, intendedTypeName));
         }
@@ -35,12 +37,15 @@ public sealed partial class ExecutionShapeResolver
     private static void AddInheritedTextFields(
         TextSchemaNode text,
         IDictionary<string, TextFieldDefinitionNode> fieldsByName,
-        SchemaRegistry? schemaRegistry)
+        SchemaRegistry? schemaRegistry
+    )
     {
-        if (string.IsNullOrWhiteSpace(text.Extends) ||
-            schemaRegistry == null ||
-            !schemaRegistry.TryGetSchema(text.Extends, out var registration) ||
-            registration?.Node is not TextSchemaNode parent)
+        if (
+            string.IsNullOrWhiteSpace(text.Extends)
+            || schemaRegistry == null
+            || !schemaRegistry.TryGetSchema(text.Extends, out var registration)
+            || registration?.Node is not TextSchemaNode parent
+        )
         {
             return;
         }

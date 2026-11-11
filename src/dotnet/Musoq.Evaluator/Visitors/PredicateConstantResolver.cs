@@ -28,7 +28,7 @@ internal sealed class PredicateConstantResolver
         {
             ParameterReferenceNode parameter => parameter.Name,
             ScriptVariableReferenceNode variable => variable.Name,
-            _ => null
+            _ => null,
         };
         if (name is null || !_declarations.TryGetValue(name, out var initializer) || !resolving.Add(name))
             return null;

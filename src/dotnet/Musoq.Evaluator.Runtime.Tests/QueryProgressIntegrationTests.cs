@@ -18,12 +18,7 @@ public sealed class QueryProgressIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] =
-            [
-                new BasicEntity("001"),
-                new BasicEntity("002"),
-                new BasicEntity("003")
-            ]
+            ["#A"] = [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003")],
         };
         var snapshots = new List<QueryProgressEventArgs>();
         var telemetryOrder = new List<string>();
@@ -35,11 +30,9 @@ public sealed class QueryProgressIntegrationTests : BasicEntityTestBase
         };
         vm.PhaseChanged += (_, args) => telemetryOrder.Add($"phase-{args.Phase}");
 
-        var table = vm.Run(new QueryProgressOptions
-        {
-            RowsPerUpdate = 1,
-            MinimumInterval = System.TimeSpan.FromDays(1)
-        });
+        var table = vm.Run(
+            new QueryProgressOptions { RowsPerUpdate = 1, MinimumInterval = System.TimeSpan.FromDays(1) }
+        );
 
         Assert.AreEqual(3, table.Count);
         Assert.IsTrue(snapshots.Count >= 1);
@@ -47,9 +40,7 @@ public sealed class QueryProgressIntegrationTests : BasicEntityTestBase
         Assert.AreEqual(3, snapshots[^1].QueryRowsProcessed);
         Assert.IsNull(snapshots[^1].SourceContextId);
         Assert.IsTrue(snapshots.Exists(static snapshot => snapshot.SourceContextId != null));
-        Assert.IsLessThan(
-            telemetryOrder.IndexOf("phase-End"),
-            telemetryOrder.IndexOf("progress-final"));
+        Assert.IsLessThan(telemetryOrder.IndexOf("phase-End"), telemetryOrder.IndexOf("progress-final"));
     }
 
     [TestMethod]
@@ -61,19 +52,20 @@ public sealed class QueryProgressIntegrationTests : BasicEntityTestBase
             "QueryProgress_QueryScoped",
             new ProjectionSensitiveWildcardSchemaProvider(
                 new ProjectionSensitiveWildcardRecorder(),
-                queryScopedRowsEnabled: true),
-            new TestsLoggerResolver());
+                queryScopedRowsEnabled: true
+            ),
+            new TestsLoggerResolver()
+        );
         query.QueryProgress += (_, args) => snapshots.Add(args);
 
-        using var table = query.Run(new QueryProgressOptions
-        {
-            RowsPerUpdate = 1,
-            MinimumInterval = System.TimeSpan.FromDays(1)
-        });
+        using var table = query.Run(
+            new QueryProgressOptions { RowsPerUpdate = 1, MinimumInterval = System.TimeSpan.FromDays(1) }
+        );
 
         Assert.AreEqual(1, table.Count);
-        Assert.IsTrue(snapshots.Any(static snapshot =>
-            snapshot.SourceContextId != null && snapshot.SourceRowsProcessed == 1));
+        Assert.IsTrue(
+            snapshots.Any(static snapshot => snapshot.SourceContextId != null && snapshot.SourceRowsProcessed == 1)
+        );
         Assert.IsTrue(snapshots[^1].IsFinal);
         Assert.AreEqual(1, snapshots[^1].QueryRowsProcessed);
     }
@@ -87,15 +79,15 @@ public sealed class QueryProgressIntegrationTests : BasicEntityTestBase
             "QueryProgress_Async",
             new ProjectionSensitiveWildcardSchemaProvider(
                 new ProjectionSensitiveWildcardRecorder(),
-                queryScopedRowsEnabled: true),
-            new TestsLoggerResolver());
+                queryScopedRowsEnabled: true
+            ),
+            new TestsLoggerResolver()
+        );
         query.QueryProgress += (_, args) => snapshots.Add(args);
 
-        using var table = await query.RunAsync(new QueryProgressOptions
-        {
-            RowsPerUpdate = 1,
-            MinimumInterval = System.TimeSpan.FromDays(1)
-        });
+        using var table = await query.RunAsync(
+            new QueryProgressOptions { RowsPerUpdate = 1, MinimumInterval = System.TimeSpan.FromDays(1) }
+        );
 
         Assert.AreEqual(1, table.Count);
         Assert.IsTrue(snapshots.Count > 0);

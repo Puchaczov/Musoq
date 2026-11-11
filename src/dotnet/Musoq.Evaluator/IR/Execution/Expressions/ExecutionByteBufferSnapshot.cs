@@ -6,13 +6,14 @@ namespace Musoq.Evaluator.IR.Execution;
 internal enum ExecutionBufferEmptyResult
 {
     EmptyArray,
-    Null
+    Null,
 }
 
 /// <summary>An identity-sensitive owned snapshot selected before executable lowering.</summary>
 public sealed record ExecutionByteBufferSnapshot : ExecutionExpression
 {
     private IReadOnlyList<ExecutionExpression> _arguments = [];
+
     internal ExecutionByteBufferSnapshot(ExecutionByteBufferProgram program)
         : base(ExecutionClrBindingFactory.FromClr(typeof(byte[])))
     {
@@ -22,13 +23,16 @@ public sealed record ExecutionByteBufferSnapshot : ExecutionExpression
     }
 
     internal ExecutionByteBufferProgram? Program { get; init; }
+
     internal ExecutionByteBufferSnapshot(IReadOnlyList<ExecutionExpression> arguments, BinaryBufferInputPlan plan)
         : base(ExecutionClrBindingFactory.FromClr(typeof(byte[])))
     {
         Arguments = arguments;
         MaximumReadBytes = plan.MaximumReadBytes;
-        EmptyResult = plan.EmptyResult == BinaryBufferEmptyResult.Null
-            ? ExecutionBufferEmptyResult.Null : ExecutionBufferEmptyResult.EmptyArray;
+        EmptyResult =
+            plan.EmptyResult == BinaryBufferEmptyResult.Null
+                ? ExecutionBufferEmptyResult.Null
+                : ExecutionBufferEmptyResult.EmptyArray;
         HasRange = plan.HasRange;
     }
 

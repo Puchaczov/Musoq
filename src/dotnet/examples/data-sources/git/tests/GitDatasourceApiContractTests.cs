@@ -1,8 +1,8 @@
-using Musoq.Tests.Common;
 using Musoq.Evaluator;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.Optimization;
+using Musoq.Tests.Common;
 
 namespace Musoq.Examples.DataSources.Git.Tests;
 
@@ -17,27 +17,30 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
     public void Engine_WhenRunningDirectGitQuery_ShouldPropagateDatasourceApiContexts()
     {
         var recorder = new GitDataSourceApiRecorder();
-        recorder.RuntimeSettingRequirements.Add(new SourceRuntimeSettingRequirement(
-            RuntimeTokenName,
-            Required: false,
-            Secret: false,
-            SourceRuntimeSettingPhase.All,
-            "Token used by Git datasource API contract tests."));
+        recorder.RuntimeSettingRequirements.Add(
+            new SourceRuntimeSettingRequirement(
+                RuntimeTokenName,
+                Required: false,
+                Secret: false,
+                SourceRuntimeSettingPhase.All,
+                "Token used by Git datasource API contract tests."
+            )
+        );
         var settings = new Dictionary<string, string>
         {
             [GitSchema.RepositoryRuntimeSetting] = RuntimeRepository,
-            [RuntimeTokenName] = RuntimeTokenValue
+            [RuntimeTokenName] = RuntimeTokenValue,
         };
         var resolver = new StaticSettingsResolver(settings);
         var options = new CompilationOptions(
-                usePrimitiveTypeValidation: false,
-                sourceRuntimeSettingsResolver: resolver)
-            .WithInstrumentationMode(QueryInstrumentationMode.SourceBoundaries);
+            usePrimitiveTypeValidation: false,
+            sourceRuntimeSettingsResolver: resolver
+        ).WithInstrumentationMode(QueryInstrumentationMode.SourceBoundaries);
         var provider = new GitSchemaProvider(recorder);
         const string query =
-            "select g.ShortSha from #git.commits('musoq') g " +
-            "where g.AuthorName = 'Bob Evaluator' " +
-            "order by g.AuthoredAt desc skip 0 take 1";
+            "select g.ShortSha from #git.commits('musoq') g "
+            + "where g.AuthorName = 'Bob Evaluator' "
+            + "order by g.AuthoredAt desc skip 0 take 1";
         var progress = new List<DataSourceEventArgs>();
         using var cancellation = new CancellationTokenSource();
 
@@ -97,41 +100,41 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
         Assert.AreEqual(1, rowSource.Execution.Plan.AcceptedOrderBy.Count);
         Assert.AreEqual(0L, rowSource.Execution.Plan.AcceptedSkip);
         Assert.AreEqual(1L, rowSource.Execution.Plan.AcceptedTake);
-        Assert.AreEqual(RuntimeRepository, rowSource.Execution.SourceRuntimeSettings[GitSchema.RepositoryRuntimeSetting]);
+        Assert.AreEqual(
+            RuntimeRepository,
+            rowSource.Execution.SourceRuntimeSettings[GitSchema.RepositoryRuntimeSetting]
+        );
         Assert.AreEqual(RuntimeTokenValue, rowSource.Execution.SourceRuntimeSettings[RuntimeTokenName]);
         Assert.IsTrue(rowSource.Execution.CancellationCanBeCanceled);
         Assert.IsTrue(rowSource.Execution.Diagnostics.IsEnabled);
         Assert.IsTrue(rowSource.Execution.AllColumns.Any(column => column.ColumnName == nameof(GitCommitRow.ShortSha)));
 
-        Assert.IsTrue(recorder.GetTableCalls.Any(call =>
-            call.Name == GitSchema.Commits &&
-            call.Columns.Any(column => column.ColumnName == nameof(GitCommitRow.ShortSha))));
-        Assert.IsTrue(recorder.GetTableCalls.Any(call =>
-            call.Metadata.SourceRuntimeSettings.TryGetValue(RuntimeTokenName, out var token) &&
-            token == RuntimeTokenValue));
+        Assert.IsTrue(
+            recorder.GetTableCalls.Any(call =>
+                call.Name == GitSchema.Commits
+                && call.Columns.Any(column => column.ColumnName == nameof(GitCommitRow.ShortSha))
+            )
+        );
+        Assert.IsTrue(
+            recorder.GetTableCalls.Any(call =>
+                call.Metadata.SourceRuntimeSettings.TryGetValue(RuntimeTokenName, out var token)
+                && token == RuntimeTokenValue
+            )
+        );
 
         CollectionAssert.AreEqual(
-            new[]
-            {
-                DataSourcePhase.Begin,
-                DataSourcePhase.RowsKnown,
-                DataSourcePhase.RowsRead,
-                DataSourcePhase.End
-            },
-            progress.Select(static item => item.Phase).ToArray());
+            new[] { DataSourcePhase.Begin, DataSourcePhase.RowsKnown, DataSourcePhase.RowsRead, DataSourcePhase.End },
+            progress.Select(static item => item.Phase).ToArray()
+        );
         Assert.IsTrue(progress.All(item => item.QueryId == rowSource.Execution.QueryId));
     }
 
     [TestMethod]
     public void Engine_WhenSourceAcceptsPlan_ShouldPassAcceptedExecutionPlanToRowSource()
     {
-        var recorder = new GitDataSourceApiRecorder
-        {
-            PlanResultFactory = CreateAcceptedPlanResult
-        };
+        var recorder = new GitDataSourceApiRecorder { PlanResultFactory = CreateAcceptedPlanResult };
         var provider = new GitSchemaProvider(recorder);
-        const string query =
-            "select g.ShortSha from #git.commits() g order by g.AuthoredAt desc skip 1 take 2";
+        const string query = "select g.ShortSha from #git.commits() g order by g.AuthoredAt desc skip 1 take 2";
 
         var table = Run(query, provider);
 
@@ -155,17 +158,21 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
         var recorder = new GitDataSourceApiRecorder();
         var provider = new GitSchemaProvider(recorder);
         const string query =
-            "param(repo: string = 'musoq') " +
-            "select ShortSha from #git.commits($repo) order by AuthoredAt";
+            "param(repo: string = 'musoq') " + "select ShortSha from #git.commits($repo) order by AuthoredAt";
 
         var compiled = Compile(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "repo", "docs");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "repo",
+            "docs"
+        );
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(recorder.GetTableCalls.Any(call =>
-            call.Parameters.Count == 1 &&
-            Equals(call.Parameters[0], "musoq")));
+        Assert.IsTrue(
+            recorder.GetTableCalls.Any(call => call.Parameters.Count == 1 && Equals(call.Parameters[0], "musoq"))
+        );
         Assert.AreEqual("musoq", recorder.GetTableCalls.Last().Parameters.Single());
         Assert.AreEqual("musoq", recorder.RuntimeSettingsCalls.Last().Parameters.Single());
         Assert.IsFalse(recorder.DescribeSourceCalls.Last().Parameters.Contains("docs"));
@@ -179,9 +186,7 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
         using var cancellation = new CancellationTokenSource();
         var recorder = new GitDataSourceApiRecorder();
         var schema = new GitSchema(recorder);
-        var context = CreateMetadataContext(
-            queryId: "raw-constructor-query",
-            cancellationToken: cancellation.Token);
+        var context = CreateMetadataContext(queryId: "raw-constructor-query", cancellationToken: cancellation.Token);
 
         var allConstructors = schema.GetRawConstructors(context);
         var commitsConstructors = schema.GetRawConstructors(GitSchema.Commits, context);
@@ -206,7 +211,8 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
         var requirements = schema.DescribeSourceRuntimeSettings(
             GitSchema.Commits,
             new SourceRuntimeSettingsDescribeContext(identity, metadata),
-            "musoq");
+            "musoq"
+        );
 
         Assert.IsTrue(requirements.Any(item => item.Name == GitSchema.RepositoryRuntimeSetting));
         var call = recorder.RuntimeSettingsCalls.Single();
@@ -222,20 +228,19 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
         var schema = new GitSchema(recorder);
         var identity = new SourceIdentity("#git", GitSchema.Commits, "source-id", "g");
         var metadata = CreateMetadataContext(
-            columns:
-            [
-                new Musoq.Schema.DataSources.SchemaColumn(nameof(GitCommitRow.ShortSha), 0, typeof(string))
-            ],
+            columns: [new Musoq.Schema.DataSources.SchemaColumn(nameof(GitCommitRow.ShortSha), 0, typeof(string))],
             queryId: "describe-query",
             sourceRuntimeSettings: new Dictionary<string, string>
             {
-                [GitSchema.RepositoryRuntimeSetting] = RuntimeRepository
-            });
+                [GitSchema.RepositoryRuntimeSetting] = RuntimeRepository,
+            }
+        );
 
         var descriptor = schema.DescribeSource(
             GitSchema.Commits,
             new SourceDescribeContext(identity, metadata),
-            "musoq");
+            "musoq"
+        );
 
         Assert.AreEqual(identity, descriptor.Identity);
         Assert.AreEqual(typeof(GitCommitRow), descriptor.RowType);
@@ -253,33 +258,28 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
         var recorder = new GitDataSourceApiRecorder();
         var warning = SourceContractDiagnostic.Warning(
             "Git contract diagnostic emitted by recorder.",
-            "GitContractProbe");
+            "GitContractProbe"
+        );
         recorder.DescribeSourceContractDiagnostics.Add(warning);
         recorder.PlanContractDiagnostics.Add(warning);
 
-        var result = CompileWithDiagnostics(
-            "select ShortSha from #git.commits() g",
-            new GitSchemaProvider(recorder));
+        var result = CompileWithDiagnostics("select ShortSha from #git.commits() g", new GitSchemaProvider(recorder));
 
         Assert.IsTrue(result.Succeeded);
-        var warnings = result.Warnings
-            .Where(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
+        var warnings = result
+            .Warnings.Where(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning)
             .ToArray();
         Assert.AreEqual(1, warnings.Length);
         StringAssert.Contains(warnings[0].Message, "origin=DescribeSource");
         StringAssert.Contains(warnings[0].Message, "sourceCode=GitContractProbe");
     }
 
-    private static void AssertContainsColumn(
-        IEnumerable<ISchemaColumn> columns,
-        string columnName)
+    private static void AssertContainsColumn(IEnumerable<ISchemaColumn> columns, string columnName)
     {
         Assert.IsTrue(columns.Any(column => column.ColumnName == columnName), columnName);
     }
 
-    private static void AssertRequiredColumn(
-        IEnumerable<SourceColumnRef> columns,
-        string columnName)
+    private static void AssertRequiredColumn(IEnumerable<SourceColumnRef> columns, string columnName)
     {
         Assert.IsTrue(columns.Any(column => column.Name == columnName), columnName);
     }
@@ -295,13 +295,13 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
                 AcceptedPredicate = request.Predicate,
                 AcceptedOrderBy = request.OrderBy,
                 AcceptedSkip = request.Skip,
-                AcceptedTake = request.Take
+                AcceptedTake = request.Take,
             },
             AcceptedColumns = request.RequiredColumns,
             AcceptedPredicate = request.Predicate,
             AcceptedOrderBy = request.OrderBy,
             AcceptedSkip = request.Skip,
-            AcceptedTake = request.Take
+            AcceptedTake = request.Take,
         };
     }
 }

@@ -8,8 +8,7 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class BinaryInterpretationValueValidationTests : BinaryInterpretationTestBase
 {
-    private static readonly byte[] PngSignature =
-        [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+    private static readonly byte[] PngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
     private object CompileFromSchemaText(string schemaText, string schemaName)
     {
@@ -37,7 +36,9 @@ public class BinaryInterpretationValueValidationTests : BinaryInterpretationTest
     {
         var interpreter = CompileFromSchemaText("binary V { Version: byte const 1 }", "V");
 
-        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => InvokeInterpret(interpreter, [0x02]));
+        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() =>
+            InvokeInterpret(interpreter, [0x02])
+        );
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.ValidationFailed, failure.ErrorCode);
     }
 
@@ -46,7 +47,8 @@ public class BinaryInterpretationValueValidationTests : BinaryInterpretationTest
     {
         var interpreter = CompileFromSchemaText(
             "binary Png { Signature: byte[8] magic [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] }",
-            "Png");
+            "Png"
+        );
 
         var result = InvokeInterpret(interpreter, PngSignature);
 
@@ -58,11 +60,14 @@ public class BinaryInterpretationValueValidationTests : BinaryInterpretationTest
     {
         var interpreter = CompileFromSchemaText(
             "binary Png { Signature: byte[8] magic [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] }",
-            "Png");
+            "Png"
+        );
 
         byte[] corrupted = [0x00, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
-        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => InvokeInterpret(interpreter, corrupted));
+        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() =>
+            InvokeInterpret(interpreter, corrupted)
+        );
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.ValidationFailed, failure.ErrorCode);
     }
 
@@ -81,7 +86,9 @@ public class BinaryInterpretationValueValidationTests : BinaryInterpretationTest
     {
         var interpreter = CompileFromSchemaText("binary K { Kind: byte oneOf [1, 2] }", "K");
 
-        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => InvokeInterpret(interpreter, [0x03]));
+        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() =>
+            InvokeInterpret(interpreter, [0x03])
+        );
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.ValidationFailed, failure.ErrorCode);
     }
 
@@ -90,7 +97,8 @@ public class BinaryInterpretationValueValidationTests : BinaryInterpretationTest
     {
         var interpreter = CompileFromSchemaText(
             "binary C { ChunkType: string[4] ascii oneOf ['IHDR', 'IDAT', 'IEND'] }",
-            "C");
+            "C"
+        );
 
         var result = InvokeInterpret(interpreter, [(byte)'I', (byte)'D', (byte)'A', (byte)'T']);
 
@@ -102,19 +110,19 @@ public class BinaryInterpretationValueValidationTests : BinaryInterpretationTest
     {
         var interpreter = CompileFromSchemaText(
             "binary C { ChunkType: string[4] ascii oneOf ['IHDR', 'IDAT', 'IEND'] }",
-            "C");
+            "C"
+        );
 
         var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() =>
-            InvokeInterpret(interpreter, [(byte)'Z', (byte)'Z', (byte)'Z', (byte)'Z']));
+            InvokeInterpret(interpreter, [(byte)'Z', (byte)'Z', (byte)'Z', (byte)'Z'])
+        );
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.ValidationFailed, failure.ErrorCode);
     }
 
     [TestMethod]
     public void Validation_WhenConditionIsFalse_ShouldSkipValidation()
     {
-        var interpreter = CompileFromSchemaText(
-            "binary W { Flag: byte, Value: byte const 5 when Flag = 1 }",
-            "W");
+        var interpreter = CompileFromSchemaText("binary W { Flag: byte, Value: byte const 5 when Flag = 1 }", "W");
 
         var result = InvokeInterpret(interpreter, [0x00]);
 
@@ -124,20 +132,18 @@ public class BinaryInterpretationValueValidationTests : BinaryInterpretationTest
     [TestMethod]
     public void Validation_WhenConditionIsTrueAndValueDiffers_ShouldThrow()
     {
-        var interpreter = CompileFromSchemaText(
-            "binary W { Flag: byte, Value: byte const 5 when Flag = 1 }",
-            "W");
+        var interpreter = CompileFromSchemaText("binary W { Flag: byte, Value: byte const 5 when Flag = 1 }", "W");
 
-        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => InvokeInterpret(interpreter, [0x01, 0x09]));
+        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() =>
+            InvokeInterpret(interpreter, [0x01, 0x09])
+        );
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.ValidationFailed, failure.ErrorCode);
     }
 
     [TestMethod]
     public void Validation_WhenCoexistsWithCheck_ShouldApplyBoth()
     {
-        var interpreter = CompileFromSchemaText(
-            "binary M { Marker: byte const 7 check Marker > 0 }",
-            "M");
+        var interpreter = CompileFromSchemaText("binary M { Marker: byte const 7 check Marker > 0 }", "M");
 
         var result = InvokeInterpret(interpreter, [0x07]);
 

@@ -4,5 +4,5 @@ public enum ExecutionAppendMode
 {
     Checked,
     Unchecked,
-    Direct
+    Direct,
 }

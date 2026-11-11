@@ -5,12 +5,16 @@ using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
+
 namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, QueryNode right,
-        string cachedSetOperatorKey)
+    private void MakeSureBothSideFieldsAreOfAssignableTypes(
+        QueryNode left,
+        QueryNode right,
+        string cachedSetOperatorKey
+    )
     {
         var leftFields = left.Select.Fields;
         var rightFields = right.Select.Fields;
@@ -27,11 +31,14 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         ReconcileFieldTypesForSetOperation(leftFields, rightFields);
 
-        _queryState.CachedSetFields.TryAdd(cachedSetOperatorKey, [..leftFields]);
+        _queryState.CachedSetFields.TryAdd(cachedSetOperatorKey, [.. leftFields]);
     }
 
-    private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, string cachedSetOperatorKey,
-        string currentSetOperatorKey)
+    private void MakeSureBothSideFieldsAreOfAssignableTypes(
+        QueryNode left,
+        string cachedSetOperatorKey,
+        string currentSetOperatorKey
+    )
     {
         var leftFields = left.Select.Fields;
         var rightFields = _queryState.CachedSetFields[cachedSetOperatorKey];
@@ -47,15 +54,17 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         ReconcileFieldTypesForSetOperation(leftFields, rightFields);
 
-        _queryState.CachedSetFields.TryAdd(currentSetOperatorKey, [..leftFields]);
+        _queryState.CachedSetFields.TryAdd(currentSetOperatorKey, [.. leftFields]);
     }
 
     private void ReconcileFieldTypesForSetOperation(FieldNode[] leftFields, FieldNode[] rightFields)
     {
         for (var i = 0; i < leftFields.Length; i++)
         {
-            if (DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, leftFields[i].Expression) ||
-                DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, rightFields[i].Expression))
+            if (
+                DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, leftFields[i].Expression)
+                || DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, rightFields[i].Expression)
+            )
                 continue;
 
             var leftType = leftFields[i].Expression.ReturnType ?? typeof(object);
@@ -88,13 +97,15 @@ public partial class BuildMetadataAndInferTypesVisitor
                         var enumField = leftHasEnum ? leftFields[i] : rightFields[i];
                         var contextualNull = new NullNode(
                             MakeNullableEnumCarrierType(enumField.Expression.ReturnType, enumType),
-                            ordinaryField.Expression.Span);
+                            ordinaryField.Expression.Span
+                        );
                         MarkEnumExpression(contextualNull, enumType);
                         var replacement = new FieldNode(
                             contextualNull,
                             ordinaryField.FieldOrder,
                             ordinaryField.FieldName,
-                            ordinaryField.Span);
+                            ordinaryField.Span
+                        );
                         if (leftHasEnum)
                             rightFields[i] = replacement;
                         else
@@ -110,24 +121,29 @@ public partial class BuildMetadataAndInferTypesVisitor
                         ReportEnumSemanticError(
                             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                             $"SET operands cannot combine enum type '{enumType.DisplayName}' with an ordinary '{ordinaryField.Expression.ReturnType?.Name ?? "unknown"}' value.",
-                            ordinaryField);
+                            ordinaryField
+                        );
                         continue;
                     }
                 }
 
                 leftType = leftFields[i].Expression.ReturnType ?? typeof(object);
                 rightType = rightFields[i].Expression.ReturnType ?? typeof(object);
-                if (leftType == rightType ||
-                    leftFields[i].Expression is NullNode ||
-                    rightFields[i].Expression is NullNode)
+                if (
+                    leftType == rightType
+                    || leftFields[i].Expression is NullNode
+                    || rightFields[i].Expression is NullNode
+                )
                     continue;
             }
 
             if (leftType == rightType)
                 continue;
 
-            if (TryReconcileNullSetFields(ref leftFields[i], ref rightFields[i]) ||
-                TryReconcileNullableSetFields(ref leftFields[i], ref rightFields[i]))
+            if (
+                TryReconcileNullSetFields(ref leftFields[i], ref rightFields[i])
+                || TryReconcileNullableSetFields(ref leftFields[i], ref rightFields[i])
+            )
                 continue;
 
             if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], rightFields[i]))
@@ -224,20 +240,19 @@ public partial class BuildMetadataAndInferTypesVisitor
         else
             MakeSureBothSideFieldsAreOfAssignableTypes(leftQuery, PreviousSetOperatorPositionKey(), key);
 
-        MutableSetOperatorFieldPositions.Add(key,
-            CreateSetOperatorPositionIndexes(leftQuery, keys));
-        MutableSetOperatorFieldTypes.Add(key,
-            CreateSetOperatorPositionTypes(leftQuery, keys));
+        MutableSetOperatorFieldPositions.Add(key, CreateSetOperatorPositionIndexes(leftQuery, keys));
+        MutableSetOperatorFieldTypes.Add(key, CreateSetOperatorPositionTypes(leftQuery, keys));
 
         var rightMethodName = TraversalFrame.PopMethod(VisitorName, "Visit(SetOperatorNode).RightMethod");
         var leftMethodName = TraversalFrame.PopMethod(VisitorName, "Visit(SetOperatorNode).LeftMethod");
 
         var methodName = $"{leftMethodName}_{setOperatorName}_{rightMethodName}";
         TraversalFrame.PushMethod(methodName);
-        _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(methodName,
-            _sourceBinding.CurrentScope.Child[0].ScopeSymbolTable.GetSymbol(leftQuery.From.Alias));
+        _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(
+            methodName,
+            _sourceBinding.CurrentScope.Child[0].ScopeSymbolTable.GetSymbol(leftQuery.From.Alias)
+        );
 
         PushSemanticNode(CreateSetOperatorNode(setOperatorName, node, keys, left, right));
     }
-
 }

@@ -15,7 +15,8 @@ public partial class Table
             var expected = columns[columnIndex].ColumnType;
             if (!expected.IsAssignableFrom(typeof(T)))
                 throw new NotSupportedException(
-                    $"(Add) Mismatched types. {expected.Name} is not assignable from {typeof(T).Name}");
+                    $"(Add) Mismatched types. {expected.Name} is not assignable from {typeof(T).Name}"
+                );
         }
     }
 }

@@ -29,7 +29,7 @@ public sealed partial class ExpressionConverter
         {
             AccessMethodNode { Method: { } method } => method.ReturnType,
             PropertyValueNode { PropertyInfo: { } property } => property.PropertyType,
-            _ => null
+            _ => null,
         };
 
         if (type == null)

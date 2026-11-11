@@ -11,7 +11,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionWindowKeyArray? PartitionKeys,
         ExecutionVariable? PartitionBuilder,
         ExecutionWindowKeyArray OrderKeys,
-        IReadOnlyList<CapturedLocal> Captures);
+        IReadOnlyList<CapturedLocal> Captures
+    );
 
     private sealed record WindowAppendRowsHelper(
         string FunctionName,
@@ -19,9 +20,8 @@ public sealed partial class ExecutionCSharpRenderer
         string? BufferItemGeneratedRowTypeName,
         ExecutionForEachIndexed Loop,
         IReadOnlyList<ExecutionVariable> AppendTargets,
-        IReadOnlyList<CapturedLocal> Captures);
+        IReadOnlyList<CapturedLocal> Captures
+    );
 
-    private sealed record SortedCopyHelper(
-        string FunctionName,
-        ExecutionSortTable Sort);
+    private sealed record SortedCopyHelper(string FunctionName, ExecutionSortTable Sort);
 }

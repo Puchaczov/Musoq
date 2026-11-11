@@ -22,27 +22,41 @@ public partial class LibraryBase
     /// <summary>Concatenates two concrete values without constructing an argument array.</summary>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
-    public string? Concat<TFirst, TSecond>(TFirst first, TSecond second)
-        => first is null || second is null ? null : string.Concat(first.ToString(), second.ToString());
+    public string? Concat<TFirst, TSecond>(TFirst first, TSecond second) =>
+        first is null || second is null ? null : string.Concat(first.ToString(), second.ToString());
 
     /// <summary>Concatenates three concrete values without constructing an argument array.</summary>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
-    public string? Concat<TFirst, TSecond, TThird>(TFirst first, TSecond second, TThird third)
-        => first is null || second is null || third is null
-            ? null : string.Concat(first.ToString(), second.ToString(), third.ToString());
+    public string? Concat<TFirst, TSecond, TThird>(TFirst first, TSecond second, TThird third) =>
+        first is null || second is null || third is null
+            ? null
+            : string.Concat(first.ToString(), second.ToString(), third.ToString());
 
     /// <summary>Concatenates four concrete values without constructing an argument array.</summary>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
-    public string? Concat<TFirst, TSecond, TThird, TFourth>(TFirst first, TSecond second, TThird third, TFourth fourth)
-        => first is null || second is null || third is null || fourth is null
-            ? null : string.Concat(first.ToString(), second.ToString(), third.ToString(), fourth.ToString());
+    public string? Concat<TFirst, TSecond, TThird, TFourth>(
+        TFirst first,
+        TSecond second,
+        TThird third,
+        TFourth fourth
+    ) =>
+        first is null || second is null || third is null || fourth is null
+            ? null
+            : string.Concat(first.ToString(), second.ToString(), third.ToString(), fourth.ToString());
+
     /// <summary>Concatenates six concrete values without a variadic invocation carrier.</summary>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
     public string? Concat<TFirst, TSecond, TThird, TFourth, TFifth, TSixth>(
-        TFirst first, TSecond second, TThird third, TFourth fourth, TFifth fifth, TSixth sixth)
+        TFirst first,
+        TSecond second,
+        TThird third,
+        TFourth fourth,
+        TFifth fifth,
+        TSixth sixth
+    )
     {
         if (first is null || second is null || third is null || fourth is null || fifth is null || sixth is null)
             return null;

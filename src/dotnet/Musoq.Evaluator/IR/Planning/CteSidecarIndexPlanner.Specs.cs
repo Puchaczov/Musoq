@@ -18,7 +18,8 @@ internal static partial class CteSidecarIndexPlanner
         PhysicalCteRefNode? cteRef,
         int indexSlot,
         out CteSidecarIndexSpec spec,
-        out string reason)
+        out string reason
+    )
     {
         spec = null!;
 
@@ -40,8 +41,9 @@ internal static partial class CteSidecarIndexPlanner
 
     private static CteSidecarIndexKind ResolveIndexKind(PhysicalHashJoinNode hashJoin, Type keyType)
     {
-        return hashJoin is { Kind: JoinKind.LeftSemi or JoinKind.LeftAntiSemi, Residual: null } &&
-               keyType != typeof(object)
+        return
+            hashJoin is { Kind: JoinKind.LeftSemi or JoinKind.LeftAntiSemi, Residual: null }
+            && keyType != typeof(object)
             ? CteSidecarIndexKind.KeySet
             : CteSidecarIndexKind.Hash;
     }
@@ -51,14 +53,17 @@ internal static partial class CteSidecarIndexPlanner
         PhysicalCteRefNode cteRef,
         OutputSchema cteOutputSchema,
         out string[] keyColumns,
-        out string reason)
+        out string reason
+    )
     {
         var columns = new string[keys.Count];
 
         for (var index = 0; index < keys.Count; index++)
         {
-            if (keys[index] is not ColumnRef column ||
-                !string.Equals(column.Alias, cteRef.Alias, StringComparison.OrdinalIgnoreCase))
+            if (
+                keys[index] is not ColumnRef column
+                || !string.Equals(column.Alias, cteRef.Alias, StringComparison.OrdinalIgnoreCase)
+            )
             {
                 keyColumns = [];
                 reason = "The hash-build key is not a simple CTE output column reference.";
@@ -85,16 +90,16 @@ internal static partial class CteSidecarIndexPlanner
         if (join.BuildKeys.Length == 1)
             return ResolveCommonKeyType(join.BuildKeys[0].ReturnType, join.ProbeKeys[0].ReturnType);
 
-        if (TryResolveValueTupleHashJoinKeyTypes(join, out var keyTypes) &&
-            ValueTupleTypeShape.TryCreate(keyTypes, out var tupleType))
+        if (
+            TryResolveValueTupleHashJoinKeyTypes(join, out var keyTypes)
+            && ValueTupleTypeShape.TryCreate(keyTypes, out var tupleType)
+        )
             return tupleType;
 
         throw new InvalidOperationException("Composite join keys require a concrete typed carrier.");
     }
 
-    private static bool TryResolveValueTupleHashJoinKeyTypes(
-        PhysicalHashJoinNode join,
-        out Type[] keyTypes)
+    private static bool TryResolveValueTupleHashJoinKeyTypes(PhysicalHashJoinNode join, out Type[] keyTypes)
     {
         keyTypes = [];
 
@@ -124,8 +129,7 @@ internal static partial class CteSidecarIndexPlanner
 
     private static bool CanUseTypedValueTupleHashJoinKeyPart(Type type)
     {
-        return type != typeof(object) &&
-               type is not NullNode.NullType;
+        return type != typeof(object) && type is not NullNode.NullType;
     }
 
     private static Type ResolveCommonKeyType(Type buildType, Type probeType)
@@ -145,7 +149,8 @@ internal static partial class CteSidecarIndexPlanner
     private static PlanningDecision CreateSelectedDecision(
         CteSidecarIndexSpec spec,
         PhysicalHashJoinNode hashJoin,
-        bool allocatedSlot)
+        bool allocatedSlot
+    )
     {
         var keyText = string.Join(", ", spec.KeyColumns);
         var slotText = spec.IndexSlot.ToString(CultureInfo.InvariantCulture);
@@ -157,7 +162,8 @@ internal static partial class CteSidecarIndexPlanner
             CreateConsumerTarget(spec.CteName, hashJoin),
             spec.Kind.ToString(),
             PlanningConfidence.High,
-            $"Selected {spec.Kind} sidecar for CTE '{spec.CteName}' on key [{keyText}], slot {slotText} {allocationText}.");
+            $"Selected {spec.Kind} sidecar for CTE '{spec.CteName}' on key [{keyText}], slot {slotText} {allocationText}."
+        );
     }
 
     private static PlanningDecision CreateSkippedDecision(string cteName, string target, string reason)
@@ -168,7 +174,8 @@ internal static partial class CteSidecarIndexPlanner
             target.StartsWith("cte:", StringComparison.Ordinal) ? target : $"cte:{cteName}:{target}",
             "Skipped",
             PlanningConfidence.Medium,
-            reason);
+            reason
+        );
     }
 
     private static string CreateConsumerTarget(string cteName, PhysicalHashJoinNode hashJoin)

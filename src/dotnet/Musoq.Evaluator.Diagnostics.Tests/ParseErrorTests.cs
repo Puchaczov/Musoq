@@ -14,17 +14,20 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE001_SelectWithNoColumnsAndNoStar_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2005_InvalidSelectList, DiagnosticPhase.Parse, "SELECT list cannot be empty");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2005_InvalidSelectList,
+            DiagnosticPhase.Parse,
+            "SELECT list cannot be empty"
+        );
     }
 
     [TestMethod]
     public void PE002_FromWithNoDataSource_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "EndOfFile");
         AssertHasGuidance(ex);
@@ -33,8 +36,7 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE003_DanglingCommaInSelectList_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name, FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name, FROM #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2014_TrailingComma, DiagnosticPhase.Parse, "comma");
         AssertHasGuidance(ex);
@@ -43,8 +45,7 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE005_WhereWithoutCondition_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.people() WHERE"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2017_UnexpectedEndOfFile, DiagnosticPhase.Parse, "end of input");
         AssertHasGuidance(ex);
@@ -53,18 +54,21 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE006_GroupByWithNoColumns_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Count(1) FROM #test.people() GROUP BY"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Count(1) FROM #test.people() GROUP BY"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2006_MissingGroupByColumn, DiagnosticPhase.Parse, "GROUP BY requires at least one field");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2006_MissingGroupByColumn,
+            DiagnosticPhase.Parse,
+            "GROUP BY requires at least one field"
+        );
         AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void PE007_OrderByWithNoColumns_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() ORDER BY"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.people() ORDER BY"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "EndOfFile");
         AssertHasGuidance(ex);
@@ -73,8 +77,7 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE009_TakeWithNoValue_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() TAKE"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.people() TAKE"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2038_InvalidSliceCount, DiagnosticPhase.Parse, "TAKE count");
         AssertHasGuidance(ex);
@@ -83,8 +86,7 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE010_SkipWithNoValue_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() SKIP"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.people() SKIP"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2038_InvalidSliceCount, DiagnosticPhase.Parse, "SKIP count");
         AssertHasGuidance(ex);
@@ -93,8 +95,7 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE011_TakeWithNonInteger_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() TAKE 'five'"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.people() TAKE 'five'"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2038_InvalidSliceCount, DiagnosticPhase.Parse, "TAKE count");
         AssertHasGuidance(ex);
@@ -108,7 +109,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE020_WhereAfterGroupBy_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT City, Count(1) FROM #test.people() GROUP BY City WHERE Age > 10"));
+            CompileQuery("SELECT City, Count(1) FROM #test.people() GROUP BY City WHERE Age > 10")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "not expected");
         AssertHasGuidance(ex);
@@ -118,7 +120,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE021_GroupByAfterOrderBy_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT City, Count(1) FROM #test.people() ORDER BY City GROUP BY City"));
+            CompileQuery("SELECT City, Count(1) FROM #test.people() ORDER BY City GROUP BY City")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2009_InvalidOrderByExpression, DiagnosticPhase.Parse, "ComposeOrder");
         AssertHasGuidance(ex);
@@ -128,7 +131,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE025_DuplicateWhereClause_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE Age > 10 WHERE City = 'London'"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE Age > 10 WHERE City = 'London'")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Where");
         AssertHasGuidance(ex);
@@ -141,18 +145,21 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE030_UnclosedParenthesis_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT (Name FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT (Name FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2010_MissingClosingParenthesis, DiagnosticPhase.Parse, "grouped expression");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2010_MissingClosingParenthesis,
+            DiagnosticPhase.Parse,
+            "grouped expression"
+        );
         AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void PE031_ExtraClosingParenthesis_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name) FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name) FROM #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "RightParenthesis");
         AssertHasGuidance(ex);
@@ -161,11 +168,14 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE033_DoubleOperator_ShouldThrowError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Age >> 10"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT * FROM #test.people() WHERE Age >> 10"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind,
-            "WHERE clause requires a boolean expression");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3005_TypeMismatch,
+            DiagnosticPhase.Bind,
+            "WHERE clause requires a boolean expression"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -173,18 +183,27 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE035_EmptyInList_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE City IN ()"));
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, DiagnosticPhase.Parse,
-            "IN does not support an empty value list");
+            CompileQuery("SELECT * FROM #test.people() WHERE City IN ()")
+        );
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
+            DiagnosticPhase.Parse,
+            "IN does not support an empty value list"
+        );
     }
 
     [TestMethod]
     public void PE036_LikeWithNoPattern_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Name LIKE"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT * FROM #test.people() WHERE Name LIKE"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2020_MissingOperand, DiagnosticPhase.Parse, "missing its right operand");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2020_MissingOperand,
+            DiagnosticPhase.Parse,
+            "missing its right operand"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -192,17 +211,22 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE037_RlikeWithNoPattern_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE"));
+            CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2020_MissingOperand, DiagnosticPhase.Parse, "missing its right operand");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2020_MissingOperand,
+            DiagnosticPhase.Parse,
+            "missing its right operand"
+        );
         AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void PE040_EmptyCaseExpression_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT CASE END FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT CASE END FROM #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);
@@ -212,7 +236,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE041_CaseWhenWithoutThen_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT CASE WHEN Age > 10 ELSE 'old' END FROM #test.people()"));
+            CompileQuery("SELECT CASE WHEN Age > 10 ELSE 'old' END FROM #test.people()")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Then");
         AssertHasGuidance(ex);
@@ -222,7 +247,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE042_CaseWithoutEnd_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT CASE WHEN Age > 10 THEN 'old' FROM #test.people()"));
+            CompileQuery("SELECT CASE WHEN Age > 10 THEN 'old' FROM #test.people()")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Else");
         AssertHasGuidance(ex);
@@ -231,8 +257,7 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE043_TrailingCommaInSelectList_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name, Age, FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name, Age, FROM #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2014_TrailingComma, DiagnosticPhase.Parse, "comma");
         AssertHasGuidance(ex);
@@ -241,8 +266,7 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE044_DoubleCommaInSelectList_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name,, Age FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name,, Age FROM #test.people()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Comma");
         AssertHasGuidance(ex);
@@ -255,8 +279,7 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE053_MissingParenthesesOnSchemaReference_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT * FROM #test.people"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);
@@ -265,10 +288,14 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE054_UnclosedParenthesesOnSchemaReference_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people("));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT * FROM #test.people("));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2021_UnclosedFunctionCall, DiagnosticPhase.Parse, "closing parenthesis");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2021_UnclosedFunctionCall,
+            DiagnosticPhase.Parse,
+            "closing parenthesis"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -280,7 +307,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE060_CteWithoutAsKeyword_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("WITH MyData (SELECT Name FROM #test.people()) SELECT * FROM MyData m"));
+            CompileQuery("WITH MyData (SELECT Name FROM #test.people()) SELECT * FROM MyData m")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "As");
         AssertHasGuidance(ex);
@@ -290,7 +318,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE061_CteWithoutParenthesesAroundQuery_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("WITH MyData AS SELECT Name FROM #test.people() SELECT * FROM MyData m"));
+            CompileQuery("WITH MyData AS SELECT Name FROM #test.people() SELECT * FROM MyData m")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "LeftParenthesis");
         AssertHasGuidance(ex);
@@ -300,7 +329,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE062_CteWithUnclosedParenthesis_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("WITH MyData AS (SELECT Name FROM #test.people() SELECT * FROM MyData m"));
+            CompileQuery("WITH MyData AS (SELECT Name FROM #test.people() SELECT * FROM MyData m")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "RightParenthesis");
         AssertHasGuidance(ex);
@@ -309,8 +339,7 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE064_CteMissingBodyQuery_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("WITH MyData AS () SELECT * FROM MyData m"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("WITH MyData AS () SELECT * FROM MyData m"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);
@@ -320,7 +349,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE065_TrailingCommaAfterLastCte_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("WITH A AS (SELECT 1 AS X FROM #test.single()), SELECT * FROM A a"));
+            CompileQuery("WITH A AS (SELECT 1 AS X FROM #test.single()), SELECT * FROM A a")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);
@@ -334,7 +364,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE070_JoinWithoutOnClause_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() p INNER JOIN #test.orders() o"));
+            CompileQuery("SELECT * FROM #test.people() p INNER JOIN #test.orders() o")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2007_InvalidJoinCondition, DiagnosticPhase.Parse, "ON");
         AssertHasGuidance(ex);
@@ -344,7 +375,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE072_IncompleteJoinKeyword_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() p LEFT #test.orders() o ON p.Id = o.PersonId"));
+            CompileQuery("SELECT * FROM #test.people() p LEFT #test.orders() o ON p.Id = o.PersonId")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "not expected");
         AssertHasGuidance(ex);
@@ -374,7 +406,8 @@ public class ParseErrorTests : NegativeTestsBase
     public void PE082_ExceptWithoutSecondQuery_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() EXCEPT (Name)"));
+            CompileQuery("SELECT Name FROM #test.people() EXCEPT (Name)")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);

@@ -15,7 +15,8 @@ public partial class SchemaDefinitionVisitor
         string fieldName,
         Node? expression,
         string schemaName,
-        HashSet<string> declaredFields)
+        HashSet<string> declaredFields
+    )
     {
         if (expression == null)
             return;
@@ -25,13 +26,17 @@ public partial class SchemaDefinitionVisitor
 
         foreach (var reference in identifiers.References)
         {
-            if (declaredFields.Contains(reference.Name) || reference.Name.Equals("parent", StringComparison.OrdinalIgnoreCase))
+            if (
+                declaredFields.Contains(reference.Name)
+                || reference.Name.Equals("parent", StringComparison.OrdinalIgnoreCase)
+            )
                 continue;
 
             throw new QuerySyntaxException(
                 DescribeUnresolvedField(schemaName, fieldName, reference.Name),
                 reference.Node.SpanOrEmpty(),
-                DiagnosticCode.MQ2030_UnsupportedSyntax);
+                DiagnosticCode.MQ2030_UnsupportedSyntax
+            );
         }
     }
 
@@ -40,20 +45,24 @@ public partial class SchemaDefinitionVisitor
         if (IsForwardFieldReference(schemaName, referenceName))
             return $"Binary schema '{schemaName}' field '{fieldName}' references field '{referenceName}' before it is declared.";
 
-        var message = $"Binary schema '{schemaName}' field '{fieldName}' references unknown field '{referenceName}' in its local scope.";
+        var message =
+            $"Binary schema '{schemaName}' field '{fieldName}' references unknown field '{referenceName}' in its local scope.";
         if (_fieldReferenceScope is not BinarySchemaNode)
             return message;
 
-        return message + $" Bare field names in a named schema do not search enclosing records. " +
-            $"If this is an enclosing field, use 'parent.{referenceName}' explicitly.";
+        return message
+            + $" Bare field names in a named schema do not search enclosing records. "
+            + $"If this is an enclosing field, use 'parent.{referenceName}' explicitly.";
     }
 
     private bool IsForwardFieldReference(string schemaName, string referenceName)
     {
         if (ContainsField(ScopeFields(_fieldReferenceScope), referenceName))
             return true;
-        if (_fieldReferenceScope is not InlineSchemaTypeNode inline ||
-            !Registry.TryGetSchema(schemaName, out var registration))
+        if (
+            _fieldReferenceScope is not InlineSchemaTypeNode inline
+            || !Registry.TryGetSchema(schemaName, out var registration)
+        )
             return false;
 
         var lookup = new EnclosingFieldLookup(inline, referenceName);
@@ -61,12 +70,13 @@ public partial class SchemaDefinitionVisitor
         return lookup.IsForward;
     }
 
-    private static SchemaFieldNode[] ScopeFields(Node? scope) => scope switch
-    {
-        BinarySchemaNode binary => binary.Fields,
-        InlineSchemaTypeNode inline => inline.Fields,
-        _ => []
-    };
+    private static SchemaFieldNode[] ScopeFields(Node? scope) =>
+        scope switch
+        {
+            BinarySchemaNode binary => binary.Fields,
+            InlineSchemaTypeNode inline => inline.Fields,
+            _ => [],
+        };
 
     private sealed class EnclosingFieldLookup(InlineSchemaTypeNode target, string name) : AstWalker
     {
@@ -110,7 +120,8 @@ public partial class SchemaDefinitionVisitor
         string fieldName,
         string schemaName,
         HashSet<string> outerFields,
-        IReadOnlyDictionary<string, Type?> outerFieldTypes)
+        IReadOnlyDictionary<string, Type?> outerFieldTypes
+    )
     {
         var previousScope = _fieldReferenceScope;
         _fieldReferenceScope = inlineSchema;
@@ -129,7 +140,8 @@ public partial class SchemaDefinitionVisitor
         string fieldName,
         string schemaName,
         HashSet<string> outerFields,
-        IReadOnlyDictionary<string, Type?> outerFieldTypes)
+        IReadOnlyDictionary<string, Type?> outerFieldTypes
+    )
     {
         var declaredFields = new HashSet<string>(outerFields, StringComparer.OrdinalIgnoreCase);
         var declaredFieldTypes = new Dictionary<string, Type?>(outerFieldTypes, StringComparer.OrdinalIgnoreCase);

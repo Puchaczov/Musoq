@@ -62,7 +62,13 @@ public sealed partial class CompiledQueryClassRenderer
         {
             if (node.Identifier.ValueText is "QueryRows" or "QueryTableEnumerable" or "QueryEnumerable")
                 Flags |= QueryRowsNamespace;
-            if (node.Identifier.ValueText is "StructuralTypeDescriptor" or "StructuralFieldDescriptor" or "StructuralDefaultDescriptor" or "StructuralValue")
+            if (
+                node.Identifier.ValueText
+                is "StructuralTypeDescriptor"
+                    or "StructuralFieldDescriptor"
+                    or "StructuralDefaultDescriptor"
+                    or "StructuralValue"
+            )
                 Flags |= StructuralInputsNamespace;
         }
     }

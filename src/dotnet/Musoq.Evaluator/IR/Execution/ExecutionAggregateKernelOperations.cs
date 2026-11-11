@@ -13,12 +13,15 @@ public sealed record ExecutionAggregateKernelOperations
         StateType = ExecutionClrBindingFactory.FromClr(descriptor.StateType);
         KernelType = ExecutionClrBindingFactory.FromClr(descriptor.KernelType);
         ResultType = ExecutionClrBindingFactory.FromClr(descriptor.ResultType);
-        ArgumentTypes = ExecutionIrCollections.Freeze(descriptor.InputShape.ArgumentTypes
-            .Select(ExecutionClrBindingFactory.FromClr).ToArray());
+        ArgumentTypes = ExecutionIrCollections.Freeze(
+            descriptor.InputShape.ArgumentTypes.Select(ExecutionClrBindingFactory.FromClr).ToArray()
+        );
         ResetMethod = ExecutionClrBindingFactory.FromClr(descriptor.ResetMethod);
         SetMethod = ExecutionClrBindingFactory.FromClr(descriptor.SetMethod);
         GetMethod = ExecutionClrBindingFactory.FromClr(descriptor.GetMethod);
-        MergeMethod = descriptor.MergeMethod is null ? null : ExecutionClrBindingFactory.FromClr(descriptor.MergeMethod);
+        MergeMethod = descriptor.MergeMethod is null
+            ? null
+            : ExecutionClrBindingFactory.FromClr(descriptor.MergeMethod);
         ExecutionPermissions = descriptor.ExecutionPermissions;
     }
 

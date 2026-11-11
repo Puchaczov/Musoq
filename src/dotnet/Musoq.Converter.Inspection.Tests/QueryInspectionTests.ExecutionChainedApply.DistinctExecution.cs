@@ -10,7 +10,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "select i.Name as Name, RowNumber() over (order by Max(distinct n.Value) desc, Min(distinct n.Value), i.Name) as DistinctMinMaxRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Name",
-            CreateApplyCandidateSchemaProvider());
+            CreateApplyCandidateSchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -24,7 +25,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderMixedRegularAndDistinctGroupedAggregateWindowedChainedCrossApplyPropertySource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select i.Name as Name, Sum(n.Value) as RepeatedSum, Sum(distinct n.Value) as DistinctSum, RowNumber() over (order by Sum(distinct n.Value) desc, Sum(n.Value) desc, i.Name) as MixedRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedRowNo", CreateMixedRegularAndDistinctAggregateSchemaProvider());
+        var compiled = CompileForExecution(
+            "select i.Name as Name, Sum(n.Value) as RepeatedSum, Sum(distinct n.Value) as DistinctSum, RowNumber() over (order by Sum(distinct n.Value) desc, Sum(n.Value) desc, i.Name) as MixedRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedRowNo",
+            CreateMixedRegularAndDistinctAggregateSchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -42,7 +46,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderMixedRegularAndDistinctGroupedAggregateSortChainedCrossApplyPropertySource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select i.Name as Name, Sum(n.Value) as RepeatedSum, Sum(distinct n.Value) as DistinctSum from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Sum(distinct n.Value) desc, Sum(n.Value) desc, i.Name", CreateMixedRegularAndDistinctAggregateSchemaProvider());
+        var compiled = CompileForExecution(
+            "select i.Name as Name, Sum(n.Value) as RepeatedSum, Sum(distinct n.Value) as DistinctSum from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Sum(distinct n.Value) desc, Sum(n.Value) desc, i.Name",
+            CreateMixedRegularAndDistinctAggregateSchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -58,7 +65,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderMixedRegularAndDistinctMinMaxGroupedAggregateSortChainedCrossApplyPropertySource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name", CreateMixedDistinctAggregateFamilySchemaProvider());
+        var compiled = CompileForExecution(
+            "select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name",
+            CreateMixedDistinctAggregateFamilySchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -78,7 +88,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderMixedRegularAndDistinctAvgGroupedAggregateSortChainedCrossApplyPropertySource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name", CreateMixedDistinctAggregateFamilySchemaProvider());
+        var compiled = CompileForExecution(
+            "select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name",
+            CreateMixedDistinctAggregateFamilySchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -94,7 +107,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderMixedRegularAndDistinctMinMaxGroupedAggregateWindowedChainedCrossApplyPropertySource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax, RowNumber() over (order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name) as MixedMinMaxRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedMinMaxRowNo", CreateMixedDistinctAggregateFamilySchemaProvider());
+        var compiled = CompileForExecution(
+            "select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax, RowNumber() over (order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name) as MixedMinMaxRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedMinMaxRowNo",
+            CreateMixedDistinctAggregateFamilySchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -116,7 +132,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderMixedRegularAndDistinctAvgGroupedAggregateWindowedChainedCrossApplyPropertySource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg, RowNumber() over (order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name) as MixedAvgRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedAvgRowNo", CreateMixedDistinctAggregateFamilySchemaProvider());
+        var compiled = CompileForExecution(
+            "select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg, RowNumber() over (order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name) as MixedAvgRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedAvgRowNo",
+            CreateMixedDistinctAggregateFamilySchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -134,7 +153,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderAvgParentGroupedAggregateWindowedChainedCrossApplyPropertySource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select i.Name as Name, RowNumber() over (order by Avg(n.Value, 0) desc, i.Name) as ParentAvgRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Name", CreateApplyCandidateSchemaProvider());
+        var compiled = CompileForExecution(
+            "select i.Name as Name, RowNumber() over (order by Avg(n.Value, 0) desc, i.Name) as ParentAvgRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Name",
+            CreateApplyCandidateSchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -148,7 +170,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderMinMaxParentGroupedAggregateWindowedChainedCrossApplyPropertySource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select i.Name as Name, RowNumber() over (order by Max(n.Value, 0) desc, Min(n.Value, 0), i.Name) as ParentMinMaxRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Name", CreateApplyCandidateSchemaProvider());
+        var compiled = CompileForExecution(
+            "select i.Name as Name, RowNumber() over (order by Max(n.Value, 0) desc, Min(n.Value, 0), i.Name) as ParentMinMaxRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Name",
+            CreateApplyCandidateSchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -162,7 +187,10 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderQualifiedChainedCrossApplyPropertySource_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select i.Name, n.Value as FirstValue, m.Value as SecondValue from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m qualify RowNumber() over (partition by i.Name order by n.Value, m.Value) <= 1 order by i.Name", CreateApplyCandidateSchemaProvider());
+        var compiled = CompileForExecution(
+            "select i.Name, n.Value as FirstValue, m.Value as SecondValue from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m qualify RowNumber() over (partition by i.Name order by n.Value, m.Value) <= 1 order by i.Name",
+            CreateApplyCandidateSchemaProvider()
+        );
 
         var table = compiled.Run();
 
@@ -181,7 +209,8 @@ public partial class QueryInspectionTests
         var compiled = CompileForExecution(
             "select i.Name, n.Value as FirstValue, m.Value as SecondValue from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m",
             CreateApplyCandidateSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -193,5 +222,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual(3, table[4].ReadValue(1));
         Assert.AreEqual(3, table[4].ReadValue(2));
     }
-
 }

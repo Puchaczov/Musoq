@@ -18,5 +18,5 @@ public enum DiagnosticActionKind
     /// <summary>
     ///     A manual suggestion or hint.
     /// </summary>
-    Suggestion
+    Suggestion,
 }

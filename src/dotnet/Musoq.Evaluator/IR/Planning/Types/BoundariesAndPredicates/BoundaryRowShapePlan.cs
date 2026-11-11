@@ -8,7 +8,8 @@ internal sealed record BoundaryRowShapePlan(
     string[] BoundaryOnlyColumns,
     string[] FutureDroppableColumns,
     PlanningConfidence Confidence,
-    string Reason)
+    string Reason
+)
 {
     public string[] SemanticColumns { get; init; } = [];
 

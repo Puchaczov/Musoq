@@ -12,16 +12,19 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenCorrelatedScalarSubquery_DisablesGeneralHashJoins_ShouldStillUseHashSingle()
     {
-        const string query = @"
-            SELECT a.City, (
-                SELECT c.City FROM #C.entities() c
-                WHERE c.Country = a.Country
-            ) AS MatchCity
-            FROM #A.entities() a";
+        const string query = (
+            "\n"
+            + "            SELECT a.City, (\n"
+            + "                SELECT c.City FROM #C.entities() c\n"
+            + "                WHERE c.Country = a.Country\n"
+            + "            ) AS MatchCity\n"
+            + "            FROM #A.entities() a"
+        );
         var options = new CompilationOptions(
             useHashJoin: false,
             useSortMergeJoin: false,
-            usePrimitiveTypeValidation: false);
+            usePrimitiveTypeValidation: false
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources(), options)
             .Run(TestContext.CancellationToken);
@@ -30,18 +33,21 @@ public partial class SubqueryTests
             table,
             ["WARSAW", "KRAKOW"],
             new object?[] { "BERLIN", null },
-            ["PARIS", "PARIS"]);
+            ["PARIS", "PARIS"]
+        );
     }
 
     [TestMethod]
     public void WhenCorrelatedScalarSubquery_HasDuplicateRowsForUnprobedKey_ShouldNotThrow()
     {
-        const string query = @"
-            SELECT a.City, (
-                SELECT c.City FROM #C.entities() c
-                WHERE c.Country = a.Country
-            ) AS MatchCity
-            FROM #A.entities() a";
+        const string query = (
+            "\n"
+            + "            SELECT a.City, (\n"
+            + "                SELECT c.City FROM #C.entities() c\n"
+            + "                WHERE c.Country = a.Country\n"
+            + "            ) AS MatchCity\n"
+            + "            FROM #A.entities() a"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity("WARSAW", "POLAND", 500)],
@@ -49,8 +55,8 @@ public partial class SubqueryTests
             [
                 new BasicEntity("KRAKOW", "POLAND", 10),
                 new BasicEntity("PARIS", "FRANCE", 20),
-                new BasicEntity("LYON", "FRANCE", 30)
-            ]
+                new BasicEntity("LYON", "FRANCE", 30),
+            ],
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -61,25 +67,22 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenCorrelatedScalarSubquery_HasDuplicateRowsForProbedKey_ShouldThrowAtProbe()
     {
-        const string query = @"
-            SELECT a.City, (
-                SELECT c.City FROM #C.entities() c
-                WHERE c.Country = a.Country
-            ) AS MatchCity
-            FROM #A.entities() a";
+        const string query = (
+            "\n"
+            + "            SELECT a.City, (\n"
+            + "                SELECT c.City FROM #C.entities() c\n"
+            + "                WHERE c.Country = a.Country\n"
+            + "            ) AS MatchCity\n"
+            + "            FROM #A.entities() a"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity("PARIS", "FRANCE", 300)],
-            ["#C"] =
-            [
-                new BasicEntity("PARIS", "FRANCE", 20),
-                new BasicEntity("LYON", "FRANCE", 30)
-            ]
+            ["#C"] = [new BasicEntity("PARIS", "FRANCE", 20), new BasicEntity("LYON", "FRANCE", 30)],
         };
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var exception = Assert.Throws<QueryExecutionException>(() =>
-            _ = vm.Run(TestContext.CancellationToken).Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeError(exception, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
     }

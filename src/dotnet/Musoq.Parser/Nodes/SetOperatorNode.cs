@@ -1,17 +1,13 @@
-﻿using Musoq.Parser.Tokens;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
 public abstract class SetOperatorNode : BinaryNode
 {
-    protected SetOperatorNode(TokenType type, string[] keys, Node left, Node right, bool isNested,
-        bool isTheLastOne)
-        : this(type, keys, left, right, isNested, isTheLastOne, null, null, null)
-    {
-    }
+    protected SetOperatorNode(TokenType type, string[] keys, Node left, Node right, bool isNested, bool isTheLastOne)
+        : this(type, keys, left, right, isNested, isTheLastOne, null, null, null) { }
 
     protected SetOperatorNode(
         TokenType type,
@@ -22,7 +18,8 @@ public abstract class SetOperatorNode : BinaryNode
         bool isTheLastOne,
         OrderByNode? resultOrderBy,
         SkipNode? resultSkip,
-        TakeNode? resultTake)
+        TakeNode? resultTake
+    )
         : base(left, right)
     {
         _ = type;
@@ -70,8 +67,8 @@ public abstract class SetOperatorNode : BinaryNode
     protected string FormatResultModifiers()
     {
         var modifiers = new Node?[] { ResultOrderBy, ResultSkip, ResultTake };
-        return string.Concat(modifiers
-            .Where(static modifier => modifier != null)
-            .Select(static modifier => $" {modifier!.ToString()}"));
+        return string.Concat(
+            modifiers.Where(static modifier => modifier != null).Select(static modifier => $" {modifier!.ToString()}")
+        );
     }
 }

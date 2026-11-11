@@ -10,25 +10,37 @@ public partial class ExploratoryCrossApplyBasicsTests
     [TestMethod]
     public void Explore12_CrossApply_WithUnion_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                t.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            where p.Age > 25
-            union all (Name, Value)
-            select
-                p.Name,
-                t.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            where p.Age <= 25";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            where p.Age > 25\n"
+            + "            union all (Name, Value)\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                t.Value\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            where p.Age <= 25"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["older"] },
-            new() { Name = "Jane", Age = 20, Tags = ["younger"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["older"],
+            },
+            new()
+            {
+                Name = "Jane",
+                Age = 20,
+                Tags = ["younger"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -45,16 +57,23 @@ public partial class ExploratoryCrossApplyBasicsTests
     [TestMethod]
     public void Explore13_CrossApply_OnSameArrayTwice_ShouldWork()
     {
-        const string query = @"
-            select t1.Value as First, t2.Value as Second
-            from #schema.first() p
-            cross apply p.Tags t1
-            cross apply p.Tags t2
-            where t1.Value <> t2.Value";
+        const string query = (
+            "\n"
+            + "            select t1.Value as First, t2.Value as Second\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t1\n"
+            + "            cross apply p.Tags t2\n"
+            + "            where t1.Value <> t2.Value"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["a", "b", "c"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["a", "b", "c"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -63,7 +82,13 @@ public partial class ExploratoryCrossApplyBasicsTests
         TableMaterializationTestHelper.AssertColumns(table, ("First", typeof(string)), ("Second", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            ["a", "b"], ["a", "c"], ["b", "a"], ["b", "c"], ["c", "a"], ["c", "b"]);
+            ["a", "b"],
+            ["a", "c"],
+            ["b", "a"],
+            ["b", "c"],
+            ["c", "a"],
+            ["c", "b"]
+        );
     }
 
     #endregion
@@ -73,21 +98,38 @@ public partial class ExploratoryCrossApplyBasicsTests
     [TestMethod]
     public void Explore18_CrossApply_JoinWithComplexCondition_ShouldWork()
     {
-        const string query = @"
-            select p.Name, t.Value, o.OrderId
-            from #schema.first() p
-            cross apply p.Tags t
-            inner join #schema.second() o on p.Name = o.CustomerName and o.Total > 50";
+        const string query = (
+            "\n"
+            + "            select p.Name, t.Value, o.OrderId\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            inner join #schema.second() o on p.Name = o.CustomerName and o.Total > 50"
+        );
 
         var persons = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["vip"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["vip"],
+            },
         }.ToArray();
 
         var orders = new List<Order>
         {
-            new() { OrderId = 1, CustomerName = "John", Total = 100 },
-            new() { OrderId = 2, CustomerName = "John", Total = 30 }
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "John",
+                Total = 100,
+            },
+            new()
+            {
+                OrderId = 2,
+                CustomerName = "John",
+                Total = 30,
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
@@ -95,7 +137,10 @@ public partial class ExploratoryCrossApplyBasicsTests
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            ("Name", typeof(string)), ("Value", typeof(string)), ("OrderId", typeof(int)));
+            ("Name", typeof(string)),
+            ("Value", typeof(string)),
+            ("OrderId", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "vip", 1]);
     }
 

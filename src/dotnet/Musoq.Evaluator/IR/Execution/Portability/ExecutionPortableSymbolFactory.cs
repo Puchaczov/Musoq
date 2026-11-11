@@ -21,11 +21,12 @@ internal static class ExecutionPortableSymbolFactory
             return new ExecutionPortableTypeDescriptor(
                 ExecutionPortableTypeKind.ByRef,
                 $"byref<{element.StableName}>",
-                $"{element.DisplayName}&")
+                $"{element.DisplayName}&"
+            )
             {
                 Portability = ExecutionPortableSymbolPortability.ClrOnly,
                 PortabilityReason = "By-ref CLR type requires in-process CLR calling semantics.",
-                Arguments = [element]
+                Arguments = [element],
             };
         }
 
@@ -34,10 +35,11 @@ internal static class ExecutionPortableSymbolFactory
             return new ExecutionPortableTypeDescriptor(
                 ExecutionPortableTypeKind.GenericParameter,
                 $"generic-parameter:{type.GenericParameterPosition}",
-                type.Name)
+                type.Name
+            )
             {
                 Portability = ExecutionPortableSymbolPortability.Portable,
-                PortabilityReason = "Generic parameter is target-neutral until bound by a concrete symbol."
+                PortabilityReason = "Generic parameter is target-neutral until bound by a concrete symbol.",
             };
         }
 
@@ -46,10 +48,11 @@ internal static class ExecutionPortableSymbolFactory
             return new ExecutionPortableTypeDescriptor(
                 ExecutionPortableTypeKind.Primitive,
                 $"primitive:{primitiveName}",
-                primitiveName)
+                primitiveName
+            )
             {
                 Portability = ExecutionPortableSymbolPortability.Portable,
-                PortabilityReason = "Explicit primitive type catalog entry."
+                PortabilityReason = "Explicit primitive type catalog entry.",
             };
         }
 
@@ -58,10 +61,11 @@ internal static class ExecutionPortableSymbolFactory
             return new ExecutionPortableTypeDescriptor(
                 ExecutionPortableTypeKind.HostOpaque,
                 "host-opaque:dynamic-object",
-                "object")
+                "object"
+            )
             {
                 Portability = ExecutionPortableSymbolPortability.HostImport,
-                PortabilityReason = "Object requires host-provided tagged dynamic value semantics."
+                PortabilityReason = "Object requires host-provided tagged dynamic value semantics.",
             };
         }
 
@@ -72,11 +76,12 @@ internal static class ExecutionPortableSymbolFactory
             return new ExecutionPortableTypeDescriptor(
                 ExecutionPortableTypeKind.Nullable,
                 $"nullable<{argument.StableName}>",
-                $"{argument.DisplayName}?")
+                $"{argument.DisplayName}?"
+            )
             {
                 Portability = argument.Portability,
                 PortabilityReason = $"Nullable wrapper inherits underlying portability: {argument.PortabilityReason}",
-                Arguments = [argument]
+                Arguments = [argument],
             };
         }
 
@@ -87,12 +92,13 @@ internal static class ExecutionPortableSymbolFactory
             return new ExecutionPortableTypeDescriptor(
                 ExecutionPortableTypeKind.Array,
                 $"array:{rank}<{element.StableName}>",
-                rank == 1 ? $"{element.DisplayName}[]" : $"{element.DisplayName}[{new string(',', rank - 1)}]")
+                rank == 1 ? $"{element.DisplayName}[]" : $"{element.DisplayName}[{new string(',', rank - 1)}]"
+            )
             {
                 Portability = element.Portability,
                 PortabilityReason = $"Array wrapper inherits element portability: {element.PortabilityReason}",
                 Arguments = [element],
-                ArrayRank = rank
+                ArrayRank = rank,
             };
         }
 
@@ -106,14 +112,16 @@ internal static class ExecutionPortableSymbolFactory
                 return new ExecutionPortableTypeDescriptor(
                     container.TypeKind,
                     $"{container.StableName}<{string.Join(",", arguments.Select(static argument => argument.StableName))}>",
-                    $"{container.StableName}<{string.Join(", ", arguments.Select(static argument => argument.DisplayName))}>")
+                    $"{container.StableName}<{string.Join(", ", arguments.Select(static argument => argument.DisplayName))}>"
+                )
                 {
                     Portability = portability,
-                    PortabilityReason = portability == ExecutionPortableSymbolPortability.Portable
-                        ? $"Explicit portable {container.Contract.Kind} container contract."
-                        : $"{container.Contract.Kind} container inherits non-portable argument requirements: {FormatNonPortableArgumentReasons(arguments)}",
+                    PortabilityReason =
+                        portability == ExecutionPortableSymbolPortability.Portable
+                            ? $"Explicit portable {container.Contract.Kind} container contract."
+                            : $"{container.Contract.Kind} container inherits non-portable argument requirements: {FormatNonPortableArgumentReasons(arguments)}",
                     Arguments = arguments,
-                    Container = container.Contract
+                    Container = container.Contract,
                 };
             }
 
@@ -122,22 +130,25 @@ internal static class ExecutionPortableSymbolFactory
                 return new ExecutionPortableTypeDescriptor(
                     ExecutionPortableTypeKind.HostOpaque,
                     $"host-opaque:{CreateVersionFreeClrIdentity(definition)}<{string.Join(",", arguments.Select(static argument => argument.StableName))}>",
-                    $"{definition.FullName ?? definition.Name}<{string.Join(", ", arguments.Select(static argument => argument.DisplayName))}>")
+                    $"{definition.FullName ?? definition.Name}<{string.Join(", ", arguments.Select(static argument => argument.DisplayName))}>"
+                )
                 {
                     Portability = CombinePortability(arguments, ExecutionPortableSymbolPortability.HostImport),
                     PortabilityReason = hostImportReason,
-                    Arguments = arguments
+                    Arguments = arguments,
                 };
             }
 
             return new ExecutionPortableTypeDescriptor(
                 ExecutionPortableTypeKind.ClrOnly,
                 $"clr:{CreateVersionFreeClrIdentity(definition)}<{string.Join(",", arguments.Select(static argument => argument.StableName))}>",
-                $"{definition.FullName ?? definition.Name}<{string.Join(", ", arguments.Select(static argument => argument.DisplayName))}>")
+                $"{definition.FullName ?? definition.Name}<{string.Join(", ", arguments.Select(static argument => argument.DisplayName))}>"
+            )
             {
                 Portability = ExecutionPortableSymbolPortability.ClrOnly,
-                PortabilityReason = $"No portable container or host contract exists for CLR generic type '{definition.FullName ?? definition.Name}'.",
-                Arguments = arguments
+                PortabilityReason =
+                    $"No portable container or host contract exists for CLR generic type '{definition.FullName ?? definition.Name}'.",
+                Arguments = arguments,
             };
         }
 
@@ -149,38 +160,45 @@ internal static class ExecutionPortableSymbolFactory
                 ? ExecutionPortableTypeKind.HostOpaque
                 : ExecutionPortableTypeKind.ClrOnly,
             $"{(clrPortability == ExecutionPortableSymbolPortability.HostImport ? "host-opaque" : "clr")}:{CreateVersionFreeClrIdentity(type)}",
-            type.FullName ?? type.Name)
+            type.FullName ?? type.Name
+        )
         {
             Portability = clrPortability,
-            PortabilityReason = clrPortability == ExecutionPortableSymbolPortability.HostImport
-                ? hostOpaqueReason
-                : $"No portable catalog entry for CLR type '{type.FullName ?? type.Name}'."
+            PortabilityReason =
+                clrPortability == ExecutionPortableSymbolPortability.HostImport
+                    ? hostOpaqueReason
+                    : $"No portable catalog entry for CLR type '{type.FullName ?? type.Name}'.",
         };
     }
 
     public static ExecutionPortableTypeDescriptor GeneratedRow(
         string displayName,
-        IEnumerable<ExecutionPortableRowFieldDescriptor> fields)
+        IEnumerable<ExecutionPortableRowFieldDescriptor> fields
+    )
     {
         if (string.IsNullOrWhiteSpace(displayName))
-            throw new ArgumentException("Generated row display name cannot be null or whitespace.", nameof(displayName));
+            throw new ArgumentException(
+                "Generated row display name cannot be null or whitespace.",
+                nameof(displayName)
+            );
 
         ArgumentNullException.ThrowIfNull(fields);
         var fieldArray = fields.ToArray();
         var signature = string.Join(
             "|",
-            fieldArray.Select((field, index) =>
-                $"{index}:{field.Name}:{field.Type.StableName}:{field.Nullability}"));
+            fieldArray.Select((field, index) => $"{index}:{field.Name}:{field.Type.StableName}:{field.Nullability}")
+        );
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(signature)));
 
         return new ExecutionPortableTypeDescriptor(
             ExecutionPortableTypeKind.GeneratedRow,
             $"generated-row:sha256:{hash}",
-            displayName)
+            displayName
+        )
         {
             Portability = ExecutionPortableSymbolPortability.Portable,
             PortabilityReason = "Generated row shape is represented by portable ordered field metadata.",
-            Fields = fieldArray
+            Fields = fieldArray,
         };
     }
 
@@ -188,19 +206,15 @@ internal static class ExecutionPortableSymbolFactory
     {
         ArgumentNullException.ThrowIfNull(method);
 
-        var declaringType = method.DeclaringType != null
-            ? FromType(method.DeclaringType)
-            : new ExecutionPortableTypeDescriptor(
-                ExecutionPortableTypeKind.ClrOnly,
-                "clr:<unknown>",
-                "<unknown>")
-            {
-                Portability = ExecutionPortableSymbolPortability.ClrOnly,
-                PortabilityReason = "Method has no declaring type and cannot be mapped to a portable callable."
-            };
-        var parameters = method.GetParameters()
-            .Select(static parameter => FromType(parameter.ParameterType))
-            .ToArray();
+        var declaringType =
+            method.DeclaringType != null
+                ? FromType(method.DeclaringType)
+                : new ExecutionPortableTypeDescriptor(ExecutionPortableTypeKind.ClrOnly, "clr:<unknown>", "<unknown>")
+                {
+                    Portability = ExecutionPortableSymbolPortability.ClrOnly,
+                    PortabilityReason = "Method has no declaring type and cannot be mapped to a portable callable.",
+                };
+        var parameters = method.GetParameters().Select(static parameter => FromType(parameter.ParameterType)).ToArray();
         var returnType = FromType(method.ReturnType);
         var genericArity = method.IsGenericMethod ? method.GetGenericArguments().Length : 0;
         ExecutionPortableTypeDescriptor[] genericArguments = [];
@@ -212,14 +226,16 @@ internal static class ExecutionPortableSymbolFactory
         var stableName =
             $"method:{declaringType.StableName}.{method.Name}#g{genericArity}{specialization}({string.Join(",", parameters.Select(static parameter => parameter.StableName))}):{returnType.StableName}";
         var callableKind = ExecutionPortableSymbolCatalog.ClassifyCallable(method, out var callableReason);
-        var portability = callableKind == ExecutionPortableCallableKind.ClrMethod
-            ? ExecutionPortableSymbolPortability.ClrOnly
-            : ExecutionPortableSymbolPortability.HostImport;
+        var portability =
+            callableKind == ExecutionPortableCallableKind.ClrMethod
+                ? ExecutionPortableSymbolPortability.ClrOnly
+                : ExecutionPortableSymbolPortability.HostImport;
 
         return new ExecutionPortableCallableDescriptor(
             callableKind,
             stableName,
-            $"{declaringType.DisplayName}.{method.Name}")
+            $"{declaringType.DisplayName}.{method.Name}"
+        )
         {
             Portability = portability,
             PortabilityReason = callableReason,
@@ -231,12 +247,11 @@ internal static class ExecutionPortableSymbolFactory
             GenericArity = genericArity,
             GenericArguments = genericArguments,
             IntrinsicKind = ExecutionPortableSymbolCatalog.ClassifyIntrinsicCallable(method),
-            InvocationMode = method.IsDefined(typeof(ExtensionAttribute), inherit: false)
-                ? ExecutionCallableInvocationMode.Extension
-                : method.IsStatic
-                    ? ExecutionCallableInvocationMode.Static
-                    : ExecutionCallableInvocationMode.Instance,
-            IsStable = ExpressionStabilityAnalyzer.IsStableMethod(method)
+            InvocationMode =
+                method.IsDefined(typeof(ExtensionAttribute), inherit: false) ? ExecutionCallableInvocationMode.Extension
+                : method.IsStatic ? ExecutionCallableInvocationMode.Static
+                : ExecutionCallableInvocationMode.Instance,
+            IsStable = ExpressionStabilityAnalyzer.IsStableMethod(method),
         };
     }
 
@@ -244,10 +259,12 @@ internal static class ExecutionPortableSymbolFactory
     {
         ArgumentNullException.ThrowIfNull(constructor);
 
-        var declaringType = constructor.DeclaringType != null
-            ? FromType(constructor.DeclaringType)
-            : throw new ArgumentException("Constructor must have a declaring type.", nameof(constructor));
-        var parameters = constructor.GetParameters()
+        var declaringType =
+            constructor.DeclaringType != null
+                ? FromType(constructor.DeclaringType)
+                : throw new ArgumentException("Constructor must have a declaring type.", nameof(constructor));
+        var parameters = constructor
+            .GetParameters()
             .Select(static parameter => FromType(parameter.ParameterType))
             .ToArray();
         var stableName =
@@ -256,7 +273,8 @@ internal static class ExecutionPortableSymbolFactory
         return new ExecutionPortableCallableDescriptor(
             ExecutionPortableCallableKind.ClrMethod,
             stableName,
-            $"{declaringType.DisplayName}.ctor")
+            $"{declaringType.DisplayName}.ctor"
+        )
         {
             Portability = ExecutionPortableSymbolPortability.ClrOnly,
             PortabilityReason = $"CLR constructor for '{constructor.DeclaringType.FullName}'.",
@@ -268,9 +286,10 @@ internal static class ExecutionPortableSymbolFactory
             GenericArity = 0,
             InvocationMode = ExecutionCallableInvocationMode.Instance,
             IntrinsicKind = ExecutionIntrinsicCallableKind.None,
-            IsStable = false
+            IsStable = false,
         };
     }
+
     private static string CreateVersionFreeClrIdentity(Type type)
     {
         return $"{type.FullName ?? type.Name}@{type.Assembly.GetName().Name ?? "<unknown>"}";
@@ -278,7 +297,8 @@ internal static class ExecutionPortableSymbolFactory
 
     private static ExecutionPortableSymbolPortability CombinePortability(
         IReadOnlyList<ExecutionPortableTypeDescriptor> symbols,
-        ExecutionPortableSymbolPortability defaultPortability)
+        ExecutionPortableSymbolPortability defaultPortability
+    )
     {
         if (symbols.Any(static symbol => symbol.Portability == ExecutionPortableSymbolPortability.ClrOnly))
             return ExecutionPortableSymbolPortability.ClrOnly;
@@ -288,13 +308,13 @@ internal static class ExecutionPortableSymbolFactory
             : defaultPortability;
     }
 
-    private static string FormatNonPortableArgumentReasons(
-        IEnumerable<ExecutionPortableTypeDescriptor> arguments)
+    private static string FormatNonPortableArgumentReasons(IEnumerable<ExecutionPortableTypeDescriptor> arguments)
     {
         return string.Join(
             "; ",
             arguments
                 .Where(static argument => argument.Portability != ExecutionPortableSymbolPortability.Portable)
-                .Select(static argument => $"{argument.DisplayName}: {argument.PortabilityReason}"));
+                .Select(static argument => $"{argument.DisplayName}: {argument.PortabilityReason}")
+        );
     }
 }

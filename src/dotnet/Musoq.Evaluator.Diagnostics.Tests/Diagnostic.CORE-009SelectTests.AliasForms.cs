@@ -12,7 +12,8 @@ public sealed partial class DiagnosticCore009SelectTests
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P1-0179")]
     public void ProjectionAliasFormsExposeNames()
     {
-        const string query = "select p.Value + 1 PlusOne, p.Value + 1 as AlsoPlusOne, p.Value + 1 [Bracket Plus One], p.Value from values { (Value: 1) } p";
+        const string query =
+            "select p.Value + 1 PlusOne, p.Value + 1 as AlsoPlusOne, p.Value + 1 [Bracket Plus One], p.Value from values { (Value: 1) } p";
         using var compiled = CompileAliasForms(query);
         using var result = compiled.Run(TestContext.CancellationToken);
 
@@ -22,7 +23,8 @@ public sealed partial class DiagnosticCore009SelectTests
     [TestMethod]
     public void ExplicitProjectionAliasForms_ShouldExposeDeclaredNamesAndValues()
     {
-        const string query = "select p.Value + 1 PlusOne, p.Value + 1 as AlsoPlusOne, p.Value + 1 [Bracket Plus One], p.Value as Value from values { (Value: 1) } p";
+        const string query =
+            "select p.Value + 1 PlusOne, p.Value + 1 as AlsoPlusOne, p.Value + 1 [Bracket Plus One], p.Value as Value from values { (Value: 1) } p";
         using var compiled = CompileAliasForms(query);
         using var result = compiled.Run(TestContext.CancellationToken);
 
@@ -33,7 +35,8 @@ public sealed partial class DiagnosticCore009SelectTests
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P1-0185")]
     public void DuplicateAliasesResolveFirstProjection()
     {
-        const string query = "select p.Left as Same, p.Right as Same from values { (Left: 1, Right: 2) } p where Same = 1";
+        const string query =
+            "select p.Left as Same, p.Right as Same from values { (Left: 1, Right: 2) } p where Same = 1";
         using var compiled = CompileAliasForms(query);
         using var result = compiled.Run(TestContext.CancellationToken);
 
@@ -44,7 +47,8 @@ public sealed partial class DiagnosticCore009SelectTests
     [TestMethod]
     public void DuplicateAliasesPredicate_ShouldUseFirstProjectionValue()
     {
-        const string query = "select p.Left as Same, p.Right as Same from values { (Left: 1, Right: 2) } p where Same = 2";
+        const string query =
+            "select p.Left as Same, p.Right as Same from values { (Left: 1, Right: 2) } p where Same = 2";
         using var compiled = CompileAliasForms(query);
         using var result = compiled.Run(TestContext.CancellationToken);
 
@@ -53,16 +57,25 @@ public sealed partial class DiagnosticCore009SelectTests
 
     private static void AssertAliasFormsResult(Musoq.Evaluator.Tables.Table result)
     {
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("PlusOne", typeof(int)), ("AlsoPlusOne", typeof(int)),
-            ("Bracket Plus One", typeof(int)), ("Value", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("PlusOne", typeof(int)),
+            ("AlsoPlusOne", typeof(int)),
+            ("Bracket Plus One", typeof(int)),
+            ("Value", typeof(int))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { 2, 2, 2, 1 });
     }
 
     private CompiledQuery CompileAliasForms(string query)
     {
-        return InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
+        return InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>()),
-            LoggerResolver, TestCompilationOptions, TestContext.CancellationToken);
+            LoggerResolver,
+            TestCompilationOptions,
+            TestContext.CancellationToken
+        );
     }
 }

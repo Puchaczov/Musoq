@@ -7,7 +7,8 @@ public sealed record ExecutionAppendRecord : ExecutionNode
     public ExecutionAppendRecord(
         ExecutionVariable list,
         GeneratedRecordShape recordShape,
-        IReadOnlyList<ExecutionRowValue> values)
+        IReadOnlyList<ExecutionRowValue> values
+    )
     {
         List = list;
         RecordShape = recordShape;

@@ -24,7 +24,8 @@ public sealed class ExecutionRowStreamsTests
         var prototype = new ExecutionRowStream(
             Var("source"),
             ExecutionRowStreamKind.Chunks,
-            ExecutionRowStreamRowsAccess.TableRows);
+            ExecutionRowStreamRowsAccess.TableRows
+        );
         var rebound = ExecutionRowStreams.RebindLike(prototype, Var("rebound"));
 
         Assert.IsInstanceOfType<ExecutionRowStream>(rebound);
@@ -44,8 +45,14 @@ public sealed class ExecutionRowStreamsTests
     [TestMethod]
     public void RebindLike_DirectScalarRows_PreservesTraversalWithoutReusingTableAccess()
     {
-        var prototype = new ExecutionRowStream(Var("source"), ExecutionRowStreamKind.Rows,
-            ExecutionRowStreamRowsAccess.TableRows) { HasDirectScalarElements = true };
+        var prototype = new ExecutionRowStream(
+            Var("source"),
+            ExecutionRowStreamKind.Rows,
+            ExecutionRowStreamRowsAccess.TableRows
+        )
+        {
+            HasDirectScalarElements = true,
+        };
 
         var rebound = (ExecutionRowStream)ExecutionRowStreams.RebindLike(prototype, Var("rebound"));
 

@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class CrossApplyBugTestCases : GenericEntityTestBase
 {
-
     [TestMethod]
     public void CrossApply_WithNullParameter_ShouldHandleGracefully()
     {
@@ -21,14 +20,14 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
         {
             new() { Key = "Valid", Value = "Test1" },
             new() { Key = null, Value = "Test2" },
-            new() { Key = "Another", Value = "Test3" }
+            new() { Key = "Another", Value = "Test3" },
         }.ToArray();
 
         var secondSource = new List<TestClass2>
         {
             new() { FilterKey = "Valid", Amount = 100m },
             new() { FilterKey = "Another", Amount = 200m },
-            new() { FilterKey = null, Amount = 300m }
+            new() { FilterKey = null, Amount = 300m },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -41,15 +40,17 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             (parameters, source) =>
             {
                 var filterKey = parameters[0];
-                return source.Filter(f =>
-                    Equals(f.FilterKey, filterKey)).ToArray();
-            });
+                return source.Filter(f => Equals(f.FilterKey, filterKey)).ToArray();
+            }
+        );
 
         using var table = vm.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
             ["Valid", "Test1", "Valid", 100m],
             [null, "Test2", null, 300m],
-            ["Another", "Test3", "Another", 200m]);
+            ["Another", "Test3", "Another", 200m]
+        );
     }
 
     [TestMethod]
@@ -61,12 +62,12 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
         var firstSource = new List<TestClass1>
         {
             new() { Key = "Valid", Value = "Test1" },
-            new() { Key = "NoMatch", Value = "Test2" }
+            new() { Key = "NoMatch", Value = "Test2" },
         }.ToArray();
 
         var secondSource = new List<TestClass2>
         {
-            new() { FilterKey = "Valid", Amount = 100m }
+            new() { FilterKey = "Valid", Amount = 100m },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -79,12 +80,11 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             (parameters, source) =>
             {
                 var filterKey = RequireParameter<string>(parameters, 0);
-                return source.Filter(f =>
-                    (string)f.FilterKey == filterKey).ToArray();
-            });
+                return source.Filter(f => (string)f.FilterKey == filterKey).ToArray();
+            }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].ReadValues()[0]);
@@ -99,12 +99,12 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
         var firstSource = new List<TestClass1>
         {
             new() { Key = "Test", Value = "Value1" },
-            new() { Key = null, Value = null }
+            new() { Key = null, Value = null },
         }.ToArray();
 
         var secondSource = new List<TestClass2>
         {
-            new() { FilterKey = "Test", Amount = 100m }
+            new() { FilterKey = "Test", Amount = 100m },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -117,12 +117,11 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             (parameters, source) =>
             {
                 var filterKey = parameters[0];
-                return source.Filter(f =>
-                    Equals(f.FilterKey, filterKey)).ToArray();
-            });
+                return source.Filter(f => Equals(f.FilterKey, filterKey)).ToArray();
+            }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
@@ -136,22 +135,14 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
 
         var firstSource = new List<TestClass1>
         {
-            new() { Key = "Test", Value = "Test1" }
+            new() { Key = "Test", Value = "Test1" },
         }.ToArray();
 
         var secondSource = new List<TestClass2>().ToArray();
 
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource,
-            secondSource,
-            null,
-            null,
-            null,
-            (_, _) => null);
+        var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource, null, null, null, (_, _) => null);
 
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.IsNotNull(table);
         Assert.AreEqual(0, table.Count);
@@ -165,7 +156,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
 
         var firstSource = new List<TestClass1>
         {
-            new() { Key = "Test", Value = "Test1" }
+            new() { Key = "Test", Value = "Test1" },
         }.ToArray();
 
         var secondSource = new List<TestClass2>().ToArray();
@@ -177,8 +168,8 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             null,
             null,
             null,
-            (_, _) => throw new InvalidOperationException("Function failed"));
-
+            (_, _) => throw new InvalidOperationException("Function failed")
+        );
 
         Assert.Throws<InvalidOperationException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
     }
@@ -191,12 +182,12 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
 
         var firstSource = new List<TestClass1>
         {
-            new() { Key = "123", Value = "Test1" }
+            new() { Key = "123", Value = "Test1" },
         }.ToArray();
 
         var secondSource = new List<TestClass2>
         {
-            new() { FilterKey = "123", Amount = 100m }
+            new() { FilterKey = "123", Amount = 100m },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -210,15 +201,13 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             {
                 var param = parameters[0];
                 if (param != null && int.TryParse(param.ToString(), out var intParam))
-                    return source.Filter(f =>
-                        f.FilterKey?.ToString() == intParam.ToString()).ToArray();
+                    return source.Filter(f => f.FilterKey?.ToString() == intParam.ToString()).ToArray();
 
-                return source.Filter(f =>
-                    Equals(f.FilterKey, param)).ToArray();
-            });
+                return source.Filter(f => Equals(f.FilterKey, param)).ToArray();
+            }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);

@@ -1,6 +1,6 @@
 using System.Linq;
-using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Physical.Rewriting;
 using Musoq.Plugins;
@@ -27,9 +27,7 @@ internal sealed class OrderingStrategySelectionPass : IPhysicalOptimizationPass
         if (node is PhysicalTakeNode take)
             return RewriteTake(take, state);
 
-        return PhysicalPlanRewriter.RewriteChildren(
-            node,
-            child => Rewrite(child, state));
+        return PhysicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, state));
     }
 
     private static PhysicalNode RewriteTake(PhysicalTakeNode take, PhysicalOptimizationState state)
@@ -43,10 +41,9 @@ internal sealed class OrderingStrategySelectionPass : IPhysicalOptimizationPass
                 AddDecision(
                     state,
                     TakeStrategyKind.Take,
-                    "A non-window RowNumber projection requires complete ordering before SKIP/TAKE.");
-                return ReferenceEquals(input, take.Input)
-                    ? take
-                    : new PhysicalTakeNode(take.Count, input);
+                    "A non-window RowNumber projection requires complete ordering before SKIP/TAKE."
+                );
+                return ReferenceEquals(input, take.Input) ? take : new PhysicalTakeNode(take.Count, input);
             }
 
             AddDecision(state, TakeStrategyKind.TopOffset, "Sort -> Skip -> Take can use bounded top-offset ordering.");
@@ -60,10 +57,9 @@ internal sealed class OrderingStrategySelectionPass : IPhysicalOptimizationPass
                 AddDecision(
                     state,
                     TakeStrategyKind.Take,
-                    "A non-window RowNumber projection requires complete ordering before TAKE.");
-                return ReferenceEquals(input, take.Input)
-                    ? take
-                    : new PhysicalTakeNode(take.Count, input);
+                    "A non-window RowNumber projection requires complete ordering before TAKE."
+                );
+                return ReferenceEquals(input, take.Input) ? take : new PhysicalTakeNode(take.Count, input);
             }
 
             AddDecision(state, TakeStrategyKind.TopN, "Sort -> Take can use bounded top-N ordering.");
@@ -71,30 +67,31 @@ internal sealed class OrderingStrategySelectionPass : IPhysicalOptimizationPass
         }
 
         AddDecision(state, TakeStrategyKind.Take, "Take has no adjacent sort boundary to collapse.");
-        return ReferenceEquals(input, take.Input)
-            ? take
-            : new PhysicalTakeNode(take.Count, input);
+        return ReferenceEquals(input, take.Input) ? take : new PhysicalTakeNode(take.Count, input);
     }
 
-    private static void AddDecision(
-        PhysicalOptimizationState state,
-        TakeStrategyKind kind,
-        string reason)
+    private static void AddDecision(PhysicalOptimizationState state, TakeStrategyKind kind, string reason)
     {
-        state.AddDecision(new PlanningDecision(
-            PlanningDecisionCategory.OrderingStrategy,
-            "OrderingStrategySelection",
-            "order",
-            kind.ToString(),
-            PlanningConfidence.High,
-            reason));
+        state.AddDecision(
+            new PlanningDecision(
+                PlanningDecisionCategory.OrderingStrategy,
+                "OrderingStrategySelection",
+                "order",
+                kind.ToString(),
+                PlanningConfidence.High,
+                reason
+            )
+        );
     }
 
     private static bool ContainsNonWindowRowNumberProjection(PhysicalNode node)
     {
-        if (node is PhysicalProjectNode project &&
-            project.Fields.Any(static field =>
-                field.Expression is MethodCall methodCall && IsRowNumberMethod(methodCall.Method)))
+        if (
+            node is PhysicalProjectNode project
+            && project.Fields.Any(static field =>
+                field.Expression is MethodCall methodCall && IsRowNumberMethod(methodCall.Method)
+            )
+        )
         {
             return true;
         }

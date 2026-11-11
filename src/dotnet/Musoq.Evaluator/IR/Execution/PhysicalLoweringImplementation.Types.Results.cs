@@ -1,27 +1,23 @@
-
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-
-
-    private static ExecutionPlan CreateTableResultPlan(
-        string identifier,
-        TableBuildResult result)
+    private static ExecutionPlan CreateTableResultPlan(string identifier, TableBuildResult result)
     {
         return new ExecutionPlan(
             identifier,
             result.Shapes,
-            new ExecutionBlock([..result.Nodes, new ExecutionReturnTable(result.Table)]),
-            result.FinalResult ?? throw new InvalidOperationException("Supported table build result must expose final shape metadata."));
+            new ExecutionBlock([.. result.Nodes, new ExecutionReturnTable(result.Table)]),
+            result.FinalResult
+                ?? throw new InvalidOperationException("Supported table build result must expose final shape metadata.")
+        );
     }
-
-
 
     private static ExecutionNode CreateMaterializeListNode(
         ExecutionExpression source,
         ExecutionVariable buffer,
-        GeneratedRowShape? generatedRowShape = null)
+        GeneratedRowShape? generatedRowShape = null
+    )
     {
         return ExecutionRowStreams.CreateMaterializeList(source, buffer, generatedRowShape);
     }
@@ -32,7 +28,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable item,
         ExecutionRowAccessMode rowAccessMode,
         ExecutionExpression predicate,
-        GeneratedRowShape? generatedRowShape = null)
+        GeneratedRowShape? generatedRowShape = null
+    )
     {
         return ExecutionRowStreams.CreateMaterializeFilteredList(
             source,
@@ -40,9 +37,7 @@ internal sealed partial class PhysicalLoweringImplementation
             item,
             rowAccessMode,
             predicate,
-            generatedRowShape);
+            generatedRowShape
+        );
     }
-
-
-
 }

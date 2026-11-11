@@ -9,18 +9,22 @@ namespace Musoq.Evaluator.Visitors;
 public partial class InterpreterCodeGenerator
 {
     private const string PreparedPatternType = "global::Musoq.Schema.Interpreters.PreparedTextPattern";
-    private readonly Dictionary<TextFieldDefinitionNode, PreparedPatternMember> _textPatterns =
-        new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<TextFieldDefinitionNode, PreparedPatternMember> _textPatterns = new(
+        ReferenceEqualityComparer.Instance
+    );
     private readonly Dictionary<string, string> _textLookaheads = new(StringComparer.Ordinal);
 
-    private void AppendPreparedPatternMembers(StringBuilder builder, IReadOnlyList<BoundTextField> fields,
-        string className)
+    private void AppendPreparedPatternMembers(
+        StringBuilder builder,
+        IReadOnlyList<BoundTextField> fields,
+        string className
+    )
     {
         _textPatterns.Clear();
         _textLookaheads.Clear();
         var names = new HashSet<string>(fields.Select(static field => field.Name), StringComparer.Ordinal)
         {
-            className
+            className,
         };
         names.UnionWith(fields.Select(static field => field.LocalVariableName));
         var index = 0;
@@ -48,8 +52,10 @@ public partial class InterpreterCodeGenerator
                 var name = AllocateMemberName();
                 _textLookaheads.Add(lookahead, name);
                 var escaped = InterpretationStringLiterals.EscapeCSharpRegexString(lookahead);
-                AppendGeneratedLine(builder,
-                    $"    private static readonly {PreparedPatternType} {name} = {PreparedPatternType}.CreateLookahead(@\"{escaped}\");");
+                AppendGeneratedLine(
+                    builder,
+                    $"    private static readonly {PreparedPatternType} {name} = {PreparedPatternType}.CreateLookahead(@\"{escaped}\");"
+                );
             }
         }
     }
@@ -57,12 +63,24 @@ public partial class InterpreterCodeGenerator
     private static void AppendPatternMember(StringBuilder builder, string name, BoundTextPattern pattern)
     {
         var text = InterpretationStringLiterals.EscapeCSharpRegexString(pattern.Pattern);
-        var groups = pattern.CaptureGroups.Count == 0
-            ? string.Empty
-            : ", [" + string.Join(", ", pattern.CaptureGroups.Select(static group =>
-                $"\"{InterpretationStringLiterals.EscapeCSharpString(group)}\"")) + "]";
-        AppendGeneratedLine(builder, string.Create(CultureInfo.InvariantCulture,
-            $"    private static readonly {PreparedPatternType} {name} = new(@\"{text}\", (global::Musoq.Schema.Interpreters.TextPatternModifiers){(int)pattern.Modifiers}{groups});"));
+        var groups =
+            pattern.CaptureGroups.Count == 0
+                ? string.Empty
+                : ", ["
+                    + string.Join(
+                        ", ",
+                        pattern.CaptureGroups.Select(static group =>
+                            $"\"{InterpretationStringLiterals.EscapeCSharpString(group)}\""
+                        )
+                    )
+                    + "]";
+        AppendGeneratedLine(
+            builder,
+            string.Create(
+                CultureInfo.InvariantCulture,
+                $"    private static readonly {PreparedPatternType} {name} = new(@\"{text}\", (global::Musoq.Schema.Interpreters.TextPatternModifiers){(int)pattern.Modifiers}{groups});"
+            )
+        );
     }
 
     private sealed record PreparedPatternMember(string Name, BoundTextPattern Pattern);

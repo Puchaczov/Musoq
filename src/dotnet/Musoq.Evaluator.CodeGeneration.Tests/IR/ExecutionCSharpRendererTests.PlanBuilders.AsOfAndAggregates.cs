@@ -13,8 +13,16 @@ public sealed partial class ExecutionCSharpRendererTests
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var rightRows = new ExecutionVariable("rRows", typeof(object));
         var match = new ExecutionVariable("r", typeof(Person));
@@ -24,7 +32,8 @@ public sealed partial class ExecutionCSharpRendererTests
         {
             new ExecutionAsOfEqualityKey(
                 new ExecutionFieldRead("l", "Name", typeof(string)),
-                new ExecutionFieldRead("rCandidate", "Name", typeof(string)))
+                new ExecutionFieldRead("rCandidate", "Name", typeof(string))
+            ),
         };
         var probeKey = new ExecutionFieldRead("l", "Age", typeof(int));
         var candidateKey = new ExecutionFieldRead("rCandidate", "Age", typeof(int));
@@ -32,8 +41,7 @@ public sealed partial class ExecutionCSharpRendererTests
         return CreateFinalResultPlan(
             "Q_IndexedAsOf",
             [resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateAsOfIndex(
                     index,
@@ -42,7 +50,8 @@ public sealed partial class ExecutionCSharpRendererTests
                     equalityKeys,
                     candidateKey,
                     BinaryOpKind.GreaterOrEqual,
-                    typeof(int)),
+                    typeof(int)
+                ),
                 new ExecutionAsOfProbe(
                     match,
                     candidate,
@@ -53,34 +62,35 @@ public sealed partial class ExecutionCSharpRendererTests
                     BinaryOpKind.GreaterOrEqual,
                     ExecutionBlock.Empty,
                     Index: index,
-                    ComparisonKeyType: ExecutionClrBindingFactory.FromClr(typeof(int))),
-                new ExecutionReturnTable(resultTable)
+                    ComparisonKeyType: ExecutionClrBindingFactory.FromClr(typeof(int))
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateKernelAggregatePlan()
     {
         var declaration = typeof(KernelAggregateLibrary).GetMethod(nameof(KernelAggregateLibrary.Sum))!;
         var kernel = AggregateKernelDescriptor.Create(declaration);
-        var accumulator = new AggregateAccumulatorField(
-            "Sum(Age)",
-            "__agg0",
-            kernel);
-        var aggregateShape = new AggregateGroupShape(
-            "ResultAggregateGroup",
-            [],
-            [],
-            [accumulator]);
-        var aggregatePlan = new AggregateGroupPlan(
-            aggregateShape,
-            [new AggregateGroupLevelPlan(0, aggregateShape)]);
+        var accumulator = new AggregateAccumulatorField("Sum(Age)", "__agg0", kernel);
+        var aggregateShape = new AggregateGroupShape("ResultAggregateGroup", [], [], [accumulator]);
+        var aggregatePlan = new AggregateGroupPlan(aggregateShape, [new AggregateGroupLevelPlan(0, aggregateShape)]);
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Total", "Total", 0, typeof(int?), FieldNullability.Nullable, new GeneratedFieldAccess("Total"))
-            ]);
+                new FieldBinding(
+                    "Total",
+                    "Total",
+                    0,
+                    typeof(int?),
+                    FieldNullability.Nullable,
+                    new GeneratedFieldAccess("Total")
+                ),
+            ]
+        );
         var resultTable = new ExecutionVariable("result", typeof(object));
         var rootGroup = new ExecutionVariable("rootGroup", typeof(object));
         var currentGroup = new ExecutionVariable("currentGroup", typeof(object));
@@ -89,8 +99,7 @@ public sealed partial class ExecutionCSharpRendererTests
         return CreateFinalResultPlan(
             "Q_KernelAggregate",
             [aggregateShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateAggregateContext(rootGroup, currentGroup, groups, aggregatePlan),
                 new ExecutionAggregateSet(
@@ -98,24 +107,23 @@ public sealed partial class ExecutionCSharpRendererTests
                     declaration,
                     [],
                     accumulator,
-                    new ExecutionLiteral(10, typeof(int?))),
+                    new ExecutionLiteral(10, typeof(int?))
+                ),
                 new ExecutionAppendRow(
                     resultTable,
                     resultShape,
                     [
                         new ExecutionRowValue(
                             "Total",
-                            new ExecutionAggregateCall(
-                                currentGroup,
-                                declaration,
-                                [],
-                                typeof(int?),
-                                accumulator))
-                    ]),
-                new ExecutionReturnTable(resultTable)
+                            new ExecutionAggregateCall(currentGroup, declaration, [], typeof(int?), accumulator)
+                        ),
+                    ]
+                ),
+                new ExecutionReturnTable(resultTable),
             ]),
             resultTable,
-            resultShape);
+            resultShape
+        );
     }
 
     private static ExecutionPlan CreateDynamicAsOfProbePlan()
@@ -124,8 +132,16 @@ public sealed partial class ExecutionCSharpRendererTests
             "r",
             typeof(IReadOnlyDictionary<string, object>),
             [
-                new FieldBinding("Score", "r.Score", 0, typeof(int), FieldNullability.Unknown, new ReflectedMemberAccess("Score"))
-            ]);
+                new FieldBinding(
+                    "Score",
+                    "r.Score",
+                    0,
+                    typeof(int),
+                    FieldNullability.Unknown,
+                    new ReflectedMemberAccess("Score")
+                ),
+            ]
+        );
         var match = new ExecutionVariable("r", typeof(ExpandoObject));
         var candidate = new ExecutionVariable("rCandidate", typeof(ExpandoObject));
         var rightRows = new ExecutionVariable("rRows", typeof(object));
@@ -133,8 +149,7 @@ public sealed partial class ExecutionCSharpRendererTests
         return new ExecutionPlan(
             "Q_DynamicAsOf",
             [rightShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionAsOfProbe(
                     match,
                     candidate,
@@ -143,7 +158,9 @@ public sealed partial class ExecutionCSharpRendererTests
                     new ExecutionLiteral(2, typeof(int)),
                     new ExecutionFieldRead("rCandidate", "Score", typeof(int), new ReflectedMemberAccess("Score")),
                     BinaryOpKind.GreaterOrEqual,
-                    ExecutionBlock.Empty)
-            ]));
+                    ExecutionBlock.Empty
+                ),
+            ])
+        );
     }
 }

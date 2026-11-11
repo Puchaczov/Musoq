@@ -5,5 +5,5 @@ public enum SourceProfileDiagnosis
     SourceBound,
     EvaluatorBound,
     Balanced,
-    Unknown
+    Unknown,
 }

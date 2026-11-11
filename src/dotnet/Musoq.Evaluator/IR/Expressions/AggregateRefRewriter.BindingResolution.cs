@@ -7,17 +7,14 @@ public sealed partial class AggregateRefRewriter
 {
     private static bool ShouldRewriteToAggregateRef(MethodInfo method, AggregateBinding binding)
     {
-         return IsAggregateMethod(method) ||
-                method == binding.GetMethod ||
-                method == binding.SetMethod;
+        return IsAggregateMethod(method) || method == binding.GetMethod || method == binding.SetMethod;
     }
 
     private string? ExtractBoundIdentifier(MethodCall methodCall)
     {
         foreach (var argument in methodCall.Arguments)
         {
-            if (argument is Literal { Value: string identifier } &&
-                _bindingsByIdentifier.ContainsKey(identifier))
+            if (argument is Literal { Value: string identifier } && _bindingsByIdentifier.ContainsKey(identifier))
                 return identifier;
         }
 
@@ -39,8 +36,10 @@ public sealed partial class AggregateRefRewriter
             if (!ShouldRewriteToAggregateRef(method, currentBinding))
                 continue;
 
-            if (candidate is not null &&
-                !string.Equals(candidate.Identifier, currentBinding.Identifier, StringComparison.Ordinal))
+            if (
+                candidate is not null
+                && !string.Equals(candidate.Identifier, currentBinding.Identifier, StringComparison.Ordinal)
+            )
                 return false;
 
             candidate = currentBinding;
@@ -58,8 +57,10 @@ public sealed partial class AggregateRefRewriter
         if (TryResolveAggregateBinding(columnRef.ColumnName, out binding))
             return true;
 
-        if (!string.IsNullOrWhiteSpace(columnRef.Alias) &&
-            TryResolveAggregateBinding($"{columnRef.Alias}.{columnRef.ColumnName}", out binding))
+        if (
+            !string.IsNullOrWhiteSpace(columnRef.Alias)
+            && TryResolveAggregateBinding($"{columnRef.Alias}.{columnRef.ColumnName}", out binding)
+        )
         {
             return true;
         }
@@ -78,8 +79,7 @@ public sealed partial class AggregateRefRewriter
             return true;
 
         var normalized = NormalizeIdentifier(key);
-        if (!string.IsNullOrWhiteSpace(normalized) &&
-            _bindingsByIdentifier.TryGetValue(normalized, out binding!))
+        if (!string.IsNullOrWhiteSpace(normalized) && _bindingsByIdentifier.TryGetValue(normalized, out binding!))
         {
             return true;
         }

@@ -7,16 +7,16 @@ public static partial class MethodDeclarationHelper
 {
     public static EventFieldDeclarationSyntax CreateQueryProgressEvent()
     {
-        return SyntaxFactory.EventFieldDeclaration(
-                SyntaxFactory.VariableDeclaration(
-                        SyntaxFactory.IdentifierName(nameof(QueryProgressEventHandler)))
+        return SyntaxFactory
+            .EventFieldDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.IdentifierName(nameof(QueryProgressEventHandler)))
                     .WithVariables(
                         SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier("QueryProgress")))))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
+                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("QueryProgress"))
+                        )
+                    )
+            )
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
     }
-
 }

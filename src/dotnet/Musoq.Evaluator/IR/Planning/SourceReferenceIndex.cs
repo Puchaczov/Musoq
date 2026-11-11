@@ -8,16 +8,15 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal sealed record SourceReferenceIndex(
     IReadOnlyList<SourceReference> All,
-    IReadOnlyDictionary<string, SourceReference[]> ByAlias)
+    IReadOnlyDictionary<string, SourceReference[]> ByAlias
+)
 {
     public static SourceReferenceIndex Create(LogicalNode node)
     {
         return Create(node, CancellationToken.None);
     }
 
-    public static SourceReferenceIndex Create(
-        LogicalNode node,
-        CancellationToken cancellationToken)
+    public static SourceReferenceIndex Create(LogicalNode node, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var references = new List<SourceReference>();
@@ -26,10 +25,7 @@ internal sealed record SourceReferenceIndex(
 
         var byAlias = references
             .GroupBy(static source => source.Alias, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(
-                static group => group.Key,
-                static group => group.ToArray(),
-                StringComparer.OrdinalIgnoreCase);
+            .ToDictionary(static group => group.Key, static group => group.ToArray(), StringComparer.OrdinalIgnoreCase);
 
         cancellationToken.ThrowIfCancellationRequested();
         return new SourceReferenceIndex(references, byAlias);
@@ -37,22 +33,20 @@ internal sealed record SourceReferenceIndex(
 
     public SourceReference[] Find(string alias)
     {
-        return ByAlias.TryGetValue(alias, out var sourceReferences)
-            ? sourceReferences
-            : [];
+        return ByAlias.TryGetValue(alias, out var sourceReferences) ? sourceReferences : [];
     }
 
     private static void AddSourceReferences(
         LogicalNode node,
         List<SourceReference> references,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (node is SchemaScanNode scan)
-            references.Add(new SourceReference(
-                scan.SourceContextId,
-                scan.Alias,
-                CreateOutputColumnSet(scan, cancellationToken)));
+            references.Add(
+                new SourceReference(scan.SourceContextId, scan.Alias, CreateOutputColumnSet(scan, cancellationToken))
+            );
 
         foreach (var child in node.Children)
         {
@@ -61,9 +55,7 @@ internal sealed record SourceReferenceIndex(
         }
     }
 
-    private static HashSet<string> CreateOutputColumnSet(
-        SchemaScanNode scan,
-        CancellationToken cancellationToken)
+    private static HashSet<string> CreateOutputColumnSet(SchemaScanNode scan, CancellationToken cancellationToken)
     {
         var columns = new HashSet<string>(StringComparer.Ordinal);
         foreach (var column in scan.OutputSchema.Columns)

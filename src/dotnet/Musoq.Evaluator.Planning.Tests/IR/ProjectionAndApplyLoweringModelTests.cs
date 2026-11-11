@@ -86,10 +86,7 @@ public sealed class ProjectionAndApplyLoweringModelTests
     [TestMethod]
     public void OuterApplyArgumentSubstitutionResult_Factories_ShouldPreserveExpressionsAndUnknownFlag()
     {
-        var expressions = new ExecutionExpression[]
-        {
-            new ExecutionLiteral("alpha", typeof(string))
-        };
+        var expressions = new ExecutionExpression[] { new ExecutionLiteral("alpha", typeof(string)) };
         var success = OuterApplyArgumentSubstitutionResult.Success(expressions, hasUnknown: true);
         var unsupported = OuterApplyArgumentSubstitutionResult.Unsupported("bad argument");
 
@@ -142,11 +139,9 @@ public sealed class ProjectionAndApplyLoweringModelTests
     {
         var fallback = new ExecutionLiteral("fallback", typeof(string));
         var expression = new ExecutionCoalesce(
-            [
-                new ExecutionFieldRead("orders", "Code", typeof(string)),
-                fallback
-            ],
-            typeof(string));
+            [new ExecutionFieldRead("orders", "Code", typeof(string)), fallback],
+            typeof(string)
+        );
 
         var result = OuterApplyNullSubstitutionService.SubstituteRightAlias(expression, "orders");
 
@@ -162,10 +157,12 @@ public sealed class ProjectionAndApplyLoweringModelTests
             [
                 new ExecutionCaseWhenBranch(
                     new ExecutionLiteral(true, typeof(bool)),
-                    new ExecutionFieldRead("orders", "Total", typeof(int)))
+                    new ExecutionFieldRead("orders", "Total", typeof(int))
+                ),
             ],
             new ExecutionLiteral(5, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
 
         var result = OuterApplyNullSubstitutionService.SubstituteRightAlias(expression, "orders");
 
@@ -196,7 +193,11 @@ public sealed class ProjectionAndApplyLoweringModelTests
     [TestMethod]
     public void OuterApplyNullSubstitutionService_WhenAggregateResultReferenceIsUnresolved_ShouldBeUnsupported()
     {
-        var expression = new ExecutionAggregateResultRef("sum-orders-total", "Sum(orders.Total)", ExecutionClrBindingFactory.FromClr(typeof(decimal)));
+        var expression = new ExecutionAggregateResultRef(
+            "sum-orders-total",
+            "Sum(orders.Total)",
+            ExecutionClrBindingFactory.FromClr(typeof(decimal))
+        );
 
         var result = OuterApplyNullSubstitutionService.SubstituteRightAlias(expression, "orders");
 
@@ -208,17 +209,20 @@ public sealed class ProjectionAndApplyLoweringModelTests
     public void OuterApplyNullSubstitutionService_WhenLikeMatcherReadsRightAlias_ShouldReturnFalse()
     {
         var cacheSlot = new ExecutionLikeMatcherCacheSlot(
-            ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot)));
+            ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot))
+        );
         var dynamicMatch = new ExecutionDynamicLikeMatch(
             new ExecutionLiteral("alpha", typeof(string)),
             new ExecutionFieldRead("orders", "Pattern", typeof(string)),
             cacheSlot,
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
         var prepare = new ExecutionPrepareLikeMatcher(
             new ExecutionFieldRead("orders", "Pattern", typeof(string)),
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher)));
+            ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher))
+        );
 
         var dynamicResult = OuterApplyNullSubstitutionService.SubstituteRightAlias(dynamicMatch, "orders");
         var prepareResult = OuterApplyNullSubstitutionService.SubstituteRightAlias(prepare, "orders");
@@ -234,15 +238,18 @@ public sealed class ProjectionAndApplyLoweringModelTests
     public void OuterApplyNullSubstitutionService_WhenLikeMatcherDoesNotReadRightAlias_ShouldPreserveExpression()
     {
         var cacheSlot = new ExecutionLikeMatcherCacheSlot(
-            ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot)));
+            ExecutionClrBindingFactory.FromClr(typeof(LikeMatcherCacheSlot))
+        );
         var prepare = new ExecutionPrepareLikeMatcher(
             new ExecutionLiteral("a%", typeof(string)),
             ExecutionStringMatchComparison.LikeIgnoreCase,
-            ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher)));
+            ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher))
+        );
         var preparedMatch = new ExecutionPreparedLikeMatch(
             new ExecutionFieldRead("customers", "Name", typeof(string)),
             prepare,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
 
         var cacheResult = OuterApplyNullSubstitutionService.SubstituteRightAlias(cacheSlot, "orders");
         var preparedResult = OuterApplyNullSubstitutionService.SubstituteRightAlias(preparedMatch, "orders");

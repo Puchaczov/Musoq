@@ -7,9 +7,7 @@ internal static class TypedShorthandSourceMapper
     private const string SourceName = "entities";
     private static readonly string[] SchemaNames = ["#A", "#B", "#C", "#D"];
 
-    public static MusoqQueryBuilder AddSource<T>(
-        MusoqQueryBuilder builder,
-        int sourceIndex)
+    public static MusoqQueryBuilder AddSource<T>(MusoqQueryBuilder builder, int sourceIndex)
     {
         return builder.Source<T>(GetSchemaName(sourceIndex), SourceName);
     }
@@ -17,7 +15,8 @@ internal static class TypedShorthandSourceMapper
     public static MusoqQueryBuilder AddSource<T>(
         MusoqQueryBuilder builder,
         int sourceIndex,
-        IEnumerable<IReadOnlyList<T>> chunks)
+        IEnumerable<IReadOnlyList<T>> chunks
+    )
     {
         return builder.Source(GetSchemaName(sourceIndex), SourceName, chunks);
     }
@@ -29,7 +28,8 @@ internal static class TypedShorthandSourceMapper
             throw new ArgumentOutOfRangeException(
                 nameof(sourceIndex),
                 sourceIndex,
-                $"Typed shorthand supports source indexes 0 through {SchemaNames.Length - 1}.");
+                $"Typed shorthand supports source indexes 0 through {SchemaNames.Length - 1}."
+            );
         }
 
         return SchemaNames[sourceIndex];

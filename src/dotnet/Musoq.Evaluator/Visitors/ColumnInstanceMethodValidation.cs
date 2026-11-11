@@ -19,10 +19,11 @@ internal static class ColumnInstanceMethodValidation
         throw new VisitorException(
             nameof(BuildMetadataAndInferTypesVisitor),
             "BindMethodOwner",
-            $"Column '{method.Alias}' is a value, not a method owner. " +
-            $"Instance method calls such as '{method.Alias}.{method.Name}()' are not supported. " +
-            "Use a registered schema/library function.",
+            $"Column '{method.Alias}' is a value, not a method owner. "
+                + $"Instance method calls such as '{method.Alias}.{method.Name}()' are not supported. "
+                + "Use a registered schema/library function.",
             DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod,
-            span);
+            span
+        );
     }
 }

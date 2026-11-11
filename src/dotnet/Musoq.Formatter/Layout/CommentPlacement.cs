@@ -17,11 +17,14 @@ internal sealed class CommentPlacement(string source, TokenDocuments tokens)
         return Document.Concat(leading, content);
     }
 
-    internal bool IsStandalone(LayoutElement previous, LayoutElement comment) => HasNewline(previous.End, comment.Start);
+    internal bool IsStandalone(LayoutElement previous, LayoutElement comment) =>
+        HasNewline(previous.End, comment.Start);
 
     internal bool IsTrailingLineComment(SyntaxToken previous, SyntaxToken comment) =>
-        comment.Role == SyntaxTokenRole.Comment && comment.Text.StartsWith("--", StringComparison.Ordinal) &&
-        !HasNewline(previous.Span.End, comment.Span.Start);
+        comment.Role == SyntaxTokenRole.Comment
+        && comment.Text.StartsWith("--", StringComparison.Ordinal)
+        && !HasNewline(previous.Span.End, comment.Span.Start);
 
-    private bool HasNewline(int start, int end) => source.AsSpan(start, Math.Max(0, end - start)).ContainsAny('\r', '\n');
+    private bool HasNewline(int start, int end) =>
+        source.AsSpan(start, Math.Max(0, end - start)).ContainsAny('\r', '\n');
 }

@@ -26,24 +26,35 @@ public class BugProbeBinaryMultipleDiscardsTests
     [TestMethod]
     public void Binary_TwoDiscardBytes_ShouldBothAdvanceCursor()
     {
-        var query = @"
-            binary Data {
-                Header: byte,
-                _: byte,
-                _: byte,
-                Value: byte
-            };
-            select d.Header, d.Value from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Header: byte,\n"
+            + "                _: byte,\n"
+            + "                _: byte,\n"
+            + "                Value: byte\n"
+            + "            };\n"
+            + "            select d.Header, d.Value from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // Header=0xAA, skip 0xBB, skip 0xCC, Value=0xDD
         var testData = new byte[] { 0xAA, 0xBB, 0xCC, 0xDD };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -58,25 +69,36 @@ public class BugProbeBinaryMultipleDiscardsTests
     [TestMethod]
     public void Binary_ThreeDiscardsDifferentTypes_ShouldAllAdvanceCursor()
     {
-        var query = @"
-            binary Data {
-                Id: byte,
-                _: byte,
-                _: short le,
-                _: int le,
-                Trailer: byte
-            };
-            select d.Id, d.Trailer from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Id: byte,\n"
+            + "                _: byte,\n"
+            + "                _: short le,\n"
+            + "                _: int le,\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select d.Id, d.Trailer from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // Id=0x01, skip 1 byte, skip 2 bytes, skip 4 bytes, Trailer=0xFF
         var testData = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -91,24 +113,35 @@ public class BugProbeBinaryMultipleDiscardsTests
     [TestMethod]
     public void Binary_DiscardByteArrayAndDiscardByte_ShouldWork()
     {
-        var query = @"
-            binary Data {
-                Id: byte,
-                _: byte[3],
-                _: byte,
-                Value: short le
-            };
-            select d.Id, d.Value from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data {\n"
+            + "                Id: byte,\n"
+            + "                _: byte[3],\n"
+            + "                _: byte,\n"
+            + "                Value: short le\n"
+            + "            };\n"
+            + "            select d.Id, d.Value from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         // Id=0x42, skip 3 bytes, skip 1 byte, Value=0x0064 (100)
         var testData = "B\u0000\u0000\u0000\u0000d\u0000"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

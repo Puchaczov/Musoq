@@ -168,7 +168,8 @@ internal static partial class ExecutionNodeFacts
     }
 
     private static IEnumerable<ExecutionVariable> GetWindowDeclaredVariables(
-        ExecutionWindowComputationMetadata metadata)
+        ExecutionWindowComputationMetadata metadata
+    )
     {
         yield return metadata.Results;
 

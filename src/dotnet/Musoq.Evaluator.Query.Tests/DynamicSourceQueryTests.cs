@@ -14,29 +14,37 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
 {
     private const string SyntheticFullPath = "example.txt";
 
-    private static readonly CompilationOptions ExecutionIrCompilationOptions = new(
-        usePrimitiveTypeValidation: false);
+    private static readonly CompilationOptions ExecutionIrCompilationOptions = new(usePrimitiveTypeValidation: false);
 
     private const string KeywordCollisionQuery =
         "select Exists, ANY, Some, All, Rows, Range, Qualify, Filter, Present, Missing, Substream, [Between], [End], [Case], [Select], [From], [Take] from #dynamic.all()";
 
     private static readonly string[] KeywordCollisionColumns =
     [
-        "Exists", "ANY", "Some", "All", "Rows", "Range", "Qualify", "Filter", "Present", "Missing",
-        "Substream", "Between", "End", "Case", "Select", "From", "Take"
+        "Exists",
+        "ANY",
+        "Some",
+        "All",
+        "Rows",
+        "Range",
+        "Qualify",
+        "Filter",
+        "Present",
+        "Missing",
+        "Substream",
+        "Between",
+        "End",
+        "Case",
+        "Select",
+        "From",
+        "Take",
     ];
-
 
     [TestMethod]
     public void WithDynamicSource_DescDynamicObjectWithSimpleColumns_ShouldPass()
     {
         const string query = "desc #dynamic.all()";
-        var sources =
-            new List<dynamic>
-            {
-                CreateExpandoObject(1, "Test1"),
-                CreateExpandoObject(2, "Test2")
-            };
+        var sources = new List<dynamic> { CreateExpandoObject(1, "Test1"), CreateExpandoObject(2, "Test2") };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -53,12 +61,7 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
     public void WithDynamicSource_SimpleQuery_ShouldPass()
     {
         const string query = "select Id, Name from #dynamic.all()";
-        var sources =
-            new List<dynamic>
-            {
-                CreateExpandoObject(1, "Test1"),
-                CreateExpandoObject(2, "Test2")
-            };
+        var sources = new List<dynamic> { CreateExpandoObject(1, "Test1"), CreateExpandoObject(2, "Test2") };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -70,36 +73,31 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.All(row =>
-                new[] { (1, "Test1"), (2, "Test2") }.Contains(((int)row.ReadValue(0), (string)row.ReadValue(1)))),
-            "Expected rows with values: (1,Test1), (2,Test2)");
+        Assert.IsTrue(
+            table.All(row =>
+                new[] { (1, "Test1"), (2, "Test2") }.Contains(((int)row.ReadValue(0), (string)row.ReadValue(1)))
+            ),
+            "Expected rows with values: (1,Test1), (2,Test2)"
+        );
     }
 
     [TestMethod]
     public void WithDynamicSource_WhenExecutionIrRendererIsEnabled_ShouldUseNativeMaterializerAndReturnSimpleColumns()
     {
         const string query = "select d.Id, d.Name from #dynamic.all() d";
-        var sources = new List<dynamic>
-        {
-            CreateExpandoObject(1, "Test1"),
-            CreateExpandoObject(2, "Test2")
-        };
+        var sources = new List<dynamic> { CreateExpandoObject(1, "Test1"), CreateExpandoObject(2, "Test2") };
 
         var inspection = CreateDynamicInspection(query, sources);
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            sources,
-            compilationOptions: ExecutionIrCompilationOptions);
+        var vm = CreateAndRunVirtualMachine(query, sources, compilationOptions: ExecutionIrCompilationOptions);
 
         var table = vm.Run(TestContext.CancellationToken);
-
-
-
 
         Assert.Contains("IQueryRowMaterializer<", inspection.GeneratedCSharpCode);
         Assert.Contains("reader.Read<", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain("__dynamicValue", inspection.GeneratedCSharpCode);
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("EvaluationHelper.GetColumnValue", StringComparison.Ordinal));
+        Assert.IsFalse(
+            inspection.GeneratedCSharpCode.Contains("EvaluationHelper.GetColumnValue", StringComparison.Ordinal)
+        );
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(1, table[0].ReadValue(0));
         Assert.AreEqual("Test1", table[0].ReadValue(1));
@@ -115,7 +113,11 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         Assert.HasCount(1, rows);
-        TableMaterializationTestHelper.AssertColumns(table, ("d.Complex.Id", typeof(int)), ("d.Complex.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("d.Complex.Id", typeof(int)),
+            ("d.Complex.Name", typeof(string))
+        );
         Assert.AreEqual(1, table[0].GetValue<int>(0));
         Assert.AreEqual("Test1", table[0].GetValue<string>(1));
     }
@@ -124,10 +126,7 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
     public void WithDynamicSource_DescDynamicObjectWithComplexColumns_ShouldPass()
     {
         const string query = "desc #dynamic.all()";
-        var sources = new List<dynamic>
-        {
-            CreateExpandoObject(CreateExpandoObject(1, "Test1"))
-        };
+        var sources = new List<dynamic> { CreateExpandoObject(CreateExpandoObject(1, "Test1")) };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -147,7 +146,11 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         Assert.HasCount(1, rows);
-        TableMaterializationTestHelper.AssertColumns(table, ("Complex.Id", typeof(int)), ("Complex.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Complex.Id", typeof(int)),
+            ("Complex.Name", typeof(string))
+        );
         Assert.AreEqual(1, table[0].GetValue<int>(0));
         Assert.AreEqual("Test1", table[0].GetValue<string>(1));
     }
@@ -160,7 +163,11 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         Assert.HasCount(1, rows);
-        TableMaterializationTestHelper.AssertColumns(table, ("Complex.Complex.Id", typeof(int)), ("Complex.Complex.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Complex.Complex.Id", typeof(int)),
+            ("Complex.Complex.Name", typeof(string))
+        );
         Assert.AreEqual(1, table[0].GetValue<int>(0));
         Assert.AreEqual("Test1", table[0].GetValue<string>(1));
     }
@@ -173,7 +180,11 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         Assert.HasCount(1, rows);
-        TableMaterializationTestHelper.AssertColumns(table, ("Complex.Array[0]", typeof(int)), ("Complex.Array[1]", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Complex.Array[0]", typeof(int)),
+            ("Complex.Array[1]", typeof(int))
+        );
         Assert.AreEqual(1, table[0].GetValue<int>(0));
         Assert.AreEqual(2, table[0].GetValue<int>(1));
     }
@@ -186,11 +197,14 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         Assert.HasCount(1, rows);
-        TableMaterializationTestHelper.AssertColumns(table, ("Complex.Array[0].Id", typeof(int)), ("Complex.Array[0].Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Complex.Array[0].Id", typeof(int)),
+            ("Complex.Array[0].Name", typeof(string))
+        );
         Assert.AreEqual(1, table[0].GetValue<int>(0));
         Assert.AreEqual("Test1", table[0].GetValue<string>(1));
     }
-
 
     [TestMethod]
     public void WithDynamicSource_IncrementAccessedProperty_ShouldPass()
@@ -207,7 +221,8 @@ public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
     [TestMethod]
     public void WithRedundantColumn_ShouldBeTrimmed_ShouldPass()
     {
-        const string query = @"
+        const string query =
+            @"
 select 
     weather.Location as 'City', 
     weather.TemperatureInCelsiusDegree as 'TemperatureInCelsiusDegree', 
@@ -218,32 +233,23 @@ inner join #location.all() location on weather.Location = location.Name
         dynamic weather = new ExpandoObject();
         weather.Location = "London";
         weather.TemperatureInCelsiusDegree = 10;
-        var weatherSource = new List<dynamic>
-        {
-            weather
-        };
+        var weatherSource = new List<dynamic> { weather };
         var weatherSchema = new Dictionary<string, Type>
         {
             { "Name", typeof(decimal) },
             { "Location", typeof(string) },
-            { "TemperatureInCelsiusDegree", typeof(int) }
+            { "TemperatureInCelsiusDegree", typeof(int) },
         };
 
         dynamic location = new ExpandoObject();
         location.Name = "London";
-        var locationSource = new List<dynamic>
-        {
-            location
-        };
-        var locationSchema = new Dictionary<string, Type>
-        {
-            { "Name", typeof(string) }
-        };
+        var locationSource = new List<dynamic> { location };
+        var locationSchema = new Dictionary<string, Type> { { "Name", typeof(string) } };
 
-        var vm = CreateAndRunVirtualMachine(query, [
-            ("#weather", weatherSource, weatherSchema),
-            ("#location", locationSource, locationSchema)
-        ]);
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            [("#weather", weatherSource, weatherSchema), ("#location", locationSource, locationSchema)]
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -264,11 +270,7 @@ inner join #location.all() location on weather.Location = location.Name
         expando.Add("case", "case");
         expando.Add("end", "end");
 
-        var sources =
-            new List<dynamic>
-            {
-                (dynamic)expando
-            };
+        var sources = new List<dynamic> { (dynamic)expando };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -315,10 +317,7 @@ inner join #location.all() location on weather.Location = location.Name
         var sources = new List<dynamic> { (dynamic)expando };
 
         CreateDynamicInspection(query, sources);
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            sources,
-            compilationOptions: ExecutionIrCompilationOptions);
+        var vm = CreateAndRunVirtualMachine(query, sources, compilationOptions: ExecutionIrCompilationOptions);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -348,7 +347,8 @@ inner join #location.all() location on weather.Location = location.Name
         var vm = CreateAndRunVirtualMachine(
             KeywordCollisionQuery,
             sources,
-            compilationOptions: ExecutionIrCompilationOptions);
+            compilationOptions: ExecutionIrCompilationOptions
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -364,25 +364,19 @@ inner join #location.all() location on weather.Location = location.Name
         expando.Add("case", "case");
         expando.Add("end", "end");
 
-        var sources = new List<dynamic>
-        {
-            (dynamic)expando
-        };
+        var sources = new List<dynamic> { (dynamic)expando };
 
         var inspection = CreateDynamicInspection(query, sources);
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            sources,
-            compilationOptions: ExecutionIrCompilationOptions);
+        var vm = CreateAndRunVirtualMachine(query, sources, compilationOptions: ExecutionIrCompilationOptions);
 
         var table = vm.Run(TestContext.CancellationToken);
-
-
 
         Assert.Contains("IQueryRowMaterializer<", inspection.GeneratedCSharpCode);
         Assert.Contains("reader.Read<", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain("__dynamicValue", inspection.GeneratedCSharpCode);
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("EvaluationHelper.GetColumnValue", StringComparison.Ordinal));
+        Assert.IsFalse(
+            inspection.GeneratedCSharpCode.Contains("EvaluationHelper.GetColumnValue", StringComparison.Ordinal)
+        );
         Assert.AreEqual("case", table[0].ReadValue(0));
         Assert.AreEqual("end", table[0].ReadValue(1));
     }
@@ -390,9 +384,13 @@ inner join #location.all() location on weather.Location = location.Name
     private QueryInspectionResult CreateDynamicInspection(
         string query,
         IReadOnlyCollection<dynamic> values,
-        IReadOnlyDictionary<string, Type>? schema = null)
+        IReadOnlyDictionary<string, Type>? schema = null
+    )
     {
-        schema ??= ((IDictionary<string, object?>)values.First()).ToDictionary(field => field.Key, field => field.Value?.GetType() ?? typeof(object));
+        schema ??= ((IDictionary<string, object?>)values.First()).ToDictionary(
+            field => field.Key,
+            field => field.Value?.GetType() ?? typeof(object)
+        );
 
         return InstanceCreator.CompileForInspection(
             query,
@@ -400,10 +398,12 @@ inner join #location.all() location on weather.Location = location.Name
             new AnySchemaNameProvider(
                 new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
                 {
-                    { "dynamic", (schema, values) }
-                }),
+                    { "dynamic", (schema, values) },
+                }
+            ),
             LoggerResolver,
-            ExecutionIrCompilationOptions);
+            ExecutionIrCompilationOptions
+        );
     }
 
     private static List<dynamic> CreateKeywordCollisionSources()

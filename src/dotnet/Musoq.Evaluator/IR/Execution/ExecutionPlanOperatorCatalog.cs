@@ -16,15 +16,16 @@ public sealed class ExecutionPlanOperatorCatalog
     private ExecutionPlanOperatorCatalog(
         IReadOnlyList<ExecutionPlanOperatorDescriptor> operators,
         string annotatedExecutionPlanText,
-        IReadOnlyDictionary<ExecutionNode, ExecutionPlanOperatorDescriptor>? operatorsByNode = null)
+        IReadOnlyDictionary<ExecutionNode, ExecutionPlanOperatorDescriptor>? operatorsByNode = null
+    )
     {
         _operators = operators;
         _annotatedExecutionPlanText = annotatedExecutionPlanText;
-        _operatorsByNode = operatorsByNode ??
-                           new Dictionary<ExecutionNode, ExecutionPlanOperatorDescriptor>(
-                               ExecutionNodeReferenceComparer.Instance);
-        _nodeOperatorIds = _operatorsByNode.Values
-            .Select(static descriptor => descriptor.Id)
+        _operatorsByNode =
+            operatorsByNode
+            ?? new Dictionary<ExecutionNode, ExecutionPlanOperatorDescriptor>(ExecutionNodeReferenceComparer.Instance);
+        _nodeOperatorIds = _operatorsByNode
+            .Values.Select(static descriptor => descriptor.Id)
             .ToHashSet(StringComparer.Ordinal);
     }
 
@@ -35,9 +36,7 @@ public sealed class ExecutionPlanOperatorCatalog
     internal IEnumerable<ExecutionPlanOperatorDescriptor> NodeOperators =>
         _operators.Where(descriptor => _nodeOperatorIds.Contains(descriptor.Id));
 
-    internal bool TryGetDescriptor(
-        ExecutionNode node,
-        out ExecutionPlanOperatorDescriptor descriptor)
+    internal bool TryGetDescriptor(ExecutionNode node, out ExecutionPlanOperatorDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(node);
         return _operatorsByNode.TryGetValue(node, out descriptor!);
@@ -49,7 +48,8 @@ public sealed class ExecutionPlanOperatorCatalog
 
         var operators = new List<ExecutionPlanOperatorDescriptor>();
         var operatorsByNode = new Dictionary<ExecutionNode, ExecutionPlanOperatorDescriptor>(
-            ExecutionNodeReferenceComparer.Instance);
+            ExecutionNodeReferenceComparer.Instance
+        );
         var annotatedPlan = new StringBuilder();
         var nodeDescriptions = ExecutionPlanPrinter.CaptureNodeDescriptions(plan);
         var operatorIndex = 1;
@@ -60,9 +60,10 @@ public sealed class ExecutionPlanOperatorCatalog
                 $"op{operatorIndex.ToString(CultureInfo.InvariantCulture)}",
                 entry.DisplayName,
                 entry.NodeKind,
-                ResolveRowCountStrategy(entry.NodeKind))
+                ResolveRowCountStrategy(entry.NodeKind)
+            )
             {
-                OperationId = entry.OperationId
+                OperationId = entry.OperationId,
             };
 
             operators.Add(descriptor);
@@ -78,10 +79,7 @@ public sealed class ExecutionPlanOperatorCatalog
             operatorIndex++;
         }
 
-        return new ExecutionPlanOperatorCatalog(
-            operators,
-            annotatedPlan.ToString().TrimEnd(),
-            operatorsByNode);
+        return new ExecutionPlanOperatorCatalog(operators, annotatedPlan.ToString().TrimEnd(), operatorsByNode);
     }
 
     public static ExecutionPlanOperatorCatalog Create(string executionPlanText)
@@ -109,18 +107,11 @@ public sealed class ExecutionPlanOperatorCatalog
             var content = line[indentLength..];
             var nodeKind = ExtractNodeKind(content);
 
-            operators.Add(new ExecutionPlanOperatorDescriptor(
-                id,
-                content,
-                nodeKind,
-                ResolveRowCountStrategy(nodeKind)));
+            operators.Add(
+                new ExecutionPlanOperatorDescriptor(id, content, nodeKind, ResolveRowCountStrategy(nodeKind))
+            );
 
-            builder
-                .Append(indent)
-                .Append('[')
-                .Append(id)
-                .Append("] ")
-                .AppendLine(content);
+            builder.Append(indent).Append('[').Append(id).Append("] ").AppendLine(content);
 
             operatorIndex++;
         }
@@ -130,13 +121,15 @@ public sealed class ExecutionPlanOperatorCatalog
 
     private static IEnumerable<StructuredOperatorEntry> EnumerateStructuredEntries(
         ExecutionPlan plan,
-        IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> descriptions)
+        IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> descriptions
+    )
     {
         yield return new StructuredOperatorEntry(
             null,
             $"ExecutionPlan [{plan.Identifier}]",
             "ExecutionPlan",
-            IsRoot: true);
+            IsRoot: true
+        );
         yield return new StructuredOperatorEntry(null, "Shapes", "Shapes");
 
         foreach (var shape in plan.Shapes)
@@ -149,7 +142,7 @@ public sealed class ExecutionPlanOperatorCatalog
                 HashPayloadShape => "HashPayload",
                 AggregateGroupShape => "AggregateGroup",
                 TableRowShape => "TableRow",
-                _ => "UnknownShape"
+                _ => "UnknownShape",
             };
             yield return new StructuredOperatorEntry(null, shapeKind, shapeKind);
 
@@ -165,7 +158,8 @@ public sealed class ExecutionPlanOperatorCatalog
 
     private static IEnumerable<StructuredOperatorEntry> EnumerateStructuredBlockEntries(
         ExecutionBlock block,
-        IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> descriptions)
+        IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> descriptions
+    )
     {
         foreach (var node in block.Nodes)
         {
@@ -176,7 +170,8 @@ public sealed class ExecutionPlanOperatorCatalog
                 node,
                 description.DisplayName,
                 description.NodeKind,
-                ExecutionOperationCatalog.Resolve(node).Value);
+                ExecutionOperationCatalog.Resolve(node).Value
+            );
 
             foreach (var entry in EnumerateStructuredNodeEntries(node, descriptions))
                 yield return entry;
@@ -185,7 +180,8 @@ public sealed class ExecutionPlanOperatorCatalog
 
     private static IEnumerable<StructuredOperatorEntry> EnumerateStructuredNodeEntries(
         ExecutionNode node,
-        IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> descriptions)
+        IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> descriptions
+    )
     {
         if (!ExecutionNodeRegistry.TryGetDescriptor(node, out var descriptor))
             yield break;
@@ -283,16 +279,13 @@ public sealed class ExecutionPlanOperatorCatalog
         }
     }
 
-    private static StructuredOperatorEntry Label(string label) =>
-        new(null, label, label);
+    private static StructuredOperatorEntry Label(string label) => new(null, label, label);
 
     private static string GetFallbackNodeKind(ExecutionNode node)
     {
         const string prefix = "Execution";
         var name = node.GetType().Name;
-        return name.StartsWith(prefix, StringComparison.Ordinal)
-            ? name[prefix.Length..]
-            : name;
+        return name.StartsWith(prefix, StringComparison.Ordinal) ? name[prefix.Length..] : name;
     }
 
     private sealed record StructuredOperatorEntry(
@@ -300,7 +293,8 @@ public sealed class ExecutionPlanOperatorCatalog
         string DisplayName,
         string NodeKind,
         string? OperationId = null,
-        bool IsRoot = false);
+        bool IsRoot = false
+    );
 
     private static string ExtractNodeKind(string content)
     {
@@ -313,18 +307,22 @@ public sealed class ExecutionPlanOperatorCatalog
         if (nodeKind.Contains("Source", StringComparison.OrdinalIgnoreCase))
             return ExecutionPlanOperatorRowCountStrategy.SourceBoundary;
 
-        if (nodeKind.Contains("Append", StringComparison.OrdinalIgnoreCase) ||
-            nodeKind.Contains("Return", StringComparison.OrdinalIgnoreCase) ||
-            nodeKind.Contains("Values", StringComparison.OrdinalIgnoreCase))
+        if (
+            nodeKind.Contains("Append", StringComparison.OrdinalIgnoreCase)
+            || nodeKind.Contains("Return", StringComparison.OrdinalIgnoreCase)
+            || nodeKind.Contains("Values", StringComparison.OrdinalIgnoreCase)
+        )
             return ExecutionPlanOperatorRowCountStrategy.RowProducer;
 
-        if (nodeKind.Contains("Table", StringComparison.OrdinalIgnoreCase) ||
-            nodeKind.Contains("Materialize", StringComparison.OrdinalIgnoreCase) ||
-            nodeKind.Contains("Sort", StringComparison.OrdinalIgnoreCase) ||
-            nodeKind.Contains("Top", StringComparison.OrdinalIgnoreCase) ||
-            nodeKind.Contains("Skip", StringComparison.OrdinalIgnoreCase) ||
-            nodeKind.Contains("Take", StringComparison.OrdinalIgnoreCase) ||
-            nodeKind.Contains("Distinct", StringComparison.OrdinalIgnoreCase))
+        if (
+            nodeKind.Contains("Table", StringComparison.OrdinalIgnoreCase)
+            || nodeKind.Contains("Materialize", StringComparison.OrdinalIgnoreCase)
+            || nodeKind.Contains("Sort", StringComparison.OrdinalIgnoreCase)
+            || nodeKind.Contains("Top", StringComparison.OrdinalIgnoreCase)
+            || nodeKind.Contains("Skip", StringComparison.OrdinalIgnoreCase)
+            || nodeKind.Contains("Take", StringComparison.OrdinalIgnoreCase)
+            || nodeKind.Contains("Distinct", StringComparison.OrdinalIgnoreCase)
+        )
             return ExecutionPlanOperatorRowCountStrategy.TableTransform;
 
         return ExecutionPlanOperatorRowCountStrategy.Unknown;

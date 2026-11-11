@@ -13,7 +13,8 @@ public sealed class BuildConfigurationGuardrailTests
 {
     private static readonly Regex SolutionProjectPath = new(
         "^Project\\(\"\\{[^}]+\\}\"\\) = \"[^\"]+\", \"([^\"]+\\.csproj)\"",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled
+    );
 
     [TestMethod]
     public void ProductionSourceScan_WhenSamplesAreUnderSourceTree_ShouldExcludeSamplesAndRetainProduction()
@@ -23,12 +24,16 @@ public sealed class BuildConfigurationGuardrailTests
 
         var productionFiles = RepositorySourceScan.ProductionSourceFiles(repositoryRoot);
 
-        Assert.HasCount(EvaluatorSampleFixtures.Samples.Count + EvaluatorProfiledSampleFixtures.Samples.Count,
-            sampleFiles);
+        Assert.HasCount(
+            EvaluatorSampleFixtures.Samples.Count + EvaluatorProfiledSampleFixtures.Samples.Count,
+            sampleFiles
+        );
         Assert.IsTrue(sampleFiles.All(file => RepositorySourceScan.IsGeneratedCodeSample(repositoryRoot, file)));
         Assert.IsFalse(productionFiles.Any(file => RepositorySourceScan.IsGeneratedCodeSample(repositoryRoot, file)));
-        Assert.Contains(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "CompiledQuery.cs"),
-            productionFiles);
+        Assert.Contains(
+            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "CompiledQuery.cs"),
+            productionFiles
+        );
     }
 
     [TestMethod]
@@ -47,8 +52,8 @@ public sealed class BuildConfigurationGuardrailTests
 
         Assert.IsEmpty(
             missingProjects,
-            "Musoq.sln contains project references that do not exist: " +
-            string.Join(", ", missingProjects));
+            "Musoq.sln contains project references that do not exist: " + string.Join(", ", missingProjects)
+        );
     }
 
     [TestMethod]
@@ -66,38 +71,45 @@ public sealed class BuildConfigurationGuardrailTests
     public void Workflows_ShouldUseNet10Sdk()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var workflowFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+        var workflowFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, ".github", "workflows"),
                 "*.yml",
-                SearchOption.TopDirectoryOnly)
+                SearchOption.TopDirectoryOnly
+            )
             .ToArray();
 
         var offenders = workflowFiles
             .Select(file => new
             {
                 File = RepositorySourceScan.ToRelative(repositoryRoot, file),
-                Text = File.ReadAllText(file)
+                Text = File.ReadAllText(file),
             })
             .Where(entry => entry.Text.Contains("dotnet-version:", StringComparison.Ordinal))
-            .Where(entry => !entry.Text.Contains("dotnet-version: '10.0.401'", StringComparison.Ordinal) &&
-                            !entry.Text.Contains("dotnet-version: \"10.0.401\"", StringComparison.Ordinal))
+            .Where(entry =>
+                !entry.Text.Contains("dotnet-version: '10.0.401'", StringComparison.Ordinal)
+                && !entry.Text.Contains("dotnet-version: \"10.0.401\"", StringComparison.Ordinal)
+            )
             .Select(static entry => entry.File)
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Workflows that install .NET must use SDK 10.0.401 with runtime 10.0.12 or newer: " +
-            string.Join(", ", offenders));
+            "Workflows that install .NET must use SDK 10.0.401 with runtime 10.0.12 or newer: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void Projects_ShouldTargetNet10()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var projectFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+        var projectFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, "src", "dotnet"),
                 "*.csproj",
-                SearchOption.AllDirectories)
+                SearchOption.AllDirectories
+            )
             .Where(static file => !IsUnderBuildOutputDirectory(file))
             .ToArray();
 
@@ -105,28 +117,27 @@ public sealed class BuildConfigurationGuardrailTests
             .Select(file => new
             {
                 File = RepositorySourceScan.ToRelative(repositoryRoot, file),
-                Document = XDocument.Load(file)
+                Document = XDocument.Load(file),
             })
             .Select(entry => new
             {
                 entry.File,
-                Frameworks = entry.Document
-                    .Descendants()
+                Frameworks = entry
+                    .Document.Descendants()
                     .Where(static element =>
-                        (element.Name.LocalName is "TargetFramework" or "TargetFrameworks") &&
-                        element.Parent?.Name.LocalName == "PropertyGroup")
+                        (element.Name.LocalName is "TargetFramework" or "TargetFrameworks")
+                        && element.Parent?.Name.LocalName == "PropertyGroup"
+                    )
                     .Select(static element => element.Value.Trim())
-                    .ToArray()
+                    .ToArray(),
             })
-            .Where(static entry => entry.Frameworks.Length == 0 ||
-                                   entry.Frameworks.Any(static framework => framework != "net10.0"))
+            .Where(static entry =>
+                entry.Frameworks.Length == 0 || entry.Frameworks.Any(static framework => framework != "net10.0")
+            )
             .Select(static entry => $"{entry.File}: {string.Join(", ", entry.Frameworks)}")
             .ToArray();
 
-        Assert.IsEmpty(
-            offenders,
-            "All projects in src/dotnet must target net10.0: " +
-            string.Join(", ", offenders));
+        Assert.IsEmpty(offenders, "All projects in src/dotnet must target net10.0: " + string.Join(", ", offenders));
     }
 
     [TestMethod]
@@ -137,8 +148,7 @@ public sealed class BuildConfigurationGuardrailTests
         var treatWarningsAsErrors = props
             .Descendants()
             .Single(static element => element.Name.LocalName == "TreatWarningsAsErrors")
-            .Value
-            .Trim();
+            .Value.Trim();
 
         Assert.AreEqual("true", treatWarningsAsErrors);
     }
@@ -152,33 +162,37 @@ public sealed class BuildConfigurationGuardrailTests
         var centralManagement = props
             .Descendants()
             .Single(static element => element.Name.LocalName == "ManagePackageVersionsCentrally")
-            .Value
-            .Trim();
+            .Value.Trim();
 
         Assert.AreEqual("true", centralManagement);
 
-        var offenders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+        var offenders = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, "src", "dotnet"),
                 "*.csproj",
-                SearchOption.AllDirectories)
+                SearchOption.AllDirectories
+            )
             .Where(static file => !IsUnderBuildOutputDirectory(file))
             .Select(file => new
             {
                 File = RepositorySourceScan.ToRelative(repositoryRoot, file),
-                Document = XDocument.Load(file)
+                Document = XDocument.Load(file),
             })
-            .SelectMany(entry => entry.Document
-                .Descendants()
-                .Where(static element => element.Name.LocalName == "PackageReference" &&
-                                         element.Attribute("Version") != null)
-                .Select(_ => entry.File))
+            .SelectMany(entry =>
+                entry
+                    .Document.Descendants()
+                    .Where(static element =>
+                        element.Name.LocalName == "PackageReference" && element.Attribute("Version") != null
+                    )
+                    .Select(_ => entry.File)
+            )
             .Distinct()
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "PackageReference versions must live in Directory.Packages.props: " +
-            string.Join(", ", offenders));
+            "PackageReference versions must live in Directory.Packages.props: " + string.Join(", ", offenders)
+        );
     }
 
     private static bool IsUnderBuildOutputDirectory(string file)
@@ -189,8 +203,6 @@ public sealed class BuildConfigurationGuardrailTests
 
     private static string NormalizeSolutionPath(string relativePath)
     {
-        return relativePath
-            .Replace('\\', Path.DirectorySeparatorChar)
-            .Replace('/', Path.DirectorySeparatorChar);
+        return relativePath.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
     }
 }

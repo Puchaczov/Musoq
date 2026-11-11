@@ -19,7 +19,8 @@ internal static class PlanPrinterHelpers
     {
         for (var i = 0; i < fields.Length; i++)
         {
-            if (i > 0) sb.Append(", ");
+            if (i > 0)
+                sb.Append(", ");
             sb.Append(IrExpressionPrinter.Print(fields[i].Expression));
             sb.Append(" as ");
             sb.Append(fields[i].OutputName);
@@ -30,7 +31,8 @@ internal static class PlanPrinterHelpers
     {
         for (var i = 0; i < names.Length; i++)
         {
-            if (i > 0) sb.Append(", ");
+            if (i > 0)
+                sb.Append(", ");
             sb.Append(names[i]);
         }
     }
@@ -47,7 +49,8 @@ internal static class PlanPrinterHelpers
     {
         for (var i = 0; i < bindings.Length; i++)
         {
-            if (i > 0) sb.Append(", ");
+            if (i > 0)
+                sb.Append(", ");
             sb.Append(FormatAggregateSummary(bindings[i].ColumnName));
         }
     }
@@ -98,9 +101,11 @@ internal static class PlanPrinterHelpers
     {
         for (var i = 0; i < keys.Length; i++)
         {
-            if (i > 0) sb.Append(", ");
+            if (i > 0)
+                sb.Append(", ");
             sb.Append(IrExpressionPrinter.Print(keys[i].Expression));
-            if (keys[i].Descending) sb.Append(" DESC");
+            if (keys[i].Descending)
+                sb.Append(" DESC");
             AppendNullOrdering(sb, keys[i].NullOrdering);
         }
     }
@@ -117,7 +122,8 @@ internal static class PlanPrinterHelpers
     {
         for (var i = 0; i < expressions.Length; i++)
         {
-            if (i > 0) sb.Append(", ");
+            if (i > 0)
+                sb.Append(", ");
             sb.Append(IrExpressionPrinter.Print(expressions[i]));
         }
     }
@@ -126,7 +132,8 @@ internal static class PlanPrinterHelpers
     {
         for (var i = 0; i < registrations.Length; i++)
         {
-            if (i > 0) sb.Append(", ");
+            if (i > 0)
+                sb.Append(", ");
             AppendWindowRegistration(sb, registrations[i]);
         }
     }
@@ -143,7 +150,10 @@ internal static class PlanPrinterHelpers
             sb.Append("; filter: ").Append(IrExpressionPrinter.Print(registration.FilterPredicate));
 
         if (registration.Frame is not null)
-            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"; frame: {GetWindowFrameText(registration.Frame)}");
+            sb.Append(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"; frame: {GetWindowFrameText(registration.Frame)}"
+            );
 
         sb.Append(')');
     }
@@ -170,7 +180,8 @@ internal static class PlanPrinterHelpers
     {
         for (var i = 0; i < properties.Length; i++)
         {
-            if (i > 0) sb.Append('.');
+            if (i > 0)
+                sb.Append('.');
             sb.Append(properties[i].PropertyName);
         }
     }

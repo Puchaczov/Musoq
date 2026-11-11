@@ -25,11 +25,13 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Binary_Distinct_ShouldRemoveDuplicates()
     {
-        var query = @"
-            binary Record { Category: byte };
-            select distinct d.Category from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) d
-            order by d.Category asc";
+        var query = (
+            "\n"
+            + "            binary Record { Category: byte };\n"
+            + "            select distinct d.Category from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) d\n"
+            + "            order by d.Category asc"
+        );
 
         var entities = new[]
         {
@@ -37,13 +39,19 @@ public class SchemaQueryFeaturesFeatureTests
             new BinaryEntity { Name = "2.bin", Data = [0x02] },
             new BinaryEntity { Name = "3.bin", Data = [0x01] },
             new BinaryEntity { Name = "4.bin", Data = [0x03] },
-            new BinaryEntity { Name = "5.bin", Data = [0x02] }
+            new BinaryEntity { Name = "5.bin", Data = [0x02] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -62,13 +70,15 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Binary_SkipTake_ShouldPaginate()
     {
-        var query = @"
-            binary Record { Value: byte };
-            select d.Value from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) d
-            order by d.Value asc
-            skip 2
-            take 2";
+        var query = (
+            "\n"
+            + "            binary Record { Value: byte };\n"
+            + "            select d.Value from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) d\n"
+            + "            order by d.Value asc\n"
+            + "            skip 2\n"
+            + "            take 2"
+        );
 
         var entities = new[]
         {
@@ -76,13 +86,19 @@ public class SchemaQueryFeaturesFeatureTests
             new BinaryEntity { Name = "2.bin", Data = [0x01] },
             new BinaryEntity { Name = "3.bin", Data = [0x04] },
             new BinaryEntity { Name = "4.bin", Data = [0x02] },
-            new BinaryEntity { Name = "5.bin", Data = [0x03] }
+            new BinaryEntity { Name = "5.bin", Data = [0x03] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -100,12 +116,14 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Binary_TakeOnly_ShouldLimitResults()
     {
-        var query = @"
-            binary Record { Id: byte };
-            select d.Id from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) d
-            order by d.Id asc
-            take 3";
+        var query = (
+            "\n"
+            + "            binary Record { Id: byte };\n"
+            + "            select d.Id from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) d\n"
+            + "            order by d.Id asc\n"
+            + "            take 3"
+        );
 
         var entities = new[]
         {
@@ -113,13 +131,19 @@ public class SchemaQueryFeaturesFeatureTests
             new BinaryEntity { Name = "2.bin", Data = [0x01] },
             new BinaryEntity { Name = "3.bin", Data = [0x04] },
             new BinaryEntity { Name = "4.bin", Data = [0x02] },
-            new BinaryEntity { Name = "5.bin", Data = [0x03] }
+            new BinaryEntity { Name = "5.bin", Data = [0x03] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -138,28 +162,36 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Binary_CaseWhen_ShouldClassifyValues()
     {
-        var query = @"
-            binary Record { Score: byte };
-            select d.Score, 
-                   case when d.Score >= 90 then 'A' 
-                        when d.Score >= 80 then 'B' 
-                        when d.Score >= 70 then 'C' 
-                        else 'F' end as Grade
-            from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) d
-            order by d.Score desc";
+        var query = (
+            "\n"
+            + "            binary Record { Score: byte };\n"
+            + "            select d.Score, \n"
+            + "                   case when d.Score >= 90 then 'A' \n"
+            + "                        when d.Score >= 80 then 'B' \n"
+            + "                        when d.Score >= 70 then 'C' \n"
+            + "                        else 'F' end as Grade\n"
+            + "            from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) d\n"
+            + "            order by d.Score desc"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = [0x5F] },
             new BinaryEntity { Name = "2.bin", Data = [0x50] },
-            new BinaryEntity { Name = "3.bin", Data = [0x46] }
+            new BinaryEntity { Name = "3.bin", Data = [0x46] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -181,27 +213,35 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Text_CaseWhen_ShouldClassifyParsedValues()
     {
-        var query = @"
-            text Entry { Level: until ' ', Message: rest };
-            select e.Level,
-                   case when e.Level = 'ERROR' then 'Critical' 
-                        when e.Level = 'WARN' then 'Warning' 
-                        else 'Info' end as Severity
-            from #test.lines() l
-            cross apply Parse<Entry>(l.Line) e
-            order by e.Level asc";
+        var query = (
+            "\n"
+            + "            text Entry { Level: until ' ', Message: rest };\n"
+            + "            select e.Level,\n"
+            + "                   case when e.Level = 'ERROR' then 'Critical' \n"
+            + "                        when e.Level = 'WARN' then 'Warning' \n"
+            + "                        else 'Info' end as Severity\n"
+            + "            from #test.lines() l\n"
+            + "            cross apply Parse<Entry>(l.Line) e\n"
+            + "            order by e.Level asc"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "1.txt", Text = "ERROR disk failure" },
             new TextEntity { Name = "2.txt", Text = "WARN low space" },
-            new TextEntity { Name = "3.txt", Text = "INFO started" }
+            new TextEntity { Name = "3.txt", Text = "INFO started" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -223,23 +263,31 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Binary_ArithmeticInSelect_ShouldComputeExpressions()
     {
-        var query = @"
-            binary Dimensions { Width: short le, Height: short le };
-            select d.Width, d.Height, d.Width * d.Height as Area, (d.Width + d.Height) * 2 as Perimeter
-            from #test.bytes() b
-            cross apply Interpret<Dimensions>(b.Content) d
-            order by d.Width asc";
+        var query = (
+            "\n"
+            + "            binary Dimensions { Width: short le, Height: short le };\n"
+            + "            select d.Width, d.Height, d.Width * d.Height as Area, (d.Width + d.Height) * 2 as Perimeter\n"
+            + "            from #test.bytes() b\n"
+            + "            cross apply Interpret<Dimensions>(b.Content) d\n"
+            + "            order by d.Width asc"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = [0x03, 0x00, 0x04, 0x00] },
-            new BinaryEntity { Name = "2.bin", Data = [0x05, 0x00, 0x06, 0x00] }
+            new BinaryEntity { Name = "2.bin", Data = [0x05, 0x00, 0x06, 0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -263,23 +311,31 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Text_StringFunctions_ShouldTransformParsedFields()
     {
-        var query = @"
-            text Data { Key: until '=', Value: rest };
-            select ToUpperInvariant(d.Key) as UpperKey, Length(d.Value) as ValueLen
-            from #test.lines() l
-            cross apply Parse<Data>(l.Line) d
-            order by d.Key asc";
+        var query = (
+            "\n"
+            + "            text Data { Key: until '=', Value: rest };\n"
+            + "            select ToUpperInvariant(d.Key) as UpperKey, Length(d.Value) as ValueLen\n"
+            + "            from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d\n"
+            + "            order by d.Key asc"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "1.txt", Text = "name=Alice" },
-            new TextEntity { Name = "2.txt", Text = "city=Portland" }
+            new TextEntity { Name = "2.txt", Text = "city=Portland" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -299,11 +355,13 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Text_Distinct_ShouldRemoveDuplicateParsedValues()
     {
-        var query = @"
-            text LogLine { Level: until ' ', Message: rest };
-            select distinct l2.Level from #test.lines() l
-            cross apply Parse<LogLine>(l.Line) l2
-            order by l2.Level asc";
+        var query = (
+            "\n"
+            + "            text LogLine { Level: until ' ', Message: rest };\n"
+            + "            select distinct l2.Level from #test.lines() l\n"
+            + "            cross apply Parse<LogLine>(l.Line) l2\n"
+            + "            order by l2.Level asc"
+        );
 
         var entities = new[]
         {
@@ -312,13 +370,19 @@ public class SchemaQueryFeaturesFeatureTests
             new TextEntity { Name = "3.txt", Text = "ERROR timeout" },
             new TextEntity { Name = "4.txt", Text = "INFO started" },
             new TextEntity { Name = "5.txt", Text = "ERROR crash" },
-            new TextEntity { Name = "6.txt", Text = "WARN cpu hot" }
+            new TextEntity { Name = "6.txt", Text = "WARN cpu hot" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -337,25 +401,33 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Binary_CompoundWhereAnd_ShouldFilterBothConditions()
     {
-        var query = @"
-            binary Record { Type: byte, Value: short le };
-            select d.Type, d.Value from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) d
-            where d.Type = 1 and d.Value > 10
-            order by d.Value asc";
+        var query = (
+            "\n"
+            + "            binary Record { Type: byte, Value: short le };\n"
+            + "            select d.Type, d.Value from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) d\n"
+            + "            where d.Type = 1 and d.Value > 10\n"
+            + "            order by d.Value asc"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = [0x01, 0x05, 0x00] },
             new BinaryEntity { Name = "2.bin", Data = [0x02, 0x14, 0x00] },
             new BinaryEntity { Name = "3.bin", Data = [0x01, 0x1E, 0x00] },
-            new BinaryEntity { Name = "4.bin", Data = [0x01, 0x0F, 0x00] }
+            new BinaryEntity { Name = "4.bin", Data = [0x01, 0x0F, 0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -371,24 +443,32 @@ public class SchemaQueryFeaturesFeatureTests
     [TestMethod]
     public void Binary_CompoundWhereOr_ShouldMatchEitherCondition()
     {
-        var query = @"
-            binary Record { Type: byte, Value: short le };
-            select d.Type, d.Value from #test.bytes() b
-            cross apply Interpret<Record>(b.Content) d
-            where d.Type = 1 or d.Value = 100
-            order by d.Value asc";
+        var query = (
+            "\n"
+            + "            binary Record { Type: byte, Value: short le };\n"
+            + "            select d.Type, d.Value from #test.bytes() b\n"
+            + "            cross apply Interpret<Record>(b.Content) d\n"
+            + "            where d.Type = 1 or d.Value = 100\n"
+            + "            order by d.Value asc"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = [0x01, 0x0A, 0x00] },
             new BinaryEntity { Name = "2.bin", Data = [0x02, 0x64, 0x00] },
-            new BinaryEntity { Name = "3.bin", Data = [0x03, 0x32, 0x00] }
+            new BinaryEntity { Name = "3.bin", Data = [0x03, 0x32, 0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);

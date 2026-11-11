@@ -2,9 +2,7 @@ using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution.Lowering.Coordinators;
 
-internal interface IDescLoweringOperations : IDescLoweringService
-{
-}
+internal interface IDescLoweringOperations : IDescLoweringService { }
 
 internal sealed class DescLoweringService(IDescLoweringOperations operations) : IDescLoweringService
 {

@@ -12,8 +12,9 @@ internal static partial class SemanticErrorMetadataCatalog
             "A data source reported that the table contract cannot be honored.",
             [
                 "Adjust the annotated table column type or read modifier to a value supported by the data source.",
-                "Remove the column modifier when the data source should use its own default behavior."
+                "Remove the column modifier when the data source should use its own default behavior.",
             ],
-            "Table/Couple Spec - Source Contract Diagnostics");
+            "Table/Couple Spec - Source Contract Diagnostics"
+        );
     }
 }

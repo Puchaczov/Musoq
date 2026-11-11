@@ -30,7 +30,8 @@ public class CompiledQueryArtifactApiTests
             query,
             "ArtifactBasic",
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsNotNull(result.Artifact);
@@ -44,16 +45,17 @@ public class CompiledQueryArtifactApiTests
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("GeneratedCodeSha256"));
         Assert.AreEqual(
             RuntimeV2Contract.ContractSignature,
-            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature]);
-        Assert.AreEqual(
-            "2",
-            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion]);
+            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature]
+        );
+        Assert.AreEqual("2", result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion]);
         Assert.AreEqual(
             ExecutionTargetIds.CSharpClr.ToString(),
-            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionTarget]);
+            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionTarget]
+        );
         Assert.AreEqual(
             CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
-            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutableArtifactKind]);
+            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutableArtifactKind]
+        );
     }
 
     [TestMethod]
@@ -66,11 +68,13 @@ public class CompiledQueryArtifactApiTests
             query,
             artifact,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded);
-        var compiledQuery = result.CompiledQuery ??
-            throw new AssertFailedException("Successful artifact load did not produce a compiled query.");
+        var compiledQuery =
+            result.CompiledQuery
+            ?? throw new AssertFailedException("Successful artifact load did not produce a compiled query.");
         var table = compiledQuery.Run();
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("single", table[0].ReadValue(0));
@@ -83,30 +87,30 @@ public class CompiledQueryArtifactApiTests
         var provider = new EntitySetSchemaProvider(
             new Dictionary<string, IReadOnlyList<EntitySetEntity>>(StringComparer.OrdinalIgnoreCase)
             {
-                ["#test"] =
-                [
-                    new EntitySetEntity
-                    {
-                        Name = "cached"
-                    }
-                ]
-            });
+                ["#test"] = [new EntitySetEntity { Name = "cached" }],
+            }
+        );
         var artifactResult = InstanceCreator.CompileArtifactWithDiagnostics(
             query,
             "ArtifactStrictRoundTrip",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(
             artifactResult.Succeeded,
             string.Join(
                 Environment.NewLine,
-                artifactResult.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
+                artifactResult.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            )
+        );
         Assert.IsNotNull(artifactResult.Artifact);
         Assert.IsTrue(
             artifactResult.Artifact.Metadata.TryGetValue(
                 CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256,
-                out var storedGeneratedCodeHash));
+                out var storedGeneratedCodeHash
+            )
+        );
         Assert.IsFalse(string.IsNullOrWhiteSpace(storedGeneratedCodeHash));
 
         var loadResult = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
@@ -116,20 +120,25 @@ public class CompiledQueryArtifactApiTests
             _loggerResolver,
             new CompiledQueryArtifactLoadOptions
             {
-                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
-            });
+                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash,
+            }
+        );
 
         Assert.IsTrue(
             loadResult.Succeeded,
             string.Join(
                 Environment.NewLine,
-                loadResult.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
+                loadResult.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            )
+        );
         Assert.IsNotNull(loadResult.BuildItems);
-        var recomputedGeneratedCodeHash =
-            CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(loadResult.BuildItems.RenderingArtifact);
+        var recomputedGeneratedCodeHash = CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(
+            loadResult.BuildItems.RenderingArtifact
+        );
         Assert.AreEqual(storedGeneratedCodeHash, recomputedGeneratedCodeHash);
-        var compiledQuery = loadResult.CompiledQuery ??
-            throw new AssertFailedException("Successful artifact validation did not produce a compiled query.");
+        var compiledQuery =
+            loadResult.CompiledQuery
+            ?? throw new AssertFailedException("Successful artifact validation did not produce a compiled query.");
         Assert.AreEqual("cached", compiledQuery.Run()[0].ReadValue(0));
     }
 
@@ -143,11 +152,13 @@ public class CompiledQueryArtifactApiTests
             query,
             artifact,
             new ArtifactSchemaProvider(new ArtifactSchema("second")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded);
-        var compiledQuery = result.CompiledQuery ??
-            throw new AssertFailedException("Successful provider rebind did not produce a compiled query.");
+        var compiledQuery =
+            result.CompiledQuery
+            ?? throw new AssertFailedException("Successful provider rebind did not produce a compiled query.");
         Assert.AreEqual("second", compiledQuery.Run()[0].ReadValue(0));
     }
 
@@ -156,21 +167,27 @@ public class CompiledQueryArtifactApiTests
     {
         const string query = "select i.Token from #settings.items() i";
         var compileProvider = new SettingsArtifactSchemaProvider();
-        var compileOptions = new CompilationOptions(sourceRuntimeSettingsResolver: new TokenSettingsResolver("compile-token"));
+        var compileOptions = new CompilationOptions(
+            sourceRuntimeSettingsResolver: new TokenSettingsResolver("compile-token")
+        );
         var artifact = CompileArtifact(query, compileProvider, compileOptions);
 
         var loadProvider = new SettingsArtifactSchemaProvider();
-        var loadOptions = new CompilationOptions(sourceRuntimeSettingsResolver: new TokenSettingsResolver("load-token"));
+        var loadOptions = new CompilationOptions(
+            sourceRuntimeSettingsResolver: new TokenSettingsResolver("load-token")
+        );
         var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
             query,
             artifact,
             loadProvider,
             _loggerResolver,
-            loadOptions);
+            loadOptions
+        );
 
         Assert.IsTrue(result.Succeeded);
-        var compiledQuery = result.CompiledQuery ??
-            throw new AssertFailedException("Successful settings rebind did not produce a compiled query.");
+        var compiledQuery =
+            result.CompiledQuery
+            ?? throw new AssertFailedException("Successful settings rebind did not produce a compiled query.");
         Assert.AreEqual("load-token", compiledQuery.Run()[0].ReadValue(0));
         Assert.IsGreaterThanOrEqualTo(loadProvider.Schema.PlanCount, 1);
         Assert.IsGreaterThanOrEqualTo(loadProvider.Schema.DescribeRuntimeSettingsCount, 1);
@@ -196,18 +213,20 @@ public class CompiledQueryArtifactApiTests
                 if (loadedArtifact.SymbolsBytes is { Length: > 0 } symbols)
                 {
                     using var symbolsStream = new MemoryStream(symbols);
-                    return context.LoadFromStream(assemblyStream, symbolsStream)
+                    return context
+                        .LoadFromStream(assemblyStream, symbolsStream)
                         .GetType(loadedArtifact.RunnableTypeName)!;
                 }
 
-                return context.LoadFromStream(assemblyStream)
-                    .GetType(loadedArtifact.RunnableTypeName)!;
-            });
+                return context.LoadFromStream(assemblyStream).GetType(loadedArtifact.RunnableTypeName)!;
+            }
+        );
 
         Assert.IsTrue(result.Succeeded);
         Assert.IsTrue(invoked);
-        var compiledQuery = result.CompiledQuery ??
-            throw new AssertFailedException("Successful custom load did not produce a compiled query.");
+        var compiledQuery =
+            result.CompiledQuery
+            ?? throw new AssertFailedException("Successful custom load did not produce a compiled query.");
         Assert.AreEqual("single", compiledQuery.Run()[0].ReadValue(0));
     }
 
@@ -228,14 +247,14 @@ public class CompiledQueryArtifactApiTests
             {
                 owner = new TestLifetimeOwner();
                 var assembly = Assembly.Load(loadedArtifact.AssemblyBytes);
-                return new CompiledQueryArtifactLoadResult(
-                    assembly.GetType(loadedArtifact.RunnableTypeName)!,
-                    owner);
-            });
+                return new CompiledQueryArtifactLoadResult(assembly.GetType(loadedArtifact.RunnableTypeName)!, owner);
+            }
+        );
 
         Assert.IsTrue(result.Succeeded);
-        var compiledQuery = result.CompiledQuery ??
-            throw new AssertFailedException("Successful lifecycle load did not produce a compiled query.");
+        var compiledQuery =
+            result.CompiledQuery
+            ?? throw new AssertFailedException("Successful lifecycle load did not produce a compiled query.");
         Assert.AreEqual("single", compiledQuery.Run()[0].ReadValue(0));
         compiledQuery.Dispose();
         Assert.IsTrue(owner!.Disposed);
@@ -253,10 +272,15 @@ public class CompiledQueryArtifactApiTests
             artifact,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
             _loggerResolver,
-            new CompilationOptions(useConstantFolding: false));
+            new CompilationOptions(useConstantFolding: false)
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("compilation options signature", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("compilation options signature", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -269,10 +293,15 @@ public class CompiledQueryArtifactApiTests
             "select i.Value from #artifact.items() i where i.Value = 'single'",
             artifact,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("ScriptSha256", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("ScriptSha256", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -281,17 +310,23 @@ public class CompiledQueryArtifactApiTests
         const string query = "select i.Value from #artifact.items() i";
         var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
         var metadata = CopyMetadata(artifact);
-        metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature] = "runtime-v2=2;schema=2;parameters=1";
+        metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature] =
+            "runtime-v2=2;schema=2;parameters=1";
         var tampered = CopyArtifact(artifact, metadata: metadata);
 
         var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
             query,
             tampered,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("RuntimeV2ContractSignature", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("RuntimeV2ContractSignature", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -307,12 +342,18 @@ public class CompiledQueryArtifactApiTests
             query,
             tampered,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains(
-            CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion,
-            StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains(
+                    CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion,
+                    StringComparison.Ordinal
+                )
+            )
+        );
     }
 
     [TestMethod]
@@ -321,7 +362,8 @@ public class CompiledQueryArtifactApiTests
         const string query = "select i.Value from #artifact.items() i";
         var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
         var metadata = CopyMetadata(artifact);
-        metadata[CompiledQueryArtifactSupport.MetadataExecutionTarget] = TestExecutionTargetIds.TestOnlyNonClr.ToString();
+        metadata[CompiledQueryArtifactSupport.MetadataExecutionTarget] =
+            TestExecutionTargetIds.TestOnlyNonClr.ToString();
         var tampered = CopyArtifact(artifact, metadata: metadata);
         var loaderInvoked = false;
 
@@ -335,13 +377,19 @@ public class CompiledQueryArtifactApiTests
             {
                 loaderInvoked = true;
                 return null!;
-            });
+            }
+        );
 
         AssertArtifactFailure(result);
         Assert.IsFalse(loaderInvoked);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains(
-            CompiledQueryArtifactSupport.MetadataExecutionTarget,
-            StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains(
+                    CompiledQueryArtifactSupport.MetadataExecutionTarget,
+                    StringComparison.Ordinal
+                )
+            )
+        );
     }
 
     [TestMethod]
@@ -354,10 +402,15 @@ public class CompiledQueryArtifactApiTests
             query,
             artifact,
             new ArtifactSchemaProvider(new ArtifactIntSchema(1)),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("SemanticShapeSha256", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("SemanticShapeSha256", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -370,26 +423,39 @@ public class CompiledQueryArtifactApiTests
             query,
             artifact,
             new ArtifactSchemaProvider(new ArtifactReadModifierSchema("ascii")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("SemanticShapeSha256", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("SemanticShapeSha256", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
     public void CreateExecutableFromArtifactWithDiagnostics_WhenIntendedTypeChanges_ReturnsSemanticShapeDiagnostic()
     {
         const string query = "select i.Value from #artifact.items() i";
-        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactIntendedTypeSchema(typeof(string).FullName!)));
+        var artifact = CompileArtifact(
+            query,
+            new ArtifactSchemaProvider(new ArtifactIntendedTypeSchema(typeof(string).FullName!))
+        );
 
         var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
             query,
             artifact,
             new ArtifactSchemaProvider(new ArtifactIntendedTypeSchema(typeof(object).FullName!)),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("SemanticShapeSha256", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("SemanticShapeSha256", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -404,11 +470,13 @@ public class CompiledQueryArtifactApiTests
             query,
             withoutGeneratedHash,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded);
-        var compiledQuery = result.CompiledQuery ??
-            throw new AssertFailedException("Successful hash validation did not produce a compiled query.");
+        var compiledQuery =
+            result.CompiledQuery
+            ?? throw new AssertFailedException("Successful hash validation did not produce a compiled query.");
         Assert.AreEqual("single", compiledQuery.Run()[0].ReadValue(0));
     }
 
@@ -427,11 +495,16 @@ public class CompiledQueryArtifactApiTests
             _loggerResolver,
             new CompiledQueryArtifactLoadOptions
             {
-                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
-            });
+                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash,
+            }
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("GeneratedCodeSha256", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("GeneratedCodeSha256", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -450,11 +523,16 @@ public class CompiledQueryArtifactApiTests
             _loggerResolver,
             new CompiledQueryArtifactLoadOptions
             {
-                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
-            });
+                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash,
+            }
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("GeneratedCodeSha256", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("GeneratedCodeSha256", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -463,7 +541,8 @@ public class CompiledQueryArtifactApiTests
         var signature = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             "select i.Value from #artifact.items() i",
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         StringAssert.Contains(signature, RuntimeV2Contract.ContractSignature);
         StringAssert.Contains(signature, ExecutionSemanticsContract.Current.Fingerprint);
@@ -481,12 +560,14 @@ public class CompiledQueryArtifactApiTests
             query,
             provider,
             options,
-            ExecutionTargetIds.CSharpClr);
+            ExecutionTargetIds.CSharpClr
+        );
         var nonClr = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             provider,
             options,
-            TestExecutionTargetIds.TestOnlyNonClr);
+            TestExecutionTargetIds.TestOnlyNonClr
+        );
 
         Assert.AreNotEqual(csharp, nonClr);
         StringAssert.Contains(csharp, "ExecutionTarget = CSharpClr");
@@ -501,11 +582,13 @@ public class CompiledQueryArtifactApiTests
         var first = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             new ArtifactSchemaProvider(new ArtifactSchema("first")),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         var second = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             new ArtifactSchemaProvider(new ArtifactSchema("second")),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.AreNotEqual(first, second);
     }
@@ -519,19 +602,23 @@ public class CompiledQueryArtifactApiTests
         var withoutSidecars = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             provider,
-            new CompilationOptions(useCteSidecarIndexes: false));
+            new CompilationOptions(useCteSidecarIndexes: false)
+        );
         var withSidecars = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             provider,
-            new CompilationOptions(useCteSidecarIndexes: true));
+            new CompilationOptions(useCteSidecarIndexes: true)
+        );
 
         Assert.AreNotEqual(withoutSidecars, withSidecars);
         StringAssert.Contains(
             withoutSidecars,
-            CompilationOptionsFingerprint.Compute(new CompilationOptions(useCteSidecarIndexes: false)));
+            CompilationOptionsFingerprint.Compute(new CompilationOptions(useCteSidecarIndexes: false))
+        );
         StringAssert.Contains(
             withSidecars,
-            CompilationOptionsFingerprint.Compute(new CompilationOptions(useCteSidecarIndexes: true)));
+            CompilationOptionsFingerprint.Compute(new CompilationOptions(useCteSidecarIndexes: true))
+        );
     }
 
     [TestMethod]
@@ -545,19 +632,23 @@ public class CompiledQueryArtifactApiTests
         var disabledCacheSignature = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             provider,
-            disabled);
+            disabled
+        );
         var enabledCacheSignature = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             provider,
-            enabled);
+            enabled
+        );
 
         Assert.AreNotEqual(disabledCacheSignature, enabledCacheSignature);
         Assert.AreNotEqual(
             CompilationOptionsFingerprint.Compute(disabled),
-            CompilationOptionsFingerprint.Compute(enabled));
+            CompilationOptionsFingerprint.Compute(enabled)
+        );
         Assert.AreNotEqual(
             CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(disabled),
-            CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(enabled));
+            CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(enabled)
+        );
     }
 
     [TestMethod]
@@ -571,21 +662,25 @@ public class CompiledQueryArtifactApiTests
         var lowerCacheSignature = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             provider,
-            lower);
+            lower
+        );
         var higherCacheSignature = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
             query,
             provider,
-            higher);
+            higher
+        );
 
         Assert.AreNotEqual(lowerCacheSignature, higherCacheSignature);
         StringAssert.Contains(lowerCacheSignature, CompilationOptionsFingerprint.Compute(lower));
         StringAssert.Contains(higherCacheSignature, CompilationOptionsFingerprint.Compute(higher));
         Assert.AreNotEqual(
             CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(lower),
-            CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(higher));
+            CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(higher)
+        );
         Assert.AreEqual(
             CompilationOptionsFingerprint.Compute(lower),
-            CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(lower));
+            CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(lower)
+        );
     }
 
     [TestMethod]
@@ -599,10 +694,15 @@ public class CompiledQueryArtifactApiTests
             artifact,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
             _loggerResolver,
-            typeLoader: _ => typeof(string));
+            typeLoader: _ => typeof(string)
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("does not implement", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("does not implement", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -617,23 +717,31 @@ public class CompiledQueryArtifactApiTests
             artifact.EngineVersion,
             artifact.ArtifactFormatVersion,
             artifact.CompilationOptionsSignature,
-            artifact.Metadata);
+            artifact.Metadata
+        );
 
         var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
             query,
             broken,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("type loading failed", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("type loading failed", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
     [DataRow("1")]
     [DataRow("2")]
     [DataRow("3")]
-    public void CreateExecutableFromArtifactWithDiagnostics_WhenArtifactFormatIsOld_ReturnsArtifactDiagnostic(string version)
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenArtifactFormatIsOld_ReturnsArtifactDiagnostic(
+        string version
+    )
     {
         const string query = "select i.Value from #artifact.items() i";
         var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
@@ -643,10 +751,15 @@ public class CompiledQueryArtifactApiTests
             query,
             oldFormat,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("artifact format version", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("artifact format version", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -661,16 +774,22 @@ public class CompiledQueryArtifactApiTests
             artifact.EngineVersion,
             artifact.ArtifactFormatVersion,
             artifact.CompilationOptionsSignature,
-            artifact.Metadata);
+            artifact.Metadata
+        );
 
         var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
             query,
             emptyBytes,
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         AssertArtifactFailure(result);
-        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("assembly bytes are empty", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Errors.Any(static diagnostic =>
+                diagnostic.Message.Contains("assembly bytes are empty", StringComparison.Ordinal)
+            )
+        );
     }
 
     [TestMethod]
@@ -680,7 +799,8 @@ public class CompiledQueryArtifactApiTests
             "select Missing from #artifact.items() i",
             "ArtifactInvalid",
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(result.Succeeded);
         Assert.IsNull(result.Artifact);
@@ -691,10 +811,7 @@ public class CompiledQueryArtifactApiTests
     [TestMethod]
     public void CompiledQueryArtifact_WhenConstructed_DefensivelyCopiesBytesAndMetadata()
     {
-        var metadata = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["key"] = "value"
-        };
+        var metadata = new Dictionary<string, string>(StringComparer.Ordinal) { ["key"] = "value" };
         var assemblyBytes = new byte[] { 1, 2, 3 };
         var symbolsBytes = new byte[] { 4, 5 };
         var artifact = new CompiledQueryArtifact(
@@ -704,7 +821,8 @@ public class CompiledQueryArtifactApiTests
             "Engine",
             "1",
             "Options",
-            metadata);
+            metadata
+        );
 
         assemblyBytes[0] = 9;
         symbolsBytes[0] = 9;
@@ -721,17 +839,26 @@ public class CompiledQueryArtifactApiTests
     private ICompiledQueryArtifact CompileArtifact(
         string query,
         ISchemaProvider provider,
-        CompilationOptions? options = null)
+        CompilationOptions? options = null
+    )
     {
         var result = InstanceCreator.CompileArtifactWithDiagnostics(
             query,
             "ArtifactBasic",
             provider,
             _loggerResolver,
-            options);
+            options
+        );
 
-        Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
-        return result.Artifact ?? throw new AssertFailedException("Successful artifact compilation produced no artifact.");
+        Assert.IsTrue(
+            result.Succeeded,
+            string.Join(
+                Environment.NewLine,
+                result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            )
+        );
+        return result.Artifact
+            ?? throw new AssertFailedException("Successful artifact compilation produced no artifact.");
     }
 
     private static Dictionary<string, string> CopyMetadata(ICompiledQueryArtifact artifact)
@@ -754,7 +881,8 @@ public class CompiledQueryArtifactApiTests
         string? engineVersion = null,
         string? artifactFormatVersion = null,
         string? compilationOptionsSignature = null,
-        IReadOnlyDictionary<string, string>? metadata = null)
+        IReadOnlyDictionary<string, string>? metadata = null
+    )
     {
         return new CompiledQueryArtifact(
             assemblyBytes ?? artifact.AssemblyBytes,
@@ -763,21 +891,24 @@ public class CompiledQueryArtifactApiTests
             engineVersion ?? artifact.EngineVersion,
             artifactFormatVersion ?? artifact.ArtifactFormatVersion,
             compilationOptionsSignature ?? artifact.CompilationOptionsSignature,
-            metadata ?? artifact.Metadata);
+            metadata ?? artifact.Metadata
+        );
     }
 
     private static void AssertArtifactFailure(BuildResult result)
     {
         Assert.IsFalse(result.Succeeded);
         var diagnostic = result.Errors.Single(static item =>
-            item.Code == DiagnosticCode.MQ8002_CompiledArtifactIncompatible);
+            item.Code == DiagnosticCode.MQ8002_CompiledArtifactIncompatible
+        );
         Assert.AreEqual(DiagnosticPhase.Runtime, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.GeneratedSource, diagnostic.SourceKind);
         Assert.IsFalse(diagnostic.Location.IsValid);
         Assert.IsFalse(diagnostic.EndLocation.IsValid);
 
-        var envelope = result.ToEnvelopes().Single(item =>
-            item.Code == DiagnosticCode.MQ8002_CompiledArtifactIncompatible);
+        var envelope = result
+            .ToEnvelopes()
+            .Single(item => item.Code == DiagnosticCode.MQ8002_CompiledArtifactIncompatible);
         Assert.AreEqual(DiagnosticSourceKind.GeneratedSource, envelope.SourceKind);
         Assert.IsNull(envelope.Offset);
         Assert.IsNull(envelope.EndOffset);

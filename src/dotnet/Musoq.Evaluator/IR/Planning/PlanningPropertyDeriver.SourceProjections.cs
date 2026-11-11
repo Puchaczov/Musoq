@@ -11,7 +11,8 @@ internal static partial class PlanningPropertyDeriver
 {
     private static Dictionary<string, ISchemaColumn[]> CreateProjectedSchemaColumns(
         IReadOnlyDictionary<string, SourcePlanProperties> sources,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var result = new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal);
@@ -19,13 +20,16 @@ internal static partial class PlanningPropertyDeriver
         foreach (var source in sources.Values)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (source.QueryRowProjection.State == SourceProjectionState.Unavailable &&
-                source.ProjectedColumns.Length == 0)
+            if (
+                source.QueryRowProjection.State == SourceProjectionState.Unavailable
+                && source.ProjectedColumns.Length == 0
+            )
                 continue;
 
-            result[source.SourceContextId] = source.QueryRowProjection.State == SourceProjectionState.Exact
-                ? source.QueryRowProjection.Columns.ToArray()
-                : source.ProjectedSchemaColumns;
+            result[source.SourceContextId] =
+                source.QueryRowProjection.State == SourceProjectionState.Exact
+                    ? source.QueryRowProjection.Columns.ToArray()
+                    : source.ProjectedSchemaColumns;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -37,7 +41,8 @@ internal static partial class PlanningPropertyDeriver
         IReadOnlyList<SchemaScanNode> scans,
         IReadOnlyDictionary<string, IReadOnlySet<string>> requiredColumnsByAlias,
         IReadOnlyDictionary<string, IrExpression[]> pushedPredicates,
-        List<PlanningDecision> decisions)
+        List<PlanningDecision> decisions
+    )
     {
         context.CancellationToken.ThrowIfCancellationRequested();
         var sources = new Dictionary<string, SourcePlanProperties>(StringComparer.Ordinal);
@@ -52,9 +57,7 @@ internal static partial class PlanningPropertyDeriver
                 ? required.OrderBy(static name => name, StringComparer.Ordinal).ToArray()
                 : [];
             context.CancellationToken.ThrowIfCancellationRequested();
-            var predicates = pushedPredicates.TryGetValue(scan.SourceContextId, out var pushed)
-                ? pushed
-                : [];
+            var predicates = pushedPredicates.TryGetValue(scan.SourceContextId, out var pushed) ? pushed : [];
             var projection = TryCreateProjectedColumns(
                 context,
                 scan,
@@ -63,7 +66,8 @@ internal static partial class PlanningPropertyDeriver
                 out var projectedSchemaColumns,
                 out var queryRowProjection,
                 out var confidence,
-                out var reason);
+                out var reason
+            );
             context.CancellationToken.ThrowIfCancellationRequested();
 
             sources[scan.SourceContextId] = new SourcePlanProperties(
@@ -77,7 +81,8 @@ internal static partial class PlanningPropertyDeriver
                 projectedSchemaColumns,
                 queryRowProjection,
                 confidence,
-                reason);
+                reason
+            );
         }
 
         context.CancellationToken.ThrowIfCancellationRequested();
@@ -92,13 +97,15 @@ internal static partial class PlanningPropertyDeriver
         out ISchemaColumn[] projectedSchemaColumns,
         out SourceQueryRowProjection queryRowProjection,
         out PlanningConfidence confidence,
-        out string reason)
+        out string reason
+    )
     {
         context.CancellationToken.ThrowIfCancellationRequested();
         projectedSchemaColumns = [];
         confidence = PlanningConfidence.Low;
         queryRowProjection = SourceQueryRowProjection.Unavailable(
-            "Exact query-row projection metadata was unavailable.");
+            "Exact query-row projection metadata was unavailable."
+        );
 
         if (requiredColumns.Length == 0)
         {
@@ -133,8 +140,7 @@ internal static partial class PlanningPropertyDeriver
             return [];
         }
 
-        var availableByName = new Dictionary<string, ISchemaColumn>(
-            StringComparer.Ordinal);
+        var availableByName = new Dictionary<string, ISchemaColumn>(StringComparer.Ordinal);
         foreach (var column in availableColumns)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
@@ -171,7 +177,8 @@ internal static partial class PlanningPropertyDeriver
         }
         queryRowProjection = SourceQueryRowProjection.Exact(
             projected,
-            $"Resolved an exact {projected.Length}-column query-row projection.");
+            $"Resolved an exact {projected.Length}-column query-row projection."
+        );
 
         confidence = PlanningConfidence.High;
         if (projected.Length >= availableColumns.Length)
@@ -193,15 +200,19 @@ internal static partial class PlanningPropertyDeriver
         SchemaScanNode scan,
         string outcome,
         PlanningConfidence confidence,
-        string reason)
+        string reason
+    )
     {
-        decisions.Add(new PlanningDecision(
-            PlanningDecisionCategory.ProjectionPruning,
-            "SourceProjection",
-            FormatSource(scan),
-            outcome,
-            confidence,
-            reason));
+        decisions.Add(
+            new PlanningDecision(
+                PlanningDecisionCategory.ProjectionPruning,
+                "SourceProjection",
+                FormatSource(scan),
+                outcome,
+                confidence,
+                reason
+            )
+        );
     }
 
     private static ISchemaColumn[] ResolveAvailableColumns(PlanningContext context, SchemaScanNode scan)

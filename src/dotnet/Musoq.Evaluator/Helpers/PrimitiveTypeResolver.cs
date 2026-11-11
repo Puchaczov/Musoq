@@ -25,9 +25,11 @@ internal static class PrimitiveTypeResolver
             return $"System.Nullable`1[{baseType}]";
         }
 
-        return (ScriptParameterTypeCatalog.TryResolveScalar(typeName, out var descriptor)
-            ? descriptor.ClrType.FullName
-            : typeName) ?? throw new InvalidOperationException($"Failed to resolve type name for {typeName}.");
+        return (
+                ScriptParameterTypeCatalog.TryResolveScalar(typeName, out var descriptor)
+                    ? descriptor.ClrType.FullName
+                    : typeName
+            ) ?? throw new InvalidOperationException($"Failed to resolve type name for {typeName}.");
     }
 
     public static Type? RemapPrimitiveTypeAsNullable(string typeName)
@@ -78,11 +80,11 @@ internal static class PrimitiveTypeResolver
 
         type = StripNullable(type);
 
-        return type.IsPrimitive ||
-               type == typeof(string) ||
-               type == typeof(decimal) ||
-               type == typeof(DateTime) ||
-               type == typeof(DateTimeOffset);
+        return type.IsPrimitive
+            || type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(DateTime)
+            || type == typeof(DateTimeOffset);
     }
 
     public static bool IsValidQueryExpressionType(Type? type)
@@ -98,9 +100,7 @@ internal static class PrimitiveTypeResolver
 
         var typeToCheck = StripNullable(type);
 
-        return IsPrimitiveType(typeToCheck) ||
-               typeToCheck == typeof(Guid) ||
-               typeToCheck == typeof(TimeSpan);
+        return IsPrimitiveType(typeToCheck) || typeToCheck == typeof(Guid) || typeToCheck == typeof(TimeSpan);
     }
 
     public static bool IsSupportedCollectionParameterType(Type? type)

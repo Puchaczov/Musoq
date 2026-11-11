@@ -14,22 +14,26 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class PassPrimitiveTypesTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void GetSchemaTableAndRowSourcePassedPrimitiveArgumentsTest()
     {
         var query = "select 1 from #test.whatever(1, 2d, true, false, 'text')";
         var tableCalls = 0;
         var sourceCalls = 0;
-        using var vm = CreateAndRunVirtualMachine(query, [new TestEntity()], passedParams =>
-        {
-            tableCalls++;
-            AssertSourceArguments(passedParams);
-        }, passedParams =>
-        {
-            sourceCalls++;
-            AssertSourceArguments(passedParams);
-        });
+        using var vm = CreateAndRunVirtualMachine(
+            query,
+            [new TestEntity()],
+            passedParams =>
+            {
+                tableCalls++;
+                AssertSourceArguments(passedParams);
+            },
+            passedParams =>
+            {
+                sourceCalls++;
+                AssertSourceArguments(passedParams);
+            }
+        );
 
         using var table = vm.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, table.Count);
@@ -58,18 +62,26 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         Assert.AreEqual("text", arguments[4]);
     }
 
-    private CompiledQuery CreateAndRunVirtualMachine(string script, IReadOnlyList<TestEntity> source,
-        Action<object?[]>? onGetTable = null, Action<object?[]>? onGetRowSource = null)
+    private CompiledQuery CreateAndRunVirtualMachine(
+        string script,
+        IReadOnlyList<TestEntity> source,
+        Action<object?[]>? onGetTable = null,
+        Action<object?[]>? onGetRowSource = null
+    )
     {
-        return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(),
-            new TestSchemaProvider(source, onGetTable, onGetRowSource), LoggerResolver);
+        return InstanceCreator.CompileForExecution(
+            script,
+            Guid.NewGuid().ToString(),
+            new TestSchemaProvider(source, onGetTable, onGetRowSource),
+            LoggerResolver
+        );
     }
 
     private sealed class TestSchemaProvider(
         IReadOnlyList<TestEntity> entities,
         Action<object?[]>? onGetTable,
-        Action<object?[]>? onGetRowSource)
-        : ISchemaProvider
+        Action<object?[]>? onGetRowSource
+    ) : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
@@ -80,21 +92,34 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     private sealed class TestSchema(
         IReadOnlyList<TestEntity> entities,
         Action<object?[]>? onGetTable,
-        Action<object?[]>? onGetRowSource)
-        : SchemaBase("test", CachedLibrary.Value)
+        Action<object?[]>? onGetRowSource
+    ) : SchemaBase("test", CachedLibrary.Value)
     {
         private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-        public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext communicator, TArguments nativeArguments)
+        public override RowSource<T> GetRowSource<T, TArguments>(
+            string name,
+            SourceExecutionContext communicator,
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             onGetRowSource?.Invoke(parameters);
-            return EnsureSourceType<T, TestEntity>(name, new EntitySource<TestEntity>([entities], new Dictionary<string, int>(),
-                new Dictionary<int, Func<TestEntity, object?>>()));
+            return EnsureSourceType<T, TestEntity>(
+                name,
+                new EntitySource<TestEntity>(
+                    [entities],
+                    new Dictionary<string, int>(),
+                    new Dictionary<int, Func<TestEntity, object?>>()
+                )
+            );
         }
 
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
-            params object?[] parameters)
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters
+        )
         {
             onGetTable?.Invoke(parameters);
             return new TestTable();

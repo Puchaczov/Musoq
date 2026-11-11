@@ -61,7 +61,10 @@ public sealed class CampaignInspectionTests
         using var temporary = new TemporaryDirectory();
         Complete(Path.Combine(temporary.Path, "first"), Official("first"));
         Complete(Path.Combine(temporary.Path, "other-machine"), Official("second", "other-machine"));
-        Complete(Path.Combine(temporary.Path, "other-suite"), Official("third", suite: "other-suite", runtime: "other-runtime"));
+        Complete(
+            Path.Combine(temporary.Path, "other-suite"),
+            Official("third", suite: "other-suite", runtime: "other-runtime")
+        );
         var latest = CampaignInspection.Latest(temporary.Path).Selected;
         Assert.HasCount(1, latest);
         Assert.AreEqual("third", latest[0].Source.Commit);
@@ -88,7 +91,7 @@ public sealed class CampaignInspectionTests
             RunId = "unsupported",
             Provenance = original.Provenance,
             Cases = original.Cases,
-            Status = "complete"
+            Status = "complete",
         };
         ArtifactJson.Write(Path.Combine(temporary.Path, "definition.json"), unsupported);
         ArtifactJson.Write(Path.Combine(temporary.Path, "measurements.json"), new[] { CampaignTests.Success() });
@@ -104,9 +107,15 @@ public sealed class CampaignInspectionTests
         var store = new CampaignStore(temporary.Path, CampaignTests.Manifest());
         _ = store.Begin("case");
         using var process = Process.GetCurrentProcess();
-        ArtifactJson.Write(Path.Combine(temporary.Path, "sessions", "fixture.json"),
-            new CampaignSession(process.Id, process.StartTime.ToUniversalTime(), Environment.MachineName,
-                DateTimeOffset.UtcNow));
+        ArtifactJson.Write(
+            Path.Combine(temporary.Path, "sessions", "fixture.json"),
+            new CampaignSession(
+                process.Id,
+                process.StartTime.ToUniversalTime(),
+                Environment.MachineName,
+                DateTimeOffset.UtcNow
+            )
+        );
         var receipt = CampaignInspection.Status(temporary.Path);
         Assert.IsFalse(receipt.Verified);
         Assert.IsTrue(receipt.Active);
@@ -119,7 +128,10 @@ public sealed class CampaignInspectionTests
     public void ArtifactPaths_AcceptTrailingDirectorySeparatorAndRejectEscape()
     {
         using var temporary = new TemporaryDirectory();
-        Assert.AreEqual(Path.Combine(temporary.Path, "report.json"), BundleFiles.Resolve(temporary.Path + Path.DirectorySeparatorChar, "report.json"));
+        Assert.AreEqual(
+            Path.Combine(temporary.Path, "report.json"),
+            BundleFiles.Resolve(temporary.Path + Path.DirectorySeparatorChar, "report.json")
+        );
         Assert.Throws<InvalidDataException>(() => BundleFiles.Resolve(temporary.Path, "../outside.json"));
     }
 
@@ -218,7 +230,7 @@ public sealed class CampaignInspectionTests
             SuiteVersion = other.SuiteVersion,
             RunId = other.RunId,
             Cases = other.Cases,
-            Provenance = other.Provenance with { Build = other.Provenance.Build with { EngineVersion = "next" } }
+            Provenance = other.Provenance with { Build = other.Provenance.Build with { EngineVersion = "next" } },
         };
         Complete(Path.Combine(temporary.Path, "other"), other);
         var selected = CampaignInspection.Latest(temporary.Path).Selected;
@@ -256,7 +268,7 @@ public sealed class CampaignInspectionTests
             SuiteVersion = fixture.SuiteVersion,
             RunId = fixture.RunId,
             Provenance = fixture.Provenance,
-            Cases = [fixture.Cases[0], fixture.Cases[0] with { Id = "second" }]
+            Cases = [fixture.Cases[0], fixture.Cases[0] with { Id = "second" }],
         };
         var store = new CampaignStore(temporary.Path, manifest);
         SaveOfficialAttempt(store);
@@ -290,7 +302,12 @@ public sealed class CampaignInspectionTests
         ArtifactJson.Write(path, manifest);
     }
 
-    private static RunManifest Official(string commit, string machine = "profile", string suite = "suite", string? runtime = null)
+    private static RunManifest Official(
+        string commit,
+        string machine = "profile",
+        string suite = "suite",
+        string? runtime = null
+    )
     {
         var fixture = CampaignTests.Manifest();
         var stamp = MeasuredProcess.Capture();
@@ -302,14 +319,24 @@ public sealed class CampaignInspectionTests
             Provenance = fixture.Provenance with
             {
                 Source = fixture.Provenance.Source with { Commit = commit },
-                Hardware = fixture.Provenance.Hardware with { Profile = machine, EffectiveProcessors = stamp.EffectiveProcessors },
-                Environment = fixture.Provenance.Environment with { Mode = "Official", Job = "Official", Runtime = runtime ?? stamp.Runtime, ServerGc = stamp.ServerGc },
+                Hardware = fixture.Provenance.Hardware with
+                {
+                    Profile = machine,
+                    EffectiveProcessors = stamp.EffectiveProcessors,
+                },
+                Environment = fixture.Provenance.Environment with
+                {
+                    Mode = "Official",
+                    Job = "Official",
+                    Runtime = runtime ?? stamp.Runtime,
+                    ServerGc = stamp.ServerGc,
+                },
                 Build = fixture.Provenance.Build with
                 {
                     EngineInformationalVersion = stamp.EngineInformationalVersion,
-                    SuiteInformationalVersion = stamp.SuiteInformationalVersion
-                }
-            }
+                    SuiteInformationalVersion = stamp.SuiteInformationalVersion,
+                },
+            },
         };
     }
 
@@ -325,6 +352,7 @@ public sealed class CampaignInspectionTests
         store.Save(CampaignTests.Success());
         store.Finish();
     }
+
     private static void SaveOfficialAttempt(CampaignStore store)
     {
         var directory = store.DirectoryPath;
@@ -340,11 +368,18 @@ public sealed class CampaignInspectionTests
             Runtime = manifest.Provenance.Environment.Runtime,
             ScenarioId = manifest.Cases[0].ScenarioId,
             Sql = manifest.Cases[0].Sql,
-            InputCount = manifest.Cases[0].InputCount
+            InputCount = manifest.Cases[0].InputCount,
         };
         ArtifactJson.Write(metadata, stamp);
-        ArtifactJson.Write(Path.Combine(directory, "raw", "preflight", "tests.json"), new CommandResult(0, "passed", ""));
-        store.Save(CampaignTests.Success() with { RawReports = ["raw/fixture-report-full.json", "raw/measured-process-fixture.json"] });
+        ArtifactJson.Write(
+            Path.Combine(directory, "raw", "preflight", "tests.json"),
+            new CommandResult(0, "passed", "")
+        );
+        store.Save(
+            CampaignTests.Success() with
+            {
+                RawReports = ["raw/fixture-report-full.json", "raw/measured-process-fixture.json"],
+            }
+        );
     }
-
 }

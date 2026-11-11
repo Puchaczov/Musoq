@@ -13,12 +13,15 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static void AddRecursiveCteRequiredColumns(
         PhysicalCteNode cte,
-        IReadOnlyDictionary<string, HashSet<string>> required)
+        IReadOnlyDictionary<string, HashSet<string>> required
+    )
     {
         foreach (var definition in cte.Definitions)
         {
-            if (definition.Plan is not PhysicalRecursiveCteNode recursive ||
-                !required.TryGetValue(definition.Name, out var columns))
+            if (
+                definition.Plan is not PhysicalRecursiveCteNode recursive
+                || !required.TryGetValue(definition.Name, out var columns)
+            )
             {
                 continue;
             }
@@ -28,8 +31,10 @@ internal sealed partial class PhysicalLoweringImplementation
 
             foreach (var invariant in recursive.Invariants)
             {
-                if (invariant.ExistingCteName == null ||
-                    !required.TryGetValue(invariant.ExistingCteName, out var invariantColumns))
+                if (
+                    invariant.ExistingCteName == null
+                    || !required.TryGetValue(invariant.ExistingCteName, out var invariantColumns)
+                )
                 {
                     continue;
                 }
@@ -44,24 +49,22 @@ internal sealed partial class PhysicalLoweringImplementation
                 continue;
             }
 
-            if (!TryGetRecursiveOutputProjects(recursive, out var anchor, out var member) ||
-                anchor.Fields.Length != member.Fields.Length)
+            if (
+                !TryGetRecursiveOutputProjects(recursive, out var anchor, out var member)
+                || anchor.Fields.Length != member.Fields.Length
+            )
             {
                 AddAllOutputColumns(recursive, columns);
                 continue;
             }
 
-            var selfAliases = CteColumnUsageCollector.CollectCteRefsByAlias(
+            var selfAliases = CteColumnUsageCollector
+                .CollectCteRefsByAlias(
                     recursive.RecursiveMember,
-                    new HashSet<string>([recursive.Name], StringComparer.OrdinalIgnoreCase))
-                .Keys
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            AddMandatorySelfColumns(
-                recursive.RecursiveMember,
-                member,
-                selfAliases,
-                recursive.OutputSchema,
-                columns);
+                    new HashSet<string>([recursive.Name], StringComparer.OrdinalIgnoreCase)
+                )
+                .Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            AddMandatorySelfColumns(recursive.RecursiveMember, member, selfAliases, recursive.OutputSchema, columns);
 
             var changed = true;
             while (changed)
@@ -76,7 +79,8 @@ internal sealed partial class PhysicalLoweringImplementation
                         member.Fields[index].Expression,
                         selfAliases,
                         recursive.OutputSchema,
-                        columns);
+                        columns
+                    );
                 }
             }
 
@@ -88,35 +92,40 @@ internal sealed partial class PhysicalLoweringImplementation
     private static PhysicalRecursiveCteNode ApplyRecursiveCteDefinitionPruning(
         string definitionName,
         PhysicalRecursiveCteNode recursive,
-        CteDefinitionPruningPlan pruningPlan)
+        CteDefinitionPruningPlan pruningPlan
+    )
     {
-        if (!pruningPlan.TryGetRequiredColumns(definitionName, out var required) ||
-            required.Count == 0 ||
-            !TryGetRecursiveOutputProjects(recursive, out var anchor, out var member) ||
-            anchor.Fields.Length != member.Fields.Length)
+        if (
+            !pruningPlan.TryGetRequiredColumns(definitionName, out var required)
+            || required.Count == 0
+            || !TryGetRecursiveOutputProjects(recursive, out var anchor, out var member)
+            || anchor.Fields.Length != member.Fields.Length
+        )
         {
             return recursive;
         }
 
-        var retainedIndexes = Enumerable.Range(0, anchor.Fields.Length)
+        var retainedIndexes = Enumerable
+            .Range(0, anchor.Fields.Length)
             .Where(index => IsRequiredOutputField(anchor.Fields[index].OutputName, required))
             .ToArray();
         if (retainedIndexes.Length == 0 || retainedIndexes.Length == anchor.Fields.Length)
             return recursive;
 
-        if (!TryPruneRecursiveBranch(recursive.Anchor, anchor, retainedIndexes, out var prunedAnchor) ||
-            !TryPruneRecursiveBranch(recursive.RecursiveMember, member, retainedIndexes, out var prunedMember))
+        if (
+            !TryPruneRecursiveBranch(recursive.Anchor, anchor, retainedIndexes, out var prunedAnchor)
+            || !TryPruneRecursiveBranch(recursive.RecursiveMember, member, retainedIndexes, out var prunedMember)
+        )
         {
             return recursive;
         }
 
-        var identityFieldIndexes = recursive.IdentityFieldIndexes
-            .Select(fieldIndex => Array.IndexOf(retainedIndexes, fieldIndex))
+        var identityFieldIndexes = recursive
+            .IdentityFieldIndexes.Select(fieldIndex => Array.IndexOf(retainedIndexes, fieldIndex))
             .ToArray();
         if (identityFieldIndexes.Any(static fieldIndex => fieldIndex < 0))
         {
-            throw new InvalidOperationException(
-                $"Recursive CTE '{recursive.Name}' pruning removed an identity field.");
+            throw new InvalidOperationException($"Recursive CTE '{recursive.Name}' pruning removed an identity field.");
         }
 
         return new PhysicalRecursiveCteNode(
@@ -126,13 +135,15 @@ internal sealed partial class PhysicalLoweringImplementation
             recursive.UnionKind,
             recursive.Keys,
             identityFieldIndexes,
-            recursive.Invariants);
+            recursive.Invariants
+        );
     }
 
     private static bool TryGetRecursiveOutputProjects(
         PhysicalRecursiveCteNode recursive,
         [NotNullWhen(true)] out PhysicalProjectNode? anchor,
-        [NotNullWhen(true)] out PhysicalProjectNode? member)
+        [NotNullWhen(true)] out PhysicalProjectNode? member
+    )
     {
         anchor = UnwrapSingleStatement(recursive.Anchor) as PhysicalProjectNode;
         member = UnwrapSingleStatement(recursive.RecursiveMember) as PhysicalProjectNode;
@@ -143,7 +154,8 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalNode branch,
         PhysicalProjectNode project,
         IReadOnlyList<int> retainedIndexes,
-        out PhysicalNode pruned)
+        out PhysicalNode pruned
+    )
     {
         var fields = retainedIndexes
             .Select((fieldIndex, outputIndex) => project.Fields[fieldIndex] with { OutputIndex = outputIndex })
@@ -159,7 +171,10 @@ internal sealed partial class PhysicalLoweringImplementation
 
         if (branch is PhysicalMultiStatementNode { Statements.Length: 1 } statements)
         {
-            pruned = new PhysicalMultiStatementNode([prunedProject]) { IntermediateProducers = statements.IntermediateProducers };
+            pruned = new PhysicalMultiStatementNode([prunedProject])
+            {
+                IntermediateProducers = statements.IntermediateProducers,
+            };
             return true;
         }
 
@@ -172,7 +187,8 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalProjectNode outputProject,
         IReadOnlySet<string> selfAliases,
         OutputSchema recursiveOutputSchema,
-        ISet<string> required)
+        ISet<string> required
+    )
     {
         if (!ReferenceEquals(node, outputProject))
         {
@@ -188,7 +204,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IrExpression expression,
         IReadOnlySet<string> selfAliases,
         OutputSchema outputSchema,
-        ISet<string> required)
+        ISet<string> required
+    )
     {
         var changed = false;
         foreach (var column in ColumnRefExtractor.Extract(expression))
@@ -197,8 +214,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 continue;
 
             var normalized = CteColumnUsageCollector.NormalizeColumnName(column.ColumnName, column.Alias);
-            var match = outputSchema.FindByName(normalized) ??
-                        outputSchema.FindByName(CteColumnUsageCollector.GetColumnRoot(normalized));
+            var match =
+                outputSchema.FindByName(normalized)
+                ?? outputSchema.FindByName(CteColumnUsageCollector.GetColumnRoot(normalized));
             if (match != null)
                 changed |= required.Add(match.Name);
         }

@@ -1,12 +1,11 @@
 using System;
-using System.Linq;
-using System.Collections.Generic;
 using System.Collections;
-using Musoq.Converter;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionRelationalQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -24,12 +23,18 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
             order by FirstPosition
             """;
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("FirstPosition", typeof(int)), ("SecondPosition", typeof(int)), ("Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("FirstPosition", typeof(int)),
+            ("SecondPosition", typeof(int)),
+            ("Total", typeof(decimal?))
+        );
         Assert.HasCount(5, rows);
         decimal?[] expected = [2.5m, 5.5m, null, -6m, 10m];
         for (var index = 0; index < rows.Length; index++)
@@ -50,12 +55,19 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
             order by FirstPosition
             """;
         LibraryExecutionValueEntity[] input = [new(1, 0, 1.25m), new(2, 1, 2.75m), new(3, 0, -3m)];
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionValueEntity, LibraryExecutionLibrary>(query, input);
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionValueEntity, LibraryExecutionLibrary>(
+            query,
+            input
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("FirstPosition", typeof(int)), ("SecondPosition", typeof(int)), ("Total", typeof(decimal)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("FirstPosition", typeof(int)),
+            ("SecondPosition", typeof(int)),
+            ("Total", typeof(decimal))
+        );
         Assert.HasCount(3, rows);
         for (var index = 0; index < rows.Length; index++)
         {
@@ -64,6 +76,7 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
             Assert.AreEqual(input[index].Amount * 2, rows[index].GetValue<decimal>(2));
         }
     }
+
     [TestMethod]
     public void MaterializedCte_WhenJoined_ShouldPreserveInjectedValues()
     {
@@ -75,12 +88,18 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
             order by FirstPosition
             """;
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("FirstPosition", typeof(int)), ("SecondPosition", typeof(int)), ("Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("FirstPosition", typeof(int)),
+            ("SecondPosition", typeof(int)),
+            ("Total", typeof(decimal?))
+        );
         Assert.HasCount(5, rows);
         decimal?[] expected = [2.5m, 5.5m, null, -6m, 10m];
         for (var index = 0; index < rows.Length; index++)
@@ -101,7 +120,9 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
             order by Position
             """;
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
@@ -125,11 +146,18 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
             order by Position
             """;
         LibraryExecutionValueEntity[] input = [new(0, 0, 1m), new(1, 0, 2m)];
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionValueEntity, LibraryExecutionLibrary>(query, input);
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionValueEntity, LibraryExecutionLibrary>(
+            query,
+            input
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)), ("OtherPosition", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Position", typeof(int)),
+            ("OtherPosition", typeof(int?))
+        );
         Assert.HasCount(2, rows);
         Assert.AreEqual(0, rows[0].GetValue<int>(0));
         Assert.IsNull(rows[0].GetValue<int?>(1));
@@ -143,9 +171,15 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
         const string query = "select GetTypeName(Integral) from #schema.first()";
         var error = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
             CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-                query, LibraryExecutionFixture.CreateRows()));
+                query,
+                LibraryExecutionFixture.CreateRows()
+            )
+        );
 
-        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3089_AmbiguousCallableOverload, error.PrimaryEnvelope.Code);
+        Assert.AreEqual(
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3089_AmbiguousCallableOverload,
+            error.PrimaryEnvelope.Code
+        );
     }
 
     [TestMethod]
@@ -153,8 +187,13 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
     {
         const string query = "select ErasedScalar(Position) as Value from #schema.first()";
         var error = Assert.Throws<InvalidOperationException>(() =>
-            InstanceCreator.CompileForTypedExecution<ScalarOutput>(query, Guid.NewGuid().ToString(),
-                LibraryExecutionFixture.CreateProvider(), LoggerResolver));
+            InstanceCreator.CompileForTypedExecution<ScalarOutput>(
+                query,
+                Guid.NewGuid().ToString(),
+                LibraryExecutionFixture.CreateProvider(),
+                LoggerResolver
+            )
+        );
 
         Assert.Contains("MQ3071", error.Message);
         Assert.Contains("ErasedScalar", error.Message);
@@ -173,7 +212,9 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
             select Partition, Integral from keys order by Partition, Integral skip 1 take 3
             """;
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
@@ -197,7 +238,9 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
             ) select Value from counter order by Value
             """;
         using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
-            query, LibraryExecutionFixture.CreateRows());
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
@@ -212,8 +255,13 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
     {
         const string query = "select ErasedInterfaceScalar(Position) as Value from #schema.first()";
         var error = Assert.Throws<InvalidOperationException>(() =>
-            InstanceCreator.CompileForTypedExecution<IntegerOutput>(query, Guid.NewGuid().ToString(),
-                LibraryExecutionFixture.CreateProvider(), LoggerResolver));
+            InstanceCreator.CompileForTypedExecution<IntegerOutput>(
+                query,
+                Guid.NewGuid().ToString(),
+                LibraryExecutionFixture.CreateProvider(),
+                LoggerResolver
+            )
+        );
 
         Assert.Contains("MQ3071", error.Message);
         Assert.Contains("ErasedInterfaceScalar", error.Message);
@@ -231,21 +279,32 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
         IndexedEntity[] input =
         [
             new(1, [2, 3], [1m, null], new Dictionary<string, decimal> { ["present"] = 4m }),
-            new(2, [], [], new Dictionary<string, decimal>())
+            new(2, [], [], new Dictionary<string, decimal>()),
         ];
         using var tableQuery = CreateAndRunVirtualMachine<IndexedEntity, LibraryExecutionLibrary>(query, input);
         var table = tableQuery.Run(TestContext.CancellationToken);
         var tableRows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)), ("Last", typeof(int)),
-            ("Missing", typeof(int)), ("NullableAmount", typeof(decimal?)), ("Cost", typeof(decimal)), ("MissingCost", typeof(decimal)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Position", typeof(int)),
+            ("Last", typeof(int)),
+            ("Missing", typeof(int)),
+            ("NullableAmount", typeof(decimal?)),
+            ("Cost", typeof(decimal)),
+            ("MissingCost", typeof(decimal))
+        );
         Assert.HasCount(2, tableRows);
         Assert.AreEqual(3, tableRows[0].GetValue<int>(1));
         Assert.AreEqual(0, tableRows[1].GetValue<int>(1));
         Assert.IsNull(tableRows[0].GetValue<decimal?>(3));
         Assert.AreEqual(4m, tableRows[0].GetValue<decimal>(4));
 
-        var compiled = InstanceCreator.CompileForTypedProfile<IndexedOutput>(query, Guid.NewGuid().ToString(),
-            LibraryExecutionFixture.CreateProvider(input), LoggerResolver);
+        var compiled = InstanceCreator.CompileForTypedProfile<IndexedOutput>(
+            query,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider(input),
+            LoggerResolver
+        );
         var rows = compiled.RunWithProfile(TestContext.CancellationToken).Rows.ToArray();
 
         Assert.HasCount(2, rows);
@@ -258,8 +317,13 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
     {
         const string query = "select Items[0] as Value from #schema.first()";
         var error = Assert.Throws<InvalidOperationException>(() =>
-            InstanceCreator.CompileForTypedExecution<IntegerOutput>(query, Guid.NewGuid().ToString(),
-                LibraryExecutionFixture.CreateProvider<EnumerableEntity>([new(Enumerable.Range(1, 3))]), LoggerResolver));
+            InstanceCreator.CompileForTypedExecution<IntegerOutput>(
+                query,
+                Guid.NewGuid().ToString(),
+                LibraryExecutionFixture.CreateProvider<EnumerableEntity>([new(Enumerable.Range(1, 3))]),
+                LoggerResolver
+            )
+        );
 
         Assert.Contains("MQ3017", error.Message);
         Assert.Contains("not an array or indexable type", error.Message);
@@ -279,5 +343,4 @@ public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
         Assert.AreEqual(1m, rows[0].GetValue<decimal>(0));
         Assert.AreEqual(2m, rows[0].GetValue<decimal>(1));
     }
-
 }

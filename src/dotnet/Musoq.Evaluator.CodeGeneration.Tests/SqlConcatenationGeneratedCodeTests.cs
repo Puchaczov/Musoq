@@ -24,24 +24,47 @@ public sealed class SqlConcatenationGeneratedCodeTests : BasicEntityTestBase
         var expression = string.Join(" || ", Enumerable.Repeat("e.Name", arity));
         var sources = new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity("x")] };
         var inspection = InstanceCreator.CompileForInspection(
-            $"select {expression} as A, {expression} as B from #A.Entities() e", Guid.NewGuid().ToString(),
-            new BasicSchemaProvider<BasicEntity>(sources), LoggerResolver,
-            new CompilationOptions(ParallelizationMode.None));
+            $"select {expression} as A, {expression} as B from #A.Entities() e",
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(sources),
+            LoggerResolver,
+            new CompilationOptions(ParallelizationMode.None)
+        );
         var syntax = CSharpSyntaxTree.ParseText(inspection.GeneratedCSharpCode).GetRoot();
-        var compute = syntax.DescendantNodes().OfType<MethodDeclarationSyntax>()
+        var compute = syntax
+            .DescendantNodes()
+            .OfType<MethodDeclarationSyntax>()
             .Single(method => method.Identifier.ValueText.StartsWith("ComputeShapeRows_", StringComparison.Ordinal));
-        var concatenations = compute.DescendantNodes().OfType<InvocationExpressionSyntax>()
-            .Where(call => call.Expression.ToString() is "global::System.String.Concat" or "global::System.String.Create")
+        var concatenations = compute
+            .DescendantNodes()
+            .OfType<InvocationExpressionSyntax>()
+            .Where(call =>
+                call.Expression.ToString() is "global::System.String.Concat" or "global::System.String.Create"
+            )
             .ToArray();
 
-        var rowConstructors = compute.DescendantNodes().OfType<YieldStatementSyntax>()
-            .Select(statement => statement.Expression).OfType<ObjectCreationExpressionSyntax>().ToArray();
+        var rowConstructors = compute
+            .DescendantNodes()
+            .OfType<YieldStatementSyntax>()
+            .Select(statement => statement.Expression)
+            .OfType<ObjectCreationExpressionSyntax>()
+            .ToArray();
         Assert.IsNotEmpty(rowConstructors);
         Assert.HasCount(rowConstructors.Length, concatenations, compute.ToString());
-        Assert.HasCount(concatenations.Length, concatenations.Select(call => call.Ancestors().OfType<BlockSyntax>().First()).Distinct().ToArray());
-        Assert.IsTrue(rowConstructors.All(row => row.ArgumentList!.Arguments.Count == 2 &&
-            SyntaxFactory.AreEquivalent(row.ArgumentList.Arguments[0].Expression, row.ArgumentList.Arguments[1].Expression)),
-            "Repeated stable chains must share their computed result in every native traversal path.");
+        Assert.HasCount(
+            concatenations.Length,
+            concatenations.Select(call => call.Ancestors().OfType<BlockSyntax>().First()).Distinct().ToArray()
+        );
+        Assert.IsTrue(
+            rowConstructors.All(row =>
+                row.ArgumentList!.Arguments.Count == 2
+                && SyntaxFactory.AreEquivalent(
+                    row.ArgumentList.Arguments[0].Expression,
+                    row.ArgumentList.Arguments[1].Expression
+                )
+            ),
+            "Repeated stable chains must share their computed result in every native traversal path."
+        );
         Assert.IsEmpty(compute.DescendantNodes().OfType<ArrayCreationExpressionSyntax>().ToArray());
         Assert.IsEmpty(compute.DescendantNodes().OfType<LambdaExpressionSyntax>().ToArray());
         Assert.IsEmpty(compute.DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().ToArray());

@@ -30,15 +30,23 @@ internal static class DependencyAudit
             assets = File.ReadAllLines(Path.Combine(directory, "Tests.assets")).Single();
             projects = File.ReadAllLines(Path.Combine(directory, "Tests.projects"));
             var packages = File.ReadAllLines(Path.Combine(directory, "Tests.packages"));
-            if (!packages.Any(package => package.Equals("Microsoft.CodeAnalysis.CSharp|All", StringComparison.OrdinalIgnoreCase)))
+            if (
+                !packages.Any(package =>
+                    package.Equals("Microsoft.CodeAnalysis.CSharp|All", StringComparison.OrdinalIgnoreCase)
+                )
+            )
                 throw new InvalidOperationException("Roslyn must be a private test dependency.");
         }
         else
         {
             using var inputs = JsonDocument.Parse(File.ReadAllText(Path.Combine(directory, project + ".json")));
             assets = inputs.RootElement.GetProperty("Properties").GetProperty("ProjectAssetsFile").GetString()!;
-            projects = inputs.RootElement.GetProperty("Items").GetProperty("ProjectReference").EnumerateArray()
-                .Select(item => item.GetProperty("FullPath").GetString()!).ToArray();
+            projects = inputs
+                .RootElement.GetProperty("Items")
+                .GetProperty("ProjectReference")
+                .EnumerateArray()
+                .Select(item => item.GetProperty("FullPath").GetString()!)
+                .ToArray();
         }
         foreach (var path in projects)
             if (!permitted.Contains(Path.GetFileNameWithoutExtension(path)))

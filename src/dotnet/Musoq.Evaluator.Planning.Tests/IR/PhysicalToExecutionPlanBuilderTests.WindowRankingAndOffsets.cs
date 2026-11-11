@@ -9,23 +9,26 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public sealed partial class PhysicalToExecutionPlanBuilderTests
 {
-
     [TestMethod]
     public void Build_WhenPlanHasRankWindow_ShouldReturnWindowExecutionPlan()
     {
         var scan = CreateScan();
         var materialize = new PhysicalMaterializeNode(scan);
-        var registration = CreateRankRegistration(new OrderField(new ColumnRef("p", "Age", typeof(int)), Descending: true));
+        var registration = CreateRankRegistration(
+            new OrderField(new ColumnRef("p", "Age", typeof(int)), Descending: true)
+        );
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
             [new ProjectedField("Rank", new WindowFunctionRef(0, typeof(long)), 0)],
-            window);
+            window
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_RankWindow");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_RankWindow]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -41,7 +44,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(Rank: resultRanks[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -53,17 +57,20 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var materialize = new PhysicalMaterializeNode(scan);
         var registration = CreateDenseRankRegistration(
             [new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false)],
-            [new ColumnRef("p", "Age", typeof(int))]);
+            [new ColumnRef("p", "Age", typeof(int))]
+        );
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
             [new ProjectedField("DenseRank", new WindowFunctionRef(0, typeof(long)), 0)],
-            window);
+            window
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_DenseRankWindow");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_DenseRankWindow]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -79,7 +86,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(DenseRank: resultDenseRanks[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -93,17 +101,20 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             new ColumnRef("p", "Age", typeof(int)),
             [new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false)],
             [],
-            [new Literal(1, typeof(int)), new Literal(0, typeof(int))]);
+            [new Literal(1, typeof(int)), new Literal(0, typeof(int))]
+        );
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
             [new ProjectedField("PrevAge", new WindowFunctionRef(0, typeof(int?)), 0)],
-            window);
+            window
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_LagWindow");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_LagWindow]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -119,7 +130,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(PrevAge: resultLags[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -133,17 +145,20 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             new ColumnRef("p", "Name", typeof(string)),
             [new OrderField(new ColumnRef("p", "Name", typeof(string)), Descending: false)],
             [new ColumnRef("p", "Age", typeof(int))],
-            [new Literal(1, typeof(int)), new Literal("missing", typeof(string))]);
+            [new Literal(1, typeof(int)), new Literal("missing", typeof(string))]
+        );
         var window = new PhysicalWindowNode([registration], materialize);
         var project = new PhysicalProjectNode(
             [new ProjectedField("NextName", new WindowFunctionRef(0, typeof(string)), 0)],
-            window);
+            window
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_LeadWindow");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_LeadWindow]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -159,7 +174,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(NextName: resultLeads[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -176,20 +192,23 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             orderFields,
             [],
             [],
-            windowIndex: 1);
+            windowIndex: 1
+        );
         var window = new PhysicalWindowNode([rowNumberRegistration, lagRegistration], materialize);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("RowNum", new WindowFunctionRef(0, typeof(long)), 0),
-                new ProjectedField("PrevAge", new WindowFunctionRef(1, typeof(int?)), 1)
+                new ProjectedField("PrevAge", new WindowFunctionRef(1, typeof(int?)), 1),
             ],
-            window);
+            window
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_MultipleWindows");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_MultipleWindows]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -207,7 +226,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(RowNum: resultRowNumbers0[windowIndex], PrevAge: resultLags1[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
 
@@ -226,5 +246,4 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.AreEqual(typeof(int), rowNumber.OrderKeyArray.Shape.RawValueType!.ResolveClrType());
         Assert.IsTrue(rowNumber.OrderKeyArray.Shape?.IsTyped);
     }
-
 }

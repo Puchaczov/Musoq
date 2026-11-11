@@ -19,7 +19,7 @@ internal sealed class BinaryRepeatConditionTypes(string fieldName, TypeAnnotatio
             OrNode or => IsBoolean(or.Left, isKnownBoolean) && IsBoolean(or.Right, isKnownBoolean),
             NotNode not => IsBoolean(not.Expression, isKnownBoolean),
             DotNode dot => ResolveMember(dot) == typeof(bool),
-            _ => false
+            _ => false,
         };
     }
 
@@ -32,7 +32,7 @@ internal sealed class BinaryRepeatConditionTypes(string fieldName, TypeAnnotatio
         {
             ArrayIndexNode { Array: IdentifierNode identifier } => identifier.Name,
             IdentifierNode identifier => identifier.Name,
-            _ => null
+            _ => null,
         };
         if (!fieldName.Equals(name, StringComparison.OrdinalIgnoreCase) || _fields is null)
             return null;
@@ -47,12 +47,14 @@ internal sealed class BinaryRepeatConditionTypes(string fieldName, TypeAnnotatio
         return BinarySchemaExpressionTypes.Resolve(relative, _fields, registry);
     }
 
-    private static IReadOnlyList<SchemaFieldNode>? Fields(TypeAnnotationNode annotation, SchemaRegistry registry) => annotation switch
-    {
-        SubstreamTypeNode { Target: { } target } => Fields(target, registry),
-        SchemaReferenceTypeNode reference when registry.TryGetSchema(reference.SchemaName, out var registration) &&
-                                               registration?.Node is BinarySchemaNode schema => schema.Fields,
-        InlineSchemaTypeNode inline => inline.Fields,
-        _ => null
-    };
+    private static IReadOnlyList<SchemaFieldNode>? Fields(TypeAnnotationNode annotation, SchemaRegistry registry) =>
+        annotation switch
+        {
+            SubstreamTypeNode { Target: { } target } => Fields(target, registry),
+            SchemaReferenceTypeNode reference
+                when registry.TryGetSchema(reference.SchemaName, out var registration)
+                    && registration?.Node is BinarySchemaNode schema => schema.Fields,
+            InlineSchemaTypeNode inline => inline.Fields,
+            _ => null,
+        };
 }

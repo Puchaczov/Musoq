@@ -18,7 +18,8 @@ public sealed class ExecutionExpressionConverterTests
         var shape = new SourceEntityShape("r", typeof(SpecStressCoupledRow), []);
         var expression = ExecutionExpressionConverter.Convert(
             new RowPresence("r", isPresent, typeof(bool)),
-            new Dictionary<string, RowShape> { ["r"] = shape });
+            new Dictionary<string, RowShape> { ["r"] = shape }
+        );
 
         Assert.IsInstanceOfType<ExecutionRowPresence>(expression);
         var presence = (ExecutionRowPresence)expression;
@@ -52,11 +53,14 @@ public sealed class ExecutionExpressionConverterTests
     [TestMethod]
     public void Convert_WhenCollectionInCheck_ShouldCreateExecutionCollectionInCheck()
     {
-        var expression = ExecutionExpressionConverter.Convert(new CollectionInCheck(
-            new ColumnRef("p", "Id", typeof(int)),
-            new ScriptParameterRef("ids", typeof(int[])),
-            typeof(int),
-            typeof(bool)));
+        var expression = ExecutionExpressionConverter.Convert(
+            new CollectionInCheck(
+                new ColumnRef("p", "Id", typeof(int)),
+                new ScriptParameterRef("ids", typeof(int[])),
+                typeof(int),
+                typeof(bool)
+            )
+        );
 
         Assert.IsInstanceOfType<ExecutionCollectionInCheck>(expression);
         var collectionInCheck = (ExecutionCollectionInCheck)expression;
@@ -81,13 +85,10 @@ public sealed class ExecutionExpressionConverterTests
     [TestMethod]
     public void Convert_WhenLiteralContainsWindowsPath_ShouldPreserveBackslashes()
     {
-        var expression = ExecutionExpressionConverter.Convert(
-            new Literal(@"C:\new\test", typeof(string)));
+        var expression = ExecutionExpressionConverter.Convert(new Literal(@"C:\new\test", typeof(string)));
 
         Assert.IsInstanceOfType<ExecutionLiteral>(expression);
-        Assert.AreEqual(
-            @"C:\new\test",
-            ((ExecutionLiteral)expression).Value.ToClrValue());
+        Assert.AreEqual(@"C:\new\test", ((ExecutionLiteral)expression).Value.ToClrValue());
     }
 
     [TestMethod]
@@ -102,16 +103,16 @@ public sealed class ExecutionExpressionConverterTests
                     4,
                     typeof(decimal),
                     FieldNullability.Unknown,
-                    new PositionalAccess(4))
-            ]);
-        var lookup = new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase)
-        {
-            [shape.Alias] = shape
-        };
+                    new PositionalAccess(4)
+                ),
+            ]
+        );
+        var lookup = new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase) { [shape.Alias] = shape };
 
         var expression = ExecutionExpressionConverter.Convert(
             new ColumnRef("countriescitiespopulation", "population.Population", typeof(decimal)),
-            lookup);
+            lookup
+        );
 
         Assert.IsInstanceOfType<ExecutionFieldRead>(expression);
         var fieldRead = (ExecutionFieldRead)expression;

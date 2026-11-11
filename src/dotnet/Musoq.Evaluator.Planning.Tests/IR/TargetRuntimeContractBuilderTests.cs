@@ -1,11 +1,11 @@
-using Microsoft.CodeAnalysis;
-using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Targets.Execution.Analysis;
@@ -25,8 +25,10 @@ public sealed class TargetRuntimeContractBuilderTests
             new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("cache", cacheType),
-                    new ExecutionLikeMatcherCacheSlot(cacheType))
-            ]));
+                    new ExecutionLikeMatcherCacheSlot(cacheType)
+                ),
+            ])
+        );
 
         var contract = Build(plan);
         var inventory = TargetHostAbiInventoryBuilder.Build(contract);
@@ -54,7 +56,8 @@ public sealed class TargetRuntimeContractBuilderTests
     public void LikeMatcherAbiDetails_WhenCapacityIsNotPositive_ShouldRejectContract()
     {
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
-            new TargetLikeMatcherAbiDetails(0, "LikeIgnoreCase", true));
+            new TargetLikeMatcherAbiDetails(0, "LikeIgnoreCase", true)
+        );
     }
 
     [TestMethod]
@@ -67,8 +70,10 @@ public sealed class TargetRuntimeContractBuilderTests
             new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("cache", cacheType),
-                    new ExecutionRLikeMatcherCacheSlot(cacheType))
-            ]));
+                    new ExecutionRLikeMatcherCacheSlot(cacheType)
+                ),
+            ])
+        );
 
         var contract = Build(plan);
         var inventory = TargetHostAbiInventoryBuilder.Build(contract);
@@ -95,10 +100,8 @@ public sealed class TargetRuntimeContractBuilderTests
     [TestMethod]
     public void RLikeMatcherAbiDetails_WhenCapacityOrTimeoutIsNotPositive_ShouldRejectContract()
     {
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
-            new TargetRLikeMatcherAbiDetails(0, true, 250));
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
-            new TargetRLikeMatcherAbiDetails(2, true, 0));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TargetRLikeMatcherAbiDetails(0, true, 250));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new TargetRLikeMatcherAbiDetails(2, true, 0));
     }
 
     [TestMethod]
@@ -107,7 +110,8 @@ public sealed class TargetRuntimeContractBuilderTests
         var shape = new SourceEntityShape(
             "s",
             typeof(SampleEntity),
-            [CreateField("Name", typeof(string), FieldNullability.NotNullable)]);
+            [CreateField("Name", typeof(string), FieldNullability.NotNullable)]
+        );
         var binding = new ExecutionSourceBinding(
             "test",
             "rows",
@@ -115,17 +119,19 @@ public sealed class TargetRuntimeContractBuilderTests
             0,
             [],
             shape.Fields,
-            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity))
+        );
         var plan = new ExecutionPlan(
             "Q_Source",
             [shape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(
                     new ExecutionVariable("s", typeof(SampleEntity)),
                     new ExecutionVariable("rows", typeof(object)),
-                    binding)
-            ]));
+                    binding
+                ),
+            ])
+        );
 
         var contract = Build(plan);
 
@@ -144,7 +150,8 @@ public sealed class TargetRuntimeContractBuilderTests
         var shape = new SourceEntityShape(
             "s",
             typeof(SampleEntity),
-            [CreateField("Name", typeof(string), FieldNullability.NotNullable)]);
+            [CreateField("Name", typeof(string), FieldNullability.NotNullable)]
+        );
         var binding = new ExecutionSourceBinding(
             "test",
             "rows",
@@ -152,17 +159,19 @@ public sealed class TargetRuntimeContractBuilderTests
             0,
             [],
             shape.Fields,
-            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity))
+        );
         var plan = new ExecutionPlan(
             "Q_SourceAbi",
             [shape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(
                     new ExecutionVariable("s", typeof(SampleEntity)),
                     new ExecutionVariable("rows", typeof(object)),
-                    binding)
-            ]));
+                    binding
+                ),
+            ])
+        );
 
         var inventory = TargetHostAbiInventoryBuilder.Build(Build(plan));
 
@@ -203,10 +212,8 @@ public sealed class TargetRuntimeContractBuilderTests
             typeof(string),
             FieldNullability.Nullable,
             new GeneratedFieldAccess("Name"),
-            readModifiers: new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["encoding"] = "utf-8"
-            });
+            readModifiers: new Dictionary<string, string>(StringComparer.Ordinal) { ["encoding"] = "utf-8" }
+        );
         var shape = new SourceEntityShape("s", typeof(SampleEntity), [field]);
         var binding = new ExecutionSourceBinding(
             "test",
@@ -215,17 +222,19 @@ public sealed class TargetRuntimeContractBuilderTests
             0,
             [new ExecutionLiteral("argument", typeof(string))],
             shape.Fields,
-            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity))
+        );
         var plan = new ExecutionPlan(
             "Q_SourcePortableAbi",
             [shape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(
                     new ExecutionVariable("s", typeof(SampleEntity)),
                     new ExecutionVariable("rows", typeof(object)),
-                    binding)
-            ]));
+                    binding
+                ),
+            ])
+        );
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
         var contract = TargetRuntimeContractBuilder.Build(
             plan,
@@ -235,24 +244,25 @@ public sealed class TargetRuntimeContractBuilderTests
                     "s:portable",
                     [TargetSourcePlanOperation.Columns, TargetSourcePlanOperation.Predicate],
                     [
-                        new TargetRuntimeSettingAbiContract(
-                            "apiKey",
-                            true,
-                            "Execution",
-                            "Provided",
-                            string.Empty),
+                        new TargetRuntimeSettingAbiContract("apiKey", true, "Execution", "Provided", string.Empty),
                         new TargetRuntimeSettingAbiContract(
                             "format",
                             false,
                             "Planning, Execution",
                             "Defaulted",
-                            "Input format")
-                    ])
-            ]);
+                            "Input format"
+                        ),
+                    ]
+                ),
+            ]
+        );
 
         var sourceDetails = Assert.IsInstanceOfType<TargetSourceAccessAbiDetails>(
-            TargetHostAbiInventoryBuilder.Build(contract).Imports.Single(import =>
-                import.Kind == TargetHostAbiImportKind.SourceAccess).Details);
+            TargetHostAbiInventoryBuilder
+                .Build(contract)
+                .Imports.Single(import => import.Kind == TargetHostAbiImportKind.SourceAccess)
+                .Details
+        );
 
         Assert.HasCount(1, sourceDetails.Arguments);
         Assert.AreEqual(0, sourceDetails.Arguments[0].Position);
@@ -263,11 +273,14 @@ public sealed class TargetRuntimeContractBuilderTests
         Assert.AreEqual("utf-8", sourceDetails.Fields[0].ReadModifiers["encoding"]);
         CollectionAssert.AreEqual(
             new[] { TargetSourcePlanOperation.Columns, TargetSourcePlanOperation.Predicate },
-            sourceDetails.AcceptedOperations.ToArray());
+            sourceDetails.AcceptedOperations.ToArray()
+        );
         Assert.AreEqual("apiKey", sourceDetails.RuntimeSettings[0].Key);
         Assert.AreEqual(string.Empty, sourceDetails.RuntimeSettings[0].NonSecretDescription);
         Assert.AreEqual("Input format", sourceDetails.RuntimeSettings[1].NonSecretDescription);
-        Assert.IsFalse(sourceDetails.Attributes.Values.Any(static value => value.Contains("argument", StringComparison.Ordinal)));
+        Assert.IsFalse(
+            sourceDetails.Attributes.Values.Any(static value => value.Contains("argument", StringComparison.Ordinal))
+        );
     }
 
     [TestMethod]
@@ -277,16 +290,18 @@ public sealed class TargetRuntimeContractBuilderTests
         var plan = new ExecutionPlan(
             "Q_Method",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("upper", typeof(string)),
                     new ExecutionMethodCall(
                         toUpper,
                         [new ExecutionLiteral("alpha", typeof(string))],
                         null,
-                        typeof(string)))
-            ]));
+                        typeof(string)
+                    )
+                ),
+            ])
+        );
 
         var contract = Build(plan);
 
@@ -302,23 +317,33 @@ public sealed class TargetRuntimeContractBuilderTests
         var plan = new ExecutionPlan(
             "Q_RepeatedPluginContract",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("first", typeof(bool?)),
                     new ExecutionMethodCall(
                         contains,
-                        [new ExecutionLiteral("folder/file", typeof(string)), new ExecutionLiteral("/", typeof(string))],
+                        [
+                            new ExecutionLiteral("folder/file", typeof(string)),
+                            new ExecutionLiteral("/", typeof(string)),
+                        ],
                         null,
-                        typeof(bool?))),
+                        typeof(bool?)
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("second", typeof(bool?)),
                     new ExecutionMethodCall(
                         contains,
-                        [new ExecutionLiteral("folder/file", typeof(string)), new ExecutionLiteral("/", typeof(string))],
+                        [
+                            new ExecutionLiteral("folder/file", typeof(string)),
+                            new ExecutionLiteral("/", typeof(string)),
+                        ],
                         null,
-                        typeof(bool?)))
-            ]));
+                        typeof(bool?)
+                    )
+                ),
+            ])
+        );
 
         var contract = Build(plan);
         var inventory = TargetHostAbiInventoryBuilder.Build(contract);
@@ -331,24 +356,30 @@ public sealed class TargetRuntimeContractBuilderTests
     [TestMethod]
     public void Build_WhenOverloadedPluginMethodsAreUsed_ShouldProduceDistinctInvocationsAndImports()
     {
-        var startsWithTwoArguments = ResolveLibraryMethod(nameof(LibraryBase.StartsWith), typeof(string), typeof(string));
+        var startsWithTwoArguments = ResolveLibraryMethod(
+            nameof(LibraryBase.StartsWith),
+            typeof(string),
+            typeof(string)
+        );
         var startsWithThreeArguments = ResolveLibraryMethod(
             nameof(LibraryBase.StartsWith),
             typeof(string),
             typeof(string),
-            typeof(string));
+            typeof(string)
+        );
         var plan = new ExecutionPlan(
             "Q_OverloadedPluginContract",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("two", typeof(bool?)),
                     new ExecutionMethodCall(
                         startsWithTwoArguments,
                         [new ExecutionLiteral("abc", typeof(string)), new ExecutionLiteral("a", typeof(string))],
                         null,
-                        typeof(bool?))),
+                        typeof(bool?)
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("three", typeof(bool?)),
                     new ExecutionMethodCall(
@@ -356,17 +387,18 @@ public sealed class TargetRuntimeContractBuilderTests
                         [
                             new ExecutionLiteral("abc", typeof(string)),
                             new ExecutionLiteral("a", typeof(string)),
-                            new ExecutionLiteral("Ordinal", typeof(string))
+                            new ExecutionLiteral("Ordinal", typeof(string)),
                         ],
                         null,
-                        typeof(bool?)))
-            ]));
+                        typeof(bool?)
+                    )
+                ),
+            ])
+        );
 
         var contract = Build(plan);
         var inventory = TargetHostAbiInventoryBuilder.Build(contract);
-        var imports = inventory.Imports
-            .Where(item => item.Kind == TargetHostAbiImportKind.PluginInvocation)
-            .ToArray();
+        var imports = inventory.Imports.Where(item => item.Kind == TargetHostAbiImportKind.PluginInvocation).ToArray();
 
         Assert.HasCount(2, contract.PluginInvocations);
         Assert.HasCount(2, imports);
@@ -381,8 +413,7 @@ public sealed class TargetRuntimeContractBuilderTests
             .Where(static method => method.IsDefined(typeof(BindableMethodAttribute), inherit: true))
             .ToArray();
         var identities = methods
-            .Select(static method =>
-                $"{method.Name} [{ExecutionPortableSymbolFactory.FromMethod(method).StableName}]")
+            .Select(static method => $"{method.Name} [{ExecutionPortableSymbolFactory.FromMethod(method).StableName}]")
             .ToArray();
 
         Assert.AreEqual(identities.Length, identities.Distinct(StringComparer.Ordinal).Count());
@@ -395,29 +426,39 @@ public sealed class TargetRuntimeContractBuilderTests
         var pluginMethod = ResolveLibraryMethod(nameof(LibraryBase.Contains), typeof(string), typeof(string));
         var contract = new TargetRuntimeContract(
             "Q_AllAbiKinds",
-            [new TargetSourceAccessContract(
-                "schema-source",
-                "source:1",
-                "schema",
-                "rows",
-                stringType,
-                stringType,
-                [],
-                [new TargetFieldContract(0, "Value", "Value", stringType, stringType, "Unknown", null)],
-                [TargetSourcePlanOperation.Columns],
-                [])],
-            [new TargetPluginInvocationContract(
-                "Contains -> Musoq.Plugins.LibraryBase.Contains",
-                ExecutionPortableSymbolFactory.FromMethod(pluginMethod))],
-            [new TargetRowShapeContract(
-                "GeneratedRowShape",
-                "Result",
-                stringType,
-                [new TargetFieldContract(0, "Value", "Value", stringType, stringType, "Unknown", null)])],
+            [
+                new TargetSourceAccessContract(
+                    "schema-source",
+                    "source:1",
+                    "schema",
+                    "rows",
+                    stringType,
+                    stringType,
+                    [],
+                    [new TargetFieldContract(0, "Value", "Value", stringType, stringType, "Unknown", null)],
+                    [TargetSourcePlanOperation.Columns],
+                    []
+                ),
+            ],
+            [
+                new TargetPluginInvocationContract(
+                    "Contains -> Musoq.Plugins.LibraryBase.Contains",
+                    ExecutionPortableSymbolFactory.FromMethod(pluginMethod)
+                ),
+            ],
+            [
+                new TargetRowShapeContract(
+                    "GeneratedRowShape",
+                    "Result",
+                    stringType,
+                    [new TargetFieldContract(0, "Value", "Value", stringType, stringType, "Unknown", null)]
+                ),
+            ],
             new TargetNullBehaviorContract(true, true, true, "test-null-semantics"),
             new TargetCancellationContract(true, true),
             new TargetDiagnosticsContract(true, true, true),
-            new TargetProfilingContract(true, true, 1, 1));
+            new TargetProfilingContract(true, true, 1, 1)
+        );
 
         var inventory = TargetHostAbiInventoryBuilder.Build(contract);
         var repeated = new TargetHostAbiInventory(inventory.Imports.Concat(inventory.Imports));
@@ -425,7 +466,8 @@ public sealed class TargetRuntimeContractBuilderTests
         Assert.AreEqual(inventory.Imports.Count, repeated.Imports.Count);
         CollectionAssert.AreEqual(
             inventory.Imports.Select(static import => $"{import.Kind}:{import.Name}").ToArray(),
-            repeated.Imports.Select(static import => $"{import.Kind}:{import.Name}").ToArray());
+            repeated.Imports.Select(static import => $"{import.Kind}:{import.Name}").ToArray()
+        );
     }
 
     [TestMethod]
@@ -435,24 +477,24 @@ public sealed class TargetRuntimeContractBuilderTests
         var plan = new ExecutionPlan(
             "Q_HostAggregate",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("average", typeof(int?)),
                     new ExecutionMethodCall(
                         average,
-                        [
-                            new ExecutionLiteral(1, typeof(int?)),
-                            new ExecutionLiteral(0, typeof(int))
-                        ],
+                        [new ExecutionLiteral(1, typeof(int?)), new ExecutionLiteral(0, typeof(int))],
                         null,
-                        typeof(int?)))
-            ]));
+                        typeof(int?)
+                    )
+                ),
+            ])
+        );
 
         var contract = Build(plan);
         var invocation = contract.PluginInvocations.Single();
-        var import = TargetHostAbiInventoryBuilder.Build(contract).Imports.Single(hostImport =>
-            hostImport.Kind == TargetHostAbiImportKind.PluginInvocation);
+        var import = TargetHostAbiInventoryBuilder
+            .Build(contract)
+            .Imports.Single(hostImport => hostImport.Kind == TargetHostAbiImportKind.PluginInvocation);
         var details = Assert.IsInstanceOfType<TargetPluginInvocationAbiDetails>(import.Details);
 
         Assert.AreEqual(ExecutionPortableCallableKind.HostAggregate, invocation.Callable.Kind);
@@ -478,20 +520,23 @@ public sealed class TargetRuntimeContractBuilderTests
         var toUpper = ResolveLibraryMethod(nameof(LibraryBase.ToUpper), typeof(string));
         var generatedShape = new GeneratedRowShape(
             "ResultRow0",
-            [CreateField("Name", typeof(string), FieldNullability.Unknown)]);
+            [CreateField("Name", typeof(string), FieldNullability.Unknown)]
+        );
         var plan = new ExecutionPlan(
             "Q_PluginAbi",
             [generatedShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("upper", typeof(string)),
                     new ExecutionMethodCall(
                         toUpper,
                         [new ExecutionLiteral("alpha", typeof(string))],
                         null,
-                        typeof(string)))
-            ]));
+                        typeof(string)
+                    )
+                ),
+            ])
+        );
 
         var inventory = TargetHostAbiInventoryBuilder.Build(Build(plan));
 
@@ -521,34 +566,45 @@ public sealed class TargetRuntimeContractBuilderTests
     [TestMethod]
     public void HostAbiImport_CreateCustom_ShouldDefensivelyCopyAttributes()
     {
-        var attributes = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["service"] = "source"
-        };
+        var attributes = new Dictionary<string, string>(StringComparer.Ordinal) { ["service"] = "source" };
 
         var import = TargetHostAbiImport.CreateCustom(
             TargetHostAbiImportKind.SourceAccess,
             "source",
             "source-access-v1",
             1,
-            attributes);
+            attributes
+        );
         attributes["service"] = "mutated";
 
         Assert.IsInstanceOfType<TargetCustomAbiImportDetails>(import.Details);
         Assert.AreEqual("source", import.Attributes["service"]);
         Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, string>)import.Attributes)["service"] = "blocked");
+            ((IDictionary<string, string>)import.Attributes)["service"] = "blocked"
+        );
     }
 
     [TestMethod]
     public void HostAbiImport_ShouldNotExposeRawAttributeConstructor()
     {
-        var rawAttributeConstructors = CompilerContractSymbols.For(typeof(TargetHostAbiImport))
+        var rawAttributeConstructors = CompilerContractSymbols
+            .For(typeof(TargetHostAbiImport))
             .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
             .Where(static constructor =>
-                constructor.GetParameters()
+                constructor
+                    .GetParameters()
                     .Any(static parameter =>
-                        SymbolEqualityComparer.Default.Equals(parameter.ParameterType, CompilerContractSymbols.For(typeof(IReadOnlyDictionary<,>)).Construct(CompilerContractSymbols.For(typeof(string)), CompilerContractSymbols.For(typeof(string))))))
+                        SymbolEqualityComparer.Default.Equals(
+                            parameter.ParameterType,
+                            CompilerContractSymbols
+                                .For(typeof(IReadOnlyDictionary<,>))
+                                .Construct(
+                                    CompilerContractSymbols.For(typeof(string)),
+                                    CompilerContractSymbols.For(typeof(string))
+                                )
+                        )
+                    )
+            )
             .ToArray();
 
         Assert.IsEmpty(rawAttributeConstructors);
@@ -560,15 +616,12 @@ public sealed class TargetRuntimeContractBuilderTests
         var details = new TargetDiagnosticsAbiDetails(
             RequiresBuildDiagnostics: true,
             RequiresSourceDiagnostics: true,
-            RequiresRuntimeExceptionDiagnostics: true);
+            RequiresRuntimeExceptionDiagnostics: true
+        );
 
         var exception = Assert.Throws<ArgumentException>(() =>
-            new TargetHostAbiImport(
-                TargetHostAbiImportKind.SourceAccess,
-                "source",
-                "source-access-v1",
-                1,
-                details));
+            new TargetHostAbiImport(TargetHostAbiImportKind.SourceAccess, "source", "source-access-v1", 1, details)
+        );
 
         Assert.Contains("does not match import kind", exception.Message);
     }
@@ -589,7 +642,9 @@ public sealed class TargetRuntimeContractBuilderTests
                 [],
                 [],
                 [],
-                []));
+                []
+            )
+        );
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             new TargetRowShapeTransferAbiDetails(
@@ -597,18 +652,22 @@ public sealed class TargetRuntimeContractBuilderTests
                 "ResultRow",
                 "generated-row:ResultRow",
                 ExecutionPortableSymbolPortability.Portable,
-                -1));
+                -1
+            )
+        );
     }
 
     [TestMethod]
     public void HostAbiImportDetails_WhenPortabilityIsTyped_ShouldExposeReadableAttributes()
     {
-        foreach (var portability in new[]
-                 {
-                     ExecutionPortableSymbolPortability.Portable,
-                     ExecutionPortableSymbolPortability.HostImport,
-                     ExecutionPortableSymbolPortability.ClrOnly
-                 })
+        foreach (
+            var portability in new[]
+            {
+                ExecutionPortableSymbolPortability.Portable,
+                ExecutionPortableSymbolPortability.HostImport,
+                ExecutionPortableSymbolPortability.ClrOnly,
+            }
+        )
         {
             var sourceDetails = new TargetSourceAccessAbiDetails(
                 "schema-source",
@@ -622,13 +681,15 @@ public sealed class TargetRuntimeContractBuilderTests
                 [],
                 [CreateAbiField(portability)],
                 [],
-                []);
+                []
+            );
             var rowDetails = new TargetRowShapeTransferAbiDetails(
                 "GeneratedRowShape",
                 "ResultRow",
                 "generated-row:ResultRow",
                 portability,
-                1);
+                1
+            );
 
             Assert.AreEqual(portability, sourceDetails.RowsPortability);
             Assert.AreEqual(portability, sourceDetails.SourcePortability);
@@ -650,13 +711,9 @@ public sealed class TargetRuntimeContractBuilderTests
             [],
             [CreateAbiField(ExecutionPortableSymbolPortability.Portable)],
             [],
-            []);
-        var rowWithoutType = new TargetRowShapeTransferAbiDetails(
-            "GeneratedRowShape",
-            "ResultRow",
-            "",
-            null,
-            1);
+            []
+        );
+        var rowWithoutType = new TargetRowShapeTransferAbiDetails("GeneratedRowShape", "ResultRow", "", null, 1);
 
         Assert.IsNull(sourceWithoutSourceType.SourcePortability);
         Assert.AreEqual("", sourceWithoutSourceType.Attributes["sourcePortability"]);
@@ -671,11 +728,9 @@ public sealed class TargetRuntimeContractBuilderTests
             "ResultAggregateGroup",
             [new AggregateGroupKeyField("Category", "__key0", typeof(string))],
             [],
-            []);
-        var plan = new ExecutionPlan(
-            "Q_Aggregate",
-            [aggregateShape],
-            new ExecutionBlock([]));
+            []
+        );
+        var plan = new ExecutionPlan("Q_Aggregate", [aggregateShape], new ExecutionBlock([]));
 
         var contract = Build(plan);
         var shape = contract.RowShapes.Single();
@@ -692,8 +747,7 @@ public sealed class TargetRuntimeContractBuilderTests
         var plan = new ExecutionPlan(
             "Q_Window",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionComputePluginWindow(
                     new ExecutionVariable("buffer", typeof(object)),
                     new ExecutionVariable("item", typeof(object)),
@@ -706,8 +760,10 @@ public sealed class TargetRuntimeContractBuilderTests
                     null,
                     rowNumber,
                     "row_number",
-                    new ExecutionVariable("results", typeof(long[])))
-            ]));
+                    new ExecutionVariable("results", typeof(long[]))
+                ),
+            ])
+        );
 
         var contract = Build(plan);
 
@@ -722,11 +778,9 @@ public sealed class TargetRuntimeContractBuilderTests
     {
         var generatedShape = new GeneratedRowShape(
             "ResultRow0",
-            [CreateField("Score", typeof(int?), FieldNullability.Nullable)]);
-        var plan = new ExecutionPlan(
-            "Q_Generated",
-            [generatedShape],
-            new ExecutionBlock([]));
+            [CreateField("Score", typeof(int?), FieldNullability.Nullable)]
+        );
+        var plan = new ExecutionPlan("Q_Generated", [generatedShape], new ExecutionBlock([]));
 
         var contract = Build(plan);
         var shape = contract.RowShapes.Single();
@@ -744,15 +798,18 @@ public sealed class TargetRuntimeContractBuilderTests
             "Q_Deterministic",
             [
                 new GeneratedRowShape("BRow", [CreateField("B", typeof(int), FieldNullability.Unknown)]),
-                new GeneratedRowShape("ARow", [CreateField("A", typeof(string), FieldNullability.Unknown)])
+                new GeneratedRowShape("ARow", [CreateField("A", typeof(string), FieldNullability.Unknown)]),
             ],
-            new ExecutionBlock([]));
+            new ExecutionBlock([])
+        );
 
         var first = CreateSignature(Build(plan));
         var second = CreateSignature(Build(plan));
 
         Assert.AreEqual(first, second);
-        Assert.IsTrue(first.IndexOf("ARow", StringComparison.Ordinal) < first.IndexOf("BRow", StringComparison.Ordinal));
+        Assert.IsTrue(
+            first.IndexOf("ARow", StringComparison.Ordinal) < first.IndexOf("BRow", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -762,16 +819,19 @@ public sealed class TargetRuntimeContractBuilderTests
             "Q_DeterministicAbi",
             [
                 new GeneratedRowShape("BRow", [CreateField("B", typeof(int), FieldNullability.Unknown)]),
-                new GeneratedRowShape("ARow", [CreateField("A", typeof(string), FieldNullability.Unknown)])
+                new GeneratedRowShape("ARow", [CreateField("A", typeof(string), FieldNullability.Unknown)]),
             ],
-            new ExecutionBlock([]));
+            new ExecutionBlock([])
+        );
 
         var first = CreateAbiSignature(TargetHostAbiInventoryBuilder.Build(Build(plan)));
         var second = CreateAbiSignature(TargetHostAbiInventoryBuilder.Build(Build(plan)));
 
         Assert.AreEqual(first, second);
-        Assert.IsTrue(first.IndexOf("GeneratedRowShape:ARow", StringComparison.Ordinal) <
-                      first.IndexOf("GeneratedRowShape:BRow", StringComparison.Ordinal));
+        Assert.IsTrue(
+            first.IndexOf("GeneratedRowShape:ARow", StringComparison.Ordinal)
+                < first.IndexOf("GeneratedRowShape:BRow", StringComparison.Ordinal)
+        );
     }
 
     private static TargetRuntimeContract Build(ExecutionPlan plan)
@@ -780,18 +840,13 @@ public sealed class TargetRuntimeContractBuilderTests
         return TargetRuntimeContractBuilder.Build(plan, report);
     }
 
-    private static TargetSourceFieldAbiContract CreateAbiField(
-        ExecutionPortableSymbolPortability portability)
+    private static TargetSourceFieldAbiContract CreateAbiField(ExecutionPortableSymbolPortability portability)
     {
-        var symbol = new ExecutionPortableTypeDescriptor(
-            ExecutionPortableTypeKind.Primitive,
-            "string",
-            "string")
+        var symbol = new ExecutionPortableTypeDescriptor(ExecutionPortableTypeKind.Primitive, "string", "string")
         {
             Portability = portability,
-            PortabilityReason = portability == ExecutionPortableSymbolPortability.ClrOnly
-                ? "test fallback"
-                : "test portable"
+            PortabilityReason =
+                portability == ExecutionPortableSymbolPortability.ClrOnly ? "test fallback" : "test portable",
         };
         return new TargetSourceFieldAbiContract(0, "Name", symbol, symbol, "Unknown", null);
     }
@@ -800,7 +855,10 @@ public sealed class TargetRuntimeContractBuilderTests
     {
         return string.Join(
             "|",
-            contract.RowShapes.Select(shape => $"{shape.Kind}:{shape.Name}:{string.Join(",", shape.Fields.Select(field => field.Name))}"));
+            contract.RowShapes.Select(shape =>
+                $"{shape.Kind}:{shape.Name}:{string.Join(",", shape.Fields.Select(field => field.Name))}"
+            )
+        );
     }
 
     private static string CreateAbiSignature(TargetHostAbiInventory inventory)
@@ -808,7 +866,9 @@ public sealed class TargetRuntimeContractBuilderTests
         return string.Join(
             "|",
             inventory.Imports.Select(import =>
-                $"{import.Kind}:{import.Name}:{import.Contract}:v{import.ContractVersion}:{FormatAttributes(import.Attributes)}"));
+                $"{import.Kind}:{import.Name}:{import.Contract}:v{import.ContractVersion}:{FormatAttributes(import.Attributes)}"
+            )
+        );
     }
 
     private static string FormatAttributes(IReadOnlyDictionary<string, string> attributes)
@@ -817,28 +877,22 @@ public sealed class TargetRuntimeContractBuilderTests
             ",",
             attributes
                 .OrderBy(static pair => pair.Key, StringComparer.Ordinal)
-                .Select(static pair => $"{pair.Key}={pair.Value}"));
+                .Select(static pair => $"{pair.Key}={pair.Value}")
+        );
     }
 
-    private static FieldBinding CreateField(
-        string name,
-        Type type,
-        FieldNullability nullability)
+    private static FieldBinding CreateField(string name, Type type, FieldNullability nullability)
     {
-        return new FieldBinding(
-            name,
-            name,
-            0,
-            type,
-            nullability,
-            new GeneratedFieldAccess(name));
+        return new FieldBinding(name, name, 0, type, nullability, new GeneratedFieldAccess(name));
     }
 
     private static MethodInfo ResolveLibraryMethod(string name, params Type[] parameterTypes)
     {
-        return typeof(LibraryBase)
-            .GetMethod(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static, parameterTypes) ??
-               throw new InvalidOperationException($"Could not resolve LibraryBase.{name}.");
+        return typeof(LibraryBase).GetMethod(
+                name,
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static,
+                parameterTypes
+            ) ?? throw new InvalidOperationException($"Could not resolve LibraryBase.{name}.");
     }
 
     private sealed class SampleEntity

@@ -8,25 +8,33 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class ExecutionMembershipBindingResolver
 {
-    internal static ExecutionMembershipBinding Bind(InCheck membership)
-        => Bind(membership.Expression.ReturnType,
-            membership.Values.Select(value => value.ReturnType).ToArray(), membership.SqlSemantics);
+    internal static ExecutionMembershipBinding Bind(InCheck membership) =>
+        Bind(
+            membership.Expression.ReturnType,
+            membership.Values.Select(value => value.ReturnType).ToArray(),
+            membership.SqlSemantics
+        );
 
-    internal static ExecutionMembershipBinding Bind(ExecutionInCheck membership)
-        => Bind(membership.Expression.ReturnType.ResolveClrType(),
-            membership.Values.Select(value => value.ReturnType.ResolveClrType()).ToArray(), membership.UsesSqlNullSemantics);
+    internal static ExecutionMembershipBinding Bind(ExecutionInCheck membership) =>
+        Bind(
+            membership.Expression.ReturnType.ResolveClrType(),
+            membership.Values.Select(value => value.ReturnType.ResolveClrType()).ToArray(),
+            membership.UsesSqlNullSemantics
+        );
 
     private static ExecutionMembershipBinding Bind(Type operandType, Type[] memberTypes, bool sqlSemantics)
     {
         if (IsNullType(operandType))
             operandType = memberTypes.FirstOrDefault(type => !IsNullType(type)) ?? typeof(bool?);
         operandType = NullableCarrier(operandType);
-        var members = memberTypes.Select(type =>
-            IsNullType(type) ? operandType : NullableCarrier(type)).ToArray();
+        var members = memberTypes.Select(type => IsNullType(type) ? operandType : NullableCarrier(type)).ToArray();
         var comparisons = members.Select(type => BindComparison(operandType, type, sqlSemantics)).ToArray();
-        return new ExecutionMembershipBinding(ExecutionClrBindingFactory.FromClr(operandType),
-            members.Select(ExecutionClrBindingFactory.FromClr).ToArray(), comparisons,
-            sqlSemantics ? ExecutionMembershipEvaluationMode.ShortCircuit : ExecutionMembershipEvaluationMode.Eager);
+        return new ExecutionMembershipBinding(
+            ExecutionClrBindingFactory.FromClr(operandType),
+            members.Select(ExecutionClrBindingFactory.FromClr).ToArray(),
+            comparisons,
+            sqlSemantics ? ExecutionMembershipEvaluationMode.ShortCircuit : ExecutionMembershipEvaluationMode.Eager
+        );
     }
 
     private static bool IsNullType(Type type) => type == typeof(NullNode.NullType);
@@ -34,7 +42,10 @@ internal static class ExecutionMembershipBindingResolver
     private static Type NullableCarrier(Type type)
     {
         if (type == typeof(object))
-            throw new SourcePlanContractException("Membership requires concrete operand and member types.", TextSpan.Empty);
+            throw new SourcePlanContractException(
+                "Membership requires concrete operand and member types.",
+                TextSpan.Empty
+            );
         if (type.IsValueType && Nullable.GetUnderlyingType(type) is null)
             return typeof(Nullable<>).MakeGenericType(type);
         return type;
@@ -49,13 +60,22 @@ internal static class ExecutionMembershipBindingResolver
             if (!sqlSemantics && leftValue == rightValue)
                 return new(ExecutionMembershipEqualityKind.TypedEquality, ExecutionClrBindingFactory.FromClr(left));
             var numericType = GetNumericComparisonType(leftValue, rightValue);
-            return new(ExecutionMembershipEqualityKind.NumericEquality, ExecutionClrBindingFactory.FromClr(numericType));
+            return new(
+                ExecutionMembershipEqualityKind.NumericEquality,
+                ExecutionClrBindingFactory.FromClr(numericType)
+            );
         }
         if (leftValue == rightValue)
         {
-            if (leftValue.IsValueType && !leftValue.IsEnum &&
-                !typeof(IEquatable<>).MakeGenericType(leftValue).IsAssignableFrom(leftValue))
-                throw new SourcePlanContractException($"Membership type '{leftValue}' requires typed equality.", TextSpan.Empty);
+            if (
+                leftValue.IsValueType
+                && !leftValue.IsEnum
+                && !typeof(IEquatable<>).MakeGenericType(leftValue).IsAssignableFrom(leftValue)
+            )
+                throw new SourcePlanContractException(
+                    $"Membership type '{leftValue}' requires typed equality.",
+                    TextSpan.Empty
+                );
             return new(ExecutionMembershipEqualityKind.TypedEquality, ExecutionClrBindingFactory.FromClr(left));
         }
         return new(ExecutionMembershipEqualityKind.NeverMatch, ExecutionClrBindingFactory.FromClr(left));
@@ -70,8 +90,16 @@ internal static class ExecutionMembershipBindingResolver
         return typeof(decimal?);
     }
 
-    private static bool IsNumeric(Type type)
-        => type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort) ||
-           type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong) ||
-           type == typeof(float) || type == typeof(double) || type == typeof(decimal);
+    private static bool IsNumeric(Type type) =>
+        type == typeof(byte)
+        || type == typeof(sbyte)
+        || type == typeof(short)
+        || type == typeof(ushort)
+        || type == typeof(int)
+        || type == typeof(uint)
+        || type == typeof(long)
+        || type == typeof(ulong)
+        || type == typeof(float)
+        || type == typeof(double)
+        || type == typeof(decimal);
 }

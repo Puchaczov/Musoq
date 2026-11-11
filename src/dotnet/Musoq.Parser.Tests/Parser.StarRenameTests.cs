@@ -36,7 +36,8 @@ public sealed class ParserStarRenameTests
     public void StarRename_WithEarlierModifiers_ShouldPreserveModifierOrder()
     {
         var star = ParseStar(
-            "select * like 'C%' exclude (Country) replace (City + '!' as City) rename (City as Location) from #some.a()");
+            "select * like 'C%' exclude (Country) replace (City + '!' as City) rename (City as Location) from #some.a()"
+        );
 
         Assert.AreEqual("C%", star.LikePattern);
         Assert.IsNotNull(star.ExcludeColumns);
@@ -52,8 +53,9 @@ public sealed class ParserStarRenameTests
     public void StarRename_WithQualifiedFullModifierChain_ShouldPreserveScopeAndOrder()
     {
         var star = ParseStar(
-            "select a.* like 'S%' exclude (Other) replace (Score + 1 as Score) " +
-            "rename (a.Name as DisplayName) from #some.a() a");
+            "select a.* like 'S%' exclude (Other) replace (Score + 1 as Score) "
+                + "rename (a.Name as DisplayName) from #some.a() a"
+        );
 
         Assert.AreEqual("a", star.Alias);
         Assert.AreEqual("S%", star.LikePattern);
@@ -72,7 +74,8 @@ public sealed class ParserStarRenameTests
     public void StarRename_BeforeReplace_ShouldReportOutOfOrderModifier()
     {
         var ex = Assert.Throws<SyntaxException>(() =>
-            ParseStar("select * rename (Name as EntityName) replace (1 as City) from #some.a()"));
+            ParseStar("select * rename (Name as EntityName) replace (1 as City) from #some.a()")
+        );
 
         StringAssert.Contains(ex.Message, "Expected order: LIKE/NOT LIKE, EXCLUDE, REPLACE, RENAME");
     }

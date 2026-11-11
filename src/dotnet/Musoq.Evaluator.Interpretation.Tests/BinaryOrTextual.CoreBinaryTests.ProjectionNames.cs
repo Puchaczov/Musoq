@@ -23,13 +23,19 @@ public partial class BinaryOrTextualCoreBinaryTests
 
     private void AssertAppliedBinaryProjectionName(string name)
     {
-        const string query = "binary NamePacket { Copied: byte } select p.Copied from #test.entities() e cross apply Interpret<NamePacket>(e.Content) p";
+        const string query =
+            "binary NamePacket { Copied: byte } select p.Copied from #test.entities() e cross apply Interpret<NamePacket>(e.Content) p";
         var sources = new Dictionary<string, IEnumerable<ComponentBinaryEntity>>
         {
-            ["#test"] = Array.Empty<ComponentBinaryEntity>()
+            ["#test"] = Array.Empty<ComponentBinaryEntity>(),
         };
-        using var compiled = CompileGeneratedQuery(query, Guid.NewGuid().ToString(),
-            new ComponentBinarySchemaProvider(sources), LoggerResolver, TestCompilationOptions);
+        using var compiled = CompileGeneratedQuery(
+            query,
+            Guid.NewGuid().ToString(),
+            new ComponentBinarySchemaProvider(sources),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
         TableMaterializationTestHelper.AssertColumns(result, (name, typeof(byte)));
         Assert.AreEqual(0, result.Count);

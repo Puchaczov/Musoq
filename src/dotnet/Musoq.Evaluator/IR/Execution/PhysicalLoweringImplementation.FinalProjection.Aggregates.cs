@@ -10,45 +10,53 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (multiStatement.Statements.Length != 3)
             return null;
 
         var joinProducerCteName = ResolveStatementCteName(0, indexes);
         var aggregateProducerCteName = ResolveStatementCteName(1, indexes);
-        if (string.IsNullOrWhiteSpace(joinProducerCteName) ||
-            string.IsNullOrWhiteSpace(aggregateProducerCteName))
+        if (string.IsNullOrWhiteSpace(joinProducerCteName) || string.IsNullOrWhiteSpace(aggregateProducerCteName))
         {
             return null;
         }
 
         var classifications = ClassifyMultiStatementCteReferences(multiStatement, indexes);
-        if (!CanFuseReadOnceCte(joinProducerCteName, classifications) ||
-            !CanFuseReadOnceCte(aggregateProducerCteName, classifications))
+        if (
+            !CanFuseReadOnceCte(joinProducerCteName, classifications)
+            || !CanFuseReadOnceCte(aggregateProducerCteName, classifications)
+        )
         {
             return null;
         }
 
         var finalPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(multiStatement.Statements[2]));
-        if (finalPipeline is not { Source: PhysicalCteRefNode finalCteRef, Filter: null } ||
-            finalPipeline.PostOperations.Count != 0 ||
-            !string.Equals(finalCteRef.CteName, aggregateProducerCteName, StringComparison.OrdinalIgnoreCase))
+        if (
+            finalPipeline is not { Source: PhysicalCteRefNode finalCteRef, Filter: null }
+            || finalPipeline.PostOperations.Count != 0
+            || !string.Equals(finalCteRef.CteName, aggregateProducerCteName, StringComparison.OrdinalIgnoreCase)
+        )
         {
             return null;
         }
 
         var joinProducerPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(multiStatement.Statements[0]));
-        if (joinProducerPipeline is not { Filter: null, PostOperations.Count: 0 } ||
-            !CanInlineFinalJoinProjectionSource(joinProducerPipeline.Source))
+        if (
+            joinProducerPipeline is not { Filter: null, PostOperations.Count: 0 }
+            || !CanInlineFinalJoinProjectionSource(joinProducerPipeline.Source)
+        )
         {
             return null;
         }
 
         var aggregate = DecomposeSingleKeyAggregatePipeline(UnwrapSingleStatement(multiStatement.Statements[1]));
-        if (aggregate is not { Source.Source: PhysicalCteRefNode aggregateSourceCteRef, PostOperations.Count: 0 } ||
-            aggregate.Source.Filter != null ||
-            !string.Equals(aggregateSourceCteRef.CteName, joinProducerCteName, StringComparison.OrdinalIgnoreCase))
+        if (
+            aggregate is not { Source.Source: PhysicalCteRefNode aggregateSourceCteRef, PostOperations.Count: 0 }
+            || aggregate.Source.Filter != null
+            || !string.Equals(aggregateSourceCteRef.CteName, joinProducerCteName, StringComparison.OrdinalIgnoreCase)
+        )
         {
             return null;
         }
@@ -57,35 +65,38 @@ internal sealed partial class PhysicalLoweringImplementation
         var rewrittenGroupKey = RewriteFinalJoinExpression(
             aggregate.GroupKey,
             projectedExpressions,
-            aggregateSourceCteRef);
+            aggregateSourceCteRef
+        );
         if (rewrittenGroupKey == null)
             return null;
 
         var rewrittenBindings = RewriteAggregateBindings(
             aggregate.Bindings,
             projectedExpressions,
-            aggregateSourceCteRef);
+            aggregateSourceCteRef
+        );
         if (rewrittenBindings == null)
             return null;
 
-        var rewrittenProject = RewriteAggregateProject(
-            aggregate.Project,
-            projectedExpressions,
-            aggregateSourceCteRef);
+        var rewrittenProject = RewriteAggregateProject(aggregate.Project, projectedExpressions, aggregateSourceCteRef);
         if (rewrittenProject == null)
             return null;
 
         var groupKeys = new AggregateFinalizationGroupKeys(
             [rewrittenGroupKey],
             [aggregate.GroupKeyName],
-            [aggregate.GroupKeyType]);
-        if (!TryRewriteFinalAggregateProjection(
+            [aggregate.GroupKeyType]
+        );
+        if (
+            !TryRewriteFinalAggregateProjection(
                 finalPipeline.Project,
                 finalPipeline.PostOperations,
                 rewrittenBindings,
                 groupKeys,
                 out var finalProject,
-                out var postOperations))
+                out var postOperations
+            )
+        )
         {
             return null;
         }
@@ -97,7 +108,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 Bindings = rewrittenBindings,
                 Source = new LoweringSourcePipeline(joinProducerPipeline.Source, joinProducerPipeline.Filter),
                 GroupKey = rewrittenGroupKey,
-                PostOperations = postOperations
+                PostOperations = postOperations,
             },
             resultTableName,
             resultShapeName,
@@ -105,7 +116,8 @@ internal sealed partial class PhysicalLoweringImplementation
             indexes.CteShapesByName,
             schemaFromIndex: DefaultSchemaFromIndex,
             scopeAggregateVariables: scopeAggregateVariables,
-            scope: scope);
+            scope: scope
+        );
     }
 
     private TableBuildResult? TryBuildFinalAggregateProjectionTable(
@@ -114,7 +126,8 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultShapeName,
         MultiStatementIndexes indexes,
         bool scopeAggregateVariables,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (multiStatement.Statements.Length != 2)
             return null;
@@ -124,8 +137,10 @@ internal sealed partial class PhysicalLoweringImplementation
             return null;
 
         var finalPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(multiStatement.Statements[1]));
-        if (finalPipeline is not { Source: PhysicalCteRefNode cteRef, Filter: null } ||
-            !string.Equals(cteRef.CteName, producerCteName, StringComparison.OrdinalIgnoreCase))
+        if (
+            finalPipeline is not { Source: PhysicalCteRefNode cteRef, Filter: null }
+            || !string.Equals(cteRef.CteName, producerCteName, StringComparison.OrdinalIgnoreCase)
+        )
         {
             return null;
         }
@@ -136,20 +151,23 @@ internal sealed partial class PhysicalLoweringImplementation
         if (aggregateOnly is { PostOperations.Count: 0 })
         {
             var groupKeys = new AggregateFinalizationGroupKeys([], [], []);
-            if (!TryRewriteFinalAggregateProjection(
+            if (
+                !TryRewriteFinalAggregateProjection(
                     finalPipeline.Project,
                     finalPipeline.PostOperations,
                     aggregateOnly.Bindings,
                     groupKeys,
                     out var project,
-                    out var postOperations))
+                    out var postOperations
+                )
+            )
                 return null;
 
             return BuildAggregateOnlyTable(
                 aggregateOnly with
                 {
                     Project = project,
-                    PostOperations = postOperations
+                    PostOperations = postOperations,
                 },
                 resultTableName,
                 resultShapeName,
@@ -157,7 +175,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 indexes.CteShapesByName,
                 schemaFromIndex: DefaultSchemaFromIndex,
                 scopeAggregateVariables: scopeAggregateVariables,
-                scope: scope);
+                scope: scope
+            );
         }
 
         var singleKeyAggregate = DecomposeSingleKeyAggregatePipeline(producer);
@@ -166,21 +185,25 @@ internal sealed partial class PhysicalLoweringImplementation
             var groupKeys = new AggregateFinalizationGroupKeys(
                 [singleKeyAggregate.GroupKey],
                 [singleKeyAggregate.GroupKeyName],
-                [singleKeyAggregate.GroupKeyType]);
-            if (!TryRewriteFinalAggregateProjection(
+                [singleKeyAggregate.GroupKeyType]
+            );
+            if (
+                !TryRewriteFinalAggregateProjection(
                     finalPipeline.Project,
                     finalPipeline.PostOperations,
                     singleKeyAggregate.Bindings,
                     groupKeys,
                     out var project,
-                    out var postOperations))
+                    out var postOperations
+                )
+            )
                 return null;
 
             return BuildSingleKeyAggregateTable(
                 singleKeyAggregate with
                 {
                     Project = project,
-                    PostOperations = postOperations
+                    PostOperations = postOperations,
                 },
                 resultTableName,
                 resultShapeName,
@@ -188,7 +211,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 indexes.CteShapesByName,
                 schemaFromIndex: DefaultSchemaFromIndex,
                 scopeAggregateVariables: scopeAggregateVariables,
-                scope: scope);
+                scope: scope
+            );
         }
 
         var valueTupleAggregate = DecomposeValueTupleAggregatePipeline(producer);
@@ -197,21 +221,25 @@ internal sealed partial class PhysicalLoweringImplementation
             var groupKeys = new AggregateFinalizationGroupKeys(
                 valueTupleAggregate.GroupKeys,
                 valueTupleAggregate.GroupKeyNames,
-                valueTupleAggregate.GroupKeyTypes);
-            if (!TryRewriteFinalAggregateProjection(
+                valueTupleAggregate.GroupKeyTypes
+            );
+            if (
+                !TryRewriteFinalAggregateProjection(
                     finalPipeline.Project,
                     finalPipeline.PostOperations,
                     valueTupleAggregate.Bindings,
                     groupKeys,
                     out var project,
-                    out var postOperations))
+                    out var postOperations
+                )
+            )
                 return null;
 
             return BuildValueTupleAggregateTable(
                 valueTupleAggregate with
                 {
                     Project = project,
-                    PostOperations = postOperations
+                    PostOperations = postOperations,
                 },
                 resultTableName,
                 resultShapeName,
@@ -219,7 +247,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 indexes.CteShapesByName,
                 schemaFromIndex: DefaultSchemaFromIndex,
                 scopeAggregateVariables: scopeAggregateVariables,
-                scope: scope);
+                scope: scope
+            );
         }
 
         return null;

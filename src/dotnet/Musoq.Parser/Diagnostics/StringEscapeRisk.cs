@@ -7,7 +7,8 @@ public readonly record struct StringEscapeRisk(
     string EscapeText,
     TextSpan Span,
     bool IsRootedPath,
-    bool HasNonEscapeContent);
+    bool HasNonEscapeContent
+);
 
 /// <summary>
 ///     Detects ordinary-string escapes that can change the authored value.
@@ -24,10 +25,6 @@ public static class StringEscapeRiskDetector
     {
         return OrdinaryStringEscapeRiskDetector.Find(innerText, sourceStart) is not { } risk
             ? null
-            : new StringEscapeRisk(
-                risk.EscapeText,
-                risk.Span,
-                risk.IsRootedPath,
-                risk.HasNonEscapeContent);
+            : new StringEscapeRisk(risk.EscapeText, risk.Span, risk.IsRootedPath, risk.HasNonEscapeContent);
     }
 }

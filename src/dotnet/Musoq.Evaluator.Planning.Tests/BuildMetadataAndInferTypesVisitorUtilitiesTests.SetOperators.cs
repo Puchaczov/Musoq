@@ -13,7 +13,8 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
         var queryNode = CreateSetOperatorQueryNode(
             new FieldNode(new IntegerNode("1", "s"), 0, "Field1"),
             new FieldNode(new StringNode("text"), 1, "Field2"),
-            new FieldNode(new DecimalNode("3.5"), 2, "Field3"));
+            new FieldNode(new DecimalNode("3.5"), 2, "Field3")
+        );
 
         var result = BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes(queryNode, []);
 
@@ -26,13 +27,12 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
         var queryNode = CreateSetOperatorQueryNode(
             new FieldNode(new IntegerNode("1", "s"), 0, "Field1"),
             new FieldNode(new StringNode("text"), 1, "Field2"),
-            new FieldNode(new DecimalNode("3.5"), 2, "Field3"));
+            new FieldNode(new DecimalNode("3.5"), 2, "Field3")
+        );
 
         var result = BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionTypes(queryNode, []);
 
-        CollectionAssert.AreEqual(
-            new[] { typeof(short), typeof(string), typeof(decimal) },
-            result);
+        CollectionAssert.AreEqual(new[] { typeof(short), typeof(string), typeof(decimal) }, result);
     }
 
     private static QueryNode CreateSetOperatorQueryNode(params FieldNode[] fields)

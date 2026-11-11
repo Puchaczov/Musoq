@@ -27,10 +27,18 @@ internal sealed class VerificationCompiler
 
     internal string[] ParserDeclarations() => ParserDeclarations(Parser);
 
-    internal static string[] ParserDeclarations(CSharpCompilation parser) => Types(parser.Assembly.GlobalNamespace)
-        .Where(type => type.TypeKind is TypeKind.Class or TypeKind.Struct && !type.IsAbstract && !type.IsStatic && IsPublic(type) &&
-            type.ContainingNamespace.ToDisplayString().StartsWith("Musoq.Parser.Nodes", StringComparison.Ordinal))
-        .Select(Key).Order(StringComparer.Ordinal).ToArray();
+    internal static string[] ParserDeclarations(CSharpCompilation parser) =>
+        Types(parser.Assembly.GlobalNamespace)
+            .Where(type =>
+                type.TypeKind is TypeKind.Class or TypeKind.Struct
+                && !type.IsAbstract
+                && !type.IsStatic
+                && IsPublic(type)
+                && type.ContainingNamespace.ToDisplayString().StartsWith("Musoq.Parser.Nodes", StringComparison.Ordinal)
+            )
+            .Select(Key)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
 
     internal string[] References(string project)
     {
@@ -38,16 +46,31 @@ internal sealed class VerificationCompiler
         var image = MetadataReference.CreateFromFile(input.Target);
         var compilation = CSharpCompilation.Create("References", references: new[] { image });
         var assembly = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(image)!;
-        return assembly.Modules.SelectMany(module => module.ReferencedAssemblies).Select(identity => identity.Name)
-            .Where(name => name.StartsWith("Musoq.", StringComparison.Ordinal)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        return assembly
+            .Modules.SelectMany(module => module.ReferencedAssemblies)
+            .Select(identity => identity.Name)
+            .Where(name => name.StartsWith("Musoq.", StringComparison.Ordinal))
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
     }
 
-    internal string[] SyntaxKinds() => Parser.GetTypeByMetadataName("Musoq.Parser.Syntax.SyntaxKind")!.GetMembers()
-        .OfType<IFieldSymbol>().Where(field => field.HasConstantValue).Select(field => field.Name).ToArray();
+    internal string[] SyntaxKinds() =>
+        Parser
+            .GetTypeByMetadataName("Musoq.Parser.Syntax.SyntaxKind")!
+            .GetMembers()
+            .OfType<IFieldSymbol>()
+            .Where(field => field.HasConstantValue)
+            .Select(field => field.Name)
+            .ToArray();
 
     internal int SyntaxKindValue(string name)
     {
-        var field = Parser.GetTypeByMetadataName("Musoq.Parser.Syntax.SyntaxKind")!.GetMembers(name).OfType<IFieldSymbol>().Single();
+        var field = Parser
+            .GetTypeByMetadataName("Musoq.Parser.Syntax.SyntaxKind")!
+            .GetMembers(name)
+            .OfType<IFieldSymbol>()
+            .Single();
         return (int)field.ConstantValue!;
     }
 
@@ -58,8 +81,9 @@ internal sealed class VerificationCompiler
         return type.ContainingNamespace.ToDisplayString() + "." + type.MetadataName;
     }
 
-    private static bool IsPublic(INamedTypeSymbol type) => type.DeclaredAccessibility == Accessibility.Public &&
-        (type.ContainingType == null || IsPublic(type.ContainingType));
+    private static bool IsPublic(INamedTypeSymbol type) =>
+        type.DeclaredAccessibility == Accessibility.Public
+        && (type.ContainingType == null || IsPublic(type.ContainingType));
 
     private static IEnumerable<INamedTypeSymbol> Types(INamespaceOrTypeSymbol parent)
     {
@@ -75,8 +99,14 @@ internal sealed class VerificationCompiler
 
     private static void RequireValid(CSharpCompilation compilation)
     {
-        var errors = compilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToArray();
+        var errors = compilation
+            .GetDiagnostics()
+            .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+            .ToArray();
         if (errors.Length != 0)
-            throw new InvalidOperationException("Evaluated verification compilation is invalid: " + string.Join("\n", errors.Select(error => error.ToString())));
+            throw new InvalidOperationException(
+                "Evaluated verification compilation is invalid: "
+                    + string.Join("\n", errors.Select(error => error.ToString()))
+            );
     }
 }

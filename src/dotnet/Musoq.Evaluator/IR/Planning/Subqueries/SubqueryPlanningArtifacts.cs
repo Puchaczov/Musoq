@@ -7,4 +7,5 @@ internal sealed record SubqueryPlanningArtifacts(
     IPlanningShapeResolver Shapes,
     CompilationOptions Options,
     SchemaRegistry? Schemas,
-    CteExecutionPlan? Ctes);
+    CteExecutionPlan? Ctes
+);

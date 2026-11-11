@@ -11,8 +11,10 @@ internal sealed class SemanticSourceBindingService(SourceBindingState sourceBind
 
         while (scope != null)
         {
-            if (scope.ScopeSymbolTable.TryGetSymbol<AliasesSymbol>(MetaAttributes.Aliases, out var symbol) &&
-                symbol.ContainsAlias(queryAlias))
+            if (
+                scope.ScopeSymbolTable.TryGetSymbol<AliasesSymbol>(MetaAttributes.Aliases, out var symbol)
+                && symbol.ContainsAlias(queryAlias)
+            )
             {
                 return true;
             }

@@ -10,7 +10,8 @@ public static partial class ExecutionPlanPrinter
     private static readonly AsyncLocal<IReadOnlyDictionary<int, string>?> TypedStoredTableSlots = new();
     private static readonly AsyncLocal<FinalShapePrintContext?> FinalShapeContext = new();
     private static readonly AsyncLocal<IReadOnlyDictionary<string, string>?> TypedRowBuffers = new();
-    private static readonly AsyncLocal<Dictionary<ExecutionNode, ExecutionNodePrintDescription>?> NodeDescriptions = new();
+    private static readonly AsyncLocal<Dictionary<ExecutionNode, ExecutionNodePrintDescription>?> NodeDescriptions =
+        new();
 
     public static string Print(ExecutionPlan plan)
     {
@@ -18,10 +19,10 @@ public static partial class ExecutionPlanPrinter
         var previousTypedStoredTableSlots = TypedStoredTableSlots.Value;
         var previousFinalShapeContext = FinalShapeContext.Value;
         var previousTypedRowBuffers = TypedRowBuffers.Value;
-        TypedStoredTableSlots.Value = plan.StoredTableRepresentations
-            .ToDictionary(
-                static representation => representation.TableIndex,
-                StoredTableRepresentationPlanPrinter.GetSlotTypeName);
+        TypedStoredTableSlots.Value = plan.StoredTableRepresentations.ToDictionary(
+            static representation => representation.TableIndex,
+            StoredTableRepresentationPlanPrinter.GetSlotTypeName
+        );
         FinalShapeContext.Value = CreateFinalShapePrintContext(plan);
         TypedRowBuffers.Value = CreateTypedRowBuffers(plan);
 
@@ -59,13 +60,15 @@ public static partial class ExecutionPlanPrinter
     }
 
     internal static IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> CaptureNodeDescriptions(
-        ExecutionPlan plan)
+        ExecutionPlan plan
+    )
     {
         ArgumentNullException.ThrowIfNull(plan);
 
         var previous = NodeDescriptions.Value;
         var descriptions = new Dictionary<ExecutionNode, ExecutionNodePrintDescription>(
-            ExecutionNodePrintReferenceComparer.Instance);
+            ExecutionNodePrintReferenceComparer.Instance
+        );
         NodeDescriptions.Value = descriptions;
 
         try
@@ -92,8 +95,10 @@ public static partial class ExecutionPlanPrinter
 
     private static bool TryGetTypedStoredTableSlot(int tableIndex, out string generatedRowTypeName)
     {
-        if (TypedStoredTableSlots.Value != null &&
-            TypedStoredTableSlots.Value.TryGetValue(tableIndex, out generatedRowTypeName!))
+        if (
+            TypedStoredTableSlots.Value != null
+            && TypedStoredTableSlots.Value.TryGetValue(tableIndex, out generatedRowTypeName!)
+        )
         {
             return true;
         }
@@ -113,7 +118,8 @@ public static partial class ExecutionPlanPrinter
         string ShapeTypeName,
         IReadOnlyDictionary<string, string> SourceBuffers,
         Musoq.Evaluator.IR.CodeGeneration.OwnedTerminalBuffer? OwnedBuffer,
-        bool ReturnsOwnedRows);
+        bool ReturnsOwnedRows
+    );
 
     private sealed class ExecutionNodePrintReferenceComparer : IEqualityComparer<ExecutionNode>
     {
@@ -121,8 +127,7 @@ public static partial class ExecutionPlanPrinter
 
         public bool Equals(ExecutionNode? x, ExecutionNode? y) => ReferenceEquals(x, y);
 
-        public int GetHashCode(ExecutionNode obj) =>
-            System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+        public int GetHashCode(ExecutionNode obj) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
     }
 }
 

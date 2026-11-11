@@ -8,7 +8,8 @@ public sealed class DiagnosticCommandNode : Node
         int innerStart,
         int innerEnd,
         string innerQueryText,
-        TextSpan span)
+        TextSpan span
+    )
     {
         Kind = kind;
         CommandStart = commandStart;
@@ -41,9 +42,7 @@ public sealed class DiagnosticCommandNode : Node
 
     public override string ToString()
     {
-        var command = Kind == DiagnosticCommandKind.ExplainAnalyze
-            ? "EXPLAIN ANALYZE"
-            : "PROFILE";
+        var command = Kind == DiagnosticCommandKind.ExplainAnalyze ? "EXPLAIN ANALYZE" : "PROFILE";
 
         return $"{command} {InnerQueryText}";
     }

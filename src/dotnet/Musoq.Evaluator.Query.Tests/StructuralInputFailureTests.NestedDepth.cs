@@ -21,13 +21,39 @@ public sealed partial class StructuralInputFailureTests
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P1-0164")]
     public void NestedCollectionLimitRejectsBeforeSourceConstruction()
     {
-        const string query = "param(values: int[][][][][][][][]) select d.Value from #specstressdepth.probe(values: $values) d";
+        const string query =
+            "param(values: int[][][][][][][][]) select d.Value from #specstressdepth.probe(values: $values) d";
         NestedDepthSource.ResetConstructionCount();
         using var compiled = InstanceCreator.CompileForExecution(
-            query, Guid.NewGuid().ToString(), new NestedDepthSchemaProvider(), new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false), TestContext.CancellationToken);
+            query,
+            Guid.NewGuid().ToString(),
+            new NestedDepthSchemaProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false),
+            TestContext.CancellationToken
+        );
         Assert.AreEqual(0, NestedDepthSource.ConstructionCount);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "values", new int[][][][][][][][] { [[[[[[[1]]]]]]] });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "values",
+            new int[][][][][][][][]
+            {
+                [
+                    [
+                        [
+                            [
+                                [
+                                    [
+                                        [1],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            }
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() =>
         {
@@ -52,11 +78,14 @@ public sealed partial class StructuralInputFailureTests
 
     private sealed class NestedDepthSchema : SchemaBase
     {
-        public NestedDepthSchema() : base("specstressdepth", new MethodsAggregator(new MethodsManager()))
+        public NestedDepthSchema()
+            : base("specstressdepth", new MethodsAggregator(new MethodsManager()))
         {
             AddTable<StructuredInputTable<StrictLimitRow>>("probe");
-            AddTypedSource<NestedDepthSource>("probe",
-                new TypedSourceRegistrationOptions(new StructuralInputLimits(8, 100, 1024)));
+            AddTypedSource<NestedDepthSource>(
+                "probe",
+                new TypedSourceRegistrationOptions(new StructuralInputLimits(8, 100, 1024))
+            );
         }
     }
 
@@ -66,8 +95,13 @@ public sealed partial class StructuralInputFailureTests
         private readonly SourceExecutionContext _context;
 
         public NestedDepthSource(
-            IReadOnlyList<IReadOnlyList<IReadOnlyList<IReadOnlyList<IReadOnlyList<IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>>>>>>> values,
-            SourceExecutionContext context)
+            IReadOnlyList<
+                IReadOnlyList<
+                    IReadOnlyList<IReadOnlyList<IReadOnlyList<IReadOnlyList<IReadOnlyList<IReadOnlyList<int>>>>>>
+                >
+            > values,
+            SourceExecutionContext context
+        )
         {
             ArgumentNullException.ThrowIfNull(values);
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -75,6 +109,7 @@ public sealed partial class StructuralInputFailureTests
         }
 
         public static int ConstructionCount => Volatile.Read(ref _constructionCount);
+
         public static void ResetConstructionCount() => Interlocked.Exchange(ref _constructionCount, 0);
 
         public override IEnumerable<IReadOnlyList<StrictLimitRow>> Chunks

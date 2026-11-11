@@ -6,9 +6,7 @@ namespace Musoq.Parser.Nodes;
 public class NullNode : Node
 {
     public NullNode()
-        : this(default(TextSpan))
-    {
-    }
+        : this(default(TextSpan)) { }
 
     public NullNode(TextSpan span)
     {
@@ -19,9 +17,7 @@ public class NullNode : Node
     }
 
     public NullNode(Type ofType)
-        : this(ofType, default)
-    {
-    }
+        : this(ofType, default) { }
 
     public NullNode(Type ofType, TextSpan span)
     {
@@ -92,9 +88,13 @@ public class NullNode : Node
             return _underlyingType.Attributes;
         }
 
-        protected override ConstructorInfo? GetConstructorImpl(BindingFlags bindingAttr, Binder? binder,
+        protected override ConstructorInfo? GetConstructorImpl(
+            BindingFlags bindingAttr,
+            Binder? binder,
             CallingConventions callConvention,
-            Type[]? types, ParameterModifier[]? modifiers)
+            Type[]? types,
+            ParameterModifier[]? modifiers
+        )
         {
             return _underlyingType.GetConstructor(bindingAttr, binder, callConvention, types ?? EmptyTypes, modifiers);
         }
@@ -134,9 +134,14 @@ public class NullNode : Node
             return _underlyingType.GetMembers(bindingAttr);
         }
 
-        protected override MethodInfo? GetMethodImpl(string name, BindingFlags bindingAttr, Binder? binder,
+        protected override MethodInfo? GetMethodImpl(
+            string name,
+            BindingFlags bindingAttr,
+            Binder? binder,
             CallingConventions callConvention,
-            Type[]? types, ParameterModifier[]? modifiers)
+            Type[]? types,
+            ParameterModifier[]? modifiers
+        )
         {
             return _underlyingType.GetMethod(name, bindingAttr, binder, callConvention, types ?? EmptyTypes, modifiers);
         }
@@ -151,17 +156,37 @@ public class NullNode : Node
             return _underlyingType.GetProperties(bindingAttr);
         }
 
-        public override object? InvokeMember(string name, BindingFlags invokeAttr, Binder? binder, object? target,
+        public override object? InvokeMember(
+            string name,
+            BindingFlags invokeAttr,
+            Binder? binder,
+            object? target,
             object?[]? args,
-            ParameterModifier[]? modifiers, CultureInfo? culture, string[]? namedParameters)
+            ParameterModifier[]? modifiers,
+            CultureInfo? culture,
+            string[]? namedParameters
+        )
         {
-            return _underlyingType.InvokeMember(name, invokeAttr, binder, target, args, modifiers, culture,
-                namedParameters);
+            return _underlyingType.InvokeMember(
+                name,
+                invokeAttr,
+                binder,
+                target,
+                args,
+                modifiers,
+                culture,
+                namedParameters
+            );
         }
 
-        protected override PropertyInfo? GetPropertyImpl(string name, BindingFlags bindingAttr, Binder? binder,
-            Type? returnType, Type[]? types,
-            ParameterModifier[]? modifiers)
+        protected override PropertyInfo? GetPropertyImpl(
+            string name,
+            BindingFlags bindingAttr,
+            Binder? binder,
+            Type? returnType,
+            Type[]? types,
+            ParameterModifier[]? modifiers
+        )
         {
             return _underlyingType.GetProperty(name, bindingAttr, binder, returnType, types ?? EmptyTypes, modifiers);
         }

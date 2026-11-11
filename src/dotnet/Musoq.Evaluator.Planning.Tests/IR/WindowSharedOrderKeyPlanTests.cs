@@ -14,11 +14,19 @@ public sealed class WindowSharedOrderKeyPlanTests : BasicEntityTestBase
     [TestMethod]
     public void RowsAndRange_ShouldRetainSharedOrderKeyProducerInExecutionPlan()
     {
-        const string query = "select Sum(v.Id) over (order by v.Id rows between unbounded preceding and current row) as RowsTotal, Sum(v.Id) over (order by v.Id range between unbounded preceding and current row) as RangeTotal from #A.Entities() v";
-        var inspection = InstanceCreator.CompileForInspection(query, Guid.NewGuid().ToString(),
-            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }), LoggerResolver, TestCompilationOptions);
-        var kernels = ExecutionIrAnalysis.FlattenNodes(inspection.ExecutionPlan!.Body)
-            .OfType<ExecutionWindowAggregateKernel>().ToArray();
+        const string query =
+            "select Sum(v.Id) over (order by v.Id rows between unbounded preceding and current row) as RowsTotal, Sum(v.Id) over (order by v.Id range between unbounded preceding and current row) as RangeTotal from #A.Entities() v";
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }),
+            LoggerResolver,
+            TestCompilationOptions
+        );
+        var kernels = ExecutionIrAnalysis
+            .FlattenNodes(inspection.ExecutionPlan!.Body)
+            .OfType<ExecutionWindowAggregateKernel>()
+            .ToArray();
 
         Assert.HasCount(2, kernels);
         Assert.IsTrue(kernels[0].OrderKeyArray!.IsShared);

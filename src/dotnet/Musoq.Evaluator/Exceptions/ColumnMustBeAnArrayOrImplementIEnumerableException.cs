@@ -9,16 +9,12 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class ColumnMustBeAnArrayOrImplementIEnumerableException : Exception, IDiagnosticException
 {
-
     public ColumnMustBeAnArrayOrImplementIEnumerableException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public ColumnMustBeAnArrayOrImplementIEnumerableException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
+
     /// <summary>
     ///     Initializes a new instance.
     /// </summary>
@@ -61,12 +57,11 @@ public class ColumnMustBeAnArrayOrImplementIEnumerableException : Exception, IDi
     {
         var span = Span ?? TextSpan.Empty;
         var metadata = ErrorMetadataCatalog.Get(Code);
-        var (location, endLocation) = span.IsEmpty
-            ? (SourceLocation.None, SourceLocation.None)
+        var (location, endLocation) =
+            span.IsEmpty ? (SourceLocation.None, SourceLocation.None)
             : sourceText is null
-                ? (new SourceLocation(span.Start, 1, span.Start + 1),
-                    new SourceLocation(span.End, 1, span.End + 1))
-                : sourceText.GetLocations(span);
+                ? (new SourceLocation(span.Start, 1, span.Start + 1), new SourceLocation(span.End, 1, span.End + 1))
+            : sourceText.GetLocations(span);
         var diagnostic = new Diagnostic(
             Code,
             ErrorCatalog.GetDefaultSeverity(Code),
@@ -77,7 +72,8 @@ public class ColumnMustBeAnArrayOrImplementIEnumerableException : Exception, IDi
             suggestedFixes: metadata?.SuggestedFixes.Select(DiagnosticAction.Suggestion),
             explanation: metadata?.Explanation,
             docsReference: metadata?.DocsReference,
-            phase: metadata?.Phase);
+            phase: metadata?.Phase
+        );
 
         if (!string.IsNullOrWhiteSpace(ColumnName))
             diagnostic = diagnostic.WithArgument("column", ColumnName);

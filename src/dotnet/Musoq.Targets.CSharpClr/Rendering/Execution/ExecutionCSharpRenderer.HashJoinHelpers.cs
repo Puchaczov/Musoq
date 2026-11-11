@@ -9,7 +9,8 @@ public sealed partial class ExecutionCSharpRenderer
         int BuildLoopIndex,
         int ProbeLoopIndex,
         HashBuildHelper Build,
-        HashProbeHelper Probe);
+        HashProbeHelper Probe
+    );
 
     private sealed record HashBuildHelper(
         string FunctionName,
@@ -17,7 +18,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionSourceLoop Loop,
         ExecutionHashAdd HashAdd,
         GeneratedRowShape? RawRowsShape,
-        IReadOnlyList<CapturedLocal> Captures);
+        IReadOnlyList<CapturedLocal> Captures
+    );
 
     private sealed record HashProbeHelper(
         string FunctionName,
@@ -25,12 +27,14 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionSourceLoop Loop,
         ExecutionHashProbe HashProbe,
         IReadOnlyList<ExecutionVariable> AppendTargets,
-        IReadOnlyList<CapturedLocal> Captures);
+        IReadOnlyList<CapturedLocal> Captures
+    );
 
     private HashBuildHelper CreateHashBuildHelper(
         string functionName,
         ExecutionSourceLoop loop,
-        ExecutionHashAdd hashAdd)
+        ExecutionHashAdd hashAdd
+    )
     {
         var rowsParameterName = CreateValueTupleRowsParameterName(loop);
         var captures = CollectHashBuildCaptures(loop, hashAdd);
@@ -42,7 +46,8 @@ public sealed partial class ExecutionCSharpRenderer
     private HashProbeHelper CreateHashProbeHelper(
         string functionName,
         ExecutionSourceLoop loop,
-        ExecutionHashProbe hashProbe)
+        ExecutionHashProbe hashProbe
+    )
     {
         var rowsParameterName = CreateValueTupleRowsParameterName(loop);
         var appendTargets = CollectHashProbeAppendTargets(hashProbe);
@@ -51,15 +56,9 @@ public sealed partial class ExecutionCSharpRenderer
         return new HashProbeHelper(functionName, rowsParameterName, loop, hashProbe, appendTargets, captures);
     }
 
-    private CapturedLocal[] CollectHashBuildCaptures(
-        ExecutionSourceLoop loop,
-        ExecutionHashAdd hashAdd)
+    private CapturedLocal[] CollectHashBuildCaptures(ExecutionSourceLoop loop, ExecutionHashAdd hashAdd)
     {
-        var excludedNames = new HashSet<string>(StringComparer.Ordinal)
-        {
-            loop.Item.Name,
-            hashAdd.Hash.Name
-        };
+        var excludedNames = new HashSet<string>(StringComparer.Ordinal) { loop.Item.Name, hashAdd.Hash.Name };
         AddProfileRecorderExcludedName(excludedNames);
 
         foreach (var variableName in CollectHashJoinDeclaredVariableNames(loop.Body))
@@ -74,13 +73,14 @@ public sealed partial class ExecutionCSharpRenderer
     private CapturedLocal[] CollectHashProbeCaptures(
         ExecutionSourceLoop loop,
         ExecutionHashProbe hashProbe,
-        IReadOnlyList<ExecutionVariable> appendTargets)
+        IReadOnlyList<ExecutionVariable> appendTargets
+    )
     {
         var excludedNames = new HashSet<string>(StringComparer.Ordinal)
         {
             loop.Item.Name,
             hashProbe.Hash.Name,
-            hashProbe.Matches.Name
+            hashProbe.Matches.Name,
         };
         AddProfileRecorderExcludedName(excludedNames);
 
@@ -116,9 +116,7 @@ public sealed partial class ExecutionCSharpRenderer
         return targets.Values.ToArray();
     }
 
-    private static void AddAppendTargets(
-        ExecutionBlock block,
-        Dictionary<string, ExecutionVariable> targets)
+    private static void AddAppendTargets(ExecutionBlock block, Dictionary<string, ExecutionVariable> targets)
     {
         foreach (var node in block.Nodes)
         {

@@ -12,9 +12,7 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
     private readonly EvaluatorRuntimeEnvironment _runtimeEnvironment;
 
     internal CSharpClrExecutionBackend()
-        : this(new EvaluatorRuntimeEnvironment())
-    {
-    }
+        : this(new EvaluatorRuntimeEnvironment()) { }
 
     internal CSharpClrExecutionBackend(EvaluatorRuntimeEnvironment runtimeEnvironment)
     {
@@ -47,7 +45,9 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                 OutputType: inputs.OutputType,
                 ForceTableResultMaterialization: inputs.CompilationOptions.ForceTableResultMaterialization,
                 EnableContextualExecution: inputs.EnableContextualExecution,
-                IsMetadataOnly: IsMetadataOnlyDescription(request.ExecutionPlan)));
+                IsMetadataOnly: IsMetadataOnlyDescription(request.ExecutionPlan)
+            )
+        );
 
         var renderer = new CSharpRenderer(renderContext, inputs.ExecutionBindings);
         const string queryIdentifier = "compiled";
@@ -63,7 +63,8 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                 : renderOutcome.UnsupportedReason;
             return TargetRenderResult.Failed(
                 TargetId,
-                [TargetDiagnostic.Error(TargetDiagnosticCodes.UnsupportedLowering, reason)]);
+                [TargetDiagnostic.Error(TargetDiagnosticCodes.UnsupportedLowering, reason)]
+            );
         }
 
         CompilationUnitSyntax compilationUnit;
@@ -74,18 +75,18 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
             compilationUnit = renderer.RenderCompilationUnit(
                 queryIdentifier,
                 ExecutionPlanInventory.CountTableSlots(executionPlan),
-                ExecutionPlanInventory.CountCteIndexSlots(executionPlan));
+                ExecutionPlanInventory.CountCteIndexSlots(executionPlan)
+            );
         }
-        var readabilityResult = new CodegenReadabilityOptimizer().Optimize(
-            compilationUnit,
-            inputs.RenderProfile);
+        var readabilityResult = new CodegenReadabilityOptimizer().Optimize(compilationUnit, inputs.RenderProfile);
         compilationUnit = readabilityResult.OptimizedCode;
         request.CancellationToken.ThrowIfCancellationRequested();
 
         var compilationContext = new CompilationContextManager(
             _runtimeEnvironment.CreateCompilation(assemblyName),
             _runtimeEnvironment,
-            request.CancellationToken);
+            request.CancellationToken
+        );
         compilationContext.InitializeDefaults();
         request.CancellationToken.ThrowIfCancellationRequested();
         try
@@ -97,7 +98,8 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                 inputs.AdditionalReferenceTypes,
                 inputs.OutputType,
                 _runtimeEnvironment.PreloadedAssemblyPaths,
-                request.CancellationToken);
+                request.CancellationToken
+            );
 
             compilationContext.InitializeCoreReferences(referenceAssemblies);
             request.CancellationToken.ThrowIfCancellationRequested();
@@ -117,23 +119,27 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                     "<unknown>",
                     "execution-plan CLR reference",
                     CSharpClrReferenceDiscoveryException.GetStableReason(exception),
-                    exception));
+                    exception
+                )
+            );
         }
 
         var generatedSourcePath = $"{safeNamespaceName}.g.cs";
-        compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(
-            compilationUnit,
-            inputs.RenderProfile,
-            generatedSourcePath));
+        compilationContext.AddSyntaxTree(
+            ClassEmitter.CreateSyntaxTreeDirect(compilationUnit, inputs.RenderProfile, generatedSourcePath)
+        );
         request.CancellationToken.ThrowIfCancellationRequested();
         if (!string.IsNullOrEmpty(inputs.InterpreterSourceCode))
         {
             compilationContext.TrackNamespace("Musoq.Generated.Interpreters");
-            compilationContext.AddSyntaxTree(CSharpSyntaxTree.ParseText(
-                inputs.InterpreterSourceCode,
-                new CSharpParseOptions(LanguageVersion.CSharp13),
-                $"{safeNamespaceName}.interpreter.g.cs",
-                Encoding.UTF8));
+            compilationContext.AddSyntaxTree(
+                CSharpSyntaxTree.ParseText(
+                    inputs.InterpreterSourceCode,
+                    new CSharpParseOptions(LanguageVersion.CSharp13),
+                    $"{safeNamespaceName}.interpreter.g.cs",
+                    Encoding.UTF8
+                )
+            );
         }
         request.CancellationToken.ThrowIfCancellationRequested();
 
@@ -141,7 +147,8 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
             compilationContext.GetCompilation(),
             $"{safeNamespaceName}.CompiledQuery",
             executionQueryResult.Metadata,
-            readabilityResult.Trace);
+            readabilityResult.Trace
+        );
         request.CancellationToken.ThrowIfCancellationRequested();
         return TargetRenderResult.Succeeded(artifact);
     }
@@ -155,18 +162,26 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
 
         var inputTypeName = request.BackendInputs?.GetType().Name ?? "<null>";
         throw CreateUnsupportedExecutionIrException(
-            $"CSharpClr backend requires {nameof(CSharpClrRenderInputs)}, but received {inputTypeName}.");
+            $"CSharpClr backend requires {nameof(CSharpClrRenderInputs)}, but received {inputTypeName}."
+        );
     }
 
     private static bool IsMetadataOnlyDescription(ExecutionPlan plan)
     {
         var nodes = plan.Body.Nodes;
-        return nodes.Any(static node => node is Musoq.Evaluator.IR.Execution.ExecutionReturnDesc
-        {
-            Type: Musoq.Evaluator.IR.Logical.Nodes.DescType.Arguments or Musoq.Evaluator.IR.Logical.Nodes.DescType.Query
-        }) &&
-               nodes.All(static node => node is Musoq.Evaluator.IR.Execution.ExecutionReturnDesc
-                   or Musoq.Evaluator.IR.Execution.ExecutionPhaseBoundary);
+        return nodes.Any(static node =>
+                node
+                    is Musoq.Evaluator.IR.Execution.ExecutionReturnDesc
+                    {
+                        Type: Musoq.Evaluator.IR.Logical.Nodes.DescType.Arguments
+                            or Musoq.Evaluator.IR.Logical.Nodes.DescType.Query
+                    }
+            )
+            && nodes.All(static node =>
+                node
+                    is Musoq.Evaluator.IR.Execution.ExecutionReturnDesc
+                        or Musoq.Evaluator.IR.Execution.ExecutionPhaseBoundary
+            );
     }
 
     private static FinalResultSinkKind ResolveFinalResultSinkKind(QueryResultMode resultMode)
@@ -175,7 +190,7 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         {
             QueryResultMode.TypedEnumerable => FinalResultSinkKind.TypedSerialEnumerable,
             QueryResultMode.TableViaRows => FinalResultSinkKind.TableRowsMaterialized,
-            _ => FinalResultSinkKind.TableDirect
+            _ => FinalResultSinkKind.TableDirect,
         };
     }
 
@@ -186,23 +201,18 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
             : unsupportedReason;
 
         return new NotSupportedException(
-            $"Execution IR does not support this query shape and old physical rendering is disabled: {reason}");
+            $"Execution IR does not support this query shape and old physical rendering is disabled: {reason}"
+        );
     }
 
-    internal static TargetRenderResult CreateMissingReferenceResult(
-        CSharpClrReferenceDiscoveryException exception)
+    internal static TargetRenderResult CreateMissingReferenceResult(CSharpClrReferenceDiscoveryException exception)
     {
         return TargetRenderResult.Failed(
             ExecutionTargetIds.CSharpClr,
-            [TargetDiagnostic.Error(
-                TargetDiagnosticCodes.MissingClrReference,
-                exception.Message)]);
+            [TargetDiagnostic.Error(TargetDiagnosticCodes.MissingClrReference, exception.Message)]
+        );
     }
 
     private static bool IsExpectedMetadataReferenceFailure(Exception exception) =>
-        exception is FileNotFoundException or
-            BadImageFormatException or
-            FileLoadException or
-            IOException;
-
+        exception is FileNotFoundException or BadImageFormatException or FileLoadException or IOException;
 }

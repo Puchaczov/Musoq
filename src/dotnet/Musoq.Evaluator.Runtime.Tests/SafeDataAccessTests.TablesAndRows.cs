@@ -16,7 +16,7 @@ public partial class SafeDataAccessTests
         var columns = new ISchemaColumn[]
         {
             new TestSchemaColumn("Col1", typeof(int), 0),
-            new TestSchemaColumn("Col2", typeof(string), 1)
+            new TestSchemaColumn("Col2", typeof(string), 1),
         };
 
         // Act
@@ -33,7 +33,7 @@ public partial class SafeDataAccessTests
         var columns = new ISchemaColumn[]
         {
             new TestSchemaColumn("Name", typeof(string), 0),
-            new TestSchemaColumn("Age", typeof(int), 1)
+            new TestSchemaColumn("Age", typeof(int), 1),
         };
         var table = CreateVariableTable(columns);
 
@@ -49,10 +49,7 @@ public partial class SafeDataAccessTests
     public void VariableTable_GetColumnByName_NonExistingColumn_ReturnsNull()
     {
         // Arrange
-        var columns = new ISchemaColumn[]
-        {
-            new TestSchemaColumn("Name", typeof(string), 0)
-        };
+        var columns = new ISchemaColumn[] { new TestSchemaColumn("Name", typeof(string), 0) };
         var table = CreateVariableTable(columns);
 
         // Act
@@ -70,7 +67,7 @@ public partial class SafeDataAccessTests
         {
             new TestSchemaColumn("Name", typeof(string), 0),
             new TestSchemaColumn("Name", typeof(string), 1), // Duplicate name
-            new TestSchemaColumn("Age", typeof(int), 2)
+            new TestSchemaColumn("Age", typeof(int), 2),
         };
         var table = CreateVariableTable(columns);
 
@@ -85,10 +82,7 @@ public partial class SafeDataAccessTests
     public void VariableTable_Metadata_ShouldReturnCorrectMetadata()
     {
         // Arrange
-        var columns = new ISchemaColumn[]
-        {
-            new TestSchemaColumn("Col1", typeof(int), 0)
-        };
+        var columns = new ISchemaColumn[] { new TestSchemaColumn("Col1", typeof(int), 0) };
 
         // Act
         var table = CreateVariableTable(columns, typeof(string));
@@ -101,10 +95,7 @@ public partial class SafeDataAccessTests
     public void VariableTable_Metadata_DefaultType_ShouldBeObject()
     {
         // Arrange
-        var columns = new ISchemaColumn[]
-        {
-            new TestSchemaColumn("Col1", typeof(int), 0)
-        };
+        var columns = new ISchemaColumn[] { new TestSchemaColumn("Col1", typeof(int), 0) };
 
         // Act
         var table = CreateVariableTable(columns);
@@ -186,8 +177,7 @@ public partial class SafeDataAccessTests
         var values = new object[] { 1 };
 
         // Act & Assert
-        Assert.Throws<NotSupportedException>(() =>
-            new TestRow(values, null, null));
+        Assert.Throws<NotSupportedException>(() => new TestRow(values, null, null));
     }
 
     [TestMethod]
@@ -299,9 +289,7 @@ public partial class SafeDataAccessTests
     public void Table_ContainsWithComparer_MatchingValue_ReturnsTrue()
     {
         // Arrange
-        var table = new Table("test", [
-            new Column("Value", typeof(int), 0)
-        ]) { new TestRow([1]), new TestRow([2]) };
+        var table = new Table("test", [new Column("Value", typeof(int), 0)]) { new TestRow([1]), new TestRow([2]) };
 
         var searchRow = new TestRow([1]);
 
@@ -316,9 +304,7 @@ public partial class SafeDataAccessTests
     public void Table_ContainsWithComparer_NoMatch_ReturnsFalse()
     {
         // Arrange
-        var table = new Table("test", [
-            new Column("Value", typeof(int), 0)
-        ]) { new TestRow([1]) };
+        var table = new Table("test", [new Column("Value", typeof(int), 0)]) { new TestRow([1]) };
 
         var searchRow = new TestRow([99]);
 
@@ -341,12 +327,11 @@ public partial class SafeDataAccessTests
             Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
-
-
     [TestMethod]
     public void TypedQuery_Lookup_KeyNotFound_ReturnsFalseWithEmptyList()
     {
-        const string query = "with rows as (select s.Value as Value from #schema.first() s) select r.Value as Value from rows r where r.Value = 999";
+        const string query =
+            "with rows as (select s.Value as Value from #schema.first() s) select r.Value as Value from rows r where r.Value = 999";
         using var compiled = CreateAndRunVirtualMachine<NativeLookupInput>(query, new[] { new NativeLookupInput(1) });
         using var table = compiled.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));

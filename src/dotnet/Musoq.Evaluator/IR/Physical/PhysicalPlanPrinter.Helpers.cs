@@ -3,6 +3,7 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Printing;
 
 namespace Musoq.Evaluator.IR.Physical;
+
 public static partial class PhysicalPlanPrinter
 {
     private static string FormatBinaryOperator(BinaryOpKind kind)
@@ -24,9 +25,10 @@ public static partial class PhysicalPlanPrinter
             BinaryOpKind.Multiply => "*",
             BinaryOpKind.Divide => "/",
             BinaryOpKind.Modulo => "%",
-            _ => kind.ToString()
+            _ => kind.ToString(),
         };
     }
+
     private static void AppendPushedPredicates(StringBuilder sb, IrExpression[] pushedPredicates)
     {
         if (pushedPredicates.Length == 0)

@@ -25,17 +25,17 @@ public partial class LogicalNodeTests
     public void Printer_WhenFilterOverScan_ShouldPrintWithIndentation()
     {
         var scan = CreateScan();
-        var predicate = new BinaryOp(BinaryOpKind.GreaterThan,
+        var predicate = new BinaryOp(
+            BinaryOpKind.GreaterThan,
             new ColumnRef("t", "Id", typeof(int)),
             new Literal(18, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var filter = new FilterNode(predicate, scan);
 
         var result = LogicalPlanPrinter.Print(filter);
 
-        var expected =
-            "Filter [(t.Id > 18)]\r\n" +
-            "  SchemaScan [#test.data() as t]";
+        var expected = "Filter [(t.Id > 18)]\r\n" + "  SchemaScan [#test.data() as t]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -43,39 +43,39 @@ public partial class LogicalNodeTests
     public void Printer_WhenProjectAggregateFilterScan_ShouldPrintFullTree()
     {
         var scan = CreateScan();
-        var predicate = new BinaryOp(BinaryOpKind.GreaterThan,
+        var predicate = new BinaryOp(
+            BinaryOpKind.GreaterThan,
             new ColumnRef("t", "Id", typeof(int)),
             new Literal(18, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var filter = new FilterNode(predicate, scan);
 
         var setMethod = typeof(string).GetMethod("Concat", [typeof(string), typeof(string)])!;
         var getMethod = typeof(string).GetMethod("ToUpper", Type.EmptyTypes)!;
-        var bindings = new[]
-        {
-            new AggregateBinding("Count", "Count", setMethod, [], getMethod, [], typeof(int))
-        };
+        var bindings = new[] { new AggregateBinding("Count", "Count", setMethod, [], getMethod, [], typeof(int)) };
         var aggregate = new AggregateNode(
             [new ColumnRef("t", "Name", typeof(string))],
             ["Name"],
             [typeof(string)],
             bindings,
-            filter);
+            filter
+        );
 
         var fields = new[]
         {
             new ProjectedField("Name", new ColumnRef("t", "Name", typeof(string)), 0),
-            new ProjectedField("Count", new AggregateRef("Count", typeof(int)), 1)
+            new ProjectedField("Count", new AggregateRef("Count", typeof(int)), 1),
         };
         var project = new ProjectNode(fields, aggregate);
 
         var result = LogicalPlanPrinter.Print(project);
 
         var expected =
-            "Project [t.Name as Name, AggRef(Count) as Count]\r\n" +
-            "  Aggregate [keys: Name] [aggs: Count]\r\n" +
-            "    Filter [(t.Id > 18)]\r\n" +
-            "      SchemaScan [#test.data() as t]";
+            "Project [t.Name as Name, AggRef(Count) as Count]\r\n"
+            + "  Aggregate [keys: Name] [aggs: Count]\r\n"
+            + "    Filter [(t.Id > 18)]\r\n"
+            + "      SchemaScan [#test.data() as t]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -84,18 +84,20 @@ public partial class LogicalNodeTests
     {
         var left = CreateScan("a", ("Id", typeof(int)));
         var right = CreateScan("b", ("Id", typeof(int)));
-        var on = new BinaryOp(BinaryOpKind.Equal,
+        var on = new BinaryOp(
+            BinaryOpKind.Equal,
             new ColumnRef("a", "Id", typeof(int)),
             new ColumnRef("b", "Id", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var join = new JoinNode(JoinKind.Inner, on, left, right);
 
         var result = LogicalPlanPrinter.Print(join);
 
         var expected =
-            "Join [Inner] [(a.Id = b.Id)]\r\n" +
-            "  SchemaScan [#test.data() as a]\r\n" +
-            "  SchemaScan [#test.data() as b]";
+            "Join [Inner] [(a.Id = b.Id)]\r\n"
+            + "  SchemaScan [#test.data() as a]\r\n"
+            + "  SchemaScan [#test.data() as b]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -106,15 +108,13 @@ public partial class LogicalNodeTests
         var keys = new[]
         {
             new OrderField(new ColumnRef("t", "Name", typeof(string)), false),
-            new OrderField(new ColumnRef("t", "Id", typeof(int)), true)
+            new OrderField(new ColumnRef("t", "Id", typeof(int)), true),
         };
         var sort = new SortNode(keys, scan);
 
         var result = LogicalPlanPrinter.Print(sort);
 
-        var expected =
-            "Sort [t.Name, t.Id DESC]\r\n" +
-            "  SchemaScan [#test.data() as t]";
+        var expected = "Sort [t.Name, t.Id DESC]\r\n" + "  SchemaScan [#test.data() as t]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -122,19 +122,14 @@ public partial class LogicalNodeTests
     public void Printer_WhenSkipTake_ShouldPrintCounts()
     {
         var scan = CreateScan();
-        var sort = new SortNode(
-            [new OrderField(new ColumnRef("t", "Id", typeof(int)), false)],
-            scan);
+        var sort = new SortNode([new OrderField(new ColumnRef("t", "Id", typeof(int)), false)], scan);
         var skip = new SkipNode(10, sort);
         var take = new TakeNode(5, skip);
 
         var result = LogicalPlanPrinter.Print(take);
 
         var expected =
-            "Take [5]\r\n" +
-            "  Skip [10]\r\n" +
-            "    Sort [t.Id]\r\n" +
-            "      SchemaScan [#test.data() as t]";
+            "Take [5]\r\n" + "  Skip [10]\r\n" + "    Sort [t.Id]\r\n" + "      SchemaScan [#test.data() as t]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -142,17 +137,17 @@ public partial class LogicalNodeTests
     public void Printer_WhenHaving_ShouldPrintHavingLabel()
     {
         var scan = CreateScan();
-        var predicate = new BinaryOp(BinaryOpKind.GreaterThan,
+        var predicate = new BinaryOp(
+            BinaryOpKind.GreaterThan,
             new AggregateRef("Count", typeof(int)),
             new Literal(5, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var having = new HavingFilterNode(predicate, scan);
 
         var result = LogicalPlanPrinter.Print(having);
 
-        var expected =
-            "Having [(AggRef(Count) > 5)]\r\n" +
-            "  SchemaScan [#test.data() as t]";
+        var expected = "Having [(AggRef(Count) > 5)]\r\n" + "  SchemaScan [#test.data() as t]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -166,9 +161,7 @@ public partial class LogicalNodeTests
         var result = LogicalPlanPrinter.Print(setOp);
 
         var expected =
-            "SetOp [UnionAll]\r\n" +
-            "  SchemaScan [#test.data() as a]\r\n" +
-            "  SchemaScan [#test.data() as b]";
+            "SetOp [UnionAll]\r\n" + "  SchemaScan [#test.data() as a]\r\n" + "  SchemaScan [#test.data() as b]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -182,9 +175,7 @@ public partial class LogicalNodeTests
         var result = LogicalPlanPrinter.Print(apply);
 
         var expected =
-            "Apply [Cross]\r\n" +
-            "  SchemaScan [#test.data() as a]\r\n" +
-            "  SchemaScan [#test.data() as b]";
+            "Apply [Cross]\r\n" + "  SchemaScan [#test.data() as a]\r\n" + "  SchemaScan [#test.data() as b]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -193,18 +184,16 @@ public partial class LogicalNodeTests
     {
         var defPlan = CreateScan("d");
         var queryPlan = CreateScan("q");
-        var cte = new CteNode(
-            [new CteDefinition("myCte", defPlan)],
-            queryPlan);
+        var cte = new CteNode([new CteDefinition("myCte", defPlan)], queryPlan);
 
         var result = LogicalPlanPrinter.Print(cte);
 
         var expected =
-            "Cte\r\n" +
-            "  Definition [myCte]\r\n" +
-            "    SchemaScan [#test.data() as d]\r\n" +
-            "  Query\r\n" +
-            "    SchemaScan [#test.data() as q]";
+            "Cte\r\n"
+            + "  Definition [myCte]\r\n"
+            + "    SchemaScan [#test.data() as d]\r\n"
+            + "  Query\r\n"
+            + "    SchemaScan [#test.data() as q]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -219,7 +208,8 @@ public partial class LogicalNodeTests
             "c",
             typeof(object),
             ApplyKind.Cross,
-            schema);
+            schema
+        );
         var result = LogicalPlanPrinter.Print(node);
 
         Assert.AreEqual("InterpretSource [#csv() as c]", result);
@@ -257,9 +247,7 @@ public partial class LogicalNodeTests
         var result = LogicalPlanPrinter.Print(multi);
 
         var expected =
-            "MultiStatement\r\n" +
-            "  SchemaScan [#test.data() as a]\r\n" +
-            "  SchemaScan [#test.data() as b]";
+            "MultiStatement\r\n" + "  SchemaScan [#test.data() as a]\r\n" + "  SchemaScan [#test.data() as b]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -267,17 +255,17 @@ public partial class LogicalNodeTests
     public void Printer_WhenQualifyFilter_ShouldPrintQualifyLabel()
     {
         var scan = CreateScan();
-        var predicate = new BinaryOp(BinaryOpKind.GreaterThan,
+        var predicate = new BinaryOp(
+            BinaryOpKind.GreaterThan,
             new ColumnRef("t", "Id", typeof(int)),
             new Literal(1, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var qualify = new QualifyFilterNode(predicate, scan);
 
         var result = LogicalPlanPrinter.Print(qualify);
 
-        var expected =
-            "Qualify [(t.Id > 1)]\r\n" +
-            "  SchemaScan [#test.data() as t]";
+        var expected = "Qualify [(t.Id > 1)]\r\n" + "  SchemaScan [#test.data() as t]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -286,17 +274,12 @@ public partial class LogicalNodeTests
     {
         var scan = CreateScan();
         var method = typeof(string).GetMethod("ToUpper", Type.EmptyTypes)!;
-        var registrations = new[]
-        {
-            new WindowRegistration(method, method.Name, [], [], [], 0, typeof(decimal))
-        };
+        var registrations = new[] { new WindowRegistration(method, method.Name, [], [], [], 0, typeof(decimal)) };
         var window = new WindowNode(registrations, scan);
 
         var result = LogicalPlanPrinter.Print(window);
 
-        var expected =
-            "Window [ToUpper(idx:0)]\r\n" +
-            "  SchemaScan [#test.data() as t]";
+        var expected = "Window [ToUpper(idx:0)]\r\n" + "  SchemaScan [#test.data() as t]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 
@@ -306,42 +289,45 @@ public partial class LogicalNodeTests
         var scanA = CreateScan("a", ("Id", typeof(int)), ("Name", typeof(string)));
         var scanB = CreateScan("b", ("Id", typeof(int)), ("Value", typeof(decimal)));
 
-        var on = new BinaryOp(BinaryOpKind.Equal,
+        var on = new BinaryOp(
+            BinaryOpKind.Equal,
             new ColumnRef("a", "Id", typeof(int)),
             new ColumnRef("b", "Id", typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var join = new JoinNode(JoinKind.LeftOuter, on, scanA, scanB);
 
         var filter = new FilterNode(
-            new BinaryOp(BinaryOpKind.GreaterThan,
+            new BinaryOp(
+                BinaryOpKind.GreaterThan,
                 new ColumnRef("b", "Value", typeof(decimal)),
                 new Literal(100m, typeof(decimal)),
-                typeof(bool)),
-            join);
+                typeof(bool)
+            ),
+            join
+        );
 
         var fields = new[]
         {
             new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0),
-            new ProjectedField("Value", new ColumnRef("b", "Value", typeof(decimal)), 1)
+            new ProjectedField("Value", new ColumnRef("b", "Value", typeof(decimal)), 1),
         };
         var project = new ProjectNode(fields, filter);
 
-        var sort = new SortNode(
-            [new OrderField(new ColumnRef("a", "Name", typeof(string)), false)],
-            project);
+        var sort = new SortNode([new OrderField(new ColumnRef("a", "Name", typeof(string)), false)], project);
 
         var take = new TakeNode(10, sort);
 
         var result = LogicalPlanPrinter.Print(take);
 
         var expected =
-            "Take [10]\r\n" +
-            "  Sort [a.Name]\r\n" +
-            "    Project [a.Name as Name, b.Value as Value]\r\n" +
-            "      Filter [(b.Value > 100)]\r\n" +
-            "        Join [LeftOuter] [(a.Id = b.Id)]\r\n" +
-            "          SchemaScan [#test.data() as a]\r\n" +
-            "          SchemaScan [#test.data() as b]";
+            "Take [10]\r\n"
+            + "  Sort [a.Name]\r\n"
+            + "    Project [a.Name as Name, b.Value as Value]\r\n"
+            + "      Filter [(b.Value > 100)]\r\n"
+            + "        Join [LeftOuter] [(a.Id = b.Id)]\r\n"
+            + "          SchemaScan [#test.data() as a]\r\n"
+            + "          SchemaScan [#test.data() as b]";
         PlanTextAssertions.AreEqual(expected, result);
     }
 

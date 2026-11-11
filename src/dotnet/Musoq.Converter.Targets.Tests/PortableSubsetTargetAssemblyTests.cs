@@ -1,16 +1,16 @@
-using Microsoft.CodeAnalysis;
-using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Analysis;
+using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Planning;
+using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Targets.Execution.Analysis;
 using Musoq.Targets.TestPortable;
 
@@ -22,22 +22,46 @@ public sealed class PortableSubsetTargetAssemblyTests
     [TestMethod]
     public void BufferOperations_ShouldRejectPortableSubsetBeforeRendering()
     {
-        var descriptor = ExecutionTargetDescriptor.Create(PortableSubsetTarget.TargetId,
+        var descriptor = ExecutionTargetDescriptor.Create(
+            PortableSubsetTarget.TargetId,
             renderPhase: new PortableSubsetExecutionBackend(),
-            createRenderInputs: static _ => new EmptyTargetBackendRenderInputs(PortableSubsetTarget.TargetId));
+            createRenderInputs: static _ => new EmptyTargetBackendRenderInputs(PortableSubsetTarget.TargetId)
+        );
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
-        var region = new ScalarEvaluationRegion("buffer-test", ScalarEvaluationRegionKind.Materialization, false, false);
-        var buffer = new ExecutionByteBufferOperation(new ExecutionLiteral(null, typeof(byte[])),
-            new ByteBufferValuePlan(ByteBufferOperationKind.Materialize,
-                new(0, ByteBufferOwnership.Owned, ByteBufferNullState.Unknown, region, 0), [], ByteBufferRequirement.Complete));
-        var plan = new ExecutionPlan("BufferUnsupported", [], new ExecutionBlock([
-            new ExecutionLet(new ExecutionVariable("buffer", typeof(byte[])), buffer)]));
+        var region = new ScalarEvaluationRegion(
+            "buffer-test",
+            ScalarEvaluationRegionKind.Materialization,
+            false,
+            false
+        );
+        var buffer = new ExecutionByteBufferOperation(
+            new ExecutionLiteral(null, typeof(byte[])),
+            new ByteBufferValuePlan(
+                ByteBufferOperationKind.Materialize,
+                new(0, ByteBufferOwnership.Owned, ByteBufferNullState.Unknown, region, 0),
+                [],
+                ByteBufferRequirement.Complete
+            )
+        );
+        var plan = new ExecutionPlan(
+            "BufferUnsupported",
+            [],
+            new ExecutionBlock([new ExecutionLet(new ExecutionVariable("buffer", typeof(byte[])), buffer)])
+        );
 
         var result = ExecutionTargetCatalog.Render(CreateRequest(plan));
 
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Message.Contains("expr.byte-buffer.operation", StringComparison.Ordinal)));
-        Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.SupportedOperations.Contains(ExecutionOperationCatalog.Resolve(buffer)));
+        Assert.IsTrue(
+            result.Diagnostics.Any(diagnostic =>
+                diagnostic.Message.Contains("expr.byte-buffer.operation", StringComparison.Ordinal)
+            )
+        );
+        Assert.IsTrue(
+            ExecutionTargetCapabilities.CSharpClr.SupportedOperations.Contains(
+                ExecutionOperationCatalog.Resolve(buffer)
+            )
+        );
     }
 
     [TestMethod]
@@ -63,21 +87,26 @@ public sealed class PortableSubsetTargetAssemblyTests
         var secondArtifact = Assert.IsInstanceOfType<PortableSubsetRenderedArtifact>(second.Artifact);
         Assert.AreEqual(firstArtifact.Program.CreateManifest(), secondArtifact.Program.CreateManifest());
         StringAssert.Contains(firstArtifact.Program.CreateManifest(), "let value = i32:1");
-        StringAssert.Contains(firstArtifact.Program.CreateManifest(), $"semantics-fingerprint={ExecutionSemanticsContract.Current.Fingerprint}");
+        StringAssert.Contains(
+            firstArtifact.Program.CreateManifest(),
+            $"semantics-fingerprint={ExecutionSemanticsContract.Current.Fingerprint}"
+        );
         Assert.Throws<NotSupportedException>(() =>
-            ((IList<PortableInstruction>)firstArtifact.Program.Body.Instructions).Clear());
+            ((IList<PortableInstruction>)firstArtifact.Program.Body.Instructions).Clear()
+        );
     }
 
     [TestMethod]
     public void PortableSubsetTarget_WhenFinalizedAndInspected_ShouldExportManifestWithoutClrArtifacts()
     {
         var rendered = Assert.IsInstanceOfType<PortableSubsetRenderedArtifact>(
-            new PortableSubsetExecutionBackend().Render(CreateRequest(
-                CreateLiteralPlan())).Artifact);
+            new PortableSubsetExecutionBackend().Render(CreateRequest(CreateLiteralPlan())).Artifact
+        );
 
         var finalization = new PortableSubsetRenderedQueryFinalizer().Finalize(
             rendered,
-            TargetFinalizationOptions.Empty);
+            TargetFinalizationOptions.Empty
+        );
         var inspection = new PortableSubsetRenderedQueryInspector().Inspect(rendered);
 
         Assert.IsTrue(finalization.Success);
@@ -89,15 +118,19 @@ public sealed class PortableSubsetTargetAssemblyTests
         Assert.HasCount(1, export.Entrypoints);
         Assert.IsNull(inspection.GeneratedCSharpCode);
         StringAssert.Contains(inspection.SourceMetadata["inspectionText"], "let value = i32:1");
-        Assert.IsFalse(typeof(PortableSubsetRenderedQueryFinalizer).Assembly.GetTypes().Any(static type =>
-            typeof(IClrExecutableQueryActivator).IsAssignableFrom(type)));
+        Assert.IsFalse(
+            typeof(PortableSubsetRenderedQueryFinalizer)
+                .Assembly.GetTypes()
+                .Any(static type => typeof(IClrExecutableQueryActivator).IsAssignableFrom(type))
+        );
     }
 
     [TestMethod]
     public void PortableSubsetTargetAssembly_ShouldHaveOnlyPortableTargetDependencies()
     {
         var assembly = typeof(PortableSubsetExecutionBackend).Assembly;
-        var referencedAssemblyNames = assembly.GetReferencedAssemblies()
+        var referencedAssemblyNames = assembly
+            .GetReferencedAssemblies()
             .Select(static reference => reference.Name)
             .ToArray();
 
@@ -107,8 +140,11 @@ public sealed class PortableSubsetTargetAssemblyTests
         CollectionAssert.DoesNotContain(referencedAssemblyNames, "Musoq.Converter");
         CollectionAssert.DoesNotContain(referencedAssemblyNames, "Musoq.Targets.CSharpClr");
         CollectionAssert.DoesNotContain(referencedAssemblyNames, "Musoq.Targets.Execution.Analysis");
-        Assert.IsFalse(referencedAssemblyNames.Any(static name =>
-            name != null && name.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal)));
+        Assert.IsFalse(
+            referencedAssemblyNames.Any(static name =>
+                name != null && name.StartsWith("Microsoft.CodeAnalysis", StringComparison.Ordinal)
+            )
+        );
 
         var repositoryRoot = FindRepositoryRoot();
         var projectPath = Path.Combine(
@@ -116,21 +152,20 @@ public sealed class PortableSubsetTargetAssemblyTests
             "src",
             "dotnet",
             "Musoq.Targets.TestPortable",
-            "Musoq.Targets.TestPortable.csproj");
+            "Musoq.Targets.TestPortable.csproj"
+        );
         var project = XDocument.Load(projectPath);
         var projectReferences = project
             .Descendants("ProjectReference")
-            .Select(static element => Path.GetFileNameWithoutExtension(element.Attribute("Include")!.Value.Replace('\\', '/')))
+            .Select(static element =>
+                Path.GetFileNameWithoutExtension(element.Attribute("Include")!.Value.Replace('\\', '/'))
+            )
             .OrderBy(static value => value, StringComparer.Ordinal)
             .ToArray();
         CollectionAssert.AreEqual(
-            new[]
-            {
-                "Musoq.Evaluator",
-                "Musoq.Targets.Abstractions",
-                "Musoq.Targets.Execution"
-            },
-            projectReferences);
+            new[] { "Musoq.Evaluator", "Musoq.Targets.Abstractions", "Musoq.Targets.Execution" },
+            projectReferences
+        );
         Assert.IsFalse(project.Descendants("PackageReference").Any());
 
         var forbiddenSourceTokens = new[]
@@ -146,62 +181,83 @@ public sealed class PortableSubsetTargetAssemblyTests
             "ITypedRunnable",
             ".ClrMethod",
             "RequireClrType",
-            "RequireClrMethod"
+            "RequireClrMethod",
         };
         var sourceDirectory = Path.GetDirectoryName(projectPath)!;
         Assert.IsFalse(File.Exists(Path.Combine(sourceDirectory, "PortableSubsetHostAbiInventory.cs")));
         StringAssert.Contains(
             File.ReadAllText(Path.Combine(sourceDirectory, "PortableSubsetExecutionBackend.cs")),
-            "TargetHostAbiInventoryBuilder.Build");
-        var sourceOffenders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(sourceDirectory, "*.cs", SearchOption.AllDirectories)
-            .Where(static file => !file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
-            .SelectMany(file => forbiddenSourceTokens
-                .Where(token => File.ReadAllText(file).Contains(token, StringComparison.Ordinal))
-                .Select(token => $"{Path.GetRelativePath(repositoryRoot, file)}:{token}"))
+            "TargetHostAbiInventoryBuilder.Build"
+        );
+        var sourceOffenders = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(sourceDirectory, "*.cs", SearchOption.AllDirectories)
+            .Where(static file =>
+                !file.Contains(
+                    $"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}",
+                    StringComparison.Ordinal
+                )
+            )
+            .SelectMany(file =>
+                forbiddenSourceTokens
+                    .Where(token => File.ReadAllText(file).Contains(token, StringComparison.Ordinal))
+                    .Select(token => $"{Path.GetRelativePath(repositoryRoot, file)}:{token}")
+            )
             .ToArray();
         Assert.IsEmpty(
             sourceOffenders,
-            "Portable test target source must not access CLR sidecars, CLR activation, Roslyn, converter, or target implementation packages: " +
-            string.Join(", ", sourceOffenders));
-        var clrTypeSidecarOffenders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(sourceDirectory, "*.cs", SearchOption.AllDirectories)
-            .Where(static file => !file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            "Portable test target source must not access CLR sidecars, CLR activation, Roslyn, converter, or target implementation packages: "
+                + string.Join(", ", sourceOffenders)
+        );
+        var clrTypeSidecarOffenders = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(sourceDirectory, "*.cs", SearchOption.AllDirectories)
+            .Where(static file =>
+                !file.Contains(
+                    $"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}",
+                    StringComparison.Ordinal
+                )
+            )
             .Where(file => Regex.IsMatch(File.ReadAllText(file), @"\.ClrType\b(?!Usage)"))
             .Select(file => Path.GetRelativePath(repositoryRoot, file))
             .ToArray();
         Assert.IsEmpty(
             clrTypeSidecarOffenders,
-            "Portable test target source must not access ExecutionTypeRef.ClrType sidecars: " +
-            string.Join(", ", clrTypeSidecarOffenders));
+            "Portable test target source must not access ExecutionTypeRef.ClrType sidecars: "
+                + string.Join(", ", clrTypeSidecarOffenders)
+        );
     }
 
     [TestMethod]
     public void PortableSubsetTarget_ShouldNotBeProductionRegistered()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var converterProject = File.ReadAllText(Path.Combine(
-            repositoryRoot,
-            "src",
-            "dotnet",
-            "Musoq.Converter",
-            "Musoq.Converter.csproj"));
+        var converterProject = File.ReadAllText(
+            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter", "Musoq.Converter.csproj")
+        );
         var converterSourceFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
             Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter"),
             "*.cs",
-            SearchOption.AllDirectories);
+            SearchOption.AllDirectories
+        );
         var productionReferences = converterSourceFiles
-            .Where(static file => !file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .Where(static file =>
+                !file.Contains(
+                    $"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}",
+                    StringComparison.Ordinal
+                )
+            )
             .Where(file =>
             {
                 var text = File.ReadAllText(file);
-                return text.Contains("Musoq.Targets.TestPortable", StringComparison.Ordinal) ||
-                       text.Contains("PortableSubsetTarget", StringComparison.Ordinal);
+                return text.Contains("Musoq.Targets.TestPortable", StringComparison.Ordinal)
+                    || text.Contains("PortableSubsetTarget", StringComparison.Ordinal);
             })
             .ToArray();
 
         Assert.IsFalse(converterProject.Contains("Musoq.Targets.TestPortable", StringComparison.Ordinal));
         Assert.IsEmpty(productionReferences);
-        Assert.ThrowsExactly<NotSupportedException>(
-            () => ExecutionTargetCatalog.ResolveBackend(PortableSubsetTarget.TargetId));
+        Assert.ThrowsExactly<NotSupportedException>(() =>
+            ExecutionTargetCatalog.ResolveBackend(PortableSubsetTarget.TargetId)
+        );
     }
 
     [TestMethod]
@@ -213,12 +269,15 @@ public sealed class PortableSubsetTargetAssemblyTests
             finalizationPhase: new PortableSubsetRenderedQueryFinalizer(),
             inspectionPhase: new PortableSubsetRenderedQueryInspector(),
             createRenderInputs: static _ => new EmptyTargetBackendRenderInputs(PortableSubsetTarget.TargetId),
-            createArtifactPackage: static context => TargetArtifactPackage.CreatePortableExportPackage(
-                context.TargetId,
-                "PortableSubsetProgram",
-                Assert.IsInstanceOfType<TargetExportArtifact>(context.ExecutableArtifact),
-                context.SemanticsContract,
-                executionIrVersion: context.ExecutionIrVersion));
+            createArtifactPackage: static context =>
+                TargetArtifactPackage.CreatePortableExportPackage(
+                    context.TargetId,
+                    "PortableSubsetProgram",
+                    Assert.IsInstanceOfType<TargetExportArtifact>(context.ExecutableArtifact),
+                    context.SemanticsContract,
+                    executionIrVersion: context.ExecutionIrVersion
+                )
+        );
 
         Assert.IsNull(descriptor.ActivationPhase);
         Assert.AreEqual(PortableSubsetTarget.TargetId, descriptor.TargetId);
@@ -233,8 +292,12 @@ public sealed class PortableSubsetTargetAssemblyTests
         Assert.IsTrue(capabilities.SupportedFeatureKinds.Contains(ExecutionTargetFeatureKind.BinaryOperation));
         Assert.IsTrue(capabilities.SupportedFeatureKinds.Contains(ExecutionTargetFeatureKind.Callable));
         Assert.IsFalse(capabilities.SupportedRequirementKinds.Contains(ExecutionTargetRequirementKind.ClrOnlyConstant));
-        Assert.IsTrue(capabilities.SupportedTypeSymbolPortabilities.Contains(ExecutionPortableSymbolPortability.ClrOnly));
-        Assert.IsTrue(capabilities.SupportedCallableSymbolPortabilities.Contains(ExecutionPortableSymbolPortability.ClrOnly));
+        Assert.IsTrue(
+            capabilities.SupportedTypeSymbolPortabilities.Contains(ExecutionPortableSymbolPortability.ClrOnly)
+        );
+        Assert.IsTrue(
+            capabilities.SupportedCallableSymbolPortabilities.Contains(ExecutionPortableSymbolPortability.ClrOnly)
+        );
     }
 
     [TestMethod]
@@ -243,17 +306,15 @@ public sealed class PortableSubsetTargetAssemblyTests
         var plan = new ExecutionPlan(
             "Q_PortableObjectConstruction",
             [],
-            new ExecutionBlock(
-            [
-                new ExecutionCreateObject(new ExecutionVariable("library", typeof(object)))
-            ]));
+            new ExecutionBlock([new ExecutionCreateObject(new ExecutionVariable("library", typeof(object)))])
+        );
 
-        var exception = Assert.ThrowsExactly<PortableSubsetLoweringException>(
-            () => PortableSubsetLowerer.Lower(plan));
+        var exception = Assert.ThrowsExactly<PortableSubsetLoweringException>(() => PortableSubsetLowerer.Lower(plan));
 
         StringAssert.Contains(exception.Message, "CLR object construction");
-        Assert.IsNull(typeof(PortableSubsetProgram).Assembly.GetType(
-            "Musoq.Targets.TestPortable.PortableNoOpInstruction"));
+        Assert.IsNull(
+            typeof(PortableSubsetProgram).Assembly.GetType("Musoq.Targets.TestPortable.PortableNoOpInstruction")
+        );
     }
 
     [TestMethod]
@@ -262,23 +323,18 @@ public sealed class PortableSubsetTargetAssemblyTests
         var method = ((Func<string, string, string>)CustomCoalesce).Method;
         var call = new ExecutionMethodCall(
             ExecutionClrBindingFactory.FromClr(method),
-            [
-                new ExecutionLiteral("left", typeof(string)),
-                new ExecutionLiteral("right", typeof(string))
-            ],
+            [new ExecutionLiteral("left", typeof(string)), new ExecutionLiteral("right", typeof(string))],
             "Coalesce",
             ExecutionClrBindingFactory.FromClr(typeof(string)),
-            null);
+            null
+        );
         var plan = new ExecutionPlan(
             "Q_CustomCoalesce",
             [],
-            new ExecutionBlock(
-            [
-                new ExecutionLet(new ExecutionVariable("value", typeof(string)), call)
-            ]));
+            new ExecutionBlock([new ExecutionLet(new ExecutionVariable("value", typeof(string)), call)])
+        );
 
-        var exception = Assert.ThrowsExactly<PortableSubsetLoweringException>(
-            () => PortableSubsetLowerer.Lower(plan));
+        var exception = Assert.ThrowsExactly<PortableSubsetLoweringException>(() => PortableSubsetLowerer.Lower(plan));
 
         StringAssert.Contains(exception.Message, call.Method.StableId);
     }
@@ -291,14 +347,29 @@ public sealed class PortableSubsetTargetAssemblyTests
         var plan = new ExecutionPlan(
             "Q_PortableConstants",
             [],
-            new ExecutionBlock(
-            [
-                new ExecutionLet(new ExecutionVariable("character", typeof(char)), new ExecutionLiteral('A', typeof(char))),
-                new ExecutionLet(new ExecutionVariable("float", typeof(float)), new ExecutionLiteral(float.NaN, typeof(float))),
-                new ExecutionLet(new ExecutionVariable("timestamp", typeof(DateTime)), new ExecutionLiteral(timestamp, typeof(DateTime))),
-                new ExecutionLet(new ExecutionVariable("identifier", typeof(Guid)), new ExecutionLiteral(identifier, typeof(Guid))),
-                new ExecutionLet(new ExecutionVariable("enum", typeof(TestConstantEnum)), new ExecutionLiteral(TestConstantEnum.Second, typeof(TestConstantEnum)))
-            ]));
+            new ExecutionBlock([
+                new ExecutionLet(
+                    new ExecutionVariable("character", typeof(char)),
+                    new ExecutionLiteral('A', typeof(char))
+                ),
+                new ExecutionLet(
+                    new ExecutionVariable("float", typeof(float)),
+                    new ExecutionLiteral(float.NaN, typeof(float))
+                ),
+                new ExecutionLet(
+                    new ExecutionVariable("timestamp", typeof(DateTime)),
+                    new ExecutionLiteral(timestamp, typeof(DateTime))
+                ),
+                new ExecutionLet(
+                    new ExecutionVariable("identifier", typeof(Guid)),
+                    new ExecutionLiteral(identifier, typeof(Guid))
+                ),
+                new ExecutionLet(
+                    new ExecutionVariable("enum", typeof(TestConstantEnum)),
+                    new ExecutionLiteral(TestConstantEnum.Second, typeof(TestConstantEnum))
+                ),
+            ])
+        );
 
         var manifest = PortableSubsetLowerer.Lower(plan).CreateManifest();
 
@@ -312,10 +383,12 @@ public sealed class PortableSubsetTargetAssemblyTests
     [TestMethod]
     public void PortableSubsetTarget_ShouldReceivePortableTypeDescriptorsWithoutClrSidecars()
     {
-        var descriptor = CompilerContractSymbols.For(typeof(ExecutionTypeRef)).GetProperty(nameof(ExecutionTypeRef.Descriptor));
-        var clrType = CompilerContractSymbols.For(typeof(ExecutionTypeRef)).GetProperty(
-            "ClrType",
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        var descriptor = CompilerContractSymbols
+            .For(typeof(ExecutionTypeRef))
+            .GetProperty(nameof(ExecutionTypeRef.Descriptor));
+        var clrType = CompilerContractSymbols
+            .For(typeof(ExecutionTypeRef))
+            .GetProperty("ClrType", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
         Assert.IsNotNull(descriptor);
         Assert.IsTrue(descriptor.GetMethod!.IsPublic);
@@ -326,14 +399,22 @@ public sealed class PortableSubsetTargetAssemblyTests
     [TestMethod]
     public void PortableSubsetTarget_ShouldReceivePortableCallableDescriptorsWithoutReflection()
     {
-        var descriptor = CompilerContractSymbols.For(typeof(ExecutionCallableRef)).GetProperty(nameof(ExecutionCallableRef.Descriptor));
-        var clrMethod = CompilerContractSymbols.For(typeof(ExecutionCallableRef)).GetProperty(
-            "ClrMethod",
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        var descriptor = CompilerContractSymbols
+            .For(typeof(ExecutionCallableRef))
+            .GetProperty(nameof(ExecutionCallableRef.Descriptor));
+        var clrMethod = CompilerContractSymbols
+            .For(typeof(ExecutionCallableRef))
+            .GetProperty(
+                "ClrMethod",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic
+            );
 
         Assert.IsNotNull(descriptor);
         Assert.IsTrue(descriptor.GetMethod!.IsPublic);
-        Assert.AreEqual("Musoq.Targets.Abstractions.ExecutionPortableCallableDescriptor", descriptor.PropertyType.FullName);
+        Assert.AreEqual(
+            "Musoq.Targets.Abstractions.ExecutionPortableCallableDescriptor",
+            descriptor.PropertyType.FullName
+        );
         Assert.IsNull(clrMethod);
     }
 
@@ -343,20 +424,21 @@ public sealed class PortableSubsetTargetAssemblyTests
         var descriptor = ExecutionTargetDescriptor.Create(
             PortableSubsetTarget.TargetId,
             renderPhase: new PortableSubsetExecutionBackend(),
-            createRenderInputs: static _ => new EmptyTargetBackendRenderInputs(PortableSubsetTarget.TargetId));
+            createRenderInputs: static _ => new EmptyTargetBackendRenderInputs(PortableSubsetTarget.TargetId)
+        );
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
-        var plan = CreateLiteralPlan() with
-        {
-            ExecutionIrVersion = TargetContractVersions.ExecutionIr + 1
-        };
+        var plan = CreateLiteralPlan() with { ExecutionIrVersion = TargetContractVersions.ExecutionIr + 1 };
         var request = CreateRequest(plan);
 
         var result = ExecutionTargetCatalog.Render(request);
 
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Diagnostics.Any(static diagnostic =>
-            diagnostic.Code == TargetDiagnosticCodes.UnsupportedLowering &&
-            diagnostic.Message.Contains("IR version", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Diagnostics.Any(static diagnostic =>
+                diagnostic.Code == TargetDiagnosticCodes.UnsupportedLowering
+                && diagnostic.Message.Contains("IR version", StringComparison.Ordinal)
+            )
+        );
     }
 
     private static ExecutionPlan CreateLiteralPlan()
@@ -364,12 +446,10 @@ public sealed class PortableSubsetTargetAssemblyTests
         return new ExecutionPlan(
             "Q_PortableSubset",
             [],
-            new ExecutionBlock(
-            [
-                new ExecutionLet(
-                    new ExecutionVariable("value", typeof(int)),
-                    new ExecutionLiteral(1, typeof(int)))
-            ]));
+            new ExecutionBlock([
+                new ExecutionLet(new ExecutionVariable("value", typeof(int)), new ExecutionLiteral(1, typeof(int))),
+            ])
+        );
     }
 
     private static string CustomCoalesce(string left, string right) => left ?? right;
@@ -377,7 +457,7 @@ public sealed class PortableSubsetTargetAssemblyTests
     private enum TestConstantEnum : short
     {
         First = 1,
-        Second = 2
+        Second = 2,
     }
 
     private static TargetRenderRequest CreateRequest(ExecutionPlan plan)
@@ -405,15 +485,20 @@ public sealed class PortableSubsetTargetAssemblyTests
                 new TargetNullBehaviorContract(false, false, false, "none"),
                 new TargetCancellationContract(false, false),
                 new TargetDiagnosticsContract(false, false, false),
-                new TargetProfilingContract(false, false, 0, 0)),
+                new TargetProfilingContract(false, false, 0, 0)
+            ),
             HostAbiVersion = TargetContractVersions.HostAbi,
-            BackendInputs = new EmptyTargetBackendRenderInputs(PortableSubsetTarget.TargetId)
+            BackendInputs = new EmptyTargetBackendRenderInputs(PortableSubsetTarget.TargetId),
         };
     }
 
     private static string FindRepositoryRoot()
     {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
+        for (
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+            directory != null;
+            directory = directory.Parent
+        )
         {
             if (File.Exists(Path.Combine(directory.FullName, "src", "dotnet", "Musoq.sln")))
                 return directory.FullName;

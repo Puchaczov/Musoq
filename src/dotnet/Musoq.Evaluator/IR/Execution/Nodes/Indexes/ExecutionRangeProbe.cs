@@ -13,7 +13,8 @@ public sealed record ExecutionRangeProbe : ExecutionNode
         ExecutionBlock? NoMatchBody = null,
         ExecutionVariable? MatchFound = null,
         IReadOnlyList<ExecutionAsOfEqualityKey>? PartitionKeys = null,
-        ExecutionTypeRef? PartitionKeyType = null)
+        ExecutionTypeRef? PartitionKeyType = null
+    )
     {
         this.Match = Match;
         this.Index = Index;
@@ -45,7 +46,8 @@ public sealed record ExecutionRangeProbe : ExecutionNode
         ExecutionBlock? noMatchBody = null,
         ExecutionVariable? matchFound = null,
         IReadOnlyList<ExecutionAsOfEqualityKey>? partitionKeys = null,
-        Type? partitionKeyType = null)
+        Type? partitionKeyType = null
+    )
         : this(
             match,
             index,
@@ -55,7 +57,6 @@ public sealed record ExecutionRangeProbe : ExecutionNode
             noMatchBody,
             matchFound,
             partitionKeys,
-            partitionKeyType == null ? null : ExecutionClrBindingFactory.FromClr(partitionKeyType))
-    {
-    }
+            partitionKeyType == null ? null : ExecutionClrBindingFactory.FromClr(partitionKeyType)
+        ) { }
 }

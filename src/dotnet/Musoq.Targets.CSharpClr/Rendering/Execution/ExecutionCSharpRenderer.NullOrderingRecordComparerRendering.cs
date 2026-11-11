@@ -9,7 +9,8 @@ public sealed partial class ExecutionCSharpRenderer
         List<string> body,
         int index,
         ExecutionOrderField key,
-        FieldBinding field)
+        FieldBinding field
+    )
     {
         if (RequiresExplicitNullOrdering(key))
         {
@@ -18,9 +19,11 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         var comparisonExpression = CreateOrderRecordComparisonExpression(field, key.Type.RequireClrType());
-        body.Add(index == 0
-            ? $"        var comparison = {comparisonExpression};"
-            : $"        comparison = {comparisonExpression};");
+        body.Add(
+            index == 0
+                ? $"        var comparison = {comparisonExpression};"
+                : $"        comparison = {comparisonExpression};"
+        );
         if (key.Descending)
             body.Add("        comparison = -comparison;");
         AddOrderRecordComparisonReturn(body);
@@ -30,7 +33,8 @@ public sealed partial class ExecutionCSharpRenderer
         List<string> body,
         int index,
         ExecutionOrderField key,
-        FieldBinding field)
+        FieldBinding field
+    )
     {
         var fieldName = EscapeIdentifier(GetGeneratedFieldName(field));
         var left = $"left.{fieldName}";
@@ -54,7 +58,9 @@ public sealed partial class ExecutionCSharpRenderer
         body.Add("        }");
         body.Add("        else");
         body.Add("        {");
-        body.Add($"            comparison = {CreateOrderRecordComparisonExpression(field, key.Type.RequireClrType())};");
+        body.Add(
+            $"            comparison = {CreateOrderRecordComparisonExpression(field, key.Type.RequireClrType())};"
+        );
         if (key.Descending)
             body.Add("            comparison = -comparison;");
         body.Add("        }");
@@ -70,15 +76,15 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool RequiresExplicitNullOrdering(ExecutionOrderField key)
     {
-        return key.NullOrdering != NullOrdering.Default &&
-               (!key.Type.RequireClrType().IsValueType || Nullable.GetUnderlyingType(key.Type.RequireClrType()) != null);
+        return key.NullOrdering != NullOrdering.Default
+            && (
+                !key.Type.RequireClrType().IsValueType || Nullable.GetUnderlyingType(key.Type.RequireClrType()) != null
+            );
     }
 
     private static string CreateOrderNullCheck(string value, Type type)
     {
-        return Nullable.GetUnderlyingType(type) != null
-            ? $"!{value}.HasValue"
-            : $"{value} == null";
+        return Nullable.GetUnderlyingType(type) != null ? $"!{value}.HasValue" : $"{value} == null";
     }
 
     private static string FormatNullOrderingSuffix(NullOrdering nullOrdering)
@@ -87,7 +93,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             NullOrdering.First => "F",
             NullOrdering.Last => "L",
-            _ => string.Empty
+            _ => string.Empty,
         };
     }
 }

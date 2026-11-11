@@ -113,12 +113,14 @@ public sealed class SemanticServiceBaselineTests
             typeof(HintedDynamicEntity),
             "AsInt",
             typeof(object),
-            typeof(ExpandoObject));
+            typeof(ExpandoObject)
+        );
         var defaultHint = service.ResolveDynamicProperty(
             typeof(HintedDynamicEntity),
             "Other",
             typeof(object),
-            typeof(ExpandoObject));
+            typeof(ExpandoObject)
+        );
 
         Assert.AreEqual(typeof(int), explicitHint.PropertyType);
         Assert.AreEqual(typeof(double), defaultHint.PropertyType);
@@ -134,7 +136,8 @@ public sealed class SemanticServiceBaselineTests
             typeof(object),
             "Payload",
             typeof(object[]),
-            typeof(ExpandoObject[]));
+            typeof(ExpandoObject[])
+        );
 
         Assert.AreEqual(typeof(object[]), property.PropertyType);
     }
@@ -147,15 +150,18 @@ public sealed class SemanticServiceBaselineTests
         var idProperty = service.TryResolveTypedProperty(
             typeof(IndexerEntity),
             nameof(IndexerEntity.Id),
-            out var idError);
+            out var idError
+        );
         var valuesProperty = service.TryResolveTypedProperty(
             typeof(IndexerEntity),
             nameof(IndexerEntity.Values),
-            out var valuesError);
+            out var valuesError
+        );
         var numbersProperty = service.TryResolveTypedProperty(
             typeof(IndexerEntity),
             nameof(IndexerEntity.Numbers),
-            out var numbersError);
+            out var numbersError
+        );
 
         Assert.IsNull(idError);
         Assert.IsNull(valuesError);
@@ -189,7 +195,7 @@ public sealed class SemanticServiceBaselineTests
         resultShape.GeneratedColumns["items"] =
         [
             new FieldNode(new IntegerNode(1), 0, "Id"),
-            new FieldNode(new StringNode("ada"), 1, "Name")
+            new FieldNode(new StringNode("ada"), 1, "Name"),
         ];
         var service = new SemanticResultShapeBindingService(resultShape);
         var fields = new List<FieldNode>();
@@ -225,8 +231,9 @@ public sealed class SemanticServiceBaselineTests
         var reporter = new SemanticDiagnosticReporter(null);
         var service = new SemanticQueryValidationService(reporter);
 
-        var exception = Assert.Throws<TypeMismatchException>(
-            () => service.ValidateExpressionIsBoolean(new StringNode("not-bool"), "WHERE"));
+        var exception = Assert.Throws<TypeMismatchException>(() =>
+            service.ValidateExpressionIsBoolean(new StringNode("not-bool"), "WHERE")
+        );
 
         Assert.AreEqual("Type mismatch: cannot convert 'String' to 'Boolean'.", exception.Message);
     }
@@ -244,7 +251,8 @@ public sealed class SemanticServiceBaselineTests
         Assert.AreEqual(DiagnosticCode.MQ3027_InvalidExpressionType, error.Code);
         Assert.AreEqual(
             "Expression 'Self' has invalid type 'IndexerEntity' in SELECT. Only primitive types are allowed in query expressions.",
-            error.Message);
+            error.Message
+        );
     }
 
     [TestMethod]
@@ -253,14 +261,13 @@ public sealed class SemanticServiceBaselineTests
         var diagnostics = new DiagnosticContext();
         var reporter = new SemanticDiagnosticReporter(diagnostics);
         var service = new SemanticQueryValidationService(reporter);
-        var select = new SelectNode(
-        [
-            new FieldNode(new AccessColumnNode("Name", "p", typeof(string), TextSpan.Empty), 0, "Name")
+        var select = new SelectNode([
+            new FieldNode(new AccessColumnNode("Name", "p", typeof(string), TextSpan.Empty), 0, "Name"),
         ]);
         var groupBy = new GroupByNode(
-        [
-            new FieldNode(new AccessColumnNode("City", "p", typeof(string), TextSpan.Empty), 0, "City")
-        ], null);
+            [new FieldNode(new AccessColumnNode("City", "p", typeof(string), TextSpan.Empty), 0, "City")],
+            null
+        );
 
         service.ValidateGroupBySemantics(select, groupBy);
 
@@ -268,7 +275,8 @@ public sealed class SemanticServiceBaselineTests
         Assert.AreEqual(DiagnosticCode.MQ3012_NonAggregateInSelect, error.Code);
         Assert.AreEqual(
             "Column 'Name' must appear in the GROUP BY clause or be used in an aggregate function. Current GROUP BY columns: p.City.",
-            error.Message);
+            error.Message
+        );
     }
 
     [TestMethod]
@@ -277,7 +285,11 @@ public sealed class SemanticServiceBaselineTests
         var reporter = new SemanticDiagnosticReporter(null);
         var service = new SemanticExpressionBindingService(reporter);
         var right = new IdentifierNode("Fallback", typeof(string));
-        var folded = service.BindCoalesce(new CoalesceNode(new NullNode(typeof(object)), right), new NullNode(typeof(object)), right);
+        var folded = service.BindCoalesce(
+            new CoalesceNode(new NullNode(typeof(object)), right),
+            new NullNode(typeof(object)),
+            right
+        );
 
         Assert.AreSame(right, folded);
 
@@ -297,12 +309,14 @@ public sealed class SemanticServiceBaselineTests
         var left = new IdentifierNode("Maybe", typeof(int?));
         var right = new StringNode("fallback");
 
-        var exception = Assert.Throws<TypeMismatchException>(
-            () => service.BindCoalesce(new CoalesceNode(left, right), left, right));
+        var exception = Assert.Throws<TypeMismatchException>(() =>
+            service.BindCoalesce(new CoalesceNode(left, right), left, right)
+        );
 
         Assert.AreEqual(
             "Operator ?? requires compatible fallback types, but got 'Int32?' and 'String'.",
-            exception.Message);
+            exception.Message
+        );
     }
 
     [TestMethod]
@@ -311,11 +325,13 @@ public sealed class SemanticServiceBaselineTests
         var message = SemanticExpressionDiagnosticFacts.CreateBooleanContextTypeMismatchMessage(
             new ParameterReferenceNode("threshold", typeof(int)),
             typeof(int),
-            "WHERE");
+            "WHERE"
+        );
 
         Assert.AreEqual(
             "WHERE clause requires a boolean expression, but script parameter '$threshold' has type 'Int32'.",
-            message);
+            message
+        );
     }
 
     [TestMethod]
@@ -324,12 +340,11 @@ public sealed class SemanticServiceBaselineTests
         var query = CreateSetOperatorQuery();
         var service = new SemanticSetOperatorFactService();
 
-        CollectionAssert.AreEqual(
-            new[] { 1, 0, 0 },
-            service.CreatePositionIndexes(query, ["Name", "Missing", "Id"]));
+        CollectionAssert.AreEqual(new[] { 1, 0, 0 }, service.CreatePositionIndexes(query, ["Name", "Missing", "Id"]));
         CollectionAssert.AreEqual(
             new[] { typeof(string), typeof(object), typeof(int) },
-            service.CreatePositionTypes(query, ["Name", "Missing", "Id"]));
+            service.CreatePositionTypes(query, ["Name", "Missing", "Id"])
+        );
         Assert.IsTrue(service.TryGetFieldPosition(query, "Name", out var position));
         Assert.AreEqual(1, position);
     }
@@ -341,7 +356,11 @@ public sealed class SemanticServiceBaselineTests
 
         CollectionAssert.AreEqual(
             new[] { 1, 0, 0 },
-            BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes(query, ["Name", "Missing", "Id"]));
+            BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes(
+                query,
+                ["Name", "Missing", "Id"]
+            )
+        );
     }
 
     [TestMethod]
@@ -349,20 +368,22 @@ public sealed class SemanticServiceBaselineTests
     {
         Assert.AreEqual(
             "Set operator must have the same quantity of columns in both queries. Left has 2 columns, right has 3 columns.",
-            new SetOperatorMustHaveSameQuantityOfColumnsException(2, 3, TextSpan.Empty).Message);
+            new SetOperatorMustHaveSameQuantityOfColumnsException(2, 3, TextSpan.Empty).Message
+        );
         Assert.AreEqual(
             "Set operator must have the same types of columns in both queries. Left column expression is 1 and right column expression is 'name'",
             new SetOperatorMustHaveSameTypesOfColumnsException(
                 new FieldNode(new IntegerNode(1), 0, "Id"),
-                new FieldNode(new StringNode("name"), 0, "Name")).Message);
+                new FieldNode(new StringNode("name"), 0, "Name")
+            ).Message
+        );
     }
 
     private static QueryNode CreateSetOperatorQuery()
     {
-        var select = new SelectNode(
-        [
+        var select = new SelectNode([
             new FieldNode(new IntegerNode(1), 0, "Id"),
-            new FieldNode(new StringNode("ada"), 1, "Name")
+            new FieldNode(new StringNode("ada"), 1, "Name"),
         ]);
         return new QueryNode(
             select,
@@ -371,7 +392,8 @@ public sealed class SemanticServiceBaselineTests
             null,
             null,
             null,
-            null);
+            null
+        );
     }
 
     private static TableSymbol CreateTableSymbol(string alias, params ISchemaColumn[] columns)
@@ -392,5 +414,4 @@ public sealed class SemanticServiceBaselineTests
 
         public int[] Numbers { get; init; } = [];
     }
-
 }

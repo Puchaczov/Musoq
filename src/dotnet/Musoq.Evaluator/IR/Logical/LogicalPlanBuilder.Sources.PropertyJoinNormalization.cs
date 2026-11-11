@@ -13,6 +13,7 @@ public sealed partial class LogicalPlanBuilder
         // dependency before planning so it cannot become an independent hash input.
         return new IrNodes.FilterNode(
             join.OnPredicate,
-            new IrNodes.ApplyNode(IrNodes.ApplyKind.Cross, join.Left, join.Right));
+            new IrNodes.ApplyNode(IrNodes.ApplyKind.Cross, join.Left, join.Right)
+        );
     }
 }

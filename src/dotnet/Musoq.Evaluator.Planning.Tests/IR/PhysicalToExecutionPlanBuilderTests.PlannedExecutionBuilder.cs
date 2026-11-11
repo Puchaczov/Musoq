@@ -15,25 +15,37 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         ExecutionShapeResolver shapeResolver,
         CompilationOptions? compilationOptions = null,
         CteExecutionPlan? cteExecutionPlan = null,
-        ExecutionStrategyPlan? fixedExecutionStrategies = null)
+        ExecutionStrategyPlan? fixedExecutionStrategies = null
+    )
     {
         private readonly CompilationOptions _compilationOptions = compilationOptions ?? new CompilationOptions();
 
         public ExecutionPlanBuildResult Build(PhysicalNode physicalPlan, string identifier = "compiled")
         {
             var planningShapeResolver = new ExecutionPlanningShapeResolverAdapter(shapeResolver);
-            var executionStrategies = fixedExecutionStrategies ??
-                ExecutionStrategyPlanner.Plan(physicalPlan, _compilationOptions, cteExecutionPlan, planningShapeResolver, AuthorizedSourcePlanningFixture.Describe(physicalPlan)).Strategies;
+            var executionStrategies =
+                fixedExecutionStrategies
+                ?? ExecutionStrategyPlanner
+                    .Plan(
+                        physicalPlan,
+                        _compilationOptions,
+                        cteExecutionPlan,
+                        planningShapeResolver,
+                        AuthorizedSourcePlanningFixture.Describe(physicalPlan)
+                    )
+                    .Strategies;
             var executionArtifacts = new ExecutionPlanningArtifacts(
                 executionStrategies,
                 new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
-                []);
+                []
+            );
             var builder = new PhysicalToExecutionPlanBuilder(
                 shapeResolver,
                 null,
                 _compilationOptions,
                 cteExecutionPlan,
-                executionArtifacts);
+                executionArtifacts
+            );
 
             return builder.Build(physicalPlan, identifier);
         }

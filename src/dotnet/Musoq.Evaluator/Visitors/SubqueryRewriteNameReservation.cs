@@ -52,7 +52,8 @@ public partial class SubqueryToCteRewriteVisitor
         while (true)
         {
             var candidate = GeneratedSubqueryContract.CreateScalarMaterializationName(
-                GeneratedSubqueryContract.CreateSubqueryName(index++));
+                GeneratedSubqueryContract.CreateSubqueryName(index++)
+            );
             if (ReserveGeneratedName(candidate))
                 return candidate;
         }

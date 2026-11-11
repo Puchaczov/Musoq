@@ -11,27 +11,44 @@ internal static class OperatorProfileCounterFacts
 {
     public static IEnumerable<StatementSyntax> CreateScopeInputRowStatements(
         ExecutionPlanOperatorDescriptor descriptor,
-        ExecutionNode node)
+        ExecutionNode node
+    )
     {
         var expression = CreateInputRowsExpression(node);
         return expression == null
             ? []
-            : [CreateScopeRowsStatement(CreateScopeVariableName(descriptor), nameof(OperatorProfileScope.AddInputRows), expression)];
+            :
+            [
+                CreateScopeRowsStatement(
+                    CreateScopeVariableName(descriptor),
+                    nameof(OperatorProfileScope.AddInputRows),
+                    expression
+                ),
+            ];
     }
 
     public static IEnumerable<StatementSyntax> CreateScopeOutputRowStatements(
         ExecutionPlanOperatorDescriptor descriptor,
-        ExecutionNode node)
+        ExecutionNode node
+    )
     {
         var expression = CreateOutputRowsExpression(node);
         return expression == null
             ? []
-            : [CreateScopeRowsStatement(CreateScopeVariableName(descriptor), nameof(OperatorProfileScope.AddOutputRows), expression)];
+            :
+            [
+                CreateScopeRowsStatement(
+                    CreateScopeVariableName(descriptor),
+                    nameof(OperatorProfileScope.AddOutputRows),
+                    expression
+                ),
+            ];
     }
 
     public static IEnumerable<StatementSyntax> CreateCounterInputRowStatements(
         ExecutionPlanOperatorDescriptor descriptor,
-        ExecutionNode node)
+        ExecutionNode node
+    )
     {
         var expression = CreateInputRowsExpression(node);
         return expression == null
@@ -41,7 +58,8 @@ internal static class OperatorProfileCounterFacts
 
     public static IEnumerable<StatementSyntax> CreateCounterOutputRowStatements(
         ExecutionPlanOperatorDescriptor descriptor,
-        ExecutionNode node)
+        ExecutionNode node
+    )
     {
         var expression = CreateOutputRowsExpression(node);
         return expression == null
@@ -56,14 +74,18 @@ internal static class OperatorProfileCounterFacts
             : node switch
             {
                 ExecutionOrderRecordList orderRecords => CreateCountExpression(orderRecords.Source.Name),
-                ExecutionParallelFilterProjectLoop parallelProject => TryCreateCountExpression(parallelProject.SourceRows),
-                ExecutionParallelSingleKeyAggregateLoop parallelAggregate => TryCreateCountExpression(parallelAggregate.SourceRows),
+                ExecutionParallelFilterProjectLoop parallelProject => TryCreateCountExpression(
+                    parallelProject.SourceRows
+                ),
+                ExecutionParallelSingleKeyAggregateLoop parallelAggregate => TryCreateCountExpression(
+                    parallelAggregate.SourceRows
+                ),
                 ExecutionHashProbe => CreateLiteralOne(),
                 ExecutionKeySetProbe => CreateLiteralOne(),
                 ExecutionRecursiveCteAppend => CreateLiteralOne(),
                 ExecutionGetOrAddSingleKeyAggregateGroup => CreateLiteralOne(),
                 ExecutionGetOrAddValueTupleAggregateGroup => CreateLiteralOne(),
-                _ => null
+                _ => null,
             };
     }
 
@@ -79,12 +101,17 @@ internal static class OperatorProfileCounterFacts
                 ExecutionCreateValuesRows valuesRows => SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(valuesRows.Rows.Name),
-                    SyntaxFactory.IdentifierName("Length")),
+                    SyntaxFactory.IdentifierName("Length")
+                ),
                 ExecutionMaterializeList materialize => CreateCountExpression(materialize.Buffer.Name),
                 ExecutionMaterializeFilteredList materialize => CreateCountExpression(materialize.Buffer.Name),
                 ExecutionOrderRecordList orderRecords => CreateCountExpression(orderRecords.Source.Name),
-                ExecutionParallelFilterProjectLoop parallelProject => CreateCountExpression(parallelProject.AppendRow.Table.Name),
-                ExecutionParallelSingleKeyAggregateLoop parallelAggregate => CreateCountExpression(parallelAggregate.GroupsToFinalize.Name),
+                ExecutionParallelFilterProjectLoop parallelProject => CreateCountExpression(
+                    parallelProject.AppendRow.Table.Name
+                ),
+                ExecutionParallelSingleKeyAggregateLoop parallelAggregate => CreateCountExpression(
+                    parallelAggregate.GroupsToFinalize.Name
+                ),
                 ExecutionStoreTable store => CreateCountExpression(store.Table.Name),
                 ExecutionHashAdd => CreateLiteralOne(),
                 ExecutionKeySetAdd => CreateLiteralOne(),
@@ -92,119 +119,141 @@ internal static class OperatorProfileCounterFacts
                 ExecutionAggregateCapturedValueSet => CreateLiteralOne(),
                 ExecutionGetOrAddSingleKeyAggregateGroup => CreateLiteralOne(),
                 ExecutionGetOrAddValueTupleAggregateGroup => CreateLiteralOne(),
-                _ => null
+                _ => null,
             };
     }
 
     public static LocalDeclarationStatementSyntax CreateLongCounterDeclaration(string name)
     {
         return SyntaxFactory.LocalDeclarationStatement(
-            SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword)))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(name)
-                        .WithInitializer(SyntaxFactory.EqualsValueClause(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(0L)))))));
+            SyntaxFactory
+                .VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword)))
+                .WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory
+                            .VariableDeclarator(name)
+                            .WithInitializer(
+                                SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(0L)
+                                    )
+                                )
+                            )
+                    )
+                )
+        );
     }
 
     public static StatementSyntax CreateCounterFlushStatement(
         string profileRecorderVariableName,
         string methodName,
         ExecutionPlanOperatorDescriptor descriptor,
-        string rowsVariableName)
+        string rowsVariableName
+    )
     {
         return StatementEmitter.CreateIf(
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.GreaterThanExpression,
                 SyntaxFactory.IdentifierName(rowsVariableName),
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(0L))),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0L))
+            ),
             SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.ConditionalAccessExpression(
                     SyntaxFactory.IdentifierName(profileRecorderVariableName),
-                    SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberBindingExpression(
-                                SyntaxFactory.IdentifierName(methodName)))
-                        .WithArgumentList(CreateArgumentList(
-                            SyntaxFactory.IdentifierName(CreateHandleVariableName(descriptor)),
-                            SyntaxFactory.IdentifierName(rowsVariableName))))));
+                    SyntaxFactory
+                        .InvocationExpression(
+                            SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(methodName))
+                        )
+                        .WithArgumentList(
+                            CreateArgumentList(
+                                SyntaxFactory.IdentifierName(CreateHandleVariableName(descriptor)),
+                                SyntaxFactory.IdentifierName(rowsVariableName)
+                            )
+                        )
+                )
+            )
+        );
     }
 
     public static StatementSyntax CreateScopeRowsStatement(
         string scopeVariableName,
         string methodName,
-        ExpressionSyntax rowsExpression)
+        ExpressionSyntax rowsExpression
+    )
     {
         return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(scopeVariableName),
-                        SyntaxFactory.IdentifierName(methodName)))
-                .WithArgumentList(CreateArgumentList(rowsExpression)));
+                        SyntaxFactory.IdentifierName(methodName)
+                    )
+                )
+                .WithArgumentList(CreateArgumentList(rowsExpression))
+        );
     }
 
-    public static StatementSyntax CreateCounterRowsStatement(
-        string counterName,
-        ExpressionSyntax rowsExpression)
+    public static StatementSyntax CreateCounterRowsStatement(string counterName, ExpressionSyntax rowsExpression)
     {
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.AddAssignmentExpression,
                 SyntaxFactory.IdentifierName(counterName),
-                rowsExpression));
+                rowsExpression
+            )
+        );
     }
 
     public static bool UsesLoopRowCounters(ExecutionNode node) =>
         node is ExecutionForEach or ExecutionForEachWithOrdinality or ExecutionForEachIndexed or ExecutionRecursiveCte;
 
     public static bool IsCounterOnlyNode(ExecutionNode node) =>
-        node is
-            ExecutionLet or
-            ExecutionIf or
-            ExecutionAppendRow or
-            ExecutionAppendExistingRow or
-            ExecutionAppendRecord or
-            ExecutionAssign or
-            ExecutionArrayAssign or
-            ExecutionContinueIf or
-            ExecutionGetOrAddSingleKeyAggregateGroup or
-            ExecutionGetOrAddValueTupleAggregateGroup or
-            ExecutionHashAdd or
-            ExecutionHashProbe or
-            ExecutionKeySetAdd or
-            ExecutionKeySetProbe or
-            ExecutionRecursiveCteAppend or
-            ExecutionAggregateSet or
-            ExecutionAggregateCapturedValueSet ||
-        node is ExecutionForEach forEach && IsProbeMatchLoop(forEach);
+        node
+            is ExecutionLet
+                or ExecutionIf
+                or ExecutionAppendRow
+                or ExecutionAppendExistingRow
+                or ExecutionAppendRecord
+                or ExecutionAssign
+                or ExecutionArrayAssign
+                or ExecutionContinueIf
+                or ExecutionGetOrAddSingleKeyAggregateGroup
+                or ExecutionGetOrAddValueTupleAggregateGroup
+                or ExecutionHashAdd
+                or ExecutionHashProbe
+                or ExecutionKeySetAdd
+                or ExecutionKeySetProbe
+                or ExecutionRecursiveCteAppend
+                or ExecutionAggregateSet
+                or ExecutionAggregateCapturedValueSet
+        || node is ExecutionForEach forEach && IsProbeMatchLoop(forEach);
 
     public static bool IsCounterOnlyDescriptor(ExecutionPlanOperatorDescriptor descriptor) =>
-        descriptor.NodeKind is
-            "Let" or
-            "If" or
-            "AppendRow" or
-            "AppendShape" or
-            "AppendRowBuffer" or
-            "AppendExistingRow" or
-            "AppendExistingShape" or
-            "AppendExistingRowBuffer" or
-            "AppendRecord" or
-            "Assign" or
-            "ArrayAssign" or
-            "ContinueIf" or
-            "GetOrAddSingleKeyAggregateGroup" or
-            "GetOrAddValueTupleAggregateGroup" or
-            "HashAdd" or
-            "HashProbe" or
-            "KeySetAdd" or
-            "KeySetProbe" or
-            "RecursiveAppend" or
-            "TypedAggregateSet" or
-            "AggregateCapturedValueSet" ||
-        IsProbeMatchLoopDescriptor(descriptor);
+        descriptor.NodeKind
+            is "Let"
+                or "If"
+                or "AppendRow"
+                or "AppendShape"
+                or "AppendRowBuffer"
+                or "AppendExistingRow"
+                or "AppendExistingShape"
+                or "AppendExistingRowBuffer"
+                or "AppendRecord"
+                or "Assign"
+                or "ArrayAssign"
+                or "ContinueIf"
+                or "GetOrAddSingleKeyAggregateGroup"
+                or "GetOrAddValueTupleAggregateGroup"
+                or "HashAdd"
+                or "HashProbe"
+                or "KeySetAdd"
+                or "KeySetProbe"
+                or "RecursiveAppend"
+                or "TypedAggregateSet"
+                or "AggregateCapturedValueSet"
+        || IsProbeMatchLoopDescriptor(descriptor);
 
     public static string CreateScopeVariableName(ExecutionPlanOperatorDescriptor descriptor)
     {
@@ -231,7 +280,8 @@ internal static class OperatorProfileCounterFacts
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(variableName),
-            SyntaxFactory.IdentifierName("Count"));
+            SyntaxFactory.IdentifierName("Count")
+        );
     }
 
     private static ExpressionSyntax? TryCreateCountExpression(ExecutionExpression expression)
@@ -243,18 +293,16 @@ internal static class OperatorProfileCounterFacts
 
     private static ExpressionSyntax CreateLiteralOne()
     {
-        return SyntaxFactory.LiteralExpression(
-            SyntaxKind.NumericLiteralExpression,
-            SyntaxFactory.Literal(1));
+        return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1));
     }
 
     private static bool IsProbeMatchLoop(ExecutionForEach forEach) =>
-        forEach.Source is ExecutionVariableRead { Variable.Name: var name } &&
-        name.EndsWith("Matches", StringComparison.Ordinal);
+        forEach.Source is ExecutionVariableRead { Variable.Name: var name }
+        && name.EndsWith("Matches", StringComparison.Ordinal);
 
     private static bool IsProbeMatchLoopDescriptor(ExecutionPlanOperatorDescriptor descriptor) =>
-        descriptor.NodeKind.Equals("ForEach", StringComparison.Ordinal) &&
-        descriptor.DisplayName.Contains("Matches]", StringComparison.Ordinal);
+        descriptor.NodeKind.Equals("ForEach", StringComparison.Ordinal)
+        && descriptor.DisplayName.Contains("Matches]", StringComparison.Ordinal);
 
     private static ArgumentListSyntax CreateArgumentList(params ExpressionSyntax[] arguments)
     {

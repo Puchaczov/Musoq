@@ -22,7 +22,8 @@ public sealed class PhysicalLoweringContextStateTests
         var snapshot = updated.Snapshot;
         Assert.AreSame(payload, snapshot[3]);
         Assert.ThrowsExactly<System.NotSupportedException>(() =>
-            ((IDictionary<int, HashPayloadShape>)snapshot).Add(4, payload));
+            ((IDictionary<int, HashPayloadShape>)snapshot).Add(4, payload)
+        );
     }
 
     [TestMethod]
@@ -33,9 +34,7 @@ public sealed class PhysicalLoweringContextStateTests
 
         var updatedContext = context with
         {
-            SidecarHashPayloads = context.SidecarHashPayloads.WithPayload(
-                7,
-                new HashPayloadShape("PayloadRow", []))
+            SidecarHashPayloads = context.SidecarHashPayloads.WithPayload(7, new HashPayloadShape("PayloadRow", [])),
         };
 
         Assert.IsNotNull(context.SidecarHashPayloads);

@@ -8,16 +8,19 @@ public sealed partial class ExecutionCSharpRenderer
     private LocalDeclarationStatementSyntax CreateFinalShapeSourceBufferDeclaration(
         ExecutionCreateTable createTable,
         FinalShapeSourceBuffer buffer,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var listType = CreateListTypeSyntax(buffer.ShapeTypeName);
-        var arguments = createTable.CapacityHint == null
-            ? SyntaxFactory.ArgumentList()
-            : CreateArgumentList([RenderCapacityHint(createTable.CapacityHint, context)]);
+        var arguments =
+            createTable.CapacityHint == null
+                ? SyntaxFactory.ArgumentList()
+                : CreateArgumentList([RenderCapacityHint(createTable.CapacityHint, context)]);
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             createTable.Table.Name,
-            SyntaxFactory.ObjectCreationExpression(listType).WithArgumentList(arguments));
+            SyntaxFactory.ObjectCreationExpression(listType).WithArgumentList(arguments)
+        );
     }
 }

@@ -14,15 +14,15 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class CouplingSyntaxTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void WhenSingleValueTableIsCoupledWithSchema_ShouldHaveAppropriateTypesTest()
     {
-        const string query = "table DummyTable {" +
-                             "   Name: string" +
-                             "};" +
-                             "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
-                             "select Name from SourceOfDummyRows();";
+        const string query =
+            "table DummyTable {"
+            + "   Name: string"
+            + "};"
+            + "couple #A.Entities with table DummyTable as SourceOfDummyRows;"
+            + "select Name from SourceOfDummyRows();";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -32,9 +32,9 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
                     new BasicEntity("ABCAACBA"),
                     new BasicEntity("AAeqwgQEW"),
                     new BasicEntity("XXX"),
-                    new BasicEntity("dadsqqAA")
+                    new BasicEntity("dadsqqAA"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -46,32 +46,27 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
 
         Assert.AreEqual(4, table.Count, "Result should contain exactly 4 strings");
 
-        var actualStrings = table
-            .Select(row => (string)row.ReadValues()[0])
-            .ToList();
+        var actualStrings = table.Select(row => (string)row.ReadValues()[0]).ToList();
 
-        Assert.IsTrue(actualStrings.Any(s => s == "ABCAACBA"),
-            "Expected string 'ABCAACBA' not found in results");
+        Assert.IsTrue(actualStrings.Any(s => s == "ABCAACBA"), "Expected string 'ABCAACBA' not found in results");
 
-        Assert.IsTrue(actualStrings.Any(s => s == "AAeqwgQEW"),
-            "Expected string 'AAeqwgQEW' not found in results");
+        Assert.IsTrue(actualStrings.Any(s => s == "AAeqwgQEW"), "Expected string 'AAeqwgQEW' not found in results");
 
-        Assert.IsTrue(actualStrings.Any(s => s == "XXX"),
-            "Expected string 'XXX' not found in results");
+        Assert.IsTrue(actualStrings.Any(s => s == "XXX"), "Expected string 'XXX' not found in results");
 
-        Assert.IsTrue(actualStrings.Any(s => s == "dadsqqAA"),
-            "Expected string 'dadsqqAA' not found in results");
+        Assert.IsTrue(actualStrings.Any(s => s == "dadsqqAA"), "Expected string 'dadsqqAA' not found in results");
     }
 
     [TestMethod]
     public void WhenTwoValuesTableIsCoupledWithSchema_ShouldHaveAppropriateTypesTest()
     {
-        const string query = "table DummyTable {" +
-                             "   Country: string," +
-                             "   Population: decimal" +
-                             "};" +
-                             "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
-                             "select Country, Population from SourceOfDummyRows();";
+        const string query =
+            "table DummyTable {"
+            + "   Country: string,"
+            + "   Population: decimal"
+            + "};"
+            + "couple #A.Entities with table DummyTable as SourceOfDummyRows;"
+            + "select Country, Population from SourceOfDummyRows();";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -81,9 +76,9 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
                     new BasicEntity("ABCAACBA", 10),
                     new BasicEntity("AAeqwgQEW", 20),
                     new BasicEntity("XXX", 30),
-                    new BasicEntity("dadsqqAA", 40)
+                    new BasicEntity("dadsqqAA", 40),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -98,36 +93,35 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValues()[0] == "ABCAACBA" &&
-            (decimal)row.ReadValues()[1] == 10m));
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "ABCAACBA" && (decimal)row.ReadValues()[1] == 10m)
+        );
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValues()[0] == "AAeqwgQEW" &&
-            (decimal)row.ReadValues()[1] == 20m));
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "AAeqwgQEW" && (decimal)row.ReadValues()[1] == 20m)
+        );
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValues()[0] == "XXX" &&
-            (decimal)row.ReadValues()[1] == 30m));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "XXX" && (decimal)row.ReadValues()[1] == 30m));
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValues()[0] == "dadsqqAA" &&
-            (decimal)row.ReadValues()[1] == 40m));
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "dadsqqAA" && (decimal)row.ReadValues()[1] == 40m)
+        );
     }
 
     [TestMethod]
     public void WhenTwoTablesAreCoupledWithSchemas_ShouldHaveAppropriateTypesTest()
     {
-        const string query = "table FirstTable {" +
-                             "   Country: string," +
-                             "   Population: decimal" +
-                             "};" +
-                             "table SecondTable {" +
-                             "   Name: string," +
-                             "};" +
-                             "couple #A.Entities with table FirstTable as SourceOfFirstTableRows;" +
-                             "couple #B.Entities with table SecondTable as SourceOfSecondTableRows;" +
-                             "select s2.Name from SourceOfFirstTableRows() s1 inner join SourceOfSecondTableRows() s2 on s1.Country = s2.Name";
+        const string query =
+            "table FirstTable {"
+            + "   Country: string,"
+            + "   Population: decimal"
+            + "};"
+            + "table SecondTable {"
+            + "   Name: string,"
+            + "};"
+            + "couple #A.Entities with table FirstTable as SourceOfFirstTableRows;"
+            + "couple #B.Entities with table SecondTable as SourceOfSecondTableRows;"
+            + "select s2.Name from SourceOfFirstTableRows() s1 inner join SourceOfSecondTableRows() s2 on s1.Country = s2.Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -137,7 +131,7 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
                     new BasicEntity("ABCAACBA", 10),
                     new BasicEntity("AAeqwgQEW", 20),
                     new BasicEntity("XXX", 30),
-                    new BasicEntity("dadsqqAA", 40)
+                    new BasicEntity("dadsqqAA", 40),
                 ]
             },
             {
@@ -146,9 +140,9 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
                     new BasicEntity("ABCAACBA"),
                     new BasicEntity("AAeqwgQEW"),
                     new BasicEntity("XXX"),
-                    new BasicEntity("dadsqqAA")
+                    new BasicEntity("dadsqqAA"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -159,32 +153,34 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.ReadValues()[0] == "ABCAACBA"),
-            "First entry should be 'ABCAACBA'");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "ABCAACBA"),
+            "First entry should be 'ABCAACBA'"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.ReadValues()[0] == "AAeqwgQEW"),
-            "Second entry should be 'AAeqwgQEW'");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "AAeqwgQEW"),
+            "Second entry should be 'AAeqwgQEW'"
+        );
 
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.ReadValues()[0] == "XXX"),
-            "Third entry should be 'XXX'");
+        Assert.IsTrue(table.Any(entry => (string)entry.ReadValues()[0] == "XXX"), "Third entry should be 'XXX'");
 
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.ReadValues()[0] == "dadsqqAA"),
-            "Fourth entry should be 'dadsqqAA'");
+        Assert.IsTrue(
+            table.Any(entry => (string)entry.ReadValues()[0] == "dadsqqAA"),
+            "Fourth entry should be 'dadsqqAA'"
+        );
     }
 
     [TestMethod]
     public void WhenArgumentPassedToAliasedSchema_ShouldBeProperlyRecognized()
     {
-        const string query = "table DummyTable {" +
-                             "   Parameter0: bool," +
-                             "   Parameter1: string" +
-                             "};" +
-                             "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
-                             "select Parameter0, Parameter1 from SourceOfDummyRows(true, 'test');";
+        const string query =
+            "table DummyTable {"
+            + "   Parameter0: bool,"
+            + "   Parameter1: string"
+            + "};"
+            + "couple #A.Entities with table DummyTable as SourceOfDummyRows;"
+            + "select Parameter0, Parameter1 from SourceOfDummyRows(true, 'test');";
 
         var vm = CreateAndRunVirtualMachine(query, null, new ParametersSchemaProvider());
         var table = vm.Run(TestContext.CancellationToken);
@@ -205,16 +201,17 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
     [TestMethod]
     public void WhenDataSourceIsBasedOnAnotherDataSource_ShouldPass()
     {
-        var query = "" +
-                    "table Values {" +
-                    "   Text: string" +
-                    "};" +
-                    "couple #unknown.others with table Values as SourceOfValues;" +
-                    "couple #unknown.anything with table Values as InputValues;" +
-                    "with Anything as (" +
-                    "   select Text from InputValues()" +
-                    ")" +
-                    "select Text from SourceOfValues(Anything)";
+        var query =
+            ""
+            + "table Values {"
+            + "   Text: string"
+            + "};"
+            + "couple #unknown.others with table Values as SourceOfValues;"
+            + "couple #unknown.anything with table Values as InputValues;"
+            + "with Anything as ("
+            + "   select Text from InputValues()"
+            + ")"
+            + "select Text from SourceOfValues(Anything)";
 
         dynamic first = new ExpandoObject();
 
@@ -233,13 +230,15 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Result should contain exactly 2 test values");
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValues()[0] == "test1"
-        ), "Expected value 'test1' not found in results");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "test1"),
+            "Expected value 'test1' not found in results"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValues()[0] == "test2"
-        ), "Expected value 'test2' not found in results");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "test2"),
+            "Expected value 'test2' not found in results"
+        );
     }
 
     private sealed class ParametersSchemaProvider : ISchemaProvider
@@ -254,25 +253,41 @@ public partial class CouplingSyntaxTests : BasicEntityTestBase
     {
         private const string SchemaName = "Parameters";
 
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
-            params object?[] parameters)
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext metadataContext,
+            params object?[] parameters
+        )
         {
             return new ParametersTable(parameters);
         }
 
-        public override global::Musoq.Schema.Optimization.SourceDescriptor DescribeSource(string name,
-            global::Musoq.Schema.Optimization.SourceDescribeContext context, params object?[] parameters)
-            => base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
+        public override global::Musoq.Schema.Optimization.SourceDescriptor DescribeSource(
+            string name,
+            global::Musoq.Schema.Optimization.SourceDescribeContext context,
+            params object?[] parameters
+        ) =>
+            base.DescribeSource(name, context, parameters) with
+            {
+                TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
+            };
 
         public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
-            string name, QueryScopedRowSourceRequest request, TArguments nativeArguments)
+            string name,
+            QueryScopedRowSourceRequest request,
+            TArguments nativeArguments
+        )
             where TMaterializer : struct, IQueryRowMaterializer<TRow>
             where TArguments : struct, ISourceArguments
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
-            var row = parameters.Select((value, index) => (value, index))
+            var row = parameters
+                .Select((value, index) => (value, index))
                 .ToDictionary(pair => $"Parameter{pair.index}", pair => pair.value);
-            return new global::Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>([row], request.Shape.Fields);
+            return new global::Musoq.Tests.Common.NativeDictionaryTestSource<TRow, TMaterializer>(
+                [row],
+                request.Shape.Fields
+            );
         }
 
         private static MethodsAggregator CreateLibrary()

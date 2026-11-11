@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class ImplicitBooleanConversionTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void WhenMatchFunctionUsedWithExplicitTrueComparison_ShouldWork()
     {
@@ -15,12 +14,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Test123"),
-                    new BasicEntity("NoNumbers")
-                ]
-            }
+            { "#A", [new BasicEntity("Test123"), new BasicEntity("NoNumbers")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -37,12 +31,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Test123"),
-                    new BasicEntity("NoNumbers")
-                ]
-            }
+            { "#A", [new BasicEntity("Test123"), new BasicEntity("NoNumbers")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -60,22 +49,14 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Test123"),
-                    new BasicEntity("NoNumbers")
-                ]
-            }
+            { "#A", [new BasicEntity("Test123"), new BasicEntity("NoNumbers")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Result", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["NoNumbers"],
-            ["HasNumbers"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["NoNumbers"], ["HasNumbers"]);
     }
 
     [TestMethod]
@@ -86,21 +67,13 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Test123"),
-                    new BasicEntity("NoNumbers")
-                ]
-            }
+            { "#A", [new BasicEntity("Test123"), new BasicEntity("NoNumbers")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Result", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["NoNumbers"],
-            ["HasNumbers"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["NoNumbers"], ["HasNumbers"]);
     }
 }

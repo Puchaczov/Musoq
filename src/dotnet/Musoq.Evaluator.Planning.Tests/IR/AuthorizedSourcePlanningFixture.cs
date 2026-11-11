@@ -20,7 +20,8 @@ internal static class AuthorizedSourcePlanningFixture
             descriptors[sourceId] = new SourceDescriptor
             {
                 Identity = new SourceIdentity(scan.SchemaName, scan.MethodName, sourceId, scan.Alias),
-                ExecutionPermissions = SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing
+                ExecutionPermissions =
+                    SourceExecutionPermissions.ConcurrentAccess | SourceExecutionPermissions.ConcurrentRowProcessing,
             };
         foreach (var child in node.Children)
             Add(child, descriptors);

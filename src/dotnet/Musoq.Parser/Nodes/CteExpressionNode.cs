@@ -5,9 +5,7 @@ namespace Musoq.Parser.Nodes;
 public class CteExpressionNode : Node
 {
     public CteExpressionNode(CteInnerExpressionNode[] sets, Node outerSets)
-        : this(sets, outerSets, false)
-    {
-    }
+        : this(sets, outerSets, false) { }
 
     public CteExpressionNode(CteInnerExpressionNode[] sets, Node outerSets, bool isRecursive)
     {
@@ -26,7 +24,8 @@ public class CteExpressionNode : Node
 
     public bool IsRecursive { get; }
 
-    public override string Id => $"{nameof(CteExpressionNode)}{(IsRecursive ? "Recursive" : string.Empty)}{OuterExpression.Id}";
+    public override string Id =>
+        $"{nameof(CteExpressionNode)}{(IsRecursive ? "Recursive" : string.Empty)}{OuterExpression.Id}";
 
     public override void Accept(IExpressionVisitor visitor)
     {

@@ -9,7 +9,8 @@ internal static partial class SourceBoundaryPlanner
 {
     private static SourceBoundaryInputMode ResolveApplyInputMode(
         IReadOnlyList<string> leftAliases,
-        string[] dependencyAliases)
+        string[] dependencyAliases
+    )
     {
         if (dependencyAliases.Length == 0)
             return SourceBoundaryInputMode.Independent;
@@ -26,15 +27,13 @@ internal static partial class SourceBoundaryPlanner
         {
             SourceBoundaryInputMode.Independent => SourceInvocationShape.PerQuery,
             SourceBoundaryInputMode.Correlated => SourceInvocationShape.PerRow,
-            _ => SourceInvocationShape.Unknown
+            _ => SourceInvocationShape.Unknown,
         };
     }
 
     private static SourceRowBehavior ResolveRowBehavior(ApplyKind applyKind)
     {
-        return applyKind == ApplyKind.Outer
-            ? SourceRowBehavior.RowPreserving
-            : SourceRowBehavior.RowMultiplying;
+        return applyKind == ApplyKind.Outer ? SourceRowBehavior.RowPreserving : SourceRowBehavior.RowMultiplying;
     }
 
     private static SourceResultShape ResolveResultShape(LogicalNode node)
@@ -46,7 +45,7 @@ internal static partial class SourceBoundaryPlanner
             AccessMethodSourceNode accessMethod => ResolveResultShape(accessMethod.ResultType),
             SchemaScanNode or CteRefNode => SourceResultShape.Declared,
             ApplyNode apply => ResolveResultShape(apply.Right),
-            _ => node.OutputSchema.Columns.Length == 0 ? SourceResultShape.Unknown : SourceResultShape.Declared
+            _ => node.OutputSchema.Columns.Length == 0 ? SourceResultShape.Unknown : SourceResultShape.Declared,
         };
     }
 
@@ -71,8 +70,7 @@ internal static partial class SourceBoundaryPlanner
             return false;
 
         var typeDefinition = type.GetGenericTypeDefinition();
-        return typeDefinition == typeof(IDictionary<,>) ||
-               typeDefinition == typeof(IReadOnlyDictionary<,>);
+        return typeDefinition == typeof(IDictionary<,>) || typeDefinition == typeof(IReadOnlyDictionary<,>);
     }
 
     private static SourceCacheability ResolveCacheability(SourceBoundaryInputMode mode)
@@ -81,7 +79,7 @@ internal static partial class SourceBoundaryPlanner
         {
             SourceBoundaryInputMode.Independent => SourceCacheability.CacheCandidate,
             SourceBoundaryInputMode.Correlated => SourceCacheability.NotCacheable,
-            _ => SourceCacheability.Unknown
+            _ => SourceCacheability.Unknown,
         };
     }
 
@@ -91,7 +89,7 @@ internal static partial class SourceBoundaryPlanner
         {
             SourceBoundaryInputMode.Independent => PlanningConfidence.Medium,
             SourceBoundaryInputMode.Correlated => PlanningConfidence.High,
-            _ => PlanningConfidence.Low
+            _ => PlanningConfidence.Low,
         };
     }
 }

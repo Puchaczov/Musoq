@@ -13,7 +13,8 @@ public sealed class DiagnosticCore028OrderByTests
     [TestMethod]
     public void OrderBy_MixedDirectionsAndNullPlacement_ShouldPreserveFieldMetadata()
     {
-        const string query = "select Name from #A.entities() order by City desc nulls first, Name nulls last, Population asc";
+        const string query =
+            "select Name from #A.entities() order by City desc nulls first, Name nulls last, Population asc";
         var orderBy = ParseQuery(query).OrderBy ?? throw new AssertFailedException("Expected ORDER BY.");
 
         Assert.HasCount(3, orderBy.Fields);
@@ -35,7 +36,8 @@ public sealed class DiagnosticCore028OrderByTests
             DiagnosticCode.MQ2009_InvalidOrderByExpression,
             "Expected FIRST or LAST after NULLS in ORDER BY.",
             SpanOf(query, "middle"),
-            "Core Spec - ORDER BY Clause");
+            "Core Spec - ORDER BY Clause"
+        );
     }
 
     [TestMethod]
@@ -48,7 +50,8 @@ public sealed class DiagnosticCore028OrderByTests
             DiagnosticCode.MQ2014_TrailingComma,
             "ORDER BY list has a trailing comma. Add another expression or remove the comma.",
             new TextSpan(query.Length - 1, 1),
-            "Core Spec - Lists");
+            "Core Spec - Lists"
+        );
     }
 
     [TestMethod]
@@ -61,7 +64,8 @@ public sealed class DiagnosticCore028OrderByTests
             DiagnosticCode.MQ2015_LeadingComma,
             "ORDER BY list has a leading comma. Add an expression before the comma or remove it.",
             new TextSpan(query.IndexOf(',', StringComparison.Ordinal), 1),
-            "Core Spec - Lists");
+            "Core Spec - Lists"
+        );
     }
 
     [TestMethod]
@@ -69,7 +73,11 @@ public sealed class DiagnosticCore028OrderByTests
     [DataRow("skip -1", "SKIP", "-1")]
     [DataRow("take 3.5", "TAKE", "3.5")]
     [DataRow("skip 'two'", "SKIP", "'two'")]
-    public void SliceCount_InvalidForm_ShouldReportExactDiagnostic(string clause, string clauseName, string offendingText)
+    public void SliceCount_InvalidForm_ShouldReportExactDiagnostic(
+        string clause,
+        string clauseName,
+        string offendingText
+    )
     {
         var query = $"select 1 from #A.entities() {clause}";
 
@@ -78,7 +86,8 @@ public sealed class DiagnosticCore028OrderByTests
             DiagnosticCode.MQ2038_InvalidSliceCount,
             $"{clauseName} count must be a non-negative integer.",
             SpanOf(query, offendingText),
-            "Core Spec - TAKE and SKIP");
+            "Core Spec - TAKE and SKIP"
+        );
     }
 
     private static void AssertParseDiagnostic(
@@ -86,7 +95,8 @@ public sealed class DiagnosticCore028OrderByTests
         DiagnosticCode expectedCode,
         string expectedMessage,
         TextSpan expectedSpan,
-        string expectedDocsReference)
+        string expectedDocsReference
+    )
     {
         var lexer = new Lexer(query, true, recoverOnError: true);
         var result = new Parser(lexer, lexer.Diagnostics).ParseWithDiagnostics();

@@ -11,15 +11,17 @@ public class ParserUnpivotTests
     [TestMethod]
     public void Unpivot_ShouldParseSourceEntriesKeepAndPostClauses()
     {
-        var root = Parse("""
-                         unpivot #sales.wide() s
-                         on Quarter in (s.Q1 as Q1, s.Q2 as Q2)
-                         using Sales
-                         keep s.Region as Region
-                         order by Region
-                         skip 1
-                         take 2
-                         """);
+        var root = Parse(
+            (
+                "unpivot #sales.wide() s\n"
+                + "on Quarter in (s.Q1 as Q1, s.Q2 as Q2)\n"
+                + "using Sales\n"
+                + "keep s.Region as Region\n"
+                + "order by Region\n"
+                + "skip 1\n"
+                + "take 2"
+            )
+        );
 
         var query = GetSingleQuery(root);
         var unpivot = AssertUnpivot(query.From);
@@ -47,12 +49,9 @@ public class ParserUnpivotTests
     [TestMethod]
     public void Unpivot_WithImplicitSimpleAliases_ShouldDeriveNameValues()
     {
-        var root = Parse("""
-                         unpivot #sales.wide() s
-                         on Quarter in (s.Q1, Q2)
-                         using Sales
-                         keep s.Region
-                         """);
+        var root = Parse(
+            ("unpivot #sales.wide() s\n" + "on Quarter in (s.Q1, Q2)\n" + "using Sales\n" + "keep s.Region")
+        );
 
         var unpivot = AssertUnpivot(GetSingleQuery(root).From);
 
@@ -64,27 +63,31 @@ public class ParserUnpivotTests
     [TestMethod]
     public void Unpivot_ShouldParseInsideCteAndDerivedTable()
     {
-        var cte = Parse("""
-                        with u as (
-                            unpivot #sales.wide() s
-                            on Quarter in (s.Q1 as Q1)
-                            using Sales
-                            keep s.Region as Region
-                        )
-                        select Region, Quarter, Sales from u
-                        """);
+        var cte = Parse(
+            (
+                "with u as (\n"
+                + "    unpivot #sales.wide() s\n"
+                + "    on Quarter in (s.Q1 as Q1)\n"
+                + "    using Sales\n"
+                + "    keep s.Region as Region\n"
+                + ")\n"
+                + "select Region, Quarter, Sales from u"
+            )
+        );
 
         Assert.IsNotNull(cte);
 
-        var derived = Parse("""
-                            select u.Region
-                            from (
-                                unpivot #sales.wide() s
-                                on Quarter in (s.Q1 as Q1)
-                                using Sales
-                                keep s.Region as Region
-                            ) u
-                            """);
+        var derived = Parse(
+            (
+                "select u.Region\n"
+                + "from (\n"
+                + "    unpivot #sales.wide() s\n"
+                + "    on Quarter in (s.Q1 as Q1)\n"
+                + "    using Sales\n"
+                + "    keep s.Region as Region\n"
+                + ") u"
+            )
+        );
 
         Assert.IsNotNull(derived);
     }
@@ -112,9 +115,7 @@ public class ParserUnpivotTests
     {
         var statements = (StatementsArrayNode)((RootNode)root).Expression;
         var statementNode = statements.Statements[0].Node;
-        return statementNode is SingleSetNode singleSet
-            ? singleSet.Query
-            : (QueryNode)statementNode;
+        return statementNode is SingleSetNode singleSet ? singleSet.Query : (QueryNode)statementNode;
     }
 
     private static UnpivotFromNode AssertUnpivot(FromNode from)

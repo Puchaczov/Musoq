@@ -19,7 +19,8 @@ public sealed class TargetDiagnosticReporterTests
             "target warning",
             new TargetSourceRange(7, 1, 3, 4, 3, 5),
             "generated-query.g.cs",
-            "select 1");
+            "select 1"
+        );
 
         TargetDiagnosticReporter.Report([targetDiagnostic], context);
 
@@ -42,10 +43,7 @@ public sealed class TargetDiagnosticReporterTests
     public void Report_WhenTargetHasNoRange_ShouldKeepTheLocationUnknownInsteadOfUsingSqlOffsetZero()
     {
         var context = new DiagnosticContext(new SourceText("select 1", "query.musoq"));
-        var targetDiagnostic = new TargetDiagnostic(
-            "MT9999",
-            TargetDiagnosticSeverity.Error,
-            "target failure");
+        var targetDiagnostic = new TargetDiagnostic("MT9999", TargetDiagnosticSeverity.Error, "target failure");
 
         TargetDiagnosticReporter.Report([targetDiagnostic], context);
 

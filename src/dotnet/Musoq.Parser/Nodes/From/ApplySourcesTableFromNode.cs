@@ -2,22 +2,35 @@ namespace Musoq.Parser.Nodes.From;
 
 public class ApplySourcesTableFromNode : FromNode
 {
-    internal ApplySourcesTableFromNode(FromNode first, FromNode second, ApplyType applyType, bool withOrdinality = false)
+    internal ApplySourcesTableFromNode(
+        FromNode first,
+        FromNode second,
+        ApplyType applyType,
+        bool withOrdinality = false
+    )
         : base(CreateAlias(first, second))
     {
-        Id = $"{nameof(JoinSourcesTableFromNode)}{first.Alias}{second.Alias}{(withOrdinality ? "WithOrdinality" : string.Empty)}";
+        Id =
+            $"{nameof(JoinSourcesTableFromNode)}{first.Alias}{second.Alias}{(withOrdinality ? "WithOrdinality" : string.Empty)}";
         First = first;
         Second = second;
         ApplyType = applyType;
         WithOrdinality = withOrdinality;
     }
 
-    public ApplySourcesTableFromNode(FromNode first, FromNode second, ApplyType applyType, Type returnType, bool withOrdinality = false)
+    public ApplySourcesTableFromNode(
+        FromNode first,
+        FromNode second,
+        ApplyType applyType,
+        Type returnType,
+        bool withOrdinality = false
+    )
         : base(CreateAlias(first, second), returnType)
     {
         ArgumentNullException.ThrowIfNull(first);
         ArgumentNullException.ThrowIfNull(second);
-        Id = $"{nameof(JoinSourcesTableFromNode)}{first.Alias}{second.Alias}{(withOrdinality ? "WithOrdinality" : string.Empty)}";
+        Id =
+            $"{nameof(JoinSourcesTableFromNode)}{first.Alias}{second.Alias}{(withOrdinality ? "WithOrdinality" : string.Empty)}";
         First = first;
         Second = second;
         ApplyType = applyType;

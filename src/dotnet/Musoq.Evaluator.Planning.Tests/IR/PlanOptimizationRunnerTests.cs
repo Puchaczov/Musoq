@@ -14,9 +14,7 @@ public sealed class PlanOptimizationRunnerTests
         var second = new AppendPass("Second", "B");
         var trace = new OptimizationTrace();
         var context = new OptimizationContext(OptimizationStage.LogicalOptimization, trace);
-        var runner = new PlanOptimizationRunner<string>(
-            OptimizationStage.LogicalOptimization,
-            [first, second]);
+        var runner = new PlanOptimizationRunner<string>(OptimizationStage.LogicalOptimization, [first, second]);
 
         var result = runner.Run("start", context);
 
@@ -37,7 +35,8 @@ public sealed class PlanOptimizationRunnerTests
         var observer = new ObserveReferencePass("Observer");
         var runner = new PlanOptimizationRunner<ReferencePlan>(
             OptimizationStage.PhysicalOptimization,
-            [noChange, observer]);
+            [noChange, observer]
+        );
 
         var result = runner.Run(plan);
 
@@ -53,7 +52,8 @@ public sealed class PlanOptimizationRunnerTests
         var context = new OptimizationContext(OptimizationStage.LogicalOptimization, trace);
         var runner = new PlanOptimizationRunner<string>(
             OptimizationStage.ExecutionIrOptimization,
-            [new AppendPass("Append", "x")]);
+            [new AppendPass("Append", "x")]
+        );
 
         runner.Run(string.Empty, context);
 
@@ -69,7 +69,8 @@ public sealed class PlanOptimizationRunnerTests
             OptimizationStage.LogicalOptimization,
             [new AppendUntilLengthPass("AppendUntilTwo", 2)],
             OptimizationPassRunMode.FixedPoint,
-            maxIterations: 8);
+            maxIterations: 8
+        );
 
         var result = runner.Run(string.Empty, new OptimizationContext(OptimizationStage.LogicalOptimization, trace));
 
@@ -90,7 +91,8 @@ public sealed class PlanOptimizationRunnerTests
             OptimizationStage.PhysicalOptimization,
             [new AppendPass("AlwaysAppend", "x")],
             OptimizationPassRunMode.FixedPoint,
-            maxIterations: 3);
+            maxIterations: 3
+        );
 
         var result = runner.Run(string.Empty, new OptimizationContext(OptimizationStage.PhysicalOptimization, trace));
 
@@ -105,9 +107,7 @@ public sealed class PlanOptimizationRunnerTests
     public void Run_WhenNoPassesConfigured_ShouldReturnNoChangeWithoutTraceEntries()
     {
         var trace = new OptimizationTrace();
-        var runner = new PlanOptimizationRunner<string>(
-            OptimizationStage.CodegenReadability,
-            []);
+        var runner = new PlanOptimizationRunner<string>(OptimizationStage.CodegenReadability, []);
 
         var result = runner.Run("same", new OptimizationContext(OptimizationStage.CodegenReadability, trace));
 
@@ -124,15 +124,14 @@ public sealed class PlanOptimizationRunnerTests
         var observer = new ObserveFactPass("Observer", "required-columns");
         var runner = new PlanOptimizationRunner<string>(
             OptimizationStage.LogicalOptimization,
-            [new AppendPass("Change", "x"), observer]);
+            [new AppendPass("Change", "x"), observer]
+        );
 
         runner.Run(string.Empty, context);
 
         Assert.IsFalse(observer.Observed);
         Assert.IsFalse(context.AnalysisFacts.TryGet<string>("required-columns", out _));
-        Assert.Contains(
-            "analysis facts: consumed 0, recomputed 0, invalidated 1.",
-            context.Trace.Entries[0].Reason);
+        Assert.Contains("analysis facts: consumed 0, recomputed 0, invalidated 1.", context.Trace.Entries[0].Reason);
     }
 
     [TestMethod]
@@ -143,16 +142,15 @@ public sealed class PlanOptimizationRunnerTests
         var observer = new ObserveFactPass("Observer", "required-columns");
         var runner = new PlanOptimizationRunner<string>(
             OptimizationStage.LogicalOptimization,
-            [new NoChangePass<string>("NoChange"), observer]);
+            [new NoChangePass<string>("NoChange"), observer]
+        );
 
         runner.Run(string.Empty, context);
 
         Assert.IsTrue(observer.Observed);
         Assert.AreEqual("before", observer.Value);
         Assert.AreEqual("Observer", context.AnalysisFacts.Snapshot()[0].Consumers[0]);
-        Assert.Contains(
-            "analysis facts: consumed 1, recomputed 0, invalidated 0.",
-            context.Trace.Entries[1].Reason);
+        Assert.Contains("analysis facts: consumed 1, recomputed 0, invalidated 0.", context.Trace.Entries[1].Reason);
     }
 
     [TestMethod]
@@ -163,7 +161,8 @@ public sealed class PlanOptimizationRunnerTests
         var observer = new ObserveFactPass("Observer", "required-columns");
         var runner = new PlanOptimizationRunner<string>(
             OptimizationStage.LogicalOptimization,
-            [new SetFactAndChangePass("RewriteAndAnalyze", "required-columns", "after"), observer]);
+            [new SetFactAndChangePass("RewriteAndAnalyze", "required-columns", "after"), observer]
+        );
 
         runner.Run(string.Empty, context);
 
@@ -172,23 +171,19 @@ public sealed class PlanOptimizationRunnerTests
         var fact = context.AnalysisFacts.Snapshot()[0];
         Assert.AreEqual("RewriteAndAnalyze", fact.ProducedByPass);
         Assert.AreEqual(OptimizationAnalysisInvalidationRule.OnPlanChanged, fact.InvalidationRule);
-        Assert.Contains(
-            "analysis facts: consumed 0, recomputed 1, invalidated 0.",
-            context.Trace.Entries[0].Reason);
+        Assert.Contains("analysis facts: consumed 0, recomputed 1, invalidated 0.", context.Trace.Entries[0].Reason);
     }
 
     [TestMethod]
     public void Run_WhenFactNeverInvalidates_ShouldPreserveItAcrossChangedPlan()
     {
         var context = new OptimizationContext(OptimizationStage.LogicalOptimization);
-        context.AnalysisFacts.Set(
-            "source-capabilities",
-            "stable",
-            OptimizationAnalysisInvalidationRule.Never);
+        context.AnalysisFacts.Set("source-capabilities", "stable", OptimizationAnalysisInvalidationRule.Never);
         var observer = new ObserveFactPass("Observer", "source-capabilities");
         var runner = new PlanOptimizationRunner<string>(
             OptimizationStage.LogicalOptimization,
-            [new AppendPass("Change", "x"), observer]);
+            [new AppendPass("Change", "x"), observer]
+        );
 
         runner.Run(string.Empty, context);
 
@@ -262,7 +257,8 @@ public sealed class PlanOptimizationRunnerTests
         }
     }
 
-    private sealed class SetFactAndChangePass(string name, string factKey, string factValue) : IPlanOptimizationPass<string>
+    private sealed class SetFactAndChangePass(string name, string factKey, string factValue)
+        : IPlanOptimizationPass<string>
     {
         public string Name { get; } = name;
 

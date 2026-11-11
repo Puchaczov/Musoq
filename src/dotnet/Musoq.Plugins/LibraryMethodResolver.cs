@@ -19,7 +19,8 @@ internal class LibraryMethodResolver : ILibraryMethodResolver
         {
             var paramList = string.Join(", ", Array.ConvertAll(parameterTypes, t => t.Name));
             throw new InvalidOperationException(
-                $"Method {methodName}({paramList}) not found in {LibraryBaseType.Name}");
+                $"Method {methodName}({paramList}) not found in {LibraryBaseType.Name}"
+            );
         }
 
         return method;

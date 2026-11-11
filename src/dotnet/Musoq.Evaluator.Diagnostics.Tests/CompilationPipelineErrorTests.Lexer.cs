@@ -20,7 +20,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class CompilationPipelineErrorTests
 {
-
     [TestMethod]
     public void Stage1_UnterminatedString_SingleQuote()
     {
@@ -32,40 +31,38 @@ public partial class CompilationPipelineErrorTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - lexer reports unterminated string literal
-        AssertHasErrorCode(result, DiagnosticCode.MQ1002_UnterminatedString,
-            "unterminated single-quoted string");
+        AssertHasErrorCode(result, DiagnosticCode.MQ1002_UnterminatedString, "unterminated single-quoted string");
 
         // Verify the error message mentions the quote character
-        Assert.IsTrue(result.Errors.Any(e => e.Message.Contains('\'')),
-            "Error should mention the quote character");
+        Assert.IsTrue(result.Errors.Any(e => e.Message.Contains('\'')), "Error should mention the quote character");
     }
 
     [TestMethod]
     public void Stage1_UnterminatedString_DoubleQuote()
     {
-
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT \"hello world FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
-
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ1001_UnknownToken, nameof(Stage1_UnterminatedString_DoubleQuote));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("\"", System.StringComparison.Ordinal), 1), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ1001_UnknownToken,
+            nameof(Stage1_UnterminatedString_DoubleQuote)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("\"", System.StringComparison.Ordinal), 1),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
     public void Stage1_InvalidNumericLiteral_MultipleDecimals()
     {
-
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT 1.2.3 FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
-
 
         Assert.IsTrue(result.IsParsed);
         AssertNoErrors(result);
@@ -74,73 +71,96 @@ public partial class CompilationPipelineErrorTests
     [TestMethod]
     public void Stage1_InvalidHexNumber_InvalidDigits()
     {
-
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0xZZZ FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ1006_InvalidHexNumber, nameof(Stage1_InvalidHexNumber_InvalidDigits));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0xZZZ", System.StringComparison.Ordinal), 5), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ1006_InvalidHexNumber,
+            nameof(Stage1_InvalidHexNumber_InvalidDigits)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("0xZZZ", System.StringComparison.Ordinal), 5),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
     public void Stage1_InvalidBinaryNumber_InvalidDigits()
     {
-
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0b123 FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ1007_InvalidBinaryNumber, nameof(Stage1_InvalidBinaryNumber_InvalidDigits));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0b123", System.StringComparison.Ordinal), 5), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ1007_InvalidBinaryNumber,
+            nameof(Stage1_InvalidBinaryNumber_InvalidDigits)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("0b123", System.StringComparison.Ordinal), 5),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
     public void Stage1_InvalidOctalNumber_InvalidDigits()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0o89 FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ1008_InvalidOctalNumber, nameof(Stage1_InvalidOctalNumber_InvalidDigits));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0o89", System.StringComparison.Ordinal), 4), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ1008_InvalidOctalNumber,
+            nameof(Stage1_InvalidOctalNumber_InvalidDigits)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("0o89", System.StringComparison.Ordinal), 4),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
     public void Stage1_TrueInvalidHexNumber_NoDigits()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0x FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ1006_InvalidHexNumber, nameof(Stage1_TrueInvalidHexNumber_NoDigits));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0x", System.StringComparison.Ordinal), 2), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ1006_InvalidHexNumber,
+            nameof(Stage1_TrueInvalidHexNumber_NoDigits)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("0x", System.StringComparison.Ordinal), 2),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
     public void Stage1_TrueInvalidBinaryNumber_NoDigits()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0b FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ1007_InvalidBinaryNumber, nameof(Stage1_TrueInvalidBinaryNumber_NoDigits));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0b", System.StringComparison.Ordinal), 2), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ1007_InvalidBinaryNumber,
+            nameof(Stage1_TrueInvalidBinaryNumber_NoDigits)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("0b", System.StringComparison.Ordinal), 2),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
@@ -155,49 +175,68 @@ public partial class CompilationPipelineErrorTests
 
         // Assert - Parser sees content after /* as comment body, then fails on structure
         // Returns MQ2001_UnexpectedToken because the SELECT is incomplete
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ1005_UnterminatedBlockComment, "block comment never closed with */");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ1005_UnterminatedBlockComment,
+            "block comment never closed with */"
+        );
     }
 
     [TestMethod]
     public void Stage1_UnrecognizedCharacter_At()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT @ FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ1001_UnknownToken, nameof(Stage1_UnrecognizedCharacter_At));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("@", System.StringComparison.Ordinal), 1), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ1001_UnknownToken,
+            nameof(Stage1_UnrecognizedCharacter_At)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("@", System.StringComparison.Ordinal), 1),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
     public void Stage1_UnrecognizedCharacter_Backtick()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT `Name` FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ1001_UnknownToken, nameof(Stage1_UnrecognizedCharacter_Backtick));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("`", System.StringComparison.Ordinal), 1), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ1001_UnknownToken,
+            nameof(Stage1_UnrecognizedCharacter_Backtick)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("`", System.StringComparison.Ordinal), 1),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
     public void Stage1_TrueUnrecognizedCharacter_Caret()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT ^ FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
-            result, DiagnosticCode.MQ2020_MissingOperand, nameof(Stage1_TrueUnrecognizedCharacter_Caret));
-        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("^", System.StringComparison.Ordinal), 1), diagnostic.Span);
+            result,
+            DiagnosticCode.MQ2020_MissingOperand,
+            nameof(Stage1_TrueUnrecognizedCharacter_Caret)
+        );
+        Assert.AreEqual(
+            new Musoq.Parser.TextSpan(query.IndexOf("^", System.StringComparison.Ordinal), 1),
+            diagnostic.Span
+        );
     }
 
     [TestMethod]
@@ -214,5 +253,4 @@ public partial class CompilationPipelineErrorTests
         Assert.IsTrue(result.IsParsed, "Valid numeric literals should parse");
         AssertNoErrors(result);
     }
-
 }

@@ -26,29 +26,44 @@ public class BugProbeInlineAnonymousSchemaTests
     [TestMethod]
     public void Binary_InlineSchema_ShouldBeAccessibleViaDotNotation()
     {
-        var query = @"
-            binary Packet {
-                Header: {
-                    Magic: int le,
-                    Version: short le
-                },
-                Payload: byte
-            };
-            select p.Header.Magic, p.Header.Version, p.Payload from #test.files() b
-            cross apply Interpret<Packet>(b.Content) p";
+        var query = (
+            "\n"
+            + "            binary Packet {\n"
+            + "                Header: {\n"
+            + "                    Magic: int le,\n"
+            + "                    Version: short le\n"
+            + "                },\n"
+            + "                Payload: byte\n"
+            + "            };\n"
+            + "            select p.Header.Magic, p.Header.Version, p.Payload from #test.files() b\n"
+            + "            cross apply Interpret<Packet>(b.Content) p"
+        );
 
         var testData = new byte[]
         {
-            0x78, 0x56, 0x34, 0x12, // Magic = 0x12345678
-            0x03, 0x00, // Version = 3
-            0xFF // Payload
+            0x78,
+            0x56,
+            0x34,
+            0x12, // Magic = 0x12345678
+            0x03,
+            0x00, // Version = 3
+            0xFF, // Payload
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

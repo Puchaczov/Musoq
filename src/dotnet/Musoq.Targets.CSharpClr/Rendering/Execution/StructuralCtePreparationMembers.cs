@@ -26,20 +26,33 @@ internal static class StructuralCtePreparationMembers
             .Append('|')
             .Append(input.ElementType.StableId);
         foreach (var field in input.Fields)
-            signature.Append('|').Append(field.Name).Append(':').Append(field.Index).Append(':').Append(field.Type.StableId);
+            signature
+                .Append('|')
+                .Append(field.Name)
+                .Append(':')
+                .Append(field.Index)
+                .Append(':')
+                .Append(field.Type.StableId);
 
         signature
-            .Append("|ownership=").Append(input.Ownership)
-            .Append("|lifetime=").Append(input.Lifetime)
-            .Append("|metrics=").Append(input.MetricsStrategy);
+            .Append("|ownership=")
+            .Append(input.Ownership)
+            .Append("|lifetime=")
+            .Append(input.Lifetime)
+            .Append("|metrics=")
+            .Append(input.MetricsStrategy);
 
         if (input.LimitBinding is { } binding)
         {
             signature
-                .Append("|limits=").Append(binding.Limits)
-                .Append('|').Append(binding.Origin)
-                .Append('|').Append(binding.Path)
-                .Append('|').Append(binding.SourceContextId ?? "-");
+                .Append("|limits=")
+                .Append(binding.Limits)
+                .Append('|')
+                .Append(binding.Origin)
+                .Append('|')
+                .Append(binding.Path)
+                .Append('|')
+                .Append(binding.SourceContextId ?? "-");
         }
 
         if (input.ConstructionPlan is { } plan)
@@ -58,11 +71,10 @@ internal static class StructuralCtePreparationMembers
     internal static IReadOnlyList<MemberDeclarationSyntax> CreateMembers(
         ExecutionBlock body,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
-        var inputs = ExecutionIrAnalysis.CollectExpressions<ExecutionCteCollectionInput>(body)
-            .Distinct()
-            .ToArray();
+        var inputs = ExecutionIrAnalysis.CollectExpressions<ExecutionCteCollectionInput>(body).Distinct().ToArray();
         return inputs
             .GroupBy(GetHelperName, StringComparer.Ordinal)
             .Select(group => CreateMember(group.First(), group.Key, context, renderer))
@@ -73,7 +85,8 @@ internal static class StructuralCtePreparationMembers
         ExecutionCteCollectionInput input,
         string helperName,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         var sourceShape = ResolveSourceShape(input);
         _ = SyntaxFactory.ParseTypeName(sourceShape.TypeName);
@@ -81,19 +94,26 @@ internal static class StructuralCtePreparationMembers
         var targetText = targetType.ToFullString();
         var body = CreateBody(input, sourceShape, targetText, context, renderer);
 
-        return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.ParseTypeName($"{targetText}[]"),
-                helperName)
-            .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
-            [
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier("rows"))
-                    .WithType(SyntaxFactory.ParseTypeName($"IReadOnlyList<{sourceShape.TypeName}>?")),
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
-                    .WithType(SyntaxFactory.ParseTypeName("CancellationToken"))
-            ])))
+        return SyntaxFactory
+            .MethodDeclaration(SyntaxFactory.ParseTypeName($"{targetText}[]"), helperName)
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
+                    SyntaxFactory.Token(SyntaxKind.StaticKeyword)
+                )
+            )
+            .WithParameterList(
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList([
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("rows"))
+                            .WithType(SyntaxFactory.ParseTypeName($"IReadOnlyList<{sourceShape.TypeName}>?")),
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("token"))
+                            .WithType(SyntaxFactory.ParseTypeName("CancellationToken")),
+                    ])
+                )
+            )
             .WithBody(body);
     }
 
@@ -102,21 +122,28 @@ internal static class StructuralCtePreparationMembers
         GeneratedRowShape sourceShape,
         string targetText,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         var statements = new List<StatementSyntax>();
         if (input.LimitBinding is { } binding)
             statements.Add(CreateMetricsStatement(input, sourceShape, binding, context, renderer));
 
-        statements.Add(SyntaxFactory.ParseStatement(
-            $"if (rows is null || rows.Count == 0) return System.Array.Empty<{targetText}>();"));
+        statements.Add(
+            SyntaxFactory.ParseStatement(
+                $"if (rows is null || rows.Count == 0) return System.Array.Empty<{targetText}>();"
+            )
+        );
         statements.Add(SyntaxFactory.ParseStatement("token.ThrowIfCancellationRequested();"));
 
-        if (input.Ownership == ExecutionStructuralOwnershipMode.Transfer &&
-            string.Equals(targetText.Trim(), sourceShape.TypeName, StringComparison.Ordinal))
+        if (
+            input.Ownership == ExecutionStructuralOwnershipMode.Transfer
+            && string.Equals(targetText.Trim(), sourceShape.TypeName, StringComparison.Ordinal)
+        )
         {
-            statements.Add(SyntaxFactory.ParseStatement(
-                $"if (rows is {targetText}[] transferred) return transferred;"));
+            statements.Add(
+                SyntaxFactory.ParseStatement($"if (rows is {targetText}[] transferred) return transferred;")
+            );
         }
 
         statements.Add(SyntaxFactory.ParseStatement($"var result = new {targetText}[rows.Count];"));
@@ -126,34 +153,60 @@ internal static class StructuralCtePreparationMembers
             sourceShape,
             "row",
             context,
-            renderer);
+            renderer
+        );
         var assignment = SyntaxFactory.ExpressionStatement(
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 CreateResultElementAccess(),
-                construction));
-        var loop = SyntaxFactory.ForStatement(
+                construction
+            )
+        );
+        var loop = SyntaxFactory
+            .ForStatement(
                 SyntaxFactory.Block(
                     SyntaxFactory.ParseStatement("token.ThrowIfCancellationRequested();"),
                     SyntaxFactory.ParseStatement("var row = rows[index];"),
-                    assignment))
-            .WithDeclaration(SyntaxFactory.VariableDeclaration(
-                    SyntaxFactory.IdentifierName("var"))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("index"))
-                        .WithInitializer(SyntaxFactory.EqualsValueClause(
-                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)))))))
-            .WithCondition(SyntaxFactory.BinaryExpression(
-                SyntaxKind.LessThanExpression,
-                SyntaxFactory.IdentifierName("index"),
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("rows"),
-                    SyntaxFactory.IdentifierName("Count"))))
-            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                SyntaxFactory.PostfixUnaryExpression(
-                    SyntaxKind.PostIncrementExpression,
-                    SyntaxFactory.IdentifierName("index"))));
+                    assignment
+                )
+            )
+            .WithDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory
+                                .VariableDeclarator(SyntaxFactory.Identifier("index"))
+                                .WithInitializer(
+                                    SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.NumericLiteralExpression,
+                                            SyntaxFactory.Literal(0)
+                                        )
+                                    )
+                                )
+                        )
+                    )
+            )
+            .WithCondition(
+                SyntaxFactory.BinaryExpression(
+                    SyntaxKind.LessThanExpression,
+                    SyntaxFactory.IdentifierName("index"),
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("rows"),
+                        SyntaxFactory.IdentifierName("Count")
+                    )
+                )
+            )
+            .WithIncrementors(
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                    SyntaxFactory.PostfixUnaryExpression(
+                        SyntaxKind.PostIncrementExpression,
+                        SyntaxFactory.IdentifierName("index")
+                    )
+                )
+            );
 
         statements.Add(loop);
         statements.Add(SyntaxFactory.ParseStatement("return result;"));
@@ -162,20 +215,21 @@ internal static class StructuralCtePreparationMembers
 
     private static ElementAccessExpressionSyntax CreateResultElementAccess()
     {
-        return SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("result"))
-            .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("index")))));
+        return SyntaxFactory
+            .ElementAccessExpression(SyntaxFactory.IdentifierName("result"))
+            .WithArgumentList(
+                SyntaxFactory.BracketedArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("index")))
+                )
+            );
     }
 
-    private static GeneratedRowShape ResolveSourceShape(
-        ExecutionCteCollectionInput input)
+    private static GeneratedRowShape ResolveSourceShape(ExecutionCteCollectionInput input)
     {
         if (input.Rows is ExecutionStoredTableRows { GeneratedRowShape: { } shape })
             return shape;
 
-        throw new InvalidOperationException(
-            "Structural CTE argument requires planner-provided generated row shape.");
+        throw new InvalidOperationException("Structural CTE argument requires planner-provided generated row shape.");
     }
 
     private static StatementSyntax CreateMetricsStatement(
@@ -183,14 +237,15 @@ internal static class StructuralCtePreparationMembers
         GeneratedRowShape sourceShape,
         ExecutionStructuralLimitBinding binding,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         var lines = new List<string>
         {
             "token.ThrowIfCancellationRequested();",
             "long __musoqStructuralNodes = 0L;",
             "long __musoqStructuralStrings = 0L;",
-            "int __musoqStructuralMaxDepth = 0;"
+            "int __musoqStructuralMaxDepth = 0;",
         };
         var state = new StructuralInputLimitSyntaxFactory.EmitterState(lines);
         state.AddNode(1);
@@ -209,17 +264,16 @@ internal static class StructuralCtePreparationMembers
 
         var sourceContext = binding.SourceContextId == null ? "null" : Quote(binding.SourceContextId);
         lines.Add(
-            $"global::Musoq.Evaluator.Helpers.StructuralInputLimitRuntime.ThrowIfExceeded(" +
-            $"{Quote(binding.Origin.ToString().ToLowerInvariant())}, {Quote(binding.Path)}, " +
-            "new global::Musoq.Schema.StructuralInputs.StructuralInputMetrics(" +
-            "__musoqStructuralMaxDepth, __musoqStructuralNodes, __musoqStructuralStrings), " +
-            $"{binding.Limits.MaxDepth.ToString(System.Globalization.CultureInfo.InvariantCulture)}, " +
-            $"{binding.Limits.MaxNodes.ToString(System.Globalization.CultureInfo.InvariantCulture)}L, " +
-            $"{binding.Limits.MaxStringBytes.ToString(System.Globalization.CultureInfo.InvariantCulture)}L, token, {sourceContext});");
+            $"global::Musoq.Evaluator.Helpers.StructuralInputLimitRuntime.ThrowIfExceeded("
+                + $"{Quote(binding.Origin.ToString().ToLowerInvariant())}, {Quote(binding.Path)}, "
+                + "new global::Musoq.Schema.StructuralInputs.StructuralInputMetrics("
+                + "__musoqStructuralMaxDepth, __musoqStructuralNodes, __musoqStructuralStrings), "
+                + $"{binding.Limits.MaxDepth.ToString(System.Globalization.CultureInfo.InvariantCulture)}, "
+                + $"{binding.Limits.MaxNodes.ToString(System.Globalization.CultureInfo.InvariantCulture)}L, "
+                + $"{binding.Limits.MaxStringBytes.ToString(System.Globalization.CultureInfo.InvariantCulture)}L, token, {sourceContext});"
+        );
 
-        return SyntaxFactory.ParseStatement("{\n" +
-            string.Join(Environment.NewLine, lines) +
-            "\n}");
+        return SyntaxFactory.ParseStatement("{\n" + string.Join(Environment.NewLine, lines) + "\n}");
     }
 
     private static void EmitElementMeasure(
@@ -228,27 +282,22 @@ internal static class StructuralCtePreparationMembers
         string rowExpression,
         StructuralInputLimitSyntaxFactory.EmitterState state,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         var elementType = input.ElementType.RequireClrType();
         var descriptor = StructuralTypeDescriptor.FromClrType(elementType);
         if (descriptor.Kind != StructuralTypeKind.Record || input.ConstructionPlan is not { } plan)
         {
             if (input.Fields.Count != 1)
-                throw new InvalidOperationException("A primitive or collection CTE argument requires exactly one output field.");
+                throw new InvalidOperationException(
+                    "A primitive or collection CTE argument requires exactly one output field."
+                );
 
-            var expression = StructuralInputSyntaxFactory.RenderCteFieldRead(
-                sourceShape,
-                input.Fields[0],
-                rowExpression,
-                elementType).ToFullString();
-            StructuralInputLimitSyntaxFactory.EmitMeasure(
-                descriptor,
-                elementType,
-                expression,
-                2,
-                state,
-                "cte[]");
+            var expression = StructuralInputSyntaxFactory
+                .RenderCteFieldRead(sourceShape, input.Fields[0], rowExpression, elementType)
+                .ToFullString();
+            StructuralInputLimitSyntaxFactory.EmitMeasure(descriptor, elementType, expression, 2, state, "cte[]");
             return;
         }
 
@@ -270,18 +319,19 @@ internal static class StructuralCtePreparationMembers
                 if (sourceFieldIndex >= input.Fields.Count)
                     throw new InvalidOperationException("CTE structural construction metadata is inconsistent.");
 
-                expression = StructuralInputSyntaxFactory.RenderCteFieldRead(
-                    sourceShape,
-                    input.Fields[sourceFieldIndex],
-                    rowExpression,
-                    fieldType).ToFullString();
+                expression = StructuralInputSyntaxFactory
+                    .RenderCteFieldRead(sourceShape, input.Fields[sourceFieldIndex], rowExpression, fieldType)
+                    .ToFullString();
             }
             else
             {
                 var defaultExpression = plan.Defaults[parameterIndex];
-                expression = defaultExpression == null
-                    ? SyntaxFactory.DefaultExpression(ExecutionSyntaxFactory.CreateTypeSyntax(fieldType)).ToFullString()
-                    : renderer.RenderExpression(defaultExpression, context).ToFullString();
+                expression =
+                    defaultExpression == null
+                        ? SyntaxFactory
+                            .DefaultExpression(ExecutionSyntaxFactory.CreateTypeSyntax(fieldType))
+                            .ToFullString()
+                        : renderer.RenderExpression(defaultExpression, context).ToFullString();
             }
 
             StructuralInputLimitSyntaxFactory.EmitMeasure(
@@ -290,13 +340,13 @@ internal static class StructuralCtePreparationMembers
                 expression,
                 3,
                 state,
-                "cte[]." + field.Name);
+                "cte[]." + field.Name
+            );
         }
     }
 
     private static string Quote(string value) =>
-        SyntaxFactory.LiteralExpression(
-                SyntaxKind.StringLiteralExpression,
-                SyntaxFactory.Literal(value))
+        SyntaxFactory
+            .LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(value))
             .ToFullString();
 }

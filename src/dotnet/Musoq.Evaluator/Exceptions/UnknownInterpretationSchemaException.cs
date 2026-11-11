@@ -12,20 +12,18 @@ namespace Musoq.Evaluator.Exceptions;
 public class UnknownInterpretationSchemaException : Exception, IDiagnosticException
 {
     public UnknownInterpretationSchemaException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
-    public UnknownInterpretationSchemaException()
-    {
-    }
+    public UnknownInterpretationSchemaException() { }
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="UnknownInterpretationSchemaException" /> class.
     /// </summary>
     /// <param name="schemaName">The name of the unknown schema.</param>
     public UnknownInterpretationSchemaException(string schemaName)
         : base(
-            $"Interpretation schema '{schemaName}' is not defined. Ensure the schema is declared in an INTERPRET block at the beginning of your query.")
+            $"Interpretation schema '{schemaName}' is not defined. Ensure the schema is declared in an INTERPRET block at the beginning of your query."
+        )
     {
         SchemaName = schemaName;
         Code = DiagnosticCode.MQ3010_UnknownSchema;
@@ -79,10 +77,7 @@ public class UnknownInterpretationSchemaException : Exception, IDiagnosticExcept
     /// </summary>
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        var arguments = new Dictionary<string, string>(Arguments, StringComparer.Ordinal)
-        {
-            ["schema"] = SchemaName
-        };
+        var arguments = new Dictionary<string, string>(Arguments, StringComparer.Ordinal) { ["schema"] = SchemaName };
         return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText, arguments, SuggestedFixes);
     }
 
@@ -95,11 +90,12 @@ public class UnknownInterpretationSchemaException : Exception, IDiagnosticExcept
     {
         return new UnknownInterpretationSchemaException(
             schemaName,
-            $"Interpretation schema '{schemaName}' was not found in the schema registry. " +
-            $"Possible causes:\n" +
-            $"  1. The schema '{schemaName}' is not defined in an INTERPRET block\n" +
-            $"  2. The schema name is misspelled (check case sensitivity)\n" +
-            $"  3. The INTERPRET block compilation failed silently");
+            $"Interpretation schema '{schemaName}' was not found in the schema registry. "
+                + $"Possible causes:\n"
+                + $"  1. The schema '{schemaName}' is not defined in an INTERPRET block\n"
+                + $"  2. The schema name is misspelled (check case sensitivity)\n"
+                + $"  3. The INTERPRET block compilation failed silently"
+        );
     }
 
     /// <summary>
@@ -111,7 +107,8 @@ public class UnknownInterpretationSchemaException : Exception, IDiagnosticExcept
     {
         return new UnknownInterpretationSchemaException(
             schemaName,
-            $"Interpretation schema '{schemaName}' was found but its generated type is unavailable. " +
-            $"This may indicate a code generation or compilation failure.");
+            $"Interpretation schema '{schemaName}' was found but its generated type is unavailable. "
+                + $"This may indicate a code generation or compilation failure."
+        );
     }
 }

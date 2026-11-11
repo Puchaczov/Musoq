@@ -27,20 +27,19 @@ public sealed class LoopInvariantSchema : SchemaBase
     public const string SchemaName = "licm";
 
     public LoopInvariantSchema()
-        : base(SchemaName, CreateLibrary())
-    {
-    }
+        : base(SchemaName, CreateLibrary()) { }
 
     public static bool MatchesName(string schema)
     {
-        return string.Equals(schema, SchemaName, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(schema, $"#{SchemaName}", StringComparison.OrdinalIgnoreCase);
+        return string.Equals(schema, SchemaName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(schema, $"#{SchemaName}", StringComparison.OrdinalIgnoreCase);
     }
 
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         if (string.Equals(name, "outers", StringComparison.OrdinalIgnoreCase))
             return new LoopInvariantTable();
@@ -51,7 +50,8 @@ public sealed class LoopInvariantSchema : SchemaBase
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         if (string.Equals(name, "outers", StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, LoopInvariantOuter>(name, new LoopInvariantRowSource());
@@ -65,7 +65,6 @@ public sealed class LoopInvariantSchema : SchemaBase
         methodsManager.RegisterLibraries(new LoopInvariantLibrary());
         return new MethodsAggregator(methodsManager);
     }
-
 }
 
 public sealed class LoopInvariantTable : ISchemaTable
@@ -76,7 +75,7 @@ public sealed class LoopInvariantTable : ISchemaTable
         new SchemaColumn(nameof(LoopInvariantOuter.Value), 1, typeof(int)),
         new SchemaColumn(nameof(LoopInvariantOuter.VolatileValue), 2, typeof(int), ColumnStability.Volatile),
         new SchemaColumn(nameof(LoopInvariantOuter.Middles), 3, typeof(LoopInvariantMiddle[])),
-        new SchemaColumn(nameof(LoopInvariantOuter.EmptyMiddles), 4, typeof(LoopInvariantMiddle[]))
+        new SchemaColumn(nameof(LoopInvariantOuter.EmptyMiddles), 4, typeof(LoopInvariantMiddle[])),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(LoopInvariantOuter));
@@ -240,20 +239,23 @@ internal static class LoopInvariantData
 {
     public static LoopInvariantOuter[] CreateRows()
     {
-        return Enumerable.Range(1, 2)
+        return Enumerable
+            .Range(1, 2)
             .Select(outerId => new LoopInvariantOuter
             {
                 Id = outerId,
-                Middles = Enumerable.Range(1, 3)
+                Middles = Enumerable
+                    .Range(1, 3)
                     .Select(middleId => new LoopInvariantMiddle
                     {
                         Id = outerId * 100 + middleId,
-                        Leaves = Enumerable.Range(1, 4)
+                        Leaves = Enumerable
+                            .Range(1, 4)
                             .Select(leafId => new LoopInvariantLeaf { Id = outerId * 1000 + middleId * 10 + leafId })
-                            .ToArray()
+                            .ToArray(),
                     })
                     .ToArray(),
-                EmptyMiddles = []
+                EmptyMiddles = [],
             })
             .ToArray();
     }

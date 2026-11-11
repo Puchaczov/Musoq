@@ -24,16 +24,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (TryBindSetResultModifierColumn(node.Name, node.Alias, node))
             return;
 
-        if (!string.IsNullOrEmpty(node.Alias) &&
-            _enumBinding.QueryLocalTypes.TryGetValue(node.Alias, out var enumType))
+        if (!string.IsNullOrEmpty(node.Alias) && _enumBinding.QueryLocalTypes.TryGetValue(node.Alias, out var enumType))
         {
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                 $"Static enum member syntax '{node.Alias}.{node.Name}' is not supported. Use the exact quoted member name '{node.Name}' in an enum context.",
-                node);
-            var recovery = CreateEnumCarrierLiteral(
-                EnumScalarValue.FromRaw(enumType.UnderlyingKind, 0),
-                node.Span);
+                node
+            );
+            var recovery = CreateEnumCarrierLiteral(EnumScalarValue.FromRaw(enumType.UnderlyingKind, 0), node.Span);
             MarkEnumExpression(recovery, enumType);
             PushSemanticNode(recovery);
             return;
@@ -45,8 +43,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             : _sourceBinding.Identifier;
         var identifier = string.IsNullOrEmpty(primaryIdentifier) ? node.Alias : primaryIdentifier;
 
-        if (DiagnosticContext?.HasErrors == true &&
-            _diagnosticRecoveryAliases.Contains(string.IsNullOrEmpty(node.Alias) ? identifier : node.Alias))
+        if (
+            DiagnosticContext?.HasErrors == true
+            && _diagnosticRecoveryAliases.Contains(string.IsNullOrEmpty(node.Alias) ? identifier : node.Alias)
+        )
         {
             PushSemanticNode(new AccessColumnNode(node.Name, node.Alias, typeof(object), node.Span));
             return;
@@ -60,12 +60,18 @@ public partial class BuildMetadataAndInferTypesVisitor
                 "Ensure the query has proper FROM clause and table aliases are correctly specified."
             );
 
-        var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(identifier, out var resolvedTableSymbol)
+        var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(
+            identifier,
+            out var resolvedTableSymbol
+        )
             ? resolvedTableSymbol
             : null;
         var isOuterReference = false;
-        if (!string.IsNullOrEmpty(node.Alias) && (tableSymbol is null || !tableSymbol.ContainsAlias(node.Alias)) &&
-            _semanticState.Subqueries.ResolveSubqueryOuterTable(node.Alias) is { } outerTable)
+        if (
+            !string.IsNullOrEmpty(node.Alias)
+            && (tableSymbol is null || !tableSymbol.ContainsAlias(node.Alias))
+            && _semanticState.Subqueries.ResolveSubqueryOuterTable(node.Alias) is { } outerTable
+        )
         {
             tableSymbol = outerTable;
             identifier = node.Alias;
@@ -102,14 +108,19 @@ public partial class BuildMetadataAndInferTypesVisitor
                 VisitorName,
                 VisitorOperationNames.VisitAccessColumnNode,
                 $"Unknown alias '{node.Alias}'",
-                "Verify that the alias is defined in the FROM or JOIN clause.");
+                "Verify that the alias is defined in the FROM or JOIN clause."
+            );
         }
 
         var tuple = !string.IsNullOrEmpty(node.Alias)
             ? tableSymbol.GetTableByAlias(node.Alias)
             : tableSymbol.GetTableByColumnName(node.Name, node.SpanOrEmpty());
 
-        if (tuple.Table is null && string.IsNullOrEmpty(node.Alias) && _semanticState.Subqueries.ResolveUnqualifiedSubqueryOuterAlias(node) is { } outerAlias)
+        if (
+            tuple.Table is null
+            && string.IsNullOrEmpty(node.Alias)
+            && _semanticState.Subqueries.ResolveUnqualifiedSubqueryOuterAlias(node) is { } outerAlias
+        )
         {
             tuple = _semanticState.Subqueries.ResolveSubqueryOuterTable(outerAlias)!.GetTableByAlias(outerAlias);
             isOuterReference = true;
@@ -117,8 +128,12 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var matchingColumns = tuple.Table?.GetColumnsByName(node.Name) ?? [];
         if (matchingColumns.Length > 1)
-            throw new AmbiguousColumnException(node.Name, tuple.TableName ?? identifier, tuple.TableName ?? identifier,
-                node.SpanOrEmpty());
+            throw new AmbiguousColumnException(
+                node.Name,
+                tuple.TableName ?? identifier,
+                tuple.TableName ?? identifier,
+                node.SpanOrEmpty()
+            );
 
         ISchemaColumn? column;
         try
@@ -151,9 +166,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         AddAssembly(column.ColumnType.Assembly);
         node.ChangeReturnType(column.ColumnType);
 
-        var sourceQueryKey = isOuterReference ? _semanticState.Subqueries.ResolveOuterSubquerySourceKey(tuple.TableName) : _sourceBinding.SchemaFromKey;
-        var usedColumns = _sourceBinding.UsedColumns
-            .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == sourceQueryKey)
+        var sourceQueryKey = isOuterReference
+            ? _semanticState.Subqueries.ResolveOuterSubquerySourceKey(tuple.TableName)
+            : _sourceBinding.SchemaFromKey;
+        var usedColumns = _sourceBinding
+            .UsedColumns.Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == sourceQueryKey)
             .Select(f => f.Value)
             .FirstOrDefault();
 
@@ -163,11 +180,19 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var accessColumn = column is StructuralProjectionColumn structural
             ? new StructuralAccessColumnNode(column.ColumnName, tuple.TableName, structural.Shape, node.Span)
-            : new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span, column.IntendedTypeName);
+            : new AccessColumnNode(
+                column.ColumnName,
+                tuple.TableName,
+                column.ColumnType,
+                node.Span,
+                column.IntendedTypeName
+            );
         if (column.EnumType != null)
             MarkEnumExpression(accessColumn, column.EnumType);
         RegisterNullableInterpretationColumn(accessColumn, column);
-        PushSemanticNode(isOuterReference ? _semanticState.Subqueries.CaptureSubqueryOuterColumn(accessColumn) : accessColumn);
+        PushSemanticNode(
+            isOuterReference ? _semanticState.Subqueries.CaptureSubqueryOuterColumn(accessColumn) : accessColumn
+        );
     }
 
     public override void Visit(AllColumnsNode node)
@@ -191,10 +216,18 @@ public partial class BuildMetadataAndInferTypesVisitor
                 inferredReplaceExpressions[i] = PopSemanticNode("Visit(AllColumnsNode).ReplaceItem");
         }
 
-        if (!string.IsNullOrWhiteSpace(node.Alias) ||
-            (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)))
-            ProcessSingleTable(node, tableSymbol, ResolveSingleTableStarIdentifier(node, tableSymbol, identifier), inferredReplaceExpressions);
-        else if (tableSymbol.IsCompoundTable) ProcessCompoundTable(node, tableSymbol, inferredReplaceExpressions);
+        if (
+            !string.IsNullOrWhiteSpace(node.Alias)
+            || (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias))
+        )
+            ProcessSingleTable(
+                node,
+                tableSymbol,
+                ResolveSingleTableStarIdentifier(node, tableSymbol, identifier),
+                inferredReplaceExpressions
+            );
+        else if (tableSymbol.IsCompoundTable)
+            ProcessCompoundTable(node, tableSymbol, inferredReplaceExpressions);
 
         PushSemanticNode(node);
     }
@@ -202,7 +235,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static string ResolveSingleTableStarIdentifier(
         AllColumnsNode node,
         TableSymbol tableSymbol,
-        string identifier)
+        string identifier
+    )
     {
         return string.IsNullOrWhiteSpace(node.Alias) && tableSymbol.CompoundTables.Length == 1
             ? tableSymbol.CompoundTables[0]
@@ -217,22 +251,37 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (_queryState.QueryPart != QueryPart.From)
         {
-            if (_queryState.QueryPart == QueryPart.OrderBy && _resultShape.SelectFieldAliases.TryGetValue(node.Name, out var aliasExpression))
+            if (
+                _queryState.QueryPart == QueryPart.OrderBy
+                && _resultShape.SelectFieldAliases.TryGetValue(node.Name, out var aliasExpression)
+            )
             {
                 PushSemanticNode(aliasExpression);
                 return;
             }
 
-            var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
+            var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(
+                _sourceBinding.Identifier
+            );
             var binding = _columnPropertyBindingService.ResolveIdentifier(tableSymbol, node.Name, node.SpanOrEmpty());
             if (binding.Kind == SemanticIdentifierBindingKind.Column)
             {
-                var column = binding.Column ?? throw VisitorException.CreateForProcessingFailure(
-                    VisitorName,
-                    VisitorOperationNames.VisitAccessColumnNode,
-                    $"Column binding for '{node.Name}' did not include a column.");
-                Visit(new AccessColumnNode(column.ColumnName, binding.SourceAlias ?? string.Empty, column.ColumnType,
-                    node.Span, column.IntendedTypeName));
+                var column =
+                    binding.Column
+                    ?? throw VisitorException.CreateForProcessingFailure(
+                        VisitorName,
+                        VisitorOperationNames.VisitAccessColumnNode,
+                        $"Column binding for '{node.Name}' did not include a column."
+                    );
+                Visit(
+                    new AccessColumnNode(
+                        column.ColumnName,
+                        binding.SourceAlias ?? string.Empty,
+                        column.ColumnType,
+                        node.Span,
+                        column.IntendedTypeName
+                    )
+                );
                 return;
             }
 
@@ -242,14 +291,21 @@ public partial class BuildMetadataAndInferTypesVisitor
                 return;
             }
 
-            if (_semanticState.Subqueries.ResolveUnqualifiedSubqueryOuterAlias(new AccessColumnNode(node.Name, string.Empty, node.ReturnType ?? typeof(object), node.Span)) is { } outerAlias)
+            if (
+                _semanticState.Subqueries.ResolveUnqualifiedSubqueryOuterAlias(
+                    new AccessColumnNode(node.Name, string.Empty, node.ReturnType ?? typeof(object), node.Span)
+                ) is
+                { } outerAlias
+            )
             {
                 Visit(new AccessColumnNode(node.Name, outerAlias, node.ReturnType ?? typeof(object), node.Span));
                 return;
             }
 
-            if (binding.Kind == SemanticIdentifierBindingKind.UnknownAlias &&
-                TryReportUnknownAlias(binding.UnknownAlias!, binding.AvailableAliases, node))
+            if (
+                binding.Kind == SemanticIdentifierBindingKind.UnknownAlias
+                && TryReportUnknownAlias(binding.UnknownAlias!, binding.AvailableAliases, node)
+            )
             {
                 PushSemanticNode(new IdentifierNode(node.Name));
                 return;
@@ -265,7 +321,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 VisitorName,
                 VisitorOperationNames.VisitAccessColumnNode,
                 $"Column '{node.Name}' could not be resolved.",
-                "Verify that the column exists in the current query scope.");
+                "Verify that the column exists in the current query scope."
+            );
         }
 
         PushSemanticNode(new IdentifierNode(node.Name));

@@ -22,19 +22,22 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [new ColumnRef("p", "Age", typeof(int))],
             null,
             people,
-            orders);
+            orders
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            join);
+            join
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_HashJoin");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_HashJoin]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -58,7 +61,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      HashProbe [oHash[p.Age] -> oHashMatches]",
             "        ForEach [o in oHashMatches]",
             "          AppendShape [result <- ResultRow0(Name: p.Name, Description: o.Description)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -74,13 +78,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [new ColumnRef("p", "Age", typeof(int))],
             null,
             people,
-            orders);
+            orders
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            join);
+            join
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_HashJoinContextLayout");
@@ -105,19 +111,22 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             [new ColumnRef("p", "Age", typeof(int))],
             null,
             people,
-            orders);
+            orders
+        );
         var aggregate = new PhysicalSingleKeyAggregateNode(
             new ColumnRef("p", "Name", typeof(string)),
             "p.Name",
             typeof(string),
             [binding],
-            join);
+            join
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("DescriptionCount", new AggregateRef("p.CountDescription", typeof(long)), 1)
+                new ProjectedField("DescriptionCount", new AggregateRef("p.CountDescription", typeof(long)), 1),
             ],
-            aggregate);
+            aggregate
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_AggregateHashJoin");
@@ -129,8 +138,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.Contains("CreateHash [oHash: int -> Order]", text);
         Assert.Contains("HashProbe [oHash[p.Age] -> oHashMatches]", text);
         Assert.Contains("AggregateGroup [ResultAggregateGroup; keys: 1; typed aggs: 1]", text);
-        Assert.Contains("GetOrAddSingleKeyAggregateGroup [group = groups[p.Name] by p.Name; typed: ResultAggregateGroup]", text);
+        Assert.Contains(
+            "GetOrAddSingleKeyAggregateGroup [group = groups[p.Name] by p.Name; typed: ResultAggregateGroup]",
+            text
+        );
         Assert.Contains("TypedAggregateSet [Set(group.__agg0, o.Description)]", text);
     }
-
 }

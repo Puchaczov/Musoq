@@ -1,18 +1,15 @@
 global using System;
-global using Musoq.Schema.Optimization;
-global using Musoq.Targets.Abstractions;
-global using Musoq.Targets.Execution;
 global using Musoq.Evaluator;
 global using Musoq.Evaluator.IR;
 global using Musoq.Evaluator.IR.CodeGeneration;
 global using Musoq.Evaluator.IR.Execution;
-global using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
-global using Musoq.Targets.CSharpClr.Optimization.Codegen;
+global using Musoq.Schema.Optimization;
+global using Musoq.Targets.Abstractions;
 global using static Musoq.Targets.CSharpClr.ExecutionSyntaxFactory;
-
-global using static Musoq.Targets.CSharpClr.LibraryWindowBatchSyntax;
 global using static Musoq.Targets.CSharpClr.LibraryKernelInvocationSyntax;
-
+global using static Musoq.Targets.CSharpClr.LibraryWindowBatchSyntax;
 global using static Musoq.Targets.CSharpClr.LibraryWindowInputCaptureSyntax;
-
+global using Musoq.Targets.CSharpClr.Optimization.Codegen;
+global using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 global using static Musoq.Targets.CSharpClr.TypedBufferSyntax;
+global using Musoq.Targets.Execution;

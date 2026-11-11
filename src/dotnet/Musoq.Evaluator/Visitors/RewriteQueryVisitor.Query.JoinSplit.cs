@@ -17,8 +17,14 @@ public sealed partial class RewriteQueryVisitor
 {
     private void SplitJoinChainIfNeeded(QueryNode node, QueryRewriteContext context)
     {
-        if (context.PreserveDirectApplyChain || context.From.Expression is not (JoinNode or ApplyNode) ||
-            _joinedTables.Any(static node => node is JoinFromNode { JoinType: JoinType.LeftSemi or JoinType.LeftAntiSemi }) || _joinedTables.Any(static node => node is JoinFromNode { WithOrdinality: true }))
+        if (
+            context.PreserveDirectApplyChain
+            || context.From.Expression is not (JoinNode or ApplyNode)
+            || _joinedTables.Any(static node =>
+                node is JoinFromNode { JoinType: JoinType.LeftSemi or JoinType.LeftAntiSemi }
+            )
+            || _joinedTables.Any(static node => node is JoinFromNode { WithOrdinality: true })
+        )
         {
             return;
         }
@@ -26,8 +32,9 @@ public sealed partial class RewriteQueryVisitor
         var indexBasedContextsPositionsSymbol = new IndexBasedContextsPositionsSymbol();
         var orderNumber = 0;
         var extractAccessedColumnsVisitor = new ExtractAccessColumnFromQueryVisitor();
-        var extractAccessedColumnsTraverseVisitor =
-            new ExtractAccessColumnFromQueryTraverseVisitor(extractAccessedColumnsVisitor);
+        var extractAccessedColumnsTraverseVisitor = new ExtractAccessColumnFromQueryTraverseVisitor(
+            extractAccessedColumnsVisitor
+        );
 
         node.Accept(extractAccessedColumnsTraverseVisitor);
 
@@ -42,26 +49,32 @@ public sealed partial class RewriteQueryVisitor
         var scopeCreateTable = Scope.AddScope("Table");
         var scopeJoinedQuery = Scope.AddScope("Query");
 
-        var trimmedLeft = left.LimitColumnsTo(new Dictionary<string, string[]>
-        {
+        var trimmedLeft = left.LimitColumnsTo(
+            new Dictionary<string, string[]>
             {
-                left.CompoundTables[0],
-                accessColumns.Where(f => f.Alias == left.CompoundTables[0]).Select(f => f.Name)
-                    .ToArray()
+                {
+                    left.CompoundTables[0],
+                    accessColumns.Where(f => f.Alias == left.CompoundTables[0]).Select(f => f.Name).ToArray()
+                },
             }
-        });
-        var trimmedRight = right.LimitColumnsTo(new Dictionary<string, string[]>
-        {
+        );
+        var trimmedRight = right.LimitColumnsTo(
+            new Dictionary<string, string[]>
             {
-                right.CompoundTables[0],
-                accessColumns.Where(f => f.Alias == right.CompoundTables[0]).Select(f => f.Name)
-                    .ToArray()
+                {
+                    right.CompoundTables[0],
+                    accessColumns.Where(f => f.Alias == right.CompoundTables[0]).Select(f => f.Name).ToArray()
+                },
             }
-        });
-        var bothForCreateTable = FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias,
-            trimmedRight, current.With.Alias,
+        );
+        var bothForCreateTable = FieldProcessingHelper.CreateAndConcatFields(
+            trimmedLeft,
+            current.Source.Alias,
+            trimmedRight,
+            current.With.Alias,
             (name, alias) => NamingHelper.ToColumnName(alias, name),
-            QueryRewriteUtilities.IncludeKnownColumns(accessColumns, current));
+            QueryRewriteUtilities.IncludeKnownColumns(accessColumns, current)
+        );
         var bothForSelect = FieldProcessingHelper.CreateAndConcatFields(
             trimmedLeft,
             current.Source.Alias,
@@ -71,7 +84,8 @@ public sealed partial class RewriteQueryVisitor
             (name, alias) => NamingHelper.ToColumnName(alias, name),
             (name, _) => name,
             (name, _) => name,
-            QueryRewriteUtilities.IncludeKnownColumns(accessColumns, current));
+            QueryRewriteUtilities.IncludeKnownColumns(accessColumns, current)
+        );
 
         scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, trimmedLeft);
         scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, trimmedRight);
@@ -82,28 +96,38 @@ public sealed partial class RewriteQueryVisitor
         context.AliasesPositionsSymbol.AliasesPositions.Add(current.With.Alias, context.AliasIndex++);
 
         var targetSymbolTable = (TableSymbol)Scope.ScopeSymbolTable.GetSymbol(targetTableName);
-        var limitedTargetSymbolTable = targetSymbolTable.LimitColumnsTo(new Dictionary<string, string[]>
-        {
+        var limitedTargetSymbolTable = targetSymbolTable.LimitColumnsTo(
+            new Dictionary<string, string[]>
             {
-                targetSymbolTable.CompoundTables[0],
-                accessColumns.Where(f => f.Alias == targetSymbolTable.CompoundTables[0]).Select(f => f.Name)
-                    .ToArray()
-            },
-            {
-                targetSymbolTable.CompoundTables[1],
-                accessColumns.Where(f => f.Alias == targetSymbolTable.CompoundTables[1]).Select(f => f.Name)
-                    .ToArray()
+                {
+                    targetSymbolTable.CompoundTables[0],
+                    accessColumns
+                        .Where(f => f.Alias == targetSymbolTable.CompoundTables[0])
+                        .Select(f => f.Name)
+                        .ToArray()
+                },
+                {
+                    targetSymbolTable.CompoundTables[1],
+                    accessColumns
+                        .Where(f => f.Alias == targetSymbolTable.CompoundTables[1])
+                        .Select(f => f.Name)
+                        .ToArray()
+                },
             }
-        });
+        );
 
         scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, limitedTargetSymbolTable);
-        scopeJoinedQuery.ScopeSymbolTable.AddSymbol(MetaAttributes.PreformatedContexts,
-            indexBasedContextsPositionsSymbol);
+        scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
+            MetaAttributes.PreformatedContexts,
+            indexBasedContextsPositionsSymbol
+        );
 
         scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
         scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
         scopeJoinedQuery[MetaAttributes.Contexts] = $"{current.Source.Alias},{current.With.Alias}";
-        scopeJoinedQuery[MetaAttributes.OrderNumber] = orderNumber.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        scopeJoinedQuery[MetaAttributes.OrderNumber] = orderNumber.ToString(
+            System.Globalization.CultureInfo.InvariantCulture
+        );
         scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
         scopeCreateTable[MetaAttributes.PreformatedContexts] = $"{current.Source.Alias},{current.With.Alias}";
 
@@ -124,20 +148,26 @@ public sealed partial class RewriteQueryVisitor
                         currentJoin.With,
                         currentJoin.Expression,
                         currentJoin.JoinType,
-                        currentJoin.TieBreak),
+                        currentJoin.TieBreak
+                    ),
                     ApplyFromNode currentApply => new Parser.ApplySourcesTableFromNode(
                         currentApply.Source,
                         currentApply.With,
                         currentApply.ApplyType,
-                        currentApply.WithOrdinality),
-                    _ => throw new InvalidOperationException($"Unsupported joined table node type '{current.GetType().Name}'.")
-                }),
+                        currentApply.WithOrdinality
+                    ),
+                    _ => throw new InvalidOperationException(
+                        $"Unsupported joined table node type '{current.GetType().Name}'."
+                    ),
+                }
+            ),
             null,
             null,
             null,
             null,
             null,
-            new RefreshNode([]));
+            new RefreshNode([])
+        );
 
         var targetTable = new CreateTransformationTableNode(targetTableName, [], bothForCreateTable, false);
 
@@ -151,7 +181,7 @@ public sealed partial class RewriteQueryVisitor
         var usedTables = new Dictionary<string, string>
         {
             { current.Source.Alias, targetTableName },
-            { current.With.Alias, targetTableName }
+            { current.With.Alias, targetTableName },
         };
 
         for (var i = 1; i < _joinedTables.Count; i++, orderNumber++)
@@ -180,46 +210,57 @@ public sealed partial class RewriteQueryVisitor
             foreach (var compoundTable in left.CompoundTables)
             {
                 var columns = accessColumns.Where(f => f.Alias == compoundTable).Select(f => f.Name).ToArray();
-                limitColumnsKeyValuePair = limitColumnsKeyValuePair.Concat(new Dictionary<string, string[]>
-                {
-                    { compoundTable, columns }
-                });
+                limitColumnsKeyValuePair = limitColumnsKeyValuePair.Concat(
+                    new Dictionary<string, string[]> { { compoundTable, columns } }
+                );
             }
 
             trimmedLeft = left.LimitColumnsTo(new Dictionary<string, string[]>(limitColumnsKeyValuePair));
-            trimmedRight = right.LimitColumnsTo(new Dictionary<string, string[]>
-            {
+            trimmedRight = right.LimitColumnsTo(
+                new Dictionary<string, string[]>
                 {
-                    right.CompoundTables[0],
-                    extractAccessedColumnsVisitor.GetForAlias(right.CompoundTables[0])
-                        .Where(f => f.Alias == right.CompoundTables[0]).Select(f => f.Name)
-                        .ToArray()
+                    {
+                        right.CompoundTables[0],
+                        extractAccessedColumnsVisitor
+                            .GetForAlias(right.CompoundTables[0])
+                            .Where(f => f.Alias == right.CompoundTables[0])
+                            .Select(f => f.Name)
+                            .ToArray()
+                    },
                 }
-            });
-            bothForCreateTable =
-                FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight,
-                    current.With.Alias,
-                    (name, alias) => NamingHelper.ToColumnName(alias, name),
-                    QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(
-                        extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current));
+            );
+            bothForCreateTable = FieldProcessingHelper.CreateAndConcatFields(
+                trimmedLeft,
+                current.Source.Alias,
+                trimmedRight,
+                current.With.Alias,
+                (name, alias) => NamingHelper.ToColumnName(alias, name),
+                QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(
+                    extractAccessedColumnsVisitor.GetForAlias(current.With.Alias),
+                    current
+                )
+            );
 
             var hasSubsequentJoin = i < _joinedTables.Count - 1;
-            Func<string, string, string> createRightSelectFieldName = current is ApplyFromNode || hasSubsequentJoin
-                ? (name, alias) => NamingHelper.ToColumnName(alias, name)
-                : (name, _) => name;
+            Func<string, string, string> createRightSelectFieldName =
+                current is ApplyFromNode || hasSubsequentJoin
+                    ? (name, alias) => NamingHelper.ToColumnName(alias, name)
+                    : (name, _) => name;
 
-            bothForSelect =
-                FieldProcessingHelper.CreateAndConcatFields(
-                    trimmedLeft,
-                    current.Source.Alias,
-                    trimmedRight,
-                    current.With.Alias,
-                    (name, alias) => NamingHelper.ToColumnName(alias, name),
-                    createRightSelectFieldName,
-                    (name, alias) => NamingHelper.ToColumnName(alias, name),
-                    (name, _) => name,
-                    QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(
-                        extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current));
+            bothForSelect = FieldProcessingHelper.CreateAndConcatFields(
+                trimmedLeft,
+                current.Source.Alias,
+                trimmedRight,
+                current.With.Alias,
+                (name, alias) => NamingHelper.ToColumnName(alias, name),
+                createRightSelectFieldName,
+                (name, alias) => NamingHelper.ToColumnName(alias, name),
+                (name, _) => name,
+                QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(
+                    extractAccessedColumnsVisitor.GetForAlias(current.With.Alias),
+                    current
+                )
+            );
 
             scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, trimmedLeft);
             scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, trimmedRight);
@@ -232,33 +273,37 @@ public sealed partial class RewriteQueryVisitor
                 var compoundTable = targetSymbolTable.CompoundTables[index];
                 var columns = trimmedLeft.GetColumns(compoundTable);
                 pairs = pairs.Concat([
-                    new KeyValuePair<string, string[]>(compoundTable, columns.Select(f => f.ColumnName).ToArray())
+                    new KeyValuePair<string, string[]>(compoundTable, columns.Select(f => f.ColumnName).ToArray()),
                 ]);
             }
 
-            pairs = pairs
-                .Concat(trimmedRight.CompoundTables.Select(compoundTable => new KeyValuePair<string, string[]>(
-                            compoundTable,
-                            trimmedRight.GetColumns(compoundTable).Select(f => f.ColumnName).ToArray()
-                        )
-                    )
-                );
+            pairs = pairs.Concat(
+                trimmedRight.CompoundTables.Select(compoundTable => new KeyValuePair<string, string[]>(
+                    compoundTable,
+                    trimmedRight.GetColumns(compoundTable).Select(f => f.ColumnName).ToArray()
+                ))
+            );
 
             limitedTargetSymbolTable = targetSymbolTable.LimitColumnsTo(new Dictionary<string, string[]>(pairs));
 
             scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, limitedTargetSymbolTable);
-            scopeJoinedQuery.ScopeSymbolTable.AddSymbol(MetaAttributes.PreformatedContexts,
-                indexBasedContextsPositionsSymbol);
+            scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
+                MetaAttributes.PreformatedContexts,
+                indexBasedContextsPositionsSymbol
+            );
 
             scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
             scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
             scopeJoinedQuery[MetaAttributes.Contexts] = $"{current.Source.Alias},{current.With.Alias}";
             scopeCreateTable[MetaAttributes.CreateTableVariableName] = targetTableName.ToTransitionTable();
-            scopeJoinedQuery[MetaAttributes.OrderNumber] = orderNumber.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            scopeJoinedQuery[MetaAttributes.OrderNumber] = orderNumber.ToString(
+                System.Globalization.CultureInfo.InvariantCulture
+            );
 
             scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
                 MetaAttributes.OuterJoinSelect,
-                new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray()));
+                new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray())
+            );
 
             var expressionUpdater = new RewriteToUpdatedColumnAccess(usedTables);
             var expressionUpdaterTraverser = new RewriteToUpdatedColumnAccessTraverser(expressionUpdater);
@@ -279,14 +324,19 @@ public sealed partial class RewriteQueryVisitor
                             expressionUpdater.Where.Expression,
                             joinFromNode.JoinType,
                             (joinFromNode.Source as InMemoryTableFromNode)?.VariableName,
-                            tieBreak)
-                        { IntermediateSource = IntermediateSources.Get(context.LastJoinQuery!) }),
+                            tieBreak
+                        )
+                        {
+                            IntermediateSource = IntermediateSources.Get(context.LastJoinQuery!),
+                        }
+                    ),
                     null,
                     null,
                     null,
                     null,
                     null,
-                    new RefreshNode([]));
+                    new RefreshNode([])
+                );
             }
             else
             {
@@ -301,14 +351,19 @@ public sealed partial class RewriteQueryVisitor
                             current.Source.Alias,
                             expressionUpdater.From,
                             applyFromNode.ApplyType,
-                            applyFromNode.WithOrdinality)
-                        { IntermediateSource = IntermediateSources.Get(context.LastJoinQuery!) }),
+                            applyFromNode.WithOrdinality
+                        )
+                        {
+                            IntermediateSource = IntermediateSources.Get(context.LastJoinQuery!),
+                        }
+                    ),
                     null,
                     null,
                     null,
                     null,
                     null,
-                    new RefreshNode([]));
+                    new RefreshNode([])
+                );
             }
 
             foreach (var key in usedTables.Keys.ToArray())
@@ -335,8 +390,9 @@ public sealed partial class RewriteQueryVisitor
         context.OrderBy?.Accept(partsTraverser);
         context.Window?.Accept(partsTraverser);
 
-        context.ScoreSelect = rewriter.ChangedSelect ??
-                              throw new InvalidOperationException("Expected SELECT to be rewritten for join query split.");
+        context.ScoreSelect =
+            rewriter.ChangedSelect
+            ?? throw new InvalidOperationException("Expected SELECT to be rewritten for join query split.");
         context.ScoreWhere = rewriter.ChangedWhere;
         context.ScoreOrderBy = rewriter.ChangedOrderBy;
 
@@ -346,5 +402,4 @@ public sealed partial class RewriteQueryVisitor
         previousAliases.Pop();
         indexBasedContextsPositionsSymbol.Add(previousAliases.ToArray());
     }
-
 }

@@ -5,13 +5,13 @@ internal enum LikePatternMatchKind
     Exact,
     Prefix,
     Suffix,
-    Contains
+    Contains,
 }
 
 internal enum LikePatternCharacterDomain
 {
     Ascii,
-    Unicode
+    Unicode,
 }
 
 internal enum LikePatternRejectionReason
@@ -19,21 +19,23 @@ internal enum LikePatternRejectionReason
     None,
     SingleCharacterWildcard,
     InteriorPercentWildcard,
-    NonAsciiPattern
+    NonAsciiPattern,
 }
 
 internal readonly record struct LikePatternClassification(
     LikePatternMatchKind Kind,
     LikePatternCharacterDomain Domain,
     int LiteralStart,
-    int LiteralLength);
+    int LiteralLength
+);
 
 internal readonly record struct LikePatternClassificationResult
 {
     private LikePatternClassificationResult(
         LikePatternClassification? classification,
         LikePatternRejectionReason rejectionReason,
-        LikePatternCharacterDomain domain)
+        LikePatternCharacterDomain domain
+    )
     {
         Classification = classification;
         RejectionReason = rejectionReason;
@@ -52,15 +54,18 @@ internal readonly record struct LikePatternClassificationResult
         LikePatternMatchKind kind,
         LikePatternCharacterDomain domain,
         int literalStart,
-        int literalLength) =>
+        int literalLength
+    ) =>
         new(
             new LikePatternClassification(kind, domain, literalStart, literalLength),
             LikePatternRejectionReason.None,
-            domain);
+            domain
+        );
 
     public static LikePatternClassificationResult Rejected(
         LikePatternRejectionReason reason,
-        LikePatternCharacterDomain domain)
+        LikePatternCharacterDomain domain
+    )
     {
         if (reason == LikePatternRejectionReason.None)
             throw new ArgumentOutOfRangeException(nameof(reason));
@@ -112,27 +117,17 @@ internal static class LikePatternClassifier
 
         if (!hasPercentWildcard)
         {
-            return LikePatternClassificationResult.Accepted(
-                LikePatternMatchKind.Exact,
-                domain,
-                0,
-                pattern.Length);
+            return LikePatternClassificationResult.Accepted(LikePatternMatchKind.Exact, domain, 0, pattern.Length);
         }
 
         if (leadingPercentCount == pattern.Length)
         {
-            return LikePatternClassificationResult.Accepted(
-                LikePatternMatchKind.Contains,
-                domain,
-                pattern.Length,
-                0);
+            return LikePatternClassificationResult.Accepted(LikePatternMatchKind.Contains, domain, pattern.Length, 0);
         }
 
         if (hasInteriorPercentWildcard)
         {
-            return LikePatternClassificationResult.Rejected(
-                LikePatternRejectionReason.InteriorPercentWildcard,
-                domain);
+            return LikePatternClassificationResult.Rejected(LikePatternRejectionReason.InteriorPercentWildcard, domain);
         }
 
         var trailingPercentCount = pattern.Length - lastNonPercentIndex - 1;
@@ -143,13 +138,11 @@ internal static class LikePatternClassifier
             (true, true) => LikePatternMatchKind.Contains,
             (true, false) => LikePatternMatchKind.Suffix,
             (false, true) => LikePatternMatchKind.Prefix,
-            _ => throw new InvalidOperationException("A classified boundary wildcard must have a leading or trailing percent.")
+            _ => throw new InvalidOperationException(
+                "A classified boundary wildcard must have a leading or trailing percent."
+            ),
         };
 
-        return LikePatternClassificationResult.Accepted(
-            kind,
-            domain,
-            firstNonPercentIndex,
-            literalLength);
+        return LikePatternClassificationResult.Accepted(kind, domain, firstNonPercentIndex, literalLength);
     }
 }

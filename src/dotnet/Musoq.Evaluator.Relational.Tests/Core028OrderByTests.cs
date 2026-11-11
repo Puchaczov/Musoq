@@ -19,7 +19,8 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
             new BasicEntity("A") { City = "A" },
             new BasicEntity("B") { City = "B" },
             new BasicEntity("a") { City = "a" },
-            new BasicEntity("b") { City = "b" });
+            new BasicEntity("b") { City = "b" }
+        );
 
         var ascending = Run("select Name, City from #A.Entities() order by City", sources);
         var descending = Run("select Name, City from #A.Entities() order by City desc", sources);
@@ -30,14 +31,16 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
             ["A", "A"],
             ["B", "B"],
             ["a", "a"],
-            ["b", "b"]);
+            ["b", "b"]
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             descending,
             ["b", "b"],
             ["a", "a"],
             ["B", "B"],
             ["A", "A"],
-            new object?[] { "null", null });
+            new object?[] { "null", null }
+        );
     }
 
     [TestMethod]
@@ -50,7 +53,9 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
                 new BasicEntity("B") { Country = null, NullableValue = null },
                 new BasicEntity("C") { Country = "US", NullableValue = 2 },
                 new BasicEntity("D") { Country = "US", NullableValue = null },
-                new BasicEntity("E") { Country = "PL", NullableValue = 1 }));
+                new BasicEntity("E") { Country = "PL", NullableValue = 1 }
+            )
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
@@ -58,7 +63,8 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
             new object?[] { "B", null, null },
             new object?[] { "C", "US", 2 },
             new object?[] { "D", "US", null },
-            new object?[] { "E", "PL", 1 });
+            new object?[] { "E", "PL", 1 }
+        );
     }
 
     [TestMethod]
@@ -70,12 +76,11 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
                 new BasicEntity("low") { Money = 1m, Population = 10m },
                 new BasicEntity("high") { Money = 10m, Population = 100m },
                 new BasicEntity("middle") { Money = 5m, Population = 50m },
-                new BasicEntity("top") { Money = 20m, Population = 200m }));
+                new BasicEntity("top") { Money = 20m, Population = 200m }
+            )
+        );
 
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["high", 110m],
-            ["middle", 55m]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["high", 110m], ["middle", 55m]);
     }
 
     [TestMethod]
@@ -84,7 +89,8 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
         var sources = CreateSingleSource(
             new BasicEntity("one") { Id = 1 },
             new BasicEntity("two") { Id = 2 },
-            new BasicEntity("three") { Id = 3 });
+            new BasicEntity("three") { Id = 3 }
+        );
 
         var page = Run("select Id from #A.Entities() order by Id desc skip 1 take 1", sources);
         var skipPastEnd = Run("select Id from #A.Entities() order by Id skip 10", sources);
@@ -110,7 +116,9 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
                 new BasicEntity("c") { Country = "US" },
                 new BasicEntity("d") { Country = "DE" },
                 new BasicEntity("e") { Country = "DE" },
-                new BasicEntity("f") { Country = "DE" }));
+                new BasicEntity("f") { Country = "DE" }
+            )
+        );
 
         var windowed = Run(
             "select Name, RowNumber() over (order by Id desc) as RowNo from #A.Entities() order by RowNo skip 1 take 2",
@@ -118,16 +126,12 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
                 new BasicEntity("one") { Id = 1 },
                 new BasicEntity("two") { Id = 2 },
                 new BasicEntity("three") { Id = 3 },
-                new BasicEntity("four") { Id = 4 }));
+                new BasicEntity("four") { Id = 4 }
+            )
+        );
 
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            grouped,
-            ["DE", 3L],
-            ["PL", 2L]);
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            windowed,
-            ["three", 2L],
-            ["two", 3L]);
+        TableMaterializationTestHelper.AssertRowsInOrder(grouped, ["DE", 3L], ["PL", 2L]);
+        TableMaterializationTestHelper.AssertRowsInOrder(windowed, ["three", 2L], ["two", 3L]);
     }
 
     [TestMethod]
@@ -141,9 +145,7 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
         Assert.AreEqual(DiagnosticSeverity.Warning, warning.Severity);
         Assert.AreEqual(DiagnosticPhase.Bind, warning.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, warning.SourceKind);
-        Assert.AreEqual(
-            "SKIP 2 is used without ORDER BY, so the skipped rows are not deterministic",
-            warning.Message);
+        Assert.AreEqual("SKIP 2 is used without ORDER BY, so the skipped rows are not deterministic", warning.Message);
         Assert.AreEqual(SpanOf(query, "2"), warning.Span);
         Assert.IsFalse(string.IsNullOrWhiteSpace(warning.ContextSnippet));
 
@@ -161,7 +163,8 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual(
             "ORDER BY column position is not supported. Use a column name or alias instead of a numeric position.",
-            diagnostic.Message);
+            diagnostic.Message
+        );
         Assert.AreEqual(SpanOf(query, "1"), diagnostic.Span);
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
         Assert.AreEqual("Core Spec - ORDER BY", envelope.DocsReference);
@@ -176,8 +179,9 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
 
     private static QueryAnalysisResult Analyze(string query)
     {
-        return new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] })).Analyze(query);
+        return new QueryAnalyzer(
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] })
+        ).Analyze(query);
     }
 
     private static Diagnostic AssertSingleError(QueryAnalysisResult result, DiagnosticCode expectedCode)
@@ -196,7 +200,11 @@ public sealed class Core028OrderByTests : BasicEntityTestBase
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code}: {diagnostic.Message} at {diagnostic.Span}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic =>
+                $"{diagnostic.Code}: {diagnostic.Message} at {diagnostic.Span}"
+            )
+        );
     }
 }

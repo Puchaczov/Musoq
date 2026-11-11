@@ -20,18 +20,25 @@ internal static class StructuralCarrierSyntaxFactory
     private const string AdapterPrefix = "__musoqStructuralAdapt_";
 
     internal static IReadOnlyList<MemberDeclarationSyntax> CreateMembers(
-        IReadOnlyList<ExecutionStructuralCarrier> carriers)
+        IReadOnlyList<ExecutionStructuralCarrier> carriers
+    )
     {
         var members = new List<MemberDeclarationSyntax>();
         foreach (var carrier in carriers)
-            AddCarrierMembers(members, StructuralCarrierDescriptors.FromShape(carrier.Shape), carrier.DefinitionIndex, []);
+            AddCarrierMembers(
+                members,
+                StructuralCarrierDescriptors.FromShape(carrier.Shape),
+                carrier.DefinitionIndex,
+                []
+            );
         return members;
     }
 
     internal static IReadOnlyList<MemberDeclarationSyntax> CreateMembers(
         IReadOnlyList<ScriptVariableDefinition> definitions,
         IReadOnlyList<ScriptParameterDefinition> parameterDefinitions,
-        IEnumerable<ExecutionStructuralConversion> conversions)
+        IEnumerable<ExecutionStructuralConversion> conversions
+    )
     {
         ArgumentNullException.ThrowIfNull(definitions);
         ArgumentNullException.ThrowIfNull(parameterDefinitions);
@@ -56,22 +63,34 @@ internal static class StructuralCarrierSyntaxFactory
             {
                 var (name, index, descriptor) = item.Input switch
                 {
-                    ExecutionScriptVariableRead read when TryFindDefinition(definitions, read.Name, out var variableIndex, out var variable) =>
-                        (read.Name, variableIndex, variable.StructuralType),
-                    ExecutionScriptParameterRead read when TryFindParameter(parameterDefinitions, read.Name, out var parameterIndex, out var parameter) =>
-                        (read.Name, parameterOffset + parameterIndex, parameter.Contract.StructuralType),
-                    _ => (string.Empty, -1, null)
+                    ExecutionScriptVariableRead read
+                        when TryFindDefinition(definitions, read.Name, out var variableIndex, out var variable) => (
+                        read.Name,
+                        variableIndex,
+                        variable.StructuralType
+                    ),
+                    ExecutionScriptParameterRead read
+                        when TryFindParameter(
+                            parameterDefinitions,
+                            read.Name,
+                            out var parameterIndex,
+                            out var parameter
+                        ) => (read.Name, parameterOffset + parameterIndex, parameter.Contract.StructuralType),
+                    _ => (string.Empty, -1, null),
                 };
 
                 if (index < 0 || descriptor == null)
                     return (Key: string.Empty, Item: item, Name: name, Index: index, Descriptor: descriptor);
-                return (Key: CreateAdapterName(
-                    index,
-                    ScriptParameterSyntaxFactory.ResolveExecutionClrType(item.TargetType)),
+                return (
+                    Key: CreateAdapterName(
+                        index,
+                        ScriptParameterSyntaxFactory.ResolveExecutionClrType(item.TargetType)
+                    ),
                     Item: item,
                     Name: name,
                     Index: index,
-                    Descriptor: descriptor);
+                    Descriptor: descriptor
+                );
             })
             .Where(static item => item.Key.Length > 0)
             .GroupBy(static item => item.Key, StringComparer.Ordinal)
@@ -95,13 +114,16 @@ internal static class StructuralCarrierSyntaxFactory
         IReadOnlyList<ScriptVariableDefinition> definitions,
         ScriptVariableDefinition definition,
         out TypeSyntax type,
-        out ExpressionSyntax initializer)
+        out ExpressionSyntax initializer
+    )
     {
         ArgumentNullException.ThrowIfNull(definitions);
         ArgumentNullException.ThrowIfNull(definition);
 
-        if (definition.StructuralType is not { } descriptor ||
-            !TryFindDefinition(definitions, definition.Name, out var definitionIndex, out _))
+        if (
+            definition.StructuralType is not { } descriptor
+            || !TryFindDefinition(definitions, definition.Name, out var definitionIndex, out _)
+        )
         {
             type = null!;
             initializer = null!;
@@ -119,7 +141,8 @@ internal static class StructuralCarrierSyntaxFactory
         ExecutionStructuralConversion conversion,
         ExecutionCSharpRenderer renderer,
         ExecutionRenderContext context,
-        out ExpressionSyntax expression)
+        out ExpressionSyntax expression
+    )
     {
         ArgumentNullException.ThrowIfNull(variableDefinitions);
         ArgumentNullException.ThrowIfNull(parameterDefinitions);
@@ -130,11 +153,17 @@ internal static class StructuralCarrierSyntaxFactory
         var targetType = ScriptParameterSyntaxFactory.ResolveExecutionClrType(conversion.TargetType);
         var (definitionIndex, sourceDescriptor) = conversion.Input switch
         {
-            ExecutionScriptVariableRead read when TryFindDefinition(variableDefinitions, read.Name, out var variableIndex, out var variable) =>
-                (variableIndex, variable.StructuralType),
-            ExecutionScriptParameterRead read when TryFindParameter(parameterDefinitions, read.Name, out var parameterIndex, out var parameter) =>
-                (variableDefinitions.Count + parameterIndex, parameter.Contract.StructuralType),
-            _ => (-1, null)
+            ExecutionScriptVariableRead read
+                when TryFindDefinition(variableDefinitions, read.Name, out var variableIndex, out var variable) => (
+                variableIndex,
+                variable.StructuralType
+            ),
+            ExecutionScriptParameterRead read
+                when TryFindParameter(parameterDefinitions, read.Name, out var parameterIndex, out var parameter) => (
+                variableDefinitions.Count + parameterIndex,
+                parameter.Contract.StructuralType
+            ),
+            _ => (-1, null),
         };
 
         // Primitive array parameters predate structural declarations and keep
@@ -142,13 +171,15 @@ internal static class StructuralCarrierSyntaxFactory
         // read is already exposed as the typed IReadOnlyList<T> sequence; no
         // carrier adapter is required, but it still participates in the same
         // conversion node used by structural source preparation.
-        if (conversion.Input is ExecutionScriptParameterRead primitiveArrayRead &&
-            TryFindParameter(parameterDefinitions, primitiveArrayRead.Name, out _, out var primitiveArrayDefinition) &&
-            primitiveArrayDefinition.Contract.StructuralType == null &&
-            primitiveArrayDefinition.ParameterType.IsArray &&
-            primitiveArrayDefinition.ParameterType.GetArrayRank() == 1 &&
-            StructuralCollectionContract.TryGetElementType(targetType, out var targetElement) &&
-            targetElement == primitiveArrayDefinition.ParameterType.GetElementType())
+        if (
+            conversion.Input is ExecutionScriptParameterRead primitiveArrayRead
+            && TryFindParameter(parameterDefinitions, primitiveArrayRead.Name, out _, out var primitiveArrayDefinition)
+            && primitiveArrayDefinition.Contract.StructuralType == null
+            && primitiveArrayDefinition.ParameterType.IsArray
+            && primitiveArrayDefinition.ParameterType.GetArrayRank() == 1
+            && StructuralCollectionContract.TryGetElementType(targetType, out var targetElement)
+            && targetElement == primitiveArrayDefinition.ParameterType.GetElementType()
+        )
         {
             expression = renderer.RenderExpression(conversion.Input, context);
             return true;
@@ -166,10 +197,11 @@ internal static class StructuralCarrierSyntaxFactory
             return true;
         }
 
-        expression = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.IdentifierName(CreateAdapterName(definitionIndex, targetType)))
-            .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(
-                renderer.RenderExpression(conversion.Input, context)));
+        expression = SyntaxFactory
+            .InvocationExpression(SyntaxFactory.IdentifierName(CreateAdapterName(definitionIndex, targetType)))
+            .WithArgumentList(
+                ExecutionSyntaxFactory.CreateArgumentList(renderer.RenderExpression(conversion.Input, context))
+            );
         return true;
     }
 
@@ -177,7 +209,8 @@ internal static class StructuralCarrierSyntaxFactory
         IReadOnlyList<ScriptVariableDefinition> variableDefinitions,
         ScriptParameterDefinition definition,
         int parameterIndex,
-        out TypeSyntax type)
+        out TypeSyntax type
+    )
     {
         ArgumentNullException.ThrowIfNull(variableDefinitions);
         ArgumentNullException.ThrowIfNull(definition);
@@ -189,34 +222,42 @@ internal static class StructuralCarrierSyntaxFactory
         }
 
         type = SyntaxFactory.ParseTypeName(
-            CreateStorageType(descriptor, variableDefinitions.Count + parameterIndex, []));
+            CreateStorageType(descriptor, variableDefinitions.Count + parameterIndex, [])
+        );
         return true;
     }
 
     internal static string CreateAdapterName(int definitionIndex, Type targetType) =>
-        AdapterPrefix + definitionIndex.ToString(CultureInfo.InvariantCulture) + "_" +
-        StableHash(EvaluationHelper.GetCastableType(targetType)).ToString(CultureInfo.InvariantCulture);
+        AdapterPrefix
+        + definitionIndex.ToString(CultureInfo.InvariantCulture)
+        + "_"
+        + StableHash(EvaluationHelper.GetCastableType(targetType)).ToString(CultureInfo.InvariantCulture);
 
     private static bool NeedsAdapter(StructuralTypeDescriptor source, Type targetType)
     {
         if (source.Kind == StructuralTypeKind.Record)
             return true;
 
-        if (source.Kind != StructuralTypeKind.Collection ||
-            source.ElementType == null ||
-            !StructuralCollectionContract.TryGetElementType(targetType, out var targetElement))
+        if (
+            source.Kind != StructuralTypeKind.Collection
+            || source.ElementType == null
+            || !StructuralCollectionContract.TryGetElementType(targetType, out var targetElement)
+        )
             return false;
 
-        return source.ElementType.Kind == StructuralTypeKind.Record ||
-               (source.ElementType.Kind == StructuralTypeKind.Collection &&
-                NeedsAdapter(source.ElementType, targetElement));
+        return source.ElementType.Kind == StructuralTypeKind.Record
+            || (
+                source.ElementType.Kind == StructuralTypeKind.Collection
+                && NeedsAdapter(source.ElementType, targetElement)
+            );
     }
 
     private static void AddCarrierMembers(
         ICollection<MemberDeclarationSyntax> members,
         StructuralTypeDescriptor descriptor,
         int definitionIndex,
-        IReadOnlyList<int> path)
+        IReadOnlyList<int> path
+    )
     {
         if (descriptor.Kind == StructuralTypeKind.Record)
         {
@@ -232,15 +273,18 @@ internal static class StructuralCarrierSyntaxFactory
             return;
         }
 
-        if (descriptor.Kind == StructuralTypeKind.Collection &&
-            descriptor.ElementType is { Kind: StructuralTypeKind.Record or StructuralTypeKind.Collection } element)
+        if (
+            descriptor.Kind == StructuralTypeKind.Collection
+            && descriptor.ElementType is { Kind: StructuralTypeKind.Record or StructuralTypeKind.Collection } element
+        )
             AddCarrierMembers(members, element, definitionIndex, Append(path, -1));
     }
 
     private static StructDeclarationSyntax CreateCarrierStruct(
         StructuralTypeDescriptor descriptor,
         int definitionIndex,
-        IReadOnlyList<int> path)
+        IReadOnlyList<int> path
+    )
     {
         var name = CreateCarrierName(definitionIndex, path);
         var presenceCount = Math.Max(1, (descriptor.Fields.Count + 63) / 64);
@@ -248,41 +292,51 @@ internal static class StructuralCarrierSyntaxFactory
         {
             $"[global::System.Text.Json.Serialization.JsonConverter(typeof({NativeStructuralJsonSyntax.ConverterName(definitionIndex, path)}))]",
             $"private readonly struct {name}",
-            "{"
+            "{",
         };
 
         for (var index = 0; index < descriptor.Fields.Count; index++)
         {
             lines.Add(
-                $"public readonly {CreateStorageType(descriptor.Fields[index].Type, definitionIndex, Append(path, index))} " +
-                $"F{index.ToString(CultureInfo.InvariantCulture)};");
+                $"public readonly {CreateStorageType(descriptor.Fields[index].Type, definitionIndex, Append(path, index))} "
+                    + $"F{index.ToString(CultureInfo.InvariantCulture)};"
+            );
         }
 
         for (var index = 0; index < presenceCount; index++)
             lines.Add($"public readonly ulong P{index.ToString(CultureInfo.InvariantCulture)};");
 
-        var parameters = descriptor.Fields
-            .Select((field, index) =>
-                $"{CreateStorageType(field.Type, definitionIndex, Append(path, index))} f{index.ToString(CultureInfo.InvariantCulture)}")
-            .Concat(Enumerable.Range(0, presenceCount)
-                .Select(index => $"ulong p{index.ToString(CultureInfo.InvariantCulture)}"));
+        var parameters = descriptor
+            .Fields.Select(
+                (field, index) =>
+                    $"{CreateStorageType(field.Type, definitionIndex, Append(path, index))} f{index.ToString(CultureInfo.InvariantCulture)}"
+            )
+            .Concat(
+                Enumerable
+                    .Range(0, presenceCount)
+                    .Select(index => $"ulong p{index.ToString(CultureInfo.InvariantCulture)}")
+            );
         lines.Add($"public {name}({string.Join(", ", parameters)})");
         lines.Add("{");
         for (var index = 0; index < descriptor.Fields.Count; index++)
-            lines.Add($"F{index.ToString(CultureInfo.InvariantCulture)} = f{index.ToString(CultureInfo.InvariantCulture)};");
+            lines.Add(
+                $"F{index.ToString(CultureInfo.InvariantCulture)} = f{index.ToString(CultureInfo.InvariantCulture)};"
+            );
         for (var index = 0; index < presenceCount; index++)
-            lines.Add($"P{index.ToString(CultureInfo.InvariantCulture)} = p{index.ToString(CultureInfo.InvariantCulture)};");
+            lines.Add(
+                $"P{index.ToString(CultureInfo.InvariantCulture)} = p{index.ToString(CultureInfo.InvariantCulture)};"
+            );
         lines.Add("}");
         lines.Add("}");
 
-        return (StructDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(
-            string.Join(Environment.NewLine, lines))!;
+        return (StructDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(string.Join(Environment.NewLine, lines))!;
     }
 
     internal static string CreateStorageType(
         StructuralTypeDescriptor descriptor,
         int definitionIndex,
-        IReadOnlyList<int> path)
+        IReadOnlyList<int> path
+    )
     {
         var text = descriptor.Kind switch
         {
@@ -290,7 +344,7 @@ internal static class StructuralCarrierSyntaxFactory
             StructuralTypeKind.Record => CreateCarrierName(definitionIndex, path),
             StructuralTypeKind.Collection =>
                 $"{CreateStorageType(descriptor.ElementType!, definitionIndex, Append(path, -1))}[]",
-            _ => throw new InvalidOperationException($"Unknown structural type '{descriptor.Kind}'.")
+            _ => throw new InvalidOperationException($"Unknown structural type '{descriptor.Kind}'."),
         };
 
         if (descriptor.IsNullable && descriptor.Kind != StructuralTypeKind.Scalar)
@@ -300,9 +354,11 @@ internal static class StructuralCarrierSyntaxFactory
 
     internal static string CreateArrayAllocation(string elementType, string count)
     {
-        var arrayType = (ArrayTypeSyntax)SyntaxFactory.ParseTypeName(elementType.Replace("[]?", "[]", StringComparison.Ordinal) + "[]");
+        var arrayType = (ArrayTypeSyntax)
+            SyntaxFactory.ParseTypeName(elementType.Replace("[]?", "[]", StringComparison.Ordinal) + "[]");
         var rank = SyntaxFactory.ArrayRankSpecifier(
-            SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ParseExpression(count)));
+            SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ParseExpression(count))
+        );
         arrayType = arrayType.WithRankSpecifiers(arrayType.RankSpecifiers.Replace(arrayType.RankSpecifiers[0], rank));
         return SyntaxFactory.ArrayCreationExpression(arrayType).NormalizeWhitespace().ToFullString();
     }
@@ -310,16 +366,21 @@ internal static class StructuralCarrierSyntaxFactory
     internal static string? GetReadStorageType(
         ExecutionExpression expression,
         IReadOnlyList<ScriptVariableDefinition> variables,
-        IReadOnlyList<ScriptParameterDefinition> parameters)
+        IReadOnlyList<ScriptParameterDefinition> parameters
+    )
     {
-        if (expression is ExecutionScriptVariableRead variableRead &&
-            TryFindDefinition(variables, variableRead.Name, out var variableIndex, out var variable) &&
-            variable.StructuralType is { } variableType)
+        if (
+            expression is ExecutionScriptVariableRead variableRead
+            && TryFindDefinition(variables, variableRead.Name, out var variableIndex, out var variable)
+            && variable.StructuralType is { } variableType
+        )
             return CreateStorageType(variableType, variableIndex, []);
 
-        if (expression is ExecutionScriptParameterRead parameterRead &&
-            TryFindParameter(parameters, parameterRead.Name, out var parameterIndex, out var parameter) &&
-            parameter.Contract.StructuralType is { } parameterType)
+        if (
+            expression is ExecutionScriptParameterRead parameterRead
+            && TryFindParameter(parameters, parameterRead.Name, out var parameterIndex, out var parameter)
+            && parameter.Contract.StructuralType is { } parameterType
+        )
             return CreateStorageType(parameterType, variables.Count + parameterIndex, []);
 
         return null;
@@ -329,11 +390,13 @@ internal static class StructuralCarrierSyntaxFactory
         object? value,
         StructuralTypeDescriptor descriptor,
         int definitionIndex,
-        IReadOnlyList<int> path)
+        IReadOnlyList<int> path
+    )
     {
         if (value == null || value is StructuralValue { Kind: StructuralTypeKind.Scalar, Scalar: null })
             return SyntaxFactory.DefaultExpression(
-                SyntaxFactory.ParseTypeName(CreateStorageType(descriptor, definitionIndex, path)));
+                SyntaxFactory.ParseTypeName(CreateStorageType(descriptor, definitionIndex, path))
+            );
 
         if (descriptor.Kind == StructuralTypeKind.Scalar)
         {
@@ -341,7 +404,8 @@ internal static class StructuralCarrierSyntaxFactory
             return ScriptParameterSyntaxFactory.CreateDefaultArgumentExpression(
                 descriptor.CoreValueType,
                 scalar,
-                descriptor);
+                descriptor
+            );
         }
 
         if (descriptor.Kind == StructuralTypeKind.Record)
@@ -349,24 +413,29 @@ internal static class StructuralCarrierSyntaxFactory
 
         var elements = value switch
         {
-            StructuralValue { Kind: StructuralTypeKind.Collection } structural =>
-                structural.Elements.Cast<object?>().ToArray(),
+            StructuralValue { Kind: StructuralTypeKind.Collection } structural => structural
+                .Elements.Cast<object?>()
+                .ToArray(),
             Array array => array.Cast<object?>().ToArray(),
             _ => throw new InvalidOperationException(
-                $"Structural collection value '{value.GetType().Name}' is invalid.")
+                $"Structural collection value '{value.GetType().Name}' is invalid."
+            ),
         };
         var elementPath = Append(path, -1);
         return ExecutionSyntaxFactory.CreateArrayCreation(
             CreateStorageType(descriptor.ElementType!, definitionIndex, elementPath),
             elements.Select(element =>
-                CreateValueExpression(element, descriptor.ElementType!, definitionIndex, elementPath)));
+                CreateValueExpression(element, descriptor.ElementType!, definitionIndex, elementPath)
+            )
+        );
     }
 
     private static ExpressionSyntax CreateRecordExpression(
         object value,
         StructuralTypeDescriptor descriptor,
         int definitionIndex,
-        IReadOnlyList<int> path)
+        IReadOnlyList<int> path
+    )
     {
         if (value is not StructuralValue { Kind: StructuralTypeKind.Record } record)
             throw new InvalidOperationException("Structural record storage requires a structural record value.");
@@ -387,17 +456,16 @@ internal static class StructuralCarrierSyntaxFactory
             if (present)
                 presence[index / 64] |= 1UL << (index % 64);
 
-            arguments.Add(CreateValueExpression(
-                valueToRender,
-                field.Type,
-                definitionIndex,
-                Append(path, index)));
+            arguments.Add(CreateValueExpression(valueToRender, field.Type, definitionIndex, Append(path, index)));
         }
 
-        arguments.AddRange(presence.Select(static value =>
-            SyntaxFactory.ParseExpression(value.ToString(CultureInfo.InvariantCulture) + "UL")));
-        return SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.ParseTypeName(CreateCarrierName(definitionIndex, path)))
+        arguments.AddRange(
+            presence.Select(static value =>
+                SyntaxFactory.ParseExpression(value.ToString(CultureInfo.InvariantCulture) + "UL")
+            )
+        );
+        return SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.ParseTypeName(CreateCarrierName(definitionIndex, path)))
             .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(arguments));
     }
 
@@ -419,14 +487,18 @@ internal static class StructuralCarrierSyntaxFactory
             var target = StructuralTypeDescriptor.FromClrType(targetType);
             var rootName = CreateAdapterName(_definitionIndex, targetType);
             _created.Add(rootName);
-            var body = _sourceRoot.Kind == StructuralTypeKind.Record
-                ? CreateRecordBody(_sourceRoot, target, targetType, "source", [])
-                : CreateCollectionBody(_sourceRoot, target, targetType, "source", []);
-            _members.Add(ParseMethod(
-                EvaluationHelper.GetCastableType(targetType),
-                rootName,
-                CreateStorageType(_sourceRoot, _definitionIndex, []),
-                body));
+            var body =
+                _sourceRoot.Kind == StructuralTypeKind.Record
+                    ? CreateRecordBody(_sourceRoot, target, targetType, "source", [])
+                    : CreateCollectionBody(_sourceRoot, target, targetType, "source", []);
+            _members.Add(
+                ParseMethod(
+                    EvaluationHelper.GetCastableType(targetType),
+                    rootName,
+                    CreateStorageType(_sourceRoot, _definitionIndex, []),
+                    body
+                )
+            );
             return _members;
         }
 
@@ -435,7 +507,8 @@ internal static class StructuralCarrierSyntaxFactory
             StructuralTypeDescriptor target,
             Type targetType,
             string sourceExpression,
-            IReadOnlyList<int> path)
+            IReadOnlyList<int> path
+        )
         {
             var nullGuard = source.IsNullable
                 ? $"if ({sourceExpression} == null) return default({EvaluationHelper.GetCastableType(targetType)});{Environment.NewLine}"
@@ -449,35 +522,38 @@ internal static class StructuralCarrierSyntaxFactory
             StructuralTypeDescriptor target,
             Type targetType,
             string sourceExpression,
-            IReadOnlyList<int> path)
+            IReadOnlyList<int> path
+        )
         {
-            var sourceElement = source.ElementType ??
-                throw new InvalidOperationException("Source collection element is missing.");
-            var targetElement = target.ElementType ??
-                throw new InvalidOperationException("Target collection element is missing.");
+            var sourceElement =
+                source.ElementType ?? throw new InvalidOperationException("Source collection element is missing.");
+            var targetElement =
+                target.ElementType ?? throw new InvalidOperationException("Target collection element is missing.");
             var elementPath = Append(path, -1);
             var element = CreateElementAdaptation(
                 sourceElement,
                 targetElement,
                 $"{sourceExpression}[index]",
-                elementPath);
+                elementPath
+            );
 
             var nullGuard = source.IsNullable
                 ? $"if ({sourceExpression} == null) return default({EvaluationHelper.GetCastableType(targetType)});{Environment.NewLine}"
                 : string.Empty;
             var targetElementType = CreateTargetStorageType(targetElement);
-            return nullGuard +
-                   $"var result = new {targetElementType}[{sourceExpression}.Length];{Environment.NewLine}" +
-                   $"for (var index = 0; index < {sourceExpression}.Length; index++){Environment.NewLine}" +
-                   $"{{{Environment.NewLine}    result[index] = {element};{Environment.NewLine}}}{Environment.NewLine}" +
-                   "return result;";
+            return nullGuard
+                + $"var result = new {targetElementType}[{sourceExpression}.Length];{Environment.NewLine}"
+                + $"for (var index = 0; index < {sourceExpression}.Length; index++){Environment.NewLine}"
+                + $"{{{Environment.NewLine}    result[index] = {element};{Environment.NewLine}}}{Environment.NewLine}"
+                + "return result;";
         }
 
         private string CreateRecordAdaptation(
             StructuralTypeDescriptor source,
             StructuralTypeDescriptor target,
             string sourceExpression,
-            IReadOnlyList<int> path)
+            IReadOnlyList<int> path
+        )
         {
             var targetType = ScriptParameterSyntaxFactory.ResolveStructuralClrType(target);
             var constructor = StructuralInputMetadata.SelectConstructor(targetType);
@@ -486,7 +562,8 @@ internal static class StructuralCarrierSyntaxFactory
             foreach (var parameter in constructor.GetParameters())
             {
                 var targetField = target.Fields.FirstOrDefault(field =>
-                    string.Equals(field.Name, parameter.Name, StringComparison.OrdinalIgnoreCase));
+                    string.Equals(field.Name, parameter.Name, StringComparison.OrdinalIgnoreCase)
+                );
                 var sourceIndex = -1;
                 StructuralFieldDescriptor? sourceField = null;
                 for (var index = 0; index < source.Fields.Count; index++)
@@ -509,12 +586,13 @@ internal static class StructuralCarrierSyntaxFactory
                     sourceField.Type,
                     targetField.Type,
                     sourceValue,
-                    Append(path, sourceIndex));
+                    Append(path, sourceIndex)
+                );
                 var word = sourceIndex / 64;
                 var bit = 1UL << (sourceIndex % 64);
                 var present =
-                    $"(({sourceExpression}.P{word.ToString(CultureInfo.InvariantCulture)} & " +
-                    $"{bit.ToString(CultureInfo.InvariantCulture)}UL) != 0UL)";
+                    $"(({sourceExpression}.P{word.ToString(CultureInfo.InvariantCulture)} & "
+                    + $"{bit.ToString(CultureInfo.InvariantCulture)}UL) != 0UL)";
                 arguments.Add($"({present} ? {converted} : {CreateTargetDefault(parameter, targetField)})");
             }
 
@@ -525,7 +603,8 @@ internal static class StructuralCarrierSyntaxFactory
             StructuralTypeDescriptor source,
             StructuralTypeDescriptor target,
             string sourceExpression,
-            IReadOnlyList<int> path)
+            IReadOnlyList<int> path
+        )
         {
             if (source.Kind == StructuralTypeKind.Record && target.Kind == StructuralTypeKind.Record)
             {
@@ -541,9 +620,11 @@ internal static class StructuralCarrierSyntaxFactory
 
             if (source.Kind == StructuralTypeKind.Collection && target.Kind == StructuralTypeKind.Collection)
             {
-                if (source.ElementType is { Kind: StructuralTypeKind.Scalar } sourceScalar &&
-                    target.ElementType is { Kind: StructuralTypeKind.Scalar } targetScalar &&
-                    sourceScalar.CoreValueType == targetScalar.CoreValueType)
+                if (
+                    source.ElementType is { Kind: StructuralTypeKind.Scalar } sourceScalar
+                    && target.ElementType is { Kind: StructuralTypeKind.Scalar } targetScalar
+                    && sourceScalar.CoreValueType == targetScalar.CoreValueType
+                )
                 {
                     // An array is already a valid IReadOnlyList/IEnumerable receiver.
                     // Keep the typed array so scalar collection fields do not incur a copy.
@@ -569,7 +650,8 @@ internal static class StructuralCarrierSyntaxFactory
             string methodName,
             StructuralTypeDescriptor source,
             StructuralTypeDescriptor target,
-            IReadOnlyList<int> path)
+            IReadOnlyList<int> path
+        )
         {
             if (!_created.Add(methodName))
                 return;
@@ -581,17 +663,26 @@ internal static class StructuralCarrierSyntaxFactory
                 target,
                 ScriptParameterSyntaxFactory.ResolveStructuralClrType(target),
                 "source",
-                path);
+                path
+            );
             _members.Add(ParseMethod(targetType, methodName, sourceType, body));
         }
 
         private string CreateNestedAdapterName(
             IReadOnlyList<int> path,
             StructuralTypeDescriptor source,
-            StructuralTypeDescriptor target) =>
-            AdapterPrefix + _definitionIndex.ToString(CultureInfo.InvariantCulture) + "_" +
-            StableHash(string.Join("/", path.Select(static value => value.ToString(CultureInfo.InvariantCulture))) +
-                       ":" + source.ToCanonicalSql() + ":" + target.ToCanonicalSql())
+            StructuralTypeDescriptor target
+        ) =>
+            AdapterPrefix
+            + _definitionIndex.ToString(CultureInfo.InvariantCulture)
+            + "_"
+            + StableHash(
+                    string.Join("/", path.Select(static value => value.ToString(CultureInfo.InvariantCulture)))
+                        + ":"
+                        + source.ToCanonicalSql()
+                        + ":"
+                        + target.ToCanonicalSql()
+                )
                 .ToString(CultureInfo.InvariantCulture);
 
         private static string CreateTargetStorageType(StructuralTypeDescriptor descriptor)
@@ -600,26 +691,23 @@ internal static class StructuralCarrierSyntaxFactory
             {
                 StructuralTypeKind.Scalar => EvaluationHelper.GetCastableType(descriptor.CoreValueType),
                 StructuralTypeKind.Record => EvaluationHelper.GetCastableType(
-                    ScriptParameterSyntaxFactory.ResolveStructuralClrType(descriptor)),
+                    ScriptParameterSyntaxFactory.ResolveStructuralClrType(descriptor)
+                ),
                 StructuralTypeKind.Collection => $"{CreateTargetStorageType(descriptor.ElementType!)}[]",
-                _ => throw new InvalidOperationException($"Unknown target structural type '{descriptor.Kind}'.")
+                _ => throw new InvalidOperationException($"Unknown target structural type '{descriptor.Kind}'."),
             };
             if (descriptor.IsNullable && descriptor.Kind != StructuralTypeKind.Scalar)
                 text += "?";
             return text;
         }
 
-        private static string CreateTargetDefault(
-            ParameterInfo parameter,
-            StructuralFieldDescriptor? field)
+        private static string CreateTargetDefault(ParameterInfo parameter, StructuralFieldDescriptor? field)
         {
             if (field?.HasDefault != true)
                 return $"default({EvaluationHelper.GetCastableType(parameter.ParameterType)})";
 
-            return ScriptParameterSyntaxFactory.CreateDefaultArgumentExpression(
-                    parameter.ParameterType,
-                    field.Default.Value,
-                    field.Type)
+            return ScriptParameterSyntaxFactory
+                .CreateDefaultArgumentExpression(parameter.ParameterType, field.Default.Value, field.Type)
                 .NormalizeWhitespace()
                 .ToFullString();
         }
@@ -628,9 +716,12 @@ internal static class StructuralCarrierSyntaxFactory
             string returnType,
             string methodName,
             string sourceType,
-            string body) =>
-            (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(
-                $"private static {returnType} {methodName}({sourceType} source) {{ {body} }}")!;
+            string body
+        ) =>
+            (MethodDeclarationSyntax)
+                SyntaxFactory.ParseMemberDeclaration(
+                    $"private static {returnType} {methodName}({sourceType} source) {{ {body} }}"
+                )!;
     }
 
     internal static string CreateCarrierName(int definitionIndex, IReadOnlyList<int> path)
@@ -642,7 +733,8 @@ internal static class StructuralCarrierSyntaxFactory
         IReadOnlyList<ScriptVariableDefinition> definitions,
         string name,
         out int index,
-        out ScriptVariableDefinition definition)
+        out ScriptVariableDefinition definition
+    )
     {
         for (var current = 0; current < definitions.Count; current++)
         {
@@ -663,7 +755,8 @@ internal static class StructuralCarrierSyntaxFactory
         IReadOnlyList<ScriptParameterDefinition> definitions,
         string name,
         out int index,
-        out ScriptParameterDefinition definition)
+        out ScriptParameterDefinition definition
+    )
     {
         for (var current = 0; current < definitions.Count; current++)
         {

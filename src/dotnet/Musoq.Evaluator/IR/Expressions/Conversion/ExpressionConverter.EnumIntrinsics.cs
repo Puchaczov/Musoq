@@ -9,15 +9,18 @@ public sealed partial class ExpressionConverter
     private static IrExpression ConvertEnumIntrinsic(
         AccessMethodNode node,
         IReadOnlyList<IrExpression> arguments,
-        EnumIntrinsicKind intrinsic)
+        EnumIntrinsicKind intrinsic
+    )
     {
         if (arguments.Count == 0)
             throw new InvalidOperationException($"Enum intrinsic '{intrinsic}' has no bound operand.");
 
         var operand = arguments[0];
-        var descriptor = operand.EnumType ??
-                         throw new InvalidOperationException(
-                             $"Enum intrinsic '{intrinsic}' lost its logical enum descriptor before IR conversion.");
+        var descriptor =
+            operand.EnumType
+            ?? throw new InvalidOperationException(
+                $"Enum intrinsic '{intrinsic}' lost its logical enum descriptor before IR conversion."
+            );
 
         if (intrinsic == EnumIntrinsicKind.EnumValue)
             return operand with { EnumType = null };
@@ -34,11 +37,12 @@ public sealed partial class ExpressionConverter
             node.Method ?? throw new InvalidOperationException($"Enum intrinsic '{intrinsic}' has no marker method."),
             arguments,
             node.Alias,
-            RequireReturnType(node))
+            RequireReturnType(node)
+        )
         {
             EnumIntrinsic = intrinsic,
             OperandEnumType = descriptor,
-            EnumMask = mask
+            EnumMask = mask,
         };
     }
 
@@ -54,7 +58,7 @@ public sealed partial class ExpressionConverter
             EnumUnderlyingKind.UInt32 => EnumScalarValue.FromUInt32((uint)value!),
             EnumUnderlyingKind.Int64 => EnumScalarValue.FromInt64((long)value!),
             EnumUnderlyingKind.UInt64 => EnumScalarValue.FromUInt64((ulong)value!),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown enum backing kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown enum backing kind."),
         };
     }
 }

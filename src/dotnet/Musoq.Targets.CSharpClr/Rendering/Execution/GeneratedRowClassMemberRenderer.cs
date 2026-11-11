@@ -10,17 +10,18 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private static PropertyDeclarationSyntax CreateGeneratedRowCountProperty(int fieldCount)
     {
-        return SyntaxFactory.PropertyDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)), nameof(Row.Count))
+        return SyntaxFactory
+            .PropertyDeclaration(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                nameof(Row.Count)
+            )
             .AddModifiers(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
+                SyntaxFactory.Token(SyntaxKind.OverrideKeyword)
+            )
             .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(CreateIntLiteral(fieldCount)))
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
-
-
-
-
 
     private static bool RequiresWideGeneratedRowColumnMap(IReadOnlyList<FieldBinding> fields)
     {
@@ -28,80 +29,102 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private static IEnumerable<MemberDeclarationSyntax> CreateWideGeneratedRowColumnMapMembers(
-        IReadOnlyList<FieldBinding> fields)
+        IReadOnlyList<FieldBinding> fields
+    )
     {
         var encodedPairs = string.Join(
             "\n",
             CreateGeneratedRowStringKeys(fields)
-                .SelectMany(static key => new[]
-                {
-                    key.Key,
-                    key.Index.ToString(System.Globalization.CultureInfo.InvariantCulture)
-                }));
+                .SelectMany(static key =>
+                    new[] { key.Key, key.Index.ToString(System.Globalization.CultureInfo.InvariantCulture) }
+                )
+        );
 
-        yield return SyntaxFactory.FieldDeclaration(
-                SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)))
-                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator("__columnIndexPairs")
-                            .WithInitializer(SyntaxFactory.EqualsValueClause(CreateStringLiteral(encodedPairs))))))
-            .AddModifiers(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.ConstKeyword));
+        yield return SyntaxFactory
+            .FieldDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)))
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory
+                                .VariableDeclarator("__columnIndexPairs")
+                                .WithInitializer(SyntaxFactory.EqualsValueClause(CreateStringLiteral(encodedPairs)))
+                        )
+                    )
+            )
+            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.ConstKeyword));
 
         yield return SyntaxFactory.ParseMemberDeclaration(
-            "private static readonly Dictionary<string, int> __columnIndexes = CreateColumnIndexes();")!;
+            "private static readonly Dictionary<string, int> __columnIndexes = CreateColumnIndexes();"
+        )!;
 
-        yield return SyntaxFactory.ParseMemberDeclaration("""
-            private static Dictionary<string, int> CreateColumnIndexes()
-            {
-                var pairs = __columnIndexPairs.Split('\n');
-                var indexes = new Dictionary<string, int>(pairs.Length / 2, StringComparer.Ordinal);
-                for (var index = 0; index < pairs.Length; index += 2)
-                    indexes.Add(pairs[index], int.Parse(pairs[index + 1], System.Globalization.CultureInfo.InvariantCulture));
-
-                return indexes;
-            }
-            """)!;
+        yield return SyntaxFactory.ParseMemberDeclaration(
+            (
+                "private static Dictionary<string, int> CreateColumnIndexes()\n"
+                + "{\n"
+                + "    var pairs = __columnIndexPairs.Split('\\n');\n"
+                + "    var indexes = new Dictionary<string, int>(pairs.Length / 2, StringComparer.Ordinal);\n"
+                + "    for (var index = 0; index < pairs.Length; index += 2)\n"
+                + "        indexes.Add(pairs[index], int.Parse(pairs[index + 1], System.Globalization.CultureInfo.InvariantCulture));\n"
+                + "\n"
+                + "    return indexes;\n"
+                + "}"
+            )
+        )!;
     }
-
-
 
     private static MethodDeclarationSyntax CreateWideGeneratedRowHasColumnMethod()
     {
-        return (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("""
-            public override bool HasColumn(string name) => __columnIndexes.ContainsKey(name);
-            """)!;
+        return (MethodDeclarationSyntax)
+            SyntaxFactory.ParseMemberDeclaration(
+                """
+                public override bool HasColumn(string name) => __columnIndexes.ContainsKey(name);
+                """
+            )!;
     }
 
     private static MethodDeclarationSyntax CreateGeneratedRowHasColumnMethod(IReadOnlyList<FieldBinding> fields)
     {
         var arms = CreateGeneratedRowStringKeys(fields)
-            .Select(key => SyntaxFactory.SwitchExpressionArm(
-                SyntaxFactory.ConstantPattern(CreateStringLiteral(key.Key)),
-                CreateBooleanLiteral(true)))
-            .Concat(
-            [
+            .Select(key =>
                 SyntaxFactory.SwitchExpressionArm(
-                    SyntaxFactory.DiscardPattern(),
-                    CreateBooleanLiteral(false))
-            ]);
+                    SyntaxFactory.ConstantPattern(CreateStringLiteral(key.Key)),
+                    CreateBooleanLiteral(true)
+                )
+            )
+            .Concat([SyntaxFactory.SwitchExpressionArm(SyntaxFactory.DiscardPattern(), CreateBooleanLiteral(false))]);
 
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)),
-                nameof(Row.HasColumn))
+                nameof(Row.HasColumn)
+            )
             .AddModifiers(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
-                CreateParameter("name", SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))))))
-            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.SwitchExpression(
-                SyntaxFactory.IdentifierName("name"),
-                SyntaxFactory.SeparatedList(arms))))
+                SyntaxFactory.Token(SyntaxKind.OverrideKeyword)
+            )
+            .WithParameterList(
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        CreateParameter(
+                            "name",
+                            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))
+                        )
+                    )
+                )
+            )
+            .WithExpressionBody(
+                SyntaxFactory.ArrowExpressionClause(
+                    SyntaxFactory.SwitchExpression(
+                        SyntaxFactory.IdentifierName("name"),
+                        SyntaxFactory.SeparatedList(arms)
+                    )
+                )
+            )
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
-    private static IEnumerable<(string Key, int Index)> CreateGeneratedRowStringKeys(
-        IReadOnlyList<FieldBinding> fields)
+    private static IEnumerable<(string Key, int Index)> CreateGeneratedRowStringKeys(IReadOnlyList<FieldBinding> fields)
     {
         var seenKeys = new HashSet<string>(StringComparer.Ordinal);
         var unqualifiedNameCounts = fields
@@ -121,10 +144,12 @@ public sealed partial class ExecutionCSharpRenderer
                 yield return (generatedFieldName, index);
 
             var unqualifiedName = ExtractUnqualifiedColumnName(field.Name);
-            if (unqualifiedName != null &&
-                unqualifiedNameCounts.TryGetValue(unqualifiedName, out var count) &&
-                count == 1 &&
-                seenKeys.Add(unqualifiedName))
+            if (
+                unqualifiedName != null
+                && unqualifiedNameCounts.TryGetValue(unqualifiedName, out var count)
+                && count == 1
+                && seenKeys.Add(unqualifiedName)
+            )
                 yield return (unqualifiedName, index);
         }
     }

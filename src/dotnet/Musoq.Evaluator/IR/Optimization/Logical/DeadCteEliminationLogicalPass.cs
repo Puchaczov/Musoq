@@ -21,14 +21,11 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
         {
             return OptimizationResult<LogicalNode>.Changed(
                 optimized,
-                CreateRemovedDefinitionsReason(
-                    state.RemovedDefinitions,
-                    state.RemovedSourceBearingDefinitions));
+                CreateRemovedDefinitionsReason(state.RemovedDefinitions, state.RemovedSourceBearingDefinitions)
+            );
         }
 
-        return OptimizationResult<LogicalNode>.NoChange(
-            plan,
-            "No dead logical CTE definitions were found.");
+        return OptimizationResult<LogicalNode>.NoChange(plan, "No dead logical CTE definitions were found.");
     }
 
     private static LogicalNode Rewrite(LogicalNode node, DeadCteEliminationRewriteState state)
@@ -36,9 +33,7 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
         return node switch
         {
             CteNode cte => RewriteCte(cte, state),
-            _ => LogicalPlanRewriter.RewriteChildren(
-                node,
-                child => Rewrite(child, state))
+            _ => LogicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, state)),
         };
     }
 
@@ -53,7 +48,10 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
             var rewrittenPlan = Rewrite(definition.Plan, state);
             rewrittenDefinitions[index] = ReferenceEquals(rewrittenPlan, definition.Plan)
                 ? definition
-                : definition with { Plan = rewrittenPlan };
+                : definition with
+                {
+                    Plan = rewrittenPlan,
+                };
             definitionsChanged |= !ReferenceEquals(rewrittenDefinitions[index], definition);
         }
 
@@ -79,8 +77,15 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
             .Where(definition => reachableDefinitions.Contains(definition.Name))
             .ToArray();
 
-        if (sourceBearingDefinitions.Length > 0 &&
-            !CanRemoveSourceBearingDefinitions(sourceBearingDefinitions, keptDefinitions, query, state.SourceAliasFacts))
+        if (
+            sourceBearingDefinitions.Length > 0
+            && !CanRemoveSourceBearingDefinitions(
+                sourceBearingDefinitions,
+                keptDefinitions,
+                query,
+                state.SourceAliasFacts
+            )
+        )
         {
             return definitionsChanged || queryChanged ? new CteNode(rewrittenDefinitions, query) : node;
         }
@@ -88,9 +93,7 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
         state.RemovedDefinitions += rewrittenDefinitions.Length - keptDefinitions.Length;
         state.RemovedSourceBearingDefinitions += sourceBearingDefinitions.Length;
 
-        return keptDefinitions.Length == 0
-            ? query
-            : new CteNode(keptDefinitions, query);
+        return keptDefinitions.Length == 0 ? query : new CteNode(keptDefinitions, query);
     }
 
     private static LogicalSourceAliasFacts? ConsumeSourceAliasFacts(OptimizationContext context)
@@ -98,7 +101,8 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
         return context.AnalysisFacts.TryConsume<LogicalSourceAliasFacts>(
             LogicalAnalysisFactKeys.SourceAndAliasFacts,
             nameof(DeadCteEliminationLogicalPass),
-            out var facts)
+            out var facts
+        )
             ? facts
             : null;
     }
@@ -116,7 +120,8 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
         IReadOnlyList<CteDefinition> sourceBearingDefinitions,
         IReadOnlyList<CteDefinition> keptDefinitions,
         LogicalNode query,
-        LogicalSourceAliasFacts? facts)
+        LogicalSourceAliasFacts? facts
+    )
     {
         if (facts is not { HasStableSourceContextAssignments: true, AliasDiagnosticsAreComplete: true })
             return false;
@@ -140,20 +145,20 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
         return keptOrdinals.All(ordinal => ordinal < firstRemovedOrdinal);
     }
 
-    private static string CreateRemovedDefinitionsReason(
-        int removedDefinitions,
-        int removedSourceBearingDefinitions)
+    private static string CreateRemovedDefinitionsReason(int removedDefinitions, int removedSourceBearingDefinitions)
     {
-        var baseReason = removedDefinitions == 1
-            ? "Removed 1 dead CTE definition."
-            : $"Removed {removedDefinitions} dead CTE definition(s).";
+        var baseReason =
+            removedDefinitions == 1
+                ? "Removed 1 dead CTE definition."
+                : $"Removed {removedDefinitions} dead CTE definition(s).";
 
         if (removedSourceBearingDefinitions == 0)
             return baseReason;
 
-        var sourceReason = removedSourceBearingDefinitions == 1
-            ? " 1 removed definition contained source-bearing logical nodes after source context and alias-scope facts were consumed."
-            : $" {removedSourceBearingDefinitions} removed definitions contained source-bearing logical nodes after source context and alias-scope facts were consumed.";
+        var sourceReason =
+            removedSourceBearingDefinitions == 1
+                ? " 1 removed definition contained source-bearing logical nodes after source context and alias-scope facts were consumed."
+                : $" {removedSourceBearingDefinitions} removed definitions contained source-bearing logical nodes after source context and alias-scope facts were consumed.";
 
         return baseReason + sourceReason;
     }
@@ -169,7 +174,8 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
         var definitionsByName = definitions.ToDictionary(
             static definition => definition.Name,
             static definition => definition,
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
         var reachable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var pending = new Queue<string>();
 
@@ -188,7 +194,8 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
         LogicalNode node,
         IReadOnlyDictionary<string, CteDefinition> definitionsByName,
         HashSet<string> reachable,
-        Queue<string> pending)
+        Queue<string> pending
+    )
     {
         foreach (var reference in LogicalCteUsageFacts.CollectCteReferences(node))
         {
@@ -200,4 +207,3 @@ internal sealed class DeadCteEliminationLogicalPass : ILogicalOptimizationPass
         }
     }
 }
-

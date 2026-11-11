@@ -5,11 +5,7 @@ namespace Musoq.Converter;
 
 public sealed class MusoqSourceRows
 {
-    private MusoqSourceRows(
-        string schemaName,
-        string sourceName,
-        Type rowType,
-        IEnumerable chunks)
+    private MusoqSourceRows(string schemaName, string sourceName, Type rowType, IEnumerable chunks)
     {
         SchemaName = InMemorySourceNames.NormalizeSchemaName(schemaName);
         SourceName = InMemorySourceNames.NormalizeSourceName(sourceName);
@@ -25,10 +21,7 @@ public sealed class MusoqSourceRows
 
     internal IEnumerable Chunks { get; }
 
-    public static MusoqSourceRows Create<T>(
-        string schemaName,
-        string sourceName,
-        IEnumerable<IReadOnlyList<T>> chunks)
+    public static MusoqSourceRows Create<T>(string schemaName, string sourceName, IEnumerable<IReadOnlyList<T>> chunks)
     {
         return new MusoqSourceRows(schemaName, sourceName, typeof(T), chunks);
     }
@@ -39,6 +32,7 @@ public sealed class MusoqSourceRows
             return typedChunks;
 
         throw new InvalidOperationException(
-            $"Chunks for source '#{SchemaName}.{SourceName}()' cannot be used as '{typeof(T).FullName}'.");
+            $"Chunks for source '#{SchemaName}.{SourceName}()' cannot be used as '{typeof(T).FullName}'."
+        );
     }
 }

@@ -4,6 +4,7 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Execution;
+
 internal sealed partial class PhysicalLoweringImplementation
 {
     private GeneratedRowShape CreateGeneratedShape(string typeName, ProjectedField[] fields)
@@ -12,39 +13,48 @@ internal sealed partial class PhysicalLoweringImplementation
 
         return new GeneratedRowShape(
             typeName,
-            fields.Select(field => new FieldBinding(
-                field.OutputName,
-                field.OutputName,
-                field.OutputIndex,
-                field.Expression.ReturnType,
-                FieldNullability.Unknown,
-                new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
-                sourceReadType: field.Expression.ReturnType,
-                enumType: field.Expression.EnumType) with
-                {
-                    GeneratedTypeName = _shapeResolver.ScriptValues.ResolveGeneratedTypeName(field.Expression)
-                }).ToArray());
+            fields
+                .Select(field =>
+                    new FieldBinding(
+                        field.OutputName,
+                        field.OutputName,
+                        field.OutputIndex,
+                        field.Expression.ReturnType,
+                        FieldNullability.Unknown,
+                        new GeneratedFieldAccess(
+                            CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)
+                        ),
+                        sourceReadType: field.Expression.ReturnType,
+                        enumType: field.Expression.EnumType
+                    ) with
+                    {
+                        GeneratedTypeName = _shapeResolver.ScriptValues.ResolveGeneratedTypeName(field.Expression),
+                    }
+                )
+                .ToArray()
+        );
     }
 
     private GeneratedRowShape CreateGeneratedShape(
         string typeName,
         ProjectedField[] fields,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
 
         return new GeneratedRowShape(
             typeName,
             fields.Select(field => CreateProjectedFieldBinding(field, sourceLookup, usedFieldNames)).ToArray(),
-            CreateContextBindings(sourceLookup));
+            CreateContextBindings(sourceLookup)
+        );
     }
-
-
 
     private FieldBinding CreateProjectedFieldBinding(
         ProjectedField field,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        HashSet<string> usedFieldNames)
+        HashSet<string> usedFieldNames
+    )
     {
         var expression = ConvertProjectedExpression(field, sourceLookup);
         var columnType = ResolveProjectedFieldType(expression);
@@ -59,53 +69,74 @@ internal sealed partial class PhysicalLoweringImplementation
             new GeneratedFieldAccess(CreateGeneratedFieldName(field.OutputName, field.OutputIndex, usedFieldNames)),
             storageType == columnType ? null : columnType,
             sourceReadType: columnType,
-            enumType: field.Expression.EnumType) { InterpretationShape = expression.InterpretationShape };
+            enumType: field.Expression.EnumType
+        )
+        {
+            InterpretationShape = expression.InterpretationShape,
+        };
 
-        var generatedTypeName = _shapeResolver.ScriptValues.ResolveGeneratedTypeName(field.Expression) ??
-                                TryResolveGeneratedTypeName(expression, sourceLookup);
+        var generatedTypeName =
+            _shapeResolver.ScriptValues.ResolveGeneratedTypeName(field.Expression)
+            ?? TryResolveGeneratedTypeName(expression, sourceLookup);
         return generatedTypeName is { } resolvedGeneratedTypeName
-            ? binding with { GeneratedTypeName = resolvedGeneratedTypeName }
+            ? binding with
+            {
+                GeneratedTypeName = resolvedGeneratedTypeName,
+            }
             : binding;
     }
 
     private static string? TryResolveGeneratedTypeName(
         ExecutionExpression expression,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
-        if (ByteBufferViewShape.IsView(expression) || expression is ExecutionByteBufferOperation { Program.Result: ExecutionByteBufferResultKind.View })
+        if (
+            ByteBufferViewShape.IsView(expression)
+            || expression is ExecutionByteBufferOperation { Program.Result: ExecutionByteBufferResultKind.View }
+        )
             return ByteBufferViewShape.TypeName;
         if (expression is ExecutionMethodCall { GeneratedResultTypeName: { } resultName })
             return resultName;
         if (expression is ExecutionStructuralRecord { GeneratedTypeName: { } nativeType })
             return nativeType;
         var returnType = expression.ReturnType.ResolveClrType();
-        if (!GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(returnType) &&
-            returnType != DynamicEntityBoundary.ExpandoType && !returnType.IsArray)
+        if (
+            !GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(returnType)
+            && returnType != DynamicEntityBoundary.ExpandoType
+            && !returnType.IsArray
+        )
             return null;
 
-        if (expression is not ExecutionFieldRead { Alias: { } alias, FieldName: { } fieldName } ||
-            !sourceLookup.TryGetValue(alias, out var sourceShape))
+        if (
+            expression is not ExecutionFieldRead { Alias: { } alias, FieldName: { } fieldName }
+            || !sourceLookup.TryGetValue(alias, out var sourceShape)
+        )
         {
-            return expression is ExecutionFieldRead { GeneratedTypeName: { Length: > 0 } generatedTypeName } &&
-                   CanUseGeneratedTypeName(returnType)
+            return
+                expression is ExecutionFieldRead { GeneratedTypeName: { Length: > 0 } generatedTypeName }
+                && CanUseGeneratedTypeName(returnType)
                 ? generatedTypeName
                 : null;
         }
 
         if (expression is ExecutionFieldRead { GeneratedTypeName: { Length: > 0 } expressionGeneratedTypeName })
-            return CanUseGeneratedTypeName(returnType)
-                ? expressionGeneratedTypeName
-                : null;
+            return CanUseGeneratedTypeName(returnType) ? expressionGeneratedTypeName : null;
 
         var sourceRelativeName = fieldName.StartsWith($"{alias}.", StringComparison.OrdinalIgnoreCase)
             ? fieldName[(alias.Length + 1)..]
             : fieldName;
 
-        var resolvedGeneratedTypeName = sourceShape.Fields
-            .FirstOrDefault(field =>
-                string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(field.Name, sourceRelativeName, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(field.QualifiedName, $"{alias}.{sourceRelativeName}", StringComparison.OrdinalIgnoreCase))
+        var resolvedGeneratedTypeName = sourceShape
+            .Fields.FirstOrDefault(field =>
+                string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(field.Name, sourceRelativeName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(
+                    field.QualifiedName,
+                    $"{alias}.{sourceRelativeName}",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
             ?.GeneratedTypeName;
 
         return resolvedGeneratedTypeName is not null && CanUseGeneratedTypeName(returnType)
@@ -114,7 +145,8 @@ internal sealed partial class PhysicalLoweringImplementation
     }
 
     private static bool CanUseGeneratedTypeName(Type returnType) =>
-        GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(returnType) || returnType == DynamicEntityBoundary.ExpandoType;
+        GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(returnType)
+        || returnType == DynamicEntityBoundary.ExpandoType;
 
     private static Type ResolveProjectedFieldType(ExecutionExpression expression)
     {
@@ -124,9 +156,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return typeof(Nullable<>).MakeGenericType(expression.ReturnType.ResolveClrType());
     }
 
-    private static Type ResolveProjectedFieldStorageType(
-        ExecutionExpression expression,
-        Type columnType)
+    private static Type ResolveProjectedFieldStorageType(ExecutionExpression expression, Type columnType)
     {
         return expression is ExecutionBinary binary && IsNullableTemporalSubtraction(binary)
             ? typeof(TimeSpan?)
@@ -135,35 +165,35 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool ShouldLiftNullableProjection(ExecutionExpression expression)
     {
-        return expression is ExecutionBinary binary &&
-               CanLiftNullableTransitionBinary(binary.Kind) &&
-               binary.ReturnType.ResolveClrType().IsValueType &&
-               Nullable.GetUnderlyingType(binary.ReturnType.ResolveClrType()) == null &&
-               !IsNullableTemporalSubtraction(binary) &&
-               (ContainsNullablePositionalFieldRead(binary) ||
-                ContainsLiftedNullableArithmeticInput(binary));
+        return expression is ExecutionBinary binary
+            && CanLiftNullableTransitionBinary(binary.Kind)
+            && binary.ReturnType.ResolveClrType().IsValueType
+            && Nullable.GetUnderlyingType(binary.ReturnType.ResolveClrType()) == null
+            && !IsNullableTemporalSubtraction(binary)
+            && (ContainsNullablePositionalFieldRead(binary) || ContainsLiftedNullableArithmeticInput(binary));
     }
 
     private static bool CanLiftNullableTransitionBinary(BinaryOpKind kind)
     {
-        return kind is BinaryOpKind.Add
-            or BinaryOpKind.Subtract
-            or BinaryOpKind.Multiply
-            or BinaryOpKind.Divide
-            or BinaryOpKind.Modulo
-            or BinaryOpKind.BitwiseAnd
-            or BinaryOpKind.BitwiseOr
-            or BinaryOpKind.BitwiseXor
-            or BinaryOpKind.LeftShift
-            or BinaryOpKind.RightShift;
+        return kind
+            is BinaryOpKind.Add
+                or BinaryOpKind.Subtract
+                or BinaryOpKind.Multiply
+                or BinaryOpKind.Divide
+                or BinaryOpKind.Modulo
+                or BinaryOpKind.BitwiseAnd
+                or BinaryOpKind.BitwiseOr
+                or BinaryOpKind.BitwiseXor
+                or BinaryOpKind.LeftShift
+                or BinaryOpKind.RightShift;
     }
 
     private static bool IsNullableTemporalSubtraction(ExecutionBinary binary)
     {
-        return binary.Kind == BinaryOpKind.Subtract &&
-               binary.ReturnType.ResolveClrType() == typeof(TimeSpan) &&
-               IsNullableTemporal(binary.Left.ReturnType.ResolveClrType()) &&
-               IsNullableTemporal(binary.Right.ReturnType.ResolveClrType());
+        return binary.Kind == BinaryOpKind.Subtract
+            && binary.ReturnType.ResolveClrType() == typeof(TimeSpan)
+            && IsNullableTemporal(binary.Left.ReturnType.ResolveClrType())
+            && IsNullableTemporal(binary.Right.ReturnType.ResolveClrType());
     }
 
     private static bool IsNullableTemporal(Type type)
@@ -174,8 +204,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool ContainsLiftedNullableArithmeticInput(ExecutionBinary binary)
     {
-        return ContainsLiftedNullableArithmeticInput(binary.Left) ||
-               ContainsLiftedNullableArithmeticInput(binary.Right);
+        return ContainsLiftedNullableArithmeticInput(binary.Left)
+            || ContainsLiftedNullableArithmeticInput(binary.Right);
     }
 
     private static bool ContainsLiftedNullableArithmeticInput(ExecutionExpression expression)
@@ -187,7 +217,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 ContainsLiftedNullableArithmeticInput(binary),
             ExecutionUnary unary => ContainsLiftedNullableArithmeticInput(unary.Operand),
             ExecutionStrictCast strictCast => ContainsLiftedNullableArithmeticInput(strictCast.Expression),
-            _ => false
+            _ => false,
         };
     }
 
@@ -195,33 +225,45 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         return expression switch
         {
-            ExecutionFieldRead fieldRead => fieldRead.AccessStrategy is PositionalAccess &&
-                                            Nullable.GetUnderlyingType(fieldRead.ReturnType.ResolveClrType()) != null,
-            ExecutionBinary binary => ContainsNullablePositionalFieldRead(binary.Left) ||
-                                      ContainsNullablePositionalFieldRead(binary.Right),
+            ExecutionFieldRead fieldRead => fieldRead.AccessStrategy is PositionalAccess
+                && Nullable.GetUnderlyingType(fieldRead.ReturnType.ResolveClrType()) != null,
+            ExecutionBinary binary => ContainsNullablePositionalFieldRead(binary.Left)
+                || ContainsNullablePositionalFieldRead(binary.Right),
             ExecutionUnary unary => ContainsNullablePositionalFieldRead(unary.Operand),
-            ExecutionMethodCall method => method.Arguments.Any(ContainsNullablePositionalFieldRead) ||
-                                          (method.InjectedSource != null &&
-                                           ContainsNullablePositionalFieldRead(method.InjectedSource)),
+            ExecutionMethodCall method => method.Arguments.Any(ContainsNullablePositionalFieldRead)
+                || (method.InjectedSource != null && ContainsNullablePositionalFieldRead(method.InjectedSource)),
             ExecutionStrictCast strictCast => ContainsNullablePositionalFieldRead(strictCast.Expression),
             ExecutionIsNullCheck isNull => ContainsNullablePositionalFieldRead(isNull.Expression),
-            ExecutionInCheck inCheck => ContainsNullablePositionalFieldRead(inCheck.Expression) ||
-                                        inCheck.Values.Any(ContainsNullablePositionalFieldRead),
-            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(expression, ContainsNullablePositionalFieldRead),
-            ExecutionBetween between => ContainsNullablePositionalFieldRead(between.Expression) ||
-                                        ContainsNullablePositionalFieldRead(between.Low) ||
-                                        ContainsNullablePositionalFieldRead(between.High),
+            ExecutionInCheck inCheck => ContainsNullablePositionalFieldRead(inCheck.Expression)
+                || inCheck.Values.Any(ContainsNullablePositionalFieldRead),
+            ExecutionPatternMatch
+            or ExecutionStringMatch
+            or ExecutionPrepareLikeMatcher
+            or ExecutionPreparedLikeMatch
+            or ExecutionDynamicLikeMatch
+            or ExecutionLikeMatcherCacheSlot
+            or ExecutionPrepareRLikeMatcher
+            or ExecutionPreparedRLikeMatch
+            or ExecutionDynamicRLikeMatch
+            or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.AnyChild(
+                expression,
+                ContainsNullablePositionalFieldRead
+            ),
+            ExecutionBetween between => ContainsNullablePositionalFieldRead(between.Expression)
+                || ContainsNullablePositionalFieldRead(between.Low)
+                || ContainsNullablePositionalFieldRead(between.High),
             ExecutionCaseWhen caseWhen => caseWhen.Branches.Any(branch =>
-                                                 ContainsNullablePositionalFieldRead(branch.Condition) ||
-                                                 ContainsNullablePositionalFieldRead(branch.Result)) ||
-                                             (caseWhen.ElseExpression != null &&
-                                              ContainsNullablePositionalFieldRead(caseWhen.ElseExpression)),
-            ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(ContainsNullablePositionalFieldRead),
+                ContainsNullablePositionalFieldRead(branch.Condition)
+                || ContainsNullablePositionalFieldRead(branch.Result)
+            ) || (caseWhen.ElseExpression != null && ContainsNullablePositionalFieldRead(caseWhen.ElseExpression)),
+            ExecutionStringConcatenation concatenation => concatenation.Expressions.Any(
+                ContainsNullablePositionalFieldRead
+            ),
             ExecutionCoalesce coalesce => coalesce.Expressions.Any(ContainsNullablePositionalFieldRead),
 
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(ContainsNullablePositionalFieldRead),
             ExecutionAggregateCall aggregateCall => aggregateCall.Arguments.Any(ContainsNullablePositionalFieldRead),
-            _ => false
+            _ => false,
         };
     }
 }

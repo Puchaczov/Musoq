@@ -11,10 +11,17 @@ internal static partial class PredicateMovementPlanner
 {
     private static ExpressionSafety CanMovePredicate(IrExpression predicate)
     {
-        if (!Musoq.Evaluator.IR.SourcePlanning.SourcePredicateGraphValidator.IsWithinBudget(predicate, System.Threading.CancellationToken.None))
+        if (
+            !Musoq.Evaluator.IR.SourcePlanning.SourcePredicateGraphValidator.IsWithinBudget(
+                predicate,
+                System.Threading.CancellationToken.None
+            )
+        )
             return ExpressionSafety.Unsafe("Predicate exceeds the transfer graph budget.");
         if (!IrExpressionNullSemantics.IsBoolean(predicate.ReturnType))
-            return ExpressionSafety.Unsafe($"Predicate {IrExpressionPrinter.Print(predicate)} is not a typed boolean expression.");
+            return ExpressionSafety.Unsafe(
+                $"Predicate {IrExpressionPrinter.Print(predicate)} is not a typed boolean expression."
+            );
 
         if (!ExpressionStabilityAnalyzer.IsStable(predicate))
             return ExpressionSafety.Unsafe("Predicate contains volatile or unstable expressions.");
@@ -34,12 +41,16 @@ internal static partial class PredicateMovementPlanner
                     ? CanMoveExpression(strictCast.Expression)
                     : ExpressionSafety.Unsafe("Predicate contains a potentially throwing conversion.");
             case BinaryOp binary:
-                if (binary.Kind is not (BinaryOpKind.And or BinaryOpKind.Or) &&
-                    (!IsTotalScalar(binary.Left) || !IsTotalScalar(binary.Right)))
+                if (
+                    binary.Kind is not (BinaryOpKind.And or BinaryOpKind.Or)
+                    && (!IsTotalScalar(binary.Left) || !IsTotalScalar(binary.Right))
+                )
                     return ExpressionSafety.Unsafe("Predicate contains an operation on an unproven scalar type.");
-                if (binary.Kind is BinaryOpKind.Divide or BinaryOpKind.Modulo ||
-                    binary.Kind is BinaryOpKind.Add or BinaryOpKind.Subtract or BinaryOpKind.Multiply &&
-                    (Nullable.GetUnderlyingType(binary.ReturnType) ?? binary.ReturnType) == typeof(decimal))
+                if (
+                    binary.Kind is BinaryOpKind.Divide or BinaryOpKind.Modulo
+                    || binary.Kind is BinaryOpKind.Add or BinaryOpKind.Subtract or BinaryOpKind.Multiply
+                        && (Nullable.GetUnderlyingType(binary.ReturnType) ?? binary.ReturnType) == typeof(decimal)
+                )
                     return ExpressionSafety.Unsafe("Predicate contains potentially failing arithmetic.");
                 return Combine(binary.Left, binary.Right);
             case UnaryOp unary:
@@ -73,7 +84,9 @@ internal static partial class PredicateMovementPlanner
             case CteTableRef:
                 return ExpressionSafety.Unsafe("Predicate contains a table/subquery reference.");
             default:
-                return ExpressionSafety.Unsafe($"Predicate contains unsupported expression {expression.GetType().Name}.");
+                return ExpressionSafety.Unsafe(
+                    $"Predicate contains unsupported expression {expression.GetType().Name}."
+                );
         }
     }
 
@@ -96,13 +109,18 @@ internal static partial class PredicateMovementPlanner
     {
         if (IrExpressionDeterminism.TryGetFirstBlockedReason(methodCall, out var reason, "Predicate"))
             return ExpressionSafety.Unsafe(reason);
-        if (methodCall.EnumIntrinsic is EnumIntrinsicKind.HasAnyFlags or EnumIntrinsicKind.HasAllFlags &&
-            methodCall.OperandEnumType is { IsFlags: true } && methodCall.EnumMask != null)
+        if (
+            methodCall.EnumIntrinsic is EnumIntrinsicKind.HasAnyFlags or EnumIntrinsicKind.HasAllFlags
+            && methodCall.OperandEnumType is { IsFlags: true }
+            && methodCall.EnumMask != null
+        )
             return Combine(methodCall.Arguments);
         if (methodCall.Method.DeclaringType != typeof(Musoq.Plugins.LibraryBase))
             return ExpressionSafety.Unsafe("Predicate contains a method without a totality proof.");
-        var isTotal = methodCall.Arguments.Count == 1 && methodCall.Method.Name is "ToUpper" or "ToLower" ||
-                      methodCall.Arguments.Count == 2 && methodCall.Method.Name is "Contains" or "StartsWith" or "EndsWith" or "IndexOf" or "LastIndexOf";
+        var isTotal =
+            methodCall.Arguments.Count == 1 && methodCall.Method.Name is "ToUpper" or "ToLower"
+            || methodCall.Arguments.Count == 2
+                && methodCall.Method.Name is "Contains" or "StartsWith" or "EndsWith" or "IndexOf" or "LastIndexOf";
         if (!isTotal)
             return ExpressionSafety.Unsafe("Predicate contains a method without a totality proof.");
         return Combine(methodCall.Arguments);
@@ -116,18 +134,24 @@ internal static partial class PredicateMovementPlanner
     private static bool IsTotalScalarType(Type type)
     {
         type = Nullable.GetUnderlyingType(type) ?? type;
-        return type.IsEnum || type == typeof(Guid) || type == typeof(DateTimeOffset) ||
-               Type.GetTypeCode(type) is not (TypeCode.Object or TypeCode.Empty or TypeCode.DBNull);
+        return type.IsEnum
+            || type == typeof(Guid)
+            || type == typeof(DateTimeOffset)
+            || Type.GetTypeCode(type) is not (TypeCode.Object or TypeCode.Empty or TypeCode.DBNull);
     }
 
     private static bool IsTotalCast(StrictCast cast)
     {
         var source = Nullable.GetUnderlyingType(cast.Expression.ReturnType) ?? cast.Expression.ReturnType;
         var target = Nullable.GetUnderlyingType(cast.ReturnType) ?? cast.ReturnType;
-        if (Nullable.GetUnderlyingType(cast.Expression.ReturnType) != null && Nullable.GetUnderlyingType(cast.ReturnType) == null)
+        if (
+            Nullable.GetUnderlyingType(cast.Expression.ReturnType) != null
+            && Nullable.GetUnderlyingType(cast.ReturnType) == null
+        )
             return false;
-        return source == target || source == typeof(int) &&
-            (target == typeof(long) || target == typeof(decimal) || target == typeof(double));
+        return source == target
+            || source == typeof(int)
+                && (target == typeof(long) || target == typeof(decimal) || target == typeof(double));
     }
 
     private static ExpressionSafety Combine(IrExpression left, IrExpression right)
@@ -146,5 +170,4 @@ internal static partial class PredicateMovementPlanner
 
         return ExpressionSafety.Safe();
     }
-
 }

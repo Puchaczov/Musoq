@@ -25,10 +25,6 @@ internal static class ReadModifierMetadata
 
     private static void AppendKeyPart(StringBuilder builder, string value)
     {
-        builder
-            .Append(':')
-            .Append(value.Length)
-            .Append(':')
-            .Append(value);
+        builder.Append(':').Append(value.Length).Append(':').Append(value);
     }
 }

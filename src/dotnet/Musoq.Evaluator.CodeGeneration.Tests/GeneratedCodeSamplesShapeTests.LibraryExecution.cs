@@ -38,6 +38,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("GenericTotalKernel<decimal>.Set", generic);
         Assert.DoesNotContain("MethodInfo.Invoke", generic);
     }
+
     [TestMethod]
     public void LibrarySamples_WhenNumericTypesDiffer_ShouldUseConcreteAggregateKernels()
     {
@@ -72,6 +73,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.DoesNotContain("Deserialize<StructuralValue", content);
         Assert.DoesNotContain("MethodInfo.Invoke", content);
     }
+
     [TestMethod]
     public void RelationalSamples_WhenSourceContextsAreNullable_ShouldStoreConcreteContextFields()
     {
@@ -121,7 +123,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var wide = ReadSample("K53_TypedWideWindowPartition.cs").Content;
         var nullable = ReadSample("K54_TypedNullableWindowPartition.cs").Content;
-        Assert.Contains("WindowPartitionBuilder<ValueTuple<int, int, int, int, int, int, int, ValueTuple<int, string>>>", wide);
+        Assert.Contains(
+            "WindowPartitionBuilder<ValueTuple<int, int, int, int, int, int, int, ValueTuple<int, string>>>",
+            wide
+        );
         Assert.Contains("WindowPartitionBuilder<int?>", nullable);
         Assert.DoesNotContain("CompositeKey(", wide);
         Assert.DoesNotContain("WindowPartitionBuilder<object>", nullable);
@@ -191,6 +196,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             Assert.DoesNotContain("GetValue<object>", content);
         }
         Assert.Contains("p.Field0?.Value", payload);
-        Assert.Contains("reader.Read<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativePayload>", payload);
+        Assert.Contains(
+            "reader.Read<Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures.NativePayload>",
+            payload
+        );
     }
 }

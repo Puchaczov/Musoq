@@ -4,7 +4,6 @@ internal static class RuntimeCacheOptions
 {
     public const int PatternCacheSize = 512;
 
-
     public const int XmlDocumentationCacheSize = 128;
 
     public const int MetadataReferenceCacheSize = 256;

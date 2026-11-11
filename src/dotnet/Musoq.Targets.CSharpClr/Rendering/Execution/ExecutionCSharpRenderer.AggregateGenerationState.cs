@@ -17,17 +17,19 @@ public sealed partial class ExecutionCSharpRenderer
 
         AssignAggregateGroupTypeNames(plan.Shapes.OfType<AggregateGroupShape>().ToArray(), context);
         AssignParallelFilterProjectFunctionNames(CollectParallelFilterProjectLoops(plan.Body).ToArray(), context);
-        AssignParallelSingleKeyAggregateFunctionNames(CollectParallelSingleKeyAggregateLoops(plan.Body).ToArray(), context);
+        AssignParallelSingleKeyAggregateFunctionNames(
+            CollectParallelSingleKeyAggregateLoops(plan.Body).ToArray(),
+            context
+        );
     }
 
     private static void AssignAggregateGroupTypeNames(
         IReadOnlyList<AggregateGroupShape> shapes,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var session = context.Session;
-        var usedNames = new HashSet<string>(
-            shapes.Select(static shape => shape.TypeName),
-            StringComparer.Ordinal);
+        var usedNames = new HashSet<string>(shapes.Select(static shape => shape.TypeName), StringComparer.Ordinal);
         var duplicateIndex = 0;
 
         foreach (var group in shapes.GroupBy(CreateAggregateGroupShapeSignature))
@@ -47,7 +49,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private void AssignParallelSingleKeyAggregateFunctionNames(
         IReadOnlyList<ExecutionParallelSingleKeyAggregateLoop> loops,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var session = context.Session;
         var helperIndex = 0;
@@ -66,7 +69,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static void AssignParallelFilterProjectFunctionNames(
         IReadOnlyList<ExecutionParallelFilterProjectLoop> loops,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var session = context.Session;
         var usedNames = new HashSet<string>(StringComparer.Ordinal);
@@ -84,7 +88,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateParallelFilterProjectFunctionName(
         ExecutionParallelFilterProjectLoop parallelProject,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return context.Session.ParallelFilterProjectFunctionNames.TryGetValue(parallelProject, out var functionName)
             ? functionName
@@ -96,9 +101,7 @@ public sealed partial class ExecutionCSharpRenderer
         var index = 0;
         while (true)
         {
-            var candidate = index == 0
-                ? baseName
-                : $"{baseName}{index.ToString(CultureInfo.InvariantCulture)}";
+            var candidate = index == 0 ? baseName : $"{baseName}{index.ToString(CultureInfo.InvariantCulture)}";
             if (usedNames.Add(candidate))
                 return candidate;
 
@@ -118,9 +121,7 @@ public sealed partial class ExecutionCSharpRenderer
                 continue;
             }
 
-            builder.Append(capitalizeNext
-                ? char.ToUpperInvariant(character)
-                : character);
+            builder.Append(capitalizeNext ? char.ToUpperInvariant(character) : character);
             capitalizeNext = false;
         }
 
@@ -130,12 +131,11 @@ public sealed partial class ExecutionCSharpRenderer
         if (!SyntaxFacts.IsIdentifierStartCharacter(builder[0]))
             builder.Insert(0, '_');
 
-        var identifier = builder.Length <= GeneratedRowNamingPolicy.MaxIdentifierLength
-            ? builder.ToString()
-            : builder.ToString(0, GeneratedRowNamingPolicy.MaxIdentifierLength);
-        return SyntaxFacts.IsValidIdentifier(identifier)
-            ? identifier
-            : CreateIdentifierCandidate(identifier, 0);
+        var identifier =
+            builder.Length <= GeneratedRowNamingPolicy.MaxIdentifierLength
+                ? builder.ToString()
+                : builder.ToString(0, GeneratedRowNamingPolicy.MaxIdentifierLength);
+        return SyntaxFacts.IsValidIdentifier(identifier) ? identifier : CreateIdentifierCandidate(identifier, 0);
     }
 
     private static string CreateSharedAggregateGroupTypeName(HashSet<string> usedNames, int duplicateIndex)
@@ -152,27 +152,37 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string GetAggregateGroupTypeName(AggregateGroupShape shape, ExecutionRenderContext context)
     {
-        return context.Session.AggregateGroupTypeNames.TryGetValue(CreateAggregateGroupShapeSignature(shape), out var typeName)
+        return context.Session.AggregateGroupTypeNames.TryGetValue(
+            CreateAggregateGroupShapeSignature(shape),
+            out var typeName
+        )
             ? typeName
             : shape.TypeName;
     }
 
     private static AggregateGroupShape CreateRenderableAggregateGroupShape(
         AggregateGroupShape shape,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return shape with
         {
             TypeName = GetAggregateGroupTypeName(shape, context),
-            OwnerFields = shape.OwnerFields
-                .Select(owner => owner with { Shape = CreateRenderableAggregateGroupShape(owner.Shape, context) })
-                .ToArray()
+            OwnerFields = shape
+                .OwnerFields.Select(owner =>
+                    owner with
+                    {
+                        Shape = CreateRenderableAggregateGroupShape(owner.Shape, context),
+                    }
+                )
+                .ToArray(),
         };
     }
 
     private string CreateParallelSingleKeyAggregateFunctionName(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var descriptor = CreateParallelSingleKeyAggregateDescriptor(parallelAggregate);
         return context.Session.ParallelSingleKeyAggregateFunctionNames.TryGetValue(descriptor, out var functionName)
@@ -200,9 +210,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         foreach (var capture in CollectParallelSingleKeyAggregateCaptures(parallelAggregate))
         {
-            builder
-                .Append(ExecutionExpressionFingerprint.ForAggregateType(capture.Type))
-                .Append(';');
+            builder.Append(ExecutionExpressionFingerprint.ForAggregateType(capture.Type)).Append(';');
         }
 
         return builder.ToString();

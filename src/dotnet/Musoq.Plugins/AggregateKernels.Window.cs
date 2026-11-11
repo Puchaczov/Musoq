@@ -20,9 +20,8 @@ public static class WindowDecimalAggregateKernel
             AggregateCollectionCore.AddOrdered(ref state.Values, value.GetValueOrDefault());
     }
 
-    public static IEnumerable<decimal> Get(in State state)
-        => state.Values ?? [];
+    public static IEnumerable<decimal> Get(in State state) => state.Values ?? [];
 
-    public static void Merge(ref State target, in State source)
-        => AggregateCollectionCore.MergeOrdered(ref target.Values, source.Values);
+    public static void Merge(ref State target, in State source) =>
+        AggregateCollectionCore.MergeOrdered(ref target.Values, source.Values);
 }

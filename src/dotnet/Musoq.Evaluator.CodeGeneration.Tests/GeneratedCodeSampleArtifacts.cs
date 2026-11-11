@@ -28,23 +28,16 @@ internal static class GeneratedCodeSampleArtifacts
 
     private static readonly Regex GeneratedNamespaceRegex = new(
         @"(?m)^namespace (?!Musoq\.Generated\.Interpreters\b)[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled
+    );
 
     private static readonly Regex InvalidIdentifierPartRegex = new("[^A-Za-z0-9_]", RegexOptions.Compiled);
 
-    public static string SamplesDirectory { get; } = Path.Combine(
-        RepositoryPaths.FindRoot(),
-        "src",
-        "dotnet",
-        "generated-code-samples",
-        "current");
+    public static string SamplesDirectory { get; } =
+        Path.Combine(RepositoryPaths.FindRoot(), "src", "dotnet", "generated-code-samples", "current");
 
-    public static string ProfiledSamplesDirectory { get; } = Path.Combine(
-        RepositoryPaths.FindRoot(),
-        "src",
-        "dotnet",
-        "generated-code-samples",
-        "profiled");
+    public static string ProfiledSamplesDirectory { get; } =
+        Path.Combine(RepositoryPaths.FindRoot(), "src", "dotnet", "generated-code-samples", "profiled");
 
     public static string GetSamplePath(GeneratedCodeSample sample)
     {
@@ -59,10 +52,7 @@ internal static class GeneratedCodeSampleArtifacts
     public static string Generate(GeneratedCodeSample sample, ILoggerResolver loggerResolver)
     {
         var key = CreateCacheKey(sample);
-        var generated = Cache.GetOrAdd(
-            key,
-            _ => GenerateCoreWithTiming(sample, loggerResolver),
-            out var cacheHit);
+        var generated = Cache.GetOrAdd(key, _ => GenerateCoreWithTiming(sample, loggerResolver), out var cacheHit);
 
         if (cacheHit)
             GeneratedCodeSampleTiming.RecordCacheHit(sample);
@@ -88,11 +78,7 @@ internal static class GeneratedCodeSampleArtifacts
         finally
         {
             stopwatch.Stop();
-            GeneratedCodeSampleTiming.RecordGeneration(
-                sample,
-                startedUtc,
-                DateTimeOffset.UtcNow,
-                stopwatch.Elapsed);
+            GeneratedCodeSampleTiming.RecordGeneration(sample, startedUtc, DateTimeOffset.UtcNow, stopwatch.Elapsed);
         }
     }
 
@@ -108,18 +94,23 @@ internal static class GeneratedCodeSampleArtifacts
             CreateAssemblyName(sample),
             sample.CreateSchemaProvider(),
             loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
 
-        if (!buildItems.TryGetValue("COMPILATION", out var compilationValue) ||
-            compilationValue is not CSharpCompilation compilation)
+        if (
+            !buildItems.TryGetValue("COMPILATION", out var compilationValue)
+            || compilationValue is not CSharpCompilation compilation
+        )
         {
             var diagnostics = GetDiagnosticErrors(buildItems);
-            var detail = diagnostics.Length == 0
-                ? "No diagnostics were collected."
-                : string.Join(Environment.NewLine, diagnostics);
+            var detail =
+                diagnostics.Length == 0
+                    ? "No diagnostics were collected."
+                    : string.Join(Environment.NewLine, diagnostics);
 
             throw new InvalidOperationException(
-                $"Compilation should not be null for {sample.FileName}.{Environment.NewLine}{detail}");
+                $"Compilation should not be null for {sample.FileName}.{Environment.NewLine}{detail}"
+            );
         }
 
         return FormatSample(sample, buildItems, compilation);
@@ -128,27 +119,56 @@ internal static class GeneratedCodeSampleArtifacts
     private static string GenerateWithCompilationOptions(
         GeneratedCodeSample sample,
         ILoggerResolver loggerResolver,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions
+    )
     {
         if (sample.OutputType is not null)
         {
             var typed = sample.OutputType switch
             {
-                var type when type == typeof(LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal) => InspectTyped<LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal>(sample, loggerResolver, compilationOptions),
-                var type when type == typeof(LibraryExecutionWindowQueryTestsFixtures.WindowOutput) => InspectTyped<LibraryExecutionWindowQueryTestsFixtures.WindowOutput>(sample, loggerResolver, compilationOptions),
-                var type when type == typeof((int?, long)) => InspectTyped<(int?, long)>(sample, loggerResolver, compilationOptions),
-                var type when type == typeof(BenchmarkProjectionOutput) => InspectTyped<BenchmarkProjectionOutput>(sample, loggerResolver, compilationOptions),
-                var type when type == typeof(BenchmarkWindowOutput) => InspectTyped<BenchmarkWindowOutput>(sample, loggerResolver, compilationOptions),
-                _ => throw new InvalidOperationException($"No typed inspection fixture registered for {sample.OutputType}.")
+                var type when type == typeof(LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal) =>
+                    InspectTyped<LibraryExecutionNativeRowQueryTestsFixtures.NativeSubtotal>(
+                        sample,
+                        loggerResolver,
+                        compilationOptions
+                    ),
+                var type when type == typeof(LibraryExecutionWindowQueryTestsFixtures.WindowOutput) =>
+                    InspectTyped<LibraryExecutionWindowQueryTestsFixtures.WindowOutput>(
+                        sample,
+                        loggerResolver,
+                        compilationOptions
+                    ),
+                var type when type == typeof((int?, long)) => InspectTyped<(int?, long)>(
+                    sample,
+                    loggerResolver,
+                    compilationOptions
+                ),
+                var type when type == typeof(BenchmarkProjectionOutput) => InspectTyped<BenchmarkProjectionOutput>(
+                    sample,
+                    loggerResolver,
+                    compilationOptions
+                ),
+                var type when type == typeof(BenchmarkWindowOutput) => InspectTyped<BenchmarkWindowOutput>(
+                    sample,
+                    loggerResolver,
+                    compilationOptions
+                ),
+                _ => throw new InvalidOperationException(
+                    $"No typed inspection fixture registered for {sample.OutputType}."
+                ),
             };
-            return FormatSample(sample, typed.Query ?? throw new InvalidOperationException("Typed sample inspection failed."));
+            return FormatSample(
+                sample,
+                typed.Query ?? throw new InvalidOperationException("Typed sample inspection failed.")
+            );
         }
         var inspection = InstanceCreator.CompileForInspection(
             sample.Query,
             CreateAssemblyName(sample),
             sample.CreateSchemaProvider(),
             loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
 
         return FormatSample(sample, inspection);
     }
@@ -156,14 +176,16 @@ internal static class GeneratedCodeSampleArtifacts
     private static TypedQueryInspectionResult InspectTyped<T>(
         GeneratedCodeSample sample,
         ILoggerResolver loggerResolver,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions
+    )
     {
         return InstanceCreator.CompileForTypedInspection<T>(
             sample.Query,
             CreateAssemblyName(sample),
             sample.CreateSchemaProvider(),
             loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
     }
 
     private static CompilationOptions CreateSnapshotCompilationOptions(CompilationOptions? options)
@@ -184,7 +206,8 @@ internal static class GeneratedCodeSampleArtifacts
             options.SourceRuntimeSettingsResolver,
             options.InstrumentationMode,
             SnapshotMaxDegreeOfParallelism,
-            options.ForceTableResultMaterialization)
+            options.ForceTableResultMaterialization
+        )
             .WithLoopInvariantCodeMotion(options.UseLoopInvariantCodeMotion)
             .WithStabilityAwareScalarReuse(options.UseStabilityAwareScalarReuse)
             .WithRecursiveCteLimits(options.RecursiveCteLimits);
@@ -201,7 +224,9 @@ internal static class GeneratedCodeSampleArtifacts
             sample.Query,
             sample.Category,
             sample.Format,
-            CompilationOptionsFingerprint.Compute(snapshotOptions), sample.OutputType?.AssemblyQualifiedName);
+            CompilationOptionsFingerprint.Compute(snapshotOptions),
+            sample.OutputType?.AssemblyQualifiedName
+        );
     }
 
     public static void Write(GeneratedCodeSample sample, ILoggerResolver loggerResolver)
@@ -214,33 +239,26 @@ internal static class GeneratedCodeSampleArtifacts
         Write(sample, loggerResolver, ProfiledSamplesDirectory);
     }
 
-    private static void Write(
-        GeneratedCodeSample sample,
-        ILoggerResolver loggerResolver,
-        string samplesDirectory)
+    private static void Write(GeneratedCodeSample sample, ILoggerResolver loggerResolver, string samplesDirectory)
     {
         Directory.CreateDirectory(samplesDirectory);
         File.WriteAllText(
             Path.Combine(samplesDirectory, sample.FileName),
             NormalizeLineEndingsForSnapshot(GenerateUncachedForRefresh(sample, loggerResolver)),
-            Utf8WithBom);
+            Utf8WithBom
+        );
     }
 
     public static string NormalizeForComparison(string text)
     {
-        var normalized = text
-            .Replace("\r\n", "\n")
-            .Replace("\r", "\n")
-            .TrimEnd();
+        var normalized = text.Replace("\r\n", "\n").Replace("\r", "\n").TrimEnd();
 
         return GeneratedNamespaceRegex.Replace(normalized, "namespace __generated_sample_namespace__");
     }
 
     private static string NormalizeLineEndingsForSnapshot(string text)
     {
-        return text
-            .Replace("\r\n", "\n")
-            .Replace("\r", "\n");
+        return text.Replace("\r\n", "\n").Replace("\r", "\n");
     }
 
     private static string FormatSample(GeneratedCodeSample sample, BuildItems buildItems, CSharpCompilation compilation)
@@ -256,18 +274,23 @@ internal static class GeneratedCodeSampleArtifacts
 
         foreach (var tree in compilation.SyntaxTrees)
         {
-            if (sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode &&
-                TryAppendCombinedSyntaxTrees(builder, tree))
+            if (
+                sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
+                && TryAppendCombinedSyntaxTrees(builder, tree)
+            )
                 continue;
 
             var normalized = tree.GetRoot().NormalizeWhitespace();
-            var formatted = sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
-                ? normalized
-                : new SwitchExpressionBraceFormatter().Visit(normalized);
+            var formatted =
+                sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
+                    ? normalized
+                    : new SwitchExpressionBraceFormatter().Visit(normalized);
             var formattedText = GeneratedCSharpCodeFormatter.Normalize(formatted.ToFullString());
 
-            if (sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode &&
-                TryAppendFormattedCombinedSyntaxTrees(builder, tree.FilePath, formattedText))
+            if (
+                sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
+                && TryAppendFormattedCombinedSyntaxTrees(builder, tree.FilePath, formattedText)
+            )
                 continue;
 
             builder.AppendLine($"// === SyntaxTree: {tree.FilePath} ===");
@@ -283,15 +306,13 @@ internal static class GeneratedCodeSampleArtifacts
         return TryAppendRawCombinedSyntaxTrees(builder, tree.FilePath, tree.GetRoot().ToFullString());
     }
 
-    private static bool TryAppendRawCombinedSyntaxTrees(
-        StringBuilder builder,
-        string filePath,
-        string treeText)
+    private static bool TryAppendRawCombinedSyntaxTrees(StringBuilder builder, string filePath, string treeText)
     {
         var markers = Regex.Matches(
             treeText,
             @"(?m)^[\uFEFF \t]*// === SYNTAX TREE \d+ ===\r?\n",
-            RegexOptions.Compiled);
+            RegexOptions.Compiled
+        );
 
         if (markers.Count == 0)
             return false;
@@ -317,12 +338,10 @@ internal static class GeneratedCodeSampleArtifacts
     private static bool TryAppendFormattedCombinedSyntaxTrees(
         StringBuilder builder,
         string filePath,
-        string formattedText)
+        string formattedText
+    )
     {
-        var markers = Regex.Matches(
-            formattedText,
-            @"// === SYNTAX TREE \d+ ===",
-            RegexOptions.Compiled);
+        var markers = Regex.Matches(formattedText, @"// === SYNTAX TREE \d+ ===", RegexOptions.Compiled);
 
         if (markers.Count == 0)
             return false;
@@ -356,14 +375,17 @@ internal static class GeneratedCodeSampleArtifacts
         builder.AppendLine("// === Generated C# ===");
         builder.AppendLine();
 
-        if (sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode &&
-            TryAppendRawCombinedSyntaxTrees(builder, string.Empty, inspection.GeneratedCSharpCode))
+        if (
+            sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
+            && TryAppendRawCombinedSyntaxTrees(builder, string.Empty, inspection.GeneratedCSharpCode)
+        )
             return $"{builder.ToString().TrimEnd()}{Environment.NewLine}";
 
         var normalized = CSharpSyntaxTree.ParseText(inspection.GeneratedCSharpCode).GetRoot().NormalizeWhitespace();
-        var formatted = sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
-            ? normalized
-            : new SwitchExpressionBraceFormatter().Visit(normalized);
+        var formatted =
+            sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
+                ? normalized
+                : new SwitchExpressionBraceFormatter().Visit(normalized);
         builder.AppendLine("// === SyntaxTree:  ===");
         builder.AppendLine(GeneratedCSharpCodeFormatter.Normalize(formatted.ToFullString()));
 
@@ -401,7 +423,8 @@ internal static class GeneratedCodeSampleArtifacts
             return executionPlanText;
 
         return ExecutionPlanPrinter.PrintUnsupported(
-            "Execution IR inspection was not produced by the compilation pipeline.");
+            "Execution IR inspection was not produced by the compilation pipeline."
+        );
     }
 
     private static string EscapeBlockComment(string content)
@@ -424,25 +447,25 @@ internal static class GeneratedCodeSampleArtifacts
 
     private static string[] GetDiagnosticErrors(BuildItems buildItems)
     {
-        return buildItems.DiagnosticContext.Errors
-            .Select(static diagnostic => diagnostic.ToString())
-            .ToArray();
+        return buildItems.DiagnosticContext.Errors.Select(static diagnostic => diagnostic.ToString()).ToArray();
     }
 
     private sealed class SwitchExpressionBraceFormatter : CSharpSyntaxRewriter
     {
         public override SyntaxNode VisitSwitchExpression(SwitchExpressionSyntax node)
         {
-            var visited = base.VisitSwitchExpression(node) ??
-                throw new InvalidOperationException("Switch expression visitor returned null.");
+            var visited =
+                base.VisitSwitchExpression(node)
+                ?? throw new InvalidOperationException("Switch expression visitor returned null.");
             node = (SwitchExpressionSyntax)visited;
 
-            var indentation = node.OpenBraceToken.LeadingTrivia
-                .Where(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia));
+            var indentation = node.OpenBraceToken.LeadingTrivia.Where(static trivia =>
+                trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+            );
 
-            var closeBrace = node.CloseBraceToken
-                .WithLeadingTrivia(SyntaxFactory.TriviaList(
-                    [SyntaxFactory.CarriageReturnLineFeed, .. indentation]));
+            var closeBrace = node.CloseBraceToken.WithLeadingTrivia(
+                SyntaxFactory.TriviaList([SyntaxFactory.CarriageReturnLineFeed, .. indentation])
+            );
 
             return node.WithCloseBraceToken(closeBrace);
         }
@@ -455,5 +478,7 @@ internal static class GeneratedCodeSampleArtifacts
         string Query,
         string Category,
         GeneratedCodeSampleFormat Format,
-        string CompilationOptionsFingerprint, string? OutputTypeName);
+        string CompilationOptionsFingerprint,
+        string? OutputTypeName
+    );
 }

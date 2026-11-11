@@ -13,9 +13,15 @@ namespace Musoq.Evaluator;
 public class RunnableDebugDecorator(
     ITableRunnable runnable,
     AssemblyLoadContext assemblyLoadContext,
-    params string[] filesToDelete)
-    : ITableRunnable, IContextTableRunnable, IAsyncTableRunnable, IContextAsyncTableRunnable,
-        IProfiledRunnable, IContextProfiledRunnable, IQueryProgressSource
+    params string[] filesToDelete
+)
+    : ITableRunnable,
+        IContextTableRunnable,
+        IAsyncTableRunnable,
+        IContextAsyncTableRunnable,
+        IProfiledRunnable,
+        IContextProfiledRunnable,
+        IQueryProgressSource
 {
     public ISchemaProvider Provider
     {
@@ -29,7 +35,10 @@ public class RunnableDebugDecorator(
         set => runnable.SourceRuntimeSettingsBySourceContextId = value;
     }
 
-    public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId
+    public IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId
     {
         get => runnable.SourceRuntimeSettingDescriptionsBySourceContextId;
         set => runnable.SourceRuntimeSettingDescriptionsBySourceContextId = value;
@@ -134,11 +143,10 @@ public class RunnableDebugDecorator(
         ArgumentNullException.ThrowIfNull(profileRecorder);
         try
         {
-            return runnable is IContextProfiledRunnable contextual
-                ? contextual.RunWithProfile(context, profileRecorder)
+            return runnable is IContextProfiledRunnable contextual ? contextual.RunWithProfile(context, profileRecorder)
                 : runnable is IProfiledRunnable profiled
                     ? profiled.RunWithProfile(context.CancellationToken, profileRecorder)
-                    : throw new InvalidOperationException("Query was not compiled with profiling instrumentation.");
+                : throw new InvalidOperationException("Query was not compiled with profiling instrumentation.");
         }
         finally
         {
@@ -165,10 +173,9 @@ public class RunnableDebugDecorator(
         try
         {
             return runnable is IContextAsyncTableRunnable contextual
-                ? await contextual.RunAsync(context).ConfigureAwait(false)
-                : runnable is IContextTableRunnable contextTable
-                    ? contextTable.Run(context)
-                    : runnable.Run(context.CancellationToken);
+                    ? await contextual.RunAsync(context).ConfigureAwait(false)
+                : runnable is IContextTableRunnable contextTable ? contextTable.Run(context)
+                : runnable.Run(context.CancellationToken);
         }
         finally
         {

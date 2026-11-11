@@ -64,15 +64,23 @@ public sealed class ExecutionSettingsTests
     [TestMethod]
     public void CaseArguments_RecordRegisteredStructuredInputBudget()
     {
-        var cases = CampaignCases.Create(new CampaignOptions(Size: 100_000, Filter: "*B23_StructuredInput*"), Path.GetTempPath());
+        var cases = CampaignCases.Create(
+            new CampaignOptions(Size: 100_000, Filter: "*B23_StructuredInput*"),
+            Path.GetTempPath()
+        );
         Assert.AreEqual("300001", cases.Single().Definition.Arguments!["structuralMaxNodes"]);
     }
 
     [TestMethod]
     public void CaseArguments_RecordActualExecutionAndFixedCompilationDepths()
     {
-        var cases = CampaignCases.Create(new CampaignOptions(Size: 10_000, Filter: "*B22_Recursive*"), Path.GetTempPath());
-        var actual = cases.Select(item => $"{item.Definition.Phase}:{item.Definition.Arguments!["recursiveMaxIterations"]}").ToArray();
+        var cases = CampaignCases.Create(
+            new CampaignOptions(Size: 10_000, Filter: "*B22_Recursive*"),
+            Path.GetTempPath()
+        );
+        var actual = cases
+            .Select(item => $"{item.Definition.Phase}:{item.Definition.Arguments!["recursiveMaxIterations"]}")
+            .ToArray();
         string[] expected = ["compilation-cold:4", "compilation-warm:4", "execution:10000"];
         CollectionAssert.AreEquivalent(expected, actual);
     }

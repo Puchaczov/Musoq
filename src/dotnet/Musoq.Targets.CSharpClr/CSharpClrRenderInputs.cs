@@ -8,14 +8,16 @@ namespace Musoq.Targets.CSharpClr;
 internal sealed record CSharpClrRenderInputs : TargetBackendRenderInputs
 {
     private IReadOnlyList<Type> _additionalReferenceTypes = Array.AsReadOnly(Array.Empty<Type>());
-    private IReadOnlyList<ScriptParameterDefinition> _scriptParameterDefinitions = Array.AsReadOnly(Array.Empty<ScriptParameterDefinition>());
-    private IReadOnlyList<ScriptVariableDefinition> _scriptVariableDefinitions = Array.AsReadOnly(Array.Empty<ScriptVariableDefinition>());
+    private IReadOnlyList<ScriptParameterDefinition> _scriptParameterDefinitions = Array.AsReadOnly(
+        Array.Empty<ScriptParameterDefinition>()
+    );
+    private IReadOnlyList<ScriptVariableDefinition> _scriptVariableDefinitions = Array.AsReadOnly(
+        Array.Empty<ScriptVariableDefinition>()
+    );
     private IReadOnlyList<Assembly> _referenceAssemblies = Array.AsReadOnly(Array.Empty<Assembly>());
 
     public CSharpClrRenderInputs()
-        : base(ExecutionTargetIds.CSharpClr)
-    {
-    }
+        : base(ExecutionTargetIds.CSharpClr) { }
 
     public required CSharpClrExecutionBindingContext ExecutionBindings { get; init; }
 

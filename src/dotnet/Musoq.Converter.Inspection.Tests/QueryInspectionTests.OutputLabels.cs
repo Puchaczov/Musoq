@@ -25,7 +25,9 @@ public partial class QueryInspectionTests
 
     [TestMethod]
     [DataRow("select l.Id, r.Id from values { (Id: 7) } l cross join values { (Id: 'seven') } r")]
-    [DataRow("with data as (select v.Unused as Unused, v.Number as Id, v.Text as Id from values { (Unused: 0, Number: 7, Text: 'seven') } v) select * exclude (Unused) from data d")]
+    [DataRow(
+        "with data as (select v.Unused as Unused, v.Number as Id, v.Text as Id from values { (Unused: 0, Number: 7, Text: 'seven') } v) select * exclude (Unused) from data d"
+    )]
     [DataRow("select * from (select v.Number as Id, v.Text as Id from values { (Number: 7, Text: 'seven') } v) d")]
     public void DuplicateOutputLabels_ShouldPreserveDifferentTypesAndPositions(string query)
     {
@@ -41,7 +43,9 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    [DataRow("with data as (select v.First as Id, v.Second as Id from values { (First: 7, Second: 'seven') } v) select d.Id from data d")]
+    [DataRow(
+        "with data as (select v.First as Id, v.Second as Id from values { (First: 7, Second: 'seven') } v) select d.Id from data d"
+    )]
     [DataRow("select Id from values { (Id: 7) } l cross join values { (Id: 'seven') } r")]
     public void DuplicateColumnReference_ShouldReportAmbiguity(string query)
     {
@@ -52,7 +56,9 @@ public partial class QueryInspectionTests
 
     [TestMethod]
     [DataRow("select l.Id, r.Id from values { (Id: 7) } l cross join values { (Id: 'z'), (Id: 'a') } r order by r.Id")]
-    [DataRow("with leftRows as (select Id from values { (Id: 7) } v), rightRows as (select Id from values { (Id: 'z'), (Id: 'a') } v) select l.Id, r.Id from leftRows l cross join rightRows r order by r.Id")]
+    [DataRow(
+        "with leftRows as (select Id from values { (Id: 7) } v), rightRows as (select Id from values { (Id: 'z'), (Id: 'a') } v) select l.Id, r.Id from leftRows l cross join rightRows r order by r.Id"
+    )]
     public void DuplicateOutputLabels_OrderByRightSource_ShouldUseRightColumn(string query)
     {
         using var compiled = CompileForExecution(query);
@@ -67,11 +73,11 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void UnprojectedOrderColumn_WithSameLabelAsProjectedColumn_ShouldUseBoundSource()
     {
-        const string query = "select l.Id from values { (Id: 2), (Id: 1) } l cross join values { (Id: 2), (Id: 1) } r order by r.Id, l.Id";
+        const string query =
+            "select l.Id from values { (Id: 2), (Id: 1) } l cross join values { (Id: 2), (Id: 1) } r order by r.Id, l.Id";
         using var compiled = CompileForExecution(query);
         using var result = compiled.Run();
 
         CollectionAssert.AreEqual(new object[] { 1, 2, 1, 2 }, result.Rows.Select(row => row.ReadValue(0)).ToArray());
     }
-
 }

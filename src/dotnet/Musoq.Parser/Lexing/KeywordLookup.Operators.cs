@@ -25,5 +25,4 @@ public static partial class KeywordLookup
         tokenType = value;
         return value != TokenType.Word;
     }
-
 }

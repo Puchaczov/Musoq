@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Parser.Lexing;
 using Musoq.Parser.Exceptions;
+using Musoq.Parser.Lexing;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser;
@@ -53,11 +53,13 @@ internal sealed class SchemaTokenStream(ILexer lexer, Syntax.SourceCapture? capt
             return;
         }
         if (Current.TokenType != TokenType.RightShift)
-            throw new SyntaxException($"Expected token '{TokenType.Greater}' but found '{Current.TokenType}'", lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException(
+                $"Expected token '{TokenType.Greater}' but found '{Current.TokenType}'",
+                lexer.AlreadyResolvedQueryPart
+            );
         var start = Current.Span.Start;
         Advance(new TextSpan(start, 1));
         _pendingGreaterPosition = start + 1;
         _pendingGreater = 1;
     }
-
 }

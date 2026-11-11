@@ -56,14 +56,21 @@ public sealed class CampaignStore
     {
         if (saved.Status == "complete")
             throw new CampaignCompatibilityException("Completed campaigns are immutable.");
-        if (saved.SchemaVersion != expected.SchemaVersion ||
-            saved.SuiteVersion != expected.SuiteVersion)
+        if (saved.SchemaVersion != expected.SchemaVersion || saved.SuiteVersion != expected.SuiteVersion)
             throw new CampaignCompatibilityException("Resume requires identical schema and suite versions.");
         if (!CampaignComparison.SameProvenance(saved.Provenance, expected.Provenance))
-            throw new CampaignCompatibilityException("Resume provenance differs: source or machine/environment settings changed.");
+            throw new CampaignCompatibilityException(
+                "Resume provenance differs: source or machine/environment settings changed."
+            );
         if (!CampaignComparison.SameCases(saved.Cases, expected.Cases))
-            throw new CampaignCompatibilityException("Resume requires identical cases, parameters and measurement settings.");
-        if (saved.CaseCatalog is null ? expected.CaseCatalog is not null : !saved.CaseCatalog.SameAs(expected.CaseCatalog))
+            throw new CampaignCompatibilityException(
+                "Resume requires identical cases, parameters and measurement settings."
+            );
+        if (
+            saved.CaseCatalog is null
+                ? expected.CaseCatalog is not null
+                : !saved.CaseCatalog.SameAs(expected.CaseCatalog)
+        )
             throw new CampaignCompatibilityException("Resume requires an identical case lifecycle catalog snapshot.");
     }
 
@@ -82,6 +89,7 @@ public sealed class CampaignStore
     }
 
     public string RawDirectory(AttemptStart attempt) => CampaignPaths.RawDirectory(DirectoryPath, attempt.Id);
+
     private string AttemptPath(string id, string name) => Path.Combine(DirectoryPath, "attempts", id, name);
 
     public void Save(Measurement measurement)
@@ -118,9 +126,16 @@ public sealed class CampaignStore
         Flush();
         if (Manifest.Status != "complete")
             return;
-        ArtifactJson.Write(Path.Combine(DirectoryPath, "complete.json"),
-            new CampaignCompletion(Manifest.SchemaVersion, Manifest.RunId, Manifest.FinishedUtc.Value,
-                Manifest.Cases.Length, _attempts.Where(item => item.Status == "complete").Select(item => item.CaseId).Distinct().Count()));
+        ArtifactJson.Write(
+            Path.Combine(DirectoryPath, "complete.json"),
+            new CampaignCompletion(
+                Manifest.SchemaVersion,
+                Manifest.RunId,
+                Manifest.FinishedUtc.Value,
+                Manifest.Cases.Length,
+                _attempts.Where(item => item.Status == "complete").Select(item => item.CaseId).Distinct().Count()
+            )
+        );
     }
 
     public void Flush()
@@ -151,20 +166,26 @@ public sealed class CampaignStore
                 }
                 var result = ArtifactJson.Read<Measurement>(resultPath);
                 ValidateMeasurement(manifest, result);
-                if (start.Id != Path.GetFileName(path) || result.AttemptId != start.Id ||
-                    result.CaseId != start.CaseId)
+                if (start.Id != Path.GetFileName(path) || result.AttemptId != start.Id || result.CaseId != start.CaseId)
                     throw new InvalidDataException("Attempt identity or evidence index differs.");
                 attempts.Add(result);
             }
-            catch (Exception exception) when (exception is IOException or JsonException or InvalidDataException or UnauthorizedAccessException)
+            catch (Exception exception)
+                when (exception is IOException or JsonException or InvalidDataException or UnauthorizedAccessException)
             {
                 notes.Add($"Invalid attempt {Path.GetFileName(path)} retained: {exception.Message}");
             }
         }
-        return (attempts.OrderBy(item => item.FinishedUtc).ThenBy(item => item.AttemptId, StringComparer.Ordinal).ToList(), notes);
+        return (
+            attempts.OrderBy(item => item.FinishedUtc).ThenBy(item => item.AttemptId, StringComparer.Ordinal).ToList(),
+            notes
+        );
     }
 
-    public static (List<Measurement> Attempts, List<string> Notes) ReadVerifiedAttempts(string directory, RunManifest manifest)
+    public static (List<Measurement> Attempts, List<string> Notes) ReadVerifiedAttempts(
+        string directory,
+        RunManifest manifest
+    )
     {
         var loaded = ReadAttempts(directory, manifest);
         List<Measurement> valid = [];
@@ -173,11 +194,15 @@ public sealed class CampaignStore
             try
             {
                 BundleFiles.Validate(directory, attempt.RawReports ?? []);
-                if (attempt.Status == "complete" && (attempt.RawReports?.Length > 0 || manifest.Provenance.Environment.Mode == "Official"))
+                if (
+                    attempt.Status == "complete"
+                    && (attempt.RawReports?.Length > 0 || manifest.Provenance.Environment.Mode == "Official")
+                )
                     CampaignIntegrity.ValidateEvidence(directory, manifest, attempt);
                 valid.Add(attempt);
             }
-            catch (Exception exception) when (exception is IOException or JsonException or InvalidDataException or UnauthorizedAccessException)
+            catch (Exception exception)
+                when (exception is IOException or JsonException or InvalidDataException or UnauthorizedAccessException)
             {
                 loaded.Notes.Add($"Invalid attempt {attempt.AttemptId} retained: {exception.Message}");
             }
@@ -193,28 +218,53 @@ public sealed class CampaignStore
             throw new InvalidDataException("Unknown measurement status.");
         if (measurement.FinishedUtc < measurement.StartedUtc)
             throw new InvalidDataException("Measurement timestamps are reversed.");
-        if (measurement.Status == "complete" && (measurement.SampleCount <= 0 ||
-            measurement.MeanNanoseconds is not > 0 || !double.IsFinite(measurement.MeanNanoseconds.Value)))
+        if (
+            measurement.Status == "complete"
+            && (
+                measurement.SampleCount <= 0
+                || measurement.MeanNanoseconds is not > 0
+                || !double.IsFinite(measurement.MeanNanoseconds.Value)
+            )
+        )
             throw new InvalidDataException("A successful measurement needs positive finite timings and samples.");
-        double?[] statistics = [measurement.MedianNanoseconds, measurement.StandardDeviationNanoseconds,
-            measurement.ConfidenceLowerNanoseconds, measurement.ConfidenceUpperNanoseconds];
+        double?[] statistics =
+        [
+            measurement.MedianNanoseconds,
+            measurement.StandardDeviationNanoseconds,
+            measurement.ConfidenceLowerNanoseconds,
+            measurement.ConfidenceUpperNanoseconds,
+        ];
         if (statistics.Any(value => value.HasValue && !double.IsFinite(value.Value)))
             throw new InvalidDataException("Measurement statistics must be finite where available.");
     }
 
-    private Measurement[] Latest() => _attempts.GroupBy(item => item.CaseId).Select(group => group.Last())
-        .OrderBy(item => item.CaseId, StringComparer.Ordinal).ToArray();
+    private Measurement[] Latest() =>
+        _attempts
+            .GroupBy(item => item.CaseId)
+            .Select(group => group.Last())
+            .OrderBy(item => item.CaseId, StringComparer.Ordinal)
+            .ToArray();
 
     private void WriteSummary()
     {
         var stamp = Manifest.Provenance;
         var text = new StringBuilder("# Musoq benchmark campaign\n\n");
-        text.AppendLine($"Version: {stamp.Build.EngineVersion}  \nBranch: {stamp.Source.Branch ?? "(detached)"}  \nCommit: {stamp.Source.Commit}  \nDirty: {stamp.Source.Dirty}  \nMode: {stamp.Environment.Mode}  \nStatus: {Manifest.Status}");
-        text.AppendLine($"\nMachine: {stamp.Hardware.Profile}; {stamp.Hardware.CpuModel}; {stamp.Hardware.PhysicalCores?.ToString(CultureInfo.InvariantCulture) ?? "unknown"} physical/{stamp.Hardware.LogicalCores} logical cores; {stamp.Hardware.MemoryBytes} RAM bytes.");
-        text.AppendLine($"\nEnvironment: {stamp.Environment.Os}; {stamp.Environment.Runtime}; SDK {stamp.Environment.Sdk}. Suite: {Manifest.SuiteVersion}.");
-        text.AppendLine("\nLower elapsed time is better. Compare the same case, input parameters, suite and environment. Dry results are execution checks.\n\n| Case | Status | Mean ms | Allocated B/op |\n|---|---|---:|---:|");
+        text.AppendLine(
+            $"Version: {stamp.Build.EngineVersion}  \nBranch: {stamp.Source.Branch ?? "(detached)"}  \nCommit: {stamp.Source.Commit}  \nDirty: {stamp.Source.Dirty}  \nMode: {stamp.Environment.Mode}  \nStatus: {Manifest.Status}"
+        );
+        text.AppendLine(
+            $"\nMachine: {stamp.Hardware.Profile}; {stamp.Hardware.CpuModel}; {stamp.Hardware.PhysicalCores?.ToString(CultureInfo.InvariantCulture) ?? "unknown"} physical/{stamp.Hardware.LogicalCores} logical cores; {stamp.Hardware.MemoryBytes} RAM bytes."
+        );
+        text.AppendLine(
+            $"\nEnvironment: {stamp.Environment.Os}; {stamp.Environment.Runtime}; SDK {stamp.Environment.Sdk}. Suite: {Manifest.SuiteVersion}."
+        );
+        text.AppendLine(
+            "\nLower elapsed time is better. Compare the same case, input parameters, suite and environment. Dry results are execution checks.\n\n| Case | Status | Mean ms | Allocated B/op |\n|---|---|---:|---:|"
+        );
         foreach (var item in Latest())
-            text.AppendLine($"| {item.CaseId} | {item.Status} | {(item.MeanNanoseconds / 1_000_000)?.ToString("F4", CultureInfo.InvariantCulture) ?? "unavailable"} | {item.AllocatedBytesPerOperation?.ToString(CultureInfo.InvariantCulture) ?? "unavailable"} |");
+            text.AppendLine(
+                $"| {item.CaseId} | {item.Status} | {(item.MeanNanoseconds / 1_000_000)?.ToString("F4", CultureInfo.InvariantCulture) ?? "unavailable"} | {item.AllocatedBytesPerOperation?.ToString(CultureInfo.InvariantCulture) ?? "unavailable"} |"
+            );
         var path = Path.Combine(DirectoryPath, "summary.md");
         ArtifactJson.WriteText(path, text.ToString());
     }

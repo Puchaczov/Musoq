@@ -1,10 +1,10 @@
 using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
-using Musoq.Evaluator.Tests.Architecture;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Runtime;
+using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Evaluator.Tests.Runtime;
@@ -18,28 +18,53 @@ public sealed class EvaluationHelperRuntimeCacheTests
     {
         Assert.IsNull(CompilerContractSymbols.For(typeof(EvaluationHelper)).GetMethod("GetNestedValueAccessor"));
         Assert.IsNull(CompilerContractSymbols.For(typeof(EvaluationHelper)).GetMethod("GetNestedValue"));
-        Assert.IsNull(CompilerContractSymbols.For(typeof(EvaluationHelper)).GetField("NestedValueAccessors", BindingFlags.NonPublic | BindingFlags.Static));
+        Assert.IsNull(
+            CompilerContractSymbols
+                .For(typeof(EvaluationHelper))
+                .GetField("NestedValueAccessors", BindingFlags.NonPublic | BindingFlags.Static)
+        );
     }
 
     [TestMethod]
     public void XmlDocumentationCache_ShouldUseBoundedRuntimeCache()
     {
-        var cache = CompilerContractSymbols.For(typeof(EvaluationHelper)).GetField("XmlDocCache", BindingFlags.NonPublic | BindingFlags.Static);
+        var cache = CompilerContractSymbols
+            .For(typeof(EvaluationHelper))
+            .GetField("XmlDocCache", BindingFlags.NonPublic | BindingFlags.Static);
         Assert.IsNotNull(cache);
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(BoundedRuntimeCache<,>)), cache.Type.OriginalDefinition));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(BoundedRuntimeCache<,>)),
+                cache.Type.OriginalDefinition
+            )
+        );
     }
 
     [TestMethod]
     public void RemainingTypeKeyedCaches_ShouldUseWeakBoundedRuntimeCache()
     {
-        var castable = CompilerContractSymbols.For(typeof(EvaluationHelper)).GetField("CastableTypeCache", BindingFlags.NonPublic | BindingFlags.Static);
+        var castable = CompilerContractSymbols
+            .For(typeof(EvaluationHelper))
+            .GetField("CastableTypeCache", BindingFlags.NonPublic | BindingFlags.Static);
         Assert.IsNotNull(castable);
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>)), castable.Type.OriginalDefinition));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>)),
+                castable.Type.OriginalDefinition
+            )
+        );
         foreach (var name in new[] { "HasIndexerCache", "IsIndexableCache" })
         {
-            var cache = CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitorUtilities)).GetField(name, BindingFlags.NonPublic | BindingFlags.Static);
+            var cache = CompilerContractSymbols
+                .For(typeof(BuildMetadataAndInferTypesVisitorUtilities))
+                .GetField(name, BindingFlags.NonPublic | BindingFlags.Static);
             Assert.IsNotNull(cache);
-            Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>)), cache.Type.OriginalDefinition));
+            Assert.IsTrue(
+                SymbolEqualityComparer.Default.Equals(
+                    CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>)),
+                    cache.Type.OriginalDefinition
+                )
+            );
         }
     }
 
@@ -61,7 +86,10 @@ public sealed class EvaluationHelperRuntimeCacheTests
             Assert.IsTrue(BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(indexable));
             Assert.AreEqual((2, 2), (indexer.PropertyReads, indexable.PropertyReads));
         }
-        finally { BuildMetadataAndInferTypesVisitorUtilities.ClearTypeInspectionCaches(); }
+        finally
+        {
+            BuildMetadataAndInferTypesVisitorUtilities.ClearTypeInspectionCaches();
+        }
     }
 
     // Type is the API input under test. This typed delegator observes public metadata requests;
@@ -69,6 +97,7 @@ public sealed class EvaluationHelperRuntimeCacheTests
     private sealed class CountingType() : TypeDelegator(typeof(CacheEntity))
     {
         internal int PropertyReads { get; private set; }
+
         public override PropertyInfo[] GetProperties(BindingFlags bindingAttr)
         {
             PropertyReads++;

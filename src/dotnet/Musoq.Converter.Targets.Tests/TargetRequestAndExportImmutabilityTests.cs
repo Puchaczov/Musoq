@@ -4,11 +4,11 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
+using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution.Portability;
 using Musoq.Evaluator.Utils;
-using Musoq.Converter.Tests.Schema;
 
 namespace Musoq.Converter.Tests;
 
@@ -18,10 +18,7 @@ public sealed class TargetRequestAndExportImmutabilityTests
     [TestMethod]
     public void TargetRenderRequestSubcontracts_WhenInputsAreMutated_ShouldRemainStable()
     {
-        var options = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["mode"] = "initial"
-        };
+        var options = new Dictionary<string, string>(StringComparer.Ordinal) { ["mode"] = "initial" };
         var parameters = new List<string> { "p0" };
         var variables = new List<string> { "v0" };
         var references = new List<string> { "System.Private.CoreLib" };
@@ -39,7 +36,9 @@ public sealed class TargetRequestAndExportImmutabilityTests
         CollectionAssert.AreEqual(new[] { "p0" }, scriptBinding.ParameterNames.ToArray());
         CollectionAssert.AreEqual(new[] { "v0" }, scriptBinding.VariableNames.ToArray());
         CollectionAssert.AreEqual(new[] { "System.Private.CoreLib" }, referenceInventory.ReferenceNames.ToArray());
-        Assert.Throws<NotSupportedException>(() => ((IDictionary<string, string>)renderOptions.Values)["mode"] = "exposed");
+        Assert.Throws<NotSupportedException>(() =>
+            ((IDictionary<string, string>)renderOptions.Values)["mode"] = "exposed"
+        );
         Assert.Throws<NotSupportedException>(() => ((IList<string>)scriptBinding.ParameterNames).Add("exposed"));
         Assert.Throws<NotSupportedException>(() => ((IList<string>)referenceInventory.ReferenceNames).Clear());
     }
@@ -64,7 +63,7 @@ public sealed class TargetRequestAndExportImmutabilityTests
             Scope = new Scope(null, 0),
             ScriptParameterDefinitions = parameters,
             ScriptVariableDefinitions = variables,
-            ReferenceAssemblies = assemblies
+            ReferenceAssemblies = assemblies,
         };
 
         additionalTypes.Clear();
@@ -97,7 +96,8 @@ public sealed class TargetRequestAndExportImmutabilityTests
             new Scope(null, 0),
             parameters,
             variables,
-            assemblies);
+            assemblies
+        );
 
         additionalTypes.Clear();
         parameters.Add(null!);
@@ -118,13 +118,10 @@ public sealed class TargetRequestAndExportImmutabilityTests
     {
         var sourceFiles = new List<TargetExportSourceFile>
         {
-            new("query.js", "javascript", "export function run() {}")
+            new("query.js", "javascript", "export function run() {}"),
         };
         var blobBytes = new byte[] { 0, 97, 115, 109 };
-        var binaryBlobs = new List<TargetExportBinaryBlob>
-        {
-            new("query.wasm", blobBytes, "application/wasm")
-        };
+        var binaryBlobs = new List<TargetExportBinaryBlob> { new("query.wasm", blobBytes, "application/wasm") };
         var hostAbiImports = new List<TargetHostAbiImport>
         {
             new(
@@ -144,20 +141,19 @@ public sealed class TargetRequestAndExportImmutabilityTests
                     [],
                     [],
                     [],
-                    []))
+                    []
+                )
+            ),
         };
         var entrypoints = new List<TargetRuntimeEntrypoint>
         {
-            new("run", TargetRuntimeEntrypointKind.TableQuery, "run")
+            new("run", TargetRuntimeEntrypointKind.TableQuery, "run"),
         };
         var services = new HashSet<TargetRuntimeServiceRequirementKind>
         {
-            TargetRuntimeServiceRequirementKind.SourceAccess
+            TargetRuntimeServiceRequirementKind.SourceAccess,
         };
-        var metadata = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["targetFamily"] = "portable"
-        };
+        var metadata = new Dictionary<string, string>(StringComparer.Ordinal) { ["targetFamily"] = "portable" };
 
         var artifact = new TargetExportArtifact(
             TestExecutionTargetIds.TestOnlyNonClr,
@@ -166,7 +162,8 @@ public sealed class TargetRequestAndExportImmutabilityTests
             entrypoints,
             new TargetRuntimeServiceRequirements(services),
             new TargetHostAbiInventory(hostAbiImports),
-            metadata);
+            metadata
+        );
 
         sourceFiles.Clear();
         binaryBlobs.Clear();
@@ -187,28 +184,22 @@ public sealed class TargetRequestAndExportImmutabilityTests
         Assert.IsTrue(artifact.RuntimeServices.Requires(TargetRuntimeServiceRequirementKind.SourceAccess));
         Assert.AreEqual("portable", artifact.DiagnosticsMetadata["targetFamily"]);
         Assert.Throws<NotSupportedException>(() => ((IList<TargetExportSourceFile>)artifact.SourceFiles).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IDictionary<string, string>)artifact.DiagnosticsMetadata)["targetFamily"] = "exposed");
+        Assert.Throws<NotSupportedException>(() =>
+            ((IDictionary<string, string>)artifact.DiagnosticsMetadata)["targetFamily"] = "exposed"
+        );
     }
 
     [TestMethod]
     public void TargetFinalizationAndInspectionResults_WhenInputsAreMutated_ShouldRemainStable()
     {
-        var diagnostics = new List<TargetDiagnostic>
-        {
-            new("MT-TEST", TargetDiagnosticSeverity.Warning, "initial")
-        };
-        var metadata = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["language"] = "fake-js"
-        };
+        var diagnostics = new List<TargetDiagnostic> { new("MT-TEST", TargetDiagnosticSeverity.Warning, "initial") };
+        var metadata = new Dictionary<string, string>(StringComparer.Ordinal) { ["language"] = "fake-js" };
 
         var result = new TestFinalizationResult(
             diagnostics,
-            TargetExportArtifact.Create(TestExecutionTargetIds.TestOnlyNonClr));
-        var inspection = new RenderedQueryInspection(
-            TestExecutionTargetIds.TestOnlyNonClr,
-            null,
-            metadata);
+            TargetExportArtifact.Create(TestExecutionTargetIds.TestOnlyNonClr)
+        );
+        var inspection = new RenderedQueryInspection(TestExecutionTargetIds.TestOnlyNonClr, null, metadata);
 
         diagnostics.Clear();
         metadata["language"] = "mutated";
@@ -217,19 +208,18 @@ public sealed class TargetRequestAndExportImmutabilityTests
         Assert.AreEqual("initial", result.Diagnostics[0].Message);
         Assert.AreEqual("fake-js", inspection.SourceMetadata["language"]);
         Assert.Throws<NotSupportedException>(() => ((IList<TargetDiagnostic>)result.Diagnostics).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IDictionary<string, string>)inspection.SourceMetadata)["language"] = "exposed");
+        Assert.Throws<NotSupportedException>(() =>
+            ((IDictionary<string, string>)inspection.SourceMetadata)["language"] = "exposed"
+        );
     }
 
     [TestMethod]
     public void QueryRuntimeBinding_WhenInputsAreMutated_ShouldRemainStable()
     {
-        var runtimeSettings = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["format"] = "json"
-        };
+        var runtimeSettings = new Dictionary<string, string>(StringComparer.Ordinal) { ["format"] = "json" };
         var settingsBySource = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal)
         {
-            ["source"] = runtimeSettings
+            ["source"] = runtimeSettings,
         };
         var descriptions = new List<SourceRuntimeSettingDescription>
         {
@@ -239,22 +229,26 @@ public sealed class TargetRequestAndExportImmutabilityTests
                 Secret: false,
                 SourceRuntimeSettingPhase.Execution,
                 SourceRuntimeSettingResolutionStatus.Provided,
-                "format setting")
+                "format setting"
+            ),
         };
-        var descriptionsBySource = new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>(StringComparer.Ordinal)
+        var descriptionsBySource = new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>(
+            StringComparer.Ordinal
+        )
         {
-            ["source"] = descriptions
+            ["source"] = descriptions,
         };
         var plans = new Dictionary<string, SourceExecutionPlan>(StringComparer.Ordinal)
         {
-            ["source"] = SourceExecutionPlan.Empty(SourceIdentity.Empty)
+            ["source"] = SourceExecutionPlan.Empty(SourceIdentity.Empty),
         };
 
         var binding = new QueryRuntimeBinding(
             new SystemSchemaProvider(),
             settingsBySource,
             descriptionsBySource,
-            plans);
+            plans
+        );
 
         runtimeSettings["format"] = "csv";
         settingsBySource["other"] = new Dictionary<string, string>();
@@ -266,32 +260,35 @@ public sealed class TargetRequestAndExportImmutabilityTests
         Assert.HasCount(1, binding.SourceRuntimeSettingDescriptionsBySourceContextId["source"]);
         Assert.IsTrue(binding.SourceExecutionPlans.ContainsKey("source"));
         Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, IReadOnlyDictionary<string, string>>)binding.SourceRuntimeSettingsBySourceContextId).Clear());
+            (
+                (IDictionary<string, IReadOnlyDictionary<string, string>>)binding.SourceRuntimeSettingsBySourceContextId
+            ).Clear()
+        );
         Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, string>)binding.SourceRuntimeSettingsBySourceContextId["source"])["format"] = "exposed");
+            ((IDictionary<string, string>)binding.SourceRuntimeSettingsBySourceContextId["source"])["format"] =
+                "exposed"
+        );
         Assert.Throws<NotSupportedException>(() =>
-            ((IList<SourceRuntimeSettingDescription>)binding.SourceRuntimeSettingDescriptionsBySourceContextId["source"]).Clear());
+            (
+                (IList<SourceRuntimeSettingDescription>)
+                    binding.SourceRuntimeSettingDescriptionsBySourceContextId["source"]
+            ).Clear()
+        );
     }
 
     [TestMethod]
     public void TargetRuntimeAndAnalysisContracts_WhenInputsAreMutated_ShouldRemainStable()
     {
         var symbol = ExecutionPortableSymbolFactory.FromType(typeof(string));
-        var fields = new List<TargetFieldContract>
-        {
-            new("Name", "s.Name", symbol, symbol, "NotNullable")
-        };
+        var fields = new List<TargetFieldContract> { new("Name", "s.Name", symbol, symbol, "NotNullable") };
         var sourceAccess = new List<TargetSourceAccessContract>
         {
-            new("schema-source", "source", "test", "rows", symbol, symbol, fields)
+            new("schema-source", "source", "test", "rows", symbol, symbol, fields),
         };
-        var rowShapes = new List<TargetRowShapeContract>
-        {
-            new("SourceEntityShape", "s", symbol, fields)
-        };
+        var rowShapes = new List<TargetRowShapeContract> { new("SourceEntityShape", "s", symbol, fields) };
         var requirements = new List<ExecutionTargetRequirement>
         {
-            new(ExecutionTargetRequirementKind.HostSourceAccess, "source")
+            new(ExecutionTargetRequirementKind.HostSourceAccess, "source"),
         };
         var report = new ExecutionTargetCompatibilityReport(requirements);
         var contract = new TargetRuntimeContract(
@@ -302,7 +299,8 @@ public sealed class TargetRequestAndExportImmutabilityTests
             new TargetNullBehaviorContract(false, false, false, "test"),
             new TargetCancellationContract(true, false),
             new TargetDiagnosticsContract(true, true, true),
-            new TargetProfilingContract(true, true, 1, 1));
+            new TargetProfilingContract(true, true, 1, 1)
+        );
 
         fields.Clear();
         sourceAccess.Clear();
@@ -314,7 +312,9 @@ public sealed class TargetRequestAndExportImmutabilityTests
         Assert.HasCount(1, contract.RowShapes);
         Assert.HasCount(1, contract.RowShapes[0].Fields);
         Assert.Throws<NotSupportedException>(() => ((IList<TargetSourceAccessContract>)contract.SourceAccess).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IList<TargetFieldContract>)contract.SourceAccess[0].Fields).Clear());
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<TargetFieldContract>)contract.SourceAccess[0].Fields).Clear()
+        );
         Assert.HasCount(1, report.Requirements);
         Assert.Throws<NotSupportedException>(() => ((IList<ExecutionTargetRequirement>)report.Requirements).Clear());
     }
@@ -323,27 +323,19 @@ public sealed class TargetRequestAndExportImmutabilityTests
     public void PortableSymbols_WhenInputsAreMutated_ShouldRemainStable()
     {
         var argument = ExecutionPortableSymbolFactory.FromType(typeof(int));
-        var arguments = new List<ExecutionPortableTypeDescriptor>
+        var arguments = new List<ExecutionPortableTypeDescriptor> { argument };
+        var symbol = new ExecutionPortableTypeDescriptor(ExecutionPortableTypeKind.List, "list:test", "test")
         {
-            argument
+            Arguments = arguments,
         };
-        var symbol = new ExecutionPortableTypeDescriptor(
-            ExecutionPortableTypeKind.List,
-            "list:test",
-            "test")
-        {
-            Arguments = arguments
-        };
-        var parameterTypes = new List<ExecutionPortableTypeDescriptor>
-        {
-            argument
-        };
+        var parameterTypes = new List<ExecutionPortableTypeDescriptor> { argument };
         var callable = new ExecutionPortableCallableDescriptor(
             ExecutionPortableCallableKind.ClrMethod,
             "method:test",
-            "test")
+            "test"
+        )
         {
-            ParameterTypes = parameterTypes
+            ParameterTypes = parameterTypes,
         };
 
         arguments.Clear();
@@ -352,15 +344,13 @@ public sealed class TargetRequestAndExportImmutabilityTests
         Assert.HasCount(1, symbol.Arguments);
         Assert.HasCount(1, callable.ParameterTypes);
         Assert.Throws<NotSupportedException>(() => ((IList<ExecutionPortableTypeDescriptor>)symbol.Arguments).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IList<ExecutionPortableTypeDescriptor>)callable.ParameterTypes).Clear());
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<ExecutionPortableTypeDescriptor>)callable.ParameterTypes).Clear()
+        );
     }
 
     private sealed record TestFinalizationResult(
         IReadOnlyList<TargetDiagnostic> Diagnostics,
-        ExecutableQueryArtifact ExecutableArtifact)
-        : TargetFinalizationResult(
-            TestExecutionTargetIds.TestOnlyNonClr,
-            true,
-            Diagnostics,
-            ExecutableArtifact);
+        ExecutableQueryArtifact ExecutableArtifact
+    ) : TargetFinalizationResult(TestExecutionTargetIds.TestOnlyNonClr, true, Diagnostics, ExecutableArtifact);
 }

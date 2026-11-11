@@ -5,9 +5,7 @@ namespace Musoq.Parser.Nodes;
 public class SelectNode : Node
 {
     public SelectNode(FieldNode[] fields, bool isDistinct = false)
-        : this(fields, isDistinct, default)
-    {
-    }
+        : this(fields, isDistinct, default) { }
 
     public SelectNode(FieldNode[] fields, bool isDistinct, TextSpan span)
     {
@@ -48,9 +46,7 @@ public class SelectNode : Node
     public override string ToString()
     {
         var distinctKeyword = IsDistinct ? "distinct " : "";
-        var fieldsTxt = Fields.Length == 0
-            ? string.Empty
-            : string.Join(", ", Fields.Select(FieldToString));
+        var fieldsTxt = Fields.Length == 0 ? string.Empty : string.Join(", ", Fields.Select(FieldToString));
         return $"select {distinctKeyword}{fieldsTxt} ";
     }
 

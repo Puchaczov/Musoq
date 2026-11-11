@@ -36,17 +36,14 @@ internal sealed class UnknownAliasException : Exception, IDiagnosticException
             if (AvailableAliases.Count == 1)
                 suggestedFixes =
                 [
-                    DiagnosticAction.QuickFix(
-                        $"Replace '{Alias}' with '{Suggestion}'",
-                        span,
-                        Suggestion)
+                    DiagnosticAction.QuickFix($"Replace '{Alias}' with '{Suggestion}'", span, Suggestion),
                 ];
         }
 
         var arguments = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["alias"] = Alias,
-            ["availableAliases"] = string.Join(", ", AvailableAliases)
+            ["availableAliases"] = string.Join(", ", AvailableAliases),
         };
         if (!string.IsNullOrWhiteSpace(Suggestion))
             arguments["suggestion"] = Suggestion;
@@ -68,11 +65,12 @@ internal sealed class UnknownAliasException : Exception, IDiagnosticException
 
     private static string[] NormalizeAliases(IEnumerable<string>? aliases)
     {
-        return aliases?
-            .Where(static alias => !string.IsNullOrWhiteSpace(alias))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(static alias => alias, StringComparer.Ordinal)
-            .ToArray() ?? [];
+        return aliases
+                ?.Where(static alias => !string.IsNullOrWhiteSpace(alias))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(static alias => alias, StringComparer.Ordinal)
+                .ToArray()
+            ?? [];
     }
 
     private static TextSpan GetAliasSpan(SourceText? sourceText, TextSpan nodeSpan, string alias)

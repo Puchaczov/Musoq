@@ -18,8 +18,11 @@ public sealed class CultureTestClassAttribute : TestClassAttribute
     {
         private readonly TestMethodAttribute _original;
 
-        public ScopedTestMethodAttribute(TestMethodAttribute original,
-            [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+        public ScopedTestMethodAttribute(
+            TestMethodAttribute original,
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0
+        )
             : base(original.DeclaringFilePath ?? filePath, original.DeclaringLineNumber ?? lineNumber)
         {
             _original = original;

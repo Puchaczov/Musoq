@@ -7,7 +7,10 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static MemberDeclarationSyntax RenderGeneratedRecordClass(GeneratedRecordShape shape, FinalOutputPlan? output)
+    private static MemberDeclarationSyntax RenderGeneratedRecordClass(
+        GeneratedRecordShape shape,
+        FinalOutputPlan? output
+    )
     {
         if (output is { ReturnsOwnedRows: true, OwnedBuffer: { } owned } && owned.CarrierTypeName == shape.TypeName)
             return RenderOwnedResultRowClass(shape.TypeName, shape.Fields, output.Result.ShapeFields);
@@ -18,10 +21,18 @@ public sealed partial class ExecutionCSharpRenderer
         return RenderRowCarrierClass(shape.TypeName, shape.Fields, GetGeneratedFieldName);
     }
 
-    private static ClassDeclarationSyntax RenderOwnedResultRowClass(string typeName,
-        IReadOnlyList<FieldBinding> storageFields, IReadOnlyList<FieldBinding> visibleFields)
+    private static ClassDeclarationSyntax RenderOwnedResultRowClass(
+        string typeName,
+        IReadOnlyList<FieldBinding> storageFields,
+        IReadOnlyList<FieldBinding> visibleFields
+    )
     {
-        var members = CreateRowCarrierMembers(typeName, storageFields, GetGeneratedFieldName, includePrivateSetters: true);
+        var members = CreateRowCarrierMembers(
+            typeName,
+            storageFields,
+            GetGeneratedFieldName,
+            includePrivateSetters: true
+        );
         members.AddRange(CreateResultRowContractMembers(visibleFields));
         return CreateResultRowClass(typeName, members);
     }
@@ -29,24 +40,27 @@ public sealed partial class ExecutionCSharpRenderer
     private static ClassDeclarationSyntax RenderRowCarrierClass(
         string typeName,
         IReadOnlyList<FieldBinding> fields,
-        Func<FieldBinding, string> resolvePropertyName)
+        Func<FieldBinding, string> resolvePropertyName
+    )
     {
-        return SyntaxFactory.ClassDeclaration(typeName)
-            .AddModifiers(
-                SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.SealedKeyword))
+        return SyntaxFactory
+            .ClassDeclaration(typeName)
+            .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword), SyntaxFactory.Token(SyntaxKind.SealedKeyword))
             .WithMembers(SyntaxFactory.List(CreateRowCarrierMembers(typeName, fields, resolvePropertyName)));
     }
 
     private static StructDeclarationSyntax RenderRowCarrierStruct(
         string typeName,
         IReadOnlyList<FieldBinding> fields,
-        Func<FieldBinding, string> resolvePropertyName)
+        Func<FieldBinding, string> resolvePropertyName
+    )
     {
-        return SyntaxFactory.StructDeclaration(typeName)
+        return SyntaxFactory
+            .StructDeclaration(typeName)
             .AddModifiers(
                 SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
+                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
+            )
             .WithMembers(SyntaxFactory.List(CreateRowCarrierMembers(typeName, fields, resolvePropertyName)));
     }
 
@@ -54,23 +68,30 @@ public sealed partial class ExecutionCSharpRenderer
         string typeName,
         IReadOnlyList<FieldBinding> fields,
         Func<FieldBinding, string> resolvePropertyName,
-        bool includePrivateSetters = false)
+        bool includePrivateSetters = false
+    )
     {
         var members = new List<MemberDeclarationSyntax>
         {
-            CreateRowCarrierConstructor(typeName, fields, resolvePropertyName)
+            CreateRowCarrierConstructor(typeName, fields, resolvePropertyName),
         };
-        members.AddRange(fields.Select(field => CreateRowCarrierProperty(field, resolvePropertyName, includePrivateSetters)));
+        members.AddRange(
+            fields.Select(field => CreateRowCarrierProperty(field, resolvePropertyName, includePrivateSetters))
+        );
         return members;
     }
 
     private static ConstructorDeclarationSyntax CreateRowCarrierConstructor(
         string typeName,
         IReadOnlyList<FieldBinding> fields,
-        Func<FieldBinding, string> resolvePropertyName)
+        Func<FieldBinding, string> resolvePropertyName
+    )
     {
-        var parameters = fields.Select(field => SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(resolvePropertyName(field))))
-            .WithType(CreateGeneratedFieldTypeSyntax(field)));
+        var parameters = fields.Select(field =>
+            SyntaxFactory
+                .Parameter(SyntaxFactory.Identifier(EscapeIdentifier(resolvePropertyName(field))))
+                .WithType(CreateGeneratedFieldTypeSyntax(field))
+        );
         var assignments = fields.Select(field =>
         {
             var propertyName = resolvePropertyName(field);
@@ -80,11 +101,15 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.ThisExpression(),
-                        CreateIdentifierName(propertyName)),
-                    CreateIdentifierName(propertyName)));
+                        CreateIdentifierName(propertyName)
+                    ),
+                    CreateIdentifierName(propertyName)
+                )
+            );
         });
 
-        return SyntaxFactory.ConstructorDeclaration(typeName)
+        return SyntaxFactory
+            .ConstructorDeclaration(typeName)
             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters)))
             .WithBody(StatementEmitter.CreateBlock(assignments));
@@ -93,22 +118,28 @@ public sealed partial class ExecutionCSharpRenderer
     private static PropertyDeclarationSyntax CreateRowCarrierProperty(
         FieldBinding field,
         Func<FieldBinding, string> resolvePropertyName,
-        bool includePrivateSetter = false)
+        bool includePrivateSetter = false
+    )
     {
         var accessors = new List<AccessorDeclarationSyntax>
         {
-            SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+            SyntaxFactory
+                .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
         };
 
         if (includePrivateSetter)
         {
-            accessors.Add(SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+            accessors.Add(
+                SyntaxFactory
+                    .AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                    .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+            );
         }
 
-        return SyntaxFactory.PropertyDeclaration(CreateGeneratedFieldTypeSyntax(field), EscapeIdentifier(resolvePropertyName(field)))
+        return SyntaxFactory
+            .PropertyDeclaration(CreateGeneratedFieldTypeSyntax(field), EscapeIdentifier(resolvePropertyName(field)))
             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(accessors)));
     }

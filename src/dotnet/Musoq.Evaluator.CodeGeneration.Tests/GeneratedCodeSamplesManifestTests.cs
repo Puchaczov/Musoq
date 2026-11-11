@@ -12,7 +12,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class GeneratedCodeSamplesManifestTests
 {
-    private const string ManifestRelativePath = "src/dotnet/Musoq.Evaluator.CodeGeneration.Tests/GeneratedCodeSamplesManifest.txt";
+    private const string ManifestRelativePath =
+        "src/dotnet/Musoq.Evaluator.CodeGeneration.Tests/GeneratedCodeSamplesManifest.txt";
 
     [TestMethod]
     public void Catalog_WhenGenerated_ShouldMatchTrackedManifest()
@@ -23,7 +24,8 @@ public sealed class GeneratedCodeSamplesManifestTests
         CollectionAssert.AreEqual(
             expected,
             actual,
-            $"Generated-code sample manifest is stale. Run {nameof(Refresh_Tracked_Generated_Code_Sample_Manifest)} intentionally when generated-code changes are expected.");
+            $"Generated-code sample manifest is stale. Run {nameof(Refresh_Tracked_Generated_Code_Sample_Manifest)} intentionally when generated-code changes are expected."
+        );
     }
 
     [TestMethod]
@@ -42,8 +44,8 @@ public sealed class GeneratedCodeSamplesManifestTests
     {
         var loggerResolver = new TestsLoggerResolver();
 
-        return GeneratedCodeSamplesCatalog.Samples
-            .OrderBy(static sample => sample.FileName, StringComparer.Ordinal)
+        return GeneratedCodeSamplesCatalog
+            .Samples.OrderBy(static sample => sample.FileName, StringComparer.Ordinal)
             .Select(sample =>
             {
                 var generated = useCache
@@ -64,7 +66,7 @@ public sealed class GeneratedCodeSamplesManifestTests
             "# Generated-code sample manifest.",
             "# Format: file-name<TAB>category<TAB>sha256(normalized generated sample)",
             "# Refresh intentionally through GeneratedCodeSamplesManifestTests.Refresh_Tracked_Generated_Code_Sample_Manifest.",
-            .. CreateManifestLines(useCache: false)
+            .. CreateManifestLines(useCache: false),
         ];
     }
 

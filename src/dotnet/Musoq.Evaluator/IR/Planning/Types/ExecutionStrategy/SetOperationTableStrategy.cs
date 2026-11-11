@@ -4,5 +4,5 @@ internal enum SetOperationTableStrategy
 {
     AppendLoop,
     GeneratedEqualityLoop,
-    HashSet
+    HashSet,
 }

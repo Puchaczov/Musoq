@@ -4,8 +4,10 @@ namespace Musoq.Schema.Interpreters;
 
 public abstract partial class TextInterpreterBase<TOut>
 {
-    private ISet<string> CreateCompletionSet() => this is IParserCompletionLayoutSource source
-        ? new CompactCompletionSet(source.CompletionLayout) : new HashSet<string>(StringComparer.Ordinal);
+    private ISet<string> CreateCompletionSet() =>
+        this is IParserCompletionLayoutSource source
+            ? new CompactCompletionSet(source.CompletionLayout)
+            : new HashSet<string>(StringComparer.Ordinal);
 
     /// <summary>Records a completed generated field without hashing its name.</summary>
     protected void RecordParsedFieldSlot(int index)

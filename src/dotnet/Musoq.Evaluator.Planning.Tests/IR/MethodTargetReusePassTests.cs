@@ -24,7 +24,8 @@ public sealed class MethodTargetReusePassTests
             [new ExecutionLiteral("value", typeof(object))],
             null,
             typeof(string),
-            null);
+            null
+        );
         var plan = CreatePlan(new ExecutionLet(Var("value", typeof(string)), call));
 
         var result = Optimize(plan);
@@ -45,13 +46,11 @@ public sealed class MethodTargetReusePassTests
         var method = ResolveContainsMethod();
         var call = new ExecutionMethodCall(
             method,
-            [
-                new ExecutionLiteral("abc", typeof(string)),
-                new ExecutionLiteral("b", typeof(string))
-            ],
+            [new ExecutionLiteral("abc", typeof(string)), new ExecutionLiteral("b", typeof(string))],
             null,
             typeof(bool),
-            null);
+            null
+        );
         var plan = CreatePlan(new ExecutionLet(Var("contains", typeof(bool)), call));
 
         var result = Optimize(plan);
@@ -66,26 +65,23 @@ public sealed class MethodTargetReusePassTests
         var method = typeof(LibraryBase).GetMethod(nameof(LibraryBase.GetTypeName), [typeof(object)]);
         Assert.IsNotNull(method, "Expected LibraryBase.GetTypeName(object) to exist.");
         var target = Var("__library", typeof(LibraryBase));
-        var scope = new ExecutionMethodTargetScope(
-            ExecutionMethodTargetScopeKind.AggregateHelper,
-            "aggregate0");
+        var scope = new ExecutionMethodTargetScope(ExecutionMethodTargetScopeKind.AggregateHelper, "aggregate0");
         var call = new ExecutionMethodCall(
             method,
             [new ExecutionLiteral("value", typeof(object))],
             null,
             typeof(string),
             null,
-            target);
+            target
+        );
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionMethodTargetDeclarationCandidate(target, scope),
-                new ExecutionLet(
-                    Var("value", typeof(string)),
-                    new ExecutionMethodTargetReuseCandidate(call, scope))
-            ]));
+                new ExecutionLet(Var("value", typeof(string)), new ExecutionMethodTargetReuseCandidate(call, scope)),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -96,7 +92,10 @@ public sealed class MethodTargetReusePassTests
 
         Assert.AreSame(target, createObject.Target);
         Assert.AreSame(target, rewrittenCall.Target);
-        Assert.Contains("Lowered 1 method target reuse candidate call(s) and 1 declaration candidate(s)", result.Reason);
+        Assert.Contains(
+            "Lowered 1 method target reuse candidate call(s) and 1 declaration candidate(s)",
+            result.Reason
+        );
         Assert.Contains("Bound 0 method call target(s)", result.Reason);
     }
 
@@ -110,10 +109,14 @@ public sealed class MethodTargetReusePassTests
             [new ExecutionLiteral("value", typeof(object))],
             null,
             typeof(string),
-            null);
-        var plan = CreatePlan(new ExecutionIf(
-            new ExecutionLiteral(true, typeof(bool)),
-            new ExecutionBlock([new ExecutionLet(Var("value", typeof(string)), call)])));
+            null
+        );
+        var plan = CreatePlan(
+            new ExecutionIf(
+                new ExecutionLiteral(true, typeof(bool)),
+                new ExecutionBlock([new ExecutionLet(Var("value", typeof(string)), call)])
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -134,30 +137,30 @@ public sealed class MethodTargetReusePassTests
         var method = typeof(LibraryBase).GetMethod(nameof(LibraryBase.GetTypeName), [typeof(object)]);
         Assert.IsNotNull(method, "Expected LibraryBase.GetTypeName(object) to exist.");
         var target = Var("__resultLibraryBase0", typeof(LibraryBase));
-        var scope = new ExecutionMethodTargetScope(
-            ExecutionMethodTargetScopeKind.TablePipeline,
-            "result");
+        var scope = new ExecutionMethodTargetScope(ExecutionMethodTargetScopeKind.TablePipeline, "result");
         var call = new ExecutionMethodCall(
             method,
             [new ExecutionLiteral("value", typeof(object))],
             null,
             typeof(string),
-            null);
+            null
+        );
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionMethodTargetDeclarationCandidate(target, scope),
                 new ExecutionIf(
                     new ExecutionLiteral(true, typeof(bool)),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionLet(
                             Var("value", typeof(string)),
-                            new ExecutionMethodTargetReuseCandidate(call, scope))
-                    ]))
-            ]));
+                            new ExecutionMethodTargetReuseCandidate(call, scope)
+                        ),
+                    ])
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -185,22 +188,21 @@ public sealed class MethodTargetReusePassTests
             [new ExecutionLiteral("value", typeof(object))],
             null,
             typeof(string),
-            null);
+            null
+        );
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateAggregateLibrary(target, target.Type.ResolveClrType()),
                 new ExecutionIf(
                     new ExecutionLiteral(true, typeof(bool)),
-                    new ExecutionBlock(
-                    [
-                        new ExecutionLet(
-                            Var("value", typeof(string)),
-                            new ExecutionMethodTargetReuseCandidate(call))
-                    ]))
-            ]));
+                    new ExecutionBlock([
+                        new ExecutionLet(Var("value", typeof(string)), new ExecutionMethodTargetReuseCandidate(call)),
+                    ])
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -220,7 +222,17 @@ public sealed class MethodTargetReusePassTests
         Assert.IsNotNull(method, "Expected LibraryBase.GetTypeName(object) to exist.");
         var rowShape = new GeneratedRowShape(
             "ResultRow0",
-            [new FieldBinding("Value", "Value", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Value"))]);
+            [
+                new FieldBinding(
+                    "Value",
+                    "Value",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Value")
+                ),
+            ]
+        );
         var groupShape = new AggregateGroupShape("AggregateGroup0", [], [], []);
         var groupPlan = new AggregateGroupPlan(groupShape, [new AggregateGroupLevelPlan(0, groupShape)]);
         var rootGroup = Var("resultRootGroup", typeof(object));
@@ -233,8 +245,7 @@ public sealed class MethodTargetReusePassTests
         var plan = new ExecutionPlan(
             "compiled",
             [rowShape, groupShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(resultTable, rowShape),
                 new ExecutionCreateSingleKeyAggregateContext(
                     rootGroup,
@@ -242,12 +253,12 @@ public sealed class MethodTargetReusePassTests
                     groupsToFinalize,
                     null,
                     typeof(int),
-                    groupPlan),
+                    groupPlan
+                ),
                 new ExecutionForEach(
                     item,
                     new ExecutionVariableRead(rows),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionGetOrAddSingleKeyAggregateGroup(
                             rootGroup,
                             groups,
@@ -257,7 +268,8 @@ public sealed class MethodTargetReusePassTests
                             "Value",
                             typeof(int),
                             null,
-                            groupPlan),
+                            groupPlan
+                        ),
                         new ExecutionLet(
                             Var("value", typeof(string)),
                             new ExecutionMethodCall(
@@ -265,9 +277,13 @@ public sealed class MethodTargetReusePassTests
                                 [new ExecutionLiteral("value", typeof(object))],
                                 null,
                                 typeof(string),
-                                null))
-                    ]))
-            ]));
+                                null
+                            )
+                        ),
+                    ])
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -288,31 +304,38 @@ public sealed class MethodTargetReusePassTests
         var rows = new ExecutionVariableRead(Var("rows", typeof(object)));
         var rowShape = new GeneratedRowShape(
             "ResultRow0",
-            [new FieldBinding("Value", "Value", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Value"))]);
+            [
+                new FieldBinding(
+                    "Value",
+                    "Value",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Value")
+                ),
+            ]
+        );
         var appendRow = new ExecutionAppendRow(
             resultTable,
             rowShape,
-            [new ExecutionRowValue(
-                "Value",
-                new ExecutionMethodCall(
-                    method,
-                    [new ExecutionLiteral("value", typeof(object))],
-                    null,
-                    typeof(string),
-                    null))],
-            ExecutionAppendMode.Direct);
-        var sequentialLoop = new ExecutionForEach(
-            source,
-            rows,
-            new ExecutionBlock([appendRow]));
-        var plan = CreatePlan(new ExecutionParallelFilterProjectLoop(
-            source,
-            rows,
-            null,
-            appendRow,
-            sequentialLoop.Body,
-            1000,
-            2));
+            [
+                new ExecutionRowValue(
+                    "Value",
+                    new ExecutionMethodCall(
+                        method,
+                        [new ExecutionLiteral("value", typeof(object))],
+                        null,
+                        typeof(string),
+                        null
+                    )
+                ),
+            ],
+            ExecutionAppendMode.Direct
+        );
+        var sequentialLoop = new ExecutionForEach(source, rows, new ExecutionBlock([appendRow]));
+        var plan = CreatePlan(
+            new ExecutionParallelFilterProjectLoop(source, rows, null, appendRow, sequentialLoop.Body, 1000, 2)
+        );
 
         var result = Optimize(plan);
 
@@ -326,9 +349,7 @@ public sealed class MethodTargetReusePassTests
         Assert.AreEqual(typeof(LibraryBase), createObject.Target.Type.ResolveClrType());
         Assert.AreSame(createObject.Target, projectionCall.Target);
         Assert.AreSame(createObject.Target, projectorCall.Target);
-        Assert.IsFalse(ExecutionIrAnalysis
-            .CollectNodes<ExecutionCreateObject>(parallelLoop.ProjectionBody)
-            .Any());
+        Assert.IsFalse(ExecutionIrAnalysis.CollectNodes<ExecutionCreateObject>(parallelLoop.ProjectionBody).Any());
     }
 
     [TestMethod]
@@ -342,21 +363,25 @@ public sealed class MethodTargetReusePassTests
             [new ExecutionLiteral("value", typeof(object))],
             null,
             typeof(string),
-            null);
-        var plan = CreatePlan(new ExecutionComputePluginWindow(
-            Var("buffer", typeof(object[])),
-            Var("item", typeof(object)),
-            ExecutionRowAccessMode.Direct,
-            null,
-            [],
-            new ExecutionMethodTargetReuseCandidate(call),
-            [],
-            [],
-            null,
-            ExecutionClrBindingFactory.FromClr(method),
-            "test",
-            Var("results", typeof(object[])),
-            MethodTargets: [target]));
+            null
+        );
+        var plan = CreatePlan(
+            new ExecutionComputePluginWindow(
+                Var("buffer", typeof(object[])),
+                Var("item", typeof(object)),
+                ExecutionRowAccessMode.Direct,
+                null,
+                [],
+                new ExecutionMethodTargetReuseCandidate(call),
+                [],
+                [],
+                null,
+                ExecutionClrBindingFactory.FromClr(method),
+                "test",
+                Var("results", typeof(object[])),
+                MethodTargets: [target]
+            )
+        );
 
         var result = Optimize(plan);
 
@@ -374,12 +399,7 @@ public sealed class MethodTargetReusePassTests
     {
         var method = typeof(DecimalLibrary).GetMethod(nameof(DecimalLibrary.Normalize), [typeof(int)]);
         Assert.IsNotNull(method, "Expected DecimalLibrary.Normalize(int) to exist.");
-        var call = new ExecutionMethodCall(
-            method,
-            [new ExecutionLiteral(7, typeof(int))],
-            null,
-            typeof(decimal),
-            null);
+        var call = new ExecutionMethodCall(method, [new ExecutionLiteral(7, typeof(int))], null, typeof(decimal), null);
         var plan = CreatePlan(new ExecutionLet(Var("value", typeof(decimal)), call));
 
         var result = Optimize(plan);
@@ -390,9 +410,7 @@ public sealed class MethodTargetReusePassTests
 
         Assert.IsNotNull(rewrittenCall.Target);
         Assert.IsNotNull(rewrittenCall.Cache);
-        Assert.AreEqual(
-            typeof(ConcurrentDictionary<int, decimal>),
-            rewrittenCall.Cache.Type.ResolveClrType());
+        Assert.AreEqual(typeof(ConcurrentDictionary<int, decimal>), rewrittenCall.Cache.Type.ResolveClrType());
     }
 
     [TestMethod]
@@ -400,16 +418,10 @@ public sealed class MethodTargetReusePassTests
     {
         var method = typeof(DecimalLibrary).GetMethod(nameof(DecimalLibrary.Normalize), [typeof(int)]);
         Assert.IsNotNull(method, "Expected DecimalLibrary.Normalize(int) to exist.");
-        var call = new ExecutionMethodCall(
-            method,
-            [new ExecutionLiteral(7, typeof(int))],
-            null,
-            typeof(decimal),
-            null);
-        var plan = CreatePlan(new ExecutionLet(
-            Var("value", typeof(decimal)),
-            call,
-            ExecutionLetCacheMode.SuppressMethodCache));
+        var call = new ExecutionMethodCall(method, [new ExecutionLiteral(7, typeof(int))], null, typeof(decimal), null);
+        var plan = CreatePlan(
+            new ExecutionLet(Var("value", typeof(decimal)), call, ExecutionLetCacheMode.SuppressMethodCache)
+        );
 
         var result = Optimize(plan);
 
@@ -435,11 +447,11 @@ public sealed class MethodTargetReusePassTests
             typeof(decimal),
             null,
             target,
-            cache);
-        var plan = CreatePlan(new ExecutionLet(
-            Var("value", typeof(decimal)),
-            call,
-            ExecutionLetCacheMode.SuppressMethodCache));
+            cache
+        );
+        var plan = CreatePlan(
+            new ExecutionLet(Var("value", typeof(decimal)), call, ExecutionLetCacheMode.SuppressMethodCache)
+        );
 
         var result = Optimize(plan);
 
@@ -456,12 +468,7 @@ public sealed class MethodTargetReusePassTests
     {
         var method = typeof(IntLibrary).GetMethod(nameof(IntLibrary.Normalize), [typeof(int)]);
         Assert.IsNotNull(method, "Expected IntLibrary.Normalize(int) to exist.");
-        var call = new ExecutionMethodCall(
-            method,
-            [new ExecutionLiteral(7, typeof(int))],
-            null,
-            typeof(int),
-            null);
+        var call = new ExecutionMethodCall(method, [new ExecutionLiteral(7, typeof(int))], null, typeof(int), null);
         var plan = CreatePlan(new ExecutionLet(Var("value", typeof(int)), call));
 
         var result = Optimize(plan);
@@ -472,9 +479,7 @@ public sealed class MethodTargetReusePassTests
 
         Assert.IsNotNull(rewrittenCall.Target);
         Assert.IsNotNull(rewrittenCall.Cache);
-        Assert.AreEqual(
-            typeof(ConcurrentDictionary<int, int>),
-            rewrittenCall.Cache.Type.ResolveClrType());
+        Assert.AreEqual(typeof(ConcurrentDictionary<int, int>), rewrittenCall.Cache.Type.ResolveClrType());
     }
 
     [TestMethod]
@@ -482,15 +487,8 @@ public sealed class MethodTargetReusePassTests
     {
         var method = typeof(IntLibrary).GetMethod(nameof(IntLibrary.Normalize), [typeof(int)]);
         Assert.IsNotNull(method, "Expected IntLibrary.Normalize(int) to exist.");
-        var call = new ExecutionMethodCall(
-            method,
-            [new ExecutionLiteral(7, typeof(int))],
-            null,
-            typeof(int),
-            null);
-        var plan = CreatePlan(new ExecutionIf(
-            call,
-            new ExecutionBlock([new ExecutionContinue()])));
+        var call = new ExecutionMethodCall(method, [new ExecutionLiteral(7, typeof(int))], null, typeof(int), null);
+        var plan = CreatePlan(new ExecutionIf(call, new ExecutionBlock([new ExecutionContinue()])));
 
         var result = Optimize(plan);
 
@@ -514,17 +512,16 @@ public sealed class MethodTargetReusePassTests
             null,
             typeof(decimal),
             null,
-            target);
+            target
+        );
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionMethodTargetDeclarationCandidate(target),
-                new ExecutionLet(
-                    Var("value", typeof(int)),
-                    new ExecutionMethodTargetReuseCandidate(call))
-            ]));
+                new ExecutionLet(Var("value", typeof(int)), new ExecutionMethodTargetReuseCandidate(call)),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -534,9 +531,7 @@ public sealed class MethodTargetReusePassTests
 
         Assert.AreSame(target, rewrittenCall.Target);
         Assert.IsNotNull(rewrittenCall.Cache);
-        Assert.AreEqual(
-            typeof(ConcurrentDictionary<int, decimal>),
-            rewrittenCall.Cache.Type.ResolveClrType());
+        Assert.AreEqual(typeof(ConcurrentDictionary<int, decimal>), rewrittenCall.Cache.Type.ResolveClrType());
         Assert.Contains("assigned 1 method cache(s)", result.Reason);
     }
 
@@ -550,7 +545,8 @@ public sealed class MethodTargetReusePassTests
             [new ExecutionLiteral(7, typeof(int?))],
             null,
             typeof(decimal),
-            null);
+            null
+        );
         var plan = CreatePlan(new ExecutionLet(Var("value", typeof(decimal)), call));
 
         var result = Optimize(plan);
@@ -572,53 +568,72 @@ public sealed class MethodTargetReusePassTests
         var result = Var("result", typeof(object));
         var rowShape = new GeneratedRowShape(
             "ResultRow0",
-            [new FieldBinding("Value", "Value", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Value"))]);
+            [
+                new FieldBinding(
+                    "Value",
+                    "Value",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Value")
+                ),
+            ]
+        );
         var hash = Var("hash", typeof(object));
         var matches = Var("matches", typeof(object));
         var item = Var("item", typeof(object));
         var plan = new ExecutionPlan(
             "compiled",
             [rowShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(result, rowShape),
                 new ExecutionForEach(
                     item,
                     Call(stringMethod, "source"),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionIf(
                             new ExecutionCaseWhen(
-                                [new ExecutionCaseWhenBranch(
-                                    Call(containsMethod, "abc", "a"),
-                                    new ExecutionLiteral(true, typeof(bool)))],
+                                [
+                                    new ExecutionCaseWhenBranch(
+                                        Call(containsMethod, "abc", "a"),
+                                        new ExecutionLiteral(true, typeof(bool))
+                                    ),
+                                ],
                                 new ExecutionLiteral(false, typeof(bool)),
-                                typeof(bool)),
-                            new ExecutionBlock(
-                            [
+                                typeof(bool)
+                            ),
+                            new ExecutionBlock([
                                 new ExecutionHashProbe(
                                     hash,
                                     matches,
                                     Call(stringMethod, "key"),
                                     typeof(string),
                                     typeof(object),
-                                    new ExecutionBlock(
-                                    [
+                                    new ExecutionBlock([
                                         new ExecutionAppendRow(
                                             result,
                                             rowShape,
-                                            [new ExecutionRowValue(
-                                                "Value",
-                                                new ExecutionCoalesce(
-                                                    [
-                                                        Call(stringMethod, "value"),
-                                                        new ExecutionLiteral("fallback", typeof(string))
-                                                    ],
-                                                    typeof(string)))])
-                                    ]))
-                            ]))
-                    ]))
-            ]));
+                                            [
+                                                new ExecutionRowValue(
+                                                    "Value",
+                                                    new ExecutionCoalesce(
+                                                        [
+                                                            Call(stringMethod, "value"),
+                                                            new ExecutionLiteral("fallback", typeof(string)),
+                                                        ],
+                                                        typeof(string)
+                                                    )
+                                                ),
+                                            ]
+                                        ),
+                                    ])
+                                ),
+                            ])
+                        ),
+                    ])
+                ),
+            ])
+        );
 
         var optimized = Optimize(plan).Plan;
 
@@ -635,7 +650,8 @@ public sealed class MethodTargetReusePassTests
     {
         return new MethodTargetReusePass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
     }
 
     private static ExecutionPlan CreatePlan(ExecutionNode node)
@@ -655,13 +671,14 @@ public sealed class MethodTargetReusePassTests
             values.Select(value => new ExecutionLiteral(value, typeof(string))).ToArray(),
             null,
             method.ReturnType,
-            null);
+            null
+        );
     }
 
     private static bool RequiresReusableTarget(ExecutionMethodCall call)
     {
-        return !ExecutionMethodTargetReuse.CanRenderWithoutTarget(call) &&
-               ExecutionMethodTargetReuse.TryGetReusableTargetType(call.Method.ResolveClrMethod(), out _);
+        return !ExecutionMethodTargetReuse.CanRenderWithoutTarget(call)
+            && ExecutionMethodTargetReuse.TryGetReusableTargetType(call.Method.ResolveClrMethod(), out _);
     }
 
     private static MethodInfo ResolveContainsMethod()
@@ -669,10 +686,11 @@ public sealed class MethodTargetReusePassTests
         return typeof(LibraryBase)
             .GetMethods()
             .Single(method =>
-                method.Name == nameof(LibraryBase.Contains) &&
-                method.GetParameters() is { Length: 2 } parameters &&
-                parameters[0].ParameterType == typeof(string) &&
-                parameters[1].ParameterType == typeof(string));
+                method.Name == nameof(LibraryBase.Contains)
+                && method.GetParameters() is { Length: 2 } parameters
+                && parameters[0].ParameterType == typeof(string)
+                && parameters[1].ParameterType == typeof(string)
+            );
     }
 
     public sealed class DecimalLibrary : LibraryBase

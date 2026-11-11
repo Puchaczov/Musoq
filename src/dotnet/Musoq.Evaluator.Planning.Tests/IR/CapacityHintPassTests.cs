@@ -25,13 +25,15 @@ public sealed class CapacityHintPassTests
     public void Optimize_WhenRowsCandidateOnTableUsesStoredRows_ShouldLowerToStoredTableCountHint()
     {
         var table = Var("result");
-        var plan = CreatePlan(new ExecutionBlock(
-        [
-            new ExecutionCreateTable(
-                table,
-                CreateRowShape(),
-                new ExecutionRowsCapacityHintCandidate(table, new ExecutionStoredTableRows(3)))
-        ]));
+        var plan = CreatePlan(
+            new ExecutionBlock([
+                new ExecutionCreateTable(
+                    table,
+                    CreateRowShape(),
+                    new ExecutionRowsCapacityHintCandidate(table, new ExecutionStoredTableRows(3))
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -48,14 +50,16 @@ public sealed class CapacityHintPassTests
     public void Optimize_WhenRowsCandidateUsesStoredRows_ShouldLowerToStoredTableCountHint()
     {
         var hash = Var("ordersHash");
-        var plan = CreatePlan(new ExecutionBlock(
-        [
-            new ExecutionCreateHash(
-                hash,
-                typeof(int),
-                typeof(object),
-                new ExecutionRowsCapacityHintCandidate(hash, new ExecutionStoredTableRows(4)))
-        ]));
+        var plan = CreatePlan(
+            new ExecutionBlock([
+                new ExecutionCreateHash(
+                    hash,
+                    typeof(int),
+                    typeof(object),
+                    new ExecutionRowsCapacityHintCandidate(hash, new ExecutionStoredTableRows(4))
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -71,14 +75,19 @@ public sealed class CapacityHintPassTests
     {
         var target = Var("ordersHash");
         var rows = Var("ordersRows");
-        var plan = CreatePlan(new ExecutionBlock(
-        [
-            new ExecutionCreateHash(
-                target,
-                typeof(int),
-                typeof(object),
-                new ExecutionRowsCapacityHintCandidate(target, new ExecutionRowStream(rows, ExecutionRowStreamKind.Chunks)))
-        ]));
+        var plan = CreatePlan(
+            new ExecutionBlock([
+                new ExecutionCreateHash(
+                    target,
+                    typeof(int),
+                    typeof(object),
+                    new ExecutionRowsCapacityHintCandidate(
+                        target,
+                        new ExecutionRowStream(rows, ExecutionRowStreamKind.Chunks)
+                    )
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -91,13 +100,15 @@ public sealed class CapacityHintPassTests
     public void Optimize_WhenConstantCandidateIsPresent_ShouldLowerToConstantHint()
     {
         var table = Var("result");
-        var plan = CreatePlan(new ExecutionBlock(
-        [
-            new ExecutionCreateTable(
-                table,
-                CreateRowShape(),
-                ExecutionCapacityHintCandidates.CreateConstantCandidate(table, 16))
-        ]));
+        var plan = CreatePlan(
+            new ExecutionBlock([
+                new ExecutionCreateTable(
+                    table,
+                    CreateRowShape(),
+                    ExecutionCapacityHintCandidates.CreateConstantCandidate(table, 16)
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -113,12 +124,14 @@ public sealed class CapacityHintPassTests
     {
         var table = Var("result");
         var groups = Var("groupsToFinalize");
-        var plan = CreatePlan(new ExecutionBlock(
-        [
-            new ExecutionEnsureTableCapacity(
-                table,
-                ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(table, groups))
-        ]));
+        var plan = CreatePlan(
+            new ExecutionBlock([
+                new ExecutionEnsureTableCapacity(
+                    table,
+                    ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(table, groups)
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -136,25 +149,29 @@ public sealed class CapacityHintPassTests
         var skipped = Var("skipped");
         var taken = Var("taken");
         var sliced = Var("sliced");
-        var plan = CreatePlan(new ExecutionBlock(
-        [
-            new ExecutionSkipTable(
-                source,
-                skipped,
-                1,
-                ExecutionCapacityHintCandidates.CreateSkipCandidate(skipped, source, 1)),
-            new ExecutionTakeTable(
-                skipped,
-                taken,
-                2,
-                ExecutionCapacityHintCandidates.CreateTakeCandidate(taken, skipped, 2)),
-            new ExecutionSliceTable(
-                taken,
-                sliced,
-                3,
-                4,
-                ExecutionCapacityHintCandidates.CreateSkipTakeCandidate(sliced, taken, 3, 4))
-        ]));
+        var plan = CreatePlan(
+            new ExecutionBlock([
+                new ExecutionSkipTable(
+                    source,
+                    skipped,
+                    1,
+                    ExecutionCapacityHintCandidates.CreateSkipCandidate(skipped, source, 1)
+                ),
+                new ExecutionTakeTable(
+                    skipped,
+                    taken,
+                    2,
+                    ExecutionCapacityHintCandidates.CreateTakeCandidate(taken, skipped, 2)
+                ),
+                new ExecutionSliceTable(
+                    taken,
+                    sliced,
+                    3,
+                    4,
+                    ExecutionCapacityHintCandidates.CreateSkipTakeCandidate(sliced, taken, 3, 4)
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -184,25 +201,13 @@ public sealed class CapacityHintPassTests
         var sorted = Var("sorted");
         var skipped = Var("skipped");
         var taken = Var("taken");
-        var plan = CreatePlan(new ExecutionBlock(
-        [
-            new ExecutionSortTable(
-                source,
-                sorted,
-                [],
-                [],
-                new ExecutionCollectionCountCapacityHint(source)),
-            new ExecutionSkipTable(
-                sorted,
-                skipped,
-                1,
-                new ExecutionSkipCapacityHint(sorted, 1)),
-            new ExecutionTakeTable(
-                skipped,
-                taken,
-                2,
-                new ExecutionTakeCapacityHint(skipped, 2))
-        ]));
+        var plan = CreatePlan(
+            new ExecutionBlock([
+                new ExecutionSortTable(source, sorted, [], [], new ExecutionCollectionCountCapacityHint(source)),
+                new ExecutionSkipTable(sorted, skipped, 1, new ExecutionSkipCapacityHint(sorted, 1)),
+                new ExecutionTakeTable(skipped, taken, 2, new ExecutionTakeCapacityHint(skipped, 2)),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -215,14 +220,16 @@ public sealed class CapacityHintPassTests
     public void Optimize_WhenUnsupportedCandidateIsPresent_ShouldReportSkippedCandidateKind()
     {
         var hash = Var("hash");
-        var plan = CreatePlan(new ExecutionBlock(
-        [
-            new ExecutionCreateHash(
-                hash,
-                typeof(int),
-                typeof(object),
-                new ExecutionRowsCapacityHintCandidate(hash, new ExecutionLiteral(0, typeof(int))))
-        ]));
+        var plan = CreatePlan(
+            new ExecutionBlock([
+                new ExecutionCreateHash(
+                    hash,
+                    typeof(int),
+                    typeof(object),
+                    new ExecutionRowsCapacityHintCandidate(hash, new ExecutionLiteral(0, typeof(int)))
+                ),
+            ])
+        );
 
         var result = Optimize(plan);
 
@@ -247,7 +254,8 @@ public sealed class CapacityHintPassTests
     {
         return new CapacityHintPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
     }
 
     private static ExecutionPlan CreatePlan(ExecutionBlock block)
@@ -262,12 +270,12 @@ public sealed class CapacityHintPassTests
         var append = new ExecutionAppendRow(
             table,
             CreateRowShape(),
-            [new ExecutionRowValue("Value", new ExecutionLiteral(1, typeof(int)))]);
+            [new ExecutionRowValue("Value", new ExecutionLiteral(1, typeof(int)))]
+        );
 
-        return new ExecutionBlock(
-        [
+        return new ExecutionBlock([
             new ExecutionCreateTable(table, CreateRowShape()),
-            new ExecutionForEach(item, rows, new ExecutionBlock([append]))
+            new ExecutionForEach(item, rows, new ExecutionBlock([append])),
         ]);
     }
 
@@ -280,6 +288,16 @@ public sealed class CapacityHintPassTests
     {
         return new GeneratedRowShape(
             "ResultRow0",
-            [new FieldBinding("Value", "Value", 0, typeof(int), FieldNullability.Unknown, new GeneratedFieldAccess("Value"))]);
+            [
+                new FieldBinding(
+                    "Value",
+                    "Value",
+                    0,
+                    typeof(int),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Value")
+                ),
+            ]
+        );
     }
 }

@@ -8,7 +8,8 @@ internal static partial class RequiredColumnBoundaryPlanner
 {
     public static RequiredColumnBoundaryPlanningResult Plan(
         PhysicalNode physicalPlan,
-        IReadOnlyList<BoundaryRowShapePlan> rowShapePlans)
+        IReadOnlyList<BoundaryRowShapePlan> rowShapePlans
+    )
     {
         ArgumentNullException.ThrowIfNull(physicalPlan);
         ArgumentNullException.ThrowIfNull(rowShapePlans);
@@ -20,9 +21,7 @@ internal static partial class RequiredColumnBoundaryPlanner
         joinCollector.Visit(physicalPlan, SchemaColumns(physicalPlan.OutputSchema));
         plans.AddRange(joinCollector.Plans);
 
-        return new RequiredColumnBoundaryPlanningResult(
-            plans,
-            plans.Select(CreateDecision).ToArray());
+        return new RequiredColumnBoundaryPlanningResult(plans, plans.Select(CreateDecision).ToArray());
     }
 
     private static IEnumerable<RequiredColumnBoundaryPlan> CreateBoundaryPlans(BoundaryRowShapePlan plan)
@@ -30,12 +29,12 @@ internal static partial class RequiredColumnBoundaryPlanner
         if (!TryMapBoundaryKind(plan.Kind, out var kind))
             yield break;
 
-        var required = OrderColumns(plan.SemanticColumns.Length > 0
-            ? plan.SemanticColumns
-            : plan.NeededAfterBoundaryColumns);
-        var retained = OrderColumns(plan.RetainedExecutionColumns.Length > 0
-            ? plan.RetainedExecutionColumns
-            : required);
+        var required = OrderColumns(
+            plan.SemanticColumns.Length > 0 ? plan.SemanticColumns : plan.NeededAfterBoundaryColumns
+        );
+        var retained = OrderColumns(
+            plan.RetainedExecutionColumns.Length > 0 ? plan.RetainedExecutionColumns : required
+        );
         var blocked = OrderColumns(plan.BlockedColumns);
 
         yield return new RequiredColumnBoundaryPlan(
@@ -46,7 +45,8 @@ internal static partial class RequiredColumnBoundaryPlanner
             blocked,
             CreateMappings(retained),
             plan.Confidence,
-            $"{plan.Kind} required-column boundary facts were mapped for runtime-v2 projection planning.");
+            $"{plan.Kind} required-column boundary facts were mapped for runtime-v2 projection planning."
+        );
     }
 
     private static bool TryMapBoundaryKind(BoundaryRowShapeKind source, out RequiredColumnBoundaryKind target)
@@ -76,11 +76,10 @@ internal static partial class RequiredColumnBoundaryPlanner
 
     private static PlanningDecision CreateDecision(RequiredColumnBoundaryPlan plan)
     {
-        var outcome = plan.BlockedColumns.Length > 0
-            ? "MappedWithBlockedColumns"
-            : plan.RequiredColumns.Length == 0
-                ? "NoRequiredColumns"
-                : "Mapped";
+        var outcome =
+            plan.BlockedColumns.Length > 0 ? "MappedWithBlockedColumns"
+            : plan.RequiredColumns.Length == 0 ? "NoRequiredColumns"
+            : "Mapped";
 
         return new PlanningDecision(
             PlanningDecisionCategory.RequiredColumns,
@@ -88,6 +87,7 @@ internal static partial class RequiredColumnBoundaryPlanner
             plan.BoundaryId,
             outcome,
             plan.Confidence,
-            plan.Reason);
+            plan.Reason
+        );
     }
 }

@@ -58,10 +58,14 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
 
         sumMethod = RequireResolved(sumMethod);
         countMethod = RequireResolved(countMethod);
-        Assert.IsTrue(Attribute.IsDefined(sumMethod, typeof(AggregateFunctionAttribute)),
-            "Sum should have AggregateFunctionAttribute");
-        Assert.IsTrue(Attribute.IsDefined(countMethod, typeof(AggregateFunctionAttribute)),
-            "Count should have AggregateFunctionAttribute");
+        Assert.IsTrue(
+            Attribute.IsDefined(sumMethod, typeof(AggregateFunctionAttribute)),
+            "Sum should have AggregateFunctionAttribute"
+        );
+        Assert.IsTrue(
+            Attribute.IsDefined(countMethod, typeof(AggregateFunctionAttribute)),
+            "Count should have AggregateFunctionAttribute"
+        );
     }
 
     [TestMethod]
@@ -74,9 +78,10 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
 
         method = RequireResolved(method);
         var parameters = method.GetParameters();
-        Assert.IsTrue(parameters.Length > 0 &&
-                      Attribute.IsDefined(parameters[0], typeof(InjectQueryStatsAttribute)),
-            "Method should have InjectQueryStatsAttribute parameter");
+        Assert.IsTrue(
+            parameters.Length > 0 && Attribute.IsDefined(parameters[0], typeof(InjectQueryStatsAttribute)),
+            "Method should have InjectQueryStatsAttribute parameter"
+        );
     }
 
     [TestMethod]
@@ -94,10 +99,14 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
 
         regularMethod = RequireResolved(regularMethod);
         aggMethod = RequireResolved(aggMethod);
-        Assert.IsFalse(Attribute.IsDefined(regularMethod, typeof(AggregateFunctionAttribute)),
-            "Regular method should not have AggregateFunctionAttribute");
-        Assert.IsTrue(Attribute.IsDefined(aggMethod, typeof(AggregateFunctionAttribute)),
-            "Aggregation method should have AggregateFunctionAttribute");
+        Assert.IsFalse(
+            Attribute.IsDefined(regularMethod, typeof(AggregateFunctionAttribute)),
+            "Regular method should not have AggregateFunctionAttribute"
+        );
+        Assert.IsTrue(
+            Attribute.IsDefined(aggMethod, typeof(AggregateFunctionAttribute)),
+            "Aggregation method should have AggregateFunctionAttribute"
+        );
     }
 
     [TestMethod]

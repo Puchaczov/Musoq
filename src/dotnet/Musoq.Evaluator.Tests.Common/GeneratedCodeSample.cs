@@ -6,7 +6,7 @@ namespace Musoq.Evaluator.Tests;
 public enum GeneratedCodeSampleFormat
 {
     GeneratedCodeOnly,
-    QueryHeaderAndGeneratedCode
+    QueryHeaderAndGeneratedCode,
 }
 
 public sealed record GeneratedCodeSample

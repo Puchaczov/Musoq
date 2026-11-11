@@ -52,7 +52,8 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
             throw VisitorException.CreateForStackUnderflow(VisitorName, operation, count, nodes.Count);
 
         var result = new Node[count];
-        for (var i = count - 1; i >= 0; i--) result[i] = nodes.Pop();
+        for (var i = count - 1; i >= 0; i--)
+            result[i] = nodes.Pop();
         return result;
     }
 
@@ -81,7 +82,8 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     /// <param name="operation">The operation being performed (for error context).</param>
     /// <returns>The node cast to the expected type.</returns>
     /// <exception cref="VisitorException">Thrown when the node is null or not of the expected type.</exception>
-    protected T SafeCast<T>(Node node, string operation) where T : Node
+    protected T SafeCast<T>(Node node, string operation)
+        where T : Node
     {
         if (node == null)
             throw VisitorException.CreateForNullNode(VisitorName, operation, typeof(T).Name);
@@ -104,8 +106,11 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     /// <param name="parameterValue">The value to validate.</param>
     /// <param name="operation">The operation context (usually "constructor").</param>
     /// <exception cref="VisitorException">Thrown when the parameter is null.</exception>
-    protected void ValidateConstructorParameter(string parameterName, object parameterValue,
-        string operation = "constructor")
+    protected void ValidateConstructorParameter(
+        string parameterName,
+        object parameterValue,
+        string operation = "constructor"
+    )
     {
         if (parameterValue == null)
             throw VisitorException.CreateForProcessingFailure(

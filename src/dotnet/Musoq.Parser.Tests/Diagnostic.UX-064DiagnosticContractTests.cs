@@ -24,7 +24,8 @@ public sealed class DiagnosticUx064DiagnosticContractTests
             sourceText.GetLocation(span.End),
             explanation: "The FROM clause is not valid at this position.",
             suggestedFixes: [DiagnosticAction.Suggestion("Check the statement order.")],
-            docsReference: "Core Spec - Statement Structure");
+            docsReference: "Core Spec - Statement Structure"
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
 
@@ -51,7 +52,8 @@ public sealed class DiagnosticUx064DiagnosticContractTests
             DiagnosticSeverity.Error,
             "Missing expression",
             locations.Start,
-            locations.End);
+            locations.End
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
 
@@ -68,7 +70,8 @@ public sealed class DiagnosticUx064DiagnosticContractTests
     {
         var diagnostic = Diagnostic.ErrorUnknownLocation(
             DiagnosticCode.MQ9001_InternalCompilerError,
-            "The compiler failed.");
+            "The compiler failed."
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, "select 1");
 
@@ -89,7 +92,8 @@ public sealed class DiagnosticUx064DiagnosticContractTests
             DiagnosticSeverity.Error,
             "Unexpected token",
             new SourceLocation(start, 2, 1),
-            SourceLocation.None);
+            SourceLocation.None
+        );
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
 
@@ -113,11 +117,8 @@ public sealed class DiagnosticUx064DiagnosticContractTests
             suggestedFixes: [action],
             explanation: "The column was not found.",
             docsReference: "Core Spec - Column References",
-            arguments: new Dictionary<string, string>
-            {
-                ["zeta"] = "last",
-                ["alpha"] = "first"
-            });
+            arguments: new Dictionary<string, string> { ["zeta"] = "last", ["alpha"] = "first" }
+        );
         var second = new Diagnostic(
             DiagnosticCode.MQ3001_UnknownColumn,
             DiagnosticSeverity.Error,
@@ -127,18 +128,16 @@ public sealed class DiagnosticUx064DiagnosticContractTests
             suggestedFixes: [action],
             explanation: "The column was not found.",
             docsReference: "Core Spec - Column References",
-            arguments: new Dictionary<string, string>
-            {
-                ["alpha"] = "first",
-                ["zeta"] = "last"
-            });
+            arguments: new Dictionary<string, string> { ["alpha"] = "first", ["zeta"] = "last" }
+        );
 
         var firstEnvelope = MusoqErrorEnvelope.FromDiagnostic(first);
         var secondEnvelope = MusoqErrorEnvelope.FromDiagnostic(second);
 
         Assert.AreEqual(
             MusoqErrorEnvelopeFormatter.FormatText(firstEnvelope),
-            MusoqErrorEnvelopeFormatter.FormatText(secondEnvelope));
+            MusoqErrorEnvelopeFormatter.FormatText(secondEnvelope)
+        );
         var firstJson = MusoqErrorEnvelopeFormatter.FormatJson(firstEnvelope);
         var secondJson = MusoqErrorEnvelopeFormatter.FormatJson(secondEnvelope);
         Assert.AreEqual(firstJson, secondJson);
@@ -154,7 +153,8 @@ public sealed class DiagnosticUx064DiagnosticContractTests
     {
         var diagnostic = Diagnostic.ErrorUnknownLocation(
             DiagnosticCode.MQ9002_InternalExecutionError,
-            "failure\0\b\f\u0001");
+            "failure\0\b\f\u0001"
+        );
         var formatter = new DiagnosticFormatter();
 
         var json = formatter.FormatAsJson(diagnostic);

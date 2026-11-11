@@ -12,10 +12,14 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenFromFirstWithoutSelect_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("FROM #test.people() WHERE Age > 25"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("FROM #test.people() WHERE Age > 25"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Expected token is Select");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            DiagnosticPhase.Parse,
+            "Expected token is Select"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -23,7 +27,8 @@ public partial class MalformedQueryErrorTests
     public void WhenFromFirstWithWhereAfterSelect_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("FROM #test.people() SELECT Name WHERE Age > 25"));
+            CompileQuery("FROM #test.people() SELECT Name WHERE Age > 25")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "is not expected here");
         AssertHasGuidance(ex);
@@ -42,9 +47,15 @@ public partial class MalformedQueryErrorTests
     public void WhenFromFirstWithGroupByBeforeWhere_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("FROM #test.people() GROUP BY City WHERE Age > 25 SELECT City, Count(1)"));
+            CompileQuery("FROM #test.people() GROUP BY City WHERE Age > 25 SELECT City, Count(1)")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Expected token is Select");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            DiagnosticPhase.Parse,
+            "Expected token is Select"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -55,8 +66,7 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenDescWithoutIdentifier_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("DESC"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("DESC"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Expected schema name");
         AssertHasGuidance(ex);
@@ -65,8 +75,7 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenDescFunctionsOnNonExistentSchema_ShouldThrowError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("DESC FUNCTIONS #nonexistent"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("DESC FUNCTIONS #nonexistent"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3010_UnknownSchema, DiagnosticPhase.Bind, "Unknown schema");
         AssertHasGuidance(ex);
@@ -98,10 +107,15 @@ public partial class MalformedQueryErrorTests
     public void WhenOrderByPositionNumber_ShouldReportDedicatedDiagnostic()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name, Age FROM #test.people() ORDER BY 1"));
+            CompileQuery("SELECT Name, Age FROM #test.people() ORDER BY 1")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3093_OrderByOrdinalUnsupported, DiagnosticPhase.Bind,
-            "ORDER BY column position is not supported");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3093_OrderByOrdinalUnsupported,
+            DiagnosticPhase.Bind,
+            "ORDER BY column position is not supported"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -109,10 +123,15 @@ public partial class MalformedQueryErrorTests
     public void WhenOrderByNonExistentColumnAfterGroupBy_ShouldThrowError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery(
-                "SELECT City, Count(1) FROM #test.people() GROUP BY City ORDER BY NonExistent"));
+            CompileQuery("SELECT City, Count(1) FROM #test.people() GROUP BY City ORDER BY NonExistent")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "Unknown column 'NonExistent'");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3001_UnknownColumn,
+            DiagnosticPhase.Bind,
+            "Unknown column 'NonExistent'"
+        );
     }
 
     #endregion
@@ -123,7 +142,8 @@ public partial class MalformedQueryErrorTests
     public void WhenHavingWithoutGroupBy_ShouldThrowError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() HAVING Count(1) > 1"));
+            CompileQuery("SELECT Name FROM #test.people() HAVING Count(1) > 1")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Having is not expected");
         AssertHasGuidance(ex);
@@ -133,10 +153,15 @@ public partial class MalformedQueryErrorTests
     public void WhenHavingWithNonAggregateExpression_ShouldThrowError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT City, Count(1) FROM #test.people() GROUP BY City HAVING City"));
+            CompileQuery("SELECT City, Count(1) FROM #test.people() GROUP BY City HAVING City")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind,
-            "HAVING clause requires a boolean expression");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3005_TypeMismatch,
+            DiagnosticPhase.Bind,
+            "HAVING clause requires a boolean expression"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -147,8 +172,7 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenDistinctWithGroupBy_ShouldCompileSuccessfully()
     {
-        var vm = CompileQuery(
-            "SELECT DISTINCT City, Count(1) FROM #test.people() GROUP BY City");
+        var vm = CompileQuery("SELECT DISTINCT City, Count(1) FROM #test.people() GROUP BY City");
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(3, table.Count);

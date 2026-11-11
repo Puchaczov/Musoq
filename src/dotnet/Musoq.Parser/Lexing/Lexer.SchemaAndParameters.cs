@@ -9,7 +9,6 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public sealed partial class Lexer
 {
-
     private Token ScanParameterReference()
     {
         var start = Position;
@@ -35,9 +34,9 @@ public sealed partial class Lexer
         while (Position < Input.Length && FastCharacterClassifier.IsIdentifierContinue(input, Position))
             Position += FastCharacterClassifier.GetIdentifierCodePointLength(input, Position);
 
-        return AssignToken(new ParameterReferenceToken(
-            Input[nameStart..Position],
-            new TextSpan(start, Position - start)));
+        return AssignToken(
+            new ParameterReferenceToken(Input[nameStart..Position], new TextSpan(start, Position - start))
+        );
     }
 
     private Token SplitNumericAccessToken(Token numericAccessToken)

@@ -9,7 +9,8 @@ internal static partial class ScriptVariableInitializerEvaluator
     {
         return ScriptConstantEvaluationResult.Failed(
             DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
-            $"Script variable initializer contains a non-constant or incompatible {operation}.");
+            $"Script variable initializer contains a non-constant or incompatible {operation}."
+        );
     }
 
     private static string CreateUnsupportedExpressionMessage(Node expression, string ownerName)

@@ -89,26 +89,32 @@ public class MethodsMetadataParameterHandlingTests : MethodsMetadataTestBase
     public void TryGetMethod_MixedNullables_AllCombinations()
     {
         Assert.IsTrue(
-            _nullable.TryGetMethod("MixedNullables",
+            _nullable.TryGetMethod(
+                "MixedNullables",
                 [typeof(NullNode.NullType), typeof(string), typeof(DateTime)],
                 null,
-                out _),
+                out _
+            ),
             "Should accept null for nullable int"
         );
 
         Assert.IsTrue(
-            _nullable.TryGetMethod("MixedNullables",
+            _nullable.TryGetMethod(
+                "MixedNullables",
                 [typeof(int), typeof(string), typeof(NullNode.NullType)],
                 null,
-                out _),
+                out _
+            ),
             "Should accept null for nullable DateTime"
         );
 
         Assert.IsTrue(
-            _nullable.TryGetMethod("MixedNullables",
+            _nullable.TryGetMethod(
+                "MixedNullables",
                 [typeof(int), typeof(NullNode.NullType), typeof(DateTime)],
                 null,
-                out _),
+                out _
+            ),
             "Should accept null for string"
         );
     }
@@ -141,8 +147,7 @@ public class MethodsMetadataParameterHandlingTests : MethodsMetadataTestBase
         );
 
         Assert.IsTrue(
-            _nullable.TryGetMethod("OptionalNullableWithDefault", [typeof(NullNode.NullType)], null,
-                out _),
+            _nullable.TryGetMethod("OptionalNullableWithDefault", [typeof(NullNode.NullType)], null, out _),
             "Should accept explicit null"
         );
 
@@ -183,10 +188,7 @@ public class MethodsMetadataParameterHandlingTests : MethodsMetadataTestBase
             "Should resolve with parameter"
         );
 
-        Assert.IsTrue(
-            _optional.TryGetMethod("SingleOptional", [], null, out _),
-            "Should resolve without parameter"
-        );
+        Assert.IsTrue(_optional.TryGetMethod("SingleOptional", [], null, out _), "Should resolve without parameter");
     }
 
     [TestMethod]
@@ -202,10 +204,7 @@ public class MethodsMetadataParameterHandlingTests : MethodsMetadataTestBase
             "Should resolve with first parameter only"
         );
 
-        Assert.IsTrue(
-            _optional.TryGetMethod("TwoOptional", [], null, out _),
-            "Should resolve with no parameters"
-        );
+        Assert.IsTrue(_optional.TryGetMethod("TwoOptional", [], null, out _), "Should resolve with no parameters");
     }
 
     [TestMethod]
@@ -253,10 +252,7 @@ public class MethodsMetadataParameterHandlingTests : MethodsMetadataTestBase
     [TestMethod]
     public void TryGetMethod_AllOptionalParameters_AllCombinations()
     {
-        Assert.IsTrue(
-            _optional.TryGetMethod("AllOptional", [], null, out _),
-            "Should resolve with no parameters"
-        );
+        Assert.IsTrue(_optional.TryGetMethod("AllOptional", [], null, out _), "Should resolve with no parameters");
 
         Assert.IsTrue(
             _optional.TryGetMethod("AllOptional", [typeof(int)], null, out _),
@@ -288,8 +284,7 @@ public class MethodsMetadataParameterHandlingTests : MethodsMetadataTestBase
         );
 
         Assert.IsTrue(
-            _optional.TryGetMethod("MixedTypes", [typeof(int), typeof(string), typeof(int?)], null,
-                out _),
+            _optional.TryGetMethod("MixedTypes", [typeof(int), typeof(string), typeof(int?)], null, out _),
             "Should resolve with all parameters"
         );
 
@@ -330,89 +325,50 @@ public class MethodsMetadataParameterHandlingTests : MethodsMetadataTestBase
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class NullableMethods
     {
-        public void NullableInt(int? x)
-        {
-        }
+        public void NullableInt(int? x) { }
 
-        public void NullableDateTime(DateTime? dt)
-        {
-        }
+        public void NullableDateTime(DateTime? dt) { }
 
-        public void NullableDecimal(decimal? d)
-        {
-        }
+        public void NullableDecimal(decimal? d) { }
 
-        public void OverloadedInt(int x)
-        {
-        }
+        public void OverloadedInt(int x) { }
 
-        public void OverloadedInt(int? x)
-        {
-        }
+        public void OverloadedInt(int? x) { }
 
-        public void StringMethod(string s)
-        {
-        }
+        public void StringMethod(string s) { }
 
-        public void ObjectMethod(object o)
-        {
-        }
+        public void ObjectMethod(object o) { }
 
-        public void MixedNullables(int? x, string y, DateTime? dt)
-        {
-        }
+        public void MixedNullables(int? x, string y, DateTime? dt) { }
 
-        public void OptionalNullable(int? x = null)
-        {
-        }
+        public void OptionalNullable(int? x = null) { }
 
-        public void OptionalNullableWithDefault(int? x = 42)
-        {
-        }
+        public void OptionalNullableWithDefault(int? x = 42) { }
 
-        public void GenericNullable<T>(T? x) where T : struct
-        {
-        }
+        public void GenericNullable<T>(T? x)
+            where T : struct { }
     }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class OptionalMethods
     {
-        public void SingleOptional(int x = 42)
-        {
-        }
+        public void SingleOptional(int x = 42) { }
 
-        public void TwoOptional(int x = 1, int y = 2)
-        {
-        }
+        public void TwoOptional(int x = 1, int y = 2) { }
 
-        public void MixedOptional(int required, string optional = "default")
-        {
-        }
+        public void MixedOptional(int required, string optional = "default") { }
 
-        public void Overloaded(int x)
-        {
-        }
+        public void Overloaded(int x) { }
 
-        public void Overloaded(int x, int y = 10)
-        {
-        }
+        public void Overloaded(int x, int y = 10) { }
 
-        public void Overloaded(int x, string y = "default")
-        {
-        }
+        public void Overloaded(int x, string y = "default") { }
 
-        public void AllOptional(int a = 1, int b = 2, int c = 3)
-        {
-        }
+        public void AllOptional(int a = 1, int b = 2, int c = 3) { }
 
-        public void MixedTypes(int required, string optional1 = "test", int? optional2 = null)
-        {
-        }
+        public void MixedTypes(int required, string optional1 = "test", int? optional2 = null) { }
 
-        public void NullableParameters(int? x = null, string? y = null)
-        {
-        }
+        public void NullableParameters(int? x = null, string? y = null) { }
     }
 
     #endregion

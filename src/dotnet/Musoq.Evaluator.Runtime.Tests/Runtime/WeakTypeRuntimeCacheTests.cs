@@ -31,14 +31,19 @@ public sealed class WeakTypeRuntimeCacheTests
         var factoryCalls = 0;
 
         using var contention = new SynchronousContention();
-        var results = contention.Run(() => cache.GetOrAdd(
-            typeof(WeakTypeRuntimeCacheTests),
-            _ =>
-            {
-                Interlocked.Increment(ref factoryCalls);
-                contention.HoldOwner();
-                return "value";
-            }), 32);
+        var results = contention.Run(
+            () =>
+                cache.GetOrAdd(
+                    typeof(WeakTypeRuntimeCacheTests),
+                    _ =>
+                    {
+                        Interlocked.Increment(ref factoryCalls);
+                        contention.HoldOwner();
+                        return "value";
+                    }
+                ),
+            32
+        );
 
         CollectionAssert.AreEqual(Enumerable.Repeat("value", 32).ToArray(), results);
         Assert.AreEqual(1, factoryCalls);
@@ -51,11 +56,15 @@ public sealed class WeakTypeRuntimeCacheTests
         var cache = new WeakTypeRuntimeCache<string>(8);
         cache.GetOrAdd(typeof(WeakTypeRuntimeCacheTests), static _ => "value");
 
-        Parallel.For(0, 256, _ =>
-        {
-            Assert.IsTrue(cache.TryGetValue(typeof(WeakTypeRuntimeCacheTests), out var value));
-            Assert.AreEqual("value", value);
-        });
+        Parallel.For(
+            0,
+            256,
+            _ =>
+            {
+                Assert.IsTrue(cache.TryGetValue(typeof(WeakTypeRuntimeCacheTests), out var value));
+                Assert.AreEqual("value", value);
+            }
+        );
 
         Assert.AreEqual(1, cache.Count);
     }
@@ -71,5 +80,4 @@ public sealed class WeakTypeRuntimeCacheTests
         Assert.AreEqual(0, cache.Count);
         Assert.IsFalse(cache.TryGetValue(typeof(int), out _));
     }
-
 }

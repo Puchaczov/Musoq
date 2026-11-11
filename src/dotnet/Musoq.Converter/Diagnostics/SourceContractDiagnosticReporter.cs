@@ -11,28 +11,39 @@ namespace Musoq.Converter.Build;
 
 internal static class SourceContractDiagnosticReporter
 {
-    public static void Report(
-        PlanningResult planningResult,
-        DiagnosticContext diagnosticContext)
+    public static void Report(PlanningResult planningResult, DiagnosticContext diagnosticContext)
     {
         ArgumentNullException.ThrowIfNull(planningResult);
         ArgumentNullException.ThrowIfNull(diagnosticContext);
 
         var warningCollector = new global::Musoq.Schema.Diagnostics.DataSourceWarningCollector();
-        foreach (var source in planningResult.Properties.SourcePlanResultsBySourceId.OrderBy(item => item.Key, StringComparer.Ordinal))
+        foreach (
+            var source in planningResult.Properties.SourcePlanResultsBySourceId.OrderBy(
+                item => item.Key,
+                StringComparer.Ordinal
+            )
+        )
         {
             var identity = source.Value.ExecutionPlan.Identity;
             var reports = source.Value.ReportedDiagnostics.Select(report => (Report: report, Operation: "plan"));
             if (planningResult.Properties.SourceDescriptorsBySourceId.TryGetValue(source.Key, out var descriptor))
-                reports = descriptor.ReportedDiagnostics.Select(report => (Report: report, Operation: "describe")).Concat(reports);
+                reports = descriptor
+                    .ReportedDiagnostics.Select(report => (Report: report, Operation: "describe"))
+                    .Concat(reports);
             foreach (var (report, operation) in reports)
             {
                 if (report.Severity == global::Musoq.Schema.Diagnostics.DataSourceDiagnosticSeverity.Warning)
                     warningCollector.ForSource(identity, operation)(report);
                 else
-                    diagnosticContext.AddRange([report.ToDiagnostic().WithArgument("schema", identity.SchemaName)
-                        .WithArgument("source", identity.MethodName).WithArgument("alias", identity.Alias)
-                        .WithArgument("sourceContextId", source.Key).WithArgument("operation", operation)]);
+                    diagnosticContext.AddRange([
+                        report
+                            .ToDiagnostic()
+                            .WithArgument("schema", identity.SchemaName)
+                            .WithArgument("source", identity.MethodName)
+                            .WithArgument("alias", identity.Alias)
+                            .WithArgument("sourceContextId", source.Key)
+                            .WithArgument("operation", operation),
+                    ]);
             }
         }
         diagnosticContext.AddRange(warningCollector.Snapshot());
@@ -48,7 +59,8 @@ internal static class SourceContractDiagnosticReporter
                 candidate.Diagnostic.Code,
                 candidate.Diagnostic.ColumnName,
                 candidate.Diagnostic.ModifierKey,
-                candidate.Diagnostic.Message);
+                candidate.Diagnostic.Message
+            );
 
             if (!reported.Add(key))
                 continue;
@@ -59,16 +71,11 @@ internal static class SourceContractDiagnosticReporter
             {
                 if (span.HasValue)
                 {
-                    diagnosticContext.ReportError(
-                        DiagnosticCode.MQ3071_SourceContractError,
-                        message,
-                        span.Value);
+                    diagnosticContext.ReportError(DiagnosticCode.MQ3071_SourceContractError, message, span.Value);
                 }
                 else
                 {
-                    diagnosticContext.ReportError(
-                        DiagnosticCode.MQ3071_SourceContractError,
-                        message);
+                    diagnosticContext.ReportError(DiagnosticCode.MQ3071_SourceContractError, message);
                 }
 
                 continue;
@@ -76,35 +83,34 @@ internal static class SourceContractDiagnosticReporter
 
             if (span.HasValue)
             {
-                diagnosticContext.ReportWarning(
-                    DiagnosticCode.MQ5013_SourceContractWarning,
-                    message,
-                    span.Value);
+                diagnosticContext.ReportWarning(DiagnosticCode.MQ5013_SourceContractWarning, message, span.Value);
             }
             else
             {
-                diagnosticContext.ReportWarning(
-                    DiagnosticCode.MQ5013_SourceContractWarning,
-                    message);
+                diagnosticContext.ReportWarning(DiagnosticCode.MQ5013_SourceContractWarning, message);
             }
         }
     }
 
-    private static TextSpan? ResolveSpan(
-        PlanningResult planningResult,
-        SourceContractDiagnosticCandidate candidate)
+    private static TextSpan? ResolveSpan(PlanningResult planningResult, SourceContractDiagnosticCandidate candidate)
     {
-        if (!planningResult.Properties.SourceContractDiagnosticLocationsBySourceId.TryGetValue(
+        if (
+            !planningResult.Properties.SourceContractDiagnosticLocationsBySourceId.TryGetValue(
                 candidate.SourceContextId,
-                out var locations))
+                out var locations
+            )
+        )
         {
             return null;
         }
 
-        if (locations.TryGetModifierSpan(
+        if (
+            locations.TryGetModifierSpan(
                 candidate.Diagnostic.ColumnName,
                 candidate.Diagnostic.ModifierKey,
-                out var modifierSpan))
+                out var modifierSpan
+            )
+        )
         {
             return modifierSpan;
         }
@@ -117,15 +123,21 @@ internal static class SourceContractDiagnosticReporter
 
     private static IEnumerable<SourceContractDiagnosticCandidate> CollectDiagnostics(PlanningResult planningResult)
     {
-        foreach (var sourcePlan in planningResult.Properties.SourcePlanResultsBySourceId
-                     .OrderBy(static entry => entry.Key, StringComparer.Ordinal))
+        foreach (
+            var sourcePlan in planningResult.Properties.SourcePlanResultsBySourceId.OrderBy(
+                static entry => entry.Key,
+                StringComparer.Ordinal
+            )
+        )
         {
-            foreach (var diagnostic in sourcePlan.Value.ContractDiagnostics
-                         .OrderBy(static diagnostic => diagnostic.Origin, StringComparer.Ordinal)
-                         .ThenBy(static diagnostic => diagnostic.Code, StringComparer.Ordinal)
-                         .ThenBy(static diagnostic => diagnostic.ColumnName, StringComparer.Ordinal)
-                         .ThenBy(static diagnostic => diagnostic.ModifierKey, StringComparer.Ordinal)
-                         .ThenBy(static diagnostic => diagnostic.Message, StringComparer.Ordinal))
+            foreach (
+                var diagnostic in sourcePlan
+                    .Value.ContractDiagnostics.OrderBy(static diagnostic => diagnostic.Origin, StringComparer.Ordinal)
+                    .ThenBy(static diagnostic => diagnostic.Code, StringComparer.Ordinal)
+                    .ThenBy(static diagnostic => diagnostic.ColumnName, StringComparer.Ordinal)
+                    .ThenBy(static diagnostic => diagnostic.ModifierKey, StringComparer.Ordinal)
+                    .ThenBy(static diagnostic => diagnostic.Message, StringComparer.Ordinal)
+            )
             {
                 yield return new SourceContractDiagnosticCandidate(sourcePlan.Key, sourcePlan.Value, diagnostic);
             }
@@ -135,25 +147,25 @@ internal static class SourceContractDiagnosticReporter
     private static string CreateMessage(
         string sourceContextId,
         SourcePlanResult sourcePlan,
-        SourceContractDiagnostic diagnostic)
+        SourceContractDiagnostic diagnostic
+    )
     {
         var details = new[]
-            {
-                string.IsNullOrWhiteSpace(diagnostic.Origin) ? null : $"origin={diagnostic.Origin}",
-                string.IsNullOrWhiteSpace(diagnostic.Code) ? null : $"sourceCode={diagnostic.Code}",
-                string.IsNullOrWhiteSpace(diagnostic.ColumnName) ? null : $"column={diagnostic.ColumnName}",
-                string.IsNullOrWhiteSpace(diagnostic.ModifierKey) ? null : $"modifier={diagnostic.ModifierKey}"
-            }
+        {
+            string.IsNullOrWhiteSpace(diagnostic.Origin) ? null : $"origin={diagnostic.Origin}",
+            string.IsNullOrWhiteSpace(diagnostic.Code) ? null : $"sourceCode={diagnostic.Code}",
+            string.IsNullOrWhiteSpace(diagnostic.ColumnName) ? null : $"column={diagnostic.ColumnName}",
+            string.IsNullOrWhiteSpace(diagnostic.ModifierKey) ? null : $"modifier={diagnostic.ModifierKey}",
+        }
             .Where(static part => part != null)
             .ToArray();
-        var detailText = details.Length == 0
-            ? string.Empty
-            : $" ({string.Join(", ", details)})";
+        var detailText = details.Length == 0 ? string.Empty : $" ({string.Join(", ", details)})";
         var severity = diagnostic.Severity.ToString().ToLowerInvariant();
 
         return string.Create(
             CultureInfo.InvariantCulture,
-            $"Source contract {severity} for {FormatSourceTarget(sourceContextId, sourcePlan.ExecutionPlan.Identity)}: {diagnostic.Message}{detailText}");
+            $"Source contract {severity} for {FormatSourceTarget(sourceContextId, sourcePlan.ExecutionPlan.Identity)}: {diagnostic.Message}{detailText}"
+        );
     }
 
     private static string FormatSourceTarget(string sourceContextId, SourceIdentity identity)
@@ -161,12 +173,8 @@ internal static class SourceContractDiagnosticReporter
         if (string.IsNullOrWhiteSpace(identity.SchemaName) || string.IsNullOrWhiteSpace(identity.MethodName))
             return sourceContextId;
 
-        var alias = string.IsNullOrWhiteSpace(identity.Alias)
-            ? string.Empty
-            : $" as {identity.Alias}";
-        var id = string.IsNullOrWhiteSpace(identity.SourceContextId)
-            ? sourceContextId
-            : identity.SourceContextId;
+        var alias = string.IsNullOrWhiteSpace(identity.Alias) ? string.Empty : $" as {identity.Alias}";
+        var id = string.IsNullOrWhiteSpace(identity.SourceContextId) ? sourceContextId : identity.SourceContextId;
 
         return $"#{identity.SchemaName}.{identity.MethodName}(){alias} [{id}]";
     }
@@ -174,7 +182,8 @@ internal static class SourceContractDiagnosticReporter
     private sealed record SourceContractDiagnosticCandidate(
         string SourceContextId,
         SourcePlanResult SourcePlan,
-        SourceContractDiagnostic Diagnostic);
+        SourceContractDiagnostic Diagnostic
+    );
 
     private readonly record struct SourceContractDiagnosticKey(
         string SourceContextId,
@@ -182,5 +191,6 @@ internal static class SourceContractDiagnosticReporter
         string? Code,
         string? ColumnName,
         string? ModifierKey,
-        string Message);
+        string Message
+    );
 }

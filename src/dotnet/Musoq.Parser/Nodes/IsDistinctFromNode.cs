@@ -2,7 +2,8 @@ namespace Musoq.Parser.Nodes;
 
 public class IsDistinctFromNode : BinaryNode
 {
-    public IsDistinctFromNode(Node left, Node right, bool isNegated) : base(left, right)
+    public IsDistinctFromNode(Node left, Node right, bool isNegated)
+        : base(left, right)
     {
         IsNegated = isNegated;
         Id = $"{CalculateId(this)}{isNegated}";

@@ -16,26 +16,28 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
     public void TypeMatrix_ShouldPreservePrimitiveDateTimeComplexAndCollectionContracts()
     {
         var table = CreateAndRunVirtualMachine(
-            """
-            select
-                42 as InferredInt,
-                42d as InferredDecimal,
-                .5 as Fraction,
-                0xFF as HexValue,
-                true as BoolValue,
-                'text' as TextValue,
-                e.IntValue as SourceInt,
-                e.NullableIntValue as NullableInt,
-                e.DateValue as DateValue,
-                e.OffsetValue as OffsetValue,
-                e.DurationValue as DurationValue,
-                e.GuidValue as GuidValue,
-                e.Nested.Name as NestedName,
-                e.Values[1] as IndexedValue,
-                e.Nested.Lookup['A'] as DictionaryValue
-            from #schema.first() e
-            """,
-            [CreateEntity()]).Run();
+                (
+                    "select\n"
+                    + "    42 as InferredInt,\n"
+                    + "    42d as InferredDecimal,\n"
+                    + "    .5 as Fraction,\n"
+                    + "    0xFF as HexValue,\n"
+                    + "    true as BoolValue,\n"
+                    + "    'text' as TextValue,\n"
+                    + "    e.IntValue as SourceInt,\n"
+                    + "    e.NullableIntValue as NullableInt,\n"
+                    + "    e.DateValue as DateValue,\n"
+                    + "    e.OffsetValue as OffsetValue,\n"
+                    + "    e.DurationValue as DurationValue,\n"
+                    + "    e.GuidValue as GuidValue,\n"
+                    + "    e.Nested.Name as NestedName,\n"
+                    + "    e.Values[1] as IndexedValue,\n"
+                    + "    e.Nested.Lookup['A'] as DictionaryValue\n"
+                    + "from #schema.first() e"
+                ),
+                [CreateEntity()]
+            )
+            .Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -53,7 +55,8 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
             ("GuidValue", typeof(Guid)),
             ("NestedName", typeof(string)),
             ("IndexedValue", typeof(int)),
-            ("DictionaryValue", typeof(string)));
+            ("DictionaryValue", typeof(string))
+        );
 
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -73,31 +76,34 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
                 Guid.Parse("12345678-1234-1234-1234-123456789012"),
                 "nested",
                 20,
-                "B"
-            });
+                "B",
+            }
+        );
     }
 
     [TestMethod]
     public void StrictCastMatrix_ShouldCoerceInvariantValuesAndRetainNullableTargetTypes()
     {
         var table = CreateAndRunVirtualMachine(
-            """
-            select
-                e.IntValue::Int64 as Int64Value,
-                e.DecimalValue::Double as DoubleValue,
-                e.TextValue::int::string as ChainedValue,
-                (e.IntValue + 1)::Decimal as ArithmeticValue,
-                e.BoolText::Boolean as BoolValue,
-                e.CharText::Char as CharValue,
-                e.DateText::DateTime as DateValue,
-                e.OffsetText::DateTimeOffset as OffsetValue,
-                e.DurationText::TimeSpan as DurationValue,
-                e.GuidText::Guid as GuidValue,
-                e.DecimalValue::String as InvariantDecimalText,
-                e.NullableIntValue::Int32 as NullValue
-            from #schema.first() e
-            """,
-            [CreateEntity()]).Run();
+                (
+                    "select\n"
+                    + "    e.IntValue::Int64 as Int64Value,\n"
+                    + "    e.DecimalValue::Double as DoubleValue,\n"
+                    + "    e.TextValue::int::string as ChainedValue,\n"
+                    + "    (e.IntValue + 1)::Decimal as ArithmeticValue,\n"
+                    + "    e.BoolText::Boolean as BoolValue,\n"
+                    + "    e.CharText::Char as CharValue,\n"
+                    + "    e.DateText::DateTime as DateValue,\n"
+                    + "    e.OffsetText::DateTimeOffset as OffsetValue,\n"
+                    + "    e.DurationText::TimeSpan as DurationValue,\n"
+                    + "    e.GuidText::Guid as GuidValue,\n"
+                    + "    e.DecimalValue::String as InvariantDecimalText,\n"
+                    + "    e.NullableIntValue::Int32 as NullValue\n"
+                    + "from #schema.first() e"
+                ),
+                [CreateEntity()]
+            )
+            .Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -112,7 +118,8 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
             ("DurationValue", typeof(TimeSpan?)),
             ("GuidValue", typeof(Guid?)),
             ("InvariantDecimalText", typeof(string)),
-            ("NullValue", typeof(int?)));
+            ("NullValue", typeof(int?))
+        );
 
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
@@ -129,22 +136,25 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
                 new TimeSpan(1, 2, 3),
                 Guid.Parse("12345678-1234-1234-1234-123456789012"),
                 "12.5",
-                null
-            });
+                null,
+            }
+        );
     }
 
     [TestMethod]
     public void NullAndOuterJoinCastMatrix_ShouldReturnNullWithoutChangingStringTargetShape()
     {
         var table = CreateAndRunVirtualMachine(
-            """
-            select a.Id as LeftId, b.Id as RightId, b.Id::String as RightText,
-                   null::DateTime as NullDate, null::Guid as NullGuid
-            from #schema.first() a
-            left join #schema.second() b on a.Id = b.Id
-            """,
-            [new TypeContractEntity { Id = 1 }],
-            [new TypeContractEntity { Id = 2 }]).Run();
+                (
+                    "select a.Id as LeftId, b.Id as RightId, b.Id::String as RightText,\n"
+                    + "       null::DateTime as NullDate, null::Guid as NullGuid\n"
+                    + "from #schema.first() a\n"
+                    + "left join #schema.second() b on a.Id = b.Id"
+                ),
+                [new TypeContractEntity { Id = 1 }],
+                [new TypeContractEntity { Id = 2 }]
+            )
+            .Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -152,18 +162,19 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
             ("RightId", typeof(int?)),
             ("RightText", typeof(string)),
             ("NullDate", typeof(DateTime?)),
-            ("NullGuid", typeof(Guid?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            new object?[] { 1, null, null, null, null });
+            ("NullGuid", typeof(Guid?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { 1, null, null, null, null });
     }
 
     [TestMethod]
     public void DateTimeStringComparison_ShouldUseDocumentedAutomaticParsing()
     {
         var table = CreateAndRunVirtualMachine(
-            "select e.Id from #schema.first() e where e.DateValue = '2024-06-15T13:45:30'",
-            [CreateEntity()]).Run();
+                "select e.Id from #schema.first() e where e.DateValue = '2024-06-15T13:45:30'",
+                [CreateEntity()]
+            )
+            .Run();
 
         TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [7]);
@@ -176,12 +187,11 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
     [DataRow("1::TimeSpan", "TimeSpan")]
     public void InvalidConstantCast_ShouldFailDuringBindingWithExactLiteralLocation(
         string castExpression,
-        string targetType)
+        string targetType
+    )
     {
         var query = $"select {castExpression} from #schema.first()";
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-            query,
-            [CreateEntity()]));
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [CreateEntity()]));
 
         AssertSingleError(exception, DiagnosticCode.MQ3091_InvalidConstantCast, DiagnosticPhase.Bind);
         AssertHasGuidance(exception);
@@ -206,15 +216,14 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
     {
         var castExpression = $"e.TextValue::{targetType}";
         var query = $"select {castExpression} from #schema.first() e";
-        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(
-            query,
-            [CreateEntity()]));
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [CreateEntity()]));
 
         AssertSingleError(
             exception,
             DiagnosticCode.MQ3090_UnsupportedCastTarget,
             DiagnosticPhase.Bind,
-            "CLR type names and C# aliases only");
+            "CLR type names and C# aliases only"
+        );
         AssertHasGuidance(exception);
         AssertMessageContains(exception, targetType);
 
@@ -239,9 +248,7 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
         var query = $"select e.{sourceProperty}::{targetType} from #schema.first() e";
         var exception = Assert.Throws<QueryExecutionException>(() =>
         {
-            var vm = CreateAndRunVirtualMachine(
-                query,
-                [CreateEntity()]);
+            var vm = CreateAndRunVirtualMachine(query, [CreateEntity()]);
             _ = vm.Run().Count;
         });
 
@@ -277,9 +284,9 @@ public sealed class DiagnosticRework078TypeAndCastContractTests : GenericEntityT
             Nested = new NestedContractEntity
             {
                 Name = "nested",
-                Lookup = new Dictionary<string, string> { ["A"] = "B" }
+                Lookup = new Dictionary<string, string> { ["A"] = "B" },
             },
-            Values = [10, 20, 30]
+            Values = [10, 20, 30],
         };
     }
 

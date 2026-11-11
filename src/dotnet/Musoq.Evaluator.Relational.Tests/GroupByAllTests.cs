@@ -17,21 +17,15 @@ public class GroupByAllTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("C", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Berlin", 2L],
-            ["Paris", 2L],
-            ["Warsaw", 2L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Berlin", 2L], ["Paris", 2L], ["Warsaw", 2L]);
     }
 
     [TestMethod]
     public void GroupByAll_WhenSelectHasMultipleKeys_ShouldGroupByAllNonAggregates()
     {
-        const string query = "select Country, City, Sum(Population) as Total from #A.Entities() group by all order by Country, City";
+        const string query =
+            "select Country, City, Sum(Population) as Total from #A.Entities() group by all order by Country, City";
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
@@ -39,36 +33,33 @@ public class GroupByAllTests : BasicEntityTestBase
             table,
             ("Country", typeof(string)),
             ("City", typeof(string)),
-            ("Total", typeof(decimal?)));
+            ("Total", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["DE", "Berlin", 250m],
             ["FR", "Paris", 100m],
-            ["PL", "Warsaw", 250m]);
+            ["PL", "Warsaw", 250m]
+        );
     }
 
     [TestMethod]
     public void GroupByAll_WhenSelectHasComputedScalar_ShouldGroupByExpression()
     {
-        const string query = "select ToLower(City) as CityKey, Count(Name) as C from #A.Entities() group by all order by CityKey";
+        const string query =
+            "select ToLower(City) as CityKey, Count(Name) as C from #A.Entities() group by all order by CityKey";
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("CityKey", typeof(string)),
-            ("C", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["berlin", 2L],
-            ["paris", 2L],
-            ["warsaw", 2L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("CityKey", typeof(string)), ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["berlin", 2L], ["paris", 2L], ["warsaw", 2L]);
     }
 
     [TestMethod]
     public void GroupByAll_WhenSelectHasConstant_ShouldKeepConstantAsGroupingKey()
     {
-        const string query = "select Country, 'x' as Marker, Count(Name) as C from #A.Entities() group by all order by Country";
+        const string query =
+            "select Country, 'x' as Marker, Count(Name) as C from #A.Entities() group by all order by Country";
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
@@ -76,12 +67,9 @@ public class GroupByAllTests : BasicEntityTestBase
             table,
             ("Country", typeof(string)),
             ("Marker", typeof(string)),
-            ("C", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["DE", "x", 2L],
-            ["FR", "x", 2L],
-            ["PL", "x", 2L]);
+            ("C", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["DE", "x", 2L], ["FR", "x", 2L], ["PL", "x", 2L]);
     }
 
     [TestMethod]
@@ -95,12 +83,14 @@ public class GroupByAllTests : BasicEntityTestBase
             table,
             ("A", typeof(string)),
             ("B", typeof(string)),
-            ("C", typeof(long)));
+            ("C", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Berlin", "Berlin", 2L],
             ["Paris", "Paris", 2L],
-            ["Warsaw", "Warsaw", 2L]);
+            ["Warsaw", "Warsaw", 2L]
+        );
     }
 
     [TestMethod]
@@ -113,25 +103,21 @@ public class GroupByAllTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Count(Name)", typeof(long)),
-            ("Sum(Population)", typeof(decimal?)));
+            ("Sum(Population)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [6L, 600m]);
     }
 
     [TestMethod]
     public void GroupByAll_WhenHavingReferencesAggregate_ShouldFilterExpandedGroups()
     {
-        const string query = "select City, Sum(Population) as Total from #A.Entities() group by all having Sum(Population) > 100 order by City";
+        const string query =
+            "select City, Sum(Population) as Total from #A.Entities() group by all having Sum(Population) > 100 order by City";
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Total", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Berlin", 250m],
-            ["Warsaw", 250m]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Berlin", 250m], ["Warsaw", 250m]);
     }
 
     [TestMethod]
@@ -139,8 +125,7 @@ public class GroupByAllTests : BasicEntityTestBase
     {
         const string query = "select ::1, Count(Name) from #A.Entities() group by all";
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSources()));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
         AssertAnyEnvelopeHasCode(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "DoubleColon");
@@ -153,21 +138,15 @@ public class GroupByAllTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Country", typeof(string)),
-            ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["DE", "Berlin"],
-            ["FR", "Paris"],
-            ["PL", "Warsaw"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["DE", "Berlin"], ["FR", "Paris"], ["PL", "Warsaw"]);
     }
 
     [TestMethod]
     public void GroupByAll_WhenStarLikeExpandsColumns_ShouldUseExpandedColumnsAsKeys()
     {
-        const string query = "select * like 'C%', Count(Name) as C from #A.Entities() group by all order by Country, City";
+        const string query =
+            "select * like 'C%', Count(Name) as C from #A.Entities() group by all order by Country, City";
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
@@ -175,23 +154,27 @@ public class GroupByAllTests : BasicEntityTestBase
             table,
             ("City", typeof(string)),
             ("Country", typeof(string)),
-            ("C", typeof(long)));
+            ("C", typeof(long))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Berlin", "DE", 2L],
             ["Paris", "FR", 2L],
-            ["Warsaw", "PL", 2L]);
+            ["Warsaw", "PL", 2L]
+        );
     }
 
     [TestMethod]
     public void GroupByAll_WhenAliasedStarExpandsAfterJoin_ShouldUseExpandedColumnsAsKeys()
     {
-        const string query = @"
-            select a.* exclude (Name, Population, Money, Month, Time, Id, NullableValue), Count(b.Name) as Matches
-            from #A.Entities() a
-            inner join #B.Entities() b on a.Country = b.Country
-            group by all
-            order by a.Country, a.City";
+        const string query = (
+            "\n"
+            + "            select a.* exclude (Name, Population, Money, Month, Time, Id, NullableValue), Count(b.Name) as Matches\n"
+            + "            from #A.Entities() a\n"
+            + "            inner join #B.Entities() b on a.Country = b.Country\n"
+            + "            group by all\n"
+            + "            order by a.Country, a.City"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateJoinSources()).Run(TokenSource.Token);
 
@@ -199,55 +182,43 @@ public class GroupByAllTests : BasicEntityTestBase
             table,
             ("City", typeof(string)),
             ("Country", typeof(string)),
-            ("Matches", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Berlin", "DE", 4L],
-            ["Paris", "FR", 1L]);
+            ("Matches", typeof(long))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Berlin", "DE", 4L], ["Paris", "FR", 1L]);
     }
 
     [TestMethod]
     public void GroupByAll_WhenStarReplaceCreatesExpression_ShouldUseReplacementExpressionAsKey()
     {
-        const string query = "select * like 'P%' replace (Population + 1 as Population), Count(Name) as C from #A.Entities() group by all order by Population";
+        const string query =
+            "select * like 'P%' replace (Population + 1 as Population), Count(Name) as C from #A.Entities() group by all order by Population";
 
         var table = CreateAndRunVirtualMachine(query, CreatePopulationSources()).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Population", typeof(decimal)),
-            ("C", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [11m, 2L],
-            [21m, 1L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Population", typeof(decimal)), ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [11m, 2L], [21m, 1L]);
     }
 
     [TestMethod]
     public void GroupByAll_WhenUsedInsideCte_ShouldExposeOrdinaryGroupedResult()
     {
-        const string query = @"
-            with grouped as (
-                select Country, City, Count(Name) as C
-                from #A.Entities()
-                group by all
-            )
-            select Country, Sum(C) as Total
-            from grouped
-            group by Country
-            order by Country";
+        const string query = (
+            "\n"
+            + "            with grouped as (\n"
+            + "                select Country, City, Count(Name) as C\n"
+            + "                from #A.Entities()\n"
+            + "                group by all\n"
+            + "            )\n"
+            + "            select Country, Sum(C) as Total\n"
+            + "            from grouped\n"
+            + "            group by Country\n"
+            + "            order by Country"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Country", typeof(string)),
-            ("Total", typeof(long?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["DE", 2L],
-            ["FR", 2L],
-            ["PL", 2L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("Total", typeof(long?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["DE", 2L], ["FR", 2L], ["PL", 2L]);
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources()
@@ -257,14 +228,44 @@ public class GroupByAllTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("Alice") { City = "Warsaw", Country = "PL", Population = 100m },
-                    new BasicEntity("Bob") { City = "Warsaw", Country = "PL", Population = 150m },
-                    new BasicEntity("Carla") { City = "Berlin", Country = "DE", Population = 200m },
-                    new BasicEntity("Dora") { City = "Paris", Country = "FR", Population = 75m },
-                    new BasicEntity("Eve") { City = "Paris", Country = "FR", Population = 25m },
-                    new BasicEntity("Frank") { City = "Berlin", Country = "DE", Population = 50m }
+                    new BasicEntity("Alice")
+                    {
+                        City = "Warsaw",
+                        Country = "PL",
+                        Population = 100m,
+                    },
+                    new BasicEntity("Bob")
+                    {
+                        City = "Warsaw",
+                        Country = "PL",
+                        Population = 150m,
+                    },
+                    new BasicEntity("Carla")
+                    {
+                        City = "Berlin",
+                        Country = "DE",
+                        Population = 200m,
+                    },
+                    new BasicEntity("Dora")
+                    {
+                        City = "Paris",
+                        Country = "FR",
+                        Population = 75m,
+                    },
+                    new BasicEntity("Eve")
+                    {
+                        City = "Paris",
+                        Country = "FR",
+                        Population = 25m,
+                    },
+                    new BasicEntity("Frank")
+                    {
+                        City = "Berlin",
+                        Country = "DE",
+                        Population = 50m,
+                    },
                 ]
-            }
+            },
         };
     }
 
@@ -277,7 +278,7 @@ public class GroupByAllTests : BasicEntityTestBase
                 [
                     new BasicEntity("A1") { City = "Berlin", Country = "DE" },
                     new BasicEntity("A2") { City = "Berlin", Country = "DE" },
-                    new BasicEntity("A3") { City = "Paris", Country = "FR" }
+                    new BasicEntity("A3") { City = "Paris", Country = "FR" },
                 ]
             },
             {
@@ -285,9 +286,9 @@ public class GroupByAllTests : BasicEntityTestBase
                 [
                     new BasicEntity("B1") { Country = "DE" },
                     new BasicEntity("B2") { Country = "DE" },
-                    new BasicEntity("B3") { Country = "FR" }
+                    new BasicEntity("B3") { Country = "FR" },
                 ]
-            }
+            },
         };
     }
 
@@ -300,9 +301,9 @@ public class GroupByAllTests : BasicEntityTestBase
                 [
                     new BasicEntity("A") { Population = 10m },
                     new BasicEntity("B") { Population = 10m },
-                    new BasicEntity("C") { Population = 20m }
+                    new BasicEntity("C") { Population = 20m },
                 ]
-            }
+            },
         };
     }
 }

@@ -7,12 +7,13 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static AggregateGroupLookup[] CreateValueTupleGroupDictionaries(
         string resultTableName,
-        AggregateGroupPlan aggregateGroupPlan)
+        AggregateGroupPlan aggregateGroupPlan
+    )
     {
         var keyCount = aggregateGroupPlan.LeafShape.Keys.Count;
 
-        return aggregateGroupPlan.Levels
-            .Select(static level => level.PrefixLength)
+        return aggregateGroupPlan
+            .Levels.Select(static level => level.PrefixLength)
             .Where(prefixLength => prefixLength > 0)
             .Distinct()
             .Order()
@@ -20,8 +21,10 @@ internal sealed partial class PhysicalLoweringImplementation
                 CreateAggregateVariable(
                     resultTableName,
                     CreateValueTupleGroupDictionaryName(prefixLength - 1, keyCount),
-                    typeof(object)),
-                prefixLength))
+                    typeof(object)
+                ),
+                prefixLength
+            ))
             .ToArray();
     }
 

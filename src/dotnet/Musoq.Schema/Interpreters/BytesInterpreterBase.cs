@@ -82,6 +82,7 @@ public abstract partial class BytesInterpreterBase<TOut> : IBytesInterpreter<TOu
             SchemaName,
             _currentFieldName,
             ParsePosition,
-            $"Attempted to read {count} bytes at parse position {ParsePosition}, but only {Math.Max(0, dataLength - ParsePosition)} bytes available");
+            $"Attempted to read {count} bytes at parse position {ParsePosition}, but only {Math.Max(0, dataLength - ParsePosition)} bytes available"
+        );
     }
 }

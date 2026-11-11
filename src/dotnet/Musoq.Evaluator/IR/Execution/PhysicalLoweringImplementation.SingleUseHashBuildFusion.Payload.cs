@@ -10,15 +10,18 @@ internal sealed partial class PhysicalLoweringImplementation
         TableRowShape tableRow,
         out HashPayloadShape payloadShape,
         out TableRowShape payloadTableRow,
-        out IReadOnlyList<ExecutionRowValue> payloadValues)
+        out IReadOnlyList<ExecutionRowValue> payloadValues
+    )
     {
         payloadShape = null!;
         payloadTableRow = null!;
         payloadValues = [];
 
-        if (fusion.HashPayloadShape == null ||
-            tableRow.Fields.Count != fusion.RowShape.Fields.Count ||
-            tableRow.Contexts.Count != fusion.RowShape.Contexts.Count)
+        if (
+            fusion.HashPayloadShape == null
+            || tableRow.Fields.Count != fusion.RowShape.Fields.Count
+            || tableRow.Contexts.Count != fusion.RowShape.Contexts.Count
+        )
         {
             return false;
         }
@@ -30,10 +33,9 @@ internal sealed partial class PhysicalLoweringImplementation
 
         payloadTableRow = tableRow with
         {
-            Contexts = plannedPayloadShape.Contexts.Select(context => context with
-            {
-                AccessStrategy = context.AccessStrategy
-            }).ToArray()
+            Contexts = plannedPayloadShape
+                .Contexts.Select(context => context with { AccessStrategy = context.AccessStrategy })
+                .ToArray(),
         };
         return true;
     }
@@ -41,7 +43,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool TryCreateFusedHashPayloadValues(
         FusedCteHashBuildSource fusion,
         HashPayloadShape payloadShape,
-        out IReadOnlyList<ExecutionRowValue> payloadValues)
+        out IReadOnlyList<ExecutionRowValue> payloadValues
+    )
     {
         var values = new List<ExecutionRowValue>(payloadShape.Fields.Count + payloadShape.Contexts.Count);
         foreach (var field in payloadShape.Fields)
@@ -56,16 +59,16 @@ internal sealed partial class PhysicalLoweringImplementation
             values.Add(fusion.RowValues[index]);
         }
 
-        values.AddRange(fusion.ContextValues.Select((context, index) => new ExecutionRowValue(
-            payloadShape.Contexts[index].Name,
-            context)));
+        values.AddRange(
+            fusion.ContextValues.Select(
+                (context, index) => new ExecutionRowValue(payloadShape.Contexts[index].Name, context)
+            )
+        );
         payloadValues = values;
         return true;
     }
 
-    private static int FindFusedPayloadFieldIndex(
-        GeneratedRowShape rowShape,
-        FieldBinding field)
+    private static int FindFusedPayloadFieldIndex(GeneratedRowShape rowShape, FieldBinding field)
     {
         for (var index = 0; index < rowShape.Fields.Count; index++)
         {
@@ -79,35 +82,40 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool FieldBindingsMatch(FieldBinding left, FieldBinding right)
     {
-        if (string.Equals(left.Name, right.Name, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(left.QualifiedName, right.QualifiedName, StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(left.Name, right.Name, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(left.QualifiedName, right.QualifiedName, StringComparison.OrdinalIgnoreCase)
+        )
         {
             return true;
         }
 
-        return left.AccessStrategy is GeneratedFieldAccess leftGenerated &&
-               right.AccessStrategy is GeneratedFieldAccess rightGenerated &&
-               string.Equals(leftGenerated.FieldName, rightGenerated.FieldName, StringComparison.Ordinal);
+        return left.AccessStrategy is GeneratedFieldAccess leftGenerated
+            && right.AccessStrategy is GeneratedFieldAccess rightGenerated
+            && string.Equals(leftGenerated.FieldName, rightGenerated.FieldName, StringComparison.Ordinal);
     }
 
-    private static HashPayloadShape? CreateFusedHashPayloadShape(
-        string alias,
-        GeneratedRowShape rowShape)
+    private static HashPayloadShape? CreateFusedHashPayloadShape(string alias, GeneratedRowShape rowShape)
     {
         return new HashPayloadShape(
             CreateFusedHashPayloadTypeName(alias),
             rowShape.Fields,
-            CreateFusedHashPayloadContextBindings(rowShape.Contexts));
+            CreateFusedHashPayloadContextBindings(rowShape.Contexts)
+        );
     }
 
-    private static FieldBinding[] CreateFusedHashPayloadContextBindings(
-        IReadOnlyList<FieldBinding> contexts)
+    private static FieldBinding[] CreateFusedHashPayloadContextBindings(IReadOnlyList<FieldBinding> contexts)
     {
         return contexts
-            .Select((context, index) => context with
-            {
-                AccessStrategy = new GeneratedFieldAccess($"__context{index.ToString(System.Globalization.CultureInfo.InvariantCulture)}")
-            })
+            .Select(
+                (context, index) =>
+                    context with
+                    {
+                        AccessStrategy = new GeneratedFieldAccess(
+                            $"__context{index.ToString(System.Globalization.CultureInfo.InvariantCulture)}"
+                        ),
+                    }
+            )
             .ToArray();
     }
 

@@ -10,22 +10,36 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
     [TestMethod]
     public void Run_WhenPivotQueryExecutes_ShouldRemainUnchanged()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Month in ('Jan' as Jan, 'Feb' as Feb)
-                             using Sum(Money) as Sales
-                             group by City
-                             order by City
-                             """;
+        const string query = (
+            "pivot #A.Entities()\n"
+            + "on Month in ('Jan' as Jan, 'Feb' as Feb)\n"
+            + "using Sum(Money) as Sales\n"
+            + "group by City\n"
+            + "order by City"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new BasicEntity { City = "GDA", Month = "Jan", Money = 10m },
-                new BasicEntity { City = "GDA", Month = "Feb", Money = 20m }
-            ]
-        }).Run();
+        var table = CreateAndRunVirtualMachine(
+                query,
+                new Dictionary<string, IEnumerable<BasicEntity>>
+                {
+                    ["#A"] =
+                    [
+                        new BasicEntity
+                        {
+                            City = "GDA",
+                            Month = "Jan",
+                            Money = 10m,
+                        },
+                        new BasicEntity
+                        {
+                            City = "GDA",
+                            Month = "Feb",
+                            Money = 20m,
+                        },
+                    ],
+                }
+            )
+            .Run();
 
         Assert.AreEqual(1, table.Count);
         AssertColumn(table, 0, "City", typeof(string));
@@ -39,14 +53,14 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
     [TestMethod]
     public void Run_WhenValuesUseLiteralRows_ShouldRemainUnchanged()
     {
-        const string query = """
-                             from values {
-                                 ( Name: 'A', Score: 1 ),
-                                 ( Name: 'B', Score: 2 )
-                             } v
-                             select v.Name, v.Score
-                             order by v.Score
-                             """;
+        const string query = (
+            "from values {\n"
+            + "    ( Name: 'A', Score: 1 ),\n"
+            + "    ( Name: 'B', Score: 2 )\n"
+            + "} v\n"
+            + "select v.Name, v.Score\n"
+            + "order by v.Score"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateSingleSource()).Run();
 
@@ -62,21 +76,37 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
     [TestMethod]
     public void Run_WhenPivotUsesMultipleMeasures_ShouldRemainUnchanged()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Month in ('Jan' as Jan)
-                             using Sum(Money) as Sales, Count(Name) as Items
-                             group by City
-                             """;
+        const string query = (
+            "pivot #A.Entities()\n"
+            + "on Month in ('Jan' as Jan)\n"
+            + "using Sum(Money) as Sales, Count(Name) as Items\n"
+            + "group by City"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] =
-            [
-                new BasicEntity { City = "GDA", Month = "Jan", Money = 10m, Name = "A" },
-                new BasicEntity { City = "GDA", Month = "Jan", Money = 20m, Name = "B" }
-            ]
-        }).Run();
+        var table = CreateAndRunVirtualMachine(
+                query,
+                new Dictionary<string, IEnumerable<BasicEntity>>
+                {
+                    ["#A"] =
+                    [
+                        new BasicEntity
+                        {
+                            City = "GDA",
+                            Month = "Jan",
+                            Money = 10m,
+                            Name = "A",
+                        },
+                        new BasicEntity
+                        {
+                            City = "GDA",
+                            Month = "Jan",
+                            Money = 20m,
+                            Name = "B",
+                        },
+                    ],
+                }
+            )
+            .Run();
 
         Assert.AreEqual(1, table.Count);
         AssertColumn(table, 0, "City", typeof(string));
@@ -90,14 +120,14 @@ public sealed class UnpivotRegressionTests : BasicEntityTestBase
     [TestMethod]
     public void Run_WhenValuesUseNullAndNumericWidening_ShouldRemainUnchanged()
     {
-        const string query = """
-                             from values {
-                                 ( Name: 'A', Score: null ),
-                                 ( Name: 'B', Score: 2l )
-                             } v
-                             select v.Name, v.Score
-                             order by v.Name
-                             """;
+        const string query = (
+            "from values {\n"
+            + "    ( Name: 'A', Score: null ),\n"
+            + "    ( Name: 'B', Score: 2l )\n"
+            + "} v\n"
+            + "select v.Name, v.Score\n"
+            + "order by v.Name"
+        );
 
         var table = CreateAndRunVirtualMachine(query, CreateSingleSource()).Run();
 

@@ -15,7 +15,8 @@ public static class SourceComputedProjectionNegotiator
         IReadOnlyList<SourceComputedProjection> accepted,
         SourceComputedProjectionCapabilities capabilities,
         out SourceComputedProjectionPartition partition,
-        out string diagnostic)
+        out string diagnostic
+    )
     {
         ArgumentNullException.ThrowIfNull(requested);
         ArgumentNullException.ThrowIfNull(accepted);
@@ -23,8 +24,11 @@ public static class SourceComputedProjectionNegotiator
         var requestedByName = new Dictionary<string, SourceComputedProjection>(StringComparer.Ordinal);
         foreach (var projection in requested)
         {
-            if (projection is null || string.IsNullOrWhiteSpace(projection.Name) ||
-                !requestedByName.TryAdd(projection.Name, projection))
+            if (
+                projection is null
+                || string.IsNullOrWhiteSpace(projection.Name)
+                || !requestedByName.TryAdd(projection.Name, projection)
+            )
             {
                 partition = SourceComputedProjectionPartition.Empty;
                 diagnostic = "Requested computed projections must have unique, nonempty names.";
@@ -56,11 +60,16 @@ public static class SourceComputedProjectionNegotiator
                 return false;
             }
 
-            if (projection.ResultType != requestedProjection.ResultType || projection.Stability != requestedProjection.Stability ||
-                !requestedProjection.IsStable || !string.Equals(
+            if (
+                projection.ResultType != requestedProjection.ResultType
+                || projection.Stability != requestedProjection.Stability
+                || !requestedProjection.IsStable
+                || !string.Equals(
                     SourceScalarExpressionFingerprint.Compute(requestedProjection.Expression),
                     SourceScalarExpressionFingerprint.Compute(projection.Expression),
-                    StringComparison.Ordinal))
+                    StringComparison.Ordinal
+                )
+            )
             {
                 partition = SourceComputedProjectionPartition.Empty;
                 diagnostic = $"Provider changed computed projection '{projection.Name}' while accepting it.";
@@ -94,24 +103,33 @@ public static class SourceComputedProjectionFacts
             SourceScalarLiteral => SourceComputedProjectionCapabilities.Literals,
             SourceScalarColumn => SourceComputedProjectionCapabilities.Columns,
             SourceScalarUnary unary => SourceComputedProjectionCapabilities.Unary | Required(unary.Operand),
-            SourceScalarBinary binary => SourceComputedProjectionCapabilities.Binary |
-                                         Required(binary.Left) |
-                                         Required(binary.Right),
+            SourceScalarBinary binary => SourceComputedProjectionCapabilities.Binary
+                | Required(binary.Left)
+                | Required(binary.Right),
             SourceScalarCast cast => SourceComputedProjectionCapabilities.Cast | Required(cast.Operand),
-            SourceScalarNullCheck nullCheck => SourceComputedProjectionCapabilities.NullCheck | Required(nullCheck.Operand),
-            SourceScalarCoalesce coalesce => SourceComputedProjectionCapabilities.Coalesce |
-                                             coalesce.Expressions.Aggregate(SourceComputedProjectionCapabilities.None, static (current, child) => current | Required(child)),
-            _ => SourceComputedProjectionCapabilities.None
+            SourceScalarNullCheck nullCheck => SourceComputedProjectionCapabilities.NullCheck
+                | Required(nullCheck.Operand),
+            SourceScalarCoalesce coalesce => SourceComputedProjectionCapabilities.Coalesce
+                | coalesce.Expressions.Aggregate(
+                    SourceComputedProjectionCapabilities.None,
+                    static (current, child) => current | Required(child)
+                ),
+            _ => SourceComputedProjectionCapabilities.None,
         };
     }
 
     public static bool CanProviderEvaluate(
         SourceComputedProjection projection,
-        SourceComputedProjectionCapabilities capabilities)
+        SourceComputedProjectionCapabilities capabilities
+    )
     {
         ArgumentNullException.ThrowIfNull(projection);
-        if (string.IsNullOrWhiteSpace(projection.Name) || projection.Expression is null ||
-            projection.ResultType != projection.Expression.ResultType || !projection.IsStable)
+        if (
+            string.IsNullOrWhiteSpace(projection.Name)
+            || projection.Expression is null
+            || projection.ResultType != projection.Expression.ResultType
+            || !projection.IsStable
+        )
             return false;
         var required = RequiredCapabilities(projection.Expression);
         return required != SourceComputedProjectionCapabilities.None && (capabilities & required) == required;

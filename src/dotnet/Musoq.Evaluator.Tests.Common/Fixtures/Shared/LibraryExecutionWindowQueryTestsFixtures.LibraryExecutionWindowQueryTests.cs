@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionWindowQueryTestsFixtures
 {
-
     internal static void AssertValueAccessRow<T>(Tables.Row row, T? first, T? last, T? second, T? previous, T? next)
         where T : struct, INumber<T>
     {
@@ -19,8 +18,15 @@ public partial class LibraryExecutionWindowQueryTestsFixtures
         Assert.AreEqual(row.GetValue<T?>(1), row.GetValue<T?>(13));
     }
 
-    internal static void AssertNumericRow<T, TResult>(Tables.Row row, int position, T total, TResult average,
-        T maximum, long count, T frameTotal)
+    internal static void AssertNumericRow<T, TResult>(
+        Tables.Row row,
+        int position,
+        T total,
+        TResult average,
+        T maximum,
+        long count,
+        T frameTotal
+    )
         where T : struct, INumber<T>
         where TResult : struct, INumber<TResult>
     {
@@ -34,9 +40,9 @@ public partial class LibraryExecutionWindowQueryTestsFixtures
         Assert.AreEqual(frameTotal, row.GetValue<T?>(7));
     }
 
-    public sealed record NumericRow<T>(int Position, T? Value) where T : struct
+    public sealed record NumericRow<T>(int Position, T? Value)
+        where T : struct
     {
         public T NonNullValue => Value.GetValueOrDefault();
     }
-
 }

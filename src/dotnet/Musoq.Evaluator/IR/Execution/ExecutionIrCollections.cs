@@ -18,19 +18,18 @@ internal static class ExecutionIrCollections
         return Array.AsReadOnly(values.ToArray());
     }
 
-    public static IReadOnlyList<IReadOnlyList<T>> FreezeNested<T>(
-        IEnumerable<IReadOnlyList<T>> values)
+    public static IReadOnlyList<IReadOnlyList<T>> FreezeNested<T>(IEnumerable<IReadOnlyList<T>> values)
     {
         ArgumentNullException.ThrowIfNull(values);
         return Array.AsReadOnly(values.Select(Freeze).ToArray());
     }
 
-    public static IReadOnlyDictionary<TKey, TValue> Freeze<TKey, TValue>(
-        IReadOnlyDictionary<TKey, TValue> values)
+    public static IReadOnlyDictionary<TKey, TValue> Freeze<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> values)
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(values);
         return new ReadOnlyDictionary<TKey, TValue>(
-            values.ToDictionary(static pair => pair.Key, static pair => pair.Value));
+            values.ToDictionary(static pair => pair.Key, static pair => pair.Value)
+        );
     }
 }

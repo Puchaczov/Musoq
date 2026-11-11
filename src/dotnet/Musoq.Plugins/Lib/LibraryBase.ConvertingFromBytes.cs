@@ -289,7 +289,7 @@ public partial class LibraryBase
             "UTF-16BE" or "UTF16BE" => Encoding.BigEndianUnicode,
             "ASCII" => Encoding.ASCII,
             "LATIN1" or "ISO-8859-1" => Encoding.Latin1,
-            _ => Encoding.UTF8
+            _ => Encoding.UTF8,
         };
 
         return encoding.GetString(value);

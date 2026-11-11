@@ -1,7 +1,6 @@
 namespace Musoq.Parser.Nodes;
 
-public class WindowFrameNode(WindowFrameType frameType, WindowFrameBoundNode start, WindowFrameBoundNode end)
-    : Node
+public class WindowFrameNode(WindowFrameType frameType, WindowFrameBoundNode start, WindowFrameBoundNode end) : Node
 {
     public WindowFrameType FrameType { get; } = frameType;
 

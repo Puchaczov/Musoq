@@ -9,15 +9,15 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class TimeSpanTests : UnknownQueryTestsBase
 {
-
     [TestMethod]
     public void SumTimeSpanTest()
     {
-        const string query = "table Periods {" +
-                             "  Period: timespan" +
-                             "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
-                             "select SumTimeSpan(Period) from Periods()";
+        const string query =
+            "table Periods {"
+            + "  Period: timespan"
+            + "};"
+            + "couple #test.whatever with table Periods as Periods; "
+            + "select SumTimeSpan(Period) from Periods()";
 
         dynamic first = new ExpandoObject();
 
@@ -27,10 +27,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
 
         second.Period = new TimeSpan(2, 0, 0);
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -45,11 +42,12 @@ public class TimeSpanTests : UnknownQueryTestsBase
     [TestMethod]
     public void SumTimeSpan_WhenAllValuesAreNull_ShouldReturnNull()
     {
-        const string query = "table Periods {" +
-                             "  Period: timespan" +
-                             "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
-                             "select SumTimeSpan(Period) from Periods()";
+        const string query =
+            "table Periods {"
+            + "  Period: timespan"
+            + "};"
+            + "couple #test.whatever with table Periods as Periods; "
+            + "select SumTimeSpan(Period) from Periods()";
 
         dynamic first = new ExpandoObject();
         first.Period = null;
@@ -57,10 +55,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
         dynamic second = new ExpandoObject();
         second.Period = null;
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -71,11 +66,12 @@ public class TimeSpanTests : UnknownQueryTestsBase
     [TestMethod]
     public void MinTimeSpanTest()
     {
-        const string query = "table Periods {" +
-                             "  Period: timespan" +
-                             "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
-                             "select MinTimeSpan(Period) from Periods()";
+        const string query =
+            "table Periods {"
+            + "  Period: timespan"
+            + "};"
+            + "couple #test.whatever with table Periods as Periods; "
+            + "select MinTimeSpan(Period) from Periods()";
 
         dynamic first = new ExpandoObject();
 
@@ -85,10 +81,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
 
         second.Period = new TimeSpan(2, 0, 0);
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -103,11 +96,12 @@ public class TimeSpanTests : UnknownQueryTestsBase
     [TestMethod]
     public void MaxTimeSpanTest()
     {
-        const string query = "table Periods {" +
-                             "  Period: timespan" +
-                             "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
-                             "select MaxTimeSpan(Period) from Periods()";
+        const string query =
+            "table Periods {"
+            + "  Period: timespan"
+            + "};"
+            + "couple #test.whatever with table Periods as Periods; "
+            + "select MaxTimeSpan(Period) from Periods()";
 
         dynamic first = new ExpandoObject();
 
@@ -117,10 +111,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
 
         second.Period = new TimeSpan(2, 0, 0);
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -135,22 +126,20 @@ public class TimeSpanTests : UnknownQueryTestsBase
     [TestMethod]
     public void AddTimeSpansTest()
     {
-        const string query = "table Periods {" +
-                             "  Period1: timespan" +
-                             "  Period2: timespan" +
-                             "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
-                             "select AddTimeSpans(Period1, Period2) from Periods()";
+        const string query =
+            "table Periods {"
+            + "  Period1: timespan"
+            + "  Period2: timespan"
+            + "};"
+            + "couple #test.whatever with table Periods as Periods; "
+            + "select AddTimeSpans(Period1, Period2) from Periods()";
 
         dynamic first = new ExpandoObject();
 
         first.Period1 = new TimeSpan(1, 0, 0);
         first.Period2 = new TimeSpan(2, 0, 0);
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -166,22 +155,20 @@ public class TimeSpanTests : UnknownQueryTestsBase
     [TestMethod]
     public void SubtractTimeSpansTest()
     {
-        const string query = "table Periods {" +
-                             "  Period1: timespan" +
-                             "  Period2: timespan" +
-                             "};" +
-                             "couple #test.whatever with table Periods as Periods; " +
-                             "select SubtractTimeSpans(Period1, Period2) from Periods()";
+        const string query =
+            "table Periods {"
+            + "  Period1: timespan"
+            + "  Period2: timespan"
+            + "};"
+            + "couple #test.whatever with table Periods as Periods; "
+            + "select SubtractTimeSpans(Period1, Period2) from Periods()";
 
         dynamic first = new ExpandoObject();
 
         first.Period1 = new TimeSpan(3, 0, 0);
         first.Period2 = new TimeSpan(2, 0, 0);
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first]);
 
         var table = vm.Run(TestContext.CancellationToken);
 

@@ -1,6 +1,5 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -22,8 +21,13 @@ public sealed partial class LibraryExecutionWindowQueryTests
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)), ("Total", typeof(int?)),
-            ("Average", typeof(decimal?)), ("Values", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Position", typeof(int)),
+            ("Total", typeof(int?)),
+            ("Average", typeof(decimal?)),
+            ("Values", typeof(long))
+        );
         Assert.HasCount(2, rows);
         Assert.IsNull(rows[0].GetValue<int?>(1));
         Assert.IsNull(rows[0].GetValue<decimal?>(2));
@@ -46,8 +50,12 @@ public sealed partial class LibraryExecutionWindowQueryTests
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
-        TableMaterializationTestHelper.AssertColumns(result, ("Position", typeof(int)), ("Total", typeof(int?)),
-            ("Average", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Position", typeof(int)),
+            ("Total", typeof(int?)),
+            ("Average", typeof(decimal?))
+        );
         Assert.HasCount(3, rows);
         Assert.AreEqual(1, rows[0].GetValue<int?>(1));
         Assert.AreEqual(1m, rows[0].GetValue<decimal?>(2));

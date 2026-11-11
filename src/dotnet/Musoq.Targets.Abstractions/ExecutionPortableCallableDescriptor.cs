@@ -7,10 +7,10 @@ namespace Musoq.Targets.Abstractions;
 public sealed record ExecutionPortableCallableDescriptor(
     ExecutionPortableCallableKind Kind,
     string StableName,
-    string DisplayName)
+    string DisplayName
+)
 {
-    public ExecutionPortableSymbolPortability Portability { get; init; } =
-        ExecutionPortableSymbolPortability.ClrOnly;
+    public ExecutionPortableSymbolPortability Portability { get; init; } = ExecutionPortableSymbolPortability.ClrOnly;
 
     public string PortabilityReason { get; init; } = "No portable callable catalog entry.";
 

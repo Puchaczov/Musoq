@@ -9,9 +9,11 @@ namespace Musoq.Schema.Tests;
 public sealed class ComputedProjectionContractTests
 {
     [TestMethod]
-    public void LegacyDescriptor_DoesNotOptIntoComputedProjection()
-        => Assert.AreEqual(SourceComputedProjectionCapabilities.None,
-            new SourceDescriptor { Identity = SourceIdentity.Empty }.ComputedProjectionCapabilities);
+    public void LegacyDescriptor_DoesNotOptIntoComputedProjection() =>
+        Assert.AreEqual(
+            SourceComputedProjectionCapabilities.None,
+            new SourceDescriptor { Identity = SourceIdentity.Empty }.ComputedProjectionCapabilities
+        );
 
     [TestMethod]
     public void OrdinaryShape_PreservesTheBaselineBinaryFingerprint()
@@ -24,8 +26,14 @@ public sealed class ComputedProjectionContractTests
     [TestMethod]
     public void ComputedField_HasExplicitOriginAndItsExpressionAffectsShapeIdentity()
     {
-        var first = QueryRowField.ForComputedProjection(0, new("Value", new SourceScalarLiteral(1L, typeof(long)), typeof(long)));
-        var second = QueryRowField.ForComputedProjection(0, new("Value", new SourceScalarLiteral(2L, typeof(long)), typeof(long)));
+        var first = QueryRowField.ForComputedProjection(
+            0,
+            new("Value", new SourceScalarLiteral(1L, typeof(long)), typeof(long))
+        );
+        var second = QueryRowField.ForComputedProjection(
+            0,
+            new("Value", new SourceScalarLiteral(2L, typeof(long)), typeof(long))
+        );
         Assert.AreEqual(QueryRowFieldOrigin.ComputedProjection, first.Origin);
         Assert.AreEqual(-1, first.SourceColumnIndex);
         Assert.AreNotEqual(new QueryRowShape([first]).Fingerprint, new QueryRowShape([second]).Fingerprint);
@@ -36,21 +44,32 @@ public sealed class ComputedProjectionContractTests
     public void ComputedField_RejectsAnInexactResultTypeAndVolatility()
     {
         var expression = new SourceScalarColumn("Value", typeof(int));
-        Assert.Throws<ArgumentException>(() => QueryRowField.ForComputedProjection(0, new("Value", expression, typeof(long))));
-        Assert.Throws<ArgumentException>(() => QueryRowField.ForComputedProjection(0,
-            new("Value", expression, typeof(int), ColumnStability.Volatile)));
+        Assert.Throws<ArgumentException>(() =>
+            QueryRowField.ForComputedProjection(0, new("Value", expression, typeof(long)))
+        );
+        Assert.Throws<ArgumentException>(() =>
+            QueryRowField.ForComputedProjection(0, new("Value", expression, typeof(int), ColumnStability.Volatile))
+        );
     }
 
     [TestMethod]
     public void RequestResultAndCoalesce_FreezeCallerOwnedCollections()
     {
         SourceComputedProjection[] projections = [new("Value", new SourceScalarLiteral(1, typeof(int)), typeof(int))];
-        var request = new SourcePlanRequest { Identity = SourceIdentity.Empty, RequestedComputedProjections = projections };
+        var request = new SourcePlanRequest
+        {
+            Identity = SourceIdentity.Empty,
+            RequestedComputedProjections = projections,
+        };
         var result = SourcePlanResult.AcceptAll(request);
         projections[0] = new("Changed", new SourceScalarLiteral(2, typeof(int)), typeof(int));
         Assert.AreEqual("Value", request.RequestedComputedProjections[0].Name);
         Assert.AreEqual("Value", result.AcceptedComputedProjections[0].Name);
-        SourceScalarExpression[] operands = [new SourceScalarLiteral(null, typeof(int?)), new SourceScalarLiteral(1, typeof(int))];
+        SourceScalarExpression[] operands =
+        [
+            new SourceScalarLiteral(null, typeof(int?)),
+            new SourceScalarLiteral(1, typeof(int)),
+        ];
         var coalesce = new SourceScalarCoalesce(operands, typeof(int));
         var copy = coalesce with { Expressions = operands };
         operands[1] = new SourceScalarLiteral(2, typeof(int));
@@ -67,13 +86,23 @@ public sealed class ComputedProjectionContractTests
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("pl-PL");
             var first = SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(1.25m, typeof(decimal)));
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
-            Assert.AreEqual(first, SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(1.25m, typeof(decimal))));
+            Assert.AreEqual(
+                first,
+                SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(1.25m, typeof(decimal)))
+            );
         }
-        finally { CultureInfo.CurrentCulture = original; }
-        Assert.AreNotEqual(SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(null, typeof(int?))),
-            SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(null, typeof(long?))));
-        Assert.AreNotEqual(SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(0d, typeof(double))),
-            SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(-0d, typeof(double))));
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
+        Assert.AreNotEqual(
+            SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(null, typeof(int?))),
+            SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(null, typeof(long?)))
+        );
+        Assert.AreNotEqual(
+            SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(0d, typeof(double))),
+            SourceScalarExpressionFingerprint.Compute(new SourceScalarLiteral(-0d, typeof(double)))
+        );
     }
 
     [TestMethod]
@@ -82,7 +111,12 @@ public sealed class ComputedProjectionContractTests
         var unknown = new UnsupportedScalar();
         Assert.IsFalse(SourceScalarExpressionFacts.IsStable(unknown));
         Assert.Throws<ArgumentException>(() => SourceScalarExpressionFingerprint.Compute(unknown));
-        var malformed = new SourceScalarBinary(SourceScalarBinaryOperator.Add, null!, new SourceScalarLiteral(1, typeof(int)), typeof(int));
+        var malformed = new SourceScalarBinary(
+            SourceScalarBinaryOperator.Add,
+            null!,
+            new SourceScalarLiteral(1, typeof(int)),
+            typeof(int)
+        );
         Assert.IsFalse(SourceScalarExpressionFacts.IsStable(malformed));
         Assert.Throws<ArgumentException>(() => SourceScalarExpressionFingerprint.Compute(malformed));
     }
@@ -93,11 +127,25 @@ public sealed class ComputedProjectionContractTests
     public void DuplicateRequestsAndInexactAcceptance_AreRejected()
     {
         var projection = new SourceComputedProjection("Value", new SourceScalarLiteral(1, typeof(int)), typeof(int));
-        Assert.IsFalse(SourceComputedProjectionNegotiator.TryPartition([projection, projection], [],
-            SourceComputedProjectionCapabilities.AllPortable, out _, out var duplicate));
+        Assert.IsFalse(
+            SourceComputedProjectionNegotiator.TryPartition(
+                [projection, projection],
+                [],
+                SourceComputedProjectionCapabilities.AllPortable,
+                out _,
+                out var duplicate
+            )
+        );
         StringAssert.Contains(duplicate, "unique");
-        Assert.IsFalse(SourceComputedProjectionNegotiator.TryPartition([projection], [projection with { ResultType = typeof(long) }],
-            SourceComputedProjectionCapabilities.AllPortable, out _, out _));
+        Assert.IsFalse(
+            SourceComputedProjectionNegotiator.TryPartition(
+                [projection],
+                [projection with { ResultType = typeof(long) }],
+                SourceComputedProjectionCapabilities.AllPortable,
+                out _,
+                out _
+            )
+        );
     }
 
     [TestMethod]
@@ -109,7 +157,10 @@ public sealed class ComputedProjectionContractTests
         for (var index = 0; index < 40; index++)
             expression = new SourceScalarCast(expression, typeof(int));
         Assert.IsFalse(SourceScalarExpressionFacts.IsStable(expression));
-        Assert.AreEqual(SourceComputedProjectionCapabilities.None, SourceComputedProjectionFacts.RequiredCapabilities(expression));
+        Assert.AreEqual(
+            SourceComputedProjectionCapabilities.None,
+            SourceComputedProjectionFacts.RequiredCapabilities(expression)
+        );
     }
 
     [TestMethod]
@@ -121,8 +172,12 @@ public sealed class ComputedProjectionContractTests
         var fingerprint = SourceScalarExpressionFingerprint.Compute(expression);
         modifiers["format"] = "changed";
         Assert.AreEqual(fingerprint, SourceScalarExpressionFingerprint.Compute(expression));
-        Assert.AreNotEqual(fingerprint, SourceScalarExpressionFingerprint.Compute(
-            new SourceScalarColumn(column with { ReadModifiers = modifiers }, typeof(int))));
+        Assert.AreNotEqual(
+            fingerprint,
+            SourceScalarExpressionFingerprint.Compute(
+                new SourceScalarColumn(column with { ReadModifiers = modifiers }, typeof(int))
+            )
+        );
     }
 
     [TestMethod]
@@ -136,14 +191,30 @@ public sealed class ComputedProjectionContractTests
     [TestMethod]
     public void SqlComparisonSemantics_CannotBeChangedByAcceptance()
     {
-        var expression = new SourceScalarBinary(SourceScalarBinaryOperator.Equal,
-            new SourceScalarColumn("Id", typeof(int?)), new SourceScalarLiteral(0, typeof(int)), typeof(bool?))
-            { UsesSqlNullSemantics = true };
+        var expression = new SourceScalarBinary(
+            SourceScalarBinaryOperator.Equal,
+            new SourceScalarColumn("Id", typeof(int?)),
+            new SourceScalarLiteral(0, typeof(int)),
+            typeof(bool?)
+        )
+        {
+            UsesSqlNullSemantics = true,
+        };
         var requested = new SourceComputedProjection("Value", expression, typeof(bool?));
         var modified = requested with { Expression = expression with { UsesSqlNullSemantics = false } };
-        Assert.AreNotEqual(SourceScalarExpressionFingerprint.Compute(expression), SourceScalarExpressionFingerprint.Compute(modified.Expression));
-        Assert.IsFalse(SourceComputedProjectionNegotiator.TryPartition([requested], [modified],
-            SourceComputedProjectionCapabilities.AllPortable, out _, out _));
+        Assert.AreNotEqual(
+            SourceScalarExpressionFingerprint.Compute(expression),
+            SourceScalarExpressionFingerprint.Compute(modified.Expression)
+        );
+        Assert.IsFalse(
+            SourceComputedProjectionNegotiator.TryPartition(
+                [requested],
+                [modified],
+                SourceComputedProjectionCapabilities.AllPortable,
+                out _,
+                out _
+            )
+        );
     }
 
     private static SourceScalarExpression NestedCasts(int count)

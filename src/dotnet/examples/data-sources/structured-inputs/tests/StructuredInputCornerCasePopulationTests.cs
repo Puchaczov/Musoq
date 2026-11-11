@@ -1,11 +1,11 @@
-using Musoq.Tests.Common;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Schema.StructuralInputs;
-using System.Security.Cryptography;
-using System.Text;
+using Musoq.Tests.Common;
 
 namespace Musoq.Examples.DataSources.StructuredInputs.Tests;
 
@@ -37,7 +37,9 @@ public sealed class StructuredInputCornerCasePopulationTests
                 for (var modeIndex = 0; modeIndex < ModeCount; modeIndex++)
                 {
                     var index = originIndex * OperatorCount * ModeCount + operatorIndex * ModeCount + modeIndex;
-                    var sourceContext = (SourceContext)((originIndex + operatorIndex + modeIndex) % Enum.GetValues<SourceContext>().Length);
+                    var sourceContext = (SourceContext)(
+                        (originIndex + operatorIndex + modeIndex) % Enum.GetValues<SourceContext>().Length
+                    );
                     if (originIndex is (int)InputOrigin.Host or (int)InputOrigin.Let)
                         sourceContext = SourceContext.From;
                     if (originIndex == (int)InputOrigin.Cte)
@@ -52,54 +54,84 @@ public sealed class StructuredInputCornerCasePopulationTests
                         sourceContext,
                         modeIndex,
                         index,
-                        specs);
+                        specs
+                    );
 
                     Assert.IsTrue(
                         normalizedHashes.Add(HashNormalizedQuery(testCase.Query)),
-                        $"Execution case {index} duplicated a normalized query hash.");
+                        $"Execution case {index} duplicated a normalized query hash."
+                    );
                     coverageCells.Add($"origin|{testCase.Origin}");
                     coverageCells.Add($"operator|{testCase.Operator}");
                     coverageCells.Add($"context|{testCase.Context}");
                     coverageCells.Add($"mode|{testCase.Mode}");
 
-                    using var compiled = Compile(testCase.Query, $"structured-input-corner-population-{index}", testCase.Options);
+                    using var compiled = Compile(
+                        testCase.Query,
+                        $"structured-input-corner-population-{index}",
+                        testCase.Options
+                    );
                     if (testCase.Host is not null)
-                        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", testCase.Host);
+                        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+                            compiled.TypedParameters,
+                            compiled.ParameterDefinitions,
+                            "patterns",
+                            testCase.Host
+                        );
                     StructuredInputSourceCounters.Reset();
 
                     using var table = compiled.Run();
-                    var actual = table.Rows
-                        .Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}")
-                        .ToArray();
+                    var actual = table.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
 
                     CollectionAssert.AreEqual(
                         testCase.Expected,
                         actual,
-                        $"Compiled execution case {index} ({testCase.Origin}/{testCase.Operator}/{testCase.Context}/{testCase.Mode}). Expected=[{string.Join(",", testCase.Expected)}] Actual=[{string.Join(",", actual)}]");
-                    Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed, $"Case {index} source invocation count.");
+                        $"Compiled execution case {index} ({testCase.Origin}/{testCase.Operator}/{testCase.Context}/{testCase.Mode}). Expected=[{string.Join(",", testCase.Expected)}] Actual=[{string.Join(",", actual)}]"
+                    );
+                    Assert.AreEqual(
+                        1,
+                        StructuredInputSourceCounters.MatchConstructed,
+                        $"Case {index} source invocation count."
+                    );
                 }
             }
         }
 
-        Assert.AreEqual(CaseCount, normalizedHashes.Count, "Every compiled case must have a distinct normalized query hash.");
-        Assert.AreEqual(OriginCount, coverageCells.Count(static cell => cell.StartsWith("origin|", StringComparison.Ordinal)));
-        Assert.AreEqual(OperatorCount, coverageCells.Count(static cell => cell.StartsWith("operator|", StringComparison.Ordinal)));
-        Assert.AreEqual(Enum.GetValues<SourceContext>().Length, coverageCells.Count(static cell => cell.StartsWith("context|", StringComparison.Ordinal)));
-        Assert.AreEqual(ModeCount, coverageCells.Count(static cell => cell.StartsWith("mode|", StringComparison.Ordinal)));
+        Assert.AreEqual(
+            CaseCount,
+            normalizedHashes.Count,
+            "Every compiled case must have a distinct normalized query hash."
+        );
+        Assert.AreEqual(
+            OriginCount,
+            coverageCells.Count(static cell => cell.StartsWith("origin|", StringComparison.Ordinal))
+        );
+        Assert.AreEqual(
+            OperatorCount,
+            coverageCells.Count(static cell => cell.StartsWith("operator|", StringComparison.Ordinal))
+        );
+        Assert.AreEqual(
+            Enum.GetValues<SourceContext>().Length,
+            coverageCells.Count(static cell => cell.StartsWith("context|", StringComparison.Ordinal))
+        );
+        Assert.AreEqual(
+            ModeCount,
+            coverageCells.Count(static cell => cell.StartsWith("mode|", StringComparison.Ordinal))
+        );
     }
 
     [TestMethod]
     public void CompiledExecutionMetamorphicCases_ShouldRespectRecordEquivalenceAndArrayOrder()
     {
         const string query =
-            "select m.PatternId, m.MatchText from #inputs.match('TODO FIXME', patterns: array { " +
-            "(Id: 'todo', Pattern: 'TODO'), (Id: 'fixme', Pattern: 'FIXME') }) m";
+            "select m.PatternId, m.MatchText from #inputs.match('TODO FIXME', patterns: array { "
+            + "(Id: 'todo', Pattern: 'TODO'), (Id: 'fixme', Pattern: 'FIXME') }) m";
         const string reorderedQuery =
-            "select m.PatternId, m.MatchText from #inputs.match('TODO FIXME', patterns: array { " +
-            "(pattern: 'TODO', id: 'todo',), (PATTERN: 'FIXME', ID: 'fixme') }) m";
+            "select m.PatternId, m.MatchText from #inputs.match('TODO FIXME', patterns: array { "
+            + "(pattern: 'TODO', id: 'todo',), (PATTERN: 'FIXME', ID: 'fixme') }) m";
         const string reversedArrayQuery =
-            "select m.PatternId, m.MatchText from #inputs.match('TODO FIXME', patterns: array { " +
-            "(Id: 'fixme', Pattern: 'FIXME'), (Id: 'todo', Pattern: 'TODO') }) m";
+            "select m.PatternId, m.MatchText from #inputs.match('TODO FIXME', patterns: array { "
+            + "(Id: 'fixme', Pattern: 'FIXME'), (Id: 'todo', Pattern: 'TODO') }) m";
 
         using var first = Compile(query, "structured-input-metamorphic-first");
         using var reordered = Compile(reorderedQuery, "structured-input-metamorphic-reordered");
@@ -111,13 +143,19 @@ public sealed class StructuredInputCornerCasePopulationTests
 
         StructuredInputSourceCounters.Reset();
         using var reorderedTable = reordered.Run();
-        var reorderedRows = reorderedTable.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
+        var reorderedRows = reorderedTable
+            .Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}")
+            .ToArray();
         CollectionAssert.AreEqual(firstRows, reorderedRows, "Field order and casing should preserve binding.");
 
         StructuredInputSourceCounters.Reset();
         using var reversedTable = reversed.Run();
         var reversedRows = reversedTable.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
-        CollectionAssert.AreNotEqual(firstRows, reversedRows, "Array order is observable and must not be treated as equivalent.");
+        CollectionAssert.AreNotEqual(
+            firstRows,
+            reversedRows,
+            "Array order is observable and must not be treated as equivalent."
+        );
         Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
     }
 
@@ -125,29 +163,50 @@ public sealed class StructuredInputCornerCasePopulationTests
     public void CompiledExecutionMetamorphicHosts_ShouldProduceEquivalentSnapshots()
     {
         const string query =
-            "param(patterns: (Id: string, Pattern: string)[]) " +
-            "select m.PatternId, m.MatchText from #inputs.match('TODO FIXME', patterns: $patterns) m";
+            "param(patterns: (Id: string, Pattern: string)[]) "
+            + "select m.PatternId, m.MatchText from #inputs.match('TODO FIXME', patterns: $patterns) m";
         using var compiled = Compile(query, "structured-input-host-representations");
 
         var list = new List<Dictionary<string, object?>>
         {
             new(StringComparer.OrdinalIgnoreCase) { ["Id"] = "todo", ["Pattern"] = "TODO" },
-            new(StringComparer.OrdinalIgnoreCase) { ["Id"] = "fixme", ["Pattern"] = "FIXME" }
+            new(StringComparer.OrdinalIgnoreCase) { ["Id"] = "fixme", ["Pattern"] = "FIXME" },
         };
-        var array = list.Select(static record => new Dictionary<string, object?>(record, StringComparer.OrdinalIgnoreCase)).ToArray();
-        var structural = StructuralValue.FromCollection(list.Select(static record => StructuralValue.FromRecord(
-            record.Select(static field => new KeyValuePair<string, StructuralValue>(field.Key, StructuralValue.FromScalar(field.Value))))));
+        var array = list.Select(static record => new Dictionary<string, object?>(
+                record,
+                StringComparer.OrdinalIgnoreCase
+            ))
+            .ToArray();
+        var structural = StructuralValue.FromCollection(
+            list.Select(static record =>
+                StructuralValue.FromRecord(
+                    record.Select(static field => new KeyValuePair<string, StructuralValue>(
+                        field.Key,
+                        StructuralValue.FromScalar(field.Value)
+                    ))
+                )
+            )
+        );
         var hosts = new object[] { list, array, structural };
         string[]? expected = null;
 
         foreach (var host in hosts)
         {
-            global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", host);
+            global::Musoq.Tests.Common.NativeParameterFixture.Set(
+                compiled.TypedParameters,
+                compiled.ParameterDefinitions,
+                "patterns",
+                host
+            );
             StructuredInputSourceCounters.Reset();
             using var table = compiled.Run();
             var actual = table.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();
             expected ??= actual;
-            CollectionAssert.AreEqual(expected, actual, $"Host representation {host.GetType().Name} changed the normalized snapshot.");
+            CollectionAssert.AreEqual(
+                expected,
+                actual,
+                $"Host representation {host.GetType().Name} changed the normalized snapshot."
+            );
             Assert.AreEqual(1, StructuredInputSourceCounters.MatchConstructed);
         }
     }
@@ -171,7 +230,8 @@ public sealed class StructuredInputCornerCasePopulationTests
         SourceContext context,
         int modeIndex,
         int index,
-        IReadOnlyList<PatternSpec> specs)
+        IReadOnlyList<PatternSpec> specs
+    )
     {
         var text = $"TODO FIXME ISSUE-42 case-{index}";
         var argument = origin switch
@@ -180,7 +240,7 @@ public sealed class StructuredInputCornerCasePopulationTests
             InputOrigin.Inline => $"array {{ {FormatInlineRecords(specs)} }}",
             InputOrigin.Let => "$patterns",
             InputOrigin.Cte => "patterns",
-            _ => throw new ArgumentOutOfRangeException(nameof(origin))
+            _ => throw new ArgumentOutOfRangeException(nameof(origin)),
         };
 
         var declaration = origin switch
@@ -188,30 +248,33 @@ public sealed class StructuredInputCornerCasePopulationTests
             InputOrigin.Host => $"param(patterns: (Id: string, Pattern: string, Mode: string = 'literal')[]) ",
             InputOrigin.Let => $"let patterns = array {{ {FormatInlineRecords(specs)} }}; ",
             InputOrigin.Cte => CreateCteDeclaration(@operator, specs),
-            _ => string.Empty
+            _ => string.Empty,
         };
 
-        var coupling = context == SourceContext.Coupled
-            ? "table MatchRows { PatternId: string, MatchText: string, Offset: int }; couple #inputs.match with table MatchRows as Matches; "
-            : string.Empty;
+        var coupling =
+            context == SourceContext.Coupled
+                ? "table MatchRows { PatternId: string, MatchText: string, Offset: int }; couple #inputs.match with table MatchRows as Matches; "
+                : string.Empty;
         var sourceName = context == SourceContext.Coupled ? "Matches" : "#inputs.match";
         var sourceCall = $"{sourceName}('{text}', patterns: {argument})";
-        var projection = @operator == CteOperator.Window
-            ? "m.PatternId, m.MatchText, RowNumber() over (order by m.Offset) as RowNo"
-            : @operator == CteOperator.Distinct
-                ? "distinct m.PatternId, m.MatchText"
-                : "m.PatternId, m.MatchText";
-        var suffix = origin == InputOrigin.Cte
-            ? string.Empty
-            : CreateResultModifier(@operator);
-        var query = coupling + declaration + context switch
-        {
-            SourceContext.From => $"select {projection} from {sourceCall} m{suffix}",
-            SourceContext.CrossApply => $"select {projection} from #inputs.numbers(values: array {{ 0 }}) d cross apply {sourceCall} m{suffix}",
-            SourceContext.CrossJoin => $"select {projection} from #inputs.numbers(values: array {{ 0 }}) d cross join {sourceCall} m{suffix}",
-            SourceContext.Coupled => $"select {projection} from {sourceCall} m{suffix}",
-            _ => throw new ArgumentOutOfRangeException(nameof(context))
-        };
+        var projection =
+            @operator == CteOperator.Window ? "m.PatternId, m.MatchText, RowNumber() over (order by m.Offset) as RowNo"
+            : @operator == CteOperator.Distinct ? "distinct m.PatternId, m.MatchText"
+            : "m.PatternId, m.MatchText";
+        var suffix = origin == InputOrigin.Cte ? string.Empty : CreateResultModifier(@operator);
+        var query =
+            coupling
+            + declaration
+            + context switch
+            {
+                SourceContext.From => $"select {projection} from {sourceCall} m{suffix}",
+                SourceContext.CrossApply =>
+                    $"select {projection} from #inputs.numbers(values: array {{ 0 }}) d cross apply {sourceCall} m{suffix}",
+                SourceContext.CrossJoin =>
+                    $"select {projection} from #inputs.numbers(values: array {{ 0 }}) d cross join {sourceCall} m{suffix}",
+                SourceContext.Coupled => $"select {projection} from {sourceCall} m{suffix}",
+                _ => throw new ArgumentOutOfRangeException(nameof(context)),
+            };
 
         return new ExecutionCase(
             query,
@@ -222,16 +285,23 @@ public sealed class StructuredInputCornerCasePopulationTests
             ModeName(modeIndex),
             OptionsForMode(modeIndex),
             origin == InputOrigin.Host
-                ? index % 2 == 0 ? CreateListHost(specs, index) : CreateArrayHost(specs, index)
-                : null);
+                ? index % 2 == 0
+                    ? CreateListHost(specs, index)
+                    : CreateArrayHost(specs, index)
+                : null
+        );
     }
 
     private static string FormatInlineRecords(IReadOnlyList<PatternSpec> specs)
     {
-        return string.Join(", ", specs.Select(static spec =>
-            spec.MatchText.StartsWith("ISSUE", StringComparison.Ordinal)
-                ? $"(Pattern: '{spec.Pattern}', Id: '{spec.Id}', Mode: 'regex')"
-                : $"(Id: '{spec.Id}', Pattern: '{spec.Pattern}')"));
+        return string.Join(
+            ", ",
+            specs.Select(static spec =>
+                spec.MatchText.StartsWith("ISSUE", StringComparison.Ordinal)
+                    ? $"(Pattern: '{spec.Pattern}', Id: '{spec.Id}', Mode: 'regex')"
+                    : $"(Id: '{spec.Id}', Pattern: '{spec.Pattern}')"
+            )
+        );
     }
 
     private static string CreateCteDeclaration(CteOperator @operator, IReadOnlyList<PatternSpec> specs)
@@ -240,41 +310,46 @@ public sealed class StructuredInputCornerCasePopulationTests
         var baseRows = $"from values {{ {rows} }} p";
         return @operator switch
         {
-            CteOperator.Filter => $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows} where p.Id = '{specs[0].Id}') ",
+            CteOperator.Filter =>
+                $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows} where p.Id = '{specs[0].Id}') ",
             CteOperator.OrderAsc => $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows} order by p.Id) ",
             CteOperator.Distinct => $"with patterns as (select distinct p.Id, p.Pattern, p.Mode {baseRows}) ",
-            CteOperator.Group => $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows} group by p.Id, p.Pattern, p.Mode order by p.Id) ",
-            CteOperator.Set => $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows} union all (Id, Pattern, Mode) select q.Id, q.Pattern, q.Mode from values {{ {rows} }} q) ",
+            CteOperator.Group =>
+                $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows} group by p.Id, p.Pattern, p.Mode order by p.Id) ",
+            CteOperator.Set =>
+                $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows} union all (Id, Pattern, Mode) select q.Id, q.Pattern, q.Mode from values {{ {rows} }} q) ",
             CteOperator.Page => $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows} order by p.Id take 1) ",
             CteOperator.Window => $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows}) ",
             CteOperator.Plain => $"with patterns as (select p.Id, p.Pattern, p.Mode {baseRows}) ",
-            _ => throw new ArgumentOutOfRangeException(nameof(@operator), @operator, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(@operator), @operator, null),
         };
     }
 
     private static string FormatCteRecords(IReadOnlyList<PatternSpec> specs)
     {
-        return string.Join(", ", specs.Select(static spec =>
-            $"(Id: '{spec.Id}', Pattern: '{spec.Pattern}', Mode: '{(spec.MatchText.StartsWith("ISSUE", StringComparison.Ordinal) ? "regex" : "literal")}')"));
+        return string.Join(
+            ", ",
+            specs.Select(static spec =>
+                $"(Id: '{spec.Id}', Pattern: '{spec.Pattern}', Mode: '{(spec.MatchText.StartsWith("ISSUE", StringComparison.Ordinal) ? "regex" : "literal")}')"
+            )
+        );
     }
 
-    private static string CreateResultModifier(CteOperator @operator) => @operator switch
-    {
-        CteOperator.Plain => string.Empty,
-        CteOperator.Filter => " where m.Offset >= 0",
-        CteOperator.OrderAsc => " order by m.PatternId",
-        CteOperator.Distinct => string.Empty,
-        CteOperator.Group => " group by m.PatternId, m.MatchText order by m.PatternId",
-        CteOperator.Set => " skip 0",
-        CteOperator.Page => " order by m.PatternId take 1",
-        CteOperator.Window => string.Empty,
-        _ => throw new ArgumentOutOfRangeException(nameof(@operator), @operator, null)
-    };
+    private static string CreateResultModifier(CteOperator @operator) =>
+        @operator switch
+        {
+            CteOperator.Plain => string.Empty,
+            CteOperator.Filter => " where m.Offset >= 0",
+            CteOperator.OrderAsc => " order by m.PatternId",
+            CteOperator.Distinct => string.Empty,
+            CteOperator.Group => " group by m.PatternId, m.MatchText order by m.PatternId",
+            CteOperator.Set => " skip 0",
+            CteOperator.Page => " order by m.PatternId take 1",
+            CteOperator.Window => string.Empty,
+            _ => throw new ArgumentOutOfRangeException(nameof(@operator), @operator, null),
+        };
 
-    private static string[] CreateExpected(
-        IReadOnlyList<PatternSpec> specs,
-        InputOrigin origin,
-        CteOperator @operator)
+    private static string[] CreateExpected(IReadOnlyList<PatternSpec> specs, InputOrigin origin, CteOperator @operator)
     {
         IEnumerable<PatternSpec> ordered = specs;
         if (origin == InputOrigin.Cte)
@@ -282,20 +357,26 @@ public sealed class StructuredInputCornerCasePopulationTests
             ordered = @operator switch
             {
                 CteOperator.Filter => specs.Take(1),
-                CteOperator.OrderAsc or CteOperator.Group => specs.OrderBy(static spec => spec.Id, StringComparer.Ordinal),
+                CteOperator.OrderAsc or CteOperator.Group => specs.OrderBy(
+                    static spec => spec.Id,
+                    StringComparer.Ordinal
+                ),
                 CteOperator.Page => specs.OrderBy(static spec => spec.Id, StringComparer.Ordinal).Take(1),
                 CteOperator.Distinct or CteOperator.Window or CteOperator.Plain => specs,
                 CteOperator.Set => specs.Concat(specs),
-                _ => specs
+                _ => specs,
             };
         }
         else
         {
             ordered = @operator switch
             {
-                CteOperator.OrderAsc or CteOperator.Group => specs.OrderBy(static spec => spec.Id, StringComparer.Ordinal),
+                CteOperator.OrderAsc or CteOperator.Group => specs.OrderBy(
+                    static spec => spec.Id,
+                    StringComparer.Ordinal
+                ),
                 CteOperator.Page => specs.OrderBy(static spec => spec.Id, StringComparer.Ordinal).Take(1),
-                _ => specs
+                _ => specs,
             };
         }
 
@@ -309,33 +390,38 @@ public sealed class StructuredInputCornerCasePopulationTests
             0 => new CompilationOptions(
                 parallelizationMode: ParallelizationMode.None,
                 useCteParallelization: false,
-                usePrimitiveTypeValidation: false),
+                usePrimitiveTypeValidation: false
+            ),
             1 => new CompilationOptions(
                 parallelizationMode: ParallelizationMode.Full,
                 useCteParallelization: false,
-                usePrimitiveTypeValidation: false),
+                usePrimitiveTypeValidation: false
+            ),
             2 => new CompilationOptions(
                 parallelizationMode: ParallelizationMode.Full,
                 useCteParallelization: true,
-                usePrimitiveTypeValidation: false),
+                usePrimitiveTypeValidation: false
+            ),
             3 => new CompilationOptions(
                 parallelizationMode: ParallelizationMode.None,
                 useCteParallelization: false,
-                usePrimitiveTypeValidation: false),
-            _ => throw new ArgumentOutOfRangeException(nameof(modeIndex))
+                usePrimitiveTypeValidation: false
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(modeIndex)),
         };
 
         return modeIndex == 2 ? options.WithStabilityAwareScalarReuse() : options;
     }
 
-    private static string ModeName(int modeIndex) => modeIndex switch
-    {
-        0 => "serial-minimal",
-        1 => "parallel-no-cte",
-        2 => "parallel-cte-stable",
-        3 => "serial-cte-no-cse",
-        _ => throw new ArgumentOutOfRangeException(nameof(modeIndex))
-    };
+    private static string ModeName(int modeIndex) =>
+        modeIndex switch
+        {
+            0 => "serial-minimal",
+            1 => "parallel-no-cte",
+            2 => "parallel-cte-stable",
+            3 => "serial-cte-no-cse",
+            _ => throw new ArgumentOutOfRangeException(nameof(modeIndex)),
+        };
 
     private static string HashNormalizedQuery(string query)
     {
@@ -370,9 +456,7 @@ public sealed class StructuredInputCornerCasePopulationTests
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString().Trim())));
     }
 
-    private static List<Dictionary<string, object?>> CreateListHost(
-        IReadOnlyList<PatternSpec> specs,
-        int caseIndex)
+    private static List<Dictionary<string, object?>> CreateListHost(IReadOnlyList<PatternSpec> specs, int caseIndex)
     {
         var result = new List<Dictionary<string, object?>>(specs.Count);
         for (var index = 0; index < specs.Count; index++)
@@ -380,9 +464,7 @@ public sealed class StructuredInputCornerCasePopulationTests
         return result;
     }
 
-    private static Dictionary<string, object?>[] CreateArrayHost(
-        IReadOnlyList<PatternSpec> specs,
-        int caseIndex)
+    private static Dictionary<string, object?>[] CreateArrayHost(IReadOnlyList<PatternSpec> specs, int caseIndex)
     {
         var result = new Dictionary<string, object?>[specs.Count];
         for (var index = 0; index < specs.Count; index++)
@@ -390,13 +472,11 @@ public sealed class StructuredInputCornerCasePopulationTests
         return result;
     }
 
-    private static Dictionary<string, object?> CreateHostRecord(
-        PatternSpec spec,
-        int caseIndex,
-        int patternIndex)
+    private static Dictionary<string, object?> CreateHostRecord(PatternSpec spec, int caseIndex, int patternIndex)
     {
         var fields = new Dictionary<string, object?>(
-            patternIndex % 2 == 0 ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+            patternIndex % 2 == 0 ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase
+        );
         if ((caseIndex + patternIndex) % 2 == 0)
         {
             fields[patternIndex % 3 == 0 ? "ID" : "id"] = spec.Id;
@@ -414,19 +494,21 @@ public sealed class StructuredInputCornerCasePopulationTests
         return fields;
     }
 
-    private static CompiledQuery Compile(
-        string query,
-        string queryId,
-        CompilationOptions? options = null)
+    private static CompiledQuery Compile(string query, string queryId, CompilationOptions? options = null)
     {
         var build = InstanceCreator.CompileWithDiagnostics(
             query,
             queryId,
             new StructuredInputsSchemaProvider(),
             new NullLoggerResolver(),
-            options ?? new CompilationOptions(usePrimitiveTypeValidation: false));
-        var details = build.CaughtException?.ToString() ??
-            string.Join(Environment.NewLine, build.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
+            options ?? new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
+        var details =
+            build.CaughtException?.ToString()
+            ?? string.Join(
+                Environment.NewLine,
+                build.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            );
         Assert.IsTrue(build.Succeeded && build.CompiledQuery != null, details + Environment.NewLine + query);
         return build.CompiledQuery!;
     }
@@ -441,14 +523,15 @@ public sealed class StructuredInputCornerCasePopulationTests
         string Context,
         string Mode,
         CompilationOptions Options,
-        object? Host);
+        object? Host
+    );
 
     private enum InputOrigin
     {
         Host,
         Inline,
         Let,
-        Cte
+        Cte,
     }
 
     private enum CteOperator
@@ -460,7 +543,7 @@ public sealed class StructuredInputCornerCasePopulationTests
         Group,
         Set,
         Page,
-        Window
+        Window,
     }
 
     private enum SourceContext
@@ -468,7 +551,7 @@ public sealed class StructuredInputCornerCasePopulationTests
         From,
         CrossApply,
         CrossJoin,
-        Coupled
+        Coupled,
     }
 
     private sealed class NullLoggerResolver : ILoggerResolver

@@ -13,16 +13,24 @@ namespace Musoq.Evaluator.IR.Optimization.Physical;
 
 internal static partial class ProjectionPruningCteDefinitions
 {
-    public static (PhysicalMultiStatementNode Node, int PrunedFields) PruneIntermediateOutputs(PhysicalMultiStatementNode multi)
+    public static (PhysicalMultiStatementNode Node, int PrunedFields) PruneIntermediateOutputs(
+        PhysicalMultiStatementNode multi
+    )
     {
         var producers = IntermediateSourceProducers.Resolve(multi);
         if (producers.Count == 0 || HasPresenceDependency(multi))
             return (multi, 0);
         var names = producers.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var sourceSchemas = producers.ToDictionary(static producer => producer.Key,
-            producer => multi.Statements[producer.Value].OutputSchema, StringComparer.OrdinalIgnoreCase);
-        var requiredByName = names.ToDictionary(static name => name,
-            static _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase);
+        var sourceSchemas = producers.ToDictionary(
+            static producer => producer.Key,
+            producer => multi.Statements[producer.Value].OutputSchema,
+            StringComparer.OrdinalIgnoreCase
+        );
+        var requiredByName = names.ToDictionary(
+            static name => name,
+            static _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+            StringComparer.OrdinalIgnoreCase
+        );
         var statements = multi.Statements.ToArray();
         var schemas = new Dictionary<string, OutputSchema>(StringComparer.OrdinalIgnoreCase);
         var prunedFields = 0;
@@ -46,45 +54,71 @@ internal static partial class ProjectionPruningCteDefinitions
 
         for (var index = 0; index < statements.Length; index++)
             statements[index] = RewriteCteRefSchemas(statements[index], schemas);
-        return (new PhysicalMultiStatementNode(statements) { IntermediateProducers = multi.IntermediateProducers }, prunedFields);
+        return (
+            new PhysicalMultiStatementNode(statements) { IntermediateProducers = multi.IntermediateProducers },
+            prunedFields
+        );
     }
 
-    private static PhysicalNode PrunePassthroughOutput(PhysicalNode node, IReadOnlySet<string> required,
-        IReadOnlyDictionary<string, OutputSchema> sources)
+    private static PhysicalNode PrunePassthroughOutput(
+        PhysicalNode node,
+        IReadOnlySet<string> required,
+        IReadOnlyDictionary<string, OutputSchema> sources
+    )
     {
-        if (node is not PhysicalProjectNode { IsDistinct: false } project ||
-            ColumnUsage.HasAmbiguousOutputNames(project.Fields) ||
-            required.Any(name => !project.Fields.Any(field => ColumnUsage.NameEquals(name, field.OutputName))))
+        if (
+            node is not PhysicalProjectNode { IsDistinct: false } project
+            || ColumnUsage.HasAmbiguousOutputNames(project.Fields)
+            || required.Any(name => !project.Fields.Any(field => ColumnUsage.NameEquals(name, field.OutputName)))
+        )
             return node;
 
-        var retained = project.Fields.Where(field => required.Contains(field.OutputName) ||
-                                                    !CanRemovePassthrough(field, project.Input, sources))
-            .Select((field, index) => field with { OutputIndex = index }).ToArray();
+        var retained = project
+            .Fields.Where(field =>
+                required.Contains(field.OutputName) || !CanRemovePassthrough(field, project.Input, sources)
+            )
+            .Select((field, index) => field with { OutputIndex = index })
+            .ToArray();
         if (retained.Length == 0 || retained.Length == project.Fields.Length)
             return node;
         return new PhysicalProjectNode(retained, project.Input);
     }
 
-    private static bool CanRemovePassthrough(ProjectedField field, PhysicalNode input,
-        IReadOnlyDictionary<string, OutputSchema> sources)
-        => field.Expression is Literal || field.Expression is ColumnRef column &&
-           ExpressionStabilityAnalyzer.IsStable(column) && IsDirectColumnReference(input, column, sources);
+    private static bool CanRemovePassthrough(
+        ProjectedField field,
+        PhysicalNode input,
+        IReadOnlyDictionary<string, OutputSchema> sources
+    ) =>
+        field.Expression is Literal
+        || field.Expression is ColumnRef column
+            && ExpressionStabilityAnalyzer.IsStable(column)
+            && IsDirectColumnReference(input, column, sources);
 
-    private static bool IsDirectColumnReference(PhysicalNode input, ColumnRef column,
-        IReadOnlyDictionary<string, OutputSchema> sources)
+    private static bool IsDirectColumnReference(
+        PhysicalNode input,
+        ColumnRef column,
+        IReadOnlyDictionary<string, OutputSchema> sources
+    )
     {
-        if (input is PhysicalCteRefNode reference &&
-            string.Equals(reference.Alias, column.Alias, StringComparison.OrdinalIgnoreCase) &&
-            sources.TryGetValue(reference.CteName, out var schema))
-            return schema.FindByName(CteColumnUsageCollector.NormalizeColumnName(column.ColumnName, column.Alias)) != null;
+        if (
+            input is PhysicalCteRefNode reference
+            && string.Equals(reference.Alias, column.Alias, StringComparison.OrdinalIgnoreCase)
+            && sources.TryGetValue(reference.CteName, out var schema)
+        )
+            return schema.FindByName(CteColumnUsageCollector.NormalizeColumnName(column.ColumnName, column.Alias))
+                != null;
 
         if (input.Children.Count == 0 && ColumnUsage.ProducesAlias(input, column.Alias))
-            return input.OutputSchema.FindByName(CteColumnUsageCollector.NormalizeColumnName(column.ColumnName, column.Alias)) != null;
+            return input.OutputSchema.FindByName(
+                    CteColumnUsageCollector.NormalizeColumnName(column.ColumnName, column.Alias)
+                ) != null;
 
         return input.Children.Any(child => IsDirectColumnReference(child, column, sources));
     }
 
-    private static bool HasPresenceDependency(PhysicalNode node)
-        => CteColumnUsageCollector.EnumerateNodeExpressions(node).Any(expression =>
-               RowPresenceAliasExtractor.Extract(expression).Count != 0) || node.Children.Any(HasPresenceDependency);
+    private static bool HasPresenceDependency(PhysicalNode node) =>
+        CteColumnUsageCollector
+            .EnumerateNodeExpressions(node)
+            .Any(expression => RowPresenceAliasExtractor.Extract(expression).Count != 0)
+        || node.Children.Any(HasPresenceDependency);
 }

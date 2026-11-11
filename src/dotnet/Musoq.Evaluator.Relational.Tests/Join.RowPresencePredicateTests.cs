@@ -12,124 +12,146 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class JoinRowPresencePredicateTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void LeftJoin_CaseWhenRightAliasIsMissing_ShouldClassifyRows()
     {
-        const string query = @"
-select
-    case when b is missing then 'LeftOnly' else 'Matched' end as State,
-    a.Id,
-    b.Id
-from #A.entities() a
-left join #B.entities() b on a.Id = b.Id";
+        const string query = (
+            "\n"
+            + "select\n"
+            + "    case when b is missing then 'LeftOnly' else 'Matched' end as State,\n"
+            + "    a.Id,\n"
+            + "    b.Id\n"
+            + "from #A.entities() a\n"
+            + "left join #B.entities() b on a.Id = b.Id"
+        );
 
-        var table = Run(query, CreateSources(
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 2 }]));
+        var table = Run(
+            query,
+            CreateSources([new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }], [new BasicEntity { Id = 2 }])
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("State", typeof(string)),
             ("Id", typeof(int)),
-            ("Id", typeof(int?)));
+            ("Id", typeof(int?))
+        );
         AssertRows(table, ("LeftOnly", 1, null), ("Matched", 2, 2));
     }
 
     [TestMethod]
     public void RightJoin_CaseWhenLeftAliasIsMissing_ShouldClassifyRows()
     {
-        const string query = @"
-select
-    case when a is missing then 'RightOnly' else 'Matched' end as State,
-    a.Id,
-    b.Id
-from #A.entities() a
-right join #B.entities() b on a.Id = b.Id";
+        const string query = (
+            "\n"
+            + "select\n"
+            + "    case when a is missing then 'RightOnly' else 'Matched' end as State,\n"
+            + "    a.Id,\n"
+            + "    b.Id\n"
+            + "from #A.entities() a\n"
+            + "right join #B.entities() b on a.Id = b.Id"
+        );
 
-        var table = Run(query, CreateSources(
-            [new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]));
+        var table = Run(
+            query,
+            CreateSources([new BasicEntity { Id = 2 }], [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }])
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("State", typeof(string)),
             ("Id", typeof(int?)),
-            ("Id", typeof(int)));
+            ("Id", typeof(int))
+        );
         AssertRows(table, ("RightOnly", null, 1), ("Matched", 2, 2));
     }
 
     [TestMethod]
     public void FullOuterJoin_CaseWhenAliasesAreMissing_ShouldClassifyAllRowKinds()
     {
-        const string query = @"
-select
-    case
-        when b is missing then 'LeftOnly'
-        when a is missing then 'RightOnly'
-        else 'Matched'
-    end as State,
-    a.Id,
-    b.Id
-from #A.entities() a
-full outer join #B.entities() b on a.Id = b.Id";
+        const string query = (
+            "\n"
+            + "select\n"
+            + "    case\n"
+            + "        when b is missing then 'LeftOnly'\n"
+            + "        when a is missing then 'RightOnly'\n"
+            + "        else 'Matched'\n"
+            + "    end as State,\n"
+            + "    a.Id,\n"
+            + "    b.Id\n"
+            + "from #A.entities() a\n"
+            + "full outer join #B.entities() b on a.Id = b.Id"
+        );
 
-        var table = Run(query, CreateSources(
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }]));
+        var table = Run(
+            query,
+            CreateSources(
+                [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+                [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }]
+            )
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("State", typeof(string)),
             ("Id", typeof(int?)),
-            ("Id", typeof(int?)));
+            ("Id", typeof(int?))
+        );
         AssertRows(table, ("LeftOnly", 1, null), ("Matched", 2, 2), ("RightOnly", null, 3));
     }
 
     [TestMethod]
     public void LeftJoin_RowPresence_ShouldNotDependOnNullableColumnValues()
     {
-        const string query = @"
-select
-    a.Id,
-    case
-        when b is present then 'Present'
-        when b is missing then 'Missing'
-        else 'Impossible'
-    end as State,
-    b.NullableValue
-from #A.entities() a
-left join #B.entities() b on a.Id = b.Id";
+        const string query = (
+            "\n"
+            + "select\n"
+            + "    a.Id,\n"
+            + "    case\n"
+            + "        when b is present then 'Present'\n"
+            + "        when b is missing then 'Missing'\n"
+            + "        else 'Impossible'\n"
+            + "    end as State,\n"
+            + "    b.NullableValue\n"
+            + "from #A.entities() a\n"
+            + "left join #B.entities() b on a.Id = b.Id"
+        );
 
-        var table = Run(query, CreateSources(
-            [
-                new BasicEntity { Id = 1 },
-                new BasicEntity { Id = 2 }
-            ],
-            [
-                new BasicEntity { Id = 1, NullableValue = null }
-            ]));
+        var table = Run(
+            query,
+            CreateSources(
+                [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+                [new BasicEntity { Id = 1, NullableValue = null }]
+            )
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Id", typeof(int)),
             ("State", typeof(string)),
-            ("NullableValue", typeof(int?)));
+            ("NullableValue", typeof(int?))
+        );
         AssertRows(table, (1, "Present", null), (2, "Missing", null));
     }
 
     [TestMethod]
     public void FullOuterJoin_WhereAliasIsMissing_ShouldReturnOnlyRowsWithoutThatSide()
     {
-        const string query = @"
-select a.Id, b.Id
-from #A.entities() a
-full outer join #B.entities() b on a.Id = b.Id
-where b is missing";
+        const string query = (
+            "\n"
+            + "select a.Id, b.Id\n"
+            + "from #A.entities() a\n"
+            + "full outer join #B.entities() b on a.Id = b.Id\n"
+            + "where b is missing"
+        );
 
-        var table = Run(query, CreateSources(
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }]));
+        var table = Run(
+            query,
+            CreateSources(
+                [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+                [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }]
+            )
+        );
 
         AssertFullOuterIdColumns(table);
         AssertRows(table, (1, null));
@@ -138,89 +160,92 @@ where b is missing";
     [TestMethod]
     public void LeftJoin_WhereRightAliasPresencePredicates_ShouldFilterRows()
     {
-        const string missingQuery = @"
-select a.Id, b.Id
-from #A.entities() a
-left join #B.entities() b on a.Id = b.Id
-where b is missing";
+        const string missingQuery = (
+            "\n"
+            + "select a.Id, b.Id\n"
+            + "from #A.entities() a\n"
+            + "left join #B.entities() b on a.Id = b.Id\n"
+            + "where b is missing"
+        );
 
-        const string presentQuery = @"
-select a.Id, b.Id
-from #A.entities() a
-left join #B.entities() b on a.Id = b.Id
-where b is present";
+        const string presentQuery = (
+            "\n"
+            + "select a.Id, b.Id\n"
+            + "from #A.entities() a\n"
+            + "left join #B.entities() b on a.Id = b.Id\n"
+            + "where b is present"
+        );
 
         var sources = CreateSources(
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 2 }]);
+            [new BasicEntity { Id = 2 }]
+        );
 
         var missing = Run(missingQuery, sources);
         var present = Run(presentQuery, sources);
 
-        TableMaterializationTestHelper.AssertColumns(
-            missing,
-            ("Id", typeof(int)),
-            ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(missing, ("Id", typeof(int)), ("Id", typeof(int?)));
         AssertRows(missing, (1, null));
-        TableMaterializationTestHelper.AssertColumns(
-            present,
-            ("Id", typeof(int)),
-            ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(present, ("Id", typeof(int)), ("Id", typeof(int?)));
         AssertRows(present, (2, 2));
     }
 
     [TestMethod]
     public void RightJoin_WhereLeftAliasPresencePredicates_ShouldFilterRows()
     {
-        const string missingQuery = @"
-select a.Id, b.Id
-from #A.entities() a
-right join #B.entities() b on a.Id = b.Id
-where a is missing";
+        const string missingQuery = (
+            "\n"
+            + "select a.Id, b.Id\n"
+            + "from #A.entities() a\n"
+            + "right join #B.entities() b on a.Id = b.Id\n"
+            + "where a is missing"
+        );
 
-        const string presentQuery = @"
-select a.Id, b.Id
-from #A.entities() a
-right join #B.entities() b on a.Id = b.Id
-where a is present";
+        const string presentQuery = (
+            "\n"
+            + "select a.Id, b.Id\n"
+            + "from #A.entities() a\n"
+            + "right join #B.entities() b on a.Id = b.Id\n"
+            + "where a is present"
+        );
 
         var sources = CreateSources(
             [new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]);
+            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]
+        );
 
         var missing = Run(missingQuery, sources);
         var present = Run(presentQuery, sources);
 
-        TableMaterializationTestHelper.AssertColumns(
-            missing,
-            ("Id", typeof(int?)),
-            ("Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(missing, ("Id", typeof(int?)), ("Id", typeof(int)));
         AssertRows(missing, (null, 1));
-        TableMaterializationTestHelper.AssertColumns(
-            present,
-            ("Id", typeof(int?)),
-            ("Id", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(present, ("Id", typeof(int?)), ("Id", typeof(int)));
         AssertRows(present, (2, 2));
     }
 
     [TestMethod]
     public void FullOuterJoin_WhereAliasPresencePredicates_ShouldFilterRows()
     {
-        const string leftMissingQuery = @"
-select a.Id, b.Id
-from #A.entities() a
-full outer join #B.entities() b on a.Id = b.Id
-where a is missing";
+        const string leftMissingQuery = (
+            "\n"
+            + "select a.Id, b.Id\n"
+            + "from #A.entities() a\n"
+            + "full outer join #B.entities() b on a.Id = b.Id\n"
+            + "where a is missing"
+        );
 
-        const string bothPresentQuery = @"
-select a.Id, b.Id
-from #A.entities() a
-full outer join #B.entities() b on a.Id = b.Id
-where a is present and b is present";
+        const string bothPresentQuery = (
+            "\n"
+            + "select a.Id, b.Id\n"
+            + "from #A.entities() a\n"
+            + "full outer join #B.entities() b on a.Id = b.Id\n"
+            + "where a is present and b is present"
+        );
 
         var sources = CreateSources(
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }]);
+            [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }]
+        );
 
         var leftMissing = Run(leftMissingQuery, sources);
         var bothPresent = Run(bothPresentQuery, sources);
@@ -234,39 +259,33 @@ where a is present and b is present";
     [TestMethod]
     public void AsOfLeftJoin_WhereRightAliasPresencePredicates_ShouldFilterRows()
     {
-        const string missingQuery = @"
-select a.Name, b.Name
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= b.Population
-where b is missing";
+        const string missingQuery = (
+            "\n"
+            + "select a.Name, b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= b.Population\n"
+            + "where b is missing"
+        );
 
-        const string presentQuery = @"
-select a.Name, b.Name
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= b.Population
-where b is present";
+        const string presentQuery = (
+            "\n"
+            + "select a.Name, b.Name\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= b.Population\n"
+            + "where b is present"
+        );
 
         var sources = CreateSources(
-            [
-                new BasicEntity { Name = "A1", Population = 100 },
-                new BasicEntity { Name = "A2", Population = 1 }
-            ],
-            [
-                new BasicEntity { Name = "B1", Population = 50 }
-            ]);
+            [new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 1 }],
+            [new BasicEntity { Name = "B1", Population = 50 }]
+        );
 
         var missing = Run(missingQuery, sources);
         var present = Run(presentQuery, sources);
 
-        TableMaterializationTestHelper.AssertColumns(
-            missing,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(missing, ("Name", typeof(string)), ("Name", typeof(string)));
         AssertRows(missing, ("A2", null));
-        TableMaterializationTestHelper.AssertColumns(
-            present,
-            ("Name", typeof(string)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(present, ("Name", typeof(string)), ("Name", typeof(string)));
         AssertRows(present, ("A1", "B1"));
     }
 
@@ -281,11 +300,13 @@ where b is present";
     [TestMethod]
     public void RowPresence_WithInnerJoinAlias_ShouldReportAlwaysPresentAlias()
     {
-        const string query = @"
-select a.Id
-from #A.entities() a
-inner join #B.entities() b on a.Id = b.Id
-where b is missing";
+        const string query = (
+            "\n"
+            + "select a.Id\n"
+            + "from #A.entities() a\n"
+            + "inner join #B.entities() b on a.Id = b.Id\n"
+            + "where b is missing"
+        );
 
         AssertAlwaysPresentAliasRejected(query, "b");
     }
@@ -293,11 +314,9 @@ where b is missing";
     [TestMethod]
     public void RowPresence_WithCrossJoinAlias_ShouldReportAlwaysPresentAlias()
     {
-        const string query = @"
-select a.Id
-from #A.entities() a
-cross join #B.entities() b
-where b is missing";
+        const string query = (
+            "\n" + "select a.Id\n" + "from #A.entities() a\n" + "cross join #B.entities() b\n" + "where b is missing"
+        );
 
         AssertAlwaysPresentAliasRejected(query, "b");
     }
@@ -305,11 +324,13 @@ where b is missing";
     [TestMethod]
     public void RowPresence_WithAsOfJoinAlias_ShouldReportAlwaysPresentAlias()
     {
-        const string query = @"
-select a.Id
-from #A.entities() a
-asof join #B.entities() b on a.Population >= b.Population
-where b is missing";
+        const string query = (
+            "\n"
+            + "select a.Id\n"
+            + "from #A.entities() a\n"
+            + "asof join #B.entities() b on a.Population >= b.Population\n"
+            + "where b is missing"
+        );
 
         AssertAlwaysPresentAliasRejected(query, "b");
     }
@@ -317,23 +338,29 @@ where b is missing";
     [TestMethod]
     public void RowPresence_WithPreservedOuterJoinAlias_ShouldReportAlwaysPresentAlias()
     {
-        const string leftJoinQuery = @"
-select a.Id
-from #A.entities() a
-left join #B.entities() b on a.Id = b.Id
-where a is missing";
+        const string leftJoinQuery = (
+            "\n"
+            + "select a.Id\n"
+            + "from #A.entities() a\n"
+            + "left join #B.entities() b on a.Id = b.Id\n"
+            + "where a is missing"
+        );
 
-        const string rightJoinQuery = @"
-select b.Id
-from #A.entities() a
-right join #B.entities() b on a.Id = b.Id
-where b is missing";
+        const string rightJoinQuery = (
+            "\n"
+            + "select b.Id\n"
+            + "from #A.entities() a\n"
+            + "right join #B.entities() b on a.Id = b.Id\n"
+            + "where b is missing"
+        );
 
-        const string asOfLeftJoinQuery = @"
-select a.Id
-from #A.entities() a
-asof left join #B.entities() b on a.Population >= b.Population
-where a is missing";
+        const string asOfLeftJoinQuery = (
+            "\n"
+            + "select a.Id\n"
+            + "from #A.entities() a\n"
+            + "asof left join #B.entities() b on a.Population >= b.Population\n"
+            + "where a is missing"
+        );
 
         AssertAlwaysPresentAliasRejected(leftJoinQuery, "a");
         AssertAlwaysPresentAliasRejected(rightJoinQuery, "b");
@@ -343,10 +370,9 @@ where a is missing";
     [TestMethod]
     public void RowPresence_InSameJoinOnClause_ShouldReportAlwaysPresentAlias()
     {
-        const string query = @"
-select a.Id
-from #A.entities() a
-left join #B.entities() b on b is missing";
+        const string query = (
+            "\n" + "select a.Id\n" + "from #A.entities() a\n" + "left join #B.entities() b on b is missing"
+        );
 
         AssertAlwaysPresentAliasRejected(query, "b");
     }
@@ -354,45 +380,40 @@ left join #B.entities() b on b is missing";
     [TestMethod]
     public void OuterApply_WhereRightAliasPresencePredicates_ShouldFilterRows()
     {
-        const string missingQuery = @"
-select a.Id, b.Id
-from #A.entities() a
-outer apply #B.entities() b
-where b is missing";
+        const string missingQuery = (
+            "\n"
+            + "select a.Id, b.Id\n"
+            + "from #A.entities() a\n"
+            + "outer apply #B.entities() b\n"
+            + "where b is missing"
+        );
 
-        const string presentQuery = @"
-select a.Id, b.Id
-from #A.entities() a
-outer apply #B.entities() b
-where b is present";
+        const string presentQuery = (
+            "\n"
+            + "select a.Id, b.Id\n"
+            + "from #A.entities() a\n"
+            + "outer apply #B.entities() b\n"
+            + "where b is present"
+        );
 
-        var missing = Run(missingQuery, CreateSources(
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            []));
-        var present = Run(presentQuery, CreateSources(
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 10 }]));
+        var missing = Run(missingQuery, CreateSources([new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }], []));
+        var present = Run(
+            presentQuery,
+            CreateSources([new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }], [new BasicEntity { Id = 10 }])
+        );
 
-        TableMaterializationTestHelper.AssertColumns(
-            missing,
-            ("Id", typeof(int)),
-            ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(missing, ("Id", typeof(int)), ("Id", typeof(int?)));
         AssertRows(missing, (1, null), (2, null));
-        TableMaterializationTestHelper.AssertColumns(
-            present,
-            ("Id", typeof(int)),
-            ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(present, ("Id", typeof(int)), ("Id", typeof(int?)));
         AssertRows(present, (1, 10), (2, 10));
     }
 
     [TestMethod]
     public void RowPresence_WithCrossApplyAlias_ShouldReportAlwaysPresentAlias()
     {
-        const string query = @"
-select a.Id
-from #A.entities() a
-cross apply #B.entities() b
-where b is missing";
+        const string query = (
+            "\n" + "select a.Id\n" + "from #A.entities() a\n" + "cross apply #B.entities() b\n" + "where b is missing"
+        );
 
         AssertAlwaysPresentAliasRejected(query, "b");
     }
@@ -400,11 +421,9 @@ where b is missing";
     [TestMethod]
     public void RowPresence_WithPreservedOuterApplyAlias_ShouldReportAlwaysPresentAlias()
     {
-        const string query = @"
-select a.Id
-from #A.entities() a
-outer apply #B.entities() b
-where a is missing";
+        const string query = (
+            "\n" + "select a.Id\n" + "from #A.entities() a\n" + "outer apply #B.entities() b\n" + "where a is missing"
+        );
 
         AssertAlwaysPresentAliasRejected(query, "a");
     }
@@ -412,64 +431,81 @@ where a is missing";
     [TestMethod]
     public void RowPresence_FromEarlierLeftJoin_ShouldRemainValidAfterLaterInnerJoin()
     {
-        const string query = @"
-select a.Id, b.Id, c.Id
-from #A.entities() a
-left join #B.entities() b on a.Id = b.Id
-inner join #C.entities() c on a.Id = c.Id
-where b is missing";
+        const string query = (
+            "\n"
+            + "select a.Id, b.Id, c.Id\n"
+            + "from #A.entities() a\n"
+            + "left join #B.entities() b on a.Id = b.Id\n"
+            + "inner join #C.entities() c on a.Id = c.Id\n"
+            + "where b is missing"
+        );
 
-        var table = Run(query, CreateSources(
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]));
+        var table = Run(
+            query,
+            CreateSources(
+                [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+                [new BasicEntity { Id = 2 }],
+                [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]
+            )
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Id", typeof(int)),
             ("Id", typeof(int?)),
-            ("Id", typeof(int)));
+            ("Id", typeof(int))
+        );
         AssertThreeWayRows(table, (1, null, 1));
     }
 
     [TestMethod]
     public void RowPresence_FromEarlierOuterApply_ShouldRemainValidAfterLaterInnerJoin()
     {
-        const string query = @"
-select a.Id, b.Id, c.Id
-from #A.entities() a
-outer apply #B.entities() b
-inner join #C.entities() c on a.Id = c.Id
-where b is missing";
+        const string query = (
+            "\n"
+            + "select a.Id, b.Id, c.Id\n"
+            + "from #A.entities() a\n"
+            + "outer apply #B.entities() b\n"
+            + "inner join #C.entities() c on a.Id = c.Id\n"
+            + "where b is missing"
+        );
 
-        var table = Run(query, CreateSources(
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [],
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]));
+        var table = Run(
+            query,
+            CreateSources(
+                [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+                [],
+                [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]
+            )
+        );
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Id", typeof(int)),
             ("Id", typeof(int?)),
-            ("Id", typeof(int)));
+            ("Id", typeof(int))
+        );
         AssertThreeWayRows(table, (1, null, 1), (2, null, 2));
     }
 
     [TestMethod]
     public void RowPresence_InsideCteWithLeftJoin_ShouldRemainValid()
     {
-        const string query = @"
-with leftOnly as (
-    select a.Id as Id
-    from #A.entities() a
-    left join #B.entities() b on a.Id = b.Id
-    where b is missing
-)
-select Id from leftOnly";
+        const string query = (
+            "\n"
+            + "with leftOnly as (\n"
+            + "    select a.Id as Id\n"
+            + "    from #A.entities() a\n"
+            + "    left join #B.entities() b on a.Id = b.Id\n"
+            + "    where b is missing\n"
+            + ")\n"
+            + "select Id from leftOnly"
+        );
 
-        var table = Run(query, CreateSources(
-            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
-            [new BasicEntity { Id = 2 }]));
+        var table = Run(
+            query,
+            CreateSources([new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }], [new BasicEntity { Id = 2 }])
+        );
 
         TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1]);
@@ -478,10 +514,9 @@ select Id from leftOnly";
     [TestMethod]
     public void RowPresence_WithUnknownAlias_ShouldReportReadableUnknownAlias()
     {
-        const string query = @"
-select bb is missing
-from #A.entities() a
-left join #B.entities() b on a.Id = b.Id";
+        const string query = (
+            "\n" + "select bb is missing\n" + "from #A.entities() a\n" + "left join #B.entities() b on a.Id = b.Id"
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources([], [])));
 
@@ -508,25 +543,23 @@ left join #B.entities() b on a.Id = b.Id";
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources(
         IEnumerable<BasicEntity> left,
-        IEnumerable<BasicEntity> right)
+        IEnumerable<BasicEntity> right
+    )
     {
-        return new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", left },
-            { "#B", right }
-        };
+        return new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", left }, { "#B", right } };
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources(
         IEnumerable<BasicEntity> left,
         IEnumerable<BasicEntity> right,
-        IEnumerable<BasicEntity> third)
+        IEnumerable<BasicEntity> third
+    )
     {
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", left },
             { "#B", right },
-            { "#C", third }
+            { "#C", third },
         };
     }
 
@@ -534,43 +567,45 @@ left join #B.entities() b on a.Id = b.Id";
     {
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            expected.Select(static row => new object?[] { row.State, row.LeftId, row.RightId }).ToArray());
+            expected.Select(static row => new object?[] { row.State, row.LeftId, row.RightId }).ToArray()
+        );
     }
 
     private static void AssertRows(Table table, params (int? LeftId, int? RightId)[] expected)
     {
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            expected.Select(static row => new object?[] { row.LeftId, row.RightId }).ToArray());
+            expected.Select(static row => new object?[] { row.LeftId, row.RightId }).ToArray()
+        );
     }
 
     private static void AssertRows(Table table, params (int Id, string State, int? NullableValue)[] expected)
     {
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            expected.Select(static row => new object?[] { row.Id, row.State, row.NullableValue }).ToArray());
+            expected.Select(static row => new object?[] { row.Id, row.State, row.NullableValue }).ToArray()
+        );
     }
 
     private static void AssertThreeWayRows(Table table, params (int LeftId, int? RightId, int ThirdId)[] expected)
     {
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            expected.Select(static row => new object?[] { row.LeftId, row.RightId, row.ThirdId }).ToArray());
+            expected.Select(static row => new object?[] { row.LeftId, row.RightId, row.ThirdId }).ToArray()
+        );
     }
 
     private static void AssertRows(Table table, params (string? LeftName, string? RightName)[] expected)
     {
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
-            expected.Select(static row => new object?[] { row.LeftName, row.RightName }).ToArray());
+            expected.Select(static row => new object?[] { row.LeftName, row.RightName }).ToArray()
+        );
     }
 
     private static void AssertFullOuterIdColumns(Table table)
     {
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Id", typeof(int?)),
-            ("Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int?)), ("Id", typeof(int?)));
     }
 
     private void AssertAlwaysPresentAliasRejected(string query, string alias)

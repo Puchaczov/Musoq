@@ -7,10 +7,12 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static bool CanShareSetOperationCarrier(PhysicalNode left, PhysicalNode right)
     {
-        if (!ContainsPhysicalNode<PhysicalWindowNode>(left) ||
-            !ContainsPhysicalNode<PhysicalWindowNode>(right) ||
-            !ContainsPhysicalNode<PhysicalCteRefNode>(left) ||
-            !ContainsPhysicalNode<PhysicalSchemaScanNode>(right))
+        if (
+            !ContainsPhysicalNode<PhysicalWindowNode>(left)
+            || !ContainsPhysicalNode<PhysicalWindowNode>(right)
+            || !ContainsPhysicalNode<PhysicalCteRefNode>(left)
+            || !ContainsPhysicalNode<PhysicalSchemaScanNode>(right)
+        )
         {
             return false;
         }
@@ -24,10 +26,12 @@ internal sealed partial class PhysicalLoweringImplementation
         {
             var leftColumn = leftColumns[index];
             var rightColumn = rightColumns[index];
-            if (leftColumn.Index != rightColumn.Index ||
-                !string.Equals(leftColumn.Name, rightColumn.Name, StringComparison.Ordinal) ||
-                leftColumn.Type != rightColumn.Type ||
-                !string.Equals(leftColumn.IntendedTypeName, rightColumn.IntendedTypeName, StringComparison.Ordinal))
+            if (
+                leftColumn.Index != rightColumn.Index
+                || !string.Equals(leftColumn.Name, rightColumn.Name, StringComparison.Ordinal)
+                || leftColumn.Type != rightColumn.Type
+                || !string.Equals(leftColumn.IntendedTypeName, rightColumn.IntendedTypeName, StringComparison.Ordinal)
+            )
             {
                 return false;
             }

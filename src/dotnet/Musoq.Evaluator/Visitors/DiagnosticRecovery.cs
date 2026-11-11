@@ -13,7 +13,8 @@ internal static class DiagnosticRecovery
     internal static (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(
         Func<(MethodInfo Method, bool CanSkipInjectSource)> resolver,
         DiagnosticContext? context,
-        ArgsListNode args)
+        ArgsListNode args
+    )
     {
         try
         {
@@ -32,27 +33,32 @@ internal static class DiagnosticRecovery
             return false;
 
         var span = GetSpan(value);
-        return !span.IsEmpty && context.Errors.Any(diagnostic => !diagnostic.Span.IsEmpty && span.Contains(diagnostic.Span));
+        return !span.IsEmpty
+            && context.Errors.Any(diagnostic => !diagnostic.Span.IsEmpty && span.Contains(diagnostic.Span));
     }
 
     private static bool SuppressDependentCallableDiagnostics(
         CannotResolveMethodException exception,
         DiagnosticContext? context,
-        ArgsListNode args)
+        ArgsListNode args
+    )
     {
-        if (exception.Code is not (DiagnosticCode.MQ3086_UnknownCallable or DiagnosticCode.MQ3087_InvalidCallableArity) ||
-            IsDialectConversion(exception))
+        if (
+            exception.Code is not (DiagnosticCode.MQ3086_UnknownCallable or DiagnosticCode.MQ3087_InvalidCallableArity)
+            || IsDialectConversion(exception)
+        )
             return false;
 
         context?.SuppressDiagnostics(diagnostic =>
-            diagnostic.IsError && !diagnostic.Span.IsEmpty && args.SpanOrEmpty().Contains(diagnostic.Span));
+            diagnostic.IsError && !diagnostic.Span.IsEmpty && args.SpanOrEmpty().Contains(diagnostic.Span)
+        );
         return true;
     }
 
     private static bool IsDialectConversion(CannotResolveMethodException exception)
     {
-        return exception.Arguments.TryGetValue("callable", out var callable) &&
-               callable.Equals("CONVERT", StringComparison.OrdinalIgnoreCase);
+        return exception.Arguments.TryGetValue("callable", out var callable)
+            && callable.Equals("CONVERT", StringComparison.OrdinalIgnoreCase);
     }
 
     private static TextSpan GetSpan(Node value)

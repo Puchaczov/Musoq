@@ -14,13 +14,41 @@ public sealed class DiagnosticRuntime060EnvelopeSafetyTests
     {
         var cases = new[]
         {
-            (Code: DiagnosticCode.MQ2001_UnexpectedToken, Phase: DiagnosticPhase.Parse, Source: DiagnosticSourceKind.Query),
-            (Code: DiagnosticCode.MQ3001_UnknownColumn, Phase: DiagnosticPhase.Bind, Source: DiagnosticSourceKind.Query),
-            (Code: DiagnosticCode.MQ4001_InvalidBinarySchemaField, Phase: DiagnosticPhase.Schema, Source: DiagnosticSourceKind.Schema),
-            (Code: DiagnosticCode.MQ7003_RequiredScriptParameterMissing, Phase: DiagnosticPhase.Runtime, Source: DiagnosticSourceKind.Runtime),
-            (Code: DiagnosticCode.MQ7011_DataSourceReadFailed, Phase: DiagnosticPhase.DataSource, Source: DiagnosticSourceKind.DataSource),
-            (Code: DiagnosticCode.MQ8001_CodeGenerationFailed, Phase: DiagnosticPhase.CodeGeneration, Source: DiagnosticSourceKind.GeneratedSource),
-            (Code: DiagnosticCode.MQ9002_InternalExecutionError, Phase: DiagnosticPhase.Internal, Source: DiagnosticSourceKind.Internal)
+            (
+                Code: DiagnosticCode.MQ2001_UnexpectedToken,
+                Phase: DiagnosticPhase.Parse,
+                Source: DiagnosticSourceKind.Query
+            ),
+            (
+                Code: DiagnosticCode.MQ3001_UnknownColumn,
+                Phase: DiagnosticPhase.Bind,
+                Source: DiagnosticSourceKind.Query
+            ),
+            (
+                Code: DiagnosticCode.MQ4001_InvalidBinarySchemaField,
+                Phase: DiagnosticPhase.Schema,
+                Source: DiagnosticSourceKind.Schema
+            ),
+            (
+                Code: DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
+                Phase: DiagnosticPhase.Runtime,
+                Source: DiagnosticSourceKind.Runtime
+            ),
+            (
+                Code: DiagnosticCode.MQ7011_DataSourceReadFailed,
+                Phase: DiagnosticPhase.DataSource,
+                Source: DiagnosticSourceKind.DataSource
+            ),
+            (
+                Code: DiagnosticCode.MQ8001_CodeGenerationFailed,
+                Phase: DiagnosticPhase.CodeGeneration,
+                Source: DiagnosticSourceKind.GeneratedSource
+            ),
+            (
+                Code: DiagnosticCode.MQ9002_InternalExecutionError,
+                Phase: DiagnosticPhase.Internal,
+                Source: DiagnosticSourceKind.Internal
+            ),
         };
 
         foreach (var testCase in cases)
@@ -37,7 +65,8 @@ public sealed class DiagnosticRuntime060EnvelopeSafetyTests
                 null,
                 Array.Empty<string>(),
                 null,
-                null);
+                null
+            );
 
             Assert.AreEqual(testCase.Source, envelope.SourceKind, testCase.Code.ToString());
         }
@@ -49,7 +78,8 @@ public sealed class DiagnosticRuntime060EnvelopeSafetyTests
         const string secret = "runtime-envelope-secret-marker";
         var exception = new InvalidOperationException(
             $"outer implementation detail: {secret}",
-            new InvalidOperationException($"inner implementation detail: {secret}"));
+            new InvalidOperationException($"inner implementation detail: {secret}")
+        );
 
         var safe = MusoqErrorEnvelope.FromException(exception);
         var safeText = MusoqErrorEnvelopeFormatter.FormatText(safe);
@@ -108,7 +138,8 @@ public sealed class DiagnosticRuntime060EnvelopeSafetyTests
             SourceLocation.None,
             phase: DiagnosticPhase.Internal,
             sourceKind: DiagnosticSourceKind.Internal,
-            arguments: new Dictionary<string, string> { ["fact"] = message });
+            arguments: new Dictionary<string, string> { ["fact"] = message }
+        );
 
         var json = MusoqErrorEnvelopeFormatter.FormatJson(MusoqErrorEnvelope.FromDiagnostic(diagnostic));
         using var document = JsonDocument.Parse(json);

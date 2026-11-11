@@ -49,63 +49,62 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             [],
             plan.Confidence,
-            $"{plan.Kind} row-width pruning is blocked because this boundary has no supported physical rewrite for the droppable columns.")
+            $"{plan.Kind} row-width pruning is blocked because this boundary has no supported physical rewrite for the droppable columns."
+        )
         {
-            RetainedColumns = CreateRetainedColumns(plan)
+            RetainedColumns = CreateRetainedColumns(plan),
         };
     }
 
     private static bool CanApplyOrderedPruning(BoundaryRowShapePlan plan)
     {
-        return plan.Kind is BoundaryRowShapeKind.Sort or BoundaryRowShapeKind.TopN or BoundaryRowShapeKind.TopOffset &&
-               plan.BoundaryOnlyColumns.Length > 0;
+        return plan.Kind is BoundaryRowShapeKind.Sort or BoundaryRowShapeKind.TopN or BoundaryRowShapeKind.TopOffset
+            && plan.BoundaryOnlyColumns.Length > 0;
     }
 
     private static bool CanApplyHashBuildPruning(BoundaryRowShapePlan plan)
     {
-        return plan.Kind == BoundaryRowShapeKind.HashJoinBuild &&
-               plan.FutureDroppableColumns.Length > 0;
+        return plan.Kind == BoundaryRowShapeKind.HashJoinBuild && plan.FutureDroppableColumns.Length > 0;
     }
 
     private static bool CanApplyHashProbePruning(BoundaryRowShapePlan plan)
     {
-        return plan.Kind == BoundaryRowShapeKind.HashJoinProbe &&
-               plan.FutureDroppableColumns.Length > 0;
+        return plan.Kind == BoundaryRowShapeKind.HashJoinProbe && plan.FutureDroppableColumns.Length > 0;
     }
 
     private static bool CanApplyWindowPruning(BoundaryRowShapePlan plan)
     {
-        return plan.Kind == BoundaryRowShapeKind.Window &&
-               plan.NeededAfterBoundaryColumns.Length > 0 &&
-               plan.FutureDroppableColumns.Length > 0;
+        return plan.Kind == BoundaryRowShapeKind.Window
+            && plan.NeededAfterBoundaryColumns.Length > 0
+            && plan.FutureDroppableColumns.Length > 0;
     }
 
     private static bool CanApplySetOperationPruning(BoundaryRowShapePlan plan)
     {
-        return plan.Kind == BoundaryRowShapeKind.SetOperation &&
-               plan.NeededAfterBoundaryColumns.Length > 0 &&
-               plan.FutureDroppableColumns.Length > 0;
+        return plan.Kind == BoundaryRowShapeKind.SetOperation
+            && plan.NeededAfterBoundaryColumns.Length > 0
+            && plan.FutureDroppableColumns.Length > 0;
     }
 
     private static bool CanApplyCteMaterializationPruning(BoundaryRowShapePlan plan)
     {
-        return plan.Kind == BoundaryRowShapeKind.CteMaterialization &&
-               plan.NeededAfterBoundaryColumns.Length > 0 &&
-               plan.FutureDroppableColumns.Length > 0;
+        return plan.Kind == BoundaryRowShapeKind.CteMaterialization
+            && plan.NeededAfterBoundaryColumns.Length > 0
+            && plan.FutureDroppableColumns.Length > 0;
     }
 
     private static bool CanApplyAggregatePruning(BoundaryRowShapePlan plan)
     {
-        return plan.Kind == BoundaryRowShapeKind.Aggregate &&
-               plan.NeededAfterBoundaryColumns.Length > 0 &&
-               plan.FutureDroppableColumns.Length > 0;
+        return plan.Kind == BoundaryRowShapeKind.Aggregate
+            && plan.NeededAfterBoundaryColumns.Length > 0
+            && plan.FutureDroppableColumns.Length > 0;
     }
 
     private static bool CanApplyDistinctPruning(BoundaryRowShapePlan plan)
     {
-        return plan.Kind == BoundaryRowShapeKind.Distinct &&
-               plan.NeededAfterBoundaryColumns.Length > 0 &&
-               plan.FutureDroppableColumns.Length > 0;
+        return plan.Kind == BoundaryRowShapeKind.Distinct
+            && plan.NeededAfterBoundaryColumns.Length > 0
+            && plan.FutureDroppableColumns.Length > 0;
     }
 
     private static RowWidthPruningPlan CreateAppliedPlan(BoundaryRowShapePlan plan)
@@ -117,9 +116,10 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             plan.BoundaryOnlyColumns,
             PlanningConfidence.High,
-            $"{plan.Kind} row-width pruning drops order-only columns immediately after the ordering boundary.")
+            $"{plan.Kind} row-width pruning drops order-only columns immediately after the ordering boundary."
+        )
         {
-            RetainedColumns = CreateRetainedColumns(plan)
+            RetainedColumns = CreateRetainedColumns(plan),
         };
     }
 
@@ -132,9 +132,10 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             plan.FutureDroppableColumns,
             PlanningConfidence.High,
-            $"{plan.Kind} row-width pruning drops build-side payload columns after hash keys are constructed.")
+            $"{plan.Kind} row-width pruning drops build-side payload columns after hash keys are constructed."
+        )
         {
-            RetainedColumns = CreateRetainedColumns(plan)
+            RetainedColumns = CreateRetainedColumns(plan),
         };
     }
 
@@ -147,9 +148,10 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             plan.FutureDroppableColumns,
             PlanningConfidence.High,
-            $"{plan.Kind} row-width pruning drops probe-side payload columns after hash probe keys are constructed.")
+            $"{plan.Kind} row-width pruning drops probe-side payload columns after hash probe keys are constructed."
+        )
         {
-            RetainedColumns = CreateRetainedColumns(plan)
+            RetainedColumns = CreateRetainedColumns(plan),
         };
     }
 
@@ -162,9 +164,10 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             plan.FutureDroppableColumns,
             PlanningConfidence.Medium,
-            $"{plan.Kind} row-width pruning drops materialized columns that no CTE consumer requires.")
+            $"{plan.Kind} row-width pruning drops materialized columns that no CTE consumer requires."
+        )
         {
-            RetainedColumns = CreateRetainedColumns(plan)
+            RetainedColumns = CreateRetainedColumns(plan),
         };
     }
 
@@ -177,9 +180,10 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             plan.FutureDroppableColumns,
             PlanningConfidence.Medium,
-            $"{plan.Kind} row-width pruning drops window-only columns after materialization.")
+            $"{plan.Kind} row-width pruning drops window-only columns after materialization."
+        )
         {
-            RetainedColumns = CreateRetainedColumns(plan)
+            RetainedColumns = CreateRetainedColumns(plan),
         };
     }
 
@@ -192,9 +196,10 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             plan.FutureDroppableColumns,
             PlanningConfidence.Medium,
-            $"{plan.Kind} row-width pruning drops aggregate input-only columns after finalization.")
+            $"{plan.Kind} row-width pruning drops aggregate input-only columns after finalization."
+        )
         {
-            RetainedColumns = CreateRetainedColumns(plan)
+            RetainedColumns = CreateRetainedColumns(plan),
         };
     }
 
@@ -207,9 +212,10 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             plan.FutureDroppableColumns,
             PlanningConfidence.Medium,
-            $"{plan.Kind} row-width pruning drops post-distinct columns that are unused downstream.")
+            $"{plan.Kind} row-width pruning drops post-distinct columns that are unused downstream."
+        )
         {
-            RetainedColumns = CreateRetainedColumns(plan)
+            RetainedColumns = CreateRetainedColumns(plan),
         };
     }
 
@@ -222,16 +228,17 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             plan.FutureDroppableColumns,
             PlanningConfidence.Medium,
-            $"{plan.Kind} row-width pruning drops symmetric arm columns unused by set comparison or downstream consumers.")
+            $"{plan.Kind} row-width pruning drops symmetric arm columns unused by set comparison or downstream consumers."
+        )
         {
-            RetainedColumns = CreateRetainedColumns(plan)
+            RetainedColumns = CreateRetainedColumns(plan),
         };
     }
 
     private static string[] CreateRetainedColumns(BoundaryRowShapePlan plan)
     {
-        return plan.NeededAfterBoundaryColumns
-            .Where(column => !ContainsColumn(plan.FutureDroppableColumns, column))
+        return plan
+            .NeededAfterBoundaryColumns.Where(column => !ContainsColumn(plan.FutureDroppableColumns, column))
             .OrderBy(static column => column, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -244,14 +251,16 @@ internal static class RowWidthPruningPlanner
             plan.BoundaryId,
             plan.Strategy.ToString(),
             plan.Confidence,
-            plan.Reason);
+            plan.Reason
+        );
     }
 
     private static bool ContainsColumn(IReadOnlyList<string> columns, string column)
     {
         return columns.Any(candidate =>
-            string.Equals(candidate, column, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(GetColumnName(candidate), GetColumnName(column), StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate, column, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(GetColumnName(candidate), GetColumnName(column), StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     private static string GetColumnName(string column)

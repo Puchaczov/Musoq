@@ -5,7 +5,8 @@ internal sealed class OptimizationContext
     public OptimizationContext(
         OptimizationStage stage,
         OptimizationTrace? trace = null,
-        OptimizationAnalysisFactSet? analysisFacts = null)
+        OptimizationAnalysisFactSet? analysisFacts = null
+    )
     {
         Stage = stage;
         Trace = trace ?? new OptimizationTrace();
@@ -19,7 +20,8 @@ internal sealed class OptimizationContext
         OptimizationTrace? trace,
         OptimizationOptions options,
         OptimizationContextState state,
-        OptimizationAnalysisFactSet? analysisFacts = null)
+        OptimizationAnalysisFactSet? analysisFacts = null
+    )
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(state);

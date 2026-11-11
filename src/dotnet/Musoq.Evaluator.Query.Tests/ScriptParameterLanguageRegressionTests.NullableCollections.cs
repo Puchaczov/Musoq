@@ -34,22 +34,35 @@ public partial class ScriptParameterLanguageRegressionTests
     public void NullableCollectionMembership_WithOverride_ShouldUseCapturedValues(string predicate, int expectedCount)
     {
         using var compiled = CompileNullableCollectionMembership(predicate);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "ids", new[] { 1 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "ids",
+            new[] { 1 }
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(expectedCount, result.Count);
     }
 
     private CompiledQuery CompileNullableCollectionMembership(string predicate = "in")
     {
-        var entities = new[] { new BasicEntity { Name = "one", Id = 1 } };
+        var entities = new[]
+        {
+            new BasicEntity { Name = "one", Id = 1 },
+        };
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>(StringComparer.OrdinalIgnoreCase)
         {
             ["A"] = entities,
-            ["#A"] = entities
+            ["#A"] = entities,
         };
 
-        return InstanceCreator.CompileForExecution(NullableCollectionMembershipQuery.Replace("Id in", $"Id {predicate}", StringComparison.Ordinal),
-            Guid.NewGuid().ToString(), new BasicSchemaProvider<BasicEntity>(sources),
-            LoggerResolver, TestCompilationOptions, TestContext.CancellationToken);
+        return InstanceCreator.CompileForExecution(
+            NullableCollectionMembershipQuery.Replace("Id in", $"Id {predicate}", StringComparison.Ordinal),
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(sources),
+            LoggerResolver,
+            TestCompilationOptions,
+            TestContext.CancellationToken
+        );
     }
 }

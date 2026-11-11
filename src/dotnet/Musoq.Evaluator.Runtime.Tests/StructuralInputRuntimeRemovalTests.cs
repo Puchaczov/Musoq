@@ -19,23 +19,42 @@ public sealed class StructuralInputRuntimeRemovalTests
             "dotnet",
             "Musoq.Evaluator",
             "Helpers",
-            "StructuralInputRuntime.cs");
+            "StructuralInputRuntime.cs"
+        );
         Assert.IsFalse(File.Exists(runtimeFile), runtimeFile);
 
         string[] files =
         [
-            Path.Combine(root, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution", "ExecutionCSharpRenderer.StructuralInputs.cs"),
-            Path.Combine(root, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution", "StructuralCtePreparationMembers.cs")
+            Path.Combine(
+                root,
+                "src",
+                "dotnet",
+                "Musoq.Targets.CSharpClr",
+                "Rendering",
+                "Execution",
+                "ExecutionCSharpRenderer.StructuralInputs.cs"
+            ),
+            Path.Combine(
+                root,
+                "src",
+                "dotnet",
+                "Musoq.Targets.CSharpClr",
+                "Rendering",
+                "Execution",
+                "StructuralCtePreparationMembers.cs"
+            ),
         ];
         var violations = files
             .Where(File.Exists)
-            .SelectMany(file => File.ReadAllText(file)
-                .Split('\n')
-                .Select((line, index) => (file, line, index: index + 1)))
-            .Where(static item => item.line.Contains("StructuralInputRuntime", StringComparison.Ordinal) ||
-                                  item.line.Contains("PrepareRows", StringComparison.Ordinal) ||
-                                  item.line.Contains("Array.GetValue", StringComparison.Ordinal) ||
-                                  item.line.Contains("CreateDelegate", StringComparison.Ordinal))
+            .SelectMany(file =>
+                File.ReadAllText(file).Split('\n').Select((line, index) => (file, line, index: index + 1))
+            )
+            .Where(static item =>
+                item.line.Contains("StructuralInputRuntime", StringComparison.Ordinal)
+                || item.line.Contains("PrepareRows", StringComparison.Ordinal)
+                || item.line.Contains("Array.GetValue", StringComparison.Ordinal)
+                || item.line.Contains("CreateDelegate", StringComparison.Ordinal)
+            )
             .Select(static item => $"{item.file}:{item.index}: {item.line.Trim()}")
             .ToArray();
 
@@ -52,7 +71,8 @@ public sealed class StructuralInputRuntimeRemovalTests
             "dotnet",
             "Musoq.Evaluator",
             "Helpers",
-            "StructuralParameterCaptureState.cs");
+            "StructuralParameterCaptureState.cs"
+        );
         var source = File.ReadAllText(runtimeFile);
         string[] forbidden =
         [
@@ -62,7 +82,7 @@ public sealed class StructuralInputRuntimeRemovalTests
             "GetProperty(\"Value\"",
             "PropertyInfo.GetValue",
             "CreateDelegate",
-            "Array.GetValue"
+            "Array.GetValue",
         ];
 
         foreach (var marker in forbidden)

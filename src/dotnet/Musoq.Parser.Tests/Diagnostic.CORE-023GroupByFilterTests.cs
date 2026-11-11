@@ -14,10 +14,7 @@ public sealed class DiagnosticCore023GroupByFilterTests
     {
         const string query = "select Count(Name) filter where Name = 'Alice' from #some.a()";
 
-        AssertMalformedFilter(
-            query,
-            "where",
-            "Expected token is LeftParenthesis but received Where.");
+        AssertMalformedFilter(query, "where", "Expected token is LeftParenthesis but received Where.");
     }
 
     [TestMethod]
@@ -25,10 +22,7 @@ public sealed class DiagnosticCore023GroupByFilterTests
     {
         const string query = "select Count(Name) filter (Population > 0) from #some.a()";
 
-        AssertMalformedFilter(
-            query,
-            "Population",
-            "Expected token is Where but received Identifier.");
+        AssertMalformedFilter(query, "Population", "Expected token is Where but received Identifier.");
     }
 
     private static void AssertMalformedFilter(string query, string offendingText, string expectedMessage)
@@ -47,18 +41,21 @@ public sealed class DiagnosticCore023GroupByFilterTests
         Assert.AreEqual(expectedMessage, diagnostic.Message);
         Assert.AreEqual(
             new TextSpan(query.IndexOf(offendingText, StringComparison.Ordinal), offendingText.Length),
-            diagnostic.Span);
+            diagnostic.Span
+        );
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.AreEqual(
             "The parser encountered a token that does not fit the expected SQL grammar at this position.",
-            diagnostic.Explanation);
+            diagnostic.Explanation
+        );
         Assert.AreEqual("Core Spec - Statement Structure", diagnostic.DocsReference);
         CollectionAssert.AreEqual(
             new[]
             {
                 "Check for missing keywords, commas, or parentheses near this location.",
-                "Verify the query follows Musoq SQL syntax."
+                "Verify the query follows Musoq SQL syntax.",
             },
-            diagnostic.SuggestedFixes.Select(static action => action.Title).ToArray());
+            diagnostic.SuggestedFixes.Select(static action => action.Title).ToArray()
+        );
     }
 }

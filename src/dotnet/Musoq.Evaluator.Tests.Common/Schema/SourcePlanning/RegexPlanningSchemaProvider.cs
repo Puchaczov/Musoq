@@ -11,11 +11,15 @@ public sealed class RegexPlanningSchemaProvider(IReadOnlyList<SourcePlanningEnti
 {
     public SourcePlanningRecorder Recorder { get; } = new();
 
-    public SourcePredicateCapabilities Capabilities { get; init; } = new()
-    {
-        RegexMatches = [new SourceRegexMatchCapability(new SourceColumnRef("Name"), supportsNegation: true)],
-        StringMatches = [new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.All)]
-    };
+    public SourcePredicateCapabilities Capabilities { get; init; } =
+        new()
+        {
+            RegexMatches = [new SourceRegexMatchCapability(new SourceColumnRef("Name"), supportsNegation: true)],
+            StringMatches =
+            [
+                new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.All),
+            ],
+        };
 
     public bool RejectAll { get; init; }
 
@@ -30,9 +34,14 @@ public sealed class RegexPlanningSchemaProvider(IReadOnlyList<SourcePlanningEnti
     private sealed class RegexSchema(
         string schemaName,
         RegexPlanningSchemaProvider provider,
-        IReadOnlyList<SourcePlanningEntity> sourceRows) : SchemaBase(schemaName, CreateLibrary())
+        IReadOnlyList<SourcePlanningEntity> sourceRows
+    ) : SchemaBase(schemaName, CreateLibrary())
     {
-        public override ISchemaTable GetTableByName(string name, SourceMetadataContext context, params object?[] parameters)
+        public override ISchemaTable GetTableByName(
+            string name,
+            SourceMetadataContext context,
+            params object?[] parameters
+        )
         {
             var table = new SourcePlanningTable();
             if (provider.VolatileName)
@@ -40,24 +49,37 @@ public sealed class RegexPlanningSchemaProvider(IReadOnlyList<SourcePlanningEnti
             return table;
         }
 
-        public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-            => base.DescribeSource(name, context, parameters) with { PredicateCapabilities = provider.Capabilities };
+        public override SourceDescriptor DescribeSource(
+            string name,
+            SourceDescribeContext context,
+            params object?[] parameters
+        ) => base.DescribeSource(name, context, parameters) with { PredicateCapabilities = provider.Capabilities };
 
-        public override SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
+        public override SourcePlanResult TryPlanSource(
+            string name,
+            SourcePlanRequest request,
+            params object?[] parameters
+        )
         {
             provider.Recorder.RecordRequest(request);
-            var result = provider.PlanFactory?.Invoke(request) ??
-                (provider.RejectAll ? SourcePlanResult.RejectAll(request) : SourcePlanResult.AcceptAll(request));
+            var result =
+                provider.PlanFactory?.Invoke(request)
+                ?? (provider.RejectAll ? SourcePlanResult.RejectAll(request) : SourcePlanResult.AcceptAll(request));
             provider.Recorder.RecordPlanResult(result);
             return result;
         }
 
         public override RowSource<T> GetRowSource<T, TArguments>(
-            string name, SourceExecutionContext context, TArguments arguments)
+            string name,
+            SourceExecutionContext context,
+            TArguments arguments
+        )
         {
             provider.Recorder.RecordExecutionPlan(context.Plan);
-            return EnsureSourceType<T, SourcePlanningEntity>(name,
-                new SourcePlanningRowSource(sourceRows, context.Plan, provider.Recorder, provider.FailureFactory));
+            return EnsureSourceType<T, SourcePlanningEntity>(
+                name,
+                new SourcePlanningRowSource(sourceRows, context.Plan, provider.Recorder, provider.FailureFactory)
+            );
         }
 
         private static MethodsAggregator CreateLibrary()

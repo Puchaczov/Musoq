@@ -11,8 +11,13 @@ internal static class SourceScalarExpressionGraph
         var count = 0;
         while (pending.TryPop(out var item))
         {
-            if (++count > 256 || item.Depth > 32 || item.Expression is not { ResultType: not null } current ||
-                current.ResultType == typeof(object) || !QueryRowField.IsSupportedFieldType(current.ResultType))
+            if (
+                ++count > 256
+                || item.Depth > 32
+                || item.Expression is not { ResultType: not null } current
+                || current.ResultType == typeof(object)
+                || !QueryRowField.IsSupportedFieldType(current.ResultType)
+            )
                 return false;
             if (!HasConsistentType(current))
                 return false;
@@ -46,17 +51,21 @@ internal static class SourceScalarExpressionGraph
         return true;
     }
 
-    private static bool HasConsistentType(SourceScalarExpression expression) => expression.ResultType == (expression switch
-    {
-        SourceScalarLiteral literal => literal.ValueType,
-        SourceScalarColumn column => column.ValueType,
-        SourceScalarUnary unary => unary.ValueType,
-        SourceScalarBinary binary => binary.ValueType,
-        SourceScalarCast cast => cast.ValueType,
-        SourceScalarNullCheck => typeof(bool),
-        SourceScalarCoalesce coalesce => coalesce.ValueType,
-        _ => null
-    });
+    private static bool HasConsistentType(SourceScalarExpression expression) =>
+        expression.ResultType
+        == (
+            expression switch
+            {
+                SourceScalarLiteral literal => literal.ValueType,
+                SourceScalarColumn column => column.ValueType,
+                SourceScalarUnary unary => unary.ValueType,
+                SourceScalarBinary binary => binary.ValueType,
+                SourceScalarCast cast => cast.ValueType,
+                SourceScalarNullCheck => typeof(bool),
+                SourceScalarCoalesce coalesce => coalesce.ValueType,
+                _ => null,
+            }
+        );
 
     private static bool IsLiteral(SourceScalarLiteral literal)
     {
@@ -64,12 +73,25 @@ internal static class SourceScalarExpressionGraph
         return literal.Value switch
         {
             null => !literal.ResultType.IsValueType || Nullable.GetUnderlyingType(literal.ResultType) is not null,
-            bool => type == typeof(bool), byte => type == typeof(byte), sbyte => type == typeof(sbyte),
-            short => type == typeof(short), ushort => type == typeof(ushort), int => type == typeof(int), uint => type == typeof(uint),
-            long => type == typeof(long), ulong => type == typeof(ulong), float => type == typeof(float), double => type == typeof(double),
-            decimal => type == typeof(decimal), char => type == typeof(char), string => type == typeof(string),
-            DateTime => type == typeof(DateTime), DateTimeOffset => type == typeof(DateTimeOffset), TimeSpan => type == typeof(TimeSpan),
-            Guid => type == typeof(Guid), _ => false
+            bool => type == typeof(bool),
+            byte => type == typeof(byte),
+            sbyte => type == typeof(sbyte),
+            short => type == typeof(short),
+            ushort => type == typeof(ushort),
+            int => type == typeof(int),
+            uint => type == typeof(uint),
+            long => type == typeof(long),
+            ulong => type == typeof(ulong),
+            float => type == typeof(float),
+            double => type == typeof(double),
+            decimal => type == typeof(decimal),
+            char => type == typeof(char),
+            string => type == typeof(string),
+            DateTime => type == typeof(DateTime),
+            DateTimeOffset => type == typeof(DateTimeOffset),
+            TimeSpan => type == typeof(TimeSpan),
+            Guid => type == typeof(Guid),
+            _ => false,
         };
     }
 }

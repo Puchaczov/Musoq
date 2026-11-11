@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Generic;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -10,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class LibraryExecutionCoverageQueryTests : GenericEntityTestBase
 {
-
     [TestMethod]
     [DataRow(17)]
     [DataRow(7919)]
@@ -21,9 +19,16 @@ public sealed partial class LibraryExecutionCoverageQueryTests : GenericEntityTe
         using var table = compiled.Run(TestContext.CancellationToken);
         var actual = table.ToArray();
         var expected = CalculateJoinedFrames(input);
-        TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)), ("Partition", typeof(int?)),
-            ("Total", typeof(int?)), ("Average", typeof(decimal?)), ("Present", typeof(long)),
-            ("Previous", typeof(int?)), ("Number", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Position", typeof(int)),
+            ("Partition", typeof(int?)),
+            ("Total", typeof(int?)),
+            ("Average", typeof(decimal?)),
+            ("Present", typeof(long)),
+            ("Previous", typeof(int?)),
+            ("Number", typeof(long))
+        );
         Assert.HasCount(expected.Length, actual);
         for (var index = 0; index < expected.Length; index++)
         {

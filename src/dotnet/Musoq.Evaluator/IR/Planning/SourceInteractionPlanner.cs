@@ -10,7 +10,8 @@ internal static partial class SourceInteractionPlanner
         PlanningContext context,
         IReadOnlyList<SchemaScanNode> scans,
         IReadOnlyDictionary<string, SourcePlanProperties> sources,
-        IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlans)
+        IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlans
+    )
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(scans);
@@ -35,7 +36,12 @@ internal static partial class SourceInteractionPlanner
             var predicate = ResolvePredicateContract(context, sourceNode, scan.SourceContextId, sourcePredicatePlans);
             var request = ResolveSourcePlanRequest(context, sourceNode, scan.SourceContextId);
             var arguments = ResolveArgumentMode(scan);
-            var confidence = ResolveInteractionConfidence(shape.Confidence, columns.Confidence, predicate.Confidence, arguments.Confidence);
+            var confidence = ResolveInteractionConfidence(
+                shape.Confidence,
+                columns.Confidence,
+                predicate.Confidence,
+                arguments.Confidence
+            );
 
             var plan = new SourceInteractionPlan(
                 scan.SourceContextId,
@@ -52,7 +58,8 @@ internal static partial class SourceInteractionPlanner
                 columns.Reason,
                 predicate.Reason,
                 FormatSourcePlanRequestReason(request),
-                arguments.Reason);
+                arguments.Reason
+            );
 
             plans[scan.SourceContextId] = plan;
             decisions.Add(CreateDecision(scan, plan));
@@ -64,14 +71,16 @@ internal static partial class SourceInteractionPlanner
             plans,
             boundaryPlanningResult.Plans,
             boundaryPlanningResult.StrategyPlans,
-            decisions);
+            decisions
+        );
     }
 
     private static SourceInteractionPredicate ResolvePredicateContract(
         PlanningContext context,
         SchemaFromNode? sourceNode,
         string sourceContextId,
-        IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlans)
+        IReadOnlyDictionary<string, SourcePredicatePlan> sourcePredicatePlans
+    )
     {
         var rawWhereNode = ResolveRawWhereNode(context, sourceNode, sourceContextId);
         var hasRuntimePredicate = rawWhereNode != null && !IsNeutralWhereNode(rawWhereNode);
@@ -84,14 +93,16 @@ internal static partial class SourceInteractionPlanner
                     SourcePredicateContract.None,
                     rawWhereNode,
                     PlanningConfidence.High,
-                    "No source predicate was available.");
+                    "No source predicate was available."
+                );
             }
 
             return new SourceInteractionPredicate(
                 SourcePredicateContract.RuntimeOnlyPredicate,
                 rawWhereNode,
                 PlanningConfidence.Low,
-                "Source predicate remains runtime-only because no pushdown plan was produced.");
+                "Source predicate remains runtime-only because no pushdown plan was produced."
+            );
         }
 
         if (predicatePlan.PushedPredicates.Length > 0)
@@ -100,7 +111,8 @@ internal static partial class SourceInteractionPlanner
                 SourcePredicateContract.PushedSourcePredicate,
                 predicatePlan.PushedWhereNode,
                 predicatePlan.Confidence,
-                predicatePlan.Reason);
+                predicatePlan.Reason
+            );
         }
 
         if (hasRuntimePredicate)
@@ -109,15 +121,15 @@ internal static partial class SourceInteractionPlanner
                 SourcePredicateContract.RuntimeOnlyPredicate,
                 predicatePlan.PushedWhereNode,
                 predicatePlan.Confidence,
-                predicatePlan.Reason);
+                predicatePlan.Reason
+            );
         }
 
         return new SourceInteractionPredicate(
             SourcePredicateContract.None,
             predicatePlan.PushedWhereNode,
             predicatePlan.Confidence,
-            predicatePlan.Reason);
+            predicatePlan.Reason
+        );
     }
-
-
 }

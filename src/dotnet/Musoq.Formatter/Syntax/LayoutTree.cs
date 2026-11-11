@@ -36,11 +36,13 @@ internal static class LayoutTree
         return current.AsReadOnly();
     }
 
-    private static bool IsOpening(SyntaxToken token) => token.Role == SyntaxTokenRole.Punctuation && token.TokenType == TokenType.Less || token.TokenType is
-        TokenType.LeftParenthesis or TokenType.LeftSquareBracket or TokenType.LBracket;
+    private static bool IsOpening(SyntaxToken token) =>
+        token.Role == SyntaxTokenRole.Punctuation && token.TokenType == TokenType.Less
+        || token.TokenType is TokenType.LeftParenthesis or TokenType.LeftSquareBracket or TokenType.LBracket;
 
-    private static bool IsClosing(SyntaxToken token) => token.Role == SyntaxTokenRole.Punctuation && token.TokenType == TokenType.Greater || token.TokenType is
-        TokenType.RightParenthesis or TokenType.RightSquareBracket or TokenType.RBracket;
+    private static bool IsClosing(SyntaxToken token) =>
+        token.Role == SyntaxTokenRole.Punctuation && token.TokenType == TokenType.Greater
+        || token.TokenType is TokenType.RightParenthesis or TokenType.RightSquareBracket or TokenType.RBracket;
 
     private static IEnumerable<SyntaxToken> ExpandClosers(SyntaxToken token)
     {
@@ -49,8 +51,18 @@ internal static class LayoutTree
             yield return token;
             yield break;
         }
-        yield return token with { TokenType = TokenType.Greater, Span = new TextSpan(token.Span.Start, 1), Text = ">" };
-        yield return token with { TokenType = TokenType.Greater, Span = new TextSpan(token.Span.Start + 1, 1), Text = ">" };
+        yield return token with
+        {
+            TokenType = TokenType.Greater,
+            Span = new TextSpan(token.Span.Start, 1),
+            Text = ">",
+        };
+        yield return token with
+        {
+            TokenType = TokenType.Greater,
+            Span = new TextSpan(token.Span.Start + 1, 1),
+            Text = ">",
+        };
     }
 
     private sealed record OpenGroup(SyntaxToken Token, List<LayoutElement> Parent);

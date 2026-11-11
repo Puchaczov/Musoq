@@ -17,5 +17,5 @@ internal enum RequiredColumnUsageReason
     WindowValue,
     Qualify,
     SetOperationKey,
-    HiddenIntermediateProjection
+    HiddenIntermediateProjection,
 }

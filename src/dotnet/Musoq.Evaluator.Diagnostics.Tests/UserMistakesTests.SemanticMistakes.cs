@@ -8,15 +8,16 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Invalid_ComparisonOperator()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name == 'test'";
 
         var result = analyzer.ValidateSyntax(query);
 
-
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2019_InvalidOperator, nameof(Invalid_ComparisonOperator));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2019_InvalidOperator,
+            nameof(Invalid_ComparisonOperator)
+        );
     }
 
     [TestMethod]
@@ -58,20 +59,26 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030 or MQ2001: missing operator between Name and 'test'
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "missing operator between Name and literal");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            "missing operator between Name and literal"
+        );
     }
 
     [TestMethod]
     public void Invalid_InExpression_EmptyList()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name IN ()";
 
         var result = analyzer.ValidateSyntax(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, nameof(Invalid_InExpression_EmptyList));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed,
+            nameof(Invalid_InExpression_EmptyList)
+        );
     }
 
     [TestMethod]
@@ -88,17 +95,13 @@ public partial class UserMistakesTests
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ2018_MissingOperator, "BETWEEN missing AND");
     }
 
-
-
     [TestMethod]
     public void TypeMismatch_StringComparedToNumber()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name = 123";
 
         var result = analyzer.Analyze(query);
-
 
         Assert.IsTrue(result.IsParsed);
         DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(TypeMismatch_StringComparedToNumber));
@@ -107,17 +110,17 @@ public partial class UserMistakesTests
     [TestMethod]
     public void TypeMismatch_NumberInStringFunction()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Substring(Population, 1, 2) FROM #A.Entities()";
 
         var result = analyzer.Analyze(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3088_NoMatchingCallableOverload, nameof(TypeMismatch_NumberInStringFunction));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            nameof(TypeMismatch_NumberInStringFunction)
+        );
     }
-
-
 
     [TestMethod]
     public void CaseSensitivity_KeywordLowercase()
@@ -150,17 +153,17 @@ public partial class UserMistakesTests
     [TestMethod]
     public void CaseSensitivity_ColumnNameWrongCase()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT name FROM #A.Entities()";
 
         var result = analyzer.Analyze(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3001_UnknownColumn, nameof(CaseSensitivity_ColumnNameWrongCase));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3001_UnknownColumn,
+            nameof(CaseSensitivity_ColumnNameWrongCase)
+        );
     }
-
-
 
     [TestMethod]
     public void Join_MissingOnCondition()
@@ -195,7 +198,8 @@ public partial class UserMistakesTests
     {
         // Arrange
         var analyzer = CreateAnalyzer();
-        var query = @"
+        var query =
+            @"
             SELECT Name FROM #A.Entities()
             UNION
             SELECT Name, City FROM #A.Entities()";
@@ -221,8 +225,6 @@ public partial class UserMistakesTests
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "UNION without second query");
     }
 
-
-
     [TestMethod]
     public void Aggregate_NonAggregatedColumnInSelect()
     {
@@ -240,14 +242,16 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Aggregate_WithoutGroupBy()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name, Count(*) FROM #A.Entities()";
 
         var result = analyzer.Analyze(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3012_NonAggregateInSelect, nameof(Aggregate_WithoutGroupBy));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3012_NonAggregateInSelect,
+            nameof(Aggregate_WithoutGroupBy)
+        );
     }
 
     [TestMethod]
@@ -267,17 +271,17 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Aggregate_WrongArgumentCount()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Count(Name, City, Country) FROM #A.Entities()";
 
         var result = analyzer.Analyze(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3087_InvalidCallableArity, nameof(Aggregate_WrongArgumentCount));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3087_InvalidCallableArity,
+            nameof(Aggregate_WrongArgumentCount)
+        );
     }
-
-
 
     [TestMethod]
     public void CTE_MissingAsKeyword()
@@ -306,5 +310,4 @@ public partial class UserMistakesTests
         // Assert - MQ2001: incorrect CTE syntax order
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ2030_UnsupportedSyntax, "CTE referenced before definition");
     }
-
 }

@@ -14,12 +14,14 @@ internal static partial class RecursiveCteInvariantPlanner
 {
     private static Dictionary<string, int> CountInvariantReferences(
         PhysicalNode member,
-        IEnumerable<PhysicalRecursiveCteInvariantDefinition> definitions)
+        IEnumerable<PhysicalRecursiveCteInvariantDefinition> definitions
+    )
     {
         var counts = definitions.ToDictionary(
             static definition => definition.Name,
             static _ => 0,
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
         CountInvariantReferences(member, counts);
         return counts;
     }
@@ -36,7 +38,8 @@ internal static partial class RecursiveCteInvariantPlanner
     private static PhysicalNode SelectHashIndexes(
         PhysicalNode node,
         IList<PhysicalRecursiveCteInvariantDefinition> definitions,
-        IReadOnlyDictionary<string, int> referenceCounts)
+        IReadOnlyDictionary<string, int> referenceCounts
+    )
     {
         if (node is PhysicalHashJoinNode { Kind: JoinKind.Inner } hashJoin)
         {
@@ -49,8 +52,10 @@ internal static partial class RecursiveCteInvariantPlanner
                 var definition = definitions[definitionIndex];
                 var buildKeys = rewritten.BuildKeys;
                 var probeKeys = rewritten.ProbeKeys;
-                if (!ExpressionsReferenceAliases(buildKeys, definition.SourceAliases) &&
-                    ExpressionsReferenceAliases(probeKeys, definition.SourceAliases))
+                if (
+                    !ExpressionsReferenceAliases(buildKeys, definition.SourceAliases)
+                    && ExpressionsReferenceAliases(probeKeys, definition.SourceAliases)
+                )
                 {
                     (buildKeys, probeKeys) = (probeKeys, buildKeys);
                     rewritten = rewritten with { BuildKeys = buildKeys, ProbeKeys = probeKeys };
@@ -60,11 +65,12 @@ internal static partial class RecursiveCteInvariantPlanner
                 {
                     definitions[definitionIndex] = definition with
                     {
-                        StorageKind = definition.StorageKind == PhysicalRecursiveCteInvariantStorageKind.ExistingRows
-                            ? PhysicalRecursiveCteInvariantStorageKind.ExistingHashIndex
-                            : PhysicalRecursiveCteInvariantStorageKind.HashIndex,
+                        StorageKind =
+                            definition.StorageKind == PhysicalRecursiveCteInvariantStorageKind.ExistingRows
+                                ? PhysicalRecursiveCteInvariantStorageKind.ExistingHashIndex
+                                : PhysicalRecursiveCteInvariantStorageKind.HashIndex,
                         HashKeys = buildKeys,
-                        HashProbeKeys = probeKeys
+                        HashProbeKeys = probeKeys,
                     };
                 }
             }
@@ -74,14 +80,16 @@ internal static partial class RecursiveCteInvariantPlanner
 
         return PhysicalPlanRewriter.RewriteChildren(
             node,
-            child => SelectHashIndexes(child, definitions, referenceCounts));
+            child => SelectHashIndexes(child, definitions, referenceCounts)
+        );
     }
 
     private static int FindDirectInvariantDefinition(
         PhysicalNode left,
         PhysicalNode right,
         IList<PhysicalRecursiveCteInvariantDefinition> definitions,
-        IReadOnlyDictionary<string, int> referenceCounts)
+        IReadOnlyDictionary<string, int> referenceCounts
+    )
     {
         for (var index = 0; index < definitions.Count; index++)
         {
@@ -89,8 +97,10 @@ internal static partial class RecursiveCteInvariantPlanner
             if (referenceCounts[definition.Name] != 1)
                 continue;
 
-            if (left is PhysicalCteRefNode leftRef && leftRef.CteName == definition.Name ||
-                right is PhysicalCteRefNode rightRef && rightRef.CteName == definition.Name)
+            if (
+                left is PhysicalCteRefNode leftRef && leftRef.CteName == definition.Name
+                || right is PhysicalCteRefNode rightRef && rightRef.CteName == definition.Name
+            )
             {
                 return index;
             }
@@ -101,8 +111,10 @@ internal static partial class RecursiveCteInvariantPlanner
 
     private static bool ExpressionsReferenceAliases(
         IEnumerable<IrExpression> expressions,
-        IReadOnlyCollection<string> aliases) =>
-        expressions.SelectMany(AliasRefExtractor.Extract)
+        IReadOnlyCollection<string> aliases
+    ) =>
+        expressions
+            .SelectMany(AliasRefExtractor.Extract)
             .Any(alias => aliases.Contains(alias, StringComparer.OrdinalIgnoreCase));
 
     private static IEnumerable<IrExpression> EnumerateExpressionsRecursively(PhysicalNode node)
@@ -126,9 +138,10 @@ internal static partial class RecursiveCteInvariantPlanner
             PhysicalSchemaScanNode scan => scan.Arguments.Concat(scan.PushedPredicates),
             PhysicalInterpretSourceNode interpret => interpret.Arguments,
             PhysicalAccessMethodSourceNode access => [access.MethodCallExpression],
-            PhysicalValuesScanNode values => values.Rows.SelectMany(static row => row.Fields)
+            PhysicalValuesScanNode values => values
+                .Rows.SelectMany(static row => row.Fields)
                 .Select(static field => field.Value),
-            _ => []
+            _ => [],
         };
     }
 

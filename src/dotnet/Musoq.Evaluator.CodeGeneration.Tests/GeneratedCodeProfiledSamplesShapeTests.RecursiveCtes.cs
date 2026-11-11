@@ -31,34 +31,23 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             [
                 "IProfiledRunnable",
                 "RunWithProfile(CancellationToken token, QueryProfileRecorder profileRecorder)",
-                "while (cte0CurrentFrontier.Count > 0)"
+                "while (cte0CurrentFrontier.Count > 0)",
             ],
-            RecursiveUnionAllSourceBoundariesFileName);
+            RecursiveUnionAllSourceBoundariesFileName
+        );
         AssertDoesNotContainAny(
             sample,
-            [
-                "GetOperatorHandle",
-                "BeginOperatorValue",
-                "AddOperatorInputRows",
-                "AddOperatorOutputRows"
-            ],
-            RecursiveUnionAllSourceBoundariesFileName);
+            ["GetOperatorHandle", "BeginOperatorValue", "AddOperatorInputRows", "AddOperatorOutputRows"],
+            RecursiveUnionAllSourceBoundariesFileName
+        );
     }
 
     [TestMethod]
     public void RecursiveUnionAllFullSample_WhenCheckedIn_ShouldProfileOneScopeAndAggregateFrontiers()
     {
         var sample = ReadProfiledSample(RecursiveUnionAllFullFileName);
-        var recursive = ResolveOperator(
-            sample,
-            RecursiveUnionAllFullFileName,
-            "RecursiveCte",
-            "counter; result cte0");
-        var append = ResolveOperator(
-            sample,
-            RecursiveUnionAllFullFileName,
-            "RecursiveAppend",
-            "cte0NextFrontier <-");
+        var recursive = ResolveOperator(sample, RecursiveUnionAllFullFileName, "RecursiveCte", "counter; result cte0");
+        var append = ResolveOperator(sample, RecursiveUnionAllFullFileName, "RecursiveAppend", "cte0NextFrontier <-");
         var recursivePrefix = CreateScopePrefix(recursive);
 
         AssertContainsBeginOperator(sample, RecursiveUnionAllFullFileName, recursive);
@@ -71,9 +60,10 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 $"{recursivePrefix}InputRows += cte0CurrentFrontier.Count;",
                 $"{recursivePrefix}OutputRows += cte0NextFrontier.Count;",
                 $"{recursivePrefix}Scope.AddInputRows({recursivePrefix}InputRows);",
-                $"{recursivePrefix}Scope.AddOutputRows({recursivePrefix}OutputRows);"
+                $"{recursivePrefix}Scope.AddOutputRows({recursivePrefix}OutputRows);",
             ],
-            RecursiveUnionAllFullFileName);
+            RecursiveUnionAllFullFileName
+        );
         AssertContainsCounterInputRows(sample, RecursiveUnionAllFullFileName, append, "1");
         AssertContainsCounterOutputRows(sample, RecursiveUnionAllFullFileName, append, "1");
         AssertDoesNotContainBeginOperator(sample, RecursiveUnionAllFullFileName, append);
@@ -83,11 +73,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
     public void RecursiveKeyedUnionFullSample_WhenCheckedIn_ShouldCountOnlyAcceptedTypedKeys()
     {
         var sample = ReadProfiledSample(RecursiveKeyedUnionFullFileName);
-        var append = ResolveOperator(
-            sample,
-            RecursiveKeyedUnionFullFileName,
-            "RecursiveAppend",
-            "cte0NextFrontier <-");
+        var append = ResolveOperator(sample, RecursiveKeyedUnionFullFileName, "RecursiveAppend", "cte0NextFrontier <-");
         var appendPrefix = CreateScopePrefix(append);
         var seenDeclaration = sample.IndexOf("var cte0Seen = new HashSet<int>();", StringComparison.Ordinal);
         var seenAdd = sample.IndexOf("if (cte0Seen.Add(__cte0NextFrontierCandidate0))", StringComparison.Ordinal);
@@ -100,16 +86,22 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "var cte0Seen = new HashSet<int>();",
                 $"{appendPrefix}InputRows += 1;",
                 $"profileRecorder?.AddOperatorInputRows({appendPrefix}Handle, {appendPrefix}InputRows);",
-                $"profileRecorder?.AddOperatorOutputRows({appendPrefix}Handle, {appendPrefix}OutputRows);"
+                $"profileRecorder?.AddOperatorOutputRows({appendPrefix}Handle, {appendPrefix}OutputRows);",
             ],
-            RecursiveKeyedUnionFullFileName);
+            RecursiveKeyedUnionFullFileName
+        );
         Assert.IsGreaterThanOrEqualTo(0, seenAdd, "The typed seen-set probe should be generated.");
         Assert.IsGreaterThan(seenAdd, acceptedCounter, "Accepted output must be counted inside the seen-set branch.");
-        Assert.IsGreaterThan(seenDeclaration, resultStore, "The recursive hot path should end at the CTE result store.");
+        Assert.IsGreaterThan(
+            seenDeclaration,
+            resultStore,
+            "The recursive hot path should end at the CTE result store."
+        );
         AssertDoesNotContainAny(
             sample[seenDeclaration..resultStore],
             ["HashSet<object", "object[]"],
-            RecursiveKeyedUnionFullFileName);
+            RecursiveKeyedUnionFullFileName
+        );
         AssertDoesNotContainBeginOperator(sample, RecursiveKeyedUnionFullFileName, append);
     }
 
@@ -119,7 +111,8 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         var sample = ReadProfiledSample(RecursiveInvariantIndexedEdgesFullFileName);
         var hash = sample.IndexOf(
             "var cte0Invariant0Hash = new Dictionary<int, HashJoinBucket<Cte0Invariant0Row0>>",
-            StringComparison.Ordinal);
+            StringComparison.Ordinal
+        );
         var loop = sample.IndexOf("while (cte0CurrentFrontier.Count > 0)", StringComparison.Ordinal);
 
         Assert.AreEqual(1, CountProfiledOccurrences(sample, "CreateHash [cte0Invariant0Hash: int -> Row]"));
@@ -131,13 +124,15 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
             [
                 "private readonly struct Cte0Invariant0Row0",
                 "ProfiledChunkedEnumerable<Musoq.Evaluator.Tests.Schema.RecursiveCte.RecursiveGraphEdge>.Create",
-                "HashProbe [cte0Invariant0Hash[r.Id] -> cte0Invariant0HashMatches]"
+                "HashProbe [cte0Invariant0Hash[r.Id] -> cte0Invariant0HashMatches]",
             ],
-            RecursiveInvariantIndexedEdgesFullFileName);
+            RecursiveInvariantIndexedEdgesFullFileName
+        );
         AssertDoesNotContainAny(
             sample,
             ["MaterializeChunked [", "MaterializeChunkedRows", "List<Cte0Invariant0Row0>"],
-            RecursiveInvariantIndexedEdgesFullFileName);
+            RecursiveInvariantIndexedEdgesFullFileName
+        );
     }
 
     [TestMethod]
@@ -151,16 +146,14 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
         Assert.IsGreaterThan(hash, loop);
         AssertContainsAll(
             sample,
-            [
-                "private readonly struct Cte0Invariant0Row0",
-                "RecursiveSnapshotGuard [",
-                "HashProbe ["
-            ],
-            RecursiveTypedInvariantDirectIndexFullFileName);
+            ["private readonly struct Cte0Invariant0Row0", "RecursiveSnapshotGuard [", "HashProbe ["],
+            RecursiveTypedInvariantDirectIndexFullFileName
+        );
         AssertDoesNotContainAny(
             sample,
             ["List<Cte0Invariant0Row0>", "MaterializeChunkedRows"],
-            RecursiveTypedInvariantDirectIndexFullFileName);
+            RecursiveTypedInvariantDirectIndexFullFileName
+        );
     }
 
     private static int CountProfiledOccurrences(string text, string value) =>

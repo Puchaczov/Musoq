@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionProviderQueryTestsFixtures
 {
-
-    public sealed record FloatingDecimalComparisonRow<T>(int Position, T? Value, decimal? Amount) where T : struct;
-
+    public sealed record FloatingDecimalComparisonRow<T>(int Position, T? Value, decimal? Amount)
+        where T : struct;
 }

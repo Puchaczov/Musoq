@@ -13,13 +13,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("param(ids: int[])", sample.Content);
         Assert.Contains(
             "var paramIds = ScriptParameterBinder.GetRequiredCollection<int>(__musoqExecutionState, \"ids\");",
-            sample.Content);
-        Assert.Contains(
-            "EvaluationHelper.CollectionParameterContains<int>(id, paramIds)",
-            sample.Content);
+            sample.Content
+        );
+        Assert.Contains("EvaluationHelper.CollectionParameterContains<int>(id, paramIds)", sample.Content);
         Assert.IsFalse(
             sample.Content.Contains("private static bool CollectionParameterContains<T>", StringComparison.Ordinal),
-            sample.FileName);
+            sample.FileName
+        );
         Assert.IsFalse(sample.Content.Contains("Enumerable.Contains", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(sample.Content.Contains("System.Reflection", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(sample.Content.Contains("Array.IndexOf", StringComparison.Ordinal), sample.FileName);

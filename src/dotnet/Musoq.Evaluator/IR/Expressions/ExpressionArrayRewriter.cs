@@ -41,9 +41,10 @@ public abstract partial class ExpressionArrayRewriter : IrExpressionVisitor<IrEx
             var condition = Visit(branch.Condition);
             var result = Visit(branch.Result);
 
-            rewritten[index] = ReferenceEquals(condition, branch.Condition) && ReferenceEquals(result, branch.Result)
-                ? branch
-                : new CaseWhenBranch(condition, result);
+            rewritten[index] =
+                ReferenceEquals(condition, branch.Condition) && ReferenceEquals(result, branch.Result)
+                    ? branch
+                    : new CaseWhenBranch(condition, result);
 
             if (!ReferenceEquals(rewritten[index], branch))
                 changed = true;
@@ -66,9 +67,7 @@ public abstract partial class ExpressionArrayRewriter : IrExpressionVisitor<IrEx
     {
         ArgumentNullException.ThrowIfNull(node);
         var expression = Visit(node.Expression);
-        return ReferenceEquals(expression, node.Expression)
-            ? node
-            : node with { Expression = expression };
+        return ReferenceEquals(expression, node.Expression) ? node : node with { Expression = expression };
     }
 
     protected override IrExpression VisitRowPresence(RowPresence node)
@@ -77,6 +76,7 @@ public abstract partial class ExpressionArrayRewriter : IrExpressionVisitor<IrEx
     }
 
     protected override IrExpression VisitCteCollectionInput(CteCollectionInput node) => node;
+
     protected override IrExpression VisitStructuralRecordLiteral(StructuralRecordLiteral node)
     {
         var fields = new StructuralFieldExpression[node.Fields.Count];
@@ -85,7 +85,9 @@ public abstract partial class ExpressionArrayRewriter : IrExpressionVisitor<IrEx
         {
             var field = node.Fields[index];
             var value = Visit(field.Value);
-            fields[index] = ReferenceEquals(value, field.Value) ? field : new StructuralFieldExpression(field.Name, value);
+            fields[index] = ReferenceEquals(value, field.Value)
+                ? field
+                : new StructuralFieldExpression(field.Name, value);
             changed |= !ReferenceEquals(value, field.Value);
         }
 
@@ -109,4 +111,5 @@ public abstract partial class ExpressionArrayRewriter : IrExpressionVisitor<IrEx
     {
         var value = Visit(node.Value);
         return ReferenceEquals(value, node.Value) ? node : new StructuralConversion(value, node.TargetType);
-    }}
+    }
+}

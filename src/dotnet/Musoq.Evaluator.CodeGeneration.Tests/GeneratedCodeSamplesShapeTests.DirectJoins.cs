@@ -13,7 +13,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void DirectSemiJoin_WhenCompiledForInspection_ShouldUsePayloadFreeKeySet()
     {
         var result = CompileDirectJoinForInspection(
-            "select a.Name from #A.entities() a semi join #B.entities() b on a.Id = b.Id");
+            "select a.Name from #A.entities() a semi join #B.entities() b on a.Id = b.Id"
+        );
 
         Assert.Contains("PhysicalHashJoin [LeftSemi]", result.PhysicalPlanText);
         Assert.Contains("CreateKeySet [", result.ExecutionPlanText);
@@ -28,7 +29,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void DirectSemiJoin_WhenEquiPredicateHasResidual_ShouldUseHashPayload()
     {
         var result = CompileDirectJoinForInspection(
-            "select a.Name from #A.entities() a semi join #B.entities() b on a.Id = b.Id and b.Population > 100");
+            "select a.Name from #A.entities() a semi join #B.entities() b on a.Id = b.Id and b.Population > 100"
+        );
 
         Assert.Contains("PhysicalHashJoin [LeftSemi]", result.PhysicalPlanText);
         Assert.Contains("CreateHash [", result.ExecutionPlanText);
@@ -41,7 +43,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void DirectAntiJoin_WhenCompiledForInspection_ShouldUsePayloadFreeKeySetNoMatchProbe()
     {
         var result = CompileDirectJoinForInspection(
-            "select a.Name from #A.entities() a anti join #B.entities() b on a.Id = b.Id");
+            "select a.Name from #A.entities() a anti join #B.entities() b on a.Id = b.Id"
+        );
 
         Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", result.PhysicalPlanText);
         Assert.Contains("CreateKeySet [", result.ExecutionPlanText);
@@ -57,7 +60,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void DirectAntiJoin_WhenEquiPredicateHasResidual_ShouldUseHashPayloadNoMatchProbe()
     {
         var result = CompileDirectJoinForInspection(
-            "select a.Name from #A.entities() a anti join #B.entities() b on a.Id = b.Id and b.Population > 100");
+            "select a.Name from #A.entities() a anti join #B.entities() b on a.Id = b.Id and b.Population > 100"
+        );
 
         Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", result.PhysicalPlanText);
         Assert.Contains("CreateHash [", result.ExecutionPlanText);
@@ -71,7 +75,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void DirectCrossJoin_WhenCompiledForInspection_ShouldUseNestedLoopWithoutHashState()
     {
         var result = CompileDirectJoinForInspection(
-            "select a.Name, b.Name from #A.entities() a cross join #B.entities() b");
+            "select a.Name, b.Name from #A.entities() a cross join #B.entities() b"
+        );
 
         Assert.Contains("PhysicalNestedLoopJoin [Cross] [TRUE]", result.PhysicalPlanText);
         Assert.Contains("MaterializeChunked [bRows -> bRowsBuffer]", result.ExecutionPlanText);
@@ -92,8 +97,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 new Dictionary<string, IEnumerable<BasicEntity>>
                 {
                     { "#A", Array.Empty<BasicEntity>() },
-                    { "#B", Array.Empty<BasicEntity>() }
-                }),
-            new TestsLoggerResolver());
+                    { "#B", Array.Empty<BasicEntity>() },
+                }
+            ),
+            new TestsLoggerResolver()
+        );
     }
 }

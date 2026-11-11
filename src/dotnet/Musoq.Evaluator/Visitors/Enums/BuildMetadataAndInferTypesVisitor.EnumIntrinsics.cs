@@ -24,7 +24,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3111_InvalidEnumHelper,
                 $"Enum helper '{node.Name}' must be unqualified and use its documented argument count without DISTINCT or FILTER.",
-                node);
+                node
+            );
             PushEnumIntrinsicRecovery(kind, node);
             return true;
         }
@@ -35,7 +36,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3111_InvalidEnumHelper,
                 $"Enum helper '{node.Name}' requires an enum expression as its first argument.",
-                operand);
+                operand
+            );
             PushEnumIntrinsicRecovery(kind, node);
             return true;
         }
@@ -48,7 +50,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 ReportEnumSemanticError(
                     DiagnosticCode.MQ3111_InvalidEnumHelper,
                     $"Enum helper '{node.Name}' requires a flags enum; '{descriptor.DisplayName}' is not declared as flags.",
-                    operand);
+                    operand
+                );
                 PushEnumIntrinsicRecovery(kind, node);
                 return true;
             }
@@ -61,41 +64,50 @@ public partial class BuildMetadataAndInferTypesVisitor
             boundArguments = [operand];
         }
 
-        var marker = EnumIntrinsicMethodFacts.Bind(kind, operand.ReturnType ??
-            throw new InvalidOperationException($"Enum helper '{node.Name}' operand has no inferred type."));
-        var result = (AccessMethodNode)new AccessMethodNode(
+        var marker = EnumIntrinsicMethodFacts.Bind(
+            kind,
+            operand.ReturnType
+                ?? throw new InvalidOperationException($"Enum helper '{node.Name}' operand has no inferred type.")
+        );
+        var result = (AccessMethodNode)
+            new AccessMethodNode(
                 node.FunctionToken,
                 new ArgsListNode(boundArguments),
                 null,
                 false,
                 marker,
                 string.Empty,
-                node.Span)
-            .WithFullSpan(node.FullSpan);
+                node.Span
+            ).WithFullSpan(node.FullSpan);
         PushSemanticNode(result);
         return true;
     }
 
     private bool TryRejectUnsupportedEnumMethod(AccessMethodNode node)
     {
-        if (PeekSemanticNode("Inspect enum method arguments") is not ArgsListNode arguments ||
-            !arguments.Args.Any(argument => TryGetEnumExpressionType(argument, out _)))
+        if (
+            PeekSemanticNode("Inspect enum method arguments") is not ArgsListNode arguments
+            || !arguments.Args.Any(argument => TryGetEnumExpressionType(argument, out _))
+        )
             return false;
 
-        if (node.Name.Equals("Count", StringComparison.OrdinalIgnoreCase) ||
-            node.Name.Equals("CountDistinct", StringComparison.OrdinalIgnoreCase))
+        if (
+            node.Name.Equals("Count", StringComparison.OrdinalIgnoreCase)
+            || node.Name.Equals("CountDistinct", StringComparison.OrdinalIgnoreCase)
+        )
             return false;
 
         _ = GetAndValidateArgs(node);
         if (node.FilterExpression != null)
             _ = PopSemanticNode("Discard unsupported enum method filter");
-        var descriptor = arguments.Args
-            .Select(argument => TryGetEnumExpressionType(argument, out var candidate) ? candidate : null)
+        var descriptor = arguments
+            .Args.Select(argument => TryGetEnumExpressionType(argument, out var candidate) ? candidate : null)
             .First(static candidate => candidate != null)!;
         ReportEnumSemanticError(
             DiagnosticCode.MQ3110_UnsupportedEnumOperator,
             $"Method '{node.Name}' is not supported for enum type '{descriptor.DisplayName}'. Use the explicit enum helpers; Count and CountDistinct are the only aggregate consumers in v1.",
-            node);
+            node
+        );
         PushSemanticNode(new NullNode(typeof(object), node.Span));
         return true;
     }
@@ -103,7 +115,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     private EnumScalarValue BindEnumFlagsMask(
         AccessMethodNode node,
         ArgsListNode arguments,
-        EnumTypeDescriptor descriptor)
+        EnumTypeDescriptor descriptor
+    )
     {
         var rawMask = 0UL;
         for (var index = 1; index < arguments.Args.Length; index++)
@@ -114,7 +127,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 ReportEnumSemanticError(
                     DiagnosticCode.MQ3111_InvalidEnumHelper,
                     $"Enum helper '{node.Name}' accepts only exact quoted member names after its enum operand.",
-                    argument);
+                    argument
+                );
                 continue;
             }
 
@@ -123,7 +137,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 ReportEnumSemanticError(
                     DiagnosticCode.MQ3108_UnknownEnumMember,
                     $"Enum member '{memberName}' is not defined by enum type '{descriptor.DisplayName}'. Member names are case-sensitive.",
-                    argument);
+                    argument
+                );
                 continue;
             }
 
@@ -141,12 +156,14 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private void PushEnumIntrinsicRecovery(EnumIntrinsicKind kind, AccessMethodNode node)
     {
-        PushSemanticNode(kind switch
-        {
-            EnumIntrinsicKind.EnumName => new NullNode(typeof(string), node.Span),
-            EnumIntrinsicKind.EnumValue => new NullNode(typeof(object), node.Span),
-            _ => new BooleanNode(false, node.Span)
-        });
+        PushSemanticNode(
+            kind switch
+            {
+                EnumIntrinsicKind.EnumName => new NullNode(typeof(string), node.Span),
+                EnumIntrinsicKind.EnumValue => new NullNode(typeof(object), node.Span),
+                _ => new BooleanNode(false, node.Span),
+            }
+        );
     }
 
     private static bool TryResolveEnumIntrinsicKind(string name, out EnumIntrinsicKind kind)

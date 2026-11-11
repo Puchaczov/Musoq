@@ -33,7 +33,11 @@ public sealed class AllocationOwnershipTests
         var first = new ExecutionRowValue("value", new ExecutionLiteral(1, typeof(int)));
         var row = new[] { first };
         IReadOnlyList<ExecutionRowValue>[] rows = [row];
-        var node = new ExecutionCreateValuesRows(new ExecutionVariable("rows", typeof(object)), new GeneratedRowShape("Row", []), rows);
+        var node = new ExecutionCreateValuesRows(
+            new ExecutionVariable("rows", typeof(object)),
+            new GeneratedRowShape("Row", []),
+            rows
+        );
 
         row[0] = new ExecutionRowValue("changed", new ExecutionLiteral(2, typeof(int)));
         rows[0] = [];
@@ -47,7 +51,11 @@ public sealed class AllocationOwnershipTests
         var first = new ExecutionRowValue("value", new ExecutionLiteral(1, typeof(int)));
         var row = new[] { first };
         IReadOnlyList<ExecutionRowValue>[] rows = [row];
-        var original = new ExecutionCreateValuesRows(new ExecutionVariable("rows", typeof(object)), new GeneratedRowShape("Row", []), []);
+        var original = new ExecutionCreateValuesRows(
+            new ExecutionVariable("rows", typeof(object)),
+            new GeneratedRowShape("Row", []),
+            []
+        );
         var clone = original with { Values = rows };
 
         row[0] = new ExecutionRowValue("changed", new ExecutionLiteral(2, typeof(int)));
@@ -55,5 +63,4 @@ public sealed class AllocationOwnershipTests
 
         Assert.AreSame(first, clone.Values[0][0]);
     }
-
 }

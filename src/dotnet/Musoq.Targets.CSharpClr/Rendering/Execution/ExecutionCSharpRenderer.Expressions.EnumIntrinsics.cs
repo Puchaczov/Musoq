@@ -10,34 +10,38 @@ internal static class EnumIntrinsicExpressionRenderer
 {
     internal static bool CanRender(ExecutionMethodCall methodCall)
     {
-        if (methodCall.EnumIntrinsic == EnumIntrinsicKind.EnumValue ||
-            methodCall.OperandEnumType == null ||
-            methodCall.Arguments.Count == 0 ||
-            !ExecutionCSharpRenderer.CanRenderExpression(methodCall.Arguments[0]))
+        if (
+            methodCall.EnumIntrinsic == EnumIntrinsicKind.EnumValue
+            || methodCall.OperandEnumType == null
+            || methodCall.Arguments.Count == 0
+            || !ExecutionCSharpRenderer.CanRenderExpression(methodCall.Arguments[0])
+        )
             return false;
 
         return methodCall.EnumIntrinsic switch
         {
             EnumIntrinsicKind.EnumName => methodCall.ReturnType.RequireClrType() == typeof(string),
             EnumIntrinsicKind.IsDefined => methodCall.ReturnType.RequireClrType() == typeof(bool),
-            EnumIntrinsicKind.HasAnyFlags or EnumIntrinsicKind.HasAllFlags =>
-                methodCall.ReturnType.RequireClrType() == typeof(bool) &&
-                methodCall.OperandEnumType.IsFlags &&
-                methodCall.EnumMask is { } mask &&
-                mask.Kind == methodCall.OperandEnumType.UnderlyingKind,
-            _ => false
+            EnumIntrinsicKind.HasAnyFlags or EnumIntrinsicKind.HasAllFlags => methodCall.ReturnType.RequireClrType()
+                == typeof(bool)
+                && methodCall.OperandEnumType.IsFlags
+                && methodCall.EnumMask is { } mask
+                && mask.Kind == methodCall.OperandEnumType.UnderlyingKind,
+            _ => false,
         };
     }
 
     internal static ExpressionSyntax Render(
         ExecutionCSharpRenderer renderer,
         ExecutionMethodCall methodCall,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        var intrinsic = methodCall.EnumIntrinsic ??
-                        throw new InvalidOperationException("Enum intrinsic metadata is missing.");
-        var descriptor = methodCall.OperandEnumType ??
-                         throw new InvalidOperationException($"Enum intrinsic '{intrinsic}' has no descriptor.");
+        var intrinsic =
+            methodCall.EnumIntrinsic ?? throw new InvalidOperationException("Enum intrinsic metadata is missing.");
+        var descriptor =
+            methodCall.OperandEnumType
+            ?? throw new InvalidOperationException($"Enum intrinsic '{intrinsic}' has no descriptor.");
         if (methodCall.Arguments.Count == 0)
             throw new InvalidOperationException($"Enum intrinsic '{intrinsic}' has no operand.");
 
@@ -45,11 +49,18 @@ internal static class EnumIntrinsicExpressionRenderer
         {
             EnumIntrinsicKind.EnumName => RenderEnumName(renderer, methodCall.Arguments[0], descriptor, context),
             EnumIntrinsicKind.IsDefined => RenderEnumIsDefined(renderer, methodCall.Arguments[0], descriptor, context),
-            EnumIntrinsicKind.HasAnyFlags or EnumIntrinsicKind.HasAllFlags =>
-                RenderEnumFlags(renderer, methodCall.Arguments[0], descriptor, methodCall.EnumMask, intrinsic, context),
+            EnumIntrinsicKind.HasAnyFlags or EnumIntrinsicKind.HasAllFlags => RenderEnumFlags(
+                renderer,
+                methodCall.Arguments[0],
+                descriptor,
+                methodCall.EnumMask,
+                intrinsic,
+                context
+            ),
             EnumIntrinsicKind.EnumValue => throw new InvalidOperationException(
-                "EnumValue must be erased to its primitive operand before execution lowering."),
-            _ => throw new ArgumentOutOfRangeException(nameof(intrinsic), intrinsic, "Unknown enum intrinsic.")
+                "EnumValue must be erased to its primitive operand before execution lowering."
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(intrinsic), intrinsic, "Unknown enum intrinsic."),
         };
     }
 
@@ -57,7 +68,8 @@ internal static class EnumIntrinsicExpressionRenderer
         ExecutionCSharpRenderer renderer,
         ExecutionExpression operand,
         EnumTypeDescriptor descriptor,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var seenValues = new HashSet<EnumScalarValue>();
         var arms = new List<SwitchExpressionArmSyntax>();
@@ -66,28 +78,38 @@ internal static class EnumIntrinsicExpressionRenderer
             if (!seenValues.Add(member.Value))
                 continue;
 
-            arms.Add(SyntaxFactory.SwitchExpressionArm(
-                SyntaxFactory.ConstantPattern(RenderEnumScalarLiteral(member.Value)),
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression,
-                    SyntaxFactory.Literal(member.Name))));
+            arms.Add(
+                SyntaxFactory.SwitchExpressionArm(
+                    SyntaxFactory.ConstantPattern(RenderEnumScalarLiteral(member.Value)),
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal(member.Name)
+                    )
+                )
+            );
         }
 
-        arms.Add(SyntaxFactory.SwitchExpressionArm(
-            SyntaxFactory.DiscardPattern(),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+        arms.Add(
+            SyntaxFactory.SwitchExpressionArm(
+                SyntaxFactory.DiscardPattern(),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+            )
+        );
 
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.SwitchExpression(
                 renderer.RenderExpression(operand, context),
-                SyntaxFactory.SeparatedList(arms)));
+                SyntaxFactory.SeparatedList(arms)
+            )
+        );
     }
 
     private static ExpressionSyntax RenderEnumIsDefined(
         ExecutionCSharpRenderer renderer,
         ExecutionExpression operand,
         EnumTypeDescriptor descriptor,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         PatternSyntax? definedPattern = null;
         var seenValues = new HashSet<EnumScalarValue>();
@@ -97,9 +119,10 @@ internal static class EnumIntrinsicExpressionRenderer
                 continue;
 
             var memberPattern = (PatternSyntax)SyntaxFactory.ConstantPattern(RenderEnumScalarLiteral(member.Value));
-            definedPattern = definedPattern == null
-                ? memberPattern
-                : SyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, definedPattern, memberPattern);
+            definedPattern =
+                definedPattern == null
+                    ? memberPattern
+                    : SyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, definedPattern, memberPattern);
         }
 
         if (definedPattern == null)
@@ -110,21 +133,28 @@ internal static class EnumIntrinsicExpressionRenderer
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.SwitchExpressionArm(
                             SyntaxFactory.DiscardPattern(),
-                            SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))));
+                            SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)
+                        )
+                    )
+                )
+            );
         }
 
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.SwitchExpression(
                 renderer.RenderExpression(operand, context),
-                SyntaxFactory.SeparatedList(
-                [
+                SyntaxFactory.SeparatedList([
                     SyntaxFactory.SwitchExpressionArm(
                         definedPattern,
-                        SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)),
+                        SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                    ),
                     SyntaxFactory.SwitchExpressionArm(
                         SyntaxFactory.DiscardPattern(),
-                        SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
-                ])));
+                        SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)
+                    ),
+                ])
+            )
+        );
     }
 
     private static ExpressionSyntax RenderEnumFlags(
@@ -133,18 +163,17 @@ internal static class EnumIntrinsicExpressionRenderer
         EnumTypeDescriptor descriptor,
         EnumScalarValue? mask,
         EnumIntrinsicKind intrinsic,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        var boundMask = mask ?? throw new InvalidOperationException(
-            $"Enum flags intrinsic '{intrinsic}' has no compiled mask.");
+        var boundMask =
+            mask ?? throw new InvalidOperationException($"Enum flags intrinsic '{intrinsic}' has no compiled mask.");
         var captureName = $"__enumValue{context.Session.EnumIntrinsicPatternCount++}";
         var capture = SyntaxFactory.IdentifierName(captureName);
         var maskLiteral = RenderEnumScalarLiteral(boundMask);
         var maskedValue = SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.BitwiseAndExpression,
-                capture,
-                maskLiteral));
+            SyntaxFactory.BinaryExpression(SyntaxKind.BitwiseAndExpression, capture, maskLiteral)
+        );
         var comparison = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.BinaryExpression(
                 intrinsic == EnumIntrinsicKind.HasAnyFlags
@@ -153,7 +182,9 @@ internal static class EnumIntrinsicExpressionRenderer
                 maskedValue,
                 intrinsic == EnumIntrinsicKind.HasAnyFlags
                     ? RenderEnumScalarLiteral(EnumScalarValue.FromRaw(descriptor.UnderlyingKind, 0))
-                    : maskLiteral));
+                    : maskLiteral
+            )
+        );
         var carrierType = EnumScalarTypeFacts.GetCarrierType(descriptor.UnderlyingKind);
         var operandType = operand.ReturnType.ResolveClrType();
         if (Nullable.GetUnderlyingType(operandType) == null)
@@ -164,24 +195,33 @@ internal static class EnumIntrinsicExpressionRenderer
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.SwitchExpressionArm(
                             SyntaxFactory.VarPattern(
-                                SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(captureName))),
-                            comparison))));
+                                SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(captureName))
+                            ),
+                            comparison
+                        )
+                    )
+                )
+            );
         }
 
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.SwitchExpression(
                 renderer.RenderExpression(operand, context),
-                SyntaxFactory.SeparatedList(
-                [
+                SyntaxFactory.SeparatedList([
                     SyntaxFactory.SwitchExpressionArm(
                         SyntaxFactory.DeclarationPattern(
                             ExecutionSyntaxFactory.CreateTypeSyntax(carrierType),
-                            SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(captureName))),
-                        comparison),
+                            SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(captureName))
+                        ),
+                        comparison
+                    ),
                     SyntaxFactory.SwitchExpressionArm(
                         SyntaxFactory.DiscardPattern(),
-                        SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
-                ])));
+                        SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)
+                    ),
+                ])
+            )
+        );
     }
 
     private static ExpressionSyntax RenderEnumScalarLiteral(EnumScalarValue value)
@@ -196,7 +236,7 @@ internal static class EnumIntrinsicExpressionRenderer
             EnumUnderlyingKind.UInt32 => value.AsUInt32(),
             EnumUnderlyingKind.Int64 => value.AsInt64(),
             EnumUnderlyingKind.UInt64 => value.AsUInt64(),
-            _ => throw new ArgumentOutOfRangeException(nameof(value), value.Kind, "Unknown enum backing kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value.Kind, "Unknown enum backing kind."),
         };
 
         return ExecutionCSharpRenderer.RenderLiteral(carrier);

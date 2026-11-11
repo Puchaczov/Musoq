@@ -12,7 +12,8 @@ public static class TableProjectionRows
         IEnumerable<TSource> rows,
         Func<TSource, bool> predicate,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         return ProjectionRows.ProjectSerial(rows, predicate, project, cancellationToken);
@@ -22,7 +23,8 @@ public static class TableProjectionRows
         IEnumerable<IReadOnlyList<TSource>> chunks,
         Func<TSource, bool> predicate,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         ArgumentNullException.ThrowIfNull(chunks);
@@ -35,7 +37,8 @@ public static class TableProjectionRows
     public static IEnumerable<TRow> ProjectOptionalRowsSerial<TSource, TRow>(
         IEnumerable<TSource> rows,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         ArgumentNullException.ThrowIfNull(rows);
@@ -56,7 +59,8 @@ public static class TableProjectionRows
     public static IEnumerable<TRow> ProjectOptionalRowsSerial<TSource, TRow>(
         IEnumerable<IReadOnlyList<TSource>> chunks,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         where TRow : Row
     {
         ArgumentNullException.ThrowIfNull(chunks);
@@ -68,7 +72,8 @@ public static class TableProjectionRows
     private sealed class OptionalChunkProjectionRows<TSource, TRow>(
         IEnumerable<IReadOnlyList<TSource>> chunks,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken) : ITableRowBatchSource<TRow>
+        CancellationToken cancellationToken
+    ) : ITableRowBatchSource<TRow>
         where TRow : Row
     {
         public void AddTo(Table table)
@@ -123,7 +128,8 @@ public static class TableProjectionRows
         IEnumerable<IReadOnlyList<TSource>> chunks,
         Func<TSource, bool> predicate,
         Func<TSource, TRow> project,
-        CancellationToken cancellationToken) : ITableRowBatchSource<TRow>
+        CancellationToken cancellationToken
+    ) : ITableRowBatchSource<TRow>
         where TRow : Row
     {
         public void AddTo(Table table)

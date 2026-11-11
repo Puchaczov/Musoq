@@ -14,23 +14,17 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenCseDisabled_ShouldStillProduceCorrectResults()
     {
-        const string query = @"
-            SELECT ToString(Population), ToString(Population) + '_suffix'
-            FROM #A.Entities()
-            WHERE ToString(Population) = '100'";
+        const string query = (
+            "\n"
+            + "            SELECT ToString(Population), ToString(Population) + '_suffix'\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE ToString(Population) = '100'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A", 100),
-                    new BasicEntity("B", 200),
-                    new BasicEntity("C", 100)
-                ]
-            }
+            { "#A", [new BasicEntity("A", 100), new BasicEntity("B", 200), new BasicEntity("C", 100)] },
         };
-
 
         var compilationOptions = new CompilationOptions(useCommonSubexpressionElimination: false);
         var vm = InstanceCreator.CompileForExecution(
@@ -38,7 +32,8 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -49,27 +44,21 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenCseEnabled_ShouldProduceSameResultsAsDisabled()
     {
-        const string query = @"
-            SELECT
-                Length(Name) as Len1,
-                Length(Name) + 10 as Len2,
-                CASE WHEN Length(Name) > 3 THEN 'long' ELSE 'short' END as Category
-            FROM #A.Entities()
-            WHERE Length(Name) > 1
-            ORDER BY Length(Name)";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Length(Name) as Len1,\n"
+            + "                Length(Name) + 10 as Len2,\n"
+            + "                CASE WHEN Length(Name) > 3 THEN 'long' ELSE 'short' END as Category\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Length(Name) > 1\n"
+            + "            ORDER BY Length(Name)"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("AB"),
-                    new BasicEntity("ABCDE"),
-                    new BasicEntity("X")
-                ]
-            }
+            { "#A", [new BasicEntity("AB"), new BasicEntity("ABCDE"), new BasicEntity("X")] },
         };
-
 
         var compilationOptionsEnabled = new CompilationOptions(useCommonSubexpressionElimination: true);
         var vmEnabled = InstanceCreator.CompileForExecution(
@@ -77,9 +66,9 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            compilationOptionsEnabled);
+            compilationOptionsEnabled
+        );
         var tableEnabled = vmEnabled.Run(TestContext.CancellationToken);
-
 
         var compilationOptionsDisabled = new CompilationOptions(useCommonSubexpressionElimination: false);
         var vmDisabled = InstanceCreator.CompileForExecution(
@@ -87,9 +76,9 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            compilationOptionsDisabled);
+            compilationOptionsDisabled
+        );
         var tableDisabled = vmDisabled.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(tableDisabled.Count, tableEnabled.Count);
         for (var i = 0; i < tableEnabled.Count; i++)
@@ -103,23 +92,19 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenCseDisabled_CaseWhenShouldStillWork()
     {
-        const string query = @"
-            SELECT
-                CASE
-                    WHEN Inc(Population) > 200 THEN Inc(Population) * 2
-                    ELSE Inc(Population)
-                END as Result
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                CASE\n"
+            + "                    WHEN Inc(Population) > 200 THEN Inc(Population) * 2\n"
+            + "                    ELSE Inc(Population)\n"
+            + "                END as Result\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("Poland", 100),
-                    new BasicEntity("USA", 300)
-                ]
-            }
+            { "#A", [new BasicEntity("Poland", 100), new BasicEntity("USA", 300)] },
         };
 
         var compilationOptions = new CompilationOptions(useCommonSubexpressionElimination: false);
@@ -128,7 +113,8 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -144,28 +130,22 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenSameColumnAccessedMultipleTimes_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT Population, Population + 10, Population * 2
-            FROM #A.Entities()
-            WHERE Population > 100";
+        const string query = (
+            "\n"
+            + "            SELECT Population, Population + 10, Population * 2\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Population > 100"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("Poland", 50),
-                    new BasicEntity("USA", 200),
-                    new BasicEntity("Germany", 150)
-                ]
-            }
+            { "#A", [new BasicEntity("Poland", 50), new BasicEntity("USA", 200), new BasicEntity("Germany", 150)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-
 
         var rows = table.OrderBy(r => (decimal)r.ReadValue(0)).ToList();
         Assert.AreEqual(150m, rows[0].ReadValue(0));
@@ -179,23 +159,19 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenMultipleColumnsAccessedMultipleTimes_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Country,
-                Population,
-                Country + '_suffix',
-                Population + 100
-            FROM #A.Entities()";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Country,\n"
+            + "                Population,\n"
+            + "                Country + '_suffix',\n"
+            + "                Population + 100\n"
+            + "            FROM #A.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("Poland", 100),
-                    new BasicEntity("USA", 200)
-                ]
-            }
+            { "#A", [new BasicEntity("Poland", 100), new BasicEntity("USA", 200)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -213,26 +189,21 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenColumnInWhereAndCaseWhen_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Population,
-                CASE
-                    WHEN Population > 150 THEN 'High'
-                    ELSE 'Low'
-                END as Category
-            FROM #A.Entities()
-            WHERE Population > 50";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Population,\n"
+            + "                CASE\n"
+            + "                    WHEN Population > 150 THEN 'High'\n"
+            + "                    ELSE 'Low'\n"
+            + "                END as Category\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Population > 50"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("Poland", 100),
-                    new BasicEntity("USA", 200),
-                    new BasicEntity("UK", 30)
-                ]
-            }
+            { "#A", [new BasicEntity("Poland", 100), new BasicEntity("USA", 200), new BasicEntity("UK", 30)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -250,23 +221,17 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests
     [TestMethod]
     public void WhenColumnUsedWithMethodCall_ShouldReturnCorrectResults()
     {
-        const string query = @"
-            SELECT
-                Population,
-                Inc(Population),
-                Population + Inc(Population)
-            FROM #A.Entities()
-            WHERE Population > 0";
+        const string query = (
+            "\n"
+            + "            SELECT\n"
+            + "                Population,\n"
+            + "                Inc(Population),\n"
+            + "                Population + Inc(Population)\n"
+            + "            FROM #A.Entities()\n"
+            + "            WHERE Population > 0"
+        );
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("Poland", 100)
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Poland", 100)] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);

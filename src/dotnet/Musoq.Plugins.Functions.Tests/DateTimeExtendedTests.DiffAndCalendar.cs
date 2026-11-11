@@ -23,8 +23,6 @@ public partial class DateTimeExtendedTests
         Assert.IsTrue(Library.IsLeapYear(new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero)));
     }
 
-
-
     [TestMethod]
     public void IsBetween_NullValue_ReturnsNull()
     {
@@ -47,34 +45,41 @@ public partial class DateTimeExtendedTests
     public void IsBetween_ValueInRange_ReturnsTrue()
     {
         Assert.IsTrue(
-            Library.IsBetween(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
+            Library.IsBetween(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31))
+        );
     }
 
     [TestMethod]
     public void IsBetween_ValueOutOfRange_ReturnsFalse()
     {
-        Assert.IsFalse(Library.IsBetween(new DateTime(2025, 6, 15), new DateTime(2024, 1, 1),
-            new DateTime(2024, 12, 31)));
+        Assert.IsFalse(
+            Library.IsBetween(new DateTime(2025, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31))
+        );
     }
 
     [TestMethod]
     public void IsBetween_DateTimeOffset_NullValue_ReturnsNull()
     {
-        Assert.IsNull(Library.IsBetween(null,
-            new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)));
+        Assert.IsNull(
+            Library.IsBetween(
+                null,
+                new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)
+            )
+        );
     }
 
     [TestMethod]
     public void IsBetween_DateTimeOffset_ValueInRange_ReturnsTrue()
     {
-        Assert.IsTrue(Library.IsBetween(
-            new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)));
+        Assert.IsTrue(
+            Library.IsBetween(
+                new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero),
+                new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)
+            )
+        );
     }
-
-
 
     [TestMethod]
     public void IsBetweenExclusive_NullValue_ReturnsNull()
@@ -85,42 +90,50 @@ public partial class DateTimeExtendedTests
     [TestMethod]
     public void IsBetweenExclusive_ValueAtStart_ReturnsFalse()
     {
-        Assert.IsFalse(Library.IsBetweenExclusive(new DateTime(2024, 1, 1), new DateTime(2024, 1, 1),
-            new DateTime(2024, 12, 31)));
+        Assert.IsFalse(
+            Library.IsBetweenExclusive(new DateTime(2024, 1, 1), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31))
+        );
     }
 
     [TestMethod]
     public void IsBetweenExclusive_ValueAtEnd_ReturnsFalse()
     {
-        Assert.IsFalse(Library.IsBetweenExclusive(new DateTime(2024, 12, 31), new DateTime(2024, 1, 1),
-            new DateTime(2024, 12, 31)));
+        Assert.IsFalse(
+            Library.IsBetweenExclusive(new DateTime(2024, 12, 31), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31))
+        );
     }
 
     [TestMethod]
     public void IsBetweenExclusive_ValueInRange_ReturnsTrue()
     {
-        Assert.IsTrue(Library.IsBetweenExclusive(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1),
-            new DateTime(2024, 12, 31)));
+        Assert.IsTrue(
+            Library.IsBetweenExclusive(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31))
+        );
     }
 
     [TestMethod]
     public void IsBetweenExclusive_DateTimeOffset_NullValue_ReturnsNull()
     {
-        Assert.IsNull(Library.IsBetweenExclusive(null,
-            new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)));
+        Assert.IsNull(
+            Library.IsBetweenExclusive(
+                null,
+                new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)
+            )
+        );
     }
 
     [TestMethod]
     public void IsBetweenExclusive_DateTimeOffset_ValueInRange_ReturnsTrue()
     {
-        Assert.IsTrue(Library.IsBetweenExclusive(
-            new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)));
+        Assert.IsTrue(
+            Library.IsBetweenExclusive(
+                new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero),
+                new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)
+            )
+        );
     }
-
-
 
     [TestMethod]
     public void ExtractTimeSpan_ValidDateTimeOffset_ReturnsTimeSpan()
@@ -132,8 +145,6 @@ public partial class DateTimeExtendedTests
         Assert.AreEqual(30, result.Value.Minutes);
         Assert.AreEqual(45, result.Value.Seconds);
     }
-
-
 
     [TestMethod]
     public void ExtractFromDate_Month_ReturnsMonth()
@@ -216,8 +227,6 @@ public partial class DateTimeExtendedTests
         Assert.AreEqual(6, result);
     }
 
-
-
     [TestMethod]
     public void Year_NullDateTime_ReturnsNull()
     {
@@ -291,7 +300,4 @@ public partial class DateTimeExtendedTests
         var date = new DateTime(2024, 6, 15);
         Assert.AreEqual((int)DayOfWeek.Saturday, Library.DayOfWeek(date));
     }
-
-
-
 }

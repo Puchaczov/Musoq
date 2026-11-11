@@ -16,10 +16,18 @@ internal static class AssertionComparer
                 Assert.IsNull(actual, context);
                 return;
             case "integer":
-                Assert.IsTrue(actual is byte or sbyte or short or ushort or int or uint or long or ulong,
-                    $"{context}: expected integral result, received {actual?.GetType()}");
-                Assert.AreEqual(BigInteger.Parse(expected.GetProperty("value").GetString()!, CultureInfo.InvariantCulture),
-                    BigInteger.Parse(Convert.ToString(actual, CultureInfo.InvariantCulture)!, CultureInfo.InvariantCulture), context);
+                Assert.IsTrue(
+                    actual is byte or sbyte or short or ushort or int or uint or long or ulong,
+                    $"{context}: expected integral result, received {actual?.GetType()}"
+                );
+                Assert.AreEqual(
+                    BigInteger.Parse(expected.GetProperty("value").GetString()!, CultureInfo.InvariantCulture),
+                    BigInteger.Parse(
+                        Convert.ToString(actual, CultureInfo.InvariantCulture)!,
+                        CultureInfo.InvariantCulture
+                    ),
+                    context
+                );
                 return;
             case "float":
                 CompareFloat(assertion, expected, actual, context);
@@ -32,7 +40,11 @@ internal static class AssertionComparer
                 return;
             case "bytes":
                 Assert.IsInstanceOfType<byte[]>(actual, context);
-                CollectionAssert.AreEqual(Convert.FromHexString(expected.GetProperty("value").GetString()!), (byte[])actual, context);
+                CollectionAssert.AreEqual(
+                    Convert.FromHexString(expected.GetProperty("value").GetString()!),
+                    (byte[])actual,
+                    context
+                );
                 return;
             case "array":
                 Assert.IsInstanceOfType<IEnumerable>(actual, context);
@@ -52,14 +64,19 @@ internal static class AssertionComparer
 
     private static void CompareFloat(JsonElement assertion, JsonElement expected, object? actual, string context)
     {
-        Assert.IsTrue(actual is float or double or decimal, $"{context}: expected floating result, received {actual?.GetType()}");
+        Assert.IsTrue(
+            actual is float or double or decimal,
+            $"{context}: expected floating result, received {actual?.GetType()}"
+        );
         var value = ParseFloat(expected.GetProperty("value").GetString()!);
         var result = Convert.ToDouble(actual, CultureInfo.InvariantCulture);
         if (assertion.TryGetProperty("delta", out var delta))
         {
             var tolerance = double.Parse(delta.GetString()!, CultureInfo.InvariantCulture);
-            Assert.IsTrue(double.IsFinite(result) && double.IsFinite(value) &&
-                          Math.Abs(value - result) <= tolerance, context);
+            Assert.IsTrue(
+                double.IsFinite(result) && double.IsFinite(value) && Math.Abs(value - result) <= tolerance,
+                context
+            );
             return;
         }
         if (result == value)
@@ -72,11 +89,12 @@ internal static class AssertionComparer
         Assert.IsTrue(value == result, context);
     }
 
-    private static double ParseFloat(string value) => value switch
-    {
-        "inf" => double.PositiveInfinity,
-        "-inf" => double.NegativeInfinity,
-        "nan" => double.NaN,
-        _ => double.Parse(value, CultureInfo.InvariantCulture)
-    };
+    private static double ParseFloat(string value) =>
+        value switch
+        {
+            "inf" => double.PositiveInfinity,
+            "-inf" => double.NegativeInfinity,
+            "nan" => double.NaN,
+            _ => double.Parse(value, CultureInfo.InvariantCulture),
+        };
 }

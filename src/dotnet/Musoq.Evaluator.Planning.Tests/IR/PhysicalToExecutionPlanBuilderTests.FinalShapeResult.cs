@@ -10,13 +10,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         ExecutionPlan plan,
         string expectedTableName,
         string expectedShapeName,
-        params string[] expectedColumnNames)
+        params string[] expectedColumnNames
+    )
     {
         Assert.IsNotNull(plan.FinalResult);
         Assert.AreEqual(expectedTableName, plan.FinalResult.TableName);
         Assert.AreEqual(expectedShapeName, plan.FinalResult.Shape.TypeName);
         CollectionAssert.AreEqual(
             expectedColumnNames,
-            plan.FinalResult.ColumnMetadata.Fields.Select(static field => field.Name).ToArray());
+            plan.FinalResult.ColumnMetadata.Fields.Select(static field => field.Name).ToArray()
+        );
     }
 }

@@ -4,7 +4,10 @@ namespace Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 
 internal static class StringConcatenationNullSubstitution
 {
-    internal static OuterApplyNullSubstitutionResult Substitute(ExecutionStringConcatenation concatenation, string rightAlias)
+    internal static OuterApplyNullSubstitutionResult Substitute(
+        ExecutionStringConcatenation concatenation,
+        string rightAlias
+    )
     {
         var operands = new List<ExecutionExpression>(concatenation.Expressions.Count);
         foreach (var operand in concatenation.Expressions)

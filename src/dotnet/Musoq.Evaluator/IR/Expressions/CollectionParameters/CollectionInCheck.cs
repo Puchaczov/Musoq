@@ -4,4 +4,5 @@ public sealed record CollectionInCheck(
     IrExpression Expression,
     ScriptParameterRef Collection,
     Type ElementType,
-    Type ReturnType) : IrExpression(ReturnType);
+    Type ReturnType
+) : IrExpression(ReturnType);

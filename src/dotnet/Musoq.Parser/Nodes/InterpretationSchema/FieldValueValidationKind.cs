@@ -19,5 +19,5 @@ public enum FieldValueValidationKind
     /// <summary>
     ///     The field value must be one of an explicit set of allowed values.
     /// </summary>
-    OneOf
+    OneOf,
 }

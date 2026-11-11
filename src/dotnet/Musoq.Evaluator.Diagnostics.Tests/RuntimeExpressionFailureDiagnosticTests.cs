@@ -15,7 +15,8 @@ public sealed class RuntimeExpressionFailureDiagnosticTests
     public void ScalarFailureInsideInvocationAndAggregate_ShouldRetainSpecificCode()
     {
         var cause = Assert.Throws<InvalidOperationException>(() =>
-            EvaluationHelper.ThrowScalarSubqueryCardinalityViolation());
+            EvaluationHelper.ThrowScalarSubqueryCardinalityViolation()
+        );
         var wrapper = new AggregateException(new TargetInvocationException(cause), cause);
         var failure = QueryExecutionException.ForExecutionFailure("Execution", wrapper);
         Assert.AreEqual(DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation, failure.Envelope!.Code);
@@ -34,9 +35,12 @@ public sealed class RuntimeExpressionFailureDiagnosticTests
     public void MixedAggregate_ShouldNotHideAnUnrelatedFailure()
     {
         var cause = Assert.Throws<InvalidOperationException>(() =>
-            EvaluationHelper.ThrowScalarSubqueryCardinalityViolation());
-        var failure = QueryExecutionException.ForExecutionFailure("Execution",
-            new AggregateException(cause, new ArgumentException("unrelated")));
+            EvaluationHelper.ThrowScalarSubqueryCardinalityViolation()
+        );
+        var failure = QueryExecutionException.ForExecutionFailure(
+            "Execution",
+            new AggregateException(cause, new ArgumentException("unrelated"))
+        );
         Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, failure.Envelope!.Code);
     }
 
@@ -54,8 +58,10 @@ public sealed class RuntimeExpressionFailureDiagnosticTests
     {
         var original = new RegexMatchTimeoutException("private input", "private pattern", TimeSpan.FromSeconds(1));
         var cause = new RegexExecutionTimeoutException("RLIKE", "Backtracking", original);
-        var failure = QueryExecutionException.ForExecutionFailure("Execution",
-            new AggregateException(new TargetInvocationException(cause), cause));
+        var failure = QueryExecutionException.ForExecutionFailure(
+            "Execution",
+            new AggregateException(new TargetInvocationException(cause), cause)
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ7017_RegexMatchTimeout, failure.Envelope!.Code);
         Assert.AreEqual("RLIKE", failure.Envelope.Arguments["operator"]);
@@ -69,11 +75,16 @@ public sealed class RuntimeExpressionFailureDiagnosticTests
     [TestMethod]
     public void RegexTimeout_WhenMixedWithUnrelatedFailure_ShouldRemainInternal()
     {
-        var cause = new RegexExecutionTimeoutException("LIKE", "NonBacktracking",
-            new RegexMatchTimeoutException("private input", "private pattern", TimeSpan.FromSeconds(1)));
+        var cause = new RegexExecutionTimeoutException(
+            "LIKE",
+            "NonBacktracking",
+            new RegexMatchTimeoutException("private input", "private pattern", TimeSpan.FromSeconds(1))
+        );
 
-        var failure = QueryExecutionException.ForExecutionFailure("Execution",
-            new AggregateException(cause, new InvalidOperationException("unrelated")));
+        var failure = QueryExecutionException.ForExecutionFailure(
+            "Execution",
+            new AggregateException(cause, new InvalidOperationException("unrelated"))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, failure.Envelope!.Code);
     }

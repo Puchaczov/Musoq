@@ -33,20 +33,30 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3110_UnsupportedEnumOperator,
                 $"ORDER BY is not supported for enum type '{enumType.DisplayName}' in v1.",
-                field);
+                field
+            );
             return;
         }
 
         if (field.Expression is not IntegerNode integerNode)
             return;
 
-        if (!string.IsNullOrEmpty(field.FieldName) &&
-            !string.Equals(field.FieldName, integerNode.ToString(), StringComparison.Ordinal))
+        if (
+            !string.IsNullOrEmpty(field.FieldName)
+            && !string.Equals(field.FieldName, integerNode.ToString(), StringComparison.Ordinal)
+        )
             return;
 
-        const string message = "ORDER BY column position is not supported. Use a column name or alias instead of a numeric position.";
+        const string message =
+            "ORDER BY column position is not supported. Use a column name or alias instead of a numeric position.";
 
-        if (TryReportSemanticError<NotSupportedException>(DiagnosticCode.MQ3093_OrderByOrdinalUnsupported, message, field))
+        if (
+            TryReportSemanticError<NotSupportedException>(
+                DiagnosticCode.MQ3093_OrderByOrdinalUnsupported,
+                message,
+                field
+            )
+        )
             return;
 
         throw new NotSupportedException(message);

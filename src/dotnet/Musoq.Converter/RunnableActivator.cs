@@ -10,11 +10,15 @@ internal static class RunnableActivator
         ArgumentNullException.ThrowIfNull(runnableType);
 
         if (!typeof(TContract).IsAssignableFrom(runnableType))
-            throw new InvalidOperationException($"Type {runnableType.FullName} does not implement {typeof(TContract).FullName}.");
+            throw new InvalidOperationException(
+                $"Type {runnableType.FullName} does not implement {typeof(TContract).FullName}."
+            );
 
         var constructor = runnableType.GetConstructor(Type.EmptyTypes);
         if (constructor == null)
-            throw new InvalidOperationException($"Type {runnableType.FullName} does not expose a public parameterless constructor.");
+            throw new InvalidOperationException(
+                $"Type {runnableType.FullName} does not expose a public parameterless constructor."
+            );
 
         var create = Expression.New(constructor);
         var convert = Expression.Convert(create, typeof(TContract));

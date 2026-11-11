@@ -8,19 +8,25 @@ namespace Musoq.Converter;
 internal static class ArtifactMetadataSnapshot
 {
     public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> CopySourceRuntimeSettings(
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> source)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> source
+    )
     {
         return CopyStringKeyedDictionary(source, CopyStringDictionary);
     }
 
-    public static IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> CopySourceRuntimeSettingDescriptions(
-        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> source)
+    public static IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > CopySourceRuntimeSettingDescriptions(
+        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> source
+    )
     {
         return CopyStringKeyedDictionary(source, CopyList);
     }
 
     public static IReadOnlyDictionary<string, SourceExecutionPlan> CopySourceExecutionPlans(
-        IReadOnlyDictionary<string, SourceExecutionPlan> source)
+        IReadOnlyDictionary<string, SourceExecutionPlan> source
+    )
     {
         return CopyStringKeyedDictionary(source, CopySourceExecutionPlan);
     }
@@ -38,7 +44,7 @@ internal static class ArtifactMetadataSnapshot
             AcceptedOrderBy = CopyList(plan.AcceptedOrderBy.Select(CopyOrderBy)),
             AcceptedSkip = plan.AcceptedSkip,
             AcceptedTake = plan.AcceptedTake,
-            Properties = CopyProperties(plan.Properties)
+            Properties = CopyProperties(plan.Properties),
         };
     }
 
@@ -56,7 +62,8 @@ internal static class ArtifactMetadataSnapshot
     {
         return new SourcePredicateApplication(
             (SourcePredicatePatternMatch)CopyPredicate(application.Predicate)!,
-            application.Phase);
+            application.Phase
+        );
     }
 
     private static SourcePredicateExpression? CopyPredicate(SourcePredicateExpression? predicate)
@@ -68,41 +75,54 @@ internal static class ArtifactMetadataSnapshot
             SourcePredicateLiteral literal => new SourcePredicateLiteral(CopyKnownMetadataValue(literal.Value)),
             SourcePredicateEnumLiteral literal => new SourcePredicateEnumLiteral(
                 literal.Value,
-                literal.EnumFingerprint),
+                literal.EnumFingerprint
+            ),
             SourcePredicateComparison comparison => new SourcePredicateComparison(
                 comparison.Operator,
                 CopyPredicate(comparison.Left)!,
-                CopyPredicate(comparison.Right)!),
+                CopyPredicate(comparison.Right)!
+            ),
             SourcePredicateLogical logical => new SourcePredicateLogical(
                 logical.Operator,
                 CopyPredicate(logical.Left)!,
-                CopyPredicate(logical.Right)!),
+                CopyPredicate(logical.Right)!
+            ),
             SourcePredicateIn sourceIn => new SourcePredicateIn(
                 CopyPredicate(sourceIn.Expression)!,
                 CopyList(sourceIn.Values.Select(static value => CopyPredicate(value)!)),
-                sourceIn.IsNegated),
+                sourceIn.IsNegated
+            ),
             SourcePredicateNullCheck nullCheck => new SourcePredicateNullCheck(
                 CopyPredicate(nullCheck.Expression)!,
-                nullCheck.IsNegated),
+                nullCheck.IsNegated
+            ),
             SourcePredicateRegexMatch match => new SourcePredicateRegexMatch(
-                CopyColumn(match.Column), match.Pattern, match.MatchTimeout, match.Semantics, match.IsNegated),
+                CopyColumn(match.Column),
+                match.Pattern,
+                match.MatchTimeout,
+                match.Semantics,
+                match.IsNegated
+            ),
             SourcePredicateStringMatch stringMatch => new SourcePredicateStringMatch(
                 CopyColumn(stringMatch.Column),
                 stringMatch.Kind,
                 stringMatch.OriginalPattern,
                 stringMatch.Needle,
                 stringMatch.Comparison,
-                stringMatch.IsNegated),
+                stringMatch.IsNegated
+            ),
             SourcePredicateFlags flags => new SourcePredicateFlags(
                 CopyPredicate(flags.Expression)!,
                 new SourcePredicateEnumLiteral(flags.Mask.Value, flags.Mask.EnumFingerprint),
-                flags.MatchMode),
-            _ => throw new InvalidOperationException($"Unsupported source predicate metadata type {predicate.GetType().FullName}.")
+                flags.MatchMode
+            ),
+            _ => throw new InvalidOperationException(
+                $"Unsupported source predicate metadata type {predicate.GetType().FullName}."
+            ),
         };
     }
 
-    private static IReadOnlyDictionary<string, object?> CopyProperties(
-        IReadOnlyDictionary<string, object?> source)
+    private static IReadOnlyDictionary<string, object?> CopyProperties(IReadOnlyDictionary<string, object?> source)
     {
         return CopyStringKeyedDictionary(source, CopyKnownMetadataValue);
     }
@@ -122,20 +142,22 @@ internal static class ArtifactMetadataSnapshot
             IEnumerable<string> strings => CopyList(strings),
             IEnumerable<SourceColumnRef> columns => CopyList(columns.Select(CopyColumn)),
             IEnumerable<OrderByExpression> orderBys => CopyList(orderBys.Select(CopyOrderBy)),
-            IEnumerable<SourcePredicateExpression> predicates => CopyList(predicates.Select(static predicate => CopyPredicate(predicate)!)),
+            IEnumerable<SourcePredicateExpression> predicates => CopyList(
+                predicates.Select(static predicate => CopyPredicate(predicate)!)
+            ),
             _ when IsScalar(value) => value,
-            _ => value
+            _ => value,
         };
     }
 
     private static IReadOnlyDictionary<string, object?> CopyObjectDictionary(
-        IReadOnlyDictionary<string, object?> source)
+        IReadOnlyDictionary<string, object?> source
+    )
     {
         return CopyStringKeyedDictionary(source, CopyKnownMetadataValue);
     }
 
-    private static IReadOnlyDictionary<string, string> CopyStringDictionary(
-        IReadOnlyDictionary<string, string> source)
+    private static IReadOnlyDictionary<string, string> CopyStringDictionary(IReadOnlyDictionary<string, string> source)
     {
         return CopyStringKeyedDictionary(source, static value => value);
     }
@@ -147,7 +169,8 @@ internal static class ArtifactMetadataSnapshot
 
     private static IReadOnlyDictionary<string, TValue> CopyStringKeyedDictionary<TSourceValue, TValue>(
         IReadOnlyDictionary<string, TSourceValue> source,
-        Func<TSourceValue, TValue> copyValue)
+        Func<TSourceValue, TValue> copyValue
+    )
     {
         var copy = new Dictionary<string, TValue>(source.Count, StringComparer.Ordinal);
         foreach (var entry in source)
@@ -159,12 +182,12 @@ internal static class ArtifactMetadataSnapshot
     private static bool IsScalar(object value)
     {
         var type = value.GetType();
-        return type.IsPrimitive ||
-               type.IsEnum ||
-               type == typeof(decimal) ||
-               type == typeof(DateTime) ||
-               type == typeof(DateTimeOffset) ||
-               type == typeof(TimeSpan) ||
-               type == typeof(Guid);
+        return type.IsPrimitive
+            || type.IsEnum
+            || type == typeof(decimal)
+            || type == typeof(DateTime)
+            || type == typeof(DateTimeOffset)
+            || type == typeof(TimeSpan)
+            || type == typeof(Guid);
     }
 }

@@ -15,18 +15,12 @@ public partial class StringComparisonConsistencyTests
         {
             {
                 "#A",
-                [
-                    new BasicEntity("hello"),
-                    new BasicEntity("Hello"),
-                    new BasicEntity("HELLO"),
-                    new BasicEntity("hello")
-                ]
-            }
+                [new BasicEntity("hello"), new BasicEntity("Hello"), new BasicEntity("HELLO"), new BasicEntity("hello")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(3, table.Count, "GROUP BY should treat different cases as different groups");
 
@@ -43,13 +37,8 @@ public partial class StringComparisonConsistencyTests
         {
             {
                 "#A",
-                [
-                    new BasicEntity("hello"),
-                    new BasicEntity("Hello"),
-                    new BasicEntity("HELLO"),
-                    new BasicEntity("world")
-                ]
-            }
+                [new BasicEntity("hello"), new BasicEntity("Hello"), new BasicEntity("HELLO"), new BasicEntity("world")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -60,8 +49,6 @@ public partial class StringComparisonConsistencyTests
         Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "hello" && (long)row.ReadValues()[1] == 3L));
         Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "world" && (long)row.ReadValues()[1] == 1L));
     }
-
-
 
     [TestMethod]
     public void Like_CaseInsensitive_GreekText()
@@ -74,9 +61,9 @@ public partial class StringComparisonConsistencyTests
                 [
                     new BasicEntity("Η Αθήνα είναι πρωτεύουσα"),
                     new BasicEntity("Η ΑΘΉΝΑ ΕΊΝΑΙ ΠΡΩΤΕΎΟΥΣΑ"),
-                    new BasicEntity("Η Θεσσαλονίκη")
+                    new BasicEntity("Η Θεσσαλονίκη"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -97,9 +84,9 @@ public partial class StringComparisonConsistencyTests
                     new BasicEntity("Istanbul is beautiful"),
                     new BasicEntity("ISTANBUL IS BEAUTIFUL"),
                     new BasicEntity("istanbul is beautiful"),
-                    new BasicEntity("Ankara")
+                    new BasicEntity("Ankara"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -107,8 +94,6 @@ public partial class StringComparisonConsistencyTests
 
         Assert.AreEqual(3, table.Count, "LIKE should match Istanbul text case-insensitively");
     }
-
-
 
     [TestMethod]
     public void Like_CaseInsensitive_WithOrderBy_CombinedTest()
@@ -122,16 +107,15 @@ public partial class StringComparisonConsistencyTests
                     new BasicEntity("test_c"),
                     new BasicEntity("TEST_A"),
                     new BasicEntity("Test_B"),
-                    new BasicEntity("no_match")
+                    new BasicEntity("no_match"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "LIKE should match all case variants");
-
 
         Assert.AreEqual("TEST_A", table[0].ReadValues()[0]);
         Assert.AreEqual("Test_B", table[1].ReadValues()[0]);
@@ -141,11 +125,13 @@ public partial class StringComparisonConsistencyTests
     [TestMethod]
     public void Like_CaseInsensitive_WithGroupBy_CombinedTest()
     {
-        var query = @"
-            select City, Count(City)
-            from #A.entities()
-            where Name like '%active%'
-            group by City";
+        var query = (
+            "\n"
+            + "            select City, Count(City)\n"
+            + "            from #A.entities()\n"
+            + "            where Name like '%active%'\n"
+            + "            group by City"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -154,9 +140,9 @@ public partial class StringComparisonConsistencyTests
                     new BasicEntity("Poland", "Warsaw") { Name = "active_user1" },
                     new BasicEntity("Poland", "Warsaw") { Name = "ACTIVE_user2" },
                     new BasicEntity("Poland", "Krakow") { Name = "Active_user3" },
-                    new BasicEntity("Poland", "Warsaw") { Name = "sleeping" }
+                    new BasicEntity("Poland", "Warsaw") { Name = "sleeping" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -170,11 +156,13 @@ public partial class StringComparisonConsistencyTests
     [TestMethod]
     public void Select_ContainsAndLike_Consistent()
     {
-        var query = @"
-            select Name,
-                   Contains(Name, 'test') as ContainsResult
-            from #A.entities()
-            where Name like '%test%'";
+        var query = (
+            "\n"
+            + "            select Name,\n"
+            + "                   Contains(Name, 'test') as ContainsResult\n"
+            + "            from #A.entities()\n"
+            + "            where Name like '%test%'"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -183,9 +171,9 @@ public partial class StringComparisonConsistencyTests
                     new BasicEntity("TestValue"),
                     new BasicEntity("TESTVALUE"),
                     new BasicEntity("testvalue"),
-                    new BasicEntity("no_match")
+                    new BasicEntity("no_match"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -193,9 +181,10 @@ public partial class StringComparisonConsistencyTests
 
         Assert.AreEqual(3, table.Count, "LIKE and query should match 3 rows");
 
-
-        Assert.IsTrue(table.All(row => (bool?)row.ReadValues()[1] == true),
-            "Contains should agree with LIKE on case-insensitive matching");
+        Assert.IsTrue(
+            table.All(row => (bool?)row.ReadValues()[1] == true),
+            "Contains should agree with LIKE on case-insensitive matching"
+        );
     }
 
     [TestMethod]
@@ -204,25 +193,18 @@ public partial class StringComparisonConsistencyTests
         var query = "select ToLower(ToUpper(Name)) from #A.entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("hello"),
-                    new BasicEntity("Hello"),
-                    new BasicEntity("HELLO")
-                ]
-            }
+            { "#A", [new BasicEntity("hello"), new BasicEntity("Hello"), new BasicEntity("HELLO")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => (string)row.ReadValues()[0] == "hello"),
-            "ToLower(ToUpper()) should normalize all case variants to lowercase");
+        Assert.IsTrue(
+            table.All(row => (string)row.ReadValues()[0] == "hello"),
+            "ToLower(ToUpper()) should normalize all case variants to lowercase"
+        );
     }
-
-
 
     [TestMethod]
     public void Distinct_CaseSensitive_PreservesAllCaseVariants()
@@ -232,13 +214,8 @@ public partial class StringComparisonConsistencyTests
         {
             {
                 "#A",
-                [
-                    new BasicEntity("hello"),
-                    new BasicEntity("Hello"),
-                    new BasicEntity("HELLO"),
-                    new BasicEntity("hello")
-                ]
-            }
+                [new BasicEntity("hello"), new BasicEntity("Hello"), new BasicEntity("HELLO"), new BasicEntity("hello")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -255,13 +232,8 @@ public partial class StringComparisonConsistencyTests
         {
             {
                 "#A",
-                [
-                    new BasicEntity("hello"),
-                    new BasicEntity("Hello"),
-                    new BasicEntity("HELLO"),
-                    new BasicEntity("world")
-                ]
-            }
+                [new BasicEntity("hello"), new BasicEntity("Hello"), new BasicEntity("HELLO"), new BasicEntity("world")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -271,5 +243,4 @@ public partial class StringComparisonConsistencyTests
         Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "hello"));
         Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "world"));
     }
-
 }

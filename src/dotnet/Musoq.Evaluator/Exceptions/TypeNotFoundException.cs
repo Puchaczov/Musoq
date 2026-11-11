@@ -9,15 +9,11 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class TypeNotFoundException : Exception, IDiagnosticException
 {
-
     public TypeNotFoundException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
-    public TypeNotFoundException()
-    {
-    }
+    public TypeNotFoundException() { }
+
     /// <summary>
     ///     Initializes a new instance of TypeNotFoundException.
     /// </summary>
@@ -60,10 +56,7 @@ public class TypeNotFoundException : Exception, IDiagnosticException
     {
         var arguments = string.IsNullOrWhiteSpace(TypeName)
             ? null
-            : new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["type"] = TypeName
-            };
+            : new Dictionary<string, string>(StringComparer.Ordinal) { ["type"] = TypeName };
         return SemanticDiagnosticFactory.Create(Code, Message, Span, sourceText, arguments);
     }
 }

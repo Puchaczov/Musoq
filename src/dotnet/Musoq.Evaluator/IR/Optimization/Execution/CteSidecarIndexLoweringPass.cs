@@ -17,26 +17,29 @@ internal sealed class CteSidecarIndexLoweringPass : IExecutionIrOptimizationPass
             .ToArray();
         var rewriter = new CteSidecarIndexLoweringRewriter();
         var expanded = rewriter.RewritePlan(plan);
-        var optimized = indexOnlyCandidates.Length == 0
-            ? expanded
-            : CteIndexOnlyStoragePruner.Apply(expanded, indexOnlyCandidates);
+        var optimized =
+            indexOnlyCandidates.Length == 0 ? expanded : CteIndexOnlyStoragePruner.Apply(expanded, indexOnlyCandidates);
         if (!ReferenceEquals(optimized, plan))
         {
             return OptimizationResult<ExecutionPlan>.Changed(
                 optimized,
-                $"Lowered {rewriter.LoweredStores} sidecar store candidate(s), {rewriter.LoweredLoads} sidecar load candidate(s), {rewriter.ExpandedBuildCandidates} sidecar build candidate(s), {rewriter.ExpandedAppendRewriteCandidates} sidecar append rewrite candidate(s), {rewriter.ExpandedFusedProducerCandidates} fused producer candidate(s), and {indexOnlyCandidates.Length} index-only storage candidate(s).");
+                $"Lowered {rewriter.LoweredStores} sidecar store candidate(s), {rewriter.LoweredLoads} sidecar load candidate(s), {rewriter.ExpandedBuildCandidates} sidecar build candidate(s), {rewriter.ExpandedAppendRewriteCandidates} sidecar append rewrite candidate(s), {rewriter.ExpandedFusedProducerCandidates} fused producer candidate(s), and {indexOnlyCandidates.Length} index-only storage candidate(s)."
+            );
         }
 
         var stores = ExecutionIrAnalysis.CollectNodes<ExecutionStoreCteIndex>(plan.Body).ToArray();
         var loads = ExecutionIrAnalysis.CollectNodes<ExecutionLoadCteIndex>(plan.Body).ToArray();
-        var hashCount = stores.Count(static store => store.Kind == ExecutionCteSidecarIndexKind.Hash) +
-                        loads.Count(static load => load.Kind == ExecutionCteSidecarIndexKind.Hash);
-        var keySetCount = stores.Count(static store => store.Kind == ExecutionCteSidecarIndexKind.KeySet) +
-                          loads.Count(static load => load.Kind == ExecutionCteSidecarIndexKind.KeySet);
+        var hashCount =
+            stores.Count(static store => store.Kind == ExecutionCteSidecarIndexKind.Hash)
+            + loads.Count(static load => load.Kind == ExecutionCteSidecarIndexKind.Hash);
+        var keySetCount =
+            stores.Count(static store => store.Kind == ExecutionCteSidecarIndexKind.KeySet)
+            + loads.Count(static load => load.Kind == ExecutionCteSidecarIndexKind.KeySet);
 
         return OptimizationResult<ExecutionPlan>.NoChange(
             plan,
-            $"Observed {hashCount} hash sidecar operation(s) and {keySetCount} keyset sidecar operation(s); no selected sidecar candidates required lowering.");
+            $"Observed {hashCount} hash sidecar operation(s) and {keySetCount} keyset sidecar operation(s); no selected sidecar candidates required lowering."
+        );
     }
 
     private sealed class CteSidecarIndexLoweringRewriter : ExecutionCteCandidateExpansionRewriter
@@ -59,17 +62,13 @@ internal sealed class CteSidecarIndexLoweringPass : IExecutionIrOptimizationPass
             {
                 case ExecutionCteSidecarIndexBuildCandidate candidate:
                 {
-                    expandedNodes = _factory.CreateIndexBuildNodes(candidate)
-                        .Select(RewriteNode)
-                        .ToArray();
+                    expandedNodes = _factory.CreateIndexBuildNodes(candidate).Select(RewriteNode).ToArray();
                     ExpandedBuildCandidates++;
                     return true;
                 }
                 case ExecutionCteSidecarAppendRewriteCandidate candidate:
                 {
-                    expandedNodes = _factory.CreateAppendRewriteNodes(candidate)
-                        .Select(RewriteNode)
-                        .ToArray();
+                    expandedNodes = _factory.CreateAppendRewriteNodes(candidate).Select(RewriteNode).ToArray();
                     ExpandedAppendRewriteCandidates++;
                     return true;
                 }
@@ -78,9 +77,7 @@ internal sealed class CteSidecarIndexLoweringPass : IExecutionIrOptimizationPass
                     var body = RewriteBlock(candidate.Body);
                     expandedNodes =
                     [
-                        new ExecutionFusedCteProducer(
-                            candidate.Outputs,
-                            AddProducerScopes(candidate.Outputs, body))
+                        new ExecutionFusedCteProducer(candidate.Outputs, AddProducerScopes(candidate.Outputs, body)),
                     ];
                     ExpandedFusedProducerCandidates++;
                     return true;
@@ -91,7 +88,9 @@ internal sealed class CteSidecarIndexLoweringPass : IExecutionIrOptimizationPass
             }
         }
 
-        protected override ExecutionNode RewriteCteSidecarIndexStoreCandidate(ExecutionCteSidecarIndexStoreCandidate node)
+        protected override ExecutionNode RewriteCteSidecarIndexStoreCandidate(
+            ExecutionCteSidecarIndexStoreCandidate node
+        )
         {
             LoweredStores++;
             return new ExecutionStoreCteIndex(
@@ -100,7 +99,8 @@ internal sealed class CteSidecarIndexLoweringPass : IExecutionIrOptimizationPass
                 node.Kind,
                 node.KeyType,
                 node.RowType,
-                node.GeneratedRowTypeName);
+                node.GeneratedRowTypeName
+            );
         }
 
         protected override ExecutionNode RewriteCteSidecarIndexLoadCandidate(ExecutionCteSidecarIndexLoadCandidate node)
@@ -112,7 +112,8 @@ internal sealed class CteSidecarIndexLoweringPass : IExecutionIrOptimizationPass
                 node.Kind,
                 node.KeyType,
                 node.RowType,
-                node.GeneratedRowTypeName);
+                node.GeneratedRowTypeName
+            );
         }
 
         protected override ExecutionNode RewriteFusedCteProducer(ExecutionFusedCteProducer node)
@@ -123,23 +124,30 @@ internal sealed class CteSidecarIndexLoweringPass : IExecutionIrOptimizationPass
 
         private static ExecutionBlock AddProducerScopes(
             IReadOnlyList<ExecutionFusedCteOutput> outputs,
-            ExecutionBlock body)
+            ExecutionBlock body
+        )
         {
             var scopedBody = new List<ExecutionNode>(body.Nodes.Count + outputs.Count * 2);
             foreach (var output in outputs)
             {
-                scopedBody.Add(new ExecutionPhaseBoundary(
-                    QueryPhase.Begin,
-                    $":cte{output.TableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
+                scopedBody.Add(
+                    new ExecutionPhaseBoundary(
+                        QueryPhase.Begin,
+                        $":cte{output.TableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"
+                    )
+                );
             }
 
             scopedBody.AddRange(body.Nodes);
             for (var outputIndex = outputs.Count - 1; outputIndex >= 0; outputIndex--)
             {
                 var output = outputs[outputIndex];
-                scopedBody.Add(new ExecutionPhaseBoundary(
-                    QueryPhase.End,
-                    $":cte{output.TableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
+                scopedBody.Add(
+                    new ExecutionPhaseBoundary(
+                        QueryPhase.End,
+                        $":cte{output.TableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"
+                    )
+                );
             }
 
             return new ExecutionBlock(scopedBody);

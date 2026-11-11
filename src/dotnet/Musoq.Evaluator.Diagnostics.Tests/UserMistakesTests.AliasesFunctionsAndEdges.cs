@@ -8,17 +8,20 @@ public partial class UserMistakesTests
     [TestMethod]
     public void CTE_DuplicateName()
     {
-
         var analyzer = CreateAnalyzer();
-        var query = @"
+        var query =
+            @"
             WITH cte AS (SELECT Name FROM #A.Entities()),
                  cte AS (SELECT City FROM #A.Entities())
             SELECT * FROM cte";
 
         var result = analyzer.Analyze(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3021_DuplicateAlias, nameof(CTE_DuplicateName));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3021_DuplicateAlias,
+            nameof(CTE_DuplicateName)
+        );
     }
 
     [TestMethod]
@@ -35,19 +38,19 @@ public partial class UserMistakesTests
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ2001_UnexpectedToken, "subquery without parentheses");
     }
 
-
-
     [TestMethod]
     public void OrderBy_InvalidColumnReference()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() ORDER BY NonExistent";
 
         var result = analyzer.Analyze(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3001_UnknownColumn, nameof(OrderBy_InvalidColumnReference));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3001_UnknownColumn,
+            nameof(OrderBy_InvalidColumnReference)
+        );
     }
 
     [TestMethod]
@@ -61,20 +64,26 @@ public partial class UserMistakesTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert - MQ2030_UnsupportedSyntax: unrecognized token for order direction
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "invalid ORDER BY direction 'ASCENDING'");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2009_InvalidOrderByExpression,
+            "invalid ORDER BY direction 'ASCENDING'"
+        );
     }
 
     [TestMethod]
     public void Skip_NegativeValue()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() SKIP -5";
 
         var result = analyzer.ValidateSyntax(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2038_InvalidSliceCount, nameof(Skip_NegativeValue));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2038_InvalidSliceCount,
+            nameof(Skip_NegativeValue)
+        );
     }
 
     [TestMethod]
@@ -90,8 +99,6 @@ public partial class UserMistakesTests
         // Assert - MQ2001: expected number for TAKE
         AssertHasErrorCode(result, DiagnosticCode.MQ2038_InvalidSliceCount, "non-integer TAKE value");
     }
-
-
 
     [TestMethod]
     public void Alias_DuplicateTableAlias()
@@ -124,17 +131,17 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Alias_AmbiguousColumnWithoutQualifier()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() a INNER JOIN #B.Entities() b ON a.Name = b.Name";
 
         var result = analyzer.Analyze(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3002_AmbiguousColumn, nameof(Alias_AmbiguousColumnWithoutQualifier));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3002_AmbiguousColumn,
+            nameof(Alias_AmbiguousColumnWithoutQualifier)
+        );
     }
-
-
 
     [TestMethod]
     public void Function_UnknownFunctionName()
@@ -167,14 +174,16 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Function_TooManyArguments()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Length(Name, City, Country, Population) FROM #A.Entities()";
 
         var result = analyzer.Analyze(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3087_InvalidCallableArity, nameof(Function_TooManyArguments));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3087_InvalidCallableArity,
+            nameof(Function_TooManyArguments)
+        );
     }
 
     [TestMethod]
@@ -191,19 +200,19 @@ public partial class UserMistakesTests
         AssertHasDiagnosticCode(result, DiagnosticCode.MQ2021_UnclosedFunctionCall, "unclosed function argument list");
     }
 
-
-
     [TestMethod]
     public void SpecialChars_InColumnName()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name-With-Dashes FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2001_UnexpectedToken, nameof(SpecialChars_InColumnName));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2001_UnexpectedToken,
+            nameof(SpecialChars_InColumnName)
+        );
     }
 
     [TestMethod]
@@ -233,8 +242,6 @@ public partial class UserMistakesTests
         // Assert - should parse correctly
         Assert.IsTrue(result.IsParsed);
     }
-
-
 
     [TestMethod]
     public void Empty_Query()
@@ -281,17 +288,17 @@ public partial class UserMistakesTests
     [TestMethod]
     public void MultiLineComment_Unclosed()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name /* unclosed comment FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ1005_UnterminatedBlockComment, nameof(MultiLineComment_Unclosed));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ1005_UnterminatedBlockComment,
+            nameof(MultiLineComment_Unclosed)
+        );
     }
-
-
 
     [TestMethod]
     public void Valid_SimpleSelect()
@@ -307,5 +314,4 @@ public partial class UserMistakesTests
         Assert.IsTrue(result.IsParsed, "Valid query should parse");
         AssertNoErrors(result);
     }
-
 }

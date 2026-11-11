@@ -28,8 +28,12 @@ public partial class SchemaParser
         if (element.FieldType == TextFieldType.SchemaReference && element.Modifiers == TextFieldModifier.None)
             return new TextFieldDefinitionNode(name, TextFieldType.Repeat, element.PrimaryValue, untilDelimiter);
 
-        return new TextFieldDefinitionNode(name, TextFieldType.Repeat,
-            secondaryValue: untilDelimiter, repeatElement: element);
+        return new TextFieldDefinitionNode(
+            name,
+            TextFieldType.Repeat,
+            secondaryValue: untilDelimiter,
+            repeatElement: element
+        );
     }
 
     private TextFieldDefinitionNode ComposeSwitchField(string name)
@@ -45,14 +49,16 @@ public partial class SchemaParser
                 $"Text switch field '{name}' must contain at least one case.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ4002_InvalidTextSchemaField,
-                Current.Span);
+                Current.Span
+            );
 
         while (Current.TokenType != TokenType.RBracket)
         {
             TextSwitchCaseNode switchCase;
 
-            var isDefault = Current.Value == "_" &&
-                            (Current.TokenType is TokenType.Word or TokenType.Identifier or TokenType.Property);
+            var isDefault =
+                Current.Value == "_"
+                && (Current.TokenType is TokenType.Word or TokenType.Identifier or TokenType.Property);
             if (isDefault)
             {
                 if (seenDefault)
@@ -60,7 +66,8 @@ public partial class SchemaParser
                         $"Text switch field '{name}' may contain only one default case.",
                         _lexer.AlreadyResolvedQueryPart,
                         DiagnosticCode.MQ4002_InvalidTextSchemaField,
-                        Current.Span);
+                        Current.Span
+                    );
 
                 seenDefault = true;
                 Consume(Current.TokenType);
@@ -75,7 +82,8 @@ public partial class SchemaParser
                         $"Text switch field '{name}' must place the default case after all pattern cases.",
                         _lexer.AlreadyResolvedQueryPart,
                         DiagnosticCode.MQ4002_InvalidTextSchemaField,
-                        Current.Span);
+                        Current.Span
+                    );
 
                 Consume(TokenType.Pattern);
                 var patternToken = Current;
@@ -85,7 +93,8 @@ public partial class SchemaParser
                         $"Invalid switch pattern for text field '{name}': {validationError}",
                         _lexer.AlreadyResolvedQueryPart,
                         DiagnosticCode.MQ4002_InvalidTextSchemaField,
-                        patternToken.Span);
+                        patternToken.Span
+                    );
 
                 Consume(TokenType.FatArrow);
                 var body = ComposeTextFieldType($"{name}Arm{cases.Count}");
@@ -94,7 +103,8 @@ public partial class SchemaParser
 
             cases.Add(switchCase);
 
-            if (Current.TokenType == TokenType.Comma) Consume(TokenType.Comma);
+            if (Current.TokenType == TokenType.Comma)
+                Consume(TokenType.Comma);
         }
 
         Consume(TokenType.RBracket);

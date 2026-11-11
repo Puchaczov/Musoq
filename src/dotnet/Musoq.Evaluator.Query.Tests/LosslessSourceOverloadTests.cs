@@ -53,7 +53,10 @@ public sealed class LosslessSourceOverloadTests
     {
         var methods = CreateMethods(typed, reverse, typeof(FirstSpecificSource), typeof(SecondSpecificSource));
 
-        var result = SchemaSourceArgumentBinder.Bind(new ArgsListNode([new IntegerNode("1", "s"), new IntegerNode("2", "s")]), methods);
+        var result = SchemaSourceArgumentBinder.Bind(
+            new ArgsListNode([new IntegerNode("1", "s"), new IntegerNode("2", "s")]),
+            methods
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3089_AmbiguousCallableOverload, result.Failure?.Code);
     }
@@ -63,29 +66,75 @@ public sealed class LosslessSourceOverloadTests
     [DataRow(true)]
     public void LossyLongToDouble_ShouldNotBeApplicable(bool typed)
     {
-        var result = SchemaSourceArgumentBinder.Bind(new ArgsListNode([new IntegerNode("1", "l")]),
-            CreateMethods(typed, false, typeof(DoubleSource)));
+        var result = SchemaSourceArgumentBinder.Bind(
+            new ArgsListNode([new IntegerNode("1", "l")]),
+            CreateMethods(typed, false, typeof(DoubleSource))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3088_NoMatchingCallableOverload, result.Failure?.Code);
     }
 
     private static SchemaMethodInfo[] CreateMethods(bool typed, bool reverse, params Type[] sources)
     {
-        var methods = sources.Select(source =>
-        {
-            var constructor = source.GetConstructors().Single();
-            var metadata = new SchemaConstructorInfo(constructor, false,
-                constructor.GetParameters().Select(parameter => (parameter.Name!, parameter.ParameterType)).ToArray());
-            if (typed)
-                metadata.StructuralContract = StructuralInputMetadata.CreateContract("source", constructor);
-            return new SchemaMethodInfo("source", metadata);
-        }).ToArray();
+        var methods = sources
+            .Select(source =>
+            {
+                var constructor = source.GetConstructors().Single();
+                var metadata = new SchemaConstructorInfo(
+                    constructor,
+                    false,
+                    constructor
+                        .GetParameters()
+                        .Select(parameter => (parameter.Name!, parameter.ParameterType))
+                        .ToArray()
+                );
+                if (typed)
+                    metadata.StructuralContract = StructuralInputMetadata.CreateContract("source", constructor);
+                return new SchemaMethodInfo("source", metadata);
+            })
+            .ToArray();
         return reverse ? methods.Reverse().ToArray() : methods;
     }
 
-    private sealed class IntSource { public IntSource(int value) { _ = value; } }
-    private sealed class LongSource { public LongSource(long value) { _ = value; } }
-    private sealed class DoubleSource { public DoubleSource(double value) { _ = value; } }
-    private sealed class FirstSpecificSource { public FirstSpecificSource(int first, float second) { _ = first; _ = second; } }
-    private sealed class SecondSpecificSource { public SecondSpecificSource(long first, int second) { _ = first; _ = second; } }
+    private sealed class IntSource
+    {
+        public IntSource(int value)
+        {
+            _ = value;
+        }
+    }
+
+    private sealed class LongSource
+    {
+        public LongSource(long value)
+        {
+            _ = value;
+        }
+    }
+
+    private sealed class DoubleSource
+    {
+        public DoubleSource(double value)
+        {
+            _ = value;
+        }
+    }
+
+    private sealed class FirstSpecificSource
+    {
+        public FirstSpecificSource(int first, float second)
+        {
+            _ = first;
+            _ = second;
+        }
+    }
+
+    private sealed class SecondSpecificSource
+    {
+        public SecondSpecificSource(long first, int second)
+        {
+            _ = first;
+            _ = second;
+        }
+    }
 }

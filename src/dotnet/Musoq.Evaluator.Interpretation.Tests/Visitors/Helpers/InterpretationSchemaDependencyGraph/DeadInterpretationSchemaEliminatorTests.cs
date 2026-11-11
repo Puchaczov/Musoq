@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Visitors.Helpers.InterpretationSchemaDependencyGraph;
 using Musoq.Evaluator.Visitors;
+using Musoq.Evaluator.Visitors.Helpers.InterpretationSchemaDependencyGraph;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
@@ -53,7 +53,8 @@ public class DeadInterpretationSchemaEliminatorTests
 
         var parent = new BinarySchemaNode(
             "Parent",
-            [new FieldDefinitionNode("Payload", new SchemaReferenceTypeNode("Child"))]);
+            [new FieldDefinitionNode("Payload", new SchemaReferenceTypeNode("Child"))]
+        );
         registry.Register("Parent", parent);
 
         var queryTree = ParseQuery("select Interpret<Parent>(d.Dummy) from #system.dual() d");
@@ -87,8 +88,10 @@ public class DeadInterpretationSchemaEliminatorTests
         var registry = new SchemaRegistry();
         registry.Register("Pair", CreateTextSchema("Pair"));
 
-        var configSchema = new TextSchemaNode("Config",
-            [new TextFieldDefinitionNode("Entries", TextFieldType.Repeat, "Pair")]);
+        var configSchema = new TextSchemaNode(
+            "Config",
+            [new TextFieldDefinitionNode("Entries", TextFieldType.Repeat, "Pair")]
+        );
         registry.Register("Config", configSchema);
 
         var queryTree = ParseQuery("select c from #system.dual() d cross apply Parse<Config>(d.Dummy) c");
@@ -106,13 +109,15 @@ public class DeadInterpretationSchemaEliminatorTests
         var registry = new SchemaRegistry();
         registry.Register("Record", CreateBinarySchema("Record"));
 
-        var streamSchema = new BinarySchemaNode("Stream",
-        [
-            new FieldDefinitionNode("Records", new RepeatUntilTypeNode(
-                new SchemaReferenceTypeNode("Record"),
-                new BooleanNode(true),
-                "Records"))
-        ]);
+        var streamSchema = new BinarySchemaNode(
+            "Stream",
+            [
+                new FieldDefinitionNode(
+                    "Records",
+                    new RepeatUntilTypeNode(new SchemaReferenceTypeNode("Record"), new BooleanNode(true), "Records")
+                ),
+            ]
+        );
         registry.Register("Stream", streamSchema);
 
         var queryTree = ParseQuery("select s from #system.dual() d cross apply Interpret<Stream>(d.Dummy) s");
@@ -127,10 +132,14 @@ public class DeadInterpretationSchemaEliminatorTests
     [TestMethod]
     public void Eliminate_WhenParsedTextSchemaUsesRepeat_ShouldKeepReferencedSchema()
     {
-        var queryTree = ParseQuery(@"
-            text Pair { Key: until '=', Value: rest };
-            text Config { Entries: repeat Pair until end };
-            select c from #system.dual() d cross apply Parse<Config>(d.Dummy) c");
+        var queryTree = ParseQuery(
+            (
+                "\n"
+                + "            text Pair { Key: until '=', Value: rest };\n"
+                + "            text Config { Entries: repeat Pair until end };\n"
+                + "            select c from #system.dual() d cross apply Parse<Config>(d.Dummy) c"
+            )
+        );
 
         var registry = new SchemaRegistry();
         var definitionVisitor = new SchemaDefinitionVisitor(registry);
@@ -172,7 +181,8 @@ public class DeadInterpretationSchemaEliminatorTests
     {
         return new BinarySchemaNode(
             name,
-            [new FieldDefinitionNode("Value", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))]);
+            [new FieldDefinitionNode("Value", new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable))]
+        );
     }
 
     private static TextSchemaNode CreateTextSchema(string name)

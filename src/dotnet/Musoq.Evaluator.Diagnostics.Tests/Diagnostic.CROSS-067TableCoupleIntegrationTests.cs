@@ -20,8 +20,7 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityTestBase
 {
-    private static readonly CompilationOptions CompilationOptions =
-        new(usePrimitiveTypeValidation: false);
+    private static readonly CompilationOptions CompilationOptions = new(usePrimitiveTypeValidation: false);
 
     [TestMethod]
     public void TableCouple_CteSetApplyAndAggregation_ShouldHonorNamedArgumentsAndDescOrdering()
@@ -56,30 +55,30 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
             """;
         var provider = new Cross067SchemaProvider();
 
-        var table = TableMaterializationTestHelper.Materialize(
-            Run(query, provider).Run(TestContext.CancellationToken));
+        var table = TableMaterializationTestHelper.Materialize(Run(query, provider).Run(TestContext.CancellationToken));
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Product", typeof(string)),
-            ("TotalCost", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["Widget", 45m],
-            ["Gadget", 20m]);
+            ("TotalCost", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Widget", 45m], ["Gadget", 20m]);
 
         Assert.IsTrue(
             provider.Schema.Arguments.Any(arguments => arguments.SequenceEqual(new object?[] { "north", 2 })),
-            "The named north source arguments were not canonicalized and forwarded.");
+            "The named north source arguments were not canonicalized and forwarded."
+        );
         Assert.IsTrue(
             provider.Schema.Arguments.Any(arguments => arguments.SequenceEqual(new object?[] { "south", 1 })),
-            "The named south source arguments were not canonicalized and forwarded.");
+            "The named south source arguments were not canonicalized and forwarded."
+        );
         CollectionAssert.AreEquivalent(
             new object?[] { 1, 2, 4 },
-            provider.Schema.Arguments
-                .Where(arguments => arguments.Length == 1)
+            provider
+                .Schema.Arguments.Where(arguments => arguments.Length == 1)
                 .Select(arguments => arguments[0])
-                .ToArray());
+                .ToArray()
+        );
     }
 
     [TestMethod]
@@ -103,36 +102,37 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
             """;
 
         var table = TableMaterializationTestHelper.Materialize(
-            InstanceCreator.CompileForExecution(
-                query,
-                Guid.NewGuid().ToString(),
-                provider,
-                LoggerResolver,
-                new CompilationOptions(sourceRuntimeSettingsResolver: resolver))
-            .Run(TestContext.CancellationToken));
+            InstanceCreator
+                .CompileForExecution(
+                    query,
+                    Guid.NewGuid().ToString(),
+                    provider,
+                    LoggerResolver,
+                    new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+                )
+                .Run(TestContext.CancellationToken)
+        );
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Token", typeof(string)),
-            ("Uses", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["staging-token", 1L],
-            ["prod-token", 1L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Token", typeof(string)), ("Uses", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["staging-token", 1L], ["prod-token", 1L]);
         CollectionAssert.AreEquivalent(new[] { "prod", "staging" }, resolver.ProfileNames.ToArray());
 
         var descTable = TableMaterializationTestHelper.Materialize(
-            InstanceCreator.CompileForExecution(
-                "couple #settings.items with settings prod as Prod;desc settings prod;",
-                Guid.NewGuid().ToString(),
-                provider,
-                LoggerResolver,
-                new CompilationOptions(sourceRuntimeSettingsResolver: resolver))
-            .Run(TestContext.CancellationToken));
+            InstanceCreator
+                .CompileForExecution(
+                    "couple #settings.items with settings prod as Prod;desc settings prod;",
+                    Guid.NewGuid().ToString(),
+                    provider,
+                    LoggerResolver,
+                    new CompilationOptions(sourceRuntimeSettingsResolver: resolver)
+                )
+                .Run(TestContext.CancellationToken)
+        );
 
         Assert.IsFalse(
             descTable.Rows.SelectMany(static row => row.ReadValues()).Any(value => Equals(value, "prod-token")),
-            "DESC SETTINGS must not expose resolved setting values.");
+            "DESC SETTINGS must not expose resolved setting values."
+        );
         Assert.IsTrue(resolver.ProfileNames.Contains("prod"));
     }
 
@@ -140,18 +140,20 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
     public void SourceContractDiagnostics_InsideCteIntegration_ShouldRetainWarningAndErrorMetadata()
     {
         const string warningQuery =
-            "table RecordsShape { Name: string encoding 'windows-1250' };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "with named as (select r.Name as Name from Records() r)" +
-            "select Name, Count(Name) as Uses from named group by Name order by Uses desc;";
+            "table RecordsShape { Name: string encoding 'windows-1250' };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "with named as (select r.Name as Name from Records() r)"
+            + "select Name, Count(Name) as Uses from named group by Name order by Uses desc;";
         var warningResult = InstanceCreator.CompileWithDiagnostics(
             warningQuery,
             Guid.NewGuid().ToString(),
             new ReadModifiersSchemaProvider(
                 [new Dictionary<string, object?> { ["Name"] = "warning" }],
-                ReadModifiersValidationMode.LenientUnsupportedModifiers),
+                ReadModifiersValidationMode.LenientUnsupportedModifiers
+            ),
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
 
         Assert.IsTrue(warningResult.Succeeded);
         var warning = warningResult.Warnings.Single();
@@ -168,22 +170,21 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
         Assert.IsNotEmpty(warningEnvelope.Actions);
 
         const string errorQuery =
-            "table RecordsShape { Amount: decimal };" +
-            "couple #readmods.records with table RecordsShape as Records;" +
-            "with amounts as (select r.Amount as Amount from Records() r)" +
-            "select Amount, Count(Amount) as Uses from amounts group by Amount;";
+            "table RecordsShape { Amount: decimal };"
+            + "couple #readmods.records with table RecordsShape as Records;"
+            + "with amounts as (select r.Amount as Amount from Records() r)"
+            + "select Amount, Count(Amount) as Uses from amounts group by Amount;";
         var errorResult = InstanceCreator.CompileWithDiagnostics(
             errorQuery,
             Guid.NewGuid().ToString(),
             new ReadModifiersSchemaProvider(
                 [new Dictionary<string, object?> { ["Amount"] = "12.50" }],
                 ReadModifiersValidationMode.ValidateSourceKinds,
-                new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
-                {
-                    ["Amount"] = typeof(string)
-                }),
+                new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase) { ["Amount"] = typeof(string) }
+            ),
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
 
         Assert.IsFalse(errorResult.Succeeded);
         var error = errorResult.Errors.Single();
@@ -203,16 +204,13 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
     public void CoupledAliasEscapingCteScope_ShouldReportStructuredUnknownAlias()
     {
         const string query =
-            "table Sale { Id: int, Product: string, Amount: decimal };" +
-            "couple #cross067.sales with table Sale as SalesData;" +
-            "with Data as (select s.Id from SalesData('north') s)" +
-            "select s.Id from Data;";
-        var diagnostic = new QueryAnalyzer(
-                new Cross067SchemaProvider(),
-                compilationOptions: CompilationOptions)
+            "table Sale { Id: int, Product: string, Amount: decimal };"
+            + "couple #cross067.sales with table Sale as SalesData;"
+            + "with Data as (select s.Id from SalesData('north') s)"
+            + "select s.Id from Data;";
+        var diagnostic = new QueryAnalyzer(new Cross067SchemaProvider(), compilationOptions: CompilationOptions)
             .Analyze(query)
-            .Errors
-            .Single();
+            .Errors.Single();
 
         Assert.AreEqual(DiagnosticCode.MQ3015_UnknownAlias, diagnostic.Code);
         var expectedSpan = new TextSpan(query.LastIndexOf("s.Id", StringComparison.Ordinal), 1);
@@ -234,7 +232,8 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            CompilationOptions);
+            CompilationOptions
+        );
     }
 
     private static TextSpan SpanOf(string query, string text)
@@ -253,7 +252,7 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
             ProfileNames.Add(request.ProfileName);
             return new Dictionary<string, string>(StringComparer.Ordinal)
             {
-                ["TOKEN"] = $"{request.ProfileName}-token"
+                ["TOKEN"] = $"{request.ProfileName}-token",
             };
         }
     }
@@ -264,8 +263,10 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
 
         public ISchema GetSchema(string schema)
         {
-            if (!string.Equals(schema, "cross067", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(schema, "#cross067", StringComparison.OrdinalIgnoreCase))
+            if (
+                !string.Equals(schema, "cross067", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(schema, "#cross067", StringComparison.OrdinalIgnoreCase)
+            )
             {
                 throw new NotSupportedException(schema);
             }
@@ -286,7 +287,9 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
                         .Single(),
                     false,
                     ("sourcePath", typeof(string)),
-                    ("pageSize", typeof(int)))),
+                    ("pageSize", typeof(int))
+                )
+            ),
             new(
                 "items",
                 new SchemaConstructorInfo(
@@ -294,13 +297,13 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
                         .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                         .Single(),
                     false,
-                    ("saleId", typeof(int?))))
+                    ("saleId", typeof(int?))
+                )
+            ),
         ];
 
         public Cross067Schema()
-            : base("cross067", new MethodsAggregator(new MethodsManager()))
-        {
-        }
+            : base("cross067", new MethodsAggregator(new MethodsManager())) { }
 
         public List<object?[]> Arguments { get; } = [];
 
@@ -309,7 +312,8 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new Cross067Table(metadataContext.AllColumns.ToArray());
         }
@@ -317,41 +321,85 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             Arguments.Add(parameters.ToArray());
-            var rows = name.Equals("sales", StringComparison.OrdinalIgnoreCase)
-                ? CreateSalesRows()
-                : name.Equals("items", StringComparison.OrdinalIgnoreCase)
-                    ? CreateItemRows(parameters)
-                    : throw new NotSupportedException(name);
+            var rows =
+                name.Equals("sales", StringComparison.OrdinalIgnoreCase) ? CreateSalesRows()
+                : name.Equals("items", StringComparison.OrdinalIgnoreCase) ? CreateItemRows(parameters)
+                : throw new NotSupportedException(name);
             return EnsureSourceType<T, Cross067Entity>(name, new Cross067RowSource(rows));
         }
 
         private static IReadOnlyList<Cross067Entity> CreateSalesRows() =>
-        [
-            new() { Id = 1, Product = "Widget", Amount = 100m },
-            new() { Id = 2, Product = "Widget", Amount = 200m },
-            new() { Id = 3, Product = "Gizmo", Amount = 50m },
-            new() { Id = 4, Product = "Gadget", Amount = 150m }
-        ];
+            [
+                new()
+                {
+                    Id = 1,
+                    Product = "Widget",
+                    Amount = 100m,
+                },
+                new()
+                {
+                    Id = 2,
+                    Product = "Widget",
+                    Amount = 200m,
+                },
+                new()
+                {
+                    Id = 3,
+                    Product = "Gizmo",
+                    Amount = 50m,
+                },
+                new()
+                {
+                    Id = 4,
+                    Product = "Gadget",
+                    Amount = 150m,
+                },
+            ];
 
         private static IReadOnlyList<Cross067Entity> CreateItemRows(object?[] parameters)
         {
-            var saleId = parameters.Length == 0 || parameters[0] is null
-                ? 0
-                : Convert.ToInt32(parameters[0]);
+            var saleId = parameters.Length == 0 || parameters[0] is null ? 0 : Convert.ToInt32(parameters[0]);
             return saleId switch
             {
                 1 =>
                 [
-                    new() { SaleId = 1, Label = "primary", Cost = 10m },
-                    new() { SaleId = 1, Label = "secondary", Cost = 5m }
+                    new()
+                    {
+                        SaleId = 1,
+                        Label = "primary",
+                        Cost = 10m,
+                    },
+                    new()
+                    {
+                        SaleId = 1,
+                        Label = "secondary",
+                        Cost = 5m,
+                    },
                 ],
-                2 => [new() { SaleId = 2, Label = "primary", Cost = 30m }],
-                4 => [new() { SaleId = 4, Label = "primary", Cost = 20m }],
-                _ => []
+                2 =>
+                [
+                    new()
+                    {
+                        SaleId = 2,
+                        Label = "primary",
+                        Cost = 30m,
+                    },
+                ],
+                4 =>
+                [
+                    new()
+                    {
+                        SaleId = 4,
+                        Label = "primary",
+                        Cost = 20m,
+                    },
+                ],
+                _ => [],
             };
         }
     }
@@ -373,18 +421,16 @@ public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityT
         public ISchemaColumn[] Columns { get; } = columns;
 
         public ISchemaColumn? GetColumnByName(string name) =>
-            Columns.SingleOrDefault(column =>
-                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));
+            Columns.SingleOrDefault(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));
 
         public ISchemaColumn[] GetColumnsByName(string name) =>
-            Columns.Where(column =>
-                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            Columns.Where(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(Cross067Entity)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+        public SchemaTableMetadata Metadata { get; } =
+            new(typeof(Cross067Entity)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
     }
 
-    private sealed class Cross067RowSource(IReadOnlyList<Cross067Entity> rows)
-        : RowSourceBase<Cross067Entity>
+    private sealed class Cross067RowSource(IReadOnlyList<Cross067Entity> rows) : RowSourceBase<Cross067Entity>
     {
         protected override void CollectChunks(IChunkWriter<Cross067Entity> writer)
         {

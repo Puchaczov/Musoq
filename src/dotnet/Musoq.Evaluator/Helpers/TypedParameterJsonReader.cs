@@ -10,7 +10,8 @@ public static class TypedParameterJsonReader
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var text = value.GetString();
-        if (text is { Length: 1 }) return text[0];
+        if (text is { Length: 1 })
+            return text[0];
         throw ScriptParameterBindingException.TypeMismatch(path, typeof(char), typeof(JsonElement));
     }
 
@@ -30,8 +31,10 @@ public static class TypedParameterJsonReader
         var found = false;
         foreach (var property in value.EnumerateObject())
         {
-            if (!string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase)) continue;
-            if (found) throw ScriptParameterBindingException.TypeMismatch(name, typeof(JsonElement), typeof(JsonElement));
+            if (!string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (found)
+                throw ScriptParameterBindingException.TypeMismatch(name, typeof(JsonElement), typeof(JsonElement));
             found = true;
             field = property.Value;
         }
@@ -46,8 +49,13 @@ public static class TypedParameterJsonReader
         {
             var known = false;
             foreach (var name in names)
-                if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase)) { known = true; break; }
-            if (!known) throw ScriptParameterBindingException.Unknown(path + "." + property.Name);
+                if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    known = true;
+                    break;
+                }
+            if (!known)
+                throw ScriptParameterBindingException.Unknown(path + "." + property.Name);
         }
     }
 }

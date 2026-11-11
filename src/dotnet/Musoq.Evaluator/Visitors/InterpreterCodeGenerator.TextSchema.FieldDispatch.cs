@@ -9,7 +9,11 @@ public partial class InterpreterCodeGenerator
 
     private string GetTextFieldDiagnosticName(TextFieldDefinitionNode field) => _textDiagnosticName ?? field.Name;
 
-    private string GenerateTextBranchReadCode(TextFieldDefinitionNode owner, TextFieldDefinitionNode body, string localName)
+    private string GenerateTextBranchReadCode(
+        TextFieldDefinitionNode owner,
+        TextFieldDefinitionNode body,
+        string localName
+    )
     {
         var previous = _textDiagnosticName;
         _textDiagnosticName ??= owner.Name;
@@ -51,8 +55,14 @@ public partial class InterpreterCodeGenerator
         var previous = _statusFailureLabel;
         string read;
         _statusFailureLabel = failed;
-        try { read = GenerateTextFieldReadCodeInner(field, temporary, isDiscard); }
-        finally { _statusFailureLabel = previous; }
+        try
+        {
+            read = GenerateTextFieldReadCodeInner(field, temporary, isDiscard);
+        }
+        finally
+        {
+            _statusFailureLabel = previous;
+        }
 
         var builder = new StringBuilder();
         if (!isDiscard)
@@ -88,7 +98,7 @@ public partial class InterpreterCodeGenerator
             TextFieldType.Pattern => GeneratePatternCode(field, localVar, isDiscard),
             TextFieldType.Repeat => GenerateRepeatCode(field, localVar, isDiscard),
             TextFieldType.Switch => GenerateSwitchCode(field, localVar, isDiscard),
-            _ => throw new NotSupportedException($"Text field type '{field.FieldType}' is not yet supported.")
+            _ => throw new NotSupportedException($"Text field type '{field.FieldType}' is not yet supported."),
         };
     }
 }

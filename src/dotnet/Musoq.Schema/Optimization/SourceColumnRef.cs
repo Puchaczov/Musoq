@@ -5,9 +5,7 @@ namespace Musoq.Schema.Optimization;
 public sealed record SourceColumnRef
 {
     public SourceColumnRef(string name)
-        : this(name, null)
-    {
-    }
+        : this(name, null) { }
 
     public SourceColumnRef(string name, IReadOnlyDictionary<string, string>? readModifiers)
     {

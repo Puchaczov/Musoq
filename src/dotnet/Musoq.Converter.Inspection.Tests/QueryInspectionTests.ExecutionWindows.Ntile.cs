@@ -9,15 +9,19 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForNtileWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                )
-                select c.Name,
-                       Ntile(2) over (order by c.Score) as Bucket
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Ntile(2) over (order by c.Score) as Bucket\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeNtileWindow [", result.ExecutionPlanText);
@@ -27,27 +31,36 @@ public partial class QueryInspectionTests
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowNtile()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetPartitionSize(", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".Accumulate(2);", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeTypedPluginWindowFunction<object, long>", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "ComputeTypedPluginWindowFunction<object, long>",
+                StringComparison.Ordinal
+            )
+        );
         Assert.Contains("var resultNtilesValues = new int[resultWindowRows.Count];", result.GeneratedCSharpCode);
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForNtileWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()
-                    union all (Name, Score) select 'dan' as Name, 4 as Score from #system.dual()
-                    union all (Name, Score) select 'eve' as Name, 5 as Score from #system.dual()
-                )
-                select c.Name,
-                       c.Score,
-                       Ntile(3) over (order by c.Score) as Bucket
-                from c
-                order by c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'dan' as Name, 4 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'eve' as Name, 5 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       c.Score,\n"
+                + "                       Ntile(3) over (order by c.Score) as Bucket\n"
+                + "                from c\n"
+                + "                order by c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -72,20 +85,24 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForNtileQualify_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()
-                    union all (Name, Score) select 'dan' as Name, 4 as Score from #system.dual()
-                )
-                select c.Name,
-                       c.Score,
-                       Ntile(2) over (order by c.Score) as Bucket
-                from c
-                qualify Ntile(2) over (order by c.Score) = 1
-                order by c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'dan' as Name, 4 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       c.Score,\n"
+                + "                       Ntile(2) over (order by c.Score) as Bucket\n"
+                + "                from c\n"
+                + "                qualify Ntile(2) over (order by c.Score) = 1\n"
+                + "                order by c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -101,42 +118,55 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForFramedNtileWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                )
-                select c.Name,
-                       Ntile(2) over (order by c.Score rows between current row and current row) as Bucket
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Ntile(2) over (order by c.Score rows between current row and current row) as Bucket\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeNtileWindow [resultNtiles <- resultWindowRows value 2 order by c.Score ASC]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeNtileWindow [resultNtiles <- resultWindowRows value 2 order by c.Score ASC]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("WindowFrameContext<int>", result.GeneratedCSharpCode);
         Assert.Contains("NtileKernel.Get(in resultNtilesContext)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowNtile()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".AccumulateValue(2);", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputePluginWindowFunction", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeOrderedFramedPluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("ComputeOrderedFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForFramedNtileWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()
-                    union all (Name, Score) select 'dan' as Name, 4 as Score from #system.dual()
-                )
-                select c.Name,
-                       c.Score,
-                       Ntile(2) over (order by c.Score rows between current row and current row) as Bucket
-                from c
-                order by c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'dan' as Name, 4 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       c.Score,\n"
+                + "                       Ntile(2) over (order by c.Score rows between current row and current row) as Bucket\n"
+                + "                from c\n"
+                + "                order by c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -154,5 +184,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual(4, table[3].ReadValue(1));
         Assert.AreEqual(2L, table[3].ReadValue(2));
     }
-
 }

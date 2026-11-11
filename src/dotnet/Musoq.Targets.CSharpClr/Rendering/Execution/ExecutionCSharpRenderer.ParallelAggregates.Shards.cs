@@ -15,19 +15,30 @@ public sealed partial class ExecutionCSharpRenderer
         string cancellationTokenName,
         string workerName,
         IReadOnlyList<CapturedLocal> captures,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             workerName,
-            SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName(
-                    CreateParallelSingleKeyAggregateWorkerTypeName(parallelAggregate, context)))
-                .WithArgumentList(CreateArgumentList(CreateParallelAggregateWorkerConstructorArguments(
-                    rowsName,
-                    workerCountName,
-                    shardsName,
-                    cancellationTokenName,
-                    captures))));
+            SyntaxFactory
+                .ObjectCreationExpression(
+                    SyntaxFactory.IdentifierName(
+                        CreateParallelSingleKeyAggregateWorkerTypeName(parallelAggregate, context)
+                    )
+                )
+                .WithArgumentList(
+                    CreateArgumentList(
+                        CreateParallelAggregateWorkerConstructorArguments(
+                            rowsName,
+                            workerCountName,
+                            shardsName,
+                            cancellationTokenName,
+                            captures
+                        )
+                    )
+                )
+        );
     }
 
     private List<StatementSyntax> CreateParallelAggregateShardStatements(
@@ -37,7 +48,8 @@ public sealed partial class ExecutionCSharpRenderer
         string shardsName,
         string shardIndexName,
         string cancellationTokenName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         const string startName = "start";
         const string endName = "end";
@@ -52,53 +64,80 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 startName,
-                CreateShardBoundaryExpression(rowsName, shardIndexName, workerCountName)),
+                CreateShardBoundaryExpression(rowsName, shardIndexName, workerCountName)
+            ),
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 endName,
                 CreateShardBoundaryExpression(
                     rowsName,
-                    SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(
-                        SyntaxKind.AddExpression,
-                        SyntaxFactory.IdentifierName(shardIndexName),
-                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)))),
-                    workerCountName)),
+                    SyntaxFactory.ParenthesizedExpression(
+                        SyntaxFactory.BinaryExpression(
+                            SyntaxKind.AddExpression,
+                            SyntaxFactory.IdentifierName(shardIndexName),
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(1)
+                            )
+                        )
+                    ),
+                    workerCountName
+                )
+            ),
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 groupsName,
-                SyntaxFactory.ObjectCreationExpression(CreateGroupDictionaryTypeSyntax(parallelAggregate.KeyType, groupType))
-                    .WithArgumentList(SyntaxFactory.ArgumentList())),
+                SyntaxFactory
+                    .ObjectCreationExpression(CreateGroupDictionaryTypeSyntax(parallelAggregate.KeyType, groupType))
+                    .WithArgumentList(SyntaxFactory.ArgumentList())
+            ),
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 orderedGroupsName,
-                SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(groupType))
-                    .WithArgumentList(SyntaxFactory.ArgumentList()))
+                SyntaxFactory
+                    .ObjectCreationExpression(CreateListTypeSyntax(groupType))
+                    .WithArgumentList(SyntaxFactory.ArgumentList())
+            ),
         };
 
         if (CanBeNull(parallelAggregate.KeyType))
         {
-            statements.Add(CreateLocalDeclaration(
-                groupType,
-                CreateParallelNullGroupName(),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+            statements.Add(
+                CreateLocalDeclaration(
+                    groupType,
+                    CreateParallelNullGroupName(),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                )
+            );
         }
 
-        statements.Add(CreateParallelAggregateShardRowLoop(
-            parallelAggregate,
-            rowsName,
-            startName,
-            endName,
-            groupsName,
-            orderedGroupsName,
-            indexName,
-            groupKeyName,
-            cancellationTokenName,
-            context));
+        statements.Add(
+            CreateParallelAggregateShardRowLoop(
+                parallelAggregate,
+                rowsName,
+                startName,
+                endName,
+                groupsName,
+                orderedGroupsName,
+                indexName,
+                groupKeyName,
+                cancellationTokenName,
+                context
+            )
+        );
 
-        statements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-            SyntaxKind.SimpleAssignmentExpression,
-            CreateElementAccess(SyntaxFactory.IdentifierName(shardsName), SyntaxFactory.IdentifierName(shardIndexName)),
-            SyntaxFactory.IdentifierName(orderedGroupsName))));
+        statements.Add(
+            SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    CreateElementAccess(
+                        SyntaxFactory.IdentifierName(shardsName),
+                        SyntaxFactory.IdentifierName(shardIndexName)
+                    ),
+                    SyntaxFactory.IdentifierName(orderedGroupsName)
+                )
+            )
+        );
 
         return statements;
     }
@@ -113,7 +152,8 @@ public sealed partial class ExecutionCSharpRenderer
         string indexName,
         string groupKeyName,
         string cancellationTokenName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var aggregateBodyStatements = RenderBlock(parallelAggregate.AggregateBody, context).Statements.ToList();
         var reuseGroupKeyLet = TryGetReusableGroupKeyLet(parallelAggregate, out var groupKeyLet);
@@ -123,7 +163,8 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 CreateVariableTypeSyntax(parallelAggregate.Source),
                 parallelAggregate.Source.Name,
-                CreateElementAccess(SyntaxFactory.IdentifierName(rowsName), SyntaxFactory.IdentifierName(indexName)))
+                CreateElementAccess(SyntaxFactory.IdentifierName(rowsName), SyntaxFactory.IdentifierName(indexName))
+            ),
         };
 
         if (reuseGroupKeyLet)
@@ -132,43 +173,70 @@ public sealed partial class ExecutionCSharpRenderer
             aggregateBodyStatements.RemoveAt(0);
         }
 
-        body.Add(CreateLocalDeclaration(
-            CreateTypeSyntax(parallelAggregate.KeyType),
-            groupKeyName,
-            reuseGroupKeyLet
-                ? SyntaxFactory.IdentifierName(groupKeyLet!.Variable.Name)
-                : RenderExpression(parallelAggregate.Key, context)));
+        body.Add(
+            CreateLocalDeclaration(
+                CreateTypeSyntax(parallelAggregate.KeyType),
+                groupKeyName,
+                reuseGroupKeyLet
+                    ? SyntaxFactory.IdentifierName(groupKeyLet!.Variable.Name)
+                    : RenderExpression(parallelAggregate.Key, context)
+            )
+        );
 
-        body.AddRange(CreateParallelAggregateGroupAcquisitionStatements(
-            parallelAggregate,
-            groupsName,
-            orderedGroupsName,
-            groupKeyName,
-            context));
+        body.AddRange(
+            CreateParallelAggregateGroupAcquisitionStatements(
+                parallelAggregate,
+                groupsName,
+                orderedGroupsName,
+                groupKeyName,
+                context
+            )
+        );
         body.AddRange(aggregateBodyStatements);
 
-        return SyntaxFactory.ForStatement(StatementEmitter.CreateBlock(body))
-            .WithDeclaration(SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(indexName)
-                        .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.IdentifierName(startName))))))
-            .WithCondition(SyntaxFactory.BinaryExpression(
-                SyntaxKind.LessThanExpression,
-                SyntaxFactory.IdentifierName(indexName),
-                SyntaxFactory.IdentifierName(endName)))
-            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                SyntaxFactory.PostfixUnaryExpression(
-                    SyntaxKind.PostIncrementExpression,
-                    SyntaxFactory.IdentifierName(indexName))));
+        return SyntaxFactory
+            .ForStatement(StatementEmitter.CreateBlock(body))
+            .WithDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory
+                                .VariableDeclarator(indexName)
+                                .WithInitializer(
+                                    SyntaxFactory.EqualsValueClause(SyntaxFactory.IdentifierName(startName))
+                                )
+                        )
+                    )
+            )
+            .WithCondition(
+                SyntaxFactory.BinaryExpression(
+                    SyntaxKind.LessThanExpression,
+                    SyntaxFactory.IdentifierName(indexName),
+                    SyntaxFactory.IdentifierName(endName)
+                )
+            )
+            .WithIncrementors(
+                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                    SyntaxFactory.PostfixUnaryExpression(
+                        SyntaxKind.PostIncrementExpression,
+                        SyntaxFactory.IdentifierName(indexName)
+                    )
+                )
+            );
     }
 
     private static bool TryGetReusableGroupKeyLet(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        out ExecutionLet? groupKeyLet)
+        out ExecutionLet? groupKeyLet
+    )
     {
-        if (parallelAggregate.AggregateBody.Nodes.FirstOrDefault() is ExecutionLet let &&
-            let.Value.ReturnType == parallelAggregate.Key.ReturnType &&
-            ExecutionExpressionFingerprint.ForHoist(let.Value) == ExecutionExpressionFingerprint.ForHoist(parallelAggregate.Key))
+        if (
+            parallelAggregate.AggregateBody.Nodes.FirstOrDefault() is ExecutionLet let
+            && let.Value.ReturnType == parallelAggregate.Key.ReturnType
+            && ExecutionExpressionFingerprint.ForHoist(let.Value)
+                == ExecutionExpressionFingerprint.ForHoist(parallelAggregate.Key)
+        )
         {
             groupKeyLet = let;
             return true;
@@ -184,7 +252,8 @@ public sealed partial class ExecutionCSharpRenderer
         string orderedGroupsName,
         string groupKeyName,
         ExecutionRenderContext context,
-        string? nullGroupName = null)
+        string? nullGroupName = null
+    )
     {
         nullGroupName ??= CreateParallelNullGroupName();
         return CanBeNull(parallelAggregate.KeyType)
@@ -194,14 +263,16 @@ public sealed partial class ExecutionCSharpRenderer
                 orderedGroupsName,
                 groupKeyName,
                 context,
-                nullGroupName)
+                nullGroupName
+            )
             : CreateParallelAggregateNonNullGroupAcquisitionStatements(
                 parallelAggregate,
                 groupsName,
                 orderedGroupsName,
                 groupKeyName,
                 context,
-                declareGroupVariable: true);
+                declareGroupVariable: true
+            );
     }
 
     private StatementSyntax[] CreateParallelAggregateNonNullGroupAcquisitionStatements(
@@ -210,13 +281,15 @@ public sealed partial class ExecutionCSharpRenderer
         string orderedGroupsName,
         string groupKeyName,
         ExecutionRenderContext context,
-        bool declareGroupVariable)
+        bool declareGroupVariable
+    )
     {
         var groupCreation = CreateAggregateGroupCreation(
             parallelAggregate.GroupShape,
             context,
             CreateNoOwnerArguments(parallelAggregate.GroupShape),
-            SyntaxFactory.IdentifierName(groupKeyName));
+            SyntaxFactory.IdentifierName(groupKeyName)
+        );
         var groupRefName = CreateGroupRefVariableName(parallelAggregate.Group.Name);
 
         return CreateDictionaryGroupAcquisitionStatements(
@@ -226,7 +299,8 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName(groupKeyName),
             groupCreation,
             [CreateCollectionAddStatement(orderedGroupsName, SyntaxFactory.IdentifierName(groupRefName))],
-            declareGroupVariable);
+            declareGroupVariable
+        );
     }
 
     private List<StatementSyntax> CreateParallelAggregateNullableGroupAcquisitionStatements(
@@ -235,7 +309,8 @@ public sealed partial class ExecutionCSharpRenderer
         string orderedGroupsName,
         string groupKeyName,
         ExecutionRenderContext context,
-        string nullGroupName)
+        string nullGroupName
+    )
     {
         var groupType = CreateAggregateGroupType(parallelAggregate.GroupShape, context);
         var statements = new List<StatementSyntax>
@@ -243,25 +318,37 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 groupType,
                 parallelAggregate.Group.Name,
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
-,SyntaxFactory.IfStatement(
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.NotEqualsExpression,
-                SyntaxFactory.IdentifierName(groupKeyName),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-            StatementEmitter.CreateBlock(CreateParallelAggregateNonNullGroupAcquisitionStatements(
-                parallelAggregate,
-                groupsName,
-                orderedGroupsName,
-                groupKeyName,
-                context,
-                declareGroupVariable: false)),
-            SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(CreateParallelAggregateNullGroupAcquisitionStatements(
-                parallelAggregate,
-                orderedGroupsName,
-                groupKeyName,
-                context,
-                nullGroupName))))        };
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+            ),
+            SyntaxFactory.IfStatement(
+                SyntaxFactory.BinaryExpression(
+                    SyntaxKind.NotEqualsExpression,
+                    SyntaxFactory.IdentifierName(groupKeyName),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                ),
+                StatementEmitter.CreateBlock(
+                    CreateParallelAggregateNonNullGroupAcquisitionStatements(
+                        parallelAggregate,
+                        groupsName,
+                        orderedGroupsName,
+                        groupKeyName,
+                        context,
+                        declareGroupVariable: false
+                    )
+                ),
+                SyntaxFactory.ElseClause(
+                    StatementEmitter.CreateBlock(
+                        CreateParallelAggregateNullGroupAcquisitionStatements(
+                            parallelAggregate,
+                            orderedGroupsName,
+                            groupKeyName,
+                            context,
+                            nullGroupName
+                        )
+                    )
+                )
+            ),
+        };
 
         return statements;
     }
@@ -271,7 +358,8 @@ public sealed partial class ExecutionCSharpRenderer
         string orderedGroupsName,
         string groupKeyName,
         ExecutionRenderContext context,
-        string nullGroupName)
+        string nullGroupName
+    )
     {
         var nullGroup = SyntaxFactory.IdentifierName(nullGroupName);
 
@@ -281,20 +369,31 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.EqualsExpression,
                     nullGroup,
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                StatementEmitter.CreateBlock(SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        nullGroup,
-                        CreateAggregateGroupCreation(
-                            parallelAggregate.GroupShape,
-                            context,
-                            CreateNoOwnerArguments(parallelAggregate.GroupShape),
-                            SyntaxFactory.IdentifierName(groupKeyName)))),
-                    CreateCollectionAddStatement(orderedGroupsName, nullGroup))),
-            SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                SyntaxFactory.IdentifierName(parallelAggregate.Group.Name),
-                nullGroup))
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                ),
+                StatementEmitter.CreateBlock(
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(
+                            SyntaxKind.SimpleAssignmentExpression,
+                            nullGroup,
+                            CreateAggregateGroupCreation(
+                                parallelAggregate.GroupShape,
+                                context,
+                                CreateNoOwnerArguments(parallelAggregate.GroupShape),
+                                SyntaxFactory.IdentifierName(groupKeyName)
+                            )
+                        )
+                    ),
+                    CreateCollectionAddStatement(orderedGroupsName, nullGroup)
+                )
+            ),
+            SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName(parallelAggregate.Group.Name),
+                    nullGroup
+                )
+            ),
         ];
     }
 }

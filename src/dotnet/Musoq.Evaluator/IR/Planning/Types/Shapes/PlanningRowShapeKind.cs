@@ -5,5 +5,5 @@ internal enum PlanningRowShapeKind
     SourceEntity,
     TableRow,
     Values,
-    Generated
+    Generated,
 }

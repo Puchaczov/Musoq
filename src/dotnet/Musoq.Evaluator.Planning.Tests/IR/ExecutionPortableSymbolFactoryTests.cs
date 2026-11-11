@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Musoq.Evaluator.Tests.Architecture;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Tests.IR;
@@ -53,9 +53,7 @@ public sealed class ExecutionPortableSymbolFactoryTests
         var symbol = ExecutionPortableSymbolFactory.FromType(typeof(Dictionary<string, int?>));
 
         Assert.AreEqual(ExecutionPortableTypeKind.Map, symbol.Kind);
-        Assert.AreEqual(
-            "map<primitive:string,nullable<primitive:int32>>",
-            symbol.StableName);
+        Assert.AreEqual("map<primitive:string,nullable<primitive:int32>>", symbol.StableName);
         Assert.AreEqual(2, symbol.Arguments.Count);
         Assert.AreEqual(ExecutionPortableSymbolPortability.Portable, symbol.Portability);
         Assert.IsNotNull(symbol.Container);
@@ -113,7 +111,8 @@ public sealed class ExecutionPortableSymbolFactoryTests
             new ExecutionPortableRowFieldDescriptor(
                 "Value",
                 ExecutionPortableSymbolFactory.FromType(typeof(int)),
-                FieldNullability.NotNullable.ToString())
+                FieldNullability.NotNullable.ToString()
+            ),
         };
         var symbol = ExecutionPortableSymbolFactory.GeneratedRow("ResultRow0", fields);
         var repeated = ExecutionPortableSymbolFactory.GeneratedRow("RenamedResultRow", fields);
@@ -137,18 +136,21 @@ public sealed class ExecutionPortableSymbolFactoryTests
         Assert.AreEqual("nullable<primitive:int32>", typeRef.Descriptor.StableName);
         Assert.AreEqual(ExecutionPortableTypeKind.Nullable, typeRef.Descriptor.Kind);
         Assert.AreEqual(ExecutionPortableSymbolPortability.Portable, typeRef.Descriptor.Portability);
-        var clrType = CompilerContractSymbols.For(typeof(ExecutionTypeRef)).GetProperty(
-            "ClrType",
-            BindingFlags.Instance | BindingFlags.NonPublic);
+        var clrType = CompilerContractSymbols
+            .For(typeof(ExecutionTypeRef))
+            .GetProperty("ClrType", BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.IsNull(clrType);
     }
 
     [TestMethod]
     public void FromMethod_WhenPluginMethodIsProvided_ShouldUseStableCallableSymbol()
     {
-        var method = typeof(LibraryBase)
-            .GetMethod(nameof(LibraryBase.ToUpper), BindingFlags.Public | BindingFlags.Instance, [typeof(string)]) ??
-            throw new InvalidOperationException("Could not resolve LibraryBase.ToUpper.");
+        var method =
+            typeof(LibraryBase).GetMethod(
+                nameof(LibraryBase.ToUpper),
+                BindingFlags.Public | BindingFlags.Instance,
+                [typeof(string)]
+            ) ?? throw new InvalidOperationException("Could not resolve LibraryBase.ToUpper.");
 
         var symbol = ExecutionPortableSymbolFactory.FromMethod(method);
 
@@ -166,12 +168,17 @@ public sealed class ExecutionPortableSymbolFactoryTests
     [TestMethod]
     public void FromMethod_WhenAggregateMethodIsProvided_ShouldUseHostImportCallableSymbol()
     {
-        var method = typeof(LibraryBase)
-            .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .FirstOrDefault(static method => method
-                .GetCustomAttributes(inherit: false)
-                .Any(static attribute => attribute.GetType().FullName == "Musoq.Plugins.Attributes.AggregateFunctionAttribute")) ??
-            throw new InvalidOperationException("Could not resolve aggregate method on LibraryBase.");
+        var method =
+            typeof(LibraryBase)
+                .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .FirstOrDefault(static method =>
+                    method
+                        .GetCustomAttributes(inherit: false)
+                        .Any(static attribute =>
+                            attribute.GetType().FullName == "Musoq.Plugins.Attributes.AggregateFunctionAttribute"
+                        )
+                )
+            ?? throw new InvalidOperationException("Could not resolve aggregate method on LibraryBase.");
 
         var symbol = ExecutionPortableSymbolFactory.FromMethod(method);
 
@@ -194,9 +201,12 @@ public sealed class ExecutionPortableSymbolFactoryTests
     [TestMethod]
     public void FromMethod_WhenUnknownClrMethod_ShouldMarkClrOnly()
     {
-        var method = typeof(string)
-            .GetMethod(nameof(string.Contains), BindingFlags.Public | BindingFlags.Instance, [typeof(string)]) ??
-            throw new InvalidOperationException("Could not resolve string.Contains.");
+        var method =
+            typeof(string).GetMethod(
+                nameof(string.Contains),
+                BindingFlags.Public | BindingFlags.Instance,
+                [typeof(string)]
+            ) ?? throw new InvalidOperationException("Could not resolve string.Contains.");
 
         var symbol = ExecutionPortableSymbolFactory.FromMethod(method);
 
@@ -204,24 +214,31 @@ public sealed class ExecutionPortableSymbolFactoryTests
         Assert.AreEqual(ExecutionPortableSymbolPortability.ClrOnly, symbol.Portability);
         StringAssert.Contains(symbol.PortabilityReason, "No portable callable catalog entry");
     }
+
     [TestMethod]
     public void FromMethod_WhenClosedSignaturesCoincide_ShouldPreserveGenericSpecializationIdentity()
     {
-        var methods = typeof(LibraryBase).GetMethods().Where(static method =>
-            method.Name == nameof(LibraryBase.GetTypeName) && method.IsGenericMethodDefinition).ToArray();
-        var direct = methods.Single(static method => method.GetParameters()[0].ParameterType.IsGenericParameter)
+        var methods = typeof(LibraryBase)
+            .GetMethods()
+            .Where(static method => method.Name == nameof(LibraryBase.GetTypeName) && method.IsGenericMethodDefinition)
+            .ToArray();
+        var direct = methods
+            .Single(static method => method.GetParameters()[0].ParameterType.IsGenericParameter)
             .MakeGenericMethod(typeof(int?));
-        var nullable = methods.Single(static method => method.GetParameters()[0].ParameterType.IsGenericType)
+        var nullable = methods
+            .Single(static method => method.GetParameters()[0].ParameterType.IsGenericType)
             .MakeGenericMethod(typeof(int));
         var directSymbol = ExecutionPortableSymbolFactory.FromMethod(direct);
         var nullableSymbol = ExecutionPortableSymbolFactory.FromMethod(nullable);
 
-        Assert.AreEqual(directSymbol.ParameterTypes.Single().StableName, nullableSymbol.ParameterTypes.Single().StableName);
+        Assert.AreEqual(
+            directSymbol.ParameterTypes.Single().StableName,
+            nullableSymbol.ParameterTypes.Single().StableName
+        );
         Assert.AreNotEqual(directSymbol.StableName, nullableSymbol.StableName);
         Assert.AreEqual("nullable<primitive:int32>", directSymbol.GenericArguments.Single().StableName);
         Assert.AreEqual("primitive:int32", nullableSymbol.GenericArguments.Single().StableName);
         Assert.AreEqual(direct, new ExecutionCallableRef(directSymbol).ResolveClrMethod());
         Assert.AreEqual(nullable, new ExecutionCallableRef(nullableSymbol).ResolveClrMethod());
     }
-
 }

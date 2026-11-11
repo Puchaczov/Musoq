@@ -8,10 +8,13 @@ public sealed partial class ExecutionCSharpRenderer
     private static ExecutionVariable? CreateWindowPartitionBuilderVariable(
         ExecutionVariable results,
         ExecutionWindowKeyArray? partitionKeys,
-        ExecutionWindowPartitionSet? partitions)
+        ExecutionWindowPartitionSet? partitions
+    )
     {
-        if (partitionKeys is not { ShouldExtract: true, ShouldMaterialize: false } ||
-            partitions is not { ShouldCreate: true })
+        if (
+            partitionKeys is not { ShouldExtract: true, ShouldMaterialize: false }
+            || partitions is not { ShouldCreate: true }
+        )
         {
             return null;
         }
@@ -21,36 +24,42 @@ public sealed partial class ExecutionCSharpRenderer
             return new ExecutionVariable(
                 $"{results.Name}PartitionBuilder",
                 typeof(object),
-                $"{typeof(WindowPartitionBuilder<>).Namespace}.{nameof(WindowPartitionBuilder<object>)}<{partitionKeys.Shape!.GeneratedElementTypeName}>");
+                $"{typeof(WindowPartitionBuilder<>).Namespace}.{nameof(WindowPartitionBuilder<object>)}<{partitionKeys.Shape!.GeneratedElementTypeName}>"
+            );
         }
 
         var keyType = GetArrayElementType(partitionKeys.Variable);
         return new ExecutionVariable(
             $"{results.Name}PartitionBuilder",
-            typeof(WindowPartitionBuilder<>).MakeGenericType(keyType));
+            typeof(WindowPartitionBuilder<>).MakeGenericType(keyType)
+        );
     }
 
     private static ExecutionVariable CreateFusedIntOrderBuilderVariable(
         ExecutionComputeRankingWindow ranking,
-        ExecutionWindowKeyArray? partitionKeys)
+        ExecutionWindowKeyArray? partitionKeys
+    )
     {
         return CreateFusedIntOrderBuilderVariable(ranking.Results, partitionKeys);
     }
 
     private static ExecutionVariable CreateFusedIntOrderBuilderVariable(
         ExecutionVariable results,
-        ExecutionWindowKeyArray? partitionKeys)
+        ExecutionWindowKeyArray? partitionKeys
+    )
     {
-        var builderType = partitionKeys == null
-            ? typeof(WindowIntOrderBuilder)
-            : typeof(WindowIntOrderBuilder<>).MakeGenericType(GetArrayElementType(partitionKeys.Variable));
+        var builderType =
+            partitionKeys == null
+                ? typeof(WindowIntOrderBuilder)
+                : typeof(WindowIntOrderBuilder<>).MakeGenericType(GetArrayElementType(partitionKeys.Variable));
 
         if (partitionKeys != null && HasGeneratedWindowKeyType(partitionKeys))
         {
             return new ExecutionVariable(
                 $"{results.Name}IntOrderBuilder",
                 typeof(object),
-                $"{typeof(WindowIntOrderBuilder<>).Namespace}.{nameof(WindowIntOrderBuilder<object>)}<{partitionKeys.Shape!.GeneratedElementTypeName}>");
+                $"{typeof(WindowIntOrderBuilder<>).Namespace}.{nameof(WindowIntOrderBuilder<object>)}<{partitionKeys.Shape!.GeneratedElementTypeName}>"
+            );
         }
 
         return new ExecutionVariable($"{results.Name}IntOrderBuilder", builderType);

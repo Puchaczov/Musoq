@@ -20,12 +20,14 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("PercentRank", new WindowFunctionRef(0, typeof(double)), 0),
-                new ProjectedField("CumeDist", new WindowFunctionRef(1, typeof(double)), 1)
+                new ProjectedField("CumeDist", new WindowFunctionRef(1, typeof(double)), 1),
             ],
-            window);
+            window
+        );
 
         var plan = RequireExecutionPlan(CreateBuilder().Build(project, "Q_DistributionRankings"));
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_DistributionRankings]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -44,7 +46,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "    CreateShapeRows [result: ResultRow0 from ResultRow0]",
             "    ForEachIndexed [windowIndex, p in resultWindowRows]",
             "      AppendShape [result <- ResultRow0(PercentRank: resultPercentRanks0[windowIndex], CumeDist: resultCumeDists1[windowIndex])]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

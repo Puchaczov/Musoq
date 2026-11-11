@@ -7,7 +7,7 @@ internal static partial class ExecutionNodeDefinitionCatalog
         {
             0 => new(body),
             1 when optional is not null => new(optional),
-            _ => default
+            _ => default,
         };
 
     private static ExecutionChildRegion RecursiveRegion(ExecutionRecursiveCte node, int index) =>
@@ -16,7 +16,7 @@ internal static partial class ExecutionNodeDefinitionCatalog
             0 => new(node.Anchor),
             1 => new(node.InvariantSetup),
             2 => new(node.RecursiveMember),
-            _ => default
+            _ => default,
         };
 
     private static ExecutionChildRegion ParallelRegion(ExecutionParallelBlock node, int index)

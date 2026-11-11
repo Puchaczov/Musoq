@@ -14,9 +14,9 @@ using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 using Musoq.Schema.Reflection;
 using Musoq.Tests.Common.Schema;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 using TestSchemaColumn = Musoq.Evaluator.Tests.Components.SchemaColumn;
-using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -34,7 +34,8 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
-            "PrivateEntity");
+            "PrivateEntity"
+        );
         AssertHasGuidance(exception);
         AssertMessageContains(exception, "public CLR contract");
         AssertMessageContains(exception, "native query-scoped rows");
@@ -49,7 +50,8 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
-            "object-typed");
+            "object-typed"
+        );
     }
 
     [TestMethod]
@@ -61,7 +63,8 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
-            "not publicly referenceable");
+            "not publicly referenceable"
+        );
     }
 
     [TestMethod]
@@ -73,7 +76,8 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
-            "custom runtime-dynamic");
+            "custom runtime-dynamic"
+        );
     }
 
     [TestMethod]
@@ -81,13 +85,15 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
     {
         var exception = CompileExpectedFailure(
             new UnsafeSchemaProvider(typeof(PublicNamedRow), typeof(InaccessibleColumnType)),
-            "select 1 from #unsafe.all() a where a.Name is not null");
+            "select 1 from #unsafe.all() a where a.Name is not null"
+        );
 
         AssertErrorEnvelope(
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
-            "non-referenceable type");
+            "non-referenceable type"
+        );
     }
 
     [TestMethod]
@@ -99,7 +105,8 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
-            "System.Object[][]");
+            "System.Object[][]"
+        );
     }
 
     [TestMethod]
@@ -111,7 +118,8 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
-            "List");
+            "List"
+        );
     }
 
     [TestMethod]
@@ -120,14 +128,19 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
         var exception = CompileExpectedFailure(
             new PositionalRowsSchemaProvider(
                 [new TestSchemaColumn("Name", -1, typeof(string))],
-                [["Ada"]]),
-            "select a.Name from #positional.all() a");
+                [
+                    ["Ada"],
+                ]
+            ),
+            "select a.Name from #positional.all() a"
+        );
 
         AssertErrorEnvelope(
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
-            "Name");
+            "Name"
+        );
         AssertMessageContains(exception, "invalid negative index");
     }
 
@@ -138,16 +151,21 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
             new PositionalRowsSchemaProvider(
                 [
                     new TestSchemaColumn("Hidden", 0, typeof(InaccessibleColumnType)),
-                    new TestSchemaColumn("Name", 1, typeof(string))
+                    new TestSchemaColumn("Name", 1, typeof(string)),
                 ],
-                [[new InaccessibleColumnType(), "Ada"]]),
-            "select a.Name from #positional.all() a where a.Hidden != null");
+                [
+                    [new InaccessibleColumnType(), "Ada"],
+                ]
+            ),
+            "select a.Name from #positional.all() a where a.Hidden != null"
+        );
 
         AssertErrorEnvelope(
             exception,
             DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection,
             DiagnosticPhase.Bind,
-            "Hidden");
+            "Hidden"
+        );
         AssertMessageContains(exception, "non-referenceable type");
     }
 
@@ -157,19 +175,20 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
         var provider = new AnySchemaNameProvider(
             new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
             {
-                ["dynamic"] =
-                (
+                ["dynamic"] = (
                     new Dictionary<string, Type> { ["Id"] = typeof(int) },
                     new dynamic[] { new Dictionary<string, object?> { ["Id"] = 7 } }
-                )
-            });
+                ),
+            }
+        );
 
         var inspection = InstanceCreator.CompileForInspection(
             "select d.Id from #dynamic.all() d",
             Guid.NewGuid().ToString(),
             provider,
             _loggerResolver,
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetNestedValue", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetRowSourceChunks", StringComparison.Ordinal));
@@ -186,14 +205,16 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
                     new Musoq.Schema.DataSources.SchemaColumn("Name", 2, typeof(string)),
                     new Musoq.Schema.DataSources.SchemaColumn("Age", 0, typeof(int)),
                     new Musoq.Schema.DataSources.SchemaColumn("Department", 1, typeof(string)),
-                    new Musoq.Schema.DataSources.SchemaColumn("Address.City", 3, typeof(string))
+                    new Musoq.Schema.DataSources.SchemaColumn("Address.City", 3, typeof(string)),
                 ],
                 [
                     [37, "Engineering", "Ada", "London"],
-                    [29, "Research", "Bea", "Paris"]
-                ]),
+                    [29, "Research", "Bea", "Paris"],
+                ]
+            ),
             _loggerResolver,
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("ExpandoAdapter", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GeneratedDictionaryAccess", StringComparison.Ordinal));
@@ -209,8 +230,14 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
     public void CompileForExecution_WhenSourceRequiresErasedRows_ShouldReportNativeTransferDiagnostic()
     {
         const string query = "select a.Name from #unsafe.all() a";
-        var exception = Assert.Throws<MusoqQueryException>(() => InstanceCreator.CompileForExecution(
-            query, Guid.NewGuid().ToString(), new UnsafeSchemaProvider(typeof(object[])), _loggerResolver));
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            InstanceCreator.CompileForExecution(
+                query,
+                Guid.NewGuid().ToString(),
+                new UnsafeSchemaProvider(typeof(object[])),
+                _loggerResolver
+            )
+        );
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, exception.PrimaryEnvelope.Code);
         Assert.Contains("native query-scoped transfer", exception.Message);
         Assert.Contains("System.Object[]", exception.Message);
@@ -220,8 +247,14 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
     public void CompileForInspection_WhenSourceRequiresErasedRows_ShouldPreserveTheContractDiagnostic()
     {
         const string query = "select a.Name from #unsafe.all() a";
-        var exception = Assert.Throws<MusoqQueryException>(() => InstanceCreator.CompileForInspection(
-            query, Guid.NewGuid().ToString(), new UnsafeSchemaProvider(typeof(object[])), _loggerResolver));
+        var exception = Assert.Throws<MusoqQueryException>(() =>
+            InstanceCreator.CompileForInspection(
+                query,
+                Guid.NewGuid().ToString(),
+                new UnsafeSchemaProvider(typeof(object[])),
+                _loggerResolver
+            )
+        );
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, exception.PrimaryEnvelope.Code);
         Assert.Contains("native query-scoped transfer", exception.Message);
     }
@@ -229,29 +262,31 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
     [TestMethod]
     public void CoupledPositionalSource_WithoutNativeAccessor_ShouldFailBeforeExecution()
     {
-        const string sql = "table Contract { Name: string }; " +
-            "couple #unsafe.all with table Contract as Rows; select a.Name from Rows() a";
+        const string sql =
+            "table Contract { Name: string }; "
+            + "couple #unsafe.all with table Contract as Rows; select a.Name from Rows() a";
         var exception = CompileExpectedFailure(new UnsafeSchemaProvider(typeof(PublicIndexedRow)), sql);
-        AssertErrorEnvelope(exception, DiagnosticCode.MQ3071_SourceContractError,
-            DiagnosticPhase.Bind, "native typed positional accessor");
+        AssertErrorEnvelope(
+            exception,
+            DiagnosticCode.MQ3071_SourceContractError,
+            DiagnosticPhase.Bind,
+            "native typed positional accessor"
+        );
     }
 
     private MusoqQueryException CompileExpectedFailure(Type entityType)
     {
-        return CompileExpectedFailure(
-            new UnsafeSchemaProvider(entityType),
-            "select a.Name from #unsafe.all() a");
+        return CompileExpectedFailure(new UnsafeSchemaProvider(entityType), "select a.Name from #unsafe.all() a");
     }
 
-    private MusoqQueryException CompileExpectedFailure(
-        ISchemaProvider provider,
-        string query)
+    private MusoqQueryException CompileExpectedFailure(ISchemaProvider provider, string query)
     {
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.HasErrors, "The inaccessible source contract should fail compilation.");
         return result.CaughtException is { } caughtException
@@ -266,20 +301,20 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
 
     private sealed class UnsafeSchema(Type entityType, Type columnType) : SchemaBase("unsafe", CachedLibrary.Value)
     {
-        private static readonly Lazy<MethodsAggregator> CachedLibrary =
-            new(() => new MethodsAggregator(new MethodsManager()));
+        private static readonly Lazy<MethodsAggregator> CachedLibrary = new(() =>
+            new MethodsAggregator(new MethodsManager())
+        );
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new UnsafeTable(entityType, columnType);
         }
 
-        public override SchemaMethodInfo[] GetRawConstructors(
-            string methodName,
-            SourceMetadataContext metadataContext)
+        public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
         {
             return methodName.Equals("all", StringComparison.OrdinalIgnoreCase)
                 ? [new SchemaMethodInfo("all", SchemaConstructorInfo.Empty())]
@@ -289,10 +324,7 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
 
     private sealed class UnsafeTable(Type entityType, Type columnType) : ISchemaTable
     {
-        public ISchemaColumn[] Columns { get; } =
-        [
-            new Musoq.Schema.DataSources.SchemaColumn("Name", 0, columnType)
-        ];
+        public ISchemaColumn[] Columns { get; } = [new Musoq.Schema.DataSources.SchemaColumn("Name", 0, columnType)];
 
         public ISchemaColumn? GetColumnByName(string name) =>
             Columns.SingleOrDefault(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -323,8 +355,5 @@ public sealed class ExecutionSourceCodeGenerationPolicyTests
         public string Name { get; set; } = string.Empty;
     }
 
-    private sealed class InaccessibleColumnType
-    {
-    }
-
+    private sealed class InaccessibleColumnType { }
 }

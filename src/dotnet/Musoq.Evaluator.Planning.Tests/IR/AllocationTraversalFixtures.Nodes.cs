@@ -8,556 +8,975 @@ internal sealed partial class AllocationTraversalFixtures
 {
     private static void RegisterNodes(Dictionary<Type, Func<AllocationTraversalFixtures, object>> factories)
     {
-        factories.Add(typeof(ExecutionCteFusedProducerCandidate),
-            static fixture => new ExecutionCteFusedProducerCandidate((IReadOnlyList<ExecutionFusedCteOutput>)fixture.Create(typeof(IReadOnlyList<ExecutionFusedCteOutput>)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))));
-        factories.Add(typeof(ExecutionCteIndexOnlyStorageCandidate),
-            static fixture => new ExecutionCteIndexOnlyStorageCandidate((string)fixture.Create(typeof(string)),
-            (string)fixture.Create(typeof(string)),
-            (bool)fixture.Create(typeof(bool))));
-        factories.Add(typeof(ExecutionCteReadOnceFusionCandidate),
-            static fixture => new ExecutionCteReadOnceFusionCandidate((int)fixture.Create(typeof(int)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))));
-        factories.Add(typeof(ExecutionCteSidecarAppendRewriteCandidate),
-            static fixture => new ExecutionCteSidecarAppendRewriteCandidate((ExecutionAppendRow)fixture.Create(typeof(ExecutionAppendRow)),
-            (IReadOnlyList<ExecutionCteSidecarAppendIndexSpec>)fixture.Create(typeof(IReadOnlyList<ExecutionCteSidecarAppendIndexSpec>))));
-        factories.Add(typeof(ExecutionAppendRow),
-            static fixture => new ExecutionAppendRow((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
-            (IReadOnlyList<ExecutionRowValue>)fixture.Create(typeof(IReadOnlyList<ExecutionRowValue>)),
-            (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
-            fixture._includeOptional ? (ExecutionContextLayout)fixture.Create(typeof(ExecutionContextLayout)) : null));
-        factories.Add(typeof(ExecutionCteSidecarIndexBuildCandidate),
-            static fixture => new ExecutionCteSidecarIndexBuildCandidate((IReadOnlyList<ExecutionCteSidecarIndexCreateSpec>)fixture.Create(typeof(IReadOnlyList<ExecutionCteSidecarIndexCreateSpec>))));
-        factories.Add(typeof(ExecutionCteSidecarIndexLoadCandidate),
-            static fixture => new ExecutionCteSidecarIndexLoadCandidate((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (int)fixture.Create(typeof(int)),
-            (ExecutionCteSidecarIndexKind)fixture.Create(typeof(ExecutionCteSidecarIndexKind)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null));
-        factories.Add(typeof(ExecutionCteSidecarIndexStoreCandidate),
-            static fixture => new ExecutionCteSidecarIndexStoreCandidate((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (int)fixture.Create(typeof(int)),
-            (ExecutionCteSidecarIndexKind)fixture.Create(typeof(ExecutionCteSidecarIndexKind)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null));
-        factories.Add(typeof(ExecutionCreateGeneratedRow),
-            static fixture => new ExecutionCreateGeneratedRow((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
-            (IReadOnlyList<ExecutionRowValue>)fixture.Create(typeof(IReadOnlyList<ExecutionRowValue>)),
-            (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
-            fixture._includeOptional ? (ExecutionContextLayout)fixture.Create(typeof(ExecutionContextLayout)) : null));
-        factories.Add(typeof(ExecutionCreateHashPayload),
-            static fixture => new ExecutionCreateHashPayload((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (HashPayloadShape)fixture.Create(typeof(HashPayloadShape)),
-            (IReadOnlyList<ExecutionRowValue>)fixture.Create(typeof(IReadOnlyList<ExecutionRowValue>))));
-        factories.Add(typeof(ExecutionHoistCandidateLet),
-            static fixture => new ExecutionHoistCandidateLet((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionHoistKind)fixture.Create(typeof(ExecutionHoistKind)),
-            (ExecutionHoistScope)fixture.Create(typeof(ExecutionHoistScope)),
-            (string)fixture.Create(typeof(string))));
-        factories.Add(typeof(ExecutionMethodTargetDeclarationCandidate),
-            static fixture => new ExecutionMethodTargetDeclarationCandidate((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            fixture._includeOptional ? (ExecutionMethodTargetScope)fixture.Create(typeof(ExecutionMethodTargetScope)) : null));
-        factories.Add(typeof(ExecutionAggregateCapturedValueSet),
-            static fixture => new ExecutionAggregateCapturedValueSet((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (string)fixture.Create(typeof(string)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (AggregateCapturedField)fixture.Create(typeof(AggregateCapturedField))));
-        factories.Add(typeof(ExecutionAggregateSet),
-            static fixture => new ExecutionAggregateSet((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionCallableRef)fixture.Create(typeof(ExecutionCallableRef)),
-            (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
-            fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
-            (AggregateAccumulatorField)fixture.Create(typeof(AggregateAccumulatorField)),
-            fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null));
-        factories.Add(typeof(ExecutionCreateAggregateContext),
-            static fixture => new ExecutionCreateAggregateContext((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))));
-        factories.Add(typeof(ExecutionCreateAggregateLibrary),
-            static fixture => new ExecutionCreateAggregateLibrary((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef))));
-        factories.Add(typeof(ExecutionCreateSingleKeyAggregateContext),
-            static fixture => new ExecutionCreateSingleKeyAggregateContext((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))));
-        factories.Add(typeof(ExecutionCreateValueTupleAggregateContext),
-            static fixture => new ExecutionCreateValueTupleAggregateContext((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (IReadOnlyList<AggregateGroupLookup>)fixture.Create(typeof(IReadOnlyList<AggregateGroupLookup>)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (IReadOnlyList<ExecutionTypeRef>)fixture.Create(typeof(IReadOnlyList<ExecutionTypeRef>)),
-            (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))));
-        factories.Add(typeof(ExecutionEnsureAggregateGroup),
-            static fixture => new ExecutionEnsureAggregateGroup((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))));
-        factories.Add(typeof(ExecutionGetOrAddSingleKeyAggregateGroup),
-            static fixture => new ExecutionGetOrAddSingleKeyAggregateGroup((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (string)fixture.Create(typeof(string)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))));
-        factories.Add(typeof(ExecutionGetOrAddValueTupleAggregateGroup),
-            static fixture => new ExecutionGetOrAddValueTupleAggregateGroup((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (IReadOnlyList<AggregateGroupLookup>)fixture.Create(typeof(IReadOnlyList<AggregateGroupLookup>)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
-            (IReadOnlyList<string>)fixture.Create(typeof(IReadOnlyList<string>)),
-            (IReadOnlyList<ExecutionTypeRef>)fixture.Create(typeof(IReadOnlyList<ExecutionTypeRef>)),
-            (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))));
-        factories.Add(typeof(ExecutionInitializeAggregateState),
-            static fixture => new ExecutionInitializeAggregateState((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionCallableRef)fixture.Create(typeof(ExecutionCallableRef))));
-        factories.Add(typeof(ExecutionParallelSingleKeyAggregateLoop),
-            static fixture => new ExecutionParallelSingleKeyAggregateLoop((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (string)fixture.Create(typeof(string)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
-            (AggregateGroupShape)fixture.Create(typeof(AggregateGroupShape)),
-            (int)fixture.Create(typeof(int)),
-            (int)fixture.Create(typeof(int)),
-            (int)fixture.Create(typeof(int)),
-            (int)fixture.Create(typeof(int))));
-        factories.Add(typeof(ExecutionAppendExistingRow),
-            static fixture => new ExecutionAppendExistingRow((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode))));
-        factories.Add(typeof(ExecutionAppendRecord),
-            static fixture => new ExecutionAppendRecord((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
-            (IReadOnlyList<ExecutionRowValue>)fixture.Create(typeof(IReadOnlyList<ExecutionRowValue>))));
-        factories.Add(typeof(ExecutionArrayAssign),
-            static fixture => new ExecutionArrayAssign((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef))));
-        factories.Add(typeof(ExecutionAssign),
-            static fixture => new ExecutionAssign((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression))));
+        factories.Add(
+            typeof(ExecutionCteFusedProducerCandidate),
+            static fixture => new ExecutionCteFusedProducerCandidate(
+                (IReadOnlyList<ExecutionFusedCteOutput>)fixture.Create(typeof(IReadOnlyList<ExecutionFusedCteOutput>)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCteIndexOnlyStorageCandidate),
+            static fixture => new ExecutionCteIndexOnlyStorageCandidate(
+                (string)fixture.Create(typeof(string)),
+                (string)fixture.Create(typeof(string)),
+                (bool)fixture.Create(typeof(bool))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCteReadOnceFusionCandidate),
+            static fixture => new ExecutionCteReadOnceFusionCandidate(
+                (int)fixture.Create(typeof(int)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCteSidecarAppendRewriteCandidate),
+            static fixture => new ExecutionCteSidecarAppendRewriteCandidate(
+                (ExecutionAppendRow)fixture.Create(typeof(ExecutionAppendRow)),
+                (IReadOnlyList<ExecutionCteSidecarAppendIndexSpec>)
+                    fixture.Create(typeof(IReadOnlyList<ExecutionCteSidecarAppendIndexSpec>))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionAppendRow),
+            static fixture => new ExecutionAppendRow(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
+                (IReadOnlyList<ExecutionRowValue>)fixture.Create(typeof(IReadOnlyList<ExecutionRowValue>)),
+                (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
+                fixture._includeOptional ? (ExecutionContextLayout)fixture.Create(typeof(ExecutionContextLayout)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCteSidecarIndexBuildCandidate),
+            static fixture => new ExecutionCteSidecarIndexBuildCandidate(
+                (IReadOnlyList<ExecutionCteSidecarIndexCreateSpec>)
+                    fixture.Create(typeof(IReadOnlyList<ExecutionCteSidecarIndexCreateSpec>))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCteSidecarIndexLoadCandidate),
+            static fixture => new ExecutionCteSidecarIndexLoadCandidate(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (int)fixture.Create(typeof(int)),
+                (ExecutionCteSidecarIndexKind)fixture.Create(typeof(ExecutionCteSidecarIndexKind)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCteSidecarIndexStoreCandidate),
+            static fixture => new ExecutionCteSidecarIndexStoreCandidate(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (int)fixture.Create(typeof(int)),
+                (ExecutionCteSidecarIndexKind)fixture.Create(typeof(ExecutionCteSidecarIndexKind)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateGeneratedRow),
+            static fixture => new ExecutionCreateGeneratedRow(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
+                (IReadOnlyList<ExecutionRowValue>)fixture.Create(typeof(IReadOnlyList<ExecutionRowValue>)),
+                (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
+                fixture._includeOptional ? (ExecutionContextLayout)fixture.Create(typeof(ExecutionContextLayout)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateHashPayload),
+            static fixture => new ExecutionCreateHashPayload(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (HashPayloadShape)fixture.Create(typeof(HashPayloadShape)),
+                (IReadOnlyList<ExecutionRowValue>)fixture.Create(typeof(IReadOnlyList<ExecutionRowValue>))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionHoistCandidateLet),
+            static fixture => new ExecutionHoistCandidateLet(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionHoistKind)fixture.Create(typeof(ExecutionHoistKind)),
+                (ExecutionHoistScope)fixture.Create(typeof(ExecutionHoistScope)),
+                (string)fixture.Create(typeof(string))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionMethodTargetDeclarationCandidate),
+            static fixture => new ExecutionMethodTargetDeclarationCandidate(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                fixture._includeOptional
+                    ? (ExecutionMethodTargetScope)fixture.Create(typeof(ExecutionMethodTargetScope))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionAggregateCapturedValueSet),
+            static fixture => new ExecutionAggregateCapturedValueSet(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (string)fixture.Create(typeof(string)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (AggregateCapturedField)fixture.Create(typeof(AggregateCapturedField))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionAggregateSet),
+            static fixture => new ExecutionAggregateSet(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionCallableRef)fixture.Create(typeof(ExecutionCallableRef)),
+                (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
+                fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
+                (AggregateAccumulatorField)fixture.Create(typeof(AggregateAccumulatorField)),
+                fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateAggregateContext),
+            static fixture => new ExecutionCreateAggregateContext(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateAggregateLibrary),
+            static fixture => new ExecutionCreateAggregateLibrary(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateSingleKeyAggregateContext),
+            static fixture => new ExecutionCreateSingleKeyAggregateContext(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateValueTupleAggregateContext),
+            static fixture => new ExecutionCreateValueTupleAggregateContext(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (IReadOnlyList<AggregateGroupLookup>)fixture.Create(typeof(IReadOnlyList<AggregateGroupLookup>)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (IReadOnlyList<ExecutionTypeRef>)fixture.Create(typeof(IReadOnlyList<ExecutionTypeRef>)),
+                (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionEnsureAggregateGroup),
+            static fixture => new ExecutionEnsureAggregateGroup(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionGetOrAddSingleKeyAggregateGroup),
+            static fixture => new ExecutionGetOrAddSingleKeyAggregateGroup(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (string)fixture.Create(typeof(string)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionGetOrAddValueTupleAggregateGroup),
+            static fixture => new ExecutionGetOrAddValueTupleAggregateGroup(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (IReadOnlyList<AggregateGroupLookup>)fixture.Create(typeof(IReadOnlyList<AggregateGroupLookup>)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
+                (IReadOnlyList<string>)fixture.Create(typeof(IReadOnlyList<string>)),
+                (IReadOnlyList<ExecutionTypeRef>)fixture.Create(typeof(IReadOnlyList<ExecutionTypeRef>)),
+                (AggregateGroupPlan)fixture.Create(typeof(AggregateGroupPlan))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionInitializeAggregateState),
+            static fixture => new ExecutionInitializeAggregateState(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionCallableRef)fixture.Create(typeof(ExecutionCallableRef))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionParallelSingleKeyAggregateLoop),
+            static fixture => new ExecutionParallelSingleKeyAggregateLoop(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (string)fixture.Create(typeof(string)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
+                (AggregateGroupShape)fixture.Create(typeof(AggregateGroupShape)),
+                (int)fixture.Create(typeof(int)),
+                (int)fixture.Create(typeof(int)),
+                (int)fixture.Create(typeof(int)),
+                (int)fixture.Create(typeof(int))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionAppendExistingRow),
+            static fixture => new ExecutionAppendExistingRow(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionAppendRecord),
+            static fixture => new ExecutionAppendRecord(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
+                (IReadOnlyList<ExecutionRowValue>)fixture.Create(typeof(IReadOnlyList<ExecutionRowValue>))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionArrayAssign),
+            static fixture => new ExecutionArrayAssign(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionAssign),
+            static fixture => new ExecutionAssign(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression))
+            )
+        );
         factories.Add(typeof(ExecutionBreak), static fixture => new ExecutionBreak());
         factories.Add(typeof(ExecutionContinue), static fixture => new ExecutionContinue());
-        factories.Add(typeof(ExecutionContinueIf),
-            static fixture => new ExecutionContinueIf((ExecutionExpression)fixture.Create(typeof(ExecutionExpression))));
-        factories.Add(typeof(ExecutionCreateBooleanArray),
-            static fixture => new ExecutionCreateBooleanArray((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable))));
-        factories.Add(typeof(ExecutionCreateObject),
-            static fixture => new ExecutionCreateObject((ExecutionVariable)fixture.Create(typeof(ExecutionVariable))));
-        factories.Add(typeof(ExecutionForEach),
-            static fixture => new ExecutionForEach((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))));
-        factories.Add(typeof(ExecutionForEachIndexed),
-            static fixture => new ExecutionForEachIndexed((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))));
-        factories.Add(typeof(ExecutionForEachWithOrdinality),
-            static fixture => new ExecutionForEachWithOrdinality((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))));
-        factories.Add(typeof(ExecutionIf),
-            static fixture => new ExecutionIf((ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))));
-        factories.Add(typeof(ExecutionLet),
-            static fixture => new ExecutionLet((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionLetCacheMode)fixture.Create(typeof(ExecutionLetCacheMode))));
-        factories.Add(typeof(ExecutionMaterializeFilteredList),
-            static fixture => new ExecutionMaterializeFilteredList((ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            fixture._includeOptional ? (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)) : null));
-        factories.Add(typeof(ExecutionMaterializeList),
-            static fixture => new ExecutionMaterializeList((ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            fixture._includeOptional ? (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)) : null));
-        factories.Add(typeof(ExecutionParallelBlock),
-            static fixture => new ExecutionParallelBlock((string)fixture.Create(typeof(string)),
-            (int)fixture.Create(typeof(int)),
-            (IReadOnlyList<ExecutionParallelTask>)fixture.Create(typeof(IReadOnlyList<ExecutionParallelTask>)),
-            (ExecutionParallelMerge)fixture.Create(typeof(ExecutionParallelMerge))));
-        factories.Add(typeof(ExecutionParallelFilterProjectLoop),
-            static fixture => new ExecutionParallelFilterProjectLoop((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
-            (ExecutionAppendRow)fixture.Create(typeof(ExecutionAppendRow)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
-            (int)fixture.Create(typeof(int)),
-            (int)fixture.Create(typeof(int))));
-        factories.Add(typeof(ExecutionPrepareStructuralInput),
-            static fixture => new ExecutionPrepareStructuralInput((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionStructuralConstructionPlan)fixture.Create(typeof(ExecutionStructuralConstructionPlan))));
-        factories.Add(typeof(ExecutionScopedBlock),
-            static fixture => new ExecutionScopedBlock((ExecutionBlock)fixture.Create(typeof(ExecutionBlock))));
-        factories.Add(typeof(ExecutionFusedCteProducer),
-            static fixture => new ExecutionFusedCteProducer((IReadOnlyList<ExecutionFusedCteOutput>)fixture.Create(typeof(IReadOnlyList<ExecutionFusedCteOutput>)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))));
-        factories.Add(typeof(ExecutionRecursiveCte),
-            static fixture => new ExecutionRecursiveCte((string)fixture.Create(typeof(string)),
-            (int)fixture.Create(typeof(int)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            (ExecutionRecursiveCteIdentityMode)fixture.Create(typeof(ExecutionRecursiveCteIdentityMode)),
-            (int[])fixture.Create(typeof(int[])),
-            (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
-            (int)fixture.Create(typeof(int)),
-            (int)fixture.Create(typeof(int)),
-            (int)fixture.Create(typeof(int))));
-        factories.Add(typeof(ExecutionRecursiveCteAppend),
-            static fixture => new ExecutionRecursiveCteAppend((string)fixture.Create(typeof(string)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            (int[])fixture.Create(typeof(int[])),
-            (int)fixture.Create(typeof(int)),
-            (ExecutionAppendRow)fixture.Create(typeof(ExecutionAppendRow))));
-        factories.Add(typeof(ExecutionRecursiveCteSnapshotRowGuard),
-            static fixture => new ExecutionRecursiveCteSnapshotRowGuard((string)fixture.Create(typeof(string)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (int)fixture.Create(typeof(int))));
-        factories.Add(typeof(ExecutionAsOfProbe),
-            static fixture => new ExecutionAsOfProbe((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (IReadOnlyList<ExecutionAsOfEqualityKey>)fixture.Create(typeof(IReadOnlyList<ExecutionAsOfEqualityKey>)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)fixture.Create(typeof(global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
-            fixture._includeOptional ? (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)) : null,
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
-            fixture._includeOptional ? (ExecutionAsOfTieBreak)fixture.Create(typeof(ExecutionAsOfTieBreak)) : null));
-        factories.Add(typeof(ExecutionCreateAsOfIndex),
-            static fixture => new ExecutionCreateAsOfIndex((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (IReadOnlyList<ExecutionAsOfEqualityKey>)fixture.Create(typeof(IReadOnlyList<ExecutionAsOfEqualityKey>)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)fixture.Create(typeof(global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (ExecutionAsOfTieBreak)fixture.Create(typeof(ExecutionAsOfTieBreak)) : null));
-        factories.Add(typeof(ExecutionCreateHash),
-            static fixture => new ExecutionCreateHash((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null));
-        factories.Add(typeof(ExecutionCreateKeySet),
-            static fixture => new ExecutionCreateKeySet((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null));
-        factories.Add(typeof(ExecutionCreateRangeIndex),
-            static fixture => new ExecutionCreateRangeIndex((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)fixture.Create(typeof(global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)),
-            fixture._includeOptional ? (IReadOnlyList<ExecutionAsOfEqualityKey>)fixture.Create(typeof(IReadOnlyList<ExecutionAsOfEqualityKey>)) : null,
-            fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null));
-        factories.Add(typeof(ExecutionHashAdd),
-            static fixture => new ExecutionHashAdd((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
-            (ExecutionKeyBuildNullHandling)fixture.Create(typeof(ExecutionKeyBuildNullHandling))));
-        factories.Add(typeof(ExecutionHashProbe),
-            static fixture => new ExecutionHashProbe((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
-            fixture._includeOptional ? (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)) : null,
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null));
-        factories.Add(typeof(ExecutionKeySetAdd),
-            static fixture => new ExecutionKeySetAdd((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
-            (ExecutionKeyBuildNullHandling)fixture.Create(typeof(ExecutionKeyBuildNullHandling))));
-        factories.Add(typeof(ExecutionKeySetProbe),
-            static fixture => new ExecutionKeySetProbe((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
-            fixture._includeOptional ? (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)) : null,
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null));
-        factories.Add(typeof(ExecutionLoadCteIndex),
-            static fixture => new ExecutionLoadCteIndex((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (int)fixture.Create(typeof(int)),
-            (ExecutionCteSidecarIndexKind)fixture.Create(typeof(ExecutionCteSidecarIndexKind)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null));
-        factories.Add(typeof(ExecutionRangeProbe),
-            static fixture => new ExecutionRangeProbe((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
-            fixture._includeOptional ? (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)) : null,
-            fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
-            fixture._includeOptional ? (IReadOnlyList<ExecutionAsOfEqualityKey>)fixture.Create(typeof(IReadOnlyList<ExecutionAsOfEqualityKey>)) : null,
-            fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null));
-        factories.Add(typeof(ExecutionStoreCteIndex),
-            static fixture => new ExecutionStoreCteIndex((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (int)fixture.Create(typeof(int)),
-            (ExecutionCteSidecarIndexKind)fixture.Create(typeof(ExecutionCteSidecarIndexKind)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null));
-        factories.Add(typeof(ExecutionDistinctTable),
-            static fixture => new ExecutionDistinctTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable))));
-        factories.Add(typeof(ExecutionMaterializeRecordListToTable),
-            static fixture => new ExecutionMaterializeRecordListToTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
-            (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
-            (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
-            (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode))));
-        factories.Add(typeof(ExecutionOrderRecordList),
-            static fixture => new ExecutionOrderRecordList((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
-            (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
-            (ExecutionOrderRecordSelection)fixture.Create(typeof(ExecutionOrderRecordSelection))));
-        factories.Add(typeof(ExecutionPhaseBoundary),
-            static fixture => new ExecutionPhaseBoundary((global::Musoq.Evaluator.QueryPhase)fixture.Create(typeof(global::Musoq.Evaluator.QueryPhase)),
-            (string)fixture.Create(typeof(string))));
-        factories.Add(typeof(ExecutionProjectTable),
-            static fixture => new ExecutionProjectTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
-            (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode))));
-        factories.Add(typeof(ExecutionRelatedCtePhase), static fixture => new ExecutionRelatedCtePhase((int)fixture.Create(typeof(int))));
-        factories.Add(typeof(ExecutionSetOperation),
-            static fixture => new ExecutionSetOperation((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (global::Musoq.Evaluator.IR.Logical.Nodes.SetOpKind)fixture.Create(typeof(global::Musoq.Evaluator.IR.Logical.Nodes.SetOpKind)),
-            (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
-            (IReadOnlyList<ExecutionTypeRef>)fixture.Create(typeof(IReadOnlyList<ExecutionTypeRef>)),
-            (ExecutionSetOperationStrategy)fixture.Create(typeof(ExecutionSetOperationStrategy))));
-        factories.Add(typeof(ExecutionSkipTable),
-            static fixture => new ExecutionSkipTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (global::Musoq.Evaluator.IR.PagingCount)fixture.Create(typeof(global::Musoq.Evaluator.IR.PagingCount)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
-            fixture._includeOptional ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata)) : null));
-        factories.Add(typeof(ExecutionSliceTable),
-            static fixture => new ExecutionSliceTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (global::Musoq.Evaluator.IR.PagingCount)fixture.Create(typeof(global::Musoq.Evaluator.IR.PagingCount)),
-            (global::Musoq.Evaluator.IR.PagingCount)fixture.Create(typeof(global::Musoq.Evaluator.IR.PagingCount)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
-            fixture._includeOptional ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata)) : null));
-        factories.Add(typeof(ExecutionSortTable),
-            static fixture => new ExecutionSortTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
-            (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
-            fixture._includeOptional ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata)) : null));
-        factories.Add(typeof(ExecutionStoreTable),
-            static fixture => new ExecutionStoreTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (int)fixture.Create(typeof(int))));
-        factories.Add(typeof(ExecutionTakeTable),
-            static fixture => new ExecutionTakeTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (global::Musoq.Evaluator.IR.PagingCount)fixture.Create(typeof(global::Musoq.Evaluator.IR.PagingCount)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
-            fixture._includeOptional ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata)) : null));
-        factories.Add(typeof(ExecutionTopNTable),
-            static fixture => new ExecutionTopNTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
-            (int)fixture.Create(typeof(int)),
-            (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
-            fixture._includeOptional ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata)) : null));
-        factories.Add(typeof(ExecutionTopOffsetTable),
-            static fixture => new ExecutionTopOffsetTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
-            (int)fixture.Create(typeof(int)),
-            (int)fixture.Create(typeof(int)),
-            (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
-            (ExecutionTopOffsetStrategy)fixture.Create(typeof(ExecutionTopOffsetStrategy)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
-            fixture._includeOptional ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata)) : null));
-        factories.Add(typeof(ExecutionReturnDesc),
-            static fixture => new ExecutionReturnDesc((string)fixture.Create(typeof(string)),
-            (string)fixture.Create(typeof(string)),
-            (global::Musoq.Evaluator.IR.Logical.Nodes.DescType)fixture.Create(typeof(global::Musoq.Evaluator.IR.Logical.Nodes.DescType)),
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
-            (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
-            (string)fixture.Create(typeof(string)),
-            (int)fixture.Create(typeof(int)),
-            fixture._includeOptional ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata)) : null,
-            fixture._includeOptional ? (global::Musoq.Parser.TextSpan)fixture.Create(typeof(global::Musoq.Parser.TextSpan)) : null,
-            fixture._includeOptional ? (IReadOnlyList<global::Musoq.Evaluator.IR.Bindings.StructuralArgumentDescription>)fixture.Create(typeof(IReadOnlyList<global::Musoq.Evaluator.IR.Bindings.StructuralArgumentDescription>)) : null));
-        factories.Add(typeof(ExecutionReturnTable),
-            static fixture => new ExecutionReturnTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable))));
-        factories.Add(typeof(ExecutionEnumerableSource),
-            static fixture => new ExecutionEnumerableSource((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
-            (ExecutionEnumerableChunkMode)fixture.Create(typeof(ExecutionEnumerableChunkMode)),
-            fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null));
-        factories.Add(typeof(ExecutionInterpretSource),
-            static fixture => new ExecutionInterpretSource((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (string)fixture.Create(typeof(string)),
-            (string)fixture.Create(typeof(string)),
-            (global::Musoq.Evaluator.IR.Logical.Nodes.InterpretSourceKind)fixture.Create(typeof(global::Musoq.Evaluator.IR.Logical.Nodes.InterpretSourceKind)),
-            (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
-            (global::Musoq.Evaluator.IR.Logical.Nodes.ApplyKind)fixture.Create(typeof(global::Musoq.Evaluator.IR.Logical.Nodes.ApplyKind))));
-        factories.Add(typeof(ExecutionSourceScan),
-            static fixture => new ExecutionSourceScan((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionSourceBinding)fixture.Create(typeof(ExecutionSourceBinding))));
-        factories.Add(typeof(ExecutionCreateBoundedRecordList),
-            static fixture => new ExecutionCreateBoundedRecordList((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
-            (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
-            (ExecutionOrderRecordSelection)fixture.Create(typeof(ExecutionOrderRecordSelection))));
-        factories.Add(typeof(ExecutionCreateRecordList),
-            static fixture => new ExecutionCreateRecordList((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null));
-        factories.Add(typeof(ExecutionCreateTable),
-            static fixture => new ExecutionCreateTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
-            fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
-            fixture._includeOptional ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata)) : null));
-        factories.Add(typeof(ExecutionCreateValuesRows),
-            static fixture => new ExecutionCreateValuesRows((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
-            (IReadOnlyList<IReadOnlyList<ExecutionRowValue>>)fixture.Create(typeof(IReadOnlyList<IReadOnlyList<ExecutionRowValue>>))));
-        factories.Add(typeof(ExecutionEnsureTableCapacity),
-            static fixture => new ExecutionEnsureTableCapacity((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint))));
-        factories.Add(typeof(ExecutionComputeOffsetWindow),
-            static fixture => new ExecutionComputeOffsetWindow((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
-            fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
-            (IReadOnlyList<ExecutionWindowOrderKey>)fixture.Create(typeof(IReadOnlyList<ExecutionWindowOrderKey>)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (ExecutionOffsetWindowFunction)fixture.Create(typeof(ExecutionOffsetWindowFunction)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            fixture._includeOptional ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray)) : null,
-            fixture._includeOptional ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray)) : null,
-            fixture._includeOptional ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet)) : null,
-            fixture._includeOptional ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet)) : null));
-        factories.Add(typeof(ExecutionComputePluginWindow),
-            static fixture => new ExecutionComputePluginWindow((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
-            fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
-            (IReadOnlyList<ExecutionWindowOrderKey>)fixture.Create(typeof(IReadOnlyList<ExecutionWindowOrderKey>)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
-            (IReadOnlyList<bool>)fixture.Create(typeof(IReadOnlyList<bool>)),
-            fixture._includeOptional ? (ExecutionWindowFrame)fixture.Create(typeof(ExecutionWindowFrame)) : null,
-            (ExecutionCallableRef)fixture.Create(typeof(ExecutionCallableRef)),
-            (string)fixture.Create(typeof(string)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            fixture._includeOptional ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray)) : null,
-            fixture._includeOptional ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray)) : null,
-            fixture._includeOptional ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet)) : null,
-            fixture._includeOptional ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet)) : null,
-            fixture._includeOptional ? (IReadOnlyList<ExecutionVariable>)fixture.Create(typeof(IReadOnlyList<ExecutionVariable>)) : null));
-        factories.Add(typeof(ExecutionComputeRankingWindow),
-            static fixture => new ExecutionComputeRankingWindow((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
-            fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
-            (IReadOnlyList<ExecutionWindowOrderKey>)fixture.Create(typeof(IReadOnlyList<ExecutionWindowOrderKey>)),
-            (ExecutionRankingWindowFunction)fixture.Create(typeof(ExecutionRankingWindowFunction)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            fixture._includeOptional ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray)) : null,
-            fixture._includeOptional ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray)) : null,
-            fixture._includeOptional ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet)) : null,
-            fixture._includeOptional ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet)) : null,
-            fixture._includeOptional ? (long)fixture.Create(typeof(long)) : null));
-        factories.Add(typeof(ExecutionWindowAggregateKernel),
-            static fixture => new ExecutionWindowAggregateKernel((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
-            fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
-            (IReadOnlyList<ExecutionWindowOrderKey>)fixture.Create(typeof(IReadOnlyList<ExecutionWindowOrderKey>)),
-            (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
-            fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
-            fixture._includeOptional ? (ExecutionWindowFrame)fixture.Create(typeof(ExecutionWindowFrame)) : null,
-            (ExecutionWindowAggregateKernelDescriptor)fixture.Create(typeof(ExecutionWindowAggregateKernelDescriptor)),
-            (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
-            fixture._includeOptional ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray)) : null,
-            fixture._includeOptional ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray)) : null,
-            fixture._includeOptional ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet)) : null,
-            fixture._includeOptional ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet)) : null,
-            fixture._includeOptional ? (IReadOnlyList<ExecutionVariable>)fixture.Create(typeof(IReadOnlyList<ExecutionVariable>)) : null));
-        factories.Add(typeof(ExecutionWindowKernelPlan),
-            static fixture => new ExecutionWindowKernelPlan((string)fixture.Create(typeof(string)),
-            (ExecutionWindowKernelPlanStrategy)fixture.Create(typeof(ExecutionWindowKernelPlanStrategy)),
-            (IReadOnlyList<ExecutionNode>)fixture.Create(typeof(IReadOnlyList<ExecutionNode>))));
-        factories.Add(typeof(ExecutionSingleUsePipelineFusionCandidate),
-            static fixture => new ExecutionSingleUsePipelineFusionCandidate((int)fixture.Create(typeof(int)),
-            (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))));
+        factories.Add(
+            typeof(ExecutionContinueIf),
+            static fixture => new ExecutionContinueIf((ExecutionExpression)fixture.Create(typeof(ExecutionExpression)))
+        );
+        factories.Add(
+            typeof(ExecutionCreateBooleanArray),
+            static fixture => new ExecutionCreateBooleanArray(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateObject),
+            static fixture => new ExecutionCreateObject((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)))
+        );
+        factories.Add(
+            typeof(ExecutionForEach),
+            static fixture => new ExecutionForEach(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionForEachIndexed),
+            static fixture => new ExecutionForEachIndexed(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionForEachWithOrdinality),
+            static fixture => new ExecutionForEachWithOrdinality(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionIf),
+            static fixture => new ExecutionIf(
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionLet),
+            static fixture => new ExecutionLet(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionLetCacheMode)fixture.Create(typeof(ExecutionLetCacheMode))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionMaterializeFilteredList),
+            static fixture => new ExecutionMaterializeFilteredList(
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                fixture._includeOptional ? (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionMaterializeList),
+            static fixture => new ExecutionMaterializeList(
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                fixture._includeOptional ? (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionParallelBlock),
+            static fixture => new ExecutionParallelBlock(
+                (string)fixture.Create(typeof(string)),
+                (int)fixture.Create(typeof(int)),
+                (IReadOnlyList<ExecutionParallelTask>)fixture.Create(typeof(IReadOnlyList<ExecutionParallelTask>)),
+                (ExecutionParallelMerge)fixture.Create(typeof(ExecutionParallelMerge))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionParallelFilterProjectLoop),
+            static fixture => new ExecutionParallelFilterProjectLoop(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
+                (ExecutionAppendRow)fixture.Create(typeof(ExecutionAppendRow)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
+                (int)fixture.Create(typeof(int)),
+                (int)fixture.Create(typeof(int))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionPrepareStructuralInput),
+            static fixture => new ExecutionPrepareStructuralInput(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionStructuralConstructionPlan)fixture.Create(typeof(ExecutionStructuralConstructionPlan))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionScopedBlock),
+            static fixture => new ExecutionScopedBlock((ExecutionBlock)fixture.Create(typeof(ExecutionBlock)))
+        );
+        factories.Add(
+            typeof(ExecutionFusedCteProducer),
+            static fixture => new ExecutionFusedCteProducer(
+                (IReadOnlyList<ExecutionFusedCteOutput>)fixture.Create(typeof(IReadOnlyList<ExecutionFusedCteOutput>)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionRecursiveCte),
+            static fixture => new ExecutionRecursiveCte(
+                (string)fixture.Create(typeof(string)),
+                (int)fixture.Create(typeof(int)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                (ExecutionRecursiveCteIdentityMode)fixture.Create(typeof(ExecutionRecursiveCteIdentityMode)),
+                (int[])fixture.Create(typeof(int[])),
+                (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
+                (int)fixture.Create(typeof(int)),
+                (int)fixture.Create(typeof(int)),
+                (int)fixture.Create(typeof(int))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionRecursiveCteAppend),
+            static fixture => new ExecutionRecursiveCteAppend(
+                (string)fixture.Create(typeof(string)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                (int[])fixture.Create(typeof(int[])),
+                (int)fixture.Create(typeof(int)),
+                (ExecutionAppendRow)fixture.Create(typeof(ExecutionAppendRow))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionRecursiveCteSnapshotRowGuard),
+            static fixture => new ExecutionRecursiveCteSnapshotRowGuard(
+                (string)fixture.Create(typeof(string)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (int)fixture.Create(typeof(int))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionAsOfProbe),
+            static fixture => new ExecutionAsOfProbe(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (IReadOnlyList<ExecutionAsOfEqualityKey>)
+                    fixture.Create(typeof(IReadOnlyList<ExecutionAsOfEqualityKey>)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)
+                    fixture.Create(typeof(global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
+                fixture._includeOptional ? (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)) : null,
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
+                fixture._includeOptional ? (ExecutionAsOfTieBreak)fixture.Create(typeof(ExecutionAsOfTieBreak)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateAsOfIndex),
+            static fixture => new ExecutionCreateAsOfIndex(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (IReadOnlyList<ExecutionAsOfEqualityKey>)
+                    fixture.Create(typeof(IReadOnlyList<ExecutionAsOfEqualityKey>)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)
+                    fixture.Create(typeof(global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (ExecutionAsOfTieBreak)fixture.Create(typeof(ExecutionAsOfTieBreak)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateHash),
+            static fixture => new ExecutionCreateHash(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateKeySet),
+            static fixture => new ExecutionCreateKeySet(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateRangeIndex),
+            static fixture => new ExecutionCreateRangeIndex(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)
+                    fixture.Create(typeof(global::Musoq.Evaluator.IR.Expressions.BinaryOpKind)),
+                fixture._includeOptional
+                    ? (IReadOnlyList<ExecutionAsOfEqualityKey>)
+                        fixture.Create(typeof(IReadOnlyList<ExecutionAsOfEqualityKey>))
+                    : null,
+                fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionHashAdd),
+            static fixture => new ExecutionHashAdd(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
+                (ExecutionKeyBuildNullHandling)fixture.Create(typeof(ExecutionKeyBuildNullHandling))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionHashProbe),
+            static fixture => new ExecutionHashProbe(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
+                fixture._includeOptional ? (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)) : null,
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionKeySetAdd),
+            static fixture => new ExecutionKeySetAdd(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
+                (ExecutionKeyBuildNullHandling)fixture.Create(typeof(ExecutionKeyBuildNullHandling))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionKeySetProbe),
+            static fixture => new ExecutionKeySetProbe(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
+                fixture._includeOptional ? (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)) : null,
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionLoadCteIndex),
+            static fixture => new ExecutionLoadCteIndex(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (int)fixture.Create(typeof(int)),
+                (ExecutionCteSidecarIndexKind)fixture.Create(typeof(ExecutionCteSidecarIndexKind)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionRangeProbe),
+            static fixture => new ExecutionRangeProbe(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)),
+                fixture._includeOptional ? (ExecutionBlock)fixture.Create(typeof(ExecutionBlock)) : null,
+                fixture._includeOptional ? (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)) : null,
+                fixture._includeOptional
+                    ? (IReadOnlyList<ExecutionAsOfEqualityKey>)
+                        fixture.Create(typeof(IReadOnlyList<ExecutionAsOfEqualityKey>))
+                    : null,
+                fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionStoreCteIndex),
+            static fixture => new ExecutionStoreCteIndex(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (int)fixture.Create(typeof(int)),
+                (ExecutionCteSidecarIndexKind)fixture.Create(typeof(ExecutionCteSidecarIndexKind)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                fixture._includeOptional ? (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)) : null,
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionDistinctTable),
+            static fixture => new ExecutionDistinctTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionMaterializeRecordListToTable),
+            static fixture => new ExecutionMaterializeRecordListToTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
+                (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
+                (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
+                (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionOrderRecordList),
+            static fixture => new ExecutionOrderRecordList(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
+                (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
+                (ExecutionOrderRecordSelection)fixture.Create(typeof(ExecutionOrderRecordSelection))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionPhaseBoundary),
+            static fixture => new ExecutionPhaseBoundary(
+                (global::Musoq.Evaluator.QueryPhase)fixture.Create(typeof(global::Musoq.Evaluator.QueryPhase)),
+                (string)fixture.Create(typeof(string))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionProjectTable),
+            static fixture => new ExecutionProjectTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
+                (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionRelatedCtePhase),
+            static fixture => new ExecutionRelatedCtePhase((int)fixture.Create(typeof(int)))
+        );
+        factories.Add(
+            typeof(ExecutionSetOperation),
+            static fixture => new ExecutionSetOperation(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (global::Musoq.Evaluator.IR.Logical.Nodes.SetOpKind)
+                    fixture.Create(typeof(global::Musoq.Evaluator.IR.Logical.Nodes.SetOpKind)),
+                (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
+                (IReadOnlyList<ExecutionTypeRef>)fixture.Create(typeof(IReadOnlyList<ExecutionTypeRef>)),
+                (ExecutionSetOperationStrategy)fixture.Create(typeof(ExecutionSetOperationStrategy))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionSkipTable),
+            static fixture => new ExecutionSkipTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (global::Musoq.Evaluator.IR.PagingCount)fixture.Create(typeof(global::Musoq.Evaluator.IR.PagingCount)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
+                fixture._includeOptional
+                    ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionSliceTable),
+            static fixture => new ExecutionSliceTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (global::Musoq.Evaluator.IR.PagingCount)fixture.Create(typeof(global::Musoq.Evaluator.IR.PagingCount)),
+                (global::Musoq.Evaluator.IR.PagingCount)fixture.Create(typeof(global::Musoq.Evaluator.IR.PagingCount)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
+                fixture._includeOptional
+                    ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionSortTable),
+            static fixture => new ExecutionSortTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
+                (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
+                fixture._includeOptional
+                    ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionStoreTable),
+            static fixture => new ExecutionStoreTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (int)fixture.Create(typeof(int))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionTakeTable),
+            static fixture => new ExecutionTakeTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (global::Musoq.Evaluator.IR.PagingCount)fixture.Create(typeof(global::Musoq.Evaluator.IR.PagingCount)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
+                fixture._includeOptional
+                    ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionTopNTable),
+            static fixture => new ExecutionTopNTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
+                (int)fixture.Create(typeof(int)),
+                (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
+                fixture._includeOptional
+                    ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionTopOffsetTable),
+            static fixture => new ExecutionTopOffsetTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
+                (int)fixture.Create(typeof(int)),
+                (int)fixture.Create(typeof(int)),
+                (IReadOnlyList<int>)fixture.Create(typeof(IReadOnlyList<int>)),
+                (ExecutionTopOffsetStrategy)fixture.Create(typeof(ExecutionTopOffsetStrategy)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                (ExecutionAppendMode)fixture.Create(typeof(ExecutionAppendMode)),
+                fixture._includeOptional
+                    ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionReturnDesc),
+            static fixture => new ExecutionReturnDesc(
+                (string)fixture.Create(typeof(string)),
+                (string)fixture.Create(typeof(string)),
+                (global::Musoq.Evaluator.IR.Logical.Nodes.DescType)
+                    fixture.Create(typeof(global::Musoq.Evaluator.IR.Logical.Nodes.DescType)),
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null,
+                (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
+                (string)fixture.Create(typeof(string)),
+                (int)fixture.Create(typeof(int)),
+                fixture._includeOptional
+                    ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata))
+                    : null,
+                fixture._includeOptional
+                    ? (global::Musoq.Parser.TextSpan)fixture.Create(typeof(global::Musoq.Parser.TextSpan))
+                    : null,
+                fixture._includeOptional
+                    ? (IReadOnlyList<global::Musoq.Evaluator.IR.Bindings.StructuralArgumentDescription>)
+                        fixture.Create(
+                            typeof(IReadOnlyList<global::Musoq.Evaluator.IR.Bindings.StructuralArgumentDescription>)
+                        )
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionReturnTable),
+            static fixture => new ExecutionReturnTable((ExecutionVariable)fixture.Create(typeof(ExecutionVariable)))
+        );
+        factories.Add(
+            typeof(ExecutionEnumerableSource),
+            static fixture => new ExecutionEnumerableSource(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionTypeRef)fixture.Create(typeof(ExecutionTypeRef)),
+                (ExecutionEnumerableChunkMode)fixture.Create(typeof(ExecutionEnumerableChunkMode)),
+                fixture._includeOptional ? (string)fixture.Create(typeof(string)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionInterpretSource),
+            static fixture => new ExecutionInterpretSource(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (string)fixture.Create(typeof(string)),
+                (string)fixture.Create(typeof(string)),
+                (global::Musoq.Evaluator.IR.Logical.Nodes.InterpretSourceKind)
+                    fixture.Create(typeof(global::Musoq.Evaluator.IR.Logical.Nodes.InterpretSourceKind)),
+                (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
+                (global::Musoq.Evaluator.IR.Logical.Nodes.ApplyKind)
+                    fixture.Create(typeof(global::Musoq.Evaluator.IR.Logical.Nodes.ApplyKind))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionSourceScan),
+            static fixture => new ExecutionSourceScan(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionSourceBinding)fixture.Create(typeof(ExecutionSourceBinding))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateBoundedRecordList),
+            static fixture => new ExecutionCreateBoundedRecordList(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
+                (IReadOnlyList<ExecutionOrderField>)fixture.Create(typeof(IReadOnlyList<ExecutionOrderField>)),
+                (ExecutionOrderRecordSelection)fixture.Create(typeof(ExecutionOrderRecordSelection))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateRecordList),
+            static fixture => new ExecutionCreateRecordList(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRecordShape)fixture.Create(typeof(GeneratedRecordShape)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateTable),
+            static fixture => new ExecutionCreateTable(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
+                fixture._includeOptional ? (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint)) : null,
+                fixture._includeOptional
+                    ? (ExecutionColumnMetadata)fixture.Create(typeof(ExecutionColumnMetadata))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionCreateValuesRows),
+            static fixture => new ExecutionCreateValuesRows(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (GeneratedRowShape)fixture.Create(typeof(GeneratedRowShape)),
+                (IReadOnlyList<IReadOnlyList<ExecutionRowValue>>)
+                    fixture.Create(typeof(IReadOnlyList<IReadOnlyList<ExecutionRowValue>>))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionEnsureTableCapacity),
+            static fixture => new ExecutionEnsureTableCapacity(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionCapacityHint)fixture.Create(typeof(ExecutionCapacityHint))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionComputeOffsetWindow),
+            static fixture => new ExecutionComputeOffsetWindow(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
+                fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
+                (IReadOnlyList<ExecutionWindowOrderKey>)fixture.Create(typeof(IReadOnlyList<ExecutionWindowOrderKey>)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (ExecutionOffsetWindowFunction)fixture.Create(typeof(ExecutionOffsetWindowFunction)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                fixture._includeOptional
+                    ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionComputePluginWindow),
+            static fixture => new ExecutionComputePluginWindow(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
+                fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
+                (IReadOnlyList<ExecutionWindowOrderKey>)fixture.Create(typeof(IReadOnlyList<ExecutionWindowOrderKey>)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                (IReadOnlyList<ExecutionExpression>)fixture.Create(typeof(IReadOnlyList<ExecutionExpression>)),
+                (IReadOnlyList<bool>)fixture.Create(typeof(IReadOnlyList<bool>)),
+                fixture._includeOptional ? (ExecutionWindowFrame)fixture.Create(typeof(ExecutionWindowFrame)) : null,
+                (ExecutionCallableRef)fixture.Create(typeof(ExecutionCallableRef)),
+                (string)fixture.Create(typeof(string)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                fixture._includeOptional
+                    ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet))
+                    : null,
+                fixture._includeOptional
+                    ? (IReadOnlyList<ExecutionVariable>)fixture.Create(typeof(IReadOnlyList<ExecutionVariable>))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionComputeRankingWindow),
+            static fixture => new ExecutionComputeRankingWindow(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
+                fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
+                (IReadOnlyList<ExecutionWindowOrderKey>)fixture.Create(typeof(IReadOnlyList<ExecutionWindowOrderKey>)),
+                (ExecutionRankingWindowFunction)fixture.Create(typeof(ExecutionRankingWindowFunction)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                fixture._includeOptional
+                    ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet))
+                    : null,
+                fixture._includeOptional ? (long)fixture.Create(typeof(long)) : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionWindowAggregateKernel),
+            static fixture => new ExecutionWindowAggregateKernel(
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                (ExecutionRowAccessMode)fixture.Create(typeof(ExecutionRowAccessMode)),
+                fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
+                (IReadOnlyList<ExecutionWindowOrderKey>)fixture.Create(typeof(IReadOnlyList<ExecutionWindowOrderKey>)),
+                (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)),
+                fixture._includeOptional ? (ExecutionExpression)fixture.Create(typeof(ExecutionExpression)) : null,
+                fixture._includeOptional ? (ExecutionWindowFrame)fixture.Create(typeof(ExecutionWindowFrame)) : null,
+                (ExecutionWindowAggregateKernelDescriptor)
+                    fixture.Create(typeof(ExecutionWindowAggregateKernelDescriptor)),
+                (ExecutionVariable)fixture.Create(typeof(ExecutionVariable)),
+                fixture._includeOptional
+                    ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowKeyArray)fixture.Create(typeof(ExecutionWindowKeyArray))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet))
+                    : null,
+                fixture._includeOptional
+                    ? (ExecutionWindowPartitionSet)fixture.Create(typeof(ExecutionWindowPartitionSet))
+                    : null,
+                fixture._includeOptional
+                    ? (IReadOnlyList<ExecutionVariable>)fixture.Create(typeof(IReadOnlyList<ExecutionVariable>))
+                    : null
+            )
+        );
+        factories.Add(
+            typeof(ExecutionWindowKernelPlan),
+            static fixture => new ExecutionWindowKernelPlan(
+                (string)fixture.Create(typeof(string)),
+                (ExecutionWindowKernelPlanStrategy)fixture.Create(typeof(ExecutionWindowKernelPlanStrategy)),
+                (IReadOnlyList<ExecutionNode>)fixture.Create(typeof(IReadOnlyList<ExecutionNode>))
+            )
+        );
+        factories.Add(
+            typeof(ExecutionSingleUsePipelineFusionCandidate),
+            static fixture => new ExecutionSingleUsePipelineFusionCandidate(
+                (int)fixture.Create(typeof(int)),
+                (ExecutionBlock)fixture.Create(typeof(ExecutionBlock))
+            )
+        );
     }
 }

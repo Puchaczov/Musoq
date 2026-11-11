@@ -14,11 +14,7 @@ public sealed class PrimitiveConversionCultureTests : PluginsTestBase
         {
             CultureInfo.CurrentCulture = new CultureInfo("gb-GB")
             {
-                NumberFormat =
-                {
-                    NumberDecimalSeparator = ",",
-                    NumberGroupSeparator = "."
-                }
+                NumberFormat = { NumberDecimalSeparator = ",", NumberGroupSeparator = "." },
             };
 
             Assert.AreEqual(12.323m, Library.ToDecimal("12.323"));

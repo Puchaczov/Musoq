@@ -17,7 +17,7 @@ internal static class JoinTypeSql
             JoinType.LeftAntiSemi => "left anti semi join",
             JoinType.LeftMark => "left mark join",
             JoinType.LeftSingle => "left single join",
-            _ => throw new ArgumentOutOfRangeException(nameof(joinType), joinType, "Unsupported join type.")
+            _ => throw new ArgumentOutOfRangeException(nameof(joinType), joinType, "Unsupported join type."),
         };
     }
 

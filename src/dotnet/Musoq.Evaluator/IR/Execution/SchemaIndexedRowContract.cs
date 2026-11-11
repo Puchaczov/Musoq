@@ -27,7 +27,8 @@ internal static class SchemaIndexedRowContract
 
         if (!ExecutionSourceCodeGenerationPolicy.CanReferenceType(column.ColumnType))
         {
-            reason = $"schema-indexed column '{column.ColumnName}' has the non-referenceable type '{column.ColumnType.FullName ?? column.ColumnType.Name}'";
+            reason =
+                $"schema-indexed column '{column.ColumnName}' has the non-referenceable type '{column.ColumnType.FullName ?? column.ColumnType.Name}'";
             return false;
         }
 

@@ -8,25 +8,24 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalCteDefinition definition,
         int index,
         TableBuildResult result,
-        bool includeScopeBoundaries = false)
+        bool includeScopeBoundaries = false
+    )
     {
         if (!result.IsBuilt)
             return result;
 
         var suffix = ExecutionPhaseBoundaryPlanner.CreateCteSuffix(index);
-        var nodes = ExecutionPhaseBoundaryPlanner.AddScopeClauseBoundaries(
-            definition.Plan,
-            result.Nodes,
-            suffix);
+        var nodes = ExecutionPhaseBoundaryPlanner.AddScopeClauseBoundaries(definition.Plan, result.Nodes, suffix);
         return result with
         {
             Nodes = includeScopeBoundaries
-                ? [
+                ?
+                [
                     new ExecutionPhaseBoundary(QueryPhase.Begin, suffix),
-                    ..nodes,
-                    new ExecutionPhaseBoundary(QueryPhase.End, suffix)
+                    .. nodes,
+                    new ExecutionPhaseBoundary(QueryPhase.End, suffix),
                 ]
-                : nodes
+                : nodes,
         };
     }
 }

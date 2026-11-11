@@ -8,5 +8,5 @@ internal enum RequiredColumnBoundaryKind
     HashJoinBuild,
     CteMaterialization,
     JoinLeftEdge,
-    JoinRightEdge
+    JoinRightEdge,
 }

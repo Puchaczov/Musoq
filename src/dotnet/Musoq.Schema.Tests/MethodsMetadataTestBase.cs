@@ -22,8 +22,11 @@ public abstract class MethodsMetadataTestBase
         {
             var testClass = typeof(TTestClass);
 
-            foreach (var method in testClass.GetMethods(
-                         BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            foreach (
+                var method in testClass.GetMethods(
+                    BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly
+                )
+            )
                 RegisterMethod(method);
         }
 

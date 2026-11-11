@@ -20,19 +20,30 @@ public partial class OuterApplyTests
     [TestProperty("Phase", "4")]
     public void Current_P4_0086_CorrelatedOuterApplyPreservesUnmatchedRow()
     {
-        const string query = "select leftRows.Key as LeftKey,\r\n       leftRows.LeftScore as LeftScore,\r\n       matches.MatchKey as MatchKey,\r\n       matches.RightScore as RightScore\r\nfrom values {\r\n    (Key: 'A', LeftScore: 10),\r\n    (Key: 'B', LeftScore: 20),\r\n    (Key: 'C', LeftScore: 30)\r\n} leftRows\r\nouter apply (\r\n    select rightRows.Key as MatchKey,\r\n           rightRows.Score as RightScore\r\n    from values {\r\n        (Key: 'A', Score: 1),\r\n        (Key: 'A', Score: 2),\r\n        (Key: 'B', Score: 3)\r\n    } rightRows\r\n    where rightRows.Key = leftRows.Key\r\n) matches";
+        const string query =
+            "select leftRows.Key as LeftKey,\r\n       leftRows.LeftScore as LeftScore,\r\n       matches.MatchKey as MatchKey,\r\n       matches.RightScore as RightScore\r\nfrom values {\r\n    (Key: 'A', LeftScore: 10),\r\n    (Key: 'B', LeftScore: 20),\r\n    (Key: 'C', LeftScore: 30)\r\n} leftRows\r\nouter apply (\r\n    select rightRows.Key as MatchKey,\r\n           rightRows.Score as RightScore\r\n    from values {\r\n        (Key: 'A', Score: 1),\r\n        (Key: 'A', Score: 2),\r\n        (Key: 'B', Score: 3)\r\n    } rightRows\r\n    where rightRows.Key = leftRows.Key\r\n) matches";
 
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>()), LoggerResolver, TestCompilationOptions);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>()),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
+        TableMaterializationTestHelper.AssertColumns(
+            result,
             ("LeftKey", typeof(string)),
             ("LeftScore", typeof(int)),
             ("MatchKey", typeof(string)),
-            ("RightScore", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
+            ("RightScore", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
             new object?[] { "A", 10, "A", 1 },
             new object?[] { "A", 10, "A", 2 },
             new object?[] { "B", 20, "B", 3 },
-            new object?[] { "C", 30, null, null });
+            new object?[] { "C", 30, null, null }
+        );
     }
 }

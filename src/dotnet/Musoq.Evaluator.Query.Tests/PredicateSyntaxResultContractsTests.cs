@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void Contains_ShouldReturnMatchingValuesWithDuplicateListEntriesIgnored()
     {
@@ -16,23 +15,14 @@ public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
         {
             {
                 "#A",
-                [
-                    new BasicEntity("ABC"),
-                    new BasicEntity("XXX"),
-                    new BasicEntity("CDA"),
-                    new BasicEntity("DDABC")
-                ]
-            }
+                [new BasicEntity("ABC"), new BasicEntity("XXX"), new BasicEntity("CDA"), new BasicEntity("DDABC")]
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["ABC"],
-            ["CDA"],
-            ["DDABC"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["ABC"], ["CDA"], ["DDABC"]);
     }
 
     [TestMethod]
@@ -47,19 +37,15 @@ public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
                     new BasicEntity { Name = null },
                     new BasicEntity { Name = "a" },
                     new BasicEntity { Name = "b" },
-                    new BasicEntity { Name = null }
+                    new BasicEntity { Name = null },
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [null],
-            ["a"],
-            [null]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null], ["a"], [null]);
     }
 
     [TestMethod]
@@ -68,14 +54,7 @@ public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
         const string query = "select Name from #A.Entities() where Name contains ('a')";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity { Name = null },
-                    new BasicEntity { Name = "a" },
-                    new BasicEntity { Name = "b" }
-                ]
-            }
+            { "#A", [new BasicEntity { Name = null }, new BasicEntity { Name = "a" }, new BasicEntity { Name = "b" }] },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -96,9 +75,9 @@ public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
                     new BasicEntity { Name = null },
                     new BasicEntity { Name = "test123" },
                     new BasicEntity { Name = null },
-                    new BasicEntity { Name = "testValue" }
+                    new BasicEntity { Name = "testValue" },
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -118,9 +97,9 @@ public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
                 [
                     new BasicEntity { Name = "test", City = null },
                     new BasicEntity { Name = "abc", City = "a.*" },
-                    new BasicEntity { Name = "xyz", City = null }
+                    new BasicEntity { Name = "xyz", City = null },
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
@@ -141,9 +120,9 @@ public class PredicateSyntaxResultContractsTests : BasicEntityTestBase
                     new BasicEntity { Name = null },
                     new BasicEntity { Name = "test123" },
                     new BasicEntity { Name = "other" },
-                    new BasicEntity { Name = null }
+                    new BasicEntity { Name = null },
                 ]
-            }
+            },
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);

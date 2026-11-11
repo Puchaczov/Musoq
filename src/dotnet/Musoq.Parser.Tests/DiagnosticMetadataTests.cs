@@ -169,10 +169,7 @@ public class DiagnosticMetadataTests
     [TestMethod]
     public void DiagnosticBag_AddWithSourceText_ShouldIncludeContextSnippet()
     {
-        var bag = new DiagnosticBag
-        {
-            SourceText = new SourceText("SELECT * FROM table")
-        };
+        var bag = new DiagnosticBag { SourceText = new SourceText("SELECT * FROM table") };
 
         bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 6));
 
@@ -295,7 +292,7 @@ public class DiagnosticMetadataTests
         {
             Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error 1", new TextSpan(0, 1)),
             Diagnostic.Error(DiagnosticCode.MQ2002_MissingToken, "error 2", new TextSpan(1, 1)),
-            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error 3", new TextSpan(2, 1))
+            Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error 3", new TextSpan(2, 1)),
         };
 
         bag.AddRange(diagnostics);
@@ -371,7 +368,8 @@ public class DiagnosticMetadataTests
             "test error",
             new SourceLocation(0, 1, 1),
             new SourceLocation(5, 1, 6),
-            "SELECT bad syntax");
+            "SELECT bad syntax"
+        );
 
         var detailed = diag.ToDetailedString();
 
@@ -381,7 +379,8 @@ public class DiagnosticMetadataTests
     [TestMethod]
     public void Diagnostic_ToDetailedString_WithRelatedInfo_ShouldIncludeNotes()
     {
-        var diag = Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 5))
+        var diag = Diagnostic
+            .Error(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 5))
             .WithRelatedInfo("related note");
 
         var detailed = diag.ToDetailedString();
@@ -393,7 +392,8 @@ public class DiagnosticMetadataTests
     public void Diagnostic_ToDetailedString_WithSuggestedFix_ShouldIncludeHelp()
     {
         var fix = DiagnosticAction.QuickFix("Fix it", new TextSpan(0, 5), "fixed");
-        var diag = Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 5))
+        var diag = Diagnostic
+            .Error(DiagnosticCode.MQ2001_UnexpectedToken, "error", new TextSpan(0, 5))
             .WithSuggestedFix(fix);
 
         var detailed = diag.ToDetailedString();

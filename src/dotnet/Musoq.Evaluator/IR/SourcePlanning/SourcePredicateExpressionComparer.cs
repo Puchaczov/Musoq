@@ -7,9 +7,7 @@ internal sealed partial class SourcePredicateExpressionComparer : IEqualityCompa
 {
     public static SourcePredicateExpressionComparer Instance { get; } = new();
 
-    private SourcePredicateExpressionComparer()
-    {
-    }
+    private SourcePredicateExpressionComparer() { }
 
     public bool Equals(SourcePredicateExpression? left, SourcePredicateExpression? right)
     {
@@ -21,47 +19,61 @@ internal sealed partial class SourcePredicateExpressionComparer : IEqualityCompa
 
         return left switch
         {
-            SourcePredicateColumn leftColumn when right is SourcePredicateColumn rightColumn =>
-                string.Equals(leftColumn.Column.Name, rightColumn.Column.Name, StringComparison.OrdinalIgnoreCase),
-            SourcePredicateLiteral leftLiteral when right is SourcePredicateLiteral rightLiteral =>
-                Equals(leftLiteral.Value, rightLiteral.Value),
+            SourcePredicateColumn leftColumn when right is SourcePredicateColumn rightColumn => string.Equals(
+                leftColumn.Column.Name,
+                rightColumn.Column.Name,
+                StringComparison.OrdinalIgnoreCase
+            ),
+            SourcePredicateLiteral leftLiteral when right is SourcePredicateLiteral rightLiteral => Equals(
+                leftLiteral.Value,
+                rightLiteral.Value
+            ),
             SourcePredicateEnumLiteral leftLiteral when right is SourcePredicateEnumLiteral rightLiteral =>
-                leftLiteral.Value == rightLiteral.Value &&
-                string.Equals(leftLiteral.EnumFingerprint, rightLiteral.EnumFingerprint, StringComparison.Ordinal),
+                leftLiteral.Value == rightLiteral.Value
+                    && string.Equals(
+                        leftLiteral.EnumFingerprint,
+                        rightLiteral.EnumFingerprint,
+                        StringComparison.Ordinal
+                    ),
             SourcePredicateComparison leftComparison when right is SourcePredicateComparison rightComparison =>
-                leftComparison.Operator == rightComparison.Operator &&
-                Equals(leftComparison.Left, rightComparison.Left) &&
-                Equals(leftComparison.Right, rightComparison.Right),
-            SourcePredicateLogical leftLogical when right is SourcePredicateLogical rightLogical =>
-                leftLogical.Operator == rightLogical.Operator &&
-                Equals(leftLogical.Left, rightLogical.Left) &&
-                Equals(leftLogical.Right, rightLogical.Right),
-            SourcePredicateIn leftIn when right is SourcePredicateIn rightIn =>
-                leftIn.IsNegated == rightIn.IsNegated &&
-                Equals(leftIn.Expression, rightIn.Expression) &&
-                leftIn.Values.Count == rightIn.Values.Count &&
-                leftIn.Values.Zip(rightIn.Values, Equals).All(static equals => equals),
-            SourcePredicateNullCheck leftNull when right is SourcePredicateNullCheck rightNull =>
-                leftNull.IsNegated == rightNull.IsNegated &&
-                Equals(leftNull.Expression, rightNull.Expression),
-            SourcePredicateRegexMatch leftRegex when right is SourcePredicateRegexMatch rightRegex =>
-                string.Equals(leftRegex.Column.Name, rightRegex.Column.Name, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(leftRegex.Pattern, rightRegex.Pattern, StringComparison.Ordinal) &&
-                leftRegex.Semantics == rightRegex.Semantics &&
-                leftRegex.MatchTimeout == rightRegex.MatchTimeout &&
-                leftRegex.IsNegated == rightRegex.IsNegated,
-            SourcePredicateStringMatch leftMatch when right is SourcePredicateStringMatch rightMatch =>
-                string.Equals(leftMatch.Column.Name, rightMatch.Column.Name, StringComparison.OrdinalIgnoreCase) &&
-                leftMatch.Kind == rightMatch.Kind &&
-                string.Equals(leftMatch.OriginalPattern, rightMatch.OriginalPattern, StringComparison.Ordinal) &&
-                string.Equals(leftMatch.Needle, rightMatch.Needle, StringComparison.Ordinal) &&
-                leftMatch.Comparison == rightMatch.Comparison &&
-                leftMatch.IsNegated == rightMatch.IsNegated,
-            SourcePredicateFlags leftFlags when right is SourcePredicateFlags rightFlags =>
-                leftFlags.MatchMode == rightFlags.MatchMode &&
-                Equals(leftFlags.Expression, rightFlags.Expression) &&
-                Equals(leftFlags.Mask, rightFlags.Mask),
-            _ => false
+                leftComparison.Operator == rightComparison.Operator
+                    && Equals(leftComparison.Left, rightComparison.Left)
+                    && Equals(leftComparison.Right, rightComparison.Right),
+            SourcePredicateLogical leftLogical when right is SourcePredicateLogical rightLogical => leftLogical.Operator
+                == rightLogical.Operator
+                && Equals(leftLogical.Left, rightLogical.Left)
+                && Equals(leftLogical.Right, rightLogical.Right),
+            SourcePredicateIn leftIn when right is SourcePredicateIn rightIn => leftIn.IsNegated == rightIn.IsNegated
+                && Equals(leftIn.Expression, rightIn.Expression)
+                && leftIn.Values.Count == rightIn.Values.Count
+                && leftIn.Values.Zip(rightIn.Values, Equals).All(static equals => equals),
+            SourcePredicateNullCheck leftNull when right is SourcePredicateNullCheck rightNull => leftNull.IsNegated
+                == rightNull.IsNegated
+                && Equals(leftNull.Expression, rightNull.Expression),
+            SourcePredicateRegexMatch leftRegex when right is SourcePredicateRegexMatch rightRegex => string.Equals(
+                leftRegex.Column.Name,
+                rightRegex.Column.Name,
+                StringComparison.OrdinalIgnoreCase
+            )
+                && string.Equals(leftRegex.Pattern, rightRegex.Pattern, StringComparison.Ordinal)
+                && leftRegex.Semantics == rightRegex.Semantics
+                && leftRegex.MatchTimeout == rightRegex.MatchTimeout
+                && leftRegex.IsNegated == rightRegex.IsNegated,
+            SourcePredicateStringMatch leftMatch when right is SourcePredicateStringMatch rightMatch => string.Equals(
+                leftMatch.Column.Name,
+                rightMatch.Column.Name,
+                StringComparison.OrdinalIgnoreCase
+            )
+                && leftMatch.Kind == rightMatch.Kind
+                && string.Equals(leftMatch.OriginalPattern, rightMatch.OriginalPattern, StringComparison.Ordinal)
+                && string.Equals(leftMatch.Needle, rightMatch.Needle, StringComparison.Ordinal)
+                && leftMatch.Comparison == rightMatch.Comparison
+                && leftMatch.IsNegated == rightMatch.IsNegated,
+            SourcePredicateFlags leftFlags when right is SourcePredicateFlags rightFlags => leftFlags.MatchMode
+                == rightFlags.MatchMode
+                && Equals(leftFlags.Expression, rightFlags.Expression)
+                && Equals(leftFlags.Mask, rightFlags.Mask),
+            _ => false,
         };
     }
 }

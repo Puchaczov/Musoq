@@ -17,14 +17,18 @@ public sealed class DiagnosticText049TextSchemaDefinitionTests
         var visitor = new SchemaDefinitionVisitor(registry);
 
         visitor.Visit(new TextSchemaNode("Item", [new TextFieldDefinitionNode("Value", TextFieldType.Rest)]));
-        visitor.Visit(new TextSchemaNode(
-            "Container",
-            [
-                new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Item"),
-                new TextFieldDefinitionNode(
-                    "Content",
-                    [new TextSwitchCaseNode("x", "Item"), new TextSwitchCaseNode(null, "Item")])
-            ]));
+        visitor.Visit(
+            new TextSchemaNode(
+                "Container",
+                [
+                    new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Item"),
+                    new TextFieldDefinitionNode(
+                        "Content",
+                        [new TextSwitchCaseNode("x", "Item"), new TextSwitchCaseNode(null, "Item")]
+                    ),
+                ]
+            )
+        );
 
         Assert.AreEqual(2, registry.Count);
     }
@@ -34,13 +38,12 @@ public sealed class DiagnosticText049TextSchemaDefinitionTests
     {
         var registry = new SchemaRegistry();
         var visitor = new SchemaDefinitionVisitor(registry);
-        var field = (TextFieldDefinitionNode)new TextFieldDefinitionNode(
-            "Items",
-            TextFieldType.Repeat,
-            "Missing").WithSpan(new TextSpan(20, 5));
+        var field = (TextFieldDefinitionNode)
+            new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Missing").WithSpan(new TextSpan(20, 5));
 
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() =>
-            visitor.Visit(new TextSchemaNode("Container", [field])));
+            visitor.Visit(new TextSchemaNode("Container", [field]))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4003_UndefinedSchemaReference, exception.Code);
         Assert.AreEqual(new TextSpan(20, 5), exception.Span);
@@ -51,12 +54,14 @@ public sealed class DiagnosticText049TextSchemaDefinitionTests
     {
         var registry = new SchemaRegistry();
         var visitor = new SchemaDefinitionVisitor(registry);
-        var field = (TextFieldDefinitionNode)new TextFieldDefinitionNode(
-            "Content",
-            [new TextSwitchCaseNode("x", "Missing")]).WithSpan(new TextSpan(12, 7));
+        var field = (TextFieldDefinitionNode)
+            new TextFieldDefinitionNode("Content", [new TextSwitchCaseNode("x", "Missing")]).WithSpan(
+                new TextSpan(12, 7)
+            );
 
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() =>
-            visitor.Visit(new TextSchemaNode("Container", [field])));
+            visitor.Visit(new TextSchemaNode("Container", [field]))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4003_UndefinedSchemaReference, exception.Code);
         Assert.AreEqual(new TextSpan(12, 7), exception.Span);
@@ -69,7 +74,8 @@ public sealed class DiagnosticText049TextSchemaDefinitionTests
         var visitor = new SchemaDefinitionVisitor(registry);
         var container = new TextSchemaNode(
             "Container",
-            [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Item")]);
+            [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Item")]
+        );
 
         var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(container));
 
@@ -84,9 +90,11 @@ public sealed class DiagnosticText049TextSchemaDefinitionTests
         var visitor = new SchemaDefinitionVisitor(registry);
         visitor.Visit(new BinarySchemaNode("Binary", []));
 
-        var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(new TextSchemaNode(
-            "Container",
-            [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Binary")])));
+        var exception = Assert.ThrowsExactly<QuerySyntaxException>(() =>
+            visitor.Visit(
+                new TextSchemaNode("Container", [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Binary")])
+            )
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4007_InvalidSchemaFieldType, exception.Code);
     }
@@ -97,9 +105,14 @@ public sealed class DiagnosticText049TextSchemaDefinitionTests
         var registry = new SchemaRegistry();
         var visitor = new SchemaDefinitionVisitor(registry);
 
-        var exception = Assert.ThrowsExactly<QuerySyntaxException>(() => visitor.Visit(new TextSchemaNode(
-            "Container",
-            [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Container")])));
+        var exception = Assert.ThrowsExactly<QuerySyntaxException>(() =>
+            visitor.Visit(
+                new TextSchemaNode(
+                    "Container",
+                    [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Container")]
+                )
+            )
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ4004_CircularSchemaReference, exception.Code);
     }

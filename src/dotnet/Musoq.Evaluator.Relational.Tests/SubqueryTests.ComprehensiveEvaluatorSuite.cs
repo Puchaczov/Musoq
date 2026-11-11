@@ -13,7 +13,8 @@ public partial class SubqueryTests
     [TestMethod]
     public void Comprehensive_CteValuesSetOperatorsDistinctExistsInPagination_ShouldEvaluate()
     {
-        const string query = @"
+        const string query =
+            @"
             WITH allowed AS (
                 FROM values {
                     ( Country: 'POLAND' ),
@@ -55,7 +56,8 @@ public partial class SubqueryTests
     [TestMethod]
     public void Comprehensive_ParametersFunctionsCaseNullsAndCoercion_ShouldEvaluate()
     {
-        const string query = @"
+        const string query =
+            @"
             param(matchCountry: string, minScore: decimal)
             SELECT a.Name,
                    CASE
@@ -75,26 +77,35 @@ public partial class SubqueryTests
             ORDER BY a.Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateComprehensiveSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "matchCountry", "POLAND");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minScore", 200m);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "matchCountry",
+            "POLAND"
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "minScore",
+            200m
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Verdict", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Verdict", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
             ["Adam", "Adam:match"],
             ["Alice", "Alice:match"],
-            ["Cara", "miss"]);
+            ["Cara", "miss"]
+        );
     }
 
     [TestMethod]
     public void Comprehensive_ScalarSubqueriesWithGroupingHavingAndOrderBy_ShouldEvaluate()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT a.Country,
                    Sum(a.Population) AS TotalPopulation
             FROM #A.entities() a
@@ -110,11 +121,9 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Country", typeof(string)),
-            ("TotalPopulation", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["POLAND", 700m],
-            ["FRANCE", 300m]);
+            ("TotalPopulation", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["POLAND", 700m], ["FRANCE", 300m]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("-> ScalarHashSingle", inspection.PlanningText);
@@ -124,7 +133,8 @@ public partial class SubqueryTests
     [TestMethod]
     public void Comprehensive_WindowQualifyAndQuantifiedSubquery_ShouldEvaluate()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT a.City,
                    RowNumber() OVER (PARTITION BY a.Country ORDER BY a.Population DESC) AS RankInCountry
             FROM #A.entities() a
@@ -140,20 +150,15 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateComprehensiveSources()).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("RankInCountry", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["BERLIN", 1L],
-            ["WARSAW", 1L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("RankInCountry", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["BERLIN", 1L], ["WARSAW", 1L]);
     }
 
     [TestMethod]
     public void Comprehensive_DerivedTablesJoinAndApply_ShouldEvaluate()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT a.City, j.City, applied.MatchCount
             FROM (
                 SELECT src.City, src.Country
@@ -182,11 +187,9 @@ public partial class SubqueryTests
             table,
             ("City", typeof(string)),
             ("City", typeof(string)),
-            ("MatchCount", typeof(long?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["PARIS", "LYON", 2L],
-            ["WARSAW", "KRAKOW", 2L]);
+            ("MatchCount", typeof(long?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS", "LYON", 2L], ["WARSAW", "KRAKOW", 2L]);
     }
 
     [TestMethod]
@@ -198,7 +201,8 @@ public partial class SubqueryTests
                 SELECT b.City, b.Country FROM #B.entities() b
             ) AS BadScalar
             FROM #A.entities() a",
-            DiagnosticCode.MQ2024_InvalidSubquery);
+            DiagnosticCode.MQ2024_InvalidSubquery
+        );
 
         AssertDiagnostic(
             @"
@@ -207,7 +211,8 @@ public partial class SubqueryTests
                 SELECT b.City, b.Country FROM #B.entities() b
                 WHERE b.Country = a.Country
             ) d ON a.Country = d.Country",
-            DiagnosticCode.MQ2024_InvalidSubquery);
+            DiagnosticCode.MQ2024_InvalidSubquery
+        );
 
         AssertDiagnostic(
             @"
@@ -216,13 +221,15 @@ public partial class SubqueryTests
                 SELECT b.City FROM #B.entities() b
                 WHERE b.Country = a.Country
             ) d",
-            DiagnosticCode.MQ2024_InvalidSubquery);
+            DiagnosticCode.MQ2024_InvalidSubquery
+        );
     }
 
     [TestMethod]
     public void Comprehensive_ScalarSubqueryReturningMultipleRows_ShouldFailAtRuntime()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT (
                 SELECT b.City FROM #B.entities() b
                 WHERE b.Country = 'POLAND'
@@ -237,11 +244,13 @@ public partial class SubqueryTests
     private void AssertDiagnostic(string query, DiagnosticCode expectedCode)
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateComprehensiveSources()));
+            CreateAndRunVirtualMachine(query, CreateComprehensiveSources())
+        );
 
         Assert.IsTrue(
             exception.Envelopes.Any(envelope => envelope.Code == expectedCode),
-            $"Expected diagnostic {expectedCode}, got {string.Join(", ", exception.Envelopes.Select(envelope => envelope.Code))}.");
+            $"Expected diagnostic {expectedCode}, got {string.Join(", ", exception.Envelopes.Select(envelope => envelope.Code))}."
+        );
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateComprehensiveSources()
@@ -249,32 +258,145 @@ public partial class SubqueryTests
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "Alice", City = "WARSAW", Country = "POLAND", Population = 500m, NullableValue = 1, Id = 10 },
-                    new BasicEntity { Name = "Adam", City = "GDANSK", Country = "POLAND", Population = 200m, NullableValue = 3, Id = 11 },
-                    new BasicEntity { Name = "Bob", City = "BERLIN", Country = "GERMANY", Population = 250m, NullableValue = 2, Id = 12 },
-                    new BasicEntity { Name = "Cara", City = "PARIS", Country = "FRANCE", Population = 300m, NullableValue = null, Id = 13 },
-                    new BasicEntity { Name = "Dino", City = "ROME", Country = "ITALY", Population = 150m, NullableValue = 4, Id = 14 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "Alice",
+                        City = "WARSAW",
+                        Country = "POLAND",
+                        Population = 500m,
+                        NullableValue = 1,
+                        Id = 10,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Adam",
+                        City = "GDANSK",
+                        Country = "POLAND",
+                        Population = 200m,
+                        NullableValue = 3,
+                        Id = 11,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Bob",
+                        City = "BERLIN",
+                        Country = "GERMANY",
+                        Population = 250m,
+                        NullableValue = 2,
+                        Id = 12,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Cara",
+                        City = "PARIS",
+                        Country = "FRANCE",
+                        Population = 300m,
+                        NullableValue = null,
+                        Id = 13,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "Dino",
+                        City = "ROME",
+                        Country = "ITALY",
+                        Population = 150m,
+                        NullableValue = 4,
+                        Id = 14,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "P1", City = "KRAKOW", Country = "POLAND", Population = 100m, Id = 1 },
-                    new BasicEntity { Name = "P2", City = "LODZ", Country = "POLAND", Population = 120m, Id = 3 },
-                    new BasicEntity { Name = "G1", City = "MUNICH", Country = "GERMANY", Population = 700m, Id = 2 },
-                    new BasicEntity { Name = "G2", City = "HAMBURG", Country = "GERMANY", Population = 200m, Id = 4 },
-                    new BasicEntity { Name = "F1", City = "LYON", Country = "FRANCE", Population = 450m, Id = 5 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "P1",
+                        City = "KRAKOW",
+                        Country = "POLAND",
+                        Population = 100m,
+                        Id = 1,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "P2",
+                        City = "LODZ",
+                        Country = "POLAND",
+                        Population = 120m,
+                        Id = 3,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "G1",
+                        City = "MUNICH",
+                        Country = "GERMANY",
+                        Population = 700m,
+                        Id = 2,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "G2",
+                        City = "HAMBURG",
+                        Country = "GERMANY",
+                        Population = 200m,
+                        Id = 4,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "F1",
+                        City = "LYON",
+                        Country = "FRANCE",
+                        Population = 450m,
+                        Id = 5,
+                    },
                 ]
             },
             {
-                "#C", [
-                    new BasicEntity { Name = "CP1", City = "WARSAW", Country = "POLAND", Population = 700m, Id = 1 },
-                    new BasicEntity { Name = "CP2", City = "GDANSK", Country = "POLAND", Population = 100m, Id = 2 },
-                    new BasicEntity { Name = "CG1", City = "BERLIN", Country = "GERMANY", Population = 300m, Id = 3 },
-                    new BasicEntity { Name = "CF1", City = "PARIS", Country = "FRANCE", Population = 250m, Id = 4 },
-                    new BasicEntity { Name = "CF2", City = "NICE", Country = "FRANCE", Population = 260m, Id = 5 }
+                "#C",
+                [
+                    new BasicEntity
+                    {
+                        Name = "CP1",
+                        City = "WARSAW",
+                        Country = "POLAND",
+                        Population = 700m,
+                        Id = 1,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "CP2",
+                        City = "GDANSK",
+                        Country = "POLAND",
+                        Population = 100m,
+                        Id = 2,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "CG1",
+                        City = "BERLIN",
+                        Country = "GERMANY",
+                        Population = 300m,
+                        Id = 3,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "CF1",
+                        City = "PARIS",
+                        Country = "FRANCE",
+                        Population = 250m,
+                        Id = 4,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "CF2",
+                        City = "NICE",
+                        Country = "FRANCE",
+                        Population = 260m,
+                        Id = 5,
+                    },
                 ]
-            }
+            },
         };
     }
 }

@@ -25,14 +25,18 @@ internal static class IntermediateSourceProducers
     }
 
     internal static ImmutableArray<IntermediateSourceProducer> Remap(
-        PhysicalMultiStatementNode original, IReadOnlyList<int> retainedIndexes)
+        PhysicalMultiStatementNode original,
+        IReadOnlyList<int> retainedIndexes
+    )
     {
         var positions = new int[original.Statements.Length];
         Array.Fill(positions, -1);
         for (var index = 0; index < retainedIndexes.Count; index++)
             positions[retainedIndexes[index]] = index;
-        return original.IntermediateProducers.Where(producer => positions[producer.StatementIndex] >= 0)
-            .Select(producer => producer with { StatementIndex = positions[producer.StatementIndex] }).ToImmutableArray();
+        return original
+            .IntermediateProducers.Where(producer => positions[producer.StatementIndex] >= 0)
+            .Select(producer => producer with { StatementIndex = positions[producer.StatementIndex] })
+            .ToImmutableArray();
     }
 
     private static void CollectReferences(PhysicalNode node, HashSet<IntermediateProducerId> referenced)

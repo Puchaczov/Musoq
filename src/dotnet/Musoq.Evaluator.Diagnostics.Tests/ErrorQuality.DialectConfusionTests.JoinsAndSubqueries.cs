@@ -11,9 +11,7 @@ public partial class ErrorQualityDialectConfusionTests
     public void P_JOIN_01_CrossJoin_ShouldValidateSyntax()
     {
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-FROM #A.Entities() a
-CROSS JOIN #B.Entities() b";
+        var query = ("SELECT a.Name, b.Name\n" + "FROM #A.Entities() a\n" + "CROSS JOIN #B.Entities() b");
 
         var result = analyzer.ValidateSyntax(query);
 
@@ -40,9 +38,9 @@ CROSS JOIN #B.Entities() b";
     {
         // Arrange — FULL OUTER JOIN is valid Musoq syntax
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-FROM #A.Entities() a
-FULL OUTER JOIN #B.Entities() b ON a.Name = b.Name";
+        var query = (
+            "SELECT a.Name, b.Name\n" + "FROM #A.Entities() a\n" + "FULL OUTER JOIN #B.Entities() b ON a.Name = b.Name"
+        );
 
         var result = analyzer.ValidateSyntax(query);
 
@@ -55,9 +53,9 @@ FULL OUTER JOIN #B.Entities() b ON a.Name = b.Name";
     {
         // Arrange — FULL JOIN shorthand is valid Musoq syntax
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-FROM #A.Entities() a
-FULL JOIN #B.Entities() b ON a.Name = b.Name";
+        var query = (
+            "SELECT a.Name, b.Name\n" + "FROM #A.Entities() a\n" + "FULL JOIN #B.Entities() b ON a.Name = b.Name"
+        );
 
         var result = analyzer.ValidateSyntax(query);
 
@@ -70,9 +68,7 @@ FULL JOIN #B.Entities() b ON a.Name = b.Name";
     {
         // Arrange — JOIN without INNER keyword is valid in Musoq (= INNER JOIN)
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-FROM #A.Entities() a
-JOIN #B.Entities() b ON a.Name = b.Name";
+        var query = ("SELECT a.Name, b.Name\n" + "FROM #A.Entities() a\n" + "JOIN #B.Entities() b ON a.Name = b.Name");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -86,9 +82,9 @@ JOIN #B.Entities() b ON a.Name = b.Name";
     {
         // Arrange — LEFT JOIN without OUTER is valid in Musoq (= LEFT OUTER JOIN)
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-FROM #A.Entities() a
-LEFT JOIN #B.Entities() b ON a.Name = b.Name";
+        var query = (
+            "SELECT a.Name, b.Name\n" + "FROM #A.Entities() a\n" + "LEFT JOIN #B.Entities() b ON a.Name = b.Name"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -102,9 +98,9 @@ LEFT JOIN #B.Entities() b ON a.Name = b.Name";
     {
         // Arrange — RIGHT JOIN without OUTER is valid in Musoq (= RIGHT OUTER JOIN)
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-FROM #A.Entities() a
-RIGHT JOIN #B.Entities() b ON a.Name = b.Name";
+        var query = (
+            "SELECT a.Name, b.Name\n" + "FROM #A.Entities() a\n" + "RIGHT JOIN #B.Entities() b ON a.Name = b.Name"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -118,9 +114,7 @@ RIGHT JOIN #B.Entities() b ON a.Name = b.Name";
     {
         // Arrange — USING clause instead of ON
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name
-FROM #A.Entities() a
-INNER JOIN #B.Entities() b USING (Name)";
+        var query = ("SELECT a.Name\n" + "FROM #A.Entities() a\n" + "INNER JOIN #B.Entities() b USING (Name)");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -138,15 +132,13 @@ INNER JOIN #B.Entities() b USING (Name)";
     {
         // Arrange — Subquery in WHERE with IN is now supported via CTE rewrite
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
-WHERE Name IN (SELECT Name FROM #B.Entities())";
+        var query = ("SELECT Name FROM #A.Entities()\n" + "WHERE Name IN (SELECT Name FROM #B.Entities())");
 
         // Act
         var result = analyzer.Analyze(query);
 
         // Assert — Should parse successfully. Subquery IN is now supported.
-        Assert.IsTrue(result.IsParsed,
-            "Subquery in WHERE IN should parse successfully");
+        Assert.IsTrue(result.IsParsed, "Subquery in WHERE IN should parse successfully");
     }
 
     [TestMethod]
@@ -154,8 +146,7 @@ WHERE Name IN (SELECT Name FROM #B.Entities())";
     {
         // Arrange — Subquery in SELECT (scalar subquery)
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name, (SELECT Count(1) FROM #B.Entities()) AS Total
-FROM #A.Entities()";
+        var query = ("SELECT Name, (SELECT Count(1) FROM #B.Entities()) AS Total\n" + "FROM #A.Entities()");
 
         // Act
         var result = analyzer.Analyze(query);
@@ -185,8 +176,9 @@ FROM #A.Entities()";
     {
         // Arrange — EXISTS subquery
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities() a
-WHERE EXISTS (SELECT 1 FROM #B.Entities() b WHERE b.Name = a.Name)";
+        var query = (
+            "SELECT Name FROM #A.Entities() a\n" + "WHERE EXISTS (SELECT 1 FROM #B.Entities() b WHERE b.Name = a.Name)"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -201,8 +193,10 @@ WHERE EXISTS (SELECT 1 FROM #B.Entities() b WHERE b.Name = a.Name)";
     {
         // Arrange — NOT EXISTS subquery
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities() a
-WHERE NOT EXISTS (SELECT 1 FROM #B.Entities() b WHERE b.Name = a.Name)";
+        var query = (
+            "SELECT Name FROM #A.Entities() a\n"
+            + "WHERE NOT EXISTS (SELECT 1 FROM #B.Entities() b WHERE b.Name = a.Name)"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -217,8 +211,7 @@ WHERE NOT EXISTS (SELECT 1 FROM #B.Entities() b WHERE b.Name = a.Name)";
     {
         // Arrange — Scalar subquery in comparison
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
-WHERE Population > (SELECT Population FROM #B.Entities())";
+        var query = ("SELECT Name FROM #A.Entities()\n" + "WHERE Population > (SELECT Population FROM #B.Entities())");
 
         // Act
         var result = analyzer.Analyze(query);
@@ -233,8 +226,9 @@ WHERE Population > (SELECT Population FROM #B.Entities())";
     {
         // Arrange — ANY subquery
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
-WHERE Population > ANY (SELECT Population FROM #B.Entities())";
+        var query = (
+            "SELECT Name FROM #A.Entities()\n" + "WHERE Population > ANY (SELECT Population FROM #B.Entities())"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -249,8 +243,9 @@ WHERE Population > ANY (SELECT Population FROM #B.Entities())";
     {
         // Arrange — ALL subquery
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
-WHERE Population > ALL (SELECT Population FROM #B.Entities())";
+        var query = (
+            "SELECT Name FROM #A.Entities()\n" + "WHERE Population > ALL (SELECT Population FROM #B.Entities())"
+        );
 
         // Act
         var result = analyzer.Analyze(query);

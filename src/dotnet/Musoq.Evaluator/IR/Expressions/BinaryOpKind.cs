@@ -10,7 +10,9 @@ public enum BinaryOpKind
     And,
     Or,
     Equal,
-    NotEqual, IsDistinctFrom, IsNotDistinctFrom,
+    NotEqual,
+    IsDistinctFrom,
+    IsNotDistinctFrom,
     GreaterThan,
     LessThan,
     GreaterOrEqual,
@@ -21,5 +23,5 @@ public enum BinaryOpKind
     LeftShift,
     RightShift,
     StringConcatenate,
-    SqlStringConcatenate
+    SqlStringConcatenate,
 }

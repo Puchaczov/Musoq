@@ -16,7 +16,8 @@ public static class StructuralInputLimitRuntime
         long maxNodes,
         long maxStringBytes,
         CancellationToken cancellationToken,
-        string? sourceContextId = null)
+        string? sourceContextId = null
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(origin);
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -29,7 +30,8 @@ public static class StructuralInputLimitRuntime
                 StructuralInputLimitKind.Depth,
                 maxDepth,
                 metrics.MaxDepth,
-                sourceContextId);
+                sourceContextId
+            );
 
         if (metrics.NodeCount > maxNodes)
             throw new StructuralInputLimitExceededException(
@@ -38,7 +40,8 @@ public static class StructuralInputLimitRuntime
                 StructuralInputLimitKind.Nodes,
                 maxNodes,
                 metrics.NodeCount,
-                sourceContextId);
+                sourceContextId
+            );
 
         if (metrics.StringBytes > maxStringBytes)
             throw new StructuralInputLimitExceededException(
@@ -47,6 +50,7 @@ public static class StructuralInputLimitRuntime
                 StructuralInputLimitKind.StringBytes,
                 maxStringBytes,
                 metrics.StringBytes,
-                sourceContextId);
+                sourceContextId
+            );
     }
 }

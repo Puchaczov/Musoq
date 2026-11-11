@@ -24,7 +24,7 @@ public sealed class RLikeLiteralPatternClassifierTests
             (@"\A", RLikeLiteralMatchKind.Prefix, RLikeLiteralAnchorKind.Start, 2, 0),
             (@"\z", RLikeLiteralMatchKind.Suffix, RLikeLiteralAnchorKind.End, 0, 0),
             (@"\A\z", RLikeLiteralMatchKind.Exact, RLikeLiteralAnchorKind.StartAndEnd, 2, 0),
-            ("Żółć\n😀", RLikeLiteralMatchKind.Contains, RLikeLiteralAnchorKind.None, 0, 7)
+            ("Żółć\n😀", RLikeLiteralMatchKind.Contains, RLikeLiteralAnchorKind.None, 0, 7),
         };
 
         foreach (var (pattern, kind, anchors, start, length) in cases)
@@ -32,7 +32,8 @@ public sealed class RLikeLiteralPatternClassifierTests
             Assert.AreEqual(
                 new RLikeLiteralClassification(kind, anchors, start, length),
                 RLikeLiteralPatternClassifier.Classify(pattern).Classification,
-                pattern);
+                pattern
+            );
         }
     }
 
@@ -41,7 +42,18 @@ public sealed class RLikeLiteralPatternClassifierTests
     {
         var metacharacters = new[]
         {
-            ".", "^alpha", "alpha$", "a|b", "a?", "a*", "a+", "(a)", "[a]", "a{2}", "a]", "a}"
+            ".",
+            "^alpha",
+            "alpha$",
+            "a|b",
+            "a?",
+            "a*",
+            "a+",
+            "(a)",
+            "[a]",
+            "a{2}",
+            "a]",
+            "a}",
         };
         foreach (var pattern in metacharacters)
         {
@@ -64,11 +76,14 @@ public sealed class RLikeLiteralPatternClassifierTests
         var regexConstructions = 0;
         foreach (var (pattern, input, expected) in FixedCases())
         {
-            var matcher = new PreparedRLikeMatcher(pattern, (value, _) =>
-            {
-                regexConstructions++;
-                return FreshHistoricalRegex(value);
-            });
+            var matcher = new PreparedRLikeMatcher(
+                pattern,
+                (value, _) =>
+                {
+                    regexConstructions++;
+                    return FreshHistoricalRegex(value);
+                }
+            );
 
             Assert.AreEqual(expected, matcher.IsMatch(input), $"Pattern '{pattern}', input '{input}'.");
             Assert.AreEqual(0, matcher.RegexResolutionCount, pattern);
@@ -84,46 +99,52 @@ public sealed class RLikeLiteralPatternClassifierTests
     [DataRow("tr-TR")]
     public void FixedAndGeneratedLiteralCorpus_ShouldMatchFreshHistoricalRegex(string cultureName)
     {
-        RunUnderCulture(cultureName, () =>
-        {
-            foreach (var (pattern, input, _) in FixedCases())
-                AssertMatchesHistorical(input, pattern, cultureName);
-
-            var random = new Random(0x5210 + cultureName.Length);
-            for (var sample = 0; sample < 64; sample++)
+        RunUnderCulture(
+            cultureName,
+            () =>
             {
-                var literal = CreateLiteral(random, sample);
-                var input = sample % 3 == 0
-                    ? string.Concat("head-", literal, "-tail")
-                    : CreateLiteral(random, sample + 1_000);
-                foreach (var pattern in new[]
-                         {
-                             literal,
-                             string.Concat(@"\A", literal),
-                             string.Concat(literal, @"\z"),
-                             string.Concat(@"\A", literal, @"\z")
-                         })
-                {
+                foreach (var (pattern, input, _) in FixedCases())
                     AssertMatchesHistorical(input, pattern, cultureName);
+
+                var random = new Random(0x5210 + cultureName.Length);
+                for (var sample = 0; sample < 64; sample++)
+                {
+                    var literal = CreateLiteral(random, sample);
+                    var input =
+                        sample % 3 == 0
+                            ? string.Concat("head-", literal, "-tail")
+                            : CreateLiteral(random, sample + 1_000);
+                    foreach (
+                        var pattern in new[]
+                        {
+                            literal,
+                            string.Concat(@"\A", literal),
+                            string.Concat(literal, @"\z"),
+                            string.Concat(@"\A", literal, @"\z"),
+                        }
+                    )
+                    {
+                        AssertMatchesHistorical(input, pattern, cultureName);
+                    }
                 }
             }
-        });
+        );
     }
 
     private static (string Pattern, string Input, bool Expected)[] FixedCases() =>
-    [
-        ("alpha", "head-alpha-tail", true),
-        (@"\Aalpha", "alphabet", true),
-        (@"alpha\z", "betalpha", true),
-        (@"\Aalpha\z", "alpha", true),
-        (@"\Aalpha\z", "alphabet", false),
-        ("Żółć", "head-Żółć-tail", true),
-        (@"\A😀", "😀-tail", true),
-        ("\n", "head\nend", true),
-        (string.Empty, "anything", true),
-        (@"\A\z", string.Empty, true),
-        (@"\A\z", "value", false)
-    ];
+        [
+            ("alpha", "head-alpha-tail", true),
+            (@"\Aalpha", "alphabet", true),
+            (@"alpha\z", "betalpha", true),
+            (@"\Aalpha\z", "alpha", true),
+            (@"\Aalpha\z", "alphabet", false),
+            ("Żółć", "head-Żółć-tail", true),
+            (@"\A😀", "😀-tail", true),
+            ("\n", "head\nend", true),
+            (string.Empty, "anything", true),
+            (@"\A\z", string.Empty, true),
+            (@"\A\z", "value", false),
+        ];
 
     private static void AssertMatchesHistorical(string input, string pattern, string cultureName)
     {
@@ -132,7 +153,8 @@ public sealed class RLikeLiteralPatternClassifierTests
         Assert.AreEqual(
             FreshHistoricalRegex(pattern).IsMatch(input),
             matcher.IsMatch(input),
-            $"Pattern '{Display(pattern)}', input '{Display(input)}', culture '{cultureName}'.");
+            $"Pattern '{Display(pattern)}', input '{Display(input)}', culture '{cultureName}'."
+        );
     }
 
     private static Regex FreshHistoricalRegex(string pattern) =>
@@ -167,6 +189,5 @@ public sealed class RLikeLiteralPatternClassifierTests
     }
 
     private static string Display(string value) =>
-        value.Replace("\n", "<newline>", StringComparison.Ordinal)
-            .Replace("\t", "<tab>", StringComparison.Ordinal);
+        value.Replace("\n", "<newline>", StringComparison.Ordinal).Replace("\t", "<tab>", StringComparison.Ordinal);
 }

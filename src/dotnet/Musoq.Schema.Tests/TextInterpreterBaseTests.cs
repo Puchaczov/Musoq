@@ -27,20 +27,38 @@ public partial class TextInterpreterBaseTests
         }
 
         // Expose protected methods for testing
-        public string TestReadUntil(ReadOnlySpan<char> text, string delimiter, bool trim = false,
-            bool consumeDelimiter = true, string? fieldName = null)
+        public string TestReadUntil(
+            ReadOnlySpan<char> text,
+            string delimiter,
+            bool trim = false,
+            bool consumeDelimiter = true,
+            string? fieldName = null
+        )
         {
             return ReadUntil(text, delimiter, trim, consumeDelimiter, fieldName);
         }
 
-        public string TestReadBetween(ReadOnlySpan<char> text, string open, string close, bool nested = false,
-            bool trim = false, bool escaped = false, string? escapeCharacter = null, string? fieldName = null)
+        public string TestReadBetween(
+            ReadOnlySpan<char> text,
+            string open,
+            string close,
+            bool nested = false,
+            bool trim = false,
+            bool escaped = false,
+            string? escapeCharacter = null,
+            string? fieldName = null
+        )
         {
             return ReadBetween(text, open, close, nested, trim, escaped, escapeCharacter, fieldName);
         }
 
-        public string TestReadChars(ReadOnlySpan<char> text, int count, bool trim = false, bool ltrim = false,
-            bool rtrim = false)
+        public string TestReadChars(
+            ReadOnlySpan<char> text,
+            int count,
+            bool trim = false,
+            bool ltrim = false,
+            bool rtrim = false
+        )
         {
             return ReadChars(text, count, trim, ltrim, rtrim);
         }
@@ -55,7 +73,12 @@ public partial class TextInterpreterBaseTests
             return ReadRest(text, trim, ltrim, rtrim);
         }
 
-        public string TestReadPattern(ReadOnlySpan<char> text, string pattern, bool trim = false, string? fieldName = null)
+        public string TestReadPattern(
+            ReadOnlySpan<char> text,
+            string pattern,
+            bool trim = false,
+            string? fieldName = null
+        )
         {
             return ReadPattern(text, pattern, trim, fieldName);
         }
@@ -100,8 +123,13 @@ public partial class TextInterpreterBaseTests
             Validate(condition, fieldName, message);
         }
 
-        public static string TestApplyModifiers(string value, bool ltrim = false, bool rtrim = false,
-            bool lower = false, bool upper = false)
+        public static string TestApplyModifiers(
+            string value,
+            bool ltrim = false,
+            bool rtrim = false,
+            bool lower = false,
+            bool upper = false
+        )
         {
             return ApplyModifiers(value, ltrim, rtrim, lower, upper);
         }

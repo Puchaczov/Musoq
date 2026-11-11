@@ -7,9 +7,7 @@ internal sealed class InMemorySchemaTable : ISchemaTable
     private readonly InMemorySourceShape _shape;
 
     public InMemorySchemaTable(Type rowType)
-        : this(InMemorySourceShape.For(rowType))
-    {
-    }
+        : this(InMemorySourceShape.For(rowType)) { }
 
     internal InMemorySchemaTable(InMemorySourceShape shape)
     {

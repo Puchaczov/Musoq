@@ -3,20 +3,12 @@
 public class CteInnerExpressionNode : Node
 {
     public CteInnerExpressionNode(Node value, string name)
-        : this(value, name, [], false)
-    {
-    }
+        : this(value, name, [], false) { }
 
     public CteInnerExpressionNode(Node value, string name, CteColumnName[] columns)
-        : this(value, name, columns, false)
-    {
-    }
+        : this(value, name, columns, false) { }
 
-    public CteInnerExpressionNode(
-        Node value,
-        string name,
-        CteColumnName[] columns,
-        bool isRecursiveDefinition)
+    public CteInnerExpressionNode(Node value, string name, CteColumnName[] columns, bool isRecursiveDefinition)
     {
         ArgumentNullException.ThrowIfNull(value);
         ArgumentNullException.ThrowIfNull(name);
@@ -51,9 +43,10 @@ public class CteInnerExpressionNode : Node
 
     public override string ToString()
     {
-        var columns = Columns.Length == 0
-            ? string.Empty
-            : $" ({string.Join(", ", Array.ConvertAll(Columns, static column => column.Name))})";
+        var columns =
+            Columns.Length == 0
+                ? string.Empty
+                : $" ({string.Join(", ", Array.ConvertAll(Columns, static column => column.Name))})";
 
         return $"{Name}{columns} as {Value.ToString()}";
     }

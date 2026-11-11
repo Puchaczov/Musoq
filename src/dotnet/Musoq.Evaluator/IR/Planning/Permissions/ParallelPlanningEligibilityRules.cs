@@ -8,7 +8,8 @@ internal static class ParallelPlanningEligibilityRules
 {
     public static ParallelEligibilityCheck CanUseFilterProjectExpression(
         IrExpression? expression,
-        PlanningRowShape sourceShape)
+        PlanningRowShape sourceShape
+    )
     {
         return CanUseExpression(expression, fieldRead => CanUseFilterProjectFieldRead(fieldRead, sourceShape));
     }
@@ -20,20 +21,25 @@ internal static class ParallelPlanningEligibilityRules
 
     private static ParallelEligibilityCheck CanUseExpression(
         IrExpression? expression,
-        Func<ColumnRef, ParallelEligibilityCheck> fieldReadEligibility)
+        Func<ColumnRef, ParallelEligibilityCheck> fieldReadEligibility
+    )
     {
         return expression switch
         {
             null => ParallelEligibilityCheck.Enabled,
             ColumnRef { Stability: Musoq.Schema.ColumnStability.Volatile } columnRef =>
-                ParallelEligibilityCheck.Skipped($"Expression reads volatile field {columnRef.Alias}.{columnRef.ColumnName}."),
+                ParallelEligibilityCheck.Skipped(
+                    $"Expression reads volatile field {columnRef.Alias}.{columnRef.ColumnName}."
+                ),
             ColumnRef columnRef => fieldReadEligibility(columnRef),
             Literal => ParallelEligibilityCheck.Enabled,
             WildcardLiteral => ParallelEligibilityCheck.Enabled,
             ScriptParameterRef => ParallelEligibilityCheck.Enabled,
             ScriptVariableRef => ParallelEligibilityCheck.Enabled,
             RowPresence => ParallelEligibilityCheck.Enabled,
-            Coalesce { Expressions.Length: 0 } => ParallelEligibilityCheck.Skipped("Coalesce expression has no operands."),
+            Coalesce { Expressions.Length: 0 } => ParallelEligibilityCheck.Skipped(
+                "Coalesce expression has no operands."
+            ),
             AggregateRef => ParallelEligibilityCheck.Skipped("Expression reads aggregate state."),
             WindowFunctionRef => ParallelEligibilityCheck.Skipped("Expression reads a window value."),
             CteTableRef => ParallelEligibilityCheck.Skipped("Expression reads a CTE table directly."),
@@ -42,8 +48,9 @@ internal static class ParallelPlanningEligibilityRules
                 IrExpressionTraversal
                     .Children(expression)
                     .Select(child => CanUseExpression(child, fieldReadEligibility))
-                    .ToArray()),
-            _ => ParallelEligibilityCheck.Skipped($"Expression kind {expression.GetType().Name} is not parallel-safe.")
+                    .ToArray()
+            ),
+            _ => ParallelEligibilityCheck.Skipped($"Expression kind {expression.GetType().Name} is not parallel-safe."),
         };
     }
 
@@ -54,12 +61,16 @@ internal static class ParallelPlanningEligibilityRules
 
     private static ParallelEligibilityCheck CanUseMethodCall(
         MethodCall methodCall,
-        Func<ColumnRef, ParallelEligibilityCheck> fieldReadEligibility)
+        Func<ColumnRef, ParallelEligibilityCheck> fieldReadEligibility
+    )
     {
-        if (ExpressionStabilityAnalyzer.TryGetMethodInstabilityReason(
+        if (
+            ExpressionStabilityAnalyzer.TryGetMethodInstabilityReason(
                 methodCall.Method,
                 "Expression",
-                out var instabilityReason))
+                out var instabilityReason
+            )
+        )
         {
             return ParallelEligibilityCheck.Skipped(instabilityReason);
         }
@@ -68,24 +79,31 @@ internal static class ParallelPlanningEligibilityRules
         if (!permission.IsEligible)
             return permission;
 
-        return Combine(IrExpressionTraversal
-            .Children(methodCall)
-            .Select(argument => CanUseExpression(argument, fieldReadEligibility))
-            .ToArray());
+        return Combine(
+            IrExpressionTraversal
+                .Children(methodCall)
+                .Select(argument => CanUseExpression(argument, fieldReadEligibility))
+                .ToArray()
+        );
     }
 
     private static ParallelEligibilityCheck CanUseFilterProjectFieldRead(
         ColumnRef fieldRead,
-        PlanningRowShape sourceShape)
+        PlanningRowShape sourceShape
+    )
     {
         var field = PlanningRowShapeLookup.ResolveField(sourceShape, fieldRead);
         if (field == null)
             return ParallelEligibilityCheck.Enabled;
 
-        return field.AccessKind is PlanningFieldAccessKind.ReflectedMember
-            or PlanningFieldAccessKind.NestedClrMember
-            or PlanningFieldAccessKind.NestedPositional
-            ? ParallelEligibilityCheck.Skipped($"Expression reads field {fieldRead.Alias}.{fieldRead.ColumnName} through dynamic or reflected access.")
+        return
+            field.AccessKind
+                is PlanningFieldAccessKind.ReflectedMember
+                    or PlanningFieldAccessKind.NestedClrMember
+                    or PlanningFieldAccessKind.NestedPositional
+            ? ParallelEligibilityCheck.Skipped(
+                $"Expression reads field {fieldRead.Alias}.{fieldRead.ColumnName} through dynamic or reflected access."
+            )
             : ParallelEligibilityCheck.Enabled;
     }
 

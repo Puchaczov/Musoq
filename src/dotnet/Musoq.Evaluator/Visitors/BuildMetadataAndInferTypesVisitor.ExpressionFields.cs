@@ -10,21 +10,35 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var expression = PopSemanticNode(VisitorOperationNames.VisitFieldNode);
-        var fieldName = _queryState.QueryPart == QueryPart.Select &&
-                        !node.HasExplicitFieldName && expression is AccessColumnNode column
-            ? column.Name
-            : node.FieldName;
-        PushSemanticNode(new FieldNode(expression, node.FieldOrder, fieldName, node.HasExplicitFieldName, node.Span)
-            .WithFullSpan(node.FullSpan));
+        var fieldName =
+            _queryState.QueryPart == QueryPart.Select
+            && !node.HasExplicitFieldName
+            && expression is AccessColumnNode column
+                ? column.Name
+                : node.FieldName;
+        PushSemanticNode(
+            new FieldNode(expression, node.FieldOrder, fieldName, node.HasExplicitFieldName, node.Span).WithFullSpan(
+                node.FullSpan
+            )
+        );
     }
 
     public override void Visit(FieldOrderedNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var expression = PopSemanticNode(VisitorOperationNames.VisitFieldOrderedNode);
-        PushSemanticNode(new FieldOrderedNode(expression, node.FieldOrder, node.FieldName, node.HasExplicitFieldName, node.Order, node.NullOrdering)
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(
+            new FieldOrderedNode(
+                expression,
+                node.FieldOrder,
+                node.FieldName,
+                node.HasExplicitFieldName,
+                node.Order,
+                node.NullOrdering
+            )
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(SelectNode node)
@@ -34,8 +48,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         CollectSelectFieldAliases(fields);
 
-        PushSemanticNode(new SelectNode(fields.ToArray(), node.IsDistinct, node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(new SelectNode(fields.ToArray(), node.IsDistinct, node.Span).WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(GroupSelectNode node)
@@ -45,8 +58,6 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         CollectSelectFieldAliases(fields);
 
-        PushSemanticNode(new GroupSelectNode(fields.ToArray())
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(new GroupSelectNode(fields.ToArray()).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 }

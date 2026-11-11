@@ -13,7 +13,8 @@ public sealed partial class LogicalPlanBuilder
         string? outputName,
         AggregateRefreshLookup refreshLookup,
         [NotNullWhen(true)] out string? resolvedIdentifier,
-        [NotNullWhen(true)] out RefreshMethodCapture? refresh)
+        [NotNullWhen(true)] out RefreshMethodCapture? refresh
+    )
     {
         resolvedIdentifier = null;
         refresh = null;
@@ -24,8 +25,10 @@ public sealed partial class LogicalPlanBuilder
                 return true;
         }
 
-        if (!string.IsNullOrWhiteSpace(outputName) &&
-            TryFindRefresh(outputName, refreshLookup.Captures, out resolvedIdentifier, out refresh))
+        if (
+            !string.IsNullOrWhiteSpace(outputName)
+            && TryFindRefresh(outputName, refreshLookup.Captures, out resolvedIdentifier, out refresh)
+        )
             return true;
 
         return false;
@@ -35,7 +38,8 @@ public sealed partial class LogicalPlanBuilder
         string? candidate,
         IReadOnlyDictionary<string, RefreshMethodCapture> refreshByIdentifier,
         [NotNullWhen(true)] out string? resolvedIdentifier,
-        [NotNullWhen(true)] out RefreshMethodCapture? refresh)
+        [NotNullWhen(true)] out RefreshMethodCapture? refresh
+    )
     {
         resolvedIdentifier = null;
         refresh = null;
@@ -53,8 +57,10 @@ public sealed partial class LogicalPlanBuilder
         if (string.Equals(normalizedCandidate, candidate, StringComparison.Ordinal))
             return false;
 
-        if (string.IsNullOrWhiteSpace(normalizedCandidate) ||
-            !refreshByIdentifier.TryGetValue(normalizedCandidate, out refresh))
+        if (
+            string.IsNullOrWhiteSpace(normalizedCandidate)
+            || !refreshByIdentifier.TryGetValue(normalizedCandidate, out refresh)
+        )
             return false;
 
         resolvedIdentifier = normalizedCandidate;
@@ -71,11 +77,13 @@ public sealed partial class LogicalPlanBuilder
 
     private sealed record AggregateRefreshLookup(
         Dictionary<string, RefreshMethodCapture> Captures,
-        HashSet<string> AmbiguousNormalizedIdentifiers);
+        HashSet<string> AmbiguousNormalizedIdentifiers
+    );
 
     private sealed record RefreshMethodCapture(
         MethodInfo SetMethod,
         IReadOnlyList<IrExpression> SetArguments,
         IrExpression? FilterPredicate,
-        string? DisplayName);
+        string? DisplayName
+    );
 }

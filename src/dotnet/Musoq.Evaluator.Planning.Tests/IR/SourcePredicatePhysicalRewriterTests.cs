@@ -25,15 +25,14 @@ public sealed class SourcePredicatePhysicalRewriterTests
     public void AcceptedPredicate_ShouldBeRemovedThroughPhysicalContainer(string container)
     {
         var pushedPredicate = CreatePredicate(Alias);
-        var filteredScan = new PhysicalFilterNode(
-            pushedPredicate,
-            CreateScan(Alias, SourceContextId));
+        var filteredScan = new PhysicalFilterNode(pushedPredicate, CreateScan(Alias, SourceContextId));
         var physicalPlan = Wrap(container, filteredScan);
 
         var rewritten = SourcePredicatePhysicalRewriter.Rewrite(
             physicalPlan,
             CreateSourcePlanResults(),
-            CreateSourcePredicatePlans(pushedPredicate));
+            CreateSourcePredicatePlans(pushedPredicate)
+        );
 
         Assert.IsFalse(ContainsFilter(rewritten));
     }
@@ -44,25 +43,25 @@ public sealed class SourcePredicatePhysicalRewriterTests
         {
             "cte" => new PhysicalCteNode(
                 [new PhysicalCteDefinition("Filtered", filteredScan)],
-                CreateScan("q", "query-source")),
+                CreateScan("q", "query-source")
+            ),
             "join" => new PhysicalHashJoinNode(
                 JoinKind.Inner,
                 [new ColumnRef(Alias, "Category", typeof(string))],
                 [new ColumnRef("r", "Category", typeof(string))],
                 null,
                 filteredScan,
-                CreateScan("r", "right-source")),
-            "apply" => new PhysicalNestedLoopApplyNode(
-                ApplyKind.Cross,
-                filteredScan,
-                CreateScan("r", "right-source")),
+                CreateScan("r", "right-source")
+            ),
+            "apply" => new PhysicalNestedLoopApplyNode(ApplyKind.Cross, filteredScan, CreateScan("r", "right-source")),
             "set" => new PhysicalSetOperationNode(
                 SetOpKind.Union,
                 filteredScan,
                 CreateScan("r", "right-source"),
                 [0],
-                [typeof(string)]),
-            _ => throw new AssertFailedException($"Unsupported container '{container}'.")
+                [typeof(string)]
+            ),
+            _ => throw new AssertFailedException($"Unsupported container '{container}'."),
         };
     }
 
@@ -74,17 +73,13 @@ public sealed class SourcePredicatePhysicalRewriterTests
         {
             [SourceContextId] = new()
             {
-                ExecutionPlan = SourceExecutionPlan.Empty(identity) with
-                {
-                    AcceptedPredicate = acceptedPredicate
-                },
-                AcceptedPredicate = acceptedPredicate
-            }
+                ExecutionPlan = SourceExecutionPlan.Empty(identity) with { AcceptedPredicate = acceptedPredicate },
+                AcceptedPredicate = acceptedPredicate,
+            },
         };
     }
 
-    private static Dictionary<string, SourcePredicatePlan> CreateSourcePredicatePlans(
-        IrExpression pushedPredicate)
+    private static Dictionary<string, SourcePredicatePlan> CreateSourcePredicatePlans(IrExpression pushedPredicate)
     {
         return new Dictionary<string, SourcePredicatePlan>
         {
@@ -94,7 +89,8 @@ public sealed class SourcePredicatePhysicalRewriterTests
                 new WhereNode(new BooleanNode(true)),
                 [pushedPredicate],
                 "test",
-                PlanningConfidence.High)
+                PlanningConfidence.High
+            ),
         };
     }
 
@@ -108,7 +104,8 @@ public sealed class SourcePredicatePhysicalRewriterTests
             [],
             [],
             new OutputSchema([new ColumnSchema("Category", typeof(string), 0)]),
-            sourceContextId);
+            sourceContextId
+        );
     }
 
     private static BinaryOp CreatePredicate(string alias)
@@ -117,7 +114,8 @@ public sealed class SourcePredicatePhysicalRewriterTests
             BinaryOpKind.Equal,
             new ColumnRef(alias, "Category", typeof(string)),
             new Literal("alpha", typeof(string)),
-            typeof(bool));
+            typeof(bool)
+        );
     }
 
     private static SourcePredicateComparison CreateSourcePredicate()
@@ -125,7 +123,8 @@ public sealed class SourcePredicatePhysicalRewriterTests
         return new SourcePredicateComparison(
             SourcePredicateComparisonOperator.Equal,
             new SourcePredicateColumn(new SourceColumnRef("Category")),
-            new SourcePredicateLiteral("alpha"));
+            new SourcePredicateLiteral("alpha")
+        );
     }
 
     private static bool ContainsFilter(PhysicalNode node)

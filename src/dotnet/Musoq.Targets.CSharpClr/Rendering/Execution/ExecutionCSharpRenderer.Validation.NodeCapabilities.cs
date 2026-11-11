@@ -1,14 +1,19 @@
 using System.Linq;
+
 namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    internal static bool CanRenderNode(ExecutionNode node) {
+    internal static bool CanRenderNode(ExecutionNode node)
+    {
         return node switch
         {
             ExecutionSourceScan sourceScan => CanRenderExpressions(sourceScan.Binding.Arguments),
-            ExecutionPrepareStructuralInput structuralInput => StructuralInputSyntaxFactory.CanRenderPreparation(structuralInput, CanRenderExpression),
-           ExecutionInterpretSource interpret => CanRenderExpressions(interpret.Arguments),
+            ExecutionPrepareStructuralInput structuralInput => StructuralInputSyntaxFactory.CanRenderPreparation(
+                structuralInput,
+                CanRenderExpression
+            ),
+            ExecutionInterpretSource interpret => CanRenderExpressions(interpret.Arguments),
             ExecutionEnumerableSource enumerable => CanRenderExpression(enumerable.Source),
             ExecutionCreateTable => true,
             ExecutionCreateValuesRows valuesRows => CanRenderValuesRows(valuesRows),
@@ -16,34 +21,53 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionCreateBoundedRecordList createList => CanRenderBoundedRecordList(createList),
             ExecutionEnsureTableCapacity => true,
             ExecutionForEach forEach => CanRenderExpression(forEach.Source) && CanRenderBlock(forEach.Body),
-            ExecutionForEachWithOrdinality forEach => CanRenderExpression(forEach.Source) && CanRenderBlock(forEach.Body),
+            ExecutionForEachWithOrdinality forEach => CanRenderExpression(forEach.Source)
+                && CanRenderBlock(forEach.Body),
             ExecutionScopedBlock scopedBlock => CanRenderBlock(scopedBlock.Body),
-            ExecutionForEachIndexed forEachIndexed => CanUseIndexedLoopItem(forEachIndexed.Item, forEachIndexed.RowAccessMode) && CanRenderBlock(forEachIndexed.Body),
-            ExecutionParallelSingleKeyAggregateLoop parallelAggregate => CanRenderParallelSingleKeyAggregateLoop(parallelAggregate),
+            ExecutionForEachIndexed forEachIndexed => CanUseIndexedLoopItem(
+                forEachIndexed.Item,
+                forEachIndexed.RowAccessMode
+            ) && CanRenderBlock(forEachIndexed.Body),
+            ExecutionParallelSingleKeyAggregateLoop parallelAggregate => CanRenderParallelSingleKeyAggregateLoop(
+                parallelAggregate
+            ),
             ExecutionParallelFilterProjectLoop parallelProject => CanRenderParallelFilterProjectLoop(parallelProject),
             ExecutionParallelBlock parallel => CanRenderParallelBlock(parallel),
             ExecutionFusedCteProducer fusedCte => CanRenderBlock(fusedCte.Body),
             ExecutionLet let => CanRenderExpression(let.Value),
             ExecutionAssign assign => CanRenderExpression(assign.Value),
             ExecutionCreateBooleanArray createArray => createArray.Array.Type.RequireClrType() == typeof(bool[]),
-            ExecutionArrayAssign arrayAssign => arrayAssign.Array.Type.RequireClrType().IsArray && CanRenderExpression(arrayAssign.Index) && CanRenderExpression(arrayAssign.Value) && CanReferenceType(arrayAssign.ElementType),
+            ExecutionArrayAssign arrayAssign => arrayAssign.Array.Type.RequireClrType().IsArray
+                && CanRenderExpression(arrayAssign.Index)
+                && CanRenderExpression(arrayAssign.Value)
+                && CanReferenceType(arrayAssign.ElementType),
             ExecutionContinue => true,
             ExecutionContinueIf continueIf => CanRenderExpression(continueIf.Condition),
             ExecutionBreak => true,
-            ExecutionCreateObject createObject => CanRenderDefaultConstructibleObject(createObject.Target.Type.RequireClrType()),
+            ExecutionCreateObject createObject => CanRenderDefaultConstructibleObject(
+                createObject.Target.Type.RequireClrType()
+            ),
             ExecutionIf branch => CanRenderExpression(branch.Condition) && CanRenderBlock(branch.Body),
-            ExecutionCreateGeneratedRow createRow => CanRenderRowConstruction(createRow.Values, createRow.Contexts, createRow.ContextLayout),
+            ExecutionCreateGeneratedRow createRow => CanRenderRowConstruction(
+                createRow.Values,
+                createRow.Contexts,
+                createRow.ContextLayout
+            ),
             ExecutionRecursiveCte recursiveCte => CanRenderRecursiveCte(recursiveCte),
             ExecutionRecursiveCteAppend append => CanRenderRecursiveCteAppend(append),
             ExecutionRecursiveCteSnapshotRowGuard guard => guard.MaxRows > 0,
             ExecutionCreateHashPayload createPayload => CanRenderCreateHashPayload(createPayload),
-            ExecutionAppendRow appendRow => CanRenderRowConstruction(appendRow.Values, appendRow.Contexts, appendRow.ContextLayout),
+            ExecutionAppendRow appendRow => CanRenderRowConstruction(
+                appendRow.Values,
+                appendRow.Contexts,
+                appendRow.ContextLayout
+            ),
             ExecutionAppendExistingRow => true,
             ExecutionAppendRecord appendRecord => CanRenderAppendRecord(appendRecord),
             ExecutionMaterializeList materialize => CanRenderExpression(materialize.Source),
-            ExecutionMaterializeFilteredList materialize => CanRenderExpression(materialize.Source) &&
-                                                                   CanRenderExpression(materialize.Predicate) &&
-                                                                   CanUseIndexedLoopItem(materialize.Item, materialize.RowAccessMode),
+            ExecutionMaterializeFilteredList materialize => CanRenderExpression(materialize.Source)
+                && CanRenderExpression(materialize.Predicate)
+                && CanUseIndexedLoopItem(materialize.Item, materialize.RowAccessMode),
             ExecutionWindowKernelPlan plan => plan.Kernels.All(CanRenderNode),
             ExecutionComputeRankingWindow ranking => CanRenderRankingWindow(ranking),
             ExecutionComputeOffsetWindow offset => CanRenderOffsetWindow(offset),
@@ -53,7 +77,8 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionHashAdd hashAdd => CanRenderHashAdd(hashAdd),
             ExecutionHashProbe hashProbe => CanRenderHashProbe(hashProbe),
             ExecutionCreateKeySet createKeySet => CanRenderStrictKeyType(createKeySet.KeyType),
-            ExecutionKeySetAdd keySetAdd => CanRenderExpression(keySetAdd.Key) && CanRenderStrictKeyType(keySetAdd.KeyType),
+            ExecutionKeySetAdd keySetAdd => CanRenderExpression(keySetAdd.Key)
+                && CanRenderStrictKeyType(keySetAdd.KeyType),
             ExecutionKeySetProbe keySetProbe => CanRenderKeySetProbe(keySetProbe),
             ExecutionStoreCteIndex => true,
             ExecutionLoadCteIndex loadCteIndex => CanRenderCteIndexLoad(loadCteIndex),
@@ -62,15 +87,17 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionCreateRangeIndex createIndex => CanRenderCreateRangeIndex(createIndex),
             ExecutionRangeProbe rangeProbe => CanRenderRangeProbe(rangeProbe),
             ExecutionCreateAggregateLibrary => true,
-            ExecutionInitializeAggregateState initialize => CanReferenceType(initialize.Target.Type) &&
-                CanReferenceType(initialize.ResetMethod.RequireClrMethod().DeclaringType!),
+            ExecutionInitializeAggregateState initialize => CanReferenceType(initialize.Target.Type)
+                && CanReferenceType(initialize.ResetMethod.RequireClrMethod().DeclaringType!),
             ExecutionCreateAggregateContext context => CanRenderAggregateGroupPlan(context.GroupPlan),
             ExecutionEnsureAggregateGroup ensureGroup => CanRenderAggregateGroupPlan(ensureGroup.GroupPlan),
-            ExecutionCreateSingleKeyAggregateContext context => CanReferenceType(context.KeyType) &&
-                                                               CanRenderAggregateGroupPlan(context.GroupPlan),
+            ExecutionCreateSingleKeyAggregateContext context => CanReferenceType(context.KeyType)
+                && CanRenderAggregateGroupPlan(context.GroupPlan),
             ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup => CanRenderSingleKeyAggregateLookup(getOrAddGroup),
             ExecutionCreateValueTupleAggregateContext context => CanRenderValueTupleAggregateContext(context),
-            ExecutionGetOrAddValueTupleAggregateGroup getOrAddGroup => CanRenderValueTupleAggregateLookup(getOrAddGroup),
+            ExecutionGetOrAddValueTupleAggregateGroup getOrAddGroup => CanRenderValueTupleAggregateLookup(
+                getOrAddGroup
+            ),
             ExecutionAggregateSet aggregateSet => CanRenderAggregateSet(aggregateSet),
             ExecutionAggregateCapturedValueSet capturedValueSet => CanRenderAggregateCapturedValueSet(capturedValueSet),
             ExecutionSetOperation => true,
@@ -89,8 +116,7 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionRelatedCtePhase => true,
             ExecutionReturnDesc desc => CanRenderExpressions(desc.Arguments),
             ExecutionReturnTable => true,
-            _ => false
+            _ => false,
         };
     }
-
 }

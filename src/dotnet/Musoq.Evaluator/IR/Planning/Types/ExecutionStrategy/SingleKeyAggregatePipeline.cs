@@ -9,4 +9,5 @@ internal sealed record SingleKeyAggregatePipeline(
     PhysicalSingleKeyAggregateNode Aggregate,
     PhysicalNode Source,
     PhysicalFilterNode? SourceFilter,
-    IReadOnlyList<PhysicalNode> PostOperations);
+    IReadOnlyList<PhysicalNode> PostOperations
+);

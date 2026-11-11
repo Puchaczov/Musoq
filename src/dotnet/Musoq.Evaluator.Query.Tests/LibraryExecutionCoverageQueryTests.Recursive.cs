@@ -1,21 +1,24 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
 public sealed partial class LibraryExecutionCoverageQueryTests
 {
-
     [TestMethod]
     public void RecursiveTypedStorageAndFrames_ShouldMatchIndependentArithmeticReference()
     {
         using var compiled = CreateAndRunVirtualMachine(RecursiveFrameQuery, new[] { new CoverageRow(0, null, null) });
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)), ("Total", typeof(int?)),
-            ("Average", typeof(decimal?)), ("Present", typeof(long)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Value", typeof(int)),
+            ("Total", typeof(int?)),
+            ("Average", typeof(decimal?)),
+            ("Present", typeof(long))
+        );
         Assert.HasCount(40, rows);
         for (var index = 0; index < rows.Length; index++)
         {

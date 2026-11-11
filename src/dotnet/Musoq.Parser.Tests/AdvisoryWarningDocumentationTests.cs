@@ -26,7 +26,7 @@ public sealed class AdvisoryWarningDocumentationTests
         DiagnosticCode.MQ5022_UnusedCte,
         DiagnosticCode.MQ5023_UnusedScriptVariable,
         DiagnosticCode.MQ5024_NullSensitiveNotIn,
-        DiagnosticCode.MQ5025_ImpossibleImplicitConversion
+        DiagnosticCode.MQ5025_ImpossibleImplicitConversion,
     ];
 
     [TestMethod]
@@ -44,7 +44,8 @@ public sealed class AdvisoryWarningDocumentationTests
                     ? DiagnosticPhase.Parse
                     : DiagnosticPhase.Bind,
                 metadata.Phase,
-                $"Unexpected phase for {code}");
+                $"Unexpected phase for {code}"
+            );
             Assert.IsFalse(string.IsNullOrWhiteSpace(metadata.Explanation));
             Assert.IsNotEmpty(metadata.SuggestedFixes);
             Assert.IsTrue(metadata.SuggestedFixes.All(static fix => !string.IsNullOrWhiteSpace(fix)));
@@ -58,7 +59,8 @@ public sealed class AdvisoryWarningDocumentationTests
         const string query = @"select 'C:\new\test' from system.dual()";
         var result = Parse(query);
         var warning = result.Warnings.Single(static item =>
-            item.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape);
+            item.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+        );
         var formatted = new DiagnosticFormatter { UseColor = false }.Format(warning);
 
         Assert.IsTrue(result.Success, result.FormatDiagnostics());

@@ -18,10 +18,17 @@ public sealed partial class ExpressionConverter
     {
         var indexableType = node.ColumnType ?? node.PropertyInfo?.PropertyType;
         if (indexableType == null)
-            throw new InvalidOperationException($"AccessObjectArrayNode '{node}' is missing its indexable type; cannot lower to IR.");
+            throw new InvalidOperationException(
+                $"AccessObjectArrayNode '{node}' is missing its indexable type; cannot lower to IR."
+            );
         var intendedArrayType = ResolveIndexedArrayTypeName(node.IntendedTypeName, indexableType);
-        var columnAccessNode = new AccessColumnNode(node.ObjectName, node.TableAlias ?? string.Empty,
-            indexableType, TextSpan.Empty, intendedArrayType);
+        var columnAccessNode = new AccessColumnNode(
+            node.ObjectName,
+            node.TableAlias ?? string.Empty,
+            indexableType,
+            TextSpan.Empty,
+            intendedArrayType
+        );
         var arrayExpr = ConvertColumnAccess(columnAccessNode);
         var indexExpr = new Literal(node.Token.Index, typeof(int));
 
@@ -47,12 +54,14 @@ public sealed partial class ExpressionConverter
     {
         var indexableType = node.ColumnType ?? node.PropertyInfo?.PropertyType;
         if (indexableType == null)
-            throw new InvalidOperationException($"AccessObjectKeyNode '{node}' is missing its indexable type; cannot lower to IR.");
+            throw new InvalidOperationException(
+                $"AccessObjectKeyNode '{node}' is missing its indexable type; cannot lower to IR."
+            );
 
         var alias = node.TableAlias ?? string.Empty;
         var arrayExpr = new ColumnRef(alias, node.ObjectName, indexableType)
         {
-            Stability = ResolveColumnStability(alias, node.ObjectName)
+            Stability = ResolveColumnStability(alias, node.ObjectName),
         };
         var indexExpr = new Literal(node.Token.Key, typeof(string));
         var returnType = RequireReturnType(node);

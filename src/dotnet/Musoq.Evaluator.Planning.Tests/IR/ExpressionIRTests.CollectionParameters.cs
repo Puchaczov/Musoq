@@ -13,7 +13,8 @@ public partial class ExpressionIrTests
     {
         var node = new CollectionInNode(
             new AccessColumnNode("Id", "t", typeof(int), default),
-            new ParameterReferenceNode("ids", typeof(int[]), default));
+            new ParameterReferenceNode("ids", typeof(int[]), default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -30,7 +31,8 @@ public partial class ExpressionIrTests
     {
         var node = new CollectionInNode(
             new AccessColumnNode("Id", "t", typeof(int), default),
-            new ParameterReferenceNode("ids", typeof(int[]), default));
+            new ParameterReferenceNode("ids", typeof(int[]), default)
+        );
 
         var result = _converter.Convert(node);
 

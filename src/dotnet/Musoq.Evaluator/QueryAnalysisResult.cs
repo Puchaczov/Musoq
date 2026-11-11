@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
-using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Evaluator;
 

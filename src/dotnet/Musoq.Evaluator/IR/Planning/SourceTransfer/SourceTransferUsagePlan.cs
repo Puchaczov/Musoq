@@ -5,13 +5,13 @@ namespace Musoq.Evaluator.IR.Planning;
 internal enum SourceRowRequirement
 {
     ColumnValuesOnly,
-    DeclaredEntity
+    DeclaredEntity,
 }
 
 internal enum SourceRowLifetime
 {
     ScanLocal,
-    EscapesScan
+    EscapesScan,
 }
 
 internal sealed record SourceTransferUsagePlan(
@@ -19,8 +19,10 @@ internal sealed record SourceTransferUsagePlan(
     SourceRowRequirement RowRequirement,
     SourceRowLifetime Lifetime,
     string RowRequirementReason,
-    string LifetimeReason);
+    string LifetimeReason
+);
 
 internal sealed record SourceTransferUsagePlanningResult(
     IReadOnlyDictionary<string, SourceTransferUsagePlan> PlansBySourceId,
-    IReadOnlyList<PlanningDecision> Decisions);
+    IReadOnlyList<PlanningDecision> Decisions
+);

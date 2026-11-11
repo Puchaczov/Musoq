@@ -1,5 +1,7 @@
 using System.Linq;
+
 namespace Musoq.Evaluator.IR.Execution;
+
 internal abstract partial class ExecutionIrRewriter
 {
     public virtual ExecutionExpression RewriteExpression(ExecutionExpression expression)
@@ -21,7 +23,10 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionBinary binary => RewriteBinary(binary),
             ExecutionUnary unary => RewriteUnary(unary),
             ExecutionMethodCall methodCall => RewriteMethodCall(methodCall),
-            ExecutionByteBufferSnapshot or ExecutionByteBufferOperation => ByteBufferExpressionRewrite.Children(expression, RewriteExpression),
+            ExecutionByteBufferSnapshot or ExecutionByteBufferOperation => ByteBufferExpressionRewrite.Children(
+                expression,
+                RewriteExpression
+            ),
             ExecutionByteBufferArgument => expression,
             ExecutionStrictCast strictCast => RewriteStrictCast(strictCast),
             ExecutionMethodTargetReuseCandidate candidate => RewriteMethodTargetReuseCandidate(candidate),
@@ -34,16 +39,21 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionInCheck inCheck => RewriteInCheck(inCheck),
             ExecutionCollectionInCheck collectionInCheck => RewriteCollectionInCheck(collectionInCheck),
             ExecutionPatternMatch patternMatch => RewritePatternMatch(patternMatch),
-            ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or
-                ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or
-                ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot =>
-                PatternExpressionFacts.RewriteChildren(expression, RewriteExpression),
+            ExecutionStringMatch
+            or ExecutionPrepareLikeMatcher
+            or ExecutionPreparedLikeMatch
+            or ExecutionDynamicLikeMatch
+            or ExecutionLikeMatcherCacheSlot
+            or ExecutionPrepareRLikeMatcher
+            or ExecutionPreparedRLikeMatch
+            or ExecutionDynamicRLikeMatch
+            or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.RewriteChildren(expression, RewriteExpression),
             ExecutionBetween between => RewriteBetween(between),
             ExecutionCaseWhen caseWhen => RewriteCaseWhen(caseWhen),
             ExecutionCoalesce coalesce => RewriteCoalesce(coalesce),
             ExecutionStringConcatenation concatenation => concatenation with
             {
-                Expressions = RewriteExpressionList(concatenation.Expressions)
+                Expressions = RewriteExpressionList(concatenation.Expressions),
             },
             ExecutionRowStream rows => RewriteRowStream(rows),
             ExecutionScalarRowStream rows => RewriteScalarRowStream(rows),
@@ -60,8 +70,12 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionAggregateResultRef aggregateResultRef => RewriteAggregateResultRef(aggregateResultRef),
             ExecutionWindowResultRef windowResultRef => RewriteWindowResultRef(windowResultRef),
             ExecutionGroupKeyRead groupKeyRead => RewriteGroupKeyRead(groupKeyRead),
-            ExecutionAggregateCapturedValueRead capturedValueRead => RewriteAggregateCapturedValueRead(capturedValueRead),
-            _ => throw new NotSupportedException($"Execution expression rewriter has no handler for '{expression.GetType().FullName}'.")
+            ExecutionAggregateCapturedValueRead capturedValueRead => RewriteAggregateCapturedValueRead(
+                capturedValueRead
+            ),
+            _ => throw new NotSupportedException(
+                $"Execution expression rewriter has no handler for '{expression.GetType().FullName}'."
+            ),
         };
     }
 
@@ -71,44 +85,82 @@ internal abstract partial class ExecutionIrRewriter
         var operand = expression.Operand is null ? null : RewriteExpression(expression.Operand);
         var scripts = RewriteExpressionList(expression.CapturedScriptValues);
         var tables = RewriteExpressionList(expression.CapturedCteValues);
-        return ReferenceEquals(bindings, expression.Bindings) && ReferenceEquals(operand, expression.Operand) &&
-            ReferenceEquals(scripts, expression.CapturedScriptValues) && ReferenceEquals(tables, expression.CapturedCteValues)
+        return
+            ReferenceEquals(bindings, expression.Bindings)
+            && ReferenceEquals(operand, expression.Operand)
+            && ReferenceEquals(scripts, expression.CapturedScriptValues)
+            && ReferenceEquals(tables, expression.CapturedCteValues)
             ? expression
-            : expression with { Bindings = bindings, Operand = operand, CapturedScriptValues = scripts, CapturedCteValues = tables };
+            : expression with
+            {
+                Bindings = bindings,
+                Operand = operand,
+                CapturedScriptValues = scripts,
+                CapturedCteValues = tables,
+            };
     }
 
     protected virtual ExecutionExpression RewriteStructuralRecord(ExecutionStructuralRecord expression)
     {
-        var fields = expression.Fields.Select(field =>
-            new ExecutionStructuralField(field.Name, RewriteExpression(field.Value), field.IsPresent)).ToArray();
-        return fields.SequenceEqual(expression.Fields) ? expression : new ExecutionStructuralRecord(expression.ReturnType, fields, expression.ConstructionPlan) { LimitBinding = expression.LimitBinding, GeneratedTypeName = expression.GeneratedTypeName };
+        var fields = expression
+            .Fields.Select(field => new ExecutionStructuralField(
+                field.Name,
+                RewriteExpression(field.Value),
+                field.IsPresent
+            ))
+            .ToArray();
+        return fields.SequenceEqual(expression.Fields)
+            ? expression
+            : new ExecutionStructuralRecord(expression.ReturnType, fields, expression.ConstructionPlan)
+            {
+                LimitBinding = expression.LimitBinding,
+                GeneratedTypeName = expression.GeneratedTypeName,
+            };
     }
 
     protected virtual ExecutionExpression RewriteStructuralArray(ExecutionStructuralArray expression)
     {
         var elements = RewriteExpressionList(expression.Elements);
-        return ReferenceEquals(elements, expression.Elements) ? expression : new ExecutionStructuralArray(expression.ReturnType, expression.ElementType, elements) { LimitBinding = expression.LimitBinding, GeneratedElementTypeName = expression.GeneratedElementTypeName };
+        return ReferenceEquals(elements, expression.Elements)
+            ? expression
+            : new ExecutionStructuralArray(expression.ReturnType, expression.ElementType, elements)
+            {
+                LimitBinding = expression.LimitBinding,
+                GeneratedElementTypeName = expression.GeneratedElementTypeName,
+            };
     }
 
     protected virtual ExecutionExpression RewriteStructuralConversion(ExecutionStructuralConversion expression)
     {
         var input = RewriteExpression(expression.Input);
-        return ReferenceEquals(input, expression.Input) ? expression : new ExecutionStructuralConversion(input, expression.TargetType) { LimitBinding = expression.LimitBinding };
+        return ReferenceEquals(input, expression.Input)
+            ? expression
+            : new ExecutionStructuralConversion(input, expression.TargetType)
+            {
+                LimitBinding = expression.LimitBinding,
+            };
     }
+
     protected virtual ExecutionExpression RewriteCteCollectionInput(ExecutionCteCollectionInput expression)
     {
         var rows = RewriteExpression(expression.Rows);
         return ReferenceEquals(rows, expression.Rows) ? expression : expression with { Rows = rows };
     }
+
     protected virtual ExecutionExpression RewriteFieldRead(ExecutionFieldRead expression) => expression;
+
     protected virtual ExecutionExpression RewriteMemberRead(ExecutionMemberRead expression)
     {
         var receiver = RewriteExpression(expression.Receiver);
         return ReferenceEquals(receiver, expression.Receiver) ? expression : expression with { Receiver = receiver };
     }
 
-    protected virtual ExecutionExpression RewriteScriptParameterRead(ExecutionScriptParameterRead expression) => expression;
-    protected virtual ExecutionExpression RewriteScriptVariableRead(ExecutionScriptVariableRead expression) => expression;
+    protected virtual ExecutionExpression RewriteScriptParameterRead(ExecutionScriptParameterRead expression) =>
+        expression;
+
+    protected virtual ExecutionExpression RewriteScriptVariableRead(ExecutionScriptVariableRead expression) =>
+        expression;
+
     protected virtual ExecutionExpression RewriteLiteral(ExecutionLiteral expression) => expression;
 
     protected virtual ExecutionExpression RewriteBinary(ExecutionBinary expression)
@@ -117,7 +169,11 @@ internal abstract partial class ExecutionIrRewriter
         var right = RewriteExpression(expression.Right);
         return ReferenceEquals(left, expression.Left) && ReferenceEquals(right, expression.Right)
             ? expression
-            : expression with { Left = left, Right = right };
+            : expression with
+            {
+                Left = left,
+                Right = right,
+            };
     }
 
     protected virtual ExecutionExpression RewriteUnary(ExecutionUnary expression)
@@ -130,10 +186,15 @@ internal abstract partial class ExecutionIrRewriter
     {
         var arguments = RewriteExpressionList(expression.Arguments);
         var injectedSource = RewriteOptionalExpression(expression.InjectedSource);
-        return ReferenceEquals(arguments, expression.Arguments) &&
-               ReferenceEquals(injectedSource, expression.InjectedSource)
+        return
+            ReferenceEquals(arguments, expression.Arguments)
+            && ReferenceEquals(injectedSource, expression.InjectedSource)
             ? expression
-            : expression with { Arguments = arguments, InjectedSource = injectedSource };
+            : expression with
+            {
+                Arguments = arguments,
+                InjectedSource = injectedSource,
+            };
     }
 
     protected virtual ExecutionExpression RewriteStrictCast(ExecutionStrictCast expression)
@@ -142,12 +203,17 @@ internal abstract partial class ExecutionIrRewriter
         return ReferenceEquals(value, expression.Expression) ? expression : expression with { Expression = value };
     }
 
-    protected virtual ExecutionExpression RewriteMethodTargetReuseCandidate(ExecutionMethodTargetReuseCandidate expression)
+    protected virtual ExecutionExpression RewriteMethodTargetReuseCandidate(
+        ExecutionMethodTargetReuseCandidate expression
+    )
     {
         var methodCall = (ExecutionMethodCall)RewriteMethodCall(expression.MethodCall);
         return ReferenceEquals(methodCall, expression.MethodCall)
             ? expression
-            : expression with { MethodCall = methodCall };
+            : expression with
+            {
+                MethodCall = methodCall,
+            };
     }
 
     protected virtual ExecutionExpression RewriteArrayAccess(ExecutionArrayAccess expression)
@@ -156,14 +222,21 @@ internal abstract partial class ExecutionIrRewriter
         var index = RewriteExpression(expression.Index);
         return ReferenceEquals(array, expression.Array) && ReferenceEquals(index, expression.Index)
             ? expression
-            : expression with { Array = array, Index = index };
+            : expression with
+            {
+                Array = array,
+                Index = index,
+            };
     }
 
-    protected virtual ExecutionExpression RewriteIndexedHashRowCreate(ExecutionIndexedHashRowCreate expression) => expression;
+    protected virtual ExecutionExpression RewriteIndexedHashRowCreate(ExecutionIndexedHashRowCreate expression) =>
+        expression;
 
-    protected virtual ExecutionExpression RewriteIndexedHashRowRowRead(ExecutionIndexedHashRowRowRead expression) => expression;
+    protected virtual ExecutionExpression RewriteIndexedHashRowRowRead(ExecutionIndexedHashRowRowRead expression) =>
+        expression;
 
-    protected virtual ExecutionExpression RewriteIndexedHashRowIndexRead(ExecutionIndexedHashRowIndexRead expression) => expression;
+    protected virtual ExecutionExpression RewriteIndexedHashRowIndexRead(ExecutionIndexedHashRowIndexRead expression) =>
+        expression;
 
     protected virtual ExecutionExpression RewriteIsNullCheck(ExecutionIsNullCheck expression)
     {
@@ -174,7 +247,12 @@ internal abstract partial class ExecutionIrRewriter
     protected virtual ExecutionExpression RewriteRowPresence(ExecutionRowPresence expression)
     {
         var source = RewriteExpression(expression.PresenceSource);
-        return ReferenceEquals(source, expression.PresenceSource) ? expression : expression with { PresenceSource = source };
+        return ReferenceEquals(source, expression.PresenceSource)
+            ? expression
+            : expression with
+            {
+                PresenceSource = source,
+            };
     }
 
     protected virtual ExecutionExpression RewriteInCheck(ExecutionInCheck expression)
@@ -183,7 +261,11 @@ internal abstract partial class ExecutionIrRewriter
         var values = RewriteExpressionList(expression.Values);
         return ReferenceEquals(value, expression.Expression) && ReferenceEquals(values, expression.Values)
             ? expression
-            : expression with { Expression = value, Values = values };
+            : expression with
+            {
+                Expression = value,
+                Values = values,
+            };
     }
 
     protected virtual ExecutionExpression RewritePatternMatch(ExecutionPatternMatch expression)
@@ -192,7 +274,11 @@ internal abstract partial class ExecutionIrRewriter
         var pattern = RewriteExpression(expression.Pattern);
         return ReferenceEquals(value, expression.Expression) && ReferenceEquals(pattern, expression.Pattern)
             ? expression
-            : expression with { Expression = value, Pattern = pattern };
+            : expression with
+            {
+                Expression = value,
+                Pattern = pattern,
+            };
     }
 
     protected virtual ExecutionExpression RewriteBetween(ExecutionBetween expression)
@@ -200,21 +286,31 @@ internal abstract partial class ExecutionIrRewriter
         var value = RewriteExpression(expression.Expression);
         var low = RewriteExpression(expression.Low);
         var high = RewriteExpression(expression.High);
-        return ReferenceEquals(value, expression.Expression) &&
-               ReferenceEquals(low, expression.Low) &&
-               ReferenceEquals(high, expression.High)
+        return
+            ReferenceEquals(value, expression.Expression)
+            && ReferenceEquals(low, expression.Low)
+            && ReferenceEquals(high, expression.High)
             ? expression
-            : expression with { Expression = value, Low = low, High = high };
+            : expression with
+            {
+                Expression = value,
+                Low = low,
+                High = high,
+            };
     }
 
     protected virtual ExecutionExpression RewriteCaseWhen(ExecutionCaseWhen expression)
     {
         var branches = RewriteList(expression.Branches, RewriteCaseWhenBranch);
         var elseExpression = RewriteOptionalExpression(expression.ElseExpression);
-        return ReferenceEquals(branches, expression.Branches) &&
-               ReferenceEquals(elseExpression, expression.ElseExpression)
+        return
+            ReferenceEquals(branches, expression.Branches) && ReferenceEquals(elseExpression, expression.ElseExpression)
             ? expression
-            : expression with { Branches = branches, ElseExpression = elseExpression };
+            : expression with
+            {
+                Branches = branches,
+                ElseExpression = elseExpression,
+            };
     }
 
     protected virtual ExecutionExpression RewriteCoalesce(ExecutionCoalesce expression)
@@ -222,7 +318,10 @@ internal abstract partial class ExecutionIrRewriter
         var expressions = RewriteExpressionList(expression.Expressions);
         return ReferenceEquals(expressions, expression.Expressions)
             ? expression
-            : expression with { Expressions = expressions };
+            : expression with
+            {
+                Expressions = expressions,
+            };
     }
 
     protected virtual ExecutionExpression RewriteRowStream(ExecutionRowStream expression) => expression;
@@ -244,6 +343,7 @@ internal abstract partial class ExecutionIrRewriter
         var segments = RewriteContextSegments(expression.Segments);
         return ReferenceEquals(segments, expression.Segments) ? expression : expression with { Segments = segments };
     }
+
     protected virtual ExecutionExpression RewriteValueTupleKey(ExecutionValueTupleKey expression)
     {
         var parts = RewriteExpressionList(expression.Parts);
@@ -255,14 +355,22 @@ internal abstract partial class ExecutionIrRewriter
     protected virtual ExecutionExpression RewriteAggregateCall(ExecutionAggregateCall expression)
     {
         var arguments = RewriteExpressionList(expression.Arguments);
-        return ReferenceEquals(arguments, expression.Arguments) ? expression : expression with { Arguments = arguments };
+        return ReferenceEquals(arguments, expression.Arguments)
+            ? expression
+            : expression with
+            {
+                Arguments = arguments,
+            };
     }
 
     protected virtual ExecutionExpression RewriteGroupKeyRead(ExecutionGroupKeyRead expression) => expression;
 
-    protected virtual ExecutionExpression RewriteAggregateCapturedValueRead(ExecutionAggregateCapturedValueRead expression) => expression;
+    protected virtual ExecutionExpression RewriteAggregateCapturedValueRead(
+        ExecutionAggregateCapturedValueRead expression
+    ) => expression;
 
-    protected virtual ExecutionExpression RewriteAggregateResultRef(ExecutionAggregateResultRef expression) => expression;
+    protected virtual ExecutionExpression RewriteAggregateResultRef(ExecutionAggregateResultRef expression) =>
+        expression;
 
     protected virtual ExecutionExpression RewriteWindowResultRef(ExecutionWindowResultRef expression) => expression;
 }

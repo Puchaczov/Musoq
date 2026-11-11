@@ -5,35 +5,42 @@ namespace Musoq.Targets.CSharpClr;
 
 internal static class TypedBufferSyntax
 {
-    public static ArrayCreationExpressionSyntax CreateSizedArrayCreation(
-        string elementTypeName,
-        ExpressionSyntax size)
+    public static ArrayCreationExpressionSyntax CreateSizedArrayCreation(string elementTypeName, ExpressionSyntax size)
     {
         return SyntaxFactory.ArrayCreationExpression(
-            SyntaxFactory.ArrayType(SyntaxFactory.IdentifierName(elementTypeName))
-                .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                    SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList(size)))));
+            SyntaxFactory
+                .ArrayType(SyntaxFactory.IdentifierName(elementTypeName))
+                .WithRankSpecifiers(
+                    SyntaxFactory.SingletonList(
+                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList(size))
+                    )
+                )
+        );
     }
 
-    public static ArrayCreationExpressionSyntax CreateSizedArrayCreation(
-        Type elementType,
-        ExpressionSyntax size)
+    public static ArrayCreationExpressionSyntax CreateSizedArrayCreation(Type elementType, ExpressionSyntax size)
     {
         return SyntaxFactory.ArrayCreationExpression(
-            SyntaxFactory.ArrayType(CreateTypeSyntax(elementType))
-                .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                    SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList(size)))));
+            SyntaxFactory
+                .ArrayType(CreateTypeSyntax(elementType))
+                .WithRankSpecifiers(
+                    SyntaxFactory.SingletonList(
+                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList(size))
+                    )
+                )
+        );
     }
 
     public static ArrayCreationExpressionSyntax CreateSizedArrayCreation(
         ExecutionTypeRef elementType,
-        ExpressionSyntax size) =>
-        CreateSizedArrayCreation(elementType.RequireClrType(), size);
+        ExpressionSyntax size
+    ) => CreateSizedArrayCreation(elementType.RequireClrType(), size);
 
     public static ForStatementSyntax CreateIndexedForLoop(
         string indexVariableName,
         ExecutionVariable buffer,
-        StatementSyntax body)
+        StatementSyntax body
+    )
     {
         return StatementEmitter.CreateForLoop(
             indexVariableName,
@@ -41,11 +48,14 @@ internal static class TypedBufferSyntax
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.LessThanExpression,
                 SyntaxFactory.IdentifierName(indexVariableName),
-                CreateBufferCountExpression(buffer)),
+                CreateBufferCountExpression(buffer)
+            ),
             SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.PreIncrementExpression,
-                SyntaxFactory.IdentifierName(indexVariableName)),
-            body);
+                SyntaxFactory.IdentifierName(indexVariableName)
+            ),
+            body
+        );
     }
 
     public static MemberAccessExpressionSyntax CreateBufferCountExpression(ExecutionVariable buffer)
@@ -53,24 +63,29 @@ internal static class TypedBufferSyntax
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(buffer.Name),
-            SyntaxFactory.IdentifierName("Count"));
+            SyntaxFactory.IdentifierName("Count")
+        );
     }
 
     public static ExpressionStatementSyntax CreateArrayAssignment(
         string arrayName,
         string indexVariableName,
         ExpressionSyntax value,
-        Type elementType)
+        Type elementType
+    )
     {
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 CreateElementAccess(
                     SyntaxFactory.IdentifierName(arrayName),
-                    SyntaxFactory.IdentifierName(indexVariableName)),
+                    SyntaxFactory.IdentifierName(indexVariableName)
+                ),
                 SyntaxFactory.CastExpression(
                     CreateTypeSyntax(elementType),
-                    SyntaxFactory.ParenthesizedExpression(value))));
+                    SyntaxFactory.ParenthesizedExpression(value)
+                )
+            )
+        );
     }
-
 }

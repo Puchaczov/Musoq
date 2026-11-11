@@ -6,7 +6,6 @@ namespace Musoq.Parser.Lexing;
 
 public sealed partial class Lexer
 {
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Token ScanSingleCharOperator()
     {
@@ -15,8 +14,10 @@ public sealed partial class Lexer
         Position++;
 
         if (FastCharacterClassifier.TryGetSingleCharOperator(c, out var tokenType))
-            return AssignToken(TokenFactory.Create(tokenType, start, FastCharacterClassifier.CharToString(c))
-                               ?? new WordToken(FastCharacterClassifier.CharToString(c), new TextSpan(start, 1)));
+            return AssignToken(
+                TokenFactory.Create(tokenType, start, FastCharacterClassifier.CharToString(c))
+                    ?? new WordToken(FastCharacterClassifier.CharToString(c), new TextSpan(start, 1))
+            );
 
         return AssignToken(new WordToken(FastCharacterClassifier.CharToString(c), new TextSpan(start, 1)));
     }
@@ -140,23 +141,33 @@ public sealed partial class Lexer
             return AssignToken(new CommentToken(Input[start..Position], new TextSpan(start, Position - start)));
         }
 
-        if (Position + 1 < Input.Length &&
-            FastCharacterClassifier.IsDigit(Input[Position + 1]) &&
-            !PreviousTokenCanEndExpression() &&
-            !(Input[Position + 1] == '0' && Position + 2 < Input.Length &&
-              Input[Position + 2] is ('x' or 'X' or 'b' or 'B' or 'o' or 'O')))
+        if (
+            Position + 1 < Input.Length
+            && FastCharacterClassifier.IsDigit(Input[Position + 1])
+            && !PreviousTokenCanEndExpression()
+            && !(
+                Input[Position + 1] == '0'
+                && Position + 2 < Input.Length
+                && Input[Position + 2] is ('x' or 'X' or 'b' or 'B' or 'o' or 'O')
+            )
+        )
         {
             Position++;
             var numToken = ScanNumber();
 
             var numText = "-" + numToken.Value;
-            return AssignToken(numToken switch
-            {
-                DecimalToken => new DecimalToken(numText, new TextSpan(start, numToken.Span.End - start)),
-                IntegerToken it => new IntegerToken(numText, new TextSpan(start, numToken.Span.End - start),
-                    it.Abbreviation),
-                _ => numToken
-            });
+            return AssignToken(
+                numToken switch
+                {
+                    DecimalToken => new DecimalToken(numText, new TextSpan(start, numToken.Span.End - start)),
+                    IntegerToken it => new IntegerToken(
+                        numText,
+                        new TextSpan(start, numToken.Span.End - start),
+                        it.Abbreviation
+                    ),
+                    _ => numToken,
+                }
+            );
         }
 
         Position++;
@@ -165,12 +176,25 @@ public sealed partial class Lexer
 
     private bool PreviousTokenCanEndExpression()
     {
-        return _significantTokenType is TokenType.Word or TokenType.Identifier or TokenType.Function or
-            TokenType.Integer or TokenType.Decimal or TokenType.HexadecimalInteger or
-            TokenType.BinaryInteger or TokenType.OctalInteger or TokenType.StringLiteral or
-            TokenType.RightParenthesis or TokenType.RightSquareBracket or TokenType.KeyAccess or
-            TokenType.NumericAccess or TokenType.Property or TokenType.AliasedStar or
-            TokenType.True or TokenType.False or TokenType.Null;
+        return _significantTokenType
+            is TokenType.Word
+                or TokenType.Identifier
+                or TokenType.Function
+                or TokenType.Integer
+                or TokenType.Decimal
+                or TokenType.HexadecimalInteger
+                or TokenType.BinaryInteger
+                or TokenType.OctalInteger
+                or TokenType.StringLiteral
+                or TokenType.RightParenthesis
+                or TokenType.RightSquareBracket
+                or TokenType.KeyAccess
+                or TokenType.NumericAccess
+                or TokenType.Property
+                or TokenType.AliasedStar
+                or TokenType.True
+                or TokenType.False
+                or TokenType.Null;
     }
 
     private Token ScanSlash()
@@ -194,8 +218,11 @@ public sealed partial class Lexer
 
             if (RecoverOnError)
             {
-                Diagnostics.Add(new LexerException(message, span, DiagnosticCode.MQ1005_UnterminatedBlockComment)
-                    .ToDiagnostic(SourceText));
+                Diagnostics.Add(
+                    new LexerException(message, span, DiagnosticCode.MQ1005_UnterminatedBlockComment).ToDiagnostic(
+                        SourceText
+                    )
+                );
                 Position = Input.Length;
                 return AssignToken(new ErrorToken(Input[start], span));
             }
@@ -203,7 +230,6 @@ public sealed partial class Lexer
             Position = Input.Length;
             throw new LexerException(message, span, DiagnosticCode.MQ1005_UnterminatedBlockComment);
         }
-
 
         Position++;
         return AssignToken(new FSlashToken(new TextSpan(start, 1)));
@@ -257,7 +283,6 @@ public sealed partial class Lexer
             Position = end + 1;
             var text = Input[start..Position];
 
-
             var columnName = text[1..^1];
             return AssignToken(new ColumnToken(columnName, new TextSpan(start, text.Length)));
         }
@@ -274,8 +299,9 @@ public sealed partial class Lexer
 
         if (RecoverOnError)
         {
-            Diagnostics.Add(new LexerException(message, span, DiagnosticCode.MQ2011_MissingClosingBracket)
-                .ToDiagnostic(SourceText));
+            Diagnostics.Add(
+                new LexerException(message, span, DiagnosticCode.MQ2011_MissingClosingBracket).ToDiagnostic(SourceText)
+            );
             return AssignToken(new ErrorToken(Input[start..end], span));
         }
 
@@ -286,7 +312,6 @@ public sealed partial class Lexer
     {
         var start = Position;
 
-
         if (Position + 1 < Input.Length && Input[Position + 1] == ':')
         {
             Position += 2;
@@ -294,7 +319,8 @@ public sealed partial class Lexer
         }
 
         Position++;
-        return AssignToken(TokenFactory.Create(TokenType.Colon, start, ":") ??
-                           new WordToken(":", new TextSpan(start, 1)));
+        return AssignToken(
+            TokenFactory.Create(TokenType.Colon, start, ":") ?? new WordToken(":", new TextSpan(start, 1))
+        );
     }
 }

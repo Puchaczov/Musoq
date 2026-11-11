@@ -11,8 +11,10 @@ public sealed class DiagnosticCore005DataTypeTests : BasicEntityTestBase
     public void LiteralAndNullPostfixCasts_ShouldExposeDocumentedTypesAndValues()
     {
         var table = CreateAndRunVirtualMachine(
-            "select 42::Int32 as IntValue, .5::Decimal as DecimalValue, true::Boolean as BoolValue, 'Z'::Char as CharValue, null::DateTime as NullDate from #A.Entities()",
-            CreateSingleSource(new BasicEntity())).Run();
+                "select 42::Int32 as IntValue, .5::Decimal as DecimalValue, true::Boolean as BoolValue, 'Z'::Char as CharValue, null::DateTime as NullDate from #A.Entities()",
+                CreateSingleSource(new BasicEntity())
+            )
+            .Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -20,7 +22,8 @@ public sealed class DiagnosticCore005DataTypeTests : BasicEntityTestBase
             ("DecimalValue", typeof(decimal?)),
             ("BoolValue", typeof(bool?)),
             ("CharValue", typeof(char?)),
-            ("NullDate", typeof(DateTime?)));
+            ("NullDate", typeof(DateTime?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { 42, .5m, true, 'Z', null });
     }
 }

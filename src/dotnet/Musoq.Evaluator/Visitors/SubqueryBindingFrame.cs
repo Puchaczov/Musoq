@@ -39,8 +39,10 @@ internal sealed class SubqueryBindingFrame : IDisposable
         _quantity = source.UsedSchemasQuantity;
         _sourceKey = source.SchemaFromKey;
         _methodDepth = state.Traversal.MethodCount;
-        VisibleAliases = source.CurrentScope.ScopeSymbolTable.GetSymbols<TableSymbol>()
-            .SelectMany(static table => table.CompoundTables).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        VisibleAliases = source
+            .CurrentScope.ScopeSymbolTable.GetSymbols<TableSymbol>()
+            .SelectMany(static table => table.CompoundTables)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
         source.AliasToSchemaFromNodeMap.Clear();
         source.SchemaFromInfo.Clear();
         source.AliasMapToInMemoryTableMap.Clear();
@@ -74,8 +76,11 @@ internal sealed class SubqueryBindingFrame : IDisposable
             _state.Traversal.PopMethod("BuildMetadataAndInferTypesVisitor", "subquery scope");
     }
 
-    private static void Restore<TKey, TValue>(IDictionary<TKey, TValue> target,
-        IEnumerable<KeyValuePair<TKey, TValue>> values) where TKey : notnull
+    private static void Restore<TKey, TValue>(
+        IDictionary<TKey, TValue> target,
+        IEnumerable<KeyValuePair<TKey, TValue>> values
+    )
+        where TKey : notnull
     {
         target.Clear();
         foreach (var pair in values)

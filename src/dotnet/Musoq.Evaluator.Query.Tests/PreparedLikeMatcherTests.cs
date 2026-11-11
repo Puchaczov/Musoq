@@ -36,7 +36,8 @@ public sealed class PreparedLikeMatcherTests
     [DataRow("%literal%")]
     [DataRow("Żółć%")]
     public void LegacyMatcher_WhenShapeHasOnlySimpleBoundaryWildcards_ShouldUseTimeoutBoundedBacktracking(
-        string pattern)
+        string pattern
+    )
     {
         Assert.IsTrue(Operators.CanUseTimeoutBoundedBacktrackingMatcher(pattern));
     }
@@ -62,7 +63,8 @@ public sealed class PreparedLikeMatcherTests
     [DataRow("literal%%", @"\Aliteral.*.*\z")]
     public void OptimizedLegacyRegexPattern_ShouldRemoveOnlyRedundantBoundaryWildcards(
         string pattern,
-        string expectedRegex)
+        string expectedRegex
+    )
     {
         Assert.AreEqual(expectedRegex, Operators.CreateOptimizedLegacyLikeRegexPattern(pattern));
     }
@@ -147,7 +149,7 @@ public sealed class PreparedLikeMatcherTests
             (Input: "alphabet", Pattern: "%bet"),
             (Input: "alphabet", Pattern: "%pha%"),
             (Input: "alphabet", Pattern: "a_p%"),
-            (Input: "Żółć", Pattern: "ż%")
+            (Input: "Żółć", Pattern: "ż%"),
         };
 
         for (var repetition = 0; repetition < 8; repetition++)
@@ -157,7 +159,8 @@ public sealed class PreparedLikeMatcherTests
                 Assert.AreEqual(
                     operators.Like(input, pattern),
                     Operators.LikeDynamic(input, pattern),
-                    $"Input '{input}', pattern '{pattern}', repetition {repetition}.");
+                    $"Input '{input}', pattern '{pattern}', repetition {repetition}."
+                );
             }
         }
     }
@@ -170,10 +173,7 @@ public sealed class PreparedLikeMatcherTests
 
         foreach (var input in inputs)
         {
-            Assert.AreEqual(
-                FreshHistoricalLike(input, "K%"),
-                Operators.LikeDynamic(input, "K%", cache),
-                input);
+            Assert.AreEqual(FreshHistoricalLike(input, "K%"), Operators.LikeDynamic(input, "K%", cache), input);
         }
 
         Assert.AreEqual(1, cache.Count);
@@ -190,6 +190,7 @@ public sealed class PreparedLikeMatcherTests
             input,
             string.Concat(@"\A", sqlPattern, @"\z"),
             RegexOptions.IgnoreCase | RegexOptions.Singleline,
-            TimeSpan.FromSeconds(1));
+            TimeSpan.FromSeconds(1)
+        );
     }
 }

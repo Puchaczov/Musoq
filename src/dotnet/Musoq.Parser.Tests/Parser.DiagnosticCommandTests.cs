@@ -88,7 +88,10 @@ public class ParserDiagnosticCommandTests
         var exception = Assert.Throws<SyntaxException>(() => Parse("profile"));
 
         Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, exception.Code);
-        StringAssert.Contains(exception.Message, "Diagnostic command requires an inner SELECT, FROM, WITH, PIVOT, or UNPIVOT query");
+        StringAssert.Contains(
+            exception.Message,
+            "Diagnostic command requires an inner SELECT, FROM, WITH, PIVOT, or UNPIVOT query"
+        );
     }
 
     [TestMethod]
@@ -97,7 +100,10 @@ public class ParserDiagnosticCommandTests
         var exception = Assert.Throws<SyntaxException>(() => Parse("profile table temp {Name: string}"));
 
         Assert.AreEqual(DiagnosticCode.MQ2040_InvalidDiagnosticCommand, exception.Code);
-        StringAssert.Contains(exception.Message, "Diagnostic command does not support inner query starting with 'table'");
+        StringAssert.Contains(
+            exception.Message,
+            "Diagnostic command does not support inner query starting with 'table'"
+        );
     }
 
     private static DiagnosticCommandNode ParseSingleDiagnosticCommand(string query)

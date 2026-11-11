@@ -10,7 +10,8 @@ internal sealed record TargetDiagnostic
         string message,
         TargetSourceRange? sourceRange = null,
         string? sourceName = null,
-        string? sourceSnippet = null)
+        string? sourceSnippet = null
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         ArgumentException.ThrowIfNullOrWhiteSpace(message);

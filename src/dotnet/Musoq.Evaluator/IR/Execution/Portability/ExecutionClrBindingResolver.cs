@@ -20,7 +20,8 @@ internal static class ExecutionClrBindingResolver
 
     public static Type ResolveType(
         ExecutionPortableTypeDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly> semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly> semanticAssemblies
+    )
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(semanticAssemblies);
@@ -30,9 +31,9 @@ internal static class ExecutionClrBindingResolver
 
     private static Type ResolveTypeCore(
         ExecutionPortableTypeDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies
+    )
     {
-
         if (string.Equals(descriptor.StableName, "host-opaque:dynamic-object", StringComparison.Ordinal))
             return typeof(object);
 
@@ -41,20 +42,20 @@ internal static class ExecutionClrBindingResolver
             ExecutionPortableTypeKind.Primitive => ResolvePrimitive(descriptor.StableName),
             ExecutionPortableTypeKind.Nullable => ResolveNullable(descriptor, semanticAssemblies),
             ExecutionPortableTypeKind.Array => ResolveArray(descriptor, semanticAssemblies),
-            ExecutionPortableTypeKind.Sequence or
-                ExecutionPortableTypeKind.List or
-                ExecutionPortableTypeKind.Map or
-                ExecutionPortableTypeKind.Set or
-                ExecutionPortableTypeKind.Pair => ResolveContainer(descriptor, semanticAssemblies),
-            ExecutionPortableTypeKind.ByRef => ResolveTypeCore(
-                descriptor.Arguments.Single(),
-                semanticAssemblies).MakeByRefType(),
-            ExecutionPortableTypeKind.HostOpaque or ExecutionPortableTypeKind.ClrOnly =>
-                ResolveClrIdentity(descriptor, semanticAssemblies),
+            ExecutionPortableTypeKind.Sequence
+            or ExecutionPortableTypeKind.List
+            or ExecutionPortableTypeKind.Map
+            or ExecutionPortableTypeKind.Set
+            or ExecutionPortableTypeKind.Pair => ResolveContainer(descriptor, semanticAssemblies),
+            ExecutionPortableTypeKind.ByRef => ResolveTypeCore(descriptor.Arguments.Single(), semanticAssemblies)
+                .MakeByRefType(),
+            ExecutionPortableTypeKind.HostOpaque or ExecutionPortableTypeKind.ClrOnly => ResolveClrIdentity(
+                descriptor,
+                semanticAssemblies
+            ),
             ExecutionPortableTypeKind.GeneratedRow => typeof(Tables.Row),
             ExecutionPortableTypeKind.GenericParameter => typeof(object),
-            _ => throw Unsupported(
-                $"Execution type descriptor '{descriptor.StableName}' has no CLR binding.")
+            _ => throw Unsupported($"Execution type descriptor '{descriptor.StableName}' has no CLR binding."),
         };
     }
 
@@ -66,7 +67,8 @@ internal static class ExecutionClrBindingResolver
 
     public static MethodInfo ResolveMethod(
         ExecutionPortableCallableDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly> semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly> semanticAssemblies
+    )
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(semanticAssemblies);
@@ -75,7 +77,8 @@ internal static class ExecutionClrBindingResolver
 
     private static MethodInfo ResolveMethodCore(
         ExecutionPortableCallableDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies
+    )
     {
         if (descriptor.DeclaringType is not { } declaringTypeDescriptor)
             throw Unsupported($"Callable '{descriptor.StableName}' has no declaring type.");
@@ -90,14 +93,18 @@ internal static class ExecutionClrBindingResolver
 
         var match = candidates
             .Select(method => TryCloseGenericMethod(method, descriptor, semanticAssemblies))
-            .FirstOrDefault(method => method is not null &&
-                string.Equals(ExecutionPortableSymbolFactory.FromMethod(method).StableName, descriptor.StableName,
-                    StringComparison.Ordinal));
+            .FirstOrDefault(method =>
+                method is not null
+                && string.Equals(
+                    ExecutionPortableSymbolFactory.FromMethod(method).StableName,
+                    descriptor.StableName,
+                    StringComparison.Ordinal
+                )
+            );
         if (match is not null)
             return match;
 
-        throw Unsupported(
-            $"Callable descriptor '{descriptor.StableName}' could not be bound to a CLR method.");
+        throw Unsupported($"Callable descriptor '{descriptor.StableName}' could not be bound to a CLR method.");
     }
 
     public static ConstructorInfo ResolveConstructor(ExecutionPortableCallableDescriptor descriptor)
@@ -108,7 +115,8 @@ internal static class ExecutionClrBindingResolver
 
     public static ConstructorInfo ResolveConstructor(
         ExecutionPortableCallableDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly> semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly> semanticAssemblies
+    )
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(semanticAssemblies);
@@ -117,7 +125,8 @@ internal static class ExecutionClrBindingResolver
 
     private static ConstructorInfo ResolveConstructorCore(
         ExecutionPortableCallableDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies
+    )
     {
         if (descriptor.DeclaringType is not { } declaringTypeDescriptor)
             throw Unsupported($"Callable '{descriptor.StableName}' has no declaring type.");
@@ -126,17 +135,24 @@ internal static class ExecutionClrBindingResolver
         var match = declaringType
             .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
             .Where(constructor => constructor.GetParameters().Length == descriptor.ParameterTypes.Count)
-            .FirstOrDefault(constructor => string.Equals(
-                ExecutionPortableSymbolFactory.FromConstructor(constructor).StableName,
-                descriptor.StableName,
-                StringComparison.Ordinal));
-        return match ?? throw Unsupported(
-            $"Callable descriptor '{descriptor.StableName}' could not be bound to a CLR constructor.");
+            .FirstOrDefault(constructor =>
+                string.Equals(
+                    ExecutionPortableSymbolFactory.FromConstructor(constructor).StableName,
+                    descriptor.StableName,
+                    StringComparison.Ordinal
+                )
+            );
+        return match
+            ?? throw Unsupported(
+                $"Callable descriptor '{descriptor.StableName}' could not be bound to a CLR constructor."
+            );
     }
+
     private static MethodInfo? TryCloseGenericMethod(
         MethodInfo method,
         ExecutionPortableCallableDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies
+    )
     {
         if (!method.IsGenericMethodDefinition)
             return method;
@@ -153,11 +169,14 @@ internal static class ExecutionClrBindingResolver
         for (var index = 0; index < parameters.Length; index++)
         {
             var actualType = ResolveTypeCore(descriptor.ParameterTypes[index], semanticAssemblies);
-            if (!TryInferGenericArguments(
+            if (
+                !TryInferGenericArguments(
                     parameters[index].ParameterType,
                     actualType,
                     genericParameters,
-                    inferredArguments))
+                    inferredArguments
+                )
+            )
             {
                 return null;
             }
@@ -179,15 +198,17 @@ internal static class ExecutionClrBindingResolver
     private static MethodInfo? TryCloseRegisteredSpecialization(
         MethodInfo method,
         IReadOnlyList<ExecutionPortableTypeDescriptor> arguments,
-        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies
+    )
     {
         if (arguments.Count != method.GetGenericArguments().Length)
             return null;
 
         try
         {
-            return method.MakeGenericMethod(arguments
-                .Select(argument => ResolveTypeCore(argument, semanticAssemblies)).ToArray());
+            return method.MakeGenericMethod(
+                arguments.Select(argument => ResolveTypeCore(argument, semanticAssemblies)).ToArray()
+            );
         }
         catch (ArgumentException)
         {
@@ -199,7 +220,8 @@ internal static class ExecutionClrBindingResolver
         Type parameterPattern,
         Type actualType,
         IReadOnlyList<Type> genericParameters,
-        IList<Type?> inferredArguments)
+        IList<Type?> inferredArguments
+    )
     {
         if (parameterPattern.IsGenericParameter)
         {
@@ -218,22 +240,25 @@ internal static class ExecutionClrBindingResolver
 
         if (parameterPattern.IsArray)
         {
-            return actualType.IsArray &&
-                   parameterPattern.GetArrayRank() == actualType.GetArrayRank() &&
-                   TryInferGenericArguments(
-                       parameterPattern.GetElementType()!,
-                       actualType.GetElementType()!,
-                       genericParameters,
-                       inferredArguments);
+            return actualType.IsArray
+                && parameterPattern.GetArrayRank() == actualType.GetArrayRank()
+                && TryInferGenericArguments(
+                    parameterPattern.GetElementType()!,
+                    actualType.GetElementType()!,
+                    genericParameters,
+                    inferredArguments
+                );
         }
 
         if (parameterPattern.IsByRef)
         {
-            return actualType.IsByRef && TryInferGenericArguments(
-                parameterPattern.GetElementType()!,
-                actualType.GetElementType()!,
-                genericParameters,
-                inferredArguments);
+            return actualType.IsByRef
+                && TryInferGenericArguments(
+                    parameterPattern.GetElementType()!,
+                    actualType.GetElementType()!,
+                    genericParameters,
+                    inferredArguments
+                );
         }
 
         if (parameterPattern.IsGenericType && actualType.IsGenericType)
@@ -245,11 +270,14 @@ internal static class ExecutionClrBindingResolver
 
             for (var index = 0; index < parameterArguments.Length; index++)
             {
-                if (!TryInferGenericArguments(
+                if (
+                    !TryInferGenericArguments(
                         parameterArguments[index],
                         actualArguments[index],
                         genericParameters,
-                        inferredArguments))
+                        inferredArguments
+                    )
+                )
                 {
                     return false;
                 }
@@ -284,19 +312,19 @@ internal static class ExecutionClrBindingResolver
             "primitive:guid" => typeof(Guid),
             "primitive:timespan" => typeof(TimeSpan),
             "primitive:void" => typeof(void),
-            _ => throw Unsupported($"Unknown primitive descriptor '{stableName}'.")
+            _ => throw Unsupported($"Unknown primitive descriptor '{stableName}'."),
         };
     }
 
     private static Type ResolveNullable(
         ExecutionPortableTypeDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly>? semanticAssemblies) =>
-        typeof(Nullable<>).MakeGenericType(
-            ResolveTypeCore(descriptor.Arguments.Single(), semanticAssemblies));
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies
+    ) => typeof(Nullable<>).MakeGenericType(ResolveTypeCore(descriptor.Arguments.Single(), semanticAssemblies));
 
     private static Type ResolveArray(
         ExecutionPortableTypeDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies
+    )
     {
         var element = ResolveTypeCore(descriptor.Arguments.Single(), semanticAssemblies);
         return descriptor.ArrayRank.GetValueOrDefault(1) == 1
@@ -306,21 +334,25 @@ internal static class ExecutionClrBindingResolver
 
     private static Type ResolveContainer(
         ExecutionPortableTypeDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies
+    )
     {
-        var arguments = descriptor.Arguments
-            .Select(argument => ResolveTypeCore(argument, semanticAssemblies))
+        var arguments = descriptor
+            .Arguments.Select(argument => ResolveTypeCore(argument, semanticAssemblies))
             .ToArray();
-        var definition = descriptor.Container?.Kind ??
-                        (descriptor.Kind switch
-                        {
-                            ExecutionPortableTypeKind.Sequence => ExecutionPortableContainerKind.Sequence,
-                            ExecutionPortableTypeKind.List => ExecutionPortableContainerKind.List,
-                            ExecutionPortableTypeKind.Map => ExecutionPortableContainerKind.Map,
-                            ExecutionPortableTypeKind.Set => ExecutionPortableContainerKind.Set,
-                            ExecutionPortableTypeKind.Pair => ExecutionPortableContainerKind.Pair,
-                            _ => throw Unsupported($"Unknown container descriptor '{descriptor.StableName}'.")
-                        });
+        var definition =
+            descriptor.Container?.Kind
+            ?? (
+                descriptor.Kind switch
+                {
+                    ExecutionPortableTypeKind.Sequence => ExecutionPortableContainerKind.Sequence,
+                    ExecutionPortableTypeKind.List => ExecutionPortableContainerKind.List,
+                    ExecutionPortableTypeKind.Map => ExecutionPortableContainerKind.Map,
+                    ExecutionPortableTypeKind.Set => ExecutionPortableContainerKind.Set,
+                    ExecutionPortableTypeKind.Pair => ExecutionPortableContainerKind.Pair,
+                    _ => throw Unsupported($"Unknown container descriptor '{descriptor.StableName}'."),
+                }
+            );
 
         var genericDefinition = descriptor.Container?.BindingKind switch
         {
@@ -344,8 +376,8 @@ internal static class ExecutionClrBindingResolver
                     : typeof(Dictionary<,>),
                 ExecutionPortableContainerKind.Set => typeof(HashSet<>),
                 ExecutionPortableContainerKind.Pair => typeof(KeyValuePair<,>),
-                _ => throw new ArgumentOutOfRangeException()
-            }
+                _ => throw new ArgumentOutOfRangeException(),
+            },
         };
 
         return genericDefinition.MakeGenericType(arguments);
@@ -353,7 +385,8 @@ internal static class ExecutionClrBindingResolver
 
     private static Type ResolveClrIdentity(
         ExecutionPortableTypeDescriptor descriptor,
-        IReadOnlyDictionary<string, Assembly>? semanticAssemblies)
+        IReadOnlyDictionary<string, Assembly>? semanticAssemblies
+    )
     {
         var stableName = descriptor.StableName;
         var identity = stableName[(stableName.IndexOf(':') + 1)..];
@@ -368,16 +401,18 @@ internal static class ExecutionClrBindingResolver
             return typeof(object);
 
         Type? type = null;
-        if (assemblyName is not null &&
-            semanticAssemblies is not null &&
-            semanticAssemblies.TryGetValue(assemblyName, out var semanticAssembly))
+        if (
+            assemblyName is not null
+            && semanticAssemblies is not null
+            && semanticAssemblies.TryGetValue(assemblyName, out var semanticAssembly)
+        )
         {
             type = semanticAssembly.GetType(typeName, throwOnError: false);
         }
 
         var assemblyQualifiedTypeName = assemblyName is null ? typeName : $"{typeName}, {assemblyName}";
-        type ??= Type.GetType(assemblyQualifiedTypeName, throwOnError: false) ??
-                 Type.GetType(typeName, throwOnError: false);
+        type ??=
+            Type.GetType(assemblyQualifiedTypeName, throwOnError: false) ?? Type.GetType(typeName, throwOnError: false);
         if (type is null && semanticAssemblies is not null)
         {
             foreach (var candidate in semanticAssemblies.Values)
@@ -394,13 +429,11 @@ internal static class ExecutionClrBindingResolver
             return type;
 
         if (!type.IsGenericTypeDefinition)
-            throw Unsupported(
-                $"CLR type descriptor '{stableName}' resolved to non-generic type '{type}'.");
+            throw Unsupported($"CLR type descriptor '{stableName}' resolved to non-generic type '{type}'.");
 
         return type.MakeGenericType(
-            descriptor.Arguments
-                .Select(argument => ResolveTypeCore(argument, semanticAssemblies))
-                .ToArray());
+            descriptor.Arguments.Select(argument => ResolveTypeCore(argument, semanticAssemblies)).ToArray()
+        );
     }
 
     private static NotSupportedException Unsupported(string message) => new(message);

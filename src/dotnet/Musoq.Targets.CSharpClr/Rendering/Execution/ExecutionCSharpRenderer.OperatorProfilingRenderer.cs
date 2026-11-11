@@ -11,12 +11,15 @@ public sealed partial class ExecutionCSharpRenderer
     private IEnumerable<StatementSyntax> RenderOperatorProfiledNode(
         ExecutionNode node,
         IEnumerable<StatementSyntax> statements,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var renderedStatements = statements.ToArray();
-        if (!IsOperatorProfilingEnabledFor(context) ||
-            node is ExecutionReturnTable or ExecutionReturnDesc or ExecutionContinue or ExecutionBreak ||
-            !context.Session.OperatorCatalog.TryGetDescriptor(node, out var descriptor))
+        if (
+            !IsOperatorProfilingEnabledFor(context)
+            || node is ExecutionReturnTable or ExecutionReturnDesc or ExecutionContinue or ExecutionBreak
+            || !context.Session.OperatorCatalog.TryGetDescriptor(node, out var descriptor)
+        )
         {
             return renderedStatements;
         }
@@ -25,33 +28,35 @@ public sealed partial class ExecutionCSharpRenderer
         {
             return
             [
-                ..OperatorProfileCounterFacts.CreateCounterInputRowStatements(descriptor, node),
-                ..renderedStatements,
-                ..OperatorProfileCounterFacts.CreateCounterOutputRowStatements(descriptor, node)
+                .. OperatorProfileCounterFacts.CreateCounterInputRowStatements(descriptor, node),
+                .. renderedStatements,
+                .. OperatorProfileCounterFacts.CreateCounterOutputRowStatements(descriptor, node),
             ];
         }
 
-        if (node is ExecutionRecursiveCte recursiveCte) return RenderProfiledRecursiveCte(descriptor, recursiveCte, renderedStatements);
+        if (node is ExecutionRecursiveCte recursiveCte)
+            return RenderProfiledRecursiveCte(descriptor, recursiveCte, renderedStatements);
         return CanWrapOperatorStatementsInTryFinally(node)
             ?
             [
-                ..CreateOperatorRowCounterDeclarations(descriptor, node),
+                .. CreateOperatorRowCounterDeclarations(descriptor, node),
                 CreateOperatorScopeDeclaration(descriptor),
-                CreateOperatorTryFinallyStatement(descriptor, node, renderedStatements)
+                CreateOperatorTryFinallyStatement(descriptor, node, renderedStatements),
             ]
             :
             [
-                ..CreateOperatorRowCounterDeclarations(descriptor, node),
+                .. CreateOperatorRowCounterDeclarations(descriptor, node),
                 CreateOperatorScopeDeclaration(descriptor),
-                ..OperatorProfileCounterFacts.CreateScopeInputRowStatements(descriptor, node),
-                ..renderedStatements,
-                ..OperatorProfileCounterFacts.CreateScopeOutputRowStatements(descriptor, node),
-                ..CreateOperatorFinallyStatements(descriptor, node)
+                .. OperatorProfileCounterFacts.CreateScopeInputRowStatements(descriptor, node),
+                .. renderedStatements,
+                .. OperatorProfileCounterFacts.CreateScopeOutputRowStatements(descriptor, node),
+                .. CreateOperatorFinallyStatements(descriptor, node),
             ];
     }
 
     private static LocalDeclarationStatementSyntax CreateOperatorScopeDeclaration(
-        ExecutionPlanOperatorDescriptor descriptor)
+        ExecutionPlanOperatorDescriptor descriptor
+    )
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -60,48 +65,64 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxKind.CoalesceExpression,
                 SyntaxFactory.ConditionalAccessExpression(
                     SyntaxFactory.IdentifierName(ProfileRecorderVariableName),
-                    SyntaxFactory.InvocationExpression(
+                    SyntaxFactory
+                        .InvocationExpression(
                             SyntaxFactory.MemberBindingExpression(
-                                SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.BeginOperatorValue))))
-                    .WithArgumentList(CreateArgumentList(
-                        SyntaxFactory.IdentifierName(OperatorProfileCounterFacts.CreateHandleVariableName(descriptor))))),
+                                SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.BeginOperatorValue))
+                            )
+                        )
+                        .WithArgumentList(
+                            CreateArgumentList(
+                                SyntaxFactory.IdentifierName(
+                                    OperatorProfileCounterFacts.CreateHandleVariableName(descriptor)
+                                )
+                            )
+                        )
+                ),
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(OperatorProfileValueScope)),
-                    SyntaxFactory.IdentifierName(nameof(OperatorProfileValueScope.None)))));
+                    SyntaxFactory.IdentifierName(nameof(OperatorProfileValueScope.None))
+                )
+            )
+        );
     }
 
     private IEnumerable<StatementSyntax> CreateOperatorHandleDeclarations(
         OperatorProfileUsage usage,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (!IsOperatorProfilingEnabledFor(context))
             return [];
 
-        return context.Session.OperatorCatalog.NodeOperators
-            .Where(descriptor =>
-                usage.Contains(OperatorProfileCounterFacts.CreateHandleVariableName(descriptor)) ||
-                usage.Contains(OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor)) ||
-                usage.Contains(OperatorProfileCounterFacts.CreateOutputRowsVariableName(descriptor)))
+        return context
+            .Session.OperatorCatalog.NodeOperators.Where(descriptor =>
+                usage.Contains(OperatorProfileCounterFacts.CreateHandleVariableName(descriptor))
+                || usage.Contains(OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor))
+                || usage.Contains(OperatorProfileCounterFacts.CreateOutputRowsVariableName(descriptor))
+            )
             .Select(CreateOperatorHandleDeclaration)
             .ToArray();
     }
 
     private IEnumerable<StatementSyntax> CreateOperatorCounterDeclarations(
         OperatorProfileUsage usage,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (!IsOperatorProfilingEnabledFor(context))
             return [];
 
-        return context.Session.OperatorCatalog.NodeOperators
-            .Where(OperatorProfileCounterFacts.IsCounterOnlyDescriptor)
+        return context
+            .Session.OperatorCatalog.NodeOperators.Where(OperatorProfileCounterFacts.IsCounterOnlyDescriptor)
             .SelectMany(descriptor => CreateOperatorCounterDeclarations(descriptor, usage))
             .ToArray();
     }
 
     private static LocalDeclarationStatementSyntax CreateOperatorHandleDeclaration(
-        ExecutionPlanOperatorDescriptor descriptor)
+        ExecutionPlanOperatorDescriptor descriptor
+    )
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -110,77 +131,101 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxKind.CoalesceExpression,
                 SyntaxFactory.ConditionalAccessExpression(
                     SyntaxFactory.IdentifierName(ProfileRecorderVariableName),
-                    SyntaxFactory.InvocationExpression(
+                    SyntaxFactory
+                        .InvocationExpression(
                             SyntaxFactory.MemberBindingExpression(
-                                SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.GetOperatorHandle))))
-                        .WithArgumentList(CreateArgumentList(
-                            CreateStringLiteral(descriptor.Id),
-                            CreateStringLiteral(descriptor.NodeKind)))),
+                                SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder.GetOperatorHandle))
+                            )
+                        )
+                        .WithArgumentList(
+                            CreateArgumentList(
+                                CreateStringLiteral(descriptor.Id),
+                                CreateStringLiteral(descriptor.NodeKind)
+                            )
+                        )
+                ),
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(OperatorProfileHandle)),
-                    SyntaxFactory.IdentifierName(nameof(OperatorProfileHandle.None)))));
+                    SyntaxFactory.IdentifierName(nameof(OperatorProfileHandle.None))
+                )
+            )
+        );
     }
 
-    private static StatementSyntax CreateOperatorScopeDisposeStatement(
-        ExecutionPlanOperatorDescriptor descriptor)
+    private static StatementSyntax CreateOperatorScopeDisposeStatement(ExecutionPlanOperatorDescriptor descriptor)
     {
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(OperatorProfileCounterFacts.CreateScopeVariableName(descriptor)),
-                    SyntaxFactory.IdentifierName(nameof(IDisposable.Dispose)))));
+                    SyntaxFactory.IdentifierName(nameof(IDisposable.Dispose))
+                )
+            )
+        );
     }
 
     private static TryStatementSyntax CreateOperatorTryFinallyStatement(
         ExecutionPlanOperatorDescriptor descriptor,
         ExecutionNode node,
-        IReadOnlyList<StatementSyntax> renderedStatements)
+        IReadOnlyList<StatementSyntax> renderedStatements
+    )
     {
-        return SyntaxFactory.TryStatement()
-            .WithBlock(StatementEmitter.CreateBlock(
-            [
-                ..OperatorProfileCounterFacts.CreateScopeInputRowStatements(descriptor, node),
-                ..renderedStatements,
-                ..OperatorProfileCounterFacts.CreateScopeOutputRowStatements(descriptor, node)
-            ]))
-            .WithFinally(SyntaxFactory.FinallyClause(StatementEmitter.CreateBlock(
-                CreateOperatorFinallyStatements(descriptor, node))));
+        return SyntaxFactory
+            .TryStatement()
+            .WithBlock(
+                StatementEmitter.CreateBlock([
+                    .. OperatorProfileCounterFacts.CreateScopeInputRowStatements(descriptor, node),
+                    .. renderedStatements,
+                    .. OperatorProfileCounterFacts.CreateScopeOutputRowStatements(descriptor, node),
+                ])
+            )
+            .WithFinally(
+                SyntaxFactory.FinallyClause(
+                    StatementEmitter.CreateBlock(CreateOperatorFinallyStatements(descriptor, node))
+                )
+            );
     }
 
     private static bool CanWrapOperatorStatementsInTryFinally(ExecutionNode node)
     {
-        return node is
-            ExecutionForEach or
-            ExecutionForEachWithOrdinality or
-            ExecutionForEachIndexed or
-            ExecutionParallelBlock or
-            ExecutionParallelFilterProjectLoop or
-            ExecutionParallelSingleKeyAggregateLoop or
-            ExecutionIf or
-            ExecutionEnsureTableCapacity or
-            ExecutionAsOfProbe or
-            ExecutionRangeProbe or
-            ExecutionStoreTable;
+        return node
+            is ExecutionForEach
+                or ExecutionForEachWithOrdinality
+                or ExecutionForEachIndexed
+                or ExecutionParallelBlock
+                or ExecutionParallelFilterProjectLoop
+                or ExecutionParallelSingleKeyAggregateLoop
+                or ExecutionIf
+                or ExecutionEnsureTableCapacity
+                or ExecutionAsOfProbe
+                or ExecutionRangeProbe
+                or ExecutionStoreTable;
     }
 
     private static IEnumerable<StatementSyntax> CreateOperatorRowCounterDeclarations(
         ExecutionPlanOperatorDescriptor descriptor,
-        ExecutionNode node)
+        ExecutionNode node
+    )
     {
         return OperatorProfileCounterFacts.UsesLoopRowCounters(node)
             ?
             [
-                OperatorProfileCounterFacts.CreateLongCounterDeclaration(OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor)),
-                OperatorProfileCounterFacts.CreateLongCounterDeclaration(OperatorProfileCounterFacts.CreateOutputRowsVariableName(descriptor))
+                OperatorProfileCounterFacts.CreateLongCounterDeclaration(
+                    OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor)
+                ),
+                OperatorProfileCounterFacts.CreateLongCounterDeclaration(
+                    OperatorProfileCounterFacts.CreateOutputRowsVariableName(descriptor)
+                ),
             ]
             : [];
     }
 
     private static IEnumerable<StatementSyntax> CreateOperatorCounterDeclarations(
         ExecutionPlanOperatorDescriptor descriptor,
-        OperatorProfileUsage usage)
+        OperatorProfileUsage usage
+    )
     {
         var inputRowsVariableName = OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor);
         if (usage.Contains(inputRowsVariableName))
@@ -193,7 +238,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static IEnumerable<StatementSyntax> CreateOperatorFinallyStatements(
         ExecutionPlanOperatorDescriptor descriptor,
-        ExecutionNode node)
+        ExecutionNode node
+    )
     {
         return OperatorProfileCounterFacts.UsesLoopRowCounters(node)
             ?
@@ -201,32 +247,36 @@ public sealed partial class ExecutionCSharpRenderer
                 OperatorProfileCounterFacts.CreateScopeRowsStatement(
                     OperatorProfileCounterFacts.CreateScopeVariableName(descriptor),
                     nameof(OperatorProfileScope.AddInputRows),
-                    SyntaxFactory.IdentifierName(OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor))),
+                    SyntaxFactory.IdentifierName(OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor))
+                ),
                 OperatorProfileCounterFacts.CreateScopeRowsStatement(
                     OperatorProfileCounterFacts.CreateScopeVariableName(descriptor),
                     nameof(OperatorProfileScope.AddOutputRows),
-                    SyntaxFactory.IdentifierName(OperatorProfileCounterFacts.CreateOutputRowsVariableName(descriptor))),
-                CreateOperatorScopeDisposeStatement(descriptor)
+                    SyntaxFactory.IdentifierName(OperatorProfileCounterFacts.CreateOutputRowsVariableName(descriptor))
+                ),
+                CreateOperatorScopeDisposeStatement(descriptor),
             ]
             : [CreateOperatorScopeDisposeStatement(descriptor)];
     }
 
     private IEnumerable<StatementSyntax> CreateOperatorCounterFlushStatements(
         OperatorProfileUsage usage,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (!IsOperatorProfilingEnabledFor(context))
             return [];
 
-        return context.Session.OperatorCatalog.NodeOperators
-            .Where(OperatorProfileCounterFacts.IsCounterOnlyDescriptor)
+        return context
+            .Session.OperatorCatalog.NodeOperators.Where(OperatorProfileCounterFacts.IsCounterOnlyDescriptor)
             .SelectMany(descriptor => CreateOperatorCounterFlushStatements(descriptor, usage))
             .ToArray();
     }
 
     private static IEnumerable<StatementSyntax> CreateOperatorCounterFlushStatements(
         ExecutionPlanOperatorDescriptor descriptor,
-        OperatorProfileUsage usage)
+        OperatorProfileUsage usage
+    )
     {
         var inputRowsVariableName = OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor);
         if (usage.Contains(inputRowsVariableName))
@@ -235,7 +285,8 @@ public sealed partial class ExecutionCSharpRenderer
                 ProfileRecorderVariableName,
                 nameof(QueryProfileRecorder.AddOperatorInputRows),
                 descriptor,
-                inputRowsVariableName);
+                inputRowsVariableName
+            );
         }
 
         var outputRowsVariableName = OperatorProfileCounterFacts.CreateOutputRowsVariableName(descriptor);
@@ -245,7 +296,8 @@ public sealed partial class ExecutionCSharpRenderer
                 ProfileRecorderVariableName,
                 nameof(QueryProfileRecorder.AddOperatorOutputRows),
                 descriptor,
-                outputRowsVariableName);
+                outputRowsVariableName
+            );
         }
     }
 

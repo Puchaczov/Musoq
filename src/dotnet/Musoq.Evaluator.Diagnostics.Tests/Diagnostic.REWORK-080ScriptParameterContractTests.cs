@@ -23,13 +23,18 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string guidText = "2ffcf6fa-3369-4300-946a-bb131a037985";
         const string dateTimeText = "2024-01-02T03:04:05.0000000Z";
         const string query =
-            "param(label: string, enabled: bool = true, maybeCount: int? = null, " +
-            $"id: guid = '{guidText}', created: datetime = '{dateTimeText}', delay: timespan = '01:02:03') " +
-            "select $label, $enabled, $maybeCount, $id, $created, $delay from #ParameterRows.Items()";
+            "param(label: string, enabled: bool = true, maybeCount: int? = null, "
+            + $"id: guid = '{guidText}', created: datetime = '{dateTimeText}', delay: timespan = '01:02:03') "
+            + "select $label, $enabled, $maybeCount, $id, $created, $delay from #ParameterRows.Items()";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "defaulted");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "label",
+            "defaulted"
+        );
         var defaults = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, defaults.Count);
@@ -39,16 +44,45 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         Assert.AreEqual(Guid.Parse(guidText), defaults[0].ReadValue(3));
         Assert.AreEqual(
             DateTime.Parse(dateTimeText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-            defaults[0].ReadValue(4));
-        Assert.AreEqual(TimeSpan.FromHours(1) + TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(3), defaults[0].ReadValue(5));
+            defaults[0].ReadValue(4)
+        );
+        Assert.AreEqual(
+            TimeSpan.FromHours(1) + TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(3),
+            defaults[0].ReadValue(5)
+        );
 
         var overriddenId = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7");
         var overriddenCreated = new DateTime(2025, 6, 7, 8, 9, 10, DateTimeKind.Utc);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "enabled", false);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "maybeCount", 42);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "id", overriddenId);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "created", overriddenCreated);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "delay", TimeSpan.FromMinutes(5));
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "enabled",
+            false
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "maybeCount",
+            42
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "id",
+            overriddenId
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "created",
+            overriddenCreated
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "delay",
+            TimeSpan.FromMinutes(5)
+        );
 
         var overrides = vm.Run(TestContext.CancellationToken);
 
@@ -66,13 +100,23 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
     public void NullableValueAndReferenceParameters_ShouldAcceptNullOverrides()
     {
         const string query =
-            "param(label: string = null, maybeCount: int? = 7) " +
-            "select $label, $maybeCount from #ParameterRows.Items()";
+            "param(label: string = null, maybeCount: int? = 7) "
+            + "select $label, $maybeCount from #ParameterRows.Items()";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", null);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "maybeCount", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "label",
+            null
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "maybeCount",
+            null
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -88,14 +132,20 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string query = "param(limit: int = 10) select Key from #ParameterRows.Items()";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", 10L);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "limit",
+            10L
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            "Script parameter 'limit' expected a value of type 'int' but received 'long'.");
+            "Script parameter 'limit' expected a value of type 'int' but received 'long'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -111,7 +161,8 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
-            "Required script parameter 'key' was not provided.");
+            "Required script parameter 'key' was not provided."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -121,25 +172,35 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string query = "param(limit: int) select Key from #ParameterRows.Items($limit)";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "limit",
+            null
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed,
-            "Script parameter 'limit' expected a non-null value of type 'int'.");
+            "Script parameter 'limit' expected a non-null value of type 'int'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void CollectionParameterIn_ShouldAcceptListAndPreserveMembershipSemantics()
     {
-        const string query =
-            "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
+        const string query = "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<string> { "KEY_2" });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "keys",
+            new List<string> { "KEY_2" }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -151,18 +212,27 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
     [TestMethod]
     public void CollectionParameterNotIn_ShouldAcceptArrayAndReadOnlyListValues()
     {
-        const string query =
-            "param(keys: string[]) select Key from #ParameterRows.Items() where Key not in $keys";
+        const string query = "param(keys: string[]) select Key from #ParameterRows.Items() where Key not in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { "KEY_1" });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "keys",
+            new[] { "KEY_1" }
+        );
 
         var arrayTable = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, arrayTable.Count);
         Assert.AreEqual("KEY_2", arrayTable[0].ReadValue(0));
 
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new ReadOnlyCollection<string>(["KEY_2"]));
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "keys",
+            new ReadOnlyCollection<string>(["KEY_2"])
+        );
         var readOnlyTable = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, readOnlyTable.Count);
@@ -173,8 +243,7 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
     [TestMethod]
     public void MissingCollectionParameter_ShouldExposeRequiredEnvelopeBeforeSourceOpening()
     {
-        const string query =
-            "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
+        const string query = "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
@@ -183,25 +252,31 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
-            "Required script parameter 'keys' was not provided.");
+            "Required script parameter 'keys' was not provided."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void WrongCollectionElementType_ShouldExposeTypeEnvelopeBeforeSourceOpening()
     {
-        const string query =
-            "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
+        const string query = "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<int> { 1 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "keys",
+            new List<int> { 1 }
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            "Script parameter 'keys' expected a value of type 'IReadOnlyList<string>' but received 'IReadOnlyList<int>'.");
+            "Script parameter 'keys' expected a value of type 'IReadOnlyList<string>' but received 'IReadOnlyList<int>'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -211,7 +286,12 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string query = "param(key: string) select Key from #ParameterRows.Items($key)";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "key",
+            "KEY_2"
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -236,17 +316,14 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
 
     private CompiledQuery CompileWithProvider(string query, ISchemaProvider provider)
     {
-        return InstanceCreator.CompileForExecution(
-            query,
-            Guid.NewGuid().ToString(),
-            provider,
-            LoggerResolver);
+        return InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, LoggerResolver);
     }
 
     private static void AssertRuntimeEnvelope(
         QueryExecutionException exception,
         DiagnosticCode expectedCode,
-        string expectedMessage)
+        string expectedMessage
+    )
     {
         var envelope = exception.Envelope;
         Assert.IsNotNull(envelope);
@@ -293,25 +370,20 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
 
     private sealed class CountingParameterSchema : SchemaBase
     {
-        private static readonly EnvironmentVariableEntity[] Rows =
-        [
-            new("KEY_1", "VALUE_1"),
-            new("KEY_2", "VALUE_2")
-        ];
+        private static readonly EnvironmentVariableEntity[] Rows = [new("KEY_1", "VALUE_1"), new("KEY_2", "VALUE_2")];
 
         public int OpenCount { get; private set; }
 
         public string? LastKey { get; private set; }
 
         public CountingParameterSchema()
-            : base("parameterRows", new MethodsAggregator(new MethodsManager()))
-        {
-        }
+            : base("parameterRows", new MethodsAggregator(new MethodsManager())) { }
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new EnvironmentVariableEntityTable();
         }
@@ -319,18 +391,15 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             OpenCount++;
             LastKey = parameters.Length == 0 ? null : parameters[0] as string;
-            var rows = LastKey == null
-                ? Rows
-                : Rows.Where(row => row.Key == LastKey).ToArray();
+            var rows = LastKey == null ? Rows : Rows.Where(row => row.Key == LastKey).ToArray();
 
-            return EnsureSourceType<T, EnvironmentVariableEntity>(
-                name,
-                new CountingParameterSource(rows));
+            return EnsureSourceType<T, EnvironmentVariableEntity>(name, new CountingParameterSource(rows));
         }
     }
 

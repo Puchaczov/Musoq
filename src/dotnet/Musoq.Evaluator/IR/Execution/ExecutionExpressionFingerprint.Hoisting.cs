@@ -9,55 +9,85 @@ internal static partial class ExecutionExpressionFingerprint
     internal static string ForHoist(ExecutionExpression expression) =>
         expression switch
         {
-            ExecutionFieldRead fieldRead => $"field:{fieldRead.Alias}:{fieldRead.FieldName}:{HoistType(fieldRead.ReturnType)}:{fieldRead.AccessStrategy}:stability={fieldRead.Stability}{(fieldRead.EnumType == null ? string.Empty : $":source={fieldRead.SourceReadType?.StableId ?? "-"}:enum={fieldRead.EnumType.Fingerprint}")}",
-            ExecutionUnionMemberRead union => $"union-member:{union.MemberName}:{string.Join(",", union.Cases.Select(arm => arm.TypeName + "." + arm.MemberName))}:{ForHoist(union.Receiver)}:{union.ReturnType.StableId}",
-            ExecutionMemberRead memberRead => $"member:{memberRead.IsDynamic}:null-safe={memberRead.IsNullSafe}:{memberRead.MemberName}:{ForHoist(memberRead.Receiver)}:{HoistType(memberRead.ReturnType)}:stable={Musoq.Evaluator.IR.Analysis.ExpressionStabilityAnalyzer.IsStable(memberRead)}",
+            ExecutionFieldRead fieldRead =>
+                $"field:{fieldRead.Alias}:{fieldRead.FieldName}:{HoistType(fieldRead.ReturnType)}:{fieldRead.AccessStrategy}:stability={fieldRead.Stability}{(fieldRead.EnumType == null ? string.Empty : $":source={fieldRead.SourceReadType?.StableId ?? "-"}:enum={fieldRead.EnumType.Fingerprint}")}",
+            ExecutionUnionMemberRead union =>
+                $"union-member:{union.MemberName}:{string.Join(",", union.Cases.Select(arm => arm.TypeName + "." + arm.MemberName))}:{ForHoist(union.Receiver)}:{union.ReturnType.StableId}",
+            ExecutionMemberRead memberRead =>
+                $"member:{memberRead.IsDynamic}:null-safe={memberRead.IsNullSafe}:{memberRead.MemberName}:{ForHoist(memberRead.Receiver)}:{HoistType(memberRead.ReturnType)}:stable={Musoq.Evaluator.IR.Analysis.ExpressionStabilityAnalyzer.IsStable(memberRead)}",
             ExecutionLiteral literal => $"literal:{HoistType(literal.ReturnType)}:{literal.Value}",
-            ExecutionStringConcatenation concatenation => $"sql-concat:{string.Join(",", concatenation.Expressions.Select(ForHoist))}",
-            ExecutionBinary binary => $"binary:{binary.Kind}:{ForHoist(binary.Left)}:{ForHoist(binary.Right)}:{HoistType(binary.ReturnType)}",
+            ExecutionStringConcatenation concatenation =>
+                $"sql-concat:{string.Join(",", concatenation.Expressions.Select(ForHoist))}",
+            ExecutionBinary binary =>
+                $"binary:{binary.Kind}:{ForHoist(binary.Left)}:{ForHoist(binary.Right)}:{HoistType(binary.ReturnType)}",
             ExecutionUnary unary => $"unary:{unary.Kind}:{ForHoist(unary.Operand)}:{HoistType(unary.ReturnType)}",
             ExecutionMethodCall methodCall => HoistMethodCall(methodCall),
-            ExecutionStrictCast strictCast => $"cast:{ForHoist(strictCast.Expression)}:{strictCast.TargetTypeName}:{HoistType(strictCast.ReturnType)}",
+            ExecutionStrictCast strictCast =>
+                $"cast:{ForHoist(strictCast.Expression)}:{strictCast.TargetTypeName}:{HoistType(strictCast.ReturnType)}",
             ExecutionMethodTargetReuseCandidate candidate => HoistMethodCall(candidate.MethodCall),
-            ExecutionArrayAccess arrayAccess => $"array:{ForHoist(arrayAccess.Array)}:{ForHoist(arrayAccess.Index)}:{HoistType(arrayAccess.ElementType)}:{HoistType(arrayAccess.ReturnType)}",
-            ExecutionIsNullCheck isNull => $"isnull:{isNull.IsNegated}:{ForHoist(isNull.Expression)}:{HoistType(isNull.ReturnType)}",
-            ExecutionRowPresence rowPresence => $"presence:{rowPresence.Alias}:{rowPresence.IsPresent}:{ForHoist(rowPresence.PresenceSource)}",
-            ExecutionInCheck inCheck => $"in:{inCheck.UsesSqlNullSemantics}:{inCheck.IsNegated}:{ForHoist(inCheck.Expression)}:{string.Join(",", inCheck.Values.Select(ForHoist))}:{HoistType(inCheck.ReturnType)}",
-            ExecutionCollectionInCheck collectionInCheck => $"collection-in:{ForHoist(collectionInCheck.Expression)}:{collectionInCheck.Collection.Name}:{HoistType(collectionInCheck.ElementType)}:{HoistType(collectionInCheck.ReturnType)}",
-            ExecutionPatternMatch patternMatch => $"pattern:{patternMatch.Kind}:{ForHoist(patternMatch.Expression)}:{ForHoist(patternMatch.Pattern)}:{HoistType(patternMatch.ReturnType)}",
-            ExecutionStringMatch stringMatch => $"string-match:{stringMatch.Kind}:{stringMatch.Comparison}:{stringMatch.RegexMatchTimeout?.Ticks.ToString(CultureInfo.InvariantCulture) ?? "<inherit>"}:{stringMatch.OriginalPattern}:{stringMatch.Needle}:{ForHoist(stringMatch.Input)}:{HoistType(stringMatch.ReturnType)}",
-            ExecutionPrepareLikeMatcher prepareLike => $"like-prepare:{prepareLike.Comparison}:{ForHoist(prepareLike.Pattern)}:{HoistType(prepareLike.ReturnType)}",
-            ExecutionPreparedLikeMatch preparedLike => $"like-prepared:{ForHoist(preparedLike.Input)}:{ForHoist(preparedLike.Matcher)}:{HoistType(preparedLike.ReturnType)}",
-            ExecutionDynamicLikeMatch dynamicLike => $"like-dynamic:{dynamicLike.Comparison}:{ForHoist(dynamicLike.Input)}:{ForHoist(dynamicLike.Pattern)}:{ForHoist(dynamicLike.CacheSlot)}:{HoistType(dynamicLike.ReturnType)}",
+            ExecutionArrayAccess arrayAccess =>
+                $"array:{ForHoist(arrayAccess.Array)}:{ForHoist(arrayAccess.Index)}:{HoistType(arrayAccess.ElementType)}:{HoistType(arrayAccess.ReturnType)}",
+            ExecutionIsNullCheck isNull =>
+                $"isnull:{isNull.IsNegated}:{ForHoist(isNull.Expression)}:{HoistType(isNull.ReturnType)}",
+            ExecutionRowPresence rowPresence =>
+                $"presence:{rowPresence.Alias}:{rowPresence.IsPresent}:{ForHoist(rowPresence.PresenceSource)}",
+            ExecutionInCheck inCheck =>
+                $"in:{inCheck.UsesSqlNullSemantics}:{inCheck.IsNegated}:{ForHoist(inCheck.Expression)}:{string.Join(",", inCheck.Values.Select(ForHoist))}:{HoistType(inCheck.ReturnType)}",
+            ExecutionCollectionInCheck collectionInCheck =>
+                $"collection-in:{ForHoist(collectionInCheck.Expression)}:{collectionInCheck.Collection.Name}:{HoistType(collectionInCheck.ElementType)}:{HoistType(collectionInCheck.ReturnType)}",
+            ExecutionPatternMatch patternMatch =>
+                $"pattern:{patternMatch.Kind}:{ForHoist(patternMatch.Expression)}:{ForHoist(patternMatch.Pattern)}:{HoistType(patternMatch.ReturnType)}",
+            ExecutionStringMatch stringMatch =>
+                $"string-match:{stringMatch.Kind}:{stringMatch.Comparison}:{stringMatch.RegexMatchTimeout?.Ticks.ToString(CultureInfo.InvariantCulture) ?? "<inherit>"}:{stringMatch.OriginalPattern}:{stringMatch.Needle}:{ForHoist(stringMatch.Input)}:{HoistType(stringMatch.ReturnType)}",
+            ExecutionPrepareLikeMatcher prepareLike =>
+                $"like-prepare:{prepareLike.Comparison}:{ForHoist(prepareLike.Pattern)}:{HoistType(prepareLike.ReturnType)}",
+            ExecutionPreparedLikeMatch preparedLike =>
+                $"like-prepared:{ForHoist(preparedLike.Input)}:{ForHoist(preparedLike.Matcher)}:{HoistType(preparedLike.ReturnType)}",
+            ExecutionDynamicLikeMatch dynamicLike =>
+                $"like-dynamic:{dynamicLike.Comparison}:{ForHoist(dynamicLike.Input)}:{ForHoist(dynamicLike.Pattern)}:{ForHoist(dynamicLike.CacheSlot)}:{HoistType(dynamicLike.ReturnType)}",
             ExecutionLikeMatcherCacheSlot cacheSlot => $"like-cache-slot:{HoistType(cacheSlot.ReturnType)}",
-            ExecutionPrepareRLikeMatcher prepareRLike => $"rlike-prepare:{ForHoist(prepareRLike.Pattern)}:{HoistType(prepareRLike.ReturnType)}",
-            ExecutionPreparedRLikeMatch preparedRLike => $"rlike-prepared:{ForHoist(preparedRLike.Input)}:{ForHoist(preparedRLike.Matcher)}:{HoistType(preparedRLike.ReturnType)}",
-            ExecutionDynamicRLikeMatch dynamicRLike => $"rlike-dynamic:{ForHoist(dynamicRLike.Input)}:{ForHoist(dynamicRLike.Pattern)}:{ForHoist(dynamicRLike.CacheSlot)}:{HoistType(dynamicRLike.ReturnType)}",
+            ExecutionPrepareRLikeMatcher prepareRLike =>
+                $"rlike-prepare:{ForHoist(prepareRLike.Pattern)}:{HoistType(prepareRLike.ReturnType)}",
+            ExecutionPreparedRLikeMatch preparedRLike =>
+                $"rlike-prepared:{ForHoist(preparedRLike.Input)}:{ForHoist(preparedRLike.Matcher)}:{HoistType(preparedRLike.ReturnType)}",
+            ExecutionDynamicRLikeMatch dynamicRLike =>
+                $"rlike-dynamic:{ForHoist(dynamicRLike.Input)}:{ForHoist(dynamicRLike.Pattern)}:{ForHoist(dynamicRLike.CacheSlot)}:{HoistType(dynamicRLike.ReturnType)}",
             ExecutionRLikeMatcherCacheSlot cacheSlot => $"rlike-cache-slot:{HoistType(cacheSlot.ReturnType)}",
-            ExecutionBetween between => $"between:{ForHoist(between.Expression)}:{ForHoist(between.Low)}:{ForHoist(between.High)}:{HoistType(between.ReturnType)}",
-            ExecutionVariableRead variableRead => $"variable:{variableRead.Variable.Name}:{HoistType(variableRead.ReturnType)}",
+            ExecutionBetween between =>
+                $"between:{ForHoist(between.Expression)}:{ForHoist(between.Low)}:{ForHoist(between.High)}:{HoistType(between.ReturnType)}",
+            ExecutionVariableRead variableRead =>
+                $"variable:{variableRead.Variable.Name}:{HoistType(variableRead.ReturnType)}",
             ExecutionScalarRowStream rows => $"scalar-row:{rows.Variable.Name}:{HoistType(rows.ReturnType)}",
             ExecutionStructuralRecord structuralRecord => ForStructuralRecord(structuralRecord),
             ExecutionStructuralArray structuralArray => ForStructuralArray(structuralArray),
-            ExecutionStructuralConversion structuralConversion => $"conversion:{HoistType(structuralConversion.TargetType)}:{ForHoist(structuralConversion.Input)}:limits={ExecutionExpressionFingerprint.FormatLimitBinding(structuralConversion.LimitBinding)}",
+            ExecutionStructuralConversion structuralConversion =>
+                $"conversion:{HoistType(structuralConversion.TargetType)}:{ForHoist(structuralConversion.Input)}:limits={ExecutionExpressionFingerprint.FormatLimitBinding(structuralConversion.LimitBinding)}",
             ExecutionCteCollectionInput cteCollection => ForCteCollectionInput(
                 cteCollection,
-                ForHoist(cteCollection.Rows)),
+                ForHoist(cteCollection.Rows)
+            ),
             ExecutionRowContextsRead rowContextsRead => $"contexts:{rowContextsRead.Row.Name}",
-            ExecutionNullContextArray nullContextArray => $"null-context:{nullContextArray.Count.ToString(CultureInfo.InvariantCulture)}",
-            ExecutionContextArray contextArray => $"context-array:{string.Join(",", contextArray.Segments.Select(static segment => ForHoist(segment.Value)))}",
-            ExecutionValueTupleKey valueTupleKey => $"tuple:{string.Join(",", valueTupleKey.Parts.Select(ForHoist))}:{HoistType(valueTupleKey.ReturnType)}",
+            ExecutionNullContextArray nullContextArray =>
+                $"null-context:{nullContextArray.Count.ToString(CultureInfo.InvariantCulture)}",
+            ExecutionContextArray contextArray =>
+                $"context-array:{string.Join(",", contextArray.Segments.Select(static segment => ForHoist(segment.Value)))}",
+            ExecutionValueTupleKey valueTupleKey =>
+                $"tuple:{string.Join(",", valueTupleKey.Parts.Select(ForHoist))}:{HoistType(valueTupleKey.ReturnType)}",
             ExecutionAggregateCall aggregateCall => HoistAggregateCall(aggregateCall),
-            ExecutionGroupKeyRead groupKeyRead => $"group-key:{groupKeyRead.Group.Name}:{groupKeyRead.KeyName}:{HoistType(groupKeyRead.ReturnType)}",
-            ExecutionAggregateCapturedValueRead captured => $"captured:{captured.Group.Name}:{captured.ValueName}:{HoistType(captured.ReturnType)}",
-            ExecutionWindowValueRead window => $"window:{window.Results.Name}:{window.Index.Name}:{HoistType(window.ReturnType)}",
-            _ => expression.ToString() ?? expression.GetType().FullName ?? expression.GetType().Name
+            ExecutionGroupKeyRead groupKeyRead =>
+                $"group-key:{groupKeyRead.Group.Name}:{groupKeyRead.KeyName}:{HoistType(groupKeyRead.ReturnType)}",
+            ExecutionAggregateCapturedValueRead captured =>
+                $"captured:{captured.Group.Name}:{captured.ValueName}:{HoistType(captured.ReturnType)}",
+            ExecutionWindowValueRead window =>
+                $"window:{window.Results.Name}:{window.Index.Name}:{HoistType(window.ReturnType)}",
+            _ => expression.ToString() ?? expression.GetType().FullName ?? expression.GetType().Name,
         };
 
     private static string HoistAggregateCall(ExecutionAggregateCall aggregateCall)
     {
         var builder = new StringBuilder();
-        builder.Append("aggregate:")
+        builder
+            .Append("aggregate:")
             .Append(aggregateCall.Group.Name)
             .Append(':')
             .Append(HoistType(aggregateCall.Group.Type))
@@ -83,15 +113,13 @@ internal static partial class ExecutionExpressionFingerprint
         builder.Append(methodCall.Method.Descriptor.IsStable);
         AppendScalarBindingFingerprint(builder, methodCall);
         builder.Append(':');
-        builder.Append(methodCall.Target == null
-            ? string.Empty
-            : $"{methodCall.Target.Name}:{HoistType(methodCall.Target.Type)}");
+        builder.Append(
+            methodCall.Target == null ? string.Empty : $"{methodCall.Target.Name}:{HoistType(methodCall.Target.Type)}"
+        );
         builder.Append(':');
         builder.Append(string.Join(",", methodCall.Arguments.Select(ForHoist)));
         builder.Append(':');
-        builder.Append(methodCall.InjectedSource == null
-            ? string.Empty
-            : ForHoist(methodCall.InjectedSource));
+        builder.Append(methodCall.InjectedSource == null ? string.Empty : ForHoist(methodCall.InjectedSource));
         builder.Append(':');
         builder.Append(HoistType(methodCall.ReturnType));
         return builder.ToString();

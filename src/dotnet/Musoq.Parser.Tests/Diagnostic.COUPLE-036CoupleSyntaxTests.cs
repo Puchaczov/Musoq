@@ -11,50 +11,31 @@ namespace Musoq.Parser.Tests;
 public sealed class DiagnosticCouple036CoupleSyntaxTests
 {
     [TestMethod]
-    [DataRow(
-        "couple #some.method with table Rows as Source",
-        "Rows",
-        "",
-        "Source")]
-    [DataRow(
-        "couple #some.method with settings Profile as Source;",
-        "",
-        "Profile",
-        "Source")]
-    [DataRow(
-        "couple #some.method with table Rows and settings Profile as Source;",
-        "Rows",
-        "Profile",
-        "Source")]
-    [DataRow(
-        "couple #some.method with SETTINGS Profile and table Rows as Source;",
-        "Rows",
-        "Profile",
-        "Source")]
+    [DataRow("couple #some.method with table Rows as Source", "Rows", "", "Source")]
+    [DataRow("couple #some.method with settings Profile as Source;", "", "Profile", "Source")]
+    [DataRow("couple #some.method with table Rows and settings Profile as Source;", "Rows", "Profile", "Source")]
+    [DataRow("couple #some.method with SETTINGS Profile and table Rows as Source;", "Rows", "Profile", "Source")]
     public void CoupleForms_ShouldParseWithoutMethodParenthesesAndPreserveOptions(
         string query,
         string expectedTableName,
         string expectedProfileName,
-        string expectedAlias)
+        string expectedAlias
+    )
     {
         var couple = ParseCouple(query);
 
         Assert.AreEqual("#some", couple.SchemaMethodNode.Schema);
         Assert.AreEqual("method", couple.SchemaMethodNode.Method);
-        Assert.AreEqual(
-            string.IsNullOrEmpty(expectedTableName) ? null : expectedTableName,
-            couple.TableName);
-        Assert.AreEqual(
-            string.IsNullOrEmpty(expectedProfileName) ? null : expectedProfileName,
-            couple.ProfileName);
+        Assert.AreEqual(string.IsNullOrEmpty(expectedTableName) ? null : expectedTableName, couple.TableName);
+        Assert.AreEqual(string.IsNullOrEmpty(expectedProfileName) ? null : expectedProfileName, couple.ProfileName);
         Assert.AreEqual(expectedAlias, couple.MappedSchemaName);
         Assert.AreEqual(
             couple.TableName != null && couple.ProfileName != null
-                ? $"couple #some.method with table {couple.TableName} and settings {couple.ProfileName} as {expectedAlias};"
-                : couple.TableName != null
-                    ? $"couple #some.method with table {couple.TableName} as {expectedAlias};"
-                    : $"couple #some.method with settings {couple.ProfileName} as {expectedAlias};",
-            couple.ToString());
+                    ? $"couple #some.method with table {couple.TableName} and settings {couple.ProfileName} as {expectedAlias};"
+                : couple.TableName != null ? $"couple #some.method with table {couple.TableName} as {expectedAlias};"
+                : $"couple #some.method with settings {couple.ProfileName} as {expectedAlias};",
+            couple.ToString()
+        );
     }
 
     [TestMethod]
@@ -66,7 +47,8 @@ public sealed class DiagnosticCouple036CoupleSyntaxTests
             query,
             DiagnosticCode.MQ2001_UnexpectedToken,
             "Expected token is With but received LeftParenthesis.",
-            SpanOf(query, "("));
+            SpanOf(query, "(")
+        );
     }
 
     [TestMethod]
@@ -78,7 +60,8 @@ public sealed class DiagnosticCouple036CoupleSyntaxTests
             query,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             "COUPLE schema methods are declarations and must not include parentheses; pass arguments when invoking the coupled alias.",
-            SpanOf(query, "some"));
+            SpanOf(query, "some")
+        );
     }
 
     [TestMethod]
@@ -90,7 +73,8 @@ public sealed class DiagnosticCouple036CoupleSyntaxTests
             query,
             DiagnosticCode.MQ2001_UnexpectedToken,
             "Duplicate table option in couple statement.",
-            LastSpanOf(query, "table"));
+            LastSpanOf(query, "table")
+        );
     }
 
     [TestMethod]
@@ -102,7 +86,8 @@ public sealed class DiagnosticCouple036CoupleSyntaxTests
             query,
             DiagnosticCode.MQ2001_UnexpectedToken,
             "Duplicate settings option in couple statement.",
-            LastSpanOf(query, "settings"));
+            LastSpanOf(query, "settings")
+        );
     }
 
     [TestMethod]
@@ -114,28 +99,21 @@ public sealed class DiagnosticCouple036CoupleSyntaxTests
             query,
             DiagnosticCode.MQ2001_UnexpectedToken,
             "Expected table or settings option in couple statement.",
-            SpanOf(query, "as"));
+            SpanOf(query, "as")
+        );
     }
 
     [TestMethod]
-    [DataRow(
-        "couple #some.method with table 123 as Source;",
-        "table",
-        "123")]
-    [DataRow(
-        "couple #some.method with settings 'profile' as Source;",
-        "settings",
-        "'profile'")]
-    public void CoupleOptionNames_MustBeIdentifiers(
-        string query,
-        string optionName,
-        string invalidName)
+    [DataRow("couple #some.method with table 123 as Source;", "table", "123")]
+    [DataRow("couple #some.method with settings 'profile' as Source;", "settings", "'profile'")]
+    public void CoupleOptionNames_MustBeIdentifiers(string query, string optionName, string invalidName)
     {
         AssertParseDiagnostic(
             query,
             DiagnosticCode.MQ2001_UnexpectedToken,
             $"Expected {optionName} name in couple statement.",
-            SpanOf(query, invalidName));
+            SpanOf(query, invalidName)
+        );
     }
 
     private static CoupleNode ParseCouple(string query)
@@ -150,7 +128,8 @@ public sealed class DiagnosticCouple036CoupleSyntaxTests
         string query,
         DiagnosticCode expectedCode,
         string expectedMessage,
-        TextSpan expectedSpan)
+        TextSpan expectedSpan
+    )
     {
         var lexer = new Lexer(query, true, recoverOnError: true);
         var result = new Parser(lexer, lexer.Diagnostics).ParseWithDiagnostics();

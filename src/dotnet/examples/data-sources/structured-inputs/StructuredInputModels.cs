@@ -1,22 +1,12 @@
-
 namespace Musoq.Examples.DataSources.StructuredInputs;
 
-public readonly record struct PatternInput(
-    string Id,
-    string Pattern,
-    string Mode = "literal");
+public readonly record struct PatternInput(string Id, string Pattern, string Mode = "literal");
 
 public readonly record struct WindowInput(int Before, int After);
 
-public readonly record struct OptionsInput(
-    bool Enabled,
-    int[] Codes,
-    WindowInput Window);
+public readonly record struct OptionsInput(bool Enabled, int[] Codes, WindowInput Window);
 
-public readonly record struct WeightedInput(
-    int Value,
-    decimal Weight,
-    bool Enabled = true);
+public readonly record struct WeightedInput(int Value, decimal Weight, bool Enabled = true);
 
 /// <summary>Static complex metadata exposed for DESC COLUMN examples.</summary>
 public sealed class PatternMatchMetadata
@@ -30,32 +20,19 @@ public sealed class PatternMatchMetadata
     public IReadOnlyList<PatternInput> Patterns { get; } = Array.Empty<PatternInput>();
 }
 
-public readonly record struct PatternMatchRow(
-    string PatternId,
-    string MatchText,
-    int Offset)
+public readonly record struct PatternMatchRow(string PatternId, string MatchText, int Offset)
 {
     /// <summary>Complex metadata used by the maintained DESC COLUMN example.</summary>
     public PatternMatchMetadata Metadata => PatternMatchMetadata.Empty;
 }
 
-public readonly record struct ConfigureRow(
-    bool Enabled,
-    int[] Codes,
-    int Before,
-    int After);
+public readonly record struct ConfigureRow(bool Enabled, int[] Codes, int Before, int After);
 
 public readonly record struct NumberRow(int Value);
 
-public readonly record struct MatrixValueRow(
-    int Value,
-    int Row,
-    int Column);
+public readonly record struct MatrixValueRow(int Value, int Row, int Column);
 
-public readonly record struct WeightedRow(
-    int Value,
-    decimal Weight,
-    bool Enabled);
+public readonly record struct WeightedRow(int Value, decimal Weight, bool Enabled);
 
 /// <summary>Rows returned by the source that demonstrates typed overload selection.</summary>
 public readonly record struct OverloadRow(string Kind, int Value, int Count);
@@ -132,14 +109,24 @@ public static class StructuredInputSourceCounters
     }
 
     internal static void MatchCreated() => Interlocked.Increment(ref _matchConstructed);
+
     internal static void ConfigureCreated() => Interlocked.Increment(ref _configureConstructed);
+
     internal static void NumbersCreated() => Interlocked.Increment(ref _numbersConstructed);
+
     internal static void MatrixCreated() => Interlocked.Increment(ref _matrixConstructed);
+
     internal static void WeightedCreated() => Interlocked.Increment(ref _weightedConstructed);
+
     internal static void OverloadCreated() => Interlocked.Increment(ref _overloadConstructed);
+
     internal static void DefaultConflictCreated() => Interlocked.Increment(ref _defaultConflictConstructed);
+
     internal static void ContextProbeCreated() => Interlocked.Increment(ref _contextProbeConstructed);
+
     internal static void StrictCreated() => Interlocked.Increment(ref _strictConstructed);
+
     internal static void MutableCreated() => Interlocked.Increment(ref _mutableConstructed);
+
     internal static void ThrowingCreated() => Interlocked.Increment(ref _throwingConstructed);
 }

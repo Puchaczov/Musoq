@@ -10,11 +10,10 @@ internal static class MethodTargetDeclarationPlacement
         ExecutionBlockRewriteBuilder builder,
         IEnumerable<ExecutionVariable> targets,
         ExecutionBlock block,
-        int nodeIndex)
+        int nodeIndex
+    )
     {
-        var declarations = targets
-            .Select(static target => (ExecutionNode)new ExecutionCreateObject(target))
-            .ToArray();
+        var declarations = targets.Select(static target => (ExecutionNode)new ExecutionCreateObject(target)).ToArray();
         if (declarations.Length == 0)
             return 0;
 
@@ -30,13 +29,17 @@ internal static class MethodTargetDeclarationPlacement
     private static int? GetAggregateLoopDeclarationIndex(
         ExecutionBlock block,
         int index,
-        ExecutionBlockRewriteBuilder builder)
+        ExecutionBlockRewriteBuilder builder
+    )
     {
-        if (index == 0 ||
-            block.Nodes[index] is not ExecutionForEach and
-                not ExecutionForEachWithOrdinality and
-                not ExecutionForEachIndexed ||
-            !IsAggregateContext(block.Nodes[index - 1]))
+        if (
+            index == 0
+            || block.Nodes[index]
+                is not ExecutionForEach
+                    and not ExecutionForEachWithOrdinality
+                    and not ExecutionForEachIndexed
+            || !IsAggregateContext(block.Nodes[index - 1])
+        )
         {
             return null;
         }
@@ -46,8 +49,10 @@ internal static class MethodTargetDeclarationPlacement
         {
             for (var rewrittenIndex = builder.Count - 1; rewrittenIndex >= 0; rewrittenIndex--)
             {
-                if (builder[rewrittenIndex] is ExecutionCreateTable createTable &&
-                    string.Equals(createTable.Table.Name, tableName, StringComparison.Ordinal))
+                if (
+                    builder[rewrittenIndex] is ExecutionCreateTable createTable
+                    && string.Equals(createTable.Table.Name, tableName, StringComparison.Ordinal)
+                )
                 {
                     return rewrittenIndex;
                 }
@@ -77,4 +82,3 @@ internal static class MethodTargetDeclarationPlacement
     private static bool IsAggregateContext(ExecutionNode node) =>
         node is ExecutionCreateSingleKeyAggregateContext or ExecutionCreateValueTupleAggregateContext;
 }
-

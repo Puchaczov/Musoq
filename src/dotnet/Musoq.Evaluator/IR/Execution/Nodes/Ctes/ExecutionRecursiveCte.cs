@@ -16,4 +16,5 @@ public sealed record ExecutionRecursiveCte(
     ExecutionBlock RecursiveMember,
     int MaxIterations,
     int MaxRows,
-    int MaxSnapshotRows) : ExecutionNode;
+    int MaxSnapshotRows
+) : ExecutionNode;

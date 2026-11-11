@@ -7,5 +7,5 @@ namespace Musoq.Evaluator.Visitors;
 public enum BoundBinaryFieldKind
 {
     Parsed,
-    Computed
+    Computed,
 }

@@ -13,27 +13,48 @@ public class StringsTests : BasicEntityTestBase
 {
     private static readonly char[] SpecialCharacterCases =
     [
-        '{', '}', '(', ')', '-', '/', '*', '+', '=', '!', '<', '>', '&', '|', '^', '%', '~', '`',
-        '[', ']', ';', ':', ',', '.', '?', '@', '#', '$', ' ', '"'
+        '{',
+        '}',
+        '(',
+        ')',
+        '-',
+        '/',
+        '*',
+        '+',
+        '=',
+        '!',
+        '<',
+        '>',
+        '&',
+        '|',
+        '^',
+        '%',
+        '~',
+        '`',
+        '[',
+        ']',
+        ';',
+        ':',
+        ',',
+        '.',
+        '?',
+        '@',
+        '#',
+        '$',
+        ' ',
+        '"',
     ];
 
-    private static readonly CompiledQueryBatchRepository<char> SpecialCharacterQueries =
-        new(CreateSpecialCharacterQueries);
-
+    private static readonly CompiledQueryBatchRepository<char> SpecialCharacterQueries = new(
+        CreateSpecialCharacterQueries
+    );
 
     [TestMethod]
     public void WhenQuoteUsed_MustNotThrow()
     {
         var query = """select '"' from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -52,14 +73,7 @@ public class StringsTests : BasicEntityTestBase
     {
         var query = """select 'text "' from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -78,14 +92,7 @@ public class StringsTests : BasicEntityTestBase
     {
         var query = """select '"text' from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -104,14 +111,7 @@ public class StringsTests : BasicEntityTestBase
     {
         var query = """select '"text"' from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -130,14 +130,7 @@ public class StringsTests : BasicEntityTestBase
     {
         const string query = """select '\'' from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -152,14 +145,7 @@ public class StringsTests : BasicEntityTestBase
     {
         const string query = """select 'text \'' from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -174,14 +160,7 @@ public class StringsTests : BasicEntityTestBase
     {
         const string query = """select 'lorem\' ipsum dolor\'' from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -196,14 +175,7 @@ public class StringsTests : BasicEntityTestBase
     {
         const string query = """select 'lorem\' " ipsum dolor\'' from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -249,7 +221,8 @@ public class StringsTests : BasicEntityTestBase
     {
         using var measurement = EvaluatorTestCaseMeasurement.Begin(
             nameof(WhenSpecialCharacterStartBracketUsedInTextWith_MustNotThrow),
-            specialCharacter.ToString());
+            specialCharacter.ToString()
+        );
         using var vm = measurement.MeasureCompilation(() => SpecialCharacterQueries.Take(specialCharacter));
 
         using var table = measurement.MeasureExecution(() => vm.Run(TestContext.CancellationToken));
@@ -269,19 +242,22 @@ public class StringsTests : BasicEntityTestBase
     private static IReadOnlyDictionary<char, CompiledQuery> CreateSpecialCharacterQueries()
     {
         var requests = SpecialCharacterCases
-            .Select((specialCharacter, index) => new ExecutionBatchCompilationRequest(
-                specialCharacter.ToString(),
-                $"select '{specialCharacter}' from #A.entities()",
-                $"SpecialCharacterBatch_{index}",
-                new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-                {
-                    ["#A"] = [new BasicEntity("test")]
-                }),
-                new TestsLoggerResolver(),
-                TestCompilationOptions,
-                ConsumerFamily: "string-format-cases",
-                ConsumerTestName: nameof(CreateSpecialCharacterQueries),
-                BatchOrigin: "string-format-cases"))
+            .Select(
+                (specialCharacter, index) =>
+                    new ExecutionBatchCompilationRequest(
+                        specialCharacter.ToString(),
+                        $"select '{specialCharacter}' from #A.entities()",
+                        $"SpecialCharacterBatch_{index}",
+                        new BasicSchemaProvider<BasicEntity>(
+                            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity("test")] }
+                        ),
+                        new TestsLoggerResolver(),
+                        TestCompilationOptions,
+                        ConsumerFamily: "string-format-cases",
+                        ConsumerTestName: nameof(CreateSpecialCharacterQueries),
+                        BatchOrigin: "string-format-cases"
+                    )
+            )
             .ToArray();
 
         var results = InstanceCreator.CompileForExecutionBatch(requests);
@@ -293,7 +269,8 @@ public class StringsTests : BasicEntityTestBase
                 if (!result.Result.Succeeded)
                     throw new InvalidOperationException(
                         $"Special-character query '{result.Key}' failed to compile.",
-                        result.Result.CaughtException);
+                        result.Result.CaughtException
+                    );
 
                 queries.Add(result.Key[0], result.Result.CompiledQuery);
             }
@@ -319,14 +296,7 @@ public class StringsTests : BasicEntityTestBase
     {
         const string query = """select IndexOf('a/b/c', '/') from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity(string.Empty)
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity(string.Empty)] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -340,14 +310,7 @@ public class StringsTests : BasicEntityTestBase
     {
         const string query = """select NthIndexOf('a/b/c', '/', 1) from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity(string.Empty)
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity(string.Empty)] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -361,14 +324,7 @@ public class StringsTests : BasicEntityTestBase
     {
         const string query = """select LastIndexOf('a/b/c', '/') from #A.entities()""";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity(string.Empty)
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity(string.Empty)] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);

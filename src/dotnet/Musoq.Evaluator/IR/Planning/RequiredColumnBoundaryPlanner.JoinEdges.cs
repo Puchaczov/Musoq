@@ -50,10 +50,16 @@ internal static partial class RequiredColumnBoundaryPlanner
                     Visit(aggregateOnly.Input, CollectAggregateColumns(aggregateOnly.Bindings));
                     return;
                 case PhysicalSingleKeyAggregateNode singleKeyAggregate:
-                    Visit(singleKeyAggregate.Input, CollectAggregateColumns(singleKeyAggregate.GroupKey, singleKeyAggregate.Bindings));
+                    Visit(
+                        singleKeyAggregate.Input,
+                        CollectAggregateColumns(singleKeyAggregate.GroupKey, singleKeyAggregate.Bindings)
+                    );
                     return;
                 case PhysicalValueTupleAggregateNode valueTupleAggregate:
-                    Visit(valueTupleAggregate.Input, CollectAggregateColumns(valueTupleAggregate.GroupKeys, valueTupleAggregate.Bindings));
+                    Visit(
+                        valueTupleAggregate.Input,
+                        CollectAggregateColumns(valueTupleAggregate.GroupKeys, valueTupleAggregate.Bindings)
+                    );
                     return;
                 case PhysicalWindowNode window:
                     Visit(window.Input, Merge(requiredAfter, CollectWindowColumns(window.Registrations)));
@@ -70,7 +76,8 @@ internal static partial class RequiredColumnBoundaryPlanner
                         nestedLoopJoin.Right,
                         nestedLoopJoin.OnPredicate,
                         nestedLoopJoin.TieBreak,
-                        requiredAfter);
+                        requiredAfter
+                    );
                     return;
                 case PhysicalSortMergeJoinNode sortMergeJoin:
                     VisitSortMergeJoin(sortMergeJoin, requiredAfter);
@@ -89,8 +96,8 @@ internal static partial class RequiredColumnBoundaryPlanner
 
         private void VisitProject(PhysicalProjectNode project, IReadOnlyList<string> requiredAfter)
         {
-            var requiredFields = project.Fields
-                .Where(field => requiredAfter.Count == 0 || ContainsColumn(requiredAfter, field.OutputName))
+            var requiredFields = project
+                .Fields.Where(field => requiredAfter.Count == 0 || ContainsColumn(requiredAfter, field.OutputName))
                 .ToArray();
             var fields = requiredFields.Length == 0 ? project.Fields : requiredFields;
 
@@ -111,10 +118,12 @@ internal static partial class RequiredColumnBoundaryPlanner
             var residualColumns = join.Residual != null ? CollectColumns(join.Residual) : [];
             var leftRequired = Merge(
                 FilterProducedColumns(join.Left, requiredAfter),
-                FilterProducedColumns(join.Left, CollectColumns(join.ProbeKeys).Concat(residualColumns)));
+                FilterProducedColumns(join.Left, CollectColumns(join.ProbeKeys).Concat(residualColumns))
+            );
             var rightRequired = Merge(
                 FilterProducedColumns(join.Right, requiredAfter),
-                FilterProducedColumns(join.Right, CollectColumns(join.BuildKeys).Concat(residualColumns)));
+                FilterProducedColumns(join.Right, CollectColumns(join.BuildKeys).Concat(residualColumns))
+            );
 
             AddJoinEdgePlans(leftRequired, rightRequired, join.Left, join.Right);
             Visit(join.Left, leftRequired);
@@ -126,17 +135,21 @@ internal static partial class RequiredColumnBoundaryPlanner
             PhysicalNode right,
             Expressions.IrExpression predicate,
             OrderField? tieBreak,
-            IReadOnlyList<string> requiredAfter)
+            IReadOnlyList<string> requiredAfter
+        )
         {
-            var predicateColumns = tieBreak == null
-                ? CollectColumns(predicate)
-                : Merge(CollectColumns(predicate), CollectColumns(tieBreak.Expression));
+            var predicateColumns =
+                tieBreak == null
+                    ? CollectColumns(predicate)
+                    : Merge(CollectColumns(predicate), CollectColumns(tieBreak.Expression));
             var leftRequired = Merge(
                 FilterProducedColumns(left, requiredAfter),
-                FilterProducedColumns(left, predicateColumns));
+                FilterProducedColumns(left, predicateColumns)
+            );
             var rightRequired = Merge(
                 FilterProducedColumns(right, requiredAfter),
-                FilterProducedColumns(right, predicateColumns));
+                FilterProducedColumns(right, predicateColumns)
+            );
 
             AddJoinEdgePlans(leftRequired, rightRequired, left, right);
             Visit(left, leftRequired);
@@ -148,14 +161,20 @@ internal static partial class RequiredColumnBoundaryPlanner
             var residualColumns = CollectColumns(join.Residual);
             var leftRequired = Merge(
                 FilterProducedColumns(join.Left, requiredAfter),
-                FilterProducedColumns(join.Left, CollectColumns(join.LeftKey)
-                    .Concat(CollectColumns(join.LeftPartitionKeys))
-                    .Concat(residualColumns)));
+                FilterProducedColumns(
+                    join.Left,
+                    CollectColumns(join.LeftKey).Concat(CollectColumns(join.LeftPartitionKeys)).Concat(residualColumns)
+                )
+            );
             var rightRequired = Merge(
                 FilterProducedColumns(join.Right, requiredAfter),
-                FilterProducedColumns(join.Right, CollectColumns(join.RightKey)
-                    .Concat(CollectColumns(join.RightPartitionKeys))
-                    .Concat(residualColumns)));
+                FilterProducedColumns(
+                    join.Right,
+                    CollectColumns(join.RightKey)
+                        .Concat(CollectColumns(join.RightPartitionKeys))
+                        .Concat(residualColumns)
+                )
+            );
 
             AddJoinEdgePlans(leftRequired, rightRequired, join.Left, join.Right);
             Visit(join.Left, leftRequired);
@@ -166,25 +185,37 @@ internal static partial class RequiredColumnBoundaryPlanner
             IReadOnlyList<string> leftRequired,
             IReadOnlyList<string> rightRequired,
             PhysicalNode left,
-            PhysicalNode right)
+            PhysicalNode right
+        )
         {
             var index = _joinIndex++;
-            _plans.Add(CreateJoinEdgePlan($"join:{index}:left", RequiredColumnBoundaryKind.JoinLeftEdge, left, leftRequired));
-            _plans.Add(CreateJoinEdgePlan($"join:{index}:right", RequiredColumnBoundaryKind.JoinRightEdge, right, rightRequired));
+            _plans.Add(
+                CreateJoinEdgePlan($"join:{index}:left", RequiredColumnBoundaryKind.JoinLeftEdge, left, leftRequired)
+            );
+            _plans.Add(
+                CreateJoinEdgePlan(
+                    $"join:{index}:right",
+                    RequiredColumnBoundaryKind.JoinRightEdge,
+                    right,
+                    rightRequired
+                )
+            );
         }
 
         private static RequiredColumnBoundaryPlan CreateJoinEdgePlan(
             string boundaryId,
             RequiredColumnBoundaryKind kind,
             PhysicalNode input,
-            IReadOnlyList<string> requiredColumns)
+            IReadOnlyList<string> requiredColumns
+        )
         {
             var availableColumns = ResolveAvailableColumns(input);
             var required = OrderColumns(requiredColumns);
             var retained = required.Length == 0 ? availableColumns : required;
-            var blocked = required.Length == 0
-                ? []
-                : OrderColumns(availableColumns.Where(column => !ContainsColumn(required, column)));
+            var blocked =
+                required.Length == 0
+                    ? []
+                    : OrderColumns(availableColumns.Where(column => !ContainsColumn(required, column)));
 
             return new RequiredColumnBoundaryPlan(
                 boundaryId,
@@ -194,7 +225,8 @@ internal static partial class RequiredColumnBoundaryPlanner
                 blocked,
                 CreateMappings(retained),
                 blocked.Length == 0 ? PlanningConfidence.Low : PlanningConfidence.Medium,
-                $"{kind} required-column facts were mapped for join-edge projection planning.");
+                $"{kind} required-column facts were mapped for join-edge projection planning."
+            );
         }
     }
 }

@@ -21,7 +21,8 @@ public partial class TransformTree
         SemanticScopeArtifact scopeArtifact,
         CteExecutionPlan? cteExecutionPlan,
         IEnumerable<Diagnostic> diagnostics,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var phase = new SemanticPhaseArtifacts
@@ -32,7 +33,7 @@ public partial class TransformTree
             RewrittenQuery = rewrittenQueryTree,
             Metadata = metadata,
             Scope = scopeArtifact,
-            Diagnostics = diagnostics.ToArray()
+            Diagnostics = diagnostics.ToArray(),
         };
 
         var usedColumns = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
@@ -64,13 +65,14 @@ public partial class TransformTree
             ScopeArtifact = scopeArtifact,
             PipelineInferredColumns = pipelineInferredColumns,
             PipelineUsedColumns = pipelineUsedColumns,
-            CteExecutionPlan = cteExecutionPlan
+            CteExecutionPlan = cteExecutionPlan,
         };
     }
 
     private static Dictionary<string, ISchemaColumn[]> CreateAliasKeyedInferredColumns(
         SemanticMetadataSnapshot metadata,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var aliasKeyedColumns = new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal);
@@ -100,7 +102,8 @@ public partial class TransformTree
 
     private static Dictionary<string, IReadOnlySet<string>> CreateAliasKeyedUsedColumns(
         SemanticMetadataSnapshot metadata,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var aliasKeyedUsed = new Dictionary<string, IReadOnlySet<string>>(StringComparer.Ordinal);

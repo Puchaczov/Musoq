@@ -21,7 +21,10 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             TargetExportArtifact.Create(
                 TestExecutionTargetIds.TestOnlyNonClr,
                 runtimeServices: TargetRuntimeServiceRequirements.Create(
-                    TargetRuntimeServiceRequirementKind.SourceAccess)));
+                    TargetRuntimeServiceRequirementKind.SourceAccess
+                )
+            )
+        );
 
         Assert.Contains("host-imported", exception.Message);
         Assert.Contains(nameof(TargetHostAbiImportKind.SourceAccess), exception.Message);
@@ -33,11 +36,14 @@ public sealed class CompiledQueryArtifactSupportTargetTests
         var artifact = TargetExportArtifact.Create(
             TestExecutionTargetIds.TestOnlyNonClr,
             runtimeServices: TargetRuntimeServiceRequirements.CreateTargetProvided(
-                TargetRuntimeServiceRequirementKind.SourceAccess));
+                TargetRuntimeServiceRequirementKind.SourceAccess
+            )
+        );
 
         Assert.AreEqual(
             TargetRuntimeServiceFulfillmentKind.TargetProvided,
-            artifact.RuntimeServices.GetFulfillment(TargetRuntimeServiceRequirementKind.SourceAccess));
+            artifact.RuntimeServices.GetFulfillment(TargetRuntimeServiceRequirementKind.SourceAccess)
+        );
         Assert.IsEmpty(artifact.HostAbiInventory.Imports);
     }
 
@@ -66,7 +72,9 @@ public sealed class CompiledQueryArtifactSupportTargetTests
                 entrypoints: [CreateTableEntrypoint()],
                 hostAbiInventory: TargetHostAbiInventory.Empty,
                 assemblyBlobName: CompiledQueryArtifactSupport.CSharpClrAssemblyBlobName,
-                generatedCodeSha256MetadataKey: CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256));
+                generatedCodeSha256MetadataKey: CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256
+            )
+        );
 
         Assert.Contains("required CLR assembly blob", exception.Message);
     }
@@ -87,7 +95,9 @@ public sealed class CompiledQueryArtifactSupportTargetTests
                 entrypoints: [CreateTableEntrypoint()],
                 hostAbiInventory: TargetHostAbiInventory.Empty,
                 assemblyBlobName: CompiledQueryArtifactSupport.CSharpClrAssemblyBlobName,
-                generatedCodeSha256MetadataKey: CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256));
+                generatedCodeSha256MetadataKey: CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256
+            )
+        );
 
         Assert.Contains(CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256, exception.Message);
     }
@@ -105,7 +115,9 @@ public sealed class CompiledQueryArtifactSupportTargetTests
                 entrypoints: [],
                 hostAbiInventory: TargetHostAbiInventory.Empty,
                 assemblyBlobName: CompiledQueryArtifactSupport.CSharpClrAssemblyBlobName,
-                generatedCodeSha256MetadataKey: CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256));
+                generatedCodeSha256MetadataKey: CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256
+            )
+        );
 
         Assert.Contains("table-query entrypoint", exception.Message);
     }
@@ -117,14 +129,18 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             TestExecutionTargetIds.TestOnlyNonClr,
             entrypoints: [CreateTableEntrypoint()],
             runtimeServices: TargetRuntimeServiceRequirements.CreateTargetProvided(
-                TargetRuntimeServiceRequirementKind.SourceAccess));
+                TargetRuntimeServiceRequirementKind.SourceAccess
+            )
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
             TargetArtifactPackage.CreatePortableExportPackage(
                 TestExecutionTargetIds.TestOnlyNonClr,
                 "FakeExport",
                 export,
-                ExecutionSemanticsContract.Current));
+                ExecutionSemanticsContract.Current
+            )
+        );
 
         Assert.Contains("source file or binary blob", exception.Message);
     }
@@ -136,14 +152,18 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             TestExecutionTargetIds.TestOnlyNonClr,
             sourceFiles: [new TargetExportSourceFile("query.js", "javascript", "export function run() {}")],
             runtimeServices: TargetRuntimeServiceRequirements.CreateTargetProvided(
-                TargetRuntimeServiceRequirementKind.SourceAccess));
+                TargetRuntimeServiceRequirementKind.SourceAccess
+            )
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
             TargetArtifactPackage.CreatePortableExportPackage(
                 TestExecutionTargetIds.TestOnlyNonClr,
                 "FakeExport",
                 export,
-                ExecutionSemanticsContract.Current));
+                ExecutionSemanticsContract.Current
+            )
+        );
 
         Assert.Contains("table-query or typed-query entrypoint", exception.Message);
     }
@@ -154,13 +174,15 @@ public sealed class CompiledQueryArtifactSupportTargetTests
         var export = TargetExportArtifact.Create(
             TestExecutionTargetIds.TestOnlyNonClr,
             sourceFiles: [new TargetExportSourceFile("query.js", "javascript", "export function run() {}")],
-            entrypoints: [CreateTableEntrypoint()]);
+            entrypoints: [CreateTableEntrypoint()]
+        );
 
         var package = TargetArtifactPackage.CreatePortableExportPackage(
             TestExecutionTargetIds.TestOnlyNonClr,
             "FakeExport",
             export,
-            ExecutionSemanticsContract.Current);
+            ExecutionSemanticsContract.Current
+        );
 
         Assert.IsEmpty(package.RuntimeServices.RequiredServices);
     }
@@ -171,16 +193,15 @@ public sealed class CompiledQueryArtifactSupportTargetTests
         var export = TargetExportArtifact.Create(
             TestExecutionTargetIds.TestOnlyNonClr,
             sourceFiles: [new TargetExportSourceFile("query.js", "javascript", "export function runTyped() {}")],
-            entrypoints:
-            [
-                new TargetRuntimeEntrypoint("runTyped", TargetRuntimeEntrypointKind.TypedQuery, "runTyped")
-            ]);
+            entrypoints: [new TargetRuntimeEntrypoint("runTyped", TargetRuntimeEntrypointKind.TypedQuery, "runTyped")]
+        );
 
         var package = TargetArtifactPackage.CreatePortableExportPackage(
             TestExecutionTargetIds.TestOnlyNonClr,
             "FakeTypedExport",
             export,
-            ExecutionSemanticsContract.Current);
+            ExecutionSemanticsContract.Current
+        );
 
         Assert.HasCount(1, package.Entrypoints);
         Assert.AreEqual(TargetRuntimeEntrypointKind.TypedQuery, package.Entrypoints[0].Kind);
@@ -195,14 +216,18 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             sourceFiles: [new TargetExportSourceFile("query.js", "javascript", "export function run() {}")],
             entrypoints: [CreateTableEntrypoint()],
             runtimeServices: TargetRuntimeServiceRequirements.CreateTargetProvided(
-                TargetRuntimeServiceRequirementKind.SourceAccess));
+                TargetRuntimeServiceRequirementKind.SourceAccess
+            )
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
             TargetArtifactPackage.CreatePortableExportPackage(
                 ExecutionTargetIds.CSharpClr,
                 "FakeExport",
                 export,
-                ExecutionSemanticsContract.Current));
+                ExecutionSemanticsContract.Current
+            )
+        );
 
         Assert.Contains("does not match package target", exception.Message);
     }
@@ -210,22 +235,14 @@ public sealed class CompiledQueryArtifactSupportTargetTests
     [TestMethod]
     public void TargetArtifactSemanticFacts_WhenConstructed_ShouldExposePortableSemanticViews()
     {
-        var source = new SchemaFromNode(
-            "test",
-            "rows",
-            new ArgsListNode([]),
-            "r",
-            typeof(object),
-            7);
+        var source = new SchemaFromNode("test", "rows", new ArgsListNode([]), "r", typeof(object), 7);
         var column = new SchemaColumn(
             "Name",
             1,
             typeof(string),
             "text",
-            new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["encoding"] = "utf8"
-            });
+            new Dictionary<string, string>(StringComparer.Ordinal) { ["encoding"] = "utf8" }
+        );
         var sourcePlan = new SourcePlanRequest
         {
             Identity = new SourceIdentity("test", "rows", "source:1", "r"),
@@ -233,13 +250,11 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             [
                 new SourceColumnRef(
                     "Name",
-                    new Dictionary<string, string>(StringComparer.Ordinal)
-                    {
-                        ["source.index"] = "1"
-                    })
+                    new Dictionary<string, string>(StringComparer.Ordinal) { ["source.index"] = "1" }
+                ),
             ],
             Skip = 1,
-            Take = 2
+            Take = 2,
         };
 
         var facts = new TargetArtifactSemanticFacts(
@@ -249,7 +264,8 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             [new ScriptVariableDefinition("limit", typeof(int), 5, true)],
             new Dictionary<SchemaFromNode, ISchemaColumn[]> { [source] = [column] },
             new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal) { ["r"] = [column] },
-            new Dictionary<SchemaFromNode, SourcePlanRequest> { [source] = sourcePlan });
+            new Dictionary<SchemaFromNode, SourcePlanRequest> { [source] = sourcePlan }
+        );
 
         StringAssert.Contains(facts.PortableOutputTypeName, "System.String");
         Assert.HasCount(1, facts.PortableScriptParameters);
@@ -264,8 +280,10 @@ public sealed class CompiledQueryArtifactSupportTargetTests
         Assert.AreEqual("r", facts.PortableUsedColumns[0].Source.Alias);
         Assert.AreEqual("7", facts.PortableUsedColumns[0].Source.QueryId);
         Assert.AreEqual("Name", facts.PortableUsedColumns[0].Columns[0].ColumnName);
-        Assert.AreEqual(facts.PortableUsedColumns[0].Columns[0].ColumnTypeName,
-            facts.PortableUsedColumns[0].Columns[0].SourceReadTypeName);
+        Assert.AreEqual(
+            facts.PortableUsedColumns[0].Columns[0].ColumnTypeName,
+            facts.PortableUsedColumns[0].Columns[0].SourceReadTypeName
+        );
         Assert.AreEqual("<null>", facts.PortableUsedColumns[0].Columns[0].EnumTypeFingerprint);
         Assert.AreEqual("utf8", facts.PortableUsedColumns[0].Columns[0].ReadModifiers["encoding"]);
         Assert.IsNotNull(facts.PortablePipelineInferredColumns);
@@ -281,35 +299,39 @@ public sealed class CompiledQueryArtifactSupportTargetTests
     [TestMethod]
     public void SemanticShapeHash_ShouldIncludeEnumIdentityAndExactSourceReadType()
     {
-        var source = new SchemaFromNode(
-            "test",
-            "rows",
-            new ArgsListNode([]),
-            "r",
-            typeof(object),
-            7);
+        var source = new SchemaFromNode("test", "rows", new ArgsListNode([]), "r", typeof(object), 7);
         var firstDescriptor = new EnumTypeDescriptor(
             "FirstStatus",
             EnumTypeOrigin.QueryLocal,
             EnumUnderlyingKind.Int32,
             false,
-            [new EnumMemberDescriptor("Ready", EnumScalarValue.FromInt32(1))]);
+            [new EnumMemberDescriptor("Ready", EnumScalarValue.FromInt32(1))]
+        );
         var secondDescriptor = new EnumTypeDescriptor(
             "SecondStatus",
             EnumTypeOrigin.QueryLocal,
             EnumUnderlyingKind.Int32,
             false,
-            [new EnumMemberDescriptor("Ready", EnumScalarValue.FromInt32(1))]);
+            [new EnumMemberDescriptor("Ready", EnumScalarValue.FromInt32(1))]
+        );
         var nativeDescriptor = EnumTypeDescriptor.FromClrEnum(typeof(NativeStatus));
 
-        var firstHash = CreateColumnSemanticHash(source,
-            new SchemaColumn("Status", 0, typeof(int), typeof(int), firstDescriptor));
-        var secondHash = CreateColumnSemanticHash(source,
-            new SchemaColumn("Status", 0, typeof(int), typeof(int), secondDescriptor));
-        var nativeReadHash = CreateColumnSemanticHash(source,
-            new SchemaColumn("Status", 0, typeof(int), typeof(NativeStatus), nativeDescriptor));
-        var carrierReadHash = CreateColumnSemanticHash(source,
-            new SchemaColumn("Status", 0, typeof(int), typeof(int), nativeDescriptor));
+        var firstHash = CreateColumnSemanticHash(
+            source,
+            new SchemaColumn("Status", 0, typeof(int), typeof(int), firstDescriptor)
+        );
+        var secondHash = CreateColumnSemanticHash(
+            source,
+            new SchemaColumn("Status", 0, typeof(int), typeof(int), secondDescriptor)
+        );
+        var nativeReadHash = CreateColumnSemanticHash(
+            source,
+            new SchemaColumn("Status", 0, typeof(int), typeof(NativeStatus), nativeDescriptor)
+        );
+        var carrierReadHash = CreateColumnSemanticHash(
+            source,
+            new SchemaColumn("Status", 0, typeof(int), typeof(int), nativeDescriptor)
+        );
 
         Assert.AreNotEqual(firstHash, secondHash);
         Assert.AreNotEqual(nativeReadHash, carrierReadHash);
@@ -324,32 +346,34 @@ public sealed class CompiledQueryArtifactSupportTargetTests
             [],
             new Dictionary<SchemaFromNode, ISchemaColumn[]> { [source] = [column] },
             null,
-            new Dictionary<SchemaFromNode, SourcePlanRequest>());
+            new Dictionary<SchemaFromNode, SourcePlanRequest>()
+        );
 
         return CompiledQueryArtifactSupport.ComputeSemanticShapeHash(facts, "Runnable");
     }
 
     public enum NativeStatus
     {
-        Ready = 1
+        Ready = 1,
     }
 
-    private sealed record NonCSharpRenderedArtifact()
-        : RenderedQueryArtifact(TestExecutionTargetIds.TestOnlyNonClr);
+    private sealed record NonCSharpRenderedArtifact() : RenderedQueryArtifact(TestExecutionTargetIds.TestOnlyNonClr);
 
     private static Dictionary<string, string> CreateCSharpMetadata()
     {
         return new Dictionary<string, string>
         {
-            [CompiledQueryArtifactSupport.MetadataArtifactKind] = CompiledQueryArtifactSupport.ArtifactKindRuntimeV2Query,
+            [CompiledQueryArtifactSupport.MetadataArtifactKind] =
+                CompiledQueryArtifactSupport.ArtifactKindRuntimeV2Query,
             [CompiledQueryArtifactSupport.MetadataAssemblyName] = "TestAssembly",
             [CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature] = RuntimeV2Contract.ContractSignature,
             [CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion] = "2",
             [CompiledQueryArtifactSupport.MetadataExecutionTarget] = ExecutionTargetIds.CSharpClr.ToString(),
-            [CompiledQueryArtifactSupport.MetadataExecutableArtifactKind] = CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
+            [CompiledQueryArtifactSupport.MetadataExecutableArtifactKind] =
+                CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
             [CompiledQueryArtifactSupport.MetadataScriptSha256] = "script",
             [CompiledQueryArtifactSupport.MetadataSemanticShapeSha256] = "semantic",
-            [CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256] = "generated"
+            [CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256] = "generated",
         };
     }
 
@@ -358,7 +382,8 @@ public sealed class CompiledQueryArtifactSupportTargetTests
         return new TargetExportBinaryBlob(
             CompiledQueryArtifactSupport.CSharpClrAssemblyBlobName,
             [1, 2, 3],
-            CompiledQueryArtifactSupport.CSharpClrAssemblyContentType);
+            CompiledQueryArtifactSupport.CSharpClrAssemblyContentType
+        );
     }
 
     private static TargetRuntimeEntrypoint CreateTableEntrypoint()
@@ -366,6 +391,7 @@ public sealed class CompiledQueryArtifactSupportTargetTests
         return new TargetRuntimeEntrypoint(
             "CompiledQuery",
             TargetRuntimeEntrypointKind.TableQuery,
-            "TestAssembly.CompiledQuery");
+            "TestAssembly.CompiledQuery"
+        );
     }
 }

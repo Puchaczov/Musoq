@@ -5,13 +5,15 @@ namespace Musoq.Evaluator.IR.SourcePlanning;
 internal sealed record SourcePredicateCapabilityNegotiation(
     SourcePlanRequest ProviderRequest,
     SourcePredicateExpression? DeferredPredicate,
-    bool HasUnknownContractVersion);
+    bool HasUnknownContractVersion
+);
 
 internal static partial class SourcePredicateCapabilityNegotiator
 {
     public static SourcePredicateCapabilityNegotiation Negotiate(
         SourcePlanRequest request,
-        SourcePredicateCapabilities capabilities)
+        SourcePredicateCapabilities capabilities
+    )
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(capabilities);
@@ -33,9 +35,13 @@ internal static partial class SourcePredicateCapabilityNegotiator
         {
             var providerPredicate = RemoveTypedPredicates(request.Predicate, out var unknownDeferred);
             return new SourcePredicateCapabilityNegotiation(
-                request with { Predicate = providerPredicate },
+                request with
+                {
+                    Predicate = providerPredicate,
+                },
                 unknownDeferred,
-                true);
+                true
+            );
         }
 
         var accepted = new List<SourcePredicateExpression>();
@@ -55,27 +61,33 @@ internal static partial class SourcePredicateCapabilityNegotiator
         }
 
         return new SourcePredicateCapabilityNegotiation(
-            request with { Predicate = Combine(accepted) },
+            request with
+            {
+                Predicate = Combine(accepted),
+            },
             Combine(deferred),
-            false);
+            false
+        );
     }
 
     public static SourcePlanResult RestoreDeferredPredicates(
         SourcePlanResult result,
-        SourcePredicateCapabilityNegotiation negotiation)
+        SourcePredicateCapabilityNegotiation negotiation
+    )
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(negotiation);
         if (negotiation.DeferredPredicate == null)
             return result;
 
-        var residual = result.ResidualPredicate == null
-            ? negotiation.DeferredPredicate
-            : new SourcePredicateLogical(
-                SourcePredicateLogicalOperator.And,
-                negotiation.DeferredPredicate,
-                result.ResidualPredicate);
+        var residual =
+            result.ResidualPredicate == null
+                ? negotiation.DeferredPredicate
+                : new SourcePredicateLogical(
+                    SourcePredicateLogicalOperator.And,
+                    negotiation.DeferredPredicate,
+                    result.ResidualPredicate
+                );
         return result with { ResidualPredicate = residual };
     }
-
 }

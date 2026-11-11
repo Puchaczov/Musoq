@@ -9,7 +9,7 @@ public sealed class WeatherMeasurementTable : ISchemaTable
     public ISchemaColumn[] Columns { get; } =
     [
         new SchemaColumn(nameof(WeatherMeasurementEntity.City), 0, typeof(string)),
-        new SchemaColumn(nameof(WeatherMeasurementEntity.Temperature), 1, typeof(double))
+        new SchemaColumn(nameof(WeatherMeasurementEntity.Temperature), 1, typeof(double)),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(WeatherMeasurementEntity));

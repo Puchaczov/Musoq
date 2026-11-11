@@ -47,7 +47,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
             node.Name,
             declaredFields,
             declaredFieldTypes,
-            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { node.Name });
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { node.Name }
+        );
 
         var localFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -71,7 +72,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 declaredFields.Add(field.Name);
                 declaredFieldTypes[field.Name] = ResolveExpressionType(
                     (field as ComputedFieldNode)?.Expression,
-                    declaredFieldTypes);
+                    declaredFieldTypes
+                );
             }
         }
     }
@@ -90,23 +92,28 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 node.Extends,
                 node.Name,
                 node.ExtendsSpan.IsEmpty ? node.SpanOrEmpty() : node.ExtendsSpan,
-                "base schema");
+                "base schema"
+            );
         }
 
-        foreach (var (field, sourceSpan) in InterpretationTextFieldTypeResolver.EnumerateLocatedDefinitions(node.Fields))
+        foreach (
+            var (field, sourceSpan) in InterpretationTextFieldTypeResolver.EnumerateLocatedDefinitions(node.Fields)
+        )
         {
             if (field.FieldType == TextFieldType.SchemaReference)
             {
                 if (string.IsNullOrWhiteSpace(field.PrimaryValue))
                     throw InvalidTextSchema(
                         $"Text schema reference field '{field.Name}' must specify a referenced text schema.",
-                        sourceSpan);
+                        sourceSpan
+                    );
 
                 ValidateTextFieldSchemaReference(
                     field.PrimaryValue!,
                     node.Name,
                     sourceSpan,
-                    $"schema reference field '{field.Name}'");
+                    $"schema reference field '{field.Name}'"
+                );
                 continue;
             }
 
@@ -118,13 +125,15 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 if (string.IsNullOrWhiteSpace(field.PrimaryValue))
                     throw InvalidTextSchema(
                         $"Text repeat field '{field.Name}' must specify a referenced text schema.",
-                        sourceSpan);
+                        sourceSpan
+                    );
 
                 ValidateTextFieldSchemaReference(
                     field.PrimaryValue!,
                     node.Name,
                     sourceSpan,
-                    $"repeat field '{field.Name}'");
+                    $"repeat field '{field.Name}'"
+                );
                 continue;
             }
 
@@ -134,7 +143,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
             if (field.SwitchCases.Length == 0)
                 throw InvalidTextSchema(
                     $"Text switch field '{field.Name}' must contain at least one case.",
-                    sourceSpan);
+                    sourceSpan
+                );
 
             var seenDefault = false;
             foreach (var switchCase in field.SwitchCases)
@@ -144,7 +154,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                     if (seenDefault)
                         throw InvalidTextSchema(
                             $"Text switch field '{field.Name}' may contain only one default case.",
-                            sourceSpan);
+                            sourceSpan
+                        );
 
                     seenDefault = true;
                 }
@@ -152,10 +163,9 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 {
                     throw InvalidTextSchema(
                         $"Text switch field '{field.Name}' must place the default case after all pattern cases.",
-                        sourceSpan);
+                        sourceSpan
+                    );
                 }
-
-
             }
         }
     }
@@ -164,35 +174,44 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         string referencedName,
         string referencingName,
         TextSpan? span,
-        string context)
+        string context
+    )
     {
         if (string.Equals(referencedName, referencingName, StringComparison.OrdinalIgnoreCase))
             throw new QuerySyntaxException(
                 $"Text {context} cannot reference schema '{referencedName}' from schema '{referencingName}' because recursive schema definitions are not supported.",
                 span,
-                DiagnosticCode.MQ4004_CircularSchemaReference);
+                DiagnosticCode.MQ4004_CircularSchemaReference
+            );
 
         if (!Registry.TryGetSchema(referencedName, out var registration) || registration == null)
             throw new QuerySyntaxException(
                 $"Text {context} references undefined schema '{referencedName}'.",
                 span,
-                DiagnosticCode.MQ4003_UndefinedSchemaReference);
+                DiagnosticCode.MQ4003_UndefinedSchemaReference
+            );
 
-        var referencedIndex = Registry.Schemas.ToList().FindIndex(registrationItem =>
-            ReferenceEquals(registrationItem, registration));
-        var referencingIndex = Registry.Schemas.ToList().FindIndex(registrationItem =>
-            string.Equals(registrationItem.Name, referencingName, StringComparison.OrdinalIgnoreCase));
+        var referencedIndex = Registry
+            .Schemas.ToList()
+            .FindIndex(registrationItem => ReferenceEquals(registrationItem, registration));
+        var referencingIndex = Registry
+            .Schemas.ToList()
+            .FindIndex(registrationItem =>
+                string.Equals(registrationItem.Name, referencingName, StringComparison.OrdinalIgnoreCase)
+            );
         if (referencedIndex >= referencingIndex)
             throw new QuerySyntaxException(
                 $"Text {context} references '{referencedName}', but referenced schemas must be defined before '{referencingName}'.",
                 span,
-                DiagnosticCode.MQ4003_UndefinedSchemaReference);
+                DiagnosticCode.MQ4003_UndefinedSchemaReference
+            );
 
         if (registration.Node is not TextSchemaNode)
             throw new QuerySyntaxException(
                 $"Text {context} must reference a text schema, but '{referencedName}' is not a text schema.",
                 span,
-                DiagnosticCode.MQ4007_InvalidSchemaFieldType);
+                DiagnosticCode.MQ4007_InvalidSchemaFieldType
+            );
     }
 
     private static QuerySyntaxException InvalidTextSchema(string message, TextSpan? span)
@@ -200,8 +219,11 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         return new QuerySyntaxException(message, span, DiagnosticCode.MQ4002_InvalidTextSchemaField);
     }
 
-    private void ValidateTypeReferences(TypeAnnotationNode typeNode, string currentSchemaName,
-        HashSet<string> typeParameters)
+    private void ValidateTypeReferences(
+        TypeAnnotationNode typeNode,
+        string currentSchemaName,
+        HashSet<string> typeParameters
+    )
     {
         switch (typeNode)
         {
@@ -210,10 +232,7 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 break;
 
             case StringTypeNode { AsTextSchemaName: not null } stringType:
-                ValidateTextSchemaReference(
-                    stringType.AsTextSchemaName!,
-                    currentSchemaName,
-                    stringType.SpanOrEmpty());
+                ValidateTextSchemaReference(stringType.AsTextSchemaName!, currentSchemaName, stringType.SpanOrEmpty());
                 break;
 
             case ArrayTypeNode arrayNode:
@@ -246,26 +265,27 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var typeParameter in node.TypeParameters)
         {
-            if (string.IsNullOrWhiteSpace(typeParameter) ||
-                string.Equals(typeParameter, "_", StringComparison.Ordinal) ||
-                IsPrimitiveSchemaTypeName(typeParameter))
+            if (
+                string.IsNullOrWhiteSpace(typeParameter)
+                || string.Equals(typeParameter, "_", StringComparison.Ordinal)
+                || IsPrimitiveSchemaTypeName(typeParameter)
+            )
                 throw new QuerySyntaxException(
                     $"Generic type parameter '{typeParameter}' must be a schema identifier, not a primitive type or discard name.",
                     node.SpanOrEmpty(),
-                    DiagnosticCode.MQ4007_InvalidSchemaFieldType);
+                    DiagnosticCode.MQ4007_InvalidSchemaFieldType
+                );
 
             if (!names.Add(typeParameter))
                 throw new QuerySyntaxException(
                     $"Generic type parameter '{typeParameter}' is declared more than once in schema '{node.Name}'.",
                     node.SpanOrEmpty(),
-                    DiagnosticCode.MQ4007_InvalidSchemaFieldType);
+                    DiagnosticCode.MQ4007_InvalidSchemaFieldType
+                );
         }
     }
 
-    private static void ValidateDuplicateField(
-        SchemaFieldNode field,
-        string schemaName,
-        ISet<string> localFields)
+    private static void ValidateDuplicateField(SchemaFieldNode field, string schemaName, ISet<string> localFields)
     {
         if (string.Equals(field.Name, "_", StringComparison.Ordinal) || localFields.Add(field.Name))
             return;
@@ -273,13 +293,15 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         throw new QuerySyntaxException(
             $"Binary schema '{schemaName}' declares field '{field.Name}' more than once.",
             field.SpanOrEmpty(),
-            DiagnosticCode.MQ4008_DuplicateSchemaField);
+            DiagnosticCode.MQ4008_DuplicateSchemaField
+        );
     }
 
     private void ValidateSchemaReferenceType(
         SchemaReferenceTypeNode reference,
         string currentSchemaName,
-        ISet<string> typeParameters)
+        ISet<string> typeParameters
+    )
     {
         var span = reference.SpanOrEmpty();
         if (typeParameters.Contains(reference.SchemaName))
@@ -287,7 +309,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
             if (reference.IsGenericInstantiation)
                 throw InvalidGenericSchemaReference(
                     $"Generic type parameter '{reference.SchemaName}' cannot receive type arguments.",
-                    span);
+                    span
+                );
 
             return;
         }
@@ -300,9 +323,10 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         {
             if (registration.Node is BinarySchemaNode { IsGeneric: true } genericSchema)
                 throw InvalidGenericSchemaReference(
-                    $"Generic schema '{genericSchema.Name}' must be instantiated with {genericSchema.TypeParameters.Length} " +
-                    $"schema type argument{(genericSchema.TypeParameters.Length == 1 ? string.Empty : "s")}.",
-                    span);
+                    $"Generic schema '{genericSchema.Name}' must be instantiated with {genericSchema.TypeParameters.Length} "
+                        + $"schema type argument{(genericSchema.TypeParameters.Length == 1 ? string.Empty : "s")}.",
+                    span
+                );
 
             return;
         }
@@ -310,18 +334,21 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         if (registration.Node is not BinarySchemaNode binarySchema)
             throw InvalidGenericSchemaReference(
                 $"Schema reference '{reference.FullTypeName}' supplies type arguments, but '{reference.SchemaName}' is not a binary schema.",
-                span);
+                span
+            );
 
         if (!binarySchema.IsGeneric)
             throw InvalidGenericSchemaReference(
                 $"Schema reference '{reference.FullTypeName}' supplies type arguments, but schema '{binarySchema.Name}' is not generic.",
-                span);
+                span
+            );
 
         if (binarySchema.TypeParameters.Length != reference.TypeArguments.Length)
             throw InvalidGenericSchemaReference(
-                $"Schema '{binarySchema.Name}' declares {binarySchema.TypeParameters.Length} type parameter(s), but " +
-                $"reference '{reference.FullTypeName}' supplies {reference.TypeArguments.Length}.",
-                span);
+                $"Schema '{binarySchema.Name}' declares {binarySchema.TypeParameters.Length} type parameter(s), but "
+                    + $"reference '{reference.FullTypeName}' supplies {reference.TypeArguments.Length}.",
+                span
+            );
 
         foreach (var typeArgument in reference.TypeArguments)
             ValidateGenericTypeArgument(typeArgument, currentSchemaName, typeParameters, span);
@@ -331,7 +358,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         string typeArgument,
         string currentSchemaName,
         ISet<string> typeParameters,
-        TextSpan span)
+        TextSpan span
+    )
     {
         var trimmedArgument = typeArgument.Trim();
         if (string.IsNullOrEmpty(trimmedArgument))
@@ -340,7 +368,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         if (IsPrimitiveSchemaTypeName(trimmedArgument))
             throw InvalidGenericSchemaReference(
                 $"Generic type argument '{trimmedArgument}' must name a binary schema; primitive types cannot be used as schema arguments.",
-                span);
+                span
+            );
 
         var argumentReference = ParseGenericTypeArgument(trimmedArgument, span);
         if (typeParameters.Contains(argumentReference.SchemaName))
@@ -348,7 +377,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
             if (argumentReference.IsGenericInstantiation)
                 throw InvalidGenericSchemaReference(
                     $"Generic type parameter '{argumentReference.SchemaName}' cannot receive type arguments.",
-                    span);
+                    span
+                );
 
             return;
         }
@@ -360,14 +390,16 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         if (registration.Node is not BinarySchemaNode binarySchema)
             throw InvalidGenericSchemaReference(
                 $"Generic type argument '{trimmedArgument}' must name a binary schema.",
-                span);
+                span
+            );
 
         if (!argumentReference.IsGenericInstantiation)
         {
             if (binarySchema.IsGeneric)
                 throw InvalidGenericSchemaReference(
                     $"Generic schema argument '{binarySchema.Name}' must be instantiated with {binarySchema.TypeParameters.Length} type parameter(s).",
-                    span);
+                    span
+                );
 
             return;
         }
@@ -375,13 +407,15 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         if (!binarySchema.IsGeneric)
             throw InvalidGenericSchemaReference(
                 $"Schema argument '{argumentReference.FullTypeName}' supplies type arguments to non-generic schema '{binarySchema.Name}'.",
-                span);
+                span
+            );
 
         if (binarySchema.TypeParameters.Length != argumentReference.TypeArguments.Length)
             throw InvalidGenericSchemaReference(
-                $"Schema '{binarySchema.Name}' declares {binarySchema.TypeParameters.Length} type parameter(s), but " +
-                $"argument '{argumentReference.FullTypeName}' supplies {argumentReference.TypeArguments.Length}.",
-                span);
+                $"Schema '{binarySchema.Name}' declares {binarySchema.TypeParameters.Length} type parameter(s), but "
+                    + $"argument '{argumentReference.FullTypeName}' supplies {argumentReference.TypeArguments.Length}.",
+                span
+            );
 
         foreach (var nestedArgument in argumentReference.TypeArguments)
             ValidateGenericTypeArgument(nestedArgument, currentSchemaName, typeParameters, span);
@@ -396,7 +430,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         if (openIndex == 0 || !typeArgument.EndsWith('>'))
             throw InvalidGenericSchemaReference(
                 $"Generic type argument '{typeArgument}' is not a valid schema reference.",
-                span);
+                span
+            );
 
         var depth = 0;
         for (var index = openIndex; index < typeArgument.Length; index++)
@@ -407,15 +442,11 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 depth--;
 
             if (depth < 0)
-                throw InvalidGenericSchemaReference(
-                    $"Generic type argument '{typeArgument}' is not balanced.",
-                    span);
+                throw InvalidGenericSchemaReference($"Generic type argument '{typeArgument}' is not balanced.", span);
         }
 
         if (depth != 0)
-            throw InvalidGenericSchemaReference(
-                $"Generic type argument '{typeArgument}' is not balanced.",
-                span);
+            throw InvalidGenericSchemaReference($"Generic type argument '{typeArgument}' is not balanced.", span);
 
         var schemaName = typeArgument[..openIndex].Trim();
         var argumentText = typeArgument[(openIndex + 1)..^1];
@@ -423,7 +454,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         if (typeArguments.Any(string.IsNullOrWhiteSpace))
             throw InvalidGenericSchemaReference(
                 $"Generic type argument '{typeArgument}' contains an empty nested argument.",
-                span);
+                span
+            );
 
         return (SchemaReferenceTypeNode)new SchemaReferenceTypeNode(schemaName, typeArguments).WithSpan(span);
     }
@@ -461,11 +493,11 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
     private void ValidateTextSchemaReference(string schemaName, string currentSchemaName, TextSpan span)
     {
         ValidateSchemaReference(schemaName, currentSchemaName, span);
-        if (Registry.TryGetSchema(schemaName, out var registration) &&
-            registration?.Node is not TextSchemaNode)
+        if (Registry.TryGetSchema(schemaName, out var registration) && registration?.Node is not TextSchemaNode)
             throw InvalidGenericSchemaReference(
                 $"Binary string field text schema '{schemaName}' must reference a text schema.",
-                span);
+                span
+            );
     }
 
     private static QuerySyntaxException InvalidGenericSchemaReference(string message, TextSpan span)
@@ -475,9 +507,20 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
     private static bool IsPrimitiveSchemaTypeName(string typeName)
     {
-        return typeName.Trim().ToUpperInvariant() is
-            "BYTE" or "SBYTE" or "SHORT" or "USHORT" or "INT" or "UINT" or
-            "LONG" or "ULONG" or "FLOAT" or "DOUBLE" or "STRING" or "BITS" or "ALIGN";
+        return typeName.Trim().ToUpperInvariant()
+            is "BYTE"
+                or "SBYTE"
+                or "SHORT"
+                or "USHORT"
+                or "INT"
+                or "UINT"
+                or "LONG"
+                or "ULONG"
+                or "FLOAT"
+                or "DOUBLE"
+                or "STRING"
+                or "BITS"
+                or "ALIGN";
     }
 
     private void ValidateSchemaReference(string referencedName, string referencingName, TextSpan span)
@@ -496,9 +539,16 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         FieldDefinitionNode field,
         string schemaName,
         HashSet<string> declaredFields,
-        IReadOnlyDictionary<string, Type?> declaredFieldTypes)
+        IReadOnlyDictionary<string, Type?> declaredFieldTypes
+    )
     {
-        ValidateTypeExpressionReferences(field.TypeAnnotation, field.Name, schemaName, declaredFields, declaredFieldTypes);
+        ValidateTypeExpressionReferences(
+            field.TypeAnnotation,
+            field.Name,
+            schemaName,
+            declaredFields,
+            declaredFieldTypes
+        );
 
         if (field.AtOffset != null)
             ValidateExpressionReferences(field.Name, field.AtOffset, schemaName, declaredFields);
@@ -506,20 +556,23 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         if (field.WhenCondition != null)
         {
             ValidateExpressionReferences(field.Name, field.WhenCondition, schemaName, declaredFields);
-            if (!HasDeferredParentReference(field.WhenCondition, declaredFields) && !IsBooleanExpression(field.WhenCondition, declaredFieldTypes))
-                throw new QuerySyntaxException($"Binary schema field '{field.Name}' when expression must evaluate to boolean.",
-                    field.WhenCondition.SpanOrEmpty(), DiagnosticCode.MQ4006_InvalidFieldConstraint);
+            if (
+                !HasDeferredParentReference(field.WhenCondition, declaredFields)
+                && !IsBooleanExpression(field.WhenCondition, declaredFieldTypes)
+            )
+                throw new QuerySyntaxException(
+                    $"Binary schema field '{field.Name}' when expression must evaluate to boolean.",
+                    field.WhenCondition.SpanOrEmpty(),
+                    DiagnosticCode.MQ4006_InvalidFieldConstraint
+                );
         }
 
         if (field.Constraint != null)
         {
-            var constraintFields = new HashSet<string>(declaredFields, StringComparer.OrdinalIgnoreCase)
-            {
-                field.Name
-            };
+            var constraintFields = new HashSet<string>(declaredFields, StringComparer.OrdinalIgnoreCase) { field.Name };
             var constraintTypes = new Dictionary<string, Type?>(declaredFieldTypes, StringComparer.OrdinalIgnoreCase)
             {
-                [field.Name] = field.TypeAnnotation.ReturnType
+                [field.Name] = field.TypeAnnotation.ReturnType,
             };
 
             ValidateExpressionReferences(field.Name, field.Constraint.Expression, schemaName, constraintFields);
@@ -533,7 +586,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         string fieldName,
         string schemaName,
         HashSet<string> declaredFields,
-        IReadOnlyDictionary<string, Type?> declaredFieldTypes)
+        IReadOnlyDictionary<string, Type?> declaredFieldTypes
+    )
     {
         switch (typeNode)
         {
@@ -553,12 +607,19 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                         fieldName,
                         schemaName,
                         declaredFields,
-                        declaredFieldTypes);
+                        declaredFieldTypes
+                    );
                 break;
 
             case ArrayTypeNode array:
                 ValidateExpressionReferences(fieldName, array.SizeExpression, schemaName, declaredFields);
-                ValidateTypeExpressionReferences(array.ElementType, fieldName, schemaName, declaredFields, declaredFieldTypes);
+                ValidateTypeExpressionReferences(
+                    array.ElementType,
+                    fieldName,
+                    schemaName,
+                    declaredFields,
+                    declaredFieldTypes
+                );
                 break;
 
             case InlineSchemaTypeNode inline:
@@ -566,29 +627,40 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 break;
 
             case RepeatUntilTypeNode repeatUntil:
-                ValidateTypeExpressionReferences(repeatUntil.ElementType, fieldName, schemaName, declaredFields, declaredFieldTypes);
+                ValidateTypeExpressionReferences(
+                    repeatUntil.ElementType,
+                    fieldName,
+                    schemaName,
+                    declaredFields,
+                    declaredFieldTypes
+                );
 
                 if (repeatUntil.Condition != null)
                 {
                     var repeatFields = new HashSet<string>(declaredFields, StringComparer.OrdinalIgnoreCase)
                     {
-                        repeatUntil.FieldName
+                        repeatUntil.FieldName,
                     };
-                    var repeatFieldTypes = new Dictionary<string, Type?>(declaredFieldTypes, StringComparer.OrdinalIgnoreCase)
+                    var repeatFieldTypes = new Dictionary<string, Type?>(
+                        declaredFieldTypes,
+                        StringComparer.OrdinalIgnoreCase
+                    )
                     {
-                        [repeatUntil.FieldName] = repeatUntil.ClrType
+                        [repeatUntil.FieldName] = repeatUntil.ClrType,
                     };
 
                     ValidateExpressionReferences(fieldName, repeatUntil.Condition, schemaName, repeatFields);
-                    ValidateBooleanRepeatCondition(fieldName, repeatUntil.Condition, repeatFieldTypes, repeatUntil.ElementType);
+                    ValidateBooleanRepeatCondition(
+                        fieldName,
+                        repeatUntil.Condition,
+                        repeatFieldTypes,
+                        repeatUntil.ElementType
+                    );
                 }
                 break;
 
             case BinarySwitchTypeNode switchType:
-                ValidateBinarySwitchReferences(
-                    switchType,
-                    declaredFields,
-                    declaredFieldTypes);
+                ValidateBinarySwitchReferences(switchType, declaredFields, declaredFieldTypes);
 
                 foreach (var switchCase in switchType.Cases)
                     ValidateTypeExpressionReferences(
@@ -596,7 +668,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                         fieldName,
                         schemaName,
                         declaredFields,
-                        declaredFieldTypes);
+                        declaredFieldTypes
+                    );
                 break;
         }
     }
@@ -604,44 +677,53 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
     private static void ValidateBinarySwitchReferences(
         BinarySwitchTypeNode switchType,
         HashSet<string> declaredFields,
-        IReadOnlyDictionary<string, Type?> declaredFieldTypes)
+        IReadOnlyDictionary<string, Type?> declaredFieldTypes
+    )
     {
-        if (!declaredFields.Contains(switchType.Selector) ||
-            !declaredFieldTypes.TryGetValue(switchType.Selector, out var selectorType))
+        if (
+            !declaredFields.Contains(switchType.Selector)
+            || !declaredFieldTypes.TryGetValue(switchType.Selector, out var selectorType)
+        )
             throw new QuerySyntaxException(
                 $"Switch selector '{switchType.Selector}' must reference a field declared before the switch field.",
                 GetSwitchSelectorSpan(switchType),
-                DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField);
+                DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField
+            );
 
         var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (var index = 0; index < switchType.Cases.Length; index++)
         {
             var switchCase = switchType.Cases[index];
-            if (!aliases.Add(switchCase.BranchAlias) ||
-                string.Equals(switchCase.BranchAlias, "Case", StringComparison.OrdinalIgnoreCase))
+            if (
+                !aliases.Add(switchCase.BranchAlias)
+                || string.Equals(switchCase.BranchAlias, "Case", StringComparison.OrdinalIgnoreCase)
+            )
                 throw new QuerySyntaxException(
                     $"Duplicate switch branch alias '{switchCase.BranchAlias}'.",
                     GetSwitchBranchAliasSpan(switchCase),
-                    DiagnosticCode.MQ4012_DuplicateSwitchBranchAlias);
+                    DiagnosticCode.MQ4012_DuplicateSwitchBranchAlias
+                );
 
             if (switchCase.IsDefault && index != switchType.Cases.Length - 1)
                 throw new QuerySyntaxException(
                     "Switch default case '_' must be the last case.",
                     GetSwitchCaseLabelSpan(switchCase),
-                    DiagnosticCode.MQ4013_InvalidSwitchCaseLabel);
+                    DiagnosticCode.MQ4013_InvalidSwitchCaseLabel
+                );
 
             if (switchCase.BranchType is AlignmentNode)
                 throw new QuerySyntaxException(
                     $"Switch branch '{switchCase.BranchAlias}' uses unsupported binary type '{switchCase.BranchType}'.",
                     GetSwitchBranchTypeSpan(switchCase),
-                    DiagnosticCode.MQ4013_InvalidSwitchCaseLabel);
+                    DiagnosticCode.MQ4013_InvalidSwitchCaseLabel
+                );
 
-            if (!switchCase.IsDefault &&
-                !IsSwitchCaseLabelCompatible(selectorType, switchCase.CaseValue!))
+            if (!switchCase.IsDefault && !IsSwitchCaseLabelCompatible(selectorType, switchCase.CaseValue!))
                 throw new QuerySyntaxException(
                     $"Switch case label '{switchCase.CaseValue}' is not compatible with selector '{switchType.Selector}'.",
                     GetSwitchCaseLabelSpan(switchCase),
-                    DiagnosticCode.MQ4013_InvalidSwitchCaseLabel);
+                    DiagnosticCode.MQ4013_InvalidSwitchCaseLabel
+                );
         }
     }
 
@@ -685,21 +767,39 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         if (node is HyphenNode hyphen)
             return IsNumericSwitchCaseLabel(hyphen.Left) && IsNumericSwitchCaseLabel(hyphen.Right);
 
-        return node is ConstantValueNode constant && constant.ObjValue is byte or sbyte or short or ushort or int or
-            uint or long or ulong or float or double or decimal;
+        return node is ConstantValueNode constant
+            && constant.ObjValue
+                is byte
+                    or sbyte
+                    or short
+                    or ushort
+                    or int
+                    or uint
+                    or long
+                    or ulong
+                    or float
+                    or double
+                    or decimal;
     }
 
     private static bool TryGetNumericSwitchCaseValue(Node node, out decimal value)
     {
-        if (node is HyphenNode hyphen &&
-            TryGetNumericSwitchCaseValue(hyphen.Left, out var left) &&
-            TryGetNumericSwitchCaseValue(hyphen.Right, out var right))
+        if (
+            node is HyphenNode hyphen
+            && TryGetNumericSwitchCaseValue(hyphen.Left, out var left)
+            && TryGetNumericSwitchCaseValue(hyphen.Right, out var right)
+        )
         {
             value = left - right;
             return true;
         }
 
-        if (node is ConstantValueNode { ObjValue: byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal } constant)
+        if (
+            node is ConstantValueNode
+            {
+                ObjValue: byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal
+            } constant
+        )
         {
             try
             {
@@ -735,9 +835,7 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
     private static TextSpan GetSwitchBranchAliasSpan(BinarySwitchCaseNode switchCase)
     {
-        return switchCase.BranchAliasSpan.IsEmpty
-            ? switchCase.BranchTypeSpan
-            : switchCase.BranchAliasSpan;
+        return switchCase.BranchAliasSpan.IsEmpty ? switchCase.BranchTypeSpan : switchCase.BranchAliasSpan;
     }
 
     private static TextSpan GetSwitchBranchTypeSpan(BinarySwitchCaseNode switchCase)
@@ -747,7 +845,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
     private static void ValidateBooleanConstraint(
         FieldDefinitionNode field,
-        IReadOnlyDictionary<string, Type?> fieldTypes)
+        IReadOnlyDictionary<string, Type?> fieldTypes
+    )
     {
         if (IsBooleanExpression(field.Constraint!.Expression, fieldTypes))
             return;
@@ -755,14 +854,16 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         throw new QuerySyntaxException(
             $"Binary schema field '{field.Name}' check expression must evaluate to boolean.",
             field.Constraint.Expression.SpanOrEmpty(),
-            DiagnosticCode.MQ4006_InvalidFieldConstraint);
+            DiagnosticCode.MQ4006_InvalidFieldConstraint
+        );
     }
 
     private void ValidateBooleanRepeatCondition(
         string fieldName,
         Node condition,
         IReadOnlyDictionary<string, Type?> fieldTypes,
-        TypeAnnotationNode elementType)
+        TypeAnnotationNode elementType
+    )
     {
         var conditionTypes = new BinaryRepeatConditionTypes(fieldName, elementType, Registry);
         if (conditionTypes.IsBoolean(condition, expression => IsBooleanExpression(expression, fieldTypes)))
@@ -771,7 +872,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         throw new QuerySyntaxException(
             $"Binary schema field '{fieldName}' repeat-until condition must evaluate to boolean.",
             condition.SpanOrEmpty(),
-            DiagnosticCode.MQ4006_InvalidFieldConstraint);
+            DiagnosticCode.MQ4006_InvalidFieldConstraint
+        );
     }
 
     private static bool IsBooleanExpression(Node expression, IReadOnlyDictionary<string, Type?> fieldTypes)
@@ -781,8 +883,9 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
             case WhenNode or ThenNode or ElseNode:
                 return IsBooleanExpression(((UnaryNode)expression).Expression, fieldTypes);
             case CaseNode choice:
-                return choice.WhenThenPairs.All(pair => IsBooleanExpression(pair.When, fieldTypes) &&
-                    IsBooleanExpression(pair.Then, fieldTypes)) && IsBooleanExpression(choice.Else, fieldTypes);
+                return choice.WhenThenPairs.All(pair =>
+                        IsBooleanExpression(pair.When, fieldTypes) && IsBooleanExpression(pair.Then, fieldTypes)
+                    ) && IsBooleanExpression(choice.Else, fieldTypes);
             case EqualityNode:
             case DiffNode:
             case GreaterNode:
@@ -793,22 +896,21 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 return true;
 
             case AndNode and:
-                return IsBooleanExpression(and.Left, fieldTypes) &&
-                       IsBooleanExpression(and.Right, fieldTypes);
+                return IsBooleanExpression(and.Left, fieldTypes) && IsBooleanExpression(and.Right, fieldTypes);
 
             case OrNode or:
-                return IsBooleanExpression(or.Left, fieldTypes) &&
-                       IsBooleanExpression(or.Right, fieldTypes);
+                return IsBooleanExpression(or.Left, fieldTypes) && IsBooleanExpression(or.Right, fieldTypes);
 
             case NotNode not:
                 return IsBooleanExpression(not.Expression, fieldTypes);
 
             case CastNode cast:
-                return BinarySchemaExpressionTypes.Unwrap(BinarySchemaStrictCasts.Resolve(cast).ReturnType) == typeof(bool);
+                return BinarySchemaExpressionTypes.Unwrap(BinarySchemaStrictCasts.Resolve(cast).ReturnType)
+                    == typeof(bool);
 
             case IdentifierNode identifier:
-                return fieldTypes.TryGetValue(identifier.Name, out var identifierType) &&
-                       BinarySchemaExpressionTypes.Unwrap(identifierType ?? typeof(object)) == typeof(bool);
+                return fieldTypes.TryGetValue(identifier.Name, out var identifierType)
+                    && BinarySchemaExpressionTypes.Unwrap(identifierType ?? typeof(object)) == typeof(bool);
 
             case AccessMethodNode method:
                 return method.Method == null || method.ReturnType == typeof(bool);
@@ -818,9 +920,7 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         }
     }
 
-    private static Type? ResolveExpressionType(
-        Node? expression,
-        IReadOnlyDictionary<string, Type?> fieldTypes)
+    private static Type? ResolveExpressionType(Node? expression, IReadOnlyDictionary<string, Type?> fieldTypes)
     {
         if (expression == null)
             return typeof(object);
@@ -829,7 +929,10 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
             return identifierType;
 
         if (expression is CaseNode choice)
-            return ResolveExpressionType(choice.WhenThenPairs[0].Then is UnaryNode then ? then.Expression : choice.WhenThenPairs[0].Then, fieldTypes);
+            return ResolveExpressionType(
+                choice.WhenThenPairs[0].Then is UnaryNode then ? then.Expression : choice.WhenThenPairs[0].Then,
+                fieldTypes
+            );
         if (expression is NotNode)
             return typeof(bool);
         if (expression is CastNode cast)
@@ -843,29 +946,36 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         string childSchemaName,
         HashSet<string> fields,
         Dictionary<string, Type?> fieldTypes,
-        ISet<string> inheritancePath)
+        ISet<string> inheritancePath
+    )
     {
         if (string.IsNullOrWhiteSpace(parentName))
             return;
 
-        if (!Registry.TryGetSchema(parentName, out var registration) || registration?.Node is not BinarySchemaNode parent)
+        if (
+            !Registry.TryGetSchema(parentName, out var registration)
+            || registration?.Node is not BinarySchemaNode parent
+        )
             throw new QuerySyntaxException(
                 $"Binary schema '{childSchemaName}' extends undefined or non-binary schema '{parentName}'.",
                 GetInheritanceSpan(childSchemaName, parentName),
-                DiagnosticCode.MQ2030_UnsupportedSyntax);
+                DiagnosticCode.MQ2030_UnsupportedSyntax
+            );
 
         ValidateSchemaReference(parentName, childSchemaName, GetInheritanceSpan(childSchemaName, parentName));
 
         if (parent.IsGeneric)
             throw InvalidGenericSchemaReference(
                 $"Binary schema '{childSchemaName}' cannot extend generic schema '{parent.Name}' without type arguments.",
-                GetInheritanceSpan(childSchemaName, parentName));
+                GetInheritanceSpan(childSchemaName, parentName)
+            );
 
         if (!inheritancePath.Add(parent.Name))
             throw new QuerySyntaxException(
                 $"Binary schema inheritance contains a cycle involving '{parent.Name}'.",
                 GetInheritanceSpan(childSchemaName, parentName),
-                DiagnosticCode.MQ2030_UnsupportedSyntax);
+                DiagnosticCode.MQ2030_UnsupportedSyntax
+            );
 
         try
         {
@@ -879,7 +989,10 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
         foreach (var field in parent.Fields)
         {
             fields.Add(field.Name);
-            fieldTypes[field.Name] = ResolveExpressionType(field is ComputedFieldNode computed ? computed.Expression : field, fieldTypes);
+            fieldTypes[field.Name] = ResolveExpressionType(
+                field is ComputedFieldNode computed ? computed.Expression : field,
+                fieldTypes
+            );
         }
     }
 
@@ -892,12 +1005,16 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
     private TextSpan GetInheritanceSpan(string childSchemaName, string parentName)
     {
-        if (Registry.TryGetSchema(childSchemaName, out var registration) &&
-            registration?.Node is BinarySchemaNode binary &&
-            !binary.ExtendsSpan.IsEmpty)
+        if (
+            Registry.TryGetSchema(childSchemaName, out var registration)
+            && registration?.Node is BinarySchemaNode binary
+            && !binary.ExtendsSpan.IsEmpty
+        )
             return binary.ExtendsSpan;
 
-        if (Registry.TryGetSchema(parentName, out var parentRegistration) && parentRegistration?.Node is Node parentNode)
+        if (
+            Registry.TryGetSchema(parentName, out var parentRegistration) && parentRegistration?.Node is Node parentNode
+        )
             return parentNode.SpanOrEmpty();
 
         return TextSpan.Empty;

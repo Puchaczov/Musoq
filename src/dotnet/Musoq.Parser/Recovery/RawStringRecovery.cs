@@ -10,8 +10,11 @@ public partial class Parser
     private void RecordIncompleteStatementIfNeeded()
     {
         if (!HasRecoveredRawStringDiagnosticAtCurrent())
-            RecordError(DiagnosticCode.MQ2016_IncompleteStatement,
-                "Failed to compose statement. The SQL query structure is invalid.", Current.Span);
+            RecordError(
+                DiagnosticCode.MQ2016_IncompleteStatement,
+                "Failed to compose statement. The SQL query structure is invalid.",
+                Current.Span
+            );
     }
 
     private void RecordSyntaxExceptionIfNeeded(SyntaxException exception)
@@ -39,8 +42,10 @@ public partial class Parser
 
         foreach (var diagnostic in _lexer.Diagnostics)
         {
-            if (diagnostic.Code == DiagnosticCode.MQ1002_UnterminatedString &&
-                diagnostic.Span.End <= Current.Span.Start)
+            if (
+                diagnostic.Code == DiagnosticCode.MQ1002_UnterminatedString
+                && diagnostic.Span.End <= Current.Span.Start
+            )
                 return true;
         }
 

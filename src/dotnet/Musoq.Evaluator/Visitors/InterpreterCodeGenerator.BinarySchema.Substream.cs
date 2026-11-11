@@ -13,7 +13,11 @@ public partial class InterpreterCodeGenerator
         return GenerateStructuredSubstreamReadCode(localVar, fieldName, substreamType);
     }
 
-    private string GenerateStructuredSubstreamReadCode(string localVar, string fieldName, SubstreamTypeNode substreamType)
+    private string GenerateStructuredSubstreamReadCode(
+        string localVar,
+        string fieldName,
+        SubstreamTypeNode substreamType
+    )
     {
         var lengthVar = $"_{localVar}_substreamLength";
         var sliceVar = $"_{localVar}_substreamSlice";
@@ -27,16 +31,27 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine(culture, $"var {sliceVar} = data.Slice(ParsePosition, {lengthVar});");
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {startVar} = ParsePosition;");
         builder.Append(GenerateSubstreamInterpreterConstruction(interpreterVar, fieldName, substreamType.Target!));
-        builder.Append(StatusRead(localVar, $"base.InterpretNestedAtStatus({interpreterVar}, {sliceVar}, 0, \"{EscapeString(fieldName)}\")"));
+        builder.Append(
+            StatusRead(
+                localVar,
+                $"base.InterpretNestedAtStatus({interpreterVar}, {sliceVar}, 0, \"{EscapeString(fieldName)}\")"
+            )
+        );
 
         if (substreamType.Mode == SubstreamMode.Exact)
-            builder.Append(StatusCheck($"base.CheckSubstreamConsumptionStatus(\"{fieldName}\", {lengthVar}, {interpreterVar})"));
+            builder.Append(
+                StatusCheck($"base.CheckSubstreamConsumptionStatus(\"{fieldName}\", {lengthVar}, {interpreterVar})")
+            );
 
         builder.Append(culture, $"ParsePosition = {startVar} + {lengthVar}; BitOffset = 0;");
         return builder.ToString();
     }
 
-    private string GenerateSubstreamInterpreterConstruction(string interpreterVar, string fieldName, TypeAnnotationNode target)
+    private string GenerateSubstreamInterpreterConstruction(
+        string interpreterVar,
+        string fieldName,
+        TypeAnnotationNode target
+    )
     {
         var culture = System.Globalization.CultureInfo.InvariantCulture;
         var builder = new StringBuilder();

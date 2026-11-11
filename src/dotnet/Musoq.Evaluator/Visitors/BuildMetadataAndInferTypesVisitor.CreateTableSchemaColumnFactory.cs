@@ -23,7 +23,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         CreateTableColumnDefinition column,
         int index,
         Type carrierType,
-        EnumTypeDescriptor descriptor)
+        EnumTypeDescriptor descriptor
+    )
     {
         IReadOnlyDictionary<string, string>? modifiers = null;
         if (column.ReadModifiers.Count > 0)
@@ -42,6 +43,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             descriptor,
             intendedTypeName: null,
             readModifiers: modifiers,
-            stability: ColumnStability.Stable);
+            stability: ColumnStability.Stable
+        );
     }
 }

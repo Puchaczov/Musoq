@@ -9,7 +9,8 @@ internal sealed partial class PhysicalLoweringImplementation
         TypeAnnotationNode type,
         string fieldName,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         if (type is PrimitiveTypeNode or ByteArrayTypeNode or StringTypeNode or BitsTypeNode or AlignmentNode)
             return InterpretSourceValidationResult.Success();
@@ -33,14 +34,16 @@ internal sealed partial class PhysicalLoweringImplementation
             return ValidateSubstreamType(substreamType, fieldName, validatedSchemas, genericBindings);
 
         return InterpretSourceValidationResult.Unsupported(
-            $"Execution IR binary interpret-source lowering currently supports primitive, bits, string, byte-array, computed scalar, inline schema, non-generic and closed-generic schema-reference, primitive-array, string-array, inline-schema-array, primitive repeat-until, bits repeat-until, string repeat-until, inline-schema repeat-until, non-generic and closed-generic schema-reference-array, and non-generic and closed-generic schema-reference repeat-until fields. Found {type.GetType().Name} on field '{fieldName}'.");
+            $"Execution IR binary interpret-source lowering currently supports primitive, bits, string, byte-array, computed scalar, inline schema, non-generic and closed-generic schema-reference, primitive-array, string-array, inline-schema-array, primitive repeat-until, bits repeat-until, string repeat-until, inline-schema repeat-until, non-generic and closed-generic schema-reference-array, and non-generic and closed-generic schema-reference repeat-until fields. Found {type.GetType().Name} on field '{fieldName}'."
+        );
     }
 
     private InterpretSourceValidationResult ValidateSubstreamType(
         SubstreamTypeNode substreamType,
         string fieldName,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         if (substreamType.Mode == SubstreamMode.Raw)
             return InterpretSourceValidationResult.Success();
@@ -52,14 +55,16 @@ internal sealed partial class PhysicalLoweringImplementation
             return ValidateInlineSchemaType(inlineSchema, fieldName, validatedSchemas, genericBindings);
 
         return InterpretSourceValidationResult.Unsupported(
-            $"Execution IR binary interpret-source lowering currently supports raw substream fields and schema-reference or inline-schema substream targets. Found {substreamType.Target?.GetType().Name ?? "none"} on field '{fieldName}'.");
+            $"Execution IR binary interpret-source lowering currently supports raw substream fields and schema-reference or inline-schema substream targets. Found {substreamType.Target?.GetType().Name ?? "none"} on field '{fieldName}'."
+        );
     }
 
     private InterpretSourceValidationResult ValidateBinarySwitchType(
         BinarySwitchTypeNode switchType,
         string fieldName,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         foreach (var switchCase in switchType.Cases)
         {
@@ -67,7 +72,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 switchCase.BranchType,
                 $"{fieldName}.{switchCase.BranchAlias}",
                 validatedSchemas,
-                genericBindings);
+                genericBindings
+            );
 
             if (!branchResult.IsBuilt)
                 return branchResult;
@@ -80,7 +86,8 @@ internal sealed partial class PhysicalLoweringImplementation
         TypeAnnotationNode branchType,
         string branchName,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         if (branchType is AlignmentNode)
             return InterpretSourceValidationResult.Unsupported("Alignment directives cannot be binary switch values.");
@@ -91,7 +98,8 @@ internal sealed partial class PhysicalLoweringImplementation
         InlineSchemaTypeNode inlineSchema,
         string fieldName,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         foreach (var inlineField in inlineSchema.Fields)
         {
@@ -99,7 +107,8 @@ internal sealed partial class PhysicalLoweringImplementation
             if (!fieldResult.IsBuilt)
             {
                 return InterpretSourceValidationResult.Unsupported(
-                    $"Execution IR binary interpret-source lowering does not support inline schema field '{fieldName}.{inlineField.Name}': {fieldResult.UnsupportedReason}");
+                    $"Execution IR binary interpret-source lowering does not support inline schema field '{fieldName}.{inlineField.Name}': {fieldResult.UnsupportedReason}"
+                );
             }
         }
 
@@ -110,10 +119,13 @@ internal sealed partial class PhysicalLoweringImplementation
         ArrayTypeNode arrayType,
         string fieldName,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         if (arrayType.ElementType is BinarySwitchTypeNode or AlignmentNode)
-            return InterpretSourceValidationResult.Unsupported("Direct arrays of binary switches and alignment directives are not supported.");
+            return InterpretSourceValidationResult.Unsupported(
+                "Direct arrays of binary switches and alignment directives are not supported."
+            );
         return ValidateBinaryType(arrayType.ElementType, fieldName, validatedSchemas, genericBindings);
     }
 
@@ -121,7 +133,8 @@ internal sealed partial class PhysicalLoweringImplementation
         RepeatUntilTypeNode repeatUntilType,
         string fieldName,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         if (repeatUntilType.ElementType is AlignmentNode)
             return InterpretSourceValidationResult.Unsupported("Alignment directives cannot be repetition elements.");
@@ -132,56 +145,68 @@ internal sealed partial class PhysicalLoweringImplementation
         SchemaReferenceTypeNode reference,
         string fieldName,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
         var resolvedReference = BinarySchemaGenericResolver.ResolveReference(reference, genericBindings);
         if (resolvedReference.IsGenericInstantiation)
             return ValidateGenericSchemaReference(resolvedReference, fieldName, validatedSchemas, genericBindings);
 
-        if (_schemaRegistry == null ||
-            !_schemaRegistry.TryGetSchema(resolvedReference.SchemaName, out var registration) ||
-            registration?.Node is not BinarySchemaNode referencedBinary)
+        if (
+            _schemaRegistry == null
+            || !_schemaRegistry.TryGetSchema(resolvedReference.SchemaName, out var registration)
+            || registration?.Node is not BinarySchemaNode referencedBinary
+        )
         {
             return InterpretSourceValidationResult.Unsupported(
-                $"Execution IR binary interpret-source lowering cannot resolve binary schema reference '{resolvedReference.SchemaName}' on field '{fieldName}'.");
+                $"Execution IR binary interpret-source lowering cannot resolve binary schema reference '{resolvedReference.SchemaName}' on field '{fieldName}'."
+            );
         }
 
         return ValidateBinaryInterpretSource(
             referencedBinary,
             validatedSchemas,
-            BinarySchemaGenericResolver.CreateEmptyBindings());
+            BinarySchemaGenericResolver.CreateEmptyBindings()
+        );
     }
 
     private InterpretSourceValidationResult ValidateGenericSchemaReference(
         SchemaReferenceTypeNode reference,
         string fieldName,
         ISet<string> validatedSchemas,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> genericBindings
+    )
     {
-        if (_schemaRegistry == null ||
-            !_schemaRegistry.TryGetSchema(reference.SchemaName, out var registration) ||
-            registration?.Node is not BinarySchemaNode referencedBinary)
+        if (
+            _schemaRegistry == null
+            || !_schemaRegistry.TryGetSchema(reference.SchemaName, out var registration)
+            || registration?.Node is not BinarySchemaNode referencedBinary
+        )
         {
             return InterpretSourceValidationResult.Unsupported(
-                $"Execution IR binary interpret-source lowering cannot resolve generic binary schema reference '{reference.FullTypeName}' on field '{fieldName}'.");
+                $"Execution IR binary interpret-source lowering cannot resolve generic binary schema reference '{reference.FullTypeName}' on field '{fieldName}'."
+            );
         }
 
         if (!referencedBinary.IsGeneric)
         {
             return InterpretSourceValidationResult.Unsupported(
-                $"Execution IR binary interpret-source lowering found type arguments for non-generic schema reference '{reference.FullTypeName}' on field '{fieldName}'.");
+                $"Execution IR binary interpret-source lowering found type arguments for non-generic schema reference '{reference.FullTypeName}' on field '{fieldName}'."
+            );
         }
 
         if (referencedBinary.TypeParameters.Length != reference.TypeArguments.Length)
         {
             return InterpretSourceValidationResult.Unsupported(
-                $"Execution IR binary interpret-source lowering found {reference.TypeArguments.Length} type arguments for generic schema reference '{reference.FullTypeName}' on field '{fieldName}', but schema '{referencedBinary.Name}' declares {referencedBinary.TypeParameters.Length}.");
+                $"Execution IR binary interpret-source lowering found {reference.TypeArguments.Length} type arguments for generic schema reference '{reference.FullTypeName}' on field '{fieldName}', but schema '{referencedBinary.Name}' declares {referencedBinary.TypeParameters.Length}."
+            );
         }
 
         var closedGenericBindings = BinarySchemaGenericResolver.CreateBindings(
             referencedBinary,
             reference,
-            genericBindings);
+            genericBindings
+        );
 
         return ValidateBinaryInterpretSource(referencedBinary, validatedSchemas, closedGenericBindings);
     }

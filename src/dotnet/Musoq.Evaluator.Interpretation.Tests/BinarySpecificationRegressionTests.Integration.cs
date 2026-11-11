@@ -19,24 +19,34 @@ public partial class BinarySpecificationRegressionTests
         binary Rec { Header: Header, First: RecordOne, Body: Outline, Tail: byte };
         """;
 
-    private const string IntegrationProjection = "select r.First.Measure, r.First.Enabled, r.First.Choice, v.Value, r.Tail from #test.files() f ";
+    private const string IntegrationProjection =
+        "select r.First.Measure, r.First.Enabled, r.First.Choice, v.Value, r.Tail from #test.files() f ";
     private const string IntegrationApply = "outer apply r.Body.Rows i outer apply i.Values v";
 
     [TestMethod]
     public void CompleteIntegratedBinaryQuery_ShouldParseConditionalAndParentDependentRecords()
     {
-        var table = RunBinaryQuery(IntegrationSchema + IntegrationProjection + "cross apply Interpret<Rec>(f.Content) r " + IntegrationApply,
-            [2, 1, 0, 0, 0, 0, 0, 0, 248, 63, 7, 10, 20, 30, 40, 99]);
+        var table = RunBinaryQuery(
+            IntegrationSchema + IntegrationProjection + "cross apply Interpret<Rec>(f.Content) r " + IntegrationApply,
+            [2, 1, 0, 0, 0, 0, 0, 0, 248, 63, 7, 10, 20, 30, 40, 99]
+        );
 
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            [1.5d, true, 7, (byte)10, (byte)99], [1.5d, true, 7, (byte)20, (byte)99],
-            [1.5d, true, 7, (byte)30, (byte)99], [1.5d, true, 7, (byte)40, (byte)99]);
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [1.5d, true, 7, (byte)10, (byte)99],
+            [1.5d, true, 7, (byte)20, (byte)99],
+            [1.5d, true, 7, (byte)30, (byte)99],
+            [1.5d, true, 7, (byte)40, (byte)99]
+        );
     }
 
     [TestMethod]
     public void IntegratedBinaryQueryWithoutOptionalFields_ShouldKeepEmptyCollectionRow()
     {
-        var table = RunBinaryQuery(IntegrationSchema + IntegrationProjection + "cross apply Interpret<Rec>(f.Content) r " + IntegrationApply, [0, 0, 99]);
+        var table = RunBinaryQuery(
+            IntegrationSchema + IntegrationProjection + "cross apply Interpret<Rec>(f.Content) r " + IntegrationApply,
+            [0, 0, 99]
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, [null, null, 9, null, (byte)99]);
     }
@@ -44,7 +54,15 @@ public partial class BinarySpecificationRegressionTests
     [TestMethod]
     public void StrictIntegratedBinaryQuery_ShouldReportTruncatedInput()
     {
-        var exception = Assert.Throws<ParseException>(() => RunBinaryQuery(IntegrationSchema + IntegrationProjection + "cross apply Interpret<Rec>(f.Content) r " + IntegrationApply, [2, 1]));
+        var exception = Assert.Throws<ParseException>(() =>
+            RunBinaryQuery(
+                IntegrationSchema
+                    + IntegrationProjection
+                    + "cross apply Interpret<Rec>(f.Content) r "
+                    + IntegrationApply,
+                [2, 1]
+            )
+        );
 
         Assert.AreEqual(ParseErrorCode.InsufficientData, exception.ErrorCode);
     }
@@ -52,7 +70,13 @@ public partial class BinarySpecificationRegressionTests
     [TestMethod]
     public void TolerantIntegratedBinaryQuery_ShouldPreserveRejectedRecord()
     {
-        var table = RunBinaryQuery(IntegrationSchema + IntegrationProjection + "outer apply TryInterpret<Rec>(f.Content) r " + IntegrationApply, [2, 1]);
+        var table = RunBinaryQuery(
+            IntegrationSchema
+                + IntegrationProjection
+                + "outer apply TryInterpret<Rec>(f.Content) r "
+                + IntegrationApply,
+            [2, 1]
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null, null, null, null, null });
     }

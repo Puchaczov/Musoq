@@ -19,7 +19,8 @@ public class ValuesFromNode : FromNode
 
     public IReadOnlyList<ValuesRowNode> Rows { get; }
 
-    public override string Id => $"{nameof(ValuesFromNode)}{Alias}{string.Join(string.Empty, Rows.Select(row => row.Id))}";
+    public override string Id =>
+        $"{nameof(ValuesFromNode)}{Alias}{string.Join(string.Empty, Rows.Select(row => row.Id))}";
 
     public override void Accept(IExpressionVisitor visitor)
     {

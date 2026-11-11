@@ -31,7 +31,7 @@ public sealed class PreLogicalNormalizerTests
         {
             SingleSetNode singleSet => singleSet.Query,
             QueryNode queryNode => queryNode,
-            var node => throw new AssertFailedException($"Expected normalized query node, got {node.GetType().Name}.")
+            var node => throw new AssertFailedException($"Expected normalized query node, got {node.GetType().Name}."),
         };
         Assert.IsNotNull(query.GroupBy);
     }
@@ -39,14 +39,12 @@ public sealed class PreLogicalNormalizerTests
     [TestMethod]
     public void Normalize_WhenScalarSubqueryUsesSingleSetWrapper_ShouldRewriteAsSubqueryPass()
     {
-        var innerQuery = CreateQuery(
-            new FieldNode(new IntegerNode(7), 0, "Value"),
-            "Inner",
-            "i");
+        var innerQuery = CreateQuery(new FieldNode(new IntegerNode(7), 0, "Value"), "Inner", "i");
         var outerQuery = CreateQuery(
             new FieldNode(new ScalarSubqueryNode(new SingleSetNode(innerQuery)), 0, "Value"),
             "Outer",
-            "o");
+            "o"
+        );
         var root = new RootNode(new StatementsArrayNode([new StatementNode(new SingleSetNode(outerQuery))]));
 
         var result = new PreLogicalNormalizer().Normalize(root);
@@ -63,18 +61,22 @@ public sealed class PreLogicalNormalizerTests
     [TestMethod]
     public void Normalize_WhenNegatedPredicateSubqueryIsInExpression_ShouldUseDirectNullCheck()
     {
-        var root = Parse("""
-            select not exists (
-                select b.City from #B.entities() b
-                where b.Country = 'MISSING'
-            ) as Missing
-            from #A.entities() a
-            """);
+        var root = Parse(
+            (
+                "select not exists (\n"
+                + "    select b.City from #B.entities() b\n"
+                + "    where b.Country = 'MISSING'\n"
+                + ") as Missing\n"
+                + "from #A.entities() a"
+            )
+        );
 
         var result = new PreLogicalNormalizer().Normalize(root);
         var normalized = result.NormalizedRoot.ToString();
 
-        Assert.IsTrue(result.Trace.Entries.Single(static entry => entry.PassName == "SubqueryToCteNormalization").IsChanged);
+        Assert.IsTrue(
+            result.Trace.Entries.Single(static entry => entry.PassName == "SubqueryToCteNormalization").IsChanged
+        );
         Assert.Contains("is null", normalized);
         Assert.IsFalse(normalized.Contains("not (", System.StringComparison.OrdinalIgnoreCase), normalized);
     }
@@ -82,34 +84,38 @@ public sealed class PreLogicalNormalizerTests
     [TestMethod]
     public void Normalize_WhenSubqueriesAreRewritten_ShouldExposeLogicalOwnershipFacts()
     {
-        var root = Parse("""
-            select a.City, (
-                select b.City from #B.entities() b
-                where b.Country = 'FRANCE'
-            ) as MatchCity
-            from #A.entities() a
-            where exists (
-                select c.City from #C.entities() c
-                where c.Country = a.Country
+        var root = Parse(
+            (
+                "select a.City, (\n"
+                + "    select b.City from #B.entities() b\n"
+                + "    where b.Country = 'FRANCE'\n"
+                + ") as MatchCity\n"
+                + "from #A.entities() a\n"
+                + "where exists (\n"
+                + "    select c.City from #C.entities() c\n"
+                + "    where c.Country = a.Country\n"
+                + ")"
             )
-            """);
+        );
 
         var result = new PreLogicalNormalizer().Normalize(root);
         var facts = result.LogicalSubqueryFacts;
 
-        Assert.IsTrue(facts.Any(static fact => fact is
-        {
-            CteName: "_sq_1",
-            Kind: LogicalSubqueryFormKind.Predicate,
-            IsCorrelated: true
-        }));
+        Assert.IsTrue(
+            facts.Any(static fact =>
+                fact is { CteName: "_sq_1", Kind: LogicalSubqueryFormKind.Predicate, IsCorrelated: true }
+            )
+        );
         Assert.IsTrue(ContainsScalarApply(result.NormalizedRoot));
     }
 
     private static bool ContainsScalarApply(Node node) =>
-        node is Musoq.Evaluator.Visitors.Helpers.Subqueries.SubqueryApplyNode
-            { Kind: Musoq.Evaluator.Visitors.Helpers.Subqueries.SubqueryApplyKind.Scalar } ||
-        Musoq.Evaluator.Visitors.ParserNodeChildTraversal.EnumerateChildren(node).Any(ContainsScalarApply);
+        node
+            is Musoq.Evaluator.Visitors.Helpers.Subqueries.SubqueryApplyNode
+            {
+                Kind: Musoq.Evaluator.Visitors.Helpers.Subqueries.SubqueryApplyKind.Scalar
+            }
+        || Musoq.Evaluator.Visitors.ParserNodeChildTraversal.EnumerateChildren(node).Any(ContainsScalarApply);
 
     private static RootNode Parse(string query)
     {
@@ -127,6 +133,7 @@ public sealed class PreLogicalNormalizerTests
             null,
             null,
             null,
-            null);
+            null
+        );
     }
 }

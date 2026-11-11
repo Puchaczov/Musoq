@@ -1,12 +1,11 @@
-using System.Linq;
-using System.Dynamic;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Plugins;
 using Musoq.Schema;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -18,7 +17,8 @@ public sealed partial class LibraryExecutionBoundaryQueryTests
     {
         const string query = "select Label from #schema.first() where Value > 10";
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<ErasedNumericInput, LibraryBase>(query, [new("object", 42)]));
+            CreateAndRunVirtualMachine<ErasedNumericInput, LibraryBase>(query, [new("object", 42)])
+        );
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, error.PrimaryEnvelope.Code);
         Assert.Contains("Value", error.Message);
         Assert.Contains("concrete value type", error.Message);
@@ -41,10 +41,12 @@ public sealed partial class LibraryExecutionBoundaryQueryTests
     [TestMethod]
     public void TableCouple_WhenDeclaredFieldIsObject_ShouldRejectTheErasedExecutionContract()
     {
-        const string query = "table Erased { Value: object }; " +
-            "couple #schema.first with table Erased as Typed; select Value from Typed()";
+        const string query =
+            "table Erased { Value: object }; "
+            + "couple #schema.first with table Erased as Typed; select Value from Typed()";
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<ErasedNumericInput, LibraryBase>(query, [new("object", 42)]));
+            CreateAndRunVirtualMachine<ErasedNumericInput, LibraryBase>(query, [new("object", 42)])
+        );
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, error.PrimaryEnvelope.Code);
         Assert.Contains("Value", error.Message);
         Assert.Contains("object-valued", error.Message);
@@ -55,7 +57,8 @@ public sealed partial class LibraryExecutionBoundaryQueryTests
     {
         const string query = "select Complex.Id from #schema.first()";
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<UnresolvedNestedInput, LibraryBase>(query, [new(new ExpandoObject())]));
+            CreateAndRunVirtualMachine<UnresolvedNestedInput, LibraryBase>(query, [new(new ExpandoObject())])
+        );
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, error.PrimaryEnvelope.Code);
         Assert.Contains("Complex", error.Message);
     }
@@ -65,8 +68,11 @@ public sealed partial class LibraryExecutionBoundaryQueryTests
     {
         const string query = "select Values['amount'] from #schema.first()";
         var error = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine<ErasedDictionaryInput, LibraryBase>(query,
-                [new(new Dictionary<string, object> { ["amount"] = 42m })]));
+            CreateAndRunVirtualMachine<ErasedDictionaryInput, LibraryBase>(
+                query,
+                [new(new Dictionary<string, object> { ["amount"] = 42m })]
+            )
+        );
         Assert.AreEqual(DiagnosticCode.MQ3071_SourceContractError, error.PrimaryEnvelope.Code);
         Assert.Contains("Values", error.Message);
     }
@@ -75,8 +81,10 @@ public sealed partial class LibraryExecutionBoundaryQueryTests
     public void ReadOnlyTableContract_WhenConsumed_ShouldExposeConcreteNullableValues()
     {
         const string query = "select Label, Value from #schema.first() order by Label";
-        using var compiled = CreateAndRunVirtualMachine<ConcreteNumericInput, LibraryBase>(query,
-            [new("first", 42m), new("second", null)]);
+        using var compiled = CreateAndRunVirtualMachine<ConcreteNumericInput, LibraryBase>(
+            query,
+            [new("first", 42m), new("second", null)]
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         IReadOnlyTable contract = result;
         Assert.HasCount(2, contract.Rows);

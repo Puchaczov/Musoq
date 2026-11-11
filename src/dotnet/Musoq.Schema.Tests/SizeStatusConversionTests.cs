@@ -40,7 +40,8 @@ public sealed class SizeStatusConversionTests
         Check<decimal>(0.5m, false);
     }
 
-    private static void Check<T>(T? value, bool success, int expected = 0) where T : struct, INumberBase<T>
+    private static void Check<T>(T? value, bool success, int expected = 0)
+        where T : struct, INumberBase<T>
     {
         var result = new SizeParser().ConvertValue(value);
         Assert.AreEqual(success, result.Succeeded);
@@ -53,7 +54,10 @@ public sealed class SizeStatusConversionTests
     private sealed class SizeParser : BytesInterpreterBase<int>
     {
         public override string SchemaName => "Sizes";
-        public ParseAttempt<int> ConvertValue<T>(T? value) where T : struct, INumberBase<T> => ResolveSizeValueStatus(value);
+
+        public ParseAttempt<int> ConvertValue<T>(T? value)
+            where T : struct, INumberBase<T> => ResolveSizeValueStatus(value);
+
         public override int InterpretAt(ReadOnlySpan<byte> data, int offset) => 0;
     }
 }

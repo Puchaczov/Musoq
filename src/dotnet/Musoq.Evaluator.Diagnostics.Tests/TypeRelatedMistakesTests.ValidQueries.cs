@@ -10,7 +10,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class TypeRelatedMistakesTests
 {
-
     [TestMethod]
     public void Valid_NumericArithmetic()
     {
@@ -76,13 +75,15 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT CASE
-                WHEN Population > 100 THEN 'Large'
-                WHEN Population > 50 THEN 'Medium'
-                ELSE 'Small'
-            END
-            FROM #A.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT CASE\n"
+            + "                WHEN Population > 100 THEN 'Large'\n"
+            + "                WHEN Population > 50 THEN 'Medium'\n"
+            + "                ELSE 'Small'\n"
+            + "            END\n"
+            + "            FROM #A.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -112,10 +113,12 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange - explicit key syntax remains valid
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT Name FROM #A.Entities()
-            UNION ALL (Name)
-            SELECT Name FROM #B.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT Name FROM #A.Entities()\n"
+            + "            UNION ALL (Name)\n"
+            + "            SELECT Name FROM #B.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -139,5 +142,4 @@ public partial class TypeRelatedMistakesTests
         Assert.IsTrue(result.IsParsed);
         AssertNoErrors(result);
     }
-
 }

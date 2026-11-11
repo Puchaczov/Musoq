@@ -19,9 +19,7 @@ public sealed partial class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         _ = compilationOptions;
     }
 
-    internal RewriteQueryVisitor(
-        RewriteQueryPhaseInput phaseInput,
-        CompilationOptions? compilationOptions = null)
+    internal RewriteQueryVisitor(RewriteQueryPhaseInput phaseInput, CompilationOptions? compilationOptions = null)
         : this(compilationOptions)
     {
         ArgumentNullException.ThrowIfNull(phaseInput);
@@ -34,11 +32,12 @@ public sealed partial class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         ArgumentNullException.ThrowIfNull(root);
 
         if (_phaseRoot is not null && !ReferenceEquals(_phaseRoot, root))
-            throw new InvalidOperationException(
-                "Rewrite query phase input does not match the root being traversed.");
+            throw new InvalidOperationException("Rewrite query phase input does not match the root being traversed.");
     }
 
-    private Scope Scope => _scopeValue ?? throw new InvalidOperationException("Rewrite query visitor scope must be set before visiting query nodes.");
+    private Scope Scope =>
+        _scopeValue
+        ?? throw new InvalidOperationException("Rewrite query visitor scope must be set before visiting query nodes.");
 
     private Stack<Node> Nodes { get; } = new();
 
@@ -59,7 +58,9 @@ public sealed partial class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public RootNode RootScript
     {
-        get => _rootScript ?? throw new InvalidOperationException("Root script is available only after visiting the root node.");
+        get =>
+            _rootScript
+            ?? throw new InvalidOperationException("Root script is available only after visiting the root node.");
         private set => _rootScript = value ?? throw new ArgumentNullException(nameof(value));
     }
 }

@@ -9,7 +9,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static LoweringAttempt<AsOfJoinPredicateParts> ExtractAsOfJoinPredicate(
         IrExpression predicate,
         string leftAlias,
-        string rightAlias)
+        string rightAlias
+    )
     {
         var leftAliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { leftAlias };
         var rightAliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { rightAlias };
@@ -25,7 +26,8 @@ internal sealed partial class PhysicalLoweringImplementation
             if (conjunct is not BinaryOp binary)
             {
                 return LoweringAttempt<AsOfJoinPredicateParts>.Unsupported(
-                    $"Execution IR ASOF join lowering requires binary predicates, but encountered {conjunct.GetType().Name}.");
+                    $"Execution IR ASOF join lowering requires binary predicates, but encountered {conjunct.GetType().Name}."
+                );
             }
 
             var normalized = NormalizeAsOfJoinKey(binary, leftAliases, rightAliases);
@@ -44,7 +46,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     if (inequalityKey is not null)
                     {
                         return LoweringAttempt<AsOfJoinPredicateParts>.Unsupported(
-                            "Execution IR ASOF join lowering supports exactly one inequality predicate.");
+                            "Execution IR ASOF join lowering supports exactly one inequality predicate."
+                        );
                     }
 
                     inequalityKey = new JoinKeyExpressions(normalized.Value.Left, normalized.Value.Right);
@@ -52,18 +55,24 @@ internal sealed partial class PhysicalLoweringImplementation
                     break;
                 default:
                     return LoweringAttempt<AsOfJoinPredicateParts>.Unsupported(
-                        $"Execution IR ASOF join lowering does not support predicate kind {normalized.Value.Kind}.");
+                        $"Execution IR ASOF join lowering does not support predicate kind {normalized.Value.Kind}."
+                    );
             }
         }
 
         if (inequalityKey is null)
-            return LoweringAttempt<AsOfJoinPredicateParts>.Unsupported("Execution IR ASOF join lowering requires one inequality predicate.");
+            return LoweringAttempt<AsOfJoinPredicateParts>.Unsupported(
+                "Execution IR ASOF join lowering requires one inequality predicate."
+            );
 
-        return LoweringAttempt<AsOfJoinPredicateParts>.Built(new AsOfJoinPredicateParts(
-            equalityKeys.ToArray(),
-            inequalityKey.Value.Left,
-            inequalityKey.Value.Right,
-            comparisonKind));
+        return LoweringAttempt<AsOfJoinPredicateParts>.Built(
+            new AsOfJoinPredicateParts(
+                equalityKeys.ToArray(),
+                inequalityKey.Value.Left,
+                inequalityKey.Value.Right,
+                comparisonKind
+            )
+        );
     }
 
     private static void CollectJoinConjuncts(IrExpression expression, ICollection<IrExpression> conjuncts)
@@ -81,7 +90,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static LoweringAttempt<NormalizedAsOfJoinKey> NormalizeAsOfJoinKey(
         BinaryOp predicate,
         HashSet<string> leftAliases,
-        HashSet<string> rightAliases)
+        HashSet<string> rightAliases
+    )
     {
         var leftColumns = ColumnRefExtractor.Extract(predicate.Left);
         var rightColumns = ColumnRefExtractor.Extract(predicate.Right);
@@ -91,18 +101,20 @@ internal sealed partial class PhysicalLoweringImplementation
         var rightUsesRight = ReferencesAliases(rightColumns, rightAliases);
 
         if (leftUsesLeft && !leftUsesRight && rightUsesRight && !rightUsesLeft)
-            return LoweringAttempt<NormalizedAsOfJoinKey>.Built(new NormalizedAsOfJoinKey(predicate.Left, predicate.Right, predicate.Kind));
+            return LoweringAttempt<NormalizedAsOfJoinKey>.Built(
+                new NormalizedAsOfJoinKey(predicate.Left, predicate.Right, predicate.Kind)
+            );
 
         if (leftUsesRight && !leftUsesLeft && rightUsesLeft && !rightUsesRight)
         {
-            return LoweringAttempt<NormalizedAsOfJoinKey>.Built(new NormalizedAsOfJoinKey(
-                predicate.Right,
-                predicate.Left,
-                SwapComparisonKind(predicate.Kind)));
+            return LoweringAttempt<NormalizedAsOfJoinKey>.Built(
+                new NormalizedAsOfJoinKey(predicate.Right, predicate.Left, SwapComparisonKind(predicate.Kind))
+            );
         }
 
         return LoweringAttempt<NormalizedAsOfJoinKey>.Unsupported(
-            "Execution IR ASOF join lowering requires each predicate to reference exactly one left-side and one right-side expression.");
+            "Execution IR ASOF join lowering requires each predicate to reference exactly one left-side and one right-side expression."
+        );
     }
 
     private static bool ReferencesAliases(IReadOnlyList<ColumnRef> columns, HashSet<string> aliases)
@@ -125,7 +137,9 @@ internal sealed partial class PhysicalLoweringImplementation
             BinaryOpKind.GreaterOrEqual => BinaryOpKind.LessOrEqual,
             BinaryOpKind.LessThan => BinaryOpKind.GreaterThan,
             BinaryOpKind.LessOrEqual => BinaryOpKind.GreaterOrEqual,
-            _ => throw new NotSupportedException($"Execution IR ASOF join lowering cannot swap comparison kind {kind}.")
+            _ => throw new NotSupportedException(
+                $"Execution IR ASOF join lowering cannot swap comparison kind {kind}."
+            ),
         };
     }
 }

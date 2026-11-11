@@ -5,4 +5,5 @@ internal sealed record FinalProjectionSinkPlans(
     FinalProjectionSinkPlan TypedDirectProjection,
     FinalProjectionSinkPlan TypedPostOperations,
     FinalOutputPlan TableOutput,
-    FinalOutputPlan TypedOutput);
+    FinalOutputPlan TypedOutput
+);

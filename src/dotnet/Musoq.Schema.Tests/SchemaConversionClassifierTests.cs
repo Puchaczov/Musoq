@@ -1,23 +1,56 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Schema.Managers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Schema.Managers;
 
 namespace Musoq.Schema.Tests;
 
 [TestClass]
 public sealed class SchemaConversionClassifierTests
 {
-    public static IEnumerable<object[]> NumericConversions => LosslessTargets.SelectMany(source =>
-        LosslessTargets.Keys.Select(target => new object[] { source.Key, target, source.Value.Contains(target) }));
+    public static IEnumerable<object[]> NumericConversions =>
+        LosslessTargets.SelectMany(source =>
+            LosslessTargets.Keys.Select(target => new object[] { source.Key, target, source.Value.Contains(target) })
+        );
 
     private static readonly IReadOnlyDictionary<Type, Type[]> LosslessTargets = new Dictionary<Type, Type[]>
     {
-        [typeof(sbyte)] = [typeof(sbyte), typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
-        [typeof(byte)] = [typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)],
+        [typeof(sbyte)] =
+        [
+            typeof(sbyte),
+            typeof(short),
+            typeof(int),
+            typeof(long),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
+        ],
+        [typeof(byte)] =
+        [
+            typeof(byte),
+            typeof(short),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
+        ],
         [typeof(short)] = [typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal)],
-        [typeof(ushort)] = [typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)],
+        [typeof(ushort)] =
+        [
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
+        ],
         [typeof(int)] = [typeof(int), typeof(long), typeof(double), typeof(decimal)],
         [typeof(uint)] = [typeof(uint), typeof(long), typeof(ulong), typeof(double), typeof(decimal)],
         [typeof(long)] = [typeof(long), typeof(decimal)],
@@ -25,7 +58,18 @@ public sealed class SchemaConversionClassifierTests
         [typeof(float)] = [typeof(float), typeof(double)],
         [typeof(double)] = [typeof(double)],
         [typeof(decimal)] = [typeof(decimal)],
-        [typeof(char)] = [typeof(char), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)]
+        [typeof(char)] =
+        [
+            typeof(char),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
+        ],
     };
 
     [TestMethod]

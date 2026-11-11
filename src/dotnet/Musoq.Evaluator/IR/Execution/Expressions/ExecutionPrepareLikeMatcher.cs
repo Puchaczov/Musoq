@@ -5,7 +5,8 @@ public sealed record ExecutionPrepareLikeMatcher : ExecutionExpression
     public ExecutionPrepareLikeMatcher(
         ExecutionExpression pattern,
         ExecutionStringMatchComparison comparison,
-        ExecutionTypeRef returnType)
+        ExecutionTypeRef returnType
+    )
         : base(returnType)
     {
         Pattern = pattern ?? throw new ArgumentNullException(nameof(pattern));

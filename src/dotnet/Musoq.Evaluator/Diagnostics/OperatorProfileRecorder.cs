@@ -102,9 +102,10 @@ internal sealed class OperatorProfileRecorder
                 Volatile.Read(ref _hasActualStats) != 0,
                 _exceptionCount,
                 _exceptionType,
-                _exceptionMessage)
+                _exceptionMessage
+            )
             {
-                HasElapsedTime = Volatile.Read(ref _hasElapsedTime) != 0
+                HasElapsedTime = Volatile.Read(ref _hasElapsedTime) != 0,
             };
         }
     }
@@ -115,9 +116,7 @@ internal sealed class OperatorProfileRecorder
         if (excludedTicks > 0)
         {
             var elapsedTicks = elapsed.Ticks - excludedTicks;
-            elapsed = elapsedTicks > 0
-                ? TimeSpan.FromTicks(elapsedTicks)
-                : TimeSpan.Zero;
+            elapsed = elapsedTicks > 0 ? TimeSpan.FromTicks(elapsedTicks) : TimeSpan.Zero;
         }
 
         MarkActualStats();

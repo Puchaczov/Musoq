@@ -20,7 +20,6 @@ public static class NodeHelpers
             { (typeof(byte), typeof(float)), typeof(float) },
             { (typeof(byte), typeof(double)), typeof(double) },
             { (typeof(byte), typeof(decimal)), typeof(decimal) },
-
             { (typeof(sbyte), typeof(byte)), typeof(int) },
             { (typeof(sbyte), typeof(sbyte)), typeof(int) },
             { (typeof(sbyte), typeof(short)), typeof(int) },
@@ -31,7 +30,6 @@ public static class NodeHelpers
             { (typeof(sbyte), typeof(float)), typeof(float) },
             { (typeof(sbyte), typeof(double)), typeof(double) },
             { (typeof(sbyte), typeof(decimal)), typeof(decimal) },
-
             { (typeof(short), typeof(byte)), typeof(int) },
             { (typeof(short), typeof(sbyte)), typeof(int) },
             { (typeof(short), typeof(short)), typeof(int) },
@@ -42,7 +40,6 @@ public static class NodeHelpers
             { (typeof(short), typeof(float)), typeof(float) },
             { (typeof(short), typeof(double)), typeof(double) },
             { (typeof(short), typeof(decimal)), typeof(decimal) },
-
             { (typeof(ushort), typeof(byte)), typeof(int) },
             { (typeof(ushort), typeof(sbyte)), typeof(int) },
             { (typeof(ushort), typeof(short)), typeof(int) },
@@ -54,7 +51,6 @@ public static class NodeHelpers
             { (typeof(ushort), typeof(float)), typeof(float) },
             { (typeof(ushort), typeof(double)), typeof(double) },
             { (typeof(ushort), typeof(decimal)), typeof(decimal) },
-
             { (typeof(int), typeof(byte)), typeof(int) },
             { (typeof(int), typeof(sbyte)), typeof(int) },
             { (typeof(int), typeof(short)), typeof(int) },
@@ -65,7 +61,6 @@ public static class NodeHelpers
             { (typeof(int), typeof(float)), typeof(float) },
             { (typeof(int), typeof(double)), typeof(double) },
             { (typeof(int), typeof(decimal)), typeof(decimal) },
-
             { (typeof(uint), typeof(byte)), typeof(uint) },
             { (typeof(uint), typeof(sbyte)), typeof(uint) },
             { (typeof(uint), typeof(short)), typeof(uint) },
@@ -77,7 +72,6 @@ public static class NodeHelpers
             { (typeof(uint), typeof(float)), typeof(float) },
             { (typeof(uint), typeof(double)), typeof(double) },
             { (typeof(uint), typeof(decimal)), typeof(decimal) },
-
             { (typeof(long), typeof(byte)), typeof(long) },
             { (typeof(long), typeof(sbyte)), typeof(long) },
             { (typeof(long), typeof(short)), typeof(long) },
@@ -88,7 +82,6 @@ public static class NodeHelpers
             { (typeof(long), typeof(float)), typeof(float) },
             { (typeof(long), typeof(double)), typeof(double) },
             { (typeof(long), typeof(decimal)), typeof(decimal) },
-
             { (typeof(ulong), typeof(byte)), typeof(ulong) },
             { (typeof(ulong), typeof(ushort)), typeof(ulong) },
             { (typeof(ulong), typeof(uint)), typeof(ulong) },
@@ -96,7 +89,6 @@ public static class NodeHelpers
             { (typeof(ulong), typeof(float)), typeof(float) },
             { (typeof(ulong), typeof(double)), typeof(double) },
             { (typeof(ulong), typeof(decimal)), typeof(decimal) },
-
             { (typeof(float), typeof(byte)), typeof(float) },
             { (typeof(float), typeof(sbyte)), typeof(float) },
             { (typeof(float), typeof(short)), typeof(float) },
@@ -107,7 +99,6 @@ public static class NodeHelpers
             { (typeof(float), typeof(ulong)), typeof(float) },
             { (typeof(float), typeof(float)), typeof(float) },
             { (typeof(float), typeof(double)), typeof(double) },
-
             { (typeof(double), typeof(byte)), typeof(double) },
             { (typeof(double), typeof(sbyte)), typeof(double) },
             { (typeof(double), typeof(short)), typeof(double) },
@@ -118,7 +109,6 @@ public static class NodeHelpers
             { (typeof(double), typeof(ulong)), typeof(double) },
             { (typeof(double), typeof(float)), typeof(double) },
             { (typeof(double), typeof(double)), typeof(double) },
-
             { (typeof(decimal), typeof(byte)), typeof(decimal) },
             { (typeof(decimal), typeof(sbyte)), typeof(decimal) },
             { (typeof(decimal), typeof(short)), typeof(decimal) },
@@ -128,18 +118,15 @@ public static class NodeHelpers
             { (typeof(decimal), typeof(long)), typeof(decimal) },
             { (typeof(decimal), typeof(ulong)), typeof(decimal) },
             { (typeof(decimal), typeof(decimal)), typeof(decimal) },
-
             { (typeof(object), typeof(string)), typeof(object) },
             { (typeof(string), typeof(object)), typeof(object) },
-
             { (typeof(string), typeof(string)), typeof(string) },
             { (typeof(bool), typeof(bool)), typeof(bool) },
-
             { (typeof(DateTimeOffset), typeof(DateTimeOffset)), typeof(TimeSpan) },
             { (typeof(DateTimeOffset), typeof(TimeSpan)), typeof(DateTimeOffset) },
             { (typeof(DateTime), typeof(DateTime)), typeof(TimeSpan) },
             { (typeof(DateTime), typeof(TimeSpan)), typeof(DateTime) },
-            { (typeof(TimeSpan), typeof(TimeSpan)), typeof(TimeSpan) }
+            { (typeof(TimeSpan), typeof(TimeSpan)), typeof(TimeSpan) },
         };
 
         BinaryTypes = binaryTypes;

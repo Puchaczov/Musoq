@@ -16,7 +16,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class InterpreterCodeGenTests
 {
-
     [TestMethod]
     public void GenerateAll_SimpleBinarySchema_ShouldGenerateClass()
     {
@@ -25,7 +24,7 @@ public partial class InterpreterCodeGenTests
         var fields = new[]
         {
             CreatePrimitiveField("Magic", PrimitiveTypeName.Int, Endianness.LittleEndian),
-            CreatePrimitiveField("Version", PrimitiveTypeName.Short, Endianness.LittleEndian)
+            CreatePrimitiveField("Version", PrimitiveTypeName.Short, Endianness.LittleEndian),
         };
         var schema = new BinarySchemaNode("Header", [.. fields]);
         registry.Register("Header", schema);
@@ -54,7 +53,9 @@ public partial class InterpreterCodeGenTests
                 "Payload",
                 new ArrayTypeNode(
                     new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
-                    new IntegerNode(4)))
+                    new IntegerNode(4)
+                )
+            ),
         };
         registry.Register("Packet", new BinarySchemaNode("Packet", [.. fields]));
         var generator = new InterpreterCodeGenerator(registry);
@@ -71,10 +72,7 @@ public partial class InterpreterCodeGenTests
     {
         // Arrange
         var registry = new SchemaRegistry();
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Payload", new UnsupportedTypeAnnotationNode())
-        };
+        var fields = new[] { new FieldDefinitionNode("Payload", new UnsupportedTypeAnnotationNode()) };
         registry.Register("Packet", new BinarySchemaNode("Packet", [.. fields]));
         var generator = new InterpreterCodeGenerator(registry);
 
@@ -93,10 +91,7 @@ public partial class InterpreterCodeGenTests
     {
         // Arrange
         var registry = new SchemaRegistry();
-        var fields = new[]
-        {
-            CreatePrimitiveField("Flags", PrimitiveTypeName.Byte, Endianness.NotApplicable)
-        };
+        var fields = new[] { CreatePrimitiveField("Flags", PrimitiveTypeName.Byte, Endianness.NotApplicable) };
         var schema = new BinarySchemaNode("SimpleHeader", [.. fields]);
         registry.Register("SimpleHeader", schema);
         var generator = new InterpreterCodeGenerator(registry);
@@ -116,10 +111,7 @@ public partial class InterpreterCodeGenTests
     {
         // Arrange
         var registry = new SchemaRegistry();
-        var fields = new[]
-        {
-            CreatePrimitiveField("NetworkOrder", PrimitiveTypeName.Int, Endianness.BigEndian)
-        };
+        var fields = new[] { CreatePrimitiveField("NetworkOrder", PrimitiveTypeName.Int, Endianness.BigEndian) };
         var schema = new BinarySchemaNode("NetworkPacket", [.. fields]);
         registry.Register("NetworkPacket", schema);
         var generator = new InterpreterCodeGenerator(registry);
@@ -147,7 +139,7 @@ public partial class InterpreterCodeGenTests
             CreatePrimitiveField("F7", PrimitiveTypeName.Long, Endianness.LittleEndian),
             CreatePrimitiveField("F8", PrimitiveTypeName.ULong, Endianness.LittleEndian),
             CreatePrimitiveField("F9", PrimitiveTypeName.Float, Endianness.LittleEndian),
-            CreatePrimitiveField("F10", PrimitiveTypeName.Double, Endianness.LittleEndian)
+            CreatePrimitiveField("F10", PrimitiveTypeName.Double, Endianness.LittleEndian),
         };
         var schema = new BinarySchemaNode("AllTypes", [.. fields]);
         registry.Register("AllTypes", schema);
@@ -178,7 +170,7 @@ public partial class InterpreterCodeGenTests
         {
             CreatePrimitiveField("Magic", PrimitiveTypeName.Int, Endianness.LittleEndian),
             CreatePrimitiveField("_", PrimitiveTypeName.Byte, Endianness.NotApplicable),
-            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian)
+            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian),
         };
         var schema = new BinarySchemaNode("WithDiscard", [.. fields]);
         registry.Register("WithDiscard", schema);
@@ -201,10 +193,7 @@ public partial class InterpreterCodeGenTests
         var registry = new SchemaRegistry();
         var sizeExpr = new IntegerNode(16);
         var byteArrayType = new ByteArrayTypeNode(sizeExpr);
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Data", byteArrayType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Data", byteArrayType) };
         var schema = new BinarySchemaNode("WithByteArray", [.. fields]);
         registry.Register("WithByteArray", schema);
         var generator = new InterpreterCodeGenerator(registry);
@@ -250,7 +239,7 @@ public partial class InterpreterCodeGenTests
         var fields = new[]
         {
             CreatePrimitiveField("Magic", PrimitiveTypeName.Int, Endianness.LittleEndian),
-            CreatePrimitiveField("Version", PrimitiveTypeName.Short, Endianness.LittleEndian)
+            CreatePrimitiveField("Version", PrimitiveTypeName.Short, Endianness.LittleEndian),
         };
         var schema = new BinarySchemaNode("Header", [.. fields]);
         registry.Register("Header", schema);
@@ -258,9 +247,7 @@ public partial class InterpreterCodeGenTests
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
+        using var compilationUnit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code);
 
         // Act
         var result = compilationUnit.Compile();
@@ -276,19 +263,14 @@ public partial class InterpreterCodeGenTests
     {
         // Arrange
         var registry = new SchemaRegistry();
-        var fields = new[]
-        {
-            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian)
-        };
+        var fields = new[] { CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian) };
         var schema = new BinarySchemaNode("TestSchema", [.. fields]);
         registry.Register("TestSchema", schema);
 
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
+        using var compilationUnit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code);
         compilationUnit.Compile();
 
         // Act
@@ -316,7 +298,7 @@ public partial class InterpreterCodeGenTests
             CreatePrimitiveField("F7", PrimitiveTypeName.Long, Endianness.LittleEndian),
             CreatePrimitiveField("F8", PrimitiveTypeName.ULong, Endianness.BigEndian),
             CreatePrimitiveField("F9", PrimitiveTypeName.Float, Endianness.LittleEndian),
-            CreatePrimitiveField("F10", PrimitiveTypeName.Double, Endianness.BigEndian)
+            CreatePrimitiveField("F10", PrimitiveTypeName.Double, Endianness.BigEndian),
         };
         var schema = new BinarySchemaNode("AllTypesSchema", [.. fields]);
         registry.Register("AllTypesSchema", schema);
@@ -324,16 +306,16 @@ public partial class InterpreterCodeGenTests
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
+        using var compilationUnit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code);
 
         // Act
         var result = compilationUnit.Compile();
 
         // Assert
-        Assert.IsTrue(result,
-            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}");
+        Assert.IsTrue(
+            result,
+            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}"
+        );
     }
 
     [TestMethod]
@@ -343,12 +325,10 @@ public partial class InterpreterCodeGenTests
         var primitiveType = new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable);
         var condition = new EqualityNode(
             new AccessColumnNode("Bytes", string.Empty, TextSpan.Empty),
-            new IntegerNode("0"));
+            new IntegerNode("0")
+        );
         var repeatUntilType = new RepeatUntilTypeNode(primitiveType, condition, "Bytes");
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Bytes", repeatUntilType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Bytes", repeatUntilType) };
         var schema = new BinarySchemaNode("ByteList", [.. fields]);
         registry.Register("ByteList", schema);
         var generator = new InterpreterCodeGenerator(registry);
@@ -357,16 +337,11 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("public byte[] Bytes { get; set; }",
-            code, $"Expected byte[] property but got:\n{code}");
-        Assert.Contains("List<byte>",
-            code, $"Expected List<byte> but got:\n{code}");
-        Assert.Contains("do",
-            code, $"Expected do-while loop but got:\n{code}");
-        Assert.Contains("!= true)",
-            code, $"Expected while condition but got:\n{code}");
-        Assert.Contains("ToArray()",
-            code, $"Expected ToArray() but got:\n{code}");
+        Assert.Contains("public byte[] Bytes { get; set; }", code, $"Expected byte[] property but got:\n{code}");
+        Assert.Contains("List<byte>", code, $"Expected List<byte> but got:\n{code}");
+        Assert.Contains("do", code, $"Expected do-while loop but got:\n{code}");
+        Assert.Contains("!= true)", code, $"Expected while condition but got:\n{code}");
+        Assert.Contains("ToArray()", code, $"Expected ToArray() but got:\n{code}");
     }
 
     [TestMethod]
@@ -374,15 +349,13 @@ public partial class InterpreterCodeGenTests
     {
         var registry = new SchemaRegistry();
 
-
         var recordFields = new[]
         {
             CreatePrimitiveField("Type", PrimitiveTypeName.Byte, Endianness.NotApplicable),
-            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian)
+            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian),
         };
         var recordSchema = new BinarySchemaNode("Record", [.. recordFields]);
         registry.Register("Record", recordSchema);
-
 
         var schemaRefType = new SchemaReferenceTypeNode("Record");
 
@@ -390,13 +363,12 @@ public partial class InterpreterCodeGenTests
             new DotNode(
                 new AccessColumnNode("Records", string.Empty, TextSpan.Empty),
                 new IdentifierNode("Type"),
-                "Records.Type"),
-            new IntegerNode("0"));
+                "Records.Type"
+            ),
+            new IntegerNode("0")
+        );
         var repeatUntilType = new RepeatUntilTypeNode(schemaRefType, condition, "Records");
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Records", repeatUntilType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Records", repeatUntilType) };
         var schema = new BinarySchemaNode("RecordList", [.. fields]);
         registry.Register("RecordList", schema);
         var generator = new InterpreterCodeGenerator(registry);
@@ -405,16 +377,11 @@ public partial class InterpreterCodeGenTests
         var code = generator.GenerateAll();
 
         // Assert
-        Assert.Contains("public Record[] Records { get; set; }",
-            code, $"Expected Record[] property but got:\n{code}");
-        Assert.Contains("List<Record>",
-            code, $"Expected List<Record> but got:\n{code}");
-        Assert.Contains("new Record()",
-            code, $"Expected Record interpreter creation but got:\n{code}");
-        Assert.Contains("InterpretAt",
-            code, $"Expected InterpretAt call but got:\n{code}");
-        Assert.Contains(".Type",
-            code, $"Expected .Type property access but got:\n{code}");
+        Assert.Contains("public Record[] Records { get; set; }", code, $"Expected Record[] property but got:\n{code}");
+        Assert.Contains("List<Record>", code, $"Expected List<Record> but got:\n{code}");
+        Assert.Contains("new Record()", code, $"Expected Record interpreter creation but got:\n{code}");
+        Assert.Contains("InterpretAt", code, $"Expected InterpretAt call but got:\n{code}");
+        Assert.Contains(".Type", code, $"Expected .Type property access but got:\n{code}");
     }
 
     [TestMethod]
@@ -423,45 +390,40 @@ public partial class InterpreterCodeGenTests
         // Arrange
         var registry = new SchemaRegistry();
 
-
         var recordFields = new[]
         {
             CreatePrimitiveField("Type", PrimitiveTypeName.Byte, Endianness.NotApplicable),
-            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian)
+            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian),
         };
         var recordSchema = new BinarySchemaNode("Record", [.. recordFields]);
         registry.Register("Record", recordSchema);
-
 
         var schemaRefType = new SchemaReferenceTypeNode("Record");
         var condition = new EqualityNode(
             new DotNode(
                 new AccessColumnNode("Records", string.Empty, TextSpan.Empty),
                 new IdentifierNode("Type"),
-                "Records.Type"),
-            new IntegerNode("0"));
+                "Records.Type"
+            ),
+            new IntegerNode("0")
+        );
         var repeatUntilType = new RepeatUntilTypeNode(schemaRefType, condition, "Records");
-        var fields = new[]
-        {
-            new FieldDefinitionNode("Records", repeatUntilType)
-        };
+        var fields = new[] { new FieldDefinitionNode("Records", repeatUntilType) };
         var schema = new BinarySchemaNode("RecordList", [.. fields]);
         registry.Register("RecordList", schema);
 
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
+        using var compilationUnit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code);
 
         // Act
         var result = compilationUnit.Compile();
 
         // Assert
-        Assert.IsTrue(result,
-            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}\n\nGenerated code:\n{code}");
+        Assert.IsTrue(
+            result,
+            $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}\n\nGenerated code:\n{code}"
+        );
     }
-
-
 }

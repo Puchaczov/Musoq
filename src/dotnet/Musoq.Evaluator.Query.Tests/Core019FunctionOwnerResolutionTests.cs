@@ -18,15 +18,16 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
     [TestMethod]
     public void UnqualifiedUniqueMethod_ShouldUseOwnerIndependentOfArgumentAlias()
     {
-        const string query = "select UniqueToA(b.Population) from #A.entities() a " +
-                             "inner join #B.entities() b on a.City = b.City";
+        const string query =
+            "select UniqueToA(b.Population) from #A.entities() a " + "inner join #B.entities() b on a.City = b.City";
 
         var table = CreateAndRunVirtualMachine(
                 query,
-                schemaProvider: CreateProvider<MethodOwnerAutoResolutionTestsFixtures.UniqueMethodLibraryA,
-                    MethodOwnerAutoResolutionTestsFixtures.SharedOnlyLibraryB>(
-                    [new BasicEntity("Warsaw", "Poland", 100)],
-                    [new BasicEntity("Warsaw", "Poland", 200)]))
+                schemaProvider: CreateProvider<
+                    MethodOwnerAutoResolutionTestsFixtures.UniqueMethodLibraryA,
+                    MethodOwnerAutoResolutionTestsFixtures.SharedOnlyLibraryB
+                >([new BasicEntity("Warsaw", "Poland", 100)], [new BasicEntity("Warsaw", "Poland", 200)])
+            )
             .Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
@@ -36,16 +37,18 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
     [TestMethod]
     public void UnqualifiedCommonAggregate_ShouldResolveWithArgumentFromOtherAlias()
     {
-        const string query = "select a.City, Sum(b.Population) as TotalPopulation " +
-                             "from #A.entities() a inner join #B.entities() b on a.City = b.City " +
-                             "group by a.City";
+        const string query =
+            "select a.City, Sum(b.Population) as TotalPopulation "
+            + "from #A.entities() a inner join #B.entities() b on a.City = b.City "
+            + "group by a.City";
 
         var table = CreateAndRunVirtualMachine(
                 query,
-                schemaProvider: CreateProvider<MethodOwnerAutoResolutionTestsFixtures.SharedOnlyLibraryA,
-                    MethodOwnerAutoResolutionTestsFixtures.SharedOnlyLibraryB>(
-                    [new BasicEntity("Warsaw", "Poland", 100)],
-                    [new BasicEntity("Warsaw", "Poland", 200)]))
+                schemaProvider: CreateProvider<
+                    MethodOwnerAutoResolutionTestsFixtures.SharedOnlyLibraryA,
+                    MethodOwnerAutoResolutionTestsFixtures.SharedOnlyLibraryB
+                >([new BasicEntity("Warsaw", "Poland", 100)], [new BasicEntity("Warsaw", "Poland", 200)])
+            )
             .Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
@@ -56,15 +59,17 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
     [TestMethod]
     public void ExplicitMethodOwner_ShouldAllowArgumentFromOtherAlias()
     {
-        const string query = "select a.AmbiguousMethod(b.Population) from #A.entities() a " +
-                             "inner join #B.entities() b on a.City = b.City";
+        const string query =
+            "select a.AmbiguousMethod(b.Population) from #A.entities() a "
+            + "inner join #B.entities() b on a.City = b.City";
 
         var table = CreateAndRunVirtualMachine(
                 query,
-                schemaProvider: CreateProvider<MethodOwnerAutoResolutionTestsFixtures.AmbiguousMethodLibraryA,
-                    MethodOwnerAutoResolutionTestsFixtures.AmbiguousMethodLibraryB>(
-                    [new BasicEntity("Warsaw", "Poland", 100)],
-                    [new BasicEntity("Warsaw", "Poland", 200)]))
+                schemaProvider: CreateProvider<
+                    MethodOwnerAutoResolutionTestsFixtures.AmbiguousMethodLibraryA,
+                    MethodOwnerAutoResolutionTestsFixtures.AmbiguousMethodLibraryB
+                >([new BasicEntity("Warsaw", "Poland", 100)], [new BasicEntity("Warsaw", "Poland", 200)])
+            )
             .Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
@@ -74,11 +79,14 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
     [TestMethod]
     public void DifferentUnqualifiedMethodImplementations_ShouldReportOneStableDiagnostic()
     {
-        const string query = "select AmbiguousMethod(a.Population) from #A.entities() a " +
-                             "inner join #B.entities() b on a.City = b.City";
+        const string query =
+            "select AmbiguousMethod(a.Population) from #A.entities() a "
+            + "inner join #B.entities() b on a.City = b.City";
 
-        var result = Analyze<MethodOwnerAutoResolutionTestsFixtures.AmbiguousMethodLibraryA,
-            MethodOwnerAutoResolutionTestsFixtures.AmbiguousMethodLibraryB>(query);
+        var result = Analyze<
+            MethodOwnerAutoResolutionTestsFixtures.AmbiguousMethodLibraryA,
+            MethodOwnerAutoResolutionTestsFixtures.AmbiguousMethodLibraryB
+        >(query);
 
         AssertSingleAmbiguityDiagnostic(
             result,
@@ -90,15 +98,16 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
             "Core Spec - Method Resolution",
             [
                 "Prefix the method with the intended source alias, for example: first.MyMethod(...) or second.MyMethod(...).",
-                "Choose the alias whose schema library should own the method implementation."
-            ]);
+                "Choose the alias whose schema library should own the method implementation.",
+            ]
+        );
     }
 
     [TestMethod]
     public void SameSourceInjectedImplementationThroughTwoAliases_ShouldReportOneStableDiagnostic()
     {
-        const string query = "select GetCountry() from #A.entities() a " +
-                             "inner join #B.entities() b on a.City = b.City";
+        const string query =
+            "select GetCountry() from #A.entities() a " + "inner join #B.entities() b on a.City = b.City";
 
         var result = Analyze<Library, Library>(query);
 
@@ -112,18 +121,22 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
             "Core Spec - Method Resolution",
             [
                 "Prefix the method with the intended source alias, for example: first.MyMethod(...) or second.MyMethod(...).",
-                "Choose the alias whose schema library should own the method implementation."
-            ]);
+                "Choose the alias whose schema library should own the method implementation.",
+            ]
+        );
     }
 
     [TestMethod]
     public void DifferentUnqualifiedAggregateImplementations_ShouldReportOneStableDiagnostic()
     {
-        const string query = "select AmbiguousAgg(b.Population) as AggValue from #A.entities() a " +
-                             "inner join #B.entities() b on a.City = b.City group by a.City";
+        const string query =
+            "select AmbiguousAgg(b.Population) as AggValue from #A.entities() a "
+            + "inner join #B.entities() b on a.City = b.City group by a.City";
 
-        var result = Analyze<AggregateOwnerAmbiguityTestsFixtures.AggregateLibraryA,
-            AggregateOwnerAmbiguityTestsFixtures.AggregateLibraryB>(query);
+        var result = Analyze<
+            AggregateOwnerAmbiguityTestsFixtures.AggregateLibraryA,
+            AggregateOwnerAmbiguityTestsFixtures.AggregateLibraryB
+        >(query);
 
         AssertSingleAmbiguityDiagnostic(
             result,
@@ -135,8 +148,9 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
             "Core Spec - Aggregation",
             [
                 "Prefix the aggregate with the intended source alias, for example: first.Sum(...) or second.Sum(...).",
-                "If the aggregate appears in ORDER BY, alias it in SELECT first and order by that projection alias."
-            ]);
+                "If the aggregate appears in ORDER BY, alias it in SELECT first and order by that projection alias.",
+            ]
+        );
     }
 
     private static void AssertSingleAmbiguityDiagnostic(
@@ -147,7 +161,8 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
         string expectedExpression,
         string expectedExplanation,
         string expectedDocsReference,
-        string[] expectedFixes)
+        string[] expectedFixes
+    )
     {
         Assert.IsFalse(result.IsSuccess, FormatDiagnostics(result));
         var diagnostics = result.Errors.ToArray();
@@ -181,8 +196,11 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
         CollectionAssert.AreEqual(expectedFixes, envelope.SuggestedFixes.ToArray());
         Assert.HasCount(expectedFixes.Length, envelope.Actions);
         CollectionAssert.AreEqual(expectedFixes, envelope.Actions.Select(static action => action.Title).ToArray());
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
     }
 
     private static QueryAnalysisResult Analyze<TLeftLibrary, TRightLibrary>(string query)
@@ -190,39 +208,46 @@ public sealed class Core019FunctionOwnerResolutionTests : BasicEntityTestBase
         where TRightLibrary : LibraryBase, new()
     {
         return new QueryAnalyzer(
-                CreateProvider<TLeftLibrary, TRightLibrary>(),
-                compilationOptions: new CompilationOptions(usePrimitiveTypeValidation: false))
-            .Analyze(query);
+            CreateProvider<TLeftLibrary, TRightLibrary>(),
+            compilationOptions: new CompilationOptions(usePrimitiveTypeValidation: false)
+        ).Analyze(query);
     }
 
     private static GenericSchemaProvider CreateProvider<TLeftLibrary, TRightLibrary>(
         BasicEntity[]? left = null,
-        BasicEntity[]? right = null)
+        BasicEntity[]? right = null
+    )
         where TLeftLibrary : LibraryBase, new()
         where TRightLibrary : LibraryBase, new()
     {
         left ??= [new BasicEntity("Warsaw", "Poland", 100)];
         right ??= [new BasicEntity("Warsaw", "Poland", 200)];
 
-        return new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            ["#A"] = CreateSchema<TLeftLibrary>(left),
-            ["#B"] = CreateSchema<TRightLibrary>(right)
-        });
+        return new GenericSchemaProvider(
+            new Dictionary<string, ISchema>
+            {
+                ["#A"] = CreateSchema<TLeftLibrary>(left),
+                ["#B"] = CreateSchema<TRightLibrary>(right),
+            }
+        );
     }
 
     private static GenericSchema<TLibrary> CreateSchema<TLibrary>(BasicEntity[] source)
         where TLibrary : LibraryBase, new()
     {
-        return new GenericSchema<TLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
-            ["entities"] = (new BasicEntityTable(), new MultiRowSource<BasicEntity>(source))
-        });
+        return new GenericSchema<TLibrary>(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
+            {
+                ["entities"] = (new BasicEntityTable(), new MultiRowSource<BasicEntity>(source)),
+            }
+        );
     }
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code}: {diagnostic.Message}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic => $"{diagnostic.Code}: {diagnostic.Message}")
+        );
     }
 }

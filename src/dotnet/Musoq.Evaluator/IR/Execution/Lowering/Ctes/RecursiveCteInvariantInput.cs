@@ -4,4 +4,5 @@ internal sealed record RecursiveCteInvariantInput(
     string Name,
     GeneratedRowShape RowShape,
     ExecutionExpression Rows,
-    ExecutionVariable? Hash = null);
+    ExecutionVariable? Hash = null
+);

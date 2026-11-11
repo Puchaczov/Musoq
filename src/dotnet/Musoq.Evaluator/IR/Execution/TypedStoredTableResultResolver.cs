@@ -18,19 +18,26 @@ internal static class TypedStoredTableResultResolver
                 AddTypedStoredTableResult(results, result);
         }
 
-        foreach (var result in StoredTableBuildDiscovery.Collect(plan.Body)
-                     .Select(TryCreateTypedStoredTableResult)
-                     .Where(result => result != null && IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes)))
+        foreach (
+            var result in StoredTableBuildDiscovery
+                .Collect(plan.Body)
+                .Select(TryCreateTypedStoredTableResult)
+                .Where(result => result != null && IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes))
+        )
         {
             AddTypedStoredTableResult(results, result!);
         }
 
-        foreach (var result in CollectParallelTypedStoredTableResults(plan.Body)
-                     .Where(result => IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes)))
+        foreach (
+            var result in CollectParallelTypedStoredTableResults(plan.Body)
+                .Where(result => IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes))
+        )
             AddTypedStoredTableResult(results, result);
 
-        foreach (var result in CollectFusedTypedStoredTableResults(plan.Body)
-                     .Where(result => IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes)))
+        foreach (
+            var result in CollectFusedTypedStoredTableResults(plan.Body)
+                .Where(result => IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes))
+        )
             AddTypedStoredTableResult(results, result);
 
         // Set-operation producers do not have an ExecutionCreateTable node
@@ -38,8 +45,10 @@ internal static class TypedStoredTableResultResolver
         // rendering ExecutionSetOperation.  Discover those stored results
         // from the authoritative arm shape so a structural CTE consumer can
         // receive the generated row list without a Row cast.
-        foreach (var result in CollectStoredSetOperationTypedStoredTableResults(plan.Body, usageShapes)
-                     .Where(result => IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes)))
+        foreach (
+            var result in CollectStoredSetOperationTypedStoredTableResults(plan.Body, usageShapes)
+                .Where(result => IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes))
+        )
             AddTypedStoredTableResult(results, result);
 
         return results;
@@ -47,7 +56,8 @@ internal static class TypedStoredTableResultResolver
 
     private static IEnumerable<TypedStoredTableResult> CollectStoredSetOperationTypedStoredTableResults(
         ExecutionBlock block,
-        IReadOnlyDictionary<int, HashSet<string?>> usageShapes)
+        IReadOnlyDictionary<int, HashSet<string?>> usageShapes
+    )
     {
         var nodes = ExecutionIrAnalysis.FlattenNodes(block).ToArray();
         var storedTables = nodes
@@ -64,12 +74,14 @@ internal static class TypedStoredTableResultResolver
 
         foreach (var setOperation in nodes.OfType<ExecutionSetOperation>())
         {
-            if (!storedTables.TryGetValue(setOperation.Target.Name, out var tableIndex) ||
-                !structurallyDemandedTableIndexes.Contains(tableIndex) ||
-                !usageShapes.ContainsKey(tableIndex) ||
-                !rowShapes.TryGetValue(setOperation.Left.Name, out var leftShape) ||
-                !rowShapes.TryGetValue(setOperation.Right.Name, out var rightShape) ||
-                !AreSetArmShapesCompatible(leftShape, rightShape))
+            if (
+                !storedTables.TryGetValue(setOperation.Target.Name, out var tableIndex)
+                || !structurallyDemandedTableIndexes.Contains(tableIndex)
+                || !usageShapes.ContainsKey(tableIndex)
+                || !rowShapes.TryGetValue(setOperation.Left.Name, out var leftShape)
+                || !rowShapes.TryGetValue(setOperation.Right.Name, out var rightShape)
+                || !AreSetArmShapesCompatible(leftShape, rightShape)
+            )
             {
                 continue;
             }
@@ -115,7 +127,8 @@ internal static class TypedStoredTableResultResolver
 
     private static bool IsTypedStoredTableResultCompatibleWithUsages(
         TypedStoredTableResult? result,
-        IReadOnlyDictionary<int, HashSet<string?>> usageShapes)
+        IReadOnlyDictionary<int, HashSet<string?>> usageShapes
+    )
     {
         if (result == null || !usageShapes.TryGetValue(result.TableIndex, out var shapes))
             return result != null;
@@ -125,9 +138,7 @@ internal static class TypedStoredTableResultResolver
         // resolved from the stored-table producer below.  Unknown usage shapes
         // therefore must not disqualify an otherwise safe typed table result;
         // only two different concrete generated row types are incompatible.
-        var concreteShapes = shapes
-            .Where(static shape => shape != null)
-            .ToHashSet(StringComparer.Ordinal);
+        var concreteShapes = shapes.Where(static shape => shape != null).ToHashSet(StringComparer.Ordinal);
         return concreteShapes.Count == 0 || concreteShapes.SetEquals([result.RowShape.TypeName]);
     }
 
@@ -147,8 +158,10 @@ internal static class TypedStoredTableResultResolver
 
     private static TypedStoredTableResult? TryCreateTypedStoredTableResult(StoredTableBuild build)
     {
-        if (!TryGetStoredTableBuildRowShape(build, out var rowShape) ||
-            !StoredTableRowBufferEligibility.CanUseTypedRowBuffer(build.Nodes, build.Table, rowShape))
+        if (
+            !TryGetStoredTableBuildRowShape(build, out var rowShape)
+            || !StoredTableRowBufferEligibility.CanUseTypedRowBuffer(build.Nodes, build.Table, rowShape)
+        )
         {
             return null;
         }
@@ -162,8 +175,10 @@ internal static class TypedStoredTableResultResolver
         {
             foreach (var task in parallel.Tasks)
             {
-                if (string.IsNullOrWhiteSpace(task.Output.GeneratedRowTypeName) ||
-                    !TryCreateParallelStoredTableBuild(parallel, task, out var build))
+                if (
+                    string.IsNullOrWhiteSpace(task.Output.GeneratedRowTypeName)
+                    || !TryCreateParallelStoredTableBuild(parallel, task, out var build)
+                )
                 {
                     continue;
                 }
@@ -178,15 +193,15 @@ internal static class TypedStoredTableResultResolver
     private static bool TryCreateParallelStoredTableBuild(
         ExecutionParallelBlock parallel,
         ExecutionParallelTask task,
-        out StoredTableBuild build)
+        out StoredTableBuild build
+    )
     {
         build = null!;
-        var store = parallel.Merge.Body.Nodes
-            .OfType<ExecutionStoreTable>()
+        var store = parallel
+            .Merge.Body.Nodes.OfType<ExecutionStoreTable>()
             .SingleOrDefault(node => string.Equals(node.Table.Name, task.Output.Name, StringComparison.Ordinal));
 
-        if (store == null ||
-            !StoredTableBuildDiscovery.TryGetParallelTaskResultTable(task, out var table))
+        if (store == null || !StoredTableBuildDiscovery.TryGetParallelTaskResultTable(task, out var table))
         {
             return false;
         }
@@ -197,7 +212,8 @@ internal static class TypedStoredTableResultResolver
 
     private static void AddTypedStoredTableResult(
         IDictionary<int, TypedStoredTableResult> results,
-        TypedStoredTableResult result)
+        TypedStoredTableResult result
+    )
     {
         if (!results.TryGetValue(result.TableIndex, out var existing))
         {
@@ -207,12 +223,11 @@ internal static class TypedStoredTableResultResolver
 
         if (!string.Equals(existing.RowShape.TypeName, result.RowShape.TypeName, StringComparison.Ordinal))
             throw new InvalidOperationException(
-                $"CTE row result slot {result.TableIndex.ToString(CultureInfo.InvariantCulture)} has inconsistent generated row types.");
+                $"CTE row result slot {result.TableIndex.ToString(CultureInfo.InvariantCulture)} has inconsistent generated row types."
+            );
     }
 
-    private static bool TryGetStoredTableBuildRowShape(
-        StoredTableBuild build,
-        out GeneratedRowShape rowShape)
+    private static bool TryGetStoredTableBuildRowShape(StoredTableBuild build, out GeneratedRowShape rowShape)
     {
         foreach (var createTable in build.Nodes.OfType<ExecutionCreateTable>())
         {

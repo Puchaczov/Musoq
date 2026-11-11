@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -23,9 +23,11 @@ internal static class EvaluatorPerformanceTelemetry
     private static readonly bool Enabled = string.Equals(
         Environment.GetEnvironmentVariable(EnabledVariable),
         "1",
-        StringComparison.Ordinal);
-    private static readonly string? TimingDirectory =
-        Enabled ? Environment.GetEnvironmentVariable(TimingDirectoryVariable) : null;
+        StringComparison.Ordinal
+    );
+    private static readonly string? TimingDirectory = Enabled
+        ? Environment.GetEnvironmentVariable(TimingDirectoryVariable)
+        : null;
     private static readonly CompilationScope DisabledCompilationScope = new();
 
     public static bool IsEnabled => Enabled && !string.IsNullOrWhiteSpace(TimingDirectory);
@@ -44,11 +46,10 @@ internal static class EvaluatorPerformanceTelemetry
         string script,
         string assemblyName,
         ISchemaProvider provider,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
-        return IsEnabled
-            ? new CompilationScope(script, assemblyName, provider, options)
-            : DisabledCompilationScope;
+        return IsEnabled ? new CompilationScope(script, assemblyName, provider, options) : DisabledCompilationScope;
     }
 
     internal static PhaseScope BeginPhase(string name)
@@ -73,7 +74,8 @@ internal static class EvaluatorPerformanceTelemetry
         string compatibilityFingerprint,
         string? origin = null,
         int? compatibilityGroupCount = null,
-        double? queueDelayMilliseconds = null)
+        double? queueDelayMilliseconds = null
+    )
     {
         return IsEnabled
             ? new BatchScope(
@@ -83,7 +85,8 @@ internal static class EvaluatorPerformanceTelemetry
                 origin,
                 compatibilityGroupCount,
                 queueDelayMilliseconds,
-                CurrentConsumerScope.Value)
+                CurrentConsumerScope.Value
+            )
             : DisabledBatchScope.Instance;
     }
 
@@ -110,18 +113,22 @@ internal static class EvaluatorPerformanceTelemetry
         private bool _disposed;
         private CompilationScope? _parent;
 
-        internal CompilationScope()
-        {
-        }
+        internal CompilationScope() { }
 
-        internal CompilationScope(string script, string assemblyName, ISchemaProvider provider, CompilationOptions options)
+        internal CompilationScope(
+            string script,
+            string assemblyName,
+            ISchemaProvider provider,
+            CompilationOptions options
+        )
         {
             if (!IsEnabled)
                 return;
 
             _queryFingerprint = Fingerprint(script);
             _assemblyName = assemblyName;
-            _providerType = provider.GetType().AssemblyQualifiedName ?? provider.GetType().FullName ?? provider.GetType().Name;
+            _providerType =
+                provider.GetType().AssemblyQualifiedName ?? provider.GetType().FullName ?? provider.GetType().Name;
             _consumerFamily = CurrentConsumerScope.Value?.Family;
             _consumerTestName = CurrentConsumerScope.Value?.TestName;
             _providerSignature = "<not-recorded>";
@@ -206,9 +213,7 @@ internal static class EvaluatorPerformanceTelemetry
             aggregate.Count++;
             aggregate.InclusiveMilliseconds += inclusiveMilliseconds;
             aggregate.ExclusiveMilliseconds += Math.Max(0, exclusiveMilliseconds);
-            aggregate.MaxInclusiveMilliseconds = Math.Max(
-                aggregate.MaxInclusiveMilliseconds,
-                inclusiveMilliseconds);
+            aggregate.MaxInclusiveMilliseconds = Math.Max(aggregate.MaxInclusiveMilliseconds, inclusiveMilliseconds);
             _phases[name] = aggregate;
         }
 
@@ -231,42 +236,47 @@ internal static class EvaluatorPerformanceTelemetry
                     inclusiveMilliseconds = pair.Value.InclusiveMilliseconds,
                     exclusiveMilliseconds = pair.Value.ExclusiveMilliseconds,
                     count = pair.Value.Count,
-                    maxInclusiveMilliseconds = pair.Value.MaxInclusiveMilliseconds
+                    maxInclusiveMilliseconds = pair.Value.MaxInclusiveMilliseconds,
                 },
-                StringComparer.Ordinal);
+                StringComparer.Ordinal
+            );
 
-            Append("compilation-stages.jsonl", new
-            {
-                kind = "compilation",
-                utc = DateTimeOffset.UtcNow,
-                processId = Environment.ProcessId,
-                threadId = Environment.CurrentManagedThreadId,
-                queryFingerprint = _queryFingerprint,
-                assemblyName = _assemblyName,
-                consumerFamily = _consumerFamily,
-                consumerTestName = _consumerTestName,
-                providerType = _providerType,
-                providerSignature = _providerSignature,
-                providerContractBucket = _providerContractBucket,
-                optionsFingerprint = _optionsFingerprint,
-                cacheEligible = CacheEligible,
-                cacheOutcome = CacheOutcome,
-                semanticContractFingerprint = SemanticContractFingerprint,
-                compilationMode = _compilationMode,
-                batchId = _batchId,
-                batchSize = _batchSize,
-                reusePath = _reusePath,
-                artifactIdentity = _artifactIdentity,
-                bindingIdentity = _bindingIdentity,
-                realEmission = _realEmission,
-                realLoad = _realLoad,
-                totalMilliseconds = Stopwatch.GetElapsedTime(_started).TotalMilliseconds,
-                phases = _phases.ToDictionary(
-                    static pair => pair.Key,
-                    static pair => pair.Value.ExclusiveMilliseconds,
-                    StringComparer.Ordinal),
-                phaseDetails
-            });
+            Append(
+                "compilation-stages.jsonl",
+                new
+                {
+                    kind = "compilation",
+                    utc = DateTimeOffset.UtcNow,
+                    processId = Environment.ProcessId,
+                    threadId = Environment.CurrentManagedThreadId,
+                    queryFingerprint = _queryFingerprint,
+                    assemblyName = _assemblyName,
+                    consumerFamily = _consumerFamily,
+                    consumerTestName = _consumerTestName,
+                    providerType = _providerType,
+                    providerSignature = _providerSignature,
+                    providerContractBucket = _providerContractBucket,
+                    optionsFingerprint = _optionsFingerprint,
+                    cacheEligible = CacheEligible,
+                    cacheOutcome = CacheOutcome,
+                    semanticContractFingerprint = SemanticContractFingerprint,
+                    compilationMode = _compilationMode,
+                    batchId = _batchId,
+                    batchSize = _batchSize,
+                    reusePath = _reusePath,
+                    artifactIdentity = _artifactIdentity,
+                    bindingIdentity = _bindingIdentity,
+                    realEmission = _realEmission,
+                    realLoad = _realLoad,
+                    totalMilliseconds = Stopwatch.GetElapsedTime(_started).TotalMilliseconds,
+                    phases = _phases.ToDictionary(
+                        static pair => pair.Key,
+                        static pair => pair.Value.ExclusiveMilliseconds,
+                        StringComparer.Ordinal
+                    ),
+                    phaseDetails,
+                }
+            );
             CurrentScope.Value = _parent;
         }
     }
@@ -303,7 +313,8 @@ internal static class EvaluatorPerformanceTelemetry
             string? origin,
             int? compatibilityGroupCount,
             double? queueDelayMilliseconds,
-            ConsumerScope? consumer)
+            ConsumerScope? consumer
+        )
         {
             _batchId = batchId;
             _itemCount = itemCount;
@@ -320,9 +331,7 @@ internal static class EvaluatorPerformanceTelemetry
             if (!IsEnabled)
                 return;
 
-            _artifactIdentity = string.IsNullOrWhiteSpace(artifactIdentity)
-                ? null
-                : Fingerprint(artifactIdentity);
+            _artifactIdentity = string.IsNullOrWhiteSpace(artifactIdentity) ? null : Fingerprint(artifactIdentity);
             _succeeded = succeeded;
             _emitted = emitted;
             _loaded = loaded;
@@ -340,27 +349,30 @@ internal static class EvaluatorPerformanceTelemetry
                 return;
 
             _disposed = true;
-            Append("execution-batches.jsonl", new
-            {
-                kind = "execution-batch",
-                utc = DateTimeOffset.UtcNow,
-                processId = Environment.ProcessId,
-                threadId = Environment.CurrentManagedThreadId,
-                batchId = _batchId,
-                itemCount = _itemCount,
-                compatibilityFingerprint = _compatibilityFingerprint,
-                origin = _origin,
-                compatibilityGroupCount = _compatibilityGroupCount,
-                queueDelayMilliseconds = _queueDelayMilliseconds,
-                consumerFamily = _consumerFamily,
-                consumerTestName = _consumerTestName,
-                succeeded = _succeeded,
-                realEmission = _emitted,
-                realLoad = _loaded,
-                artifactIdentity = _artifactIdentity,
-                fallbackReason = _fallbackReason,
-                totalMilliseconds = Stopwatch.GetElapsedTime(_started).TotalMilliseconds
-            });
+            Append(
+                "execution-batches.jsonl",
+                new
+                {
+                    kind = "execution-batch",
+                    utc = DateTimeOffset.UtcNow,
+                    processId = Environment.ProcessId,
+                    threadId = Environment.CurrentManagedThreadId,
+                    batchId = _batchId,
+                    itemCount = _itemCount,
+                    compatibilityFingerprint = _compatibilityFingerprint,
+                    origin = _origin,
+                    compatibilityGroupCount = _compatibilityGroupCount,
+                    queueDelayMilliseconds = _queueDelayMilliseconds,
+                    consumerFamily = _consumerFamily,
+                    consumerTestName = _consumerTestName,
+                    succeeded = _succeeded,
+                    realEmission = _emitted,
+                    realLoad = _loaded,
+                    artifactIdentity = _artifactIdentity,
+                    fallbackReason = _fallbackReason,
+                    totalMilliseconds = Stopwatch.GetElapsedTime(_started).TotalMilliseconds,
+                }
+            );
         }
     }
 
@@ -369,21 +381,13 @@ internal static class EvaluatorPerformanceTelemetry
         internal static DisabledBatchScope Instance { get; } = new();
 
         private DisabledBatchScope()
-            : base(string.Empty, 0, string.Empty, null, null, null, null)
-        {
-        }
+            : base(string.Empty, 0, string.Empty, null, null, null, null) { }
 
-        public new void SetResult(string? artifactIdentity, bool succeeded, bool emitted, bool loaded)
-        {
-        }
+        public new void SetResult(string? artifactIdentity, bool succeeded, bool emitted, bool loaded) { }
 
-        public new void SetFallbackReason(string? reason)
-        {
-        }
+        public new void SetFallbackReason(string? reason) { }
 
-        public new void Dispose()
-        {
-        }
+        public new void Dispose() { }
     }
 
     internal sealed class ConsumerScope(string family, string? testName, ConsumerScope? parent)
@@ -411,9 +415,7 @@ internal static class EvaluatorPerformanceTelemetry
     {
         internal static NoopDisposable Instance { get; } = new();
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 
     internal struct PhaseScope : IDisposable
@@ -479,7 +481,8 @@ internal static class EvaluatorPerformanceTelemetry
         int ProcessId,
         int ThreadId,
         DateTimeOffset StartedUtc,
-        DateTimeOffset FinishedUtc);
+        DateTimeOffset FinishedUtc
+    );
 
     private static void Append(string fileName, object value)
     {

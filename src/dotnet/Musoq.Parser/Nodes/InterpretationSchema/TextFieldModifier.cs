@@ -60,5 +60,5 @@ public enum TextFieldModifier
     /// <summary>
     ///     Optional field - missing content produces null instead of error.
     /// </summary>
-    Optional = 512
+    Optional = 512,
 }

@@ -9,13 +9,15 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private IEnumerable<StatementSyntax> RenderFusedCteProducer(
         ExecutionFusedCteProducer producer,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var session = context.Session;
         var previousTypedRowBufferVariables = session.TypedRowBufferVariables;
         var typedRowBufferVariables = new Dictionary<string, GeneratedRowShape>(
             previousTypedRowBufferVariables,
-            StringComparer.Ordinal);
+            StringComparer.Ordinal
+        );
 
         foreach (var output in producer.Outputs)
             typedRowBufferVariables[output.Table.Name] = output.RowShape;
@@ -38,7 +40,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private StatementSyntax CreateFusedCteOutputAssignment(
         ExecutionFusedCteOutput output,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         ExpressionSyntax target = context.Session.TypedStoredTableResults.ContainsKey(output.TableIndex)
             ? CreateCteRowResultSlotAccess(output.TableIndex)
@@ -46,11 +49,16 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.IdentifierName("_tableResults"),
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(output.TableIndex)));
+                    SyntaxFactory.Literal(output.TableIndex)
+                )
+            );
 
-        return SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
-            SyntaxKind.SimpleAssignmentExpression,
-            target,
-            SyntaxFactory.IdentifierName(output.Table.Name)));
+        return SyntaxFactory.ExpressionStatement(
+            SyntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                target,
+                SyntaxFactory.IdentifierName(output.Table.Name)
+            )
+        );
     }
 }

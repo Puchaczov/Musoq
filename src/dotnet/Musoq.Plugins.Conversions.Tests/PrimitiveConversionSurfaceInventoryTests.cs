@@ -25,7 +25,7 @@ public sealed class PrimitiveConversionSurfaceInventoryTests
         typeof(decimal?),
         typeof(bool?),
         typeof(char?),
-        typeof(object)
+        typeof(object),
     ];
 
     private static readonly string[] NumericConversionTargets =
@@ -41,7 +41,7 @@ public sealed class PrimitiveConversionSurfaceInventoryTests
         "ToUInt64",
         "ToSingle",
         "ToDouble",
-        "ToDecimal"
+        "ToDecimal",
     ];
 
     [TestMethod]
@@ -56,8 +56,15 @@ public sealed class PrimitiveConversionSurfaceInventoryTests
         foreach (var sourceType in NumericConversionSourceTypes)
             AssertHasPublicBindableOverload("ToChar", sourceType);
 
-        foreach (var sourceType in NumericConversionSourceTypes.Concat(
-                     [typeof(char?), typeof(DateTime?), typeof(DateTimeOffset?), typeof(TimeSpan?), typeof(Guid?)]))
+        foreach (
+            var sourceType in NumericConversionSourceTypes.Concat([
+                typeof(char?),
+                typeof(DateTime?),
+                typeof(DateTimeOffset?),
+                typeof(TimeSpan?),
+                typeof(Guid?),
+            ])
+        )
         {
             AssertHasPublicBindableOverload("ToString", sourceType);
         }
@@ -80,13 +87,15 @@ public sealed class PrimitiveConversionSurfaceInventoryTests
         var method = typeof(LibraryBase)
             .GetMethods(BindingFlags.Instance | BindingFlags.Public)
             .SingleOrDefault(method =>
-                string.Equals(method.Name, methodName, StringComparison.Ordinal) &&
-                method.GetParameters() is [{ ParameterType: var parameterType }] &&
-                parameterType == sourceType);
+                string.Equals(method.Name, methodName, StringComparison.Ordinal)
+                && method.GetParameters() is [{ ParameterType: var parameterType }]
+                && parameterType == sourceType
+            );
 
         Assert.IsNotNull(method, $"Missing typed conversion overload {methodName}({sourceType.Name}).");
         Assert.IsNotNull(
             method.GetCustomAttribute<BindableMethodAttribute>(),
-            $"Conversion overload {methodName}({sourceType.Name}) must be bindable.");
+            $"Conversion overload {methodName}({sourceType.Name}) must be bindable."
+        );
     }
 }

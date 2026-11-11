@@ -88,12 +88,15 @@ public sealed class ScalarReuseEndToEndTests
     [TestMethod]
     public void GeneratedHotPath_HasDirectLocalsAndNoLazyReuseBranch()
     {
-        var generated = InstanceCreator.CompileForInspection(
-            StableProjection,
-            "ScalarReuseShape",
-            new LoopInvariantSampleSchemaProviderAccessor(),
-            new Components.TestsLoggerResolver(),
-            new CompilationOptions()).GeneratedCSharpCode;
+        var generated = InstanceCreator
+            .CompileForInspection(
+                StableProjection,
+                "ScalarReuseShape",
+                new LoopInvariantSampleSchemaProviderAccessor(),
+                new Components.TestsLoggerResolver(),
+                new CompilationOptions()
+            )
+            .GeneratedCSharpCode;
 
         StringAssert.Contains(generated, "aValue");
         StringAssert.Contains(generated, "bValue");
@@ -109,10 +112,10 @@ public sealed class ScalarReuseEndToEndTests
             "ScalarReuse_" + Guid.NewGuid().ToString("N"),
             new LoopInvariantSampleSchemaProviderAccessor(),
             new Components.TestsLoggerResolver(),
-            options);
+            options
+        );
 
-    private sealed class LoopInvariantSampleSchemaProviderAccessor :
-        ISchemaProvider
+    private sealed class LoopInvariantSampleSchemaProviderAccessor : ISchemaProvider
     {
         private readonly ISchemaProvider _inner = CreateProvider();
 

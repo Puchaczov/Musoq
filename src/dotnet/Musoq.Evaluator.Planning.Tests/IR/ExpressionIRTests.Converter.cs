@@ -4,11 +4,11 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
+
 namespace Musoq.Evaluator.Tests.IR;
 
 public partial class ExpressionIrTests
 {
-
     [TestMethod]
     public void Converter_WhenIntegerNode_ShouldReturnLiteral()
     {
@@ -91,7 +91,8 @@ public partial class ExpressionIrTests
     {
         var node = new AddNode(
             new IntegerNode("1", string.Empty, default),
-            new IntegerNode("2", string.Empty, default));
+            new IntegerNode("2", string.Empty, default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -105,7 +106,8 @@ public partial class ExpressionIrTests
     {
         var node = new HyphenNode(
             new IntegerNode("5", string.Empty, default),
-            new IntegerNode("3", string.Empty, default));
+            new IntegerNode("3", string.Empty, default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -118,7 +120,8 @@ public partial class ExpressionIrTests
     {
         var node = new StarNode(
             new IntegerNode("2", string.Empty, default),
-            new IntegerNode("3", string.Empty, default));
+            new IntegerNode("3", string.Empty, default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -131,7 +134,8 @@ public partial class ExpressionIrTests
     {
         var node = new FSlashNode(
             new IntegerNode("10", string.Empty, default),
-            new IntegerNode("2", string.Empty, default));
+            new IntegerNode("2", string.Empty, default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -144,7 +148,8 @@ public partial class ExpressionIrTests
     {
         var node = new ModuloNode(
             new IntegerNode("10", string.Empty, default),
-            new IntegerNode("3", string.Empty, default));
+            new IntegerNode("3", string.Empty, default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -157,7 +162,8 @@ public partial class ExpressionIrTests
     {
         var node = new EqualityNode(
             new AccessColumnNode("Name", "t", typeof(string), default),
-            new StringNode("John", default));
+            new StringNode("John", default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -172,7 +178,8 @@ public partial class ExpressionIrTests
     {
         var node = new DiffNode(
             new AccessColumnNode("Name", "t", typeof(string), default),
-            new StringNode("John", default));
+            new StringNode("John", default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -185,7 +192,8 @@ public partial class ExpressionIrTests
     {
         var node = new GreaterNode(
             new AccessColumnNode("Age", "t", typeof(int), default),
-            new IntegerNode("18", string.Empty, default));
+            new IntegerNode("18", string.Empty, default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -198,7 +206,8 @@ public partial class ExpressionIrTests
     {
         var node = new LessNode(
             new AccessColumnNode("Age", "t", typeof(int), default),
-            new IntegerNode("18", string.Empty, default));
+            new IntegerNode("18", string.Empty, default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -209,9 +218,7 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void Converter_WhenAndNode_ShouldReturnBinaryOpAnd()
     {
-        var node = new AndNode(
-            new BooleanNode(true, default),
-            new BooleanNode(false, default));
+        var node = new AndNode(new BooleanNode(true, default), new BooleanNode(false, default));
 
         var result = _converter.Convert(node);
 
@@ -222,9 +229,7 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void Converter_WhenOrNode_ShouldReturnBinaryOpOr()
     {
-        var node = new OrNode(
-            new BooleanNode(true, default),
-            new BooleanNode(false, default));
+        var node = new OrNode(new BooleanNode(true, default), new BooleanNode(false, default));
 
         var result = _converter.Convert(node);
 
@@ -270,12 +275,8 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void Converter_WhenInNode_ShouldReturnInCheck()
     {
-        var args = new ArgsListNode(
-            [new StringNode("NYC", default), new StringNode("LA", default)],
-            default);
-        var node = new InNode(
-            new AccessColumnNode("City", "t", typeof(string), default),
-            args);
+        var args = new ArgsListNode([new StringNode("NYC", default), new StringNode("LA", default)], default);
+        var node = new InNode(new AccessColumnNode("City", "t", typeof(string), default), args);
 
         var result = _converter.Convert(node);
 
@@ -289,7 +290,8 @@ public partial class ExpressionIrTests
     {
         var node = new LikeNode(
             new AccessColumnNode("Name", "t", typeof(string), default),
-            new StringNode("%John%", default));
+            new StringNode("%John%", default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -302,7 +304,8 @@ public partial class ExpressionIrTests
     {
         var node = new RLikeNode(
             new AccessColumnNode("Name", "t", typeof(string), default),
-            new StringNode("^J.*n$", default));
+            new StringNode("^J.*n$", default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -316,7 +319,8 @@ public partial class ExpressionIrTests
         var node = new BetweenNode(
             new AccessColumnNode("Age", "t", typeof(int), default),
             new IntegerNode("18", string.Empty, default),
-            new IntegerNode("65", string.Empty, default));
+            new IntegerNode("65", string.Empty, default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -330,10 +334,7 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void Converter_WhenCaseNode_ShouldReturnCaseWhen()
     {
-        var whenThenPairs = new (Node, Node)[]
-        {
-            (new BooleanNode(true, default), new StringNode("yes", default))
-        };
+        var whenThenPairs = new (Node, Node)[] { (new BooleanNode(true, default), new StringNode("yes", default)) };
         var node = new CaseNode(whenThenPairs, new StringNode("no", default), typeof(string));
 
         var result = _converter.Convert(node);
@@ -350,10 +351,9 @@ public partial class ExpressionIrTests
         // 1 + 2 * 3 → AddNode(1, StarNode(2, 3))
         var mul = new StarNode(
             new IntegerNode("2", string.Empty, default),
-            new IntegerNode("3", string.Empty, default));
-        var add = new AddNode(
-            new IntegerNode("1", string.Empty, default),
-            mul);
+            new IntegerNode("3", string.Empty, default)
+        );
+        var add = new AddNode(new IntegerNode("1", string.Empty, default), mul);
 
         var result = _converter.Convert(add);
 
@@ -370,10 +370,9 @@ public partial class ExpressionIrTests
         // 1 + 2 * 3
         var mul = new StarNode(
             new IntegerNode("2", string.Empty, default),
-            new IntegerNode("3", string.Empty, default));
-        var add = new AddNode(
-            new IntegerNode("1", string.Empty, default),
-            mul);
+            new IntegerNode("3", string.Empty, default)
+        );
+        var add = new AddNode(new IntegerNode("1", string.Empty, default), mul);
 
         var result = _converter.Convert(add);
 
@@ -386,7 +385,8 @@ public partial class ExpressionIrTests
         // Name = 'John'
         var node = new EqualityNode(
             new AccessColumnNode("Name", "a", typeof(string), default),
-            new StringNode("John", default));
+            new StringNode("John", default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -399,10 +399,12 @@ public partial class ExpressionIrTests
         // Age > 18 AND City = 'NYC'
         var left = new GreaterNode(
             new AccessColumnNode("Age", "t", typeof(int), default),
-            new IntegerNode("18", string.Empty, default));
+            new IntegerNode("18", string.Empty, default)
+        );
         var right = new EqualityNode(
             new AccessColumnNode("City", "t", typeof(string), default),
-            new StringNode("NYC", default));
+            new StringNode("NYC", default)
+        );
         var node = new AndNode(left, right);
 
         var result = _converter.Convert(node);
@@ -416,7 +418,8 @@ public partial class ExpressionIrTests
         var node = new BetweenNode(
             new AccessColumnNode("Age", "t", typeof(int), default),
             new IntegerNode("18", string.Empty, default),
-            new IntegerNode("65", string.Empty, default));
+            new IntegerNode("65", string.Empty, default)
+        );
 
         var result = _converter.Convert(node);
 
@@ -430,7 +433,8 @@ public partial class ExpressionIrTests
             new AccessColumnNode("Text", "p", typeof(object), default),
             new IdentifierNode("Content", typeof(string)),
             string.Empty,
-            typeof(string));
+            typeof(string)
+        );
 
         var result = _converter.Convert(node);
 
@@ -444,7 +448,8 @@ public partial class ExpressionIrTests
             new AccessColumnNode("p", string.Empty, typeof(object), default),
             new AccessColumnNode("Content", "Text", typeof(string), default),
             string.Empty,
-            typeof(string));
+            typeof(string)
+        );
 
         var result = _converter.Convert(node);
 
@@ -456,10 +461,9 @@ public partial class ExpressionIrTests
     {
         var args = new ArgsListNode(
             [new StringNode("NYC", default), new StringNode("LA", default), new StringNode("SF", default)],
-            default);
-        var node = new InNode(
-            new AccessColumnNode("City", "t", typeof(string), default),
-            args);
+            default
+        );
+        var node = new InNode(new AccessColumnNode("City", "t", typeof(string), default), args);
 
         var result = _converter.Convert(node);
 
@@ -495,5 +499,4 @@ public partial class ExpressionIrTests
 
         Assert.Throws<NotSupportedException>(() => _converter.Convert(node));
     }
-
 }

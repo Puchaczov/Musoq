@@ -5,8 +5,10 @@ public enum RowStreamReplayability
 {
     /// <summary>The provider does not make a replayability guarantee.</summary>
     Unknown,
+
     /// <summary>The source can be enumerated again with equivalent rows.</summary>
     Replayable,
+
     /// <summary>The rows are already stored and can be consumed repeatedly.</summary>
-    Materialized
+    Materialized,
 }

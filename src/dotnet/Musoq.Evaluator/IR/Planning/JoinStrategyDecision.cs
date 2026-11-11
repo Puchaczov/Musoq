@@ -4,7 +4,8 @@ internal sealed record JoinStrategyDecision(
     JoinStrategyKind Kind,
     HashJoinDecomposition? HashJoin,
     SortMergeJoinDecomposition? SortMergeJoin,
-    string Reason)
+    string Reason
+)
 {
     public static JoinStrategyDecision Hash(HashJoinDecomposition hashJoin, string reason)
     {

@@ -9,10 +9,10 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionWindowQueryTestsFixtures
 {
-
     public sealed class CleanupLibrary : LibraryBase
     {
         public static int OrderKeyCalls;
+
         [BindableMethod, NonDeterministic]
         public static int CaptureOrderKey(int value)
         {
@@ -20,5 +20,4 @@ public partial class LibraryExecutionWindowQueryTestsFixtures
             return value;
         }
     }
-
 }

@@ -15,10 +15,13 @@ internal sealed class GeneratedCodeArtifactCache<TKey, TValue>
 
         var lazy = _entries.GetOrAdd(
             key,
-            static (entryKey, factory) => new Lazy<TValue>(
-                () => factory(entryKey),
-                System.Threading.LazyThreadSafetyMode.ExecutionAndPublication),
-            valueFactory);
+            static (entryKey, factory) =>
+                new Lazy<TValue>(
+                    () => factory(entryKey),
+                    System.Threading.LazyThreadSafetyMode.ExecutionAndPublication
+                ),
+            valueFactory
+        );
         var wasCreated = lazy.IsValueCreated;
 
         try
@@ -30,7 +33,8 @@ internal sealed class GeneratedCodeArtifactCache<TKey, TValue>
         catch
         {
             ((ICollection<KeyValuePair<TKey, Lazy<TValue>>>)_entries).Remove(
-                new KeyValuePair<TKey, Lazy<TValue>>(key, lazy));
+                new KeyValuePair<TKey, Lazy<TValue>>(key, lazy)
+            );
             throw;
         }
     }

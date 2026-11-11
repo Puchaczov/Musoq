@@ -21,12 +21,12 @@ internal static class EvaluatorExceptionTaxonomy
         if (ContainsSchemaProviderFailure(exception))
             return false;
 
-        return exception is IDiagnosticException ||
-               exception is ParseException ||
-               exception is Schema.Interpreters.ParseException ||
-               exception is SchemaArgumentException ||
-               exception is TableNotFoundException ||
-               exception is SourceNotFoundException;
+        return exception is IDiagnosticException
+            || exception is ParseException
+            || exception is Schema.Interpreters.ParseException
+            || exception is SchemaArgumentException
+            || exception is TableNotFoundException
+            || exception is SourceNotFoundException;
     }
 
     public static bool IsExpectedSchemaLookupFailure(Exception exception)

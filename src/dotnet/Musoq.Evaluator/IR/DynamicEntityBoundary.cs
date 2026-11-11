@@ -31,8 +31,7 @@ internal static class DynamicEntityBoundary
     {
         ArgumentNullException.ThrowIfNull(entityType);
 
-        return IsDynamicMetaObjectProvider(entityType) ||
-               IsAssignableToStringObjectDictionary(entityType);
+        return IsDynamicMetaObjectProvider(entityType) || IsAssignableToStringObjectDictionary(entityType);
     }
 
     /// <summary>
@@ -71,8 +70,8 @@ internal static class DynamicEntityBoundary
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        return typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type) ||
-               typeof(IDictionary<string, object>).IsAssignableFrom(type);
+        return typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type)
+            || typeof(IDictionary<string, object>).IsAssignableFrom(type);
     }
 
     /// <summary>
@@ -106,8 +105,8 @@ internal static class DynamicEntityBoundary
         ArgumentNullException.ThrowIfNull(resultType);
         ArgumentNullException.ThrowIfNull(implementsGenericDictionary);
 
-        return IsDynamicMetaObjectProvider(resultType) ||
-               typeof(IDictionary).IsAssignableFrom(resultType) ||
-               implementsGenericDictionary(resultType);
+        return IsDynamicMetaObjectProvider(resultType)
+            || typeof(IDictionary).IsAssignableFrom(resultType)
+            || implementsGenericDictionary(resultType);
     }
 }

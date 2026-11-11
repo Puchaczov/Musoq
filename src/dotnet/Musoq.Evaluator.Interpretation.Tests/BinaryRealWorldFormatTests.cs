@@ -98,14 +98,16 @@ public partial class BinaryRealWorldFormatTests : BinaryOrTextualEvaluatorTestBa
     private Table RunQuery(string query, params BinaryEntity[] entities)
     {
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         return TableMaterializationTestHelper.Materialize(vm.Run(CancellationToken.None));
     }

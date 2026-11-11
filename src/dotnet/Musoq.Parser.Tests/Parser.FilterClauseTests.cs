@@ -66,7 +66,9 @@ public class ParserFilterClauseTests
     [TestMethod]
     public void FilterOnCountDistinct_ShouldPreserveDistinctArgumentAndStorePredicate()
     {
-        var accessMethod = ParseFirstAccessMethod("select Count(distinct City) filter (where Population > 200) from #some.a()");
+        var accessMethod = ParseFirstAccessMethod(
+            "select Count(distinct City) filter (where Population > 200) from #some.a()"
+        );
 
         Assert.IsTrue(accessMethod.IsDistinct);
         Assert.AreEqual(1, accessMethod.ArgsCount);
@@ -134,7 +136,8 @@ public class ParserFilterClauseTests
     [TestMethod]
     public void MultipleFilters_ShouldParse()
     {
-        var query = "select Count(City) filter (where Population > 200), Sum(Population) filter (where Country = 'Poland') from #some.a()";
+        var query =
+            "select Count(City) filter (where Population > 200), Sum(Population) filter (where Country = 'Poland') from #some.a()";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);

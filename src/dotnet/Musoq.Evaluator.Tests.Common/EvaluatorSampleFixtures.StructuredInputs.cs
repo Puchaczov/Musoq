@@ -1,4 +1,3 @@
-
 namespace Musoq.Evaluator.Tests;
 
 internal static partial class EvaluatorSampleFixtures
@@ -11,7 +10,8 @@ internal static partial class EvaluatorSampleFixtures
                 "Q330_StructuredPrimitiveArray",
                 "StructuredInputs",
                 @"select n.Value
-from #inputs.numbers(values: array { 1, 2, 2, 3 }) n"),
+from #inputs.numbers(values: array { 1, 2, 2, 3 }) n"
+            ),
             Structured(
                 "Q331_StructuredRecordArray",
                 "StructuredInputs",
@@ -22,7 +22,8 @@ from #inputs.match(
         (Id: 'todo', Pattern: 'TODO'),
         (Pattern: 'FIXME', Id: 'fixme'),
     }
-) m"),
+) m"
+            ),
             Structured(
                 "Q332_StructuredNestedRecord",
                 "StructuredInputs",
@@ -33,7 +34,8 @@ from #inputs.configure(
         Codes: array { 10, 20 },
         Window: (Before: 2, After: 3),
     )
-) c"),
+) c"
+            ),
             Structured(
                 "Q333_StructuredNestedArrays",
                 "StructuredInputs",
@@ -44,7 +46,8 @@ from #inputs.matrix(
         array { 3 },
         array {},
     }
-) m"),
+) m"
+            ),
             Structured(
                 "Q334_StructuredReorderedDefaults",
                 "StructuredInputs",
@@ -54,7 +57,8 @@ from #inputs.weighted(
         (Value: 10, Weight: 1.5),
         (Weight: 2.5, Value: 20, Enabled: false),
     }
-) w"),
+) w"
+            ),
             Structured(
                 "Q335_StructuredInferredLetPresence",
                 "StructuredInputs",
@@ -63,7 +67,8 @@ let fixme = (Id: 'fixme', Pattern: 'FIXME');
 let patterns = array { $todo, (Id: 'issue', Pattern: 'ISSUE-[0-9]+', Mode: 'regex') };
 
 select m.PatternId
-from #inputs.match('TODO FIXME', patterns: $patterns) m"),
+from #inputs.match('TODO FIXME', patterns: $patterns) m"
+            ),
             Structured(
                 "Q336_StructuredDeclaredLetDefaults",
                 "StructuredInputs",
@@ -77,7 +82,8 @@ from #inputs.match('TODO FIXME', patterns: $patterns) m"),
 };
 
 select m.PatternId, m.MatchText
-from #inputs.match('TODO ISSUE-42', patterns: $patterns) m"),
+from #inputs.match('TODO ISSUE-42', patterns: $patterns) m"
+            ),
             Structured(
                 "Q337_StructuredParameterDefaults",
                 "StructuredInputs",
@@ -94,7 +100,8 @@ from #inputs.match('TODO ISSUE-42', patterns: $patterns) m"),
 )
 
 select m.PatternId, m.MatchText
-from #inputs.match('TODO', patterns: $patterns) m"),
+from #inputs.match('TODO', patterns: $patterns) m"
+            ),
             Structured(
                 "Q338_StructuredPrimitiveCteArgument",
                 "StructuredInputs",
@@ -107,7 +114,8 @@ from #inputs.match('TODO', patterns: $patterns) m"),
     } p
 )
 select n.Value
-from #inputs.numbers(values: numbers) n"),
+from #inputs.numbers(values: numbers) n"
+            ),
             Structured(
                 "Q339_StructuredRecordCteArgument",
                 "StructuredInputs",
@@ -119,7 +127,8 @@ from #inputs.numbers(values: numbers) n"),
     } p
 )
 select m.PatternId, m.MatchText
-from #inputs.match('TODO FIXME', patterns: patterns) m"),
+from #inputs.match('TODO FIXME', patterns: patterns) m"
+            ),
             Structured(
                 "Q340_StructuredSharedCteArgument",
                 "StructuredInputs",
@@ -131,7 +140,8 @@ from #inputs.match('TODO FIXME', patterns: patterns) m"),
 )
 select leftMatch.PatternId, rightMatch.PatternId
 from #inputs.match('TODO', patterns: patterns) leftMatch
-cross join #inputs.match('TODO', patterns: patterns) rightMatch"),
+cross join #inputs.match('TODO', patterns: patterns) rightMatch"
+            ),
             Structured(
                 "Q341_StructuredSortedCteArgument",
                 "StructuredInputs",
@@ -145,7 +155,8 @@ cross join #inputs.match('TODO', patterns: patterns) rightMatch"),
     order by p.Value
 )
 select n.Value
-from #inputs.numbers(values: numbers) n"),
+from #inputs.numbers(values: numbers) n"
+            ),
             Structured(
                 "Q342_StructuredDistinctCteArgument",
                 "StructuredInputs",
@@ -158,7 +169,8 @@ from #inputs.numbers(values: numbers) n"),
     } p
 )
 select n.Value
-from #inputs.numbers(values: numbers) n"),
+from #inputs.numbers(values: numbers) n"
+            ),
             Structured(
                 "Q343_StructuredGroupedCteArgument",
                 "StructuredInputs",
@@ -172,7 +184,8 @@ from #inputs.numbers(values: numbers) n"),
     group by p.Value
 )
 select n.Value
-from #inputs.numbers(values: numbers) n"),
+from #inputs.numbers(values: numbers) n"
+            ),
             Structured(
                 "Q344_StructuredSetCteArgument",
                 "StructuredInputs",
@@ -184,7 +197,8 @@ from #inputs.numbers(values: numbers) n"),
     from values { (Value: 2) } q
 )
 select n.Value
-from #inputs.numbers(values: numbers) n"),
+from #inputs.numbers(values: numbers) n"
+            ),
             Structured(
                 "Q345_StructuredPagedCteArgument",
                 "StructuredInputs",
@@ -199,7 +213,8 @@ from #inputs.numbers(values: numbers) n"),
     take 2
 )
 select n.Value
-from #inputs.numbers(values: numbers) n"),
+from #inputs.numbers(values: numbers) n"
+            ),
             StructuredWithOptions(
                 "Q346_StructuredParallelCteArguments",
                 "StructuredInputs",
@@ -219,7 +234,8 @@ from #inputs.numbers(values: numbers) n"),
 select m.PatternId, n.Value
 from #inputs.match('TODO FIXME', patterns: patterns) m
 cross join #inputs.numbers(values: numbers) n",
-                new CompilationOptions(useCteParallelization: true).WithStabilityAwareScalarReuse()),
+                new CompilationOptions(useCteParallelization: true).WithStabilityAwareScalarReuse()
+            ),
             Structured(
                 "Q347_StructuredCorrelatedInvocation",
                 "StructuredInputs",
@@ -234,7 +250,8 @@ cross apply #inputs.match(
     patterns: array {
         (Id: 'todo', Pattern: p.Pattern + $suffix),
     }
-) m"),
+) m"
+            ),
             Structured(
                 "Q348_StructuredEmptyAndSuppressedDemand",
                 "StructuredInputs",
@@ -243,7 +260,8 @@ cross apply #inputs.match(
     from values { (Value: 100) } p
 )
 select n.Value
-from #inputs.numbers(values: array {}) n"),
+from #inputs.numbers(values: array {}) n"
+            ),
             Structured(
                 "Q349_StructuredCoupledSource",
                 "StructuredInputs",
@@ -257,14 +275,16 @@ select m.PatternId
 from Matches(
     'TODO',
     patterns: array { (Id: 'todo', Pattern: 'TODO') }
-) m"),
+) m"
+            ),
             Structured(
                 "Q350_StructuredArgumentsDescription",
                 "Description",
                 @"desc arguments #inputs.match(
     'TODO',
     patterns: array { (Id: 'todo', Pattern: 'TODO') }
-)"),
+)"
+            ),
             Structured(
                 "Q351_StructuredMetadataOnlyDescription",
                 "Description",
@@ -275,7 +295,8 @@ from Matches(
     )
     select m.PatternId, m.MatchText
     from #inputs.match('TODO', patterns: patterns) m
-)"),
+)"
+            ),
             StructuredWide(
                 "Q352_StructuredWidePresence",
                 "StructuredInputs",
@@ -287,7 +308,8 @@ let items = array {
 
 select w.Value
 from #structured.wide(items: $items) w
-"),
+"
+            ),
             Structured(
                 "Q353_StructuredValuesGroupedExpression",
                 "Values",
@@ -295,7 +317,8 @@ from #structured.wide(items: $items) w
     (Label: ')', Value: (1 + 2) * 3),
     (Label: '(', Value: 4),
 } p
-select p.Label, p.Value")
+select p.Label, p.Value"
+            ),
         ];
     }
 
@@ -308,7 +331,7 @@ select p.Label, p.Value")
             Query = query,
             Category = category,
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateStructuredInputsSchemaProvider
+            CreateSchemaProvider = CreateStructuredInputsSchemaProvider,
         };
     }
 
@@ -316,12 +339,10 @@ select p.Label, p.Value")
         string name,
         string category,
         string query,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions
+    )
     {
-        return Structured(name, category, query) with
-        {
-            CompilationOptions = compilationOptions
-        };
+        return Structured(name, category, query) with { CompilationOptions = compilationOptions };
     }
 
     private static GeneratedCodeSample StructuredWide(string name, string category, string query)
@@ -333,7 +354,7 @@ select p.Label, p.Value")
             Query = query,
             Category = category,
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateStructuredWideSchemaProvider
+            CreateSchemaProvider = CreateStructuredWideSchemaProvider,
         };
     }
 }

@@ -17,8 +17,7 @@ public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariables
     [TestMethod]
     public void WhenRequiredCollectionParameterIsMissing_ShouldFailBeforeOpeningSource()
     {
-        const string query =
-            "param(keys: string[]) select Key from #Parameterized.Items() where Key in $keys";
+        const string query = "param(keys: string[]) select Key from #Parameterized.Items() where Key in $keys";
         var provider = new CountingSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
@@ -27,59 +26,67 @@ public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariables
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
-            "Required script parameter 'keys' was not provided.");
+            "Required script parameter 'keys' was not provided."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void WhenCollectionParameterIsNull_ShouldFailBeforeOpeningSource()
     {
-        const string query =
-            "param(keys: string[]) select Key from #Parameterized.Items() where Key not in $keys";
+        const string query = "param(keys: string[]) select Key from #Parameterized.Items() where Key not in $keys";
         var provider = new CountingSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "keys",
+            null
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed,
-            "Script parameter 'keys' expected a non-null value of type 'IReadOnlyList<string>'.");
+            "Script parameter 'keys' expected a non-null value of type 'IReadOnlyList<string>'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     [TestMethod]
     public void WhenCollectionParameterHasWrongElementType_ShouldFailBeforeOpeningSource()
     {
-        const string query =
-            "param(keys: string[]) select Key from #Parameterized.Items() where Key in $keys";
+        const string query = "param(keys: string[]) select Key from #Parameterized.Items() where Key in $keys";
         var provider = new CountingSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { 1, 2 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "keys",
+            new[] { 1, 2 }
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeEnvelope(
             exception,
             DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            "Script parameter 'keys' expected a value of type 'IReadOnlyList<string>' but received 'IReadOnlyList<int>'.");
+            "Script parameter 'keys' expected a value of type 'IReadOnlyList<string>' but received 'IReadOnlyList<int>'."
+        );
         Assert.AreEqual(0, provider.OpenCount);
     }
 
     private CompiledQuery CompileWithProvider(string query, ISchemaProvider provider)
     {
-        return InstanceCreator.CompileForExecution(
-            query,
-            Guid.NewGuid().ToString(),
-            provider,
-            LoggerResolver);
+        return InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, LoggerResolver);
     }
 
     private static void AssertRuntimeEnvelope(
         QueryExecutionException exception,
         DiagnosticCode expectedCode,
-        string expectedMessage)
+        string expectedMessage
+    )
     {
         var envelope = exception.Envelope;
         Assert.IsNotNull(envelope);
@@ -106,16 +113,13 @@ public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariables
     private sealed class CountingSchema(Action onOpen)
         : SchemaBase("counting", new MethodsAggregator(new MethodsManager()))
     {
-        private static readonly EnvironmentVariableEntity[] Rows =
-        [
-            new("KEY_1", "VALUE_1"),
-            new("KEY_2", "VALUE_2")
-        ];
+        private static readonly EnvironmentVariableEntity[] Rows = [new("KEY_1", "VALUE_1"), new("KEY_2", "VALUE_2")];
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new EnvironmentVariableEntityTable();
         }
@@ -123,12 +127,11 @@ public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariables
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             onOpen();
-            return EnsureSourceType<T, EnvironmentVariableEntity>(
-                name,
-                new CountingSource(Rows));
+            return EnsureSourceType<T, EnvironmentVariableEntity>(name, new CountingSource(Rows));
         }
 
         private sealed class CountingSource(IReadOnlyList<EnvironmentVariableEntity> rows)

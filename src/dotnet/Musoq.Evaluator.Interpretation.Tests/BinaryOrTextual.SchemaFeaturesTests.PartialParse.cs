@@ -13,29 +13,36 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialParse_CrossApplyValidText_ShouldReturnPartialResultShape()
     {
-        var query = @"
-            text KeyValue {
-                Key: until '=',
-                Value: rest
-            };
-            select
-                p.ParsedFields,
-                p.ErrorField,
-                p.ErrorMessage,
-                p.BytesConsumed
-            from #test.lines() f
-            cross apply PartialParse<KeyValue>(f.Text) p";
+        var query = (
+            "\n"
+            + "            text KeyValue {\n"
+            + "                Key: until '=',\n"
+            + "                Value: rest\n"
+            + "            };\n"
+            + "            select\n"
+            + "                p.ParsedFields,\n"
+            + "                p.ErrorField,\n"
+            + "                p.ErrorMessage,\n"
+            + "                p.BytesConsumed\n"
+            + "            from #test.lines() f\n"
+            + "            cross apply PartialParse<KeyValue>(f.Text) p"
+        );
 
-        var entities = new[] { new TextEntity { Name = "valid.txt", Text = "host=localhost" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "valid.txt", Text = "host=localhost" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -43,7 +50,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("ParsedFields", PartialPayloadAssertions.ColumnType(table, "KeyValue")),
             ("ErrorField", typeof(string)),
             ("ErrorMessage", typeof(string)),
-            ("BytesConsumed", typeof(int)));
+            ("BytesConsumed", typeof(int))
+        );
         Assert.AreEqual(1, table.Count);
         var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual("host", parsedFields["Key"]);
@@ -56,29 +64,36 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialParse_CrossApplyMalformedText_ShouldReturnErrorMetadata()
     {
-        var query = @"
-            text KeyValue {
-                Key: until '=',
-                Value: chars[5]
-            };
-            select
-                p.ParsedFields,
-                p.ErrorField,
-                p.ErrorMessage,
-                p.BytesConsumed
-            from #test.lines() f
-            cross apply PartialParse<KeyValue>(f.Text) p";
+        var query = (
+            "\n"
+            + "            text KeyValue {\n"
+            + "                Key: until '=',\n"
+            + "                Value: chars[5]\n"
+            + "            };\n"
+            + "            select\n"
+            + "                p.ParsedFields,\n"
+            + "                p.ErrorField,\n"
+            + "                p.ErrorMessage,\n"
+            + "                p.BytesConsumed\n"
+            + "            from #test.lines() f\n"
+            + "            cross apply PartialParse<KeyValue>(f.Text) p"
+        );
 
-        var entities = new[] { new TextEntity { Name = "truncated.txt", Text = "host=" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "truncated.txt", Text = "host=" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -86,7 +101,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             ("ParsedFields", PartialPayloadAssertions.ColumnType(table, "KeyValue")),
             ("ErrorField", typeof(string)),
             ("ErrorMessage", typeof(string)),
-            ("BytesConsumed", typeof(int)));
+            ("BytesConsumed", typeof(int))
+        );
         Assert.AreEqual(1, table.Count);
         var parsedFields = PartialPayloadAssertions.CompletedValues(table[0].ReadValue(0)!);
         Assert.AreEqual("host", parsedFields["Key"]);
@@ -99,17 +115,23 @@ public partial class BinaryOrTextualSchemaFeaturesTests
     [TestMethod]
     public void Query_PartialParse_OutsideApply_ShouldReportInterpretFunctionOutsideApply()
     {
-        var query = @"
-            text KeyValue {
-                Key: until '=',
-                Value: rest
-            };
-            select PartialParse<KeyValue>(f.Text)
-            from #test.lines() f";
+        var query = (
+            "\n"
+            + "            text KeyValue {\n"
+            + "                Key: until '=',\n"
+            + "                Value: rest\n"
+            + "            };\n"
+            + "            select PartialParse<KeyValue>(f.Text)\n"
+            + "            from #test.lines() f"
+        );
 
-        var entities = new[] { new TextEntity { Name = "valid.txt", Text = "host=localhost" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "valid.txt", Text = "host=localhost" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileGeneratedQuery(
@@ -117,7 +139,9 @@ public partial class BinaryOrTextualSchemaFeaturesTests
                 Guid.NewGuid().ToString(),
                 schemaProvider,
                 LoggerResolver,
-                TestCompilationOptions));
+                TestCompilationOptions
+            )
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3033_InterpretFunctionOutsideApply, DiagnosticPhase.Bind);
     }

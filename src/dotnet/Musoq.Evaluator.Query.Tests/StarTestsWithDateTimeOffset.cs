@@ -9,19 +9,19 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
 {
-
     [TestMethod]
     public void WhenStarUsedWithDateTimeOffsetColumns_ShouldIncludeThem()
     {
         // Arrange
-        const string query = "table Dates {" +
-                             "  Id: int," +
-                             "  Name: string," +
-                             "  CreatedAt: datetimeoffset," +
-                             "  UpdatedAt: datetimeoffset?" +
-                             "};" +
-                             "couple #test.whatever with table Dates as Dates; " +
-                             "select * from Dates() order by Id";
+        const string query =
+            "table Dates {"
+            + "  Id: int,"
+            + "  Name: string,"
+            + "  CreatedAt: datetimeoffset,"
+            + "  UpdatedAt: datetimeoffset?"
+            + "};"
+            + "couple #test.whatever with table Dates as Dates; "
+            + "select * from Dates() order by Id";
 
         dynamic first = new ExpandoObject();
         first.Id = 1;
@@ -36,10 +36,7 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
         second.UpdatedAt = (DateTimeOffset?)null;
 
         // Act
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 

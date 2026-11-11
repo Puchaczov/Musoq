@@ -3,9 +3,12 @@ using System.Linq;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
+
 public partial class SubqueryToCteRewriteVisitor
 {
-    private static (Node? RemainingExpression, List<SubqueryInfo> Subqueries) ExtractPredicateSubqueries(Node expression)
+    private static (Node? RemainingExpression, List<SubqueryInfo> Subqueries) ExtractPredicateSubqueries(
+        Node expression
+    )
     {
         switch (expression)
         {
@@ -34,7 +37,7 @@ public partial class SubqueryToCteRewriteVisitor
                     (null, null) => null,
                     (null, _) => rightRemaining,
                     (_, null) => leftRemaining,
-                    _ => new AndNode(leftRemaining, rightRemaining)
+                    _ => new AndNode(leftRemaining, rightRemaining),
                 };
 
                 return (remaining, allSubs);
@@ -48,9 +51,7 @@ public partial class SubqueryToCteRewriteVisitor
                 if (orSubqueries.Count == 0)
                     return (expression, []);
 
-                var markedSubs = orSubqueries
-                    .Select(s => s with { RequiresLeftJoin = true })
-                    .ToList();
+                var markedSubs = orSubqueries.Select(s => s with { RequiresLeftJoin = true }).ToList();
 
                 return (expression, markedSubs);
             }

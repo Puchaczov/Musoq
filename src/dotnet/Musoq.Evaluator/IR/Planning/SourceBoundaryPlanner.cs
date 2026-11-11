@@ -13,10 +13,7 @@ internal static partial class SourceBoundaryPlanner
         var plans = new List<SourceBoundaryPlan>();
         AddBoundaryPlans(logicalPlan, plans, null);
         var strategyPlanningResult = SourceBoundaryStrategyPlanner.Plan(plans);
-        var decisions = plans
-            .Select(CreateDecision)
-            .Concat(strategyPlanningResult.Decisions)
-            .ToArray();
+        var decisions = plans.Select(CreateDecision).Concat(strategyPlanningResult.Decisions).ToArray();
 
         return new SourceBoundaryPlanningResult(plans, strategyPlanningResult.Plans, decisions);
     }
@@ -24,7 +21,8 @@ internal static partial class SourceBoundaryPlanner
     private static void AddBoundaryPlans(
         LogicalNode node,
         List<SourceBoundaryPlan> plans,
-        ApplyKind? containingApplyKind)
+        ApplyKind? containingApplyKind
+    )
     {
         switch (node)
         {
@@ -47,6 +45,4 @@ internal static partial class SourceBoundaryPlanner
         foreach (var child in node.Children)
             AddBoundaryPlans(child, plans, containingApplyKind);
     }
-
-
 }

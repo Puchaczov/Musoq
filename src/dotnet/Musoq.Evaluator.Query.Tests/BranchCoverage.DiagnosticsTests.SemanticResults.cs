@@ -102,7 +102,7 @@ public partial class BranchCoverageImprovementTests
         var diags = new[]
         {
             Diagnostic.Error(DiagnosticCode.MQ3005_TypeMismatch, "err1", new TextSpan(0, 5)),
-            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn1", new TextSpan(5, 10))
+            Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "warn1", new TextSpan(5, 10)),
         };
 
         result.AddDiagnostics(diags);

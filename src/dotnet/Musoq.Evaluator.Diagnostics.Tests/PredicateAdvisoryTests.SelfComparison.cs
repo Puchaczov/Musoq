@@ -5,10 +5,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Evaluator.Tests.Schema.Generic;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using GenericProofSchema = Musoq.Evaluator.Tests.Schema.Generic.GenericSchema<Musoq.Plugins.LibraryBase>;
-using Musoq.Evaluator.Tests.Schema.Generic;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -19,14 +19,25 @@ public sealed partial class PredicateAdvisoryTests
     public void DeterministicSelfComparison_ShouldWarnAndPreserveRows()
     {
         const string query = "select Id from A.entities() where Id = Id";
-        var entities = new[] { new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 } };
-        var provider = new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>(StringComparer.OrdinalIgnoreCase)
+        var entities = new[]
         {
-            ["A"] = entities,
-            ["#A"] = entities
-        });
-        var build = InstanceCreator.CompileWithDiagnostics(query, Guid.NewGuid().ToString(), provider,
-            new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+            new BasicEntity { Id = 1 },
+            new BasicEntity { Id = 2 },
+        };
+        var provider = new BasicSchemaProvider<BasicEntity>(
+            new Dictionary<string, IEnumerable<BasicEntity>>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["A"] = entities,
+                ["#A"] = entities,
+            }
+        );
+        var build = InstanceCreator.CompileWithDiagnostics(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         using var compiled = build.CompiledQuery;
         Assert.IsTrue(build.Succeeded);
         Assert.AreEqual(1, build.Warnings.Count(warning => warning.CodeString == "MQ5010"));
@@ -56,7 +67,13 @@ public sealed partial class PredicateAdvisoryTests
     {
         var result = Analyze(query);
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
-        Assert.IsFalse(result.Warnings.Any(warning => warning.Code is DiagnosticCode.MQ5010_TautologicalCondition or DiagnosticCode.MQ5011_ContradictoryCondition));
+        Assert.IsFalse(
+            result.Warnings.Any(warning =>
+                warning.Code
+                    is DiagnosticCode.MQ5010_TautologicalCondition
+                        or DiagnosticCode.MQ5011_ContradictoryCondition
+            )
+        );
     }
 
     [TestMethod]
@@ -65,9 +82,16 @@ public sealed partial class PredicateAdvisoryTests
     public void FloatingOrVolatileSelfComparison_ShouldRemainQuiet(string column)
     {
         var result = new QueryAnalyzer(CreateSelfComparisonProvider()).Analyze(
-            $"select {column} from #probe.Entities() where {column} = {column}");
+            $"select {column} from #probe.Entities() where {column} = {column}"
+        );
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
-        Assert.IsFalse(result.Warnings.Any(warning => warning.Code is DiagnosticCode.MQ5010_TautologicalCondition or DiagnosticCode.MQ5011_ContradictoryCondition));
+        Assert.IsFalse(
+            result.Warnings.Any(warning =>
+                warning.Code
+                    is DiagnosticCode.MQ5010_TautologicalCondition
+                        or DiagnosticCode.MQ5011_ContradictoryCondition
+            )
+        );
     }
 
     [TestMethod]
@@ -76,9 +100,13 @@ public sealed partial class PredicateAdvisoryTests
     {
         const string query = "select 1 from A.entities() where Id = Id";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = Array.Empty<BasicEntity>() };
-        var build = InstanceCreator.CompileWithDiagnostics(query, Guid.NewGuid().ToString(),
-            new BasicSchemaProvider<BasicEntity>(sources), new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+        var build = InstanceCreator.CompileWithDiagnostics(
+            query,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(sources),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
         using var compiled = build.CompiledQuery;
         Assert.IsTrue(build.Succeeded);
         Assert.AreEqual(1, build.Warnings.Count);
@@ -90,13 +118,26 @@ public sealed partial class PredicateAdvisoryTests
     {
         var table = new GenericEntityTable<SelfComparisonEntity>();
         var index = GenericEntityTable<SelfComparisonEntity>.NameToIndexMap[nameof(SelfComparisonEntity.VolatileValue)];
-        table.Columns[index] = new Musoq.Schema.DataSources.SchemaColumn(nameof(SelfComparisonEntity.VolatileValue), index, typeof(int), (string?)null, ColumnStability.Volatile);
-        var schema = new GenericProofSchema(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
-            ["Entities"] = (table, new GenericChunkSource<SelfComparisonEntity>([],
-                GenericEntityTable<SelfComparisonEntity>.NameToIndexMap,
-                GenericEntityTable<SelfComparisonEntity>.IndexToObjectAccessMap))
-        });
+        table.Columns[index] = new Musoq.Schema.DataSources.SchemaColumn(
+            nameof(SelfComparisonEntity.VolatileValue),
+            index,
+            typeof(int),
+            (string?)null,
+            ColumnStability.Volatile
+        );
+        var schema = new GenericProofSchema(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
+            {
+                ["Entities"] = (
+                    table,
+                    new GenericChunkSource<SelfComparisonEntity>(
+                        [],
+                        GenericEntityTable<SelfComparisonEntity>.NameToIndexMap,
+                        GenericEntityTable<SelfComparisonEntity>.IndexToObjectAccessMap
+                    )
+                ),
+            }
+        );
         return new GenericSchemaProvider(new Dictionary<string, ISchema> { ["#probe"] = schema });
     }
 

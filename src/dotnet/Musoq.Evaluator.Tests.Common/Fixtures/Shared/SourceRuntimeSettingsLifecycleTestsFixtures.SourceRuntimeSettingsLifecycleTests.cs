@@ -19,7 +19,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class SourceRuntimeSettingsLifecycleTestsFixtures
 {
-
     internal static void AssertDescSettingsRows(Table table, params object?[][] rows)
     {
         TableMaterializationTestHelper.AssertColumns(
@@ -29,44 +28,48 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
             ("Secret", typeof(bool)),
             ("Phases", typeof(string)),
             ("Status", typeof(string)),
-            ("Description", typeof(string)));
+            ("Description", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, rows);
     }
 
     internal static CompiledQuery CompileWithInitialSettings(
         string query,
         ISchemaProvider provider,
-        IReadOnlyDictionary<string, string> initialSettings)
+        IReadOnlyDictionary<string, string> initialSettings
+    )
     {
         return InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             provider,
             new TestsLoggerResolver(),
-            () => new CreateTree(
-                new TransformTree(
-                    new TurnQueryIntoRunnableCode(null),
-                    new TestsLoggerResolver())),
+            () => new CreateTree(new TransformTree(new TurnQueryIntoRunnableCode(null), new TestsLoggerResolver())),
             items =>
             {
-                items.CreateBuildMetadataAndInferTypesVisitor =
-                    (schemaProvider, columns, compilationOptions, schemaRegistry, logger) =>
-                        new InitialSourceRuntimeSettingsVisitor(
-                            schemaProvider,
-                            columns,
-                            logger,
-                            initialSettings,
-                            compilationOptions,
-                            schemaRegistry);
-            });
+                items.CreateBuildMetadataAndInferTypesVisitor = (
+                    schemaProvider,
+                    columns,
+                    compilationOptions,
+                    schemaRegistry,
+                    logger
+                ) =>
+                    new InitialSourceRuntimeSettingsVisitor(
+                        schemaProvider,
+                        columns,
+                        logger,
+                        initialSettings,
+                        compilationOptions,
+                        schemaRegistry
+                    );
+            }
+        );
     }
 
     public sealed class SettingsSchemaProvider : ISchemaProvider
     {
         public SettingsSchemaProvider(bool declareRequirement)
-            : this(declareRequirement ? SettingsDeclarationMode.RequiredAndOptional : SettingsDeclarationMode.None)
-        {
-        }
+            : this(declareRequirement ? SettingsDeclarationMode.RequiredAndOptional : SettingsDeclarationMode.None) { }
 
         public SettingsSchemaProvider(SettingsDeclarationMode declarationMode)
         {
@@ -77,8 +80,10 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
 
         public ISchema GetSchema(string schema)
         {
-            if (!string.Equals(schema, "settings", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(schema, "#settings", StringComparison.OrdinalIgnoreCase))
+            if (
+                !string.Equals(schema, "settings", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(schema, "#settings", StringComparison.OrdinalIgnoreCase)
+            )
             {
                 throw new NotSupportedException(schema);
             }
@@ -91,7 +96,7 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
     {
         None,
         RequiredAndOptional,
-        OptionalOnly
+        OptionalOnly,
     }
 
     public sealed class SettingsSchema : SchemaBase
@@ -119,7 +124,8 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             MetadataSettings.Add(metadataContext.SourceRuntimeSettings);
             return base.GetTableByName(name, metadataContext, parameters);
@@ -128,7 +134,8 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
         public override IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
             string name,
             SourceRuntimeSettingsDescribeContext context,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             RequirementSettings.Add(context.MetadataContext.SourceRuntimeSettings);
             DescribeRuntimeSettingsCount += 1;
@@ -139,14 +146,15 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
                 SettingsDeclarationMode.OptionalOnly => requirements
                     .Where(static requirement => requirement.Name == "OPTIONAL_TOKEN")
                     .ToArray(),
-                _ => []
+                _ => [],
             };
         }
 
         public override SourceDescriptor DescribeSource(
             string name,
             SourceDescribeContext context,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             MetadataSettings.Add(context.MetadataContext.SourceRuntimeSettings);
             return base.DescribeSource(name, context, parameters);
@@ -155,7 +163,8 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
         public override SourcePlanResult TryPlanSource(
             string name,
             SourcePlanRequest request,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             PlanSettings.Add(request.SourceRuntimeSettings);
             return SourcePlanResult.RejectAll(request);
@@ -164,12 +173,11 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             ExecutionSettings.Add(executionContext.SourceRuntimeSettings);
-            return EnsureSourceType<T, SettingsEntity>(
-                name,
-                new SettingsSource(executionContext));
+            return EnsureSourceType<T, SettingsEntity>(name, new SettingsSource(executionContext));
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -186,12 +194,13 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
         Microsoft.Extensions.Logging.ILogger<BuildMetadataAndInferTypesVisitor> logger,
         IReadOnlyDictionary<string, string> initialSettings,
         CompilationOptions compilationOptions,
-        SchemaRegistry? schemaRegistry)
-        : BuildMetadataAndInferTypesVisitor(provider, columns, logger, compilationOptions, schemaRegistry)
+        SchemaRegistry? schemaRegistry
+    ) : BuildMetadataAndInferTypesVisitor(provider, columns, logger, compilationOptions, schemaRegistry)
     {
         protected override IReadOnlyDictionary<string, string> RetrieveInitialSourceRuntimeSettings(
             string sourceContextId,
-            Musoq.Parser.Nodes.From.SchemaFromNode node)
+            Musoq.Parser.Nodes.From.SchemaFromNode node
+        )
         {
             var settings = new Dictionary<string, string>(initialSettings, StringComparer.Ordinal);
             InternalSourceRuntimeSettingsBySourceContextId[sourceContextId] = settings;
@@ -202,9 +211,7 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
     internal sealed class SettingsTable : ISchemaTable
     {
         public ISchemaColumn[] Columns { get; } =
-        [
-            new Musoq.Schema.DataSources.SchemaColumn(nameof(SettingsEntity.Token), 0, typeof(string))
-        ];
+        [new Musoq.Schema.DataSources.SchemaColumn(nameof(SettingsEntity.Token), 0, typeof(string))];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(SettingsEntity));
 
@@ -231,11 +238,13 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
         private SourceExecutionContext Context { get; }
 
         public override IEnumerable<IReadOnlyList<SettingsEntity>> Chunks =>
-        [
             [
-                new SettingsEntity(Context.SourceRuntimeSettings.TryGetValue("TOKEN", out var token) ? token : string.Empty)
-            ]
-        ];
+                [
+                    new SettingsEntity(
+                        Context.SourceRuntimeSettings.TryGetValue("TOKEN", out var token) ? token : string.Empty
+                    ),
+                ],
+            ];
     }
 
     internal sealed class ContextTokenResolver(Func<string, string> resolveToken) : ISourceRuntimeSettingsResolver
@@ -243,10 +252,7 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
         public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
         {
             Assert.IsTrue(request.Requirements.Any(requirement => requirement.Name == "TOKEN"));
-            return new Dictionary<string, string>
-            {
-                ["TOKEN"] = resolveToken(request.Identity.SourceContextId)
-            };
+            return new Dictionary<string, string> { ["TOKEN"] = resolveToken(request.Identity.SourceContextId) };
         }
     }
 
@@ -259,10 +265,7 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
         public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
         {
             ResolveCount += 1;
-            return new Dictionary<string, string>
-            {
-                ["TOKEN"] = Token
-            };
+            return new Dictionary<string, string> { ["TOKEN"] = Token };
         }
     }
 
@@ -282,13 +285,9 @@ public partial class SourceRuntimeSettingsLifecycleTestsFixtures
         public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
         {
             ProfileNames.Add(request.ProfileName);
-            return new Dictionary<string, string>
-            {
-                ["TOKEN"] = $"{request.ProfileName}-token"
-            };
+            return new Dictionary<string, string> { ["TOKEN"] = $"{request.ProfileName}-token" };
         }
     }
 
     public sealed record SettingsEntity(string Token);
-
 }

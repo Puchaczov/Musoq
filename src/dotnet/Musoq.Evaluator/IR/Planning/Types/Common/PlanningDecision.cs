@@ -6,4 +6,5 @@ internal sealed record PlanningDecision(
     string Target,
     string Outcome,
     PlanningConfidence Confidence,
-    string Reason);
+    string Reason
+);

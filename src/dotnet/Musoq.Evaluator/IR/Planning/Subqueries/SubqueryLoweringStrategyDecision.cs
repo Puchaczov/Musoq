@@ -7,4 +7,5 @@ internal sealed record SubqueryLoweringStrategyDecision(
     SubqueryLoweringKind Kind,
     JoinKind? JoinKind,
     bool IsCorrelated,
-    string Reason);
+    string Reason
+);

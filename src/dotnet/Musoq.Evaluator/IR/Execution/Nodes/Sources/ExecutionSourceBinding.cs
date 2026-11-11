@@ -18,7 +18,8 @@ public sealed record ExecutionSourceBinding
         bool SourceConstructionSupportsContext = false,
         string? SourceConstructorStableId = null,
         ExecutionCallableRef? SourceConstructor = null,
-        IReadOnlyList<ExecutionStructuralLimitPlan?>? StructuralArgumentLimits = null)
+        IReadOnlyList<ExecutionStructuralLimitPlan?>? StructuralArgumentLimits = null
+    )
     {
         this.SchemaName = SchemaName;
         this.MethodName = MethodName;
@@ -33,9 +34,10 @@ public sealed record ExecutionSourceBinding
         this.SourceConstructionSupportsContext = SourceConstructionSupportsContext;
         this.SourceConstructorStableId = SourceConstructorStableId;
         this.SourceConstructor = SourceConstructor;
-        this.StructuralArgumentLimits = StructuralArgumentLimits == null
-            ? Array.Empty<ExecutionStructuralLimitPlan?>()
-            : ExecutionIrCollections.Freeze(StructuralArgumentLimits);
+        this.StructuralArgumentLimits =
+            StructuralArgumentLimits == null
+                ? Array.Empty<ExecutionStructuralLimitPlan?>()
+                : ExecutionIrCollections.Freeze(StructuralArgumentLimits);
     }
 
     public string SchemaName { get; init; }
@@ -81,7 +83,8 @@ public sealed record ExecutionSourceBinding
         bool sourceConstructionSupportsContext = false,
         string? sourceConstructorStableId = null,
         ExecutionCallableRef? sourceConstructor = null,
-        IReadOnlyList<ExecutionStructuralLimitPlan?>? structuralArgumentLimits = null)
+        IReadOnlyList<ExecutionStructuralLimitPlan?>? structuralArgumentLimits = null
+    )
         : this(
             schemaName,
             methodName,
@@ -96,7 +99,6 @@ public sealed record ExecutionSourceBinding
             sourceConstructionSupportsContext,
             sourceConstructorStableId,
             sourceConstructor,
-            structuralArgumentLimits)
-    {
-    }
+            structuralArgumentLimits
+        ) { }
 }

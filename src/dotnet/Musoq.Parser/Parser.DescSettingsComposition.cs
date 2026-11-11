@@ -1,5 +1,5 @@
-using Musoq.Parser.Exceptions;
 using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
@@ -38,13 +38,15 @@ public partial class Parser
                 var accessMethod = ComposeAccessMethod(string.Empty, true);
                 return new DescNode(
                     new SchemaFromNode(name, accessMethod.Name, accessMethod.Arguments, string.Empty, 1),
-                    DescForType.Settings);
+                    DescForType.Settings
+                );
             }
 
             var methodName = new WordNode(ConsumeAndGetToken(TokenType.Property).Value);
             return new DescNode(
                 new SchemaFromNode(name, methodName.Value, ArgsListNode.Empty, string.Empty, 1),
-                DescForType.Settings);
+                DescForType.Settings
+            );
         }
 
         if (hasHashPrefix)
@@ -52,10 +54,12 @@ public partial class Parser
                 "DESC SETTINGS requires a source method or a coupled alias.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2030_UnsupportedSyntax,
-                targetToken.Span);
+                targetToken.Span
+            );
 
         return new DescNode(
             new AliasedFromNode(targetName, ArgsListNode.Empty, string.Empty, targetToken.Span.Start),
-            DescForType.Settings);
+            DescForType.Settings
+        );
     }
 }

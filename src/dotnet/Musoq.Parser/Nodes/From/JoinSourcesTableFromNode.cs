@@ -2,7 +2,13 @@ namespace Musoq.Parser.Nodes.From;
 
 public class JoinSourcesTableFromNode : FromNode
 {
-    internal JoinSourcesTableFromNode(FromNode first, FromNode second, Node expression, JoinType joinType, FieldOrderedNode? tieBreak = null)
+    internal JoinSourcesTableFromNode(
+        FromNode first,
+        FromNode second,
+        Node expression,
+        JoinType joinType,
+        FieldOrderedNode? tieBreak = null
+    )
         : base(CreateAlias(first, second))
     {
         Id = $"{nameof(JoinSourcesTableFromNode)}{first.Alias}{second.Alias}{expression.ToString()}{tieBreak?.Id}";
@@ -13,8 +19,14 @@ public class JoinSourcesTableFromNode : FromNode
         TieBreak = tieBreak;
     }
 
-    public JoinSourcesTableFromNode(FromNode first, FromNode second, Node expression, JoinType joinType,
-        Type returnType, FieldOrderedNode? tieBreak = null)
+    public JoinSourcesTableFromNode(
+        FromNode first,
+        FromNode second,
+        Node expression,
+        JoinType joinType,
+        Type returnType,
+        FieldOrderedNode? tieBreak = null
+    )
         : base(CreateAlias(first, second), returnType)
     {
         ArgumentNullException.ThrowIfNull(first);
@@ -53,9 +65,7 @@ public class JoinSourcesTableFromNode : FromNode
         if (!JoinTypeSql.PrintsCondition(JoinType))
             return $"{First.ToString()} {joinType} {Second.ToString()}";
 
-        var tieBreak = TieBreak == null
-            ? string.Empty
-            : $" tie break by {TieBreak.ToString()}";
+        var tieBreak = TieBreak == null ? string.Empty : $" tie break by {TieBreak.ToString()}";
 
         return $"{First.ToString()} {joinType} {Second.ToString()} on {Expression.ToString()}{tieBreak}";
     }

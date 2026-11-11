@@ -10,11 +10,14 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionConcurrencyQueryTestsFixtures
 {
-
     public sealed partial class ConcurrencyLibrary
     {
-        [WindowFunction(typeof(CancellableValueKernel), WindowEvaluationModes.WholePartition,
-            AggregateEmptyResultBehavior.Custom, ContextType = typeof(WindowFrameContext<>))]
+        [WindowFunction(
+            typeof(CancellableValueKernel),
+            WindowEvaluationModes.WholePartition,
+            AggregateEmptyResultBehavior.Custom,
+            ContextType = typeof(WindowFrameContext<>)
+        )]
         public int CancellableValue(int value, ConcurrencyProbe probe) => AggregateFunction.NotInvoked<int>();
 
         public static class CancellableValueKernel
@@ -26,5 +29,4 @@ public partial class LibraryExecutionConcurrencyQueryTestsFixtures
             }
         }
     }
-
 }

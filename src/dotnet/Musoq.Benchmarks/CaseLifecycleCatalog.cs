@@ -7,8 +7,11 @@ public sealed record BenchmarkCaseRetirement(string CaseId, string Reason, strin
 /// <summary>Frozen scheduling metadata; never part of a workload's measurement identity.</summary>
 public sealed class CaseCatalogSnapshot
 {
-    public CaseCatalogSnapshot(int revision, IReadOnlyList<string> knownCaseIds,
-        IReadOnlyList<BenchmarkCaseRetirement> retiredCases)
+    public CaseCatalogSnapshot(
+        int revision,
+        IReadOnlyList<string> knownCaseIds,
+        IReadOnlyList<BenchmarkCaseRetirement> retiredCases
+    )
     {
         ArgumentNullException.ThrowIfNull(knownCaseIds);
         ArgumentNullException.ThrowIfNull(retiredCases);
@@ -24,8 +27,10 @@ public sealed class CaseCatalogSnapshot
                 throw new InvalidDataException("Retirements must identify unique known canonical cases.");
             if (string.IsNullOrWhiteSpace(item.Reason))
                 throw new InvalidDataException($"Retired case '{item.CaseId}' requires a reason.");
-            if (item.ReplacementCaseId is { } replacement &&
-                (!known.Contains(replacement) || replacement == item.CaseId))
+            if (
+                item.ReplacementCaseId is { } replacement
+                && (!known.Contains(replacement) || replacement == item.CaseId)
+            )
                 throw new InvalidDataException($"Retired case '{item.CaseId}' has an invalid replacement.");
         }
         Revision = revision;
@@ -36,18 +41,27 @@ public sealed class CaseCatalogSnapshot
     public int Revision { get; }
     public IReadOnlyList<string> KnownCaseIds { get; }
     public IReadOnlyList<BenchmarkCaseRetirement> RetiredCases { get; }
-    public BenchmarkCaseRetirement? Retirement(string caseId) => RetiredCases.FirstOrDefault(item => item.CaseId == caseId);
 
-    public bool SameAs(CaseCatalogSnapshot? other) => other is not null && Revision == other.Revision &&
-        KnownCaseIds.SequenceEqual(other.KnownCaseIds, StringComparer.Ordinal) && RetiredCases.SequenceEqual(other.RetiredCases);
+    public BenchmarkCaseRetirement? Retirement(string caseId) =>
+        RetiredCases.FirstOrDefault(item => item.CaseId == caseId);
+
+    public bool SameAs(CaseCatalogSnapshot? other) =>
+        other is not null
+        && Revision == other.Revision
+        && KnownCaseIds.SequenceEqual(other.KnownCaseIds, StringComparer.Ordinal)
+        && RetiredCases.SequenceEqual(other.RetiredCases);
 
     public void ValidateSelection(IEnumerable<string> selectedIds, bool official)
     {
         if (!official)
             return;
-        var active = KnownCaseIds.Except(RetiredCases.Select(item => item.CaseId), StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
+        var active = KnownCaseIds
+            .Except(RetiredCases.Select(item => item.CaseId), StringComparer.Ordinal)
+            .ToHashSet(StringComparer.Ordinal);
         if (!active.SetEquals(selectedIds))
-            throw new InvalidDataException("Official selection must contain every active canonical case and no retired cases.");
+            throw new InvalidDataException(
+                "Official selection must contain every active canonical case and no retired cases."
+            );
     }
 }
 
@@ -60,7 +74,8 @@ public static class CaseLifecycleCatalog
 
     public static CaseCatalogSnapshot Read(string path, IEnumerable<string> knownCaseIds)
     {
-        var file = JsonSerializer.Deserialize<LifecycleFile>(File.ReadAllText(path), ArtifactJson.Options)
+        var file =
+            JsonSerializer.Deserialize<LifecycleFile>(File.ReadAllText(path), ArtifactJson.Options)
             ?? throw new InvalidDataException("Case lifecycle catalog is empty.");
         if (file.RetiredCases is null)
             throw new InvalidDataException("Case lifecycle catalog requires retiredCases.");

@@ -7,8 +7,7 @@ internal static partial class CteStrategyPlanner
 {
     private static bool IsReadOnceCtePipelineDeterministic(SupportedPipeline pipeline)
     {
-        return AreProjectedFieldsDeterministic(pipeline.Project) &&
-               IsFilterDeterministic(pipeline.Filter);
+        return AreProjectedFieldsDeterministic(pipeline.Project) && IsFilterDeterministic(pipeline.Filter);
     }
 
     private static bool AreProjectedFieldsDeterministic(PhysicalProjectNode project)

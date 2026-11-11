@@ -13,22 +13,27 @@ public sealed partial class ExecutionCSharpRenderer
         string FunctionName,
         ExecutionBlock Body,
         ExecutionGetOrAddSingleKeyAggregateGroup GroupAcquisition,
-        IReadOnlyList<CapturedLocal> Captures);
+        IReadOnlyList<CapturedLocal> Captures
+    );
 
     private sealed record SingleKeyAggregateUpdateCandidate(
         ExecutionBlock Block,
         ExecutionGetOrAddSingleKeyAggregateGroup GroupAcquisition,
         int AggregateUpdateCount,
-        IReadOnlyDictionary<string, ExecutionVariable> ScopedVariables);
+        IReadOnlyDictionary<string, ExecutionVariable> ScopedVariables
+    );
 
-    private IReadOnlyDictionary<ExecutionBlock, SingleKeyAggregateUpdateHelper> CollectSingleKeyAggregateUpdateHelpersByBlock(
-        ExecutionBlock block)
+    private IReadOnlyDictionary<
+        ExecutionBlock,
+        SingleKeyAggregateUpdateHelper
+    > CollectSingleKeyAggregateUpdateHelpersByBlock(ExecutionBlock block)
     {
         var candidates = new List<SingleKeyAggregateUpdateCandidate>();
         CollectSingleKeyAggregateUpdateCandidates(
             block,
             candidates,
-            new Dictionary<string, ExecutionVariable>(StringComparer.Ordinal));
+            new Dictionary<string, ExecutionVariable>(StringComparer.Ordinal)
+        );
 
         var helpers = new Dictionary<ExecutionBlock, SingleKeyAggregateUpdateHelper>();
         var functionNameCounts = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -42,7 +47,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void CollectSingleKeyAggregateUpdateCandidates(
         ExecutionBlock block,
         List<SingleKeyAggregateUpdateCandidate> candidates,
-        IReadOnlyDictionary<string, ExecutionVariable> scopedVariables)
+        IReadOnlyDictionary<string, ExecutionVariable> scopedVariables
+    )
     {
         if (TryCreateSingleKeyAggregateUpdateCandidate(block, scopedVariables, out var candidate))
             candidates.Add(candidate);
@@ -55,10 +61,7 @@ public sealed partial class ExecutionCSharpRenderer
 
             foreach (var childBlock in ExecutionIrAnalysis.GetChildBlocks(node))
             {
-                CollectSingleKeyAggregateUpdateCandidates(
-                    childBlock,
-                    candidates,
-                    nodeScope);
+                CollectSingleKeyAggregateUpdateCandidates(childBlock, candidates, nodeScope);
             }
 
             AddDeclaredVariables(node, currentScope);
@@ -68,7 +71,8 @@ public sealed partial class ExecutionCSharpRenderer
     private bool TryCreateSingleKeyAggregateUpdateCandidate(
         ExecutionBlock block,
         IReadOnlyDictionary<string, ExecutionVariable> scopedVariables,
-        out SingleKeyAggregateUpdateCandidate candidate)
+        out SingleKeyAggregateUpdateCandidate candidate
+    )
     {
         candidate = null!;
         var nodes = block.Nodes;
@@ -102,36 +106,41 @@ public sealed partial class ExecutionCSharpRenderer
             block,
             getOrAddGroup,
             aggregateUpdateCount,
-            new Dictionary<string, ExecutionVariable>(scopedVariables, StringComparer.Ordinal));
+            new Dictionary<string, ExecutionVariable>(scopedVariables, StringComparer.Ordinal)
+        );
         return true;
     }
 
     private static bool ContainsUnsafeObjectBackedFieldRead(
         ExecutionBlock block,
-        IReadOnlyDictionary<string, ExecutionVariable> scopedVariables)
+        IReadOnlyDictionary<string, ExecutionVariable> scopedVariables
+    )
     {
         return ExecutionIrAnalysis
             .CollectExpressions<ExecutionFieldRead>(block)
             .Any(fieldRead =>
-                !string.IsNullOrWhiteSpace(fieldRead.Alias) &&
-                scopedVariables.TryGetValue(fieldRead.Alias, out var variable) &&
-                variable.Type.RequireClrType() == typeof(object) &&
-                string.IsNullOrWhiteSpace(variable.GeneratedRowTypeName) &&
-                !HasHelperSafeObjectFieldAccess(fieldRead.AccessStrategy));
+                !string.IsNullOrWhiteSpace(fieldRead.Alias)
+                && scopedVariables.TryGetValue(fieldRead.Alias, out var variable)
+                && variable.Type.RequireClrType() == typeof(object)
+                && string.IsNullOrWhiteSpace(variable.GeneratedRowTypeName)
+                && !HasHelperSafeObjectFieldAccess(fieldRead.AccessStrategy)
+            );
     }
 
     private static bool HasHelperSafeObjectFieldAccess(FieldAccessStrategy? strategy)
     {
-        return strategy is GeneratedRowNestedAccess or
-            GeneratedRowTypeAccess or
-            GeneratedFieldAccess or
-            PositionalAccess or
-            DirectScalarValueAccess;
+        return strategy
+            is GeneratedRowNestedAccess
+                or GeneratedRowTypeAccess
+                or GeneratedFieldAccess
+                or PositionalAccess
+                or DirectScalarValueAccess;
     }
 
     private SingleKeyAggregateUpdateHelper CreateSingleKeyAggregateUpdateHelper(
         SingleKeyAggregateUpdateCandidate candidate,
-        Dictionary<string, int> functionNameCounts)
+        Dictionary<string, int> functionNameCounts
+    )
     {
         var getOrAddGroup = candidate.GroupAcquisition;
         var baseFunctionName = CreateSingleKeyAggregateUpdateFunctionName(getOrAddGroup.Groups.Name);
@@ -142,12 +151,11 @@ public sealed partial class ExecutionCSharpRenderer
             CreateSingleKeyAggregateUpdateFunctionName(getOrAddGroup.Groups.Name, functionIndex),
             candidate.Block,
             getOrAddGroup,
-            CollectSingleKeyAggregateUpdateCaptures(candidate.Block, getOrAddGroup, candidate.ScopedVariables));
+            CollectSingleKeyAggregateUpdateCaptures(candidate.Block, getOrAddGroup, candidate.ScopedVariables)
+        );
     }
 
-    private static void AddDeclaredVariables(
-        ExecutionNode node,
-        IDictionary<string, ExecutionVariable> scopedVariables)
+    private static void AddDeclaredVariables(ExecutionNode node, IDictionary<string, ExecutionVariable> scopedVariables)
     {
         foreach (var variable in ExecutionNodeFacts.GetDeclaredVariables(node))
             scopedVariables[variable.Name] = variable;
@@ -159,7 +167,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             ExecutionAggregateSet aggregateSet => HasSameName(aggregateSet.Group, group),
             ExecutionAggregateCapturedValueSet capturedValueSet => HasSameName(capturedValueSet.Group, group),
-            _ => false
+            _ => false,
         };
     }
 
@@ -170,23 +178,22 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateSingleKeyAggregateUpdateFunctionName(string groupsName, int helperIndex = 0)
     {
-        var suffix = helperIndex == 0
-            ? string.Empty
-            : helperIndex.ToString(CultureInfo.InvariantCulture);
+        var suffix = helperIndex == 0 ? string.Empty : helperIndex.ToString(CultureInfo.InvariantCulture);
         return $"Update{CreatePascalIdentifier(groupsName)}Aggregates{suffix}";
     }
 
     private CapturedLocal[] CollectSingleKeyAggregateUpdateCaptures(
         ExecutionBlock block,
         ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup,
-        IReadOnlyDictionary<string, ExecutionVariable> scopedVariables)
+        IReadOnlyDictionary<string, ExecutionVariable> scopedVariables
+    )
     {
         var excludedNames = new HashSet<string>(StringComparer.Ordinal)
         {
             getOrAddGroup.RootGroup.Name,
             getOrAddGroup.Groups.Name,
             getOrAddGroup.GroupsToFinalize.Name,
-            getOrAddGroup.Group.Name
+            getOrAddGroup.Group.Name,
         };
         AddProfileRecorderExcludedName(excludedNames);
 
@@ -200,8 +207,10 @@ public sealed partial class ExecutionCSharpRenderer
         AddHelperCaptures(block, excludedNames, captures);
         foreach (var fieldRead in ExecutionIrAnalysis.CollectExpressions<ExecutionFieldRead>(block))
         {
-            if (!string.IsNullOrWhiteSpace(fieldRead.Alias) &&
-                scopedVariables.TryGetValue(fieldRead.Alias, out var variable))
+            if (
+                !string.IsNullOrWhiteSpace(fieldRead.Alias)
+                && scopedVariables.TryGetValue(fieldRead.Alias, out var variable)
+            )
             {
                 AddHelperCapture(variable, excludedNames, captures);
             }
@@ -212,23 +221,31 @@ public sealed partial class ExecutionCSharpRenderer
 
     private MethodDeclarationSyntax CreateSingleKeyAggregateUpdateFunction(
         SingleKeyAggregateUpdateHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var previousSuppressAggregateUpdateHelpers = context.Session.SuppressSingleKeyAggregateUpdateHelpers;
         context.Session.SuppressSingleKeyAggregateUpdateHelpers = true;
 
         try
         {
-            return SyntaxFactory.MethodDeclaration(
+            return SyntaxFactory
+                .MethodDeclaration(
                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                    helper.FunctionName)
+                    helper.FunctionName
+                )
                 .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
                 .WithModifiers(CreatePrivateStaticModifiers())
-            .WithParameterList(CreateSingleKeyAggregateUpdateParameterList(helper, context))
-                .WithBody(StatementEmitter.CreateBlock(RenderIsolatedHelperBlock(
-                    helper.Body,
-                    context,
-                    profileRecorderInScope: IsInstrumentationEnabled)));
+                .WithParameterList(CreateSingleKeyAggregateUpdateParameterList(helper, context))
+                .WithBody(
+                    StatementEmitter.CreateBlock(
+                        RenderIsolatedHelperBlock(
+                            helper.Body,
+                            context,
+                            profileRecorderInScope: IsInstrumentationEnabled
+                        )
+                    )
+                );
         }
         finally
         {
@@ -238,7 +255,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ParameterListSyntax CreateSingleKeyAggregateUpdateParameterList(
         SingleKeyAggregateUpdateHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var parameters = new List<ParameterSyntax>();
         var getOrAddGroup = helper.GroupAcquisition;
@@ -252,16 +270,21 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IEnumerable<ParameterSyntax> CreateSingleKeyAggregateUpdateContextParameters(
         ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         foreach (var rootLevel in getOrAddGroup.GroupPlan.Levels.Where(static level => level.IsRoot))
-            yield return CreateParameter(getOrAddGroup.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape, context));
+            yield return CreateParameter(
+                getOrAddGroup.RootGroup.Name,
+                CreateAggregateGroupType(rootLevel.Shape, context)
+            );
 
         var groupType = CreateAggregateGroupType(getOrAddGroup.GroupShape, context);
         yield return CreateParameter(getOrAddGroup.GroupsToFinalize.Name, CreateListTypeSyntax(groupType));
         yield return CreateParameter(
             getOrAddGroup.Groups.Name,
-            CreateGroupDictionaryTypeSyntax(getOrAddGroup.KeyType, groupType));
+            CreateGroupDictionaryTypeSyntax(getOrAddGroup.KeyType, groupType)
+        );
 
         if (getOrAddGroup.NullGroup is not null)
         {
@@ -277,14 +300,16 @@ public sealed partial class ExecutionCSharpRenderer
 
         arguments.AddRange(CreateSingleKeyAggregateUpdateContextArguments(getOrAddGroup));
         AddProfileRecorderArgument(arguments);
-        arguments.AddRange(helper.Captures
-            .Select(capture => SyntaxFactory.Argument(CreateCapturedLocalArgument(capture))));
+        arguments.AddRange(
+            helper.Captures.Select(capture => SyntaxFactory.Argument(CreateCapturedLocalArgument(capture)))
+        );
 
         return CreateHelperInvocationWithArguments(helper.FunctionName, arguments);
     }
 
     private static IEnumerable<ArgumentSyntax> CreateSingleKeyAggregateUpdateContextArguments(
-        ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup)
+        ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup
+    )
     {
         foreach (var _ in getOrAddGroup.GroupPlan.Levels.Where(static level => level.IsRoot))
             yield return SyntaxFactory.Argument(SyntaxFactory.IdentifierName(getOrAddGroup.RootGroup.Name));
@@ -294,7 +319,8 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (getOrAddGroup.NullGroup is not null)
         {
-            yield return SyntaxFactory.Argument(SyntaxFactory.IdentifierName(getOrAddGroup.NullGroup.Name))
+            yield return SyntaxFactory
+                .Argument(SyntaxFactory.IdentifierName(getOrAddGroup.NullGroup.Name))
                 .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.RefKeyword));
         }
     }

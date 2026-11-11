@@ -11,7 +11,13 @@ public sealed class LifecycleTests
     public void TypedRegistrations_AllHaveIndependentResultsetOracles()
     {
         Type[] covered = [typeof(ProjectionOutput), typeof(GroupOutput), typeof(WindowOutput)];
-        CollectionAssert.AreEquivalent(covered, BenchmarkRegistrations.All.Where(item => item.ResultApi == "Typed").Select(item => item.OutputType).ToArray());
+        CollectionAssert.AreEquivalent(
+            covered,
+            BenchmarkRegistrations
+                .All.Where(item => item.ResultApi == "Typed")
+                .Select(item => item.OutputType)
+                .ToArray()
+        );
     }
 
     [TestMethod]
@@ -58,7 +64,12 @@ public sealed class LifecycleTests
     private static Musoq.Evaluator.CompiledTypedQuery<T> Typed<T>()
     {
         var scenario = ScenarioCatalog.Get(BenchmarkRegistrations.TypedScenario<T>());
-        return InstanceCreator.CompileForTypedExecution<T>(scenario.Sql, "typed-test", new FixtureProvider(FixtureData.TestSize),
-            BenchmarkLogger.Instance, ExecutionSettings.Create(scenario));
+        return InstanceCreator.CompileForTypedExecution<T>(
+            scenario.Sql,
+            "typed-test",
+            new FixtureProvider(FixtureData.TestSize),
+            BenchmarkLogger.Instance,
+            ExecutionSettings.Create(scenario)
+        );
     }
 }

@@ -14,29 +14,37 @@ public sealed partial class DiagnosticCore010StarModifierTests
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P2-0118")]
     public void Current_P2_0118_StarModifiersRenameReplacement()
     {
-        AssertInlineModifierResult(ReplacementRenameCandidateQuery,
-            [("Kept", typeof(int)), ("Other", typeof(string))], [11, "x"]);
+        AssertInlineModifierResult(
+            ReplacementRenameCandidateQuery,
+            [("Kept", typeof(int)), ("Other", typeof(string))],
+            [11, "x"]
+        );
     }
 
     [TestMethod]
     public void InlineReplacementRename_ShouldPreserveDeclaredAndEstablishedNames()
     {
-        AssertInlineModifierResult(ReplacementRenameCandidateQuery,
-            [("Kept", typeof(int)), ("Other", typeof(string))], [11, "x"]);
+        AssertInlineModifierResult(
+            ReplacementRenameCandidateQuery,
+            [("Kept", typeof(int)), ("Other", typeof(string))],
+            [11, "x"]
+        );
     }
 
     [TestMethod]
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P1-0199")]
     public void InlineModifierChainComposesWithUnqualifiedUnchangedOutput()
     {
-        const string query = "select * exclude (drop) replace (NextValue * 2 as nextvalue) rename (NEXTVALUE as Renamed) from values { (Keep: 7, Drop: 9, NextValue: 3) } p";
+        const string query =
+            "select * exclude (drop) replace (NextValue * 2 as nextvalue) rename (NEXTVALUE as Renamed) from values { (Keep: 7, Drop: 9, NextValue: 3) } p";
         AssertInlineModifierResult(query, [("Keep", typeof(int)), ("Renamed", typeof(int))], [7, 6]);
     }
 
     [TestMethod]
     public void InlineModifierChainWithExplicitRename_ShouldPreserveOrderAndValues()
     {
-        const string query = "select * exclude (drop) replace (NextValue * 2 as nextvalue) rename (Keep as Keep, NEXTVALUE as Renamed) from values { (Keep: 7, Drop: 9, NextValue: 3) } p";
+        const string query =
+            "select * exclude (drop) replace (NextValue * 2 as nextvalue) rename (Keep as Keep, NEXTVALUE as Renamed) from values { (Keep: 7, Drop: 9, NextValue: 3) } p";
         AssertInlineModifierResult(query, [("Keep", typeof(int)), ("Renamed", typeof(int))], [7, 6]);
     }
 
@@ -59,14 +67,16 @@ public sealed partial class DiagnosticCore010StarModifierTests
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P1-0196")]
     public void InlineReplacePreservesPositionWithUnqualifiedOutputNames()
     {
-        const string query = "select * replace (NextValue * 2 as NextValue) from values { (FirstValue: 7, NextValue: 9) } p";
+        const string query =
+            "select * replace (NextValue * 2 as NextValue) from values { (FirstValue: 7, NextValue: 9) } p";
         AssertInlineModifierResult(query, [("FirstValue", typeof(int)), ("NextValue", typeof(int))], [7, 18]);
     }
 
     [TestMethod]
     public void InlineReplaceWithExplicitRename_ShouldPreserveProjectionPositions()
     {
-        const string query = "select * replace (NextValue * 2 as NextValue) rename (FirstValue as FirstValue, NextValue as NextValue) from values { (FirstValue: 7, NextValue: 9) } p";
+        const string query =
+            "select * replace (NextValue * 2 as NextValue) rename (FirstValue as FirstValue, NextValue as NextValue) from values { (FirstValue: 7, NextValue: 9) } p";
         AssertInlineModifierResult(query, [("FirstValue", typeof(int)), ("NextValue", typeof(int))], [7, 18]);
     }
 

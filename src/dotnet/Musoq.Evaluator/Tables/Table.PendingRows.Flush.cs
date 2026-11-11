@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
+
 namespace Musoq.Evaluator.Tables;
+
 public partial class Table
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -19,7 +21,8 @@ public partial class Table
                     var materializer = _deferredMaterializer;
                     _deferredMaterializer = null;
                     materializer?.Invoke(this);
-                    while (_pendingRows.TryDequeue(out var row)) _rows.Add(row);
+                    while (_pendingRows.TryDequeue(out var row))
+                        _rows.Add(row);
                     FlushPendingDirectRows();
                 }
                 finally

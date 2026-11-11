@@ -14,8 +14,10 @@ public partial class CloneQueryVisitor
             return;
         }
 
-        var fromNode = SafeCast<FromNode>(SafePop(Nodes, VisitorOperationNames.VisitDescNode),
-            VisitorOperationNames.VisitDescNode);
+        var fromNode = SafeCast<FromNode>(
+            SafePop(Nodes, VisitorOperationNames.VisitDescNode),
+            VisitorOperationNames.VisitDescNode
+        );
         Nodes.Push(new DescNode(fromNode, node.Type, node.Column));
     }
 }

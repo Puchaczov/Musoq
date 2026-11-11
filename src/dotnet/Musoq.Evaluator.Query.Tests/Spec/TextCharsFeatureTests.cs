@@ -25,26 +25,34 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_InWhereClause_ShouldFilter()
     {
-        var query = @"
-            text Record {
-                Type: chars[1],
-                Data: rest
-            };
-            select r.Data from #test.lines() l
-            cross apply Parse<Record>(l.Line) r
-            where r.Type = 'A'";
+        var query = (
+            "\n"
+            + "            text Record {\n"
+            + "                Type: chars[1],\n"
+            + "                Data: rest\n"
+            + "            };\n"
+            + "            select r.Data from #test.lines() l\n"
+            + "            cross apply Parse<Record>(l.Line) r\n"
+            + "            where r.Type = 'A'"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "line1", Text = "AData1" },
             new TextEntity { Name = "line2", Text = "BData2" },
-            new TextEntity { Name = "line3", Text = "AData3" }
+            new TextEntity { Name = "line3", Text = "AData3" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -63,22 +71,33 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_MixedWithUntil_ShouldParseBoth()
     {
-        var query = @"
-            text Data {
-                Fixed: chars[4],
-                Delimiter: chars[1],
-                Variable: until ';',
-                Rest: rest
-            };
-            select d.Fixed, d.Delimiter, d.Variable, d.Rest from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Fixed: chars[4],\n"
+            + "                Delimiter: chars[1],\n"
+            + "                Variable: until ';',\n"
+            + "                Rest: rest\n"
+            + "            };\n"
+            + "            select d.Fixed, d.Delimiter, d.Variable, d.Rest from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "ABCD:variable;rest" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "ABCD:variable;rest" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -98,26 +117,34 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_MultipleRows_ShouldParseAll()
     {
-        var query = @"
-            text Record {
-                Code: chars[3] trim,
-                Value: chars[5] trim
-            };
-            select r.Code, r.Value from #test.lines() l
-            cross apply Parse<Record>(l.Line) r
-            order by r.Code";
+        var query = (
+            "\n"
+            + "            text Record {\n"
+            + "                Code: chars[3] trim,\n"
+            + "                Value: chars[5] trim\n"
+            + "            };\n"
+            + "            select r.Code, r.Value from #test.lines() l\n"
+            + "            cross apply Parse<Record>(l.Line) r\n"
+            + "            order by r.Code"
+        );
 
         var entities = new[]
         {
             new TextEntity { Name = "line1", Text = "ABC  123  " },
             new TextEntity { Name = "line2", Text = "DEF  456  " },
-            new TextEntity { Name = "line3", Text = "GHI  789  " }
+            new TextEntity { Name = "line3", Text = "GHI  789  " },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -135,19 +162,30 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_BasicCapture_ShouldReturnExactLength()
     {
-        var query = @"
-            text Data {
-                Code: chars[4]
-            };
-            select d.Code from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Code: chars[4]\n"
+            + "            };\n"
+            + "            select d.Code from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "ABCD" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "ABCD" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -160,20 +198,31 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_WithExtraContent_ShouldCaptureExactly()
     {
-        var query = @"
-            text Data {
-                First: chars[5],
-                Rest: rest
-            };
-            select d.First, d.Rest from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                First: chars[5],\n"
+            + "                Rest: rest\n"
+            + "            };\n"
+            + "            select d.First, d.Rest from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "HelloWorld" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "HelloWorld" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -187,20 +236,31 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_SingleCharacter_ShouldCapture()
     {
-        var query = @"
-            text Data {
-                Char: chars[1],
-                Rest: rest
-            };
-            select d.Char, d.Rest from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Char: chars[1],\n"
+            + "                Rest: rest\n"
+            + "            };\n"
+            + "            select d.Char, d.Rest from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "XYZ" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "XYZ" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -218,21 +278,32 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_MultipleFields_ShouldParseSequentially()
     {
-        var query = @"
-            text FixedRecord {
-                Id: chars[4],
-                Code: chars[3],
-                Status: chars[2]
-            };
-            select r.Id, r.Code, r.Status from #test.lines() l
-            cross apply Parse<FixedRecord>(l.Line) r";
+        var query = (
+            "\n"
+            + "            text FixedRecord {\n"
+            + "                Id: chars[4],\n"
+            + "                Code: chars[3],\n"
+            + "                Status: chars[2]\n"
+            + "            };\n"
+            + "            select r.Id, r.Code, r.Status from #test.lines() l\n"
+            + "            cross apply Parse<FixedRecord>(l.Line) r"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "1234ABCOK" } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "1234ABCOK" },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -247,22 +318,33 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_CobolStyleRecord_ShouldParse()
     {
-        var query = @"
-            text CobolRecord {
-                CustomerId: chars[10],
-                Name: chars[30],
-                Balance: chars[12]
-            };
-            select r.CustomerId, r.Name, r.Balance from #test.lines() l
-            cross apply Parse<CobolRecord>(l.Line) r";
+        var query = (
+            "\n"
+            + "            text CobolRecord {\n"
+            + "                CustomerId: chars[10],\n"
+            + "                Name: chars[30],\n"
+            + "                Balance: chars[12]\n"
+            + "            };\n"
+            + "            select r.CustomerId, r.Name, r.Balance from #test.lines() l\n"
+            + "            cross apply Parse<CobolRecord>(l.Line) r"
+        );
 
         var text = "CUST000001John Doe                      000000125000";
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = text } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = text },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -279,19 +361,30 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_WithTrim_ShouldRemovePadding()
     {
-        var query = @"
-            text Data {
-                Name: chars[10] trim
-            };
-            select d.Name from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Name: chars[10] trim\n"
+            + "            };\n"
+            + "            select d.Name from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "  John    " } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "  John    " },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -304,19 +397,30 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_WithRtrim_ShouldRemoveTrailingOnly()
     {
-        var query = @"
-            text Data {
-                Name: chars[10] rtrim
-            };
-            select d.Name from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Name: chars[10] rtrim\n"
+            + "            };\n"
+            + "            select d.Name from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "  John    " } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "  John    " },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -329,19 +433,30 @@ public class TextCharsFeatureTests
     [TestMethod]
     public void Text_Chars_WithLtrim_ShouldRemoveLeadingOnly()
     {
-        var query = @"
-            text Data {
-                Name: chars[10] ltrim
-            };
-            select d.Name from #test.lines() l
-            cross apply Parse<Data>(l.Line) d";
+        var query = (
+            "\n"
+            + "            text Data {\n"
+            + "                Name: chars[10] ltrim\n"
+            + "            };\n"
+            + "            select d.Name from #test.lines() l\n"
+            + "            cross apply Parse<Data>(l.Line) d"
+        );
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "  John    " } };
+        var entities = new[]
+        {
+            new TextEntity { Name = "test.txt", Text = "  John    " },
+        };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

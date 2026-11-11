@@ -15,4 +15,5 @@ public delegate Type CompiledQueryArtifactTypeLoader(ICompiledQueryArtifact arti
 /// </summary>
 public delegate Type CompiledQueryArtifactTypeLoaderWithCancellation(
     ICompiledQueryArtifact artifact,
-    CancellationToken cancellationToken);
+    CancellationToken cancellationToken
+);

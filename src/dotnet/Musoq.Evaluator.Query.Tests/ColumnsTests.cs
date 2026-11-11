@@ -26,7 +26,8 @@ public class ColumnsTests : BasicEntityTestBase
     [TestProperty("CandidateId", "P1-020")]
     public void JoinedQualifiedColumnsUseUnqualifiedOutputNames()
     {
-        const string query = "select l.Id, r.Name from values { (Id: 1), (Id: 2) } l inner join values { (Id: 2, Name: 'match'), (Id: 3, Name: 'other') } r on l.Id = r.Id";
+        const string query =
+            "select l.Id, r.Name from values { (Id: 1), (Id: 2) } l inner join values { (Id: 2, Name: 'match'), (Id: 3, Name: 'other') } r on l.Id = r.Id";
 
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -72,12 +73,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self.NonExistingProperty from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -89,14 +85,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self.Name from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("Karol")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Karol")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -114,14 +103,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self.Self.Name from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("Karol")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Karol")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -139,12 +121,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self['NonExistingProperty'] from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -156,12 +133,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self.Other['NonExistingProperty'] from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -173,16 +145,16 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self.Other[NonExistingProperty] from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Other[NonExistingProperty]");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ3028_UnknownProperty,
+            DiagnosticPhase.Bind,
+            "Other[NonExistingProperty]"
+        );
     }
 
     [TestMethod]
@@ -190,12 +162,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self[0] from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -207,12 +174,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self.Other[0] from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -224,14 +186,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self.Name[0] from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("Karol")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Karol")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -249,14 +204,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self.Self.Name[0] from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("Karol")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Karol")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -274,14 +222,7 @@ public class ColumnsTests : BasicEntityTestBase
     {
         const string query = @"select Self.Dictionary['AA'] from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity()
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity()] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 

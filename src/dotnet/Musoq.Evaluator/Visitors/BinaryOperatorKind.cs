@@ -14,5 +14,5 @@ internal enum BinaryOperatorKind
     RightShift,
     Equality,
     Inequality,
-    Relational
+    Relational,
 }

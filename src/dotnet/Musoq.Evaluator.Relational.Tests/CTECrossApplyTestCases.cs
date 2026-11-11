@@ -4,25 +4,24 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 
 namespace Musoq.Evaluator.Tests;
 
-public sealed class EmptySourceEntity
-{
-}
+public sealed class EmptySourceEntity { }
 
 [global::Musoq.Tests.Common.CultureTestClass]
 public class CteCrossApplyTestCases : GenericEntityTestBase
 {
-
     [TestMethod]
     public void CTE_WithCrossApply_ShouldNotThrowKeyNotFoundException()
     {
-        const string query = @"
-            with testX as ( 
-                select 'to jest test' as Text 
-                from #schema.first() a 
-            ) 
-            select t.Text as Text, t2.Value as Value 
-            from testX t 
-            cross apply t.Split(t.Text, ' ') t2";
+        const string query = (
+            "\n"
+            + "            with testX as ( \n"
+            + "                select 'to jest test' as Text \n"
+            + "                from #schema.first() a \n"
+            + "            ) \n"
+            + "            select t.Text as Text, t2.Value as Value \n"
+            + "            from testX t \n"
+            + "            cross apply t.Split(t.Text, ' ') t2"
+        );
 
         var firstSource = new EmptySourceEntity[1] { new() };
         var vm = CreateAndRunVirtualMachine(query, firstSource);
@@ -35,30 +34,30 @@ public class CteCrossApplyTestCases : GenericEntityTestBase
 
         Assert.AreEqual(3, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValue(0) == "to jest test" &&
-            (string)row.ReadValue(1) == "to"));
+        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "to jest test" && (string)row.ReadValue(1) == "to"));
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValue(0) == "to jest test" &&
-            (string)row.ReadValue(1) == "jest"));
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "to jest test" && (string)row.ReadValue(1) == "jest")
+        );
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValue(0) == "to jest test" &&
-            (string)row.ReadValue(1) == "test"));
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "to jest test" && (string)row.ReadValue(1) == "test")
+        );
     }
 
     [TestMethod]
     public void CTE_WithCrossApply_UsingSystemDual_ShouldNotThrowKeyNotFoundException()
     {
-        const string query = @"
-            with testX as ( 
-                select 'Hello World' as Text 
-                from #schema.first() 
-            ) 
-            select t.Text as Text, t2.Value as Value 
-            from testX t 
-            cross apply t.Split(t.Text, ' ') t2";
+        const string query = (
+            "\n"
+            + "            with testX as ( \n"
+            + "                select 'Hello World' as Text \n"
+            + "                from #schema.first() \n"
+            + "            ) \n"
+            + "            select t.Text as Text, t2.Value as Value \n"
+            + "            from testX t \n"
+            + "            cross apply t.Split(t.Text, ' ') t2"
+        );
 
         var firstSource = new EmptySourceEntity[1] { new() };
         var vm = CreateAndRunVirtualMachine(query, firstSource);
@@ -71,12 +70,12 @@ public class CteCrossApplyTestCases : GenericEntityTestBase
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValue(0) == "Hello World" &&
-            (string)row.ReadValue(1) == "Hello"));
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Hello World" && (string)row.ReadValue(1) == "Hello")
+        );
 
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValue(0) == "Hello World" &&
-            (string)row.ReadValue(1) == "World"));
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Hello World" && (string)row.ReadValue(1) == "World")
+        );
     }
 }

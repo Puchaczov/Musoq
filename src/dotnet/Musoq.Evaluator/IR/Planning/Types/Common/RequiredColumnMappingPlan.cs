@@ -8,4 +8,5 @@ internal sealed record RequiredColumnMappingPlan(
     string[] BlockedColumns,
     string[] OriginOutputMappings,
     PlanningConfidence Confidence,
-    string Reason);
+    string Reason
+);

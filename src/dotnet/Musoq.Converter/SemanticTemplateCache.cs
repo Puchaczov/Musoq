@@ -39,7 +39,8 @@ internal static class SemanticTemplateCache
 
     internal static SemanticTemplateCacheKey? CreateKey(
         SemanticTemplateCacheInput input,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
@@ -50,9 +51,12 @@ internal static class SemanticTemplateCache
         var providerType = input.SchemaProvider.GetType();
         var references = string.Join(
             "|",
-            input.AdditionalReferenceTypes
-                .Select(static type => type.AssemblyQualifiedName ?? type.FullName ?? type.Name)
-                .OrderBy(static name => name, StringComparer.Ordinal));
+            input
+                .AdditionalReferenceTypes.Select(static type =>
+                    type.AssemblyQualifiedName ?? type.FullName ?? type.Name
+                )
+                .OrderBy(static name => name, StringComparer.Ordinal)
+        );
 
         return new SemanticTemplateCacheKey(
             input.Script,
@@ -60,20 +64,19 @@ internal static class SemanticTemplateCache
             RuntimeV2Contract.ContractSignature + "|" + ByteBufferCallableSemantics.Contract,
             ExecutionSemanticsContract.Current.Fingerprint,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
-            InstanceCreator.CreateSemanticProviderContractSignatureForCache(
-                input.SchemaProvider,
-                cancellationToken) + "|provider-instance=" + SemanticProviderIdentity.Get(input.SchemaProvider),
+            InstanceCreator.CreateSemanticProviderContractSignatureForCache(input.SchemaProvider, cancellationToken)
+                + "|provider-instance="
+                + SemanticProviderIdentity.Get(input.SchemaProvider),
             CompilationOptionsFingerprint.Compute(input.CompilationOptions),
             input.ExecutionTarget,
             input.ResultMode,
             input.OutputType?.AssemblyQualifiedName ?? string.Empty,
             references,
-            input.SchemaRegistryType);
+            input.SchemaRegistryType
+        );
     }
 
-    internal static IDisposable Acquire(
-        SemanticTemplateCacheKey key,
-        CancellationToken cancellationToken = default)
+    internal static IDisposable Acquire(SemanticTemplateCacheKey key, CancellationToken cancellationToken = default)
     {
         return AcquireCore(key, cancellationToken, waiterRegistered: null);
     }
@@ -81,7 +84,8 @@ internal static class SemanticTemplateCache
     internal static IDisposable AcquireForTests(
         SemanticTemplateCacheKey key,
         Action waiterRegistered,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(waiterRegistered);
         return AcquireCore(key, cancellationToken, waiterRegistered);
@@ -90,7 +94,8 @@ internal static class SemanticTemplateCache
     private static IDisposable AcquireCore(
         SemanticTemplateCacheKey key,
         CancellationToken cancellationToken,
-        Action? waiterRegistered)
+        Action? waiterRegistered
+    )
     {
         SemanticTemplateFlight flight;
         lock (FlightGate)
@@ -129,7 +134,8 @@ internal static class SemanticTemplateCache
     internal static bool TryGet(
         SemanticTemplateCacheKey key,
         CancellationToken cancellationToken,
-        out SemanticBuildArtifacts artifacts)
+        out SemanticBuildArtifacts artifacts
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (!Entries.TryGetValue(key, out var entry))
@@ -158,7 +164,8 @@ internal static class SemanticTemplateCache
     internal static SemanticTemplateCachePublication? PreparePublication(
         SemanticTemplateCacheKey key,
         SemanticBuildArtifacts artifacts,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(artifacts);
         cancellationToken.ThrowIfCancellationRequested();
@@ -189,7 +196,8 @@ internal static class SemanticTemplateCache
     internal static void Publish(
         SemanticTemplateCacheKey key,
         SemanticBuildArtifacts artifacts,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var publication = PreparePublication(key, artifacts, cancellationToken);
         if (publication is null)
@@ -205,9 +213,7 @@ internal static class SemanticTemplateCache
         }
     }
 
-    internal static void Commit(
-        SemanticTemplateCachePublication publication,
-        CancellationToken cancellationToken)
+    internal static void Commit(SemanticTemplateCachePublication publication, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(publication);
         if (!publication.TryBeginCommit())
@@ -265,18 +271,18 @@ internal static class SemanticTemplateCache
 
     private static bool IsEligible(SemanticTemplateCacheInput input)
     {
-        return !Debugger.IsAttached &&
-               input.CompilationPurpose == CompilationPurpose.Execution &&
-               input.ExecutionTarget == ExecutionTargetIds.CSharpClr &&
-               input.ResultMode == QueryResultMode.Table &&
-               input.OutputType is null &&
-               !input.EmitPdb &&
-               input.CompilationOptions.InstrumentationMode == QueryInstrumentationMode.Disabled &&
-               input.InterpreterSourceCode is null &&
-               !input.HasDeclaredSourceRuntimeSettings &&
-               !input.HasSourceRuntimeSettingValues &&
-               input.HasCustomMetadataVisitor == false &&
-               input.SchemaProvider.GetType().IsVisible;
+        return !Debugger.IsAttached
+            && input.CompilationPurpose == CompilationPurpose.Execution
+            && input.ExecutionTarget == ExecutionTargetIds.CSharpClr
+            && input.ResultMode == QueryResultMode.Table
+            && input.OutputType is null
+            && !input.EmitPdb
+            && input.CompilationOptions.InstrumentationMode == QueryInstrumentationMode.Disabled
+            && input.InterpreterSourceCode is null
+            && !input.HasDeclaredSourceRuntimeSettings
+            && !input.HasSourceRuntimeSettingValues
+            && input.HasCustomMetadataVisitor == false
+            && input.SchemaProvider.GetType().IsVisible;
     }
 
     private static bool IsCloneFailure(Exception exception)
@@ -286,8 +292,10 @@ internal static class SemanticTemplateCache
 
     private static void EnsureCapacity(int incomingTextLength)
     {
-        while (Entries.Count >= MaximumEntries ||
-               _retainedTextCharacters + incomingTextLength > MaximumRetainedTextCharacters)
+        while (
+            Entries.Count >= MaximumEntries
+            || _retainedTextCharacters + incomingTextLength > MaximumRetainedTextCharacters
+        )
         {
             if (InsertionOrder.Count == 0)
                 return;
@@ -329,7 +337,7 @@ internal static class SemanticTemplateCache
             NormalizedQuery = normalized,
             MetadataQuery = metadataRoot,
             RewrittenQuery = rewritten,
-            Metadata = metadata
+            Metadata = metadata,
         };
 
         return source with
@@ -341,23 +349,27 @@ internal static class SemanticTemplateCache
             SourcePlanRequestsPerSchema = ReKeySourcePlanRequests(source.SourcePlanRequestsPerSchema, metadataMap),
             SourceContractDiagnosticLocationsPerSchema = ReKey(
                 source.SourceContractDiagnosticLocationsPerSchema,
-                metadataMap),
+                metadataMap
+            ),
             PipelineInferredColumns = source.PipelineInferredColumns?.ToDictionary(
                 static pair => pair.Key,
                 static pair => pair.Value.ToArray(),
-                StringComparer.Ordinal),
+                StringComparer.Ordinal
+            ),
             PipelineUsedColumns = source.PipelineUsedColumns?.ToDictionary(
                 static pair => pair.Key,
                 static pair => (IReadOnlySet<string>)new HashSet<string>(pair.Value, StringComparer.Ordinal),
-                StringComparer.Ordinal),
-            CteExecutionPlan = null
+                StringComparer.Ordinal
+            ),
+            CteExecutionPlan = null,
         };
     }
 
     private static SemanticMetadataSnapshot CloneMetadata(
         SemanticMetadataSnapshot source,
         RootNode root,
-        IReadOnlyDictionary<Node, Node> nodeMap)
+        IReadOnlyDictionary<Node, Node> nodeMap
+    )
     {
         return source with
         {
@@ -366,59 +378,68 @@ internal static class SemanticTemplateCache
             InferredColumnsByAlias = source.InferredColumnsByAlias.ToDictionary(
                 static pair => pair.Key,
                 static pair => (IReadOnlyList<ISchemaColumn>)pair.Value.ToArray(),
-                StringComparer.Ordinal),
+                StringComparer.Ordinal
+            ),
             UsedColumns = ReKey(source.UsedColumns, nodeMap),
             UsedWhereNodes = ReKey(source.UsedWhereNodes, nodeMap, nodeMap),
             SourcePlanRequestsPerSchema = ReKeySourcePlanRequests(source.SourcePlanRequestsPerSchema, nodeMap),
             SourceContractDiagnosticLocationsPerSchema = ReKey(
                 source.SourceContractDiagnosticLocationsPerSchema,
-                nodeMap),
+                nodeMap
+            ),
             ResultShape = source.ResultShape with
             {
                 GeneratedColumns = source.ResultShape.GeneratedColumns.ToDictionary(
                     static pair => pair.Key,
-                    pair => (IReadOnlyList<FieldNode>)pair.Value.Select(field => MapNode<FieldNode>(field, nodeMap)).ToArray(),
-                    StringComparer.Ordinal),
+                    pair =>
+                        (IReadOnlyList<FieldNode>)
+                            pair.Value.Select(field => MapNode<FieldNode>(field, nodeMap)).ToArray(),
+                    StringComparer.Ordinal
+                ),
                 SelectFieldAliases = source.ResultShape.SelectFieldAliases.ToDictionary(
                     static pair => pair.Key,
                     pair => MapNode(pair.Value, nodeMap),
-                    StringComparer.OrdinalIgnoreCase),
+                    StringComparer.OrdinalIgnoreCase
+                ),
                 TheMostInnerIdentifier = source.ResultShape.TheMostInnerIdentifier is { } identifier
                     ? MapNode<IdentifierNode>(identifier, nodeMap)
-                    : null
-            }
+                    : null,
+            },
         };
     }
 
     private static IReadOnlyDictionary<TKey, TValue> ReKey<TKey, TValue>(
         IReadOnlyDictionary<TKey, TValue> source,
-        IReadOnlyDictionary<Node, Node> nodeMap)
+        IReadOnlyDictionary<Node, Node> nodeMap
+    )
         where TKey : Node
     {
-        return source.ToDictionary(
-            pair => (TKey)MapNode(pair.Key, nodeMap),
-            static pair => pair.Value);
+        return source.ToDictionary(pair => (TKey)MapNode(pair.Key, nodeMap), static pair => pair.Value);
     }
 
     private static IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> ReKeySourcePlanRequests(
         IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> source,
-        IReadOnlyDictionary<Node, Node> nodeMap)
+        IReadOnlyDictionary<Node, Node> nodeMap
+    )
     {
         return source.ToDictionary(
             pair => (SchemaFromNode)MapNode(pair.Key, nodeMap),
-            static pair => pair.Value with { CancellationToken = CancellationToken.None });
+            static pair => pair.Value with { CancellationToken = CancellationToken.None }
+        );
     }
 
     private static IReadOnlyDictionary<TKey, TValue> ReKey<TKey, TValue>(
         IReadOnlyDictionary<TKey, TValue> source,
         IReadOnlyDictionary<Node, Node> keyMap,
-        IReadOnlyDictionary<Node, Node> valueMap)
+        IReadOnlyDictionary<Node, Node> valueMap
+    )
         where TKey : Node
         where TValue : Node
     {
         return source.ToDictionary(
             pair => (TKey)MapNode(pair.Key, keyMap),
-            pair => (TValue)MapNode(pair.Value, valueMap));
+            pair => (TValue)MapNode(pair.Value, valueMap)
+        );
     }
 
     private static T MapNode<T>(T source, IReadOnlyDictionary<Node, Node> nodeMap)
@@ -484,9 +505,8 @@ internal static class SemanticTemplateCache
         public int Waiters { get; set; }
     }
 
-    private sealed class SemanticTemplateFlightLease(
-        SemanticTemplateCacheKey key,
-        SemanticTemplateFlight flight) : IDisposable
+    private sealed class SemanticTemplateFlightLease(SemanticTemplateCacheKey key, SemanticTemplateFlight flight)
+        : IDisposable
     {
         private bool _disposed;
 
@@ -509,9 +529,7 @@ internal static class SemanticTemplateCache
     }
 }
 
-internal sealed class SemanticTemplateCachePublication(
-    SemanticTemplateCacheKey key,
-    SemanticBuildArtifacts artifacts)
+internal sealed class SemanticTemplateCachePublication(SemanticTemplateCacheKey key, SemanticBuildArtifacts artifacts)
 {
     private const int Pending = 0;
     private const int Committed = 1;
@@ -520,8 +538,7 @@ internal sealed class SemanticTemplateCachePublication(
 
     public SemanticTemplateCacheKey Key { get; } = key;
 
-    public SemanticBuildArtifacts Artifacts { get; } = artifacts ??
-        throw new ArgumentNullException(nameof(artifacts));
+    public SemanticBuildArtifacts Artifacts { get; } = artifacts ?? throw new ArgumentNullException(nameof(artifacts));
 
     public bool TryBeginCommit()
     {
@@ -556,7 +573,8 @@ internal readonly record struct SemanticTemplateCacheKey(
     QueryResultMode ResultMode,
     string OutputType,
     string References,
-    string SchemaRegistryType);
+    string SchemaRegistryType
+);
 
 internal sealed record SemanticTemplateCacheInput(
     string Script,
@@ -572,6 +590,7 @@ internal sealed record SemanticTemplateCacheInput(
     bool HasSourceRuntimeSettingValues,
     bool HasCustomMetadataVisitor,
     IReadOnlyList<Type> AdditionalReferenceTypes,
-    string SchemaRegistryType);
+    string SchemaRegistryType
+);
 
 internal readonly record struct SemanticTemplateCacheSnapshot(int Count, int RetainedTextCharacters);

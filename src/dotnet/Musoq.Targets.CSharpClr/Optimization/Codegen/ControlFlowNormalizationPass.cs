@@ -22,12 +22,14 @@ internal sealed class ControlFlowNormalizationPass : ICodegenReadabilityOptimiza
         {
             return OptimizationResult<CompilationUnitSyntax>.NoChange(
                 plan,
-                "No empty block statements were safe to remove.");
+                "No empty block statements were safe to remove."
+            );
         }
 
         return OptimizationResult<CompilationUnitSyntax>.Changed(
             optimized,
-            $"Removed {rewriter.RemovedEmptyStatements} empty block statement(s).");
+            $"Removed {rewriter.RemovedEmptyStatements} empty block statement(s)."
+        );
     }
 
     private sealed class ControlFlowNormalizationRewriter : CSharpSyntaxRewriter
@@ -38,9 +40,7 @@ internal sealed class ControlFlowNormalizationPass : ICodegenReadabilityOptimiza
         {
             var visited = (BlockSyntax)base.VisitBlock(node)!;
             var statements = visited.Statements;
-            var normalized = statements
-                .Where(statement => statement is not EmptyStatementSyntax)
-                .ToArray();
+            var normalized = statements.Where(statement => statement is not EmptyStatementSyntax).ToArray();
 
             if (normalized.Length == statements.Count)
                 return visited;
@@ -50,4 +50,3 @@ internal sealed class ControlFlowNormalizationPass : ICodegenReadabilityOptimiza
         }
     }
 }
-

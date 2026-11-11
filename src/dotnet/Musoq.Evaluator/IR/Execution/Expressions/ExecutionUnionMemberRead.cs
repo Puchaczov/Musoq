@@ -8,8 +8,13 @@ public sealed record ExecutionUnionMemberCase(string TypeName, string MemberName
 /// <summary>Evaluates its receiver once and reads a member of the selected concrete result, or null.</summary>
 public sealed record ExecutionUnionMemberRead : ExecutionExpression
 {
-    public ExecutionUnionMemberRead(ExecutionExpression receiver, string memberName,
-        ExecutionTypeRef returnType, IReadOnlyList<ExecutionUnionMemberCase> cases) : base(returnType)
+    public ExecutionUnionMemberRead(
+        ExecutionExpression receiver,
+        string memberName,
+        ExecutionTypeRef returnType,
+        IReadOnlyList<ExecutionUnionMemberCase> cases
+    )
+        : base(returnType)
     {
         ArgumentNullException.ThrowIfNull(receiver);
         ArgumentException.ThrowIfNullOrWhiteSpace(memberName);

@@ -12,17 +12,19 @@ public partial class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextu
     [TestMethod]
     public void Query_EofRepeatInsideSubstream_ShouldConsumeAllBoundedBytesAndAdvanceToTrailer()
     {
-        var query = @"
-            binary Inner {
-                Bytes: byte repeat until eof
-            };
-            binary Frame {
-                Length: byte,
-                Payload: substream[Length] as Inner,
-                Trailer: byte
-            };
-            select f.Payload.Bytes, f.Trailer from #test.files() src
-            cross apply Interpret<Frame>(src.Content) f";
+        var query = (
+            "\n"
+            + "            binary Inner {\n"
+            + "                Bytes: byte repeat until eof\n"
+            + "            };\n"
+            + "            binary Frame {\n"
+            + "                Length: byte,\n"
+            + "                Payload: substream[Length] as Inner,\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select f.Payload.Bytes, f.Trailer from #test.files() src\n"
+            + "            cross apply Interpret<Frame>(src.Content) f"
+        );
 
         var data = new byte[] { 0x03, 0xAA, 0xBB, 0xCC, 0x99 };
         var table = RunQuery(query, data);
@@ -30,26 +32,27 @@ public partial class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextu
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("f.Payload.Bytes", typeof(byte[])),
-            ("Trailer", typeof(byte)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [new byte[] { 0xAA, 0xBB, 0xCC }, (byte)0x99]);
+            ("Trailer", typeof(byte))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [new byte[] { 0xAA, 0xBB, 0xCC }, (byte)0x99]);
     }
 
     [TestMethod]
     public void Query_EofRepeatInsideZeroLengthSubstream_ShouldReturnEmptyArrayAndAdvanceToTrailer()
     {
-        var query = @"
-            binary Inner {
-                Bytes: byte repeat until eof
-            };
-            binary Frame {
-                Length: byte,
-                Payload: substream[Length] as Inner,
-                Trailer: byte
-            };
-            select f.Payload.Bytes, f.Trailer from #test.files() src
-            cross apply Interpret<Frame>(src.Content) f";
+        var query = (
+            "\n"
+            + "            binary Inner {\n"
+            + "                Bytes: byte repeat until eof\n"
+            + "            };\n"
+            + "            binary Frame {\n"
+            + "                Length: byte,\n"
+            + "                Payload: substream[Length] as Inner,\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select f.Payload.Bytes, f.Trailer from #test.files() src\n"
+            + "            cross apply Interpret<Frame>(src.Content) f"
+        );
 
         var data = new byte[] { 0x00, 0x42 };
         var table = RunQuery(query, data);
@@ -57,24 +60,27 @@ public partial class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextu
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("f.Payload.Bytes", typeof(byte[])),
-            ("Trailer", typeof(byte)));
+            ("Trailer", typeof(byte))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, [Array.Empty<byte>(), (byte)0x42]);
     }
 
     [TestMethod]
     public void Query_EofRepeatFixedWidthStringInsideSubstream_ShouldReadAllChunks()
     {
-        var query = @"
-            binary Inner {
-                Chunks: string[2] ascii repeat until eof
-            };
-            binary Frame {
-                Length: byte,
-                Payload: substream[Length] as Inner,
-                Trailer: byte
-            };
-            select f.Payload.Chunks, f.Trailer from #test.files() src
-            cross apply Interpret<Frame>(src.Content) f";
+        var query = (
+            "\n"
+            + "            binary Inner {\n"
+            + "                Chunks: string[2] ascii repeat until eof\n"
+            + "            };\n"
+            + "            binary Frame {\n"
+            + "                Length: byte,\n"
+            + "                Payload: substream[Length] as Inner,\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select f.Payload.Chunks, f.Trailer from #test.files() src\n"
+            + "            cross apply Interpret<Frame>(src.Content) f"
+        );
 
         var data = new byte[] { 0x04, 0x41, 0x42, 0x43, 0x44, 0x7F };
         var table = RunQuery(query, data);
@@ -82,27 +88,30 @@ public partial class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextu
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("f.Payload.Chunks", typeof(string[])),
-            ("Trailer", typeof(byte)));
+            ("Trailer", typeof(byte))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, [new[] { "AB", "CD" }, (byte)0x7F]);
     }
 
     [TestMethod]
     public void Query_EofRepeatStructuredRecordsInsideSubstream_ShouldReadAllRecords()
     {
-        var query = @"
-            binary Entry {
-                Id: byte
-            };
-            binary Inner {
-                Items: Entry repeat until eof
-            };
-            binary Frame {
-                Length: byte,
-                Payload: substream[Length] as Inner,
-                Trailer: byte
-            };
-            select f.Payload.Items, f.Trailer from #test.files() src
-            cross apply Interpret<Frame>(src.Content) f";
+        var query = (
+            "\n"
+            + "            binary Entry {\n"
+            + "                Id: byte\n"
+            + "            };\n"
+            + "            binary Inner {\n"
+            + "                Items: Entry repeat until eof\n"
+            + "            };\n"
+            + "            binary Frame {\n"
+            + "                Length: byte,\n"
+            + "                Payload: substream[Length] as Inner,\n"
+            + "                Trailer: byte\n"
+            + "            };\n"
+            + "            select f.Payload.Items, f.Trailer from #test.files() src\n"
+            + "            cross apply Interpret<Frame>(src.Content) f"
+        );
 
         var data = new byte[] { 0x03, 0x0A, 0x0B, 0x0C, 0x55 };
         var table = RunQuery(query, data);
@@ -111,10 +120,7 @@ public partial class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextu
         Assert.IsTrue(itemsType.IsArray);
         Assert.AreEqual("Entry", itemsType.GetElementType()!.Name);
         Assert.AreEqual("Musoq.Generated.Interpreters", itemsType.GetElementType()!.Namespace);
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("f.Payload.Items", itemsType),
-            ("Trailer", typeof(byte)));
+        TableMaterializationTestHelper.AssertColumns(table, ("f.Payload.Items", itemsType), ("Trailer", typeof(byte)));
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(3, ((object[])table[0].ReadValue(0)).Length);
         Assert.AreEqual((byte)0x55, table[0].ReadValue(1));
@@ -122,16 +128,21 @@ public partial class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextu
 
     private Table RunQuery(string query, byte[] content)
     {
-        var entities = new[] { new BinaryEntity { Name = "frame.bin", Content = content } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "frame.bin", Content = content },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         return TableMaterializationTestHelper.Materialize(vm.Run(CancellationToken.None));
     }

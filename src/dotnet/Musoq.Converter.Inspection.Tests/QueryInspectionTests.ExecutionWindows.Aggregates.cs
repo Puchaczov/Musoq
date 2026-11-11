@@ -9,16 +9,20 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForWindowedAggregates_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 'ops' as City, 2 as Score from #system.dual()
-                    union all (Name, City, Score) select 'bea' as Name, 'ops' as City, 3 as Score from #system.dual()
-                )
-                select c.Name,
-                       Sum(c.Score) over (partition by c.City order by c.Score) as RunningScore,
-                       Count(c.Score) over (partition by c.City) as CityCount
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 'ops' as City, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, City, Score) select 'bea' as Name, 'ops' as City, 3 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Sum(c.Score) over (partition by c.City order by c.Score) as RunningScore,\n"
+                + "                       Count(c.Score) over (partition by c.City) as CityCount\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[BoundedRows] [", result.ExecutionPlanText);
@@ -28,8 +32,18 @@ public partial class QueryInspectionTests
         Assert.Contains("CountNullableAggregateKernel<int>.Get(in resultCounts1State)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowCount()", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeTypedPluginWindowFunction<object, decimal>", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeTypedPluginWindowFunction<object, int>", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "ComputeTypedPluginWindowFunction<object, decimal>",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "ComputeTypedPluginWindowFunction<object, int>",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("RunningScoreValues", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("CityCountValues", StringComparison.Ordinal));
     }
@@ -37,20 +51,24 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForWindowedAggregates_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 'ops' as City, 2 as Score from #system.dual()
-                    union all (Name, City, Score) select 'bea' as Name, 'ops' as City, 3 as Score from #system.dual()
-                    union all (Name, City, Score) select 'cal' as Name, 'eng' as City, 5 as Score from #system.dual()
-                )
-                select c.Name,
-                       c.City,
-                       c.Score,
-                       Sum(c.Score) over (partition by c.City order by c.Score) as RunningScore,
-                       Count(c.Score) over (partition by c.City) as CityCount
-                from c
-                order by c.City, c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 'ops' as City, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, City, Score) select 'bea' as Name, 'ops' as City, 3 as Score from #system.dual()\n"
+                + "                    union all (Name, City, Score) select 'cal' as Name, 'eng' as City, 5 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       c.City,\n"
+                + "                       c.Score,\n"
+                + "                       Sum(c.Score) over (partition by c.City order by c.Score) as RunningScore,\n"
+                + "                       Count(c.Score) over (partition by c.City) as CityCount\n"
+                + "                from c\n"
+                + "                order by c.City, c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -75,17 +93,21 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForRunningFramedAggregateWindow_ShouldStreamExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()
-                )
-                select c.Name,
-                       Sum(c.Score) over (
-                           order by c.Score
-                           rows between unbounded preceding and current row) as RunningScore
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Sum(c.Score) over (\n"
+                + "                           order by c.Score\n"
+                + "                           rows between unbounded preceding and current row) as RunningScore\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[Running] [", result.ExecutionPlanText);
@@ -94,23 +116,29 @@ public partial class QueryInspectionTests
         Assert.Contains("SumAggregateKernel<int>.Get(in resultSumsState)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultSumsValues", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForWholeFramedAggregateWindow_ShouldStreamExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()
-                )
-                select c.Name,
-                       Sum(c.Score) over (
-                           order by c.Score
-                           rows between unbounded preceding and unbounded following) as PartitionScore
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Sum(c.Score) over (\n"
+                + "                           order by c.Score\n"
+                + "                           rows between unbounded preceding and unbounded following) as PartitionScore\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[WholePartition] [", result.ExecutionPlanText);
@@ -119,43 +147,55 @@ public partial class QueryInspectionTests
         Assert.Contains("SumAggregateKernel<int>.Get(in resultSumsState)", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultSumsValues", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForFramedWindowedAggregates_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()
-                )
-                select c.Name,
-                       Sum(c.Score) over (order by c.Score rows between 1 preceding and current row) as RollingScore
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Sum(c.Score) over (order by c.Score rows between 1 preceding and current row) as RollingScore\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeSumWindowKernel[BoundedRows] [", result.ExecutionPlanText);
         Assert.Contains("frame rows between 1 preceding and current row", result.ExecutionPlanText);
         Assert.Contains("SumAggregateKernel<int>.Get(in resultSumsState)", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForMinMaxFramedAggregateWindows_ShouldEmitTypedFrameKernels()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 3 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 2 as Score from #system.dual()
-                )
-                select c.Name,
-                       Min(c.Score) over (order by c.Score rows between 1 preceding and 1 following) as RollingMin,
-                       Max(c.Score) over (order by c.Score rows between 1 preceding and 1 following) as RollingMax
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 3 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 2 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Min(c.Score) over (order by c.Score rows between 1 preceding and 1 following) as RollingMin,\n"
+                + "                       Max(c.Score) over (order by c.Score rows between 1 preceding and 1 following) as RollingMax\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("ComputeMinWindowKernel[BoundedRows] [", result.ExecutionPlanText);
@@ -165,7 +205,9 @@ public partial class QueryInspectionTests
         Assert.Contains(".CompareTo(", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowMin()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowMax()", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultMins0Values", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultMaxs1Values", StringComparison.Ordinal));
     }
@@ -173,19 +215,23 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForFramedWindowedAggregates_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 4 as Score from #system.dual()
-                )
-                select c.Name,
-                       c.Score,
-                       Sum(c.Score) over (order by c.Score rows between 1 preceding and current row) as RollingScore,
-                       Avg(c.Score) over (order by c.Score rows between current row and 1 following) as ForwardAverage
-                from c
-                order by c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 4 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       c.Score,\n"
+                + "                       Sum(c.Score) over (order by c.Score rows between 1 preceding and current row) as RollingScore,\n"
+                + "                       Avg(c.Score) over (order by c.Score rows between current row and 1 following) as ForwardAverage\n"
+                + "                from c\n"
+                + "                order by c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -207,19 +253,23 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForMinMaxFramedAggregateWindows_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 'x' as Bucket, 3 as Score from #system.dual()
-                    union all (Name, Bucket, Score) select 'bea' as Name, 'x' as Bucket, 1 as Score from #system.dual()
-                    union all (Name, Bucket, Score) select 'cal' as Name, 'y' as Bucket, 2 as Score from #system.dual()
-                    union all (Name, Bucket, Score) select 'dan' as Name, 'y' as Bucket, 5 as Score from #system.dual()
-                )
-                select c.Name,
-                       Min(c.Score) over (order by c.Bucket, c.Score desc rows between 1 preceding and current row) as RollingMin,
-                       Max(c.Score) over (order by c.Bucket, c.Score desc rows between 1 preceding and current row) as RollingMax
-                from c
-                order by c.Name",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 'x' as Bucket, 3 as Score from #system.dual()\n"
+                + "                    union all (Name, Bucket, Score) select 'bea' as Name, 'x' as Bucket, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Bucket, Score) select 'cal' as Name, 'y' as Bucket, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Bucket, Score) select 'dan' as Name, 'y' as Bucket, 5 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Min(c.Score) over (order by c.Bucket, c.Score desc rows between 1 preceding and current row) as RollingMin,\n"
+                + "                       Max(c.Score) over (order by c.Bucket, c.Score desc rows between 1 preceding and current row) as RollingMax\n"
+                + "                from c\n"
+                + "                order by c.Name"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -241,39 +291,52 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForPrecedingOnlyFramedAggregateWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                )
-                select c.Name,
-                       Sum(c.Score) over (order by c.Score rows between 2 preceding and 1 preceding) as PreviousScore
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Sum(c.Score) over (order by c.Score rows between 2 preceding and 1 preceding) as PreviousScore\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value c.Score order by c.Score ASC frame rows between 2 preceding and 1 preceding]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value c.Score order by c.Score ASC frame rows between 2 preceding and 1 preceding]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("SumAggregateKernel<int>.Get(in resultSumsState)", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForPrecedingOnlyFramedAggregateWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()
-                    union all (Name, Score) select 'dan' as Name, 4 as Score from #system.dual()
-                )
-                select c.Name,
-                      c.Score,
-                       Sum(c.Score) over (order by c.Score rows between 2 preceding and 1 preceding) as PreviousScore,
-                       Count(c.Score) over (order by c.Score rows between 2 preceding and 1 preceding) as PreviousCount
-                from c
-                order by c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 3 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'dan' as Name, 4 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                      c.Score,\n"
+                + "                       Sum(c.Score) over (order by c.Score rows between 2 preceding and 1 preceding) as PreviousScore,\n"
+                + "                       Count(c.Score) over (order by c.Score rows between 2 preceding and 1 preceding) as PreviousCount\n"
+                + "                from c\n"
+                + "                order by c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -299,42 +362,55 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForRangeFramedAggregateWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()
-                )
-                select c.Name,
-                       Sum(c.Score) over (order by c.Score range between unbounded preceding and current row) as RunningScore
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       Sum(c.Score) over (order by c.Score range between unbounded preceding and current row) as RunningScore\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value c.Score order by c.Score ASC frame range between unbounded preceding and current row]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value c.Score order by c.Score ASC frame range between unbounded preceding and current row]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("SumAggregateKernel<int>.Set(ref resultSumsState", result.GeneratedCSharpCode);
         Assert.Contains("ResolveRangePeerFrameEnd(resultSumsOrderKeys", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".AccumulateValue(", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("resultSumsValues", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("ComputeFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForRangeFramedAggregateWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 2 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 4 as Score from #system.dual()
-                )
-                select c.Name,
-                       c.Score,
-                       Sum(c.Score) over (order by c.Score range between unbounded preceding and current row) as RunningScore,
-                       Count(c.Score) over (order by c.Score range between current row and unbounded following) as RemainingCount
-                from c
-                order by c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 2 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 3 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 4 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       c.Score,\n"
+                + "                       Sum(c.Score) over (order by c.Score range between unbounded preceding and current row) as RunningScore,\n"
+                + "                       Count(c.Score) over (order by c.Score range between current row and unbounded following) as RemainingCount\n"
+                + "                from c\n"
+                + "                order by c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -352,5 +428,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual(9, table[2].ReadValue(2));
         Assert.AreEqual(1L, table[2].ReadValue(3));
     }
-
 }

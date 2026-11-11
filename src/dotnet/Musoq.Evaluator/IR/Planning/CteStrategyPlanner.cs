@@ -16,7 +16,9 @@ internal static partial class CteStrategyPlanner
         foreach (var definition in node.Definitions)
         {
             referenceCounts.TryGetValue(definition.Name, out var referenceCount);
-            var characteristics = ClassifyCteOutput(ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(definition.Plan));
+            var characteristics = ClassifyCteOutput(
+                ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(definition.Plan)
+            );
             var fusionEligibility = readOnceFusionCandidates.Contains(definition.Name)
                 ? CteFusionEligibility.ReadOnceCandidate
                 : CteFusionEligibility.NotCandidate;
@@ -24,7 +26,8 @@ internal static partial class CteStrategyPlanner
                 definition.Name,
                 referenceCount,
                 characteristics,
-                fusionEligibility);
+                fusionEligibility
+            );
         }
 
         return new CteStrategyDecision(definitions);
@@ -34,7 +37,8 @@ internal static partial class CteStrategyPlanner
         string name,
         int referenceCount,
         CteOutputCharacteristics characteristics,
-        CteFusionEligibility fusionEligibility)
+        CteFusionEligibility fusionEligibility
+    )
     {
         if (referenceCount == 0)
         {
@@ -43,7 +47,8 @@ internal static partial class CteStrategyPlanner
                 referenceCount,
                 characteristics,
                 CteDefinitionStrategyKind.Unreferenced,
-                "CTE has no remaining references after logical rewrites, so no runtime reuse table is required.");
+                "CTE has no remaining references after logical rewrites, so no runtime reuse table is required."
+            );
         }
 
         if (referenceCount > 1)
@@ -53,7 +58,8 @@ internal static partial class CteStrategyPlanner
                 referenceCount,
                 characteristics,
                 CteDefinitionStrategyKind.MaterializeReuse,
-                $"CTE is referenced {referenceCount.ToString(CultureInfo.InvariantCulture)} times, so reuse requires a materialized table.");
+                $"CTE is referenced {referenceCount.ToString(CultureInfo.InvariantCulture)} times, so reuse requires a materialized table."
+            );
         }
 
         if (fusionEligibility == CteFusionEligibility.ReadOnceCandidate)
@@ -63,7 +69,8 @@ internal static partial class CteStrategyPlanner
                 referenceCount,
                 characteristics,
                 CteDefinitionStrategyKind.FuseReadOnce,
-                "Single-use CTE output is safe for read-once projection fusion when the downstream shape supports it.");
+                "Single-use CTE output is safe for read-once projection fusion when the downstream shape supports it."
+            );
         }
 
         return new CteDefinitionStrategyDecision(
@@ -71,13 +78,14 @@ internal static partial class CteStrategyPlanner
             referenceCount,
             characteristics,
             CteDefinitionStrategyKind.MaterializeSingleUse,
-            CreateSingleUseCteMaterializationReason(characteristics));
+            CreateSingleUseCteMaterializationReason(characteristics)
+        );
     }
-
 
     private static HashSet<string> ResolveReadOnceFusionCandidates(
         PhysicalCteNode node,
-        IReadOnlyDictionary<string, int> referenceCounts)
+        IReadOnlyDictionary<string, int> referenceCounts
+    )
     {
         var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -85,9 +93,9 @@ internal static partial class CteStrategyPlanner
             return candidates;
 
         var finalPipeline = ExecutionStrategyPipelineDecomposer.TryDecomposeSupportedPipeline(
-            ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(node.Query));
-        if (finalPipeline is not { Source: PhysicalCteRefNode finalCteRef } ||
-            finalPipeline.PostOperations.Count != 0)
+            ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(node.Query)
+        );
+        if (finalPipeline is not { Source: PhysicalCteRefNode finalCteRef } || finalPipeline.PostOperations.Count != 0)
         {
             return candidates;
         }
@@ -96,12 +104,7 @@ internal static partial class CteStrategyPlanner
         if (producerIndex < 0 || producerIndex != node.Definitions.Length - 1)
             return candidates;
 
-        AddReadOnceFusionCandidates(
-            node.Definitions,
-            referenceCounts,
-            finalCteRef.CteName,
-            producerIndex,
-            candidates);
+        AddReadOnceFusionCandidates(node.Definitions, referenceCounts, finalCteRef.CteName, producerIndex, candidates);
 
         return candidates;
     }
@@ -111,19 +114,23 @@ internal static partial class CteStrategyPlanner
         IReadOnlyDictionary<string, int> referenceCounts,
         string cteName,
         int definitionIndex,
-        ISet<string> candidates)
+        ISet<string> candidates
+    )
     {
         var currentName = cteName;
         var currentIndex = definitionIndex;
 
-        while (TryAddReadOnceFusionCandidate(
-                   definitions,
-                   referenceCounts,
-                   currentName,
-                   currentIndex,
-                   candidates,
-                   out var upstreamCteRef,
-                   out var upstreamIndex))
+        while (
+            TryAddReadOnceFusionCandidate(
+                definitions,
+                referenceCounts,
+                currentName,
+                currentIndex,
+                candidates,
+                out var upstreamCteRef,
+                out var upstreamIndex
+            )
+        )
         {
             if (upstreamCteRef == null || upstreamIndex != currentIndex - 1)
                 return;
@@ -140,7 +147,8 @@ internal static partial class CteStrategyPlanner
         int definitionIndex,
         ISet<string> candidates,
         out PhysicalCteRefNode? upstreamCteRef,
-        out int upstreamIndex)
+        out int upstreamIndex
+    )
     {
         upstreamCteRef = null;
         upstreamIndex = -1;
@@ -150,16 +158,21 @@ internal static partial class CteStrategyPlanner
             return false;
 
         var producer = definitions[definitionIndex];
-        var characteristics = ClassifyCteOutput(ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(producer.Plan));
+        var characteristics = ClassifyCteOutput(
+            ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(producer.Plan)
+        );
         if (!CanPlanReadOnceFusion(characteristics))
             return false;
 
         var producerPipeline = ExecutionStrategyPipelineDecomposer.TryDecomposeSupportedPipeline(
-            ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(producer.Plan));
-        if (producerPipeline == null ||
-            producerPipeline.PostOperations.Count != 0 ||
-            !CanInlineReadOnceCteProjectionSource(producerPipeline.Source) ||
-            !IsReadOnceCtePipelineDeterministic(producerPipeline))
+            ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(producer.Plan)
+        );
+        if (
+            producerPipeline == null
+            || producerPipeline.PostOperations.Count != 0
+            || !CanInlineReadOnceCteProjectionSource(producerPipeline.Source)
+            || !IsReadOnceCtePipelineDeterministic(producerPipeline)
+        )
         {
             return false;
         }
@@ -177,10 +190,7 @@ internal static partial class CteStrategyPlanner
         return true;
     }
 
-
-    private static int FindCteDefinitionIndex(
-        IReadOnlyList<PhysicalCteDefinition> definitions,
-        string name)
+    private static int FindCteDefinitionIndex(IReadOnlyList<PhysicalCteDefinition> definitions, string name)
     {
         for (var index = 0; index < definitions.Count; index++)
         {
@@ -193,8 +203,7 @@ internal static partial class CteStrategyPlanner
 
     private static bool CanInlineReadOnceCteProjectionSource(PhysicalNode source)
     {
-        return source is PhysicalSchemaScanNode or PhysicalCteRefNode ||
-               CanInlineFinalProjectionSource(source);
+        return source is PhysicalSchemaScanNode or PhysicalCteRefNode || CanInlineFinalProjectionSource(source);
     }
 
     private static bool CanInlineFinalProjectionSource(PhysicalNode source)
@@ -211,22 +220,20 @@ internal static partial class CteStrategyPlanner
     {
         return source switch
         {
-            PhysicalNestedLoopApplyNode apply =>
-                IsPlainSchemaScanApplySource(apply.Left) &&
-                IsPlainSchemaScanApplySource(apply.Right),
+            PhysicalNestedLoopApplyNode apply => IsPlainSchemaScanApplySource(apply.Left)
+                && IsPlainSchemaScanApplySource(apply.Right),
             PhysicalSchemaScanNode { Arguments.Length: 0 } => true,
-            _ => false
+            _ => false,
         };
     }
 
     private static bool CanPlanReadOnceFusion(CteOutputCharacteristics characteristics)
     {
-        return !characteristics.HasFlag(CteOutputCharacteristics.OrderSensitive) &&
-               !characteristics.HasFlag(CteOutputCharacteristics.Window) &&
-               !characteristics.HasFlag(CteOutputCharacteristics.SetOperation) &&
-               !characteristics.HasFlag(CteOutputCharacteristics.SideEffectSensitive);
+        return !characteristics.HasFlag(CteOutputCharacteristics.OrderSensitive)
+            && !characteristics.HasFlag(CteOutputCharacteristics.Window)
+            && !characteristics.HasFlag(CteOutputCharacteristics.SetOperation)
+            && !characteristics.HasFlag(CteOutputCharacteristics.SideEffectSensitive);
     }
-
 
     private static Dictionary<string, int> CountCteReferences(PhysicalCteNode node)
     {
@@ -269,12 +276,15 @@ internal static partial class CteStrategyPlanner
 
         characteristics |= node switch
         {
-            PhysicalSortNode or PhysicalSkipNode or PhysicalTakeNode or PhysicalTopNNode or PhysicalTopOffsetNode => CteOutputCharacteristics.OrderSensitive,
-            PhysicalAggregateOnlyNode or PhysicalSingleKeyAggregateNode or PhysicalValueTupleAggregateNode => CteOutputCharacteristics.Aggregate,
+            PhysicalSortNode or PhysicalSkipNode or PhysicalTakeNode or PhysicalTopNNode or PhysicalTopOffsetNode =>
+                CteOutputCharacteristics.OrderSensitive,
+            PhysicalAggregateOnlyNode or PhysicalSingleKeyAggregateNode or PhysicalValueTupleAggregateNode =>
+                CteOutputCharacteristics.Aggregate,
             PhysicalWindowNode => CteOutputCharacteristics.Window,
             PhysicalSetOperationNode => CteOutputCharacteristics.SetOperation,
-            PhysicalInterpretSourceNode or PhysicalAccessMethodSourceNode or PhysicalPropertySourceNode => CteOutputCharacteristics.SideEffectSensitive,
-            _ => CteOutputCharacteristics.None
+            PhysicalInterpretSourceNode or PhysicalAccessMethodSourceNode or PhysicalPropertySourceNode =>
+                CteOutputCharacteristics.SideEffectSensitive,
+            _ => CteOutputCharacteristics.None,
         };
 
         foreach (var child in node.Children)
@@ -284,6 +294,6 @@ internal static partial class CteStrategyPlanner
     private enum CteFusionEligibility
     {
         NotCandidate,
-        ReadOnceCandidate
+        ReadOnceCandidate,
     }
 }

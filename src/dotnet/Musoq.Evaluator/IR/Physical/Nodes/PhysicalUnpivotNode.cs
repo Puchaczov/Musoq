@@ -11,7 +11,8 @@ public sealed record PhysicalUnpivotNode(
     IReadOnlyList<UnpivotEntry> Entries,
     IReadOnlyList<ProjectedField> KeepFields,
     PhysicalNode Source,
-    OutputSchema OutputSchema) : PhysicalNode(OutputSchema)
+    OutputSchema OutputSchema
+) : PhysicalNode(OutputSchema)
 {
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Source];
 }

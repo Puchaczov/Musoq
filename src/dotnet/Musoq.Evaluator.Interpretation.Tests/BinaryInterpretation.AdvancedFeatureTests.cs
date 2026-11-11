@@ -19,7 +19,8 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
         var primitiveType = new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable);
         var condition = new EqualityNode(
             new AccessColumnNode("Bytes", string.Empty, TextSpan.Empty),
-            new IntegerNode("0"));
+            new IntegerNode("0")
+        );
         var repeatUntilType = new RepeatUntilTypeNode(primitiveType, condition, "Bytes");
         var bytesField = new FieldDefinitionNode("Bytes", repeatUntilType);
         var schema = new BinarySchemaNode("ByteSequence", [bytesField]);
@@ -54,8 +55,10 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
             new DotNode(
                 new AccessColumnNode("Records", string.Empty, TextSpan.Empty),
                 new IdentifierNode("Type"),
-                "Records.Type"),
-            new IntegerNode("0"));
+                "Records.Type"
+            ),
+            new IntegerNode("0")
+        );
         var repeatUntilType = new RepeatUntilTypeNode(schemaRefType, condition, "Records");
         var recordsField = new FieldDefinitionNode("Records", repeatUntilType);
         var recordListSchema = new BinarySchemaNode("RecordList", [recordsField]);
@@ -65,9 +68,21 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
 
         var data = new byte[]
         {
-            0x01, 0x64, 0x00, 0x00, 0x00,
-            0x02, 0xC8, 0x00, 0x00, 0x00,
-            0x00, 0x2C, 0x01, 0x00, 0x00
+            0x01,
+            0x64,
+            0x00,
+            0x00,
+            0x00,
+            0x02,
+            0xC8,
+            0x00,
+            0x00,
+            0x00,
+            0x00,
+            0x2C,
+            0x01,
+            0x00,
+            0x00,
         };
 
         var result = InvokeInterpret(interpreter, data);
@@ -101,8 +116,10 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
             new DotNode(
                 new AccessColumnNode("Items", string.Empty, TextSpan.Empty),
                 new IdentifierNode("Id"),
-                "Items.Id"),
-            new IntegerNode("255"));
+                "Items.Id"
+            ),
+            new IntegerNode("255")
+        );
         var repeatUntilType = new RepeatUntilTypeNode(schemaRefType, condition, "Items");
         var itemsField = new FieldDefinitionNode("Items", repeatUntilType);
         var itemListSchema = new BinarySchemaNode("ItemList", [countField, itemsField]);
@@ -110,13 +127,7 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
 
         var interpreter = CompileInterpreter(registry, "ItemList");
 
-        var data = new byte[]
-        {
-            0x03,
-            0x01,
-            0x02,
-            0xFF
-        };
+        var data = new byte[] { 0x03, 0x01, 0x02, 0xFF };
 
         var result = InvokeInterpret(interpreter, data);
         var count = GetPropertyValue<byte>(result, "Count");
@@ -136,8 +147,10 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
     [TestMethod]
     public void TryInterpret_ValidData_ShouldReturnTrueAndResult()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian)
+        );
 
         var data = new byte[] { 0x78, 0x56, 0x34, 0x12 };
 
@@ -151,8 +164,10 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
     [TestMethod]
     public void TryInterpret_InsufficientData_ShouldReturnFalseAndNull()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian)
+        );
 
         var data = "xV"u8.ToArray();
 
@@ -165,8 +180,10 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
     [TestMethod]
     public void TryInterpret_EmptyData_ShouldReturnFalseAndNull()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreatePrimitiveField("Value", PrimitiveTypeName.Byte, Endianness.NotApplicable));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreatePrimitiveField("Value", PrimitiveTypeName.Byte, Endianness.NotApplicable)
+        );
 
         var data = Array.Empty<byte>();
 
@@ -183,8 +200,10 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
     [TestMethod]
     public void PartialInterpret_ValidData_ShouldReturnSuccessfulResult()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian)
+        );
 
         var data = new byte[] { 0x78, 0x56, 0x34, 0x12 };
 
@@ -196,7 +215,8 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
         Assert.IsNull(GetPropertyValue<string>(result, "ErrorField"));
         Assert.IsNull(GetPropertyValue<string>(result, "ErrorMessage"));
 
-        var parsedFields = (System.Collections.Generic.IReadOnlyDictionary<string, object?>)GetPropertyValue<object>(result, "ParsedFields");
+        var parsedFields = (System.Collections.Generic.IReadOnlyDictionary<string, object?>)
+            GetPropertyValue<object>(result, "ParsedFields");
         Assert.IsTrue(parsedFields.ContainsKey("Value"));
         Assert.AreEqual(0x12345678, parsedFields["Value"]);
     }
@@ -204,8 +224,10 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
     [TestMethod]
     public void PartialInterpret_InsufficientData_ShouldReturnFailureWithErrorInfo()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreatePrimitiveField("Value", PrimitiveTypeName.Int, Endianness.LittleEndian)
+        );
 
         var data = "xV"u8.ToArray();
 
@@ -218,8 +240,10 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
     [TestMethod]
     public void PartialInterpret_EmptyData_ShouldReturnFailure()
     {
-        var interpreter = CreateAndCompileInterpreter("TestSchema",
-            CreatePrimitiveField("Value", PrimitiveTypeName.Byte, Endianness.NotApplicable));
+        var interpreter = CreateAndCompileInterpreter(
+            "TestSchema",
+            CreatePrimitiveField("Value", PrimitiveTypeName.Byte, Endianness.NotApplicable)
+        );
 
         var data = Array.Empty<byte>();
 

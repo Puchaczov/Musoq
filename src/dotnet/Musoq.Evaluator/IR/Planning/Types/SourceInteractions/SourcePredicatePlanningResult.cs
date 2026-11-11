@@ -6,4 +6,5 @@ namespace Musoq.Evaluator.IR.Planning;
 internal sealed record SourcePredicatePlanningResult(
     IReadOnlyDictionary<string, SourcePredicatePlan> PlansBySourceId,
     IReadOnlyDictionary<string, IrExpression[]> PushedPredicatesBySourceId,
-    IReadOnlyList<PlanningDecision> Decisions);
+    IReadOnlyList<PlanningDecision> Decisions
+);

@@ -21,9 +21,7 @@ internal static class ExecutionStrategyPipelineDecomposer
             return null;
 
         var source = DecomposeSourcePipeline(project.Input);
-        return source == null
-            ? null
-            : new SupportedPipeline(project, source.Source, source.Filter, postOperations);
+        return source == null ? null : new SupportedPipeline(project, source.Source, source.Filter, postOperations);
     }
 
     public static SingleKeyAggregatePipeline? TryDecomposeSingleKeyAggregatePipeline(PhysicalNode node)
@@ -44,9 +42,15 @@ internal static class ExecutionStrategyPipelineDecomposer
         {
             PhysicalSingleKeyAggregateNode aggregate when DecomposeSourcePipeline(aggregate.Input) is { } source =>
                 new SingleKeyAggregatePipeline(project, aggregate, source.Source, source.Filter, postOperations),
-            PhysicalHavingFilterNode { Input: PhysicalSingleKeyAggregateNode aggregate } when DecomposeSourcePipeline(aggregate.Input) is { } source =>
-                new SingleKeyAggregatePipeline(project, aggregate, source.Source, source.Filter, postOperations),
-            _ => null
+            PhysicalHavingFilterNode { Input: PhysicalSingleKeyAggregateNode aggregate }
+                when DecomposeSourcePipeline(aggregate.Input) is { } source => new SingleKeyAggregatePipeline(
+                project,
+                aggregate,
+                source.Source,
+                source.Filter,
+                postOperations
+            ),
+            _ => null,
         };
     }
 
@@ -64,5 +68,4 @@ internal static class ExecutionStrategyPipelineDecomposer
 
         return node;
     }
-
 }

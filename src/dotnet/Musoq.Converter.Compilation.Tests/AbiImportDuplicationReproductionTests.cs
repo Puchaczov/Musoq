@@ -23,32 +23,32 @@ public sealed class AbiImportDuplicationReproductionTests
 
         var queries = new[]
         {
-            """
-            select
-                case
-                    when Contains(i.Value, '/') then 'path'
-                    else 'name'
-                end as Kind
-            from #artifact.items() i
-            """,
-            """
-            with first as (
-                select i.Value
-                from #artifact.items() i
-            ), second as (
-                select
-                    case
-                        when f.Value = '' then 'empty'
-                        else case
-                            when Contains(f.Value, '/') then 'path'
-                            else 'name'
-                        end
-                    end as Kind
-                from first f
-            )
-            select s.Kind
-            from second s
-            """
+            (
+                "select\n"
+                + "    case\n"
+                + "        when Contains(i.Value, '/') then 'path'\n"
+                + "        else 'name'\n"
+                + "    end as Kind\n"
+                + "from #artifact.items() i"
+            ),
+            (
+                "with first as (\n"
+                + "    select i.Value\n"
+                + "    from #artifact.items() i\n"
+                + "), second as (\n"
+                + "    select\n"
+                + "        case\n"
+                + "            when f.Value = '' then 'empty'\n"
+                + "            else case\n"
+                + "                when Contains(f.Value, '/') then 'path'\n"
+                + "                else 'name'\n"
+                + "            end\n"
+                + "        end as Kind\n"
+                + "    from first f\n"
+                + ")\n"
+                + "select s.Kind\n"
+                + "from second s"
+            ),
         };
 
         for (var queryIndex = 0; queryIndex < queries.Length; queryIndex++)
@@ -58,14 +58,14 @@ public sealed class AbiImportDuplicationReproductionTests
                 query,
                 $"AbiImportDuplication_Direct_{queryIndex}",
                 provider,
-                _loggerResolver);
+                _loggerResolver
+            );
 
-            Assert.IsTrue(
-                direct.Succeeded,
-                FormatFailure($"Direct compilation {queryIndex}", direct));
+            Assert.IsTrue(direct.Succeeded, FormatFailure($"Direct compilation {queryIndex}", direct));
 
-            var directCompiledQuery = direct.CompiledQuery ??
-                throw new AssertFailedException("Direct compilation did not produce a compiled query.");
+            var directCompiledQuery =
+                direct.CompiledQuery
+                ?? throw new AssertFailedException("Direct compilation did not produce a compiled query.");
             using (var table = directCompiledQuery.Run())
             {
                 Assert.HasCount(1, table);
@@ -78,24 +78,26 @@ public sealed class AbiImportDuplicationReproductionTests
                     query,
                     $"AbiImportDuplication_Artifact_{queryIndex}_{attempt}",
                     provider,
-                    _loggerResolver);
+                    _loggerResolver
+                );
 
                 Assert.IsTrue(
                     artifact.Succeeded,
-                    FormatFailure($"Artifact compilation {queryIndex}/{attempt}", artifact));
+                    FormatFailure($"Artifact compilation {queryIndex}/{attempt}", artifact)
+                );
                 Assert.IsNotNull(artifact.Artifact);
 
                 var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
                     query,
                     artifact.Artifact!,
                     provider,
-                    _loggerResolver);
+                    _loggerResolver
+                );
 
-                Assert.IsTrue(
-                    loaded.Succeeded,
-                    FormatFailure($"Artifact loading {queryIndex}/{attempt}", loaded));
-                var loadedCompiledQuery = loaded.CompiledQuery ??
-                    throw new AssertFailedException("Artifact loading did not produce a compiled query.");
+                Assert.IsTrue(loaded.Succeeded, FormatFailure($"Artifact loading {queryIndex}/{attempt}", loaded));
+                var loadedCompiledQuery =
+                    loaded.CompiledQuery
+                    ?? throw new AssertFailedException("Artifact loading did not produce a compiled query.");
                 using (var table = loadedCompiledQuery.Run())
                 {
                     Assert.HasCount(1, table);
@@ -107,46 +109,50 @@ public sealed class AbiImportDuplicationReproductionTests
                     $"AbiImportDuplication_Package_{queryIndex}_{attempt}",
                     provider,
                     _loggerResolver,
-                    ExecutionTargetIds.CSharpClr);
+                    ExecutionTargetIds.CSharpClr
+                );
 
-                Assert.IsTrue(
-                    package.Succeeded,
-                    FormatFailure($"Package compilation {queryIndex}/{attempt}", package));
+                Assert.IsTrue(package.Succeeded, FormatFailure($"Package compilation {queryIndex}/{attempt}", package));
                 Assert.IsNotNull(package.Package);
                 Assert.HasCount(
                     1,
                     package.Package.HostAbiInventory.Imports.Where(import =>
-                        import.Kind == TargetHostAbiImportKind.PluginInvocation &&
-                        import.Name.Contains(nameof(LibraryBase.Contains), StringComparison.Ordinal)));
+                        import.Kind == TargetHostAbiImportKind.PluginInvocation
+                        && import.Name.Contains(nameof(LibraryBase.Contains), StringComparison.Ordinal)
+                    )
+                );
             }
         }
     }
 
     private static string FormatFailure(string attempt, ArtifactBuildResult result)
     {
-        return $"{attempt}{Environment.NewLine}" +
-               $"{result.CaughtException}{Environment.NewLine}" +
-               string.Join(
-                   Environment.NewLine,
-                   result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
+        return $"{attempt}{Environment.NewLine}"
+            + $"{result.CaughtException}{Environment.NewLine}"
+            + string.Join(
+                Environment.NewLine,
+                result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            );
     }
 
     private static string FormatFailure(string attempt, BuildResult result)
     {
-        return $"{attempt}{Environment.NewLine}" +
-               $"{result.CaughtException}{Environment.NewLine}" +
-               string.Join(
-                   Environment.NewLine,
-                   result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
+        return $"{attempt}{Environment.NewLine}"
+            + $"{result.CaughtException}{Environment.NewLine}"
+            + string.Join(
+                Environment.NewLine,
+                result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            );
     }
 
     private static string FormatFailure(string attempt, TargetPackageBuildResult result)
     {
-        return $"{attempt}{Environment.NewLine}" +
-               $"{result.CaughtException}{Environment.NewLine}" +
-               string.Join(
-                   Environment.NewLine,
-                   result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
+        return $"{attempt}{Environment.NewLine}"
+            + $"{result.CaughtException}{Environment.NewLine}"
+            + string.Join(
+                Environment.NewLine,
+                result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+            );
     }
 }
 
@@ -160,12 +166,14 @@ public sealed class PluginArtifactSchemaProvider(string value, LibraryBase? libr
     }
 }
 
-public sealed class PluginArtifactSchema(string value, LibraryBase? library = null) : SchemaBase("artifact", CreateLibrary(library))
+public sealed class PluginArtifactSchema(string value, LibraryBase? library = null)
+    : SchemaBase("artifact", CreateLibrary(library))
 {
     public override ISchemaTable GetTableByName(
         string name,
         SourceMetadataContext metadataContext,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return new ArtifactTable(typeof(ArtifactRow), typeof(string));
     }
@@ -173,7 +181,8 @@ public sealed class PluginArtifactSchema(string value, LibraryBase? library = nu
     public override RowSource<T> GetRowSource<T, TArguments>(
         string name,
         SourceExecutionContext executionContext,
-        TArguments nativeArguments)
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource(value));
     }

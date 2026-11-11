@@ -4,9 +4,7 @@ using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests.External.Rows;
 
-public interface IExternalRowMarker : IExternalMarker
-{
-}
+public interface IExternalRowMarker : IExternalMarker { }
 
 public sealed class ExternalRow : ExternalBaseRow, IExternalRowMarker
 {
@@ -21,7 +19,8 @@ public sealed class ExternalRow : ExternalBaseRow, IExternalRowMarker
     public override string Marker => "external-row";
 }
 
-public sealed class GenericExternalRow<T> : ExternalBaseRow where T : ExternalPayload, new()
+public sealed class GenericExternalRow<T> : ExternalBaseRow
+    where T : ExternalPayload, new()
 {
     public T Payload { get; init; } = new();
 
@@ -40,5 +39,6 @@ public sealed class ExternalLibrary : LibraryBase
     public string GetMarker(IExternalMarker marker) => marker.Marker;
 
     [BindableMethod]
-    public T Echo<T>(T value) where T : ExternalPayload, new() => value;
+    public T Echo<T>(T value)
+        where T : ExternalPayload, new() => value;
 }

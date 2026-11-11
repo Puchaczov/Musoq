@@ -34,7 +34,11 @@ public sealed class WindowIntOrderBuilder<TPartition>(int rowCount, bool nullPar
             return;
         }
 
-        ref var partitionIndex = ref CollectionsMarshal.GetValueRefOrAddDefault(_keyToPartition, partitionKey, out var exists);
+        ref var partitionIndex = ref CollectionsMarshal.GetValueRefOrAddDefault(
+            _keyToPartition,
+            partitionKey,
+            out var exists
+        );
 
         if (!exists)
         {
@@ -86,9 +90,7 @@ public sealed class WindowIntOrderBuilder<TPartition>(int rowCount, bool nullPar
         for (var partitionIndex = 1; partitionIndex < starts.Length; partitionIndex++)
             starts[partitionIndex] = starts[partitionIndex - 1] + lengths[partitionIndex - 1];
 
-        Span<int> positions = starts.Length <= 128
-            ? stackalloc int[starts.Length]
-            : new int[starts.Length];
+        Span<int> positions = starts.Length <= 128 ? stackalloc int[starts.Length] : new int[starts.Length];
         starts.CopyTo(positions);
 
         FillPartitions(indices, positions, hasNullPartition && nullPartitionFirst);
@@ -103,9 +105,8 @@ public sealed class WindowIntOrderBuilder<TPartition>(int rowCount, bool nullPar
         for (var rowIndex = 0; rowIndex < rowCount; rowIndex++)
         {
             var partitionIndex = _rowPartitions[rowIndex];
-            var targetPartition = partitionIndex == NullPartition
-                ? nullPartitionIndex
-                : partitionIndex + nonNullPartitionOffset;
+            var targetPartition =
+                partitionIndex == NullPartition ? nullPartitionIndex : partitionIndex + nonNullPartitionOffset;
             indices[positions[targetPartition]++] = rowIndex;
         }
     }

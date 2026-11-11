@@ -7,9 +7,7 @@ namespace Musoq.Evaluator.IR.Planning.SourcePlanning;
 
 internal static partial class SourcePlanningPlanner
 {
-    private static bool CanTraverseSourceLocalFilters(
-        IReadOnlyList<IrExpression> filterPredicates,
-        SchemaScanNode scan)
+    private static bool CanTraverseSourceLocalFilters(IReadOnlyList<IrExpression> filterPredicates, SchemaScanNode scan)
     {
         if (filterPredicates.Count == 0)
             return true;

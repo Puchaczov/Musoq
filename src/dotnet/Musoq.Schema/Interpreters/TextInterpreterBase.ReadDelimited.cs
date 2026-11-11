@@ -9,23 +9,39 @@ namespace Musoq.Schema.Interpreters;
 /// <typeparam name="TOut">The type of the parsed result object.</typeparam>
 public abstract partial class TextInterpreterBase<TOut>
 {
-    protected ParseAttempt<string> ReadUntilStatus(ReadOnlySpan<char> text, string delimiter, bool trim = false,
-        bool consumeDelimiter = true, string? fieldName = null, bool greedy = false, bool lazy = false,
-        bool ltrim = false, bool rtrim = false, bool lower = false, bool upper = false)
+    protected ParseAttempt<string> ReadUntilStatus(
+        ReadOnlySpan<char> text,
+        string delimiter,
+        bool trim = false,
+        bool consumeDelimiter = true,
+        string? fieldName = null,
+        bool greedy = false,
+        bool lazy = false,
+        bool ltrim = false,
+        bool rtrim = false,
+        bool lower = false,
+        bool upper = false
+    )
     {
         ArgumentNullException.ThrowIfNull(delimiter);
         if (delimiter.Length == 0)
-            return FailText<string>(ParseErrorCode.GeneralError, fieldName, "Until fields require a non-empty delimiter");
+            return FailText<string>(
+                ParseErrorCode.GeneralError,
+                fieldName,
+                "Until fields require a non-empty delimiter"
+            );
 
         if (CheckTextPositionStatus(text, fieldName) is { } position)
             return ParseAttempt<string>.Failed(default, position);
         var remaining = text[ParsePosition..];
         if (greedy && lazy)
-            return FailText<string>(ParseErrorCode.GeneralError, fieldName, "Until fields cannot be both greedy and lazy");
+            return FailText<string>(
+                ParseErrorCode.GeneralError,
+                fieldName,
+                "Until fields cannot be both greedy and lazy"
+            );
 
-        var index = greedy
-            ? remaining.LastIndexOf(delimiter.AsSpan())
-            : remaining.IndexOf(delimiter.AsSpan());
+        var index = greedy ? remaining.LastIndexOf(delimiter.AsSpan()) : remaining.IndexOf(delimiter.AsSpan());
 
         if (index < 0)
             return FailText<string>(ParseErrorCode.DelimiterNotFound, fieldName, $"Delimiter '{delimiter}' not found");
@@ -53,22 +69,40 @@ public abstract partial class TextInterpreterBase<TOut>
     ///     <paramref name="nested" />.
     /// </param>
     /// <returns>The text between the delimiters.</returns>
-    protected ParseAttempt<string> ReadBetweenStatus(ReadOnlySpan<char> text, string open, string close, bool nested = false,
-        bool trim = false, bool escaped = false, string? escapeCharacter = null, string? fieldName = null,
-        bool ltrim = false, bool rtrim = false, bool lower = false, bool upper = false)
+    protected ParseAttempt<string> ReadBetweenStatus(
+        ReadOnlySpan<char> text,
+        string open,
+        string close,
+        bool nested = false,
+        bool trim = false,
+        bool escaped = false,
+        string? escapeCharacter = null,
+        string? fieldName = null,
+        bool ltrim = false,
+        bool rtrim = false,
+        bool lower = false,
+        bool upper = false
+    )
     {
         ArgumentNullException.ThrowIfNull(open);
         ArgumentNullException.ThrowIfNull(close);
         if (open.Length == 0 || close.Length == 0)
-            return FailText<string>(ParseErrorCode.GeneralError, fieldName, "Between fields require non-empty opening and closing delimiters");
+            return FailText<string>(
+                ParseErrorCode.GeneralError,
+                fieldName,
+                "Between fields require non-empty opening and closing delimiters"
+            );
 
         if (CheckTextPositionStatus(text, fieldName) is { } position)
             return ParseAttempt<string>.Failed(default, position);
         var remaining = text[ParsePosition..];
 
-
         if (!remaining.StartsWith(open.AsSpan()))
-            return FailText<string>(ParseErrorCode.ExpectedDelimiter, fieldName, $"Expected opening delimiter '{open}'");
+            return FailText<string>(
+                ParseErrorCode.ExpectedDelimiter,
+                fieldName,
+                $"Expected opening delimiter '{open}'"
+            );
 
         ParsePosition += open.Length;
         remaining = GetTextRemaining(text, fieldName);
@@ -78,7 +112,11 @@ public abstract partial class TextInterpreterBase<TOut>
         if (escaped)
         {
             if (escapeCharacter is { Length: not 1 })
-                return FailText<string>(ParseErrorCode.GeneralError, fieldName, "An escaped between field requires a one-character escape character.");
+                return FailText<string>(
+                    ParseErrorCode.GeneralError,
+                    fieldName,
+                    "An escaped between field requires a one-character escape character."
+                );
 
             escape = escapeCharacter is null ? '\\' : escapeCharacter[0];
             endIndex = FindUnescapedClose(remaining, close, escape.Value);
@@ -89,7 +127,11 @@ public abstract partial class TextInterpreterBase<TOut>
             endIndex = remaining.IndexOf(close.AsSpan());
 
         if (endIndex < 0)
-            return FailText<string>(ParseErrorCode.DelimiterNotFound, fieldName, $"Closing delimiter '{close}' not found");
+            return FailText<string>(
+                ParseErrorCode.DelimiterNotFound,
+                fieldName,
+                $"Closing delimiter '{close}' not found"
+            );
 
         var result = remaining.Slice(0, endIndex).ToString();
         if (escape.HasValue)
@@ -122,8 +164,16 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <summary>
     ///     Reads exactly N characters.
     /// </summary>
-    protected ParseAttempt<string> ReadCharsStatus(ReadOnlySpan<char> text, int count, bool trim = false, bool ltrim = false,
-        bool rtrim = false, bool lower = false, bool upper = false, string? fieldName = null)
+    protected ParseAttempt<string> ReadCharsStatus(
+        ReadOnlySpan<char> text,
+        int count,
+        bool trim = false,
+        bool ltrim = false,
+        bool rtrim = false,
+        bool lower = false,
+        bool upper = false,
+        string? fieldName = null
+    )
     {
         if (PrepareCharsStatus(text, count, fieldName) is { } failure)
             return ParseAttempt<string>.Failed(default, failure);
@@ -136,15 +186,23 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <summary>
     ///     Reads a whitespace-delimited token.
     /// </summary>
-    protected ParseAttempt<string> ReadTokenStatus(ReadOnlySpan<char> text, bool trim = false, bool ltrim = false, bool rtrim = false,
-        bool lower = false, bool upper = false, string? fieldName = null)
+    protected ParseAttempt<string> ReadTokenStatus(
+        ReadOnlySpan<char> text,
+        bool trim = false,
+        bool ltrim = false,
+        bool rtrim = false,
+        bool lower = false,
+        bool upper = false,
+        string? fieldName = null
+    )
     {
         if (CheckTextPositionStatus(text, fieldName) is { } failure)
             return ParseAttempt<string>.Failed(default, failure);
         var remaining = text[ParsePosition..];
         var length = 0;
 
-        while (length < remaining.Length && !IsTextWhitespace(remaining[length])) length++;
+        while (length < remaining.Length && !IsTextWhitespace(remaining[length]))
+            length++;
 
         var result = remaining.Slice(0, length).ToString();
         ParsePosition += length;
@@ -155,8 +213,15 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <summary>
     ///     Reads all remaining text.
     /// </summary>
-    protected ParseAttempt<string> ReadRestStatus(ReadOnlySpan<char> text, bool trim = false, bool ltrim = false, bool rtrim = false,
-        bool lower = false, bool upper = false, string? fieldName = null)
+    protected ParseAttempt<string> ReadRestStatus(
+        ReadOnlySpan<char> text,
+        bool trim = false,
+        bool ltrim = false,
+        bool rtrim = false,
+        bool lower = false,
+        bool upper = false,
+        string? fieldName = null
+    )
     {
         if (CheckTextPositionStatus(text, fieldName) is { } failure)
             return ParseAttempt<string>.Failed(default, failure);

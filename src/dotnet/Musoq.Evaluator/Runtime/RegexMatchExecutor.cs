@@ -13,9 +13,7 @@ internal static class RegexMatchExecutor
         }
         catch (RegexMatchTimeoutException cause)
         {
-            var engine = (regex.Options & RegexOptions.NonBacktracking) != 0
-                ? "NonBacktracking"
-                : "Backtracking";
+            var engine = (regex.Options & RegexOptions.NonBacktracking) != 0 ? "NonBacktracking" : "Backtracking";
             throw new RegexExecutionTimeoutException(patternOperator, engine, cause);
         }
     }

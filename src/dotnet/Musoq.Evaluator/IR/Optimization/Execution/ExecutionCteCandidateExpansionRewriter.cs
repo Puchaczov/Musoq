@@ -30,8 +30,5 @@ internal abstract class ExecutionCteCandidateExpansionRewriter : ExecutionIrRewr
         return builder.ToBlock();
     }
 
-    protected abstract bool TryExpandCandidate(
-        ExecutionNode node,
-        out IReadOnlyList<ExecutionNode> expandedNodes);
+    protected abstract bool TryExpandCandidate(ExecutionNode node, out IReadOnlyList<ExecutionNode> expandedNodes);
 }
-

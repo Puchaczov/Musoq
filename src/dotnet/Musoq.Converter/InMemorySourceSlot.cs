@@ -4,8 +4,12 @@ namespace Musoq.Converter;
 
 internal sealed class InMemorySourceSlot
 {
-    public InMemorySourceSlot(string schemaName, string sourceName, Type rowType,
-        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None)
+    public InMemorySourceSlot(
+        string schemaName,
+        string sourceName,
+        Type rowType,
+        SourceExecutionPermissions executionPermissions = SourceExecutionPermissions.None
+    )
     {
         SchemaName = InMemorySourceNames.NormalizeSchemaName(schemaName);
         SourceName = InMemorySourceNames.NormalizeSourceName(sourceName);

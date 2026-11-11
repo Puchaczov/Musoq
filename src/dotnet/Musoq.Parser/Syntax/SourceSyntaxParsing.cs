@@ -9,7 +9,8 @@ public partial class Parser
 {
     private readonly SourceCapture? _sourceCapture;
 
-    internal Parser(ILexer lexer, SourceCapture capture) : this(lexer)
+    internal Parser(ILexer lexer, SourceCapture capture)
+        : this(lexer)
     {
         _sourceCapture = capture;
     }
@@ -39,5 +40,4 @@ public partial class Parser
             return new SyntaxParseResult(sourceText, null, capture.Tokens(), lexer.Diagnostics.Append(diagnostic));
         }
     }
-
 }

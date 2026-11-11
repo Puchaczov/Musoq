@@ -13,7 +13,8 @@ public sealed partial class StructuralExecutionIrTests
     public void ReceiverFieldNull_ShouldKeepContextualType(string field, Type expectedType)
     {
         var syntax = new RecordLiteralNode([new RecordFieldNode(field, new NullNode())]);
-        var expression = (StructuralRecordLiteral)new ExpressionConverter().Convert(syntax, typeof(ContextualNullInput));
+        var expression = (StructuralRecordLiteral)
+            new ExpressionConverter().Convert(syntax, typeof(ContextualNullInput));
         var literal = (Literal)expression.Fields[0].Value;
 
         Assert.IsNull(literal.Value);

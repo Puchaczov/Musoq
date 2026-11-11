@@ -20,7 +20,7 @@ public sealed class PostOperationPlannerTests
         {
             new TakeOperation(10),
             new SkipOperation(5),
-            new SortOperation([Order("Age", typeof(int), descending: true)])
+            new SortOperation([Order("Age", typeof(int), descending: true)]),
         };
 
         var planned = planner.CreatePostOperations(operations, projectedFields);
@@ -46,7 +46,8 @@ public sealed class PostOperationPlannerTests
             isDistinct: false,
             finalProjection: null,
             ProjectedFields(),
-            out var remaining);
+            out var remaining
+        );
 
         Assert.IsNotNull(streamingSlice);
         Assert.AreEqual(3, streamingSlice.SkipCount);
@@ -79,7 +80,8 @@ public sealed class PostOperationPlannerTests
             isDistinct: false,
             finalProjection,
             ProjectedFields(),
-            out var remaining);
+            out var remaining
+        );
 
         Assert.IsNull(streamingSlice);
         Assert.AreSame(operations, remaining);
@@ -89,11 +91,13 @@ public sealed class PostOperationPlannerTests
     public void CreatePostOperation_WhenOrderKeyCannotResolve_ShouldPropagateUnsupportedReason()
     {
         var planner = new PostOperationPlanner();
-        var operation = new SortOperation(
-            [Order("Missing", typeof(string))],
-            ProjectedFields());
+        var operation = new SortOperation([Order("Missing", typeof(string))], ProjectedFields());
 
-        var result = planner.CreatePostOperation(operation, new ExecutionVariable("rows", typeof(object)), CreateShape());
+        var result = planner.CreatePostOperation(
+            operation,
+            new ExecutionVariable("rows", typeof(object)),
+            CreateShape()
+        );
 
         Assert.IsFalse(result.IsBuilt);
         StringAssert.Contains(result.UnsupportedReason, "cannot resolve order key");
@@ -105,7 +109,11 @@ public sealed class PostOperationPlannerTests
     {
         var planner = new PostOperationPlanner();
 
-        var result = planner.CreatePostOperation(new UnknownPostOperation(), new ExecutionVariable("rows", typeof(object)), CreateShape());
+        var result = planner.CreatePostOperation(
+            new UnknownPostOperation(),
+            new ExecutionVariable("rows", typeof(object)),
+            CreateShape()
+        );
 
         Assert.IsFalse(result.IsBuilt);
         StringAssert.Contains(result.UnsupportedReason, "UnknownPostOperation");
@@ -121,20 +129,23 @@ public sealed class PostOperationPlannerTests
         var order = new[] { Order("Age", typeof(int), descending: true) };
 
         var sort = AssertSupportedNode<ExecutionSortTable>(
-            planner.CreatePostOperation(new SortOperation(order, projectedFields), source, shape));
+            planner.CreatePostOperation(new SortOperation(order, projectedFields), source, shape)
+        );
         Assert.AreEqual("rowsSorted", sort.Target.Name);
         Assert.AreEqual("Age", sort.Keys[0].FieldName);
         Assert.IsTrue(sort.Keys[0].Descending);
         AssertMetadata(sort.ColumnMetadata, "rowsSorted");
 
         var topN = AssertSupportedNode<ExecutionTopNTable>(
-            planner.CreatePostOperation(new TopNOperation(4, order, projectedFields), source, shape));
+            planner.CreatePostOperation(new TopNOperation(4, order, projectedFields), source, shape)
+        );
         Assert.AreEqual("rowsTopN", topN.Target.Name);
         Assert.AreEqual(4, topN.Count);
         AssertMetadata(topN.ColumnMetadata, "rowsTopN");
 
         var topOffset = AssertSupportedNode<ExecutionTopOffsetTable>(
-            planner.CreatePostOperation(new TopOffsetOperation(2, 4, order, projectedFields), source, shape));
+            planner.CreatePostOperation(new TopOffsetOperation(2, 4, order, projectedFields), source, shape)
+        );
         Assert.AreEqual("rowsTopOffset", topOffset.Target.Name);
         Assert.AreEqual(2, topOffset.SkipCount);
         Assert.AreEqual(4, topOffset.TakeCount);
@@ -142,19 +153,22 @@ public sealed class PostOperationPlannerTests
         AssertMetadata(topOffset.ColumnMetadata, "rowsTopOffset");
 
         var skip = AssertSupportedNode<ExecutionSkipTable>(
-            planner.CreatePostOperation(new SkipOperation(2), source, shape));
+            planner.CreatePostOperation(new SkipOperation(2), source, shape)
+        );
         Assert.AreEqual("rowsSkipped", skip.Target.Name);
         Assert.AreEqual(2, skip.Count);
         AssertMetadata(skip.ColumnMetadata, "rowsSkipped");
 
         var take = AssertSupportedNode<ExecutionTakeTable>(
-            planner.CreatePostOperation(new TakeOperation(4), source, shape));
+            planner.CreatePostOperation(new TakeOperation(4), source, shape)
+        );
         Assert.AreEqual("rowsTaken", take.Target.Name);
         Assert.AreEqual(4, take.Count);
         AssertMetadata(take.ColumnMetadata, "rowsTaken");
 
         var slice = AssertSupportedNode<ExecutionSliceTable>(
-            planner.CreatePostOperation(new SliceOperation(2, 4), source, shape));
+            planner.CreatePostOperation(new SliceOperation(2, 4), source, shape)
+        );
         Assert.AreEqual("rowsSliced", slice.Target.Name);
         Assert.AreEqual(2, slice.SkipCount);
         Assert.AreEqual(4, slice.TakeCount);
@@ -184,21 +198,16 @@ public sealed class PostOperationPlannerTests
     }
 
     private static ProjectedField[] ProjectedFields() =>
-    [
-        new("Name", new ColumnRef(string.Empty, "Name", typeof(string)), 0),
-        new("Age", new ColumnRef(string.Empty, "Age", typeof(int)), 1)
-    ];
+        [
+            new("Name", new ColumnRef(string.Empty, "Name", typeof(string)), 0),
+            new("Age", new ColumnRef(string.Empty, "Age", typeof(int)), 1),
+        ];
 
     private static OrderField Order(string columnName, Type type, bool descending = false) =>
         new(new ColumnRef(string.Empty, columnName, type), descending, NullOrdering.Last);
 
     private static GeneratedRowShape CreateShape() =>
-        new(
-            "ResultRow",
-            [
-                Field("Name", 0, typeof(string)),
-                Field("Age", 1, typeof(int))
-            ]);
+        new("ResultRow", [Field("Name", 0, typeof(string)), Field("Age", 1, typeof(int))]);
 
     private static FieldBinding Field(string name, int index, Type type) =>
         new(name, name, index, type, FieldNullability.Unknown, new GeneratedFieldAccess(name));

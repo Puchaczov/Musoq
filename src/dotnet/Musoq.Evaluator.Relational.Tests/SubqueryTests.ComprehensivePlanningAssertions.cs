@@ -7,25 +7,31 @@ public partial class SubqueryTests
     [TestMethod]
     public void Comprehensive_SubqueryPlanningStrategies_ShouldExposeOptimizedShapes()
     {
-        const string predicateQuery = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-            )";
-        const string scalarQuery = @"
-            SELECT a.City, (
-                SELECT Sum(b.Population) FROM #B.entities() b
-                WHERE b.Country = a.Country
-            ) AS TotalPopulation
-            FROM #A.entities() a";
-        const string derivedQuery = @"
-            SELECT a.City, d.City
-            FROM #A.entities() a
-            CROSS APPLY (
-                SELECT c.City, c.Country FROM #C.entities() c
-                WHERE c.Country = a.Country
-            ) d";
+        const string predicateQuery = (
+            "\n"
+            + "            SELECT a.City FROM #A.entities() a\n"
+            + "            WHERE EXISTS (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "            )"
+        );
+        const string scalarQuery = (
+            "\n"
+            + "            SELECT a.City, (\n"
+            + "                SELECT Sum(b.Population) FROM #B.entities() b\n"
+            + "                WHERE b.Country = a.Country\n"
+            + "            ) AS TotalPopulation\n"
+            + "            FROM #A.entities() a"
+        );
+        const string derivedQuery = (
+            "\n"
+            + "            SELECT a.City, d.City\n"
+            + "            FROM #A.entities() a\n"
+            + "            CROSS APPLY (\n"
+            + "                SELECT c.City, c.Country FROM #C.entities() c\n"
+            + "                WHERE c.Country = a.Country\n"
+            + "            ) d"
+        );
 
         var predicate = CompileSubqueryForInspection(predicateQuery);
         var scalar = CompileSubqueryForInspection(scalarQuery);

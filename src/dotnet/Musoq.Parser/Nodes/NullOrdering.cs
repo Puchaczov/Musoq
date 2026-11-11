@@ -4,5 +4,5 @@ public enum NullOrdering
 {
     Default,
     First,
-    Last
+    Last,
 }

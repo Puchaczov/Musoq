@@ -17,17 +17,23 @@ public sealed class PreparedLikeMatcher
         string originalPattern,
         LikePatternClassificationResult classification,
         Func<string, bool>? legacyMatcher,
-        CultureInfo preparationCulture)
-        : this(originalPattern, classification, legacyMatcher, preparationCulture, Runtime.RuntimeCacheOptions.DefaultRegexTimeout)
-    {
-    }
+        CultureInfo preparationCulture
+    )
+        : this(
+            originalPattern,
+            classification,
+            legacyMatcher,
+            preparationCulture,
+            Runtime.RuntimeCacheOptions.DefaultRegexTimeout
+        ) { }
 
     internal PreparedLikeMatcher(
         string originalPattern,
         LikePatternClassificationResult classification,
         Func<string, bool>? legacyMatcher,
         CultureInfo preparationCulture,
-        TimeSpan timeout)
+        TimeSpan timeout
+    )
     {
         ArgumentNullException.ThrowIfNull(originalPattern);
         MatchTimeout = Runtime.RegexMatchTimeoutPolicy.Validate(timeout);
@@ -49,13 +55,14 @@ public sealed class PreparedLikeMatcher
         var literal = originalPattern.AsSpan(LiteralStart, LiteralLength);
         var textInfo = preparationCulture.TextInfo;
         _textInfo = textInfo;
-        _ordinalIgnoreCaseCompatible = literal.IndexOfAny('I', 'i') < 0 ||
-                                       textInfo.ToLower('I') == 'i' && textInfo.ToUpper('i') == 'I';
+        _ordinalIgnoreCaseCompatible =
+            literal.IndexOfAny('I', 'i') < 0 || textInfo.ToLower('I') == 'i' && textInfo.ToUpper('i') == 'I';
         if (_classification is { Domain: LikePatternCharacterDomain.Ascii })
         {
             _asciiLegacyMatcher = new Lazy<Func<string, bool>>(
                 () => Operators.CreateLegacyLikeMatcherUnderCulture(OriginalPattern, preparationCulture, MatchTimeout),
-                LazyThreadSafetyMode.ExecutionAndPublication);
+                LazyThreadSafetyMode.ExecutionAndPublication
+            );
         }
     }
 
@@ -71,13 +78,9 @@ public sealed class PreparedLikeMatcher
     public int LiteralLength { get; }
 
     internal bool IsSingleAsciiPrefix =>
-        _classification is
-        {
-            Domain: LikePatternCharacterDomain.Ascii,
-            Kind: LikePatternMatchKind.Prefix
-        } &&
-        LiteralLength == 1 &&
-        _ordinalIgnoreCaseCompatible;
+        _classification is { Domain: LikePatternCharacterDomain.Ascii, Kind: LikePatternMatchKind.Prefix }
+        && LiteralLength == 1
+        && _ordinalIgnoreCaseCompatible;
 
     internal char SingleAsciiPrefix => OriginalPattern[LiteralStart];
 
@@ -112,24 +115,23 @@ public sealed class PreparedLikeMatcher
                 return AsciiEqualsIgnoreCase(actual, expected);
 
             return Operators.MayMatchAsciiLiteralUnderCulture(
-                       content.AsSpan(),
-                       OriginalPattern.AsSpan(LiteralStart, LiteralLength),
-                       kind,
-                       _textInfo) &&
-                   RequiredAsciiLegacyMatcher(content);
+                    content.AsSpan(),
+                    OriginalPattern.AsSpan(LiteralStart, LiteralLength),
+                    kind,
+                    _textInfo
+                ) && RequiredAsciiLegacyMatcher(content);
         }
 
         var comparisonStart = kind == LikePatternMatchKind.Suffix ? content.Length - LiteralLength : 0;
         var comparisonLength = kind == LikePatternMatchKind.Contains ? content.Length : LiteralLength;
-        if (!_ordinalIgnoreCaseCompatible ||
-            !Operators.IsAsciiLikeSpan(content, comparisonStart, comparisonLength))
+        if (!_ordinalIgnoreCaseCompatible || !Operators.IsAsciiLikeSpan(content, comparisonStart, comparisonLength))
         {
             return Operators.MayMatchAsciiLiteralUnderCulture(
-                       content.AsSpan(),
-                       OriginalPattern.AsSpan(LiteralStart, LiteralLength),
-                       kind,
-                       _textInfo) &&
-                   RequiredAsciiLegacyMatcher(content);
+                    content.AsSpan(),
+                    OriginalPattern.AsSpan(LiteralStart, LiteralLength),
+                    kind,
+                    _textInfo
+                ) && RequiredAsciiLegacyMatcher(content);
         }
 
         var literal = OriginalPattern.AsSpan(LiteralStart, LiteralLength);
@@ -145,7 +147,7 @@ public sealed class PreparedLikeMatcher
                 ? AsciiEqualsIgnoreCase(content[^1], OriginalPattern[LiteralStart])
                 : content.AsSpan().EndsWith(literal, StringComparison.OrdinalIgnoreCase),
             LikePatternMatchKind.Contains => content.AsSpan().Contains(literal, StringComparison.OrdinalIgnoreCase),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown LIKE match kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown LIKE match kind."),
         };
     }
 
@@ -168,7 +170,7 @@ public sealed class PreparedLikeMatcher
             LikePatternMatchKind.Prefix => content.AsSpan().StartsWith(literal, StringComparison.Ordinal),
             LikePatternMatchKind.Suffix => content.AsSpan().EndsWith(literal, StringComparison.Ordinal),
             LikePatternMatchKind.Contains => content.AsSpan().Contains(literal, StringComparison.Ordinal),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown LIKE match kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown LIKE match kind."),
         };
 
         return directMatch || RequiredLegacyMatcher(content);
@@ -184,7 +186,8 @@ public sealed class PreparedLikeMatcher
 
     private bool RequiredAsciiLegacyMatcher(string content)
     {
-        var matcher = _asciiLegacyMatcher
+        var matcher =
+            _asciiLegacyMatcher
             ?? throw new InvalidOperationException("This prepared ASCII LIKE matcher has no legacy fallback.");
         return matcher.Value(content);
     }

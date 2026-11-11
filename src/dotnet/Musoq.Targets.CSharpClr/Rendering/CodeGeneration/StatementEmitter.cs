@@ -20,11 +20,13 @@ public static class StatementEmitter
     public static IfStatementSyntax CreateIf(
         ExpressionSyntax condition,
         StatementSyntax thenStatement,
-        StatementSyntax? elseStatement = null)
+        StatementSyntax? elseStatement = null
+    )
     {
         var ifStatement = SyntaxFactory.IfStatement(condition, thenStatement);
 
-        if (elseStatement != null) ifStatement = ifStatement.WithElse(SyntaxFactory.ElseClause(elseStatement));
+        if (elseStatement != null)
+            ifStatement = ifStatement.WithElse(SyntaxFactory.ElseClause(elseStatement));
 
         return ifStatement;
     }
@@ -36,9 +38,7 @@ public static class StatementEmitter
     /// <returns>A return statement syntax</returns>
     public static ReturnStatementSyntax CreateReturn(ExpressionSyntax? expression = null)
     {
-        return expression != null
-            ? SyntaxFactory.ReturnStatement(expression)
-            : SyntaxFactory.ReturnStatement();
+        return expression != null ? SyntaxFactory.ReturnStatement(expression) : SyntaxFactory.ReturnStatement();
     }
 
     /// <summary>
@@ -83,19 +83,28 @@ public static class StatementEmitter
         int startValue,
         ExpressionSyntax condition,
         ExpressionSyntax incrementor,
-        StatementSyntax body)
+        StatementSyntax body
+    )
     {
-        return SyntaxFactory.ForStatement(body)
+        return SyntaxFactory
+            .ForStatement(body)
             .WithDeclaration(
                 SyntaxFactory.VariableDeclaration(
                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
                     SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(variableName)
+                        SyntaxFactory
+                            .VariableDeclarator(variableName)
                             .WithInitializer(
                                 SyntaxFactory.EqualsValueClause(
                                     SyntaxFactory.LiteralExpression(
                                         SyntaxKind.NumericLiteralExpression,
-                                        SyntaxFactory.Literal(startValue)))))))
+                                        SyntaxFactory.Literal(startValue)
+                                    )
+                                )
+                            )
+                    )
+                )
+            )
             .WithCondition(condition)
             .WithIncrementors(SyntaxFactory.SingletonSeparatedList(incrementor));
     }
@@ -110,7 +119,8 @@ public static class StatementEmitter
     public static ForEachStatementSyntax CreateForeach(
         string variableName,
         ExpressionSyntax collectionExpression,
-        StatementSyntax body)
+        StatementSyntax body
+    )
     {
         var blockBody = body is BlockSyntax block ? block : SyntaxFactory.Block(body);
 
@@ -118,7 +128,8 @@ public static class StatementEmitter
             SyntaxFactory.IdentifierName("var"),
             variableName,
             collectionExpression,
-            blockBody);
+            blockBody
+        );
     }
 
     /// <summary>
@@ -149,5 +160,4 @@ public static class StatementEmitter
     {
         return SyntaxFactory.Block();
     }
-
 }

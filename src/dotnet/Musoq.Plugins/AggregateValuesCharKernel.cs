@@ -14,12 +14,11 @@ public static class AggregateValuesCharKernel
         public List<string>? Values;
     }
 
-    public static void Set(ref State state, char? value)
-        => AggregateCollectionCore.AddOrdered(ref state.Values, value?.ToString() ?? string.Empty);
+    public static void Set(ref State state, char? value) =>
+        AggregateCollectionCore.AddOrdered(ref state.Values, value?.ToString() ?? string.Empty);
 
-    public static string Get(in State state)
-        => AggregateCollectionCore.Join(state.Values, ",");
+    public static string Get(in State state) => AggregateCollectionCore.Join(state.Values, ",");
 
-    public static void Merge(ref State target, in State source)
-        => AggregateCollectionCore.MergeOrdered(ref target.Values, source.Values);
+    public static void Merge(ref State target, in State source) =>
+        AggregateCollectionCore.MergeOrdered(ref target.Values, source.Values);
 }

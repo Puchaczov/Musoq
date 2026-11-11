@@ -13,36 +13,53 @@ public partial class BugProbeTextRepeatFieldTests
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P3-0043")]
     public void Current_P3_0043_AppliedTextElementsUseOrdinalOrdering()
     {
-        const string query = "text LetterList { Letters: repeat chars[1] until end } select r.Name as Name, item.Value as Letter from #letters.entities() r cross apply Parse<LetterList>(r.Text) parsed cross apply parsed.Letters item order by item.Value asc";
-        using var compiled = CompileInlineTextRepeat(query,
+        const string query =
+            "text LetterList { Letters: repeat chars[1] until end } select r.Name as Name, item.Value as Letter from #letters.entities() r cross apply Parse<LetterList>(r.Text) parsed cross apply parsed.Letters item order by item.Value asc";
+        using var compiled = CompileInlineTextRepeat(
+            query,
             new TextEntity { Name = "lowercase", Text = "cab" },
-            new TextEntity { Name = "uppercase", Text = "A" });
+            new TextEntity { Name = "uppercase", Text = "A" }
+        );
         using var result = compiled.Run();
 
         TableMaterializationTestHelper.AssertColumns(result, ("Name", typeof(string)), ("Letter", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(result,
-            new object?[] { "uppercase", "A" }, new object?[] { "lowercase", "a" },
-            new object?[] { "lowercase", "b" }, new object?[] { "lowercase", "c" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            result,
+            new object?[] { "uppercase", "A" },
+            new object?[] { "lowercase", "a" },
+            new object?[] { "lowercase", "b" },
+            new object?[] { "lowercase", "c" }
+        );
     }
 
     [TestMethod]
     [DataRow("chars[1]", "ab|Z", "a", "b")]
     [DataRow("literal 'x'", "xx|Z", "x", "x")]
-    public void InlineTextRepeat_Delimiter_ShouldResumeAtTrailer(string element, string input, string first, string second)
+    public void InlineTextRepeat_Delimiter_ShouldResumeAtTrailer(
+        string element,
+        string input,
+        string first,
+        string second
+    )
     {
-        var query = $"text Letters {{ Items: repeat {element} until '|', Tail: chars[1] }} select item.Value as Value, p.Tail as Tail from #letters.entities() r cross apply Parse<Letters>(r.Text) p cross apply p.Items item";
+        var query =
+            $"text Letters {{ Items: repeat {element} until '|', Tail: chars[1] }} select item.Value as Value, p.Tail as Tail from #letters.entities() r cross apply Parse<Letters>(r.Text) p cross apply p.Items item";
         using var compiled = CompileInlineTextRepeat(query, new TextEntity { Text = input });
         using var result = compiled.Run();
 
         TableMaterializationTestHelper.AssertColumns(result, ("Value", typeof(string)), ("Tail", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
-            new object?[] { first, "Z" }, new object?[] { second, "Z" });
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
+            new object?[] { first, "Z" },
+            new object?[] { second, "Z" }
+        );
     }
 
     [TestMethod]
     public void InlineTextRepeat_EmptyInput_ShouldReturnTypedEmptyCollection()
     {
-        const string query = "text Letters { Items: repeat chars[1] until end } select item.Value as Value from #letters.entities() r cross apply Parse<Letters>(r.Text) p cross apply p.Items item";
+        const string query =
+            "text Letters { Items: repeat chars[1] until end } select item.Value as Value from #letters.entities() r cross apply Parse<Letters>(r.Text) p cross apply p.Items item";
         using var compiled = CompileInlineTextRepeat(query, new TextEntity { Text = string.Empty });
         using var result = compiled.Run();
 
@@ -55,7 +72,8 @@ public partial class BugProbeTextRepeatFieldTests
     [DataRow("optional literal 'a'")]
     public void InlineTextRepeat_NonprogressElement_ShouldRejectInsteadOfLooping(string element)
     {
-        var query = $"text Letters {{ Items: repeat {element} until end }} select p.Items as Items from #letters.entities() r cross apply Parse<Letters>(r.Text) p";
+        var query =
+            $"text Letters {{ Items: repeat {element} until end }} select p.Items as Items from #letters.entities() r cross apply Parse<Letters>(r.Text) p";
         using var compiled = CompileInlineTextRepeat(query, new TextEntity { Text = "b" });
 
         var failure = Assert.Throws<ParseException>(() =>
@@ -71,7 +89,8 @@ public partial class BugProbeTextRepeatFieldTests
     [TestMethod]
     public void InlineTextRepeat_IterationLimit_ShouldRetainFieldSpecificFailure()
     {
-        const string query = "text Letters { Items: repeat chars[1] until end } select p.Items as Items from #letters.entities() r cross apply Parse<Letters>(r.Text) p";
+        const string query =
+            "text Letters { Items: repeat chars[1] until end } select p.Items as Items from #letters.entities() r cross apply Parse<Letters>(r.Text) p";
         using var compiled = CompileInlineTextRepeat(query, new TextEntity { Text = new string('a', 10_001) });
 
         var failure = Assert.Throws<ParseException>(() =>
@@ -88,7 +107,8 @@ public partial class BugProbeTextRepeatFieldTests
     [TestMethod]
     public void InlineTextRepeat_CaptureElement_ShouldPreserveCaptureValues()
     {
-        const string query = "text Letters { Items: repeat pattern '(?<Value>[a-z])' capture (Value) until end } select p.Items as Items from #letters.entities() r cross apply Parse<Letters>(r.Text) p";
+        const string query =
+            "text Letters { Items: repeat pattern '(?<Value>[a-z])' capture (Value) until end } select p.Items as Items from #letters.entities() r cross apply Parse<Letters>(r.Text) p";
         using var compiled = CompileInlineTextRepeat(query, new TextEntity { Text = "ab" });
         using var result = compiled.Run();
 
@@ -106,7 +126,8 @@ public partial class BugProbeTextRepeatFieldTests
 
     private static object? ReadCaptureValue(object capture)
     {
-        var property = capture.GetType().GetProperty("Value")
+        var property =
+            capture.GetType().GetProperty("Value")
             ?? throw new AssertFailedException("Expected a generated Value capture property.");
         return property.GetValue(capture);
     }
@@ -116,10 +137,15 @@ public partial class BugProbeTextRepeatFieldTests
         var sources = new Dictionary<string, IEnumerable<TextEntity>>(StringComparer.OrdinalIgnoreCase)
         {
             ["letters"] = entities,
-            ["#letters"] = entities
+            ["#letters"] = entities,
         };
 
-        return InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new TextSchemaProvider(sources), LoggerResolver, TestCompilationOptions);
+        return InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new TextSchemaProvider(sources),
+            LoggerResolver,
+            TestCompilationOptions
+        );
     }
 }

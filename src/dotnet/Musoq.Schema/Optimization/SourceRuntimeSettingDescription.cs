@@ -6,4 +6,5 @@ public sealed record SourceRuntimeSettingDescription(
     bool Secret,
     SourceRuntimeSettingPhase Phases,
     SourceRuntimeSettingResolutionStatus Status,
-    string Description);
+    string Description
+);

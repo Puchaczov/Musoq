@@ -20,7 +20,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var value = CreateElementAccess(
             SyntaxFactory.IdentifierName(windowValueRead.Results.Name),
-            SyntaxFactory.IdentifierName(windowValueRead.Index.Name));
+            SyntaxFactory.IdentifierName(windowValueRead.Index.Name)
+        );
 
         if (windowValueRead.ReturnType.RequireClrType() == typeof(object))
             return value;
@@ -30,13 +31,15 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static MemberAccessExpressionSyntax CreateGroupKeyRead(ExecutionGroupKeyRead groupKeyRead)
     {
-        var key = groupKeyRead.Key
+        var key =
+            groupKeyRead.Key
             ?? throw new InvalidOperationException("Typed aggregate group key read requires a key field descriptor.");
 
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(groupKeyRead.Group.Name),
-            SyntaxFactory.IdentifierName(key.FieldName));
+            SyntaxFactory.IdentifierName(key.FieldName)
+        );
     }
 
     private static ExpressionSyntax CreateAggregateAccumulatorRead(ExecutionAggregateCall aggregateCall)
@@ -45,19 +48,29 @@ public sealed partial class ExecutionCSharpRenderer
         if (inlineGet is not null)
             return inlineGet;
 
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     CreateTypeSyntax(aggregateCall.Accumulator.Kernel.KernelType),
-                    SyntaxFactory.IdentifierName("Get")))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Argument(CreateAggregateAccumulatorAccess(aggregateCall.Group, aggregateCall.Accumulator))
-                    .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.InKeyword)))));
+                    SyntaxFactory.IdentifierName("Get")
+                )
+            )
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory
+                            .Argument(CreateAggregateAccumulatorAccess(aggregateCall.Group, aggregateCall.Accumulator))
+                            .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.InKeyword))
+                    )
+                )
+            );
     }
 
     private static MemberAccessExpressionSyntax CreateAggregateAccumulatorAccess(
         ExecutionVariable group,
-        AggregateAccumulatorField accumulator)
+        AggregateAccumulatorField accumulator
+    )
     {
         return CreateAggregateAccumulatorAccess(SyntaxFactory.IdentifierName(group.Name), accumulator);
     }
@@ -65,35 +78,42 @@ public sealed partial class ExecutionCSharpRenderer
     private static MemberAccessExpressionSyntax CreateAggregateAccumulatorAccess(
         ExpressionSyntax target,
         AggregateAccumulatorField accumulator,
-        bool followOwner = true)
+        bool followOwner = true
+    )
     {
         var owner = CreateAggregateAccumulatorOwnerAccess(target, accumulator, followOwner);
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             owner,
-            SyntaxFactory.IdentifierName(accumulator.FieldName));
+            SyntaxFactory.IdentifierName(accumulator.FieldName)
+        );
     }
 
     private static ExpressionSyntax CreateAggregateAccumulatorOwnerAccess(
         ExpressionSyntax target,
         AggregateAccumulatorField accumulator,
-        bool followOwner)
+        bool followOwner
+    )
     {
         if (!followOwner || accumulator.OwnerFieldName is null)
             return target;
 
         return SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                target,
-                SyntaxFactory.IdentifierName(accumulator.OwnerFieldName));
+            SyntaxKind.SimpleMemberAccessExpression,
+            target,
+            SyntaxFactory.IdentifierName(accumulator.OwnerFieldName)
+        );
     }
 
-    private static ExpressionSyntax CreateAggregateCapturedValueRead(ExecutionAggregateCapturedValueRead capturedValueRead)
+    private static ExpressionSyntax CreateAggregateCapturedValueRead(
+        ExecutionAggregateCapturedValueRead capturedValueRead
+    )
     {
         var read = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(capturedValueRead.Group.Name),
-            SyntaxFactory.IdentifierName(capturedValueRead.CapturedField.FieldName));
+            SyntaxFactory.IdentifierName(capturedValueRead.CapturedField.FieldName)
+        );
 
         return CastIfNeeded(read, capturedValueRead.ReturnType);
     }
@@ -102,15 +122,15 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return CreateElementAccess(
             SyntaxFactory.IdentifierName("_tableResults"),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(tableIndex)));
+            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(tableIndex))
+        );
     }
 
-    private ExpressionSyntax RenderStoredTableRows(
-        ExecutionStoredTableRows storedRows,
-        ExecutionRenderContext context)
+    private ExpressionSyntax RenderStoredTableRows(ExecutionStoredTableRows storedRows, ExecutionRenderContext context)
     {
-        return context.Session.DeclaredStoredRowsCaches.Contains(storedRows.TableIndex) &&
-               context.Session.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName)
+        return
+            context.Session.DeclaredStoredRowsCaches.Contains(storedRows.TableIndex)
+            && context.Session.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName)
             ? CreateIdentifierName(cacheName)
             : CreateStoredTableRowsRead(storedRows, context);
     }
@@ -123,89 +143,112 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             CreateStoredTableRead(tableIndex),
-            SyntaxFactory.IdentifierName("Rows"));
+            SyntaxFactory.IdentifierName("Rows")
+        );
     }
 
-    private ExpressionSyntax RenderRowPresence(
-        ExecutionRowPresence rowPresence,
-        ExecutionRenderContext context)
+    private ExpressionSyntax RenderRowPresence(ExecutionRowPresence rowPresence, ExecutionRenderContext context)
     {
-        if (rowPresence.PresenceSource is ExecutionLiteral
-            { Value: { Kind: ExecutionConstantKind.Boolean, UnsignedInteger: 1 } })
-            return SyntaxFactory.LiteralExpression(rowPresence.IsPresent
-                ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
+        if (
+            rowPresence.PresenceSource is ExecutionLiteral
+            {
+                Value: { Kind: ExecutionConstantKind.Boolean, UnsignedInteger: 1 }
+            }
+        )
+            return SyntaxFactory.LiteralExpression(
+                rowPresence.IsPresent ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression
+            );
 
         var sourceType = rowPresence.PresenceSource.ReturnType.RequireClrType();
         if (Nullable.GetUnderlyingType(sourceType) != null)
         {
-            var hasValue = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+            var hasValue = SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.ParenthesizedExpression(RenderExpression(rowPresence.PresenceSource, context)),
-                SyntaxFactory.IdentifierName("HasValue"));
-            return rowPresence.IsPresent ? hasValue : SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, hasValue);
+                SyntaxFactory.IdentifierName("HasValue")
+            );
+            return rowPresence.IsPresent
+                ? hasValue
+                : SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, hasValue);
         }
 
         var boxedSource = SyntaxFactory.CastExpression(
             CreateTypeSyntax(typeof(object)),
-            SyntaxFactory.ParenthesizedExpression(RenderExpression(rowPresence.PresenceSource, context)));
+            SyntaxFactory.ParenthesizedExpression(RenderExpression(rowPresence.PresenceSource, context))
+        );
         var nullLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-        var kind = rowPresence.IsPresent
-            ? SyntaxKind.NotEqualsExpression
-            : SyntaxKind.EqualsExpression;
+        var kind = rowPresence.IsPresent ? SyntaxKind.NotEqualsExpression : SyntaxKind.EqualsExpression;
 
-        return SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.BinaryExpression(kind, boxedSource, nullLiteral));
+        return SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(kind, boxedSource, nullLiteral));
     }
 
     private ExpressionSyntax CreateStoredTableRowsRead(
         ExecutionStoredTableRows storedRows,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        if (storedRows.GeneratedRowShape != null &&
-            TryGetTypedStoredTableResult(storedRows.TableIndex, storedRows.GeneratedRowShape, context, out _))
+        if (
+            storedRows.GeneratedRowShape != null
+            && TryGetTypedStoredTableResult(storedRows.TableIndex, storedRows.GeneratedRowShape, context, out _)
+        )
         {
             return CreateCteRowResultSlotAccess(storedRows.TableIndex);
         }
 
-        var rows = storedRows.GeneratedRowShape == null
-            ? CreateStoredTableRowsRead(storedRows.TableIndex, context)
-            : SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                CreateStoredTableRead(storedRows.TableIndex),
-                SyntaxFactory.IdentifierName("Rows"));
+        var rows =
+            storedRows.GeneratedRowShape == null
+                ? CreateStoredTableRowsRead(storedRows.TableIndex, context)
+                : SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    CreateStoredTableRead(storedRows.TableIndex),
+                    SyntaxFactory.IdentifierName("Rows")
+                );
 
         if (storedRows.GeneratedRowShape == null)
         {
             return rows;
         }
 
-        return SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
-                nameof(EvaluationHelper.CastGeneratedRows),
-                storedRows.GeneratedRowShape.TypeName))
+        return SyntaxFactory
+            .InvocationExpression(
+                CreateGenericEvaluationHelperMemberAccess(
+                    nameof(EvaluationHelper.CastGeneratedRows),
+                    storedRows.GeneratedRowShape.TypeName
+                )
+            )
             .WithArgumentList(CreateArgumentList(rows));
     }
 
     private ExpressionSyntax RenderArrayAccess(ExecutionArrayAccess access, ExecutionRenderContext context) =>
         new ArrayAccessSyntax(this, context).Render(access);
 
-    private static ObjectCreationExpressionSyntax RenderIndexedHashRowCreate(ExecutionIndexedHashRowCreate indexedRowCreate)
+    private static ObjectCreationExpressionSyntax RenderIndexedHashRowCreate(
+        ExecutionIndexedHashRowCreate indexedRowCreate
+    )
     {
         var typeName = string.IsNullOrWhiteSpace(indexedRowCreate.GeneratedRowTypeName)
             ? CreateTypeSyntax(indexedRowCreate.ReturnType)
             : SyntaxFactory.ParseTypeName(indexedRowCreate.GeneratedRowTypeName);
 
-        return SyntaxFactory.ObjectCreationExpression(typeName)
-            .WithArgumentList(CreateArgumentList(
-                CreateIdentifierName(indexedRowCreate.Row.Name),
-                CreateIdentifierName(indexedRowCreate.Index.Name)));
+        return SyntaxFactory
+            .ObjectCreationExpression(typeName)
+            .WithArgumentList(
+                CreateArgumentList(
+                    CreateIdentifierName(indexedRowCreate.Row.Name),
+                    CreateIdentifierName(indexedRowCreate.Index.Name)
+                )
+            );
     }
 
     private static MemberAccessExpressionSyntax CreateIndexedHashRowMemberRead(
         ExecutionVariable indexedRow,
-        string memberName)
+        string memberName
+    )
     {
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             CreateIdentifierName(indexedRow.Name),
-            SyntaxFactory.IdentifierName(memberName));
+            SyntaxFactory.IdentifierName(memberName)
+        );
     }
 }

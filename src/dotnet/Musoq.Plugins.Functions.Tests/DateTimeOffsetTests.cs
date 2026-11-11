@@ -111,8 +111,10 @@ public class DateTimeOffsetTests
     [TestMethod]
     public void WhenTwoDateTimeOffsetsSubtracted_ShouldReturnTimeSpan()
     {
-        var result = _library.SubtractDateTimeOffsets(new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        var result = _library.SubtractDateTimeOffsets(
+            new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero)
+        );
 
         Assert.AreEqual(TimeSpan.Zero, result);
     }

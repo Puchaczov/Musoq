@@ -9,23 +9,24 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class ExploratoryFunctionsAndFixesTests
 {
-
     #region Exploration 92: Where with multiple IN clauses
 
     [TestMethod]
     public void Explore92_WhereMultipleInClauses_ShouldWork()
     {
-        const string query = @"
-            select p.Name
-            from #schema.first() p
-            where p.Name in ('John', 'Jane') and p.Age in (25, 30)";
+        const string query = (
+            "\n"
+            + "            select p.Name\n"
+            + "            from #schema.first() p\n"
+            + "            where p.Name in ('John', 'Jane') and p.Age in (25, 30)"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "John", Age = 30 },
             new() { Name = "Jane", Age = 25 },
             new() { Name = "Bob", Age = 30 },
-            new() { Name = "Alice", Age = 35 }
+            new() { Name = "Alice", Age = 35 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -42,15 +43,17 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore95_MixedAggregatesWithWhere_ShouldWork()
     {
-        const string query = @"
-            select
-                o.OrderId,
-                Count(i.ProductName) as ItemCount,
-                Sum(i.Price) as TotalPrice
-            from #schema.first() o
-            cross apply o.Items i
-            where i.Price > 5
-            group by o.OrderId";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                o.OrderId,\n"
+            + "                Count(i.ProductName) as ItemCount,\n"
+            + "                Sum(i.Price) as TotalPrice\n"
+            + "            from #schema.first() o\n"
+            + "            cross apply o.Items i\n"
+            + "            where i.Price > 5\n"
+            + "            group by o.OrderId"
+        );
 
         var source = new List<Order>
         {
@@ -59,11 +62,26 @@ public partial class ExploratoryFunctionsAndFixesTests
                 OrderId = 1,
                 Items =
                 [
-                    new OrderItem { ProductName = "Cheap", Price = 3m, Quantity = 1 },
-                    new OrderItem { ProductName = "Expensive", Price = 15m, Quantity = 1 },
-                    new OrderItem { ProductName = "Medium", Price = 8m, Quantity = 1 }
-                ]
-            }
+                    new OrderItem
+                    {
+                        ProductName = "Cheap",
+                        Price = 3m,
+                        Quantity = 1,
+                    },
+                    new OrderItem
+                    {
+                        ProductName = "Expensive",
+                        Price = 15m,
+                        Quantity = 1,
+                    },
+                    new OrderItem
+                    {
+                        ProductName = "Medium",
+                        Price = 8m,
+                        Quantity = 1,
+                    },
+                ],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -80,15 +98,17 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore96_StringComparison_CaseSensitive_ShouldWork()
     {
-        const string query = @"
-            select p.Name
-            from #schema.first() p
-            where p.Name = 'john'";
+        const string query = (
+            "\n"
+            + "            select p.Name\n"
+            + "            from #schema.first() p\n"
+            + "            where p.Name = 'john'"
+        );
 
         var source = new List<Person>
         {
             new() { Name = "John", Age = 30 },
-            new() { Name = "john", Age = 25 }
+            new() { Name = "john", Age = 25 },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -107,21 +127,33 @@ public partial class ExploratoryFunctionsAndFixesTests
     [TestMethod]
     public void Explore110_ComplexCombinedQuery_ShouldWork()
     {
-        const string query = @"
-            select
-                p.Name,
-                ToUpper(t.Value) as TagUpper,
-                p.Age * 2 as DoubleAge
-            from #schema.first() p
-            cross apply p.Tags t
-            where p.Age >= 25 and t.Value like '%a%'
-            order by t.Value asc
-            take 5";
+        const string query = (
+            "\n"
+            + "            select\n"
+            + "                p.Name,\n"
+            + "                ToUpper(t.Value) as TagUpper,\n"
+            + "                p.Age * 2 as DoubleAge\n"
+            + "            from #schema.first() p\n"
+            + "            cross apply p.Tags t\n"
+            + "            where p.Age >= 25 and t.Value like '%a%'\n"
+            + "            order by t.Value asc\n"
+            + "            take 5"
+        );
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["admin", "data", "xyz"] },
-            new() { Name = "Jane", Age = 20, Tags = ["admin"] }
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Tags = ["admin", "data", "xyz"],
+            },
+            new()
+            {
+                Name = "Jane",
+                Age = 20,
+                Tags = ["admin"],
+            },
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -132,5 +164,4 @@ public partial class ExploratoryFunctionsAndFixesTests
     }
 
     #endregion
-
 }

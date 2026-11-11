@@ -36,7 +36,7 @@ public partial class AdditionalNodesTests
         var fields = new[]
         {
             new FieldNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, "col1"),
-            new FieldNode(new AccessColumnNode("col2", string.Empty, TextSpan.Empty), 1, "col2")
+            new FieldNode(new AccessColumnNode("col2", string.Empty, TextSpan.Empty), 1, "col2"),
         };
 
         // Act
@@ -50,10 +50,7 @@ public partial class AdditionalNodesTests
     public void GroupByNode_ToString_ShouldStartWithGroupBy()
     {
         // Arrange
-        var fields = new[]
-        {
-            new FieldNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, "col1")
-        };
+        var fields = new[] { new FieldNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, "col1") };
         var node = new GroupByNode(fields, null);
 
         // Act
@@ -186,7 +183,7 @@ public partial class AdditionalNodesTests
     public void WhenOrderByNode_ShouldReturnString()
     {
         var node = new OrderByNode([
-            new FieldOrderedNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, null, Order.Ascending)
+            new FieldOrderedNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, null, Order.Ascending),
         ]);
 
         Assert.AreEqual("order by col1", node.ToString());
@@ -196,7 +193,7 @@ public partial class AdditionalNodesTests
     public void WhenOrderByDescendingNode_ShouldReturnString()
     {
         var node = new OrderByNode([
-            new FieldOrderedNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, null, Order.Descending)
+            new FieldOrderedNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, null, Order.Descending),
         ]);
 
         Assert.AreEqual("order by col1 desc", node.ToString());
@@ -207,7 +204,7 @@ public partial class AdditionalNodesTests
     {
         var node = new OrderByNode([
             new FieldOrderedNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, null, Order.Ascending),
-            new FieldOrderedNode(new AccessColumnNode("col2", string.Empty, TextSpan.Empty), 1, null, Order.Ascending)
+            new FieldOrderedNode(new AccessColumnNode("col2", string.Empty, TextSpan.Empty), 1, null, Order.Ascending),
         ]);
 
         Assert.AreEqual("order by col1, col2", node.ToString());
@@ -218,7 +215,7 @@ public partial class AdditionalNodesTests
     {
         var node = new OrderByNode([
             new FieldOrderedNode(new AccessColumnNode("col1", string.Empty, TextSpan.Empty), 0, null, Order.Ascending),
-            new FieldOrderedNode(new AccessColumnNode("col2", string.Empty, TextSpan.Empty), 1, null, Order.Descending)
+            new FieldOrderedNode(new AccessColumnNode("col2", string.Empty, TextSpan.Empty), 1, null, Order.Descending),
         ]);
 
         Assert.AreEqual("order by col1, col2 desc", node.ToString());

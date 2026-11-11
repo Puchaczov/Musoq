@@ -10,7 +10,7 @@ public sealed class CandidatePayloadTable : ISchemaTable
     [
         new SchemaColumn(nameof(CandidatePayloadEntity.Id), 0, typeof(int)),
         new SchemaColumn(nameof(CandidatePayloadEntity.Path), 1, typeof(string)),
-        new SchemaColumn(nameof(CandidatePayloadEntity.Payload), 2, typeof(string))
+        new SchemaColumn(nameof(CandidatePayloadEntity.Payload), 2, typeof(string)),
     ];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(CandidatePayloadEntity));

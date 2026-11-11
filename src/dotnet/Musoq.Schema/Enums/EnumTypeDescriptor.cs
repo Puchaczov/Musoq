@@ -22,7 +22,8 @@ public sealed partial class EnumTypeDescriptor : IEquatable<EnumTypeDescriptor>
         EnumTypeOrigin origin,
         EnumUnderlyingKind underlyingKind,
         bool isFlags,
-        IReadOnlyList<EnumMemberDescriptor> members)
+        IReadOnlyList<EnumMemberDescriptor> members
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
         ArgumentNullException.ThrowIfNull(members);
@@ -30,8 +31,7 @@ public sealed partial class EnumTypeDescriptor : IEquatable<EnumTypeDescriptor>
         if (!Enum.IsDefined(origin))
             throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown enum type origin.");
         if (!Enum.IsDefined(underlyingKind))
-            throw new ArgumentOutOfRangeException(nameof(underlyingKind), underlyingKind,
-                "Unknown enum backing kind.");
+            throw new ArgumentOutOfRangeException(nameof(underlyingKind), underlyingKind, "Unknown enum backing kind.");
 
         var memberCopy = members.ToArray();
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -46,11 +46,13 @@ public sealed partial class EnumTypeDescriptor : IEquatable<EnumTypeDescriptor>
             if (member.Value.Kind != underlyingKind)
                 throw new ArgumentException(
                     $"Enum member '{member.Name}' uses backing kind '{member.Value.Kind}', expected '{underlyingKind}'.",
-                    nameof(members));
+                    nameof(members)
+                );
             if (!names.Add(member.Name))
                 throw new ArgumentException(
                     $"Enum member name '{member.Name}' is duplicated or differs from another member only by casing.",
-                    nameof(members));
+                    nameof(members)
+                );
 
             membersByName.Add(member.Name, member.Value);
             if (!canonicalNamesByValue.TryAdd(member.Value, member.Name))
@@ -127,15 +129,21 @@ public sealed partial class EnumTypeDescriptor : IEquatable<EnumTypeDescriptor>
         EnumTypeOrigin origin,
         EnumUnderlyingKind underlyingKind,
         bool isFlags,
-        IReadOnlyList<EnumMemberDescriptor> members)
+        IReadOnlyList<EnumMemberDescriptor> members
+    )
     {
         var builder = new StringBuilder();
         AppendText(builder, FingerprintFormat);
         AppendText(builder, displayName);
-        builder.Append((byte)origin).Append('|')
-            .Append((byte)underlyingKind).Append('|')
-            .Append(isFlags ? '1' : '0').Append('|')
-            .Append(members.Count.ToString(CultureInfo.InvariantCulture)).Append('|');
+        builder
+            .Append((byte)origin)
+            .Append('|')
+            .Append((byte)underlyingKind)
+            .Append('|')
+            .Append(isFlags ? '1' : '0')
+            .Append('|')
+            .Append(members.Count.ToString(CultureInfo.InvariantCulture))
+            .Append('|');
 
         foreach (var member in members)
         {

@@ -14,21 +14,15 @@ public partial class CteTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                ]
-            },
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("CZESTOCHOWA", "POLAND", 400)] },
             {
                 "#B",
                 [
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -41,7 +35,8 @@ public partial class CteTests
             ["CZESTOCHOWA", "POLAND"],
             ["KATOWICE", "POLAND"],
             ["BERLIN", "GERMANY"],
-            ["MUNICH", "GERMANY"]);
+            ["MUNICH", "GERMANY"]
+        );
     }
 
     [TestMethod]
@@ -52,21 +47,15 @@ public partial class CteTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400)
-                ]
-            },
+            { "#A", [new BasicEntity("WARSAW", "POLAND", 500), new BasicEntity("CZESTOCHOWA", "POLAND", 400)] },
             {
                 "#B",
                 [
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -79,7 +68,8 @@ public partial class CteTests
             ["CZESTOCHOWA", "POLAND"],
             ["KATOWICE", "POLAND"],
             ["BERLIN", "GERMANY"],
-            ["MUNICH", "GERMANY"]);
+            ["MUNICH", "GERMANY"]
+        );
     }
 
     [TestMethod]
@@ -95,7 +85,7 @@ public partial class CteTests
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400)
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                 ]
             },
             {
@@ -103,9 +93,9 @@ public partial class CteTests
                 [
                     new BasicEntity("KATOWICE", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
-                    new BasicEntity("MUNICH", "GERMANY", 350)
+                    new BasicEntity("MUNICH", "GERMANY", 350),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -128,7 +118,7 @@ public partial class CteTests
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400)
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                 ]
             },
             {
@@ -137,30 +127,29 @@ public partial class CteTests
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350),
-                    new BasicEntity("HELSINKI", "FINLAND", 500)
+                    new BasicEntity("HELSINKI", "FINLAND", 500),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["HELSINKI", "FINLAND"],
-            ["WARSAW", "POLAND"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["HELSINKI", "FINLAND"], ["WARSAW", "POLAND"]);
     }
 
     [TestMethod]
     public void CteWithSetOperatorTest()
     {
-        var query = @"
-with p as (
-    select City, Country from #A.entities() intersect (Country, City)
-    select City, Country from #B.entities()
-)
-select City, Country from p";
+        var query = (
+            "\n"
+            + "with p as (\n"
+            + "    select City, Country from #A.entities() intersect (Country, City)\n"
+            + "    select City, Country from #B.entities()\n"
+            + ")\n"
+            + "select City, Country from p"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -169,7 +158,7 @@ select City, Country from p";
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400)
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                 ]
             },
             {
@@ -178,31 +167,30 @@ select City, Country from p";
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350),
-                    new BasicEntity("HELSINKI", "FINLAND", 500)
+                    new BasicEntity("HELSINKI", "FINLAND", 500),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["HELSINKI", "FINLAND"],
-            ["WARSAW", "POLAND"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["HELSINKI", "FINLAND"], ["WARSAW", "POLAND"]);
     }
 
     [TestMethod]
     public void CteWithSetInInnerOuterExpressionTest()
     {
-        var query = @"
-with p as (
-    select City, Country from #A.entities() intersect (Country, City)
-    select City, Country from #B.entities()
-)
-select City, Country from p union (City, Country)
-select City, Country from #C.Entities()";
+        var query = (
+            "\n"
+            + "with p as (\n"
+            + "    select City, Country from #A.entities() intersect (Country, City)\n"
+            + "    select City, Country from #B.entities()\n"
+            + ")\n"
+            + "select City, Country from p union (City, Country)\n"
+            + "select City, Country from #C.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -211,7 +199,7 @@ select City, Country from #C.Entities()";
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400)
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                 ]
             },
             {
@@ -220,15 +208,10 @@ select City, Country from #C.Entities()";
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350),
-                    new BasicEntity("HELSINKI", "FINLAND", 500)
+                    new BasicEntity("HELSINKI", "FINLAND", 500),
                 ]
             },
-            {
-                "#C",
-                [
-                    new BasicEntity("NEW YORK", "USA", 250)
-                ]
-            }
+            { "#C", [new BasicEntity("NEW YORK", "USA", 250)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -239,6 +222,7 @@ select City, Country from #C.Entities()";
             table,
             ["HELSINKI", "FINLAND"],
             ["WARSAW", "POLAND"],
-            ["NEW YORK", "USA"]);
+            ["NEW YORK", "USA"]
+        );
     }
 }

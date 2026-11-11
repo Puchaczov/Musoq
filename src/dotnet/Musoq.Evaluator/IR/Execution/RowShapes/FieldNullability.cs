@@ -4,5 +4,5 @@ public enum FieldNullability
 {
     Unknown,
     Nullable,
-    NotNullable
+    NotNullable,
 }

@@ -16,8 +16,8 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
     public void IntegerSuffixMatrix_ShouldInferEveryDocumentedClrType()
     {
         const string query =
-            "select 1, 127b, 255ub, 32767s, 65535us, 42i, 4294967295ui, " +
-            "9223372036854775807l, 18446744073709551615ul from system.dual()";
+            "select 1, 127b, 255ub, 32767s, 65535us, 42i, 4294967295ui, "
+            + "9223372036854775807l, 18446744073709551615ul from system.dual()";
         var result = ParseWithDiagnostics(query);
 
         Assert.IsTrue(result.Success, result.FormatDiagnostics());
@@ -27,25 +27,40 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
         CollectionAssert.AreEqual(
             new[]
             {
-                typeof(int), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort),
-                typeof(int), typeof(uint), typeof(long), typeof(ulong)
+                typeof(int),
+                typeof(sbyte),
+                typeof(byte),
+                typeof(short),
+                typeof(ushort),
+                typeof(int),
+                typeof(uint),
+                typeof(long),
+                typeof(ulong),
             },
-            expressions.Select(static expression => expression.ReturnType).ToArray());
+            expressions.Select(static expression => expression.ReturnType).ToArray()
+        );
         CollectionAssert.AreEqual(
             new object[]
             {
-                1, (sbyte)127, (byte)255, (short)32767, (ushort)65535, 42,
-                (uint)4294967295, long.MaxValue, ulong.MaxValue
+                1,
+                (sbyte)127,
+                (byte)255,
+                (short)32767,
+                (ushort)65535,
+                42,
+                (uint)4294967295,
+                long.MaxValue,
+                ulong.MaxValue,
             },
-            expressions.Select(GetConstantValue).ToArray());
+            expressions.Select(GetConstantValue).ToArray()
+        );
     }
 
     [TestMethod]
     public void DecimalMatrix_ShouldUseDecimalForPointAndDecimalSuffixForms()
     {
         const string query =
-            "select 42d, 42D, 3.14, 1.0d, .5, .5D, " +
-            "79228162514264337593543950335d from system.dual()";
+            "select 42d, 42D, 3.14, 1.0d, .5, .5D, " + "79228162514264337593543950335d from system.dual()";
         var result = ParseWithDiagnostics(query);
 
         Assert.IsTrue(result.Success, result.FormatDiagnostics());
@@ -54,22 +69,20 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
         var expressions = GetSelectExpressions(result);
         CollectionAssert.AreEqual(
             Enumerable.Repeat(typeof(decimal), expressions.Length).ToArray(),
-            expressions.Select(static expression => expression.ReturnType).ToArray());
+            expressions.Select(static expression => expression.ReturnType).ToArray()
+        );
         CollectionAssert.AreEqual(
-            new object[]
-            {
-                42m, 42m, 3.14m, 1.0m, .5m, .5m,
-                79228162514264337593543950335m
-            },
-            expressions.Select(GetConstantValue).ToArray());
+            new object[] { 42m, 42m, 3.14m, 1.0m, .5m, .5m, 79228162514264337593543950335m },
+            expressions.Select(GetConstantValue).ToArray()
+        );
     }
 
     [TestMethod]
     public void SignedBoundaryMatrix_ShouldAcceptDocumentedNegativeRanges()
     {
         const string query =
-            "select -128b, -32768s, -2147483648, -2147483648i, " +
-            "-9223372036854775808l, -1.5, -.5 from system.dual()";
+            "select -128b, -32768s, -2147483648, -2147483648i, "
+            + "-9223372036854775808l, -1.5, -.5 from system.dual()";
         var result = ParseWithDiagnostics(query);
 
         Assert.IsTrue(result.Success, result.FormatDiagnostics());
@@ -79,17 +92,20 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
         CollectionAssert.AreEqual(
             new[]
             {
-                typeof(sbyte), typeof(short), typeof(int), typeof(int), typeof(long),
-                typeof(decimal), typeof(decimal)
+                typeof(sbyte),
+                typeof(short),
+                typeof(int),
+                typeof(int),
+                typeof(long),
+                typeof(decimal),
+                typeof(decimal),
             },
-            expressions.Select(static expression => expression.ReturnType).ToArray());
+            expressions.Select(static expression => expression.ReturnType).ToArray()
+        );
         CollectionAssert.AreEqual(
-            new object[]
-            {
-                (sbyte)-128, (short)-32768, -2147483648, -2147483648,
-                long.MinValue, -1.5m, -.5m
-            },
-            expressions.Select(GetConstantValue).ToArray());
+            new object[] { (sbyte)-128, (short)-32768, -2147483648, -2147483648, long.MinValue, -1.5m, -.5m },
+            expressions.Select(GetConstantValue).ToArray()
+        );
     }
 
     [TestMethod]
@@ -101,9 +117,12 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
 
         var expectedTypes = new[]
         {
-            TokenType.HexadecimalInteger, TokenType.HexadecimalInteger,
-            TokenType.BinaryInteger, TokenType.BinaryInteger,
-            TokenType.OctalInteger, TokenType.OctalInteger
+            TokenType.HexadecimalInteger,
+            TokenType.HexadecimalInteger,
+            TokenType.BinaryInteger,
+            TokenType.BinaryInteger,
+            TokenType.OctalInteger,
+            TokenType.OctalInteger,
         };
         var expectedValues = new[] { 0L, 255L, 0L, 10L, 0L, 63L };
         var offset = 0;
@@ -125,8 +144,7 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
     [TestMethod]
     public void AlternativeBaseQuery_ShouldPreserveLongArithmeticValues()
     {
-        const string query =
-            "select 0xFF, 0b1010, 0o77, 0xFF + 0b1010 + 0o77 + 42 from system.dual()";
+        const string query = "select 0xFF, 0b1010, 0o77, 0xFF + 0b1010 + 0o77 + 42 from system.dual()";
         var result = ParseWithDiagnostics(query);
 
         Assert.IsTrue(result.Success, result.FormatDiagnostics());
@@ -135,10 +153,12 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
         var expressions = GetSelectExpressions(result);
         CollectionAssert.AreEqual(
             new[] { typeof(long), typeof(long), typeof(long), typeof(long) },
-            expressions.Select(static expression => expression.ReturnType).ToArray());
+            expressions.Select(static expression => expression.ReturnType).ToArray()
+        );
         CollectionAssert.AreEqual(
             new object[] { 255L, 10L, 63L },
-            expressions.Take(3).Select(GetConstantValue).ToArray());
+            expressions.Take(3).Select(GetConstantValue).ToArray()
+        );
         Assert.AreEqual(370L, EvaluateConstantLong(expressions[3]));
     }
 
@@ -167,15 +187,15 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
     [TestMethod]
     public void NumericAliases_ShouldRequireWhitespaceWithoutRejectingValidAliases()
     {
-        const string query =
-            "select 1 u, 1.0 f, 0x10 hexValue, 1ub byteValue from system.dual()";
+        const string query = "select 1 u, 1.0 f, 0x10 hexValue, 1ub byteValue from system.dual()";
         var result = ParseWithDiagnostics(query);
 
         Assert.IsTrue(result.Success, result.FormatDiagnostics());
         Assert.IsEmpty(result.Diagnostics, result.FormatDiagnostics());
         CollectionAssert.AreEqual(
             new[] { typeof(int), typeof(decimal), typeof(long), typeof(byte) },
-            GetSelectExpressions(result).Select(static expression => expression.ReturnType).ToArray());
+            GetSelectExpressions(result).Select(static expression => expression.ReturnType).ToArray()
+        );
     }
 
     [TestMethod]
@@ -191,7 +211,8 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
     [DataRow("0o77ul", DiagnosticCode.MQ1008_InvalidOctalNumber)]
     public void InvalidAlternativeBaseLiterals_ShouldReportTheCompleteLiteralWithStructuredGuidance(
         string literal,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var query = $"select {literal} from system.dual()";
         var lexer = new Lexer(query, true, recoverOnError: true);
@@ -207,7 +228,8 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual(
             new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
-            diagnostic.Span);
+            diagnostic.Span
+        );
         StringAssert.Contains(diagnostic.Message, literal);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
@@ -233,7 +255,8 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual(
             new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
-            diagnostic.Span);
+            diagnostic.Span
+        );
         Assert.IsNotEmpty(diagnostic.SuggestedFixes);
     }
 
@@ -262,7 +285,8 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual(
             new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
-            diagnostic.Span);
+            diagnostic.Span
+        );
         StringAssert.Contains(diagnostic.Message, literal);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.DocsReference));
@@ -288,7 +312,8 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual(
             new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
-            diagnostic.Span);
+            diagnostic.Span
+        );
         StringAssert.Contains(diagnostic.Message, literal);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
         Assert.IsNotEmpty(diagnostic.SuggestedFixes);
@@ -314,8 +339,8 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
 
         if (expression is StarNode { Left: ConstantValueNode left, Right: ConstantValueNode right })
         {
-            return Convert.ToDecimal(left.ObjValue, CultureInfo.InvariantCulture) *
-                   Convert.ToDecimal(right.ObjValue, CultureInfo.InvariantCulture);
+            return Convert.ToDecimal(left.ObjValue, CultureInfo.InvariantCulture)
+                * Convert.ToDecimal(right.ObjValue, CultureInfo.InvariantCulture);
         }
 
         Assert.Fail($"Expected a constant numeric expression but got {expression.GetType().Name}.");
@@ -329,7 +354,8 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
             ConstantValueNode constant => Convert.ToInt64(constant.ObjValue, CultureInfo.InvariantCulture),
             AddNode add => EvaluateConstantLong(add.Left) + EvaluateConstantLong(add.Right),
             _ => throw new AssertFailedException(
-                $"Expected a constant integer expression but got {expression.GetType().Name}.")
+                $"Expected a constant integer expression but got {expression.GetType().Name}."
+            ),
         };
     }
 
@@ -340,14 +366,12 @@ public sealed class DiagnosticRework076NumericLiteralContractTests
             HexIntegerToken hex => new HexIntegerNode(hex.Value, hex.Span),
             BinaryIntegerToken binary => new BinaryIntegerNode(binary.Value, binary.Span),
             OctalIntegerToken octal => new OctalIntegerNode(octal.Value, octal.Span),
-            _ => throw new AssertFailedException($"Unexpected token type {token.TokenType}.")
+            _ => throw new AssertFailedException($"Unexpected token type {token.TokenType}."),
         };
     }
 
     private static void Drain(Lexer lexer)
     {
-        while (lexer.Next().TokenType != TokenType.EndOfFile)
-        {
-        }
+        while (lexer.Next().TokenType != TokenType.EndOfFile) { }
     }
 }

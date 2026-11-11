@@ -14,6 +14,4 @@ public partial class StressTestsInterpretationSchemasTests
 {
     private static readonly ILoggerResolver LoggerResolver = new TestsLoggerResolver();
     private static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
-
-
 }

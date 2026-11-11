@@ -20,7 +20,8 @@ internal sealed class LogicalSourceAliasAnalysisPass : ILogicalNormalizationPass
 
         return OptimizationResult<LogicalNode>.NoChange(
             plan,
-            $"Derived source context facts for {facts.SourceContexts.Length} schema scan(s) and alias-scope facts for {facts.AliasScopes.Length} logical scope(s).");
+            $"Derived source context facts for {facts.SourceContexts.Length} schema scan(s) and alias-scope facts for {facts.AliasScopes.Length} logical scope(s)."
+        );
     }
 
     private sealed class LogicalSourceAliasFactCollector
@@ -31,9 +32,7 @@ internal sealed class LogicalSourceAliasAnalysisPass : ILogicalNormalizationPass
         public LogicalSourceAliasFacts Collect(LogicalNode plan)
         {
             VisitScope(plan, "query");
-            return new LogicalSourceAliasFacts(
-                _sourceContexts.ToArray(),
-                _aliasScopes.ToArray());
+            return new LogicalSourceAliasFacts(_sourceContexts.ToArray(), _aliasScopes.ToArray());
         }
 
         private void VisitScope(LogicalNode node, string scopePath)
@@ -76,11 +75,14 @@ internal sealed class LogicalSourceAliasAnalysisPass : ILogicalNormalizationPass
 
                 case SchemaScanNode scan:
                     AddAlias(aliases, scan.Alias);
-                    _sourceContexts.Add(new LogicalSourceContextFact(
-                        scopePath,
-                        scan.Alias,
-                        scan.SourceContextId,
-                        nameof(SchemaScanNode)));
+                    _sourceContexts.Add(
+                        new LogicalSourceContextFact(
+                            scopePath,
+                            scan.Alias,
+                            scan.SourceContextId,
+                            nameof(SchemaScanNode)
+                        )
+                    );
                     break;
 
                 case ValuesScanNode values:
@@ -101,12 +103,13 @@ internal sealed class LogicalSourceAliasAnalysisPass : ILogicalNormalizationPass
                 .OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
-            _aliasScopes.Add(new LogicalAliasScopeFact(
-                scopePath,
-                aliases
-                    .OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase)
-                    .ToArray(),
-                duplicateAliases));
+            _aliasScopes.Add(
+                new LogicalAliasScopeFact(
+                    scopePath,
+                    aliases.OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase).ToArray(),
+                    duplicateAliases
+                )
+            );
         }
 
         private static void AddAlias(ICollection<string> aliases, string alias)
@@ -116,4 +119,3 @@ internal sealed class LogicalSourceAliasAnalysisPass : ILogicalNormalizationPass
         }
     }
 }
-

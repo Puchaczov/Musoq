@@ -11,65 +11,79 @@ public partial class DistinctOrderByBugTests
     [TestMethod]
     public void WhenCteHasDistinct_OuterOrderByAsc_ShouldOrderCorrectly()
     {
-        var query = @"
-            with cte as (
-                select distinct Country from #A.Entities()
-            )
-            select Country from cte order by Country asc";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select distinct Country from #A.Entities()\n"
+            + "            )\n"
+            + "            select Country from cte order by Country asc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c5", "Poland", 500),
                     new BasicEntity("c1", "Germany", 200),
                     new BasicEntity("c3", "Poland", 150),
                     new BasicEntity("c4", "France", 300),
                     new BasicEntity("c2", "Germany", 250),
-                    new BasicEntity("c6", "Austria", 100)
+                    new BasicEntity("c6", "Austria", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Austria" }, new object?[] { "France" },
-            new object?[] { "Germany" }, new object?[] { "Poland" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Austria" },
+            new object?[] { "France" },
+            new object?[] { "Germany" },
+            new object?[] { "Poland" }
+        );
     }
 
     [TestMethod]
     public void WhenCteHasDistinct_OuterOrderByDesc_ShouldOrderCorrectly()
     {
-        var query = @"
-            with cte as (
-                select distinct Country from #A.Entities()
-            )
-            select Country from cte order by Country desc";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select distinct Country from #A.Entities()\n"
+            + "            )\n"
+            + "            select Country from cte order by Country desc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c5", "Poland", 500),
                     new BasicEntity("c1", "Germany", 200),
                     new BasicEntity("c3", "Poland", 150),
                     new BasicEntity("c4", "France", 300),
                     new BasicEntity("c2", "Germany", 250),
-                    new BasicEntity("c6", "Austria", 100)
+                    new BasicEntity("c6", "Austria", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Poland" }, new object?[] { "Germany" },
-            new object?[] { "France" }, new object?[] { "Austria" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Poland" },
+            new object?[] { "Germany" },
+            new object?[] { "France" },
+            new object?[] { "Austria" }
+        );
     }
 
     #endregion
@@ -79,65 +93,79 @@ public partial class DistinctOrderByBugTests
     [TestMethod]
     public void WhenCteHasDistinct_OuterDistinctAndOrderByDesc_ShouldOrderCorrectly()
     {
-        var query = @"
-            with cte as (
-                select distinct Country from #A.Entities()
-            )
-            select distinct Country from cte order by Country desc";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select distinct Country from #A.Entities()\n"
+            + "            )\n"
+            + "            select distinct Country from cte order by Country desc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c5", "Poland", 500),
                     new BasicEntity("c1", "Germany", 200),
                     new BasicEntity("c3", "Poland", 150),
                     new BasicEntity("c4", "France", 300),
                     new BasicEntity("c2", "Germany", 250),
-                    new BasicEntity("c6", "Austria", 100)
+                    new BasicEntity("c6", "Austria", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Poland" }, new object?[] { "Germany" },
-            new object?[] { "France" }, new object?[] { "Austria" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Poland" },
+            new object?[] { "Germany" },
+            new object?[] { "France" },
+            new object?[] { "Austria" }
+        );
     }
 
     [TestMethod]
     public void WhenCteHasDistinct_OuterDistinctAndOrderByAsc_ShouldOrderCorrectly()
     {
-        var query = @"
-            with cte as (
-                select distinct Country from #A.Entities()
-            )
-            select distinct Country from cte order by Country asc";
+        var query = (
+            "\n"
+            + "            with cte as (\n"
+            + "                select distinct Country from #A.Entities()\n"
+            + "            )\n"
+            + "            select distinct Country from cte order by Country asc"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("c5", "Poland", 500),
                     new BasicEntity("c1", "Germany", 200),
                     new BasicEntity("c3", "Poland", 150),
                     new BasicEntity("c4", "France", 300),
                     new BasicEntity("c2", "Germany", 250),
-                    new BasicEntity("c6", "Austria", 100)
+                    new BasicEntity("c6", "Austria", 100),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Austria" }, new object?[] { "France" },
-            new object?[] { "Germany" }, new object?[] { "Poland" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Austria" },
+            new object?[] { "France" },
+            new object?[] { "Germany" },
+            new object?[] { "Poland" }
+        );
     }
 
     #endregion
@@ -152,7 +180,8 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Zebra"),
                     new BasicEntity("Mango"),
                     new BasicEntity("Apple"),
@@ -172,25 +201,35 @@ public partial class DistinctOrderByBugTests
                     new BasicEntity("Orange"),
                     new BasicEntity("Papaya"),
                     new BasicEntity("Quince"),
-                    new BasicEntity("Raspberry")
+                    new BasicEntity("Raspberry"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Apple" }, new object?[] { "Banana" },
-            new object?[] { "Cherry" }, new object?[] { "Date" },
-            new object?[] { "Elderberry" }, new object?[] { "Fig" },
-            new object?[] { "Grape" }, new object?[] { "Honeydew" },
-            new object?[] { "Kiwi" }, new object?[] { "Lemon" },
-            new object?[] { "Mango" }, new object?[] { "Nectarine" },
-            new object?[] { "Orange" }, new object?[] { "Papaya" },
-            new object?[] { "Quince" }, new object?[] { "Raspberry" },
-            new object?[] { "Zebra" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Apple" },
+            new object?[] { "Banana" },
+            new object?[] { "Cherry" },
+            new object?[] { "Date" },
+            new object?[] { "Elderberry" },
+            new object?[] { "Fig" },
+            new object?[] { "Grape" },
+            new object?[] { "Honeydew" },
+            new object?[] { "Kiwi" },
+            new object?[] { "Lemon" },
+            new object?[] { "Mango" },
+            new object?[] { "Nectarine" },
+            new object?[] { "Orange" },
+            new object?[] { "Papaya" },
+            new object?[] { "Quince" },
+            new object?[] { "Raspberry" },
+            new object?[] { "Zebra" }
+        );
     }
 
     [TestMethod]
@@ -201,7 +240,8 @@ public partial class DistinctOrderByBugTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Zebra"),
                     new BasicEntity("Mango"),
                     new BasicEntity("Apple"),
@@ -221,25 +261,35 @@ public partial class DistinctOrderByBugTests
                     new BasicEntity("Orange"),
                     new BasicEntity("Papaya"),
                     new BasicEntity("Quince"),
-                    new BasicEntity("Raspberry")
+                    new BasicEntity("Raspberry"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table,
-            new object?[] { "Zebra" }, new object?[] { "Raspberry" },
-            new object?[] { "Quince" }, new object?[] { "Papaya" },
-            new object?[] { "Orange" }, new object?[] { "Nectarine" },
-            new object?[] { "Mango" }, new object?[] { "Lemon" },
-            new object?[] { "Kiwi" }, new object?[] { "Honeydew" },
-            new object?[] { "Grape" }, new object?[] { "Fig" },
-            new object?[] { "Elderberry" }, new object?[] { "Date" },
-            new object?[] { "Cherry" }, new object?[] { "Banana" },
-            new object?[] { "Apple" });
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "Zebra" },
+            new object?[] { "Raspberry" },
+            new object?[] { "Quince" },
+            new object?[] { "Papaya" },
+            new object?[] { "Orange" },
+            new object?[] { "Nectarine" },
+            new object?[] { "Mango" },
+            new object?[] { "Lemon" },
+            new object?[] { "Kiwi" },
+            new object?[] { "Honeydew" },
+            new object?[] { "Grape" },
+            new object?[] { "Fig" },
+            new object?[] { "Elderberry" },
+            new object?[] { "Date" },
+            new object?[] { "Cherry" },
+            new object?[] { "Banana" },
+            new object?[] { "Apple" }
+        );
     }
 
     #endregion

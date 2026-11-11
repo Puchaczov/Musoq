@@ -14,20 +14,12 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class DescStatementTests : BasicEntityTestBase
 {
-
     [TestMethod]
     public void DescSchema_ShouldReturnAvailableMethods()
     {
         var query = "desc #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -44,14 +36,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -66,14 +51,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -97,33 +75,32 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValue(0) == "Name" && ((string)row.ReadValue(2)).Contains("String")),
-            "Name column should be of type String");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Name" && ((string)row.ReadValue(2)).Contains("String")),
+            "Name column should be of type String"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValue(0) == "Population" && ((string)row.ReadValue(2)).Contains("Decimal")),
-            "Population column should be of type Decimal");
+        Assert.IsTrue(
+            table.Any(row =>
+                (string)row.ReadValue(0) == "Population" && ((string)row.ReadValue(2)).Contains("Decimal")
+            ),
+            "Population column should be of type Decimal"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValue(0) == "Time" && ((string)row.ReadValue(2)).Contains("DateTime")),
-            "Time column should be of type DateTime");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Time" && ((string)row.ReadValue(2)).Contains("DateTime")),
+            "Time column should be of type DateTime"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValue(0) == "Id" && ((string)row.ReadValue(2)).Contains("Int32")),
-            "Id column should be of type Int32");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Id" && ((string)row.ReadValue(2)).Contains("Int32")),
+            "Id column should be of type Int32"
+        );
     }
 
     [TestMethod]
@@ -131,21 +108,18 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var expected = new BasicEntityTable().Columns.Select(column => (column.ColumnName, column.ColumnIndex)).ToArray();
-        var actual = table.Where(row => !((string)row.ReadValue(0)).Contains('.', StringComparison.Ordinal))
-            .Select(row => ((string)row.ReadValue(0), (int)row.ReadValue(1))).ToArray();
+        var expected = new BasicEntityTable()
+            .Columns.Select(column => (column.ColumnName, column.ColumnIndex))
+            .ToArray();
+        var actual = table
+            .Where(row => !((string)row.ReadValue(0)).Contains('.', StringComparison.Ordinal))
+            .Select(row => ((string)row.ReadValue(0), (int)row.ReadValue(1)))
+            .ToArray();
         CollectionAssert.AreEquivalent(expected, actual);
     }
 
@@ -163,15 +137,10 @@ public partial class DescStatementTests : BasicEntityTestBase
             Month = "January",
             Time = new DateTime(2024, 2, 29, 12, 34, 56, DateTimeKind.Utc),
             Id = 1,
-            NullableValue = 10
+            NullableValue = 10,
         };
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [entity]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [entity] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -195,14 +164,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -211,8 +173,10 @@ public partial class DescStatementTests : BasicEntityTestBase
         Assert.IsNotNull(nullableValueRow, "Should have NullableValue column");
 
         var typeName = (string)nullableValueRow.ReadValue(2);
-        Assert.IsTrue(typeName.Contains("Nullable") || typeName.Contains("Int32"),
-            $"NullableValue should be nullable type, but got: {typeName}");
+        Assert.IsTrue(
+            typeName.Contains("Nullable") || typeName.Contains("Int32"),
+            $"NullableValue should be nullable type, but got: {typeName}"
+        );
     }
 
     [TestMethod]
@@ -220,14 +184,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities();";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -242,21 +199,12 @@ public partial class DescStatementTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("testA")
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("testB")
-                ]
-            }
+            { "#A", [new BasicEntity("testA")] },
+            { "#B", [new BasicEntity("testB")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
         Assert.AreEqual(1, table.Columns.Count(), "Should have 1 column");
@@ -267,12 +215,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -286,14 +229,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -308,14 +244,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -324,8 +253,10 @@ public partial class DescStatementTests : BasicEntityTestBase
         if (arrayRow != null)
         {
             var typeName = (string)arrayRow.ReadValue(2);
-            Assert.IsTrue(typeName.Contains("Int32[]") || typeName.Contains("Array"),
-                $"Array column should show array type, but got: {typeName}");
+            Assert.IsTrue(
+                typeName.Contains("Int32[]") || typeName.Contains("Array"),
+                $"Array column should show array type, but got: {typeName}"
+            );
         }
     }
 
@@ -334,14 +265,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -350,8 +274,7 @@ public partial class DescStatementTests : BasicEntityTestBase
         Assert.IsNotNull(selfRow, "Should have Self column");
 
         var typeName = (string)selfRow.ReadValue(2);
-        Assert.Contains("BasicEntity",
-            typeName, $"Self column should show BasicEntity type, but got: {typeName}");
+        Assert.Contains("BasicEntity", typeName, $"Self column should show BasicEntity type, but got: {typeName}");
     }
 
     [TestMethod]
@@ -359,14 +282,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -375,25 +291,20 @@ public partial class DescStatementTests : BasicEntityTestBase
         if (dictRow != null)
         {
             var typeName = (string)dictRow.ReadValue(2);
-            Assert.Contains("Dictionary",
-                typeName, $"Dictionary column should show Dictionary type, but got: {typeName}");
+            Assert.Contains(
+                "Dictionary",
+                typeName,
+                $"Dictionary column should show Dictionary type, but got: {typeName}"
+            );
         }
     }
-
 
     [TestMethod]
     public void DescSchemaMethodWithParentheses_CaseInsensitive_ShouldWork()
     {
         var query = "DESC #A.ENTITIES()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -410,24 +321,26 @@ public partial class DescStatementTests : BasicEntityTestBase
         {
             { "Id", typeof(int) },
             { "Name", typeof(string) },
-            { "Value", typeof(decimal) }
+            { "Value", typeof(decimal) },
         };
 
         var values = new List<dynamic>
         {
             CreateDynamicObject(1, "First", 10.5m),
-            CreateDynamicObject(2, "Second", 20.5m)
+            CreateDynamicObject(2, "Second", 20.5m),
         };
 
         var schemaProvider = new AnySchemaNameProvider(
             new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
             {
-                { "dynamic", (schema, values) }
-            }, _ =>
-            [
-                new SchemaMethodInfo("method1", ConstructorInfo.Empty()),
-                new SchemaMethodInfo("method2", ConstructorInfo.Empty())
-            ]);
+                { "dynamic", (schema, values) },
+            },
+            _ =>
+                [
+                    new SchemaMethodInfo("method1", ConstructorInfo.Empty()),
+                    new SchemaMethodInfo("method2", ConstructorInfo.Empty()),
+                ]
+        );
 
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
         var table = vm.Run(TestContext.CancellationToken);
@@ -456,12 +369,14 @@ public partial class DescStatementTests : BasicEntityTestBase
         var schemaProvider = new AnySchemaNameProvider(
             new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
             {
-                { "dynamic", (schema, values) }
-            }, _ =>
-            [
-                new SchemaMethodInfo("method", ConstructorInfo.Empty()),
-                new SchemaMethodInfo("method", constructors[0])
-            ]);
+                { "dynamic", (schema, values) },
+            },
+            _ =>
+                [
+                    new SchemaMethodInfo("method", ConstructorInfo.Empty()),
+                    new SchemaMethodInfo("method", constructors[0]),
+                ]
+        );
 
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
         var table = vm.Run(TestContext.CancellationToken);
@@ -475,12 +390,21 @@ public partial class DescStatementTests : BasicEntityTestBase
         Assert.IsNull(table[0].ReadValue(3), "Should contain 'method' as fourth overload");
 
         Assert.AreEqual("method", table[1].ReadValue(0), "Should contain 'method()' as first overload");
-        Assert.AreEqual("Id: System.Int32", table[1].ReadValue(1),
-            "Should pass 'System.Int32: Id' as first parameter of second overload");
-        Assert.AreEqual("Name: System.String", table[1].ReadValue(2),
-            "Should pass 'System.String: Name' as second parameter of second overload");
-        Assert.AreEqual("Value: System.Decimal", table[1].ReadValue(3),
-            "Should pass 'System.Decimal: Value' as third parameter of second overload");
+        Assert.AreEqual(
+            "Id: System.Int32",
+            table[1].ReadValue(1),
+            "Should pass 'System.Int32: Id' as first parameter of second overload"
+        );
+        Assert.AreEqual(
+            "Name: System.String",
+            table[1].ReadValue(2),
+            "Should pass 'System.String: Name' as second parameter of second overload"
+        );
+        Assert.AreEqual(
+            "Value: System.Decimal",
+            table[1].ReadValue(3),
+            "Should pass 'System.Decimal: Value' as third parameter of second overload"
+        );
     }
 
     [TestMethod]
@@ -488,11 +412,7 @@ public partial class DescStatementTests : BasicEntityTestBase
     {
         var query = "desc #dynamic.method(0, 'test', 10.5d)";
 
-        var schema = new Dictionary<string, Type>
-        {
-            { "Column1", typeof(double) },
-            { "Column2", typeof(string) }
-        };
+        var schema = new Dictionary<string, Type> { { "Column1", typeof(double) }, { "Column2", typeof(string) } };
         var values = new List<dynamic>();
 
         var constructors = TypeHelper.GetConstructorsFor<TypeWithConstructor>();
@@ -502,11 +422,10 @@ public partial class DescStatementTests : BasicEntityTestBase
         var schemaProvider = new AnySchemaNameProvider(
             new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
             {
-                { "dynamic", (schema, values) }
-            }, _ =>
-            [
-                new SchemaMethodInfo("method", constructors[0])
-            ]);
+                { "dynamic", (schema, values) },
+            },
+            _ => [new SchemaMethodInfo("method", constructors[0])]
+        );
 
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
         var table = vm.Run(TestContext.CancellationToken);
@@ -526,7 +445,6 @@ public partial class DescStatementTests : BasicEntityTestBase
         Assert.AreEqual(1, table[1].ReadValue(1), "Name column should have index 1");
         Assert.AreEqual("System.String", table[1].ReadValue(2), "Name column should be of type System.String");
     }
-
 
     private static dynamic CreateDynamicObject(int id, string name, decimal value)
     {

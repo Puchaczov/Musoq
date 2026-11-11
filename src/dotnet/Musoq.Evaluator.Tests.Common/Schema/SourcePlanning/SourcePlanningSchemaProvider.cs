@@ -13,7 +13,8 @@ public sealed class SourcePlanningSchemaProvider : ISchemaProvider
     public SourcePlanningSchemaProvider(
         SourcePlanningMode mode,
         IReadOnlyDictionary<string, IReadOnlyList<SourcePlanningEntity>> rowsBySchema,
-        SourcePlanningRecorder? recorder = null)
+        SourcePlanningRecorder? recorder = null
+    )
     {
         _mode = mode;
         _rowsBySchema = rowsBySchema;
@@ -30,8 +31,10 @@ public sealed class SourcePlanningSchemaProvider : ISchemaProvider
 
     public ISchema GetSchema(string schema)
     {
-        if (!_rowsBySchema.TryGetValue(schema, out var rows) &&
-            !_rowsBySchema.TryGetValue(NormalizeSchemaName(schema), out rows))
+        if (
+            !_rowsBySchema.TryGetValue(schema, out var rows)
+            && !_rowsBySchema.TryGetValue(NormalizeSchemaName(schema), out rows)
+        )
         {
             throw new KeyNotFoundException($"No source-planning test schema rows registered for '{schema}'.");
         }
@@ -42,32 +45,36 @@ public sealed class SourcePlanningSchemaProvider : ISchemaProvider
     public static SourcePlanningSchemaProvider CreateSingle(
         SourcePlanningMode mode,
         IReadOnlyList<SourcePlanningEntity> rows,
-        string schemaName = "#sp")
+        string schemaName = "#sp"
+    )
     {
         return new SourcePlanningSchemaProvider(
             mode,
             new Dictionary<string, IReadOnlyList<SourcePlanningEntity>>(StringComparer.OrdinalIgnoreCase)
             {
-                [schemaName] = rows
-            });
+                [schemaName] = rows,
+            }
+        );
     }
 
     public static IReadOnlyDictionary<string, IReadOnlyList<SourcePlanningEntity>> CreatePair(
-        IReadOnlyList<SourcePlanningEntity> rows)
+        IReadOnlyList<SourcePlanningEntity> rows
+    )
     {
         return new Dictionary<string, IReadOnlyList<SourcePlanningEntity>>(StringComparer.OrdinalIgnoreCase)
         {
             ["#left"] = rows,
             ["#right"] = rows.Select(row => new SourcePlanningEntity
-            {
-                Id = row.Id + 1000,
-                Name = $"Right-{row.Name}",
-                Category = row.Category,
-                Score = row.Score + 7,
-                CreatedAt = row.CreatedAt.AddDays(1),
-                JoinKey = row.JoinKey,
-                ExpensivePayload = $"Right-{row.ExpensivePayload}"
-            }).ToArray()
+                {
+                    Id = row.Id + 1000,
+                    Name = $"Right-{row.Name}",
+                    Category = row.Category,
+                    Score = row.Score + 7,
+                    CreatedAt = row.CreatedAt.AddDays(1),
+                    JoinKey = row.JoinKey,
+                    ExpensivePayload = $"Right-{row.ExpensivePayload}",
+                })
+                .ToArray(),
         };
     }
 

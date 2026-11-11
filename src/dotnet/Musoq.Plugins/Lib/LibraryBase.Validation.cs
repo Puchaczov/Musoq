@@ -10,7 +10,8 @@ public partial class LibraryBase
     // Email regex pattern based on RFC 5322 simplified version
     private static readonly Regex EmailRegex = new(
         @"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled
+    );
 
     private static bool? ValidateNonEmptyString(string? value, Func<string, bool> validator)
     {
@@ -45,12 +46,17 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidUrl(string? value)
     {
-        return ValidateNonEmptyString(value, v =>
-            Uri.TryCreate(v, UriKind.Absolute, out var uriResult) &&
-            (uriResult.Scheme == Uri.UriSchemeHttp ||
-             uriResult.Scheme == Uri.UriSchemeHttps ||
-             uriResult.Scheme == Uri.UriSchemeFtp ||
-             uriResult.Scheme == "ftps"));
+        return ValidateNonEmptyString(
+            value,
+            v =>
+                Uri.TryCreate(v, UriKind.Absolute, out var uriResult)
+                && (
+                    uriResult.Scheme == Uri.UriSchemeHttp
+                    || uriResult.Scheme == Uri.UriSchemeHttps
+                    || uriResult.Scheme == Uri.UriSchemeFtp
+                    || uriResult.Scheme == "ftps"
+                )
+        );
     }
 
     /// <summary>
@@ -75,18 +81,21 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidJson(string? value)
     {
-        return ValidateNonEmptyString(value, v =>
-        {
-            try
+        return ValidateNonEmptyString(
+            value,
+            v =>
             {
-                using var doc = JsonDocument.Parse(v);
-                return true;
+                try
+                {
+                    using var doc = JsonDocument.Parse(v);
+                    return true;
+                }
+                catch (JsonException)
+                {
+                    return false;
+                }
             }
-            catch (JsonException)
-            {
-                return false;
-            }
-        });
+        );
     }
 
     /// <summary>
@@ -98,19 +107,22 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidXml(string? value)
     {
-        return ValidateNonEmptyString(value, v =>
-        {
-            try
+        return ValidateNonEmptyString(
+            value,
+            v =>
             {
-                var doc = new XmlDocument();
-                doc.LoadXml(v);
-                return true;
+                try
+                {
+                    var doc = new XmlDocument();
+                    doc.LoadXml(v);
+                    return true;
+                }
+                catch (XmlException)
+                {
+                    return false;
+                }
             }
-            catch (XmlException)
-            {
-                return false;
-            }
-        });
+        );
     }
 
     /// <summary>
@@ -204,10 +216,10 @@ public partial class LibraryBase
             return false;
 
         var trimmed = value.Trim();
-        return trimmed.Equals("true", StringComparison.OrdinalIgnoreCase) ||
-               trimmed.Equals("false", StringComparison.OrdinalIgnoreCase) ||
-               trimmed.Equals("yes", StringComparison.OrdinalIgnoreCase) ||
-               trimmed.Equals("no", StringComparison.OrdinalIgnoreCase) ||
-               trimmed is "1" or "0";
+        return trimmed.Equals("true", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals("false", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals("yes", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals("no", StringComparison.OrdinalIgnoreCase)
+            || trimmed is "1" or "0";
     }
 }

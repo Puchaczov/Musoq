@@ -21,7 +21,8 @@ public sealed class InClauseFrozenSetGeneratedCodeTests : BasicEntityTestBase
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
         Assert.Contains("using System.Collections.Frozen;", inspection.GeneratedCSharpCode);

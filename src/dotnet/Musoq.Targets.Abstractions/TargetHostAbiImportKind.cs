@@ -13,5 +13,5 @@ internal enum TargetHostAbiImportKind
     LikeMatcher = 8,
     RLikeMatcher = 9,
     ByteBufferSnapshot = 10,
-    InterpretationStatus = 11
+    InterpretationStatus = 11,
 }

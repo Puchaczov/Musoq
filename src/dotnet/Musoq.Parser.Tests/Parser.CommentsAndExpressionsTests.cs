@@ -14,11 +14,11 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentAtTheBegining_ShouldParse()
     {
         var query = """
-                    --some comment
-                    select
-                        1
-                    from #some.a() --some comment
-                    """;
+            --some comment
+            select
+                1
+            from #some.a() --some comment
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -30,10 +30,10 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentAfterColumn_ShouldParse()
     {
         var query = """
-                    select
-                        1 --some comment
-                    from #some.a()
-                    """;
+            select
+                1 --some comment
+            from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -45,10 +45,10 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentAfterQuery_ShouldParse()
     {
         var query = """
-                    select
-                        1
-                    from #some.a() --some comment
-                    """;
+            select
+                1
+            from #some.a() --some comment
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -60,11 +60,11 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentAtTheNewLineAfterQuery_ShouldParse()
     {
         var query = """
-                    select
-                        1
-                    from #some.a()
-                    --some comment
-                    """;
+            select
+                1
+            from #some.a()
+            --some comment
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -76,11 +76,11 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentAfterColumnAndAtTheNextLine_ShouldParse()
     {
         var query = """
-                    select
-                        1 --some comment
-                        --some comment
-                    from #some.a()
-                    """;
+            select
+                1 --some comment
+                --some comment
+            from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -92,10 +92,10 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentBetweenKeywords_ShouldParse()
     {
         var query = """
-                    select --some comment
-                        1
-                    from #some.a()
-                    """;
+            select --some comment
+                1
+            from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -107,10 +107,10 @@ public class ParserCommentsAndExpressionsTests
     public void WhenMultipleCommentsOnSameLine_ShouldParse()
     {
         var query = """
-                    select --first comment --second comment
-                        1
-                    from #some.a()
-                    """;
+            select --first comment --second comment
+                1
+            from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -122,10 +122,10 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentContainsSpecialCharacters_ShouldParse()
     {
         var query = """
-                    select
-                        1
-                    from #some.a() --comment with !@#$%^&*()
-                    """;
+            select
+                1
+            from #some.a() --comment with !@#$%^&*()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -137,10 +137,10 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentContainsSQLKeywords_ShouldParse()
     {
         var query = """
-                    select
-                        1
-                    from #some.a() --comment containing SELECT FROM WHERE
-                    """;
+            select
+                1
+            from #some.a() --comment containing SELECT FROM WHERE
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -152,10 +152,10 @@ public class ParserCommentsAndExpressionsTests
     public void WhenEmptyComment_ShouldParse()
     {
         var query = """
-                    select
-                        1 --
-                    from #some.a()
-                    """;
+            select
+                1 --
+            from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -167,10 +167,10 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentHasLeadingSpaces_ShouldParse()
     {
         var query = """
-                    select
-                        1 --    spaced comment
-                    from #some.a()
-                    """;
+            select
+                1 --    spaced comment
+            from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -182,12 +182,12 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentsAroundJoins_ShouldParse()
     {
         var query = """
-                    select
-                        1
-                    from #some.a() a--comment before join
-                    inner join #some.b() b--comment after join
-                        on a.id = b.id
-                    """;
+            select
+                1
+            from #some.a() a--comment before join
+            inner join #some.b() b--comment after join
+                on a.id = b.id
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -199,10 +199,10 @@ public class ParserCommentsAndExpressionsTests
     public void WhenCommentContainsDoubleHyphen_ShouldParse()
     {
         var query = """
-                    select
-                        1 -- comment with -- inside
-                    from #some.a()
-                    """;
+            select
+                1 -- comment with -- inside
+            from #some.a()
+            """;
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -431,5 +431,4 @@ public class ParserCommentsAndExpressionsTests
 
         ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
-
 }

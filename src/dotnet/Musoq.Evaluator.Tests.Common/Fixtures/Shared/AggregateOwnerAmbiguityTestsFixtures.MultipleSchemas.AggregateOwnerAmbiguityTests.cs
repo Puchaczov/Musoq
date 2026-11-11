@@ -14,17 +14,15 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class AggregateOwnerAmbiguityTestsFixtures
 {
-
     internal static GenericSchema<TLibrary> CreateSchema<TLibrary>(BasicEntity[] source)
         where TLibrary : LibraryBase, new()
     {
-        return new GenericSchema<TLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
+        return new GenericSchema<TLibrary>(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                "entities",
-                (new BasicEntityTable(), new MultiRowSource<BasicEntity>(source))
+                { "entities", (new BasicEntityTable(), new MultiRowSource<BasicEntity>(source)) },
             }
-        });
+        );
     }
 
     public sealed class AggregateLibraryA : LibraryBase
@@ -98,5 +96,4 @@ public partial class AggregateOwnerAmbiguityTestsFixtures
             }
         }
     }
-
 }

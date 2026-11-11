@@ -2,8 +2,20 @@
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
 * text=auto
+# Authored formatter inputs use the same CRLF bytes on Windows and Linux.
+*.cs text eol=crlf
+*.csx text eol=crlf
+*.csproj text eol=crlf
+*.props text eol=crlf
+*.targets text eol=crlf
+*.config text eol=crlf
+*.Config text eol=crlf
+*.xml text eol=crlf
+*.resx text eol=crlf
 # Recorded evidence must survive commits and cross-platform checkouts byte-for-byte.
 benchmarks/history/** -text -whitespace
+src/dotnet/Musoq.Evaluator.KaitaiStruct.Tests/Upstream/** -text -whitespace
+*.Designer.cs -text
 src/dotnet/Musoq.Evaluator.KaitaiStruct.Tests/Upstream/src/*.bin -text -whitespace
 src/dotnet/generated-code-samples/**/*.cs text eol=lf
 

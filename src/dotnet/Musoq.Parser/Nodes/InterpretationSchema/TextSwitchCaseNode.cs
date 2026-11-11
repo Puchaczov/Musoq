@@ -14,8 +14,11 @@ public class TextSwitchCaseNode
     public TextSwitchCaseNode(string? pattern, string typeName)
     {
         Pattern = pattern;
-        Body = new TextFieldDefinitionNode("Value", TextFieldType.SchemaReference,
-            typeName ?? throw new ArgumentNullException(nameof(typeName)));
+        Body = new TextFieldDefinitionNode(
+            "Value",
+            TextFieldType.SchemaReference,
+            typeName ?? throw new ArgumentNullException(nameof(typeName))
+        );
     }
 
     /// <summary>
@@ -27,8 +30,10 @@ public class TextSwitchCaseNode
     /// <summary>
     ///     Gets the type/schema name to parse when this case matches.
     /// </summary>
-    public string TypeName => Body.FieldType == TextFieldType.SchemaReference
-        ? Body.PrimaryValue! : throw new InvalidOperationException("Only schema-reference arms have a schema name.");
+    public string TypeName =>
+        Body.FieldType == TextFieldType.SchemaReference
+            ? Body.PrimaryValue!
+            : throw new InvalidOperationException("Only schema-reference arms have a schema name.");
 
     /// <summary>Gets the complete text type parsed when this arm is selected.</summary>
     public TextFieldDefinitionNode Body { get; }
@@ -56,8 +61,6 @@ public class TextSwitchCaseNode
 
     private static string EscapeString(string value)
     {
-        return value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("'", "\\'", StringComparison.Ordinal);
+        return value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("'", "\\'", StringComparison.Ordinal);
     }
 }

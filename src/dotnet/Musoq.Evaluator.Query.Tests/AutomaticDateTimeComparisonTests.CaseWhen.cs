@@ -10,12 +10,13 @@ public partial class AutomaticDateTimeComparisonTests
     [TestMethod]
     public void WhenComparingDateTimeColumnWithStringLiteral_ShouldAutomaticallyConvert()
     {
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where EventDate > '2023-01-01'";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where EventDate > '2023-01-01'";
 
         dynamic first = new ExpandoObject();
         first.EventDate = new DateTime(2023, 6, 15);
@@ -25,10 +26,7 @@ public partial class AutomaticDateTimeComparisonTests
         second.EventDate = new DateTime(2022, 12, 31);
         second.Name = "Event 2";
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -43,12 +41,13 @@ public partial class AutomaticDateTimeComparisonTests
     [TestMethod]
     public void WhenComparingWithVariousDateFormats_ShouldAutomaticallyConvert()
     {
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name from Events() where EventDate <= '2023-12-31'";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name from Events() where EventDate <= '2023-12-31'";
 
         dynamic first = new ExpandoObject();
         first.EventDate = new DateTime(2023, 12, 15);
@@ -58,10 +57,7 @@ public partial class AutomaticDateTimeComparisonTests
         second.EventDate = new DateTime(2024, 1, 5);
         second.Name = "Event 2";
 
-        var vm = CreateAndRunVirtualMachine(query,
-        [
-            first, second
-        ]);
+        var vm = CreateAndRunVirtualMachine(query, [first, second]);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -73,30 +69,31 @@ public partial class AutomaticDateTimeComparisonTests
         Assert.AreEqual("Event 1", table[0].ReadValues()[0]);
     }
 
-
-
     [TestMethod]
     public void WhenUsingDateTimeComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name, " +
-                             "case when EventDate > '2023-03-15' then 'Future' " +
-                             "     when EventDate = '2023-03-15' then 'Present' " +
-                             "     else 'Past' end as TimeCategory " +
-                             "from Events()";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name, "
+            + "case when EventDate > '2023-03-15' then 'Future' "
+            + "     when EventDate = '2023-03-15' then 'Present' "
+            + "     else 'Past' end as TimeCategory "
+            + "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
-            .OrderBy(x => x.Name).ToList();
+        var results = table
+            .Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
+            .OrderBy(x => x.Name)
+            .ToList();
 
         Assert.AreEqual("Earlier Event", results[0].Name);
         Assert.AreEqual("Past", results[0].Category);
@@ -112,15 +109,16 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenUsingDateTimeOffsetComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[2];
-        const string query = "table Events {" +
-                             "  EventDate: datetimeoffset," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name, " +
-                             "case when EventDate >= '2023-03-15T12:00:00+00:00' then 'Recent' " +
-                             "     else 'Old' end as Category " +
-                             "from Events()";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetimeoffset,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name, "
+            + "case when EventDate >= '2023-03-15T12:00:00+00:00' then 'Recent' "
+            + "     else 'Old' end as Category "
+            + "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
@@ -138,24 +136,27 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenUsingTimeSpanComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[4];
-        const string query = "table Events {" +
-                             "  Duration: timespan," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name, " +
-                             "case when Duration < '02:00:00' then 'Short' " +
-                             "     when Duration = '02:00:00' then 'Medium' " +
-                             "     else 'Long' end as DurationCategory " +
-                             "from Events()";
+        const string query =
+            "table Events {"
+            + "  Duration: timespan,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name, "
+            + "case when Duration < '02:00:00' then 'Short' "
+            + "     when Duration = '02:00:00' then 'Medium' "
+            + "     else 'Long' end as DurationCategory "
+            + "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, "Duration"));
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
-            .OrderBy(x => x.Name).ToList();
+        var results = table
+            .Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
+            .OrderBy(x => x.Name)
+            .ToList();
 
         Assert.AreEqual("Earlier Event", results[0].Name);
         Assert.AreEqual("Short", results[0].Category);
@@ -171,15 +172,16 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenUsingNullableDateTimeComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[1];
-        const string query = "table Events {" +
-                             "  EventDate: datetime?," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name, " +
-                             "case when EventDate <= '2023-03-15' then 'Early' " +
-                             "     else 'Late' end as Timing " +
-                             "from Events()";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime?,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name, "
+            + "case when EventDate <= '2023-03-15' then 'Early' "
+            + "     else 'Late' end as Timing "
+            + "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
@@ -201,12 +203,13 @@ public partial class AutomaticDateTimeComparisonTests
 
         foreach (var op in operators)
         {
-            var query = $"table Events {{ EventDate: {testData.TypeName}, Name: string }};" +
-                        $"couple #test.whatever with table Events as Events; " +
-                        $"select Name, " +
-                        $"case when EventDate {op} '{testData.StringEqual}' then 'Match' " +
-                        $"     else 'NoMatch' end as Result " +
-                        $"from Events()";
+            var query =
+                $"table Events {{ EventDate: {testData.TypeName}, Name: string }};"
+                + $"couple #test.whatever with table Events as Events; "
+                + $"select Name, "
+                + $"case when EventDate {op} '{testData.StringEqual}' then 'Match' "
+                + $"     else 'NoMatch' end as Result "
+                + $"from Events()";
 
             try
             {
@@ -215,7 +218,8 @@ public partial class AutomaticDateTimeComparisonTests
 
                 var expectedMatches = GetExpectedEventsForOperator(op);
                 var expected = new[] { "Earlier Event", "Equal Event", "Later Event" }
-                    .Select(name => (name, expectedMatches.Contains(name) ? "Match" : "NoMatch")).ToArray();
+                    .Select(name => (name, expectedMatches.Contains(name) ? "Match" : "NoMatch"))
+                    .ToArray();
                 var actual = table.Select(row => ((string)row.ReadValues()[0], (string)row.ReadValues()[1])).ToArray();
                 CollectionAssert.AreEquivalent(expected, actual);
             }
@@ -230,24 +234,27 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenUsingReversedComparisonInCaseWhen_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name, " +
-                             "case when '2023-03-15' < EventDate then 'After' " +
-                             "     when '2023-03-15' = EventDate then 'Same' " +
-                             "     else 'Before' end as Position " +
-                             "from Events()";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name, "
+            + "case when '2023-03-15' < EventDate then 'After' "
+            + "     when '2023-03-15' = EventDate then 'Same' "
+            + "     else 'Before' end as Position "
+            + "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Position = row.ReadValues()[1] as string })
-            .OrderBy(x => x.Name).ToList();
+        var results = table
+            .Select(row => new { Name = row.ReadValues()[0] as string, Position = row.ReadValues()[1] as string })
+            .OrderBy(x => x.Name)
+            .ToList();
 
         Assert.AreEqual("Earlier Event", results[0].Name);
         Assert.AreEqual("Before", results[0].Position);
@@ -265,22 +272,25 @@ public partial class AutomaticDateTimeComparisonTests
         foreach (var dateTimeType in DateTimeTypes)
         {
             var fieldName = dateTimeType.TypeName.Contains("timespan") ? "Duration" : "EventDate";
-            var query = $"table Events {{ {fieldName}: {dateTimeType.TypeName}, Name: string }};" +
-                        $"couple #test.whatever with table Events as Events; " +
-                        $"select Name, " +
-                        $"case when {fieldName} > '{dateTimeType.StringEarlier}' then 'NotEarliest' " +
-                        $"     else 'Earliest' end as Category " +
-                        $"from Events()";
+            var query =
+                $"table Events {{ {fieldName}: {dateTimeType.TypeName}, Name: string }};"
+                + $"couple #test.whatever with table Events as Events; "
+                + $"select Name, "
+                + $"case when {fieldName} > '{dateTimeType.StringEarlier}' then 'NotEarliest' "
+                + $"     else 'Earliest' end as Category "
+                + $"from Events()";
 
             try
             {
                 var vm = CreateAndRunVirtualMachine(query, CreateTestData(dateTimeType, fieldName));
                 var table = vm.Run(TestContext.CancellationToken);
 
-                TableMaterializationTestHelper.AssertRowsUnordered(table,
+                TableMaterializationTestHelper.AssertRowsUnordered(
+                    table,
                     ["Earlier Event", "Earliest"],
                     ["Equal Event", "NotEarliest"],
-                    ["Later Event", "NotEarliest"]);
+                    ["Later Event", "NotEarliest"]
+                );
             }
             catch (Exception ex)
             {
@@ -293,24 +303,27 @@ public partial class AutomaticDateTimeComparisonTests
     public void WhenUsingNestedCaseWhenWithDateTimeComparison_ShouldAutomaticallyConvert()
     {
         var testData = DateTimeTypes[0];
-        const string query = "table Events {" +
-                             "  EventDate: datetime," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Events as Events; " +
-                             "select Name, " +
-                             "case when EventDate > '2023-03-15' then " +
-                             "    case when EventDate > '2023-05-01' then 'VeryFuture' else 'NearFuture' end " +
-                             "else 'PastOrPresent' end as DetailedCategory " +
-                             "from Events()";
+        const string query =
+            "table Events {"
+            + "  EventDate: datetime,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Events as Events; "
+            + "select Name, "
+            + "case when EventDate > '2023-03-15' then "
+            + "    case when EventDate > '2023-05-01' then 'VeryFuture' else 'NearFuture' end "
+            + "else 'PastOrPresent' end as DetailedCategory "
+            + "from Events()";
 
         var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
 
-        var results = table.Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
-            .OrderBy(x => x.Name).ToList();
+        var results = table
+            .Select(row => new { Name = row.ReadValues()[0] as string, Category = row.ReadValues()[1] as string })
+            .OrderBy(x => x.Name)
+            .ToList();
 
         Assert.AreEqual("Earlier Event", results[0].Name);
         Assert.AreEqual("PastOrPresent", results[0].Category);
@@ -321,7 +334,4 @@ public partial class AutomaticDateTimeComparisonTests
         Assert.AreEqual("Later Event", results[2].Name);
         Assert.AreEqual("VeryFuture", results[2].Category);
     }
-
-
-
 }

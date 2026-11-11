@@ -5,19 +5,12 @@ namespace Musoq.Parser;
 
 internal static class TextPatternValidator
 {
-    public static bool TryValidate(
-        string pattern,
-        IReadOnlyList<string> captureGroups,
-        out string error)
+    public static bool TryValidate(string pattern, IReadOnlyList<string> captureGroups, out string error)
     {
         try
         {
-            var validationPattern = pattern.StartsWith(@"\G", StringComparison.Ordinal)
-                ? pattern[2..]
-                : pattern;
-            var regex = new Regex(
-                validationPattern,
-                RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
+            var validationPattern = pattern.StartsWith(@"\G", StringComparison.Ordinal) ? pattern[2..] : pattern;
+            var regex = new Regex(validationPattern, RegexOptions.CultureInvariant | RegexOptions.NonBacktracking);
             var availableGroupSet = new HashSet<string>(regex.GetGroupNames(), StringComparer.Ordinal);
             var requestedGroups = new HashSet<string>(StringComparer.Ordinal);
 

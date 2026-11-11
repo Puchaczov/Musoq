@@ -24,13 +24,7 @@ public class SemanticLogicalTests : NegativeTestsBase
         var vm = CompileQuery("SELECT Name FROM #test.people() WHERE 1 = 1");
         var table = vm.Run(CancellationToken.None);
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Alice"],
-            ["Bob"],
-            ["Charlie"],
-            ["Diana"],
-            ["Eve"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice"], ["Bob"], ["Charlie"], ["Diana"], ["Eve"]);
     }
 
     #endregion
@@ -46,14 +40,16 @@ public class SemanticLogicalTests : NegativeTestsBase
             table,
             ("Name", typeof(string)),
             ("Age", typeof(int)),
-            ("City", typeof(string)));
+            ("City", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", 25, "London"],
             ["Bob", 35, "Paris"],
             ["Charlie", 28, "London"],
             ["Diana", 42, "Berlin"],
-            ["Eve", 31, "Paris"]);
+            ["Eve", 31, "Paris"]
+        );
     }
 
     [TestMethod]
@@ -73,12 +69,14 @@ public class SemanticLogicalTests : NegativeTestsBase
     public void SL020_InnerJoinWhereNoRowsMatch_ShouldReturnZeroRows()
     {
         var vm = CompileQuery(
-            "SELECT p.Name AS PersonName, e.Name AS EmptyName FROM #test.people() p INNER JOIN #test.empty() e ON p.Id = e.Id");
+            "SELECT p.Name AS PersonName, e.Name AS EmptyName FROM #test.people() p INNER JOIN #test.empty() e ON p.Id = e.Id"
+        );
         var table = vm.Run(CancellationToken.None);
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("PersonName", typeof(string)),
-            ("EmptyName", typeof(string)));
+            ("EmptyName", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
@@ -86,38 +84,44 @@ public class SemanticLogicalTests : NegativeTestsBase
     public void SL021_LeftOuterJoinWithEmptyRightSide_ShouldReturnAllLeftRows()
     {
         var vm = CompileQuery(
-            "SELECT p.Name AS PersonName, e.Name AS EmptyName FROM #test.people() p LEFT OUTER JOIN #test.empty() e ON p.Id = e.Id");
+            "SELECT p.Name AS PersonName, e.Name AS EmptyName FROM #test.people() p LEFT OUTER JOIN #test.empty() e ON p.Id = e.Id"
+        );
         var table = vm.Run(CancellationToken.None);
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("PersonName", typeof(string)),
-            ("EmptyName", typeof(string)));
+            ("EmptyName", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", null],
             ["Bob", null],
             ["Charlie", null],
             ["Diana", null],
-            ["Eve", null]);
+            ["Eve", null]
+        );
     }
 
     [TestMethod]
     public void SL022_SelfJoin_ShouldProduceCorrectResults()
     {
         var vm = CompileQuery(
-            "SELECT a.Name AS LeftName, b.Name AS RightName FROM #test.people() a INNER JOIN #test.people() b ON a.City = b.City WHERE a.Name <> b.Name");
+            "SELECT a.Name AS LeftName, b.Name AS RightName FROM #test.people() a INNER JOIN #test.people() b ON a.City = b.City WHERE a.Name <> b.Name"
+        );
         var table = vm.Run(CancellationToken.None);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("LeftName", typeof(string)),
-            ("RightName", typeof(string)));
+            ("RightName", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["Alice", "Charlie"],
             ["Charlie", "Alice"],
             ["Bob", "Eve"],
-            ["Eve", "Bob"]);
+            ["Eve", "Bob"]
+        );
     }
 
     #endregion

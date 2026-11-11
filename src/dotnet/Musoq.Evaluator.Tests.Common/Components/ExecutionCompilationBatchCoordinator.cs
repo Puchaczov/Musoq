@@ -10,9 +10,7 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests.Components;
 
-internal readonly record struct ExecutionCompilationBatchResult(
-    BuildResult Result,
-    bool WasBatched);
+internal readonly record struct ExecutionCompilationBatchResult(BuildResult Result, bool WasBatched);
 
 /// <summary>
 /// Collects only explicitly eligible test compilations for a short bounded
@@ -30,7 +28,10 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
     private readonly AutoResetEvent _queueSignal = new(false);
     private readonly SemaphoreSlim _batchSlots = new(2, 2);
     private readonly ManualResetEventSlim _workIdle = new(true);
-    private readonly Func<IReadOnlyList<ExecutionBatchCompilationRequest>, IReadOnlyList<ExecutionBatchCompilationResult>> _batchCompiler;
+    private readonly Func<
+        IReadOnlyList<ExecutionBatchCompilationRequest>,
+        IReadOnlyList<ExecutionBatchCompilationResult>
+    > _batchCompiler;
     private readonly Func<ExecutionBatchCompilationRequest, BuildResult> _singleCompiler;
     private readonly int _maximumBatchSize;
     private readonly TimeSpan _collectionWindow;
@@ -42,12 +43,16 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
     private readonly Thread _dispatcher;
 
     internal ExecutionCompilationBatchCoordinator(
-        Func<IReadOnlyList<ExecutionBatchCompilationRequest>, IReadOnlyList<ExecutionBatchCompilationResult>> batchCompiler,
+        Func<
+            IReadOnlyList<ExecutionBatchCompilationRequest>,
+            IReadOnlyList<ExecutionBatchCompilationResult>
+        > batchCompiler,
         Func<ExecutionBatchCompilationRequest, BuildResult> singleCompiler,
         int maximumBatchSize = MaximumBatchSize,
         TimeSpan? collectionWindow = null,
         ManualResetEventSlim? collectionGate = null,
-        Action? requestEnqueued = null)
+        Action? requestEnqueued = null
+    )
     {
         _batchCompiler = batchCompiler ?? throw new ArgumentNullException(nameof(batchCompiler));
         _singleCompiler = singleCompiler ?? throw new ArgumentNullException(nameof(singleCompiler));
@@ -61,7 +66,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
         _dispatcher = new Thread(Dispatch)
         {
             IsBackground = true,
-            Name = "Musoq evaluator compilation batch dispatcher"
+            Name = "Musoq evaluator compilation batch dispatcher",
         };
         _dispatcher.Start();
     }
@@ -72,7 +77,8 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions,
         string consumerFamily = "stable-typed",
-        string batchOrigin = "test-coordinator")
+        string batchOrigin = "test-coordinator"
+    )
     {
         ArgumentNullException.ThrowIfNull(script);
         ArgumentNullException.ThrowIfNull(schemaProvider);
@@ -90,7 +96,8 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
             compilationOptions,
             ConsumerFamily: consumerFamily,
             BatchOrigin: batchOrigin,
-            EnqueuedTimestamp: Stopwatch.GetTimestamp());
+            EnqueuedTimestamp: Stopwatch.GetTimestamp()
+        );
         var pending = new PendingRequest(request);
         lock (_gate)
         {
@@ -156,8 +163,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
     {
         var batch = new List<PendingRequest>(_maximumBatchSize) { first };
         _collectionGate?.Wait();
-        var deadline = Stopwatch.GetTimestamp() +
-                       (long)(_collectionWindow.TotalSeconds * Stopwatch.Frequency);
+        var deadline = Stopwatch.GetTimestamp() + (long)(_collectionWindow.TotalSeconds * Stopwatch.Frequency);
 
         while (batch.Count < _maximumBatchSize)
         {
@@ -174,9 +180,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
             if (remaining <= 0)
                 break;
 
-            var milliseconds = Math.Max(
-                1,
-                (int)Math.Ceiling(remaining * 1000d / Stopwatch.Frequency));
+            var milliseconds = Math.Max(1, (int)Math.Ceiling(remaining * 1000d / Stopwatch.Frequency));
             _queueSignal.WaitOne(milliseconds);
         }
 
@@ -192,7 +196,8 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
         _workIdle.Reset();
         ThreadPool.QueueUserWorkItem(
             static state => ((BatchWork)state!).Run(),
-            new BatchWork(this, pending, pending.Count > 1));
+            new BatchWork(this, pending, pending.Count > 1)
+        );
     }
 
     private void Process(IReadOnlyList<PendingRequest> pending)
@@ -214,15 +219,17 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
             // remains authoritative for diagnostics and environmental failures.
         }
 
-        var resultsByKey = batchResults?
-            .GroupBy(static result => result.Key, StringComparer.Ordinal)
+        var resultsByKey = batchResults
+            ?.GroupBy(static result => result.Key, StringComparer.Ordinal)
             .ToDictionary(static group => group.Key, static group => group.Last(), StringComparer.Ordinal);
 
         foreach (var item in pending)
         {
-            if (resultsByKey is not null &&
-                resultsByKey.TryGetValue(item.Request.Key, out var batchResult) &&
-                batchResult.Result.Succeeded)
+            if (
+                resultsByKey is not null
+                && resultsByKey.TryGetValue(item.Request.Key, out var batchResult)
+                && batchResult.Result.Succeeded
+            )
             {
                 item.Complete(new ExecutionCompilationBatchResult(batchResult.Result, WasBatched: true));
                 continue;
@@ -238,9 +245,7 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
         {
             try
             {
-                item.Complete(new ExecutionCompilationBatchResult(
-                    _singleCompiler(item.Request),
-                    WasBatched: false));
+                item.Complete(new ExecutionCompilationBatchResult(_singleCompiler(item.Request), WasBatched: false));
             }
             catch (Exception exception)
             {
@@ -267,7 +272,8 @@ internal sealed class ExecutionCompilationBatchCoordinator : IDisposable
     private sealed class BatchWork(
         ExecutionCompilationBatchCoordinator owner,
         IReadOnlyList<PendingRequest> pending,
-        bool occupiedBatchSlot)
+        bool occupiedBatchSlot
+    )
     {
         public void Run()
         {
@@ -299,12 +305,15 @@ internal static class StableTypedExecutionCompilationCoordinator
 {
     private static readonly ExecutionCompilationBatchCoordinator Shared = new(
         InstanceCreator.CompileForExecutionBatch,
-        static request => InstanceCreator.CompileWithDiagnostics(
-            request.Script,
-            request.AssemblyName,
-            request.SchemaProvider,
-            request.LoggerResolver,
-            request.CompilationOptions));
+        static request =>
+            InstanceCreator.CompileWithDiagnostics(
+                request.Script,
+                request.AssemblyName,
+                request.SchemaProvider,
+                request.LoggerResolver,
+                request.CompilationOptions
+            )
+    );
 
     internal static ExecutionCompilationBatchResult Submit(
         string script,
@@ -312,7 +321,8 @@ internal static class StableTypedExecutionCompilationCoordinator
         ILoggerResolver loggerResolver,
         CompilationOptions compilationOptions,
         string consumerFamily = "stable-typed",
-        string batchOrigin = "test-coordinator")
+        string batchOrigin = "test-coordinator"
+    )
     {
         using var capture = new global::Musoq.Tests.Common.GeneratedAssemblyCapture();
         var result = Shared.Submit(
@@ -321,7 +331,8 @@ internal static class StableTypedExecutionCompilationCoordinator
             loggerResolver,
             compilationOptions,
             consumerFamily,
-            batchOrigin);
+            batchOrigin
+        );
         GeneratedExecutionIlInspection.RecordCompilation(result.Result, capture);
         return result;
     }

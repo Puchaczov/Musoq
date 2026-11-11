@@ -8,11 +8,14 @@ namespace Musoq.Plugins.Attributes;
 public sealed class CountAggregateFunctionAttribute : AggregateFunctionAttribute
 {
     /// <summary>Registers a concrete count kernel and its explicit execution permissions.</summary>
-    public CountAggregateFunctionAttribute(Type kernelType) : base(kernelType)
+    public CountAggregateFunctionAttribute(Type kernelType)
+        : base(kernelType)
     {
         Inline = true;
         EmptyResultBehavior = AggregateEmptyResultBehavior.Zero;
-        ExecutionPermissions = FunctionExecutionPermissions.ConcurrentInvocations |
-            FunctionExecutionPermissions.IndependentGroups | FunctionExecutionPermissions.EquivalentPartialMerge;
+        ExecutionPermissions =
+            FunctionExecutionPermissions.ConcurrentInvocations
+            | FunctionExecutionPermissions.IndependentGroups
+            | FunctionExecutionPermissions.EquivalentPartialMerge;
     }
 }

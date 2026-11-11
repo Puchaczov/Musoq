@@ -23,7 +23,8 @@ public sealed class QueryScopedRowRendererTests
             "select p.Name, p.Value from #queryrows.items() p",
             "query-scoped-renderer",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(result.Diagnostics.Any(static diagnostic => diagnostic.IsError), result.PlanningText);
         var code = result.GeneratedCSharpCode;
@@ -43,11 +44,13 @@ public sealed class QueryScopedRowRendererTests
             "select p.Name, p.Value from #queryrows.items() p",
             "query-scoped-execution",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(
             result.Succeeded,
-            $"{result.CaughtException}{Environment.NewLine}{string.Join(Environment.NewLine, result.Diagnostics)}");
+            $"{result.CaughtException}{Environment.NewLine}{string.Join(Environment.NewLine, result.Diagnostics)}"
+        );
         using var table = result.CompiledQuery!.Run();
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("left", table[0].ReadValue(0));
@@ -65,21 +68,22 @@ public sealed class QueryScopedRowRendererTests
             query,
             "query-scoped-entity-method-inspection",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         StringAssert.Contains(
             inspection.GeneratedCSharpCode,
-            "SourceInvocation<Musoq.Converter.Tests.QueryScopedRowsEntity>");
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains(
-            "QuerySourceInvocation<",
-            StringComparison.Ordinal));
+            "SourceInvocation<Musoq.Converter.Tests.QueryScopedRowsEntity>"
+        );
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("QuerySourceInvocation<", StringComparison.Ordinal));
         StringAssert.Contains(inspection.PlanningText, "requires the declared source entity");
 
         var result = InstanceCreator.CompileWithDiagnostics(
             query,
             "query-scoped-entity-method-execution",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         using var table = result.CompiledQuery!.Run();
@@ -94,7 +98,8 @@ public sealed class QueryScopedRowRendererTests
             "select DoubleValue(p.Value) from #queryrows.items() p",
             "query-scoped-scalar-method",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         StringAssert.Contains(inspection.GeneratedCSharpCode, "QuerySourceInvocation<");
         StringAssert.Contains(inspection.PlanningText, "used through column values only");
@@ -104,15 +109,20 @@ public sealed class QueryScopedRowRendererTests
     public void CompileForInspection_WhenOneJoinAliasRequiresEntity_ShouldFallbackOnlyThatSource()
     {
         var inspection = InstanceCreator.CompileForInspection(
-            "select a.EntityName(), b.Name from #queryrows.items() a " +
-            "inner join #queryrows.items() b on a.Value = b.Value",
+            "select a.EntityName(), b.Name from #queryrows.items() a "
+                + "inner join #queryrows.items() b on a.Value = b.Value",
             "query-scoped-entity-method-alias",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
-        Assert.AreEqual(1, CountOccurrences(
-            inspection.GeneratedCSharpCode,
-            "SourceInvocation<Musoq.Converter.Tests.QueryScopedRowsEntity>"));
+        Assert.AreEqual(
+            1,
+            CountOccurrences(
+                inspection.GeneratedCSharpCode,
+                "SourceInvocation<Musoq.Converter.Tests.QueryScopedRowsEntity>"
+            )
+        );
         Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "QuerySourceInvocation<"));
         StringAssert.Contains(inspection.GeneratedCSharpCode, "sealed class QueryRow_");
         StringAssert.Contains(inspection.PlanningText, "lifetime=EscapesScan");
@@ -122,15 +132,16 @@ public sealed class QueryScopedRowRendererTests
     public void CompileForInspection_WhenSameShapeUsesStructAndClass_ShouldEmitDistinctCarriers()
     {
         const string query =
-            "with local as (select p.Name, p.Value from #queryrows.items() p) " +
-            "select local.Name, local.Value, a.Name, a.Value from local " +
-            "inner join #queryrows.items() a on local.Value = a.Value";
+            "with local as (select p.Name, p.Value from #queryrows.items() p) "
+            + "select local.Name, local.Value, a.Name, a.Value from local "
+            + "inner join #queryrows.items() a on local.Value = a.Value";
 
         var inspection = InstanceCreator.CompileForInspection(
             query,
             "query-scoped-carrier-identity",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(inspection.Diagnostics.Any(static diagnostic => diagnostic.IsError));
         StringAssert.Contains(inspection.GeneratedCSharpCode, "readonly struct QueryRow_");
@@ -148,7 +159,8 @@ public sealed class QueryScopedRowRendererTests
             query,
             "query-scoped-zero-fields-inspection",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         StringAssert.Contains(inspection.GeneratedCSharpCode, "QuerySourceInvocation<");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "new QueryRowShape(new QueryRowField[]");
@@ -158,7 +170,8 @@ public sealed class QueryScopedRowRendererTests
             query,
             "query-scoped-zero-fields-execution",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         using var table = result.CompiledQuery!.Run();
         Assert.AreEqual(2L, table[0].ReadValue(0));
@@ -173,7 +186,8 @@ public sealed class QueryScopedRowRendererTests
             query,
             "query-scoped-predicate-field-inspection",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         StringAssert.Contains(inspection.GeneratedCSharpCode, "reader.Read<int>(0)");
         Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "reader.Read<"));
@@ -182,7 +196,8 @@ public sealed class QueryScopedRowRendererTests
             query,
             "query-scoped-predicate-field-execution",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         using var table = result.CompiledQuery!.Run();
         Assert.AreEqual(1L, table[0].ReadValue(0));
@@ -195,7 +210,8 @@ public sealed class QueryScopedRowRendererTests
             "select 1 from #queryrows.items() p order by p.Value desc",
             "query-scoped-order-field-inspection",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(inspection.Diagnostics.Any(static diagnostic => diagnostic.IsError));
         StringAssert.Contains(inspection.GeneratedCSharpCode, "reader.Read<int>(0)");
@@ -220,8 +236,10 @@ public sealed class QueryScopedRowsSchemaProvider : ISchemaProvider
 {
     public ISchema GetSchema(string schema)
     {
-        if (string.Equals(schema, "queryrows", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(schema, "#queryrows", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(schema, "queryrows", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(schema, "#queryrows", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return new QueryScopedRowsSchema();
         }
@@ -232,11 +250,7 @@ public sealed class QueryScopedRowsSchemaProvider : ISchemaProvider
 
 public sealed class QueryScopedRowsSchema : SchemaBase, IQueryScopedRowSourceSchema
 {
-    private static readonly QueryRowInput[] Inputs =
-    [
-        new("left", 1),
-        new("right", 2)
-    ];
+    private static readonly QueryRowInput[] Inputs = [new("left", 1), new("right", 2)];
 
     public QueryScopedRowsSchema()
         : base("queryrows", CreateLibrary())
@@ -248,22 +262,26 @@ public sealed class QueryScopedRowsSchema : SchemaBase, IQueryScopedRowSourceSch
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return base.DescribeSource(name, context, parameters) with
         {
-            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows
+            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
         };
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name,
-        SourceExecutionContext context, TArguments arguments)
-        => EnsureSourceType<T, QueryScopedRowsEntity>(name, new QueryScopedRowsLegacySource());
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext context,
+        TArguments arguments
+    ) => EnsureSourceType<T, QueryScopedRowsEntity>(name, new QueryScopedRowsLegacySource());
 
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
         string name,
         QueryScopedRowSourceRequest request,
-        TArguments parameters)
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
         where TArguments : struct, global::Musoq.Schema.ISourceArguments
     {
@@ -283,9 +301,7 @@ public sealed class QueryScopedRowsSchema : SchemaBase, IQueryScopedRowSourceSch
 public sealed class QueryScopedRowsLibrary : LibraryBase
 {
     [BindableMethod]
-    public string EntityName(
-        [InjectSpecificSource(typeof(QueryScopedRowsEntity))]
-        QueryScopedRowsEntity entity)
+    public string EntityName([InjectSpecificSource(typeof(QueryScopedRowsEntity))] QueryScopedRowsEntity entity)
     {
         return entity.Name;
     }
@@ -300,10 +316,7 @@ public sealed class QueryScopedRowsLibrary : LibraryBase
 public sealed class QueryScopedRowsTable : ISchemaTable
 {
     public ISchemaColumn[] Columns { get; } =
-    [
-        new SchemaColumn("Name", 0, typeof(string)),
-        new SchemaColumn("Value", 1, typeof(int))
-    ];
+    [new SchemaColumn("Name", 0, typeof(string)), new SchemaColumn("Value", 1, typeof(int))];
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(QueryScopedRowsEntity));
 
@@ -318,10 +331,7 @@ public sealed class QueryScopedRowsLegacySource : RowSourceBase<QueryScopedRowsE
 {
     protected override void CollectChunks(IChunkWriter<QueryScopedRowsEntity> writer)
     {
-        writer.Write(
-        [
-            new QueryScopedRowsEntity { Name = "legacy", Value = -1 }
-        ]);
+        writer.Write([new QueryScopedRowsEntity { Name = "legacy", Value = -1 }]);
     }
 }
 
@@ -332,9 +342,7 @@ public sealed class QueryScopedRowsMaterializedSource<TRow, TMaterializer> : Row
 
     private readonly IReadOnlyList<QueryRowField> _fields;
 
-    public QueryScopedRowsMaterializedSource(
-        IReadOnlyList<QueryRowInput> inputs,
-        IReadOnlyList<QueryRowField> fields)
+    public QueryScopedRowsMaterializedSource(IReadOnlyList<QueryRowInput> inputs, IReadOnlyList<QueryRowField> fields)
     {
         _inputs = inputs;
         _fields = fields;
@@ -355,9 +363,7 @@ public sealed class QueryScopedRowsMaterializedSource<TRow, TMaterializer> : Row
 
 public readonly record struct QueryRowInput(string Name, int Value);
 
-public struct QueryRowReader(
-    QueryRowInput input,
-    IReadOnlyList<QueryRowField> fields) : IQuerySourceFieldReader
+public struct QueryRowReader(QueryRowInput input, IReadOnlyList<QueryRowField> fields) : IQuerySourceFieldReader
 {
     public T Read<T>(int slot)
     {
@@ -365,7 +371,7 @@ public struct QueryRowReader(
         {
             0 => (T)(object)input.Name,
             1 => (T)(object)input.Value,
-            _ => throw new ArgumentOutOfRangeException(nameof(slot))
+            _ => throw new ArgumentOutOfRangeException(nameof(slot)),
         };
     }
 }

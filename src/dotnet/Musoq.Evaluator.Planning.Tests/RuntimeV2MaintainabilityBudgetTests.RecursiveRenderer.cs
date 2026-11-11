@@ -10,9 +10,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     [TestMethod]
     public void RecursiveRendererPartials_ShouldStayWithinExactPostRefactorNonBlankBudget()
     {
-        var directory = ToAbsolutePath(
-            FindRepositoryRoot(),
-            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution");
+        var directory = ToAbsolutePath(FindRepositoryRoot(), "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution");
         var files = Directory
             .EnumerateFiles(directory, "ExecutionCSharpRenderer.RecursiveCte.*.cs")
             .Order(StringComparer.Ordinal)
@@ -23,10 +21,12 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         Assert.IsLessThanOrEqualTo(
             360,
             lineCount,
-            $"Recursive renderer partials grew to {lineCount}/360 nonblank lines: " +
-            string.Join(", ", files.Select(Path.GetFileName)));
+            $"Recursive renderer partials grew to {lineCount}/360 nonblank lines: "
+                + string.Join(", ", files.Select(Path.GetFileName))
+        );
     }
 
     private static int CountNonBlankLines(string filePath) =>
-        File.ReadLines(filePath).Count(static line => !string.IsNullOrWhiteSpace(line));
+        File.ReadLines(filePath).Count(static line => !string.IsNullOrWhiteSpace(line))
+        - Architecture.CSharpierLineBudgetBaseline.NonBlankLines(filePath);
 }

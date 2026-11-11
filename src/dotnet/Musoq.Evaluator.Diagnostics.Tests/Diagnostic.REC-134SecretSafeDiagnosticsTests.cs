@@ -120,7 +120,8 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
                     "apiToken",
                     typeof(int),
                     sentinel,
-                    new InvalidOperationException($"parameter substrate {sentinel}"));
+                    new InvalidOperationException($"parameter substrate {sentinel}")
+                );
                 exception = QueryExecutionException.ForScriptParameterBinding(binding);
                 break;
             }
@@ -132,17 +133,17 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
                     $"REC134_{caseId}_{Guid.NewGuid():N}",
                     provider,
                     new TestsLoggerResolver(),
-                    TestCompilationOptions);
+                    TestCompilationOptions
+                );
 
-                exception = Assert.ThrowsExactly<QueryExecutionException>(
-                    () => _ = compiled.Run().Count,
-                    caseId);
+                exception = Assert.ThrowsExactly<QueryExecutionException>(() => _ = compiled.Run().Count, caseId);
                 break;
             }
             default:
                 exception = QueryExecutionException.ForExecutionFailure(
                     "row enumeration",
-                    new InvalidOperationException($"substrate row value {sentinel}"));
+                    new InvalidOperationException($"substrate row value {sentinel}")
+                );
                 break;
         }
 
@@ -169,21 +170,16 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
             [
                 new KeyValuePair<string, string>("password", sentinel),
                 new KeyValuePair<string, string>("substrate", sentinel),
-                new KeyValuePair<string, string>("stableFact", "kept")
+                new KeyValuePair<string, string>("stableFact", "kept"),
             ],
             relatedLocations:
             [
-                new DiagnosticRelatedLocation(
-                    locations.Start,
-                    locations.End,
-                    $"related value: {sentinel}")
+                new DiagnosticRelatedLocation(locations.Start, locations.End, $"related value: {sentinel}"),
             ],
-            correlationId: $"REC134-{caseId}")
+            correlationId: $"REC134-{caseId}"
+        )
             .WithSourceContext(source, literalSpan)
-            .WithSuggestedFix(DiagnosticAction.QuickFix(
-                $"Replace {sentinel}",
-                literalSpan,
-                sentinel));
+            .WithSuggestedFix(DiagnosticAction.QuickFix($"Replace {sentinel}", literalSpan, sentinel));
 
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
         AssertNoSecret(
@@ -195,13 +191,11 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
             ("diagnostic", diagnostic.ToString()),
             ("diagnostic-detailed", diagnostic.ToDetailedString()),
             ("diagnostic-text", new DiagnosticFormatter { UseColor = false }.Format(diagnostic)),
-            ("diagnostic-json", new DiagnosticFormatter().FormatAsJson(diagnostic)));
+            ("diagnostic-json", new DiagnosticFormatter().FormatAsJson(diagnostic))
+        );
     }
 
-    private static void AssertSafeExceptionSinks(
-        QueryExecutionException exception,
-        string sentinel,
-        string caseId)
+    private static void AssertSafeExceptionSinks(QueryExecutionException exception, string sentinel, string caseId)
     {
         Assert.IsNotNull(exception.Envelope, caseId);
         AssertNoSecret(
@@ -212,25 +206,21 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
             ("exception-format-json", exception.FormatJson()),
             ("envelope", DescribeEnvelope(exception.Envelope!)),
             ("envelope-text", MusoqErrorEnvelopeFormatter.FormatText(exception.Envelope!)),
-            ("envelope-json", MusoqErrorEnvelopeFormatter.FormatJson(exception.Envelope!)));
+            ("envelope-json", MusoqErrorEnvelopeFormatter.FormatJson(exception.Envelope!))
+        );
     }
 
-    private static void AssertTrustedVerbosePolicy(
-        QueryExecutionException exception,
-        string sentinel,
-        string caseId)
+    private static void AssertTrustedVerbosePolicy(QueryExecutionException exception, string sentinel, string caseId)
     {
         var verbose = exception.FormatVerboseText();
         StringAssert.Contains(verbose, sentinel, caseId);
         StringAssert.Contains(verbose, "Trusted verbose", caseId);
 
         var directVerbose = MusoqErrorEnvelope.FromExceptionVerbose(
-            new InvalidOperationException($"verbose diagnostic detail {sentinel}"));
+            new InvalidOperationException($"verbose diagnostic detail {sentinel}")
+        );
         Assert.IsTrue(directVerbose.Details?.Contains(sentinel, StringComparison.Ordinal) == true, caseId);
-        StringAssert.Contains(
-            MusoqErrorEnvelopeFormatter.FormatText(directVerbose),
-            "Trusted verbose",
-            caseId);
+        StringAssert.Contains(MusoqErrorEnvelopeFormatter.FormatText(directVerbose), "Trusted verbose", caseId);
     }
 
     private static void AssertRuntimeSettingsDoNotAppearInDescriptions(string caseId, string sentinel)
@@ -239,12 +229,15 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
         var resolver = new SecretSettingsResolver(sentinel);
         var options = new CompilationOptions(sourceRuntimeSettingsResolver: resolver);
 
-        using (var selected = InstanceCreator.CompileForExecution(
-                   $"select Token from #settings.items() /* {caseId}-selected */",
-                   $"REC134_{caseId}_selected_{Guid.NewGuid():N}",
-                   provider,
-                   new TestsLoggerResolver(),
-                   options))
+        using (
+            var selected = InstanceCreator.CompileForExecution(
+                $"select Token from #settings.items() /* {caseId}-selected */",
+                $"REC134_{caseId}_selected_{Guid.NewGuid():N}",
+                provider,
+                new TestsLoggerResolver(),
+                options
+            )
+        )
         {
             var selectedValue = selected.Run()[0].ReadValue(0);
             Assert.AreEqual(sentinel, selectedValue, caseId);
@@ -255,10 +248,11 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
             $"REC134_{caseId}_description_{Guid.NewGuid():N}",
             provider,
             new TestsLoggerResolver(),
-            options);
+            options
+        );
         var table = described.Run();
-        var renderedValues = table.Rows
-            .SelectMany(static row => row.ReadValues())
+        var renderedValues = table
+            .Rows.SelectMany(static row => row.ReadValues())
             .Select(static value => value?.ToString() ?? string.Empty)
             .ToArray();
 
@@ -273,8 +267,7 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
         var query = $"select '{sentinel}\nselect 1 from #rec134.items() r /* {caseId} */";
         var lexer = new Lexer(query, true, recoverOnError: true);
         var parseResult = new Musoq.Parser.Parser(lexer, lexer.Diagnostics).ParseWithDiagnostics();
-        var diagnostic = parseResult.Diagnostics.Single(item =>
-            item.Code == DiagnosticCode.MQ1002_UnterminatedString);
+        var diagnostic = parseResult.Diagnostics.Single(item => item.Code == DiagnosticCode.MQ1002_UnterminatedString);
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic, query);
         var formatter = new DiagnosticFormatter { UseColor = false };
 
@@ -288,38 +281,34 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
             ("diagnostic-json", formatter.FormatAsJson(diagnostic)),
             ("envelope", DescribeEnvelope(envelope)),
             ("envelope-text", MusoqErrorEnvelopeFormatter.FormatText(envelope)),
-            ("envelope-json", MusoqErrorEnvelopeFormatter.FormatJson(envelope)));
+            ("envelope-json", MusoqErrorEnvelopeFormatter.FormatJson(envelope))
+        );
     }
 
     private void AssertEngineLogsDoNotCaptureSubstrateValues(string caseId, string sentinel)
     {
         var resolver = new CapturingLoggerResolver();
-        var provider = new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-        {
-            ["#rec134"] =
-            [
-                new BinaryEntity
-                {
-                    Name = sentinel,
-                    Content = [0x2A]
-                }
-            ]
-        });
-        var query = $"binary Rec134Header {{ Value: byte }}; select h.Value from #rec134.bytes() b cross apply Interpret<Rec134Header>(b.Content) h /* {caseId} */";
+        var provider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>>
+            {
+                ["#rec134"] = [new BinaryEntity { Name = sentinel, Content = [0x2A] }],
+            }
+        );
+        var query =
+            $"binary Rec134Header {{ Value: byte }}; select h.Value from #rec134.bytes() b cross apply Interpret<Rec134Header>(b.Content) h /* {caseId} */";
 
         using var compiled = CompileGeneratedQuery(
             query,
             $"REC134_{caseId}_{Guid.NewGuid():N}",
             provider,
             resolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         var table = compiled.Run();
 
         Assert.AreEqual(1, table.Count, caseId);
         Assert.IsNotEmpty(resolver.Entries, caseId);
-        Assert.IsFalse(
-            resolver.Entries.Any(entry => entry.Contains(sentinel, StringComparison.Ordinal)),
-            caseId);
+        Assert.IsFalse(resolver.Entries.Any(entry => entry.Contains(sentinel, StringComparison.Ordinal)), caseId);
     }
 
     private static string DescribeEnvelope(MusoqErrorEnvelope envelope)
@@ -330,40 +319,34 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
             envelope.Snippet ?? string.Empty,
             envelope.Explanation ?? string.Empty,
             envelope.Details ?? string.Empty,
-            envelope.CorrelationId ?? string.Empty
+            envelope.CorrelationId ?? string.Empty,
         };
         parts.AddRange(envelope.SuggestedFixes);
         parts.AddRange(envelope.Arguments.SelectMany(static pair => new[] { pair.Key, pair.Value }));
         parts.AddRange(envelope.RelatedLocations.Select(static location => location.Message ?? string.Empty));
-        parts.AddRange(envelope.Actions.SelectMany(static action => new[]
-        {
-            action.Title,
-            action.TextEdit?.NewText ?? string.Empty
-        }));
+        parts.AddRange(
+            envelope.Actions.SelectMany(static action =>
+                new[] { action.Title, action.TextEdit?.NewText ?? string.Empty }
+            )
+        );
         return string.Join(" | ", parts);
     }
 
-    private static void AssertNoSecret(
-        string sentinel,
-        string caseId,
-        params (string Surface, string Value)[] surfaces)
+    private static void AssertNoSecret(string sentinel, string caseId, params (string Surface, string Value)[] surfaces)
     {
         foreach (var surface in surfaces)
             Assert.IsFalse(
                 surface.Value.Contains(sentinel, StringComparison.Ordinal),
-                $"{caseId}: sentinel reached {surface.Surface}.");
+                $"{caseId}: sentinel reached {surface.Surface}."
+            );
     }
 
-    private static string CreateSentinel(string caseId) =>
-        $"REC134_SYNTHETIC_SECRET_{caseId.Replace('-', '_')}_A7F9C2";
+    private static string CreateSentinel(string caseId) => $"REC134_SYNTHETIC_SECRET_{caseId.Replace('-', '_')}_A7F9C2";
 
     private sealed class SecretSettingsResolver(string sentinel) : ISourceRuntimeSettingsResolver
     {
         public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request) =>
-            new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["TOKEN"] = sentinel
-            };
+            new Dictionary<string, string>(StringComparer.Ordinal) { ["TOKEN"] = sentinel };
     }
 
     private sealed class SecretFailureProvider(string sentinel) : ISchemaProvider
@@ -380,13 +363,14 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters) => new SecretFailureTable();
+            params object?[] parameters
+        ) => new SecretFailureTable();
 
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments parameters) =>
-            throw new InvalidOperationException($"provider substrate failure {sentinel}");
+            TArguments parameters
+        ) => throw new InvalidOperationException($"provider substrate failure {sentinel}");
 
         private static MethodsAggregator CreateLibrary()
         {
@@ -398,10 +382,7 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
 
     private sealed class SecretFailureTable : ISchemaTable
     {
-        public ISchemaColumn[] Columns { get; } =
-        [
-            new SchemaColumn("Value", 0, typeof(string))
-        ];
+        public ISchemaColumn[] Columns { get; } = [new SchemaColumn("Value", 0, typeof(string))];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(SecretRow));
 
@@ -438,21 +419,19 @@ public sealed class DiagnosticRec134SecretSafeDiagnosticsTests : BinaryOrTextual
             EventId eventId,
             TState state,
             Exception? exception,
-            Func<TState, Exception?, string> formatter)
+            Func<TState, Exception?, string> formatter
+        )
         {
             entries.Add(formatter(state, exception));
         }
     }
 
-    private sealed class CapturingLogger<T>(ICollection<string> entries)
-        : CapturingLogger(entries), ILogger<T>;
+    private sealed class CapturingLogger<T>(ICollection<string> entries) : CapturingLogger(entries), ILogger<T>;
 
     private sealed class NoopScope : IDisposable
     {
         public static readonly NoopScope Instance = new();
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 }

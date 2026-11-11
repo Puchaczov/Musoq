@@ -122,8 +122,7 @@ public partial class RowAndKeyEqualityTests
     {
         var registry = new SchemaRegistry();
 
-        Assert.Throws<InvalidOperationException>(() =>
-            registry.ValidateReference("nonexistent", "referencing"));
+        Assert.Throws<InvalidOperationException>(() => registry.ValidateReference("nonexistent", "referencing"));
     }
 
     [TestMethod]
@@ -134,8 +133,7 @@ public partial class RowAndKeyEqualityTests
         registry.Register("referencing", node);
         registry.Register("referenced", node);
 
-        Assert.Throws<InvalidOperationException>(() =>
-            registry.ValidateReference("referenced", "referencing"));
+        Assert.Throws<InvalidOperationException>(() => registry.ValidateReference("referenced", "referencing"));
     }
 
     [TestMethod]

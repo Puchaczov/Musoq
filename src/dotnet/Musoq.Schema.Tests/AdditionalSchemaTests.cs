@@ -104,8 +104,7 @@ public class AdditionalSchemaTests
         var methodName = "NoArgs";
 
         // Act
-        var exception =
-            MethodResolutionException.ForUnresolvedMethod(methodName, [], []);
+        var exception = MethodResolutionException.ForUnresolvedMethod(methodName, [], []);
 
         // Assert
         Assert.Contains("no parameters", exception.Message);
@@ -426,8 +425,8 @@ public class AdditionalSchemaTests
         var attributeType = typeof(PluginSchemasAttribute);
 
         // Act
-        var usageAttribute =
-            (AttributeUsageAttribute?)Attribute.GetCustomAttribute(attributeType, typeof(AttributeUsageAttribute));
+        var usageAttribute = (AttributeUsageAttribute?)
+            Attribute.GetCustomAttribute(attributeType, typeof(AttributeUsageAttribute));
 
         // Assert
         usageAttribute = TestNullabilityGuards.Require(usageAttribute, "PluginSchemasAttribute usage");

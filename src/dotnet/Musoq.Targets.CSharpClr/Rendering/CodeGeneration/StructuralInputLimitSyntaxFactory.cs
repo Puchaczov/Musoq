@@ -20,14 +20,15 @@ internal static class StructuralInputLimitSyntaxFactory
 {
     private const string HelperPrefix = "__musoqCheckStructural_";
 
-    internal static IReadOnlyList<MemberDeclarationSyntax> CreateMembers(
-        ExecutionBlock body)
+    internal static IReadOnlyList<MemberDeclarationSyntax> CreateMembers(ExecutionBlock body)
     {
         ArgumentNullException.ThrowIfNull(body);
 
-        return ExecutionIrAnalysis.CollectExpressions<ExecutionStructuralConversion>(body)
-            .Where(static conversion => conversion.LimitBinding != null &&
-                                        conversion.Input is not ExecutionCteCollectionInput)
+        return ExecutionIrAnalysis
+            .CollectExpressions<ExecutionStructuralConversion>(body)
+            .Where(static conversion =>
+                conversion.LimitBinding != null && conversion.Input is not ExecutionCteCollectionInput
+            )
             .GroupBy(GetHelperName, StringComparer.Ordinal)
             .Select(group => CreateMember(group.First(), group.Key))
             .ToArray();
@@ -38,7 +39,8 @@ internal static class StructuralInputLimitSyntaxFactory
         Type valueType,
         ExecutionStructuralLimitBinding binding,
         ExecutionRenderContext context,
-        ExecutionCSharpRenderer renderer)
+        ExecutionCSharpRenderer renderer
+    )
     {
         ArgumentNullException.ThrowIfNull(value);
         ArgumentNullException.ThrowIfNull(valueType);
@@ -46,10 +48,9 @@ internal static class StructuralInputLimitSyntaxFactory
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(renderer);
 
-        return SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(GetHelperName(valueType, binding)))
-            .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(
-                value,
-                SyntaxFactory.IdentifierName("token")));
+        return SyntaxFactory
+            .InvocationExpression(SyntaxFactory.IdentifierName(GetHelperName(valueType, binding)))
+            .WithArgumentList(ExecutionSyntaxFactory.CreateArgumentList(value, SyntaxFactory.IdentifierName("token")));
     }
 
     internal static string GetHelperName(ExecutionStructuralConversion conversion) =>
@@ -65,17 +66,17 @@ internal static class StructuralInputLimitSyntaxFactory
             binding.SourceContextId,
             binding.Limits.MaxDepth,
             binding.Limits.MaxNodes,
-            binding.Limits.MaxStringBytes);
+            binding.Limits.MaxStringBytes
+        );
         var digest = SHA256.HashData(Encoding.UTF8.GetBytes(key));
         return HelperPrefix + Convert.ToHexString(digest.AsSpan(0, 8)).ToLowerInvariant();
     }
 
-    private static MemberDeclarationSyntax CreateMember(
-        ExecutionStructuralConversion conversion,
-        string helperName)
+    private static MemberDeclarationSyntax CreateMember(ExecutionStructuralConversion conversion, string helperName)
     {
-        var binding = conversion.LimitBinding ??
-            throw new InvalidOperationException("A structural limit helper requires binding metadata.");
+        var binding =
+            conversion.LimitBinding
+            ?? throw new InvalidOperationException("A structural limit helper requires binding metadata.");
         var valueType = conversion.TargetType.RequireClrType();
         var descriptor = Musoq.Schema.StructuralInputs.StructuralTypeDescriptor.FromClrType(valueType);
         var valueTypeText = EvaluationHelper.GetCastableType(valueType);
@@ -84,29 +85,29 @@ internal static class StructuralInputLimitSyntaxFactory
             "token.ThrowIfCancellationRequested();",
             "long __musoqStructuralNodes = 0L;",
             "long __musoqStructuralStrings = 0L;",
-            "int __musoqStructuralMaxDepth = 0;"
+            "int __musoqStructuralMaxDepth = 0;",
         };
 
         var state = new EmitterState(lines);
         EmitMeasure(descriptor, valueType, "value", 1, state, "root");
 
-        var sourceContext = binding.SourceContextId == null
-            ? "null"
-            : Quote(binding.SourceContextId);
+        var sourceContext = binding.SourceContextId == null ? "null" : Quote(binding.SourceContextId);
         lines.Add(
-            $"global::Musoq.Evaluator.Helpers.StructuralInputLimitRuntime.ThrowIfExceeded(" +
-            $"{Quote(OriginText(binding.Origin))}, {Quote(binding.Path)}, " +
-            "new global::Musoq.Schema.StructuralInputs.StructuralInputMetrics(" +
-            "__musoqStructuralMaxDepth, __musoqStructuralNodes, __musoqStructuralStrings), " +
-            $"{binding.Limits.MaxDepth.ToString(CultureInfo.InvariantCulture)}, " +
-            $"{binding.Limits.MaxNodes.ToString(CultureInfo.InvariantCulture)}L, " +
-            $"{binding.Limits.MaxStringBytes.ToString(CultureInfo.InvariantCulture)}L, token, {sourceContext});");
+            $"global::Musoq.Evaluator.Helpers.StructuralInputLimitRuntime.ThrowIfExceeded("
+                + $"{Quote(OriginText(binding.Origin))}, {Quote(binding.Path)}, "
+                + "new global::Musoq.Schema.StructuralInputs.StructuralInputMetrics("
+                + "__musoqStructuralMaxDepth, __musoqStructuralNodes, __musoqStructuralStrings), "
+                + $"{binding.Limits.MaxDepth.ToString(CultureInfo.InvariantCulture)}, "
+                + $"{binding.Limits.MaxNodes.ToString(CultureInfo.InvariantCulture)}L, "
+                + $"{binding.Limits.MaxStringBytes.ToString(CultureInfo.InvariantCulture)}L, token, {sourceContext});"
+        );
         lines.Add("return value;");
 
         var body = string.Join(Environment.NewLine, lines.Select(static line => "    " + line));
         return SyntaxFactory.ParseMemberDeclaration(
-            $"private static {valueTypeText} {helperName}({valueTypeText} value, System.Threading.CancellationToken token)\n" +
-            $"{{\n{body}\n}}")!;
+            $"private static {valueTypeText} {helperName}({valueTypeText} value, System.Threading.CancellationToken token)\n"
+                + $"{{\n{body}\n}}"
+        )!;
     }
 
     internal static void EmitMeasure(
@@ -115,7 +116,8 @@ internal static class StructuralInputLimitSyntaxFactory
         string expression,
         int depth,
         EmitterState state,
-        string path)
+        string path
+    )
     {
         state.AddNode(depth);
 
@@ -125,7 +127,8 @@ internal static class StructuralInputLimitSyntaxFactory
                 if (descriptor.ScalarType == typeof(string))
                 {
                     state.Lines.Add(
-                        $"if ({expression} != null) __musoqStructuralStrings = checked(__musoqStructuralStrings + checked((long){expression}.Length * 2L));");
+                        $"if ({expression} != null) __musoqStructuralStrings = checked(__musoqStructuralStrings + checked((long){expression}.Length * 2L));"
+                    );
                 }
 
                 return;
@@ -149,7 +152,8 @@ internal static class StructuralInputLimitSyntaxFactory
         string expression,
         int depth,
         EmitterState state,
-        string path)
+        string path
+    )
     {
         var nullableValueType = Nullable.GetUnderlyingType(clrType);
         if (nullableValueType != null)
@@ -182,7 +186,8 @@ internal static class StructuralInputLimitSyntaxFactory
         Musoq.Schema.StructuralInputs.StructuralFieldDescriptor field,
         int depth,
         EmitterState state,
-        string path)
+        string path
+    )
     {
         var memberName = ResolveMemberName(clrType, field.Name);
         var fieldExpression = expression + "." + memberName;
@@ -196,7 +201,8 @@ internal static class StructuralInputLimitSyntaxFactory
         string expression,
         int depth,
         EmitterState state,
-        string path)
+        string path
+    )
     {
         if (!clrType.IsValueType)
         {
@@ -204,8 +210,9 @@ internal static class StructuralInputLimitSyntaxFactory
             state.Lines.Add("{");
         }
 
-        var elementDescriptor = descriptor.ElementType ??
-            throw new InvalidOperationException("A structural collection element is required.");
+        var elementDescriptor =
+            descriptor.ElementType
+            ?? throw new InvalidOperationException("A structural collection element is required.");
         var elementType = GetClrType(elementDescriptor);
         var index = state.NextName("index");
         var collection = state.NextName("collection");
@@ -220,12 +227,12 @@ internal static class StructuralInputLimitSyntaxFactory
         else
         {
             state.Lines.Add(
-                $"var {collection} = (System.Collections.Generic.IReadOnlyList<{EvaluationHelper.GetCastableType(elementType)}>){expression};");
+                $"var {collection} = (System.Collections.Generic.IReadOnlyList<{EvaluationHelper.GetCastableType(elementType)}>){expression};"
+            );
             state.Lines.Add($"var {count} = {collection}.Count;");
         }
 
-        state.Lines.Add(
-            $"for (var {index} = 0; {index} < {count}; {index}++)");
+        state.Lines.Add($"for (var {index} = 0; {index} < {count}; {index}++)");
         state.Lines.Add("{");
         state.Lines.Add($"if (({index} & 1023) == 0) token.ThrowIfCancellationRequested();");
         EmitMeasure(elementDescriptor, elementType, elementExpression, depth + 1, state, path + "[]");
@@ -249,7 +256,9 @@ internal static class StructuralInputLimitSyntaxFactory
         internal void AddNode(int depth)
         {
             Lines.Add("__musoqStructuralNodes = checked(__musoqStructuralNodes + 1L);");
-            Lines.Add($"if ({depth.ToString(CultureInfo.InvariantCulture)} > __musoqStructuralMaxDepth) __musoqStructuralMaxDepth = {depth.ToString(CultureInfo.InvariantCulture)};");
+            Lines.Add(
+                $"if ({depth.ToString(CultureInfo.InvariantCulture)} > __musoqStructuralMaxDepth) __musoqStructuralMaxDepth = {depth.ToString(CultureInfo.InvariantCulture)};"
+            );
         }
 
         internal string NextName(string stem) =>
@@ -269,7 +278,8 @@ internal static class StructuralInputLimitSyntaxFactory
             return field.Name;
 
         throw new InvalidOperationException(
-            $"Structural receiver '{type.FullName}' has no public member for field '{fieldName}'.");
+            $"Structural receiver '{type.FullName}' has no public member for field '{fieldName}'."
+        );
     }
 
     internal static Type GetClrType(Musoq.Schema.StructuralInputs.StructuralTypeDescriptor descriptor)
@@ -280,12 +290,10 @@ internal static class StructuralInputLimitSyntaxFactory
         return type;
     }
 
-    private static string OriginText(ExecutionStructuralInputOrigin origin) =>
-        origin.ToString().ToLowerInvariant();
+    private static string OriginText(ExecutionStructuralInputOrigin origin) => origin.ToString().ToLowerInvariant();
 
     private static string Quote(string value) =>
-        SyntaxFactory.LiteralExpression(
-                SyntaxKind.StringLiteralExpression,
-                SyntaxFactory.Literal(value))
+        SyntaxFactory
+            .LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(value))
             .ToFullString();
 }

@@ -12,7 +12,8 @@ public partial class SubqueryToCteRewriteVisitor
         GroupByNode? GroupBy,
         OrderByNode? OrderBy,
         WindowNode? Window,
-        QualifyNode? Qualify);
+        QualifyNode? Qualify
+    );
 
     private sealed record ScalarSubqueryRewrite(QueryNode Query, Node JoinExpression);
 
@@ -20,5 +21,6 @@ public partial class SubqueryToCteRewriteVisitor
         InMemoryTableFromNode CteRef,
         Node JoinExpression,
         Node Replacement,
-        JoinType JoinType);
+        JoinType JoinType
+    );
 }

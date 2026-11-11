@@ -13,9 +13,7 @@ public class InterpretCallNodeTests
         var dataSource = new IdentifierNode("data", typeof(byte[]));
         var schemaName = "Header";
 
-
         var node = new InterpretCallNode(dataSource, schemaName);
-
 
         Assert.AreEqual(dataSource, node.DataSource);
         Assert.AreEqual(schemaName, node.SchemaName);
@@ -29,9 +27,7 @@ public class InterpretCallNodeTests
         var schemaName = "Header";
         var returnType = typeof(object);
 
-
         var node = new InterpretCallNode(dataSource, schemaName, returnType);
-
 
         Assert.AreEqual(dataSource, node.DataSource);
         Assert.AreEqual(schemaName, node.SchemaName);
@@ -62,7 +58,6 @@ public class InterpretCallNodeTests
         var node2 = new InterpretCallNode(dataSource2, "Schema2");
         var node3 = new InterpretCallNode(dataSource1, "Schema1");
 
-
         Assert.AreNotEqual(node1.Id, node2.Id);
         Assert.AreEqual(node1.Id, node3.Id);
     }
@@ -73,9 +68,7 @@ public class InterpretCallNodeTests
         var dataSource = new IdentifierNode("line", typeof(string));
         var schemaName = "LogEntry";
 
-
         var node = new ParseCallNode(dataSource, schemaName);
-
 
         Assert.AreEqual(dataSource, node.DataSource);
         Assert.AreEqual(schemaName, node.SchemaName);
@@ -89,9 +82,7 @@ public class InterpretCallNodeTests
         var schemaName = "LogEntry";
         var returnType = typeof(object);
 
-
         var node = new ParseCallNode(dataSource, schemaName, returnType);
-
 
         Assert.AreEqual(dataSource, node.DataSource);
         Assert.AreEqual(schemaName, node.SchemaName);
@@ -120,9 +111,7 @@ public class InterpretCallNodeTests
         var schemaName = "LogEntry";
         var returnType = typeof(object);
 
-
         var node = new PartialParseCallNode(dataSource, schemaName, returnType);
-
 
         Assert.AreEqual(dataSource, node.DataSource);
         Assert.AreEqual(schemaName, node.SchemaName);
@@ -136,9 +125,7 @@ public class InterpretCallNodeTests
         var schemaName = "CsvRow";
         var node = new PartialParseCallNode(dataSource, schemaName);
 
-
         var result = node.ToString();
-
 
         Assert.AreEqual("PartialParse<CsvRow>(line.Value)", result);
     }
@@ -150,9 +137,7 @@ public class InterpretCallNodeTests
         var offset = new IntegerNode("100", "s");
         var schemaName = "Record";
 
-
         var node = new InterpretAtCallNode(dataSource, offset, schemaName);
-
 
         Assert.AreEqual(dataSource, node.DataSource);
         Assert.AreEqual(offset, node.Offset);
@@ -168,9 +153,7 @@ public class InterpretCallNodeTests
         var schemaName = "Record";
         var returnType = typeof(object);
 
-
         var node = new InterpretAtCallNode(dataSource, offset, schemaName, returnType);
-
 
         Assert.AreEqual(dataSource, node.DataSource);
         Assert.AreEqual(offset, node.Offset);
@@ -205,7 +188,6 @@ public class InterpretCallNodeTests
     {
         var dataSource = new IdentifierNode("data", typeof(byte[]));
 
-
         Assert.Throws<ArgumentNullException>(() => new InterpretCallNode(dataSource, null!));
     }
 
@@ -226,7 +208,6 @@ public class InterpretCallNodeTests
     {
         // Arrange
         var dataSource = new IdentifierNode("data", typeof(byte[]));
-
 
         Assert.Throws<ArgumentNullException>(() => new InterpretAtCallNode(dataSource, null!, "Schema"));
     }

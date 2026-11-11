@@ -36,7 +36,8 @@ public sealed class AdvisoryWarningPropagationTests
                 $"AdvisoryPropagation_{testCase.Code}_{Guid.NewGuid():N}",
                 testCase.ProviderFactory(),
                 _loggerResolver,
-                new CompilationOptions());
+                new CompilationOptions()
+            );
 
             Assert.IsTrue(build.Succeeded, FormatDiagnostics(build.Diagnostics, testCase.Query));
             Assert.IsEmpty(build.Errors, FormatDiagnostics(build.Diagnostics, testCase.Query));
@@ -57,44 +58,53 @@ public sealed class AdvisoryWarningPropagationTests
             query,
             $"AdvisoryDefault_{Guid.NewGuid():N}",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         var optionsBuild = InstanceCreator.CompileWithDiagnostics(
             query,
             $"AdvisoryOptions_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            options);
+            options
+        );
         var asyncBuild = await InstanceCreator.CompileWithDiagnosticsAsync(
             query,
             $"AdvisoryAsync_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            options);
+            options
+        );
         var inspection = InstanceCreator.CompileForInspection(
             query,
             $"AdvisoryInspection_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            options);
+            options
+        );
         var analyzeItems = InstanceCreator.CreateForAnalyze(
             query,
             $"AdvisoryAnalyze_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            options);
+            options
+        );
 
         var expected = defaultBuild.Warnings.Single(warning =>
-            warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape);
-        foreach (var diagnostics in new[]
-                 {
-                     optionsBuild.Warnings,
-                     asyncBuild.Warnings,
-                     inspection.Warnings,
-                     analyzeItems.DiagnosticContext.Warnings.ToList()
-                 })
+            warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+        );
+        foreach (
+            var diagnostics in new[]
+            {
+                optionsBuild.Warnings,
+                asyncBuild.Warnings,
+                inspection.Warnings,
+                analyzeItems.DiagnosticContext.Warnings.ToList(),
+            }
+        )
         {
             var actual = diagnostics.Single(warning =>
-                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape);
+                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+            );
             AssertEquivalent(expected, actual);
         }
 
@@ -117,41 +127,45 @@ public sealed class AdvisoryWarningPropagationTests
             query,
             $"PatternDefault_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         var optionsBuild = InstanceCreator.CompileWithDiagnostics(
             query,
             $"PatternOptions_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            options);
+            options
+        );
         var asyncBuild = await InstanceCreator.CompileWithDiagnosticsAsync(
             query,
             $"PatternAsync_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            options);
+            options
+        );
         var inspection = InstanceCreator.CompileForInspection(
             query,
             $"PatternInspection_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            options);
+            options
+        );
         var analyzeItems = InstanceCreator.CreateForAnalyze(
             query,
             $"PatternAnalyze_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            options);
+            options
+        );
 
-        var expected = analysis.Warnings.Single(warning =>
-            warning.Code == DiagnosticCode.MQ5015_SuspiciousRegexEscape);
+        var expected = analysis.Warnings.Single(warning => warning.Code == DiagnosticCode.MQ5015_SuspiciousRegexEscape);
         var actualDiagnostics = new[]
         {
             defaultBuild.Warnings,
             optionsBuild.Warnings,
             asyncBuild.Warnings,
             inspection.Warnings,
-            analyzeItems.DiagnosticContext.Warnings.ToList()
+            analyzeItems.DiagnosticContext.Warnings.ToList(),
         };
 
         Assert.IsFalse(analysis.HasErrors, FormatDiagnostics(analysis.Diagnostics, query));
@@ -163,8 +177,10 @@ public sealed class AdvisoryWarningPropagationTests
         Assert.IsFalse(string.IsNullOrWhiteSpace(inspection.GeneratedCSharpCode));
 
         foreach (var diagnostics in actualDiagnostics)
-            AssertEquivalent(expected, diagnostics.Single(warning =>
-                warning.Code == DiagnosticCode.MQ5015_SuspiciousRegexEscape));
+            AssertEquivalent(
+                expected,
+                diagnostics.Single(warning => warning.Code == DiagnosticCode.MQ5015_SuspiciousRegexEscape)
+            );
 
         using var table = defaultBuild.CompiledQuery!.Run();
         Assert.AreEqual("Dummy", table.Columns.First().ColumnName);
@@ -184,12 +200,16 @@ public sealed class AdvisoryWarningPropagationTests
         Assert.AreEqual(
             1,
             rootedSyntax.Warnings.Count(static warning =>
-                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+            )
+        );
         Assert.IsEmpty(relativeSyntax.Warnings, FormatDiagnostics(relativeSyntax.Diagnostics, relative));
         Assert.AreEqual(
             1,
             relativeAnalysis.Warnings.Count(static warning =>
-                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+            )
+        );
         Assert.IsFalse(relativeAnalysis.HasErrors, FormatDiagnostics(relativeAnalysis.Diagnostics, relative));
     }
 
@@ -202,12 +222,14 @@ public sealed class AdvisoryWarningPropagationTests
             query,
             $"AdvisoryRunnableDiagnostics_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         var convenienceQuery = InstanceCreator.CompileForExecution(
             query,
             $"AdvisoryRunnableConvenience_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(diagnosticBuild.Succeeded, FormatDiagnostics(diagnosticBuild.Diagnostics, query));
         Assert.IsFalse(diagnosticBuild.HasErrors);
@@ -232,7 +254,8 @@ public sealed class AdvisoryWarningPropagationTests
             $"AdvisoryAllEnvelopes_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics, query));
         Assert.IsEmpty(result.ToEnvelopes());
@@ -253,25 +276,43 @@ public sealed class AdvisoryWarningPropagationTests
         const string query = @"select 'C:\new\test' from #system.dual()";
 
         var results = await Task.WhenAll(
-            Enumerable.Range(0, 8).Select(index => Task.Run(() => InstanceCreator.CompileWithDiagnostics(
-                query,
-                $"AdvisoryConcurrent_{index}_{Guid.NewGuid():N}",
-                new SystemSchemaProvider(),
-                _loggerResolver,
-                new CompilationOptions()))));
+            Enumerable
+                .Range(0, 8)
+                .Select(index =>
+                    Task.Run(() =>
+                        InstanceCreator.CompileWithDiagnostics(
+                            query,
+                            $"AdvisoryConcurrent_{index}_{Guid.NewGuid():N}",
+                            new SystemSchemaProvider(),
+                            _loggerResolver,
+                            new CompilationOptions()
+                        )
+                    )
+                )
+        );
 
         Assert.IsTrue(results.All(static result => result.Succeeded));
         Assert.IsTrue(results.All(static result => result.Warnings.Count == 1));
-        Assert.IsTrue(results.All(static result =>
-            result.Warnings[0].Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+        Assert.IsTrue(
+            results.All(static result =>
+                result.Warnings[0].Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+            )
+        );
         Assert.AreEqual(results.Length, results.Select(static result => result.Warnings).Distinct().Count());
         Assert.AreEqual(
             1,
-            results.Select(static result =>
-                    (result.Warnings[0].Code, result.Warnings[0].Message, result.Warnings[0].Location.Offset,
-                        result.Warnings[0].EndLocation.Offset))
+            results
+                .Select(static result =>
+                    (
+                        result.Warnings[0].Code,
+                        result.Warnings[0].Message,
+                        result.Warnings[0].Location.Offset,
+                        result.Warnings[0].EndLocation.Offset
+                    )
+                )
                 .Distinct()
-                .Count());
+                .Count()
+        );
     }
 
     [TestMethod]
@@ -283,11 +324,11 @@ public sealed class AdvisoryWarningPropagationTests
             $"AdvisoryFailed_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.IsFalse(failed.Succeeded);
-        Assert.IsTrue(failed.Errors.Any(static diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ3001_UnknownColumn));
+        Assert.IsTrue(failed.Errors.Any(static diagnostic => diagnostic.Code == DiagnosticCode.MQ3001_UnknownColumn));
 
         const string validQuery = @"select 'C:\new\test' from #system.dual()";
         var recovered = InstanceCreator.CompileWithDiagnostics(
@@ -295,13 +336,16 @@ public sealed class AdvisoryWarningPropagationTests
             $"AdvisoryRecovered_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.IsTrue(recovered.Succeeded, FormatDiagnostics(recovered.Diagnostics, validQuery));
         Assert.AreEqual(
             1,
             recovered.Warnings.Count(static warning =>
-                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+            )
+        );
     }
 
     [TestMethod]
@@ -314,20 +358,25 @@ public sealed class AdvisoryWarningPropagationTests
             $"AdvisoryMixed_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics, query));
         Assert.IsEmpty(result.Errors, FormatDiagnostics(result.Diagnostics, query));
         Assert.AreEqual(
             1,
             result.Warnings.Count(static warning =>
-                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape));
+                warning.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+            )
+        );
         Assert.AreEqual(
             1,
-            result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5010_TautologicalCondition));
+            result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5010_TautologicalCondition)
+        );
         Assert.AreEqual(
             1,
-            result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5021_UnorderedSkip));
+            result.Warnings.Count(static warning => warning.Code == DiagnosticCode.MQ5021_UnorderedSkip)
+        );
 
         var ordered = result.Warnings.OrderBy(static warning => warning.Location.Offset).ToArray();
         CollectionAssert.AreEqual(ordered, result.Warnings.ToArray());
@@ -336,10 +385,11 @@ public sealed class AdvisoryWarningPropagationTests
             {
                 DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape,
                 DiagnosticCode.MQ5010_TautologicalCondition,
-                DiagnosticCode.MQ5021_UnorderedSkip
+                DiagnosticCode.MQ5021_UnorderedSkip,
             },
             ordered.Select(static warning => warning.Code).ToArray(),
-            FormatDiagnostics(result.Diagnostics, query));
+            FormatDiagnostics(result.Diagnostics, query)
+        );
     }
 
     private static IReadOnlyList<WarningCase> CreateWarningCases()
@@ -349,55 +399,68 @@ public sealed class AdvisoryWarningPropagationTests
             new(
                 @"select 'C:\new\test' from #system.dual()",
                 DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"select d.Dummy from #system.dual() d where d.Dummy rlike '\bword\b'",
                 DiagnosticCode.MQ5015_SuspiciousRegexEscape,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"select d.Dummy from #system.dual() d where d.Dummy like '*.log'",
                 DiagnosticCode.MQ5016_GlobWildcardInLike,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"select d.Dummy from #system.dual() d where d.Dummy = null",
                 DiagnosticCode.MQ5017_NullComparison,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy is null",
                 DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck,
-                static () => new NullableJoinSchemaProvider()),
+                static () => new NullableJoinSchemaProvider()
+            ),
             new(
                 @"select a.Dummy, b.Dummy from #join.items() a left join #join.items() b on a.Dummy = b.Dummy where b.Dummy = 'match'",
                 DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter,
-                static () => new NullableJoinSchemaProvider()),
+                static () => new NullableJoinSchemaProvider()
+            ),
             new(
                 @"select d.Dummy from #system.dual() d skip 1",
                 DiagnosticCode.MQ5021_UnorderedSkip,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"with dead as (select d.Dummy from #system.dual() d) select d.Dummy from #system.dual() d",
                 DiagnosticCode.MQ5022_UnusedCte,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"let dead: int = 1; select d.Dummy from #system.dual() d",
                 DiagnosticCode.MQ5023_UnusedScriptVariable,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"select case when false then 'dead' else 'live' end from #system.dual()",
                 DiagnosticCode.MQ5008_UnreachableCode,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"select d.Dummy from #system.dual() d where true",
                 DiagnosticCode.MQ5010_TautologicalCondition,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"select d.Dummy from #system.dual() d where 1 = 2",
                 DiagnosticCode.MQ5011_ContradictoryCondition,
-                static () => new SystemSchemaProvider()),
+                static () => new SystemSchemaProvider()
+            ),
             new(
                 @"param (moment: datetime); select 1 from #system.dual() where $moment = '01/02/2026'",
                 DiagnosticCode.MQ5003_ImplicitTypeConversion,
-                static () => new SystemSchemaProvider())
+                static () => new SystemSchemaProvider()
+            ),
         ];
     }
 
@@ -415,7 +478,8 @@ public sealed class AdvisoryWarningPropagationTests
         Assert.AreEqual(expected.CorrelationId, actual.CorrelationId);
         CollectionAssert.AreEquivalent(
             expected.Arguments.Select(static argument => $"{argument.Key}={argument.Value}").ToArray(),
-            actual.Arguments.Select(static argument => $"{argument.Key}={argument.Value}").ToArray());
+            actual.Arguments.Select(static argument => $"{argument.Key}={argument.Value}").ToArray()
+        );
         Assert.HasCount(expected.RelatedLocations.Count, actual.RelatedLocations);
         Assert.HasCount(expected.SuggestedFixes.Count, actual.SuggestedFixes);
     }
@@ -425,10 +489,7 @@ public sealed class AdvisoryWarningPropagationTests
         return $"{query}{Environment.NewLine}{string.Join(Environment.NewLine, diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()))}";
     }
 
-    private sealed record WarningCase(
-        string Query,
-        DiagnosticCode Code,
-        Func<ISchemaProvider> ProviderFactory);
+    private sealed record WarningCase(string Query, DiagnosticCode Code, Func<ISchemaProvider> ProviderFactory);
 
     public sealed class NullableJoinSchemaProvider : ISchemaProvider
     {
@@ -443,14 +504,13 @@ public sealed class AdvisoryWarningPropagationTests
         private const string Items = "items";
 
         public NullableJoinSchema()
-            : base("join", CreateLibrary())
-        {
-        }
+            : base("join", CreateLibrary()) { }
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new NullableJoinTable();
         }
@@ -458,11 +518,10 @@ public sealed class AdvisoryWarningPropagationTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
-            return EnsureSourceType<T, NullableJoinEntity>(
-                name,
-                new NullableJoinRowSource());
+            return EnsureSourceType<T, NullableJoinEntity>(name, new NullableJoinRowSource());
         }
 
         public override SchemaMethodInfo[] GetConstructors()
@@ -470,13 +529,9 @@ public sealed class AdvisoryWarningPropagationTests
             return TypeHelper.GetSchemaMethodInfosForType<NullableJoinRowSource>(Items);
         }
 
-        public override SchemaMethodInfo[] GetRawConstructors(
-            string methodName,
-            SourceMetadataContext metadataContext)
+        public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
         {
-            return string.Equals(methodName, Items, StringComparison.OrdinalIgnoreCase)
-                ? GetConstructors()
-                : [];
+            return string.Equals(methodName, Items, StringComparison.OrdinalIgnoreCase) ? GetConstructors() : [];
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -503,9 +558,7 @@ public sealed class AdvisoryWarningPropagationTests
     public sealed class NullableJoinTable : ISchemaTable
     {
         public ISchemaColumn[] Columns { get; } =
-        [
-            new SchemaColumn(nameof(NullableJoinEntity.Dummy), 0, typeof(string))
-        ];
+        [new SchemaColumn(nameof(NullableJoinEntity.Dummy), 0, typeof(string))];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(NullableJoinEntity));
 

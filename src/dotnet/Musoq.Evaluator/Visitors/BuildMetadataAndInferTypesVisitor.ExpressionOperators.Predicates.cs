@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Musoq.Parser.Nodes;
-using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Utils.Symbols;
+using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Nodes;
 using static Musoq.Evaluator.Visitors.BinaryOperatorTypeRules;
 using static Musoq.Evaluator.Visitors.SemanticExpressionDiagnosticFacts;
 
@@ -19,10 +19,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         var operand = PopSemanticNode(VisitorOperationNames.VisitNotNode);
         if (operand is InNode { Right: ArgsListNode { Args.Length: 0 } })
         {
-            if (TryReportSemanticError<NotSupportedException>(
+            if (
+                TryReportSemanticError<NotSupportedException>(
                     DiagnosticCode.MQ2030_UnsupportedSyntax,
                     "NOT IN with an empty list is not supported.",
-                    node))
+                    node
+                )
+            )
             {
                 PushSemanticNode(new NotNode(operand));
                 return;
@@ -116,7 +119,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             ReportEnumSemanticError(
                 DiagnosticCode.MQ3112_UnsupportedEnumScriptParameter,
                 $"Enum script parameters are not supported for enum type '{enumType.DisplayName}'. Use exact quoted members directly in IN (...).",
-                node);
+                node
+            );
             PushSemanticNode(new CollectionInNode(left, collection).CopySpansFrom(node));
             return;
         }
@@ -177,10 +181,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             const string message =
                 "Row presence predicates require a source alias that can be absent because of an outer join or OUTER APPLY.";
-            if (TryReportSemanticError<InvalidOperationException>(
+            if (
+                TryReportSemanticError<InvalidOperationException>(
                     DiagnosticCode.MQ3007_InvalidOperandTypes,
                     message,
-                    node))
+                    node
+                )
+            )
             {
                 PushSemanticNode(node);
                 return;
@@ -191,9 +198,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var alias = aliasNode.Name;
         var hasTableSymbol = TryGetCurrentTableSymbol(out var tableSymbol);
-        if (!hasTableSymbol ||
-            tableSymbol == null ||
-            !tableSymbol.ContainsAlias(alias))
+        if (!hasTableSymbol || tableSymbol == null || !tableSymbol.ContainsAlias(alias))
         {
             var availableAliases = tableSymbol?.CompoundTables ?? [];
             if (TryReportUnknownAlias(alias, availableAliases, node))
@@ -208,17 +213,21 @@ public partial class BuildMetadataAndInferTypesVisitor
                 VisitorOperationNames.VisitRowPresenceNode,
                 $"Unknown alias '{alias}'.",
                 DiagnosticCode.MQ3015_UnknownAlias,
-                span);
+                span
+            );
         }
 
         if (!tableSymbol.CanAliasBeMissing(alias))
         {
             var message =
                 $"Row presence predicates require an alias that can be absent because of LEFT, RIGHT, FULL, ASOF LEFT JOIN, or OUTER APPLY. Alias '{alias}' is always present in this scope.";
-            if (TryReportSemanticError<InvalidOperationException>(
+            if (
+                TryReportSemanticError<InvalidOperationException>(
                     DiagnosticCode.MQ3007_InvalidOperandTypes,
                     message,
-                    node))
+                    node
+                )
+            )
             {
                 PushSemanticNode(node);
                 return;
@@ -227,9 +236,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new InvalidOperationException(message);
         }
 
-        PushSemanticNode(new RowPresenceNode(aliasNode, node.IsPresent)
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(
+            new RowPresenceNode(aliasNode, node.IsPresent).WithSpan(node.Span).WithFullSpan(node.FullSpan)
+        );
     }
 
     private bool TryGetCurrentTableSymbol(out TableSymbol? tableSymbol)
@@ -260,17 +269,22 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private void ValidateCollectionParameterPredicate(Node left, Node collection, Node errorContextNode)
     {
-        if (collection is not ParameterReferenceNode parameter ||
-            !TryGetCollectionElementType(collection.ReturnType, out var elementType))
+        if (
+            collection is not ParameterReferenceNode parameter
+            || !TryGetCollectionElementType(collection.ReturnType, out var elementType)
+        )
         {
             var invalidCollectionMessage = collection is ParameterReferenceNode parameterReference
                 ? $"IN ${parameterReference.Name} requires a one-dimensional array script parameter."
                 : "IN $param requires a one-dimensional array script parameter.";
 
-            if (TryReportSemanticError<InvalidOperationException>(
+            if (
+                TryReportSemanticError<InvalidOperationException>(
                     DiagnosticCode.MQ3007_InvalidOperandTypes,
                     invalidCollectionMessage,
-                    errorContextNode))
+                    errorContextNode
+                )
+            )
                 return;
 
             throw new InvalidOperationException(invalidCollectionMessage);
@@ -278,9 +292,11 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var leftType = NormalizeOperandType(left.ReturnType);
         var normalizedElementType = NormalizeOperandType(elementType);
-        if (CanSkipStaticTypeValidation(leftType) ||
-            CanSkipStaticTypeValidation(normalizedElementType) ||
-            leftType == normalizedElementType)
+        if (
+            CanSkipStaticTypeValidation(leftType)
+            || CanSkipStaticTypeValidation(normalizedElementType)
+            || leftType == normalizedElementType
+        )
             return;
 
         var message =

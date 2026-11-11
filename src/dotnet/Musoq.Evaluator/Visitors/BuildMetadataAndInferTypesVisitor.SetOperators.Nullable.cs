@@ -47,11 +47,18 @@ public partial class BuildMetadataAndInferTypesVisitor
             return field;
 
         if (field.Expression is NullNode)
-            return new FieldNode(new NullNode(nullableType, field.Expression.Span),
-                field.FieldOrder, field.FieldName, field.Span);
+            return new FieldNode(
+                new NullNode(nullableType, field.Expression.Span),
+                field.FieldOrder,
+                field.FieldName,
+                field.Span
+            );
 
-        var expression = new CastNode(field.Expression, Nullable.GetUnderlyingType(nullableType)!.Name, nullableType)
-            .WithSpan(field.Expression.Span);
+        var expression = new CastNode(
+            field.Expression,
+            Nullable.GetUnderlyingType(nullableType)!.Name,
+            nullableType
+        ).WithSpan(field.Expression.Span);
         return new FieldNode(expression, field.FieldOrder, field.FieldName, field.Span);
     }
 }

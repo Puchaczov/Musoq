@@ -12,7 +12,11 @@ public class NegativeTestSchema(IReadOnlyDictionary<string, (ISchemaTable Table,
 {
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         if (tables.TryGetValue(name, out var entry))
             return entry.Table;
@@ -20,7 +24,11 @@ public class NegativeTestSchema(IReadOnlyDictionary<string, (ISchemaTable Table,
         throw new TableNotFoundException(name);
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         if (tables.TryGetValue(name, out var entry))
             return EnsureSourceType<T>(name, entry.Source);

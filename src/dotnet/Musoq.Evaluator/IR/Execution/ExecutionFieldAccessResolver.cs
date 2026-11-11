@@ -12,10 +12,13 @@ internal static class ExecutionFieldAccessResolver
         ColumnRef column,
         RowShape sourceShape,
         string alias,
-        string sourceRelativeColumnName)
+        string sourceRelativeColumnName
+    )
     {
-        if (!sourceRelativeColumnName.Contains('.', StringComparison.Ordinal) &&
-            !sourceRelativeColumnName.Contains('[', StringComparison.Ordinal))
+        if (
+            !sourceRelativeColumnName.Contains('.', StringComparison.Ordinal)
+            && !sourceRelativeColumnName.Contains('[', StringComparison.Ordinal)
+        )
             return null;
 
         var boundRoot = BoundNestedFieldPath.Resolve(column, sourceShape, alias);
@@ -26,69 +29,85 @@ internal static class ExecutionFieldAccessResolver
         if (boundRoot is null && sourceShape is TableRowShape && IsSelfNestedTransitionAlias(nestedRoot))
             return new ResolvedExecutionField(alias, nestedRoot.Field);
 
-        var fieldName = sourceShape is TableRowShape
-            ? RemoveSourceAlias(nestedRoot.FieldName, alias)
-            : sourceRelativeColumnName;
+        var fieldName =
+            sourceShape is TableRowShape ? RemoveSourceAlias(nestedRoot.FieldName, alias) : sourceRelativeColumnName;
         FieldAccessStrategy? accessStrategy = sourceShape switch
         {
             GeneratedRowShape generated when nestedRoot.Field.AccessStrategy is GeneratedFieldAccess generatedField =>
-                new GeneratedRowNestedAccess(generated.TypeName, generatedField.FieldName,
-                    nestedRoot.PropertyPath, IsRowCarrier: true),
+                new GeneratedRowNestedAccess(
+                    generated.TypeName,
+                    generatedField.FieldName,
+                    nestedRoot.PropertyPath,
+                    IsRowCarrier: true
+                ),
             TableRowShape when nestedRoot.Field.AccessStrategy is GeneratedRowTypeAccess generatedRow =>
                 new GeneratedRowNestedAccess(
                     generatedRow.TypeName,
                     generatedRow.FieldName,
                     nestedRoot.PropertyPath,
-                    IsRowCarrier: true),
-            TableRowShape table when nestedRoot.Field.AccessStrategy is GeneratedFieldAccess generatedField &&
-                                    table.Contexts.FirstOrDefault(context => context.AccessStrategy is GeneratedRowContextAccess) is
-                                    { AccessStrategy: GeneratedRowContextAccess generatedContext } =>
+                    IsRowCarrier: true
+                ),
+            TableRowShape table
+                when nestedRoot.Field.AccessStrategy is GeneratedFieldAccess generatedField
+                    && table.Contexts.FirstOrDefault(context => context.AccessStrategy is GeneratedRowContextAccess)
+                        is { AccessStrategy: GeneratedRowContextAccess generatedContext } =>
                 new GeneratedRowNestedAccess(
                     generatedContext.TypeName,
                     generatedField.FieldName,
                     nestedRoot.PropertyPath,
-                    IsRowCarrier: true),
-            TableRowShape table when nestedRoot.Field.AccessStrategy is GeneratedRowContextAccess generatedContext &&
-                                    ResolveGeneratedRowFieldName(table, nestedRoot.Field.OutputIndex) is { } generatedContextFieldName =>
-                new GeneratedRowNestedAccess(
-                    generatedContext.TypeName,
-                    generatedContextFieldName,
-                    nestedRoot.PropertyPath,
-                    IsRowCarrier: true),
-            TableRowShape table when table.GeneratedRowTypeName != null &&
-                                    nestedRoot.Field.AccessStrategy is PositionalAccess positional =>
-                new GeneratedRowNestedAccess(
-                    table.GeneratedRowTypeName,
-                    ResolveGeneratedRowFieldName(table, positional.Index) ?? string.Empty,
-                    nestedRoot.PropertyPath,
-                    IsRowCarrier: true),
-            TableRowShape table when nestedRoot.Field.GeneratedTypeName is { } generatedTypeName &&
-                                    ResolveGeneratedRowFieldName(table, nestedRoot.Field.OutputIndex) is { } generatedFieldName =>
+                    IsRowCarrier: true
+                ),
+            TableRowShape table
+                when nestedRoot.Field.AccessStrategy is GeneratedRowContextAccess generatedContext
+                    && ResolveGeneratedRowFieldName(table, nestedRoot.Field.OutputIndex)
+                        is { } generatedContextFieldName => new GeneratedRowNestedAccess(
+                generatedContext.TypeName,
+                generatedContextFieldName,
+                nestedRoot.PropertyPath,
+                IsRowCarrier: true
+            ),
+            TableRowShape table
+                when table.GeneratedRowTypeName != null
+                    && nestedRoot.Field.AccessStrategy is PositionalAccess positional => new GeneratedRowNestedAccess(
+                table.GeneratedRowTypeName,
+                ResolveGeneratedRowFieldName(table, positional.Index) ?? string.Empty,
+                nestedRoot.PropertyPath,
+                IsRowCarrier: true
+            ),
+            TableRowShape table
+                when nestedRoot.Field.GeneratedTypeName is { } generatedTypeName
+                    && ResolveGeneratedRowFieldName(table, nestedRoot.Field.OutputIndex) is { } generatedFieldName =>
                 new GeneratedRowNestedAccess(
                     string.Empty,
                     generatedFieldName,
                     nestedRoot.PropertyPath,
-                    IsRowCarrier: true),
+                    IsRowCarrier: true
+                ),
             TableRowShape table when TryCreateGeneratedTableNestedAccess(table, nestedRoot) is { } generatedTable =>
                 generatedTable,
-            TableRowShape table when TryCreateGeneratedDictionaryNestedAccess(table, nestedRoot) is { } generatedDictionary =>
+            TableRowShape table
+                when TryCreateGeneratedDictionaryNestedAccess(table, nestedRoot) is { } generatedDictionary =>
                 generatedDictionary,
             TableRowShape table when TryCreateGeneratedContextNestedAccess(table, nestedRoot) is { } generatedContext =>
                 generatedContext,
             TableRowShape table => ThrowMissingGeneratedRowType(column, alias, table),
-            SourceEntityShape source when nestedRoot.Field.Type.ResolveClrType() is { } nestedType &&
-                                    (nestedRoot.Field.AccessStrategy is RuntimeDynamicMemberAccess ||
-                                     ExecutionSourceCodeGenerationPolicy.IsSupportedDynamicObject(nestedType)) =>
-                new RuntimeDynamicMemberPathAccess(
-                    nestedRoot.Field.Name,
-                    nestedRoot.Field.Type,
-                    CreateRuntimeDynamicPathSegments(
-                        nestedRoot.Field.Type.ResolveClrType(),
-                        nestedRoot.PropertyPath,
+            SourceEntityShape source
+                when nestedRoot.Field.Type.ResolveClrType() is { } nestedType
+                    && (
+                        nestedRoot.Field.AccessStrategy is RuntimeDynamicMemberAccess
+                        || ExecutionSourceCodeGenerationPolicy.IsSupportedDynamicObject(nestedType)
+                    ) => new RuntimeDynamicMemberPathAccess(
+                nestedRoot.Field.Name,
+                nestedRoot.Field.Type,
+                CreateRuntimeDynamicPathSegments(
+                    nestedRoot.Field.Type.ResolveClrType(),
+                    nestedRoot.PropertyPath,
                     column.ReturnType,
                     sourceShape.Fields,
-                    nestedRoot.Field.Name),
-                    rootIsDynamic: nestedRoot.Field.AccessStrategy is RuntimeDynamicMemberAccess),
+                    nestedRoot.Field.Name
+                ),
+                rootIsDynamic: nestedRoot.Field.AccessStrategy is RuntimeDynamicMemberAccess
+            ),
             SourceEntityShape when nestedRoot.Field.AccessStrategy is ReflectedMemberAccess =>
                 new ReflectedMemberAccess(sourceRelativeColumnName),
             SourceEntityShape when nestedRoot.Field.AccessStrategy is PositionalAccess positional =>
@@ -99,13 +118,17 @@ internal static class ExecutionFieldAccessResolver
                     nestedRoot.Field.Name,
                     nestedRoot.PropertyPath,
                     generatedTypeName,
-                    IsRowCarrier: true),
-            SourceEntityShape when IsGeneratedDictionaryValue(nestedRoot.Field) =>
-                new GeneratedDictionaryNestedAccess(nestedRoot.Field.Name, nestedRoot.PropertyPath),
-            SourceEntityShape source when IsDirectScalarSource(source) =>
-                new NestedClrPropertyAccess(nestedRoot.PropertyPath),
+                    IsRowCarrier: true
+                ),
+            SourceEntityShape when IsGeneratedDictionaryValue(nestedRoot.Field) => new GeneratedDictionaryNestedAccess(
+                nestedRoot.Field.Name,
+                nestedRoot.PropertyPath
+            ),
+            SourceEntityShape source when IsDirectScalarSource(source) => new NestedClrPropertyAccess(
+                nestedRoot.PropertyPath
+            ),
             SourceEntityShape => new NestedClrPropertyAccess(sourceRelativeColumnName),
-            _ => null
+            _ => null,
         };
 
         if (accessStrategy == null)
@@ -113,34 +136,28 @@ internal static class ExecutionFieldAccessResolver
 
         if (accessStrategy is GeneratedRowNestedAccess generatedAccess)
         {
-            var nullableGeneratedSourcePath = sourceShape is SourceEntityShape sourceEntity &&
-                !sourceEntity.EntityType.ResolveClrType().IsValueType &&
-                Nullable.GetUnderlyingType(column.ReturnType) is not null;
-            accessStrategy = generatedAccess with
-            {
-                IsNullSafe = column.IsNullSafePath || nullableGeneratedSourcePath
-            };
+            var nullableGeneratedSourcePath =
+                sourceShape is SourceEntityShape sourceEntity
+                && !sourceEntity.EntityType.ResolveClrType().IsValueType
+                && Nullable.GetUnderlyingType(column.ReturnType) is not null;
+            accessStrategy = generatedAccess with { IsNullSafe = column.IsNullSafePath || nullableGeneratedSourcePath };
         }
         if (accessStrategy is NestedClrPropertyAccess nestedAccess)
             accessStrategy = nestedAccess with { IsNullSafe = column.IsNullSafePath };
 
         var field = new FieldBinding(
             fieldName,
-            sourceShape is TableRowShape
-                ? $"{alias}.{fieldName}"
-                : string.IsNullOrWhiteSpace(column.Alias)
-                    ? sourceRelativeColumnName
-                    : $"{column.Alias}.{sourceRelativeColumnName}",
+            sourceShape is TableRowShape ? $"{alias}.{fieldName}"
+                : string.IsNullOrWhiteSpace(column.Alias) ? sourceRelativeColumnName
+                : $"{column.Alias}.{sourceRelativeColumnName}",
             nestedRoot.Field.OutputIndex,
             column.ReturnType,
             nestedRoot.Field.Nullability,
-            accessStrategy);
+            accessStrategy
+        );
 
         if (accessStrategy is NestedPositionalAccess)
-            field = field with
-            {
-                GeneratedTypeName = nestedRoot.Field.Type.DisplayName.Replace('+', '.')
-            };
+            field = field with { GeneratedTypeName = nestedRoot.Field.Type.DisplayName.Replace('+', '.') };
 
         return new ResolvedExecutionField(alias, field);
     }
@@ -149,27 +166,30 @@ internal static class ExecutionFieldAccessResolver
         ColumnRef column,
         RowShape sourceShape,
         string alias,
-        string sourceRelativeColumnName)
+        string sourceRelativeColumnName
+    )
     {
         if (!sourceRelativeColumnName.Contains('[', StringComparison.Ordinal))
             return null;
 
         var rootName = GetRootFieldName(sourceRelativeColumnName);
         var rootField = sourceShape.Fields.FirstOrDefault(candidate =>
-            string.Equals(candidate.Name, rootName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.Name, $"{column.Alias}.{rootName}", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, $"{alias}.{rootName}", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(candidate.QualifiedName, $"{column.Alias}.{rootName}", StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate.Name, rootName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(candidate.Name, $"{column.Alias}.{rootName}", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(candidate.QualifiedName, $"{alias}.{rootName}", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(candidate.QualifiedName, $"{column.Alias}.{rootName}", StringComparison.OrdinalIgnoreCase)
+        );
 
         if (rootField == null)
             return null;
 
         FieldAccessStrategy? accessStrategy = sourceShape switch
         {
-            SourceEntityShape when rootField.AccessStrategy is ReflectedMemberAccess =>
-                new ReflectedMemberAccess(sourceRelativeColumnName),
+            SourceEntityShape when rootField.AccessStrategy is ReflectedMemberAccess => new ReflectedMemberAccess(
+                sourceRelativeColumnName
+            ),
             SourceEntityShape => new NestedClrPropertyAccess(sourceRelativeColumnName),
-            _ => null
+            _ => null,
         };
 
         if (accessStrategy == null)
@@ -183,45 +203,58 @@ internal static class ExecutionFieldAccessResolver
             rootField.OutputIndex,
             column.ReturnType,
             rootField.Nullability,
-            accessStrategy);
+            accessStrategy
+        );
 
         return new ResolvedExecutionField(alias, field);
     }
 
     internal static GeneratedRowNestedAccess? TryCreateGeneratedTableNestedAccess(
         TableRowShape table,
-        NestedRootField nestedRoot)
+        NestedRootField nestedRoot
+    )
     {
-        var pathRoot = nestedRoot.PropertyPath
-            .Split(new[] { '.', '[' }, 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        var pathRoot = nestedRoot
+            .PropertyPath.Split(
+                new[] { '.', '[' },
+                2,
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+            )
             .FirstOrDefault();
         if (string.IsNullOrWhiteSpace(pathRoot))
             return null;
 
         var qualifiedRoot = $"{nestedRoot.Field.Name}.{pathRoot}";
         var sourceField = table.Fields.FirstOrDefault(field =>
-            string.Equals(field.Name, qualifiedRoot, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(field.QualifiedName, qualifiedRoot, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(field.Name, pathRoot, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(field.QualifiedName, pathRoot, StringComparison.OrdinalIgnoreCase));
+            string.Equals(field.Name, qualifiedRoot, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(field.QualifiedName, qualifiedRoot, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(field.Name, pathRoot, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(field.QualifiedName, pathRoot, StringComparison.OrdinalIgnoreCase)
+        );
 
-        if (sourceField?.GeneratedTypeName is not { Length: > 0 } generatedTypeName ||
-            ResolveGeneratedRowFieldName(table, sourceField.OutputIndex) is not { } generatedFieldName)
+        if (
+            sourceField?.GeneratedTypeName is not { Length: > 0 } generatedTypeName
+            || ResolveGeneratedRowFieldName(table, sourceField.OutputIndex) is not { } generatedFieldName
+        )
             return null;
 
         return new GeneratedRowNestedAccess(
             string.Empty,
             generatedFieldName,
             nestedRoot.PropertyPath,
-            IsRowCarrier: true);
+            IsRowCarrier: true
+        );
     }
 
     internal static GeneratedDictionaryNestedAccess? TryCreateGeneratedDictionaryNestedAccess(
         TableRowShape table,
-        NestedRootField nestedRoot)
+        NestedRootField nestedRoot
+    )
     {
-        if (!IsGeneratedDictionaryValue(nestedRoot.Field) ||
-            ResolveGeneratedRowFieldName(table, nestedRoot.Field.OutputIndex) is not { } fieldName)
+        if (
+            !IsGeneratedDictionaryValue(nestedRoot.Field)
+            || ResolveGeneratedRowFieldName(table, nestedRoot.Field.OutputIndex) is not { } fieldName
+        )
             return null;
 
         return new GeneratedDictionaryNestedAccess(fieldName, nestedRoot.PropertyPath);
@@ -230,21 +263,28 @@ internal static class ExecutionFieldAccessResolver
     internal static FieldAccessStrategy ThrowMissingGeneratedRowType(
         ColumnRef column,
         string alias,
-        TableRowShape table)
+        TableRowShape table
+    )
     {
         var fields = string.Join(
             ", ",
-            table.Fields.Select(field => $"{field.Name}@{field.OutputIndex}:{field.Type.DisplayName}"));
+            table.Fields.Select(field => $"{field.Name}@{field.OutputIndex}:{field.Type.DisplayName}")
+        );
         var contexts = string.Join(
             ", ",
-            table.Contexts.Select(context => $"{context.Name}:{context.GeneratedTypeName ?? "<none>"}:{context.AccessStrategy}"));
+            table.Contexts.Select(context =>
+                $"{context.Name}:{context.GeneratedTypeName ?? "<none>"}:{context.AccessStrategy}"
+            )
+        );
         throw new InvalidOperationException(
-            $"Generated execution cannot lower nested table field '{column.ColumnName}' because table '{alias}' has no generated row type. Fields: {fields}. Contexts: {contexts}.");
+            $"Generated execution cannot lower nested table field '{column.ColumnName}' because table '{alias}' has no generated row type. Fields: {fields}. Contexts: {contexts}."
+        );
     }
 
     internal static GeneratedRowNestedAccess? TryCreateGeneratedContextNestedAccess(
         TableRowShape table,
-        NestedRootField nestedRoot)
+        NestedRootField nestedRoot
+    )
     {
         var sourceAlias = GetNestedFieldSourceAlias(nestedRoot.Field.Name);
         var contextIndex = -1;
@@ -253,8 +293,10 @@ internal static class ExecutionFieldAccessResolver
         for (var index = 0; index < table.Contexts.Count; index++)
         {
             var candidate = table.Contexts[index];
-            if (!string.Equals(candidate.Name, sourceAlias, StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(candidate.QualifiedName, sourceAlias, StringComparison.OrdinalIgnoreCase))
+            if (
+                !string.Equals(candidate.Name, sourceAlias, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(candidate.QualifiedName, sourceAlias, StringComparison.OrdinalIgnoreCase)
+            )
                 continue;
 
             context = candidate;
@@ -270,21 +312,25 @@ internal static class ExecutionFieldAccessResolver
         if (separatorIndex >= 0)
             rootFieldName = rootFieldName[(separatorIndex + 1)..];
 
-        if (context.GeneratedMemberTypeNames.TryGetValue(rootFieldName, out var generatedMemberTypeName) &&
-            ResolveGeneratedRowFieldName(table, nestedRoot.Field.OutputIndex) is { } generatedFieldName)
+        if (
+            context.GeneratedMemberTypeNames.TryGetValue(rootFieldName, out var generatedMemberTypeName)
+            && ResolveGeneratedRowFieldName(table, nestedRoot.Field.OutputIndex) is { } generatedFieldName
+        )
         {
             return new GeneratedRowNestedAccess(
                 string.Empty,
                 generatedFieldName,
                 nestedRoot.PropertyPath,
                 generatedMemberTypeName,
-                IsRowCarrier: true);
+                IsRowCarrier: true
+            );
         }
 
         throw new InvalidOperationException(
-            $"Generated interpretation member '{sourceAlias}.{rootFieldName}' has no generated type metadata. " +
-            $"Known members: {string.Join(", ", context.GeneratedMemberTypeNames.Keys)}. " +
-            $"Fields: {string.Join(", ", table.Fields.Select(field => $"{field.Name}:{field.Type.DisplayName}:{field.GeneratedTypeName ?? "<none>"}"))}.");
+            $"Generated interpretation member '{sourceAlias}.{rootFieldName}' has no generated type metadata. "
+                + $"Known members: {string.Join(", ", context.GeneratedMemberTypeNames.Keys)}. "
+                + $"Fields: {string.Join(", ", table.Fields.Select(field => $"{field.Name}:{field.Type.DisplayName}:{field.GeneratedTypeName ?? "<none>"}"))}."
+        );
     }
 
     internal static string? ResolveGeneratedRowFieldName(TableRowShape table, int fieldIndex)
@@ -294,7 +340,7 @@ internal static class ExecutionFieldAccessResolver
         {
             GeneratedRowTypeAccess generated => generated.FieldName,
             GeneratedFieldAccess generated => generated.FieldName,
-            _ => null
+            _ => null,
         };
         if (directName != null)
             return directName;
@@ -308,7 +354,8 @@ internal static class ExecutionFieldAccessResolver
             var generatedName = ExecutionSymbolicNamePolicy.CreateGeneratedFieldName(
                 candidate.Name,
                 candidate.OutputIndex,
-                usedNames);
+                usedNames
+            );
             if (candidate.OutputIndex == fieldIndex)
                 return generatedName;
         }
@@ -317,25 +364,24 @@ internal static class ExecutionFieldAccessResolver
     }
 
     private static bool IsSelfNestedTransitionAlias(NestedRootField nestedRoot) =>
-        !nestedRoot.Field.Name.Contains('.', StringComparison.Ordinal) &&
-        string.Equals(nestedRoot.PropertyPath, nestedRoot.Field.Name, StringComparison.OrdinalIgnoreCase);
+        !nestedRoot.Field.Name.Contains('.', StringComparison.Ordinal)
+        && string.Equals(nestedRoot.PropertyPath, nestedRoot.Field.Name, StringComparison.OrdinalIgnoreCase);
 
     private static NestedRootField? FindNestedRootField(
         ColumnRef column,
         RowShape sourceShape,
         string alias,
-        string sourceRelativeColumnName)
+        string sourceRelativeColumnName
+    )
     {
         var originalQualifiedName = string.IsNullOrWhiteSpace(column.Alias)
             ? column.ColumnName
             : $"{column.Alias}.{column.ColumnName}";
 
-        return sourceShape.Fields
-            .SelectMany(candidate => CreateNestedRootMatches(
-                candidate,
-                alias,
-                sourceRelativeColumnName,
-                originalQualifiedName))
+        return sourceShape
+            .Fields.SelectMany(candidate =>
+                CreateNestedRootMatches(candidate, alias, sourceRelativeColumnName, originalQualifiedName)
+            )
             .OrderByDescending(candidate => candidate.PrefixLength)
             .FirstOrDefault();
     }
@@ -344,22 +390,32 @@ internal static class ExecutionFieldAccessResolver
         FieldBinding candidate,
         string alias,
         string sourceRelativeColumnName,
-        string originalQualifiedName)
+        string originalQualifiedName
+    )
     {
         foreach (var match in CreateNestedRootMatches(candidate, sourceRelativeColumnName, sourceRelativeColumnName))
             yield return match;
         foreach (var match in CreateNestedRootMatches(candidate, originalQualifiedName, originalQualifiedName))
             yield return match;
-        foreach (var match in CreateNestedRootMatches(candidate, $"{alias}.{sourceRelativeColumnName}", sourceRelativeColumnName))
+        foreach (
+            var match in CreateNestedRootMatches(
+                candidate,
+                $"{alias}.{sourceRelativeColumnName}",
+                sourceRelativeColumnName
+            )
+        )
             yield return match;
-        foreach (var match in CreateNestedRootMatches(candidate, $"{alias}.{originalQualifiedName}", originalQualifiedName))
+        foreach (
+            var match in CreateNestedRootMatches(candidate, $"{alias}.{originalQualifiedName}", originalQualifiedName)
+        )
             yield return match;
     }
 
     private static IEnumerable<NestedRootField> CreateNestedRootMatches(
         FieldBinding candidate,
         string columnName,
-        string fieldName)
+        string fieldName
+    )
     {
         foreach (var prefix in CreateNestedRootPrefixes(candidate))
         {
@@ -369,7 +425,8 @@ internal static class ExecutionFieldAccessResolver
                     candidate,
                     fieldName,
                     CreateNestedPropertyPath(columnName, prefix),
-                    prefix.Length);
+                    prefix.Length
+                );
             }
         }
     }
@@ -390,9 +447,11 @@ internal static class ExecutionFieldAccessResolver
 
     private static bool IsNestedPrefix(string columnName, string prefix)
     {
-        if (string.IsNullOrWhiteSpace(prefix) ||
-            !columnName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
-            columnName.Length <= prefix.Length)
+        if (
+            string.IsNullOrWhiteSpace(prefix)
+            || !columnName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+            || columnName.Length <= prefix.Length
+        )
             return false;
 
         return columnName[prefix.Length] is '.' or '[';
@@ -418,10 +477,10 @@ internal static class ExecutionFieldAccessResolver
         string propertyPath,
         Type finalType,
         IReadOnlyList<FieldBinding> schemaFields,
-        string rootFieldName)
+        string rootFieldName
+    )
     {
-        var segments = propertyPath
-            .Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var segments = propertyPath.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var result = new List<RuntimeDynamicMemberPathSegment>(segments.Length);
         var currentType = rootType;
 
@@ -430,32 +489,39 @@ internal static class ExecutionFieldAccessResolver
             var name = segments[index];
             var property = currentType.GetProperty(
                 name,
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
-            var field = property == null
-                ? currentType.GetField(
-                    name,
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
-                : null;
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase
+            );
+            var field =
+                property == null
+                    ? currentType.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
+                    : null;
 
             if (property != null || field != null)
             {
                 var memberType = property?.PropertyType ?? field!.FieldType;
                 var memberName = property?.Name ?? field!.Name;
-                result.Add(new RuntimeDynamicMemberPathSegment(
-                    memberName,
-                    ExecutionClrBindingFactory.FromClr(memberType),
-                    isDynamic: false));
+                result.Add(
+                    new RuntimeDynamicMemberPathSegment(
+                        memberName,
+                        ExecutionClrBindingFactory.FromClr(memberType),
+                        isDynamic: false
+                    )
+                );
                 currentType = memberType;
                 continue;
             }
 
             var canonicalName = ResolveSchemaMemberName(schemaFields, rootFieldName, segments, index) ?? name;
-            var hintedType = ResolveDynamicMemberType(currentType, name) ??
-                             (index == segments.Length - 1 ? finalType : typeof(object));
-            result.Add(new RuntimeDynamicMemberPathSegment(
-                canonicalName,
-                ExecutionClrBindingFactory.FromClr(hintedType),
-                isDynamic: true));
+            var hintedType =
+                ResolveDynamicMemberType(currentType, name)
+                ?? (index == segments.Length - 1 ? finalType : typeof(object));
+            result.Add(
+                new RuntimeDynamicMemberPathSegment(
+                    canonicalName,
+                    ExecutionClrBindingFactory.FromClr(hintedType),
+                    isDynamic: true
+                )
+            );
             currentType = hintedType;
         }
 
@@ -466,12 +532,14 @@ internal static class ExecutionFieldAccessResolver
         IReadOnlyList<FieldBinding> schemaFields,
         string rootFieldName,
         IReadOnlyList<string> segments,
-        int segmentIndex)
+        int segmentIndex
+    )
     {
         var expectedPrefix = $"{rootFieldName}.{string.Join('.', segments.Take(segmentIndex + 1))}";
         var schemaField = schemaFields.FirstOrDefault(field =>
-            string.Equals(field.Name, expectedPrefix, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(field.QualifiedName, expectedPrefix, StringComparison.OrdinalIgnoreCase));
+            string.Equals(field.Name, expectedPrefix, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(field.QualifiedName, expectedPrefix, StringComparison.OrdinalIgnoreCase)
+        );
         if (schemaField == null)
             return null;
 
@@ -518,8 +586,4 @@ internal static class ExecutionFieldAccessResolver
 
 internal readonly record struct ResolvedExecutionField(string Alias, FieldBinding Field);
 
-internal sealed record NestedRootField(
-    FieldBinding Field,
-    string FieldName,
-    string PropertyPath,
-    int PrefixLength);
+internal sealed record NestedRootField(FieldBinding Field, string FieldName, string PropertyPath, int PrefixLength);

@@ -18,8 +18,9 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void EnumDeclaration_ShouldCreatePortableQueryLocalDescriptor()
     {
         var visitor = Analyze(
-            "flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };" +
-            "select 1 from #EnvironmentVariables.All()");
+            "flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };"
+                + "select 1 from #EnvironmentVariables.All()"
+        );
 
         Assert.IsTrue(visitor.QueryLocalEnumTypes.TryGetValue("fileaccess", out var descriptor));
         Assert.IsNotNull(descriptor);
@@ -36,16 +37,16 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     {
         var capturedContexts = new List<SourceMetadataContext>();
         Analyze(
-            "enum JobStatus : int { Queued = 10, Running = 20, Finished = 30 };" +
-            "table Jobs { Status: jobstatus };" +
-            "couple #capture.any with table Jobs as Jobs;" +
-            "select Status from Jobs()",
-            new CaptureMetadataContextSchemaProvider(capturedContexts.Add));
+            "enum JobStatus : int { Queued = 10, Running = 20, Finished = 30 };"
+                + "table Jobs { Status: jobstatus };"
+                + "couple #capture.any with table Jobs as Jobs;"
+                + "select Status from Jobs()",
+            new CaptureMetadataContextSchemaProvider(capturedContexts.Add)
+        );
 
         var column = capturedContexts
             .Single(context => context.AllColumns.Any(candidate => candidate.ColumnName == "Status"))
-            .AllColumns
-            .Single(candidate => candidate.ColumnName == "Status");
+            .AllColumns.Single(candidate => candidate.ColumnName == "Status");
 
         Assert.AreEqual(typeof(int?), column.ColumnType);
         Assert.AreEqual(typeof(int?), column.SourceReadType);
@@ -58,15 +59,22 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void TableColumnType_WhenExactReachableNativeEnum_ShouldRejectDeclaration()
     {
         const string declaration = "Status: Musoq.Evaluator.Tests.TableContractNativeStatus";
-        const string query = "table Jobs { " + declaration + " };" +
-                             "couple #capture.any with table Jobs as Jobs;" +
-                             "select Status from Jobs()";
+        const string query =
+            "table Jobs { "
+            + declaration
+            + " };"
+            + "couple #capture.any with table Jobs as Jobs;"
+            + "select Status from Jobs()";
         var capturedContexts = new List<SourceMetadataContext>();
-        var exception = Assert.Throws<VisitorException>(() => Analyze(
-            query, new CaptureMetadataContextSchemaProvider(capturedContexts.Add)));
+        var exception = Assert.Throws<VisitorException>(() =>
+            Analyze(query, new CaptureMetadataContextSchemaProvider(capturedContexts.Add))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ2012_InvalidSchemaDefinition, exception.Code);
-        Assert.AreEqual(new TextSpan(query.IndexOf(declaration, StringComparison.Ordinal), declaration.Length), exception.Span);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf(declaration, StringComparison.Ordinal), declaration.Length),
+            exception.Span
+        );
         Assert.Contains("cannot declare native CLR enum type", exception.Message);
         Assert.Contains("underlying primitive type 'short'", exception.Message);
         Assert.IsEmpty(capturedContexts);
@@ -75,10 +83,13 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     [TestMethod]
     public void EnumDeclaration_WhenTypeNameDiffersOnlyByCase_ShouldRejectDuplicate()
     {
-        var exception = Assert.Throws<Musoq.Parser.Exceptions.SyntaxException>(() => Analyze(
-            "enum State : byte { Ready = 1ub };" +
-            "enum state : byte { Done = 2ub };" +
-            "select 1 from #EnvironmentVariables.All()"));
+        var exception = Assert.Throws<Musoq.Parser.Exceptions.SyntaxException>(() =>
+            Analyze(
+                "enum State : byte { Ready = 1ub };"
+                    + "enum state : byte { Done = 2ub };"
+                    + "select 1 from #EnvironmentVariables.All()"
+            )
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ2042_InvalidEnumDeclaration, exception.Code);
     }
@@ -87,11 +98,12 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void EnumComparison_WhenUsingExactMemberName_ShouldBindPrimitiveConstant()
     {
         var visitor = Analyze(
-            "enum JobStatus : int { Queued = 10, Running = 20, Finished = 30 };" +
-            "table Jobs { Status: JobStatus };" +
-            "couple #capture.any with table Jobs as Jobs;" +
-            "select Status from Jobs() where Status = 'Running'",
-            new CaptureMetadataContextSchemaProvider(_ => { }));
+            "enum JobStatus : int { Queued = 10, Running = 20, Finished = 30 };"
+                + "table Jobs { Status: JobStatus };"
+                + "couple #capture.any with table Jobs as Jobs;"
+                + "select Status from Jobs() where Status = 'Running'",
+            new CaptureMetadataContextSchemaProvider(_ => { })
+        );
         var collector = new EnumComparisonCollector();
 
         visitor.Root.Accept(new EnumComparisonTraverser(collector));
@@ -104,12 +116,15 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     [TestMethod]
     public void EnumComparison_WhenMemberCasingDiffers_ShouldRejectUnknownMember()
     {
-        var exception = Assert.Throws<VisitorException>(() => Analyze(
-            "enum JobStatus : int { Running = 20 };" +
-            "table Jobs { Status: JobStatus };" +
-            "couple #capture.any with table Jobs as Jobs;" +
-            "select Status from Jobs() where Status = 'running'",
-            new CaptureMetadataContextSchemaProvider(_ => { })));
+        var exception = Assert.Throws<VisitorException>(() =>
+            Analyze(
+                "enum JobStatus : int { Running = 20 };"
+                    + "table Jobs { Status: JobStatus };"
+                    + "couple #capture.any with table Jobs as Jobs;"
+                    + "select Status from Jobs() where Status = 'running'",
+                new CaptureMetadataContextSchemaProvider(_ => { })
+            )
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3108_UnknownEnumMember, exception.Code);
     }
@@ -117,12 +132,15 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     [TestMethod]
     public void EnumComparison_WhenComparedWithNumericLiteral_ShouldRejectImplicitConversion()
     {
-        var exception = Assert.Throws<VisitorException>(() => Analyze(
-            "enum JobStatus : int { Running = 20 };" +
-            "table Jobs { Status: JobStatus };" +
-            "couple #capture.any with table Jobs as Jobs;" +
-            "select Status from Jobs() where Status = 20",
-            new CaptureMetadataContextSchemaProvider(_ => { })));
+        var exception = Assert.Throws<VisitorException>(() =>
+            Analyze(
+                "enum JobStatus : int { Running = 20 };"
+                    + "table Jobs { Status: JobStatus };"
+                    + "couple #capture.any with table Jobs as Jobs;"
+                    + "select Status from Jobs() where Status = 20",
+                new CaptureMetadataContextSchemaProvider(_ => { })
+            )
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3110_UnsupportedEnumOperator, exception.Code);
     }
@@ -130,13 +148,16 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     [TestMethod]
     public void EnumComparison_WhenIdentitiesDiffer_ShouldRejectEvenWithSameCarrier()
     {
-        var exception = Assert.Throws<VisitorException>(() => Analyze(
-            "enum JobStatus : int { Running = 20 };" +
-            "enum OtherStatus : int { Running = 20 };" +
-            "table Jobs { Status: JobStatus, Other: OtherStatus };" +
-            "couple #capture.any with table Jobs as Jobs;" +
-            "select Status from Jobs() where Status = Other",
-            new CaptureMetadataContextSchemaProvider(_ => { })));
+        var exception = Assert.Throws<VisitorException>(() =>
+            Analyze(
+                "enum JobStatus : int { Running = 20 };"
+                    + "enum OtherStatus : int { Running = 20 };"
+                    + "table Jobs { Status: JobStatus, Other: OtherStatus };"
+                    + "couple #capture.any with table Jobs as Jobs;"
+                    + "select Status from Jobs() where Status = Other",
+                new CaptureMetadataContextSchemaProvider(_ => { })
+            )
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ3109_EnumIdentityMismatch, exception.Code);
     }
@@ -145,27 +166,25 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     public void EnumDeclaration_WhenTableReferencesLaterDeclaration_ShouldReportVisibilityError()
     {
         const string query =
-            "table Jobs { Status: JobStatus };" +
-            "enum JobStatus : int { Running = 20 };" +
-            "select 1 from #EnvironmentVariables.All()";
+            "table Jobs { Status: JobStatus };"
+            + "enum JobStatus : int { Running = 20 };"
+            + "select 1 from #EnvironmentVariables.All()";
 
         var result = new QueryAnalyzer(new EnvironmentVariablesSchemaProvider()).Analyze(query);
 
-        Assert.IsTrue(result.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ3107_UnknownEnumType));
+        Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == DiagnosticCode.MQ3107_UnknownEnumType));
     }
 
     [TestMethod]
     public void EnumDeclaration_WhenPlacedAfterExecutableStatement_ShouldReportStatementOrderError()
     {
-        const string query =
-            "select 1 from #EnvironmentVariables.All();" +
-            "enum JobStatus : int { Running = 20 };";
+        const string query = "select 1 from #EnvironmentVariables.All();" + "enum JobStatus : int { Running = 20 };";
 
         var result = new QueryAnalyzer(new EnvironmentVariablesSchemaProvider()).Analyze(query);
 
-        Assert.IsTrue(result.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ3102_InvalidStatementOrder));
+        Assert.IsTrue(
+            result.Diagnostics.Any(diagnostic => diagnostic.Code == DiagnosticCode.MQ3102_InvalidStatementOrder)
+        );
     }
 
     private sealed class EnumComparisonCollector : NoOpExpressionVisitor
@@ -185,5 +204,5 @@ public partial class BuildMetadataAndInferTypesVisitorTests
 public enum TableContractNativeStatus : short
 {
     Queued = 10,
-    Running = 20
+    Running = 20,
 }

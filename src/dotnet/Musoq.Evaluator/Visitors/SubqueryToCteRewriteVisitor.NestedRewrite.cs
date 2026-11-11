@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
+
 public partial class SubqueryToCteRewriteVisitor
 {
     private (QueryNode Rewritten, List<CteInnerExpressionNode> InnerCtes) RewriteNestedInSubqueries(QueryNode subquery)
@@ -11,7 +12,8 @@ public partial class SubqueryToCteRewriteVisitor
 
         var (remainingExpr, nestedSubqueries) = AttachCorrelation(
             ExtractPredicateSubqueries(subquery.Where.Expression),
-            AnalyzeSubqueries(subquery));
+            AnalyzeSubqueries(subquery)
+        );
 
         if (nestedSubqueries.Count == 0)
             return (subquery, []);
@@ -20,7 +22,11 @@ public partial class SubqueryToCteRewriteVisitor
         var currentFrom = UnwrapFromForJoin(subquery.From);
 
         (currentFrom, remainingExpr) = RewriteSubqueriesToJoins(
-            nestedSubqueries, currentFrom, remainingExpr, innerCtes);
+            nestedSubqueries,
+            currentFrom,
+            remainingExpr,
+            innerCtes
+        );
 
         var joinNode = new Parser.JoinNode((Parser.JoinFromNode)currentFrom);
         var wrappedFrom = new Parser.ExpressionFromNode(joinNode);
@@ -36,7 +42,8 @@ public partial class SubqueryToCteRewriteVisitor
             subquery.Take,
             subquery.Window,
             subquery.Qualify,
-            default);
+            default
+        );
 
         return (rewrittenQuery, innerCtes);
     }

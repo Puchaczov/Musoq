@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using Musoq.Examples.DataSources.StructuredInputs;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Examples.DataSources.StructuredInputs;
 
 namespace Musoq.Evaluator.Tests;
 

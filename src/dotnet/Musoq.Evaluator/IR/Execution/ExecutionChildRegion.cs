@@ -10,13 +10,17 @@ internal readonly record struct ExecutionChildRegion
     private readonly ExecutionNode? _node;
 
     internal ExecutionChildRegion(ExecutionBlock block) => _block = block;
+
     internal ExecutionChildRegion(IReadOnlyList<ExecutionNode> nodes) => _nodes = nodes;
+
     internal ExecutionChildRegion(ExecutionNode node) => _node = node;
 
     internal bool IsPresent => _block is not null || _nodes is not null || _node is not null;
     internal int Count => _block?.Nodes.Count ?? _nodes?.Count ?? (_node is null ? 0 : 1);
-    internal ExecutionNode this[int index] => _block?.Nodes[index] ?? _nodes?[index] ??
-        (index == 0 && _node is not null ? _node : throw new ArgumentOutOfRangeException(nameof(index)));
+    internal ExecutionNode this[int index] =>
+        _block?.Nodes[index]
+        ?? _nodes?[index]
+        ?? (index == 0 && _node is not null ? _node : throw new ArgumentOutOfRangeException(nameof(index)));
 
     internal ExecutionBlock AsBlock()
     {

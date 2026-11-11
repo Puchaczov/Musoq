@@ -12,15 +12,11 @@ public class BinaryEntity
     {
         { nameof(Name), 0 },
         { nameof(Content), 1 },
-        { nameof(Data), 1 } // Alias for Content
+        { nameof(Data), 1 }, // Alias for Content
     };
 
     public static readonly IReadOnlyDictionary<int, Func<BinaryEntity, object?>> IndexToObjectAccessMap =
-        new Dictionary<int, Func<BinaryEntity, object?>>
-        {
-            { 0, e => e.Name },
-            { 1, e => e.Content }
-        };
+        new Dictionary<int, Func<BinaryEntity, object?>> { { 0, e => e.Name }, { 1, e => e.Content } };
 
     public string Name { get; set; } = string.Empty;
     public byte[] Content { get; set; } = [];

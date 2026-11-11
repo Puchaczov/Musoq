@@ -5,14 +5,16 @@ namespace Musoq.Parser.Nodes;
 public sealed record CreateTableColumnDefinition(
     string ColumnName,
     string TypeName,
-    IReadOnlyList<CreateTableColumnModifier> ReadModifiers)
+    IReadOnlyList<CreateTableColumnModifier> ReadModifiers
+)
 {
     public CreateTableColumnDefinition(
         string columnName,
         string typeName,
         IReadOnlyList<CreateTableColumnModifier> readModifiers,
         TextSpan span,
-        TextSpan columnNameSpan)
+        TextSpan columnNameSpan
+    )
         : this(columnName, typeName, readModifiers)
     {
         Span = span;
@@ -27,7 +29,8 @@ public sealed record CreateTableColumnDefinition(
         CreateReadModifierSpans(ReadModifiers);
 
     private static IReadOnlyDictionary<string, TextSpan> CreateReadModifierSpans(
-        IReadOnlyList<CreateTableColumnModifier> readModifiers)
+        IReadOnlyList<CreateTableColumnModifier> readModifiers
+    )
     {
         var result = new Dictionary<string, TextSpan>(StringComparer.Ordinal);
 

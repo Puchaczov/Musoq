@@ -8,7 +8,8 @@ public static partial class InstanceCreator
     private static TypedBuildProduct CreateTypedBuildProduct(
         BuildItems items,
         Type? runnableType,
-        TypedQueryProfileMode profileMode = TypedQueryProfileMode.None)
+        TypedQueryProfileMode profileMode = TypedQueryProfileMode.None
+    )
     {
         return new TypedBuildProduct(
             runnableType,
@@ -22,15 +23,15 @@ public static partial class InstanceCreator
                 runnableType,
                 items.QueryResultMode,
                 items.QueryMethodRenderMetadata,
-                profileMode))
+                profileMode
+            )
+        )
         {
-            OutputColumns = TypedOutputSchema.Resolve(items.LogicalPlan, items.ExecutionPlan)
+            OutputColumns = TypedOutputSchema.Resolve(items.LogicalPlan, items.ExecutionPlan),
         };
     }
 
-    private static TypedBuildProduct CreateTypedBuildProduct(
-        ICompiledTypedQueryArtifact artifact,
-        Type runnableType)
+    private static TypedBuildProduct CreateTypedBuildProduct(ICompiledTypedQueryArtifact artifact, Type runnableType)
     {
         return new TypedBuildProduct(
             runnableType,
@@ -40,15 +41,14 @@ public static partial class InstanceCreator
             artifact.SourceRuntimeSettingDescriptionsBySourceContextId,
             artifact.SourceExecutionPlans,
             artifact.ParameterDefinitions,
-            TypedQueryDiagnostics.FromMetadata(
-                runnableType,
-                artifact.ResultMode,
-                QueryMethodRenderMetadata.Unknown));
+            TypedQueryDiagnostics.FromMetadata(runnableType, artifact.ResultMode, QueryMethodRenderMetadata.Unknown)
+        );
     }
 
     private static TypedRunnableFactory<TOut> CreateTypedRunnableFactory<TOut>(
         TypedBuildProduct product,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver
+    )
     {
         return new TypedRunnableFactory<TOut>(
             product.RequireRunnableType(),
@@ -57,12 +57,14 @@ public static partial class InstanceCreator
             product.SourceExecutionPlans,
             product.ParameterDefinitions,
             product.Diagnostics,
-            loggerResolver);
+            loggerResolver
+        );
     }
 
     private static TypedProfileRunnableFactory<TOut> CreateTypedProfileRunnableFactory<TOut>(
         TypedBuildProduct product,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver
+    )
     {
         return new TypedProfileRunnableFactory<TOut>(
             product.RequireRunnableType(),
@@ -71,9 +73,10 @@ public static partial class InstanceCreator
             product.SourceExecutionPlans,
             product.ParameterDefinitions,
             product.Diagnostics,
-            loggerResolver)
+            loggerResolver
+        )
         {
-            Projector = TableTypedRowProjector<TOut>.Create(product.OutputColumns)
+            Projector = TableTypedRowProjector<TOut>.Create(product.OutputColumns),
         };
     }
 }

@@ -3,9 +3,7 @@ namespace Musoq.Parser.Nodes;
 public class WordNode : ConstantValueNode
 {
     public WordNode(string value)
-        : this(value, default)
-    {
-    }
+        : this(value, default) { }
 
     public WordNode(string value, TextSpan span)
     {

@@ -33,11 +33,7 @@ public partial class ExpressionIrTests
     [TestMethod]
     public void Converter_TryConvert_WhenConverterInvariantFails_ShouldPropagateException()
     {
-        var node = new AccessMethodNode(
-            new FunctionToken("Unbound", TextSpan.Empty),
-            ArgsListNode.Empty,
-            null,
-            false);
+        var node = new AccessMethodNode(new FunctionToken("Unbound", TextSpan.Empty), ArgsListNode.Empty, null, false);
 
         var exception = Assert.Throws<InvalidOperationException>(() => _converter.TryConvert(node));
 

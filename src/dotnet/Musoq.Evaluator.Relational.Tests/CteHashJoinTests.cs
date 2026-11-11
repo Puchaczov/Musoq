@@ -12,7 +12,6 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class CteHashJoinTests : BasicEntityTestBase
 {
-
     /// <summary>
     ///     Minimal reproducible test case for CTE hash join.
     ///     This tests joining two CTEs with an equality condition which should use hash join.
@@ -20,35 +19,65 @@ public class CteHashJoinTests : BasicEntityTestBase
     [TestMethod]
     public void JoinTwoCtes_WithHashJoinEnabled_ShouldProduceCorrectResults()
     {
-        const string query = @"
-            WITH 
-                cteA AS (SELECT Name, Population FROM A.Entities()),
-                cteB AS (SELECT Name, Population FROM B.Entities())
-            SELECT a.Name, b.Name 
-            FROM cteA a 
-            INNER JOIN cteB b ON a.Population = b.Population";
+        const string query = (
+            "\n"
+            + "            WITH \n"
+            + "                cteA AS (SELECT Name, Population FROM A.Entities()),\n"
+            + "                cteB AS (SELECT Name, Population FROM B.Entities())\n"
+            + "            SELECT a.Name, b.Name \n"
+            + "            FROM cteA a \n"
+            + "            INNER JOIN cteB b ON a.Population = b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 },
-                    new BasicEntity { Name = "A2", Country = "CountryA", Population = 200 },
-                    new BasicEntity { Name = "A3", Country = "CountryA", Population = 300 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Country = "CountryA",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A2",
+                        Country = "CountryA",
+                        Population = 200,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A3",
+                        Country = "CountryA",
+                        Population = 300,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 },
-                    new BasicEntity { Name = "B2", Country = "CountryB", Population = 400 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Country = "CountryB",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B2",
+                        Country = "CountryB",
+                        Population = 400,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -63,34 +92,54 @@ public class CteHashJoinTests : BasicEntityTestBase
     [TestMethod]
     public void LeftOuterJoinTwoCtes_WithHashJoinEnabled_ShouldProduceCorrectResults()
     {
-        const string query = @"
-            WITH 
-                cteA AS (SELECT Name, Population FROM A.Entities()),
-                cteB AS (SELECT Name, Population FROM B.Entities())
-            SELECT a.Name, b.Name 
-            FROM cteA a 
-            LEFT OUTER JOIN cteB b ON a.Population = b.Population
-            ORDER BY a.Name";
+        const string query = (
+            "\n"
+            + "            WITH \n"
+            + "                cteA AS (SELECT Name, Population FROM A.Entities()),\n"
+            + "                cteB AS (SELECT Name, Population FROM B.Entities())\n"
+            + "            SELECT a.Name, b.Name \n"
+            + "            FROM cteA a \n"
+            + "            LEFT OUTER JOIN cteB b ON a.Population = b.Population\n"
+            + "            ORDER BY a.Name"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 },
-                    new BasicEntity { Name = "A2", Country = "CountryA", Population = 200 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Country = "CountryA",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A2",
+                        Country = "CountryA",
+                        Population = 200,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Country = "CountryB",
+                        Population = 100,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -107,34 +156,54 @@ public class CteHashJoinTests : BasicEntityTestBase
     [TestMethod]
     public void RightOuterJoinTwoCtes_WithHashJoinEnabled_ShouldProduceCorrectResults()
     {
-        const string query = @"
-            WITH 
-                cteA AS (SELECT Name, Population FROM A.Entities()),
-                cteB AS (SELECT Name, Population FROM B.Entities())
-            SELECT a.Name, b.Name 
-            FROM cteA a 
-            RIGHT OUTER JOIN cteB b ON a.Population = b.Population
-            ORDER BY b.Name";
+        const string query = (
+            "\n"
+            + "            WITH \n"
+            + "                cteA AS (SELECT Name, Population FROM A.Entities()),\n"
+            + "                cteB AS (SELECT Name, Population FROM B.Entities())\n"
+            + "            SELECT a.Name, b.Name \n"
+            + "            FROM cteA a \n"
+            + "            RIGHT OUTER JOIN cteB b ON a.Population = b.Population\n"
+            + "            ORDER BY b.Name"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Country = "CountryA",
+                        Population = 100,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 },
-                    new BasicEntity { Name = "B2", Country = "CountryB", Population = 200 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Country = "CountryB",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B2",
+                        Country = "CountryB",
+                        Population = 200,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -151,33 +220,58 @@ public class CteHashJoinTests : BasicEntityTestBase
     [TestMethod]
     public void JoinCteWithSourceTable_WithHashJoinEnabled_ShouldProduceCorrectResults()
     {
-        const string query = @"
-            WITH 
-                cteA AS (SELECT Name, Population FROM A.Entities())
-            SELECT a.Name, b.Name 
-            FROM cteA a 
-            INNER JOIN B.Entities() b ON a.Population = b.Population";
+        const string query = (
+            "\n"
+            + "            WITH \n"
+            + "                cteA AS (SELECT Name, Population FROM A.Entities())\n"
+            + "            SELECT a.Name, b.Name \n"
+            + "            FROM cteA a \n"
+            + "            INNER JOIN B.Entities() b ON a.Population = b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 },
-                    new BasicEntity { Name = "A2", Country = "CountryA", Population = 200 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Country = "CountryA",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A2",
+                        Country = "CountryA",
+                        Population = 200,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 },
-                    new BasicEntity { Name = "B2", Country = "CountryB", Population = 300 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Country = "CountryB",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B2",
+                        Country = "CountryB",
+                        Population = 300,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -192,27 +286,60 @@ public class CteHashJoinTests : BasicEntityTestBase
     [TestMethod]
     public void JoinMultipleCtes_WithHashJoinEnabled_ShouldProduceCorrectResults()
     {
-        const string query = @"
-            WITH 
-                cteA AS (SELECT Name, Population FROM A.Entities()),
-                cteB AS (SELECT Name, Population FROM B.Entities()),
-                cteC AS (SELECT Name, Population FROM C.Entities())
-            SELECT a.Name, b.Name, c.Name 
-            FROM cteA a 
-            INNER JOIN cteB b ON a.Population = b.Population
-            INNER JOIN cteC c ON b.Population = c.Population";
+        const string query = (
+            "\n"
+            + "            WITH \n"
+            + "                cteA AS (SELECT Name, Population FROM A.Entities()),\n"
+            + "                cteB AS (SELECT Name, Population FROM B.Entities()),\n"
+            + "                cteC AS (SELECT Name, Population FROM C.Entities())\n"
+            + "            SELECT a.Name, b.Name, c.Name \n"
+            + "            FROM cteA a \n"
+            + "            INNER JOIN cteB b ON a.Population = b.Population\n"
+            + "            INNER JOIN cteC c ON b.Population = c.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 }] },
-            { "#B", [new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 }] },
-            { "#C", [new BasicEntity { Name = "C1", Country = "CountryC", Population = 100 }] }
+            {
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Country = "CountryA",
+                        Population = 100,
+                    },
+                ]
+            },
+            {
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Country = "CountryB",
+                        Population = 100,
+                    },
+                ]
+            },
+            {
+                "#C",
+                [
+                    new BasicEntity
+                    {
+                        Name = "C1",
+                        Country = "CountryC",
+                        Population = 100,
+                    },
+                ]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false)
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -228,34 +355,59 @@ public class CteHashJoinTests : BasicEntityTestBase
     [TestMethod]
     public void JoinTwoCtes_WithSortMergeJoinEnabled_ShouldProduceCorrectResults()
     {
-        const string query = @"
-            WITH 
-                cteA AS (SELECT Name, Population FROM A.Entities()),
-                cteB AS (SELECT Name, Population FROM B.Entities())
-            SELECT a.Name, b.Name 
-            FROM cteA a 
-            INNER JOIN cteB b ON a.Population = b.Population";
+        const string query = (
+            "\n"
+            + "            WITH \n"
+            + "                cteA AS (SELECT Name, Population FROM A.Entities()),\n"
+            + "                cteB AS (SELECT Name, Population FROM B.Entities())\n"
+            + "            SELECT a.Name, b.Name \n"
+            + "            FROM cteA a \n"
+            + "            INNER JOIN cteB b ON a.Population = b.Population"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 },
-                    new BasicEntity { Name = "A2", Country = "CountryA", Population = 200 }
+                "#A",
+                [
+                    new BasicEntity
+                    {
+                        Name = "A1",
+                        Country = "CountryA",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "A2",
+                        Country = "CountryA",
+                        Population = 200,
+                    },
                 ]
             },
             {
-                "#B", [
-                    new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 },
-                    new BasicEntity { Name = "B2", Country = "CountryB", Population = 300 }
+                "#B",
+                [
+                    new BasicEntity
+                    {
+                        Name = "B1",
+                        Country = "CountryB",
+                        Population = 100,
+                    },
+                    new BasicEntity
+                    {
+                        Name = "B2",
+                        Country = "CountryB",
+                        Population = 300,
+                    },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
+            new CompilationOptions(useHashJoin: false, useSortMergeJoin: true)
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 

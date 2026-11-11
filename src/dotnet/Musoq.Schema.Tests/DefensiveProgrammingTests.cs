@@ -45,7 +45,6 @@ public class DefensiveProgrammingTests
         var methodManager = new MethodsManager();
         var aggregator = new MethodsAggregator(methodManager);
 
-
         var exception = Assert.Throws<SchemaArgumentException>(() => new TestSchema(null!, aggregator));
         Assert.Contains("cannot be empty", exception.Message);
         Assert.Contains("initializing a schema", exception.Message);
@@ -66,9 +65,7 @@ public class DefensiveProgrammingTests
     {
         var metadata = new MethodsMetadata();
 
-
-        var exception = Assert.Throws<SchemaArgumentException>(() =>
-            metadata.GetMethod(null!, Type.EmptyTypes, null));
+        var exception = Assert.Throws<SchemaArgumentException>(() => metadata.GetMethod(null!, Type.EmptyTypes, null));
         Assert.Contains("cannot be empty", exception.Message);
         Assert.Contains("resolving a method", exception.Message);
         Assert.AreEqual("name", exception.ParamName);
@@ -79,9 +76,7 @@ public class DefensiveProgrammingTests
     {
         var metadata = new MethodsMetadata();
 
-
-        var exception = Assert.Throws<SchemaArgumentException>(() =>
-            metadata.GetMethod("test", null!, null));
+        var exception = Assert.Throws<SchemaArgumentException>(() => metadata.GetMethod("test", null!, null));
         Assert.Contains("cannot be null", exception.Message);
         Assert.Contains("resolving a method", exception.Message);
         Assert.AreEqual("methodArgs", exception.ParamName);
@@ -91,7 +86,6 @@ public class DefensiveProgrammingTests
     public void CloneQueryVisitor_Should_ThrowMeaningfulException_WhenStackEmpty()
     {
         var visitor = new CloneQueryVisitor();
-
 
         var exception = Assert.Throws<VisitorException>(() => visitor.Root);
         Assert.Contains("Stack underflow", exception.Message);
@@ -104,7 +98,6 @@ public class DefensiveProgrammingTests
     {
         var visitor = new TestDefensiveVisitor();
         var nodes = new Stack<Node>();
-
 
         var exception = Assert.Throws<VisitorException>(() => visitor.TestSafePop(nodes));
         Assert.Contains("Stack underflow", exception.Message);
@@ -119,7 +112,6 @@ public class DefensiveProgrammingTests
         var visitor = new TestDefensiveVisitor();
         var stringNode = new StringNode("test");
 
-
         var exception = Assert.Throws<VisitorException>(() => visitor.TestSafeCast<IntegerNode>(stringNode));
         Assert.Contains("Invalid node type", exception.Message);
         Assert.Contains("Expected 'IntegerNode'", exception.Message);
@@ -131,13 +123,13 @@ public class DefensiveProgrammingTests
     {
         var visitor = new TestDefensiveVisitor();
 
-
         var exception = Assert.Throws<VisitorException>(() => visitor.TestSafeCast<StringNode>(null!));
         Assert.Contains("Expected 'StringNode' node but received null", exception.Message);
         Assert.Contains("AST processing error", exception.Message);
     }
 
-    private sealed class TestSchema(string name, MethodsAggregator methodsAggregator) : SchemaBase(name, methodsAggregator);
+    private sealed class TestSchema(string name, MethodsAggregator methodsAggregator)
+        : SchemaBase(name, methodsAggregator);
 
     private sealed class TestDefensiveVisitor : DefensiveVisitorBase
     {
@@ -148,7 +140,8 @@ public class DefensiveProgrammingTests
             return SafePop(nodes, "TestOperation");
         }
 
-        public T TestSafeCast<T>(Node node) where T : Node
+        public T TestSafeCast<T>(Node node)
+            where T : Node
         {
             return SafeCast<T>(node, "TestOperation");
         }

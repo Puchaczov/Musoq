@@ -7,9 +7,11 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private string ResolveInterpreterTypeName(PhysicalInterpretSourceNode interpret)
     {
-        if (_schemaRegistry != null &&
-            _schemaRegistry.TryGetSchema(interpret.SchemaName, out var registration) &&
-            registration != null)
+        if (
+            _schemaRegistry != null
+            && _schemaRegistry.TryGetSchema(interpret.SchemaName, out var registration)
+            && registration != null
+        )
         {
             if (!string.IsNullOrWhiteSpace(registration.GeneratedTypeName))
                 return registration.GeneratedTypeName;
@@ -22,6 +24,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return EvaluationHelper.GetCastableType(interpret.ResultType);
 
         throw new NotSupportedException(
-            $"Execution IR interpret-source lowering cannot resolve interpreter type for schema '{interpret.SchemaName}'.");
+            $"Execution IR interpret-source lowering cannot resolve interpreter type for schema '{interpret.SchemaName}'."
+        );
     }
 }

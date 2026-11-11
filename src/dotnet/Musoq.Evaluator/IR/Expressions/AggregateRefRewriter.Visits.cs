@@ -24,9 +24,7 @@ public sealed partial class AggregateRefRewriter
         var right = Visit(node.Right);
         var returnType = GetBinaryReturnType(node, left, right);
 
-        if (ReferenceEquals(left, node.Left) &&
-            ReferenceEquals(right, node.Right) &&
-            returnType == node.ReturnType)
+        if (ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right) && returnType == node.ReturnType)
             return node;
 
         return new BinaryOp(node.Kind, left, right, returnType) { UsesSqlNullSemantics = node.UsesSqlNullSemantics };
@@ -42,10 +40,12 @@ public sealed partial class AggregateRefRewriter
 
     private static bool IsNullableAggregateArithmetic(BinaryOp node, IrExpression left, IrExpression right)
     {
-        if (node.ReturnType == null ||
-            !node.ReturnType.IsValueType ||
-            Nullable.GetUnderlyingType(node.ReturnType) != null ||
-            !IsArithmetic(node.Kind))
+        if (
+            node.ReturnType == null
+            || !node.ReturnType.IsValueType
+            || Nullable.GetUnderlyingType(node.ReturnType) != null
+            || !IsArithmetic(node.Kind)
+        )
             return false;
 
         return IsNullableAggregateExpression(left) || IsNullableAggregateExpression(right);
@@ -53,14 +53,19 @@ public sealed partial class AggregateRefRewriter
 
     private static bool IsArithmetic(BinaryOpKind kind)
     {
-        return kind is BinaryOpKind.Add or BinaryOpKind.Subtract or BinaryOpKind.Multiply or BinaryOpKind.Divide or BinaryOpKind.Modulo;
+        return kind
+            is BinaryOpKind.Add
+                or BinaryOpKind.Subtract
+                or BinaryOpKind.Multiply
+                or BinaryOpKind.Divide
+                or BinaryOpKind.Modulo;
     }
 
     private static bool IsNullableAggregateExpression(IrExpression expression)
     {
-        return expression is AggregateRef &&
-               expression.ReturnType.IsValueType &&
-               Nullable.GetUnderlyingType(expression.ReturnType) != null;
+        return expression is AggregateRef
+            && expression.ReturnType.IsValueType
+            && Nullable.GetUnderlyingType(expression.ReturnType) != null;
     }
 
     protected override IrExpression VisitUnaryOp(UnaryOp node)
@@ -77,14 +82,18 @@ public sealed partial class AggregateRefRewriter
     {
         var identifier = ExtractBoundIdentifier(node);
 
-        if (identifier is not null &&
-            _bindingsByIdentifier.TryGetValue(identifier, out var binding) &&
-            ShouldRewriteToAggregateRef(node.Method, binding))
+        if (
+            identifier is not null
+            && _bindingsByIdentifier.TryGetValue(identifier, out var binding)
+            && ShouldRewriteToAggregateRef(node.Method, binding)
+        )
             return CreateAggregateRef(binding);
 
-        if (identifier is null &&
-            IsAggregateMethod(node.Method) &&
-            TryResolveFallbackBinding(node.Method, out var fallbackBinding))
+        if (
+            identifier is null
+            && IsAggregateMethod(node.Method)
+            && TryResolveFallbackBinding(node.Method, out var fallbackBinding)
+        )
             return CreateAggregateRef(fallbackBinding);
 
         var arguments = RewriteExpressions(node.Arguments, out var changed);
@@ -92,7 +101,10 @@ public sealed partial class AggregateRefRewriter
         if (!changed)
             return node;
 
-        return node with { Arguments = arguments };
+        return node with
+        {
+            Arguments = arguments,
+        };
     }
 
     protected override IrExpression VisitIsNullCheck(IsNullCheck node)
@@ -113,7 +125,11 @@ public sealed partial class AggregateRefRewriter
         if (ReferenceEquals(expression, node.Expression) && !valuesChanged)
             return node;
 
-        return node with { Expression = expression, Values = values };
+        return node with
+        {
+            Expression = expression,
+            Values = values,
+        };
     }
 
     protected override IrExpression VisitPatternMatch(PatternMatch node)
@@ -133,9 +149,11 @@ public sealed partial class AggregateRefRewriter
         var low = Visit(node.Low);
         var high = Visit(node.High);
 
-        if (ReferenceEquals(expression, node.Expression) &&
-            ReferenceEquals(low, node.Low) &&
-            ReferenceEquals(high, node.High))
+        if (
+            ReferenceEquals(expression, node.Expression)
+            && ReferenceEquals(low, node.Low)
+            && ReferenceEquals(high, node.High)
+        )
             return node;
 
         return new Between(expression, low, high, node.ReturnType);

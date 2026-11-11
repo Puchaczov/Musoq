@@ -13,40 +13,43 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithComputedArraySize_ShouldUseExpression()
     {
         // Arrange: Array size computed from expression
-        var query = @"
-            binary ExpressionSize {
-                Count: byte,
-                Data: byte[Count * 2]
-            };
-            select
-                h.Count,
-                h.Data
-            from #test.files() f
-            cross apply Interpret<ExpressionSize>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary ExpressionSize {\n"
+            + "                Count: byte,\n"
+            + "                Data: byte[Count * 2]\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Count,\n"
+            + "                h.Data\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<ExpressionSize>(f.Content) h"
+        );
 
         // Count=3, Data should be 6 bytes (3*2)
         var testData = new byte[] { 0x03, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Count", typeof(byte)),
-            ("Data", typeof(byte[])));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [(byte)3, new byte[] { 1, 2, 3, 4, 5, 6 }]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Count", typeof(byte)), ("Data", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)3, new byte[] { 1, 2, 3, 4, 5, 6 }]);
     }
 
     [TestMethod]
@@ -55,72 +58,83 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
         // Arrange: Array size from single field reference
         // Note: Complex arithmetic expressions in array sizes (e.g., Total - Offset)
         // are tested at the interpreter level in BinaryInterpretationTests.
-        var query = @"
-            binary SimpleHeader {
-                Count: byte,
-                Data: byte[Count]
-            };
-            select
-                h.Count,
-                h.Data
-            from #test.files() f
-            cross apply Interpret<SimpleHeader>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary SimpleHeader {\n"
+            + "                Count: byte,\n"
+            + "                Data: byte[Count]\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Count,\n"
+            + "                h.Data\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<SimpleHeader>(f.Content) h"
+        );
 
         // Count=4, Data should be 4 bytes
         var testData = new byte[] { 0x04, 0x11, 0x22, 0x33, 0x44 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Count", typeof(byte)),
-            ("Data", typeof(byte[])));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [(byte)4, new byte[] { 0x11, 0x22, 0x33, 0x44 }]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Count", typeof(byte)), ("Data", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)4, new byte[] { 0x11, 0x22, 0x33, 0x44 }]);
     }
 
     [TestMethod]
     public void Query_SelectInterpret_WithArithmeticSizeExpression_ShouldWork()
     {
         // Arrange: Array size from arithmetic expression (Total - HeaderSize)
-        var query = @"
-            binary DynamicPacket {
-                Total: byte,
-                HeaderSize: byte,
-                Data: byte[Total - HeaderSize]
-            };
-            select
-                h.Total,
-                h.HeaderSize,
-                h.Data
-            from #test.files() f
-            cross apply Interpret<DynamicPacket>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary DynamicPacket {\n"
+            + "                Total: byte,\n"
+            + "                HeaderSize: byte,\n"
+            + "                Data: byte[Total - HeaderSize]\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Total,\n"
+            + "                h.HeaderSize,\n"
+            + "                h.Data\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<DynamicPacket>(f.Content) h"
+        );
 
         // Total=10, HeaderSize=2, so Data should be 10 - 2 = 8 bytes
         var testData = new byte[] { 10, 2, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -128,47 +142,54 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
             table,
             ("Total", typeof(byte)),
             ("HeaderSize", typeof(byte)),
-            ("Data", typeof(byte[])));
+            ("Data", typeof(byte[]))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(
             table,
-            [(byte)10, (byte)2, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }]);
+            [(byte)10, (byte)2, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }]
+        );
     }
 
     [TestMethod]
     public void Query_SelectInterpret_WithMultiplicationSizeExpression_ShouldWork()
     {
         // Arrange: Array of shorts with size from field reference
-        var query = @"
-            binary ArrayPacket {
-                Count: byte,
-                Values: short[Count] le
-            };
-            select
-                h.Count,
-                h.Values
-            from #test.files() f
-            cross apply Interpret<ArrayPacket>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary ArrayPacket {\n"
+            + "                Count: byte,\n"
+            + "                Values: short[Count] le\n"
+            + "            };\n"
+            + "            select\n"
+            + "                h.Count,\n"
+            + "                h.Values\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<ArrayPacket>(f.Content) h"
+        );
 
         // Count=3, so Values should be 3 short values = 6 bytes
         var testData = new byte[] { 3, 0x01, 0x00, 0x02, 0x00, 0x03, 0x00 }; // 3 little-endian shorts: 1, 2, 3
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Count", typeof(byte)),
-            ("Values", typeof(short[])));
+        TableMaterializationTestHelper.AssertColumns(table, ("Count", typeof(byte)), ("Values", typeof(short[])));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)3, new short[] { 1, 2, 3 }]);
     }
 
@@ -180,43 +201,48 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
     public void Query_SelectInterpret_WithCte_ShouldWorkWithCommonTableExpression()
     {
         // Arrange: Use CTE with Interpret - aliases must be used in WHERE clause
-        var query = @"
-            binary Header {
-                Id: int le,
-                FileSize: int le
-            };
-            with ParsedHeaders as (
-                select
-                    f.Name as FileName,
-                    h.Id as HeaderId,
-                    h.FileSize as HeaderSize
-                from #test.files() f
-                cross apply Interpret<Header>(f.Content) h
-            )
-            select
-                FileName,
-                HeaderId,
-                HeaderSize
-            from ParsedHeaders
-            where HeaderSize > 100
-            order by HeaderId";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Id: int le,\n"
+            + "                FileSize: int le\n"
+            + "            };\n"
+            + "            with ParsedHeaders as (\n"
+            + "                select\n"
+            + "                    f.Name as FileName,\n"
+            + "                    h.Id as HeaderId,\n"
+            + "                    h.FileSize as HeaderSize\n"
+            + "                from #test.files() f\n"
+            + "                cross apply Interpret<Header>(f.Content) h\n"
+            + "            )\n"
+            + "            select\n"
+            + "                FileName,\n"
+            + "                HeaderId,\n"
+            + "                HeaderSize\n"
+            + "            from ParsedHeaders\n"
+            + "            where HeaderSize > 100\n"
+            + "            order by HeaderId"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "small.bin", Content = CreateHeaderData(1, 50) },
             new BinaryEntity { Name = "medium.bin", Content = CreateHeaderData(2, 150) },
-            new BinaryEntity { Name = "large.bin", Content = CreateHeaderData(3, 500) }
+            new BinaryEntity { Name = "large.bin", Content = CreateHeaderData(3, 500) },
         };
 
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
         // Act
         var vm = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            LoggerResolver, TestCompilationOptions);
+            LoggerResolver,
+            TestCompilationOptions
+        );
 
         var table = vm.Run(CancellationToken.None);
 
@@ -224,11 +250,9 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
             table,
             ("FileName", typeof(string)),
             ("HeaderId", typeof(int)),
-            ("HeaderSize", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["medium.bin", 2, 150],
-            ["large.bin", 3, 500]);
+            ("HeaderSize", typeof(int))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["medium.bin", 2, 150], ["large.bin", 3, 500]);
     }
 
     private static byte[] CreateHeaderData(int id, int size)

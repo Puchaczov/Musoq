@@ -7,8 +7,12 @@ namespace Musoq.Parser.Syntax;
 /// <summary>A general source-preserving parse result with original lexical text and grammar regions.</summary>
 public sealed class SyntaxParseResult
 {
-    internal SyntaxParseResult(SourceText sourceText, SyntaxNode? root, IEnumerable<SyntaxToken> tokens,
-        IEnumerable<Diagnostic> diagnostics)
+    internal SyntaxParseResult(
+        SourceText sourceText,
+        SyntaxNode? root,
+        IEnumerable<SyntaxToken> tokens,
+        IEnumerable<Diagnostic> diagnostics
+    )
     {
         SourceText = sourceText;
         Root = root;

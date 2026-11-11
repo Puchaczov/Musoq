@@ -25,9 +25,15 @@
         <InternalsVisibleTo Include="Musoq.Converter.Compilation.Tests" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="..\Musoq.Evaluator.Tests.Common\Architecture\CompilerContractSymbols.cs" Link="Architecture\CompilerContractSymbols.cs" />
+        <Compile
+            Include="..\Musoq.Evaluator.Tests.Common\Architecture\CompilerContractSymbols.cs"
+            Link="Architecture\CompilerContractSymbols.cs"
+        />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="..\Musoq.Evaluator.Tests.Common\NativeParameterFixture.cs" Link="Fixtures\NativeParameterFixture.cs" />
+        <Compile
+            Include="..\Musoq.Evaluator.Tests.Common\NativeParameterFixture.cs"
+            Link="Fixtures\NativeParameterFixture.cs"
+        />
     </ItemGroup>
 </Project>

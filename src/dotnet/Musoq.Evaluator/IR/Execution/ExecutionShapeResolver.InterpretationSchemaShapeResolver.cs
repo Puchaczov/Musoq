@@ -12,9 +12,11 @@ public sealed partial class ExecutionShapeResolver
 {
     private Type ResolveInterpretEntityType(PhysicalInterpretSourceNode interpret)
     {
-        if (_schemaRegistry != null &&
-            _schemaRegistry.TryGetSchema(interpret.SchemaName, out var registration) &&
-            registration?.GeneratedType != null)
+        if (
+            _schemaRegistry != null
+            && _schemaRegistry.TryGetSchema(interpret.SchemaName, out var registration)
+            && registration?.GeneratedType != null
+        )
         {
             if (interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse)
                 return typeof(PartialInterpretResult<>).MakeGenericType(registration.GeneratedType);
@@ -30,9 +32,9 @@ public sealed partial class ExecutionShapeResolver
 
     private bool HasGeneratedInterpreterTypeName(string schemaName)
     {
-        return _schemaRegistry != null &&
-               _schemaRegistry.TryGetSchema(schemaName, out var registration) &&
-               !string.IsNullOrWhiteSpace(registration?.GeneratedTypeName);
+        return _schemaRegistry != null
+            && _schemaRegistry.TryGetSchema(schemaName, out var registration)
+            && !string.IsNullOrWhiteSpace(registration?.GeneratedTypeName);
     }
 
     private IReadOnlyList<ColumnSchema> ResolveInterpretColumns(PhysicalInterpretSourceNode interpret)
@@ -40,11 +42,17 @@ public sealed partial class ExecutionShapeResolver
         if (interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse)
             return PartialInterpretationShape.CreateColumns(interpret.SchemaName);
 
-        if (_schemaRegistry != null &&
-            _schemaRegistry.TryGetSchema(interpret.SchemaName, out var registration) &&
-            registration?.Node != null)
+        if (
+            _schemaRegistry != null
+            && _schemaRegistry.TryGetSchema(interpret.SchemaName, out var registration)
+            && registration?.Node != null
+        )
         {
-            var schemaColumns = CreateColumnsFromSchemaNode(registration.Node, _schemaRegistry, registration.GeneratedType);
+            var schemaColumns = CreateColumnsFromSchemaNode(
+                registration.Node,
+                _schemaRegistry,
+                registration.GeneratedType
+            );
             if (schemaColumns.Count > 0)
                 return schemaColumns;
         }
@@ -55,13 +63,14 @@ public sealed partial class ExecutionShapeResolver
     private static IReadOnlyList<ColumnSchema> CreateColumnsFromSchemaNode(
         Node schemaNode,
         SchemaRegistry? schemaRegistry,
-        Type? generatedType)
+        Type? generatedType
+    )
     {
         return schemaNode switch
         {
             TextSchemaNode text => CreateTextColumns(text, schemaRegistry),
             BinarySchemaNode binary => CreateBinaryColumns(binary, schemaRegistry, generatedType),
-            _ => []
+            _ => [],
         };
     }
 }

@@ -6,9 +6,7 @@ internal sealed class NullLoggerResolver : ILoggerResolver
 {
     public static readonly NullLoggerResolver Instance = new();
 
-    private NullLoggerResolver()
-    {
-    }
+    private NullLoggerResolver() { }
 
     public ILogger ResolveLogger()
     {
@@ -40,9 +38,8 @@ internal sealed class NullLoggerResolver : ILoggerResolver
             EventId eventId,
             TState state,
             Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        {
-        }
+            Func<TState, Exception?, string> formatter
+        ) { }
     }
 
     private sealed class NullLogger<T> : ILogger<T>
@@ -65,8 +62,7 @@ internal sealed class NullLoggerResolver : ILoggerResolver
             EventId eventId,
             TState state,
             Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        {
-        }
+            Func<TState, Exception?, string> formatter
+        ) { }
     }
 }

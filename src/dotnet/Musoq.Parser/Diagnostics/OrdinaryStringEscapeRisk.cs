@@ -4,7 +4,8 @@ internal readonly record struct OrdinaryStringEscapeRisk(
     string EscapeText,
     TextSpan Span,
     bool IsRootedPath,
-    bool HasNonEscapeContent);
+    bool HasNonEscapeContent
+);
 
 internal static class OrdinaryStringEscapeRiskDetector
 {
@@ -18,7 +19,8 @@ internal static class OrdinaryStringEscapeRiskDetector
                 innerText[..2].ToString(),
                 new TextSpan(sourceStart, 2),
                 true,
-                hasNonEscapeContent);
+                hasNonEscapeContent
+            );
 
         for (var index = 0; index < innerText.Length; index++)
         {
@@ -39,8 +41,14 @@ internal static class OrdinaryStringEscapeRiskDetector
             {
                 var digitLength = next == 'u' ? 4 : 2;
                 if (HasValidFixedLengthEscape(innerText, index, digitLength))
-                    return CreateRisk(innerText, sourceStart, index, 2 + digitLength, isRootedPath,
-                        hasNonEscapeContent);
+                    return CreateRisk(
+                        innerText,
+                        sourceStart,
+                        index,
+                        2 + digitLength,
+                        isRootedPath,
+                        hasNonEscapeContent
+                    );
 
                 index++;
             }
@@ -55,13 +63,15 @@ internal static class OrdinaryStringEscapeRiskDetector
         int escapeStart,
         int escapeLength,
         bool isRootedPath,
-        bool hasNonEscapeContent)
+        bool hasNonEscapeContent
+    )
     {
         return new OrdinaryStringEscapeRisk(
             innerText.Slice(escapeStart, escapeLength).ToString(),
             new TextSpan(sourceStart + escapeStart, escapeLength),
             isRootedPath,
-            hasNonEscapeContent);
+            hasNonEscapeContent
+        );
     }
 
     private static bool IsSimpleValueChangingEscape(char value)
@@ -127,14 +137,13 @@ internal static class OrdinaryStringEscapeRiskDetector
         if (value.Length >= 3 && IsAsciiLetter(value[0]) && value[1] == ':' && IsPathSeparator(value[2]))
             return true;
 
-        return value.Length >= 2 && value[0] == '.' && IsPathSeparator(value[1]) ||
-               value.Length >= 3 && value[0] == '.' && value[1] == '.' && IsPathSeparator(value[2]);
+        return value.Length >= 2 && value[0] == '.' && IsPathSeparator(value[1])
+            || value.Length >= 3 && value[0] == '.' && value[1] == '.' && IsPathSeparator(value[2]);
     }
 
     private static bool IsUnderEscapedNetworkPrefix(ReadOnlySpan<char> value)
     {
-        return value.Length >= 2 && value[0] == '\\' && value[1] == '\\' &&
-               (value.Length == 2 || value[2] != '\\');
+        return value.Length >= 2 && value[0] == '\\' && value[1] == '\\' && (value.Length == 2 || value[2] != '\\');
     }
 
     private static bool IsPathSeparator(char value)

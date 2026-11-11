@@ -34,19 +34,24 @@ internal static class CteSourceBackedFieldMap
         ExecutionFieldRead fieldRead,
         IReadOnlyDictionary<string, ExecutionExpression> map,
         ExecutionAppendRow sourceAppend,
-        [NotNullWhen(true)] out ExecutionExpression? rewritten)
+        [NotNullWhen(true)] out ExecutionExpression? rewritten
+    )
     {
-        if (fieldRead.AccessStrategy is GeneratedRowContextAccess context &&
-            string.Equals(context.TypeName, sourceAppend.RowShape.TypeName, StringComparison.Ordinal) &&
-            context.Index >= 0 &&
-            context.Index < sourceAppend.Contexts.Count)
+        if (
+            fieldRead.AccessStrategy is GeneratedRowContextAccess context
+            && string.Equals(context.TypeName, sourceAppend.RowShape.TypeName, StringComparison.Ordinal)
+            && context.Index >= 0
+            && context.Index < sourceAppend.Contexts.Count
+        )
         {
             rewritten = sourceAppend.Contexts[context.Index];
             return true;
         }
 
-        if (fieldRead.AccessStrategy is GeneratedFieldAccess generated &&
-            map.TryGetValue(generated.FieldName, out rewritten))
+        if (
+            fieldRead.AccessStrategy is GeneratedFieldAccess generated
+            && map.TryGetValue(generated.FieldName, out rewritten)
+        )
         {
             return true;
         }
@@ -58,10 +63,7 @@ internal static class CteSourceBackedFieldMap
         return false;
     }
 
-    private static void AddValue(
-        IDictionary<string, ExecutionExpression> map,
-        string key,
-        ExecutionExpression value)
+    private static void AddValue(IDictionary<string, ExecutionExpression> map, string key, ExecutionExpression value)
     {
         if (!string.IsNullOrWhiteSpace(key))
             map.TryAdd(key, value);

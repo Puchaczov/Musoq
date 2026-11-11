@@ -10,7 +10,8 @@ internal static class HashJoinAliasResolver
     public static (bool CanBindLeft, bool CanBindRight) GetUsage(
         IReadOnlyList<IrExpression> keys,
         RowShape left,
-        RowShape right)
+        RowShape right
+    )
     {
         var referencesLeft = false;
         var referencesRight = false;
@@ -39,7 +40,8 @@ internal static class HashJoinAliasResolver
         var referencesNeitherSide = !referencesLeft && !referencesRight;
         return (
             referencesNeitherSide || referencesLeft && !referencesRight,
-            referencesNeitherSide || referencesRight && !referencesLeft);
+            referencesNeitherSide || referencesRight && !referencesLeft
+        );
     }
 
     private static HashSet<string> CollectPrimaryAliases(RowShape shape)

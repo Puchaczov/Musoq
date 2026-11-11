@@ -13,8 +13,7 @@ public sealed class DiagnosticRework078TypeAndCastContractTests
     [TestMethod]
     public void PostfixCastMatrix_ShouldPreserveTargetSpellingPrecedenceAndSourceSpans()
     {
-        const string query =
-            "select source.Value::Int32::string, (Value + 1)::Decimal from schema.method() source";
+        const string query = "select source.Value::Int32::string, (Value + 1)::Decimal from schema.method() source";
         var result = ParseWithDiagnostics(query);
 
         Assert.IsTrue(result.Success, result.FormatDiagnostics());
@@ -28,11 +27,16 @@ public sealed class DiagnosticRework078TypeAndCastContractTests
         Assert.AreEqual("Int32", inner.TargetTypeName);
         Assert.AreEqual("source.Value::Int32::string", outer.ToString());
         Assert.AreEqual(
-            new TextSpan(query.IndexOf("Value::Int32::string", StringComparison.Ordinal), "Value::Int32::string".Length),
-            outer.Span);
+            new TextSpan(
+                query.IndexOf("Value::Int32::string", StringComparison.Ordinal),
+                "Value::Int32::string".Length
+            ),
+            outer.Span
+        );
         Assert.AreEqual(
             new TextSpan(query.IndexOf("Value::Int32", StringComparison.Ordinal), "Value::Int32".Length),
-            inner.Span);
+            inner.Span
+        );
 
         var parenthesized = Assert.IsInstanceOfType<CastNode>(fields[1].Expression);
         Assert.IsInstanceOfType<AddNode>(parenthesized.Expression);
@@ -40,7 +44,8 @@ public sealed class DiagnosticRework078TypeAndCastContractTests
         Assert.AreEqual("(Value + 1)::Decimal", parenthesized.ToString());
         Assert.AreEqual(
             new TextSpan(query.IndexOf("Value + 1)::Decimal", StringComparison.Ordinal), "Value + 1)::Decimal".Length),
-            parenthesized.Span);
+            parenthesized.Span
+        );
     }
 
     [TestMethod]
@@ -57,10 +62,19 @@ public sealed class DiagnosticRework078TypeAndCastContractTests
         CollectionAssert.AreEqual(
             new[]
             {
-                typeof(int), typeof(decimal), typeof(decimal), typeof(decimal), typeof(long),
-                typeof(long), typeof(long), typeof(bool), typeof(string), null
+                typeof(int),
+                typeof(decimal),
+                typeof(decimal),
+                typeof(decimal),
+                typeof(long),
+                typeof(long),
+                typeof(long),
+                typeof(bool),
+                typeof(string),
+                null,
             },
-            expressions.Select(static expression => expression.ReturnType).ToArray());
+            expressions.Select(static expression => expression.ReturnType).ToArray()
+        );
 
         var nullCast = Assert.IsInstanceOfType<CastNode>(expressions[^1]);
         Assert.AreEqual("DateTime", nullCast.TargetTypeName);
@@ -68,26 +82,15 @@ public sealed class DiagnosticRework078TypeAndCastContractTests
     }
 
     [TestMethod]
-    [DataRow(
-        "select ::Int32 from schema.method()",
-        "::",
-        2,
-        DiagnosticCode.MQ2001_UnexpectedToken)]
-    [DataRow(
-        "select Value::1 from schema.method()",
-        "1",
-        1,
-        DiagnosticCode.MQ2001_UnexpectedToken)]
-    [DataRow(
-        "select Value:: from schema.method()",
-        "from",
-        4,
-        DiagnosticCode.MQ2001_UnexpectedToken)]
+    [DataRow("select ::Int32 from schema.method()", "::", 2, DiagnosticCode.MQ2001_UnexpectedToken)]
+    [DataRow("select Value::1 from schema.method()", "1", 1, DiagnosticCode.MQ2001_UnexpectedToken)]
+    [DataRow("select Value:: from schema.method()", "from", 4, DiagnosticCode.MQ2001_UnexpectedToken)]
     public void InvalidCastTargetSyntax_ShouldReportOnePreciseStructuredDiagnostic(
         string query,
         string offendingText,
         int expectedLength,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var result = ParseWithDiagnostics(query);
 
@@ -101,7 +104,8 @@ public sealed class DiagnosticRework078TypeAndCastContractTests
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual(
             new TextSpan(query.IndexOf(offendingText, StringComparison.Ordinal), expectedLength),
-            diagnostic.Span);
+            diagnostic.Span
+        );
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.DocsReference));

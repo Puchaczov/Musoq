@@ -21,8 +21,7 @@ public sealed class ExecutionPlanInventoryTests
         var plan = new ExecutionPlan(
             "Q_TableSlots",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionParallelBlock(
                     "parallel",
                     2,
@@ -30,16 +29,21 @@ public sealed class ExecutionPlanInventoryTests
                         new ExecutionParallelTask(
                             "task",
                             new ExecutionVariable("taskRows", typeof(object)),
-                            new ExecutionBlock([new ExecutionStoreTable(table, 4)]))
+                            new ExecutionBlock([new ExecutionStoreTable(table, 4)])
+                        ),
                     ],
-                    new ExecutionParallelMerge(new ExecutionBlock(
-                    [
-                        new ExecutionForEach(
-                            row,
-                            new ExecutionStoredTableRows(7),
-                            new ExecutionBlock([new ExecutionStoreTable(table, 2)]))
-                    ])))
-            ]));
+                    new ExecutionParallelMerge(
+                        new ExecutionBlock([
+                            new ExecutionForEach(
+                                row,
+                                new ExecutionStoredTableRows(7),
+                                new ExecutionBlock([new ExecutionStoreTable(table, 2)])
+                            ),
+                        ])
+                    )
+                ),
+            ])
+        );
 
         Assert.AreEqual(7, ExecutionPlanInventory.FindMaxTableIndex(plan.Body));
         Assert.AreEqual(8, ExecutionPlanInventory.CountTableSlots(plan));
@@ -53,17 +57,22 @@ public sealed class ExecutionPlanInventoryTests
         var plan = new ExecutionPlan(
             "Q_CteSlots",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionHashProbe(
                     index,
                     matches,
                     new ExecutionLiteral(1, typeof(int)),
                     typeof(int),
                     typeof(object),
-                    new ExecutionBlock([new ExecutionStoreCteIndex(index, 3, ExecutionCteSidecarIndexKind.KeySet, typeof(int))]),
-                    new ExecutionBlock([new ExecutionLoadCteIndex(index, 5, ExecutionCteSidecarIndexKind.KeySet, typeof(int))]))
-            ]));
+                    new ExecutionBlock([
+                        new ExecutionStoreCteIndex(index, 3, ExecutionCteSidecarIndexKind.KeySet, typeof(int)),
+                    ]),
+                    new ExecutionBlock([
+                        new ExecutionLoadCteIndex(index, 5, ExecutionCteSidecarIndexKind.KeySet, typeof(int)),
+                    ])
+                ),
+            ])
+        );
 
         Assert.AreEqual(5, ExecutionPlanInventory.FindMaxCteIndexSlot(plan.Body));
         Assert.AreEqual(6, ExecutionPlanInventory.CountCteIndexSlots(plan));
@@ -74,10 +83,7 @@ public sealed class ExecutionPlanInventoryTests
     {
         var rowShape = new GeneratedRowShape("SetRow", []);
         var item = new ExecutionVariable("item", typeof(object));
-        var loop = new ExecutionForEach(
-            item,
-            new ExecutionStoredTableRows(1),
-            ExecutionBlock.Empty);
+        var loop = new ExecutionForEach(item, new ExecutionStoredTableRows(1), ExecutionBlock.Empty);
         var setup = new ExecutionNode[] { new ExecutionContinue() };
 
         var arm = new StreamingUnionAllArm(rowShape, setup, loop);

@@ -14,7 +14,16 @@ public sealed class StructuredInputInvalidResourceTests
     public void InvalidResources_ReportSyntaxOrBindingErrorsWithoutOpeningSources()
     {
         var root = FindRepositoryRoot();
-        var invalidDirectory = Path.Combine(root, "src", "dotnet", "examples", "data-sources", "structured-inputs", "queries", "invalid");
+        var invalidDirectory = Path.Combine(
+            root,
+            "src",
+            "dotnet",
+            "examples",
+            "data-sources",
+            "structured-inputs",
+            "queries",
+            "invalid"
+        );
         var expectedFamilies = new Dictionary<string, DiagnosticCode[]>(StringComparer.Ordinal)
         {
             ["old-values.sql"] = [DiagnosticCode.MQ2001_UnexpectedToken],
@@ -23,11 +32,13 @@ public sealed class StructuredInputInvalidResourceTests
             ["positional-record.sql"] = [DiagnosticCode.MQ2010_MissingClosingParenthesis],
             ["nullable-rejection.sql"] = [DiagnosticCode.MQ3088_NoMatchingCallableOverload],
             ["overload-ambiguity.sql"] = [DiagnosticCode.MQ3089_AmbiguousCallableOverload],
-            ["scalar-cte-ambiguity.sql"] = [DiagnosticCode.MQ3116_AmbiguousRelationArgument]
+            ["scalar-cte-ambiguity.sql"] = [DiagnosticCode.MQ3116_AmbiguousRelationArgument],
         };
 
-        var resources = Directory.GetFiles(invalidDirectory, "*.sql", SearchOption.TopDirectoryOnly)
-            .Where(path => expectedFamilies.ContainsKey(Path.GetFileName(path))).ToArray();
+        var resources = Directory
+            .GetFiles(invalidDirectory, "*.sql", SearchOption.TopDirectoryOnly)
+            .Where(path => expectedFamilies.ContainsKey(Path.GetFileName(path)))
+            .ToArray();
         CollectionAssert.AreEquivalent(expectedFamilies.Keys.ToArray(), resources.Select(Path.GetFileName).ToArray());
         foreach (var path in resources)
         {
@@ -38,11 +49,15 @@ public sealed class StructuredInputInvalidResourceTests
                 $"structured-input-invalid-{Path.GetFileNameWithoutExtension(path)}",
                 new StructuredInputsSchemaProvider(),
                 new NullLoggerResolver(),
-                new CompilationOptions(usePrimitiveTypeValidation: false));
+                new CompilationOptions(usePrimitiveTypeValidation: false)
+            );
 
             Assert.IsFalse(build.Succeeded, name);
             Assert.IsTrue(build.Errors.Count > 0, name);
-            Assert.IsTrue(expectedFamilies[name].Contains(build.Errors[0].Code), $"{name}: actual {build.Errors[0].Code}; diagnostics: {string.Join(" | ", build.Errors.Select(static diagnostic => diagnostic.ToString()))}");
+            Assert.IsTrue(
+                expectedFamilies[name].Contains(build.Errors[0].Code),
+                $"{name}: actual {build.Errors[0].Code}; diagnostics: {string.Join(" | ", build.Errors.Select(static diagnostic => diagnostic.ToString()))}"
+            );
             Assert.AreEqual(0, StructuredInputSourceCounters.MatchConstructed, name);
         }
     }
@@ -51,12 +66,23 @@ public sealed class StructuredInputInvalidResourceTests
     public void InvalidRuntimeResources_ReportLimitAndConstructorFailuresAtUse()
     {
         var root = FindRepositoryRoot();
-        var invalidDirectory = Path.Combine(root, "src", "dotnet", "examples", "data-sources", "structured-inputs", "queries", "invalid");
-        foreach (var (file, counter, expectedText) in new[]
-                 {
-                     ("strict-limit-exceeded.sql", "strict", "MQ7013"),
-                     ("throwing-source.sql", "throwing", "Throwing source fixture")
-                 })
+        var invalidDirectory = Path.Combine(
+            root,
+            "src",
+            "dotnet",
+            "examples",
+            "data-sources",
+            "structured-inputs",
+            "queries",
+            "invalid"
+        );
+        foreach (
+            var (file, counter, expectedText) in new[]
+            {
+                ("strict-limit-exceeded.sql", "strict", "MQ7013"),
+                ("throwing-source.sql", "throwing", "Throwing source fixture"),
+            }
+        )
         {
             StructuredInputSourceCounters.Reset();
             var build = InstanceCreator.CompileWithDiagnostics(
@@ -64,9 +90,13 @@ public sealed class StructuredInputInvalidResourceTests
                 $"structured-input-invalid-runtime-{Path.GetFileNameWithoutExtension(file)}",
                 new StructuredInputsSchemaProvider(),
                 new NullLoggerResolver(),
-                new CompilationOptions(usePrimitiveTypeValidation: false));
+                new CompilationOptions(usePrimitiveTypeValidation: false)
+            );
 
-            Assert.IsTrue(build.Succeeded, $"{file}: {string.Join(" | ", build.Diagnostics.Select(static diagnostic => diagnostic.ToString()))}");
+            Assert.IsTrue(
+                build.Succeeded,
+                $"{file}: {string.Join(" | ", build.Diagnostics.Select(static diagnostic => diagnostic.ToString()))}"
+            );
             using var compiled = build.CompiledQuery!;
             var exception = Assert.ThrowsExactly<QueryExecutionException>(() =>
             {
@@ -82,8 +112,7 @@ public sealed class StructuredInputInvalidResourceTests
     [TestMethod]
     public void ReceiverLimitsApplyToLetAndParameterRootsBeforeSourceConstruction()
     {
-        const string letQuery =
-            "let values = array { 1, 2, 3 }; select s.Value from #inputs.strict(values: $values) s";
+        const string letQuery = "let values = array { 1, 2, 3 }; select s.Value from #inputs.strict(values: $values) s";
         StructuredInputSourceCounters.Reset();
         using (var letCompiled = Compile(letQuery, "structured-limit-let"))
         {
@@ -97,11 +126,15 @@ public sealed class StructuredInputInvalidResourceTests
             Assert.AreEqual(0, StructuredInputSourceCounters.StrictConstructed);
         }
 
-        const string parameterQuery =
-            "param(values: int[]) select s.Value from #inputs.strict(values: $values) s";
+        const string parameterQuery = "param(values: int[]) select s.Value from #inputs.strict(values: $values) s";
         StructuredInputSourceCounters.Reset();
         using var parameterCompiled = Compile(parameterQuery, "structured-limit-parameter");
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(parameterCompiled.TypedParameters, parameterCompiled.ParameterDefinitions, "values", new[] { 1, 2, 3 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            parameterCompiled.TypedParameters,
+            parameterCompiled.ParameterDefinitions,
+            "values",
+            new[] { 1, 2, 3 }
+        );
         var parameterException = Assert.ThrowsExactly<QueryExecutionException>(() =>
         {
             using var table = parameterCompiled.Run();
@@ -115,9 +148,9 @@ public sealed class StructuredInputInvalidResourceTests
     public void ReceiverLimitsApplyToCteRowsBeforeTargetAllocationAndSourceConstruction()
     {
         const string query =
-            "with valuesFromQuery as (" +
-            "select p.Value from values { (Value: 1), (Value: 2), (Value: 3) } p) " +
-            "select s.Value from #inputs.strict(values: valuesFromQuery) s";
+            "with valuesFromQuery as ("
+            + "select p.Value from values { (Value: 1), (Value: 2), (Value: 3) } p) "
+            + "select s.Value from #inputs.strict(values: valuesFromQuery) s";
 
         StructuredInputSourceCounters.Reset();
         using var compiled = Compile(query, "structured-limit-cte");
@@ -139,22 +172,30 @@ public sealed class StructuredInputInvalidResourceTests
             name,
             new StructuredInputsSchemaProvider(),
             new NullLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
-        Assert.IsTrue(build.Succeeded, string.Join(" | ", build.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
+        Assert.IsTrue(
+            build.Succeeded,
+            string.Join(" | ", build.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()))
+        );
         return build.CompiledQuery!;
     }
 
-    private static int ReadCounter(string name) => name switch
-    {
-        "strict" => StructuredInputSourceCounters.StrictConstructed,
-        "throwing" => StructuredInputSourceCounters.ThrowingConstructed,
-        _ => throw new InvalidOperationException(name)
-    };
+    private static int ReadCounter(string name) =>
+        name switch
+        {
+            "strict" => StructuredInputSourceCounters.StrictConstructed,
+            "throwing" => StructuredInputSourceCounters.ThrowingConstructed,
+            _ => throw new InvalidOperationException(name),
+        };
 
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "specs", "musoq-core-language-spec.md")))
+        while (
+            directory is not null
+            && !File.Exists(Path.Combine(directory.FullName, "specs", "musoq-core-language-spec.md"))
+        )
             directory = directory.Parent;
         return directory?.FullName ?? throw new InvalidOperationException("Repository root was not found.");
     }
@@ -162,6 +203,7 @@ public sealed class StructuredInputInvalidResourceTests
     private sealed class NullLoggerResolver : ILoggerResolver
     {
         public ILogger ResolveLogger() => NullLogger.Instance;
+
         public ILogger<T> ResolveLogger<T>() => NullLogger<T>.Instance;
     }
 }

@@ -21,7 +21,8 @@ internal static class StructuralProjectionBinding
             ? new DotNode(root, property, original.IsTheMostInner, string.Empty, property.ReturnType)
             : null;
 
-    internal static PropertyValueNode CloneProperty(PropertyValueNode node) => node is StructuralPropertyValueNode structural
-        ? new StructuralPropertyValueNode(node.Name, structural.Shape, structural.Index)
-        : new PropertyValueNode(node.Name, node.PropertyInfo);
+    internal static PropertyValueNode CloneProperty(PropertyValueNode node) =>
+        node is StructuralPropertyValueNode structural
+            ? new StructuralPropertyValueNode(node.Name, structural.Shape, structural.Index)
+            : new PropertyValueNode(node.Name, node.PropertyInfo);
 }

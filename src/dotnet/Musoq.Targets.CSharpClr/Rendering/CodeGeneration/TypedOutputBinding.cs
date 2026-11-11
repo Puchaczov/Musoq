@@ -23,31 +23,55 @@ internal sealed class TypedOutputBinding
         ArgumentNullException.ThrowIfNull(outputType);
         ArgumentNullException.ThrowIfNull(columns);
 
-        return new TypedOutputBinding(TypedOutputBinder.Create(
-            outputType,
-            columns
-                .Select(static column => new TypedOutputColumn(column.Name, column.Index, column.Type.RequireClrType()))
-                .ToArray()));
+        return new TypedOutputBinding(
+            TypedOutputBinder.Create(
+                outputType,
+                columns
+                    .Select(static column => new TypedOutputColumn(
+                        column.Name,
+                        column.Index,
+                        column.Type.RequireClrType()
+                    ))
+                    .ToArray()
+            )
+        );
     }
 
     public ExpressionSyntax CreateOutputExpression(string rowVariableName)
     {
         if (_plan.Constructor != null)
         {
-            return SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(OutputType))
-                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                    _plan.ConstructorBindings.Select(binding => SyntaxFactory.Argument(CreateRowValueRead(rowVariableName, binding.Column, binding.TargetType))))));
+            return SyntaxFactory
+                .ObjectCreationExpression(CreateTypeSyntax(OutputType))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            _plan.ConstructorBindings.Select(binding =>
+                                SyntaxFactory.Argument(
+                                    CreateRowValueRead(rowVariableName, binding.Column, binding.TargetType)
+                                )
+                            )
+                        )
+                    )
+                );
         }
 
-        return SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(OutputType))
-            .WithInitializer(SyntaxFactory.InitializerExpression(
-                SyntaxKind.ObjectInitializerExpression,
-                SyntaxFactory.SeparatedList<ExpressionSyntax>(
-                    _plan.MemberBindings.Select(binding =>
-                        SyntaxFactory.AssignmentExpression(
-                            SyntaxKind.SimpleAssignmentExpression,
-                        CreateIdentifierName(binding.MemberName),
-                        CreateRowValueRead(rowVariableName, binding.Column, binding.TargetType))))));
+        return SyntaxFactory
+            .ObjectCreationExpression(CreateTypeSyntax(OutputType))
+            .WithInitializer(
+                SyntaxFactory.InitializerExpression(
+                    SyntaxKind.ObjectInitializerExpression,
+                    SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                        _plan.MemberBindings.Select(binding =>
+                            SyntaxFactory.AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                CreateIdentifierName(binding.MemberName),
+                                CreateRowValueRead(rowVariableName, binding.Column, binding.TargetType)
+                            )
+                        )
+                    )
+                )
+            );
     }
 
     public ExpressionSyntax CreateOutputExpression(IReadOnlyList<ExpressionSyntax> values)
@@ -56,51 +80,76 @@ internal sealed class TypedOutputBinding
 
         if (_plan.Constructor != null)
         {
-            return SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(OutputType))
-                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                    _plan.ConstructorBindings.Select(binding => SyntaxFactory.Argument(
-                        CreateTypedValueExpression(values, binding.Column, binding.TargetType))))));
+            return SyntaxFactory
+                .ObjectCreationExpression(CreateTypeSyntax(OutputType))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(
+                            _plan.ConstructorBindings.Select(binding =>
+                                SyntaxFactory.Argument(
+                                    CreateTypedValueExpression(values, binding.Column, binding.TargetType)
+                                )
+                            )
+                        )
+                    )
+                );
         }
 
-        return SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(OutputType))
-            .WithInitializer(SyntaxFactory.InitializerExpression(
-                SyntaxKind.ObjectInitializerExpression,
-                SyntaxFactory.SeparatedList<ExpressionSyntax>(
-                    _plan.MemberBindings.Select(binding =>
-                        SyntaxFactory.AssignmentExpression(
-                            SyntaxKind.SimpleAssignmentExpression,
-                            CreateIdentifierName(binding.MemberName),
-                            CreateTypedValueExpression(values, binding.Column, binding.TargetType))))));
+        return SyntaxFactory
+            .ObjectCreationExpression(CreateTypeSyntax(OutputType))
+            .WithInitializer(
+                SyntaxFactory.InitializerExpression(
+                    SyntaxKind.ObjectInitializerExpression,
+                    SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                        _plan.MemberBindings.Select(binding =>
+                            SyntaxFactory.AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                CreateIdentifierName(binding.MemberName),
+                                CreateTypedValueExpression(values, binding.Column, binding.TargetType)
+                            )
+                        )
+                    )
+                )
+            );
     }
 
     private static ExpressionSyntax CreateRowValueRead(
         string rowVariableName,
         TypedOutputColumn column,
-        Type targetType)
+        Type targetType
+    )
     {
-        var value = SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(rowVariableName))
-            .WithArgumentList(SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(column.Index))))));
+        var value = SyntaxFactory
+            .ElementAccessExpression(SyntaxFactory.IdentifierName(rowVariableName))
+            .WithArgumentList(
+                SyntaxFactory.BracketedArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(column.Index)
+                            )
+                        )
+                    )
+                )
+            );
 
-        return targetType == typeof(object)
-            ? value
-            : SyntaxFactory.CastExpression(CreateTypeSyntax(targetType), value);
+        return targetType == typeof(object) ? value : SyntaxFactory.CastExpression(CreateTypeSyntax(targetType), value);
     }
 
     private static ExpressionSyntax CreateTypedValueExpression(
         IReadOnlyList<ExpressionSyntax> values,
         TypedOutputColumn column,
-        Type targetType)
+        Type targetType
+    )
     {
         if ((uint)column.Index >= (uint)values.Count)
-            throw new InvalidOperationException($"Typed output column '{column.Name}' index {column.Index} is outside projected values.");
+            throw new InvalidOperationException(
+                $"Typed output column '{column.Name}' index {column.Index} is outside projected values."
+            );
 
         var value = values[column.Index];
-        return targetType == typeof(object)
-            ? value
-            : SyntaxFactory.CastExpression(CreateTypeSyntax(targetType), value);
+        return targetType == typeof(object) ? value : SyntaxFactory.CastExpression(CreateTypeSyntax(targetType), value);
     }
 
     private static TypeSyntax CreateTypeSyntax(Type type)

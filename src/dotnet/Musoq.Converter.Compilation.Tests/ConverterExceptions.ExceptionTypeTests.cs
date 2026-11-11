@@ -249,10 +249,11 @@ public class ConverterExceptionsExceptionTypeTests
     public void CompilationException_WithDetailedMessage_ShouldPreserveMessage()
     {
         // Arrange
-        var message = "Failed to compile query:\n" +
-                      "  Error at line 3, column 15\n" +
-                      "  Unexpected token 'INVALID'\n" +
-                      "  Expected: identifier, keyword, or expression";
+        var message =
+            "Failed to compile query:\n"
+            + "  Error at line 3, column 15\n"
+            + "  Unexpected token 'INVALID'\n"
+            + "  Expected: identifier, keyword, or expression";
 
         // Act
         var exception = new CompilationException(message);
@@ -299,7 +300,7 @@ public class ConverterExceptionsExceptionTypeTests
         {
             CreateTestEnvelope("First error"),
             CreateTestEnvelope("Second error"),
-            CreateTestEnvelope("Third error")
+            CreateTestEnvelope("Third error"),
         };
 
         var exception = new MusoqQueryException(envelopes);
@@ -318,7 +319,7 @@ public class ConverterExceptionsExceptionTypeTests
         var envelopes = new List<MusoqErrorEnvelope>
         {
             CreateTestEnvelope("First error"),
-            CreateTestEnvelope("Second error")
+            CreateTestEnvelope("Second error"),
         };
 
         var exception = new MusoqQueryException(envelopes);
@@ -334,7 +335,7 @@ public class ConverterExceptionsExceptionTypeTests
         var envelopes = new List<MusoqErrorEnvelope>
         {
             CreateTestEnvelope("First error"),
-            CreateTestEnvelope("Second error")
+            CreateTestEnvelope("Second error"),
         };
 
         var exception = new MusoqQueryException(envelopes);
@@ -350,11 +351,15 @@ public class ConverterExceptionsExceptionTypeTests
             DiagnosticSeverity.Error,
             DiagnosticPhase.Bind,
             "Missing alias",
-            2, 5, null, null,
+            2,
+            5,
+            null,
+            null,
             "Aliases are required",
             ["Add alias after source"],
             "Core Spec §Aliasing",
-            null);
+            null
+        );
 
         var exception = new MusoqQueryException(envelope);
         var text = exception.FormatText();
@@ -372,7 +377,7 @@ public class ConverterExceptionsExceptionTypeTests
         var envelopes = new List<MusoqErrorEnvelope>
         {
             CreateTestEnvelope("Error one"),
-            CreateTestEnvelope("Error two")
+            CreateTestEnvelope("Error two"),
         };
 
         var exception = new MusoqQueryException(envelopes);
@@ -402,7 +407,7 @@ public class ConverterExceptionsExceptionTypeTests
         var envelopes = new List<MusoqErrorEnvelope>
         {
             CreateTestEnvelope("Error one"),
-            CreateTestEnvelope("Error two")
+            CreateTestEnvelope("Error two"),
         };
 
         var exception = new MusoqQueryException(envelopes);
@@ -415,8 +420,7 @@ public class ConverterExceptionsExceptionTypeTests
     [TestMethod]
     public void MusoqQueryException_WhenNullEnvelopes_ShouldThrowArgumentNull()
     {
-        Assert.Throws<ArgumentNullException>(
-            () => new MusoqQueryException((IReadOnlyList<MusoqErrorEnvelope>)null!));
+        Assert.Throws<ArgumentNullException>(() => new MusoqQueryException((IReadOnlyList<MusoqErrorEnvelope>)null!));
     }
 
     [TestMethod]
@@ -435,8 +439,15 @@ public class ConverterExceptionsExceptionTypeTests
             DiagnosticSeverity.Error,
             DiagnosticPhase.Internal,
             message,
-            null, null, null, null, null,
-            Array.Empty<string>(), null, null);
+            null,
+            null,
+            null,
+            null,
+            null,
+            Array.Empty<string>(),
+            null,
+            null
+        );
     }
 
     #endregion

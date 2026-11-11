@@ -15,8 +15,12 @@ public class AccessObjectArrayNode(NumericAccessToken token) : IdentifierNode(to
     /// <summary>
     ///     Constructor for column-based indexed access (e.g., Name[0], f.Name[0])
     /// </summary>
-    public AccessObjectArrayNode(NumericAccessToken token, Type? columnType, string? tableAlias = null,
-        string? intendedTypeName = null)
+    public AccessObjectArrayNode(
+        NumericAccessToken token,
+        Type? columnType,
+        string? tableAlias = null,
+        string? intendedTypeName = null
+    )
         : this(token)
     {
         ColumnType = columnType;
@@ -64,11 +68,11 @@ public class AccessObjectArrayNode(NumericAccessToken token) : IdentifierNode(to
                     // String character access returns char
                     return typeof(char);
 
-                if (ColumnType.IsArray) return ColumnType.GetElementType() ?? typeof(object);
+                if (ColumnType.IsArray)
+                    return ColumnType.GetElementType() ?? typeof(object);
 
                 // Handle other indexable types
-                var indexProperty = ColumnType.GetProperties()
-                    .FirstOrDefault(p => p.GetIndexParameters().Length == 1);
+                var indexProperty = ColumnType.GetProperties().FirstOrDefault(p => p.GetIndexParameters().Length == 1);
                 return indexProperty?.PropertyType ?? typeof(object);
             }
 
@@ -87,9 +91,11 @@ public class AccessObjectArrayNode(NumericAccessToken token) : IdentifierNode(to
             if (PropertyInfo.PropertyType.IsArray)
                 return PropertyInfo.PropertyType.GetElementType() ?? typeof(object);
 
-            return (from propertyInfo in PropertyInfo.PropertyType.GetProperties()
-                where propertyInfo.GetIndexParameters().Length == 1
-                select propertyInfo.PropertyType).FirstOrDefault() ?? typeof(object);
+            return (
+                    from propertyInfo in PropertyInfo.PropertyType.GetProperties()
+                    where propertyInfo.GetIndexParameters().Length == 1
+                    select propertyInfo.PropertyType
+                ).FirstOrDefault() ?? typeof(object);
         }
     }
 

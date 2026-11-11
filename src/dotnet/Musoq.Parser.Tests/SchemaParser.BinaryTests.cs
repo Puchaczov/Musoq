@@ -76,11 +76,13 @@ public class SchemaParserBinaryTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySchema_MultiplePrimitiveFields_ShouldParse()
     {
-        var schema = @"binary Header {
-            Magic: byte,
-            Version: byte,
-            Size: int le
-        }";
+        var schema = (
+            "binary Header {\n"
+            + "            Magic: byte,\n"
+            + "            Version: byte,\n"
+            + "            Size: int le\n"
+            + "        }"
+        );
 
         var result = ParseBinarySchema(schema);
 
@@ -238,13 +240,15 @@ public class SchemaParserBinaryTests : SchemaParserTestsBase
     [TestMethod]
     public void BinarySchema_MultipleArrayFields_ShouldParse()
     {
-        var schema = @"binary Packet {
-            Header: byte[4],
-            Name: string[32] utf8,
-            Flags: bits[8],
-            _: align[8],
-            Payload: byte[128]
-        }";
+        var schema = (
+            "binary Packet {\n"
+            + "            Header: byte[4],\n"
+            + "            Name: string[32] utf8,\n"
+            + "            Flags: bits[8],\n"
+            + "            _: align[8],\n"
+            + "            Payload: byte[128]\n"
+            + "        }"
+        );
         var result = ParseBinarySchema(schema);
 
         Assert.HasCount(5, result.Fields);
@@ -576,7 +580,8 @@ public class SchemaParserBinaryTests : SchemaParserTestsBase
         {
             var token = lexer.Next();
             tokens.Add((token.TokenType, token.Value));
-            if (token.TokenType == TokenType.EndOfFile) break;
+            if (token.TokenType == TokenType.EndOfFile)
+                break;
         }
 
         var tokenList = string.Join(", ", tokens.Select(t => $"{t.Type}({t.Value})"));

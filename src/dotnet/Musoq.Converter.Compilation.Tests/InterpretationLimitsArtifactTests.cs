@@ -11,8 +11,9 @@ namespace Musoq.Converter.Tests;
 [TestClass]
 public sealed class InterpretationLimitsArtifactTests
 {
-    private const string Query = "binary Rec { X: byte } binary S { Records: Rec repeat until eof } " +
-        "select Count(r.X) as N from #system.dual() d cross apply Interpret<S>(FromHexToBytes('010101')) s cross apply s.Records r";
+    private const string Query =
+        "binary Rec { X: byte } binary S { Records: Rec repeat until eof } "
+        + "select Count(r.X) as N from #system.dual() d cross apply Interpret<S>(FromHexToBytes('010101')) s cross apply s.Records r";
 
     [TestMethod]
     public void ExecutionCache_ShouldSeparateConfiguredLimitsWithoutChangingEligibility()
@@ -22,13 +23,27 @@ public sealed class InterpretationLimitsArtifactTests
         var logger = new TestsLoggerResolver();
         var lower = new CompilationOptions().WithInterpretationLimits(new(2));
         var higher = new CompilationOptions().WithInterpretationLimits(new(3));
-        using var first = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, logger, lower);
+        using var first = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            logger,
+            lower
+        );
 
         Assert.IsTrue(InstanceCreator.HasExecutionCompilationCacheEntryForTests(query, provider, lower));
         Assert.IsFalse(InstanceCreator.HasExecutionCompilationCacheEntryForTests(query, provider, higher));
-        Assert.AreNotEqual(InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(query, provider, lower),
-            InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(query, provider, higher));
-        using var second = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), provider, logger, higher);
+        Assert.AreNotEqual(
+            InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(query, provider, lower),
+            InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(query, provider, higher)
+        );
+        using var second = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            provider,
+            logger,
+            higher
+        );
         Assert.IsTrue(InstanceCreator.HasExecutionCompilationCacheEntryForTests(query, provider, higher));
     }
 
@@ -38,9 +53,21 @@ public sealed class InterpretationLimitsArtifactTests
         var options = new CompilationOptions().WithInterpretationLimits(new(3));
         var provider = new SystemSchemaProvider();
         var logger = new TestsLoggerResolver();
-        var result = InstanceCreator.CompileArtifactWithDiagnostics(Query, Guid.NewGuid().ToString(), provider, logger, options);
+        var result = InstanceCreator.CompileArtifactWithDiagnostics(
+            Query,
+            Guid.NewGuid().ToString(),
+            provider,
+            logger,
+            options
+        );
         Assert.IsTrue(result.Succeeded, string.Join("\n", result.Diagnostics));
-        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(Query, result.Artifact!, provider, logger, options);
+        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            Query,
+            result.Artifact!,
+            provider,
+            logger,
+            options
+        );
         Assert.IsTrue(loaded.Succeeded, string.Join("\n", loaded.Diagnostics));
         using var executable = loaded.CompiledQuery!;
         using var table = executable.Run();
@@ -56,10 +83,21 @@ public sealed class InterpretationLimitsArtifactTests
         var options = new CompilationOptions().WithInterpretationLimits(new(3));
         var provider = new SystemSchemaProvider();
         var logger = new TestsLoggerResolver();
-        var result = InstanceCreator.CompileArtifactWithDiagnostics(Query, Guid.NewGuid().ToString(), provider, logger, options);
+        var result = InstanceCreator.CompileArtifactWithDiagnostics(
+            Query,
+            Guid.NewGuid().ToString(),
+            provider,
+            logger,
+            options
+        );
         Assert.IsTrue(result.Succeeded, string.Join("\n", result.Diagnostics));
-        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(Query, result.Artifact!, provider, logger,
-            options.WithInterpretationLimits(new(2)));
+        var loaded = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            Query,
+            result.Artifact!,
+            provider,
+            logger,
+            options.WithInterpretationLimits(new(2))
+        );
 
         Assert.IsFalse(loaded.Succeeded);
         Assert.AreEqual(DiagnosticCode.MQ8002_CompiledArtifactIncompatible, loaded.Errors.Single().Code);

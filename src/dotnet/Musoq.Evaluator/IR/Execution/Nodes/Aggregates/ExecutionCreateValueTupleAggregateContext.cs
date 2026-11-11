@@ -9,7 +9,8 @@ public sealed record ExecutionCreateValueTupleAggregateContext : ExecutionNode
         IReadOnlyList<AggregateGroupLookup> groupDictionaries,
         ExecutionVariable groupsToFinalize,
         IReadOnlyList<ExecutionTypeRef> keyTypes,
-        AggregateGroupPlan groupPlan)
+        AggregateGroupPlan groupPlan
+    )
     {
         RootGroup = rootGroup;
         GroupDictionaries = ExecutionIrCollections.Freeze(groupDictionaries);
@@ -29,10 +30,15 @@ public sealed record ExecutionCreateValueTupleAggregateContext : ExecutionNode
         IReadOnlyList<AggregateGroupLookup> groupDictionaries,
         ExecutionVariable groupsToFinalize,
         IReadOnlyList<Type> keyTypes,
-        AggregateGroupPlan groupPlan)
-        : this(rootGroup, groupDictionaries, groupsToFinalize, ExecutionClrBindingFactory.FromClrTypes(keyTypes), groupPlan)
-    {
-    }
+        AggregateGroupPlan groupPlan
+    )
+        : this(
+            rootGroup,
+            groupDictionaries,
+            groupsToFinalize,
+            ExecutionClrBindingFactory.FromClrTypes(keyTypes),
+            groupPlan
+        ) { }
 
     public AggregateGroupShape GroupShape => GroupPlan.LeafShape;
 }

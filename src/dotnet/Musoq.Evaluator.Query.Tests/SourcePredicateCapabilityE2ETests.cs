@@ -35,14 +35,18 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
         Assert.HasCount(1, optimizedProvider.PlanResults.Single().ExecutionPlan.PredicateApplications);
         Assert.HasCount(1, plan.PredicateApplications);
         Assert.AreEqual(SourcePredicateEvaluationPhase.RowFiltering, plan.PredicateApplications[0].Phase);
-        Assert.AreEqual(SourceStringMatchKind.Prefix, ((SourcePredicateStringMatch)plan.PredicateApplications[0].Predicate).Kind);
+        Assert.AreEqual(
+            SourceStringMatchKind.Prefix,
+            ((SourcePredicateStringMatch)plan.PredicateApplications[0].Predicate).Kind
+        );
         Assert.IsTrue(optimizedProvider.Recorder.SourceRowsProduced < baselineProvider.Recorder.SourceRowsProduced);
         Assert.DoesNotContain("PhysicalFilter", inspection.PhysicalPlanText);
         Assert.DoesNotContain("LikePrefix(", inspection.GeneratedCSharpCode);
         Assert.Contains(
-            "source string-match: column=Name, pattern='item-0%', kind=Prefix, needle='item-0', " +
-            "comparison=LikeIgnoreCase, negated=no, acceptedPhase=RowFiltering, fallback=none",
-            inspection.PlanningText);
+            "source string-match: column=Name, pattern='item-0%', kind=Prefix, needle='item-0', "
+                + "comparison=LikeIgnoreCase, negated=no, acceptedPhase=RowFiltering, fallback=none",
+            inspection.PlanningText
+        );
     }
 
     [TestMethod]
@@ -80,21 +84,30 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
         Assert.Contains("PhysicalFilter", inspection.PhysicalPlanText);
         Assert.Contains("Operators.PrepareLike", inspection.GeneratedCSharpCode);
         Assert.Contains("Operators.LikePrepared", inspection.GeneratedCSharpCode);
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("new Musoq.Evaluator.Operators().Like", StringComparison.Ordinal));
+        Assert.IsFalse(
+            inspection.GeneratedCSharpCode.Contains("new Musoq.Evaluator.Operators().Like", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void PartiallySupportedTypedPredicate_ShouldPushSupportedConjunctAndRetainUnsupportedResidual()
     {
-        const string query = @"
-            select s.Id, s.Name
-            from #sp.items() s
-            where s.Name like 'item-0%'
-              and s.Category like 'alpha'";
+        const string query = (
+            "\n"
+            + "            select s.Id, s.Name\n"
+            + "            from #sp.items() s\n"
+            + "            where s.Name like 'item-0%'\n"
+            + "              and s.Category like 'alpha'"
+        );
         var rows = CreateRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
-        var optimized = Run(query, SourcePlanningMode.AcceptTypedStringPrefixPredicate, rows, out var optimizedProvider);
+        var optimized = Run(
+            query,
+            SourcePlanningMode.AcceptTypedStringPrefixPredicate,
+            rows,
+            out var optimizedProvider
+        );
         var inspection = Inspect(query, SourcePlanningMode.AcceptTypedStringPrefixPredicate, rows);
         var request = optimizedProvider.Requests.Single();
         var plan = optimizedProvider.ExecutionPlans.Single();
@@ -106,11 +119,15 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
         Assert.HasCount(1, plan.PredicateApplications);
         Assert.Contains("PhysicalFilter", inspection.PhysicalPlanText);
         Assert.Contains("string.Equals(", inspection.GeneratedCSharpCode);
-        Assert.Contains("source capability predicate: requested=yes, accepted=yes, residual=yes -> Partial", inspection.PlanningText);
         Assert.Contains(
-            "source string-match: column=Category, pattern='alpha', kind=Exact, needle='alpha', " +
-            "comparison=LikeIgnoreCase, negated=no, acceptedPhase=none, fallback=unsupported-kind",
-            inspection.PlanningText);
+            "source capability predicate: requested=yes, accepted=yes, residual=yes -> Partial",
+            inspection.PlanningText
+        );
+        Assert.Contains(
+            "source string-match: column=Category, pattern='alpha', kind=Exact, needle='alpha', "
+                + "comparison=LikeIgnoreCase, negated=no, acceptedPhase=none, fallback=unsupported-kind",
+            inspection.PlanningText
+        );
     }
 
     [TestMethod]
@@ -139,7 +156,12 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
         var rows = CreateRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
-        var optimized = Run(query, SourcePlanningMode.AcceptTypedStringPredicateUnknownVersion, rows, out var optimizedProvider);
+        var optimized = Run(
+            query,
+            SourcePlanningMode.AcceptTypedStringPredicateUnknownVersion,
+            rows,
+            out var optimizedProvider
+        );
         var inspection = Inspect(query, SourcePlanningMode.AcceptTypedStringPredicateUnknownVersion, rows);
         var plan = optimizedProvider.ExecutionPlans.Single();
 
@@ -150,16 +172,17 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
         Assert.Contains("not understood", inspection.PlanningText);
         Assert.Contains("PhysicalFilter", inspection.PhysicalPlanText);
         Assert.Contains(
-            "source string-match: column=Name, pattern='%item%', kind=Contains, needle='item', " +
-            "comparison=LikeIgnoreCase, negated=no, acceptedPhase=none, fallback=unknown-contract-version",
-            inspection.PlanningText);
+            "source string-match: column=Name, pattern='%item%', kind=Contains, needle='item', "
+                + "comparison=LikeIgnoreCase, negated=no, acceptedPhase=none, fallback=unknown-contract-version",
+            inspection.PlanningText
+        );
     }
 
     [TestMethod]
     public void SupportedLookingOr_ShouldRemainEntirelyResidual()
     {
-        const string query = "select s.Id, s.Name from #sp.items() s " +
-                             "where s.Name like 'item-0%' or s.Category like 'alpha'";
+        const string query =
+            "select s.Id, s.Name from #sp.items() s " + "where s.Name like 'item-0%' or s.Category like 'alpha'";
         var rows = CreateRows();
 
         var baseline = Run(query, SourcePlanningMode.RejectAll, rows, out _);
@@ -185,7 +208,8 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
     public void MaliciousTypedApplication_ShouldFailBeforeSourceExecution(
         SourcePlanningMode mode,
         bool useNestedPredicate,
-        string expectedMessage)
+        string expectedMessage
+    )
     {
         var query = useNestedPredicate
             ? "select s.Id from #sp.items() s where s.Name like 'item-0%' or s.Category like 'alpha'"
@@ -193,7 +217,8 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
         var provider = new SourcePlanningSchemaProvider(mode, CreateRows());
 
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, schemaProvider: provider));
+            CreateAndRunVirtualMachine(query, schemaProvider: provider)
+        );
 
         Assert.Contains(expectedMessage, exception.Message);
         Assert.IsEmpty(provider.ExecutionPlans);
@@ -204,7 +229,7 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
     {
         return new Dictionary<string, IReadOnlyList<SourcePlanningEntity>>
         {
-            ["#sp"] = SourcePlanningRows.CreateDefault()
+            ["#sp"] = SourcePlanningRows.CreateDefault(),
         };
     }
 
@@ -212,7 +237,8 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
         string query,
         SourcePlanningMode mode,
         IReadOnlyDictionary<string, IReadOnlyList<SourcePlanningEntity>> rows,
-        out SourcePlanningSchemaProvider provider)
+        out SourcePlanningSchemaProvider provider
+    )
     {
         provider = new SourcePlanningSchemaProvider(mode, rows);
         var compiled = CreateAndRunVirtualMachine(query, schemaProvider: provider);
@@ -222,14 +248,16 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
     private QueryInspectionResult Inspect(
         string query,
         SourcePlanningMode mode,
-        IReadOnlyDictionary<string, IReadOnlyList<SourcePlanningEntity>> rows)
+        IReadOnlyDictionary<string, IReadOnlyList<SourcePlanningEntity>> rows
+    )
     {
         return InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             new SourcePlanningSchemaProvider(mode, rows),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
     }
 
     private static void AssertSameTable(Table expected, Table actual)
@@ -242,7 +270,8 @@ public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
             CollectionAssert.AreEqual(
                 expected[rowIndex].ReadValues(),
                 actual[rowIndex].ReadValues(),
-                $"Row {rowIndex} differs.");
+                $"Row {rowIndex} differs."
+            );
         }
     }
 }

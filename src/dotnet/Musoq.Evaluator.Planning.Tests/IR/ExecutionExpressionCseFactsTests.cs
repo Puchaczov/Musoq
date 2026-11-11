@@ -17,7 +17,8 @@ public sealed class ExecutionExpressionCseFactsTests
             GetType().GetMethod(nameof(Identity), BindingFlags.Public | BindingFlags.Static)!,
             [new ExecutionLiteral(1, typeof(int))],
             null,
-            typeof(int));
+            typeof(int)
+        );
         var plan = CreatePlan(CreateAppendRow(method, method));
 
         var result = Optimize(plan);
@@ -34,12 +35,9 @@ public sealed class ExecutionExpressionCseFactsTests
             BinaryOpKind.GreaterThan,
             new ExecutionLiteral(2, typeof(int)),
             new ExecutionLiteral(1, typeof(int)),
-            typeof(bool));
-        var expression = new ExecutionBinary(
-            BinaryOpKind.And,
-            comparison,
-            comparison,
-            typeof(bool));
+            typeof(bool)
+        );
+        var expression = new ExecutionBinary(BinaryOpKind.And, comparison, comparison, typeof(bool));
         var plan = CreatePlan(CreateAppendRow(expression, expression));
 
         var result = Optimize(plan);
@@ -64,7 +62,8 @@ public sealed class ExecutionExpressionCseFactsTests
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(0, typeof(int)),
             ExecutionOffsetWindowFunction.Lag,
-            new ExecutionVariable("windowResults", typeof(object)));
+            new ExecutionVariable("windowResults", typeof(object))
+        );
         var plan = CreatePlan(window);
 
         var result = Optimize(plan);
@@ -78,17 +77,19 @@ public sealed class ExecutionExpressionCseFactsTests
     public void Analyze_WhenGeneratedHelperBodyHasRepeatedUnsupportedExpressions_ShouldReportGeneratedHelperGroup()
     {
         var expression = CreateRepeatedLiteralExpression();
-        var helperBody = new ExecutionBlock(
-        [
+        var helperBody = new ExecutionBlock([
             new ExecutionLet(new ExecutionVariable("first", typeof(int)), expression),
-            new ExecutionLet(new ExecutionVariable("second", typeof(int)), expression)
+            new ExecutionLet(new ExecutionVariable("second", typeof(int)), expression),
         ]);
-        var plan = CreatePlan(new ExecutionForEachIndexed(
-            new ExecutionVariable("item", typeof(object)),
-            new ExecutionVariable("index", typeof(int)),
-            new ExecutionVariable("rows", typeof(object)),
-            ExecutionRowAccessMode.Direct,
-            helperBody));
+        var plan = CreatePlan(
+            new ExecutionForEachIndexed(
+                new ExecutionVariable("item", typeof(object)),
+                new ExecutionVariable("index", typeof(int)),
+                new ExecutionVariable("rows", typeof(object)),
+                ExecutionRowAccessMode.Direct,
+                helperBody
+            )
+        );
 
         var result = Optimize(plan);
         var diagnostics = ExpressionCseSkipDiagnostics.Analyze(plan);
@@ -107,7 +108,8 @@ public sealed class ExecutionExpressionCseFactsTests
     {
         return new ExpressionCseHoistingPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
     }
 
     private static ExecutionPlan CreatePlan(params ExecutionNode[] nodes)
@@ -115,17 +117,13 @@ public sealed class ExecutionExpressionCseFactsTests
         return new ExecutionPlan("compiled", [], new ExecutionBlock(nodes));
     }
 
-    private static ExecutionAppendRow CreateAppendRow(
-        ExecutionExpression first,
-        ExecutionExpression second)
+    private static ExecutionAppendRow CreateAppendRow(ExecutionExpression first, ExecutionExpression second)
     {
         return new ExecutionAppendRow(
             new ExecutionVariable("result", typeof(object)),
             CreateRowShape(),
-            [
-                new ExecutionRowValue("First", first),
-                new ExecutionRowValue("Second", second)
-            ]);
+            [new ExecutionRowValue("First", first), new ExecutionRowValue("Second", second)]
+        );
     }
 
     private static GeneratedRowShape CreateRowShape()
@@ -133,9 +131,24 @@ public sealed class ExecutionExpressionCseFactsTests
         return new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("First", "First", 0, typeof(object), FieldNullability.Unknown, new GeneratedFieldAccess("First")),
-                new FieldBinding("Second", "Second", 1, typeof(object), FieldNullability.Unknown, new GeneratedFieldAccess("Second"))
-            ]);
+                new FieldBinding(
+                    "First",
+                    "First",
+                    0,
+                    typeof(object),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("First")
+                ),
+                new FieldBinding(
+                    "Second",
+                    "Second",
+                    1,
+                    typeof(object),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Second")
+                ),
+            ]
+        );
     }
 
     private static ExecutionExpression CreateRepeatedLiteralExpression()
@@ -144,6 +157,7 @@ public sealed class ExecutionExpressionCseFactsTests
             BinaryOpKind.Add,
             new ExecutionLiteral(1, typeof(int)),
             new ExecutionLiteral(2, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
     }
 }

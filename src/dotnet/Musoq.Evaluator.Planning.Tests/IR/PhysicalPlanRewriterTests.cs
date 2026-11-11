@@ -32,7 +32,8 @@ public class PhysicalPlanRewriterTests
 
         var rewritten = PhysicalPlanRewriter.RewriteChildren(
             filter,
-            node => ReferenceEquals(node, scan) ? replacement : node);
+            node => ReferenceEquals(node, scan) ? replacement : node
+        );
 
         var rewrittenFilter = (PhysicalFilterNode)rewritten;
         Assert.AreNotSame(filter, rewritten);
@@ -52,7 +53,8 @@ public class PhysicalPlanRewriterTests
 
         var rewritten = PhysicalPlanRewriter.RewriteChildren(
             join,
-            node => ReferenceEquals(node, right) ? replacement : node);
+            node => ReferenceEquals(node, right) ? replacement : node
+        );
 
         var rewrittenJoin = (PhysicalHashJoinNode)rewritten;
         Assert.AreNotSame(join, rewritten);
@@ -68,13 +70,12 @@ public class PhysicalPlanRewriterTests
         var definitionPlan = CreateScan("definition");
         var replacement = CreateScan("replacement");
         var query = new PhysicalCteRefNode("items", "i", CreateSchema(("Id", typeof(int))));
-        var cte = new PhysicalCteNode(
-            [new PhysicalCteDefinition("items", definitionPlan)],
-            query);
+        var cte = new PhysicalCteNode([new PhysicalCteDefinition("items", definitionPlan)], query);
 
         var rewritten = PhysicalPlanRewriter.RewriteChildren(
             cte,
-            node => ReferenceEquals(node, definitionPlan) ? replacement : node);
+            node => ReferenceEquals(node, definitionPlan) ? replacement : node
+        );
 
         var rewrittenCte = (PhysicalCteNode)rewritten;
         Assert.AreNotSame(cte, rewritten);
@@ -93,7 +94,8 @@ public class PhysicalPlanRewriterTests
 
         var rewritten = PhysicalPlanRewriter.RewriteChildren(
             multiStatement,
-            node => ReferenceEquals(node, second) ? replacement : node);
+            node => ReferenceEquals(node, second) ? replacement : node
+        );
 
         var rewrittenMultiStatement = (PhysicalMultiStatementNode)rewritten;
         Assert.AreNotSame(multiStatement, rewritten);
@@ -107,7 +109,8 @@ public class PhysicalPlanRewriterTests
         var scan = CreateScan();
         var project = new PhysicalProjectNode(
             [new ProjectedField("Id", new ColumnRef("t", "Id", typeof(int)), 0)],
-            scan);
+            scan
+        );
 
         var resolved = PhysicalPlanRewriter.TryResolveDirectSchemaScan(project, out var resolvedScan);
 
@@ -125,9 +128,7 @@ public class PhysicalPlanRewriterTests
         return new OutputSchema(schemas);
     }
 
-    private static PhysicalSchemaScanNode CreateScan(
-        string alias = "t",
-        params (string Name, Type Type)[] columns)
+    private static PhysicalSchemaScanNode CreateScan(string alias = "t", params (string Name, Type Type)[] columns)
     {
         if (columns.Length == 0)
             columns = [("Id", typeof(int))];
@@ -141,6 +142,7 @@ public class PhysicalPlanRewriterTests
             BinaryOpKind.GreaterThan,
             new ColumnRef("t", "Id", typeof(int)),
             new Literal(0, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
     }
 }

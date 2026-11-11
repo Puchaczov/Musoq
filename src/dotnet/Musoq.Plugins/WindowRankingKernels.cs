@@ -25,13 +25,12 @@ public static class DenseRankKernel
 public static class PercentRankKernel
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Get(in WindowRankingContext context)
-        => context.PartitionCount == 1 ? 0d : (double)context.PeerStart / (context.PartitionCount - 1);
+    public static double Get(in WindowRankingContext context) =>
+        context.PartitionCount == 1 ? 0d : (double)context.PeerStart / (context.PartitionCount - 1);
 }
 
 public static class CumeDistKernel
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Get(in WindowRankingContext context)
-        => (double)(context.PeerEnd + 1) / context.PartitionCount;
+    public static double Get(in WindowRankingContext context) => (double)(context.PeerEnd + 1) / context.PartitionCount;
 }

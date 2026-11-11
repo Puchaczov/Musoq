@@ -11,12 +11,9 @@ public sealed class CSharpClrReferenceArchitectureGuardrailTests
     public void ReferenceCollector_ShouldRemainDemandDrivenAndFileBacked()
     {
         var root = RepositorySourceScan.RepositoryRoot();
-        var collector = File.ReadAllText(Path.Combine(
-            root,
-            "src",
-            "dotnet",
-            "Musoq.Targets.CSharpClr",
-            "CSharpClrReferenceAssemblyCollector.cs"));
+        var collector = File.ReadAllText(
+            Path.Combine(root, "src", "dotnet", "Musoq.Targets.CSharpClr", "CSharpClrReferenceAssemblyCollector.cs")
+        );
 
         AssertForbidden(collector, "TRUSTED_PLATFORM_ASSEMBLIES");
         AssertForbidden(collector, "Assembly.GetReferencedAssemblies");
@@ -34,15 +31,18 @@ public sealed class CSharpClrReferenceArchitectureGuardrailTests
     public void ClrBindingResolver_ShouldNotEnumerateEveryLoadedAssembly()
     {
         var root = RepositorySourceScan.RepositoryRoot();
-        var resolver = File.ReadAllText(Path.Combine(
-            root,
-            "src",
-            "dotnet",
-            "Musoq.Evaluator",
-            "IR",
-            "Execution",
-            "Portability",
-            "ExecutionClrBindingResolver.cs"));
+        var resolver = File.ReadAllText(
+            Path.Combine(
+                root,
+                "src",
+                "dotnet",
+                "Musoq.Evaluator",
+                "IR",
+                "Execution",
+                "Portability",
+                "ExecutionClrBindingResolver.cs"
+            )
+        );
 
         AssertForbidden(resolver, "AppDomain.CurrentDomain.GetAssemblies");
         AssertForbidden(resolver, "Assembly.GetReferencedAssemblies");
@@ -54,13 +54,9 @@ public sealed class CSharpClrReferenceArchitectureGuardrailTests
     public void RuntimeReferenceTemplate_ShouldStayFixedAndExcludeProcess()
     {
         var root = RepositorySourceScan.RepositoryRoot();
-        var provider = File.ReadAllText(Path.Combine(
-            root,
-            "src",
-            "dotnet",
-            "Musoq.Evaluator",
-            "Runtime",
-            "RuntimeReferenceProvider.cs"));
+        var provider = File.ReadAllText(
+            Path.Combine(root, "src", "dotnet", "Musoq.Evaluator", "Runtime", "RuntimeReferenceProvider.cs")
+        );
 
         AssertForbidden(provider, "System.Diagnostics.Process.dll");
         AssertForbidden(provider, "TRUSTED_PLATFORM_ASSEMBLIES");
@@ -72,12 +68,9 @@ public sealed class CSharpClrReferenceArchitectureGuardrailTests
     public void Backend_ShouldDelegateClrReferenceDiscoveryToTheCollector()
     {
         var root = RepositorySourceScan.RepositoryRoot();
-        var backend = File.ReadAllText(Path.Combine(
-            root,
-            "src",
-            "dotnet",
-            "Musoq.Targets.CSharpClr",
-            "CSharpClrExecutionBackend.cs"));
+        var backend = File.ReadAllText(
+            Path.Combine(root, "src", "dotnet", "Musoq.Targets.CSharpClr", "CSharpClrExecutionBackend.cs")
+        );
 
         StringAssert.Contains(backend, "CSharpClrReferenceAssemblyCollector.Collect(");
         StringAssert.Contains(backend, "compilationContext.InitializeCoreReferences(referenceAssemblies);");
@@ -92,6 +85,7 @@ public sealed class CSharpClrReferenceArchitectureGuardrailTests
     {
         Assert.IsFalse(
             text.Contains(fragment, StringComparison.Ordinal),
-            $"Forbidden broad CLR discovery fragment '{fragment}' was found.");
+            $"Forbidden broad CLR discovery fragment '{fragment}' was found."
+        );
     }
 }

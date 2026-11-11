@@ -23,7 +23,8 @@ public sealed partial class JoinSemiAntiCrossJoinTests
     [TestMethod]
     public void SemiJoin_WhenEquiPredicateHasResidual_ShouldRespectResidualPredicate()
     {
-        var query = "select a.Name from #A.entities() a semi join #B.entities() b on a.Id = b.Id and b.Population > 100";
+        var query =
+            "select a.Name from #A.entities() a semi join #B.entities() b on a.Id = b.Id and b.Population > 100";
         var table = RunJoinQuery(query);
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A3"]);
@@ -32,7 +33,8 @@ public sealed partial class JoinSemiAntiCrossJoinTests
     [TestMethod]
     public void AntiJoin_WhenEquiPredicateHasResidual_ShouldRespectResidualPredicate()
     {
-        var query = "select a.Name from #A.entities() a anti join #B.entities() b on a.Id = b.Id and b.Population > 100";
+        var query =
+            "select a.Name from #A.entities() a anti join #B.entities() b on a.Id = b.Id and b.Population > 100";
         var table = RunJoinQuery(query);
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1"], ["A2"]);

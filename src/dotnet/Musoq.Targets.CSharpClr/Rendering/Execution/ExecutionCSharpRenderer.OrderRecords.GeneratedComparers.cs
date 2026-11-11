@@ -15,15 +15,16 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanUseGeneratedRowOrderComparer(
         IReadOnlyList<ExecutionOrderField> keys,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
-        return keys.Count > 0 &&
-               keys.All(key => key.OutputIndex >= 0 && key.OutputIndex < rowShape.Fields.Count);
+        return keys.Count > 0 && keys.All(key => key.OutputIndex >= 0 && key.OutputIndex < rowShape.Fields.Count);
     }
 
     private static MemberDeclarationSyntax CreateGeneratedRowOrderComparerClass(
         GeneratedRowShape rowShape,
-        IReadOnlyList<ExecutionOrderField> keys)
+        IReadOnlyList<ExecutionOrderField> keys
+    )
     {
         var typeName = CreateGeneratedRowOrderComparerTypeName(rowShape, keys);
         var body = new List<string>
@@ -33,7 +34,7 @@ public sealed partial class ExecutionCSharpRenderer
             $"    public static readonly {typeName} Instance = new {typeName}();",
             string.Empty,
             $"    public int Compare({rowShape.TypeName} left, {rowShape.TypeName} right)",
-            "    {"
+            "    {",
         };
 
         for (var index = 0; index < keys.Count; index++)
@@ -52,12 +53,15 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateGeneratedRowOrderComparerTypeName(
         GeneratedRowShape rowShape,
-        IReadOnlyList<ExecutionOrderField> keys)
+        IReadOnlyList<ExecutionOrderField> keys
+    )
     {
         var suffix = string.Join(
             "_",
             keys.Select(key =>
-                $"{key.OutputIndex.ToString(CultureInfo.InvariantCulture)}{(key.Descending ? "D" : "A")}{FormatNullOrderingSuffix(key.NullOrdering)}"));
+                $"{key.OutputIndex.ToString(CultureInfo.InvariantCulture)}{(key.Descending ? "D" : "A")}{FormatNullOrderingSuffix(key.NullOrdering)}"
+            )
+        );
 
         return CreateIdentifierCandidate($"{rowShape.TypeName}OrderBy_{suffix}Comparer", 0);
     }

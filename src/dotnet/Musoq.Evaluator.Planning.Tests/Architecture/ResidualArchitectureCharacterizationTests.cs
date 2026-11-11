@@ -1,9 +1,9 @@
-using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Helpers;
@@ -22,16 +22,43 @@ public sealed class ResidualArchitectureCharacterizationTests
     [TestMethod]
     public void AggregateAndWindowLowerers_ShouldUseTypedServicesInsteadOfKernelDelegates()
     {
-        var lowererFields = CompilerContractSymbols.For(typeof(AggregatePlanLowerer))
+        var lowererFields = CompilerContractSymbols
+            .For(typeof(AggregatePlanLowerer))
             .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-            .Concat(CompilerContractSymbols.For(typeof(WindowPlanLowerer))
-                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
-        Assert.IsEmpty(lowererFields.Where(field =>
-            CompilerContractSymbols.For(typeof(Delegate)).IsAssignableFrom(field.FieldType)));
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(IAggregateLoweringService)), CompilerContractSymbols.For(typeof(AggregatePlanLowerer)).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Single().GetParameters().Single().ParameterType));
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(IWindowLoweringService)), CompilerContractSymbols.For(typeof(WindowPlanLowerer)).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Single().GetParameters().Single().ParameterType));
+            .Concat(
+                CompilerContractSymbols
+                    .For(typeof(WindowPlanLowerer))
+                    .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            );
+        Assert.IsEmpty(
+            lowererFields.Where(field =>
+                CompilerContractSymbols.For(typeof(Delegate)).IsAssignableFrom(field.FieldType)
+            )
+        );
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(IAggregateLoweringService)),
+                CompilerContractSymbols
+                    .For(typeof(AggregatePlanLowerer))
+                    .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Single()
+                    .GetParameters()
+                    .Single()
+                    .ParameterType
+            )
+        );
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(IWindowLoweringService)),
+                CompilerContractSymbols
+                    .For(typeof(WindowPlanLowerer))
+                    .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Single()
+                    .GetParameters()
+                    .Single()
+                    .ParameterType
+            )
+        );
     }
 
     [TestMethod]
@@ -39,13 +66,36 @@ public sealed class ResidualArchitectureCharacterizationTests
     {
         Assert.IsFalse(CompilerContractSymbols.For(typeof(AggregateLoweringService)).IsNested);
         Assert.IsFalse(CompilerContractSymbols.For(typeof(WindowLoweringService)).IsNested);
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(IAggregateLoweringOperations)), CompilerContractSymbols.For(typeof(AggregateLoweringService)).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Single().GetParameters().Single().ParameterType));
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(IWindowLoweringOperations)), CompilerContractSymbols.For(typeof(WindowLoweringService)).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Single().GetParameters().Single().ParameterType));
-        Assert.IsEmpty(CompilerContractSymbols.For(typeof(AggregateLoweringService))
-            .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(field => CompilerContractSymbols.For(typeof(Delegate)).IsAssignableFrom(field.FieldType)));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(IAggregateLoweringOperations)),
+                CompilerContractSymbols
+                    .For(typeof(AggregateLoweringService))
+                    .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Single()
+                    .GetParameters()
+                    .Single()
+                    .ParameterType
+            )
+        );
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(IWindowLoweringOperations)),
+                CompilerContractSymbols
+                    .For(typeof(WindowLoweringService))
+                    .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Single()
+                    .GetParameters()
+                    .Single()
+                    .ParameterType
+            )
+        );
+        Assert.IsEmpty(
+            CompilerContractSymbols
+                .For(typeof(AggregateLoweringService))
+                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(field => CompilerContractSymbols.For(typeof(Delegate)).IsAssignableFrom(field.FieldType))
+        );
     }
 
     [TestMethod]
@@ -53,28 +103,62 @@ public sealed class ResidualArchitectureCharacterizationTests
     {
         Assert.IsFalse(CompilerContractSymbols.For(typeof(JoinLoweringService)).IsNested);
         Assert.IsFalse(CompilerContractSymbols.For(typeof(ApplyLoweringService)).IsNested);
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(IJoinLoweringOperations)), CompilerContractSymbols.For(typeof(JoinLoweringService)).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Single().GetParameters().Single().ParameterType));
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(IApplyLoweringOperations)), CompilerContractSymbols.For(typeof(ApplyLoweringService)).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Single().GetParameters().Single().ParameterType));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(IJoinLoweringOperations)),
+                CompilerContractSymbols
+                    .For(typeof(JoinLoweringService))
+                    .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Single()
+                    .GetParameters()
+                    .Single()
+                    .ParameterType
+            )
+        );
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(IApplyLoweringOperations)),
+                CompilerContractSymbols
+                    .For(typeof(ApplyLoweringService))
+                    .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Single()
+                    .GetParameters()
+                    .Single()
+                    .ParameterType
+            )
+        );
     }
 
     [TestMethod]
     public void LoweringDispatch_ShouldCarryBuiltProductsInsteadOfStatusModels()
     {
-        var registryPlanResult = CompilerContractSymbols.For(typeof(PhysicalLoweringRegistry))
+        var registryPlanResult = CompilerContractSymbols
+            .For(typeof(PhysicalLoweringRegistry))
             .GetMethod(nameof(PhysicalLoweringRegistry.TryBuildPlan))!
-            .ReturnType
-            .GetGenericArguments()[0];
-        var registryTableResult = CompilerContractSymbols.For(typeof(PhysicalLoweringRegistry))
+            .ReturnType.GetGenericArguments()[0];
+        var registryTableResult = CompilerContractSymbols
+            .For(typeof(PhysicalLoweringRegistry))
             .GetMethod(nameof(PhysicalLoweringRegistry.TryBuildTable))!
-            .ReturnType
-            .GetGenericArguments()[0];
+            .ReturnType.GetGenericArguments()[0];
 
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(ExecutionPlan)), registryPlanResult));
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(LoweredTable)), registryTableResult));
-        Assert.IsFalse(CompilerContractSymbols.For(typeof(LoweredTable)).GetProperties().Any(static property =>
-            property.MetadataName is "IsBuilt" or "Supported" or "UnsupportedReason"));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(ExecutionPlan)),
+                registryPlanResult
+            )
+        );
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(LoweredTable)),
+                registryTableResult
+            )
+        );
+        Assert.IsFalse(
+            CompilerContractSymbols
+                .For(typeof(LoweredTable))
+                .GetProperties()
+                .Any(static property => property.MetadataName is "IsBuilt" or "Supported" or "UnsupportedReason")
+        );
 
         // The public compatibility adapter retains its documented shape at the
         // outer builder boundary; it is no longer the internal dispatch value.
@@ -83,21 +167,20 @@ public sealed class ResidualArchitectureCharacterizationTests
         Assert.IsNotNull(CompilerContractSymbols.For(typeof(TableBuildResult)).GetProperty("UnsupportedReason"));
     }
 
-
-
     [TestMethod]
     public void OperatorCatalog_ShouldUseRegisteredNodeBehavior()
     {
         var plan = new ExecutionPlan(
             "characterization",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateTable(
                     new ExecutionVariable("results", typeof(Table)),
-                    new GeneratedRowShape("ResultRow", [])),
-                new ExecutionReturnTable(new ExecutionVariable("results", typeof(Table)))
-            ]));
+                    new GeneratedRowShape("ResultRow", [])
+                ),
+                new ExecutionReturnTable(new ExecutionVariable("results", typeof(Table))),
+            ])
+        );
 
         var catalog = ExecutionPlanOperatorCatalog.Create(plan);
 
@@ -108,29 +191,20 @@ public sealed class ResidualArchitectureCharacterizationTests
     [TestMethod]
     public void RuntimeBindingSnapshot_ShouldIsolateNestedSourcePlanState()
     {
-        var properties = new Dictionary<string, object?>(StringComparer.Ordinal)
-        {
-            ["value"] = "before"
-        };
-        var sourcePlan = new SourceExecutionPlan
-        {
-            Identity = SourceIdentity.Empty,
-            Properties = properties
-        };
+        var properties = new Dictionary<string, object?>(StringComparer.Ordinal) { ["value"] = "before" };
+        var sourcePlan = new SourceExecutionPlan { Identity = SourceIdentity.Empty, Properties = properties };
         var runnable = new CharacterizationRunnable
         {
             SourceExecutionPlans = new Dictionary<string, SourceExecutionPlan>(StringComparer.Ordinal)
             {
-                ["source"] = sourcePlan
-            }
+                ["source"] = sourcePlan,
+            },
         };
 
         var snapshot = QueryExecutionContext.Capture(runnable, TypedParameterSnapshot.Empty, CancellationToken.None);
         properties["value"] = "after";
 
-        Assert.AreEqual(
-            "before",
-            snapshot.Binding.SourceExecutionPlans["source"].Properties["value"]);
+        Assert.AreEqual("before", snapshot.Binding.SourceExecutionPlans["source"].Properties["value"]);
     }
 
     [TestMethod]
@@ -152,16 +226,30 @@ public sealed class ResidualArchitectureCharacterizationTests
     {
         var fields = new[]
         {
-            CompilerContractSymbols.For(typeof(EvaluationHelper)).GetField("CastableTypeCache", BindingFlags.Static | BindingFlags.NonPublic),
-            CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitorUtilities)).GetField("HasIndexerCache", BindingFlags.Static | BindingFlags.NonPublic),
-            CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitorUtilities)).GetField("IsIndexableCache", BindingFlags.Static | BindingFlags.NonPublic),
-            CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitorUtilities)).GetField("TypeHintAttributeCache", BindingFlags.Static | BindingFlags.NonPublic)
+            CompilerContractSymbols
+                .For(typeof(EvaluationHelper))
+                .GetField("CastableTypeCache", BindingFlags.Static | BindingFlags.NonPublic),
+            CompilerContractSymbols
+                .For(typeof(BuildMetadataAndInferTypesVisitorUtilities))
+                .GetField("HasIndexerCache", BindingFlags.Static | BindingFlags.NonPublic),
+            CompilerContractSymbols
+                .For(typeof(BuildMetadataAndInferTypesVisitorUtilities))
+                .GetField("IsIndexableCache", BindingFlags.Static | BindingFlags.NonPublic),
+            CompilerContractSymbols
+                .For(typeof(BuildMetadataAndInferTypesVisitorUtilities))
+                .GetField("TypeHintAttributeCache", BindingFlags.Static | BindingFlags.NonPublic),
         };
 
-        Assert.IsTrue(fields.All(static field =>
-            field is not null &&
-            field.FieldType.IsGenericType &&
-            SymbolEqualityComparer.Default.Equals(field.FieldType.GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>)))));
+        Assert.IsTrue(
+            fields.All(static field =>
+                field is not null
+                && field.FieldType.IsGenericType
+                && SymbolEqualityComparer.Default.Equals(
+                    field.FieldType.GetGenericTypeDefinition(),
+                    CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>))
+                )
+            )
+        );
     }
 
     [TestMethod]
@@ -169,11 +257,10 @@ public sealed class ResidualArchitectureCharacterizationTests
     {
         var files = RepositorySourceScan.ProductionSourceFiles(
             RepositorySourceScan.RepositoryRoot(),
-            "Musoq.Targets.CSharpClr");
+            "Musoq.Targets.CSharpClr"
+        );
 
-        var source = string.Join(
-            Environment.NewLine,
-            files.Select(System.IO.File.ReadAllText));
+        var source = string.Join(Environment.NewLine, files.Select(System.IO.File.ReadAllText));
 
         Assert.IsFalse(source.Contains("Assembly.Load(", StringComparison.Ordinal));
         Assert.IsTrue(source.Contains("AssemblyLoadContext", StringComparison.Ordinal));
@@ -183,10 +270,16 @@ public sealed class ResidualArchitectureCharacterizationTests
     {
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
@@ -209,7 +302,9 @@ public sealed class ResidualArchitectureCharacterizationTests
         public virtual Table Run(CancellationToken token) => new("empty", []);
     }
 
-    private sealed class ConcurrencyCharacterizationRunnable(global::Musoq.Tests.Common.SynchronousContention contention) : CharacterizationRunnable
+    private sealed class ConcurrencyCharacterizationRunnable(
+        global::Musoq.Tests.Common.SynchronousContention contention
+    ) : CharacterizationRunnable
     {
         private int _activeRuns;
 
@@ -219,8 +314,10 @@ public sealed class ResidualArchitectureCharacterizationTests
             while (true)
             {
                 var current = Volatile.Read(ref _maximumConcurrentRuns);
-                if (active <= current ||
-                    Interlocked.CompareExchange(ref _maximumConcurrentRuns, active, current) == current)
+                if (
+                    active <= current
+                    || Interlocked.CompareExchange(ref _maximumConcurrentRuns, active, current) == current
+                )
                 {
                     break;
                 }

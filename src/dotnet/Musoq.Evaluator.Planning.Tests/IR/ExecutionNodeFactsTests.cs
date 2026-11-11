@@ -24,7 +24,8 @@ public sealed class ExecutionNodeFactsTests
             typeof(int),
             typeof(object),
             probeBody,
-            noMatchBody);
+            noMatchBody
+        );
 
         var loopBlocks = ExecutionNodeFacts.GetChildBlocks(loop).ToArray();
         var probeBlocks = ExecutionNodeFacts.GetChildBlocks(probe).ToArray();
@@ -53,13 +54,15 @@ public sealed class ExecutionNodeFactsTests
             null,
             typeof(string).GetMethod(nameof(string.ToString), Type.EmptyTypes)!,
             "Plugin",
-            Var("results"));
+            Var("results")
+        );
         var aggregate = new ExecutionAggregateCapturedValueSet(
             Var("group"),
             "Value",
             aggregateValue,
             typeof(int),
-            new AggregateCapturedField("Value", "Value", typeof(int)));
+            new AggregateCapturedField("Value", "Value", typeof(int))
+        );
 
         var windowExpressions = ExecutionNodeFacts.GetLocalExpressions(window).ToArray();
         var aggregateExpressions = ExecutionNodeFacts.GetLocalExpressions(aggregate).ToArray();
@@ -86,21 +89,25 @@ public sealed class ExecutionNodeFactsTests
             new ExecutionWindowKeyArray(Var("partitionKeys"), ShouldExtract: true),
             new ExecutionWindowKeyArray(Var("orderKeys"), ShouldExtract: true),
             new ExecutionWindowPartitionSet(Var("partitions"), ShouldCreate: true),
-            new ExecutionWindowPartitionSet(Var("sortedPartitions"), ShouldCreate: true));
+            new ExecutionWindowPartitionSet(Var("sortedPartitions"), ShouldCreate: true)
+        );
         var aggregateContext = new ExecutionCreateSingleKeyAggregateContext(
             Var("rootGroup"),
             Var("groups"),
             Var("groupsToFinalize"),
             Var("nullGroup"),
             typeof(int),
-            plan);
+            plan
+        );
 
         CollectionAssert.AreEquivalent(
             new[] { "results", "partitionKeys", "orderKeys", "partitions", "sortedPartitions" },
-            Names(ExecutionNodeFacts.GetDeclaredVariables(window)));
+            Names(ExecutionNodeFacts.GetDeclaredVariables(window))
+        );
         CollectionAssert.AreEquivalent(
             new[] { "rootGroup", "groups", "groupsToFinalize", "nullGroup" },
-            Names(ExecutionNodeFacts.GetDeclaredVariables(aggregateContext)));
+            Names(ExecutionNodeFacts.GetDeclaredVariables(aggregateContext))
+        );
     }
 
     [TestMethod]
@@ -117,17 +124,21 @@ public sealed class ExecutionNodeFactsTests
             2,
             [],
             ExecutionTopOffsetStrategy.OrderedSlice,
-            new ExecutionSkipTakeCapacityHint(capacity, 1, 2));
+            new ExecutionSkipTakeCapacityHint(capacity, 1, 2)
+        );
         var rowsHint = new ExecutionRowsCapacityHintCandidate(
             target,
-            new ExecutionRowStream(capacity, ExecutionRowStreamKind.Rows));
+            new ExecutionRowStream(capacity, ExecutionRowStreamKind.Rows)
+        );
 
         CollectionAssert.AreEquivalent(
             new[] { "source", "target", "capacity" },
-            Names(ExecutionNodeFacts.GetDirectVariableReferences(topOffset)));
+            Names(ExecutionNodeFacts.GetDirectVariableReferences(topOffset))
+        );
         CollectionAssert.AreEquivalent(
             new[] { "capacity" },
-            Names(ExecutionNodeFacts.GetCapacityHintVariables(rowsHint)));
+            Names(ExecutionNodeFacts.GetCapacityHintVariables(rowsHint))
+        );
     }
 
     [TestMethod]
@@ -142,7 +153,8 @@ public sealed class ExecutionNodeFactsTests
             3,
             capacity,
             ExecutionAppendMode.Unchecked,
-            new ExecutionColumnMetadata("items", [], ExecutionColumnMetadataKind.TableColumns));
+            new ExecutionColumnMetadata("items", [], ExecutionColumnMetadataKind.TableColumns)
+        );
 
         var resolved = ExecutionNodeFacts.TryGetTablePostOperation(node, out var metadata);
 
@@ -170,7 +182,8 @@ public sealed class ExecutionNodeFactsTests
             partition,
             [orderKey],
             ExecutionRankingWindowFunction.Rank,
-            results);
+            results
+        );
 
         var resolved = ExecutionNodeFacts.TryGetWindowComputation(node, out var metadata);
 

@@ -22,7 +22,6 @@ public static partial class EvaluationHelper
         if (declaringType == null)
             return "Unknown";
 
-
         if (declaringType == typeof(LibraryBase))
             return "Library";
 
@@ -45,12 +44,15 @@ public static partial class EvaluationHelper
             if (!File.Exists(xmlPath))
                 return string.Empty;
 
-            var xmlDoc = XmlDocCache.GetOrAdd(xmlPath, static path =>
-            {
-                var doc = new XmlDocument();
-                doc.Load(path);
-                return doc;
-            });
+            var xmlDoc = XmlDocCache.GetOrAdd(
+                xmlPath,
+                static path =>
+                {
+                    var doc = new XmlDocument();
+                    doc.Load(path);
+                    return doc;
+                }
+            );
 
             if (xmlDoc == null)
                 return string.Empty;
@@ -106,8 +108,7 @@ public static partial class EvaluationHelper
     {
         if (type.IsGenericType)
         {
-            var genericTypeName = type.GetGenericTypeDefinition().FullName ??
-                                  type.GetGenericTypeDefinition().Name;
+            var genericTypeName = type.GetGenericTypeDefinition().FullName ?? type.GetGenericTypeDefinition().Name;
             var tickIndex = genericTypeName.IndexOf('`', StringComparison.Ordinal);
             if (tickIndex > 0)
                 genericTypeName = genericTypeName.Substring(0, tickIndex);

@@ -18,7 +18,8 @@ internal sealed class ApplyTraversalFixture
         CountingParent rejected,
         CountingParent kept,
         CountingParent empty,
-        CountingParent nullable)
+        CountingParent nullable
+    )
     {
         Schema = schema;
         Rejected = rejected;
@@ -35,39 +36,36 @@ internal sealed class ApplyTraversalFixture
 
     public static ApplyTraversalFixture Create()
     {
-        var rejected = new CountingParent(
-            "reject",
-            false,
-            [new CountingChild(9, [new CountingGrandchild(90)])]);
+        var rejected = new CountingParent("reject", false, [new CountingChild(9, [new CountingGrandchild(90)])]);
         var kept = new CountingParent(
             "keep",
             true,
             [
                 new CountingChild(1, [new CountingGrandchild(10), new CountingGrandchild(11)]),
-                new CountingChild(2, [new CountingGrandchild(20)])
-            ]);
+                new CountingChild(2, [new CountingGrandchild(20)]),
+            ]
+        );
         var empty = new CountingParent("empty", false, []);
         var nullable = new CountingParent(null, null, [new CountingChild(3, [new CountingGrandchild(30)])]);
         var rows = new[] { rejected, kept, empty, nullable };
-        var schema = new CountingApplySchema(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
-        {
-            ["parents"] = (new GenericEntityTable<CountingParent>(), new CountingParentRowSource(rows))
-        });
+        var schema = new CountingApplySchema(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
+            {
+                ["parents"] = (new GenericEntityTable<CountingParent>(), new CountingParentRowSource(rows)),
+            }
+        );
 
         return new ApplyTraversalFixture(schema, rejected, kept, empty, nullable);
     }
 }
 
 internal sealed class CountingApplySchema(
-    IReadOnlyDictionary<string, (ISchemaTable SchemaTable, object RowSource)> tables)
-    : GenericSchema<GenericLibrary>(tables)
+    IReadOnlyDictionary<string, (ISchemaTable SchemaTable, object RowSource)> tables
+) : GenericSchema<GenericLibrary>(tables)
 {
     public int SourcePlanningRequestCount { get; private set; }
 
-    public override SourcePlanResult TryPlanSource(
-        string name,
-        SourcePlanRequest request,
-        params object?[] parameters)
+    public override SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters)
     {
         SourcePlanningRequestCount++;
         return SourcePlanResult.RejectAll(request);

@@ -67,7 +67,10 @@ public class ConversionMethodsTests : PluginsTestBase
 
     [TestMethod]
     [DynamicData(nameof(ToHexValueCases))]
-    public void ToHex_Value_ReturnsExpected(Func<LibraryBase, string?> actualFactory, Func<LibraryBase, string?> expectedFactory)
+    public void ToHex_Value_ReturnsExpected(
+        Func<LibraryBase, string?> actualFactory,
+        Func<LibraryBase, string?> expectedFactory
+    )
     {
         var result = actualFactory(Library);
         Assert.IsNotNull(result);
@@ -352,7 +355,11 @@ public class ConversionMethodsTests : PluginsTestBase
         yield return [Hex(lib => lib.ToHex((short)1234)), Hex(lib => lib.ToHex(BitConverter.GetBytes((short)1234)))];
         yield return [Hex(lib => lib.ToHex(123456)), Hex(lib => lib.ToHex(BitConverter.GetBytes(123456)))];
         yield return [Hex(lib => lib.ToHex(123456789L)), Hex(lib => lib.ToHex(BitConverter.GetBytes(123456789L)))];
-        yield return [Hex(lib => lib.ToHex((ushort)65535)), Hex(lib => lib.ToHex(BitConverter.GetBytes((ushort)65535)))];
+        yield return
+        [
+            Hex(lib => lib.ToHex((ushort)65535)),
+            Hex(lib => lib.ToHex(BitConverter.GetBytes((ushort)65535))),
+        ];
         yield return [Hex(lib => lib.ToHex(123456u)), Hex(lib => lib.ToHex(BitConverter.GetBytes(123456u)))];
         yield return [Hex(lib => lib.ToHex(123456789UL)), Hex(lib => lib.ToHex(BitConverter.GetBytes(123456789UL)))];
         yield return [Hex(lib => lib.ToHex(3.14f)), Hex(lib => lib.ToHex(BitConverter.GetBytes(3.14f)))];
@@ -388,7 +395,7 @@ public class ConversionMethodsTests : PluginsTestBase
             "utf16be" => Encoding.BigEndianUnicode.GetBytes("Hello"),
             "ascii" => "Hello"u8.ToArray(),
             "latin1" => Encoding.Latin1.GetBytes("Hello"),
-            _ => "Hello"u8.ToArray()
+            _ => "Hello"u8.ToArray(),
         };
     }
 }

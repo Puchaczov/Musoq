@@ -15,20 +15,17 @@ internal sealed record CompilationBuildArtifacts(TargetFinalizationResult Finali
                 emitResult,
                 dllFile is { Length: > 0 }
                     ? CSharpClrArtifactCompatibility.CreateAssemblyExecutable(dllFile, pdbFile, string.Empty)
-                    : null))
-    {
-    }
+                    : null
+            )
+        ) { }
 
     public CompilationBuildArtifacts(EmitResult emitResult, ExecutableQueryArtifact? artifact)
-        : this(CSharpClrArtifactCompatibility.CreateFinalizationResult(emitResult, artifact))
-    {
-    }
+        : this(CSharpClrArtifactCompatibility.CreateFinalizationResult(emitResult, artifact)) { }
 
     public ExecutableQueryArtifact? Artifact => FinalizationResult.Artifact;
 
-    public EmitResult EmitResult => CSharpClrArtifactCompatibility.RequireEmitResult(
-        FinalizationResult,
-        "compilation artifact emit result access");
+    public EmitResult EmitResult =>
+        CSharpClrArtifactCompatibility.RequireEmitResult(FinalizationResult, "compilation artifact emit result access");
 
     public byte[]? DllFile => CSharpClrArtifactCompatibility.GetDllFile(Artifact);
 

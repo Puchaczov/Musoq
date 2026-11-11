@@ -15,21 +15,23 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionExpression Input,
         string GroupName,
         string InputFingerprint,
-        Type ParameterType);
+        Type ParameterType
+    );
+
     private IEnumerable<StatementSyntax> RenderBlockNodes(
         IReadOnlyList<ExecutionNode> nodes,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        for (var index = 0; index < nodes.Count;)
+        for (var index = 0; index < nodes.Count; )
         {
-            if (nodes[index] is ExecutionPhaseBoundary
-                {
-                    Phase: QueryPhase.Begin,
-                    QueryIdSuffix: { Length: > 0 } queryIdSuffix
-                } &&
-                !string.Equals(queryIdSuffix, ":left", StringComparison.Ordinal) &&
-                !string.Equals(queryIdSuffix, ":right", StringComparison.Ordinal) &&
-                TryFindPhaseEnd(nodes, index, queryIdSuffix, out var phaseEndIndex))
+            if (
+                nodes[index]
+                    is ExecutionPhaseBoundary { Phase: QueryPhase.Begin, QueryIdSuffix: { Length: > 0 } queryIdSuffix }
+                && !string.Equals(queryIdSuffix, ":left", StringComparison.Ordinal)
+                && !string.Equals(queryIdSuffix, ":right", StringComparison.Ordinal)
+                && TryFindPhaseEnd(nodes, index, queryIdSuffix, out var phaseEndIndex)
+            )
             {
                 foreach (var statement in RenderPhaseScope(nodes, index, phaseEndIndex, context))
                     yield return statement;
@@ -56,15 +58,15 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<ExecutionNode> nodes,
         int beginIndex,
         string queryIdSuffix,
-        out int endIndex)
+        out int endIndex
+    )
     {
         for (var index = beginIndex + 1; index < nodes.Count; index++)
         {
-            if (nodes[index] is ExecutionPhaseBoundary
-                {
-                    Phase: QueryPhase.End,
-                    QueryIdSuffix: var suffix
-                } && string.Equals(suffix, queryIdSuffix, StringComparison.Ordinal))
+            if (
+                nodes[index] is ExecutionPhaseBoundary { Phase: QueryPhase.End, QueryIdSuffix: var suffix }
+                && string.Equals(suffix, queryIdSuffix, StringComparison.Ordinal)
+            )
             {
                 endIndex = index;
                 return true;
@@ -79,90 +81,117 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<ExecutionNode> nodes,
         int beginIndex,
         int endIndex,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var begin = RenderNode(nodes[beginIndex], context).ToArray();
         var bodyNodes = nodes.Skip(beginIndex + 1).Take(endIndex - beginIndex - 1).ToArray();
-        var hoistedTables = bodyNodes
-            .OfType<ExecutionCreateTable>()
-            .ToArray();
-        var hoistedLibraries = bodyNodes
-            .OfType<ExecutionCreateAggregateLibrary>()
-            .ToArray();
-        var hoistedObjects = bodyNodes
-            .OfType<ExecutionCreateObject>()
-            .ToArray();
-        var hoistedStoredRowsCaches = ExecutionPhaseScopeStoredRowsHoister.Find(nodes, beginIndex, endIndex, bodyNodes, context.Session.StoredRowsCacheNames, context.Session.DeclaredStoredRowsCaches);
+        var hoistedTables = bodyNodes.OfType<ExecutionCreateTable>().ToArray();
+        var hoistedLibraries = bodyNodes.OfType<ExecutionCreateAggregateLibrary>().ToArray();
+        var hoistedObjects = bodyNodes.OfType<ExecutionCreateObject>().ToArray();
+        var hoistedStoredRowsCaches = ExecutionPhaseScopeStoredRowsHoister.Find(
+            nodes,
+            beginIndex,
+            endIndex,
+            bodyNodes,
+            context.Session.StoredRowsCacheNames,
+            context.Session.DeclaredStoredRowsCaches
+        );
         var body = RenderBlockNodes(bodyNodes, context)
             .Select(statement => RewriteHoistedDeclaration(statement, hoistedTables, hoistedLibraries, hoistedObjects))
             .ToArray();
         var end = RenderNode(nodes[endIndex], context).ToArray();
-        var guardedBody = SyntaxFactory.TryStatement()
+        var guardedBody = SyntaxFactory
+            .TryStatement()
             .WithBlock(StatementEmitter.CreateBlock(body))
             .WithFinally(SyntaxFactory.FinallyClause(StatementEmitter.CreateBlock(end)));
 
-        return [
-            ..begin,
-            ..hoistedTables.Select(table => CreateHoistedTableDeclaration(table, context)),
-            ..hoistedLibraries.Select(CreateHoistedLibraryDeclaration),
-            ..hoistedObjects.Select(CreateHoistedObjectDeclaration),
-            ..hoistedStoredRowsCaches.Select(cache => CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), cache.CacheName, CreateStoredTableRowsRead(cache.StoredRows, context))),
-            guardedBody
+        return
+        [
+            .. begin,
+            .. hoistedTables.Select(table => CreateHoistedTableDeclaration(table, context)),
+            .. hoistedLibraries.Select(CreateHoistedLibraryDeclaration),
+            .. hoistedObjects.Select(CreateHoistedObjectDeclaration),
+            .. hoistedStoredRowsCaches.Select(cache =>
+                CreateLocalDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    cache.CacheName,
+                    CreateStoredTableRowsRead(cache.StoredRows, context)
+                )
+            ),
+            guardedBody,
         ];
     }
 
     private static LocalDeclarationStatementSyntax CreateHoistedLibraryDeclaration(
-        ExecutionCreateAggregateLibrary library)
+        ExecutionCreateAggregateLibrary library
+    )
     {
         return CreateLocalDeclaration(
             CreateTypeSyntax(library.LibraryType),
             library.Library.Name,
             SyntaxFactory.PostfixUnaryExpression(
                 SyntaxKind.SuppressNullableWarningExpression,
-                SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)));
+                SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
+            )
+        );
     }
 
-    private static LocalDeclarationStatementSyntax CreateHoistedObjectDeclaration(
-        ExecutionCreateObject createObject)
+    private static LocalDeclarationStatementSyntax CreateHoistedObjectDeclaration(ExecutionCreateObject createObject)
     {
         return CreateLocalDeclaration(
             CreateTypeSyntax(createObject.Target.Type),
             createObject.Target.Name,
             SyntaxFactory.PostfixUnaryExpression(
                 SyntaxKind.SuppressNullableWarningExpression,
-                SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)));
+                SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
+            )
+        );
     }
 
     private LocalDeclarationStatementSyntax CreateHoistedTableDeclaration(
         ExecutionCreateTable createTable,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        TypeSyntax type = TryGetFinalShapeSourceBuffer(createTable.Table.Name, context, out var finalShapeBuffer)
-            ? CreateListTypeSyntax(finalShapeBuffer.ShapeTypeName)
+        TypeSyntax type =
+            TryGetFinalShapeSourceBuffer(createTable.Table.Name, context, out var finalShapeBuffer)
+                ? CreateListTypeSyntax(finalShapeBuffer.ShapeTypeName)
             : TryGetTypedRowBufferShape(createTable.Table.Name, context, out var rowShape)
                 ? CreateListTypeSyntax(rowShape.TypeName)
-                : CreateTypeSyntax(typeof(Table));
+            : CreateTypeSyntax(typeof(Table));
 
         return CreateLocalDeclaration(
             type,
             createTable.Table.Name,
             SyntaxFactory.PostfixUnaryExpression(
                 SyntaxKind.SuppressNullableWarningExpression,
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+            )
+        );
     }
 
     private static StatementSyntax RewriteHoistedDeclaration(
         StatementSyntax statement,
         IReadOnlyList<ExecutionCreateTable> hoistedTables,
         IReadOnlyList<ExecutionCreateAggregateLibrary> hoistedLibraries,
-        IReadOnlyList<ExecutionCreateObject> hoistedObjects)
+        IReadOnlyList<ExecutionCreateObject> hoistedObjects
+    )
     {
-        if (statement is not LocalDeclarationStatementSyntax declaration ||
-            declaration.Declaration.Variables is not [var variable] ||
-            variable.Initializer is not { Value: var initializer } ||
-            !hoistedTables.Any(table => string.Equals(table.Table.Name, variable.Identifier.ValueText, StringComparison.Ordinal)) &&
-            !hoistedLibraries.Any(library => string.Equals(library.Library.Name, variable.Identifier.ValueText, StringComparison.Ordinal)) &&
-            !hoistedObjects.Any(createObject => string.Equals(createObject.Target.Name, variable.Identifier.ValueText, StringComparison.Ordinal)))
+        if (
+            statement is not LocalDeclarationStatementSyntax declaration
+            || declaration.Declaration.Variables is not [var variable]
+            || variable.Initializer is not { Value: var initializer }
+            || !hoistedTables.Any(table =>
+                string.Equals(table.Table.Name, variable.Identifier.ValueText, StringComparison.Ordinal)
+            )
+                && !hoistedLibraries.Any(library =>
+                    string.Equals(library.Library.Name, variable.Identifier.ValueText, StringComparison.Ordinal)
+                )
+                && !hoistedObjects.Any(createObject =>
+                    string.Equals(createObject.Target.Name, variable.Identifier.ValueText, StringComparison.Ordinal)
+                )
+        )
         {
             return statement;
         }
@@ -171,7 +200,9 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 SyntaxFactory.IdentifierName(variable.Identifier),
-                initializer));
+                initializer
+            )
+        );
     }
 
     private bool TryRenderFusedInlineAggregateSets(
@@ -179,24 +210,29 @@ public sealed partial class ExecutionCSharpRenderer
         int start,
         ExecutionRenderContext context,
         out IReadOnlyList<StatementSyntax> statements,
-        out int consumed)
+        out int consumed
+    )
     {
         statements = [];
         consumed = 0;
 
-        if (IsOperatorProfilingEnabledFor(context) ||
-            nodes[start] is not ExecutionAggregateSet firstAggregateSet ||
-            !TryCreateInlineAggregateFusionCandidate(firstAggregateSet, out var firstCandidate))
+        if (
+            IsOperatorProfilingEnabledFor(context)
+            || nodes[start] is not ExecutionAggregateSet firstAggregateSet
+            || !TryCreateInlineAggregateFusionCandidate(firstAggregateSet, out var firstCandidate)
+        )
         {
             return false;
         }
 
         var candidates = new List<InlineAggregateFusionCandidate> { firstCandidate };
         var index = start + 1;
-        while (index < nodes.Count &&
-               nodes[index] is ExecutionAggregateSet nextAggregateSet &&
-               TryCreateInlineAggregateFusionCandidate(nextAggregateSet, out var nextCandidate) &&
-               CanFuseInlineAggregateCandidate(firstCandidate, nextCandidate))
+        while (
+            index < nodes.Count
+            && nodes[index] is ExecutionAggregateSet nextAggregateSet
+            && TryCreateInlineAggregateFusionCandidate(nextAggregateSet, out var nextCandidate)
+            && CanFuseInlineAggregateCandidate(firstCandidate, nextCandidate)
+        )
         {
             candidates.Add(nextCandidate);
             index++;
@@ -212,7 +248,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool TryCreateInlineAggregateFusionCandidate(
         ExecutionAggregateSet aggregateSet,
-        out InlineAggregateFusionCandidate candidate)
+        out InlineAggregateFusionCandidate candidate
+    )
     {
         candidate = null!;
 
@@ -227,16 +264,17 @@ public sealed partial class ExecutionCSharpRenderer
 
         var setParameters = GetAggregateSetValueParameters(aggregateSet);
         var setArguments = AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregateSet.Arguments);
-        var input = setArguments.Length == 0 && aggregateSet.AccumulatorInput is not null
-            ? aggregateSet.AccumulatorInput
-            : setArguments.Length == 1
-                ? setArguments[0]
-                : null;
+        var input =
+            setArguments.Length == 0 && aggregateSet.AccumulatorInput is not null ? aggregateSet.AccumulatorInput
+            : setArguments.Length == 1 ? setArguments[0]
+            : null;
 
-        if (setParameters.Length != 1 ||
-            !CanFuseNullableAggregateInput(setParameters[0].ParameterType) ||
-            input == null ||
-            !CanFuseInlineAggregateInput(input))
+        if (
+            setParameters.Length != 1
+            || !CanFuseNullableAggregateInput(setParameters[0].ParameterType)
+            || input == null
+            || !CanFuseInlineAggregateInput(input)
+        )
         {
             return false;
         }
@@ -247,7 +285,8 @@ public sealed partial class ExecutionCSharpRenderer
             input,
             aggregateSet.Group.Name,
             ExecutionExpressionFingerprint.ForHoist(input),
-            setParameters[0].ParameterType);
+            setParameters[0].ParameterType
+        );
         return true;
     }
 
@@ -258,19 +297,21 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanFuseInlineAggregateCandidate(
         InlineAggregateFusionCandidate first,
-        InlineAggregateFusionCandidate next)
+        InlineAggregateFusionCandidate next
+    )
     {
-        return first.GroupName == next.GroupName &&
-               first.InputFingerprint == next.InputFingerprint &&
-               first.ParameterType == next.ParameterType;
+        return first.GroupName == next.GroupName
+            && first.InputFingerprint == next.InputFingerprint
+            && first.ParameterType == next.ParameterType;
     }
 
     private static bool CanFuseInlineAggregateKind(AggregateInlineKind kind)
     {
-        return kind is AggregateInlineKind.Sum or
-            AggregateInlineKind.Avg or
-            AggregateInlineKind.Min or
-            AggregateInlineKind.Max;
+        return kind
+            is AggregateInlineKind.Sum
+                or AggregateInlineKind.Avg
+                or AggregateInlineKind.Min
+                or AggregateInlineKind.Max;
     }
 
     private static bool CanFuseNullableAggregateInput(Type type)
@@ -283,8 +324,7 @@ public sealed partial class ExecutionCSharpRenderer
         return input is ExecutionVariableRead or ExecutionFieldRead or ExecutionLiteral;
     }
 
-    private BlockSyntax RenderFusedInlineAggregateSets(
-        IReadOnlyList<InlineAggregateFusionCandidate> candidates)
+    private BlockSyntax RenderFusedInlineAggregateSets(IReadOnlyList<InlineAggregateFusionCandidate> candidates)
     {
         var first = candidates[0];
         var inputName = CreateInlineAggregateInputName(first.AggregateSet.Accumulator);
@@ -300,7 +340,10 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         inputIdentifier,
-                        SyntaxFactory.IdentifierName("GetValueOrDefault"))))
+                        SyntaxFactory.IdentifierName("GetValueOrDefault")
+                    )
+                )
+            ),
         };
 
         foreach (var candidate in candidates)
@@ -310,18 +353,23 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 inputName,
-                CastIfNeeded(RenderExpression(first.Input), first.ParameterType)),
+                CastIfNeeded(RenderExpression(first.Input), first.ParameterType)
+            ),
             SyntaxFactory.IfStatement(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     inputIdentifier,
-                    SyntaxFactory.IdentifierName("HasValue")),
-                StatementEmitter.CreateBlock(bodyStatements)));
+                    SyntaxFactory.IdentifierName("HasValue")
+                ),
+                StatementEmitter.CreateBlock(bodyStatements)
+            )
+        );
     }
 
     private static IReadOnlyList<StatementSyntax> CreateFusedInlineAggregateUpdateStatements(
         InlineAggregateFusionCandidate candidate,
-        IdentifierNameSyntax current)
+        IdentifierNameSyntax current
+    )
     {
         var state = CreateAggregateAccumulatorAccess(candidate.AggregateSet.Group, candidate.AggregateSet.Accumulator);
         return candidate.Kind switch
@@ -330,7 +378,7 @@ public sealed partial class ExecutionCSharpRenderer
             AggregateInlineKind.Avg => CreateInlineAvgStatements(current, state),
             AggregateInlineKind.Min => CreateInlineExtremumStatements(current, state, SyntaxKind.LessThanExpression),
             AggregateInlineKind.Max => CreateInlineExtremumStatements(current, state, SyntaxKind.GreaterThanExpression),
-            _ => []
+            _ => [],
         };
     }
 }

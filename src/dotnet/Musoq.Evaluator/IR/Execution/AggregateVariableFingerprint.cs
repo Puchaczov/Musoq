@@ -2,9 +2,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class AggregateVariableFingerprint
 {
-    internal static string Create(
-        ExecutionVariable variable,
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+    internal static string Create(ExecutionVariable variable, ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
     {
         if (string.Equals(variable.Name, parallelAggregate.Source.Name, StringComparison.Ordinal))
             return $"$source:{ExecutionExpressionFingerprint.ForAggregateType(variable.Type)}";

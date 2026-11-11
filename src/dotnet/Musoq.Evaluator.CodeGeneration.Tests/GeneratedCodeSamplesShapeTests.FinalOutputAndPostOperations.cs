@@ -40,7 +40,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sourceNamePattern = new Regex(
             @"var\s+[A-Za-z_][A-Za-z0-9_]*\s*=\s*new Table\([A-Za-z_][A-Za-z0-9_]*\.Name,\s*__columns_",
-            RegexOptions.Compiled);
+            RegexOptions.Compiled
+        );
         var offenders = ReadAllSamples()
             .Where(sample => sourceNamePattern.IsMatch(sample.Content))
             .Select(static sample => sample.FileName)
@@ -48,7 +49,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             offenders,
-            $"Derived post-operation tables should use their target table name, not source.Name: {string.Join(", ", offenders)}");
+            $"Derived post-operation tables should use their target table name, not source.Name: {string.Join(", ", offenders)}"
+        );
     }
 
     [TestMethod]
@@ -58,7 +60,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "Q01_SimpleSelectWhere.cs",
             InnerJoinSampleFileName,
             "Q08_Distinct.cs",
-            "Q60_BinaryBitsRepeatUntilInterpret.cs");
+            "Q60_BinaryBitsRepeatUntilInterpret.cs"
+        );
 
         Assert.HasCount(4, samples);
 
@@ -67,28 +70,58 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             Assert.DoesNotContain("__leftContext", sample.Content, sample.FileName);
             Assert.DoesNotContain("__rightContext", sample.Content, sample.FileName);
             Assert.DoesNotContain("Contexts => new object[]", sample.Content, sample.FileName);
-            Assert.DoesNotContain("new ResultRow0(ko3iko.Name, population, (object)ko3iko)", sample.Content, sample.FileName);
-            Assert.DoesNotContain("new ResultRow0(a.Name, b.Country, (object)a, (object)b)", sample.Content, sample.FileName);
-            Assert.DoesNotContain("new Statement0Row0(file.Content, p.Flags, (object)file, (object)p)", sample.Content, sample.FileName);
+            Assert.DoesNotContain(
+                "new ResultRow0(ko3iko.Name, population, (object)ko3iko)",
+                sample.Content,
+                sample.FileName
+            );
+            Assert.DoesNotContain(
+                "new ResultRow0(a.Name, b.Country, (object)a, (object)b)",
+                sample.Content,
+                sample.FileName
+            );
+            Assert.DoesNotContain(
+                "new Statement0Row0(file.Content, p.Flags, (object)file, (object)p)",
+                sample.Content,
+                sample.FileName
+            );
         }
     }
 
     [TestMethod]
     public void CteJoinFrameQualifySample_WhenCheckedIn_ShouldNotRetainUnusedIntermediateContexts()
     {
-        var sample = ReadSample(CteJoinFrameQualifySampleFileName)
-            .Content;
+        var sample = ReadSample(CteJoinFrameQualifySampleFileName).Content;
 
         Assert.DoesNotContain("__leftContext", sample, CteJoinFrameQualifySampleFileName);
         Assert.DoesNotContain("__rightContext", sample, CteJoinFrameQualifySampleFileName);
         Assert.DoesNotContain("Contexts => new object[]", sample, CteJoinFrameQualifySampleFileName);
-        Assert.DoesNotContain("new Cte0Row0(ko3iko.Name, ko3iko.City, population, (object)ko3iko)", sample, CteJoinFrameQualifySampleFileName);
-        Assert.DoesNotContain("new Cte0HashPayload0(ko3iko.Name, population, (object)ko3iko)", sample, CteJoinFrameQualifySampleFileName);
-        Assert.Contains("new Cte0HashPayload0(ko3iko.Name, ko3iko.Population)", sample, CteJoinFrameQualifySampleFileName);
+        Assert.DoesNotContain(
+            "new Cte0Row0(ko3iko.Name, ko3iko.City, population, (object)ko3iko)",
+            sample,
+            CteJoinFrameQualifySampleFileName
+        );
+        Assert.DoesNotContain(
+            "new Cte0HashPayload0(ko3iko.Name, population, (object)ko3iko)",
+            sample,
+            CteJoinFrameQualifySampleFileName
+        );
+        Assert.Contains(
+            "new Cte0HashPayload0(ko3iko.Name, ko3iko.Population)",
+            sample,
+            CteJoinFrameQualifySampleFileName
+        );
         Assert.Contains("GeneratedColumnarBuffer<Statement0Row0>", sample, CteJoinFrameQualifySampleFileName);
-        Assert.Contains("public Statement0Row0(StoredTableColumnBuffer1 buffer, int index)", sample, CteJoinFrameQualifySampleFileName);
+        Assert.Contains(
+            "public Statement0Row0(StoredTableColumnBuffer1 buffer, int index)",
+            sample,
+            CteJoinFrameQualifySampleFileName
+        );
         Assert.Contains("statement0.Add(b.Name, b.Population, a.City)", sample, CteJoinFrameQualifySampleFileName);
-        Assert.DoesNotContain("statement0.Add(b.Name, b.Population, a.Name, a.City)", sample, CteJoinFrameQualifySampleFileName);
+        Assert.DoesNotContain(
+            "statement0.Add(b.Name, b.Population, a.Name, a.City)",
+            sample,
+            CteJoinFrameQualifySampleFileName
+        );
     }
-
 }

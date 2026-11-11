@@ -8,7 +8,8 @@ internal sealed record TextRepeatEmission(
     string LocalName,
     string SchemaName,
     string ReadCode,
-    string Assignment)
+    string Assignment
+)
 {
     internal string? DiagnosticName { get; init; }
 
@@ -27,9 +28,15 @@ internal static class TextRepeatCodeEmitter
         var interpreterVar = $"_interp_{schemaName}";
         var iterationVar = $"_iteration_{localVar}";
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {listVar} = new System.Collections.Generic.List<{schemaName}>();");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"var {listVar} = new System.Collections.Generic.List<{schemaName}>();"
+        );
         if (field.RepeatElement == null)
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {interpreterVar} = new {schemaName}();");
+            builder.AppendLine(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"var {interpreterVar} = new {schemaName}();"
+            );
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {iterationVar} = 0;");
         AppendLoop(builder, emission, escape);
         builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{assignment} = {listVar}.ToArray();");
@@ -51,9 +58,15 @@ internal static class TextRepeatCodeEmitter
         if (untilDelimiter == null)
             return;
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"if (LookaheadMatches(data, \"{escape(untilDelimiter)}\"))");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"if (LookaheadMatches(data, \"{escape(untilDelimiter)}\"))"
+        );
         builder.AppendLine("{");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    ParsePosition += {untilDelimiter.Length};");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"    ParsePosition += {untilDelimiter.Length};"
+        );
         builder.AppendLine("}");
     }
 
@@ -61,9 +74,15 @@ internal static class TextRepeatCodeEmitter
     {
         var localName = emission.LocalName;
         builder.Append(emission.IterationCheck);
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    var _startPos_{localName} = ParsePosition;");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"    var _startPos_{localName} = ParsePosition;"
+        );
         builder.Append(emission.ReadCode);
         builder.Append(emission.ProgressCheck);
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    _list_{localName}.Add(_item_{localName});");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"    _list_{localName}.Add(_item_{localName});"
+        );
     }
 }

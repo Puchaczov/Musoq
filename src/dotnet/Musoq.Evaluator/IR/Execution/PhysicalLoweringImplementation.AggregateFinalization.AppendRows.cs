@@ -11,11 +11,12 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,
-        RowShape sourceShape)
+        RowShape sourceShape
+    )
     {
         var sourceLookup = new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase)
         {
-            [RowShapeLookup.ResolveSourceAlias(sourceShape)] = sourceShape
+            [RowShapeLookup.ResolveSourceAlias(sourceShape)] = sourceShape,
         };
         var values = fields
             .Select(field => new ExecutionRowValue(field.OutputName, ConvertProjectedExpression(field, sourceLookup)))
@@ -27,14 +28,16 @@ internal sealed partial class PhysicalLoweringImplementation
             values,
             CreateContextValues(sourceLookup),
             SerialAppendMode,
-            CreateContextLayout(sourceLookup));
+            CreateContextLayout(sourceLookup)
+        );
     }
 
     private ExecutionAppendRow CreateAppendRow(
         ExecutionVariable resultTable,
         GeneratedRowShape resultShape,
         ProjectedField[] fields,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var values = fields
             .Select(field => new ExecutionRowValue(field.OutputName, ConvertProjectedExpression(field, sourceLookup)))
@@ -46,12 +49,14 @@ internal sealed partial class PhysicalLoweringImplementation
             values,
             CreateContextValues(sourceLookup),
             SerialAppendMode,
-            CreateContextLayout(sourceLookup));
+            CreateContextLayout(sourceLookup)
+        );
     }
 
     private static List<ExecutionExpression> CreateContextValues(
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        string? nullAlias = null)
+        string? nullAlias = null
+    )
     {
         var contexts = new List<ExecutionExpression>();
 
@@ -63,7 +68,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static ExecutionContextLayout? CreateContextLayout(
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        string? nullAlias = null)
+        string? nullAlias = null
+    )
     {
         var segments = new List<ExecutionContextSegment>(sourceLookup.Count);
 
@@ -76,15 +82,14 @@ internal sealed partial class PhysicalLoweringImplementation
                 segments.Add(segment);
         }
 
-        return segments.Count is 0 or > 2
-            ? null
-            : new ExecutionContextLayout(segments);
+        return segments.Count is 0 or > 2 ? null : new ExecutionContextLayout(segments);
     }
 
     private static bool TryCreateContextSegment(
         RowShape sourceShape,
         string? nullAlias,
-        out ExecutionContextSegment? segment)
+        out ExecutionContextSegment? segment
+    )
     {
         if (sourceShape is TableRowShape tableRow)
         {
@@ -94,15 +99,18 @@ internal sealed partial class PhysicalLoweringImplementation
 
         ExecutionExpression expression = IsNullExtendedSource(sourceShape, nullAlias)
             ? new ExecutionLiteral(null, typeof(object))
-            : new ExecutionVariableRead(new ExecutionVariable(RowShapeLookup.ResolveSourceAlias(sourceShape), RowShapeLookup.ResolveSourceRuntimeType(sourceShape)));
+            : new ExecutionVariableRead(
+                new ExecutionVariable(
+                    RowShapeLookup.ResolveSourceAlias(sourceShape),
+                    RowShapeLookup.ResolveSourceRuntimeType(sourceShape)
+                )
+            );
 
         segment = new ExecutionContextSegment(ExecutionContextSegmentKind.Single, expression, 1);
         return true;
     }
 
-    private static ExecutionContextSegment? CreateTableRowContextSegment(
-        TableRowShape tableRow,
-        string? nullAlias)
+    private static ExecutionContextSegment? CreateTableRowContextSegment(TableRowShape tableRow, string? nullAlias)
     {
         if (tableRow.Contexts.Count == 0)
         {
@@ -118,7 +126,8 @@ internal sealed partial class PhysicalLoweringImplementation
             return new ExecutionContextSegment(
                 ExecutionContextSegmentKind.Array,
                 new ExecutionNullContextArray(tableRow.Contexts.Count),
-                tableRow.Contexts.Count);
+                tableRow.Contexts.Count
+            );
         }
 
         if (CanUseDirectTableRowContextSegment(tableRow))
@@ -127,16 +136,21 @@ internal sealed partial class PhysicalLoweringImplementation
                 ? new ExecutionContextSegment(
                     ExecutionContextSegmentKind.Single,
                     CreateTableRowContextFieldRead(tableRow, tableRow.Contexts[0]),
-                    1)
+                    1
+                )
                 : new ExecutionContextSegment(
-                ExecutionContextSegmentKind.Array,
-                new ExecutionContextArray(tableRow.Contexts
-                    .Select(context => new ExecutionContextSegment(
-                        ExecutionContextSegmentKind.Single,
-                        CreateTableRowContextFieldRead(tableRow, context),
-                        1))
-                    .ToArray()),
-                tableRow.Contexts.Count);
+                    ExecutionContextSegmentKind.Array,
+                    new ExecutionContextArray(
+                        tableRow
+                            .Contexts.Select(context => new ExecutionContextSegment(
+                                ExecutionContextSegmentKind.Single,
+                                CreateTableRowContextFieldRead(tableRow, context),
+                                1
+                            ))
+                            .ToArray()
+                    ),
+                    tableRow.Contexts.Count
+                );
         }
 
         if (tableRow.Contexts.Any(context => IsNullExtendedContext(context, nullAlias)))
@@ -145,18 +159,19 @@ internal sealed partial class PhysicalLoweringImplementation
         return new ExecutionContextSegment(
             ExecutionContextSegmentKind.Row,
             new ExecutionVariableRead(new ExecutionVariable(tableRow.Alias, typeof(Row))),
-            tableRow.Contexts.Count);
+            tableRow.Contexts.Count
+        );
     }
 
     private static bool CanUseDirectTableRowContextSegment(TableRowShape tableRow) =>
-        tableRow.Contexts.All(static context => context.AccessStrategy is GeneratedFieldAccess or GeneratedRowContextAccess);
+        tableRow.Contexts.All(static context =>
+            context.AccessStrategy is GeneratedFieldAccess or GeneratedRowContextAccess
+        );
 
     private static ExecutionFieldRead CreateTableRowContextFieldRead(TableRowShape tableRow, FieldBinding context) =>
         new(tableRow.Alias, context.Name, context.Type, context.AccessStrategy);
 
-    private static IEnumerable<ExecutionExpression> CreateContextValues(
-        RowShape sourceShape,
-        string? nullAlias)
+    private static IEnumerable<ExecutionExpression> CreateContextValues(RowShape sourceShape, string? nullAlias)
     {
         if (IsNullExtendedSource(sourceShape, nullAlias))
         {
@@ -188,7 +203,12 @@ internal sealed partial class PhysicalLoweringImplementation
             yield break;
         }
 
-        yield return new ExecutionVariableRead(new ExecutionVariable(RowShapeLookup.ResolveSourceAlias(sourceShape), RowShapeLookup.ResolveSourceRuntimeType(sourceShape)));
+        yield return new ExecutionVariableRead(
+            new ExecutionVariable(
+                RowShapeLookup.ResolveSourceAlias(sourceShape),
+                RowShapeLookup.ResolveSourceRuntimeType(sourceShape)
+            )
+        );
     }
 
     private static IEnumerable<ExecutionExpression> CreateNullContextValues(RowShape sourceShape)
@@ -212,14 +232,20 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool IsNullExtendedSource(RowShape sourceShape, string? nullAlias)
     {
-        return !string.IsNullOrWhiteSpace(nullAlias) &&
-               string.Equals(RowShapeLookup.ResolveSourceAlias(sourceShape), nullAlias, StringComparison.OrdinalIgnoreCase);
+        return !string.IsNullOrWhiteSpace(nullAlias)
+            && string.Equals(
+                RowShapeLookup.ResolveSourceAlias(sourceShape),
+                nullAlias,
+                StringComparison.OrdinalIgnoreCase
+            );
     }
 
     private static bool IsNullExtendedContext(FieldBinding context, string? nullAlias)
     {
-        return !string.IsNullOrWhiteSpace(nullAlias) &&
-               (string.Equals(context.Name, nullAlias, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(context.QualifiedName, nullAlias, StringComparison.OrdinalIgnoreCase));
+        return !string.IsNullOrWhiteSpace(nullAlias)
+            && (
+                string.Equals(context.Name, nullAlias, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(context.QualifiedName, nullAlias, StringComparison.OrdinalIgnoreCase)
+            );
     }
 }

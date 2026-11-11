@@ -48,8 +48,8 @@ public class AstValidationException : InvalidOperationException
         return new AstValidationException(
             expectedNodeType,
             context,
-            $"Expected a {expectedNodeType} node but found null in {context}. " +
-            "This indicates a problem with the SQL query structure. Please check your query syntax."
+            $"Expected a {expectedNodeType} node but found null in {context}. "
+                + "This indicates a problem with the SQL query structure. Please check your query syntax."
         );
     }
 
@@ -58,8 +58,8 @@ public class AstValidationException : InvalidOperationException
         return new AstValidationException(
             nodeType,
             context,
-            $"The {nodeType} node has an invalid structure in {context}: {issue}. " +
-            "Please check the corresponding part of your SQL query."
+            $"The {nodeType} node has an invalid structure in {context}: {issue}. "
+                + "Please check the corresponding part of your SQL query."
         );
     }
 
@@ -68,8 +68,8 @@ public class AstValidationException : InvalidOperationException
         return new AstValidationException(
             nodeType,
             context,
-            $"The {nodeType} node is not supported in {context}. " +
-            "Please review the SQL query documentation for supported syntax."
+            $"The {nodeType} node is not supported in {context}. "
+                + "Please review the SQL query documentation for supported syntax."
         );
     }
 }

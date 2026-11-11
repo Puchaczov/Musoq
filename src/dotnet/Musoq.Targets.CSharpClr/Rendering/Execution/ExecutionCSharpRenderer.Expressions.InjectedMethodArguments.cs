@@ -11,7 +11,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionMethodCall methodCall,
         ParameterInfo parameter,
         InjectTypeAttribute injectAttribute,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (injectAttribute is InjectQueryStatsAttribute)
         {
@@ -19,7 +20,9 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(StatsVariableName),
-                    SyntaxFactory.IdentifierName(nameof(AmendableQueryStats.IncrementRowNumber))));
+                    SyntaxFactory.IdentifierName(nameof(AmendableQueryStats.IncrementRowNumber))
+                )
+            );
         }
 
         if (injectAttribute.GetType().Name is nameof(InjectSpecificSourceAttribute) or "InjectSourceAttribute")

@@ -6,21 +6,20 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolver resolver)
-    : IPlanningShapeResolver
+internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolver resolver) : IPlanningShapeResolver
 {
     internal ExecutionShapeResolver ExecutionShapes => resolver;
+
     public static ExecutionPlanningShapeResolverAdapter Create(
         Scope? scope = null,
         IReadOnlyDictionary<string, ISchemaColumn[]>? inferredColumns = null,
         IReadOnlyDictionary<string, Type>? entityTypesByAlias = null,
-        SchemaRegistry? schemaRegistry = null)
+        SchemaRegistry? schemaRegistry = null
+    )
     {
-        return new ExecutionPlanningShapeResolverAdapter(new ExecutionShapeResolver(
-            scope,
-            inferredColumns,
-            entityTypesByAlias,
-            schemaRegistry));
+        return new ExecutionPlanningShapeResolverAdapter(
+            new ExecutionShapeResolver(scope, inferredColumns, entityTypesByAlias, schemaRegistry)
+        );
     }
 
     public PlanningRowShape ResolveSourceShape(PhysicalSchemaScanNode scan) =>
@@ -38,24 +37,29 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
     public PlanningRowShape ResolveAccessMethodSourceShape(PhysicalAccessMethodSourceNode accessMethod) =>
         ToPlanningRowShape(ResolveExecutionAccessMethodSourceShape(accessMethod));
 
-    private RowShape ResolveExecutionSourceShape(PhysicalSchemaScanNode scan) =>
-        resolver.ResolveSourceShape(scan);
+    private RowShape ResolveExecutionSourceShape(PhysicalSchemaScanNode scan) => resolver.ResolveSourceShape(scan);
 
     private static RowShape ResolveExecutionCteRefShape(PhysicalCteRefNode cteRef) =>
         new TableRowShape(
             cteRef.Alias,
-            cteRef.OutputSchema.Columns.Select(column => new FieldBinding(
-                column.Name,
-                $"{cteRef.Alias}.{column.Name}",
-                column.Index,
-                column.Type,
-                FieldNullability.Unknown,
-                new PositionalAccess(column.Index, ExecutionClrBindingFactory.FromClr(column.Type)),
-                sourceReadType: column.SourceReadType,
-                enumType: column.EnumType) with
-            {
-                Stability = column.Stability
-            }).ToArray());
+            cteRef
+                .OutputSchema.Columns.Select(column =>
+                    new FieldBinding(
+                        column.Name,
+                        $"{cteRef.Alias}.{column.Name}",
+                        column.Index,
+                        column.Type,
+                        FieldNullability.Unknown,
+                        new PositionalAccess(column.Index, ExecutionClrBindingFactory.FromClr(column.Type)),
+                        sourceReadType: column.SourceReadType,
+                        enumType: column.EnumType
+                    ) with
+                    {
+                        Stability = column.Stability,
+                    }
+                )
+                .ToArray()
+        );
 
     private RowShape ResolveExecutionInterpretSourceShape(PhysicalInterpretSourceNode interpret) =>
         resolver.ResolveInterpretSourceShape(interpret);
@@ -68,16 +72,15 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
 
     private static PlanningRowShape ToPlanningRowShape(RowShape shape)
     {
-        var alias = RowShapeLookup.TryResolveSourceAlias(shape, out var resolvedAlias)
-            ? resolvedAlias
-            : shape.Name;
+        var alias = RowShapeLookup.TryResolveSourceAlias(shape, out var resolvedAlias) ? resolvedAlias : shape.Name;
 
         return new PlanningRowShape(
             shape.Name,
             alias,
             ResolveKind(shape),
             RowShapeLookup.ResolveSourceRuntimeType(shape),
-            shape.Fields.Select(ToPlanningField).ToArray());
+            shape.Fields.Select(ToPlanningField).ToArray()
+        );
     }
 
     private static PlanningField ToPlanningField(FieldBinding field)
@@ -91,7 +94,8 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
             ResolveAccessKind(field.AccessStrategy),
             field.PublicType?.ResolveClrType(),
             field.SourceReadType.ResolveClrType(),
-            field.EnumType);
+            field.EnumType
+        );
     }
 
     private static PlanningFieldNullability ResolveNullability(FieldNullability nullability)
@@ -100,7 +104,7 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
         {
             FieldNullability.Nullable => PlanningFieldNullability.Nullable,
             FieldNullability.NotNullable => PlanningFieldNullability.NotNullable,
-            _ => PlanningFieldNullability.Unknown
+            _ => PlanningFieldNullability.Unknown,
         };
     }
 
@@ -112,7 +116,7 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
             TableRowShape => PlanningRowShapeKind.TableRow,
             ValuesRowShape => PlanningRowShapeKind.Values,
             GeneratedRowShape => PlanningRowShapeKind.Generated,
-            _ => PlanningRowShapeKind.Generated
+            _ => PlanningRowShapeKind.Generated,
         };
     }
 
@@ -130,7 +134,7 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
             GeneratedRowNestedAccess => PlanningFieldAccessKind.GeneratedNested,
             DirectScalarValueAccess => PlanningFieldAccessKind.DirectScalar,
             ApplyOrdinalityAccess => PlanningFieldAccessKind.ApplyOrdinality,
-            _ => PlanningFieldAccessKind.Unknown
+            _ => PlanningFieldAccessKind.Unknown,
         };
     }
 }

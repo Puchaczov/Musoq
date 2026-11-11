@@ -12,8 +12,7 @@ public partial class TypoAndUxDiagnosticProbeTests
     [TestMethod]
     public void WhenColumnNameTypoInSelect_ShouldSuggestCorrectName()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Naame FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Naame FROM #test.people()"));
 
         AssertMessageContains(ex, "Name");
     }
@@ -22,7 +21,8 @@ public partial class TypoAndUxDiagnosticProbeTests
     public void WhenColumnNameTypoInWhere_ShouldSuggestCorrectName()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE Agee > 30"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE Agee > 30")
+        );
 
         AssertMessageContains(ex, "Age");
     }
@@ -31,8 +31,7 @@ public partial class TypoAndUxDiagnosticProbeTests
     public void WhenColumnNameCaseMismatch_ShouldSuggestCorrectCase()
     {
         // Musoq is case-sensitive for column names but provides a helpful suggestion
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT name FROM #test.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT name FROM #test.people()"));
 
         AssertMessageContains(ex, "Name");
     }
@@ -41,7 +40,8 @@ public partial class TypoAndUxDiagnosticProbeTests
     public void WhenColumnNameTypoInGroupBy_ShouldSuggestCorrectName()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Ciy, Count(Ciy) FROM #test.people() GROUP BY Ciy"));
+            CompileQuery("SELECT Ciy, Count(Ciy) FROM #test.people() GROUP BY Ciy")
+        );
 
         AssertMessageContains(ex, "City");
     }
@@ -50,23 +50,21 @@ public partial class TypoAndUxDiagnosticProbeTests
     public void WhenColumnNameTypoInOrderBy_ShouldSuggestCorrectName()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() ORDER BY Nmae ASC"));
+            CompileQuery("SELECT Name FROM #test.people() ORDER BY Nmae ASC")
+        );
 
         AssertMessageContains(ex, "Name");
     }
-
 
     // ========================================================================
     // CATEGORY 4: Schema/table reference mistakes
     // Users get the FROM clause wrong.
     // ========================================================================
 
-
     [TestMethod]
     public void WhenSchemaNameTypo_ShouldGiveHelpfulError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #tset.people()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #tset.people()"));
 
         AssertMessageContains(ex, "Unknown schema");
     }
@@ -74,15 +72,15 @@ public partial class TypoAndUxDiagnosticProbeTests
     [TestMethod]
     public void WhenTableMethodTypo_ShouldGiveHelpfulError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.poeple()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.poeple()"));
 
         // Should indicate the table/method is unknown
         var msg = ex.Message;
         Assert.IsTrue(
-            msg.Contains("Unknown table", StringComparison.OrdinalIgnoreCase) ||
-            msg.Contains("poeple", StringComparison.OrdinalIgnoreCase),
-            $"Error message should mention unknown table or the typo 'poeple'. Got: {msg}");
+            msg.Contains("Unknown table", StringComparison.OrdinalIgnoreCase)
+                || msg.Contains("poeple", StringComparison.OrdinalIgnoreCase),
+            $"Error message should mention unknown table or the typo 'poeple'. Got: {msg}"
+        );
     }
 
     [TestMethod]
@@ -98,30 +96,29 @@ public partial class TypoAndUxDiagnosticProbeTests
     [TestMethod]
     public void WhenMissingParensOnTableMethod_ShouldGiveHelpfulError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT Name FROM #test.people"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
     }
-
 
     // ========================================================================
     // CATEGORY 5: Common structural mistakes
     // ========================================================================
 
-
     [TestMethod]
     public void WhenForgettingQuotesAroundString_ShouldGiveHelpfulError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE City = London"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE City = London")
+        );
 
         // "London" should be treated as unknown column; error should mention it
         var msg = ex.Message;
         Assert.IsTrue(
-            msg.Contains("London", StringComparison.OrdinalIgnoreCase) ||
-            msg.Contains("column", StringComparison.OrdinalIgnoreCase),
-            $"Error should mention 'London' as unknown column or suggest quoting. Got: {msg}");
+            msg.Contains("London", StringComparison.OrdinalIgnoreCase)
+                || msg.Contains("column", StringComparison.OrdinalIgnoreCase),
+            $"Error should mention 'London' as unknown column or suggest quoting. Got: {msg}"
+        );
     }
 
     [TestMethod]
@@ -129,7 +126,8 @@ public partial class TypoAndUxDiagnosticProbeTests
     {
         // Standard SQL uses single quotes; double quotes are identifiers
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE City = \"London\""));
+            CompileQuery("SELECT Name FROM #test.people() WHERE City = \"London\"")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1001_UnknownToken, DiagnosticPhase.Parse);
         AssertMessageContains(ex, "unrecognized");
@@ -140,7 +138,8 @@ public partial class TypoAndUxDiagnosticProbeTests
     public void WhenMissingSemicolonBetweenStatements_ShouldGiveHelpfulError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() SELECT Age FROM #test.people()"));
+            CompileQuery("SELECT Name FROM #test.people() SELECT Age FROM #test.people()")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertHasGuidance(ex);
@@ -169,7 +168,8 @@ public partial class TypoAndUxDiagnosticProbeTests
             [2, "Bob", 35, "Paris", 60000m, new DateTime(1989, 6, 20), 1, "bob@test.com", "Bob"],
             [3, "Charlie", 28, "London", 55000m, new DateTime(1996, 3, 10), 1, "charlie@test.com", "Charlie"],
             [4, "Diana", 42, "Berlin", 75000m, new DateTime(1982, 11, 5), 2, "diana@test.com", "Diana"],
-            [5, "Eve", 31, "Paris", 62000m, new DateTime(1993, 8, 25), 2, "eve@test.com", "Eve"]);
+            [5, "Eve", 31, "Paris", 62000m, new DateTime(1993, 8, 25), 2, "eve@test.com", "Eve"]
+        );
     }
 
     [TestMethod]
@@ -195,12 +195,7 @@ public partial class TypoAndUxDiagnosticProbeTests
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice"]);
     }
 
-
-
-
     // ========================================================================
     // CATEGORY 6: Function name typos and mistakes
     // ========================================================================
-
-
 }

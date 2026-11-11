@@ -1,4 +1,3 @@
-
 namespace Musoq.Evaluator.IR.Execution;
 
 /// <summary>
@@ -11,23 +10,17 @@ internal static class QueryRowSourceNaming
 {
     private const int FingerprintPrefixLength = 12;
 
-    public static string CreateCarrierTypeName(
-        string shapeFingerprint,
-        SourceQueryRowCarrier carrier)
+    public static string CreateCarrierTypeName(string shapeFingerprint, SourceQueryRowCarrier carrier)
     {
         return $"QueryRow_{GetFingerprintPrefix(shapeFingerprint)}_{GetCarrierSuffix(carrier)}";
     }
 
-    public static string CreateCarrierTypeName(
-        string shapeFingerprint,
-        ExecutionQueryRowCarrier carrier)
+    public static string CreateCarrierTypeName(string shapeFingerprint, ExecutionQueryRowCarrier carrier)
     {
         return $"QueryRow_{GetFingerprintPrefix(shapeFingerprint)}_{GetCarrierSuffix(carrier)}";
     }
 
-    public static string CreateMaterializerTypeName(
-        string shapeFingerprint,
-        ExecutionQueryRowCarrier carrier)
+    public static string CreateMaterializerTypeName(string shapeFingerprint, ExecutionQueryRowCarrier carrier)
     {
         return $"QueryRowMaterializer_{GetFingerprintPrefix(shapeFingerprint)}_{GetCarrierSuffix(carrier)}";
     }
@@ -49,7 +42,10 @@ internal static class QueryRowSourceNaming
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(shapeFingerprint);
         if (shapeFingerprint.Length < FingerprintPrefixLength)
-            throw new ArgumentException("A query-row fingerprint is shorter than the required identifier prefix.", nameof(shapeFingerprint));
+            throw new ArgumentException(
+                "A query-row fingerprint is shorter than the required identifier prefix.",
+                nameof(shapeFingerprint)
+            );
 
         return shapeFingerprint[..FingerprintPrefixLength].ToUpperInvariant();
     }
@@ -60,7 +56,7 @@ internal static class QueryRowSourceNaming
         {
             SourceQueryRowCarrier.ReadonlyStruct => "S",
             SourceQueryRowCarrier.SealedClass => "C",
-            _ => throw new ArgumentOutOfRangeException(nameof(carrier), carrier, "Unknown query-row carrier.")
+            _ => throw new ArgumentOutOfRangeException(nameof(carrier), carrier, "Unknown query-row carrier."),
         };
     }
 
@@ -70,7 +66,7 @@ internal static class QueryRowSourceNaming
         {
             ExecutionQueryRowCarrier.ReadonlyStruct => "S",
             ExecutionQueryRowCarrier.SealedClass => "C",
-            _ => throw new ArgumentOutOfRangeException(nameof(carrier), carrier, "Unknown query-row carrier.")
+            _ => throw new ArgumentOutOfRangeException(nameof(carrier), carrier, "Unknown query-row carrier."),
         };
     }
 }

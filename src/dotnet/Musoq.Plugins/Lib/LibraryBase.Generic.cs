@@ -144,7 +144,8 @@ public partial class LibraryBase
                 {
                     sequenceLengths[i][j] = i == 0 || j == 0 ? 1 : sequenceLengths[i - 1][j - 1] + 1;
 
-                    if (sequenceLengths[i][j] <= maxSubStringSequence) continue;
+                    if (sequenceLengths[i][j] <= maxSubStringSequence)
+                        continue;
 
                     maxSubStringSequence = sequenceLengths[i][j];
                     subSequence = sourceArray.Skip(i - maxSubStringSequence + 1).Take(maxSubStringSequence);

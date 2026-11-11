@@ -11,14 +11,21 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForRowNumberWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect("select d.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d",
-            new CompilationOptions());
+        var result = Inspect(
+            "select d.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d",
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by d.Dummy ASC]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by d.Dummy ASC]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("var resultRowNumbers = new long[resultWindowRows.Count];", result.GeneratedCSharpCode);
         Assert.Contains("RowNumberKernel.Get(in resultRowNumbersContext)", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeRowNumber", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeRowNumber", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -28,18 +35,25 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("MaterializeChunked [dRows -> resultWindowRows]", result.ExecutionPlanText);
-        Assert.Contains("ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by d.Dummy ASC]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by d.Dummy ASC]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("var resultRowNumbers = new long[resultWindowRows.Count];", result.GeneratedCSharpCode);
         Assert.Contains("RowNumberKernel.Get(in resultRowNumbersContext)", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeRowNumber", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("WindowFunctionHelpers.ComputeRowNumber", StringComparison.Ordinal)
+        );
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForRowNumberWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select d.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            "select d.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d",
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -51,46 +65,67 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForSharedRankingWindows_ShouldFuseKernelPlan()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 2 as Score from #system.dual()
-                )
-                select c.Name,
-                       RowNumber() over (order by c.Score) as Rn,
-                       Rank() over (order by c.Score) as Rnk,
-                       DenseRank() over (order by c.Score) as Drnk
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 2 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       RowNumber() over (order by c.Score) as Rn,\n"
+                + "                       Rank() over (order by c.Score) as Rnk,\n"
+                + "                       DenseRank() over (order by c.Score) as Drnk\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("WindowKernelPlan [hash partition/per-partition sort; kernels 3;", result.ExecutionPlanText);
-        Assert.Contains("ComputeRowNumberWindow [resultRowNumbers0 <- resultWindowRows order by c.Score ASC]", result.ExecutionPlanText);
-        Assert.Contains("ComputeRankWindow [resultRanks1 <- resultWindowRows order by c.Score ASC]", result.ExecutionPlanText);
-        Assert.Contains("ComputeDenseRankWindow [resultDenseRanks2 <- resultWindowRows order by c.Score ASC]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeRowNumberWindow [resultRowNumbers0 <- resultWindowRows order by c.Score ASC]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains(
+            "ComputeRankWindow [resultRanks1 <- resultWindowRows order by c.Score ASC]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains(
+            "ComputeDenseRankWindow [resultDenseRanks2 <- resultWindowRows order by c.Score ASC]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("for (int resultRowNumbers0WindowPlanPartitionSetIndex", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("for (int resultRanks1PartitionSetIndex", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("for (int resultDenseRanks2PartitionSetIndex", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("for (int resultRanks1PartitionSetIndex", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("for (int resultDenseRanks2PartitionSetIndex", StringComparison.Ordinal)
+        );
         Assert.AreEqual(1, CountOccurrences(result.GeneratedCSharpCode, "SortStructPartitionSet"));
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForSharedRankingWindows_ShouldRunFusedKernelPlan()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 2 as Score from #system.dual()
-                )
-                select c.Name,
-                       RowNumber() over (order by c.Score) as Rn,
-                       Rank() over (order by c.Score) as Rnk,
-                       DenseRank() over (order by c.Score) as Drnk
-                from c
-                order by c.Name",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 2 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       RowNumber() over (order by c.Score) as Rn,\n"
+                + "                       Rank() over (order by c.Score) as Rnk,\n"
+                + "                       DenseRank() over (order by c.Score) as Drnk\n"
+                + "                from c\n"
+                + "                order by c.Name"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -117,23 +152,48 @@ public partial class QueryInspectionTests
             {
                 ["Id"] = typeof(string),
                 ["Name"] = typeof(string),
-                ["Score"] = typeof(int)
+                ["Score"] = typeof(int),
             },
             new List<IReadOnlyDictionary<string, object>>
             {
-                new Dictionary<string, object> { ["Id"] = "a", ["Name"] = "amy", ["Score"] = 1 },
-                new Dictionary<string, object> { ["Id"] = "b", ["Name"] = "amy", ["Score"] = 1 },
-                new Dictionary<string, object> { ["Id"] = "c", ["Name"] = "bea", ["Score"] = 1 },
-                new Dictionary<string, object> { ["Id"] = "d", ["Name"] = "dee", ["Score"] = 2 }
-            });
-        var compiled = CompileForExecution(@"
-                select d.Id,
-                       Rank() over (order by d.Score, d.Name desc) as Rnk,
-                       DenseRank() over (order by d.Score, d.Name desc) as Drnk
-                from #dynamic.all() d
-                order by d.Id",
+                new Dictionary<string, object>
+                {
+                    ["Id"] = "a",
+                    ["Name"] = "amy",
+                    ["Score"] = 1,
+                },
+                new Dictionary<string, object>
+                {
+                    ["Id"] = "b",
+                    ["Name"] = "amy",
+                    ["Score"] = 1,
+                },
+                new Dictionary<string, object>
+                {
+                    ["Id"] = "c",
+                    ["Name"] = "bea",
+                    ["Score"] = 1,
+                },
+                new Dictionary<string, object>
+                {
+                    ["Id"] = "d",
+                    ["Name"] = "dee",
+                    ["Score"] = 2,
+                },
+            }
+        );
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                select d.Id,\n"
+                + "                       Rank() over (order by d.Score, d.Name desc) as Rnk,\n"
+                + "                       DenseRank() over (order by d.Score, d.Name desc) as Drnk\n"
+                + "                from #dynamic.all() d\n"
+                + "                order by d.Id"
+            ),
             provider,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -156,26 +216,27 @@ public partial class QueryInspectionTests
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForGeneratedNullableRankPeers_ShouldTreatNullsAsPeers()
     {
         var provider = new DynamicRowsSchemaProvider(
-            new Dictionary<string, Type>
-            {
-                ["Id"] = typeof(string),
-                ["Score"] = typeof(int?)
-            },
+            new Dictionary<string, Type> { ["Id"] = typeof(string), ["Score"] = typeof(int?) },
             new List<IReadOnlyDictionary<string, object>>
             {
                 new Dictionary<string, object> { ["Id"] = "a", ["Score"] = null! },
                 new Dictionary<string, object> { ["Id"] = "b", ["Score"] = null! },
                 new Dictionary<string, object> { ["Id"] = "c", ["Score"] = 1 },
-                new Dictionary<string, object> { ["Id"] = "d", ["Score"] = 2 }
-            });
-        var compiled = CompileForExecution(@"
-                select d.Id,
-                       Rank() over (order by d.Score) as Rnk,
-                       DenseRank() over (order by d.Score) as Drnk
-                from #dynamic.all() d
-                order by d.Id",
+                new Dictionary<string, object> { ["Id"] = "d", ["Score"] = 2 },
+            }
+        );
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                select d.Id,\n"
+                + "                       Rank() over (order by d.Score) as Rnk,\n"
+                + "                       DenseRank() over (order by d.Score) as Drnk\n"
+                + "                from #dynamic.all() d\n"
+                + "                order by d.Id"
+            ),
             provider,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -197,21 +258,28 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForMultipleRankingSpecs_ShouldFuseOnlySharedSpec()
     {
-        var result = Inspect(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()
-                )
-                select c.Name,
-                       RowNumber() over (order by c.Score) as ScoreRow,
-                       Rank() over (order by c.Score) as ScoreRank,
-                       RowNumber() over (order by c.Name) as NameRow
-                from c",
-            new CompilationOptions());
+        var result = Inspect(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 2 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       RowNumber() over (order by c.Score) as ScoreRow,\n"
+                + "                       Rank() over (order by c.Score) as ScoreRank,\n"
+                + "                       RowNumber() over (order by c.Name) as NameRow\n"
+                + "                from c"
+            ),
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("WindowKernelPlan [hash partition/per-partition sort; kernels 2;", result.ExecutionPlanText);
-        Assert.Contains("ComputeRowNumberWindow [resultRowNumbers2 <- resultWindowRows order by c.Name ASC]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeRowNumberWindow [resultRowNumbers2 <- resultWindowRows order by c.Name ASC]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("for (int resultRowNumbers0WindowPlanPartitionSetIndex", result.GeneratedCSharpCode);
         Assert.Contains("for (int resultRowNumbers2PartitionSetIndex", result.GeneratedCSharpCode);
     }
@@ -219,19 +287,23 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForQualifySharedRankingSpec_ShouldReuseFusedPlan()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'amy' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'bea' as Name, 1 as Score from #system.dual()
-                    union all (Name, Score) select 'cal' as Name, 2 as Score from #system.dual()
-                )
-                select c.Name,
-                       RowNumber() over (order by c.Score) as Rn,
-                       Rank() over (order by c.Score) as Rnk
-                from c
-                qualify RowNumber() over (order by c.Score) <= 2
-                order by Rn",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'amy' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'bea' as Name, 1 as Score from #system.dual()\n"
+                + "                    union all (Name, Score) select 'cal' as Name, 2 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.Name,\n"
+                + "                       RowNumber() over (order by c.Score) as Rn,\n"
+                + "                       Rank() over (order by c.Score) as Rnk\n"
+                + "                from c\n"
+                + "                qualify RowNumber() over (order by c.Score) <= 2\n"
+                + "                order by Rn"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -249,7 +321,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "with c as (select d.Dummy as Dummy from #system.dual() d) select c.Dummy, RowNumber() over (order by c.Dummy) as rn from c",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -261,27 +334,36 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForPartitionedRowNumberWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect("select d.Dummy, RowNumber() over (partition by d.Dummy order by d.Dummy) as rn from #system.dual() d",
-            new CompilationOptions());
+        var result = Inspect(
+            "select d.Dummy, RowNumber() over (partition by d.Dummy order by d.Dummy) as rn from #system.dual() d",
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows partition by d.Dummy order by d.Dummy ASC]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows partition by d.Dummy order by d.Dummy ASC]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("resultRowNumbersPartitionKeys", result.GeneratedCSharpCode);
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForPartitionedRowNumberWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with c as (
-                    select 'a' as City, 2 as Score from #system.dual()
-                    union all (City, Score) select 'a' as City, 1 as Score from #system.dual()
-                    union all (City, Score) select 'b' as City, 3 as Score from #system.dual()
-                )
-                select c.City, c.Score, RowNumber() over (partition by c.City order by c.Score) as rn
-                from c
-                order by c.City, c.Score",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with c as (\n"
+                + "                    select 'a' as City, 2 as Score from #system.dual()\n"
+                + "                    union all (City, Score) select 'a' as City, 1 as Score from #system.dual()\n"
+                + "                    union all (City, Score) select 'b' as City, 3 as Score from #system.dual()\n"
+                + "                )\n"
+                + "                select c.City, c.Score, RowNumber() over (partition by c.City order by c.Score) as rn\n"
+                + "                from c\n"
+                + "                order by c.City, c.Score"
+            ),
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -300,15 +382,20 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForDynamicRowNumberWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect("select d.Team, d.Name, d.Score, RowNumber() over (partition by d.Team order by d.Score) as rn from #dynamic.all() d",
+        var result = Inspect(
+            "select d.Team, d.Name, d.Score, RowNumber() over (partition by d.Team order by d.Score) as rn from #dynamic.all() d",
             CreateDynamicRowsSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("SourceScan [d: QueryRow_", result.ExecutionPlanText);
         Assert.DoesNotContain("ExpandoAdapter", result.ExecutionPlanText);
         AssertExecutionPlanContains("MaterializeChunked [dRows -> resultWindowRows]", result.ExecutionPlanText);
-        Assert.Contains("ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows partition by d.Team order by d.Score ASC]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows partition by d.Team order by d.Score ASC]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("MaterializeGeneratedChunkedRows<QueryRow_", result.GeneratedCSharpCode);
         Assert.DoesNotContain("dDynamicRow0", result.GeneratedCSharpCode);
     }
@@ -316,13 +403,17 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForDynamicRowNumberWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                select d.Team, d.Name, d.Score, RowNumber() over (partition by d.Team order by d.Score) as rn
-                from #dynamic.all() d
-                where d.Score > 0
-                order by d.Team, d.Score",
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                select d.Team, d.Name, d.Score, RowNumber() over (partition by d.Team order by d.Score) as rn\n"
+                + "                from #dynamic.all() d\n"
+                + "                where d.Score > 0\n"
+                + "                order by d.Team, d.Score"
+            ),
             CreateDynamicRowsSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -344,15 +435,19 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForDynamicPluginWindows_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                select d.Team,
-                       d.Name,
-                       d.Score,
-                       Sum(d.Score) over (partition by d.Team order by d.Score) as RunningScore,
-                       FirstValue(d.Name) over (partition by d.Team order by d.Score) as FirstName
-                from #dynamic.all() d",
+        var result = Inspect(
+            (
+                "\n"
+                + "                select d.Team,\n"
+                + "                       d.Name,\n"
+                + "                       d.Score,\n"
+                + "                       Sum(d.Score) over (partition by d.Team order by d.Score) as RunningScore,\n"
+                + "                       FirstValue(d.Name) over (partition by d.Team order by d.Score) as FirstName\n"
+                + "                from #dynamic.all() d"
+            ),
             CreateDynamicRowsSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         AssertExecutionPlanContains("MaterializeChunked [dRows -> resultWindowRows]", result.ExecutionPlanText);
@@ -361,7 +456,10 @@ public partial class QueryInspectionTests
         Assert.Contains("ComputeFirstValueWindow [", result.ExecutionPlanText);
         Assert.Contains("value d.Name partition by d.Team order by d.Score ASC", result.ExecutionPlanText);
         Assert.Contains("resultFirstValues1Values", result.GeneratedCSharpCode);
-        Assert.Contains("FirstReferenceValueKernel<string>.Get(in resultFirstValues1Context)", result.GeneratedCSharpCode);
+        Assert.Contains(
+            "FirstReferenceValueKernel<string>.Get(in resultFirstValues1Context)",
+            result.GeneratedCSharpCode
+        );
         Assert.Contains("SumAggregateKernel<int>.Set(ref resultSums0State", result.GeneratedCSharpCode);
         Assert.Contains("ResolveRangePeerFrameEnd(resultSums0OrderKeys", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".WindowSum()", StringComparison.Ordinal));
@@ -373,17 +471,21 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForDynamicPluginWindows_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                select d.Team,
-                       d.Name,
-                       d.Score,
-                       Sum(d.Score) over (partition by d.Team order by d.Score) as RunningScore,
-                       Count(d.Score) over (partition by d.Team) as TeamCount,
-                       FirstValue(d.Name) over (partition by d.Team order by d.Score) as FirstName
-                from #dynamic.all() d
-                order by d.Team, d.Score",
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                select d.Team,\n"
+                + "                       d.Name,\n"
+                + "                       d.Score,\n"
+                + "                       Sum(d.Score) over (partition by d.Team order by d.Score) as RunningScore,\n"
+                + "                       Count(d.Score) over (partition by d.Team) as TeamCount,\n"
+                + "                       FirstValue(d.Name) over (partition by d.Team order by d.Score) as FirstName\n"
+                + "                from #dynamic.all() d\n"
+                + "                order by d.Team, d.Score"
+            ),
             CreateDynamicRowsSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -411,41 +513,52 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForCteDynamicRowNumberWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with sourceRows as (
-                    select d.Team as Team, d.Name as Name, d.Score as Score
-                    from #dynamic.all() d
-                )
-                select sourceRows.Team,
-                       sourceRows.Name,
-                       sourceRows.Score,
-                       RowNumber() over (partition by sourceRows.Team order by sourceRows.Score) as rn
-                from sourceRows",
+        var result = Inspect(
+            (
+                "\n"
+                + "                with sourceRows as (\n"
+                + "                    select d.Team as Team, d.Name as Name, d.Score as Score\n"
+                + "                    from #dynamic.all() d\n"
+                + "                )\n"
+                + "                select sourceRows.Team,\n"
+                + "                       sourceRows.Name,\n"
+                + "                       sourceRows.Score,\n"
+                + "                       RowNumber() over (partition by sourceRows.Team order by sourceRows.Score) as rn\n"
+                + "                from sourceRows"
+            ),
             CreateDynamicRowsSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
         Assert.Contains("Materialize [_cteRowResults.Slot0 -> resultWindowRows]", result.ExecutionPlanText);
-        Assert.Contains("ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows partition by sourceRows.Team order by sourceRows.Score ASC]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows partition by sourceRows.Team order by sourceRows.Score ASC]",
+            result.ExecutionPlanText
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForCteDynamicRowNumberWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with sourceRows as (
-                    select d.Team as Team, d.Name as Name, d.Score as Score
-                    from #dynamic.all() d
-                )
-                select sourceRows.Team,
-                       sourceRows.Name,
-                       sourceRows.Score,
-                       RowNumber() over (partition by sourceRows.Team order by sourceRows.Score) as rn
-                from sourceRows
-                order by sourceRows.Team, sourceRows.Score",
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with sourceRows as (\n"
+                + "                    select d.Team as Team, d.Name as Name, d.Score as Score\n"
+                + "                    from #dynamic.all() d\n"
+                + "                )\n"
+                + "                select sourceRows.Team,\n"
+                + "                       sourceRows.Name,\n"
+                + "                       sourceRows.Score,\n"
+                + "                       RowNumber() over (partition by sourceRows.Team order by sourceRows.Score) as rn\n"
+                + "                from sourceRows\n"
+                + "                order by sourceRows.Team, sourceRows.Score"
+            ),
             CreateDynamicRowsSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -467,41 +580,52 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForDynamicRowNumberWindowInsideCte_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect(@"
-                with rankedRows as (
-                    select d.Team as Team,
-                           d.Name as Name,
-                           d.Score as Score,
-                           RowNumber() over (partition by d.Team order by d.Score) as rn
-                    from #dynamic.all() d
-                )
-                select rankedRows.Team, rankedRows.Name, rankedRows.Score, rankedRows.rn
-                from rankedRows",
+        var result = Inspect(
+            (
+                "\n"
+                + "                with rankedRows as (\n"
+                + "                    select d.Team as Team,\n"
+                + "                           d.Name as Name,\n"
+                + "                           d.Score as Score,\n"
+                + "                           RowNumber() over (partition by d.Team order by d.Score) as rn\n"
+                + "                    from #dynamic.all() d\n"
+                + "                )\n"
+                + "                select rankedRows.Team, rankedRows.Name, rankedRows.Score, rankedRows.rn\n"
+                + "                from rankedRows"
+            ),
             CreateDynamicRowsSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         AssertExecutionPlanContains("MaterializeChunked [dRows -> windowRows]", result.ExecutionPlanText);
-        AssertExecutionPlanContains("ComputeRowNumberWindow [rowNumbers <- windowRows partition by d.Team order by d.Score ASC]", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "ComputeRowNumberWindow [rowNumbers <- windowRows partition by d.Team order by d.Score ASC]",
+            result.ExecutionPlanText
+        );
         Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForDynamicRowNumberWindowInsideCte_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(@"
-                with rankedRows as (
-                    select d.Team as Team,
-                           d.Name as Name,
-                           d.Score as Score,
-                           RowNumber() over (partition by d.Team order by d.Score) as rn
-                    from #dynamic.all() d
-                )
-                select rankedRows.Team, rankedRows.Name, rankedRows.Score, rankedRows.rn
-                from rankedRows
-                order by rankedRows.Team, rankedRows.Score",
+        var compiled = CompileForExecution(
+            (
+                "\n"
+                + "                with rankedRows as (\n"
+                + "                    select d.Team as Team,\n"
+                + "                           d.Name as Name,\n"
+                + "                           d.Score as Score,\n"
+                + "                           RowNumber() over (partition by d.Team order by d.Score) as rn\n"
+                + "                    from #dynamic.all() d\n"
+                + "                )\n"
+                + "                select rankedRows.Team, rankedRows.Name, rankedRows.Score, rankedRows.rn\n"
+                + "                from rankedRows\n"
+                + "                order by rankedRows.Team, rankedRows.Score"
+            ),
             CreateDynamicRowsSchemaProvider(),
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -523,20 +647,27 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForJoinedRowNumberWindow_ShouldEmitExecutionIrWindowPlan()
     {
-        var result = Inspect("select d.Dummy, e.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
-            new CompilationOptions());
+        var result = Inspect(
+            "select d.Dummy, e.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
+            new CompilationOptions()
+        );
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("StoreTable [statement0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
         Assert.Contains("Materialize [_cteRowResults.Slot0 -> resultWindowRows]", result.ExecutionPlanText);
-        Assert.Contains("ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by de.d.Dummy ASC]", result.ExecutionPlanText);
+        Assert.Contains(
+            "ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by de.d.Dummy ASC]",
+            result.ExecutionPlanText
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForJoinedRowNumberWindow_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution("select d.Dummy, e.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
-            new CompilationOptions());
+        var compiled = CompileForExecution(
+            "select d.Dummy, e.Dummy, RowNumber() over (order by d.Dummy) as rn from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy",
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -545,5 +676,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual("single", table[0].ReadValue(1));
         Assert.AreEqual(1L, table[0].ReadValue(2));
     }
-
 }

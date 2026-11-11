@@ -12,5 +12,5 @@ public enum SourceTransferCapabilities
     /// <summary>
     ///     The source can read portable logical scalar contracts directly into primitive query carriers.
     /// </summary>
-    LogicalScalarReads = 2
+    LogicalScalarReads = 2,
 }

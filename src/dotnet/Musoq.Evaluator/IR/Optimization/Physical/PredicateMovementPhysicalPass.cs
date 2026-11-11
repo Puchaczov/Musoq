@@ -3,9 +3,9 @@ using System.Linq;
 using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
-using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Rewriting;
 using AliasRefExtractor = Musoq.Evaluator.IR.Expressions.AliasRefExtractor;
 using ColumnRefExtractor = Musoq.Evaluator.IR.Expressions.ColumnRefExtractor;
@@ -24,7 +24,10 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
 
         return ReferenceEquals(plan, rewritten)
             ? OptimizationResult<PhysicalNode>.NoChange(plan, "No physical predicate movements were applied.")
-            : OptimizationResult<PhysicalNode>.Changed(rewritten, "Applied physical predicate movement filters to join inputs.");
+            : OptimizationResult<PhysicalNode>.Changed(
+                rewritten,
+                "Applied physical predicate movement filters to join inputs."
+            );
     }
 
     private static PhysicalNode Rewrite(PhysicalNode node)
@@ -37,10 +40,12 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
             var left = ApplyPredicates(Rewrite(join.Left), leftPredicates);
             var right = ApplyPredicates(Rewrite(join.Right), rightPredicates);
 
-            if (ReferenceEquals(left, join.Left) &&
-                ReferenceEquals(right, join.Right) &&
-                leftPredicates.Length == 0 &&
-                rightPredicates.Length == 0)
+            if (
+                ReferenceEquals(left, join.Left)
+                && ReferenceEquals(right, join.Right)
+                && leftPredicates.Length == 0
+                && rightPredicates.Length == 0
+            )
             {
                 return join;
             }
@@ -53,7 +58,8 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
                 join.LeftMovedPredicates,
                 join.RightMovedPredicates,
                 join.TieBreak,
-                join.WithOrdinality);
+                join.WithOrdinality
+            );
         }
 
         return PhysicalPlanRewriter.RewriteChildren(node, Rewrite);
@@ -75,26 +81,29 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
         {
             PhysicalFilterNode filter => new PhysicalFilterNode(
                 filter.Predicate,
-                ApplyPredicate(filter.Input, predicate)),
-            PhysicalSortNode sort => new PhysicalSortNode(
-                sort.Keys,
-                ApplyPredicate(sort.Input, predicate)),
+                ApplyPredicate(filter.Input, predicate)
+            ),
+            PhysicalSortNode sort => new PhysicalSortNode(sort.Keys, ApplyPredicate(sort.Input, predicate)),
             PhysicalProjectNode { IsDistinct: false } project
                 when ProjectPreservesPredicateColumns(project, predicate) => new PhysicalProjectNode(
-                    project.Fields,
-                    ApplyPredicate(project.Input, predicate)),
-            _ => new PhysicalFilterNode(predicate, input)
+                project.Fields,
+                ApplyPredicate(project.Input, predicate)
+            ),
+            _ => new PhysicalFilterNode(predicate, input),
         };
     }
 
     private static (IrExpression[] Left, IrExpression[] Right) DiscoverLocalInnerJoinPredicates(
-        PhysicalJoinCandidateNode join)
+        PhysicalJoinCandidateNode join
+    )
     {
         if (join.Kind != JoinKind.Inner)
             return ([], []);
 
         var existingLeft = join.LeftMovedPredicates.Select(IrExpressionPrinter.Print).ToHashSet(StringComparer.Ordinal);
-        var existingRight = join.RightMovedPredicates.Select(IrExpressionPrinter.Print).ToHashSet(StringComparer.Ordinal);
+        var existingRight = join
+            .RightMovedPredicates.Select(IrExpressionPrinter.Print)
+            .ToHashSet(StringComparer.Ordinal);
         var left = new List<IrExpression>();
         var right = new List<IrExpression>();
 
@@ -108,15 +117,19 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
                 continue;
 
             var predicateText = IrExpressionPrinter.Print(predicate);
-            if (ProducesAlias(join.Left, aliases[0]) &&
-                CanPushDiscoveredPredicate(join.Left, predicate) &&
-                !existingLeft.Contains(predicateText))
+            if (
+                ProducesAlias(join.Left, aliases[0])
+                && CanPushDiscoveredPredicate(join.Left, predicate)
+                && !existingLeft.Contains(predicateText)
+            )
             {
                 left.Add(predicate);
             }
-            else if (ProducesAlias(join.Right, aliases[0]) &&
-                     CanPushDiscoveredPredicate(join.Right, predicate) &&
-                     !existingRight.Contains(predicateText))
+            else if (
+                ProducesAlias(join.Right, aliases[0])
+                && CanPushDiscoveredPredicate(join.Right, predicate)
+                && !existingRight.Contains(predicateText)
+            )
             {
                 right.Add(predicate);
             }
@@ -127,7 +140,8 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
 
     private static IrExpression[] MergePredicates(
         IReadOnlyList<IrExpression> existing,
-        IReadOnlyList<IrExpression> discovered)
+        IReadOnlyList<IrExpression> discovered
+    )
     {
         if (discovered.Count == 0)
             return existing.ToArray();
@@ -162,18 +176,16 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
     private static bool ProjectPreservesPredicateColumns(PhysicalProjectNode project, IrExpression predicate)
     {
         var refs = ColumnRefExtractor.Extract(predicate);
-        return refs.Count > 0 &&
-               refs.All(column => ProjectPreservesColumn(project.Fields, column));
+        return refs.Count > 0 && refs.All(column => ProjectPreservesColumn(project.Fields, column));
     }
 
-    private static bool ProjectPreservesColumn(
-        IReadOnlyList<ProjectedField> fields,
-        ColumnRef column)
+    private static bool ProjectPreservesColumn(IReadOnlyList<ProjectedField> fields, ColumnRef column)
     {
         return fields.Any(field =>
-            field.Expression is ColumnRef projected &&
-            string.Equals(projected.Alias, column.Alias, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(projected.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase));
+            field.Expression is ColumnRef projected
+            && string.Equals(projected.Alias, column.Alias, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(projected.ColumnName, column.ColumnName, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     private static bool ProducesAlias(PhysicalNode node, string alias)
@@ -184,7 +196,7 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
             PhysicalCteRefNode cteRef => string.Equals(cteRef.Alias, alias, StringComparison.OrdinalIgnoreCase),
             PhysicalValuesScanNode values => string.Equals(values.Alias, alias, StringComparison.OrdinalIgnoreCase),
             PhysicalUnpivotNode unpivot => string.Equals(unpivot.Alias, alias, StringComparison.OrdinalIgnoreCase),
-            _ => node.Children.Any(child => ProducesAlias(child, alias))
+            _ => node.Children.Any(child => ProducesAlias(child, alias)),
         };
     }
 
@@ -196,16 +208,17 @@ internal sealed class PredicateMovementPhysicalPass : IPhysicalOptimizationPass
             PhysicalFilterNode filter => CanPushDiscoveredPredicate(filter.Input, predicate),
             PhysicalSortNode sort => CanPushDiscoveredPredicate(sort.Input, predicate),
             PhysicalProjectNode { IsDistinct: false } project
-                when ProjectPreservesPredicateColumns(project, predicate) =>
-                CanPushDiscoveredPredicate(project.Input, predicate),
-            _ => false
+                when ProjectPreservesPredicateColumns(project, predicate) => CanPushDiscoveredPredicate(
+                project.Input,
+                predicate
+            ),
+            _ => false,
         };
     }
 
     private static bool IsMovablePredicate(IrExpression expression)
     {
-        return IrExpressionNullSemantics.IsBoolean(expression.ReturnType) &&
-               IsDeterministicExpression(expression);
+        return IrExpressionNullSemantics.IsBoolean(expression.ReturnType) && IsDeterministicExpression(expression);
     }
 
     private static bool IsDeterministicExpression(IrExpression expression)

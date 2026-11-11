@@ -59,8 +59,12 @@ public partial class LibraryBase
     /// <returns>True if matches, otherwise false</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
-    public bool HasWordThatHasSmallerLevenshteinDistanceThan(string text, string word, int distance,
-        string separator = " ")
+    public bool HasWordThatHasSmallerLevenshteinDistanceThan(
+        string text,
+        string word,
+        int distance,
+        string separator = " "
+    )
     {
         ArgumentNullException.ThrowIfNull(separator);
         if (string.IsNullOrEmpty(word))

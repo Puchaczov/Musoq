@@ -28,10 +28,12 @@ public sealed class ParamsAliasParserTests
     [TestMethod]
     public void ParamsAlias_ShouldPreserveCanonicalAstIdentityAndRendering()
     {
-        var canonical = GetParameterBlock(Parse(
-            "param(author: string, limit: int = 100, since: datetime? = null) select $author from #test.rows()"));
-        var alias = GetParameterBlock(Parse(
-            "params(author: string, limit: int = 100, since: datetime? = null) select $author from #test.rows()"));
+        var canonical = GetParameterBlock(
+            Parse("param(author: string, limit: int = 100, since: datetime? = null) select $author from #test.rows()")
+        );
+        var alias = GetParameterBlock(
+            Parse("params(author: string, limit: int = 100, since: datetime? = null) select $author from #test.rows()")
+        );
 
         Assert.AreEqual(canonical.Id, alias.Id);
         Assert.AreEqual(canonical.ToString(), alias.ToString());
@@ -46,8 +48,9 @@ public sealed class ParamsAliasParserTests
     public void ParamsAlias_ShouldSupportEmptyAndComplexDeclarations()
     {
         var empty = GetParameterBlock(Parse("params() select 1 from #test.rows()"));
-        var complex = GetParameterBlock(Parse(
-            "params ( ids: int[], optional: string? = null ); select 1 from #test.rows()"));
+        var complex = GetParameterBlock(
+            Parse("params ( ids: int[], optional: string? = null ); select 1 from #test.rows()")
+        );
 
         Assert.IsEmpty(empty.Parameters);
         Assert.HasCount(2, complex.Parameters);
@@ -61,14 +64,17 @@ public sealed class ParamsAliasParserTests
     [DataRow(
         "params(string author) select 1 from #test.rows()",
         DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration,
-        DisplayName = "C# style parameter")]
+        DisplayName = "C# style parameter"
+    )]
     [DataRow(
         "params([string]$author) select 1 from #test.rows()",
         DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax,
-        DisplayName = "PowerShell style parameter")]
+        DisplayName = "PowerShell style parameter"
+    )]
     public void ParamsAlias_MalformedDeclarations_ShouldKeepExistingDiagnostics(
         string query,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var result = ParseWithDiagnostics(query);
 

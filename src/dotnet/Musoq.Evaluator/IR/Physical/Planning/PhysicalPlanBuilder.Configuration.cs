@@ -11,18 +11,19 @@ public sealed partial class PhysicalPlanBuilder
     private readonly IReadOnlyDictionary<string, SourceTransferStrategyPlan> _sourceTransferPlans;
 
     public PhysicalPlanBuilder()
-        : this(null, null, null, null)
-    { }
+        : this(null, null, null, null) { }
 
     internal PhysicalPlanBuilder(
         IReadOnlyList<PredicateMovementPlan>? predicateMovementPlans,
         PhysicalStrategyPlan? strategyPlan,
         IReadOnlyDictionary<string, SourceTransferStrategyPlan>? sourceTransferPlans = null,
-        IReadOnlyList<ApplyPredicateMovementPlan>? applyPredicateMovementPlans = null)
+        IReadOnlyList<ApplyPredicateMovementPlan>? applyPredicateMovementPlans = null
+    )
     {
         _predicateMovementsByJoin = CreatePredicateMovementsByJoin(predicateMovementPlans);
         _applyPredicateMovementsByApply = CreateApplyPredicateMovementsByApply(applyPredicateMovementPlans);
         _strategyPlan = strategyPlan;
-        _sourceTransferPlans = sourceTransferPlans ?? new Dictionary<string, SourceTransferStrategyPlan>(StringComparer.Ordinal);
+        _sourceTransferPlans =
+            sourceTransferPlans ?? new Dictionary<string, SourceTransferStrategyPlan>(StringComparer.Ordinal);
     }
 }

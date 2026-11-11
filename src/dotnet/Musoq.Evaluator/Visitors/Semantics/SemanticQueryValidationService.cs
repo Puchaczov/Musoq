@@ -9,7 +9,8 @@ namespace Musoq.Evaluator.Visitors;
 
 internal sealed class SemanticQueryValidationService(
     SemanticDiagnosticReporter diagnosticReporter,
-    CompilationOptions? compilationOptions = null)
+    CompilationOptions? compilationOptions = null
+)
 {
     private readonly CompilationOptions _compilationOptions = compilationOptions ?? new CompilationOptions();
 
@@ -25,7 +26,8 @@ internal sealed class SemanticQueryValidationService(
         var message = SemanticExpressionDiagnosticFacts.CreateBooleanContextTypeMismatchMessage(
             expression,
             expressionType,
-            context);
+            context
+        );
 
         if (diagnosticReporter.TryReportTypeMismatch(message, expression))
             return;
@@ -33,7 +35,8 @@ internal sealed class SemanticQueryValidationService(
         throw new TypeMismatchException(
             typeof(bool),
             expressionType,
-            expression.HasSpan ? expression.Span : TextSpan.Empty);
+            expression.HasSpan ? expression.Span : TextSpan.Empty
+        );
     }
 
     public void ValidateSelectFieldsArePrimitive(FieldNode[] fields, string context)
@@ -73,7 +76,8 @@ internal sealed class SemanticQueryValidationService(
     {
         var groupByExpressionStrings = new HashSet<string>(
             groupBy.Fields.Select(f => f.Expression.ToString()),
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
 
         var groupByColumnNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var field in groupBy.Fields)
@@ -100,25 +104,17 @@ internal sealed class SemanticQueryValidationService(
             nonAggregatedFields.Add((field, nonGroupedColumns[0]));
         }
 
-        var groupByNames = groupBy.Fields
-            .Select(f => f.Expression.ToString())
-            .ToArray();
-        var groupByFields = groupBy.Fields
-            .Select(field => (field.Expression, GetExpressionSpan(field.Expression)))
+        var groupByNames = groupBy.Fields.Select(f => f.Expression.ToString()).ToArray();
+        var groupByFields = groupBy
+            .Fields.Select(field => (field.Expression, GetExpressionSpan(field.Expression)))
             .ToArray();
 
         foreach (var (field, columnName) in nonAggregatedFields)
         {
-
-            if (diagnosticReporter.TryReportNonAggregatedColumnInSelect(
-                    columnName,
-                    groupByNames,
-                    groupByFields,
-                    field))
+            if (diagnosticReporter.TryReportNonAggregatedColumnInSelect(columnName, groupByNames, groupByFields, field))
                 continue;
 
-            throw new NonAggregatedColumnInSelectException(columnName, groupByNames,
-                field.SpanOrEmpty());
+            throw new NonAggregatedColumnInSelectException(columnName, groupByNames, field.SpanOrEmpty());
         }
     }
 
@@ -127,7 +123,8 @@ internal sealed class SemanticQueryValidationService(
         if (expression.HasSpan)
             return expression.Span;
 
-        var childSpans = ParserNodeTraversalRegistry.EnumerateChildren(expression)
+        var childSpans = ParserNodeTraversalRegistry
+            .EnumerateChildren(expression)
             .Select(GetExpressionSpan)
             .Where(static span => !span.IsEmpty)
             .ToArray();

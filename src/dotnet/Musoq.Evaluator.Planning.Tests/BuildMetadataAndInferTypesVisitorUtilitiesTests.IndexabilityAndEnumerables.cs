@@ -12,9 +12,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var arrayType = typeof(int[]);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(arrayType);
-
 
         Assert.IsFalse(result);
     }
@@ -24,9 +22,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var stringType = typeof(string);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(stringType);
-
 
         Assert.IsTrue(result);
     }
@@ -36,9 +32,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var listType = typeof(List<int>);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(listType);
-
 
         Assert.IsTrue(result);
     }
@@ -48,9 +42,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var intType = typeof(int);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(intType);
-
 
         Assert.IsFalse(result);
     }
@@ -60,7 +52,6 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var result = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(null);
 
-
         Assert.IsFalse(result);
     }
 
@@ -69,9 +60,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var arrayType = typeof(int[]);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(arrayType);
-
 
         Assert.IsTrue(result);
     }
@@ -81,9 +70,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var stringType = typeof(string);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(stringType);
-
 
         Assert.IsTrue(result);
     }
@@ -93,9 +80,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var intType = typeof(int);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(intType);
-
 
         Assert.IsFalse(result);
     }
@@ -105,9 +90,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var intType = typeof(int);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(intType);
-
 
         Assert.IsTrue(result);
     }
@@ -117,9 +100,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var stringType = typeof(string);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(stringType);
-
 
         Assert.IsTrue(result);
     }
@@ -129,9 +110,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var decimalType = typeof(decimal);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(decimalType);
-
 
         Assert.IsTrue(result);
     }
@@ -141,9 +120,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var dateTimeType = typeof(DateTime);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(dateTimeType);
-
 
         Assert.IsTrue(result);
     }
@@ -153,9 +130,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var complexType = typeof(List<int>);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(complexType);
-
 
         Assert.IsFalse(result);
     }
@@ -165,9 +140,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var listType = typeof(List<string>);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsGenericEnumerable(listType, out var elementType);
-
 
         Assert.IsTrue(result);
         Assert.AreEqual(typeof(string), elementType);
@@ -178,9 +151,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var intType = typeof(int);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsGenericEnumerable(intType, out var elementType);
-
 
         Assert.IsFalse(result);
         Assert.IsNull(elementType);
@@ -191,9 +162,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var arrayType = typeof(string[]);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsArray(arrayType, out var elementType);
-
 
         Assert.IsTrue(result);
         Assert.AreEqual(typeof(string), elementType);
@@ -204,9 +173,7 @@ public partial class BuildMetadataAndInferTypesVisitorUtilitiesTests
     {
         var listType = typeof(List<string>);
 
-
         var result = BuildMetadataAndInferTypesVisitorUtilities.IsArray(listType, out var elementType);
-
 
         Assert.IsFalse(result);
         Assert.IsNull(elementType);

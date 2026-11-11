@@ -5,7 +5,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class SubqueryInputBinding
 {
-    internal static LoweringAttempt<ExecutionExpression> Convert(SubqueryExpression query, Func<IrExpression, LoweringAttempt<ExecutionExpression>> convert)
+    internal static LoweringAttempt<ExecutionExpression> Convert(
+        SubqueryExpression query,
+        Func<IrExpression, LoweringAttempt<ExecutionExpression>> convert
+    )
     {
         var bindings = new List<ExecutionExpression>();
         foreach (var binding in query.Bindings)

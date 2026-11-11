@@ -10,7 +10,8 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax CreateOrderedRowsExpression(
         ExecutionVariable source,
         IReadOnlyList<ExecutionOrderField> keys,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         return CreateOrderedRowsExpression(source, keys, context, null);
     }
@@ -19,22 +20,27 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable source,
         IReadOnlyList<ExecutionOrderField> keys,
         ExecutionRenderContext context,
-        GeneratedRowShape? generatedRowShape)
+        GeneratedRowShape? generatedRowShape
+    )
     {
         if (generatedRowShape != null && CanUseGeneratedRowOrderComparer(keys, generatedRowShape))
             return CreateGeneratedRowOrderedRowsExpression(source, keys, generatedRowShape, context);
 
-        if (HasExplicitNullOrdering(keys)) return CreateExplicitNullOrderedRowsExpression(source, keys, context);
+        if (HasExplicitNullOrdering(keys))
+            return CreateExplicitNullOrderedRowsExpression(source, keys, context);
         ExpressionSyntax orderedRows = CreateRowsRead(source, context);
 
         for (var index = 0; index < keys.Count; index++)
         {
             var methodName = CreateOrderMethodName(keys[index], index == 0);
-            orderedRows = SyntaxFactory.InvocationExpression(
+            orderedRows = SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         orderedRows,
-                        SyntaxFactory.IdentifierName(methodName)))
+                        SyntaxFactory.IdentifierName(methodName)
+                    )
+                )
                 .WithArgumentList(CreateOrderArgumentList(keys[index], generatedRowShape));
         }
 
@@ -45,24 +51,33 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable source,
         IReadOnlyList<ExecutionOrderField> keys,
         GeneratedRowShape generatedRowShape,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var rows = TryGetTypedRowBufferShape(source.Name, context, out _)
             ? CreateRowsRead(source, context)
-            : SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
-                    nameof(EvaluationHelper.CastGeneratedRows),
-                    generatedRowShape.TypeName))
+            : SyntaxFactory
+                .InvocationExpression(
+                    CreateGenericEvaluationHelperMemberAccess(
+                        nameof(EvaluationHelper.CastGeneratedRows),
+                        generatedRowShape.TypeName
+                    )
+                )
                 .WithArgumentList(CreateArgumentList(CreateTableRowsRead(source.Name)));
         var comparer = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(CreateGeneratedRowOrderComparerTypeName(generatedRowShape, keys)),
-            SyntaxFactory.IdentifierName("Instance"));
+            SyntaxFactory.IdentifierName("Instance")
+        );
 
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     rows,
-                    SyntaxFactory.IdentifierName("OrderBy")))
+                    SyntaxFactory.IdentifierName("OrderBy")
+                )
+            )
             .WithArgumentList(CreateArgumentList(CreateIdentitySelector(), comparer));
     }
 
@@ -70,14 +85,21 @@ public sealed partial class ExecutionCSharpRenderer
     {
         const string rowVariableName = "row";
 
-        return SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.IdentifierName(rowVariableName))
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier(rowVariableName)))));
+        return SyntaxFactory
+            .ParenthesizedLambdaExpression(SyntaxFactory.IdentifierName(rowVariableName))
+            .WithParameterList(
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier(rowVariableName))
+                    )
+                )
+            );
     }
 
     private static ArgumentListSyntax CreateOrderArgumentList(
         ExecutionOrderField key,
-        GeneratedRowShape? generatedRowShape = null)
+        GeneratedRowShape? generatedRowShape = null
+    )
     {
         var selector = CreateOrderKeySelector(key, generatedRowShape);
         if (key.Type.RequireClrType() != typeof(string))
@@ -91,7 +113,8 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(nameof(StringComparer)),
-            SyntaxFactory.IdentifierName(nameof(StringComparer.Ordinal)));
+            SyntaxFactory.IdentifierName(nameof(StringComparer.Ordinal))
+        );
     }
 
     private static string CreateOrderMethodName(ExecutionOrderField key, bool firstKey)
@@ -101,31 +124,33 @@ public sealed partial class ExecutionCSharpRenderer
             (true, true) => "OrderByDescending",
             (true, false) => "OrderBy",
             (false, true) => "ThenByDescending",
-            _ => "ThenBy"
+            _ => "ThenBy",
         };
     }
 
     private static ParenthesizedLambdaExpressionSyntax CreateOrderKeySelector(
         ExecutionOrderField key,
-        GeneratedRowShape? generatedRowShape = null)
+        GeneratedRowShape? generatedRowShape = null
+    )
     {
         const string rowVariableName = "row";
         ExpressionSyntax keyExpression;
 
-        if (generatedRowShape != null &&
-            key.OutputIndex >= 0 &&
-            key.OutputIndex < generatedRowShape.Fields.Count)
+        if (generatedRowShape != null && key.OutputIndex >= 0 && key.OutputIndex < generatedRowShape.Fields.Count)
         {
             var field = generatedRowShape.Fields[key.OutputIndex];
             var generatedRow = SyntaxFactory.ParenthesizedExpression(
                 SyntaxFactory.CastExpression(
                     SyntaxFactory.IdentifierName(generatedRowShape.TypeName),
-                    SyntaxFactory.IdentifierName(rowVariableName)));
+                    SyntaxFactory.IdentifierName(rowVariableName)
+                )
+            );
 
             keyExpression = SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 generatedRow,
-                CreateIdentifierName(GetGeneratedFieldName(field)));
+                CreateIdentifierName(GetGeneratedFieldName(field))
+            );
 
             if (field.Type != key.Type && key.Type.RequireClrType() != typeof(object))
                 keyExpression = SyntaxFactory.CastExpression(CreateTypeSyntax(key.Type), keyExpression);
@@ -134,12 +159,21 @@ public sealed partial class ExecutionCSharpRenderer
         {
             if (key.Type.RequireClrType() == typeof(object))
                 throw new InvalidOperationException("Native ordering requires a concrete key type.");
-            keyExpression = CreateNativeRowValueRead(SyntaxFactory.IdentifierName(rowVariableName),
-                key.OutputIndex, CreateTypeSyntax(key.Type));
+            keyExpression = CreateNativeRowValueRead(
+                SyntaxFactory.IdentifierName(rowVariableName),
+                key.OutputIndex,
+                CreateTypeSyntax(key.Type)
+            );
         }
 
-        return SyntaxFactory.ParenthesizedLambdaExpression(keyExpression)
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier(rowVariableName)))));
+        return SyntaxFactory
+            .ParenthesizedLambdaExpression(keyExpression)
+            .WithParameterList(
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier(rowVariableName))
+                    )
+                )
+            );
     }
 }

@@ -177,7 +177,12 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(bool? value) => value.HasValue ? value.Value ? 1d : 0d : null;
+    public double? ToDouble(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? 1d
+                : 0d
+            : null;
 
     /// <summary>
     ///     Converts given value to double

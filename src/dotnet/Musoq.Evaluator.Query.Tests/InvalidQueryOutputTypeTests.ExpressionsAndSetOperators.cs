@@ -12,7 +12,7 @@ public partial class InvalidQueryOutputTypeTests
         var query = "select Name from #A.Entities() skip 1";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("a"), new BasicEntity("b")] }
+            { "#A", [new BasicEntity("a"), new BasicEntity("b")] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -29,7 +29,7 @@ public partial class InvalidQueryOutputTypeTests
         var query = "select Name from #A.Entities() take 1";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("a"), new BasicEntity("b")] }
+            { "#A", [new BasicEntity("a"), new BasicEntity("b")] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -46,7 +46,7 @@ public partial class InvalidQueryOutputTypeTests
         var query = "select Name from #A.Entities() skip 1 take 1";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("a"), new BasicEntity("b"), new BasicEntity("c")] }
+            { "#A", [new BasicEntity("a"), new BasicEntity("b"), new BasicEntity("c")] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -57,15 +57,13 @@ public partial class InvalidQueryOutputTypeTests
         Assert.IsTrue(name == "a" || name == "b" || name == "c", "Result should be one of the input values");
     }
 
-
-
     [TestMethod]
     public void WhenArithmeticExpressionWithPrimitives_ShouldSucceed()
     {
         var query = "select Population + 100, Population * 2 from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city1", "country1", 1000)] }
+            { "#A", [new BasicEntity("city1", "country1", 1000)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -82,7 +80,7 @@ public partial class InvalidQueryOutputTypeTests
         var query = "select City + ' - ' + Country from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city1", "country1", 1000)] }
+            { "#A", [new BasicEntity("city1", "country1", 1000)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -98,7 +96,7 @@ public partial class InvalidQueryOutputTypeTests
         var query = "select case when Population > 500 then 'Large' else 'Small' end from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city1", "country1", 1000)] }
+            { "#A", [new BasicEntity("city1", "country1", 1000)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -112,10 +110,7 @@ public partial class InvalidQueryOutputTypeTests
     public void WhenCoalesceWithPrimitives_ShouldSucceed()
     {
         var query = "select Coalesce(NullableValue, 0) from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -123,15 +118,13 @@ public partial class InvalidQueryOutputTypeTests
         Assert.AreEqual(1, table.Count);
     }
 
-
-
     [TestMethod]
     public void WhenCountAggregation_ShouldSucceed()
     {
         var query = "select Count(Name) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("a"), new BasicEntity("b")] }
+            { "#A", [new BasicEntity("a"), new BasicEntity("b")] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -147,7 +140,7 @@ public partial class InvalidQueryOutputTypeTests
         var query = "select Sum(Population) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city1", "country1", 100), new BasicEntity("city2", "country2", 200)] }
+            { "#A", [new BasicEntity("city1", "country1", 100), new BasicEntity("city2", "country2", 200)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -163,7 +156,7 @@ public partial class InvalidQueryOutputTypeTests
         var query = "select Avg(Population) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city1", "country1", 100), new BasicEntity("city2", "country2", 200)] }
+            { "#A", [new BasicEntity("city1", "country1", 100), new BasicEntity("city2", "country2", 200)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -179,7 +172,7 @@ public partial class InvalidQueryOutputTypeTests
         var query = "select Min(Population), Max(Population) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city1", "country1", 100), new BasicEntity("city2", "country2", 200)] }
+            { "#A", [new BasicEntity("city1", "country1", 100), new BasicEntity("city2", "country2", 200)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -190,16 +183,11 @@ public partial class InvalidQueryOutputTypeTests
         Assert.AreEqual(200m, table[0].ReadValue(1));
     }
 
-
-
     [TestMethod]
     public void WhenUnionWithPrimitiveTypes_ShouldSucceed()
     {
         var query = @"select Name from #A.Entities() union (Name) select Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -211,10 +199,7 @@ public partial class InvalidQueryOutputTypeTests
     public void WhenUnionAllWithPrimitiveTypes_ShouldSucceed()
     {
         var query = @"select Name from #A.Entities() union all (Name) select Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("test")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
         var table = vm.Run(TokenSource.Token);
@@ -229,7 +214,7 @@ public partial class InvalidQueryOutputTypeTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("a"), new BasicEntity("b")] },
-            { "#B", [new BasicEntity("b")] }
+            { "#B", [new BasicEntity("b")] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -246,7 +231,7 @@ public partial class InvalidQueryOutputTypeTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("a"), new BasicEntity("b")] },
-            { "#B", [new BasicEntity("b"), new BasicEntity("c")] }
+            { "#B", [new BasicEntity("b"), new BasicEntity("c")] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -256,19 +241,19 @@ public partial class InvalidQueryOutputTypeTests
         Assert.AreEqual("b", table[0].ReadValue(0));
     }
 
-
-
     [TestMethod]
     public void WhenCteWithAggregation_ShouldSucceed()
     {
-        var query = @"
-with totals as (
-    select City, Sum(Population) as TotalPop from #A.Entities() group by City
-)
-select City, TotalPop from totals";
+        var query = (
+            "\n"
+            + "with totals as (\n"
+            + "    select City, Sum(Population) as TotalPop from #A.Entities() group by City\n"
+            + ")\n"
+            + "select City, TotalPop from totals"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city1", "country1", 1000), new BasicEntity("city1", "country2", 500)] }
+            { "#A", [new BasicEntity("city1", "country1", 1000), new BasicEntity("city1", "country2", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -281,17 +266,19 @@ select City, TotalPop from totals";
     [TestMethod]
     public void WhenMultipleCteWithPrimitiveTypes_ShouldSucceed()
     {
-        var query = @"
-with cte1 as (
-    select Name, City from #A.Entities()
-),
-cte2 as (
-    select Name, City from cte1
-)
-select Name, City from cte2";
+        var query = (
+            "\n"
+            + "with cte1 as (\n"
+            + "    select Name, City from #A.Entities()\n"
+            + "),\n"
+            + "cte2 as (\n"
+            + "    select Name, City from cte1\n"
+            + ")\n"
+            + "select Name, City from cte2"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city1", "country1", 1000)] }
+            { "#A", [new BasicEntity("city1", "country1", 1000)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -300,8 +287,6 @@ select Name, City from cte2";
         Assert.AreEqual(1, table.Count);
     }
 
-
-
     [TestMethod]
     public void WhenInnerJoinWithPrimitiveColumns_ShouldSucceed()
     {
@@ -309,7 +294,7 @@ select Name, City from cte2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("city1", "country1", 1000)] },
-            { "#B", [new BasicEntity("city1", "country2", 500)] }
+            { "#B", [new BasicEntity("city1", "country2", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -325,7 +310,7 @@ select Name, City from cte2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("city1", "country1", 1000)] },
-            { "#B", [new BasicEntity("city2", "country2", 500)] }
+            { "#B", [new BasicEntity("city2", "country2", 500)] },
         };
 
         var vm = CreateAndRunVirtualMachineWithValidation(query, sources);
@@ -334,11 +319,6 @@ select Name, City from cte2";
         Assert.AreEqual(1, table.Count);
     }
 
-
-
     // Note: Subqueries in WHERE are not supported in Musoq.
     // This region is reserved for future subquery support tests.
-
-
-
 }

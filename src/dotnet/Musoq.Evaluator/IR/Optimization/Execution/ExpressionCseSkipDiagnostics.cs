@@ -14,8 +14,10 @@ internal static class ExpressionCseSkipDiagnostics
             nodes.Sum(GetProbePredicateGroups),
             0,
             nodes.Sum(GetWindowHelperBodyGroups),
-            nodes.OfType<ExecutionForEachIndexed>()
-                .Sum(static node => CountRepeatedGroups(GetUnsupportedScopeExpressions(node.Body))));
+            nodes
+                .OfType<ExecutionForEachIndexed>()
+                .Sum(static node => CountRepeatedGroups(GetUnsupportedScopeExpressions(node.Body)))
+        );
     }
 
     private static int GetHashKeyGroups(ExecutionNode node)
@@ -31,9 +33,7 @@ internal static class ExpressionCseSkipDiagnostics
     private static int GetWindowHelperBodyGroups(ExecutionNode node)
     {
         var expressions = ExecutionExpressionCseFacts.GetWindowHelperExpressions(node);
-        return expressions.Count == 0
-            ? 0
-            : CountWindowRepeatedGroups(expressions);
+        return expressions.Count == 0 ? 0 : CountWindowRepeatedGroups(expressions);
     }
 
     private static int CountWindowRepeatedGroups(IEnumerable<ExecutionExpression> expressions)
@@ -64,4 +64,3 @@ internal static class ExpressionCseSkipDiagnostics
             .Count(static group => group.Count() > 1 && group.Any(static occurrence => occurrence.IsSafeOrigin));
     }
 }
-

@@ -12,15 +12,17 @@ public class TextEntity
     {
         { nameof(Name), 0 },
         { nameof(Text), 1 },
-        { nameof(Line), 1 } // Alias for Text
+        { nameof(Line), 1 }, // Alias for Text
     };
 
-    public static readonly IReadOnlyDictionary<int, Func<TextEntity, object?>> IndexToObjectAccessMap =
-        new Dictionary<int, Func<TextEntity, object?>>
-        {
-            { 0, e => e.Name },
-            { 1, e => e.Text }
-        };
+    public static readonly IReadOnlyDictionary<int, Func<TextEntity, object?>> IndexToObjectAccessMap = new Dictionary<
+        int,
+        Func<TextEntity, object?>
+    >
+    {
+        { 0, e => e.Name },
+        { 1, e => e.Text },
+    };
 
     public string Name { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;

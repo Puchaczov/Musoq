@@ -11,46 +11,42 @@ internal sealed class CteSidecarStoragePlanner(bool useCteSidecarIndexes)
         IReadOnlyDictionary<string, CteReferenceClassification> classifications,
         bool resultSupported,
         IReadOnlyList<ExecutionNode> resultNodes,
-        string rowTypeName)
+        string rowTypeName
+    )
     {
-        if (!useCteSidecarIndexes ||
-            sidecarSpecs.Count == 0 ||
-            !resultSupported ||
-            !classifications.TryGetValue(definitionName, out var classification) ||
-            classification.ReferenceCount != sidecarSpecs.Count ||
-            !ContainsAllStoredCteIndexes(resultNodes, sidecarSpecs) ||
-            ContainsSideEffectSensitiveSiblingExpression(resultNodes))
+        if (
+            !useCteSidecarIndexes
+            || sidecarSpecs.Count == 0
+            || !resultSupported
+            || !classifications.TryGetValue(definitionName, out var classification)
+            || classification.ReferenceCount != sidecarSpecs.Count
+            || !ContainsAllStoredCteIndexes(resultNodes, sidecarSpecs)
+            || ContainsSideEffectSensitiveSiblingExpression(resultNodes)
+        )
         {
             return new CteSidecarStorageDecision(StoreRows: true, KeepPayloadRows: true);
         }
 
         return new CteSidecarStorageDecision(
             StoreRows: false,
-            KeepPayloadRows: ContainsHashSidecarRowPayload(resultNodes, rowTypeName));
+            KeepPayloadRows: ContainsHashSidecarRowPayload(resultNodes, rowTypeName)
+        );
     }
 
     public IReadOnlyList<ExecutionNode> ApplyIndexOnlyStorage(
         string tableName,
         string rowTypeName,
         IReadOnlyList<ExecutionNode> nodes,
-        CteSidecarStorageDecision decision)
+        CteSidecarStorageDecision decision
+    )
     {
         if (decision.StoreRows)
             return nodes;
 
-        return
-        [
-            new ExecutionCteIndexOnlyStorageCandidate(
-                tableName,
-                rowTypeName,
-                decision.KeepPayloadRows),
-            ..nodes
-        ];
+        return [new ExecutionCteIndexOnlyStorageCandidate(tableName, rowTypeName, decision.KeepPayloadRows), .. nodes];
     }
 
-    private static bool ContainsHashSidecarRowPayload(
-        IReadOnlyList<ExecutionNode> nodes,
-        string rowTypeName)
+    private static bool ContainsHashSidecarRowPayload(IReadOnlyList<ExecutionNode> nodes, string rowTypeName)
     {
         return ExecutionIrAnalysis
             .FlattenNodes(new ExecutionBlock(nodes))
@@ -60,14 +56,18 @@ internal sealed class CteSidecarStoragePlanner(bool useCteSidecarIndexes)
 
     private static bool ContainsAllStoredCteIndexes(
         IReadOnlyList<ExecutionNode> nodes,
-        IReadOnlyList<CteSidecarIndexSpec> sidecarSpecs)
+        IReadOnlyList<CteSidecarIndexSpec> sidecarSpecs
+    )
     {
-        var storedSlots = ExecutionIrAnalysis.FlattenNodes(new ExecutionBlock(nodes))
-            .Select(static node => node switch
-            {
-                ExecutionCteSidecarIndexStoreCandidate candidate => candidate.IndexSlot,
-                _ => -1
-            })
+        var storedSlots = ExecutionIrAnalysis
+            .FlattenNodes(new ExecutionBlock(nodes))
+            .Select(static node =>
+                node switch
+                {
+                    ExecutionCteSidecarIndexStoreCandidate candidate => candidate.IndexSlot,
+                    _ => -1,
+                }
+            )
             .Where(static slot => slot >= 0)
             .ToHashSet();
 

@@ -34,13 +34,14 @@ public sealed class FeatureCoverageBoundaryTests
     public void GenericInterpretationSchema_InSqlPipeline_ShouldReportUnsupportedSyntax()
     {
         var result = Analyze(
-            """
-            binary Data { Value: int le };
-            binary Wrapper<T> { Item: T };
-            select item.Item.Value
-            from #A.Entities() a
-            cross apply Interpret<Wrapper<Data>>(a.Name) item
-            """);
+            (
+                "binary Data { Value: int le };\n"
+                + "binary Wrapper<T> { Item: T };\n"
+                + "select item.Item.Value\n"
+                + "from #A.Entities() a\n"
+                + "cross apply Interpret<Wrapper<Data>>(a.Name) item"
+            )
+        );
 
         AssertPrimaryDiagnostic(result, DiagnosticCode.MQ2001_UnexpectedToken);
     }
@@ -49,11 +50,12 @@ public sealed class FeatureCoverageBoundaryTests
     public void AsOfRightJoin_ShouldReportUnsupportedSyntax()
     {
         var result = Analyze(
-            """
-            select a.Name
-            from #A.Entities() a
-            asof right join #A.Entities() b on a.Population >= b.Population
-            """);
+            (
+                "select a.Name\n"
+                + "from #A.Entities() a\n"
+                + "asof right join #A.Entities() b on a.Population >= b.Population"
+            )
+        );
 
         AssertPrimaryDiagnostic(result, DiagnosticCode.MQ2001_UnexpectedToken);
     }
@@ -62,9 +64,11 @@ public sealed class FeatureCoverageBoundaryTests
     public void GroupsAndExcludeFrames_ShouldReportUnsupportedSyntax()
     {
         var groups = Analyze(
-            "select Sum(Population) over (order by Population groups between current row and current row) from #A.Entities()");
+            "select Sum(Population) over (order by Population groups between current row and current row) from #A.Entities()"
+        );
         var exclude = Analyze(
-            "select Sum(Population) over (order by Population rows between current row and current row exclude current row) from #A.Entities()");
+            "select Sum(Population) over (order by Population rows between current row and current row exclude current row) from #A.Entities()"
+        );
 
         AssertPrimaryDiagnostic(groups, DiagnosticCode.MQ2009_InvalidOrderByExpression);
         AssertPrimaryDiagnostic(exclude, DiagnosticCode.MQ2001_UnexpectedToken);
@@ -73,10 +77,8 @@ public sealed class FeatureCoverageBoundaryTests
     private static QueryAnalysisResult Analyze(string query)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = []
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }
+        );
         return new QueryAnalyzer(provider).Analyze(query);
     }
 

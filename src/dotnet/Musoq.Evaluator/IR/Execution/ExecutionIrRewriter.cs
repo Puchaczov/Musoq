@@ -7,9 +7,7 @@ internal abstract partial class ExecutionIrRewriter
         ArgumentNullException.ThrowIfNull(plan);
 
         var body = RewriteBlock(plan.Body);
-        return ReferenceEquals(body, plan.Body)
-            ? plan
-            : plan with { Body = body };
+        return ReferenceEquals(body, plan.Body) ? plan : plan with { Body = body };
     }
 
     public virtual ExecutionBlock RewriteBlock(ExecutionBlock block)
@@ -17,12 +15,11 @@ internal abstract partial class ExecutionIrRewriter
         ArgumentNullException.ThrowIfNull(block);
 
         var nodes = RewriteList(block.Nodes, RewriteNode);
-        return ReferenceEquals(nodes, block.Nodes)
-            ? block
-            : block with { Nodes = nodes };
+        return ReferenceEquals(nodes, block.Nodes) ? block : block with { Nodes = nodes };
     }
 
-    public virtual ExecutionNode RewriteNode(ExecutionNode node) {
+    public virtual ExecutionNode RewriteNode(ExecutionNode node)
+    {
         ArgumentNullException.ThrowIfNull(node);
 
         return ExecutionNodeRegistry.TryGetDescriptor(node, out var descriptor)
@@ -30,7 +27,8 @@ internal abstract partial class ExecutionIrRewriter
             : RewriteNodeLegacy(node);
     }
 
-    internal ExecutionNode RewriteNodeLegacy(ExecutionNode node) {
+    internal ExecutionNode RewriteNodeLegacy(ExecutionNode node)
+    {
         ArgumentNullException.ThrowIfNull(node);
 
         return node switch
@@ -45,11 +43,17 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionCreateBoundedRecordList createList => RewriteCreateBoundedRecordList(createList),
             ExecutionForEach forEach => RewriteForEach(forEach),
             ExecutionForEachWithOrdinality forEach => RewriteForEachWithOrdinality(forEach),
-            ExecutionScopedBlock scopedBlock => RewriteBlockOwner(scopedBlock, scopedBlock.Body, body => scopedBlock with { Body = body }),
+            ExecutionScopedBlock scopedBlock => RewriteBlockOwner(
+                scopedBlock,
+                scopedBlock.Body,
+                body => scopedBlock with { Body = body }
+            ),
             ExecutionForEachIndexed forEachIndexed => RewriteForEachIndexed(forEachIndexed),
             ExecutionParallelBlock parallel => RewriteParallelBlock(parallel),
             ExecutionParallelFilterProjectLoop parallelProject => RewriteParallelFilterProjectLoop(parallelProject),
-            ExecutionParallelSingleKeyAggregateLoop parallelAggregate => RewriteParallelSingleKeyAggregateLoop(parallelAggregate),
+            ExecutionParallelSingleKeyAggregateLoop parallelAggregate => RewriteParallelSingleKeyAggregateLoop(
+                parallelAggregate
+            ),
             ExecutionLet let => RewriteLet(let),
             ExecutionHoistCandidateLet candidate => RewriteHoistCandidateLet(candidate),
             ExecutionAssign assign => RewriteAssign(assign),
@@ -124,7 +128,7 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionEnsureTableCapacity ensureCapacity => RewriteEnsureTableCapacity(ensureCapacity),
             ExecutionReturnDesc returnDesc => RewriteReturnDesc(returnDesc),
             ExecutionReturnTable returnTable => RewriteReturnTable(returnTable),
-            _ => node
+            _ => node,
         };
     }
 }

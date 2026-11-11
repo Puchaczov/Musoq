@@ -14,40 +14,37 @@ public sealed class GeneratedCodeSamplesSnapshotTests
 {
     private readonly ILoggerResolver _loggerResolver = new TestsLoggerResolver();
 
-    public static IEnumerable<object[]> SampleData => GeneratedCodeSamplesCatalog.Samples
-        .Select(static sample => new object[] { sample });
+    public static IEnumerable<object[]> SampleData =>
+        GeneratedCodeSamplesCatalog.Samples.Select(static sample => new object[] { sample });
 
     [TestMethod]
     public void CompleteLocalSamples_WhenComparedToCatalog_ShouldNotContainExtraFiles()
     {
         Assert.IsTrue(
             Directory.Exists(GeneratedCodeSampleArtifacts.SamplesDirectory),
-            $"Tracked generated samples directory is missing: {GeneratedCodeSampleArtifacts.SamplesDirectory}");
+            $"Tracked generated samples directory is missing: {GeneratedCodeSampleArtifacts.SamplesDirectory}"
+        );
 
-        var localFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
+        var localFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
             .Select(static path => Path.GetFileName(path)!)
             .OrderBy(static fileName => fileName, StringComparer.Ordinal)
             .ToArray();
 
-        var catalogFiles = GeneratedCodeSamplesCatalog.Samples
-            .Select(static sample => sample.FileName)
+        var catalogFiles = GeneratedCodeSamplesCatalog
+            .Samples.Select(static sample => sample.FileName)
             .OrderBy(static fileName => fileName, StringComparer.Ordinal)
             .ToArray();
 
-        var missingLocalFiles = catalogFiles
-            .Except(localFiles, StringComparer.Ordinal)
-            .ToArray();
+        var missingLocalFiles = catalogFiles.Except(localFiles, StringComparer.Ordinal).ToArray();
         Assert.IsEmpty(
             missingLocalFiles,
-            $"Tracked generated samples are missing: {string.Join(", ", missingLocalFiles)}");
+            $"Tracked generated samples are missing: {string.Join(", ", missingLocalFiles)}"
+        );
 
-        var extraLocalFiles = localFiles
-            .Except(catalogFiles, StringComparer.Ordinal)
-            .ToArray();
+        var extraLocalFiles = localFiles.Except(catalogFiles, StringComparer.Ordinal).ToArray();
 
-        Assert.IsEmpty(
-            extraLocalFiles,
-            $"Local generated samples are stale: {string.Join(", ", extraLocalFiles)}");
+        Assert.IsEmpty(extraLocalFiles, $"Local generated samples are stale: {string.Join(", ", extraLocalFiles)}");
     }
 
     [TestMethod]
@@ -58,18 +55,25 @@ public sealed class GeneratedCodeSamplesSnapshotTests
             "RuntimeExpressionBoundary",
             "RuntimeExpressionOrigin",
             "RuntimeExpressionException",
-            "WrapRuntimeExpressionBoundary"
+            "WrapRuntimeExpressionBoundary",
         ];
 
         var offenders = new List<string>();
-        foreach (var directory in new[]
-                 {
-                     GeneratedCodeSampleArtifacts.SamplesDirectory,
-                     GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory
-                 })
+        foreach (
+            var directory in new[]
+            {
+                GeneratedCodeSampleArtifacts.SamplesDirectory,
+                GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory,
+            }
+        )
         {
-
-            foreach (var path in global::Musoq.Tests.Common.RequiredSourceInventory.Files(directory, "*.cs", SearchOption.TopDirectoryOnly))
+            foreach (
+                var path in global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+                    directory,
+                    "*.cs",
+                    SearchOption.TopDirectoryOnly
+                )
+            )
             {
                 var content = File.ReadAllText(path);
                 foreach (var pattern in forbiddenPatterns)
@@ -82,14 +86,15 @@ public sealed class GeneratedCodeSamplesSnapshotTests
 
         Assert.IsEmpty(
             offenders,
-            $"Generated code contains retired runtime diagnostic contracts: {string.Join(", ", offenders)}");
+            $"Generated code contains retired runtime diagnostic contracts: {string.Join(", ", offenders)}"
+        );
     }
 
     [TestMethod]
     public void Catalog_WhenLoaded_ShouldNotContainDuplicateFiles()
     {
-        var duplicateFiles = GeneratedCodeSamplesCatalog.Samples
-            .GroupBy(static sample => sample.FileName)
+        var duplicateFiles = GeneratedCodeSamplesCatalog
+            .Samples.GroupBy(static sample => sample.FileName)
             .Where(static group => group.Count() > 1)
             .Select(static group => group.Key)
             .ToArray();
@@ -100,8 +105,8 @@ public sealed class GeneratedCodeSamplesSnapshotTests
     [TestMethod]
     public void Catalog_WhenLoaded_ShouldNotContainBlankQueries()
     {
-        var blankQueries = GeneratedCodeSamplesCatalog.Samples
-            .Where(static sample => string.IsNullOrWhiteSpace(sample.Query))
+        var blankQueries = GeneratedCodeSamplesCatalog
+            .Samples.Where(static sample => string.IsNullOrWhiteSpace(sample.Query))
             .Select(static sample => sample.FileName)
             .ToArray();
 
@@ -119,7 +124,7 @@ public sealed class GeneratedCodeSamplesSnapshotTests
             "// === Logical Plan ===",
             "// === Physical Plan ===",
             "// === Execution Plan ===",
-            "// === Generated C# ==="
+            "// === Generated C# ===",
         ];
         var previous = -1;
         foreach (var marker in markers)
@@ -145,7 +150,8 @@ public sealed class GeneratedCodeSamplesSnapshotTests
             sample.Query,
             "Q44ColumnarRepresentationTest",
             sample.CreateSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         var plan = buildItems.OptimizedExecutionPlan;
         Assert.IsNotNull(plan);
         var representation = plan.StoredTableRepresentations.Single(static item => item.TableIndex == 0);
@@ -156,12 +162,16 @@ public sealed class GeneratedCodeSamplesSnapshotTests
             unsupportedSample.Query,
             "UnsupportedColumnarRepresentationTest",
             unsupportedSample.CreateSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         var unsupportedPlan = unsupportedBuildItems.OptimizedExecutionPlan;
         Assert.IsNotNull(unsupportedPlan);
         Assert.IsTrue(unsupportedPlan.StoredTableRepresentations.Count > 0);
-        Assert.IsTrue(unsupportedPlan.StoredTableRepresentations.All(static item =>
-            item.Kind == ExecutionStoredTableRepresentationKind.GeneratedRowList));
+        Assert.IsTrue(
+            unsupportedPlan.StoredTableRepresentations.All(static item =>
+                item.Kind == ExecutionStoredTableRepresentationKind.GeneratedRowList
+            )
+        );
     }
 
     [TestMethod]
@@ -169,9 +179,7 @@ public sealed class GeneratedCodeSamplesSnapshotTests
     public void LocalSample_WhenRegenerated_ShouldMatchCatalogOutput(GeneratedCodeSample sample)
     {
         var samplePath = GeneratedCodeSampleArtifacts.GetSamplePath(sample);
-        Assert.IsTrue(
-            File.Exists(samplePath),
-            $"Tracked generated sample is missing: {samplePath}");
+        Assert.IsTrue(File.Exists(samplePath), $"Tracked generated sample is missing: {samplePath}");
 
         var expected = File.ReadAllText(samplePath);
         var actual = GeneratedCodeSampleArtifacts.Generate(sample, _loggerResolver);
@@ -179,7 +187,8 @@ public sealed class GeneratedCodeSamplesSnapshotTests
         Assert.AreEqual(
             GeneratedCodeSampleArtifacts.NormalizeForComparison(expected),
             GeneratedCodeSampleArtifacts.NormalizeForComparison(actual),
-            $"Generated sample {sample.FileName} is stale. Run {nameof(Refresh_All_Local_Generated_Samples)} intentionally to refresh snapshots.");
+            $"Generated sample {sample.FileName} is stale. Run {nameof(Refresh_All_Local_Generated_Samples)} intentionally to refresh snapshots."
+        );
     }
 
     [TestMethod]

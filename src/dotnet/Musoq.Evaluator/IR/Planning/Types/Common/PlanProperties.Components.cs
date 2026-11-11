@@ -17,22 +17,26 @@ internal sealed record SourcePlanningFacts(
     IReadOnlyDictionary<string, SourceDescriptor> SourceDescriptorsBySourceId,
     IReadOnlyList<SourceBoundaryPlan> SourceBoundaryPlans,
     IReadOnlyList<SourceBoundaryStrategyPlan> SourceBoundaryStrategyPlans,
-    IReadOnlyDictionary<string, SourceContractDiagnosticLocationMap> SourceContractDiagnosticLocationsBySourceId);
+    IReadOnlyDictionary<string, SourceContractDiagnosticLocationMap> SourceContractDiagnosticLocationsBySourceId
+);
 
 internal sealed record RequiredColumnFacts(
     IReadOnlyDictionary<string, IReadOnlySet<string>> RequiredColumnsByAlias,
     IReadOnlyDictionary<string, RequiredColumnUsage[]> RequiredColumnUsagesBySourceId,
     IReadOnlyList<RequiredColumnMappingPlan> RequiredColumnMappingPlans,
-    IReadOnlyList<RequiredColumnBoundaryPlan> RequiredColumnBoundaryPlans);
+    IReadOnlyList<RequiredColumnBoundaryPlan> RequiredColumnBoundaryPlans
+);
 
 internal sealed record PhysicalStrategyFacts(
     IReadOnlyList<PredicatePlacementPlan> PredicatePlacementPlans,
     IReadOnlyList<PredicateMovementPlan> PredicateMovementPlans,
-    IReadOnlyList<ApplyPredicateMovementPlan> ApplyPredicateMovementPlans);
+    IReadOnlyList<ApplyPredicateMovementPlan> ApplyPredicateMovementPlans
+);
 
 internal sealed record BoundaryPruningFacts(
     IReadOnlyList<BoundaryRowShapePlan> BoundaryRowShapePlans,
-    IReadOnlyList<RowWidthPruningPlan> RowWidthPruningPlans);
+    IReadOnlyList<RowWidthPruningPlan> RowWidthPruningPlans
+);
 
 internal sealed record CardinalityPlanningFacts(IReadOnlyList<CardinalityFact> Facts);
 
@@ -41,7 +45,8 @@ internal sealed record PlanningFacts(
     RequiredColumnFacts RequiredColumns,
     PhysicalStrategyFacts PhysicalStrategies,
     BoundaryPruningFacts BoundaryPruning,
-    CardinalityPlanningFacts Cardinality)
+    CardinalityPlanningFacts Cardinality
+)
 {
     public static PlanningFacts From(PlanProperties properties)
     {
@@ -76,7 +81,8 @@ internal sealed partial record PlanProperties
             facts.Cardinality.Facts,
             facts.PhysicalStrategies.PredicatePlacementPlans,
             facts.PhysicalStrategies.PredicateMovementPlans,
-            facts.PhysicalStrategies.ApplyPredicateMovementPlans)
+            facts.PhysicalStrategies.ApplyPredicateMovementPlans
+        )
     {
         SourceContractDiagnosticLocationsBySourceId = facts.SourcePlanning.SourceContractDiagnosticLocationsBySourceId;
     }
@@ -87,41 +93,37 @@ internal sealed partial record PlanProperties
         return new(facts);
     }
 
-    public PlanningFacts ToFacts() => new(
-        SourcePlanning,
-        RequiredColumns,
-        PhysicalStrategies,
-        BoundaryPruning,
-        Cardinality);
+    public PlanningFacts ToFacts() =>
+        new(SourcePlanning, RequiredColumns, PhysicalStrategies, BoundaryPruning, Cardinality);
 
-    public SourcePlanningFacts SourcePlanning => new(
-        SourcesById,
-        PushedPredicatesBySourceId,
-        ProjectedColumnsBySourceId,
-        ProjectedSchemaColumnsBySourceId,
-        SourcePredicatePlansBySourceId,
-        SourceInteractionPlansBySourceId,
-        SourcePlanRequestsBySourceId,
-        SourcePlanResultsBySourceId,
-        SourceDescriptorsBySourceId,
-        SourceBoundaryPlans,
-        SourceBoundaryStrategyPlans,
-        SourceContractDiagnosticLocationsBySourceId);
+    public SourcePlanningFacts SourcePlanning =>
+        new(
+            SourcesById,
+            PushedPredicatesBySourceId,
+            ProjectedColumnsBySourceId,
+            ProjectedSchemaColumnsBySourceId,
+            SourcePredicatePlansBySourceId,
+            SourceInteractionPlansBySourceId,
+            SourcePlanRequestsBySourceId,
+            SourcePlanResultsBySourceId,
+            SourceDescriptorsBySourceId,
+            SourceBoundaryPlans,
+            SourceBoundaryStrategyPlans,
+            SourceContractDiagnosticLocationsBySourceId
+        );
 
-    public RequiredColumnFacts RequiredColumns => new(
-        RequiredColumnsByAlias,
-        RequiredColumnUsagesBySourceId,
-        RequiredColumnMappingPlans,
-        RequiredColumnBoundaryPlans);
+    public RequiredColumnFacts RequiredColumns =>
+        new(
+            RequiredColumnsByAlias,
+            RequiredColumnUsagesBySourceId,
+            RequiredColumnMappingPlans,
+            RequiredColumnBoundaryPlans
+        );
 
-    public PhysicalStrategyFacts PhysicalStrategies => new(
-        PredicatePlacementPlans,
-        PredicateMovementPlans,
-        ApplyPredicateMovementPlans);
+    public PhysicalStrategyFacts PhysicalStrategies =>
+        new(PredicatePlacementPlans, PredicateMovementPlans, ApplyPredicateMovementPlans);
 
-    public BoundaryPruningFacts BoundaryPruning => new(
-        BoundaryRowShapePlans,
-        RowWidthPruningPlans);
+    public BoundaryPruningFacts BoundaryPruning => new(BoundaryRowShapePlans, RowWidthPruningPlans);
 
     public CardinalityPlanningFacts Cardinality => new(CardinalityFacts);
 }

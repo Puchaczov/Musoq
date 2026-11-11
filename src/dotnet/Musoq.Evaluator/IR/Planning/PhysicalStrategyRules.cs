@@ -14,9 +14,15 @@ internal static partial class PhysicalStrategyRules
             return new AggregateStrategyDecision(AggregateStrategyKind.SingleKey, "One resolved group key exists.");
 
         if (CanUseValueTupleStrategy(groupKeyTypes))
-            return new AggregateStrategyDecision(AggregateStrategyKind.ValueTuple, "Multiple resolved group keys exist.");
+            return new AggregateStrategyDecision(
+                AggregateStrategyKind.ValueTuple,
+                "Multiple resolved group keys exist."
+            );
 
-        return new AggregateStrategyDecision(AggregateStrategyKind.Unsupported, "Aggregate group key types must be resolved before physical planning.");
+        return new AggregateStrategyDecision(
+            AggregateStrategyKind.Unsupported,
+            "Aggregate group key types must be resolved before physical planning."
+        );
     }
 
     public static TakeStrategyDecision ChooseTakeStrategy(TakeNode take)
@@ -24,9 +30,14 @@ internal static partial class PhysicalStrategyRules
         ArgumentNullException.ThrowIfNull(take);
         return take.Input switch
         {
-            SkipNode { Input: SortNode sort } skip => TakeStrategyDecision.TopOffset(sort, skip, take, "Sort -> Skip -> Take can use bounded top-offset ordering."),
+            SkipNode { Input: SortNode sort } skip => TakeStrategyDecision.TopOffset(
+                sort,
+                skip,
+                take,
+                "Sort -> Skip -> Take can use bounded top-offset ordering."
+            ),
             SortNode sort => TakeStrategyDecision.TopN(sort, take, "Sort -> Take can use bounded top-N ordering."),
-            _ => TakeStrategyDecision.PlainTake(take, "Take has no adjacent sort boundary to collapse.")
+            _ => TakeStrategyDecision.PlainTake(take, "Take has no adjacent sort boundary to collapse."),
         };
     }
 
@@ -35,7 +46,8 @@ internal static partial class PhysicalStrategyRules
         ArgumentNullException.ThrowIfNull(window);
         return new WindowStrategyDecision(
             RequiresMaterialization: true,
-            "Window computation requires a materialized input boundary.");
+            "Window computation requires a materialized input boundary."
+        );
     }
 
     private static bool CanUseSingleKeyStrategy(Type[] keyTypes)

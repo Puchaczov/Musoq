@@ -3,5 +3,5 @@
 public enum ParallelizationMode
 {
     None,
-    Full
+    Full,
 }

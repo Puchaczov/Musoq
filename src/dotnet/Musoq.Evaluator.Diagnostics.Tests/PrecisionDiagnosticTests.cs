@@ -13,7 +13,10 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
     [TestMethod]
     public void UnsupportedCastTarget_UsesDedicatedBindDiagnostic()
     {
-        var diagnostic = AnalyzeSingleError("select 'value'::NotAType from #A.Entities()", DiagnosticCode.MQ3090_UnsupportedCastTarget);
+        var diagnostic = AnalyzeSingleError(
+            "select 'value'::NotAType from #A.Entities()",
+            DiagnosticCode.MQ3090_UnsupportedCastTarget
+        );
 
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         StringAssert.Contains(diagnostic.Message, "NotAType");
@@ -22,7 +25,10 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
     [TestMethod]
     public void InvalidConstantCast_IsRejectedBeforeExecution()
     {
-        var diagnostic = AnalyzeSingleError("select 'not-a-number'::Int32 from #A.Entities()", DiagnosticCode.MQ3091_InvalidConstantCast);
+        var diagnostic = AnalyzeSingleError(
+            "select 'not-a-number'::Int32 from #A.Entities()",
+            DiagnosticCode.MQ3091_InvalidConstantCast
+        );
 
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         StringAssert.Contains(diagnostic.Message, "Int32");
@@ -33,7 +39,8 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
     {
         var diagnostic = AnalyzeSingleError(
             "select Name from #A.Entities() where Name rlike '['",
-            DiagnosticCode.MQ3094_InvalidConstantRegex);
+            DiagnosticCode.MQ3094_InvalidConstantRegex
+        );
 
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         StringAssert.Contains(diagnostic.Message, "regex");
@@ -68,12 +75,16 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
             new[]
             {
                 "Fix the regex syntax or escape the intended metacharacters.",
-                "Use a raw literal when backslashes should be preserved."
+                "Use a raw literal when backslashes should be preserved.",
             },
-            envelope.SuggestedFixes.ToArray());
+            envelope.SuggestedFixes.ToArray()
+        );
         Assert.HasCount(2, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
         Assert.HasCount(0, envelope.Arguments);
     }
 
@@ -82,7 +93,8 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
     {
         var diagnostic = AnalyzeSingleError(
             "select City, Count(Name) from #A.Entities() group by Count(Name)",
-            DiagnosticCode.MQ3092_AggregateInGroupBy);
+            DiagnosticCode.MQ3092_AggregateInGroupBy
+        );
 
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
     }
@@ -92,7 +104,8 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
     {
         var diagnostic = AnalyzeSingleError(
             "select Name from #A.Entities() order by 1",
-            DiagnosticCode.MQ3093_OrderByOrdinalUnsupported);
+            DiagnosticCode.MQ3093_OrderByOrdinalUnsupported
+        );
 
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
     }
@@ -102,7 +115,8 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
     {
         var diagnostic = AnalyzeSingleError(
             "select Dictionary[key] from #A.Entities()",
-            DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess);
+            DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess
+        );
 
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
     }
@@ -110,7 +124,8 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
     [TestMethod]
     public void MultiRowValuesScalarSubquery_ShouldPassSemanticAnalysis()
     {
-        const string query = "select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) from #A.Entities()";
+        const string query =
+            "select (select Value from values { ( Value: 1 ), ( Value: 2 ) } valuesSource) from #A.Entities()";
         var result = CreateAnalyzer().Analyze(query);
         Assert.IsTrue(result.IsParsed, Describe(result));
         Assert.IsEmpty(result.Errors, Describe(result));
@@ -119,8 +134,7 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
     [TestMethod]
     public void ValidConstantCastAndRegex_RemainErrorFree()
     {
-        var result = CreateAnalyzer().Analyze(
-            "select '42'::Int32 from #A.Entities() where Name rlike 'A.*'");
+        var result = CreateAnalyzer().Analyze("select '42'::Int32 from #A.Entities() where Name rlike 'A.*'");
 
         Assert.IsFalse(result.Errors.Any(), Describe(result));
     }
@@ -143,10 +157,9 @@ public sealed partial class PrecisionDiagnosticTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = [new BasicEntity("Alpha", "Poland", 1)]
+            ["#A"] = [new BasicEntity("Alpha", "Poland", 1)],
         };
 
         return new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(sources));
     }
-
 }

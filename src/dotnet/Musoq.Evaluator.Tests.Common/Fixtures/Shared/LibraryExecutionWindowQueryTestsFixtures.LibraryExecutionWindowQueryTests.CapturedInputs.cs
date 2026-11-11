@@ -7,7 +7,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionWindowQueryTestsFixtures
 {
-
     public sealed class VolatileWindowRow(int position)
     {
         public int Position { get; } = position;
@@ -18,8 +17,8 @@ public partial class LibraryExecutionWindowQueryTestsFixtures
     public sealed class VolatileWindowLibrary : LibraryBase
     {
         [BindableMethod, NonDeterministic]
-        public static double? NextValue([InjectSpecificSource(typeof(VolatileWindowRow))] VolatileWindowRow row)
-            => row.Position + 10d * ++row.ValueCalls;
+        public static double? NextValue([InjectSpecificSource(typeof(VolatileWindowRow))] VolatileWindowRow row) =>
+            row.Position + 10d * ++row.ValueCalls;
 
         [BindableMethod, NonDeterministic]
         public static bool AcceptRow([InjectSpecificSource(typeof(VolatileWindowRow))] VolatileWindowRow row)
@@ -28,5 +27,4 @@ public partial class LibraryExecutionWindowQueryTestsFixtures
             return row.Position % 2 != 0;
         }
     }
-
 }

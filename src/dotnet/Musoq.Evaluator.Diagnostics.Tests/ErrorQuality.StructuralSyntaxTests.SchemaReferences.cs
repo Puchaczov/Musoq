@@ -62,7 +62,11 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.Analyze(query);
 
         // Assert — Should indicate missing schema name
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3010_UnknownSchema, "schema reference with missing schema name");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3010_UnknownSchema,
+            "schema reference with missing schema name"
+        );
     }
 
     [TestMethod]

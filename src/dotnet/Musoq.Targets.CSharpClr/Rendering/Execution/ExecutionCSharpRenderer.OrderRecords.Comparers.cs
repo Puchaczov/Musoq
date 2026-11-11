@@ -12,15 +12,15 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateOrderRecordComparerClass(orderRecords.RecordShape, orderRecords.Keys);
     }
 
-    private static MemberDeclarationSyntax CreateOrderRecordComparerClass(
-        ExecutionCreateBoundedRecordList orderRecords)
+    private static MemberDeclarationSyntax CreateOrderRecordComparerClass(ExecutionCreateBoundedRecordList orderRecords)
     {
         return CreateOrderRecordComparerClass(orderRecords.RecordShape, orderRecords.Keys);
     }
 
     private static MemberDeclarationSyntax CreateOrderRecordComparerClass(
         GeneratedRecordShape recordShape,
-        IReadOnlyList<ExecutionOrderField> keys)
+        IReadOnlyList<ExecutionOrderField> keys
+    )
     {
         var typeName = CreateOrderRecordComparerTypeName(recordShape);
         var recordTypeName = recordShape.TypeName;
@@ -31,7 +31,7 @@ public sealed partial class ExecutionCSharpRenderer
             $"    public static readonly {typeName} Instance = new {typeName}();",
             string.Empty,
             $"    public int Compare({recordTypeName} left, {recordTypeName} right)",
-            "    {"
+            "    {",
         };
 
         for (var index = 0; index < keys.Count; index++)

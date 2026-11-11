@@ -9,8 +9,11 @@ internal static partial class ExecutionExpressionChildren
     {
         return expression switch
         {
-            ExecutionSubquery subquery => (subquery.Operand is null ? subquery.Bindings : subquery.Bindings.Append(subquery.Operand))
-                .Concat(subquery.CapturedScriptValues).Concat(subquery.CapturedCteValues),
+            ExecutionSubquery subquery => (
+                subquery.Operand is null ? subquery.Bindings : subquery.Bindings.Append(subquery.Operand)
+            )
+                .Concat(subquery.CapturedScriptValues)
+                .Concat(subquery.CapturedCteValues),
             ExecutionStructuralArray array => array.Elements,
             ExecutionCoalesce coalesce => coalesce.Expressions,
             ExecutionStringConcatenation concatenation => concatenation.Expressions,
@@ -20,7 +23,7 @@ internal static partial class ExecutionExpressionChildren
             ExecutionByteBufferSnapshot { Program: { } program } => program.Children,
             ExecutionByteBufferOperation { Program: { } program } => program.Children,
             ExecutionByteBufferSnapshot snapshot => snapshot.Arguments,
-            _ => MaterializeSmallChildren(expression)
+            _ => MaterializeSmallChildren(expression),
         };
     }
 
@@ -62,10 +65,31 @@ internal static partial class ExecutionExpressionChildren
             ExecutionMethodTargetReuseCandidate candidate => index == 0 ? candidate.MethodCall : null,
             ExecutionIsNullCheck isNull => index == 0 ? isNull.Expression : null,
             ExecutionRowPresence rowPresence => index == 0 ? rowPresence.PresenceSource : null,
-            ExecutionBinary binary => index switch { 0 => binary.Left, 1 => binary.Right, _ => null },
-            ExecutionArrayAccess arrayAccess => index switch { 0 => arrayAccess.Array, 1 => arrayAccess.Index, _ => null },
-            ExecutionCollectionInCheck collectionInCheck => index switch { 0 => collectionInCheck.Expression, 1 => collectionInCheck.Collection, _ => null },
-            ExecutionBetween between => index switch { 0 => between.Expression, 1 => between.Low, 2 => between.High, _ => null },
+            ExecutionBinary binary => index switch
+            {
+                0 => binary.Left,
+                1 => binary.Right,
+                _ => null,
+            },
+            ExecutionArrayAccess arrayAccess => index switch
+            {
+                0 => arrayAccess.Array,
+                1 => arrayAccess.Index,
+                _ => null,
+            },
+            ExecutionCollectionInCheck collectionInCheck => index switch
+            {
+                0 => collectionInCheck.Expression,
+                1 => collectionInCheck.Collection,
+                _ => null,
+            },
+            ExecutionBetween between => index switch
+            {
+                0 => between.Expression,
+                1 => between.Low,
+                2 => between.High,
+                _ => null,
+            },
             ExecutionStructuralArray array => At(array.Elements, index),
             ExecutionCoalesce coalesce => At(coalesce.Expressions, index),
             ExecutionStringConcatenation concatenation => At(concatenation.Expressions, index),
@@ -73,16 +97,24 @@ internal static partial class ExecutionExpressionChildren
             ExecutionAggregateCall aggregate => At(aggregate.Arguments, index),
             ExecutionStructuralRecord record => index < record.Fields.Count ? record.Fields[index].Value : null,
             ExecutionContextArray array => index < array.Segments.Count ? array.Segments[index].Value : null,
-            ExecutionMethodCall call => index < call.Arguments.Count ? call.Arguments[index] : index == call.Arguments.Count ? call.InjectedSource : null,
+            ExecutionMethodCall call => index < call.Arguments.Count ? call.Arguments[index]
+            : index == call.Arguments.Count ? call.InjectedSource
+            : null,
             ExecutionByteBufferSnapshot { Program: { } program } => program.ChildAt(index),
             ExecutionByteBufferSnapshot snapshot => At(snapshot.Arguments, index),
             ExecutionInCheck check => index == 0 ? check.Expression : At(check.Values, index - 1),
             ExecutionCaseWhen conditional => CaseChild(conditional, index),
-            ExecutionPatternMatch or ExecutionStringMatch or ExecutionPrepareLikeMatcher or ExecutionPreparedLikeMatch or
-                ExecutionDynamicLikeMatch or ExecutionLikeMatcherCacheSlot or ExecutionPrepareRLikeMatcher or
-                ExecutionPreparedRLikeMatch or ExecutionDynamicRLikeMatch or ExecutionRLikeMatcherCacheSlot =>
-                    PatternExpressionFacts.GetChildAt(expression, index),
-            _ => null
+            ExecutionPatternMatch
+            or ExecutionStringMatch
+            or ExecutionPrepareLikeMatcher
+            or ExecutionPreparedLikeMatch
+            or ExecutionDynamicLikeMatch
+            or ExecutionLikeMatcherCacheSlot
+            or ExecutionPrepareRLikeMatcher
+            or ExecutionPreparedRLikeMatch
+            or ExecutionDynamicRLikeMatch
+            or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.GetChildAt(expression, index),
+            _ => null,
         };
 
     internal static ExecutionExpression? At(IReadOnlyList<ExecutionExpression> expressions, int index) =>

@@ -1,5 +1,5 @@
-using System.Collections.Frozen;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -29,26 +29,29 @@ public static class CSharpTypeNameHelper
         [typeof(ushort)] = "ushort",
         [typeof(object)] = "object",
         [typeof(string)] = "string",
-        [typeof(void)] = "void"
+        [typeof(void)] = "void",
     }.ToFrozenDictionary();
 
     public static string GetCSharpTypeName(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (type.IsGenericParameter) return type.Name;
+        if (type.IsGenericParameter)
+            return type.Name;
 
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
         {
-            var underlyingType = Nullable.GetUnderlyingType(type) ??
-                throw new InvalidOperationException($"Nullable type '{type}' has no underlying type.");
+            var underlyingType =
+                Nullable.GetUnderlyingType(type)
+                ?? throw new InvalidOperationException($"Nullable type '{type}' has no underlying type.");
             return GetCSharpTypeName(underlyingType) + "?";
         }
 
         if (type.IsArray)
         {
-            var elementType = type.GetElementType() ??
-                throw new InvalidOperationException($"Array type '{type}' has no element type.");
+            var elementType =
+                type.GetElementType()
+                ?? throw new InvalidOperationException($"Array type '{type}' has no element type.");
             var rank = type.GetArrayRank();
             var brackets = rank == 1 ? "[]" : $"[{new string(',', rank - 1)}]";
             return GetCSharpTypeName(elementType) + brackets;
@@ -61,7 +64,8 @@ public static class CSharpTypeNameHelper
         var genericTypeName = genericTypeDefinition.Name;
 
         var tickIndex = genericTypeName.IndexOf('`', StringComparison.Ordinal);
-        if (tickIndex > 0) genericTypeName = genericTypeName.Substring(0, tickIndex);
+        if (tickIndex > 0)
+            genericTypeName = genericTypeName.Substring(0, tickIndex);
 
         var genericArgs = type.GetGenericArguments();
         var argNames = genericArgs.Select(GetCSharpTypeName);
@@ -119,7 +123,10 @@ public static class CSharpTypeNameHelper
             if (paramIndex > 0)
                 signature.Append(", ");
 
-            signature.Append(System.Globalization.CultureInfo.InvariantCulture, $"{GetCSharpTypeName(parameter.ParameterType)} {parameter.Name}");
+            signature.Append(
+                System.Globalization.CultureInfo.InvariantCulture,
+                $"{GetCSharpTypeName(parameter.ParameterType)} {parameter.Name}"
+            );
             paramIndex++;
         }
 

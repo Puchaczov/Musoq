@@ -15,13 +15,20 @@ public static partial class InstanceCreator
     {
         items.CancellationToken.ThrowIfCancellationRequested();
         if (items.DiagnosticContext.HasErrors)
-            throw new MusoqQueryException(BuildResult.Failure(
-                items.DiagnosticContext.Diagnostics.ToList(), items.RawQuery).ToEnvelopes());
+            throw new MusoqQueryException(
+                BuildResult.Failure(items.DiagnosticContext.Diagnostics.ToList(), items.RawQuery).ToEnvelopes()
+            );
 
-        var logicalPlan = items.LogicalPlan ?? throw new InvalidOperationException(
-            "Logical plan inspection failed because the compilation pipeline did not produce a logical plan.");
-        var physicalPlan = items.PhysicalPlan ?? throw new InvalidOperationException(
-            "Physical plan inspection failed because the compilation pipeline did not produce a physical plan.");
+        var logicalPlan =
+            items.LogicalPlan
+            ?? throw new InvalidOperationException(
+                "Logical plan inspection failed because the compilation pipeline did not produce a logical plan."
+            );
+        var physicalPlan =
+            items.PhysicalPlan
+            ?? throw new InvalidOperationException(
+                "Physical plan inspection failed because the compilation pipeline did not produce a physical plan."
+            );
 
         RenderedQueryArtifact renderedArtifact;
         try
@@ -32,22 +39,28 @@ public static partial class InstanceCreator
         {
             throw new InvalidOperationException(
                 "Generated C# inspection failed because the compilation pipeline did not produce a rendered query artifact.",
-                ex);
+                ex
+            );
         }
 
-        var executionPlanText = items.ExecutionPlanText ??
-            ExecutionPlanPrinter.PrintUnsupported("Execution IR inspection was not produced by the compilation pipeline.");
+        var executionPlanText =
+            items.ExecutionPlanText
+            ?? ExecutionPlanPrinter.PrintUnsupported(
+                "Execution IR inspection was not produced by the compilation pipeline."
+            );
         var planningText = items.PlanningText ?? PlanningTextPrinter.Print(items.PlanningResult);
         var initialLogicalPlan = items.InitialLogicalPlan ?? logicalPlan;
         var optimizedLogicalPlan = items.OptimizedLogicalPlan ?? logicalPlan;
         var initialPhysicalPlan = items.InitialPhysicalPlan ?? physicalPlan;
         var optimizedPhysicalPlan = items.OptimizedPhysicalPlan ?? physicalPlan;
-        var initialExecutionPlanText = items.InitialExecutionPlan != null
-            ? ExecutionPlanPrinter.Print(items.InitialExecutionPlan)
-            : executionPlanText;
-        var optimizedExecutionPlanText = items.OptimizedExecutionPlan != null
-            ? ExecutionPlanPrinter.Print(items.OptimizedExecutionPlan)
-            : executionPlanText;
+        var initialExecutionPlanText =
+            items.InitialExecutionPlan != null
+                ? ExecutionPlanPrinter.Print(items.InitialExecutionPlan)
+                : executionPlanText;
+        var optimizedExecutionPlanText =
+            items.OptimizedExecutionPlan != null
+                ? ExecutionPlanPrinter.Print(items.OptimizedExecutionPlan)
+                : executionPlanText;
         var diagnostics = items.DiagnosticContext.Diagnostics.ToList();
 
         return new QueryInspectionResult(
@@ -55,7 +68,8 @@ public static partial class InstanceCreator
             physicalPlan,
             LogicalPlanPrinter.Print(logicalPlan),
             PhysicalPlanPrinter.Print(physicalPlan),
-            InspectGeneratedCSharpCode(renderedArtifact, items.CancellationToken))
+            InspectGeneratedCSharpCode(renderedArtifact, items.CancellationToken)
+        )
         {
             PlanningText = planningText,
             ExecutionPlanText = executionPlanText,
@@ -68,24 +82,25 @@ public static partial class InstanceCreator
             OptimizedExecutionPlanText = optimizedExecutionPlanText,
             OptimizerTraceText = items.OptimizerTraceText ?? "OptimizerTrace [not produced]",
             Diagnostics = diagnostics,
-            Warnings = diagnostics.Where(static diagnostic => diagnostic.IsWarning).ToList()
+            Warnings = diagnostics.Where(static diagnostic => diagnostic.IsWarning).ToList(),
         };
     }
 
-    private static string InspectGeneratedCSharpCode(
-        RenderedQueryArtifact renderedArtifact) =>
+    private static string InspectGeneratedCSharpCode(RenderedQueryArtifact renderedArtifact) =>
         InspectGeneratedCSharpCode(renderedArtifact, CancellationToken.None);
 
     private static string InspectGeneratedCSharpCode(
         RenderedQueryArtifact renderedArtifact,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var inspection = ExecutionTargetCatalog.InspectArtifact(renderedArtifact, cancellationToken);
 
         if (inspection.TargetId != ExecutionTargetIds.CSharpClr)
             throw new InvalidOperationException(
-                $"Generated C# inspection requires execution target '{ExecutionTargetIds.CSharpClr}', but got '{inspection.TargetId}'.");
+                $"Generated C# inspection requires execution target '{ExecutionTargetIds.CSharpClr}', but got '{inspection.TargetId}'."
+            );
 
         cancellationToken.ThrowIfCancellationRequested();
         return inspection.GeneratedCSharpCode ?? string.Empty;

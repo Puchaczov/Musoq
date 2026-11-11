@@ -13,7 +13,8 @@ internal sealed class ExecutionRenderOptions
         QueryInstrumentationMode instrumentationMode,
         CSharpClrExecutionBindingContext executionBindings,
         string generatedMemberSuffix,
-        bool isMetadataOnly)
+        bool isMetadataOnly
+    )
     {
         ScriptParameterDefinitions = scriptParameterDefinitions;
         ScriptVariableDefinitions = scriptVariableDefinitions;
@@ -47,7 +48,8 @@ internal sealed class ExecutionRenderOptions
         QueryInstrumentationMode instrumentationMode,
         CSharpClrExecutionBindingContext? executionBindings = null,
         string generatedMemberSuffix = "",
-        bool isMetadataOnly = false)
+        bool isMetadataOnly = false
+    )
     {
         var parameterDefinitions = (scriptParameterDefinitions ?? []).ToArray();
         var variableDefinitions = (scriptVariableDefinitions ?? []).ToArray();
@@ -60,6 +62,7 @@ internal sealed class ExecutionRenderOptions
             instrumentationMode,
             executionBindings ?? new CSharpClrExecutionBindingContext(),
             generatedMemberSuffix,
-            isMetadataOnly);
+            isMetadataOnly
+        );
     }
 }

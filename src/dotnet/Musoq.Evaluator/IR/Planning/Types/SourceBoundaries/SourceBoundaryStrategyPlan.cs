@@ -10,4 +10,5 @@ internal sealed record SourceBoundaryStrategyPlan(
     SourceBoundaryStrategyKind Strategy,
     SourceBoundaryCachingDecision CachingDecision,
     PlanningConfidence Confidence,
-    string Reason);
+    string Reason
+);

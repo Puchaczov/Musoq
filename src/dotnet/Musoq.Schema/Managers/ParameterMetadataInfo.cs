@@ -46,7 +46,8 @@ internal readonly struct ParameterMetadataInfo
     {
         foreach (var parameter in parameters)
         {
-            if (global::Musoq.Plugins.VariadicParameter.IsVariadic(parameter)) return [parameter];
+            if (global::Musoq.Plugins.VariadicParameter.IsVariadic(parameter))
+                return [parameter];
         }
 
         return [];
@@ -59,8 +60,11 @@ internal readonly struct ParameterMetadataInfo
         {
             var attrs = parameter.GetCustomAttributes();
 
-            result.AddRange(attrs.Where(attr => attr.GetType().IsAssignableTo(typeof(InjectTypeAttribute)))
-                .Cast<InjectTypeAttribute>());
+            result.AddRange(
+                attrs
+                    .Where(attr => attr.GetType().IsAssignableTo(typeof(InjectTypeAttribute)))
+                    .Cast<InjectTypeAttribute>()
+            );
         }
 
         return result.Count > 0 ? result.ToArray() : [];

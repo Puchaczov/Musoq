@@ -11,7 +11,8 @@ public sealed class DataSourceInputException : IOException
     public DataSourceInputException(
         DataSourceInputFailureReason reason,
         DataSourceInputLocation? location = null,
-        Exception? innerException = null)
+        Exception? innerException = null
+    )
         : base(GetSafeMessage(reason), innerException)
     {
         _ = GetParserReason(reason);
@@ -35,18 +36,26 @@ public sealed class DataSourceInputException : IOException
                     Location.Column,
                     Location.ByteOffset,
                     Location.CharacterOffset,
-                    Location.BytePositionInLine),
-            InnerException);
+                    Location.BytePositionInLine
+                ),
+            InnerException
+        );
     }
 
     private static string GetSafeMessage(DataSourceInputFailureReason reason)
     {
         return reason switch
         {
-            DataSourceInputFailureReason.MalformedInput => ErrorCatalog.GetMessage(DiagnosticCode.MQ7014_MalformedRuntimeInput),
+            DataSourceInputFailureReason.MalformedInput => ErrorCatalog.GetMessage(
+                DiagnosticCode.MQ7014_MalformedRuntimeInput
+            ),
             DataSourceInputFailureReason.UnterminatedQuotedField => "The final quoted field is not terminated.",
             DataSourceInputFailureReason.MalformedJson => "Runtime JSON input is malformed.",
-            _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown datasource input failure reason.")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(reason),
+                reason,
+                "Unknown datasource input failure reason."
+            ),
         };
     }
 
@@ -57,7 +66,11 @@ public sealed class DataSourceInputException : IOException
             DataSourceInputFailureReason.MalformedInput => RuntimeInputFailureReason.MalformedInput,
             DataSourceInputFailureReason.UnterminatedQuotedField => RuntimeInputFailureReason.UnterminatedQuotedField,
             DataSourceInputFailureReason.MalformedJson => RuntimeInputFailureReason.MalformedJson,
-            _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "Unknown datasource input failure reason.")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(reason),
+                reason,
+                "Unknown datasource input failure reason."
+            ),
         };
     }
 }

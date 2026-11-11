@@ -53,7 +53,9 @@ public sealed class CultureScopeTests
         {
             await Task.Yield();
             AssertCulture("pl-PL");
-            var worker = await Task.Run(() => new[] { CultureInfo.CurrentCulture.Name, CultureInfo.CurrentUICulture.Name });
+            var worker = await Task.Run(() =>
+                new[] { CultureInfo.CurrentCulture.Name, CultureInfo.CurrentUICulture.Name }
+            );
             CollectionAssert.AreEqual(new[] { "pl-PL", "pl-PL" }, worker);
         }
         AssertCulture("en-US");

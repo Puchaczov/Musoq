@@ -16,9 +16,7 @@ public class CaseInsensitiveEndToEndTests
         var methodsManager = new MethodsManager();
         var testLibrary = new TestLibrary();
 
-
         methodsManager.RegisterLibraries(testLibrary);
-
 
         var testCases = new[]
         {
@@ -26,43 +24,50 @@ public class CaseInsensitiveEndToEndTests
             ("ToUpper", "TOUPPER"),
             ("ToUpper", "to_upper"),
             ("ToUpper", "TO_UPPER"),
-
-
             ("Format_String", "format_string"),
             ("Format_String", "FORMAT_STRING"),
             ("Format_String", "formatstring"),
             ("Format_String", "FORMATSTRING"),
-
-
             ("Multiply_By_Two", "multiply_by_two"),
             ("Multiply_By_Two", "MULTIPLY_BY_TWO"),
             ("Multiply_By_Two", "multiplybytwo"),
             ("Multiply_By_Two", "MULTIPLYBYTWO"),
-
-
             ("ConcatenateStrings", "concatenatestrings"),
             ("ConcatenateStrings", "CONCATENATESTRINGS"),
             ("ConcatenateStrings", "concatenate_strings"),
-            ("ConcatenateStrings", "CONCATENATE_STRINGS")
+            ("ConcatenateStrings", "CONCATENATE_STRINGS"),
         };
 
         foreach (var (originalName, testName) in testCases)
         {
-            var expectedSuccess = methodsManager.TryGetMethod(originalName, GetParameterTypesForMethod(originalName),
-                null, out var expectedMethod);
+            var expectedSuccess = methodsManager.TryGetMethod(
+                originalName,
+                GetParameterTypesForMethod(originalName),
+                null,
+                out var expectedMethod
+            );
             Assert.IsTrue(expectedSuccess, $"Failed to resolve original method: {originalName}");
             expectedMethod = TestNullabilityGuards.Require(expectedMethod, $"method {originalName}");
 
-
-            var actualSuccess = methodsManager.TryGetMethod(testName, GetParameterTypesForMethod(originalName), null,
-                out var actualMethod);
+            var actualSuccess = methodsManager.TryGetMethod(
+                testName,
+                GetParameterTypesForMethod(originalName),
+                null,
+                out var actualMethod
+            );
             Assert.IsTrue(actualSuccess, $"Failed to resolve case-insensitive method: {testName}");
             actualMethod = TestNullabilityGuards.Require(actualMethod, $"method {testName}");
 
-            Assert.AreEqual(expectedMethod, actualMethod,
-                $"Case-insensitive lookup for '{testName}' should return same method as '{originalName}'");
-            Assert.AreEqual(originalName, actualMethod.Name,
-                $"Method name should be preserved as original: {originalName}");
+            Assert.AreEqual(
+                expectedMethod,
+                actualMethod,
+                $"Case-insensitive lookup for '{testName}' should return same method as '{originalName}'"
+            );
+            Assert.AreEqual(
+                originalName,
+                actualMethod.Name,
+                $"Method name should be preserved as original: {originalName}"
+            );
         }
     }
 
@@ -73,7 +78,6 @@ public class CaseInsensitiveEndToEndTests
         var testLibrary = new TestLibrary();
 
         methodsManager.RegisterLibraries(testLibrary);
-
 
         var success = methodsManager.TryGetMethod("ToUpper", [typeof(string)], null, out var method);
 
@@ -90,16 +94,18 @@ public class CaseInsensitiveEndToEndTests
 
         methodsManager.RegisterLibraries(testLibrary);
 
-
         var success1 = methodsManager.TryGetMethod("toupper", [typeof(string)], null, out var method1);
         Assert.IsTrue(success1);
         method1 = TestNullabilityGuards.Require(method1, "toupper method");
         Assert.AreEqual("ToUpper", method1.Name);
         Assert.HasCount(1, method1.GetParameters());
 
-
-        var success2 = methodsManager.TryGetMethod("format_string", [typeof(string), typeof(string)], null,
-            out var method2);
+        var success2 = methodsManager.TryGetMethod(
+            "format_string",
+            [typeof(string), typeof(string)],
+            null,
+            out var method2
+        );
         Assert.IsTrue(success2);
         method2 = TestNullabilityGuards.Require(method2, "format_string method");
         Assert.AreEqual("Format_String", method2.Name);
@@ -113,7 +119,6 @@ public class CaseInsensitiveEndToEndTests
         var testLibrary = new TestLibrary();
 
         methodsManager.RegisterLibraries(testLibrary);
-
 
         var success = methodsManager.TryGetMethod("nonexistentmethod", [typeof(string)], null, out var method);
 
@@ -129,7 +134,7 @@ public class CaseInsensitiveEndToEndTests
             "Format_String" => [typeof(string), typeof(string)],
             "Multiply_By_Two" => [typeof(int)],
             "ConcatenateStrings" => [typeof(string), typeof(string)],
-            _ => Type.EmptyTypes
+            _ => Type.EmptyTypes,
         };
     }
 

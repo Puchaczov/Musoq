@@ -9,8 +9,10 @@ public sealed class RuntimeV2CastGroupingFeatureSchemaProvider(IReadOnlyList<Run
 {
     public ISchema GetSchema(string schema)
     {
-        if (!string.Equals(schema, "features", StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(schema, "#features", StringComparison.OrdinalIgnoreCase))
+        if (
+            !string.Equals(schema, "features", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(schema, "#features", StringComparison.OrdinalIgnoreCase)
+        )
             throw new NotSupportedException(schema);
 
         return new RuntimeV2CastGroupingFeatureSchema(rows);

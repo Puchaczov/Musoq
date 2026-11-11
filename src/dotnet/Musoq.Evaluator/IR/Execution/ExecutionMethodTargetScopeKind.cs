@@ -6,5 +6,5 @@ public enum ExecutionMethodTargetScopeKind
     TablePipeline,
     AggregateHelper,
     WindowHelper,
-    GeneratedHelper
+    GeneratedHelper,
 }

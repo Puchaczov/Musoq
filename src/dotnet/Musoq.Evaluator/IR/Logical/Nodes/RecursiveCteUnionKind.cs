@@ -4,5 +4,5 @@ public enum RecursiveCteUnionKind
 {
     All,
     FullRow,
-    Keyed
+    Keyed,
 }

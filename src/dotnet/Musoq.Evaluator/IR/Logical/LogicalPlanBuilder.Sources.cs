@@ -1,13 +1,13 @@
-using Musoq.Schema.StructuralInputs;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Bindings;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Schema.StructuralInputs;
 using IrNodes = Musoq.Evaluator.IR.Logical.Nodes;
 
 namespace Musoq.Evaluator.IR.Logical;
@@ -21,17 +21,23 @@ public sealed partial class LogicalPlanBuilder
         var left = CreateInMemoryCteRef(
             node.InMemoryTableAlias,
             (node as Parser.JoinInMemoryWithSourceTableFromNode)?.InMemoryTableVariableName,
-            (node as Parser.JoinInMemoryWithSourceTableFromNode)?.IntermediateSource);
+            (node as Parser.JoinInMemoryWithSourceTableFromNode)?.IntermediateSource
+        );
         var onPredicate = _converter.Convert(node.Expression);
         var kind = MapJoinKind(node.JoinType);
-        _nodeStack.Push(CreateJoinSource(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind))));
+        _nodeStack.Push(
+            CreateJoinSource(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind)))
+        );
     }
 
     public void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var right = _nodeStack.Pop();
-        var left = CreateInMemoryCteRef(node.InMemoryTableAlias, intermediate: (node as Parser.ApplyInMemoryWithSourceTableFromNode)?.IntermediateSource);
+        var left = CreateInMemoryCteRef(
+            node.InMemoryTableAlias,
+            intermediate: (node as Parser.ApplyInMemoryWithSourceTableFromNode)?.IntermediateSource
+        );
         var kind = MapApplyKind(node.ApplyType);
         _nodeStack.Push(new IrNodes.ApplyNode(kind, left, right, node.WithOrdinality));
     }
@@ -46,21 +52,25 @@ public sealed partial class LogicalPlanBuilder
             ? ConvertArguments(node.Parameters, bound)
             : ConvertArguments(node.Parameters);
         var schema = BuildOutputSchema(node.Alias);
-        _nodeStack.Push(new IrNodes.SchemaScanNode(
-            node.Schema,
-            node.Method,
-            args,
-            node.Alias,
-            schema,
-            node.Id,
-            invocation?.Signature.SourceConstructionType,
-            invocation?.Signature.SupportsExecutionContext ?? false,
-            invocation?.Signature.SourceStableId,
-            invocation?.Signature.SourceConstructor is { } constructor
-                ? ExecutionClrBindingFactory.FromClr(constructor)
-                : null,
-            CreateStructuralArgumentLimits(invocation)));
+        _nodeStack.Push(
+            new IrNodes.SchemaScanNode(
+                node.Schema,
+                node.Method,
+                args,
+                node.Alias,
+                schema,
+                node.Id,
+                invocation?.Signature.SourceConstructionType,
+                invocation?.Signature.SupportsExecutionContext ?? false,
+                invocation?.Signature.SourceStableId,
+                invocation?.Signature.SourceConstructor is { } constructor
+                    ? ExecutionClrBindingFactory.FromClr(constructor)
+                    : null,
+                CreateStructuralArgumentLimits(invocation)
+            )
+        );
     }
+
     public void Visit(JoinSourcesTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -68,7 +78,9 @@ public sealed partial class LogicalPlanBuilder
         var left = _nodeStack.Pop();
         var onPredicate = _converter.Convert(node.Expression);
         var kind = MapJoinKind(node.JoinType);
-        _nodeStack.Push(CreateJoinSource(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind))));
+        _nodeStack.Push(
+            CreateJoinSource(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind)))
+        );
     }
 
     public void Visit(ApplySourcesTableFromNode node)
@@ -90,16 +102,22 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(ValuesFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var rows = node.Rows
-            .Select(row => new IrNodes.ValuesScanRow(
-                row.Fields
-                    .Select(field => new IrNodes.ValuesScanField(field.Name, _converter.Convert(field.Expression)))
-                    .ToArray()))
+        var rows = node
+            .Rows.Select(row => new IrNodes.ValuesScanRow(
+                row.Fields.Select(field => new IrNodes.ValuesScanField(
+                        field.Name,
+                        _converter.Convert(field.Expression)
+                    ))
+                    .ToArray()
+            ))
             .ToArray();
 
         var columns = ValuesColumnSchemaFactory.Create(node, node.Rows);
-        var schema = new OutputSchema(columns.Select(static column =>
-            new ColumnSchema(column.ColumnName, column.ColumnType, column.ColumnIndex)).ToArray());
+        var schema = new OutputSchema(
+            columns
+                .Select(static column => new ColumnSchema(column.ColumnName, column.ColumnType, column.ColumnIndex))
+                .ToArray()
+        );
         _nodeStack.Push(new IrNodes.ValuesScanNode(node.Alias, rows, schema));
     }
 
@@ -110,7 +128,18 @@ public sealed partial class LogicalPlanBuilder
         var left = _nodeStack.Pop();
         var onPredicate = _converter.Convert(node.Expression);
         var kind = MapJoinKind(node.JoinType);
-        _nodeStack.Push(CreateJoinSource(new IrNodes.JoinNode(kind, onPredicate, left, right, ConvertTieBreak(node.TieBreak, kind), node.WithOrdinality)));
+        _nodeStack.Push(
+            CreateJoinSource(
+                new IrNodes.JoinNode(
+                    kind,
+                    onPredicate,
+                    left,
+                    right,
+                    ConvertTieBreak(node.TieBreak, kind),
+                    node.WithOrdinality
+                )
+            )
+        );
     }
 
     public void Visit(ApplyFromNode node)
@@ -139,29 +168,37 @@ public sealed partial class LogicalPlanBuilder
         var schema = BuildOutputSchema(node.Alias);
         var resultType = node.ReturnType ?? typeof(object);
         var methodCallExpression = _converter.Convert(node.AccessMethod);
-        _nodeStack.Push(new IrNodes.AccessMethodSourceNode(
-            node.SourceAlias,
-            methodCallExpression,
-            node.Alias,
-            resultType,
-            IrNodes.ApplyKind.Cross,
-            schema));
+        _nodeStack.Push(
+            new IrNodes.AccessMethodSourceNode(
+                node.SourceAlias,
+                methodCallExpression,
+                node.Alias,
+                resultType,
+                IrNodes.ApplyKind.Cross,
+                schema
+            )
+        );
     }
+
     public void Visit(PropertyFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var schema = BuildOutputSchema(node.Alias);
         var columnIndex = ResolvePropertyColumnIndex(node);
         var resultType = node.ReturnType ?? typeof(object);
-        _nodeStack.Push(new IrNodes.PropertySourceNode(
-            node.SourceAlias,
-            node.PropertiesChain,
-            node.Alias,
-            columnIndex,
-            resultType,
-            IrNodes.ApplyKind.Cross,
-            schema));
+        _nodeStack.Push(
+            new IrNodes.PropertySourceNode(
+                node.SourceAlias,
+                node.PropertiesChain,
+                node.Alias,
+                columnIndex,
+                resultType,
+                IrNodes.ApplyKind.Cross,
+                schema
+            )
+        );
     }
+
     public void Visit(AliasedFromNode node) { }
 
     public void Visit(Node node)
@@ -171,8 +208,12 @@ public sealed partial class LogicalPlanBuilder
         {
             var schema = BuildOutputSchema(groupedFrom.Alias, groupedFrom.Alias.ToScoreTable());
             var source = (groupedFrom as Parser.InMemoryGroupedFromNode)?.IntermediateSource;
-            _nodeStack.Push(new IrNodes.CteRefNode(source?.StorageName ?? groupedFrom.Alias, groupedFrom.Alias, schema)
-            { IntermediateProducerId = source?.ProducerId });
+            _nodeStack.Push(
+                new IrNodes.CteRefNode(source?.StorageName ?? groupedFrom.Alias, groupedFrom.Alias, schema)
+                {
+                    IntermediateProducerId = source?.ProducerId,
+                }
+            );
             return;
         }
 
@@ -213,9 +254,10 @@ public sealed partial class LogicalPlanBuilder
                     columns[i].ColumnIndex,
                     columns[i].IntendedTypeName,
                     columns[i].SourceReadType,
-                    columns[i].EnumType)
+                    columns[i].EnumType
+                )
                 {
-                    Stability = columns[i].Stability
+                    Stability = columns[i].Stability,
                 };
 
             return new OutputSchema(schemaColumns);
@@ -238,7 +280,7 @@ public sealed partial class LogicalPlanBuilder
             JoinType.LeftAntiSemi => IrNodes.JoinKind.LeftAntiSemi,
             JoinType.LeftMark => IrNodes.JoinKind.LeftMark,
             JoinType.LeftSingle => IrNodes.JoinKind.LeftSingle,
-            _ => throw UnsupportedShape.Of($"Join type '{joinType}'")
+            _ => throw UnsupportedShape.Of($"Join type '{joinType}'"),
         };
 
     private OrderField? ConvertTieBreak(FieldOrderedNode? tieBreak, IrNodes.JoinKind kind)
@@ -252,7 +294,8 @@ public sealed partial class LogicalPlanBuilder
         return new OrderField(
             _converter.Convert(tieBreak.Expression),
             tieBreak.Order == Order.Descending,
-            ConvertNullOrdering(tieBreak.NullOrdering));
+            ConvertNullOrdering(tieBreak.NullOrdering)
+        );
     }
 
     private static IrNodes.ApplyKind MapApplyKind(ApplyType applyType)
@@ -261,7 +304,7 @@ public sealed partial class LogicalPlanBuilder
         {
             ApplyType.Cross => IrNodes.ApplyKind.Cross,
             ApplyType.Outer => IrNodes.ApplyKind.Outer,
-            _ => throw new NotSupportedException($"Unsupported apply type: {applyType}")
+            _ => throw new NotSupportedException($"Unsupported apply type: {applyType}"),
         };
     }
 
@@ -288,9 +331,11 @@ public sealed partial class LogicalPlanBuilder
             {
                 if (parameter.StructuralType?.ElementType?.ClrType is not { } descriptorElementType)
                     throw new InvalidOperationException(
-                        $"Datasource relation argument '{parameter.Name}' has no structural element type.");
+                        $"Datasource relation argument '{parameter.Name}' has no structural element type."
+                    );
 
-                var elementType = StructuralCollectionTypeResolver.ResolveElementType(parameter.ParameterType)
+                var elementType =
+                    StructuralCollectionTypeResolver.ResolveElementType(parameter.ParameterType)
                     ?? descriptorElementType;
                 result[index] = new CteCollectionInput(
                     relation.Name,
@@ -299,7 +344,9 @@ public sealed partial class LogicalPlanBuilder
                     relation.Columns.Select(column => new CteCollectionInputField(
                         column.ColumnName,
                         column.ColumnIndex,
-                        column.ColumnType)));
+                        column.ColumnType
+                    ))
+                );
                 continue;
             }
 
@@ -312,7 +359,8 @@ public sealed partial class LogicalPlanBuilder
     }
 
     private static IReadOnlyList<ExecutionStructuralLimitPlan?>? CreateStructuralArgumentLimits(
-        BoundSchemaInvocation? invocation)
+        BoundSchemaInvocation? invocation
+    )
     {
         if (invocation == null)
             return null;
@@ -325,10 +373,7 @@ public sealed partial class LogicalPlanBuilder
             if (parameter.StructuralType == null || parameter.StructuralLimits is not { } limit)
                 continue;
 
-            limits[index] = new ExecutionStructuralLimitPlan(
-                limit.MaxDepth,
-                limit.MaxNodes,
-                limit.MaxStringBytes);
+            limits[index] = new ExecutionStructuralLimitPlan(limit.MaxDepth, limit.MaxNodes, limit.MaxStringBytes);
             hasLimits = true;
         }
 
@@ -340,8 +385,6 @@ internal static class StructuralCollectionTypeResolver
 {
     public static Type? ResolveElementType(Type type)
     {
-        return StructuralCollectionContract.TryGetElementType(type, out var elementType)
-            ? elementType
-            : null;
+        return StructuralCollectionContract.TryGetElementType(type, out var elementType) ? elementType : null;
     }
 }

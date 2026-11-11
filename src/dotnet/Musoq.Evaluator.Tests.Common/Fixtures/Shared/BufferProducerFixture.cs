@@ -13,7 +13,10 @@ public sealed class BufferProducerLibrary : LibraryBase
 {
     [BindableMethod]
     [NonDeterministic]
-    public byte[] Capture([InjectSpecificSource(typeof(BufferProducerEntity))] BufferProducerEntity entity, byte[] content)
+    public byte[] Capture(
+        [InjectSpecificSource(typeof(BufferProducerEntity))] BufferProducerEntity entity,
+        byte[] content
+    )
     {
         entity.Calls++;
         return content;

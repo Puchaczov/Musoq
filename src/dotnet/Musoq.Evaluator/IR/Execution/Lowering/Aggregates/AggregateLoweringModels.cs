@@ -10,7 +10,8 @@ internal sealed record AggregateOnlyPipeline(
     AggregateBinding[] Bindings,
     LoweringSourcePipeline Source,
     IrExpression? HavingPredicate,
-    IReadOnlyList<PostOperation> PostOperations);
+    IReadOnlyList<PostOperation> PostOperations
+);
 
 internal sealed record AggregateSingleKeyPipeline(
     PhysicalProjectNode Project,
@@ -21,7 +22,8 @@ internal sealed record AggregateSingleKeyPipeline(
     IrExpression GroupKey,
     string GroupKeyName,
     Type GroupKeyType,
-    IReadOnlyList<PostOperation> PostOperations);
+    IReadOnlyList<PostOperation> PostOperations
+);
 
 internal sealed record ValueTupleAggregatePipeline(
     PhysicalProjectNode Project,
@@ -31,12 +33,14 @@ internal sealed record ValueTupleAggregatePipeline(
     IrExpression[] GroupKeys,
     string[] GroupKeyNames,
     Type[] GroupKeyTypes,
-    IReadOnlyList<PostOperation> PostOperations);
+    IReadOnlyList<PostOperation> PostOperations
+);
 
 internal sealed record AggregateFinalizationGroupKeys(
     IReadOnlyList<IrExpression> Expressions,
     IReadOnlyList<string> Names,
-    IReadOnlyList<Type> Types);
+    IReadOnlyList<Type> Types
+);
 
 internal sealed record AggregateFinalizationContext(
     ExecutionVariable Group,
@@ -46,12 +50,14 @@ internal sealed record AggregateFinalizationContext(
     IReadOnlyDictionary<string, AggregateCapturedValue> CapturedValues,
     IReadOnlyDictionary<string, AggregateAccumulatorField> TypedAccumulators,
     AggregateGroupShape GroupShape,
-    string AggregateKind);
+    string AggregateKind
+);
 
 internal sealed record AggregateGroupLowering(
     AggregateGroupPlan Plan,
     IReadOnlyDictionary<string, AggregateAccumulatorField> AccumulatorsByIdentifier,
-    IReadOnlyDictionary<string, AggregateCapturedField> CapturedFieldsByName)
+    IReadOnlyDictionary<string, AggregateCapturedField> CapturedFieldsByName
+)
 {
     public AggregateGroupShape Shape => Plan.LeafShape;
 }
@@ -67,14 +73,16 @@ internal sealed record AggregateLoweringResourceRequest(
     ExecutionVariable CurrentGroup,
     ExecutionVariable FinalGroup,
     IReadOnlyDictionary<string, RowShape> SourceLookup,
-    string AggregateKind);
+    string AggregateKind
+);
 
 internal sealed record AggregateLoweringResources(
     AggregateGroupLowering Group,
     IReadOnlyList<ExecutionNode> LibraryNodes,
     AggregateSetBuildResult SetNodes,
     AggregateGroupValueCaptureBuildResult ValueCapture,
-    AggregateFinalizationContext FinalizationContext);
+    AggregateFinalizationContext FinalizationContext
+);
 
 internal sealed record AggregateTableCompletion(
     IReadOnlyList<RowShape> SourceShapes,
@@ -88,17 +96,20 @@ internal sealed record AggregateTableCompletion(
     ExecutionVariable FinalGroup,
     ExecutionBlock FinalBlock,
     IReadOnlyList<PostOperation> PostOperations,
-    bool IsDistinct);
+    bool IsDistinct
+);
 
 internal sealed record AggregateSetBuildResult(
     bool IsBuilt,
     IReadOnlyList<ExecutionNode> Nodes,
     IReadOnlyDictionary<string, AggregateAccumulatorField> TypedAccumulators,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static AggregateSetBuildResult Success(
         IReadOnlyList<ExecutionNode> nodes,
-        IReadOnlyDictionary<string, AggregateAccumulatorField> typedAccumulators)
+        IReadOnlyDictionary<string, AggregateAccumulatorField> typedAccumulators
+    )
     {
         return new AggregateSetBuildResult(true, nodes, typedAccumulators, string.Empty);
     }
@@ -109,23 +120,24 @@ internal sealed record AggregateSetBuildResult(
             false,
             [],
             new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase),
-            reason);
+            reason
+        );
     }
 }
 
-internal sealed record AggregateCapturedValue(
-    string ValueName,
-    Type ValueType);
+internal sealed record AggregateCapturedValue(string ValueName, Type ValueType);
 
 internal sealed record AggregateGroupValueCaptureBuildResult(
     bool IsBuilt,
     IReadOnlyList<ExecutionNode> Nodes,
     IReadOnlyDictionary<string, AggregateCapturedValue> CapturedValues,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static AggregateGroupValueCaptureBuildResult Success(
         IReadOnlyList<ExecutionNode> nodes,
-        IReadOnlyDictionary<string, AggregateCapturedValue> capturedValues)
+        IReadOnlyDictionary<string, AggregateCapturedValue> capturedValues
+    )
     {
         return new AggregateGroupValueCaptureBuildResult(true, nodes, capturedValues, string.Empty);
     }
@@ -136,6 +148,7 @@ internal sealed record AggregateGroupValueCaptureBuildResult(
             false,
             [],
             new Dictionary<string, AggregateCapturedValue>(StringComparer.OrdinalIgnoreCase),
-            reason);
+            reason
+        );
     }
 }

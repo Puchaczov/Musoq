@@ -36,18 +36,17 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
     private event QueryProgressEventHandler? _queryProgressHandlers;
 
     public CompiledQuery(ITableRunnable runnable)
-        : this(runnable, lifetimeOwner: null)
-    {
-    }
+        : this(runnable, lifetimeOwner: null) { }
 
     public CompiledQuery(ITableRunnable runnable, IDisposable? lifetimeOwner)
     {
         _runnable = runnable ?? throw QueryExecutionException.ForNullRunnable();
         _parameterizedRunnable = runnable as IParameterizedRunnable;
-        _parameterDefinitions = _parameterizedRunnable?.ParameterDefinitions.ToArray() ??
-                                Array.Empty<ScriptParameterDefinition>();
-        _parameterContracts = _parameterizedRunnable?.ParameterContracts.ToArray() ??
-                              _parameterDefinitions.Select(static definition => definition.Contract).ToArray();
+        _parameterDefinitions =
+            _parameterizedRunnable?.ParameterDefinitions.ToArray() ?? Array.Empty<ScriptParameterDefinition>();
+        _parameterContracts =
+            _parameterizedRunnable?.ParameterContracts.ToArray()
+            ?? _parameterDefinitions.Select(static definition => definition.Contract).ToArray();
         _requiredParameters = _parameterDefinitions.Where(definition => definition.IsRequired).ToArray();
         _lifetimeOwner = lifetimeOwner;
         if (runnable is ITypedParameterizedRunnable typed && typed.TypedParameters.Count != 0)
@@ -193,7 +192,11 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
         return RunCore(options.CancellationToken, options.QueryProgressOptions, options);
     }
 
-    private Table RunCore(CancellationToken token, QueryProgressOptions? progressOptions, TypedQueryRunOptions? options = null)
+    private Table RunCore(
+        CancellationToken token,
+        QueryProgressOptions? progressOptions,
+        TypedQueryRunOptions? options = null
+    )
     {
         var admission = BeginAdmission();
         var gateAcquired = false;
@@ -219,7 +222,13 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
                 EnsureDataSourceLifecycleProvider(admission.Runnable);
                 BeginExecution();
                 executionStarted = true;
-                context = CaptureExecutionContext(admission.Runnable, parameterSnapshot, token, progressOptions, options);
+                context = CaptureExecutionContext(
+                    admission.Runnable,
+                    parameterSnapshot,
+                    token,
+                    progressOptions,
+                    options
+                );
                 if (!admission.UseContext)
                     ApplyParameterSnapshot(context);
             }
@@ -293,7 +302,11 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
         return RunAsyncCore(options.CancellationToken, options.QueryProgressOptions, options);
     }
 
-    private async ValueTask<Table> RunAsyncCore(CancellationToken token, QueryProgressOptions? progressOptions, TypedQueryRunOptions? options = null)
+    private async ValueTask<Table> RunAsyncCore(
+        CancellationToken token,
+        QueryProgressOptions? progressOptions,
+        TypedQueryRunOptions? options = null
+    )
     {
         var admission = BeginAdmission();
         var gateAcquired = false;
@@ -319,7 +332,13 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
                 EnsureDataSourceLifecycleProvider(admission.Runnable);
                 BeginExecution();
                 executionStarted = true;
-                context = CaptureExecutionContext(admission.Runnable, parameterSnapshot, token, progressOptions, options);
+                context = CaptureExecutionContext(
+                    admission.Runnable,
+                    parameterSnapshot,
+                    token,
+                    progressOptions,
+                    options
+                );
                 if (!admission.UseContext)
                     ApplyParameterSnapshot(context);
             }
@@ -329,13 +348,18 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
             Table result;
             try
             {
-                result = admission.Runnable is IContextAsyncTableRunnable contextAsyncRunnable
-                    ? await contextAsyncRunnable.RunAsync(context.ToRunContext()).ConfigureAwait(false)
+                result =
+                    admission.Runnable is IContextAsyncTableRunnable contextAsyncRunnable
+                        ? await contextAsyncRunnable.RunAsync(context.ToRunContext()).ConfigureAwait(false)
                     : admission.UseContext
-                        ? await Task.Run(() => ((IContextTableRunnable)admission.Runnable).Run(context.ToRunContext()), token).ConfigureAwait(false)
+                        ? await Task.Run(
+                                () => ((IContextTableRunnable)admission.Runnable).Run(context.ToRunContext()),
+                                token
+                            )
+                            .ConfigureAwait(false)
                     : admission.Runnable is IAsyncTableRunnable asyncRunnable
-                    ? await asyncRunnable.RunAsync(context.CancellationToken).ConfigureAwait(false)
-                        : await admission.Runnable.RunAsync(context.CancellationToken).ConfigureAwait(false);
+                        ? await asyncRunnable.RunAsync(context.CancellationToken).ConfigureAwait(false)
+                    : await admission.Runnable.RunAsync(context.CancellationToken).ConfigureAwait(false);
                 EnsurePublicResult(result);
                 AttachDeferredResultLifetime(result);
             }
@@ -388,9 +412,7 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
         return RunWithProfile(token, emitTelemetry: true, progressOptions: null);
     }
 
-    public QueryProfileResult RunWithProfile(
-        QueryProgressOptions progressOptions,
-        CancellationToken token = default)
+    public QueryProfileResult RunWithProfile(QueryProgressOptions progressOptions, CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(progressOptions);
         return RunWithProfile(token, emitTelemetry: true, progressOptions);
@@ -399,7 +421,8 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
     internal QueryProfileResult RunWithProfile(
         CancellationToken token,
         bool emitTelemetry,
-        QueryProgressOptions? progressOptions = null)
+        QueryProgressOptions? progressOptions = null
+    )
     {
         var admission = BeginAdmission();
         var gateAcquired = false;
@@ -545,7 +568,8 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
         TypedParameterSnapshot parameters,
         CancellationToken token,
         QueryProgressOptions? progressOptions,
-        TypedQueryRunOptions? options = null)
+        TypedQueryRunOptions? options = null
+    )
     {
         return QueryExecutionContext.Capture(
             runnable,
@@ -556,8 +580,11 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
             _queryProgressHandlers + options?.QueryProgress,
             progressOptions,
             runnable,
-            runnable.GetType().FullName) with
-        { DataSourceWarnings = options?.DataSourceWarnings };
+            runnable.GetType().FullName
+        ) with
+        {
+            DataSourceWarnings = options?.DataSourceWarnings,
+        };
     }
 
     private TypedParameterSnapshot CaptureParameterSnapshot(CancellationToken token)
@@ -575,7 +602,8 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
             if (snapshot.Contains(definition.Name))
                 continue;
             throw QueryExecutionException.ForScriptParameterBinding(
-                ScriptParameterBindingException.MissingRequired(definition.Name));
+                ScriptParameterBindingException.MissingRequired(definition.Name)
+            );
         }
     }
 

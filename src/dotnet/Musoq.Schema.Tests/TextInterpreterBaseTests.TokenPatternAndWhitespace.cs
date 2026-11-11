@@ -97,8 +97,7 @@ public partial class TextInterpreterBaseTests
     public void ReadPattern_NoMatch_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestReadPattern("abc".AsSpan(), @"\d+"));
+        Assert.Throws<ParseException>(() => interpreter.TestReadPattern("abc".AsSpan(), @"\d+"));
     }
 
     [TestMethod]
@@ -141,8 +140,7 @@ public partial class TextInterpreterBaseTests
     public void SkipWhitespace_RequiredButMissing_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestSkipWhitespace("hello".AsSpan(), true));
+        Assert.Throws<ParseException>(() => interpreter.TestSkipWhitespace("hello".AsSpan(), true));
     }
 
     [TestMethod]
@@ -206,8 +204,7 @@ public partial class TextInterpreterBaseTests
     public void ExpectLiteral_NoMatch_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        var ex = Assert.Throws<ParseException>(() =>
-            interpreter.TestExpectLiteral("goodbye".AsSpan(), "hello"));
+        var ex = Assert.Throws<ParseException>(() => interpreter.TestExpectLiteral("goodbye".AsSpan(), "hello"));
         Assert.Contains("Expected 'hello'", ex.Details);
     }
 
@@ -215,8 +212,7 @@ public partial class TextInterpreterBaseTests
     public void ExpectLiteral_TooShort_ThrowsParseException()
     {
         var interpreter = new TestTextInterpreter();
-        Assert.Throws<ParseException>(() =>
-            interpreter.TestExpectLiteral("hi".AsSpan(), "hello"));
+        Assert.Throws<ParseException>(() => interpreter.TestExpectLiteral("hi".AsSpan(), "hello"));
     }
 
     #endregion

@@ -11,7 +11,6 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public partial class TypeRelatedMistakesTests
 {
-
     [TestMethod]
     public void Aggregate_SumOnString_ShouldHandle()
     {
@@ -77,13 +76,15 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange - THEN branches return different types
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT CASE
-                WHEN Population > 100 THEN 'Large'
-                WHEN Population > 50 THEN 123
-                ELSE true
-            END
-            FROM #A.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT CASE\n"
+            + "                WHEN Population > 100 THEN 'Large'\n"
+            + "                WHEN Population > 50 THEN 123\n"
+            + "                ELSE true\n"
+            + "            END\n"
+            + "            FROM #A.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -95,12 +96,14 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange - WHEN expects boolean
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT CASE
-                WHEN Name THEN 'Has name'
-                ELSE 'No name'
-            END
-            FROM #A.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT CASE\n"
+            + "                WHEN Name THEN 'Has name'\n"
+            + "                ELSE 'No name'\n"
+            + "            END\n"
+            + "            FROM #A.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -112,13 +115,15 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange - simple CASE with mismatched comparison types
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT CASE Name
-                WHEN 123 THEN 'Number match'
-                WHEN 'Warsaw' THEN 'String match'
-                ELSE 'Other'
-            END
-            FROM #A.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT CASE Name\n"
+            + "                WHEN 123 THEN 'Number match'\n"
+            + "                WHEN 'Warsaw' THEN 'String match'\n"
+            + "                ELSE 'Other'\n"
+            + "            END\n"
+            + "            FROM #A.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -154,10 +159,12 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange - UNION with different column types and an explicit key list
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT Name FROM #A.Entities()
-            UNION ALL (Name)
-            SELECT Population FROM #B.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT Name FROM #A.Entities()\n"
+            + "            UNION ALL (Name)\n"
+            + "            SELECT Population FROM #B.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -169,14 +176,21 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange - EXCEPT with type mismatch
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT Name, Population FROM #A.Entities()
-            EXCEPT (Name)
-            SELECT Population, Name FROM #B.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT Name, Population FROM #A.Entities()\n"
+            + "            EXCEPT (Name)\n"
+            + "            SELECT Population, Name FROM #B.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
-        AssertTypeHandling(result, "EXCEPT with mismatched column types", DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticCode.MQ3020_SetOperatorColumnTypes);
+        AssertTypeHandling(
+            result,
+            "EXCEPT with mismatched column types",
+            DiagnosticCode.MQ3020_SetOperatorColumnTypes,
+            DiagnosticCode.MQ3020_SetOperatorColumnTypes
+        );
     }
 
     [TestMethod]
@@ -184,14 +198,20 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange - INTERSECT with type mismatch
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT Name FROM #A.Entities()
-            INTERSECT (Name)
-            SELECT Population FROM #B.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT Name FROM #A.Entities()\n"
+            + "            INTERSECT (Name)\n"
+            + "            SELECT Population FROM #B.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
-        AssertTypeHandling(result, "INTERSECT with mismatched column types", DiagnosticCode.MQ3020_SetOperatorColumnTypes);
+        AssertTypeHandling(
+            result,
+            "INTERSECT with mismatched column types",
+            DiagnosticCode.MQ3020_SetOperatorColumnTypes
+        );
     }
 
     [TestMethod]
@@ -199,10 +219,12 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange - UNION ALL without key columns compares all projected fields
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT Name FROM #A.Entities()
-            UNION ALL
-            SELECT Name FROM #B.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT Name FROM #A.Entities()\n"
+            + "            UNION ALL\n"
+            + "            SELECT Name FROM #B.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -216,10 +238,12 @@ public partial class TypeRelatedMistakesTests
     {
         // Arrange - UNION ALL with empty key column list compares all projected fields
         var analyzer = CreateAnalyzer();
-        var query = @"
-            SELECT Name FROM #A.Entities()
-            UNION ALL ()
-            SELECT Name FROM #B.Entities()";
+        var query = (
+            "\n"
+            + "            SELECT Name FROM #A.Entities()\n"
+            + "            UNION ALL ()\n"
+            + "            SELECT Name FROM #B.Entities()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -373,5 +397,4 @@ public partial class TypeRelatedMistakesTests
         var result = analyzer.Analyze(query);
         AssertTypeHandling(result, "String index access", DiagnosticCode.MQ3018_NoIndexer);
     }
-
 }

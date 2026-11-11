@@ -56,7 +56,8 @@ public class TextInterpretationPlanBuilderTests
             "Stamp",
             TextFieldType.Pattern,
             "(?<Year>\\d{4})",
-            captureGroups: ["Year"]);
+            captureGroups: ["Year"]
+        );
         var schema = new TextSchemaNode("Log", [field]);
 
         var plan = BuildPlan(schema);

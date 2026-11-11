@@ -13,7 +13,8 @@ internal static class NestedLoopJoinRiskAdvisor
         JoinKind kind,
         PhysicalNode left,
         PhysicalNode right,
-        IReadOnlyList<CardinalityFact>? cardinalityFacts)
+        IReadOnlyList<CardinalityFact>? cardinalityFacts
+    )
     {
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
@@ -28,29 +29,34 @@ internal static class NestedLoopJoinRiskAdvisor
             kind.ToString(),
             outcome,
             confidence,
-            reason);
+            reason
+        );
     }
 
     private static (string Outcome, PlanningConfidence Confidence, string Reason) AssessRisk(
         long? leftRows,
-        long? rightRows)
+        long? rightRows
+    )
     {
         if (leftRows is not { } left || rightRows is not { } right)
             return (
                 "UnknownRisk",
                 PlanningConfidence.Medium,
-                "Nested-loop join runs O(n*m) over inputs with unknown cardinality, which can become a performance cliff on large sources.");
+                "Nested-loop join runs O(n*m) over inputs with unknown cardinality, which can become a performance cliff on large sources."
+            );
 
         if (ExceedsHighRiskThreshold(left, right))
             return (
                 "HighRisk",
                 PlanningConfidence.High,
-                $"Nested-loop join evaluates roughly {left} x {right} row comparisons, which is expensive at this scale.");
+                $"Nested-loop join evaluates roughly {left} x {right} row comparisons, which is expensive at this scale."
+            );
 
         return (
             "LowRisk",
             PlanningConfidence.High,
-            $"Nested-loop join over small inputs ({left} x {right} row comparisons) stays inexpensive.");
+            $"Nested-loop join over small inputs ({left} x {right} row comparisons) stays inexpensive."
+        );
     }
 
     private static bool ExceedsHighRiskThreshold(long left, long right)
@@ -61,9 +67,7 @@ internal static class NestedLoopJoinRiskAdvisor
         return left > HighRiskComparisonThreshold / right;
     }
 
-    private static long? TryResolveSourceRows(
-        PhysicalNode node,
-        IReadOnlyList<CardinalityFact>? cardinalityFacts)
+    private static long? TryResolveSourceRows(PhysicalNode node, IReadOnlyList<CardinalityFact>? cardinalityFacts)
     {
         var scan = ResolveSourceScan(node);
         if (scan == null || string.IsNullOrWhiteSpace(scan.SourceContextId))
@@ -72,7 +76,8 @@ internal static class NestedLoopJoinRiskAdvisor
         return CardinalityFactAdvisor.TryResolveComparableRows(
             cardinalityFacts,
             $"source:{scan.SourceContextId}",
-            out var rows)
+            out var rows
+        )
             ? rows
             : null;
     }

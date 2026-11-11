@@ -15,7 +15,9 @@ public interface ISourceArguments
 public readonly struct EmptySourceArguments : ISourceArguments
 {
     public int Count => 0;
+
     public T GetValue<T>(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+
     public void Visit<TVisitor>(ref TVisitor visitor, int offset = 0)
         where TVisitor : IColumnValueVisitor, allows ref struct { }
 }
@@ -35,7 +37,9 @@ public readonly struct SourceArguments<TValue, TRest>(TValue value, TRest rest) 
         if (index != 0)
             return _rest.GetValue<T>(index - 1);
         if (typeof(T) != typeof(TValue))
-            throw new InvalidOperationException($"Source argument {index} requires '{typeof(T)}' but its declared type is '{typeof(TValue)}'.");
+            throw new InvalidOperationException(
+                $"Source argument {index} requires '{typeof(T)}' but its declared type is '{typeof(TValue)}'."
+            );
         return Unsafe.As<TValue, T>(ref Unsafe.AsRef(in _value));
     }
 
@@ -51,6 +55,7 @@ public readonly struct SourceArguments<TValue, TRest>(TValue value, TRest rest) 
 public static class SourceArguments
 {
     public static EmptySourceArguments Empty => default;
+
     public static SourceArguments<TValue, TRest> Create<TValue, TRest>(TValue value, TRest rest)
         where TRest : struct, ISourceArguments => new(value, rest);
 }

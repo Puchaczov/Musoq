@@ -14,7 +14,8 @@ public static partial class InstanceCreator
         string script,
         string assemblyName,
         ISchemaProvider schemaProvider,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver
+    )
     {
         return ExplainAnalyze(script, assemblyName, schemaProvider, loggerResolver, null, CancellationToken.None);
     }
@@ -24,7 +25,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         return ExplainAnalyze(script, assemblyName, schemaProvider, loggerResolver, null, token);
     }
@@ -34,9 +36,17 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CompilationOptions? compilationOptions)
+        CompilationOptions? compilationOptions
+    )
     {
-        return ExplainAnalyze(script, assemblyName, schemaProvider, loggerResolver, compilationOptions, CancellationToken.None);
+        return ExplainAnalyze(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            CancellationToken.None
+        );
     }
 
     public static ExplainAnalyzeResult ExplainAnalyze(
@@ -45,7 +55,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         using var query = CompileForExplainAnalyze(
             script,
@@ -53,7 +64,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             compilationOptions,
-            token);
+            token
+        );
 
         return query.Run(token);
     }
@@ -62,7 +74,8 @@ public static partial class InstanceCreator
         string script,
         string assemblyName,
         ISchemaProvider schemaProvider,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver
+    )
     {
         return CompileForExplainAnalyze(
             script,
@@ -70,7 +83,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             null,
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     public static CompiledExplainAnalyzeQuery CompileForExplainAnalyze(
@@ -78,15 +92,10 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        return CompileForExplainAnalyze(
-            script,
-            assemblyName,
-            schemaProvider,
-            loggerResolver,
-            null,
-            cancellationToken);
+        return CompileForExplainAnalyze(script, assemblyName, schemaProvider, loggerResolver, null, cancellationToken);
     }
 
     public static CompiledExplainAnalyzeQuery CompileForExplainAnalyze(
@@ -94,7 +103,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
-        CompilationOptions? compilationOptions)
+        CompilationOptions? compilationOptions
+    )
     {
         return CompileForExplainAnalyze(
             script,
@@ -102,7 +112,8 @@ public static partial class InstanceCreator
             schemaProvider,
             loggerResolver,
             compilationOptions,
-            CancellationToken.None);
+            CancellationToken.None
+        );
     }
 
     public static CompiledExplainAnalyzeQuery CompileForExplainAnalyze(
@@ -111,7 +122,8 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver,
         CompilationOptions? compilationOptions,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var options = CreateExplainAnalyzeCompilationOptions(compilationOptions);
@@ -122,7 +134,8 @@ public static partial class InstanceCreator
             loggerResolver,
             options,
             requireExecutionPlan: true,
-            cancellationToken);
+            cancellationToken
+        );
 
         if (!build.Succeeded)
         {
@@ -131,9 +144,7 @@ public static partial class InstanceCreator
                 : new MusoqQueryException(build.ToEnvelopes());
         }
 
-        return new CompiledExplainAnalyzeQuery(
-            build.CompiledQuery,
-            CreateOperatorCatalog(build.BuildItems));
+        return new CompiledExplainAnalyzeQuery(build.CompiledQuery, CreateOperatorCatalog(build.BuildItems));
     }
 
     private static CompilationOptions CreateExplainAnalyzeCompilationOptions(CompilationOptions? compilationOptions)

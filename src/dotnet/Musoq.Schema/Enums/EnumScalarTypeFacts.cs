@@ -17,7 +17,7 @@ public static class EnumScalarTypeFacts
             EnumUnderlyingKind.UInt32 => typeof(uint),
             EnumUnderlyingKind.Int64 => typeof(long),
             EnumUnderlyingKind.UInt64 => typeof(ulong),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown enum backing kind.")
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown enum backing kind."),
         };
     }
 
@@ -36,7 +36,8 @@ public static class EnumScalarTypeFacts
             TypeCode.UInt64 => EnumUnderlyingKind.UInt64,
             _ => throw new ArgumentException(
                 $"Type '{carrierType}' is not a supported enum carrier type.",
-                nameof(carrierType))
+                nameof(carrierType)
+            ),
         };
     }
 }

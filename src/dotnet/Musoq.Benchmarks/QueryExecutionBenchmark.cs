@@ -15,9 +15,11 @@ public class QueryExecutionBenchmark
     private CompiledQuery _query = null!;
     private readonly Consumer _consumer = new();
     public IEnumerable<string> Scenarios => ScenarioCatalog.All.Select(scenario => scenario.Id);
+
     [ParamsSource(nameof(Scenarios))]
     public string ScenarioId { get; set; } = "B01_Scan";
     public IEnumerable<string> Sizes => BenchmarkSizes.Labels;
+
     [ParamsSource(nameof(Sizes))]
     public string Size { get; set; } = "Small";
 
@@ -27,8 +29,13 @@ public class QueryExecutionBenchmark
         var scenario = ScenarioCatalog.Get(ScenarioId);
         var count = BenchmarkSizes.Count(Size);
         MeasuredProcess.Record(scenario, count);
-        _query = InstanceCreator.CompileForExecution(scenario.Sql, "benchmark", FixtureCatalog.Prepare(scenario, count).CreateSchemaProvider(),
-            BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, count));
+        _query = InstanceCreator.CompileForExecution(
+            scenario.Sql,
+            "benchmark",
+            FixtureCatalog.Prepare(scenario, count).CreateSchemaProvider(),
+            BenchmarkLogger.Instance,
+            ExecutionSettings.Create(scenario, count)
+        );
     }
 
     [Benchmark]
@@ -57,6 +64,8 @@ public class QueryExecutionBenchmark
 public sealed class BenchmarkLogger : ILoggerResolver
 {
     public static BenchmarkLogger Instance { get; } = new();
+
     public ILogger ResolveLogger() => NullLogger.Instance;
+
     public ILogger<T> ResolveLogger<T>() => NullLogger<T>.Instance;
 }

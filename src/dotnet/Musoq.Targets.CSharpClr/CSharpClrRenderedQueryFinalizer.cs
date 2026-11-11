@@ -12,11 +12,13 @@ internal sealed class CSharpClrRenderedQueryFinalizer : IRenderedQueryFinalizer
     {
         if (artifact is not CSharpRenderedQueryArtifact csharp)
             throw new InvalidOperationException(
-                $"C# CLR finalizer expected artifact type '{nameof(CSharpRenderedQueryArtifact)}' for target '{ExecutionTargetIds.CSharpClr}', but received artifact type '{artifact.GetType().Name}' for target '{artifact.TargetId}'.");
+                $"C# CLR finalizer expected artifact type '{nameof(CSharpRenderedQueryArtifact)}' for target '{ExecutionTargetIds.CSharpClr}', but received artifact type '{artifact.GetType().Name}' for target '{artifact.TargetId}'."
+            );
 
         if (options is not CSharpClrFinalizationOptions csharpOptions)
             throw new NotSupportedException(
-                $"C# CLR finalizer expected options type '{nameof(CSharpClrFinalizationOptions)}', but received '{options.GetType().Name}'.");
+                $"C# CLR finalizer expected options type '{nameof(CSharpClrFinalizationOptions)}', but received '{options.GetType().Name}'."
+            );
 
         csharpOptions.CancellationToken.ThrowIfCancellationRequested();
 
@@ -28,12 +30,13 @@ internal sealed class CSharpClrRenderedQueryFinalizer : IRenderedQueryFinalizer
         try
         {
             result = emitPdb
-                ? csharp.Compilation.Emit(dllStream, pdbStream,
-                    options: new EmitOptions(false, DebugInformationFormat.PortablePdb),
-                    cancellationToken: csharpOptions.CancellationToken)
-                : csharp.Compilation.Emit(
+                ? csharp.Compilation.Emit(
                     dllStream,
-                    cancellationToken: csharpOptions.CancellationToken);
+                    pdbStream,
+                    options: new EmitOptions(false, DebugInformationFormat.PortablePdb),
+                    cancellationToken: csharpOptions.CancellationToken
+                )
+                : csharp.Compilation.Emit(dllStream, cancellationToken: csharpOptions.CancellationToken);
         }
         catch
         {
@@ -76,12 +79,11 @@ internal sealed class CSharpClrRenderedQueryFinalizer : IRenderedQueryFinalizer
         try
         {
             var dllFile = ToByteArray(dllStream, csharpOptions.CancellationToken);
-            var pdbFile = pdbStream is null
-                ? null
-                : ToByteArray(pdbStream, csharpOptions.CancellationToken);
+            var pdbFile = pdbStream is null ? null : ToByteArray(pdbStream, csharpOptions.CancellationToken);
             var finalizationResult = new CSharpClrFinalizationResult(
                 result,
-                new ClrAssemblyExecutableArtifact(dllFile, pdbFile, csharp.AccessToClassPath));
+                new ClrAssemblyExecutableArtifact(dllFile, pdbFile, csharp.AccessToClassPath)
+            );
             csharpOptions.CancellationToken.ThrowIfCancellationRequested();
             return finalizationResult;
         }
@@ -95,9 +97,7 @@ internal sealed class CSharpClrRenderedQueryFinalizer : IRenderedQueryFinalizer
     private static byte[] ToByteArray(MemoryStream stream, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (stream.TryGetBuffer(out var buffer) &&
-            buffer.Offset == 0 &&
-            buffer.Count == buffer.Array!.Length)
+        if (stream.TryGetBuffer(out var buffer) && buffer.Offset == 0 && buffer.Count == buffer.Array!.Length)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return buffer.Array;

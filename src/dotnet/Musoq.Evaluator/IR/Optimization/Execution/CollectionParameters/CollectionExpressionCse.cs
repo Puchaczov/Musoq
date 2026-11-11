@@ -7,11 +7,9 @@ internal static partial class ExpressionCseSubstitution
 {
     private static ExecutionCollectionInCheck ReplaceCollectionInCheck(
         ExecutionCollectionInCheck collectionInCheck,
-        IReadOnlyDictionary<string, ExecutionVariable> variablesBySignature)
+        IReadOnlyDictionary<string, ExecutionVariable> variablesBySignature
+    )
     {
-        return collectionInCheck with
-        {
-            Expression = Replace(collectionInCheck.Expression, variablesBySignature)
-        };
+        return collectionInCheck with { Expression = Replace(collectionInCheck.Expression, variablesBySignature) };
     }
 }

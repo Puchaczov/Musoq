@@ -10,8 +10,8 @@ internal sealed class SubqueryFallbackPlanner(PlanningContext context) : IrExpre
 {
     internal List<PlanningDecision> Decisions { get; } = [];
 
-    internal LogicalNode Rewrite(LogicalNode node) => LogicalPlanRewriter.RewriteLocalExpressions(
-        LogicalPlanRewriter.RewriteChildren(node, Rewrite), Visit);
+    internal LogicalNode Rewrite(LogicalNode node) =>
+        LogicalPlanRewriter.RewriteLocalExpressions(LogicalPlanRewriter.RewriteChildren(node, Rewrite), Visit);
 
     protected override IrExpression VisitSubquery(SubqueryExpression node)
     {
@@ -20,19 +20,34 @@ internal sealed class SubqueryFallbackPlanner(PlanningContext context) : IrExpre
         var optimized = new LogicalOptimizer(context.CompilationOptions.UseConstantFolding).Optimize(query);
         var nestedContext = context with
         {
-            LogicalArtifacts = new LogicalPlanningArtifacts(optimized.InitialPlan, optimized.OptimizedPlan, optimized.Trace)
+            LogicalArtifacts = new LogicalPlanningArtifacts(
+                optimized.InitialPlan,
+                optimized.OptimizedPlan,
+                optimized.Trace
+            ),
         };
         var result = new QueryPlanner().Plan(nestedContext);
-        Decisions.Add(new PlanningDecision(PlanningDecisionCategory.SubqueryStrategy, "CorrelatedSubqueryFallback",
-            node.Identifier, "Apply", PlanningConfidence.High,
-            "The typed inner plan executes for the current outer binding only when its expression is demanded."));
+        Decisions.Add(
+            new PlanningDecision(
+                PlanningDecisionCategory.SubqueryStrategy,
+                "CorrelatedSubqueryFallback",
+                node.Identifier,
+                "Apply",
+                PlanningConfidence.High,
+                "The typed inner plan executes for the current outer binding only when its expression is demanded."
+            )
+        );
         Decisions.AddRange(result.Decisions);
         var rewritten = (SubqueryExpression)base.VisitSubquery(node);
         return rewritten with
         {
-            Planning = new SubqueryPlanningArtifacts(result,
+            Planning = new SubqueryPlanningArtifacts(
+                result,
                 context.ShapeResolver,
-                context.CompilationOptions, context.SchemaRegistry, context.CteExecutionPlan)
+                context.CompilationOptions,
+                context.SchemaRegistry,
+                context.CteExecutionPlan
+            ),
         };
     }
 }

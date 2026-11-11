@@ -5,9 +5,7 @@ internal readonly struct OperatorProfileExclusionTarget
     private readonly QueryProfileRecorder? _owner;
     private readonly CapturedOperatorProfileFrame[]? _frames;
 
-    public OperatorProfileExclusionTarget(
-        QueryProfileRecorder owner,
-        CapturedOperatorProfileFrame[] frames)
+    public OperatorProfileExclusionTarget(QueryProfileRecorder owner, CapturedOperatorProfileFrame[] frames)
     {
         _owner = owner;
         _frames = frames;

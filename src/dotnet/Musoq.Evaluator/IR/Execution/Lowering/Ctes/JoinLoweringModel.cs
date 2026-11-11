@@ -8,7 +8,8 @@ internal sealed record CteSupportedPipeline(
     PhysicalProjectNode Project,
     PhysicalNode Source,
     PhysicalFilterNode? Filter,
-    IReadOnlyList<PostOperation> PostOperations);
+    IReadOnlyList<PostOperation> PostOperations
+);
 
 internal sealed record JoinSource(
     PhysicalNode Node,
@@ -22,7 +23,8 @@ internal sealed record JoinSource(
     GeneratedRowShape? GeneratedRowShape = null,
     ExecutionVariable? OrdinalityVariable = null,
     FusedCteHashBuildSource? FusedHashBuild = null,
-    FusedHashPayload? FusedHashPayload = null)
+    FusedHashPayload? FusedHashPayload = null
+)
 {
     public IReadOnlyList<ApplyPredicateMovementPlan> ApplyPredicateMovementPlans { get; init; } = [];
 
@@ -31,9 +33,7 @@ internal sealed record JoinSource(
     public IReadOnlyList<ApplyPredicateMovementPlan> LoweredApplyPredicateMovementPlans { get; init; } = [];
 }
 
-internal sealed record FusedHashPayload(
-    HashPayloadShape Shape,
-    IReadOnlyList<ExecutionRowValue> Values);
+internal sealed record FusedHashPayload(HashPayloadShape Shape, IReadOnlyList<ExecutionRowValue> Values);
 
 internal sealed record JoinSources(JoinSource Left, JoinSource Right);
 
@@ -53,4 +53,5 @@ internal sealed record HashJoinBuildContext(
     string ResultShapeName,
     LoweringScope Scope,
     CteSidecarIndexSpec? CteSidecarIndex = null,
-    bool UsesRecursiveInvariantHash = false);
+    bool UsesRecursiveInvariantHash = false
+);

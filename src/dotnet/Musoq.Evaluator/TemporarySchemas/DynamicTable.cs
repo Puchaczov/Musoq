@@ -17,27 +17,35 @@ public class DynamicTable : ISchemaTable
             f.ColumnIndex,
             f.ColumnType,
             f.SourceReadType,
-            EnumFingerprint = f.EnumType?.Fingerprint
+            EnumFingerprint = f.EnumType?.Fingerprint,
         });
 
-        Columns = distinctColumnsGroups.Select(group =>
+        Columns = distinctColumnsGroups
+            .Select(group =>
+            {
+                var firstColumn = group.First();
+                var merged = new SchemaColumn(
+                    group.Key.ColumnName,
+                    group.Key.ColumnIndex,
+                    group.Key.ColumnType,
+                    group.Key.SourceReadType,
+                    firstColumn.EnumType,
+                    firstColumn.IntendedTypeName,
+                    firstColumn.ReadModifiers,
+                    group.Any(static column => column.Stability == ColumnStability.Volatile)
+                        ? ColumnStability.Volatile
+                        : ColumnStability.Stable
+                );
+                return NullableInterpretationColumn.Preserve(
+                    merged,
+                    group.Any(static column => column is NullableInterpretationColumn)
+                );
+            })
+            .ToArray();
+        Metadata = new SchemaTableMetadata(metadata ?? typeof(object))
         {
-            var firstColumn = group.First();
-            var merged = new SchemaColumn(
-                group.Key.ColumnName,
-                group.Key.ColumnIndex,
-                group.Key.ColumnType,
-                group.Key.SourceReadType,
-                firstColumn.EnumType,
-                firstColumn.IntendedTypeName,
-                firstColumn.ReadModifiers,
-                group.Any(static column => column.Stability == ColumnStability.Volatile)
-                    ? ColumnStability.Volatile
-                    : ColumnStability.Stable);
-            return NullableInterpretationColumn.Preserve(merged,
-                group.Any(static column => column is NullableInterpretationColumn));
-        }).ToArray();
-        Metadata = new SchemaTableMetadata(metadata ?? typeof(object)) { TypeOrigin = TableSchemaTypeOrigin.TableDefined };
+            TypeOrigin = TableSchemaTypeOrigin.TableDefined,
+        };
     }
 
     public ISchemaColumn[] Columns { get; }
@@ -47,15 +55,25 @@ public class DynamicTable : ISchemaTable
     public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column =>
-            string.Equals(column.ColumnName, name,
-                IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase));
+            string.Equals(
+                column.ColumnName,
+                name,
+                IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase
+            )
+        );
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)
     {
-        return Columns.Where(column =>
-            string.Equals(column.ColumnName, name,
-                IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase)).ToArray();
+        return Columns
+            .Where(column =>
+                string.Equals(
+                    column.ColumnName,
+                    name,
+                    IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .ToArray();
     }
 
     public SchemaTableMetadata Metadata { get; }

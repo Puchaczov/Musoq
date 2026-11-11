@@ -27,22 +27,33 @@ public partial class LibraryExecutionCoverageQueryTestsFixtures
     public static CoverageRow[] CreateRows(int seed)
     {
         var random = new Random(seed);
-        return Enumerable.Range(0, 180).Select(position => new CoverageRow(position,
-            position % 9 == 8 ? null : position % 9,
-            position % 9 == 7 || random.Next(5) == 0 ? null : random.Next(-100, 101))).ToArray();
+        return Enumerable
+            .Range(0, 180)
+            .Select(position => new CoverageRow(
+                position,
+                position % 9 == 8 ? null : position % 9,
+                position % 9 == 7 || random.Next(5) == 0 ? null : random.Next(-100, 101)
+            ))
+            .ToArray();
     }
 
     internal static FrameReference[] CalculateJoinedFrames(CoverageRow[] input)
     {
-        var joined = input.Select(row => row with
-        {
-            Value = row.Position == 0 ? null : row.Value + input[row.Position - 1].Value
-        });
-        return joined.GroupBy(row => row.Partition).SelectMany(partition =>
-        {
-            var ordered = partition.OrderBy(row => row.Position).ToArray();
-            return Enumerable.Range(0, Math.Min(5, ordered.Length)).Select(index => CalculateFrame(ordered, index));
-        }).OrderBy(row => row.Position).ToArray();
+        var joined = input.Select(row =>
+            row with
+            {
+                Value = row.Position == 0 ? null : row.Value + input[row.Position - 1].Value,
+            }
+        );
+        return joined
+            .GroupBy(row => row.Partition)
+            .SelectMany(partition =>
+            {
+                var ordered = partition.OrderBy(row => row.Position).ToArray();
+                return Enumerable.Range(0, Math.Min(5, ordered.Length)).Select(index => CalculateFrame(ordered, index));
+            })
+            .OrderBy(row => row.Position)
+            .ToArray();
     }
 
     internal static FrameReference CalculateFrame(CoverageRow[] ordered, int index)
@@ -57,12 +68,26 @@ public partial class LibraryExecutionCoverageQueryTestsFixtures
             count++;
         }
         decimal? average = count == 0 ? null : (decimal)total!.Value / count;
-        return new FrameReference(ordered[index].Position, ordered[index].Partition, total, average, count,
-            index == 0 ? null : ordered[index - 1].Value, index + 1L);
+        return new FrameReference(
+            ordered[index].Position,
+            ordered[index].Partition,
+            total,
+            average,
+            count,
+            index == 0 ? null : ordered[index - 1].Value,
+            index + 1L
+        );
     }
 
     public sealed record CoverageRow(int Position, int? Partition, int? Value);
-    internal sealed record FrameReference(int Position, int? Partition, int? Total, decimal? Average,
-        long Present, int? Previous, long Number);
 
+    internal sealed record FrameReference(
+        int Position,
+        int? Partition,
+        int? Total,
+        decimal? Average,
+        long Present,
+        int? Previous,
+        long Number
+    );
 }

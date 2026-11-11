@@ -8,8 +8,8 @@ public class InternalQueryNode(
     OrderByNode? orderBy,
     SkipNode? skip,
     TakeNode? take,
-    RefreshNode refresh)
-    : QueryNode(select, from, where, groupBy, orderBy, skip, take)
+    RefreshNode refresh
+) : QueryNode(select, from, where, groupBy, orderBy, skip, take)
 {
     public RefreshNode Refresh { get; } = refresh;
 
@@ -23,7 +23,6 @@ public class InternalQueryNode(
 
     public override string ToString()
     {
-        return
-            $"{Select.ToString()} {From.ToString()} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
+        return $"{Select.ToString()} {From.ToString()} {Where?.ToString()} {GroupBy?.ToString()} {OrderBy?.ToString()} {Skip?.ToString()} {Take?.ToString()}";
     }
 }

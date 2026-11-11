@@ -22,9 +22,7 @@ public class SchemaReferenceTypeNode : TypeAnnotationNode
         SchemaName = schemaName ?? throw new ArgumentNullException(nameof(schemaName));
         TypeArguments = typeArguments ?? [];
 
-        var typeArgsId = TypeArguments.Length == 0
-            ? string.Empty
-            : "<" + string.Join(",", TypeArguments) + ">";
+        var typeArgsId = TypeArguments.Length == 0 ? string.Empty : "<" + string.Join(",", TypeArguments) + ">";
         Id = $"{nameof(SchemaReferenceTypeNode)}{schemaName}{typeArgsId}";
     }
 
@@ -51,9 +49,8 @@ public class SchemaReferenceTypeNode : TypeAnnotationNode
     /// <summary>
     ///     Gets the full type name including type arguments.
     /// </summary>
-    public string FullTypeName => IsGenericInstantiation
-        ? $"{SchemaName}<{string.Join(", ", TypeArguments)}>"
-        : SchemaName;
+    public string FullTypeName =>
+        IsGenericInstantiation ? $"{SchemaName}<{string.Join(", ", TypeArguments)}>" : SchemaName;
 
     /// <inheritdoc />
     /// <remarks>

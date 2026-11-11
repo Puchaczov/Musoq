@@ -21,7 +21,10 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.AreEqual("result", owned.SourceName);
         Assert.AreEqual("__musoqSequence", owned.SequenceField);
         Assert.AreEqual(FinalOutputRowRepresentation.SelectShape, render.FinalSinkPlans.TypedOutput.RowRepresentation);
-        Assert.AreEqual(FinalOutputRowRepresentation.OwnedBufferRow, render.FinalSinkPlans.TableOutput.RowRepresentation);
+        Assert.AreEqual(
+            FinalOutputRowRepresentation.OwnedBufferRow,
+            render.FinalSinkPlans.TableOutput.RowRepresentation
+        );
         Assert.IsTrue(render.FinalSinkPlans.TableOutput.PreserveEnumerationBoundary);
     }
 
@@ -47,11 +50,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var plan = CreatePlan();
         var result = plan.FinalResult!;
         var target = new ExecutionVariable("resultSorted", typeof(object));
-        var body = new ExecutionBlock(
-        [
-            ..plan.Body.Nodes.SkipLast(1),
+        var body = new ExecutionBlock([
+            .. plan.Body.Nodes.SkipLast(1),
             new ExecutionSortTable(result.Source, target, [new ExecutionOrderField("Name", 0, typeof(string), false)]),
-            new ExecutionReturnTable(target)
+            new ExecutionReturnTable(target),
         ]);
         return plan with { Body = body, FinalResult = result with { TableName = target.Name, Source = target } };
     }
@@ -73,17 +75,33 @@ public sealed partial class ExecutionCSharpRendererTests
         var plan = CreateOwnedRecordPlan(false);
         var final = plan.FinalResult!;
         var renderer = new ExecutionCSharpRenderer();
-        var carrier = renderer.RenderClassMembers(plan, final.TableName, "ResultShape0", final.Shape.Fields)
-            .OfType<ClassDeclarationSyntax>().Single(type => type.Identifier.ValueText == "OrderedRecord");
+        var carrier = renderer
+            .RenderClassMembers(plan, final.TableName, "ResultShape0", final.Shape.Fields)
+            .OfType<ClassDeclarationSyntax>()
+            .Single(type => type.Identifier.ValueText == "OrderedRecord");
         var methods = carrier.Members.OfType<MethodDeclarationSyntax>().ToArray();
 
         Assert.AreEqual("Row", carrier.BaseList!.Types.Single().Type.ToString());
-        Assert.AreEqual("1", carrier.Members.OfType<PropertyDeclarationSyntax>()
-            .Single(property => property.Identifier.ValueText == "Count").ExpressionBody!.Expression.ToString());
-        Assert.IsTrue(carrier.Members.OfType<PropertyDeclarationSyntax>()
-            .Any(property => property.Identifier.ValueText == "HiddenKey"));
-        Assert.DoesNotContain("HiddenKey", methods.Single(method => method.Identifier.ValueText == "VisitColumns").ToString());
-        Assert.DoesNotContain("HiddenKey", methods.Single(method => method.Identifier.ValueText == "HasColumn").ToString());
+        Assert.AreEqual(
+            "1",
+            carrier
+                .Members.OfType<PropertyDeclarationSyntax>()
+                .Single(property => property.Identifier.ValueText == "Count")
+                .ExpressionBody!.Expression.ToString()
+        );
+        Assert.IsTrue(
+            carrier
+                .Members.OfType<PropertyDeclarationSyntax>()
+                .Any(property => property.Identifier.ValueText == "HiddenKey")
+        );
+        Assert.DoesNotContain(
+            "HiddenKey",
+            methods.Single(method => method.Identifier.ValueText == "VisitColumns").ToString()
+        );
+        Assert.DoesNotContain(
+            "HiddenKey",
+            methods.Single(method => method.Identifier.ValueText == "HasColumn").ToString()
+        );
     }
 
     private static ExecutionPlan CreateOwnedRecordPlan(bool valueType)
@@ -91,24 +109,38 @@ public sealed partial class ExecutionCSharpRendererTests
         var plan = CreatePlan();
         var result = plan.FinalResult!;
         var list = new ExecutionVariable("orderedRecords", typeof(object));
-        var hidden = new FieldBinding("HiddenKey", "HiddenKey", 1, typeof(int), FieldNullability.Unknown,
-            new GeneratedFieldAccess("HiddenKey"));
+        var hidden = new FieldBinding(
+            "HiddenKey",
+            "HiddenKey",
+            1,
+            typeof(int),
+            FieldNullability.Unknown,
+            new GeneratedFieldAccess("HiddenKey")
+        );
         var record = new GeneratedRecordShape("OrderedRecord", [.. result.Shape.Fields, hidden], valueType);
         return plan with
         {
             Shapes = [.. plan.Shapes, record],
-            Body = new ExecutionBlock(
-            [
+            Body = new ExecutionBlock([
                 new ExecutionCreateRecordList(list, record),
-                new ExecutionAppendRecord(list, record,
-                    [new ExecutionRowValue("Name", new ExecutionLiteral("visible", typeof(string))),
-                        new ExecutionRowValue("HiddenKey", new ExecutionLiteral(7, typeof(int)))]),
-                new ExecutionOrderRecordList(list, record,
-                    [new ExecutionOrderField("HiddenKey", 1, typeof(int), false)], new ExecutionFullOrderRecordSelection()),
+                new ExecutionAppendRecord(
+                    list,
+                    record,
+                    [
+                        new ExecutionRowValue("Name", new ExecutionLiteral("visible", typeof(string))),
+                        new ExecutionRowValue("HiddenKey", new ExecutionLiteral(7, typeof(int))),
+                    ]
+                ),
+                new ExecutionOrderRecordList(
+                    list,
+                    record,
+                    [new ExecutionOrderField("HiddenKey", 1, typeof(int), false)],
+                    new ExecutionFullOrderRecordSelection()
+                ),
                 new ExecutionCreateTable(result.Source, result.Shape),
                 new ExecutionMaterializeRecordListToTable(list, result.Source, record, result.Shape, [0], []),
-                new ExecutionReturnTable(result.Source)
-            ])
+                new ExecutionReturnTable(result.Source),
+            ]),
         };
     }
 
@@ -149,12 +181,14 @@ public sealed partial class ExecutionCSharpRendererTests
 
         CollectionAssert.AreEquivalent(
             new[] { "result", "resultDistinct", "resultSorted", "resultSkipped" },
-            new List<string>(output.SourceBuffers.Keys));
+            new List<string>(output.SourceBuffers.Keys)
+        );
         Assert.IsTrue(output.BufferFinalRows);
         Assert.IsFalse(output.ReuseStoredRows);
         Assert.AreEqual(FinalOutputRowRepresentation.SelectShape, output.RowRepresentation);
         Assert.Throws<NotSupportedException>(() =>
-            ((IDictionary<string, string>)output.SourceBuffers).Add("unexpected", "ResultShape0"));
+            ((IDictionary<string, string>)output.SourceBuffers).Add("unexpected", "ResultShape0")
+        );
     }
 
     [TestMethod]
@@ -163,8 +197,14 @@ public sealed partial class ExecutionCSharpRendererTests
         var plan = CreatePlan();
         Assert.IsTrue(TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan));
 
-        Assert.AreEqual(FinalOutputRowRepresentation.GeneratedRow, renderPlan.FinalSinkPlans.TableOutput.RowRepresentation);
-        Assert.AreEqual(FinalOutputRowRepresentation.SelectShape, renderPlan.FinalSinkPlans.TypedOutput.RowRepresentation);
+        Assert.AreEqual(
+            FinalOutputRowRepresentation.GeneratedRow,
+            renderPlan.FinalSinkPlans.TableOutput.RowRepresentation
+        );
+        Assert.AreEqual(
+            FinalOutputRowRepresentation.SelectShape,
+            renderPlan.FinalSinkPlans.TypedOutput.RowRepresentation
+        );
         Assert.IsTrue(renderPlan.FinalSinkPlans.TableOutput.PreserveEnumerationBoundary);
         Assert.IsFalse(renderPlan.FinalSinkPlans.TableOutput.ReuseStoredRows);
         Assert.IsFalse(renderPlan.FinalSinkPlans.TableOutput.BufferFinalRows);
@@ -174,11 +214,20 @@ public sealed partial class ExecutionCSharpRendererTests
     public void FinalOutputPlanning_MismatchedRowLayoutKeepsShapeAdaptation()
     {
         var plan = CreatePlan();
-        plan = plan with { FinalResult = plan.FinalResult! with { Shape = new GeneratedRowShape("OtherRow", plan.FinalResult.Shape.Fields) } };
+        plan = plan with
+        {
+            FinalResult = plan.FinalResult! with
+            {
+                Shape = new GeneratedRowShape("OtherRow", plan.FinalResult.Shape.Fields),
+            },
+        };
 
         Assert.IsTrue(TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan));
 
-        Assert.AreEqual(FinalOutputRowRepresentation.SelectShape, renderPlan.FinalSinkPlans.TableOutput.RowRepresentation);
+        Assert.AreEqual(
+            FinalOutputRowRepresentation.SelectShape,
+            renderPlan.FinalSinkPlans.TableOutput.RowRepresentation
+        );
     }
 
     [TestMethod]
@@ -189,20 +238,26 @@ public sealed partial class ExecutionCSharpRendererTests
         var sharedRow = new ExecutionVariable("sharedRow", typeof(object));
         plan = plan with
         {
-            Body = new ExecutionBlock(
-            [
+            Body = new ExecutionBlock([
                 new ExecutionCreateTable(result.Source, result.Shape),
-                new ExecutionCreateGeneratedRow(sharedRow, result.Shape,
-                    [new ExecutionRowValue("Name", new ExecutionLiteral("shared", typeof(string)))], []),
+                new ExecutionCreateGeneratedRow(
+                    sharedRow,
+                    result.Shape,
+                    [new ExecutionRowValue("Name", new ExecutionLiteral("shared", typeof(string)))],
+                    []
+                ),
                 new ExecutionAppendExistingRow(result.Source, sharedRow),
                 new ExecutionAppendExistingRow(result.Source, sharedRow),
-                new ExecutionReturnTable(result.Source)
-            ])
+                new ExecutionReturnTable(result.Source),
+            ]),
         };
 
         Assert.IsTrue(TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan));
 
-        Assert.AreEqual(FinalOutputRowRepresentation.SelectShape, renderPlan.FinalSinkPlans.TableOutput.RowRepresentation);
+        Assert.AreEqual(
+            FinalOutputRowRepresentation.SelectShape,
+            renderPlan.FinalSinkPlans.TableOutput.RowRepresentation
+        );
         Assert.IsFalse(renderPlan.FinalSinkPlans.TableOutput.ReuseStoredRows);
     }
 }

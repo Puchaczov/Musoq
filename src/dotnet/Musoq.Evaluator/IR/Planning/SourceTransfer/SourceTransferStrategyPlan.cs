@@ -6,19 +6,19 @@ namespace Musoq.Evaluator.IR.Planning;
 public enum SourceTransferMode
 {
     DeclaredRows,
-    QueryScopedRows
+    QueryScopedRows,
 }
 
 public enum SourceQueryRowCarrier
 {
     ReadonlyStruct,
-    SealedClass
+    SealedClass,
 }
 
 public enum SourceQueryRowLifetime
 {
     ScanLocal,
-    EscapesScan
+    EscapesScan,
 }
 
 public sealed record SourceTransferStrategyPlan(
@@ -26,7 +26,8 @@ public sealed record SourceTransferStrategyPlan(
     SourceTransferMode Mode,
     SourceQueryRowCarrier? Carrier,
     QueryRowShape? Shape,
-    string Reason)
+    string Reason
+)
 {
     internal IReadOnlyList<SourcePlanning.SourceComputedProjectionBinding> ComputedProjections { get; init; } = [];
 
@@ -34,15 +35,11 @@ public sealed record SourceTransferStrategyPlan(
 
     public static SourceTransferStrategyPlan DeclaredRows(string sourceContextId, string reason)
     {
-        return new SourceTransferStrategyPlan(
-            sourceContextId,
-            SourceTransferMode.DeclaredRows,
-            null,
-            null,
-            reason);
+        return new SourceTransferStrategyPlan(sourceContextId, SourceTransferMode.DeclaredRows, null, null, reason);
     }
 }
 
 internal sealed record SourceTransferPlanningResult(
     IReadOnlyDictionary<string, SourceTransferStrategyPlan> PlansBySourceId,
-    IReadOnlyList<PlanningDecision> Decisions);
+    IReadOnlyList<PlanningDecision> Decisions
+);

@@ -27,7 +27,7 @@ public sealed class NumericOverflowDiagnosticTests : BasicEntityTestBase
             0 => overflow,
             1 => new TargetInvocationException(overflow),
             2 => new AggregateException(overflow, new TargetInvocationException(overflow)),
-            _ => new TargetInvocationException(new AggregateException(new AggregateException(overflow), overflow))
+            _ => new TargetInvocationException(new AggregateException(new AggregateException(overflow), overflow)),
         };
 
         var failure = QueryExecutionException.ForExecutionFailure("Execution", cause);
@@ -44,13 +44,18 @@ public sealed class NumericOverflowDiagnosticTests : BasicEntityTestBase
     [DataRow("select Sum(e.Id) as S from #A.Entities() e")]
     [DataRow("select Sum(e.Money) as S from #A.Entities() e")]
     [DataRow("select e.Money * 2 as S from #A.Entities() e")]
-    [DataRow("select Sum(e.Id) over (order by e.Name rows between unbounded preceding and current row) as S from #A.Entities() e")]
+    [DataRow(
+        "select Sum(e.Id) over (order by e.Name rows between unbounded preceding and current row) as S from #A.Entities() e"
+    )]
     public void IntegralDecimalAndWindowOverflow_ShouldReportNumericExecutionFailure(string sql)
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = [new BasicEntity("A") { Id = int.MaxValue, Money = decimal.MaxValue },
-                new BasicEntity("B") { Id = 1, Money = 1m }]
+            ["#A"] =
+            [
+                new BasicEntity("A") { Id = int.MaxValue, Money = decimal.MaxValue },
+                new BasicEntity("B") { Id = 1, Money = 1m },
+            ],
         };
         using var query = CreateAndRunVirtualMachine(sql, sources);
 
@@ -84,10 +89,12 @@ public sealed class NumericOverflowDiagnosticTests : BasicEntityTestBase
         {
             0 => new ArgumentException("unrelated"),
             1 => new OperationCanceledException(),
-            _ => InternalDiagnosticException.ForExecution(new OverflowException())
+            _ => InternalDiagnosticException.ForExecution(new OverflowException()),
         };
-        var failure = QueryExecutionException.ForExecutionFailure("Parallel",
-            new AggregateException(new OverflowException(), other));
+        var failure = QueryExecutionException.ForExecutionFailure(
+            "Parallel",
+            new AggregateException(new OverflowException(), other)
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, failure.Envelope!.Code);
     }
@@ -98,7 +105,15 @@ public sealed class NumericOverflowDiagnosticTests : BasicEntityTestBase
     [DataRow(DiagnosticCode.MQ7012_DataSourceCleanupFailed)]
     public void SourceBoundaryContainingOverflow_ShouldKeepItsSourceDiagnostic(DiagnosticCode code)
     {
-        var cause = new DataSourceLifecycleException(code, "#test", "rows", "r", "source", "Read", new OverflowException());
+        var cause = new DataSourceLifecycleException(
+            code,
+            "#test",
+            "rows",
+            "r",
+            "source",
+            "Read",
+            new OverflowException()
+        );
 
         var failure = (QueryExecutionException)ExecutionFailureConverter.Convert("Execution", cause);
 
@@ -128,8 +143,10 @@ public sealed class NumericOverflowDiagnosticTests : BasicEntityTestBase
     [TestMethod]
     public void UnknownWrapperContainingOverflow_ShouldRemainInternal()
     {
-        var failure = QueryExecutionException.ForExecutionFailure("Execution",
-            new InvalidOperationException("Unrelated failure", new OverflowException()));
+        var failure = QueryExecutionException.ForExecutionFailure(
+            "Execution",
+            new InvalidOperationException("Unrelated failure", new OverflowException())
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, failure.Envelope!.Code);
     }
@@ -139,12 +156,15 @@ public sealed class NumericOverflowDiagnosticTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = [new BasicEntity("A") { Id = 1 }, new BasicEntity("B") { Id = 2 }]
+            ["#A"] = [new BasicEntity("A") { Id = 1 }, new BasicEntity("B") { Id = 2 }],
         };
         using var query = CreateAndRunVirtualMachine("select Sum(e.Id) as S from #A.Entities() e", sources);
         using var result = query.Run(TestContext.CancellationToken);
-        var boxedMethods = GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query)
-            .Where(GeneratedExecutionIlInspection.ContainsBoxOpcode).Select(static method => method.Name).ToArray();
+        var boxedMethods = GeneratedExecutionIlInspection
+            .GetGeneratedComputeMethods(query)
+            .Where(GeneratedExecutionIlInspection.ContainsBoxOpcode)
+            .Select(static method => method.Name)
+            .ToArray();
 
         TableMaterializationTestHelper.AssertColumns(result, ("S", typeof(int?)));
         TableMaterializationTestHelper.AssertRowsInOrder(result, [3]);

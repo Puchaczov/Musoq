@@ -9,16 +9,18 @@ public sealed class SourcePredicateContractDocumentationTests
     [TestMethod]
     public void EvaluationPhaseDocumentation_ShouldDefineMaterializationBoundary()
     {
-        var source = File.ReadAllText(Path.Combine(
-            RepositorySourceScan.RepositoryRoot(),
-            "src",
-            "dotnet",
-            "Musoq.Schema",
-            "Optimization",
-            "SourcePredicateEvaluationPhase.cs"));
+        var source = File.ReadAllText(
+            Path.Combine(
+                RepositorySourceScan.RepositoryRoot(),
+                "src",
+                "dotnet",
+                "Musoq.Schema",
+                "Optimization",
+                "SourcePredicateEvaluationPhase.cs"
+            )
+        );
 
         Assert.Contains("after the source has materialized a row", source);
         Assert.Contains("before payload open, decode, or row materialization", source);
     }
-
 }

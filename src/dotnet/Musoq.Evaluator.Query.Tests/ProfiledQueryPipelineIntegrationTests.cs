@@ -21,14 +21,15 @@ public sealed class ProfiledQueryPipelineIntegrationTests : BasicEntityTestBase
                 [
                     new BasicEntity { Name = "A", Population = 10 },
                     new BasicEntity { Name = "B", Population = 0 },
-                    new BasicEntity { Name = "C", Population = 20 }
+                    new BasicEntity { Name = "C", Population = 20 },
                 ]
-            }
+            },
         };
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            TestCompilationOptions.WithInstrumentationMode(QueryInstrumentationMode.Full));
+            TestCompilationOptions.WithInstrumentationMode(QueryInstrumentationMode.Full)
+        );
 
         var profileResult = vm.RunWithProfile(CancellationToken.None);
 
@@ -54,24 +55,20 @@ public sealed class ProfiledQueryPipelineIntegrationTests : BasicEntityTestBase
         {
             {
                 "#A",
-                [
-                    new BasicEntity { Name = "A", Population = 10 },
-                    new BasicEntity { Name = "B", Population = 20 }
-                ]
-            }
+                [new BasicEntity { Name = "A", Population = 10 }, new BasicEntity { Name = "B", Population = 20 }]
+            },
         };
         var vm = CreateAndRunVirtualMachine(
             query,
             sources,
-            TestCompilationOptions.WithInstrumentationMode(QueryInstrumentationMode.Full));
+            TestCompilationOptions.WithInstrumentationMode(QueryInstrumentationMode.Full)
+        );
         var snapshots = new List<QueryProgressEventArgs>();
         vm.QueryProgress += (_, args) => snapshots.Add(args);
 
-        var profileResult = vm.RunWithProfile(new QueryProgressOptions
-        {
-            RowsPerUpdate = 1,
-            MinimumInterval = TimeSpan.FromDays(1)
-        });
+        var profileResult = vm.RunWithProfile(
+            new QueryProgressOptions { RowsPerUpdate = 1, MinimumInterval = TimeSpan.FromDays(1) }
+        );
 
         Assert.AreEqual(2, profileResult.Result.Count);
         Assert.IsTrue(snapshots.Count > 0);

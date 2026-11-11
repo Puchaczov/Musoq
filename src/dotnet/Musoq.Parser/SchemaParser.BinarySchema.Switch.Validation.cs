@@ -18,13 +18,15 @@ public partial class SchemaParser
                     $"Duplicate switch branch alias '{switchCase.BranchAlias}'.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ4012_DuplicateSwitchBranchAlias,
-                    GetBranchAliasSpan(switchCase));
+                    GetBranchAliasSpan(switchCase)
+                );
             else if (string.Equals(switchCase.BranchAlias, "Case", StringComparison.OrdinalIgnoreCase))
                 throw new SyntaxException(
                     "Switch branch alias 'Case' is reserved for the selected-branch discriminator.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ4012_DuplicateSwitchBranchAlias,
-                    GetBranchAliasSpan(switchCase));
+                    GetBranchAliasSpan(switchCase)
+                );
 
         foreach (var switchCase in cases)
             if (switchCase.BranchType is AlignmentNode)
@@ -32,7 +34,8 @@ public partial class SchemaParser
                     $"Switch branch '{switchCase.BranchAlias}' uses unsupported binary type '{switchCase.BranchType}'.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
-                    GetBranchTypeSpan(switchCase));
+                    GetBranchTypeSpan(switchCase)
+                );
 
         for (var i = 0; i < cases.Count; i++)
             if (cases[i].IsDefault && i != cases.Count - 1)
@@ -40,7 +43,8 @@ public partial class SchemaParser
                     "Switch default case '_' must be the last case.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
-                    GetCaseLabelSpan(cases[i]));
+                    GetCaseLabelSpan(cases[i])
+                );
     }
 
     private void ValidateBinarySwitchSelectors(IReadOnlyList<SchemaFieldNode> fields, bool hasExtends)
@@ -49,17 +53,22 @@ public partial class SchemaParser
 
         foreach (var field in fields)
         {
-            if (field is FieldDefinitionNode { TypeAnnotation: BinarySwitchTypeNode switchType }
+            if (
+                field is FieldDefinitionNode { TypeAnnotation: BinarySwitchTypeNode switchType }
                 && !hasExtends
-                && !precedingTypes.ContainsKey(switchType.Selector))
+                && !precedingTypes.ContainsKey(switchType.Selector)
+            )
                 throw new SyntaxException(
                     $"Switch selector '{switchType.Selector}' must reference a field declared before the switch field.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField,
-                    GetSelectorSpan(switchType));
+                    GetSelectorSpan(switchType)
+                );
 
-            if (field is FieldDefinitionNode { TypeAnnotation: BinarySwitchTypeNode localSwitch } &&
-                precedingTypes.TryGetValue(localSwitch.Selector, out var selectorType))
+            if (
+                field is FieldDefinitionNode { TypeAnnotation: BinarySwitchTypeNode localSwitch }
+                && precedingTypes.TryGetValue(localSwitch.Selector, out var selectorType)
+            )
                 ValidateSwitchCaseLabels(localSwitch, selectorType);
 
             precedingTypes[field.Name] = field.ReturnType;
@@ -74,7 +83,8 @@ public partial class SchemaParser
                     $"Switch case label '{switchCase.CaseValue}' is not compatible with selector '{switchType.Selector}'.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
-                    GetCaseLabelSpan(switchCase));
+                    GetCaseLabelSpan(switchCase)
+                );
     }
 
     private static bool IsSwitchCaseLabel(Node node)
@@ -136,9 +146,7 @@ public partial class SchemaParser
 
     private static TextSpan GetBranchAliasSpan(BinarySwitchCaseNode switchCase)
     {
-        return switchCase.BranchAliasSpan.IsEmpty
-            ? switchCase.BranchTypeSpan
-            : switchCase.BranchAliasSpan;
+        return switchCase.BranchAliasSpan.IsEmpty ? switchCase.BranchTypeSpan : switchCase.BranchAliasSpan;
     }
 
     private static TextSpan GetBranchTypeSpan(BinarySwitchCaseNode switchCase)
@@ -152,6 +160,7 @@ public partial class SchemaParser
             "Switch case label must be a constant scalar literal.",
             _lexer.AlreadyResolvedQueryPart,
             DiagnosticCode.MQ4013_InvalidSwitchCaseLabel,
-            span);
+            span
+        );
     }
 }

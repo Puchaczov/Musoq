@@ -11,7 +11,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private MethodDeclarationSyntax CreateWindowAppendRowsFunction(
         WindowAppendRowsHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (TryCreateWindowAppendRowsShardFunction(helper, context, out var shardFunction))
             return shardFunction;
@@ -20,30 +21,37 @@ public sealed partial class ExecutionCSharpRenderer
         var helperLoop = helper.Loop with
         {
             Item = item,
-            Source = helper.Loop.Source with { Name = helper.RowsParameterName }
+            Source = helper.Loop.Source with { Name = helper.RowsParameterName },
         };
 
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                helper.FunctionName)
+                helper.FunctionName
+            )
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
             .WithParameterList(CreateWindowAppendRowsParameterList(helper, context))
-            .WithBody(StatementEmitter.CreateBlock(RenderIsolatedHelperBlock(new ExecutionBlock([helperLoop]), context)));
+            .WithBody(
+                StatementEmitter.CreateBlock(RenderIsolatedHelperBlock(new ExecutionBlock([helperLoop]), context))
+            );
     }
 
     private bool TryCreateWindowAppendRowsShardFunction(
         WindowAppendRowsHelper helper,
         ExecutionRenderContext context,
-        out MethodDeclarationSyntax shardFunction)
+        out MethodDeclarationSyntax shardFunction
+    )
     {
         shardFunction = null!;
 
-        if (helper.AppendTargets.Count != 1 ||
-            helper.Loop.Body.Nodes.Count != 1 ||
-            helper.Loop.Body.Nodes[0] is not ExecutionAppendRow appendRow ||
-            appendRow.AppendMode != ExecutionAppendMode.Direct ||
-            TryGetTypedRowBufferShape(appendRow.Table.Name, context, out _))
+        if (
+            helper.AppendTargets.Count != 1
+            || helper.Loop.Body.Nodes.Count != 1
+            || helper.Loop.Body.Nodes[0] is not ExecutionAppendRow appendRow
+            || appendRow.AppendMode != ExecutionAppendMode.Direct
+            || TryGetTypedRowBufferShape(appendRow.Table.Name, context, out _)
+        )
         {
             return false;
         }
@@ -58,51 +66,68 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 rowCountName,
-                CreateBufferCountExpression(source)),
+                CreateBufferCountExpression(source)
+            ),
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 rowShardName,
                 SyntaxFactory.ArrayCreationExpression(
-                    SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(appendRow.RowShape.TypeName))
-                        .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                            SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                                SyntaxFactory.IdentifierName(rowCountName)))))))
+                    SyntaxFactory
+                        .ArrayType(SyntaxFactory.ParseTypeName(appendRow.RowShape.TypeName))
+                        .WithRankSpecifiers(
+                            SyntaxFactory.SingletonList(
+                                SyntaxFactory.ArrayRankSpecifier(
+                                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                        SyntaxFactory.IdentifierName(rowCountName)
+                                    )
+                                )
+                            )
+                        )
+                )
+            ),
         };
 
         var bodyStatements = new List<StatementSyntax>();
-        bodyStatements.AddRange(CreateIndexedItemDeclarations(
-            item,
-            source,
-            helper.Loop.Index,
-            helper.Loop.RowAccessMode));
-        bodyStatements.Add(SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                CreateElementAccess(
-                    SyntaxFactory.IdentifierName(rowShardName),
-                    SyntaxFactory.IdentifierName(indexName)),
-                CreateGeneratedRowCreation(appendRow, context))));
+        bodyStatements.AddRange(
+            CreateIndexedItemDeclarations(item, source, helper.Loop.Index, helper.Loop.RowAccessMode)
+        );
+        bodyStatements.Add(
+            SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    CreateElementAccess(
+                        SyntaxFactory.IdentifierName(rowShardName),
+                        SyntaxFactory.IdentifierName(indexName)
+                    ),
+                    CreateGeneratedRowCreation(appendRow, context)
+                )
+            )
+        );
 
-        statements.Add(StatementEmitter.CreateForLoop(
-            indexName,
-            0,
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.LessThanExpression,
-                SyntaxFactory.IdentifierName(indexName),
-                SyntaxFactory.IdentifierName(rowCountName)),
-            SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.PreIncrementExpression,
-                SyntaxFactory.IdentifierName(indexName)),
-            StatementEmitter.CreateBlock(bodyStatements)));
+        statements.Add(
+            StatementEmitter.CreateForLoop(
+                indexName,
+                0,
+                SyntaxFactory.BinaryExpression(
+                    SyntaxKind.LessThanExpression,
+                    SyntaxFactory.IdentifierName(indexName),
+                    SyntaxFactory.IdentifierName(rowCountName)
+                ),
+                SyntaxFactory.PrefixUnaryExpression(
+                    SyntaxKind.PreIncrementExpression,
+                    SyntaxFactory.IdentifierName(indexName)
+                ),
+                StatementEmitter.CreateBlock(bodyStatements)
+            )
+        );
 
-        statements.Add(CreateAddDirectDeferredRowsStatement(
-            appendRow.Table.Name,
-            rowShardName,
-            rowCountName));
+        statements.Add(CreateAddDirectDeferredRowsStatement(appendRow.Table.Name, rowShardName, rowCountName));
 
-        shardFunction = SyntaxFactory.MethodDeclaration(
+        shardFunction = SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                helper.FunctionName)
+                helper.FunctionName
+            )
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
             .WithParameterList(CreateWindowAppendRowsParameterList(helper, context))
@@ -114,17 +139,25 @@ public sealed partial class ExecutionCSharpRenderer
     private static ExpressionStatementSyntax CreateAddDirectDeferredRowsStatement(
         string tableName,
         string rowShardName,
-        string rowCountName)
+        string rowCountName
+    )
     {
         return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(tableName),
-                        SyntaxFactory.IdentifierName(nameof(Table.AddDirectDeferred))))
-                .WithArgumentList(CreateArgumentList(
-                    SyntaxFactory.IdentifierName(rowShardName),
-                    SyntaxFactory.IdentifierName(rowCountName))));
+                        SyntaxFactory.IdentifierName(nameof(Table.AddDirectDeferred))
+                    )
+                )
+                .WithArgumentList(
+                    CreateArgumentList(
+                        SyntaxFactory.IdentifierName(rowShardName),
+                        SyntaxFactory.IdentifierName(rowCountName)
+                    )
+                )
+        );
     }
 
     private static ExpressionStatementSyntax CreateWindowAppendRowsInvocation(WindowAppendRowsHelper helper)
@@ -134,27 +167,27 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ParameterListSyntax CreateWindowAppendRowsParameterList(
         WindowAppendRowsHelper helper,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         var parameters = new List<ParameterSyntax>
         {
             CreateParameter(
                 helper.RowsParameterName,
-                CreateWindowRowsParameterType(
-                    helper.Loop.Item,
-                    helper.BufferItemGeneratedRowTypeName))
+                CreateWindowRowsParameterType(helper.Loop.Item, helper.BufferItemGeneratedRowTypeName)
+            ),
         };
 
-        parameters.AddRange(helper.AppendTargets.Select(target => CreateParameter(
-            target.Name,
-            CreateWindowAppendTargetType(target, context))));
+        parameters.AddRange(
+            helper.AppendTargets.Select(target =>
+                CreateParameter(target.Name, CreateWindowAppendTargetType(target, context))
+            )
+        );
         parameters.AddRange(helper.Captures.Select(CreateCapturedLocalParameter));
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
-    private TypeSyntax CreateWindowAppendTargetType(
-        ExecutionVariable target,
-        ExecutionRenderContext context)
+    private TypeSyntax CreateWindowAppendTargetType(ExecutionVariable target, ExecutionRenderContext context)
     {
         if (TryGetFinalShapeSourceBuffer(target.Name, context, out var finalShapeBuffer))
             return CreateListTypeSyntax(finalShapeBuffer.ShapeTypeName);
@@ -166,10 +199,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static List<ExpressionSyntax> CreateWindowAppendRowsArguments(WindowAppendRowsHelper helper)
     {
-        var arguments = new List<ExpressionSyntax>
-        {
-            SyntaxFactory.IdentifierName(helper.Loop.Source.Name)
-        };
+        var arguments = new List<ExpressionSyntax> { SyntaxFactory.IdentifierName(helper.Loop.Source.Name) };
 
         arguments.AddRange(helper.AppendTargets.Select(static target => SyntaxFactory.IdentifierName(target.Name)));
         arguments.AddRange(helper.Captures.Select(CreateCapturedLocalArgument));
@@ -183,7 +213,8 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private IEnumerable<(WindowAppendRowsHelper Helper, int Index)> CollectWindowAppendRowsHelpersWithIndexes(
-        ExecutionBlock block)
+        ExecutionBlock block
+    )
     {
         var helperIndex = 0;
         var pending = new List<ExecutionNode>();
@@ -196,8 +227,7 @@ public sealed partial class ExecutionCSharpRenderer
             var node = nodes[index];
             AddMaterializedRowTypeName(node, materializedRowTypeNames);
 
-            if (node is ExecutionStoreTable store &&
-                TryCreateStoredTableBuild(nodes, index, pending, store, out _))
+            if (node is ExecutionStoreTable store && TryCreateStoredTableBuild(nodes, index, pending, store, out _))
             {
                 pending.Clear();
                 continue;
@@ -209,7 +239,15 @@ public sealed partial class ExecutionCSharpRenderer
                 continue;
             }
 
-            if (TryCreateWindowAppendRowsHelper(node, helperIndex, usedFunctionNames, materializedRowTypeNames, out var helper))
+            if (
+                TryCreateWindowAppendRowsHelper(
+                    node,
+                    helperIndex,
+                    usedFunctionNames,
+                    materializedRowTypeNames,
+                    out var helper
+                )
+            )
             {
                 yield return (helper, index);
                 helperIndex++;
@@ -224,7 +262,8 @@ public sealed partial class ExecutionCSharpRenderer
         int helperIndex,
         Dictionary<string, int> usedFunctionNames,
         IReadOnlyDictionary<string, string> materializedRowTypeNames,
-        out WindowAppendRowsHelper helper)
+        out WindowAppendRowsHelper helper
+    )
     {
         helper = null!;
 
@@ -242,15 +281,17 @@ public sealed partial class ExecutionCSharpRenderer
             ResolveGeneratedRowTypeName(loop.Source, loop.Item, materializedRowTypeNames),
             loop,
             appendTargets,
-            CollectWindowAppendRowsCaptures(loop, appendTargets));
+            CollectWindowAppendRowsCaptures(loop, appendTargets)
+        );
         return true;
     }
 
     private static bool CanExtractWindowAppendRows(ExecutionForEachIndexed loop)
     {
-        return ContainsNode<ExecutionAppendRow>(loop.Body) &&
-               (loop.Source.Name.EndsWith("WindowRows", StringComparison.Ordinal) ||
-                ContainsWindowValueRead(loop.Body));
+        return ContainsNode<ExecutionAppendRow>(loop.Body)
+            && (
+                loop.Source.Name.EndsWith("WindowRows", StringComparison.Ordinal) || ContainsWindowValueRead(loop.Body)
+            );
     }
 
     private static ExecutionVariable[] CollectWindowAppendTargets(ExecutionBlock block)
@@ -262,13 +303,14 @@ public sealed partial class ExecutionCSharpRenderer
 
     private CapturedLocal[] CollectWindowAppendRowsCaptures(
         ExecutionForEachIndexed loop,
-        IReadOnlyList<ExecutionVariable> appendTargets)
+        IReadOnlyList<ExecutionVariable> appendTargets
+    )
     {
         var excludedNames = new HashSet<string>(StringComparer.Ordinal)
         {
             loop.Source.Name,
             loop.Item.Name,
-            loop.Index.Name
+            loop.Index.Name,
         };
 
         foreach (var appendTarget in appendTargets)
@@ -282,9 +324,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static string CreateWindowAppendRowsFunctionBaseName(ExecutionVariable target, int helperIndex)
     {
-        var suffix = helperIndex == 0
-            ? string.Empty
-            : helperIndex.ToString(CultureInfo.InvariantCulture);
+        var suffix = helperIndex == 0 ? string.Empty : helperIndex.ToString(CultureInfo.InvariantCulture);
         return $"Append{CreatePascalIdentifier(target.Name)}WindowRows{suffix}";
     }
 
@@ -292,5 +332,4 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return ExecutionIrAnalysis.CollectExpressions<ExecutionWindowValueRead>(block).Any();
     }
-
 }

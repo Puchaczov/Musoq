@@ -4,5 +4,5 @@ internal enum SourcePredicateContract
 {
     PushedSourcePredicate,
     RuntimeOnlyPredicate,
-    None
+    None,
 }

@@ -17,7 +17,8 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Hello"),
                     new BasicEntity("Привет"),
                     new BasicEntity("こんにちは"),
@@ -27,9 +28,9 @@ public partial class MultilingualTextTests
                     new BasicEntity("안녕하세요"),
                     new BasicEntity("Bonjour"),
                     new BasicEntity("สวัสดี"),
-                    new BasicEntity("नमस्ते")
+                    new BasicEntity("नमस्ते"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -57,15 +58,16 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Polska", "Warszawa"),
                     new BasicEntity("Polska", "Kraków"),
                     new BasicEntity("日本", "東京"),
                     new BasicEntity("日本", "大阪"),
                     new BasicEntity("Россия", "Москва"),
-                    new BasicEntity("中国", "北京")
+                    new BasicEntity("中国", "北京"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -73,21 +75,25 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "Polska" && (long)row.ReadValues()[1] == 2L),
-            "Expected group 'Polska' with count 2");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Polska" && (long)row.ReadValues()[1] == 2L),
+            "Expected group 'Polska' with count 2"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "日本" && (long)row.ReadValues()[1] == 2L),
-            "Expected group '日本' with count 2");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "日本" && (long)row.ReadValues()[1] == 2L),
+            "Expected group '日本' with count 2"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "Россия" && (long)row.ReadValues()[1] == 1L),
-            "Expected group 'Россия' with count 1");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Россия" && (long)row.ReadValues()[1] == 1L),
+            "Expected group 'Россия' with count 1"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "中国" && (long)row.ReadValues()[1] == 1L),
-            "Expected group '中国' with count 1");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "中国" && (long)row.ReadValues()[1] == 1L),
+            "Expected group '中国' with count 1"
+        );
     }
 
     [TestMethod]
@@ -98,13 +104,14 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Polska", "Warszawa"),
                     new BasicEntity("日本", "東京"),
                     new BasicEntity("日本", "大阪"),
-                    new BasicEntity("Россия", "Москва")
+                    new BasicEntity("Россия", "Москва"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -112,13 +119,15 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "東京" && (string)row.ReadValues()[1] == "日本"),
-            "Row with '東京' not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "東京" && (string)row.ReadValues()[1] == "日本"),
+            "Row with '東京' not found"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "大阪" && (string)row.ReadValues()[1] == "日本"),
-            "Row with '大阪' not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "大阪" && (string)row.ReadValues()[1] == "日本"),
+            "Row with '大阪' not found"
+        );
     }
 
     [TestMethod]
@@ -129,12 +138,13 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("日本", "東京"),
                     new BasicEntity("Polska", "Kraków"),
-                    new BasicEntity("Россия", "Москва")
+                    new BasicEntity("Россия", "Москва"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -142,12 +152,15 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(3, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京 - 日本"),
-            "Row '東京 - 日本' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków - Polska"),
-            "Row 'Kraków - Polska' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва - Россия"),
-            "Row 'Москва - Россия' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京 - 日本"), "Row '東京 - 日本' not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Kraków - Polska"),
+            "Row 'Kraków - Polska' not found"
+        );
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Москва - Россия"),
+            "Row 'Москва - Россия' not found"
+        );
     }
 
     [TestMethod]
@@ -158,14 +171,15 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Kraków"),
                     new BasicEntity("東京"),
                     new BasicEntity("Москва"),
                     new BasicEntity("北京"),
-                    new BasicEntity("서울")
+                    new BasicEntity("서울"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -173,17 +187,11 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(5, table.Count);
 
-
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków"),
-            "Row with 'Kraków' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
-            "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
-            "Row with 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
-            "Row with '北京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "서울"),
-            "Row with '서울' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków"), "Row with 'Kraków' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"), "Row with '東京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"), "Row with 'Москва' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"), "Row with '北京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "서울"), "Row with '서울' not found");
     }
 
     [TestMethod]
@@ -194,16 +202,17 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Kraków"),
                     new BasicEntity("東京"),
                     new BasicEntity("Kraków"),
                     new BasicEntity("東京"),
                     new BasicEntity("Москва"),
                     new BasicEntity("Москва"),
-                    new BasicEntity("北京")
+                    new BasicEntity("北京"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -211,38 +220,26 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków"),
-            "Row with 'Kraków' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
-            "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
-            "Row with 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
-            "Row with '北京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków"), "Row with 'Kraków' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"), "Row with '東京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"), "Row with 'Москва' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"), "Row with '北京' not found");
     }
 
     [TestMethod]
     public void WhenMultilingualTextInUnion_ShouldCombineCorrectly()
     {
-        var query = @"
-            select Name from #A.entities()
-            union all (Name)
-            select Name from #B.entities()";
+        var query = (
+            "\n"
+            + "            select Name from #A.entities()\n"
+            + "            union all (Name)\n"
+            + "            select Name from #B.entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Kraków"),
-                    new BasicEntity("東京")
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("Москва"),
-                    new BasicEntity("北京")
-                ]
-            }
+            { "#A", [new BasicEntity("Kraków"), new BasicEntity("東京")] },
+            { "#B", [new BasicEntity("Москва"), new BasicEntity("北京")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -250,40 +247,39 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków"),
-            "Row with 'Kraków' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
-            "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
-            "Row with 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
-            "Row with '北京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Kraków"), "Row with 'Kraków' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"), "Row with '東京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"), "Row with 'Москва' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"), "Row with '北京' not found");
     }
 
     [TestMethod]
     public void WhenMultilingualLiteralsUsedInCaseWhen_ShouldEvaluateCorrectly()
     {
-        var query = @"
-            select
-                case
-                    when Name = 'Tokyo' then '東京'
-                    when Name = 'Moscow' then 'Москва'
-                    when Name = 'Beijing' then '北京'
-                    when Name = 'Warsaw' then 'Warszawa'
-                    else Name
-                end
-            from #A.entities()";
+        var query = (
+            "\n"
+            + "            select\n"
+            + "                case\n"
+            + "                    when Name = 'Tokyo' then '東京'\n"
+            + "                    when Name = 'Moscow' then 'Москва'\n"
+            + "                    when Name = 'Beijing' then '北京'\n"
+            + "                    when Name = 'Warsaw' then 'Warszawa'\n"
+            + "                    else Name\n"
+            + "                end\n"
+            + "            from #A.entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Tokyo"),
                     new BasicEntity("Moscow"),
                     new BasicEntity("Beijing"),
-                    new BasicEntity("Warsaw")
+                    new BasicEntity("Warsaw"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -291,14 +287,10 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
-            "Row '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
-            "Row 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
-            "Row '北京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Warszawa"),
-            "Row 'Warszawa' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"), "Row '東京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"), "Row 'Москва' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"), "Row '北京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Warszawa"), "Row 'Warszawa' not found");
     }
 
     [TestMethod]
@@ -309,13 +301,9 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("東京"),
-                    new BasicEntity("大阪"),
-                    new BasicEntity("Москва"),
-                    new BasicEntity("Краків")
-                ]
-            }
+                "#A",
+                [new BasicEntity("東京"), new BasicEntity("大阪"), new BasicEntity("Москва"), new BasicEntity("Краків")]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -323,10 +311,8 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
-            "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
-            "Row with 'Москва' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"), "Row with '東京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"), "Row with 'Москва' not found");
     }
 
     [TestMethod]
@@ -337,14 +323,15 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("東京"),
                     new BasicEntity("大阪"),
                     new BasicEntity("Москва"),
                     new BasicEntity("Kraków"),
-                    new BasicEntity("北京")
+                    new BasicEntity("北京"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -352,12 +339,9 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(3, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
-            "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
-            "Row with 'Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"),
-            "Row with '北京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"), "Row with '東京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"), "Row with 'Москва' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "北京"), "Row with '北京' not found");
     }
 
     #endregion
@@ -368,12 +352,7 @@ public partial class MultilingualTextTests
     {
         var query = "select '😀🎉🌍' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -389,13 +368,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("😀"),
-                    new BasicEntity("🌍"),
-                    new BasicEntity("🎉")
-                ]
-            }
+            { "#A", [new BasicEntity("😀"), new BasicEntity("🌍"), new BasicEntity("🎉")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -413,14 +386,15 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("😀"),
                     new BasicEntity("😀"),
                     new BasicEntity("🌍"),
                     new BasicEntity("🎉"),
-                    new BasicEntity("🌍")
+                    new BasicEntity("🌍"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -428,17 +402,20 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(3, table.Count);
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "😀" && (long)row.ReadValues()[1] == 2L),
-            "Expected group '😀' with count 2");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "😀" && (long)row.ReadValues()[1] == 2L),
+            "Expected group '😀' with count 2"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "🌍" && (long)row.ReadValues()[1] == 2L),
-            "Expected group '🌍' with count 2");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "🌍" && (long)row.ReadValues()[1] == 2L),
+            "Expected group '🌍' with count 2"
+        );
 
-        Assert.IsTrue(table.Any(row =>
-                (string)row.ReadValues()[0] == "🎉" && (long)row.ReadValues()[1] == 1L),
-            "Expected group '🎉' with count 1");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "🎉" && (long)row.ReadValues()[1] == 1L),
+            "Expected group '🎉' with count 1"
+        );
     }
 
     [TestMethod]
@@ -449,13 +426,14 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("🇯🇵 東京"),
                     new BasicEntity("🇷🇺 Москва"),
                     new BasicEntity("🇵🇱 Kraków"),
-                    new BasicEntity("🇨🇳 北京")
+                    new BasicEntity("🇨🇳 北京"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -463,14 +441,10 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇯🇵 東京"),
-            "Row '🇯🇵 東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇷🇺 Москва"),
-            "Row '🇷🇺 Москва' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇵🇱 Kraków"),
-            "Row '🇵🇱 Kraków' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇨🇳 北京"),
-            "Row '🇨🇳 北京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇯🇵 東京"), "Row '🇯🇵 東京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇷🇺 Москва"), "Row '🇷🇺 Москва' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇵🇱 Kraków"), "Row '🇵🇱 Kraków' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "🇨🇳 北京"), "Row '🇨🇳 北京' not found");
     }
 
     #endregion
@@ -483,11 +457,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Polska", "Wrocław")
-                ]
-            }
+            { "#A", [new BasicEntity("Polska", "Wrocław")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -504,13 +474,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("东京"),
-                    new BasicEntity("Москва"),
-                    new BasicEntity("东京")
-                ]
-            }
+            { "#A", [new BasicEntity("东京"), new BasicEntity("Москва"), new BasicEntity("东京")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -525,12 +489,7 @@ public partial class MultilingualTextTests
     {
         var query = "select 'Cześć, Привет, こんにちは' from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [new BasicEntity("test")]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -546,14 +505,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity(""),
-                    new BasicEntity("東京"),
-                    new BasicEntity(""),
-                    new BasicEntity("Москва")
-                ]
-            }
+            { "#A", [new BasicEntity(""), new BasicEntity("東京"), new BasicEntity(""), new BasicEntity("Москва")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -561,10 +513,8 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"),
-            "Row with '東京' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"),
-            "Row with 'Москва' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "東京"), "Row with '東京' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Москва"), "Row with 'Москва' not found");
     }
 
     [TestMethod]
@@ -574,13 +524,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Español"),
-                    new BasicEntity("Niño"),
-                    new BasicEntity("Señor")
-                ]
-            }
+            { "#A", [new BasicEntity("Español"), new BasicEntity("Niño"), new BasicEntity("Señor")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -597,13 +541,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Programação"),
-                    new BasicEntity("São Paulo"),
-                    new BasicEntity("Atenção")
-                ]
-            }
+            { "#A", [new BasicEntity("Programação"), new BasicEntity("São Paulo"), new BasicEntity("Atenção")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -611,10 +549,11 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(2, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Programação"),
-            "Row with 'Programação' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Atenção"),
-            "Row with 'Atenção' not found");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValues()[0] == "Programação"),
+            "Row with 'Programação' not found"
+        );
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Atenção"), "Row with 'Atenção' not found");
     }
 
     [TestMethod]
@@ -624,13 +563,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Příliš žluťoučký kůň"),
-                    new BasicEntity("Praha"),
-                    new BasicEntity("Brno")
-                ]
-            }
+            { "#A", [new BasicEntity("Příliš žluťoučký kůň"), new BasicEntity("Praha"), new BasicEntity("Brno")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -647,13 +580,7 @@ public partial class MultilingualTextTests
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("București"),
-                    new BasicEntity("Iași"),
-                    new BasicEntity("Timișoara")
-                ]
-            }
+            { "#A", [new BasicEntity("București"), new BasicEntity("Iași"), new BasicEntity("Timișoara")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -671,13 +598,14 @@ public partial class MultilingualTextTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Ångström"),
                     new BasicEntity("Malmö"),
                     new BasicEntity("Ærø"),
-                    new BasicEntity("Ísland")
+                    new BasicEntity("Ísland"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -685,14 +613,10 @@ public partial class MultilingualTextTests
 
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Ångström"),
-            "Row 'Ångström' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Malmö"),
-            "Row 'Malmö' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Ærø"),
-            "Row 'Ærø' not found");
-        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Ísland"),
-            "Row 'Ísland' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Ångström"), "Row 'Ångström' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Malmö"), "Row 'Malmö' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Ærø"), "Row 'Ærø' not found");
+        Assert.IsTrue(table.Any(row => (string)row.ReadValues()[0] == "Ísland"), "Row 'Ísland' not found");
     }
 
     #endregion

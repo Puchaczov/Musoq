@@ -20,11 +20,11 @@ public sealed class AggregateIdentityRegressionTests : BasicEntityTestBase
     [DataRow(3)]
     public void DistinctWrappedAggregates_ShouldRetainTheirOwnValues(int profile)
     {
-        const string sql = """
-            select Trim(Max(case when e.Name = 'A' then ' a ' else null end)) as A,
-                   Trim(Max(case when e.Name = 'B' then ' b ' else null end)) as B
-            from #A.Entities() e
-            """;
+        const string sql = (
+            "select Trim(Max(case when e.Name = 'A' then ' a ' else null end)) as A,\n"
+            + "       Trim(Max(case when e.Name = 'B' then ' b ' else null end)) as B\n"
+            + "from #A.Entities() e"
+        );
 
         using var query = CreateAndRunVirtualMachine(sql, Sources(), Options(profile));
         using var table = query.Run(TestContext.CancellationToken);
@@ -37,12 +37,12 @@ public sealed class AggregateIdentityRegressionTests : BasicEntityTestBase
     [DataRow(true)]
     public void GroupedNestedWrappers_ShouldPreserveDistinctAndNullAggregateResults(bool parallel)
     {
-        const string sql = """
-            select e.City as City,
-                   Trim(Trim(Max(case when e.Name = 'A' then ' a ' else null end))) as A,
-                   Trim(Trim(Max(case when e.Name = 'B' then ' b ' else null end))) as B
-            from #A.Entities() e group by e.City order by e.City
-            """;
+        const string sql = (
+            "select e.City as City,\n"
+            + "       Trim(Trim(Max(case when e.Name = 'A' then ' a ' else null end))) as A,\n"
+            + "       Trim(Trim(Max(case when e.Name = 'B' then ' b ' else null end))) as B\n"
+            + "from #A.Entities() e group by e.City order by e.City"
+        );
         var options = new CompilationOptions(parallel ? ParallelizationMode.Full : ParallelizationMode.None);
 
         using var query = CreateAndRunVirtualMachine(sql, Sources(), options);
@@ -56,22 +56,41 @@ public sealed class AggregateIdentityRegressionTests : BasicEntityTestBase
     [DataRow(true, 1, false)]
     [DataRow(false, 2, true)]
     [DataRow(true, 1, true)]
-    public void GeneratedProjection_ShouldReuseOnlyIdenticalWrappedAggregates(bool repeated, int expectedCalls, bool grouped)
+    public void GeneratedProjection_ShouldReuseOnlyIdenticalWrappedAggregates(
+        bool repeated,
+        int expectedCalls,
+        bool grouped
+    )
     {
         const string first = "Max(case when e.Name = 'A' then ' a ' else null end)";
         var second = repeated ? first : "Max(case when e.Name = 'B' then ' b ' else null end)";
         var groupColumn = grouped ? "e.City as City, " : string.Empty;
-        var sql = $"select {groupColumn}Trim({first}) as A, Trim({second}) as B from #A.Entities() e" +
-                  (grouped ? " group by e.City order by e.City" : string.Empty);
+        var sql =
+            $"select {groupColumn}Trim({first}) as A, Trim({second}) as B from #A.Entities() e"
+            + (grouped ? " group by e.City order by e.City" : string.Empty);
         using var query = CreateAndRunVirtualMachine(sql, Sources());
         using var table = query.Run(TestContext.CancellationToken);
-        var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(),
-            new BasicSchemaProvider<BasicEntity>(Sources()), LoggerResolver);
+        var inspection = InstanceCreator.CompileForInspection(
+            sql,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(Sources()),
+            LoggerResolver
+        );
 
         Assert.AreEqual(expectedCalls, Regex.Matches(inspection.GeneratedCSharpCode, @"\.Trim\(").Count);
-        TableMaterializationTestHelper.AssertRowsInOrder(table, grouped
-            ? [["one", "a", repeated ? "a" : "b"], ["two", null, null]]
-            : [["a", repeated ? "a" : "b"]]);
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            grouped
+                ?
+                [
+                    ["one", "a", repeated ? "a" : "b"],
+                    ["two", null, null],
+                ]
+                :
+                [
+                    ["a", repeated ? "a" : "b"],
+                ]
+        );
     }
 
     [TestMethod]
@@ -89,16 +108,21 @@ public sealed class AggregateIdentityRegressionTests : BasicEntityTestBase
         {
             "group" => original with { Group = original.Group with { Name = "other" } },
             "group-type" => original with { Group = new ExecutionVariable("group", typeof(string)) },
-            "generated-group-type" => original with { Group = original.Group with { GeneratedRowTypeName = "OtherGroup" } },
+            "generated-group-type" => original with
+            {
+                Group = original.Group with { GeneratedRowTypeName = "OtherGroup" },
+            },
             "field" => original with { Accumulator = original.Accumulator with { FieldName = "__agg1" } },
             "depth" => original with { Accumulator = original.Accumulator with { ParentDepth = 1 } },
             "prefix" => original with { Accumulator = original.Accumulator with { OwnerPrefixLength = 1 } },
             "owner" => original with { Accumulator = original.Accumulator with { OwnerFieldName = "parent" } },
-            _ => throw new ArgumentOutOfRangeException(nameof(difference))
+            _ => throw new ArgumentOutOfRangeException(nameof(difference)),
         };
 
-        Assert.AreNotEqual(ExecutionExpressionFingerprint.ForHoist(original),
-            ExecutionExpressionFingerprint.ForHoist(changed));
+        Assert.AreNotEqual(
+            ExecutionExpressionFingerprint.ForHoist(original),
+            ExecutionExpressionFingerprint.ForHoist(changed)
+        );
     }
 
     [TestMethod]
@@ -107,8 +131,10 @@ public sealed class AggregateIdentityRegressionTests : BasicEntityTestBase
         var original = AggregateRead();
         var renamed = original with { DisplayName = "Another SQL label" };
 
-        Assert.AreEqual(ExecutionExpressionFingerprint.ForHoist(original),
-            ExecutionExpressionFingerprint.ForHoist(renamed));
+        Assert.AreEqual(
+            ExecutionExpressionFingerprint.ForHoist(original),
+            ExecutionExpressionFingerprint.ForHoist(renamed)
+        );
     }
 
     [TestMethod]
@@ -116,28 +142,41 @@ public sealed class AggregateIdentityRegressionTests : BasicEntityTestBase
     [DataRow(true)]
     public void WrappedAggregateComputeMethods_ShouldNotBoxOrInvokeReflection(bool grouped)
     {
-        const string projection = """
-            select Trim(Max(case when e.Name = 'A' then ' a ' else null end)) as A,
-                   Trim(Max(case when e.Name = 'B' then ' b ' else null end)) as B
-            from #A.Entities() e
-            """;
+        const string projection = (
+            "select Trim(Max(case when e.Name = 'A' then ' a ' else null end)) as A,\n"
+            + "       Trim(Max(case when e.Name = 'B' then ' b ' else null end)) as B\n"
+            + "from #A.Entities() e"
+        );
         var sql = projection + (grouped ? " group by e.City" : string.Empty);
         using var query = CreateAndRunVirtualMachine(sql, Sources());
 
-        var boxedMethods = GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query)
+        var boxedMethods = GeneratedExecutionIlInspection
+            .GetGeneratedComputeMethods(query)
             .Where(GeneratedExecutionIlInspection.ContainsBoxOpcode)
             .Select(static method => method.Name)
             .ToArray();
 
-        Assert.IsEmpty(boxedMethods,
-            $"Wrapped aggregate execution must retain typed values: {string.Join(", ", boxedMethods)}");
+        Assert.IsEmpty(
+            boxedMethods,
+            $"Wrapped aggregate execution must retain typed values: {string.Join(", ", boxedMethods)}"
+        );
     }
 
     private static ExecutionAggregateCall AggregateRead()
     {
         var declaration = typeof(LibraryBase).GetMethod(nameof(LibraryBase.Count), [typeof(int?), typeof(int)])!;
-        var accumulator = new AggregateAccumulatorField("Count(Value)", "__agg0", AggregateKernelDescriptor.Create(declaration));
-        return new ExecutionAggregateCall(new ExecutionVariable("group", typeof(object)), declaration, [], typeof(long), accumulator);
+        var accumulator = new AggregateAccumulatorField(
+            "Count(Value)",
+            "__agg0",
+            AggregateKernelDescriptor.Create(declaration)
+        );
+        return new ExecutionAggregateCall(
+            new ExecutionVariable("group", typeof(object)),
+            declaration,
+            [],
+            typeof(long),
+            accumulator
+        );
     }
 
     private static CompilationOptions Options(int profile) =>
@@ -145,13 +184,14 @@ public sealed class AggregateIdentityRegressionTests : BasicEntityTestBase
             .WithLoopInvariantCodeMotion(profile != 2)
             .WithStabilityAwareScalarReuse(profile != 3);
 
-    private static Dictionary<string, IEnumerable<BasicEntity>> Sources() => new()
-    {
-        ["#A"] =
-        [
-            new BasicEntity("A") { City = "one" },
-            new BasicEntity("B") { City = "one" },
-            new BasicEntity((string?)null) { City = "two" }
-        ]
-    };
+    private static Dictionary<string, IEnumerable<BasicEntity>> Sources() =>
+        new()
+        {
+            ["#A"] =
+            [
+                new BasicEntity("A") { City = "one" },
+                new BasicEntity("B") { City = "one" },
+                new BasicEntity((string?)null) { City = "two" },
+            ],
+        };
 }

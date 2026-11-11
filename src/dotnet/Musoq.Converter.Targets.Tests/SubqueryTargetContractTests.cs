@@ -16,15 +16,29 @@ public sealed class SubqueryTargetContractTests
     [DataRow(SubqueryResultKind.All)]
     public void Fallback_ShouldRequireExplicitTargetSupportAndInspectItsInnerOperations(SubqueryResultKind kind)
     {
-        var inner = new ExecutionPlan("Inner", [], new ExecutionBlock([
-            new ExecutionLet(new ExecutionVariable("inner", typeof(int)), new ExecutionStrictCast(
-                new ExecutionLiteral("1", typeof(string)), "int", typeof(int)))
-        ]));
-        var fallback = new ExecutionSubquery("Inner", kind, inner, [], null,
-            ExecutionClrBindingFactory.FromClr(typeof(bool)));
-        var outer = new ExecutionPlan("Outer", [], new ExecutionBlock([
-            new ExecutionLet(new ExecutionVariable("exists", typeof(bool)), fallback)
-        ]));
+        var inner = new ExecutionPlan(
+            "Inner",
+            [],
+            new ExecutionBlock([
+                new ExecutionLet(
+                    new ExecutionVariable("inner", typeof(int)),
+                    new ExecutionStrictCast(new ExecutionLiteral("1", typeof(string)), "int", typeof(int))
+                ),
+            ])
+        );
+        var fallback = new ExecutionSubquery(
+            "Inner",
+            kind,
+            inner,
+            [],
+            null,
+            ExecutionClrBindingFactory.FromClr(typeof(bool))
+        );
+        var outer = new ExecutionPlan(
+            "Outer",
+            [],
+            new ExecutionBlock([new ExecutionLet(new ExecutionVariable("exists", typeof(bool)), fallback)])
+        );
         var operations = ExecutionTargetOperationAnalyzer.Analyze(outer);
 
         Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(operations).IsSupported);

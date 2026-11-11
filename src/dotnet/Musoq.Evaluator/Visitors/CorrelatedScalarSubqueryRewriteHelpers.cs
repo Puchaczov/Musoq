@@ -7,13 +7,13 @@ public partial class SubqueryToCteRewriteVisitor
 {
     private static bool RequiresResultMaterialization(QueryNode query)
     {
-        return query.GroupBy != null ||
-               query.OrderBy != null ||
-               query.Skip != null ||
-               query.Take != null ||
-               query.Window != null ||
-               query.Qualify != null ||
-               query.Select.IsDistinct;
+        return query.GroupBy != null
+            || query.OrderBy != null
+            || query.Skip != null
+            || query.Take != null
+            || query.Window != null
+            || query.Qualify != null
+            || query.Select.IsDistinct;
     }
 
     private static bool RequiresCorrelatedAggregateApply(QueryNode query)
@@ -24,10 +24,8 @@ public partial class SubqueryToCteRewriteVisitor
     private static bool RequiresUnsupportedCombinedScalarShape(QueryNode query)
     {
         var hasSlicing = query.Skip != null || query.Take != null;
-        var hasPreSliceShaping = query.GroupBy != null ||
-                                 query.Window != null ||
-                                 query.Qualify != null ||
-                                 query.Select.IsDistinct;
+        var hasPreSliceShaping =
+            query.GroupBy != null || query.Window != null || query.Qualify != null || query.Select.IsDistinct;
         return hasSlicing && hasPreSliceShaping;
     }
 
@@ -37,10 +35,11 @@ public partial class SubqueryToCteRewriteVisitor
             new FunctionToken(CorrelatedScalarSubqueryAggregateName, default),
             new ArgsListNode([expression]),
             null,
-            false)
+            false
+        )
         {
             IsScalarSubqueryValueWrapper = true,
-            IsCompilerGenerated = true
+            IsCompilerGenerated = true,
         };
     }
 
@@ -51,6 +50,10 @@ public partial class SubqueryToCteRewriteVisitor
             new ArgsListNode([expression]),
             null,
             false,
-            alias: libraryAlias) { IsCompilerGenerated = true };
+            alias: libraryAlias
+        )
+        {
+            IsCompilerGenerated = true,
+        };
     }
 }

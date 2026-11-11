@@ -2,7 +2,8 @@ namespace Musoq.Parser.Nodes;
 
 public class BitwiseXorNode : BinaryNode
 {
-    public BitwiseXorNode(Node left, Node right) : base(left, right)
+    public BitwiseXorNode(Node left, Node right)
+        : base(left, right)
     {
         Id = CalculateId(this);
     }

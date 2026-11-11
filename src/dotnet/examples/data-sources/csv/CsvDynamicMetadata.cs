@@ -1,6 +1,6 @@
+using System.Text;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
-using System.Text;
 
 namespace Musoq.Examples.DataSources.Csv;
 
@@ -21,7 +21,8 @@ internal static class CsvDynamicMetadata
             using var reader = new StreamReader(
                 stream,
                 CsvTextFormat.ResolveEncoding((string?)null),
-                detectEncodingFromByteOrderMarks: true);
+                detectEncodingFromByteOrderMarks: true
+            );
             using var records = CsvTextFormat.ReadRecords(reader, delimiter, CancellationToken.None).GetEnumerator();
 
             CsvTextFormat.SkipRecords(records, options.SkipRows, CancellationToken.None);
@@ -29,19 +30,24 @@ internal static class CsvDynamicMetadata
                 return [];
 
             var firstRecord = records.Current;
-            var names = options.HasHeader
-                ? CreateHeaderNames(firstRecord)
-                : CreateOrdinalNames(firstRecord.Length);
+            var names = options.HasHeader ? CreateHeaderNames(firstRecord) : CreateOrdinalNames(firstRecord.Length);
 
             return names
-                .Select(static (name, index) => (ISchemaColumn)new SchemaColumn(
-                    name,
-                    index,
-                    typeof(string),
-                    new Dictionary<string, string>
-                    {
-                        [CsvColumnReadModifiers.SourceIndex] = index.ToString(System.Globalization.CultureInfo.InvariantCulture)
-                    }))
+                .Select(
+                    static (name, index) =>
+                        (ISchemaColumn)
+                            new SchemaColumn(
+                                name,
+                                index,
+                                typeof(string),
+                                new Dictionary<string, string>
+                                {
+                                    [CsvColumnReadModifiers.SourceIndex] = index.ToString(
+                                        System.Globalization.CultureInfo.InvariantCulture
+                                    ),
+                                }
+                            )
+                )
                 .ToArray();
         }
         catch (FormatException)
@@ -69,9 +75,7 @@ internal static class CsvDynamicMetadata
 
         for (var index = 0; index < header.Count; index++)
         {
-            var name = string.IsNullOrWhiteSpace(header[index])
-                ? CreateOrdinalName(index)
-                : header[index];
+            var name = string.IsNullOrWhiteSpace(header[index]) ? CreateOrdinalName(index) : header[index];
             if (!used.Add(name))
                 name = CreateOrdinalName(index);
 

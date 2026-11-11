@@ -54,5 +54,5 @@ public enum PrimitiveTypeName
     /// <summary>
     ///     Double-precision floating point (8 bytes). Requires endianness.
     /// </summary>
-    Double
+    Double,
 }

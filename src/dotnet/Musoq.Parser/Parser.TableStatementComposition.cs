@@ -17,8 +17,8 @@ public partial class Parser
 
         var closingToken = ConsumeAndGetToken(Current.TokenType);
 
-        return (CreateTableNode)new CreateTableNode(tableName, columns)
-            .WithSpan(tableToken.Span.Through(closingToken.Span));
+        return (CreateTableNode)
+            new CreateTableNode(tableName, columns).WithSpan(tableToken.Span.Through(closingToken.Span));
     }
 
     private (string TypeName, TextSpan Span) ComposeTableColumnTypeName()

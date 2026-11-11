@@ -19,7 +19,8 @@ public sealed class SourceCardinalityHashBuildAdvisorTests
             Scan("r", "right"),
             Facts(CardinalityEstimate.Exact(10), CardinalityEstimate.Exact(100)),
             out var buildOnLeft,
-            out var reason);
+            out var reason
+        );
 
         Assert.IsTrue(chosen);
         Assert.IsTrue(buildOnLeft);
@@ -35,7 +36,8 @@ public sealed class SourceCardinalityHashBuildAdvisorTests
             Scan("r", "right"),
             Facts(CardinalityEstimate.Exact(100), CardinalityEstimate.Exact(10)),
             out var buildOnLeft,
-            out var reason);
+            out var reason
+        );
 
         Assert.IsTrue(chosen);
         Assert.IsFalse(buildOnLeft);
@@ -51,7 +53,8 @@ public sealed class SourceCardinalityHashBuildAdvisorTests
             Scan("r", "right"),
             Facts(CardinalityEstimate.Bounded(0, 10, 0.8d), CardinalityEstimate.Exact(100)),
             out var buildOnLeft,
-            out _);
+            out _
+        );
 
         Assert.IsTrue(chosen);
         Assert.IsTrue(buildOnLeft);
@@ -66,7 +69,8 @@ public sealed class SourceCardinalityHashBuildAdvisorTests
             Scan("r", "right"),
             Facts(CardinalityEstimate.Bounded(0, 10, 0.25d), CardinalityEstimate.Unknown()),
             out _,
-            out var reason);
+            out var reason
+        );
 
         Assert.IsFalse(chosen);
         Assert.Contains("too low-confidence", reason);
@@ -81,7 +85,8 @@ public sealed class SourceCardinalityHashBuildAdvisorTests
             Scan("r", "right"),
             Facts(CardinalityEstimate.Exact(10), CardinalityEstimate.Exact(100)),
             out _,
-            out var reason);
+            out var reason
+        );
 
         Assert.IsFalse(chosen);
         Assert.Contains("simple source-scan", reason);
@@ -96,21 +101,16 @@ public sealed class SourceCardinalityHashBuildAdvisorTests
             Scan("r", "right"),
             Facts(CardinalityEstimate.Exact(10), CardinalityEstimate.Exact(100)),
             out _,
-            out var reason);
+            out var reason
+        );
 
         Assert.IsFalse(chosen);
         Assert.Contains("inner joins", reason);
     }
 
-    private static CardinalityFact[] Facts(
-        CardinalityEstimate leftCardinality,
-        CardinalityEstimate rightCardinality)
+    private static CardinalityFact[] Facts(CardinalityEstimate leftCardinality, CardinalityEstimate rightCardinality)
     {
-        return
-        [
-            Fact("left", leftCardinality),
-            Fact("right", rightCardinality)
-        ];
+        return [Fact("left", leftCardinality), Fact("right", rightCardinality)];
     }
 
     private static CardinalityFact Fact(string sourceContextId, CardinalityEstimate cardinality)
@@ -123,7 +123,8 @@ public sealed class SourceCardinalityHashBuildAdvisorTests
             cardinality.LowerBound,
             cardinality.UpperBound,
             cardinality.Confidence,
-            cardinality.Reason ?? "test");
+            cardinality.Reason ?? "test"
+        );
     }
 
     private static PhysicalSchemaScanNode Scan(string alias, string sourceContextId)

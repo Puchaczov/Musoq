@@ -8,5 +8,5 @@ internal enum CorrelatedSubqueryStrategyKind
     HashSingleJoin,
     PartitionedTopOffset,
     Apply,
-    Unsupported
+    Unsupported,
 }

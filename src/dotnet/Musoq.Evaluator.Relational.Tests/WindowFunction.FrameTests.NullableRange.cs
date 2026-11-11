@@ -20,23 +20,34 @@ public partial class WindowFunctionFrameTests
     [TestProperty("Phase", "4")]
     public void Current_P4_0099_BoundedRangeNullKeysUsePeerGroup()
     {
-        const string query = "with framedRows as (\r\n    select sample.Category as Category,\r\n           sample.Sequence as Sequence,\r\n           sample.OrderKey as OrderKey,\r\n           sample.Amount as Amount,\r\n           Sum(sample.Amount) over (\r\n               partition by sample.Category\r\n               order by sample.OrderKey asc nulls last\r\n               range between 1 preceding and current row\r\n           ) as RangeSum,\r\n           Sum(sample.Amount) over (\r\n               partition by sample.Category\r\n               order by sample.OrderKey asc nulls last, sample.Sequence asc\r\n               rows between 1 preceding and current row\r\n           ) as RowsSum\r\n    from values {\r\n        (Category: 'A', Sequence: 1i, OrderKey: null, Amount: 2i),\r\n        (Category: 'A', Sequence: 2i, OrderKey: null, Amount: 3i),\r\n        (Category: 'A', Sequence: 3i, OrderKey: 1i, Amount: 5i),\r\n        (Category: 'A', Sequence: 4i, OrderKey: 2i, Amount: 7i),\r\n        (Category: 'B', Sequence: 1i, OrderKey: null, Amount: 11i),\r\n        (Category: 'B', Sequence: 2i, OrderKey: 1i, Amount: 13i)\r\n    } sample\r\n)\r\nselect *\r\nfrom framedRows\r\norder by Category asc, Sequence asc";
+        const string query =
+            "with framedRows as (\r\n    select sample.Category as Category,\r\n           sample.Sequence as Sequence,\r\n           sample.OrderKey as OrderKey,\r\n           sample.Amount as Amount,\r\n           Sum(sample.Amount) over (\r\n               partition by sample.Category\r\n               order by sample.OrderKey asc nulls last\r\n               range between 1 preceding and current row\r\n           ) as RangeSum,\r\n           Sum(sample.Amount) over (\r\n               partition by sample.Category\r\n               order by sample.OrderKey asc nulls last, sample.Sequence asc\r\n               rows between 1 preceding and current row\r\n           ) as RowsSum\r\n    from values {\r\n        (Category: 'A', Sequence: 1i, OrderKey: null, Amount: 2i),\r\n        (Category: 'A', Sequence: 2i, OrderKey: null, Amount: 3i),\r\n        (Category: 'A', Sequence: 3i, OrderKey: 1i, Amount: 5i),\r\n        (Category: 'A', Sequence: 4i, OrderKey: 2i, Amount: 7i),\r\n        (Category: 'B', Sequence: 1i, OrderKey: null, Amount: 11i),\r\n        (Category: 'B', Sequence: 2i, OrderKey: 1i, Amount: 13i)\r\n    } sample\r\n)\r\nselect *\r\nfrom framedRows\r\norder by Category asc, Sequence asc";
 
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>()), LoggerResolver, TestCompilationOptions);
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>()),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
+        TableMaterializationTestHelper.AssertColumns(
+            result,
             ("Category", typeof(string)),
             ("Sequence", typeof(int)),
             ("OrderKey", typeof(int?)),
             ("Amount", typeof(int)),
             ("RangeSum", typeof(int?)),
-            ("RowsSum", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(result,
+            ("RowsSum", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            result,
             new object?[] { "A", 1, null, 2, 5, 9 },
             new object?[] { "A", 2, null, 3, 5, 5 },
             new object?[] { "A", 3, 1, 5, 5, 5 },
             new object?[] { "A", 4, 2, 7, 12, 12 },
             new object?[] { "B", 1, null, 11, 11, 24 },
-            new object?[] { "B", 2, 1, 13, 13, 13 });
+            new object?[] { "B", 2, 1, 13, 13, 13 }
+        );
     }
 }

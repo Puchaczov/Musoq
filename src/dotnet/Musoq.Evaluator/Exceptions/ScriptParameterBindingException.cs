@@ -5,20 +5,14 @@ namespace Musoq.Evaluator.Exceptions;
 
 public sealed class ScriptParameterBindingException : InvalidOperationException, IDiagnosticException
 {
-
     public ScriptParameterBindingException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public ScriptParameterBindingException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public ScriptParameterBindingException()
-    {
-    }
+    public ScriptParameterBindingException() { }
+
     private ScriptParameterBindingException(DiagnosticCode code, string message, Exception? innerException = null)
         : base(message, innerException)
     {
@@ -33,54 +27,66 @@ public sealed class ScriptParameterBindingException : InvalidOperationException,
     {
         return new ScriptParameterBindingException(
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
-            $"Required script parameter '{name}' was not provided.");
+            $"Required script parameter '{name}' was not provided."
+        );
     }
 
     public static ScriptParameterBindingException TypeMismatch(
         string name,
         Type expectedType,
         object? value,
-        Exception innerException)
+        Exception innerException
+    )
     {
         var actualType = value?.GetType();
         return new ScriptParameterBindingException(
             DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
             $"Script parameter '{name}' expected a value of type '{FormatType(expectedType)}' but received '{(actualType != null ? FormatType(actualType) : "null")}'.",
-            innerException);
+            innerException
+        );
     }
 
     public static ScriptParameterBindingException NullNotAllowed(string name, Type expectedType)
     {
         return new ScriptParameterBindingException(
             DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed,
-            $"Script parameter '{name}' expected a non-null value of type '{FormatType(expectedType)}'.");
+            $"Script parameter '{name}' expected a non-null value of type '{FormatType(expectedType)}'."
+        );
     }
 
     public static ScriptParameterBindingException TypeMismatch(string name, Type expectedType, Type actualType)
     {
-        return new ScriptParameterBindingException(DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            $"Script parameter '{name}' expected a value of type '{FormatType(expectedType)}' but received '{FormatType(actualType)}'.");
+        return new ScriptParameterBindingException(
+            DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
+            $"Script parameter '{name}' expected a value of type '{FormatType(expectedType)}' but received '{FormatType(actualType)}'."
+        );
     }
 
-    public static ScriptParameterBindingException TypeMismatch(string name, Type expectedType, Type actualType, Exception innerException)
+    public static ScriptParameterBindingException TypeMismatch(
+        string name,
+        Type expectedType,
+        Type actualType,
+        Exception innerException
+    )
     {
-        return new ScriptParameterBindingException(DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
-            $"Script parameter '{name}' expected a value of type '{FormatType(expectedType)}' but received '{FormatType(actualType)}'.", innerException);
+        return new ScriptParameterBindingException(
+            DiagnosticCode.MQ7004_ScriptParameterTypeMismatch,
+            $"Script parameter '{name}' expected a value of type '{FormatType(expectedType)}' but received '{FormatType(actualType)}'.",
+            innerException
+        );
     }
 
     public static ScriptParameterBindingException Unknown(string name)
     {
         return new ScriptParameterBindingException(
             DiagnosticCode.MQ7006_UnknownScriptParameter,
-            $"Script parameter '{name}' was provided but is not declared.");
+            $"Script parameter '{name}' was provided but is not declared."
+        );
     }
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.ErrorUnknownLocation(
-            Code,
-            Message,
-            sourceKind: DiagnosticSourceKind.Runtime);
+        return Diagnostic.ErrorUnknownLocation(Code, Message, sourceKind: DiagnosticSourceKind.Runtime);
     }
 
     private static string FormatType(Type type)

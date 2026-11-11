@@ -12,5 +12,6 @@ internal interface IDirectTableSink
         GeneratedRowShape workingShape,
         IReadOnlyList<PostOperation> postOperations,
         bool isDistinct,
-        TableProjection? finalProjection = null);
+        TableProjection? finalProjection = null
+    );
 }

@@ -9,7 +9,8 @@ internal static partial class EvaluatorSampleFixtures
             Basic(
                 "Q252_StableFilterProjectionReuse",
                 "ScalarReuse",
-                "select Name, Population, Population * 2 as Twice from #A.entities() where Population > 0"),
+                "select Name, Population, Population * 2 as Twice from #A.entities() where Population > 0"
+            ),
             new GeneratedCodeSample
             {
                 Name = "Q253_VolatileFilterProjectionReuse",
@@ -17,12 +18,13 @@ internal static partial class EvaluatorSampleFixtures
                 Query = "select a.VolatileValue, a.Value from #licm.outers() a where a.VolatileValue > 0",
                 Category = "ScalarReuse",
                 Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-                CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider
+                CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider,
             },
             Basic(
                 "Q254_SharedStableWindowInputs",
                 "ScalarReuse",
-                "select City, RowNumber() over (partition by City order by Population desc) as rn, Sum(Population) over (partition by City) as total from #A.entities()"),
+                "select City, RowNumber() over (partition by City order by Population desc) as rn, Sum(Population) over (partition by City) as total from #A.entities()"
+            ),
             new GeneratedCodeSample
             {
                 Name = "Q255_VolatileWindowInputs",
@@ -30,14 +32,15 @@ internal static partial class EvaluatorSampleFixtures
                 Query = "select a.VolatileValue, RowNumber() over (order by a.Value) as rn from #licm.outers() a",
                 Category = "ScalarReuse",
                 Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-                CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider
+                CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider,
             },
             Basic(
                 "Q256_ParallelAggregateSharedArguments",
                 "ScalarReuse",
-                "select City, Sum(Population) as Total, Count(Population) as Rows from #A.entities() group by City") with
+                "select City, Sum(Population) as Total, Count(Population) as Rows from #A.entities() group by City"
+            ) with
             {
-                CompilationOptions = new CompilationOptions(useCteParallelization: true)
+                CompilationOptions = new CompilationOptions(useCteParallelization: true),
             },
             Basic(
                 "Q257_PivotPredicateDispatch",
@@ -46,66 +49,83 @@ internal static partial class EvaluatorSampleFixtures
                   on Month in ('Jan' as Jan, 'Feb' as Feb)
                   using Sum(Money) as Sales, Count(*) as Orders
                   group by City
-                  order by City"),
+                  order by City"
+            ),
             new GeneratedCodeSample
             {
                 Name = "Q258_GuardedStableApplyPredicate",
                 FileName = "Q258_GuardedStableApplyPredicate.cs",
-                Query = "select a.Value, b.Value from #licm.outers() a cross apply a.Middles b where a.Value > 0 and b.Value > 0",
+                Query =
+                    "select a.Value, b.Value from #licm.outers() a cross apply a.Middles b where a.Value > 0 and b.Value > 0",
                 Category = "ScalarReuse",
                 Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-                CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider
+                CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider,
             },
             new GeneratedCodeSample
             {
                 Name = "Q259_GuardedVolatileOuterApplyPredicate",
                 FileName = "Q259_GuardedVolatileOuterApplyPredicate.cs",
-                Query = "select a.VolatileValue, b.Value from #licm.outers() a outer apply a.Middles b where a.VolatileValue > 0",
+                Query =
+                    "select a.VolatileValue, b.Value from #licm.outers() a outer apply a.Middles b where a.VolatileValue > 0",
                 Category = "ScalarReuse",
                 Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-                CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider
+                CreateSchemaProvider = CreateLoopInvariantSampleSchemaProvider,
             },
             Basic(
                 "Q260_StableAsOfProbeKeys",
                 "ScalarReuse",
-                "select a.Name, b.Name from #A.entities() a asof join #B.entities() b on a.Population >= b.Population"),
+                "select a.Name, b.Name from #A.entities() a asof join #B.entities() b on a.Population >= b.Population"
+            ),
             Basic(
                 "Q261_StableRangeJoinKeys",
                 "ScalarReuse",
-                "select a.Name, b.Name from #A.entities() a inner join #B.entities() b on a.Population >= b.Population and a.Population <= b.Money"),
+                "select a.Name, b.Name from #A.entities() a inner join #B.entities() b on a.Population >= b.Population and a.Population <= b.Money"
+            ),
             Basic(
                 "Q262_CorrelatedCteProbeReuse",
                 "ScalarReuse",
-                "with base as (select Country, Sum(Population) as Total from #B.entities() group by Country) select a.City, b.Total from #A.entities() a inner join base b on b.Country = a.Country"),
+                "with base as (select Country, Sum(Population) as Total from #B.entities() group by Country) select a.City, b.Total from #A.entities() a inner join base b on b.Country = a.Country"
+            ),
             Basic(
                 "Q263_StableUnpivotExpansion",
                 "ScalarReuse",
                 @"unpivot #A.entities() s
                   on Metric in (s.Population as Population, s.Money as Money)
                   using Amount
-                  keep s.Country as Country, s.Name as Name"),
+                  keep s.Country as Country, s.Name as Name"
+            ),
             Basic(
                 "Q264_BoundaryRowShapeNarrowing",
                 "ScalarReuse",
-                "select Name, City, Country, Population, Money from #A.entities() order by Population desc take 10"),
-            ComputedProjectionSample("Q265_SourceComputedProjectionAccepted",
-                "select r.Id::long * 2 as Value from #computedtest.rows() r", Schema.Computed.ComputedSourceBehavior.Accept),
-            ComputedProjectionSample("Q266_SourceComputedProjectionResidual",
-                "select r.Id, r.Id::long * 2 as Value from #computedtest.rows() r", Schema.Computed.ComputedSourceBehavior.Reject),
-            ScalarReuseRecursiveInvariant()
+                "select Name, City, Country, Population, Money from #A.entities() order by Population desc take 10"
+            ),
+            ComputedProjectionSample(
+                "Q265_SourceComputedProjectionAccepted",
+                "select r.Id::long * 2 as Value from #computedtest.rows() r",
+                Schema.Computed.ComputedSourceBehavior.Accept
+            ),
+            ComputedProjectionSample(
+                "Q266_SourceComputedProjectionResidual",
+                "select r.Id, r.Id::long * 2 as Value from #computedtest.rows() r",
+                Schema.Computed.ComputedSourceBehavior.Reject
+            ),
+            ScalarReuseRecursiveInvariant(),
         ];
     }
 
-    private static GeneratedCodeSample ComputedProjectionSample(string name, string query,
-        Schema.Computed.ComputedSourceBehavior behavior)
-        => new()
+    private static GeneratedCodeSample ComputedProjectionSample(
+        string name,
+        string query,
+        Schema.Computed.ComputedSourceBehavior behavior
+    ) =>
+        new()
         {
             Name = name,
             FileName = name + ".cs",
             Category = "ScalarReuse",
             Query = query,
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = () => new Schema.Computed.ComputedSourceProvider(behavior)
+            CreateSchemaProvider = () => new Schema.Computed.ComputedSourceProvider(behavior),
         };
 
     private static GeneratedCodeSample ScalarReuseRecursiveInvariant()
@@ -115,7 +135,7 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q267_RecursiveStableScalarInvariant",
             FileName = "Q267_RecursiveStableScalarInvariant.cs",
-            Category = "ScalarReuse"
+            Category = "ScalarReuse",
         };
     }
 }

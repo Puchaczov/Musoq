@@ -18,5 +18,5 @@ public enum Endianness
     /// <summary>
     ///     Big-endian byte order (most significant byte first).
     /// </summary>
-    BigEndian
+    BigEndian,
 }

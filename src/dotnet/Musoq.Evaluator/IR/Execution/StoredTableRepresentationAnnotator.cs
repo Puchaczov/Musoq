@@ -4,12 +4,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 /// <summary>Applies planner-selected row shapes to every stored-row read.</summary>
 internal sealed class StoredTableRepresentationAnnotator(
-    IReadOnlyDictionary<int, ExecutionStoredTableRepresentationPlan> representations)
-    : ExecutionIrRewriter
+    IReadOnlyDictionary<int, ExecutionStoredTableRepresentationPlan> representations
+) : ExecutionIrRewriter
 {
     public static ExecutionPlan Apply(
         ExecutionPlan plan,
-        IReadOnlyList<ExecutionStoredTableRepresentationPlan> representations)
+        IReadOnlyList<ExecutionStoredTableRepresentationPlan> representations
+    )
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(representations);
@@ -26,11 +27,20 @@ internal sealed class StoredTableRepresentationAnnotator(
 
     protected override ExecutionExpression RewriteStoredTableRows(ExecutionStoredTableRows expression)
     {
-        if (!representations.TryGetValue(expression.TableIndex, out var representation) ||
-            string.Equals(expression.GeneratedRowShape?.TypeName, representation.RowShape.TypeName, StringComparison.Ordinal))
+        if (
+            !representations.TryGetValue(expression.TableIndex, out var representation)
+            || string.Equals(
+                expression.GeneratedRowShape?.TypeName,
+                representation.RowShape.TypeName,
+                StringComparison.Ordinal
+            )
+        )
             return expression;
 
-        return expression with { GeneratedRowShape = representation.RowShape };
+        return expression with
+        {
+            GeneratedRowShape = representation.RowShape,
+        };
     }
 
     protected override ExecutionExpression RewriteCteCollectionInput(ExecutionCteCollectionInput expression)
@@ -46,9 +56,10 @@ internal sealed class StoredTableRepresentationAnnotator(
         {
             Ownership = representation.Ownership,
             Lifetime = representation.Lifetime,
-            MetricsStrategy = rewritten.LimitBinding == null
-                ? ExecutionStructuralMetricsStrategy.None
-                : ExecutionStructuralMetricsStrategy.TypedPrepass
+            MetricsStrategy =
+                rewritten.LimitBinding == null
+                    ? ExecutionStructuralMetricsStrategy.None
+                    : ExecutionStructuralMetricsStrategy.TypedPrepass,
         };
     }
 }

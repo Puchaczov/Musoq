@@ -10,7 +10,8 @@ internal readonly record struct TargetSourceRange
         int? startLine = null,
         int? startColumn = null,
         int? endLine = null,
-        int? endColumn = null)
+        int? endColumn = null
+    )
     {
         if (start < 0)
             throw new ArgumentOutOfRangeException(nameof(start));

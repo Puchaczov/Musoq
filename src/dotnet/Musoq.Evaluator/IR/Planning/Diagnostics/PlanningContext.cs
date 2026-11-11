@@ -5,6 +5,9 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal sealed partial record PlanningContext
 {
-    public IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap> SourceContractDiagnosticLocationsBySource { get; init; } =
+    public IReadOnlyDictionary<
+        SchemaFromNode,
+        SourceContractDiagnosticLocationMap
+    > SourceContractDiagnosticLocationsBySource { get; init; } =
         new Dictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>();
 }

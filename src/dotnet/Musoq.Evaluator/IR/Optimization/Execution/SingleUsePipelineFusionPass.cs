@@ -18,7 +18,8 @@ internal sealed class SingleUsePipelineFusionPass : IExecutionIrOptimizationPass
         {
             return OptimizationResult<ExecutionPlan>.Changed(
                 optimized,
-                $"Expanded {rewriter.ExpandedCandidates} selected single-use fusion candidate(s) into related phase marker(s).");
+                $"Expanded {rewriter.ExpandedCandidates} selected single-use fusion candidate(s) into related phase marker(s)."
+            );
         }
 
         var producers = ExecutionIrAnalysis.CollectNodes<ExecutionFusedCteProducer>(plan.Body).ToArray();
@@ -26,16 +27,15 @@ internal sealed class SingleUsePipelineFusionPass : IExecutionIrOptimizationPass
 
         return OptimizationResult<ExecutionPlan>.NoChange(
             plan,
-            $"Observed {producers.Length} fused producer(s) with {outputCount} output(s); no selected fusion candidates required expansion.");
+            $"Observed {producers.Length} fused producer(s) with {outputCount} output(s); no selected fusion candidates required expansion."
+        );
     }
 
     private sealed class SingleUsePipelineFusionRewriter : ExecutionCteCandidateExpansionRewriter
     {
         public int ExpandedCandidates { get; private set; }
 
-        protected override bool TryExpandCandidate(
-            ExecutionNode node,
-            out IReadOnlyList<ExecutionNode> expandedNodes)
+        protected override bool TryExpandCandidate(ExecutionNode node, out IReadOnlyList<ExecutionNode> expandedNodes)
         {
             if (node is not ExecutionSingleUsePipelineFusionCandidate candidate)
             {
@@ -48,11 +48,13 @@ internal sealed class SingleUsePipelineFusionPass : IExecutionIrOptimizationPass
             [
                 new ExecutionPhaseBoundary(
                     QueryPhase.Begin,
-                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"),
+                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"
+                ),
                 .. body.Nodes,
                 new ExecutionPhaseBoundary(
                     QueryPhase.End,
-                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}")
+                    $":cte{candidate.RelatedTableIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}"
+                ),
             ];
             ExpandedCandidates++;
             return true;

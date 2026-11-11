@@ -4,14 +4,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static ExecutionVariable CreateIndexedHashRowVariable(
-        string name,
-        ExecutionVariable row)
+    private static ExecutionVariable CreateIndexedHashRowVariable(string name, ExecutionVariable row)
     {
-        return new ExecutionVariable(
-            name,
-            CreateIndexedHashRowType(row),
-            CreateIndexedHashRowTypeName(row));
+        return new ExecutionVariable(name, CreateIndexedHashRowType(row), CreateIndexedHashRowTypeName(row));
     }
 
     private static Type CreateIndexedHashRowType(ExecutionVariable row)

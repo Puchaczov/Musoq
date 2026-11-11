@@ -9,4 +9,5 @@ public sealed record RecursiveCteShapeDescriptor(
     QueryNode RecursiveMember,
     SetOperatorNode Boundary,
     RecursiveCteUnionKind UnionKind,
-    string[] Keys);
+    string[] Keys
+);

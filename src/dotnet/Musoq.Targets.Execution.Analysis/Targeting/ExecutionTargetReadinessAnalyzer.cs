@@ -7,14 +7,16 @@ namespace Musoq.Targets.Execution.Analysis;
 internal static class ExecutionTargetReadinessAnalyzer
 {
     public static ExecutionTargetReadinessReport AnalyzeFutureTargets(
-        ExecutionTargetCompatibilityReport compatibilityReport)
+        ExecutionTargetCompatibilityReport compatibilityReport
+    )
     {
         return Analyze(compatibilityReport, ExecutionTargetReadinessProfile.FutureTargetProfiles);
     }
 
     public static ExecutionTargetReadinessReport AnalyzeFutureTargets(
         ExecutionTargetCompatibilityReport compatibilityReport,
-        TargetRuntimeContract runtimeContract)
+        TargetRuntimeContract runtimeContract
+    )
     {
         return Analyze(compatibilityReport, runtimeContract, ExecutionTargetReadinessProfile.FutureTargetProfiles);
     }
@@ -22,18 +24,21 @@ internal static class ExecutionTargetReadinessAnalyzer
     public static ExecutionTargetReadinessReport AnalyzeFutureTargets(
         ExecutionTargetCompatibilityReport compatibilityReport,
         TargetRuntimeContract runtimeContract,
-        ExecutionSemanticsContract semanticsContract)
+        ExecutionSemanticsContract semanticsContract
+    )
     {
         return Analyze(
             compatibilityReport,
             runtimeContract,
             semanticsContract,
-            ExecutionTargetReadinessProfile.FutureTargetProfiles);
+            ExecutionTargetReadinessProfile.FutureTargetProfiles
+        );
     }
 
     public static ExecutionTargetReadinessReport Analyze(
         ExecutionTargetCompatibilityReport compatibilityReport,
-        params ExecutionTargetReadinessProfile[] profiles)
+        params ExecutionTargetReadinessProfile[] profiles
+    )
     {
         return Analyze(compatibilityReport, (IReadOnlyList<ExecutionTargetReadinessProfile>)profiles);
     }
@@ -41,14 +46,16 @@ internal static class ExecutionTargetReadinessAnalyzer
     public static ExecutionTargetReadinessReport Analyze(
         ExecutionTargetCompatibilityReport compatibilityReport,
         TargetRuntimeContract runtimeContract,
-        params ExecutionTargetReadinessProfile[] profiles)
+        params ExecutionTargetReadinessProfile[] profiles
+    )
     {
         return Analyze(compatibilityReport, runtimeContract, (IReadOnlyList<ExecutionTargetReadinessProfile>)profiles);
     }
 
     public static ExecutionTargetReadinessReport Analyze(
         ExecutionTargetCompatibilityReport compatibilityReport,
-        IReadOnlyList<ExecutionTargetReadinessProfile> profiles)
+        IReadOnlyList<ExecutionTargetReadinessProfile> profiles
+    )
     {
         return Analyze(compatibilityReport, runtimeContract: null, profiles);
     }
@@ -56,31 +63,34 @@ internal static class ExecutionTargetReadinessAnalyzer
     public static ExecutionTargetReadinessReport Analyze(
         ExecutionTargetCompatibilityReport compatibilityReport,
         TargetRuntimeContract? runtimeContract,
-        IReadOnlyList<ExecutionTargetReadinessProfile> profiles)
+        IReadOnlyList<ExecutionTargetReadinessProfile> profiles
+    )
     {
-        return Analyze(
-            compatibilityReport,
-            runtimeContract,
-            ExecutionSemanticsContract.Version1,
-            profiles);
+        return Analyze(compatibilityReport, runtimeContract, ExecutionSemanticsContract.Version1, profiles);
     }
 
     public static ExecutionTargetReadinessReport Analyze(
         ExecutionTargetCompatibilityReport compatibilityReport,
         TargetRuntimeContract? runtimeContract,
         ExecutionSemanticsContract semanticsContract,
-        IReadOnlyList<ExecutionTargetReadinessProfile> profiles)
+        IReadOnlyList<ExecutionTargetReadinessProfile> profiles
+    )
     {
         ArgumentNullException.ThrowIfNull(compatibilityReport);
         ArgumentNullException.ThrowIfNull(semanticsContract);
         ArgumentNullException.ThrowIfNull(profiles);
 
         var issues = new List<ExecutionTargetReadinessIssue>();
-        var seen = new HashSet<(ExecutionTargetRuntimeFamily RuntimeFamily, ExecutionTargetReadinessCategory Category, string Detail)>();
-        var requirements = compatibilityReport.Requirements
-            .Concat(runtimeContract != null
-                ? ExecutionTargetRuntimeRequirementAnalyzer.Analyze(runtimeContract)
-                : [])
+        var seen =
+            new HashSet<(
+                ExecutionTargetRuntimeFamily RuntimeFamily,
+                ExecutionTargetReadinessCategory Category,
+                string Detail
+            )>();
+        var requirements = compatibilityReport
+            .Requirements.Concat(
+                runtimeContract != null ? ExecutionTargetRuntimeRequirementAnalyzer.Analyze(runtimeContract) : []
+            )
             .OrderBy(static requirement => requirement.Kind)
             .ThenBy(static requirement => requirement.Detail, StringComparer.Ordinal)
             .ToArray();
@@ -98,30 +108,32 @@ internal static class ExecutionTargetReadinessAnalyzer
         return new ExecutionTargetReadinessReport(issues.ToArray(), semanticsContract);
     }
 
-    public static ExecutionTargetReadinessCategory Classify(
-        ExecutionTargetRequirementKind requirementKind)
+    public static ExecutionTargetReadinessCategory Classify(ExecutionTargetRequirementKind requirementKind)
     {
         return requirementKind switch
         {
             ExecutionTargetRequirementKind.ClrTypeUsage => ExecutionTargetReadinessCategory.ClrOnlyTypeUsage,
             ExecutionTargetRequirementKind.MethodInfoCall => ExecutionTargetReadinessCategory.ReflectionMethodInfo,
-            ExecutionTargetRequirementKind.SchemaProviderBinding => ExecutionTargetReadinessCategory.SchemaProviderBinding,
+            ExecutionTargetRequirementKind.SchemaProviderBinding =>
+                ExecutionTargetReadinessCategory.SchemaProviderBinding,
             ExecutionTargetRequirementKind.GeneratedClrRow => ExecutionTargetReadinessCategory.GeneratedRowShape,
             ExecutionTargetRequirementKind.PluginInvocation => ExecutionTargetReadinessCategory.PluginInvocation,
             ExecutionTargetRequirementKind.HostSourceAccess => ExecutionTargetReadinessCategory.HostSourceAccess,
             ExecutionTargetRequirementKind.QueryRowSourceAccess => ExecutionTargetReadinessCategory.HostSourceAccess,
             ExecutionTargetRequirementKind.NullTypeCoercion => ExecutionTargetReadinessCategory.NullTypeCoercion,
-            ExecutionTargetRequirementKind.ProfilingDiagnostics => ExecutionTargetReadinessCategory.ProfilingDiagnostics,
+            ExecutionTargetRequirementKind.ProfilingDiagnostics =>
+                ExecutionTargetReadinessCategory.ProfilingDiagnostics,
             ExecutionTargetRequirementKind.Cancellation => ExecutionTargetReadinessCategory.Cancellation,
             ExecutionTargetRequirementKind.ClrOnlyConstant => ExecutionTargetReadinessCategory.ClrOnlyTypeUsage,
-            _ => throw new ArgumentOutOfRangeException(nameof(requirementKind), requirementKind, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(requirementKind), requirementKind, null),
         };
     }
 
     private static string FormatDiagnostic(
         ExecutionTargetRuntimeFamily runtimeFamily,
         ExecutionTargetReadinessCategory category,
-        ExecutionTargetRequirement requirement)
+        ExecutionTargetRequirement requirement
+    )
     {
         return $"{runtimeFamily} target does not support {category}: {requirement.Kind}: {requirement.Detail}";
     }
@@ -131,7 +143,12 @@ internal static class ExecutionTargetReadinessAnalyzer
         ExecutionTargetReadinessCategory category,
         ExecutionTargetRequirement requirement,
         ICollection<ExecutionTargetReadinessIssue> issues,
-        ISet<(ExecutionTargetRuntimeFamily RuntimeFamily, ExecutionTargetReadinessCategory Category, string Detail)> seen)
+        ISet<(
+            ExecutionTargetRuntimeFamily RuntimeFamily,
+            ExecutionTargetReadinessCategory Category,
+            string Detail
+        )> seen
+    )
     {
         if (profile.Supports(category))
             return;
@@ -143,32 +160,50 @@ internal static class ExecutionTargetReadinessAnalyzer
         ExecutionTargetReadinessProfile profile,
         ExecutionTargetRequirement requirement,
         ICollection<ExecutionTargetReadinessIssue> issues,
-        ISet<(ExecutionTargetRuntimeFamily RuntimeFamily, ExecutionTargetReadinessCategory Category, string Detail)> seen)
+        ISet<(
+            ExecutionTargetRuntimeFamily RuntimeFamily,
+            ExecutionTargetReadinessCategory Category,
+            string Detail
+        )> seen
+    )
     {
-        if (requirement.TypeSymbol is { } typeSymbol &&
-            !profile.SupportsTypeSymbolPortability(typeSymbol.Portability))
+        if (requirement.TypeSymbol is { } typeSymbol && !profile.SupportsTypeSymbolPortability(typeSymbol.Portability))
         {
             AddIssue(
                 profile,
                 ExecutionTargetReadinessCategory.ClrOnlyTypeUsage,
                 requirement,
-                FormatSymbolPortabilityDetail(requirement.Detail, typeSymbol.StableName, typeSymbol.Portability, typeSymbol.PortabilityReason),
+                FormatSymbolPortabilityDetail(
+                    requirement.Detail,
+                    typeSymbol.StableName,
+                    typeSymbol.Portability,
+                    typeSymbol.PortabilityReason
+                ),
                 issues,
                 seen,
-                respectCategorySupport: false);
+                respectCategorySupport: false
+            );
         }
 
-        if (requirement.CallableSymbol is { } callableSymbol &&
-            !profile.SupportsCallableSymbolPortability(callableSymbol.Portability))
+        if (
+            requirement.CallableSymbol is { } callableSymbol
+            && !profile.SupportsCallableSymbolPortability(callableSymbol.Portability)
+        )
         {
             AddIssue(
                 profile,
                 ExecutionTargetReadinessCategory.ReflectionMethodInfo,
                 requirement,
-                FormatSymbolPortabilityDetail(requirement.Detail, callableSymbol.StableName, callableSymbol.Portability, callableSymbol.PortabilityReason),
+                FormatSymbolPortabilityDetail(
+                    requirement.Detail,
+                    callableSymbol.StableName,
+                    callableSymbol.Portability,
+                    callableSymbol.PortabilityReason
+                ),
                 issues,
                 seen,
-                respectCategorySupport: false);
+                respectCategorySupport: false
+            );
         }
     }
 
@@ -178,8 +213,13 @@ internal static class ExecutionTargetReadinessAnalyzer
         ExecutionTargetRequirement requirement,
         string detail,
         ICollection<ExecutionTargetReadinessIssue> issues,
-        ISet<(ExecutionTargetRuntimeFamily RuntimeFamily, ExecutionTargetReadinessCategory Category, string Detail)> seen,
-        bool respectCategorySupport = true)
+        ISet<(
+            ExecutionTargetRuntimeFamily RuntimeFamily,
+            ExecutionTargetReadinessCategory Category,
+            string Detail
+        )> seen,
+        bool respectCategorySupport = true
+    )
     {
         if (respectCategorySupport && profile.Supports(category))
             return;
@@ -189,19 +229,26 @@ internal static class ExecutionTargetReadinessAnalyzer
 
         var issueRequirement = string.Equals(requirement.Detail, detail, StringComparison.Ordinal)
             ? requirement
-            : requirement with { Detail = detail };
-        issues.Add(new ExecutionTargetReadinessIssue(
-            profile.RuntimeFamily,
-            category,
-            issueRequirement,
-            FormatDiagnostic(profile.RuntimeFamily, category, issueRequirement)));
+            : requirement with
+            {
+                Detail = detail,
+            };
+        issues.Add(
+            new ExecutionTargetReadinessIssue(
+                profile.RuntimeFamily,
+                category,
+                issueRequirement,
+                FormatDiagnostic(profile.RuntimeFamily, category, issueRequirement)
+            )
+        );
     }
 
     private static string FormatSymbolPortabilityDetail(
         string requirementDetail,
         string stableName,
         ExecutionPortableSymbolPortability portability,
-        string portabilityReason)
+        string portabilityReason
+    )
     {
         return $"{requirementDetail} -> {stableName} [{portability}] {portabilityReason}";
     }

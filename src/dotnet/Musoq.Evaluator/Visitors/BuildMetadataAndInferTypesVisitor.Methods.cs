@@ -6,13 +6,13 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private void VisitAccessMethod(AccessMethodNode node,
-        Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func)
+    private void VisitAccessMethod(
+        AccessMethodNode node,
+        Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func
+    )
     {
         var args = GetAndValidateArgs(node);
-        node.FilterExpression = node.FilterExpression is null
-            ? null
-            : PopSemanticNode(nameof(VisitAccessMethod));
+        node.FilterExpression = node.FilterExpression is null ? null : PopSemanticNode(nameof(VisitAccessMethod));
 
         if (TryElideCorrelatedScalarSubqueryResultAccessor(node, args))
             return;
@@ -28,13 +28,17 @@ public partial class BuildMetadataAndInferTypesVisitor
             SourceArgumentMethodValidation.Validate(node, method);
 
         method = ProcessGenericMethodIfNeeded(method, args, methodContext.EntityType);
-        SuspiciousOrdinaryStringEscapeDiagnostics.ReportMethodArgumentRisks(DiagnosticContext, args, node.Arguments,
-            method, canSkipInjectSource);
+        SuspiciousOrdinaryStringEscapeDiagnostics.ReportMethodArgumentRisks(
+            DiagnosticContext,
+            args,
+            node.Arguments,
+            method,
+            canSkipInjectSource
+        );
 
         var accessMethod = CreateAccessMethod(node, args, method, methodContext, canSkipInjectSource, func);
 
         node.ChangeMethod(method);
         FinalizeMethodVisit(method, accessMethod);
     }
-
 }

@@ -23,9 +23,7 @@ internal sealed record TargetRenderOptions
 
 internal sealed record TargetScriptBindingContract
 {
-    public TargetScriptBindingContract(
-        IEnumerable<string>? parameterNames,
-        IEnumerable<string>? variableNames)
+    public TargetScriptBindingContract(IEnumerable<string>? parameterNames, IEnumerable<string>? variableNames)
     {
         ParameterNames = TargetRenderContractImmutability.Freeze(parameterNames);
         VariableNames = TargetRenderContractImmutability.Freeze(variableNames);
@@ -52,8 +50,7 @@ internal sealed record TargetReferenceInventory
 
 internal abstract record TargetBackendRenderInputs(ExecutionTargetId TargetId);
 
-internal sealed record EmptyTargetBackendRenderInputs(ExecutionTargetId TargetId)
-    : TargetBackendRenderInputs(TargetId);
+internal sealed record EmptyTargetBackendRenderInputs(ExecutionTargetId TargetId) : TargetBackendRenderInputs(TargetId);
 
 internal sealed record TargetRenderRequest
 {
@@ -90,7 +87,6 @@ internal sealed record TargetRenderRequest
     public required int HostAbiVersion { get; init; }
 
     public required TargetBackendRenderInputs BackendInputs { get; init; }
-
 }
 
 file static class TargetRenderContractImmutability
@@ -100,12 +96,12 @@ file static class TargetRenderContractImmutability
         return Array.AsReadOnly(values?.ToArray() ?? []);
     }
 
-    public static IReadOnlyDictionary<string, string> FreezeDictionary(
-        IReadOnlyDictionary<string, string>? values)
+    public static IReadOnlyDictionary<string, string> FreezeDictionary(IReadOnlyDictionary<string, string>? values)
     {
         return new ReadOnlyDictionary<string, string>(
             values is null
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(values, StringComparer.Ordinal));
+                : new Dictionary<string, string>(values, StringComparer.Ordinal)
+        );
     }
 }

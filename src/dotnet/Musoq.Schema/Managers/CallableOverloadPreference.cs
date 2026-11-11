@@ -9,27 +9,33 @@ internal enum OverloadPreference
     Equivalent,
     Left,
     Right,
-    Incomparable
+    Incomparable,
 }
 
 internal sealed record CallableSignaturePreference(
     IReadOnlyList<Type> ParameterTypes,
     bool IsVariadic,
     bool IsGeneric,
-    int OmittedDefaults);
+    int OmittedDefaults
+);
 
 internal static class CallableOverloadPreference
 {
     internal static OverloadPreference Compare(
         IReadOnlyList<Type> arguments,
         CallableSignaturePreference left,
-        CallableSignaturePreference right)
+        CallableSignaturePreference right
+    )
     {
         var leftBetter = false;
         var rightBetter = false;
         for (var index = 0; index < arguments.Count; index++)
         {
-            var preference = CompareConversion(arguments[index], left.ParameterTypes[index], right.ParameterTypes[index]);
+            var preference = CompareConversion(
+                arguments[index],
+                left.ParameterTypes[index],
+                right.ParameterTypes[index]
+            );
             if (preference == OverloadPreference.Incomparable)
                 return preference;
             leftBetter |= preference == OverloadPreference.Left;
@@ -77,17 +83,39 @@ internal static class CallableOverloadPreference
 
     internal static Type? FindCommonNumericType(Type left, Type right)
     {
-        Type[] numericTypes = [typeof(char), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
-            typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal)];
+        Type[] numericTypes =
+        [
+            typeof(char),
+            typeof(sbyte),
+            typeof(byte),
+            typeof(short),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(decimal),
+        ];
         if (!numericTypes.Contains(left) || !numericTypes.Contains(right))
             return null;
 
-        var candidates = numericTypes.Where(type =>
-            SchemaConversionClassifier.TryGetCost(left, type, out _) &&
-            SchemaConversionClassifier.TryGetCost(right, type, out _)).ToArray();
-        var best = candidates.Where(candidate => !candidates.Any(other => other != candidate &&
-            SchemaConversionClassifier.TryGetCost(other, candidate, out _) &&
-            !SchemaConversionClassifier.TryGetCost(candidate, other, out _))).ToArray();
+        var candidates = numericTypes
+            .Where(type =>
+                SchemaConversionClassifier.TryGetCost(left, type, out _)
+                && SchemaConversionClassifier.TryGetCost(right, type, out _)
+            )
+            .ToArray();
+        var best = candidates
+            .Where(candidate =>
+                !candidates.Any(other =>
+                    other != candidate
+                    && SchemaConversionClassifier.TryGetCost(other, candidate, out _)
+                    && !SchemaConversionClassifier.TryGetCost(candidate, other, out _)
+                )
+            )
+            .ToArray();
         return best.Length == 1 ? best[0] : null;
     }
 
@@ -99,7 +127,10 @@ internal static class CallableOverloadPreference
             return 1;
         var sourceValue = Nullable.GetUnderlyingType(argument) ?? argument;
         var targetValue = Nullable.GetUnderlyingType(target) ?? target;
-        if (MethodsMetadata.ValidImplicitConversions.TryGetValue(sourceValue, out var targets) && targets.Contains(targetValue))
+        if (
+            MethodsMetadata.ValidImplicitConversions.TryGetValue(sourceValue, out var targets)
+            && targets.Contains(targetValue)
+        )
             return 2;
         return 3;
     }
@@ -118,14 +149,19 @@ internal static class CallableOverloadPreference
         var definition = template.GetGenericTypeDefinition();
         if (definition == typeof(Nullable<>) && argument.IsValueType && Nullable.GetUnderlyingType(argument) is null)
             return typeof(Nullable<>).MakeGenericType(CloseTemplate(template.GetGenericArguments()[0], argument));
-        var view = argument.IsGenericType && argument.GetGenericTypeDefinition() == definition
-            ? argument
-            : argument.GetInterfaces().FirstOrDefault(type => type.IsGenericType && type.GetGenericTypeDefinition() == definition);
+        var view =
+            argument.IsGenericType && argument.GetGenericTypeDefinition() == definition
+                ? argument
+                : argument
+                    .GetInterfaces()
+                    .FirstOrDefault(type => type.IsGenericType && type.GetGenericTypeDefinition() == definition);
         if (view is null)
             return template;
         var templateArguments = template.GetGenericArguments();
         var actualArguments = view.GetGenericArguments();
-        return definition.MakeGenericType(templateArguments.Select((type, index) => CloseTemplate(type, actualArguments[index])).ToArray());
+        return definition.MakeGenericType(
+            templateArguments.Select((type, index) => CloseTemplate(type, actualArguments[index])).ToArray()
+        );
     }
 
     private static bool IsNullType(Type type) => type is NullNode.NullType || type == typeof(NullNode.NullType);

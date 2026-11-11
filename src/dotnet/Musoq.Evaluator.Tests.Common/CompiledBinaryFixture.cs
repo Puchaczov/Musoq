@@ -28,15 +28,22 @@ internal sealed class CompiledBinaryFixture : ICompiledBinaryFixture, IDisposabl
         try
         {
             var references = new FixtureReferences(_environment);
-            var compilation = _environment.CreateCompilation("FixtureProjection")
+            var compilation = _environment
+                .CreateCompilation("FixtureProjection")
                 .AddReferences(references.GetReferences())
                 .AddSyntaxTrees(CSharpSyntaxTree.ParseText(code));
             var adapter = SchemaFixtureProjection.Create(compilation, schemaName, typeArguments);
-            _unit = new InterpreterCompilationUnit($"TestAssembly_{Guid.NewGuid():N}", code + adapter,
-                _environment.CompilationFactory, references, DefaultAssemblyLoader.Instance);
+            _unit = new InterpreterCompilationUnit(
+                $"TestAssembly_{Guid.NewGuid():N}",
+                code + adapter,
+                _environment.CompilationFactory,
+                references,
+                DefaultAssemblyLoader.Instance
+            );
             if (!_unit.Compile())
                 throw new InvalidOperationException(string.Join(Environment.NewLine, _unit.GetErrorMessages()));
-            _adapter = _unit.CreateInterpreterInstance<ICompiledBinaryFixture>("BinaryFixtureAdapter")
+            _adapter =
+                _unit.CreateInterpreterInstance<ICompiledBinaryFixture>("BinaryFixtureAdapter")
                 ?? throw new InvalidOperationException("Compiled fixture adapter was not activated.");
         }
         catch
@@ -48,8 +55,11 @@ internal sealed class CompiledBinaryFixture : ICompiledBinaryFixture, IDisposabl
     }
 
     public int BytesConsumed => _adapter.BytesConsumed;
+
     public object Interpret(byte[] data) => _adapter.Interpret(data);
+
     public (bool Success, object? Result) TryInterpret(byte[] data) => _adapter.TryInterpret(data);
+
     public object PartialInterpret(byte[] data) => _adapter.PartialInterpret(data);
 
     public void Dispose()
@@ -61,9 +71,9 @@ internal sealed class CompiledBinaryFixture : ICompiledBinaryFixture, IDisposabl
     private sealed class FixtureReferences(EvaluatorRuntimeEnvironment environment) : IInterpreterReferenceProvider
     {
         public IReadOnlyList<MetadataReference> GetReferences() =>
-        [
-            .. new DefaultInterpreterReferenceProvider(environment.MetadataReferenceCache).GetReferences(),
-            environment.GetOrCreateMetadataReference(typeof(ICompiledBinaryFixture).Assembly.Location)
-        ];
+            [
+                .. new DefaultInterpreterReferenceProvider(environment.MetadataReferenceCache).GetReferences(),
+                environment.GetOrCreateMetadataReference(typeof(ICompiledBinaryFixture).Assembly.Location),
+            ];
     }
 }

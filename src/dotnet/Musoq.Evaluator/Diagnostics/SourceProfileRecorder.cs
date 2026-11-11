@@ -27,12 +27,11 @@ public sealed class SourceProfileRecorder
     private long _rowsProduced;
     private long _bytesRead;
     private readonly Dictionary<string, long> _metrics = new(StringComparer.Ordinal);
-    private readonly Dictionary<(string Name, SourceDiagnosticOperation Operation), OperationAccumulator> _operations = [];
+    private readonly Dictionary<(string Name, SourceDiagnosticOperation Operation), OperationAccumulator> _operations =
+    [];
 
     public SourceProfileRecorder(string name, IProfileClock clock)
-        : this(name, clock, null)
-    {
-    }
+        : this(name, clock, null) { }
 
     internal SourceProfileRecorder(string name, IProfileClock clock, QueryProfileRecorder? queryRecorder)
     {
@@ -56,8 +55,6 @@ public sealed class SourceProfileRecorder
     {
         _timingMode = SourceProfileTimingMode.Adaptive;
     }
-
-
 
     internal OperatorProfileExclusionTarget CaptureCurrentOperatorExclusionTarget()
     {
@@ -136,7 +133,12 @@ public sealed class SourceProfileRecorder
         }
     }
 
-    internal void RecordOperation(string name, SourceDiagnosticOperation operation, long startTimestamp, long endTimestamp)
+    internal void RecordOperation(
+        string name,
+        SourceDiagnosticOperation operation,
+        long startTimestamp,
+        long endTimestamp
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -160,7 +162,8 @@ public sealed class SourceProfileRecorder
                 _moveNextWaitTime,
                 _consumerGapTime,
                 _exceptionCount,
-                metrics);
+                metrics
+            );
 
             return new SourceProfileSnapshot(
                 _name,
@@ -172,7 +175,8 @@ public sealed class SourceProfileRecorder
                 _exceptionCount,
                 _exceptionType,
                 _exceptionMessage,
-                diagnosis)
+                diagnosis
+            )
             {
                 RowsProduced = _rowsProduced,
                 BytesRead = _bytesRead,
@@ -187,8 +191,9 @@ public sealed class SourceProfileRecorder
                         entry.Key.Name,
                         entry.Key.Operation,
                         entry.Value.Count,
-                        entry.Value.ElapsedTime))
-                    .ToArray()
+                        entry.Value.ElapsedTime
+                    ))
+                    .ToArray(),
             };
         }
     }
@@ -214,7 +219,8 @@ public sealed class SourceProfileRecorder
         SourceProfileRecorder recorder,
         string name,
         SourceDiagnosticOperation operation,
-        long startedTimestamp) : IDisposable
+        long startedTimestamp
+    ) : IDisposable
     {
         private bool _disposed;
 

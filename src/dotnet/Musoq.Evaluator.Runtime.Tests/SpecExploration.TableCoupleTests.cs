@@ -11,16 +11,15 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
 {
-
     #region §3 TABLE Statement - Basic
 
     [TestMethod]
     public void Spec_TableCouple_BasicStringColumn()
     {
         const string query =
-            "table DummyTable { Name: string };" +
-            "couple #test.whatever with table DummyTable as SourceOfDummyRows;" +
-            "select Name from SourceOfDummyRows()";
+            "table DummyTable { Name: string };"
+            + "couple #test.whatever with table DummyTable as SourceOfDummyRows;"
+            + "select Name from SourceOfDummyRows()";
 
         dynamic item1 = new ExpandoObject();
         item1.Name = "Alice";
@@ -43,9 +42,9 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_MultipleColumns()
     {
         const string query =
-            "table DataTable { Country: string, Population: decimal };" +
-            "couple #test.whatever with table DataTable as Countries;" +
-            "select Country, Population from Countries() where Population > 100";
+            "table DataTable { Country: string, Population: decimal };"
+            + "couple #test.whatever with table DataTable as Countries;"
+            + "select Country, Population from Countries() where Population > 100";
 
         dynamic item1 = new ExpandoObject();
         item1.Country = "Poland";
@@ -65,11 +64,9 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Country", typeof(string)),
-            ("Population", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Poland", 38000000m],
-            ["Vatican", 800m]);
+            ("Population", typeof(decimal?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland", 38000000m], ["Vatican", 800m]);
     }
 
     #endregion
@@ -80,12 +77,12 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_WithCTE()
     {
         const string query =
-            "table TypedRow { Id: int, Name: string };" +
-            "couple #test.whatever with table TypedRow as TypedSource;" +
-            "with FilteredData as (" +
-            "    select Id, Name from TypedSource() where Id > 10" +
-            ")" +
-            "select * from FilteredData";
+            "table TypedRow { Id: int, Name: string };"
+            + "couple #test.whatever with table TypedRow as TypedSource;"
+            + "with FilteredData as ("
+            + "    select Id, Name from TypedSource() where Id > 10"
+            + ")"
+            + "select * from FilteredData";
 
         dynamic item1 = new ExpandoObject();
         item1.Id = 5;
@@ -102,14 +99,8 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Id", typeof(int?)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [15, "High"],
-            [25, "Higher"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int?)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [15, "High"], [25, "Higher"]);
     }
 
     #endregion
@@ -120,9 +111,9 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_TypeKeywordsCaseInsensitive()
     {
         const string query =
-            "table T { Col1: STRING, Col2: Int, Col3: DECIMAL };" +
-            "couple #test.whatever with table T as Source;" +
-            "select Col1, Col2, Col3 from Source()";
+            "table T { Col1: STRING, Col2: Int, Col3: DECIMAL };"
+            + "couple #test.whatever with table T as Source;"
+            + "select Col1, Col2, Col3 from Source()";
 
         dynamic item = new ExpandoObject();
         item.Col1 = "hello";
@@ -136,7 +127,8 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
             table,
             ("Col1", typeof(string)),
             ("Col2", typeof(int?)),
-            ("Col3", typeof(decimal?)));
+            ("Col3", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["hello", 42, 3.14m]);
     }
 
@@ -148,9 +140,9 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_TrailingComma()
     {
         const string query =
-            "table NullableExample { Id: int?, Name: string, IsActive: bool?, };" +
-            "couple #test.whatever with table NullableExample as Data;" +
-            "select Id, Name, IsActive from Data()";
+            "table NullableExample { Id: int?, Name: string, IsActive: bool?, };"
+            + "couple #test.whatever with table NullableExample as Data;"
+            + "select Id, Name, IsActive from Data()";
 
         dynamic item = new ExpandoObject();
         item.Id = 1;
@@ -164,7 +156,8 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
             table,
             ("Id", typeof(int?)),
             ("Name", typeof(string)),
-            ("IsActive", typeof(bool?)));
+            ("IsActive", typeof(bool?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "Test", true]);
     }
 
@@ -176,9 +169,9 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_WithAggregation()
     {
         const string query =
-            "table Sales { Product: string, Amount: decimal };" +
-            "couple #test.whatever with table Sales as SalesData;" +
-            "select Product, Sum(Amount) as Total from SalesData() group by Product";
+            "table Sales { Product: string, Amount: decimal };"
+            + "couple #test.whatever with table Sales as SalesData;"
+            + "select Product, Sum(Amount) as Total from SalesData() group by Product";
 
         dynamic item1 = new ExpandoObject();
         item1.Product = "Widget";
@@ -195,14 +188,8 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Product", typeof(string)),
-            ("Total", typeof(decimal?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Widget", 300m],
-            ["Gizmo", 50m]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Product", typeof(string)), ("Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Widget", 300m], ["Gizmo", 50m]);
     }
 
     #endregion
@@ -213,10 +200,10 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_CorrectStatementOrder_TableBeforeCouple()
     {
         const string query =
-            "table T1 { Col1: string };" +
-            "table T2 { Col2: string };" +
-            "couple #test.whatever with table T1 as Source1;" +
-            "select Col1 from Source1()";
+            "table T1 { Col1: string };"
+            + "table T2 { Col2: string };"
+            + "couple #test.whatever with table T1 as Source1;"
+            + "select Col1 from Source1()";
 
         dynamic item = new ExpandoObject();
         item.Col1 = "value";
@@ -236,9 +223,7 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_IntType()
     {
         const string query =
-            "table T { Value: int };" +
-            "couple #test.whatever with table T as Source;" +
-            "select Value from Source()";
+            "table T { Value: int };" + "couple #test.whatever with table T as Source;" + "select Value from Source()";
 
         dynamic item = new ExpandoObject();
         item.Value = 42;
@@ -254,9 +239,9 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_BoolType()
     {
         const string query =
-            "table T { Active: bool };" +
-            "couple #test.whatever with table T as Source;" +
-            "select Active from Source()";
+            "table T { Active: bool };"
+            + "couple #test.whatever with table T as Source;"
+            + "select Active from Source()";
 
         dynamic item = new ExpandoObject();
         item.Active = true;
@@ -272,9 +257,9 @@ public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_DecimalType()
     {
         const string query =
-            "table T { Price: decimal };" +
-            "couple #test.whatever with table T as Source;" +
-            "select Price from Source()";
+            "table T { Price: decimal };"
+            + "couple #test.whatever with table T as Source;"
+            + "select Price from Source()";
 
         dynamic item = new ExpandoObject();
         item.Price = 99.99m;

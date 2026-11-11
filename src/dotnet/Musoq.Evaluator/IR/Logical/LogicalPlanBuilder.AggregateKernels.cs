@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Parser;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-using Musoq.Evaluator.Exceptions;
-using Musoq.Parser;
 using AggregateRefRewriter = Musoq.Evaluator.IR.Expressions.AggregateRefRewriter;
 using ColumnRefExtractor = Musoq.Evaluator.IR.Expressions.ColumnRefExtractor;
 
@@ -15,16 +15,18 @@ public sealed partial class LogicalPlanBuilder
 {
     private static AggregateKernelDescriptor? TryCreateAggregateKernelDescriptor(
         MethodInfo method,
-        IReadOnlyList<IrExpression> arguments)
+        IReadOnlyList<IrExpression> arguments
+    )
     {
         if (method.GetCustomAttribute<AggregateFunctionAttribute>() is not null)
             return CreateValidatedAggregateKernel(method);
 
-        return method.DeclaringType?
-            .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+        return method
+            .DeclaringType?.GetMethods(BindingFlags.Instance | BindingFlags.Public)
             .Where(candidate =>
-                string.Equals(candidate.Name, method.Name, StringComparison.Ordinal) &&
-                candidate.GetCustomAttribute<AggregateFunctionAttribute>() is not null)
+                string.Equals(candidate.Name, method.Name, StringComparison.Ordinal)
+                && candidate.GetCustomAttribute<AggregateFunctionAttribute>() is not null
+            )
             .Where(candidate => CanBindAggregateKernelDeclaration(candidate, arguments))
             .Select(CreateValidatedAggregateKernel)
             .FirstOrDefault();
@@ -32,16 +34,17 @@ public sealed partial class LogicalPlanBuilder
 
     private static AggregateKernelDescriptor CreateValidatedAggregateKernel(MethodInfo method)
     {
-        try { return AggregateKernelDescriptor.Create(method); }
+        try
+        {
+            return AggregateKernelDescriptor.Create(method);
+        }
         catch (InvalidOperationException exception)
         {
             throw new SourcePlanContractException(exception.Message, TextSpan.Empty);
         }
     }
 
-    private static bool CanBindAggregateKernelDeclaration(
-        MethodInfo declaration,
-        IReadOnlyList<IrExpression> arguments)
+    private static bool CanBindAggregateKernelDeclaration(MethodInfo declaration, IReadOnlyList<IrExpression> arguments)
     {
         var parameters = declaration.GetParameters();
         if (arguments.Count > parameters.Length)
@@ -66,13 +69,14 @@ public sealed partial class LogicalPlanBuilder
         return parameters
             .Skip(arguments.Count)
             .All(parameter =>
-                parameter.HasDefaultValue ||
-                parameter.GetCustomAttribute<AggregateParentAttribute>() is not null);
+                parameter.HasDefaultValue || parameter.GetCustomAttribute<AggregateParentAttribute>() is not null
+            );
     }
 
     private static int ResolveAggregateParentDepth(
         AggregateKernelDescriptor? kernel,
-        IReadOnlyList<IrExpression> arguments)
+        IReadOnlyList<IrExpression> arguments
+    )
     {
         switch (kernel?.ParentParameterIndex)
         {
@@ -81,9 +85,11 @@ public sealed partial class LogicalPlanBuilder
         }
 
         var parentParameterIndex = kernel.ParentParameterIndex.GetValueOrDefault();
-        if (parentParameterIndex >= 0 &&
-            parentParameterIndex < arguments.Count &&
-            TryReadAggregateParentDepth(arguments[parentParameterIndex], out var parentDepth))
+        if (
+            parentParameterIndex >= 0
+            && parentParameterIndex < arguments.Count
+            && TryReadAggregateParentDepth(arguments[parentParameterIndex], out var parentDepth)
+        )
         {
             return parentDepth;
         }
@@ -97,9 +103,7 @@ public sealed partial class LogicalPlanBuilder
         return 0;
     }
 
-    private static bool TryReadAggregateParentDepth(
-        IrExpression argument,
-        out int parentDepth)
+    private static bool TryReadAggregateParentDepth(IrExpression argument, out int parentDepth)
     {
         parentDepth = 0;
 
@@ -121,7 +125,8 @@ public sealed partial class LogicalPlanBuilder
 
     private static string[] GetAggregateIdentifierCandidates(
         MethodCall methodCall,
-        AggregateRefreshLookup refreshLookup)
+        AggregateRefreshLookup refreshLookup
+    )
     {
         var literalIdentifier = ExtractLiteralAggregateIdentifier(methodCall);
         var normalizedIdentifier = AggregateRefRewriter.ExtractIdentifier(methodCall);
@@ -131,17 +136,16 @@ public sealed partial class LogicalPlanBuilder
         if (string.IsNullOrWhiteSpace(normalizedIdentifier))
             return [literalIdentifier];
 
-        return string.Equals(literalIdentifier, normalizedIdentifier, StringComparison.Ordinal)
-            ? [literalIdentifier]
+        return string.Equals(literalIdentifier, normalizedIdentifier, StringComparison.Ordinal) ? [literalIdentifier]
             : ShouldPreferLiteralAggregateIdentifier(literalIdentifier, normalizedIdentifier, refreshLookup)
                 ? [literalIdentifier, normalizedIdentifier]
-                : [normalizedIdentifier, literalIdentifier];
+            : [normalizedIdentifier, literalIdentifier];
     }
 
     private static string? ExtractLiteralAggregateIdentifier(MethodCall methodCall)
     {
-        return methodCall.Arguments
-            .OfType<Literal>()
+        return methodCall
+            .Arguments.OfType<Literal>()
             .Select(literal => literal.Value as string)
             .FirstOrDefault(identifier => !string.IsNullOrWhiteSpace(identifier));
     }
@@ -149,18 +153,20 @@ public sealed partial class LogicalPlanBuilder
     private static bool ShouldPreferLiteralAggregateIdentifier(
         string? literalIdentifier,
         string? normalizedIdentifier,
-        AggregateRefreshLookup refreshLookup)
+        AggregateRefreshLookup refreshLookup
+    )
     {
-        return !string.IsNullOrWhiteSpace(literalIdentifier) &&
-               !string.IsNullOrWhiteSpace(normalizedIdentifier) &&
-               refreshLookup.Captures.ContainsKey(literalIdentifier) &&
-               refreshLookup.AmbiguousNormalizedIdentifiers.Contains(normalizedIdentifier);
+        return !string.IsNullOrWhiteSpace(literalIdentifier)
+            && !string.IsNullOrWhiteSpace(normalizedIdentifier)
+            && refreshLookup.Captures.ContainsKey(literalIdentifier)
+            && refreshLookup.AmbiguousNormalizedIdentifiers.Contains(normalizedIdentifier);
     }
 
     private static IrExpression[] CreateAggregateGetArguments(
         MethodInfo getMethod,
         IReadOnlyList<IrExpression> methodCallArguments,
-        RefreshMethodCapture refresh)
+        RefreshMethodCapture refresh
+    )
     {
         var getParameters = GetRuntimeParameters(getMethod).ToArray();
         var setParameters = GetRuntimeParameters(refresh.SetMethod).ToArray();
@@ -172,7 +178,9 @@ public sealed partial class LogicalPlanBuilder
         {
             var setArgumentIndex = Array.FindIndex(
                 setParameters,
-                parameter => string.Equals(parameter.Name, getParameters[index].Name, StringComparison.OrdinalIgnoreCase));
+                parameter =>
+                    string.Equals(parameter.Name, getParameters[index].Name, StringComparison.OrdinalIgnoreCase)
+            );
 
             var argument = ResolveAggregateGetArgument(
                 getParameters[index],
@@ -180,7 +188,8 @@ public sealed partial class LogicalPlanBuilder
                 methodCallArguments,
                 setArguments,
                 usedSetArgumentIndexes,
-                index);
+                index
+            );
 
             if (argument is not null)
             {
@@ -189,14 +198,14 @@ public sealed partial class LogicalPlanBuilder
             }
 
             throw new NotSupportedException(
-                $"Cannot bind aggregate getter argument '{getParameters[index].Name}' for method {getMethod.Name}.");
+                $"Cannot bind aggregate getter argument '{getParameters[index].Name}' for method {getMethod.Name}."
+            );
         }
 
         return arguments;
     }
 
-    private static IReadOnlyList<IrExpression> GetAggregateRuntimeSetArguments(
-        IReadOnlyList<IrExpression> setArguments)
+    private static IReadOnlyList<IrExpression> GetAggregateRuntimeSetArguments(IReadOnlyList<IrExpression> setArguments)
     {
         return setArguments.Count > 0 && setArguments[0] is Literal { Value: string }
             ? setArguments.Skip(1).ToArray()
@@ -209,15 +218,18 @@ public sealed partial class LogicalPlanBuilder
         IReadOnlyList<IrExpression> methodCallArguments,
         IReadOnlyList<IrExpression> setArguments,
         HashSet<int> usedSetArgumentIndexes,
-        int fallbackIndex)
+        int fallbackIndex
+    )
     {
         switch (setArgumentIndex)
         {
             case >= 0 when setArgumentIndex < setArguments.Count:
             {
                 var setArgument = setArguments[setArgumentIndex];
-                if (CanRenderDuringAggregateFinalization(setArgument) &&
-                    IsAssignableToParameter(setArgument.ReturnType, getParameter.ParameterType))
+                if (
+                    CanRenderDuringAggregateFinalization(setArgument)
+                    && IsAssignableToParameter(setArgument.ReturnType, getParameter.ParameterType)
+                )
                 {
                     usedSetArgumentIndexes.Add(setArgumentIndex);
                     return setArgument;
@@ -242,8 +254,10 @@ public sealed partial class LogicalPlanBuilder
             return CreateDefaultArgumentOrNull(getParameter);
 
         var fallbackArgument = methodCallArguments[fallbackIndex];
-        if (!CanRenderDuringAggregateFinalization(fallbackArgument) ||
-            !IsAssignableToParameter(fallbackArgument.ReturnType, getParameter.ParameterType))
+        if (
+            !CanRenderDuringAggregateFinalization(fallbackArgument)
+            || !IsAssignableToParameter(fallbackArgument.ReturnType, getParameter.ParameterType)
+        )
             return CreateDefaultArgumentOrNull(getParameter);
 
         return fallbackArgument;
@@ -263,7 +277,8 @@ public sealed partial class LogicalPlanBuilder
     private static int FindFinalizationSafeSetArgument(
         ParameterInfo parameter,
         IReadOnlyList<IrExpression> setArguments,
-        HashSet<int> usedSetArgumentIndexes)
+        HashSet<int> usedSetArgumentIndexes
+    )
     {
         for (var index = 0; index < setArguments.Count; index++)
         {
@@ -302,7 +317,10 @@ public sealed partial class LogicalPlanBuilder
 
     private static IEnumerable<ParameterInfo> GetRuntimeParameters(MethodInfo method)
     {
-        return method.GetParameters()
-            .Where(parameter => parameter.GetCustomAttributes(true).OfType<InjectTypeAttribute>().FirstOrDefault() is null);
+        return method
+            .GetParameters()
+            .Where(parameter =>
+                parameter.GetCustomAttributes(true).OfType<InjectTypeAttribute>().FirstOrDefault() is null
+            );
     }
 }

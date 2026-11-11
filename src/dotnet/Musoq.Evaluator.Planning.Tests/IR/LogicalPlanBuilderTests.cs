@@ -4,10 +4,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
-using Musoq.Plugins;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
+using Musoq.Plugins;
 using Musoq.Schema;
 using LogicalWindowNode = Musoq.Evaluator.IR.Logical.Nodes.WindowNode;
 
@@ -38,7 +38,11 @@ public partial class LogicalPlanBuilderTests
         return new SelectNode(fields);
     }
 
-    private static AccessMethodNode WindowFunctionCall(string name, System.Reflection.MethodInfo method, params Node[] arguments)
+    private static AccessMethodNode WindowFunctionCall(
+        string name,
+        System.Reflection.MethodInfo method,
+        params Node[] arguments
+    )
     {
         return new AccessMethodNode(
             new FunctionToken(name, default),
@@ -46,14 +50,19 @@ public partial class LogicalPlanBuilderTests
             null,
             false,
             method,
-            string.Empty);
+            string.Empty
+        );
     }
 
     private static WindowFunctionNode RowNumberWindow(WindowSpecificationNode specification)
     {
         var windowFunction = new WindowFunctionNode(
-            WindowFunctionCall("RowNumber", typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), Type.EmptyTypes)!),
-            specification);
+            WindowFunctionCall(
+                "RowNumber",
+                typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), Type.EmptyTypes)!
+            ),
+            specification
+        );
         windowFunction.SetReturnType(typeof(long));
         return windowFunction;
     }
@@ -61,8 +70,12 @@ public partial class LogicalPlanBuilderTests
     private static WindowFunctionNode RowNumberWindow(string windowName)
     {
         var windowFunction = new WindowFunctionNode(
-            WindowFunctionCall("RowNumber", typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), Type.EmptyTypes)!),
-            windowName);
+            WindowFunctionCall(
+                "RowNumber",
+                typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), Type.EmptyTypes)!
+            ),
+            windowName
+        );
         windowFunction.SetReturnType(typeof(long));
         return windowFunction;
     }
@@ -76,7 +89,8 @@ public partial class LogicalPlanBuilderTests
         Musoq.Parser.Nodes.SkipNode? skip = null,
         Musoq.Parser.Nodes.TakeNode? take = null,
         Musoq.Parser.Nodes.WindowNode? window = null,
-        QualifyNode? qualify = null)
+        QualifyNode? qualify = null
+    )
     {
         return new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, default);
     }
@@ -108,10 +122,13 @@ public partial class LogicalPlanBuilderTests
         var windowFunction = RowNumberWindow(
             new WindowSpecificationNode(
                 [Field(Column("City", "t", typeof(string)), 0, "City")],
-                [new FieldOrderedNode(Column("Name", "t", typeof(string)), 0, "Name", Order.Descending)]));
+                [new FieldOrderedNode(Column("Name", "t", typeof(string)), 0, "Name", Order.Descending)]
+            )
+        );
         var select = CreateSelect(
             Field(Column("Name", "t", typeof(string)), 0, "Name"),
-            Field(windowFunction, 1, "RowNum"));
+            Field(windowFunction, 1, "RowNum")
+        );
         var query = CreateQuery(select, from);
         var root = new RootNode(new SingleSetNode(query));
 
@@ -122,7 +139,10 @@ public partial class LogicalPlanBuilderTests
         Assert.IsInstanceOfType<LogicalWindowNode>(project.Input);
         var window = (LogicalWindowNode)project.Input;
         Assert.HasCount(1, window.Registrations);
-        Assert.AreEqual(typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), Type.EmptyTypes), window.Registrations[0].Function);
+        Assert.AreEqual(
+            typeof(LibraryBase).GetMethod(nameof(LibraryBase.RowNumber), Type.EmptyTypes),
+            window.Registrations[0].Function
+        );
         Assert.HasCount(1, window.Registrations[0].PartitionKeys);
         Assert.HasCount(1, window.Registrations[0].OrderKeys);
         Assert.AreEqual("t", ((ColumnRef)window.Registrations[0].PartitionKeys[0]).Alias);
@@ -140,17 +160,21 @@ public partial class LogicalPlanBuilderTests
         var frame = new WindowFrameNode(
             WindowFrameType.Rows,
             new WindowFrameBoundNode(WindowFrameBoundType.OffsetPreceding, 1),
-            new WindowFrameBoundNode(WindowFrameBoundType.CurrentRow));
+            new WindowFrameBoundNode(WindowFrameBoundType.CurrentRow)
+        );
         var definition = new WindowDefinitionNode(
             "city_window",
             new WindowSpecificationNode(
                 [Field(Column("City", "t", typeof(string)), 0, "City")],
                 [new FieldOrderedNode(Column("Name", "t", typeof(string)), 0, "Name", Order.Ascending)],
-                frame));
+                frame
+            )
+        );
         var windowFunction = RowNumberWindow("city_window");
         var select = CreateSelect(
             Field(Column("Name", "t", typeof(string)), 0, "Name"),
-            Field(windowFunction, 1, "RowNum"));
+            Field(windowFunction, 1, "RowNum")
+        );
         var query = CreateQuery(select, from, window: new Musoq.Parser.Nodes.WindowNode([definition]));
         var root = new RootNode(new SingleSetNode(query));
 
@@ -171,15 +195,20 @@ public partial class LogicalPlanBuilderTests
         var from = CreateSchemaFrom();
         var specification = new WindowSpecificationNode(
             [],
-            [new FieldOrderedNode(Column("Name", "t", typeof(string)), 0, "Name", Order.Ascending)]);
+            [new FieldOrderedNode(Column("Name", "t", typeof(string)), 0, "Name", Order.Ascending)]
+        );
         var firstWindowFunction = RowNumberWindow(specification);
-        var secondWindowFunction = RowNumberWindow(new WindowSpecificationNode(
-            [],
-            [new FieldOrderedNode(Column("Name", "t", typeof(string)), 0, "Name", Order.Ascending)]));
+        var secondWindowFunction = RowNumberWindow(
+            new WindowSpecificationNode(
+                [],
+                [new FieldOrderedNode(Column("Name", "t", typeof(string)), 0, "Name", Order.Ascending)]
+            )
+        );
         var select = CreateSelect(
             Field(Column("Name", "t", typeof(string)), 0, "Name"),
             Field(firstWindowFunction, 1, "RowNum1"),
-            Field(secondWindowFunction, 2, "RowNum2"));
+            Field(secondWindowFunction, 2, "RowNum2")
+        );
         var query = CreateQuery(select, from);
         var root = new RootNode(new SingleSetNode(query));
 

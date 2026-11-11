@@ -40,9 +40,11 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
     public void Capabilities_WhenRequirementKindIsUnsupported_ShouldReportDeterministicDiagnostic()
     {
         var capabilities = ExecutionTargetCapabilities.Create(ExecutionTargetRequirementKind.ClrTypeUsage);
-        var report = new ExecutionTargetCompatibilityReport(
-        [
-            new ExecutionTargetRequirement(ExecutionTargetRequirementKind.MethodInfoCall, "Musoq.Plugins.LibraryBase.ToUpper")
+        var report = new ExecutionTargetCompatibilityReport([
+            new ExecutionTargetRequirement(
+                ExecutionTargetRequirementKind.MethodInfoCall,
+                "Musoq.Plugins.LibraryBase.ToUpper"
+            ),
         ]);
 
         var validation = capabilities.Validate(report);
@@ -50,7 +52,8 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         Assert.IsFalse(validation.IsSupported);
         Assert.AreEqual(
             "Execution target 'TestTarget' does not support: MethodInfoCall: Musoq.Plugins.LibraryBase.ToUpper",
-            validation.FormatUnsupportedRequirements("TestTarget"));
+            validation.FormatUnsupportedRequirements("TestTarget")
+        );
     }
 
     [TestMethod]
@@ -58,7 +61,8 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
     {
         var capabilities = ExecutionTargetCapabilities.Create(
             [ExecutionTargetRequirementKind.ClrTypeUsage],
-            [ExecutionTargetRequirementKind.Cancellation]);
+            [ExecutionTargetRequirementKind.Cancellation]
+        );
         var runtimeContract = CreateRuntimeContractWithAllCurrentRuntimeRequirements();
 
         var validation = capabilities.Validate(runtimeContract);
@@ -66,7 +70,8 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         Assert.IsFalse(validation.IsSupported);
         Assert.AreEqual(
             "Execution target 'TestTarget' does not support: GeneratedClrRow: ResultRow0; PluginInvocation: Sample.Plugin; HostSourceAccess: schema-source:s:1:sample.rows; NullTypeCoercion: clr-null-and-sql-null-compatible:nullable-value-types+object-nulls+field-nullability-metadata; ProfilingDiagnostics: build-diagnostics+source-diagnostics+runtime-exception-diagnostics+source-boundary-profiling:1+operator-profiling:2",
-            validation.FormatUnsupportedRequirements("TestTarget"));
+            validation.FormatUnsupportedRequirements("TestTarget")
+        );
     }
 
     [TestMethod]
@@ -76,14 +81,11 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             [ExecutionTargetRequirementKind.HostSourceAccess],
             [],
             [ExecutionPortableSymbolPortability.Portable, ExecutionPortableSymbolPortability.HostImport],
-            [ExecutionPortableSymbolPortability.Portable, ExecutionPortableSymbolPortability.HostImport]);
+            [ExecutionPortableSymbolPortability.Portable, ExecutionPortableSymbolPortability.HostImport]
+        );
         var symbol = ExecutionPortableSymbolFactory.FromType(typeof(Uri));
-        var report = new ExecutionTargetCompatibilityReport(
-        [
-            new ExecutionTargetRequirement(
-                ExecutionTargetRequirementKind.HostSourceAccess,
-                "uri-source",
-                symbol)
+        var report = new ExecutionTargetCompatibilityReport([
+            new ExecutionTargetRequirement(ExecutionTargetRequirementKind.HostSourceAccess, "uri-source", symbol),
         ]);
 
         var validation = capabilities.Validate(report);
@@ -103,15 +105,17 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             [ExecutionTargetRequirementKind.MethodInfoCall],
             [],
             [ExecutionPortableSymbolPortability.Portable, ExecutionPortableSymbolPortability.HostImport],
-            [ExecutionPortableSymbolPortability.Portable]);
+            [ExecutionPortableSymbolPortability.Portable]
+        );
         var symbol = ExecutionPortableSymbolFactory.FromMethod(
-            ResolveLibraryMethod(nameof(LibraryBase.ToUpper), typeof(string)));
-        var report = new ExecutionTargetCompatibilityReport(
-        [
+            ResolveLibraryMethod(nameof(LibraryBase.ToUpper), typeof(string))
+        );
+        var report = new ExecutionTargetCompatibilityReport([
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.MethodInfoCall,
                 "LibraryBase.ToUpper",
-                CallableSymbol: symbol)
+                CallableSymbol: symbol
+            ),
         ]);
 
         var validation = capabilities.Validate(report);
@@ -129,11 +133,10 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         var report = new ExecutionTargetCompatibilityReport(
             Enum.GetValues<ExecutionTargetRequirementKind>()
                 .Select(kind => new ExecutionTargetRequirement(kind, kind.ToString()))
-                .ToArray());
+                .ToArray()
+        );
 
-        var readiness = ExecutionTargetReadinessAnalyzer.Analyze(
-            report,
-            ExecutionTargetReadinessProfile.CSharpClr);
+        var readiness = ExecutionTargetReadinessAnalyzer.Analyze(report, ExecutionTargetReadinessProfile.CSharpClr);
 
         Assert.IsTrue(readiness.IsReady(ExecutionTargetRuntimeFamily.CSharpClr));
         Assert.IsEmpty(readiness.Issues);
@@ -142,20 +145,39 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
     [TestMethod]
     public void ReadinessAnalyzer_WhenFutureProfilesAreUsed_ShouldReportDeterministicBlockers()
     {
-        var report = new ExecutionTargetCompatibilityReport(
-        [
+        var report = new ExecutionTargetCompatibilityReport([
             new ExecutionTargetRequirement(ExecutionTargetRequirementKind.ClrTypeUsage, "System.String"),
             new ExecutionTargetRequirement(ExecutionTargetRequirementKind.MethodInfoCall, "Plugin.Method"),
-            new ExecutionTargetRequirement(ExecutionTargetRequirementKind.GeneratedClrRow, "ResultRow0")
+            new ExecutionTargetRequirement(ExecutionTargetRequirementKind.GeneratedClrRow, "ResultRow0"),
         ]);
 
         var readiness = ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(report);
 
         Assert.IsFalse(readiness.IsReady(ExecutionTargetRuntimeFamily.BrowserSource));
-        AssertIssue(readiness, ExecutionTargetRuntimeFamily.BrowserSource, ExecutionTargetReadinessCategory.ClrOnlyTypeUsage, "System.String");
-        AssertIssue(readiness, ExecutionTargetRuntimeFamily.BrowserSource, ExecutionTargetReadinessCategory.GeneratedRowShape, "ResultRow0");
-        AssertIssue(readiness, ExecutionTargetRuntimeFamily.BytecodeVm, ExecutionTargetReadinessCategory.ReflectionMethodInfo, "Plugin.Method");
-        AssertIssue(readiness, ExecutionTargetRuntimeFamily.Interpreter, ExecutionTargetReadinessCategory.GeneratedRowShape, "ResultRow0");
+        AssertIssue(
+            readiness,
+            ExecutionTargetRuntimeFamily.BrowserSource,
+            ExecutionTargetReadinessCategory.ClrOnlyTypeUsage,
+            "System.String"
+        );
+        AssertIssue(
+            readiness,
+            ExecutionTargetRuntimeFamily.BrowserSource,
+            ExecutionTargetReadinessCategory.GeneratedRowShape,
+            "ResultRow0"
+        );
+        AssertIssue(
+            readiness,
+            ExecutionTargetRuntimeFamily.BytecodeVm,
+            ExecutionTargetReadinessCategory.ReflectionMethodInfo,
+            "Plugin.Method"
+        );
+        AssertIssue(
+            readiness,
+            ExecutionTargetRuntimeFamily.Interpreter,
+            ExecutionTargetReadinessCategory.GeneratedRowShape,
+            "ResultRow0"
+        );
     }
 
     [TestMethod]
@@ -164,10 +186,30 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         var sourceShape = new SourceEntityShape(
             "s",
             typeof(SampleEntity),
-            [new FieldBinding("Name", "s.Name", 0, typeof(string), FieldNullability.Nullable, new ClrPropertyAccess("Name"))]);
+            [
+                new FieldBinding(
+                    "Name",
+                    "s.Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Nullable,
+                    new ClrPropertyAccess("Name")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
-            [new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Nullable, new GeneratedFieldAccess("Name"))]);
+            [
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Nullable,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var binding = new ExecutionSourceBinding(
             "sample",
             "rows",
@@ -175,17 +217,19 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             0,
             [],
             sourceShape.Fields,
-            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity))
+        );
         var plan = new ExecutionPlan(
             "Q_ReadinessRuntime",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(
                     new ExecutionVariable("s", typeof(SampleEntity)),
                     new ExecutionVariable("sRows", typeof(object)),
-                    binding)
-            ]));
+                    binding
+                ),
+            ])
+        );
         var compatibilityReport = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
         var runtimeContract = TargetRuntimeContractBuilder.Build(plan, compatibilityReport);
 
@@ -195,41 +239,48 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             readiness,
             ExecutionTargetRuntimeFamily.BytecodeVm,
             ExecutionTargetReadinessCategory.HostSourceAccess,
-            "schema-source:s:1:sample.rows");
+            "schema-source:s:1:sample.rows"
+        );
         AssertIssue(
             readiness,
             ExecutionTargetRuntimeFamily.BrowserSource,
             ExecutionTargetReadinessCategory.Cancellation,
-            "cancellation-token");
+            "cancellation-token"
+        );
         AssertIssue(
             readiness,
             ExecutionTargetRuntimeFamily.Interpreter,
             ExecutionTargetReadinessCategory.GeneratedRowShape,
-            "ResultRow0");
+            "ResultRow0"
+        );
         Assert.IsFalse(
-            readiness.IssuesFor(ExecutionTargetRuntimeFamily.BrowserSource)
+            readiness
+                .IssuesFor(ExecutionTargetRuntimeFamily.BrowserSource)
                 .Any(issue => issue.Category == ExecutionTargetReadinessCategory.HostSourceAccess),
-            "Browser-like source target profile accepts host source access in the placeholder readiness matrix.");
+            "Browser-like source target profile accepts host source access in the placeholder readiness matrix."
+        );
     }
 
     [TestMethod]
     public void ReadinessAnalyzer_WhenSupportedRequirementCarriesClrOnlySymbol_ShouldReportSymbolBlocker()
     {
-        var report = new ExecutionTargetCompatibilityReport(
-        [
+        var report = new ExecutionTargetCompatibilityReport([
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.HostSourceAccess,
                 "host-source-with-clr-shape",
-                ExecutionPortableSymbolFactory.FromType(typeof(Uri)))
+                ExecutionPortableSymbolFactory.FromType(typeof(Uri))
+            ),
         ]);
 
         var readiness = ExecutionTargetReadinessAnalyzer.Analyze(
             report,
-            ExecutionTargetReadinessProfile.BrowserLikeSource);
+            ExecutionTargetReadinessProfile.BrowserLikeSource
+        );
 
         var issue = readiness.Issues.Single(issue =>
-            issue.RuntimeFamily == ExecutionTargetRuntimeFamily.BrowserSource &&
-            issue.Category == ExecutionTargetReadinessCategory.ClrOnlyTypeUsage);
+            issue.RuntimeFamily == ExecutionTargetRuntimeFamily.BrowserSource
+            && issue.Category == ExecutionTargetReadinessCategory.ClrOnlyTypeUsage
+        );
         StringAssert.Contains(issue.Requirement.Detail, "host-source-with-clr-shape");
         StringAssert.Contains(issue.Requirement.Detail, "[ClrOnly]");
         StringAssert.Contains(issue.Requirement.Detail, "No portable catalog entry");
@@ -241,24 +292,16 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
     {
         var profile = ExecutionTargetReadinessProfile.Create(
             ExecutionTargetRuntimeFamily.BrowserSource,
-            [
-                ExecutionTargetReadinessCategory.ClrOnlyTypeUsage,
-                ExecutionTargetReadinessCategory.HostSourceAccess
-            ],
-            [
-                ExecutionPortableSymbolPortability.Portable,
-                ExecutionPortableSymbolPortability.HostImport
-            ],
-            [
-                ExecutionPortableSymbolPortability.Portable,
-                ExecutionPortableSymbolPortability.HostImport
-            ]);
-        var report = new ExecutionTargetCompatibilityReport(
-        [
+            [ExecutionTargetReadinessCategory.ClrOnlyTypeUsage, ExecutionTargetReadinessCategory.HostSourceAccess],
+            [ExecutionPortableSymbolPortability.Portable, ExecutionPortableSymbolPortability.HostImport],
+            [ExecutionPortableSymbolPortability.Portable, ExecutionPortableSymbolPortability.HostImport]
+        );
+        var report = new ExecutionTargetCompatibilityReport([
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
                 "System.Uri",
-                ExecutionPortableSymbolFactory.FromType(typeof(Uri)))
+                ExecutionPortableSymbolFactory.FromType(typeof(Uri))
+            ),
         ]);
 
         var readiness = ExecutionTargetReadinessAnalyzer.Analyze(report, profile);
@@ -276,29 +319,25 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         var profile = ExecutionTargetReadinessProfile.Create(
             ExecutionTargetRuntimeFamily.BrowserSource,
             [ExecutionTargetReadinessCategory.ReflectionMethodInfo],
-            [
-                ExecutionPortableSymbolPortability.Portable,
-                ExecutionPortableSymbolPortability.HostImport
-            ],
-            [
-                ExecutionPortableSymbolPortability.Portable,
-                ExecutionPortableSymbolPortability.HostImport
-            ]);
+            [ExecutionPortableSymbolPortability.Portable, ExecutionPortableSymbolPortability.HostImport],
+            [ExecutionPortableSymbolPortability.Portable, ExecutionPortableSymbolPortability.HostImport]
+        );
         var callable = new ExecutionPortableCallableDescriptor(
             ExecutionPortableCallableKind.ClrMethod,
             "method:clr:Unknown.Method",
-            "Unknown.Method")
+            "Unknown.Method"
+        )
         {
             Portability = ExecutionPortableSymbolPortability.ClrOnly,
             PortabilityReason = "No portable callable catalog entry.",
-            MethodName = "Method"
+            MethodName = "Method",
         };
-        var report = new ExecutionTargetCompatibilityReport(
-        [
+        var report = new ExecutionTargetCompatibilityReport([
             new ExecutionTargetRequirement(
                 ExecutionTargetRequirementKind.MethodInfoCall,
                 "Unknown.Method",
-                CallableSymbol: callable)
+                CallableSymbol: callable
+            ),
         ]);
 
         var readiness = ExecutionTargetReadinessAnalyzer.Analyze(report, profile);
@@ -315,38 +354,52 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
     {
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
-            [new FieldBinding("Score", "Score", 0, typeof(int?), FieldNullability.Nullable, new GeneratedFieldAccess("Score"))]);
+            [
+                new FieldBinding(
+                    "Score",
+                    "Score",
+                    0,
+                    typeof(int?),
+                    FieldNullability.Nullable,
+                    new GeneratedFieldAccess("Score")
+                ),
+            ]
+        );
         var plan = new ExecutionPlan(
             "Q_ReadinessRestricted",
             [resultShape],
-            new ExecutionBlock(
-            [
-                new ExecutionLet(
-                    new ExecutionVariable("score", typeof(int?)),
-                    new ExecutionLiteral(1, typeof(int?)))
-            ]));
+            new ExecutionBlock([
+                new ExecutionLet(new ExecutionVariable("score", typeof(int?)), new ExecutionLiteral(1, typeof(int?))),
+            ])
+        );
         var compatibilityReport = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
         var runtimeContract = TargetRuntimeContractBuilder.Build(plan, compatibilityReport);
         var restrictedProfile = ExecutionTargetReadinessProfile.Create(
             ExecutionTargetRuntimeFamily.BrowserSource,
-            ExecutionTargetReadinessCategory.GeneratedRowShape);
+            ExecutionTargetReadinessCategory.GeneratedRowShape
+        );
 
         var readiness = ExecutionTargetReadinessAnalyzer.Analyze(
             compatibilityReport,
             runtimeContract,
-            restrictedProfile);
+            restrictedProfile
+        );
 
         AssertIssue(
             readiness,
             ExecutionTargetRuntimeFamily.BrowserSource,
             ExecutionTargetReadinessCategory.NullTypeCoercion,
-            "clr-null-and-sql-null-compatible:nullable-value-types+field-nullability-metadata");
+            "clr-null-and-sql-null-compatible:nullable-value-types+field-nullability-metadata"
+        );
         Assert.IsTrue(
-            readiness.IssuesFor(ExecutionTargetRuntimeFamily.BrowserSource)
+            readiness
+                .IssuesFor(ExecutionTargetRuntimeFamily.BrowserSource)
                 .Any(issue =>
-                    issue.Category == ExecutionTargetReadinessCategory.ProfilingDiagnostics &&
-                    issue.Requirement.Detail.Contains("operator-profiling:1", StringComparison.Ordinal)),
-            "Expected restricted profile to report diagnostics/profiling runtime contract requirements.");
+                    issue.Category == ExecutionTargetReadinessCategory.ProfilingDiagnostics
+                    && issue.Requirement.Detail.Contains("operator-profiling:1", StringComparison.Ordinal)
+                ),
+            "Expected restricted profile to report diagnostics/profiling runtime contract requirements."
+        );
     }
 
     [TestMethod]
@@ -356,14 +409,37 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             "s",
             typeof(SampleEntity),
             [
-                new FieldBinding("Name", "s.Name", 0, typeof(string), FieldNullability.Unknown, new ClrPropertyAccess("Name")),
-                new FieldBinding("Score", "s.Score", 1, typeof(int), FieldNullability.Unknown, new ClrPropertyAccess("Score"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "s.Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Name")
+                ),
+                new FieldBinding(
+                    "Score",
+                    "s.Score",
+                    1,
+                    typeof(int),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Score")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var binding = new ExecutionSourceBinding(
             "test",
             "rows",
@@ -371,17 +447,19 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             0,
             [],
             sourceShape.Fields,
-            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity))
+        );
         var plan = new ExecutionPlan(
             "Q_AuditShapes",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(
                     new ExecutionVariable("s", typeof(SampleEntity)),
                     new ExecutionVariable("sRows", typeof(object)),
-                    binding)
-            ]));
+                    binding
+                ),
+            ])
+        );
 
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
 
@@ -389,11 +467,19 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         AssertContainsRequirement(report, ExecutionTargetRequirementKind.GeneratedClrRow, "ResultRow0");
         AssertContainsRequirement(report, ExecutionTargetRequirementKind.ClrTypeUsage, typeof(SampleEntity).FullName!);
         AssertContainsRequirement(report, ExecutionTargetRequirementKind.ClrTypeUsage, typeof(string).FullName!);
-        var generatedRowRequirement = FindRequirement(report, ExecutionTargetRequirementKind.GeneratedClrRow, "ResultRow0");
+        var generatedRowRequirement = FindRequirement(
+            report,
+            ExecutionTargetRequirementKind.GeneratedClrRow,
+            "ResultRow0"
+        );
         Assert.AreEqual(ExecutionPortableTypeKind.GeneratedRow, generatedRowRequirement.TypeSymbol!.Kind);
         StringAssert.StartsWith(generatedRowRequirement.TypeSymbol.StableName, "generated-row:sha256:");
         Assert.AreEqual(ExecutionPortableSymbolPortability.Portable, generatedRowRequirement.TypeSymbol.Portability);
-        var stringRequirement = FindRequirement(report, ExecutionTargetRequirementKind.ClrTypeUsage, typeof(string).FullName!);
+        var stringRequirement = FindRequirement(
+            report,
+            ExecutionTargetRequirementKind.ClrTypeUsage,
+            typeof(string).FullName!
+        );
         Assert.AreEqual("primitive:string", stringRequirement.TypeSymbol!.StableName);
         Assert.AreEqual(ExecutionPortableSymbolPortability.Portable, stringRequirement.TypeSymbol.Portability);
         Assert.IsTrue(report.HasRequirements);
@@ -412,12 +498,11 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
                     0,
                     typeof(string),
                     FieldNullability.Unknown,
-                    new NestedClrPropertyAccess("Child.Value"))
-            ]);
-        var plan = new ExecutionPlan(
-            "Q_NestedPropertyPath",
-            [sourceShape],
-            new ExecutionBlock([]));
+                    new NestedClrPropertyAccess("Child.Value")
+                ),
+            ]
+        );
+        var plan = new ExecutionPlan("Q_NestedPropertyPath", [sourceShape], new ExecutionBlock([]));
 
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
 
@@ -435,7 +520,8 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             toUpper,
             [new ExecutionLiteral("alpha", typeof(string))],
             null,
-            typeof(string));
+            typeof(string)
+        );
         var pluginWindow = new ExecutionComputePluginWindow(
             new ExecutionVariable("buffer", typeof(object)),
             new ExecutionVariable("item", typeof(object)),
@@ -448,29 +534,56 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             null,
             rowNumber,
             "row_number",
-            new ExecutionVariable("results", typeof(long[])));
+            new ExecutionVariable("results", typeof(long[]))
+        );
         var plan = new ExecutionPlan(
             "Q_AuditRuntime",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(new ExecutionVariable("upper", typeof(string)), methodCall),
-                pluginWindow
-            ]));
+                pluginWindow,
+            ])
+        );
 
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
 
-        AssertContainsRequirement(report, ExecutionTargetRequirementKind.MethodInfoCall, "Musoq.Plugins.LibraryBase.ToUpper");
-        AssertContainsRequirement(report, ExecutionTargetRequirementKind.MethodInfoCall, "Musoq.Plugins.LibraryBase.RowNumber");
-        AssertContainsRequirement(report, ExecutionTargetRequirementKind.PluginInvocation, "row_number -> Musoq.Plugins.LibraryBase.RowNumber");
-        var methodRequirement = FindRequirement(report, ExecutionTargetRequirementKind.MethodInfoCall, "Musoq.Plugins.LibraryBase.ToUpper");
+        AssertContainsRequirement(
+            report,
+            ExecutionTargetRequirementKind.MethodInfoCall,
+            "Musoq.Plugins.LibraryBase.ToUpper"
+        );
+        AssertContainsRequirement(
+            report,
+            ExecutionTargetRequirementKind.MethodInfoCall,
+            "Musoq.Plugins.LibraryBase.RowNumber"
+        );
+        AssertContainsRequirement(
+            report,
+            ExecutionTargetRequirementKind.PluginInvocation,
+            "row_number -> Musoq.Plugins.LibraryBase.RowNumber"
+        );
+        var methodRequirement = FindRequirement(
+            report,
+            ExecutionTargetRequirementKind.MethodInfoCall,
+            "Musoq.Plugins.LibraryBase.ToUpper"
+        );
         Assert.AreEqual(ExecutionPortableCallableKind.HostPlugin, methodRequirement.CallableSymbol!.Kind);
         Assert.AreEqual(nameof(LibraryBase.ToUpper), methodRequirement.CallableSymbol.MethodName);
         Assert.Contains("Musoq.Plugins.LibraryBase", methodRequirement.CallableSymbol.StableName);
         Assert.AreEqual(ExecutionPortableSymbolPortability.HostImport, methodRequirement.CallableSymbol.Portability);
         var readiness = ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(report);
-        AssertIssue(readiness, ExecutionTargetRuntimeFamily.BrowserSource, ExecutionTargetReadinessCategory.ReflectionMethodInfo, "Musoq.Plugins.LibraryBase.ToUpper");
-        AssertIssue(readiness, ExecutionTargetRuntimeFamily.BytecodeVm, ExecutionTargetReadinessCategory.PluginInvocation, "row_number -> Musoq.Plugins.LibraryBase.RowNumber");
+        AssertIssue(
+            readiness,
+            ExecutionTargetRuntimeFamily.BrowserSource,
+            ExecutionTargetReadinessCategory.ReflectionMethodInfo,
+            "Musoq.Plugins.LibraryBase.ToUpper"
+        );
+        AssertIssue(
+            readiness,
+            ExecutionTargetRuntimeFamily.BytecodeVm,
+            ExecutionTargetReadinessCategory.PluginInvocation,
+            "row_number -> Musoq.Plugins.LibraryBase.RowNumber"
+        );
     }
 
     [TestMethod]
@@ -480,57 +593,75 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         var plan = new ExecutionPlan(
             "Q_RepeatedPlugin",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("first", typeof(bool?)),
                     new ExecutionMethodCall(
                         contains,
-                        [new ExecutionLiteral("folder/file", typeof(string)), new ExecutionLiteral("/", typeof(string))],
+                        [
+                            new ExecutionLiteral("folder/file", typeof(string)),
+                            new ExecutionLiteral("/", typeof(string)),
+                        ],
                         null,
-                        typeof(bool?))),
+                        typeof(bool?)
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("second", typeof(bool?)),
                     new ExecutionMethodCall(
                         contains,
-                        [new ExecutionLiteral("folder/file", typeof(string)), new ExecutionLiteral("/", typeof(string))],
+                        [
+                            new ExecutionLiteral("folder/file", typeof(string)),
+                            new ExecutionLiteral("/", typeof(string)),
+                        ],
                         null,
-                        typeof(bool?)))
-            ]));
+                        typeof(bool?)
+                    )
+                ),
+            ])
+        );
 
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
 
         Assert.AreEqual(
             1,
             report.Requirements.Count(requirement =>
-                requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation));
+                requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation
+            )
+        );
         Assert.AreEqual(
             1,
-            report.Requirements.Count(requirement =>
-                requirement.Kind == ExecutionTargetRequirementKind.MethodInfoCall));
+            report.Requirements.Count(requirement => requirement.Kind == ExecutionTargetRequirementKind.MethodInfoCall)
+        );
     }
 
     [TestMethod]
     public void Analyze_WhenTwoOverloadsAreUsed_ShouldKeepTheirStableCallableIdentitiesDistinct()
     {
-        var startsWithTwoArguments = ResolveLibraryMethod(nameof(LibraryBase.StartsWith), typeof(string), typeof(string));
+        var startsWithTwoArguments = ResolveLibraryMethod(
+            nameof(LibraryBase.StartsWith),
+            typeof(string),
+            typeof(string)
+        );
         var startsWithThreeArguments = ResolveLibraryMethod(
             nameof(LibraryBase.StartsWith),
             typeof(string),
             typeof(string),
-            typeof(string));
+            typeof(string)
+        );
         var plan = new ExecutionPlan(
             "Q_OverloadedPlugin",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("two", typeof(bool?)),
                     new ExecutionMethodCall(
                         startsWithTwoArguments,
                         [new ExecutionLiteral("abc", typeof(string)), new ExecutionLiteral("a", typeof(string))],
                         null,
-                        typeof(bool?))),
+                        typeof(bool?)
+                    )
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("three", typeof(bool?)),
                     new ExecutionMethodCall(
@@ -538,21 +669,25 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
                         [
                             new ExecutionLiteral("abc", typeof(string)),
                             new ExecutionLiteral("a", typeof(string)),
-                            new ExecutionLiteral("Ordinal", typeof(string))
+                            new ExecutionLiteral("Ordinal", typeof(string)),
                         ],
                         null,
-                        typeof(bool?)))
-            ]));
+                        typeof(bool?)
+                    )
+                ),
+            ])
+        );
 
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
-        var pluginRequirements = report.Requirements
-            .Where(requirement => requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation)
+        var pluginRequirements = report
+            .Requirements.Where(requirement => requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation)
             .ToArray();
 
         Assert.HasCount(2, pluginRequirements);
         Assert.AreNotEqual(
             pluginRequirements[0].CallableSymbol!.StableName,
-            pluginRequirements[1].CallableSymbol!.StableName);
+            pluginRequirements[1].CallableSymbol!.StableName
+        );
     }
 
     [TestMethod]
@@ -560,48 +695,37 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
     {
         const string stableName = "method:test.Call#0():primitive:boolean";
         var first = new ExecutionCallableRef(
-            new ExecutionPortableCallableDescriptor(
-                ExecutionPortableCallableKind.HostPlugin,
-                stableName,
-                "test.Call")
+            new ExecutionPortableCallableDescriptor(ExecutionPortableCallableKind.HostPlugin, stableName, "test.Call")
             {
                 MethodName = "Call",
-                Portability = ExecutionPortableSymbolPortability.HostImport
-            });
+                Portability = ExecutionPortableSymbolPortability.HostImport,
+            }
+        );
         var second = new ExecutionCallableRef(
-            new ExecutionPortableCallableDescriptor(
-                ExecutionPortableCallableKind.HostPlugin,
-                stableName,
-                "test.Call")
+            new ExecutionPortableCallableDescriptor(ExecutionPortableCallableKind.HostPlugin, stableName, "test.Call")
             {
                 MethodName = "Call",
-                Portability = ExecutionPortableSymbolPortability.ClrOnly
-            });
+                Portability = ExecutionPortableSymbolPortability.ClrOnly,
+            }
+        );
         var plan = new ExecutionPlan(
             "Q_ConflictingCallable",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("first", typeof(bool?)),
-                    new ExecutionMethodCall(
-                        first,
-                        [],
-                        null,
-                        ExecutionClrBindingFactory.FromClr(typeof(bool?)),
-                        null)),
+                    new ExecutionMethodCall(first, [], null, ExecutionClrBindingFactory.FromClr(typeof(bool?)), null)
+                ),
                 new ExecutionLet(
                     new ExecutionVariable("second", typeof(bool?)),
-                    new ExecutionMethodCall(
-                        second,
-                        [],
-                        null,
-                        ExecutionClrBindingFactory.FromClr(typeof(bool?)),
-                        null))
-            ]));
+                    new ExecutionMethodCall(second, [], null, ExecutionClrBindingFactory.FromClr(typeof(bool?)), null)
+                ),
+            ])
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            ExecutionTargetCompatibilityAnalyzer.Analyze(plan));
+            ExecutionTargetCompatibilityAnalyzer.Analyze(plan)
+        );
 
         StringAssert.Contains(exception.Message, "conflicting symbol definitions");
     }
@@ -613,13 +737,13 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         var plan = new ExecutionPlan(
             "Q_ClrConstant",
             [],
-            new ExecutionBlock([
-                new ExecutionLet(new ExecutionVariable("value", typeof(UnsupportedConstant)), literal)
-            ]));
+            new ExecutionBlock([new ExecutionLet(new ExecutionVariable("value", typeof(UnsupportedConstant)), literal)])
+        );
 
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
         var requirement = report.Requirements.Single(static requirement =>
-            requirement.Kind == ExecutionTargetRequirementKind.ClrOnlyConstant);
+            requirement.Kind == ExecutionTargetRequirementKind.ClrOnlyConstant
+        );
 
         Assert.AreEqual(ExecutionPortableSymbolPortability.ClrOnly, requirement.TypeSymbol?.Portability);
         Assert.IsTrue(ExecutionTargetCapabilities.CSharpClr.Validate(report).IsSupported);
@@ -633,21 +757,24 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
         var plan = new ExecutionPlan(
             "Q_CustomPlugin",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("value", typeof(string)),
                     new ExecutionMethodCall(
                         method,
                         [new ExecutionLiteral("sample", typeof(string))],
                         null,
-                        typeof(string)))
-            ]));
+                        typeof(string)
+                    )
+                ),
+            ])
+        );
 
         var report = ExecutionTargetCompatibilityAnalyzer.Analyze(plan);
 
         var requirement = report.Requirements.Single(item =>
-            item.Kind == ExecutionTargetRequirementKind.PluginInvocation);
+            item.Kind == ExecutionTargetRequirementKind.PluginInvocation
+        );
         Assert.AreEqual(ExecutionPortableCallableKind.HostPlugin, requirement.CallableSymbol!.Kind);
         Assert.AreEqual(ExecutionPortableSymbolPortability.HostImport, requirement.CallableSymbol.Portability);
         StringAssert.Contains(requirement.Detail, nameof(CustomPortableLibrary.Echo));
@@ -655,40 +782,43 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
 
     private static MethodInfo ResolveLibraryMethod(string name, params Type[] parameterTypes)
     {
-        return typeof(LibraryBase)
-            .GetMethod(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static, parameterTypes) ??
-               throw new InvalidOperationException($"Could not resolve LibraryBase.{name}.");
+        return typeof(LibraryBase).GetMethod(
+                name,
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static,
+                parameterTypes
+            ) ?? throw new InvalidOperationException($"Could not resolve LibraryBase.{name}.");
     }
 
     private static void AssertContainsKind(
         ExecutionTargetCompatibilityReport report,
-        ExecutionTargetRequirementKind kind)
+        ExecutionTargetRequirementKind kind
+    )
     {
         Assert.IsTrue(
             report.Requirements.Any(requirement => requirement.Kind == kind),
-            $"Expected compatibility report to contain requirement kind {kind}.");
+            $"Expected compatibility report to contain requirement kind {kind}."
+        );
     }
 
     private static void AssertContainsRequirement(
         ExecutionTargetCompatibilityReport report,
         ExecutionTargetRequirementKind kind,
-        string detail)
+        string detail
+    )
     {
         Assert.IsTrue(
-            report.Requirements.Any(requirement =>
-                requirement.Kind == kind &&
-                requirement.Detail == detail),
-            $"Expected compatibility report to contain {kind}: {detail}.");
+            report.Requirements.Any(requirement => requirement.Kind == kind && requirement.Detail == detail),
+            $"Expected compatibility report to contain {kind}: {detail}."
+        );
     }
 
     private static ExecutionTargetRequirement FindRequirement(
         ExecutionTargetCompatibilityReport report,
         ExecutionTargetRequirementKind kind,
-        string detail)
+        string detail
+    )
     {
-        return report.Requirements.Single(requirement =>
-            requirement.Kind == kind &&
-            requirement.Detail == detail);
+        return report.Requirements.Single(requirement => requirement.Kind == kind && requirement.Detail == detail);
     }
 
     private static TargetRuntimeContract CreateRuntimeContractWithAllCurrentRuntimeRequirements()
@@ -703,52 +833,59 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
                     "rows",
                     ExecutionPortableSymbolFactory.FromType(typeof(object)),
                     ExecutionPortableSymbolFactory.FromType(typeof(SampleEntity)),
-                    [])
+                    []
+                ),
             ],
             [
                 new TargetPluginInvocationContract(
                     "Sample.Plugin",
                     ExecutionPortableSymbolFactory.FromMethod(
-                        typeof(string).GetMethod(nameof(string.ToUpper), Type.EmptyTypes)!))
+                        typeof(string).GetMethod(nameof(string.ToUpper), Type.EmptyTypes)!
+                    )
+                ),
             ],
             [
                 new TargetRowShapeContract(
                     nameof(GeneratedRowShape),
                     "ResultRow0",
                     ExecutionPortableSymbolFactory.GeneratedRow("ResultRow0", []),
-                    [])
+                    []
+                ),
             ],
             new TargetNullBehaviorContract(
                 UsesNullableValueTypes: true,
                 UsesObjectNulls: true,
                 UsesFieldNullabilityMetadata: true,
-                Semantics: "clr-null-and-sql-null-compatible"),
-            new TargetCancellationContract(
-                RequiresCancellationToken: true,
-                RequiresParallelCancellation: false),
+                Semantics: "clr-null-and-sql-null-compatible"
+            ),
+            new TargetCancellationContract(RequiresCancellationToken: true, RequiresParallelCancellation: false),
             new TargetDiagnosticsContract(
                 RequiresBuildDiagnostics: true,
                 RequiresSourceDiagnostics: true,
-                RequiresRuntimeExceptionDiagnostics: true),
+                RequiresRuntimeExceptionDiagnostics: true
+            ),
             new TargetProfilingContract(
                 SupportsSourceBoundaryProfiling: true,
                 SupportsOperatorProfiling: true,
                 SourceBoundaryCount: 1,
-                OperatorCount: 2));
+                OperatorCount: 2
+            )
+        );
     }
 
     private static void AssertIssue(
         ExecutionTargetReadinessReport report,
         ExecutionTargetRuntimeFamily runtimeFamily,
         ExecutionTargetReadinessCategory category,
-        string detail)
+        string detail
+    )
     {
         Assert.IsTrue(
             report.Issues.Any(issue =>
-                issue.RuntimeFamily == runtimeFamily &&
-                issue.Category == category &&
-                issue.Requirement.Detail == detail),
-            $"Expected readiness issue for {runtimeFamily}, {category}, {detail}.");
+                issue.RuntimeFamily == runtimeFamily && issue.Category == category && issue.Requirement.Detail == detail
+            ),
+            $"Expected readiness issue for {runtimeFamily}, {category}, {detail}."
+        );
     }
 
     private sealed class SampleEntity

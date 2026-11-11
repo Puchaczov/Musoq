@@ -11,10 +11,8 @@ public sealed class BracketedIdentifierBoundaryDiagnosticTests
     [TestMethod]
     public void MissingFirstClosingBracket_ShouldNotConsumeLaterIdentifierDelimiter()
     {
-        const string validSeed =
-            "select 1 as [case], 2 as [order], 3 as [Column With Spaces] from system.dual()";
-        const string mutatedQuery =
-            "select 1 as [case, 2 as [order], 3 as [Column With Spaces] from system.dual()";
+        const string validSeed = "select 1 as [case], 2 as [order], 3 as [Column With Spaces] from system.dual()";
+        const string mutatedQuery = "select 1 as [case, 2 as [order], 3 as [Column With Spaces] from system.dual()";
 
         var seedResult = ParseWithDiagnostics(validSeed);
 

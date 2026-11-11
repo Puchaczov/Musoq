@@ -393,7 +393,10 @@ public partial class SafeDataAccessTests
         var dict = new Dictionary<string, string> { { "key1", "value1" } };
 
         // Act
-        var result = SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, string>, string, string>(dict, "missing");
+        var result = SafeArrayAccess.GetTypedDictionaryValue<Dictionary<string, string>, string, string>(
+            dict,
+            "missing"
+        );
 
         // Assert
         Assert.IsNull(result);

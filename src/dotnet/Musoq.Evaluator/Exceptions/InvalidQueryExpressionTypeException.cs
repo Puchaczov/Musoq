@@ -12,31 +12,26 @@ public class InvalidQueryExpressionTypeException : Exception, IDiagnosticExcepti
     private static string CreateFieldMessage(FieldNode field, Type? invalidType, string context)
     {
         ArgumentNullException.ThrowIfNull(field);
-        return $"Query output column '{field.FieldName}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. " +
-            "Only primitive types (numeric, string, bool, char, DateTime, DateTimeOffset, Guid, TimeSpan, decimal, null) are allowed in query outputs.";
+        return $"Query output column '{field.FieldName}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. "
+            + "Only primitive types (numeric, string, bool, char, DateTime, DateTimeOffset, Guid, TimeSpan, decimal, null) are allowed in query outputs.";
     }
 
     public InvalidQueryExpressionTypeException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public InvalidQueryExpressionTypeException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public InvalidQueryExpressionTypeException()
-    {
-    }
+    public InvalidQueryExpressionTypeException() { }
 
     /// <summary>
     ///     Initializes a new instance with expression description, type, and context.
     /// </summary>
     public InvalidQueryExpressionTypeException(string expressionDescription, Type? invalidType, string context)
         : base(
-            $"Expression '{expressionDescription}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. " +
-            "Only primitive types (numeric, string, bool, char, DateTime, DateTimeOffset, Guid, TimeSpan, decimal, null) are allowed in query expressions.")
+            $"Expression '{expressionDescription}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. "
+                + "Only primitive types (numeric, string, bool, char, DateTime, DateTimeOffset, Guid, TimeSpan, decimal, null) are allowed in query expressions."
+        )
     {
         Code = DiagnosticCode.MQ3027_InvalidExpressionType;
     }

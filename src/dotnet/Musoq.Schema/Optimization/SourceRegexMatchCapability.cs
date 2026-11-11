@@ -7,7 +7,8 @@ public sealed record SourceRegexMatchCapability
     public SourceRegexMatchCapability(
         SourceColumnRef column,
         SourceRegexSemantics semantics = SourceRegexSemantics.MusoqRLike,
-        bool supportsNegation = false)
+        bool supportsNegation = false
+    )
     {
         ArgumentNullException.ThrowIfNull(column);
         ArgumentException.ThrowIfNullOrWhiteSpace(column.Name);
@@ -31,9 +32,9 @@ public sealed record SourceRegexMatchCapability
     public bool Supports(SourcePredicateRegexMatch predicate, SourcePredicateEvaluationPhase phase)
     {
         ArgumentNullException.ThrowIfNull(predicate);
-        return phase == SourcePredicateEvaluationPhase.RowFiltering &&
-               string.Equals(Column.Name, predicate.Column.Name, StringComparison.OrdinalIgnoreCase) &&
-               Semantics == predicate.Semantics &&
-               (!predicate.IsNegated || SupportsNegation);
+        return phase == SourcePredicateEvaluationPhase.RowFiltering
+            && string.Equals(Column.Name, predicate.Column.Name, StringComparison.OrdinalIgnoreCase)
+            && Semantics == predicate.Semantics
+            && (!predicate.IsNegated || SupportsNegation);
     }
 }

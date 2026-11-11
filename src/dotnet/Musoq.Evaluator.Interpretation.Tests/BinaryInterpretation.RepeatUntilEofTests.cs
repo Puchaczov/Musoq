@@ -1,8 +1,8 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
-using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -80,8 +80,7 @@ public class BinaryInterpretationRepeatUntilEofTests : BinaryInterpretationTestB
 
         var data = new byte[] { (byte)'A', (byte)'B', (byte)'C' };
 
-        Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(
-            () => InvokeInterpret(interpreter, data));
+        Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(() => InvokeInterpret(interpreter, data));
     }
 
     [TestMethod]
@@ -122,8 +121,9 @@ public class BinaryInterpretationRepeatUntilEofTests : BinaryInterpretationTestB
 
         var data = new byte[] { 0x01, 0x02 };
 
-        var exception = Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(
-            () => InvokeInterpret(interpreter, data));
+        var exception = Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(() =>
+            InvokeInterpret(interpreter, data)
+        );
         Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
     }
 

@@ -22,7 +22,10 @@ public static partial class ExecutionPlanPrinter
         switch (shape)
         {
             case SourceEntityShape source:
-                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}SourceEntity [{source.Alias}: {FormatType(source.EntityType)}]");
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"{prefix}SourceEntity [{source.Alias}: {FormatType(source.EntityType)}]"
+                );
                 break;
             case GeneratedRowShape generated:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}Generated [{generated.TypeName}]");
@@ -34,7 +37,10 @@ public static partial class ExecutionPlanPrinter
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}HashPayload [{hashPayload.TypeName}]");
                 break;
             case AggregateGroupShape aggregateGroup:
-                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}AggregateGroup [{aggregateGroup.TypeName}; keys: {aggregateGroup.Keys.Count.ToString(CultureInfo.InvariantCulture)}; typed aggs: {aggregateGroup.Accumulators.Count.ToString(CultureInfo.InvariantCulture)}]");
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"{prefix}AggregateGroup [{aggregateGroup.TypeName}; keys: {aggregateGroup.Keys.Count.ToString(CultureInfo.InvariantCulture)}; typed aggs: {aggregateGroup.Accumulators.Count.ToString(CultureInfo.InvariantCulture)}]"
+                );
                 break;
             case TableRowShape tableRow:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}TableRow [{tableRow.Alias}]");
@@ -45,7 +51,10 @@ public static partial class ExecutionPlanPrinter
         }
 
         foreach (var field in shape.Fields)
-            builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}  {field.Name}: {FormatType(field.Type)} <- {FormatAccess(field.AccessStrategy)}");
+            builder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"{prefix}  {field.Name}: {FormatType(field.Type)} <- {FormatAccess(field.AccessStrategy)}"
+            );
     }
 
     private static string FormatAccess(FieldAccessStrategy strategy)
@@ -56,18 +65,21 @@ public static partial class ExecutionPlanPrinter
             DirectScalarValueAccess => "direct scalar value",
             ApplyOrdinalityAccess ordinality => $"apply ordinality {ordinality.VariableName}",
             GeneratedFieldAccess field => $"field {field.FieldName}",
-            GeneratedRowContextAccess generatedContext => $"generated row context {generatedContext.TypeName}[{generatedContext.Index.ToString(CultureInfo.InvariantCulture)}]",
+            GeneratedRowContextAccess generatedContext =>
+                $"generated row context {generatedContext.TypeName}[{generatedContext.Index.ToString(CultureInfo.InvariantCulture)}]",
             GeneratedRowTypeAccess generatedRow => $"generated row {generatedRow.TypeName}.{generatedRow.FieldName}",
-            GeneratedRowNestedAccess generatedNested => $"generated row {generatedNested.TypeName}.{generatedNested.FieldName}.{generatedNested.PropertyPath}",
+            GeneratedRowNestedAccess generatedNested =>
+                $"generated row {generatedNested.TypeName}.{generatedNested.FieldName}.{generatedNested.PropertyPath}",
             PositionalAccess positional => $"position {positional.Index}",
             ContextAccess context => $"context {context.Index}",
             ReflectedMemberAccess reflected => $"reflected member {reflected.PropertyPath}",
             NestedClrPropertyAccess nestedProperty => $"nested property {nestedProperty.PropertyPath}",
-            NestedPositionalAccess nestedPositional => $"position {nestedPositional.Index}.{nestedPositional.PropertyPath}",
+            NestedPositionalAccess nestedPositional =>
+                $"position {nestedPositional.Index}.{nestedPositional.PropertyPath}",
             RuntimeDynamicMemberAccess runtimeDynamic => $"runtime dynamic member \"{runtimeDynamic.MemberName}\"",
             RuntimeDynamicMemberPathAccess runtimePath =>
                 $"runtime dynamic path {runtimePath.RootFieldName}.{string.Join('.', runtimePath.Segments.Select(segment => segment.MemberName))}",
-            _ => strategy.GetType().Name
+            _ => strategy.GetType().Name,
         };
     }
 }

@@ -5,19 +5,13 @@ public class FieldNode : Node
     private readonly string? _fieldName;
 
     public FieldNode(Node expression, int fieldOrder, string? fieldName)
-        : this(expression, fieldOrder, fieldName, default(TextSpan))
-    {
-    }
+        : this(expression, fieldOrder, fieldName, default(TextSpan)) { }
 
     public FieldNode(Node expression, int fieldOrder, string? fieldName, TextSpan span)
-        : this(expression, fieldOrder, fieldName, !string.IsNullOrEmpty(fieldName), span)
-    {
-    }
+        : this(expression, fieldOrder, fieldName, !string.IsNullOrEmpty(fieldName), span) { }
 
     public FieldNode(Node expression, int fieldOrder, string? fieldName, bool hasExplicitFieldName)
-        : this(expression, fieldOrder, fieldName, hasExplicitFieldName, default)
-    {
-    }
+        : this(expression, fieldOrder, fieldName, hasExplicitFieldName, default) { }
 
     public FieldNode(Node expression, int fieldOrder, string? fieldName, bool hasExplicitFieldName, TextSpan span)
     {

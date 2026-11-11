@@ -9,16 +9,20 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private MethodDeclarationSyntax CreateRankingWindowKeyExtractionFunction(RankingWindowKeyExtractionHelper helper)
     {
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                helper.FunctionName)
+                helper.FunctionName
+            )
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
             .WithParameterList(CreateRankingWindowKeyExtractionParameterList(helper))
             .WithBody(StatementEmitter.CreateBlock(CreateRankingWindowKeyExtractionBody(helper)));
     }
 
-    private static ExpressionStatementSyntax CreateRankingWindowKeyExtractionInvocation(RankingWindowKeyExtractionHelper helper)
+    private static ExpressionStatementSyntax CreateRankingWindowKeyExtractionInvocation(
+        RankingWindowKeyExtractionHelper helper
+    )
     {
         return CreateHelperInvocation(helper.FunctionName, CreateRankingWindowKeyExtractionArguments(helper));
     }
@@ -30,66 +34,73 @@ public sealed partial class ExecutionCSharpRenderer
         var item = CreateWindowHelperItem(helper.Ranking.Item, helper.BufferItemGeneratedRowTypeName);
         var statements = new List<StatementSyntax>();
 
-        statements.AddRange(CreateIndexedItemDeclarations(
-            item,
-            helper.Ranking.Buffer,
-            index,
-            helper.Ranking.RowAccessMode));
+        statements.AddRange(
+            CreateIndexedItemDeclarations(item, helper.Ranking.Buffer, index, helper.Ranking.RowAccessMode)
+        );
 
         if (helper.PartitionKeys is { ShouldExtract: true })
-            statements.AddRange(CreateWindowPartitionKeyExtractionStatements(
-                helper.PartitionKeys,
-                helper.PartitionBuilder,
-                index.Name,
-                CreateRankingPartitionKeyExpression(helper.PartitionKeys, helper.Ranking.PartitionKey!)));
+            statements.AddRange(
+                CreateWindowPartitionKeyExtractionStatements(
+                    helper.PartitionKeys,
+                    helper.PartitionBuilder,
+                    index.Name,
+                    CreateRankingPartitionKeyExpression(helper.PartitionKeys, helper.Ranking.PartitionKey!)
+                )
+            );
 
         if (helper.OrderKeys.ShouldExtract)
         {
-            statements.Add(CreateWindowKeyArrayAssignment(
-                helper.OrderKeys,
-                index.Name,
-                CreateRankingOrderKeyExpression(helper.OrderKeys, helper.Ranking.OrderKeys)));
+            statements.Add(
+                CreateWindowKeyArrayAssignment(
+                    helper.OrderKeys,
+                    index.Name,
+                    CreateRankingOrderKeyExpression(helper.OrderKeys, helper.Ranking.OrderKeys)
+                )
+            );
         }
 
-        return
-        [
-            CreateIndexedForLoop(
-                index.Name,
-                helper.Ranking.Buffer,
-                StatementEmitter.CreateBlock(statements))
-        ];
+        return [CreateIndexedForLoop(index.Name, helper.Ranking.Buffer, StatementEmitter.CreateBlock(statements))];
     }
 
-    private static ParameterListSyntax CreateRankingWindowKeyExtractionParameterList(RankingWindowKeyExtractionHelper helper)
+    private static ParameterListSyntax CreateRankingWindowKeyExtractionParameterList(
+        RankingWindowKeyExtractionHelper helper
+    )
     {
         var parameters = new List<ParameterSyntax>
         {
             CreateParameter(
                 helper.Ranking.Buffer.Name,
-                CreateWindowRowsParameterType(
-                    helper.Ranking.Item,
-                    helper.BufferItemGeneratedRowTypeName))
+                CreateWindowRowsParameterType(helper.Ranking.Item, helper.BufferItemGeneratedRowTypeName)
+            ),
         };
 
         if (ShouldMaterializeWindowKeyArray(helper.PartitionKeys))
-            parameters.Add(CreateParameter(helper.PartitionKeys.Variable.Name, CreateVariableTypeSyntax(helper.PartitionKeys.Variable)));
+            parameters.Add(
+                CreateParameter(
+                    helper.PartitionKeys.Variable.Name,
+                    CreateVariableTypeSyntax(helper.PartitionKeys.Variable)
+                )
+            );
 
         if (helper.PartitionBuilder != null)
-            parameters.Add(CreateParameter(helper.PartitionBuilder.Name, CreateVariableTypeSyntax(helper.PartitionBuilder)));
+            parameters.Add(
+                CreateParameter(helper.PartitionBuilder.Name, CreateVariableTypeSyntax(helper.PartitionBuilder))
+            );
 
         if (helper.OrderKeys.ShouldExtract)
-            parameters.Add(CreateParameter(helper.OrderKeys.Variable.Name, CreateVariableTypeSyntax(helper.OrderKeys.Variable)));
+            parameters.Add(
+                CreateParameter(helper.OrderKeys.Variable.Name, CreateVariableTypeSyntax(helper.OrderKeys.Variable))
+            );
 
         parameters.AddRange(helper.Captures.Select(CreateCapturedLocalParameter));
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
-    private static List<ExpressionSyntax> CreateRankingWindowKeyExtractionArguments(RankingWindowKeyExtractionHelper helper)
+    private static List<ExpressionSyntax> CreateRankingWindowKeyExtractionArguments(
+        RankingWindowKeyExtractionHelper helper
+    )
     {
-        var arguments = new List<ExpressionSyntax>
-        {
-            SyntaxFactory.IdentifierName(helper.Ranking.Buffer.Name)
-        };
+        var arguments = new List<ExpressionSyntax> { SyntaxFactory.IdentifierName(helper.Ranking.Buffer.Name) };
 
         if (ShouldMaterializeWindowKeyArray(helper.PartitionKeys))
             arguments.Add(SyntaxFactory.IdentifierName(helper.PartitionKeys.Variable.Name));
@@ -106,20 +117,28 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IEnumerable<RankingWindowKeyExtractionHelper> CollectRankingWindowKeyExtractionHelpers(ExecutionBlock block)
     {
-        foreach (var helper in CollectRankingWindowKeyExtractionHelpers(block, new Dictionary<string, string>(StringComparer.Ordinal)))
+        foreach (
+            var helper in CollectRankingWindowKeyExtractionHelpers(
+                block,
+                new Dictionary<string, string>(StringComparer.Ordinal)
+            )
+        )
             yield return helper;
     }
 
     private IEnumerable<RankingWindowKeyExtractionHelper> CollectRankingWindowKeyExtractionHelpers(
         ExecutionBlock block,
-        Dictionary<string, string> materializedRowTypeNames)
+        Dictionary<string, string> materializedRowTypeNames
+    )
     {
         foreach (var node in block.Nodes)
         {
             AddMaterializedRowTypeName(node, materializedRowTypeNames);
 
-            if (node is ExecutionWindowKernelPlan plan &&
-                plan.Kernels.All(static kernel => kernel is ExecutionComputeRankingWindow))
+            if (
+                node is ExecutionWindowKernelPlan plan
+                && plan.Kernels.All(static kernel => kernel is ExecutionComputeRankingWindow)
+            )
             {
                 var rankings = plan.Kernels.Cast<ExecutionComputeRankingWindow>().ToArray();
                 if (rankings.Length == 1 && CanUseFusedIntOrderRankingWindow(rankings[0]))
@@ -128,7 +147,11 @@ public sealed partial class ExecutionCSharpRenderer
                 if (rankings.Length > 0)
                 {
                     var first = rankings[0];
-                    var generatedRowTypeName = ResolveGeneratedRowTypeName(first.Buffer, first.Item, materializedRowTypeNames);
+                    var generatedRowTypeName = ResolveGeneratedRowTypeName(
+                        first.Buffer,
+                        first.Item,
+                        materializedRowTypeNames
+                    );
                     var helper = CreateRankingWindowKeyExtractionHelper(first, generatedRowTypeName);
                     if (helper.PartitionKeys is { ShouldExtract: true } || helper.OrderKeys.ShouldExtract)
                         yield return helper;
@@ -142,7 +165,11 @@ public sealed partial class ExecutionCSharpRenderer
                 if (CanUseFusedIntOrderRankingWindow(ranking))
                     continue;
 
-                var generatedRowTypeName = ResolveGeneratedRowTypeName(ranking.Buffer, ranking.Item, materializedRowTypeNames);
+                var generatedRowTypeName = ResolveGeneratedRowTypeName(
+                    ranking.Buffer,
+                    ranking.Item,
+                    materializedRowTypeNames
+                );
                 var helper = CreateRankingWindowKeyExtractionHelper(ranking, generatedRowTypeName);
                 if (helper.PartitionKeys is { ShouldExtract: true } || helper.OrderKeys.ShouldExtract)
                     yield return helper;
@@ -150,9 +177,12 @@ public sealed partial class ExecutionCSharpRenderer
 
             foreach (var childBlock in GetChildBlocks(node))
             {
-                foreach (var helper in CollectRankingWindowKeyExtractionHelpers(
-                             childBlock,
-                             new Dictionary<string, string>(materializedRowTypeNames, StringComparer.Ordinal)))
+                foreach (
+                    var helper in CollectRankingWindowKeyExtractionHelpers(
+                        childBlock,
+                        new Dictionary<string, string>(materializedRowTypeNames, StringComparer.Ordinal)
+                    )
+                )
                 {
                     yield return helper;
                 }
@@ -162,7 +192,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private RankingWindowKeyExtractionHelper CreateRankingWindowKeyExtractionHelper(
         ExecutionComputeRankingWindow ranking,
-        string? generatedRowTypeName)
+        string? generatedRowTypeName
+    )
     {
         var partitionKeys = ResolveRankingPartitionKeyArray(ranking);
         var orderKeys = ResolveRankingOrderKeyArray(ranking);
@@ -174,19 +205,21 @@ public sealed partial class ExecutionCSharpRenderer
             partitionKeys,
             CreateWindowPartitionBuilderVariable(ranking.Results, partitionKeys, ranking.Partitions),
             orderKeys,
-            CollectRankingWindowKeyExtractionCaptures(ranking, partitionKeys, orderKeys));
+            CollectRankingWindowKeyExtractionCaptures(ranking, partitionKeys, orderKeys)
+        );
     }
 
     private CapturedLocal[] CollectRankingWindowKeyExtractionCaptures(
         ExecutionComputeRankingWindow ranking,
         ExecutionWindowKeyArray? partitionKeys,
-        ExecutionWindowKeyArray orderKeys)
+        ExecutionWindowKeyArray orderKeys
+    )
     {
         var excludedNames = new HashSet<string>(StringComparer.Ordinal)
         {
             ranking.Buffer.Name,
             ranking.Item.Name,
-            "windowIndex"
+            "windowIndex",
         };
 
         if (ShouldMaterializeWindowKeyArray(partitionKeys))

@@ -26,19 +26,29 @@ internal static class SourceBoundaryStrategyPlanner
             strategy,
             SourceBoundaryCachingDecision.NotApplied,
             ResolveConfidence(strategy),
-            CreateReason(plan, strategy));
+            CreateReason(plan, strategy)
+        );
     }
 
     private static SourceBoundaryStrategyKind ResolveStrategy(SourceBoundaryPlan plan)
     {
-        if (plan.InputMode == SourceBoundaryInputMode.Correlated ||
-            plan.InvocationShape == SourceInvocationShape.PerRow ||
-            plan.Cacheability == SourceCacheability.NotCacheable)
+        if (
+            plan.InputMode == SourceBoundaryInputMode.Correlated
+            || plan.InvocationShape == SourceInvocationShape.PerRow
+            || plan.Cacheability == SourceCacheability.NotCacheable
+        )
         {
             return SourceBoundaryStrategyKind.PerRowRequired;
         }
 
-        if (plan is { InputMode: SourceBoundaryInputMode.Independent, InvocationShape: SourceInvocationShape.PerQuery, Cacheability: SourceCacheability.CacheCandidate })
+        if (
+            plan is
+            {
+                InputMode: SourceBoundaryInputMode.Independent,
+                InvocationShape: SourceInvocationShape.PerQuery,
+                Cacheability: SourceCacheability.CacheCandidate
+            }
+        )
         {
             return SourceBoundaryStrategyKind.PerQueryCandidateNotApplied;
         }
@@ -52,7 +62,7 @@ internal static class SourceBoundaryStrategyPlanner
         {
             SourceBoundaryStrategyKind.PerRowRequired => PlanningConfidence.High,
             SourceBoundaryStrategyKind.PerQueryCandidateNotApplied => PlanningConfidence.Medium,
-            _ => PlanningConfidence.Low
+            _ => PlanningConfidence.Low,
         };
     }
 
@@ -64,7 +74,8 @@ internal static class SourceBoundaryStrategyPlanner
             plan.BoundaryId,
             plan.Strategy.ToString(),
             plan.Confidence,
-            plan.Reason);
+            plan.Reason
+        );
     }
 
     private static string CreateReason(SourceBoundaryPlan plan, SourceBoundaryStrategyKind strategy)
@@ -76,7 +87,7 @@ internal static class SourceBoundaryStrategyPlanner
             SourceBoundaryStrategyKind.PerQueryCandidateNotApplied =>
                 $"{plan.Kind} boundary {plan.BoundaryId} is independent and is only a per-query candidate; source/plugin caching is not applied without a capability design.",
             _ =>
-                $"{plan.Kind} boundary {plan.BoundaryId} has unknown dependency shape; the planner keeps the existing per-invocation behavior and applies no caching."
+                $"{plan.Kind} boundary {plan.BoundaryId} has unknown dependency shape; the planner keeps the existing per-invocation behavior and applies no caching.",
         };
     }
 }

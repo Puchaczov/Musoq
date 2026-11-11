@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -14,13 +14,9 @@ using Musoq.Schema;
 
 namespace Musoq.Targets.CSharpClr;
 
-internal sealed record ClrBatchTableActivationRequest(
-    string RunnableTypeName,
-    QueryRuntimeBinding Binding);
+internal sealed record ClrBatchTableActivationRequest(string RunnableTypeName, QueryRuntimeBinding Binding);
 
-internal sealed record ClrBatchTableActivationResult(
-    ITableRunnable? Runnable,
-    Exception? Exception)
+internal sealed record ClrBatchTableActivationResult(ITableRunnable? Runnable, Exception? Exception)
 {
     public bool Succeeded => Runnable is not null && Exception is null;
 }
@@ -32,9 +28,7 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
 
     public ExecutionTargetId TargetId => ExecutionTargetIds.CSharpClr;
 
-    public ExecutableQueryArtifact CreateLoadedExecutableArtifact(
-        Type runnableType,
-        IDisposable? lifetimeOwner = null)
+    public ExecutableQueryArtifact CreateLoadedExecutableArtifact(Type runnableType, IDisposable? lifetimeOwner = null)
     {
         ArgumentNullException.ThrowIfNull(runnableType);
 
@@ -47,14 +41,15 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
         {
             ClrLoadedExecutableArtifact loadedArtifact => ActivateTable(loadedArtifact.RunnableType, binding),
             ClrAssemblyExecutableArtifact assemblyArtifact => ActivateAssemblyTable(assemblyArtifact, binding),
-            _ => throw CreateUnsupportedArtifactException(executable)
+            _ => throw CreateUnsupportedArtifactException(executable),
         };
     }
 
     public ITableRunnable ActivateTable(
         ExecutableQueryArtifact executable,
         QueryRuntimeBinding binding,
-        Func<Assembly> loadAssembly)
+        Func<Assembly> loadAssembly
+    )
     {
         return ActivateTable(LoadRunnableType(executable, loadAssembly), binding);
     }
@@ -66,15 +61,16 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
 
     internal IReadOnlyList<ClrBatchTableActivationResult> ActivateTableBatch(
         ExecutableQueryArtifact executable,
-        IReadOnlyList<ClrBatchTableActivationRequest> requests)
+        IReadOnlyList<ClrBatchTableActivationRequest> requests
+    )
     {
         ArgumentNullException.ThrowIfNull(executable);
         ArgumentNullException.ThrowIfNull(requests);
         if (requests.Count == 0)
             return Array.Empty<ClrBatchTableActivationResult>();
 
-        var artifact = executable as ClrAssemblyExecutableArtifact ??
-                       throw CreateUnsupportedArtifactException(executable);
+        var artifact =
+            executable as ClrAssemblyExecutableArtifact ?? throw CreateUnsupportedArtifactException(executable);
         var loadContext = new RuntimeQueryAssemblyLoadContext($"musoq-query-batch-{Guid.NewGuid():N}");
         var lifetime = new SharedAssemblyLoadContextLifetime(loadContext);
         try
@@ -91,9 +87,11 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
                     if (string.IsNullOrWhiteSpace(request.RunnableTypeName))
                         throw new ArgumentException("Runnable type name cannot be empty.", nameof(requests));
 
-                    var runnableType = assembly.GetType(request.RunnableTypeName) ??
-                                       throw new InvalidOperationException(
-                                           $"Type {request.RunnableTypeName} was not found in assembly {assembly.FullName}.");
+                    var runnableType =
+                        assembly.GetType(request.RunnableTypeName)
+                        ?? throw new InvalidOperationException(
+                            $"Type {request.RunnableTypeName} was not found in assembly {assembly.FullName}."
+                        );
                     runnable = ActivateTable(runnableType, request.Binding);
                     lease = lifetime.Acquire();
                     runnable = OwnedTableRunnable.Wrap(runnable, lease);
@@ -158,15 +156,16 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
 
         return executable switch
         {
-            ClrLoadedExecutableArtifact loadedArtifact =>
-                new ClrLoadedRunnableType(loadedArtifact.RunnableType, loadedArtifact.LifetimeOwner),
+            ClrLoadedExecutableArtifact loadedArtifact => new ClrLoadedRunnableType(
+                loadedArtifact.RunnableType,
+                loadedArtifact.LifetimeOwner
+            ),
             ClrAssemblyExecutableArtifact assemblyArtifact => LoadRunnableTypeAndCreateLifetime(assemblyArtifact),
-            _ => throw CreateUnsupportedArtifactException(executable)
+            _ => throw CreateUnsupportedArtifactException(executable),
         };
     }
 
-    internal static IDisposable SetRunnableTypeLoadedTestHookForTests(
-        Action<ClrLoadedRunnableType> callback)
+    internal static IDisposable SetRunnableTypeLoadedTestHookForTests(Action<ClrLoadedRunnableType> callback)
     {
         ArgumentNullException.ThrowIfNull(callback);
         var previous = RunnableTypeLoadedTestHook.Value;
@@ -182,7 +181,7 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
         {
             ClrLoadedExecutableArtifact loadedArtifact => loadedArtifact.RunnableType,
             ClrAssemblyExecutableArtifact assemblyArtifact => LoadRunnableType(assemblyArtifact, loadAssembly),
-            _ => throw CreateUnsupportedArtifactException(executable)
+            _ => throw CreateUnsupportedArtifactException(executable),
         };
     }
 
@@ -195,22 +194,24 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
 
         if (type is null)
             throw new InvalidOperationException(
-                $"Type {artifact.RunnableTypeName} was not found in assembly {assembly.FullName}.");
+                $"Type {artifact.RunnableTypeName} was not found in assembly {assembly.FullName}."
+            );
 
         return type;
     }
 
-    private static ClrLoadedRunnableType LoadRunnableTypeAndCreateLifetime(
-        ClrAssemblyExecutableArtifact artifact)
+    private static ClrLoadedRunnableType LoadRunnableTypeAndCreateLifetime(ClrAssemblyExecutableArtifact artifact)
     {
         var loadContext = new RuntimeQueryAssemblyLoadContext($"musoq-query-type-{Guid.NewGuid():N}");
         ClrLoadedRunnableType? loadedRunnableType = null;
         try
         {
             var assembly = LoadAssembly(artifact, loadContext);
-            var type = assembly.GetType(artifact.RunnableTypeName) ??
-                       throw new InvalidOperationException(
-                           $"Type {artifact.RunnableTypeName} was not found in assembly {assembly.FullName}.");
+            var type =
+                assembly.GetType(artifact.RunnableTypeName)
+                ?? throw new InvalidOperationException(
+                    $"Type {artifact.RunnableTypeName} was not found in assembly {assembly.FullName}."
+                );
             loadedRunnableType = new ClrLoadedRunnableType(type, new AssemblyLoadContextLifetime(loadContext));
             RunnableTypeLoadedTestHook.Value?.Invoke(loadedRunnableType);
             return loadedRunnableType;
@@ -270,9 +271,7 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
         }
     }
 
-    private static Assembly LoadAssembly(
-        ClrAssemblyExecutableArtifact artifact,
-        AssemblyLoadContext loadContext)
+    private static Assembly LoadAssembly(ClrAssemblyExecutableArtifact artifact, AssemblyLoadContext loadContext)
     {
         var assemblyStream = artifact.OpenDllStream(out var disposeAssemblyStream);
         var symbolsStream = artifact.OpenPdbStream(out var disposeSymbolsStream);
@@ -291,18 +290,18 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
         }
     }
 
-    private ITableRunnable ActivateAssemblyTable(
-        ClrAssemblyExecutableArtifact artifact,
-        QueryRuntimeBinding binding)
+    private ITableRunnable ActivateAssemblyTable(ClrAssemblyExecutableArtifact artifact, QueryRuntimeBinding binding)
     {
         var loadContext = new RuntimeQueryAssemblyLoadContext($"musoq-query-{Guid.NewGuid():N}");
         try
         {
             var assembly = LoadAssembly(artifact, loadContext);
 
-            var runnableType = assembly.GetType(artifact.RunnableTypeName) ??
-                               throw new InvalidOperationException(
-                                   $"Type {artifact.RunnableTypeName} was not found in assembly {assembly.FullName}.");
+            var runnableType =
+                assembly.GetType(artifact.RunnableTypeName)
+                ?? throw new InvalidOperationException(
+                    $"Type {artifact.RunnableTypeName} was not found in assembly {assembly.FullName}."
+                );
             var runnable = ActivateTable(runnableType, binding);
             return OwnedTableRunnable.Wrap(runnable, new AssemblyLoadContextLifetime(loadContext));
         }
@@ -317,32 +316,36 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     {
         runnable.Provider = binding.SchemaProvider;
         runnable.SourceRuntimeSettingsBySourceContextId = binding.SourceRuntimeSettingsBySourceContextId;
-        runnable.SourceRuntimeSettingDescriptionsBySourceContextId = binding.SourceRuntimeSettingDescriptionsBySourceContextId;
+        runnable.SourceRuntimeSettingDescriptionsBySourceContextId =
+            binding.SourceRuntimeSettingDescriptionsBySourceContextId;
         runnable.SourceExecutionPlans = binding.SourceExecutionPlans;
     }
 
     private static InvalidOperationException CreateUnsupportedArtifactException(ExecutableQueryArtifact executable)
     {
         return new InvalidOperationException(
-            $"CLR assembly activation requires a CLR executable artifact, but got '{executable.TargetId}'.");
+            $"CLR assembly activation requires a CLR executable artifact, but got '{executable.TargetId}'."
+        );
     }
 
     private sealed class RuntimeQueryAssemblyLoadContext(string name) : AssemblyLoadContext(name, isCollectible: true)
     {
-        private static readonly FrozenDictionary<string, Assembly> DefaultAssembliesByName =
-            Default.Assemblies
-                .Where(static assembly => assembly.GetName().Name is not null)
-                .GroupBy(static assembly => assembly.GetName().Name!, StringComparer.OrdinalIgnoreCase)
-                .ToFrozenDictionary(
-                    static group => group.Key,
-                    static group => group.First(),
-                    StringComparer.OrdinalIgnoreCase);
+        private static readonly FrozenDictionary<string, Assembly> DefaultAssembliesByName = Default
+            .Assemblies.Where(static assembly => assembly.GetName().Name is not null)
+            .GroupBy(static assembly => assembly.GetName().Name!, StringComparer.OrdinalIgnoreCase)
+            .ToFrozenDictionary(
+                static group => group.Key,
+                static group => group.First(),
+                StringComparer.OrdinalIgnoreCase
+            );
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            if (assemblyName.Name is { } simpleName &&
-                DefaultAssembliesByName.TryGetValue(simpleName, out var assembly) &&
-                AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName))
+            if (
+                assemblyName.Name is { } simpleName
+                && DefaultAssembliesByName.TryGetValue(simpleName, out var assembly)
+                && AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName)
+            )
             {
                 return assembly;
             }
@@ -439,8 +442,14 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     }
 
     private abstract class OwnedTableRunnableBase(ITableRunnable inner, IDisposable lifetimeOwner)
-        : ITableRunnable, IQueryProgressSource, IParameterizedRunnable, ITypedParameterizedRunnable, IMetadataOnlyRunnable,
-            IProfiledRunnable, IContextProfiledRunnable, IDisposable
+        : ITableRunnable,
+            IQueryProgressSource,
+            IParameterizedRunnable,
+            ITypedParameterizedRunnable,
+            IMetadataOnlyRunnable,
+            IProfiledRunnable,
+            IContextProfiledRunnable,
+            IDisposable
     {
         private readonly IParameterizedRunnable? _parameterized = inner as IParameterizedRunnable;
         private int _disposed;
@@ -452,7 +461,8 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
 
         protected ITableRunnable Inner { get; } = inner ?? throw new ArgumentNullException(nameof(inner));
 
-        private IDisposable LifetimeOwner { get; } = lifetimeOwner ?? throw new ArgumentNullException(nameof(lifetimeOwner));
+        private IDisposable LifetimeOwner { get; } =
+            lifetimeOwner ?? throw new ArgumentNullException(nameof(lifetimeOwner));
 
         public ISchemaProvider Provider
         {
@@ -466,7 +476,10 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
             set => Inner.SourceRuntimeSettingsBySourceContextId = value;
         }
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId
         {
             get => Inner.SourceRuntimeSettingDescriptionsBySourceContextId;
             set => Inner.SourceRuntimeSettingDescriptionsBySourceContextId = value;
@@ -503,8 +516,7 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
         public IReadOnlyList<ScriptParameterContract> ParameterContracts =>
             _parameterized?.ParameterContracts ?? Array.Empty<ScriptParameterContract>();
 
-        public bool IsMetadataOnly =>
-            Inner is IMetadataOnlyRunnable { IsMetadataOnly: true };
+        public bool IsMetadataOnly => Inner is IMetadataOnlyRunnable { IsMetadataOnly: true };
 
         public event QueryPhaseEventHandler PhaseChanged
         {
@@ -573,7 +585,8 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     }
 
     private class OwnedContextTableRunnable(ITableRunnable inner, IDisposable lifetimeOwner)
-        : OwnedTableRunnableBase(inner, lifetimeOwner), IContextTableRunnable
+        : OwnedTableRunnableBase(inner, lifetimeOwner),
+            IContextTableRunnable
     {
         public override Table Run(CancellationToken token) => Inner.Run(token);
 
@@ -586,7 +599,8 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     }
 
     private sealed class OwnedContextAsyncTableRunnable(ITableRunnable inner, IDisposable lifetimeOwner)
-        : OwnedContextTableRunnable(inner, lifetimeOwner), IContextAsyncTableRunnable
+        : OwnedContextTableRunnable(inner, lifetimeOwner),
+            IContextAsyncTableRunnable
     {
         public async ValueTask<Table> RunAsync(QueryRunContext context)
         {
@@ -598,7 +612,8 @@ internal sealed class ClrAssemblyExecutableActivator : IClrExecutableQueryActiva
     }
 
     private sealed class OwnedLegacyAsyncTableRunnable(ITableRunnable inner, IDisposable lifetimeOwner)
-        : OwnedTableRunnableBase(inner, lifetimeOwner), IAsyncTableRunnable
+        : OwnedTableRunnableBase(inner, lifetimeOwner),
+            IAsyncTableRunnable
     {
         public override Table Run(CancellationToken token) => Inner.Run(token);
 

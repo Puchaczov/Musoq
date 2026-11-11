@@ -40,7 +40,7 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
             PhysicalRecursiveCteNode recursive => AnalyzeConservative(recursive, scope, correlated),
             PhysicalProjectNode project => AnalyzeProject(project, scope, correlated),
             PhysicalNestedLoopApplyNode apply => AnalyzeApply(apply, scope, correlated),
-            _ => AnalyzeOrdinary(node, scope, correlated)
+            _ => AnalyzeOrdinary(node, scope, correlated),
         };
         if (!_boundaries.ContainsKey(node))
             _boundaries.Add(node, new(output, output, []));
@@ -55,15 +55,20 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
         return Analyze(cte.Query, local, correlated);
     }
 
-    private ByteBufferFlowBindings AnalyzeStatements(PhysicalMultiStatementNode statements, FlowScope scope,
-        ByteBufferFlowBindings correlated)
+    private ByteBufferFlowBindings AnalyzeStatements(
+        PhysicalMultiStatementNode statements,
+        FlowScope scope,
+        ByteBufferFlowBindings correlated
+    )
     {
         var local = scope.Copy();
         var output = new ByteBufferFlowBindings();
         for (var index = 0; index < statements.Statements.Length; index++)
         {
             output = Analyze(statements.Statements[index], local, correlated);
-            var producers = statements.IntermediateProducers.Where(producer => producer.StatementIndex == index).ToArray();
+            var producers = statements
+                .IntermediateProducers.Where(producer => producer.StatementIndex == index)
+                .ToArray();
             foreach (var producer in producers)
                 local.Intermediate[producer.Source.ProducerId] = output;
             if (producers.Length == 0 && index != statements.Statements.Length - 1)
@@ -75,13 +80,18 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
     private ByteBufferFlowBindings AnalyzeReference(PhysicalCteRefNode reference, FlowScope scope)
     {
         var source = reference.IntermediateProducerId is { } identity
-            ? scope.Intermediate.GetValueOrDefault(identity) : scope.Named.GetValueOrDefault(reference.CteName);
+            ? scope.Intermediate.GetValueOrDefault(identity)
+            : scope.Named.GetValueOrDefault(reference.CteName);
         if (source is null)
             _unresolved = true;
         return ByteBufferFlowBindings.Source(reference.OutputSchema, reference.Alias, source);
     }
 
-    private ByteBufferFlowBindings AnalyzeProject(PhysicalProjectNode project, FlowScope scope, ByteBufferFlowBindings correlated)
+    private ByteBufferFlowBindings AnalyzeProject(
+        PhysicalProjectNode project,
+        FlowScope scope,
+        ByteBufferFlowBindings correlated
+    )
     {
         var input = Analyze(project.Input, scope, correlated);
         var fields = new ByteBufferFlowValue?[project.Fields.Length];
@@ -114,14 +124,22 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
         return output;
     }
 
-    private ByteBufferFlowBindings AnalyzeApply(PhysicalNestedLoopApplyNode apply, FlowScope scope, ByteBufferFlowBindings correlated)
+    private ByteBufferFlowBindings AnalyzeApply(
+        PhysicalNestedLoopApplyNode apply,
+        FlowScope scope,
+        ByteBufferFlowBindings correlated
+    )
     {
         var left = Analyze(apply.Left, scope, correlated);
         var right = Analyze(apply.Right, scope, left);
         return ByteBufferFlowBindings.Merge([left, right]);
     }
 
-    private ByteBufferFlowBindings AnalyzeConservative(PhysicalNode node, FlowScope scope, ByteBufferFlowBindings correlated)
+    private ByteBufferFlowBindings AnalyzeConservative(
+        PhysicalNode node,
+        FlowScope scope,
+        ByteBufferFlowBindings correlated
+    )
     {
         foreach (var child in node.Children)
             Analyze(child, scope, correlated).RequireComplete();
@@ -151,11 +169,19 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
                     Observe(operand, input);
                 return;
             }
-            if (call.BufferSemantics is { Kind: ByteBufferCallableKind.Length or ByteBufferCallableKind.FixedWidthRead } consumer &&
-                call.Arguments[0] is ColumnRef buffer)
+            if (
+                call.BufferSemantics
+                    is { Kind: ByteBufferCallableKind.Length or ByteBufferCallableKind.FixedWidthRead } consumer
+                && call.Arguments[0] is ColumnRef buffer
+            )
             {
-                Require(buffer, input, consumer.Kind == ByteBufferCallableKind.Length
-                    ? ByteBufferRequirement.Length : ByteBufferRequirement.Prefix(consumer.ReadWidth));
+                Require(
+                    buffer,
+                    input,
+                    consumer.Kind == ByteBufferCallableKind.Length
+                        ? ByteBufferRequirement.Length
+                        : ByteBufferRequirement.Prefix(consumer.ReadWidth)
+                );
                 foreach (var argument in call.Arguments.Skip(1))
                     Observe(argument, input);
                 return;
@@ -176,16 +202,23 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
     }
 
     private static ByteBufferFlowValue? ResolveInput(ByteBufferProgram program, ByteBufferFlowBindings input) =>
-        program.SegmentCount == 0 && !program.Steps.Any(step => step.Kind == ByteBufferStepKind.CheckedRange) &&
-        program.Inputs[0] is ColumnRef column ? input.Resolve(column) : null;
+        program.SegmentCount == 0
+        && !program.Steps.Any(step => step.Kind == ByteBufferStepKind.CheckedRange)
+        && program.Inputs[0] is ColumnRef column
+            ? input.Resolve(column)
+            : null;
 
-    private sealed record FlowBoundary(ByteBufferFlowBindings Input, ByteBufferFlowBindings Output,
-        IReadOnlyList<ByteBufferFlowValue?> Fields);
+    private sealed record FlowBoundary(
+        ByteBufferFlowBindings Input,
+        ByteBufferFlowBindings Output,
+        IReadOnlyList<ByteBufferFlowValue?> Fields
+    );
 
     private sealed class FlowScope
     {
         internal Dictionary<string, ByteBufferFlowBindings> Named { get; } = new(StringComparer.OrdinalIgnoreCase);
         internal Dictionary<IntermediateProducerId, ByteBufferFlowBindings> Intermediate { get; } = [];
+
         internal FlowScope Copy()
         {
             var copy = new FlowScope();

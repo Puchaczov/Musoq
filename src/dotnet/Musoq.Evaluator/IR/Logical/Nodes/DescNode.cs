@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Parser;
 
 namespace Musoq.Evaluator.IR.Logical.Nodes;
@@ -15,7 +15,8 @@ public sealed record DescNode(
     OutputSchema OutputSchema,
     OutputSchema? QueryOutputSchema = null,
     TextSpan? ColumnSpan = null,
-    IReadOnlyList<StructuralArgumentDescription>? ArgumentDescriptions = null) : LogicalNode(OutputSchema)
+    IReadOnlyList<StructuralArgumentDescription>? ArgumentDescriptions = null
+) : LogicalNode(OutputSchema)
 {
     /// <summary>Gets bound output expressions used only to describe generated result shapes.</summary>
     public IReadOnlyList<ProjectedField>? QueryProjection { get; init; }

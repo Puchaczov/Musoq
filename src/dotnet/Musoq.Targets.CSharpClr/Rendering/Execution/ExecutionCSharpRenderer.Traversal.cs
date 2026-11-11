@@ -23,9 +23,9 @@ public sealed partial class ExecutionCSharpRenderer
             .Where(group => group.Count() > 1 && singleStoreIndexes.Contains(group.Key))
             .ToDictionary(
                 static group => group.Key,
-                static group => CreateIdentifierCandidate(
-                    $"__storedTable{group.Key.ToString(CultureInfo.InvariantCulture)}Rows",
-                    0));
+                static group =>
+                    CreateIdentifierCandidate($"__storedTable{group.Key.ToString(CultureInfo.InvariantCulture)}Rows", 0)
+            );
     }
 
     private static IEnumerable<int> CollectStoredTableRowsIndexes(ExecutionBlock block)
@@ -34,8 +34,4 @@ public sealed partial class ExecutionCSharpRenderer
             .CollectExpressions<ExecutionStoredTableRows>(block)
             .Select(static storedRows => storedRows.TableIndex);
     }
-
-
-
-
 }

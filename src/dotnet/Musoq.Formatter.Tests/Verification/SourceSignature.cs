@@ -11,9 +11,11 @@ internal static class SourceSignature
     internal static IReadOnlyList<string> Of(string source)
     {
         var tokens = Parser.Parser.ParseSyntax(source).Tokens;
-        var identifiers = tokens.Where(token => token.TokenType == Parser.Tokens.TokenType.Identifier).Select(token => token.Span).ToArray();
-        var keywords = tokens.Where(t => t.Role == SyntaxTokenRole.Keyword)
-            .Select(t => t.Span).ToArray();
+        var identifiers = tokens
+            .Where(token => token.TokenType == Parser.Tokens.TokenType.Identifier)
+            .Select(token => token.Span)
+            .ToArray();
+        var keywords = tokens.Where(t => t.Role == SyntaxTokenRole.Keyword).Select(t => t.Span).ToArray();
         var result = new List<string>();
         var position = 0;
         while (position < source.Length)
@@ -90,8 +92,8 @@ internal static class SourceSignature
         return source.Length;
     }
 
-    private static bool IsRaw(string source, int position) => position + 1 < source.Length &&
-        source[position] is 'r' or 'R' && source[position + 1] is '\'' or '"';
+    private static bool IsRaw(string source, int position) =>
+        position + 1 < source.Length && source[position] is 'r' or 'R' && source[position + 1] is '\'' or '"';
 
     private static bool Starts(string source, int position, string value) =>
         source.AsSpan(position).StartsWith(value, StringComparison.Ordinal);

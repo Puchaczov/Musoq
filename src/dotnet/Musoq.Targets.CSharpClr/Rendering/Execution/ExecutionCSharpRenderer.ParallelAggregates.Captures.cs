@@ -6,14 +6,15 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
     private CapturedLocal[] CollectParallelSingleKeyAggregateCaptures(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate
+    )
     {
         var excludedNames = new HashSet<string>(StringComparer.Ordinal)
         {
             parallelAggregate.Source.Name,
             parallelAggregate.Group.Name,
             parallelAggregate.RootGroup.Name,
-            parallelAggregate.GroupsToFinalize.Name
+            parallelAggregate.GroupsToFinalize.Name,
         };
         var captures = new Dictionary<string, CapturedLocal>(StringComparer.Ordinal);
 

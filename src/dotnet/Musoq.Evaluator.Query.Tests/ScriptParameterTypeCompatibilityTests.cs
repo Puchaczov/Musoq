@@ -15,7 +15,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenIntColumnIsComparedToStringParameter_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(age: string) select Name from #test.people() where Age = $age"));
+            CompileQuery("param(age: string) select Name from #test.people() where Age = $age")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$age");
         AssertMessageContains(exception, "String");
@@ -28,7 +29,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenDateTimeColumnIsComparedToStringParameter_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(since: string) select OrderId from #test.orders() where OrderDate > $since"));
+            CompileQuery("param(since: string) select OrderId from #test.orders() where OrderDate > $since")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$since");
         AssertMessageContains(exception, "DateTime");
@@ -41,7 +43,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenStringParameterIsComparedToNumericLiteral_ShouldRejectInsteadOfImplicitlyConverting()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(limit: string) select Name from #test.people() where $limit > 10"));
+            CompileQuery("param(limit: string) select Name from #test.people() where $limit > 10")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$limit");
         AssertMessageContains(exception, "String");
@@ -53,7 +56,9 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     [TestMethod]
     public void CompileForExecution_WhenParameterTypesAreCompatible_ShouldCompile()
     {
-        var query = CompileQuery("param(age: int, since: datetime) select Name from #test.people() where Age = $age and BirthDate >= $since");
+        var query = CompileQuery(
+            "param(age: int, since: datetime) select Name from #test.people() where Age = $age and BirthDate >= $since"
+        );
 
         Assert.IsNotNull(query);
     }
@@ -61,7 +66,9 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     [TestMethod]
     public void CompileForExecution_WhenParameterUsesExplicitConversion_ShouldCompile()
     {
-        var query = CompileQuery("param(ageText: string) select Name from #test.people() where Age = ToInt32($ageText)");
+        var query = CompileQuery(
+            "param(ageText: string) select Name from #test.people() where Age = ToInt32($ageText)"
+        );
 
         Assert.IsNotNull(query);
     }
@@ -74,9 +81,16 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
             Guid.NewGuid().ToString(),
             CreateSchemaProvider(),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
-        Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "ScriptParameterBinder.GetRequired<int>(__musoqExecutionState, \"age\")"));
+        Assert.AreEqual(
+            1,
+            CountOccurrences(
+                inspection.GeneratedCSharpCode,
+                "ScriptParameterBinder.GetRequired<int>(__musoqExecutionState, \"age\")"
+            )
+        );
         StringAssert.Contains(inspection.GeneratedCSharpCode, "paramAge");
         Assert.DoesNotContain("TryConvertToInt32", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain("TryConvertToInt64", inspection.GeneratedCSharpCode);
@@ -87,7 +101,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenInListContainsIncompatibleParameter_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(ageText: string) select Name from #test.people() where Age in ($ageText, 42)"));
+            CompileQuery("param(ageText: string) select Name from #test.people() where Age in ($ageText, 42)")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$ageText");
         AssertMessageContains(exception, "String");
@@ -100,7 +115,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenInParameterHasIncompatibleElementType_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(ids: string[]) select Name from #test.people() where Age in $ids"));
+            CompileQuery("param(ids: string[]) select Name from #test.people() where Age in $ids")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$ids");
         AssertMessageContains(exception, "String");
@@ -113,7 +129,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenInParameterIsScalar_ShouldRequireCollectionParameter()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(id: int) select Name from #test.people() where Age in $id"));
+            CompileQuery("param(id: int) select Name from #test.people() where Age in $id")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3007_InvalidOperandTypes, DiagnosticPhase.Bind, "$id");
         AssertMessageContains(exception, "one-dimensional array script parameter");
@@ -124,7 +141,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenContainsListContainsIncompatibleParameter_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(age: int) select Name from #test.people() where Name contains ($age)"));
+            CompileQuery("param(age: int) select Name from #test.people() where Name contains ($age)")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$age");
         AssertMessageContains(exception, "String");
@@ -137,7 +155,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenBetweenBoundContainsIncompatibleParameter_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(low: string) select Name from #test.people() where Age between $low and 40"));
+            CompileQuery("param(low: string) select Name from #test.people() where Age between $low and 40")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$low");
         AssertMessageContains(exception, "String");
@@ -150,8 +169,9 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenCollectionAndRangeParameterTypesAreCompatible_ShouldCompile()
     {
         var query = CompileQuery(
-            "param(age: int, minAge: int, maxAge: long, name: string) " +
-            "select Name from #test.people() where Age in ($age, 42) and Age between $minAge and $maxAge and Name contains ($name)");
+            "param(age: int, minAge: int, maxAge: long, name: string) "
+                + "select Name from #test.people() where Age in ($age, 42) and Age between $minAge and $maxAge and Name contains ($name)"
+        );
 
         Assert.IsNotNull(query);
     }
@@ -160,9 +180,15 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenFunctionReceivesIncompatibleParameter_ShouldExplainDeclaredParameterType()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(limit: int) select Length($limit) from #test.people()"));
+            CompileQuery("param(limit: int) select Length($limit) from #test.people()")
+        );
 
-        AssertErrorEnvelope(exception, DiagnosticCode.MQ3088_NoMatchingCallableOverload, DiagnosticPhase.Bind, "$limit");
+        AssertErrorEnvelope(
+            exception,
+            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
+            DiagnosticPhase.Bind,
+            "$limit"
+        );
         AssertMessageContains(exception, "Int32");
         AssertMessageContains(exception, "Length");
         AssertMessageContains(exception, "Expected overloads");
@@ -174,7 +200,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenFunctionReceivesBooleanParameterForStringFunction_ShouldExplainDeclaredParameterType()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(flag: bool) select ToUpper($flag) from #test.people()"));
+            CompileQuery("param(flag: bool) select ToUpper($flag) from #test.people()")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3088_NoMatchingCallableOverload, DiagnosticPhase.Bind, "$flag");
         AssertMessageContains(exception, "Boolean");
@@ -188,7 +215,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenFunctionParameterUsesExplicitConversion_ShouldCompile()
     {
         var query = CompileQuery(
-            "param(limit: int, flag: bool) select Length(ToString($limit)), ToUpper(ToString($flag)) from #test.people()");
+            "param(limit: int, flag: bool) select Length(ToString($limit)), ToUpper(ToString($flag)) from #test.people()"
+        );
 
         Assert.IsNotNull(query);
     }
@@ -197,7 +225,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenWhereUsesNonBooleanParameter_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(flag: string) select Name from #test.people() where $flag"));
+            CompileQuery("param(flag: string) select Name from #test.people() where $flag")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$flag");
         AssertMessageContains(exception, "WHERE clause requires a boolean expression");
@@ -209,7 +238,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenHavingUsesNonBooleanParameter_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(flag: string) select City, Count(Name) from #test.people() group by City having $flag"));
+            CompileQuery("param(flag: string) select City, Count(Name) from #test.people() group by City having $flag")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$flag");
         AssertMessageContains(exception, "HAVING clause requires a boolean expression");
@@ -222,8 +252,10 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery(
-                "param(flag: string) select Name, RowNumber() over(order by Name) as rn from #test.people() " +
-                "qualify case when RowNumber() over(order by Name) = 1 then $flag else $flag end"));
+                "param(flag: string) select Name, RowNumber() over(order by Name) as rn from #test.people() "
+                    + "qualify case when RowNumber() over(order by Name) = 1 then $flag else $flag end"
+            )
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$flag");
         AssertMessageContains(exception, "QUALIFY clause requires a boolean expression");
@@ -235,7 +267,8 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenCaseWhenUsesNonBooleanParameter_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(label: string) select case when $label then 'yes' else 'no' end from #test.people()"));
+            CompileQuery("param(label: string) select case when $label then 'yes' else 'no' end from #test.people()")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$label");
         AssertMessageContains(exception, "CASE WHEN requires a boolean expression");
@@ -247,7 +280,10 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenJoinPredicateComparesColumnToIncompatibleParameter_ShouldUseParameterAwareTypeMismatch()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(personId: string) select p.Name from #test.people() p inner join #test.orders() o on o.PersonId = $personId"));
+            CompileQuery(
+                "param(personId: string) select p.Name from #test.people() p inner join #test.orders() o on o.PersonId = $personId"
+            )
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "$personId");
         AssertMessageContains(exception, "String");
@@ -259,9 +295,17 @@ public sealed partial class ScriptParameterTypeCompatibilityTests : NegativeTest
     public void CompileForExecution_WhenSetOperationComparesParameterProjectionToDifferentColumnType_ShouldKeepSetOperatorDiagnostic()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("param(label: string) select $label as V from #test.people() union all (V) select Age as V from #test.people()"));
+            CompileQuery(
+                "param(label: string) select $label as V from #test.people() union all (V) select Age as V from #test.people()"
+            )
+        );
 
-        AssertErrorEnvelope(exception, DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticPhase.Bind, "same types");
+        AssertErrorEnvelope(
+            exception,
+            DiagnosticCode.MQ3020_SetOperatorColumnTypes,
+            DiagnosticPhase.Bind,
+            "same types"
+        );
         AssertHasGuidance(exception);
     }
 

@@ -13,13 +13,27 @@ public partial class CloneQueryVisitor
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        Nodes.Push(((UnionNode)new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-            orderBy, skip, take)
-            {
-                KeySpans = node.KeySpans
-            })
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            (
+                (UnionNode)
+                    new UnionNode(
+                        node.ResultTableName,
+                        node.Keys,
+                        left,
+                        right,
+                        node.IsNested,
+                        node.IsTheLastOne,
+                        orderBy,
+                        skip,
+                        take
+                    )
+                    {
+                        KeySpans = node.KeySpans,
+                    }
+            )
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(UnionAllNode node)
@@ -31,13 +45,27 @@ public partial class CloneQueryVisitor
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        Nodes.Push(((UnionAllNode)new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
-            node.IsTheLastOne, orderBy, skip, take)
-            {
-                KeySpans = node.KeySpans
-            })
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            (
+                (UnionAllNode)
+                    new UnionAllNode(
+                        node.ResultTableName,
+                        node.Keys,
+                        left,
+                        right,
+                        node.IsNested,
+                        node.IsTheLastOne,
+                        orderBy,
+                        skip,
+                        take
+                    )
+                    {
+                        KeySpans = node.KeySpans,
+                    }
+            )
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(ExceptNode node)
@@ -48,13 +76,27 @@ public partial class CloneQueryVisitor
         var orderBy = node.ResultOrderBy != null ? Nodes.Pop() as OrderByNode : null;
         var right = Nodes.Pop();
         var left = Nodes.Pop();
-        Nodes.Push(((ExceptNode)new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-            orderBy, skip, take)
-            {
-                KeySpans = node.KeySpans
-            })
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        Nodes.Push(
+            (
+                (ExceptNode)
+                    new ExceptNode(
+                        node.ResultTableName,
+                        node.Keys,
+                        left,
+                        right,
+                        node.IsNested,
+                        node.IsTheLastOne,
+                        orderBy,
+                        skip,
+                        take
+                    )
+                    {
+                        KeySpans = node.KeySpans,
+                    }
+            )
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(IntersectNode node)
@@ -66,12 +108,25 @@ public partial class CloneQueryVisitor
         var right = Nodes.Pop();
         var left = Nodes.Pop();
         Nodes.Push(
-            ((IntersectNode)new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne,
-                orderBy, skip, take)
-            {
-                KeySpans = node.KeySpans
-            })
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+            (
+                (IntersectNode)
+                    new IntersectNode(
+                        node.ResultTableName,
+                        node.Keys,
+                        left,
+                        right,
+                        node.IsNested,
+                        node.IsTheLastOne,
+                        orderBy,
+                        skip,
+                        take
+                    )
+                    {
+                        KeySpans = node.KeySpans,
+                    }
+            )
+                .WithSpan(node.Span)
+                .WithFullSpan(node.FullSpan)
+        );
     }
 }

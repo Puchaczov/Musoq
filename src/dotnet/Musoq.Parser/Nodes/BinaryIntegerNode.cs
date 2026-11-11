@@ -3,16 +3,12 @@ namespace Musoq.Parser.Nodes;
 public class BinaryIntegerNode : ConstantValueNode
 {
     public BinaryIntegerNode(string value)
-        : this(value, default)
-    {
-    }
+        : this(value, default) { }
 
     public BinaryIntegerNode(string value, TextSpan span)
     {
         ArgumentNullException.ThrowIfNull(value);
-        var binaryValue = value.StartsWith("0b", StringComparison.OrdinalIgnoreCase)
-            ? value.Substring(2)
-            : value;
+        var binaryValue = value.StartsWith("0b", StringComparison.OrdinalIgnoreCase) ? value.Substring(2) : value;
 
         ObjValue = ParseBinaryValue(binaryValue, value);
         Id = $"{nameof(BinaryIntegerNode)}{value}{ReturnType.Name}";
@@ -21,9 +17,7 @@ public class BinaryIntegerNode : ConstantValueNode
     }
 
     public BinaryIntegerNode(object objValue)
-        : this(objValue, default)
-    {
-    }
+        : this(objValue, default) { }
 
     public BinaryIntegerNode(object objValue, TextSpan span)
     {

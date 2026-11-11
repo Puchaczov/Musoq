@@ -14,7 +14,8 @@ internal sealed record TargetExportArtifact : ExecutableQueryArtifact
         IEnumerable<TargetRuntimeEntrypoint>? entrypoints,
         TargetRuntimeServiceRequirements? runtimeServices,
         TargetHostAbiInventory? hostAbiInventory,
-        IReadOnlyDictionary<string, string>? diagnosticsMetadata)
+        IReadOnlyDictionary<string, string>? diagnosticsMetadata
+    )
         : base(targetId)
     {
         if (string.IsNullOrWhiteSpace(targetId.Value))
@@ -50,7 +51,8 @@ internal sealed record TargetExportArtifact : ExecutableQueryArtifact
         IEnumerable<TargetRuntimeEntrypoint>? entrypoints = null,
         TargetRuntimeServiceRequirements? runtimeServices = null,
         TargetHostAbiInventory? hostAbiInventory = null,
-        IReadOnlyDictionary<string, string>? diagnosticsMetadata = null)
+        IReadOnlyDictionary<string, string>? diagnosticsMetadata = null
+    )
     {
         return new TargetExportArtifact(
             targetId,
@@ -59,7 +61,8 @@ internal sealed record TargetExportArtifact : ExecutableQueryArtifact
             entrypoints,
             runtimeServices ?? TargetRuntimeServiceRequirements.Empty,
             hostAbiInventory,
-            diagnosticsMetadata);
+            diagnosticsMetadata
+        );
     }
 
     private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values)
@@ -67,23 +70,25 @@ internal sealed record TargetExportArtifact : ExecutableQueryArtifact
         return Array.AsReadOnly(values?.ToArray() ?? []);
     }
 
-    private static IReadOnlyDictionary<string, string> FreezeDictionary(
-        IReadOnlyDictionary<string, string>? values)
+    private static IReadOnlyDictionary<string, string> FreezeDictionary(IReadOnlyDictionary<string, string>? values)
     {
         return new ReadOnlyDictionary<string, string>(
             values is null
                 ? new Dictionary<string, string>(StringComparer.Ordinal)
-                : new Dictionary<string, string>(values, StringComparer.Ordinal));
+                : new Dictionary<string, string>(values, StringComparer.Ordinal)
+        );
     }
 
     private static void ValidateArtifactPaths(
         IReadOnlyList<TargetExportSourceFile> sourceFiles,
-        IReadOnlyList<TargetExportBinaryBlob> binaryBlobs)
+        IReadOnlyList<TargetExportBinaryBlob> binaryBlobs
+    )
     {
         TargetArtifactPath.RequireUnique(sourceFiles, static file => file.Path, "Source file");
         TargetArtifactPath.RequireUnique(binaryBlobs, static blob => blob.Name, "Binary blob");
 
-        var duplicate = sourceFiles.Select(static file => file.Path)
+        var duplicate = sourceFiles
+            .Select(static file => file.Path)
             .Intersect(binaryBlobs.Select(static blob => blob.Name), StringComparer.Ordinal)
             .FirstOrDefault();
         if (duplicate != null)
@@ -99,7 +104,8 @@ internal sealed record TargetExportArtifact : ExecutableQueryArtifact
     private static void RequireUniqueEntrypoint(
         IEnumerable<TargetRuntimeEntrypoint> entrypoints,
         Func<TargetRuntimeEntrypoint, string> selector,
-        string label)
+        string label
+    )
     {
         var duplicate = entrypoints
             .GroupBy(selector, StringComparer.Ordinal)

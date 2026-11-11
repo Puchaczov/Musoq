@@ -75,13 +75,7 @@ public sealed class TestRow : Row
         _lazyContextKind = LazyContextKind.SingleAndArray;
     }
 
-
-
-
-
     public override int Count => _values.Length;
-
-
 
     public object?[]? Contexts
     {
@@ -100,7 +94,7 @@ public sealed class TestRow : Row
                 LazyContextKind.ArrayPair => MaterializeArrayPairContexts(),
                 LazyContextKind.ArrayAndSingle => MaterializeArrayAndSingleContexts(),
                 LazyContextKind.SingleAndArray => MaterializeSingleAndArrayContexts(),
-                _ => _cachedContexts
+                _ => _cachedContexts,
             };
 
             return _cachedContexts;
@@ -129,6 +123,6 @@ public sealed class TestRow : Row
         SinglePair,
         ArrayPair,
         ArrayAndSingle,
-        SingleAndArray
+        SingleAndArray,
     }
 }

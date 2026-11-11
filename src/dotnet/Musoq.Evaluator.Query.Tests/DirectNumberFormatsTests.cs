@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Converter.Exceptions;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Parser.Diagnostics;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
@@ -72,7 +72,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o17 % 0o5", 0L);
     }
 
-
     [TestMethod]
     public void ZeroValues_AllFormats()
     {
@@ -89,7 +88,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0b1111 - 0b0", 15L);
         TestMethodTemplate("0o77 * 0o0", 0L);
     }
-
 
     [TestMethod]
     public void OperatorPrecedence_MultiplicationFirst()
@@ -115,7 +113,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0x10 - 0x5 - 0x2", 9L);
     }
 
-
     [TestMethod]
     public void NestedParentheses_ComplexExpression()
     {
@@ -127,7 +124,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     {
         TestMethodTemplate("(((0x10 + 0b10) * 0o2) - (0xFF / 0x5)) / 0b11", -5L);
     }
-
 
     [TestMethod]
     public void SingleDigit_HexValues()
@@ -154,7 +150,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o7", 7L);
     }
 
-
     [TestMethod]
     public void LargeValues_Hexadecimal()
     {
@@ -176,7 +171,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o177777", 65535L);
     }
 
-
     [TestMethod]
     public void MixedCase_AllVariations()
     {
@@ -195,7 +189,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     {
         TestMethodTemplate("0o77 + 0O77", 126L);
     }
-
 
     [TestMethod]
     public void CrossFormat_HexAndBinary_AllOperations()
@@ -227,7 +220,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0b11111111 % 0o77", 3L);
     }
 
-
     [TestMethod]
     public void MixedWithRegularIntegers_Addition()
     {
@@ -246,14 +238,10 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("100 - (0xFF - 0b101) + 0o10", -142L);
     }
 
-
     [TestMethod]
     public void DivisionByZero_ShouldHandleCorrectly()
     {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] = [new BasicEntity("zero")]
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [new BasicEntity("zero")] };
         var failure = Assert.ThrowsExactly<MusoqQueryException>(() =>
         {
             using var query = CreateAndRunVirtualMachine("select 0xFF / 0x0 from #A.Entities()", sources);
@@ -267,12 +255,13 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = [new BasicEntity("zero") { Id = 0 }]
+            ["#A"] = [new BasicEntity("zero") { Id = 0 }],
         };
         using var query = CreateAndRunVirtualMachine(
             "select 0xFF / e.Id from #A.Entities() e",
             sources,
-            new CompilationOptions(parallelizationMode: ParallelizationMode.None));
+            new CompilationOptions(parallelizationMode: ParallelizationMode.None)
+        );
 
         var failure = Assert.ThrowsExactly<QueryExecutionException>(() =>
         {
@@ -286,7 +275,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         Assert.IsInstanceOfType<DivideByZeroException>(failure.InnerException);
     }
 
-
     [TestMethod]
     public void NegativeResults_SubtractionOperations()
     {
@@ -294,7 +282,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0b101 - 0b1111", -10L);
         TestMethodTemplate("0o7 - 0o77", -56L);
     }
-
 
     [TestMethod]
     public void ChainedOperations_SameFormat()
@@ -310,7 +297,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0xFF + 0b101 + 0o77 + 42 + 1", 366L);
         TestMethodTemplate("0xFF * 0b10 / 0o4 + 1", 128L);
     }
-
 
     [TestMethod]
     public void PowersOfTwo_AllFormats()
@@ -342,9 +328,9 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
             ("0o40", 32L),
             ("0o100", 64L),
             ("0o200", 128L),
-            ("0o400", 256L));
+            ("0o400", 256L)
+        );
     }
-
 
     [TestMethod]
     public void BoundaryValues_MaxSingleDigits()
@@ -362,14 +348,12 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o7 + 0o1", 8L);
     }
 
-
     [TestMethod]
     public void FormatEquivalence_SameValues()
     {
         TestMethodTemplate("0xF", 15L);
         TestMethodTemplate("0b1111", 15L);
         TestMethodTemplate("0o17", 15L);
-
 
         TestMethodTemplate("0xFF", 255L);
         TestMethodTemplate("0b11111111", 255L);
@@ -385,13 +369,17 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("15 + 1", 16);
     }
 
-
     [TestMethod]
     public void HexadecimalOverflow_TooLargeForLong()
     {
         var ex = Assert.Throws<MusoqQueryException>(() => TestMethodTemplate("0xFFFFFFFFFFFFFFFF1", 0L));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
+            DiagnosticPhase.Parse,
+            "outside the supported range"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -399,9 +387,15 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     public void BinaryOverflow_TooLargeForLong()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            TestMethodTemplate("0b11111111111111111111111111111111111111111111111111111111111111111", 0L));
+            TestMethodTemplate("0b11111111111111111111111111111111111111111111111111111111111111111", 0L)
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
+            DiagnosticPhase.Parse,
+            "outside the supported range"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -410,7 +404,12 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     {
         var ex = Assert.Throws<MusoqQueryException>(() => TestMethodTemplate("0o7777777777777777777777", 0L));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ1009_NumericLiteralOutOfRange, DiagnosticPhase.Parse, "outside the supported range");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ1009_NumericLiteralOutOfRange,
+            DiagnosticPhase.Parse,
+            "outside the supported range"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -418,8 +417,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     public void MaximumValidValues_HexBinaryOctal()
     {
         TestMethodTemplate("0x7FFFFFFFFFFFFFFF", 9223372036854775807L);
-        TestMethodTemplate("0b111111111111111111111111111111111111111111111111111111111111111",
-            9223372036854775807L);
+        TestMethodTemplate("0b111111111111111111111111111111111111111111111111111111111111111", 9223372036854775807L);
         TestMethodTemplate("0o777777777777777777777", 9223372036854775807L);
     }
 
@@ -445,13 +443,11 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o1", 1L);
     }
 
-
     [TestMethod]
     public void MinimumValidValues_HexBinaryOctal()
     {
         TestMethodTemplate("0x8000000000000000", -9223372036854775808L);
-        TestMethodTemplate("0b1000000000000000000000000000000000000000000000000000000000000000",
-            -9223372036854775808L);
+        TestMethodTemplate("0b1000000000000000000000000000000000000000000000000000000000000000", -9223372036854775808L);
         TestMethodTemplate("0o1000000000000000000000", -9223372036854775808L);
     }
 
@@ -462,10 +458,8 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0xFFFFFFFFFFFFFFFE", -2L);
         TestMethodTemplate("0x8000000000000001", -9223372036854775807L);
 
-
         TestMethodTemplate("0b1111111111111111111111111111111111111111111111111111111111111111", -1L);
         TestMethodTemplate("0b1111111111111111111111111111111111111111111111111111111111111110", -2L);
-
 
         TestMethodTemplate("0o1777777777777777777777", -1L);
         TestMethodTemplate("0o1777777777777777777776", -2L);
@@ -495,11 +489,9 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0b10000000000000000000000000000000", 2147483648L);
         TestMethodTemplate("0o20000000000", 2147483648L);
 
-
         TestMethodTemplate("0xFFFFFFFF", 4294967295L);
         TestMethodTemplate("0b11111111111111111111111111111111", 4294967295L);
         TestMethodTemplate("0o37777777777", 4294967295L);
-
 
         TestMethodTemplate("0x8000000000000000", -9223372036854775808L);
         TestMethodTemplate("0xFFFFFFFFFFFFFFFF", -1L);

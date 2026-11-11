@@ -14,12 +14,14 @@ public sealed class SingleUsePipelineFusionPassTests
         var table = new ExecutionVariable("result", typeof(object));
         var candidate = new ExecutionSingleUsePipelineFusionCandidate(
             4,
-            new ExecutionBlock([new ExecutionReturnTable(table)]));
+            new ExecutionBlock([new ExecutionReturnTable(table)])
+        );
         var plan = new ExecutionPlan("compiled", [], new ExecutionBlock([candidate]));
 
         var result = new SingleUsePipelineFusionPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
         Assert.IsTrue(result.IsChanged);
         Assert.HasCount(3, result.Plan.Body.Nodes);
@@ -38,11 +40,13 @@ public sealed class SingleUsePipelineFusionPassTests
         var plan = new ExecutionPlan(
             "compiled",
             [],
-            new ExecutionBlock([new ExecutionReturnTable(new ExecutionVariable("result", typeof(object)))]));
+            new ExecutionBlock([new ExecutionReturnTable(new ExecutionVariable("result", typeof(object)))])
+        );
 
         var result = new SingleUsePipelineFusionPass().Optimize(
             plan,
-            new OptimizationContext(OptimizationStage.ExecutionIrOptimization));
+            new OptimizationContext(OptimizationStage.ExecutionIrOptimization)
+        );
 
         Assert.IsFalse(result.IsChanged);
         Assert.AreSame(plan, result.Plan);

@@ -89,8 +89,7 @@ public class HashOptionalSchemaParserEdgeCaseTests
     [TestMethod]
     public void HashOptional_DescWithCouple_ShouldParse()
     {
-        var query =
-            "table T { Id: int }; couple schema.method with table T as Source; select Id from Source()";
+        var query = "table T { Id: int }; couple schema.method with table T as Source; select Id from Source()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
@@ -100,7 +99,8 @@ public class HashOptionalSchemaParserEdgeCaseTests
     [TestMethod]
     public void HashOptional_CteWithCrossApply_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             with p as (select Text from schema.first())
             select b.Value from p a cross apply a.Split(a.Text, ' ') b";
         var lexer = new Lexer(query, true);
@@ -133,7 +133,8 @@ public class HashOptionalSchemaParserEdgeCaseTests
     [TestMethod]
     public void HashOptional_NestedCteWithSetOperator_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             with
                 cte1 as (select Name from schema.first()),
                 cte2 as (select Name from schema.second()),
@@ -359,7 +360,8 @@ public class HashOptionalSchemaParserEdgeCaseTests
     [TestMethod]
     public void HashOptional_ThreeWayJoin_ShouldParse()
     {
-        var query = @"
+        var query =
+            @"
             select a.Col, b.Col, c.Col
             from schemaA.first() a
             inner join schemaB.second() b on a.Id = b.Id

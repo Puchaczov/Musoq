@@ -18,22 +18,33 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_ZeroLengthString_ShouldReturnEmpty()
     {
-        var query = @"
-            binary Rec {
-                Tag: byte,
-                Name: string[0] utf8
-            };
-            select r.Tag, r.Name
-            from #test.files() f
-            cross apply Interpret<Rec>(f.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Tag: byte,\n"
+            + "                Name: string[0] utf8\n"
+            + "            };\n"
+            + "            select r.Tag, r.Name\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Rec>(f.Content) r"
+        );
 
         var data = new byte[] { 0x42 };
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -47,21 +58,32 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_AllWhitespaceStringTrimmed_ShouldBeEmpty()
     {
-        var query = @"
-            binary Rec {
-                Name: string[8] utf8 trim
-            };
-            select r.Name
-            from #test.files() f
-            cross apply Interpret<Rec>(f.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Name: string[8] utf8 trim\n"
+            + "            };\n"
+            + "            select r.Name\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Rec>(f.Content) r"
+        );
 
         var data = "        "u8.ToArray(); // 8 spaces
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -74,21 +96,32 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_AllNullsNullterm_ShouldReturnEmpty()
     {
-        var query = @"
-            binary Rec {
-                Name: string[8] utf8 nullterm
-            };
-            select r.Name
-            from #test.files() f
-            cross apply Interpret<Rec>(f.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Name: string[8] utf8 nullterm\n"
+            + "            };\n"
+            + "            select r.Name\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Rec>(f.Content) r"
+        );
 
         var data = new byte[8]; // all zeros
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -101,26 +134,37 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_StringSizeByExpression_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Rec {
-                Len: byte,
-                Name: string[Len * 2] utf8
-            };
-            select r.Len, r.Name
-            from #test.files() f
-            cross apply Interpret<Rec>(f.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Len: byte,\n"
+            + "                Name: string[Len * 2] utf8\n"
+            + "            };\n"
+            + "            select r.Len, r.Name\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Rec>(f.Content) r"
+        );
 
         using var ms = new MemoryStream();
         ms.WriteByte(3); // Len=3 → string size = 6
         ms.Write("Hello!"u8.ToArray()); // 6 bytes
         var data = ms.ToArray();
 
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -134,21 +178,32 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_RtrimPreservesLeadingWhitespace()
     {
-        var query = @"
-            binary Rec {
-                Name: string[10] utf8 rtrim
-            };
-            select r.Name
-            from #test.files() f
-            cross apply Interpret<Rec>(f.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Name: string[10] utf8 rtrim\n"
+            + "            };\n"
+            + "            select r.Name\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Rec>(f.Content) r"
+        );
 
         var data = "  Hello   "u8.ToArray(); // 10 bytes: 2 leading + "Hello" + 3 trailing
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -161,21 +216,32 @@ public partial class StressTestsRound2InterpretationSchemasTests
     [TestMethod]
     public void R2_Binary_LtrimPreservesTrailingWhitespace()
     {
-        var query = @"
-            binary Rec {
-                Name: string[10] utf8 ltrim
-            };
-            select r.Name
-            from #test.files() f
-            cross apply Interpret<Rec>(f.Content) r";
+        var query = (
+            "\n"
+            + "            binary Rec {\n"
+            + "                Name: string[10] utf8 ltrim\n"
+            + "            };\n"
+            + "            select r.Name\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Rec>(f.Content) r"
+        );
 
         var data = "  Hello   "u8.ToArray(); // 10 bytes
-        var entities = new[] { new BinaryEntity { Name = "a.bin", Content = data } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "a.bin", Content = data },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            schemaProvider, LoggerResolver, TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

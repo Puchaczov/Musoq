@@ -19,7 +19,8 @@ public sealed record ExecutionWindowAggregateKernel : ExecutionNode
         ExecutionWindowKeyArray? orderKeyArray = null,
         ExecutionWindowPartitionSet? partitions = null,
         ExecutionWindowPartitionSet? sortedPartitions = null,
-        IReadOnlyList<ExecutionVariable>? methodTargets = null)
+        IReadOnlyList<ExecutionVariable>? methodTargets = null
+    )
     {
         Buffer = buffer;
         Item = item;
@@ -39,6 +40,7 @@ public sealed record ExecutionWindowAggregateKernel : ExecutionNode
     }
 
     public ExecutionVariable Buffer { get; init; }
+
     /// <summary>Gets the planner-selected integer ordering strategy.</summary>
     public bool UseIntegerOrderIndex { get; init; }
 

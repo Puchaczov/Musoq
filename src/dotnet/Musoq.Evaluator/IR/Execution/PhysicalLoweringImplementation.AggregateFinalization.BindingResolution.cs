@@ -11,38 +11,46 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static LoweringAttempt<ExecutionExpression> CreateAggregateFinalCall(
         string? identifier,
-        AggregateFinalizationContext context)
+        AggregateFinalizationContext context
+    )
     {
         return TryResolveAggregateBinding(identifier, context.BindingsByIdentifier, out var binding)
             ? CreateAggregateFinalCall(binding, context)
             : LoweringAttempt<ExecutionExpression>.Unsupported(
-                $"Execution IR {context.AggregateKind} final expression lowering cannot bind aggregate reference '{identifier}'.");
+                $"Execution IR {context.AggregateKind} final expression lowering cannot bind aggregate reference '{identifier}'."
+            );
     }
 
     private static LoweringAttempt<ExecutionExpression> CreateAggregateFinalCall(
         AggregateBinding binding,
-        AggregateFinalizationContext context)
+        AggregateFinalizationContext context
+    )
     {
-        var arguments = ConvertAggregateArguments(binding.GetArguments, new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase));
+        var arguments = ConvertAggregateArguments(
+            binding.GetArguments,
+            new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase)
+        );
         var accumulator = TryResolveTypedAggregateFinalAccumulator(binding, context.TypedAccumulators);
         if (accumulator == null)
         {
             return LoweringAttempt<ExecutionExpression>.Unsupported(
-                $"Execution IR {context.AggregateKind} final expression lowering requires typed aggregate kernel metadata for aggregate '{binding.Identifier}'.");
+                $"Execution IR {context.AggregateKind} final expression lowering requires typed aggregate kernel metadata for aggregate '{binding.Identifier}'."
+            );
         }
 
-        return LoweringAttempt<ExecutionExpression>.Built(new ExecutionAggregateCall(
-            context.Group,
-            binding.GetMethod,
-            arguments,
-            binding.GetMethod.ReturnType,
-            accumulator,
-            binding.DisplayName));
+        return LoweringAttempt<ExecutionExpression>.Built(
+            new ExecutionAggregateCall(
+                context.Group,
+                binding.GetMethod,
+                arguments,
+                binding.GetMethod.ReturnType,
+                accumulator,
+                binding.DisplayName
+            )
+        );
     }
 
-    private static int? TryGetGroupKeyExpressionIndex(
-        IrExpression expression,
-        AggregateFinalizationGroupKeys groupKeys)
+    private static int? TryGetGroupKeyExpressionIndex(IrExpression expression, AggregateFinalizationGroupKeys groupKeys)
     {
         for (var index = 0; index < groupKeys.Names.Count; index++)
         {
@@ -62,9 +70,21 @@ internal sealed partial class PhysicalLoweringImplementation
             return true;
 
         var normalizedExpression = AggregateRefRewriter.NormalizeIdentifier(expressionText);
-        if (!string.IsNullOrWhiteSpace(normalizedExpression) &&
-            (string.Equals(normalizedExpression, AggregateRefRewriter.NormalizeIdentifier(groupKeyText), StringComparison.Ordinal) ||
-             string.Equals(normalizedExpression, AggregateRefRewriter.NormalizeIdentifier(groupKeyName), StringComparison.Ordinal)))
+        if (
+            !string.IsNullOrWhiteSpace(normalizedExpression)
+            && (
+                string.Equals(
+                    normalizedExpression,
+                    AggregateRefRewriter.NormalizeIdentifier(groupKeyText),
+                    StringComparison.Ordinal
+                )
+                || string.Equals(
+                    normalizedExpression,
+                    AggregateRefRewriter.NormalizeIdentifier(groupKeyName),
+                    StringComparison.Ordinal
+                )
+            )
+        )
         {
             return true;
         }
@@ -78,9 +98,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return string.Equals($"{columnRef.Alias}.{columnRef.ColumnName}", groupKeyName, StringComparison.Ordinal);
     }
 
-    private static ProjectedField[]? SelectAggregateOutputFields(
-        ProjectedField[] fields,
-        AggregateBinding[] bindings)
+    private static ProjectedField[]? SelectAggregateOutputFields(ProjectedField[] fields, AggregateBinding[] bindings)
     {
         if (fields.Length == bindings.Length)
             return NormalizeProjectedFieldIndexes(fields);
@@ -93,12 +111,12 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static ProjectedField[] NormalizeProjectedFieldIndexes(ProjectedField[] fields)
     {
-        return fields
-            .Select((field, index) => field with { OutputIndex = index })
-            .ToArray();
+        return fields.Select((field, index) => field with { OutputIndex = index }).ToArray();
     }
 
-    private static Dictionary<string, AggregateBinding> CreateAggregateBindingsMap(IReadOnlyList<AggregateBinding> bindings)
+    private static Dictionary<string, AggregateBinding> CreateAggregateBindingsMap(
+        IReadOnlyList<AggregateBinding> bindings
+    )
     {
         var bindingsByIdentifier = new Dictionary<string, AggregateBinding>(StringComparer.OrdinalIgnoreCase);
         var ambiguousKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -106,9 +124,19 @@ internal sealed partial class PhysicalLoweringImplementation
         foreach (var binding in bindings)
         {
             AddAggregateBindingKey(bindingsByIdentifier, ambiguousKeys, binding.Identifier, binding);
-            AddAggregateBindingKey(bindingsByIdentifier, ambiguousKeys, AggregateRefRewriter.NormalizeIdentifier(binding.Identifier), binding);
+            AddAggregateBindingKey(
+                bindingsByIdentifier,
+                ambiguousKeys,
+                AggregateRefRewriter.NormalizeIdentifier(binding.Identifier),
+                binding
+            );
             AddAggregateBindingKey(bindingsByIdentifier, ambiguousKeys, binding.ColumnName, binding);
-            AddAggregateBindingKey(bindingsByIdentifier, ambiguousKeys, AggregateRefRewriter.NormalizeIdentifier(binding.ColumnName), binding);
+            AddAggregateBindingKey(
+                bindingsByIdentifier,
+                ambiguousKeys,
+                AggregateRefRewriter.NormalizeIdentifier(binding.ColumnName),
+                binding
+            );
         }
 
         return bindingsByIdentifier;
@@ -118,7 +146,8 @@ internal sealed partial class PhysicalLoweringImplementation
         Dictionary<string, AggregateBinding> bindingsByIdentifier,
         HashSet<string> ambiguousKeys,
         string? key,
-        AggregateBinding binding)
+        AggregateBinding binding
+    )
     {
         if (string.IsNullOrWhiteSpace(key) || ambiguousKeys.Contains(key))
             return;
@@ -140,7 +169,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IrExpression expression,
         IReadOnlyList<AggregateBinding> bindings,
         IReadOnlyDictionary<string, AggregateBinding> bindingsByIdentifier,
-        out AggregateBinding binding)
+        out AggregateBinding binding
+    )
     {
         binding = null!;
         if (bindings.Count == 0)
@@ -158,8 +188,10 @@ internal sealed partial class PhysicalLoweringImplementation
                     return true;
 
                 var identifier = AggregateRefRewriter.ExtractIdentifier(methodCall);
-                if (!string.Equals(identifier, rawIdentifier, StringComparison.OrdinalIgnoreCase) &&
-                    TryResolveAggregateBinding(identifier, bindingsByIdentifier, out binding))
+                if (
+                    !string.Equals(identifier, rawIdentifier, StringComparison.OrdinalIgnoreCase)
+                    && TryResolveAggregateBinding(identifier, bindingsByIdentifier, out binding)
+                )
                 {
                     return true;
                 }
@@ -197,8 +229,10 @@ internal sealed partial class PhysicalLoweringImplementation
         if (string.IsNullOrWhiteSpace(identifier))
             return false;
 
-        if (MatchesAggregateBindingIdentifier(identifier, binding.Identifier) ||
-            MatchesAggregateBindingIdentifier(identifier, binding.ColumnName))
+        if (
+            MatchesAggregateBindingIdentifier(identifier, binding.Identifier)
+            || MatchesAggregateBindingIdentifier(identifier, binding.ColumnName)
+        )
         {
             return true;
         }
@@ -211,15 +245,16 @@ internal sealed partial class PhysicalLoweringImplementation
         var normalizedIdentifier = AggregateRefRewriter.NormalizeIdentifier(identifier);
         var normalizedBindingIdentifier = AggregateRefRewriter.NormalizeIdentifier(bindingIdentifier);
 
-        return !string.IsNullOrWhiteSpace(normalizedIdentifier) &&
-               !string.IsNullOrWhiteSpace(normalizedBindingIdentifier) &&
-               string.Equals(normalizedIdentifier, normalizedBindingIdentifier, StringComparison.OrdinalIgnoreCase);
+        return !string.IsNullOrWhiteSpace(normalizedIdentifier)
+            && !string.IsNullOrWhiteSpace(normalizedBindingIdentifier)
+            && string.Equals(normalizedIdentifier, normalizedBindingIdentifier, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool TryResolveAggregateBinding(
         string? identifier,
         IReadOnlyDictionary<string, AggregateBinding> bindingsByIdentifier,
-        out AggregateBinding binding)
+        out AggregateBinding binding
+    )
     {
         if (!string.IsNullOrWhiteSpace(identifier) && bindingsByIdentifier.TryGetValue(identifier, out binding!))
             return true;

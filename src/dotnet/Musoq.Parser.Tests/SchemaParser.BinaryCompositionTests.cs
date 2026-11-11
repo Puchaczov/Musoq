@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Parser.Nodes.InterpretationSchema;
-using Musoq.Parser.Exceptions;
 using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Parser.Tests;
 
@@ -21,7 +21,9 @@ public sealed class BinaryCompositionParserTests : SchemaParserTestsBase
     [TestMethod]
     public void GroupedRepeat_ShouldBindArrayElementsAndPreserveFollowingFields()
     {
-        var schema = ParseBinarySchema("binary Rec { Count: byte, Copy: (Count + 1), Items: (byte repeat until Items[-1] = 0)[2], Tail: byte }");
+        var schema = ParseBinarySchema(
+            "binary Rec { Count: byte, Copy: (Count + 1), Items: (byte repeat until Items[-1] = 0)[2], Tail: byte }"
+        );
         Assert.IsInstanceOfType<ComputedFieldNode>(schema.Fields[1]);
         var array = Assert.IsInstanceOfType<ArrayTypeNode>(((FieldDefinitionNode)schema.Fields[2]).TypeAnnotation);
         Assert.AreEqual("Items", Assert.IsInstanceOfType<RepeatUntilTypeNode>(array.ElementType).FieldName);
@@ -34,7 +36,9 @@ public sealed class BinaryCompositionParserTests : SchemaParserTestsBase
     [DataRow("align[8] repeat until eof")]
     public void InvalidValueContexts_ShouldFailBeforeInterpretation(string type)
     {
-        var failure = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema($"binary Rec {{ Kind: byte, Items: {type} }}"));
+        var failure = Assert.ThrowsExactly<SyntaxException>(() =>
+            ParseBinarySchema($"binary Rec {{ Kind: byte, Items: {type} }}")
+        );
         Assert.AreEqual(DiagnosticCode.MQ4001_InvalidBinarySchemaField, failure.Code);
     }
 }

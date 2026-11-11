@@ -23,10 +23,14 @@ internal sealed record TargetRenderInputCompilerState
         Scope scope,
         IEnumerable<ScriptParameterDefinition>? scriptParameterDefinitions,
         IEnumerable<ScriptVariableDefinition>? scriptVariableDefinitions,
-        IEnumerable<Assembly>? referenceAssemblies)
+        IEnumerable<Assembly>? referenceAssemblies
+    )
     {
         CompilationUnitName = string.IsNullOrWhiteSpace(compilationUnitName)
-            ? throw new ArgumentException("Compilation unit name cannot be null or whitespace.", nameof(compilationUnitName))
+            ? throw new ArgumentException(
+                "Compilation unit name cannot be null or whitespace.",
+                nameof(compilationUnitName)
+            )
             : compilationUnitName;
         OutputType = outputType;
         _additionalReferenceTypes = Freeze(additionalReferenceTypes);

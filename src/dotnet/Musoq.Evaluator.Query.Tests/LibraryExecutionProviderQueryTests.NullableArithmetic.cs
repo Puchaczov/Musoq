@@ -1,7 +1,6 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionProviderQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -27,8 +26,9 @@ public sealed partial class LibraryExecutionProviderQueryTests
     [TestMethod]
     public void NullableCase_WhenOneBranchReadsANullValue_ShouldKeepItsNullableResult()
     {
-        const string query = "select Position, case when Position = 1 then 35 else Value end as Result " +
-            "from #schema.first() order by Position";
+        const string query =
+            "select Position, case when Position = 1 then 35 else Value end as Result "
+            + "from #schema.first() order by Position";
         NullableArithmeticInput[] input = [new(1, null), new(2, null), new(3, 42)];
         using var compiled = CreateAndRunVirtualMachine<NullableArithmeticInput, LibraryBase>(query, input);
         using var table = compiled.Run(TestContext.CancellationToken);
@@ -42,14 +42,20 @@ public sealed partial class LibraryExecutionProviderQueryTests
     [TestMethod]
     public void NullableConversions_WhenUsedInArithmetic_ShouldPreserveNullAndConcreteResultTypes()
     {
-        const string query = "select Position, FromHex(Text) + 1 as Integral, ToFloat(Text) * 2 as Floating, " +
-            "ToDouble(Text) + 1 as DoubleValue from #schema.first() order by Position";
+        const string query =
+            "select Position, FromHex(Text) + 1 as Integral, ToFloat(Text) * 2 as Floating, "
+            + "ToDouble(Text) + 1 as DoubleValue from #schema.first() order by Position";
         NullableConversionInput[] input = [new(1, "10"), new(2, null)];
         using var compiled = CreateAndRunVirtualMachine<NullableConversionInput, LibraryBase>(query, input);
         using var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
-        TableMaterializationTestHelper.AssertColumns(table, ("Position", typeof(int)), ("Integral", typeof(long?)),
-            ("Floating", typeof(float?)), ("DoubleValue", typeof(double?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Position", typeof(int)),
+            ("Integral", typeof(long?)),
+            ("Floating", typeof(float?)),
+            ("DoubleValue", typeof(double?))
+        );
         Assert.HasCount(2, rows);
         CollectionAssert.AreEqual(new[] { 1, 2 }, rows.Select(row => row.GetValue<int>(0)).ToArray());
         CollectionAssert.AreEqual(new long?[] { 17, null }, rows.Select(row => row.GetValue<long?>(1)).ToArray());

@@ -29,7 +29,10 @@ public interface ICompiledTypedQueryArtifact
 
     IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; }
 
-    IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; }
+    IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId { get; }
 
     IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; }
 

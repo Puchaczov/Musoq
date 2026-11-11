@@ -33,17 +33,19 @@ public class BugProbeExtendsFieldCollisionTests
     [TestMethod]
     public void Binary_ExtendsWithOverriddenField_ShouldUseChildVersion()
     {
-        var query = @"
-            binary Base {
-                Version: int le,
-                Tag: byte
-            };
-            binary Extended extends Base {
-                Version: int le,
-                Extra: int le
-            };
-            select e.Version, e.Tag, e.Extra from #test.files() b
-            cross apply Interpret<Extended>(b.Content) e";
+        var query = (
+            "\n"
+            + "            binary Base {\n"
+            + "                Version: int le,\n"
+            + "                Tag: byte\n"
+            + "            };\n"
+            + "            binary Extended extends Base {\n"
+            + "                Version: int le,\n"
+            + "                Extra: int le\n"
+            + "            };\n"
+            + "            select e.Version, e.Tag, e.Extra from #test.files() b\n"
+            + "            cross apply Interpret<Extended>(b.Content) e"
+        );
 
         // With field override, child's Version replaces parent's Version at the same position.
         // Data layout: [Version: int le][Tag: byte][Extra: int le]
@@ -55,12 +57,21 @@ public class BugProbeExtendsFieldCollisionTests
         bw.Flush();
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -77,18 +88,20 @@ public class BugProbeExtendsFieldCollisionTests
     [TestMethod]
     public void Binary_ExtendsWithMultipleOverriddenFields_ShouldCompile()
     {
-        var query = @"
-            binary Header {
-                Magic: int le,
-                Flags: byte
-            };
-            binary DetailedHeader extends Header {
-                Magic: int le,
-                Flags: byte,
-                Length: int le
-            };
-            select d.Magic, d.Flags, d.Length from #test.files() b
-            cross apply Interpret<DetailedHeader>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Magic: int le,\n"
+            + "                Flags: byte\n"
+            + "            };\n"
+            + "            binary DetailedHeader extends Header {\n"
+            + "                Magic: int le,\n"
+            + "                Flags: byte,\n"
+            + "                Length: int le\n"
+            + "            };\n"
+            + "            select d.Magic, d.Flags, d.Length from #test.files() b\n"
+            + "            cross apply Interpret<DetailedHeader>(b.Content) d"
+        );
 
         // With field override, both Magic and Flags replace parent's at same position.
         // Data layout: [Magic: int le][Flags: byte][Length: int le]
@@ -100,12 +113,21 @@ public class BugProbeExtendsFieldCollisionTests
         bw.Flush();
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

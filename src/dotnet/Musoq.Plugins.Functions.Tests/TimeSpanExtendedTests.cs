@@ -44,10 +44,7 @@ public class TimeSpanExtendedTests : PluginsTestBase
     [TestMethod]
     public void AddTimeSpans_MultipleValues_ReturnsSum()
     {
-        var result = Library.AddTimeSpans(
-            TimeSpan.FromHours(1),
-            TimeSpan.FromMinutes(30),
-            TimeSpan.FromSeconds(45));
+        var result = Library.AddTimeSpans(TimeSpan.FromHours(1), TimeSpan.FromMinutes(30), TimeSpan.FromSeconds(45));
         Assert.AreEqual(TimeSpan.FromHours(1) + TimeSpan.FromMinutes(30) + TimeSpan.FromSeconds(45), result);
     }
 

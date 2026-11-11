@@ -8,10 +8,11 @@ internal static class GeneratedCodeSnapshotText
 {
     private static readonly Regex GeneratedNamespace = new(
         @"(?m)^namespace (?!Musoq\.Generated\.Interpreters\b)[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*",
-        RegexOptions.Compiled);
+        RegexOptions.Compiled
+    );
 
-    public static string SamplesDirectory => Path.Combine(
-        RepositorySourceScan.RepositoryRoot(), "src", "dotnet", "generated-code-samples", "current");
+    public static string SamplesDirectory =>
+        Path.Combine(RepositorySourceScan.RepositoryRoot(), "src", "dotnet", "generated-code-samples", "current");
 
     public static string NormalizeForComparison(string text)
     {

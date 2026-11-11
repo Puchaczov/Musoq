@@ -28,7 +28,8 @@ public partial class Parser
                 "Set operator key list has a leading comma. Add a key before the comma or remove it.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2015_LeadingComma,
-                Current.Span);
+                Current.Span
+            );
 
         var firstKey = ParsePotentiallyDottedName();
         keys.Add(firstKey.Value);
@@ -41,7 +42,8 @@ public partial class Parser
                     "Set operator key list has a trailing comma. Add another key or remove the comma.",
                     _lexer.AlreadyResolvedQueryPart,
                     DiagnosticCode.MQ2014_TrailingComma,
-                    Current.Span);
+                    Current.Span
+                );
 
             var key = ParsePotentiallyDottedName();
             keys.Add(key.Value);

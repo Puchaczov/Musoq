@@ -16,21 +16,25 @@ public partial class BuildMetadataAndInferTypesVisitor
         return _diagnosticReporter.TryReportTypeMismatch(message, node);
     }
 
-    private void ThrowOrReportInvalidOperandTypes(Type leftType, Type rightType, Node errorContextNode,
-        string? message = null)
+    private void ThrowOrReportInvalidOperandTypes(
+        Type leftType,
+        Type rightType,
+        Node errorContextNode,
+        string? message = null
+    )
     {
         if (DiagnosticContext != null)
         {
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3007_InvalidOperandTypes,
                 message ?? $"Invalid operand types for operator: '{leftType.Name}' and '{rightType.Name}'.",
-                errorContextNode);
+                errorContextNode
+            );
             return;
         }
 
         throw new InvalidOperandTypesException(leftType, rightType);
     }
-
 
     /// <summary>
     ///     Reports an unknown column error. If diagnostics are enabled, records the error and returns true.
@@ -48,15 +52,16 @@ public partial class BuildMetadataAndInferTypesVisitor
             return true;
         }
 
-
         var span = node.SpanOrEmpty();
         var availableList = availableColumns.ToArray();
         if (availableList.Length > 0)
         {
             var library = new TransitionLibrary();
             var candidates = availableList
-                .Where(col => library.Soundex(col) == library.Soundex(columnName) ||
-                              library.LevenshteinDistance(col, columnName) < 3)
+                .Where(col =>
+                    library.Soundex(col) == library.Soundex(columnName)
+                    || library.LevenshteinDistance(col, columnName) < 3
+                )
                 .ToArray();
 
             if (candidates.Length > 0)
@@ -64,7 +69,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     columnName,
                     $"Did you mean to use [{string.Join(", ", candidates)}]?",
                     span,
-                    candidates);
+                    candidates
+                );
         }
 
         throw new UnknownColumnOrAliasException(columnName, string.Empty, span);
@@ -82,12 +88,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         string propertyName,
         Type? objectType,
         Node? node,
-        string? accessContext = null)
+        string? accessContext = null
+    )
     {
         if (DiagnosticContext != null)
         {
-            if (node is { HasSpan: true } &&
-                DiagnosticContext.HasNearbyError(DiagnosticCode.MQ3028_UnknownProperty, node.Span))
+            if (
+                node is { HasSpan: true }
+                && DiagnosticContext.HasNearbyError(DiagnosticCode.MQ3028_UnknownProperty, node.Span)
+            )
                 return true;
 
             var availableProperties = objectType?.GetProperties().Select(static property => property.Name) ?? [];
@@ -96,7 +105,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                 availableProperties,
                 node,
                 objectType?.Name,
-                accessContext);
+                accessContext
+            );
             return true;
         }
 
@@ -105,7 +115,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             propertyName,
             objectType?.Name ?? "unknown",
             span,
-            objectType?.GetProperties().Select(static property => property.Name) ?? []);
+            objectType?.GetProperties().Select(static property => property.Name) ?? []
+        );
     }
 
     /// <summary>

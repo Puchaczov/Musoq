@@ -6,18 +6,12 @@ namespace Musoq.Schema.Exceptions;
 public class TableNotFoundException : Exception, IDiagnosticException
 {
     public TableNotFoundException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public TableNotFoundException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public TableNotFoundException()
-    {
-    }
+    public TableNotFoundException() { }
 
     public DiagnosticCode Code => DiagnosticCode.MQ3085_UnknownSource;
 

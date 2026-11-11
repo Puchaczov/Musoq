@@ -7,28 +7,34 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static ExpressionStatementSyntax CreateKeySetAddStatement(
-        string setVariableName,
-        string keyVariableName)
+    private static ExpressionStatementSyntax CreateKeySetAddStatement(string setVariableName, string keyVariableName)
     {
         return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(setVariableName),
-                        SyntaxFactory.IdentifierName(nameof(HashSet<object>.Add))))
-                .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(keyVariableName))));
+                        SyntaxFactory.IdentifierName(nameof(HashSet<object>.Add))
+                    )
+                )
+                .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(keyVariableName)))
+        );
     }
 
     private static InvocationExpressionSyntax CreateKeySetContainsExpression(
         string setVariableName,
-        string keyVariableName)
+        string keyVariableName
+    )
     {
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(setVariableName),
-                        SyntaxFactory.IdentifierName(nameof(HashSet<object>.Contains))))
+                    SyntaxFactory.IdentifierName(nameof(HashSet<object>.Contains))
+                )
+            )
             .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(keyVariableName)));
     }
 

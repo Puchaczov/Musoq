@@ -11,7 +11,8 @@ public partial class InterpreterCodeGenerator
         string localVar,
         RepeatUntilTypeNode repeatUntilType,
         string fieldName,
-        bool declareLocal = true)
+        bool declareLocal = true
+    )
     {
         return repeatUntilType.StopKind == RepeatUntilStopKind.EndOfInput
             ? GenerateRepeatUntilEofReadCode(localVar, repeatUntilType, fieldName, declareLocal)
@@ -22,7 +23,8 @@ public partial class InterpreterCodeGenerator
         string localVar,
         RepeatUntilTypeNode repeatUntilType,
         string fieldName,
-        bool declareLocal)
+        bool declareLocal
+    )
     {
         var builder = new StringBuilder();
         var elementTypeName = GetBinaryValueClrTypeName(fieldName, repeatUntilType.ElementType);
@@ -30,25 +32,23 @@ public partial class InterpreterCodeGenerator
         var lastElemVar = $"_{localVar}_lastElem";
         var iterationVar = $"_{localVar}_iteration";
 
-        builder.AppendLine(CultureInfo.InvariantCulture,
-            $"var {tempVar} = new System.Collections.Generic.List<{elementTypeName}>();");
+        builder.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"var {tempVar} = new System.Collections.Generic.List<{elementTypeName}>();"
+        );
         builder.AppendLine(CultureInfo.InvariantCulture, $"{elementTypeName} {lastElemVar};");
         builder.AppendLine(CultureInfo.InvariantCulture, $"var {iterationVar} = 0;");
         builder.AppendLine("do");
         builder.AppendLine("{");
-        builder.Append(StatusCheck($"base.CheckRepeatIterationStatus(\"{EscapeString(fieldName)}\", {iterationVar}++, {_maxRepeatIterations})"));
+        builder.Append(
+            StatusCheck(
+                $"base.CheckRepeatIterationStatus(\"{EscapeString(fieldName)}\", {iterationVar}++, {_maxRepeatIterations})"
+            )
+        );
 
-        AppendRepeatUntilElementRead(
-            builder,
-            repeatUntilType.ElementType,
-            fieldName,
-            tempVar,
-            lastElemVar);
+        AppendRepeatUntilElementRead(builder, repeatUntilType.ElementType, fieldName, tempVar, lastElemVar);
 
-        var conditionExpr = GenerateRepeatUntilCondition(
-            repeatUntilType,
-            lastElemVar,
-            tempVar);
+        var conditionExpr = GenerateRepeatUntilCondition(repeatUntilType, lastElemVar, tempVar);
         builder.AppendLine(CultureInfo.InvariantCulture, $"}} while (({conditionExpr}) != true);");
 
         AppendRepeatResultAssignment(builder, localVar, tempVar, declareLocal);
@@ -59,7 +59,8 @@ public partial class InterpreterCodeGenerator
         string localVar,
         RepeatUntilTypeNode repeatUntilType,
         string fieldName,
-        bool declareLocal)
+        bool declareLocal
+    )
     {
         var builder = new StringBuilder();
         var elementTypeName = GetBinaryValueClrTypeName(fieldName, repeatUntilType.ElementType);
@@ -69,24 +70,27 @@ public partial class InterpreterCodeGenerator
         var startBitVar = $"_{localVar}_startBit";
         var iterationVar = $"_{localVar}_iteration";
 
-        builder.AppendLine(CultureInfo.InvariantCulture,
-            $"var {tempVar} = new System.Collections.Generic.List<{elementTypeName}>();");
+        builder.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"var {tempVar} = new System.Collections.Generic.List<{elementTypeName}>();"
+        );
         builder.AppendLine(CultureInfo.InvariantCulture, $"{elementTypeName} {lastElemVar};");
         builder.AppendLine(CultureInfo.InvariantCulture, $"var {iterationVar} = 0;");
         builder.AppendLine("while (!IsAtEnd(data))");
         builder.AppendLine("{");
-        builder.Append(StatusCheck($"base.CheckRepeatIterationStatus(\"{EscapeString(fieldName)}\", {iterationVar}++, {_maxRepeatIterations})"));
+        builder.Append(
+            StatusCheck(
+                $"base.CheckRepeatIterationStatus(\"{EscapeString(fieldName)}\", {iterationVar}++, {_maxRepeatIterations})"
+            )
+        );
         builder.AppendLine(CultureInfo.InvariantCulture, $"    var {startPosVar} = ParsePosition;");
         builder.AppendLine(CultureInfo.InvariantCulture, $"    var {startBitVar} = BitOffset;");
 
-        AppendRepeatUntilElementRead(
-            builder,
-            repeatUntilType.ElementType,
-            fieldName,
-            tempVar,
-            lastElemVar);
+        AppendRepeatUntilElementRead(builder, repeatUntilType.ElementType, fieldName, tempVar, lastElemVar);
 
-        builder.Append(StatusCheck($"base.CheckRepeatProgressStatus(\"{EscapeString(fieldName)}\", {startPosVar}, {startBitVar})"));
+        builder.Append(
+            StatusCheck($"base.CheckRepeatProgressStatus(\"{EscapeString(fieldName)}\", {startPosVar}, {startBitVar})")
+        );
         builder.AppendLine("}");
 
         AppendRepeatResultAssignment(builder, localVar, tempVar, declareLocal);
@@ -97,7 +101,8 @@ public partial class InterpreterCodeGenerator
         StringBuilder builder,
         string localVar,
         string tempVar,
-        bool declareLocal)
+        bool declareLocal
+    )
     {
         var target = declareLocal ? $"var {localVar}" : localVar;
         builder.AppendLine(CultureInfo.InvariantCulture, $"{target} = {tempVar}.ToArray();");
@@ -108,7 +113,8 @@ public partial class InterpreterCodeGenerator
         TypeAnnotationNode elementType,
         string fieldName,
         string tempVar,
-        string lastElemVar)
+        string lastElemVar
+    )
     {
         var elementField = new FieldDefinitionNode(fieldName, elementType);
         var readCode = GenerateFieldReadCodeInner(elementField, lastElemVar);

@@ -8,9 +8,7 @@ namespace Musoq.Plugins;
 /// </summary>
 /// <param name="InputType">The metadata input type used for planning.</param>
 /// <param name="ArgumentTypes">The SQL/runtime argument types that formed the input value.</param>
-public sealed record AggregateInputShape(
-    Type InputType,
-    IReadOnlyList<Type> ArgumentTypes)
+public sealed record AggregateInputShape(Type InputType, IReadOnlyList<Type> ArgumentTypes)
 {
     /// <summary>Creates a shape for aggregates with one input argument.</summary>
     public static AggregateInputShape Single(Type inputType)
@@ -41,14 +39,12 @@ public sealed record AggregateInputShape(
             5 => CreateTuple(typeof(ValueTuple<,,,,>), arguments),
             6 => CreateTuple(typeof(ValueTuple<,,,,,>), arguments),
             7 => CreateTuple(typeof(ValueTuple<,,,,,,>), arguments),
-            _ => throw new NotSupportedException("Typed aggregate input shapes support up to seven input arguments.")
+            _ => throw new NotSupportedException("Typed aggregate input shapes support up to seven input arguments."),
         };
     }
 
     private static AggregateInputShape CreateTuple(Type tupleTypeDefinition, Type[] argumentTypes)
     {
-        return new AggregateInputShape(
-            tupleTypeDefinition.MakeGenericType(argumentTypes),
-            argumentTypes);
+        return new AggregateInputShape(tupleTypeDefinition.MakeGenericType(argumentTypes), argumentTypes);
     }
 }

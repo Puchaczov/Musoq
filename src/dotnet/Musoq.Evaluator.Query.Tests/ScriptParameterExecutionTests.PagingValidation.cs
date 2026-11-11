@@ -23,8 +23,15 @@ public partial class ScriptParameterExecutionTests
     public void Paging_InvalidCountDeclaration_ShouldReportBindingDiagnostic(string declaration)
     {
         var sql = $"{declaration} select Key from #EnvironmentVariables.All() take $count";
-        var result = InstanceCreator.CompileWithDiagnostics(sql, Guid.NewGuid().ToString(), new EnvironmentVariablesSchemaProvider(), LoggerResolver);
-        var diagnostic = result.ToEnvelopes().First(envelope => envelope.Code == DiagnosticCode.MQ3118_InvalidPagingCount);
+        var result = InstanceCreator.CompileWithDiagnostics(
+            sql,
+            Guid.NewGuid().ToString(),
+            new EnvironmentVariablesSchemaProvider(),
+            LoggerResolver
+        );
+        var diagnostic = result
+            .ToEnvelopes()
+            .First(envelope => envelope.Code == DiagnosticCode.MQ3118_InvalidPagingCount);
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         StringAssert.Contains(diagnostic.Message, "TAKE count '$count'");
         Assert.IsNotEmpty(diagnostic.SuggestedFixes);
@@ -37,7 +44,10 @@ public partial class ScriptParameterExecutionTests
     public void Paging_InvalidRuntimeCount_ShouldFailBeforeOpeningSource(string paging)
     {
         var provider = new ParameterizedEnvironmentSchemaProvider();
-        using var query = CompileWithProvider($"param(count: int = -1) select Key from #Parameterized.Items() {paging}", provider);
+        using var query = CompileWithProvider(
+            $"param(count: int = -1) select Key from #Parameterized.Items() {paging}",
+            provider
+        );
         Assert.ThrowsExactly<PagingCountException>(() => _ = query.Run(TestContext.CancellationToken).Count);
         Assert.AreEqual(0, provider.OpenCount);
     }
@@ -46,8 +56,13 @@ public partial class ScriptParameterExecutionTests
     public void Paging_MissingParameter_ShouldPreserveBindingErrorBeforeOpeningSource()
     {
         var provider = new ParameterizedEnvironmentSchemaProvider();
-        using var query = CompileWithProvider("param(count: int) select Key from #Parameterized.Items() take $count", provider);
-        var exception = Assert.Throws<QueryExecutionException>(() => _ = query.Run(TestContext.CancellationToken).Count);
+        using var query = CompileWithProvider(
+            "param(count: int) select Key from #Parameterized.Items() take $count",
+            provider
+        );
+        var exception = Assert.Throws<QueryExecutionException>(() =>
+            _ = query.Run(TestContext.CancellationToken).Count
+        );
         Assert.AreEqual(DiagnosticCode.MQ7003_RequiredScriptParameterMissing, exception.Envelope!.Code);
         Assert.AreEqual(0, provider.OpenCount);
     }
@@ -55,15 +70,26 @@ public partial class ScriptParameterExecutionTests
     [TestMethod]
     public void Paging_UndeclaredReference_ShouldPreserveDeclarationDiagnostic()
     {
-        var result = InstanceCreator.CompileWithDiagnostics("select Key from #EnvironmentVariables.All() take $missing", Guid.NewGuid().ToString(), new EnvironmentVariablesSchemaProvider(), LoggerResolver);
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select Key from #EnvironmentVariables.All() take $missing",
+            Guid.NewGuid().ToString(),
+            new EnvironmentVariablesSchemaProvider(),
+            LoggerResolver
+        );
         Assert.AreEqual(DiagnosticCode.MQ3059_UndeclaredScriptParameter, result.ToEnvelopes().First().Code);
     }
+
     [TestMethod]
     [DataRow("take 2147483648L")]
     [DataRow("skip 18446744073709551615UL")]
     public void Paging_OversizedLiteral_ShouldReportBindingErrorInsteadOfWrapping(string paging)
     {
-        var result = InstanceCreator.CompileWithDiagnostics($"select Key from #EnvironmentVariables.All() {paging}", Guid.NewGuid().ToString(), new EnvironmentVariablesSchemaProvider(), LoggerResolver);
+        var result = InstanceCreator.CompileWithDiagnostics(
+            $"select Key from #EnvironmentVariables.All() {paging}",
+            Guid.NewGuid().ToString(),
+            new EnvironmentVariablesSchemaProvider(),
+            LoggerResolver
+        );
         Assert.AreEqual(DiagnosticCode.MQ3118_InvalidPagingCount, result.ToEnvelopes().First().Code);
     }
 }

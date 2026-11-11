@@ -11,22 +11,25 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionExpression key,
         Type keyType,
         string keyVariableName,
-        Func<string, StatementSyntax> createAddStatement)
+        Func<string, StatementSyntax> createAddStatement
+    )
     {
-        if (key is ExecutionValueTupleKey valueTupleKey &&
-            HasNullableValueTuplePart(valueTupleKey))
+        if (key is ExecutionValueTupleKey valueTupleKey && HasNullableValueTuplePart(valueTupleKey))
         {
             statements.AddRange(CreateValueTupleKeyPartDeclarations(valueTupleKey));
-            statements.Add(SyntaxFactory.IfStatement(
-                CreateAllValueTuplePartsNotNullCondition(valueTupleKey),
-                StatementEmitter.CreateBlock(CreateValueTupleKeyLocalDeclaration(valueTupleKey, keyVariableName), createAddStatement(keyVariableName))));
+            statements.Add(
+                SyntaxFactory.IfStatement(
+                    CreateAllValueTuplePartsNotNullCondition(valueTupleKey),
+                    StatementEmitter.CreateBlock(
+                        CreateValueTupleKeyLocalDeclaration(valueTupleKey, keyVariableName),
+                        createAddStatement(keyVariableName)
+                    )
+                )
+            );
             return;
         }
 
-        statements.Add(CreateLocalDeclaration(
-            CreateHashKeyLocalType(keyType),
-            keyVariableName,
-            RenderExpression(key)));
+        statements.Add(CreateLocalDeclaration(CreateHashKeyLocalType(keyType), keyVariableName, RenderExpression(key)));
 
         if (!CanBeNull(keyType))
         {
@@ -34,11 +37,15 @@ public sealed partial class ExecutionCSharpRenderer
             return;
         }
 
-        statements.Add(SyntaxFactory.IfStatement(
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.NotEqualsExpression,
-                SyntaxFactory.IdentifierName(keyVariableName),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
-            StatementEmitter.CreateBlock(createAddStatement(keyVariableName))));
+        statements.Add(
+            SyntaxFactory.IfStatement(
+                SyntaxFactory.BinaryExpression(
+                    SyntaxKind.NotEqualsExpression,
+                    SyntaxFactory.IdentifierName(keyVariableName),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                ),
+                StatementEmitter.CreateBlock(createAddStatement(keyVariableName))
+            )
+        );
     }
 }

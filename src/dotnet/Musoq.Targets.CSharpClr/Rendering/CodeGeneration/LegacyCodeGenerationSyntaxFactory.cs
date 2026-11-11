@@ -10,30 +10,57 @@ internal static class LegacyCodeGenerationSyntaxFactory
 {
     public static ExpressionSyntax CreateColumnCreation(ExecutionColumnMetadataField field)
     {
-        return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(Column)))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
-                SyntaxFactory.Argument(CreateStringLiteral(field.Name)),
-                SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(field.GeneratedTypeName is { } generatedType
-                    ? SyntaxFactory.ParseTypeName(generatedType)
-                    : CreateTypeOfTypeSyntax(ExecutionColumnMetadataFields.RequireClrTypeForLegacyCodeGeneration(field)))),
-                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(field.Index)))
-            ])));
+        return SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(Column)))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList([
+                        SyntaxFactory.Argument(CreateStringLiteral(field.Name)),
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.TypeOfExpression(
+                                field.GeneratedTypeName is { } generatedType
+                                    ? SyntaxFactory.ParseTypeName(generatedType)
+                                    : CreateTypeOfTypeSyntax(
+                                        ExecutionColumnMetadataFields.RequireClrTypeForLegacyCodeGeneration(field)
+                                    )
+                            )
+                        ),
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(field.Index)
+                            )
+                        ),
+                    ])
+                )
+            );
     }
 
     public static ArrayCreationExpressionSyntax CreateArrayCreation(
         string elementTypeName,
-        IEnumerable<ExpressionSyntax> expressions)
+        IEnumerable<ExpressionSyntax> expressions
+    )
     {
-        return SyntaxFactory.ArrayCreationExpression(
-                SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(elementTypeName))
-                    .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                            SyntaxFactory.OmittedArraySizeExpression())))))
-            .WithInitializer(SyntaxFactory.InitializerExpression(
-                SyntaxKind.ArrayInitializerExpression,
-                SyntaxFactory.SeparatedList(expressions)));
+        return SyntaxFactory
+            .ArrayCreationExpression(
+                SyntaxFactory
+                    .ArrayType(SyntaxFactory.ParseTypeName(elementTypeName))
+                    .WithRankSpecifiers(
+                        SyntaxFactory.SingletonList(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                    SyntaxFactory.OmittedArraySizeExpression()
+                                )
+                            )
+                        )
+                    )
+            )
+            .WithInitializer(
+                SyntaxFactory.InitializerExpression(
+                    SyntaxKind.ArrayInitializerExpression,
+                    SyntaxFactory.SeparatedList(expressions)
+                )
+            );
     }
 
     public static TypeSyntax CreateTypeSyntax(Type type)

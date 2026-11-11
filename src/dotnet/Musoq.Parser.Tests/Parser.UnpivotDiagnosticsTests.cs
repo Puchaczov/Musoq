@@ -14,7 +14,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() in (Q1 as Q1) using Sales",
             DiagnosticCode.MQ2002_MissingToken,
-            "requires an ON clause");
+            "requires an ON clause"
+        );
     }
 
     [TestMethod]
@@ -23,7 +24,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() on Quarter using Sales",
             DiagnosticCode.MQ2002_MissingToken,
-            "requires an IN");
+            "requires an IN"
+        );
     }
 
     [TestMethod]
@@ -32,7 +34,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() on Quarter in (Q1 as Q1) keep Region",
             DiagnosticCode.MQ2002_MissingToken,
-            "requires a USING clause");
+            "requires a USING clause"
+        );
     }
 
     [TestMethod]
@@ -41,7 +44,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() on Quarter in () using Sales",
             DiagnosticCode.MQ2003_InvalidExpression,
-            "requires at least one");
+            "requires at least one"
+        );
     }
 
     [TestMethod]
@@ -50,7 +54,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() on Quarter in (Q1 as Q1,) using Sales",
             DiagnosticCode.MQ2014_TrailingComma,
-            "trailing comma");
+            "trailing comma"
+        );
     }
 
     [TestMethod]
@@ -59,7 +64,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() on Quarter in (Q1 + Q2) using Sales",
             DiagnosticCode.MQ2022_InvalidAlias,
-            "require an alias");
+            "require an alias"
+        );
     }
 
     [TestMethod]
@@ -68,7 +74,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() on Quarter in (Q1 as Q1) using Sales keep Region + ':' + Country",
             DiagnosticCode.MQ2022_InvalidAlias,
-            "KEEP expressions require an alias");
+            "KEEP expressions require an alias"
+        );
     }
 
     [TestMethod]
@@ -77,7 +84,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() on Quarter in (Q1 as Q1) using Quarter",
             DiagnosticCode.MQ2008_DuplicateAlias,
-            "duplicate output column name");
+            "duplicate output column name"
+        );
     }
 
     [TestMethod]
@@ -86,7 +94,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() on Quarter in (Q1 as Q1) using Sales keep Region as Quarter",
             DiagnosticCode.MQ2008_DuplicateAlias,
-            "duplicate output column name");
+            "duplicate output column name"
+        );
     }
 
     [TestMethod]
@@ -95,7 +104,8 @@ public class ParserUnpivotDiagnosticsTests
         AssertUnpivotSyntaxError(
             "unpivot #sales.wide() on Quarter in (Q1 as Q, Q2 as Q) using Sales",
             DiagnosticCode.MQ2008_DuplicateAlias,
-            "duplicate name value");
+            "duplicate name value"
+        );
     }
 
     private static void AssertUnpivotSyntaxError(string query, DiagnosticCode code, string messageFragment)

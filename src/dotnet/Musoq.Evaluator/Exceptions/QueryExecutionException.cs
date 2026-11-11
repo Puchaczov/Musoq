@@ -11,18 +11,13 @@ namespace Musoq.Evaluator.Exceptions;
 public class QueryExecutionException : InvalidOperationException
 {
     public QueryExecutionException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public QueryExecutionException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public QueryExecutionException()
-    {
-    }
+    public QueryExecutionException() { }
+
     public QueryExecutionException(string queryContext, string executionPhase, string message)
         : base(message)
     {
@@ -41,7 +36,8 @@ public class QueryExecutionException : InvalidOperationException
         string queryContext,
         string executionPhase,
         MusoqErrorEnvelope envelope,
-        Exception innerException)
+        Exception innerException
+    )
         : base(MusoqErrorEnvelopeFormatter.FormatText(envelope), innerException)
     {
         QueryContext = queryContext;
@@ -55,9 +51,7 @@ public class QueryExecutionException : InvalidOperationException
 
     public string FormatText()
     {
-        return Envelope != null
-            ? MusoqErrorEnvelopeFormatter.FormatText(Envelope)
-            : Message;
+        return Envelope != null ? MusoqErrorEnvelopeFormatter.FormatText(Envelope) : Message;
     }
 
     public string FormatJson()
@@ -83,26 +77,18 @@ public class QueryExecutionException : InvalidOperationException
         if (innerException is QueryExecutionException existing)
             return existing;
 
-        var diagnostic = RuntimeExpressionFailureDiagnostic.Create(innerException)
-                         ?? InternalDiagnosticException.ForExecution(innerException).ToDiagnostic();
+        var diagnostic =
+            RuntimeExpressionFailureDiagnostic.Create(innerException)
+            ?? InternalDiagnosticException.ForExecution(innerException).ToDiagnostic();
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic);
-        return new QueryExecutionException(
-            "CompiledQuery",
-            phase,
-            envelope,
-            innerException
-        );
+        return new QueryExecutionException("CompiledQuery", phase, envelope, innerException);
     }
 
     public static QueryExecutionException ForScriptParameterBinding(ScriptParameterBindingException innerException)
     {
         ArgumentNullException.ThrowIfNull(innerException);
         var envelope = MusoqErrorEnvelope.FromDiagnostic(innerException.ToDiagnostic());
-        return new QueryExecutionException(
-            "CompiledQuery",
-            "ScriptParameterBinding",
-            envelope,
-            innerException);
+        return new QueryExecutionException("CompiledQuery", "ScriptParameterBinding", envelope, innerException);
     }
 
     public static QueryExecutionException ForDataSourceFailure(DataSourceLifecycleException innerException)
@@ -121,7 +107,8 @@ public class QueryExecutionException : InvalidOperationException
                 "CompiledQuery",
                 innerException.Operation,
                 limitEnvelope,
-                innerException);
+                innerException
+            );
         }
 
         Exception? regexTimeout = FindCause<RegexExecutionTimeoutException>(innerException);
@@ -130,14 +117,11 @@ public class QueryExecutionException : InvalidOperationException
         if (regexTimeout != null)
             diagnostic = RuntimeExpressionFailureDiagnostic.Create(regexTimeout)!;
         var envelope = MusoqErrorEnvelope.FromDiagnostic(diagnostic);
-        return new QueryExecutionException(
-            "CompiledQuery",
-            innerException.Operation,
-            envelope,
-            innerException);
+        return new QueryExecutionException("CompiledQuery", innerException.Operation, envelope, innerException);
     }
 
-    private static TException? FindCause<TException>(Exception exception) where TException : Exception
+    private static TException? FindCause<TException>(Exception exception)
+        where TException : Exception
     {
         var visited = new HashSet<Exception>();
         for (Exception? current = exception; current != null && visited.Add(current); current = current.InnerException)
@@ -148,9 +132,11 @@ public class QueryExecutionException : InvalidOperationException
 
     public string FormatVerboseText()
     {
-        return FormatText() + Environment.NewLine +
-               "Trusted verbose details (may contain sensitive data):" + Environment.NewLine +
-               InnerException;
+        return FormatText()
+            + Environment.NewLine
+            + "Trusted verbose details (may contain sensitive data):"
+            + Environment.NewLine
+            + InnerException;
     }
 
     public static QueryExecutionException ForCancellationFailure(string phase, Exception innerException)

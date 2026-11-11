@@ -74,7 +74,11 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate wrong clause order
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "ORDER BY before WHERE is wrong order");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2009_InvalidOrderByExpression,
+            "ORDER BY before WHERE is wrong order"
+        );
     }
 
     [TestMethod]
@@ -88,7 +92,11 @@ public partial class ErrorQualityStructuralSyntaxTests
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate wrong clause order
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2009_InvalidOrderByExpression, "GROUP BY after ORDER BY is wrong order");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2009_InvalidOrderByExpression,
+            "GROUP BY after ORDER BY is wrong order"
+        );
     }
 
     [TestMethod]
@@ -194,9 +202,7 @@ public partial class ErrorQualityStructuralSyntaxTests
     {
         // Arrange — JOIN without ON condition
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT a.Name, b.Name
-FROM #A.Entities() a
-INNER JOIN #B.Entities() b";
+        var query = ("SELECT a.Name, b.Name\n" + "FROM #A.Entities() a\n" + "INNER JOIN #B.Entities() b");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -210,9 +216,7 @@ INNER JOIN #B.Entities() b";
     {
         // Arrange — CROSS APPLY without alias on the applied source
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name
-FROM #A.Entities() a
-CROSS APPLY #B.Entities()";
+        var query = ("SELECT Name\n" + "FROM #A.Entities() a\n" + "CROSS APPLY #B.Entities()");
 
         // Act
         var result = analyzer.Analyze(query);
@@ -247,7 +251,11 @@ CROSS APPLY #B.Entities()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate unclosed parenthesis
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2021_UnclosedFunctionCall, "missing closing parenthesis in schema method");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2021_UnclosedFunctionCall,
+            "missing closing parenthesis in schema method"
+        );
     }
 
     [TestMethod]
@@ -305,8 +313,7 @@ CROSS APPLY #B.Entities()";
     {
         // Arrange — WITH without AS keyword
         var analyzer = CreateAnalyzer();
-        var query = @"WITH MyData SELECT Name FROM #A.Entities()
-SELECT * FROM MyData md";
+        var query = ("WITH MyData SELECT Name FROM #A.Entities()\n" + "SELECT * FROM MyData md");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -320,8 +327,7 @@ SELECT * FROM MyData md";
     {
         // Arrange — WITH MyData AS SELECT ... (missing parentheses)
         var analyzer = CreateAnalyzer();
-        var query = @"WITH MyData AS SELECT Name FROM #A.Entities()
-SELECT * FROM MyData md";
+        var query = ("WITH MyData AS SELECT Name FROM #A.Entities()\n" + "SELECT * FROM MyData md");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -335,18 +341,24 @@ SELECT * FROM MyData md";
     {
         // Arrange — Recursive CTE referencing itself
         var analyzer = CreateAnalyzer();
-        var query = @"WITH Recursive AS (
-    SELECT 1 AS Value FROM #A.Entities()
-    UNION ALL (Value)
-    SELECT Value + 1 FROM Recursive r WHERE r.Value < 10
-)
-SELECT * FROM Recursive r";
+        var query = (
+            "WITH Recursive AS (\n"
+            + "    SELECT 1 AS Value FROM #A.Entities()\n"
+            + "    UNION ALL (Value)\n"
+            + "    SELECT Value + 1 FROM Recursive r WHERE r.Value < 10\n"
+            + ")\n"
+            + "SELECT * FROM Recursive r"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
 
         // Assert — The self-reference is valid only when the contextual keyword is present.
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword, "recursive CTE requires WITH RECURSIVE");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword,
+            "recursive CTE requires WITH RECURSIVE"
+        );
     }
 
     [TestMethod]
@@ -354,8 +366,7 @@ SELECT * FROM Recursive r";
     {
         // Arrange — CTE placed after SELECT (wrong position)
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT * FROM MyData md
-WITH MyData AS (SELECT Name FROM #A.Entities())";
+        var query = ("SELECT * FROM MyData md\n" + "WITH MyData AS (SELECT Name FROM #A.Entities())");
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -369,9 +380,11 @@ WITH MyData AS (SELECT Name FROM #A.Entities())";
     {
         // Arrange — Two CTEs with the same name
         var analyzer = CreateAnalyzer();
-        var query = @"WITH MyData AS (SELECT Name FROM #A.Entities()),
-     MyData AS (SELECT Name FROM #B.Entities())
-SELECT * FROM MyData md";
+        var query = (
+            "WITH MyData AS (SELECT Name FROM #A.Entities()),\n"
+            + "     MyData AS (SELECT Name FROM #B.Entities())\n"
+            + "SELECT * FROM MyData md"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -399,8 +412,7 @@ SELECT * FROM MyData md";
     {
         // Arrange — CTE reference without alias in FROM
         var analyzer = CreateAnalyzer();
-        var query = @"WITH MyData AS (SELECT Name FROM #A.Entities())
-SELECT * FROM MyData";
+        var query = ("WITH MyData AS (SELECT Name FROM #A.Entities())\n" + "SELECT * FROM MyData");
 
         // Act
         var result = analyzer.Analyze(query);
@@ -416,10 +428,12 @@ SELECT * FROM MyData";
     {
         // Arrange — CTE referencing a CTE defined after it
         var analyzer = CreateAnalyzer();
-        var query = @"WITH
-    Second AS (SELECT * FROM First f),
-    First AS (SELECT Name FROM #A.Entities())
-SELECT * FROM Second s";
+        var query = (
+            "WITH\n"
+            + "    Second AS (SELECT * FROM First f),\n"
+            + "    First AS (SELECT Name FROM #A.Entities())\n"
+            + "SELECT * FROM Second s"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -433,8 +447,7 @@ SELECT * FROM Second s";
     {
         // Arrange — CTE with empty body
         var analyzer = CreateAnalyzer();
-        var query = @"WITH MyData AS ()
-SELECT * FROM MyData md";
+        var query = ("WITH MyData AS ()\n" + "SELECT * FROM MyData md");
 
         // Act
         var result = analyzer.ValidateSyntax(query);

@@ -14,7 +14,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var samples = ReadNamedSamples(
                 ChainedApplyGroupedAggregateWindowSampleFileName,
                 ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName,
-                ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName)
+                ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
 
         AssertTypedWindowSourceBufferSample(samples, ChainedApplyGroupedAggregateWindowSampleFileName);
@@ -39,13 +40,26 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 ChainedApplyGroupedAggregateWindowSampleFileName,
                 ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName,
                 ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName,
-                ChainedApplyGroupedAggregateQualifyWindowSampleFileName)
+                ChainedApplyGroupedAggregateQualifyWindowSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
 
-        AssertGroupedWindowHelperShape(samples[ChainedApplyGroupedAggregateWindowSampleFileName], expectAggregateHelpers: true);
-        AssertGroupedWindowHelperShape(samples[ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName], expectAggregateHelpers: true);
-        AssertGroupedWindowHelperShape(samples[ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName], expectAggregateHelpers: true);
-        AssertGroupedWindowHelperShape(samples[ChainedApplyGroupedAggregateQualifyWindowSampleFileName], expectAggregateHelpers: false);
+        AssertGroupedWindowHelperShape(
+            samples[ChainedApplyGroupedAggregateWindowSampleFileName],
+            expectAggregateHelpers: true
+        );
+        AssertGroupedWindowHelperShape(
+            samples[ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName],
+            expectAggregateHelpers: true
+        );
+        AssertGroupedWindowHelperShape(
+            samples[ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName],
+            expectAggregateHelpers: true
+        );
+        AssertGroupedWindowHelperShape(
+            samples[ChainedApplyGroupedAggregateQualifyWindowSampleFileName],
+            expectAggregateHelpers: false
+        );
     }
 
     [TestMethod]
@@ -56,7 +70,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 CteBackedAsOfJoinSampleFileName,
                 CteBackedAggregateOverHashJoinSampleFileName,
                 RepeatedCteSelfJoinSampleFileName,
-                DynamicCteBackedAsOfJoinSampleFileName)
+                DynamicCteBackedAsOfJoinSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
 
         AssertTypedCteSidecarHashJoinSample(samples[CteWithJoinSampleFileName], "Cte0HashPayload0");
@@ -78,7 +93,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                     .Cast<Match>()
                     .Select(static match => match.Value)
                     .Distinct(StringComparer.Ordinal)
-                    .ToArray()
+                    .ToArray(),
             })
             .Where(static sample => sample.Matches.Length > 0)
             .Select(static sample => $"{sample.FileName}: {string.Join(", ", sample.Matches)}")
@@ -86,7 +101,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsEmpty(
             failures,
-            $"Generated aggregate group types should be PascalCase: {string.Join("; ", failures)}");
+            $"Generated aggregate group types should be PascalCase: {string.Join("; ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -97,28 +113,31 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.AreEqual(1, CountOccurrences(sample, "PartitionKeys = new string[resultWindowRows.Count];"));
         Assert.Contains(
             "var resultRowNumbers0Partitions = WindowFunctionHelpers.ResolvePartitionSet(resultWindowRows.Count, resultRowNumbers0PartitionKeys);",
-            sample);
+            sample
+        );
         Assert.Contains(
             "var resultRowNumbers0SortedPartitions = WindowFunctionHelpers.SortStructPartitionSet(resultRowNumbers0Partitions, resultRowNumbers0OrderKeys, false);",
-            sample);
+            sample
+        );
         Assert.Contains(
             "for (int resultSums1PartitionSetIndex = 0; resultSums1PartitionSetIndex < resultRowNumbers0Partitions.PartitionCount; ++resultSums1PartitionSetIndex)",
-            sample);
-        Assert.Contains(
-            "var resultSums1PartitionIndices = resultRowNumbers0Partitions.Indices;",
-            sample);
+            sample
+        );
+        Assert.Contains("var resultSums1PartitionIndices = resultRowNumbers0Partitions.Indices;", sample);
         Assert.Contains(
             "var resultSums1CurrentIndex = resultSums1PartitionIndices[resultSums1PartitionStart + resultSums1PartitionIndex];",
-            sample);
-        Assert.Contains(
-            "ComputeSumWindowKernel[WholePartition]",
-            sample);
+            sample
+        );
+        Assert.Contains("ComputeSumWindowKernel[WholePartition]", sample);
         Assert.Contains(
             "Musoq.Plugins.SumAggregateKernel<decimal>.Set(ref resultSums1State, (decimal?)ko3iko.Population);",
-            sample);
+            sample
+        );
         Assert.IsFalse(sample.Contains("resultSums1Function", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("resultSums1Values", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("WindowFunctionHelpers.ComputeTypedPluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains("WindowFunctionHelpers.ComputeTypedPluginWindowFunction", StringComparison.Ordinal)
+        );
         Assert.IsFalse(sample.Contains("resultSums1PartitionKeys", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("resultSums1Partitions", StringComparison.Ordinal));
     }
@@ -128,15 +147,35 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = ReadSample(WindowRankDenseRankSampleFileName).Content;
 
-        Assert.Contains("var resultRanks0OrderKeys = new WindowResultRanks0OrderKeysKey[resultWindowRows.Count];", sample);
-        Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultRanks0Partitions, resultRanks0OrderKeys, false);", sample);
+        Assert.Contains(
+            "var resultRanks0OrderKeys = new WindowResultRanks0OrderKeysKey[resultWindowRows.Count];",
+            sample
+        );
+        Assert.Contains(
+            "WindowFunctionHelpers.SortStructPartitionSetInPlace(resultRanks0Partitions, resultRanks0OrderKeys, false);",
+            sample
+        );
         Assert.Contains("WindowKernelPlan [hash partition/per-partition sort; kernels 2;", sample);
         Assert.Contains("long resultRanks0DenseRank = 1L;", sample);
-        Assert.Contains("resultRanks0[resultRanks0CurrentIndex] = Musoq.Plugins.RankKernel.Get(in resultRanks0Context);", sample);
-        Assert.Contains("resultDenseRanks1[resultRanks0CurrentIndex] = Musoq.Plugins.DenseRankKernel.Get(in resultDenseRanks1Context);", sample);
+        Assert.Contains(
+            "resultRanks0[resultRanks0CurrentIndex] = Musoq.Plugins.RankKernel.Get(in resultRanks0Context);",
+            sample
+        );
+        Assert.Contains(
+            "resultDenseRanks1[resultRanks0CurrentIndex] = Musoq.Plugins.DenseRankKernel.Get(in resultDenseRanks1Context);",
+            sample
+        );
         Assert.Contains("public bool PeerEquals(WindowResultRanks0OrderKeysKey other)", sample);
-        Assert.Contains("resultRanks0OrderKeys[resultRanks0CurrentIndex].PeerEquals(resultRanks0OrderKeys[resultRanks0CandidateIndex])", sample);
-        Assert.IsFalse(sample.Contains("System.Collections.Generic.EqualityComparer<WindowResultRanks0OrderKeysKey>.Default.Equals", StringComparison.Ordinal));
+        Assert.Contains(
+            "resultRanks0OrderKeys[resultRanks0CurrentIndex].PeerEquals(resultRanks0OrderKeys[resultRanks0CandidateIndex])",
+            sample
+        );
+        Assert.IsFalse(
+            sample.Contains(
+                "System.Collections.Generic.EqualityComparer<WindowResultRanks0OrderKeysKey>.Default.Equals",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(sample.Contains("for (int resultDenseRanks1PartitionSetIndex", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("WindowFunctionHelpers.ComputeRank", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("WindowFunctionHelpers.ComputeDenseRank", StringComparison.Ordinal));
@@ -147,28 +186,32 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var failures = ReadAllSamples()
             .Where(static sample =>
-                sample.Content.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal) ||
-                sample.Content.Contains("ComputeRankWindow [", StringComparison.Ordinal) ||
-                sample.Content.Contains("ComputeDenseRankWindow [", StringComparison.Ordinal))
+                sample.Content.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal)
+                || sample.Content.Contains("ComputeRankWindow [", StringComparison.Ordinal)
+                || sample.Content.Contains("ComputeDenseRankWindow [", StringComparison.Ordinal)
+            )
             .SelectMany(static sample => CreateRankingWindowFallbackFailures(sample))
             .ToArray();
 
         Assert.IsEmpty(
             failures,
-            $"Ranking windows should stay on generated no-boxing kernels: {string.Join("; ", failures)}");
+            $"Ranking windows should stay on generated no-boxing kernels: {string.Join("; ", failures)}"
+        );
     }
 
     private static IEnumerable<string> CreateRankingWindowFallbackFailures(GeneratedCodeSampleFile sample)
     {
-        foreach (var forbiddenPattern in new[]
-                 {
-                     "WindowFunctionHelpers.CompositeKey",
-                     "WindowFunctionHelpers.ComputeRowNumber",
-                     "WindowFunctionHelpers.ComputeRank",
-                     "WindowFunctionHelpers.ComputeDenseRank",
-                     "BoxedTypedPartitionSetComparer",
-                     "new bool[]"
-                 })
+        foreach (
+            var forbiddenPattern in new[]
+            {
+                "WindowFunctionHelpers.CompositeKey",
+                "WindowFunctionHelpers.ComputeRowNumber",
+                "WindowFunctionHelpers.ComputeRank",
+                "WindowFunctionHelpers.ComputeDenseRank",
+                "BoxedTypedPartitionSetComparer",
+                "new bool[]",
+            }
+        )
         {
             if (sample.Content.Contains(forbiddenPattern, StringComparison.Ordinal))
                 yield return $"{sample.FileName}: {forbiddenPattern}";
@@ -189,8 +232,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private static bool IsWindowKeyLine(string line)
     {
-        return line.Contains("OrderKeys", StringComparison.Ordinal) ||
-               line.Contains("PartitionKeys", StringComparison.Ordinal);
+        return line.Contains("OrderKeys", StringComparison.Ordinal)
+            || line.Contains("PartitionKeys", StringComparison.Ordinal);
     }
 
     [TestMethod]
@@ -202,7 +245,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var lead = samples[WindowLeadSampleFileName];
 
         Assert.Contains("var resultLagsOrderKeys = new WindowResultLagsOrderKeysKey[resultWindowRows.Count];", lag);
-        Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLagsPartitions, resultLagsOrderKeys, false);", lag);
+        Assert.Contains(
+            "WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLagsPartitions, resultLagsOrderKeys, false);",
+            lag
+        );
         Assert.Contains("var resultLags = new decimal? [resultWindowRows.Count];", lag);
         Assert.Contains("Musoq.Plugins.LagKernel<decimal>.Get(in resultLagsContext", lag);
         Assert.IsFalse(lag.Contains("WindowFunctionHelpers.ComputeLag", StringComparison.Ordinal));
@@ -210,7 +256,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(lag.Contains("object[] resultLags", StringComparison.Ordinal));
 
         Assert.Contains("var resultLeadsOrderKeys = new WindowResultLeadsOrderKeysKey[resultWindowRows.Count];", lead);
-        Assert.Contains("WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLeadsPartitions, resultLeadsOrderKeys, false);", lead);
+        Assert.Contains(
+            "WindowFunctionHelpers.SortStructPartitionSetInPlace(resultLeadsPartitions, resultLeadsOrderKeys, false);",
+            lead
+        );
         Assert.Contains("var resultLeads = new decimal? [resultWindowRows.Count];", lead);
         Assert.Contains("Musoq.Plugins.LeadKernel<decimal>.Get(in resultLeadsContext", lead);
         Assert.IsFalse(lead.Contains("WindowFunctionHelpers.ComputeLead", StringComparison.Ordinal));
@@ -225,32 +274,38 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 WindowSumWholePartitionDecimalSampleFileName,
                 WindowSumRunningDecimalSampleFileName,
                 WindowAvgRunningDecimalSampleFileName,
-                WindowRunningProductPluginSampleFileName)
+                WindowRunningProductPluginSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
 
         AssertWindowAggregateKernelUsesDirectNumericConversion(
             WindowSumWholePartitionDecimalSampleFileName,
             samples[WindowSumWholePartitionDecimalSampleFileName],
             "resultSums",
-            "ComputeSumWindowKernel[WholePartition]");
+            "ComputeSumWindowKernel[WholePartition]"
+        );
         AssertWindowAggregateKernelUsesDirectNumericConversion(
             WindowSumRunningDecimalSampleFileName,
             samples[WindowSumRunningDecimalSampleFileName],
             "resultSums",
-            "ComputeSumWindowKernel[BoundedRows]");
+            "ComputeSumWindowKernel[BoundedRows]"
+        );
         AssertWindowAggregateKernelUsesDirectNumericConversion(
             WindowAvgRunningDecimalSampleFileName,
             samples[WindowAvgRunningDecimalSampleFileName],
             "resultAvgs",
-            "ComputeAvgWindowKernel[BoundedRows]");
+            "ComputeAvgWindowKernel[BoundedRows]"
+        );
         AssertStreamingWindowUsesDirectNumericConversion(
             WindowRunningProductPluginSampleFileName,
             samples[WindowRunningProductPluginSampleFileName],
-            "resultRunningProducts");
+            "resultRunningProducts"
+        );
 
         Assert.Contains(
             "Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Reset(ref resultRunningProductsState);",
-            samples[WindowRunningProductPluginSampleFileName]);
+            samples[WindowRunningProductPluginSampleFileName]
+        );
     }
 
     [TestMethod]
@@ -271,7 +326,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("CancellationToken = token", sample);
         Assert.Contains("MaxDegreeOfParallelism = 2", sample);
         Assert.Contains("List<Cte0Row0> cte0 = null!;", sample);
-        Assert.Contains("var cte1HashSidecar0Name = new Dictionary<string, HashJoinBucket<Cte1HashPayload0>>();", sample);
+        Assert.Contains(
+            "var cte1HashSidecar0Name = new Dictionary<string, HashJoinBucket<Cte1HashPayload0>>();",
+            sample
+        );
         Assert.Contains("_cteRowResults.Slot0 = __parallelCteLevel0Task0Result", sample);
         Assert.Contains("_cteIndexResults.Slot0 = cte1HashSidecar0Name", sample);
         Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", sample);
@@ -279,9 +337,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("HashJoinBucket<Cte1HashPayload0>", sample);
         Assert.Contains("LoadCteIndex [qHash <- _cteIndexResults.Slot0 Hash: string]", sample);
         Assert.IsFalse(sample.Contains("var __storedTable1Rows = _cteRowResults.Slot1;", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("new Dictionary<string, HashJoinBucket<Cte1Row0>>(_cteRowResults.Slot1.Count)", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("private static Musoq.Evaluator.Tables.Table BuildCteLevel0Task0", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("private static Musoq.Evaluator.Tables.Table BuildCteLevel0Task1", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains(
+                "new Dictionary<string, HashJoinBucket<Cte1Row0>>(_cteRowResults.Slot1.Count)",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.IsFalse(
+            sample.Contains("private static Musoq.Evaluator.Tables.Table BuildCteLevel0Task0", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            sample.Contains("private static Musoq.Evaluator.Tables.Table BuildCteLevel0Task1", StringComparison.Ordinal)
+        );
         Assert.IsFalse(sample.Contains("new Table(\"cte0\"", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("new Table(\"cte1\"", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("_tableResults[0]", StringComparison.Ordinal));
@@ -297,7 +364,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var sample = ReadSample(CompositeHashJoinSampleFileName).Content;
 
         Assert.Contains("CreateHash [bHash: ValueTuple<int, decimal> -> BasicEntity]", sample);
-        Assert.Contains("new Dictionary<ValueTuple<int, decimal>, HashJoinBucket<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>>", sample);
+        Assert.Contains(
+            "new Dictionary<ValueTuple<int, decimal>, HashJoinBucket<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>>",
+            sample
+        );
         Assert.Contains("var key = (b.Id, b.Population);", sample);
         Assert.Contains("bHash.TryGetValue(key, out var bHashMatches)", sample);
         Assert.IsFalse(sample.Contains("Dictionary<ValueTuple<int, decimal>, List<", StringComparison.Ordinal));
@@ -317,7 +387,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("private static List<Cte0Row0> BuildCte0", sample);
         Assert.Contains("HashJoinBucket<Cte0HashPayload0>", sample);
         Assert.IsFalse(sample.Contains("var __storedTable0Rows = _tableResults[0].Rows;", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("EvaluationHelper.CastGeneratedRows<Cte0Row0>(_tableResults[0].Rows)", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains(
+                "EvaluationHelper.CastGeneratedRows<Cte0Row0>(_tableResults[0].Rows)",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(sample.Contains("foreach (var l in _tableResults[0].Rows)", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("foreach (var r in _tableResults[0].Rows)", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("Musoq.Evaluator.Tables.Table BuildCte0()\r\n", StringComparison.Ordinal));
@@ -328,21 +403,27 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = ReadSample(OrderByTakeSampleFileName).Content;
 
-        Assert.Contains("CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Population DESC, take 5]", sample);
+        Assert.Contains(
+            "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Population DESC, take 5]",
+            sample
+        );
         Assert.Contains(
             "var resultOrderRecords = new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(5, ResultRow0WithSortKeysComparer.Instance);",
-            sample);
+            sample
+        );
         Assert.Contains(
             "resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Name, ko3iko.Population, resultOrderRecords.Count));",
-            sample);
+            sample
+        );
         Assert.Contains("private readonly struct ResultRow0WithSortKeys", sample);
         Assert.IsFalse(sample.Contains("OrderRecordList [resultOrderRecords", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("EvaluationHelper.SelectTopRecords(resultOrderRecords", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains("EvaluationHelper.SelectTopRecords(resultOrderRecords", StringComparison.Ordinal)
+        );
         Assert.IsFalse(sample.Contains("TakeTable [result ->", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("TopNTable [", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("result.Rows.OrderBy", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("RowOrderKey", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("var resultSorted =", StringComparison.Ordinal));
     }
-
 }

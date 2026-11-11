@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class SetsOperatorsTests
 {
-
     [TestMethod]
     public void UnionWithDifferentColumnsAsAKeyTest()
     {
@@ -17,7 +16,7 @@ public partial class SetsOperatorsTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("003", "", 0), new BasicEntity("004", "", 0)] }
+            { "#B", [new BasicEntity("003", "", 0), new BasicEntity("004", "", 0)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -30,49 +29,44 @@ public partial class SetsOperatorsTests
     [TestMethod]
     public void AliasedUnionWithDifferentColumnsAsAKeyTest()
     {
-        var query =
-            """
-            select
-                a.Name as a1,
-                b.Value
-            from #A.Entities() a
-            cross apply a.ToCharArray(a.Name) b
-            union (Name)
-            select
-                a.Name as a1,
-                b.Value
-            from #A.Entities() a
-            cross apply a.ToCharArray(a.Name) b
-            """;
+        var query = (
+            "select\n"
+            + "    a.Name as a1,\n"
+            + "    b.Value\n"
+            + "from #A.Entities() a\n"
+            + "cross apply a.ToCharArray(a.Name) b\n"
+            + "union (Name)\n"
+            + "select\n"
+            + "    a.Name as a1,\n"
+            + "    b.Value\n"
+            + "from #A.Entities() a\n"
+            + "cross apply a.ToCharArray(a.Name) b"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("a1", typeof(string)),
-            ("Value", typeof(char)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["001", '0'],
-            ["002", '0']);
+        TableMaterializationTestHelper.AssertColumns(table, ("a1", typeof(string)), ("Value", typeof(char)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["001", '0'], ["002", '0']);
     }
 
     [TestMethod]
     public void UnionWithSkipTest()
     {
-        var query = @"
-with left_slice as (select Name from #A.Entities() skip 1),
-right_slice as (select Name from #B.Entities() skip 2)
-select Name from left_slice union (Name) select Name from right_slice";
+        var query = (
+            "\n"
+            + "with left_slice as (select Name from #A.Entities() skip 1),\n"
+            + "right_slice as (select Name from #B.Entities() skip 2)\n"
+            + "select Name from left_slice union (Name) select Name from right_slice"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
+            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -85,14 +79,16 @@ select Name from left_slice union (Name) select Name from right_slice";
     [TestMethod]
     public void UnionAllWithSkipTest()
     {
-        var query = @"
-with left_slice as (select Name from #A.Entities() skip 1),
-right_slice as (select Name from #B.Entities() skip 2)
-select Name from left_slice union all (Name) select Name from right_slice";
+        var query = (
+            "\n"
+            + "with left_slice as (select Name from #A.Entities() skip 1),\n"
+            + "right_slice as (select Name from #B.Entities() skip 2)\n"
+            + "select Name from left_slice union all (Name) select Name from right_slice"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("005")] },
-            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
+            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -105,109 +101,89 @@ select Name from left_slice union all (Name) select Name from right_slice";
     [TestMethod]
     public void MultipleUnionAllTest()
     {
-        var query = @"
-select Name from #A.Entities() union all (Name)
-select Name from #A.Entities() union all (Name)
-select Name from #A.Entities() union all (Name)
-select Name from #A.Entities() union all (Name)
-select Name from #A.Entities()";
+        var query = (
+            "\n"
+            + "select Name from #A.Entities() union all (Name)\n"
+            + "select Name from #A.Entities() union all (Name)\n"
+            + "select Name from #A.Entities() union all (Name)\n"
+            + "select Name from #A.Entities() union all (Name)\n"
+            + "select Name from #A.Entities()"
+        );
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("005")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("005")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["005"], ["005"], ["005"], ["005"], ["005"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["005"], ["005"], ["005"], ["005"], ["005"]);
     }
 
     [TestMethod]
     public void UnionAllWhenMultipleSelectsCombinedWithUnionAllWithinCteExpression_ShouldSucceed()
     {
-        var query = @"
-with p as (
-    select 1 as Id, 'EMPTY' as Name from #A.Entities()
-    union all (Name)
-    select 2 as Id, 'EMPTY2' as Name from #A.Entities()
-    union all (Name)
-    select 3 as Id, 'EMPTY3' as Name from #A.Entities()
-)
-select Id, Name from p
-";
+        var query = (
+            "\n"
+            + "with p as (\n"
+            + "    select 1 as Id, 'EMPTY' as Name from #A.Entities()\n"
+            + "    union all (Name)\n"
+            + "    select 2 as Id, 'EMPTY2' as Name from #A.Entities()\n"
+            + "    union all (Name)\n"
+            + "    select 3 as Id, 'EMPTY3' as Name from #A.Entities()\n"
+            + ")\n"
+            + "select Id, Name from p\n"
+        );
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("005")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("005")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Id", typeof(int)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [1, "EMPTY"], [2, "EMPTY2"], [3, "EMPTY3"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "EMPTY"], [2, "EMPTY2"], [3, "EMPTY3"]);
     }
 
     [TestMethod]
     public void UnionWhenMultipleSelectsCombinedWithUnionWithinCteExpression_ShouldSucceed()
     {
-        var query = @"
-with p as (
-    select 1 as Id, 'EMPTY' as Name from #A.Entities()
-    union (Name)
-    select 2 as Id, 'EMPTY2' as Name from #A.Entities()
-    union (Name)
-    select 3 as Id, 'EMPTY3' as Name from #A.Entities()
-)
-select Id, Name from p
-";
+        var query = (
+            "\n"
+            + "with p as (\n"
+            + "    select 1 as Id, 'EMPTY' as Name from #A.Entities()\n"
+            + "    union (Name)\n"
+            + "    select 2 as Id, 'EMPTY2' as Name from #A.Entities()\n"
+            + "    union (Name)\n"
+            + "    select 3 as Id, 'EMPTY3' as Name from #A.Entities()\n"
+            + ")\n"
+            + "select Id, Name from p\n"
+        );
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("005")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("005")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Id", typeof(int)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [1, "EMPTY"], [2, "EMPTY2"], [3, "EMPTY3"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "EMPTY"], [2, "EMPTY2"], [3, "EMPTY3"]);
     }
 
     [TestMethod]
     public void MultipleUnionAllWithSkipTest()
     {
-        var query = @"
-with first_slice as (select Name from #A.Entities() skip 1),
-second_slice as (select Name from #B.Entities() skip 2),
-third_slice as (select Name from #C.Entities() skip 3)
-select Name from first_slice
-union all (Name) select Name from second_slice
-union all (Name) select Name from third_slice";
+        var query = (
+            "\n"
+            + "with first_slice as (select Name from #A.Entities() skip 1),\n"
+            + "second_slice as (select Name from #B.Entities() skip 2),\n"
+            + "third_slice as (select Name from #C.Entities() skip 3)\n"
+            + "select Name from first_slice\n"
+            + "union all (Name) select Name from second_slice\n"
+            + "union all (Name) select Name from third_slice"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("005")] },
             { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
-            {
-                "#C",
-                [
-                    new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("004"), new BasicEntity("005")
-                ]
-            }
+            { "#C", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("004"), new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -224,7 +200,7 @@ union all (Name) select Name from third_slice";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("003"), new BasicEntity("004")] }
+            { "#B", [new BasicEntity("003"), new BasicEntity("004")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -241,7 +217,7 @@ union all (Name) select Name from third_slice";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
+            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -260,7 +236,7 @@ union all (Name) select Name from third_slice";
         {
             { "#A", [new BasicEntity("001")] },
             { "#B", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#C", [new BasicEntity("005")] }
+            { "#C", [new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -279,7 +255,7 @@ union all (Name) select Name from third_slice";
         {
             { "#A", [new BasicEntity("001")] },
             { "#B", [new BasicEntity("002")] },
-            { "#C", [new BasicEntity("005")] }
+            { "#C", [new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -292,19 +268,20 @@ union all (Name) select Name from third_slice";
     [TestMethod]
     public void MultipleUnionsComplexTest()
     {
-        var query =
-            @"
-select Name from #A.Entities() union (Name)
-select Name from #B.Entities() union (Name)
-select Name from #C.Entities() union (Name)
-select Name from #D.Entities()";
+        var query = (
+            "\n"
+            + "select Name from #A.Entities() union (Name)\n"
+            + "select Name from #B.Entities() union (Name)\n"
+            + "select Name from #C.Entities() union (Name)\n"
+            + "select Name from #D.Entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
             { "#B", [new BasicEntity("002")] },
             { "#C", [new BasicEntity("005")] },
-            { "#D", [new BasicEntity("007"), new BasicEntity("001")] }
+            { "#D", [new BasicEntity("007"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -321,16 +298,14 @@ select Name from #D.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
+            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001"], ["002"], ["001"], ["002"], ["005"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"], ["002"], ["001"], ["002"], ["005"]);
     }
 
     [TestMethod]
@@ -342,16 +317,14 @@ select Name from #D.Entities()";
         {
             { "#A", [new BasicEntity("001")] },
             { "#B", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#C", [new BasicEntity("005")] }
+            { "#C", [new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001"], ["001"], ["002"], ["005"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"], ["001"], ["002"], ["005"]);
     }
 
     [TestMethod]
@@ -363,7 +336,7 @@ select Name from #D.Entities()";
         {
             { "#A", [new BasicEntity("001")] },
             { "#B", [new BasicEntity("002")] },
-            { "#C", [new BasicEntity("005")] }
+            { "#C", [new BasicEntity("005")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -376,27 +349,26 @@ select Name from #D.Entities()";
     [TestMethod]
     public void MultipleUnionsAllComplexTest()
     {
-        var query =
-            @"
-select Name from #A.Entities() union all (Name)
-select Name from #B.Entities() union all (Name)
-select Name from #C.Entities() union all (Name)
-select Name from #D.Entities()";
+        var query = (
+            "\n"
+            + "select Name from #A.Entities() union all (Name)\n"
+            + "select Name from #B.Entities() union all (Name)\n"
+            + "select Name from #C.Entities() union all (Name)\n"
+            + "select Name from #D.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
             { "#B", [new BasicEntity("002")] },
             { "#C", [new BasicEntity("005")] },
-            { "#D", [new BasicEntity("007"), new BasicEntity("001")] }
+            { "#D", [new BasicEntity("007"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001"], ["002"], ["005"], ["007"], ["001"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"], ["002"], ["005"], ["007"], ["001"]);
     }
 
     [TestMethod]
@@ -406,30 +378,29 @@ select Name from #D.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] }
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001"], ["002"], ["003"], ["004"], ["001"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"], ["002"], ["003"], ["004"], ["001"]);
     }
 
     [TestMethod]
     public void UnionSameSourceTest()
     {
-        var query =
-            @"
-select Name from #A.Entities() where Name = '001'
-union (Name)
-select Name from #A.Entities() where Name = '002'";
+        var query = (
+            "\n"
+            + "select Name from #A.Entities() where Name = '001'\n"
+            + "union (Name)\n"
+            + "select Name from #A.Entities() where Name = '002'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -442,46 +413,45 @@ select Name from #A.Entities() where Name = '002'";
     [TestMethod]
     public void UnionMultipleTimesSameSourceTest()
     {
-        var query =
-            @"
-select Name from #A.Entities() where Name = '001'
-union (Name)
-select Name from #A.Entities() where Name = '002'
-union (Name)
-select Name from #A.Entities() where Name = '003'
-union (Name)
-select Name from #A.Entities() where Name = '004'
-union (Name)
-select Name from #A.Entities() where Name = '005'";
+        var query = (
+            "\n"
+            + "select Name from #A.Entities() where Name = '001'\n"
+            + "union (Name)\n"
+            + "select Name from #A.Entities() where Name = '002'\n"
+            + "union (Name)\n"
+            + "select Name from #A.Entities() where Name = '003'\n"
+            + "union (Name)\n"
+            + "select Name from #A.Entities() where Name = '004'\n"
+            + "union (Name)\n"
+            + "select Name from #A.Entities() where Name = '005'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A",
                 [
-                    new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
-                    new BasicEntity("005")
+                    new BasicEntity("001"),
+                    new BasicEntity("002"),
+                    new BasicEntity("003"),
+                    new BasicEntity("004"),
+                    new BasicEntity("005"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001"], ["002"], ["003"], ["004"], ["005"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"], ["002"], ["003"], ["004"], ["005"]);
     }
 
     [TestMethod]
     public void WhenWrongTypeBetweenUnions_ShouldFail()
     {
         var query = @"select Name from #A.Entities() union (Name) select 1 as Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("001")] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -493,10 +463,7 @@ select Name from #A.Entities() where Name = '005'";
     public void WhenWrongTypeBetweenUnionAll_ShouldFail()
     {
         var query = @"select Name from #A.Entities() union all (Name) select 1 as Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("001")] } };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
@@ -508,10 +475,7 @@ select Name from #A.Entities() where Name = '005'";
     public void WhenUnionHasEmptyKeyList_ShouldUseAllProjectedFields()
     {
         var query = @"select Name from #A.Entities() union () select Name as Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("001")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -524,10 +488,7 @@ select Name from #A.Entities() where Name = '005'";
     public void WhenUnionAllHasEmptyKeyList_ShouldAppendRows()
     {
         var query = @"select Name from #A.Entities() union all () select Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("001")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -535,5 +496,4 @@ select Name from #A.Entities() where Name = '005'";
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"], ["001"]);
     }
-
 }

@@ -112,13 +112,12 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = Type.EmptyTypes;
 
-
         var testCases = new[]
         {
             "my_underscore_method",
             "MY_UNDERSCORE_METHOD",
             "myunderscoremethod",
-            "MYUNDERSCOREMETHOD"
+            "MYUNDERSCOREMETHOD",
         };
 
         foreach (var testCase in testCases)
@@ -136,14 +135,7 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = Type.EmptyTypes;
 
-
-        var testCases = new[]
-        {
-            "uppercase_method",
-            "UPPERCASE_METHOD",
-            "uppercasemethod",
-            "UPPERCASEMETHOD"
-        };
+        var testCases = new[] { "uppercase_method", "UPPERCASE_METHOD", "uppercasemethod", "UPPERCASEMETHOD" };
 
         foreach (var testCase in testCases)
         {
@@ -160,14 +152,7 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = Type.EmptyTypes;
 
-
-        var testCases = new[]
-        {
-            "mixedcasemethod",
-            "MIXEDCASEMETHOD",
-            "mixed_case_method",
-            "MIXED_CASE_METHOD"
-        };
+        var testCases = new[] { "mixedcasemethod", "MIXEDCASEMETHOD", "mixed_case_method", "MIXED_CASE_METHOD" };
 
         foreach (var testCase in testCases)
         {
@@ -183,7 +168,6 @@ public class CaseInsensitiveMethodResolutionTests
     public void TryGetMethod_ExactMatchTakesPrecedence_OverCaseInsensitive()
     {
         var types = Type.EmptyTypes;
-
 
         var success = _methodsMetadata.TryGetMethod("simple", types, _entityType, out var method);
 
@@ -230,30 +214,18 @@ public class CaseInsensitiveMethodResolutionTests
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class TestClass
     {
-        public void MyMethod()
-        {
-        }
+        public void MyMethod() { }
 
-        public void MyMethod(int value)
-        {
-        }
+        public void MyMethod(int value) { }
 
-        public void My_Underscore_Method()
-        {
-        }
+        public void My_Underscore_Method() { }
 
-        public void UPPERCASE_METHOD()
-        {
-        }
+        public void UPPERCASE_METHOD() { }
 
         // These names intentionally exercise exact-case method resolution.
-        public void mixedCaseMethod()
-        {
-        }
+        public void mixedCaseMethod() { }
 
-        public void simple()
-        {
-        }
+        public void simple() { }
     }
 
     private sealed class TestMethodsMetadata : MethodsMetadata
@@ -261,8 +233,12 @@ public class CaseInsensitiveMethodResolutionTests
         public TestMethodsMetadata()
         {
             var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
-                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
+            foreach (
+                var method in testClass.GetMethods(
+                    BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly
+                )
+            )
+                RegisterMethod(method);
         }
 
         private new void RegisterMethod(MethodInfo methodInfo)

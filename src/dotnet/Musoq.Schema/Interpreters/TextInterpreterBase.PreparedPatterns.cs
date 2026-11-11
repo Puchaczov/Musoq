@@ -5,8 +5,11 @@ namespace Musoq.Schema.Interpreters;
 public abstract partial class TextInterpreterBase<TOut>
 {
     /// <summary>Reads a prepared field directly from the remaining span.</summary>
-    protected ParseAttempt<string> ReadPreparedPatternStatus(ReadOnlySpan<char> text, PreparedTextPattern pattern,
-        string fieldName)
+    protected ParseAttempt<string> ReadPreparedPatternStatus(
+        ReadOnlySpan<char> text,
+        PreparedTextPattern pattern,
+        string fieldName
+    )
     {
         var attempt = FindPreparedPattern(text, pattern, fieldName);
         if (attempt.Failure is { } failure)
@@ -19,8 +22,11 @@ public abstract partial class TextInterpreterBase<TOut>
     }
 
     /// <summary>Consumes a prepared pattern whose matched text is discarded.</summary>
-    protected ParseFailure? SkipPreparedPatternStatus(ReadOnlySpan<char> text, PreparedTextPattern pattern,
-        string fieldName)
+    protected ParseFailure? SkipPreparedPatternStatus(
+        ReadOnlySpan<char> text,
+        PreparedTextPattern pattern,
+        string fieldName
+    )
     {
         var attempt = FindPreparedPattern(text, pattern, fieldName);
         if (attempt.Succeeded)
@@ -29,8 +35,11 @@ public abstract partial class TextInterpreterBase<TOut>
     }
 
     /// <summary>Matches captures within the current region of a single parse's backing text.</summary>
-    protected ParseAttempt<Match> ReadPreparedPatternMatchStatus(ref TextParseInput input, PreparedTextPattern pattern,
-        string fieldName)
+    protected ParseAttempt<Match> ReadPreparedPatternMatchStatus(
+        ref TextParseInput input,
+        PreparedTextPattern pattern,
+        string fieldName
+    )
     {
         var prepared = PreparePatternStatus(input.Text, pattern, fieldName);
         if (prepared.Failure is { } failure)
@@ -49,16 +58,22 @@ public abstract partial class TextInterpreterBase<TOut>
         ApplyPreparedModifiers(pattern.Capture(match, slot), pattern.Modifiers);
 
     /// <summary>Tests a prepared switch pattern without materializing text or advancing the cursor.</summary>
-    protected bool LookaheadMatchesPatternPrepared(ReadOnlySpan<char> text, PreparedTextPattern pattern,
-        string fieldName)
+    protected bool LookaheadMatchesPatternPrepared(
+        ReadOnlySpan<char> text,
+        PreparedTextPattern pattern,
+        string fieldName
+    )
     {
         var regex = PreparePatternStatus(text, pattern, fieldName).GetValueOrThrow();
         var matches = regex.EnumerateMatches(text[ParsePosition..]);
         return matches.MoveNext() && matches.Current.Index == 0;
     }
 
-    private ParseAttempt<(int Index, int Length)> FindPreparedPattern(ReadOnlySpan<char> text,
-        PreparedTextPattern pattern, string fieldName)
+    private ParseAttempt<(int Index, int Length)> FindPreparedPattern(
+        ReadOnlySpan<char> text,
+        PreparedTextPattern pattern,
+        string fieldName
+    )
     {
         var prepared = PreparePatternStatus(text, pattern, fieldName);
         if (prepared.Failure is { } failure)
@@ -71,13 +86,20 @@ public abstract partial class TextInterpreterBase<TOut>
         return ParseAttempt<(int, int)>.Success((match.Index, match.Length));
     }
 
-    private ParseAttempt<Regex> PreparePatternStatus(ReadOnlySpan<char> text, PreparedTextPattern pattern,
-        string fieldName)
+    private ParseAttempt<Regex> PreparePatternStatus(
+        ReadOnlySpan<char> text,
+        PreparedTextPattern pattern,
+        string fieldName
+    )
     {
         if (CheckTextPositionStatus(text, fieldName) is { } position)
             return ParseAttempt<Regex>.Failed(default, position);
         if (pattern.HasConflictingQuantifiers)
-            return FailText<Regex>(ParseErrorCode.GeneralError, fieldName, "Pattern fields cannot be both greedy and lazy");
+            return FailText<Regex>(
+                ParseErrorCode.GeneralError,
+                fieldName,
+                "Pattern fields cannot be both greedy and lazy"
+            );
 
         try
         {
@@ -93,20 +115,42 @@ public abstract partial class TextInterpreterBase<TOut>
         }
     }
 
-    private ParseAttempt<Regex> InvalidPattern(PreparedTextPattern pattern, string fieldName, string reason,
-        Exception exception)
+    private ParseAttempt<Regex> InvalidPattern(
+        PreparedTextPattern pattern,
+        string fieldName,
+        string reason,
+        Exception exception
+    )
     {
         var subject = pattern.IsLookahead ? "Switch lookahead pattern" : "Pattern";
-        return ParseAttempt<Regex>.Failed(default, ParseFailure.ForText(ParseErrorCode.GeneralError,
-            SchemaName, fieldName, ParsePosition, $"{subject} '{pattern.Pattern}' {reason}: {exception.Message}", exception));
+        return ParseAttempt<Regex>.Failed(
+            default,
+            ParseFailure.ForText(
+                ParseErrorCode.GeneralError,
+                SchemaName,
+                fieldName,
+                ParsePosition,
+                $"{subject} '{pattern.Pattern}' {reason}: {exception.Message}",
+                exception
+            )
+        );
     }
 
     private ParseFailure PatternMismatch(PreparedTextPattern pattern, string fieldName) =>
-        ParseFailure.ForText(ParseErrorCode.PatternMismatch, SchemaName, fieldName, ParsePosition,
-            $"Pattern '{pattern.Pattern}' did not match at parse position {ParsePosition}");
+        ParseFailure.ForText(
+            ParseErrorCode.PatternMismatch,
+            SchemaName,
+            fieldName,
+            ParsePosition,
+            $"Pattern '{pattern.Pattern}' did not match at parse position {ParsePosition}"
+        );
 
     private static string ApplyPreparedModifiers(string value, TextPatternModifiers modifiers) =>
-        ApplyModifiers(value, modifiers.HasFlag(TextPatternModifiers.TrimStart),
-            modifiers.HasFlag(TextPatternModifiers.TrimEnd), modifiers.HasFlag(TextPatternModifiers.Lower),
-            modifiers.HasFlag(TextPatternModifiers.Upper));
+        ApplyModifiers(
+            value,
+            modifiers.HasFlag(TextPatternModifiers.TrimStart),
+            modifiers.HasFlag(TextPatternModifiers.TrimEnd),
+            modifiers.HasFlag(TextPatternModifiers.Lower),
+            modifiers.HasFlag(TextPatternModifiers.Upper)
+        );
 }

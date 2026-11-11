@@ -17,7 +17,9 @@ public class QueryProfilingCoreTests
     {
         var clock = new FakeProfileClock();
         var recorder = new QueryProfileRecorder(clock);
-        var rows = recorder.ProfileSource("empty", new ClockAdvancingEnumerable<int>([], clock, TimeSpan.FromMilliseconds(3))).ToArray();
+        var rows = recorder
+            .ProfileSource("empty", new ClockAdvancingEnumerable<int>([], clock, TimeSpan.FromMilliseconds(3)))
+            .ToArray();
 
         var source = recorder.CreateSnapshot().Sources.Single();
 
@@ -45,7 +47,9 @@ public class QueryProfilingCoreTests
                 TimeSpan.FromMilliseconds(10),
                 TimeSpan.FromMilliseconds(20),
                 TimeSpan.FromMilliseconds(30),
-                TimeSpan.FromMilliseconds(5)));
+                TimeSpan.FromMilliseconds(5)
+            )
+        );
 
         var rows = enumerable.ToArray();
         var source = recorder.CreateSnapshot().Sources.Single();
@@ -72,8 +76,10 @@ public class QueryProfilingCoreTests
             new ClockAdvancingEnumerable<int>(
                 Enumerable.Range(0, 1_000).ToArray(),
                 clock,
-                Enumerable.Repeat(TimeSpan.FromMilliseconds(1), 1_001).ToArray()),
-            sourceRecorder);
+                Enumerable.Repeat(TimeSpan.FromMilliseconds(1), 1_001).ToArray()
+            ),
+            sourceRecorder
+        );
 
         var rows = enumerable.ToArray();
         var source = recorder.CreateSnapshot().Sources.Single();
@@ -105,8 +111,10 @@ public class QueryProfilingCoreTests
             new ClockAdvancingEnumerable<int>(
                 Enumerable.Range(0, 200).ToArray(),
                 clock,
-                Enumerable.Repeat(TimeSpan.Zero, 201).ToArray()),
-            sourceRecorder);
+                Enumerable.Repeat(TimeSpan.Zero, 201).ToArray()
+            ),
+            sourceRecorder
+        );
 
         using (var enumerator = enumerable.GetEnumerator())
         {
@@ -134,11 +142,11 @@ public class QueryProfilingCoreTests
                 clock,
                 TimeSpan.FromMilliseconds(50),
                 TimeSpan.FromMilliseconds(50),
-                TimeSpan.Zero));
+                TimeSpan.Zero
+            )
+        );
 
-        foreach (var _ in enumerable)
-        {
-        }
+        foreach (var _ in enumerable) { }
 
         var source = recorder.CreateSnapshot().Sources.Single();
 
@@ -160,7 +168,9 @@ public class QueryProfilingCoreTests
                 TimeSpan.FromMilliseconds(1),
                 TimeSpan.FromMilliseconds(1),
                 TimeSpan.FromMilliseconds(1),
-                TimeSpan.Zero));
+                TimeSpan.Zero
+            )
+        );
 
         using var enumerator = enumerable.GetEnumerator();
 
@@ -192,7 +202,9 @@ public class QueryProfilingCoreTests
                 clock,
                 TimeSpan.FromMilliseconds(5),
                 TimeSpan.FromMilliseconds(7),
-                TimeSpan.FromMilliseconds(9)));
+                TimeSpan.FromMilliseconds(9)
+            )
+        );
 
         var enumerator = enumerable.GetEnumerator();
 
@@ -216,11 +228,8 @@ public class QueryProfilingCoreTests
         var recorder = new QueryProfileRecorder(clock);
         var enumerable = recorder.ProfileSource(
             "partial",
-            new ClockAdvancingEnumerable<int>(
-                [1, 2],
-                clock,
-                TimeSpan.FromMilliseconds(5),
-                TimeSpan.FromMilliseconds(7)));
+            new ClockAdvancingEnumerable<int>([1, 2], clock, TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(7))
+        );
 
         using (recorder.BeginOperator("op1", "ForEach"))
         {
@@ -251,7 +260,9 @@ public class QueryProfilingCoreTests
             new ThrowingEnumerable<int>(
                 clock,
                 TimeSpan.FromMilliseconds(7),
-                new InvalidOperationException("broken source")));
+                new InvalidOperationException("broken source")
+            )
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() => enumerable.ToArray());
         var source = recorder.CreateSnapshot().Sources.Single();
@@ -275,7 +286,9 @@ public class QueryProfilingCoreTests
             new ThrowingGetEnumeratorEnumerable<int>(
                 clock,
                 TimeSpan.FromMilliseconds(5),
-                new InvalidOperationException("broken acquisition")));
+                new InvalidOperationException("broken acquisition")
+            )
+        );
 
         var exception = Assert.Throws<InvalidOperationException>(() => enumerable.ToArray());
         var source = recorder.CreateSnapshot().Sources.Single();
@@ -299,7 +312,9 @@ public class QueryProfilingCoreTests
             new ThrowingEnumerable<int>(
                 clock,
                 TimeSpan.FromMilliseconds(7),
-                new InvalidOperationException("broken source")));
+                new InvalidOperationException("broken source")
+            )
+        );
 
         using (recorder.BeginOperator("op1", "ForEach"))
         {
@@ -328,7 +343,9 @@ public class QueryProfilingCoreTests
                 clock,
                 TimeSpan.FromMilliseconds(10),
                 TimeSpan.FromMilliseconds(20),
-                TimeSpan.FromMilliseconds(5)));
+                TimeSpan.FromMilliseconds(5)
+            )
+        );
 
         using (recorder.BeginOperator("op1", "ForEach"))
         {
@@ -352,13 +369,17 @@ public class QueryProfilingCoreTests
     {
         var clock = new FakeProfileClock();
         var recorder = new QueryProfileRecorder(clock);
-        var rows = recorder.ProfileSource(
-            "numbers",
-            new ClockAdvancingEnumerable<int>(
-                [1],
-                clock,
-                TimeSpan.FromMilliseconds(7),
-                TimeSpan.FromMilliseconds(1))).ToArray();
+        var rows = recorder
+            .ProfileSource(
+                "numbers",
+                new ClockAdvancingEnumerable<int>(
+                    [1],
+                    clock,
+                    TimeSpan.FromMilliseconds(7),
+                    TimeSpan.FromMilliseconds(1)
+                )
+            )
+            .ToArray();
 
         var snapshot = recorder.CreateSnapshot();
         var source = snapshot.Sources.Single();
@@ -381,13 +402,12 @@ public class QueryProfilingCoreTests
             {
                 try
                 {
-                    recorder.ProfileSource(
-                        "worker",
-                        new ClockAdvancingEnumerable<int>(
-                            [1],
-                            clock,
-                            TimeSpan.FromMilliseconds(50),
-                            TimeSpan.Zero)).ToArray();
+                    recorder
+                        .ProfileSource(
+                            "worker",
+                            new ClockAdvancingEnumerable<int>([1], clock, TimeSpan.FromMilliseconds(50), TimeSpan.Zero)
+                        )
+                        .ToArray();
                 }
                 catch (Exception exception)
                 {
@@ -417,16 +437,26 @@ public class QueryProfilingCoreTests
     {
         Assert.AreEqual(
             SourceProfileDiagnosis.SourceBound,
-            SourceProfileDiagnosisClassifier.Classify(Snapshot(TimeSpan.FromMilliseconds(20), TimeSpan.FromMilliseconds(5))));
+            SourceProfileDiagnosisClassifier.Classify(
+                Snapshot(TimeSpan.FromMilliseconds(20), TimeSpan.FromMilliseconds(5))
+            )
+        );
         Assert.AreEqual(
             SourceProfileDiagnosis.EvaluatorBound,
-            SourceProfileDiagnosisClassifier.Classify(Snapshot(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(20))));
+            SourceProfileDiagnosisClassifier.Classify(
+                Snapshot(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(20))
+            )
+        );
         Assert.AreEqual(
             SourceProfileDiagnosis.Balanced,
-            SourceProfileDiagnosisClassifier.Classify(Snapshot(TimeSpan.FromMilliseconds(11), TimeSpan.FromMilliseconds(10))));
+            SourceProfileDiagnosisClassifier.Classify(
+                Snapshot(TimeSpan.FromMilliseconds(11), TimeSpan.FromMilliseconds(10))
+            )
+        );
         Assert.AreEqual(
             SourceProfileDiagnosis.Unknown,
-            SourceProfileDiagnosisClassifier.Classify(Snapshot(TimeSpan.Zero, TimeSpan.Zero)));
+            SourceProfileDiagnosisClassifier.Classify(Snapshot(TimeSpan.Zero, TimeSpan.Zero))
+        );
     }
 
     [TestMethod]
@@ -445,37 +475,20 @@ public class QueryProfilingCoreTests
                     0,
                     null,
                     null,
-                    SourceProfileDiagnosis.Balanced)
+                    SourceProfileDiagnosis.Balanced
+                )
                 {
                     IsTimingEstimated = true,
                     TimedMoveNextCalls = 2,
-                    UntimedMoveNextCalls = 1
-                }
+                    UntimedMoveNextCalls = 1,
+                },
             ],
             [
-                new OperatorProfileSnapshot(
-                    "op1",
-                    "SourceScan",
-                    0,
-                    3,
-                    TimeSpan.FromMilliseconds(5)),
-                new OperatorProfileSnapshot(
-                    "op2",
-                    "SortTable",
-                    0,
-                    0,
-                    TimeSpan.Zero,
-                    HasActualStats: false),
-                new OperatorProfileSnapshot(
-                    "op3",
-                    "AppendRow",
-                    0,
-                    3,
-                    TimeSpan.Zero)
-                {
-                    HasElapsedTime = false
-                }
-            ]);
+                new OperatorProfileSnapshot("op1", "SourceScan", 0, 3, TimeSpan.FromMilliseconds(5)),
+                new OperatorProfileSnapshot("op2", "SortTable", 0, 0, TimeSpan.Zero, HasActualStats: false),
+                new OperatorProfileSnapshot("op3", "AppendRow", 0, 3, TimeSpan.Zero) { HasElapsedTime = false },
+            ]
+        );
 
         var text = QueryProfileTextPrinter.Print(snapshot);
 
@@ -504,7 +517,8 @@ public class QueryProfilingCoreTests
             0,
             null,
             null,
-            SourceProfileDiagnosis.Unknown);
+            SourceProfileDiagnosis.Unknown
+        );
 
     private static void AssertCountPreserved(IEnumerable<int> source)
     {
@@ -543,15 +557,15 @@ public class QueryProfilingCoreTests
         public ClockAdvancingEnumerable(
             IReadOnlyList<T> items,
             FakeProfileClock clock,
-            params TimeSpan[] moveNextDurations)
+            params TimeSpan[] moveNextDurations
+        )
         {
             _items = items;
             _clock = clock;
             _moveNextDurations = moveNextDurations;
         }
 
-        public IEnumerator<T> GetEnumerator() =>
-            new Enumerator(_items, _clock, _moveNextDurations);
+        public IEnumerator<T> GetEnumerator() => new Enumerator(_items, _clock, _moveNextDurations);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -563,10 +577,7 @@ public class QueryProfilingCoreTests
             private int _moveNextCalls;
             private int _index = -1;
 
-            public Enumerator(
-                IReadOnlyList<T> items,
-                FakeProfileClock clock,
-                IReadOnlyList<TimeSpan> moveNextDurations)
+            public Enumerator(IReadOnlyList<T> items, FakeProfileClock clock, IReadOnlyList<TimeSpan> moveNextDurations)
             {
                 _items = items;
                 _clock = clock;
@@ -594,9 +605,7 @@ public class QueryProfilingCoreTests
                 _index = -1;
             }
 
-            public void Dispose()
-            {
-            }
+            public void Dispose() { }
         }
     }
 
@@ -613,8 +622,7 @@ public class QueryProfilingCoreTests
             _exception = exception;
         }
 
-        public IEnumerator<T> GetEnumerator() =>
-            new Enumerator(_clock, _moveNextDuration, _exception);
+        public IEnumerator<T> GetEnumerator() => new Enumerator(_clock, _moveNextDuration, _exception);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -641,13 +649,9 @@ public class QueryProfilingCoreTests
                 throw _exception;
             }
 
-            public void Reset()
-            {
-            }
+            public void Reset() { }
 
-            public void Dispose()
-            {
-            }
+            public void Dispose() { }
         }
     }
 
@@ -660,7 +664,8 @@ public class QueryProfilingCoreTests
         public ThrowingGetEnumeratorEnumerable(
             FakeProfileClock clock,
             TimeSpan getEnumeratorDuration,
-            Exception exception)
+            Exception exception
+        )
         {
             _clock = clock;
             _getEnumeratorDuration = getEnumeratorDuration;

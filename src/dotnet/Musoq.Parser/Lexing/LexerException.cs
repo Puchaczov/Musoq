@@ -11,24 +11,20 @@ public class LexerException : Exception, IDiagnosticException
     private readonly TextSpan? _span;
 
     public LexerException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public LexerException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public LexerException()
-    {
-    }
+    public LexerException() { }
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="LexerException" /> class.
     /// </summary>
     /// <param name="message">The error message.</param>
     /// <param name="position">The position in the input where the error occurred.</param>
-    public LexerException(string message, int position) : base(message)
+    public LexerException(string message, int position)
+        : base(message)
     {
         Position = position;
         Code = DiagnosticCode.MQ1001_UnknownToken;
@@ -40,7 +36,8 @@ public class LexerException : Exception, IDiagnosticException
     /// <param name="message">The error message.</param>
     /// <param name="position">The position in the input where the error occurred.</param>
     /// <param name="code">The diagnostic code.</param>
-    public LexerException(string message, int position, DiagnosticCode code) : base(message)
+    public LexerException(string message, int position, DiagnosticCode code)
+        : base(message)
     {
         Position = position;
         Code = code;
@@ -51,7 +48,8 @@ public class LexerException : Exception, IDiagnosticException
     ///     invalid.  The span is retained so diagnostics can underline the
     ///     malformed token rather than only its first character.
     /// </summary>
-    public LexerException(string message, TextSpan span, DiagnosticCode code) : base(message)
+    public LexerException(string message, TextSpan span, DiagnosticCode code)
+        : base(message)
     {
         Position = span.Start;
         Code = code;

@@ -20,7 +20,8 @@ public static class ColumnReadModifiers
             return Empty;
 
         return new ReadOnlyDictionary<string, string>(
-            new Dictionary<string, string>(modifiers, StringComparer.Ordinal));
+            new Dictionary<string, string>(modifiers, StringComparer.Ordinal)
+        );
     }
 
     public static IReadOnlyDictionary<string, string> Create(IEnumerable<KeyValuePair<string, string>> modifiers)
@@ -31,8 +32,6 @@ public static class ColumnReadModifiers
         foreach (var modifier in modifiers)
             dictionary.Add(modifier.Key, modifier.Value);
 
-        return dictionary.Count == 0
-            ? Empty
-            : new ReadOnlyDictionary<string, string>(dictionary);
+        return dictionary.Count == 0 ? Empty : new ReadOnlyDictionary<string, string>(dictionary);
     }
 }

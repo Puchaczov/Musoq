@@ -9,7 +9,8 @@ internal static class NativeEnumReadNormalizer
     public static ExpressionSyntax Normalize(
         ExecutionFieldRead fieldRead,
         ExpressionSyntax sourceValue,
-        bool sourceValueIsBoxed = false)
+        bool sourceValueIsBoxed = false
+    )
     {
         if (fieldRead.EnumType == null || fieldRead.SourceReadType == null)
             return sourceValue;
@@ -27,11 +28,14 @@ internal static class NativeEnumReadNormalizer
             typedSourceValue = SyntaxFactory.ParenthesizedExpression(
                 SyntaxFactory.CastExpression(
                     ExecutionSyntaxFactory.CreateTypeSyntax(fieldRead.SourceReadType),
-                    sourceValue));
+                    sourceValue
+                )
+            );
         }
 
         return SyntaxFactory.CastExpression(
             ExecutionSyntaxFactory.CreateTypeSyntax(fieldRead.ReturnType),
-            SyntaxFactory.ParenthesizedExpression(typedSourceValue));
+            SyntaxFactory.ParenthesizedExpression(typedSourceValue)
+        );
     }
 }

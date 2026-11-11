@@ -19,7 +19,8 @@ public class CompiledTypedQuery<TOut> : IQueryProgressSource
         var parameterizedRunnable = runnable as IParameterizedRunnable;
         _runState = new TypedRunState(
             parameterizedRunnable?.ParameterDefinitions,
-            (runnable as ITypedParameterizedRunnable)?.TypedParameters);
+            (runnable as ITypedParameterizedRunnable)?.TypedParameters
+        );
     }
 
     public event QueryPhaseEventHandler PhaseChanged
@@ -77,9 +78,8 @@ public class CompiledTypedQuery<TOut> : IQueryProgressSource
         return options;
     }
 
-    private sealed class ConfiguredTypedRunEnumerable(
-        ITypedRunnable<TOut> runnable,
-        TypedQueryRunOptions options) : IEnumerable<TOut>
+    private sealed class ConfiguredTypedRunEnumerable(ITypedRunnable<TOut> runnable, TypedQueryRunOptions options)
+        : IEnumerable<TOut>
     {
         private int _started;
 
@@ -160,8 +160,7 @@ public class CompiledTypedQuery<TOut> : IQueryProgressSource
         }
     }
 
-    private sealed class ConfiguredTypedRunEnumerator(
-        IEnumerator<TOut> inner) : IEnumerator<TOut>
+    private sealed class ConfiguredTypedRunEnumerator(IEnumerator<TOut> inner) : IEnumerator<TOut>
     {
         private int _disposed;
 

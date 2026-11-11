@@ -23,7 +23,8 @@ public sealed class NonClrTargetPipelinePressureTests
             backend: new FakeBackend(),
             finalizer: new FakeFinalizer(),
             inspector: new FakeInspector(),
-            createArtifactPackage: CreateFakePackage);
+            createArtifactPackage: CreateFakePackage
+        );
 
         Assert.IsNull(descriptor.ActivationPhase);
 
@@ -34,15 +35,17 @@ public sealed class NonClrTargetPipelinePressureTests
         Assert.IsTrue(renderResult.Success);
         var renderedArtifact = renderResult.Artifact!;
         Assert.Throws<NotSupportedException>(() =>
-            ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr));
+            ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr)
+        );
         var finalizationResult = ExecutionTargetCatalog.FinalizeArtifact(
             renderedArtifact,
-            TargetFinalizationOptions.Empty);
+            TargetFinalizationOptions.Empty
+        );
         var compilationArtifacts = CompilationBuildArtifacts.From(finalizationResult);
         var items = new BuildItems
         {
             RenderingArtifact = renderedArtifact,
-            CompilationArtifacts = compilationArtifacts
+            CompilationArtifacts = compilationArtifacts,
         };
         var inspection = ExecutionTargetCatalog.InspectArtifact(renderedArtifact);
         var package = ExecutionTargetCatalog.CreateArtifactPackage(
@@ -50,7 +53,9 @@ public sealed class NonClrTargetPipelinePressureTests
                 renderedArtifact,
                 finalizationResult.Artifact!,
                 request.RuntimeContract,
-                request.CompatibilityReport));
+                request.CompatibilityReport
+            )
+        );
 
         Assert.IsInstanceOfType<FakeRenderedQueryArtifact>(renderedArtifact);
         Assert.IsTrue(finalizationResult.Success);
@@ -67,22 +72,27 @@ public sealed class NonClrTargetPipelinePressureTests
         Assert.IsFalse(CSharpClrArtifactCompatibility.TryGetAssemblyExecutable(export, out _));
         Assert.Throws<InvalidOperationException>(() => _ = items.CompilationArtifacts.EmitResult);
         Assert.Throws<InvalidOperationException>(() =>
-            CSharpClrArtifactCompatibility.RequireRenderedArtifact(renderedArtifact, "fake target pressure test"));
+            CSharpClrArtifactCompatibility.RequireRenderedArtifact(renderedArtifact, "fake target pressure test")
+        );
         Assert.Throws<InvalidOperationException>(() =>
-            CSharpClrArtifactCompatibility.RequireFinalizationResult(finalizationResult, "fake target pressure test"));
+            CSharpClrArtifactCompatibility.RequireFinalizationResult(finalizationResult, "fake target pressure test")
+        );
         Assert.IsNull(inspection.GeneratedCSharpCode);
         Assert.AreEqual("fake-js", inspection.SourceMetadata["language"]);
         AssertFakeExportPackage(
             package,
             expectSourceAccessAbi: false,
             expectRowShapeAbi: false,
-            expectDiagnosticsAbi: false);
+            expectDiagnosticsAbi: false
+        );
         var exception = Assert.Throws<InvalidOperationException>(() =>
             CompiledQueryArtifactSupport.CreateCompiledArtifactFromPackage(
                 package,
                 CompiledQueryArtifactSupport.CurrentEngineVersion,
                 CompiledQueryArtifact.CurrentArtifactFormatVersion,
-                "options"));
+                "options"
+            )
+        );
         Assert.Contains("support only", exception.Message);
         Assert.Contains(ExecutionTargetIds.CSharpClr.ToString(), exception.Message);
     }
@@ -103,13 +113,15 @@ public sealed class NonClrTargetPipelinePressureTests
                 context.QueryResultMode,
                 context.ScriptBinding.ParameterNames.Count,
                 context.ScriptBinding.VariableNames.Count,
-                context.References.ReferenceNames.Count),
+                context.References.ReferenceNames.Count
+            ),
             createArtifactPackage: context =>
             {
                 packagedRuntimeContract = context.RuntimeContract;
                 packagedReadinessReport = context.ReadinessReport;
                 return CreateFakePackage(context);
-            });
+            }
+        );
 
         Assert.IsNull(descriptor.ActivationPhase);
 
@@ -120,7 +132,8 @@ public sealed class NonClrTargetPipelinePressureTests
             $"FakeNonClrPackage{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             new TestsLoggerResolver(),
-            TestExecutionTargetIds.TestOnlyNonClr);
+            TestExecutionTargetIds.TestOnlyNonClr
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.IsNotNull(result.BuildItems);
@@ -155,13 +168,16 @@ public sealed class NonClrTargetPipelinePressureTests
         Assert.IsNull(result.BuildItems.PdbFile);
         Assert.IsFalse(CSharpClrArtifactCompatibility.TryGetAssemblyExecutable(export, out _));
         Assert.Throws<NotSupportedException>(() =>
-            ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr));
+            ExecutionTargetCatalog.ResolveActivator(TestExecutionTargetIds.TestOnlyNonClr)
+        );
         var exception = Assert.Throws<InvalidOperationException>(() =>
             CompiledQueryArtifactSupport.CreateCompiledArtifactFromPackage(
                 result.Package,
                 CompiledQueryArtifactSupport.CurrentEngineVersion,
                 CompiledQueryArtifact.CurrentArtifactFormatVersion,
-                "options"));
+                "options"
+            )
+        );
         Assert.Contains("support only", exception.Message);
     }
 
@@ -177,8 +193,10 @@ public sealed class NonClrTargetPipelinePressureTests
                 context.QueryResultMode,
                 context.ScriptBinding.ParameterNames.Count,
                 context.ScriptBinding.VariableNames.Count,
-                context.References.ReferenceNames.Count),
-            createArtifactPackage: CreateFakePackage);
+                context.References.ReferenceNames.Count
+            ),
+            createArtifactPackage: CreateFakePackage
+        );
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
 
@@ -187,14 +205,16 @@ public sealed class NonClrTargetPipelinePressureTests
             $"FakeNonClrNoInspection{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             new TestsLoggerResolver(),
-            TestExecutionTargetIds.TestOnlyNonClr);
+            TestExecutionTargetIds.TestOnlyNonClr
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.IsNotNull(result.Package);
         Assert.IsNull(result.Inspection);
         Assert.IsNotNull(result.BuildItems);
         Assert.Throws<NotSupportedException>(() =>
-            ExecutionTargetCatalog.InspectArtifact(result.BuildItems.RenderingArtifact));
+            ExecutionTargetCatalog.InspectArtifact(result.BuildItems.RenderingArtifact)
+        );
     }
 
     [TestMethod]
@@ -209,8 +229,10 @@ public sealed class NonClrTargetPipelinePressureTests
                 context.QueryResultMode,
                 context.ScriptBinding.ParameterNames.Count,
                 context.ScriptBinding.VariableNames.Count,
-                context.References.ReferenceNames.Count),
-            createArtifactPackage: CreateFakePackage);
+                context.References.ReferenceNames.Count
+            ),
+            createArtifactPackage: CreateFakePackage
+        );
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
 
@@ -219,7 +241,8 @@ public sealed class NonClrTargetPipelinePressureTests
             $"FakeNonClrTyped{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             new TestsLoggerResolver(),
-            TestExecutionTargetIds.TestOnlyNonClr);
+            TestExecutionTargetIds.TestOnlyNonClr
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.IsNotNull(result.Package);
@@ -229,10 +252,16 @@ public sealed class NonClrTargetPipelinePressureTests
         Assert.AreEqual(typeof(FakeTypedOutput), result.BuildItems.OutputType);
         var inputs = Assert.IsInstanceOfType<FakeTargetRenderInputs>(backend.Request.BackendInputs);
         Assert.AreEqual(QueryResultMode.TypedEnumerable, inputs.QueryResultMode);
-        Assert.IsTrue(result.Package.Entrypoints.Any(static entrypoint =>
-            entrypoint.Kind == TargetRuntimeEntrypointKind.TypedQuery));
-        Assert.IsFalse(result.Package.Entrypoints.Any(static entrypoint =>
-            entrypoint.Kind == TargetRuntimeEntrypointKind.TableQuery));
+        Assert.IsTrue(
+            result.Package.Entrypoints.Any(static entrypoint =>
+                entrypoint.Kind == TargetRuntimeEntrypointKind.TypedQuery
+            )
+        );
+        Assert.IsFalse(
+            result.Package.Entrypoints.Any(static entrypoint =>
+                entrypoint.Kind == TargetRuntimeEntrypointKind.TableQuery
+            )
+        );
         Assert.IsNull(result.Inspection);
     }
 
@@ -247,7 +276,8 @@ public sealed class NonClrTargetPipelinePressureTests
                 context.QueryResultMode,
                 context.ScriptBinding.ParameterNames.Count,
                 context.ScriptBinding.VariableNames.Count,
-                context.References.ReferenceNames.Count),
+                context.References.ReferenceNames.Count
+            ),
             createArtifactPackage: static context =>
             {
                 var export = Assert.IsInstanceOfType<TargetExportArtifact>(context.ExecutableArtifact);
@@ -257,8 +287,10 @@ public sealed class NonClrTargetPipelinePressureTests
                     export,
                     context.SemanticsContract,
                     export.DiagnosticsMetadata,
-                    context.ExecutionIrVersion);
-            });
+                    context.ExecutionIrVersion
+                );
+            }
+        );
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
 
@@ -267,64 +299,67 @@ public sealed class NonClrTargetPipelinePressureTests
             $"FakeNonClrSelfContained{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             new TestsLoggerResolver(),
-            TestExecutionTargetIds.TestOnlyNonClr);
+            TestExecutionTargetIds.TestOnlyNonClr
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.IsNotNull(result.Package);
         Assert.IsEmpty(result.Package.RuntimeServices.RequiredServices);
         Assert.IsEmpty(result.Package.HostAbiInventory.Imports);
-        Assert.IsTrue(result.Package.Entrypoints.Any(static entrypoint =>
-            entrypoint.Kind == TargetRuntimeEntrypointKind.TableQuery));
+        Assert.IsTrue(
+            result.Package.Entrypoints.Any(static entrypoint =>
+                entrypoint.Kind == TargetRuntimeEntrypointKind.TableQuery
+            )
+        );
     }
 
     [TestMethod]
-    [DataRow(
-        "select d.Dummy from #system.dual() d",
-        0,
-        0,
-        true,
-        true,
-        DisplayName = "source scan")]
+    [DataRow("select d.Dummy from #system.dual() d", 0, 0, true, true, DisplayName = "source scan")]
     [DataRow(
         "param(expected: string) select d.Dummy from #system.dual() d where d.Dummy = $expected",
         1,
         0,
         true,
         true,
-        DisplayName = "parameter binding")]
+        DisplayName = "parameter binding"
+    )]
     [DataRow(
         "let expected: string = 'single'; select d.Dummy from #system.dual() d where d.Dummy = $expected",
         0,
         1,
         true,
         true,
-        DisplayName = "script variable binding")]
+        DisplayName = "script variable binding"
+    )]
     [DataRow(
         "select d.Dummy as Dummy, Count(1) as Count from #system.dual() d group by d.Dummy",
         0,
         0,
         true,
         true,
-        DisplayName = "aggregate")]
+        DisplayName = "aggregate"
+    )]
     [DataRow(
-        """
-        from values {
-            ( Name: 'first', Score: 1 ),
-            ( Name: 'second', Score: 2 )
-        } rows
-        select rows.Name, rows.Score
-        """,
+        (
+            "from values {\n"
+            + "    ( Name: 'first', Score: 1 ),\n"
+            + "    ( Name: 'second', Score: 2 )\n"
+            + "} rows\n"
+            + "select rows.Name, rows.Score"
+        ),
         0,
         0,
         false,
         true,
-        DisplayName = "generated row source")]
+        DisplayName = "generated row source"
+    )]
     public void FakeNonClrTarget_ShouldReceiveRealRenderRequestsForRepresentativeQueryShapes(
         string query,
         int expectedParameterCount,
         int expectedVariableCount,
         bool expectedSourceAccessAbi,
-        bool expectedRowShapeAbi)
+        bool expectedRowShapeAbi
+    )
     {
         var backend = new CapturingFakeBackend();
         var descriptor = TestOnlyExecutionTarget.CreateDescriptor(
@@ -336,8 +371,10 @@ public sealed class NonClrTargetPipelinePressureTests
                 context.QueryResultMode,
                 context.ScriptBinding.ParameterNames.Count,
                 context.ScriptBinding.VariableNames.Count,
-                context.References.ReferenceNames.Count),
-            createArtifactPackage: CreateFakePackage);
+                context.References.ReferenceNames.Count
+            ),
+            createArtifactPackage: CreateFakePackage
+        );
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
 
@@ -346,7 +383,8 @@ public sealed class NonClrTargetPipelinePressureTests
             $"FakeNonClrShape{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             new TestsLoggerResolver(),
-            TestExecutionTargetIds.TestOnlyNonClr);
+            TestExecutionTargetIds.TestOnlyNonClr
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.IsNotNull(result.Package);
@@ -365,10 +403,7 @@ public sealed class NonClrTargetPipelinePressureTests
         Assert.AreSame(backend.Request.RuntimeContract, result.BuildItems.TargetRuntimeContract);
         Assert.IsNotNull(result.BuildItems.ExecutionTargetReadinessReport);
         Assert.IsInstanceOfType<TargetExportArtifact>(result.BuildItems.ExecutableArtifact);
-        AssertFakeExportPackage(
-            result.Package,
-            expectedSourceAccessAbi,
-            expectedRowShapeAbi);
+        AssertFakeExportPackage(result.Package, expectedSourceAccessAbi, expectedRowShapeAbi);
         Assert.AreEqual("fake-js", result.Inspection.SourceMetadata["language"]);
     }
 
@@ -386,8 +421,10 @@ public sealed class NonClrTargetPipelinePressureTests
                 context.QueryResultMode,
                 context.ScriptBinding.ParameterNames.Count,
                 context.ScriptBinding.VariableNames.Count,
-                context.References.ReferenceNames.Count),
-            createArtifactPackage: CreateFakePackage);
+                context.References.ReferenceNames.Count
+            ),
+            createArtifactPackage: CreateFakePackage
+        );
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
 
@@ -396,23 +433,29 @@ public sealed class NonClrTargetPipelinePressureTests
             $"FakeNonClrCallable{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             new TestsLoggerResolver(),
-            TestExecutionTargetIds.TestOnlyNonClr);
+            TestExecutionTargetIds.TestOnlyNonClr
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.IsNotNull(result.Package);
         Assert.IsNotNull(result.BuildItems);
         Assert.IsNotNull(backend.Request);
         var methodRequirement = backend.Request.CompatibilityReport.Requirements.First(requirement =>
-            requirement.Kind == ExecutionTargetRequirementKind.MethodInfoCall &&
-            requirement.CallableSymbol?.MethodName == nameof(LibraryBase.ToUpper));
+            requirement.Kind == ExecutionTargetRequirementKind.MethodInfoCall
+            && requirement.CallableSymbol?.MethodName == nameof(LibraryBase.ToUpper)
+        );
         Assert.AreEqual(ExecutionPortableSymbolPortability.HostImport, methodRequirement.CallableSymbol!.Portability);
-        Assert.IsTrue(backend.Request.RuntimeContract.PluginInvocations.Any(invocation =>
-            invocation.Callable.MethodName == nameof(LibraryBase.ToUpper) &&
-            invocation.Callable.Portability == ExecutionPortableSymbolPortability.HostImport));
+        Assert.IsTrue(
+            backend.Request.RuntimeContract.PluginInvocations.Any(invocation =>
+                invocation.Callable.MethodName == nameof(LibraryBase.ToUpper)
+                && invocation.Callable.Portability == ExecutionPortableSymbolPortability.HostImport
+            )
+        );
 
         var pluginImport = result.Package.HostAbiInventory.Imports.First(import =>
-            import.Kind == TargetHostAbiImportKind.PluginInvocation &&
-            import.Attributes["methodName"] == nameof(LibraryBase.ToUpper));
+            import.Kind == TargetHostAbiImportKind.PluginInvocation
+            && import.Attributes["methodName"] == nameof(LibraryBase.ToUpper)
+        );
         Assert.AreEqual("plugin-invocation-v2", pluginImport.Contract);
         Assert.AreEqual(2, pluginImport.ContractVersion);
         var pluginDetails = Assert.IsInstanceOfType<TargetPluginInvocationAbiDetails>(pluginImport.Details);
@@ -422,11 +465,17 @@ public sealed class NonClrTargetPipelinePressureTests
         Assert.AreEqual("HostImport", pluginImport.Attributes["callablePortability"]);
 
         Assert.IsNotNull(result.BuildItems.ExecutionTargetReadinessReport);
-        Assert.IsTrue(result.BuildItems.ExecutionTargetReadinessReport.Issues.Any(issue =>
-            issue.Category == ExecutionTargetReadinessCategory.PluginInvocation &&
-            issue.Requirement.Detail.Contains(nameof(LibraryBase.ToUpper), StringComparison.Ordinal)));
-        Assert.IsFalse(result.BuildItems.ExecutionTargetReadinessReport.Issues.Any(issue =>
-            issue.Requirement.CallableSymbol?.Portability == ExecutionPortableSymbolPortability.ClrOnly));
+        Assert.IsTrue(
+            result.BuildItems.ExecutionTargetReadinessReport.Issues.Any(issue =>
+                issue.Category == ExecutionTargetReadinessCategory.PluginInvocation
+                && issue.Requirement.Detail.Contains(nameof(LibraryBase.ToUpper), StringComparison.Ordinal)
+            )
+        );
+        Assert.IsFalse(
+            result.BuildItems.ExecutionTargetReadinessReport.Issues.Any(issue =>
+                issue.Requirement.CallableSymbol?.Portability == ExecutionPortableSymbolPortability.ClrOnly
+            )
+        );
     }
 
     [TestMethod]
@@ -435,11 +484,10 @@ public sealed class NonClrTargetPipelinePressureTests
         var request = CreateMinimalRequest() with
         {
             TargetId = ExecutionTargetIds.CSharpClr,
-            BackendInputs = new EmptyTargetBackendRenderInputs(ExecutionTargetIds.CSharpClr)
+            BackendInputs = new EmptyTargetBackendRenderInputs(ExecutionTargetIds.CSharpClr),
         };
 
-        var exception = Assert.Throws<NotSupportedException>(
-            () => new CSharpClrExecutionBackend().Render(request));
+        var exception = Assert.Throws<NotSupportedException>(() => new CSharpClrExecutionBackend().Render(request));
 
         Assert.Contains(nameof(CSharpClrRenderInputs), exception.Message);
     }
@@ -452,19 +500,17 @@ public sealed class NonClrTargetPipelinePressureTests
             backend: backend,
             finalizer: new FakeFinalizer(),
             inspector: new FakeInspector(),
-            createArtifactPackage: CreateFakePackage);
+            createArtifactPackage: CreateFakePackage
+        );
         var plan = new ExecutionPlan("Q_UnsupportedFakeNonClr", [], new ExecutionBlock([]));
-        var compatibilityReport = new ExecutionTargetCompatibilityReport(
-        [
-            new ExecutionTargetRequirement(
-                ExecutionTargetRequirementKind.MethodInfoCall,
-                "Sample.Plugin.Method")
+        var compatibilityReport = new ExecutionTargetCompatibilityReport([
+            new ExecutionTargetRequirement(ExecutionTargetRequirementKind.MethodInfoCall, "Sample.Plugin.Method"),
         ]);
         var request = CreateMinimalRequest() with
         {
             ExecutionPlan = plan,
             CompatibilityReport = compatibilityReport,
-            RuntimeContract = CreateNoRuntimeRequirementsContract(plan)
+            RuntimeContract = CreateNoRuntimeRequirementsContract(plan),
         };
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
@@ -472,9 +518,12 @@ public sealed class NonClrTargetPipelinePressureTests
         var result = ExecutionTargetCatalog.Render(request);
 
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == TargetDiagnosticCodes.UnsupportedRequirement &&
-            diagnostic.Message.Contains("MethodInfoCall: Sample.Plugin.Method", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Diagnostics.Any(diagnostic =>
+                diagnostic.Code == TargetDiagnosticCodes.UnsupportedRequirement
+                && diagnostic.Message.Contains("MethodInfoCall: Sample.Plugin.Method", StringComparison.Ordinal)
+            )
+        );
         Assert.IsNull(backend.Request, "Backend render must not run when target capabilities reject the request.");
     }
 
@@ -487,15 +536,14 @@ public sealed class NonClrTargetPipelinePressureTests
             "Q_UnsupportedOperation",
             [],
             new ExecutionBlock([
-                new ExecutionLet(
-                    new ExecutionVariable("value", typeof(int)),
-                    new ExecutionLiteral(1, typeof(int)))
-            ]));
+                new ExecutionLet(new ExecutionVariable("value", typeof(int)), new ExecutionLiteral(1, typeof(int))),
+            ])
+        );
         var request = CreateMinimalRequest() with
         {
             ExecutionPlan = plan,
             OperationReport = ExecutionTargetOperationAnalyzer.Analyze(plan),
-            RuntimeContract = CreateNoRuntimeRequirementsContract(plan)
+            RuntimeContract = CreateNoRuntimeRequirementsContract(plan),
         };
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
@@ -503,12 +551,18 @@ public sealed class NonClrTargetPipelinePressureTests
         var result = ExecutionTargetCatalog.Render(request);
 
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == TargetDiagnosticCodes.UnsupportedOperation &&
-            diagnostic.Message.Contains("expr.literal", StringComparison.Ordinal)));
-        Assert.IsTrue(result.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == TargetDiagnosticCodes.UnsupportedOperation &&
-            diagnostic.Message.Contains("variable.let", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Diagnostics.Any(diagnostic =>
+                diagnostic.Code == TargetDiagnosticCodes.UnsupportedOperation
+                && diagnostic.Message.Contains("expr.literal", StringComparison.Ordinal)
+            )
+        );
+        Assert.IsTrue(
+            result.Diagnostics.Any(diagnostic =>
+                diagnostic.Code == TargetDiagnosticCodes.UnsupportedOperation
+                && diagnostic.Message.Contains("variable.let", StringComparison.Ordinal)
+            )
+        );
         Assert.IsNull(backend.Request, "Backend render must not run when target operations are unsupported.");
     }
 
@@ -522,31 +576,31 @@ public sealed class NonClrTargetPipelinePressureTests
             Enum.GetValues<ExecutionPortableSymbolPortability>(),
             ExecutionOperationCatalog.AllOperationIds,
             [ExecutionSemanticsContract.Current.Version],
-            [
-                ExecutionTargetFeatureKind.ConstantKind,
-                ExecutionTargetFeatureKind.TypePortability
-            ]);
+            [ExecutionTargetFeatureKind.ConstantKind, ExecutionTargetFeatureKind.TypePortability]
+        );
         var backend = new CapturingFakeBackend(capabilities);
         var descriptor = TestOnlyExecutionTarget.CreateDescriptor(backend: backend);
         var plan = new ExecutionPlan(
             "Q_UnsupportedFeature",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionLet(
                     new ExecutionVariable("value", typeof(int)),
                     new ExecutionBinary(
                         BinaryOpKind.Add,
                         new ExecutionLiteral(1, typeof(int)),
                         new ExecutionLiteral(2, typeof(int)),
-                        typeof(int)))
-            ]));
+                        typeof(int)
+                    )
+                ),
+            ])
+        );
         var request = CreateMinimalRequest() with
         {
             ExecutionPlan = plan,
             OperationReport = ExecutionTargetOperationAnalyzer.Analyze(plan),
             FeatureReport = ExecutionTargetFeatureAnalyzer.Analyze(plan),
-            RuntimeContract = CreateNoRuntimeRequirementsContract(plan)
+            RuntimeContract = CreateNoRuntimeRequirementsContract(plan),
         };
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
@@ -554,9 +608,12 @@ public sealed class NonClrTargetPipelinePressureTests
         var result = ExecutionTargetCatalog.Render(request);
 
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == TargetDiagnosticCodes.UnsupportedRequirement &&
-            diagnostic.Message.Contains("feature 'binary:add'", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Diagnostics.Any(diagnostic =>
+                diagnostic.Code == TargetDiagnosticCodes.UnsupportedRequirement
+                && diagnostic.Message.Contains("feature 'binary:add'", StringComparison.Ordinal)
+            )
+        );
         Assert.IsNull(backend.Request, "Backend render must not run when target features are unsupported.");
     }
 
@@ -564,15 +621,21 @@ public sealed class NonClrTargetPipelinePressureTests
     public void Render_WhenTargetCapabilitiesRejectSemantics_ShouldFailBeforeBackendRender()
     {
         var backend = new CapturingFakeBackend(
-            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Current.Version]));
+            ExecutionTargetCapabilities.CreateForSemantics([ExecutionSemanticsContract.Current.Version])
+        );
         var descriptor = TestOnlyExecutionTarget.CreateDescriptor(backend: backend);
         var unsupportedContract = new ExecutionSemanticsContract(3, ExecutionSemanticsContract.Current.Rules);
-        var plan = new ExecutionPlan("Q_UnsupportedSemantics", [], new ExecutionBlock([]), semanticsContract: unsupportedContract);
+        var plan = new ExecutionPlan(
+            "Q_UnsupportedSemantics",
+            [],
+            new ExecutionBlock([]),
+            semanticsContract: unsupportedContract
+        );
         var request = CreateMinimalRequest() with
         {
             ExecutionPlan = plan,
             SemanticsContract = unsupportedContract,
-            RuntimeContract = CreateNoRuntimeRequirementsContract(plan)
+            RuntimeContract = CreateNoRuntimeRequirementsContract(plan),
         };
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
@@ -580,9 +643,12 @@ public sealed class NonClrTargetPipelinePressureTests
         var result = ExecutionTargetCatalog.Render(request);
 
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Diagnostics.Any(diagnostic =>
-            diagnostic.Code == TargetDiagnosticCodes.UnsupportedSemantics &&
-            diagnostic.Message.Contains("version 3", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            result.Diagnostics.Any(diagnostic =>
+                diagnostic.Code == TargetDiagnosticCodes.UnsupportedSemantics
+                && diagnostic.Message.Contains("version 3", StringComparison.Ordinal)
+            )
+        );
         Assert.IsNull(backend.Request, "Backend render must not run when execution semantics are unsupported.");
     }
 
@@ -595,13 +661,15 @@ public sealed class NonClrTargetPipelinePressureTests
             Enum.GetValues<ExecutionPortableSymbolPortability>(),
             [ExecutionPortableSymbolPortability.Portable],
             ExecutionOperationCatalog.AllOperationIds,
-            [ExecutionSemanticsContract.Current.Version]);
+            [ExecutionSemanticsContract.Current.Version]
+        );
         var backend = new CapturingFakeBackend(capabilities);
         var descriptor = TestOnlyExecutionTarget.CreateDescriptor(
             backend: backend,
             finalizer: new FakeFinalizer(),
             inspector: new FakeInspector(),
-            createArtifactPackage: CreateFakePackage);
+            createArtifactPackage: CreateFakePackage
+        );
 
         using var registration = ExecutionTargetCatalog.UseTemporaryDescriptor(descriptor);
 
@@ -610,7 +678,8 @@ public sealed class NonClrTargetPipelinePressureTests
             $"FakeNonClrRejectedCallable{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
             new TestsLoggerResolver(),
-            TestExecutionTargetIds.TestOnlyNonClr);
+            TestExecutionTargetIds.TestOnlyNonClr
+        );
 
         Assert.IsFalse(result.Succeeded);
         Assert.IsNull(backend.Request, "Backend render must not run for unsupported callable portability.");
@@ -640,7 +709,7 @@ public sealed class NonClrTargetPipelinePressureTests
             CompatibilityReport = compatibilityReport,
             RuntimeContract = CreateNoRuntimeRequirementsContract(plan),
             HostAbiVersion = TargetContractVersions.HostAbi,
-            BackendInputs = new EmptyTargetBackendRenderInputs(TestExecutionTargetIds.TestOnlyNonClr)
+            BackendInputs = new EmptyTargetBackendRenderInputs(TestExecutionTargetIds.TestOnlyNonClr),
         };
     }
 
@@ -648,7 +717,8 @@ public sealed class NonClrTargetPipelinePressureTests
         RenderedQueryArtifact renderedArtifact,
         ExecutableQueryArtifact executableArtifact,
         TargetRuntimeContract? runtimeContract = null,
-        ExecutionTargetCompatibilityReport? compatibilityReport = null)
+        ExecutionTargetCompatibilityReport? compatibilityReport = null
+    )
     {
         return new TargetArtifactPackagingContext(
             TestExecutionTargetIds.TestOnlyNonClr,
@@ -662,9 +732,8 @@ public sealed class NonClrTargetPipelinePressureTests
             runtimeContract,
             runtimeContract is null || compatibilityReport is null
                 ? null
-                : ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(
-                    compatibilityReport,
-                    runtimeContract));
+                : ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(compatibilityReport, runtimeContract)
+        );
     }
 
     private static TargetRuntimeContract CreateNoRuntimeRequirementsContract(ExecutionPlan plan)
@@ -678,25 +747,28 @@ public sealed class NonClrTargetPipelinePressureTests
                 UsesNullableValueTypes: false,
                 UsesObjectNulls: false,
                 UsesFieldNullabilityMetadata: false,
-                Semantics: "none"),
-            new TargetCancellationContract(
-                RequiresCancellationToken: false,
-                RequiresParallelCancellation: false),
+                Semantics: "none"
+            ),
+            new TargetCancellationContract(RequiresCancellationToken: false, RequiresParallelCancellation: false),
             new TargetDiagnosticsContract(
                 RequiresBuildDiagnostics: false,
                 RequiresSourceDiagnostics: false,
-                RequiresRuntimeExceptionDiagnostics: false),
+                RequiresRuntimeExceptionDiagnostics: false
+            ),
             new TargetProfilingContract(
                 SupportsSourceBoundaryProfiling: false,
                 SupportsOperatorProfiling: false,
                 SourceBoundaryCount: 0,
-                OperatorCount: 0));
+                OperatorCount: 0
+            )
+        );
     }
 
     private static TargetArtifactPackage CreateFakePackage(TargetArtifactPackagingContext context)
     {
-        var export = context.ExecutableArtifact as TargetExportArtifact ??
-                     throw new InvalidOperationException("Fake target package creation requires a portable export artifact.");
+        var export =
+            context.ExecutableArtifact as TargetExportArtifact
+            ?? throw new InvalidOperationException("Fake target package creation requires a portable export artifact.");
 
         return TargetArtifactPackage.CreatePortableExportPackage(
             context.TargetId,
@@ -704,7 +776,8 @@ public sealed class NonClrTargetPipelinePressureTests
             export,
             context.SemanticsContract,
             export.DiagnosticsMetadata,
-            context.ExecutionIrVersion);
+            context.ExecutionIrVersion
+        );
     }
 
     private static string FormatDiagnostics(IEnumerable<global::Musoq.Parser.Diagnostics.Diagnostic> diagnostics)
@@ -716,7 +789,8 @@ public sealed class NonClrTargetPipelinePressureTests
         TargetArtifactPackage package,
         bool expectSourceAccessAbi,
         bool expectRowShapeAbi,
-        bool expectDiagnosticsAbi = true)
+        bool expectDiagnosticsAbi = true
+    )
     {
         Assert.AreEqual(TestExecutionTargetIds.TestOnlyNonClr, package.TargetId);
         Assert.AreEqual("FakeNonClrExport", package.ArtifactKind);
@@ -727,12 +801,14 @@ public sealed class NonClrTargetPipelinePressureTests
         Assert.HasCount(1, package.Entrypoints);
         Assert.AreEqual(
             expectSourceAccessAbi,
-            package.RuntimeServices.Requires(TargetRuntimeServiceRequirementKind.SourceAccess));
+            package.RuntimeServices.Requires(TargetRuntimeServiceRequirementKind.SourceAccess)
+        );
         if (expectSourceAccessAbi)
         {
             Assert.IsTrue(package.HostAbiInventory.Requires(TargetHostAbiImportKind.SourceAccess));
             var sourceImport = package.HostAbiInventory.Imports.Single(import =>
-                import.Kind == TargetHostAbiImportKind.SourceAccess);
+                import.Kind == TargetHostAbiImportKind.SourceAccess
+            );
             Assert.AreEqual(2, sourceImport.ContractVersion);
             Assert.AreEqual("source-access-v2", sourceImport.Contract);
             var sourceDetails = Assert.IsInstanceOfType<TargetSourceAccessAbiDetails>(sourceImport.Details);
@@ -746,7 +822,8 @@ public sealed class NonClrTargetPipelinePressureTests
         {
             Assert.IsTrue(package.HostAbiInventory.Requires(TargetHostAbiImportKind.RowShapeTransfer));
             var rowImport = package.HostAbiInventory.Imports.First(import =>
-                import.Kind == TargetHostAbiImportKind.RowShapeTransfer);
+                import.Kind == TargetHostAbiImportKind.RowShapeTransfer
+            );
             Assert.AreEqual(1, rowImport.ContractVersion);
             Assert.AreEqual("row-shape-transfer-v1", rowImport.Contract);
             var rowDetails = Assert.IsInstanceOfType<TargetRowShapeTransferAbiDetails>(rowImport.Details);
@@ -758,7 +835,8 @@ public sealed class NonClrTargetPipelinePressureTests
         {
             Assert.IsTrue(package.HostAbiInventory.Requires(TargetHostAbiImportKind.Diagnostics));
             var diagnosticsImport = package.HostAbiInventory.Imports.Single(import =>
-                import.Kind == TargetHostAbiImportKind.Diagnostics);
+                import.Kind == TargetHostAbiImportKind.Diagnostics
+            );
             var diagnosticsDetails = Assert.IsInstanceOfType<TargetDiagnosticsAbiDetails>(diagnosticsImport.Details);
             Assert.IsTrue(diagnosticsDetails.RequiresBuildDiagnostics);
             Assert.IsTrue(diagnosticsImport.Attributes.ContainsKey("requiresBuildDiagnostics"));
@@ -770,15 +848,16 @@ public sealed class NonClrTargetPipelinePressureTests
     private sealed record FakeRenderedQueryArtifact(
         string Source,
         QueryResultMode ResultMode,
-        TargetHostAbiInventory HostAbiInventory)
-        : RenderedQueryArtifact(TestExecutionTargetIds.TestOnlyNonClr);
+        TargetHostAbiInventory HostAbiInventory
+    ) : RenderedQueryArtifact(TestExecutionTargetIds.TestOnlyNonClr);
 
     private sealed record FakeTargetRenderInputs(
         ExecutionTargetId TargetId,
         QueryResultMode QueryResultMode,
         int ParameterCount,
         int VariableCount,
-        int ReferenceNameCount) : TargetBackendRenderInputs(TargetId);
+        int ReferenceNameCount
+    ) : TargetBackendRenderInputs(TargetId);
 
     private sealed class FakeBackend : IQueryExecutionBackend
     {
@@ -792,16 +871,16 @@ public sealed class NonClrTargetPipelinePressureTests
                 new FakeRenderedQueryArtifact(
                     "export function run() { return []; }",
                     ResolveResultMode(request),
-                    TargetHostAbiInventoryBuilder.Build(request.RuntimeContract)));
+                    TargetHostAbiInventoryBuilder.Build(request.RuntimeContract)
+                )
+            );
         }
     }
 
     private sealed class CapturingFakeBackend : IQueryExecutionBackend
     {
         public CapturingFakeBackend()
-            : this(ExecutionTargetCapabilities.CSharpClr)
-        {
-        }
+            : this(ExecutionTargetCapabilities.CSharpClr) { }
 
         public CapturingFakeBackend(ExecutionTargetCapabilities capabilities)
         {
@@ -821,7 +900,9 @@ public sealed class NonClrTargetPipelinePressureTests
                 new FakeRenderedQueryArtifact(
                     "export function run() { return []; }",
                     ResolveResultMode(request),
-                    TargetHostAbiInventoryBuilder.Build(request.RuntimeContract)));
+                    TargetHostAbiInventoryBuilder.Build(request.RuntimeContract)
+                )
+            );
         }
     }
 
@@ -834,14 +915,8 @@ public sealed class NonClrTargetPipelinePressureTests
             var rendered = (FakeRenderedQueryArtifact)artifact;
             var export = TargetExportArtifact.Create(
                 TargetId,
-                sourceFiles:
-                [
-                    new TargetExportSourceFile("query.js", "javascript", rendered.Source)
-                ],
-                binaryBlobs:
-                [
-                    new TargetExportBinaryBlob("query.vm", [1, 2, 3], "application/octet-stream")
-                ],
+                sourceFiles: [new TargetExportSourceFile("query.js", "javascript", rendered.Source)],
+                binaryBlobs: [new TargetExportBinaryBlob("query.vm", [1, 2, 3], "application/octet-stream")],
                 entrypoints:
                 [
                     new TargetRuntimeEntrypoint(
@@ -849,15 +924,15 @@ public sealed class NonClrTargetPipelinePressureTests
                         rendered.ResultMode == QueryResultMode.TypedEnumerable
                             ? TargetRuntimeEntrypointKind.TypedQuery
                             : TargetRuntimeEntrypointKind.TableQuery,
-                        "run")
+                        "run"
+                    ),
                 ],
                 runtimeServices: rendered.HostAbiInventory.CreateServiceRequirements(
-                    TargetRuntimeServiceFulfillmentKind.HostImport),
+                    TargetRuntimeServiceFulfillmentKind.HostImport
+                ),
                 hostAbiInventory: rendered.HostAbiInventory,
-                diagnosticsMetadata: new Dictionary<string, string>(StringComparer.Ordinal)
-                {
-                    ["language"] = "fake-js"
-                });
+                diagnosticsMetadata: new Dictionary<string, string>(StringComparer.Ordinal) { ["language"] = "fake-js" }
+            );
 
             return new FakeFinalizationResult(export);
         }
@@ -872,30 +947,18 @@ public sealed class NonClrTargetPipelinePressureTests
             var rendered = (FakeRenderedQueryArtifact)artifact;
             var export = TargetExportArtifact.Create(
                 TargetId,
-                sourceFiles:
-                [
-                    new TargetExportSourceFile("query.js", "javascript", rendered.Source)
-                ],
-                entrypoints:
-                [
-                    new TargetRuntimeEntrypoint("run", TargetRuntimeEntrypointKind.TableQuery, "run")
-                ],
+                sourceFiles: [new TargetExportSourceFile("query.js", "javascript", rendered.Source)],
+                entrypoints: [new TargetRuntimeEntrypoint("run", TargetRuntimeEntrypointKind.TableQuery, "run")],
                 runtimeServices: TargetRuntimeServiceRequirements.Empty,
-                diagnosticsMetadata: new Dictionary<string, string>(StringComparer.Ordinal)
-                {
-                    ["language"] = "fake-js"
-                });
+                diagnosticsMetadata: new Dictionary<string, string>(StringComparer.Ordinal) { ["language"] = "fake-js" }
+            );
 
             return new FakeFinalizationResult(export);
         }
     }
 
     private sealed record FakeFinalizationResult(ExecutableQueryArtifact Executable)
-        : TargetFinalizationResult(
-            TestExecutionTargetIds.TestOnlyNonClr,
-            true,
-            [],
-            Executable);
+        : TargetFinalizationResult(TestExecutionTargetIds.TestOnlyNonClr, true, [], Executable);
 
     private sealed class FakeInspector : IRenderedQueryInspector
     {
@@ -906,18 +969,14 @@ public sealed class NonClrTargetPipelinePressureTests
             return new RenderedQueryInspection(
                 TargetId,
                 null,
-                new Dictionary<string, string>(StringComparer.Ordinal)
-                {
-                    ["language"] = "fake-js"
-                });
+                new Dictionary<string, string>(StringComparer.Ordinal) { ["language"] = "fake-js" }
+            );
         }
     }
 
     private static QueryResultMode ResolveResultMode(TargetRenderRequest request)
     {
-        return request.BackendInputs is FakeTargetRenderInputs inputs
-            ? inputs.QueryResultMode
-            : QueryResultMode.Table;
+        return request.BackendInputs is FakeTargetRenderInputs inputs ? inputs.QueryResultMode : QueryResultMode.Table;
     }
 
     private sealed class FakeTypedOutput

@@ -7,17 +7,11 @@ internal static class StaticColumnMetadataIdentity
     public static string CreateKey(ExecutionColumnMetadata metadata)
     {
         var builder = new StringBuilder();
-        builder
-            .Append(metadata.Kind)
-            .Append(':')
-            .Append(metadata.Fields.Count);
+        builder.Append(metadata.Kind).Append(':').Append(metadata.Fields.Count);
 
         foreach (var field in metadata.Fields)
         {
-            builder
-                .Append(':')
-                .Append(field.Index)
-                .Append(':');
+            builder.Append(':').Append(field.Index).Append(':');
             AppendPart(builder, field.Name);
             builder.Append(':');
             AppendType(builder, field.Type.RequireClrType());
@@ -47,9 +41,6 @@ internal static class StaticColumnMetadataIdentity
 
     private static void AppendPart(StringBuilder builder, string value)
     {
-        builder
-            .Append(value.Length)
-            .Append(':')
-            .Append(value);
+        builder.Append(value.Length).Append(':').Append(value);
     }
 }

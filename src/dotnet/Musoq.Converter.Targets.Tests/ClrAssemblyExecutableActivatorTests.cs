@@ -29,8 +29,9 @@ public sealed class ClrAssemblyExecutableActivatorTests
         var activator = new ClrAssemblyExecutableActivator();
         var artifact = new TestOnlyExecutableQueryArtifact("payload");
 
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => activator.ActivateTable(artifact, CreateBinding()));
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            activator.ActivateTable(artifact, CreateBinding())
+        );
 
         Assert.Contains("CLR executable artifact", exception.Message);
         Assert.Contains("TestOnlyNonClr", exception.Message);
@@ -63,9 +64,7 @@ public sealed class ClrAssemblyExecutableActivatorTests
     public void CompileForExecutionBatch_WhenQueriesAreCompatible_ShouldShareContextAndKeepBindingsIndependent()
     {
         using var capture = new GeneratedAssemblyCapture();
-        var results = CompileEntityBatch(
-            ("first", "alpha"),
-            ("second", "beta"));
+        var results = CompileEntityBatch(("first", "alpha"), ("second", "beta"));
 
         Assert.AreEqual(2, results.Count);
         Assert.IsTrue(results.All(static result => result.Result.Succeeded));
@@ -99,7 +98,8 @@ public sealed class ClrAssemblyExecutableActivatorTests
             "select d.Dummy as Value from #system.dual() d",
             $"BatchActivation_{Guid.NewGuid():N}",
             new SystemSchemaProvider(),
-            new TestsLoggerResolver());
+            new TestsLoggerResolver()
+        );
         Assert.IsTrue(build.Succeeded);
         try
         {
@@ -108,7 +108,7 @@ public sealed class ClrAssemblyExecutableActivatorTests
             var requests = new[]
             {
                 new ClrBatchTableActivationRequest(items.AccessToClassPath, CreateBinding()),
-                new ClrBatchTableActivationRequest("Missing.Batch.Runnable", CreateBinding())
+                new ClrBatchTableActivationRequest("Missing.Batch.Runnable", CreateBinding()),
             };
 
             var results = activator.ActivateTableBatch(items.ExecutableArtifact!, requests);
@@ -131,28 +131,35 @@ public sealed class ClrAssemblyExecutableActivatorTests
             new SystemSchemaProvider(),
             new Dictionary<string, IReadOnlyDictionary<string, string>>(),
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>(),
-            new Dictionary<string, SourceExecutionPlan>());
+            new Dictionary<string, SourceExecutionPlan>()
+        );
     }
 
     private static IReadOnlyList<ExecutionBatchCompilationResult> CompileEntityBatch(
-        params (string Key, string Value)[] cases)
+        params (string Key, string Value)[] cases
+    )
     {
         const string query = "select e.Name from #data.entities() e";
         var requests = cases
-            .Select((item, index) => new ExecutionBatchCompilationRequest(
-                item.Key,
-                query,
-                $"BatchContext_{index}_{Guid.NewGuid():N}",
-                new EntitySetSchemaProvider(
-                    new Dictionary<string, IReadOnlyList<EntitySetEntity>>(StringComparer.Ordinal)
-                    {
-                        ["#data"] = [new EntitySetEntity { Name = item.Value }]
-                    }),
-                new TestsLoggerResolver(),
-                new CompilationOptions(),
-                ConsumerFamily: "converter-activator-batch",
-                ConsumerTestName: nameof(CompileEntityBatch),
-                BatchOrigin: "converter-activator-batch"))
+            .Select(
+                (item, index) =>
+                    new ExecutionBatchCompilationRequest(
+                        item.Key,
+                        query,
+                        $"BatchContext_{index}_{Guid.NewGuid():N}",
+                        new EntitySetSchemaProvider(
+                            new Dictionary<string, IReadOnlyList<EntitySetEntity>>(StringComparer.Ordinal)
+                            {
+                                ["#data"] = [new EntitySetEntity { Name = item.Value }],
+                            }
+                        ),
+                        new TestsLoggerResolver(),
+                        new CompilationOptions(),
+                        ConsumerFamily: "converter-activator-batch",
+                        ConsumerTestName: nameof(CompileEntityBatch),
+                        BatchOrigin: "converter-activator-batch"
+                    )
+            )
             .ToArray();
 
         return InstanceCreator.CompileForExecutionBatch(requests);

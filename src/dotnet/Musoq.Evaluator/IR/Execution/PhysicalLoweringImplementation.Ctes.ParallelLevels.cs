@@ -18,7 +18,8 @@ internal sealed partial class PhysicalLoweringImplementation
         CteDefinitionPruningPlan pruningPlan,
         IReadOnlyDictionary<string, CteReferenceClassification> cteReferenceClassifications,
         LoweringScope scope,
-        out LoweringScope updatedScope)
+        out LoweringScope updatedScope
+    )
     {
         updatedScope = scope;
         var shapes = new List<RowShape>();
@@ -37,7 +38,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 cteShapesByName,
                 schemaFromIndexes[definition.Name],
                 pruningPlan,
-                scope);
+                scope
+            );
             var sidecarSpecs = ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name);
             result = ApplyCteSidecarOptimizations(
                 definition.Name,
@@ -47,29 +49,26 @@ internal sealed partial class PhysicalLoweringImplementation
                 result,
                 scope,
                 out var storage,
-                out var sidecarUpdatedScope);
+                out var sidecarUpdatedScope
+            );
             scope = sidecarUpdatedScope;
 
             if (!result.IsBuilt)
                 return result;
 
-            result = AddCteClauseBoundaries(
-                definition,
-                cteIndex,
-                result,
-                includeScopeBoundaries: !storage.StoreRows);
+            result = AddCteClauseBoundaries(definition, cteIndex, result, includeScopeBoundaries: !storage.StoreRows);
 
-            var usesTypedRowResult = storage.StoreRows &&
-                                     StoredTableRowBufferEligibility.CanUseTypedRowBuffer(
-                                         result.Nodes,
-                                         result.Table,
-                                         result.RowShape);
+            var usesTypedRowResult =
+                storage.StoreRows
+                && StoredTableRowBufferEligibility.CanUseTypedRowBuffer(result.Nodes, result.Table, result.RowShape);
             var output = new ExecutionVariable(
                 CreateIdentifierCandidate(
                     $"__parallelCteLevel{level.Level.ToString(CultureInfo.InvariantCulture)}Task{taskIndex.ToString(CultureInfo.InvariantCulture)}Result",
-                    0),
+                    0
+                ),
                 sidecarSpecs.Count > 0 || usesTypedRowResult ? typeof(object) : typeof(Table),
-                usesTypedRowResult ? $"List<{result.RowShape.TypeName}>" : null);
+                usesTypedRowResult ? $"List<{result.RowShape.TypeName}>" : null
+            );
             var taskNodes = new List<ExecutionNode>(result.Nodes);
             if (storage.StoreRows)
                 taskNodes.Add(new ExecutionAssign(output, new ExecutionVariableRead(result.Table)));
@@ -77,12 +76,15 @@ internal sealed partial class PhysicalLoweringImplementation
 
             cteShapesByName[definition.Name] = result.RowShape;
             shapes.AddRange(result.Shapes);
-            tasks.Add(new ExecutionParallelTask(
-                definition.Name,
-                output,
-                taskBody,
-                usesTypedRowResult ? cteIndex : null,
-                sidecarSpecs.Count > 0 ? CreateRelatedCtePhaseQueryIdentifier(identifier, cteIndex) : null));
+            tasks.Add(
+                new ExecutionParallelTask(
+                    definition.Name,
+                    output,
+                    taskBody,
+                    usesTypedRowResult ? cteIndex : null,
+                    sidecarSpecs.Count > 0 ? CreateRelatedCtePhaseQueryIdentifier(identifier, cteIndex) : null
+                )
+            );
             if (storage.StoreRows)
                 mergeNodes.Add(new ExecutionStoreTable(output, cteIndex));
         }
@@ -91,13 +93,15 @@ internal sealed partial class PhysicalLoweringImplementation
             $"cte-level-{level.Level.ToString(CultureInfo.InvariantCulture)}",
             ResolveMaxDegreeOfParallelism(level.Definitions.Count),
             tasks,
-            new ExecutionParallelMerge(new ExecutionBlock(mergeNodes)));
+            new ExecutionParallelMerge(new ExecutionBlock(mergeNodes))
+        );
 
         updatedScope = scope;
         return TableBuildResult.Success(
             shapes,
             [parallelBlock],
             tasks[^1].Output,
-            cteShapesByName[level.Definitions[^1].Name]);
+            cteShapesByName[level.Definitions[^1].Name]
+        );
     }
 }

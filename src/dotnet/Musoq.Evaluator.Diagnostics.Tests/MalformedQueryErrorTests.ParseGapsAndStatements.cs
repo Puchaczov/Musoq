@@ -21,8 +21,7 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenIncompleteUnicodeEscape_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT '\\u12' FROM #test.single()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT '\\u12' FROM #test.single()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1004_InvalidEscapeSequence, DiagnosticPhase.Parse, "\\u12");
         AssertHasGuidance(ex);
@@ -31,8 +30,7 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenIncompleteHexEscape_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT '\\x1' FROM #test.single()"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT '\\x1' FROM #test.single()"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ1004_InvalidEscapeSequence, DiagnosticPhase.Parse, "\\x1");
         AssertHasGuidance(ex);
@@ -46,7 +44,8 @@ public partial class MalformedQueryErrorTests
     public void WhenJoinWithoutTableSource_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() a INNER JOIN ON a.Id = 1"));
+            CompileQuery("SELECT * FROM #test.people() a INNER JOIN ON a.Id = 1")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "cannot be used here");
         AssertHasGuidance(ex);
@@ -56,26 +55,35 @@ public partial class MalformedQueryErrorTests
     public void WhenMultipleFromClauses_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() FROM #test.orders()"));
+            CompileQuery("SELECT Name FROM #test.people() FROM #test.orders()")
+        );
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Expected token is Select");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            DiagnosticPhase.Parse,
+            "Expected token is Select"
+        );
         AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void WhenSelectWithOnlyKeyword_ShouldThrowParseError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2005_InvalidSelectList, DiagnosticPhase.Parse, "SELECT list cannot be empty");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2005_InvalidSelectList,
+            DiagnosticPhase.Parse,
+            "SELECT list cannot be empty"
+        );
     }
 
     [TestMethod]
     public void WhenDerivedTableInFrom_ShouldCompileAndRun()
     {
-        var vm = CompileQuery(
-            "SELECT sub.Name FROM (SELECT Name FROM #test.people()) AS sub ORDER BY sub.Name");
+        var vm = CompileQuery("SELECT sub.Name FROM (SELECT Name FROM #test.people()) AS sub ORDER BY sub.Name");
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(5, table.Count);
@@ -86,8 +94,8 @@ public partial class MalformedQueryErrorTests
     public void WhenHavingBeforeGroupBy_ShouldThrowParseError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery(
-                "SELECT City, Count(1) FROM #test.people() HAVING Count(1) > 1 GROUP BY City"));
+            CompileQuery("SELECT City, Count(1) FROM #test.people() HAVING Count(1) > 1 GROUP BY City")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Having is not expected");
         AssertHasGuidance(ex);
@@ -96,8 +104,7 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenSkipBeforeTake_ShouldProperlyWork()
     {
-        var vm = CompileQuery(
-            "SELECT Name FROM #test.people() ORDER BY Name SKIP 1 TAKE 2");
+        var vm = CompileQuery("SELECT Name FROM #test.people() ORDER BY Name SKIP 1 TAKE 2");
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
@@ -130,7 +137,8 @@ public partial class MalformedQueryErrorTests
     {
         // Compilation accepts declarations but only one result-producing statement.
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT 1 FROM #test.single(); SELECT 2 FROM #test.single()"));
+            CompileQuery("SELECT 1 FROM #test.single(); SELECT 2 FROM #test.single()")
+        );
 
         var envelope = ex.PrimaryEnvelope;
         Assert.AreEqual(DiagnosticCode.MQ2036_MultipleExecutableStatements, envelope.Code);
@@ -142,20 +150,28 @@ public partial class MalformedQueryErrorTests
     [TestMethod]
     public void WhenSemicolonOnly_ShouldThrowError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery(";"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery(";"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Semicolon is not expected");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            DiagnosticPhase.Parse,
+            "Semicolon is not expected"
+        );
         AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void WhenMultipleSemicolons_ShouldThrowError()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery(";;;"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery(";;;"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Semicolon is not expected");
+        AssertErrorEnvelope(
+            ex,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            DiagnosticPhase.Parse,
+            "Semicolon is not expected"
+        );
         AssertHasGuidance(ex);
     }
 
@@ -167,7 +183,8 @@ public partial class MalformedQueryErrorTests
     public void WhenILikeUsed_ShouldThrowErrorSuggestingLike()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() WHERE Name ILIKE '%ali%'"));
+            CompileQuery("SELECT Name FROM #test.people() WHERE Name ILIKE '%ali%'")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "is not expected here");
         AssertHasGuidance(ex);

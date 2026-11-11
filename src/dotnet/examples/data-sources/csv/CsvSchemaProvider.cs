@@ -9,14 +9,10 @@ public sealed class CsvSchemaProvider : ISchemaProvider
     private readonly bool _enableQueryScopedRows;
 
     public CsvSchemaProvider()
-        : this(null, true)
-    {
-    }
+        : this(null, true) { }
 
     public CsvSchemaProvider(bool enableQueryScopedRows)
-        : this(null, enableQueryScopedRows)
-    {
-    }
+        : this(null, enableQueryScopedRows) { }
 
     internal CsvSchemaProvider(CsvDataSourceApiRecorder? recorder, bool enableQueryScopedRows = true)
     {
@@ -28,8 +24,10 @@ public sealed class CsvSchemaProvider : ISchemaProvider
     {
         _recorder?.SchemaRequests.Add(schema);
 
-        if (string.Equals(schema, CsvSchema.SchemaName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(schema, $"#{CsvSchema.SchemaName}", StringComparison.OrdinalIgnoreCase))
+        if (
+            string.Equals(schema, CsvSchema.SchemaName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(schema, $"#{CsvSchema.SchemaName}", StringComparison.OrdinalIgnoreCase)
+        )
         {
             return new CsvSchema(_recorder, _enableQueryScopedRows);
         }

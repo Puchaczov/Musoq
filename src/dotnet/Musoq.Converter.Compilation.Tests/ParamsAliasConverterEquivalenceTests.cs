@@ -8,9 +8,9 @@ using Musoq.Converter.Tests.Components;
 using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Tables;
+using static Musoq.Converter.Tests.TwoModeTestFixtures;
 using NameDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameDto;
 using Person = Musoq.Converter.Tests.TwoModeTestFixtures.Person;
-using static Musoq.Converter.Tests.TwoModeTestFixtures;
 
 namespace Musoq.Converter.Tests;
 
@@ -25,7 +25,8 @@ public sealed class ParamsAliasConverterEquivalenceTests
     [TestMethod]
     public async Task CompilationSurfaces_ShouldExposeEquivalentParameterContractsAndGeneratedBinding()
     {
-        const string body = @"
+        const string body =
+            @"
 (required: int, ids: string[], optional: string = 'fallback', nullable: int? = null)
 select $required as Required, $optional as Optional, $nullable as Nullable
 from #system.dual() d
@@ -39,13 +40,15 @@ where d.Dummy in $ids";
             "ParamsAliasExecution",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
         using var alias = InstanceCreator.CompileForExecution(
             aliasScript,
             "ParamsAliasExecution",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
 
         SetParameters(canonical);
         SetParameters(alias);
@@ -60,42 +63,51 @@ where d.Dummy in $ids";
             "ParamsAliasDiagnostics",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
         var aliasDiagnostics = InstanceCreator.CompileWithDiagnostics(
             aliasScript,
             "ParamsAliasDiagnostics",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
 
         Assert.IsTrue(canonicalDiagnostics.Succeeded, FormatDiagnostics(canonicalDiagnostics));
         Assert.IsTrue(aliasDiagnostics.Succeeded, FormatDiagnostics(aliasDiagnostics));
-        using var canonicalDiagnosticQuery = canonicalDiagnostics.CompiledQuery ??
-                                             throw new AssertFailedException(FormatDiagnostics(canonicalDiagnostics));
-        using var aliasDiagnosticQuery = aliasDiagnostics.CompiledQuery ??
-                                         throw new AssertFailedException(FormatDiagnostics(aliasDiagnostics));
+        using var canonicalDiagnosticQuery =
+            canonicalDiagnostics.CompiledQuery
+            ?? throw new AssertFailedException(FormatDiagnostics(canonicalDiagnostics));
+        using var aliasDiagnosticQuery =
+            aliasDiagnostics.CompiledQuery ?? throw new AssertFailedException(FormatDiagnostics(aliasDiagnostics));
         AssertCompiledQueryEquivalent(canonicalDiagnosticQuery, aliasDiagnosticQuery);
         AssertDiagnosticKindsEquivalent(canonicalDiagnostics.Diagnostics, aliasDiagnostics.Diagnostics);
 
-        var canonicalAsync = await InstanceCreator.CompileWithDiagnosticsAsync(
-            canonicalScript,
-            "ParamsAliasAsync",
-            SchemaProvider,
-            LoggerResolver,
-            CompilationOptions).ConfigureAwait(false);
-        var aliasAsync = await InstanceCreator.CompileWithDiagnosticsAsync(
-            aliasScript,
-            "ParamsAliasAsync",
-            SchemaProvider,
-            LoggerResolver,
-            CompilationOptions).ConfigureAwait(false);
+        var canonicalAsync = await InstanceCreator
+            .CompileWithDiagnosticsAsync(
+                canonicalScript,
+                "ParamsAliasAsync",
+                SchemaProvider,
+                LoggerResolver,
+                CompilationOptions
+            )
+            .ConfigureAwait(false);
+        var aliasAsync = await InstanceCreator
+            .CompileWithDiagnosticsAsync(
+                aliasScript,
+                "ParamsAliasAsync",
+                SchemaProvider,
+                LoggerResolver,
+                CompilationOptions
+            )
+            .ConfigureAwait(false);
 
         Assert.IsTrue(canonicalAsync.Succeeded, FormatDiagnostics(canonicalAsync));
         Assert.IsTrue(aliasAsync.Succeeded, FormatDiagnostics(aliasAsync));
-        using var canonicalAsyncQuery = canonicalAsync.CompiledQuery ??
-                                         throw new AssertFailedException(FormatDiagnostics(canonicalAsync));
-        using var aliasAsyncQuery = aliasAsync.CompiledQuery ??
-                                    throw new AssertFailedException(FormatDiagnostics(aliasAsync));
+        using var canonicalAsyncQuery =
+            canonicalAsync.CompiledQuery ?? throw new AssertFailedException(FormatDiagnostics(canonicalAsync));
+        using var aliasAsyncQuery =
+            aliasAsync.CompiledQuery ?? throw new AssertFailedException(FormatDiagnostics(aliasAsync));
         AssertCompiledQueryEquivalent(canonicalAsyncQuery, aliasAsyncQuery);
 
         var canonicalInspection = InstanceCreator.CompileForInspection(
@@ -103,48 +115,53 @@ where d.Dummy in $ids";
             "ParamsAliasInspection",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
         var aliasInspection = InstanceCreator.CompileForInspection(
             aliasScript,
             "ParamsAliasInspection",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
 
         AssertInspectionEquivalent(canonicalInspection, aliasInspection);
 
         var cacheSuffix = Guid.NewGuid().ToString("N");
         var cacheParameter = "cacheValue" + cacheSuffix;
-        var cacheBody = "\n(" + cacheParameter + ": int) select $" + cacheParameter +
-                           " as Value from #system.dual() d";
+        var cacheBody = "\n(" + cacheParameter + ": int) select $" + cacheParameter + " as Value from #system.dual() d";
         var cacheOptions = new CompilationOptions();
         var cachedCanonical = InstanceCreator.CompileWithDiagnostics(
             "param" + cacheBody,
             $"ParamsAliasCacheCanonical_{cacheSuffix}",
             SchemaProvider,
             LoggerResolver,
-            cacheOptions);
+            cacheOptions
+        );
         var cachedAlias = InstanceCreator.CompileWithDiagnostics(
             "params" + cacheBody,
             $"ParamsAliasCacheAlias_{cacheSuffix}",
             SchemaProvider,
             LoggerResolver,
-            cacheOptions);
+            cacheOptions
+        );
 
         Assert.IsTrue(cachedCanonical.Succeeded, FormatDiagnostics(cachedCanonical));
         Assert.IsTrue(cachedAlias.Succeeded, FormatDiagnostics(cachedAlias));
-        using var cachedCanonicalQuery = cachedCanonical.CompiledQuery ??
-                                         throw new AssertFailedException(FormatDiagnostics(cachedCanonical));
-        using var cachedAliasQuery = cachedAlias.CompiledQuery ??
-                                    throw new AssertFailedException(FormatDiagnostics(cachedAlias));
+        using var cachedCanonicalQuery =
+            cachedCanonical.CompiledQuery ?? throw new AssertFailedException(FormatDiagnostics(cachedCanonical));
+        using var cachedAliasQuery =
+            cachedAlias.CompiledQuery ?? throw new AssertFailedException(FormatDiagnostics(cachedAlias));
         Assert.IsNotNull(cachedCanonical.BuildItems);
         Assert.IsNotNull(cachedAlias.BuildItems);
         var canonicalContract = InstanceCreator.CreateCanonicalExecutionContractForTests(
             cachedCanonical.BuildItems!,
-            SchemaProvider);
+            SchemaProvider
+        );
         var aliasContract = InstanceCreator.CreateCanonicalExecutionContractForTests(
             cachedAlias.BuildItems!,
-            SchemaProvider);
+            SchemaProvider
+        );
 
         Assert.AreEqual(canonicalContract.NormalizedGeneratedSyntax, aliasContract.NormalizedGeneratedSyntax);
         Assert.AreEqual(canonicalContract.RuntimeContractFingerprint, aliasContract.RuntimeContractFingerprint);
@@ -152,7 +169,8 @@ where d.Dummy in $ids";
         Assert.AreEqual(canonicalContract.SemanticContractFingerprint, aliasContract.SemanticContractFingerprint);
         Assert.AreEqual(
             InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(cachedCanonical.BuildItems!, SchemaProvider),
-            InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(cachedAlias.BuildItems!, SchemaProvider));
+            InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(cachedAlias.BuildItems!, SchemaProvider)
+        );
     }
 
     [TestMethod]
@@ -165,7 +183,10 @@ where d.Dummy in $ids";
         var people = People();
         var options = new TypedQueryRunOptions(
             CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["expected"] = "Alice" }));
+            global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                new Dictionary<string, object?> { ["expected"] = "Alice" }
+            )
+        );
 
         var canonical = CreateTypedBuilder(canonicalScript).Compile<NameDto>();
         var alias = CreateTypedBuilder(aliasScript).Compile<NameDto>();
@@ -192,7 +213,8 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
     [TestMethod]
     public void TypedInspectionAndArtifacts_ShouldKeepPublicShapeAndMetadataEquivalent()
     {
-        const string body = @"
+        const string body =
+            @"
 (expected: string = 'single')
 select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
         var canonicalScript = "param" + body;
@@ -203,13 +225,15 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
             "ParamsAliasTypedInspection",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
         var aliasInspection = InstanceCreator.CompileForTypedInspection<NameDto>(
             aliasScript,
             "ParamsAliasTypedInspection",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
 
         AssertTypedInspectionEquivalent(canonicalInspection, aliasInspection);
 
@@ -218,34 +242,33 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
             "ParamsAliasTypedArtifact",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
         var aliasArtifact = InstanceCreator.CompileForTypedArtifact<NameDto>(
             aliasScript,
             "ParamsAliasTypedArtifact",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
 
         AssertTypedArtifactEquivalent(canonicalArtifact, aliasArtifact);
 
         var canonicalLoaded = InstanceCreator.LoadTypedArtifact<NameDto>(
             canonicalArtifact,
             SchemaProvider,
-            LoggerResolver);
-        var aliasLoaded = InstanceCreator.LoadTypedArtifact<NameDto>(
-            aliasArtifact,
-            SchemaProvider,
-            LoggerResolver);
+            LoggerResolver
+        );
+        var aliasLoaded = InstanceCreator.LoadTypedArtifact<NameDto>(aliasArtifact, SchemaProvider, LoggerResolver);
 
-        CollectionAssert.AreEqual(
-            canonicalLoaded.Run().ToArray(),
-            aliasLoaded.Run().ToArray());
+        CollectionAssert.AreEqual(canonicalLoaded.Run().ToArray(), aliasLoaded.Run().ToArray());
     }
 
     [TestMethod]
     public void TargetContractsAndArtifactMetadata_ShouldTreatAliasAsCanonical()
     {
-        const string body = @"
+        const string body =
+            @"
 (expected: string = 'single')
 select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
         var canonicalScript = "param" + body;
@@ -257,86 +280,99 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
             SchemaProvider,
             LoggerResolver,
             ExecutionTargetIds.CSharpClr,
-            CompilationOptions);
+            CompilationOptions
+        );
         var aliasPackage = InstanceCreator.CompileTargetPackageWithDiagnostics(
             aliasScript,
             "ParamsAliasTarget",
             SchemaProvider,
             LoggerResolver,
             ExecutionTargetIds.CSharpClr,
-            CompilationOptions);
+            CompilationOptions
+        );
 
         Assert.IsTrue(canonicalPackage.Succeeded, FormatDiagnostics(canonicalPackage.Diagnostics));
         Assert.IsTrue(aliasPackage.Succeeded, FormatDiagnostics(aliasPackage.Diagnostics));
-        var canonicalItems = canonicalPackage.BuildItems ??
-                             throw new AssertFailedException("Canonical target build did not expose build items.");
-        var aliasItems = aliasPackage.BuildItems ??
-                         throw new AssertFailedException("Alias target build did not expose build items.");
+        var canonicalItems =
+            canonicalPackage.BuildItems
+            ?? throw new AssertFailedException("Canonical target build did not expose build items.");
+        var aliasItems =
+            aliasPackage.BuildItems
+            ?? throw new AssertFailedException("Alias target build did not expose build items.");
 
         AssertParameterSurface(canonicalItems.ScriptParameterDefinitions, aliasItems.ScriptParameterDefinitions);
         Assert.AreEqual(
             canonicalItems.RenderingArtifacts.SemanticsContract,
-            aliasItems.RenderingArtifacts.SemanticsContract);
+            aliasItems.RenderingArtifacts.SemanticsContract
+        );
         var canonicalTargetContract = InstanceCreator.CreateCanonicalExecutionContractForTests(
             canonicalItems,
-            SchemaProvider);
-        var aliasTargetContract = InstanceCreator.CreateCanonicalExecutionContractForTests(
-            aliasItems,
-            SchemaProvider);
+            SchemaProvider
+        );
+        var aliasTargetContract = InstanceCreator.CreateCanonicalExecutionContractForTests(aliasItems, SchemaProvider);
         Assert.AreEqual(
             canonicalTargetContract.RuntimeContractFingerprint,
-            aliasTargetContract.RuntimeContractFingerprint);
+            aliasTargetContract.RuntimeContractFingerprint
+        );
         Assert.AreEqual(
             canonicalPackage.Package!.Metadata[CompiledQueryArtifactSupport.MetadataSemanticShapeSha256],
-            aliasPackage.Package!.Metadata[CompiledQueryArtifactSupport.MetadataSemanticShapeSha256]);
+            aliasPackage.Package!.Metadata[CompiledQueryArtifactSupport.MetadataSemanticShapeSha256]
+        );
         Assert.AreEqual(
             canonicalPackage.Package!.Metadata[CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256],
-            aliasPackage.Package!.Metadata[CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256]);
+            aliasPackage.Package!.Metadata[CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256]
+        );
         Assert.AreNotEqual(
             canonicalPackage.Package!.Metadata[CompiledQueryArtifactSupport.MetadataScriptSha256],
-            aliasPackage.Package!.Metadata[CompiledQueryArtifactSupport.MetadataScriptSha256]);
+            aliasPackage.Package!.Metadata[CompiledQueryArtifactSupport.MetadataScriptSha256]
+        );
 
         var canonicalArtifact = InstanceCreator.CompileArtifactWithDiagnostics(
             canonicalScript,
             "ParamsAliasPublicArtifact",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
         var aliasArtifact = InstanceCreator.CompileArtifactWithDiagnostics(
             aliasScript,
             "ParamsAliasPublicArtifact",
             SchemaProvider,
             LoggerResolver,
-            CompilationOptions);
+            CompilationOptions
+        );
 
         Assert.IsTrue(canonicalArtifact.Succeeded, FormatDiagnostics(canonicalArtifact.Diagnostics));
         Assert.IsTrue(aliasArtifact.Succeeded, FormatDiagnostics(aliasArtifact.Diagnostics));
-        var canonicalPublicArtifact = canonicalArtifact.Artifact ??
-                                      throw new AssertFailedException("Canonical artifact was not created.");
-        var aliasPublicArtifact = aliasArtifact.Artifact ??
-                                  throw new AssertFailedException("Alias artifact was not created.");
+        var canonicalPublicArtifact =
+            canonicalArtifact.Artifact ?? throw new AssertFailedException("Canonical artifact was not created.");
+        var aliasPublicArtifact =
+            aliasArtifact.Artifact ?? throw new AssertFailedException("Alias artifact was not created.");
         Assert.AreEqual(
             canonicalPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataSemanticShapeSha256],
-            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataSemanticShapeSha256]);
+            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataSemanticShapeSha256]
+        );
         Assert.AreEqual(
             canonicalPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256],
-            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256]);
+            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256]
+        );
         Assert.AreEqual(
             canonicalPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature],
-            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature]);
+            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature]
+        );
         Assert.AreEqual(
             canonicalPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion],
-            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion]);
+            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion]
+        );
         Assert.AreNotEqual(
             canonicalPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataScriptSha256],
-            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataScriptSha256]);
+            aliasPublicArtifact.Metadata[CompiledQueryArtifactSupport.MetadataScriptSha256]
+        );
     }
 
     private static MusoqQueryBuilder CreateTypedBuilder(string script)
     {
-        return Musoq.Query(script)
-            .Source<Person>("#A", "entities")
-            .WithCompilationOptions(CompilationOptions);
+        return Musoq.Query(script).Source<Person>("#A", "entities").WithCompilationOptions(CompilationOptions);
     }
 
     private static MusoqSourceRows SourceRows(IReadOnlyList<Person> people)
@@ -346,8 +382,18 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
 
     private static void SetParameters(CompiledQuery query)
     {
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "required", 7);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "ids", new[] { "single" });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "required",
+            7
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "ids",
+            new[] { "single" }
+        );
     }
 
     private static void AssertCompiledQueryEquivalent(CompiledQuery expected, CompiledQuery actual)
@@ -359,7 +405,8 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
 
     private static void AssertTypedQueryEquivalent<TOut>(
         ICompiledTypedQuery<TOut> expected,
-        ICompiledTypedQuery<TOut> actual)
+        ICompiledTypedQuery<TOut> actual
+    )
     {
         AssertParameterSurface(expected.ParameterDefinitions, actual.ParameterDefinitions);
         AssertParameterSurface(expected.RequiredParameters, actual.RequiredParameters);
@@ -367,18 +414,15 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
         Assert.AreEqual(expected.Diagnostics.ResultMode, actual.Diagnostics.ResultMode);
         Assert.AreEqual(expected.Diagnostics.SelectedResultSinkKind, actual.Diagnostics.SelectedResultSinkKind);
         Assert.AreEqual(expected.Diagnostics.RowPathKind, actual.Diagnostics.RowPathKind);
-        Assert.AreEqual(
-            expected.Diagnostics.RequiresComputeTableMethod,
-            actual.Diagnostics.RequiresComputeTableMethod);
-        Assert.AreEqual(
-            expected.Diagnostics.FinalSinkRejectionKind,
-            actual.Diagnostics.FinalSinkRejectionKind);
+        Assert.AreEqual(expected.Diagnostics.RequiresComputeTableMethod, actual.Diagnostics.RequiresComputeTableMethod);
+        Assert.AreEqual(expected.Diagnostics.FinalSinkRejectionKind, actual.Diagnostics.FinalSinkRejectionKind);
         Assert.AreEqual(expected.Diagnostics.FinalSinkRejectionReason, actual.Diagnostics.FinalSinkRejectionReason);
     }
 
     private static void AssertTypedProfileEquivalent<TOut>(
         ICompiledTypedProfileQuery<TOut> expected,
-        ICompiledTypedProfileQuery<TOut> actual)
+        ICompiledTypedProfileQuery<TOut> actual
+    )
     {
         AssertParameterSurface(expected.ParameterDefinitions, actual.ParameterDefinitions);
         AssertParameterSurface(expected.RequiredParameters, actual.RequiredParameters);
@@ -389,7 +433,8 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
 
     private static void AssertTypedInspectionEquivalent(
         TypedQueryInspectionResult expected,
-        TypedQueryInspectionResult actual)
+        TypedQueryInspectionResult actual
+    )
     {
         Assert.AreEqual(expected.ResultMode, actual.ResultMode);
         Assert.AreEqual(expected.SelectedResultSinkKind, actual.SelectedResultSinkKind);
@@ -401,7 +446,8 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
         Assert.AreEqual(expected.FinalSinkRejectionReason, actual.FinalSinkRejectionReason);
         CollectionAssert.AreEqual(
             expected.OutputBindingDiagnostics.ToArray(),
-            actual.OutputBindingDiagnostics.ToArray());
+            actual.OutputBindingDiagnostics.ToArray()
+        );
         Assert.IsNotNull(expected.Query);
         Assert.IsNotNull(actual.Query);
         Assert.AreEqual(expected.GeneratedCSharpCode, actual.GeneratedCSharpCode);
@@ -409,7 +455,8 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
 
     private static void AssertTypedArtifactEquivalent(
         ICompiledTypedQueryArtifact expected,
-        ICompiledTypedQueryArtifact actual)
+        ICompiledTypedQueryArtifact actual
+    )
     {
         Assert.AreEqual(expected.ArtifactVersion, actual.ArtifactVersion);
         Assert.AreEqual(expected.RuntimeContractSignature, actual.RuntimeContractSignature);
@@ -418,18 +465,15 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
         Assert.AreEqual(expected.OutputTypeName, actual.OutputTypeName);
         AssertParameterSurface(expected.ParameterDefinitions, actual.ParameterDefinitions);
         AssertContractSurface(expected.ParameterContracts, actual.ParameterContracts);
-        CollectionAssert.AreEqual(
-            expected.SourceSlotIdentities.ToArray(),
-            actual.SourceSlotIdentities.ToArray());
+        CollectionAssert.AreEqual(expected.SourceSlotIdentities.ToArray(), actual.SourceSlotIdentities.ToArray());
         Assert.AreEqual(
             expected.SourceRuntimeSettingsBySourceContextId.Count,
-            actual.SourceRuntimeSettingsBySourceContextId.Count);
+            actual.SourceRuntimeSettingsBySourceContextId.Count
+        );
         Assert.AreEqual(expected.SourceExecutionPlans.Count, actual.SourceExecutionPlans.Count);
     }
 
-    private static void AssertInspectionEquivalent(
-        QueryInspectionResult expected,
-        QueryInspectionResult actual)
+    private static void AssertInspectionEquivalent(QueryInspectionResult expected, QueryInspectionResult actual)
     {
         Assert.AreEqual(expected.LogicalPlanText, actual.LogicalPlanText);
         Assert.AreEqual(expected.PhysicalPlanText, actual.PhysicalPlanText);
@@ -448,7 +492,8 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
 
     private static void AssertParameterSurface(
         IReadOnlyList<ScriptParameterDefinition> expected,
-        IReadOnlyList<ScriptParameterDefinition> actual)
+        IReadOnlyList<ScriptParameterDefinition> actual
+    )
     {
         Assert.HasCount(expected.Count, actual);
         for (var index = 0; index < expected.Count; index++)
@@ -466,7 +511,8 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
 
     private static void AssertContractSurface(
         IReadOnlyList<ScriptParameterContract> expected,
-        IReadOnlyList<ScriptParameterContract> actual)
+        IReadOnlyList<ScriptParameterContract> actual
+    )
     {
         Assert.HasCount(expected.Count, actual);
         for (var index = 0; index < expected.Count; index++)
@@ -480,9 +526,7 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
             Assert.AreEqual(expectedContract.IsNullable, actualContract.IsNullable);
             Assert.AreEqual(expectedContract.IsCollection, actualContract.IsCollection);
             Assert.AreEqual(expectedContract.ElementClrType, actualContract.ElementClrType);
-            Assert.AreEqual(
-                expectedContract.ElementCanonicalTypeName,
-                actualContract.ElementCanonicalTypeName);
+            Assert.AreEqual(expectedContract.ElementCanonicalTypeName, actualContract.ElementCanonicalTypeName);
             Assert.AreEqual(expectedContract.HasDefaultValue, actualContract.HasDefaultValue);
             Assert.AreEqual(expectedContract.DefaultKind, actualContract.DefaultKind);
             Assert.AreEqual(expectedContract.DefaultValue, actualContract.DefaultValue);
@@ -491,7 +535,8 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
 
     private static void AssertDiagnosticKindsEquivalent(
         IReadOnlyList<global::Musoq.Parser.Diagnostics.Diagnostic> expected,
-        IReadOnlyList<global::Musoq.Parser.Diagnostics.Diagnostic> actual)
+        IReadOnlyList<global::Musoq.Parser.Diagnostics.Diagnostic> actual
+    )
     {
         Assert.HasCount(expected.Count, actual);
         for (var index = 0; index < expected.Count; index++)
@@ -516,7 +561,10 @@ select d.Dummy as Name from #system.dual() d where d.Dummy = $expected";
 
     private static string FormatDiagnostics(BuildResult result)
     {
-        return string.Join(Environment.NewLine, result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));
+        return string.Join(
+            Environment.NewLine,
+            result.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())
+        );
     }
 
     private static string FormatDiagnostics(IReadOnlyList<global::Musoq.Parser.Diagnostics.Diagnostic> diagnostics)

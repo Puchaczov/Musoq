@@ -16,7 +16,7 @@ public class PersonTable : ISchemaTable
         new SchemaColumn(nameof(PersonEntity.Salary), 4, typeof(decimal)),
         new SchemaColumn(nameof(PersonEntity.BirthDate), 5, typeof(DateTime)),
         new SchemaColumn(nameof(PersonEntity.ManagerId), 6, typeof(int?)),
-        new SchemaColumn(nameof(PersonEntity.Email), 7, typeof(string))
+        new SchemaColumn(nameof(PersonEntity.Email), 7, typeof(string)),
     ];
 
     public ISchemaColumn? GetColumnByName(string name)

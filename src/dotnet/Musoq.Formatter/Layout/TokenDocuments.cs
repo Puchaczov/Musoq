@@ -13,7 +13,7 @@ internal sealed class TokenDocuments(FormattingOptions options)
         {
             KeywordCasing.Upper => text.ToUpperInvariant(),
             KeywordCasing.Lower => text.ToLowerInvariant(),
-            _ => text
+            _ => text,
         };
         return Document.Text(text);
     }

@@ -27,7 +27,8 @@ public class BinaryMixedFieldTypesFeatureTests
     [TestMethod]
     public void Binary_IntStringByteArray_ShouldParseAllFieldTypes()
     {
-        var query = @"
+        var query =
+            @"
             binary FileHeader {
                 Version: int le,
                 NameLen: byte,
@@ -47,12 +48,21 @@ public class BinaryMixedFieldTypesFeatureTests
             .Concat(data)
             .ToArray();
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -71,7 +81,8 @@ public class BinaryMixedFieldTypesFeatureTests
     [TestMethod]
     public void Binary_ComputedAndConditional_ShouldWorkTogether()
     {
-        var query = @"
+        var query =
+            @"
             binary Packet {
                 Type: byte,
                 Length: short le,
@@ -81,18 +92,22 @@ public class BinaryMixedFieldTypesFeatureTests
             select p.Type, p.Length, p.TotalSize from #test.files() b
             cross apply Interpret<Packet>(b.Content) p";
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x01, 0x03, 0x00, 0xAA, 0xBB, 0xCC };
+        var entities = new[]
         {
-            0x01,
-            0x03, 0x00,
-            0xAA, 0xBB, 0xCC
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -111,7 +126,8 @@ public class BinaryMixedFieldTypesFeatureTests
     [TestMethod]
     public void Binary_ThreeLevelNesting_ShouldResolveAllLevels()
     {
-        var query = @"
+        var query =
+            @"
             binary Inner { Value: short le };
             binary Middle { Data: Inner };
             binary Outer { Container: Middle };
@@ -119,12 +135,21 @@ public class BinaryMixedFieldTypesFeatureTests
             cross apply Interpret<Outer>(b.Content) o";
 
         var testData = new byte[] { 0x39, 0x05 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -141,7 +166,8 @@ public class BinaryMixedFieldTypesFeatureTests
     [TestMethod]
     public void Binary_SchemaArrayWithComputed_ShouldComputePerElement()
     {
-        var query = @"
+        var query =
+            @"
             binary Item {
                 Width: byte,
                 Height: byte,
@@ -153,19 +179,22 @@ public class BinaryMixedFieldTypesFeatureTests
             cross apply c.Items i
             order by i.Width";
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x03, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+        var entities = new[]
         {
-            0x03,
-            0x02, 0x03,
-            0x04, 0x05,
-            0x06, 0x07
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -190,7 +219,8 @@ public class BinaryMixedFieldTypesFeatureTests
     [TestMethod]
     public void Binary_MultipleStrings_ShouldParseEachIndependently()
     {
-        var query = @"
+        var query =
+            @"
             binary Record {
                 FirstLen: byte,
                 First: string[FirstLen] utf8,
@@ -202,18 +232,23 @@ public class BinaryMixedFieldTypesFeatureTests
 
         var first = "John"u8.ToArray();
         var last = "Doe"u8.ToArray();
-        var testData = new[] { (byte)first.Length }
-            .Concat(first)
-            .Concat([(byte)last.Length])
-            .Concat(last)
-            .ToArray();
+        var testData = new[] { (byte)first.Length }.Concat(first).Concat([(byte)last.Length]).Concat(last).ToArray();
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -231,7 +266,8 @@ public class BinaryMixedFieldTypesFeatureTests
     [TestMethod]
     public void Binary_SchemaArrayWithWhere_ShouldFilterElements()
     {
-        var query = @"
+        var query =
+            @"
             binary Entry { Type: byte, Value: short le };
             binary DataList { Count: byte, Entries: Entry[Count] };
             select e.Value from #test.files() b
@@ -240,20 +276,22 @@ public class BinaryMixedFieldTypesFeatureTests
             where e.Type = 2
             order by e.Value asc";
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x04, 0x01, 0x0A, 0x00, 0x02, 0x0B, 0x00, 0x01, 0x0C, 0x00, 0x02, 0x0D, 0x00 };
+        var entities = new[]
         {
-            0x04,
-            0x01, 0x0A, 0x00,
-            0x02, 0x0B, 0x00,
-            0x01, 0x0C, 0x00,
-            0x02, 0x0D, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -271,7 +309,8 @@ public class BinaryMixedFieldTypesFeatureTests
     [TestMethod]
     public void Binary_SchemaArrayWithOrderBy_ShouldSortResults()
     {
-        var query = @"
+        var query =
+            @"
             binary Record { Id: byte, Score: short le };
             binary List { Count: byte, Records: Record[Count] };
             select r.Id, r.Score from #test.files() b
@@ -279,19 +318,22 @@ public class BinaryMixedFieldTypesFeatureTests
             cross apply l.Records r
             order by r.Score desc";
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x03, 0x01, 0x0A, 0x00, 0x02, 0x1E, 0x00, 0x03, 0x14, 0x00 };
+        var entities = new[]
         {
-            0x03,
-            0x01, 0x0A, 0x00,
-            0x02, 0x1E, 0x00,
-            0x03, 0x14, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -313,7 +355,8 @@ public class BinaryMixedFieldTypesFeatureTests
     [TestMethod]
     public void Binary_ConditionalWithDifferentPayloads_ShouldSelectCorrectBranch()
     {
-        var query = @"
+        var query =
+            @"
             binary Message {
                 Type: byte,
                 ShortPayload: byte when Type = 1,
@@ -322,17 +365,22 @@ public class BinaryMixedFieldTypesFeatureTests
             select m.Type, m.ShortPayload, m.IntPayload from #test.files() b
             cross apply Interpret<Message>(b.Content) m";
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x01, 0xAB };
+        var entities = new[]
         {
-            0x01,
-            0xAB
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

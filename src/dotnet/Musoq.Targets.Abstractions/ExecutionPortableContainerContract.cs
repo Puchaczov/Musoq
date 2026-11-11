@@ -6,7 +6,7 @@ public enum ExecutionPortableContainerKind
     List,
     Map,
     Set,
-    Pair
+    Pair,
 }
 
 public enum ExecutionPortableContainerBindingKind
@@ -22,7 +22,7 @@ public enum ExecutionPortableContainerBindingKind
     DictionaryInterface,
     Dictionary,
     HashSet,
-    KeyValuePair
+    KeyValuePair,
 }
 
 public sealed record ExecutionPortableContainerContract(
@@ -31,4 +31,5 @@ public sealed record ExecutionPortableContainerContract(
     bool IsMutable,
     bool RequiresKeyEquality,
     bool RequiresKeyHashing,
-    ExecutionPortableContainerBindingKind BindingKind = ExecutionPortableContainerBindingKind.Canonical);
+    ExecutionPortableContainerBindingKind BindingKind = ExecutionPortableContainerBindingKind.Canonical
+);

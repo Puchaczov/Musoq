@@ -6,8 +6,7 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionProviderQueryTestsFixtures
 {
-
     public sealed record NullableConversionInput(int Position, string? Text);
-    public sealed record NullableArithmeticInput(int Position, long? Value);
 
+    public sealed record NullableArithmeticInput(int Position, long? Value);
 }

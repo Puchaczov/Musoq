@@ -5,5 +5,5 @@ public enum ExecutionPlanOperatorRowCountStrategy
     Unknown,
     SourceBoundary,
     TableTransform,
-    RowProducer
+    RowProducer,
 }

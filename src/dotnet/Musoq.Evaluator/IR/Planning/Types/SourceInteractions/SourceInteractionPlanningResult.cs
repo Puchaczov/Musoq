@@ -6,4 +6,5 @@ internal sealed record SourceInteractionPlanningResult(
     IReadOnlyDictionary<string, SourceInteractionPlan> PlansBySourceId,
     IReadOnlyList<SourceBoundaryPlan> BoundaryPlans,
     IReadOnlyList<SourceBoundaryStrategyPlan> BoundaryStrategyPlans,
-    IReadOnlyList<PlanningDecision> Decisions);
+    IReadOnlyList<PlanningDecision> Decisions
+);

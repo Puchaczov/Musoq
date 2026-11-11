@@ -15,21 +15,17 @@ internal static class PlanOnlyBuildItems
         {
             RawQuery = script,
             AssemblyName = Guid.NewGuid().ToString(),
-            SchemaProvider = new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                { "#A", [] },
-                { "#B", [] }
-            }),
+            SchemaProvider = new BasicSchemaProvider<BasicEntity>(
+                new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] }, { "#B", [] } }
+            ),
             DiagnosticContext = new DiagnosticContext(new SourceText(script)),
-            CreateBuildMetadataAndInferTypesVisitor = null
+            CreateBuildMetadataAndInferTypesVisitor = null,
         };
         items.StopAfterPlanning = true;
 
         var chain = new CreateTree(
-            new CompileInterpretationSchemas(
-                new TransformTree(
-                    new TerminalBuildChain(),
-                    new TestsLoggerResolver())));
+            new CompileInterpretationSchemas(new TransformTree(new TerminalBuildChain(), new TestsLoggerResolver()))
+        );
         chain.Build(items);
 
         return items;

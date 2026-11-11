@@ -7,7 +7,10 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private List<HashJoinHelperSet> CollectHashJoinHelperSets(ExecutionBlock block)
     {
-        var buildLoopsByHashName = new Dictionary<string, (int Index, ExecutionSourceLoop Loop, ExecutionHashAdd HashAdd)>(StringComparer.Ordinal);
+        var buildLoopsByHashName = new Dictionary<
+            string,
+            (int Index, ExecutionSourceLoop Loop, ExecutionHashAdd HashAdd)
+        >(StringComparer.Ordinal);
         var helperSets = new List<HashJoinHelperSet>();
         var usedFunctionNames = new Dictionary<string, int>(StringComparer.Ordinal);
         var nodes = block.Nodes;
@@ -16,8 +19,7 @@ public sealed partial class ExecutionCSharpRenderer
         for (var index = 0; index < nodes.Count; index++)
         {
             var node = nodes[index];
-            if (node is ExecutionStoreTable store &&
-                TryCreateStoredTableBuild(nodes, index, pending, store, out _))
+            if (node is ExecutionStoreTable store && TryCreateStoredTableBuild(nodes, index, pending, store, out _))
             {
                 pending.Clear();
                 continue;
@@ -36,15 +38,20 @@ public sealed partial class ExecutionCSharpRenderer
                 continue;
             }
 
-            if (!TryCreateHashProbeHelperCandidate(node, out var probeLoop, out var hashProbe) ||
-                !buildLoopsByHashName.TryGetValue(hashProbe.Hash.Name, out var build))
+            if (
+                !TryCreateHashProbeHelperCandidate(node, out var probeLoop, out var hashProbe)
+                || !buildLoopsByHashName.TryGetValue(hashProbe.Hash.Name, out var build)
+            )
             {
                 pending.Add(node);
                 continue;
             }
 
             buildLoopsByHashName.Remove(hashProbe.Hash.Name);
-            var buildFunctionName = ReserveFunctionName(CreateHashBuildFunctionBaseName(build.HashAdd), usedFunctionNames);
+            var buildFunctionName = ReserveFunctionName(
+                CreateHashBuildFunctionBaseName(build.HashAdd),
+                usedFunctionNames
+            );
             var probeFunctionName = ReserveFunctionName(CreateHashProbeFunctionBaseName(hashProbe), usedFunctionNames);
             var buildHelper = CreateHashBuildHelper(buildFunctionName, build.Loop, build.HashAdd);
             var probeHelper = CreateHashProbeHelper(probeFunctionName, probeLoop, hashProbe);
@@ -59,7 +66,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static bool IsInsidePendingStoredTableBuild(
         IReadOnlyList<ExecutionNode> nodes,
         int currentIndex,
-        IReadOnlyList<ExecutionNode> pending)
+        IReadOnlyList<ExecutionNode> pending
+    )
     {
         var pendingTableNames = pending
             .OfType<ExecutionCreateTable>()
@@ -81,12 +89,15 @@ public sealed partial class ExecutionCSharpRenderer
     private static bool TryCreateHashBuildHelperCandidate(
         ExecutionNode node,
         out ExecutionSourceLoop loop,
-        out ExecutionHashAdd hashAdd)
+        out ExecutionHashAdd hashAdd
+    )
     {
-        if (node is ExecutionSourceLoop sourceLoop &&
-            TryGetHashBuildLoopAdd(sourceLoop, out var add) &&
-            CanExtractHashBuildLoop(sourceLoop) &&
-            !ContainsStoredTableRows(add.Key))
+        if (
+            node is ExecutionSourceLoop sourceLoop
+            && TryGetHashBuildLoopAdd(sourceLoop, out var add)
+            && CanExtractHashBuildLoop(sourceLoop)
+            && !ContainsStoredTableRows(add.Key)
+        )
         {
             loop = sourceLoop;
             hashAdd = add;
@@ -98,9 +109,7 @@ public sealed partial class ExecutionCSharpRenderer
         return false;
     }
 
-    private static bool TryGetHashBuildLoopAdd(
-        ExecutionSourceLoop forEach,
-        out ExecutionHashAdd hashAdd)
+    private static bool TryGetHashBuildLoopAdd(ExecutionSourceLoop forEach, out ExecutionHashAdd hashAdd)
     {
         if (forEach.Body.Nodes is [ExecutionHashAdd direct])
         {
@@ -108,15 +117,20 @@ public sealed partial class ExecutionCSharpRenderer
             return true;
         }
 
-        if (forEach.Body.Nodes is [ExecutionCreateGeneratedRow or ExecutionCreateHashPayload, ExecutionHashAdd projected])
+        if (
+            forEach.Body.Nodes
+            is [ExecutionCreateGeneratedRow or ExecutionCreateHashPayload, ExecutionHashAdd projected]
+        )
         {
             hashAdd = projected;
             return true;
         }
 
-        if (forEach.Body.Nodes.Count > 2 &&
-            forEach.Body.Nodes[^1] is ExecutionHashAdd precomputed &&
-            IsPrecomputedHashBuildBody(forEach.Body.Nodes))
+        if (
+            forEach.Body.Nodes.Count > 2
+            && forEach.Body.Nodes[^1] is ExecutionHashAdd precomputed
+            && IsPrecomputedHashBuildBody(forEach.Body.Nodes)
+        )
         {
             hashAdd = precomputed;
             return true;
@@ -153,12 +167,15 @@ public sealed partial class ExecutionCSharpRenderer
     private static bool TryCreateHashProbeHelperCandidate(
         ExecutionNode node,
         out ExecutionSourceLoop loop,
-        out ExecutionHashProbe hashProbe)
+        out ExecutionHashProbe hashProbe
+    )
     {
-        if (node is ExecutionSourceLoop { Body.Nodes: [ExecutionHashProbe probe] } sourceLoop &&
-            CanExtractHashProbeLoop(sourceLoop) &&
-            CanExtractHashProbe(probe) &&
-            CollectHashProbeAppendTargets(probe).Length > 0)
+        if (
+            node is ExecutionSourceLoop { Body.Nodes: [ExecutionHashProbe probe] } sourceLoop
+            && CanExtractHashProbeLoop(sourceLoop)
+            && CanExtractHashProbe(probe)
+            && CollectHashProbeAppendTargets(probe).Length > 0
+        )
         {
             loop = sourceLoop;
             hashProbe = probe;
@@ -189,15 +206,19 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanExtractHashProbe(ExecutionHashProbe probe)
     {
-        if (ContainsStoredTableRows(probe.Key) ||
-            ContainsStoredTableRows(probe.Body) ||
-            probe.NoMatchBody is not null && ContainsStoredTableRows(probe.NoMatchBody))
+        if (
+            ContainsStoredTableRows(probe.Key)
+            || ContainsStoredTableRows(probe.Body)
+            || probe.NoMatchBody is not null && ContainsStoredTableRows(probe.NoMatchBody)
+        )
         {
             return false;
         }
 
-        if (ContainsNode<ExecutionIf>(probe.Body) ||
-            probe.NoMatchBody is not null && ContainsNode<ExecutionIf>(probe.NoMatchBody))
+        if (
+            ContainsNode<ExecutionIf>(probe.Body)
+            || probe.NoMatchBody is not null && ContainsNode<ExecutionIf>(probe.NoMatchBody)
+        )
         {
             return false;
         }
@@ -212,7 +233,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool ContainsStoredTableRows(ExecutionExpression? expression)
     {
-        return ExecutionIrAnalysis.FlattenExpressions(expression)
+        return ExecutionIrAnalysis
+            .FlattenExpressions(expression)
             .Any(static current => current is ExecutionStoredTableRows);
     }
 }

@@ -13,7 +13,8 @@ internal sealed partial class ParallelStrategyPlanner
         string target,
         string outcome,
         PlanningConfidence confidence,
-        string reason)
+        string reason
+    )
     {
         return new PlanningDecision(
             PlanningDecisionCategory.ParallelEligibility,
@@ -21,17 +22,22 @@ internal sealed partial class ParallelStrategyPlanner
             target,
             outcome,
             confidence,
-            reason);
+            reason
+        );
     }
 
     private static ParallelEligibilityCheck CanUseParallelFilterProjectPredicate(
         PhysicalFilterNode? filter,
-        PlanningRowShape sourceShape)
+        PlanningRowShape sourceShape
+    )
     {
         if (filter == null)
             return ParallelEligibilityCheck.Enabled;
 
-        var predicateEligibility = ParallelPlanningEligibilityRules.CanUseFilterProjectExpression(filter.Predicate, sourceShape);
+        var predicateEligibility = ParallelPlanningEligibilityRules.CanUseFilterProjectExpression(
+            filter.Predicate,
+            sourceShape
+        );
         if (predicateEligibility.IsEligible)
             return ParallelEligibilityCheck.Enabled;
 
@@ -40,15 +46,21 @@ internal sealed partial class ParallelStrategyPlanner
 
     private static ParallelEligibilityCheck CanUseParallelFilterProjectFields(
         IReadOnlyList<ProjectedField> fields,
-        PlanningRowShape sourceShape)
+        PlanningRowShape sourceShape
+    )
     {
         foreach (var field in fields)
         {
-            var fieldEligibility = ParallelPlanningEligibilityRules.CanUseFilterProjectExpression(field.Expression, sourceShape);
+            var fieldEligibility = ParallelPlanningEligibilityRules.CanUseFilterProjectExpression(
+                field.Expression,
+                sourceShape
+            );
             if (fieldEligibility.IsEligible)
                 continue;
 
-            return ParallelEligibilityCheck.Skipped($"Projected field {field.OutputName} is not parallel-safe: {fieldEligibility.Reason}");
+            return ParallelEligibilityCheck.Skipped(
+                $"Projected field {field.OutputName} is not parallel-safe: {fieldEligibility.Reason}"
+            );
         }
 
         return ParallelEligibilityCheck.Enabled;
@@ -58,19 +70,30 @@ internal sealed partial class ParallelStrategyPlanner
     {
         var resolution = source switch
         {
-            PhysicalSchemaScanNode scan => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolveSourceShape(scan)),
-            PhysicalCteRefNode cteRef => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolveCteRefShape(cteRef)),
-            PhysicalInterpretSourceNode interpret => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolveInterpretSourceShape(interpret)),
-            PhysicalPropertySourceNode property => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolvePropertySourceShape(property)),
-            PhysicalAccessMethodSourceNode accessMethod => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolveAccessMethodSourceShape(accessMethod)),
-            _ => null!
+            PhysicalSchemaScanNode scan => ParallelSourceShapeResolution.Resolved(
+                shapeResolver.ResolveSourceShape(scan)
+            ),
+            PhysicalCteRefNode cteRef => ParallelSourceShapeResolution.Resolved(
+                shapeResolver.ResolveCteRefShape(cteRef)
+            ),
+            PhysicalInterpretSourceNode interpret => ParallelSourceShapeResolution.Resolved(
+                shapeResolver.ResolveInterpretSourceShape(interpret)
+            ),
+            PhysicalPropertySourceNode property => ParallelSourceShapeResolution.Resolved(
+                shapeResolver.ResolvePropertySourceShape(property)
+            ),
+            PhysicalAccessMethodSourceNode accessMethod => ParallelSourceShapeResolution.Resolved(
+                shapeResolver.ResolveAccessMethodSourceShape(accessMethod)
+            ),
+            _ => null!,
         };
 
         if (resolution != null)
             return resolution;
 
         return ParallelSourceShapeResolution.Unresolved(
-            $"Unsupported row source {source.GetType().Name}; planner cannot resolve a stable source row shape.");
+            $"Unsupported row source {source.GetType().Name}; planner cannot resolve a stable source row shape."
+        );
     }
 
     private static bool CanUseParallelSourceRows(PhysicalNode source)
@@ -80,9 +103,12 @@ internal sealed partial class ParallelStrategyPlanner
 
     private static bool HasParallelWorthyMethodCall(SupportedPipeline pipeline)
     {
-        return (pipeline.Filter != null && ParallelPlanningEligibilityRules.ContainsMethodCall(pipeline.Filter.Predicate)) ||
-               pipeline.Project.Fields.Any(static field => ParallelPlanningEligibilityRules.ContainsMethodCall(field.Expression));
+        return (
+                pipeline.Filter != null
+                && ParallelPlanningEligibilityRules.ContainsMethodCall(pipeline.Filter.Predicate)
+            )
+            || pipeline.Project.Fields.Any(static field =>
+                ParallelPlanningEligibilityRules.ContainsMethodCall(field.Expression)
+            );
     }
-
-
 }

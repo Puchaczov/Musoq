@@ -8,15 +8,11 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class ObjectIsNotAnArrayException : Exception, IDiagnosticException
 {
-
     public ObjectIsNotAnArrayException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
-    public ObjectIsNotAnArrayException()
-    {
-    }
+    public ObjectIsNotAnArrayException() { }
+
     /// <summary>
     ///     Initializes a new instance of ObjectIsNotAnArrayException.
     /// </summary>

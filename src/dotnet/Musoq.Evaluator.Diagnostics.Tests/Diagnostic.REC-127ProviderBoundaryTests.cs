@@ -28,7 +28,7 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         "select e.Name from #boundary.items() e inner join #boundary.items() f on e.Name = f.Name",
         "select e.Name from #boundary.items() e where e.Name is not null order by e.Name",
         "select e.Name from #boundary.items() e skip 0",
-        "select e.Name from #boundary.items() e order by e.Name take 1"
+        "select e.Name from #boundary.items() e order by e.Name take 1",
     ];
 
     private static readonly IReadOnlyList<BoundaryCandidate> Candidates = CreateCandidates();
@@ -43,7 +43,10 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
     public void CandidateMatrix_ShouldCoverFrozenBoundaryContract()
     {
         Assert.AreEqual(48, Candidates.Count);
-        Assert.AreEqual(48, Candidates.Select(static candidate => candidate.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.AreEqual(
+            48,
+            Candidates.Select(static candidate => candidate.Id).Distinct(StringComparer.Ordinal).Count()
+        );
         Assert.AreEqual(12, Candidates.Count(static candidate => candidate.Operation == BoundaryOperation.Construct));
         Assert.AreEqual(12, Candidates.Count(static candidate => candidate.Operation == BoundaryOperation.Describe));
         Assert.AreEqual(12, Candidates.Count(static candidate => candidate.Operation == BoundaryOperation.Plan));
@@ -66,7 +69,8 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
             Assert.AreEqual(
                 query.Split("#boundary.items(", StringSplitOptions.None).Length - 1,
                 provider.OpenCount,
-                query);
+                query
+            );
         }
     }
 
@@ -85,8 +89,7 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
 
             if (candidate.Id == "E02")
             {
-                var exception = Assert.Throws<QueryExecutionException>(() =>
-                    _ = compiled.Run().Count);
+                var exception = Assert.Throws<QueryExecutionException>(() => _ = compiled.Run().Count);
 
                 AssertParameterEnvelope(exception, candidate.Id);
                 Assert.AreEqual(0, provider.OpenCount, candidate.Id);
@@ -95,7 +98,8 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
 
             provider.Operation = BoundaryOperation.Open;
             var openException = Assert.Throws<QueryExecutionException>(() =>
-                _ = TableMaterializationTestHelper.Materialize(compiled.Run()).Count);
+                _ = TableMaterializationTestHelper.Materialize(compiled.Run()).Count
+            );
 
             AssertBoundaryEnvelope(openException.Envelope, candidate, candidate.ExpectedOperation);
             Assert.AreEqual(1, provider.OpenCount, candidate.Id);
@@ -120,18 +124,24 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         AddFamily(candidates, "C", BoundaryOperation.Plan, "plan", QueryShapes.Length);
         AddFamily(candidates, "D", BoundaryOperation.Open, "open", QueryShapes.Length - 2);
 
-        candidates.Add(new BoundaryCandidate(
-            "E01",
-            BoundaryOperation.Guard,
-            WithFaultMarker(QueryShapes[0], "E01"),
-            DiagnosticCode.MQ7010_DataSourceOpenFailed,
-            "open"));
-        candidates.Add(new BoundaryCandidate(
-            "E02",
-            BoundaryOperation.Guard,
-            "param(key: string) select e.Name from #boundary.items($key) e /* E02-fault */",
-            DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
-            "parameter-binding"));
+        candidates.Add(
+            new BoundaryCandidate(
+                "E01",
+                BoundaryOperation.Guard,
+                WithFaultMarker(QueryShapes[0], "E01"),
+                DiagnosticCode.MQ7010_DataSourceOpenFailed,
+                "open"
+            )
+        );
+        candidates.Add(
+            new BoundaryCandidate(
+                "E02",
+                BoundaryOperation.Guard,
+                "param(key: string) select e.Name from #boundary.items($key) e /* E02-fault */",
+                DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
+                "parameter-binding"
+            )
+        );
 
         return candidates;
     }
@@ -141,17 +151,21 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         string prefix,
         BoundaryOperation operation,
         string expectedOperation,
-        int count)
+        int count
+    )
     {
         for (var index = 0; index < count; index++)
         {
             var id = $"{prefix}{index + 1:00}";
-            candidates.Add(new BoundaryCandidate(
-                id,
-                operation,
-                WithFaultMarker(QueryShapes[index], id),
-                DiagnosticCode.MQ7010_DataSourceOpenFailed,
-                expectedOperation));
+            candidates.Add(
+                new BoundaryCandidate(
+                    id,
+                    operation,
+                    WithFaultMarker(QueryShapes[index], id),
+                    DiagnosticCode.MQ7010_DataSourceOpenFailed,
+                    expectedOperation
+                )
+            );
         }
     }
 
@@ -160,14 +174,14 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         return $"{query} /* {caseId}-fault */";
     }
 
-    private static CompiledQuery Compile(
-        string query,
-        BoundaryProvider provider,
-        BoundaryOperation operation)
+    private static CompiledQuery Compile(string query, BoundaryProvider provider, BoundaryOperation operation)
     {
         provider.Operation = operation;
         var result = CompileWithDiagnostics(query, provider);
-        Assert.IsTrue(result.Succeeded, string.Join(" | ", result.Errors.Select(static error => error.ToDetailedString())));
+        Assert.IsTrue(
+            result.Succeeded,
+            string.Join(" | ", result.Errors.Select(static error => error.ToDetailedString()))
+        );
         Assert.IsNotNull(result.CompiledQuery);
         return result.CompiledQuery;
     }
@@ -184,13 +198,15 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
             Guid.NewGuid().ToString("N"),
             provider,
             new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
     }
 
     private static void AssertBoundaryEnvelope(
         MusoqErrorEnvelope? envelope,
         BoundaryCandidate candidate,
-        string expectedOperation)
+        string expectedOperation
+    )
     {
         Assert.IsNotNull(envelope, candidate.Id);
         Assert.AreEqual(candidate.ExpectedCode, envelope.Code, candidate.Id);
@@ -225,7 +241,7 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         Describe,
         Plan,
         Open,
-        Guard
+        Guard,
     }
 
     public sealed record BoundaryCandidate(
@@ -233,7 +249,8 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         BoundaryOperation Operation,
         string Query,
         DiagnosticCode ExpectedCode,
-        string ExpectedOperation);
+        string ExpectedOperation
+    );
 
     private sealed class BoundaryProvider(BoundaryOperation operation) : ISchemaProvider
     {
@@ -271,7 +288,7 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         private static readonly IReadOnlyList<BasicEntity> Rows =
         [
             new BasicEntity("alpha") { Population = 1 },
-            new BasicEntity("beta") { Population = 2 }
+            new BasicEntity("beta") { Population = 2 },
         ];
 
         public BoundarySchema()
@@ -281,7 +298,8 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
                 "items",
                 new[] { Rows },
                 new Dictionary<string, int>(BasicEntity.TestNameToIndexMap),
-                new Dictionary<int, Func<BasicEntity, object?>>(BasicEntity.TestIndexToObjectAccessMap));
+                new Dictionary<int, Func<BasicEntity, object?>>(BasicEntity.TestIndexToObjectAccessMap)
+            );
             AddTable<BasicEntityTable>("items");
         }
 
@@ -296,7 +314,8 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         public override SourceDescriptor DescribeSource(
             string name,
             SourceDescribeContext context,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             DescribeCount++;
             if (Operation == BoundaryOperation.Describe)
@@ -308,7 +327,8 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         public override SourcePlanResult TryPlanSource(
             string name,
             SourcePlanRequest request,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             PlanCount++;
             if (Operation == BoundaryOperation.Plan)
@@ -320,7 +340,8 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             OpenCount++;
             if (Operation == BoundaryOperation.Open)
@@ -331,7 +352,9 @@ public sealed class DiagnosticRec127ProviderBoundaryTests
                 new EntitySource<BasicEntity>(
                     [Rows],
                     new Dictionary<string, int>(BasicEntity.TestNameToIndexMap),
-                    new Dictionary<int, Func<BasicEntity, object?>>(BasicEntity.TestIndexToObjectAccessMap)));
+                    new Dictionary<int, Func<BasicEntity, object?>>(BasicEntity.TestIndexToObjectAccessMap)
+                )
+            );
         }
 
         private static InvalidOperationException CreateProviderException()

@@ -107,11 +107,13 @@ public static class TypeHelper
     public static ParameterInfo[] GetParametersWithAttribute<TType>(this ParameterInfo[] parameters)
         where TType : Attribute
     {
-        return parameters.Where(f =>
-        {
-            var attributes = f.GetCustomAttributes();
-            return attributes.Any(g => g.GetType().IsAssignableTo(typeof(TType)));
-        }).ToArray();
+        return parameters
+            .Where(f =>
+            {
+                var attributes = f.GetCustomAttributes();
+                return attributes.Any(g => g.GetType().IsAssignableTo(typeof(TType)));
+            })
+            .ToArray();
     }
 
     /// <summary>
@@ -133,8 +135,11 @@ public static class TypeHelper
     /// </summary>
     /// <typeparam name="TType">Type to describe.</typeparam>
     /// <returns>Mapped entity.</returns>
-    public static (IDictionary<string, int> NameToIndexMap, IDictionary<int, Func<TType, object>> IndexToMethodAccessMap
-        , ISchemaColumn[] Columns) GetEntityMap<TType>()
+    public static (
+        IDictionary<string, int> NameToIndexMap,
+        IDictionary<int, Func<TType, object>> IndexToMethodAccessMap,
+        ISchemaColumn[] Columns
+    ) GetEntityMap<TType>()
     {
         var columnIndex = 0;
 
@@ -161,8 +166,12 @@ public static class TypeHelper
             Func<TType, object> del;
             if (property.PropertyType.IsValueType)
             {
-                var dynMethod = new DynamicMethod($"Dynamic_Get_{typeof(TType).Name}_{property.Name}", typeof(object),
-                    [typeof(TType)], typeof(TType).Module);
+                var dynMethod = new DynamicMethod(
+                    $"Dynamic_Get_{typeof(TType).Name}_{property.Name}",
+                    typeof(object),
+                    [typeof(TType)],
+                    typeof(TType).Module
+                );
                 var ilGen = dynMethod.GetILGenerator();
                 ilGen.Emit(OpCodes.Ldarg_0);
                 ilGen.Emit(OpCodes.Callvirt, getMethod);
@@ -178,9 +187,10 @@ public static class TypeHelper
 
             nameToIndexMap.Add(property.Name, columnIndex);
             indexToMethodAccess.Add(columnIndex, instance => del(instance));
-            var stability = property.GetCustomAttribute<NonDeterministicAttribute>() == null
-                ? ColumnStability.Stable
-                : ColumnStability.Volatile;
+            var stability =
+                property.GetCustomAttribute<NonDeterministicAttribute>() == null
+                    ? ColumnStability.Stable
+                    : ColumnStability.Volatile;
             columns.Add(new SchemaColumn(property.Name, columnIndex, property.PropertyType, stability));
 
             columnIndex += 1;
@@ -217,7 +227,8 @@ public static class TypeHelper
     }
 
     private static (bool SupportsInterCommunicator, (string Name, Type Type)[] Parameters) GetParametersForConstructor(
-        System.Reflection.ConstructorInfo constructor)
+        System.Reflection.ConstructorInfo constructor
+    )
     {
         var parameters = constructor.GetParameters();
         var filteredConstructors = new List<(string Name, Type Type)>();
@@ -234,8 +245,9 @@ public static class TypeHelper
 
     private static string GetRequiredParameterName(ParameterInfo parameter)
     {
-        return parameter.Name ??
-               throw new InvalidOperationException(
-                   $"Constructor parameter at position {parameter.Position} on '{parameter.Member.DeclaringType}' has no metadata name.");
+        return parameter.Name
+            ?? throw new InvalidOperationException(
+                $"Constructor parameter at position {parameter.Position} on '{parameter.Member.DeclaringType}' has no metadata name."
+            );
     }
 }

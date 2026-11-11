@@ -11,12 +11,20 @@ public class PathValueSchema(IEnumerable<PathValueEntity> entities) : SchemaBase
     private const string SchemaName = "pathvalue";
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return new PathValueSchemaTable();
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         return EnsureSourceType<T, PathValueEntity>(name, new PathValueRowSource(entities));
     }

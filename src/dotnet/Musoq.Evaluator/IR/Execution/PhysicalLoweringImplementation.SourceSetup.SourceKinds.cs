@@ -12,7 +12,8 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalInterpretSourceNode interpret,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         IReadOnlyDictionary<string, int> cteIndexes,
-        string? sourceRowsScope)
+        string? sourceRowsScope
+    )
     {
         var sourceRows = new ExecutionVariable(CreateSourceRowsName(interpret.Alias, sourceRowsScope), typeof(object));
 
@@ -24,16 +25,24 @@ internal sealed partial class PhysicalLoweringImplementation
                 ResolveInterpreterTypeName(interpret),
                 interpret.Kind,
                 CreateInterpretArguments(interpret, sourceLookup, cteIndexes),
-                interpret.ApplyKind)
+                interpret.ApplyKind
+            ),
         ];
     }
 
-    private static ExecutionExpression[] CreateInterpretArguments(PhysicalInterpretSourceNode interpret,
-        IReadOnlyDictionary<string, RowShape> sourceLookup, IReadOnlyDictionary<string, int> cteIndexes)
+    private static ExecutionExpression[] CreateInterpretArguments(
+        PhysicalInterpretSourceNode interpret,
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, int> cteIndexes
+    )
     {
         var arguments = new ExecutionExpression[interpret.Arguments.Length];
         for (var index = 0; index < arguments.Length; index++)
-            arguments[index] = ExecutionExpressionConverter.Convert(interpret.Arguments[index], sourceLookup, cteIndexes);
+            arguments[index] = ExecutionExpressionConverter.Convert(
+                interpret.Arguments[index],
+                sourceLookup,
+                cteIndexes
+            );
         arguments[0] = ByteBufferViewShape.Storage(arguments[0]);
         return arguments;
     }
@@ -44,7 +53,8 @@ internal sealed partial class PhysicalLoweringImplementation
         ExecutionExpression source,
         ExecutionEnumerableChunkMode chunkMode,
         string? sourceRowsScope,
-        string? enumerableTypeName = null)
+        string? enumerableTypeName = null
+    )
     {
         var sourceRows = new ExecutionVariable(CreateSourceRowsName(alias, sourceRowsScope), typeof(object));
 
@@ -54,12 +64,14 @@ internal sealed partial class PhysicalLoweringImplementation
     private static List<ExecutionNode> CreateValuesSourceSetup(
         PhysicalValuesScanNode values,
         RowShape sourceShape,
-        string? sourceRowsScope)
+        string? sourceRowsScope
+    )
     {
         if (sourceShape is not ValuesRowShape valuesShape)
         {
             throw new InvalidOperationException(
-                $"Execution IR values-source lowering expected a values row shape for alias '{values.Alias}'.");
+                $"Execution IR values-source lowering expected a values row shape for alias '{values.Alias}'."
+            );
         }
 
         return
@@ -67,38 +79,42 @@ internal sealed partial class PhysicalLoweringImplementation
             new ExecutionCreateValuesRows(
                 CreateValuesRowsVariable(values.Alias, valuesShape.GeneratedShape, sourceRowsScope),
                 valuesShape.GeneratedShape,
-                CreateValuesRowValues(values, valuesShape.GeneratedShape))
+                CreateValuesRowValues(values, valuesShape.GeneratedShape)
+            ),
         ];
     }
 
     private static ExecutionVariable CreateValuesRowsVariable(
         string alias,
         GeneratedRowShape rowShape,
-        string? sourceRowsScope)
+        string? sourceRowsScope
+    )
     {
         return new ExecutionVariable(
             CreateSourceRowsName(alias, sourceRowsScope),
             typeof(object),
-            $"{rowShape.TypeName}[]");
+            $"{rowShape.TypeName}[]"
+        );
     }
 
     private static List<IReadOnlyList<ExecutionRowValue>> CreateValuesRowValues(
         PhysicalValuesScanNode values,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         var rows = new List<IReadOnlyList<ExecutionRowValue>>(values.Rows.Count);
 
         foreach (var row in values.Rows)
         {
-            var fields = row.Fields.ToDictionary(
-                static field => field.Name,
-                StringComparer.OrdinalIgnoreCase);
-            var rowValues = rowShape.Fields
-                .Select(field => new ExecutionRowValue(
+            var fields = row.Fields.ToDictionary(static field => field.Name, StringComparer.OrdinalIgnoreCase);
+            var rowValues = rowShape
+                .Fields.Select(field => new ExecutionRowValue(
                     field.Name,
                     ExecutionExpressionConverter.Convert(
                         FindValuesField(fields, field).Value,
-                        RowShapeLookup.EmptySourceShapeLookup())))
+                        RowShapeLookup.EmptySourceShapeLookup()
+                    )
+                ))
                 .ToArray();
 
             rows.Add(rowValues);
@@ -109,20 +125,21 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static ValuesScanField FindValuesField(
         IReadOnlyDictionary<string, ValuesScanField> fields,
-        FieldBinding generatedField)
+        FieldBinding generatedField
+    )
     {
         if (fields.TryGetValue(generatedField.Name, out var field))
             return field;
 
         var separator = generatedField.QualifiedName.LastIndexOf('.');
-        var unqualifiedName = separator >= 0
-            ? generatedField.QualifiedName[(separator + 1)..]
-            : generatedField.QualifiedName;
+        var unqualifiedName =
+            separator >= 0 ? generatedField.QualifiedName[(separator + 1)..] : generatedField.QualifiedName;
         if (fields.TryGetValue(unqualifiedName, out field))
             return field;
 
         throw new InvalidOperationException(
-            $"VALUES field '{generatedField.Name}' has no authored value. Available: {string.Join(",", fields.Keys)}; qualified={generatedField.QualifiedName}.");
+            $"VALUES field '{generatedField.Name}' has no authored value. Available: {string.Join(",", fields.Keys)}; qualified={generatedField.QualifiedName}."
+        );
     }
 
     private string? ResolvePropertyEnumerableTypeName(PhysicalPropertySourceNode property)

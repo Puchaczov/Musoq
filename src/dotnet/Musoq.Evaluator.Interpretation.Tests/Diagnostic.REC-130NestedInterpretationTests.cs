@@ -116,13 +116,8 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
 
     private void AssertInterpretAtValid(int offset, byte[] data, byte expectedValue)
     {
-        var query = $@"
-            binary Positioned {{
-                Value: byte
-            }};
-            select p.Value
-            from #test.files() f
-            cross apply InterpretAt<Positioned>(f.Content, {offset}) p";
+        var query =
+            $"\n            binary Positioned {{\n                Value: byte\n            }};\n            select p.Value\n            from #test.files() f\n            cross apply InterpretAt<Positioned>(f.Content, {offset}) p";
 
         var table = RunBinaryQuery(query, new BinaryEntity { Name = "positioned.bin", Content = data });
         Assert.AreEqual(1, table.Count);
@@ -134,18 +129,15 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
         byte[] data,
         ParseErrorCode expectedCode,
         int expectedPosition,
-        string? expectedField)
+        string? expectedField
+    )
     {
-        var query = $@"
-            binary Positioned {{
-                Value: byte
-            }};
-            select p.Value
-            from #test.files() f
-            cross apply InterpretAt<Positioned>(f.Content, {offset}) p";
+        var query =
+            $"\n            binary Positioned {{\n                Value: byte\n            }};\n            select p.Value\n            from #test.files() f\n            cross apply InterpretAt<Positioned>(f.Content, {offset}) p";
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
-            RunBinaryQuery(query, new BinaryEntity { Name = "positioned.bin", Content = data }));
+            RunBinaryQuery(query, new BinaryEntity { Name = "positioned.bin", Content = data })
+        );
         Assert.AreEqual(expectedCode, exception.ErrorCode);
         Assert.AreEqual(expectedPosition, exception.Position);
         Assert.AreEqual(expectedField, exception.FieldName);
@@ -156,93 +148,111 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
         return caseId switch
         {
             "NP-04" => new PartialBinaryCase(
-                @"
-                    binary Child { A: byte, B: byte };
-                    binary Root { Prefix: byte, Payload: Child, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Child { A: byte, B: byte };\n"
+                    + "                    binary Root { Prefix: byte, Payload: Child, Tail: byte }"
+                ),
                 [0xAA, 0x01, 0x02, 0xBB],
                 [0xAA, 0x01],
                 "Payload.B",
                 "ISE0001",
                 2,
-                ["Prefix"]),
+                ["Prefix"]
+            ),
             "NP-05" => new PartialBinaryCase(
-                @"
-                    binary Item { A: byte, B: byte };
-                    binary Root { Prefix: byte, Items: Item[2], Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Item { A: byte, B: byte };\n"
+                    + "                    binary Root { Prefix: byte, Items: Item[2], Tail: byte }"
+                ),
                 [0xAA, 0x01, 0x02, 0x03, 0x04, 0xBB],
                 [0xAA, 0x01, 0x02, 0x03],
                 "Items.B",
                 "ISE0001",
                 4,
-                ["Prefix"]),
+                ["Prefix"]
+            ),
             "NP-06" => new PartialBinaryCase(
-                @"
-                    binary Item { A: byte, B: byte };
-                    binary Root { Prefix: byte, Items: Item[2], Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Item { A: byte, B: byte };\n"
+                    + "                    binary Root { Prefix: byte, Items: Item[2], Tail: byte }"
+                ),
                 [0xAA, 0x01, 0x02, 0x03, 0x04, 0xBB],
                 [0xAA, 0x01],
                 "Items.B",
                 "ISE0001",
                 2,
-                ["Prefix"]),
+                ["Prefix"]
+            ),
             "NP-07" => new PartialBinaryCase(
-                @"
-                    binary Item { A: byte, B: byte };
-                    binary Root { Prefix: byte, Items: Item[2], Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Item { A: byte, B: byte };\n"
+                    + "                    binary Root { Prefix: byte, Items: Item[2], Tail: byte }"
+                ),
                 [0xAA, 0x01, 0x02, 0x03, 0x04, 0xBB],
                 [0xAA, 0x01, 0x02, 0x03, 0x04, 0xBB],
                 null,
                 null,
                 6,
-                ["Prefix", "Items", "Tail"]),
+                ["Prefix", "Items", "Tail"]
+            ),
             "NP-08" => new PartialBinaryCase(
-                @"
-                    binary Root { Prefix: byte, Jump: byte at 6, Tail: byte }",
+                ("\n" + "                    binary Root { Prefix: byte, Jump: byte at 6, Tail: byte }"),
                 [0xAA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0xBB],
                 [0xAA, 0x00, 0x00],
                 "Jump",
                 "ISE0001",
                 6,
-                ["Prefix"]),
+                ["Prefix"]
+            ),
             "NP-09" => new PartialBinaryCase(
-                @"
-                    binary Root { Prefix: byte, Marker: byte at 0, Tail: byte }",
+                ("\n" + "                    binary Root { Prefix: byte, Marker: byte at 0, Tail: byte }"),
                 [0x42, 0x99],
                 [0x42, 0x99],
                 null,
                 null,
                 2,
-                ["Prefix", "Marker", "Tail"]),
+                ["Prefix", "Marker", "Tail"]
+            ),
             "NP-10" => new PartialBinaryCase(
-                @"
-                    binary Root { Offset: byte, Jump: byte at Offset, Tail: byte }",
+                ("\n" + "                    binary Root { Offset: byte, Jump: byte at Offset, Tail: byte }"),
                 [0x03, 0x00, 0x00, 0x55, 0xBB],
                 [0x03, 0x00],
                 "Jump",
                 "ISE0001",
                 3,
-                ["Offset"]),
+                ["Offset"]
+            ),
             "NP-11" => new PartialBinaryCase(
-                @"
-                    binary Child { A: byte, B: byte };
-                    binary Root { Prefix: byte, Payload: Child, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Child { A: byte, B: byte };\n"
+                    + "                    binary Root { Prefix: byte, Payload: Child, Tail: byte }"
+                ),
                 [0xAA, 0x01, 0x02, 0xBB],
                 [0xAA, 0x01],
                 "Payload.B",
                 "ISE0001",
                 2,
-                ["Prefix"]),
+                ["Prefix"]
+            ),
             "NP-12" => new PartialBinaryCase(
-                @"
-                    binary Child { A: byte, B: byte };
-                    binary Root { Prefix: byte, Payload: Child, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Child { A: byte, B: byte };\n"
+                    + "                    binary Root { Prefix: byte, Payload: Child, Tail: byte }"
+                ),
                 [0xAA, 0x01, 0x02, 0xBB],
                 [0xAA, 0x01, 0x02, 0xBB],
                 null,
                 null,
                 4,
-                ["Prefix", "Payload", "Tail"]),
-            _ => throw new AssertFailedException($"Unknown nested position case '{caseId}'.")
+                ["Prefix", "Payload", "Tail"]
+            ),
+            _ => throw new AssertFailedException($"Unknown nested position case '{caseId}'."),
         };
     }
 
@@ -251,89 +261,165 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
         return caseId switch
         {
             "SP-01" => new PartialBinaryCase(
-                @"
-                    binary Root { Kind: byte, Length: byte, Payload: substream[Length] raw, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Root { Kind: byte, Length: byte, Payload: substream[Length] raw, Tail: byte }"
+                ),
                 [0x01, 0x02, 0xAA, 0xBB, 0x7F],
                 [0x01, 0x02, 0xAA, 0xBB, 0x7F],
-                null, null, 5, ["Kind", "Length", "Payload", "Tail"]),
+                null,
+                null,
+                5,
+                ["Kind", "Length", "Payload", "Tail"]
+            ),
             "SP-02" => new PartialBinaryCase(
-                @"
-                    binary Body { A: byte, B: byte };
-                    binary Root { Kind: byte, Length: byte, Payload: substream[Length] as Body exact, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Body { A: byte, B: byte };\n"
+                    + "                    binary Root { Kind: byte, Length: byte, Payload: substream[Length] as Body exact, Tail: byte }"
+                ),
                 [0x01, 0x02, 0xAA, 0xBB, 0x7F],
                 [0x01, 0x02, 0xAA, 0xBB, 0x7F],
-                null, null, 5, ["Kind", "Length", "Payload", "Tail"]),
+                null,
+                null,
+                5,
+                ["Kind", "Length", "Payload", "Tail"]
+            ),
             "SP-03" => new PartialBinaryCase(
-                @"
-                    binary Body { A: byte, B: byte };
-                    binary Root { Kind: byte, Length: byte, Payload: substream[Length] as Body lax, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Body { A: byte, B: byte };\n"
+                    + "                    binary Root { Kind: byte, Length: byte, Payload: substream[Length] as Body lax, Tail: byte }"
+                ),
                 [0x01, 0x03, 0xAA, 0xBB, 0xCC, 0x7F],
                 [0x01, 0x03, 0xAA, 0xBB, 0xCC, 0x7F],
-                null, null, 6, ["Kind", "Length", "Payload", "Tail"]),
+                null,
+                null,
+                6,
+                ["Kind", "Length", "Payload", "Tail"]
+            ),
             "SP-04" => new PartialBinaryCase(
-                @"
-                    binary Inner { X: byte };
-                    binary Middle { Length: byte, Payload: substream[Length] as Inner, Tag: byte };
-                    binary Root { Length: byte, Payload: substream[Length] as Middle, Footer: byte }",
+                (
+                    "\n"
+                    + "                    binary Inner { X: byte };\n"
+                    + "                    binary Middle { Length: byte, Payload: substream[Length] as Inner, Tag: byte };\n"
+                    + "                    binary Root { Length: byte, Payload: substream[Length] as Middle, Footer: byte }"
+                ),
                 [0x03, 0x01, 0x2A, 0x55, 0x7E],
                 [0x03, 0x01, 0x2A, 0x55, 0x7E],
-                null, null, 5, ["Length", "Payload", "Footer"]),
+                null,
+                null,
+                5,
+                ["Length", "Payload", "Footer"]
+            ),
             "SP-05" => new PartialBinaryCase(
-                @"
-                    binary Item { Value: byte, Magic: byte check Magic = 0xEE };
-                    binary Body { Items: Item[2] };
-                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Item { Value: byte, Magic: byte check Magic = 0xEE };\n"
+                    + "                    binary Body { Items: Item[2] };\n"
+                    + "                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body, Tail: byte }"
+                ),
                 [0xAA, 0x04, 0x01, 0xEE, 0x02, 0xEE, 0xBB],
                 [0xAA, 0x04, 0x01, 0xEE, 0x02, 0x00, 0xBB],
-                "Payload.Items.Magic", "ISE0002", 6, ["Prefix"], 6),
+                "Payload.Items.Magic",
+                "ISE0002",
+                6,
+                ["Prefix"],
+                6
+            ),
             "SP-06" => new PartialBinaryCase(
-                @"
-                    binary Body { Value: byte[3] };
-                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Body { Value: byte[3] };\n"
+                    + "                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body, Tail: byte }"
+                ),
                 [0xAA, 0x03, 0x01, 0x02, 0x03, 0xBB],
                 [0xAA, 0x02, 0x01, 0x02, 0xBB],
-                "Payload.Value", "ISE0001", 2, ["Prefix"]),
+                "Payload.Value",
+                "ISE0001",
+                2,
+                ["Prefix"]
+            ),
             "SP-07" => new PartialBinaryCase(
-                @"
-                    binary Body { A: byte, B: byte };
-                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body exact, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Body { A: byte, B: byte };\n"
+                    + "                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body exact, Tail: byte }"
+                ),
                 [0xAA, 0x02, 0x01, 0x02, 0xBB],
                 [0xAA, 0x03, 0x01, 0x02, 0xCC, 0xBB],
-                "Payload", "ISE0002", 4, ["Prefix", "Length"], 4),
+                "Payload",
+                "ISE0002",
+                4,
+                ["Prefix", "Length"],
+                4
+            ),
             "SP-08" => new PartialBinaryCase(
-                @"
-                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] raw, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] raw, Tail: byte }"
+                ),
                 [0xAA, 0x00, 0xBB],
                 [0xAA, 0x00, 0xBB],
-                null, null, 3, ["Prefix", "Length", "Payload", "Tail"]),
+                null,
+                null,
+                3,
+                ["Prefix", "Length", "Payload", "Tail"]
+            ),
             "SP-09" => new PartialBinaryCase(
-                @"
-                    text Body { Value: chars[1] };
-                    binary Root { Prefix: byte, Value: string[2] utf8 as Body, Tail: byte }",
+                (
+                    "\n"
+                    + "                    text Body { Value: chars[1] };\n"
+                    + "                    binary Root { Prefix: byte, Value: string[2] utf8 as Body, Tail: byte }"
+                ),
                 [0xAA, 0xC3, 0xA9, 0xBB],
                 [0xAA, 0xC3, 0xA9, 0xBB],
-                null, null, 4, ["Prefix", "Value", "Tail"]),
+                null,
+                null,
+                4,
+                ["Prefix", "Value", "Tail"]
+            ),
             "SP-10" => new PartialBinaryCase(
-                @"
-                    binary Body { Value: byte check Value = 0xEE };
-                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Body { Value: byte check Value = 0xEE };\n"
+                    + "                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body, Tail: byte }"
+                ),
                 [0xAA, 0x01, 0xEE, 0xBB],
                 [0xAA, 0x01, 0x00, 0xBB],
-                "Payload.Value", "ISE0002", 3, ["Prefix", "Length"], 3),
+                "Payload.Value",
+                "ISE0002",
+                3,
+                ["Prefix", "Length"],
+                3
+            ),
             "SP-11" => new PartialBinaryCase(
-                @"
-                    binary Body { Prefix: byte, Value: byte at 3 };
-                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Body { Prefix: byte, Value: byte at 3 };\n"
+                    + "                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body, Tail: byte }"
+                ),
                 [0xAA, 0x04, 0x01, 0x00, 0x00, 0x55, 0xBB],
                 [0xAA, 0x02, 0x01, 0x02, 0xBB],
-                "Payload.Value", "ISE0001", 5, ["Prefix", "Length"], 5),
+                "Payload.Value",
+                "ISE0001",
+                5,
+                ["Prefix", "Length"],
+                5
+            ),
             "SP-12" => new PartialBinaryCase(
-                @"
-                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] raw, Tail: byte }",
+                (
+                    "\n"
+                    + "                    binary Root { Prefix: byte, Length: byte, Payload: substream[Length] raw, Tail: byte }"
+                ),
                 [0xAA, 0x02, 0x01, 0x02, 0xBB],
                 [0xAA, 0x04, 0x01],
-                "Payload", "ISE0001", 2, ["Prefix", "Length"]),
-            _ => throw new AssertFailedException($"Unknown substream case '{caseId}'.")
+                "Payload",
+                "ISE0001",
+                2,
+                ["Prefix", "Length"]
+            ),
+            _ => throw new AssertFailedException($"Unknown substream case '{caseId}'."),
         };
     }
 
@@ -341,31 +427,72 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
     {
         return caseId switch
         {
-            "PP-01" => new PartialBinaryCase(
-                "binary Root { Value: byte }",
-                [0x01], [], "Value", "ISE0001", 0, []),
+            "PP-01" => new PartialBinaryCase("binary Root { Value: byte }", [0x01], [], "Value", "ISE0001", 0, []),
             "PP-02" => new PartialBinaryCase(
                 "binary Root { Prefix: byte, Value: int le }",
-                [0xAA, 0x01, 0x02, 0x03, 0x04], [0xAA, 0x01], "Value", "ISE0001", 1, ["Prefix"]),
+                [0xAA, 0x01, 0x02, 0x03, 0x04],
+                [0xAA, 0x01],
+                "Value",
+                "ISE0001",
+                1,
+                ["Prefix"]
+            ),
             "PP-03" => new PartialBinaryCase(
                 "binary Child { Value: int le }; binary Root { Prefix: byte, Payload: Child }",
-                [0xAA, 0x01, 0x02, 0x03, 0x04], [0xAA, 0x01], "Payload.Value", "ISE0001", 1, ["Prefix"]),
+                [0xAA, 0x01, 0x02, 0x03, 0x04],
+                [0xAA, 0x01],
+                "Payload.Value",
+                "ISE0001",
+                1,
+                ["Prefix"]
+            ),
             "PP-04" => new PartialBinaryCase(
                 "binary Child { A: byte, B: byte }; binary Root { Prefix: byte, Payload: Child }",
-                [0xAA, 0x01, 0x02], [0xAA, 0x01], "Payload.B", "ISE0001", 2, ["Prefix"]),
+                [0xAA, 0x01, 0x02],
+                [0xAA, 0x01],
+                "Payload.B",
+                "ISE0001",
+                2,
+                ["Prefix"]
+            ),
             "PP-05" => new PartialBinaryCase(
                 "binary Root { Prefix: byte, Values: byte[3] }",
-                [0xAA, 0x01, 0x02, 0x03], [0xAA, 0x01, 0x02], "Values", "ISE0001", 1, ["Prefix"]),
+                [0xAA, 0x01, 0x02, 0x03],
+                [0xAA, 0x01, 0x02],
+                "Values",
+                "ISE0001",
+                1,
+                ["Prefix"]
+            ),
             "PP-06" => new PartialBinaryCase(
                 "binary Item { A: byte, B: byte }; binary Root { Prefix: byte, Items: Item[2] }",
-                [0xAA, 0x01, 0x02, 0x03, 0x04], [0xAA, 0x01, 0x02, 0x03], "Items.B", "ISE0001", 4, ["Prefix"]),
+                [0xAA, 0x01, 0x02, 0x03, 0x04],
+                [0xAA, 0x01, 0x02, 0x03],
+                "Items.B",
+                "ISE0001",
+                4,
+                ["Prefix"]
+            ),
             "PP-07" => new PartialBinaryCase(
                 "binary Body { Value: byte[3] }; binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body }",
-                [0xAA, 0x03, 0x01, 0x02, 0x03], [0xAA, 0x02, 0x01, 0x02], "Payload.Value", "ISE0001", 2, ["Prefix", "Length"]),
+                [0xAA, 0x03, 0x01, 0x02, 0x03],
+                [0xAA, 0x02, 0x01, 0x02],
+                "Payload.Value",
+                "ISE0001",
+                2,
+                ["Prefix", "Length"]
+            ),
             "PP-08" => new PartialBinaryCase(
                 "binary Body { A: byte, B: byte[2] }; binary Root { Prefix: byte, Length: byte, Payload: substream[Length] as Body }",
-                [0xAA, 0x03, 0x01, 0x02, 0x03], [0xAA, 0x02, 0x01, 0x02], "Payload.B", "ISE0001", 3, ["Prefix", "Length"], 3),
-            _ => null
+                [0xAA, 0x03, 0x01, 0x02, 0x03],
+                [0xAA, 0x02, 0x01, 0x02],
+                "Payload.B",
+                "ISE0001",
+                3,
+                ["Prefix", "Length"],
+                3
+            ),
+            _ => null,
         };
     }
 
@@ -373,15 +500,38 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
     {
         return caseId switch
         {
-            "PP-09" => new PartialTextCase(
-                "text Root { Value: chars[2] }", "ab", "", "Value", "ISE0001", 0, [], 0),
+            "PP-09" => new PartialTextCase("text Root { Value: chars[2] }", "ab", "", "Value", "ISE0001", 0, [], 0),
             "PP-10" => new PartialTextCase(
-                "text Root { Prefix: chars[2], Value: chars[3] }", "abxyz", "abx", "Value", "ISE0001", 2, ["Prefix"], 2),
+                "text Root { Prefix: chars[2], Value: chars[3] }",
+                "abxyz",
+                "abx",
+                "Value",
+                "ISE0001",
+                2,
+                ["Prefix"],
+                2
+            ),
             "PP-11" => new PartialTextCase(
-                "text Inner { Value: chars[2] }; text Root { Prefix: chars[1], Payload: Inner }", "pab", "pa", "Payload.Value", "ISE0001", 1, ["Prefix"], 1),
+                "text Inner { Value: chars[2] }; text Root { Prefix: chars[1], Payload: Inner }",
+                "pab",
+                "pa",
+                "Payload.Value",
+                "ISE0001",
+                1,
+                ["Prefix"],
+                1
+            ),
             "PP-12" => new PartialTextCase(
-                "text Inner { A: chars[1], B: chars[2] }; text Root { Prefix: chars[1], Payload: Inner }", "pabc", "pab", "Payload.B", "ISE0001", 2, ["Prefix"], 2),
-            _ => throw new AssertFailedException($"Unknown text progress case '{caseId}'.")
+                "text Inner { A: chars[1], B: chars[2] }; text Root { Prefix: chars[1], Payload: Inner }",
+                "pabc",
+                "pab",
+                "Payload.B",
+                "ISE0001",
+                2,
+                ["Prefix"],
+                2
+            ),
+            _ => throw new AssertFailedException($"Unknown text progress case '{caseId}'."),
         };
     }
 
@@ -391,17 +541,44 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
         {
             "TU-01" => new PartialBinaryCase(
                 "binary Root { Prefix: byte, Value: string[2] utf8, Tail: byte }",
-                [0x07, 0x41, 0x42, 0xA5], [0x07, 0xC3, 0x28, 0xA5], "Value", "ISE0010", 1, ["Prefix"], 1),
+                [0x07, 0x41, 0x42, 0xA5],
+                [0x07, 0xC3, 0x28, 0xA5],
+                "Value",
+                "ISE0010",
+                1,
+                ["Prefix"],
+                1
+            ),
             "TU-02" => new PartialBinaryCase(
                 "binary Root { Prefix: byte, Value: string[3] utf8 nullterm, Tail: byte }",
-                [0x07, 0x41, 0x00, 0x00, 0xA5], [0x07, 0xC3, 0x28, 0x00, 0xA5], "Value", "ISE0010", 1, ["Prefix"], 1),
+                [0x07, 0x41, 0x00, 0x00, 0xA5],
+                [0x07, 0xC3, 0x28, 0x00, 0xA5],
+                "Value",
+                "ISE0010",
+                1,
+                ["Prefix"],
+                1
+            ),
             "TU-05" => new PartialBinaryCase(
                 "text Digits { Value: pattern '\\d+' }; binary Root { Prefix: byte, Value: string[2] ascii as Digits, Tail: byte }",
-                [0x07, 0x31, 0x32, 0xA5], [0x07, 0x41, 0x21, 0xA5], "Value", "ISE0003", 3, ["Prefix"], 0),
+                [0x07, 0x31, 0x32, 0xA5],
+                [0x07, 0x41, 0x21, 0xA5],
+                "Value",
+                "ISE0003",
+                3,
+                ["Prefix"],
+                0
+            ),
             "TU-06" => new PartialBinaryCase(
                 "text Digits { Value: pattern '\\d+' }; binary Root { Prefix: byte, Value: string[2] ascii as Digits, Tail: byte }",
-                [0x07, 0x31, 0x32, 0xA5], [0x07, 0x31, 0x32, 0xA5], null, null, 4, ["Prefix", "Value", "Tail"]),
-            _ => null
+                [0x07, 0x31, 0x32, 0xA5],
+                [0x07, 0x31, 0x32, 0xA5],
+                null,
+                null,
+                4,
+                ["Prefix", "Value", "Tail"]
+            ),
+            _ => null,
         };
     }
 
@@ -409,32 +586,101 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
     {
         return caseId switch
         {
-            "TU-03" => new PartialTextCase("text Root { Prefix: chars[2], Value: pattern '\\d+' }", "xx12", "xxabc", "Value", "ISE0003", 2, ["Prefix"], 2),
-            "TU-04" => new PartialTextCase("text Root { Prefix: chars[2], Value: pattern '\\d+' }", "😀12", "😀a", "Value", "ISE0003", 2, ["Prefix"], 2),
-            "TU-07" => new PartialTextCase("text Root { Prefix: chars[2], Value: pattern '\\d+' }", "xx12", "xxabc", "Value", "ISE0003", 2, ["Prefix"], 2),
-            "TU-08" => new PartialTextCase("text Inner { Value: chars[2] }; text Root { Prefix: chars[1], Payload: Inner, Tail: rest }", "pabtail", "pabtail", null, null, 7, ["Prefix", "Payload", "Tail"]),
-            "TU-09" => new PartialTextCase("text Root { Key: until '=', Value: rest }", "host=ok", "host", "Key", "ISE0005", 0, [], 0),
-            "TU-10" => new PartialTextCase("text Root { Prefix: literal 'OK', Tail: rest }", "OKtail", "NO", "Prefix", "ISE0004", 0, [], 0),
-            "TU-11" => new PartialTextCase("text Root { Prefix: chars[2], Value: chars[3] }", "abxyz", "abx", "Value", "ISE0001", 2, ["Prefix"], 2),
-            "TU-12" => new PartialTextCase("text Root { Prefix: chars[2], Value: chars[3] }", "abxyz", "abxyz", null, null, 5, ["Prefix", "Value"]),
-            _ => throw new AssertFailedException($"Unknown text unit case '{caseId}'.")
+            "TU-03" => new PartialTextCase(
+                "text Root { Prefix: chars[2], Value: pattern '\\d+' }",
+                "xx12",
+                "xxabc",
+                "Value",
+                "ISE0003",
+                2,
+                ["Prefix"],
+                2
+            ),
+            "TU-04" => new PartialTextCase(
+                "text Root { Prefix: chars[2], Value: pattern '\\d+' }",
+                "😀12",
+                "😀a",
+                "Value",
+                "ISE0003",
+                2,
+                ["Prefix"],
+                2
+            ),
+            "TU-07" => new PartialTextCase(
+                "text Root { Prefix: chars[2], Value: pattern '\\d+' }",
+                "xx12",
+                "xxabc",
+                "Value",
+                "ISE0003",
+                2,
+                ["Prefix"],
+                2
+            ),
+            "TU-08" => new PartialTextCase(
+                "text Inner { Value: chars[2] }; text Root { Prefix: chars[1], Payload: Inner, Tail: rest }",
+                "pabtail",
+                "pabtail",
+                null,
+                null,
+                7,
+                ["Prefix", "Payload", "Tail"]
+            ),
+            "TU-09" => new PartialTextCase(
+                "text Root { Key: until '=', Value: rest }",
+                "host=ok",
+                "host",
+                "Key",
+                "ISE0005",
+                0,
+                [],
+                0
+            ),
+            "TU-10" => new PartialTextCase(
+                "text Root { Prefix: literal 'OK', Tail: rest }",
+                "OKtail",
+                "NO",
+                "Prefix",
+                "ISE0004",
+                0,
+                [],
+                0
+            ),
+            "TU-11" => new PartialTextCase(
+                "text Root { Prefix: chars[2], Value: chars[3] }",
+                "abxyz",
+                "abx",
+                "Value",
+                "ISE0001",
+                2,
+                ["Prefix"],
+                2
+            ),
+            "TU-12" => new PartialTextCase(
+                "text Root { Prefix: chars[2], Value: chars[3] }",
+                "abxyz",
+                "abxyz",
+                null,
+                null,
+                5,
+                ["Prefix", "Value"]
+            ),
+            _ => throw new AssertFailedException($"Unknown text unit case '{caseId}'."),
         };
     }
 
     private void AssertBinaryPartial(PartialBinaryCase testCase)
     {
-        var query = $@"
-            {testCase.Schema};
-            select f.Name, p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed
-            from #test.files() f
-            cross apply PartialInterpret<Root>(f.Content) p
-            order by f.Name";
+        var query =
+            $"\n            {testCase.Schema};\n            select f.Name, p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed\n            from #test.files() f\n            cross apply PartialInterpret<Root>(f.Content) p\n            order by f.Name";
 
-        var table = RunBinaryQuery(query, [
-            new BinaryEntity { Name = "01-valid.bin", Content = testCase.ValidData },
-            new BinaryEntity { Name = "02-failing.bin", Content = testCase.FailingData },
-            new BinaryEntity { Name = "03-valid.bin", Content = testCase.ValidData }
-        ]);
+        var table = RunBinaryQuery(
+            query,
+            [
+                new BinaryEntity { Name = "01-valid.bin", Content = testCase.ValidData },
+                new BinaryEntity { Name = "02-failing.bin", Content = testCase.FailingData },
+                new BinaryEntity { Name = "03-valid.bin", Content = testCase.ValidData },
+            ]
+        );
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual("01-valid.bin", table[0].ReadValue(0));
@@ -465,18 +711,17 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
 
     private void AssertTextPartial(PartialTextCase testCase)
     {
-        var query = $@"
-            {testCase.Schema};
-            select f.Name, p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed
-            from #test.lines() f
-            cross apply PartialParse<Root>(f.Text) p
-            order by f.Name";
+        var query =
+            $"\n            {testCase.Schema};\n            select f.Name, p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed\n            from #test.lines() f\n            cross apply PartialParse<Root>(f.Text) p\n            order by f.Name";
 
-        var table = RunTextQuery(query, [
-            new TextEntity { Name = "01-valid.txt", Text = testCase.ValidText },
-            new TextEntity { Name = "02-failing.txt", Text = testCase.FailingText },
-            new TextEntity { Name = "03-valid.txt", Text = testCase.ValidText }
-        ]);
+        var table = RunTextQuery(
+            query,
+            [
+                new TextEntity { Name = "01-valid.txt", Text = testCase.ValidText },
+                new TextEntity { Name = "02-failing.txt", Text = testCase.FailingText },
+                new TextEntity { Name = "03-valid.txt", Text = testCase.ValidText },
+            ]
+        );
 
         Assert.AreEqual(3, table.Count);
         AssertPrefix(table[0], testCase.ExpectedPrefixFields, testCase.ExpectedSuccessConsumed);
@@ -515,31 +760,29 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
 
     private Table RunBinaryQuery(string query, params BinaryEntity[] entities)
     {
-        var provider = new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-        {
-            ["#test"] = entities
-        });
+        var provider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { ["#test"] = entities }
+        );
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         return TableMaterializationTestHelper.Materialize(compiled.Run(CancellationToken.None));
     }
 
     private Table RunTextQuery(string query, params TextEntity[] entities)
     {
-        var provider = new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>>
-        {
-            ["#test"] = entities
-        });
+        var provider = new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>> { ["#test"] = entities });
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
             provider,
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         return TableMaterializationTestHelper.Materialize(compiled.Run(CancellationToken.None));
     }
 
@@ -551,7 +794,8 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
         string? ExpectedErrorCode,
         int ExpectedFailureConsumed,
         IReadOnlyList<string> ExpectedPrefixFields,
-        int? ExpectedErrorPosition = null)
+        int? ExpectedErrorPosition = null
+    )
     {
         public int ExpectedSuccessConsumed => ValidData.Length;
     }
@@ -564,7 +808,8 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
         string? ExpectedErrorCode,
         int ExpectedFailureConsumed,
         IReadOnlyList<string> ExpectedPrefixFields,
-        int? ExpectedErrorPosition = null)
+        int? ExpectedErrorPosition = null
+    )
     {
         public int ExpectedSuccessConsumed => ValidText.Length;
     }

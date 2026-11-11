@@ -8,15 +8,11 @@ public class NestedEntity
     public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>
     {
         { nameof(Id), 0 },
-        { nameof(Info), 1 }
+        { nameof(Info), 1 },
     };
 
     public static readonly IReadOnlyDictionary<int, Func<NestedEntity, object?>> IndexToObjectAccessMap =
-        new Dictionary<int, Func<NestedEntity, object?>>
-        {
-            { 0, entity => entity.Id },
-            { 1, entity => entity.Info }
-        };
+        new Dictionary<int, Func<NestedEntity, object?>> { { 0, entity => entity.Id }, { 1, entity => entity.Info } };
 
     public int Id { get; set; }
 

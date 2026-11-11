@@ -11,11 +11,10 @@ internal sealed record WindowPipeline(
     WindowRegistration[] Registrations,
     IrExpression? QualifyPredicate,
     LoweringSourcePipeline Source,
-    IReadOnlyList<PostOperation> PostOperations);
+    IReadOnlyList<PostOperation> PostOperations
+);
 
-internal sealed record WindowQualifyTopRankPlan(
-    IrExpression? Predicate,
-    IReadOnlyDictionary<int, long> UpperBounds);
+internal sealed record WindowQualifyTopRankPlan(IrExpression? Predicate, IReadOnlyDictionary<int, long> UpperBounds);
 
 internal sealed record WindowMaterializationContext(
     LoweringSourcePipeline LoweringSourcePipeline,
@@ -25,7 +24,8 @@ internal sealed record WindowMaterializationContext(
     RowShape SourceShape,
     ExecutionRowAccessMode RowAccessMode,
     IReadOnlyDictionary<string, RowShape> SourceLookup,
-    GeneratedRowShape? GeneratedRowShape);
+    GeneratedRowShape? GeneratedRowShape
+);
 
 internal sealed record WindowComputationContext(
     WindowRegistrationBuildResult RegistrationResult,
@@ -47,12 +47,13 @@ internal sealed record WindowComputationContext(
     string? SortedPartitionListSignature,
     IReadOnlySet<string> InPlaceSortableSortedPartitionSignatures,
     IReadOnlySet<string> SingleUsePartitionKeySignatures,
-    long? QualifyUpperBound);
+    long? QualifyUpperBound
+);
 
 internal enum WindowResultNameMode
 {
     Standard,
-    IndexedByWindow
+    IndexedByWindow,
 }
 
 internal sealed record WindowRegistrationBuildResult(
@@ -61,25 +62,26 @@ internal sealed record WindowRegistrationBuildResult(
     ExecutionRankingWindowFunction? RankingFunction,
     ExecutionOffsetWindowFunction? OffsetFunction,
     MethodInfo? SqlDeclaration,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static WindowRegistrationBuildResult SuccessRanking(
         WindowRegistration registration,
-        ExecutionRankingWindowFunction function)
+        ExecutionRankingWindowFunction function
+    )
     {
         return new WindowRegistrationBuildResult(true, registration, function, null, null, string.Empty);
     }
 
     public static WindowRegistrationBuildResult SuccessOffset(
         WindowRegistration registration,
-        ExecutionOffsetWindowFunction function)
+        ExecutionOffsetWindowFunction function
+    )
     {
         return new WindowRegistrationBuildResult(true, registration, null, function, null, string.Empty);
     }
 
-    public static WindowRegistrationBuildResult SuccessPlugin(
-        WindowRegistration registration,
-        MethodInfo factory)
+    public static WindowRegistrationBuildResult SuccessPlugin(WindowRegistration registration, MethodInfo factory)
     {
         return new WindowRegistrationBuildResult(true, registration, null, null, factory, string.Empty);
     }
@@ -95,12 +97,14 @@ internal sealed record WindowComputationBuildResult(
     WindowRegistration? Registration,
     ExecutionNode Node,
     ExecutionVariable Results,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static WindowComputationBuildResult Success(
         WindowRegistration registration,
         ExecutionNode node,
-        ExecutionVariable results)
+        ExecutionVariable results
+    )
     {
         return new WindowComputationBuildResult(true, registration, node, results, string.Empty);
     }
@@ -112,9 +116,11 @@ internal sealed record WindowComputationBuildResult(
             null,
             new ExecutionMaterializeList(
                 new ExecutionLiteral(null, typeof(object)),
-                new ExecutionVariable(string.Empty, typeof(object))),
+                new ExecutionVariable(string.Empty, typeof(object))
+            ),
             new ExecutionVariable(string.Empty, typeof(object)),
-            reason);
+            reason
+        );
     }
 }
 
@@ -123,12 +129,14 @@ internal sealed record OffsetWindowArgumentsBuildResult(
     ExecutionExpression Value,
     ExecutionExpression Offset,
     ExecutionExpression DefaultValue,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static OffsetWindowArgumentsBuildResult Success(
         ExecutionExpression value,
         ExecutionExpression offset,
-        ExecutionExpression defaultValue)
+        ExecutionExpression defaultValue
+    )
     {
         return new OffsetWindowArgumentsBuildResult(true, value, offset, defaultValue, string.Empty);
     }
@@ -146,13 +154,15 @@ internal sealed record PluginWindowArgumentsBuildResult(
     IReadOnlyList<ExecutionExpression> Arguments,
     IReadOnlyList<bool> RowScopedArguments,
     IReadOnlyList<ExecutionVariable> MethodTargets,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public static PluginWindowArgumentsBuildResult Success(
         ExecutionExpression value,
         IReadOnlyList<ExecutionExpression> arguments,
         IReadOnlyList<bool> rowScopedArguments,
-        IReadOnlyList<ExecutionVariable> methodTargets)
+        IReadOnlyList<ExecutionVariable> methodTargets
+    )
     {
         return new PluginWindowArgumentsBuildResult(
             true,
@@ -160,7 +170,8 @@ internal sealed record PluginWindowArgumentsBuildResult(
             arguments,
             rowScopedArguments,
             methodTargets,
-            string.Empty);
+            string.Empty
+        );
     }
 
     public static PluginWindowArgumentsBuildResult Unsupported(string reason)
@@ -171,6 +182,7 @@ internal sealed record PluginWindowArgumentsBuildResult(
             [],
             [],
             [],
-            reason);
+            reason
+        );
     }
 }

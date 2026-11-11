@@ -50,21 +50,23 @@ internal static class OptimizationTraceTextPrinter
             return string.IsNullOrWhiteSpace(existingText) ? Print(trace) : existingText;
 
         var traceText = Print(trace);
-        if (string.IsNullOrWhiteSpace(existingText) ||
-            string.Equals(existingText, "OptimizerTrace [not produced]", StringComparison.Ordinal))
+        if (
+            string.IsNullOrWhiteSpace(existingText)
+            || string.Equals(existingText, "OptimizerTrace [not produced]", StringComparison.Ordinal)
+        )
         {
             return traceText;
         }
 
-        if (string.Equals(existingText, "OptimizerTrace\n  none", StringComparison.Ordinal) ||
-            string.Equals(existingText, "OptimizerTrace\r\n  none", StringComparison.Ordinal))
+        if (
+            string.Equals(existingText, "OptimizerTrace\n  none", StringComparison.Ordinal)
+            || string.Equals(existingText, "OptimizerTrace\r\n  none", StringComparison.Ordinal)
+        )
         {
             return traceText;
         }
 
-        var traceLines = traceText
-            .Split(["\r\n", "\n"], StringSplitOptions.None)
-            .Skip(1);
+        var traceLines = traceText.Split(["\r\n", "\n"], StringSplitOptions.None).Skip(1);
 
         return existingText + Environment.NewLine + string.Join(Environment.NewLine, traceLines);
     }

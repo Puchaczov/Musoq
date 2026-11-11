@@ -11,33 +11,117 @@ internal static partial class ExecutionNodeFacts
             return paging;
         return node switch
         {
-            ExecutionPrepareStructuralInput structuralInput => index switch { 0 => structuralInput.Input, _ => null },
+            ExecutionPrepareStructuralInput structuralInput => index switch
+            {
+                0 => structuralInput.Input,
+                _ => null,
+            },
             ExecutionSourceScan sourceScan => ExecutionExpressionChildren.At(sourceScan.Binding.Arguments, index),
             ExecutionInterpretSource interpret => ExecutionExpressionChildren.At(interpret.Arguments, index),
-            ExecutionEnumerableSource enumerable => index switch { 0 => enumerable.Source, _ => null },
-            ExecutionForEach forEach => index switch { 0 => forEach.Source, _ => null },
-            ExecutionForEachWithOrdinality forEach => index switch { 0 => forEach.Source, _ => null },
-            ExecutionParallelSingleKeyAggregateLoop parallelAggregate => index switch { 0 => parallelAggregate.SourceRows, 1 => parallelAggregate.Key, _ => null },
-            ExecutionLet let => index switch { 0 => let.Value, _ => null },
-            ExecutionHoistCandidateLet candidate => index switch { 0 => candidate.Value, _ => null },
-            ExecutionAssign assign => index switch { 0 => assign.Value, _ => null },
-            ExecutionArrayAssign arrayAssign => index switch { 0 => arrayAssign.Index, 1 => arrayAssign.Value, _ => null },
-            ExecutionContinueIf continueIf => index switch { 0 => continueIf.Condition, _ => null },
-            ExecutionIf ifNode => index switch { 0 => ifNode.Condition, _ => null },
-            ExecutionMaterializeList materialize => index switch { 0 => materialize.Source, _ => null },
-            ExecutionMaterializeFilteredList materialize => index switch { 0 => materialize.Source, 1 => materialize.Predicate, _ => null },
-            ExecutionHashAdd hashAdd => index switch { 0 => hashAdd.Key, _ => null },
-            ExecutionHashProbe hashProbe => index switch { 0 => hashProbe.Key, _ => null },
-            ExecutionKeySetAdd keySetAdd => index switch { 0 => keySetAdd.Key, _ => null },
-            ExecutionKeySetProbe keySetProbe => index switch { 0 => keySetProbe.Key, _ => null },
-            ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd => index switch { 0 => getOrAdd.Key, _ => null },
+            ExecutionEnumerableSource enumerable => index switch
+            {
+                0 => enumerable.Source,
+                _ => null,
+            },
+            ExecutionForEach forEach => index switch
+            {
+                0 => forEach.Source,
+                _ => null,
+            },
+            ExecutionForEachWithOrdinality forEach => index switch
+            {
+                0 => forEach.Source,
+                _ => null,
+            },
+            ExecutionParallelSingleKeyAggregateLoop parallelAggregate => index switch
+            {
+                0 => parallelAggregate.SourceRows,
+                1 => parallelAggregate.Key,
+                _ => null,
+            },
+            ExecutionLet let => index switch
+            {
+                0 => let.Value,
+                _ => null,
+            },
+            ExecutionHoistCandidateLet candidate => index switch
+            {
+                0 => candidate.Value,
+                _ => null,
+            },
+            ExecutionAssign assign => index switch
+            {
+                0 => assign.Value,
+                _ => null,
+            },
+            ExecutionArrayAssign arrayAssign => index switch
+            {
+                0 => arrayAssign.Index,
+                1 => arrayAssign.Value,
+                _ => null,
+            },
+            ExecutionContinueIf continueIf => index switch
+            {
+                0 => continueIf.Condition,
+                _ => null,
+            },
+            ExecutionIf ifNode => index switch
+            {
+                0 => ifNode.Condition,
+                _ => null,
+            },
+            ExecutionMaterializeList materialize => index switch
+            {
+                0 => materialize.Source,
+                _ => null,
+            },
+            ExecutionMaterializeFilteredList materialize => index switch
+            {
+                0 => materialize.Source,
+                1 => materialize.Predicate,
+                _ => null,
+            },
+            ExecutionHashAdd hashAdd => index switch
+            {
+                0 => hashAdd.Key,
+                _ => null,
+            },
+            ExecutionHashProbe hashProbe => index switch
+            {
+                0 => hashProbe.Key,
+                _ => null,
+            },
+            ExecutionKeySetAdd keySetAdd => index switch
+            {
+                0 => keySetAdd.Key,
+                _ => null,
+            },
+            ExecutionKeySetProbe keySetProbe => index switch
+            {
+                0 => keySetProbe.Key,
+                _ => null,
+            },
+            ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd => index switch
+            {
+                0 => getOrAdd.Key,
+                _ => null,
+            },
             ExecutionGetOrAddValueTupleAggregateGroup getOrAdd => ExecutionExpressionChildren.At(getOrAdd.Keys, index),
-            ExecutionAggregateCapturedValueSet capturedValueSet => index switch { 0 => capturedValueSet.Value, _ => null },
+            ExecutionAggregateCapturedValueSet capturedValueSet => index switch
+            {
+                0 => capturedValueSet.Value,
+                _ => null,
+            },
             ExecutionReturnDesc returnDesc => ExecutionExpressionChildren.At(returnDesc.Arguments, index),
             ExecutionCreateValuesRows rows => ValuesRowAt(rows, index),
             ExecutionParallelFilterProjectLoop parallel => ParallelExpressionAt(parallel, index),
             ExecutionCreateGeneratedRow row => RowExpressionAt(row.Values, row.Contexts, row.ContextLayout, index),
-            ExecutionRecursiveCteAppend append => RowExpressionAt(append.AppendRow.Values, append.AppendRow.Contexts, append.AppendRow.ContextLayout, index),
+            ExecutionRecursiveCteAppend append => RowExpressionAt(
+                append.AppendRow.Values,
+                append.AppendRow.Contexts,
+                append.AppendRow.ContextLayout,
+                index
+            ),
             ExecutionAppendRow row => RowExpressionAt(row.Values, row.Contexts, row.ContextLayout, index),
             ExecutionCreateHashPayload payload => RowValueAt(payload.Values, index),
             ExecutionAppendRecord record => RowValueAt(record.Values, index),
@@ -46,16 +130,23 @@ internal static partial class ExecutionNodeFacts
             ExecutionCreateRangeIndex create => RangeCreateAt(create, index),
             ExecutionRangeProbe probe => RangeProbeAt(probe, index),
             ExecutionAggregateSet aggregate => AggregateAt(aggregate, index),
-            ExecutionComputeRankingWindow or ExecutionComputeOffsetWindow or ExecutionComputePluginWindow or ExecutionWindowAggregateKernel => WindowExpressionAt(node, index),
-            _ => null
+            ExecutionComputeRankingWindow
+            or ExecutionComputeOffsetWindow
+            or ExecutionComputePluginWindow
+            or ExecutionWindowAggregateKernel => WindowExpressionAt(node, index),
+            _ => null,
         };
     }
 
     private static ExecutionExpression? RowValueAt(IReadOnlyList<ExecutionRowValue> values, int index) =>
         (uint)index < (uint)values.Count ? values[index].Value : null;
 
-    private static ExecutionExpression? RowExpressionAt(IReadOnlyList<ExecutionRowValue> values,
-        IReadOnlyList<ExecutionExpression> contexts, ExecutionContextLayout? layout, int index)
+    private static ExecutionExpression? RowExpressionAt(
+        IReadOnlyList<ExecutionRowValue> values,
+        IReadOnlyList<ExecutionExpression> contexts,
+        ExecutionContextLayout? layout,
+        int index
+    )
     {
         if (index < values.Count)
             return values[index].Value;

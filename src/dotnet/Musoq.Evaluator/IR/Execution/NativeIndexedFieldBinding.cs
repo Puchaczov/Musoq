@@ -7,11 +7,17 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class NativeIndexedFieldBinding
 {
-    private static readonly Regex Segments = new(@"(?<member>[^.\[\]]+)|\[(?<index>-?\d+|'[^']*')\]",
-        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static readonly Regex Segments = new(
+        @"(?<member>[^.\[\]]+)|\[(?<index>-?\d+|'[^']*')\]",
+        RegexOptions.CultureInvariant | RegexOptions.Compiled
+    );
 
-    internal static ExecutionExpression? TryCreate(string alias, FieldBinding field, SourceEntityShape source,
-        string path)
+    internal static ExecutionExpression? TryCreate(
+        string alias,
+        FieldBinding field,
+        SourceEntityShape source,
+        string path
+    )
     {
         ExecutionExpression? receiver = null;
         var type = source.EntityType.ResolveClrType();
@@ -34,23 +40,45 @@ internal static class NativeIndexedFieldBinding
                 var memberType = type.GetProperty(name)?.PropertyType ?? type.GetField(name)?.FieldType;
                 if (memberType is null)
                 {
-                    var dictionary = type.GetInterfaces().Prepend(type).FirstOrDefault(candidate =>
-                        candidate.IsGenericType && candidate.GetGenericArguments()[0] == typeof(string) &&
-                        (candidate.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>) ||
-                         candidate.GetGenericTypeDefinition() == typeof(IDictionary<,>)));
-                    if (dictionary is null) return null;
+                    var dictionary = type.GetInterfaces()
+                        .Prepend(type)
+                        .FirstOrDefault(candidate =>
+                            candidate.IsGenericType
+                            && candidate.GetGenericArguments()[0] == typeof(string)
+                            && (
+                                candidate.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)
+                                || candidate.GetGenericTypeDefinition() == typeof(IDictionary<,>)
+                            )
+                        );
+                    if (dictionary is null)
+                        return null;
                     receiver ??= new ExecutionVariableRead(new ExecutionVariable(alias, source.EntityType));
                     var valueType = dictionary.GetGenericArguments()[1];
-                    receiver = ExecutionIndexedAccessBinding.Bind(new ExecutionArrayAccess(receiver,
-                        new ExecutionLiteral(name, typeof(string)), valueType, valueType));
+                    receiver = ExecutionIndexedAccessBinding.Bind(
+                        new ExecutionArrayAccess(
+                            receiver,
+                            new ExecutionLiteral(name, typeof(string)),
+                            valueType,
+                            valueType
+                        )
+                    );
                     type = valueType;
                     continue;
                 }
                 receiver = receiver is null
                     ? new ExecutionFieldRead(alias, name, memberType, new ClrPropertyAccess(name))
-                        { Stability = field.Stability }
-                    : new ExecutionMemberRead(receiver, name, ResolveMemberResultType(field, memberType, path.Length - position), false)
-                        { IsNullSafe = !type.IsValueType || Nullable.GetUnderlyingType(type) != null };
+                    {
+                        Stability = field.Stability,
+                    }
+                    : new ExecutionMemberRead(
+                        receiver,
+                        name,
+                        ResolveMemberResultType(field, memberType, path.Length - position),
+                        false
+                    )
+                    {
+                        IsNullSafe = !type.IsValueType || Nullable.GetUnderlyingType(type) != null,
+                    };
                 type = memberType;
                 continue;
             }
@@ -61,10 +89,18 @@ internal static class NativeIndexedFieldBinding
             var index = token.StartsWith("'", StringComparison.Ordinal)
                 ? new ExecutionLiteral(token[1..^1], typeof(string))
                 : new ExecutionLiteral(int.Parse(token, CultureInfo.InvariantCulture), typeof(int));
-            var contract = type.GetInterfaces().Prepend(type).FirstOrDefault(candidate =>
-                candidate.IsGenericType && candidate.GetGenericTypeDefinition() is var definition &&
-                (definition == typeof(IReadOnlyList<>) || definition == typeof(IList<>) ||
-                 definition == typeof(IReadOnlyDictionary<,>) || definition == typeof(IDictionary<,>)));
+            var contract = type.GetInterfaces()
+                .Prepend(type)
+                .FirstOrDefault(candidate =>
+                    candidate.IsGenericType
+                    && candidate.GetGenericTypeDefinition() is var definition
+                    && (
+                        definition == typeof(IReadOnlyList<>)
+                        || definition == typeof(IList<>)
+                        || definition == typeof(IReadOnlyDictionary<,>)
+                        || definition == typeof(IDictionary<,>)
+                    )
+                );
             var element = type.IsArray ? type.GetElementType() : contract?.GetGenericArguments()[^1];
             if (element is null)
                 return null;
@@ -78,7 +114,8 @@ internal static class NativeIndexedFieldBinding
         ExecutionExpression receiver,
         Type receiverType,
         FieldBinding field,
-        string path)
+        string path
+    )
     {
         ArgumentNullException.ThrowIfNull(receiver);
         ArgumentNullException.ThrowIfNull(receiverType);
@@ -103,9 +140,10 @@ internal static class NativeIndexedFieldBinding
                     receiver,
                     name,
                     ResolveMemberResultType(field, memberType, path.Length - position),
-                    false)
+                    false
+                )
                 {
-                    IsNullSafe = !type.IsValueType || Nullable.GetUnderlyingType(type) != null
+                    IsNullSafe = !type.IsValueType || Nullable.GetUnderlyingType(type) != null,
                 };
                 type = memberType;
                 continue;
@@ -115,10 +153,18 @@ internal static class NativeIndexedFieldBinding
             var index = token.StartsWith("'", StringComparison.Ordinal)
                 ? new ExecutionLiteral(token[1..^1], typeof(string))
                 : new ExecutionLiteral(int.Parse(token, CultureInfo.InvariantCulture), typeof(int));
-            var contract = type.GetInterfaces().Prepend(type).FirstOrDefault(candidate =>
-                candidate.IsGenericType && candidate.GetGenericTypeDefinition() is var definition &&
-                (definition == typeof(IReadOnlyList<>) || definition == typeof(IList<>) ||
-                 definition == typeof(IReadOnlyDictionary<,>) || definition == typeof(IDictionary<,>)));
+            var contract = type.GetInterfaces()
+                .Prepend(type)
+                .FirstOrDefault(candidate =>
+                    candidate.IsGenericType
+                    && candidate.GetGenericTypeDefinition() is var definition
+                    && (
+                        definition == typeof(IReadOnlyList<>)
+                        || definition == typeof(IList<>)
+                        || definition == typeof(IReadOnlyDictionary<,>)
+                        || definition == typeof(IDictionary<,>)
+                    )
+                );
             var element = type.IsArray ? type.GetElementType() : contract?.GetGenericArguments()[^1];
             if (element is null)
                 return null;
@@ -138,7 +184,11 @@ internal static class NativeIndexedFieldBinding
         if (field is null || !field.Type.ResolveClrType().IsArray)
             return null;
         return new ExecutionFieldRead(alias, field.Name, field.Type, field.AccessStrategy, field.GeneratedTypeName)
-        { Stability = field.Stability, SourceReadType = field.SourceReadType, EnumType = field.EnumType };
+        {
+            Stability = field.Stability,
+            SourceReadType = field.SourceReadType,
+            EnumType = field.EnumType,
+        };
     }
 
     private static Type ResolveMemberResultType(FieldBinding field, Type memberType, int remainingPathLength)

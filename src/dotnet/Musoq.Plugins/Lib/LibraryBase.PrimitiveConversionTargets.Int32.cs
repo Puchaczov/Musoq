@@ -14,9 +14,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public int? ToInt32(string? value)
     {
-        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number)
-            ? number
-            : null;
+        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) ? number : null;
     }
 
     /// <summary>
@@ -182,7 +180,12 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(bool? value) => value.HasValue ? value.Value ? 1 : 0 : null;
+    public int? ToInt32(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? 1
+                : 0
+            : null;
 
     /// <summary>
     ///     Converts given value to int

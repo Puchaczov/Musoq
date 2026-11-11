@@ -17,19 +17,14 @@ public sealed class TableLoweringServiceTests
         var sourceShape = new SourceEntityShape(
             "p",
             typeof(Person),
-            [
-                Field("Name", "p.Name", 0, typeof(string)),
-                Field("Age", "p.Age", 1, typeof(int))
-            ]);
+            [Field("Name", "p.Name", 0, typeof(string)), Field("Age", "p.Age", 1, typeof(int))]
+        );
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(sourceShape);
-        var publicFields = new[]
-        {
-            new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)
-        };
+        var publicFields = new[] { new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0) };
         var planner = new PostOperationProjectionPlanner(CreateGeneratedShape, (_, _) => null);
         IReadOnlyList<PostOperation> operations =
         [
-            new SortOperation([new OrderField(new ColumnRef("p", "Age", typeof(int)), Descending: false)])
+            new SortOperation([new OrderField(new ColumnRef("p", "Age", typeof(int)), Descending: false)]),
         ];
 
         var result = planner.Create("result", "ResultRow", publicFields, operations, sourceLookup);
@@ -53,12 +48,9 @@ public sealed class TableLoweringServiceTests
         var table = new ExecutionVariable("rows", typeof(object));
         var nodes = new List<ExecutionNode>();
 
-        var result = planner.Complete(new TableCompletionRequest(
-            [rowShape],
-            nodes,
-            table,
-            rowShape,
-            [new TakeOperation(2)]));
+        var result = planner.Complete(
+            new TableCompletionRequest([rowShape], nodes, table, rowShape, [new TakeOperation(2)])
+        );
 
         Assert.IsTrue(result.IsBuilt, result.UnsupportedReason);
         Assert.HasCount(1, nodes);
@@ -76,14 +68,17 @@ public sealed class TableLoweringServiceTests
         var table = new ExecutionVariable("rows", typeof(object));
         var finalProjection = new TableProjection(new ExecutionVariable("result", typeof(object)), rowShape, [0]);
 
-        var result = planner.Complete(new TableCompletionRequest(
-            [rowShape],
-            [],
-            table,
-            rowShape,
-            [],
-            IsDistinct: true,
-            FinalProjection: finalProjection));
+        var result = planner.Complete(
+            new TableCompletionRequest(
+                [rowShape],
+                [],
+                table,
+                rowShape,
+                [],
+                IsDistinct: true,
+                FinalProjection: finalProjection
+            )
+        );
 
         Assert.IsTrue(result.IsBuilt);
         var distinct = result.Nodes.OfType<ExecutionDistinctTable>().Single();
@@ -91,21 +86,22 @@ public sealed class TableLoweringServiceTests
         Assert.AreEqual("result", result.Table.Name);
     }
 
-    private static ProjectedField[] ProjectedFields() =>
-    [
-        new("Name", new ColumnRef("p", "Name", typeof(string)), 0)
-    ];
+    private static ProjectedField[] ProjectedFields() => [new("Name", new ColumnRef("p", "Name", typeof(string)), 0)];
 
     private static GeneratedRowShape CreateGeneratedShape(
         string typeName,
         ProjectedField[] fields,
-        IReadOnlyDictionary<string, RowShape> _)
+        IReadOnlyDictionary<string, RowShape> _
+    )
     {
         return new GeneratedRowShape(
             typeName,
             fields
-                .Select(field => Field(field.OutputName, field.OutputName, field.OutputIndex, field.Expression.ReturnType))
-                .ToArray());
+                .Select(field =>
+                    Field(field.OutputName, field.OutputName, field.OutputIndex, field.Expression.ReturnType)
+                )
+                .ToArray()
+        );
     }
 
     private static FieldBinding Field(string name, string qualifiedName, int index, Type type) =>

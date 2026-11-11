@@ -17,22 +17,29 @@ public partial class InterpreterCodeGenerator
             : GenerateScalarValidationCondition(validation, localVar, field);
 
         var message = GenerateValidationFailureMessage(validation, field.Name);
-        return StatusCheck($"base.ValidateWithStatus({condition}, \"{EscapeString(field.Name)}\", \"{EscapeString(message)}\")");
+        return StatusCheck(
+            $"base.ValidateWithStatus({condition}, \"{EscapeString(field.Name)}\", \"{EscapeString(message)}\")"
+        );
     }
 
     private string GenerateScalarValidationCondition(
-        FieldValueValidationNode validation, string localVar, FieldDefinitionNode field)
+        FieldValueValidationNode validation,
+        string localVar,
+        FieldDefinitionNode field
+    )
     {
         // Casting the expected literal to the field's CLR type preserves the bit pattern so unsigned
         // fields validate magic/const/oneOf values above int.MaxValue correctly.
-        var castType = GetClrTypeNameForFieldDefinition(field) is { } typeName && typeName
-            is "byte" or "sbyte" or "short" or "ushort" or "int" or "uint" or "long" or "ulong"
-            ? typeName
-            : null;
+        var castType =
+            GetClrTypeNameForFieldDefinition(field) is { } typeName
+            && typeName is "byte" or "sbyte" or "short" or "ushort" or "int" or "uint" or "long" or "ulong"
+                ? typeName
+                : null;
 
-        string Expected(Node value) => castType is null
-            ? GenerateConditionExpression(value)
-            : $"unchecked(({castType})({GenerateConditionExpression(value)}))";
+        string Expected(Node value) =>
+            castType is null
+                ? GenerateConditionExpression(value)
+                : $"unchecked(({castType})({GenerateConditionExpression(value)}))";
 
         if (validation.Kind != FieldValueValidationKind.OneOf)
             return $"{localVar} == {Expected(validation.Values[0])}";
@@ -53,7 +60,7 @@ public partial class InterpreterCodeGenerator
         {
             FieldValueValidationKind.Magic => $"Field '{fieldName}' did not match the expected magic value.",
             FieldValueValidationKind.OneOf => $"Field '{fieldName}' value is not one of the allowed values.",
-            _ => $"Field '{fieldName}' did not match the expected constant value."
+            _ => $"Field '{fieldName}' did not match the expected constant value.",
         };
     }
 }

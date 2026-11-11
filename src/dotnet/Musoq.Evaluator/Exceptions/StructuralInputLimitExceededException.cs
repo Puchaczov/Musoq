@@ -15,7 +15,8 @@ public sealed class StructuralInputLimitExceededException : InvalidOperationExce
         StructuralInputLimitKind limitKind,
         long configuredLimit,
         long observedValue,
-        string? sourceContextId = null)
+        string? sourceContextId = null
+    )
         : base(CreateMessage(origin, path, limitKind, configuredLimit, observedValue))
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(origin);
@@ -57,7 +58,7 @@ public sealed class StructuralInputLimitExceededException : InvalidOperationExce
             new("path", Path),
             new("limitKind", LimitKind.ToString()),
             new("configuredLimit", ConfiguredLimit.ToString(CultureInfo.InvariantCulture)),
-            new("observedValue", ObservedValue.ToString(CultureInfo.InvariantCulture))
+            new("observedValue", ObservedValue.ToString(CultureInfo.InvariantCulture)),
         };
         if (SourceContextId != null)
             arguments.Add(new("sourceContextId", SourceContextId));
@@ -70,7 +71,8 @@ public sealed class StructuralInputLimitExceededException : InvalidOperationExce
             SourceLocation.None,
             phase: DiagnosticPhase.Runtime,
             sourceKind: DiagnosticSourceKind.Runtime,
-            arguments: arguments);
+            arguments: arguments
+        );
     }
 
     private static string CreateMessage(
@@ -78,7 +80,8 @@ public sealed class StructuralInputLimitExceededException : InvalidOperationExce
         string path,
         StructuralInputLimitKind limitKind,
         long configuredLimit,
-        long observedValue) =>
-        $"Structural input from '{origin}' exceeded its {limitKind} limit of {configuredLimit.ToString(CultureInfo.InvariantCulture)} " +
-        $"(observed {observedValue.ToString(CultureInfo.InvariantCulture)}) at '{path}'.";
+        long observedValue
+    ) =>
+        $"Structural input from '{origin}' exceeded its {limitKind} limit of {configuredLimit.ToString(CultureInfo.InvariantCulture)} "
+        + $"(observed {observedValue.ToString(CultureInfo.InvariantCulture)}) at '{path}'.";
 }

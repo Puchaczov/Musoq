@@ -22,24 +22,35 @@ public partial class BugProbeInterpretationSchemasTests
         bw.Write("Hello"u8.ToArray()); // B (5 bytes)
         bw.Flush();
 
-        var query = @"
-            binary Structure {
-                D: int le,
-                C: ushort le,
-                A: byte,
-                B: string[A] ascii
-            };
-            select s.D, s.C, s.A, s.B
-            from #test.files() b
-            cross apply Interpret<Structure>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary Structure {\n"
+            + "                D: int le,\n"
+            + "                C: ushort le,\n"
+            + "                A: byte,\n"
+            + "                B: string[A] ascii\n"
+            + "            };\n"
+            + "            select s.D, s.C, s.A, s.B\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<Structure>(b.Content) s"
+        );
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -52,7 +63,6 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     Minimal: just byte + string[Length] ascii
     /// </summary>
-
     [TestMethod]
     public void Binary_ByteThenStringVarLength_ShouldWork()
     {
@@ -62,22 +72,33 @@ public partial class BugProbeInterpretationSchemasTests
         bw.Write("ABC"u8.ToArray());
         bw.Flush();
 
-        var query = @"
-            binary Msg {
-                Len: byte,
-                Text: string[Len] ascii
-            };
-            select s.Len, s.Text
-            from #test.files() b
-            cross apply Interpret<Msg>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary Msg {\n"
+            + "                Len: byte,\n"
+            + "                Text: string[Len] ascii\n"
+            + "            };\n"
+            + "            select s.Len, s.Text\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<Msg>(b.Content) s"
+        );
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -88,26 +109,36 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     Minimal: byte + ushort le
     /// </summary>
-
     [TestMethod]
     public void Binary_ByteThenUshort_ShouldWork()
     {
-        var query = @"
-            binary Hdr {
-                Tag: byte,
-                Val: ushort le
-            };
-            select s.Tag, s.Val
-            from #test.files() b
-            cross apply Interpret<Hdr>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary Hdr {\n"
+            + "                Tag: byte,\n"
+            + "                Val: ushort le\n"
+            + "            };\n"
+            + "            select s.Tag, s.Val\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<Hdr>(b.Content) s"
+        );
 
         var testData = new byte[] { 0xFF, 0x34, 0x12 }; // byte + ushort LE 0x1234
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -118,7 +149,6 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     Minimal: string[VarRef] ascii + ushort le
     /// </summary>
-
     [TestMethod]
     public void Binary_StringVarRefThenUshort_ShouldWork()
     {
@@ -129,23 +159,34 @@ public partial class BugProbeInterpretationSchemasTests
         bw.Write((ushort)999);
         bw.Flush();
 
-        var query = @"
-            binary Pkt {
-                Len: byte,
-                Name: string[Len] ascii,
-                Code: ushort le
-            };
-            select s.Len, s.Name, s.Code
-            from #test.files() b
-            cross apply Interpret<Pkt>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary Pkt {\n"
+            + "                Len: byte,\n"
+            + "                Name: string[Len] ascii,\n"
+            + "                Code: ushort le\n"
+            + "            };\n"
+            + "            select s.Len, s.Name, s.Code\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<Pkt>(b.Content) s"
+        );
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -157,7 +198,6 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     Minimal: string[VarRef] ascii + int le
     /// </summary>
-
     [TestMethod]
     public void Binary_StringVarRefThenInt_ShouldWork()
     {
@@ -168,23 +208,34 @@ public partial class BugProbeInterpretationSchemasTests
         bw.Write(12345);
         bw.Flush();
 
-        var query = @"
-            binary Blk {
-                Len: byte,
-                Data: string[Len] ascii,
-                Num: int le
-            };
-            select s.Len, s.Data, s.Num
-            from #test.files() b
-            cross apply Interpret<Blk>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary Blk {\n"
+            + "                Len: byte,\n"
+            + "                Data: string[Len] ascii,\n"
+            + "                Num: int le\n"
+            + "            };\n"
+            + "            select s.Len, s.Data, s.Num\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<Blk>(b.Content) s"
+        );
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -196,7 +247,6 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     All unsigned types: ushort, uint, ulong
     /// </summary>
-
     [TestMethod]
     public void Binary_AllUnsignedTypes_ShouldWork()
     {
@@ -207,23 +257,34 @@ public partial class BugProbeInterpretationSchemasTests
         bw.Write((ulong)10000000000);
         bw.Flush();
 
-        var query = @"
-            binary UnsignedPack {
-                A: ushort le,
-                B: uint le,
-                C: ulong le
-            };
-            select s.A, s.B, s.C
-            from #test.files() b
-            cross apply Interpret<UnsignedPack>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary UnsignedPack {\n"
+            + "                A: ushort le,\n"
+            + "                B: uint le,\n"
+            + "                C: ulong le\n"
+            + "            };\n"
+            + "            select s.A, s.B, s.C\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<UnsignedPack>(b.Content) s"
+        );
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -235,7 +296,6 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     sbyte type
     /// </summary>
-
     [TestMethod]
     public void Binary_SbyteType_ShouldWork()
     {
@@ -245,22 +305,33 @@ public partial class BugProbeInterpretationSchemasTests
         bw.Write((byte)100);
         bw.Flush();
 
-        var query = @"
-            binary SignedByte {
-                Neg: sbyte,
-                Pos: byte
-            };
-            select s.Neg, s.Pos
-            from #test.files() b
-            cross apply Interpret<SignedByte>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary SignedByte {\n"
+            + "                Neg: sbyte,\n"
+            + "                Pos: byte\n"
+            + "            };\n"
+            + "            select s.Neg, s.Pos\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<SignedByte>(b.Content) s"
+        );
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -271,7 +342,6 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     Float and double types
     /// </summary>
-
     [TestMethod]
     public void Binary_FloatDouble_ShouldWork()
     {
@@ -281,22 +351,33 @@ public partial class BugProbeInterpretationSchemasTests
         bw.Write(2.71828);
         bw.Flush();
 
-        var query = @"
-            binary FloatPack {
-                F: float le,
-                D: double le
-            };
-            select s.F, s.D
-            from #test.files() b
-            cross apply Interpret<FloatPack>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary FloatPack {\n"
+            + "                F: float le,\n"
+            + "                D: double le\n"
+            + "            };\n"
+            + "            select s.F, s.D\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<FloatPack>(b.Content) s"
+        );
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -307,35 +388,53 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     Big endian variants
     /// </summary>
-
     [TestMethod]
     public void Binary_BigEndianTypes_ShouldWork()
     {
         var testData = new byte[]
         {
-            0x00, 0x0A, // short be = 10
-            0x00, 0x14, // ushort be = 20
-            0x00, 0x00, 0x00, 0x1E, // int be = 30
-            0x00, 0x00, 0x00, 0x28 // uint be = 40
+            0x00,
+            0x0A, // short be = 10
+            0x00,
+            0x14, // ushort be = 20
+            0x00,
+            0x00,
+            0x00,
+            0x1E, // int be = 30
+            0x00,
+            0x00,
+            0x00,
+            0x28, // uint be = 40
         };
 
-        var query = @"
-            binary BigEndianPack {
-                A: short be,
-                B: ushort be,
-                C: int be,
-                D: uint be
-            };
-            select s.A, s.B, s.C, s.D
-            from #test.files() b
-            cross apply Interpret<BigEndianPack>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary BigEndianPack {\n"
+            + "                A: short be,\n"
+            + "                B: ushort be,\n"
+            + "                C: int be,\n"
+            + "                D: uint be\n"
+            + "            };\n"
+            + "            select s.A, s.B, s.C, s.D\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<BigEndianPack>(b.Content) s"
+        );
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -348,7 +447,6 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     String with ascii encoding (ebcdic removed - needs CodePages provider)
     /// </summary>
-
     [TestMethod]
     public void Binary_MultipleIntsInSequence_ShouldWork()
     {
@@ -361,25 +459,36 @@ public partial class BugProbeInterpretationSchemasTests
         bw.Write(5);
         bw.Flush();
 
-        var query = @"
-            binary FiveInts {
-                A: int le,
-                B: int le,
-                C: int le,
-                D: int le,
-                E: int le
-            };
-            select s.A, s.B, s.C, s.D, s.E
-            from #test.files() b
-            cross apply Interpret<FiveInts>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary FiveInts {\n"
+            + "                A: int le,\n"
+            + "                B: int le,\n"
+            + "                C: int le,\n"
+            + "                D: int le,\n"
+            + "                E: int le\n"
+            + "            };\n"
+            + "            select s.A, s.B, s.C, s.D, s.E\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<FiveInts>(b.Content) s"
+        );
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -393,7 +502,6 @@ public partial class BugProbeInterpretationSchemasTests
     /// <summary>
     ///     Mix of ALL 10 primitive types in one schema
     /// </summary>
-
     [TestMethod]
     public void Binary_AllPrimitiveTypes_ShouldWork()
     {
@@ -411,30 +519,41 @@ public partial class BugProbeInterpretationSchemasTests
         bw.Write(2.5);
         bw.Flush();
 
-        var query = @"
-            binary AllTypes {
-                A: byte,
-                B: sbyte,
-                C: short le,
-                D: ushort le,
-                E: int le,
-                F: uint le,
-                G: long le,
-                H: ulong le,
-                I: float le,
-                J: double le
-            };
-            select s.A, s.B, s.C, s.D, s.E, s.F, s.G, s.H, s.I, s.J
-            from #test.files() b
-            cross apply Interpret<AllTypes>(b.Content) s";
+        var query = (
+            "\n"
+            + "            binary AllTypes {\n"
+            + "                A: byte,\n"
+            + "                B: sbyte,\n"
+            + "                C: short le,\n"
+            + "                D: ushort le,\n"
+            + "                E: int le,\n"
+            + "                F: uint le,\n"
+            + "                G: long le,\n"
+            + "                H: ulong le,\n"
+            + "                I: float le,\n"
+            + "                J: double le\n"
+            + "            };\n"
+            + "            select s.A, s.B, s.C, s.D, s.E, s.F, s.G, s.H, s.I, s.J\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<AllTypes>(b.Content) s"
+        );
 
         var testData = ms.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

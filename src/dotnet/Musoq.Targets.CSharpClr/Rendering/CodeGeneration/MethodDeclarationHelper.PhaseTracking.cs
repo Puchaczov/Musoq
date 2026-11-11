@@ -13,16 +13,17 @@ public static partial class MethodDeclarationHelper
     /// <returns>Event field declaration for PhaseChanged</returns>
     public static EventFieldDeclarationSyntax CreatePhaseChangedEvent()
     {
-        return SyntaxFactory.EventFieldDeclaration(
-                SyntaxFactory.VariableDeclaration(
-                        SyntaxFactory.IdentifierName(nameof(QueryPhaseEventHandler)))
+        return SyntaxFactory
+            .EventFieldDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.IdentifierName(nameof(QueryPhaseEventHandler)))
                     .WithVariables(
                         SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier("PhaseChanged")))))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
+                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("PhaseChanged"))
+                        )
+                    )
+            )
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
     }
 
     /// <summary>
@@ -35,42 +36,54 @@ public static partial class MethodDeclarationHelper
             SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.ConditionalAccessExpression(
                     SyntaxFactory.IdentifierName("PhaseChanged"),
-                    SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberBindingExpression(
-                                SyntaxFactory.IdentifierName("Invoke")))
+                    SyntaxFactory
+                        .InvocationExpression(
+                            SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName("Invoke"))
+                        )
                         .WithArgumentList(
                             SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SeparatedList(
-                                [
+                                SyntaxFactory.SeparatedList([
                                     SyntaxFactory.Argument(SyntaxFactory.ThisExpression()),
                                     SyntaxFactory.Argument(
-                                        SyntaxFactory.ObjectCreationExpression(
-                                                SyntaxFactory.IdentifierName(nameof(QueryPhaseEventArgs)))
+                                        SyntaxFactory
+                                            .ObjectCreationExpression(
+                                                SyntaxFactory.IdentifierName(nameof(QueryPhaseEventArgs))
+                                            )
                                             .WithArgumentList(
                                                 SyntaxFactory.ArgumentList(
-                                                    SyntaxFactory.SeparatedList(
-                                                    [
+                                                    SyntaxFactory.SeparatedList([
                                                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queryId")),
-                                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("phase"))
-                                                    ]))))
-                                ]))))));
+                                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("phase")),
+                                                    ])
+                                                )
+                                            )
+                                    ),
+                                ])
+                            )
+                        )
+                )
+            )
+        );
 
-        return SyntaxFactory.MethodDeclaration(
+        return SyntaxFactory
+            .MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                SyntaxFactory.Identifier("OnPhaseChanged"))
+                SyntaxFactory.Identifier("OnPhaseChanged")
+            )
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(
                 SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("queryId"))
+                    SyntaxFactory.SeparatedList([
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("queryId"))
                             .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))),
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("phase"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(QueryPhase)))
-                    ])))
+                        SyntaxFactory
+                            .Parameter(SyntaxFactory.Identifier("phase"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(QueryPhase))),
+                    ])
+                )
+            )
             .WithBody(body);
     }
 

@@ -65,12 +65,10 @@ public class BinaryInterpretationSwitchTests : BinaryInterpretationTestBase
         var loginCase = new BinarySwitchCaseNode(
             new IntegerNode("1", string.Empty),
             "Login",
-            new SchemaReferenceTypeNode("LoginPayload"));
+            new SchemaReferenceTypeNode("LoginPayload")
+        );
 
-        var rawCase = new BinarySwitchCaseNode(
-            null,
-            "Raw",
-            new ByteArrayTypeNode(new IdentifierNode("Length")));
+        var rawCase = new BinarySwitchCaseNode(null, "Raw", new ByteArrayTypeNode(new IdentifierNode("Length")));
 
         var switchType = new BinarySwitchTypeNode("Type", [loginCase, rawCase]);
         var payloadField = new FieldDefinitionNode("Payload", switchType);

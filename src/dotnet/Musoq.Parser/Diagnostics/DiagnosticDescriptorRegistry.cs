@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Musoq.Parser.Diagnostics;
@@ -35,16 +35,20 @@ internal static class DiagnosticDescriptorRegistry
                 .Select(static suggestion => DiagnosticAction.Suggestion(suggestion))
                 .ToArray();
 
-            entries.Add(code, new DiagnosticDescriptor(
+            entries.Add(
                 code,
-                ErrorCatalog.GetTemplateLegacy(code),
-                ErrorCatalog.GetDefaultSeverityLegacy(code),
-                metadata?.Phase ?? DiagnosticPhaseMapping.FromCode(code),
-                ErrorCatalog.GetCategoryLegacy(code),
-                metadata?.Explanation,
-                suggestedFixes,
-                defaultActions,
-                metadata?.DocsReference));
+                new DiagnosticDescriptor(
+                    code,
+                    ErrorCatalog.GetTemplateLegacy(code),
+                    ErrorCatalog.GetDefaultSeverityLegacy(code),
+                    metadata?.Phase ?? DiagnosticPhaseMapping.FromCode(code),
+                    ErrorCatalog.GetCategoryLegacy(code),
+                    metadata?.Explanation,
+                    suggestedFixes,
+                    defaultActions,
+                    metadata?.DocsReference
+                )
+            );
         }
 
         return entries.ToFrozenDictionary();

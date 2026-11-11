@@ -10,29 +10,24 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
-using MusoqApi = Musoq.Converter.Musoq;
+using static Musoq.Converter.Tests.TwoModeTestFixtures;
 using AmbiguousPerson = Musoq.Converter.Tests.TwoModeTestFixtures.AmbiguousPerson;
 using FieldPerson = Musoq.Converter.Tests.TwoModeTestFixtures.FieldPerson;
+using MusoqApi = Musoq.Converter.Musoq;
 using NameDto = Musoq.Converter.Tests.TwoModeTestFixtures.NameDto;
 using NumberDto = Musoq.Converter.Tests.TwoModeTestFixtures.NumberDto;
 using OtherPerson = Musoq.Converter.Tests.TwoModeTestFixtures.NameRow;
 using Person = Musoq.Converter.Tests.TwoModeTestFixtures.Person;
-using static Musoq.Converter.Tests.TwoModeTestFixtures;
 
 namespace Musoq.Converter.Tests;
 
 [global::Musoq.Tests.Common.CultureTestClass]
 public class PublicInMemoryApiTests
 {
-
     [TestMethod]
     public void CompileAndRun_WhenRowsAreSuppliedOnBuilder_ShouldReturnTypedRows()
     {
-        var people = new[]
-        {
-            new Person("Alice", 35, "NY"),
-            new Person("Bob", 20, "LA")
-        };
+        var people = new[] { new Person("Alice", 35, "NY"), new Person("Bob", 20, "LA") };
 
         var rows = MusoqApi
             .Query("select p.Name as Name from #A.entities() p where p.Age > 30")
@@ -61,11 +56,7 @@ public class PublicInMemoryApiTests
     {
         var rows = MusoqApi
             .Query("select p.Name as Name from #A.entities() p where p.Age > 30")
-            .Source("#A", "entities", Chunks(new[]
-            {
-                new FieldPerson("Alice", 35),
-                new FieldPerson("Bob", 20)
-            }))
+            .Source("#A", "entities", Chunks(new[] { new FieldPerson("Alice", 35), new FieldPerson("Bob", 20) }))
             .CompileAndRun<NameDto>(CancellationToken.None)
             .ToArray();
 
@@ -76,10 +67,12 @@ public class PublicInMemoryApiTests
     [TestMethod]
     public void Compile_WhenInMemoryRowMembersAreAmbiguous_ShouldKeepSameDiagnostic()
     {
-        var exception = Assert.Throws<InvalidOperationException>(() => MusoqApi
-            .Query("select p.Name as Name from #A.entities() p")
-            .Source<AmbiguousPerson>("#A", "entities")
-            .Compile<NameDto>());
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            MusoqApi
+                .Query("select p.Name as Name from #A.entities() p")
+                .Source<AmbiguousPerson>("#A", "entities")
+                .Compile<NameDto>()
+        );
 
         StringAssert.Contains(exception.Message, "In-memory source row member 'name' is ambiguous.");
     }
@@ -87,10 +80,12 @@ public class PublicInMemoryApiTests
     [TestMethod]
     public void Compile_WhenTypedQueryHasSemanticError_ShouldExposeBuildDiagnostics()
     {
-        var exception = Assert.Throws<InvalidOperationException>(() => MusoqApi
-            .Query("select p.Missing as Name from #A.entities() p")
-            .Source<Person>("#A", "entities")
-            .Compile<NameDto>());
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            MusoqApi
+                .Query("select p.Missing as Name from #A.entities() p")
+                .Source<Person>("#A", "entities")
+                .Compile<NameDto>()
+        );
 
         StringAssert.Contains(exception.Message, "Build diagnostics:");
         StringAssert.Contains(exception.Message, "Unknown column 'Missing'");
@@ -106,9 +101,11 @@ public class PublicInMemoryApiTests
 
         for (var i = 0; i < 3; i++)
         {
-            var rows = query.Run(
+            var rows = query
+                .Run(
                     CancellationToken.None,
-                    MusoqApi.Source("#A", "entities", Chunks(new[] { new Person($"Alice{i}", 35, "NY") })))
+                    MusoqApi.Source("#A", "entities", Chunks(new[] { new Person($"Alice{i}", 35, "NY") }))
+                )
                 .ToArray();
 
             Assert.AreEqual($"Alice{i}", rows.Single().Name);
@@ -165,13 +162,17 @@ public class PublicInMemoryApiTests
             .Source<Person>("#A", "entities")
             .Compile<NameDto>();
 
-        var first = compiled.Run(
+        var first = compiled
+            .Run(
                 CancellationToken.None,
-                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") })))
+                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") }))
+            )
             .ToArray();
-        var second = compiled.Run(
+        var second = compiled
+            .Run(
                 CancellationToken.None,
-                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Bob", 41, "LA") })))
+                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Bob", 41, "LA") }))
+            )
             .ToArray();
 
         Assert.AreEqual("Alice", first.Single().Name);
@@ -181,12 +182,13 @@ public class PublicInMemoryApiTests
     [TestMethod]
     public void Compile_GenericShorthand_WhenRowsAreSuppliedPerRun_ShouldUseAEntitiesConvention()
     {
-        var compiled = MusoqApi.Compile<Person, NameDto>(
-            "select p.Name as Name from #A.entities() p where p.Age > 30");
+        var compiled = MusoqApi.Compile<Person, NameDto>("select p.Name as Name from #A.entities() p where p.Age > 30");
 
-        var rows = compiled.Run(
+        var rows = compiled
+            .Run(
                 CancellationToken.None,
-                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") })))
+                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") }))
+            )
             .ToArray();
 
         Assert.AreEqual(1, rows.Length);
@@ -198,25 +200,32 @@ public class PublicInMemoryApiTests
     {
         var compileArtifact = typeof(MusoqQueryBuilder)
             .GetMethods()
-            .Single(static method => method.Name == nameof(MusoqQueryBuilder.CompileArtifact) &&
-                                     method.IsGenericMethodDefinition &&
-                                     method.GetParameters().Length == 0);
+            .Single(static method =>
+                method.Name == nameof(MusoqQueryBuilder.CompileArtifact)
+                && method.IsGenericMethodDefinition
+                && method.GetParameters().Length == 0
+            );
         Assert.AreEqual(typeof(CompiledTypedQueryArtifact), compileArtifact.ReturnType);
 
         var publicLoad = typeof(Musoq)
             .GetMethods()
-            .Single(static method => method.Name == nameof(Musoq.Load) &&
-                                     method.IsGenericMethodDefinition &&
-                                     method.GetParameters().Length == 1);
+            .Single(static method =>
+                method.Name == nameof(Musoq.Load)
+                && method.IsGenericMethodDefinition
+                && method.GetParameters().Length == 1
+            );
         Assert.AreEqual(typeof(CompiledTypedQueryArtifact), publicLoad.GetParameters()[0].ParameterType);
 
         var portableLoad = typeof(InstanceCreator)
             .GetMethods()
-            .Single(static method => method.Name == nameof(InstanceCreator.LoadTypedArtifact) &&
-                                     method.IsGenericMethodDefinition &&
-                                     method.GetParameters().Length == 3);
+            .Single(static method =>
+                method.Name == nameof(InstanceCreator.LoadTypedArtifact)
+                && method.IsGenericMethodDefinition
+                && method.GetParameters().Length == 3
+            );
         Assert.AreEqual(typeof(ICompiledTypedQueryArtifact), portableLoad.GetParameters()[0].ParameterType);
     }
+
     [TestMethod]
     public void CompileArtifact_WhenLoaded_ShouldReuseArtifactWithDifferentRows()
     {
@@ -226,13 +235,17 @@ public class PublicInMemoryApiTests
             .CompileArtifact<NameDto>();
         var compiled = MusoqApi.Load<NameDto>(artifact);
 
-        var first = compiled.Run(
+        var first = compiled
+            .Run(
                 CancellationToken.None,
-                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") })))
+                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") }))
+            )
             .Single();
-        var second = compiled.Run(
+        var second = compiled
+            .Run(
                 CancellationToken.None,
-                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Bob", 41, "LA") })))
+                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Bob", 41, "LA") }))
+            )
             .Single();
 
         Assert.AreEqual("Alice", first.Name);
@@ -266,12 +279,16 @@ public class PublicInMemoryApiTests
             artifact.SourceRuntimeSettingsBySourceContextId,
             artifact.SourceRuntimeSettingDescriptionsBySourceContextId,
             artifact.SourceExecutionPlans,
-            artifact.ParameterDefinitions);
+            artifact.ParameterDefinitions
+        );
 
-        Assert.Throws<InvalidOperationException>(() => InstanceCreator.LoadTypedArtifact<NameDto>(
-            broken,
-            new EmptyInMemorySchemaProvider(),
-            new TestsLoggerResolver()));
+        Assert.Throws<InvalidOperationException>(() =>
+            InstanceCreator.LoadTypedArtifact<NameDto>(
+                broken,
+                new EmptyInMemorySchemaProvider(),
+                new TestsLoggerResolver()
+            )
+        );
     }
 
     [TestMethod]
@@ -286,14 +303,26 @@ public class PublicInMemoryApiTests
         var second = MusoqApi.Load<NameDto>(artifact);
 
         Assert.AreNotSame(first, second);
-        Assert.AreEqual("Alice", first.Run(
-                CancellationToken.None,
-                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") })))
-            .Single().Name);
-        Assert.AreEqual("Bob", second.Run(
-                CancellationToken.None,
-                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Bob", 41, "LA") })))
-            .Single().Name);
+        Assert.AreEqual(
+            "Alice",
+            first
+                .Run(
+                    CancellationToken.None,
+                    MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") }))
+                )
+                .Single()
+                .Name
+        );
+        Assert.AreEqual(
+            "Bob",
+            second
+                .Run(
+                    CancellationToken.None,
+                    MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Bob", 41, "LA") }))
+                )
+                .Single()
+                .Name
+        );
     }
 
     [TestMethod]
@@ -316,7 +345,10 @@ public class PublicInMemoryApiTests
 
         var row = MusoqApi
             .Load<NameDto>(artifact)
-            .Run(CancellationToken.None, MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") })))
+            .Run(
+                CancellationToken.None,
+                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") }))
+            )
             .Single();
 
         Assert.AreEqual("Alice", row.Name);
@@ -325,11 +357,7 @@ public class PublicInMemoryApiTests
     [TestMethod]
     public void CompileAndRun_GenericTwoSourceShorthand_ShouldMapSourcesToAAndB()
     {
-        var people = new[]
-        {
-            new Person("Alice", 35, "NY"),
-            new Person("Bob", 20, "LA")
-        };
+        var people = new[] { new Person("Alice", 35, "NY"), new Person("Bob", 20, "LA") };
         var cities = new[] { new OtherPerson("NY") };
 
         var rows = MusoqApi
@@ -337,7 +365,8 @@ public class PublicInMemoryApiTests
                 "select p.Name as Name from #A.entities() p inner join #B.entities() c on p.City = c.Name",
                 Chunks(people),
                 Chunks(cities),
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .ToArray();
 
         Assert.AreEqual(1, rows.Length);
@@ -347,11 +376,7 @@ public class PublicInMemoryApiTests
     [TestMethod]
     public void CompileAndRun_GenericThreeSourceShorthand_ShouldMapSourcesToAThroughC()
     {
-        var people = new[]
-        {
-            new Person("Alice", 35, "NY"),
-            new Person("Bob", 20, "LA")
-        };
+        var people = new[] { new Person("Alice", 35, "NY"), new Person("Bob", 20, "LA") };
         var cities = new[] { new OtherPerson("NY") };
         var allowedNames = new[] { new OtherPerson("Alice") };
 
@@ -361,7 +386,8 @@ public class PublicInMemoryApiTests
                 Chunks(people),
                 Chunks(cities),
                 Chunks(allowedNames),
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .ToArray();
 
         Assert.AreEqual(1, rows.Length);
@@ -371,11 +397,7 @@ public class PublicInMemoryApiTests
     [TestMethod]
     public void CompileAndRun_GenericFourSourceShorthand_ShouldMapSourcesToAThroughD()
     {
-        var people = new[]
-        {
-            new Person("Alice", 35, "NY"),
-            new Person("Bob", 20, "LA")
-        };
+        var people = new[] { new Person("Alice", 35, "NY"), new Person("Bob", 20, "LA") };
         var cities = new[] { new OtherPerson("NY") };
         var allowedNames = new[] { new OtherPerson("Alice") };
         var allowedCities = new[] { new OtherPerson("NY") };
@@ -387,7 +409,8 @@ public class PublicInMemoryApiTests
                 Chunks(cities),
                 Chunks(allowedNames),
                 Chunks(allowedCities),
-                CancellationToken.None)
+                CancellationToken.None
+            )
             .ToArray();
 
         Assert.AreEqual(1, rows.Length);
@@ -398,7 +421,9 @@ public class PublicInMemoryApiTests
     public void Compile_WhenQueryHasParameter_ShouldUseParameterValuesForEachRun()
     {
         var compiled = MusoqApi
-            .Query("param(minAge: int) select p.Name as Name from #A.entities() p where p.Age >= $minAge order by p.Name")
+            .Query(
+                "param(minAge: int) select p.Name as Name from #A.entities() p where p.Age >= $minAge order by p.Name"
+            )
             .Source<Person>("#A", "entities")
             .Compile<NameDto>();
         Assert.HasCount(1, compiled.ParameterContracts);
@@ -406,16 +431,22 @@ public class PublicInMemoryApiTests
         Assert.AreEqual("int", compiled.ParameterContracts[0].DeclaredTypeName);
         Assert.AreEqual("int", compiled.ParameterContracts[0].CanonicalTypeName);
         Assert.AreEqual(typeof(int), compiled.ParameterContracts[0].ClrType);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "minAge", 30);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "minAge",
+            30
+        );
 
-        var rows = compiled.Run(
+        var rows = compiled
+            .Run(
                 CancellationToken.None,
-                MusoqApi.Source("#A", "entities",
-                Chunks(new[]
-                {
-                    new Person("Alice", 35, "NY"),
-                    new Person("Bob", 20, "LA")
-                })))
+                MusoqApi.Source(
+                    "#A",
+                    "entities",
+                    Chunks(new[] { new Person("Alice", 35, "NY"), new Person("Bob", 20, "LA") })
+                )
+            )
             .ToArray();
 
         Assert.AreEqual(1, rows.Length);
@@ -430,54 +461,81 @@ public class PublicInMemoryApiTests
             .Source<Person>("#A", "entities")
             .Compile<NameDto>();
 
-        var firstTask = Task.Run(() => compiled.Run(
-                CancellationToken.None,
-                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") })))
-            .ToArray());
-        var secondTask = Task.Run(() => compiled.Run(
-                CancellationToken.None,
-                MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Bob", 41, "LA") })))
-            .ToArray());
+        var firstTask = Task.Run(() =>
+            compiled
+                .Run(
+                    CancellationToken.None,
+                    MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Alice", 35, "NY") }))
+                )
+                .ToArray()
+        );
+        var secondTask = Task.Run(() =>
+            compiled
+                .Run(
+                    CancellationToken.None,
+                    MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Bob", 41, "LA") }))
+                )
+                .ToArray()
+        );
 
         var results = await Task.WhenAll(firstTask, secondTask).ConfigureAwait(false);
 
-        CollectionAssert.AreEquivalent(new[] { "Alice", "Bob" }, results.SelectMany(static rows => rows).Select(static row => row.Name).ToArray());
+        CollectionAssert.AreEquivalent(
+            new[] { "Alice", "Bob" },
+            results.SelectMany(static rows => rows).Select(static row => row.Name).ToArray()
+        );
     }
 
     [TestMethod]
     public async Task Run_WithPerRunOptions_WhenRunsAreConcurrent_ShouldUseIndependentParametersAndCallbacks()
     {
         var compiled = MusoqApi
-            .Query("param(minAge: int) select p.Name as Name from #A.entities() p where p.Age >= $minAge order by p.Name")
+            .Query(
+                "param(minAge: int) select p.Name as Name from #A.entities() p where p.Age >= $minAge order by p.Name"
+            )
             .Source<Person>("#A", "entities")
             .Compile<NameDto>();
         var firstPhaseCount = 0;
         var secondPhaseCount = 0;
         var firstOptions = new TypedQueryRunOptions(
             CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["minAge"] = 30 }),
-            (_, _) => Interlocked.Increment(ref firstPhaseCount));
+            global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                new Dictionary<string, object?> { ["minAge"] = 30 }
+            ),
+            (_, _) => Interlocked.Increment(ref firstPhaseCount)
+        );
         var secondOptions = new TypedQueryRunOptions(
             CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["minAge"] = 40 }),
-            (_, _) => Interlocked.Increment(ref secondPhaseCount));
+            global::Musoq.Tests.Common.NativeParameterFixture.Capture(
+                new Dictionary<string, object?> { ["minAge"] = 40 }
+            ),
+            (_, _) => Interlocked.Increment(ref secondPhaseCount)
+        );
 
-        var firstTask = Task.Run(() => compiled.Run(
-                firstOptions,
-                MusoqApi.Source("#A", "entities", Chunks(new[]
-                {
-                    new Person("Alice", 35, "NY"),
-                    new Person("Bob", 20, "LA")
-                })))
-            .ToArray());
-        var secondTask = Task.Run(() => compiled.Run(
-                secondOptions,
-                MusoqApi.Source("#A", "entities", Chunks(new[]
-                {
-                    new Person("Charlie", 45, "NY"),
-                    new Person("Dana", 32, "LA")
-                })))
-            .ToArray());
+        var firstTask = Task.Run(() =>
+            compiled
+                .Run(
+                    firstOptions,
+                    MusoqApi.Source(
+                        "#A",
+                        "entities",
+                        Chunks(new[] { new Person("Alice", 35, "NY"), new Person("Bob", 20, "LA") })
+                    )
+                )
+                .ToArray()
+        );
+        var secondTask = Task.Run(() =>
+            compiled
+                .Run(
+                    secondOptions,
+                    MusoqApi.Source(
+                        "#A",
+                        "entities",
+                        Chunks(new[] { new Person("Charlie", 45, "NY"), new Person("Dana", 32, "LA") })
+                    )
+                )
+                .ToArray()
+        );
 
         var results = await Task.WhenAll(firstTask, secondTask).ConfigureAwait(false);
 
@@ -491,22 +549,35 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
     public void Run_WhenCompatibilityStateChangesAfterRun_ShouldUseSnapshot()
     {
         var compiled = MusoqApi
-            .Query("param(minAge: int) select p.Name as Name from #A.entities() p where p.Age >= $minAge order by p.Name")
+            .Query(
+                "param(minAge: int) select p.Name as Name from #A.entities() p where p.Age >= $minAge order by p.Name"
+            )
             .Source<Person>("#A", "entities")
             .Compile<NameDto>();
         var firstPhaseCount = 0;
         var secondPhaseCount = 0;
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "minAge", 30);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "minAge",
+            30
+        );
         compiled.PhaseChanged += (_, _) => firstPhaseCount++;
 
         var rows = compiled.Run(
             CancellationToken.None,
-            MusoqApi.Source("#A", "entities", Chunks(new[]
-            {
-                new Person("Alice", 35, "NY"),
-                new Person("Bob", 20, "LA")
-            })));
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "minAge", 40);
+            MusoqApi.Source(
+                "#A",
+                "entities",
+                Chunks(new[] { new Person("Alice", 35, "NY"), new Person("Bob", 20, "LA") })
+            )
+        );
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            compiled.TypedParameters,
+            compiled.ParameterDefinitions,
+            "minAge",
+            40
+        );
         compiled.PhaseChanged += (_, _) => secondPhaseCount++;
 
         var names = rows.Select(static row => row.Name).ToArray();
@@ -536,7 +607,13 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
             .Compile<NameDto>();
 
         Assert.Throws<InvalidOperationException>(() =>
-            compiled.Run(CancellationToken.None, MusoqApi.Source("#A", "other", Chunks(new[] { new Person("Alice", 35, "NY") }))).ToArray());
+            compiled
+                .Run(
+                    CancellationToken.None,
+                    MusoqApi.Source("#A", "other", Chunks(new[] { new Person("Alice", 35, "NY") }))
+                )
+                .ToArray()
+        );
     }
 
     [TestMethod]
@@ -551,7 +628,8 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
         var second = MusoqApi.Source("#A", "entities", Chunks(new[] { new Person("Bob", 41, "LA") }));
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            compiled.Run(CancellationToken.None, first, second).ToArray());
+            compiled.Run(CancellationToken.None, first, second).ToArray()
+        );
 
         StringAssert.Contains(exception.Message, "were supplied more than once");
     }
@@ -565,7 +643,13 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
             .Compile<NameDto>();
 
         Assert.Throws<InvalidOperationException>(() =>
-            compiled.Run(CancellationToken.None, MusoqApi.Source("#A", "entities", Chunks(new[] { new OtherPerson("Alice") }))).ToArray());
+            compiled
+                .Run(
+                    CancellationToken.None,
+                    MusoqApi.Source("#A", "entities", Chunks(new[] { new OtherPerson("Alice") }))
+                )
+                .ToArray()
+        );
     }
 
     [TestMethod]
@@ -579,8 +663,12 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
         using var enumerator = compiled
             .Run(
                 CancellationToken.None,
-                MusoqApi.Source("#A", "entities", new ThrowOnSecondMoveChunkEnumerable<Person>(
-                    new[] { new Person("Alice", 35, "NY") })))
+                MusoqApi.Source(
+                    "#A",
+                    "entities",
+                    new ThrowOnSecondMoveChunkEnumerable<Person>(new[] { new Person("Alice", 35, "NY") })
+                )
+            )
             .GetEnumerator();
 
         Assert.IsTrue(enumerator.MoveNext());
@@ -596,7 +684,7 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
             new Person("Bob", 20, "LA"),
             new Person("Charlie", 28, "NY"),
             new Person("Dana", 41, "LA"),
-            new Person("Eve", 32, "SF")
+            new Person("Eve", 32, "SF"),
         };
 
         var rows = MusoqApi
@@ -620,8 +708,12 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
         using var enumerator = compiled
             .Run(
                 CancellationToken.None,
-                MusoqApi.Source("#A", "entities", new ThrowOnSecondMoveChunkEnumerable<Person>(
-                    new[] { new Person("Alice", 35, "NY") })))
+                MusoqApi.Source(
+                    "#A",
+                    "entities",
+                    new ThrowOnSecondMoveChunkEnumerable<Person>(new[] { new Person("Alice", 35, "NY") })
+                )
+            )
             .GetEnumerator();
 
         var exception = Assert.Throws<QueryExecutionException>(() => enumerator.MoveNext());
@@ -633,7 +725,9 @@ global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string,
     {
         public ISchema GetSchema(string schema)
         {
-            throw new InvalidOperationException("Schema should not be used when artifact loading fails before runnable creation.");
+            throw new InvalidOperationException(
+                "Schema should not be used when artifact loading fails before runnable creation."
+            );
         }
     }
 }

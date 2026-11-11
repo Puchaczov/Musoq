@@ -8,17 +8,16 @@ internal static class SourceContractDiagnosticLocationPlanner
     public static PlanProperties WithLocations(
         PlanProperties properties,
         PlanningContext context,
-        IReadOnlyList<SchemaScanNode> scans)
+        IReadOnlyList<SchemaScanNode> scans
+    )
     {
-        return properties with
-        {
-            SourceContractDiagnosticLocationsBySourceId = Create(context, scans)
-        };
+        return properties with { SourceContractDiagnosticLocationsBySourceId = Create(context, scans) };
     }
 
     private static Dictionary<string, SourceContractDiagnosticLocationMap> Create(
         PlanningContext context,
-        IReadOnlyList<SchemaScanNode> scans)
+        IReadOnlyList<SchemaScanNode> scans
+    )
     {
         var result = new Dictionary<string, SourceContractDiagnosticLocationMap>(StringComparer.Ordinal);
 

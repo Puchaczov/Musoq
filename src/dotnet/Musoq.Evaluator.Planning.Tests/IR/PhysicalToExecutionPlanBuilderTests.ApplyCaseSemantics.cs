@@ -18,30 +18,27 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var orders = CreateOrderScan();
         var apply = new PhysicalNestedLoopApplyNode(ApplyKind.Outer, people, orders);
         var coalesce = new Coalesce(
-            [
-                new ColumnRef("o", "Description", typeof(string)),
-                new Literal("missing", typeof(string))
-            ],
-            typeof(string));
+            [new ColumnRef("o", "Description", typeof(string)), new Literal("missing", typeof(string))],
+            typeof(string)
+        );
         var filter = new PhysicalFilterNode(
-            new BinaryOp(
-                BinaryOpKind.Equal,
-                coalesce,
-                new Literal("missing", typeof(string)),
-                typeof(bool)),
-            apply);
+            new BinaryOp(BinaryOpKind.Equal, coalesce, new Literal("missing", typeof(string)), typeof(bool)),
+            apply
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            filter);
+            filter
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_OuterApplyRightFilterCoalesce");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_OuterApplyRightFilterCoalesce]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -67,7 +64,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      If [NOT oHasMatch]",
             "        If [('missing' = 'missing')]",
             "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -85,22 +83,27 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                         BinaryOpKind.Equal,
                         new ColumnRef("p", "Name", typeof(string)),
                         new Literal("Ada", typeof(string)),
-                        typeof(bool)),
+                        typeof(bool)
+                    ),
                     new BinaryOp(
                         BinaryOpKind.Equal,
                         new ColumnRef("o", "Description", typeof(string)),
                         new Literal("paid", typeof(string)),
-                        typeof(bool)))
+                        typeof(bool)
+                    )
+                ),
             ],
             new Literal(true, typeof(bool)),
-            typeof(bool));
+            typeof(bool)
+        );
         var filter = new PhysicalFilterNode(caseWhen, apply);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            filter);
+            filter
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_OuterApplyCaseBranchResult");
@@ -123,22 +126,27 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                         BinaryOpKind.Equal,
                         new ColumnRef("p", "Name", typeof(string)),
                         new Literal("Ada", typeof(string)),
-                        typeof(bool)),
-                    new Literal(true, typeof(bool)))
+                        typeof(bool)
+                    ),
+                    new Literal(true, typeof(bool))
+                ),
             ],
             new BinaryOp(
                 BinaryOpKind.Equal,
                 new ColumnRef("o", "Description", typeof(string)),
                 new Literal("paid", typeof(string)),
-                typeof(bool)),
-            typeof(bool));
+                typeof(bool)
+            ),
+            typeof(bool)
+        );
         var filter = new PhysicalFilterNode(caseWhen, apply);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            filter);
+            filter
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_OuterApplyCaseElseResult");
@@ -152,28 +160,32 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     public void Build_WhenPlanHasOuterApplyAccessMethodSource_ShouldNullExtendUnmatchedValue()
     {
         var people = CreateScan();
-        var method = typeof(GenericLibrary).GetMethod(nameof(GenericLibrary.JustReturnArrayOfString), Type.EmptyTypes) ??
-                     throw new InvalidOperationException("Access method was not found.");
+        var method =
+            typeof(GenericLibrary).GetMethod(nameof(GenericLibrary.JustReturnArrayOfString), Type.EmptyTypes)
+            ?? throw new InvalidOperationException("Access method was not found.");
         var accessMethod = new PhysicalAccessMethodSourceNode(
             "p",
             new MethodCall(method, [], "p", typeof(string[])),
             "b",
             typeof(string[]),
             ApplyKind.Cross,
-            new OutputSchema([new ColumnSchema("Value", typeof(string), 0)]));
+            new OutputSchema([new ColumnSchema("Value", typeof(string), 0)])
+        );
         var apply = new PhysicalNestedLoopApplyNode(ApplyKind.Outer, people, accessMethod);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Value", new ColumnRef("b", "Value", typeof(string)), 1)
+                new ProjectedField("Value", new ColumnRef("b", "Value", typeof(string)), 1),
             ],
-            apply);
+            apply
+        );
         var builder = CreateBuilder();
 
         var result = builder.Build(project, "Q_OuterApplyAccessMethod");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_OuterApplyAccessMethod]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -196,7 +208,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "        AppendShape [result <- ResultRow0(Name: p.Name, Value: b.Value)]",
             "      If [NOT bHasMatch]",
             "        AppendShape [result <- ResultRow0(Name: p.Name, Value: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }

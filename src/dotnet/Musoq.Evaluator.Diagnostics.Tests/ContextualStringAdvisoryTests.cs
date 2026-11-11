@@ -38,8 +38,7 @@ public sealed class ContextualStringAdvisoryTests
         var result = AnalyzeBasic(query);
 
         AssertNoErrors(result);
-        var warning = result.Warnings.Single(static item =>
-            item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion);
+        var warning = result.Warnings.Single(static item => item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion);
         Assert.AreEqual(DiagnosticSeverity.Warning, warning.Severity);
         Assert.AreEqual(DiagnosticPhase.Bind, warning.Phase);
         Assert.AreEqual(query.IndexOf("'01/02/2026'", StringComparison.Ordinal), warning.Span.Start);
@@ -50,12 +49,14 @@ public sealed class ContextualStringAdvisoryTests
     public void AmbiguousDateText_DateTimeOffsetConversion_ReportsMq5003()
     {
         var result = AnalyzeBasic(
-            "param (moment: datetimeoffset); select 1 from #A.Entities() where $moment = '01/02/2026'");
+            "param (moment: datetimeoffset); select 1 from #A.Entities() where $moment = '01/02/2026'"
+        );
 
         AssertNoErrors(result);
         Assert.AreEqual(
             1,
-            result.Warnings.Count(static item => item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion));
+            result.Warnings.Count(static item => item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion)
+        );
     }
 
     [TestMethod]
@@ -65,8 +66,7 @@ public sealed class ContextualStringAdvisoryTests
         var yearFirst = AnalyzeBasic("select 1 from #A.Entities() where Time = '2026/01/02'");
         var monthName = AnalyzeBasic("select 1 from #A.Entities() where Time = 'January 2, 2026'");
         var monthThirteenth = AnalyzeBasic("select 1 from #A.Entities() where Time = '01/13/2026'");
-        var explicitResult = AnalyzeBasic(
-            "select ToDateTimeWithFormat('01/02/2026', 'dd/MM/yyyy') from #A.Entities()");
+        var explicitResult = AnalyzeBasic("select ToDateTimeWithFormat('01/02/2026', 'dd/MM/yyyy') from #A.Entities()");
         var projection = AnalyzeBasic("select '01/02/2026' from #A.Entities()");
 
         AssertNoErrors(dayFirst);
@@ -75,18 +75,22 @@ public sealed class ContextualStringAdvisoryTests
         AssertNoErrors(monthThirteenth);
         AssertNoErrors(explicitResult);
         AssertNoErrors(projection);
-        Assert.IsFalse(dayFirst.Warnings.Any(static item =>
-            item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion));
-        Assert.IsFalse(yearFirst.Warnings.Any(static item =>
-            item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion));
-        Assert.IsFalse(monthName.Warnings.Any(static item =>
-            item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion));
-        Assert.IsFalse(monthThirteenth.Warnings.Any(static item =>
-            item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion));
-        Assert.IsFalse(explicitResult.Warnings.Any(static item =>
-            item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion));
-        Assert.IsFalse(projection.Warnings.Any(static item =>
-            item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion));
+        Assert.IsFalse(dayFirst.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion));
+        Assert.IsFalse(
+            yearFirst.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion)
+        );
+        Assert.IsFalse(
+            monthName.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion)
+        );
+        Assert.IsFalse(
+            monthThirteenth.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion)
+        );
+        Assert.IsFalse(
+            explicitResult.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion)
+        );
+        Assert.IsFalse(
+            projection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5003_ImplicitTypeConversion)
+        );
     }
 
     [TestMethod]
@@ -96,16 +100,20 @@ public sealed class ContextualStringAdvisoryTests
         var dateResult = AnalyzeBasic(dateQuery);
         AssertNoErrors(dateResult);
         var dateWarning = dateResult.Warnings.Single(static item =>
-            item.Code == DiagnosticCode.MQ5025_ImpossibleImplicitConversion);
+            item.Code == DiagnosticCode.MQ5025_ImpossibleImplicitConversion
+        );
         Assert.AreEqual(DiagnosticSeverity.Warning, dateWarning.Severity);
         Assert.AreEqual(DiagnosticPhase.Bind, dateWarning.Phase);
         Assert.AreEqual(dateQuery.IndexOf("'02/31/2026'", StringComparison.Ordinal), dateWarning.Span.Start);
 
         var offsetResult = AnalyzeBasic(
-            "param (moment: datetimeoffset); select 1 from #A.Entities() where $moment = 'not-a-date'");
+            "param (moment: datetimeoffset); select 1 from #A.Entities() where $moment = 'not-a-date'"
+        );
         AssertNoErrors(offsetResult);
-        Assert.AreEqual(1, offsetResult.Warnings.Count(static item =>
-            item.Code == DiagnosticCode.MQ5025_ImpossibleImplicitConversion));
+        Assert.AreEqual(
+            1,
+            offsetResult.Warnings.Count(static item => item.Code == DiagnosticCode.MQ5025_ImpossibleImplicitConversion)
+        );
     }
 
     [TestMethod]
@@ -114,19 +122,17 @@ public sealed class ContextualStringAdvisoryTests
         var result = AnalyzeBasic("select ToDateTime('not-a-date') from #A.Entities()");
 
         AssertNoErrors(result);
-        Assert.IsFalse(result.Warnings.Any(static item =>
-            item.Code == DiagnosticCode.MQ5025_ImpossibleImplicitConversion));
+        Assert.IsFalse(
+            result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5025_ImpossibleImplicitConversion)
+        );
     }
 
     [TestMethod]
     public void PathColumn_EqualityInequalityAndIn_ReportsRelativeRisk()
     {
-        var equality = AnalyzePath(
-            @"select FilePath from #P.Entities() where FilePath = 'some\text'");
-        var inequality = AnalyzePath(
-            @"select FilePath from #P.Entities() where FilePath <> 'some\text'");
-        var inList = AnalyzePath(
-            @"select FilePath from #P.Entities() where FilePath in ('some\text', r'C:\safe')");
+        var equality = AnalyzePath(@"select FilePath from #P.Entities() where FilePath = 'some\text'");
+        var inequality = AnalyzePath(@"select FilePath from #P.Entities() where FilePath <> 'some\text'");
+        var inList = AnalyzePath(@"select FilePath from #P.Entities() where FilePath in ('some\text', r'C:\safe')");
 
         AssertNoErrors(equality);
         AssertNoErrors(inequality);
@@ -139,12 +145,9 @@ public sealed class ContextualStringAdvisoryTests
     [TestMethod]
     public void PathColumn_LikeAndNotLike_ReportButRLikeRemainsQuiet()
     {
-        var like = AnalyzePath(
-            @"select FilePath from #P.Entities() where FilePath like 'some\text'");
-        var notLike = AnalyzePath(
-            @"select FilePath from #P.Entities() where FilePath not like 'some\text'");
-        var rlike = AnalyzePath(
-            @"select FilePath from #P.Entities() where FilePath rlike 'some\text'");
+        var like = AnalyzePath(@"select FilePath from #P.Entities() where FilePath like 'some\text'");
+        var notLike = AnalyzePath(@"select FilePath from #P.Entities() where FilePath not like 'some\text'");
+        var rlike = AnalyzePath(@"select FilePath from #P.Entities() where FilePath rlike 'some\text'");
 
         AssertNoErrors(like);
         AssertNoErrors(notLike);
@@ -157,26 +160,24 @@ public sealed class ContextualStringAdvisoryTests
     [TestMethod]
     public void PathColumn_ConstantLetOrigin_IsReportedAtOriginalLiteral()
     {
-        const string query = @"let candidate: string = 'some\text'; select FilePath from #P.Entities() where FilePath = $candidate";
+        const string query =
+            @"let candidate: string = 'some\text'; select FilePath from #P.Entities() where FilePath = $candidate";
         var result = AnalyzePath(query);
 
         AssertNoErrors(result);
         var warning = result.Warnings.Single(static item =>
-            item.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape);
+            item.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape
+        );
         Assert.AreEqual(query.IndexOf(@"\t", StringComparison.Ordinal), warning.Span.Start);
     }
 
     [TestMethod]
     public void PathColumn_RootedRawAndDoubledAlternatives_DeduplicateOrStayQuiet()
     {
-        var rooted = AnalyzePath(
-            @"select FilePath from #P.Entities() where FilePath = 'C:\new\test'");
-        var raw = AnalyzePath(
-            @"select FilePath from #P.Entities() where FilePath = r'some\text'");
-        var doubled = AnalyzePath(
-            @"select FilePath from #P.Entities() where FilePath = 'some\\text'");
-        var message = AnalyzePath(
-            @"select Message from #P.Entities() where Message = 'Hello\nWorld'");
+        var rooted = AnalyzePath(@"select FilePath from #P.Entities() where FilePath = 'C:\new\test'");
+        var raw = AnalyzePath(@"select FilePath from #P.Entities() where FilePath = r'some\text'");
+        var doubled = AnalyzePath(@"select FilePath from #P.Entities() where FilePath = 'some\\text'");
+        var message = AnalyzePath(@"select Message from #P.Entities() where Message = 'Hello\nWorld'");
 
         AssertNoErrors(rooted);
         AssertNoErrors(raw);
@@ -192,7 +193,8 @@ public sealed class ContextualStringAdvisoryTests
     public void PathNamedLetWarning_IsNotDuplicatedByColumnContext()
     {
         var result = AnalyzePath(
-            @"let path: string = 'some\text'; select FilePath from #P.Entities() where FilePath = $path");
+            @"let path: string = 'some\text'; select FilePath from #P.Entities() where FilePath = $path"
+        );
 
         AssertNoErrors(result);
         Assert.AreEqual(1, CountPathWarnings(result));
@@ -210,10 +212,8 @@ public sealed class ContextualStringAdvisoryTests
     private static QueryAnalysisResult AnalyzeBasic(string query)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = []
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }
+        );
         return new QueryAnalyzer(provider).Analyze(query);
     }
 
@@ -224,8 +224,7 @@ public sealed class ContextualStringAdvisoryTests
 
     private static int CountPathWarnings(QueryAnalysisResult result)
     {
-        return result.Warnings.Count(static item =>
-            item.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape);
+        return result.Warnings.Count(static item => item.Code == DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape);
     }
 
     private static void AssertNoErrors(QueryAnalysisResult result)
@@ -239,16 +238,13 @@ public sealed class ContextualStringAdvisoryTests
         {
             return new GenericSchema<PathEntity, PathEntityTable>(
                 [new PathEntity()],
-                new Dictionary<string, int>
-                {
-                    [nameof(PathEntity.FilePath)] = 0,
-                    [nameof(PathEntity.Message)] = 1
-                },
+                new Dictionary<string, int> { [nameof(PathEntity.FilePath)] = 0, [nameof(PathEntity.Message)] = 1 },
                 new Dictionary<int, Func<PathEntity, object?>>
                 {
                     [0] = entity => entity.FilePath,
-                    [1] = entity => entity.Message
-                });
+                    [1] = entity => entity.Message,
+                }
+            );
         }
     }
 
@@ -264,7 +260,7 @@ public sealed class ContextualStringAdvisoryTests
         public ISchemaColumn[] Columns { get; } =
         [
             new SchemaColumn(nameof(PathEntity.FilePath), 0, typeof(string)),
-            new SchemaColumn(nameof(PathEntity.Message), 1, typeof(string))
+            new SchemaColumn(nameof(PathEntity.Message), 1, typeof(string)),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(PathEntity));

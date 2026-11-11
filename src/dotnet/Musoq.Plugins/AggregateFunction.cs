@@ -13,6 +13,7 @@ public static class AggregateFunction
     public static T NotInvoked<T>()
     {
         throw new InvalidOperationException(
-            "Aggregate function declaration methods are metadata-only and must be lowered before execution.");
+            "Aggregate function declaration methods are metadata-only and must be lowered before execution."
+        );
     }
 }

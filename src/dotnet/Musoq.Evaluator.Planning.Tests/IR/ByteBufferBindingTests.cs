@@ -6,9 +6,9 @@ using Musoq.Converter;
 using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
-using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Rewriting;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Fixtures;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
@@ -32,8 +32,12 @@ public sealed class ByteBufferBindingTests
     [DataRow("ToBase64(f.Content)", "ToBase64", "Encode", 0)]
     [DataRow("FromBase64(ToBase64(f.Content))", "FromBase64", "Decode", 0)]
     [DataRow("ToHex(f.Content)", "ToHex", "Encode", 0)]
-    public void BoundByteDeclarations_CarryTypedSemanticsThroughExecutableLowering(string expression,
-        string method, string kind, int width)
+    public void BoundByteDeclarations_CarryTypedSemanticsThroughExecutableLowering(
+        string expression,
+        string method,
+        string kind,
+        int width
+    )
     {
         var inspection = Inspect(expression);
         var call = BoundCalls(inspection.LogicalPlan).Single(call => call.Method.Name == method);
@@ -70,8 +74,10 @@ public sealed class ByteBufferBindingTests
     public void InitialMaterialization_ExecutesTheCompleteOriginalCallable()
     {
         var inspection = Inspect("EnumerableToArray(Sequence(f.Content))");
-        var operation = ExecutionIrAnalysis.FlattenExpressions(inspection.ExecutionPlan!.Body)
-            .OfType<ExecutionByteBufferOperation>().Single(operation => operation.Operation == ExecutionByteBufferOperationKind.Materialize);
+        var operation = ExecutionIrAnalysis
+            .FlattenExpressions(inspection.ExecutionPlan!.Body)
+            .OfType<ExecutionByteBufferOperation>()
+            .Single(operation => operation.Operation == ExecutionByteBufferOperationKind.Materialize);
         Assert.AreEqual(ExecutionByteBufferOperationKind.Materialize, operation.Operation);
         Assert.AreEqual(ExecutionByteBufferMaterialization.OriginalCallable, operation.Materialization);
         Assert.IsNull(operation.MaximumReadBytes);
@@ -83,18 +89,33 @@ public sealed class ByteBufferBindingTests
     public void ArrayRange_RepresentsBorrowRangeAndMaterializationWithoutChangingCalls()
     {
         var inspection = Inspect("EnumerableToArray(RelaySequence(Skip(f.Content, 1)))");
-        var operations = ExecutionIrAnalysis.FlattenExpressions(inspection.ExecutionPlan!.Body)
-            .OfType<ExecutionByteBufferOperation>().ToArray();
-        CollectionAssert.AreEquivalent(new[] { ExecutionByteBufferOperationKind.BorrowArray, ExecutionByteBufferOperationKind.Range,
-            ExecutionByteBufferOperationKind.Materialize }, operations.Select(operation => operation.Operation).ToArray());
+        var operations = ExecutionIrAnalysis
+            .FlattenExpressions(inspection.ExecutionPlan!.Body)
+            .OfType<ExecutionByteBufferOperation>()
+            .ToArray();
+        CollectionAssert.AreEquivalent(
+            new[]
+            {
+                ExecutionByteBufferOperationKind.BorrowArray,
+                ExecutionByteBufferOperationKind.Range,
+                ExecutionByteBufferOperationKind.Materialize,
+            },
+            operations.Select(operation => operation.Operation).ToArray()
+        );
         Assert.AreEqual(3, operations.Select(operation => operation.ValueId).Distinct().Count());
-        Assert.IsTrue(operations.All(operation => operation.Materialization == ExecutionByteBufferMaterialization.OriginalCallable));
+        Assert.IsTrue(
+            operations.All(operation =>
+                operation.Materialization == ExecutionByteBufferMaterialization.OriginalCallable
+            )
+        );
     }
 
     [TestMethod]
     public void ConsumerRequirements_CombinePrefixAndLogicalLength()
     {
-        var combined = ByteBufferRequirement.Prefix(2).Combine(ByteBufferRequirement.Length)
+        var combined = ByteBufferRequirement
+            .Prefix(2)
+            .Combine(ByteBufferRequirement.Length)
             .Combine(ByteBufferRequirement.Prefix(8));
         Assert.AreEqual(8, combined.MaximumReadBytes);
         Assert.IsTrue(combined.ObservesLength);
@@ -114,19 +135,26 @@ public sealed class ByteBufferBindingTests
     {
         IrExpression[] arguments = [new Literal(null, typeof(byte[]))];
         var region = new ScalarEvaluationRegion("test", ScalarEvaluationRegionKind.Materialization, false, false);
-        var plan = new ByteBufferValuePlan(ByteBufferOperationKind.Snapshot,
-            new(7, ByteBufferOwnership.Owned, ByteBufferNullState.Unknown, region, 7), arguments,
-            ByteBufferRequirement.Prefix(4));
+        var plan = new ByteBufferValuePlan(
+            ByteBufferOperationKind.Snapshot,
+            new(7, ByteBufferOwnership.Owned, ByteBufferNullState.Unknown, region, 7),
+            arguments,
+            ByteBufferRequirement.Prefix(4)
+        );
         arguments[0] = new Literal("changed", typeof(string));
         Assert.AreEqual(typeof(byte[]), plan.Arguments[0].ReturnType);
         Assert.AreEqual(7, plan.Facts.MaterializationPoint);
         Assert.IsFalse(plan.Facts.Region.AllowsHoisting);
     }
 
-    private static QueryInspectionResult Inspect(string expression) => InstanceCreator.CompileForInspection(
-        $"select {expression} as Value from #schema.first() f", Guid.NewGuid().ToString(),
-        LibraryExecutionFixture.CreateProvider<BufferFlowEntity, BufferFlowLibrary>([new()]),
-        new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+    private static QueryInspectionResult Inspect(string expression) =>
+        InstanceCreator.CompileForInspection(
+            $"select {expression} as Value from #schema.first() f",
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider<BufferFlowEntity, BufferFlowLibrary>([new()]),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
     private static IEnumerable<MethodCall> BoundCalls(LogicalNode root)
     {
@@ -145,6 +173,7 @@ public sealed class ByteBufferBindingTests
     private sealed class BoundCallCollector : IrExpressionRewriter
     {
         internal List<MethodCall> Calls { get; } = [];
+
         protected override IrExpression VisitMethodCall(MethodCall node)
         {
             Calls.Add(node);

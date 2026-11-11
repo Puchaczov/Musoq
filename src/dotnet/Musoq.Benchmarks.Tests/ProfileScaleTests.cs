@@ -18,11 +18,21 @@ public sealed class ProfileScaleTests
     [DataRow("B07_DuplicateJoin_Fanout8", 1_000, 6_000L, 2_994_000L)]
     [DataRow("B07_DuplicateJoin_Fanout8", 10_000, 60_000L, 299_940_000L)]
     [DataRow("B07_DuplicateJoin_Fanout8", 100_000, 600_000L, 29_999_400_000L)]
-    public void StandardScale_PreservesCompleteCardinalityAndIdSum(string id, int count, long expectedRows, long expectedSum)
+    public void StandardScale_PreservesCompleteCardinalityAndIdSum(
+        string id,
+        int count,
+        long expectedRows,
+        long expectedSum
+    )
     {
         var scenario = ScenarioCatalog.Get(id);
-        using var query = InstanceCreator.CompileForExecution(scenario.Sql, "profile-scale",
-            FixtureCatalog.Prepare(scenario, count).CreateSchemaProvider(), BenchmarkLogger.Instance, ExecutionSettings.Create(scenario, count));
+        using var query = InstanceCreator.CompileForExecution(
+            scenario.Sql,
+            "profile-scale",
+            FixtureCatalog.Prepare(scenario, count).CreateSchemaProvider(),
+            BenchmarkLogger.Instance,
+            ExecutionSettings.Create(scenario, count)
+        );
         using var table = query.Run();
         var result = Consume(table);
         Assert.AreEqual(expectedRows, result.Rows, id);
@@ -44,6 +54,7 @@ public sealed class ProfileScaleTests
     private struct IdSumVisitor : IColumnValueVisitor
     {
         public long Sum { get; private set; }
+
         public void Visit<T>(int columnIndex, in T value)
         {
             if (columnIndex == 0 && value is int id)

@@ -7,11 +7,14 @@ namespace Musoq.Evaluator;
 
 internal static class InterpretationTextFieldTypeResolver
 {
-    internal static IEnumerable<TextFieldDefinitionNode> EnumerateDefinitions(IEnumerable<TextFieldDefinitionNode> fields) =>
-        EnumerateLocatedDefinitions(fields).Select(item => item.Field);
+    internal static IEnumerable<TextFieldDefinitionNode> EnumerateDefinitions(
+        IEnumerable<TextFieldDefinitionNode> fields
+    ) => EnumerateLocatedDefinitions(fields).Select(item => item.Field);
 
     internal static IEnumerable<(TextFieldDefinitionNode Field, TextSpan? Span)> EnumerateLocatedDefinitions(
-        IEnumerable<TextFieldDefinitionNode> fields, TextSpan? ownerSpan = null)
+        IEnumerable<TextFieldDefinitionNode> fields,
+        TextSpan? ownerSpan = null
+    )
     {
         foreach (var field in fields)
         {
@@ -25,7 +28,11 @@ internal static class InterpretationTextFieldTypeResolver
         }
     }
 
-    internal static (Type ClrType, string? IntendedTypeName) Resolve(string schemaName, TextFieldDefinitionNode field, SchemaRegistry? registry = null)
+    internal static (Type ClrType, string? IntendedTypeName) Resolve(
+        string schemaName,
+        TextFieldDefinitionNode field,
+        SchemaRegistry? registry = null
+    )
     {
         if (field is { FieldType: TextFieldType.Repeat, RepeatElement: { } element })
         {
@@ -41,7 +48,8 @@ internal static class InterpretationTextFieldTypeResolver
             if (shape.Alternatives.Count > 0 || shape.Element?.Alternatives.Count > 0)
             {
                 name = $"Musoq.Generated.Interpreters.{schemaName}.TextSwitch_{field.Name}";
-                if (shape.Element != null) name += "[]";
+                if (shape.Element != null)
+                    name += "[]";
             }
             return (shape.ClrType, name);
         }
@@ -50,11 +58,15 @@ internal static class InterpretationTextFieldTypeResolver
         {
             TextFieldType.Repeat => (typeof(object[]), $"Musoq.Generated.Interpreters.{field.PrimaryValue}[]"),
             TextFieldType.SchemaReference => (typeof(object), $"Musoq.Generated.Interpreters.{field.PrimaryValue}"),
-            TextFieldType.Pattern when field.CaptureGroups.Length > 0 =>
-                (typeof(object), $"Musoq.Generated.Interpreters.{schemaName}.CaptureResult_{field.Name}"),
-            TextFieldType.Switch => (typeof(object),
-                $"Musoq.Generated.Interpreters.{schemaName}.TextSwitch_{field.Name}"),
-            _ => (typeof(string), null)
+            TextFieldType.Pattern when field.CaptureGroups.Length > 0 => (
+                typeof(object),
+                $"Musoq.Generated.Interpreters.{schemaName}.CaptureResult_{field.Name}"
+            ),
+            TextFieldType.Switch => (
+                typeof(object),
+                $"Musoq.Generated.Interpreters.{schemaName}.TextSwitch_{field.Name}"
+            ),
+            _ => (typeof(string), null),
         };
     }
 }

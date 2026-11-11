@@ -8,4 +8,5 @@ internal sealed record CorrelationProjection(
     string CteColumnName,
     Type ReturnType,
     TextSpan Span,
-    string? IntendedTypeName);
+    string? IntendedTypeName
+);

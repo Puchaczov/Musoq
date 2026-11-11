@@ -1,12 +1,12 @@
-using Microsoft.CodeAnalysis;
-using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Evaluator.Tests;
@@ -17,13 +17,18 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void FocusedArchitecture_Renderers_ShouldNotReferencePlannerContracts()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var executionDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution");
-        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs", SearchOption.AllDirectories)
+        var executionDirectory = ToAbsolutePath(
+            repositoryRoot,
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution"
+        );
+        var rendererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs", SearchOption.AllDirectories)
             .Where(file =>
-                Path.GetFileName(file).StartsWith("ExecutionCSharpRenderer", StringComparison.Ordinal) ||
-                Path.GetRelativePath(executionDirectory, file)
+                Path.GetFileName(file).StartsWith("ExecutionCSharpRenderer", StringComparison.Ordinal)
+                || Path.GetRelativePath(executionDirectory, file)
                     .Replace(Path.DirectorySeparatorChar, '/')
-                    .StartsWith("Rendering/", StringComparison.Ordinal))
+                    .StartsWith("Rendering/", StringComparison.Ordinal)
+            )
             .ToArray();
         string[] plannerContractMarkers =
         [
@@ -36,29 +41,33 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "QueryPlanner",
             "PhysicalPlanningPipeline",
             "PhysicalStrategyPlanner",
-            "ExecutionStrategyPlanner"
+            "ExecutionStrategyPlanner",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, rendererFiles, plannerContractMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Execution C# renderers must consume Execution IR only, not planner contracts: " +
-            string.Join(", ", offenders));
+            "Execution C# renderers must consume Execution IR only, not planner contracts: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void FocusedArchitecture_ExecutionRendering_ShouldRouteFocusedDomainsThroughCollaborators()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var renderingDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering");
+        var renderingDirectory = ToAbsolutePath(
+            repositoryRoot,
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering"
+        );
         string[] expectedRendererFiles =
         [
             "ExecutionCSharpRenderer.ExpressionRenderer.cs",
             "ExecutionCSharpRenderer.TableControlFlowRenderer.cs",
             "ExecutionCSharpRenderer.AggregateRenderer.cs",
             "ExecutionCSharpRenderer.JoinRenderer.cs",
-            "ExecutionCSharpRenderer.WindowRenderer.cs"
+            "ExecutionCSharpRenderer.WindowRenderer.cs",
         ];
 
         var missing = expectedRendererFiles
@@ -67,14 +76,23 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             .Select(file => Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'))
             .ToArray();
 
-        Assert.IsEmpty(missing, "Focused rendering collaborators should stay under IR/Execution/Rendering: " + string.Join(", ", missing));
+        Assert.IsEmpty(
+            missing,
+            "Focused rendering collaborators should stay under IR/Execution/Rendering: " + string.Join(", ", missing)
+        );
 
-        var nodeDispatchText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.NodeDispatch.cs"));
-        var expressionDispatchText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.Expressions.Dispatch.cs"));
+        var nodeDispatchText = File.ReadAllText(
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.NodeDispatch.cs"
+            )
+        );
+        var expressionDispatchText = File.ReadAllText(
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.Expressions.Dispatch.cs"
+            )
+        );
 
         Assert.Contains("TableControlFlowRenderer", nodeDispatchText);
         Assert.Contains("AggregateRenderer", nodeDispatchText);
@@ -87,9 +105,11 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void FocusedArchitecture_RenderingCollaborators_ShouldNotInvokeLoweringOrPlanning()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+        var rendererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
                 ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering"),
-                "*.cs")
+                "*.cs"
+            )
             .ToArray();
         string[] decisionMarkers =
         [
@@ -99,15 +119,16 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "ExecutionStrategyPlanner",
             "PhysicalToExecutionPlanBuilder(",
             "BuildWithExecutionStrategies(",
-            "BuildPlanTable("
+            "BuildPlanTable(",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, rendererFiles, decisionMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Rendering collaborators must emit Execution IR only, without calling planning or lowering decision surfaces: " +
-            string.Join(", ", offenders));
+            "Rendering collaborators must emit Execution IR only, without calling planning or lowering decision surfaces: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -115,12 +136,14 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var executionDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
-        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs", SearchOption.AllDirectories)
+        var lowererFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs", SearchOption.AllDirectories)
             .Where(file =>
-                Path.GetFileName(file).StartsWith("PhysicalLoweringImplementation", StringComparison.Ordinal) ||
-                Path.GetRelativePath(executionDirectory, file)
+                Path.GetFileName(file).StartsWith("PhysicalLoweringImplementation", StringComparison.Ordinal)
+                || Path.GetRelativePath(executionDirectory, file)
                     .Replace(Path.DirectorySeparatorChar, '/')
-                    .StartsWith("Lowering/", StringComparison.Ordinal))
+                    .StartsWith("Lowering/", StringComparison.Ordinal)
+            )
             .ToArray();
         string[] planningSelectionMarkers =
         [
@@ -133,15 +156,16 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "CardinalityFactPlanner.Plan(",
             "MaterializationPlanner.Plan(",
             "PredicateMovementPlanner.Plan(",
-            "PredicatePlacementPlanner.Plan("
+            "PredicatePlacementPlanner.Plan(",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, lowererFiles, planningSelectionMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Physical-to-Execution lowering must consume planner decisions instead of invoking selection/planning APIs: " +
-            string.Join(", ", offenders));
+            "Physical-to-Execution lowering must consume planner decisions instead of invoking selection/planning APIs: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -149,7 +173,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var executionDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
-        var files = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs", SearchOption.AllDirectories)
+        var files = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs", SearchOption.AllDirectories)
             .ToArray();
         string[] forbiddenMarkers =
         [
@@ -158,19 +183,27 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "ExecutionChunkedForEachWithOrdinality",
             "ExecutionMaterializeChunkedList",
             "ExecutionMaterializeFilteredChunkedList",
-            "ExecutionMaterializeChunkedExpandoList"
+            "ExecutionMaterializeChunkedExpandoList",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, files, forbiddenMarkers);
-        var typeOffenders = CompilerContractSymbols.For(typeof(ExecutionNode)).Assembly
-            .GetTypes()
+        var typeOffenders = CompilerContractSymbols
+            .For(typeof(ExecutionNode))
+            .Assembly.GetTypes()
             .Where(static type => type.Namespace == CompilerContractSymbols.For(typeof(ExecutionNode)).Namespace)
             .Where(static type => type.MetadataName.StartsWith("ExecutionChunked", StringComparison.Ordinal))
             .Select(static type => type.FullName)
             .ToArray();
 
-        Assert.IsEmpty(offenders, "Execution IR must use ExecutionRowStreamKind instead of chunk-specific node/expression types: " + string.Join(", ", offenders));
-        Assert.IsEmpty(typeOffenders, "Execution IR chunk-specific runtime types must not return: " + string.Join(", ", typeOffenders));
+        Assert.IsEmpty(
+            offenders,
+            "Execution IR must use ExecutionRowStreamKind instead of chunk-specific node/expression types: "
+                + string.Join(", ", offenders)
+        );
+        Assert.IsEmpty(
+            typeOffenders,
+            "Execution IR chunk-specific runtime types must not return: " + string.Join(", ", typeOffenders)
+        );
     }
 
     [TestMethod]
@@ -180,31 +213,43 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var harnessDirectories = new[]
         {
             ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Benchmarks"),
-            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Playground")
+            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Playground"),
         };
         var files = harnessDirectories
             .Where(Directory.Exists)
             .SelectMany(static directory => Directory.EnumerateFiles(directory, "*.cs", SearchOption.AllDirectories))
-            .Where(static file => !string.Equals(Path.GetFileName(file), "BenchmarkSourceChunks.cs", StringComparison.Ordinal))
+            .Where(static file =>
+                !string.Equals(Path.GetFileName(file), "BenchmarkSourceChunks.cs", StringComparison.Ordinal)
+            )
             .ToArray();
 
         var offenders = files
-            .SelectMany(file => File.ReadLines(file).Select((line, index) => new
-            {
-                File = file,
-                Line = line,
-                LineNumber = index + 1
-            }))
+            .SelectMany(file =>
+                File.ReadLines(file)
+                    .Select(
+                        (line, index) =>
+                            new
+                            {
+                                File = file,
+                                Line = line,
+                                LineNumber = index + 1,
+                            }
+                    )
+            )
             .Where(static item =>
-                item.Line.Contains("Chunks => [", StringComparison.Ordinal) ||
-                Regex.IsMatch(item.Line, @"new EntitySource<[^>]+>\(\s*\["))
-            .Select(item => $"{Path.GetRelativePath(repositoryRoot, item.File).Replace(Path.DirectorySeparatorChar, '/')}:{item.LineNumber}")
+                item.Line.Contains("Chunks => [", StringComparison.Ordinal)
+                || Regex.IsMatch(item.Line, @"new EntitySource<[^>]+>\(\s*\[")
+            )
+            .Select(item =>
+                $"{Path.GetRelativePath(repositoryRoot, item.File).Replace(Path.DirectorySeparatorChar, '/')}:{item.LineNumber}"
+            )
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Benchmark-like source providers must use fixed-size BenchmarkSourceChunks or RowChunk views; only explicit SingleGiant cases belong in BenchmarkSourceChunks: " +
-            string.Join(", ", offenders));
+            "Benchmark-like source providers must use fixed-size BenchmarkSourceChunks or RowChunk views; only explicit SingleGiant cases belong in BenchmarkSourceChunks: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -218,24 +263,39 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.WindowPlanLowerer"),
             loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.JoinPlanLowerer"),
             loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.CtePlanLowerer"),
-            loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.PipelinePlanLowerer")
+            loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.PipelinePlanLowerer"),
         };
 
-        Assert.IsFalse(coordinatorTypes.Any(static type => type == null), "All focused lowerer coordinators must be top-level types.");
-        Assert.IsFalse(coordinatorTypes.Any(static type => type!.IsNested), "Focused lowerer coordinators must not be nested in the builder.");
+        Assert.IsFalse(
+            coordinatorTypes.Any(static type => type == null),
+            "All focused lowerer coordinators must be top-level types."
+        );
+        Assert.IsFalse(
+            coordinatorTypes.Any(static type => type!.IsNested),
+            "Focused lowerer coordinators must not be nested in the builder."
+        );
 
-        var planDispatchText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.cs"));
-        var tableDispatchText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.TableDispatch.cs"));
-        var registryDispatchText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.DispatchRegistry.cs"));
-        var joinText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.Joins.cs"));
+        var planDispatchText = File.ReadAllText(
+            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.cs")
+        );
+        var tableDispatchText = File.ReadAllText(
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.TableDispatch.cs"
+            )
+        );
+        var registryDispatchText = File.ReadAllText(
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.DispatchRegistry.cs"
+            )
+        );
+        var joinText = File.ReadAllText(
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.Joins.cs"
+            )
+        );
 
         Assert.Contains("_physicalLoweringFacade.BuildPlan", planDispatchText);
         Assert.Contains("_physicalLoweringFacade.BuildTable", tableDispatchText);
@@ -248,10 +308,12 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         var dependencyDirectory = ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/Lowering/CoordinatorDependencies");
+            "src/dotnet/Musoq.Evaluator/IR/Execution/Lowering/CoordinatorDependencies"
+        );
         Assert.IsFalse(
             Directory.Exists(dependencyDirectory) && Directory.EnumerateFiles(dependencyDirectory, "*.cs").Any(),
-            "Lowering coordinators must receive typed handler records, not builder dependency partials.");
+            "Lowering coordinators must receive typed handler records, not builder dependency partials."
+        );
     }
 
     [TestMethod]
@@ -259,19 +321,25 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var planningTypesText = string.Concat(
-            global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+            global::Musoq
+                .Tests.Common.RequiredSourceInventory.Files(
                     ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Planning/Types/Common"),
-                    "*.cs")
-                .Select(File.ReadAllText));
-        var queryPlannerText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Planning/QueryPlanner.cs"));
-        var physicalPipelineText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Planning/Physical/PhysicalPlanningPipeline.cs"));
-        var executionIrText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Converter/Build/TransformTree.ExecutionIr.cs"));
+                    "*.cs"
+                )
+                .Select(File.ReadAllText)
+        );
+        var queryPlannerText = File.ReadAllText(
+            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Planning/QueryPlanner.cs")
+        );
+        var physicalPipelineText = File.ReadAllText(
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Evaluator/IR/Planning/Physical/PhysicalPlanningPipeline.cs"
+            )
+        );
+        var executionIrText = File.ReadAllText(
+            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Converter/Build/TransformTree.ExecutionIr.cs")
+        );
 
         Assert.Contains("internal sealed record LogicalPlanningArtifacts", planningTypesText);
         Assert.Contains("internal sealed record PhysicalPlanningArtifacts", planningTypesText);
@@ -282,25 +350,29 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         Assert.Contains("PlanningResult?.ExecutionArtifacts", executionIrText);
         Assert.IsFalse(
             executionIrText.Contains("PlanningResult?.ExecutionStrategies", StringComparison.Ordinal),
-            "Execution lowering should receive the typed execution artifact handoff, not a loose strategy property.");
+            "Execution lowering should receive the typed execution artifact handoff, not a loose strategy property."
+        );
     }
 
     [TestMethod]
     public void FocusedArchitecture_PhysicalPlanBuilder_ShouldNotInvokeStrategyPlanner()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var builderFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+        var builderFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
                 ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Physical"),
                 "PhysicalPlanBuilder*.cs",
-                SearchOption.TopDirectoryOnly)
+                SearchOption.TopDirectoryOnly
+            )
             .ToArray();
 
         var offenders = FindFilesContainingAny(repositoryRoot, builderFiles, ["PhysicalStrategyPlanner.Plan("]);
 
         Assert.IsEmpty(
             offenders,
-            "PhysicalPlanBuilder must consume explicit physical strategy metadata, not invoke strategy planning: " +
-            string.Join(", ", offenders));
+            "PhysicalPlanBuilder must consume explicit physical strategy metadata, not invoke strategy planning: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -319,7 +391,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "Semantics/SemanticExpressionDiagnosticFacts.cs",
             "Semantics/SemanticExpressionBindingService.cs",
             "Semantics/SemanticColumnPropertyBindingService.cs",
-            "Semantics/SemanticSetOperatorFactService.cs"
+            "Semantics/SemanticSetOperatorFactService.cs",
         ];
 
         var missing = expectedServiceFiles
@@ -328,20 +400,29 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             .Select(file => Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'))
             .ToArray();
 
-        Assert.IsEmpty(missing, "Semantic visitor services should stay inside Musoq.Evaluator.Visitors: " + string.Join(", ", missing));
+        Assert.IsEmpty(
+            missing,
+            "Semantic visitor services should stay inside Musoq.Evaluator.Visitors: " + string.Join(", ", missing)
+        );
 
-        var visitorText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.cs"));
-        var servicesText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.SemanticVisitorServices.cs"));
-        var stateFacadeText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/Visitors/SemanticVisitorState.cs"));
-        var validationText = File.ReadAllText(ToAbsolutePath(
-            repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.QueryValidation.cs"));
+        var visitorText = File.ReadAllText(
+            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.cs")
+        );
+        var servicesText = File.ReadAllText(
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.SemanticVisitorServices.cs"
+            )
+        );
+        var stateFacadeText = File.ReadAllText(
+            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/Visitors/SemanticVisitorState.cs")
+        );
+        var validationText = File.ReadAllText(
+            ToAbsolutePath(
+                repositoryRoot,
+                "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.QueryValidation.cs"
+            )
+        );
 
         Assert.Contains("SemanticAnalysisState _semanticState", stateFacadeText);
         Assert.DoesNotContain("private sealed record", stateFacadeText);
@@ -366,13 +447,19 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var visitorsDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/Visitors");
         var legacyServiceFiles = Directory
-            .EnumerateFiles(visitorsDirectory, "BuildMetadataAndInferTypesVisitor.Semantic*.cs", SearchOption.TopDirectoryOnly)
-            .Where(file => !Path.GetFileName(file).Equals(
-                "BuildMetadataAndInferTypesVisitor.SemanticVisitorServices.cs",
-                StringComparison.Ordinal))
+            .EnumerateFiles(
+                visitorsDirectory,
+                "BuildMetadataAndInferTypesVisitor.Semantic*.cs",
+                SearchOption.TopDirectoryOnly
+            )
+            .Where(file =>
+                !Path.GetFileName(file)
+                    .Equals("BuildMetadataAndInferTypesVisitor.SemanticVisitorServices.cs", StringComparison.Ordinal)
+            )
             .Select(file => Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'))
             .ToArray();
-        var nestedSemanticTypes = CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitor))
+        var nestedSemanticTypes = CompilerContractSymbols
+            .For(typeof(BuildMetadataAndInferTypesVisitor))
             .GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public)
             .Where(static type => type.MetadataName.StartsWith("Semantic", StringComparison.Ordinal))
             .Select(static type => type.MetadataName)
@@ -380,12 +467,14 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         Assert.IsEmpty(
             legacyServiceFiles,
-            "Semantic services must stay as directly testable internal services, not visitor partial artifacts: " +
-            string.Join(", ", legacyServiceFiles));
+            "Semantic services must stay as directly testable internal services, not visitor partial artifacts: "
+                + string.Join(", ", legacyServiceFiles)
+        );
         Assert.IsEmpty(
             nestedSemanticTypes,
-            "BuildMetadataAndInferTypesVisitor should remain a traversal/delegation facade, not own private semantic services: " +
-            string.Join(", ", nestedSemanticTypes));
+            "BuildMetadataAndInferTypesVisitor should remain a traversal/delegation facade, not own private semantic services: "
+                + string.Join(", ", nestedSemanticTypes)
+        );
     }
 
     [TestMethod]
@@ -396,33 +485,36 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             .Select(file => new
             {
                 RelativePath = Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'),
-                Text = File.ReadAllText(file)
+                Text = File.ReadAllText(file),
             })
             .Where(file => file.Text.Contains("IPlanOptimizationPass<", StringComparison.Ordinal))
             .Where(file =>
-                !file.RelativePath.StartsWith(
-                    "src/dotnet/Musoq.Evaluator/IR/Optimization/",
-                    StringComparison.Ordinal) &&
-                !file.RelativePath.StartsWith(
+                !file.RelativePath.StartsWith("src/dotnet/Musoq.Evaluator/IR/Optimization/", StringComparison.Ordinal)
+                && !file.RelativePath.StartsWith(
                     "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/",
-                    StringComparison.Ordinal))
+                    StringComparison.Ordinal
+                )
+            )
             .Select(file => file.RelativePath)
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Target-neutral optimizer pass implementations must stay under evaluator IR/Optimization; generated C# readability passes belong under the CSharpClr target package: " +
-            string.Join(", ", offenders));
+            "Target-neutral optimizer pass implementations must stay under evaluator IR/Optimization; generated C# readability passes belong under the CSharpClr target package: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
     public void FocusedArchitecture_ConverterPlanningAndLoweringOrchestration_ShouldStayInTransformTree()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var converterFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+        var converterFiles = global::Musoq
+            .Tests.Common.RequiredSourceInventory.Files(
                 ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Converter"),
                 "*.cs",
-                SearchOption.AllDirectories)
+                SearchOption.AllDirectories
+            )
             .Where(file => !Path.GetFileName(file).StartsWith("TransformTree", StringComparison.Ordinal))
             .ToArray();
         string[] orchestrationMarkers =
@@ -433,15 +525,16 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "new ExecutionIrOptimizer(",
             "BuildPlans(",
             "BuildExecutionInspection(",
-            "BuildWithIrRenderer("
+            "BuildWithIrRenderer(",
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, converterFiles, orchestrationMarkers);
 
         Assert.IsEmpty(
             offenders,
-            "Converter planning and execution lowering orchestration must stay in TransformTree: " +
-            string.Join(", ", offenders));
+            "Converter planning and execution lowering orchestration must stay in TransformTree: "
+                + string.Join(", ", offenders)
+        );
     }
 
     [TestMethod]
@@ -456,20 +549,20 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             new("src/dotnet/Musoq.Evaluator/IR/Execution/Lowering", "*.cs", 601),
             new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering", "*.cs", 226),
             new("src/dotnet/Musoq.Evaluator/Visitors", "Semantic*.cs", 502),
-            new("src/dotnet/Musoq.Parser/Traversal", "*.cs", 188)
+            new("src/dotnet/Musoq.Parser/Traversal", "*.cs", 188),
         ];
 
         var offenders = focusedBudgets
             .Select(budget =>
             {
                 var directory = ToAbsolutePath(repositoryRoot, budget.RelativeDirectory);
-                var lineCount = EnumerateSourceFamilyFiles(directory, budget.SearchPattern)
-                    .Sum(CountBudgetedLines);
+                var lineCount = EnumerateSourceFamilyFiles(directory, budget.SearchPattern).Sum(CountBudgetedLines);
 
                 return new SourceFileBudget(
                     $"{budget.RelativeDirectory}/{budget.SearchPattern}",
                     lineCount,
-                    budget.MaxTotalLines);
+                    budget.MaxTotalLines
+                );
             })
             .Where(file => file.LineCount > file.Budget)
             .Select(file => $"{file.FileName}: {file.LineCount}/{file.Budget}")
@@ -477,7 +570,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         Assert.IsEmpty(
             offenders,
-            "Focused architecture hotspot families should split before their total line count grows: " +
-            string.Join(", ", offenders));
+            "Focused architecture hotspot families should split before their total line count grows: "
+                + string.Join(", ", offenders)
+        );
     }
 }

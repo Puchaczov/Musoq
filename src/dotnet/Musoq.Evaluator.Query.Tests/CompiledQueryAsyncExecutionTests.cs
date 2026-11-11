@@ -18,7 +18,12 @@ public sealed class CompiledQueryAsyncExecutionTests
     {
         using var runnable = new AsyncParameterizedRunnable();
         using var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "value",
+            1
+        );
 
         var execution = query.RunAsync().AsTask();
         Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));
@@ -68,7 +73,12 @@ public sealed class CompiledQueryAsyncExecutionTests
     {
         using var runnable = new AsyncParameterizedRunnable();
         var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            query.TypedParameters,
+            query.ParameterDefinitions,
+            "value",
+            3
+        );
 
         var execution = query.RunAsync().AsTask();
         Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));
@@ -87,10 +97,16 @@ public sealed class CompiledQueryAsyncExecutionTests
     {
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
             new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
@@ -120,7 +136,12 @@ public sealed class CompiledQueryAsyncExecutionTests
         public abstract Table Run(CancellationToken token);
     }
 
-    private sealed class AsyncParameterizedRunnable : RunnableBase, IAsyncTableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable, IDisposable
+    private sealed class AsyncParameterizedRunnable
+        : RunnableBase,
+            IAsyncTableRunnable,
+            IParameterizedRunnable,
+            ITypedParameterizedRunnable,
+            IDisposable
     {
         internal readonly ManualResetEventSlim Started = new(false);
         internal readonly TaskCompletionSource<bool> Release = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -137,8 +158,7 @@ public sealed class CompiledQueryAsyncExecutionTests
 
         public int SynchronousRunCount { get; private set; }
 
-        public bool DisposedBeforeExecutionCompleted =>
-            Volatile.Read(ref _disposedBeforeExecutionCompleted) != 0;
+        public bool DisposedBeforeExecutionCompleted => Volatile.Read(ref _disposedBeforeExecutionCompleted) != 0;
 
         public override Table Run(CancellationToken token)
         {
@@ -182,12 +202,10 @@ public sealed class CompiledQueryAsyncExecutionTests
 
     private sealed class ValueRow(int value) : Row
     {
-        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
-            => TypedColumnVisit.Apply(0, value, ref visitor);
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor) =>
+            TypedColumnVisit.Apply(0, value, ref visitor);
 
         public override int Count => 1;
-
-
     }
 
     private sealed class ThrowingSchemaProvider : ISchemaProvider

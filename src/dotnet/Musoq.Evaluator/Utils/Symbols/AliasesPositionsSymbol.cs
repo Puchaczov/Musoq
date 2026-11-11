@@ -10,9 +10,11 @@ public class AliasesPositionsSymbol : Symbol
     {
         var index = AliasesPositions[alias];
 
-        if (index is 0 or 1) return index;
+        if (index is 0 or 1)
+            return index;
 
-        if (index % 2 == 0) throw new NotSupportedException($"Alias {alias} is not a context alias.");
+        if (index % 2 == 0)
+            throw new NotSupportedException($"Alias {alias} is not a context alias.");
 
         return index - 1;
     }

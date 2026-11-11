@@ -7,14 +7,16 @@ namespace Musoq.Evaluator.IR.Execution.Lowering.Tables;
 
 internal sealed class PostOperationProjectionPlanner(
     Func<string, ProjectedField[], IReadOnlyDictionary<string, RowShape>, GeneratedRowShape> createGeneratedShape,
-    Func<IReadOnlyList<PostOperation>, IReadOnlyList<ProjectedField>, string?> validateHiddenSortFields)
+    Func<IReadOnlyList<PostOperation>, IReadOnlyList<ProjectedField>, string?> validateHiddenSortFields
+)
 {
     public LoweringAttempt<PostOperationProjection> Create(
         string resultTableName,
         string resultShapeName,
         ProjectedField[] publicFields,
         IReadOnlyList<PostOperation> postOperations,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var publicShape = createGeneratedShape(resultShapeName, publicFields, sourceLookup);
         var hiddenFields = CreateHiddenSortFields(publicShape, publicFields, postOperations, sourceLookup);
@@ -27,44 +29,54 @@ internal sealed class PostOperationProjectionPlanner(
 
         if (hiddenFields.Value.Count == 0)
         {
-            return LoweringAttempt<PostOperationProjection>.Built(new PostOperationProjection(
-                publicFields,
-                publicShape,
-                new ExecutionVariable(resultTableName, typeof(object)),
-                postOperations,
-                null,
-                [publicShape]));
+            return LoweringAttempt<PostOperationProjection>.Built(
+                new PostOperationProjection(
+                    publicFields,
+                    publicShape,
+                    new ExecutionVariable(resultTableName, typeof(object)),
+                    postOperations,
+                    null,
+                    [publicShape]
+                )
+            );
         }
 
         var materializedFields = publicFields.Concat(hiddenFields.Value).ToArray();
         var workingShape = createGeneratedShape(
             CreateSortWorkingShapeName(resultShapeName),
             materializedFields,
-            sourceLookup);
+            sourceLookup
+        );
         var finalProjection = new TableProjection(
             new ExecutionVariable(resultTableName, typeof(object)),
             publicShape,
-            Enumerable.Range(0, publicFields.Length).ToArray());
+            Enumerable.Range(0, publicFields.Length).ToArray()
+        );
 
-        return LoweringAttempt<PostOperationProjection>.Built(new PostOperationProjection(
-            materializedFields,
-            workingShape,
-            new ExecutionVariable(CreateSortWorkingTableName(resultTableName), typeof(object)),
-            ReplaceSortProjectedFields(postOperations, materializedFields),
-            finalProjection,
-            [workingShape, publicShape]));
+        return LoweringAttempt<PostOperationProjection>.Built(
+            new PostOperationProjection(
+                materializedFields,
+                workingShape,
+                new ExecutionVariable(CreateSortWorkingTableName(resultTableName), typeof(object)),
+                ReplaceSortProjectedFields(postOperations, materializedFields),
+                finalProjection,
+                [workingShape, publicShape]
+            )
+        );
     }
 
     public static LoweringAttempt<IReadOnlyList<ProjectedField>> CreateHiddenSortFields(
         GeneratedRowShape publicShape,
         ProjectedField[] publicFields,
         IReadOnlyList<PostOperation> postOperations,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var fields = new List<ProjectedField>();
         var usedNames = new HashSet<string>(
             publicFields.Select(field => field.OutputName),
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
 
         foreach (var key in postOperations.SelectMany(GetOrderKeys))
         {
@@ -72,10 +84,13 @@ internal sealed class PostOperationProjectionPlanner(
                 continue;
 
             _ = ExecutionExpressionConverter.Convert(key.Expression, sourceLookup);
-            fields.Add(new ProjectedField(
-                CreateHiddenSortFieldName(usedNames, fields.Count),
-                key.Expression,
-                publicFields.Length + fields.Count));
+            fields.Add(
+                new ProjectedField(
+                    CreateHiddenSortFieldName(usedNames, fields.Count),
+                    key.Expression,
+                    publicFields.Length + fields.Count
+                )
+            );
         }
 
         return LoweringAttempt<IReadOnlyList<ProjectedField>>.Built(fields);
@@ -83,16 +98,19 @@ internal sealed class PostOperationProjectionPlanner(
 
     public static PostOperation[] ReplaceSortProjectedFields(
         IReadOnlyList<PostOperation> postOperations,
-        ProjectedField[] materializedFields)
+        ProjectedField[] materializedFields
+    )
     {
         return postOperations
-            .Select(operation => operation switch
-            {
-                SortOperation sort => sort with { ProjectedFields = materializedFields },
-                TopNOperation topN => topN with { ProjectedFields = materializedFields },
-                TopOffsetOperation topOffset => topOffset with { ProjectedFields = materializedFields },
-                _ => operation
-            })
+            .Select(operation =>
+                operation switch
+                {
+                    SortOperation sort => sort with { ProjectedFields = materializedFields },
+                    TopNOperation topN => topN with { ProjectedFields = materializedFields },
+                    TopOffsetOperation topOffset => topOffset with { ProjectedFields = materializedFields },
+                    _ => operation,
+                }
+            )
             .ToArray();
     }
 
@@ -108,7 +126,7 @@ internal sealed class PostOperationProjectionPlanner(
             SortOperation sort => sort.Keys,
             TopNOperation topN => topN.Keys,
             TopOffsetOperation topOffset => topOffset.Keys,
-            _ => []
+            _ => [],
         };
     }
 

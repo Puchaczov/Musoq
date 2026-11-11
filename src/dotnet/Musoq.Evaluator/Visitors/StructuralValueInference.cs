@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Schema.StructuralInputs;
 
 namespace Musoq.Evaluator.Visitors;
@@ -10,10 +10,7 @@ namespace Musoq.Evaluator.Visitors;
 /// <summary>Infers structural shapes while keeping omitted record fields absent.</summary>
 internal static class StructuralValueInference
 {
-    public static bool TryInfer(
-        object? value,
-        out StructuralTypeDescriptor descriptor,
-        out string error)
+    public static bool TryInfer(object? value, out StructuralTypeDescriptor descriptor, out string error)
     {
         if (value is not StructuralValue structural || structural.Kind == StructuralTypeKind.Scalar)
         {
@@ -25,10 +22,7 @@ internal static class StructuralValueInference
         return TryInferValue(structural, out descriptor, out error);
     }
 
-    private static bool TryInferValue(
-        StructuralValue value,
-        out StructuralTypeDescriptor descriptor,
-        out string error)
+    private static bool TryInferValue(StructuralValue value, out StructuralTypeDescriptor descriptor, out string error)
     {
         switch (value.Kind)
         {
@@ -45,10 +39,7 @@ internal static class StructuralValueInference
         }
     }
 
-    private static bool TryInferScalar(
-        object? value,
-        out StructuralTypeDescriptor descriptor,
-        out string error)
+    private static bool TryInferScalar(object? value, out StructuralTypeDescriptor descriptor, out string error)
     {
         if (value == null)
         {
@@ -71,10 +62,7 @@ internal static class StructuralValueInference
         }
     }
 
-    private static bool TryInferRecord(
-        StructuralValue value,
-        out StructuralTypeDescriptor descriptor,
-        out string error)
+    private static bool TryInferRecord(StructuralValue value, out StructuralTypeDescriptor descriptor, out string error)
     {
         var fields = new List<StructuralFieldDescriptor>(value.Fields.Count);
         foreach (var field in value.Fields)
@@ -97,7 +85,8 @@ internal static class StructuralValueInference
     private static bool TryInferCollection(
         StructuralValue value,
         out StructuralTypeDescriptor descriptor,
-        out string error)
+        out string error
+    )
     {
         if (value.Elements.Count == 0)
         {
@@ -106,8 +95,8 @@ internal static class StructuralValueInference
             return false;
         }
 
-        var nonNullElements = value.Elements
-            .Where(static element => element.Kind != StructuralTypeKind.Scalar || element.Scalar != null)
+        var nonNullElements = value
+            .Elements.Where(static element => element.Kind != StructuralTypeKind.Scalar || element.Scalar != null)
             .ToArray();
         if (nonNullElements.Length == 0)
         {
@@ -126,7 +115,8 @@ internal static class StructuralValueInference
 
             descriptor = StructuralTypeDescriptor.Collection(
                 recordElement.CoreValueType.MakeArrayType(),
-                recordElement);
+                recordElement
+            );
             return true;
         }
 
@@ -158,21 +148,20 @@ internal static class StructuralValueInference
         if (value.Elements.Any(static element => element.Kind == StructuralTypeKind.Scalar && element.Scalar == null))
             mergedElement = MakeNullable(mergedElement);
 
-        descriptor = StructuralTypeDescriptor.Collection(
-            mergedElement.CoreValueType.MakeArrayType(),
-            mergedElement);
+        descriptor = StructuralTypeDescriptor.Collection(mergedElement.CoreValueType.MakeArrayType(), mergedElement);
         return true;
     }
 
     private static bool TryInferRecordCollection(
         IReadOnlyList<StructuralValue> elements,
         out StructuralTypeDescriptor descriptor,
-        out string error)
+        out string error
+    )
     {
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var element in elements)
-            foreach (var field in element.Fields.Keys)
-                names.Add(field);
+        foreach (var field in element.Fields.Keys)
+            names.Add(field);
 
         var fields = new List<StructuralFieldDescriptor>(names.Count);
         foreach (var name in names.OrderBy(static name => name, StringComparer.Ordinal))
@@ -236,7 +225,8 @@ internal static class StructuralValueInference
     private static bool TryMerge(
         IReadOnlyList<StructuralTypeDescriptor> candidates,
         out StructuralTypeDescriptor descriptor,
-        out string error)
+        out string error
+    )
     {
         if (candidates.Count == 0)
         {
@@ -265,7 +255,8 @@ internal static class StructuralValueInference
                         "structural value",
                         nodes,
                         default,
-                        CommonColumnTypeDiagnosticKind.Values);
+                        CommonColumnTypeDiagnosticKind.Values
+                    );
                     var scalar = Nullable.GetUnderlyingType(common) ?? common;
                     var nullable = candidates.Any(static candidate => candidate.IsNullable) || !scalar.IsValueType;
                     descriptor = StructuralTypeDescriptor.Scalar(scalar, nullable);
@@ -283,7 +274,13 @@ internal static class StructuralValueInference
                 return TryMergeRecords(candidates, out descriptor, out error);
 
             case StructuralTypeKind.Collection:
-                if (!TryMerge(candidates.Select(static candidate => candidate.ElementType!).ToArray(), out var element, out error))
+                if (
+                    !TryMerge(
+                        candidates.Select(static candidate => candidate.ElementType!).ToArray(),
+                        out var element,
+                        out error
+                    )
+                )
                 {
                     descriptor = null!;
                     return false;
@@ -292,7 +289,8 @@ internal static class StructuralValueInference
                 descriptor = StructuralTypeDescriptor.Collection(
                     element.CoreValueType.MakeArrayType(),
                     element,
-                    candidates.Any(static candidate => candidate.IsNullable));
+                    candidates.Any(static candidate => candidate.IsNullable)
+                );
                 return true;
 
             default:
@@ -305,19 +303,23 @@ internal static class StructuralValueInference
     private static bool TryMergeRecords(
         IReadOnlyList<StructuralTypeDescriptor> candidates,
         out StructuralTypeDescriptor descriptor,
-        out string error)
+        out string error
+    )
     {
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var candidate in candidates)
-            foreach (var field in candidate.Fields)
-                names.Add(field.Name);
+        foreach (var field in candidate.Fields)
+            names.Add(field.Name);
 
         var fields = new List<StructuralFieldDescriptor>(names.Count);
         foreach (var name in names.OrderBy(static name => name, StringComparer.Ordinal))
         {
             var present = candidates
-                .Select(candidate => candidate.Fields.FirstOrDefault(field =>
-                    string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase)))
+                .Select(candidate =>
+                    candidate.Fields.FirstOrDefault(field =>
+                        string.Equals(field.Name, name, StringComparison.OrdinalIgnoreCase)
+                    )
+                )
                 .Where(static field => field != null)
                 .Cast<StructuralFieldDescriptor>()
                 .ToArray();
@@ -327,13 +329,20 @@ internal static class StructuralValueInference
                 return false;
             }
 
-            fields.Add(new StructuralFieldDescriptor(
-                present[0].Name,
-                fieldType,
-                present.Length == candidates.Count && present.All(static field => field.Required)));
+            fields.Add(
+                new StructuralFieldDescriptor(
+                    present[0].Name,
+                    fieldType,
+                    present.Length == candidates.Count && present.All(static field => field.Required)
+                )
+            );
         }
 
-        descriptor = StructuralTypeDescriptor.Record(typeof(StructuralValue), fields, candidates.Any(static candidate => candidate.IsNullable));
+        descriptor = StructuralTypeDescriptor.Record(
+            typeof(StructuralValue),
+            fields,
+            candidates.Any(static candidate => candidate.IsNullable)
+        );
         error = string.Empty;
         return true;
     }
@@ -343,20 +352,24 @@ internal static class StructuralValueInference
         return descriptor.Kind switch
         {
             StructuralTypeKind.Scalar => StructuralTypeDescriptor.Scalar(descriptor.ScalarType!, true),
-            StructuralTypeKind.Record => StructuralTypeDescriptor.Record(typeof(StructuralValue), descriptor.Fields, true),
+            StructuralTypeKind.Record => StructuralTypeDescriptor.Record(
+                typeof(StructuralValue),
+                descriptor.Fields,
+                true
+            ),
             StructuralTypeKind.Collection => StructuralTypeDescriptor.Collection(
                 descriptor.ElementType!.CoreValueType.MakeArrayType(),
                 descriptor.ElementType,
-                true),
-            _ => throw new InvalidOperationException($"Unknown structural kind '{descriptor.Kind}'.")
+                true
+            ),
+            _ => throw new InvalidOperationException($"Unknown structural kind '{descriptor.Kind}'."),
         };
     }
 
     private sealed class InferredTypeNode(Type type, bool nullable) : Node
     {
-        public override Type ReturnType { get; } = nullable && type.IsValueType
-            ? typeof(Nullable<>).MakeGenericType(type)
-            : type;
+        public override Type ReturnType { get; } =
+            nullable && type.IsValueType ? typeof(Nullable<>).MakeGenericType(type) : type;
 
         public override string Id => nameof(InferredTypeNode);
 

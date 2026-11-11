@@ -4,7 +4,4 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 [global::Musoq.Tests.Common.CultureTestClass]
-public partial class SubqueryTests : BasicEntityTestBase
-{
-
-}
+public partial class SubqueryTests : BasicEntityTestBase { }

@@ -5,7 +5,6 @@ namespace Musoq.Parser.Tests;
 
 public partial class AdditionalNodesTests
 {
-
     #region DecimalNode Tests
 
     [TestMethod]
@@ -230,5 +229,4 @@ public partial class AdditionalNodesTests
     }
 
     #endregion
-
 }

@@ -10,7 +10,8 @@ public sealed partial class ExecutionCSharpRenderer
         string partitionIndicesName,
         string partitionStartName,
         string partitionIndexName,
-        string currentIndexName)
+        string currentIndexName
+    )
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -20,23 +21,29 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.AddExpression,
                     SyntaxFactory.IdentifierName(partitionStartName),
-                    SyntaxFactory.IdentifierName(partitionIndexName))));
+                    SyntaxFactory.IdentifierName(partitionIndexName)
+                )
+            )
+        );
     }
 
     private static LocalDeclarationStatementSyntax CreateWindowPartitionStartDeclaration(
         string partitionsName,
         string partitionSetIndexName,
-        string partitionStartName)
+        string partitionStartName
+    )
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             partitionStartName,
-            CreateWindowPartitionStartExpression(partitionsName, partitionSetIndexName));
+            CreateWindowPartitionStartExpression(partitionsName, partitionSetIndexName)
+        );
     }
 
     private static LocalDeclarationStatementSyntax CreateWindowPartitionIndicesDeclaration(
         string partitionsName,
-        string partitionIndicesName)
+        string partitionIndicesName
+    )
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -44,33 +51,40 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName(partitionsName),
-                SyntaxFactory.IdentifierName(nameof(WindowPartitionSet.Indices))));
+                SyntaxFactory.IdentifierName(nameof(WindowPartitionSet.Indices))
+            )
+        );
     }
 
     private static InvocationExpressionSyntax CreateWindowPartitionStartExpression(
         string partitionsName,
-        string partitionSetIndexName)
+        string partitionSetIndexName
+    )
     {
         return CreateInvocationExpression(
             partitionsName,
             nameof(WindowPartitionSet.GetStart),
-            SyntaxFactory.IdentifierName(partitionSetIndexName));
+            SyntaxFactory.IdentifierName(partitionSetIndexName)
+        );
     }
 
     private static InvocationExpressionSyntax CreateWindowPartitionLengthExpression(
         string partitionsName,
-        string partitionSetIndexName)
+        string partitionSetIndexName
+    )
     {
         return CreateInvocationExpression(
             partitionsName,
             nameof(WindowPartitionSet.GetLength),
-            SyntaxFactory.IdentifierName(partitionSetIndexName));
+            SyntaxFactory.IdentifierName(partitionSetIndexName)
+        );
     }
 
     private static ForStatementSyntax CreateWindowPartitionSetForLoop(
         string partitionSetIndexName,
         string partitionsName,
-        StatementSyntax body)
+        StatementSyntax body
+    )
     {
         return StatementEmitter.CreateForLoop(
             partitionSetIndexName,
@@ -81,17 +95,22 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(partitionsName),
-                    SyntaxFactory.IdentifierName(nameof(WindowPartitionSet.PartitionCount)))),
+                    SyntaxFactory.IdentifierName(nameof(WindowPartitionSet.PartitionCount))
+                )
+            ),
             SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.PreIncrementExpression,
-                SyntaxFactory.IdentifierName(partitionSetIndexName)),
-            body);
+                SyntaxFactory.IdentifierName(partitionSetIndexName)
+            ),
+            body
+        );
     }
 
     private static ForStatementSyntax CreatePartitionIndexedForLoop(
         string partitionIndexName,
         string partitionCountName,
-        StatementSyntax body)
+        StatementSyntax body
+    )
     {
         return StatementEmitter.CreateForLoop(
             partitionIndexName,
@@ -99,29 +118,36 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.LessThanExpression,
                 SyntaxFactory.IdentifierName(partitionIndexName),
-                SyntaxFactory.IdentifierName(partitionCountName)),
+                SyntaxFactory.IdentifierName(partitionCountName)
+            ),
             SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.PreIncrementExpression,
-                SyntaxFactory.IdentifierName(partitionIndexName)),
-            body);
+                SyntaxFactory.IdentifierName(partitionIndexName)
+            ),
+            body
+        );
     }
 
     private static ExpressionStatementSyntax CreateWindowResultAssignment(
         string arrayName,
         ExpressionSyntax index,
-        ExpressionSyntax value)
+        ExpressionSyntax value
+    )
     {
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 CreateElementAccess(SyntaxFactory.IdentifierName(arrayName), index),
-                value));
+                value
+            )
+        );
     }
 
     private static ExpressionStatementSyntax CreateInvocationStatement(
         string instanceName,
         string methodName,
-        params ExpressionSyntax[] arguments)
+        params ExpressionSyntax[] arguments
+    )
     {
         return SyntaxFactory.ExpressionStatement(CreateInvocationExpression(instanceName, methodName, arguments));
     }
@@ -129,13 +155,17 @@ public sealed partial class ExecutionCSharpRenderer
     private static InvocationExpressionSyntax CreateInvocationExpression(
         string instanceName,
         string methodName,
-        params ExpressionSyntax[] arguments)
+        params ExpressionSyntax[] arguments
+    )
     {
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(instanceName),
-                    SyntaxFactory.IdentifierName(methodName)))
+                    SyntaxFactory.IdentifierName(methodName)
+                )
+            )
             .WithArgumentList(CreateArgumentList(arguments));
     }
 }

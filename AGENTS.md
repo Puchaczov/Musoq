@@ -70,6 +70,10 @@ The pinned SDK includes runtime 10.0.12, which fixes intermittent heap corruptio
 
 Follow `.editorconfig`: UTF-8, CRLF, spaces, four-space indentation, and no trailing whitespace. Use nullable-enabled, warning-clean C#; public types and members use PascalCase, locals and parameters camelCase, and tests use descriptive scenario names. Preserve existing partial-file and namespace organization. Compiler analyzers and warnings-as-errors are the quality gate.
 
+Format all added or modified authored C# and MSBuild/XML files with the repository-pinned CSharpier 1.3.0 tool. Restore it with `dotnet tool restore`, apply formatting with `dotnet csharpier format . --no-cache`, and verify with `dotnet csharpier check .`. The wrapping target is 120 columns; CI runs the same check on Windows and Linux. Use the CSharpier editor integration for C#/XML format-on-save; other languages retain their existing conventions.
+
+Honor `.csharpierignore`: never format generated C# samples, resource designer files, imported fixtures, benchmark history, or build/task outputs. Preserve embedded SQL values and readable setup/action/assertion grouping. CSharpier is development tooling and must not run inside ordinary product builds. Existing line-budget limits may be recalibrated only by the recorded mechanical formatting delta, preserving their previous headroom; blanket limits and behavioral assertions must not be relaxed.
+
 ## Testing Guidelines
 
 Tests use MSTest in `*.Tests` projects. Add regression coverage beside the changed module, use descriptive behavior-based names, and avoid timing- or machine-dependent assertions. Choose validation by change impact using the [validation policy](.claude/rules/validation.md#validation-by-change-impact):

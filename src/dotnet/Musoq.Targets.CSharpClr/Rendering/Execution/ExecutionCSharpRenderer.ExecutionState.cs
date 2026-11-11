@@ -10,7 +10,10 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private const string ExecutionStateVariableName = "__musoqExecutionState";
 
-    private IEnumerable<StatementSyntax> CreateExecutionStateDeclarations(ExecutionPlan plan, ExecutionRenderContext context)
+    private IEnumerable<StatementSyntax> CreateExecutionStateDeclarations(
+        ExecutionPlan plan,
+        ExecutionRenderContext context
+    )
     {
         if (context.Session.IncludeTableResults)
             yield return CreateTableResultsLocalDeclaration(CountExecutionTableSlots(plan.Body));
@@ -23,45 +26,61 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (!context.Session.IsSubqueryHelper)
             yield return CreateExecutionStateLocalDeclaration(context);
-
     }
 
-    private IEnumerable<StatementSyntax> CreateLikeMatcherStateDeclarations(ExecutionPlan plan, ExecutionRenderContext context) => plan.Body.Nodes.OfType<ExecutionLet>().Where(ExecutionLikeMatcherSyntaxFactory.IsStateDeclaration).Select(declaration => RenderLet(declaration, context));
+    private IEnumerable<StatementSyntax> CreateLikeMatcherStateDeclarations(
+        ExecutionPlan plan,
+        ExecutionRenderContext context
+    ) =>
+        plan
+            .Body.Nodes.OfType<ExecutionLet>()
+            .Where(ExecutionLikeMatcherSyntaxFactory.IsStateDeclaration)
+            .Select(declaration => RenderLet(declaration, context));
 
     private static LocalDeclarationStatementSyntax CreateTableResultsLocalDeclaration(int slotCount)
     {
-        ExpressionSyntax initializer = slotCount == 0
-            ? SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(Array)),
-                    SyntaxFactory.GenericName(nameof(Array.Empty))
-                        .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                CreateTypeSyntax(typeof(Table)))))))
-            : SyntaxFactory.ArrayCreationExpression(
-                SyntaxFactory.ArrayType(CreateTypeSyntax(typeof(Table)))
-                    .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(slotCount)))))));
+        ExpressionSyntax initializer =
+            slotCount == 0
+                ? SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(Array)),
+                        SyntaxFactory
+                            .GenericName(nameof(Array.Empty))
+                            .WithTypeArgumentList(
+                                SyntaxFactory.TypeArgumentList(
+                                    SyntaxFactory.SingletonSeparatedList<TypeSyntax>(CreateTypeSyntax(typeof(Table)))
+                                )
+                            )
+                    )
+                )
+                : SyntaxFactory.ArrayCreationExpression(
+                    SyntaxFactory
+                        .ArrayType(CreateTypeSyntax(typeof(Table)))
+                        .WithRankSpecifiers(
+                            SyntaxFactory.SingletonList(
+                                SyntaxFactory.ArrayRankSpecifier(
+                                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.NumericLiteralExpression,
+                                            SyntaxFactory.Literal(slotCount)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                );
 
-        return CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            "_tableResults",
-            initializer);
+        return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), "_tableResults", initializer);
     }
 
-    private static LocalDeclarationStatementSyntax CreateObjectLocalDeclaration(
-        string variableName,
-        TypeSyntax type)
+    private static LocalDeclarationStatementSyntax CreateObjectLocalDeclaration(string variableName, TypeSyntax type)
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             variableName,
-            SyntaxFactory.ObjectCreationExpression(type)
-                .WithArgumentList(SyntaxFactory.ArgumentList()));
+            SyntaxFactory.ObjectCreationExpression(type).WithArgumentList(SyntaxFactory.ArgumentList())
+        );
     }
 
     private LocalDeclarationStatementSyntax CreateExecutionStateLocalDeclaration(ExecutionRenderContext context)
@@ -69,14 +88,22 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             ExecutionStateVariableName,
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(nameof(ExecutionState)),
-                        SyntaxFactory.IdentifierName(nameof(ExecutionState.Capture))))
-                .WithArgumentList(CreateArgumentList(context.Session.UseQueryRunContext
-                        ? SyntaxFactory.ParseExpression("queryContext.TypedParameters")
-                        : SyntaxFactory.IdentifierName(nameof(ITypedParameterizedRunnable.TypedParameters)))));
+                        SyntaxFactory.IdentifierName(nameof(ExecutionState.Capture))
+                    )
+                )
+                .WithArgumentList(
+                    CreateArgumentList(
+                        context.Session.UseQueryRunContext
+                            ? SyntaxFactory.ParseExpression("queryContext.TypedParameters")
+                            : SyntaxFactory.IdentifierName(nameof(ITypedParameterizedRunnable.TypedParameters))
+                    )
+                )
+        );
     }
 
     private static int CountExecutionTableSlots(ExecutionBlock block)

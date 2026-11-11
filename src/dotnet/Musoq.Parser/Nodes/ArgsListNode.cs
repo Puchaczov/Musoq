@@ -5,31 +5,30 @@ namespace Musoq.Parser.Nodes;
 public class ArgsListNode : Node
 {
     public ArgsListNode(Node[] args)
-        : this(args, null, default)
-    {
-    }
+        : this(args, null, default) { }
 
     public ArgsListNode(Node[] args, TextSpan span)
-        : this(args, null, span)
-    {
-    }
+        : this(args, null, span) { }
 
     public ArgsListNode(Node[] args, ArgumentName?[]? argumentNames, TextSpan span)
     {
         ArgumentNullException.ThrowIfNull(args);
 
         if (argumentNames != null && argumentNames.Length != args.Length)
-            throw new ArgumentException("Argument-name metadata must align with the argument expressions.", nameof(argumentNames));
+            throw new ArgumentException(
+                "Argument-name metadata must align with the argument expressions.",
+                nameof(argumentNames)
+            );
 
         Args = args;
         ArgumentNames = argumentNames ?? new ArgumentName?[args.Length];
 
-        var argsId = args.Length == 0
-            ? string.Empty
-            : string.Concat(args.Select((f, index) =>
-                ArgumentNames[index] is { } name
-                    ? $"{name.Name}:{f.Id}"
-                    : f.Id));
+        var argsId =
+            args.Length == 0
+                ? string.Empty
+                : string.Concat(
+                    args.Select((f, index) => ArgumentNames[index] is { } name ? $"{name.Name}:{f.Id}" : f.Id)
+                );
         Id = $"{nameof(ArgsListNode)}{argsId}";
 
         // If no explicit span provided, compute from first and last args
@@ -73,20 +72,25 @@ public class ArgsListNode : Node
     {
         return Args.Length == 0
             ? string.Empty
-            : string.Join(", ", Args.Select((f, index) =>
-                ArgumentNames[index] is { } name
-                    ? $"{name.Name}: {f.ToString()}"
-                    : f.ToString()));
+            : string.Join(
+                ", ",
+                Args.Select(
+                    (f, index) => ArgumentNames[index] is { } name ? $"{name.Name}: {f.ToString()}" : f.ToString()
+                )
+            );
     }
 
     public string ToStringWithBrackets()
     {
-        var str = Args.Length == 0
-            ? string.Empty
-            : string.Join(", ", Args.Select((f, index) =>
-                ArgumentNames[index] is { } name
-                    ? $"{name.Name}: {f.ToString()}"
-                    : f.ToString()));
+        var str =
+            Args.Length == 0
+                ? string.Empty
+                : string.Join(
+                    ", ",
+                    Args.Select(
+                        (f, index) => ArgumentNames[index] is { } name ? $"{name.Name}: {f.ToString()}" : f.ToString()
+                    )
+                );
         return $"({str})";
     }
 }

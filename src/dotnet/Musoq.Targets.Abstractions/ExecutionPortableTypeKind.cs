@@ -14,5 +14,5 @@ public enum ExecutionPortableTypeKind
     GenericParameter,
     ByRef,
     HostOpaque,
-    ClrOnly
+    ClrOnly,
 }

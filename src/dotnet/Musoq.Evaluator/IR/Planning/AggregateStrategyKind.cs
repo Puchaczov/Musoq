@@ -5,5 +5,5 @@ internal enum AggregateStrategyKind
     AggregateOnly,
     SingleKey,
     ValueTuple,
-    Unsupported
+    Unsupported,
 }

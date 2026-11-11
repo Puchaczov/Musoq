@@ -117,5 +117,4 @@ public partial class NoOpExpressionVisitorTests
 
         visitor.Visit(node);
     }
-
 }

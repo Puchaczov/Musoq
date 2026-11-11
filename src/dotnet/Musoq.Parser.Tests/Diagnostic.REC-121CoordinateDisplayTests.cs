@@ -36,7 +36,11 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         Assert.AreEqual(candidate.ExpectedEndColumn, locations.End.Column, candidate.CaseId);
         Assert.AreEqual(candidate.ExpectedLineText, source.GetLineText(candidate.ExpectedLine), candidate.CaseId);
         Assert.AreEqual(candidate.ExpectedText, source.GetText(span), candidate.CaseId);
-        Assert.AreEqual(candidate.ExpectedText, source.Text.Substring(candidate.Offset, candidate.Length), candidate.CaseId);
+        Assert.AreEqual(
+            candidate.ExpectedText,
+            source.Text.Substring(candidate.Offset, candidate.Length),
+            candidate.CaseId
+        );
     }
 
     [TestMethod]
@@ -104,7 +108,8 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         var lines = formatted.Split(Environment.NewLine, StringSplitOptions.None);
         var displayLineIndex = Array.FindIndex(
             lines,
-            line => line.Contains(" | " + candidate.ExpectedDisplayLine, StringComparison.Ordinal));
+            line => line.Contains(" | " + candidate.ExpectedDisplayLine, StringComparison.Ordinal)
+        );
         Assert.IsGreaterThanOrEqualTo(0, displayLineIndex, candidate.CaseId);
         var caretLine = lines[displayLineIndex + 1];
         var separator = caretLine.IndexOf("| ", StringComparison.Ordinal);
@@ -121,7 +126,8 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         var lexer = new Lexer(candidate.Schema, true, recoverOnError: true);
         var exception = Assert.ThrowsExactly<SyntaxException>(
             () => new SchemaParser(lexer).ParseSchema(),
-            candidate.CaseId);
+            candidate.CaseId
+        );
         var expectedSpan = new TextSpan(candidate.Offset, "middle".Length);
 
         Assert.AreEqual(DiagnosticCode.MQ4005_InvalidEndianness, exception.Code, candidate.CaseId);
@@ -154,7 +160,8 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         Assert.HasCount(12, DisplayCases);
         Assert.HasCount(12, SchemaCases);
 
-        var ids = SourceCases.Select(static item => item.CaseId)
+        var ids = SourceCases
+            .Select(static item => item.CaseId)
             .Concat(ParseCases.Select(static item => item.CaseId))
             .Concat(DisplayCases.Select(static item => item.CaseId))
             .Concat(SchemaCases.Select(static item => item.CaseId))
@@ -187,7 +194,7 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         new("S09", "e\u0301@", 3, 2, 1, 1, 3, 1, 4, 1, "e\u0301@", "@"),
         new("S10", "界@", 2, 1, 1, 1, 2, 1, 3, 1, "界@", "@"),
         new("S11", "\t😀\t@", 5, 4, 1, 1, 5, 1, 6, 1, "\t😀\t@", "@"),
-        new("S12", "pre\r\n\t界@", 8, 7, 1, 2, 3, 2, 4, 2, "\t界@", "@")
+        new("S12", "pre\r\n\t界@", 8, 7, 1, 2, 3, 2, 4, 2, "\t界@", "@"),
     ];
 
     private static readonly ParseDiagnosticCase[] ParseCases =
@@ -203,7 +210,7 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         new("P09", "-- \t界\nselect @", 13, 2, 8),
         new("P10", "select 1\r\n\t@", 11, 2, 2),
         new("P11", "select 1\n\t@", 10, 2, 2),
-        new("P12", "-- wide 界\r\n@", 11, 2, 1)
+        new("P12", "-- wide 界\r\n@", 11, 2, 1),
     ];
 
     private static readonly DisplayCoordinateCase[] DisplayCases =
@@ -219,7 +226,7 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         new("D09", "\0@", 1, 1, 2, "\0@", "\\u0000@", 7),
         new("D10", "a\b@", 2, 1, 3, "a\b@", "a\\b@", 4),
         new("D11", "a\f@", 2, 1, 3, "a\f@", "a\\f@", 4),
-        new("D12", "x\t😀\te\u0301@", 7, 1, 8, "x\t😀\te\u0301@", "x   😀  e\u0301@", 10)
+        new("D12", "x\t😀\te\u0301@", 7, 1, 8, "x\t😀\te\u0301@", "x   😀  e\u0301@", 10),
     ];
 
     private static readonly SchemaDiagnosticCase[] SchemaCases =
@@ -235,7 +242,7 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         new("B09", "-- e\u0301\nbinary Packet {\n Value: int middle\n}", 34, 3, 13),
         new("B10", "-- 界\nbinary Packet {\n\tValue: int middle\n}", 33, 3, 13),
         new("B11", "binary Packet {\r\n\t-- 😀\r\n\tValue: int middle\r\n}", 37, 3, 13),
-        new("B12", "binary Packet {\n\tValue: int middle}", 28, 2, 13)
+        new("B12", "binary Packet {\n\tValue: int middle}", 28, 2, 13),
     ];
 
     private sealed record SourceCoordinateCase(
@@ -250,14 +257,16 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         int ExpectedEndColumn,
         int ExpectedLineCount,
         string ExpectedLineText,
-        string ExpectedText);
+        string ExpectedText
+    );
 
     private sealed record ParseDiagnosticCase(
         string CaseId,
         string Query,
         int Offset,
         int ExpectedLine,
-        int ExpectedColumn);
+        int ExpectedColumn
+    );
 
     private sealed record DisplayCoordinateCase(
         string CaseId,
@@ -267,12 +276,14 @@ public sealed class DiagnosticREC121CoordinateDisplayTests
         int ExpectedColumn,
         string RawLine,
         string ExpectedDisplayLine,
-        int ExpectedDisplayColumn);
+        int ExpectedDisplayColumn
+    );
 
     private sealed record SchemaDiagnosticCase(
         string CaseId,
         string Schema,
         int Offset,
         int ExpectedLine,
-        int ExpectedColumn);
+        int ExpectedColumn
+    );
 }

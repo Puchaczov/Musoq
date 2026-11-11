@@ -16,9 +16,7 @@ internal static partial class PlanningPropertyDeriver
         var decisions = new List<PlanningDecision>();
         var scans = CollectSchemaScans(context.LogicalPlan, context.CancellationToken);
         context.CancellationToken.ThrowIfCancellationRequested();
-        var requiredColumnUsageResult = RequiredColumnUsagePlanner.Plan(
-            context.LogicalPlan,
-            context.CancellationToken);
+        var requiredColumnUsageResult = RequiredColumnUsagePlanner.Plan(context.LogicalPlan, context.CancellationToken);
         context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(requiredColumnUsageResult.Decisions);
         var requiredColumnsByAlias = requiredColumnUsageResult.RequiredColumnsByAlias;
@@ -26,43 +24,55 @@ internal static partial class PlanningPropertyDeriver
             context.UsedWhereNodes,
             context.InferredColumns,
             context.LogicalPlan,
-            context.UsedSchemaColumns);
+            context.UsedSchemaColumns
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var pushedPredicates = sourcePredicatePlanningResult.PushedPredicatesBySourceId;
         var preliminaryDecisions = new List<PlanningDecision>();
-        var sources = CreateSourceProperties(context, scans, requiredColumnsByAlias, pushedPredicates, preliminaryDecisions);
+        var sources = CreateSourceProperties(
+            context,
+            scans,
+            requiredColumnsByAlias,
+            pushedPredicates,
+            preliminaryDecisions
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var sourceInteractionForMovement = SourceInteractionPlanner.Plan(
             context,
             scans,
             sources,
-            sourcePredicatePlanningResult.PlansBySourceId);
+            sourcePredicatePlanningResult.PlansBySourceId
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var predicatePlacementPlanningResult = PredicatePlacementPlanner.Plan(
             context.LogicalPlan,
             sources,
-            sourcePredicatePlanningResult.PlansBySourceId);
+            sourcePredicatePlanningResult.PlansBySourceId
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(predicatePlacementPlanningResult.Decisions);
         var predicateMovementPlanningResult = PredicateMovementPlanner.Plan(
             context.LogicalPlan,
             sources,
             sourcePredicatePlanningResult.PlansBySourceId,
-            sourceInteractionForMovement.PlansBySourceId);
+            sourceInteractionForMovement.PlansBySourceId
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(predicateMovementPlanningResult.Decisions);
 
         sourcePredicatePlanningResult = SourcePredicatePlanner.ExpandWithPredicateMovements(
             sourcePredicatePlanningResult,
             sources,
-            predicateMovementPlanningResult.Plans);
+            predicateMovementPlanningResult.Plans
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         sourcePredicatePlanningResult = sourcePredicatePlanningResult with
         {
             PlansBySourceId = sourcePredicatePlanningResult.PlansBySourceId.ToDictionary(
                 static entry => entry.Key,
                 entry => entry.Value with { RegexMatchTimeout = context.CompilationOptions.RegexMatchTimeout },
-                StringComparer.Ordinal)
+                StringComparer.Ordinal
+            ),
         };
         decisions.AddRange(sourcePredicatePlanningResult.Decisions);
         pushedPredicates = sourcePredicatePlanningResult.PushedPredicatesBySourceId;
@@ -72,8 +82,7 @@ internal static partial class PlanningPropertyDeriver
         foreach (var source in sources.Values)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
-            if (source.QueryRowProjection.State == SourceProjectionState.Exact ||
-                source.ProjectedColumns.Length > 0)
+            if (source.QueryRowProjection.State == SourceProjectionState.Exact || source.ProjectedColumns.Length > 0)
                 projectedColumns[source.SourceContextId] = source.ProjectedColumns;
         }
 
@@ -91,21 +100,24 @@ internal static partial class PlanningPropertyDeriver
             context,
             scans,
             sources,
-            sourcePredicatePlanningResult.PlansBySourceId);
+            sourcePredicatePlanningResult.PlansBySourceId
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(sourceInteractionPlanningResult.Decisions);
         var sourcePlanningResult = SourcePlanningPlanner.Plan(
             context,
             scans,
             requiredColumnUsageResult.UsagesBySourceId,
-            sourcePredicatePlanningResult.PlansBySourceId);
+            sourcePredicatePlanningResult.PlansBySourceId
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(sourcePlanningResult.Decisions);
         var applyPredicateMovementPlanningResult = ApplyPredicateMovementPlanner.Plan(
             context.LogicalPlan,
             sources,
             sourcePlanningResult.ResultsBySourceId,
-            sourcePredicatePlanningResult.PlansBySourceId);
+            sourcePredicatePlanningResult.PlansBySourceId
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         decisions.AddRange(applyPredicateMovementPlanningResult.Decisions);
 
@@ -122,40 +134,43 @@ internal static partial class PlanningPropertyDeriver
                 sourcePlanningResult.DescriptorsBySourceId,
                 sourceInteractionPlanningResult.BoundaryPlans,
                 sourceInteractionPlanningResult.BoundaryStrategyPlans,
-                new Dictionary<string, SourceContractDiagnosticLocationMap>(StringComparer.Ordinal)),
+                new Dictionary<string, SourceContractDiagnosticLocationMap>(StringComparer.Ordinal)
+            ),
             new RequiredColumnFacts(
                 requiredColumnsByAlias,
                 requiredColumnUsageResult.UsagesBySourceId,
                 requiredColumnMappingPlans,
-                []),
+                []
+            ),
             new PhysicalStrategyFacts(
                 predicatePlacementPlanningResult.Plans,
                 predicateMovementPlanningResult.Plans,
-                applyPredicateMovementPlanningResult.Plans),
-            new BoundaryPruningFacts(
-                [],
-                []),
-            new CardinalityPlanningFacts([]));
+                applyPredicateMovementPlanningResult.Plans
+            ),
+            new BoundaryPruningFacts([], []),
+            new CardinalityPlanningFacts([])
+        );
         var factsWithLocations = SourceContractDiagnosticLocationPlanner
             .WithLocations(facts.ToPlanProperties(), context, scans)
             .ToFacts();
         context.CancellationToken.ThrowIfCancellationRequested();
 
-        decisions.Add(new PlanningDecision(
-            PlanningDecisionCategory.PlanProperties,
-            "DeriveProperties",
-            "logical-plan",
-            "Derived",
-            PlanningConfidence.High,
-            $"Derived properties for {sources.Count} source scan(s)."));
+        decisions.Add(
+            new PlanningDecision(
+                PlanningDecisionCategory.PlanProperties,
+                "DeriveProperties",
+                "logical-plan",
+                "Derived",
+                PlanningConfidence.High,
+                $"Derived properties for {sources.Count} source scan(s)."
+            )
+        );
 
         context.CancellationToken.ThrowIfCancellationRequested();
         return new PlanningPropertyResult(factsWithLocations, decisions, sourcePlanningResult.ComputedTransfers);
     }
 
-    private static List<SchemaScanNode> CollectSchemaScans(
-        LogicalNode node,
-        CancellationToken cancellationToken)
+    private static List<SchemaScanNode> CollectSchemaScans(LogicalNode node, CancellationToken cancellationToken)
     {
         var scans = new List<SchemaScanNode>();
         AddSchemaScans(node, scans, cancellationToken);
@@ -166,7 +181,8 @@ internal static partial class PlanningPropertyDeriver
     private static void AddSchemaScans(
         LogicalNode node,
         List<SchemaScanNode> scans,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (node is SchemaScanNode scan)
@@ -181,8 +197,6 @@ internal static partial class PlanningPropertyDeriver
 
     private static string FormatSource(SchemaScanNode scan)
     {
-        return string.IsNullOrWhiteSpace(scan.SourceContextId)
-            ? scan.Alias
-            : scan.SourceContextId;
+        return string.IsNullOrWhiteSpace(scan.SourceContextId) ? scan.Alias : scan.SourceContextId;
     }
 }

@@ -5,7 +5,8 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-    private static byte[]? GetBytesNullable<T>(T? value, Func<T, byte[]> converter) where T : struct
+    private static byte[]? GetBytesNullable<T>(T? value, Func<T, byte[]> converter)
+        where T : struct
     {
         if (value == null)
             return null;

@@ -19,7 +19,8 @@ public sealed class RawStringLiteralPipelineGapTests
             @"select f.Path from #raw.files(R'C:\new\test', true) f",
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var sourceScan = result.ExecutionPlan!.Body.Nodes.OfType<ExecutionSourceScan>().Single();
         var path = (ExecutionLiteral)sourceScan.Binding.Arguments[0];
@@ -35,13 +36,15 @@ public sealed class RawStringLiteralPipelineGapTests
     [DataRow(@"\\.\pipe\name")]
     [DataRow(@"C:\Temp\")]
     public void CompileForExecution_WhenUppercaseRawSourceArgumentContainsWindowsPath_ShouldPreserveIt(
-        string expectedPath)
+        string expectedPath
+    )
     {
         var compiled = InstanceCreator.CompileForExecution(
             $"select f.Path from #raw.files(R'{expectedPath}', true) f",
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var table = compiled.Run();
 
@@ -56,7 +59,8 @@ public sealed class RawStringLiteralPipelineGapTests
             @"select R'' as Empty, R'a''b' as Quoted from #raw.files(R'row', true)",
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var table = compiled.Run();
 
@@ -69,13 +73,16 @@ public sealed class RawStringLiteralPipelineGapTests
     public void CompileForExecution_WhenRawBackslashesReachLikeAndRlike_ShouldMatchExpectedPath()
     {
         var compiled = InstanceCreator.CompileForExecution(
-            @"select
-    f.Path like R'C:\logs\%.log' as LikeMatch,
-    f.Path rlike R'C:\\logs\\.*\.log' as RlikeMatch
-from #raw.files(R'C:\logs\app.log', true) f",
+            (
+                "select\n"
+                + "    f.Path like R'C:\\logs\\%.log' as LikeMatch,\n"
+                + "    f.Path rlike R'C:\\\\logs\\\\.*\\.log' as RlikeMatch\n"
+                + "from #raw.files(R'C:\\logs\\app.log', true) f"
+            ),
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var table = compiled.Run();
 
@@ -88,14 +95,17 @@ from #raw.files(R'C:\logs\app.log', true) f",
     public void CompileForExecution_WhenUppercaseRawLiteralIsAssignedToScriptVariable_ShouldPreserveValue()
     {
         var compiled = InstanceCreator.CompileForExecution(
-            @"
-let path: string = R'C:\A';
-select f.Path
-from #raw.files($path, true) f
-where f.Path = $path",
+            (
+                "\n"
+                + "let path: string = R'C:\\A';\n"
+                + "select f.Path\n"
+                + "from #raw.files($path, true) f\n"
+                + "where f.Path = $path"
+            ),
             Guid.NewGuid().ToString(),
             new RawStringLiteralSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var table = compiled.Run();
 

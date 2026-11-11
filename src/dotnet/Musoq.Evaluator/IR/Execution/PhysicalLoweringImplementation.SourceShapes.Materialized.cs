@@ -2,21 +2,21 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static TableRowShape CreateMaterializedTransitionTableRowShape(
-        string alias,
-        GeneratedRowShape rowShape)
+    private static TableRowShape CreateMaterializedTransitionTableRowShape(string alias, GeneratedRowShape rowShape)
     {
         return CreateMaterializedTransitionTableRowShape(
             alias,
             rowShape,
-            field => CreateStoredGeneratedRowAccess(rowShape, field));
+            field => CreateStoredGeneratedRowAccess(rowShape, field)
+        );
     }
 
     private static TableRowShape CreateMaterializedTransitionTableRowShape(
         string alias,
         GeneratedRowShape rowShape,
         Func<FieldBinding, FieldAccessStrategy> createAccess,
-        bool useTypedContextAccess = false)
+        bool useTypedContextAccess = false
+    )
     {
         return new TableRowShape(
             alias,
@@ -24,23 +24,27 @@ internal sealed partial class PhysicalLoweringImplementation
             useTypedContextAccess && rowShape.SupportsGeneratedFieldAccess
                 ? CreateTypedStoredGeneratedRowContextBindings(rowShape)
                 : rowShape.Contexts,
-            rowShape.TypeName);
+            rowShape.TypeName
+        );
     }
 
     private static TableRowShape CreateTypedMaterializedTransitionTableRowShape(
         string alias,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape
+    )
     {
         return CreateMaterializedTransitionTableRowShape(
             alias,
             rowShape,
-            field => rowShape.SupportsGeneratedFieldAccess ? field.AccessStrategy : new PositionalAccess(field.OutputIndex, field.Type),
-            useTypedContextAccess: true);
+            field =>
+                rowShape.SupportsGeneratedFieldAccess
+                    ? field.AccessStrategy
+                    : new PositionalAccess(field.OutputIndex, field.Type),
+            useTypedContextAccess: true
+        );
     }
 
-    private static FieldAccessStrategy CreateStoredGeneratedRowAccess(
-        GeneratedRowShape rowShape,
-        FieldBinding field)
+    private static FieldAccessStrategy CreateStoredGeneratedRowAccess(GeneratedRowShape rowShape, FieldBinding field)
     {
         if (!rowShape.SupportsGeneratedFieldAccess)
             return new PositionalAccess(field.OutputIndex, field.Type);
@@ -52,7 +56,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static FieldAccessStrategy CreateTypedStoredGeneratedRowAccess(
         GeneratedRowShape rowShape,
-        FieldBinding field)
+        FieldBinding field
+    )
     {
         if (!rowShape.SupportsGeneratedFieldAccess)
             return new PositionalAccess(field.OutputIndex, field.Type);
@@ -61,5 +66,4 @@ internal sealed partial class PhysicalLoweringImplementation
             ? generated
             : new GeneratedFieldAccess(field.Name);
     }
-
 }

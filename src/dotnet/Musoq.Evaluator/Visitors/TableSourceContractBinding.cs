@@ -24,27 +24,45 @@ internal static class TableSourceContractBinding
         var syntax = table.Declaration.Columns.Single(column => column.ColumnName == declared.ColumnName);
         var matches = source.GetColumnsByName(declared.ColumnName);
         if (matches.Length == 0)
-            throw Failure(table, syntax, DiagnosticCode.MQ3001_UnknownColumn,
-                $"TABLE '{table.Declaration.Name}' declares column '{declared.ColumnName}', which the datasource does not expose. " +
-                "Declare an existing datasource column.");
+            throw Failure(
+                table,
+                syntax,
+                DiagnosticCode.MQ3001_UnknownColumn,
+                $"TABLE '{table.Declaration.Name}' declares column '{declared.ColumnName}', which the datasource does not expose. "
+                    + "Declare an existing datasource column."
+            );
         if (matches.Length != 1)
-            throw Failure(table, syntax, DiagnosticCode.MQ3002_AmbiguousColumn,
-                $"TABLE '{table.Declaration.Name}' column '{declared.ColumnName}' matches multiple datasource columns. " +
-                "Use an unambiguous datasource column name.");
+            throw Failure(
+                table,
+                syntax,
+                DiagnosticCode.MQ3002_AmbiguousColumn,
+                $"TABLE '{table.Declaration.Name}' column '{declared.ColumnName}' matches multiple datasource columns. "
+                    + "Use an unambiguous datasource column name."
+            );
 
         var provider = matches[0];
         var expectedType = declared.ColumnType;
-        if (source.Metadata.TypeOrigin == TableSchemaTypeOrigin.ProviderDefined &&
-            !syntax.TypeName.EndsWith("?", StringComparison.Ordinal))
+        if (
+            source.Metadata.TypeOrigin == TableSchemaTypeOrigin.ProviderDefined
+            && !syntax.TypeName.EndsWith("?", StringComparison.Ordinal)
+        )
             expectedType = Nullable.GetUnderlyingType(expectedType) ?? expectedType;
 
-        if (provider.ColumnType != expectedType ||
-            (source.Metadata.TypeOrigin == TableSchemaTypeOrigin.ProviderDefined &&
-             provider.EnumType?.Fingerprint != declared.EnumType?.Fingerprint))
-            throw Failure(table, syntax, DiagnosticCode.MQ3005_TypeMismatch,
-                $"TABLE '{table.Declaration.Name}' column '{declared.ColumnName}' declares {DescribeType(expectedType, declared.EnumType)}, " +
-                $"but the datasource exposes {DescribeType(provider.ColumnType, provider.EnumType)}. " +
-                MatchingDeclarationSuggestion(provider));
+        if (
+            provider.ColumnType != expectedType
+            || (
+                source.Metadata.TypeOrigin == TableSchemaTypeOrigin.ProviderDefined
+                && provider.EnumType?.Fingerprint != declared.EnumType?.Fingerprint
+            )
+        )
+            throw Failure(
+                table,
+                syntax,
+                DiagnosticCode.MQ3005_TypeMismatch,
+                $"TABLE '{table.Declaration.Name}' column '{declared.ColumnName}' declares {DescribeType(expectedType, declared.EnumType)}, "
+                    + $"but the datasource exposes {DescribeType(provider.ColumnType, provider.EnumType)}. "
+                    + MatchingDeclarationSuggestion(provider)
+            );
 
         return provider;
     }
@@ -69,16 +87,26 @@ internal static class TableSourceContractBinding
         var typeName = column.EnumType.DisplayName;
         if (Nullable.GetUnderlyingType(column.ColumnType) is not null)
             typeName += "?";
-        return $"Declare '{column.ColumnName}: {typeName}'. " +
-               "Use a query-local ENUM with the identical backing type, flags contract, and members.";
+        return $"Declare '{column.ColumnName}: {typeName}'. "
+            + "Use a query-local ENUM with the identical backing type, flags contract, and members.";
     }
 
-    private static VisitorException Failure(DeclaredTableSchema table, CreateTableColumnDefinition column,
-        DiagnosticCode code, string message)
+    private static VisitorException Failure(
+        DeclaredTableSchema table,
+        CreateTableColumnDefinition column,
+        DiagnosticCode code,
+        string message
+    )
     {
         var span = column.Span;
         if (span.IsEmpty)
             span = table.Declaration.SpanOrEmpty();
-        return new VisitorException(nameof(BuildMetadataAndInferTypesVisitor), "BindTableSourceContract", message, code, span);
+        return new VisitorException(
+            nameof(BuildMetadataAndInferTypesVisitor),
+            "BindTableSourceContract",
+            message,
+            code,
+            span
+        );
     }
 }

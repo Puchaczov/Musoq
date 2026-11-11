@@ -28,11 +28,12 @@ public sealed class LoopInvariantCodeMotionPassTests
                         new ExecutionForEach(
                             Var("c", typeof(object)),
                             Rows("cRows"),
-                            new ExecutionBlock([
-                                Append(Field("a", "Value"), Field("b", "Value"), Field("c", "Value"))
-                            ]))
-                    ]))
-            ]));
+                            new ExecutionBlock([Append(Field("a", "Value"), Field("b", "Value"), Field("c", "Value"))])
+                        ),
+                    ])
+                ),
+            ])
+        );
 
         var result = Optimize(outer);
 
@@ -61,16 +62,15 @@ public sealed class LoopInvariantCodeMotionPassTests
             BinaryOpKind.Add,
             Field("a", "Value"),
             new ExecutionLiteral(1, typeof(int)),
-            typeof(int));
+            typeof(int)
+        );
         var outer = new ExecutionForEach(
             Var("a", typeof(object)),
             Rows("aRows"),
             new ExecutionBlock([
-                new ExecutionForEach(
-                    Var("b", typeof(object)),
-                    Rows("bRows"),
-                    new ExecutionBlock([Append(expression)]))
-            ]));
+                new ExecutionForEach(Var("b", typeof(object)), Rows("bRows"), new ExecutionBlock([Append(expression)])),
+            ])
+        );
 
         var result = Optimize(outer);
 
@@ -87,11 +87,7 @@ public sealed class LoopInvariantCodeMotionPassTests
     public void Optimize_WhenParentDependsOnInnerRow_ShouldRecursivelyHoistStableOuterChild()
     {
         var outerRead = Field("a", "Value");
-        var expression = new ExecutionBinary(
-            BinaryOpKind.Add,
-            outerRead,
-            Field("b", "Value"),
-            typeof(int));
+        var expression = new ExecutionBinary(BinaryOpKind.Add, outerRead, Field("b", "Value"), typeof(int));
         var outer = new ExecutionForEach(
             Var("a", typeof(object)),
             Rows("aRows"),
@@ -103,9 +99,12 @@ public sealed class LoopInvariantCodeMotionPassTests
                         new ExecutionForEach(
                             Var("c", typeof(object)),
                             Rows("cRows"),
-                            new ExecutionBlock([Append(expression)]))
-                    ]))
-            ]));
+                            new ExecutionBlock([Append(expression)])
+                        ),
+                    ])
+                ),
+            ])
+        );
 
         var result = Optimize(outer);
 
@@ -132,8 +131,10 @@ public sealed class LoopInvariantCodeMotionPassTests
                 new ExecutionForEach(
                     Var("b", typeof(object)),
                     Rows("bRows"),
-                    new ExecutionBlock([Append(volatileRead)]))
-            ]));
+                    new ExecutionBlock([Append(volatileRead)])
+                ),
+            ])
+        );
 
         var result = Optimize(outer);
 
@@ -154,11 +155,11 @@ public sealed class LoopInvariantCodeMotionPassTests
                     Var("b", typeof(object)),
                     Rows("bRows"),
                     new ExecutionBlock([
-                        new ExecutionIf(
-                            new ExecutionLiteral(true, typeof(bool)),
-                            new ExecutionBlock([Append(read)]))
-                    ]))
-            ]));
+                        new ExecutionIf(new ExecutionLiteral(true, typeof(bool)), new ExecutionBlock([Append(read)])),
+                    ])
+                ),
+            ])
+        );
 
         var result = Optimize(outer);
 
@@ -179,9 +180,12 @@ public sealed class LoopInvariantCodeMotionPassTests
                         new ExecutionForEach(
                             Var("b", typeof(object)),
                             Rows("bRows"),
-                            new ExecutionBlock([Append(Field("a", "Value"))]))
-                    ]))
-            ]));
+                            new ExecutionBlock([Append(Field("a", "Value"))])
+                        ),
+                    ])
+                ),
+            ])
+        );
 
         var result = Optimize(outer);
 
@@ -203,14 +207,10 @@ public sealed class LoopInvariantCodeMotionPassTests
             Var("a", typeof(object)),
             Rows("aRows"),
             new ExecutionBlock([
-                new ExecutionForEach(
-                    Var("b", typeof(object)),
-                    Rows("bRows"),
-                    new ExecutionBlock([Append(read)])),
-                new ExecutionIf(
-                    new ExecutionLiteral(true, typeof(bool)),
-                    new ExecutionBlock([Append(read)]))
-            ]));
+                new ExecutionForEach(Var("b", typeof(object)), Rows("bRows"), new ExecutionBlock([Append(read)])),
+                new ExecutionIf(new ExecutionLiteral(true, typeof(bool)), new ExecutionBlock([Append(read)])),
+            ])
+        );
 
         var result = Optimize(outer);
 
@@ -238,14 +238,18 @@ public sealed class LoopInvariantCodeMotionPassTests
                     Var("bRows", typeof(object)),
                     ExecutionRowAccessMode.Direct,
                     new ExecutionBlock([
-                        Append(new ExecutionBinary(
-                            BinaryOpKind.Add,
-                            new ExecutionVariableRead(ordinal),
-                            new ExecutionLiteral(1L, typeof(long)),
-                            typeof(long)))
+                        Append(
+                            new ExecutionBinary(
+                                BinaryOpKind.Add,
+                                new ExecutionVariableRead(ordinal),
+                                new ExecutionLiteral(1L, typeof(long)),
+                                typeof(long)
+                            )
+                        ),
                     ])
-                )
-            ]));
+                ),
+            ])
+        );
 
         var result = Optimize(indexed);
 
@@ -266,8 +270,10 @@ public sealed class LoopInvariantCodeMotionPassTests
                 new ExecutionForEach(
                     Var("b", typeof(object)),
                     Rows("bRows"),
-                    new ExecutionBlock([Append(Field("a", "Value"))]))
-            ]));
+                    new ExecutionBlock([Append(Field("a", "Value"))])
+                ),
+            ])
+        );
 
         var result = Optimize(outer);
 
@@ -286,8 +292,10 @@ public sealed class LoopInvariantCodeMotionPassTests
                 new ExecutionForEach(
                     Var("b", typeof(object)),
                     Rows("bRows"),
-                    new ExecutionBlock([Append(Field("a", "Value"))]))
-            ]));
+                    new ExecutionBlock([Append(Field("a", "Value"))])
+                ),
+            ])
+        );
 
         var first = Optimize(outer).Plan;
         var second = OptimizePlan(first);
@@ -306,8 +314,10 @@ public sealed class LoopInvariantCodeMotionPassTests
                 new ExecutionForEach(
                     Var("b", typeof(object)),
                     Rows("bRows"),
-                    new ExecutionBlock([Append(Field("a", "Value"))]))
-            ]));
+                    new ExecutionBlock([Append(Field("a", "Value"))])
+                ),
+            ])
+        );
 
         var result = Optimize(outer, enabled: false);
 
@@ -316,18 +326,12 @@ public sealed class LoopInvariantCodeMotionPassTests
         StringAssert.Contains(result.Reason, "disabled");
     }
 
-    private static OptimizationResult<ExecutionPlan> Optimize(
-        ExecutionNode node,
-        bool enabled = true)
+    private static OptimizationResult<ExecutionPlan> Optimize(ExecutionNode node, bool enabled = true)
     {
-        return OptimizePlan(
-            new ExecutionPlan("compiled", [], new ExecutionBlock([node])),
-            enabled);
+        return OptimizePlan(new ExecutionPlan("compiled", [], new ExecutionBlock([node])), enabled);
     }
 
-    private static OptimizationResult<ExecutionPlan> OptimizePlan(
-        ExecutionPlan plan,
-        bool enabled = true)
+    private static OptimizationResult<ExecutionPlan> OptimizePlan(ExecutionPlan plan, bool enabled = true)
     {
         return new LoopInvariantCodeMotionPass().Optimize(
             plan,
@@ -335,7 +339,9 @@ public sealed class LoopInvariantCodeMotionPassTests
                 OptimizationStage.ExecutionIrOptimization,
                 trace: null,
                 new OptimizationOptions { LoopInvariantCodeMotionEnabled = enabled },
-                OptimizationContextState.Empty));
+                OptimizationContextState.Empty
+            )
+        );
     }
 
     private static ExecutionVariable Var(string name, Type type) => new(name, type);
@@ -343,24 +349,30 @@ public sealed class LoopInvariantCodeMotionPassTests
     private static ExecutionExpression Rows(string name) =>
         new ExecutionRowStream(Var(name, typeof(object)), ExecutionRowStreamKind.Rows);
 
-    private static ExecutionFieldRead Field(string alias, string name) =>
-        new(alias, name, typeof(int));
+    private static ExecutionFieldRead Field(string alias, string name) => new(alias, name, typeof(int));
 
     private static ExecutionAppendRow Append(params ExecutionExpression[] values)
     {
         var shape = new GeneratedRowShape(
             "Result",
-            values.Select((value, index) => new FieldBinding(
-                    $"Value{index}",
-                    $"Value{index}",
-                    index,
-                    value.ReturnType.ResolveClrType(),
-                    FieldNullability.Unknown,
-                    new GeneratedFieldAccess($"Value{index}")))
-                .ToArray());
+            values
+                .Select(
+                    (value, index) =>
+                        new FieldBinding(
+                            $"Value{index}",
+                            $"Value{index}",
+                            index,
+                            value.ReturnType.ResolveClrType(),
+                            FieldNullability.Unknown,
+                            new GeneratedFieldAccess($"Value{index}")
+                        )
+                )
+                .ToArray()
+        );
         return new ExecutionAppendRow(
             Var("result", typeof(object)),
             shape,
-            values.Select((value, index) => new ExecutionRowValue($"Value{index}", value)).ToArray());
+            values.Select((value, index) => new ExecutionRowValue($"Value{index}", value)).ToArray()
+        );
     }
 }

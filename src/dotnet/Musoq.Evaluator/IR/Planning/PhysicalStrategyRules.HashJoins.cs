@@ -15,7 +15,8 @@ internal static partial class PhysicalStrategyRules
         IrExpression predicate,
         PhysicalNode left,
         PhysicalNode right,
-        IReadOnlyList<CardinalityFact>? cardinalityFacts)
+        IReadOnlyList<CardinalityFact>? cardinalityFacts
+    )
     {
         if (kind is JoinKind.AsofInner or JoinKind.AsofLeft or JoinKind.Cross)
             return null;
@@ -33,7 +34,8 @@ internal static partial class PhysicalStrategyRules
             leftKeys,
             rightKeys,
             residuals,
-            kind is JoinKind.LeftSemi or JoinKind.LeftAntiSemi or JoinKind.LeftMark);
+            kind is JoinKind.LeftSemi or JoinKind.LeftAntiSemi or JoinKind.LeftMark
+        );
         if (leftKeys.Count == 0)
             return null;
 
@@ -49,7 +51,8 @@ internal static partial class PhysicalStrategyRules
         PhysicalNode left,
         PhysicalNode right,
         IReadOnlyList<CardinalityFact>? cardinalityFacts,
-        out string reason)
+        out string reason
+    )
     {
         reason = string.Empty;
 
@@ -61,24 +64,29 @@ internal static partial class PhysicalStrategyRules
 
         if (kind is JoinKind.LeftSemi or JoinKind.LeftAntiSemi or JoinKind.LeftMark or JoinKind.LeftSingle)
         {
-            reason = "Semi, anti-semi, mark, and single joins keep the right side as the hash build side to preserve join semantics.";
+            reason =
+                "Semi, anti-semi, mark, and single joins keep the right side as the hash build side to preserve join semantics.";
             return false;
         }
 
-        if (SourceCardinalityHashBuildAdvisor.TryChooseBuildSide(
+        if (
+            SourceCardinalityHashBuildAdvisor.TryChooseBuildSide(
                 kind,
                 left,
                 right,
                 cardinalityFacts,
                 out var buildOnLeft,
-                out reason))
+                out reason
+            )
+        )
         {
             return buildOnLeft;
         }
 
         if (kind == JoinKind.Inner && left is PhysicalCteRefNode && right is PhysicalSchemaScanNode)
         {
-            reason = "Runtime v2 build-side selector keeps the CTE side as the hash build side for this CTE-to-source inner join.";
+            reason =
+                "Runtime v2 build-side selector keeps the CTE side as the hash build side for this CTE-to-source inner join.";
             return true;
         }
 
@@ -95,16 +103,40 @@ internal static partial class PhysicalStrategyRules
         List<IrExpression> leftKeys,
         List<IrExpression> rightKeys,
         List<IrExpression> residuals,
-        bool allowConstantKeys)
+        bool allowConstantKeys
+    )
     {
         switch (expression)
         {
             case BinaryOp { Kind: BinaryOpKind.And } and:
-                CollectHashJoinConditions(and.Left, leftAliases, rightAliases, leftKeys, rightKeys, residuals, allowConstantKeys);
-                CollectHashJoinConditions(and.Right, leftAliases, rightAliases, leftKeys, rightKeys, residuals, allowConstantKeys);
+                CollectHashJoinConditions(
+                    and.Left,
+                    leftAliases,
+                    rightAliases,
+                    leftKeys,
+                    rightKeys,
+                    residuals,
+                    allowConstantKeys
+                );
+                CollectHashJoinConditions(
+                    and.Right,
+                    leftAliases,
+                    rightAliases,
+                    leftKeys,
+                    rightKeys,
+                    residuals,
+                    allowConstantKeys
+                );
                 return;
             case BinaryOp { Kind: BinaryOpKind.Equal } equality
-                when TryMapEqualityCondition(equality, leftAliases, rightAliases, leftKeys, rightKeys, allowConstantKeys):
+                when TryMapEqualityCondition(
+                    equality,
+                    leftAliases,
+                    rightAliases,
+                    leftKeys,
+                    rightKeys,
+                    allowConstantKeys
+                ):
                 return;
             default:
                 residuals.Add(expression);
@@ -120,11 +152,7 @@ internal static partial class PhysicalStrategyRules
         var residual = residuals[0];
         for (var i = 1; i < residuals.Count; i++)
         {
-            residual = new BinaryOp(
-                BinaryOpKind.And,
-                residual,
-                residuals[i],
-                typeof(bool));
+            residual = new BinaryOp(BinaryOpKind.And, residual, residuals[i], typeof(bool));
         }
 
         return residual;

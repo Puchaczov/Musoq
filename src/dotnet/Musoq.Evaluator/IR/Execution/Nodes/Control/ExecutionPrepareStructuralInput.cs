@@ -4,7 +4,8 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionPrepareStructuralInput(
     ExecutionVariable Target,
     ExecutionExpression Input,
-    ExecutionStructuralConstructionPlan Plan) : ExecutionNode
+    ExecutionStructuralConstructionPlan Plan
+) : ExecutionNode
 {
     public ExecutionVariable Target { get; } = Target ?? throw new ArgumentNullException(nameof(Target));
 

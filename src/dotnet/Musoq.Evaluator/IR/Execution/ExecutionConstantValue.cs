@@ -25,7 +25,8 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
         ExecutionTypeRef? enumType = null,
         ExecutionConstantValue? enumUnderlyingValue = null,
         ExecutionTypeRef? clrOnlyType = null,
-        object? clrOnlyValue = null)
+        object? clrOnlyValue = null
+    )
     {
         Kind = kind;
         BitWidth = bitWidth;
@@ -89,13 +90,21 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
             return new ExecutionConstantValue(
                 ExecutionConstantKind.Enum,
                 enumType: enumType,
-                enumUnderlyingValue: FromClr(underlyingValue, ExecutionClrBindingFactory.FromClr(underlyingType)));
+                enumUnderlyingValue: FromClr(underlyingValue, ExecutionClrBindingFactory.FromClr(underlyingType))
+            );
         }
 
         return value switch
         {
-            bool boolean => new ExecutionConstantValue(ExecutionConstantKind.Boolean, unsignedInteger: boolean ? 1UL : 0UL),
-            char character => new ExecutionConstantValue(ExecutionConstantKind.Character, bitWidth: 16, unsignedInteger: character),
+            bool boolean => new ExecutionConstantValue(
+                ExecutionConstantKind.Boolean,
+                unsignedInteger: boolean ? 1UL : 0UL
+            ),
+            char character => new ExecutionConstantValue(
+                ExecutionConstantKind.Character,
+                bitWidth: 16,
+                unsignedInteger: character
+            ),
             sbyte number => Signed(number, 8),
             short number => Signed(number, 16),
             int number => Signed(number, 32),
@@ -107,27 +116,41 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
             float number => new ExecutionConstantValue(
                 ExecutionConstantKind.FloatingPoint,
                 bitWidth: 32,
-                floatingPointBits: unchecked((uint)BitConverter.SingleToInt32Bits(number))),
+                floatingPointBits: unchecked((uint)BitConverter.SingleToInt32Bits(number))
+            ),
             double number => new ExecutionConstantValue(
                 ExecutionConstantKind.FloatingPoint,
                 bitWidth: 64,
-                floatingPointBits: unchecked((ulong)BitConverter.DoubleToInt64Bits(number))),
-            decimal number => new ExecutionConstantValue(ExecutionConstantKind.Decimal, decimalBits: decimal.GetBits(number)),
-            string text => new ExecutionConstantValue(ExecutionConstantKind.String, utf16CodeUnits: text.Select(static character => (ushort)character)),
+                floatingPointBits: unchecked((ulong)BitConverter.DoubleToInt64Bits(number))
+            ),
+            decimal number => new ExecutionConstantValue(
+                ExecutionConstantKind.Decimal,
+                decimalBits: decimal.GetBits(number)
+            ),
+            string text => new ExecutionConstantValue(
+                ExecutionConstantKind.String,
+                utf16CodeUnits: text.Select(static character => (ushort)character)
+            ),
             DateTime dateTime => new ExecutionConstantValue(
                 ExecutionConstantKind.DateTime,
                 ticks: dateTime.Ticks,
-                dateTimeKind: dateTime.Kind),
+                dateTimeKind: dateTime.Kind
+            ),
             DateTimeOffset dateTimeOffset => new ExecutionConstantValue(
                 ExecutionConstantKind.DateTimeOffset,
                 ticks: dateTimeOffset.Ticks,
-                offsetMinutes: checked((int)dateTimeOffset.Offset.TotalMinutes)),
-            Guid guid => new ExecutionConstantValue(ExecutionConstantKind.Guid, guidBytes: guid.ToByteArray(bigEndian: true)),
+                offsetMinutes: checked((int)dateTimeOffset.Offset.TotalMinutes)
+            ),
+            Guid guid => new ExecutionConstantValue(
+                ExecutionConstantKind.Guid,
+                guidBytes: guid.ToByteArray(bigEndian: true)
+            ),
             TimeSpan timeSpan => new ExecutionConstantValue(ExecutionConstantKind.TimeSpan, ticks: timeSpan.Ticks),
             _ => new ExecutionConstantValue(
                 ExecutionConstantKind.ClrOnly,
                 clrOnlyType: ExecutionClrBindingFactory.FromClr(value.GetType()),
-                clrOnlyValue: value)
+                clrOnlyValue: value
+            ),
         };
     }
 
@@ -144,7 +167,7 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
                 16 => (object)checked((short)SignedInteger),
                 32 => (object)checked((int)SignedInteger),
                 64 => SignedInteger,
-                _ => throw InvalidEncoding()
+                _ => throw InvalidEncoding(),
             },
             ExecutionConstantKind.UnsignedInteger => BitWidth switch
             {
@@ -152,13 +175,13 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
                 16 => (object)checked((ushort)UnsignedInteger),
                 32 => (object)checked((uint)UnsignedInteger),
                 64 => UnsignedInteger,
-                _ => throw InvalidEncoding()
+                _ => throw InvalidEncoding(),
             },
             ExecutionConstantKind.FloatingPoint => BitWidth switch
             {
                 32 => (object)BitConverter.Int32BitsToSingle(unchecked((int)FloatingPointBits)),
                 64 => BitConverter.Int64BitsToDouble(unchecked((long)FloatingPointBits)),
-                _ => throw InvalidEncoding()
+                _ => throw InvalidEncoding(),
             },
             ExecutionConstantKind.Decimal when DecimalBits.Count == 4 => new decimal(DecimalBits.ToArray()),
             ExecutionConstantKind.String => new string(Utf16CodeUnits.Select(static unit => (char)unit).ToArray()),
@@ -166,10 +189,12 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
             ExecutionConstantKind.DateTimeOffset => new DateTimeOffset(Ticks, TimeSpan.FromMinutes(OffsetMinutes)),
             ExecutionConstantKind.Guid when GuidBytes.Count == 16 => new Guid(GuidBytes.ToArray(), bigEndian: true),
             ExecutionConstantKind.TimeSpan => new TimeSpan(Ticks),
-            ExecutionConstantKind.Enum when EnumType != null && EnumUnderlyingValue != null =>
-                Enum.ToObject(EnumType.ResolveClrType(), EnumUnderlyingValue.ToClrValue()!),
+            ExecutionConstantKind.Enum when EnumType != null && EnumUnderlyingValue != null => Enum.ToObject(
+                EnumType.ResolveClrType(),
+                EnumUnderlyingValue.ToClrValue()!
+            ),
             ExecutionConstantKind.ClrOnly => ClrOnlyValue,
-            _ => throw InvalidEncoding()
+            _ => throw InvalidEncoding(),
         };
     }
 
@@ -187,22 +212,22 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
 
     public bool Equals(ExecutionConstantValue? other)
     {
-        return other is not null &&
-               Kind == other.Kind &&
-               BitWidth == other.BitWidth &&
-               SignedInteger == other.SignedInteger &&
-               UnsignedInteger == other.UnsignedInteger &&
-               FloatingPointBits == other.FloatingPointBits &&
-               DecimalBits.SequenceEqual(other.DecimalBits) &&
-               Utf16CodeUnits.SequenceEqual(other.Utf16CodeUnits) &&
-               Ticks == other.Ticks &&
-               DateTimeKind == other.DateTimeKind &&
-               OffsetMinutes == other.OffsetMinutes &&
-               GuidBytes.SequenceEqual(other.GuidBytes) &&
-               Equals(EnumType, other.EnumType) &&
-               Equals(EnumUnderlyingValue, other.EnumUnderlyingValue) &&
-               Equals(ClrOnlyType, other.ClrOnlyType) &&
-               (Kind != ExecutionConstantKind.ClrOnly || Equals(ClrOnlyValue, other.ClrOnlyValue));
+        return other is not null
+            && Kind == other.Kind
+            && BitWidth == other.BitWidth
+            && SignedInteger == other.SignedInteger
+            && UnsignedInteger == other.UnsignedInteger
+            && FloatingPointBits == other.FloatingPointBits
+            && DecimalBits.SequenceEqual(other.DecimalBits)
+            && Utf16CodeUnits.SequenceEqual(other.Utf16CodeUnits)
+            && Ticks == other.Ticks
+            && DateTimeKind == other.DateTimeKind
+            && OffsetMinutes == other.OffsetMinutes
+            && GuidBytes.SequenceEqual(other.GuidBytes)
+            && Equals(EnumType, other.EnumType)
+            && Equals(EnumUnderlyingValue, other.EnumUnderlyingValue)
+            && Equals(ClrOnlyType, other.ClrOnlyType)
+            && (Kind != ExecutionConstantKind.ClrOnly || Equals(ClrOnlyValue, other.ClrOnlyValue));
     }
 
     public override bool Equals(object? obj) => obj is ExecutionConstantValue other && Equals(other);
@@ -236,12 +261,14 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
     {
         return Kind switch
         {
-            ExecutionConstantKind.String => $"string:{string.Concat(Utf16CodeUnits.Select(static unit => unit.ToString("X4", CultureInfo.InvariantCulture)))}",
+            ExecutionConstantKind.String =>
+                $"string:{string.Concat(Utf16CodeUnits.Select(static unit => unit.ToString("X4", CultureInfo.InvariantCulture)))}",
             ExecutionConstantKind.Decimal => $"decimal:{string.Join(",", DecimalBits)}",
             ExecutionConstantKind.Guid => $"guid:{Convert.ToHexString(GuidBytes.ToArray())}",
             ExecutionConstantKind.Enum => $"enum:{EnumType?.StableId}:{EnumUnderlyingValue}",
             ExecutionConstantKind.ClrOnly => $"clr-only:{ClrOnlyType?.StableId ?? "unknown"}",
-            _ => $"{Kind}:{BitWidth}:{SignedInteger}:{UnsignedInteger}:{FloatingPointBits}:{Ticks}:{DateTimeKind}:{OffsetMinutes}"
+            _ =>
+                $"{Kind}:{BitWidth}:{SignedInteger}:{UnsignedInteger}:{FloatingPointBits}:{Ticks}:{DateTimeKind}:{OffsetMinutes}",
         };
     }
 

@@ -31,7 +31,7 @@ public class IrCutoverDefaultsTests
             RawQuery = "select 1 from #system.dual()",
             AssemblyName = Guid.NewGuid().ToString(),
             CreateBuildMetadataAndInferTypesVisitor = null,
-            DiagnosticContext = new DiagnosticContext()
+            DiagnosticContext = new DiagnosticContext(),
         };
     }
 
@@ -41,10 +41,8 @@ public class IrCutoverDefaultsTests
 
         var loggerResolver = new TestsLoggerResolver();
         var chain = new CreateTree(
-            new CompileInterpretationSchemas(
-                new TransformTree(
-                    new TurnQueryIntoRunnableCode(null),
-                    loggerResolver)));
+            new CompileInterpretationSchemas(new TransformTree(new TurnQueryIntoRunnableCode(null), loggerResolver))
+        );
 
         chain.Build(items);
     }

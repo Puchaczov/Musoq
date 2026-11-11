@@ -20,8 +20,10 @@ internal static partial class EvaluatorSampleFixtures
     {
         public ISchema GetSchema(string schema)
         {
-            if (!string.Equals(schema, "licm", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(schema, "#licm", StringComparison.OrdinalIgnoreCase))
+            if (
+                !string.Equals(schema, "licm", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(schema, "#licm", StringComparison.OrdinalIgnoreCase)
+            )
                 throw new NotSupportedException(schema);
 
             return new LoopInvariantSampleSchema();
@@ -31,14 +33,13 @@ internal static partial class EvaluatorSampleFixtures
     private sealed class LoopInvariantSampleSchema : SchemaBase
     {
         public LoopInvariantSampleSchema()
-            : base("licm", CreateLibrary())
-        {
-        }
+            : base("licm", CreateLibrary()) { }
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             if (string.Equals(name, "outers", StringComparison.OrdinalIgnoreCase))
                 return new LoopInvariantSampleTable();
@@ -49,7 +50,8 @@ internal static partial class EvaluatorSampleFixtures
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             if (string.Equals(name, "outers", StringComparison.OrdinalIgnoreCase))
                 return EnsureSourceType<T, LoopInvariantSampleOuter>(name, new LoopInvariantSampleRowSource());
@@ -71,29 +73,35 @@ internal static partial class EvaluatorSampleFixtures
         [
             new SchemaColumn(nameof(LoopInvariantSampleOuter.Id), 0, typeof(int)),
             new SchemaColumn(nameof(LoopInvariantSampleOuter.Value), 1, typeof(int)),
-            new SchemaColumn(nameof(LoopInvariantSampleOuter.VolatileValue), 2, typeof(int), (string?)null, ColumnStability.Volatile),
+            new SchemaColumn(
+                nameof(LoopInvariantSampleOuter.VolatileValue),
+                2,
+                typeof(int),
+                (string?)null,
+                ColumnStability.Volatile
+            ),
             new SchemaColumn(nameof(LoopInvariantSampleOuter.Middles), 3, typeof(LoopInvariantSampleMiddle[])),
-            new SchemaColumn(nameof(LoopInvariantSampleOuter.EmptyMiddles), 4, typeof(LoopInvariantSampleMiddle[]))
+            new SchemaColumn(nameof(LoopInvariantSampleOuter.EmptyMiddles), 4, typeof(LoopInvariantSampleMiddle[])),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(LoopInvariantSampleOuter));
 
         public ISchemaColumn? GetColumnByName(string name) =>
-            Columns.SingleOrDefault(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
+            Columns.SingleOrDefault(column =>
+                string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)
+            );
 
         public ISchemaColumn[] GetColumnsByName(string name) =>
-            Columns.Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            Columns
+                .Where(column => string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
     }
 
     private sealed class LoopInvariantSampleRowSource : RowSourceBase<LoopInvariantSampleOuter>
     {
         protected override void CollectChunks(IChunkWriter<LoopInvariantSampleOuter> writer)
         {
-            writer.Write(
-            [
-                CreateOuter(1),
-                CreateOuter(2)
-            ]);
+            writer.Write([CreateOuter(1), CreateOuter(2)]);
         }
 
         private static LoopInvariantSampleOuter CreateOuter(int id)
@@ -101,23 +109,21 @@ internal static partial class EvaluatorSampleFixtures
             return new LoopInvariantSampleOuter
             {
                 Id = id,
-                Middles = Enumerable.Range(1, 3)
+                Middles = Enumerable
+                    .Range(1, 3)
                     .Select(middleId => new LoopInvariantSampleMiddle
                     {
                         Id = id * 100 + middleId,
-                        Leaves = Enumerable.Range(1, 4)
-                            .Select(leafId => new LoopInvariantSampleLeaf
-                            {
-                                Id = id * 1000 + middleId * 10 + leafId
-                            })
-                            .ToArray()
+                        Leaves = Enumerable
+                            .Range(1, 4)
+                            .Select(leafId => new LoopInvariantSampleLeaf { Id = id * 1000 + middleId * 10 + leafId })
+                            .ToArray(),
                     })
                     .ToArray(),
-                EmptyMiddles = []
+                EmptyMiddles = [],
             };
         }
     }
-
 }
 
 public sealed class LoopInvariantSampleLibrary : LibraryBase

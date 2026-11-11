@@ -9,26 +9,26 @@ namespace Musoq.Evaluator.IR.Optimization.Physical;
 
 internal static class PhysicalProjectionBoundaryInputPruner
 {
-    public static (PhysicalNode Node, int PrunedFields) Prune(
-        PhysicalNode input,
-        HashSet<string> requiredNames)
+    public static (PhysicalNode Node, int PrunedFields) Prune(PhysicalNode input, HashSet<string> requiredNames)
     {
-        if (!TryFindPrunableInnerProject(
+        if (
+            !TryFindPrunableInnerProject(
                 input,
                 requiredNames,
                 out var inner,
                 out var requiredThroughChain,
-                out var rebuildInput) ||
-            inner.IsDistinct ||
-            !TrySelectRequiredInnerFields(requiredThroughChain, inner.Fields, out var prunedFields))
+                out var rebuildInput
+            )
+            || inner.IsDistinct
+            || !TrySelectRequiredInnerFields(requiredThroughChain, inner.Fields, out var prunedFields)
+        )
         {
             return (input, 0);
         }
 
-        var prunedInput = rebuildInput(new PhysicalProjectNode(prunedFields, inner.Input)
-        {
-            IsDistinct = inner.IsDistinct
-        });
+        var prunedInput = rebuildInput(
+            new PhysicalProjectNode(prunedFields, inner.Input) { IsDistinct = inner.IsDistinct }
+        );
 
         return (prunedInput, inner.Fields.Length - prunedFields.Length);
     }
@@ -38,7 +38,8 @@ internal static class PhysicalProjectionBoundaryInputPruner
         HashSet<string> requiredNames,
         out PhysicalProjectNode inner,
         out HashSet<string> requiredThroughChain,
-        out Func<PhysicalNode, PhysicalNode> rebuildInput)
+        out Func<PhysicalNode, PhysicalNode> rebuildInput
+    )
     {
         switch (input)
         {
@@ -55,7 +56,8 @@ internal static class PhysicalProjectionBoundaryInputPruner
                     rewritten => new PhysicalFilterNode(filter.Predicate, rewritten),
                     out inner,
                     out requiredThroughChain,
-                    out rebuildInput);
+                    out rebuildInput
+                );
             case PhysicalSortNode sort:
                 ColumnUsage.AddOrderColumns(requiredNames, sort.Keys);
                 return TryFindTransparentChild(
@@ -64,7 +66,8 @@ internal static class PhysicalProjectionBoundaryInputPruner
                     rewritten => new PhysicalSortNode(sort.Keys, rewritten),
                     out inner,
                     out requiredThroughChain,
-                    out rebuildInput);
+                    out rebuildInput
+                );
             case PhysicalTopNNode topN:
                 ColumnUsage.AddOrderColumns(requiredNames, topN.Keys);
                 return TryFindTransparentChild(
@@ -73,7 +76,8 @@ internal static class PhysicalProjectionBoundaryInputPruner
                     rewritten => new PhysicalTopNNode(topN.N, topN.Keys, rewritten),
                     out inner,
                     out requiredThroughChain,
-                    out rebuildInput);
+                    out rebuildInput
+                );
             case PhysicalTopOffsetNode topOffset:
                 ColumnUsage.AddOrderColumns(requiredNames, topOffset.Keys);
                 return TryFindTransparentChild(
@@ -82,7 +86,8 @@ internal static class PhysicalProjectionBoundaryInputPruner
                     rewritten => new PhysicalTopOffsetNode(topOffset.Skip, topOffset.Take, topOffset.Keys, rewritten),
                     out inner,
                     out requiredThroughChain,
-                    out rebuildInput);
+                    out rebuildInput
+                );
             case PhysicalSkipNode skip:
                 return TryFindTransparentChild(
                     skip.Input,
@@ -90,7 +95,8 @@ internal static class PhysicalProjectionBoundaryInputPruner
                     rewritten => new PhysicalSkipNode(skip.Count, rewritten),
                     out inner,
                     out requiredThroughChain,
-                    out rebuildInput);
+                    out rebuildInput
+                );
             case PhysicalTakeNode take:
                 return TryFindTransparentChild(
                     take.Input,
@@ -98,7 +104,8 @@ internal static class PhysicalProjectionBoundaryInputPruner
                     rewritten => new PhysicalTakeNode(take.Count, rewritten),
                     out inner,
                     out requiredThroughChain,
-                    out rebuildInput);
+                    out rebuildInput
+                );
             default:
                 inner = null!;
                 requiredThroughChain = requiredNames;
@@ -110,12 +117,12 @@ internal static class PhysicalProjectionBoundaryInputPruner
     public static bool TrySelectRequiredInnerFields(
         IReadOnlySet<string> requiredNames,
         IReadOnlyList<ProjectedField> innerFields,
-        out ProjectedField[] prunedFields)
+        out ProjectedField[] prunedFields
+    )
     {
         prunedFields = [];
 
-        if (innerFields.Count == 0 ||
-            ColumnUsage.HasAmbiguousOutputNames(innerFields))
+        if (innerFields.Count == 0 || ColumnUsage.HasAmbiguousOutputNames(innerFields))
         {
             return false;
         }
@@ -141,13 +148,16 @@ internal static class PhysicalProjectionBoundaryInputPruner
     public static PhysicalNode PruneSetOperationArm(
         PhysicalNode arm,
         IReadOnlyList<int> retainedIndexes,
-        out bool pruned)
+        out bool pruned
+    )
     {
         pruned = false;
 
-        if (arm is not PhysicalProjectNode { IsDistinct: false } project ||
-            retainedIndexes.Count >= project.Fields.Length ||
-            retainedIndexes.Any(index => index < 0 || index >= project.Fields.Length))
+        if (
+            arm is not PhysicalProjectNode { IsDistinct: false } project
+            || retainedIndexes.Count >= project.Fields.Length
+            || retainedIndexes.Any(index => index < 0 || index >= project.Fields.Length)
+        )
         {
             return arm;
         }
@@ -179,14 +189,18 @@ internal static class PhysicalProjectionBoundaryInputPruner
         Func<PhysicalNode, PhysicalNode> rebuildCurrent,
         out PhysicalProjectNode inner,
         out HashSet<string> requiredThroughChain,
-        out Func<PhysicalNode, PhysicalNode> rebuildInput)
+        out Func<PhysicalNode, PhysicalNode> rebuildInput
+    )
     {
-        if (!TryFindPrunableInnerProject(
+        if (
+            !TryFindPrunableInnerProject(
                 child,
                 requiredNames,
                 out inner,
                 out requiredThroughChain,
-                out var rebuildChild))
+                out var rebuildChild
+            )
+        )
         {
             rebuildInput = static rewritten => rewritten;
             return false;
@@ -196,4 +210,3 @@ internal static class PhysicalProjectionBoundaryInputPruner
         return true;
     }
 }
-

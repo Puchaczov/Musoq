@@ -21,16 +21,8 @@ public sealed class QueryScopedRowHardeningTests
     public void CsvJsonAndXmlStyleReaders_ShouldMaterializeThroughConcreteRefStructs()
     {
         var csv = new CsvOrdinalReader([42, "csv"]);
-        var json = new JsonPropertyReader(new Dictionary<string, object?>
-        {
-            ["id"] = 43,
-            ["label"] = "json"
-        });
-        var xml = new XmlPathReader(new Dictionary<string, object?>
-        {
-            ["/row/@id"] = 44,
-            ["/row/label"] = "xml"
-        });
+        var json = new JsonPropertyReader(new Dictionary<string, object?> { ["id"] = 43, ["label"] = "json" });
+        var xml = new XmlPathReader(new Dictionary<string, object?> { ["/row/@id"] = 44, ["/row/label"] = "xml" });
 
         Assert.AreEqual(new TestQueryRow(42, "csv"), Materialize<CsvOrdinalReader>(ref csv));
         Assert.AreEqual(new TestQueryRow(43, "json"), Materialize<JsonPropertyReader>(ref json));
@@ -61,12 +53,14 @@ public sealed class QueryScopedRowHardeningTests
             "select p.Name from #queryrows.items() p",
             "query-row-name-shape",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         var valueInspection = InstanceCreator.CompileForInspection(
             "select p.Value from #queryrows.items() p",
             "query-row-value-shape",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         var nameCarrier = ExtractCarrierName(nameInspection.GeneratedCSharpCode);
         var valueCarrier = ExtractCarrierName(valueInspection.GeneratedCSharpCode);
@@ -80,7 +74,8 @@ public sealed class QueryScopedRowHardeningTests
             "select p.Name from #queryrows.items() p",
             "query-row-capability-mismatch",
             new CapabilityMismatchSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         var error = result.Errors.Single(item => item.Code == DiagnosticCode.MQ3071_SourceContractError);
@@ -97,7 +92,8 @@ public sealed class QueryScopedRowHardeningTests
             "select p.Name from #queryrows.items() p where p.Value > 1",
             "query-row-filter",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(filtered.Succeeded, string.Join(Environment.NewLine, filtered.Diagnostics));
         using (var filteredTable = filtered.CompiledQuery!.Run())
         {
@@ -109,7 +105,8 @@ public sealed class QueryScopedRowHardeningTests
             "select p.Name, q.Name from #queryrows.items() p inner join #queryrows.items() q on p.Value = q.Value",
             "query-row-join",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(joined.Succeeded, string.Join(Environment.NewLine, joined.Diagnostics));
         using var joinedTable = joined.CompiledQuery!.Run();
         Assert.AreEqual(2, joinedTable.Count);
@@ -123,7 +120,8 @@ public sealed class QueryScopedRowHardeningTests
             "select p.Name, q.Name from #queryrows.items() p left join #queryrows.items() q on q.Value = 99",
             "query-row-outer-null",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(outer.Succeeded, string.Join(Environment.NewLine, outer.Diagnostics));
         using (var outerTable = outer.CompiledQuery!.Run())
         {
@@ -135,7 +133,8 @@ public sealed class QueryScopedRowHardeningTests
             "select p.Value, count(p.Name) from #queryrows.items() p group by p.Value",
             "query-row-group",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(grouped.Succeeded, string.Join(Environment.NewLine, grouped.Diagnostics));
         using (var groupedTable = grouped.CompiledQuery!.Run())
             Assert.AreEqual(2, groupedTable.Count);
@@ -144,7 +143,8 @@ public sealed class QueryScopedRowHardeningTests
             "select p.Value from #queryrows.items() p union all select q.Value from #queryrows.items() q",
             "query-row-set",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(set.Succeeded, string.Join(Environment.NewLine, set.Diagnostics));
         using var setTable = set.CompiledQuery!.Run();
         Assert.AreEqual(4, setTable.Count);
@@ -153,7 +153,8 @@ public sealed class QueryScopedRowHardeningTests
             "with valuesCte as (select p.Value as Value from #queryrows.items() p) select v.Value from valuesCte v",
             "query-row-cte",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(cte.Succeeded, string.Join(Environment.NewLine, cte.Diagnostics));
         using var cteTable = cte.CompiledQuery!.Run();
         Assert.AreEqual(2, cteTable.Count);
@@ -166,7 +167,8 @@ public sealed class QueryScopedRowHardeningTests
             "select w.G0, w.G1, w.G2, w.G3, w.G4 from #widequeryrows.items() w",
             "query-row-wide",
             new WideQueryRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(result.Diagnostics.Any(static diagnostic => diagnostic.IsError), result.PlanningText);
         Assert.Contains("private sealed class QueryRow_", result.GeneratedCSharpCode);
@@ -176,10 +178,7 @@ public sealed class QueryScopedRowHardeningTests
     [TestMethod]
     public void QueryRowShapes_ShouldSupportSpecialNamesAndZeroColumns()
     {
-        var special = new QueryRowShape(
-        [
-            new QueryRowField(0, 7, "json.path/value", typeof(string), true)
-        ]);
+        var special = new QueryRowShape([new QueryRowField(0, 7, "json.path/value", typeof(string), true)]);
         var empty = new QueryRowShape([]);
 
         Assert.AreEqual(1, special.Fields.Count);
@@ -195,7 +194,8 @@ public sealed class QueryScopedRowHardeningTests
             "select p.Name, RowNumber() over (order by p.Value) as Rank from #queryrows.items() p",
             "query-row-window",
             new QueryScopedRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(result.Succeeded, string.Join(Environment.NewLine, result.Diagnostics));
         using var table = result.CompiledQuery!.Run();
@@ -273,7 +273,7 @@ public ref struct JsonPropertyReader(IReadOnlyDictionary<string, object?> proper
         {
             0 => "id",
             1 => "label",
-            _ => throw new ArgumentOutOfRangeException(nameof(slot))
+            _ => throw new ArgumentOutOfRangeException(nameof(slot)),
         };
         return properties.TryGetValue(name, out var value) && value != null ? (T)value : default!;
     }
@@ -287,7 +287,7 @@ public ref struct XmlPathReader(IReadOnlyDictionary<string, object?> paths) : IQ
         {
             0 => "/row/@id",
             1 => "/row/label",
-            _ => throw new ArgumentOutOfRangeException(nameof(slot))
+            _ => throw new ArgumentOutOfRangeException(nameof(slot)),
         };
         return paths.TryGetValue(path, out var value) && value != null ? (T)value : default!;
     }
@@ -320,11 +320,12 @@ public sealed class CapabilityMismatchSchema : SchemaBase
     public override SourceDescriptor DescribeSource(
         string name,
         SourceDescribeContext context,
-        params object?[] parameters)
+        params object?[] parameters
+    )
     {
         return base.DescribeSource(name, context, parameters) with
         {
-            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows
+            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
         };
     }
 

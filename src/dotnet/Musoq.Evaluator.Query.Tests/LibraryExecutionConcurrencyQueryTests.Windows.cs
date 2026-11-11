@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionConcurrencyQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -17,8 +16,15 @@ public sealed partial class LibraryExecutionConcurrencyQueryTests
     {
         using var probe = new ConcurrencyProbe(false);
         var provider = CreateProvider(probe, false);
-        const string query = "select CancellableValue(Position, Probe) over () as Value from #schema.first() where Position = 0";
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString("N"), provider, _logger, LibraryExecutionConcurrencyQueryTestsFixtures.ParallelOptions);
+        const string query =
+            "select CancellableValue(Position, Probe) over () as Value from #schema.first() where Position = 0";
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString("N"),
+            provider,
+            _logger,
+            LibraryExecutionConcurrencyQueryTestsFixtures.ParallelOptions
+        );
         var execution = Task.Run(() =>
         {
             using var result = compiled.Run(probe.CancellationToken);

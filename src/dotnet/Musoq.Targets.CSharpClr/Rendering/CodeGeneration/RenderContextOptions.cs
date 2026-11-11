@@ -14,4 +14,5 @@ public sealed record RenderContextOptions(
     FinalResultSinkKind FinalResultSinkKind = FinalResultSinkKind.TableDirect,
     bool ForceTableResultMaterialization = false,
     bool EnableContextualExecution = false,
-    bool IsMetadataOnly = false);
+    bool IsMetadataOnly = false
+);

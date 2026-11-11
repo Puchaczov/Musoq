@@ -16,22 +16,21 @@ public partial class CteTests
 
     [TestMethod]
     [DynamicData(nameof(RecursiveUnionAllCases))]
-    public void RecursiveUnionAllSupportedCase_ShouldReturnDeclaredColumnsAndRows(
-        RecursiveCteSupportedCase testCase)
+    public void RecursiveUnionAllSupportedCase_ShouldReturnDeclaredColumnsAndRows(RecursiveCteSupportedCase testCase)
     {
         using var measurement = EvaluatorTestCaseMeasurement.Begin(
             nameof(RecursiveUnionAllSupportedCase_ShouldReturnDeclaredColumnsAndRows),
             testCase.Name,
-            testCase.Name);
+            testCase.Name
+        );
         using var vm = measurement.MeasureCompilation(() => GetRecursiveUnionAllQuery(testCase));
         using var table = measurement.MeasureExecution(() => vm.Run(TestContext.CancellationToken));
         measurement.MeasureMaterialization(() => TableMaterializationTestHelper.Materialize(table));
 
         TableMaterializationTestHelper.AssertColumns(
             table,
-            testCase.ExpectedColumns
-                .Select(static column => (column.Name, column.ClrType))
-                .ToArray());
+            testCase.ExpectedColumns.Select(static column => (column.Name, column.ClrType)).ToArray()
+        );
 
         if (testCase.Ordered)
             TableMaterializationTestHelper.AssertRowsInOrder(table, testCase.ExpectedRows.ToArray());
@@ -46,8 +45,9 @@ public partial class CteTests
         var options = testCase.CompilationOptions.WithRecursiveCteLimits(new(2, 100));
         var vm = CreateAndRunVirtualMachine(testCase.Query, CreateSingleSource(), options);
 
-        var exception = Assert.ThrowsExactly<RecursiveCteLimitExceededException>(
-            () => TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken)));
+        var exception = Assert.ThrowsExactly<RecursiveCteLimitExceededException>(() =>
+            TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ7007_RecursiveCteIterationLimitExceeded, exception.Code);
         Assert.AreEqual(2, exception.ConfiguredLimit);
@@ -61,8 +61,9 @@ public partial class CteTests
         var options = testCase.CompilationOptions.WithRecursiveCteLimits(new(100, 3));
         var vm = CreateAndRunVirtualMachine(testCase.Query, CreateSingleSource(), options);
 
-        var exception = Assert.ThrowsExactly<RecursiveCteLimitExceededException>(
-            () => TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken)));
+        var exception = Assert.ThrowsExactly<RecursiveCteLimitExceededException>(() =>
+            TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken))
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded, exception.Code);
         Assert.AreEqual(3, exception.ConfiguredLimit);
@@ -73,10 +74,7 @@ public partial class CteTests
     public void RecursiveUnionAll_WhenCanceledBeforeExecution_ShouldStop()
     {
         var testCase = RecursiveCteSupportedCaseCatalog.GetBySampleName("Q188_RecursiveUnionAllCounter");
-        var vm = CreateAndRunVirtualMachine(
-            testCase.Query,
-            CreateSingleSource(),
-            testCase.CompilationOptions);
+        var vm = CreateAndRunVirtualMachine(testCase.Query, CreateSingleSource(), testCase.CompilationOptions);
         using var cancellation = new System.Threading.CancellationTokenSource();
         cancellation.Cancel();
 
@@ -92,14 +90,22 @@ public partial class CteTests
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(CreateSingleSource()),
             LoggerResolver,
-            testCase.CompilationOptions);
+            testCase.CompilationOptions
+        );
 
-        Assert.Contains("RecursiveCte [counter; result cte0; frontiers cte0CurrentFrontier, cte0NextFrontier", inspection.ExecutionPlanText);
+        Assert.Contains(
+            "RecursiveCte [counter; result cte0; frontiers cte0CurrentFrontier, cte0NextFrontier",
+            inspection.ExecutionPlanText
+        );
         Assert.Contains("Anchor", inspection.ExecutionPlanText);
         Assert.Contains("RecursiveMember", inspection.ExecutionPlanText);
         Assert.Contains("RecursiveAppend", inspection.ExecutionPlanText);
-        Assert.IsFalse(inspection.ExecutionPlanText.Contains("CreateTable [cte0CurrentFrontier", StringComparison.Ordinal));
-        Assert.IsFalse(inspection.ExecutionPlanText.Contains("CreateTable [cte0NextFrontier", StringComparison.Ordinal));
+        Assert.IsFalse(
+            inspection.ExecutionPlanText.Contains("CreateTable [cte0CurrentFrontier", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            inspection.ExecutionPlanText.Contains("CreateTable [cte0NextFrontier", StringComparison.Ordinal)
+        );
 
         Assert.AreEqual(3, CountOccurrences(inspection.GeneratedCSharpCode, "new List<Cte0Row0>"));
         Assert.AreEqual(1, CountOccurrences(inspection.GeneratedCSharpCode, "while (cte0CurrentFrontier.Count > 0)"));
@@ -116,16 +122,18 @@ public partial class CteTests
     public void RecursiveKeyedUnion_WhenSameGenerationHasDifferentPayloads_ShouldKeepOneRepresentative()
     {
         const string prefix =
-            "with recursive paths (Id, Path) as (" +
-            "select Id, Path from values {( Id: 1, Path: 'left' ), ( Id: 2, Path: 'right' )} seed " +
-            "union (Id) select 3, p.Path + '->3' from paths p where p.Id < 3) ";
+            "with recursive paths (Id, Path) as ("
+            + "select Id, Path from values {( Id: 1, Path: 'left' ), ( Id: 2, Path: 'right' )} seed "
+            + "union (Id) select 3, p.Path + '->3' from paths p where p.Id < 3) ";
         var ascending = CreateAndRunVirtualMachine(
                 prefix + "select Id, Path from paths order by Id",
-                CreateSingleSource())
+                CreateSingleSource()
+            )
             .Run(TestContext.CancellationToken);
         var descending = CreateAndRunVirtualMachine(
                 prefix + "select Id, Path from paths order by Id desc",
-                CreateSingleSource())
+                CreateSingleSource()
+            )
             .Run(TestContext.CancellationToken);
 
         var ascendingRepresentative = ascending.Single(row => (int)row.ReadValues()[0] == 3).ReadValues()[1];
@@ -138,15 +146,10 @@ public partial class CteTests
     [TestMethod]
     public void RecursiveUnion_WhenDuplicatesAreRejected_ShouldNotConsumeRowLimit()
     {
-        foreach (var sampleName in new[]
-                 {
-                     "Q196_RecursiveAnchorDuplicates",
-                     "Q197_RecursiveDuplicateEdges"
-                 })
+        foreach (var sampleName in new[] { "Q196_RecursiveAnchorDuplicates", "Q197_RecursiveDuplicateEdges" })
         {
             var testCase = RecursiveCteSupportedCaseCatalog.GetBySampleName(sampleName);
-            var options = testCase.CompilationOptions.WithRecursiveCteLimits(
-                new(100, testCase.ExpectedRows.Count));
+            var options = testCase.CompilationOptions.WithRecursiveCteLimits(new(100, testCase.ExpectedRows.Count));
             var table = CreateAndRunVirtualMachine(testCase.Query, CreateSingleSource(), options)
                 .Run(TestContext.CancellationToken);
 
@@ -158,13 +161,12 @@ public partial class CteTests
     public void RecursiveKeyedUnion_WhenColumnsBeforeIdentityArePruned_ShouldUseRemappedOrdinal()
     {
         const string query =
-            "with recursive counter (Unused, Id) as (" +
-            "select 'anchor', Value from values {( Value: 1 )} seed union (Id) " +
-            "select 'member', c.Id + 1 from counter c where c.Id < 3) " +
-            "select Id from counter order by Id";
+            "with recursive counter (Unused, Id) as ("
+            + "select 'anchor', Value from values {( Value: 1 )} seed union (Id) "
+            + "select 'member', c.Id + 1 from counter c where c.Id < 3) "
+            + "select Id from counter order by Id";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource())
-            .Run(TestContext.CancellationToken);
+        var table = CreateAndRunVirtualMachine(query, CreateSingleSource()).Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1], [2], [3]);

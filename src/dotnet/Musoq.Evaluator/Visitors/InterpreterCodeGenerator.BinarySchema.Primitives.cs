@@ -9,8 +9,8 @@ public partial class InterpreterCodeGenerator
     private string GeneratePrimitiveReadCode(string localVar, PrimitiveTypeNode primitiveType)
     {
         var bytes = $"base.TakePreparedBytes(data, {primitiveType.FixedSizeBytes})";
-        return StatusCheck($"base.PrepareByteInputStatus(data, {primitiveType.FixedSizeBytes})") +
-               $"var {localVar} = {ReadPreparedPrimitive(primitiveType, bytes)};";
+        return StatusCheck($"base.PrepareByteInputStatus(data, {primitiveType.FixedSizeBytes})")
+            + $"var {localVar} = {ReadPreparedPrimitive(primitiveType, bytes)};";
     }
 
     private static string ReadPreparedPrimitive(PrimitiveTypeNode primitiveType, string bytes)
@@ -30,7 +30,7 @@ public partial class InterpreterCodeGenerator
             PrimitiveTypeName.ULong => "UInt64",
             PrimitiveTypeName.Float => "Single",
             PrimitiveTypeName.Double => "Double",
-            _ => throw new InvalidOperationException($"Unknown primitive type: {primitiveType.TypeName}")
+            _ => throw new InvalidOperationException($"Unknown primitive type: {primitiveType.TypeName}"),
         };
         var order = primitiveType.Endianness == Endianness.LittleEndian ? "LittleEndian" : "BigEndian";
         return $"global::System.Buffers.Binary.BinaryPrimitives.Read{number}{order}({bytes})";
@@ -39,8 +39,9 @@ public partial class InterpreterCodeGenerator
     private string GenerateByteArrayReadCode(string localVar, ByteArrayTypeNode byteArrayType)
     {
         var size = NextStatusName("__musoqReadSize");
-        return StatusSizeDeclaration(size, byteArrayType.SizeExpression) + StatusCheck($"base.PrepareByteArrayStatus(data, {size})") +
-               $"var {localVar} = base.ReadPreparedByteArray(data, {size});";
+        return StatusSizeDeclaration(size, byteArrayType.SizeExpression)
+            + StatusCheck($"base.PrepareByteArrayStatus(data, {size})")
+            + $"var {localVar} = base.ReadPreparedByteArray(data, {size});";
     }
 
     private string GenerateStringReadCode(string localVar, StringTypeNode stringType, string fieldName)
@@ -58,16 +59,27 @@ public partial class InterpreterCodeGenerator
         builder.Append(StatusSizeDeclaration(size, stringType.SizeExpression));
         builder.AppendLine($"var {encoding} = {GetEncodingExpression(stringType.Encoding)};");
         var preparation = stringType.Modifiers.HasFlag(StringModifier.NullTerm)
-            ? "PrepareNullTerminatedStringStatus" : "PrepareStringStatus";
+            ? "PrepareNullTerminatedStringStatus"
+            : "PrepareStringStatus";
         builder.Append(StatusCheck($"base.{preparation}(data, {size})"));
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {rawStringVar} = {GenerateStringReadExpression(stringType, size, encoding)};");
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"var {rawStringVar} = {GenerateStringReadExpression(stringType, size, encoding)};"
+        );
 
         if (stringType.AsTextSchemaName == null)
             return builder.ToString();
 
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {targetVar}_textInterpreter = new {stringType.AsTextSchemaName}();");
-        builder.Append(StatusRead(targetVar,
-            $"base.ParseNestedStatus({targetVar}_textInterpreter, {rawStringVar}, \"{EscapeString(fieldName)}\")"));
+        builder.AppendLine(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"var {targetVar}_textInterpreter = new {stringType.AsTextSchemaName}();"
+        );
+        builder.Append(
+            StatusRead(
+                targetVar,
+                $"base.ParseNestedStatus({targetVar}_textInterpreter, {rawStringVar}, \"{EscapeString(fieldName)}\")"
+            )
+        );
         return builder.ToString();
     }
 
@@ -107,8 +119,9 @@ public partial class InterpreterCodeGenerator
             StringEncoding.Utf16Be => "System.Text.Encoding.BigEndianUnicode",
             StringEncoding.Ascii => "System.Text.Encoding.ASCII",
             StringEncoding.Latin1 => "System.Text.Encoding.Latin1",
-            StringEncoding.Ebcdic => "System.Text.CodePagesEncodingProvider.Instance.GetEncoding(37, System.Text.EncoderFallback.ExceptionFallback, System.Text.DecoderFallback.ExceptionFallback) ?? throw new System.NotSupportedException(\"IBM EBCDIC code page 037 is unavailable.\")",
-            _ => "System.Text.Encoding.UTF8"
+            StringEncoding.Ebcdic =>
+                "System.Text.CodePagesEncodingProvider.Instance.GetEncoding(37, System.Text.EncoderFallback.ExceptionFallback, System.Text.DecoderFallback.ExceptionFallback) ?? throw new System.NotSupportedException(\"IBM EBCDIC code page 037 is unavailable.\")",
+            _ => "System.Text.Encoding.UTF8",
         };
     }
 
@@ -116,8 +129,8 @@ public partial class InterpreterCodeGenerator
     {
         var bitCount = bitsType.BitCount;
         var castType = GetBitsClrTypeName(bitsType);
-        return StatusCheck($"base.PrepareBitsStatus(data, {bitCount})") +
-               $"var {localVar} = ({castType})ReadBits(data, {bitCount});";
+        return StatusCheck($"base.PrepareBitsStatus(data, {bitCount})")
+            + $"var {localVar} = ({castType})ReadBits(data, {bitCount});";
     }
 
     private static string GetBitsClrTypeName(BitsTypeNode bitsType)
@@ -127,8 +140,7 @@ public partial class InterpreterCodeGenerator
             <= 8 => "byte",
             <= 16 => "ushort",
             <= 32 => "uint",
-            _ => "ulong"
+            _ => "ulong",
         };
     }
-
 }

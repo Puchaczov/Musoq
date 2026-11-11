@@ -8,7 +8,8 @@ internal static class FinalProjectionDirectProjectionAnalyzer
     public static FinalProjectionSinkPlan Analyze(
         ExecutionPlan plan,
         TableViaRowsResultInfo resultInfo,
-        FinalProjectionSinkTarget target)
+        FinalProjectionSinkTarget target
+    )
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(resultInfo);
@@ -17,42 +18,55 @@ internal static class FinalProjectionDirectProjectionAnalyzer
         if (sourceScans.Length != 1)
             return FinalProjectionSinkPlan.Rejected(
                 FinalProjectionSinkRejectionKind.ExpectedOneSourceScan,
-                $"Expected one source scan, but found {sourceScans.Length}.");
-        var setupNodes = plan.Body.Nodes
-            .Where(static node => node is ExecutionCreateObject)
-            .ToArray();
+                $"Expected one source scan, but found {sourceScans.Length}."
+            );
+        var setupNodes = plan.Body.Nodes.Where(static node => node is ExecutionCreateObject).ToArray();
 
         if (!TryGetReturnedTable(plan, resultInfo, out var table))
             return FinalProjectionSinkPlan.Rejected(
                 FinalProjectionSinkRejectionKind.FinalReturnedTableMismatch,
-                "Final returned table does not match generated row metadata.");
+                "Final returned table does not match generated row metadata."
+            );
 
-        var loopNodes = plan.Body.Nodes
-            .Where(static node => node is ExecutionSourceLoop or ExecutionParallelFilterProjectLoop)
+        var loopNodes = plan
+            .Body.Nodes.Where(static node => node is ExecutionSourceLoop or ExecutionParallelFilterProjectLoop)
             .ToArray();
         if (loopNodes.Length != 1)
             return FinalProjectionSinkPlan.Rejected(
                 FinalProjectionSinkRejectionKind.ExpectedOneProjectionLoop,
-                $"Expected one projection loop, but found {loopNodes.Length}.");
+                $"Expected one projection loop, but found {loopNodes.Length}."
+            );
 
         if (plan.Body.Nodes.Any(node => !IsAllowedDirectProjectionNode(node, table, loopNodes[0])))
             return FinalProjectionSinkPlan.Rejected(
                 FinalProjectionSinkRejectionKind.UnexpectedPlanNodes,
-                "Plan contains nodes outside the direct projection sink.");
+                "Plan contains nodes outside the direct projection sink."
+            );
 
-        if (!FinalProjectionSinkPlanningHelpers.TryCreateProjectionLoop(loopNodes[0], table, resultInfo, out var projectionLoop))
+        if (
+            !FinalProjectionSinkPlanningHelpers.TryCreateProjectionLoop(
+                loopNodes[0],
+                table,
+                resultInfo,
+                out var projectionLoop
+            )
+        )
             return FinalProjectionSinkPlan.Rejected(
                 FinalProjectionSinkRejectionKind.ProjectionLoopMismatch,
-                "Projection loop does not append the final table shape.");
+                "Projection loop does not append the final table shape."
+            );
 
-        if (target == FinalProjectionSinkTarget.TableRows &&
-            loopNodes[0] is ExecutionParallelFilterProjectLoop parallelLoop &&
-            FinalProjectionSinkPlanningHelpers.HasDuplicatedUncachedMethodCalls(parallelLoop) &&
-            !FinalProjectionSinkPlanningHelpers.CanRenderOptionalProjectionProjectorBody(parallelLoop.ProjectionBody))
+        if (
+            target == FinalProjectionSinkTarget.TableRows
+            && loopNodes[0] is ExecutionParallelFilterProjectLoop parallelLoop
+            && FinalProjectionSinkPlanningHelpers.HasDuplicatedUncachedMethodCalls(parallelLoop)
+            && !FinalProjectionSinkPlanningHelpers.CanRenderOptionalProjectionProjectorBody(parallelLoop.ProjectionBody)
+        )
         {
             return FinalProjectionSinkPlan.Rejected(
                 FinalProjectionSinkRejectionKind.UnexpectedPlanNodes,
-                "Direct row-shard projection would duplicate uncached row-local method expressions.");
+                "Direct row-shard projection would duplicate uncached row-local method expressions."
+            );
         }
 
         return FinalProjectionSinkPlan.Accepted(
@@ -61,23 +75,23 @@ internal static class FinalProjectionDirectProjectionAnalyzer
             projectionLoop.AppendRow.Table,
             FinalProjectionSinkPlanningHelpers.CreateResultMetadata(target, projectionLoop.CanUseParallel),
             [],
-            setupNodes);
+            setupNodes
+        );
     }
 
     private static bool TryGetReturnedTable(
         ExecutionPlan plan,
         TableViaRowsResultInfo resultInfo,
-        out ExecutionVariable table)
+        out ExecutionVariable table
+    )
     {
         table = null!;
         var returnTable = plan.Body.Nodes.OfType<ExecutionReturnTable>().LastOrDefault();
-        var createTable = plan.Body.Nodes
-            .OfType<ExecutionCreateTable>()
+        var createTable = plan
+            .Body.Nodes.OfType<ExecutionCreateTable>()
             .LastOrDefault(candidate => candidate.Table.Name == returnTable?.Table.Name);
 
-        if (returnTable == null ||
-            createTable == null ||
-            createTable.Table.Name != resultInfo.TableName)
+        if (returnTable == null || createTable == null || createTable.Table.Name != resultInfo.TableName)
         {
             return false;
         }
@@ -89,7 +103,8 @@ internal static class FinalProjectionDirectProjectionAnalyzer
     private static bool IsAllowedDirectProjectionNode(
         ExecutionNode node,
         ExecutionVariable table,
-        ExecutionNode loopNode)
+        ExecutionNode loopNode
+    )
     {
         return node switch
         {
@@ -99,7 +114,7 @@ internal static class FinalProjectionDirectProjectionAnalyzer
             ExecutionCreateTable createTable => createTable.Table.Name == table.Name,
             ExecutionReturnTable returnTable => returnTable.Table.Name == table.Name,
             _ when ReferenceEquals(node, loopNode) => true,
-            _ => false
+            _ => false,
         };
     }
 }

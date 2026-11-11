@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
 using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
@@ -12,28 +12,26 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenRangeCorrelatedExistsProducesValue_ShouldUseBoundedRangeMarkProbe()
     {
-        const string query = @"
-            SELECT a.City,
-                   EXISTS (
-                       SELECT b.City FROM #B.entities() b
-                       WHERE b.Population < a.Population
-                   ) AS HasSmaller
-            FROM #A.entities() a
-            ORDER BY a.City";
+        const string query = (
+            "\n"
+            + "            SELECT a.City,\n"
+            + "                   EXISTS (\n"
+            + "                       SELECT b.City FROM #B.entities() b\n"
+            + "                       WHERE b.Population < a.Population\n"
+            + "                   ) AS HasSmaller\n"
+            + "            FROM #A.entities() a\n"
+            + "            ORDER BY a.City"
+        );
         var sources = CreateRangeCorrelationSources();
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("HasSmaller", typeof(bool)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["HIGH", true],
-            ["LOW", false],
-            ["MID", true]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("HasSmaller", typeof(bool)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["HIGH", true], ["LOW", false], ["MID", true]);
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateRangeMark", inspection.PlanningText);
+        Assert.Contains(
+            "SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateRangeMark",
+            inspection.PlanningText
+        );
         Assert.Contains("PhysicalSortMergeJoin [LeftMark]", inspection.PhysicalPlanText);
         Assert.Contains("CreateRangeIndex", inspection.ExecutionPlanText);
         Assert.Contains("RangeProbe", inspection.ExecutionPlanText);
@@ -44,31 +42,29 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenRangeCorrelatedScalarHasZeroOrOneMatch_ShouldUseRangeSingleAndNullExtend()
     {
-        const string query = @"
-            SELECT a.City, (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Population < a.Population
-            ) AS SmallerCity
-            FROM #A.entities() a
-            ORDER BY a.City";
+        const string query = (
+            "\n"
+            + "            SELECT a.City, (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Population < a.Population\n"
+            + "            ) AS SmallerCity\n"
+            + "            FROM #A.entities() a\n"
+            + "            ORDER BY a.City"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] =
-            [
-                new BasicEntity("LOW", "X", 50),
-                new BasicEntity("MID", "X", 150)
-            ],
-            ["#B"] = [new BasicEntity("SMALL", "X", 100)]
+            ["#A"] = [new BasicEntity("LOW", "X", 50), new BasicEntity("MID", "X", 150)],
+            ["#B"] = [new BasicEntity("SMALL", "X", 100)],
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            new object?[] { "LOW", null },
-            ["MID", "SMALL"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "LOW", null }, ["MID", "SMALL"]);
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> ScalarRangeSingle", inspection.PlanningText);
+        Assert.Contains(
+            "SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> ScalarRangeSingle",
+            inspection.PlanningText
+        );
         Assert.Contains("PhysicalSortMergeJoin [LeftSingle]", inspection.PhysicalPlanText);
         Assert.Contains("RangeProbeNoMatch", inspection.ExecutionPlanText);
         AssertNoPerRowSubqueryExecution(inspection);
@@ -77,33 +73,31 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenRangeCorrelatedScalarHasMultipleMatches_ShouldThrowAtIndexedProbe()
     {
-        const string query = @"
-            SELECT a.City, (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Population < a.Population
-            ) AS SmallerCity
-            FROM #A.entities() a";
+        const string query = (
+            "\n"
+            + "            SELECT a.City, (\n"
+            + "                SELECT b.City FROM #B.entities() b\n"
+            + "                WHERE b.Population < a.Population\n"
+            + "            ) AS SmallerCity\n"
+            + "            FROM #A.entities() a"
+        );
         var sources = CreateRangeCorrelationSources();
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        var exception = Assert.Throws<QueryExecutionException>(() =>
-            _ = vm.Run(TestContext.CancellationToken).Count);
+        var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
         AssertRuntimeError(exception, DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation);
     }
 
-    private static Dictionary<string, IEnumerable<BasicEntity>> CreateRangeCorrelationSources() => new()
-    {
-        ["#A"] =
-        [
-            new BasicEntity("LOW", "X", 50),
-            new BasicEntity("MID", "X", 150),
-            new BasicEntity("HIGH", "X", 300)
-        ],
-        ["#B"] =
-        [
-            new BasicEntity("SMALL", "X", 100),
-            new BasicEntity("MEDIUM", "X", 200)
-        ]
-    };
+    private static Dictionary<string, IEnumerable<BasicEntity>> CreateRangeCorrelationSources() =>
+        new()
+        {
+            ["#A"] =
+            [
+                new BasicEntity("LOW", "X", 50),
+                new BasicEntity("MID", "X", 150),
+                new BasicEntity("HIGH", "X", 300),
+            ],
+            ["#B"] = [new BasicEntity("SMALL", "X", 100), new BasicEntity("MEDIUM", "X", 200)],
+        };
 }

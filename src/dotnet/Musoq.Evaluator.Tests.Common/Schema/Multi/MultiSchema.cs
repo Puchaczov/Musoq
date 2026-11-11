@@ -11,23 +11,31 @@ public class MultiSchema(IReadOnlyDictionary<string, (ISchemaTable SchemaTable, 
 {
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         return name switch
         {
             "first" => tables[name].SchemaTable,
             "second" => tables[name].SchemaTable,
-            _ => throw new NotSupportedException($"Table {name} is not supported.")
+            _ => throw new NotSupportedException($"Table {name} is not supported."),
         };
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         return name switch
         {
             "first" => EnsureSourceType<T>(name, tables[name].RowSource),
             "second" => EnsureSourceType<T>(name, tables[name].RowSource),
-            _ => throw new NotSupportedException($"Table {name} is not supported.")
+            _ => throw new NotSupportedException($"Table {name} is not supported."),
         };
     }
 

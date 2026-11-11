@@ -12,7 +12,8 @@ internal static class ExecutionLikeSyntaxFactory
     internal static InvocationExpressionSyntax Render(
         ExecutionPatternMatch patternMatch,
         Func<ExecutionExpression, ExpressionSyntax> renderExpression,
-        TimeSpan timeout)
+        TimeSpan timeout
+    )
     {
         ArgumentNullException.ThrowIfNull(renderExpression);
 
@@ -20,21 +21,26 @@ internal static class ExecutionLikeSyntaxFactory
         {
             PatternKind.Like => nameof(Operators.Like),
             PatternKind.RLike => nameof(Operators.RLike),
-            _ => throw UnsupportedShape.Of($"Pattern kind {patternMatch.Kind}")
+            _ => throw UnsupportedShape.Of($"Pattern kind {patternMatch.Kind}"),
         };
 
-        var target = SyntaxFactory.ObjectCreationExpression(ExecutionSyntaxFactory.CreateTypeSyntax(typeof(Operators)))
+        var target = SyntaxFactory
+            .ObjectCreationExpression(ExecutionSyntaxFactory.CreateTypeSyntax(typeof(Operators)))
             .WithArgumentList(SyntaxFactory.ArgumentList());
         var arguments = ExecutionSyntaxFactory.CreateArgumentList(
             renderExpression(patternMatch.Expression),
             renderExpression(patternMatch.Pattern),
-            RegexTimeoutSyntax.Create(timeout));
+            RegexTimeoutSyntax.Create(timeout)
+        );
 
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     target,
-                    SyntaxFactory.IdentifierName(methodName)))
+                    SyntaxFactory.IdentifierName(methodName)
+                )
+            )
             .WithArgumentList(arguments);
     }
 }

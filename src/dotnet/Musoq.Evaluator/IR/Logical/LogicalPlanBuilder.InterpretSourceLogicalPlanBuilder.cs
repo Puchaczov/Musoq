@@ -21,14 +21,11 @@ public sealed partial class LogicalPlanBuilder
             TryParseCallNode => IrNodes.InterpretSourceKind.TryParse,
             PartialInterpretCallNode => IrNodes.InterpretSourceKind.PartialInterpret,
             PartialParseCallNode => IrNodes.InterpretSourceKind.PartialParse,
-            _ => throw UnsupportedShape.Of(
-                $"Interpret source call type '{node.InterpretCall.GetType().Name}'")
+            _ => throw UnsupportedShape.Of($"Interpret source call type '{node.InterpretCall.GetType().Name}'"),
         };
 
         var derivedSchema = BuildInterpretOutputSchema(node);
-        var outputSchema = ShouldUseDerivedInterpretSchema(schema, derivedSchema)
-            ? derivedSchema
-            : schema;
+        var outputSchema = ShouldUseDerivedInterpretSchema(schema, derivedSchema) ? derivedSchema : schema;
 
         return new IrNodes.InterpretSourceNode(
             node.SchemaName,
@@ -37,7 +34,8 @@ public sealed partial class LogicalPlanBuilder
             node.Alias,
             ResolveInterpretResultType(node),
             MapApplyKind(node.ApplyType),
-            outputSchema);
+            outputSchema
+        );
     }
 
     private static OutputSchema BuildInterpretOutputSchema(InterpretFromNode node)
@@ -95,7 +93,13 @@ public sealed partial class LogicalPlanBuilder
 
         for (var i = 0; i < inferredSchema.Columns.Length; i++)
         {
-            if (!string.Equals(inferredSchema.Columns[i].Name, derivedSchema.Columns[i].Name, StringComparison.OrdinalIgnoreCase))
+            if (
+                !string.Equals(
+                    inferredSchema.Columns[i].Name,
+                    derivedSchema.Columns[i].Name,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
                 return true;
         }
 
@@ -115,17 +119,14 @@ public sealed partial class LogicalPlanBuilder
             InterpretAtCallNode interpretAt =>
             [
                 _converter.Convert(interpretAt.DataSource),
-                _converter.Convert(interpretAt.Offset)
+                _converter.Convert(interpretAt.Offset),
             ],
-            _ => throw UnsupportedShape.Of(
-                $"Interpret source call type '{interpretCall.GetType().Name}'")
+            _ => throw UnsupportedShape.Of($"Interpret source call type '{interpretCall.GetType().Name}'"),
         };
     }
 
     private static Type ResolveInterpretResultType(InterpretFromNode node)
     {
-        return node.ReturnType
-            ?? node.InterpretCall.ReturnType
-            ?? typeof(object);
+        return node.ReturnType ?? node.InterpretCall.ReturnType ?? typeof(object);
     }
 }

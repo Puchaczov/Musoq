@@ -27,9 +27,7 @@ internal static class IrExpressionSourceSpans
     {
         ArgumentNullException.ThrowIfNull(expression);
 
-        return Spans.TryGetValue(expression, out var holder)
-            ? holder.Span
-            : TextSpan.Empty;
+        return Spans.TryGetValue(expression, out var holder) ? holder.Span : TextSpan.Empty;
     }
 
     private sealed class SourceSpanHolder(TextSpan span)

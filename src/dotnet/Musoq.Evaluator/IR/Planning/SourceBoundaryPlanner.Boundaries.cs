@@ -28,15 +28,14 @@ internal static partial class SourceBoundaryPlanner
             inputAliases,
             rightAliases,
             confidence,
-            CreateApplyBoundaryReason(apply.Kind, mode, dependencyAliases));
+            CreateApplyBoundaryReason(apply.Kind, mode, dependencyAliases)
+        );
     }
 
     private static SourceBoundaryPlan CreateInterpretBoundaryPlan(InterpretSourceNode interpret, ApplyKind applyKind)
     {
         var inputAliases = CollectExpressionAliases(interpret.Arguments);
-        var mode = inputAliases.Length == 0
-            ? SourceBoundaryInputMode.Independent
-            : SourceBoundaryInputMode.Correlated;
+        var mode = inputAliases.Length == 0 ? SourceBoundaryInputMode.Independent : SourceBoundaryInputMode.Correlated;
 
         return new SourceBoundaryPlan(
             $"interpret:{interpret.Alias}",
@@ -52,7 +51,8 @@ internal static partial class SourceBoundaryPlanner
             inputAliases,
             [interpret.Alias],
             PlanningConfidence.High,
-            CreateInterpretBoundaryReason(interpret, applyKind, inputAliases));
+            CreateInterpretBoundaryReason(interpret, applyKind, inputAliases)
+        );
     }
 
     private static SourceBoundaryPlan CreatePropertyBoundaryPlan(PropertySourceNode propertySource, ApplyKind applyKind)
@@ -76,10 +76,14 @@ internal static partial class SourceBoundaryPlanner
             inputAliases,
             [propertySource.Alias],
             inputAliases.Length == 0 ? PlanningConfidence.Low : PlanningConfidence.High,
-            CreatePropertyBoundaryReason(propertySource, applyKind));
+            CreatePropertyBoundaryReason(propertySource, applyKind)
+        );
     }
 
-    private static SourceBoundaryPlan CreateAccessMethodBoundaryPlan(AccessMethodSourceNode accessMethod, ApplyKind applyKind)
+    private static SourceBoundaryPlan CreateAccessMethodBoundaryPlan(
+        AccessMethodSourceNode accessMethod,
+        ApplyKind applyKind
+    )
     {
         var inputAliases = CollectAccessMethodInputAliases(accessMethod);
         var mode = inputAliases.Length == 0 ? SourceBoundaryInputMode.Unknown : SourceBoundaryInputMode.Correlated;
@@ -98,7 +102,8 @@ internal static partial class SourceBoundaryPlanner
             inputAliases,
             [accessMethod.Alias],
             inputAliases.Length == 0 ? PlanningConfidence.Low : PlanningConfidence.High,
-            CreateAccessMethodBoundaryReason(accessMethod, applyKind, inputAliases));
+            CreateAccessMethodBoundaryReason(accessMethod, applyKind, inputAliases)
+        );
     }
 
     private static PlanningDecision CreateDecision(SourceBoundaryPlan plan)
@@ -109,6 +114,7 @@ internal static partial class SourceBoundaryPlanner
             plan.BoundaryId,
             $"{plan.Kind}/{plan.ApplyKind}/{plan.InputMode}",
             plan.Confidence,
-            plan.Reason);
+            plan.Reason
+        );
     }
 }

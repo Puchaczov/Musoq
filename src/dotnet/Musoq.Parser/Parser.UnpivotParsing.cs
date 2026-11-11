@@ -23,13 +23,31 @@ public partial class Parser
             ConsumeUnpivotUsingKeyword();
             var valueColumn = ComposeUnpivotOutputColumnName("UNPIVOT USING requires a value output column name.");
             var keepFields = ComposeUnpivotKeepFields();
-            ValidateUnpivotOutputNames(nameColumn.Name, valueColumn.Name, entries, keepFields, nameColumn.Span, valueColumn.Span);
+            ValidateUnpivotOutputNames(
+                nameColumn.Name,
+                valueColumn.Name,
+                entries,
+                keepFields,
+                nameColumn.Span,
+                valueColumn.Span
+            );
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
             var unpivot = new UnpivotFromNode(sourceExpression, nameColumn.Name, valueColumn.Name, entries, keepFields);
             var select = new SelectNode([new FieldNode(new AllColumnsNode(), 0, null)]);
-            return new QueryNode(select, new ExpressionFromNode(unpivot), null, null, orderBy, skip, take, null, null, default);
+            return new QueryNode(
+                select,
+                new ExpressionFromNode(unpivot),
+                null,
+                null,
+                orderBy,
+                skip,
+                take,
+                null,
+                null,
+                default
+            );
         }
         finally
         {
@@ -37,8 +55,8 @@ public partial class Parser
         }
     }
 
-    private SyntaxException UnpivotSyntax(string message, DiagnosticCode code, TextSpan span)
-        => new(message, _lexer.AlreadyResolvedQueryPart, code, span);
+    private SyntaxException UnpivotSyntax(string message, DiagnosticCode code, TextSpan span) =>
+        new(message, _lexer.AlreadyResolvedQueryPart, code, span);
 
     private (string Name, TextSpan Span) ComposeUnpivotOnColumn()
     {
@@ -46,7 +64,8 @@ public partial class Parser
             throw UnpivotSyntax(
                 "UNPIVOT requires an ON clause after the source. Example: unpivot #sales.wide() on Quarter in (Q1 as Q1) using Sales.",
                 DiagnosticCode.MQ2002_MissingToken,
-                Current.Span);
+                Current.Span
+            );
 
         Consume(TokenType.On);
         var nameColumn = ComposeUnpivotOutputColumnName("UNPIVOT ON requires the generated name column before IN.");
@@ -55,7 +74,8 @@ public partial class Parser
             throw UnpivotSyntax(
                 "UNPIVOT ON requires an IN (...) list of value expressions.",
                 DiagnosticCode.MQ2002_MissingToken,
-                Current.Span);
+                Current.Span
+            );
 
         Consume(TokenType.In);
         return nameColumn;
@@ -70,7 +90,8 @@ public partial class Parser
             throw UnpivotSyntax(
                 "UNPIVOT IN requires at least one value expression.",
                 DiagnosticCode.MQ2003_InvalidExpression,
-                Current.Span);
+                Current.Span
+            );
 
         do
         {
@@ -84,7 +105,8 @@ public partial class Parser
                 throw UnpivotSyntax(
                     "UNPIVOT IN entries require an alias unless the value expression is a simple identifier or property access.",
                     DiagnosticCode.MQ2022_InvalidAlias,
-                    expression.Span);
+                    expression.Span
+                );
 
             entries.Add(new UnpivotEntryNode(expression, alias, aliasSpan));
 
@@ -96,7 +118,8 @@ public partial class Parser
                 throw UnpivotSyntax(
                     "UNPIVOT IN list has a trailing comma. Add another value expression or remove the comma.",
                     DiagnosticCode.MQ2014_TrailingComma,
-                    Current.Span);
+                    Current.Span
+                );
         } while (true);
 
         Consume(TokenType.RightParenthesis);
@@ -109,7 +132,8 @@ public partial class Parser
             throw UnpivotSyntax(
                 "UNPIVOT requires a USING clause with the generated value column name. Example: using Sales.",
                 DiagnosticCode.MQ2002_MissingToken,
-                Current.Span);
+                Current.Span
+            );
 
         _sourceCapture?.Mark(Current, Syntax.SyntaxTokenRole.Keyword);
         Consume(Current.TokenType);
@@ -137,7 +161,8 @@ public partial class Parser
                 throw UnpivotSyntax(
                     "UNPIVOT KEEP expressions require an alias unless the expression is a simple identifier or property access.",
                     DiagnosticCode.MQ2022_InvalidAlias,
-                    field.Expression.Span);
+                    field.Expression.Span
+                );
             }
 
             fields.Add(field);
@@ -150,14 +175,16 @@ public partial class Parser
                 throw UnpivotSyntax(
                     "UNPIVOT KEEP list has a trailing comma. Add another keep expression or remove the comma.",
                     DiagnosticCode.MQ2014_TrailingComma,
-                    Current.Span);
+                    Current.Span
+                );
         }
 
         if (fields.Count == 0)
             throw UnpivotSyntax(
                 "UNPIVOT KEEP requires at least one expression.",
                 DiagnosticCode.MQ2003_InvalidExpression,
-                Current.Span);
+                Current.Span
+            );
 
         return fields.ToArray();
     }
@@ -172,7 +199,8 @@ public partial class Parser
             throw UnpivotSyntax(
                 "UNPIVOT output column names cannot be empty.",
                 DiagnosticCode.MQ2022_InvalidAlias,
-                token.Span);
+                token.Span
+            );
 
         return (token.Value, token.Span);
     }
@@ -183,7 +211,8 @@ public partial class Parser
         IReadOnlyList<UnpivotEntryNode> entries,
         IReadOnlyList<FieldNode> keepFields,
         TextSpan nameColumnSpan,
-        TextSpan valueColumnSpan)
+        TextSpan valueColumnSpan
+    )
     {
         var outputNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var keepField in keepFields)
@@ -198,7 +227,8 @@ public partial class Parser
                 throw UnpivotSyntax(
                     $"UNPIVOT IN generated duplicate name value '{entry.NameValue}'. Use unique aliases in the IN list.",
                     DiagnosticCode.MQ2008_DuplicateAlias,
-                    entry.NameValueSpan.IsEmpty ? entry.Expression.Span : entry.NameValueSpan);
+                    entry.NameValueSpan.IsEmpty ? entry.Expression.Span : entry.NameValueSpan
+                );
     }
 
     private void AddUnpivotOutputName(HashSet<string> outputNames, string outputName, TextSpan span)
@@ -209,14 +239,23 @@ public partial class Parser
         throw UnpivotSyntax(
             $"UNPIVOT generated duplicate output column name '{outputName}'. Use unique keep, name, and value column aliases.",
             DiagnosticCode.MQ2008_DuplicateAlias,
-            span);
+            span
+        );
     }
 
     private static bool IsUnpivotClauseTerminator(TokenType tokenType)
     {
-        return tokenType is TokenType.OrderBy or TokenType.Skip or TokenType.Take
-            or TokenType.RightParenthesis or TokenType.Semicolon or TokenType.EndOfFile
-            or TokenType.Union or TokenType.UnionAll or TokenType.Except or TokenType.Intersect;
+        return tokenType
+            is TokenType.OrderBy
+                or TokenType.Skip
+                or TokenType.Take
+                or TokenType.RightParenthesis
+                or TokenType.Semicolon
+                or TokenType.EndOfFile
+                or TokenType.Union
+                or TokenType.UnionAll
+                or TokenType.Except
+                or TokenType.Intersect;
     }
 
     private static bool TryCreateUnpivotStableAlias(Node expression, out string alias)

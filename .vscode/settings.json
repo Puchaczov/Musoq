@@ -6,5 +6,15 @@
         "dotnet clean": true,
         "git stash": true
     },
-    "dotnet.defaultSolution": "src/dotnet/Musoq.sln"
+    "dotnet.defaultSolution": "src/dotnet/Musoq.sln",
+    "[csharp]": {
+        "editor.defaultFormatter": "csharpier.csharpier-vscode",
+        "editor.formatOnSave": true,
+        "editor.formatOnSaveMode": "file"
+    },
+    "[xml]": {
+        "editor.defaultFormatter": "csharpier.csharpier-vscode",
+        "editor.formatOnSave": true,
+        "editor.formatOnSaveMode": "file"
+    }
 }

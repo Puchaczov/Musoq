@@ -13,7 +13,8 @@ internal sealed partial class PhysicalLoweringImplementation
         string resultTableName,
         string resultShapeName,
         MultiStatementIndexes indexes,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (multiStatement.Statements.Length != 2)
             return null;
@@ -23,18 +24,22 @@ internal sealed partial class PhysicalLoweringImplementation
             return null;
 
         var finalPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(multiStatement.Statements[1]));
-        if (finalPipeline is not { Source: PhysicalCteRefNode cteRef } ||
-            finalPipeline.PostOperations.Count != 0 ||
-            !string.Equals(cteRef.CteName, producerCteName, StringComparison.OrdinalIgnoreCase))
+        if (
+            finalPipeline is not { Source: PhysicalCteRefNode cteRef }
+            || finalPipeline.PostOperations.Count != 0
+            || !string.Equals(cteRef.CteName, producerCteName, StringComparison.OrdinalIgnoreCase)
+        )
         {
             return null;
         }
 
         var producerPipeline = DecomposeSupportedPipeline(UnwrapSingleStatement(multiStatement.Statements[0]));
-        if (producerPipeline == null ||
-            producerPipeline.Filter != null ||
-            producerPipeline.PostOperations.Count != 0 ||
-            !CanInlineFinalProjectionSource(producerPipeline.Source, finalPipeline.Filter))
+        if (
+            producerPipeline == null
+            || producerPipeline.Filter != null
+            || producerPipeline.PostOperations.Count != 0
+            || !CanInlineFinalProjectionSource(producerPipeline.Source, finalPipeline.Filter)
+        )
         {
             return null;
         }
@@ -43,7 +48,8 @@ internal sealed partial class PhysicalLoweringImplementation
             finalPipeline.Project,
             finalPipeline.Filter,
             producerPipeline.Project,
-            cteRef);
+            cteRef
+        );
         if (rewrite == null)
             return null;
 
@@ -51,26 +57,30 @@ internal sealed partial class PhysicalLoweringImplementation
             producerPipeline with
             {
                 Project = rewrite.Project,
-                Filter = rewrite.Filter
+                Filter = rewrite.Filter,
             },
             resultTableName,
             resultShapeName,
             indexes.CteIndexes,
             indexes.CteShapesByName,
             schemaFromIndex: DefaultSchemaFromIndex,
-            scope: scope);
+            scope: scope
+        );
         if (!result.IsBuilt)
             return result;
 
         var tableIndex = ResolveStatementTableIndex(0, indexes);
         if (tableIndex < 0)
-            return TableBuildResult.Unsupported("Execution IR single-use final projection fusion cannot resolve table storage slot for statement 0.");
+            return TableBuildResult.Unsupported(
+                "Execution IR single-use final projection fusion cannot resolve table storage slot for statement 0."
+            );
 
         return TableBuildResult.Success(
             result.Shapes,
             [CreateSingleUsePipelineFusionCandidate(tableIndex, result.Nodes)],
             result.Table,
-            result.RowShape);
+            result.RowShape
+        );
     }
 
     private static bool CanInlineFinalJoinProjectionSource(PhysicalNode source)
@@ -83,26 +93,24 @@ internal sealed partial class PhysicalLoweringImplementation
         return CanInlineFinalJoinProjectionSource(source) || IsPlainSchemaScanApplySource(source);
     }
 
-    private static bool CanInlineFinalProjectionSource(
-        PhysicalNode source,
-        PhysicalFilterNode? finalFilter)
+    private static bool CanInlineFinalProjectionSource(PhysicalNode source, PhysicalFilterNode? finalFilter)
     {
-        return CanInlineFinalProjectionSource(source) ||
-               finalFilter != null &&
-               IrExpressionTraversal.SelfAndDescendants(finalFilter.Predicate)
-                   .Any(static expression => expression is PatternMatch) &&
-               CanInlineSideEffectApplyProjectionSource(source);
+        return CanInlineFinalProjectionSource(source)
+            || finalFilter != null
+                && IrExpressionTraversal
+                    .SelfAndDescendants(finalFilter.Predicate)
+                    .Any(static expression => expression is PatternMatch)
+                && CanInlineSideEffectApplyProjectionSource(source);
     }
 
     private static bool IsPlainSchemaScanApplySource(PhysicalNode source)
     {
         return source switch
         {
-            PhysicalNestedLoopApplyNode apply =>
-                IsPlainSchemaScanApplySource(apply.Left) &&
-                IsPlainSchemaScanApplySource(apply.Right),
+            PhysicalNestedLoopApplyNode apply => IsPlainSchemaScanApplySource(apply.Left)
+                && IsPlainSchemaScanApplySource(apply.Right),
             PhysicalSchemaScanNode { Arguments.Length: 0 } => true,
-            _ => false
+            _ => false,
         };
     }
 
@@ -110,7 +118,8 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalProjectNode finalProject,
         PhysicalFilterNode? finalFilter,
         PhysicalProjectNode producerProject,
-        PhysicalCteRefNode cteRef)
+        PhysicalCteRefNode cteRef
+    )
     {
         var projectedExpressions = CreateProducerProjectionExpressionMap(producerProject.Fields);
         var fields = new ProjectedField[finalProject.Fields.Length];
@@ -126,8 +135,13 @@ internal sealed partial class PhysicalLoweringImplementation
 
         if (finalFilter == null)
             return new FinalJoinProjectionRewrite(
-                finalProject with { Fields = fields, Input = producerProject.Input },
-                null);
+                finalProject with
+                {
+                    Fields = fields,
+                    Input = producerProject.Input,
+                },
+                null
+            );
 
         var predicate = RewriteFinalJoinExpression(finalFilter.Predicate, projectedExpressions, cteRef);
         if (predicate == null)
@@ -136,7 +150,12 @@ internal sealed partial class PhysicalLoweringImplementation
         var rewrittenFilter = finalFilter with { Predicate = predicate, Input = producerProject.Input };
 
         return new FinalJoinProjectionRewrite(
-            finalProject with { Fields = fields, Input = rewrittenFilter },
-            rewrittenFilter);
+            finalProject with
+            {
+                Fields = fields,
+                Input = rewrittenFilter,
+            },
+            rewrittenFilter
+        );
     }
 }

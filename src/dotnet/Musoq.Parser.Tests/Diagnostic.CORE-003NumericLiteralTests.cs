@@ -25,10 +25,20 @@ public sealed class DiagnosticCore003NumericLiteralTests
         CollectionAssert.AreEqual(
             new[]
             {
-                typeof(int), typeof(int), typeof(int), typeof(decimal), typeof(decimal), typeof(decimal),
-                typeof(byte), typeof(ulong), typeof(long), typeof(long), typeof(long)
+                typeof(int),
+                typeof(int),
+                typeof(int),
+                typeof(decimal),
+                typeof(decimal),
+                typeof(decimal),
+                typeof(byte),
+                typeof(ulong),
+                typeof(long),
+                typeof(long),
+                typeof(long),
             },
-            expressions.Select(expression => expression.ReturnType).ToArray());
+            expressions.Select(expression => expression.ReturnType).ToArray()
+        );
         Assert.AreEqual(255L, ((ConstantValueNode)expressions[8]).ObjValue);
         Assert.AreEqual(10L, ((ConstantValueNode)expressions[9]).ObjValue);
         Assert.AreEqual(63L, ((ConstantValueNode)expressions[10]).ObjValue);
@@ -70,7 +80,8 @@ public sealed class DiagnosticCore003NumericLiteralTests
     [DataRow("0o78", DiagnosticCode.MQ1008_InvalidOctalNumber)]
     public void InvalidAlternativeBaseLiteral_ShouldReportTheWholeLiteralWithGuidance(
         string literal,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var query = $"select {literal} from system.dual()";
         var lexer = new Lexer(query, true, recoverOnError: true);
@@ -82,8 +93,10 @@ public sealed class DiagnosticCore003NumericLiteralTests
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
-        Assert.AreEqual(new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
-            diagnostic.Span);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
+            diagnostic.Span
+        );
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.DocsReference));
@@ -101,8 +114,10 @@ public sealed class DiagnosticCore003NumericLiteralTests
 
         var diagnostic = lexer.Diagnostics.ToSortedList().Single();
         Assert.AreEqual(DiagnosticCode.MQ1003_InvalidNumericLiteral, diagnostic.Code);
-        Assert.AreEqual(new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
-            diagnostic.Span);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
+            diagnostic.Span
+        );
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.IsNotEmpty(diagnostic.SuggestedFixes);
     }
@@ -120,8 +135,10 @@ public sealed class DiagnosticCore003NumericLiteralTests
         Assert.AreEqual(DiagnosticCode.MQ1009_NumericLiteralOutOfRange, diagnostic.Code);
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
-        Assert.AreEqual(new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
-            diagnostic.Span);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf(literal, StringComparison.Ordinal), literal.Length),
+            diagnostic.Span
+        );
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
         Assert.IsNotEmpty(diagnostic.SuggestedFixes);
     }
@@ -141,8 +158,6 @@ public sealed class DiagnosticCore003NumericLiteralTests
 
     private static void Drain(Lexer lexer)
     {
-        while (lexer.Next().TokenType != TokenType.EndOfFile)
-        {
-        }
+        while (lexer.Next().TokenType != TokenType.EndOfFile) { }
     }
 }

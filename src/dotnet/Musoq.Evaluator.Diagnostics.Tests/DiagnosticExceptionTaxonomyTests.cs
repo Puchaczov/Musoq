@@ -14,8 +14,8 @@ public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEnt
     public void QueryAnalyzer_WhenProviderFails_ShouldPreserveProviderException()
     {
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            new QueryAnalyzer(new ThrowingSchemaProvider("provider failed")).Analyze(
-                "SELECT 1 FROM #A.Entities()"));
+            new QueryAnalyzer(new ThrowingSchemaProvider("provider failed")).Analyze("SELECT 1 FROM #A.Entities()")
+        );
 
         Assert.AreEqual("provider failed", exception.Message);
     }
@@ -24,16 +24,18 @@ public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEnt
     public void QueryAnalyzer_WhenProviderCancels_ShouldRethrowCancellation()
     {
         Assert.Throws<OperationCanceledException>(() =>
-            new QueryAnalyzer(new CancellingSchemaProvider()).Analyze(
-                "SELECT 1 FROM #A.Entities()"));
+            new QueryAnalyzer(new CancellingSchemaProvider()).Analyze("SELECT 1 FROM #A.Entities()")
+        );
     }
 
     [TestMethod]
     public void QueryAnalyzer_WhenProviderTableLookupFailsWithNotSupported_ShouldPreserveProviderException()
     {
         var exception = Assert.Throws<NotSupportedException>(() =>
-            new QueryAnalyzer(new ThrowingTableSchemaProvider(new NotSupportedException("provider table lookup failed"))).Analyze(
-                "SELECT 1 FROM #A.Entities()"));
+            new QueryAnalyzer(
+                new ThrowingTableSchemaProvider(new NotSupportedException("provider table lookup failed"))
+            ).Analyze("SELECT 1 FROM #A.Entities()")
+        );
 
         Assert.AreEqual("provider table lookup failed", exception.Message);
     }
@@ -42,8 +44,10 @@ public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEnt
     public void QueryAnalyzer_WhenProviderTableLookupFailsWithKeyNotFound_ShouldPreserveProviderException()
     {
         var exception = Assert.Throws<KeyNotFoundException>(() =>
-            new QueryAnalyzer(new ThrowingTableSchemaProvider(new KeyNotFoundException("provider table lookup failed"))).Analyze(
-                "SELECT 1 FROM #A.Entities()"));
+            new QueryAnalyzer(
+                new ThrowingTableSchemaProvider(new KeyNotFoundException("provider table lookup failed"))
+            ).Analyze("SELECT 1 FROM #A.Entities()")
+        );
 
         Assert.AreEqual("provider table lookup failed", exception.Message);
     }
@@ -52,8 +56,8 @@ public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEnt
     public void QueryAnalyzer_WhenProviderColumnMetadataFails_ShouldPreserveProviderException()
     {
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            new QueryAnalyzer(new ThrowingColumnSchemaProvider()).Analyze(
-                "SELECT a.Value FROM #A.Entities() a"));
+            new QueryAnalyzer(new ThrowingColumnSchemaProvider()).Analyze("SELECT a.Value FROM #A.Entities() a")
+        );
 
         Assert.AreEqual("provider column metadata failed", exception.Message);
     }
@@ -64,7 +68,8 @@ public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEnt
         var expected = Musoq.Parser.Diagnostics.Diagnostic.Error(
             Musoq.Parser.Diagnostics.DiagnosticCode.MQ3001_UnknownColumn,
             "missing",
-            Musoq.Parser.TextSpan.Empty);
+            Musoq.Parser.TextSpan.Empty
+        );
         var exception = new SemanticAnalysisException("semantic failed", expected);
 
         Assert.AreEqual(expected.Code, exception.Code);
@@ -74,11 +79,15 @@ public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEnt
     [TestMethod]
     public void TypedAccess_WhenGetterThrowsUnexpectedException_ShouldPreserveIt()
     {
-        using var compiled = CreateAndRunVirtualMachine<ThrowingValueEntity>("select Value from #schema.first()", [new()]);
+        using var compiled = CreateAndRunVirtualMachine<ThrowingValueEntity>(
+            "select Value from #schema.first()",
+            [new()]
+        );
         var exception = Assert.Throws<Musoq.Evaluator.Exceptions.QueryExecutionException>(() =>
         {
             using var table = compiled.Run(TestContext.CancellationToken);
-            foreach (var row in table) _ = row.GetValue<string>(0);
+            foreach (var row in table)
+                _ = row.GetValue<string>(0);
         });
 
         Assert.IsInstanceOfType<InvalidOperationException>(exception.GetBaseException());
@@ -112,12 +121,14 @@ public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEnt
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters) => throw exception;
+            params object?[] parameters
+        ) => throw exception;
 
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments parameters) => throw new NotSupportedException();
+            TArguments parameters
+        ) => throw new NotSupportedException();
     }
 
     private sealed class ThrowingColumnSchemaProvider : ISchemaProvider
@@ -128,19 +139,19 @@ public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEnt
     private sealed class ThrowingColumnSchema : SchemaBase
     {
         public ThrowingColumnSchema()
-            : base("A", new MethodsAggregator(new MethodsManager()))
-        {
-        }
+            : base("A", new MethodsAggregator(new MethodsManager())) { }
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters) => new ThrowingColumnTable();
+            params object?[] parameters
+        ) => new ThrowingColumnTable();
 
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments parameters) => throw new NotSupportedException();
+            TArguments parameters
+        ) => throw new NotSupportedException();
     }
 
     private sealed class ThrowingColumnTable : ISchemaTable

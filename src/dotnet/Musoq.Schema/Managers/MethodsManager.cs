@@ -1,14 +1,15 @@
-using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Musoq.Plugins;
 
 namespace Musoq.Schema.Managers;
 
 public class MethodsManager : MethodsMetadata
 {
-    private static readonly ConcurrentDictionary<LibraryFunctionCatalog, RegistrationSnapshot> RegistrationSnapshots = new();
+    private static readonly ConcurrentDictionary<LibraryFunctionCatalog, RegistrationSnapshot> RegistrationSnapshots =
+        new();
     private Dictionary<string, SqlFunctionDescriptor> _registrations = new(StringComparer.Ordinal);
     private LibraryFunctionCatalog? _initialCatalog;
     private ImmutableArray<SqlFunctionDescriptor> _selectedFunctions = [];
@@ -36,28 +37,41 @@ public class MethodsManager : MethodsMetadata
         _initialCatalog = null;
         _registrations = selected;
         ClearRegistrations();
-        foreach (var method in _registrations.Values.Where(static function => function.Kind != SqlFunctionKind.Window)
-                     .Select(static function => function.Declaration).Distinct())
+        foreach (
+            var method in _registrations
+                .Values.Where(static function => function.Kind != SqlFunctionKind.Window)
+                .Select(static function => function.Declaration)
+                .Distinct()
+        )
             RegisterMethodCore(method.Name, method);
-        foreach (var function in _registrations.Values.Where(static function => function.Kind != SqlFunctionKind.Window &&
-                     function.Name != function.Declaration.Name))
+        foreach (
+            var function in _registrations.Values.Where(static function =>
+                function.Kind != SqlFunctionKind.Window && function.Name != function.Declaration.Name
+            )
+        )
             RegisterMethodCore(function.Name, function.Declaration);
         _selectedFunctions = _registrations.Values.ToImmutableArray();
     }
 
     private static RegistrationSnapshot CreateRegistrationSnapshot(LibraryFunctionCatalog catalog)
     {
-        var methods = catalog.Functions.Where(static function => function.Kind != SqlFunctionKind.Window)
-            .Select(static function => function.Declaration).Distinct()
+        var methods = catalog
+            .Functions.Where(static function => function.Kind != SqlFunctionKind.Window)
+            .Select(static function => function.Declaration)
+            .Distinct()
             .Select(static method => (method.Name, method));
-        var aliases = catalog.Functions.Where(static function => function.Kind != SqlFunctionKind.Window &&
-                function.Name != function.Declaration.Name)
+        var aliases = catalog
+            .Functions.Where(static function =>
+                function.Kind != SqlFunctionKind.Window && function.Name != function.Declaration.Name
+            )
             .Select(static function => (function.Name, function.Declaration));
         return new RegistrationSnapshot(methods.Concat(aliases));
     }
 
-    private static void SelectRegistration(Dictionary<string, SqlFunctionDescriptor> selected,
-        KeyValuePair<string, SqlFunctionDescriptor> registration)
+    private static void SelectRegistration(
+        Dictionary<string, SqlFunctionDescriptor> selected,
+        KeyValuePair<string, SqlFunctionDescriptor> registration
+    )
     {
         if (!selected.TryGetValue(registration.Key, out var existing) || PreferDescendant(existing, registration.Value))
             selected[registration.Key] = registration.Value;
@@ -72,6 +86,8 @@ public class MethodsManager : MethodsMetadata
         if (candidate.Declaration.DeclaringType!.IsAssignableFrom(existing.Declaration.DeclaringType))
             return false;
 
-        throw new InvalidOperationException($"Competing {candidate.Kind} declarations for SQL function '{candidate.Name}'.");
+        throw new InvalidOperationException(
+            $"Competing {candidate.Kind} declarations for SQL function '{candidate.Name}'."
+        );
     }
 }

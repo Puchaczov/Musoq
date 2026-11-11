@@ -11,9 +11,9 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("Name||Amount\nAda||1\n");
         var query =
-            "table CsvShape { Name: string, Amount: int };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Name from Rows({SqlString(path)}, true, 0, '||')";
+            "table CsvShape { Name: string, Amount: int };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Name from Rows({SqlString(path)}, true, 0, '||')";
 
         var result = CompileWithDiagnostics(query);
 
@@ -27,9 +27,9 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("Ada\n");
         var query =
-            "table CsvShape { Name: string source index '-1' };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Name from Rows({SqlString(path)})";
+            "table CsvShape { Name: string source index '-1' };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Name from Rows({SqlString(path)})";
 
         var result = CompileWithDiagnostics(query);
 
@@ -46,9 +46,9 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("FullName\nAda\n");
         var query =
-            "table CsvShape { Name: string source name 'MissingName' };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Name from Rows({SqlString(path)}, true)";
+            "table CsvShape { Name: string source name 'MissingName' };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Name from Rows({SqlString(path)}, true)";
 
         var result = CompileWithDiagnostics(query);
 
@@ -65,9 +65,9 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("Payload\nabc\n");
         var query =
-            "table CsvShape { Payload: string source codec 'base64' };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Payload from Rows({SqlString(path)}, true)";
+            "table CsvShape { Payload: string source codec 'base64' };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Payload from Rows({SqlString(path)}, true)";
 
         var result = CompileWithDiagnostics(query);
 
@@ -84,9 +84,9 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("Name\n\"Ada\n");
         var query =
-            "table CsvShape { Name: string };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Name from Rows({SqlString(path)}, true)";
+            "table CsvShape { Name: string };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Name from Rows({SqlString(path)}, true)";
 
         var result = CompileWithDiagnostics(query);
 
@@ -100,9 +100,9 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("Ada\n");
         var query =
-            "table CsvShape { Name: string source index '1' };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Name from Rows({SqlString(path)})";
+            "table CsvShape { Name: string source index '1' };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Name from Rows({SqlString(path)})";
 
         var result = CompileWithDiagnostics(query);
 
@@ -119,9 +119,9 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("Name,Amount\nAda,1\n");
         var query =
-            "table CsvShape { Name: string, Amount: int };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Name from Rows({SqlString(path)}, true) where Amount > 0";
+            "table CsvShape { Name: string, Amount: int };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Name from Rows({SqlString(path)}, true) where Amount > 0";
 
         var inspection = Inspect(query);
 
@@ -134,16 +134,21 @@ public sealed class CsvDiagnosticsTests : CsvExampleTestBase
     {
         var path = WriteTempCsv("Name\nAda\n");
         var query =
-            "table CsvShape { Name: string };" +
-            "couple #csv.file with table CsvShape as Rows;" +
-            $"select Name from Rows({SqlString(path)}, true)";
+            "table CsvShape { Name: string };"
+            + "couple #csv.file with table CsvShape as Rows;"
+            + $"select Name from Rows({SqlString(path)}, true)";
 
         var inspection = Inspect(query, new CsvSchemaProvider(enableQueryScopedRows: true));
 
         StringAssert.Contains(inspection.GeneratedCSharpCode, "QuerySourceInvocation<");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "IQuerySourceFieldReader");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "Read<string>(0)");
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("SourceInvocation<Musoq.Examples.DataSources.Csv.CsvRow>", StringComparison.Ordinal));
+        Assert.IsFalse(
+            inspection.GeneratedCSharpCode.Contains(
+                "SourceInvocation<Musoq.Examples.DataSources.Csv.CsvRow>",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetRowSourceChunks", StringComparison.Ordinal));
         Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("GetColumnValue", StringComparison.Ordinal));
     }

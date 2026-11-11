@@ -20,7 +20,10 @@ public sealed class ByteBufferBehaviorTests
     public void ArrayRange_PublicOutputPreservesClampingAndOwnedSnapshot(int skip, int take, string expected)
     {
         var entity = new BufferFlowEntity();
-        using var query = Compile($"select EnumerableToArray(SkipAndTake(Produce(f.Content), {skip}, {take})) as Bytes from #schema.first() f", entity);
+        using var query = Compile(
+            $"select EnumerableToArray(SkipAndTake(Produce(f.Content), {skip}, {take})) as Bytes from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         var bytes = result.Single().GetValue<byte[]>(0);
         CollectionAssert.AreEqual(Convert.FromHexString(expected), bytes);
@@ -34,7 +37,10 @@ public sealed class ByteBufferBehaviorTests
     public void Materialization_PrecedesLaterArgumentMutation()
     {
         var entity = new BufferFlowEntity();
-        using var query = Compile("select ReadAfter(EnumerableToArray(Produce(f.Content)), Mutate(f.Content)) as Value from #schema.first() f", entity);
+        using var query = Compile(
+            "select ReadAfter(EnumerableToArray(Produce(f.Content)), Mutate(f.Content)) as Value from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         Assert.AreEqual((byte)1, result.Single().GetValue<byte>(0));
         CollectionAssert.AreEqual(new[] { "produce", "mutate" }, entity.Events);
@@ -45,7 +51,10 @@ public sealed class ByteBufferBehaviorTests
     public void Length_OfMaterializedOpaqueSequencePreservesEnumerationEffects()
     {
         var entity = new BufferFlowEntity();
-        using var query = Compile("select Length(EnumerableToArray(Skip(Sequence(f.Content), 2))) as Value from #schema.first() f", entity);
+        using var query = Compile(
+            "select Length(EnumerableToArray(Skip(Sequence(f.Content), 2))) as Value from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         Assert.AreEqual(4, result.Single().GetValue<int?>(0));
         Assert.AreEqual(6, entity.Enumerated);
@@ -55,7 +64,10 @@ public sealed class ByteBufferBehaviorTests
     public void ConditionalProducer_RetainsBranchAndExceptionOrdering()
     {
         var entity = new BufferFlowEntity();
-        using var query = Compile("select case when f.Calls = 0 then Length(EnumerableToArray(Take(Produce(f.Content), 2))) else Length(Fail(f.Content)) end as Value from #schema.first() f", entity);
+        using var query = Compile(
+            "select case when f.Calls = 0 then Length(EnumerableToArray(Take(Produce(f.Content), 2))) else Length(Fail(f.Content)) end as Value from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         Assert.AreEqual(2, result.Single().GetValue<int?>(0));
         CollectionAssert.AreEqual(new[] { "produce" }, entity.Events);
@@ -78,7 +90,10 @@ public sealed class ByteBufferBehaviorTests
     public void ShortScalarBuffer_PreservesPadding(bool padding, int? expected)
     {
         var entity = new BufferFlowEntity { Content = [1, 2] };
-        using var query = Compile($"select FromBytesToInt32(EnumerableToArray(Take(f.Content, 2)), {padding.ToString().ToLowerInvariant()}) as Value from #schema.first() f", entity);
+        using var query = Compile(
+            $"select FromBytesToInt32(EnumerableToArray(Take(f.Content, 2)), {padding.ToString().ToLowerInvariant()}) as Value from #schema.first() f",
+            entity
+        );
         using var result = query.Run();
         Assert.AreEqual(expected, result.Single().GetValue<int?>(0));
     }
@@ -87,7 +102,8 @@ public sealed class ByteBufferBehaviorTests
     public void MultipleCteConsumers_RetainCompleteLogicalLengthAndOwnedBytesAcrossRuns()
     {
         var entity = new BufferFlowEntity();
-        const string sql = "binary Pair { First: byte, Second: byte }; with bytes as (select EnumerableToArray(Skip(Produce(f.Content), 1)) as Content from #schema.first() f) select Length(b.Content) as Size, b.Content as Bytes, p.Second as Value from bytes b cross apply Interpret<Pair>(b.Content) p";
+        const string sql =
+            "binary Pair { First: byte, Second: byte }; with bytes as (select EnumerableToArray(Skip(Produce(f.Content), 1)) as Content from #schema.first() f) select Length(b.Content) as Size, b.Content as Bytes, p.Second as Value from bytes b cross apply Interpret<Pair>(b.Content) p";
         using var query = Compile(sql, entity);
         using var first = query.Run();
         var retained = first.Single().GetValue<byte[]>(1);
@@ -101,7 +117,12 @@ public sealed class ByteBufferBehaviorTests
         CollectionAssert.AreEqual(new byte[] { 77, 3, 4, 5, 6 }, refreshed);
     }
 
-    private static CompiledQuery Compile(string sql, BufferFlowEntity entity) => InstanceCreator.CompileForExecution(
-        sql, Guid.NewGuid().ToString(), LibraryExecutionFixture.CreateProvider<BufferFlowEntity, BufferFlowLibrary>([entity]),
-        new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
+    private static CompiledQuery Compile(string sql, BufferFlowEntity entity) =>
+        InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString(),
+            LibraryExecutionFixture.CreateProvider<BufferFlowEntity, BufferFlowLibrary>([entity]),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 }

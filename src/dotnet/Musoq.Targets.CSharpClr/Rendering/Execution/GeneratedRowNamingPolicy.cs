@@ -20,19 +20,17 @@ internal static class GeneratedRowNamingPolicy
         "__leftContexts",
         "__rightContexts",
         "__leftContextsRow",
-        "__rightContextsRow");
+        "__rightContextsRow"
+    );
 
     internal static string GetGeneratedFieldName(FieldBinding field)
     {
-        return field.AccessStrategy is GeneratedFieldAccess generated
-            ? generated.FieldName
-            : field.Name;
+        return field.AccessStrategy is GeneratedFieldAccess generated ? generated.FieldName : field.Name;
     }
 
     internal static bool CanRenderIdentifier(string identifier)
     {
-        return identifier.Length <= MaxIdentifierLength &&
-               SyntaxFacts.IsValidIdentifier(identifier);
+        return identifier.Length <= MaxIdentifierLength && SyntaxFacts.IsValidIdentifier(identifier);
     }
 
     internal static string CreateRendererIdentifierCandidate(string value, int disambiguator)
@@ -48,13 +46,10 @@ internal static class GeneratedRowNamingPolicy
         if (disambiguator > 0)
             builder.Append(disambiguator.ToString(CultureInfo.InvariantCulture));
 
-        var candidate = builder.Length <= MaxIdentifierLength
-            ? builder.ToString()
-            : builder.ToString(0, MaxIdentifierLength);
+        var candidate =
+            builder.Length <= MaxIdentifierLength ? builder.ToString() : builder.ToString(0, MaxIdentifierLength);
 
-        return SyntaxFacts.IsValidIdentifier(candidate)
-            ? candidate
-            : $"_{candidate}";
+        return SyntaxFacts.IsValidIdentifier(candidate) ? candidate : $"_{candidate}";
     }
 
     internal static bool IsRendererReservedMemberName(string memberName)
@@ -74,7 +69,7 @@ internal static class GeneratedRowNamingPolicy
             nameof(Row.VisitColumn),
             nameof(Row.VisitColumns),
             nameof(Row.Equals),
-            nameof(Row.GetHashCode)
+            nameof(Row.GetHashCode),
         };
 
         foreach (var name in additionalNames)

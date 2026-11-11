@@ -11,7 +11,8 @@ public partial class ValuesFromTests
     [TestMethod]
     public void ValuesSource_WithScalarParameter_ShouldUseRuntimeValue()
     {
-        const string query = @"
+        const string query =
+            @"
 param(baseScore: int)
 from values {
     ( Name: 'first', Score: $baseScore ),
@@ -21,20 +22,23 @@ select scores.Name, scores.Score
 order by scores.Score";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "baseScore", 10);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "baseScore",
+            10
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Score", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["first", 10], ["second", 15]);
     }
 
     [TestMethod]
     public void ValuesSource_WithNullableScalarParameter_ShouldInferNullableColumn()
     {
-        const string query = @"
+        const string query =
+            @"
 param(optionalScore: int? = null)
 from values {
     ( Name: 'first', Score: $optionalScore ),
@@ -46,20 +50,15 @@ order by scores.Name";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Score", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            new object?[] { "first", null },
-            ["second", 20]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Score", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "first", null }, ["second", 20]);
     }
 
     [TestMethod]
     public void ValuesSource_WithScalarLetReferences_ShouldUseResolvedValues()
     {
-        const string query = @"
+        const string query =
+            @"
 let prefix: string = 'pkg'
 let baseScore: int = 40
 from values {
@@ -72,17 +71,15 @@ order by scores.Score";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Score", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["pkg-a", 41], ["pkg-b", 42]);
     }
 
     [TestMethod]
     public void ValuesSource_WithLiteralAndScalarParameter_ShouldInferSharedType()
     {
-        const string query = @"
+        const string query =
+            @"
 param(baseScore: int)
 from values {
     ( Name: 'literal', Score: 7 ),
@@ -92,20 +89,23 @@ select scores.Name, scores.Score
 order by scores.Score";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "baseScore", 12);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "baseScore",
+            12
+        );
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Score", typeof(int)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Score", typeof(int)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["literal", 7], ["parameter", 12]);
     }
 
     [TestMethod]
     public void ValuesSource_WithSourceColumnReference_ShouldThrow()
     {
-        const string query = @"
+        const string query =
+            @"
 select v.Score
 from #A.entities() a
 inner join values {
@@ -114,7 +114,7 @@ inner join values {
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity { Id = 1, Population = 100m }] }
+            { "#A", [new BasicEntity { Id = 1, Population = 100m }] },
         };
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
@@ -123,6 +123,7 @@ inner join values {
             ex,
             DiagnosticCode.MQ3055_InvalidValuesSource,
             DiagnosticPhase.Bind,
-            "scalar script parameter/let expression");
+            "scalar script parameter/let expression"
+        );
     }
 }

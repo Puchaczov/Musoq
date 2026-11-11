@@ -15,55 +15,75 @@ public sealed class ExecutionPlanPrinterTests
             "p",
             typeof(Person),
             [
-                new FieldBinding("Name", "p.Name", 0, typeof(string), FieldNullability.Unknown, new ClrPropertyAccess("Name")),
-                new FieldBinding("Age", "p.Age", 1, typeof(int), FieldNullability.Unknown, new ClrPropertyAccess("Age"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "p.Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Name")
+                ),
+                new FieldBinding(
+                    "Age",
+                    "p.Age",
+                    1,
+                    typeof(int),
+                    FieldNullability.Unknown,
+                    new ClrPropertyAccess("Age")
+                ),
+            ]
+        );
         var resultShape = new GeneratedRowShape(
             "ResultRow0",
             [
-                new FieldBinding("Name", "Name", 0, typeof(string), FieldNullability.Unknown, new GeneratedFieldAccess("Name"))
-            ]);
+                new FieldBinding(
+                    "Name",
+                    "Name",
+                    0,
+                    typeof(string),
+                    FieldNullability.Unknown,
+                    new GeneratedFieldAccess("Name")
+                ),
+            ]
+        );
         var source = new ExecutionVariable("p", typeof(Person));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
-        var sourceBinding = new ExecutionSourceBinding(
-            "test",
-            "data",
-            "p:1",
-            0,
-            [],
-            sourceShape.Fields);
+        var sourceBinding = new ExecutionSourceBinding("test", "data", "p:1", 0, [], sourceShape.Fields);
         var resultTable = new ExecutionVariable("result", typeof(object));
         var predicate = new ExecutionBinary(
             BinaryOpKind.GreaterThan,
             new ExecutionFieldRead("p", "Age", typeof(int)),
             new ExecutionLiteral(18, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var plan = new ExecutionPlan(
             "Q_Plain",
             [sourceShape, resultShape],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSourceScan(source, sourceRows, sourceBinding),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionForEach(
                     source,
                     new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Rows),
-                    new ExecutionBlock(
-                    [
+                    new ExecutionBlock([
                         new ExecutionIf(
                             predicate,
-                            new ExecutionBlock(
-                            [
+                            new ExecutionBlock([
                                 new ExecutionAppendRow(
                                     resultTable,
                                     resultShape,
-                                    [new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string)))])
-                            ]))
-                    ])),
-                new ExecutionReturnTable(resultTable)
-            ]));
+                                    [new ExecutionRowValue("Name", new ExecutionFieldRead("p", "Name", typeof(string)))]
+                                ),
+                            ])
+                        ),
+                    ])
+                ),
+                new ExecutionReturnTable(resultTable),
+            ])
+        );
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_Plain]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -78,7 +98,8 @@ public sealed class ExecutionPlanPrinterTests
             "    ForEach [p in pRows]",
             "      If [(p.Age > 18)]",
             "        AppendRow [result <- ResultRow0(Name: p.Name)]",
-            "    ReturnTable [result]");
+            "    ReturnTable [result]"
+        );
 
         Assert.AreEqual(expected, ExecutionPlanPrinter.Print(plan));
     }
@@ -90,18 +111,20 @@ public sealed class ExecutionPlanPrinterTests
         var plan = new ExecutionPlan(
             "Q_CapacityCandidate",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionCreateHash(
                     hash,
                     typeof(int),
                     typeof(object),
-                    new ExecutionRowsCapacityHintCandidate(hash, new ExecutionStoredTableRows(2)))
-            ]));
+                    new ExecutionRowsCapacityHintCandidate(hash, new ExecutionStoredTableRows(2))
+                ),
+            ])
+        );
 
         StringAssert.Contains(
             ExecutionPlanPrinter.Print(plan),
-            "CreateHash [ordersHash: int -> object; capacity: Candidate(ordersHash <- _tableResults[2].Rows)]");
+            "CreateHash [ordersHash: int -> object; capacity: Candidate(ordersHash <- _tableResults[2].Rows)]"
+        );
     }
 
     [TestMethod]
@@ -114,32 +137,42 @@ public sealed class ExecutionPlanPrinterTests
         var plan = new ExecutionPlan(
             "Q_StrategyCapacityCandidates",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionSkipTable(
                     source,
                     skipped,
                     1,
-                    ExecutionCapacityHintCandidates.CreateSkipCandidate(skipped, source, 1)),
+                    ExecutionCapacityHintCandidates.CreateSkipCandidate(skipped, source, 1)
+                ),
                 new ExecutionTakeTable(
                     skipped,
                     taken,
                     2,
-                    ExecutionCapacityHintCandidates.CreateTakeCandidate(taken, skipped, 2)),
+                    ExecutionCapacityHintCandidates.CreateTakeCandidate(taken, skipped, 2)
+                ),
                 new ExecutionSliceTable(
                     taken,
                     sliced,
                     3,
                     4,
-                    ExecutionCapacityHintCandidates.CreateSkipTakeCandidate(sliced, taken, 3, 4))
-            ]));
+                    ExecutionCapacityHintCandidates.CreateSkipTakeCandidate(sliced, taken, 3, 4)
+                ),
+            ])
+        );
         var printed = ExecutionPlanPrinter.Print(plan);
 
-        StringAssert.Contains(printed, "SkipTable [source -> skipped, 1; capacity: Candidate(skipped <- Max(source.Count - 1, 0))]");
-        StringAssert.Contains(printed, "TakeTable [skipped -> taken, 2; capacity: Candidate(taken <- Min(skipped.Count, 2))]");
         StringAssert.Contains(
             printed,
-            "SliceTable [taken -> sliced, skip 3, take 4; capacity: Candidate(sliced <- Min(Max(taken.Count - 3, 0), 4))]");
+            "SkipTable [source -> skipped, 1; capacity: Candidate(skipped <- Max(source.Count - 1, 0))]"
+        );
+        StringAssert.Contains(
+            printed,
+            "TakeTable [skipped -> taken, 2; capacity: Candidate(taken <- Min(skipped.Count, 2))]"
+        );
+        StringAssert.Contains(
+            printed,
+            "SliceTable [taken -> sliced, skip 3, take 4; capacity: Candidate(sliced <- Min(Max(taken.Count - 3, 0), 4))]"
+        );
     }
 
     [TestMethod]
@@ -151,19 +184,23 @@ public sealed class ExecutionPlanPrinterTests
         var plan = new ExecutionPlan(
             "Q_MethodTargetCandidate",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionMethodTargetDeclarationCandidate(target),
                 new ExecutionLet(
                     new ExecutionVariable("value", typeof(string)),
-                    new ExecutionMethodTargetReuseCandidate(new ExecutionMethodCall(
-                        method,
-                        [new ExecutionLiteral("value", typeof(object))],
-                        null,
-                        typeof(string),
-                        null,
-                        target)))
-            ]));
+                    new ExecutionMethodTargetReuseCandidate(
+                        new ExecutionMethodCall(
+                            method,
+                            [new ExecutionLiteral("value", typeof(object))],
+                            null,
+                            typeof(string),
+                            null,
+                            target
+                        )
+                    )
+                ),
+            ])
+        );
         var printed = ExecutionPlanPrinter.Print(plan);
 
         StringAssert.Contains(printed, "CreateObjectCandidate [__library: LibraryBase]");
@@ -176,15 +213,16 @@ public sealed class ExecutionPlanPrinterTests
         var plan = new ExecutionPlan(
             "Q_HoistCandidate",
             [],
-            new ExecutionBlock(
-            [
+            new ExecutionBlock([
                 new ExecutionHoistCandidateLet(
                     new ExecutionVariable("name", typeof(string)),
                     new ExecutionFieldRead("p", "Name", typeof(string)),
                     ExecutionHoistKind.FieldRead,
                     ExecutionHoistScope.FilterCondition,
-                    "field:p:Name")
-            ]));
+                    "field:p:Name"
+                ),
+            ])
+        );
         var printed = ExecutionPlanPrinter.Print(plan);
 
         StringAssert.Contains(printed, "HoistCandidate [name: string = p.Name; FieldRead/FilterCondition]");

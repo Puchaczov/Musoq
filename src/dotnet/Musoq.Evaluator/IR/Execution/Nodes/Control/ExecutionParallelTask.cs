@@ -5,4 +5,5 @@ public sealed record ExecutionParallelTask(
     ExecutionVariable Output,
     ExecutionBlock Body,
     int? RelatedTableIndex = null,
-    string? RelatedQueryIdentifier = null);
+    string? RelatedQueryIdentifier = null
+);

@@ -5,7 +5,10 @@ using Musoq.Evaluator.IR.Logical.Nodes;
 namespace Musoq.Evaluator.IR.Planning;
 
 internal sealed record SourcePredicateTransferBoundary(
-    PredicatePlacementOrigin Origin, PredicateMovementSide Side, JoinKind JoinKind);
+    PredicatePlacementOrigin Origin,
+    PredicateMovementSide Side,
+    JoinKind JoinKind
+);
 
 internal static class SourcePredicateTransferBoundaryPlanner
 {
@@ -14,7 +17,8 @@ internal static class SourcePredicateTransferBoundaryPlanner
     public static IReadOnlyDictionary<string, SourcePredicateTransferBoundary> Plan(LogicalNode? root)
     {
         var result = new Dictionary<string, SourcePredicateTransferBoundary>(StringComparer.Ordinal);
-        if (root != null) Visit(root, result);
+        if (root != null)
+            Visit(root, result);
         return result;
     }
 
@@ -27,14 +31,19 @@ internal static class SourcePredicateTransferBoundaryPlanner
             if (join.Kind is JoinKind.LeftOuter or JoinKind.FullOuter or JoinKind.AsofLeft)
                 Mark(join.Right, new(PredicatePlacementOrigin.Where, PredicateMovementSide.Right, join.Kind), result);
         }
-        foreach (var child in node.Children) Visit(child, result);
+        foreach (var child in node.Children)
+            Visit(child, result);
     }
 
-    private static void Mark(LogicalNode node, SourcePredicateTransferBoundary boundary,
-        Dictionary<string, SourcePredicateTransferBoundary> result)
+    private static void Mark(
+        LogicalNode node,
+        SourcePredicateTransferBoundary boundary,
+        Dictionary<string, SourcePredicateTransferBoundary> result
+    )
     {
         if (node is SchemaScanNode scan && !string.IsNullOrWhiteSpace(scan.SourceContextId))
             result[scan.SourceContextId] = boundary;
-        foreach (var child in node.Children) Mark(child, boundary, result);
+        foreach (var child in node.Children)
+            Mark(child, boundary, result);
     }
 }

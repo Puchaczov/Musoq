@@ -15,7 +15,8 @@ internal static class CardinalityFactPlanner
     public static CardinalityFactPlanningResult Plan(
         PhysicalNode physicalPlan,
         SourcePlanningFacts sourcePlanning,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(physicalPlan);
         ArgumentNullException.ThrowIfNull(sourcePlanning);
@@ -28,9 +29,7 @@ internal static class CardinalityFactPlanner
         return new CardinalityFactPlanningResult(state.Facts, state.Decisions);
     }
 
-    private sealed class State(
-        SourcePlanningFacts sourcePlanning,
-        CancellationToken cancellationToken)
+    private sealed class State(SourcePlanningFacts sourcePlanning, CancellationToken cancellationToken)
     {
         private readonly List<CardinalityFact> _facts = [];
         private readonly List<PlanningDecision> _decisions = [];
@@ -49,21 +48,22 @@ internal static class CardinalityFactPlanner
             switch (node)
             {
                 case PhysicalValuesScanNode values:
-                    return AddFact(new CardinalityFact(
-                        $"values:{values.Alias}",
-                        "Values",
-                        CardinalityKind.Exact,
-                        values.Rows.Count,
-                        values.Rows.Count,
-                        values.Rows.Count,
-                        1d,
-                        $"VALUES source has {values.Rows.Count} row(s)."),
-                        values);
+                    return AddFact(
+                        new CardinalityFact(
+                            $"values:{values.Alias}",
+                            "Values",
+                            CardinalityKind.Exact,
+                            values.Rows.Count,
+                            values.Rows.Count,
+                            values.Rows.Count,
+                            1d,
+                            $"VALUES source has {values.Rows.Count} row(s)."
+                        ),
+                        values
+                    );
 
                 case PhysicalSchemaScanNode scan:
-                    return TryCreateSourceFact(scan, out var sourceFact)
-                        ? AddFact(sourceFact, scan)
-                        : null;
+                    return TryCreateSourceFact(scan, out var sourceFact) ? AddFact(sourceFact, scan) : null;
 
                 case PhysicalTakeNode take when take.Count.IsConstant:
                     return VisitTakeLike(
@@ -72,7 +72,8 @@ internal static class CardinalityFactPlanner
                         limit: take.Count.Value,
                         input: take.Input,
                         targetNode: take,
-                        reason: $"TAKE limits output to at most {take.Count} row(s).");
+                        reason: $"TAKE limits output to at most {take.Count} row(s)."
+                    );
 
                 case PhysicalTopNNode topN when topN.N.IsConstant:
                     return VisitTakeLike(
@@ -81,7 +82,8 @@ internal static class CardinalityFactPlanner
                         limit: topN.N.Value,
                         input: topN.Input,
                         targetNode: topN,
-                        reason: $"Top-N limits output to at most {topN.N} row(s).");
+                        reason: $"Top-N limits output to at most {topN.N} row(s)."
+                    );
 
                 case PhysicalTopOffsetNode topOffset when topOffset.Skip.IsConstant && topOffset.Take.IsConstant:
                     return VisitTopOffset(topOffset);
@@ -89,7 +91,10 @@ internal static class CardinalityFactPlanner
                 case PhysicalSkipNode skip when skip.Count.IsConstant:
                     return ApplySkip(Visit(skip.Input), skip.Count.Value);
 
-                case PhysicalTakeNode or PhysicalSkipNode or PhysicalTopNNode or PhysicalTopOffsetNode:
+                case PhysicalTakeNode
+                or PhysicalSkipNode
+                or PhysicalTopNNode
+                or PhysicalTopOffsetNode:
                     return ApplyReducingBoundary(Visit(node.Children[0]), "Runtime paging may remove rows.");
 
                 case PhysicalProjectNode project:
@@ -129,7 +134,8 @@ internal static class CardinalityFactPlanner
             long limit,
             PhysicalNode input,
             PhysicalNode targetNode,
-            string reason)
+            string reason
+        )
         {
             _cancellationToken.ThrowIfCancellationRequested();
             var inputBounds = Visit(input);
@@ -142,7 +148,8 @@ internal static class CardinalityFactPlanner
                     Math.Min(exact, limit),
                     Math.Min(exact, limit),
                     inputBounds.Confidence,
-                    reason)
+                    reason
+                )
                 : new CardinalityFact(
                     targetId,
                     targetKind,
@@ -151,7 +158,8 @@ internal static class CardinalityFactPlanner
                     0,
                     inputBounds?.UpperBound is { } upper ? Math.Min(upper, limit) : limit,
                     inputBounds?.Confidence ?? 1d,
-                    reason);
+                    reason
+                );
 
             return AddFact(fact, targetNode);
         }
@@ -171,16 +179,20 @@ internal static class CardinalityFactPlanner
                     ClampSlice(exactRows.Value, topOffset.Skip.Value, topOffset.Take.Value),
                     ClampSlice(exactRows.Value, topOffset.Skip.Value, topOffset.Take.Value),
                     inputBounds!.Confidence,
-                    $"Top-offset skips {topOffset.Skip} row(s) and takes at most {topOffset.Take} row(s).")
+                    $"Top-offset skips {topOffset.Skip} row(s) and takes at most {topOffset.Take} row(s)."
+                )
                 : new CardinalityFact(
                     targetId,
                     "TopOffset",
                     CardinalityKind.Bounded,
                     null,
                     0,
-                    inputBounds?.UpperBound is { } upper ? ClampSlice(upper, topOffset.Skip.Value, topOffset.Take.Value) : topOffset.Take.Value,
+                    inputBounds?.UpperBound is { } upper
+                        ? ClampSlice(upper, topOffset.Skip.Value, topOffset.Take.Value)
+                        : topOffset.Take.Value,
                     inputBounds?.Confidence ?? 1d,
-                    $"Top-offset skips {topOffset.Skip} row(s) and takes at most {topOffset.Take} row(s).");
+                    $"Top-offset skips {topOffset.Skip} row(s) and takes at most {topOffset.Take} row(s)."
+                );
 
             return AddFact(fact, topOffset);
         }
@@ -189,10 +201,12 @@ internal static class CardinalityFactPlanner
         {
             _cancellationToken.ThrowIfCancellationRequested();
             fact = null!;
-            if (string.IsNullOrWhiteSpace(scan.SourceContextId) ||
-                !sourcePlanning.SourcePlanResultsBySourceId.TryGetValue(scan.SourceContextId, out var result) ||
-                result.Cardinality == null ||
-                result.Cardinality.Kind == CardinalityKind.Unknown)
+            if (
+                string.IsNullOrWhiteSpace(scan.SourceContextId)
+                || !sourcePlanning.SourcePlanResultsBySourceId.TryGetValue(scan.SourceContextId, out var result)
+                || result.Cardinality == null
+                || result.Cardinality.Kind == CardinalityKind.Unknown
+            )
             {
                 return false;
             }
@@ -208,7 +222,8 @@ internal static class CardinalityFactPlanner
                 cardinality.Confidence,
                 string.IsNullOrWhiteSpace(cardinality.Reason)
                     ? "Source returned a cardinality estimate."
-                    : cardinality.Reason);
+                    : cardinality.Reason
+            );
             return true;
         }
 
@@ -217,13 +232,16 @@ internal static class CardinalityFactPlanner
             _cancellationToken.ThrowIfCancellationRequested();
             fact = fact with { Node = node };
             _facts.Add(fact);
-            _decisions.Add(new PlanningDecision(
-                PlanningDecisionCategory.CardinalityFacts,
-                "CardinalityFactPlanner",
-                fact.TargetId,
-                fact.Kind.ToString(),
-                ResolveConfidence(fact),
-                fact.Reason));
+            _decisions.Add(
+                new PlanningDecision(
+                    PlanningDecisionCategory.CardinalityFacts,
+                    "CardinalityFactPlanner",
+                    fact.TargetId,
+                    fact.Kind.ToString(),
+                    ResolveConfidence(fact),
+                    fact.Reason
+                )
+            );
 
             _cancellationToken.ThrowIfCancellationRequested();
             return new CardinalityBounds(
@@ -232,7 +250,8 @@ internal static class CardinalityFactPlanner
                 fact.LowerBound,
                 fact.UpperBound,
                 fact.Confidence,
-                fact.Reason);
+                fact.Reason
+            );
         }
     }
 
@@ -250,7 +269,7 @@ internal static class CardinalityFactPlanner
                 ExactRows = exact,
                 LowerBound = exact,
                 UpperBound = exact,
-                Reason = $"SKIP removes up to {skip} row(s) from an exact input."
+                Reason = $"SKIP removes up to {skip} row(s) from an exact input.",
             };
         }
 
@@ -262,7 +281,7 @@ internal static class CardinalityFactPlanner
                 ExactRows = null,
                 LowerBound = 0,
                 UpperBound = Math.Max(0, inputBounds.UpperBound.Value - skip),
-                Reason = $"SKIP removes up to {skip} row(s) from a bounded input."
+                Reason = $"SKIP removes up to {skip} row(s) from a bounded input.",
             };
         }
 
@@ -279,7 +298,7 @@ internal static class CardinalityFactPlanner
             Kind = CardinalityKind.Bounded,
             ExactRows = null,
             LowerBound = 0,
-            Reason = reason
+            Reason = reason,
         };
     }
 
@@ -296,7 +315,7 @@ internal static class CardinalityFactPlanner
             CardinalityKind.Bounded when fact.Confidence >= 0.8d => PlanningConfidence.High,
             CardinalityKind.Bounded => PlanningConfidence.Medium,
             CardinalityKind.Estimate when fact.Confidence >= 0.8d => PlanningConfidence.Medium,
-            _ => PlanningConfidence.Low
+            _ => PlanningConfidence.Low,
         };
     }
 
@@ -306,5 +325,6 @@ internal static class CardinalityFactPlanner
         long? LowerBound,
         long? UpperBound,
         double Confidence,
-        string Reason);
+        string Reason
+    );
 }

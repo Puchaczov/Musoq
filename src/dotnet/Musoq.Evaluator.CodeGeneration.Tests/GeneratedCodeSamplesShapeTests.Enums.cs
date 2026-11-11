@@ -28,7 +28,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "Convert.ChangeType",
             "System.Reflection",
             "DynamicInvoke",
-            "reader.Read<object>"
+            "reader.Read<object>",
         ];
         foreach (var forbidden in forbiddenRuntimeApis)
             Assert.IsFalse(generated.Contains(forbidden, StringComparison.Ordinal), forbidden);
@@ -36,17 +36,21 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var root = CSharpSyntaxTree.ParseText(generated).GetRoot();
         var descriptorsInLoops = root.DescendantNodes()
             .OfType<ObjectCreationExpressionSyntax>()
-            .Where(static creation => creation.Type.ToString().Contains(
-                "EnumTypeDescriptor",
-                StringComparison.Ordinal))
-            .Where(static creation => creation.Ancestors().Any(static ancestor =>
-                ancestor is ForStatementSyntax or ForEachStatementSyntax or
-                    WhileStatementSyntax or DoStatementSyntax))
+            .Where(static creation => creation.Type.ToString().Contains("EnumTypeDescriptor", StringComparison.Ordinal))
+            .Where(static creation =>
+                creation
+                    .Ancestors()
+                    .Any(static ancestor =>
+                        ancestor
+                            is ForStatementSyntax
+                                or ForEachStatementSyntax
+                                or WhileStatementSyntax
+                                or DoStatementSyntax
+                    )
+            )
             .Select(static creation => creation.ToString())
             .ToArray();
 
-        Assert.IsEmpty(
-            descriptorsInLoops,
-            "Enum descriptors must remain outside generated row loops.");
+        Assert.IsEmpty(descriptorsInLoops, "Enum descriptors must remain outside generated row loops.");
     }
 }

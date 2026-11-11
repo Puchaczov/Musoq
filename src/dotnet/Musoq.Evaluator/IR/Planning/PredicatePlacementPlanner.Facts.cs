@@ -16,7 +16,8 @@ internal static partial class PredicatePlacementPlanner
         string[] aliases,
         PredicateEarliestPlacement placement,
         PlanningConfidence confidence,
-        string reason)
+        string reason
+    )
     {
         return new PredicatePlacementPlan(
             CreatePredicateId(origin, index),
@@ -25,15 +26,15 @@ internal static partial class PredicatePlacementPlanner
             aliases,
             placement,
             confidence,
-            reason)
+            reason
+        )
         {
             ConjunctGroupId = CreateConjunctGroupId(origin, index, aliases),
             AliasOwners = aliases.Select(alias => $"{alias}:{predicateText}").ToArray(),
             IsDeterministic = true,
-            NullSensitivity = aliases.Length == 0
-                ? PredicateNullSensitivity.NullInsensitive
-                : PredicateNullSensitivity.NullSensitive,
-            BlockedReasons = CreateBlockedReasons(placement, reason)
+            NullSensitivity =
+                aliases.Length == 0 ? PredicateNullSensitivity.NullInsensitive : PredicateNullSensitivity.NullSensitive,
+            BlockedReasons = CreateBlockedReasons(placement, reason),
         };
     }
 
@@ -43,7 +44,8 @@ internal static partial class PredicatePlacementPlanner
         IrExpression predicate,
         PredicateEarliestPlacement placement,
         PlanningConfidence confidence,
-        string reason)
+        string reason
+    )
     {
         var aliases = ExtractAliases(predicate);
         return CreatePlan(
@@ -53,43 +55,42 @@ internal static partial class PredicatePlacementPlanner
             aliases,
             placement,
             confidence,
-            reason) with
+            reason
+        ) with
         {
             AliasOwners = ExtractAliasOwners(predicate),
             IsDeterministic = IsDeterministicExpression(predicate),
             NullSensitivity = IsNullSensitiveExpression(predicate)
                 ? PredicateNullSensitivity.NullSensitive
                 : PredicateNullSensitivity.NullInsensitive,
-            BlockedReasons = CreateBlockedReasons(placement, reason, predicate)
+            BlockedReasons = CreateBlockedReasons(placement, reason, predicate),
         };
     }
 
     private static string CreateConjunctGroupId(
         PredicatePlacementOrigin origin,
         int index,
-        IReadOnlyList<string> aliases)
+        IReadOnlyList<string> aliases
+    )
     {
-        var aliasPart = aliases.Count == 0
-            ? "constant"
-            : string.Join("+", aliases);
+        var aliasPart = aliases.Count == 0 ? "constant" : string.Join("+", aliases);
 
         return $"{origin}:conjunct:{index}:{aliasPart}";
     }
 
     private static string[] ExtractAliasOwners(IrExpression predicate)
     {
-        return ColumnRefExtractor.Extract(predicate)
-            .Select(static column => string.IsNullOrWhiteSpace(column.Alias)
-                ? column.ColumnName
-                : $"{column.Alias}.{column.ColumnName}")
+        return ColumnRefExtractor
+            .Extract(predicate)
+            .Select(static column =>
+                string.IsNullOrWhiteSpace(column.Alias) ? column.ColumnName : $"{column.Alias}.{column.ColumnName}"
+            )
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(static column => column, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
 
-    private static string[] CreateBlockedReasons(
-        PredicateEarliestPlacement placement,
-        string reason)
+    private static string[] CreateBlockedReasons(PredicateEarliestPlacement placement, string reason)
     {
         return IsBlockedPlacement(placement) ? [reason] : [];
     }
@@ -97,7 +98,8 @@ internal static partial class PredicatePlacementPlanner
     private static string[] CreateBlockedReasons(
         PredicateEarliestPlacement placement,
         string reason,
-        IrExpression predicate)
+        IrExpression predicate
+    )
     {
         var reasons = new List<string>();
 
@@ -105,18 +107,17 @@ internal static partial class PredicatePlacementPlanner
             reasons.Add(reason);
 
         AddDeterminismBlockedReasons(predicate, reasons);
-        return reasons
-            .Distinct(StringComparer.Ordinal)
-            .ToArray();
+        return reasons.Distinct(StringComparer.Ordinal).ToArray();
     }
 
     private static bool IsBlockedPlacement(PredicateEarliestPlacement placement)
     {
-        return placement is PredicateEarliestPlacement.RuntimeFilter
-            or PredicateEarliestPlacement.PostJoin
-            or PredicateEarliestPlacement.PostAggregate
-            or PredicateEarliestPlacement.PostWindow
-            or PredicateEarliestPlacement.SourceRuntimeFilter;
+        return placement
+            is PredicateEarliestPlacement.RuntimeFilter
+                or PredicateEarliestPlacement.PostJoin
+                or PredicateEarliestPlacement.PostAggregate
+                or PredicateEarliestPlacement.PostWindow
+                or PredicateEarliestPlacement.SourceRuntimeFilter;
     }
 
     private static bool IsNullSensitiveExpression(IrExpression expression)

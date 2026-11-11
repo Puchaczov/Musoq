@@ -7,16 +7,16 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class AutomaticNumericTypeInferenceDebugDecimalTests : UnknownQueryTestsBase
 {
-
     [TestMethod]
     public void Debug_StringToDecimal_SimpleCase()
     {
-        const string query = "table Items {" +
-                             "  Price: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Price = 100.50";
+        const string query =
+            "table Items {"
+            + "  Price: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Price = 100.50";
 
         dynamic item1 = new ExpandoObject();
         item1.Price = "100,50";
@@ -32,12 +32,13 @@ public class AutomaticNumericTypeInferenceDebugDecimalTests : UnknownQueryTestsB
     [TestMethod]
     public void Debug_StringToDecimal_IntegerWorks()
     {
-        const string query = "table Items {" +
-                             "  Price: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Price = 100";
+        const string query =
+            "table Items {"
+            + "  Price: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Price = 100";
 
         dynamic item1 = new ExpandoObject();
         item1.Price = "100";
@@ -53,12 +54,13 @@ public class AutomaticNumericTypeInferenceDebugDecimalTests : UnknownQueryTestsB
     [TestMethod]
     public void DeclaredDoubleComparedToDecimal_ShouldMatchExactValue()
     {
-        const string query = "table Items {" +
-                             "  Price: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Price = 100.50";
+        const string query =
+            "table Items {"
+            + "  Price: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Price = 100.50";
 
         dynamic item1 = new ExpandoObject();
         item1.Price = (object)100.50;

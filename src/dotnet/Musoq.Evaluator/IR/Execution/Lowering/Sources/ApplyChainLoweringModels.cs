@@ -6,19 +6,15 @@ namespace Musoq.Evaluator.IR.Execution.Lowering.Sources;
 internal sealed record ApplyChainSource(
     IReadOnlyList<JoinSource> Sources,
     IReadOnlyDictionary<string, RowShape> SourceLookup,
-    IReadOnlyList<RowShape> Shapes);
+    IReadOnlyList<RowShape> Shapes
+);
 
-internal sealed record ApplyChainPhysicalSource(
-    PhysicalNode Source,
-    bool WithOrdinality)
+internal sealed record ApplyChainPhysicalSource(PhysicalNode Source, bool WithOrdinality)
 {
     public IReadOnlyList<ApplyPredicateMovementPlan> ApplyPredicateMovementPlans { get; init; } = [];
 }
 
-internal sealed record ApplyChainBuildResult(
-    bool IsBuilt,
-    ApplyChainSource Chain,
-    string UnsupportedReason)
+internal sealed record ApplyChainBuildResult(bool IsBuilt, ApplyChainSource Chain, string UnsupportedReason)
 {
     public static ApplyChainBuildResult Success(ApplyChainSource chain)
     {
@@ -29,10 +25,8 @@ internal sealed record ApplyChainBuildResult(
     {
         return new ApplyChainBuildResult(
             false,
-            new ApplyChainSource(
-                [],
-                new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase),
-                []),
-            reason);
+            new ApplyChainSource([], new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase), []),
+            reason
+        );
     }
 }

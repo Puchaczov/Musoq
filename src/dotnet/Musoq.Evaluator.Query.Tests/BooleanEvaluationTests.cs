@@ -14,7 +14,12 @@ public sealed class BooleanEvaluationTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, EmptySources());
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("A", typeof(bool?)), ("O", typeof(bool?)), ("N", typeof(bool?)));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("A", typeof(bool?)),
+            ("O", typeof(bool?)),
+            ("N", typeof(bool?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null, null, null });
     }
 
@@ -43,8 +48,16 @@ public sealed class BooleanEvaluationTests : BasicEntityTestBase
     public void LogicalOperators_ShouldFollowThreeValuedTruthTables(string expression, bool? expected)
     {
         var query = $"select {expression} as Value from values {{ (N: 1) }} v";
-        using var folded = CreateAndRunVirtualMachine(query, EmptySources(), new CompilationOptions(useConstantFolding: true));
-        using var unfolded = CreateAndRunVirtualMachine(query, EmptySources(), new CompilationOptions(useConstantFolding: false));
+        using var folded = CreateAndRunVirtualMachine(
+            query,
+            EmptySources(),
+            new CompilationOptions(useConstantFolding: true)
+        );
+        using var unfolded = CreateAndRunVirtualMachine(
+            query,
+            EmptySources(),
+            new CompilationOptions(useConstantFolding: false)
+        );
         using var foldedTable = folded.Run(TestContext.CancellationToken);
         using var unfoldedTable = unfolded.Run(TestContext.CancellationToken);
 
@@ -60,8 +73,11 @@ public sealed class BooleanEvaluationTests : BasicEntityTestBase
     public void DecisiveLeftOperand_ShouldNotEvaluateFailingRightOperand(string expression, bool expected)
     {
         var query = $"select {expression} as Value from values {{ (TextValue: 'invalid') }} v";
-        using var compiled = CreateAndRunVirtualMachine(query, EmptySources(),
-            TestCompilationOptions.WithStabilityAwareScalarReuse().WithLoopInvariantCodeMotion());
+        using var compiled = CreateAndRunVirtualMachine(
+            query,
+            EmptySources(),
+            TestCompilationOptions.WithStabilityAwareScalarReuse().WithLoopInvariantCodeMotion()
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertRowsUnordered(table, [expected]);
@@ -73,8 +89,11 @@ public sealed class BooleanEvaluationTests : BasicEntityTestBase
     public void GuardedWherePredicate_ShouldPreserveSkippedEvaluation(string predicate, int expectedRows)
     {
         var query = $"select TextValue from values {{ (TextValue: 'invalid') }} v where {predicate}";
-        using var compiled = CreateAndRunVirtualMachine(query, EmptySources(),
-            TestCompilationOptions.WithStabilityAwareScalarReuse().WithLoopInvariantCodeMotion());
+        using var compiled = CreateAndRunVirtualMachine(
+            query,
+            EmptySources(),
+            TestCompilationOptions.WithStabilityAwareScalarReuse().WithLoopInvariantCodeMotion()
+        );
         using var table = compiled.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(expectedRows, table.Count);

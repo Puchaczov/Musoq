@@ -9,22 +9,36 @@ internal sealed record TargetRenderResult
     private TargetRenderResult(
         ExecutionTargetId targetId,
         RenderedQueryArtifact? artifact,
-        IEnumerable<TargetDiagnostic>? diagnostics)
+        IEnumerable<TargetDiagnostic>? diagnostics
+    )
     {
         var frozenDiagnostics = Array.AsReadOnly((diagnostics ?? []).ToArray());
-        if (artifact is null && !frozenDiagnostics.Any(static diagnostic =>
-                diagnostic.Severity == TargetDiagnosticSeverity.Error))
+        if (
+            artifact is null
+            && !frozenDiagnostics.Any(static diagnostic => diagnostic.Severity == TargetDiagnosticSeverity.Error)
+        )
         {
-            throw new ArgumentException("Failed target rendering must contain an error diagnostic.", nameof(diagnostics));
+            throw new ArgumentException(
+                "Failed target rendering must contain an error diagnostic.",
+                nameof(diagnostics)
+            );
         }
 
         if (artifact is not null && artifact.TargetId != targetId)
-            throw new ArgumentException("Rendered artifact target must match the render result target.", nameof(artifact));
+            throw new ArgumentException(
+                "Rendered artifact target must match the render result target.",
+                nameof(artifact)
+            );
 
-        if (artifact is not null && frozenDiagnostics.Any(static diagnostic =>
-                diagnostic.Severity == TargetDiagnosticSeverity.Error))
+        if (
+            artifact is not null
+            && frozenDiagnostics.Any(static diagnostic => diagnostic.Severity == TargetDiagnosticSeverity.Error)
+        )
         {
-            throw new ArgumentException("Successful target rendering cannot contain error diagnostics.", nameof(diagnostics));
+            throw new ArgumentException(
+                "Successful target rendering cannot contain error diagnostics.",
+                nameof(diagnostics)
+            );
         }
 
         TargetId = targetId;
@@ -42,14 +56,13 @@ internal sealed record TargetRenderResult
 
     public static TargetRenderResult Succeeded(
         RenderedQueryArtifact artifact,
-        IEnumerable<TargetDiagnostic>? diagnostics = null)
+        IEnumerable<TargetDiagnostic>? diagnostics = null
+    )
     {
         ArgumentNullException.ThrowIfNull(artifact);
         return new TargetRenderResult(artifact.TargetId, artifact, diagnostics);
     }
 
-    public static TargetRenderResult Failed(
-        ExecutionTargetId targetId,
-        IEnumerable<TargetDiagnostic> diagnostics) =>
+    public static TargetRenderResult Failed(ExecutionTargetId targetId, IEnumerable<TargetDiagnostic> diagnostics) =>
         new(targetId, null, diagnostics);
 }

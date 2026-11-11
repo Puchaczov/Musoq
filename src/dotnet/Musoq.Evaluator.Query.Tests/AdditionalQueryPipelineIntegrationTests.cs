@@ -16,22 +16,15 @@ public class AdditionalQueryPipelineIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] }
+            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Test1"],
-            ["Test2"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Test1"], ["Test2"]);
     }
-
-
-
-
 
     [TestMethod]
     public void QueryPipeline_SelectWithGroupBy_ShouldWork()
@@ -40,38 +33,34 @@ public class AdditionalQueryPipelineIntegrationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity { Name = "A", City = "NYC" },
                     new BasicEntity { Name = "B", City = "NYC" },
-                    new BasicEntity { Name = "C", City = "LA" }
+                    new BasicEntity { Name = "C", City = "LA" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Count(City)", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["NYC", 2L],
-            ["LA", 1L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Count(City)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["NYC", 2L], ["LA", 1L]);
     }
 
     [TestMethod]
     public void QueryPipeline_SelectWithJoin_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             select a.Name, b.Name
             from #A.Entities() a
             inner join #B.Entities() b on a.City = b.City";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity { Name = "PersonA", City = "NYC" }] },
-            { "#B", [new BasicEntity { Name = "PersonB", City = "NYC" }] }
+            { "#B", [new BasicEntity { Name = "PersonB", City = "NYC" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -85,23 +74,21 @@ public class AdditionalQueryPipelineIntegrationTests : BasicEntityTestBase
     [TestMethod]
     public void QueryPipeline_SelectWithUnionAll_ShouldWork()
     {
-        var query = @"
+        var query =
+            @"
             select Name from #A.Entities()
             union all (Name)
             select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("Test1")] },
-            { "#B", [new BasicEntity("Test2")] }
+            { "#B", [new BasicEntity("Test2")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Test1"],
-            ["Test2"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Test1"], ["Test2"]);
     }
 }

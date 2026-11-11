@@ -8,12 +8,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithNull_ShouldNotMatch()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size = 1000";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size = 1000";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = null;
@@ -33,12 +34,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingDeclaredDoubleWithIntLiteral_WithVerySmallFraction_ShouldNotMatch()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value = 1000";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = 1000";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (double)(1000.0000001);
@@ -58,12 +60,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingDecodedDoubleWithIntLiteral_WithNegativeFraction_ShouldNotMatch()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value = -100";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = -100";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (double)(-100.5f);
@@ -83,12 +86,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithBoundaryMinInt32_ShouldMatch()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size = -2147483648";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size = -2147483648";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "-2147483648";
@@ -104,12 +108,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithBoundaryMaxInt32_ShouldMatch()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size = 2147483647";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size = 2147483647";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "2147483647";
@@ -125,12 +130,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingStringColumnWithZeroAndNegativeZero_ShouldMatchBoth()
     {
-        const string query = "table Items {" +
-                             "  Size: string," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size = 0";
+        const string query =
+            "table Items {"
+            + "  Size: string,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Size = 0";
 
         dynamic item1 = new ExpandoObject();
         item1.Size = "0";
@@ -149,12 +155,13 @@ public partial class AutomaticNumericTypeInferenceTests
     [TestMethod]
     public void WhenComparingDeclaredNumericColumnWithBoundaryMaxInt32_StrictMode_ShouldMatchExactly()
     {
-        const string query = "table Items {" +
-                             "  Value: double," +
-                             "  Name: string" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Value = 2147483647";
+        const string query =
+            "table Items {"
+            + "  Value: double,"
+            + "  Name: string"
+            + "};"
+            + "couple #test.whatever with table Items as Items; "
+            + "select Name from Items() where Value = 2147483647";
 
         dynamic item1 = new ExpandoObject();
         item1.Value = (double)(2147483647);
@@ -170,5 +177,4 @@ public partial class AutomaticNumericTypeInferenceTests
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Exact", table[0].ReadValues()[0]);
     }
-
 }

@@ -15,7 +15,8 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
     [TestMethod]
     public void GroupByAll_CaseInsensitiveDuplicateExpressions_ShouldDeduplicateExpansion()
     {
-        const string query = "select ToLower(City), tolower(City) as Repeated, Count(*) as Rows from #A.Entities() group by all";
+        const string query =
+            "select ToLower(City), tolower(City) as Repeated, Count(*) as Rows from #A.Entities() group by all";
 
         var result = Analyze(query);
 
@@ -36,7 +37,8 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
 
         Assert.AreEqual(
             "GROUP BY position -1 is out of range. SELECT projection contains 1 field(s).",
-            diagnostic.Message);
+            diagnostic.Message
+        );
         Assert.AreEqual(new TextSpan(query.IndexOf("-1", StringComparison.Ordinal), 2), diagnostic.Span);
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
     }
@@ -50,7 +52,8 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
 
         Assert.AreEqual(
             "GROUP BY position 0 is out of range. SELECT projection contains 2 field(s).",
-            diagnostic.Message);
+            diagnostic.Message
+        );
         Assert.AreEqual(new TextSpan(query.IndexOf('0'), 1), diagnostic.Span);
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
@@ -66,7 +69,8 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
 
         Assert.AreEqual(
             "GROUP BY expressions cannot contain aggregate functions or aggregate SELECT aliases.",
-            diagnostic.Message);
+            diagnostic.Message
+        );
         Assert.AreEqual(new TextSpan(query.IndexOf('2'), 1), diagnostic.Span);
         Assert.AreEqual(DiagnosticPhase.Bind, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
@@ -76,41 +80,71 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
     [TestMethod]
     public void GroupByAll_WithFilteredAggregateAndHaving_ShouldExpandKeysBeforeFilteringGroups()
     {
-        const string query = """
-            select Country, Count(Name) filter (where Population > 100) as Large
-            from #A.Entities()
-            group by all
-            having Count(Name) filter (where Population > 100) > 0
-            order by Country
-            """;
+        const string query = (
+            "select Country, Count(Name) filter (where Population > 100) as Large\n"
+            + "from #A.Entities()\n"
+            + "group by all\n"
+            + "having Count(Name) filter (where Population > 100) > 0\n"
+            + "order by Country"
+        );
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Country = "DE", Name = "A", Population = 150m },
-            new BasicEntity { Country = "DE", Name = "B", Population = 50m },
-            new BasicEntity { Country = "FR", Name = "C", Population = 200m },
-            new BasicEntity { Country = "FR", Name = "D", Population = 75m },
-            new BasicEntity { Country = "PL", Name = "E", Population = 50m })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity
+                    {
+                        Country = "DE",
+                        Name = "A",
+                        Population = 150m,
+                    },
+                    new BasicEntity
+                    {
+                        Country = "DE",
+                        Name = "B",
+                        Population = 50m,
+                    },
+                    new BasicEntity
+                    {
+                        Country = "FR",
+                        Name = "C",
+                        Population = 200m,
+                    },
+                    new BasicEntity
+                    {
+                        Country = "FR",
+                        Name = "D",
+                        Population = 75m,
+                    },
+                    new BasicEntity
+                    {
+                        Country = "PL",
+                        Name = "E",
+                        Population = 50m,
+                    }
+                )
+            )
+            .Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Country", typeof(string)),
-            ("Large", typeof(long)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["DE", 1L],
-            ["FR", 1L]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("Large", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["DE", 1L], ["FR", 1L]);
     }
 
     [TestMethod]
     public void AggregateFilter_AggregateValues_ShouldFilterBeforeAggregation()
     {
-        const string query = "select AggregateValues(Name, '|') filter (where NullableValue > 0) as Names from #A.Entities()";
+        const string query =
+            "select AggregateValues(Name, '|') filter (where NullableValue > 0) as Names from #A.Entities()";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { Name = "ignored", NullableValue = 0 },
-            new BasicEntity { Name = "first", NullableValue = 1 },
-            new BasicEntity { Name = "null", NullableValue = null },
-            new BasicEntity { Name = "second", NullableValue = 2 })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity { Name = "ignored", NullableValue = 0 },
+                    new BasicEntity { Name = "first", NullableValue = 1 },
+                    new BasicEntity { Name = "null", NullableValue = null },
+                    new BasicEntity { Name = "second", NullableValue = 2 }
+                )
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Names", typeof(string)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["first|second"]);
@@ -119,14 +153,20 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
     [TestMethod]
     public void AggregateFilter_Distinct_ShouldFilterBeforeDeduplication()
     {
-        const string query = "select Count(distinct City) filter (where Population > 100) as UniqueCities from #A.Entities()";
+        const string query =
+            "select Count(distinct City) filter (where Population > 100) as UniqueCities from #A.Entities()";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { City = "Warsaw", Population = 50m },
-            new BasicEntity { City = "Warsaw", Population = 150m },
-            new BasicEntity { City = "Berlin", Population = 200m },
-            new BasicEntity { City = "Berlin", Population = 75m },
-            new BasicEntity { City = null, Population = 300m })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity { City = "Warsaw", Population = 50m },
+                    new BasicEntity { City = "Warsaw", Population = 150m },
+                    new BasicEntity { City = "Berlin", Population = 200m },
+                    new BasicEntity { City = "Berlin", Population = 75m },
+                    new BasicEntity { City = null, Population = 300m }
+                )
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("UniqueCities", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [2L]);
@@ -137,10 +177,15 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
     {
         const string query = "select Count(*) filter (where NullableValue > 0) as Rows from #A.Entities()";
 
-        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
-            new BasicEntity { NullableValue = null },
-            new BasicEntity { NullableValue = 0 },
-            new BasicEntity { NullableValue = 1 })).Run(TokenSource.Token);
+        var table = CreateAndRunVirtualMachine(
+                query,
+                CreateSingleSource(
+                    new BasicEntity { NullableValue = null },
+                    new BasicEntity { NullableValue = 0 },
+                    new BasicEntity { NullableValue = 1 }
+                )
+            )
+            .Run(TokenSource.Token);
 
         TableMaterializationTestHelper.AssertColumns(table, ("Rows", typeof(long)));
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1L]);
@@ -159,7 +204,8 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
         Assert.AreEqual(
             "FILTER clause can only be applied to aggregate functions, but 'ToUpper' is not an aggregate function.",
-            diagnostic.Message);
+            diagnostic.Message
+        );
         Assert.AreEqual(new TextSpan(functionStart, "ToUpper".Length), diagnostic.Span);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.ContextSnippet));
         Assert.IsEmpty(diagnostic.Arguments);
@@ -177,18 +223,23 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
             new[]
             {
                 "Remove FILTER from the non-aggregate function call.",
-                "Use a CASE expression inside an aggregate argument for conditional aggregation."
+                "Use a CASE expression inside an aggregate argument for conditional aggregation.",
             },
-            envelope.SuggestedFixes.ToArray());
+            envelope.SuggestedFixes.ToArray()
+        );
         Assert.HasCount(2, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
     }
 
     private static QueryAnalysisResult Analyze(string query)
     {
-        return new QueryAnalyzer(new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] })).Analyze(query);
+        return new QueryAnalyzer(
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] })
+        ).Analyze(query);
     }
 
     private static QueryNode GetQuery(RootNode root)
@@ -198,7 +249,7 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
         {
             QueryNode query => query,
             SingleSetNode singleSet => singleSet.Query,
-            _ => throw new AssertFailedException("Expected a single query statement.")
+            _ => throw new AssertFailedException("Expected a single query statement."),
         };
     }
 
@@ -213,7 +264,9 @@ public sealed class Core023GroupByFilterTests : BasicEntityTestBase
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"{diagnostic.Code}: {diagnostic.Message}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic => $"{diagnostic.Code}: {diagnostic.Message}")
+        );
     }
 }

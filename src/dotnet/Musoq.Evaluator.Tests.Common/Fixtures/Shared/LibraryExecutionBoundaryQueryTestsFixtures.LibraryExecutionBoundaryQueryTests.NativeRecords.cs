@@ -10,8 +10,9 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionBoundaryQueryTestsFixtures
 {
-    internal const string NativeRecordQuery = "select (Position: Position, Detail: (Value: Value), Items: array { Position, Position + 1 }) as Payload " +
-        "from #schema.first() order by Position";
+    internal const string NativeRecordQuery =
+        "select (Position: Position, Detail: (Value: Value), Items: array { Position, Position + 1 }) as Payload "
+        + "from #schema.first() order by Position";
 
     internal struct NativeRecordVisitor(StructuralTypeDescriptor shape) : IColumnValueVisitor
     {
@@ -28,11 +29,13 @@ public partial class LibraryExecutionBoundaryQueryTestsFixtures
             var restored = JsonSerializer.Deserialize<T>(Json);
             Assert.AreEqual(Json, JsonSerializer.Serialize(restored));
             Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<T>("{}"));
-            Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<T>(
-                "{\"Position\":1,\"Position\":2,\"Detail\":{\"Value\":10},\"Items\":[1,2]}"));
+            Assert.Throws<JsonException>(() =>
+                JsonSerializer.Deserialize<T>(
+                    "{\"Position\":1,\"Position\":2,\"Detail\":{\"Value\":10},\"Items\":[1,2]}"
+                )
+            );
         }
     }
 
     public sealed record NativeRecordInput(int Position, int? Value);
-
 }

@@ -7,7 +7,6 @@ using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
 using Musoq.Targets.Execution.Analysis;
-
 using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
@@ -17,9 +16,12 @@ public sealed partial class LibraryExecutionWindowQueryTests
     [TestMethod]
     public void WindowKernel_WhenLowered_ShouldExposePortableOperationsAndExecuteConcreteResults()
     {
-        const string query = "select Position, Sum(Amount) over (partition by Partition order by Position) as Total from #schema.first() order by Position";
-        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(query,
-            LibraryExecutionFixture.CreateRows());
+        const string query =
+            "select Position, Sum(Amount) over (partition by Partition order by Position) as Total from #schema.first() order by Position";
+        using var compiled = CreateAndRunVirtualMachine<LibraryExecutionEntity, LibraryExecutionLibrary>(
+            query,
+            LibraryExecutionFixture.CreateRows()
+        );
         using var result = compiled.Run(TestContext.CancellationToken);
         var rows = result.ToArray();
 
@@ -32,27 +34,40 @@ public sealed partial class LibraryExecutionWindowQueryTests
             Assert.AreEqual(expected[index], rows[index].GetValue<decimal?>(1));
         }
 
-        var analysis = InstanceCreator.CreateForAnalyze(query, "TypedWindowTargetContract",
-            LibraryExecutionFixture.CreateProvider(), new TestsLoggerResolver());
+        var analysis = InstanceCreator.CreateForAnalyze(
+            query,
+            "TypedWindowTargetContract",
+            LibraryExecutionFixture.CreateProvider(),
+            new TestsLoggerResolver()
+        );
         var plan = analysis.OptimizedExecutionPlan!;
         var kernel = ExecutionIrAnalysis.FlattenNodes(plan.Body).OfType<ExecutionWindowAggregateKernel>().Single();
         var operations = kernel.Descriptor.LibraryKernel!;
         Assert.AreEqual(kernel.Descriptor.AccumulatorType, operations.StateType);
         Assert.AreEqual(typeof(decimal?), operations.ArgumentTypes.Single().ResolveClrType());
         Assert.AreEqual(typeof(decimal?), operations.ResultType.ResolveClrType());
-        var reflectedProperties = typeof(ExecutionAggregateKernelOperations).GetProperties()
-            .Where(static property => property.PropertyType == typeof(Type) ||
-                typeof(MemberInfo).IsAssignableFrom(property.PropertyType)).ToArray();
+        var reflectedProperties = typeof(ExecutionAggregateKernelOperations)
+            .GetProperties()
+            .Where(static property =>
+                property.PropertyType == typeof(Type) || typeof(MemberInfo).IsAssignableFrom(property.PropertyType)
+            )
+            .ToArray();
         Assert.IsEmpty(reflectedProperties);
-        var callables = ExecutionTargetCompatibilityAnalyzer.Analyze(plan).Requirements
-            .Where(static requirement => requirement.CallableSymbol is not null)
-            .Select(static requirement => requirement.CallableSymbol!.StableName).ToArray();
+        var callables = ExecutionTargetCompatibilityAnalyzer
+            .Analyze(plan)
+            .Requirements.Where(static requirement => requirement.CallableSymbol is not null)
+            .Select(static requirement => requirement.CallableSymbol!.StableName)
+            .ToArray();
         Assert.IsTrue(callables.Any(name => name.Contains("SumAggregateKernel") && name.Contains("Reset")));
         Assert.IsTrue(callables.Any(name => name.Contains("SumAggregateKernel") && name.Contains("Set")));
         Assert.IsTrue(callables.Any(name => name.Contains("SumAggregateKernel") && name.Contains("Get")));
-        var imports = ExecutionTargetCompatibilityAnalyzer.Analyze(plan).Requirements
-            .Where(static requirement => requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation)
-            .Select(static requirement => requirement.CallableSymbol!.StableName).ToArray();
+        var imports = ExecutionTargetCompatibilityAnalyzer
+            .Analyze(plan)
+            .Requirements.Where(static requirement =>
+                requirement.Kind == ExecutionTargetRequirementKind.PluginInvocation
+            )
+            .Select(static requirement => requirement.CallableSymbol!.StableName)
+            .ToArray();
         Assert.IsTrue(imports.Any(name => name.Contains("SumAggregateKernel") && name.Contains("Reset")));
         Assert.IsTrue(imports.Any(name => name.Contains("SumAggregateKernel") && name.Contains("Set")));
         Assert.IsTrue(imports.Any(name => name.Contains("SumAggregateKernel") && name.Contains("Get")));

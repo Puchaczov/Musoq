@@ -5,7 +5,6 @@ using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser.Tests;
 
-
 [TestClass]
 public class DiagnosticMetadataAndPhasesTests
 {
@@ -15,16 +14,28 @@ public class DiagnosticMetadataAndPhasesTests
     public void DiagnosticPhaseMapping_WhenCodeInMQ1xxxRange_ShouldReturnParse()
     {
         Assert.AreEqual(DiagnosticPhase.Parse, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ1001_UnknownToken));
-        Assert.AreEqual(DiagnosticPhase.Parse, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ1002_UnterminatedString));
-        Assert.AreEqual(DiagnosticPhase.Parse, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ1003_InvalidNumericLiteral));
+        Assert.AreEqual(
+            DiagnosticPhase.Parse,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ1002_UnterminatedString)
+        );
+        Assert.AreEqual(
+            DiagnosticPhase.Parse,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ1003_InvalidNumericLiteral)
+        );
     }
 
     [TestMethod]
     public void DiagnosticPhaseMapping_WhenCodeInMQ2xxxRange_ShouldReturnParse()
     {
         Assert.AreEqual(DiagnosticPhase.Parse, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ2001_UnexpectedToken));
-        Assert.AreEqual(DiagnosticPhase.Parse, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ2004_MissingFromClause));
-        Assert.AreEqual(DiagnosticPhase.Parse, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ2026_InvalidCaseExpression));
+        Assert.AreEqual(
+            DiagnosticPhase.Parse,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ2004_MissingFromClause)
+        );
+        Assert.AreEqual(
+            DiagnosticPhase.Parse,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ2026_InvalidCaseExpression)
+        );
     }
 
     [TestMethod]
@@ -38,30 +49,57 @@ public class DiagnosticMetadataAndPhasesTests
     [TestMethod]
     public void DiagnosticPhaseMapping_WhenCodeInSchemaDefinitionRange_ShouldReturnSchema()
     {
-        Assert.AreEqual(DiagnosticPhase.Schema, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4001_InvalidBinarySchemaField));
-        Assert.AreEqual(DiagnosticPhase.Schema, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4003_UndefinedSchemaReference));
-        Assert.AreEqual(DiagnosticPhase.Schema, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4015_InvalidSubstreamTarget));
-        Assert.AreEqual(DiagnosticPhase.Schema, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction));
+        Assert.AreEqual(
+            DiagnosticPhase.Schema,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4001_InvalidBinarySchemaField)
+        );
+        Assert.AreEqual(
+            DiagnosticPhase.Schema,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4003_UndefinedSchemaReference)
+        );
+        Assert.AreEqual(
+            DiagnosticPhase.Schema,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4015_InvalidSubstreamTarget)
+        );
+        Assert.AreEqual(
+            DiagnosticPhase.Schema,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ4016_UnsupportedSchemaConstruction)
+        );
     }
 
     [TestMethod]
     public void DiagnosticPhaseMapping_WhenCodeInMQ5xxxRange_ShouldReturnBind()
     {
-        Assert.AreEqual(DiagnosticPhase.Bind, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ5003_ImplicitTypeConversion));
-        Assert.AreEqual(DiagnosticPhase.Bind, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ5003_ImplicitTypeConversion));
+        Assert.AreEqual(
+            DiagnosticPhase.Bind,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ5003_ImplicitTypeConversion)
+        );
+        Assert.AreEqual(
+            DiagnosticPhase.Bind,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ5003_ImplicitTypeConversion)
+        );
     }
 
     [TestMethod]
     public void DiagnosticPhaseMapping_WhenCodeInMQ7xxxRange_ShouldReturnRuntime()
     {
-        Assert.AreEqual(DiagnosticPhase.DataSource, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ7010_DataSourceOpenFailed));
-        Assert.AreEqual(DiagnosticPhase.DataSource, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ7011_DataSourceReadFailed));
+        Assert.AreEqual(
+            DiagnosticPhase.DataSource,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ7010_DataSourceOpenFailed)
+        );
+        Assert.AreEqual(
+            DiagnosticPhase.DataSource,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ7011_DataSourceReadFailed)
+        );
     }
 
     [TestMethod]
     public void DiagnosticPhaseMapping_WhenCodeIsInternal_ShouldReturnInternal()
     {
-        Assert.AreEqual(DiagnosticPhase.Internal, DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ9001_InternalCompilerError));
+        Assert.AreEqual(
+            DiagnosticPhase.Internal,
+            DiagnosticPhaseMapping.FromCode(DiagnosticCode.MQ9001_InternalCompilerError)
+        );
     }
 
     [TestMethod]
@@ -89,22 +127,32 @@ public class DiagnosticMetadataAndPhasesTests
     {
         Assert.AreEqual(
             DiagnosticSourceKind.Query,
-            Diagnostic.Error(DiagnosticCode.MQ3001_UnknownColumn, "query", new TextSpan(1, 1)).SourceKind);
+            Diagnostic.Error(DiagnosticCode.MQ3001_UnknownColumn, "query", new TextSpan(1, 1)).SourceKind
+        );
         Assert.AreEqual(
             DiagnosticSourceKind.Schema,
-            Diagnostic.Error(DiagnosticCode.MQ4001_InvalidBinarySchemaField, "schema", new TextSpan(1, 1)).SourceKind);
+            Diagnostic.Error(DiagnosticCode.MQ4001_InvalidBinarySchemaField, "schema", new TextSpan(1, 1)).SourceKind
+        );
         Assert.AreEqual(
             DiagnosticSourceKind.Runtime,
-            Diagnostic.Error(DiagnosticCode.MQ7003_RequiredScriptParameterMissing, "runtime", new TextSpan(1, 1)).SourceKind);
+            Diagnostic
+                .Error(DiagnosticCode.MQ7003_RequiredScriptParameterMissing, "runtime", new TextSpan(1, 1))
+                .SourceKind
+        );
         Assert.AreEqual(
             DiagnosticSourceKind.DataSource,
-            Diagnostic.Error(DiagnosticCode.MQ7011_DataSourceReadFailed, "datasource", new TextSpan(1, 1)).SourceKind);
+            Diagnostic.Error(DiagnosticCode.MQ7011_DataSourceReadFailed, "datasource", new TextSpan(1, 1)).SourceKind
+        );
         Assert.AreEqual(
             DiagnosticSourceKind.GeneratedSource,
-            Diagnostic.Error(DiagnosticCode.MQ8002_CompiledArtifactIncompatible, "generated", new TextSpan(1, 1)).SourceKind);
+            Diagnostic
+                .Error(DiagnosticCode.MQ8002_CompiledArtifactIncompatible, "generated", new TextSpan(1, 1))
+                .SourceKind
+        );
         Assert.AreEqual(
             DiagnosticSourceKind.Internal,
-            Diagnostic.Error(DiagnosticCode.MQ9002_InternalExecutionError, "internal", new TextSpan(1, 1)).SourceKind);
+            Diagnostic.Error(DiagnosticCode.MQ9002_InternalExecutionError, "internal", new TextSpan(1, 1)).SourceKind
+        );
     }
 
     #endregion
@@ -121,7 +169,8 @@ public class DiagnosticMetadataAndPhasesTests
             "Unknown column 'Foo'",
             location,
             explanation: "The column was not found in available sources.",
-            docsReference: "Core Spec §Column References");
+            docsReference: "Core Spec §Column References"
+        );
 
         Assert.AreEqual("The column was not found in available sources.", diagnostic.Explanation);
         Assert.AreEqual("Core Spec §Column References", diagnostic.DocsReference);
@@ -162,7 +211,8 @@ public class DiagnosticMetadataAndPhasesTests
             "Unknown column",
             location,
             explanation: "Explanation text",
-            docsReference: "docs-ref");
+            docsReference: "docs-ref"
+        );
 
         var withInfo = diag.WithRelatedInfo("Some related info");
 
@@ -181,7 +231,8 @@ public class DiagnosticMetadataAndPhasesTests
             "Unknown column",
             location,
             explanation: "Explanation text",
-            docsReference: "docs-ref");
+            docsReference: "docs-ref"
+        );
 
         var withFix = diag.WithSuggestedFix(DiagnosticAction.QuickFix("Fix it", new TextSpan(0, 1), "fixed"));
 
@@ -239,13 +290,14 @@ public class DiagnosticMetadataAndPhasesTests
         var failures = Enum.GetValues<DiagnosticCode>()
             .Select(code => new { Code = code, Metadata = ErrorMetadataCatalog.Get(code) })
             .Where(item =>
-                item.Metadata is null ||
-                item.Metadata.Code != item.Code ||
-                item.Metadata.Phase != DiagnosticPhaseMapping.FromCode(item.Code) ||
-                string.IsNullOrWhiteSpace(item.Metadata.Explanation) ||
-                item.Metadata.SuggestedFixes.Length == 0 ||
-                item.Metadata.SuggestedFixes.Any(string.IsNullOrWhiteSpace) ||
-                string.IsNullOrWhiteSpace(item.Metadata.DocsReference))
+                item.Metadata is null
+                || item.Metadata.Code != item.Code
+                || item.Metadata.Phase != DiagnosticPhaseMapping.FromCode(item.Code)
+                || string.IsNullOrWhiteSpace(item.Metadata.Explanation)
+                || item.Metadata.SuggestedFixes.Length == 0
+                || item.Metadata.SuggestedFixes.Any(string.IsNullOrWhiteSpace)
+                || string.IsNullOrWhiteSpace(item.Metadata.DocsReference)
+            )
             .Select(item => item.Code.ToString())
             .ToArray();
 
@@ -257,7 +309,10 @@ public class DiagnosticMetadataAndPhasesTests
     {
         var metadata = ErrorMetadataCatalog.Get(DiagnosticCode.MQ5013_SourceContractWarning);
 
-        Assert.AreEqual(DiagnosticSeverity.Warning, ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.AreEqual(
+            DiagnosticSeverity.Warning,
+            ErrorCatalog.GetDefaultSeverity(DiagnosticCode.MQ5013_SourceContractWarning)
+        );
         Assert.IsNotNull(metadata);
         Assert.AreEqual(DiagnosticPhase.Bind, metadata.Phase);
         Assert.IsFalse(string.IsNullOrWhiteSpace(metadata.Explanation));
@@ -286,14 +341,16 @@ public class DiagnosticMetadataAndPhasesTests
             DiagnosticPhase.Bind,
             "Explanation",
             ["Fix 1"],
-            "Docs ref");
+            "Docs ref"
+        );
 
         var b = new ErrorMetadata(
             DiagnosticCode.MQ3001_UnknownColumn,
             DiagnosticPhase.Bind,
             "Explanation",
             ["Fix 1"],
-            "Docs ref");
+            "Docs ref"
+        );
 
         Assert.AreEqual(a.Code, b.Code);
         Assert.AreEqual(a.Phase, b.Phase);
@@ -309,5 +366,4 @@ public class DiagnosticMetadataAndPhasesTests
         Assert.IsNotNull(metadata, $"No metadata found for {code}");
         Assert.AreEqual(expectedPhase, metadata.Phase, $"Phase mismatch for {code}");
     }
-
 }

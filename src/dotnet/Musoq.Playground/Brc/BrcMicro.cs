@@ -22,8 +22,10 @@ internal struct AggState
         }
         else
         {
-            if (v < Min) Min = v;
-            if (v > Max) Max = v;
+            if (v < Min)
+                Min = v;
+            if (v > Max)
+                Max = v;
         }
 
         Sum += v;
@@ -58,7 +60,7 @@ internal static class BrcMicro
         // Warm up the native loop and JIT.
         Typed(rows.AsSpan(0, 1000));
 
-        Console.WriteLine($"{"Path",-28} {"Time(ms)",10} {"Rows/sec",15}");
+        Console.WriteLine($"{"Path", -28} {"Time(ms)", 10} {"Rows/sec", 15}");
         Measure("Typed access (best serial)", () => Typed(rows), rowCount);
         Measure("Typed access (parallel)", () => TypedParallel(rows), rowCount);
     }
@@ -69,7 +71,7 @@ internal static class BrcMicro
         var groups = action();
         sw.Stop();
         var rowsPerSec = rowCount / (sw.Elapsed.TotalMilliseconds / 1000.0);
-        Console.WriteLine($"{label,-28} {sw.Elapsed.TotalMilliseconds,10:N1} {rowsPerSec,15:N0}  (groups={groups})");
+        Console.WriteLine($"{label, -28} {sw.Elapsed.TotalMilliseconds, 10:N1} {rowsPerSec, 15:N0}  (groups={groups})");
     }
 
     private static int Typed(ReadOnlySpan<BrcEntity> rows)
@@ -78,7 +80,11 @@ internal static class BrcMicro
         foreach (var row in rows)
         {
             var entity = row;
-            ref var state = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups, entity.Station, out _);
+            ref var state = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(
+                groups,
+                entity.Station,
+                out _
+            );
             state.Add(entity.Temperature);
         }
 
@@ -89,38 +95,52 @@ internal static class BrcMicro
     {
         var workerCount = Environment.ProcessorCount;
         var shards = new Dictionary<string, AggState>[workerCount];
-        Parallel.For(0, workerCount, shardIndex =>
-        {
-            var start = (long)rows.Length * shardIndex / workerCount;
-            var end = (long)rows.Length * (shardIndex + 1) / workerCount;
-            var shard = new Dictionary<string, AggState>();
-            for (var i = start; i < end; i++)
+        Parallel.For(
+            0,
+            workerCount,
+            shardIndex =>
             {
-                var entity = rows[i];
-                ref var state = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(shard, entity.Station, out _);
-                state.Add(entity.Temperature);
-            }
+                var start = (long)rows.Length * shardIndex / workerCount;
+                var end = (long)rows.Length * (shardIndex + 1) / workerCount;
+                var shard = new Dictionary<string, AggState>();
+                for (var i = start; i < end; i++)
+                {
+                    var entity = rows[i];
+                    ref var state = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(
+                        shard,
+                        entity.Station,
+                        out _
+                    );
+                    state.Add(entity.Temperature);
+                }
 
-            shards[shardIndex] = shard;
-        });
+                shards[shardIndex] = shard;
+            }
+        );
 
         var merged = shards[0];
         for (var s = 1; s < shards.Length; s++)
-        foreach (var kvp in shards[s])
-        {
-            ref var state = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(merged, kvp.Key, out var exists);
-            if (!exists)
+            foreach (var kvp in shards[s])
             {
-                state = kvp.Value;
+                ref var state = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(
+                    merged,
+                    kvp.Key,
+                    out var exists
+                );
+                if (!exists)
+                {
+                    state = kvp.Value;
+                }
+                else
+                {
+                    state.Sum += kvp.Value.Sum;
+                    state.Count += kvp.Value.Count;
+                    if (kvp.Value.Min < state.Min)
+                        state.Min = kvp.Value.Min;
+                    if (kvp.Value.Max > state.Max)
+                        state.Max = kvp.Value.Max;
+                }
             }
-            else
-            {
-                state.Sum += kvp.Value.Sum;
-                state.Count += kvp.Value.Count;
-                if (kvp.Value.Min < state.Min) state.Min = kvp.Value.Min;
-                if (kvp.Value.Max > state.Max) state.Max = kvp.Value.Max;
-            }
-        }
 
         return merged.Count;
     }

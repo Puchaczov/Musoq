@@ -38,11 +38,15 @@ public sealed class RLikeQueryConformanceTests : BasicEntityTestBase
         var missing = new List<string>();
         AddMissingValues(cases.Select(testCase => testCase.Family), missing);
         AddMissingValues(
-            cases.Select(testCase => testCase.Source)
-                .Concat(RLikeQueryConformanceCatalog.ContextCoverage
-                    .Where(item => item.PatternSource.HasValue)
-                    .Select(item => item.PatternSource!.Value)),
-            missing);
+            cases
+                .Select(testCase => testCase.Source)
+                .Concat(
+                    RLikeQueryConformanceCatalog
+                        .ContextCoverage.Where(item => item.PatternSource.HasValue)
+                        .Select(item => item.PatternSource!.Value)
+                ),
+            missing
+        );
         AddMissingValues(cases.Select(testCase => testCase.Domain), missing);
         AddMissingValues(cases.Select(testCase => testCase.Polarity), missing);
         AddMissingValues(cases.Select(testCase => testCase.NullCase), missing);
@@ -65,7 +69,12 @@ public sealed class RLikeQueryConformanceTests : BasicEntityTestBase
             if (testCase.Parameters is not null)
             {
                 foreach (var parameter in testCase.Parameters)
-                    global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, parameter.Key, parameter.Value);
+                    global::Musoq.Tests.Common.NativeParameterFixture.Set(
+                        query.TypedParameters,
+                        query.ParameterDefinitions,
+                        parameter.Key,
+                        parameter.Value
+                    );
             }
 
             AssertSnapshot(testCase, culture, query.Run(TestContext.CancellationToken));
@@ -79,10 +88,7 @@ public sealed class RLikeQueryConformanceTests : BasicEntityTestBase
         }
     }
 
-    private static void AssertSnapshot(
-        RLikeQueryConformanceCase testCase,
-        CultureInfo culture,
-        Table table)
+    private static void AssertSnapshot(RLikeQueryConformanceCase testCase, CultureInfo culture, Table table)
     {
         var expected = FormatSnapshot(testCase.GetExpectedRows(culture));
         var actual = FormatSnapshot(table.Select(row => row.ReadValues()).ToArray());
@@ -92,21 +98,25 @@ public sealed class RLikeQueryConformanceTests : BasicEntityTestBase
             table,
             ("Id", typeof(int)),
             ("Name", typeof(string)),
-            ("Matched", typeof(bool)));
+            ("Matched", typeof(bool))
+        );
     }
 
-    private static string FormatSnapshot(IReadOnlyList<object?[]> rows) => string.Join(
-        "\n",
-        rows.Select(row => string.Join("|", row.Select(FormatValue))));
+    private static string FormatSnapshot(IReadOnlyList<object?[]> rows) =>
+        string.Join("\n", rows.Select(row => string.Join("|", row.Select(FormatValue))));
 
-    private static string FormatValue(object? value) => value switch
-    {
-        null => "<null>",
-        string text => string.Concat("string:", text.Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\r", "\\r", StringComparison.Ordinal)
-            .Replace("\n", "\\n", StringComparison.Ordinal)),
-        _ => string.Concat(value.GetType().FullName, ":", Convert.ToString(value, CultureInfo.InvariantCulture))
-    };
+    private static string FormatValue(object? value) =>
+        value switch
+        {
+            null => "<null>",
+            string text => string.Concat(
+                "string:",
+                text.Replace("\\", "\\\\", StringComparison.Ordinal)
+                    .Replace("\r", "\\r", StringComparison.Ordinal)
+                    .Replace("\n", "\\n", StringComparison.Ordinal)
+            ),
+            _ => string.Concat(value.GetType().FullName, ":", Convert.ToString(value, CultureInfo.InvariantCulture)),
+        };
 
     private static void AddMissingValues<T>(IEnumerable<T> values, ICollection<string> missing)
         where T : struct, Enum

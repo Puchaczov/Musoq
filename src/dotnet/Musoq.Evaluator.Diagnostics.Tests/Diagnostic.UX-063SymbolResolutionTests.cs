@@ -40,9 +40,13 @@ public sealed class DiagnosticUx063SymbolResolutionTests : Schema.NegativeTests.
 
         Assert.AreEqual("Name", diagnostic.Arguments["suggestion"]);
         Assert.AreEqual("Name", diagnostic.SuggestedFixes.Single().TextEdit!.NewText);
-        Assert.AreEqual("name", query.Substring(
-            diagnostic.SuggestedFixes.Single().TextEdit!.Span.Start,
-            diagnostic.SuggestedFixes.Single().TextEdit!.Span.Length));
+        Assert.AreEqual(
+            "name",
+            query.Substring(
+                diagnostic.SuggestedFixes.Single().TextEdit!.Span.Start,
+                diagnostic.SuggestedFixes.Single().TextEdit!.Span.Length
+            )
+        );
     }
 
     [TestMethod]
@@ -57,8 +61,11 @@ public sealed class DiagnosticUx063SymbolResolutionTests : Schema.NegativeTests.
         Assert.AreEqual("people, peers", diagnostic.Arguments["aliases"]);
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Explanation));
         Assert.AreEqual("Core Spec - Column References", diagnostic.DocsReference);
-        Assert.IsTrue(diagnostic.SuggestedFixes.Any(action =>
-            action.Title.Contains("Qualify", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            diagnostic.SuggestedFixes.Any(action =>
+                action.Title.Contains("Qualify", StringComparison.OrdinalIgnoreCase)
+            )
+        );
     }
 
     [TestMethod]

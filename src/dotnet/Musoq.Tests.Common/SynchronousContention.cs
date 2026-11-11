@@ -34,9 +34,13 @@ public sealed class SynchronousContention : IDisposable
                 throw new TimeoutException("The first caller did not enter the factory.");
             second.Start();
             secondLaunched = true;
-            if (!_secondStarted.Wait(DeadlockTimeout) ||
-                !SpinWait.SpinUntil(() => !second.IsAlive ||
-                    (second.ThreadState & ThreadState.WaitSleepJoin) != 0, DeadlockTimeout))
+            if (
+                !_secondStarted.Wait(DeadlockTimeout)
+                || !SpinWait.SpinUntil(
+                    () => !second.IsAlive || (second.ThreadState & ThreadState.WaitSleepJoin) != 0,
+                    DeadlockTimeout
+                )
+            )
                 throw new TimeoutException("The second caller did not reach its completion or blocking boundary.");
         }
         finally

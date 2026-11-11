@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Musoq.Plugins;
@@ -38,8 +38,11 @@ public sealed class LibraryFunctionCatalog
     private static LibraryFunctionCatalog Create(Type libraryType)
     {
         var selected = new Dictionary<string, SqlFunctionDescriptor>(StringComparer.Ordinal);
-        for (var current = libraryType; current is not null && typeof(LibraryBase).IsAssignableFrom(current);
-             current = current.BaseType)
+        for (
+            var current = libraryType;
+            current is not null && typeof(LibraryBase).IsAssignableFrom(current);
+            current = current.BaseType
+        )
         {
             foreach (var function in ReadDeclaredFunctions(current))
                 SelectFunction(selected, function);
@@ -48,11 +51,14 @@ public sealed class LibraryFunctionCatalog
         return new LibraryFunctionCatalog(selected);
     }
 
-    private static IEnumerable<SqlFunctionDescriptor> ReadDeclaredFunctions(Type type)
-        => type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
+    private static IEnumerable<SqlFunctionDescriptor> ReadDeclaredFunctions(Type type) =>
+        type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .SelectMany(static method => SqlFunctionDeclarations.Read(method));
 
-    private static void SelectFunction(Dictionary<string, SqlFunctionDescriptor> selected, SqlFunctionDescriptor function)
+    private static void SelectFunction(
+        Dictionary<string, SqlFunctionDescriptor> selected,
+        SqlFunctionDescriptor function
+    )
     {
         var key = SignatureKey(function);
         if (!selected.TryGetValue(key, out var existing))
@@ -61,17 +67,25 @@ public sealed class LibraryFunctionCatalog
             return;
         }
 
-        if (existing.Declaration.DeclaringType == function.Declaration.DeclaringType &&
-            existing.Declaration != function.Declaration)
-            throw new InvalidOperationException($"Competing {function.Kind} declarations for SQL function '{function.Name}'.");
+        if (
+            existing.Declaration.DeclaringType == function.Declaration.DeclaringType
+            && existing.Declaration != function.Declaration
+        )
+            throw new InvalidOperationException(
+                $"Competing {function.Kind} declarations for SQL function '{function.Name}'."
+            );
     }
 
     internal static string SignatureKey(SqlFunctionDescriptor function)
     {
         var values = string.Join(",", function.Parameters.Select(static parameter => TypeIdentity(parameter.Type)));
-        var injections = string.Join(",", function.Declaration.GetParameters()
-            .Where(static parameter => parameter.GetCustomAttribute<InjectTypeAttribute>() is not null)
-            .Select(static parameter => TypeIdentity(parameter.ParameterType)));
+        var injections = string.Join(
+            ",",
+            function
+                .Declaration.GetParameters()
+                .Where(static parameter => parameter.GetCustomAttribute<InjectTypeAttribute>() is not null)
+                .Select(static parameter => TypeIdentity(parameter.ParameterType))
+        );
         return $"{function.Kind}:{MethodNameNormalizer.Normalize(function.Name)}:{function.Declaration.GetGenericArguments().Length}:{values}:{injections}";
     }
 

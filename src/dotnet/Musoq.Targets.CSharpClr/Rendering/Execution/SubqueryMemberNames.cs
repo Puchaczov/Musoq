@@ -14,12 +14,21 @@ internal sealed class SubqueryMemberNames : CSharpSyntaxRewriter
 
     internal SubqueryMemberNames(string identifier, IReadOnlyList<MemberDeclarationSyntax> members)
     {
-        var names = members.OfType<MethodDeclarationSyntax>().Select(static method => method.Identifier.ValueText)
-            .Concat(members.OfType<ClassDeclarationSyntax>().Select(static type => type.Identifier.ValueText)
-                .Where(static name => name is "CteRowResults" or "CteIndexResults" or "StoredTableColumn" ||
-                                      name.StartsWith("StoredTable", StringComparison.Ordinal)));
-        _names = names.Distinct(StringComparer.Ordinal).ToDictionary(static name => name,
-            name => $"{identifier}_{name}", StringComparer.Ordinal);
+        var names = members
+            .OfType<MethodDeclarationSyntax>()
+            .Select(static method => method.Identifier.ValueText)
+            .Concat(
+                members
+                    .OfType<ClassDeclarationSyntax>()
+                    .Select(static type => type.Identifier.ValueText)
+                    .Where(static name =>
+                        name is "CteRowResults" or "CteIndexResults" or "StoredTableColumn"
+                        || name.StartsWith("StoredTable", StringComparison.Ordinal)
+                    )
+            );
+        _names = names
+            .Distinct(StringComparer.Ordinal)
+            .ToDictionary(static name => name, name => $"{identifier}_{name}", StringComparer.Ordinal);
     }
 
     public override SyntaxToken VisitToken(SyntaxToken token) =>

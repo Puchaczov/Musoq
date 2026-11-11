@@ -14,20 +14,19 @@ public partial class BuildMetadataAndInferTypesVisitor
         TableSymbol TableSymbol,
         (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
         Type EntityType,
-        bool IsUnopenedSource = false);
+        bool IsUnopenedSource = false
+    );
 
     private readonly record struct AggregateResolutionSignature(MethodInfo Method, MethodInfo SetMethod)
     {
         public bool Equals(AggregateResolutionSignature other)
         {
-            return AreSameMethod(Method, other.Method) &&
-                   AreSameMethod(SetMethod, other.SetMethod);
+            return AreSameMethod(Method, other.Method) && AreSameMethod(SetMethod, other.SetMethod);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Method.Module, Method.MetadataToken, SetMethod.Module,
-                SetMethod.MetadataToken);
+            return HashCode.Combine(Method.Module, Method.MetadataToken, SetMethod.Module, SetMethod.MetadataToken);
         }
 
         private static bool AreSameMethod(MethodInfo left, MethodInfo right)

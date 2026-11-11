@@ -23,8 +23,7 @@ internal static class TypedOutputBinder
         return BindMembers(outputType, orderedColumns, aliases);
     }
 
-    private static Dictionary<string, TypedOutputColumn> CreateAliasMap(
-        IReadOnlyList<TypedOutputColumn> columns)
+    private static Dictionary<string, TypedOutputColumn> CreateAliasMap(IReadOnlyList<TypedOutputColumn> columns)
     {
         var aliases = new Dictionary<string, TypedOutputColumn>(StringComparer.OrdinalIgnoreCase);
         foreach (var column in columns)
@@ -40,7 +39,8 @@ internal static class TypedOutputBinder
     private static TypedOutputBindingPlan? TryBindConstructor(
         Type outputType,
         IReadOnlyList<TypedOutputColumn> columns,
-        IReadOnlyDictionary<string, TypedOutputColumn> aliases)
+        IReadOnlyDictionary<string, TypedOutputColumn> aliases
+    )
     {
         var candidates = new List<TypedOutputBindingPlan>();
         foreach (var constructor in outputType.GetConstructors(BindingFlags.Public | BindingFlags.Instance))
@@ -53,9 +53,11 @@ internal static class TypedOutputBinder
             var matched = true;
             foreach (var parameter in parameters)
             {
-                if (string.IsNullOrWhiteSpace(parameter.Name) ||
-                    !aliases.TryGetValue(parameter.Name, out var column) ||
-                    !CanAssign(column.Type, parameter.ParameterType))
+                if (
+                    string.IsNullOrWhiteSpace(parameter.Name)
+                    || !aliases.TryGetValue(parameter.Name, out var column)
+                    || !CanAssign(column.Type, parameter.ParameterType)
+                )
                 {
                     matched = false;
                     break;
@@ -73,18 +75,21 @@ internal static class TypedOutputBinder
             0 => null,
             1 => candidates[0],
             _ => throw new InvalidOperationException(
-                $"Typed output type '{outputType.FullName}' has multiple public constructors that match query output aliases.")
+                $"Typed output type '{outputType.FullName}' has multiple public constructors that match query output aliases."
+            ),
         };
     }
 
     private static TypedOutputBindingPlan BindMembers(
         Type outputType,
         IReadOnlyList<TypedOutputColumn> columns,
-        IReadOnlyDictionary<string, TypedOutputColumn> aliases)
+        IReadOnlyDictionary<string, TypedOutputColumn> aliases
+    )
     {
         if (!outputType.IsValueType && outputType.GetConstructor(Type.EmptyTypes) == null)
             throw new InvalidOperationException(
-                $"Typed output type '{outputType.FullName}' must expose either a matching public constructor or a public parameterless constructor.");
+                $"Typed output type '{outputType.FullName}' must expose either a matching public constructor or a public parameterless constructor."
+            );
 
         var members = GetBindableMembers(outputType);
         var bindings = new List<TypedOutputMemberBinding>(aliases.Count);
@@ -93,11 +98,13 @@ internal static class TypedOutputBinder
             var alias = NormalizeAlias(column.Name);
             if (!members.TryGetValue(alias, out var member))
                 throw new InvalidOperationException(
-                    $"Typed output type '{outputType.FullName}' does not expose writable member '{alias}'.");
+                    $"Typed output type '{outputType.FullName}' does not expose writable member '{alias}'."
+                );
 
             if (!CanAssign(column.Type, member.Type))
                 throw new InvalidOperationException(
-                    $"Typed output member '{member.Name}' expects '{member.Type.FullName}', but query column '{column.Name}' has type '{column.Type.FullName}'.");
+                    $"Typed output member '{member.Name}' expects '{member.Type.FullName}', but query column '{column.Name}' has type '{column.Type.FullName}'."
+                );
 
             bindings.Add(new TypedOutputMemberBinding(member.Name, member.Type, column, member.Member));
         }
@@ -136,9 +143,7 @@ internal static class TypedOutputBinder
     private static string NormalizeAlias(string name)
     {
         var index = name.LastIndexOf('.');
-        return index >= 0 && index + 1 < name.Length
-            ? name[(index + 1)..]
-            : name;
+        return index >= 0 && index + 1 < name.Length ? name[(index + 1)..] : name;
     }
 
     internal static bool CanAssign(Type sourceType, Type targetType)

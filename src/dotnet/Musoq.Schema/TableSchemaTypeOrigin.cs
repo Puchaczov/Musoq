@@ -7,5 +7,5 @@ public enum TableSchemaTypeOrigin
     ProviderDefined,
 
     /// <summary>The provider accepts types established by a query's TABLE declaration.</summary>
-    TableDefined
+    TableDefined,
 }

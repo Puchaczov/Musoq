@@ -1,7 +1,7 @@
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Schema;
 using Musoq.Parser.Diagnostics;
+using Musoq.Schema;
 
 namespace Musoq.Converter;
 
@@ -11,8 +11,10 @@ internal static class TypedBoundaryValidation
     {
         var unresolved = outputType is null ? null : ConcreteValueShape.FindUnresolvedMember(outputType);
         if (unresolved is not null)
-            diagnostics.ReportError(DiagnosticCode.MQ3071_SourceContractError,
-                $"Typed result has an unresolved object-valued shape at '{unresolved}'. Declare concrete result members before compilation.");
+            diagnostics.ReportError(
+                DiagnosticCode.MQ3071_SourceContractError,
+                $"Typed result has an unresolved object-valued shape at '{unresolved}'. Declare concrete result members before compilation."
+            );
 
         TypedSourceShapeValidation.Validate(plan, diagnostics);
         if (diagnostics.HasErrors)

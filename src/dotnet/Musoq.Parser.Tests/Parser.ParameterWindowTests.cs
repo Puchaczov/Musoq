@@ -18,14 +18,17 @@ public class ParameterWindowTests
     [DataRow("", "3", "qualify")]
     [DataRow("", "3", "cte")]
     public void DiagnosticParsing_SourceInputWithWindow_ShouldAgreeWithStrictParsing(
-        string declaration, string argument, string shape)
+        string declaration,
+        string argument,
+        string shape
+    )
     {
         var ranking = $"select RowNumber() over (order by r.Value) as Position from system.range(1, {argument}) r";
         var query = shape switch
         {
             "qualify" => $"{ranking} qualify Position <= 2",
             "cte" => $"with ranked as ({ranking}) select Position from ranked where Position <= 2",
-            _ => ranking
+            _ => ranking,
         };
         var sql = $"{declaration} {query}";
         var strict = new Parser(new Lexer(sql, true)).ComposeAll();

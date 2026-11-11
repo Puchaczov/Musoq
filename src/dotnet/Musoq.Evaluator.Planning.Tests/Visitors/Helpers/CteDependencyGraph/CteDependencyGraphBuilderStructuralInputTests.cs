@@ -18,14 +18,15 @@ public sealed class CteDependencyGraphBuilderStructuralInputTests
             new ArgsListNode([new IdentifierNode("patterns")]),
             "m",
             typeof(object),
-            0);
-        var graph = new CteDependencyGraphBuilder().Build(
-            new CteExpressionNode([cteA], outer));
+            0
+        );
+        var graph = new CteDependencyGraphBuilder().Build(new CteExpressionNode([cteA], outer));
 
         Assert.IsTrue(graph.GetCte("patterns").IsReachable);
         Assert.IsFalse(graph.HasReachableDependencyCycle);
         Assert.Contains(CteGraphNode.OuterQueryNodeName, graph.GetCte("patterns").Dependents);
     }
+
     [TestMethod]
     public void Build_MutualCycleWithAcyclicDependencies_ShouldReportReachableCycle()
     {
@@ -34,7 +35,8 @@ public sealed class CteDependencyGraphBuilderStructuralInputTests
         var right = new CteInnerExpressionNode(Reference("leftRows", "baseRows"), "rightRows");
 
         var graph = new CteDependencyGraphBuilder().Build(
-            new CteExpressionNode([baseRows, left, right], Reference("leftRows")));
+            new CteExpressionNode([baseRows, left, right], Reference("leftRows"))
+        );
 
         Assert.IsTrue(graph.HasReachableDependencyCycle);
         Assert.AreEqual(0, graph.GetCte("baseRows").ExecutionLevel);
@@ -46,8 +48,7 @@ public sealed class CteDependencyGraphBuilderStructuralInputTests
         var left = new CteInnerExpressionNode(Reference("rightRows"), "leftRows");
         var right = new CteInnerExpressionNode(Reference("leftRows"), "rightRows");
 
-        var graph = new CteDependencyGraphBuilder().Build(
-            new CteExpressionNode([left, right], new IntegerNode("1")));
+        var graph = new CteDependencyGraphBuilder().Build(new CteExpressionNode([left, right], new IntegerNode("1")));
 
         Assert.IsFalse(graph.HasReachableDependencyCycle);
         Assert.HasCount(2, graph.DeadCtes);
@@ -55,8 +56,13 @@ public sealed class CteDependencyGraphBuilderStructuralInputTests
 
     private static SchemaFromNode Reference(params string[] names)
     {
-        return new SchemaFromNode("inputs", "consume",
+        return new SchemaFromNode(
+            "inputs",
+            "consume",
             new ArgsListNode(System.Array.ConvertAll(names, static name => (Node)new IdentifierNode(name))),
-            "n", typeof(object), 0);
+            "n",
+            typeof(object),
+            0
+        );
     }
 }

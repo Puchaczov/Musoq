@@ -11,20 +11,25 @@ public sealed partial class LogicalPlanBuilder
     {
         ArgumentNullException.ThrowIfNull(node);
         var source = _nodeStack.Pop();
-        var entries = node.Entries
-            .Select(entry => new IrNodes.UnpivotEntry(entry.NameValue, _converter.Convert(entry.Expression)))
+        var entries = node
+            .Entries.Select(entry => new IrNodes.UnpivotEntry(entry.NameValue, _converter.Convert(entry.Expression)))
             .ToArray();
-        var keepFields = node.KeepFields
-            .Select((field, index) => new ProjectedField(field.FieldName, _converter.Convert(field.Expression), index))
+        var keepFields = node
+            .KeepFields.Select(
+                (field, index) => new ProjectedField(field.FieldName, _converter.Convert(field.Expression), index)
+            )
             .ToArray();
 
-        _nodeStack.Push(new IrNodes.UnpivotNode(
-            node.Alias,
-            node.NameColumn,
-            node.ValueColumn,
-            entries,
-            keepFields,
-            source,
-            BuildOutputSchema(node.Alias)));
+        _nodeStack.Push(
+            new IrNodes.UnpivotNode(
+                node.Alias,
+                node.NameColumn,
+                node.ValueColumn,
+                entries,
+                keepFields,
+                source,
+                BuildOutputSchema(node.Alias)
+            )
+        );
     }
 }

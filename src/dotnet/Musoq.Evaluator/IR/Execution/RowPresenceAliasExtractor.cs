@@ -13,8 +13,8 @@ internal sealed partial class RowPresenceAliasExtractor : IrExpressionVisitor<IR
     {
         var extractor = new RowPresenceAliasExtractor();
         extractor.Visit(expression);
-        return extractor._aliases
-            .Where(static alias => !string.IsNullOrWhiteSpace(alias))
+        return extractor
+            ._aliases.Where(static alias => !string.IsNullOrWhiteSpace(alias))
             .OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -136,15 +136,18 @@ internal sealed partial class RowPresenceAliasExtractor : IrExpressionVisitor<IR
     protected override IReadOnlyList<string> VisitCteTableRef(CteTableRef node) => _aliases.ToArray();
 
     protected override IReadOnlyList<string> VisitCteCollectionInput(CteCollectionInput node) => _aliases.ToArray();
+
     protected override IReadOnlyList<string> VisitStructuralRecordLiteral(StructuralRecordLiteral node)
     {
-        foreach (var field in node.Fields) Visit(field.Value);
+        foreach (var field in node.Fields)
+            Visit(field.Value);
         return _aliases.ToArray();
     }
 
     protected override IReadOnlyList<string> VisitStructuralArrayLiteral(StructuralArrayLiteral node)
     {
-        foreach (var element in node.Elements) Visit(element);
+        foreach (var element in node.Elements)
+            Visit(element);
         return _aliases.ToArray();
     }
 
@@ -152,4 +155,5 @@ internal sealed partial class RowPresenceAliasExtractor : IrExpressionVisitor<IR
     {
         Visit(node.Value);
         return _aliases.ToArray();
-    }}
+    }
+}

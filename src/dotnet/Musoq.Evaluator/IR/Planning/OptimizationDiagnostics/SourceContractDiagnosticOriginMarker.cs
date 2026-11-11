@@ -9,23 +9,28 @@ internal static class SourceContractDiagnosticOriginMarker
     {
         return result.ContractDiagnostics.Count == 0
             ? result
-            : result with { ContractDiagnostics = Mark(result.ContractDiagnostics, origin) };
+            : result with
+            {
+                ContractDiagnostics = Mark(result.ContractDiagnostics, origin),
+            };
     }
 
     public static SourcePlanResult Prepend(
         SourcePlanResult result,
         IReadOnlyList<SourceContractDiagnostic> diagnostics,
-        string origin)
+        string origin
+    )
     {
         var marked = Mark(diagnostics, origin);
         return marked.Length == 0
             ? result
-            : result with { ContractDiagnostics = marked.Concat(result.ContractDiagnostics).ToArray() };
+            : result with
+            {
+                ContractDiagnostics = marked.Concat(result.ContractDiagnostics).ToArray(),
+            };
     }
 
-    private static SourceContractDiagnostic[] Mark(
-        IReadOnlyList<SourceContractDiagnostic> diagnostics,
-        string origin)
+    private static SourceContractDiagnostic[] Mark(IReadOnlyList<SourceContractDiagnostic> diagnostics, string origin)
     {
         if (diagnostics.Count == 0)
             return [];
@@ -35,7 +40,10 @@ internal static class SourceContractDiagnosticOriginMarker
         {
             var diagnostic = diagnostics[index];
             result[index] = string.IsNullOrWhiteSpace(diagnostic.Origin)
-                ? diagnostic with { Origin = origin }
+                ? diagnostic with
+                {
+                    Origin = origin,
+                }
                 : diagnostic;
         }
 

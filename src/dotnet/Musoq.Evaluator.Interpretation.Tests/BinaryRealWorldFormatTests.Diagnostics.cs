@@ -13,34 +13,31 @@ public partial class BinaryRealWorldFormatTests
     //   Kind: byte oneOf [1, 2, 3]
     //   PayloadLength: byte
     //   Payload: substream[PayloadLength] raw
-    private const string DiagnosticSchema = @"
-        binary DiagInner {
-            A: ushort le,
-            B: ushort le
-        };
-        binary DiagRecord {
-            Tag: uint le magic 0x44494147,
-            Version: byte const 1,
-            Kind: byte oneOf [1, 2, 3],
-            PayloadLength: byte,
-            Payload: substream[PayloadLength] raw
-        };
-        binary DiagExactRecord {
-            Len: byte,
-            Body: substream[Len] as DiagInner
-        };
-        binary DiagStream {
-            Records: DiagRecord repeat until eof
-        };";
+    private const string DiagnosticSchema = (
+        "\n"
+        + "        binary DiagInner {\n"
+        + "            A: ushort le,\n"
+        + "            B: ushort le\n"
+        + "        };\n"
+        + "        binary DiagRecord {\n"
+        + "            Tag: uint le magic 0x44494147,\n"
+        + "            Version: byte const 1,\n"
+        + "            Kind: byte oneOf [1, 2, 3],\n"
+        + "            PayloadLength: byte,\n"
+        + "            Payload: substream[PayloadLength] raw\n"
+        + "        };\n"
+        + "        binary DiagExactRecord {\n"
+        + "            Len: byte,\n"
+        + "            Body: substream[Len] as DiagInner\n"
+        + "        };\n"
+        + "        binary DiagStream {\n"
+        + "            Records: DiagRecord repeat until eof\n"
+        + "        };"
+    );
 
     private static ByteWriter DiagRecordBytes(long tag, int version, int kind, byte[] payload)
     {
-        return Bytes()
-            .U32Le(tag)
-            .U8(version)
-            .U8(kind)
-            .U8(payload.Length)
-            .Raw(payload);
+        return Bytes().U32Le(tag).U8(version).U8(kind).U8(payload.Length).Raw(payload);
     }
 
     private ParseException CaptureDiagnosticFailure(string innerSchema, byte[] data)
@@ -49,9 +46,9 @@ public partial class BinaryRealWorldFormatTests
         return Assert.Throws<ParseException>(() => RunQuery(query, data));
     }
 
-    private const string SelectDiagRecord = @"
-        select r.Tag from #test.files() f
-        cross apply Interpret<DiagRecord>(f.Content) r";
+    private const string SelectDiagRecord = (
+        "\n" + "        select r.Tag from #test.files() f\n" + "        cross apply Interpret<DiagRecord>(f.Content) r"
+    );
 
     [TestMethod]
     public void Diagnostics_BadMagic_ShouldReportValidationFailedAtTagField()
@@ -90,13 +87,7 @@ public partial class BinaryRealWorldFormatTests
     public void Diagnostics_SubstreamLengthExceedsRemaining_ShouldReportInsufficientData()
     {
         // PayloadLength claims 10 bytes but only 2 follow.
-        var data = Bytes()
-            .U32Le(0x44494147)
-            .U8(1)
-            .U8(1)
-            .U8(10)
-            .Raw([0xAA, 0xBB])
-            .ToArray();
+        var data = Bytes().U32Le(0x44494147).U8(1).U8(1).U8(10).Raw([0xAA, 0xBB]).ToArray();
 
         var exception = CaptureDiagnosticFailure(SelectDiagRecord, data);
 
@@ -107,16 +98,13 @@ public partial class BinaryRealWorldFormatTests
     public void Diagnostics_ExactSubstreamUnderConsumes_ShouldReportValidationFailedAtBodyField()
     {
         // Body declares 6 bytes but DiagInner only consumes 4.
-        var data = Bytes()
-            .U8(6)
-            .U16Le(0x1111)
-            .U16Le(0x2222)
-            .Raw([0x00, 0x00])
-            .ToArray();
+        var data = Bytes().U8(6).U16Le(0x1111).U16Le(0x2222).Raw([0x00, 0x00]).ToArray();
 
-        var select = @"
-            select r.Body.A from #test.files() f
-            cross apply Interpret<DiagExactRecord>(f.Content) r";
+        var select = (
+            "\n"
+            + "            select r.Body.A from #test.files() f\n"
+            + "            cross apply Interpret<DiagExactRecord>(f.Content) r"
+        );
 
         var exception = CaptureDiagnosticFailure(select, data);
 
@@ -128,14 +116,13 @@ public partial class BinaryRealWorldFormatTests
     public void Diagnostics_RepeatTruncatedFinalRecord_ShouldReportInsufficientData()
     {
         // One complete record followed by a partial record (tag only, rest truncated).
-        var data = Bytes()
-            .Raw(DiagRecordBytes(0x44494147, 1, 1, [0x01]).ToArray())
-            .U32Le(0x44494147)
-            .ToArray();
+        var data = Bytes().Raw(DiagRecordBytes(0x44494147, 1, 1, [0x01]).ToArray()).U32Le(0x44494147).ToArray();
 
-        var select = @"
-            select s.Records from #test.files() f
-            cross apply Interpret<DiagStream>(f.Content) s";
+        var select = (
+            "\n"
+            + "            select s.Records from #test.files() f\n"
+            + "            cross apply Interpret<DiagStream>(f.Content) s"
+        );
 
         var exception = CaptureDiagnosticFailure(select, data);
 
@@ -155,9 +142,13 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Diagnostics_TryInterpretBadMagic_ShouldPreserveRowAsNull()
     {
-        var query = DiagnosticSchema + @"
-            select f.Name, r.Tag from #test.files() f
-            outer apply TryInterpret<DiagRecord>(f.Content) r";
+        var query =
+            DiagnosticSchema
+            + (
+                "\n"
+                + "            select f.Name, r.Tag from #test.files() f\n"
+                + "            outer apply TryInterpret<DiagRecord>(f.Content) r"
+            );
 
         var data = DiagRecordBytes(0x00000000, 1, 1, [0x01]).ToArray();
         var table = RunQuery(query, data);
@@ -169,14 +160,15 @@ public partial class BinaryRealWorldFormatTests
     [TestMethod]
     public void Diagnostics_TryInterpretTruncatedRepeat_ShouldPreserveRowAsNull()
     {
-        var query = DiagnosticSchema + @"
-            select f.Name, s.Records from #test.files() f
-            outer apply TryInterpret<DiagStream>(f.Content) s";
+        var query =
+            DiagnosticSchema
+            + (
+                "\n"
+                + "            select f.Name, s.Records from #test.files() f\n"
+                + "            outer apply TryInterpret<DiagStream>(f.Content) s"
+            );
 
-        var data = Bytes()
-            .Raw(DiagRecordBytes(0x44494147, 1, 1, [0x01]).ToArray())
-            .U32Le(0x44494147)
-            .ToArray();
+        var data = Bytes().Raw(DiagRecordBytes(0x44494147, 1, 1, [0x01]).ToArray()).U32Le(0x44494147).ToArray();
 
         var table = RunQuery(query, data);
 

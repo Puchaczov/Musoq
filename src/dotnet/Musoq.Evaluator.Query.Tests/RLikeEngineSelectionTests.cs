@@ -62,13 +62,17 @@ public sealed class RLikeEngineSelectionTests
         var attempts = new List<RegexOptions>();
         var timeout = TimeSpan.FromMilliseconds(321);
 
-        var regex = Operators.CreateRLikeRegex("v.lue", timeout, (pattern, options, budget) =>
-        {
-            attempts.Add(options);
-            if (options == RegexOptions.NonBacktracking)
-                throw new NotSupportedException("Injected automaton limit");
-            return new Regex(pattern, options, budget);
-        });
+        var regex = Operators.CreateRLikeRegex(
+            "v.lue",
+            timeout,
+            (pattern, options, budget) =>
+            {
+                attempts.Add(options);
+                if (options == RegexOptions.NonBacktracking)
+                    throw new NotSupportedException("Injected automaton limit");
+                return new Regex(pattern, options, budget);
+            }
+        );
 
         CollectionAssert.AreEqual(new[] { RegexOptions.NonBacktracking, RegexOptions.Compiled }, attempts);
         Assert.AreEqual(timeout, regex.MatchTimeout);
@@ -80,12 +84,17 @@ public sealed class RLikeEngineSelectionTests
     {
         var attempts = 0;
 
-        Assert.Throws<RegexParseException>(() => Operators.CreateRLikeRegex("[", TimeSpan.FromSeconds(2),
-            (pattern, options, timeout) =>
-            {
-                attempts++;
-                return new Regex(pattern, options, timeout);
-            }));
+        Assert.Throws<RegexParseException>(() =>
+            Operators.CreateRLikeRegex(
+                "[",
+                TimeSpan.FromSeconds(2),
+                (pattern, options, timeout) =>
+                {
+                    attempts++;
+                    return new Regex(pattern, options, timeout);
+                }
+            )
+        );
 
         Assert.AreEqual(1, attempts);
     }

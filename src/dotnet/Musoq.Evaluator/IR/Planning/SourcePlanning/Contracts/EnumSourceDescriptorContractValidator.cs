@@ -11,7 +11,8 @@ internal static class EnumSourceDescriptorContractValidator
     public static void Validate(
         IReadOnlyCollection<ISchemaColumn> frozenColumns,
         SourceDescriptor descriptor,
-        Func<string, TextSpan> spanResolver)
+        Func<string, TextSpan> spanResolver
+    )
     {
         ArgumentNullException.ThrowIfNull(frozenColumns);
         ArgumentNullException.ThrowIfNull(descriptor);
@@ -29,26 +30,32 @@ internal static class EnumSourceDescriptorContractValidator
             throw new EnumDescriptorMismatchException(
                 described.ColumnName,
                 spanResolver(described.ColumnName),
-                "The source returned duplicate column metadata for an enum contract.");
+                "The source returned duplicate column metadata for an enum contract."
+            );
         }
 
         foreach (var frozen in frozenColumns)
         {
-            if (frozen.EnumType == null &&
-                (!describedByName.TryGetValue(frozen.ColumnName, out var ordinary) || ordinary.EnumType == null))
+            if (
+                frozen.EnumType == null
+                && (!describedByName.TryGetValue(frozen.ColumnName, out var ordinary) || ordinary.EnumType == null)
+            )
             {
                 continue;
             }
 
-            if (!describedByName.TryGetValue(frozen.ColumnName, out var described) ||
-                !EnumTypesMatch(frozen.EnumType, described.EnumType) ||
-                frozen.ColumnType != described.ColumnType ||
-                frozen.SourceReadType != described.SourceReadType)
+            if (
+                !describedByName.TryGetValue(frozen.ColumnName, out var described)
+                || !EnumTypesMatch(frozen.EnumType, described.EnumType)
+                || frozen.ColumnType != described.ColumnType
+                || frozen.SourceReadType != described.SourceReadType
+            )
             {
                 throw new EnumDescriptorMismatchException(
                     frozen.ColumnName,
                     spanResolver(frozen.ColumnName),
-                    "The source must recompile against the frozen carrier, source-read type, and fingerprint.");
+                    "The source must recompile against the frozen carrier, source-read type, and fingerprint."
+                );
             }
         }
     }

@@ -46,14 +46,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q365_StructuredValuesAndArrayInOneScript.cs",
         "Q366_StructuredOverloadInventory.cs",
         "Q367_StructuredEmptyCteArgument.cs",
-        "Q368_StructuredPrimitiveEmptyContext.cs"
+        "Q368_StructuredPrimitiveEmptyContext.cs",
     ];
 
     [TestMethod]
     public void StructuredInputSampleCatalog_WhenCheckedIn_ShouldCoverEveryRequiredFamily()
     {
-        var catalog = GeneratedCodeSamplesCatalog.Samples
-            .Where(static sample => sample.FileName.StartsWith("Q3", StringComparison.Ordinal))
+        var catalog = GeneratedCodeSamplesCatalog
+            .Samples.Where(static sample => sample.FileName.StartsWith("Q3", StringComparison.Ordinal))
             .Select(static sample => sample.FileName)
             .Where(static fileName => StructuredInputSampleFileNames.Contains(fileName, StringComparer.Ordinal))
             .OrderBy(static fileName => fileName, StringComparer.Ordinal)
@@ -108,7 +108,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("decimal __musoqStructural_w_3 = 2.5m", reordered);
         Assert.Contains(
             "WeightedInput(__musoqStructural_w_4, __musoqStructural_w_3, __musoqStructural_w_5)",
-            reordered);
+            reordered
+        );
 
         var inferred = ReadSample("Q335_StructuredInferredLetPresence.cs").Content;
         Assert.Contains("__musoqStructuralCarrier_", inferred);
@@ -150,7 +151,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("ownership=ConstructFresh", recordCte);
         Assert.Contains("__musoqStructuralNodes", recordCte);
         Assert.Contains("private static string __musoqCheckStructural_", recordCte);
-        Assert.DoesNotContain("private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqCheckStructural_", recordCte);
+        Assert.DoesNotContain(
+            "private static Musoq.Examples.DataSources.StructuredInputs.PatternInput[] __musoqCheckStructural_",
+            recordCte
+        );
 
         var sharedCte = ReadSample("Q340_StructuredSharedCteArgument.cs").Content;
         Assert.Contains("__musoqPrepareCte_", sharedCte);
@@ -164,16 +168,19 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("__musoqPrepareCte_", parallel);
         Assert.Contains("ownership=ConstructFresh", parallel);
 
-        foreach (var fileName in StructuredInputSampleFileNames.Where(static fileName =>
-                     fileName.StartsWith("Q338_", StringComparison.Ordinal) ||
-                     fileName.StartsWith("Q339_", StringComparison.Ordinal) ||
-                     fileName.StartsWith("Q340_", StringComparison.Ordinal) ||
-                     fileName.StartsWith("Q341_", StringComparison.Ordinal) ||
-                     fileName.StartsWith("Q342_", StringComparison.Ordinal) ||
-                     fileName.StartsWith("Q343_", StringComparison.Ordinal) ||
-                     fileName.StartsWith("Q344_", StringComparison.Ordinal) ||
-                     fileName.StartsWith("Q345_", StringComparison.Ordinal) ||
-                     fileName.StartsWith("Q346_", StringComparison.Ordinal)))
+        foreach (
+            var fileName in StructuredInputSampleFileNames.Where(static fileName =>
+                fileName.StartsWith("Q338_", StringComparison.Ordinal)
+                || fileName.StartsWith("Q339_", StringComparison.Ordinal)
+                || fileName.StartsWith("Q340_", StringComparison.Ordinal)
+                || fileName.StartsWith("Q341_", StringComparison.Ordinal)
+                || fileName.StartsWith("Q342_", StringComparison.Ordinal)
+                || fileName.StartsWith("Q343_", StringComparison.Ordinal)
+                || fileName.StartsWith("Q344_", StringComparison.Ordinal)
+                || fileName.StartsWith("Q345_", StringComparison.Ordinal)
+                || fileName.StartsWith("Q346_", StringComparison.Ordinal)
+            )
+        )
         {
             var content = ReadSample(fileName).Content;
             Assert.DoesNotContain("StructuralInputRuntime", content, fileName);
@@ -183,8 +190,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             Assert.DoesNotContain("=> row[", content, fileName);
         }
 
-        foreach (var fileName in StructuredInputSampleFileNames.Where(static fileName =>
-                     !fileName.StartsWith("Q35", StringComparison.Ordinal)))
+        foreach (
+            var fileName in StructuredInputSampleFileNames.Where(static fileName =>
+                !fileName.StartsWith("Q35", StringComparison.Ordinal)
+            )
+        )
         {
             var content = ReadSample(fileName).Content;
             Assert.DoesNotContain("GetRawConstructors", content, fileName);

@@ -13,7 +13,8 @@ internal static partial class SourcePredicatePlanner
     private sealed record SourcePredicateTransferContext(
         string Alias,
         IReadOnlyDictionary<string, ISchemaColumn[]> Columns,
-        bool HasDirectScanFilter);
+        bool HasDirectScanFilter
+    );
 
     private static HashSet<string> FindDirectFilterSources(LogicalNode? node)
     {
@@ -38,17 +39,22 @@ internal static partial class SourcePredicatePlanner
     {
         if (!context.HasDirectScanFilter)
             return PredicateMovementPlanner.IsTransferSafe(predicate);
-        if (!SourcePredicateGraphValidator.IsWithinBudget(predicate, System.Threading.CancellationToken.None) ||
-            !ExpressionStabilityAnalyzer.IsStable(predicate))
+        if (
+            !SourcePredicateGraphValidator.IsWithinBudget(predicate, System.Threading.CancellationToken.None)
+            || !ExpressionStabilityAnalyzer.IsStable(predicate)
+        )
             return false;
         return IsSafe(predicate);
 
-        static bool IsSafe(IrExpression expression) => expression switch
-        {
-            PatternMatch { Kind: PatternKind.RLike, Expression: ColumnRef, Pattern: Literal { Value: string } } => true,
-            BinaryOp { Kind: BinaryOpKind.And or BinaryOpKind.Or } binary => IsSafe(binary.Left) && IsSafe(binary.Right),
-            UnaryOp { Kind: UnaryOpKind.Not } unary => IsSafe(unary.Operand),
-            _ => PredicateMovementPlanner.IsTransferSafe(expression)
-        };
+        static bool IsSafe(IrExpression expression) =>
+            expression switch
+            {
+                PatternMatch { Kind: PatternKind.RLike, Expression: ColumnRef, Pattern: Literal { Value: string } } =>
+                    true,
+                BinaryOp { Kind: BinaryOpKind.And or BinaryOpKind.Or } binary => IsSafe(binary.Left)
+                    && IsSafe(binary.Right),
+                UnaryOp { Kind: UnaryOpKind.Not } unary => IsSafe(unary.Operand),
+                _ => PredicateMovementPlanner.IsTransferSafe(expression),
+            };
     }
 }

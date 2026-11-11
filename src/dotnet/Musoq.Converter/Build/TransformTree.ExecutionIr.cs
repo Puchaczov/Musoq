@@ -8,6 +8,7 @@ using Musoq.Targets.Execution.Analysis;
 using PhysicalToExecutionPlanBuilder = Musoq.Evaluator.IR.Execution.PhysicalToExecutionPlanBuilder;
 
 namespace Musoq.Converter.Build;
+
 public partial class TransformTree
 {
     private static RenderingStageBuildResult? BuildWithIrRenderer(
@@ -15,18 +16,19 @@ public partial class TransformTree
         SemanticBuildArtifacts semantic,
         PlanningBuildArtifacts planning,
         ExecutionBuildArtifacts execution,
-        SemanticScopeArtifact scopeArtifact)
+        SemanticScopeArtifact scopeArtifact
+    )
     {
         context.CancellationToken.ThrowIfCancellationRequested();
-        if (!TypedBoundaryValidation.ValidateSources(context.OutputType,
-                ResolveSupportedExecutionPlan(execution.ExecutionPlanBuildResult), context.DiagnosticContext))
+        if (
+            !TypedBoundaryValidation.ValidateSources(
+                context.OutputType,
+                ResolveSupportedExecutionPlan(execution.ExecutionPlanBuildResult),
+                context.DiagnosticContext
+            )
+        )
             return null;
-        var renderRequest = CreateTargetRenderRequest(
-            context,
-            semantic,
-            planning,
-            execution,
-            scopeArtifact);
+        var renderRequest = CreateTargetRenderRequest(context, semantic, planning, execution, scopeArtifact);
         context.CancellationToken.ThrowIfCancellationRequested();
         Func<string, IDisposable>? beginTargetPhase = EvaluatorPerformanceTelemetry.IsEnabled
             ? static name => EvaluatorPerformanceTelemetry.BeginPhase(name)
@@ -41,22 +43,21 @@ public partial class TransformTree
         }
 
         context.CancellationToken.ThrowIfCancellationRequested();
-        var renderedArtifact = result.Artifact ??
-                               throw new InvalidOperationException("Successful target rendering did not produce an artifact.");
+        var renderedArtifact =
+            result.Artifact
+            ?? throw new InvalidOperationException("Successful target rendering did not produce an artifact.");
         context.CancellationToken.ThrowIfCancellationRequested();
         var contribution = ExecutionTargetCatalog.CreateRenderBuildContribution(
             renderedArtifact,
-            context.CancellationToken);
+            context.CancellationToken
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var readinessReport = CreateReadinessReport(context, renderRequest);
         context.CancellationToken.ThrowIfCancellationRequested();
         var updatedContext = contribution.OptimizationTrace is null
             ? context
             : context.AppendTrace(contribution.OptimizationTrace);
-        updatedContext = updatedContext with
-        {
-            QueryMethodRenderMetadata = contribution.QueryMethodRenderMetadata
-        };
+        updatedContext = updatedContext with { QueryMethodRenderMetadata = contribution.QueryMethodRenderMetadata };
 
         var artifacts = new RenderingBuildArtifacts(renderedArtifact)
         {
@@ -64,7 +65,7 @@ public partial class TransformTree
             CompatibilityReport = renderRequest.CompatibilityReport,
             RuntimeContract = renderRequest.RuntimeContract,
             ReadinessReport = readinessReport,
-            SemanticsContract = renderRequest.SemanticsContract
+            SemanticsContract = renderRequest.SemanticsContract,
         };
 
         return new RenderingStageBuildResult(artifacts, updatedContext);
@@ -75,7 +76,8 @@ public partial class TransformTree
         SemanticBuildArtifacts semantic,
         PlanningBuildArtifacts planning,
         ExecutionBuildArtifacts execution,
-        SemanticScopeArtifact scopeArtifact)
+        SemanticScopeArtifact scopeArtifact
+    )
     {
         var executionPlan = ResolveSupportedExecutionPlan(execution.ExecutionPlanBuildResult);
         context.CancellationToken.ThrowIfCancellationRequested();
@@ -84,14 +86,13 @@ public partial class TransformTree
         var compatibilityReport = ExecutionTargetCompatibilityAnalyzer.Analyze(executionPlan);
         context.CancellationToken.ThrowIfCancellationRequested();
         var scriptBinding = CreateScriptBinding(semantic, context.CancellationToken);
-        var references = CreateReferenceInventory(
-            semantic.Phase.Metadata.Assemblies,
-            context.CancellationToken);
+        var references = CreateReferenceInventory(semantic.Phase.Metadata.Assemblies, context.CancellationToken);
         context.CancellationToken.ThrowIfCancellationRequested();
         var runtimeContract = TargetRuntimeContractBuilder.Build(
             executionPlan,
             compatibilityReport,
-            TargetSourceRuntimeMetadataFactory.Create(semantic, planning));
+            TargetSourceRuntimeMetadataFactory.Create(semantic, planning)
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var renderPurpose = TargetRenderPurposeFactory.CreatePurpose(context.CompilationPurpose);
         var renderProfile = TargetRenderPurposeFactory.CreateProfile(context.CompilationPurpose, context.EmitPdb);
@@ -133,13 +134,17 @@ public partial class TransformTree
                         scopeArtifact.CreateScope(),
                         semantic.ScriptParameterDefinitions,
                         semantic.ScriptVariableDefinitions,
-                        semantic.Phase.Metadata.Assemblies)))
+                        semantic.Phase.Metadata.Assemblies
+                    )
+                )
+            ),
         };
     }
 
     private static TargetScriptBindingContract CreateScriptBinding(
         SemanticBuildArtifacts semantic,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var parameters = new List<string>(semantic.ScriptParameterDefinitions.Count);
@@ -157,14 +162,13 @@ public partial class TransformTree
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        return new TargetScriptBindingContract(
-            parameters,
-            variables);
+        return new TargetScriptBindingContract(parameters, variables);
     }
 
     private static TargetReferenceInventory CreateReferenceInventory(
         IReadOnlyList<System.Reflection.Assembly> assemblies,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var references = new List<string>(assemblies.Count);
@@ -177,8 +181,7 @@ public partial class TransformTree
         cancellationToken.ThrowIfCancellationRequested();
         references.Sort(StringComparer.Ordinal);
         cancellationToken.ThrowIfCancellationRequested();
-        return new TargetReferenceInventory(
-            references);
+        return new TargetReferenceInventory(references);
     }
 
     private static ExecutionPlan ResolveSupportedExecutionPlan(ExecutionPlanBuildResult? executionPlanBuildResult)
@@ -196,26 +199,35 @@ public partial class TransformTree
             : unsupportedReason;
         return InternalDiagnosticException.ForCompiler(
             new NotSupportedException(
-                $"Execution IR does not support this query shape and old physical rendering is disabled: {reason}"));
+                $"Execution IR does not support this query shape and old physical rendering is disabled: {reason}"
+            )
+        );
     }
 
     private static ExecutionStageBuildResult BuildExecutionInspection(
         TransformPipelineContext context,
         SemanticBuildArtifacts semantic,
-        PlanningBuildArtifacts planning)
+        PlanningBuildArtifacts planning
+    )
     {
         if (planning.PhysicalPlan == null)
             return new ExecutionStageBuildResult(new ExecutionBuildArtifacts(), context);
 
-        var shapeResolver = (planning.PlanningResult?.ExecutionArtifacts.ShapeBindings as ExecutionPlanningShapeResolverAdapter)?.ExecutionShapes ??
-                            ExecutionShapeResolverFactory.Create(semantic, context.SchemaRegistry);
+        var shapeResolver =
+            (
+                planning.PlanningResult?.ExecutionArtifacts.ShapeBindings as ExecutionPlanningShapeResolverAdapter
+            )?.ExecutionShapes
+            ?? ExecutionShapeResolverFactory.Create(semantic, context.SchemaRegistry);
         var builder = new PhysicalToExecutionPlanBuilder(
             shapeResolver,
             context.SchemaRegistry,
             context.CompilationOptions,
             semantic.CteExecutionPlan,
-            planning.PlanningResult?.ExecutionArtifacts ??
-            throw new InvalidOperationException("Execution IR lowering requires planner-owned execution artifacts from QueryPlanner."));
+            planning.PlanningResult?.ExecutionArtifacts
+                ?? throw new InvalidOperationException(
+                    "Execution IR lowering requires planner-owned execution artifacts from QueryPlanner."
+                )
+        );
         context.CancellationToken.ThrowIfCancellationRequested();
         var result = builder.Build(planning.PhysicalPlan);
         context.CancellationToken.ThrowIfCancellationRequested();
@@ -223,13 +235,17 @@ public partial class TransformTree
         if (result is { Supported: true, ExecutionPlan: not null })
         {
             context.CancellationToken.ThrowIfCancellationRequested();
-            var optimizationResult = new ExecutionIrOptimizer().Optimize(result.ExecutionPlan, context.CompilationOptions);
+            var optimizationResult = new ExecutionIrOptimizer().Optimize(
+                result.ExecutionPlan,
+                context.CompilationOptions
+            );
             context.CancellationToken.ThrowIfCancellationRequested();
             var updatedContext = context.AppendTrace(optimizationResult.Trace);
             context.CancellationToken.ThrowIfCancellationRequested();
             var optimizedPlan = ExecutionPhaseBoundaryPlanner.RepositionRootBoundaries(
                 planning.PhysicalPlan,
-                optimizationResult.OptimizedPlan);
+                optimizationResult.OptimizedPlan
+            );
             optimizedPlan = ExecutionPlanRepresentationPlanner.Plan(optimizedPlan);
             context.CancellationToken.ThrowIfCancellationRequested();
             var artifacts = new ExecutionBuildArtifacts
@@ -238,9 +254,10 @@ public partial class TransformTree
                 InitialExecutionPlan = optimizationResult.InitialPlan,
                 OptimizedExecutionPlan = optimizedPlan,
                 ExecutionPlan = optimizedPlan,
-                ExecutionPlanText = context.EmitExecutionPlanText && optimizedPlan != null
-                    ? ExecutionPlanPrinter.Print(optimizedPlan)
-                    : null
+                ExecutionPlanText =
+                    context.EmitExecutionPlanText && optimizedPlan != null
+                        ? ExecutionPlanPrinter.Print(optimizedPlan)
+                        : null,
             };
 
             context.CancellationToken.ThrowIfCancellationRequested();
@@ -257,13 +274,14 @@ public partial class TransformTree
             ExecutionPlanText = context.EmitExecutionPlanText
                 ? result.ExecutionPlan != null
                     ? ExecutionPlanPrinter.Print(result.ExecutionPlan)
-                    : ExecutionPlanPrinter.PrintUnsupported(result.UnsupportedReason ?? "Execution IR lowering did not produce a plan.")
-                : null
+                    : ExecutionPlanPrinter.PrintUnsupported(
+                        result.UnsupportedReason ?? "Execution IR lowering did not produce a plan."
+                    )
+                : null,
         };
 
         context.CancellationToken.ThrowIfCancellationRequested();
 
         return new ExecutionStageBuildResult(unsupportedArtifacts, context);
     }
-
 }

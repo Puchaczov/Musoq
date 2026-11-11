@@ -4,7 +4,7 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private bool CanApplyHashBuildRowWidthPruning()
     {
-        return !ExecutionStrategies.HasRowWidthPruningPlans ||
-               ExecutionStrategies.GetAppliedRowWidthPruning(BoundaryRowShapeKind.HashJoinBuild) != null;
+        return !ExecutionStrategies.HasRowWidthPruningPlans
+            || ExecutionStrategies.GetAppliedRowWidthPruning(BoundaryRowShapeKind.HashJoinBuild) != null;
     }
 }

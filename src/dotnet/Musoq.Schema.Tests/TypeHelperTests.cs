@@ -17,7 +17,7 @@ public class TypeHelperTests
             Prop1 = 4,
             Prop2 = "Test",
             Prop3 = 5.3m,
-            Prop4 = true
+            Prop4 = true,
         };
 
         Assert.HasCount(4, columns);
@@ -52,12 +52,16 @@ public class TypeHelperTests
 
     private sealed class TestEntity
     {
-        [EntityProperty] public int Prop1 { get; set; }
+        [EntityProperty]
+        public int Prop1 { get; set; }
 
-        [EntityProperty] public string Prop2 { get; set; } = string.Empty;
+        [EntityProperty]
+        public string Prop2 { get; set; } = string.Empty;
 
-        [EntityProperty] public decimal Prop3 { get; set; }
+        [EntityProperty]
+        public decimal Prop3 { get; set; }
 
-        [EntityProperty] public bool Prop4 { get; set; }
+        [EntityProperty]
+        public bool Prop4 { get; set; }
     }
 }

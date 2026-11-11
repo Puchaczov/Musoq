@@ -25,9 +25,7 @@ public class OperatorsNullHandlingTests
         var value = "test";
         string[]? array = null;
 
-
         var result = _operators.Contains(value, array);
-
 
         Assert.IsFalse(result);
     }
@@ -38,9 +36,7 @@ public class OperatorsNullHandlingTests
         string? value = null;
         string[]? array = null;
 
-
         var result = _operators.Contains(value, array);
-
 
         Assert.IsFalse(result);
     }
@@ -51,9 +47,7 @@ public class OperatorsNullHandlingTests
         string? value = null;
         var array = new[] { "a", null, "c" };
 
-
         var result = _operators.Contains(value, array);
-
 
         Assert.IsTrue(result);
     }
@@ -64,9 +58,7 @@ public class OperatorsNullHandlingTests
         string? value = null;
         var array = new[] { "a", "b", "c" };
 
-
         var result = _operators.Contains(value, array);
-
 
         Assert.IsFalse(result);
     }
@@ -77,9 +69,7 @@ public class OperatorsNullHandlingTests
         var value = "b";
         var array = new[] { "a", "b", "c" };
 
-
         var result = _operators.Contains(value, array);
-
 
         Assert.IsTrue(result);
     }
@@ -90,9 +80,7 @@ public class OperatorsNullHandlingTests
         var value = "d";
         var array = new[] { "a", "b", "c" };
 
-
         var result = _operators.Contains(value, array);
-
 
         Assert.IsFalse(result);
     }
@@ -103,9 +91,7 @@ public class OperatorsNullHandlingTests
         var value = 5;
         int[]? array = null;
 
-
         var result = _operators.Contains(value, array);
-
 
         Assert.IsFalse(result);
     }
@@ -116,9 +102,7 @@ public class OperatorsNullHandlingTests
         int? value = null;
         var array = new int?[] { 1, null, 3 };
 
-
         var result = _operators.Contains(value, array);
-
 
         Assert.IsTrue(result);
     }

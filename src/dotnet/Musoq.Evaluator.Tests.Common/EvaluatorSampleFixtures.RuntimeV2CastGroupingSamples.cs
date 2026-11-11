@@ -11,7 +11,8 @@ internal static partial class EvaluatorSampleFixtures
                 @"SELECT Population::Int32 as PopulationInt,
                          Amount::Decimal as AmountDecimal,
                          Id::Guid as EntityGuid
-                  FROM #features.items()"),
+                  FROM #features.items()"
+            ),
             RuntimeV2CastGroupingFeature(
                 "Q151_RuntimeV2CastExpressions",
                 @"SELECT (Quantity + 1)::Int64 as QuantityNext,
@@ -19,45 +20,51 @@ internal static partial class EvaluatorSampleFixtures
                          CreatedAt::DateTimeOffset as CreatedOffset
                   FROM #features.items()
                   WHERE Population::Int32 > 1000
-                  ORDER BY Amount::Decimal"),
+                  ORDER BY Amount::Decimal"
+            ),
             RuntimeV2CastGroupingFeature(
                 "Q152_RuntimeV2CastAggregateGrouping",
                 @"SELECT City, Sum(Amount::Decimal) as TotalAmount
                   FROM #features.items()
                   WHERE Population::Int32 > 0
                   GROUP BY City
-                  HAVING Sum(Amount::Decimal) > '10.00'::Decimal") with
-                {
-                    CompilationOptions = new CompilationOptions()
-                        .WithStabilityAwareScalarReuse(false)
-                },
+                  HAVING Sum(Amount::Decimal) > '10.00'::Decimal"
+            ) with
+            {
+                CompilationOptions = new CompilationOptions().WithStabilityAwareScalarReuse(false),
+            },
             RuntimeV2CastGroupingFeature(
                 "Q153_RuntimeV2GroupByOrdinal",
                 @"SELECT City, Department, Count(*) as Cnt
                   FROM #features.items()
-                  GROUP BY 1, 2"),
+                  GROUP BY 1, 2"
+            ),
             RuntimeV2CastGroupingFeature(
                 "Q154_RuntimeV2GroupByAllCasts",
                 @"SELECT City, Population::Int32 as PopulationInt, Count(*) as Cnt
                   FROM #features.items()
-                  GROUP BY ALL"),
+                  GROUP BY ALL"
+            ),
             RuntimeV2CastGroupingFeature(
                 "Q155_RuntimeV2AliasWhereGroupBy",
                 @"SELECT City as c, Count(*) as Cnt
                   FROM #features.items()
                   WHERE c <> ''
-                  GROUP BY c"),
+                  GROUP BY c"
+            ),
             RuntimeV2CastGroupingFeature(
                 "Q156_RuntimeV2HavingAggregateAlias",
                 @"SELECT City, Count(*) as cnt
                   FROM #features.items()
                   GROUP BY City
-                  HAVING cnt > 1"),
+                  HAVING cnt > 1"
+            ),
             RuntimeV2CastGroupingFeature(
                 "Q157_RuntimeV2AliasSourceConflict",
                 @"SELECT City as Department, Department as SourceDepartment, Count(*) as cnt
                   FROM #features.items()
-                  GROUP BY Department, City"),
+                  GROUP BY Department, City"
+            ),
             RuntimeV2CastGroupingFeature(
                 "Q158_RuntimeV2CombinedGrouping",
                 @"SELECT City as c,
@@ -68,7 +75,8 @@ internal static partial class EvaluatorSampleFixtures
                   WHERE pop > 0
                   GROUP BY ALL
                   HAVING cnt > 1 AND total > '10.00'::Decimal
-                  ORDER BY c")
+                  ORDER BY c"
+            ),
         ];
     }
 
@@ -82,8 +90,9 @@ internal static partial class EvaluatorSampleFixtures
             Category = "RuntimeV2CastGrouping",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
             CreateSchemaProvider = CreateRuntimeV2CastGroupingFeatureSchemaProvider,
-            CompilationOptions = new CompilationOptions(useCommonSubexpressionElimination: true)
-                .WithStabilityAwareScalarReuse()
+            CompilationOptions = new CompilationOptions(
+                useCommonSubexpressionElimination: true
+            ).WithStabilityAwareScalarReuse(),
         };
     }
 }

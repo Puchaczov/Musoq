@@ -19,7 +19,8 @@ public class IntersectNode : SetOperatorNode
         bool isTheLastOne,
         OrderByNode? resultOrderBy,
         SkipNode? resultSkip,
-        TakeNode? resultTake)
+        TakeNode? resultTake
+    )
         : base(TokenType.Intersect, keys, left, right, isNested, isTheLastOne, resultOrderBy, resultSkip, resultTake)
     {
         ResultTableName = tableName;

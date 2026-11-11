@@ -26,30 +26,29 @@ public sealed class StreamingChunkParallelProjectionQueryTests
             ParallelizationMode.Full,
             usePrimitiveTypeValidation: false,
             maxDegreeOfParallelismOverride: 2,
-            forceTableResultMaterialization: true);
+            forceTableResultMaterialization: true
+        );
         using var probe = new ProjectionConcurrencyProbe();
         var rows = Enumerable.Range(0, 4_096).Select(value => new StreamingProjectionEntity(value)).ToArray();
         var rowSource = new StreamingProjectionRowSource(rows, chunkSize: 2_048);
         var schema = new GenericSchema<StreamingProjectionLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                { "rows", (new GenericEntityTable<StreamingProjectionEntity>(), rowSource) }
-            }, executionPermissions: SourceExecutionPermissions.ConcurrentRowProcessing);
-        var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            { "#schema", schema }
-        });
+                { "rows", (new GenericEntityTable<StreamingProjectionEntity>(), rowSource) },
+            },
+            executionPermissions: SourceExecutionPermissions.ConcurrentRowProcessing
+        );
+        var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#schema", schema } });
 
         var inspection = InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
 
-        Assert.Contains(
-            "EvaluationHelper.ProjectChunkedRowsParallel<",
-            inspection.GeneratedCSharpCode);
+        Assert.Contains("EvaluationHelper.ProjectChunkedRowsParallel<", inspection.GeneratedCSharpCode);
 
         StreamingProjectionLibrary.Probe = probe;
 
@@ -60,17 +59,20 @@ public sealed class StreamingChunkParallelProjectionQueryTests
                 Guid.NewGuid().ToString(),
                 schemaProvider,
                 _loggerResolver,
-                compilationOptions);
+                compilationOptions
+            );
 
             using var table = vm.Run(CancellationToken.None);
 
             Assert.AreEqual(rows.Length, table.Count);
             CollectionAssert.AreEqual(
                 rows.Select(row => row.Value).Cast<object>().ToArray(),
-                table.Select(row => row.ReadValue(0)).ToArray());
+                table.Select(row => row.ReadValue(0)).ToArray()
+            );
             Assert.IsTrue(
                 probe.MaxConcurrentCalls >= 2,
-                $"Expected chunk projection to overlap work, but max concurrency was {probe.MaxConcurrentCalls}.");
+                $"Expected chunk projection to overlap work, but max concurrency was {probe.MaxConcurrentCalls}."
+            );
         }
         finally
         {
@@ -126,9 +128,8 @@ public sealed class StreamingChunkParallelProjectionQueryTests
 
             if (current >= 2)
                 _twoCallsStarted.Set();
-            else
-                if (!_twoCallsStarted.Wait(TimeSpan.FromSeconds(5)))
-                    throw new TimeoutException("Expected two chunk workers to run concurrently.");
+            else if (!_twoCallsStarted.Wait(TimeSpan.FromSeconds(5)))
+                throw new TimeoutException("Expected two chunk workers to run concurrently.");
 
             Interlocked.Decrement(ref _currentCalls);
             return value;

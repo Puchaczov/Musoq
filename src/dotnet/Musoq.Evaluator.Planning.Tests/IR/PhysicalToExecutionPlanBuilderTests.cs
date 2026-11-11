@@ -26,11 +26,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             alias,
             [],
             [],
-            new OutputSchema(
-            [
-                new ColumnSchema("Name", typeof(string), 0),
-                new ColumnSchema("Age", typeof(int), 1)
-            ]), SourceContextId: alias);
+            new OutputSchema([new ColumnSchema("Name", typeof(string), 0), new ColumnSchema("Age", typeof(int), 1)]),
+            SourceContextId: alias
+        );
     }
 
     private static IEnumerable<TNode> CollectNodes<TNode>(ExecutionBlock block)
@@ -40,8 +38,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     }
 
     private static ExecutionPlan RequireExecutionPlan(ExecutionPlanBuildResult result) =>
-        result.ExecutionPlan ??
-        throw new AssertFailedException(result.UnsupportedReason ?? "Expected an execution plan.");
+        result.ExecutionPlan
+        ?? throw new AssertFailedException(result.UnsupportedReason ?? "Expected an execution plan.");
 
     private static string RequireUnsupportedReason(ExecutionPlanBuildResult result) =>
         result.UnsupportedReason ?? throw new AssertFailedException("Expected an unsupported reason.");
@@ -51,11 +49,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var nodes = new Dictionary<string, CteGraphNode>(StringComparer.OrdinalIgnoreCase);
         foreach (var name in names)
         {
-            nodes[name] = new CteGraphNode(name, null)
-            {
-                IsReachable = true,
-                ExecutionLevel = 0
-            };
+            nodes[name] = new CteGraphNode(name, null) { IsReachable = true, ExecutionLevel = 0 };
         }
 
         var outer = new CteGraphNode(CteGraphNode.OuterQueryNodeName, null);
@@ -63,9 +57,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             outer.Dependencies.Add(name);
 
         var graph = new CteDependencyGraph(nodes, outer);
-        return new CteExecutionPlan(
-            [new CteExecutionLevel(0, names.Select(name => nodes[name]).ToArray())],
-            graph);
+        return new CteExecutionPlan([new CteExecutionLevel(0, names.Select(name => nodes[name]).ToArray())], graph);
     }
 
     private static PhysicalSchemaScanNode CreateOrderScan()
@@ -77,11 +69,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "o",
             [],
             [],
-            new OutputSchema(
-            [
+            new OutputSchema([
                 new ColumnSchema("PersonAge", typeof(int), 0),
-                new ColumnSchema("Description", typeof(string), 1)
-            ]), SourceContextId: "o");
+                new ColumnSchema("Description", typeof(string), 1),
+            ]),
+            SourceContextId: "o"
+        );
     }
 
     private static PhysicalSchemaScanNode CreateApplyItemScan()
@@ -93,11 +86,12 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "i",
             [],
             [],
-            new OutputSchema(
-            [
+            new OutputSchema([
                 new ColumnSchema("Name", typeof(string), 0),
-                new ColumnSchema("Numbers", typeof(int[]), 1)
-            ]), SourceContextId: "i");
+                new ColumnSchema("Numbers", typeof(int[]), 1),
+            ]),
+            SourceContextId: "i"
+        );
     }
 
     private static PhysicalPropertySourceNode CreateNumbersPropertySource(string sourceAlias, string alias)
@@ -109,15 +103,13 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             0,
             typeof(int[]),
             ApplyKind.Cross,
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)])
+        );
     }
 
     private static PhysicalCteRefNode CreateCteRef(string cteName, string alias)
     {
-        return new PhysicalCteRefNode(cteName, alias, new OutputSchema(
-        [
-            new ColumnSchema("Name", typeof(string), 0)
-        ]));
+        return new PhysicalCteRefNode(cteName, alias, new OutputSchema([new ColumnSchema("Name", typeof(string), 0)]));
     }
 
     private static PlannedExecutionBuilder CreateBuilder()
@@ -127,51 +119,46 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
 
     private static PlannedExecutionBuilder CreateSerialBuilder()
     {
-        return CreateBuilder(
-            new CompilationOptions(parallelizationMode: ParallelizationMode.None),
-            null);
+        return CreateBuilder(new CompilationOptions(parallelizationMode: ParallelizationMode.None), null);
     }
 
     private static PlannedExecutionBuilder CreateBuilder(
         CompilationOptions compilationOptions,
-        CteExecutionPlan? cteExecutionPlan)
+        CteExecutionPlan? cteExecutionPlan
+    )
     {
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["p"] = typeof(Person)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["p"] = typeof(Person) }
+        );
 
-        return new PlannedExecutionBuilder(
-            shapeResolver,
-            compilationOptions,
-            cteExecutionPlan);
+        return new PlannedExecutionBuilder(shapeResolver, compilationOptions, cteExecutionPlan);
     }
 
     private static PlannedExecutionBuilder CreateBuilder(ExecutionStrategyPlan executionStrategies)
     {
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["p"] = typeof(Person)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["p"] = typeof(Person) }
+        );
 
-        return new PlannedExecutionBuilder(
-            shapeResolver,
-            fixedExecutionStrategies: executionStrategies);
+        return new PlannedExecutionBuilder(shapeResolver, fixedExecutionStrategies: executionStrategies);
     }
 
-    private static ExecutionStrategyPlan CreateExecutionStrategies(IReadOnlyList<RowWidthPruningPlan> rowWidthPruningPlans)
+    private static ExecutionStrategyPlan CreateExecutionStrategies(
+        IReadOnlyList<RowWidthPruningPlan> rowWidthPruningPlans
+    )
     {
         var strategies = ExecutionStrategyPlan.Create(
             PhysicalNodeIdentityMap.Empty,
             new HashSet<PhysicalSingleKeyAggregateNode>(),
             new HashSet<PhysicalProjectNode>(),
             new Dictionary<PhysicalCteNode, IReadOnlyList<PlannedParallelCteLevel>>(),
-            new Dictionary<PhysicalCteNode, CteStrategyDecision>(), new Dictionary<PhysicalCteNode, CteSidecarIndexPlan>(),
+            new Dictionary<PhysicalCteNode, CteStrategyDecision>(),
+            new Dictionary<PhysicalCteNode, CteSidecarIndexPlan>(),
             new Dictionary<PhysicalSetOperationNode, SetOperationStrategyDecision>(),
             new Dictionary<string, SourceBoundaryStrategyPlan>(StringComparer.Ordinal),
-            new Dictionary<BoundaryRowShapeKind, RowWidthPruningPlan[]>(), []);
+            new Dictionary<BoundaryRowShapeKind, RowWidthPruningPlan[]>(),
+            []
+        );
 
         return strategies.WithRowWidthPruningPlans(rowWidthPruningPlans);
     }
@@ -179,10 +166,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     private static PlannedExecutionBuilder CreateApplyItemBuilder()
     {
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["i"] = typeof(ApplyItem)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["i"] = typeof(ApplyItem) }
+        );
 
         return new PlannedExecutionBuilder(shapeResolver);
     }
@@ -194,8 +179,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             {
                 ["p"] = typeof(Person),
                 ["o"] = typeof(Order),
-                ["q"] = typeof(Person)
-            });
+                ["q"] = typeof(Person),
+            }
+        );
 
         return new PlannedExecutionBuilder(shapeResolver, compilationOptions);
     }
@@ -203,9 +189,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     private static AggregateBinding CreateCountBinding()
     {
         var libraryType = typeof(LibraryBase);
-        var getMethod = libraryType.GetMethod(
-            nameof(LibraryBase.Count),
-            [typeof(int?), typeof(int)]) ?? throw new InvalidOperationException("Count aggregate declaration was not found.");
+        var getMethod =
+            libraryType.GetMethod(nameof(LibraryBase.Count), [typeof(int?), typeof(int)])
+            ?? throw new InvalidOperationException("Count aggregate declaration was not found.");
         var setMethod = getMethod;
         var kernel = AggregateKernelDescriptor.Create(getMethod);
 
@@ -217,15 +203,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             getMethod,
             [],
             typeof(long),
-            kernel);
+            kernel
+        );
     }
 
     private static AggregateBinding CreateCountDescriptionBinding()
     {
         var libraryType = typeof(LibraryBase);
-        var getMethod = libraryType.GetMethod(
-            nameof(LibraryBase.Count),
-            [typeof(string), typeof(int)]) ?? throw new InvalidOperationException("Count aggregate declaration was not found.");
+        var getMethod =
+            libraryType.GetMethod(nameof(LibraryBase.Count), [typeof(string), typeof(int)])
+            ?? throw new InvalidOperationException("Count aggregate declaration was not found.");
         var setMethod = getMethod;
         var kernel = AggregateKernelDescriptor.Create(getMethod);
 
@@ -237,15 +224,16 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             getMethod,
             [],
             typeof(long),
-            kernel);
+            kernel
+        );
     }
 
     private static AggregateBinding CreateCountNameBinding()
     {
         var libraryType = typeof(LibraryBase);
-        var getMethod = libraryType.GetMethod(
-            nameof(LibraryBase.Count),
-            [typeof(string), typeof(int)]) ?? throw new InvalidOperationException("Count aggregate declaration was not found.");
+        var getMethod =
+            libraryType.GetMethod(nameof(LibraryBase.Count), [typeof(string), typeof(int)])
+            ?? throw new InvalidOperationException("Count aggregate declaration was not found.");
         var setMethod = getMethod;
         var kernel = AggregateKernelDescriptor.Create(getMethod);
 
@@ -257,6 +245,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             getMethod,
             [],
             typeof(long),
-            kernel);
+            kernel
+        );
     }
 }

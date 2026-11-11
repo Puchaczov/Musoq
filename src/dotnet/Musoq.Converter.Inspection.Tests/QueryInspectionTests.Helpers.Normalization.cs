@@ -6,10 +6,7 @@ public partial class QueryInspectionTests
 {
     private static string Normalize(string text)
     {
-        var lines = text
-            .Replace("\r\n", "\n")
-            .Trim('\n')
-            .Split('\n');
+        var lines = text.Replace("\r\n", "\n").Trim('\n').Split('\n');
 
         var indentation = GetCommonIndentation(lines);
 

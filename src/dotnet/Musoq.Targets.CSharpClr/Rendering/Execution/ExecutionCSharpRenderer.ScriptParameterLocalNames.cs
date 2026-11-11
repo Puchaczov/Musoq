@@ -7,7 +7,6 @@ public sealed partial class ExecutionCSharpRenderer
         if (_scriptParameterLocalNames.TryGetValue(name, out var localName))
             return localName;
 
-        throw new InvalidOperationException(
-            $"Script parameter '{name}' is not declared in render context.");
+        throw new InvalidOperationException($"Script parameter '{name}' is not declared in render context.");
     }
 }

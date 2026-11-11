@@ -21,7 +21,10 @@ public partial class BuildMetadataAndInferTypesVisitor
     protected Dictionary<string, IReadOnlyDictionary<string, string>> InternalSourceRuntimeSettingsBySourceContextId =>
         _sourceBinding.InternalSourceRuntimeSettingsBySourceContextId;
 
-    protected Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> InternalSourceRuntimeSettingDescriptionsBySourceContextId =>
+    protected Dictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > InternalSourceRuntimeSettingDescriptionsBySourceContextId =>
         _sourceBinding.InternalSourceRuntimeSettingDescriptionsBySourceContextId;
 
     internal bool InsideWindowFunction

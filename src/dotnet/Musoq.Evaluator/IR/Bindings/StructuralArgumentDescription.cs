@@ -16,4 +16,5 @@ public sealed record StructuralArgumentDescription(
     string? Default,
     int? MaxDepth,
     int? MaxNodes,
-    long? MaxStringBytes);
+    long? MaxStringBytes
+);

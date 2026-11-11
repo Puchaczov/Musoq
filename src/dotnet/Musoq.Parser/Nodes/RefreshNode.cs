@@ -26,9 +26,7 @@ public class RefreshNode : Node
 
     public override string ToString()
     {
-        var methods = Nodes.Length == 0
-            ? string.Empty
-            : string.Join(", ", Nodes.Select(f => f.ToString()));
+        var methods = Nodes.Length == 0 ? string.Empty : string.Join(", ", Nodes.Select(f => f.ToString()));
 
         return $"refresh ({methods})";
     }

@@ -10,28 +10,38 @@ internal abstract record TargetFinalizationResult
         ExecutionTargetId targetId,
         bool success,
         IReadOnlyList<TargetDiagnostic>? diagnostics,
-        ExecutableQueryArtifact? artifact)
+        ExecutableQueryArtifact? artifact
+    )
     {
         if (success && artifact is null)
-            throw new ArgumentException("Successful target finalization must produce an executable artifact.", nameof(artifact));
+            throw new ArgumentException(
+                "Successful target finalization must produce an executable artifact.",
+                nameof(artifact)
+            );
 
         if (!success && artifact is not null)
-            throw new ArgumentException("Failed target finalization cannot expose an executable artifact.", nameof(artifact));
+            throw new ArgumentException(
+                "Failed target finalization cannot expose an executable artifact.",
+                nameof(artifact)
+            );
 
         if (artifact is not null && artifact.TargetId != targetId)
         {
             throw new ArgumentException(
                 $"Target finalization result '{targetId}' cannot contain an executable artifact for target '{artifact.TargetId}'.",
-                nameof(artifact));
+                nameof(artifact)
+            );
         }
 
         var frozenDiagnostics = Freeze(diagnostics);
-        if (success && frozenDiagnostics.Any(static diagnostic =>
-                diagnostic.Severity == TargetDiagnosticSeverity.Error))
+        if (
+            success && frozenDiagnostics.Any(static diagnostic => diagnostic.Severity == TargetDiagnosticSeverity.Error)
+        )
         {
             throw new ArgumentException(
                 "Successful target finalization cannot contain error diagnostics.",
-                nameof(diagnostics));
+                nameof(diagnostics)
+            );
         }
 
         TargetId = targetId;

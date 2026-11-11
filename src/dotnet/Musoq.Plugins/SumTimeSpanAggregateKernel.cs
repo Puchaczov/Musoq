@@ -18,23 +18,18 @@ public static class SumTimeSpanAggregateKernel
         if (!value.HasValue)
             return;
 
-        state.Value = state.HasValue
-            ? checked(state.Value + value.GetValueOrDefault())
-            : value.GetValueOrDefault();
+        state.Value = state.HasValue ? checked(state.Value + value.GetValueOrDefault()) : value.GetValueOrDefault();
         state.HasValue = true;
     }
 
-    public static TimeSpan? Get(in State state)
-        => NullableAggregateCore.GetNullable(state.HasValue, state.Value);
+    public static TimeSpan? Get(in State state) => NullableAggregateCore.GetNullable(state.HasValue, state.Value);
 
     public static void Merge(ref State target, in State source)
     {
         if (!source.HasValue)
             return;
 
-        target.Value = target.HasValue
-            ? checked(target.Value + source.Value)
-            : source.Value;
+        target.Value = target.HasValue ? checked(target.Value + source.Value) : source.Value;
         target.HasValue = true;
     }
 }

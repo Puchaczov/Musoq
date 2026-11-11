@@ -10,51 +10,45 @@ namespace Musoq.Parser.Tests;
 public sealed class DiagnosticUx062DialectConfusionTests
 {
     [TestMethod]
-    [DataRow(
-        "select 1 from #system.dual() d limit 5",
-        "limit",
-        "TAKE",
-        DiagnosticCode.MQ2001_UnexpectedToken)]
-    [DataRow(
-        "select 1 from #system.dual() d offset 2",
-        "offset",
-        "SKIP",
-        DiagnosticCode.MQ2001_UnexpectedToken)]
+    [DataRow("select 1 from #system.dual() d limit 5", "limit", "TAKE", DiagnosticCode.MQ2001_UnexpectedToken)]
+    [DataRow("select 1 from #system.dual() d offset 2", "offset", "SKIP", DiagnosticCode.MQ2001_UnexpectedToken)]
     [DataRow(
         "select 1 from #system.dual() d order by 1 offset 2",
         "offset",
         "SKIP",
-        DiagnosticCode.MQ2009_InvalidOrderByExpression)]
+        DiagnosticCode.MQ2009_InvalidOrderByExpression
+    )]
     [DataRow(
         "select 1 from #system.dual() d order by 1 fetch next 5 rows only",
         "fetch",
         "TAKE",
-        DiagnosticCode.MQ2009_InvalidOrderByExpression)]
-    [DataRow(
-        "select 1 from #system.dual() d order by 1 rows",
-        "rows",
-        "TAKE",
-        DiagnosticCode.MQ2001_UnexpectedToken)]
+        DiagnosticCode.MQ2009_InvalidOrderByExpression
+    )]
+    [DataRow("select 1 from #system.dual() d order by 1 rows", "rows", "TAKE", DiagnosticCode.MQ2001_UnexpectedToken)]
     [DataRow(
         "select 1 from #system.dual() d order by 1 next 5",
         "next",
         "TAKE",
-        DiagnosticCode.MQ2009_InvalidOrderByExpression)]
+        DiagnosticCode.MQ2009_InvalidOrderByExpression
+    )]
     [DataRow(
         "select 1 from #system.dual() d order by 1 only",
         "only",
         "TAKE",
-        DiagnosticCode.MQ2009_InvalidOrderByExpression)]
+        DiagnosticCode.MQ2009_InvalidOrderByExpression
+    )]
     [DataRow(
         "select 1 from #system.dual() d where 1 ilike '1'",
         "ilike",
         "LIKE",
-        DiagnosticCode.MQ2001_UnexpectedToken)]
+        DiagnosticCode.MQ2001_UnexpectedToken
+    )]
     public void ForeignDialectKeyword_ShouldReportNativeGuidanceAtKeyword(
         string query,
         string keyword,
         string nativeKeyword,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var result = ParseWithDiagnostics(query);
 
@@ -83,7 +77,8 @@ public sealed class DiagnosticUx062DialectConfusionTests
         string query,
         string keyword,
         string operand,
-        string nativeKeyword)
+        string nativeKeyword
+    )
     {
         var result = ParseWithDiagnostics(query);
 
@@ -92,7 +87,10 @@ public sealed class DiagnosticUx062DialectConfusionTests
 
         var diagnostic = result.Diagnostics.Single();
         Assert.AreEqual(DiagnosticCode.MQ2001_UnexpectedToken, diagnostic.Code);
-        Assert.AreEqual(new TextSpan(query.IndexOf(operand, StringComparison.Ordinal), operand.Length), diagnostic.Span);
+        Assert.AreEqual(
+            new TextSpan(query.IndexOf(operand, StringComparison.Ordinal), operand.Length),
+            diagnostic.Span
+        );
         Assert.AreEqual(keyword, query.Substring(query.IndexOf(keyword, StringComparison.Ordinal), keyword.Length));
         Assert.Contains(nativeKeyword, diagnostic.Message, StringComparison.OrdinalIgnoreCase);
         Assert.AreEqual("Core Spec §TAKE / SKIP", diagnostic.DocsReference);
@@ -105,7 +103,8 @@ public sealed class DiagnosticUx062DialectConfusionTests
     public void PrefixPagination_ShouldRejectUndocumentedSyntaxAtPrefix(
         string query,
         string dialectKeyword,
-        string expectedKeyword)
+        string expectedKeyword
+    )
     {
         var result = ParseWithDiagnostics(query);
 
@@ -113,14 +112,19 @@ public sealed class DiagnosticUx062DialectConfusionTests
         Assert.HasCount(1, result.Diagnostics, result.FormatDiagnostics());
 
         var diagnostic = result.Diagnostics.Single();
-        var expectedSpan = new TextSpan(query.IndexOf(dialectKeyword, StringComparison.OrdinalIgnoreCase), dialectKeyword.Length);
+        var expectedSpan = new TextSpan(
+            query.IndexOf(dialectKeyword, StringComparison.OrdinalIgnoreCase),
+            dialectKeyword.Length
+        );
 
         Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, diagnostic.Code);
         Assert.AreEqual(expectedSpan, diagnostic.Span);
         Assert.Contains(expectedKeyword, diagnostic.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("TAKE", diagnostic.Message, StringComparison.OrdinalIgnoreCase);
         Assert.AreEqual("Core Spec §TAKE / SKIP", diagnostic.DocsReference);
-        Assert.IsTrue(diagnostic.SuggestedFixes.Any(fix => fix.Title.Contains("TAKE", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            diagnostic.SuggestedFixes.Any(fix => fix.Title.Contains("TAKE", StringComparison.OrdinalIgnoreCase))
+        );
     }
 
     [TestMethod]
@@ -134,9 +138,15 @@ public sealed class DiagnosticUx062DialectConfusionTests
         Assert.AreEqual(DiagnosticCode.MQ2001_UnexpectedToken, diagnostic.Code);
         Assert.AreEqual(new TextSpan(query.IndexOf("ilike", StringComparison.Ordinal), 5), diagnostic.Span);
         Assert.Contains("LIKE", diagnostic.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.IsTrue(diagnostic.SuggestedFixes.Any(fix => fix.Title.Contains("ToLower", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            diagnostic.SuggestedFixes.Any(fix => fix.Title.Contains("ToLower", StringComparison.OrdinalIgnoreCase))
+        );
         Assert.AreEqual("Core Spec §LIKE Operator", diagnostic.DocsReference);
-        Assert.IsTrue(diagnostic.SuggestedFixes.Any(fix => fix.Title.Contains("Replace ILIKE with LIKE", StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(
+            diagnostic.SuggestedFixes.Any(fix =>
+                fix.Title.Contains("Replace ILIKE with LIKE", StringComparison.OrdinalIgnoreCase)
+            )
+        );
     }
 
     [TestMethod]
@@ -163,19 +173,23 @@ public sealed class DiagnosticUx062DialectConfusionTests
     [DataRow(
         "param([string]$author) select 1 from #system.dual()",
         "[string]$author",
-        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax)]
+        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax
+    )]
     [DataRow(
         "def query(author: str = 'x') select 1 from #system.dual()",
         "def",
-        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax)]
+        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax
+    )]
     [DataRow(
         "declare author string; select 1 from #system.dual()",
         "declare",
-        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax)]
+        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax
+    )]
     public void BorrowedDeclarationStyle_ShouldReportMusoqParameterSyntax(
         string query,
         string offendingText,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var result = ParseWithDiagnostics(query);
 
@@ -199,7 +213,7 @@ public sealed class DiagnosticUx062DialectConfusionTests
         {
             "params(limit: int = 5) select 1 from #system.dual() d order by 1 skip 2 take 5",
             "select 1 from #system.dual() d where 'x' like 'x'",
-            "select 1::Int32 from #system.dual()"
+            "select 1::Int32 from #system.dual()",
         };
 
         foreach (var query in queries)

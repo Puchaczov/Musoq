@@ -14,5 +14,4 @@ public partial class LibraryExecutionCoverageQueryTestsFixtures
             Count(Value) over (partition by Value % 3) as Present
         from counter order by Value
         """;
-
 }

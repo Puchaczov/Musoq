@@ -39,7 +39,8 @@ internal static partial class ScriptVariableInitializerEvaluator
         if (ConstantOperatorEvaluator.IsZero(right))
             return ScriptConstantEvaluationResult.Failed(
                 DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
-                "Script variable initializer cannot divide by zero.");
+                "Script variable initializer cannot divide by zero."
+            );
 
         return EvaluateNumeric(left, right, ConstantOperatorKind.Divide);
     }
@@ -52,7 +53,8 @@ internal static partial class ScriptVariableInitializerEvaluator
         if (ConstantOperatorEvaluator.IsZero(right))
             return ScriptConstantEvaluationResult.Failed(
                 DiagnosticCode.MQ3065_InvalidScriptVariableInitializer,
-                "Script variable initializer cannot divide by zero.");
+                "Script variable initializer cannot divide by zero."
+            );
 
         return EvaluateNumeric(left, right, ConstantOperatorKind.Modulo);
     }

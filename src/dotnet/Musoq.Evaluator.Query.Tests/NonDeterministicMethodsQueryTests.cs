@@ -18,7 +18,8 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNonDeterministicMethodInWhereAndSelect_ShouldNotBeCached()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT NextTestValue() as RandomVal, Name
             FROM #A.Entities()
             WHERE NextTestValue() >= 0";
@@ -26,8 +27,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            [2, "A"], [12, "B"], [22, "C"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [2, "A"], [12, "B"], [22, "C"]);
         Assert.AreEqual(6, fixture.Calls);
     }
 
@@ -38,7 +38,8 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNonDeterministicMethodInCaseWhen_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT
                 CASE WHEN NextTestValue() < 50 THEN 'Low' ELSE 'High' END as Category,
                 Name
@@ -47,8 +48,13 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            ["Low", "A"], ["Low", "B"], ["Low", "C"], ["Low", "D"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Low", "A"],
+            ["Low", "B"],
+            ["Low", "C"],
+            ["Low", "D"]
+        );
         Assert.AreEqual(4, fixture.Calls);
     }
 
@@ -59,7 +65,8 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNonDeterministicMethodInSubquery_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT Name, NextTestValue() as Rand
             FROM #A.Entities()
             WHERE Name IN (SELECT Name FROM #A.Entities() WHERE Name IN ('A', 'B'))";
@@ -67,8 +74,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            ["A", 1], ["B", 11]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A", 1], ["B", 11]);
         Assert.AreEqual(2, fixture.Calls);
     }
 
@@ -84,8 +90,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            [1, "A"], [11, "B"], [21, "C"], [31, "D"], [41, "E"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "A"], [11, "B"], [21, "C"], [31, "D"], [41, "E"]);
         Assert.AreEqual(5, fixture.Calls);
     }
 
@@ -97,8 +102,12 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            [1, 2, "Test1"], [11, 12, "Test2"], [21, 22, "Test3"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [1, 2, "Test1"],
+            [11, 12, "Test2"],
+            [21, 22, "Test3"]
+        );
         Assert.AreEqual(6, fixture.Calls);
     }
 
@@ -114,15 +123,15 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            [101, "A"], [111, "B"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [101, "A"], [111, "B"]);
         Assert.AreEqual(2, fixture.Calls);
     }
 
     [TestMethod]
     public void WhenNonDeterministicMethodInMultipleArithmeticExpressions_ShouldNotBeCached()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT
                 NextTestValue() + 100 as Shifted1,
                 NextTestValue() * 2 as Doubled,
@@ -132,8 +141,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            [101, 4, "A"], [111, 24, "B"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [101, 4, "A"], [111, 24, "B"]);
         Assert.AreEqual(4, fixture.Calls);
     }
 
@@ -149,15 +157,15 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            [3, 3, "ABC"], [5, 5, "DEFGH"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [3, 3, "ABC"], [5, 5, "DEFGH"]);
         Assert.AreEqual(0, fixture.Calls);
     }
 
     [TestMethod]
     public void WhenMixingDeterministicAndNonDeterministic_ShouldHandleCorrectly()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT
                 Length(Name) as NameLength,
                 Length(Name) + 10 as LengthPlus10,
@@ -169,8 +177,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            [4, 14, 1, 2, "Test"], [5, 15, 11, 12, "Hello"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [4, 14, 1, 2, "Test"], [5, 15, 11, 12, "Hello"]);
         Assert.AreEqual(4, fixture.Calls);
     }
 
@@ -181,7 +188,8 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNonDeterministicMethodWithGroupBy_ShouldWork()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT
                 Name,
                 Count(Name) as Cnt, NextGroupValue() as Probe
@@ -199,9 +207,9 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
                     new BasicEntity("B"),
                     new BasicEntity("B"),
                     new BasicEntity("B"),
-                    new BasicEntity("C")
+                    new BasicEntity("C"),
                 ]
-            }
+            },
         };
 
         var fixture = new EvaluationFixture(sources["#A"].Select(entity => entity.Name!).ToArray());
@@ -210,7 +218,10 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(0, fixture.Calls);
-        CollectionAssert.AreEquivalent(new[] { 1, 2 }, table.Select(row => Convert.ToInt32(row.ReadValue(2))).ToArray());
+        CollectionAssert.AreEquivalent(
+            new[] { 1, 2 },
+            table.Select(row => Convert.ToInt32(row.ReadValue(2))).ToArray()
+        );
 
         var rowA = table.First(r => (string)r.ReadValue(0) == "A");
         var rowB = table.First(r => (string)r.ReadValue(0) == "B");
@@ -222,7 +233,8 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNonDeterministicMethodInHaving_ShouldNotBeCached()
     {
-        const string query = @"
+        const string query =
+            @"
             SELECT
                 Name,
                 Count(Name) as Cnt
@@ -232,27 +244,18 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("A"),
-                    new BasicEntity("B")
-                ]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("A"), new BasicEntity("B")] },
         };
 
         var fixture = new EvaluationFixture(sources["#A"].Select(entity => entity.Name!).ToArray());
         var vm = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(0, fixture.Calls);
         var expectedCounts = new Dictionary<string, int> { ["A"] = 2, ["B"] = 1 };
         Assert.AreEqual(expectedCounts[(string)table[0].ReadValue(0)], Convert.ToInt32(table[0].ReadValue(1)));
     }
-
 
     #endregion
 }

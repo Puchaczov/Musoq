@@ -12,9 +12,11 @@ public partial class ErrorQualityStructuralSyntaxTests
     {
         // Arrange — TABLE with invalid type names
         var analyzer = CreateAnalyzer();
-        var query = @"table MyType { Name: banana, Value: potato };
-couple #A.Entities() with table MyType as Source;
-select Name, Value from Source()";
+        var query = (
+            "table MyType { Name: banana, Value: potato };\n"
+            + "couple #A.Entities() with table MyType as Source;\n"
+            + "select Name, Value from Source()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -28,9 +30,9 @@ select Name, Value from Source()";
     {
         // Arrange — TABLE with empty definition
         var analyzer = CreateAnalyzer();
-        var query = @"table Empty {};
-couple #A.Entities() with table Empty as Source;
-select * from Source()";
+        var query = (
+            "table Empty {};\n" + "couple #A.Entities() with table Empty as Source;\n" + "select * from Source()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -44,16 +46,21 @@ select * from Source()";
     {
         // Arrange — this legacy duplicate-column probe currently fails during parsing.
         var analyzer = CreateAnalyzer();
-        var query = @"table Dupes { Name: string, Name: int };
-couple #A.Entities() with table Dupes as Source;
-select Name from Source()";
+        var query = (
+            "table Dupes { Name: string, Name: int };\n"
+            + "couple #A.Entities() with table Dupes as Source;\n"
+            + "select Name from Source()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
 
         // Assert — parser ownership is explicit and recovery emits one root diagnostic.
-        AssertHasExactlyOneErrorCode(result, "malformed duplicate-column TABLE probe",
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertHasExactlyOneErrorCode(
+            result,
+            "malformed duplicate-column TABLE probe",
+            DiagnosticCode.MQ2001_UnexpectedToken
+        );
     }
 
     [TestMethod]
@@ -61,9 +68,11 @@ select Name from Source()";
     {
         // Arrange — TABLE column without type
         var analyzer = CreateAnalyzer();
-        var query = @"table MyType { Name, Value: int };
-couple #A.Entities() with table MyType as Source;
-select Name from Source()";
+        var query = (
+            "table MyType { Name, Value: int };\n"
+            + "couple #A.Entities() with table MyType as Source;\n"
+            + "select Name from Source()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -73,7 +82,8 @@ select Name from Source()";
             result,
             "TABLE column without type",
             DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+            DiagnosticCode.MQ2001_UnexpectedToken
+        );
     }
 
     [TestMethod]
@@ -81,9 +91,11 @@ select Name from Source()";
     {
         // Arrange — TABLE column with missing type (second column has no type)
         var analyzer = CreateAnalyzer();
-        var query = @"table MyType { Name: string, Value };
-couple #A.Entities() with table MyType as Source;
-select Name from Source()";
+        var query = (
+            "table MyType { Name: string, Value };\n"
+            + "couple #A.Entities() with table MyType as Source;\n"
+            + "select Name from Source()"
+        );
 
         // Act
         var result = analyzer.Analyze(query);
@@ -93,7 +105,8 @@ select Name from Source()";
             result,
             "TABLE column with empty type",
             DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2001_UnexpectedToken);
+            DiagnosticCode.MQ2001_UnexpectedToken
+        );
     }
 
     #endregion
@@ -209,7 +222,11 @@ select Name from Source()";
         var result = analyzer.ValidateSyntax(query);
 
         // Assert — Should indicate unclosed parenthesis
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2010_MissingClosingParenthesis, "unclosed parenthesis in expression");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2010_MissingClosingParenthesis,
+            "unclosed parenthesis in expression"
+        );
     }
 
     [TestMethod]

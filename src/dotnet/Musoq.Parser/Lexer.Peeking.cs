@@ -4,7 +4,7 @@ namespace Musoq.Parser.Lexing;
 
 public sealed partial class Lexer
 {
-   /// <summary>
+    /// <summary>
     ///     Peeks ahead without consuming a token or changing lexer history.
     /// </summary>
     public Token Peek(int lookahead = 1)
@@ -24,9 +24,7 @@ public sealed partial class Lexer
         var resolved4 = _resolvedToken4;
         var resolvedCount = _resolvedTokenCount;
         var nextResolvedSlot = _nextResolvedTokenSlot;
-        var pendingSchemaTokens = _pendingSchemaTokens.Count == 0
-            ? null
-            : _pendingSchemaTokens.ToArray();
+        var pendingSchemaTokens = _pendingSchemaTokens.Count == 0 ? null : _pendingSchemaTokens.ToArray();
         var commentsCount = _comments.Count;
         var recoverOnError = RecoverOnError;
 

@@ -38,7 +38,12 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
     {
         const string query = "param(keys: string[]) select a.City from #A.Entities() a where a.City in $keys";
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new string?[] { "WARSAW", null });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "keys",
+            new string?[] { "WARSAW", null }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -51,7 +56,12 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
     {
         const string query = "param(keys: string[]) select a.City from #A.Entities() a where a.City not in $keys";
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new string?[] { "WARSAW", null });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(
+            vm.TypedParameters,
+            vm.ParameterDefinitions,
+            "keys",
+            new string?[] { "WARSAW", null }
+        );
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -80,10 +90,15 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
     [TestMethod]
     public void InSubqueryWithMultipleColumns_ShouldReportExactDiagnosticContract()
     {
-        const string query = "select a.City from #A.Entities() a where a.City in (select b.City, b.Country from #B.Entities() b)";
+        const string query =
+            "select a.City from #A.Entities() a where a.City in (select b.City, b.Country from #B.Entities() b)";
         var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
         var envelope = exception.PrimaryEnvelope;
-        var expectedStart = query.IndexOf("City", query.IndexOf("a.City in", StringComparison.Ordinal), StringComparison.Ordinal);
+        var expectedStart = query.IndexOf(
+            "City",
+            query.IndexOf("a.City in", StringComparison.Ordinal),
+            StringComparison.Ordinal
+        );
         var expectedEnd = query.LastIndexOf(')');
 
         Assert.AreEqual(DiagnosticCode.MQ3049_InSubqueryMultipleColumns, envelope.Code);
@@ -95,18 +110,23 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
         Assert.IsFalse(string.IsNullOrWhiteSpace(envelope.Snippet));
         Assert.AreEqual(
             "An IN subquery must return exactly one column so Musoq can match it against the left-hand expression.",
-            envelope.Explanation);
+            envelope.Explanation
+        );
         Assert.AreEqual("Core Spec - IN Subqueries", envelope.DocsReference);
         CollectionAssert.AreEqual(
             new[]
             {
                 "Remove extra columns from the subquery SELECT list so it returns a single column.",
-                "Use separate IN conditions combined with AND when filtering multiple columns."
+                "Use separate IN conditions combined with AND when filtering multiple columns.",
             },
-            envelope.SuggestedFixes.ToArray());
+            envelope.SuggestedFixes.ToArray()
+        );
         Assert.HasCount(2, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
         Assert.HasCount(0, envelope.Arguments);
     }
 
@@ -124,8 +144,13 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
 
         using var compiled = CreateAndRunVirtualMachine(query, CreateSources());
         using var table = compiled.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertRowsUnordered(table,
-            ["WARSAW", true], ["BERLIN", false], ["PARIS", false], [null, false]);
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", true],
+            ["BERLIN", false],
+            ["PARIS", false],
+            [null, false]
+        );
     }
 
     [TestMethod]
@@ -143,8 +168,16 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
 
         var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
         var envelope = exception.PrimaryEnvelope;
-        var expectedStart = query.IndexOf("City", query.IndexOf("select b.City", StringComparison.Ordinal), StringComparison.Ordinal);
-        var correlatedReferenceStart = query.IndexOf("a.City", query.IndexOf("where b.City", StringComparison.Ordinal), StringComparison.Ordinal);
+        var expectedStart = query.IndexOf(
+            "City",
+            query.IndexOf("select b.City", StringComparison.Ordinal),
+            StringComparison.Ordinal
+        );
+        var correlatedReferenceStart = query.IndexOf(
+            "a.City",
+            query.IndexOf("where b.City", StringComparison.Ordinal),
+            StringComparison.Ordinal
+        );
         var expectedEnd = correlatedReferenceStart + "a.City".Length - 1;
 
         Assert.AreEqual(DiagnosticCode.MQ2024_InvalidSubquery, envelope.Code);
@@ -157,18 +190,23 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
         StringAssert.Contains(envelope.Message, "non-grouped row values");
         Assert.AreEqual(
             "A subquery is malformed or appears in a location where this parser path cannot accept it.",
-            envelope.Explanation);
+            envelope.Explanation
+        );
         Assert.AreEqual("Core Spec - Subqueries", envelope.DocsReference);
         CollectionAssert.AreEqual(
             new[]
             {
                 "Ensure the subquery starts with SELECT and is enclosed in parentheses.",
-                "Use the subquery only in a supported expression or source position."
+                "Use the subquery only in a supported expression or source position.",
             },
-            envelope.SuggestedFixes.ToArray());
+            envelope.SuggestedFixes.ToArray()
+        );
         Assert.HasCount(2, envelope.Actions);
-        Assert.IsTrue(envelope.Actions.All(static action =>
-            action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null));
+        Assert.IsTrue(
+            envelope.Actions.All(static action =>
+                action.Kind == DiagnosticActionKind.Suggestion && action.TextEdit is null
+            )
+        );
         Assert.HasCount(0, envelope.Arguments);
         AssertHasGuidance(exception);
         Assert.IsFalse(envelope.Actions.Any(action => action.TextEdit != null));
@@ -180,16 +218,46 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
         {
             ["#A"] =
             [
-                new BasicEntity { City = "WARSAW", Country = "POLAND", Population = 500m },
-                new BasicEntity { City = "BERLIN", Country = "GERMANY", Population = 250m },
-                new BasicEntity { City = "PARIS", Country = "FRANCE", Population = 300m },
-                new BasicEntity { City = null, Country = null, Population = 100m }
+                new BasicEntity
+                {
+                    City = "WARSAW",
+                    Country = "POLAND",
+                    Population = 500m,
+                },
+                new BasicEntity
+                {
+                    City = "BERLIN",
+                    Country = "GERMANY",
+                    Population = 250m,
+                },
+                new BasicEntity
+                {
+                    City = "PARIS",
+                    Country = "FRANCE",
+                    Population = 300m,
+                },
+                new BasicEntity
+                {
+                    City = null,
+                    Country = null,
+                    Population = 100m,
+                },
             ],
             ["#B"] =
             [
-                new BasicEntity { City = "WARSAW", Country = "POLAND", Population = 100m },
-                new BasicEntity { City = "PARIS", Country = "FRANCE", Population = 450m }
-            ]
+                new BasicEntity
+                {
+                    City = "WARSAW",
+                    Country = "POLAND",
+                    Population = 100m,
+                },
+                new BasicEntity
+                {
+                    City = "PARIS",
+                    Country = "FRANCE",
+                    Population = 450m,
+                },
+            ],
         };
     }
 }

@@ -61,11 +61,7 @@ public sealed partial class RewriteQueryVisitor
 
         foreach (var joinedTable in _joinedTables)
         {
-            if (joinedTable is not ApplyFromNode
-                {
-                    ApplyType: ApplyType.Cross,
-                    With: PropertyFromNode property
-                })
+            if (joinedTable is not ApplyFromNode { ApplyType: ApplyType.Cross, With: PropertyFromNode property })
             {
                 return false;
             }
@@ -143,41 +139,38 @@ public sealed partial class RewriteQueryVisitor
         return projectedFields;
     }
 
-    private static bool IsProjectedDirectApplyOrderKey(
-        IReadOnlyList<ProjectedField> projectedFields,
-        FieldNode field)
+    private static bool IsProjectedDirectApplyOrderKey(IReadOnlyList<ProjectedField> projectedFields, FieldNode field)
     {
         var converter = new ExpressionConverter();
         var expression = TryConvertDirectApplyOrderExpression(converter, field.Expression);
         if (expression == null)
             return false;
 
-        return SortKeyProjectionResolver.TryResolveOutputName(expression, projectedFields) != null ||
-               IsProjectedDirectApplyOrderAlias(expression, projectedFields);
+        return SortKeyProjectionResolver.TryResolveOutputName(expression, projectedFields) != null
+            || IsProjectedDirectApplyOrderAlias(expression, projectedFields);
     }
 
     private static bool IsProjectedDirectApplyOrderAlias(
         IrExpression expression,
-        IReadOnlyList<ProjectedField> projectedFields)
+        IReadOnlyList<ProjectedField> projectedFields
+    )
     {
         if (expression is not ColumnRef { Alias: "" } columnRef)
             return false;
 
         return projectedFields.Any(field =>
-            string.Equals(field.OutputName, columnRef.ColumnName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(field.OutputName, columnRef.ColumnName, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     private static bool IsQualifiedColumnDirectApplyOrderKey(FieldNode field)
     {
         var expression = TryConvertDirectApplyOrderExpression(new ExpressionConverter(), field.Expression);
 
-        return expression is ColumnRef columnRef &&
-               !string.IsNullOrWhiteSpace(columnRef.Alias);
+        return expression is ColumnRef columnRef && !string.IsNullOrWhiteSpace(columnRef.Alias);
     }
 
-    private static IrExpression? TryConvertDirectApplyOrderExpression(
-        ExpressionConverter converter,
-        Node expression)
+    private static IrExpression? TryConvertDirectApplyOrderExpression(ExpressionConverter converter, Node expression)
     {
         var result = converter.TryConvert(expression);
         return result.IsSupported ? result.Value : null;
@@ -196,8 +189,8 @@ public sealed partial class RewriteQueryVisitor
             return CanReferenceType(nullableType);
 
         if (type.IsGenericType)
-            return CanReferencePublicType(type.GetGenericTypeDefinition()) &&
-                   type.GetGenericArguments().All(CanReferenceType);
+            return CanReferencePublicType(type.GetGenericTypeDefinition())
+                && type.GetGenericArguments().All(CanReferenceType);
 
         return CanReferencePublicType(type);
     }
@@ -207,8 +200,7 @@ public sealed partial class RewriteQueryVisitor
         if (!type.IsNested)
             return type.IsPublic;
 
-        return type is { IsNestedPublic: true, DeclaringType: not null } &&
-               CanReferencePublicType(type.DeclaringType);
+        return type is { IsNestedPublic: true, DeclaringType: not null } && CanReferencePublicType(type.DeclaringType);
     }
 
     private sealed record DirectApplyChainCandidate(
@@ -217,5 +209,6 @@ public sealed partial class RewriteQueryVisitor
         OrderByNode? OrderBy,
         GroupByNode? GroupBy,
         WindowNode? Window,
-        QualifyNode? Qualify);
+        QualifyNode? Qualify
+    );
 }

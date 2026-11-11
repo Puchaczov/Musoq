@@ -12,32 +12,37 @@ public partial class BuildMetadataAndInferTypesVisitor
 {
     private static List<StarProjectedColumn> CreateSingleTableStarProjectedColumns(
         string generatedColumnIdentifier,
-        List<(ISchemaColumn Column, Node? ReplacementExpression)> filteredColumns)
+        List<(ISchemaColumn Column, Node? ReplacementExpression)> filteredColumns
+    )
     {
         return filteredColumns
-            .Select(entry =>
-                new StarProjectedColumn(
-                    generatedColumnIdentifier,
-                    entry.Column,
-                    entry.ReplacementExpression,
-                    entry.Column.ColumnName))
+            .Select(entry => new StarProjectedColumn(
+                generatedColumnIdentifier,
+                entry.Column,
+                entry.ReplacementExpression,
+                entry.Column.ColumnName
+            ))
             .ToList();
     }
 
     private static List<StarProjectedColumn> CreateCompoundTableStarProjectedColumns(
         List<(string TableIdentifier, ISchemaColumn Column)> allEligible,
-        List<(ISchemaColumn Column, Node? ReplacementExpression)> filtered)
+        List<(ISchemaColumn Column, Node? ReplacementExpression)> filtered
+    )
     {
         var projected = new List<StarProjectedColumn>(filtered.Count);
         foreach (var entry in filtered)
         {
             var originalIndex = FindOriginalIndex(allEligible, entry.Column);
             var tableIdentifier = allEligible[originalIndex].TableIdentifier;
-            projected.Add(new StarProjectedColumn(
-                tableIdentifier,
-                entry.Column,
-                entry.ReplacementExpression,
-                entry.Column.ColumnName));
+            projected.Add(
+                new StarProjectedColumn(
+                    tableIdentifier,
+                    entry.Column,
+                    entry.ReplacementExpression,
+                    entry.Column.ColumnName
+                )
+            );
         }
 
         return projected;
@@ -46,7 +51,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static void ApplyRenameSubstitution(
         AllColumnsNode node,
         List<StarProjectedColumn> projectedColumns,
-        TextSpan span)
+        TextSpan span
+    )
     {
         if (node.RenameItems is not { Length: > 0 })
             return;
@@ -60,14 +66,16 @@ public partial class BuildMetadataAndInferTypesVisitor
                 throw new StarModifierValidationException(
                     $"Duplicate source column '{rename.SourceName}' in RENAME list.",
                     DiagnosticCode.MQ3068_StarRenameDuplicateSource,
-                    span);
+                    span
+                );
 
             var sourceIndex = FindRenameSourceIndex(projectedColumns, rename.SourceName);
             if (sourceIndex < 0)
                 throw new StarModifierValidationException(
                     $"RENAME references non-existent output column '{rename.SourceName}'.",
                     DiagnosticCode.MQ3070_StarRenameColumnNotFound,
-                    span);
+                    span
+                );
 
             renamedIndexes[sourceIndex] = rename.TargetName;
         }
@@ -78,62 +86,58 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static void ApplyRenameTargets(
         List<StarProjectedColumn> projectedColumns,
         Dictionary<int, string> renamedIndexes,
-        TextSpan span)
+        TextSpan span
+    )
     {
         var finalNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var targetNames = new HashSet<string>(renamedIndexes.Values, StringComparer.OrdinalIgnoreCase);
-        var isSingleTableExpansion = projectedColumns
-            .Select(static column => column.TableIdentifier)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Count() == 1;
+        var isSingleTableExpansion =
+            projectedColumns
+                .Select(static column => column.TableIdentifier)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count() == 1;
 
         for (var i = 0; i < projectedColumns.Count; i++)
         {
-            var finalName = renamedIndexes.TryGetValue(i, out var renamed)
-                ? renamed
-                : isSingleTableExpansion
-                    ? projectedColumns[i].Column.ColumnName
-                    : projectedColumns[i].OutputName;
+            var finalName =
+                renamedIndexes.TryGetValue(i, out var renamed) ? renamed
+                : isSingleTableExpansion ? projectedColumns[i].Column.ColumnName
+                : projectedColumns[i].OutputName;
 
             if (!finalNames.Add(finalName) && targetNames.Contains(finalName))
                 throw new StarModifierValidationException(
                     $"RENAME would produce duplicate output column '{finalName}'.",
                     DiagnosticCode.MQ3069_StarRenameDuplicateTarget,
-                    span);
+                    span
+                );
         }
 
         foreach (var (index, targetName) in renamedIndexes)
             projectedColumns[index].OutputName = targetName;
     }
 
-    private static int FindRenameSourceIndex(
-        List<StarProjectedColumn> projectedColumns,
-        string sourceName)
+    private static int FindRenameSourceIndex(List<StarProjectedColumn> projectedColumns, string sourceName)
     {
-        var exactIndex = FindRenameSourceIndex(
-            projectedColumns,
-            sourceName,
-            static column => column.OutputName);
+        var exactIndex = FindRenameSourceIndex(projectedColumns, sourceName, static column => column.OutputName);
         if (exactIndex >= 0)
             return exactIndex;
 
         var qualifiedIndex = FindRenameSourceIndex(
             projectedColumns,
             sourceName,
-            static column => $"{column.TableIdentifier}.{column.Column.ColumnName}");
+            static column => $"{column.TableIdentifier}.{column.Column.ColumnName}"
+        );
         if (qualifiedIndex >= 0)
             return qualifiedIndex;
 
-        return FindRenameSourceIndex(
-            projectedColumns,
-            sourceName,
-            static column => column.Column.ColumnName);
+        return FindRenameSourceIndex(projectedColumns, sourceName, static column => column.Column.ColumnName);
     }
 
     private static int FindRenameSourceIndex(
         List<StarProjectedColumn> projectedColumns,
         string sourceName,
-        Func<StarProjectedColumn, string> nameSelector)
+        Func<StarProjectedColumn, string> nameSelector
+    )
     {
         var matchIndex = -1;
         for (var i = 0; i < projectedColumns.Count; i++)
@@ -154,7 +158,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         string tableIdentifier,
         ISchemaColumn column,
         Node? replacementExpression,
-        string outputName)
+        string outputName
+    )
     {
         public string TableIdentifier { get; } = tableIdentifier;
 

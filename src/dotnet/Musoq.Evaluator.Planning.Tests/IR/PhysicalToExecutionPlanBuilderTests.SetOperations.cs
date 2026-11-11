@@ -14,7 +14,6 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public sealed partial class PhysicalToExecutionPlanBuilderTests
 {
-
     [TestMethod]
     public void Build_WhenSetOperationArmIsNestedSetOperation_ShouldReturnExecutionPlan()
     {
@@ -23,25 +22,30 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var otherPeople = CreateScan("q");
         var leftLeftArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            people);
+            people
+        );
         var leftRightArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("o", "Description", typeof(string)), 0)],
-            orders);
+            orders
+        );
         var rightArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("q", "Name", typeof(string)), 0)],
-            otherPeople);
+            otherPeople
+        );
         var nestedSetOperation = new PhysicalSetOperationNode(
             SetOpKind.UnionAll,
             leftLeftArm,
             leftRightArm,
             [0],
-            [typeof(string)]);
+            [typeof(string)]
+        );
         var setOperation = new PhysicalSetOperationNode(
             SetOpKind.UnionAll,
             nestedSetOperation,
             rightArm,
             [0],
-            [typeof(string)]);
+            [typeof(string)]
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(setOperation, "Q_NestedSetOperation");
@@ -58,7 +62,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.Contains("SetOperation [result = left UnionAll right, AppendLoop]", planText);
         Assert.IsFalse(planText.Contains("CreateTable [leftLeft:", StringComparison.Ordinal));
         Assert.IsFalse(planText.Contains("CreateTable [leftRight:", StringComparison.Ordinal));
-        Assert.IsFalse(planText.Contains("SetOperation [left = leftLeft UnionAll leftRight]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            planText.Contains("SetOperation [left = leftLeft UnionAll leftRight]", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -68,19 +74,17 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var orders = CreateOrderScan();
         var leftArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            people);
+            people
+        );
         var rightArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("o", "Description", typeof(string)), 0)],
-            orders);
-        var setOperation = new PhysicalSetOperationNode(
-            SetOpKind.UnionAll,
-            leftArm,
-            rightArm,
-            [0],
-            [typeof(string)]);
+            orders
+        );
+        var setOperation = new PhysicalSetOperationNode(SetOpKind.UnionAll, leftArm, rightArm, [0], [typeof(string)]);
         var sort = new PhysicalSortNode(
             [new OrderField(new ColumnRef(string.Empty, "Name", typeof(string)), Descending: false)],
-            setOperation);
+            setOperation
+        );
         var skip = new PhysicalSkipNode(1, sort);
         var take = new PhysicalTakeNode(1, skip);
         var builder = CreateJoinBuilder();
@@ -96,10 +100,14 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.Contains("AppendShape [result <- ResultShape0(Name: p.Name)]", planText);
         Assert.Contains("SourceScan [o: Order] -> right_oRows", planText);
         Assert.Contains("AppendShape [result <- ResultShape0(Name: o.Description)]", planText);
-        Assert.Contains("SortShapeRows [result -> resultSorted by Name ASC; capacity: Candidate(resultSorted <- result.Count)]", planText);
+        Assert.Contains(
+            "SortShapeRows [result -> resultSorted by Name ASC; capacity: Candidate(resultSorted <- result.Count)]",
+            planText
+        );
         Assert.Contains(
             "SliceShapeRows [resultSorted -> resultSortedSliced, skip 1, take 1; capacity: Candidate(resultSortedSliced <- Min(Max(resultSorted.Count - 1, 0), 1))]",
-            planText);
+            planText
+        );
         Assert.Contains("ReturnDeferredTable [resultSortedSliced: ResultRow0 <- ResultShape0]", planText);
         Assert.IsFalse(planText.Contains("CreateTable [left:", StringComparison.Ordinal));
         Assert.IsFalse(planText.Contains("CreateTable [right:", StringComparison.Ordinal));
@@ -113,26 +121,25 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var rightScan = CreateScan("q");
         var leftArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            leftScan);
+            leftScan
+        );
         var rightArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("q", "Name", typeof(string)), 0)],
-            rightScan);
-        var setOperation = new PhysicalSetOperationNode(
-            SetOpKind.UnionAll,
-            leftArm,
-            rightArm,
-            [0],
-            [typeof(string)]);
+            rightScan
+        );
+        var setOperation = new PhysicalSetOperationNode(SetOpKind.UnionAll, leftArm, rightArm, [0], [typeof(string)]);
         var shapeResolver = new ExecutionShapeResolver(
             entityTypesByAlias: new Dictionary<string, Type>
             {
                 ["p"] = typeof(ExpandoObject),
-                ["q"] = typeof(ExpandoObject)
-            });
+                ["q"] = typeof(ExpandoObject),
+            }
+        );
         var builder = new PlannedExecutionBuilder(shapeResolver);
 
-        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(
-            () => builder.Build(setOperation, "Q_DynamicSetOperation"));
+        var error = Assert.Throws<Musoq.Evaluator.Exceptions.SourcePlanContractException>(() =>
+            builder.Build(setOperation, "Q_DynamicSetOperation")
+        );
         Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3071_SourceContractError, error.Code);
         Assert.Contains("native query-scoped rows", error.Message);
     }
@@ -143,20 +150,20 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var leftScan = CreateScan();
         var leftArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            leftScan);
+            leftScan
+        );
         var rightCte = CreateCteRef("missing", "m");
         var rightArm = new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("m", "Name", typeof(string)), 0)],
-            rightCte);
-        var setOperation = new PhysicalSetOperationNode(
-            SetOpKind.UnionAll,
-            leftArm,
-            rightArm,
-            [0],
-            [typeof(string)]);
-        var builder = CreateBuilder(CreateSetOperationStrategies(
-            setOperation,
-            SetOperationStrategyDecision.StreamingUnionAll("forced streaming test")));
+            rightCte
+        );
+        var setOperation = new PhysicalSetOperationNode(SetOpKind.UnionAll, leftArm, rightArm, [0], [typeof(string)]);
+        var builder = CreateBuilder(
+            CreateSetOperationStrategies(
+                setOperation,
+                SetOperationStrategyDecision.StreamingUnionAll("forced streaming test")
+            )
+        );
 
         var result = builder.Build(setOperation, "Q_ForcedStreamingUnionAll");
         var reason = RequireUnsupportedReason(result);
@@ -167,7 +174,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
 
     private static ExecutionStrategyPlan CreateSetOperationStrategies(
         PhysicalSetOperationNode setOperation,
-        SetOperationStrategyDecision decision)
+        SetOperationStrategyDecision decision
+    )
     {
         return ExecutionStrategyPlan.Create(
             PhysicalNodeIdentityMap.Build(setOperation),
@@ -176,13 +184,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             new Dictionary<PhysicalCteNode, IReadOnlyList<PlannedParallelCteLevel>>(),
             new Dictionary<PhysicalCteNode, CteStrategyDecision>(),
             new Dictionary<PhysicalCteNode, CteSidecarIndexPlan>(),
-            new Dictionary<PhysicalSetOperationNode, SetOperationStrategyDecision>
-            {
-                [setOperation] = decision
-            },
+            new Dictionary<PhysicalSetOperationNode, SetOperationStrategyDecision> { [setOperation] = decision },
             new Dictionary<string, SourceBoundaryStrategyPlan>(StringComparer.Ordinal),
             new Dictionary<BoundaryRowShapeKind, RowWidthPruningPlan[]>(),
-            []);
+            []
+        );
     }
-
 }

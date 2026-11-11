@@ -27,7 +27,8 @@ public sealed class ExecutionCompilationCacheSafetyTests
             "ExecutionCompilationCacheSourceSignature",
             firstProvider,
             LoggerResolver,
-            options);
+            options
+        );
         var firstTable = TableMaterializationTestHelper.Materialize(first.Run());
 
         var second = InstanceCreator.CompileForExecution(
@@ -35,7 +36,8 @@ public sealed class ExecutionCompilationCacheSafetyTests
             "ExecutionCompilationCacheSourceSignature",
             secondProvider,
             LoggerResolver,
-            options);
+            options
+        );
         var secondTable = TableMaterializationTestHelper.Materialize(second.Run());
 
         Assert.AreEqual(1, firstTable.Count);
@@ -46,15 +48,15 @@ public sealed class ExecutionCompilationCacheSafetyTests
 
     private static BasicSchemaProvider<BasicEntity> CreateProvider(List<BasicEntity> entities)
     {
-        return new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", entities }
-        });
+        return new BasicSchemaProvider<BasicEntity>(
+            new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities } }
+        );
     }
 
     private static List<BasicEntity> CreateEntities(int count)
     {
-        return Enumerable.Range(0, count)
+        return Enumerable
+            .Range(0, count)
             .Select(static id => new BasicEntity { Id = id, Name = $"Entity_{id}" })
             .ToList();
     }

@@ -9,14 +9,16 @@ internal static class DataSourceLifecycleDiagnosticAdapter
         SchemaProviderFailureException exception,
         SchemaFromNode source,
         string sourceContextId,
-        string operation) =>
+        string operation
+    ) =>
         DataSourceLifecycleException.ForProviderOperation(
             source.Schema,
             source.Method,
             source.Alias,
             sourceContextId,
             operation,
-            exception);
+            exception
+        );
 
     public static DataSourceLifecycleException ForProviderOperation(
         SchemaProviderFailureException exception,
@@ -24,12 +26,14 @@ internal static class DataSourceLifecycleDiagnosticAdapter
         string sourceName,
         string alias,
         string sourceContextId,
-        string operation) =>
+        string operation
+    ) =>
         DataSourceLifecycleException.ForProviderOperation(
             schemaName,
             sourceName,
             alias,
             sourceContextId,
             operation,
-            exception);
+            exception
+        );
 }

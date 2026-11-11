@@ -4,5 +4,5 @@ internal sealed record LogicalSourceContextFact(
     string ScopePath,
     string Alias,
     string? SourceContextId,
-    string SourceKind);
-
+    string SourceKind
+);

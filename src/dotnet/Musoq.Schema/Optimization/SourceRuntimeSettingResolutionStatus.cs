@@ -4,5 +4,5 @@ public enum SourceRuntimeSettingResolutionStatus
 {
     Provided,
     Missing,
-    Default
+    Default,
 }

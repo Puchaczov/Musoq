@@ -22,7 +22,8 @@ public class BinarySwitchCaseNode
         TypeAnnotationNode branchType,
         TextSpan caseLabelSpan = default,
         TextSpan branchAliasSpan = default,
-        TextSpan branchTypeSpan = default)
+        TextSpan branchTypeSpan = default
+    )
     {
         CaseValue = caseValue;
         BranchAlias = branchAlias ?? throw new ArgumentNullException(nameof(branchAlias));

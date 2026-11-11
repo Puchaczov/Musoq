@@ -2,17 +2,17 @@ namespace Musoq.Evaluator.Tests;
 
 internal static partial class EvaluatorSampleFixtures
 {
-
     private static GeneratedCodeSample ChainedApplyGroupedAggregateWindow()
     {
         return new GeneratedCodeSample
         {
             Name = "Q61_ChainedApplyGroupedAggregateWindow",
             FileName = "Q61_ChainedApplyGroupedAggregateWindow.cs",
-            Query = "select i.Name as Name, Sum(n.Value) as ValueSum, RowNumber() over (order by Sum(n.Value) desc, i.Name) as GroupRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by GroupRowNo",
+            Query =
+                "select i.Name as Name, Sum(n.Value) as ValueSum, RowNumber() over (order by Sum(n.Value) desc, i.Name) as GroupRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by GroupRowNo",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -22,10 +22,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q62_AccessMethodApply",
             FileName = "Q62_AccessMethodApply.cs",
-            Query = "select i.Name as Name, s.Value as Text from #apply.items() i cross apply i.JustReturnArrayOfString() s",
+            Query =
+                "select i.Name as Name, s.Value as Text from #apply.items() i cross apply i.JustReturnArrayOfString() s",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -35,10 +36,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q63_OuterAccessMethodApply",
             FileName = "Q63_OuterAccessMethodApply.cs",
-            Query = "select i.Name as Name, s.Value as Text from #apply.items() i outer apply i.JustReturnArrayOfString() s",
+            Query =
+                "select i.Name as Name, s.Value as Text from #apply.items() i outer apply i.JustReturnArrayOfString() s",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -47,7 +49,8 @@ internal static partial class EvaluatorSampleFixtures
         return Basic(
             "Q64_CteBackedAsOfJoin",
             "Join",
-            "with rightCte as (select e.Name as Name, e.Population as Population from #A.entities() e) select a.Name, a.Population, r.Name, r.Population from #A.entities() a asof join rightCte r on a.Population >= r.Population");
+            "with rightCte as (select e.Name as Name, e.Population as Population from #A.entities() e) select a.Name, a.Population, r.Name, r.Population from #A.entities() a asof join rightCte r on a.Population >= r.Population"
+        );
     }
 
     private static GeneratedCodeSample AggregateOverHashJoin()
@@ -56,7 +59,8 @@ internal static partial class EvaluatorSampleFixtures
             "Q65_AggregateOverHashJoin",
             "Grouping",
             "select a.City as City, Count(b.Name) as MatchCount from #A.entities() a inner join #B.entities() b on a.City = b.City group by a.City",
-            new CompilationOptions().WithStabilityAwareScalarReuse(false));
+            new CompilationOptions().WithStabilityAwareScalarReuse(false)
+        );
     }
 
     private static GeneratedCodeSample CteBackedAggregateOverHashJoin()
@@ -65,7 +69,8 @@ internal static partial class EvaluatorSampleFixtures
             "Q66_CteBackedAggregateOverHashJoin",
             "Grouping",
             "with leftCte as (select a.City as City from #A.entities() a), rightCte as (select b.City as City, b.Name as Name from #B.entities() b) select l.City as City, Count(r.Name) as MatchCount from leftCte l inner join rightCte r on l.City = r.City group by l.City",
-            new CompilationOptions().WithStabilityAwareScalarReuse(false));
+            new CompilationOptions().WithStabilityAwareScalarReuse(false)
+        );
     }
 
     private static GeneratedCodeSample DynamicCteBackedAsOfJoin()
@@ -74,10 +79,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q67_DynamicCteBackedAsOfJoin",
             FileName = "Q67_DynamicCteBackedAsOfJoin.cs",
-            Query = "with rightCte as (select d.Team as Team, d.Name as Name, d.Score as Score from #dynamic.all() d) select l.Name as LeftName, r.Name as RightName from #dynamic.all() l asof join rightCte r on l.Team = r.Team and l.Score >= r.Score",
+            Query =
+                "with rightCte as (select d.Team as Team, d.Name as Name, d.Score as Score from #dynamic.all() d) select l.Name as LeftName, r.Name as RightName from #dynamic.all() l asof join rightCte r on l.Team = r.Team and l.Score >= r.Score",
             Category = "Join",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateDynamicAsOfSchemaProvider
+            CreateSchemaProvider = CreateDynamicAsOfSchemaProvider,
         };
     }
 
@@ -87,10 +93,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q68_ChainedApplyWindow",
             FileName = "Q68_ChainedApplyWindow.cs",
-            Query = "select i.Name, n.Value as FirstValue, m.Value as SecondValue, RowNumber() over (partition by i.Name order by n.Value, m.Value) as RowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m order by i.Name, RowNo",
+            Query =
+                "select i.Name, n.Value as FirstValue, m.Value as SecondValue, RowNumber() over (partition by i.Name order by n.Value, m.Value) as RowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m order by i.Name, RowNo",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -100,10 +107,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q69_ChainedApplyMixedDistinctAggregateSort",
             FileName = "Q69_ChainedApplyMixedDistinctAggregateSort.cs",
-            Query = "select i.Name as Name, Sum(n.Value) as RepeatedSum, Sum(distinct n.Value) as DistinctSum from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Sum(distinct n.Value) desc, Sum(n.Value) desc, i.Name",
+            Query =
+                "select i.Name as Name, Sum(n.Value) as RepeatedSum, Sum(distinct n.Value) as DistinctSum from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Sum(distinct n.Value) desc, Sum(n.Value) desc, i.Name",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -113,10 +121,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q70_ChainedApplyMixedDistinctMinMaxAggregateSort",
             FileName = "Q70_ChainedApplyMixedDistinctMinMaxAggregateSort.cs",
-            Query = "select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name",
+            Query =
+                "select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateMixedDistinctGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateMixedDistinctGeneratedApplySchemaProvider,
         };
     }
 
@@ -126,10 +135,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q71_ChainedApplyMixedDistinctAvgAggregateSort",
             FileName = "Q71_ChainedApplyMixedDistinctAvgAggregateSort.cs",
-            Query = "select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name",
+            Query =
+                "select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateMixedDistinctGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateMixedDistinctGeneratedApplySchemaProvider,
         };
     }
 
@@ -139,10 +149,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q72_ChainedApplyMixedDistinctMinMaxAggregateWindow",
             FileName = "Q72_ChainedApplyMixedDistinctMinMaxAggregateWindow.cs",
-            Query = "select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax, RowNumber() over (order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name) as MixedMinMaxRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedMinMaxRowNo",
+            Query =
+                "select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax, RowNumber() over (order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name) as MixedMinMaxRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedMinMaxRowNo",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateMixedDistinctGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateMixedDistinctGeneratedApplySchemaProvider,
         };
     }
 
@@ -152,10 +163,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q73_ChainedApplyMixedDistinctAvgAggregateWindow",
             FileName = "Q73_ChainedApplyMixedDistinctAvgAggregateWindow.cs",
-            Query = "select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg, RowNumber() over (order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name) as MixedAvgRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedAvgRowNo",
+            Query =
+                "select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg, RowNumber() over (order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name) as MixedAvgRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by MixedAvgRowNo",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateMixedDistinctGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateMixedDistinctGeneratedApplySchemaProvider,
         };
     }
 
@@ -165,10 +177,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q74_ChainedApplyQualifyWindow",
             FileName = "Q74_ChainedApplyQualifyWindow.cs",
-            Query = "select i.Name, n.Value as FirstValue, m.Value as SecondValue from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m qualify RowNumber() over (partition by i.Name order by n.Value, m.Value) <= 1 order by i.Name",
+            Query =
+                "select i.Name, n.Value as FirstValue, m.Value as SecondValue from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m qualify RowNumber() over (partition by i.Name order by n.Value, m.Value) <= 1 order by i.Name",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -178,10 +191,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q75_ChainedApplyGroupedAggregateQualifyWindow",
             FileName = "Q75_ChainedApplyGroupedAggregateQualifyWindow.cs",
-            Query = "select i.Name as Name, Avg(n.Value) as ValueAvg, Min(n.Value) as ValueMin, Max(n.Value) as ValueMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name having Max(n.Value) >= 2 qualify RowNumber() over (order by Avg(n.Value) desc, Min(n.Value), Max(n.Value) desc) <= 1 order by Name",
+            Query =
+                "select i.Name as Name, Avg(n.Value) as ValueAvg, Min(n.Value) as ValueMin, Max(n.Value) as ValueMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name having Max(n.Value) >= 2 qualify RowNumber() over (order by Avg(n.Value) desc, Min(n.Value), Max(n.Value) desc) <= 1 order by Name",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -191,10 +205,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q173_ApplyWithOrdinality",
             FileName = "Q173_ApplyWithOrdinality.cs",
-            Query = "select i.Name, n.Value as Number, n.Ordinal as NumberOrdinal from #apply.items() i cross apply i.Numbers n with ordinality order by i.Name, n.Ordinal",
+            Query =
+                "select i.Name, n.Value as Number, n.Ordinal as NumberOrdinal from #apply.items() i cross apply i.Numbers n with ordinality order by i.Name, n.Ordinal",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -207,7 +222,7 @@ internal static partial class EvaluatorSampleFixtures
             Query = "select n.Value as Value from #apply.items() i cross apply i.Numbers n where i.Name = 'left'",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -217,10 +232,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q244_ChainedCrossApplyScopedGuards",
             FileName = "Q244_ChainedCrossApplyScopedGuards.cs",
-            Query = "select m.Value as Value from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m where i.Name = 'left' and n.Value = 1",
+            Query =
+                "select m.Value as Value from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m where i.Name = 'left' and n.Value = 1",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -230,10 +246,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q245_ChainedCrossApplyResidualPredicate",
             FileName = "Q245_ChainedCrossApplyResidualPredicate.cs",
-            Query = "select m.Value as Value from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m where i.Name = 'left' and n.Value = 1 and m.Value = 2",
+            Query =
+                "select m.Value as Value from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m where i.Name = 'left' and n.Value = 1 and m.Value = 2",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 
@@ -243,10 +260,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q246_OuterApplyWhereLeftGuard",
             FileName = "Q246_OuterApplyWhereLeftGuard.cs",
-            Query = "select i.Name as Name, n.Value as Value from #applyempty.items() i outer apply i.Numbers n where i.Name = 'empty'",
+            Query =
+                "select i.Name as Name, n.Value as Value from #applyempty.items() i outer apply i.Numbers n where i.Name = 'empty'",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedEmptyChildApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedEmptyChildApplySchemaProvider,
         };
     }
 
@@ -256,10 +274,11 @@ internal static partial class EvaluatorSampleFixtures
         {
             Name = "Q247_CrossApplyMethodWhereLeftGuard",
             FileName = "Q247_CrossApplyMethodWhereLeftGuard.cs",
-            Query = "select s.Value as Text from #apply.items() i cross apply i.JustReturnArrayOfString() s where i.Name = 'left'",
+            Query =
+                "select s.Value as Text from #apply.items() i cross apply i.JustReturnArrayOfString() s where i.Name = 'left'",
             Category = "Apply",
             Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
-            CreateSchemaProvider = CreateGeneratedApplySchemaProvider
+            CreateSchemaProvider = CreateGeneratedApplySchemaProvider,
         };
     }
 }

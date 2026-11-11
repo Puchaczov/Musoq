@@ -1,8 +1,8 @@
-using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Build;
 using Musoq.Evaluator.IR.Execution;
@@ -20,20 +20,28 @@ public sealed class CompletionArchitectureGuardrailTests
         var legacyTypes = assembly
             .GetTypes()
             .Where(static type =>
-                type.MetadataName == "PhysicalToExecutionLoweringSession" ||
-                (type.IsGenericTypeDefinition && type.MetadataName.StartsWith("BuildResult", StringComparison.Ordinal)))
+                type.MetadataName == "PhysicalToExecutionLoweringSession"
+                || (
+                    type.IsGenericTypeDefinition
+                    && type.MetadataName.StartsWith("BuildResult", StringComparison.Ordinal)
+                )
+            )
             .Select(static type => type.FullName)
             .ToArray();
 
         Assert.IsEmpty(legacyTypes);
 
         var loweringSourceOffenders = RepositorySourceScan
-            .FilesUnder(RepositorySourceScan.RepositoryRoot(), "src/dotnet/Musoq.Evaluator/IR/Execution/Lowering", "*.cs")
+            .FilesUnder(
+                RepositorySourceScan.RepositoryRoot(),
+                "src/dotnet/Musoq.Evaluator/IR/Execution/Lowering",
+                "*.cs"
+            )
             .Where(file =>
             {
                 var text = File.ReadAllText(file);
-                return text.Contains("bool Supported", StringComparison.Ordinal) ||
-                       text.Contains(".Supported", StringComparison.Ordinal);
+                return text.Contains("bool Supported", StringComparison.Ordinal)
+                    || text.Contains(".Supported", StringComparison.Ordinal);
             })
             .Select(file => RepositorySourceScan.ToRelative(RepositorySourceScan.RepositoryRoot(), file))
             .ToArray();
@@ -42,7 +50,12 @@ public sealed class CompletionArchitectureGuardrailTests
 
         var attemptType = CompilerContractSymbols.For(typeof(LoweringAttempt<>));
         Assert.IsNull(attemptType.GetProperty("Supported", BindingFlags.Instance | BindingFlags.Public));
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(attemptType.GetGenericArguments()[0], attemptType.GetProperty(nameof(LoweringAttempt<object>.Value))!.PropertyType));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                attemptType.GetGenericArguments()[0],
+                attemptType.GetProperty(nameof(LoweringAttempt<object>.Value))!.PropertyType
+            )
+        );
     }
 
     [TestMethod]
@@ -66,8 +79,8 @@ public sealed class CompletionArchitectureGuardrailTests
             .Where(file =>
             {
                 var text = File.ReadAllText(file);
-                return text.Contains("RuntimeLibraries", StringComparison.Ordinal) ||
-                       text.Contains("RoslynSharedFactory", StringComparison.Ordinal);
+                return text.Contains("RuntimeLibraries", StringComparison.Ordinal)
+                    || text.Contains("RoslynSharedFactory", StringComparison.Ordinal);
             })
             .Select(file => RepositorySourceScan.ToRelative(repositoryRoot, file))
             .OrderBy(static path => path, StringComparer.Ordinal)
@@ -78,9 +91,10 @@ public sealed class CompletionArchitectureGuardrailTests
             {
                 "src/dotnet/Musoq.Evaluator/Runtime/MetadataReferenceCache.cs",
                 "src/dotnet/Musoq.Evaluator/Runtime/RoslynSharedFactory.cs",
-                "src/dotnet/Musoq.Evaluator/Runtime/RuntimeLibraries.cs"
+                "src/dotnet/Musoq.Evaluator/Runtime/RuntimeLibraries.cs",
             },
-            actual);
+            actual
+        );
     }
 
     [TestMethod]
@@ -92,9 +106,9 @@ public sealed class CompletionArchitectureGuardrailTests
             .Where(file =>
             {
                 var text = File.ReadAllText(file);
-                return text.Contains("RuntimeLibraries", StringComparison.Ordinal) ||
-                       text.Contains("RoslynSharedFactory", StringComparison.Ordinal) ||
-                       text.Contains("MetadataReferenceCache", StringComparison.Ordinal);
+                return text.Contains("RuntimeLibraries", StringComparison.Ordinal)
+                    || text.Contains("RoslynSharedFactory", StringComparison.Ordinal)
+                    || text.Contains("MetadataReferenceCache", StringComparison.Ordinal);
             })
             .Select(file => RepositorySourceScan.ToRelative(repositoryRoot, file))
             .ToArray();
@@ -107,14 +121,27 @@ public sealed class CompletionArchitectureGuardrailTests
     {
         var loadMethod = CompilerContractSymbols.For(typeof(IAssemblyLoader)).GetMethod(nameof(IAssemblyLoader.Load));
         Assert.IsNotNull(loadMethod);
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(LoadedAssemblyHandle)), loadMethod!.ReturnType));
-        Assert.IsTrue(CompilerContractSymbols.For(typeof(IDisposable)).IsAssignableFrom(CompilerContractSymbols.For(typeof(InterpreterCompilationUnit))));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(LoadedAssemblyHandle)),
+                loadMethod!.ReturnType
+            )
+        );
+        Assert.IsTrue(
+            CompilerContractSymbols
+                .For(typeof(IDisposable))
+                .IsAssignableFrom(CompilerContractSymbols.For(typeof(InterpreterCompilationUnit)))
+        );
 
-        var loadContextField = CompilerContractSymbols.For(typeof(LoadedAssemblyHandle)).GetField(
-            "_loadContext",
-            BindingFlags.Instance | BindingFlags.NonPublic);
+        var loadContextField = CompilerContractSymbols
+            .For(typeof(LoadedAssemblyHandle))
+            .GetField("_loadContext", BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.IsNotNull(loadContextField);
-        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(System.Runtime.Loader.AssemblyLoadContext)), loadContextField!.FieldType));
+        Assert.IsTrue(
+            SymbolEqualityComparer.Default.Equals(
+                CompilerContractSymbols.For(typeof(System.Runtime.Loader.AssemblyLoadContext)),
+                loadContextField!.FieldType
+            )
+        );
     }
-
 }

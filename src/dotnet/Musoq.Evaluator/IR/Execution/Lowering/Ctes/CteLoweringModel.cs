@@ -7,23 +7,24 @@ internal sealed record MultiStatementIndexes(
     IReadOnlyDictionary<string, int> CteIndexes,
     IReadOnlyDictionary<string, int> ProducerIndexByName,
     Dictionary<string, GeneratedRowShape> CteShapesByName,
-    string? StatementNamePrefix);
+    string? StatementNamePrefix
+);
 
-internal sealed record ParallelCteLevel(
-    int Level,
-    IReadOnlyList<PhysicalCteDefinition> Definitions);
+internal sealed record ParallelCteLevel(int Level, IReadOnlyList<PhysicalCteDefinition> Definitions);
 
 internal sealed record CteDefinitionPrefixBuildResult(
     bool IsBuilt,
     IReadOnlyList<RowShape> Shapes,
     IReadOnlyList<ExecutionNode> Nodes,
-    string UnsupportedReason)
+    string UnsupportedReason
+)
 {
     public LoweringScope? UpdatedScope { get; init; }
 
     public static CteDefinitionPrefixBuildResult Success(
         IReadOnlyList<RowShape> shapes,
-        IReadOnlyList<ExecutionNode> nodes)
+        IReadOnlyList<ExecutionNode> nodes
+    )
     {
         return new CteDefinitionPrefixBuildResult(true, shapes, nodes, string.Empty);
     }
@@ -36,11 +37,14 @@ internal sealed record CteDefinitionPrefixBuildResult(
 
 internal sealed record CteDefinitionPruningPlan(
     IReadOnlyDictionary<string, IReadOnlySet<string>> RequiredColumnsByName,
-    IReadOnlySet<string> ContextFreeDefinitions)
+    IReadOnlySet<string> ContextFreeDefinitions
+)
 {
-    public static CteDefinitionPruningPlan Empty { get; } = new(
-        new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+    public static CteDefinitionPruningPlan Empty { get; } =
+        new(
+            new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        );
 
     public bool TryGetRequiredColumns(string definitionName, out IReadOnlySet<string> columns)
     {
@@ -56,27 +60,32 @@ internal sealed record CteDefinitionPruningPlan(
 internal sealed record CteSidecarIndexBuild(
     CteSidecarIndexSpec Spec,
     ExecutionVariable Index,
-    HashPayloadShape? PayloadShape);
+    HashPayloadShape? PayloadShape
+);
 
 internal sealed record SidecarBuildState(
     CteSidecarHashPayloadState Payloads,
-    IReadOnlyList<CteSidecarIndexBuild> Builds);
+    IReadOnlyList<CteSidecarIndexBuild> Builds
+);
 
 internal sealed record CteSidecarAppendTransformResult(
     ExecutionBlock Block,
     int AppendCount,
-    ExecutionCapacityHint? CapacityHint);
+    ExecutionCapacityHint? CapacityHint
+);
 
 internal sealed record CteSidecarAppendNodeTransformResult(
     ExecutionNode Node,
     int AppendCount,
-    ExecutionCapacityHint? CapacityHint);
+    ExecutionCapacityHint? CapacityHint
+);
 
 internal sealed record FusedSiblingCteBuildResult(
     int DefinitionCount,
     IReadOnlyList<RowShape> Shapes,
     ExecutionFusedCteProducer Producer,
-    IReadOnlyDictionary<string, GeneratedRowShape> RowShapesByName);
+    IReadOnlyDictionary<string, GeneratedRowShape> RowShapesByName
+);
 
 internal sealed record FusedSiblingCteCandidate(
     string DefinitionName,
@@ -85,21 +94,22 @@ internal sealed record FusedSiblingCteCandidate(
     CteSidecarStorageDecision Storage,
     IReadOnlyList<ExecutionNode> SetupNodes,
     ExecutionForEach Loop,
-    IReadOnlyList<ExecutionNode> StoreIndexNodes);
+    IReadOnlyList<ExecutionNode> StoreIndexNodes
+);
 
 internal sealed record ReadOnceCteProjectionFusion(
     int RootDefinitionIndex,
     CteSupportedPipeline Pipeline,
-    int[] FusedDefinitionIndexes);
+    int[] FusedDefinitionIndexes
+);
 
-internal sealed record ReadOnceCteProjectionStep(
-    int DefinitionIndex,
-    CteSupportedPipeline Pipeline);
+internal sealed record ReadOnceCteProjectionStep(int DefinitionIndex, CteSupportedPipeline Pipeline);
 
 internal sealed record SidecarJoinPipelineStage(
     CteSupportedPipeline Pipeline,
     string? ExpectedInputCteName,
-    string? OutputCteName);
+    string? OutputCteName
+);
 
 internal enum SidecarJoinPipelineStageKind
 {
@@ -109,9 +119,7 @@ internal enum SidecarJoinPipelineStageKind
     StandardJoin,
     AsOfJoin,
     Apply,
-    CrossJoin
+    CrossJoin,
 }
 
-internal sealed record SidecarJoinPipelineStageAnalysis(
-    SidecarJoinPipelineStageKind Kind,
-    string Description);
+internal sealed record SidecarJoinPipelineStageAnalysis(SidecarJoinPipelineStageKind Kind, string Description);

@@ -19,7 +19,10 @@ public sealed partial class ComputedSourceArgumentTests
     public void ComputedFromArgument_ShouldReachTheProvider(string expression, string expected)
     {
         var provider = new CapturingProvider();
-        using var query = Compile($"param(root: string = 'C:/temp') select e.Path from #args.echo({expression}) e", provider);
+        using var query = Compile(
+            $"param(root: string = 'C:/temp') select e.Path from #args.echo({expression}) e",
+            provider
+        );
         Assert.IsEmpty(provider.Opened);
         using var result = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(result, [expected]);
@@ -32,21 +35,37 @@ public sealed partial class ComputedSourceArgumentTests
     public void DefaultAndOverrides_ShouldBeEvaluatedForEveryExecution(string declaration)
     {
         var provider = new CapturingProvider();
-        using var query = Compile($"{declaration}(root: string = 'C:/temp') select e.Path from #args.echo($root + '/file') e", provider);
-        using (var first = query.Run()) TableMaterializationTestHelper.AssertRowsInOrder(first, ["C:/temp/file"]);
+        using var query = Compile(
+            $"{declaration}(root: string = 'C:/temp') select e.Path from #args.echo($root + '/file') e",
+            provider
+        );
+        using (var first = query.Run())
+            TableMaterializationTestHelper.AssertRowsInOrder(first, ["C:/temp/file"]);
         Set(query, "root", "D:/other");
-        using (var second = query.Run()) TableMaterializationTestHelper.AssertRowsInOrder(second, ["D:/other/file"]);
+        using (var second = query.Run())
+            TableMaterializationTestHelper.AssertRowsInOrder(second, ["D:/other/file"]);
         Set(query, "root", "E:/last");
-        using (var third = query.Run()) TableMaterializationTestHelper.AssertRowsInOrder(third, ["E:/last/file"]);
-        CollectionAssert.AreEqual(new[] { "C:/temp/file", "D:/other/file", "E:/last/file" }, provider.Opened.Select(r => r.Path).ToArray());
+        using (var third = query.Run())
+            TableMaterializationTestHelper.AssertRowsInOrder(third, ["E:/last/file"]);
+        CollectionAssert.AreEqual(
+            new[] { "C:/temp/file", "D:/other/file", "E:/last/file" },
+            provider.Opened.Select(r => r.Path).ToArray()
+        );
     }
 
     [TestMethod]
     public void RequiredComputedArgument_ShouldFailBeforeOpeningAnySource()
     {
         var provider = new CapturingProvider();
-        using var query = Compile("param(root: string) select e.Path from #args.seed() s cross apply #args.echo($root + s.Path) e", provider);
-        var failure = Assert.Throws<QueryExecutionException>(() => { using var result = query.Run(); _ = result.Count; });
+        using var query = Compile(
+            "param(root: string) select e.Path from #args.seed() s cross apply #args.echo($root + s.Path) e",
+            provider
+        );
+        var failure = Assert.Throws<QueryExecutionException>(() =>
+        {
+            using var result = query.Run();
+            _ = result.Count;
+        });
         Assert.IsNotNull(failure.Envelope);
         Assert.AreEqual(DiagnosticCode.MQ7003_RequiredScriptParameterMissing, failure.Envelope.Code);
         Assert.IsEmpty(provider.Opened);
@@ -61,8 +80,11 @@ public sealed partial class ComputedSourceArgumentTests
     public void NamedComputedArguments_ShouldPreserveCanonicalSlotsAndNumericTypes()
     {
         var provider = new CapturingProvider();
-        using var query = Compile("param(root: string = 'root', n: int = 20, suffix: string = '.bin') " +
-            "select e.Path, e.Suffix, e.Number from #args.echo(number: $n * 2 + 2, suffix: $suffix + '.x', path: $root + '/file') e", provider);
+        using var query = Compile(
+            "param(root: string = 'root', n: int = 20, suffix: string = '.bin') "
+                + "select e.Path, e.Suffix, e.Number from #args.echo(number: $n * 2 + 2, suffix: $suffix + '.x', path: $root + '/file') e",
+            provider
+        );
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["root/file", ".bin.x", 42]);
         var opened = provider.Opened.Single();
@@ -75,8 +97,12 @@ public sealed partial class ComputedSourceArgumentTests
     public void NullableComputedArgument_ShouldPreserveTypedNullAndOverrides()
     {
         var provider = new CapturingProvider();
-        using var query = Compile("param(n: int? = null) select e.Number from #args.echo('path', '', $n + 1) e", provider);
-        using (var first = query.Run()) TableMaterializationTestHelper.AssertRowsInOrder(first, new object?[] { null });
+        using var query = Compile(
+            "param(n: int? = null) select e.Number from #args.echo('path', '', $n + 1) e",
+            provider
+        );
+        using (var first = query.Run())
+            TableMaterializationTestHelper.AssertRowsInOrder(first, new object?[] { null });
         Assert.IsNull(provider.Opened.Single().Number);
         Set(query, "n", 41);
         using var second = query.Run();
@@ -92,14 +118,23 @@ public sealed partial class ComputedSourceArgumentTests
         try
         {
             var provider = new CapturingProvider { TraceId = id };
-            using var query = Compile($"param(root: string = 'root/') select e.Path from #args.seed() s cross apply " +
-                $"#args.echo(Touch('{id}', 'left', $root) + s.Path, Touch('{id}', 'right', '/suffix')) e", provider);
+            using var query = Compile(
+                $"param(root: string = 'root/') select e.Path from #args.seed() s cross apply "
+                    + $"#args.echo(Touch('{id}', 'left', $root) + s.Path, Touch('{id}', 'right', '/suffix')) e",
+                provider
+            );
             Assert.IsEmpty(provider.Opened);
             using var table = query.Run();
             TableMaterializationTestHelper.AssertRowsInOrder(table, ["root/a"], ["root/b"]);
-            CollectionAssert.AreEqual(new[] { "left", "right", "open", "left", "right", "open" }, ArgumentLibrary.End(id));
+            CollectionAssert.AreEqual(
+                new[] { "left", "right", "open", "left", "right", "open" },
+                ArgumentLibrary.End(id)
+            );
         }
-        finally { ArgumentLibrary.End(id); }
+        finally
+        {
+            ArgumentLibrary.End(id);
+        }
     }
 
     [TestMethod]
@@ -108,8 +143,10 @@ public sealed partial class ComputedSourceArgumentTests
     public void InitialFromScalarCall_ShouldBindItsLibraryBeforeOpeningTheSource(string prefix)
     {
         var provider = new CapturingProvider();
-        using var query = Compile("param(root: string = 'root') " + prefix +
-            "select e.Path from #args.echo(ToUpper($root)) e", provider);
+        using var query = Compile(
+            "param(root: string = 'root') " + prefix + "select e.Path from #args.echo(ToUpper($root)) e",
+            provider
+        );
         using var result = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(result, ["ROOT"]);
         Assert.AreEqual("ROOT", provider.Opened.Single().Path);
@@ -123,14 +160,20 @@ public sealed partial class ComputedSourceArgumentTests
         try
         {
             var provider = new CapturingProvider { TraceId = id };
-            using var query = Compile($"param(root: string = 'root') select e.Path from #args.echo(" +
-                $"case when $root = 'root' then Touch('{id}', 'selected', $root) else Touch('{id}', 'unselected', $root) end) e", provider);
+            using var query = Compile(
+                $"param(root: string = 'root') select e.Path from #args.echo("
+                    + $"case when $root = 'root' then Touch('{id}', 'selected', $root) else Touch('{id}', 'unselected', $root) end) e",
+                provider
+            );
             Assert.AreEqual(0, provider.OpenCount);
             using var result = query.Run();
             TableMaterializationTestHelper.AssertRowsInOrder(result, ["root"]);
             CollectionAssert.AreEqual(new[] { "selected", "open" }, ArgumentLibrary.End(id));
         }
-        finally { ArgumentLibrary.End(id); }
+        finally
+        {
+            ArgumentLibrary.End(id);
+        }
     }
 
     [TestMethod]
@@ -151,12 +194,18 @@ public sealed partial class ComputedSourceArgumentTests
         try
         {
             var provider = new CapturingProvider { TraceId = id };
-            using var query = Compile($"param(root: string = 'root') select e.Path, e.Suffix from #args.echo(" +
-                $"suffix: Touch('{id}', 'right', '/suffix'), path: Touch('{id}', 'left', $root) + '/file') e", provider);
+            using var query = Compile(
+                $"param(root: string = 'root') select e.Path, e.Suffix from #args.echo("
+                    + $"suffix: Touch('{id}', 'right', '/suffix'), path: Touch('{id}', 'left', $root) + '/file') e",
+                provider
+            );
             using var result = query.Run();
             TableMaterializationTestHelper.AssertRowsInOrder(result, ["root/file", "/suffix"]);
             CollectionAssert.AreEqual(new[] { "left", "right", "open" }, ArgumentLibrary.End(id));
         }
-        finally { ArgumentLibrary.End(id); }
+        finally
+        {
+            ArgumentLibrary.End(id);
+        }
     }
 }

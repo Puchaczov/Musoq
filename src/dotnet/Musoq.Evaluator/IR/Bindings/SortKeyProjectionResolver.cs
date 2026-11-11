@@ -10,33 +10,40 @@ internal static class SortKeyProjectionResolver
 {
     public static string? TryResolveOutputName(
         IrExpression sortExpression,
-        IReadOnlyList<ProjectedField> projectedFields)
+        IReadOnlyList<ProjectedField> projectedFields
+    )
     {
         ArgumentNullException.ThrowIfNull(sortExpression);
         ArgumentNullException.ThrowIfNull(projectedFields);
-        var outputName = (TryResolveAggregateSortField(sortExpression, projectedFields)
-                          ?? TryResolveProjectedFieldByExpression(sortExpression, projectedFields))?.OutputName;
+        var outputName = (
+            TryResolveAggregateSortField(sortExpression, projectedFields)
+            ?? TryResolveProjectedFieldByExpression(sortExpression, projectedFields)
+        )?.OutputName;
         if (outputName == null)
             return null;
 
-        return projectedFields.Count(field => string.Equals(field.OutputName, outputName, StringComparison.OrdinalIgnoreCase)) == 1
+        return
+            projectedFields.Count(field =>
+                string.Equals(field.OutputName, outputName, StringComparison.OrdinalIgnoreCase)
+            ) == 1
             ? outputName
             : null;
     }
 
-    public static int? TryResolveOutputIndex(
-        IrExpression sortExpression,
-        IReadOnlyList<ProjectedField> projectedFields)
+    public static int? TryResolveOutputIndex(IrExpression sortExpression, IReadOnlyList<ProjectedField> projectedFields)
     {
         ArgumentNullException.ThrowIfNull(sortExpression);
         ArgumentNullException.ThrowIfNull(projectedFields);
-        return (TryResolveAggregateSortField(sortExpression, projectedFields)
-                ?? TryResolveProjectedFieldByExpression(sortExpression, projectedFields))?.OutputIndex;
+        return (
+            TryResolveAggregateSortField(sortExpression, projectedFields)
+            ?? TryResolveProjectedFieldByExpression(sortExpression, projectedFields)
+        )?.OutputIndex;
     }
 
     private static ProjectedField? TryResolveProjectedFieldByExpression(
         IrExpression sortExpression,
-        IReadOnlyList<ProjectedField> projectedFields)
+        IReadOnlyList<ProjectedField> projectedFields
+    )
     {
         var sortPrinted = IrExpressionPrinter.Print(sortExpression);
         if (string.IsNullOrWhiteSpace(sortPrinted))
@@ -53,26 +60,30 @@ internal static class SortKeyProjectionResolver
 
     private static ProjectedField? TryResolveAggregateSortField(
         IrExpression sortExpression,
-        IReadOnlyList<ProjectedField> projectedFields)
+        IReadOnlyList<ProjectedField> projectedFields
+    )
     {
         if (sortExpression is AggregateRef aggregateRef)
         {
             var aggregateCandidates = projectedFields
-                .Where(field => field.Expression is AggregateRef fieldAggregateRef &&
-                                string.Equals(fieldAggregateRef.Identifier, aggregateRef.Identifier, StringComparison.Ordinal))
+                .Where(field =>
+                    field.Expression is AggregateRef fieldAggregateRef
+                    && string.Equals(fieldAggregateRef.Identifier, aggregateRef.Identifier, StringComparison.Ordinal)
+                )
                 .ToArray();
 
-            return aggregateCandidates.Length == 1
-                ? aggregateCandidates[0]
-                : null;
+            return aggregateCandidates.Length == 1 ? aggregateCandidates[0] : null;
         }
 
-        if (sortExpression is not MethodCall sortMethodCall ||
-            !AggregateRefRewriter.IsAggregateMethod(sortMethodCall.Method))
+        if (
+            sortExpression is not MethodCall sortMethodCall
+            || !AggregateRefRewriter.IsAggregateMethod(sortMethodCall.Method)
+        )
             return null;
 
         var normalizedSortIdentifier = AggregateRefRewriter.NormalizeIdentifier(
-            AggregateRefRewriter.ExtractIdentifier(sortMethodCall));
+            AggregateRefRewriter.ExtractIdentifier(sortMethodCall)
+        );
 
         if (!string.IsNullOrWhiteSpace(normalizedSortIdentifier))
         {
@@ -85,21 +96,19 @@ internal static class SortKeyProjectionResolver
         }
 
         var methodCandidates = projectedFields
-            .Where(field => field.Expression is MethodCall projectedMethodCall &&
-                            AggregateRefRewriter.IsAggregateMethod(projectedMethodCall.Method) &&
-                            projectedMethodCall.Method == sortMethodCall.Method)
+            .Where(field =>
+                field.Expression is MethodCall projectedMethodCall
+                && AggregateRefRewriter.IsAggregateMethod(projectedMethodCall.Method)
+                && projectedMethodCall.Method == sortMethodCall.Method
+            )
             .ToArray();
 
         if (methodCandidates.Length == 1)
             return methodCandidates[0];
 
-        var aggregateRefCandidates = projectedFields
-            .Where(field => field.Expression is AggregateRef)
-            .ToArray();
+        var aggregateRefCandidates = projectedFields.Where(field => field.Expression is AggregateRef).ToArray();
 
-        return aggregateRefCandidates.Length == 1
-            ? aggregateRefCandidates[0]
-            : null;
+        return aggregateRefCandidates.Length == 1 ? aggregateRefCandidates[0] : null;
     }
 
     private static bool MatchesAggregateIdentifier(IrExpression expression, string normalizedIdentifier)
@@ -109,17 +118,19 @@ internal static class SortKeyProjectionResolver
             ColumnRef columnRef => string.Equals(
                 AggregateRefRewriter.NormalizeIdentifier(columnRef.ColumnName),
                 normalizedIdentifier,
-                StringComparison.Ordinal),
+                StringComparison.Ordinal
+            ),
             AggregateRef aggregateRef => string.Equals(
                 AggregateRefRewriter.NormalizeIdentifier(aggregateRef.Identifier),
                 normalizedIdentifier,
-                StringComparison.Ordinal),
-            MethodCall methodCall when AggregateRefRewriter.IsAggregateMethod(methodCall.Method) =>
-                string.Equals(
-                    AggregateRefRewriter.NormalizeIdentifier(AggregateRefRewriter.ExtractIdentifier(methodCall)),
-                    normalizedIdentifier,
-                    StringComparison.Ordinal),
-            _ => false
+                StringComparison.Ordinal
+            ),
+            MethodCall methodCall when AggregateRefRewriter.IsAggregateMethod(methodCall.Method) => string.Equals(
+                AggregateRefRewriter.NormalizeIdentifier(AggregateRefRewriter.ExtractIdentifier(methodCall)),
+                normalizedIdentifier,
+                StringComparison.Ordinal
+            ),
+            _ => false,
         };
     }
 }

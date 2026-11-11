@@ -20,9 +20,7 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
     private readonly char _delimiter;
     private readonly Encoding _encoding;
 
-    public CsvQueryRowSource(
-        CsvSourceOptions options,
-        QueryScopedRowSourceRequest request)
+    public CsvQueryRowSource(CsvSourceOptions options, QueryScopedRowSourceRequest request)
         : base(request.ExecutionContext, CsvTextFormat.SourceName)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -32,7 +30,8 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
             throw new ArgumentOutOfRangeException(
                 nameof(options.SkipRows),
                 options.SkipRows,
-                "Skipped row count cannot be negative.");
+                "Skipped row count cannot be negative."
+            );
         }
 
         _context = request.ExecutionContext;
@@ -65,14 +64,9 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
             using var records = CsvTextFormat.ReadRecords(reader, _delimiter, token).GetEnumerator();
 
             CsvTextFormat.SkipRecords(records, _skipRows, token);
-            var header = _hasHeader && records.MoveNext()
-                ? records.Current
-                : null;
+            var header = _hasHeader && records.MoveNext() ? records.Current : null;
             var mappings = CreateMappings(_shape.Fields, header, _hasHeader);
-            var rows = Apply(
-                ReadRows(records, mappings, token),
-                _context.Plan,
-                mappings);
+            var rows = Apply(ReadRows(records, mappings, token), _context.Plan, mappings);
             var chunk = new List<TRow>(ChunkSize);
 
             foreach (var rawRow in rows)
@@ -119,7 +113,8 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
             if (!string.Equals(requestedEncoding, encoding, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException(
-                    $"CSV file encoding is file-wide, but columns requested both '{requestedEncoding}' and '{encoding}'.");
+                    $"CSV file encoding is file-wide, but columns requested both '{requestedEncoding}' and '{encoding}'."
+                );
             }
         }
 
@@ -129,7 +124,8 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
     private static IEnumerable<CsvRawQueryRow> ReadRows(
         IEnumerator<string[]> records,
         CsvQueryFieldMapping[] mappings,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         while (records.MoveNext())
         {
@@ -141,10 +137,12 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
     private static IEnumerable<CsvRawQueryRow> Apply(
         IEnumerable<CsvRawQueryRow> rows,
         SourceExecutionPlan plan,
-        CsvQueryFieldMapping[] mappings)
+        CsvQueryFieldMapping[] mappings
+    )
     {
         var native = plan.Properties.TryGetValue(CsvNativeExecutionPlan.PropertyName, out var bound)
-            ? bound as CsvNativeExecutionPlan : null;
+            ? bound as CsvNativeExecutionPlan
+            : null;
         if ((plan.AcceptedPredicate is not null || plan.AcceptedOrderBy.Count > 0) && native is null)
             throw new InvalidOperationException("CSV execution requires a compiled native plan.");
         var query = rows;
@@ -169,20 +167,18 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
     private static CsvQueryFieldMapping[] CreateMappings(
         IReadOnlyList<QueryRowField> fields,
         IReadOnlyList<string>? header,
-        bool hasHeader)
+        bool hasHeader
+    )
     {
-        var headerIndexes = hasHeader && header != null
-            ? CreateHeaderIndexes(header)
-            : new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var headerIndexes =
+            hasHeader && header != null
+                ? CreateHeaderIndexes(header)
+                : new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var mappings = new CsvQueryFieldMapping[fields.Count];
 
         foreach (var field in fields)
         {
-            var column = new SchemaColumn(
-                field.Name,
-                field.Slot,
-                field.FieldType,
-                field.ReadModifiers);
+            var column = new SchemaColumn(field.Name, field.Slot, field.FieldType, field.ReadModifiers);
             var sourceIndex = ResolveSourceIndex(field, headerIndexes, hasHeader);
             mappings[field.Slot] = new CsvQueryFieldMapping(field, column, sourceIndex);
         }
@@ -202,18 +198,22 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
     private static int ResolveSourceIndex(
         QueryRowField field,
         IReadOnlyDictionary<string, int> headerIndexes,
-        bool hasHeader)
+        bool hasHeader
+    )
     {
         if (field.ReadModifiers.TryGetValue(CsvColumnReadModifiers.SourceIndex, out var explicitIndex))
         {
-            if (int.TryParse(explicitIndex, NumberStyles.None, CultureInfo.InvariantCulture, out var parsedIndex) &&
-                parsedIndex >= 0)
+            if (
+                int.TryParse(explicitIndex, NumberStyles.None, CultureInfo.InvariantCulture, out var parsedIndex)
+                && parsedIndex >= 0
+            )
             {
                 return parsedIndex;
             }
 
             throw new InvalidOperationException(
-                $"CSV source index modifier for column '{field.Name}' must be a non-negative integer.");
+                $"CSV source index modifier for column '{field.Name}' must be a non-negative integer."
+            );
         }
 
         if (!hasHeader)
@@ -227,7 +227,8 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
             return headerIndex;
 
         throw new InvalidOperationException(
-            $"CSV header does not contain source column '{sourceName}' for table column '{field.Name}'.");
+            $"CSV header does not contain source column '{sourceName}' for table column '{field.Name}'."
+        );
     }
 
     private static int WriteChunk(DiagnosticChunkWriter<TRow> writer, List<TRow> chunk)
@@ -271,7 +272,6 @@ internal sealed class CsvQueryRowSource<TRow, TMaterializer> : DiagnosticChunked
             return 0;
         }
     }
-
 }
 
 internal ref struct CsvFieldReader : IQuerySourceFieldReader
@@ -279,9 +279,7 @@ internal ref struct CsvFieldReader : IQuerySourceFieldReader
     private readonly string[] _record;
     private readonly CsvQueryFieldMapping[] _mappings;
 
-    public CsvFieldReader(
-        string[] record,
-        CsvQueryFieldMapping[] mappings)
+    public CsvFieldReader(string[] record, CsvQueryFieldMapping[] mappings)
     {
         _record = record;
         _mappings = mappings;
@@ -302,23 +300,17 @@ internal ref struct CsvFieldReader : IQuerySourceFieldReader
             throw new ArgumentOutOfRangeException(nameof(slot), slot, "CSV query row slot is out of range.");
 
         var mapping = _mappings[slot];
-        var rawValue = mapping.SourceIndex < _record.Length
-            ? _record[mapping.SourceIndex]
-            : null;
+        var rawValue = mapping.SourceIndex < _record.Length ? _record[mapping.SourceIndex] : null;
         return CsvValueReader.Read<T>(rawValue, mapping.Column);
     }
 }
 
-internal sealed record CsvQueryFieldMapping(
-    QueryRowField Field,
-    ISchemaColumn Column,
-    int SourceIndex);
+internal sealed record CsvQueryFieldMapping(QueryRowField Field, ISchemaColumn Column, int SourceIndex);
 
 internal static class CsvValueReader
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T Read<T>(string? rawValue, ISchemaColumn column)
-        => Decoder<T>.Read(rawValue, column);
+    public static T Read<T>(string? rawValue, ISchemaColumn column) => Decoder<T>.Read(rawValue, column);
 
     public static bool Supports(Type type)
     {
@@ -328,9 +320,23 @@ internal static class CsvValueReader
 
     private static readonly HashSet<Type> SupportedValueTypes =
     [
-        typeof(int), typeof(long), typeof(short), typeof(byte), typeof(uint), typeof(ulong),
-        typeof(float), typeof(double), typeof(decimal), typeof(bool), typeof(Guid),
-        typeof(DateTime), typeof(DateTimeOffset), typeof(TimeSpan), typeof(sbyte), typeof(ushort), typeof(char)
+        typeof(int),
+        typeof(long),
+        typeof(short),
+        typeof(byte),
+        typeof(uint),
+        typeof(ulong),
+        typeof(float),
+        typeof(double),
+        typeof(decimal),
+        typeof(bool),
+        typeof(Guid),
+        typeof(DateTime),
+        typeof(DateTimeOffset),
+        typeof(TimeSpan),
+        typeof(sbyte),
+        typeof(ushort),
+        typeof(char),
     ];
 
     private static class Decoder<T>
@@ -414,8 +420,8 @@ internal static class CsvValueReader
         }
 
         private static Func<string?, ISchemaColumn, T> Required<TValue>(Func<string, ISchemaColumn, TValue> parse)
-            where TValue : struct
-            => (rawValue, column) =>
+            where TValue : struct =>
+            (rawValue, column) =>
             {
                 var text = Normalize(rawValue, column);
                 if (text is null)
@@ -424,8 +430,8 @@ internal static class CsvValueReader
             };
 
         private static Func<string?, ISchemaColumn, T> Optional<TValue>(Func<string, ISchemaColumn, TValue> parse)
-            where TValue : struct
-            => (rawValue, column) =>
+            where TValue : struct =>
+            (rawValue, column) =>
             {
                 var text = Normalize(rawValue, column);
                 if (string.IsNullOrEmpty(text))
@@ -545,6 +551,5 @@ internal static class CsvValueReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static T Cast<TValue, T>(TValue value)
-        => Unsafe.As<TValue, T>(ref value);
+    private static T Cast<TValue, T>(TValue value) => Unsafe.As<TValue, T>(ref value);
 }

@@ -13,7 +13,8 @@ public sealed class TypedSourceRegistration
         string name,
         Type sourceType,
         Type rowType,
-        IEnumerable<TypedSourceOverloadDescriptor> overloads)
+        IEnumerable<TypedSourceOverloadDescriptor> overloads
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         Name = name;
@@ -25,13 +26,19 @@ public sealed class TypedSourceRegistration
             .ThenBy(static descriptor => descriptor.StableId, StringComparer.Ordinal)
             .ToArray();
         if (descriptors.Length == 0)
-            throw new ArgumentException("A typed source must expose at least one public constructor.", nameof(overloads));
+            throw new ArgumentException(
+                "A typed source must expose at least one public constructor.",
+                nameof(overloads)
+            );
 
         var duplicateId = descriptors
             .GroupBy(static descriptor => descriptor.StableId, StringComparer.Ordinal)
             .FirstOrDefault(static group => group.Count() > 1);
         if (duplicateId != null)
-            throw new ArgumentException($"Typed source overload id '{duplicateId.Key}' is duplicated.", nameof(overloads));
+            throw new ArgumentException(
+                $"Typed source overload id '{duplicateId.Key}' is duplicated.",
+                nameof(overloads)
+            );
 
         var duplicateSignature = descriptors
             .GroupBy(static descriptor => CanonicalSignature(descriptor.Contract), StringComparer.Ordinal)
@@ -39,7 +46,8 @@ public sealed class TypedSourceRegistration
         if (duplicateSignature != null)
             throw new ArgumentException(
                 $"Typed source '{name}' has duplicate SQL signature '{duplicateSignature.Key}'.",
-                nameof(overloads));
+                nameof(overloads)
+            );
 
         Overloads = new ReadOnlyCollection<TypedSourceOverloadDescriptor>(descriptors);
     }
@@ -54,7 +62,9 @@ public sealed class TypedSourceRegistration
         return string.Join(
             "|",
             contract.Parameters.Select(static parameter =>
-                $"{parameter.Name.ToLowerInvariant()}:{parameter.Type.ToCanonicalSql()}:{parameter.Required}:{parameter.Default.CanonicalText}"));
+                $"{parameter.Name.ToLowerInvariant()}:{parameter.Type.ToCanonicalSql()}:{parameter.Required}:{parameter.Default.CanonicalText}"
+            )
+        );
     }
 }
 
@@ -65,7 +75,8 @@ public sealed class TypedSourceOverloadDescriptor
         string stableId,
         ConstructorInfo constructor,
         StructuralInputContract contract,
-        bool injectsExecutionContext)
+        bool injectsExecutionContext
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(stableId);
         StableId = stableId;
@@ -89,7 +100,5 @@ public sealed record TypedSourceRegistrationOptions(StructuralInputLimits Limits
 /// <summary>Exposes source-construction metadata kept separate from table constructors.</summary>
 public interface ITypedSourceSchema
 {
-    bool TryGetTypedSourceRegistration(
-        string name,
-        out TypedSourceRegistration registration);
+    bool TryGetTypedSourceRegistration(string name, out TypedSourceRegistration registration);
 }

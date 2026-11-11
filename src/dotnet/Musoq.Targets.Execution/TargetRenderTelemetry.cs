@@ -43,8 +43,6 @@ internal static class TargetRenderTelemetry
 
     private sealed class NoopScope : IDisposable
     {
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 }

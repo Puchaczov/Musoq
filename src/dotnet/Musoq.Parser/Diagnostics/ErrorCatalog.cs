@@ -9,7 +9,10 @@ namespace Musoq.Parser.Diagnostics;
 /// </summary>
 public static class ErrorCatalog
 {
-    private static readonly FrozenDictionary<DiagnosticCode, string> MessageTemplates = new Dictionary<DiagnosticCode, string>()
+    private static readonly FrozenDictionary<DiagnosticCode, string> MessageTemplates = new Dictionary<
+        DiagnosticCode,
+        string
+    >()
     {
         // Lexer Errors (MQ1xxx)
         [DiagnosticCode.MQ1001_UnknownToken] = "Unknown token '{0}'",
@@ -58,7 +61,8 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration] = "Invalid script parameter declaration",
         [DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax] = "Unsupported script parameter syntax",
         [DiagnosticCode.MQ2033_InvalidScriptVariableDeclaration] = "Invalid script variable declaration",
-        [DiagnosticCode.MQ2036_MultipleExecutableStatements] = "Multiple executable statements are not supported by this compilation entry point",
+        [DiagnosticCode.MQ2036_MultipleExecutableStatements] =
+            "Multiple executable statements are not supported by this compilation entry point",
         [DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed] = "The {0} predicate list cannot be empty",
         [DiagnosticCode.MQ2038_InvalidSliceCount] = "{0} count must be a non-negative integer",
         [DiagnosticCode.MQ2039_TieBreakRequiresAsOfJoin] = "TIE BREAK BY requires an ASOF JOIN",
@@ -87,19 +91,22 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3016_CircularReference] = "Circular reference detected in '{0}'",
         [DiagnosticCode.MQ3017_ObjectNotArray] = "Object of type '{0}' is not an array",
         [DiagnosticCode.MQ3018_NoIndexer] = "Object of type '{0}' does not implement an indexer",
-        [DiagnosticCode.MQ3019_SetOperatorColumnCount] = "Set operator requires the same number of columns in both queries",
+        [DiagnosticCode.MQ3019_SetOperatorColumnCount] =
+            "Set operator requires the same number of columns in both queries",
         [DiagnosticCode.MQ3020_SetOperatorColumnTypes] = "Set operator requires matching column types in both queries",
         [DiagnosticCode.MQ3021_DuplicateAlias] = "Alias '{0}' is already used in query",
         [DiagnosticCode.MQ3022_MissingAlias] =
             "Method call '{0}' must be qualified with a source alias when more than one schema is used",
         [DiagnosticCode.MQ3023_TableNotDefined] = "Table '{0}' is not defined in query",
-        [DiagnosticCode.MQ3024_GroupByIndexOutOfRange] = "GROUP BY position {0} is out of range; SELECT projection contains {1} field(s)",
+        [DiagnosticCode.MQ3024_GroupByIndexOutOfRange] =
+            "GROUP BY position {0} is out of range; SELECT projection contains {1} field(s)",
         [DiagnosticCode.MQ3025_ColumnMustBeArray] = "Column '{0}' must be an array or implement IEnumerable<T>",
         [DiagnosticCode.MQ3026_ColumnNotBindable] = "Column '{0}' must be marked as BindablePropertyAsTable",
         [DiagnosticCode.MQ3027_InvalidExpressionType] = "Expression '{0}' has invalid type '{1}' in {2}",
         [DiagnosticCode.MQ3028_UnknownProperty] = "Property '{0}' not found on type '{1}'",
         [DiagnosticCode.MQ3032_ArithmeticOverflow] = "Arithmetic overflow in constant expression",
-        [DiagnosticCode.MQ3033_InterpretFunctionOutsideApply] = "Interpret and Parse functions are only allowed inside CROSS APPLY or OUTER APPLY",
+        [DiagnosticCode.MQ3033_InterpretFunctionOutsideApply] =
+            "Interpret and Parse functions are only allowed inside CROSS APPLY or OUTER APPLY",
         [DiagnosticCode.MQ3034_AmbiguousAggregateOwner] =
             "Aggregate call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
         [DiagnosticCode.MQ3035_AmbiguousMethodOwner] =
@@ -108,38 +115,46 @@ public static class ErrorCatalog
             "ASOF JOIN requires at least one inequality condition (>=, >, <=, <).",
         [DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities] =
             "ASOF JOIN supports exactly one inequality condition. Found {0}.",
-        [DiagnosticCode.MQ3038_AsOfJoinOrNotSupported] =
-            "ASOF JOIN ON clause does not support OR.",
+        [DiagnosticCode.MQ3038_AsOfJoinOrNotSupported] = "ASOF JOIN ON clause does not support OR.",
         [DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides] =
             "ASOF JOIN inequality must reference columns from both sides.",
         [DiagnosticCode.MQ3040_AsOfJoinInequalityColumnNotOrderable] =
             "ASOF JOIN inequality column type '{0}' is not orderable.",
         [DiagnosticCode.MQ3041_StarExcludeColumnNotFound] = "EXCLUDE references non-existent column '{0}'",
         [DiagnosticCode.MQ3042_StarReplaceColumnNotFound] = "REPLACE references non-existent column '{0}'",
-        [DiagnosticCode.MQ3043_StarExcludeRemovesAllColumns] = "EXCLUDE would remove all columns from the star expansion",
+        [DiagnosticCode.MQ3043_StarExcludeRemovesAllColumns] =
+            "EXCLUDE would remove all columns from the star expansion",
         [DiagnosticCode.MQ3044_StarColumnInBothExcludeAndReplace] = "Column '{0}' appears in both EXCLUDE and REPLACE",
         [DiagnosticCode.MQ3045_StarLikeMatchedNoColumns] = "Star modifier '{0}' matched no columns",
         [DiagnosticCode.MQ3046_StarExcludeDuplicateColumn] = "Duplicate column '{0}' in EXCLUDE list",
         [DiagnosticCode.MQ3047_StarReplaceDuplicateColumn] = "Duplicate column '{0}' in REPLACE list",
-        [DiagnosticCode.MQ3048_StarReplaceTargetsRemovedColumn] = "REPLACE targets column '{0}' removed by LIKE or EXCLUDE",
+        [DiagnosticCode.MQ3048_StarReplaceTargetsRemovedColumn] =
+            "REPLACE targets column '{0}' removed by LIKE or EXCLUDE",
         [DiagnosticCode.MQ3049_InSubqueryMultipleColumns] = "IN subquery must return exactly one column",
-        [DiagnosticCode.MQ3050_QualifyRequiresWindowFunction] = "QUALIFY clause requires at least one window function in its expression.",
-        [DiagnosticCode.MQ3051_FilterOnNonAggregate] = "FILTER can only be applied to aggregate functions; '{0}' is not an aggregate",
-        [DiagnosticCode.MQ3052_RangeFrameRequiresOrderBy] = "A RANGE window frame requires an ORDER BY clause in the window specification.",
-        [DiagnosticCode.MQ3053_InvalidWindowFrameBounds] = "Invalid window frame: start bound '{0}' is logically after end bound '{1}'.",
+        [DiagnosticCode.MQ3050_QualifyRequiresWindowFunction] =
+            "QUALIFY clause requires at least one window function in its expression.",
+        [DiagnosticCode.MQ3051_FilterOnNonAggregate] =
+            "FILTER can only be applied to aggregate functions; '{0}' is not an aggregate",
+        [DiagnosticCode.MQ3052_RangeFrameRequiresOrderBy] =
+            "A RANGE window frame requires an ORDER BY clause in the window specification.",
+        [DiagnosticCode.MQ3053_InvalidWindowFrameBounds] =
+            "Invalid window frame: start bound '{0}' is logically after end bound '{1}'.",
         [DiagnosticCode.MQ3054_StarModifierInInSubquery] = "Star modifiers cannot be used inside an IN subquery",
         [DiagnosticCode.MQ3055_InvalidValuesSource] = "Invalid VALUES source: {0}",
         [DiagnosticCode.MQ3056_DuplicateScriptParameterBlock] = "Only one script parameter block is allowed",
-        [DiagnosticCode.MQ3057_ScriptParameterBlockAfterStatement] = "Script parameter block must appear before executable statements",
+        [DiagnosticCode.MQ3057_ScriptParameterBlockAfterStatement] =
+            "Script parameter block must appear before executable statements",
         [DiagnosticCode.MQ3058_DuplicateScriptParameterName] = "Duplicate script parameter name '{0}'",
         [DiagnosticCode.MQ3059_UndeclaredScriptParameter] = "Script parameter '{0}' is not declared",
         [DiagnosticCode.MQ3060_UnsupportedScriptParameterType] = "Script parameter type '{0}' is not supported",
         [DiagnosticCode.MQ3061_InvalidScriptParameterDefault] = "Invalid default for script parameter '{0}'",
-        [DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument] = "Script parameter source argument '{0}' is invalid",
+        [DiagnosticCode.MQ3062_InvalidScriptParameterSourceArgument] =
+            "Script parameter source argument '{0}' is invalid",
         [DiagnosticCode.MQ3063_DuplicateScriptSymbolName] = "Duplicate script symbol name '{0}'",
         [DiagnosticCode.MQ3064_UnsupportedScriptVariableType] = "Script variable type '{0}' is not supported",
         [DiagnosticCode.MQ3065_InvalidScriptVariableInitializer] = "Invalid initializer for script variable '{0}'",
-        [DiagnosticCode.MQ3066_ScriptVariableUsedBeforeDeclaration] = "Script variable '{0}' is used before declaration",
+        [DiagnosticCode.MQ3066_ScriptVariableUsedBeforeDeclaration] =
+            "Script variable '{0}' is used before declaration",
         [DiagnosticCode.MQ3067_MissingSourceRuntimeSetting] = "Required source runtime setting '{0}' was not provided",
         [DiagnosticCode.MQ3068_StarRenameDuplicateSource] = "Duplicate source column '{0}' in RENAME list.",
         [DiagnosticCode.MQ3069_StarRenameDuplicateTarget] = "Duplicate target column '{0}' in RENAME list.",
@@ -148,38 +163,48 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword] = "Recursive CTE '{0}' requires WITH RECURSIVE.",
         [DiagnosticCode.MQ3073_InvalidRecursiveCteShape] = "Invalid recursive CTE shape: {0}",
         [DiagnosticCode.MQ3074_InvalidRecursiveCteReference] = "Invalid recursive CTE reference: {0}",
-        [DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator] = "Operator '{0}' is not supported in a recursive CTE member.",
+        [DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator] =
+            "Operator '{0}' is not supported in a recursive CTE member.",
         [DiagnosticCode.MQ3076_RecursiveCteOutputMismatch] = "Recursive CTE output mismatch: {0}",
         [DiagnosticCode.MQ3077_CteColumnListCountMismatch] =
             "CTE '{0}' declares {1} column name(s), but its query projects {2} column(s).",
         [DiagnosticCode.MQ3078_DuplicateCteColumnName] = "CTE '{0}' declares duplicate column name '{1}'.",
-        [DiagnosticCode.MQ3079_UnknownSourceArgument] = "Datasource argument '{0}' is not present in the selected source signature.",
+        [DiagnosticCode.MQ3079_UnknownSourceArgument] =
+            "Datasource argument '{0}' is not present in the selected source signature.",
         [DiagnosticCode.MQ3080_DuplicateSourceArgument] = "Datasource argument '{0}' was supplied more than once.",
         [DiagnosticCode.MQ3081_MissingRequiredSourceArgument] = "Required datasource argument '{0}' was not supplied.",
-        [DiagnosticCode.MQ3083_NamedSourceArgumentsRequireMetadata] = "Named datasource arguments require reflected source metadata for '{0}'.",
-        [DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection] = "Source entity '{0}' for '{1}.{2}' cannot be emitted as generated execution code: {3}",
+        [DiagnosticCode.MQ3083_NamedSourceArgumentsRequireMetadata] =
+            "Named datasource arguments require reflected source metadata for '{0}'.",
+        [DiagnosticCode.MQ3084_SourceEntityRequiresRuntimeReflection] =
+            "Source entity '{0}' for '{1}.{2}' cannot be emitted as generated execution code: {3}",
         [DiagnosticCode.MQ3085_UnknownSource] = "Source '{0}' does not exist in schema '{1}'",
         [DiagnosticCode.MQ3086_UnknownCallable] = "Unknown callable '{0}'",
         [DiagnosticCode.MQ3087_InvalidCallableArity] = "Callable '{0}' does not accept {1} argument(s); expected {2}",
-        [DiagnosticCode.MQ3088_NoMatchingCallableOverload] = "No overload of callable '{0}' accepts argument types ({1})",
+        [DiagnosticCode.MQ3088_NoMatchingCallableOverload] =
+            "No overload of callable '{0}' accepts argument types ({1})",
         [DiagnosticCode.MQ3089_AmbiguousCallableOverload] = "Callable '{0}' is ambiguous for argument types ({1})",
         [DiagnosticCode.MQ3090_UnsupportedCastTarget] = "Cast target '{0}' is not supported",
         [DiagnosticCode.MQ3091_InvalidConstantCast] = "Constant value cannot be cast to '{0}': {1}",
         [DiagnosticCode.MQ3092_AggregateInGroupBy] = "GROUP BY expressions cannot contain aggregate functions",
         [DiagnosticCode.MQ3093_OrderByOrdinalUnsupported] = "ORDER BY numeric positions are not supported",
-        [DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod] = "Instance method calls on column values are not supported.",
+        [DiagnosticCode.MQ3117_UnsupportedColumnInstanceMethod] =
+            "Instance method calls on column values are not supported.",
         [DiagnosticCode.MQ3094_InvalidConstantRegex] = "The constant regex pattern is invalid: {0}",
         [DiagnosticCode.MQ3095_ScalarSubqueryCardinality] = "Scalar subquery may return more than one row",
         [DiagnosticCode.MQ3096_UnsupportedVariableKeyAccess] = "Variable key access is not supported",
-        [DiagnosticCode.MQ3097_UnsupportedAggregateProjection] = "This aggregate projection shape is not supported without GROUP BY",
-        [DiagnosticCode.MQ3098_InvalidRangeFrameOrderKey] = "Bounded RANGE frames require exactly one numeric ORDER BY key",
-        [DiagnosticCode.MQ3099_WindowOrderByRequired] = "Window function '{0}' requires ORDER BY in its OVER specification",
+        [DiagnosticCode.MQ3097_UnsupportedAggregateProjection] =
+            "This aggregate projection shape is not supported without GROUP BY",
+        [DiagnosticCode.MQ3098_InvalidRangeFrameOrderKey] =
+            "Bounded RANGE frames require exactly one numeric ORDER BY key",
+        [DiagnosticCode.MQ3099_WindowOrderByRequired] =
+            "Window function '{0}' requires ORDER BY in its OVER specification",
         [DiagnosticCode.MQ3100_NestedWindowFunction] = "Window functions cannot be nested",
         [DiagnosticCode.MQ3101_WindowFunctionInFilter] = "Window functions are not allowed in {0}",
         [DiagnosticCode.MQ3102_InvalidStatementOrder] = "Statement '{0}' is out of order",
         [DiagnosticCode.MQ3103_InvalidWindowFunctionArgument] = "Window function '{0}' has an invalid argument: {1}",
         [DiagnosticCode.MQ3104_UnknownNamedWindow] = "Named window '{0}' is not defined in the current query.",
-        [DiagnosticCode.MQ3105_DuplicateNamedWindow] = "Window definition '{0}' is declared more than once in this query.",
+        [DiagnosticCode.MQ3105_DuplicateNamedWindow] =
+            "Window definition '{0}' is declared more than once in this query.",
         [DiagnosticCode.MQ3106_DuplicateEnumType] = "Enum type '{0}' is declared more than once in this query.",
         [DiagnosticCode.MQ3107_UnknownEnumType] = "Enum type '{0}' is not declared or reachable in this query.",
         [DiagnosticCode.MQ3108_UnknownEnumMember] = "Enum member '{0}' is not defined by enum type '{1}'.",
@@ -187,10 +212,14 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3110_UnsupportedEnumOperator] = "Operator '{0}' is not supported for enum type '{1}'.",
         [DiagnosticCode.MQ3111_InvalidEnumHelper] = "Enum helper '{0}' cannot be applied to the supplied arguments.",
         [DiagnosticCode.MQ3112_UnsupportedEnumScriptParameter] = "Enum script parameters are not supported.",
-        [DiagnosticCode.MQ3113_UnsupportedEnumOutputTarget] = "Enum values cannot be mapped directly into enum-valued typed output members.",
-        [DiagnosticCode.MQ3114_EnumSourceCapabilityRequired] = "Source '{0}' does not support logical scalar reads required by enum column '{1}'.",
-        [DiagnosticCode.MQ3115_EnumDescriptorMismatch] = "Enum descriptor for column '{0}' does not match the compiled source contract.",
-        [DiagnosticCode.MQ3116_AmbiguousRelationArgument] = "Datasource argument '{0}' is ambiguous between a scalar column and a complete CTE relation.",
+        [DiagnosticCode.MQ3113_UnsupportedEnumOutputTarget] =
+            "Enum values cannot be mapped directly into enum-valued typed output members.",
+        [DiagnosticCode.MQ3114_EnumSourceCapabilityRequired] =
+            "Source '{0}' does not support logical scalar reads required by enum column '{1}'.",
+        [DiagnosticCode.MQ3115_EnumDescriptorMismatch] =
+            "Enum descriptor for column '{0}' does not match the compiled source contract.",
+        [DiagnosticCode.MQ3116_AmbiguousRelationArgument] =
+            "Datasource argument '{0}' is ambiguous between a scalar column and a complete CTE relation.",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",
@@ -206,17 +235,16 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField] =
             "Switch selector '{0}' must reference a field declared before the switch field",
         [DiagnosticCode.MQ4012_DuplicateSwitchBranchAlias] = "Duplicate switch branch alias '{0}'",
-        [DiagnosticCode.MQ4013_InvalidSwitchCaseLabel] =
-            "Switch case label must be a constant scalar literal",
+        [DiagnosticCode.MQ4013_InvalidSwitchCaseLabel] = "Switch case label must be a constant scalar literal",
         [DiagnosticCode.MQ4014_InvalidSubstreamModifier] =
             "Substream requires a 'raw' or 'as <type>' modifier with an optional 'exact' or 'lax' mode",
-        [DiagnosticCode.MQ4015_InvalidSubstreamTarget] =
-            "Substream 'as' requires a valid target type",
+        [DiagnosticCode.MQ4015_InvalidSubstreamTarget] = "Substream 'as' requires a valid target type",
         [DiagnosticCode.MQ4016_UnsupportedSchemaConstruction] =
             "This interpretation schema construction is not supported by the code generator",
 
         // Warnings (MQ5xxx)
-        [DiagnosticCode.MQ5003_ImplicitTypeConversion] = "Ambiguous date text is implicitly converted from '{0}' to '{1}'",
+        [DiagnosticCode.MQ5003_ImplicitTypeConversion] =
+            "Ambiguous date text is implicitly converted from '{0}' to '{1}'",
         [DiagnosticCode.MQ5008_UnreachableCode] = "Unreachable code detected",
         [DiagnosticCode.MQ5010_TautologicalCondition] = "Condition is always true",
         [DiagnosticCode.MQ5011_ContradictoryCondition] = "Condition is always false",
@@ -226,13 +254,13 @@ public static class ErrorCatalog
 
         // Runtime Errors (MQ7xxx)
         [DiagnosticCode.MQ7003_RequiredScriptParameterMissing] = "Required script parameter '{0}' was not provided",
-        [DiagnosticCode.MQ7004_ScriptParameterTypeMismatch] = "Script parameter '{0}' has an incompatible type: expected '{1}', received '{2}'",
+        [DiagnosticCode.MQ7004_ScriptParameterTypeMismatch] =
+            "Script parameter '{0}' has an incompatible type: expected '{1}', received '{2}'",
         [DiagnosticCode.MQ7005_ScriptParameterNullNotAllowed] = "Script parameter '{0}' cannot be null",
         [DiagnosticCode.MQ7006_UnknownScriptParameter] = "Script parameter '{0}' was provided but is not declared",
         [DiagnosticCode.MQ7007_RecursiveCteIterationLimitExceeded] =
             "Recursive CTE iteration limit of {0} was exceeded.",
-        [DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded] =
-            "Recursive CTE row limit of {0} was exceeded.",
+        [DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded] = "Recursive CTE row limit of {0} was exceeded.",
         [DiagnosticCode.MQ7009_RecursiveCteSnapshotLimitExceeded] =
             "Recursive CTE invariant snapshot row limit of {0} was exceeded.",
         [DiagnosticCode.MQ7010_DataSourceOpenFailed] =
@@ -246,30 +274,38 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ7016_ScalarSubqueryCardinalityViolation] = "Scalar subquery returned more than one row.",
         [DiagnosticCode.MQ7015_InvalidRuntimeRegex] = "The runtime RLIKE pattern is invalid.",
         [DiagnosticCode.MQ7017_RegexMatchTimeout] = "The pattern predicate exceeded its regex match timeout.",
-        [DiagnosticCode.MQ7019_InvalidRuntimePagingCount] = "Paging count must be an integral value between 0 and 2147483647; null is not allowed.",
-        [DiagnosticCode.MQ3118_InvalidPagingCount] = "Paging count must be an integral value between 0 and 2147483647; null is not allowed.",
-        [DiagnosticCode.MQ7018_NumericOverflow] = "Numeric execution exceeded the range of its result or accumulator type.",
+        [DiagnosticCode.MQ7019_InvalidRuntimePagingCount] =
+            "Paging count must be an integral value between 0 and 2147483647; null is not allowed.",
+        [DiagnosticCode.MQ3118_InvalidPagingCount] =
+            "Paging count must be an integral value between 0 and 2147483647; null is not allowed.",
+        [DiagnosticCode.MQ7018_NumericOverflow] =
+            "Numeric execution exceeded the range of its result or accumulator type.",
         [DiagnosticCode.MQ7020_ReportedDataSourceFailure] = "The datasource reported a failure.",
         [DiagnosticCode.MQ5027_ReportedDataSourceWarning] = "The datasource reported a warning.",
         [DiagnosticCode.MQ7014_MalformedRuntimeInput] = "Runtime input is malformed.",
         [DiagnosticCode.MQ7101_InterpretationInsufficientData] = "Input ended before interpretation could finish.",
-        [DiagnosticCode.MQ7102_InterpretationValidationFailed] = "Input did not satisfy an interpretation validation rule.",
+        [DiagnosticCode.MQ7102_InterpretationValidationFailed] =
+            "Input did not satisfy an interpretation validation rule.",
         [DiagnosticCode.MQ7103_InterpretationPatternMismatch] = "Input did not match the expected pattern.",
         [DiagnosticCode.MQ7104_InterpretationLiteralMismatch] = "Input did not contain the expected literal.",
         [DiagnosticCode.MQ7105_InterpretationDelimiterNotFound] = "The expected delimiter was not found in the input.",
         [DiagnosticCode.MQ7106_InterpretationExpectedDelimiter] = "The expected opening delimiter was not found.",
         [DiagnosticCode.MQ7107_InterpretationInvalidSize] = "The interpretation produced an invalid size.",
-        [DiagnosticCode.MQ7108_InterpretationInvalidPosition] = "The interpretation produced an invalid input position.",
-        [DiagnosticCode.MQ7109_InterpretationMaxIterationsExceeded] = "The interpretation exceeded its maximum iteration count.",
+        [DiagnosticCode.MQ7108_InterpretationInvalidPosition] =
+            "The interpretation produced an invalid input position.",
+        [DiagnosticCode.MQ7109_InterpretationMaxIterationsExceeded] =
+            "The interpretation exceeded its maximum iteration count.",
         [DiagnosticCode.MQ7110_InterpretationEncodingError] = "Input could not be decoded using the expected encoding.",
         [DiagnosticCode.MQ7111_InterpretationExpectedWhitespace] = "Expected whitespace was not found in the input.",
-        [DiagnosticCode.MQ7112_InterpretationNoAlternativeMatched] = "Input did not match any available interpretation alternative.",
-        [DiagnosticCode.MQ7113_InterpretationInvalidSchemaReference] = "The interpretation references a missing or circular schema.",
-        [DiagnosticCode.MQ7114_InterpretationFieldReferenceError] = "The interpretation could not resolve a field reference.",
+        [DiagnosticCode.MQ7112_InterpretationNoAlternativeMatched] =
+            "Input did not match any available interpretation alternative.",
+        [DiagnosticCode.MQ7113_InterpretationInvalidSchemaReference] =
+            "The interpretation references a missing or circular schema.",
+        [DiagnosticCode.MQ7114_InterpretationFieldReferenceError] =
+            "The interpretation could not resolve a field reference.",
         [DiagnosticCode.MQ7115_InterpretationGeneralError] = "Input could not be interpreted.",
         // Code Generation Errors (MQ8xxx)
-        [DiagnosticCode.MQ8001_CodeGenerationFailed] =
-            "Generated C# code failed to compile: {0}",
+        [DiagnosticCode.MQ8001_CodeGenerationFailed] = "Generated C# code failed to compile: {0}",
         [DiagnosticCode.MQ8002_CompiledArtifactIncompatible] =
             "Compiled query artifact is incompatible with the current host contract: {0}",
 
@@ -277,20 +313,27 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ5015_SuspiciousRegexEscape] = "An ordinary string escape changes a regex token '{0}'",
         [DiagnosticCode.MQ5016_GlobWildcardInLike] = "Glob wildcard '{0}' is used with SQL LIKE",
         [DiagnosticCode.MQ5017_NullComparison] = "Comparison with NULL using '{0}' is always UNKNOWN",
-        [DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck] = "IS NULL on optional alias '{0}.{1}' cannot distinguish a missing outer-join row from a present NULL value",
-        [DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter] = "WHERE predicate rejects NULL-extended rows from optional alias '{0}' and effectively turns the outer join into an inner join",
-        [DiagnosticCode.MQ5020_SetOperationOrderByScope] = "Set-operation ORDER BY scope migration advisory (compatibility only)",
-        [DiagnosticCode.MQ5021_UnorderedSkip] = "SKIP {0} is used without ORDER BY, so the skipped rows are not deterministic",
+        [DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck] =
+            "IS NULL on optional alias '{0}.{1}' cannot distinguish a missing outer-join row from a present NULL value",
+        [DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter] =
+            "WHERE predicate rejects NULL-extended rows from optional alias '{0}' and effectively turns the outer join into an inner join",
+        [DiagnosticCode.MQ5020_SetOperationOrderByScope] =
+            "Set-operation ORDER BY scope migration advisory (compatibility only)",
+        [DiagnosticCode.MQ5021_UnorderedSkip] =
+            "SKIP {0} is used without ORDER BY, so the skipped rows are not deterministic",
         [DiagnosticCode.MQ5022_UnusedCte] = "CTE '{0}' is not reachable from the outer query",
         [DiagnosticCode.MQ5023_UnusedScriptVariable] = "Script variable '{0}' is not transitively used",
         [DiagnosticCode.MQ5024_NullSensitiveNotIn] = "NOT IN contains NULL, so non-matching values evaluate to UNKNOWN",
-        [DiagnosticCode.MQ5025_ImpossibleImplicitConversion] = "This constant cannot be implicitly converted to {0}; the comparison cannot match",
-        [DiagnosticCode.MQ5026_SetOperationSliceScope] = "Set-operation SKIP/TAKE scope migration advisory (compatibility only)",
+        [DiagnosticCode.MQ5025_ImpossibleImplicitConversion] =
+            "This constant cannot be implicitly converted to {0}; the comparison cannot match",
+        [DiagnosticCode.MQ5026_SetOperationSliceScope] =
+            "Set-operation SKIP/TAKE scope migration advisory (compatibility only)",
 
         // Internal
-        [DiagnosticCode.MQ9001_InternalCompilerError] = "The compiler encountered an internal failure. Reference '{0}' when reporting this issue.",
-        [DiagnosticCode.MQ9002_InternalExecutionError] = "The query encountered an internal execution failure. Reference '{0}' when reporting this issue.",
-
+        [DiagnosticCode.MQ9001_InternalCompilerError] =
+            "The compiler encountered an internal failure. Reference '{0}' when reporting this issue.",
+        [DiagnosticCode.MQ9002_InternalExecutionError] =
+            "The query encountered an internal execution failure. Reference '{0}' when reporting this issue.",
     }.ToFrozenDictionary();
 
     /// <summary>
@@ -308,9 +351,7 @@ public static class ErrorCatalog
 
     internal static string GetTemplateLegacy(DiagnosticCode code)
     {
-        return MessageTemplates.TryGetValue(code, out var template)
-            ? template
-            : $"Error {code}";
+        return MessageTemplates.TryGetValue(code, out var template) ? template : $"Error {code}";
     }
 
     /// <summary>
@@ -323,7 +364,9 @@ public static class ErrorCatalog
 
         try
         {
-            return args.Length > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, template, args) : template;
+            return args.Length > 0
+                ? string.Format(System.Globalization.CultureInfo.InvariantCulture, template, args)
+                : template;
         }
         catch (FormatException)
         {
@@ -348,7 +391,7 @@ public static class ErrorCatalog
             >= 5000 and < 6000 => DiagnosticSeverity.Warning,
             >= 1000 and < 5000 => DiagnosticSeverity.Error,
             >= 6000 and < 9000 => DiagnosticSeverity.Error,
-            _ => DiagnosticSeverity.Error
+            _ => DiagnosticSeverity.Error,
         };
     }
 
@@ -374,7 +417,7 @@ public static class ErrorCatalog
             >= 6000 and < 7000 => "FeatureGate",
             >= 7000 and < 8000 => "Runtime",
             >= 8000 and < 9000 => "CodeGeneration",
-            _ => "Unknown"
+            _ => "Unknown",
         };
     }
 
@@ -410,7 +453,8 @@ public static class ErrorCatalog
         string input,
         IEnumerable<string> candidates,
         int maxDistance = 3,
-        int maxCandidates = 5)
+        int maxCandidates = 5
+    )
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(candidates);
@@ -424,8 +468,10 @@ public static class ErrorCatalog
             if (string.IsNullOrWhiteSpace(candidate))
                 continue;
 
-            if (!canonicalCandidates.TryGetValue(candidate, out var existing) ||
-                string.CompareOrdinal(candidate, existing) < 0)
+            if (
+                !canonicalCandidates.TryGetValue(candidate, out var existing)
+                || string.CompareOrdinal(candidate, existing) < 0
+            )
                 canonicalCandidates[candidate] = candidate;
         }
 
@@ -463,14 +509,18 @@ public static class ErrorCatalog
         var candidateLength = candidate.Length;
         var distances = new int[sourceLength + 1][];
 
-        if (sourceLength == 0) return candidateLength;
-        if (candidateLength == 0) return sourceLength;
+        if (sourceLength == 0)
+            return candidateLength;
+        if (candidateLength == 0)
+            return sourceLength;
 
         for (var i = 0; i <= sourceLength; i++)
             distances[i] = new int[candidateLength + 1];
 
-        for (var i = 0; i <= sourceLength; i++) distances[i][0] = i;
-        for (var j = 0; j <= candidateLength; j++) distances[0][j] = j;
+        for (var i = 0; i <= sourceLength; i++)
+            distances[i][0] = i;
+        for (var j = 0; j <= candidateLength; j++)
+            distances[0][j] = j;
 
         for (var i = 1; i <= sourceLength; i++)
         for (var j = 1; j <= candidateLength; j++)
@@ -478,7 +528,8 @@ public static class ErrorCatalog
             var cost = source[i - 1] == candidate[j - 1] ? 0 : 1;
             distances[i][j] = Math.Min(
                 Math.Min(distances[i - 1][j] + 1, distances[i][j - 1] + 1),
-                distances[i - 1][j - 1] + cost);
+                distances[i - 1][j - 1] + cost
+            );
         }
 
         return distances[sourceLength][candidateLength];

@@ -13,20 +13,24 @@ public sealed class QueryScopedRowContractsTests
         var modifiers = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["culture"] = "en-US",
-            ["trim"] = "true"
+            ["trim"] = "true",
         };
-        var shape = new QueryRowShape(
-        [
+        var shape = new QueryRowShape([
             new QueryRowField(0, 4, "Name", typeof(string), true, modifiers),
-            new QueryRowField(1, 9, "Count", typeof(int?), true)
+            new QueryRowField(1, 9, "Count", typeof(int?), true),
         ]);
         modifiers["new"] = "value";
 
-        var equivalent = new QueryRowShape(
-        [
-            new QueryRowField(0, 4, "Name", typeof(string), true,
-                new Dictionary<string, string> { ["trim"] = "true", ["culture"] = "en-US" }),
-            new QueryRowField(1, 9, "Count", typeof(int?), true)
+        var equivalent = new QueryRowShape([
+            new QueryRowField(
+                0,
+                4,
+                "Name",
+                typeof(string),
+                true,
+                new Dictionary<string, string> { ["trim"] = "true", ["culture"] = "en-US" }
+            ),
+            new QueryRowField(1, 9, "Count", typeof(int?), true),
         ]);
 
         Assert.AreEqual(2, shape.Fields.Count);
@@ -39,8 +43,9 @@ public sealed class QueryScopedRowContractsTests
     [TestMethod]
     public void QueryRowShape_ShouldRejectNonContiguousSlots()
     {
-        var exception = Assert.Throws<ArgumentException>(() => new QueryRowShape(
-        [new QueryRowField(1, 0, "Name", typeof(string), true)]));
+        var exception = Assert.Throws<ArgumentException>(() =>
+            new QueryRowShape([new QueryRowField(1, 0, "Name", typeof(string), true)])
+        );
 
         StringAssert.Contains(exception.Message, "contiguous");
     }
@@ -48,8 +53,7 @@ public sealed class QueryScopedRowContractsTests
     [TestMethod]
     public void QueryRowField_ShouldRejectRefLikeTypes()
     {
-        Assert.Throws<ArgumentException>(() =>
-            new QueryRowField(0, 0, "Value", typeof(Span<int>), false));
+        Assert.Throws<ArgumentException>(() => new QueryRowField(0, 0, "Value", typeof(Span<int>), false));
     }
 
     [TestMethod]
@@ -73,7 +77,7 @@ public sealed class QueryScopedRowContractsTests
     [TestMethod]
     public unsafe void QueryRowField_ShouldRejectFunctionPointerType()
     {
-        Assert.IsFalse(QueryRowField.IsSupportedFieldType(typeof(delegate*<void>)));
+        Assert.IsFalse(QueryRowField.IsSupportedFieldType(typeof(delegate* <void>)));
     }
 
     [TestMethod]

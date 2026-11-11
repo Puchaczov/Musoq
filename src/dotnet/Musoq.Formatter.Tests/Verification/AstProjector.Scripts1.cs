@@ -25,7 +25,20 @@ internal sealed partial class AstProjector
         Member(nameof(value.ReturnType));
         Write(value.ReturnType);
         Member(nameof(value.TableTypePairs));
-        Sequence(value.TableTypePairs, static (writer, item) => writer.Pair(item, static (writer, pair) => { writer.Member("ColumnName"); writer.Write(pair.ColumnName); writer.Member("TypeName"); writer.Write(pair.TypeName); }));
+        Sequence(
+            value.TableTypePairs,
+            static (writer, item) =>
+                writer.Pair(
+                    item,
+                    static (writer, pair) =>
+                    {
+                        writer.Member("ColumnName");
+                        writer.Write(pair.ColumnName);
+                        writer.Member("TypeName");
+                        writer.Write(pair.TypeName);
+                    }
+                )
+        );
     }
 
     private void Project(global::Musoq.Parser.Nodes.DescNode value)
@@ -191,7 +204,11 @@ internal sealed partial class AstProjector
         Member(nameof(value.ColumnName));
         Write(value.ColumnName);
         Member(nameof(value.ReadModifierSpans));
-        Dictionary(value.ReadModifierSpans, static (writer, key) => writer.Write(key), static (writer, item) => writer.Write(item));
+        Dictionary(
+            value.ReadModifierSpans,
+            static (writer, key) => writer.Write(key),
+            static (writer, item) => writer.Write(item)
+        );
         Member(nameof(value.ReadModifiers));
         Sequence(value.ReadModifiers, static (writer, item) => writer.Write(item));
         Member(nameof(value.TypeName));

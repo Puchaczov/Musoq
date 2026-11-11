@@ -62,7 +62,12 @@ public partial class LibraryBase
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public sbyte? ToSByte(bool? value) => value.HasValue ? value.Value ? (sbyte)1 : (sbyte)0 : null;
+    public sbyte? ToSByte(bool? value) =>
+        value.HasValue
+            ? value.Value
+                ? (sbyte)1
+                : (sbyte)0
+            : null;
 
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]

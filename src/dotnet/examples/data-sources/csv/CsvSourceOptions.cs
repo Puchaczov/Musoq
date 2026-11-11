@@ -2,11 +2,7 @@ using Musoq.Schema;
 
 namespace Musoq.Examples.DataSources.Csv;
 
-internal sealed record CsvSourceOptions(
-    string? Path,
-    bool HasHeader,
-    int SkipRows,
-    string Delimiter)
+internal sealed record CsvSourceOptions(string? Path, bool HasHeader, int SkipRows, string Delimiter)
 {
     public static CsvSourceOptions FromParameters(IReadOnlyList<object?> parameters)
     {
@@ -20,18 +16,21 @@ internal sealed record CsvSourceOptions(
                 RequireString(parameters[0], "path"),
                 RequireBoolean(parameters[1], "hasHeader"),
                 0,
-                ","),
+                ","
+            ),
             3 => new CsvSourceOptions(
                 RequireString(parameters[0], "path"),
                 RequireBoolean(parameters[1], "hasHeader"),
                 RequireInt32(parameters[2], "skipRows"),
-                ","),
+                ","
+            ),
             4 => new CsvSourceOptions(
                 RequireString(parameters[0], "path"),
                 RequireBoolean(parameters[1], "hasHeader"),
                 RequireInt32(parameters[2], "skipRows"),
-                RequireString(parameters[3], "delimiter")),
-            _ => throw new ArgumentException("CSV file source accepts at most four parameters.")
+                RequireString(parameters[3], "delimiter")
+            ),
+            _ => throw new ArgumentException("CSV file source accepts at most four parameters."),
         };
     }
 
@@ -44,7 +43,8 @@ internal sealed record CsvSourceOptions(
             parameters.Count > 0 ? parameters.GetValue<string>(0) : null,
             parameters.Count > 1 && parameters.GetValue<bool>(1),
             parameters.Count > 2 ? parameters.GetValue<int>(2) : 0,
-            parameters.Count > 3 ? parameters.GetValue<string>(3) : ",");
+            parameters.Count > 3 ? parameters.GetValue<string>(3) : ","
+        );
     }
 
     private static string RequireString(object? value, string parameterName)
@@ -69,7 +69,7 @@ internal sealed record CsvSourceOptions(
         {
             int number => number,
             long number when number is >= int.MinValue and <= int.MaxValue => (int)number,
-            _ => throw new ArgumentException($"CSV file source parameter '{parameterName}' must be a 32-bit integer.")
+            _ => throw new ArgumentException($"CSV file source parameter '{parameterName}' must be a 32-bit integer."),
         };
     }
 }

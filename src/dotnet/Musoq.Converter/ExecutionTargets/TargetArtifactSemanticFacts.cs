@@ -23,7 +23,8 @@ internal sealed record TargetArtifactSemanticFacts
         IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>? sourcePlanRequestsPerSchema,
         CancellationToken cancellationToken = default,
         IReadOnlyDictionary<string, SourceExecutionPermissions>? sourceExecutionPermissions = null,
-        IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults = null)
+        IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults = null
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         QueryResultMode = queryResultMode;
@@ -41,34 +42,46 @@ internal sealed record TargetArtifactSemanticFacts
         SourcePlanRequestsPerSchema = FreezeSourcePlanRequests(sourcePlanRequestsPerSchema, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         PortableOutputTypeName = FormatTypeName(outputType);
-        PortableScriptParameters = Freeze(
-            scriptParameterDefinitions?.Select(CreateParameterFact),
-            cancellationToken);
-        PortableScriptVariables = Freeze(
-            scriptVariableDefinitions?.Select(CreateVariableFact),
-            cancellationToken);
+        PortableScriptParameters = Freeze(scriptParameterDefinitions?.Select(CreateParameterFact), cancellationToken);
+        PortableScriptVariables = Freeze(scriptVariableDefinitions?.Select(CreateVariableFact), cancellationToken);
         PortableUsedColumns = Freeze(
-            (usedColumns ?? new Dictionary<SchemaFromNode, ISchemaColumn[]>())
-            .Select(entry => new TargetArtifactSourceColumnsFact(
-                CreateSourceFact(entry.Key),
-                Freeze(entry.Value.Select(CreateColumnFact), cancellationToken))),
-            cancellationToken);
+            (usedColumns ?? new Dictionary<SchemaFromNode, ISchemaColumn[]>()).Select(
+                entry => new TargetArtifactSourceColumnsFact(
+                    CreateSourceFact(entry.Key),
+                    Freeze(entry.Value.Select(CreateColumnFact), cancellationToken)
+                )
+            ),
+            cancellationToken
+        );
         cancellationToken.ThrowIfCancellationRequested();
         PortablePipelineInferredColumns = pipelineInferredColumns is null
             ? null
-            : Freeze(pipelineInferredColumns
-                .Select(entry => new TargetArtifactAliasColumnsFact(
+            : Freeze(
+                pipelineInferredColumns.Select(entry => new TargetArtifactAliasColumnsFact(
                     entry.Key,
-                    Freeze(entry.Value.Select(CreateColumnFact), cancellationToken))),
-                cancellationToken);
+                    Freeze(entry.Value.Select(CreateColumnFact), cancellationToken)
+                )),
+                cancellationToken
+            );
         cancellationToken.ThrowIfCancellationRequested();
         PortableSourcePlanSignatures = Freeze(
-            (sourcePlanRequestsPerSchema ?? new Dictionary<SchemaFromNode, SourcePlanRequest>())
-            .Select(entry => CreateSourcePlanFact(entry.Key, entry.Value, cancellationToken,
-                sourcePlanResults?.GetValueOrDefault(entry.Key.Id))),
-            cancellationToken);
-        SourceScheduling = Freeze(sourceExecutionPermissions?.Select(static source =>
-            new TargetArtifactSourceSchedulingFact(source.Key, (int)source.Value)), cancellationToken);
+            (sourcePlanRequestsPerSchema ?? new Dictionary<SchemaFromNode, SourcePlanRequest>()).Select(entry =>
+                CreateSourcePlanFact(
+                    entry.Key,
+                    entry.Value,
+                    cancellationToken,
+                    sourcePlanResults?.GetValueOrDefault(entry.Key.Id)
+                )
+            ),
+            cancellationToken
+        );
+        SourceScheduling = Freeze(
+            sourceExecutionPermissions?.Select(static source => new TargetArtifactSourceSchedulingFact(
+                source.Key,
+                (int)source.Value
+            )),
+            cancellationToken
+        );
         cancellationToken.ThrowIfCancellationRequested();
     }
 
@@ -100,18 +113,18 @@ internal sealed record TargetArtifactSemanticFacts
 
     public IReadOnlyList<TargetArtifactSourceSchedulingFact> SourceScheduling { get; }
 
-    public static TargetArtifactSemanticFacts Empty { get; } = new(
-        QueryResultMode.Table,
-        null,
-        [],
-        [],
-        new Dictionary<SchemaFromNode, ISchemaColumn[]>(),
-        null,
-        new Dictionary<SchemaFromNode, SourcePlanRequest>());
+    public static TargetArtifactSemanticFacts Empty { get; } =
+        new(
+            QueryResultMode.Table,
+            null,
+            [],
+            [],
+            new Dictionary<SchemaFromNode, ISchemaColumn[]>(),
+            null,
+            new Dictionary<SchemaFromNode, SourcePlanRequest>()
+        );
 
-    private static IReadOnlyList<T> Freeze<T>(
-        IEnumerable<T>? values,
-        CancellationToken cancellationToken)
+    private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values, CancellationToken cancellationToken)
     {
         if (values is null)
             return Array.AsReadOnly(Array.Empty<T>());
@@ -126,24 +139,24 @@ internal sealed record TargetArtifactSemanticFacts
         return Array.AsReadOnly(frozen.ToArray());
     }
 
-    private static TargetArtifactScriptParameterFact CreateParameterFact(
-        ScriptParameterDefinition parameter)
+    private static TargetArtifactScriptParameterFact CreateParameterFact(ScriptParameterDefinition parameter)
     {
         return new TargetArtifactScriptParameterFact(
             parameter.Name,
             FormatTypeName(parameter.ParameterType) ?? "<null>",
             parameter.HasDefaultValue,
-            FormatTypeName(parameter.DefaultValue?.GetType()) ?? "<null>");
+            FormatTypeName(parameter.DefaultValue?.GetType()) ?? "<null>"
+        );
     }
 
-    private static TargetArtifactScriptVariableFact CreateVariableFact(
-        ScriptVariableDefinition variable)
+    private static TargetArtifactScriptVariableFact CreateVariableFact(ScriptVariableDefinition variable)
     {
         return new TargetArtifactScriptVariableFact(
             variable.Name,
             FormatTypeName(variable.VariableType) ?? "<null>",
             variable.CanUseConstKeyword,
-            FormatTypeName(variable.Value?.GetType()) ?? "<null>");
+            FormatTypeName(variable.Value?.GetType()) ?? "<null>"
+        );
     }
 
     private static TargetArtifactSourceFact CreateSourceFact(SchemaFromNode source)
@@ -153,7 +166,8 @@ internal sealed record TargetArtifactSemanticFacts
             source.Schema ?? string.Empty,
             source.Method ?? string.Empty,
             source.Alias ?? string.Empty,
-            source.QueryId.ToString(CultureInfo.InvariantCulture));
+            source.QueryId.ToString(CultureInfo.InvariantCulture)
+        );
     }
 
     private static TargetArtifactColumnFact CreateColumnFact(ISchemaColumn column)
@@ -165,32 +179,29 @@ internal sealed record TargetArtifactSemanticFacts
             FormatTypeName(column.ColumnType) ?? "<null>",
             FormatTypeName(column.SourceReadType) ?? "<null>",
             column.EnumType?.Fingerprint ?? "<null>",
-            FreezeDictionary(column.ReadModifiers))
+            FreezeDictionary(column.ReadModifiers)
+        )
         {
-            Stability = column.Stability
+            Stability = column.Stability,
         };
     }
 
-    private static TargetArtifactSourceColumnRefFact CreateSourceColumnRefFact(
-        SourceColumnRef column)
+    private static TargetArtifactSourceColumnRefFact CreateSourceColumnRefFact(SourceColumnRef column)
     {
-        return new TargetArtifactSourceColumnRefFact(
-            column.Name,
-            FreezeDictionary(column.ReadModifiers));
+        return new TargetArtifactSourceColumnRefFact(column.Name, FreezeDictionary(column.ReadModifiers));
     }
 
     private static TargetArtifactOrderByFact CreateOrderByFact(OrderByExpression order)
     {
-        return new TargetArtifactOrderByFact(
-            CreateSourceColumnRefFact(order.Column),
-            order.Direction.ToString());
+        return new TargetArtifactOrderByFact(CreateSourceColumnRefFact(order.Column), order.Direction.ToString());
     }
 
     private static TargetArtifactSourcePlanFact CreateSourcePlanFact(
         SchemaFromNode source,
         SourcePlanRequest request,
         CancellationToken cancellationToken,
-        SourcePlanResult? result)
+        SourcePlanResult? result
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         return new TargetArtifactSourcePlanFact(
@@ -203,28 +214,37 @@ internal sealed record TargetArtifactSemanticFacts
             Freeze(request.OrderBy.Select(CreateOrderByFact), cancellationToken),
             request.Skip?.ToString(CultureInfo.InvariantCulture) ?? "<null>",
             request.Take?.ToString(CultureInfo.InvariantCulture) ?? "<null>",
-            FormatTypeName(request.Predicate?.GetType()) ?? "<null>")
+            FormatTypeName(request.Predicate?.GetType()) ?? "<null>"
+        )
         {
             RequestedComputedProjectionFingerprints = CreateComputedProjectionFingerprints(
                 request.RequestedComputedProjections,
-                cancellationToken),
-            AcceptedComputedProjectionFingerprints = CreateComputedProjectionFingerprints(result?.AcceptedComputedProjections ?? [], cancellationToken),
-            ResidualComputedProjectionFingerprints = CreateComputedProjectionFingerprints(result?.ResidualComputedProjections ?? [], cancellationToken),
-            Replayability = request.Replayability
+                cancellationToken
+            ),
+            AcceptedComputedProjectionFingerprints = CreateComputedProjectionFingerprints(
+                result?.AcceptedComputedProjections ?? [],
+                cancellationToken
+            ),
+            ResidualComputedProjectionFingerprints = CreateComputedProjectionFingerprints(
+                result?.ResidualComputedProjections ?? [],
+                cancellationToken
+            ),
+            Replayability = request.Replayability,
         };
     }
 
     private static IReadOnlyList<string> CreateComputedProjectionFingerprints(
         IReadOnlyList<SourceComputedProjection> projections,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var fingerprints = new List<string>(projections.Count);
-        foreach (var projection in projections
-                     .OrderBy(static projection => projection.Name, StringComparer.Ordinal))
+        foreach (var projection in projections.OrderBy(static projection => projection.Name, StringComparer.Ordinal))
         {
             cancellationToken.ThrowIfCancellationRequested();
             fingerprints.Add(
-                $"{projection.Name}:{SourceScalarExpressionFingerprint.Compute(projection.Expression)}:{projection.Stability}");
+                $"{projection.Name}:{SourceScalarExpressionFingerprint.Compute(projection.Expression)}:{projection.Stability}"
+            );
         }
 
         return fingerprints;
@@ -236,18 +256,19 @@ internal sealed record TargetArtifactSemanticFacts
     }
 
     private static IReadOnlyDictionary<TKey, TValue> FreezeDictionary<TKey, TValue>(
-        IReadOnlyDictionary<TKey, TValue>? values)
+        IReadOnlyDictionary<TKey, TValue>? values
+    )
         where TKey : notnull
     {
         return new ReadOnlyDictionary<TKey, TValue>(
-            values is null
-                ? new Dictionary<TKey, TValue>()
-                : new Dictionary<TKey, TValue>(values));
+            values is null ? new Dictionary<TKey, TValue>() : new Dictionary<TKey, TValue>(values)
+        );
     }
 
     private static IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> FreezeSourcePlanRequests(
         IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>? values,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var frozen = new Dictionary<SchemaFromNode, SourcePlanRequest>();
@@ -257,13 +278,13 @@ internal sealed record TargetArtifactSemanticFacts
             frozen.Add(entry.Key, entry.Value with { CancellationToken = CancellationToken.None });
         }
 
-        return new ReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>(
-            frozen);
+        return new ReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>(frozen);
     }
 
     private static IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> FreezeSchemaColumnsBySource(
         IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>? values,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var frozen = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
@@ -273,13 +294,13 @@ internal sealed record TargetArtifactSemanticFacts
             frozen.Add(entry.Key, entry.Value.ToArray());
         }
 
-        return new ReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>(
-            frozen);
+        return new ReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>(frozen);
     }
 
     private static IReadOnlyDictionary<string, ISchemaColumn[]> FreezeSchemaColumnsByAlias(
         IReadOnlyDictionary<string, ISchemaColumn[]> values,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         var frozen = new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal);
@@ -289,8 +310,7 @@ internal sealed record TargetArtifactSemanticFacts
             frozen.Add(entry.Key, entry.Value.ToArray());
         }
 
-        return new ReadOnlyDictionary<string, ISchemaColumn[]>(
-            frozen);
+        return new ReadOnlyDictionary<string, ISchemaColumn[]>(frozen);
     }
 }
 
@@ -298,20 +318,17 @@ internal sealed record TargetArtifactScriptParameterFact(
     string Name,
     string TypeName,
     bool HasDefaultValue,
-    string DefaultValueTypeName);
+    string DefaultValueTypeName
+);
 
 internal sealed record TargetArtifactScriptVariableFact(
     string Name,
     string TypeName,
     bool CanUseConstKeyword,
-    string ValueTypeName);
+    string ValueTypeName
+);
 
-internal sealed record TargetArtifactSourceFact(
-    string Id,
-    string Schema,
-    string Method,
-    string Alias,
-    string QueryId);
+internal sealed record TargetArtifactSourceFact(string Id, string Schema, string Method, string Alias, string QueryId);
 
 internal sealed record TargetArtifactColumnFact(
     int ColumnIndex,
@@ -320,26 +337,25 @@ internal sealed record TargetArtifactColumnFact(
     string ColumnTypeName,
     string SourceReadTypeName,
     string EnumTypeFingerprint,
-    IReadOnlyDictionary<string, string> ReadModifiers)
+    IReadOnlyDictionary<string, string> ReadModifiers
+)
 {
     public ColumnStability Stability { get; init; } = ColumnStability.Stable;
 }
 
 internal sealed record TargetArtifactSourceColumnsFact(
     TargetArtifactSourceFact Source,
-    IReadOnlyList<TargetArtifactColumnFact> Columns);
+    IReadOnlyList<TargetArtifactColumnFact> Columns
+);
 
-internal sealed record TargetArtifactAliasColumnsFact(
-    string Alias,
-    IReadOnlyList<TargetArtifactColumnFact> Columns);
+internal sealed record TargetArtifactAliasColumnsFact(string Alias, IReadOnlyList<TargetArtifactColumnFact> Columns);
 
 internal sealed record TargetArtifactSourceColumnRefFact(
     string Name,
-    IReadOnlyDictionary<string, string> ReadModifiers);
+    IReadOnlyDictionary<string, string> ReadModifiers
+);
 
-internal sealed record TargetArtifactOrderByFact(
-    TargetArtifactSourceColumnRefFact Column,
-    string Direction);
+internal sealed record TargetArtifactOrderByFact(TargetArtifactSourceColumnRefFact Column, string Direction);
 
 internal sealed record TargetArtifactSourceSchedulingFact(string SourceId, int Permissions);
 
@@ -353,7 +369,8 @@ internal sealed record TargetArtifactSourcePlanFact(
     IReadOnlyList<TargetArtifactOrderByFact> OrderBy,
     string Skip,
     string Take,
-    string PredicateTypeName)
+    string PredicateTypeName
+)
 {
     public IReadOnlyList<string> RequestedComputedProjectionFingerprints { get; init; } = [];
     public IReadOnlyList<string> AcceptedComputedProjectionFingerprints { get; init; } = [];

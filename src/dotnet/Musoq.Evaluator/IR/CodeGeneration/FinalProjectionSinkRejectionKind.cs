@@ -11,5 +11,5 @@ public enum FinalProjectionSinkRejectionKind
     ProjectionAppendMissing,
     ProjectionAppendTargetMissing,
     ProjectionLoopMismatch,
-    UnsupportedPostOperationChain
+    UnsupportedPostOperationChain,
 }

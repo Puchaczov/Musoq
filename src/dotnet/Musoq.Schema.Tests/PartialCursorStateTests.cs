@@ -22,7 +22,8 @@ public sealed class PartialCursorStateTests
     public void BitOffset_ShouldRejectValuesOutsideCurrentByte(int offset)
     {
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
-            new PartialInterpretResult<int>(1, new HashSet<string>(), 0, offset));
+            new PartialInterpretResult<int>(1, new HashSet<string>(), 0, offset)
+        );
     }
 
     [TestMethod]
@@ -45,12 +46,19 @@ public sealed class PartialCursorStateTests
     private sealed class BitsProbe : BytesInterpreterBase<int>
     {
         public override string SchemaName => "Bits";
+
         public override int InterpretAt(ReadOnlySpan<byte> data, int offset)
         {
             InitializeParsePosition(data, offset);
             var value = (int)ReadBits(data, 3);
             if (value != 0)
-                throw ParseException.ForBytes(ParseErrorCode.ValidationFailed, SchemaName, "Value", ParsePosition, "Invalid bits");
+                throw ParseException.ForBytes(
+                    ParseErrorCode.ValidationFailed,
+                    SchemaName,
+                    "Value",
+                    ParsePosition,
+                    "Invalid bits"
+                );
             RecordParsedField("Value");
             return value;
         }

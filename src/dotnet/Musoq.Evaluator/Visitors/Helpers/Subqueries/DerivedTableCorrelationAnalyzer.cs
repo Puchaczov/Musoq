@@ -32,7 +32,8 @@ internal sealed class DerivedTableCorrelationAnalyzer : RawTraverseVisitor<Deriv
                 emptyAliases,
                 emptyAliases,
                 SubqueryCorrelationFactBuilder.Build(body, emptyAliases, emptyAliases, emptyAliases),
-                false);
+                false
+            );
         }
 
         var analyzer = new DerivedTableCorrelationAnalyzer(visibleOuterAliases);
@@ -82,7 +83,8 @@ internal sealed class DerivedTableCorrelationAnalyzer : RawTraverseVisitor<Deriv
             correlatedAliases,
             CreateAliasSet(),
             SubqueryCorrelationFactBuilder.Build(node, localAliases, outerAliases, correlatedAliases),
-            false);
+            false
+        );
     }
 
     private static HashSet<string> CollectFromAliases(FromNode from)
@@ -129,6 +131,9 @@ internal sealed class DerivedTableCorrelationAnalyzer : RawTraverseVisitor<Deriv
 
     private static HashSet<string> CreateAliasSet(IEnumerable<string> aliases)
     {
-        return new HashSet<string>(aliases.Where(alias => !string.IsNullOrWhiteSpace(alias)), StringComparer.OrdinalIgnoreCase);
+        return new HashSet<string>(
+            aliases.Where(alias => !string.IsNullOrWhiteSpace(alias)),
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 }

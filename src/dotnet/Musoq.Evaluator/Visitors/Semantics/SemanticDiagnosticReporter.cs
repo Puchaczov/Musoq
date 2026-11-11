@@ -8,7 +8,8 @@ namespace Musoq.Evaluator.Visitors;
 
 internal sealed class SemanticDiagnosticReporter(
     DiagnosticContext? diagnosticContext,
-    IReadOnlyCollection<string>? generatedAliases = null)
+    IReadOnlyCollection<string>? generatedAliases = null
+)
 {
     private readonly IReadOnlyCollection<string> _generatedAliases = generatedAliases ?? [];
 
@@ -41,11 +42,17 @@ internal sealed class SemanticDiagnosticReporter(
         diagnosticContext.ReportError(
             DiagnosticCode.MQ3027_InvalidExpressionType,
             $"Query output column '{field.FieldName}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. Only primitive types are allowed in query outputs.",
-            node);
+            node
+        );
         return true;
     }
 
-    public bool TryReportInvalidExpressionType(string expressionDescription, Type? invalidType, string context, Node? node)
+    public bool TryReportInvalidExpressionType(
+        string expressionDescription,
+        Type? invalidType,
+        string context,
+        Node? node
+    )
     {
         if (diagnosticContext == null)
             return false;
@@ -56,7 +63,8 @@ internal sealed class SemanticDiagnosticReporter(
         diagnosticContext.ReportError(
             DiagnosticCode.MQ3027_InvalidExpressionType,
             $"Expression '{expressionDescription}' has invalid type '{invalidType?.Name ?? "null"}' in {context}. Only primitive types are allowed in query expressions.",
-            node);
+            node
+        );
         return true;
     }
 
@@ -64,7 +72,8 @@ internal sealed class SemanticDiagnosticReporter(
         string columnName,
         IEnumerable<string> groupByColumns,
         IEnumerable<(Node Expression, TextSpan Span)> groupByFields,
-        Node? node)
+        Node? node
+    )
     {
         if (diagnosticContext == null)
             return false;
@@ -72,8 +81,9 @@ internal sealed class SemanticDiagnosticReporter(
         // An invalid aggregate in GROUP BY owns the structural failure. The
         // non-aggregate projection error is only a dependent consequence of
         // the same malformed grouping shape.
-        if (diagnosticContext.Diagnostics.Any(diagnostic =>
-                diagnostic.Code == DiagnosticCode.MQ3092_AggregateInGroupBy))
+        if (
+            diagnosticContext.Diagnostics.Any(diagnostic => diagnostic.Code == DiagnosticCode.MQ3092_AggregateInGroupBy)
+        )
             return true;
 
         // A projection with its own binding/type root cannot also be
@@ -89,30 +99,30 @@ internal sealed class SemanticDiagnosticReporter(
         if (HasDependentUnresolvedGroupByRoot(columnName, groupByFieldList, node))
             return true;
 
-        var groupByColumnList = groupByColumns
-            .Select(FormatGroupByColumn)
-            .ToArray();
-        var groupByList = groupByColumnList.Length > 0
-            ? string.Join(", ", groupByColumnList)
-            : "(none)";
+        var groupByColumnList = groupByColumns.Select(FormatGroupByColumn).ToArray();
+        var groupByList = groupByColumnList.Length > 0 ? string.Join(", ", groupByColumnList) : "(none)";
         diagnosticContext.ReportError(
             DiagnosticCode.MQ3012_NonAggregateInSelect,
-            $"Column '{columnName}' must appear in the GROUP BY clause or be used in an aggregate function. " +
-            $"Current GROUP BY columns: {groupByList}.",
-            node);
+            $"Column '{columnName}' must appear in the GROUP BY clause or be used in an aggregate function. "
+                + $"Current GROUP BY columns: {groupByList}.",
+            node
+        );
         return true;
     }
 
     private bool HasDependentUnresolvedGroupByRoot(
         string columnName,
         IReadOnlyList<(Node Expression, TextSpan Span)> groupByFields,
-        Node? projectionNode)
+        Node? projectionNode
+    )
     {
-        var unresolvedGroupByDiagnostics = diagnosticContext!.Diagnostics
-            .Where(static diagnostic =>
-                diagnostic.Code is DiagnosticCode.MQ3001_UnknownColumn or DiagnosticCode.MQ3015_UnknownAlias)
-            .Where(diagnostic => groupByFields.Any(field =>
-                !field.Span.IsEmpty && field.Span.Overlaps(diagnostic.Span)))
+        var unresolvedGroupByDiagnostics = diagnosticContext!
+            .Diagnostics.Where(static diagnostic =>
+                diagnostic.Code is DiagnosticCode.MQ3001_UnknownColumn or DiagnosticCode.MQ3015_UnknownAlias
+            )
+            .Where(diagnostic =>
+                groupByFields.Any(field => !field.Span.IsEmpty && field.Span.Overlaps(diagnostic.Span))
+            )
             .ToArray();
 
         if (unresolvedGroupByDiagnostics.Length == 0)
@@ -120,8 +130,9 @@ internal sealed class SemanticDiagnosticReporter(
 
         foreach (var field in groupByFields)
         {
-            var fieldDiagnostics = unresolvedGroupByDiagnostics
-                .Where(diagnostic => !field.Span.IsEmpty && field.Span.Overlaps(diagnostic.Span));
+            var fieldDiagnostics = unresolvedGroupByDiagnostics.Where(diagnostic =>
+                !field.Span.IsEmpty && field.Span.Overlaps(diagnostic.Span)
+            );
             var terminalName = GetTerminalIdentifier(field.Expression.ToString());
 
             foreach (var diagnostic in fieldDiagnostics)
@@ -130,8 +141,10 @@ internal sealed class SemanticDiagnosticReporter(
                 // dependent projection cascade is still suppressed by the
                 // terminal column name, preserving the existing recovery
                 // contract for missing query-scope aliases.
-                if (diagnostic.Code == DiagnosticCode.MQ3015_UnknownAlias &&
-                    string.Equals(terminalName, columnName, StringComparison.OrdinalIgnoreCase))
+                if (
+                    diagnostic.Code == DiagnosticCode.MQ3015_UnknownAlias
+                    && string.Equals(terminalName, columnName, StringComparison.OrdinalIgnoreCase)
+                )
                     return true;
 
                 if (diagnostic.Code != DiagnosticCode.MQ3001_UnknownColumn)
@@ -148,8 +161,11 @@ internal sealed class SemanticDiagnosticReporter(
                     if (!diagnostic.Arguments.TryGetValue(key, out var candidates))
                         continue;
 
-                    if (candidates.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                        .Any(candidate => string.Equals(candidate, columnName, StringComparison.OrdinalIgnoreCase)))
+                    if (
+                        candidates
+                            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                            .Any(candidate => string.Equals(candidate, columnName, StringComparison.OrdinalIgnoreCase))
+                    )
                         return true;
                 }
             }
@@ -160,9 +176,7 @@ internal sealed class SemanticDiagnosticReporter(
 
     private static bool HasCompatibleSourceIdentity(Node groupByExpression, Node? projectionNode)
     {
-        var projectionExpression = projectionNode is FieldNode field
-            ? field.Expression
-            : projectionNode;
+        var projectionExpression = projectionNode is FieldNode field ? field.Expression : projectionNode;
         var groupByQualifiers = GetExpressionQualifiers(groupByExpression);
         var projectionQualifiers = GetExpressionQualifiers(projectionExpression);
 
@@ -172,8 +186,8 @@ internal sealed class SemanticDiagnosticReporter(
         if (groupByQualifiers.Count == 0 || projectionQualifiers.Count == 0)
             return true;
 
-        return groupByQualifiers.Count == projectionQualifiers.Count &&
-               groupByQualifiers.All(projectionQualifiers.Contains);
+        return groupByQualifiers.Count == projectionQualifiers.Count
+            && groupByQualifiers.All(projectionQualifiers.Contains);
     }
 
     private static HashSet<string> GetExpressionQualifiers(Node? expression)
@@ -217,7 +231,7 @@ internal sealed class SemanticDiagnosticReporter(
         {
             AccessColumnNode column when !string.IsNullOrWhiteSpace(column.Alias) => column.Alias,
             IdentifierNode identifier => identifier.Name,
-            _ => null
+            _ => null,
         };
     }
 

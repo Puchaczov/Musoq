@@ -12,7 +12,8 @@ public sealed class DiagnosticREC108EntryPointTests : Schema.NegativeTests.Negat
     public void SingleQueryCompilation_ShouldRejectTwoExecutableStatementsWithMQ2036()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select 1 from #test.single(); select 2 from #test.single()"));
+            CompileQuery("select 1 from #test.single(); select 2 from #test.single()")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ2036_MultipleExecutableStatements, DiagnosticPhase.Parse);
         AssertHasGuidance(exception);
@@ -23,7 +24,8 @@ public sealed class DiagnosticREC108EntryPointTests : Schema.NegativeTests.Negat
     public void SingleQueryCompilation_ShouldKeepAdjacentPastedStatementAsParseError()
     {
         var exception = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("select 1 from #test.single() select 2 from #test.single()"));
+            CompileQuery("select 1 from #test.single() select 2 from #test.single()")
+        );
 
         AssertErrorEnvelope(exception, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         AssertHasGuidance(exception);

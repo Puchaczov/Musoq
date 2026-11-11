@@ -14,7 +14,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable source,
         ExecutionCapacityHint? capacityHint,
         ExecutionColumnMetadata? columnMetadata,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         yield return CreateDerivedTableDeclaration(target, source, columnMetadata, context);
 
@@ -25,14 +26,18 @@ public sealed partial class ExecutionCSharpRenderer
     private IEnumerable<StatementSyntax> CreateTablePostOperationCopyStatements(
         ExecutionTablePostOperationMetadata operation,
         string rowsVariableName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
-        foreach (var statement in CreateDerivedTableStatements(
-                     operation.Target,
-                     operation.Source,
-                     operation.CapacityHint,
-                     operation.ColumnMetadata,
-                     context))
+        foreach (
+            var statement in CreateDerivedTableStatements(
+                operation.Target,
+                operation.Source,
+                operation.CapacityHint,
+                operation.ColumnMetadata,
+                context
+            )
+        )
         {
             yield return statement;
         }
@@ -44,15 +49,18 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable target,
         ExecutionVariable source,
         ExecutionColumnMetadata? columnMetadata,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         if (TryGetTypedRowBufferShape(target.Name, context, out var rowShape))
         {
             return CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 target.Name,
-                SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(rowShape.TypeName))
-                    .WithArgumentList(SyntaxFactory.ArgumentList()));
+                SyntaxFactory
+                    .ObjectCreationExpression(CreateListTypeSyntax(rowShape.TypeName))
+                    .WithArgumentList(SyntaxFactory.ArgumentList())
+            );
         }
 
         ExpressionSyntax columns;
@@ -68,10 +76,8 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             target.Name,
-            CreateObjectCreation(
-                "Table",
-                CreateStringLiteral(target.Name),
-                columns));
+            CreateObjectCreation("Table", CreateStringLiteral(target.Name), columns)
+        );
     }
 
     private static InvocationExpressionSyntax CreateColumnArrayCopy(ExecutionVariable source)
@@ -82,20 +88,22 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(source.Name),
-                    SyntaxFactory.IdentifierName("Columns")),
-                SyntaxFactory.IdentifierName("ToArray")));
+                    SyntaxFactory.IdentifierName("Columns")
+                ),
+                SyntaxFactory.IdentifierName("ToArray")
+            )
+        );
     }
 
-    private ExpressionSyntax CreateColumnArrayForSource(
-        ExecutionVariable source,
-        ExecutionRenderContext context)
+    private ExpressionSyntax CreateColumnArrayForSource(ExecutionVariable source, ExecutionRenderContext context)
     {
         if (TryGetGeneratedRowShape(source, context, out var sourceRowShape))
         {
             var sourceMetadata = CreateColumnMetadata(
                 source.Name,
                 sourceRowShape.Fields,
-                ExecutionColumnMetadataKind.TableColumns);
+                ExecutionColumnMetadataKind.TableColumns
+            );
             return TryGetStaticMetadataFieldName(sourceMetadata, context, out var sourceFieldName)
                 ? SyntaxFactory.IdentifierName(sourceFieldName)
                 : CreateColumnArrayCreation(sourceMetadata.Fields);
@@ -108,7 +116,8 @@ public sealed partial class ExecutionCSharpRenderer
         string rowsVariableName,
         string tableName,
         ExecutionAppendMode appendMode,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context
+    )
     {
         const string rowVariableName = "copiedRow";
 
@@ -118,18 +127,21 @@ public sealed partial class ExecutionCSharpRenderer
             StatementEmitter.CreateBlock(
                 TryGetTypedRowBufferShape(tableName, context, out _)
                     ? CreateRowBufferAddStatement(tableName, SyntaxFactory.IdentifierName(rowVariableName))
-                    : CreateTableAddStatement(tableName, SyntaxFactory.IdentifierName(rowVariableName), appendMode)));
+                    : CreateTableAddStatement(tableName, SyntaxFactory.IdentifierName(rowVariableName), appendMode)
+            )
+        );
     }
 
-    private static ExpressionStatementSyntax CreateEnsureCapacityStatement(
-        string tableName,
-        ExpressionSyntax capacity)
+    private static ExpressionStatementSyntax CreateEnsureCapacityStatement(string tableName, ExpressionSyntax capacity)
     {
-        var ensureCapacityInvocation = SyntaxFactory.InvocationExpression(
+        var ensureCapacityInvocation = SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(tableName),
-                    SyntaxFactory.IdentifierName(nameof(Table.EnsureCapacity))))
+                    SyntaxFactory.IdentifierName(nameof(Table.EnsureCapacity))
+                )
+            )
             .WithArgumentList(CreateArgumentList(capacity));
 
         return SyntaxFactory.ExpressionStatement(ensureCapacityInvocation);
@@ -141,23 +153,34 @@ public sealed partial class ExecutionCSharpRenderer
         {
             ExecutionConstantCapacityHint constant => SyntaxFactory.LiteralExpression(
                 SyntaxKind.NumericLiteralExpression,
-                SyntaxFactory.Literal(constant.Capacity)),
+                SyntaxFactory.Literal(constant.Capacity)
+            ),
             ExecutionCollectionCountCapacityHint collection => CreateCollectionCountRead(collection.Collection.Name),
             ExecutionTryGetNonEnumeratedCountCapacityHint enumerable => CreateTryGetNonEnumeratedCountCapacityRead(
                 enumerable.Collection.Name,
-                enumerable.CountVariableName),
-            ExecutionStoredTableCountCapacityHint storedTable => CreateStoredTableCountRead(storedTable.TableIndex, context),
+                enumerable.CountVariableName
+            ),
+            ExecutionStoredTableCountCapacityHint storedTable => CreateStoredTableCountRead(
+                storedTable.TableIndex,
+                context
+            ),
             ExecutionTakeCapacityHint take => CreateMathInvocation(
                 nameof(Math.Min),
                 CreateCollectionCountRead(take.Collection.Name),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(take.Count))),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(take.Count))
+            ),
             ExecutionSkipCapacityHint skip => CreateMathInvocation(
                 nameof(Math.Max),
                 SyntaxFactory.BinaryExpression(
                     SyntaxKind.SubtractExpression,
                     CreateCollectionCountRead(skip.Collection.Name),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(skip.Count))),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.NumericLiteralExpression,
+                        SyntaxFactory.Literal(skip.Count)
+                    )
+                ),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+            ),
             ExecutionSkipTakeCapacityHint skipTake => CreateMathInvocation(
                 nameof(Math.Min),
                 CreateMathInvocation(
@@ -165,29 +188,55 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.BinaryExpression(
                         SyntaxKind.SubtractExpression,
                         CreateCollectionCountRead(skipTake.Collection.Name),
-                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(skipTake.SkipCount))),
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(skipTake.TakeCount))),
-            _ => throw UnsupportedShape.Of($"Capacity hint {capacityHint.GetType().Name}")
+                        SyntaxFactory.LiteralExpression(
+                            SyntaxKind.NumericLiteralExpression,
+                            SyntaxFactory.Literal(skipTake.SkipCount)
+                        )
+                    ),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+                ),
+                SyntaxFactory.LiteralExpression(
+                    SyntaxKind.NumericLiteralExpression,
+                    SyntaxFactory.Literal(skipTake.TakeCount)
+                )
+            ),
+            _ => throw UnsupportedShape.Of($"Capacity hint {capacityHint.GetType().Name}"),
         };
     }
 
-    private static ConditionalExpressionSyntax CreateTryGetNonEnumeratedCountCapacityRead(string collectionName, string countVariableName)
+    private static ConditionalExpressionSyntax CreateTryGetNonEnumeratedCountCapacityRead(
+        string collectionName,
+        string countVariableName
+    )
     {
         return SyntaxFactory.ConditionalExpression(
-            SyntaxFactory.InvocationExpression(
+            SyntaxFactory
+                .InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(collectionName),
-                        SyntaxFactory.IdentifierName(nameof(Enumerable.TryGetNonEnumeratedCount))))
-                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(
-                            SyntaxFactory.DeclarationExpression(
-                                SyntaxFactory.IdentifierName("var"),
-                                SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(countVariableName))))
-                        .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.OutKeyword))))),
+                        SyntaxFactory.IdentifierName(nameof(Enumerable.TryGetNonEnumeratedCount))
+                    )
+                )
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory
+                                .Argument(
+                                    SyntaxFactory.DeclarationExpression(
+                                        SyntaxFactory.IdentifierName("var"),
+                                        SyntaxFactory.SingleVariableDesignation(
+                                            SyntaxFactory.Identifier(countVariableName)
+                                        )
+                                    )
+                                )
+                                .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.OutKeyword))
+                        )
+                    )
+                ),
             SyntaxFactory.IdentifierName(countVariableName),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)));
+            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+        );
     }
 
     private static MemberAccessExpressionSyntax CreateCollectionCountRead(string collectionName)
@@ -195,7 +244,8 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(collectionName),
-            SyntaxFactory.IdentifierName("Count"));
+            SyntaxFactory.IdentifierName("Count")
+        );
     }
 
     private ExpressionSyntax CreateStoredTableCountRead(int tableIndex, ExecutionRenderContext context)
@@ -205,24 +255,30 @@ public sealed partial class ExecutionCSharpRenderer
             return SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 CreateCteRowResultSlotAccess(tableIndex),
-                SyntaxFactory.IdentifierName("Count"));
+                SyntaxFactory.IdentifierName("Count")
+            );
         }
 
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             CreateStoredTableRead(tableIndex),
-            SyntaxFactory.IdentifierName("Count"));
+            SyntaxFactory.IdentifierName("Count")
+        );
     }
 
     private static InvocationExpressionSyntax CreateMathInvocation(
         string methodName,
-        params ExpressionSyntax[] arguments)
+        params ExpressionSyntax[] arguments
+    )
     {
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(Math)),
-                    SyntaxFactory.IdentifierName(methodName)))
+                    SyntaxFactory.IdentifierName(methodName)
+                )
+            )
             .WithArgumentList(CreateArgumentList(arguments));
     }
 }

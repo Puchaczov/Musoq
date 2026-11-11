@@ -14,7 +14,7 @@ public sealed class TwoModeDiagnosticsGuardrailTests
         "DirectTypedProfilingTests.cs",
         "TypedExecutionTests.cs",
         "TypedInspectionTests.cs",
-        "TypedProfilingTests.cs"
+        "TypedProfilingTests.cs",
     ];
 
     [TestMethod]
@@ -26,7 +26,7 @@ public sealed class TwoModeDiagnosticsGuardrailTests
             ".GetField(",
             ".GetProperty(",
             "\"_factory\"",
-            "\"_runnableType\""
+            "\"_runnableType\"",
         };
 
         var failures = FindForbiddenTokens(TwoModeBehaviorTestFiles, forbiddenTokens);
@@ -44,7 +44,7 @@ public sealed class TwoModeDiagnosticsGuardrailTests
             "TypedProjectionRows",
             "TableProjectionRows",
             "ProjectRowsParallel",
-            "TypedPostOperationRows"
+            "TypedPostOperationRows",
         };
 
         var failures = FindForbiddenTokens(["TypedInspectionTests.cs"], forbiddenTokens);
@@ -65,14 +65,12 @@ public sealed class TwoModeDiagnosticsGuardrailTests
         }
 
         return fileNames
-            .Select(fileName => new
-            {
-                FileName = fileName,
-                Text = ReadTestSource(fileName)
-            })
-            .SelectMany(file => forbiddenTokens
-                .Where(file.Text.Contains)
-                .Select(token => $"{file.FileName} contains forbidden two-mode behavior test token: {token}"))
+            .Select(fileName => new { FileName = fileName, Text = ReadTestSource(fileName) })
+            .SelectMany(file =>
+                forbiddenTokens
+                    .Where(file.Text.Contains)
+                    .Select(token => $"{file.FileName} contains forbidden two-mode behavior test token: {token}")
+            )
             .ToArray();
     }
 

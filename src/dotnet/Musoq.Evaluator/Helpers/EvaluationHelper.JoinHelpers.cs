@@ -10,7 +10,8 @@ public static partial class EvaluationHelper
         IEnumerable<T> candidates,
         Func<T, NativeEqualityKey<TEquality>>? equalityKeySelector,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
         where T : class
         where TEquality : notnull
     {
@@ -21,11 +22,17 @@ public static partial class EvaluationHelper
         IEnumerable<IReadOnlyList<T>> candidateChunks,
         Func<T, NativeEqualityKey<TEquality>>? equalityKeySelector,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
         where T : class
         where TEquality : notnull
     {
-        return AsOfJoinIndex<T, TKey, TEquality>.CreateFromChunks(candidateChunks, equalityKeySelector, keySelector, comparisonKind);
+        return AsOfJoinIndex<T, TKey, TEquality>.CreateFromChunks(
+            candidateChunks,
+            equalityKeySelector,
+            keySelector,
+            comparisonKind
+        );
     }
 
     public static AsOfJoinIndex<T, TKey, TEquality> CreateAsOfIndex<T, TKey, TEquality, TTie>(
@@ -35,7 +42,8 @@ public static partial class EvaluationHelper
         BinaryOpKind comparisonKind,
         Func<T, TTie> tieBreakKeySelector,
         bool tieBreakDescending,
-        NullOrdering tieBreakNullOrdering)
+        NullOrdering tieBreakNullOrdering
+    )
         where T : class
         where TEquality : notnull
     {
@@ -46,7 +54,8 @@ public static partial class EvaluationHelper
             comparisonKind,
             tieBreakKeySelector,
             tieBreakDescending,
-            tieBreakNullOrdering);
+            tieBreakNullOrdering
+        );
     }
 
     public static AsOfJoinIndex<T, TKey, TEquality> CreateAsOfIndex<T, TKey, TEquality, TTie>(
@@ -56,7 +65,8 @@ public static partial class EvaluationHelper
         BinaryOpKind comparisonKind,
         Func<T, TTie> tieBreakKeySelector,
         bool tieBreakDescending,
-        NullOrdering tieBreakNullOrdering)
+        NullOrdering tieBreakNullOrdering
+    )
         where T : class
         where TEquality : notnull
     {
@@ -67,13 +77,15 @@ public static partial class EvaluationHelper
             comparisonKind,
             tieBreakKeySelector,
             tieBreakDescending,
-            tieBreakNullOrdering);
+            tieBreakNullOrdering
+        );
     }
 
     public static RangeJoinIndex<T, TKey> CreateRangeJoinIndex<T, TKey>(
         IEnumerable<T> candidates,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
         where T : class
     {
         return RangeJoinIndex<T, TKey>.Create(candidates, keySelector, comparisonKind);
@@ -83,21 +95,24 @@ public static partial class EvaluationHelper
         IEnumerable<T> candidates,
         Func<T, object?> partitionKeySelector,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
         where T : class
     {
         return RangeJoinIndex<T, TKey>.Create<object>(
             candidates,
             candidate => partitionKeySelector(candidate)!,
             keySelector,
-            comparisonKind);
+            comparisonKind
+        );
     }
 
     public static RangeJoinIndex<T, TKey> CreateRangeJoinIndex<T, TPartitionKey, TKey>(
         IEnumerable<T> candidates,
         Func<T, TPartitionKey> partitionKeySelector,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
         where T : class
     {
         return RangeJoinIndex<T, TKey>.Create(candidates, partitionKeySelector, keySelector, comparisonKind);
@@ -106,7 +121,8 @@ public static partial class EvaluationHelper
     public static RangeJoinIndex<T, TKey> CreateRangeJoinIndex<T, TKey>(
         IEnumerable<IReadOnlyList<T>> candidateChunks,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
         where T : class
     {
         return RangeJoinIndex<T, TKey>.CreateFromChunks(candidateChunks, keySelector, comparisonKind);
@@ -116,24 +132,31 @@ public static partial class EvaluationHelper
         IEnumerable<IReadOnlyList<T>> candidateChunks,
         Func<T, object?> partitionKeySelector,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
         where T : class
     {
         return RangeJoinIndex<T, TKey>.CreateFromChunks<object>(
             candidateChunks,
             candidate => partitionKeySelector(candidate)!,
             keySelector,
-            comparisonKind);
+            comparisonKind
+        );
     }
 
     public static RangeJoinIndex<T, TKey> CreateRangeJoinIndex<T, TPartitionKey, TKey>(
         IEnumerable<IReadOnlyList<T>> candidateChunks,
         Func<T, TPartitionKey> partitionKeySelector,
         Func<T, TKey> keySelector,
-        BinaryOpKind comparisonKind)
+        BinaryOpKind comparisonKind
+    )
         where T : class
     {
-        return RangeJoinIndex<T, TKey>.CreateFromChunks(candidateChunks, partitionKeySelector, keySelector, comparisonKind);
+        return RangeJoinIndex<T, TKey>.CreateFromChunks(
+            candidateChunks,
+            partitionKeySelector,
+            keySelector,
+            comparisonKind
+        );
     }
-
 }

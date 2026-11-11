@@ -17,7 +17,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, int> cteIndexes,
         Dictionary<string, GeneratedRowShape> cteShapesByName,
         int schemaFromIndex,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
@@ -27,7 +28,8 @@ internal sealed partial class PhysicalLoweringImplementation
         for (var ordinal = 0; ordinal < recursive.Invariants.Length; ordinal++)
         {
             var invariant = recursive.Invariants[ordinal];
-            if (TryReuseExistingRecursiveInvariantSidecar(
+            if (
+                TryReuseExistingRecursiveInvariantSidecar(
                     owningCte,
                     invariant,
                     ordinal,
@@ -36,7 +38,9 @@ internal sealed partial class PhysicalLoweringImplementation
                     cteShapesByName,
                     scope,
                     out var sidecarInput,
-                    out var sidecarLoad))
+                    out var sidecarLoad
+                )
+            )
             {
                 cteShapesByName[invariant.Name] = sidecarInput.RowShape;
                 inputs.Add(invariant.Name, sidecarInput);
@@ -44,11 +48,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 continue;
             }
 
-            if (TryReuseExistingRecursiveInvariantRows(
-                    invariant,
-                    cteIndexes,
-                    cteShapesByName,
-                    out var existingInput))
+            if (TryReuseExistingRecursiveInvariantRows(invariant, cteIndexes, cteShapesByName, out var existingInput))
             {
                 cteShapesByName[invariant.Name] = existingInput.RowShape;
                 inputs.Add(invariant.Name, existingInput);
@@ -56,11 +56,14 @@ internal sealed partial class PhysicalLoweringImplementation
             }
 
             var ordinalText = ordinal.ToString(CultureInfo.InvariantCulture);
-            var shape = CreateGeneratedShape($"Cte{cteIndex.ToString(CultureInfo.InvariantCulture)}Invariant{ordinalText}Row0", invariant.Fields) with
+            var shape = CreateGeneratedShape(
+                $"Cte{cteIndex.ToString(CultureInfo.InvariantCulture)}Invariant{ordinalText}Row0",
+                invariant.Fields
+            ) with
             {
                 Contexts = [],
                 RequiresRowBase = false,
-                EmitAsValueType = true
+                EmitAsValueType = true,
             };
             cteShapesByName[invariant.Name] = shape;
 
@@ -68,27 +71,28 @@ internal sealed partial class PhysicalLoweringImplementation
             var table = new ExecutionVariable(
                 $"{cteTableName}Invariant{ordinalText}",
                 typeof(object),
-                $"List<{shape.TypeName}>");
+                $"List<{shape.TypeName}>"
+            );
             TableBuildResult result;
             RecursiveCteInvariantInput input;
 
-            if (invariant.StorageKind is PhysicalRecursiveCteInvariantStorageKind.HashIndex or
-                PhysicalRecursiveCteInvariantStorageKind.ExistingHashIndex)
+            if (
+                invariant.StorageKind
+                is PhysicalRecursiveCteInvariantStorageKind.HashIndex
+                    or PhysicalRecursiveCteInvariantStorageKind.ExistingHashIndex
+            )
             {
                 var keyType = ResolveRecursiveInvariantHashKeyType(invariant);
                 var hash = new ExecutionVariable($"{table.Name}Hash", typeof(object));
-                var row = new ExecutionVariable(
-                    $"{table.Name}Row",
-                    typeof(Row),
-                    shape.TypeName);
+                var row = new ExecutionVariable($"{table.Name}Row", typeof(Row), shape.TypeName);
                 var carrierRef = new PhysicalCteRefNode(invariant.Name, row.Name, invariant.OutputSchema);
                 var carrierShape = CreateTypedTableRowShape(carrierRef, shape);
                 var carrierLookup = new Dictionary<string, RowShape>(
-                    RowShapeLookup.CreateTransitionAliasLookup(
-                        RowShapeLookup.CreateSourceShapeLookup(carrierShape)),
-                    StringComparer.OrdinalIgnoreCase)
+                    RowShapeLookup.CreateTransitionAliasLookup(RowShapeLookup.CreateSourceShapeLookup(carrierShape)),
+                    StringComparer.OrdinalIgnoreCase
+                )
                 {
-                    [invariant.Alias] = carrierShape
+                    [invariant.Alias] = carrierShape,
                 };
                 foreach (var sourceAlias in invariant.SourceAliases)
                     carrierLookup.TryAdd(sourceAlias, carrierShape);
@@ -101,7 +105,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     key,
                     ExecutionClrBindingFactory.FromClr(keyType),
                     snapshotRows,
-                    _compilationOptions.RecursiveCteLimits.MaxSnapshotRows);
+                    _compilationOptions.RecursiveCteLimits.MaxSnapshotRows
+                );
                 result = BuildPlanTable(
                     projection,
                     table.Name,
@@ -110,21 +115,21 @@ internal sealed partial class PhysicalLoweringImplementation
                     cteShapesByName,
                     nextSchemaFromIndex,
                     scopeAggregateVariables: true,
-                    scope: scope.WithDirectTableSink(sink));
+                    scope: scope.WithDirectTableSink(sink)
+                );
                 if (!result.IsBuilt)
                     return RecursiveInvariantBuildResult.Unsupported(result.UnsupportedReason);
 
-                nodes.Add(new ExecutionCreateHash(
-                    hash,
-                    ExecutionClrBindingFactory.FromClr(keyType),
-                    ExecutionClrBindingFactory.FromClr(typeof(Row)),
-                    GeneratedRowTypeName: shape.TypeName));
+                nodes.Add(
+                    new ExecutionCreateHash(
+                        hash,
+                        ExecutionClrBindingFactory.FromClr(keyType),
+                        ExecutionClrBindingFactory.FromClr(typeof(Row)),
+                        GeneratedRowTypeName: shape.TypeName
+                    )
+                );
                 nodes.AddRange(result.Nodes);
-                input = new RecursiveCteInvariantInput(
-                    invariant.Name,
-                    shape,
-                    new ExecutionVariableRead(table),
-                    hash);
+                input = new RecursiveCteInvariantInput(invariant.Name, shape, new ExecutionVariableRead(table), hash);
             }
             else
             {
@@ -133,7 +138,8 @@ internal sealed partial class PhysicalLoweringImplementation
                     table,
                     shape,
                     snapshotRows,
-                    _compilationOptions.RecursiveCteLimits.MaxSnapshotRows);
+                    _compilationOptions.RecursiveCteLimits.MaxSnapshotRows
+                );
                 result = BuildPlanTable(
                     projection,
                     table.Name,
@@ -142,16 +148,14 @@ internal sealed partial class PhysicalLoweringImplementation
                     cteShapesByName,
                     nextSchemaFromIndex,
                     scopeAggregateVariables: true,
-                    scope: scope.WithDirectTableSink(sink));
+                    scope: scope.WithDirectTableSink(sink)
+                );
                 if (!result.IsBuilt)
                     return RecursiveInvariantBuildResult.Unsupported(result.UnsupportedReason);
 
                 nodes.Add(CreateTable(table, shape));
                 nodes.AddRange(result.Nodes);
-                input = new RecursiveCteInvariantInput(
-                    invariant.Name,
-                    shape,
-                    new ExecutionVariableRead(table));
+                input = new RecursiveCteInvariantInput(invariant.Name, shape, new ExecutionVariableRead(table));
             }
 
             shapes.AddRange(result.Shapes);
@@ -171,20 +175,23 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         LoweringScope scope,
         out RecursiveCteInvariantInput input,
-        out ExecutionNode load)
+        out ExecutionNode load
+    )
     {
         input = null!;
         load = null!;
-        if (invariant.StorageKind != PhysicalRecursiveCteInvariantStorageKind.ExistingHashIndex ||
-            invariant.ExistingCteName == null ||
-            !cteIndexes.TryGetValue(invariant.ExistingCteName, out var tableIndex) ||
-            !cteShapesByName.TryGetValue(invariant.ExistingCteName, out var storedRowShape))
+        if (
+            invariant.StorageKind != PhysicalRecursiveCteInvariantStorageKind.ExistingHashIndex
+            || invariant.ExistingCteName == null
+            || !cteIndexes.TryGetValue(invariant.ExistingCteName, out var tableIndex)
+            || !cteShapesByName.TryGetValue(invariant.ExistingCteName, out var storedRowShape)
+        )
         {
             return false;
         }
 
-        var keyColumns = invariant.HashKeys
-            .OfType<Expressions.ColumnRef>()
+        var keyColumns = invariant
+            .HashKeys.OfType<Expressions.ColumnRef>()
             .Select(static key => key.ColumnName)
             .ToArray();
         if (keyColumns.Length != invariant.HashKeys.Length)
@@ -193,32 +200,33 @@ internal sealed partial class PhysicalLoweringImplementation
         var sidecar = ExecutionStrategies
             .GetCteSidecarIndexSpecs(owningCte, invariant.ExistingCteName)
             .FirstOrDefault(spec =>
-                spec.Kind == CteSidecarIndexKind.Hash &&
-                spec.KeyColumns.SequenceEqual(keyColumns, StringComparer.OrdinalIgnoreCase));
+                spec.Kind == CteSidecarIndexKind.Hash
+                && spec.KeyColumns.SequenceEqual(keyColumns, StringComparer.OrdinalIgnoreCase)
+            );
         if (sidecar == null)
             return false;
 
         var rowShape = scope.CteSidecarHashPayloads.TryGet(sidecar.IndexSlot, out var payloadShape)
-            ? new GeneratedRowShape(
-                payloadShape.TypeName,
-                payloadShape.Fields,
-                payloadShape.Contexts)
+            ? new GeneratedRowShape(payloadShape.TypeName, payloadShape.Fields, payloadShape.Contexts)
             : storedRowShape;
         var hash = new ExecutionVariable(
             $"{cteTableName}Invariant{ordinal.ToString(CultureInfo.InvariantCulture)}Hash",
-            typeof(object));
+            typeof(object)
+        );
         load = new ExecutionCteSidecarIndexLoadCandidate(
             hash,
             sidecar.IndexSlot,
             ExecutionCteSidecarIndexKind.Hash,
             ExecutionClrBindingFactory.FromClr(sidecar.KeyType),
             ExecutionClrBindingFactory.FromClr(typeof(Row)),
-            rowShape.TypeName);
+            rowShape.TypeName
+        );
         input = new RecursiveCteInvariantInput(
             invariant.Name,
             rowShape,
             new ExecutionStoredTableRows(tableIndex, storedRowShape),
-            hash);
+            hash
+        );
         return true;
     }
 
@@ -226,13 +234,16 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalRecursiveCteInvariantDefinition invariant,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
-        out RecursiveCteInvariantInput input)
+        out RecursiveCteInvariantInput input
+    )
     {
         input = null!;
-        if (invariant.StorageKind != PhysicalRecursiveCteInvariantStorageKind.ExistingRows ||
-            invariant.Plan is not PhysicalCteRefNode existingRef ||
-            !cteIndexes.TryGetValue(existingRef.CteName, out var tableIndex) ||
-            !cteShapesByName.TryGetValue(existingRef.CteName, out var rowShape))
+        if (
+            invariant.StorageKind != PhysicalRecursiveCteInvariantStorageKind.ExistingRows
+            || invariant.Plan is not PhysicalCteRefNode existingRef
+            || !cteIndexes.TryGetValue(existingRef.CteName, out var tableIndex)
+            || !cteShapesByName.TryGetValue(existingRef.CteName, out var rowShape)
+        )
         {
             return false;
         }
@@ -240,25 +251,25 @@ internal sealed partial class PhysicalLoweringImplementation
         input = new RecursiveCteInvariantInput(
             invariant.Name,
             rowShape,
-            new ExecutionStoredTableRows(tableIndex, rowShape));
+            new ExecutionStoredTableRows(tableIndex, rowShape)
+        );
         return true;
     }
 
-    private static Type ResolveRecursiveInvariantHashKeyType(
-        PhysicalRecursiveCteInvariantDefinition invariant)
+    private static Type ResolveRecursiveInvariantHashKeyType(PhysicalRecursiveCteInvariantDefinition invariant)
     {
         if (invariant.HashKeys.Length != invariant.HashProbeKeys.Length || invariant.HashKeys.Length == 0)
             throw new InvalidOperationException($"Recursive invariant '{invariant.Name}' has invalid hash keys.");
 
         if (invariant.HashKeys.Length == 1)
         {
-            return ResolveCommonKeyType(
-                invariant.HashKeys[0].ReturnType,
-                invariant.HashProbeKeys[0].ReturnType);
+            return ResolveCommonKeyType(invariant.HashKeys[0].ReturnType, invariant.HashProbeKeys[0].ReturnType);
         }
 
-        var types = invariant.HashKeys.Select((key, index) =>
-                ResolveCommonKeyType(key.ReturnType, invariant.HashProbeKeys[index].ReturnType))
+        var types = invariant
+            .HashKeys.Select(
+                (key, index) => ResolveCommonKeyType(key.ReturnType, invariant.HashProbeKeys[index].ReturnType)
+            )
             .ToArray();
         return ValueTupleTypeShape.TryCreate(types, out var tupleType) ? tupleType : typeof(object);
     }
@@ -270,14 +281,15 @@ internal sealed record RecursiveInvariantBuildResult(
     IReadOnlyList<RowShape> Shapes,
     IReadOnlyList<ExecutionNode> Nodes,
     IReadOnlyDictionary<string, RecursiveCteInvariantInput> Inputs,
-    int NextSchemaFromIndex)
+    int NextSchemaFromIndex
+)
 {
     public static RecursiveInvariantBuildResult Success(
         IReadOnlyList<RowShape> shapes,
         IReadOnlyList<ExecutionNode> nodes,
         IReadOnlyDictionary<string, RecursiveCteInvariantInput> inputs,
-        int nextSchemaFromIndex) =>
-        new(true, string.Empty, shapes, nodes, inputs, nextSchemaFromIndex);
+        int nextSchemaFromIndex
+    ) => new(true, string.Empty, shapes, nodes, inputs, nextSchemaFromIndex);
 
     public static RecursiveInvariantBuildResult Unsupported(string reason) =>
         new(false, reason, [], [], new Dictionary<string, RecursiveCteInvariantInput>(), 0);

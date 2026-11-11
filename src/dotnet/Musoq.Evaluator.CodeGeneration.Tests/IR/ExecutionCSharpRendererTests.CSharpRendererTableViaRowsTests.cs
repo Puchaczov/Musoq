@@ -13,9 +13,7 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         using var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
-        var context = new RenderContext(
-            generator,
-            new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
+        var context = new RenderContext(generator, new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
         var renderer = new CSharpRenderer(context);
 
         var outcome = renderer.TryRenderExecutionQueryMethod(CreatePlan(), "compiled");
@@ -37,15 +35,23 @@ public sealed partial class ExecutionCSharpRendererTests
         StringAssert.Contains(code, "return new QueryTableEnumerable<ResultRow0>(");
         StringAssert.Contains(code, "TableProjectionRows.ProjectRowsSerial<");
         StringAssert.Contains(code, "new ResultRow0(p.Name)");
-        Assert.IsFalse(code.Contains("QueryRows.DeferredTable<ResultRow0>(\"result\", new Column[]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            code.Contains("QueryRows.DeferredTable<ResultRow0>(\"result\", new Column[]", StringComparison.Ordinal)
+        );
         Assert.IsFalse(code.Contains("private sealed class ResultShape0 : Row", StringComparison.Ordinal));
         StringAssert.Contains(code, "onCompleted: () =>");
-        Assert.IsFalse(code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal));
+        Assert.IsFalse(
+            code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal)
+        );
         Assert.IsFalse(code.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("QueryRows.FromTable<ResultRow0>", StringComparison.Ordinal));
         Assert.IsFalse(
-            code.Contains("return ComputeTable_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);", StringComparison.Ordinal),
-            "Default table Run should materialize from ComputeRows_* rather than call ComputeTable_* directly.");
+            code.Contains(
+                "return ComputeTable_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);",
+                StringComparison.Ordinal
+            ),
+            "Default table Run should materialize from ComputeRows_* rather than call ComputeTable_* directly."
+        );
     }
 
     [TestMethod]
@@ -58,7 +64,9 @@ public sealed partial class ExecutionCSharpRendererTests
             new RenderContextOptions(
                 AssemblyName: "Query.Compiled_Test",
                 ResultMode: QueryResultMode.TableViaRows,
-                FinalResultSinkKind: FinalResultSinkKind.TableRowsMaterialized));
+                FinalResultSinkKind: FinalResultSinkKind.TableRowsMaterialized
+            )
+        );
         var renderer = new CSharpRenderer(context);
 
         var outcome = renderer.TryRenderExecutionQueryMethod(CreatePlan(), "compiled");
@@ -78,13 +86,21 @@ public sealed partial class ExecutionCSharpRendererTests
         StringAssert.Contains(code, "return new QueryTableEnumerable<ResultRow0>(");
         StringAssert.Contains(code, "TableProjectionRows.ProjectRowsSerial<");
         StringAssert.Contains(code, "new ResultRow0(p.Name)");
-        Assert.IsFalse(code.Contains("QueryRows.DeferredTable<ResultRow0>(\"result\", new Column[]", StringComparison.Ordinal));
-        Assert.IsFalse(code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal));
+        Assert.IsFalse(
+            code.Contains("QueryRows.DeferredTable<ResultRow0>(\"result\", new Column[]", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal)
+        );
         Assert.IsFalse(code.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("QueryRows.FromTable<ResultRow0>", StringComparison.Ordinal));
         Assert.IsFalse(
-            code.Contains("return ComputeTable_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);", StringComparison.Ordinal),
-            "TableViaRows Run should materialize from ComputeRows_* rather than call ComputeTable_* directly.");
+            code.Contains(
+                "return ComputeTable_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);",
+                StringComparison.Ordinal
+            ),
+            "TableViaRows Run should materialize from ComputeRows_* rather than call ComputeTable_* directly."
+        );
     }
 
     [TestMethod]
@@ -92,9 +108,7 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         using var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
-        var context = new RenderContext(
-            generator,
-            new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
+        var context = new RenderContext(generator, new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
         var renderer = new CSharpRenderer(context);
 
         var outcome = renderer.TryRenderExecutionQueryMethod(CreatePostOperationMetadataPlan(), "compiled");
@@ -122,9 +136,7 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         using var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
-        var context = new RenderContext(
-            generator,
-            new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
+        var context = new RenderContext(generator, new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
         var renderer = new CSharpRenderer(context);
 
         var outcome = renderer.TryRenderExecutionQueryMethod(CreateParallelProjectionPlan(), "compiled");
@@ -143,7 +155,9 @@ public sealed partial class ExecutionCSharpRendererTests
         StringAssert.Contains(code, "QueryRows.FromRowShards(EvaluationHelper.ProjectRowsParallel<");
         Assert.IsFalse(code.Contains("TableProjectionRows.ProjectRowsSerial<", StringComparison.Ordinal));
         StringAssert.Contains(code, "return new QueryTableEnumerable<ResultRow0>(");
-        Assert.IsFalse(code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal));
+        Assert.IsFalse(
+            code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal)
+        );
         Assert.IsFalse(code.Contains("TypedProjectionRows.ProjectValuesParallel<", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("yield return new ResultRow0(__musoqShapeRow.Name);", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
@@ -155,12 +169,13 @@ public sealed partial class ExecutionCSharpRendererTests
     {
         using var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
-        var context = new RenderContext(
-            generator,
-            new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
+        var context = new RenderContext(generator, new RenderContextOptions(AssemblyName: "Query.Compiled_Test"));
         var renderer = new CSharpRenderer(context);
 
-        var outcome = renderer.TryRenderExecutionQueryMethod(CreateParallelProjectionPlanWithRowLocalMethodCse(), "compiled");
+        var outcome = renderer.TryRenderExecutionQueryMethod(
+            CreateParallelProjectionPlanWithRowLocalMethodCse(),
+            "compiled"
+        );
         Assert.IsTrue(outcome.IsSupported, outcome.UnsupportedReason);
         var method = outcome.Method!.Value;
         Assert.AreEqual(FinalResultSinkKind.GeneratedRowParallelShards, method.Metadata.FinalResultSinkKind);
@@ -174,7 +189,9 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.IsFalse(code.Contains("TableProjectionRows.ProjectOptionalRowsSerial<", StringComparison.Ordinal));
         StringAssert.Contains(code, "string upper = (string)libraryBase0.ToUpper(p.Name);");
         StringAssert.Contains(code, "return new ResultRow0(p.Name, upper);");
-        Assert.IsFalse(code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal));
+        Assert.IsFalse(
+            code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal)
+        );
         Assert.IsFalse(code.Contains("TypedProjectionRows.ProjectOptionalValuesParallel<", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
     }
@@ -190,7 +207,9 @@ public sealed partial class ExecutionCSharpRendererTests
                 AssemblyName: "Query.Compiled_Test",
                 ResultMode: QueryResultMode.TypedEnumerable,
                 OutputType: typeof(TestNameDto),
-                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable));
+                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable
+            )
+        );
         var renderer = new CSharpRenderer(context);
 
         var outcome = renderer.TryRenderExecutionQueryMethod(CreatePlan(), "compiled");
@@ -203,7 +222,10 @@ public sealed partial class ExecutionCSharpRendererTests
         context.AddClassMember(method.MethodDeclaration);
         var code = renderer.RenderCompilationUnit("compiled").NormalizeWhitespace().ToFullString();
 
-        StringAssert.Contains(code, "private IEnumerable<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto> ComputeRows_compiled_0(");
+        StringAssert.Contains(
+            code,
+            "private IEnumerable<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto> ComputeRows_compiled_0("
+        );
         StringAssert.Contains(code, "TypedProjectionRows.ProjectValuesSerial<");
         Assert.IsFalse(code.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("QueryRows.FromTable<ResultRow0>", StringComparison.Ordinal));
@@ -220,7 +242,9 @@ public sealed partial class ExecutionCSharpRendererTests
                 AssemblyName: "Query.Compiled_Test",
                 ResultMode: QueryResultMode.TypedEnumerable,
                 OutputType: typeof(TestNameDto),
-                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable));
+                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable
+            )
+        );
         var renderer = new CSharpRenderer(context);
 
         var outcome = renderer.TryRenderExecutionQueryMethod(CreateParallelProjectionPlan(), "compiled");
@@ -233,7 +257,10 @@ public sealed partial class ExecutionCSharpRendererTests
         context.AddClassMember(method.MethodDeclaration);
         var code = renderer.RenderCompilationUnit("compiled").NormalizeWhitespace().ToFullString();
 
-        StringAssert.Contains(code, "private IEnumerable<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto> ComputeRows_compiled_0(");
+        StringAssert.Contains(
+            code,
+            "private IEnumerable<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto> ComputeRows_compiled_0("
+        );
         StringAssert.Contains(code, "TypedProjectionRows.ProjectChunkedValuesParallel<");
         StringAssert.Contains(code, "EvaluationHelper.GetParallelProjectionRowsOrEmpty<");
         StringAssert.Contains(code, "QueryRows.FromShards(TypedProjectionRows.ProjectValuesParallel<");
@@ -253,7 +280,9 @@ public sealed partial class ExecutionCSharpRendererTests
                 AssemblyName: "Query.Compiled_Test",
                 ResultMode: QueryResultMode.TypedEnumerable,
                 OutputType: typeof(TestNameDto),
-                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable));
+                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable
+            )
+        );
         var renderer = new CSharpRenderer(context);
 
         var outcome = renderer.TryRenderExecutionQueryMethod(CreateProjectionPostOperationPlan(), "compiled");
@@ -265,13 +294,19 @@ public sealed partial class ExecutionCSharpRendererTests
         context.AddClassMember(method.MethodDeclaration);
         var code = renderer.RenderCompilationUnit("compiled").NormalizeWhitespace().ToFullString();
 
-        StringAssert.Contains(code, "public IEnumerable<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto> Run(CancellationToken token)");
+        StringAssert.Contains(
+            code,
+            "public IEnumerable<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto> Run(CancellationToken token)"
+        );
         StringAssert.Contains(code, "TableProjectionRows.ProjectRowsSerial<");
         StringAssert.Contains(code, "TypedPostOperationRows.Distinct<ResultRow0>");
         StringAssert.Contains(code, "TypedPostOperationRows.Order<ResultRow0>");
         StringAssert.Contains(code, "__musoqTypedPostRows = __musoqTypedPostRows.Skip(1);");
         StringAssert.Contains(code, "__musoqTypedPostRows = __musoqTypedPostRows.Take(2);");
-        StringAssert.Contains(code, "TypedPostOperationRows.Project<ResultRow0, Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto>");
+        StringAssert.Contains(
+            code,
+            "TypedPostOperationRows.Project<ResultRow0, Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto>"
+        );
         Assert.IsFalse(code.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("QueryRows.FromTable<ResultRow0>", StringComparison.Ordinal));
     }
@@ -287,7 +322,9 @@ public sealed partial class ExecutionCSharpRendererTests
                 AssemblyName: "Query.Compiled_Test",
                 ResultMode: QueryResultMode.TypedEnumerable,
                 OutputType: typeof(TestNameDto),
-                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable));
+                FinalResultSinkKind: FinalResultSinkKind.TypedSerialEnumerable
+            )
+        );
         var renderer = new CSharpRenderer(context);
 
         var outcome = renderer.TryRenderExecutionQueryMethod(CreateHiddenSortProjectionPostOperationPlan(), "compiled");
@@ -301,9 +338,15 @@ public sealed partial class ExecutionCSharpRendererTests
         var code = renderer.RenderCompilationUnit("compiled").NormalizeWhitespace().ToFullString();
 
         StringAssert.Contains(code, "private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(");
-        StringAssert.Contains(code, "private IEnumerable<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto> ComputeRows_compiled_0(");
+        StringAssert.Contains(
+            code,
+            "private IEnumerable<Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto> ComputeRows_compiled_0("
+        );
         StringAssert.Contains(code, "foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(");
-        StringAssert.Contains(code, "yield return new Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto((string)__musoqShapeRow.Name);");
+        StringAssert.Contains(
+            code,
+            "yield return new Musoq.Evaluator.Tests.IR.ExecutionCSharpRendererTests.TestNameDto((string)__musoqShapeRow.Name);"
+        );
         Assert.IsFalse(code.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("QueryRows.FromTable<ResultRow0>", StringComparison.Ordinal));
     }

@@ -42,7 +42,8 @@ public partial class QueryInspectionTests
         var unknown = Diagnostic.ErrorUnknownLocation(
             DiagnosticCode.MQ3001_UnknownColumn,
             "unknown location",
-            DiagnosticSourceKind.Query);
+            DiagnosticSourceKind.Query
+        );
         AssertUnknownLocation(unknown, "A01");
 
         var zero = Diagnostic.Error(
@@ -50,7 +51,8 @@ public partial class QueryInspectionTests
             "known insertion at zero",
             new SourceLocation(0, 1, 1),
             new SourceLocation(0, 1, 1),
-            sourceKind: DiagnosticSourceKind.Query);
+            sourceKind: DiagnosticSourceKind.Query
+        );
         AssertKnownInsertion(zero, 0, "A02");
 
         var nonzero = Diagnostic.Error(
@@ -58,7 +60,8 @@ public partial class QueryInspectionTests
             "known insertion",
             new SourceLocation(7, 1, 8),
             new SourceLocation(7, 1, 8),
-            sourceKind: DiagnosticSourceKind.Query);
+            sourceKind: DiagnosticSourceKind.Query
+        );
         AssertKnownInsertion(nonzero, 7, "A03");
 
         var sourceText = new SourceText("select 1", "query.musoq");
@@ -71,7 +74,8 @@ public partial class QueryInspectionTests
         var generatedContext = new DiagnosticContext(sourceText);
         TargetDiagnosticReporter.Report(
             [new TargetDiagnostic("MT-A06", TargetDiagnosticSeverity.Error, "generated failure")],
-            generatedContext);
+            generatedContext
+        );
         var generated = generatedContext.Diagnostics.Single();
         Assert.AreEqual(DiagnosticSourceKind.GeneratedSource, generated.SourceKind, "A06");
         AssertUnknownLocation(generated, "A06");
@@ -84,7 +88,8 @@ public partial class QueryInspectionTests
             DiagnosticCode.MQ3001_UnknownColumn,
             "query root",
             new TextSpan(0, 1),
-            DiagnosticSourceKind.Query);
+            DiagnosticSourceKind.Query
+        );
         AssertDomain(query, DiagnosticPhase.Bind, DiagnosticSourceKind.Query, "B01");
 
         var schema = new Diagnostic(
@@ -94,15 +99,12 @@ public partial class QueryInspectionTests
             SourceLocation.None,
             SourceLocation.None,
             phase: DiagnosticPhase.Schema,
-            sourceKind: DiagnosticSourceKind.Schema);
+            sourceKind: DiagnosticSourceKind.Schema
+        );
         AssertDomain(schema, DiagnosticPhase.Schema, DiagnosticSourceKind.Schema, "B02");
 
-        var dataSource = DataSourceLifecycleException.ForRead(
-            "#source",
-            "items",
-            "rows",
-            "REC126-B03",
-            new InvalidOperationException("provider detail"))
+        var dataSource = DataSourceLifecycleException
+            .ForRead("#source", "items", "rows", "REC126-B03", new InvalidOperationException("provider detail"))
             .ToDiagnostic();
         AssertDomain(dataSource, DiagnosticPhase.DataSource, DiagnosticSourceKind.DataSource, "B03");
 
@@ -111,19 +113,23 @@ public partial class QueryInspectionTests
 
         var generatedContext = new DiagnosticContext(new SourceText("select 1", "query.musoq"));
         TargetDiagnosticReporter.Report(
-            [new TargetDiagnostic(
-                "MT-B05",
-                TargetDiagnosticSeverity.Error,
-                "generated root",
-                new TargetSourceRange(12, 2, 4, 5, 4, 7),
-                "generated-query.g.cs")],
-            generatedContext);
+            [
+                new TargetDiagnostic(
+                    "MT-B05",
+                    TargetDiagnosticSeverity.Error,
+                    "generated root",
+                    new TargetSourceRange(12, 2, 4, 5, 4, 7),
+                    "generated-query.g.cs"
+                ),
+            ],
+            generatedContext
+        );
         var generated = generatedContext.Diagnostics.Single();
         AssertDomain(generated, DiagnosticPhase.CodeGeneration, DiagnosticSourceKind.GeneratedSource, "B05");
         Assert.AreEqual("generated-query.g.cs", generated.Location.FilePath, "B05");
 
-        var internalDiagnostic = InternalDiagnosticException.ForExecution(
-            new InvalidOperationException("internal detail"))
+        var internalDiagnostic = InternalDiagnosticException
+            .ForExecution(new InvalidOperationException("internal detail"))
             .ToDiagnostic();
         AssertDomain(internalDiagnostic, DiagnosticPhase.Internal, DiagnosticSourceKind.Internal, "B06");
         Assert.IsFalse(string.IsNullOrWhiteSpace(internalDiagnostic.CorrelationId), "B06");
@@ -135,76 +141,58 @@ public partial class QueryInspectionTests
         var modifierQuery = CreateContractQuery("Name: string encoding 'windows-1250'");
         var modifierResult = CompileWithContractDiagnostics(
             modifierQuery,
-            ContractDiagnosticMode.WarnUnsupportedEncoding);
+            ContractDiagnosticMode.WarnUnsupportedEncoding
+        );
         var modifierWarning = modifierResult.Warnings.Single();
-        Assert.AreEqual(
-            CreateExpectedSpan(modifierQuery, "encoding 'windows-1250'"),
-            modifierWarning.Span,
-            "C01");
+        Assert.AreEqual(CreateExpectedSpan(modifierQuery, "encoding 'windows-1250'"), modifierWarning.Span, "C01");
         Assert.AreEqual(DiagnosticSourceKind.Query, modifierWarning.SourceKind, "C01");
 
         var columnQuery = CreateContractQuery("Amount: decimal", "Amount");
-        var columnResult = CompileWithContractDiagnostics(
-            columnQuery,
-            ContractDiagnosticMode.RequireAmountString);
+        var columnResult = CompileWithContractDiagnostics(columnQuery, ContractDiagnosticMode.RequireAmountString);
         var columnError = columnResult.Errors.Single();
         Assert.AreEqual(CreateExpectedSpan(columnQuery, "Amount: decimal"), columnError.Span, "C02");
         Assert.AreEqual(DiagnosticSourceKind.Query, columnError.SourceKind, "C02");
 
         var planQuery = CreateContractQuery("Name: string encoding 'windows-1250'");
-        var planResult = CompileWithContractDiagnostics(
-            planQuery,
-            ContractDiagnosticMode.RequireUtf8Encoding);
+        var planResult = CompileWithContractDiagnostics(planQuery, ContractDiagnosticMode.RequireUtf8Encoding);
         var planError = planResult.Errors.Single();
-        Assert.AreEqual(
-            CreateExpectedSpan(planQuery, "encoding 'windows-1250'"),
-            planError.Span,
-            "C03");
+        Assert.AreEqual(CreateExpectedSpan(planQuery, "encoding 'windows-1250'"), planError.Span, "C03");
 
         const string twoSources =
-            "table LeftShape { Name: string encoding 'windows-1250' };" +
-            "table RightShape { Name: string encoding 'windows-1250' };" +
-            "couple #contract.items with table LeftShape as Left;" +
-            "couple #contract.items with table RightShape as Right;" +
-            "select l.Name, r.Name from Left() l cross join Right() r";
+            "table LeftShape { Name: string encoding 'windows-1250' };"
+            + "table RightShape { Name: string encoding 'windows-1250' };"
+            + "couple #contract.items with table LeftShape as Left;"
+            + "couple #contract.items with table RightShape as Right;"
+            + "select l.Name, r.Name from Left() l cross join Right() r";
         var twoSourceResult = CompileWithContractDiagnostics(
             twoSources,
-            ContractDiagnosticMode.WarnUnsupportedEncoding);
-        var twoSourceStarts = twoSourceResult.Warnings
-            .Select(static warning => warning.Span.Start)
+            ContractDiagnosticMode.WarnUnsupportedEncoding
+        );
+        var twoSourceStarts = twoSourceResult
+            .Warnings.Select(static warning => warning.Span.Start)
             .OrderBy(static start => start)
             .ToArray();
         var expectedTwoSourceStarts = new[]
         {
             twoSources.IndexOf("encoding 'windows-1250'", StringComparison.Ordinal),
-            twoSources.LastIndexOf("encoding 'windows-1250'", StringComparison.Ordinal)
+            twoSources.LastIndexOf("encoding 'windows-1250'", StringComparison.Ordinal),
         };
         CollectionAssert.AreEqual(expectedTwoSourceStarts, twoSourceStarts, "C04");
 
         var cteQuery =
-            "table LegacyRecord { Id: int, Name: string encoding 'windows-1250' };" +
-            "couple #contract.items with table LegacyRecord as Records;" +
-            "with named as (select r.Name as Name from Records() r)" +
-            "select Name from named";
-        var cteResult = CompileWithContractDiagnostics(
-            cteQuery,
-            ContractDiagnosticMode.WarnUnsupportedEncoding);
+            "table LegacyRecord { Id: int, Name: string encoding 'windows-1250' };"
+            + "couple #contract.items with table LegacyRecord as Records;"
+            + "with named as (select r.Name as Name from Records() r)"
+            + "select Name from named";
+        var cteResult = CompileWithContractDiagnostics(cteQuery, ContractDiagnosticMode.WarnUnsupportedEncoding);
         var cteWarning = cteResult.Warnings.Single();
-        Assert.AreEqual(
-            CreateExpectedSpan(cteQuery, "encoding 'windows-1250'"),
-            cteWarning.Span,
-            "C05");
+        Assert.AreEqual(CreateExpectedSpan(cteQuery, "encoding 'windows-1250'"), cteWarning.Span, "C05");
         Assert.IsFalse(string.IsNullOrWhiteSpace(cteWarning.ContextSnippet), "C05");
 
         var bothOriginQuery = CreateContractQuery("Name: string encoding 'windows-1250'");
-        var bothOriginResult = CompileWithContractDiagnostics(
-            bothOriginQuery,
-            ContractDiagnosticMode.BothOrigin);
+        var bothOriginResult = CompileWithContractDiagnostics(bothOriginQuery, ContractDiagnosticMode.BothOrigin);
         var bothOriginWarning = bothOriginResult.Warnings.Single();
-        Assert.AreEqual(
-            CreateExpectedSpan(bothOriginQuery, "encoding 'windows-1250'"),
-            bothOriginWarning.Span,
-            "C06");
+        Assert.AreEqual(CreateExpectedSpan(bothOriginQuery, "encoding 'windows-1250'"), bothOriginWarning.Span, "C06");
         Assert.Contains("column=Name", bothOriginWarning.Message, "C06");
         Assert.Contains("modifier=encoding", bothOriginWarning.Message, "C06");
     }
@@ -218,17 +206,15 @@ public partial class QueryInspectionTests
         explicitEmpty.ReportWarning(
             DiagnosticCode.MQ5013_SourceContractWarning,
             "explicit zero-length warning",
-            TextSpan.Empty);
+            TextSpan.Empty
+        );
         var explicitWarning = explicitEmpty.Warnings.Single();
         Assert.IsTrue(explicitWarning.Location.IsValid, "D01");
         Assert.AreEqual(0, explicitWarning.Location.Offset, "D01");
         Assert.AreEqual(0, explicitWarning.Span.Length, "D01");
 
         var missingNode = new DiagnosticContext(sourceText);
-        missingNode.ReportError(
-            DiagnosticCode.MQ3071_SourceContractError,
-            "unknown error location",
-            (Node?)null);
+        missingNode.ReportError(DiagnosticCode.MQ3071_SourceContractError, "unknown error location", (Node?)null);
         var missingDiagnostic = missingNode.Errors.Single();
         AssertUnknownLocation(missingDiagnostic, "D02");
 
@@ -237,14 +223,16 @@ public partial class QueryInspectionTests
             "items",
             "rows",
             "REC126-D03",
-            new InvalidOperationException("open detail"));
+            new InvalidOperationException("open detail")
+        );
         var dataSourceEnvelope = MusoqErrorEnvelope.FromException(dataSource);
         AssertUnknownLocation(dataSourceEnvelope, "D03");
 
         var generatedContext = new DiagnosticContext(sourceText);
         TargetDiagnosticReporter.Report(
             [new TargetDiagnostic("MT-D04", TargetDiagnosticSeverity.Error, "generated no range")],
-            generatedContext);
+            generatedContext
+        );
         var generatedEnvelope = MusoqErrorEnvelope.FromDiagnostic(generatedContext.Diagnostics.Single());
         using var generatedJson = JsonDocument.Parse(MusoqErrorEnvelopeFormatter.FormatJson(generatedEnvelope));
         Assert.IsFalse(generatedJson.RootElement.TryGetProperty("location", out _), "D04");
@@ -252,31 +240,33 @@ public partial class QueryInspectionTests
 
         var genericWarningResult = CompileWithContractDiagnostics(
             "select 1 from #contract.items()",
-            ContractDiagnosticMode.GenericWarning);
+            ContractDiagnosticMode.GenericWarning
+        );
         AssertUnknownLocation(genericWarningResult.Warnings.Single(), "D05");
 
         var genericErrorResult = CompileWithContractDiagnostics(
             "select 1 from #contract.items()",
-            ContractDiagnosticMode.GenericError);
+            ContractDiagnosticMode.GenericError
+        );
         AssertUnknownLocation(genericErrorResult.Errors.Single(), "D06");
     }
 
-    private BuildResult CompileWithContractDiagnostics(
-        string query,
-        ContractDiagnosticMode mode)
+    private BuildResult CompileWithContractDiagnostics(string query, ContractDiagnosticMode mode)
     {
         return InstanceCreator.CompileWithDiagnostics(
             query,
             Guid.NewGuid().ToString(),
             new ContractDiagnosticSchemaProvider(mode),
-            _loggerResolver);
+            _loggerResolver
+        );
     }
 
     private static void AssertDomain(
         Diagnostic diagnostic,
         DiagnosticPhase expectedPhase,
         DiagnosticSourceKind expectedSource,
-        string caseId)
+        string caseId
+    )
     {
         Assert.AreEqual(expectedPhase, diagnostic.Phase, caseId);
         Assert.AreEqual(expectedSource, diagnostic.SourceKind, caseId);
@@ -330,7 +320,8 @@ public partial class QueryInspectionTests
                 Code,
                 "legacy converter fabricated a location",
                 TextSpan.Empty,
-                DiagnosticSourceKind.Query);
+                DiagnosticSourceKind.Query
+            );
         }
     }
 
@@ -342,11 +333,7 @@ public partial class QueryInspectionTests
 
         public Diagnostic ToDiagnostic(SourceText? sourceText = null)
         {
-            return Diagnostic.Error(
-                Code,
-                "zero-length insertion is known",
-                TextSpan.Empty,
-                DiagnosticSourceKind.Query);
+            return Diagnostic.Error(Code, "zero-length insertion is known", TextSpan.Empty, DiagnosticSourceKind.Query);
         }
     }
 }

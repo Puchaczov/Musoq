@@ -20,12 +20,20 @@ public partial class MethodsMetadata
         if (!constraint.IsGenericType)
             return constraint;
 
-        var arguments = constraint.GetGenericArguments()
-            .Select(item => SubstituteConstraintParameter(item, parameter, argument)).ToArray();
+        var arguments = constraint
+            .GetGenericArguments()
+            .Select(item => SubstituteConstraintParameter(item, parameter, argument))
+            .ToArray();
         if (arguments.Any(static item => item is null))
             return null;
 
-        try { return constraint.GetGenericTypeDefinition().MakeGenericType(arguments!); }
-        catch (ArgumentException) { return null; }
+        try
+        {
+            return constraint.GetGenericTypeDefinition().MakeGenericType(arguments!);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
     }
 }

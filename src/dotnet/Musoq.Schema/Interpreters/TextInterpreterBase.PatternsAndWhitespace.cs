@@ -10,9 +10,18 @@ namespace Musoq.Schema.Interpreters;
 /// <typeparam name="TOut">The type of the parsed result object.</typeparam>
 public abstract partial class TextInterpreterBase<TOut>
 {
-    protected ParseAttempt<string> ReadPatternStatus(ReadOnlySpan<char> text, string pattern, bool trim = false, string? fieldName = null,
-        bool greedy = false, bool lazy = false, bool ltrim = false, bool rtrim = false, bool lower = false,
-        bool upper = false)
+    protected ParseAttempt<string> ReadPatternStatus(
+        ReadOnlySpan<char> text,
+        string pattern,
+        bool trim = false,
+        string? fieldName = null,
+        bool greedy = false,
+        bool lazy = false,
+        bool ltrim = false,
+        bool rtrim = false,
+        bool lower = false,
+        bool upper = false
+    )
     {
         ArgumentNullException.ThrowIfNull(pattern);
         var attempt = ExecutePatternMatchStatus(text, pattern, fieldName, greedy, lazy);
@@ -27,8 +36,13 @@ public abstract partial class TextInterpreterBase<TOut>
     /// <summary>
     ///     Reads text matching a regex pattern and returns the Match object for capture group access.
     /// </summary>
-    protected ParseAttempt<Match> ReadPatternMatchStatus(ReadOnlySpan<char> text, string pattern, string? fieldName = null,
-        bool greedy = false, bool lazy = false)
+    protected ParseAttempt<Match> ReadPatternMatchStatus(
+        ReadOnlySpan<char> text,
+        string pattern,
+        string? fieldName = null,
+        bool greedy = false,
+        bool lazy = false
+    )
     {
         ArgumentNullException.ThrowIfNull(pattern);
         var attempt = ExecutePatternMatchStatus(text, pattern, fieldName, greedy, lazy);
@@ -39,16 +53,27 @@ public abstract partial class TextInterpreterBase<TOut>
         return attempt;
     }
 
-    private ParseAttempt<Match> ExecutePatternMatchStatus(ReadOnlySpan<char> text, string pattern, string? fieldName, bool greedy,
-        bool lazy)
+    private ParseAttempt<Match> ExecutePatternMatchStatus(
+        ReadOnlySpan<char> text,
+        string pattern,
+        string? fieldName,
+        bool greedy,
+        bool lazy
+    )
     {
         if (CheckTextPositionStatus(text, fieldName) is { } position)
             return ParseAttempt<Match>.Failed(default, position);
         var remaining = text[ParsePosition..].ToString();
         if (greedy && lazy)
-            return FailText<Match>(ParseErrorCode.GeneralError, fieldName, "Pattern fields cannot be both greedy and lazy");
+            return FailText<Match>(
+                ParseErrorCode.GeneralError,
+                fieldName,
+                "Pattern fields cannot be both greedy and lazy"
+            );
 
-        var validationPattern = TextPatternCompiler.Normalize(TextPatternCompiler.ApplyGreediness(pattern, greedy, lazy));
+        var validationPattern = TextPatternCompiler.Normalize(
+            TextPatternCompiler.ApplyGreediness(pattern, greedy, lazy)
+        );
         var anchoredPattern = "^" + validationPattern;
         Match match;
         try
@@ -56,33 +81,45 @@ public abstract partial class TextInterpreterBase<TOut>
             var regex = RegexCache.GetOrAdd(
                 anchoredPattern,
                 static (key, validation) => TextPatternCompiler.Compile(key, validation),
-                validationPattern);
+                validationPattern
+            );
             match = regex.Match(remaining);
         }
         catch (ArgumentException exception)
         {
-            return ParseAttempt<Match>.Failed(default, ParseFailure.ForText(
-                ParseErrorCode.GeneralError,
-                SchemaName,
-                fieldName,
-                ParsePosition,
-                $"Pattern '{pattern}' is invalid: {exception.Message}",
-                exception));
+            return ParseAttempt<Match>.Failed(
+                default,
+                ParseFailure.ForText(
+                    ParseErrorCode.GeneralError,
+                    SchemaName,
+                    fieldName,
+                    ParsePosition,
+                    $"Pattern '{pattern}' is invalid: {exception.Message}",
+                    exception
+                )
+            );
         }
         catch (NotSupportedException exception)
         {
-            return ParseAttempt<Match>.Failed(default, ParseFailure.ForText(
-                ParseErrorCode.GeneralError,
-                SchemaName,
-                fieldName,
-                ParsePosition,
-                $"Pattern '{pattern}' uses an unsupported construct: {exception.Message}",
-                exception));
+            return ParseAttempt<Match>.Failed(
+                default,
+                ParseFailure.ForText(
+                    ParseErrorCode.GeneralError,
+                    SchemaName,
+                    fieldName,
+                    ParsePosition,
+                    $"Pattern '{pattern}' uses an unsupported construct: {exception.Message}",
+                    exception
+                )
+            );
         }
 
         if (!match.Success)
-            return FailText<Match>(ParseErrorCode.PatternMismatch, fieldName,
-                $"Pattern '{pattern}' did not match at parse position {ParsePosition}");
+            return FailText<Match>(
+                ParseErrorCode.PatternMismatch,
+                fieldName,
+                $"Pattern '{pattern}' did not match at parse position {ParsePosition}"
+            );
 
         return ParseAttempt<Match>.Success(match);
     }
@@ -91,12 +128,17 @@ public abstract partial class TextInterpreterBase<TOut>
     ///     Skips whitespace characters.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected ParseFailure? SkipWhitespaceStatus(ReadOnlySpan<char> text, bool required = false, string? fieldName = null)
+    protected ParseFailure? SkipWhitespaceStatus(
+        ReadOnlySpan<char> text,
+        bool required = false,
+        string? fieldName = null
+    )
     {
         if (CheckTextPositionStatus(text, fieldName) is { } failure)
             return failure;
         var startPos = ParsePosition;
-        while (ParsePosition < text.Length && IsTextWhitespace(text[ParsePosition])) ParsePosition++;
+        while (ParsePosition < text.Length && IsTextWhitespace(text[ParsePosition]))
+            ParsePosition++;
 
         if (required && ParsePosition == startPos)
             return ParseFailure.ForText(
@@ -104,7 +146,8 @@ public abstract partial class TextInterpreterBase<TOut>
                 SchemaName,
                 fieldName,
                 ParsePosition,
-                "Expected whitespace");
+                "Expected whitespace"
+            );
         return null;
     }
 
@@ -116,15 +159,24 @@ public abstract partial class TextInterpreterBase<TOut>
     {
         if (CheckTextPositionStatus(text, fieldName) is { } failure)
             return failure;
-        if (ParsePosition < text.Length && IsTextWhitespace(text[ParsePosition])) ParsePosition++;
+        if (ParsePosition < text.Length && IsTextWhitespace(text[ParsePosition]))
+            ParsePosition++;
         return null;
     }
 
     /// <summary>
     ///     Expects and consumes an exact literal string.
     /// </summary>
-    protected ParseAttempt<string> ExpectLiteralStatus(ref TextParseInput input, string literal, string? fieldName = null, bool trim = false,
-        bool ltrim = false, bool rtrim = false, bool lower = false, bool upper = false)
+    protected ParseAttempt<string> ExpectLiteralStatus(
+        ref TextParseInput input,
+        string literal,
+        string? fieldName = null,
+        bool trim = false,
+        bool ltrim = false,
+        bool rtrim = false,
+        bool lower = false,
+        bool upper = false
+    )
     {
         ArgumentNullException.ThrowIfNull(literal);
         var text = input.Text;
@@ -136,7 +188,11 @@ public abstract partial class TextInterpreterBase<TOut>
             if (input.SuppressFailureDetails)
                 return ParseAttempt<string>.Failed(default, ParseFailure.TolerantLiteralMismatch);
             var found = remaining[..Math.Min(remaining.Length, literal.Length)];
-            return FailText<string>(ParseErrorCode.LiteralMismatch, fieldName, $"Expected '{literal}', found '{found}'");
+            return FailText<string>(
+                ParseErrorCode.LiteralMismatch,
+                fieldName,
+                $"Expected '{literal}', found '{found}'"
+            );
         }
 
         ParsePosition += literal.Length;

@@ -9,7 +9,10 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class BinaryInterpretationPlanBuilderTests
 {
-    private static BoundBinaryInterpretationPlan BuildPlan(BinarySchemaNode schema, params BinarySchemaNode[] dependencies)
+    private static BoundBinaryInterpretationPlan BuildPlan(
+        BinarySchemaNode schema,
+        params BinarySchemaNode[] dependencies
+    )
     {
         var registry = new SchemaRegistry();
         foreach (var dependency in dependencies)
@@ -45,7 +48,8 @@ public class BinaryInterpretationPlanBuilderTests
             new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian),
             null,
             null,
-            condition);
+            condition
+        );
         var schema = new BinarySchemaNode("Message", [flag, payload]);
 
         var plan = BuildPlan(schema);
@@ -83,9 +87,7 @@ public class BinaryInterpretationPlanBuilderTests
 
         var plan = BuildPlan(child, parent);
 
-        CollectionAssert.AreEqual(
-            new[] { "Inherited", "Own" },
-            plan.Fields.Select(f => f.Name).ToArray());
+        CollectionAssert.AreEqual(new[] { "Inherited", "Own" }, plan.Fields.Select(f => f.Name).ToArray());
     }
 
     [TestMethod]
@@ -116,7 +118,8 @@ public class BinaryInterpretationPlanBuilderTests
         Assert.AreEqual("Type", switchField.Switch.Selector);
         CollectionAssert.AreEqual(
             new[] { "Login", "Raw" },
-            switchField.Switch.Branches.Select(b => b.BranchAlias).ToArray());
+            switchField.Switch.Branches.Select(b => b.BranchAlias).ToArray()
+        );
     }
 
     [TestMethod]
@@ -158,12 +161,11 @@ public class BinaryInterpretationPlanBuilderTests
                 new BinarySwitchCaseNode(
                     new IntegerNode("1", ""),
                     "Login",
-                    new SchemaReferenceTypeNode("LoginPayload")),
-                new BinarySwitchCaseNode(
-                    null,
-                    "Raw",
-                    new ByteArrayTypeNode(new IntegerNode("4", "")))
-            ]);
+                    new SchemaReferenceTypeNode("LoginPayload")
+                ),
+                new BinarySwitchCaseNode(null, "Raw", new ByteArrayTypeNode(new IntegerNode("4", ""))),
+            ]
+        );
         var type = PrimitiveField("Type", PrimitiveTypeName.Byte);
         var payload = new FieldDefinitionNode("Payload", switchType);
         return new BinarySchemaNode("Packet", [type, payload]);

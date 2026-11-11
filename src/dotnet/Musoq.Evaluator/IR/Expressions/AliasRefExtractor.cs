@@ -11,8 +11,8 @@ public sealed partial class AliasRefExtractor : IrExpressionVisitor<IReadOnlyLis
     {
         var extractor = new AliasRefExtractor();
         extractor.Visit(expression);
-        return extractor._aliases
-            .Where(static alias => !string.IsNullOrWhiteSpace(alias))
+        return extractor
+            ._aliases.Where(static alias => !string.IsNullOrWhiteSpace(alias))
             .OrderBy(static alias => alias, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -134,15 +134,18 @@ public sealed partial class AliasRefExtractor : IrExpressionVisitor<IReadOnlyLis
     protected override IReadOnlyList<string> VisitCteTableRef(CteTableRef node) => _aliases.ToArray();
 
     protected override IReadOnlyList<string> VisitCteCollectionInput(CteCollectionInput node) => _aliases.ToArray();
+
     protected override IReadOnlyList<string> VisitStructuralRecordLiteral(StructuralRecordLiteral node)
     {
-        foreach (var field in node.Fields) Visit(field.Value);
+        foreach (var field in node.Fields)
+            Visit(field.Value);
         return _aliases.ToArray();
     }
 
     protected override IReadOnlyList<string> VisitStructuralArrayLiteral(StructuralArrayLiteral node)
     {
-        foreach (var element in node.Elements) Visit(element);
+        foreach (var element in node.Elements)
+            Visit(element);
         return _aliases.ToArray();
     }
 
@@ -150,4 +153,5 @@ public sealed partial class AliasRefExtractor : IrExpressionVisitor<IReadOnlyLis
     {
         Visit(node.Value);
         return _aliases.ToArray();
-    }}
+    }
+}

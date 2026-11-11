@@ -15,10 +15,13 @@ public partial class SafeDataAccessTests : Musoq.Evaluator.Tests.Schema.Generic.
 
     private static ISchemaTable CreateVariableTable(ISchemaColumn[] columns, Type? metadata = null)
     {
-        var type = typeof(Table).Assembly.GetType("Musoq.Evaluator.Tables.VariableTable") ??
-                   throw new InvalidOperationException("VariableTable type was not found.");
-        return (ISchemaTable)(Activator.CreateInstance(type, columns, metadata) ??
-                              throw new InvalidOperationException("VariableTable instance was not created."));
+        var type =
+            typeof(Table).Assembly.GetType("Musoq.Evaluator.Tables.VariableTable")
+            ?? throw new InvalidOperationException("VariableTable type was not found.");
+        return (ISchemaTable)(
+            Activator.CreateInstance(type, columns, metadata)
+            ?? throw new InvalidOperationException("VariableTable instance was not created.")
+        );
     }
 
     private sealed class TestSchemaColumn(string name, Type type, int index) : ISchemaColumn

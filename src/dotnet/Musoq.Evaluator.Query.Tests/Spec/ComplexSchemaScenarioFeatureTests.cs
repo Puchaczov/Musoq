@@ -27,23 +27,31 @@ public class ComplexSchemaScenarioFeatureTests
     [TestMethod]
     public void Binary_NestedSchemaWithComputedFromInner_ShouldCompute()
     {
-        var query = @"
-            binary Point { X: byte, Y: byte };
-            binary Shape { Id: byte, Origin: Point, Area: short le };
-            select s.Id, s.Origin.X, s.Origin.Y, s.Area from #test.bytes() b
-            cross apply Interpret<Shape>(b.Content) s
-            order by s.Id asc";
+        var query = (
+            "\n"
+            + "            binary Point { X: byte, Y: byte };\n"
+            + "            binary Shape { Id: byte, Origin: Point, Area: short le };\n"
+            + "            select s.Id, s.Origin.X, s.Origin.Y, s.Area from #test.bytes() b\n"
+            + "            cross apply Interpret<Shape>(b.Content) s\n"
+            + "            order by s.Id asc"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = [0x01, 0x0A, 0x14, 0x64, 0x00] },
-            new BinaryEntity { Name = "2.bin", Data = [0x02, 0x1E, 0x28, 0xC8, 0x00] }
+            new BinaryEntity { Name = "2.bin", Data = [0x02, 0x1E, 0x28, 0xC8, 0x00] },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -67,28 +75,39 @@ public class ComplexSchemaScenarioFeatureTests
     [TestMethod]
     public void Binary_ConditionalSchemaReference_ShouldSelectCorrectSchema()
     {
-        var query = @"
-            binary TextPayload { Len: byte, Text: string[Len] utf8 };
-            binary IntPayload { Value: int le };
-            binary Message {
-                Type: byte,
-                TextData: TextPayload when Type = 1,
-                IntData: IntPayload when Type = 2
-            };
-            select m.Type, m.TextData.Text from #test.files() b
-            cross apply Interpret<Message>(b.Content) m
-            where m.Type = 1";
+        var query = (
+            "\n"
+            + "            binary TextPayload { Len: byte, Text: string[Len] utf8 };\n"
+            + "            binary IntPayload { Value: int le };\n"
+            + "            binary Message {\n"
+            + "                Type: byte,\n"
+            + "                TextData: TextPayload when Type = 1,\n"
+            + "                IntData: IntPayload when Type = 2\n"
+            + "            };\n"
+            + "            select m.Type, m.TextData.Text from #test.files() b\n"
+            + "            cross apply Interpret<Message>(b.Content) m\n"
+            + "            where m.Type = 1"
+        );
 
         var text = "Hi"u8.ToArray();
         var testData = new byte[] { 0x01, (byte)text.Length }
             .Concat(text)
             .ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -106,27 +125,33 @@ public class ComplexSchemaScenarioFeatureTests
     [TestMethod]
     public void Binary_ArrayOfSchemasWithNested_ShouldParseAll()
     {
-        var query = @"
-            binary Coord { X: byte, Y: byte };
-            binary Shape { Id: byte, Origin: Coord };
-            binary Canvas { ShapeCount: byte, Shapes: Shape[ShapeCount] };
-            select s.Id, s.Origin.X, s.Origin.Y from #test.files() b
-            cross apply Interpret<Canvas>(b.Content) c
-            cross apply c.Shapes s
-            order by s.Id asc";
+        var query = (
+            "\n"
+            + "            binary Coord { X: byte, Y: byte };\n"
+            + "            binary Shape { Id: byte, Origin: Coord };\n"
+            + "            binary Canvas { ShapeCount: byte, Shapes: Shape[ShapeCount] };\n"
+            + "            select s.Id, s.Origin.X, s.Origin.Y from #test.files() b\n"
+            + "            cross apply Interpret<Canvas>(b.Content) c\n"
+            + "            cross apply c.Shapes s\n"
+            + "            order by s.Id asc"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x02, 0x01, 0x0A, 0x14, 0x02, 0x1E, 0x28 };
+        var entities = new[]
         {
-            0x02,
-            0x01, 0x0A, 0x14,
-            0x02, 0x1E, 0x28
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -148,29 +173,33 @@ public class ComplexSchemaScenarioFeatureTests
     [TestMethod]
     public void Binary_SequentialCrossApply_ShouldChainCorrectly()
     {
-        var query = @"
-            binary Entry { Key: byte, Val: byte };
-            binary DataBlock { Header: byte, RowCount: byte, Entries: Entry[RowCount] };
-            select d.Header, r.Key, r.Val from #test.files() b
-            cross apply Interpret<DataBlock>(b.Content) d
-            cross apply d.Entries r
-            where d.Header = 0xAA
-            order by r.Key asc";
+        var query = (
+            "\n"
+            + "            binary Entry { Key: byte, Val: byte };\n"
+            + "            binary DataBlock { Header: byte, RowCount: byte, Entries: Entry[RowCount] };\n"
+            + "            select d.Header, r.Key, r.Val from #test.files() b\n"
+            + "            cross apply Interpret<DataBlock>(b.Content) d\n"
+            + "            cross apply d.Entries r\n"
+            + "            where d.Header = 0xAA\n"
+            + "            order by r.Key asc"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0xAA, 0x03, 0x03, 0x33, 0x01, 0x11, 0x02, 0x22 };
+        var entities = new[]
         {
-            0xAA,
-            0x03,
-            0x03, 0x33,
-            0x01, 0x11,
-            0x02, 0x22
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -195,25 +224,33 @@ public class ComplexSchemaScenarioFeatureTests
     [TestMethod]
     public void Binary_ChainedComputedFields_ShouldResolveInOrder()
     {
-        var query = @"
-            binary Data { 
-                Base: int le,
-                Doubled: = Base * 2,
-                Quadrupled: = Doubled * 2
-            };
-            select d.Base, d.Doubled, d.Quadrupled from #test.bytes() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Base: int le,\n"
+            + "                Doubled: = Base * 2,\n"
+            + "                Quadrupled: = Doubled * 2\n"
+            + "            };\n"
+            + "            select d.Base, d.Doubled, d.Quadrupled from #test.bytes() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = "\u0005\u0000\u0000\u0000"u8.ToArray() },
-            new BinaryEntity { Name = "2.bin", Data = "\n\u0000\u0000\u0000"u8.ToArray() }
+            new BinaryEntity { Name = "2.bin", Data = "\n\u0000\u0000\u0000"u8.ToArray() },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
@@ -229,31 +266,43 @@ public class ComplexSchemaScenarioFeatureTests
     [TestMethod]
     public void Binary_AllMajorFeaturesCombined_ShouldParseComplex()
     {
-        var query = @"
-            binary Record {
-                Id: int le,
-                NameLen: byte,
-                Name: string[NameLen] utf8,
-                Flags: byte,
-                _: byte[2],
-                Value: short le
-            };
-            select r.Id, r.Name, r.Flags, r.Value from #test.files() b
-            cross apply Interpret<Record>(b.Content) r";
+        var query = (
+            "\n"
+            + "            binary Record {\n"
+            + "                Id: int le,\n"
+            + "                NameLen: byte,\n"
+            + "                Name: string[NameLen] utf8,\n"
+            + "                Flags: byte,\n"
+            + "                _: byte[2],\n"
+            + "                Value: short le\n"
+            + "            };\n"
+            + "            select r.Id, r.Name, r.Flags, r.Value from #test.files() b\n"
+            + "            cross apply Interpret<Record>(b.Content) r"
+        );
 
         var name = "test"u8.ToArray();
-        var testData = "*\u0000\u0000\u0000"u8.ToArray()
+        var testData = "*\u0000\u0000\u0000"u8
+            .ToArray()
             .Concat([(byte)name.Length])
             .Concat(name)
             .Concat(new byte[] { 0x03, 0xFF, 0xFF, 0x64, 0x00 })
             .ToArray();
 
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -273,28 +322,36 @@ public class ComplexSchemaScenarioFeatureTests
     [TestMethod]
     public void Binary_MultiFileCrossApplyGroupBy_ShouldAggregateAcrossFiles()
     {
-        var query = @"
-            binary Tag { Category: byte };
-            binary File { TagCount: byte, Tags: Tag[TagCount] };
-            select t.Category, Count(t.Category) as Cnt
-            from #test.files() b
-            cross apply Interpret<File>(b.Content) f
-            cross apply f.Tags t
-            group by t.Category
-            order by t.Category asc";
+        var query = (
+            "\n"
+            + "            binary Tag { Category: byte };\n"
+            + "            binary File { TagCount: byte, Tags: Tag[TagCount] };\n"
+            + "            select t.Category, Count(t.Category) as Cnt\n"
+            + "            from #test.files() b\n"
+            + "            cross apply Interpret<File>(b.Content) f\n"
+            + "            cross apply f.Tags t\n"
+            + "            group by t.Category\n"
+            + "            order by t.Category asc"
+        );
 
         var file1 = new byte[] { 0x03, 0x01, 0x02, 0x01 };
         var file2 = new byte[] { 0x02, 0x02, 0x03 };
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Content = file1 },
-            new BinaryEntity { Name = "2.bin", Content = file2 }
+            new BinaryEntity { Name = "2.bin", Content = file2 },
         };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -316,24 +373,32 @@ public class ComplexSchemaScenarioFeatureTests
     [TestMethod]
     public void Mixed_TextParsingWithMultipleLines_ShouldParseAllLines()
     {
-        var query = @"
-            text KeyVal { Key: until ':', Value: rest };
-            select k.Key, k.Value from #test.lines() l
-            cross apply Parse<KeyVal>(l.Line) k
-            where k.Key <> '#comment'
-            order by k.Key asc";
+        var query = (
+            "\n"
+            + "            text KeyVal { Key: until ':', Value: rest };\n"
+            + "            select k.Key, k.Value from #test.lines() l\n"
+            + "            cross apply Parse<KeyVal>(l.Line) k\n"
+            + "            where k.Key <> '#comment'\n"
+            + "            order by k.Key asc"
+        );
 
         var textEntities = new[]
         {
             new TextEntity { Name = "1.txt", Text = "host:localhost" },
             new TextEntity { Name = "2.txt", Text = "port:8080" },
-            new TextEntity { Name = "3.txt", Text = "debug:true" }
+            new TextEntity { Name = "3.txt", Text = "debug:true" },
         };
         var schemaProvider = new TextSchemaProvider(
-            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", textEntities } });
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", textEntities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(3, table.Count);
@@ -355,22 +420,33 @@ public class ComplexSchemaScenarioFeatureTests
     [TestMethod]
     public void Binary_InheritanceWithConditionalChild_ShouldWork()
     {
-        var query = @"
-            binary Base { Type: byte, Size: byte };
-            binary Extended extends Base {
-                Data: byte[Size] when Type <> 0
-            };
-            select e.Type, e.Size from #test.files() b
-            cross apply Interpret<Extended>(b.Content) e
-            where e.Type = 1";
+        var query = (
+            "\n"
+            + "            binary Base { Type: byte, Size: byte };\n"
+            + "            binary Extended extends Base {\n"
+            + "                Data: byte[Size] when Type <> 0\n"
+            + "            };\n"
+            + "            select e.Type, e.Size from #test.files() b\n"
+            + "            cross apply Interpret<Extended>(b.Content) e\n"
+            + "            where e.Type = 1"
+        );
 
         var testData = new byte[] { 0x01, 0x03, 0xAA, 0xBB, 0xCC };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

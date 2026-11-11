@@ -36,7 +36,8 @@ internal sealed record CsvSourceMetadataSnapshot(
     IReadOnlyList<ISchemaColumn> AllColumns,
     IReadOnlyDictionary<string, string> SourceRuntimeSettings,
     Type LoggerType,
-    bool CancellationCanBeCanceled)
+    bool CancellationCanBeCanceled
+)
 {
     public static CsvSourceMetadataSnapshot From(SourceMetadataContext context)
     {
@@ -47,7 +48,8 @@ internal sealed record CsvSourceMetadataSnapshot(
             context.AllColumns.ToArray(),
             new Dictionary<string, string>(context.SourceRuntimeSettings, StringComparer.Ordinal),
             context.Logger.GetType(),
-            context.EndWorkToken.CanBeCanceled);
+            context.EndWorkToken.CanBeCanceled
+        );
     }
 }
 
@@ -58,7 +60,8 @@ internal sealed record CsvSourceExecutionSnapshot(
     IReadOnlyDictionary<string, string> SourceRuntimeSettings,
     Type LoggerType,
     bool CancellationCanBeCanceled,
-    SourceDiagnostics Diagnostics)
+    SourceDiagnostics Diagnostics
+)
 {
     public static CsvSourceExecutionSnapshot From(SourceExecutionContext context)
     {
@@ -71,47 +74,48 @@ internal sealed record CsvSourceExecutionSnapshot(
             new Dictionary<string, string>(context.SourceRuntimeSettings, StringComparer.Ordinal),
             context.Logger.GetType(),
             context.EndWorkToken.CanBeCanceled,
-            context.Diagnostics);
+            context.Diagnostics
+        );
     }
 }
 
-internal sealed record CsvRawConstructorCall(
-    string? MethodName,
-    CsvSourceMetadataSnapshot Metadata);
+internal sealed record CsvRawConstructorCall(string? MethodName, CsvSourceMetadataSnapshot Metadata);
 
 internal sealed record CsvGetTableCall(
     string Name,
     CsvSourceMetadataSnapshot Metadata,
     IReadOnlyList<object?> Parameters,
-    IReadOnlyList<ISchemaColumn> Columns);
+    IReadOnlyList<ISchemaColumn> Columns
+);
 
 internal sealed record CsvRuntimeSettingsCall(
     string Name,
     SourceIdentity Identity,
     CsvSourceMetadataSnapshot Metadata,
-    IReadOnlyList<object?> Parameters);
+    IReadOnlyList<object?> Parameters
+);
 
 internal sealed record CsvDescribeSourceCall(
     string Name,
     SourceIdentity Identity,
     CsvSourceMetadataSnapshot Metadata,
     IReadOnlyList<object?> Parameters,
-    IReadOnlyList<ISchemaColumn> Columns);
+    IReadOnlyList<ISchemaColumn> Columns
+);
 
-internal sealed record CsvPlanCall(
-    string Name,
-    SourcePlanRequest Request,
-    IReadOnlyList<object?> Parameters);
+internal sealed record CsvPlanCall(string Name, SourcePlanRequest Request, IReadOnlyList<object?> Parameters);
 
 internal sealed record CsvRowSourceCall(
     string Name,
     CsvSourceExecutionSnapshot Execution,
     CsvSourceOptions Parameters,
-    Type RequestedRowType);
+    Type RequestedRowType
+);
 
 internal sealed record CsvQueryRowSourceCall(
     string Name,
     CsvSourceExecutionSnapshot Execution,
     CsvSourceOptions Parameters,
     Type RequestedRowType,
-    string ShapeFingerprint);
+    string ShapeFingerprint
+);

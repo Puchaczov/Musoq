@@ -1,0 +1,16 @@
+# Generated source, imported fixtures and recorded evidence retain their bytes.
+/src/dotnet/generated-code-samples/
+**/*.Designer.cs
+/src/dotnet/Musoq.Evaluator.KaitaiStruct.Tests/Upstream/
+/benchmarks/history/
+
+# Build, dependency, editor and task outputs are never formatter inputs.
+/.artifacts/
+/artifacts/
+**/bin/
+**/obj/
+**/TestResults/
+**/BenchmarkDotNet.Artifacts/
+**/node_modules/
+/.vs/
+/.idea/

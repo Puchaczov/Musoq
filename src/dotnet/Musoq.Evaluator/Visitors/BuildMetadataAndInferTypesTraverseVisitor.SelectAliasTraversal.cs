@@ -8,8 +8,10 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        if (Visitor is BuildMetadataAndInferTypesVisitor buildVisitor &&
-            buildVisitor.TryGetSelectAliasExpressionForCurrentClause(node.Name, out var aliasExpression))
+        if (
+            Visitor is BuildMetadataAndInferTypesVisitor buildVisitor
+            && buildVisitor.TryGetSelectAliasExpressionForCurrentClause(node.Name, out var aliasExpression)
+        )
         {
             buildVisitor.EnterSelectAliasReference(node.Name);
             try

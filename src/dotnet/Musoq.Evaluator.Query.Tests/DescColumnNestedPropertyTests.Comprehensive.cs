@@ -18,38 +18,38 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Self.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
-        var nameRow = table.FirstOrDefault(row => ((string)row.ReadValue(0)).Equals("Name", StringComparison.OrdinalIgnoreCase));
+        var nameRow = table.FirstOrDefault(row =>
+            ((string)row.ReadValue(0)).Equals("Name", StringComparison.OrdinalIgnoreCase)
+        );
         Assert.IsNotNull(nameRow, "Should have a row for Name");
         Assert.Contains("String", (string)nameRow.ReadValue(2), "Name property should be of type String");
 
-
-        var idRow = table.FirstOrDefault(row => ((string)row.ReadValue(0)).Equals("Id", StringComparison.OrdinalIgnoreCase));
+        var idRow = table.FirstOrDefault(row =>
+            ((string)row.ReadValue(0)).Equals("Id", StringComparison.OrdinalIgnoreCase)
+        );
         Assert.IsNotNull(idRow, "Should have a row for Id");
         Assert.Contains("Int32", (string)idRow.ReadValue(2), "Id property should be of type Int32");
 
-
-        var timeRow = table.FirstOrDefault(row => ((string)row.ReadValue(0)).Equals("Time", StringComparison.OrdinalIgnoreCase));
+        var timeRow = table.FirstOrDefault(row =>
+            ((string)row.ReadValue(0)).Equals("Time", StringComparison.OrdinalIgnoreCase)
+        );
         Assert.IsNotNull(timeRow, "Should have a row for Time");
         Assert.Contains("DateTime", (string)timeRow.ReadValue(2), "Time property should be of type DateTime");
 
-
-        var childrenRow =
-            table.FirstOrDefault(row => ((string)row.ReadValue(0)).Equals("Children", StringComparison.OrdinalIgnoreCase));
+        var childrenRow = table.FirstOrDefault(row =>
+            ((string)row.ReadValue(0)).Equals("Children", StringComparison.OrdinalIgnoreCase)
+        );
         Assert.IsNotNull(childrenRow, "Should have a row for Children");
-        Assert.Contains("BasicEntity", (string)childrenRow.ReadValue(2), "Children property should be of type BasicEntity[]");
+        Assert.Contains(
+            "BasicEntity",
+            (string)childrenRow.ReadValue(2),
+            "Children property should be of type BasicEntity[]"
+        );
     }
 
     /// <summary>
@@ -60,35 +60,20 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Self.Other.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
-
-        var expectedProperties = new[]
-        {
-            "Children",
-            "Name",
-            "City",
-            "Id",
-            "Time",
-            "Children"
-        };
+        var expectedProperties = new[] { "Children", "Name", "City", "Id", "Time", "Children" };
 
         foreach (var expected in expectedProperties)
             Assert.IsTrue(
                 columnNames.Any(c => c.Equals(expected, StringComparison.OrdinalIgnoreCase)),
-                $"Expected property '{expected}' not found. Found: {string.Join(", ", columnNames)}");
+                $"Expected property '{expected}' not found. Found: {string.Join(", ", columnNames)}"
+            );
     }
 
     /// <summary>
@@ -99,18 +84,10 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Self.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
 
@@ -118,7 +95,6 @@ public partial class DescColumnNestedPropertyTests
         Assert.AreEqual("Name", columns[0].ColumnName, "First column should be 'Name'");
         Assert.AreEqual("Index", columns[1].ColumnName, "Second column should be 'Index'");
         Assert.AreEqual("Type", columns[2].ColumnName, "Third column should be 'Type'");
-
 
         Assert.AreEqual(typeof(string), columns[0].ColumnType, "Name column should be string");
         Assert.AreEqual(typeof(int), columns[1].ColumnType, "Index column should be int");
@@ -133,18 +109,10 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Self.Array";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(1, table.Count, "Primitive array should have exactly 1 row for element type");
 
@@ -163,27 +131,21 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Self.Dictionary";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
 
-
         Assert.IsTrue(
             columnNames.Any(c => c.Equals("Key", StringComparison.OrdinalIgnoreCase)),
-            $"Should have Key property. Found: {string.Join(", ", columnNames)}");
+            $"Should have Key property. Found: {string.Join(", ", columnNames)}"
+        );
         Assert.IsTrue(
             columnNames.Any(c => c.Equals("Value", StringComparison.OrdinalIgnoreCase)),
-            $"Should have Value property. Found: {string.Join(", ", columnNames)}");
+            $"Should have Value property. Found: {string.Join(", ", columnNames)}"
+        );
     }
 
     /// <summary>
@@ -194,21 +156,12 @@ public partial class DescColumnNestedPropertyTests
     {
         var query = "desc #A.entities() column Self.Children";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         var indices = table.Select(row => (int)row.ReadValue(1)).Distinct().ToList();
-
 
         Assert.HasCount(1, indices, "All nested properties should reference the same original column index");
     }

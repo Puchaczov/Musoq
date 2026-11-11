@@ -13,15 +13,16 @@ internal static class BinarySchemaGenericResolver
 
     public static SchemaReferenceTypeNode ResolveReference(
         SchemaReferenceTypeNode reference,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings
+    )
     {
         if (!reference.IsGenericInstantiation && bindings.TryGetValue(reference.SchemaName, out var boundReference))
             return boundReference;
 
         if (reference.IsGenericInstantiation)
         {
-            var typeArguments = reference.TypeArguments
-                .Select(typeArgument => CreateTypeArgumentReference(typeArgument, bindings).FullTypeName)
+            var typeArguments = reference
+                .TypeArguments.Select(typeArgument => CreateTypeArgumentReference(typeArgument, bindings).FullTypeName)
                 .ToArray();
 
             return new SchemaReferenceTypeNode(reference.SchemaName, typeArguments);
@@ -33,7 +34,8 @@ internal static class BinarySchemaGenericResolver
     public static IReadOnlyDictionary<string, SchemaReferenceTypeNode> CreateBindings(
         BinarySchemaNode schema,
         SchemaReferenceTypeNode reference,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> outerBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> outerBindings
+    )
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(reference);
@@ -41,9 +43,10 @@ internal static class BinarySchemaGenericResolver
 
         if (schema.TypeParameters.Length != reference.TypeArguments.Length)
             throw new ArgumentException(
-                $"Schema '{schema.Name}' declares {schema.TypeParameters.Length} type parameters, " +
-                $"but reference '{reference.FullTypeName}' supplies {reference.TypeArguments.Length}.",
-                nameof(reference));
+                $"Schema '{schema.Name}' declares {schema.TypeParameters.Length} type parameters, "
+                    + $"but reference '{reference.FullTypeName}' supplies {reference.TypeArguments.Length}.",
+                nameof(reference)
+            );
 
         var bindings = new Dictionary<string, SchemaReferenceTypeNode>(StringComparer.OrdinalIgnoreCase);
 
@@ -58,22 +61,23 @@ internal static class BinarySchemaGenericResolver
 
     public static string CreateSchemaKey(
         BinarySchemaNode schema,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings
+    )
     {
         if (!schema.IsGeneric)
             return schema.Name;
 
         var typeArguments = schema.TypeParameters.Select(parameter =>
-            bindings.TryGetValue(parameter, out var reference)
-                ? reference.FullTypeName
-                : parameter);
+            bindings.TryGetValue(parameter, out var reference) ? reference.FullTypeName : parameter
+        );
 
         return $"{schema.Name}<{string.Join(",", typeArguments)}>";
     }
 
     private static SchemaReferenceTypeNode CreateTypeArgumentReference(
         string typeArgument,
-        IReadOnlyDictionary<string, SchemaReferenceTypeNode> outerBindings)
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> outerBindings
+    )
     {
         var trimmedTypeArgument = typeArgument.Trim();
         if (outerBindings.TryGetValue(trimmedTypeArgument, out var boundReference))

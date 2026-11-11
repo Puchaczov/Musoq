@@ -23,9 +23,13 @@ internal sealed class ScriptLayout(LayoutContext context)
             while (current + 1 < statements.Count && element.Token.Span.Start >= statements[current + 1].Start)
                 current++;
             var destination = current;
-            if (element.Token.Role == SyntaxTokenRole.Comment && current + 1 < statements.Count &&
-                element.Token.Span.Start >= statements[current].End && previous != null &&
-                context.Comments.IsStandalone(previous, element))
+            if (
+                element.Token.Role == SyntaxTokenRole.Comment
+                && current + 1 < statements.Count
+                && element.Token.Span.Start >= statements[current].End
+                && previous != null
+                && context.Comments.IsStandalone(previous, element)
+            )
                 destination++;
             buckets[destination].Add(element);
             previous = element;
@@ -46,7 +50,14 @@ internal sealed class ScriptLayout(LayoutContext context)
         var first = elements.FirstOrDefault(e => e.Token.Role != SyntaxTokenRole.Comment);
         if (first == null)
             return layout.Sequence(elements);
-        if (first.Token.TokenType is TokenType.Select or TokenType.From or TokenType.With or TokenType.Pivot or TokenType.Unpivot)
+        if (
+            first.Token.TokenType
+            is TokenType.Select
+                or TokenType.From
+                or TokenType.With
+                or TokenType.Pivot
+                or TokenType.Unpivot
+        )
             return layout.Build(elements);
         var leading = elements.TakeWhile(e => e.Token.Role == SyntaxTokenRole.Comment).ToArray();
         var body = elements.Skip(leading.Length).ToArray();
@@ -56,8 +67,11 @@ internal sealed class ScriptLayout(LayoutContext context)
             split = Array.FindIndex(body, e => e.Token.Span.Start == embedded.Span.Start);
         Document content;
         if (split > 0)
-            content = Document.Concat(layout.Sequence(body.Take(split).ToArray()), Document.Line,
-                Document.Indent(layout.Build(body.Skip(split).ToArray())));
+            content = Document.Concat(
+                layout.Sequence(body.Take(split).ToArray()),
+                Document.Line,
+                Document.Indent(layout.Build(body.Skip(split).ToArray()))
+            );
         else
             content = layout.Sequence(body);
         if (leading.Length == 0)

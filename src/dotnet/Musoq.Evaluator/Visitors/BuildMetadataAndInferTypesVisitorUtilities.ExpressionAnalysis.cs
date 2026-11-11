@@ -11,11 +11,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
 {
     internal static bool IsConstantExpression(Node expression)
     {
-        return expression is IntegerNode
-            or DecimalNode
-            or WordNode
-            or StringNode
-            or NullNode;
+        return expression is IntegerNode or DecimalNode or WordNode or StringNode or NullNode;
     }
 
     internal static bool ContainsAggregateFunction(Node expression)
@@ -110,7 +106,8 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         Node expression,
         HashSet<string> groupByExpressions,
         HashSet<string> groupByColumnNames,
-        List<string> nonGroupedColumns)
+        List<string> nonGroupedColumns
+    )
     {
         var stack = new Stack<Node>();
         stack.Push(expression);
@@ -158,5 +155,4 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
             }
         }
     }
-
 }

@@ -4,7 +4,8 @@ public sealed record ExecutionPlanOperatorDescriptor(
     string Id,
     string DisplayName,
     string NodeKind,
-    ExecutionPlanOperatorRowCountStrategy RowCountStrategy)
+    ExecutionPlanOperatorRowCountStrategy RowCountStrategy
+)
 {
     /// <summary>
     /// Gets the stable execution operation identifier when this descriptor was

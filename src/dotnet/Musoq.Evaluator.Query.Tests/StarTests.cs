@@ -12,14 +12,16 @@ public class StarTests : BasicEntityTestBase
     [TestProperty("CandidateId", "SPECSTRESS-2026-09-29-P1-0191")]
     public void InlineJoinedQualifiedStarExposesSourceColumnName()
     {
-        const string query = "select a.* from values { (Value: 7) } a inner join values { (Value: 9) } b on a.Value < b.Value";
+        const string query =
+            "select a.* from values { (Value: 7) } a inner join values { (Value: 9) } b on a.Value < b.Value";
         AssertIntegerStarNameAndValue(query);
     }
 
     [TestMethod]
     public void InlineJoinedQualifiedStarExplicitRename_ShouldSelectOnlyLeftSource()
     {
-        const string query = "select a.* rename (Value as Value) from values { (Value: 7) } a inner join values { (Value: 9) } b on a.Value < b.Value";
+        const string query =
+            "select a.* rename (Value as Value) from values { (Value: 7) } a inner join values { (Value: 9) } b on a.Value < b.Value";
         AssertIntegerStarNameAndValue(query);
     }
 
@@ -105,12 +107,9 @@ public class StarTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m),
-                    new BasicEntity("february", 100m),
-                    new BasicEntity("march", 150m)
-                ]
-            }
+                "#A",
+                [new BasicEntity("january", 50m), new BasicEntity("february", 100m), new BasicEntity("march", 150m)]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -132,12 +131,9 @@ public class StarTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m),
-                    new BasicEntity("february", 100m),
-                    new BasicEntity("march", 150m)
-                ]
-            }
+                "#A",
+                [new BasicEntity("january", 50m), new BasicEntity("february", 100m), new BasicEntity("march", 150m)]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -165,12 +161,9 @@ public class StarTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m),
-                    new BasicEntity("february", 100m),
-                    new BasicEntity("march", 150m)
-                ]
-            }
+                "#A",
+                [new BasicEntity("january", 50m), new BasicEntity("february", 100m), new BasicEntity("march", 150m)]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -195,12 +188,7 @@ public class StarTests : BasicEntityTestBase
     {
         const string query = @"select a.* from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -215,12 +203,7 @@ public class StarTests : BasicEntityTestBase
     {
         const string query = @"select a.*, a.* from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -235,12 +218,7 @@ public class StarTests : BasicEntityTestBase
     {
         const string query = @"select a.*, a.Month from #A.entities() a";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", []
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
@@ -260,16 +238,8 @@ public class StarTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("january", 150m)
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m)] },
+            { "#B", [new BasicEntity("january", 150m)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -293,16 +263,8 @@ public class StarTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("january", 150m)
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m)] },
+            { "#B", [new BasicEntity("january", 150m)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -326,16 +288,8 @@ public class StarTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("january", 150m)
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m)] },
+            { "#B", [new BasicEntity("january", 150m)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -359,16 +313,8 @@ public class StarTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("january", 150m)
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m)] },
+            { "#B", [new BasicEntity("january", 150m)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -393,16 +339,8 @@ public class StarTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("january", 50m)
-                ]
-            },
-            {
-                "#B", [
-                    new BasicEntity("january", 150m)
-                ]
-            }
+            { "#A", [new BasicEntity("january", 50m)] },
+            { "#B", [new BasicEntity("january", 150m)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -438,12 +376,9 @@ public class StarTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m),
-                    new BasicEntity("february", 100m),
-                    new BasicEntity("march", 150m)
-                ]
-            }
+                "#A",
+                [new BasicEntity("january", 50m), new BasicEntity("february", 100m), new BasicEntity("march", 150m)]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -465,12 +400,9 @@ public class StarTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m),
-                    new BasicEntity("february", 100m),
-                    new BasicEntity("march", 150m)
-                ]
-            }
+                "#A",
+                [new BasicEntity("january", 50m), new BasicEntity("february", 100m), new BasicEntity("march", 150m)]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -492,12 +424,9 @@ public class StarTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m),
-                    new BasicEntity("february", 100m),
-                    new BasicEntity("march", 150m)
-                ]
-            }
+                "#A",
+                [new BasicEntity("january", 50m), new BasicEntity("february", 100m), new BasicEntity("march", 150m)]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -520,12 +449,9 @@ public class StarTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
-                    new BasicEntity("january", 50m),
-                    new BasicEntity("february", 100m),
-                    new BasicEntity("march", 150m)
-                ]
-            }
+                "#A",
+                [new BasicEntity("january", 50m), new BasicEntity("february", 100m), new BasicEntity("march", 150m)]
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

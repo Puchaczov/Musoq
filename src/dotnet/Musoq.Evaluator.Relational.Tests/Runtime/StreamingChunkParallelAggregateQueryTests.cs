@@ -26,25 +26,26 @@ public sealed class StreamingChunkParallelAggregateQueryTests
             ParallelizationMode.Full,
             usePrimitiveTypeValidation: false,
             maxDegreeOfParallelismOverride: 2,
-            forceTableResultMaterialization: true);
+            forceTableResultMaterialization: true
+        );
         var probe = new AggregateStreamingProbe();
         var rowSource = new BlockingSecondChunkRowSource(probe);
         var schema = new GenericSchema<StreamingAggregateLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
-                { "rows", (new GenericEntityTable<StreamingAggregateEntity>(), rowSource) }
-            }, executionPermissions: SourceExecutionPermissions.ConcurrentRowProcessing);
-        var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema>
-        {
-            { "#schema", schema }
-        });
+                { "rows", (new GenericEntityTable<StreamingAggregateEntity>(), rowSource) },
+            },
+            executionPermissions: SourceExecutionPermissions.ConcurrentRowProcessing
+        );
+        var schemaProvider = new GenericSchemaProvider(new Dictionary<string, ISchema> { { "#schema", schema } });
 
         var inspection = InstanceCreator.CompileForInspection(
             query,
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            compilationOptions);
+            compilationOptions
+        );
 
         Assert.Contains("Parallel.ForEach<IReadOnlyList<", inspection.GeneratedCSharpCode);
         Assert.Contains("ParallelSingleKeyAggregateChunkWorker_", inspection.GeneratedCSharpCode);
@@ -58,10 +59,14 @@ public sealed class StreamingChunkParallelAggregateQueryTests
                 Guid.NewGuid().ToString(),
                 schemaProvider,
                 _loggerResolver,
-                compilationOptions);
+                compilationOptions
+            );
 
             var table = vm.Run(CancellationToken.None);
-            var rows = table.ToDictionary(static row => (string)row.ReadValue(0), static row => Convert.ToInt64(row.ReadValue(1)));
+            var rows = table.ToDictionary(
+                static row => (string)row.ReadValue(0),
+                static row => Convert.ToInt64(row.ReadValue(1))
+            );
 
             Assert.AreEqual(2, rows.Count);
             Assert.AreEqual(2L, rows["A"]);
@@ -84,21 +89,15 @@ public sealed class StreamingChunkParallelAggregateQueryTests
 
         protected override void CollectChunks(IChunkWriter<StreamingAggregateEntity> writer)
         {
-            writer.Write(
-            [
-                new StreamingAggregateEntity("A", "shared"),
-                new StreamingAggregateEntity("A", "first")
-            ]);
+            writer.Write([new StreamingAggregateEntity("A", "shared"), new StreamingAggregateEntity("A", "first")]);
             ChunksWritten++;
 
             if (!probe.WaitForFirstAggregateInput(TimeSpan.FromSeconds(5)))
-                throw new InvalidOperationException("The aggregate loop did not process the first chunk before the source needed the second chunk.");
+                throw new InvalidOperationException(
+                    "The aggregate loop did not process the first chunk before the source needed the second chunk."
+                );
 
-            writer.Write(
-            [
-                new StreamingAggregateEntity("A", "shared"),
-                new StreamingAggregateEntity("B", "only")
-            ]);
+            writer.Write([new StreamingAggregateEntity("A", "shared"), new StreamingAggregateEntity("B", "only")]);
             ChunksWritten++;
         }
     }

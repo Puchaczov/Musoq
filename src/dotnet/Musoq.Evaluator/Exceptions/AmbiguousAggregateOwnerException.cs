@@ -7,27 +7,25 @@ namespace Musoq.Evaluator.Exceptions;
 
 public class AmbiguousAggregateOwnerException : Exception, IDiagnosticException
 {
-
     public AmbiguousAggregateOwnerException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public AmbiguousAggregateOwnerException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public AmbiguousAggregateOwnerException()
-    {
-    }
+    public AmbiguousAggregateOwnerException() { }
+
     public AmbiguousAggregateOwnerException(string methodCall, IReadOnlyCollection<string> candidateAliases)
         : base(CreateMessage(methodCall, candidateAliases))
     {
         Code = DiagnosticCode.MQ3034_AmbiguousAggregateOwner;
     }
 
-    public AmbiguousAggregateOwnerException(string methodCall, IReadOnlyCollection<string> candidateAliases, TextSpan span)
+    public AmbiguousAggregateOwnerException(
+        string methodCall,
+        IReadOnlyCollection<string> candidateAliases,
+        TextSpan span
+    )
         : base(CreateMessage(methodCall, candidateAliases))
     {
         Code = DiagnosticCode.MQ3034_AmbiguousAggregateOwner;

@@ -15,10 +15,7 @@ public sealed class BuildItemsRenderedArtifactTests
     {
         var compilation = CSharpCompilation.Create("ArtifactSync");
         var artifact = new CSharpRenderedQueryArtifact(compilation, "ArtifactSync.CompiledQuery");
-        var items = new BuildItems
-        {
-            RenderingArtifact = artifact
-        };
+        var items = new BuildItems { RenderingArtifact = artifact };
 
         Assert.AreSame(artifact, items.RenderingArtifact);
         Assert.AreSame(compilation, items.Compilation);
@@ -29,11 +26,7 @@ public sealed class BuildItemsRenderedArtifactTests
     public void LegacyRenderingFields_WhenBothSet_ShouldRefreshCSharpArtifact()
     {
         var compilation = CSharpCompilation.Create("LegacySync");
-        var items = new BuildItems
-        {
-            Compilation = compilation,
-            AccessToClassPath = "LegacySync.CompiledQuery"
-        };
+        var items = new BuildItems { Compilation = compilation, AccessToClassPath = "LegacySync.CompiledQuery" };
 
         var artifact = (CSharpRenderedQueryArtifact)items.RenderingArtifact;
 
@@ -49,13 +42,11 @@ public sealed class BuildItemsRenderedArtifactTests
         var metadata = new QueryMethodRenderMetadata(
             FinalResultSinkKind.TableRowsMaterialized,
             QueryResultRowPathKind.MaterializedTableRows,
-            RequiresComputeTableMethod: true);
+            RequiresComputeTableMethod: true
+        );
         var items = new BuildItems
         {
-            RenderingArtifacts = new RenderingBuildArtifacts(artifact)
-            {
-                QueryMethodRenderMetadata = metadata
-            }
+            RenderingArtifacts = new RenderingBuildArtifacts(artifact) { QueryMethodRenderMetadata = metadata },
         };
 
         Assert.AreSame(artifact, items.RenderingArtifact);
@@ -68,10 +59,7 @@ public sealed class BuildItemsRenderedArtifactTests
     public void RenderingArtifact_WhenSetToNonCSharpArtifact_ShouldNotPopulateLegacyCSharpFields()
     {
         var artifact = new TestOnlyRenderedQueryArtifact("test-only-source");
-        var items = new BuildItems
-        {
-            RenderingArtifact = artifact
-        };
+        var items = new BuildItems { RenderingArtifact = artifact };
 
         Assert.AreSame(artifact, items.RenderingArtifact);
         Assert.Throws<KeyNotFoundException>(() => _ = items.Compilation);
@@ -86,7 +74,7 @@ public sealed class BuildItemsRenderedArtifactTests
         var artifact = new TestOnlyExecutableQueryArtifact("test-only-executable");
         var items = new BuildItems
         {
-            CompilationArtifacts = CompilationBuildArtifacts.From(new TestOnlyFinalizationResult(artifact))
+            CompilationArtifacts = CompilationBuildArtifacts.From(new TestOnlyFinalizationResult(artifact)),
         };
 
         Assert.AreSame(artifact, items.ExecutableArtifact);
@@ -101,38 +89,31 @@ public sealed class BuildItemsRenderedArtifactTests
     {
         var artifact = TargetExportArtifact.Create(
             TestExecutionTargetIds.TestOnlyNonClr,
-            sourceFiles:
-            [
-                new TargetExportSourceFile("query.js", "javascript", "export function run() {}")
-            ],
-            binaryBlobs:
-            [
-                new TargetExportBinaryBlob("query.wasm", [0, 97, 115, 109], "application/wasm")
-            ],
-            entrypoints:
-            [
-                new TargetRuntimeEntrypoint("run", TargetRuntimeEntrypointKind.TableQuery, "run")
-            ],
+            sourceFiles: [new TargetExportSourceFile("query.js", "javascript", "export function run() {}")],
+            binaryBlobs: [new TargetExportBinaryBlob("query.wasm", [0, 97, 115, 109], "application/wasm")],
+            entrypoints: [new TargetRuntimeEntrypoint("run", TargetRuntimeEntrypointKind.TableQuery, "run")],
             runtimeServices: TargetRuntimeServiceRequirements.Create(
                 TargetRuntimeServiceRequirementKind.SourceAccess,
-                TargetRuntimeServiceRequirementKind.Diagnostics),
-            hostAbiInventory: new TargetHostAbiInventory(
-            [
+                TargetRuntimeServiceRequirementKind.Diagnostics
+            ),
+            hostAbiInventory: new TargetHostAbiInventory([
                 CreateSourceAbiImport(),
                 new TargetHostAbiImport(
                     TargetHostAbiImportKind.Diagnostics,
                     "build+runtime",
                     "diagnostics-v1",
                     1,
-                    new TargetDiagnosticsAbiDetails(true, false, true))
+                    new TargetDiagnosticsAbiDetails(true, false, true)
+                ),
             ]),
             diagnosticsMetadata: new Dictionary<string, string>(StringComparer.Ordinal)
             {
-                ["targetFamily"] = "test-only-portable"
-            });
+                ["targetFamily"] = "test-only-portable",
+            }
+        );
         var items = new BuildItems
         {
-            CompilationArtifacts = CompilationBuildArtifacts.From(new TestOnlyFinalizationResult(artifact))
+            CompilationArtifacts = CompilationBuildArtifacts.From(new TestOnlyFinalizationResult(artifact)),
         };
 
         Assert.AreSame(artifact, items.ExecutableArtifact);
@@ -149,20 +130,17 @@ public sealed class BuildItemsRenderedArtifactTests
     {
         var sourceFiles = new List<TargetExportSourceFile>
         {
-            new("query.js", "javascript", "export function run() {}")
+            new("query.js", "javascript", "export function run() {}"),
         };
         var blobBytes = new byte[] { 0, 97, 115, 109 };
-        var binaryBlobs = new List<TargetExportBinaryBlob>
-        {
-            new("query.wasm", blobBytes, "application/wasm")
-        };
+        var binaryBlobs = new List<TargetExportBinaryBlob> { new("query.wasm", blobBytes, "application/wasm") };
         var metadata = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["targetFamily"] = "test-only-portable"
+            ["targetFamily"] = "test-only-portable",
         };
         var services = new HashSet<TargetRuntimeServiceRequirementKind>
         {
-            TargetRuntimeServiceRequirementKind.SourceAccess
+            TargetRuntimeServiceRequirementKind.SourceAccess,
         };
 
         var artifact = TargetExportArtifact.Create(
@@ -171,7 +149,8 @@ public sealed class BuildItemsRenderedArtifactTests
             binaryBlobs: binaryBlobs,
             runtimeServices: new TargetRuntimeServiceRequirements(services),
             hostAbiInventory: new TargetHostAbiInventory([CreateSourceAbiImport()]),
-            diagnosticsMetadata: metadata);
+            diagnosticsMetadata: metadata
+        );
 
         sourceFiles.Clear();
         binaryBlobs.Clear();
@@ -208,7 +187,9 @@ public sealed class BuildItemsRenderedArtifactTests
                 [],
                 [],
                 [],
-                []));
+                []
+            )
+        );
     }
 
     private sealed record TestOnlyRenderedQueryArtifact(string Source)
@@ -218,9 +199,5 @@ public sealed class BuildItemsRenderedArtifactTests
         : ExecutableQueryArtifact(TestExecutionTargetIds.TestOnlyNonClr);
 
     private sealed record TestOnlyFinalizationResult(ExecutableQueryArtifact ExecutableArtifact)
-        : TargetFinalizationResult(
-            TestExecutionTargetIds.TestOnlyNonClr,
-            true,
-            [],
-            ExecutableArtifact);
+        : TargetFinalizationResult(TestExecutionTargetIds.TestOnlyNonClr, true, [], ExecutableArtifact);
 }

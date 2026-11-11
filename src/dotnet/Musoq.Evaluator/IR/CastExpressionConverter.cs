@@ -10,9 +10,6 @@ public sealed partial class ExpressionConverter
         if (!StrictCastRuntime.TryResolveTarget(node.TargetTypeName, out var canonicalTypeName, out _))
             throw new NotSupportedException(StrictCastRuntime.CreateUnsupportedTargetMessage(node.TargetTypeName));
 
-        return new StrictCast(
-            Convert(node.Expression),
-            canonicalTypeName,
-            RequireReturnType(node));
+        return new StrictCast(Convert(node.Expression), canonicalTypeName, RequireReturnType(node));
     }
 }

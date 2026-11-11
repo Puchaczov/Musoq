@@ -13,8 +13,6 @@ internal static class JoinKindSemantics
     {
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
-        return ProducesLeftOnly(kind)
-            ? left
-            : left.Merge(right);
+        return ProducesLeftOnly(kind) ? left : left.Merge(right);
     }
 }

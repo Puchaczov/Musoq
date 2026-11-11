@@ -10,18 +10,13 @@ namespace Musoq.Evaluator.Exceptions;
 public class AmbiguousColumnException : Exception, IDiagnosticException
 {
     public AmbiguousColumnException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+        : base(message, innerException) { }
 
     public AmbiguousColumnException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
-    public AmbiguousColumnException()
-    {
-    }
+    public AmbiguousColumnException() { }
+
     /// <summary>
     ///     Initializes a new instance of AmbiguousColumnException.
     /// </summary>
@@ -85,7 +80,8 @@ public class AmbiguousColumnException : Exception, IDiagnosticException
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["column"] = ColumnName,
-                ["aliases"] = $"{Alias1}, {Alias2}"
-            });
+                ["aliases"] = $"{Alias1}, {Alias2}",
+            }
+        );
     }
 }

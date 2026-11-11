@@ -19,16 +19,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     {
         var sidecarPlan = CreateSidecarHashJoinCtePlan();
         var plainPlan = CreatePlainProjectionPlan();
-        var options = new CompilationOptions(
-            useHashJoin: true,
-            useSortMergeJoin: false,
-            useCteSidecarIndexes: true);
+        var options = new CompilationOptions(useHashJoin: true, useSortMergeJoin: false, useCteSidecarIndexes: true);
         var shapeResolver = new ExecutionShapeResolver(
-            entityTypesByAlias: new Dictionary<string, Type>
-            {
-                ["p"] = typeof(Person),
-                ["q"] = typeof(Person)
-            });
+            entityTypesByAlias: new Dictionary<string, Type> { ["p"] = typeof(Person), ["q"] = typeof(Person) }
+        );
         var builder = CreateReusablePhysicalBuilder(sidecarPlan, shapeResolver, options);
 
         var sidecarResult = builder.Build(sidecarPlan, "Q_Sidecar");
@@ -51,7 +45,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     private static PhysicalToExecutionPlanBuilder CreateReusablePhysicalBuilder(
         PhysicalNode planningRoot,
         ExecutionShapeResolver shapeResolver,
-        CompilationOptions options)
+        CompilationOptions options
+    )
     {
         var executionStrategies = ExecutionStrategyPlanner
             .Plan(planningRoot, options, null, new ExecutionPlanningShapeResolverAdapter(shapeResolver))
@@ -59,14 +54,10 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var executionArtifacts = new ExecutionPlanningArtifacts(
             executionStrategies,
             new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
-            []);
+            []
+        );
 
-        return new PhysicalToExecutionPlanBuilder(
-            shapeResolver,
-            null,
-            options,
-            null,
-            executionArtifacts);
+        return new PhysicalToExecutionPlanBuilder(shapeResolver, null, options, null, executionArtifacts);
     }
 
     private static PhysicalCteNode CreateSidecarHashJoinCtePlan()
@@ -74,27 +65,30 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var definition = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("q", "Name", typeof(string)), 0),
-                new ProjectedField("Age", new ColumnRef("q", "Age", typeof(int)), 1)
+                new ProjectedField("Age", new ColumnRef("q", "Age", typeof(int)), 1),
             ],
-            CreateScan("q"));
-        var cteRef = new PhysicalCteRefNode("indexed", "i", new OutputSchema(
-        [
-            new ColumnSchema("Name", typeof(string), 0),
-            new ColumnSchema("Age", typeof(int), 1)
-        ]));
+            CreateScan("q")
+        );
+        var cteRef = new PhysicalCteRefNode(
+            "indexed",
+            "i",
+            new OutputSchema([new ColumnSchema("Name", typeof(string), 0), new ColumnSchema("Age", typeof(int), 1)])
+        );
         var join = new PhysicalHashJoinNode(
             JoinKind.Inner,
             [new ColumnRef("i", "Age", typeof(int))],
             [new ColumnRef("p", "Age", typeof(int))],
             null,
             CreateScan("p"),
-            cteRef);
+            cteRef
+        );
         var query = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("IndexedName", new ColumnRef("i", "Name", typeof(string)), 1)
+                new ProjectedField("IndexedName", new ColumnRef("i", "Name", typeof(string)), 1),
             ],
-            join);
+            join
+        );
 
         return new PhysicalCteNode([new PhysicalCteDefinition("indexed", definition)], query);
     }
@@ -103,6 +97,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     {
         return new PhysicalProjectNode(
             [new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0)],
-            CreateScan("p"));
+            CreateScan("p")
+        );
     }
 }

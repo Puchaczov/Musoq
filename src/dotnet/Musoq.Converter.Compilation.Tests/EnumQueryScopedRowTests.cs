@@ -16,10 +16,10 @@ public sealed class EnumQueryScopedRowTests
     private const int CacheSalt = 1_000_001;
 
     private const string DynamicContract =
-        "enum JobStatus : int { Queued = 10, Running = 20, Finished = 30 };" +
-        "flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };" +
-        "table Jobs { Status: JobStatus, Access: FileAccess };" +
-        "couple #enumrows.dynamic with table Jobs as Jobs;";
+        "enum JobStatus : int { Queued = 10, Running = 20, Finished = 30 };"
+        + "flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };"
+        + "table Jobs { Status: JobStatus, Access: FileAccess };"
+        + "couple #enumrows.dynamic with table Jobs as Jobs;";
 
     private readonly TestsLoggerResolver _loggerResolver = new();
 
@@ -41,21 +41,17 @@ public sealed class EnumQueryScopedRowTests
     [TestMethod]
     public void QueryLocalEnums_WhenSourceReadsNamesAndNumbers_UsePrimitiveQueryRowsAndPortableMetadata()
     {
-        const string query = DynamicContract +
-                             " select Status, Access, EnumName(Status) as StatusName from Jobs()";
+        const string query = DynamicContract + " select Status, Access, EnumName(Status) as StatusName from Jobs()";
         var provider = new EnumQueryRowsSchemaProvider();
-        var build = InstanceCreator.CompileWithDiagnostics(
-            query,
-            "query-local-enum-source",
-            provider,
-            _loggerResolver);
+        var build = InstanceCreator.CompileWithDiagnostics(query, "query-local-enum-source", provider, _loggerResolver);
 
         Assert.IsTrue(build.Succeeded, FormatFailure(build));
         var inspection = InstanceCreator.CompileForInspection(
             query,
             "query-local-enum-source-inspection",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.Contains("reader.Read<int?>(0)", inspection.GeneratedCSharpCode);
         Assert.Contains("reader.Read<uint?>(1)", inspection.GeneratedCSharpCode);
         Assert.Contains("new global::Musoq.Schema.EnumTypeDescriptor(\"JobStatus\"", inspection.GeneratedCSharpCode);
@@ -85,20 +81,35 @@ public sealed class EnumQueryScopedRowTests
             query,
             "native-enum-source-inspection",
             provider,
-            _loggerResolver);
-        var build = InstanceCreator.CompileWithDiagnostics(
-            query,
-            "native-enum-source",
-            provider,
-            _loggerResolver);
+            _loggerResolver
+        );
+        var build = InstanceCreator.CompileWithDiagnostics(query, "native-enum-source", provider, _loggerResolver);
 
         Assert.IsTrue(build.Succeeded, FormatFailure(build));
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "reader.Read<Musoq.Converter.Tests.NativeQueryStatus>(0)");
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "reader.Read<Musoq.Converter.Tests.NativeQueryAccess>(1)");
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "reader.Read<Musoq.Converter.Tests.NativeQueryStatus?>(2)");
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "(short)reader.Read<Musoq.Converter.Tests.NativeQueryStatus>(0)");
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "(uint)reader.Read<Musoq.Converter.Tests.NativeQueryAccess>(1)");
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "(short?)reader.Read<Musoq.Converter.Tests.NativeQueryStatus?>(2)");
+        StringAssert.Contains(
+            inspection.GeneratedCSharpCode,
+            "reader.Read<Musoq.Converter.Tests.NativeQueryStatus>(0)"
+        );
+        StringAssert.Contains(
+            inspection.GeneratedCSharpCode,
+            "reader.Read<Musoq.Converter.Tests.NativeQueryAccess>(1)"
+        );
+        StringAssert.Contains(
+            inspection.GeneratedCSharpCode,
+            "reader.Read<Musoq.Converter.Tests.NativeQueryStatus?>(2)"
+        );
+        StringAssert.Contains(
+            inspection.GeneratedCSharpCode,
+            "(short)reader.Read<Musoq.Converter.Tests.NativeQueryStatus>(0)"
+        );
+        StringAssert.Contains(
+            inspection.GeneratedCSharpCode,
+            "(uint)reader.Read<Musoq.Converter.Tests.NativeQueryAccess>(1)"
+        );
+        StringAssert.Contains(
+            inspection.GeneratedCSharpCode,
+            "(short?)reader.Read<Musoq.Converter.Tests.NativeQueryStatus?>(2)"
+        );
         Assert.DoesNotContain("reader.Read<object>", inspection.GeneratedCSharpCode);
 
         using var table = build.CompiledQuery!.Run();
@@ -116,19 +127,21 @@ public sealed class EnumQueryScopedRowTests
         string backingName,
         string memberLiteral,
         Type expectedType,
-        EnumUnderlyingKind expectedKind)
+        EnumUnderlyingKind expectedKind
+    )
     {
         var query =
-            $"enum StatusEnum : {backingName} {{ Running = {memberLiteral} }};" +
-            "table Jobs { Status: StatusEnum };" +
-            "couple #enumrows.dynamic with table Jobs as Jobs;" +
-            "select Status from Jobs()";
+            $"enum StatusEnum : {backingName} {{ Running = {memberLiteral} }};"
+            + "table Jobs { Status: StatusEnum };"
+            + "couple #enumrows.dynamic with table Jobs as Jobs;"
+            + "select Status from Jobs()";
         var provider = new EnumQueryRowsSchemaProvider();
         var build = InstanceCreator.CompileWithDiagnostics(
             query,
             $"enum-backing-{backingName}",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(build.Succeeded, FormatFailure(build));
         using var table = build.CompiledQuery!.Run();
@@ -142,38 +155,55 @@ public sealed class EnumQueryScopedRowTests
     {
         var provider = new EnumQueryRowsSchemaProvider();
         var build = InstanceCreator.CompileWithDiagnostics(
-            DynamicContract +
-            " select Status from Jobs()" +
-            " where Status <> 'Finished'" +
-            " and Status not in ('Queued', 'Running')" +
-            " and Access is not null" +
-            " and HasAllFlags(Access, 'Read', 'Write')",
+            DynamicContract
+                + " select Status from Jobs()"
+                + " where Status <> 'Finished'"
+                + " and Status not in ('Queued', 'Running')"
+                + " and Access is not null"
+                + " and HasAllFlags(Access, 'Read', 'Write')",
             "enum-predicate-source-build",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(build.Succeeded, FormatFailure(build));
         var inspection = InstanceCreator.CompileForInspection(
-            DynamicContract +
-            " select Status from Jobs()" +
-            " where Status <> 'Finished'" +
-            " and Status not in ('Queued', 'Running')" +
-            " and Access is not null" +
-            " and HasAllFlags(Access, 'Read', 'Write')",
+            DynamicContract
+                + " select Status from Jobs()"
+                + " where Status <> 'Finished'"
+                + " and Status not in ('Queued', 'Running')"
+                + " and Access is not null"
+                + " and HasAllFlags(Access, 'Read', 'Write')",
             "enum-predicate-source",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(inspection.Diagnostics.Any(static diagnostic => diagnostic.IsError));
         var predicates = Flatten(provider.Schema.LastPlanRequest!.Predicate).ToArray();
-        Assert.IsTrue(predicates.OfType<SourcePredicateComparison>().Any(comparison =>
-            comparison.Operator == SourcePredicateComparisonOperator.NotEqual &&
-            comparison.Right is SourcePredicateEnumLiteral));
-        Assert.IsTrue(predicates.OfType<SourcePredicateIn>().Any(static sourceIn =>
-            sourceIn.IsNegated && sourceIn.Values.All(static value => value is SourcePredicateEnumLiteral)));
+        Assert.IsTrue(
+            predicates
+                .OfType<SourcePredicateComparison>()
+                .Any(comparison =>
+                    comparison.Operator == SourcePredicateComparisonOperator.NotEqual
+                    && comparison.Right is SourcePredicateEnumLiteral
+                )
+        );
+        Assert.IsTrue(
+            predicates
+                .OfType<SourcePredicateIn>()
+                .Any(static sourceIn =>
+                    sourceIn.IsNegated && sourceIn.Values.All(static value => value is SourcePredicateEnumLiteral)
+                )
+        );
         Assert.IsTrue(predicates.OfType<SourcePredicateNullCheck>().Any(static check => check.IsNegated));
-        Assert.IsTrue(predicates.OfType<SourcePredicateFlags>().Any(flags =>
-            flags.MatchMode == SourcePredicateFlagsMatchMode.All &&
-            flags.Mask.Value == EnumScalarValue.FromUInt32(3)));
+        Assert.IsTrue(
+            predicates
+                .OfType<SourcePredicateFlags>()
+                .Any(flags =>
+                    flags.MatchMode == SourcePredicateFlagsMatchMode.All
+                    && flags.Mask.Value == EnumScalarValue.FromUInt32(3)
+                )
+        );
     }
 
     [TestMethod]
@@ -184,11 +214,16 @@ public sealed class EnumQueryScopedRowTests
             DynamicContract + " select Status from Jobs()",
             "enum-source-capability",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(build.Succeeded);
-        Assert.IsTrue(build.Diagnostics.Any(static diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ3114_EnumSourceCapabilityRequired), FormatFailure(build));
+        Assert.IsTrue(
+            build.Diagnostics.Any(static diagnostic =>
+                diagnostic.Code == DiagnosticCode.MQ3114_EnumSourceCapabilityRequired
+            ),
+            FormatFailure(build)
+        );
     }
 
     [TestMethod]
@@ -199,11 +234,14 @@ public sealed class EnumQueryScopedRowTests
             DynamicContract + " select Status from Jobs()",
             "enum-source-descriptor",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(build.Succeeded);
-        Assert.IsTrue(build.Diagnostics.Any(static diagnostic =>
-            diagnostic.Code == DiagnosticCode.MQ3115_EnumDescriptorMismatch), FormatFailure(build));
+        Assert.IsTrue(
+            build.Diagnostics.Any(static diagnostic => diagnostic.Code == DiagnosticCode.MQ3115_EnumDescriptorMismatch),
+            FormatFailure(build)
+        );
     }
 
     [TestMethod]
@@ -214,13 +252,17 @@ public sealed class EnumQueryScopedRowTests
             DynamicContract + " select Status from Jobs()",
             "enum-source-drift",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
         Assert.IsTrue(build.Succeeded, FormatFailure(build));
         provider.Schema.DriftAtExecution = true;
 
         using var table = build.CompiledQuery!.Run();
         var exception = Assert.Throws<global::Musoq.Evaluator.Exceptions.QueryExecutionException>(() => _ = table[0]);
-        Assert.AreEqual(global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7010_DataSourceOpenFailed, exception.Envelope!.Code);
+        Assert.AreEqual(
+            global::Musoq.Parser.Diagnostics.DiagnosticCode.MQ7010_DataSourceOpenFailed,
+            exception.Envelope!.Code
+        );
         Assert.IsInstanceOfType<InvalidOperationException>(exception.GetBaseException());
 
         StringAssert.Contains(exception.ToString(), "recompile the query");
@@ -230,21 +272,23 @@ public sealed class EnumQueryScopedRowTests
     public void QueryLocalEnum_WhenCompiledTwice_ShouldReusePortableExecutionArtifact()
     {
         var query =
-            $"enum JobStatus : int {{ Queued = 10, Running = 20, Finished = 30, CacheSalt = {CacheSalt} }};" +
-            "flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };" +
-            "table Jobs { Status: JobStatus, Access: FileAccess };" +
-            "couple #enumrows.dynamic with table Jobs as Jobs;" +
-            "select Status from Jobs()";
+            $"enum JobStatus : int {{ Queued = 10, Running = 20, Finished = 30, CacheSalt = {CacheSalt} }};"
+            + "flags enum FileAccess : uint { None = 0ui, Read = 1ui, Write = 2ui, ReadWrite = 3ui };"
+            + "table Jobs { Status: JobStatus, Access: FileAccess };"
+            + "couple #enumrows.dynamic with table Jobs as Jobs;"
+            + "select Status from Jobs()";
         var first = InstanceCreator.CompileWithDiagnostics(
             query,
             $"enum-cache-first-{Guid.NewGuid():N}",
             new EnumQueryRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         var second = InstanceCreator.CompileWithDiagnostics(
             query,
             $"enum-cache-second-{Guid.NewGuid():N}",
             new EnumQueryRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         try
         {
@@ -253,7 +297,8 @@ public sealed class EnumQueryScopedRowTests
             Assert.IsFalse(first.BuildItems!.StopAfterPlanning);
             Assert.IsTrue(
                 second.BuildItems!.StopAfterPlanning,
-                "An identical portable enum descriptor did not reuse the execution artifact.");
+                "An identical portable enum descriptor did not reuse the execution artifact."
+            );
             using var table = second.CompiledQuery!.Run();
             Assert.AreEqual(3, table.Count);
             Assert.IsNotNull(table.Columns.Single().EnumType);
@@ -273,18 +318,19 @@ public sealed class EnumQueryScopedRowTests
                 "select Status from #enumrows.native()",
                 $"enum-typed-output-rejected-{Guid.NewGuid():N}",
                 new EnumQueryRowsSchemaProvider(),
-                _loggerResolver));
+                _loggerResolver
+            )
+        );
 
         var carrierQuery = InstanceCreator.CompileForTypedExecution<CarrierOutputDto>(
             "select Status from #enumrows.native()",
             $"enum-typed-output-carrier-{Guid.NewGuid():N}",
             new EnumQueryRowsSchemaProvider(),
-            _loggerResolver);
+            _loggerResolver
+        );
         var rows = carrierQuery.Run(CancellationToken.None).ToArray();
 
-        CollectionAssert.AreEqual(
-            new short[] { 20, 10, 99 },
-            rows.Select(static row => row.Status).ToArray());
+        CollectionAssert.AreEqual(new short[] { 20, 10, 99 }, rows.Select(static row => row.Status).ToArray());
     }
 
     private static IEnumerable<SourcePredicateExpression> Flatten(SourcePredicateExpression? predicate)

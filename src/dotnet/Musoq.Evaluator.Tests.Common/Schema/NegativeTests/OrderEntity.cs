@@ -12,19 +12,21 @@ public class OrderEntity
         { nameof(Amount), 2 },
         { nameof(Status), 3 },
         { nameof(OrderDate), 4 },
-        { nameof(Notes), 5 }
+        { nameof(Notes), 5 },
     };
 
-    public static readonly IReadOnlyDictionary<int, Func<OrderEntity, object?>> IndexToObjectAccessMap =
-        new Dictionary<int, Func<OrderEntity, object?>>
-        {
-            { 0, entity => entity.OrderId },
-            { 1, entity => entity.PersonId },
-            { 2, entity => entity.Amount },
-            { 3, entity => entity.Status },
-            { 4, entity => entity.OrderDate },
-            { 5, entity => entity.Notes }
-        };
+    public static readonly IReadOnlyDictionary<int, Func<OrderEntity, object?>> IndexToObjectAccessMap = new Dictionary<
+        int,
+        Func<OrderEntity, object?>
+    >
+    {
+        { 0, entity => entity.OrderId },
+        { 1, entity => entity.PersonId },
+        { 2, entity => entity.Amount },
+        { 3, entity => entity.Status },
+        { 4, entity => entity.OrderDate },
+        { 5, entity => entity.Notes },
+    };
 
     public int OrderId { get; set; }
 

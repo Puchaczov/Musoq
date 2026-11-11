@@ -22,18 +22,13 @@ public static class SourcePlanningPlanResultBuilder
         SourcePlanningExecutionStrategy? strategy = null,
         string? projectionWorkPropertyName = null,
         bool projectionWork = false,
-        SourcePredicateEvaluationPhase predicateApplicationPhase = SourcePredicateEvaluationPhase.RowFiltering)
+        SourcePredicateEvaluationPhase predicateApplicationPhase = SourcePredicateEvaluationPhase.RowFiltering
+    )
     {
         ArgumentNullException.ThrowIfNull(request);
-        var properties = CreateProperties(
-            strategyPropertyName,
-            strategy,
-            projectionWorkPropertyName,
-            projectionWork);
+        var properties = CreateProperties(strategyPropertyName, strategy, projectionWorkPropertyName, projectionWork);
         var planAcceptedColumns = acceptedColumns ?? request.RequiredColumns;
-        var planAcceptedPredicate = predicateAccepted
-            ? acceptedPredicate ?? request.Predicate
-            : acceptedPredicate;
+        var planAcceptedPredicate = predicateAccepted ? acceptedPredicate ?? request.Predicate : acceptedPredicate;
 
         if (!SourcePlanningRowExecution.CanEvaluatePredicate(planAcceptedPredicate))
         {
@@ -47,13 +42,11 @@ public static class SourcePlanningPlanResultBuilder
                 Identity = request.Identity,
                 AcceptedColumns = planAcceptedColumns,
                 AcceptedPredicate = planAcceptedPredicate,
-                PredicateApplications = CreatePredicateApplications(
-                    planAcceptedPredicate,
-                    predicateApplicationPhase),
+                PredicateApplications = CreatePredicateApplications(planAcceptedPredicate, predicateApplicationPhase),
                 AcceptedOrderBy = acceptedOrderBy,
                 AcceptedSkip = acceptedSkip,
                 AcceptedTake = acceptedTake,
-                Properties = properties
+                Properties = properties,
             },
             AcceptedColumns = planAcceptedColumns,
             AcceptedPredicate = planAcceptedPredicate,
@@ -63,14 +56,15 @@ public static class SourcePlanningPlanResultBuilder
             AcceptedSkip = acceptedSkip,
             ResidualSkip = residualSkip,
             AcceptedTake = acceptedTake,
-            ResidualTake = residualTake
+            ResidualTake = residualTake,
         };
     }
 
     public static SourcePlanResult CreateRejectedWithProperties(
         SourcePlanRequest request,
         string? projectionWorkPropertyName = null,
-        bool projectionWork = false)
+        bool projectionWork = false
+    )
     {
         ArgumentNullException.ThrowIfNull(request);
         var rejected = SourcePlanResult.RejectAll(request);
@@ -82,8 +76,9 @@ public static class SourcePlanningPlanResultBuilder
                     strategyPropertyName: null,
                     strategy: null,
                     projectionWorkPropertyName,
-                    projectionWork)
-            }
+                    projectionWork
+                ),
+            },
         };
     }
 
@@ -92,7 +87,7 @@ public static class SourcePlanningPlanResultBuilder
         return predicate switch
         {
             SourcePredicateLogical { Operator: SourcePredicateLogicalOperator.And } and => GetFirstConjunct(and.Left),
-            _ => predicate
+            _ => predicate,
         };
     }
 
@@ -102,14 +97,13 @@ public static class SourcePlanningPlanResultBuilder
             return null;
 
         var left = RemoveFirstConjunct(logical.Left);
-        return left == null
-            ? logical.Right
-            : logical with { Left = left };
+        return left == null ? logical.Right : logical with { Left = left };
     }
 
     private static IReadOnlyList<SourcePredicateApplication> CreatePredicateApplications(
         SourcePredicateExpression? predicate,
-        SourcePredicateEvaluationPhase phase)
+        SourcePredicateEvaluationPhase phase
+    )
     {
         var applications = SourcePredicateApplication.ForRowFiltering(predicate);
         return phase == SourcePredicateEvaluationPhase.RowFiltering
@@ -123,7 +117,8 @@ public static class SourcePlanningPlanResultBuilder
         string? strategyPropertyName,
         SourcePlanningExecutionStrategy? strategy,
         string? projectionWorkPropertyName,
-        bool projectionWork)
+        bool projectionWork
+    )
     {
         var properties = new Dictionary<string, object?>();
 

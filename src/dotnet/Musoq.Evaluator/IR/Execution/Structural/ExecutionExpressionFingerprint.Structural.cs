@@ -23,7 +23,8 @@ internal static partial class ExecutionExpressionFingerprint
         ArgumentNullException.ThrowIfNull(shape);
 
         var builder = new StringBuilder();
-        builder.Append(shape.Kind)
+        builder
+            .Append(shape.Kind)
             .Append(':')
             .Append(shape.IsNullable)
             .Append(':')
@@ -37,7 +38,8 @@ internal static partial class ExecutionExpressionFingerprint
         builder.Append('[');
         foreach (var field in shape.Fields)
         {
-            builder.Append(field.Name)
+            builder
+                .Append(field.Name)
                 .Append(':')
                 .Append(field.Type.StableId)
                 .Append(':')
@@ -56,36 +58,34 @@ internal static partial class ExecutionExpressionFingerprint
 
     internal static string ForStructuralRecord(ExecutionStructuralRecord record)
     {
-        var fields = string.Join(';', record.Fields.Select(field =>
-            $"{field.Name}:{field.IsPresent}:{ForHoist(field.Value)}"));
-        return $"record:{HoistType(record.ReturnType)}:{fields}:plan=" +
-               (record.ConstructionPlan == null ? "-" : ForStructuralPlan(record.ConstructionPlan)) +
-               $":limits={FormatLimitBinding(record.LimitBinding)}";
+        var fields = string.Join(
+            ';',
+            record.Fields.Select(field => $"{field.Name}:{field.IsPresent}:{ForHoist(field.Value)}")
+        );
+        return $"record:{HoistType(record.ReturnType)}:{fields}:plan="
+            + (record.ConstructionPlan == null ? "-" : ForStructuralPlan(record.ConstructionPlan))
+            + $":limits={FormatLimitBinding(record.LimitBinding)}";
     }
 
     internal static string ForStructuralArray(ExecutionStructuralArray array)
     {
-        return $"array:{HoistType(array.ReturnType)}:{HoistType(array.ElementType)}:" +
-               string.Join(';', array.Elements.Select(ForHoist)) +
-               $":limits={FormatLimitBinding(array.LimitBinding)}";
+        return $"array:{HoistType(array.ReturnType)}:{HoistType(array.ElementType)}:"
+            + string.Join(';', array.Elements.Select(ForHoist))
+            + $":limits={FormatLimitBinding(array.LimitBinding)}";
     }
 
-    internal static string ForCteCollectionInput(
-        ExecutionCteCollectionInput input,
-        string rowsFingerprint)
+    internal static string ForCteCollectionInput(ExecutionCteCollectionInput input, string rowsFingerprint)
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        return $"cte-input:{input.CteName}:{input.ElementType.StableId}:{rowsFingerprint}:" +
-               $"fields={string.Join(';', input.Fields.Select(static field =>
-                   $"{field.Name}:{field.Index}:{field.Type.StableId}"))}:" +
-               $"plan={(input.ConstructionPlan == null ? "-" : ForStructuralPlan(input.ConstructionPlan))}:" +
-               $"limits={FormatLimitBinding(input.LimitBinding)}:" +
-               $"ownership={input.Ownership};lifetime={input.Lifetime};metrics={input.MetricsStrategy}";
+        return $"cte-input:{input.CteName}:{input.ElementType.StableId}:{rowsFingerprint}:"
+            + $"fields={string.Join(';', input.Fields.Select(static field =>
+                   $"{field.Name}:{field.Index}:{field.Type.StableId}"))}:"
+            + $"plan={(input.ConstructionPlan == null ? "-" : ForStructuralPlan(input.ConstructionPlan))}:"
+            + $"limits={FormatLimitBinding(input.LimitBinding)}:"
+            + $"ownership={input.Ownership};lifetime={input.Lifetime};metrics={input.MetricsStrategy}";
     }
 
     internal static string FormatLimitBinding(ExecutionStructuralLimitBinding? binding) =>
-        binding == null
-            ? "-"
-            : $"{binding.Origin}:{binding.Path}:{binding.SourceContextId ?? "-"}:{binding.Limits}";
+        binding == null ? "-" : $"{binding.Origin}:{binding.Path}:{binding.SourceContextId ?? "-"}:{binding.Limits}";
 }

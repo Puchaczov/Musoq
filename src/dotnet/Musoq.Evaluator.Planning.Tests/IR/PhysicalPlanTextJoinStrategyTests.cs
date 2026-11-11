@@ -11,7 +11,8 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
     public void Print_WhenInnerEquiJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.City from #A.Entities() a join #B.Entities() b on a.Id = b.Id");
+            "select a.Name, b.City from #A.Entities() a join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
@@ -23,15 +24,18 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
                 "  PhysicalProject [a.Name as Name, b.City as City]",
-                "    PhysicalCteRef [ab as ab]"),
-            planText);
+                "    PhysicalCteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void PlanningText_WhenHashJoinBuildHasHiddenKeyPayload_ShouldShowAppliedRowWidthPruning()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.City from #A.Entities() a join #B.Entities() b on a.Id = b.Id");
+            "select a.Name, b.City from #A.Entities() a join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planningText = buildItems.RequirePlanningText();
 
@@ -45,7 +49,8 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
     public void PlanningText_WhenCrossJoinUsesNestedLoop_ShouldReportCardinalityRiskDiagnostic()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a cross join #B.Entities() b");
+            "select a.Name, b.Name from #A.Entities() a cross join #B.Entities() b"
+        );
 
         var planningText = buildItems.RequirePlanningText();
 
@@ -56,7 +61,8 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
     public void Print_WhenRightOuterJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a right outer join #B.Entities() b on a.Id = b.Id");
+            "select a.Name, b.Name from #A.Entities() a right outer join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
@@ -68,21 +74,25 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
                 "  PhysicalProject [a.Name as Name, b.Name as Name]",
-                "    PhysicalCteRef [ab as ab]"),
-            planText);
+                "    PhysicalCteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenFullOuterEquiJoinQuery_ShouldUseHashJoin()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a full outer join #B.Entities() b on a.Id = b.Id");
+            "select a.Name, b.Name from #A.Entities() a full outer join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
         Assert.Contains(
             "Hash join selected because at least one equi key pair was found.",
-            buildItems.RequirePlanningText());
+            buildItems.RequirePlanningText()
+        );
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
@@ -91,15 +101,18 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
                 "  PhysicalProject [a.Name as Name, b.Name as Name]",
-                "    PhysicalCteRef [ab as ab]"),
-            planText);
+                "    PhysicalCteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenNonEquiJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a join #B.Entities() b on a.Population > b.Population");
+            "select a.Name, b.Name from #A.Entities() a join #B.Entities() b on a.Population > b.Population"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
@@ -111,15 +124,18 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
                 "  PhysicalProject [a.Name as Name, b.Name as Name]",
-                "    PhysicalCteRef [ab as ab]"),
-            planText);
+                "    PhysicalCteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenAsofJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b on a.Country = b.Country and a.Population >= b.Population");
+            "select a.Name, b.Name from #A.Entities() a asof join #B.Entities() b on a.Country = b.Country and a.Population >= b.Population"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
@@ -131,15 +147,18 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
                 "  PhysicalProject [a.Name as Name, b.Name as Name]",
-                "    PhysicalCteRef [ab as ab]"),
-            planText);
+                "    PhysicalCteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenSemiJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name from #A.Entities() a semi join #B.Entities() b on a.Id = b.Id");
+            "select a.Name from #A.Entities() a semi join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
@@ -149,15 +168,18 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "  PhysicalProject [a.Name as Name]",
                 "    PhysicalHashJoin [LeftSemi] [build: b.Id] [probe: a.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
-                "      PhysicalSchemaScan [#B.Entities() as b]"),
-            planText);
+                "      PhysicalSchemaScan [#B.Entities() as b]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenAntiJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name from #A.Entities() a anti join #B.Entities() b on a.Id = b.Id");
+            "select a.Name from #A.Entities() a anti join #B.Entities() b on a.Id = b.Id"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
@@ -167,19 +189,25 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "  PhysicalProject [a.Name as Name]",
                 "    PhysicalHashJoin [LeftAntiSemi] [build: b.Id] [probe: a.Id]",
                 "      PhysicalSchemaScan [#A.Entities() as a]",
-                "      PhysicalSchemaScan [#B.Entities() as b]"),
-            planText);
+                "      PhysicalSchemaScan [#B.Entities() as b]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenCrossJoinQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select a.Name, b.City from #A.Entities() a cross join #B.Entities() b");
+            "select a.Name, b.City from #A.Entities() a cross join #B.Entities() b"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
-        Assert.Contains("CROSS JOIN semantics require nested-loop Cartesian evaluation.", buildItems.RequirePlanningText());
+        Assert.Contains(
+            "CROSS JOIN semantics require nested-loop Cartesian evaluation.",
+            buildItems.RequirePlanningText()
+        );
         PlanTextAssertions.AreEqual(
             PlanTextAssertions.FromLines(
                 "PhysicalMultiStatement",
@@ -188,7 +216,9 @@ public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
                 "      PhysicalSchemaScan [#A.Entities() as a]",
                 "      PhysicalSchemaScan [#B.Entities() as b]",
                 "  PhysicalProject [a.Name as Name, b.City as City]",
-                "    PhysicalCteRef [ab as ab]"),
-            planText);
+                "    PhysicalCteRef [ab as ab]"
+            ),
+            planText
+        );
     }
 }

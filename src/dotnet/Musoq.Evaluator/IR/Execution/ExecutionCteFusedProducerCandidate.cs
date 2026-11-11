@@ -4,4 +4,5 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed record ExecutionCteFusedProducerCandidate(
     IReadOnlyList<ExecutionFusedCteOutput> Outputs,
-    ExecutionBlock Body) : ExecutionNode;
+    ExecutionBlock Body
+) : ExecutionNode;

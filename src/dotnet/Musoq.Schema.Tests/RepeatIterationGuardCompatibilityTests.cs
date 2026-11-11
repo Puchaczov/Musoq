@@ -37,16 +37,22 @@ public sealed class RepeatIterationGuardCompatibilityTests
     private sealed class BytesProbe : BytesInterpreterBase<int>
     {
         public override string SchemaName => "BytesProbe";
+
         public override int InterpretAt(ReadOnlySpan<byte> data, int offset) => 0;
+
         public void Legacy(int iteration) => EnsureRepeatIteration("Records", iteration);
+
         public void Configured(int iteration, int maximum) => EnsureRepeatIteration("Records", iteration, maximum);
     }
 
     private sealed class TextProbe : TextInterpreterBase<string>
     {
         public override string SchemaName => "TextProbe";
+
         public override string ParseAt(ReadOnlySpan<char> text, int position) => string.Empty;
+
         public void Legacy(int iteration) => EnsureRepeatIteration("Records", iteration);
+
         public void Configured(int iteration, int maximum) => EnsureRepeatIteration("Records", iteration, maximum);
     }
 }

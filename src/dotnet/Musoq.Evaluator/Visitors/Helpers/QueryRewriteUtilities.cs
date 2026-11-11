@@ -120,26 +120,29 @@ public static class QueryRewriteUtilities
     public static bool HasMixedAggregateProjection(FieldNode[] fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
-        return fields.Any(field => field != null &&
-                                   ContainsAggregateAndNonAggregateColumn(field.Expression));
+        return fields.Any(field => field != null && ContainsAggregateAndNonAggregateColumn(field.Expression));
     }
 
     public static void ThrowIfUnsupportedAggregateProjection(
         GroupByNode? groupBy,
         FieldNode[] fields,
-        bool implicitOnly = false)
+        bool implicitOnly = false
+    )
     {
-        if (groupBy is not { Fields.Length: 1 } ||
-            groupBy.Fields[0].Expression is not IntegerNode ||
-            (implicitOnly && groupBy.HasSpan) ||
-            !HasMixedAggregateProjection(fields))
+        if (
+            groupBy is not { Fields.Length: 1 }
+            || groupBy.Fields[0].Expression is not IntegerNode
+            || (implicitOnly && groupBy.HasSpan)
+            || !HasMixedAggregateProjection(fields)
+        )
             return;
 
         var field = fields.First(item => HasMixedAggregateProjection([item]));
         throw new ConstructionNotYetSupported(
             "The selected aggregate and non-aggregate expressions cannot be lowered without a grouping boundary.",
             DiagnosticCode.MQ3097_UnsupportedAggregateProjection,
-            field.SpanOrEmpty());
+            field.SpanOrEmpty()
+        );
     }
 
     private static bool ContainsAggregateAndNonAggregateColumn(Node expression)
@@ -198,8 +201,10 @@ public static class QueryRewriteUtilities
     /// <param name="groupByFields">The group by fields.</param>
     /// <returns>The concatenated fields.</returns>
     /// <exception cref="ArgumentNullException">Thrown when selectFields or groupByFields is null.</exception>
-    public static FieldNode[] ConcatAggregateFieldsWithGroupByFields(FieldNode[] selectFields,
-        FieldNode[] groupByFields)
+    public static FieldNode[] ConcatAggregateFieldsWithGroupByFields(
+        FieldNode[] selectFields,
+        FieldNode[] groupByFields
+    )
     {
         ArgumentNullException.ThrowIfNull(selectFields);
         ArgumentNullException.ThrowIfNull(groupByFields);
@@ -220,10 +225,10 @@ public static class QueryRewriteUtilities
             if (groupField?.Expression == null)
                 continue;
 
-            var hasField =
-                selectFields.Any(field => field?.Expression?.ToString() == groupField.Expression.ToString());
+            var hasField = selectFields.Any(field => field?.Expression?.ToString() == groupField.Expression.ToString());
 
-            if (!hasField) fields.Add(new FieldNode(groupField.Expression, ++nextOrder, string.Empty));
+            if (!hasField)
+                fields.Add(new FieldNode(groupField.Expression, ++nextOrder, string.Empty));
         }
 
         return fields.ToArray();
@@ -236,8 +241,10 @@ public static class QueryRewriteUtilities
     /// <param name="joinFromNode">The join node.</param>
     /// <returns>A function that determines if a column should be included.</returns>
     /// <exception cref="ArgumentNullException">Thrown when accessColumnNodes or joinFromNode is null.</exception>
-    public static Func<AccessColumnNode, bool> IncludeKnownColumns(AccessColumnNode[] accessColumnNodes,
-        BinaryFromNode joinFromNode)
+    public static Func<AccessColumnNode, bool> IncludeKnownColumns(
+        AccessColumnNode[] accessColumnNodes,
+        BinaryFromNode joinFromNode
+    )
     {
         ArgumentNullException.ThrowIfNull(accessColumnNodes);
         ArgumentNullException.ThrowIfNull(joinFromNode);
@@ -249,11 +256,13 @@ public static class QueryRewriteUtilities
 
             if (accessColumnNode.Alias == joinFromNode.Source.Alias)
                 return accessColumnNodes.Any(f =>
-                    f != null && f.Name == accessColumnNode.Name && f.Alias == joinFromNode.Source.Alias);
+                    f != null && f.Name == accessColumnNode.Name && f.Alias == joinFromNode.Source.Alias
+                );
 
             if (accessColumnNode.Alias == joinFromNode.With.Alias)
                 return accessColumnNodes.Any(f =>
-                    f != null && f.Name == accessColumnNode.Name && f.Alias == joinFromNode.With.Alias);
+                    f != null && f.Name == accessColumnNode.Name && f.Alias == joinFromNode.With.Alias
+                );
 
             return false;
         };
@@ -266,8 +275,10 @@ public static class QueryRewriteUtilities
     /// <param name="binaryFromNode">The binary node.</param>
     /// <returns>A function that determines if a column should be included.</returns>
     /// <exception cref="ArgumentNullException">Thrown when accessColumnNodes or binaryFromNode is null.</exception>
-    public static Func<AccessColumnNode, bool> IncludeKnownColumnsForWithOnly(AccessColumnNode[] accessColumnNodes,
-        BinaryFromNode binaryFromNode)
+    public static Func<AccessColumnNode, bool> IncludeKnownColumnsForWithOnly(
+        AccessColumnNode[] accessColumnNodes,
+        BinaryFromNode binaryFromNode
+    )
     {
         ArgumentNullException.ThrowIfNull(accessColumnNodes);
         ArgumentNullException.ThrowIfNull(binaryFromNode);
@@ -277,11 +288,13 @@ public static class QueryRewriteUtilities
             if (accessColumnNode == null || binaryFromNode.Source == null || binaryFromNode.With == null)
                 return false;
 
-            if (accessColumnNode.Alias == binaryFromNode.Source.Alias) return true;
+            if (accessColumnNode.Alias == binaryFromNode.Source.Alias)
+                return true;
 
             if (accessColumnNode.Alias == binaryFromNode.With.Alias)
                 return accessColumnNodes.Any(f =>
-                    f != null && f.Name == accessColumnNode.Name && f.Alias == binaryFromNode.With.Alias);
+                    f != null && f.Name == accessColumnNode.Name && f.Alias == binaryFromNode.With.Alias
+                );
 
             return false;
         };

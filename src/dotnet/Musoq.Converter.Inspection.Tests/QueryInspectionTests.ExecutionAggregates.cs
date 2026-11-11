@@ -9,17 +9,21 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForAggregateOnly_ShouldEmitExecutionAggregateCode()
     {
-        var result = Inspect(
-            "select Count(1) as Count from #system.dual() d",
-            new CompilationOptions());
+        var result = Inspect("select Count(1) as Count from #system.dual() d", new CompilationOptions());
 
         AssertTypedAggregateContext(result.ExecutionPlanText);
         Assert.Contains("Count(", result.ExecutionPlanText);
         Assert.Contains("private sealed class ResultAggregateGroup", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains(
-            "private sealed class ResultAggregateGroup : Group",
-            StringComparison.Ordinal));
-        AssertGeneratedCSharpContains("group.__agg0.Count = checked(group.__agg0.Count + 1L)", result.GeneratedCSharpCode);
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "private sealed class ResultAggregateGroup : Group",
+                StringComparison.Ordinal
+            )
+        );
+        AssertGeneratedCSharpContains(
+            "group.__agg0.Count = checked(group.__agg0.Count + 1L)",
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains("finalGroup.__agg0.Count", result.GeneratedCSharpCode);
     }
 
@@ -28,16 +32,19 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select Count(distinct d.Dummy) as DistinctCount from #system.dual() d",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedAggregateContext(result.ExecutionPlanText);
         Assert.Contains("d.Count(distinct d.Dummy)", result.ExecutionPlanText);
         AssertGeneratedCSharpContains(
             "CountDistinctReferenceAggregateKernel<string>.Set(ref group.__agg0",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains(
             "CountDistinctReferenceAggregateKernel<string>.Get(in finalGroup.__agg0)",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("HashSet<object>", StringComparison.Ordinal));
     }
 
@@ -52,16 +59,16 @@ public partial class QueryInspectionTests
             )
             select StDev(Population) as PopulationStDev from values
             """,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedAggregateContext(result.ExecutionPlanText);
         Assert.Contains("TypedAggregateSet [", result.ExecutionPlanText);
-        AssertGeneratedCSharpContains(
-            "StDevAggregateKernel<int>.Set(ref group.__agg0",
-            result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("StDevAggregateKernel<int>.Set(ref group.__agg0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains(
             "StDevAggregateKernel<int>.Get(in finalGroup.__agg0)",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".GetValue<", StringComparison.Ordinal));
     }
 
@@ -76,7 +83,8 @@ public partial class QueryInspectionTests
             )
             select SumIncome(Amount) as Income, SumOutcome(Amount) as Outcome from amounts
             """,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedAggregateContext(result.ExecutionPlanText);
         Assert.Contains("TypedAggregateSet [", result.ExecutionPlanText);
@@ -106,21 +114,43 @@ public partial class QueryInspectionTests
             from amounts
             group by Country, City
             """,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedValueTupleAggregateContext(result.ExecutionPlanText);
         Assert.Contains("AggregateGroup [", result.ExecutionPlanText);
         AssertGeneratedCSharpContains("private sealed class ResultAggregateGroupPrefix1", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("private sealed class ResultAggregateGroup", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("public readonly ResultAggregateGroupPrefix1 __owner1", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groupsLevel_0", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains(
+            "public readonly ResultAggregateGroupPrefix1 __owner1",
+            result.GeneratedCSharpCode
+        );
+        AssertGeneratedCSharpContains(
+            "System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groupsLevel_0",
+            result.GeneratedCSharpCode
+        );
+        AssertGeneratedCSharpContains(
+            "System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(groups",
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains(".Count = checked(group.__owner1.__agg", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("SumIncomeAggregateKernel<int>.Set(ref group.__owner1.__agg", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("SumOutcomeAggregateKernel<int>.Set(ref group.__owner1.__agg", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains(
+            "SumIncomeAggregateKernel<int>.Set(ref group.__owner1.__agg",
+            result.GeneratedCSharpCode
+        );
+        AssertGeneratedCSharpContains(
+            "SumOutcomeAggregateKernel<int>.Set(ref group.__owner1.__agg",
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains("finalGroup.__owner1.__agg", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("SumIncomeAggregateKernel<int>.Get(in finalGroup.__owner1.__agg", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("SumOutcomeAggregateKernel<int>.Get(in finalGroup.__owner1.__agg", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains(
+            "SumIncomeAggregateKernel<int>.Get(in finalGroup.__owner1.__agg",
+            result.GeneratedCSharpCode
+        );
+        AssertGeneratedCSharpContains(
+            "SumOutcomeAggregateKernel<int>.Get(in finalGroup.__owner1.__agg",
+            result.GeneratedCSharpCode
+        );
         AssertNoLegacyAggregateRuntime(result.GeneratedCSharpCode);
     }
 
@@ -143,7 +173,8 @@ public partial class QueryInspectionTests
             from amounts
             group by Country, City
             """,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -163,11 +194,15 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy as Dummy, CustomLengthTotal(Length(d.Dummy)) as TotalLength from #system.dual() d group by d.Dummy",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         AssertGeneratedCSharpContains("CustomLengthTotalAggregate.Set(ref group.__agg0", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("CustomLengthTotalAggregate.Get(in finalGroup.__agg0", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains(
+            "CustomLengthTotalAggregate.Get(in finalGroup.__agg0",
+            result.GeneratedCSharpCode
+        );
         AssertNoLegacyAggregateRuntime(result.GeneratedCSharpCode);
     }
 
@@ -182,28 +217,29 @@ public partial class QueryInspectionTests
             )
             select SumTimeSpan(Period) as Total, MinTimeSpan(Period) as Minimum, MaxTimeSpan(Period) as Maximum from periods
             """,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedAggregateContext(result.ExecutionPlanText);
         Assert.Contains("TypedAggregateSet [", result.ExecutionPlanText);
-        AssertGeneratedCSharpContains(
-            "SumTimeSpanAggregateKernel.Set(ref group.__agg",
-            result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("SumTimeSpanAggregateKernel.Set(ref group.__agg", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains(
             "MinComparableAggregateKernel<TimeSpan>.Set(ref group.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains(
             "MaxComparableAggregateKernel<TimeSpan>.Set(ref group.__agg",
-            result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains(
-            "SumTimeSpanAggregateKernel.Get(in finalGroup.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
+        AssertGeneratedCSharpContains("SumTimeSpanAggregateKernel.Get(in finalGroup.__agg", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains(
             "MinComparableAggregateKernel<TimeSpan>.Get(in finalGroup.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains(
             "MaxComparableAggregateKernel<TimeSpan>.Get(in finalGroup.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".GetValue<", StringComparison.Ordinal));
     }
 
@@ -218,22 +254,27 @@ public partial class QueryInspectionTests
             )
             select MinDateTime(DateValue) as EarliestDate, MaxDateTimeOffset(OffsetValue) as LatestOffset from dates
             """,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedAggregateContext(result.ExecutionPlanText);
         Assert.Contains("TypedAggregateSet [", result.ExecutionPlanText);
         AssertGeneratedCSharpContains(
             "MinComparableAggregateKernel<DateTime>.Set(ref group.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains(
             "MaxComparableAggregateKernel<DateTimeOffset>.Set(ref group.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains(
             "MinComparableAggregateKernel<DateTime>.Get(in finalGroup.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains(
             "MaxComparableAggregateKernel<DateTimeOffset>.Get(in finalGroup.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".GetValue<", StringComparison.Ordinal));
     }
 
@@ -248,31 +289,31 @@ public partial class QueryInspectionTests
             )
             select AggregateValues(Name) as Names, AggregateValues(Name, ', ') as PrettyNames from people
             """,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedAggregateContext(result.ExecutionPlanText);
         Assert.Contains("TypedAggregateSet [", result.ExecutionPlanText);
-        AssertGeneratedCSharpContains(
-            "AggregateValuesStringKernel.Set(ref group.__agg",
-            result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("AggregateValuesStringKernel.Set(ref group.__agg", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains(
             "AggregateValuesStringDelimitedKernel.Set(ref group.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains(
             "AggregateValuesStringKernel.Get(in finalGroup.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains(
             "AggregateValuesStringDelimitedKernel.Get(in finalGroup.__agg",
-            result.GeneratedCSharpCode);
+            result.GeneratedCSharpCode
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".GetValue<", StringComparison.Ordinal));
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForAggregateOnly_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(
-            "select Count(1) as Count from #system.dual() d",
-            new CompilationOptions());
+        var compiled = CompileForExecution("select Count(1) as Count from #system.dual() d", new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -287,7 +328,10 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertTypedAggregateContext(result.ExecutionPlanText);
-        AssertGeneratedCSharpContains("group.__agg0.Count = checked(group.__agg0.Count + 1L)", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains(
+            "group.__agg0.Count = checked(group.__agg0.Count + 1L)",
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains("finalGroup.__agg0.Count", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -297,7 +341,8 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy as Dummy, Count(1) as Count from #system.dual() d group by d.Dummy",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         AssertExecutionPlanContains("ParallelSingleKeyAggregateLoop [d in dRows by d.Dummy;", result.ExecutionPlanText);
@@ -312,7 +357,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "select d.Dummy as Dummy, Count(1) as Count from #system.dual() d group by d.Dummy",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -339,22 +385,45 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy as Dummy, Count(1) as Count from #system.dual() d group by d.Dummy",
-            new CompilationOptions(parallelizationMode: ParallelizationMode.Full));
+            new CompilationOptions(parallelizationMode: ParallelizationMode.Full)
+        );
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("ParallelSingleKeyAggregateLoop [d in dRows by d.Dummy; threshold 4096, sample 8192/6144", result.ExecutionPlanText);
+        Assert.Contains(
+            "ParallelSingleKeyAggregateLoop [d in dRows by d.Dummy; threshold 4096, sample 8192/6144",
+            result.ExecutionPlanText
+        );
         Assert.Contains("ParallelAccumulate", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("SequentialKernel", StringComparison.Ordinal));
-        AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetParallelAggregationRowsOrEmpty", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpDoesNotContain("EvaluationHelper.ShouldUseParallelSingleKeyAggregation", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpDoesNotContain(
+            "EvaluationHelper.GetParallelAggregationRowsOrEmpty",
+            result.GeneratedCSharpCode
+        );
+        AssertGeneratedCSharpDoesNotContain(
+            "EvaluationHelper.ShouldUseParallelSingleKeyAggregation",
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains("ParallelSingleKeyAggregate_0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("SerialSingleKeyAggregate_0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("Parallel.ForEach<IReadOnlyList<", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("private static void ParallelSingleKeyAggregateChunk_0", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("private sealed class ParallelSingleKeyAggregateChunkWorker_0", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains(
+            "private static void ParallelSingleKeyAggregateChunk_0",
+            result.GeneratedCSharpCode
+        );
+        AssertGeneratedCSharpContains(
+            "private sealed class ParallelSingleKeyAggregateChunkWorker_0",
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains("mergedGroupRef.MergeFrom(sourceGroup)", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("private static void ParallelSingleKeyAggregateShard_0", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.AggregateSingleKeyParallel", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "private static void ParallelSingleKeyAggregateShard_0",
+                StringComparison.Ordinal
+            )
+        );
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.AggregateSingleKeyParallel", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
@@ -362,12 +431,18 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy as Dummy, Count(1) as Count from #system.dual() d group by d.Dummy",
-            new CompilationOptions(parallelizationMode: ParallelizationMode.None));
+            new CompilationOptions(parallelizationMode: ParallelizationMode.None)
+        );
 
         AssertUsesExecutionBackend(result);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ParallelSingleKeyAggregateLoop", StringComparison.Ordinal));
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.AggregateSingleKeyParallel", StringComparison.Ordinal));
-        AssertExecutionPlanContains("GetOrAddSingleKeyAggregateGroup [group = groups[d.Dummy] by d.Dummy; typed:", result.ExecutionPlanText);
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains("EvaluationHelper.AggregateSingleKeyParallel", StringComparison.Ordinal)
+        );
+        AssertExecutionPlanContains(
+            "GetOrAddSingleKeyAggregateGroup [group = groups[d.Dummy] by d.Dummy; typed:",
+            result.ExecutionPlanText
+        );
     }
 
     [TestMethod]
@@ -378,12 +453,19 @@ public partial class QueryInspectionTests
         Assert.Contains("PhysicalHashJoin [Inner] [build: e.Dummy] [probe: d.Dummy]", result.PhysicalPlanText);
         AssertUsesExecutionBackend(result);
         AssertExecutionPlanContains("CreateHash [eHash: string -> DualEntity]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("ForEach [de in _tableResults[0].Rows]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[0]]", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("ForEach [de in _tableResults[0].Rows]", StringComparison.Ordinal)
+        );
         Assert.Contains("HashProbe [eHash[d.Dummy] -> eHashMatches]", result.ExecutionPlanText);
         AssertTypedAggregateSet(result.ExecutionPlanText);
         AssertGeneratedCSharpContains("eHash.TryGetValue", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("group.__agg0.Count = checked(group.__agg0.Count + 1L)", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains(
+            "group.__agg0.Count = checked(group.__agg0.Count + 1L)",
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -407,14 +489,27 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
         Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        AssertExecutionPlanContains("StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
-        AssertExecutionPlanContains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal));
-        Assert.IsFalse(result.ExecutionPlanText.Contains("ForEach [lr in _tableResults[2].Rows]", StringComparison.Ordinal));
+        AssertExecutionPlanContains(
+            "StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]",
+            result.ExecutionPlanText
+        );
+        AssertExecutionPlanContains(
+            "LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]",
+            result.ExecutionPlanText
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal)
+        );
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("ForEach [lr in _tableResults[2].Rows]", StringComparison.Ordinal)
+        );
         Assert.Contains("HashProbe [rHash[l.Dummy] -> rHashMatches]", result.ExecutionPlanText);
         AssertTypedAggregateSet(result.ExecutionPlanText);
         AssertGeneratedCSharpContains("rHash.TryGetValue", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("group.__agg0.Count = checked(group.__agg0.Count + 1L)", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains(
+            "group.__agg0.Count = checked(group.__agg0.Count + 1L)",
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -433,9 +528,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForGroupedHaving_ShouldEmitExecutionAggregateGuard()
     {
-        var result = Inspect(
-            CreateGroupedHavingQuery(),
-            new CompilationOptions());
+        var result = Inspect(CreateGroupedHavingQuery(), new CompilationOptions());
 
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.Contains("If [", result.ExecutionPlanText);
@@ -448,9 +541,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForGroupedHaving_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(
-            CreateGroupedHavingQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateGroupedHavingQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -464,7 +555,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "select d.Dummy as Dummy, Count(1) + 1 as Count from #system.dual() d group by d.Dummy",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -476,24 +568,26 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForGroupedAggregateOrderBy_ShouldEmitExecutionAggregateSort()
     {
-        var result = Inspect(
-            CreateGroupedAggregateOrderByQuery(),
-            new CompilationOptions());
+        var result = Inspect(CreateGroupedAggregateOrderByQuery(), new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("SortOwnedBuffer [result by Count DESC, stable sequence __musoqSequence]", result.ExecutionPlanText);
         Assert.Contains(
-            "result.Sort(Comparer<ResultShape0>.Create",
-            result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("private sealed class ResultRow0OrderBy_1DComparer : IComparer<ResultRow0>", StringComparison.Ordinal));
+            "SortOwnedBuffer [result by Count DESC, stable sequence __musoqSequence]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains("result.Sort(Comparer<ResultShape0>.Create", result.GeneratedCSharpCode);
+        Assert.IsFalse(
+            result.GeneratedCSharpCode.Contains(
+                "private sealed class ResultRow0OrderBy_1DComparer : IComparer<ResultRow0>",
+                StringComparison.Ordinal
+            )
+        );
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForGroupedAggregateOrderBy_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(
-            CreateGroupedAggregateOrderByQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateGroupedAggregateOrderByQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -505,22 +599,21 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForComputedGroupKey_ShouldEmitExecutionAggregateCode()
     {
-        var result = Inspect(
-            CreateComputedGroupKeyQuery(),
-            new CompilationOptions());
+        var result = Inspect(CreateComputedGroupKeyQuery(), new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        AssertExecutionPlanContains("ParallelSingleKeyAggregateLoop [d in dRows by (d.Dummy || '!');", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "ParallelSingleKeyAggregateLoop [d in dRows by (d.Dummy || '!');",
+            result.ExecutionPlanText
+        );
         AssertGeneratedCSharpContains("finalGroup.__key0", result.GeneratedCSharpCode);
     }
 
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForComputedGroupKey_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(
-            CreateComputedGroupKeyQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateComputedGroupKeyQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -534,10 +627,14 @@ public partial class QueryInspectionTests
     {
         var result = Inspect(
             "select d.Dummy as Dummy, 1 as One, Count(1) as Count from #system.dual() d group by d.Dummy, One",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         AssertTypedValueTupleAggregateContext(result.ExecutionPlanText);
-        AssertExecutionPlanContains("GetOrAddValueTupleAggregateGroup [group = groups[(d.Dummy, 1)] by d.Dummy, One; typed:", result.ExecutionPlanText);
+        AssertExecutionPlanContains(
+            "GetOrAddValueTupleAggregateGroup [group = groups[(d.Dummy, 1)] by d.Dummy, One; typed:",
+            result.ExecutionPlanText
+        );
         AssertGeneratedCSharpContains("finalGroup.__key0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("finalGroup.__key1", result.GeneratedCSharpCode);
         Assert.Contains("new Dictionary<(string, int), ResultAggregateGroup>()", result.GeneratedCSharpCode);
@@ -548,7 +645,8 @@ public partial class QueryInspectionTests
     {
         var compiled = CompileForExecution(
             "select d.Dummy as Dummy, 1 as One, Count(1) as Count from #system.dual() d group by d.Dummy, One",
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         var table = compiled.Run();
 
@@ -561,17 +659,33 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenExecutionIrRendererIsEnabledForWideValueTupleAggregate_ShouldEmitExecutionAggregateCode()
     {
-        var result = Inspect(
-            CreateWideValueTupleAggregateQuery(),
-            new CompilationOptions());
+        var result = Inspect(CreateWideValueTupleAggregateQuery(), new CompilationOptions());
 
-        AssertExecutionPlanContains("AggregateGroup [ResultAggregateGroup; keys: 9; typed aggs: 1]", result.ExecutionPlanText);
-        AssertExecutionPlanContains("CreateValueTupleAggregateContext [groups: (string, int, int, int, int, int, int, int, int) -> ResultAggregateGroup]", result.ExecutionPlanText);
-        AssertExecutionPlanContains("GetOrAddValueTupleAggregateGroup [group = groups[(d.Dummy, 1, 2, 3, 4, 5, 6, 7, 8)] by d.Dummy, One, Two, Three, Four, Five, Six, Seven, Eight; typed: ResultAggregateGroup]", result.ExecutionPlanText);
-        Assert.Contains("new Dictionary<(string, int, int, int, int, int, int, int, int), ResultAggregateGroup>()", result.GeneratedCSharpCode);
+        AssertExecutionPlanContains(
+            "AggregateGroup [ResultAggregateGroup; keys: 9; typed aggs: 1]",
+            result.ExecutionPlanText
+        );
+        AssertExecutionPlanContains(
+            "CreateValueTupleAggregateContext [groups: (string, int, int, int, int, int, int, int, int) -> ResultAggregateGroup]",
+            result.ExecutionPlanText
+        );
+        AssertExecutionPlanContains(
+            "GetOrAddValueTupleAggregateGroup [group = groups[(d.Dummy, 1, 2, 3, 4, 5, 6, 7, 8)] by d.Dummy, One, Two, Three, Four, Five, Six, Seven, Eight; typed: ResultAggregateGroup]",
+            result.ExecutionPlanText
+        );
+        Assert.Contains(
+            "new Dictionary<(string, int, int, int, int, int, int, int, int), ResultAggregateGroup>()",
+            result.GeneratedCSharpCode
+        );
         Assert.DoesNotContain("GroupKey", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("new ResultAggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7, groupKey8)", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("group.__agg0.Count = checked(group.__agg0.Count + 1L)", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains(
+            "new ResultAggregateGroup(groupKey0, groupKey1, groupKey2, groupKey3, groupKey4, groupKey5, groupKey6, groupKey7, groupKey8)",
+            result.GeneratedCSharpCode
+        );
+        AssertGeneratedCSharpContains(
+            "group.__agg0.Count = checked(group.__agg0.Count + 1L)",
+            result.GeneratedCSharpCode
+        );
         AssertGeneratedCSharpContains("finalGroup.__key0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("finalGroup.__key8", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("finalGroup.GetValue<", StringComparison.Ordinal));
@@ -580,9 +694,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForExecution_WhenExecutionIrRendererIsEnabledForWideValueTupleAggregate_ShouldRunExecutableQuery()
     {
-        var compiled = CompileForExecution(
-            CreateWideValueTupleAggregateQuery(),
-            new CompilationOptions());
+        var compiled = CompileForExecution(CreateWideValueTupleAggregateQuery(), new CompilationOptions());
 
         var table = compiled.Run();
 
@@ -592,5 +704,4 @@ public partial class QueryInspectionTests
         Assert.AreEqual(8, table[0].ReadValue(8));
         Assert.AreEqual(1L, table[0].ReadValue(9));
     }
-
 }

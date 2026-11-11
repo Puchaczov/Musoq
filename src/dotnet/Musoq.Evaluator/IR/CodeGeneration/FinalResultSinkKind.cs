@@ -6,5 +6,5 @@ public enum FinalResultSinkKind
     TableRowsMaterialized,
     TypedSerialEnumerable,
     TypedParallelShards,
-    GeneratedRowParallelShards
+    GeneratedRowParallelShards,
 }

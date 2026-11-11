@@ -4,32 +4,66 @@ namespace Musoq.Parser.Nodes;
 
 public class QueryNode : Node
 {
-    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
-        SkipNode? skip, TakeNode? take)
-        : this(select, from, where, groupBy, orderBy, skip, take, null, null, default)
-    {
-    }
+    public QueryNode(
+        SelectNode select,
+        FromNode from,
+        WhereNode? where,
+        GroupByNode? groupBy,
+        OrderByNode? orderBy,
+        SkipNode? skip,
+        TakeNode? take
+    )
+        : this(select, from, where, groupBy, orderBy, skip, take, null, null, default) { }
 
-    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
-        SkipNode? skip, TakeNode? take, WindowNode? window)
-        : this(select, from, where, groupBy, orderBy, skip, take, window, null, default)
-    {
-    }
+    public QueryNode(
+        SelectNode select,
+        FromNode from,
+        WhereNode? where,
+        GroupByNode? groupBy,
+        OrderByNode? orderBy,
+        SkipNode? skip,
+        TakeNode? take,
+        WindowNode? window
+    )
+        : this(select, from, where, groupBy, orderBy, skip, take, window, null, default) { }
 
-    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
-        SkipNode? skip, TakeNode? take, TextSpan span)
-        : this(select, from, where, groupBy, orderBy, skip, take, null, null, span)
-    {
-    }
+    public QueryNode(
+        SelectNode select,
+        FromNode from,
+        WhereNode? where,
+        GroupByNode? groupBy,
+        OrderByNode? orderBy,
+        SkipNode? skip,
+        TakeNode? take,
+        TextSpan span
+    )
+        : this(select, from, where, groupBy, orderBy, skip, take, null, null, span) { }
 
-    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
-        SkipNode? skip, TakeNode? take, WindowNode? window, TextSpan span)
-        : this(select, from, where, groupBy, orderBy, skip, take, window, null, span)
-    {
-    }
+    public QueryNode(
+        SelectNode select,
+        FromNode from,
+        WhereNode? where,
+        GroupByNode? groupBy,
+        OrderByNode? orderBy,
+        SkipNode? skip,
+        TakeNode? take,
+        WindowNode? window,
+        TextSpan span
+    )
+        : this(select, from, where, groupBy, orderBy, skip, take, window, null, span) { }
 
-    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
-        SkipNode? skip, TakeNode? take, WindowNode? window, QualifyNode? qualify, TextSpan span)
+    public QueryNode(
+        SelectNode select,
+        FromNode from,
+        WhereNode? where,
+        GroupByNode? groupBy,
+        OrderByNode? orderBy,
+        SkipNode? skip,
+        TakeNode? take,
+        WindowNode? window,
+        QualifyNode? qualify,
+        TextSpan span
+    )
     {
         ArgumentNullException.ThrowIfNull(select);
         ArgumentNullException.ThrowIfNull(from);
@@ -42,7 +76,8 @@ public class QueryNode : Node
         Take = take;
         Window = window;
         Qualify = qualify;
-        Id = $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{orderBy?.Id}{skip?.Id}{take?.Id}{window?.Id}{qualify?.Id}";
+        Id =
+            $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{orderBy?.Id}{skip?.Id}{take?.Id}{window?.Id}{qualify?.Id}";
 
         // Compute span from first to last clause
         if (span.IsEmpty)
@@ -90,16 +125,7 @@ public class QueryNode : Node
     {
         var builder = new StringBuilder();
 
-        var otherClauses = new Node?[]
-        {
-            From,
-            Where,
-            GroupBy,
-            Window,
-            Qualify,
-            OrderBy,
-            Skip
-        };
+        var otherClauses = new Node?[] { From, Where, GroupBy, Window, Qualify, OrderBy, Skip };
 
         builder.Append(Select.ToString());
 
@@ -118,7 +144,8 @@ public class QueryNode : Node
             builder.Append(clauseString);
         }
 
-        if (Take == null) return builder.ToString();
+        if (Take == null)
+            return builder.ToString();
 
         var takeString = Take.ToString();
 

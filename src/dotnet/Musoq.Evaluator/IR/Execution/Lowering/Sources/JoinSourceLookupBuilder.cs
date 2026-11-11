@@ -11,16 +11,16 @@ internal static class JoinSourceLookupBuilder
 
     public static Dictionary<string, RowShape> Extend(
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        RowShape sourceShape)
+        RowShape sourceShape
+    )
     {
         return new Dictionary<string, RowShape>(
             RowShapeLookup.CreateSourceShapeLookup(sourceLookup, sourceShape),
-            StringComparer.OrdinalIgnoreCase);
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
-    public static bool TryAdd(
-        IDictionary<string, RowShape> sourceLookup,
-        RowShape sourceShape)
+    public static bool TryAdd(IDictionary<string, RowShape> sourceLookup, RowShape sourceShape)
     {
         var alias = RowShapeLookup.ResolveSourceAlias(sourceShape);
         if (sourceLookup.ContainsKey(alias))
@@ -30,9 +30,7 @@ internal static class JoinSourceLookupBuilder
         return true;
     }
 
-    public static void AddShapes(
-        List<RowShape> shapes,
-        JoinSource source)
+    public static void AddShapes(List<RowShape> shapes, JoinSource source)
     {
         shapes.AddRange(source.Shapes);
     }

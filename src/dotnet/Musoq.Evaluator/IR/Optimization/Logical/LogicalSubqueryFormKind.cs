@@ -6,6 +6,5 @@ internal enum LogicalSubqueryFormKind
     Scalar,
     ScalarMaterialization,
     DerivedTable,
-    Unknown
+    Unknown,
 }
-

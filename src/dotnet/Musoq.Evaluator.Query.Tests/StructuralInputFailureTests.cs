@@ -25,7 +25,11 @@ public sealed partial class StructuralInputFailureTests
     [DataRow("(Value: int?)", "{\"Value\":null}", "{\"Value\":null}")]
     [DataRow("(Name: string = 'default')", "{}", "{\"Name\":\"default\"}")]
     [DataRow("(Value: int)[]", "[{\"Value\":9},{\"Value\":9}]", "[{\"Value\":9},{\"Value\":9}]")]
-    public void NativeStructuredParameter_ShouldPreserveFieldsDefaultsNullsAndRepeatedValues(string type, string json, string expected)
+    public void NativeStructuredParameter_ShouldPreserveFieldsDefaultsNullsAndRepeatedValues(
+        string type,
+        string json,
+        string expected
+    )
     {
         using var compiled = CompileNative($"param(value: {type}) select $value as Value from #schema.first()");
         using var document = JsonDocument.Parse(json);
@@ -48,7 +52,11 @@ public sealed partial class StructuralInputFailureTests
     [DataRow("(Value: int)", "{\"Other\":1}", DiagnosticCode.MQ7006_UnknownScriptParameter)]
     [DataRow("(Value: int)", "[]", DiagnosticCode.MQ7004_ScriptParameterTypeMismatch)]
     [DataRow("(Value: int)[]", "{}", DiagnosticCode.MQ7004_ScriptParameterTypeMismatch)]
-    public void NativeStructuredParameter_WhenShapeIsInvalid_ShouldDiagnoseBeforeResultConsumption(string type, string json, DiagnosticCode code)
+    public void NativeStructuredParameter_WhenShapeIsInvalid_ShouldDiagnoseBeforeResultConsumption(
+        string type,
+        string json,
+        DiagnosticCode code
+    )
     {
         using var compiled = CompileNative($"param(value: {type}) select $value as Value from #schema.first()");
         using var document = JsonDocument.Parse(json);
@@ -87,11 +95,15 @@ public sealed partial class StructuralInputFailureTests
         using var compiled = CompileNative("param(value: (Value: int)) select $value as Value from #schema.first()");
         var cycle = new Dictionary<string, object?>();
         cycle["Child"] = cycle;
-        var erased = Assert.ThrowsExactly<ArgumentException>(() => compiled.TypedParameters.Set<object>("value", cycle));
+        var erased = Assert.ThrowsExactly<ArgumentException>(() =>
+            compiled.TypedParameters.Set<object>("value", cycle)
+        );
         Assert.Contains("concrete scalar parameter type", erased.Message);
         var dictionary = Assert.ThrowsExactly<ArgumentException>(() => compiled.TypedParameters.Set("value", cycle));
         Assert.Contains("SetJson", dictionary.Message);
-        var untyped = Assert.ThrowsExactly<ArgumentException>(() => compiled.TypedParameters.Set("value", new ArrayList { 1, 2 }));
+        var untyped = Assert.ThrowsExactly<ArgumentException>(() =>
+            compiled.TypedParameters.Set("value", new ArrayList { 1, 2 })
+        );
         Assert.Contains("SetCollection", untyped.Message);
     }
 
@@ -109,8 +121,12 @@ public sealed partial class StructuralInputFailureTests
     [TestMethod]
     public void NativeParameterBudget_ShouldBeSharedAcrossStructuredRoots()
     {
-        using var compiled = CompileNative("param(first: (Value: int)[], second: (Value: int)[]) select $first as First, $second as Second from #schema.first()");
-        using var document = JsonDocument.Parse(JsonSerializer.Serialize(Enumerable.Range(0, 30_000).Select(value => new { Value = value })));
+        using var compiled = CompileNative(
+            "param(first: (Value: int)[], second: (Value: int)[]) select $first as First, $second as Second from #schema.first()"
+        );
+        using var document = JsonDocument.Parse(
+            JsonSerializer.Serialize(Enumerable.Range(0, 30_000).Select(value => new { Value = value }))
+        );
         compiled.TypedParameters.SetJson("first", document.RootElement);
         compiled.TypedParameters.SetJson("second", document.RootElement);
         var error = Assert.Throws<QueryExecutionException>(() =>
@@ -127,11 +143,10 @@ public sealed partial class StructuralInputFailureTests
         var state = new StructuralParameterCaptureState(CancellationToken.None);
         state.ReserveNode(1);
         Assert.ThrowsExactly<OverflowException>(() =>
-            state.ReserveMetrics(new StructuralInputMetrics(1, long.MaxValue, 0), 1));
+            state.ReserveMetrics(new StructuralInputMetrics(1, long.MaxValue, 0), 1)
+        );
 
-        var bounded = new StructuralParameterCaptureState(
-            CancellationToken.None,
-            new StructuralInputLimits(4, 2, 64));
+        var bounded = new StructuralParameterCaptureState(CancellationToken.None, new StructuralInputLimits(4, 2, 64));
         bounded.ReserveNode(1);
         Assert.ThrowsExactly<InvalidOperationException>(() => bounded.EnsureCollectionLowerBound(2));
     }
@@ -145,7 +160,8 @@ public sealed partial class StructuralInputFailureTests
             StructuralInputLimitKind.StringBytes,
             8,
             10,
-            "source-1");
+            "source-1"
+        );
 
         var diagnostic = exception.ToDiagnostic();
         Assert.AreEqual(DiagnosticCode.MQ7013_StructuralInputLimitExceeded, diagnostic.Code);
@@ -159,16 +175,20 @@ public sealed partial class StructuralInputFailureTests
         Assert.AreEqual("source-1", diagnostic.Arguments["sourceContextId"]);
     }
 
-
-    private static CompiledQuery CompileNative(string sql)
-        => InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString("N"),
-            LibraryExecutionFixture.CreateProvider(new[] { new SnapshotRow(0) }), new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+    private static CompiledQuery CompileNative(string sql) =>
+        InstanceCreator.CompileForExecution(
+            sql,
+            Guid.NewGuid().ToString("N"),
+            LibraryExecutionFixture.CreateProvider(new[] { new SnapshotRow(0) }),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
 
     private struct NativeJsonVisitor : IColumnValueVisitor
     {
         internal string? Json;
         internal Type? Type;
+
         public void Visit<T>(int columnIndex, in T value)
         {
             Assert.AreEqual(0, columnIndex);

@@ -81,7 +81,7 @@ public sealed record SourcePlanResult
             ResidualSkip = request.Skip,
             ResidualTake = request.Take,
             Replayability = request.Replayability,
-            Cardinality = CardinalityEstimate.Unknown("Source did not accept ORDER BY/SKIP/TAKE pushdown.")
+            Cardinality = CardinalityEstimate.Unknown("Source did not accept ORDER BY/SKIP/TAKE pushdown."),
         };
     }
 
@@ -100,7 +100,7 @@ public sealed record SourcePlanResult
                 PredicateApplications = SourcePredicateApplication.ForRowFiltering(request.Predicate),
                 AcceptedOrderBy = request.OrderBy,
                 AcceptedSkip = request.Skip,
-                AcceptedTake = request.Take
+                AcceptedTake = request.Take,
             },
             AcceptedColumns = request.RequiredColumns,
             AcceptedComputedProjections = request.RequestedComputedProjections,
@@ -108,7 +108,7 @@ public sealed record SourcePlanResult
             AcceptedOrderBy = request.OrderBy,
             AcceptedSkip = request.Skip,
             AcceptedTake = request.Take,
-            Replayability = request.Replayability
+            Replayability = request.Replayability,
         };
     }
 }

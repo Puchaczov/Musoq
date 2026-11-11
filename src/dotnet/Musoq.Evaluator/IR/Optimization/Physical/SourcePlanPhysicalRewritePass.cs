@@ -13,19 +13,21 @@ internal sealed class SourcePlanPhysicalRewritePass : IPhysicalOptimizationPass
         var state = PhysicalOptimizationState.From(context);
         var rewriteResult = SourcePlanPhysicalRewriter.Rewrite(
             plan,
-            state.Facts.SourceRewrite.SourcePlanResultsBySourceId);
+            state.Facts.SourceRewrite.SourcePlanResultsBySourceId
+        );
         state.Facts = state.Facts with
         {
-            SourceRewrite = state.Facts.SourceRewrite.WithSourcePlanResults(rewriteResult.SourcePlanResultsBySourceId)
+            SourceRewrite = state.Facts.SourceRewrite.WithSourcePlanResults(rewriteResult.SourcePlanResultsBySourceId),
         };
 
         return ReferenceEquals(plan, rewriteResult.PhysicalPlan)
             ? OptimizationResult<PhysicalNode>.NoChange(
                 rewriteResult.PhysicalPlan,
-                "No source-local order or slice operations were removed from the physical plan.")
+                "No source-local order or slice operations were removed from the physical plan."
+            )
             : OptimizationResult<PhysicalNode>.Changed(
                 rewriteResult.PhysicalPlan,
-                "Removed source-local order or slice operations accepted by source planning.");
+                "Removed source-local order or slice operations accepted by source planning."
+            );
     }
 }
-

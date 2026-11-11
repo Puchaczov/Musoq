@@ -5,8 +5,13 @@ namespace Musoq.Parser.Nodes;
 
 public class TranslatedSetOperatorNode : Node
 {
-    public TranslatedSetOperatorNode(CreateTransformationTableNode[] createTableNode, InternalQueryNode fQuery,
-        InternalQueryNode sQuery, string resultTableName, string[] keys)
+    public TranslatedSetOperatorNode(
+        CreateTransformationTableNode[] createTableNode,
+        InternalQueryNode fQuery,
+        InternalQueryNode sQuery,
+        string resultTableName,
+        string[] keys
+    )
     {
         ArgumentNullException.ThrowIfNull(fQuery);
         ArgumentNullException.ThrowIfNull(sQuery);

@@ -1,7 +1,7 @@
-using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser;
@@ -11,7 +11,8 @@ public partial class Parser
     private ExpressionFromNode ComposeJoinOrApply(ParsedSource parsedSource)
     {
         var from = parsedSource.Node;
-        if (!IsJoinOrApplyToken(Current.TokenType)) return new ExpressionFromNode(from);
+        if (!IsJoinOrApplyToken(Current.TokenType))
+            return new ExpressionFromNode(from);
 
         EnsureStableAlias(parsedSource, GetJoinOperatorText(Current), true);
 
@@ -27,13 +28,21 @@ public partial class Parser
                     var outerToken = (OuterJoinToken)Current;
                     var outerJoinText = GetJoinOperatorText(Current);
                     Consume(TokenType.OuterJoin);
-                    from = ComposeConditionJoin(from, outerToken.Type switch
-                    {
-                        OuterJoinType.Left => JoinType.OuterLeft,
-                        OuterJoinType.Right => JoinType.OuterRight,
-                        OuterJoinType.Full => JoinType.OuterFull,
-                        _ => throw new ArgumentOutOfRangeException(nameof(outerToken.Type), outerToken.Type, "Unsupported outer join type.")
-                    }, outerJoinText);
+                    from = ComposeConditionJoin(
+                        from,
+                        outerToken.Type switch
+                        {
+                            OuterJoinType.Left => JoinType.OuterLeft,
+                            OuterJoinType.Right => JoinType.OuterRight,
+                            OuterJoinType.Full => JoinType.OuterFull,
+                            _ => throw new ArgumentOutOfRangeException(
+                                nameof(outerToken.Type),
+                                outerToken.Type,
+                                "Unsupported outer join type."
+                            ),
+                        },
+                        outerJoinText
+                    );
                     break;
                 case TokenType.SemiJoin:
                     var semiJoinText = GetJoinOperatorText(Current);
@@ -50,10 +59,7 @@ public partial class Parser
                     Consume(TokenType.CrossJoin);
                     var crossJoinSource = Compose(parser => parser.ComposeSource(SourceParseContext.JoinRight));
                     EnsureStableAlias(crossJoinSource, crossJoinText, false);
-                    from = new JoinFromNode(from,
-                        crossJoinSource.Node,
-                        new BooleanNode(true),
-                        JoinType.Cross);
+                    from = new JoinFromNode(from, crossJoinSource.Node, new BooleanNode(true), JoinType.Cross);
                     break;
                 case TokenType.CrossApply:
                     var crossApplyText = GetJoinOperatorText(Current);
@@ -69,25 +75,33 @@ public partial class Parser
                     var asOfToken = (AsOfJoinToken)Current;
                     var asOfJoinText = GetJoinOperatorText(Current);
                     Consume(TokenType.AsOfJoin);
-                    from = ComposeConditionJoin(from,
-                        asOfToken.IsLeft
-                            ? JoinType.AsOfLeft
-                            : JoinType.AsOf,
-                        asOfJoinText);
+                    from = ComposeConditionJoin(
+                        from,
+                        asOfToken.IsLeft ? JoinType.AsOfLeft : JoinType.AsOf,
+                        asOfJoinText
+                    );
                     break;
             }
 
-        if (from is JoinFromNode joinFrom) from = new JoinNode(joinFrom);
+        if (from is JoinFromNode joinFrom)
+            from = new JoinNode(joinFrom);
 
-        if (from is ApplyFromNode applyFrom) from = new ApplyNode(applyFrom);
+        if (from is ApplyFromNode applyFrom)
+            from = new ApplyNode(applyFrom);
 
         return new ExpressionFromNode(from);
     }
 
     private static bool IsJoinOrApplyToken(TokenType currentTokenType) =>
-        currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin or TokenType.SemiJoin
-            or TokenType.AntiJoin or TokenType.CrossJoin or TokenType.CrossApply
-            or TokenType.OuterApply or TokenType.AsOfJoin;
+        currentTokenType
+            is TokenType.InnerJoin
+                or TokenType.OuterJoin
+                or TokenType.SemiJoin
+                or TokenType.AntiJoin
+                or TokenType.CrossJoin
+                or TokenType.CrossApply
+                or TokenType.OuterApply
+                or TokenType.AsOfJoin;
 
     private ApplyFromNode ComposeApplyFrom(FromNode from, ApplyType applyType, string operatorText)
     {
@@ -106,14 +120,17 @@ public partial class Parser
             return false;
 
         var withToken = ConsumeAndGetToken(TokenType.With);
-        if (Current.TokenType is not (TokenType.Identifier or TokenType.Word) ||
-            !string.Equals(Current.Value, "ordinality", StringComparison.OrdinalIgnoreCase))
+        if (
+            Current.TokenType is not (TokenType.Identifier or TokenType.Word)
+            || !string.Equals(Current.Value, "ordinality", StringComparison.OrdinalIgnoreCase)
+        )
         {
             throw new SyntaxException(
                 "Expected ORDINALITY after WITH in APPLY source.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2002_MissingToken,
-                withToken.Span);
+                withToken.Span
+            );
         }
 
         Consume(Current.TokenType);
@@ -145,7 +162,8 @@ public partial class Parser
                 "TIE BREAK BY is only supported for ASOF JOIN.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2039_TieBreakRequiresAsOfJoin,
-                tieToken.Span);
+                tieToken.Span
+            );
         }
 
         Consume(Current.TokenType);
@@ -156,7 +174,8 @@ public partial class Parser
                 "Expected BREAK after TIE in ASOF JOIN tie-break clause.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2002_MissingToken,
-                Current.Span);
+                Current.Span
+            );
         }
 
         Consume(Current.TokenType);
@@ -167,7 +186,8 @@ public partial class Parser
                 "Expected BY after TIE BREAK in ASOF JOIN tie-break clause.",
                 _lexer.AlreadyResolvedQueryPart,
                 DiagnosticCode.MQ2002_MissingToken,
-                Current.Span);
+                Current.Span
+            );
         }
 
         Consume(Current.TokenType);
@@ -204,9 +224,16 @@ public partial class Parser
     private string ConsumeSchemaMethodName()
     {
         using var region = _sourceCapture?.Begin(Syntax.SyntaxKind.Identifier, Current);
-        if (Current.TokenType is not (TokenType.Property or TokenType.Identifier or TokenType.Star or TokenType.Function))
-            throw new SyntaxException("Expected a schema method name after '.'.",
-                _lexer.AlreadyResolvedQueryPart, DiagnosticCode.MQ2001_UnexpectedToken, Current.Span);
+        if (
+            Current.TokenType
+            is not (TokenType.Property or TokenType.Identifier or TokenType.Star or TokenType.Function)
+        )
+            throw new SyntaxException(
+                "Expected a schema method name after '.'.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span
+            );
         return ConsumeAndGetToken().Value;
     }
 }

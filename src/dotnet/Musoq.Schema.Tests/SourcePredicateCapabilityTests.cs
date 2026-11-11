@@ -16,35 +16,52 @@ public sealed class SourcePredicateCapabilityTests
             SourceStringMatchOperations.Prefix | SourceStringMatchOperations.Contains,
             SourceStringComparison.LikeIgnoreCase,
             supportsNegation: true,
-            SourcePredicateEvaluationPhases.All);
+            SourcePredicateEvaluationPhases.All
+        );
         var prefix = new SourcePredicateStringMatch(
             new SourceColumnRef("name"),
             SourceStringMatchKind.Prefix,
             "item%",
-            "item");
+            "item"
+        );
 
         Assert.IsTrue(capability.Supports(prefix, SourcePredicateEvaluationPhase.RowFiltering));
         Assert.IsTrue(capability.Supports(prefix, SourcePredicateEvaluationPhase.CandidateMetadata));
-        Assert.IsFalse(capability.Supports(
-            new SourcePredicateStringMatch(new SourceColumnRef("Name"), SourceStringMatchKind.Suffix, "%item", "item"),
-            SourcePredicateEvaluationPhase.RowFiltering));
-        Assert.IsFalse(capability.Supports(
-            new SourcePredicateStringMatch(new SourceColumnRef("Other"), SourceStringMatchKind.Prefix, "item%", "item"),
-            SourcePredicateEvaluationPhase.RowFiltering));
+        Assert.IsFalse(
+            capability.Supports(
+                new SourcePredicateStringMatch(
+                    new SourceColumnRef("Name"),
+                    SourceStringMatchKind.Suffix,
+                    "%item",
+                    "item"
+                ),
+                SourcePredicateEvaluationPhase.RowFiltering
+            )
+        );
+        Assert.IsFalse(
+            capability.Supports(
+                new SourcePredicateStringMatch(
+                    new SourceColumnRef("Other"),
+                    SourceStringMatchKind.Prefix,
+                    "item%",
+                    "item"
+                ),
+                SourcePredicateEvaluationPhase.RowFiltering
+            )
+        );
     }
 
     [TestMethod]
     public void StringMatchCapability_ShouldRequireExplicitNegationSupport()
     {
-        var capability = new SourceStringMatchCapability(
-            new SourceColumnRef("Name"),
-            SourceStringMatchOperations.All);
+        var capability = new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.All);
         var predicate = new SourcePredicateStringMatch(
             new SourceColumnRef("Name"),
             SourceStringMatchKind.Contains,
             "%item%",
             "item",
-            isNegated: true);
+            isNegated: true
+        );
 
         Assert.IsFalse(capability.Supports(predicate, SourcePredicateEvaluationPhase.RowFiltering));
     }
@@ -54,22 +71,38 @@ public sealed class SourcePredicateCapabilityTests
     {
         var declared = new List<SourceStringMatchCapability>
         {
-            new(new SourceColumnRef("Name"), SourceStringMatchOperations.Exact)
+            new(new SourceColumnRef("Name"), SourceStringMatchOperations.Exact),
         };
         var capabilities = new SourcePredicateCapabilities { StringMatches = declared };
         declared.Clear();
 
         Assert.IsTrue(capabilities.IsKnownVersion);
         Assert.HasCount(1, capabilities.StringMatches);
-        Assert.IsTrue(capabilities.Supports(
-            new SourcePredicateStringMatch(new SourceColumnRef("Name"), SourceStringMatchKind.Exact, "item", "item"),
-            SourcePredicateEvaluationPhase.RowFiltering));
+        Assert.IsTrue(
+            capabilities.Supports(
+                new SourcePredicateStringMatch(
+                    new SourceColumnRef("Name"),
+                    SourceStringMatchKind.Exact,
+                    "item",
+                    "item"
+                ),
+                SourcePredicateEvaluationPhase.RowFiltering
+            )
+        );
 
         var unknown = capabilities with { ContractVersion = SourcePredicateCapabilities.CurrentContractVersion + 1 };
         Assert.IsFalse(unknown.IsKnownVersion);
-        Assert.IsFalse(unknown.Supports(
-            new SourcePredicateStringMatch(new SourceColumnRef("Name"), SourceStringMatchKind.Exact, "item", "item"),
-            SourcePredicateEvaluationPhase.RowFiltering));
+        Assert.IsFalse(
+            unknown.Supports(
+                new SourcePredicateStringMatch(
+                    new SourceColumnRef("Name"),
+                    SourceStringMatchKind.Exact,
+                    "item",
+                    "item"
+                ),
+                SourcePredicateEvaluationPhase.RowFiltering
+            )
+        );
     }
 
     [TestMethod]
@@ -77,14 +110,20 @@ public sealed class SourcePredicateCapabilityTests
     {
         Assert.Throws<NotSupportedException>(() =>
             ((IList<SourceStringMatchCapability>)SourcePredicateCapabilities.None.StringMatches).Add(
-                new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.Exact)));
+                new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.Exact)
+            )
+        );
     }
 
     [TestMethod]
     public void PredicateApplication_ShouldExposeOnlyDirectTopLevelAndConjunctsWithMultiplicity()
     {
         var repeated = new SourcePredicateStringMatch(
-            new SourceColumnRef("Name"), SourceStringMatchKind.Prefix, "a%", "a");
+            new SourceColumnRef("Name"),
+            SourceStringMatchKind.Prefix,
+            "a%",
+            "a"
+        );
         var predicate = new SourcePredicateLogical(
             SourcePredicateLogicalOperator.And,
             repeated,
@@ -94,8 +133,15 @@ public sealed class SourcePredicateCapabilityTests
                 new SourcePredicateLogical(
                     SourcePredicateLogicalOperator.Or,
                     new SourcePredicateStringMatch(
-                        new SourceColumnRef("Category"), SourceStringMatchKind.Exact, "alpha", "alpha"),
-                    new SourcePredicateLiteral(true))));
+                        new SourceColumnRef("Category"),
+                        SourceStringMatchKind.Exact,
+                        "alpha",
+                        "alpha"
+                    ),
+                    new SourcePredicateLiteral(true)
+                )
+            )
+        );
 
         var applications = SourcePredicateApplication.ForRowFiltering(predicate);
 
@@ -108,41 +154,57 @@ public sealed class SourcePredicateCapabilityTests
     [TestMethod]
     public void StringMatchContracts_ShouldRejectUnknownValues()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new SourcePredicateStringMatch(
-            new SourceColumnRef("Name"),
-            (SourceStringMatchKind)99,
-            "item",
-            "item"));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new SourcePredicateStringMatch(
-            new SourceColumnRef("Name"),
-            SourceStringMatchKind.Exact,
-            "item",
-            "item",
-            (SourceStringComparison)99));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new SourceStringMatchCapability(
-            new SourceColumnRef("Name"),
-            (SourceStringMatchOperations)128));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new SourceStringMatchCapability(
-            new SourceColumnRef("Name"),
-            SourceStringMatchOperations.Exact,
-            phases: SourcePredicateEvaluationPhases.None));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new SourceStringMatchCapability(
-            new SourceColumnRef("Name"),
-            SourceStringMatchOperations.Exact,
-            phases: (SourcePredicateEvaluationPhases)128));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new SourcePredicateApplication(
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new SourcePredicateStringMatch(new SourceColumnRef("Name"), (SourceStringMatchKind)99, "item", "item")
+        );
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
             new SourcePredicateStringMatch(
-                new SourceColumnRef("Name"), SourceStringMatchKind.Exact, "item", "item"),
-            (SourcePredicateEvaluationPhase)99));
+                new SourceColumnRef("Name"),
+                SourceStringMatchKind.Exact,
+                "item",
+                "item",
+                (SourceStringComparison)99
+            )
+        );
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new SourceStringMatchCapability(new SourceColumnRef("Name"), (SourceStringMatchOperations)128)
+        );
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new SourceStringMatchCapability(
+                new SourceColumnRef("Name"),
+                SourceStringMatchOperations.Exact,
+                phases: SourcePredicateEvaluationPhases.None
+            )
+        );
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new SourceStringMatchCapability(
+                new SourceColumnRef("Name"),
+                SourceStringMatchOperations.Exact,
+                phases: (SourcePredicateEvaluationPhases)128
+            )
+        );
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new SourcePredicateApplication(
+                new SourcePredicateStringMatch(
+                    new SourceColumnRef("Name"),
+                    SourceStringMatchKind.Exact,
+                    "item",
+                    "item"
+                ),
+                (SourcePredicateEvaluationPhase)99
+            )
+        );
     }
 
     [TestMethod]
     public void PredicateCapabilities_ShouldRejectNonPositiveVersions()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new SourcePredicateCapabilities { ContractVersion = 0 }.Validate());
+            new SourcePredicateCapabilities { ContractVersion = 0 }.Validate()
+        );
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new SourcePredicateCapabilities { ContractVersion = -1 }.Validate());
+            new SourcePredicateCapabilities { ContractVersion = -1 }.Validate()
+        );
     }
 
     [TestMethod]
@@ -153,32 +215,37 @@ public sealed class SourcePredicateCapabilityTests
             ContractVersion = SourcePredicateCapabilities.CurrentContractVersion + 1,
             StringMatches =
             [
-                new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.Exact)
-            ]
+                new SourceStringMatchCapability(new SourceColumnRef("Name"), SourceStringMatchOperations.Exact),
+            ],
         };
 
         capabilities.Validate();
 
         Assert.IsFalse(capabilities.IsKnownVersion);
-        Assert.IsFalse(capabilities.Supports(
-            new SourcePredicateStringMatch(new SourceColumnRef("Name"), SourceStringMatchKind.Exact, "item", "item"),
-            SourcePredicateEvaluationPhase.RowFiltering));
+        Assert.IsFalse(
+            capabilities.Supports(
+                new SourcePredicateStringMatch(
+                    new SourceColumnRef("Name"),
+                    SourceStringMatchKind.Exact,
+                    "item",
+                    "item"
+                ),
+                SourcePredicateEvaluationPhase.RowFiltering
+            )
+        );
     }
 
     [TestMethod]
     public void PredicateCapabilities_ShouldRejectNullAndDuplicateColumnsCaseInsensitively()
     {
-        var nullEntry = new SourcePredicateCapabilities
-        {
-            StringMatches = [null!]
-        };
+        var nullEntry = new SourcePredicateCapabilities { StringMatches = [null!] };
         var duplicates = new SourcePredicateCapabilities
         {
             StringMatches =
             [
                 new SourceStringMatchCapability(new SourceColumnRef("Path"), SourceStringMatchOperations.Prefix),
-                new SourceStringMatchCapability(new SourceColumnRef("path"), SourceStringMatchOperations.Contains)
-            ]
+                new SourceStringMatchCapability(new SourceColumnRef("path"), SourceStringMatchOperations.Contains),
+            ],
         };
 
         Assert.Throws<ArgumentNullException>(nullEntry.Validate);
@@ -189,7 +256,11 @@ public sealed class SourcePredicateCapabilityTests
     public void StringMatchPredicate_ShouldRetainOriginalPatternAndClassifiedNeedle()
     {
         var predicate = new SourcePredicateStringMatch(
-            new SourceColumnRef("Path"), SourceStringMatchKind.Contains, "%%item%%", "item");
+            new SourceColumnRef("Path"),
+            SourceStringMatchKind.Contains,
+            "%%item%%",
+            "item"
+        );
 
         Assert.AreEqual("%%item%%", predicate.OriginalPattern);
         Assert.AreEqual("item", predicate.Needle);
@@ -205,15 +276,20 @@ public sealed class SourcePredicateCapabilityTests
         CollectionAssert.AreEqual(
             new[]
             {
-                typeof(SourceColumnRef), typeof(SourceStringMatchKind), typeof(string), typeof(string),
-                typeof(SourceStringComparison), typeof(bool)
+                typeof(SourceColumnRef),
+                typeof(SourceStringMatchKind),
+                typeof(string),
+                typeof(string),
+                typeof(SourceStringComparison),
+                typeof(bool),
             },
-            parameterTypes);
+            parameterTypes
+        );
         Assert.AreEqual(
             typeof(SourcePredicatePatternMatch),
-            typeof(SourcePredicateApplication).GetProperty(nameof(SourcePredicateApplication.Predicate))!.PropertyType);
+            typeof(SourcePredicateApplication).GetProperty(nameof(SourcePredicateApplication.Predicate))!.PropertyType
+        );
         Assert.IsNull(typeof(SourcePredicateStringMatch).GetProperty("Literal"));
         CollectionAssert.AreEqual(new[] { "LikeIgnoreCase" }, Enum.GetNames<SourceStringComparison>());
     }
-
 }

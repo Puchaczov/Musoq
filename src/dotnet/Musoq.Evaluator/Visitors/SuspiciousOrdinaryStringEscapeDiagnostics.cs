@@ -8,10 +8,7 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class SuspiciousOrdinaryStringEscapeDiagnostics
 {
-    public static void ReportRelativePathRisk(
-        DiagnosticContext? diagnosticContext,
-        Node literal,
-        bool pathSensitive)
+    public static void ReportRelativePathRisk(DiagnosticContext? diagnosticContext, Node literal, bool pathSensitive)
     {
         if (!pathSensitive || TryGetRelativeRisk(diagnosticContext, literal) is not { } risk)
             return;
@@ -24,7 +21,8 @@ internal static class SuspiciousOrdinaryStringEscapeDiagnostics
         ArgsListNode arguments,
         ArgsListNode sourceArguments,
         MethodInfo method,
-        bool canSkipInjectSource)
+        bool canSkipInjectSource
+    )
     {
         if (diagnosticContext == null)
             return;
@@ -50,15 +48,19 @@ internal static class SuspiciousOrdinaryStringEscapeDiagnostics
         ArgsListNode arguments,
         ArgsListNode sourceArguments,
         SchemaSourceBindingResult bindingResult,
-        SchemaMethodInfo[] methods)
+        SchemaMethodInfo[] methods
+    )
     {
         if (diagnosticContext == null)
             return;
 
-        foreach (var argumentIndex in SchemaSourceArgumentBinder.GetPathSensitiveArgumentIndexes(
-                     arguments,
-                     methods,
-                     bindingResult.Invocation))
+        foreach (
+            var argumentIndex in SchemaSourceArgumentBinder.GetPathSensitiveArgumentIndexes(
+                arguments,
+                methods,
+                bindingResult.Invocation
+            )
+        )
             ReportRelativePathRisk(diagnosticContext, sourceArguments.Args[argumentIndex], true);
     }
 
@@ -67,22 +69,19 @@ internal static class SuspiciousOrdinaryStringEscapeDiagnostics
         if (string.IsNullOrWhiteSpace(name))
             return false;
 
-        var normalized = name
-            .Replace("_", string.Empty, StringComparison.Ordinal)
+        var normalized = name.Replace("_", string.Empty, StringComparison.Ordinal)
             .Replace("-", string.Empty, StringComparison.Ordinal)
             .ToLowerInvariant();
 
-        return normalized.EndsWith("path", StringComparison.Ordinal) ||
-               normalized.EndsWith("paths", StringComparison.Ordinal) ||
-               normalized is "file" or "files" or "filename" or "directory" or "dir" or "folder" or "root";
+        return normalized.EndsWith("path", StringComparison.Ordinal)
+            || normalized.EndsWith("paths", StringComparison.Ordinal)
+            || normalized is "file" or "files" or "filename" or "directory" or "dir" or "folder" or "root";
     }
 
     public static bool IsPathSensitiveStringParameter(string? name, Type parameterType) =>
         parameterType == typeof(string) && IsPathSensitiveName(name);
 
-    private static StringEscapeRisk? TryGetRelativeRisk(
-        DiagnosticContext? diagnosticContext,
-        Node literal)
+    private static StringEscapeRisk? TryGetRelativeRisk(DiagnosticContext? diagnosticContext, Node literal)
     {
         if (diagnosticContext?.SourceText is not { } sourceText || literal is not WordNode)
             return null;
@@ -107,7 +106,8 @@ internal static class SuspiciousOrdinaryStringEscapeDiagnostics
         diagnosticContext.ReportWarning(
             DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape,
             ErrorCatalog.GetMessage(DiagnosticCode.MQ5014_SuspiciousOrdinaryStringEscape, risk.EscapeText),
-            risk.Span);
+            risk.Span
+        );
     }
 
     private static int GetInjectedParameterOffset(ParameterInfo[] parameters)
@@ -115,8 +115,11 @@ internal static class SuspiciousOrdinaryStringEscapeDiagnostics
         if (parameters.Length == 0)
             return 0;
 
-        return parameters[0].GetCustomAttributes(true).Any(static attribute =>
-            attribute.GetType().Name is "InjectSpecificSourceAttribute" or "InjectSourceAttribute")
+        return parameters[0]
+            .GetCustomAttributes(true)
+            .Any(static attribute =>
+                attribute.GetType().Name is "InjectSpecificSourceAttribute" or "InjectSourceAttribute"
+            )
             ? 1
             : 0;
     }

@@ -51,15 +51,11 @@ public partial class NetworkUtilsExtendedTests
         Assert.IsNull(Library.DateTimeToUnix(null));
     }
 
-
-
     [TestMethod]
     public void DateTimeToUnixMillis_Null_ReturnsNull()
     {
         Assert.IsNull(Library.DateTimeToUnixMillis(null));
     }
-
-
 
     [TestMethod]
     public void UnixToDateTimeOffset_Null_ReturnsNull()

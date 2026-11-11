@@ -32,22 +32,14 @@ internal static class ValuesSourceDiagnostics
             return span;
         }
 
-        return field.Expression.HasSpan
-            ? field.Expression.Span
-            : !field.NameSpan.IsEmpty
-                ? field.NameSpan
-                : node.SpanOrEmpty();
+        return field.Expression.HasSpan ? field.Expression.Span
+            : !field.NameSpan.IsEmpty ? field.NameSpan
+            : node.SpanOrEmpty();
     }
 
-    public static ValuesSourceException Error(
-        string message,
-        TextSpan span,
-        params (string Name, string Value)[] facts)
+    public static ValuesSourceException Error(string message, TextSpan span, params (string Name, string Value)[] facts)
     {
-        var arguments = new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["sourceKind"] = "values"
-        };
+        var arguments = new Dictionary<string, string>(StringComparer.Ordinal) { ["sourceKind"] = "values" };
         foreach (var (name, value) in facts)
             arguments[name] = value;
 

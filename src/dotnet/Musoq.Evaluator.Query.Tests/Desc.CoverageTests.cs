@@ -15,24 +15,15 @@ public partial class DescStatementTests
     {
         var query = "desc #A;";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
-
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
         var methodNames = table.Select(row => (string)row.ReadValue(0)).ToList();
@@ -45,23 +36,14 @@ public partial class DescStatementTests
     {
         var query = "DESC #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
 
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
         var methodNames = table.Select(row => (string)row.ReadValue(0)).ToList();
@@ -74,23 +56,14 @@ public partial class DescStatementTests
     {
         var query = "desc A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
 
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
         var methodNames = table.Select(row => (string)row.ReadValue(0)).ToList();
@@ -103,18 +76,10 @@ public partial class DescStatementTests
     {
         var query = "desc #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName, "Column should be named 'Name'");
@@ -127,31 +92,28 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.IsGreaterThanOrEqualTo(1, table.Columns.Count(), "Should have at least Name column");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName, "First column should be 'Name'");
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Name column should be string");
 
-
         if (table.Columns.Count() > 1)
             for (var i = 1; i < table.Columns.Count(); i++)
             {
-                Assert.AreEqual($"Param {i - 1}", table.Columns.ElementAt(i).ColumnName,
-                    $"Column {i} should be named 'Param {i - 1}'");
-                Assert.AreEqual(typeof(string), table.Columns.ElementAt(i).ColumnType,
-                    $"Param {i - 1} column should be string type");
+                Assert.AreEqual(
+                    $"Param {i - 1}",
+                    table.Columns.ElementAt(i).ColumnName,
+                    $"Column {i} should be named 'Param {i - 1}'"
+                );
+                Assert.AreEqual(
+                    typeof(string),
+                    table.Columns.ElementAt(i).ColumnType,
+                    $"Param {i - 1} column should be string type"
+                );
             }
     }
 
@@ -160,24 +122,15 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities;";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.IsGreaterThanOrEqualTo(1, table.Columns.Count(), "Should have at least Name column");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
-
 
         Assert.AreEqual(1, table.Count, "Should return exactly one method overload");
         Assert.AreEqual("entities", (string)table[0].ReadValue(0), "Should return 'entities' method");
@@ -190,14 +143,7 @@ public partial class DescStatementTests
 
         var query = "DESC #A.entities";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -211,23 +157,14 @@ public partial class DescStatementTests
     {
         var query = "desc A.entities";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
         Assert.IsGreaterThanOrEqualTo(1, table.Columns.Count(), "Should have at least Name column");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
 
         Assert.AreEqual(1, table.Count, "Should return exactly one method overload");
         Assert.AreEqual("entities", (string)table[0].ReadValue(0), "Should return 'entities' method");
@@ -238,18 +175,10 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
 
@@ -271,18 +200,10 @@ public partial class DescStatementTests
     {
         var query = "desc A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
@@ -291,7 +212,6 @@ public partial class DescStatementTests
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-
 
         Assert.IsGreaterThan(0, table.Count, "Should return column information");
         var columnNames = table.Select(row => (string)row.ReadValue(0)).ToList();
@@ -305,18 +225,10 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(4, table.Columns.Count(), "Should have exactly 4 columns");
 
@@ -342,18 +254,10 @@ public partial class DescStatementTests
     {
         var query = "desc functions A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(4, table.Columns.Count(), "Should have exactly 4 columns");
         Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
@@ -369,12 +273,10 @@ public partial class DescStatementTests
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
         Assert.AreEqual(3, table.Columns.ElementAt(3).ColumnIndex);
 
-
         Assert.IsGreaterThan(0, table.Count, "Should return library methods");
         var methodSignatures = table.Select(row => (string)row.ReadValue(0)).ToList();
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain Trim method");
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Substring(")), "Should contain Substring method");
-
 
         foreach (var row in table)
         {
@@ -383,8 +285,10 @@ public partial class DescStatementTests
             Assert.IsNotNull(row.ReadValue(2), "Category should not be null");
             Assert.IsNotNull(row.ReadValue(3), "Source should not be null");
             var source = (string)row.ReadValue(3);
-            Assert.IsTrue(source == "Library" || source == "Schema",
-                $"Source should be either 'Library' or 'Schema', got: {source}");
+            Assert.IsTrue(
+                source == "Library" || source == "Schema",
+                $"Source should be either 'Library' or 'Schema', got: {source}"
+            );
         }
     }
 
@@ -393,30 +297,23 @@ public partial class DescStatementTests
     {
         var query = "desc functions #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-
-        var allRows = table.Select(row => new
-        {
-            Method = (string)row.ReadValue(0),
-            Category = (string)row.ReadValue(2),
-            Source = (string)row.ReadValue(3)
-        }).ToList();
+        var allRows = table
+            .Select(row => new
+            {
+                Method = (string)row.ReadValue(0),
+                Category = (string)row.ReadValue(2),
+                Source = (string)row.ReadValue(3),
+            })
+            .ToList();
 
         // Note: BasicSchema only has Library methods, no Schema-specific methods
         var libraryRows = allRows.Where(r => r.Source == "Library").ToList();
         Assert.IsNotEmpty(libraryRows, "DESC FUNCTIONS must expose library methods before checking their grouping.");
-
 
         var categories = libraryRows.Select(r => r.Category).Distinct().ToList();
         foreach (var category in categories)
@@ -426,15 +323,19 @@ public partial class DescStatementTests
             var lastIndex = libraryRows.LastIndexOf(categoryMethods.Last());
             var countInRange = lastIndex - firstIndex + 1;
 
-            Assert.AreEqual(categoryMethods.Count, countInRange,
-                $"All methods from category '{category}' should appear consecutively (found {categoryMethods.Count} methods spread across {countInRange} positions)");
+            Assert.AreEqual(
+                categoryMethods.Count,
+                countInRange,
+                $"All methods from category '{category}' should appear consecutively (found {categoryMethods.Count} methods spread across {countInRange} positions)"
+            );
         }
 
-
         for (var i = 1; i < categories.Count; i++)
-            Assert.IsLessThanOrEqualTo(0,
+            Assert.IsLessThanOrEqualTo(
+                0,
                 string.Compare(categories[i - 1], categories[i], StringComparison.Ordinal),
-                $"Category '{categories[i - 1]}' should come before or equal to '{categories[i]}'");
+                $"Category '{categories[i - 1]}' should come before or equal to '{categories[i]}'"
+            );
     }
 
     [TestMethod]
@@ -442,18 +343,10 @@ public partial class DescStatementTests
     {
         var query = "desc #A.entities() column Array";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("test")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-
 
         Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
 

@@ -16,17 +16,22 @@ public partial class BuildMetadataAndInferTypesVisitor
             : _sourceBinding.Identifier;
 
         var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
-        var rewrittenWhereNode = (WhereNode)new WhereNode(PopSemanticNode())
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan);
+        var rewrittenWhereNode = (WhereNode)
+            new WhereNode(PopSemanticNode()).WithSpan(node.Span).WithFullSpan(node.FullSpan);
 
-        var usedIdentifiers = _sourceBinding.UsedWhereNodes
-            .Where(f => f.Key.QueryId == _sourceBinding.SchemaFromKey)
+        var usedIdentifiers = _sourceBinding
+            .UsedWhereNodes.Where(f => f.Key.QueryId == _sourceBinding.SchemaFromKey)
             .Select(f => f.Key)
             .ToArray();
 
-        foreach (var aliasSchemaPair in tableSymbol.CompoundTables.Join(usedIdentifiers, t => t, f => f.Alias,
-                     (t, f) => (Alias: t, Schema: f)))
+        foreach (
+            var aliasSchemaPair in tableSymbol.CompoundTables.Join(
+                usedIdentifiers,
+                t => t,
+                f => f.Alias,
+                (t, f) => (Alias: t, Schema: f)
+            )
+        )
             _sourceBinding.UsedWhereNodes[aliasSchemaPair.Schema] = rewrittenWhereNode;
 
         PushSemanticNode(rewrittenWhereNode);
@@ -44,47 +49,44 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         for (var i = node.Fields.Length - 1; i >= 0; --i)
         {
-            var field = PopSemanticNode() as FieldNode
-                        ?? throw new VisitorException(
-                            VisitorName,
-                            "VisitGroupByNode",
-                            "Expected GROUP BY field node on visitor stack.");
+            var field =
+                PopSemanticNode() as FieldNode
+                ?? throw new VisitorException(
+                    VisitorName,
+                    "VisitGroupByNode",
+                    "Expected GROUP BY field node on visitor stack."
+                );
             EnsureGroupByFieldContainsNoAggregate(field);
             fields[i] = field;
         }
 
-        PushSemanticNode(new GroupByNode(fields, having, node.IsAll, node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(new GroupByNode(fields, having, node.IsAll, node.Span).WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(HavingNode node)
     {
-        PushSemanticNode(new HavingNode(PopSemanticNode())
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(new HavingNode(PopSemanticNode()).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(QualifyNode node)
     {
-        PushSemanticNode(new QualifyNode(PopSemanticNode())
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(new QualifyNode(PopSemanticNode()).WithSpan(node.Span).WithFullSpan(node.FullSpan));
     }
 
     public override void Visit(SkipNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        PushSemanticNode(new SkipNode(PagingCounts.Bind(PopSemanticNode(), "SKIP"))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(
+            new SkipNode(PagingCounts.Bind(PopSemanticNode(), "SKIP")).WithSpan(node.Span).WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(TakeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        PushSemanticNode(new TakeNode(PagingCounts.Bind(PopSemanticNode(), "TAKE"))
-            .WithSpan(node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(
+            new TakeNode(PagingCounts.Bind(PopSemanticNode(), "TAKE")).WithSpan(node.Span).WithFullSpan(node.FullSpan)
+        );
     }
 
     public override void Visit(OrderByNode node)
@@ -95,7 +97,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = node.Fields.Length - 1; i >= 0; --i)
             fields[i] = (FieldOrderedNode)PopSemanticNode();
 
-        PushSemanticNode(new OrderByNode(fields, node.Span)
-            .WithFullSpan(node.FullSpan));
+        PushSemanticNode(new OrderByNode(fields, node.Span).WithFullSpan(node.FullSpan));
     }
 }

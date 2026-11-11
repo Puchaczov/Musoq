@@ -10,7 +10,8 @@ public sealed record TypedQueryDiagnostics(
     bool RequiresComputeTableMethod,
     FinalProjectionSinkRejectionKind FinalSinkRejectionKind,
     string? FinalSinkRejectionReason,
-    TypedQueryProfileMode ProfileMode)
+    TypedQueryProfileMode ProfileMode
+)
 {
     public bool IsProfiled => ProfileMode != TypedQueryProfileMode.None;
 
@@ -20,7 +21,8 @@ public sealed record TypedQueryDiagnostics(
         Type? runnableType,
         QueryResultMode resultMode,
         QueryMethodRenderMetadata metadata,
-        TypedQueryProfileMode profileMode = TypedQueryProfileMode.None)
+        TypedQueryProfileMode profileMode = TypedQueryProfileMode.None
+    )
     {
         return new TypedQueryDiagnostics(
             runnableType,
@@ -30,6 +32,7 @@ public sealed record TypedQueryDiagnostics(
             metadata.RequiresComputeTableMethod,
             metadata.FinalSinkRejectionKind,
             metadata.FinalSinkRejectionReason,
-            profileMode);
+            profileMode
+        );
     }
 }

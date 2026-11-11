@@ -300,5 +300,4 @@ public partial class StringsTests : PluginsTestBase
         Assert.HasCount(4, result1);
         Assert.HasCount(4, result2);
     }
-
 }

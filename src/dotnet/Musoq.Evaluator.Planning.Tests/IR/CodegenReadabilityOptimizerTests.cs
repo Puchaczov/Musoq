@@ -18,9 +18,7 @@ public sealed class CodegenReadabilityOptimizerTests
     {
         var initial = SyntaxFactory.ParseCompilationUnit("public class Generated { public void Run() {} }");
 
-        var result = new CodegenReadabilityOptimizer().Optimize(
-            initial,
-            TargetRenderProfile.ExecutionFast);
+        var result = new CodegenReadabilityOptimizer().Optimize(initial, TargetRenderProfile.ExecutionFast);
         var syntaxTree = ClassEmitter.CreateSyntaxTreeDirect(initial, TargetRenderProfile.ExecutionFast);
 
         Assert.HasCount(1, result.Trace.Entries);
@@ -52,69 +50,84 @@ public sealed class CodegenReadabilityOptimizerTests
     public void DeterministicMemberOrdering_WhenRun_ShouldOrderClassMembersByVisibilityGroupAndName()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { private sealed class Nested {} private static void StaticHelper() {} private void ComputeTable_compiled_0() {} public event System.EventHandler Changed; public void Run() {} public string Name { get; } private int value; public Generated() {} protected void ProtectedHook() {} }");
+            "public class Generated { private sealed class Nested {} private static void StaticHelper() {} private void ComputeTable_compiled_0() {} public event System.EventHandler Changed; public void Run() {} public string Name { get; } private int value; public Generated() {} protected void ProtectedHook() {} }"
+        );
 
         var result = new DeterministicMemberOrderingPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsTrue(result.IsChanged);
-        var members = result.Plan
-            .DescendantNodes()
+        var members = result
+            .Plan.DescendantNodes()
             .OfType<ClassDeclarationSyntax>()
             .Single(static declaration => declaration.Identifier.ValueText == "Generated")
-            .Members
-            .Select(static member => member switch
-            {
-                FieldDeclarationSyntax field => field.Declaration.Variables[0].Identifier.ValueText,
-                ConstructorDeclarationSyntax constructor => constructor.Identifier.ValueText,
-                PropertyDeclarationSyntax property => property.Identifier.ValueText,
-                EventFieldDeclarationSyntax eventField => eventField.Declaration.Variables[0].Identifier.ValueText,
-                MethodDeclarationSyntax method => method.Identifier.ValueText,
-                ClassDeclarationSyntax nestedClass => nestedClass.Identifier.ValueText,
-                _ => member.Kind().ToString()
-            })
+            .Members.Select(static member =>
+                member switch
+                {
+                    FieldDeclarationSyntax field => field.Declaration.Variables[0].Identifier.ValueText,
+                    ConstructorDeclarationSyntax constructor => constructor.Identifier.ValueText,
+                    PropertyDeclarationSyntax property => property.Identifier.ValueText,
+                    EventFieldDeclarationSyntax eventField => eventField.Declaration.Variables[0].Identifier.ValueText,
+                    MethodDeclarationSyntax method => method.Identifier.ValueText,
+                    ClassDeclarationSyntax nestedClass => nestedClass.Identifier.ValueText,
+                    _ => member.Kind().ToString(),
+                }
+            )
             .ToArray();
 
         CollectionAssert.AreEqual(
-            new[] { "value", "Generated", "Name", "Changed", "Run", "ProtectedHook", "ComputeTable_compiled_0", "StaticHelper", "Nested" },
-            members);
+            new[]
+            {
+                "value",
+                "Generated",
+                "Name",
+                "Changed",
+                "Run",
+                "ProtectedHook",
+                "ComputeTable_compiled_0",
+                "StaticHelper",
+                "Nested",
+            },
+            members
+        );
     }
 
     [TestMethod]
     public void LocalDeclarationNormalization_WhenRun_ShouldSplitSafeMultiVariableDeclarations()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { int alpha = 1, beta = 2; System.Console.WriteLine(alpha + beta); } }");
+            "public class Generated { public void Run() { int alpha = 1, beta = 2; System.Console.WriteLine(alpha + beta); } }"
+        );
 
         var result = new LocalDeclarationNormalizationPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsTrue(result.IsChanged);
-        var locals = result.Plan
-            .DescendantNodes()
-            .OfType<LocalDeclarationStatementSyntax>()
-            .ToArray();
+        var locals = result.Plan.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().ToArray();
 
         Assert.HasCount(2, locals);
         Assert.IsTrue(locals.All(static local => local.Declaration.Variables.Count == 1));
         CollectionAssert.AreEqual(
             new[] { "alpha", "beta" },
-            locals
-                .Select(static local => local.Declaration.Variables.Single().Identifier.ValueText)
-                .ToArray());
+            locals.Select(static local => local.Declaration.Variables.Single().Identifier.ValueText).ToArray()
+        );
     }
 
     [TestMethod]
     public void DeadTemporaryCleanup_WhenRun_ShouldRemoveOnlyUnusedLiteralOrDefaultLocals()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { int unused = 1; int used = 2; var kept = Make(); System.Console.WriteLine(used); } private object Make() => new object(); }");
+            "public class Generated { public void Run() { int unused = 1; int used = 2; var kept = Make(); System.Console.WriteLine(used); } private object Make() => new object(); }"
+        );
 
         var result = new DeadTemporaryCleanupPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsTrue(result.IsChanged);
         var text = result.Plan.ToFullString();
@@ -128,11 +141,13 @@ public sealed class CodegenReadabilityOptimizerTests
     public void ControlFlowNormalization_WhenRun_ShouldRemoveEmptyBlockStatements()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { ; System.Console.WriteLine(1); ; } }");
+            "public class Generated { public void Run() { ; System.Console.WriteLine(1); ; } }"
+        );
 
         var result = new ControlFlowNormalizationPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsTrue(result.IsChanged);
         Assert.IsFalse(result.Plan.DescendantNodes().OfType<EmptyStatementSyntax>().Any());
@@ -142,7 +157,8 @@ public sealed class CodegenReadabilityOptimizerTests
     public void HelperExtractionReadability_WhenRun_ShouldApproveMetadataBackedHelpers()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { private void ComputeTable_compiled_0() { AppendRows(); } private static void AppendRows() { } private void OnPhaseChanged() { } }");
+            "public class Generated { private void ComputeTable_compiled_0() { AppendRows(); } private static void AppendRows() { } private void OnPhaseChanged() { } }"
+        );
         var helper = initial
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
@@ -153,7 +169,9 @@ public sealed class CodegenReadabilityOptimizerTests
                 helper,
                 CodegenHelperExtractionRole.HashJoinProbe,
                 "same-phase",
-                "hash-and-append-targets"));
+                "hash-and-append-targets"
+            )
+        );
         var invocation = initial
             .DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
@@ -165,11 +183,14 @@ public sealed class CodegenReadabilityOptimizerTests
                 CodegenHelperExtractionRole.HashJoinProbe,
                 "AppendRows",
                 "same-phase",
-                "hash-and-append-targets"));
+                "hash-and-append-targets"
+            )
+        );
 
         var result = new HelperExtractionReadabilityPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsTrue(result.IsChanged);
         Assert.AreEqual(initial.ToFullString(), result.Plan.ToFullString());
@@ -177,71 +198,91 @@ public sealed class CodegenReadabilityOptimizerTests
         Assert.Contains("1 candidate call site(s)", result.Reason);
         Assert.AreEqual(
             2,
-            result.Plan
-                .DescendantNodes()
-                .Count(static node => node.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)));
+            result
+                .Plan.DescendantNodes()
+                .Count(static node =>
+                    node.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)
+                )
+        );
     }
 
     [TestMethod]
     public void HelperExtractionReadability_WhenInlineBlockHasNoMetadata_ShouldNotInventHelper()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { var value = 1; if (value > 0) { value = value + 1; value = value + 2; } System.Console.WriteLine(value); } }");
+            "public class Generated { public void Run() { var value = 1; if (value > 0) { value = value + 1; value = value + 2; } System.Console.WriteLine(value); } }"
+        );
 
         var result = new HelperExtractionReadabilityPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsFalse(result.IsChanged);
         Assert.AreEqual(initial.ToFullString(), result.Plan.ToFullString());
         Assert.Contains("No metadata-approved helper extraction candidates", result.Reason);
-        Assert.IsFalse(result.Plan.DescendantNodes().Any(static node =>
-            node.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)));
+        Assert.IsFalse(
+            result
+                .Plan.DescendantNodes()
+                .Any(static node => node.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind))
+        );
     }
 
     [TestMethod]
     public void HelperExtractionReadability_WhenPrivateStaticHelperHasNoCandidateMetadata_ShouldSkipIt()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { private void ComputeTable_compiled_0() { AppendRows(); } private static void AppendRows() { } }");
+            "public class Generated { private void ComputeTable_compiled_0() { AppendRows(); } private static void AppendRows() { } }"
+        );
 
         var result = new HelperExtractionReadabilityPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsFalse(result.IsChanged);
         Assert.Contains("none carried helper extraction candidate metadata", result.Reason);
-        Assert.IsFalse(result.Plan.DescendantNodes().Any(static node =>
-            node.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)));
+        Assert.IsFalse(
+            result
+                .Plan.DescendantNodes()
+                .Any(static node => node.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind))
+        );
     }
 
     [TestMethod]
     public void HelperExtractionReadability_WhenInlineBlockHasApprovedMetadata_ShouldExtractHelper()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { System.Console.WriteLine(1); } }");
+            "public class Generated { public void Run() { System.Console.WriteLine(1); } }"
+        );
         var runBody = initial
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
             .Single(static method => method.Identifier.ValueText == "Run")
             .Body!;
-        initial = initial.ReplaceNode(runBody, CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+        initial = initial.ReplaceNode(
             runBody,
-            CodegenHelperExtractionRole.HashJoinProbe,
-            "AppendHotRows",
-            new CodegenHelperExtractionBoundaries(
-                "same-phase",
-                "no-mutation",
-                "no-movement",
-                "no-movement",
-                "no-movement",
-                "none",
-                "void",
-                "AppendHotRows")));
+            CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+                runBody,
+                CodegenHelperExtractionRole.HashJoinProbe,
+                "AppendHotRows",
+                new CodegenHelperExtractionBoundaries(
+                    "same-phase",
+                    "no-mutation",
+                    "no-movement",
+                    "no-movement",
+                    "no-movement",
+                    "none",
+                    "void",
+                    "AppendHotRows"
+                )
+            )
+        );
 
         var result = new HelperExtractionReadabilityPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsTrue(result.IsChanged);
         Assert.Contains("extracted 1 metadata-approved inline helper block", result.Reason);
@@ -251,38 +292,51 @@ public sealed class CodegenReadabilityOptimizerTests
         Assert.Contains("AppendHotRows();", run.Body!.ToFullString());
         Assert.Contains("System.Console.WriteLine(1);", helper.Body!.ToFullString());
         Assert.IsTrue(helper.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind));
-        Assert.IsTrue(result.Plan.DescendantNodes().OfType<InvocationExpressionSyntax>().Any(static invocation =>
-            invocation.Expression.ToString() == "AppendHotRows" &&
-            invocation.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)));
+        Assert.IsTrue(
+            result
+                .Plan.DescendantNodes()
+                .OfType<InvocationExpressionSyntax>()
+                .Any(static invocation =>
+                    invocation.Expression.ToString() == "AppendHotRows"
+                    && invocation.HasAnnotations(HelperExtractionReadabilityPass.HelperExtractionAnnotationKind)
+                )
+        );
     }
 
     [TestMethod]
     public void HelperExtractionReadability_WhenInlineHelperNameAlreadyExists_ShouldReserveUniqueName()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { System.Console.WriteLine(1); } private static void AppendHotRows() { } }");
+            "public class Generated { public void Run() { System.Console.WriteLine(1); } private static void AppendHotRows() { } }"
+        );
         var runBody = initial
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
             .Single(static method => method.Identifier.ValueText == "Run")
             .Body!;
-        initial = initial.ReplaceNode(runBody, CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+        initial = initial.ReplaceNode(
             runBody,
-            CodegenHelperExtractionRole.HashJoinProbe,
-            "AppendHotRows",
-            new CodegenHelperExtractionBoundaries(
-                "same-phase",
-                "no-mutation",
-                "no-movement",
-                "no-movement",
-                "no-movement",
-                "none",
-                "void",
-                "AppendHotRows")));
+            CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+                runBody,
+                CodegenHelperExtractionRole.HashJoinProbe,
+                "AppendHotRows",
+                new CodegenHelperExtractionBoundaries(
+                    "same-phase",
+                    "no-mutation",
+                    "no-movement",
+                    "no-movement",
+                    "no-movement",
+                    "none",
+                    "void",
+                    "AppendHotRows"
+                )
+            )
+        );
 
         var result = new HelperExtractionReadabilityPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsTrue(result.IsChanged);
         var methods = result.Plan.DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
@@ -296,110 +350,140 @@ public sealed class CodegenReadabilityOptimizerTests
     public void HelperExtractionReadability_WhenInlineBlockInvokesLifecycleMethod_ShouldSkipExtraction()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { OnPhaseChanged(); } private void OnPhaseChanged() { } }");
+            "public class Generated { public void Run() { OnPhaseChanged(); } private void OnPhaseChanged() { } }"
+        );
         var runBody = initial
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
             .Single(static method => method.Identifier.ValueText == "Run")
             .Body!;
-        initial = initial.ReplaceNode(runBody, CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+        initial = initial.ReplaceNode(
             runBody,
-            CodegenHelperExtractionRole.HashJoinProbe,
-            "AppendHotRows",
-            new CodegenHelperExtractionBoundaries(
-                "same-phase",
-                "no-mutation",
-                "no-movement",
-                "no-movement",
-                "no-movement",
-                "none",
-                "void",
-                "AppendHotRows")));
+            CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+                runBody,
+                CodegenHelperExtractionRole.HashJoinProbe,
+                "AppendHotRows",
+                new CodegenHelperExtractionBoundaries(
+                    "same-phase",
+                    "no-mutation",
+                    "no-movement",
+                    "no-movement",
+                    "no-movement",
+                    "none",
+                    "void",
+                    "AppendHotRows"
+                )
+            )
+        );
 
         var result = new HelperExtractionReadabilityPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsFalse(result.IsChanged);
         Assert.Contains("1 skipped inline candidate block", result.Reason);
-        Assert.IsFalse(result.Plan.DescendantNodes().OfType<MethodDeclarationSyntax>().Any(static method =>
-            method.Identifier.ValueText == "AppendHotRows"));
+        Assert.IsFalse(
+            result
+                .Plan.DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .Any(static method => method.Identifier.ValueText == "AppendHotRows")
+        );
     }
 
     [TestMethod]
     public void HelperExtractionReadability_WhenInlineBlockContainsControlFlow_ShouldSkipExtraction()
     {
-        var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { return; } }");
+        var initial = SyntaxFactory.ParseCompilationUnit("public class Generated { public void Run() { return; } }");
         var runBody = initial
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
             .Single(static method => method.Identifier.ValueText == "Run")
             .Body!;
-        initial = initial.ReplaceNode(runBody, CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+        initial = initial.ReplaceNode(
             runBody,
-            CodegenHelperExtractionRole.HashJoinProbe,
-            "AppendHotRows",
-            new CodegenHelperExtractionBoundaries(
-                "same-phase",
-                "no-mutation",
-                "no-movement",
-                "no-movement",
-                "no-movement",
-                "none",
-                "void",
-                "AppendHotRows")));
+            CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+                runBody,
+                CodegenHelperExtractionRole.HashJoinProbe,
+                "AppendHotRows",
+                new CodegenHelperExtractionBoundaries(
+                    "same-phase",
+                    "no-mutation",
+                    "no-movement",
+                    "no-movement",
+                    "no-movement",
+                    "none",
+                    "void",
+                    "AppendHotRows"
+                )
+            )
+        );
 
         var result = new HelperExtractionReadabilityPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsFalse(result.IsChanged);
         Assert.Contains("1 skipped inline candidate block", result.Reason);
-        Assert.IsFalse(result.Plan.DescendantNodes().OfType<MethodDeclarationSyntax>().Any(static method =>
-            method.Identifier.ValueText == "AppendHotRows"));
+        Assert.IsFalse(
+            result
+                .Plan.DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .Any(static method => method.Identifier.ValueText == "AppendHotRows")
+        );
     }
 
     [TestMethod]
     public void HelperExtractionReadability_WhenInlineBlockHasCaptures_ShouldSkipExtraction()
     {
         var initial = SyntaxFactory.ParseCompilationUnit(
-            "public class Generated { public void Run() { var value = 1; System.Console.WriteLine(value); } }");
+            "public class Generated { public void Run() { var value = 1; System.Console.WriteLine(value); } }"
+        );
         var runBody = initial
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
             .Single(static method => method.Identifier.ValueText == "Run")
             .Body!;
-        initial = initial.ReplaceNode(runBody, CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+        initial = initial.ReplaceNode(
             runBody,
-            CodegenHelperExtractionRole.HashJoinProbe,
-            "AppendHotRows",
-            new CodegenHelperExtractionBoundaries(
-                "same-phase",
-                "no-mutation",
-                "no-movement",
-                "no-movement",
-                "no-movement",
-                "explicit",
-                "void",
-                "AppendHotRows")));
+            CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
+                runBody,
+                CodegenHelperExtractionRole.HashJoinProbe,
+                "AppendHotRows",
+                new CodegenHelperExtractionBoundaries(
+                    "same-phase",
+                    "no-mutation",
+                    "no-movement",
+                    "no-movement",
+                    "no-movement",
+                    "explicit",
+                    "void",
+                    "AppendHotRows"
+                )
+            )
+        );
 
         var result = new HelperExtractionReadabilityPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.CodegenReadability));
+            new OptimizationContext(OptimizationStage.CodegenReadability)
+        );
 
         Assert.IsFalse(result.IsChanged);
         Assert.Contains("1 skipped inline candidate block", result.Reason);
-        Assert.IsFalse(result.Plan.DescendantNodes().OfType<MethodDeclarationSyntax>().Any(static method =>
-            method.Identifier.ValueText == "AppendHotRows"));
+        Assert.IsFalse(
+            result
+                .Plan.DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .Any(static method => method.Identifier.ValueText == "AppendHotRows")
+        );
     }
 
     [TestMethod]
     public void HelperExtractionMetadata_WhenAnnotated_ShouldRoundTripWithoutChangingCodeText()
     {
-        var method = SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                "BuildHash")
+        var method = SyntaxFactory
+            .MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), "BuildHash")
             .WithBody(SyntaxFactory.Block());
         var invocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName("BuildHash"));
 
@@ -407,13 +491,15 @@ public sealed class CodegenReadabilityOptimizerTests
             method,
             CodegenHelperExtractionRole.HashJoinBuild,
             "same-phase",
-            "hash-target");
+            "hash-target"
+        );
         var annotatedInvocation = CodegenHelperExtractionMetadata.AnnotateCallSite(
             invocation,
             CodegenHelperExtractionRole.HashJoinBuild,
             "BuildHash",
             "same-phase",
-            "hash-target");
+            "hash-target"
+        );
 
         Assert.AreEqual(method.ToFullString(), annotatedMethod.ToFullString());
         Assert.AreEqual(invocation.ToFullString(), annotatedInvocation.ToFullString());
@@ -445,13 +531,15 @@ public sealed class CodegenReadabilityOptimizerTests
             "no-movement",
             "none",
             "void",
-            "AppendHotRows");
+            "AppendHotRows"
+        );
 
         var annotated = CodegenHelperExtractionMetadata.AnnotateInlineCandidate(
             block,
             CodegenHelperExtractionRole.HashJoinProbe,
             "AppendHotRows",
-            boundaries);
+            boundaries
+        );
 
         Assert.AreEqual(block.ToFullString(), annotated.ToFullString());
         Assert.IsTrue(CodegenHelperExtractionMetadata.TryGetInlineCandidate(annotated, out var info));
@@ -468,14 +556,16 @@ public sealed class CodegenReadabilityOptimizerTests
         Assert.AreEqual("AppendHotRows", info.OrderingKey);
     }
 
-    private static void AssertTraceEntriesAreMeaningful(
-        IReadOnlyList<OptimizationTraceEntry> entries)
+    private static void AssertTraceEntriesAreMeaningful(IReadOnlyList<OptimizationTraceEntry> entries)
     {
         Assert.IsTrue(entries.All(static entry => entry.Stage == OptimizationStage.CodegenReadability));
         Assert.IsTrue(entries.All(static entry => !string.IsNullOrWhiteSpace(entry.PassName)));
         Assert.IsTrue(entries.All(static entry => !string.IsNullOrWhiteSpace(entry.Outcome)));
         Assert.IsTrue(entries.All(static entry => !string.IsNullOrWhiteSpace(entry.Reason)));
-        Assert.IsTrue(entries.All(static entry =>
-            string.Equals(entry.Outcome, entry.IsChanged ? "Changed" : "NoChange", System.StringComparison.Ordinal)));
+        Assert.IsTrue(
+            entries.All(static entry =>
+                string.Equals(entry.Outcome, entry.IsChanged ? "Changed" : "NoChange", System.StringComparison.Ordinal)
+            )
+        );
     }
 }

@@ -10,21 +10,25 @@ internal static partial class SourceBoundaryPlanner
     private static string CreateApplyBoundaryReason(
         ApplyKind applyKind,
         SourceBoundaryInputMode mode,
-        IReadOnlyList<string> dependencyAliases)
+        IReadOnlyList<string> dependencyAliases
+    )
     {
         var applyName = FormatApplyName(applyKind);
         return mode switch
         {
-            SourceBoundaryInputMode.Independent => $"{applyName} keeps an explicit source boundary even though the right input has no proven left-alias dependency. It is a per-query cache candidate, but caching is not applied in this diagnostics-only wave.",
-            SourceBoundaryInputMode.Correlated => $"{applyName} evaluates a lateral right source for each left row using alias(es): {FormatAliases(dependencyAliases)}. Per-row source calls are not cacheable by the current planner.",
-            _ => $"{applyName} references alias(es) outside the proven left input: {FormatAliases(dependencyAliases)}."
+            SourceBoundaryInputMode.Independent =>
+                $"{applyName} keeps an explicit source boundary even though the right input has no proven left-alias dependency. It is a per-query cache candidate, but caching is not applied in this diagnostics-only wave.",
+            SourceBoundaryInputMode.Correlated =>
+                $"{applyName} evaluates a lateral right source for each left row using alias(es): {FormatAliases(dependencyAliases)}. Per-row source calls are not cacheable by the current planner.",
+            _ => $"{applyName} references alias(es) outside the proven left input: {FormatAliases(dependencyAliases)}.",
         };
     }
 
     private static string CreateInterpretBoundaryReason(
         InterpretSourceNode interpret,
         ApplyKind applyKind,
-        string[] inputAliases)
+        string[] inputAliases
+    )
     {
         var applyName = FormatApplyName(applyKind);
         if (inputAliases.Length == 0)
@@ -44,7 +48,8 @@ internal static partial class SourceBoundaryPlanner
     private static string CreateAccessMethodBoundaryReason(
         AccessMethodSourceNode accessMethod,
         ApplyKind applyKind,
-        string[] inputAliases)
+        string[] inputAliases
+    )
     {
         if (inputAliases.Length == 0)
             return $"Access method source {accessMethod.Alias} has no resolved input alias.";
@@ -58,7 +63,7 @@ internal static partial class SourceBoundaryPlanner
         {
             SourceResultShape.Declared => $"declared as {resultType.Name}",
             SourceResultShape.Dynamic => $"dynamic through {resultType.Name}",
-            _ => "unknown"
+            _ => "unknown",
         };
     }
 

@@ -15,7 +15,8 @@ internal sealed class QueryRowsScope<T> : IDisposable
         CancellationTokenSource cancellation,
         Action? onCompleted,
         Action<Exception>? onException,
-        Action? onDisposed)
+        Action? onDisposed
+    )
     {
         Rows = rows ?? throw new ArgumentNullException(nameof(rows));
         Cancellation = cancellation ?? throw new ArgumentNullException(nameof(cancellation));

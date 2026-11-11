@@ -11,7 +11,8 @@ internal sealed record ExecutionTargetCapabilityValidationResult
         IReadOnlyList<ExecutionOperationId>? unsupportedOperations,
         IReadOnlyList<int>? unsupportedSemanticsVersions,
         IReadOnlyList<string>? unsupportedSemanticsFingerprints,
-        IReadOnlyList<ExecutionTargetFeature>? unsupportedFeatures)
+        IReadOnlyList<ExecutionTargetFeature>? unsupportedFeatures
+    )
     {
         UnsupportedRequirements = Freeze(unsupportedRequirements);
         UnsupportedOperations = Freeze(unsupportedOperations);
@@ -30,11 +31,12 @@ internal sealed record ExecutionTargetCapabilityValidationResult
 
     public IReadOnlyList<ExecutionTargetFeature> UnsupportedFeatures { get; }
 
-    public bool IsSupported => UnsupportedRequirements.Count == 0 &&
-                               UnsupportedOperations.Count == 0 &&
-                               UnsupportedSemanticsVersions.Count == 0 &&
-                               UnsupportedSemanticsFingerprints.Count == 0 &&
-                               UnsupportedFeatures.Count == 0;
+    public bool IsSupported =>
+        UnsupportedRequirements.Count == 0
+        && UnsupportedOperations.Count == 0
+        && UnsupportedSemanticsVersions.Count == 0
+        && UnsupportedSemanticsFingerprints.Count == 0
+        && UnsupportedFeatures.Count == 0;
 
     public string FormatUnsupportedRequirements(string targetName)
     {
@@ -47,7 +49,9 @@ internal sealed record ExecutionTargetCapabilityValidationResult
             .Select(static requirement => $"{requirement.Kind}: {requirement.Detail}")
             .Concat(UnsupportedOperations.Select(static operation => $"operation: {operation}"))
             .Concat(UnsupportedSemanticsVersions.Select(static version => $"semantics-version: {version}"))
-            .Concat(UnsupportedSemanticsFingerprints.Select(static fingerprint => $"semantics-fingerprint: {fingerprint}"))
+            .Concat(
+                UnsupportedSemanticsFingerprints.Select(static fingerprint => $"semantics-fingerprint: {fingerprint}")
+            )
             .Concat(UnsupportedFeatures.Select(static feature => $"feature: {feature.StableId}"));
 
         return $"Execution target '{targetName}' does not support: {string.Join("; ", formatted)}";

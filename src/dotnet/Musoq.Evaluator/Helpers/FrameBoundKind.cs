@@ -6,5 +6,5 @@ public enum FrameBoundKind
     UnboundedFollowing,
     CurrentRow,
     OffsetPreceding,
-    OffsetFollowing
+    OffsetFollowing,
 }

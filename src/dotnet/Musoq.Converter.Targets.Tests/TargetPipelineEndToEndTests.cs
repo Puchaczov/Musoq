@@ -25,7 +25,8 @@ public sealed class TargetPipelineEndToEndTests
             query,
             "TargetPipelineE2E",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsTrue(artifactResult.Succeeded, FormatDiagnostics(artifactResult.Diagnostics));
         Assert.IsNotNull(artifactResult.Artifact);
@@ -33,20 +34,24 @@ public sealed class TargetPipelineEndToEndTests
         Assert.AreEqual("TargetPipelineE2E.CompiledQuery", artifactResult.Artifact.RunnableTypeName);
         Assert.AreEqual(
             ExecutionTargetIds.CSharpClr.ToString(),
-            artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionTarget]);
+            artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionTarget]
+        );
         Assert.AreEqual(
             CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
-            artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutableArtifactKind]);
+            artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutableArtifactKind]
+        );
         Assert.AreEqual(
             "2",
-            artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion]);
+            artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion]
+        );
 
         var packageResult = InstanceCreator.CompileTargetPackageWithDiagnostics(
             query,
             "TargetPipelineE2EPackage",
             provider,
             _loggerResolver,
-            ExecutionTargetIds.CSharpClr);
+            ExecutionTargetIds.CSharpClr
+        );
 
         Assert.IsTrue(packageResult.Succeeded, FormatDiagnostics(packageResult.Diagnostics));
         Assert.IsNotNull(packageResult.BuildItems);
@@ -63,16 +68,19 @@ public sealed class TargetPipelineEndToEndTests
             _loggerResolver,
             new CompiledQueryArtifactLoadOptions
             {
-                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
-            });
+                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash,
+            }
+        );
 
         Assert.IsTrue(loaded.Succeeded, FormatDiagnostics(loaded.Diagnostics));
         Assert.IsNotNull(loaded.BuildItems);
         Assert.AreEqual(
             artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256],
-            CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(loaded.BuildItems.RenderingArtifact));
-        var loadedCompiledQuery = loaded.CompiledQuery ??
-            throw new AssertFailedException("Successful artifact load did not produce a compiled query.");
+            CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(loaded.BuildItems.RenderingArtifact)
+        );
+        var loadedCompiledQuery =
+            loaded.CompiledQuery
+            ?? throw new AssertFailedException("Successful artifact load did not produce a compiled query.");
         var table = loadedCompiledQuery.Run();
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("loaded", table[0].ReadValue(0));
@@ -81,7 +89,8 @@ public sealed class TargetPipelineEndToEndTests
             query,
             "TargetPipelineE2EInspection",
             provider,
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(string.IsNullOrWhiteSpace(inspection.GeneratedCSharpCode));
         Assert.IsFalse(string.IsNullOrWhiteSpace(inspection.ExecutionPlanText));
@@ -96,7 +105,8 @@ public sealed class TargetPipelineEndToEndTests
             "select Missing from #artifact.items() i",
             "TargetPipelineInvalid",
             new ArtifactSchemaProvider(new ArtifactSchema("single")),
-            _loggerResolver);
+            _loggerResolver
+        );
 
         Assert.IsFalse(result.Succeeded);
         Assert.IsNull(result.Artifact);
@@ -115,7 +125,8 @@ public sealed class TargetPipelineEndToEndTests
             "TargetPipelineCacheFirst",
             provider,
             _loggerResolver,
-            options);
+            options
+        );
         Assert.IsTrue(first.Succeeded, FormatDiagnostics(first.Diagnostics));
         Assert.IsNotNull(first.BuildItems);
 
@@ -124,13 +135,15 @@ public sealed class TargetPipelineEndToEndTests
             "TargetPipelineCacheSecond",
             provider,
             _loggerResolver,
-            options);
+            options
+        );
 
         Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
         Assert.IsNotNull(second.BuildItems);
         Assert.IsTrue(second.BuildItems.StopAfterPlanning);
-        var secondCompiledQuery = second.CompiledQuery ??
-            throw new AssertFailedException("Successful cache activation did not produce a compiled query.");
+        var secondCompiledQuery =
+            second.CompiledQuery
+            ?? throw new AssertFailedException("Successful cache activation did not produce a compiled query.");
         Assert.AreEqual("single", secondCompiledQuery.Run()[0].ReadValue(0));
     }
 
@@ -143,13 +156,15 @@ public sealed class TargetPipelineEndToEndTests
             $"CanonicalWhitespaceFirst_{suffix}",
             new ArtifactSchemaProvider(new ArtifactSchema("first")),
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         Assert.IsTrue(first.Succeeded, FormatDiagnostics(first.Diagnostics));
         Assert.IsNotNull(first.BuildItems);
 
         var firstEntryIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
             first.BuildItems!,
-            new ArtifactSchemaProvider(new ArtifactSchema("first")));
+            new ArtifactSchemaProvider(new ArtifactSchema("first"))
+        );
         Assert.AreNotEqual(0, firstEntryIdentity);
 
         var secondProvider = new ArtifactSchemaProvider(new ArtifactSchema("second"));
@@ -158,19 +173,23 @@ public sealed class TargetPipelineEndToEndTests
             $"CanonicalWhitespaceSecond_{suffix}",
             secondProvider,
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
         Assert.IsNotNull(second.BuildItems);
 
         var secondEntryIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
             second.BuildItems,
-            secondProvider);
+            secondProvider
+        );
         var firstContract = InstanceCreator.CreateCanonicalExecutionContractForTests(
             first.BuildItems!,
-            new ArtifactSchemaProvider(new ArtifactSchema("first")));
+            new ArtifactSchemaProvider(new ArtifactSchema("first"))
+        );
         var secondContract = InstanceCreator.CreateCanonicalExecutionContractForTests(
             second.BuildItems!,
-            secondProvider);
+            secondProvider
+        );
         Assert.AreEqual(firstContract.NormalizedGeneratedSyntax, secondContract.NormalizedGeneratedSyntax);
         Assert.AreEqual(firstContract.RuntimeContractFingerprint, secondContract.RuntimeContractFingerprint);
         Assert.AreEqual(firstContract.ExecutionSemanticsFingerprint, secondContract.ExecutionSemanticsFingerprint);
@@ -197,27 +216,41 @@ public sealed class TargetPipelineEndToEndTests
         var providers = new[]
         {
             new ArtifactSchemaProvider(new ArtifactSchema("concurrent-first")),
-            new ArtifactSchemaProvider(new ArtifactSchema("concurrent-second"))
+            new ArtifactSchemaProvider(new ArtifactSchema("concurrent-second")),
         };
         var queries = new[]
         {
             $"select i.Value from #artifact.items() i where i.Value = '{suffix}'",
-            $"select  i.Value  from  #artifact.items()  i  where  i.Value = '{suffix}'"
+            $"select  i.Value  from  #artifact.items()  i  where  i.Value = '{suffix}'",
         };
 
-        var results = await Task.WhenAll(Enumerable.Range(0, 2).Select(index => Task.Run(() =>
-            InstanceCreator.CompileWithDiagnostics(
-                queries[index],
-                $"CanonicalConcurrent_{suffix}_{index}",
-                providers[index],
-                _loggerResolver,
-                new CompilationOptions()))));
+        var results = await Task.WhenAll(
+            Enumerable
+                .Range(0, 2)
+                .Select(index =>
+                    Task.Run(() =>
+                        InstanceCreator.CompileWithDiagnostics(
+                            queries[index],
+                            $"CanonicalConcurrent_{suffix}_{index}",
+                            providers[index],
+                            _loggerResolver,
+                            new CompilationOptions()
+                        )
+                    )
+                )
+        );
 
         Assert.IsTrue(results.All(static result => result.Succeeded));
         Assert.IsNotNull(results[0].BuildItems);
         Assert.IsNotNull(results[1].BuildItems);
-        var firstIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(results[0].BuildItems!, providers[0]);
-        var secondIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(results[1].BuildItems!, providers[1]);
+        var firstIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
+            results[0].BuildItems!,
+            providers[0]
+        );
+        var secondIdentity = InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
+            results[1].BuildItems!,
+            providers[1]
+        );
         Assert.AreNotEqual(0, firstIdentity);
         Assert.AreEqual(firstIdentity, secondIdentity);
 
@@ -237,13 +270,15 @@ public sealed class TargetPipelineEndToEndTests
             $"CanonicalLiteralFirst_{suffix}",
             provider,
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
         var second = InstanceCreator.CompileWithDiagnostics(
             $"select i.Value from #artifact.items() i where i.Value = 'literal-b-{suffix}'",
             $"CanonicalLiteralSecond_{suffix}",
             provider,
             _loggerResolver,
-            new CompilationOptions());
+            new CompilationOptions()
+        );
 
         Assert.IsTrue(first.Succeeded, FormatDiagnostics(first.Diagnostics));
         Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
@@ -263,7 +298,8 @@ public sealed class TargetPipelineEndToEndTests
             $"CanonicalInstrumentation_{Guid.NewGuid():N}",
             new ArtifactSchemaProvider(new ArtifactSchema("instrumented")),
             _loggerResolver,
-            new CompilationOptions().WithInstrumentationMode(QueryInstrumentationMode.SourceBoundaries));
+            new CompilationOptions().WithInstrumentationMode(QueryInstrumentationMode.SourceBoundaries)
+        );
 
         Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
         Assert.IsNotNull(result.BuildItems);
@@ -271,7 +307,9 @@ public sealed class TargetPipelineEndToEndTests
             0,
             InstanceCreator.GetCanonicalExecutionEntryIdentityForTests(
                 result.BuildItems!,
-                new ArtifactSchemaProvider(new ArtifactSchema("instrumented"))));
+                new ArtifactSchemaProvider(new ArtifactSchema("instrumented"))
+            )
+        );
     }
 
     [TestMethod]
@@ -279,12 +317,20 @@ public sealed class TargetPipelineEndToEndTests
     {
         var query = $"select d.Dummy from #system.dual() d where d.Dummy = '{Guid.NewGuid():N}'";
         var results = await Task.WhenAll(
-            Enumerable.Range(0, 4).Select(index => Task.Run(() => InstanceCreator.CompileWithDiagnostics(
-                query,
-                $"TargetPipelineConcurrent{index}",
-                new SystemSchemaProvider(),
-                _loggerResolver,
-                new CompilationOptions()))));
+            Enumerable
+                .Range(0, 4)
+                .Select(index =>
+                    Task.Run(() =>
+                        InstanceCreator.CompileWithDiagnostics(
+                            query,
+                            $"TargetPipelineConcurrent{index}",
+                            new SystemSchemaProvider(),
+                            _loggerResolver,
+                            new CompilationOptions()
+                        )
+                    )
+                )
+        );
 
         Assert.IsTrue(results.All(static result => result.Succeeded));
         Assert.AreEqual(1, results.Count(static result => result.BuildItems is { StopAfterPlanning: false }));
@@ -296,20 +342,26 @@ public sealed class TargetPipelineEndToEndTests
     {
         const string query = "select i.Value from #artifact.items() i";
         var results = await Task.WhenAll(
-            Enumerable.Range(0, 8).Select(index => Task.Run(() =>
-            {
-                var provider = new ArtifactSchemaProvider(new ArtifactSchema($"binding-{index}"));
-                var result = InstanceCreator.CompileWithDiagnostics(
-                    query,
-                    $"TargetPipelineBindingIsolation{index}",
-                    provider,
-                    _loggerResolver,
-                    new CompilationOptions());
+            Enumerable
+                .Range(0, 8)
+                .Select(index =>
+                    Task.Run(() =>
+                    {
+                        var provider = new ArtifactSchemaProvider(new ArtifactSchema($"binding-{index}"));
+                        var result = InstanceCreator.CompileWithDiagnostics(
+                            query,
+                            $"TargetPipelineBindingIsolation{index}",
+                            provider,
+                            _loggerResolver,
+                            new CompilationOptions()
+                        );
 
-                Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
-                using var table = result.CompiledQuery!.Run();
-                return (Index: index, Value: (string)table[0].ReadValue(0));
-            })));
+                        Assert.IsTrue(result.Succeeded, FormatDiagnostics(result.Diagnostics));
+                        using var table = result.CompiledQuery!.Run();
+                        return (Index: index, Value: (string)table[0].ReadValue(0));
+                    })
+                )
+        );
 
         Assert.HasCount(8, results);
         foreach (var result in results)
@@ -325,20 +377,23 @@ public sealed class TargetPipelineEndToEndTests
             "TargetPipelineSettingsFirst",
             new SettingsArtifactSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions(sourceRuntimeSettingsResolver: new TokenSettingsResolver("first")));
+            new CompilationOptions(sourceRuntimeSettingsResolver: new TokenSettingsResolver("first"))
+        );
         var second = InstanceCreator.CompileWithDiagnostics(
             query,
             "TargetPipelineSettingsSecond",
             new SettingsArtifactSchemaProvider(),
             _loggerResolver,
-            new CompilationOptions(sourceRuntimeSettingsResolver: new TokenSettingsResolver("second")));
+            new CompilationOptions(sourceRuntimeSettingsResolver: new TokenSettingsResolver("second"))
+        );
 
         Assert.IsTrue(first.Succeeded, FormatDiagnostics(first.Diagnostics));
         Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
         Assert.IsNotNull(second.BuildItems);
         Assert.IsFalse(second.BuildItems.StopAfterPlanning);
-        var secondCompiledQuery = second.CompiledQuery ??
-            throw new AssertFailedException("Successful settings rebind did not produce a compiled query.");
+        var secondCompiledQuery =
+            second.CompiledQuery
+            ?? throw new AssertFailedException("Successful settings rebind did not produce a compiled query.");
         Assert.AreEqual("second", secondCompiledQuery.Run()[0].ReadValue(0));
     }
 

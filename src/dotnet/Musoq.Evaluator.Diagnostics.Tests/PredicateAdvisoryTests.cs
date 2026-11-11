@@ -17,8 +17,11 @@ public sealed partial class PredicateAdvisoryTests
             var result = Analyze($"select Name from #A.Entities() where Name {operatorText} null");
 
             Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
-            Assert.AreEqual(1, result.Warnings.Count(static item =>
-                item.Code == DiagnosticCode.MQ5017_NullComparison), operatorText);
+            Assert.AreEqual(
+                1,
+                result.Warnings.Count(static item => item.Code == DiagnosticCode.MQ5017_NullComparison),
+                operatorText
+            );
         }
     }
 
@@ -50,36 +53,49 @@ public sealed partial class PredicateAdvisoryTests
         var constantFalse = Analyze("select Name from #A.Entities() where 1 = 2");
         var conflictingEquality = Analyze("select Name from #A.Entities() where Population = 1 and Population = 2");
         var conflictingRange = Analyze("select Name from #A.Entities() where Population > 10 and Population < 5");
-        var complementaryNull = Analyze("select Name from #A.Entities() where Population is null or Population is not null");
-        var contradictoryNull = Analyze("select Name from #A.Entities() where Population is null and Population is not null");
+        var complementaryNull = Analyze(
+            "select Name from #A.Entities() where Population is null or Population is not null"
+        );
+        var contradictoryNull = Analyze(
+            "select Name from #A.Entities() where Population is null and Population is not null"
+        );
 
         AssertCode(constantTrue, DiagnosticCode.MQ5010_TautologicalCondition);
         AssertCode(constantFalse, DiagnosticCode.MQ5011_ContradictoryCondition);
         AssertCode(conflictingEquality, DiagnosticCode.MQ5011_ContradictoryCondition);
         AssertCode(conflictingRange, DiagnosticCode.MQ5011_ContradictoryCondition);
-        Assert.IsFalse(complementaryNull.Warnings.Any(static item =>
-            item.Code == DiagnosticCode.MQ5010_TautologicalCondition ||
-            item.Code == DiagnosticCode.MQ5011_ContradictoryCondition));
-        Assert.IsFalse(contradictoryNull.Warnings.Any(static item =>
-            item.Code == DiagnosticCode.MQ5010_TautologicalCondition ||
-            item.Code == DiagnosticCode.MQ5011_ContradictoryCondition));
+        Assert.IsFalse(
+            complementaryNull.Warnings.Any(static item =>
+                item.Code == DiagnosticCode.MQ5010_TautologicalCondition
+                || item.Code == DiagnosticCode.MQ5011_ContradictoryCondition
+            )
+        );
+        Assert.IsFalse(
+            contradictoryNull.Warnings.Any(static item =>
+                item.Code == DiagnosticCode.MQ5010_TautologicalCondition
+                || item.Code == DiagnosticCode.MQ5011_ContradictoryCondition
+            )
+        );
     }
 
     [TestMethod]
     public void NullLetValue_ReportsNullComparisonWithoutChangingSemantics()
     {
-        var result = Analyze("let missing: int? = null; select NullableValue from #A.Entities() where NullableValue = $missing");
+        var result = Analyze(
+            "let missing: int? = null; select NullableValue from #A.Entities() where NullableValue = $missing"
+        );
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
-        Assert.AreEqual(1, result.Warnings.Count(static item =>
-            item.Code == DiagnosticCode.MQ5017_NullComparison));
+        Assert.AreEqual(1, result.Warnings.Count(static item => item.Code == DiagnosticCode.MQ5017_NullComparison));
     }
 
     [TestMethod]
     public void NotIn_WithNullLiteralOrConstantLet_ReportsNullSensitiveWarning()
     {
         var literal = Analyze("select Name from #A.Entities() where Name not in ('Alice', null)");
-        var constantLet = Analyze("let missing: string = null; select Name from #A.Entities() where Name not in ('Alice', $missing)");
+        var constantLet = Analyze(
+            "let missing: string = null; select Name from #A.Entities() where Name not in ('Alice', $missing)"
+        );
 
         AssertCode(literal, DiagnosticCode.MQ5024_NullSensitiveNotIn);
         AssertCode(constantLet, DiagnosticCode.MQ5024_NullSensitiveNotIn);
@@ -100,7 +116,9 @@ public sealed partial class PredicateAdvisoryTests
     [TestMethod]
     public void CrossJoin_ShouldNotAnalyzeSyntheticTrueAsAnOnPredicate()
     {
-        var result = Analyze("select r.Id, marker.Label from values { ( Id: 1 ) } r cross join values { ( Label: 'x' ) } marker");
+        var result = Analyze(
+            "select r.Id, marker.Label from values { ( Id: 1 ) } r cross join values { ( Label: 'x' ) } marker"
+        );
 
         Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
         Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5010_TautologicalCondition));
@@ -123,10 +141,8 @@ public sealed partial class PredicateAdvisoryTests
     private static QueryAnalysisResult Analyze(string query)
     {
         var provider = new BasicSchemaProvider<BasicEntity>(
-            new Dictionary<string, IEnumerable<BasicEntity>>
-            {
-                ["#A"] = []
-            });
+            new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }
+        );
         return new QueryAnalyzer(provider).Analyze(query);
     }
 }

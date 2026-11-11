@@ -14,7 +14,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         string? sourceRowsScope,
-        LoweringScope scope)
+        LoweringScope scope
+    )
     {
         if (IsAggregateSource(source))
         {
@@ -26,7 +27,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 cteShapesByName,
                 schemaFromIndex,
                 scopeAggregateVariables: false,
-                scope: scope);
+                scope: scope
+            );
             if (!table.IsBuilt)
                 return SourceBuildResult.Unsupported(table.UnsupportedReason);
 
@@ -36,18 +38,22 @@ internal sealed partial class PhysicalLoweringImplementation
             var materializedRows = new ExecutionRowStream(
                 table.Table,
                 ExecutionRowStreamKind.Rows,
-                ExecutionRowStreamRowsAccess.TableRows);
+                ExecutionRowStreamRowsAccess.TableRows
+            );
             var shapes = table.Shapes.Concat([sourceShape]).ToArray();
 
-            return SourceBuildResult.Success(new JoinSource(
-                source,
-                sourceShape,
-                sourceVariable,
-                table.Nodes.ToList(),
-                materializedRows,
-                shapes,
-                CountSchemaScans(source),
-                GeneratedRowShape: table.RowShape));
+            return SourceBuildResult.Success(
+                new JoinSource(
+                    source,
+                    sourceShape,
+                    sourceVariable,
+                    table.Nodes.ToList(),
+                    materializedRows,
+                    shapes,
+                    CountSchemaScans(source),
+                    GeneratedRowShape: table.RowShape
+                )
+            );
         }
 
         if (source is PhysicalNestedLoopApplyNode apply)
@@ -59,7 +65,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 schemaFromIndex,
                 new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase),
                 scope,
-                NestedApplyGeneratedRowPreservation.Enabled);
+                NestedApplyGeneratedRowPreservation.Enabled
+            );
         }
 
         if (source is PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode)
@@ -67,25 +74,28 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var shape = ResolveSourceShape(source, cteIndexes, cteShapesByName);
         if (shape == null)
-            return SourceBuildResult.Unsupported($"Execution IR window lowering cannot resolve source shape for {source.GetType().Name}.");
+            return SourceBuildResult.Unsupported(
+                $"Execution IR window lowering cannot resolve source shape for {source.GetType().Name}."
+            );
 
         var variable = CreateSourceVariable(source, shape, cteShapesByName);
         var setup = CreateSourceSetup(source, shape, variable, schemaFromIndex, cteIndexes, sourceRowsScope);
         var rows = CreateSourceRowsExpression(source, shape, cteIndexes, cteShapesByName, sourceRowsScope, scope);
         var schemaSourceCount = source is PhysicalSchemaScanNode ? 1 : 0;
 
-        return SourceBuildResult.Success(new JoinSource(
-            source,
-            shape,
-            variable,
-            setup,
-            rows,
-            [shape],
-            schemaSourceCount,
-            GeneratedRowShape: source is PhysicalCteRefNode cteRef
-                ? ResolveCteGeneratedRowShape(cteRef, cteShapesByName)
-                : SourceGeneratedRowShapeResolver.Resolve(shape)));
+        return SourceBuildResult.Success(
+            new JoinSource(
+                source,
+                shape,
+                variable,
+                setup,
+                rows,
+                [shape],
+                schemaSourceCount,
+                GeneratedRowShape: source is PhysicalCteRefNode cteRef
+                    ? ResolveCteGeneratedRowShape(cteRef, cteShapesByName)
+                    : SourceGeneratedRowShapeResolver.Resolve(shape)
+            )
+        );
     }
-
-
 }

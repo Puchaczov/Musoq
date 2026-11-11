@@ -13,21 +13,26 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
     [TestMethod]
     public void TextInterpretation_ExpectedWhitespace_ShouldExposeMq7111InputDiagnostic()
     {
-        const string query = @"
-            text Spaced { Prefix: chars[2], _: whitespace+, Value: rest };
-            select r.Value
-            from #test.lines() f
-            cross apply Parse<Spaced>(f.Text) r";
+        const string query = (
+            "\n"
+            + "            text Spaced { Prefix: chars[2], _: whitespace+, Value: rest };\n"
+            + "            select r.Value\n"
+            + "            from #test.lines() f\n"
+            + "            cross apply Parse<Spaced>(f.Text) r"
+        );
 
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
-            new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>>
-            {
-                ["#test"] = [new TextEntity { Name = "private-name.txt", Text = "ab-secret" }]
-            }),
+            new TextSchemaProvider(
+                new Dictionary<string, IEnumerable<TextEntity>>
+                {
+                    ["#test"] = [new TextEntity { Name = "private-name.txt", Text = "ab-secret" }],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() => _ = compiled.Run(CancellationToken.None).Count);
         var envelope = MusoqErrorEnvelope.FromException(exception);
@@ -42,21 +47,26 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
     [TestMethod]
     public void BinaryInterpretation_InsufficientData_ShouldExposeMq7101InputDiagnostic()
     {
-        const string query = @"
-            binary Header { Prefix: byte, Value: int le };
-            select r.Value
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) r";
+        const string query = (
+            "\n"
+            + "            binary Header { Prefix: byte, Value: int le };\n"
+            + "            select r.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) r"
+        );
 
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
-            new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-            {
-                ["#test"] = [new BinaryEntity { Name = "private-name.bin", Content = [0x07] }]
-            }),
+            new BinarySchemaProvider(
+                new Dictionary<string, IEnumerable<BinaryEntity>>
+                {
+                    ["#test"] = [new BinaryEntity { Name = "private-name.bin", Content = [0x07] }],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() => _ = compiled.Run(CancellationToken.None).Count);
         var envelope = MusoqErrorEnvelope.FromException(exception);
@@ -73,21 +83,26 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
     [TestMethod]
     public void BinaryInterpretation_InvalidEncoding_ShouldExposeStableIse0010Envelope()
     {
-        const string query = @"
-            binary Encoded { Prefix: byte, Value: string[2] utf8, Tail: byte };
-            select r.Value
-            from #test.files() f
-            cross apply Interpret<Encoded>(f.Content) r";
+        const string query = (
+            "\n"
+            + "            binary Encoded { Prefix: byte, Value: string[2] utf8, Tail: byte };\n"
+            + "            select r.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Encoded>(f.Content) r"
+        );
 
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
-            new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-            {
-                ["#test"] = [new BinaryEntity { Name = "invalid-utf8.bin", Content = [0x07, 0xC3, 0x28, 0xA5] }]
-            }),
+            new BinarySchemaProvider(
+                new Dictionary<string, IEnumerable<BinaryEntity>>
+                {
+                    ["#test"] = [new BinaryEntity { Name = "invalid-utf8.bin", Content = [0x07, 0xC3, 0x28, 0xA5] }],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
         {
@@ -107,21 +122,29 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
     [TestMethod]
     public void BinaryInterpretation_InvalidNullTerminatedEncoding_ShouldUseSameEnvelope()
     {
-        const string query = @"
-            binary Encoded { Prefix: byte, Value: string[3] utf8 nullterm, Tail: byte };
-            select r.Value
-            from #test.files() f
-            cross apply Interpret<Encoded>(f.Content) r";
+        const string query = (
+            "\n"
+            + "            binary Encoded { Prefix: byte, Value: string[3] utf8 nullterm, Tail: byte };\n"
+            + "            select r.Value\n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Encoded>(f.Content) r"
+        );
 
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
-            new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-            {
-                ["#test"] = [new BinaryEntity { Name = "invalid-nullterm.bin", Content = [0x07, 0xC3, 0x28, 0x00, 0xA5] }]
-            }),
+            new BinarySchemaProvider(
+                new Dictionary<string, IEnumerable<BinaryEntity>>
+                {
+                    ["#test"] =
+                    [
+                        new BinaryEntity { Name = "invalid-nullterm.bin", Content = [0x07, 0xC3, 0x28, 0x00, 0xA5] },
+                    ],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
         {
@@ -139,21 +162,26 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
     [TestMethod]
     public void PartialInterpret_InvalidEncoding_ShouldRetainSuccessfulFieldsAndSafeError()
     {
-        const string query = @"
-            binary Encoded { Prefix: byte, Value: string[2] utf8, Tail: byte };
-            select p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed
-            from #test.files() f
-            cross apply PartialInterpret<Encoded>(f.Content) p";
+        const string query = (
+            "\n"
+            + "            binary Encoded { Prefix: byte, Value: string[2] utf8, Tail: byte };\n"
+            + "            select p.ParsedFields, p.ErrorField, p.ErrorMessage, p.BytesConsumed\n"
+            + "            from #test.files() f\n"
+            + "            cross apply PartialInterpret<Encoded>(f.Content) p"
+        );
 
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
-            new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-            {
-                ["#test"] = [new BinaryEntity { Name = "invalid-utf8.bin", Content = [0x07, 0xC3, 0x28, 0xA5] }]
-            }),
+            new BinarySchemaProvider(
+                new Dictionary<string, IEnumerable<BinaryEntity>>
+                {
+                    ["#test"] = [new BinaryEntity { Name = "invalid-utf8.bin", Content = [0x07, 0xC3, 0x28, 0xA5] }],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var table = compiled.Run(CancellationToken.None);
 
@@ -171,21 +199,26 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
     [TestMethod]
     public void Parse_InvalidText_ShouldExposeStablePatternEnvelopeAndTryParseShouldReturnNull()
     {
-        const string query = @"
-            text Digits { Prefix: chars[2], Value: pattern '\d+' };
-            select r.Prefix, r.Value
-            from #test.lines() f
-            cross apply Parse<Digits>(f.Text) r";
+        const string query = (
+            "\n"
+            + "            text Digits { Prefix: chars[2], Value: pattern '\\d+' };\n"
+            + "            select r.Prefix, r.Value\n"
+            + "            from #test.lines() f\n"
+            + "            cross apply Parse<Digits>(f.Text) r"
+        );
 
         var compiled = CompileGeneratedQuery(
             query,
             Guid.NewGuid().ToString(),
-            new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>>
-            {
-                ["#test"] = [new TextEntity { Name = "invalid.txt", Text = "xxabc" }]
-            }),
+            new TextSchemaProvider(
+                new Dictionary<string, IEnumerable<TextEntity>>
+                {
+                    ["#test"] = [new TextEntity { Name = "invalid.txt", Text = "xxabc" }],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var exception = Assert.ThrowsExactly<ParseException>(() =>
         {
@@ -199,21 +232,26 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
         Assert.AreEqual("Value", exception.FieldName);
         Assert.AreEqual(2, exception.Position);
 
-        const string safeQuery = @"
-            text Digits { Value: pattern '\d+' };
-            select f.Name, r.Value
-            from #test.lines() f
-            outer apply TryParse<Digits>(f.Text) r";
+        const string safeQuery = (
+            "\n"
+            + "            text Digits { Value: pattern '\\d+' };\n"
+            + "            select f.Name, r.Value\n"
+            + "            from #test.lines() f\n"
+            + "            outer apply TryParse<Digits>(f.Text) r"
+        );
 
         var safeCompiled = CompileGeneratedQuery(
             safeQuery,
             Guid.NewGuid().ToString(),
-            new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>>
-            {
-                ["#test"] = [new TextEntity { Name = "invalid.txt", Text = "abc" }]
-            }),
+            new TextSchemaProvider(
+                new Dictionary<string, IEnumerable<TextEntity>>
+                {
+                    ["#test"] = [new TextEntity { Name = "invalid.txt", Text = "abc" }],
+                }
+            ),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
 
         var safeTable = safeCompiled.Run(CancellationToken.None);
         Assert.AreEqual(1, safeTable.Count);
@@ -230,17 +268,26 @@ public sealed class DiagnosticRuntime057InterpretationErrorTaxonomyTests : Binar
     [DataRow(ParseErrorCode.ExpectedDelimiter, "ISE0006", DiagnosticCode.MQ7106_InterpretationExpectedDelimiter)]
     [DataRow(ParseErrorCode.InvalidSize, "ISE0007", DiagnosticCode.MQ7107_InterpretationInvalidSize)]
     [DataRow(ParseErrorCode.InvalidPosition, "ISE0008", DiagnosticCode.MQ7108_InterpretationInvalidPosition)]
-    [DataRow(ParseErrorCode.MaxIterationsExceeded, "ISE0009", DiagnosticCode.MQ7109_InterpretationMaxIterationsExceeded)]
+    [DataRow(
+        ParseErrorCode.MaxIterationsExceeded,
+        "ISE0009",
+        DiagnosticCode.MQ7109_InterpretationMaxIterationsExceeded
+    )]
     [DataRow(ParseErrorCode.EncodingError, "ISE0010", DiagnosticCode.MQ7110_InterpretationEncodingError)]
     [DataRow(ParseErrorCode.ExpectedWhitespace, "ISE0011", DiagnosticCode.MQ7111_InterpretationExpectedWhitespace)]
     [DataRow(ParseErrorCode.NoAlternativeMatched, "ISE0012", DiagnosticCode.MQ7112_InterpretationNoAlternativeMatched)]
-    [DataRow(ParseErrorCode.InvalidSchemaReference, "ISE0013", DiagnosticCode.MQ7113_InterpretationInvalidSchemaReference)]
+    [DataRow(
+        ParseErrorCode.InvalidSchemaReference,
+        "ISE0013",
+        DiagnosticCode.MQ7113_InterpretationInvalidSchemaReference
+    )]
     [DataRow(ParseErrorCode.FieldReferenceError, "ISE0014", DiagnosticCode.MQ7114_InterpretationFieldReferenceError)]
     [DataRow(ParseErrorCode.GeneralError, "ISE0015", DiagnosticCode.MQ7115_InterpretationGeneralError)]
     public void AppendixC_ErrorCodes_ShouldRetainStableIseEnvelopeShape(
         ParseErrorCode code,
         string expected,
-        DiagnosticCode expectedDiagnosticCode)
+        DiagnosticCode expectedDiagnosticCode
+    )
     {
         var exception = new ParseException(code, "RuntimeSchema", "Payload.Value", 17, "safe diagnostic detail");
         var diagnostic = exception.ToDiagnostic();

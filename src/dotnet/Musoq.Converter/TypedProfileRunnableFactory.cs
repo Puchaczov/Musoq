@@ -12,11 +12,15 @@ internal sealed class TypedProfileRunnableFactory<TOut>
     public TypedProfileRunnableFactory(
         Type runnableType,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId,
-        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> sourceRuntimeSettingDescriptionsBySourceContextId,
+        IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > sourceRuntimeSettingDescriptionsBySourceContextId,
         IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans,
         IReadOnlyList<ScriptParameterDefinition> parameterDefinitions,
         TypedQueryDiagnostics diagnostics,
-        ILoggerResolver loggerResolver)
+        ILoggerResolver loggerResolver
+    )
     {
         _core = new TypedRunnableFactoryCore<ITableRunnable>(
             runnableType,
@@ -25,7 +29,8 @@ internal sealed class TypedProfileRunnableFactory<TOut>
             sourceExecutionPlans,
             parameterDefinitions,
             diagnostics,
-            loggerResolver);
+            loggerResolver
+        );
     }
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _core.ParameterDefinitions;

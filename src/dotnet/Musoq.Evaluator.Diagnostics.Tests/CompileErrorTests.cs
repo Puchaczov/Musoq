@@ -14,8 +14,7 @@ public class CompileErrorTests : NegativeTestsBase
     [TestMethod]
     public void CE040_SelectStarWithGroupBy_ShouldThrowErrorForNonGroupedColumns()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() GROUP BY City"));
+        var ex = Assert.Throws<MusoqQueryException>(() => CompileQuery("SELECT * FROM #test.people() GROUP BY City"));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3012_NonAggregateInSelect, DiagnosticPhase.Bind, "GROUP BY");
         AssertHasGuidance(ex);
@@ -29,7 +28,8 @@ public class CompileErrorTests : NegativeTestsBase
     public void CE001_NonAggregatedNonGroupedColumnInSelect_ShouldThrowError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name, City, Count(1) FROM #test.people() GROUP BY City"));
+            CompileQuery("SELECT Name, City, Count(1) FROM #test.people() GROUP BY City")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3012_NonAggregateInSelect, DiagnosticPhase.Bind, "Name");
         AssertHasGuidance(ex);
@@ -39,7 +39,8 @@ public class CompileErrorTests : NegativeTestsBase
     public void CE002_MultipleNonAggregatedColumnsMissingFromGroupBy_ShouldThrowError()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name, Age, City, Count(1) FROM #test.people() GROUP BY City"));
+            CompileQuery("SELECT Name, Age, City, Count(1) FROM #test.people() GROUP BY City")
+        );
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3012_NonAggregateInSelect, DiagnosticPhase.Bind, "Name");
         AssertHasGuidance(ex);

@@ -14,9 +14,11 @@ public sealed class DiagnosticCore026WindowTests
     public void WindowSpecification_ExplicitFrame_ShouldPreserveBounds()
     {
         var query = ParseQuery(
-            "select Sum(Population) over (partition by City order by Population rows between 1 preceding and 2 following) from #A.entities()");
+            "select Sum(Population) over (partition by City order by Population rows between 1 preceding and 2 following) from #A.entities()"
+        );
         var window = Assert.IsInstanceOfType<WindowFunctionNode>(query.Select.Fields[0].Expression);
-        var specification = window.WindowSpecification ?? throw new AssertFailedException("Expected window specification.");
+        var specification =
+            window.WindowSpecification ?? throw new AssertFailedException("Expected window specification.");
         var frame = specification.Frame ?? throw new AssertFailedException("Expected window frame.");
 
         Assert.AreEqual(WindowFrameType.Rows, frame.FrameType);
@@ -29,32 +31,37 @@ public sealed class DiagnosticCore026WindowTests
     [TestMethod]
     public void WindowFrame_MissingEndBound_ShouldReportExactDiagnostic()
     {
-        const string query = "select Sum(Population) over (order by Name rows between current row and) from #A.entities()";
+        const string query =
+            "select Sum(Population) over (order by Name rows between current row and) from #A.entities()";
 
         AssertParseDiagnostic(
             query,
             DiagnosticCode.MQ2001_UnexpectedToken,
             "Expected window frame bound (UNBOUNDED PRECEDING/FOLLOWING, CURRENT ROW, or N PRECEDING/FOLLOWING). Musoq does not support SQL Server OFFSET/FETCH ROWS syntax. Use TAKE and SKIP instead.",
-            new TextSpan(query.IndexOf("and)", StringComparison.Ordinal) + "and".Length, 1));
+            new TextSpan(query.IndexOf("and)", StringComparison.Ordinal) + "and".Length, 1)
+        );
     }
 
     [TestMethod]
     public void GroupFrame_ShouldReportStableUnsupportedSyntaxDiagnostic()
     {
-        const string query = "select Sum(Population) over (order by Population groups between current row and current row) from #A.entities()";
+        const string query =
+            "select Sum(Population) over (order by Population groups between current row and current row) from #A.entities()";
 
         AssertParseDiagnostic(
             query,
             DiagnosticCode.MQ2009_InvalidOrderByExpression,
             "Unrecognized token for ComposeOrder(), the token was Identifier.",
-            SpanOf(query, "groups"));
+            SpanOf(query, "groups")
+        );
     }
 
     private static void AssertParseDiagnostic(
         string query,
         DiagnosticCode expectedCode,
         string expectedMessage,
-        TextSpan expectedSpan)
+        TextSpan expectedSpan
+    )
     {
         var lexer = new Lexer(query, true, recoverOnError: true);
         var result = new Parser(lexer, lexer.Diagnostics).ParseWithDiagnostics();

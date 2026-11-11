@@ -12,7 +12,8 @@ public sealed class UnpivotSourceRoleTests
     [DataRow("keep")]
     public void ContextualControlWord_ShouldDifferFromTheSameSpelledIdentifier(string spelling)
     {
-        const string source = "unpivot values { (Region: 'North', Q1: 10d) } s on Quarter in (s.Q1 as Q1) using using keep s.Region as keep";
+        const string source =
+            "unpivot values { (Region: 'North', Q1: 10d) } s on Quarter in (s.Q1 as Q1) using using keep s.Region as keep";
         var syntax = Parser.ParseSyntax(source);
         var roles = syntax.Tokens.Where(token => token.Text == spelling).Select(token => token.Role).ToArray();
 

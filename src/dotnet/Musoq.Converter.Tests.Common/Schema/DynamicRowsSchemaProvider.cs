@@ -10,27 +10,33 @@ namespace Musoq.Converter.Tests.Schema;
 public sealed class DynamicRowsSchemaProvider(
     IReadOnlyDictionary<string, Type> columns,
     IReadOnlyList<IReadOnlyDictionary<string, object>> rows,
-    IReadOnlyList<ISchemaColumn>? schemaColumns = null)
-    : ISchemaProvider
+    IReadOnlyList<ISchemaColumn>? schemaColumns = null
+) : ISchemaProvider
 {
     public ISchema GetSchema(string schema)
     {
-        var resolvedColumns = schemaColumns ?? columns
-            .Select((column, index) => (ISchemaColumn)new SchemaColumn(column.Key, index, column.Value))
-            .ToArray();
+        var resolvedColumns =
+            schemaColumns
+            ?? columns
+                .Select((column, index) => (ISchemaColumn)new SchemaColumn(column.Key, index, column.Value))
+                .ToArray();
         return new DynamicRowsSchema(resolvedColumns, rows);
     }
 }
 
 public sealed class DynamicRowsSchema(
     IReadOnlyList<ISchemaColumn> columns,
-    IReadOnlyList<IReadOnlyDictionary<string, object>> rows)
-    : SchemaBase(Dynamic, CreateLibrary()), IQueryScopedRowSourceSchema
+    IReadOnlyList<IReadOnlyDictionary<string, object>> rows
+) : SchemaBase(Dynamic, CreateLibrary()), IQueryScopedRowSourceSchema
 {
     private const string All = "all";
     private const string Dynamic = "dynamic";
 
-    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    public override ISchemaTable GetTableByName(
+        string name,
+        SourceMetadataContext metadataContext,
+        params object?[] parameters
+    )
     {
         if (string.Equals(name, All, StringComparison.OrdinalIgnoreCase))
             return new DynamicRowsTable(columns);
@@ -38,7 +44,11 @@ public sealed class DynamicRowsSchema(
         throw new NotSupportedException(name);
     }
 
-    public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext executionContext, TArguments nativeArguments)
+    public override RowSource<T> GetRowSource<T, TArguments>(
+        string name,
+        SourceExecutionContext executionContext,
+        TArguments nativeArguments
+    )
     {
         if (string.Equals(name, All, StringComparison.OrdinalIgnoreCase))
             return EnsureSourceType<T, IReadOnlyDictionary<string, object>>(name, new DynamicRowsSource(rows));
@@ -46,16 +56,31 @@ public sealed class DynamicRowsSchema(
         throw new NotSupportedException(name);
     }
 
-    public override SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters)
-        => base.DescribeSource(name, context, parameters) with { TransferCapabilities = SourceTransferCapabilities.QueryScopedRows };
+    public override SourceDescriptor DescribeSource(
+        string name,
+        SourceDescribeContext context,
+        params object?[] parameters
+    ) =>
+        base.DescribeSource(name, context, parameters) with
+        {
+            TransferCapabilities = SourceTransferCapabilities.QueryScopedRows,
+        };
 
     public RowSource<TRow> GetQueryScopedRowSource<TRow, TMaterializer, TArguments>(
-        string name, QueryScopedRowSourceRequest request, TArguments parameters)
+        string name,
+        QueryScopedRowSourceRequest request,
+        TArguments parameters
+    )
         where TMaterializer : struct, IQueryRowMaterializer<TRow>
-        where TArguments : struct, ISourceArguments
-        => new NativeDictionaryTestSource<TRow, TMaterializer>(
-            rows.Select(row => (IReadOnlyDictionary<string, object?>)row.ToDictionary(pair => pair.Key, pair => (object?)pair.Value)).ToArray(),
-            request.Shape.Fields);
+        where TArguments : struct, ISourceArguments =>
+        new NativeDictionaryTestSource<TRow, TMaterializer>(
+            rows.Select(row =>
+                    (IReadOnlyDictionary<string, object?>)
+                        row.ToDictionary(pair => pair.Key, pair => (object?)pair.Value)
+                )
+                .ToArray(),
+            request.Shape.Fields
+        );
 
     private static MethodsAggregator CreateLibrary()
     {

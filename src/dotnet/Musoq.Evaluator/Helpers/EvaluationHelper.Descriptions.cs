@@ -13,25 +13,33 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    private static readonly BoundedRuntimeCache<string, XmlDocument> XmlDocCache =
-        new(RuntimeCacheOptions.XmlDocumentationCacheSize, StringComparer.Ordinal);
+    private static readonly BoundedRuntimeCache<string, XmlDocument> XmlDocCache = new(
+        RuntimeCacheOptions.XmlDocumentationCacheSize,
+        StringComparer.Ordinal
+    );
     private static readonly Regex WhitespaceNormalizerRegex = new(@"\s+", RegexOptions.Compiled);
 
     public static Table GetSpecificTableDescription(ISchemaTable table)
     {
         ArgumentNullException.ThrowIfNull(table);
-        var newTable = new Table("desc", [
-            new Column("Name", typeof(string), 0),
-            new Column("Index", typeof(int), 1),
-            new Column("Type", typeof(string), 2)
-        ]);
+        var newTable = new Table(
+            "desc",
+            [
+                new Column("Name", typeof(string), 0),
+                new Column("Index", typeof(int), 1),
+                new Column("Type", typeof(string), 2),
+            ]
+        );
 
         foreach (var column in table.Columns)
         foreach (var complexField in CreateTypeComplexDescription(column.ColumnName, column.ColumnType))
-            newTable.AddUnchecked(new DescriptionColumnRow(
-                complexField.FieldName,
-                column.ColumnIndex,
-                complexField.Type.FullName ?? complexField.Type.Name));
+            newTable.AddUnchecked(
+                new DescriptionColumnRow(
+                    complexField.FieldName,
+                    column.ColumnIndex,
+                    complexField.Type.FullName ?? complexField.Type.Name
+                )
+            );
 
         return newTable;
     }
@@ -39,8 +47,14 @@ public static partial class EvaluationHelper
     public static Table GetQueryDescription(IEnumerable<QueryColumnDescription> columns)
     {
         ArgumentNullException.ThrowIfNull(columns);
-        var table = new Table("desc", [new Column("Name", typeof(string), 0),
-            new Column("Index", typeof(int), 1), new Column("Type", typeof(string), 2)]);
+        var table = new Table(
+            "desc",
+            [
+                new Column("Name", typeof(string), 0),
+                new Column("Index", typeof(int), 1),
+                new Column("Type", typeof(string), 2),
+            ]
+        );
         foreach (var column in columns)
             table.AddUnchecked(new DescriptionColumnRow(column.Name, column.Index, column.TypeName));
         return table;
@@ -49,46 +63,49 @@ public static partial class EvaluationHelper
     public static Table GetQueryDescription(IEnumerable<ISchemaColumn> columns)
     {
         ArgumentNullException.ThrowIfNull(columns);
-        var newTable = new Table("desc", [
-            new Column("Name", typeof(string), 0),
-            new Column("Index", typeof(int), 1),
-            new Column("Type", typeof(string), 2)
-        ]);
+        var newTable = new Table(
+            "desc",
+            [
+                new Column("Name", typeof(string), 0),
+                new Column("Index", typeof(int), 1),
+                new Column("Type", typeof(string), 2),
+            ]
+        );
 
         foreach (var column in columns)
-            newTable.AddUnchecked(new DescriptionColumnRow(
-                column.ColumnName,
-                column.ColumnIndex,
-                column.ColumnType.FullName ?? column.ColumnType.Name));
+            newTable.AddUnchecked(
+                new DescriptionColumnRow(
+                    column.ColumnName,
+                    column.ColumnIndex,
+                    column.ColumnType.FullName ?? column.ColumnType.Name
+                )
+            );
 
         return newTable;
     }
 
-    public static Table GetSpecificColumnDescription(
-        ISchemaTable table,
-        string columnName,
-        TextSpan? columnSpan = null)
+    public static Table GetSpecificColumnDescription(ISchemaTable table, string columnName, TextSpan? columnSpan = null)
     {
         ArgumentNullException.ThrowIfNull(table);
         ArgumentNullException.ThrowIfNull(columnName);
-        var newTable = new Table("desc", [
-            new Column("Name", typeof(string), 0),
-            new Column("Index", typeof(int), 1),
-            new Column("Type", typeof(string), 2)
-        ]);
-
+        var newTable = new Table(
+            "desc",
+            [
+                new Column("Name", typeof(string), 0),
+                new Column("Index", typeof(int), 1),
+                new Column("Type", typeof(string), 2),
+            ]
+        );
 
         var pathParts = columnName.Split('.');
         var rootColumnName = pathParts[0];
 
         var targetColumn = table.Columns.FirstOrDefault(c =>
-            string.Equals(c.ColumnName, rootColumnName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(c.ColumnName, rootColumnName, StringComparison.OrdinalIgnoreCase)
+        );
 
         if (targetColumn == null)
-            throw new UnknownColumnOrAliasException(
-                rootColumnName,
-                string.Empty,
-                columnSpan ?? TextSpan.Empty);
+            throw new UnknownColumnOrAliasException(rootColumnName, string.Empty, columnSpan ?? TextSpan.Empty);
 
         var canonicalPathParts = new List<string> { targetColumn.ColumnName };
         var currentType = targetColumn.ColumnType;
@@ -101,21 +118,22 @@ public static partial class EvaluationHelper
                 currentType = elementTypeFromEnumerable;
 
             var propertyName = pathParts[i];
-            var property = currentType.GetProperties()
+            var property = currentType
+                .GetProperties()
                 .FirstOrDefault(p => string.Equals(p.Name, propertyName, StringComparison.OrdinalIgnoreCase));
 
             if (property == null)
                 throw new UnknownColumnOrAliasException(
                     propertyName,
                     $"on type '{currentType.Name}'",
-                    columnSpan ?? TextSpan.Empty);
+                    columnSpan ?? TextSpan.Empty
+                );
 
             canonicalPathParts.Add(property.Name);
             currentType = property.PropertyType;
         }
 
         var canonicalPath = string.Join(".", canonicalPathParts);
-
 
         Type elementType;
 
@@ -124,12 +142,9 @@ public static partial class EvaluationHelper
         else if (IsGenericEnumerable(currentType, out var genericElementType))
             elementType = genericElementType;
         else if (currentType.IsPrimitive || currentType == typeof(string) || currentType == typeof(object))
-            throw new ColumnMustBeAnArrayOrImplementIEnumerableException(
-                columnName,
-                columnSpan ?? TextSpan.Empty);
+            throw new ColumnMustBeAnArrayOrImplementIEnumerableException(columnName, columnSpan ?? TextSpan.Empty);
         else
             elementType = currentType;
-
 
         var prefixLength = canonicalPath.Length;
 
@@ -138,14 +153,16 @@ public static partial class EvaluationHelper
             var relativeFieldName =
                 complexField.FieldName.Length > prefixLength && complexField.FieldName[prefixLength] == '.'
                     ? complexField.FieldName.Substring(prefixLength + 1)
-                    : complexField.FieldName == canonicalPath
-                        ? canonicalPath.Substring(canonicalPath.LastIndexOf('.') + 1)
-                        : complexField.FieldName;
+                : complexField.FieldName == canonicalPath ? canonicalPath.Substring(canonicalPath.LastIndexOf('.') + 1)
+                : complexField.FieldName;
 
-            newTable.AddUnchecked(new DescriptionColumnRow(
-                relativeFieldName,
-                targetColumn.ColumnIndex,
-                complexField.Type.FullName ?? complexField.Type.Name));
+            newTable.AddUnchecked(
+                new DescriptionColumnRow(
+                    relativeFieldName,
+                    targetColumn.ColumnIndex,
+                    complexField.Type.FullName ?? complexField.Type.Name
+                )
+            );
         }
 
         return newTable;
@@ -155,14 +172,15 @@ public static partial class EvaluationHelper
     {
         elementType = null;
 
-        if (!type.IsGenericType) return false;
+        if (!type.IsGenericType)
+            return false;
 
         var interfaces = type.GetInterfaces().Concat([type]);
 
         foreach (var interfaceType in interfaces)
         {
-            if (!interfaceType.IsGenericType ||
-                interfaceType.GetGenericTypeDefinition() != typeof(IEnumerable<>)) continue;
+            if (!interfaceType.IsGenericType || interfaceType.GetGenericTypeDefinition() != typeof(IEnumerable<>))
+                continue;
 
             elementType = interfaceType.GetGenericArguments()[0];
             return true;
@@ -170,6 +188,4 @@ public static partial class EvaluationHelper
 
         return false;
     }
-
-
 }

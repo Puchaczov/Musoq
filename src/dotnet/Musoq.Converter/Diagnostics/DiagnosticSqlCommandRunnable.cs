@@ -14,14 +14,21 @@ namespace Musoq.Converter.Diagnostics;
 internal sealed class DiagnosticSqlCommandRunnable(
     DiagnosticSqlCommandKind kind,
     CompiledQuery innerQuery,
-    ExecutionPlanOperatorCatalog? operatorCatalog = null) : ITableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable
+    ExecutionPlanOperatorCatalog? operatorCatalog = null
+) : ITableRunnable, IParameterizedRunnable, ITypedParameterizedRunnable
 {
     public ISchemaProvider Provider { get; set; } = null!;
 
-    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; } =
+    public IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, string>
+    > SourceRuntimeSettingsBySourceContextId { get; set; } =
         new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
 
-    public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+    public IReadOnlyDictionary<
+        string,
+        IReadOnlyList<SourceRuntimeSettingDescription>
+    > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
         new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>(StringComparer.Ordinal);
 
     public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
@@ -57,7 +64,7 @@ internal sealed class DiagnosticSqlCommandRunnable(
         {
             DiagnosticSqlCommandKind.Profile => innerQuery.RunWithProfile(token).ProfileText,
             DiagnosticSqlCommandKind.ExplainAnalyze => CreateExplainAnalyzeText(token),
-            _ => throw new NotSupportedException($"Diagnostic command kind {kind} is not supported.")
+            _ => throw new NotSupportedException($"Diagnostic command kind {kind} is not supported."),
         };
 
         return CreateTextTable(text);
@@ -69,7 +76,10 @@ internal sealed class DiagnosticSqlCommandRunnable(
             throw new InvalidOperationException("EXPLAIN ANALYZE requires an execution plan.");
 
         var profileResult = innerQuery.RunWithProfile(token, emitTelemetry: false);
-        var operators = ExecutionPlanOperatorIdAnnotator.CreateOperatorSnapshots(operatorCatalog, profileResult.Profile);
+        var operators = ExecutionPlanOperatorIdAnnotator.CreateOperatorSnapshots(
+            operatorCatalog,
+            profileResult.Profile
+        );
         var profile = profileResult.Profile with { Operators = operators };
         QueryProfileTelemetry.Emit(profile);
 
@@ -80,10 +90,8 @@ internal sealed class DiagnosticSqlCommandRunnable(
     {
         var table = new Table(
             "diagnostics",
-            [
-                new Column("LineNumber", typeof(int), 0),
-                new Column("Text", typeof(string), 1)
-            ]);
+            [new Column("LineNumber", typeof(int), 0), new Column("Text", typeof(string), 1)]
+        );
         var lines = SplitLines(text).ToArray();
 
         for (var index = 0; index < lines.Length; index++)
@@ -94,10 +102,7 @@ internal sealed class DiagnosticSqlCommandRunnable(
 
     private static IEnumerable<string> SplitLines(string text)
     {
-        return text
-            .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .TrimEnd('\n')
-            .Split('\n');
+        return text.Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd('\n').Split('\n');
     }
 
     private sealed class DiagnosticTextRow(int lineNumber, string text) : Row
@@ -110,12 +115,15 @@ internal sealed class DiagnosticSqlCommandRunnable(
         {
             switch (columnIndex)
             {
-                case 0: TypedColumnVisit.Apply(columnIndex, lineNumber, ref visitor); return;
-                case 1: TypedColumnVisit.Apply(columnIndex, text, ref visitor); return;
-                default: throw new ArgumentOutOfRangeException(nameof(columnIndex));
+                case 0:
+                    TypedColumnVisit.Apply(columnIndex, lineNumber, ref visitor);
+                    return;
+                case 1:
+                    TypedColumnVisit.Apply(columnIndex, text, ref visitor);
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(columnIndex));
             }
         }
-
-
     }
 }

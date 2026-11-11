@@ -8,6 +8,7 @@ namespace Musoq.Evaluator.IR.Optimization.Execution;
 internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
 {
     public string Name => "MethodTargetReuse";
+
     public OptimizationResult<ExecutionPlan> Optimize(ExecutionPlan plan, OptimizationContext context)
     {
         ArgumentNullException.ThrowIfNull(plan);
@@ -25,29 +26,39 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
         {
             return OptimizationResult<ExecutionPlan>.NoChange(
                 plan,
-                $"{loweredCandidateText}Observed {targetCount} target-bound method call(s), {cacheCount} cached method call(s), and {declarationCount} target declaration(s); no unbound reusable method calls required rewriting.");
+                $"{loweredCandidateText}Observed {targetCount} target-bound method call(s), {cacheCount} cached method call(s), and {declarationCount} target declaration(s); no unbound reusable method calls required rewriting."
+            );
         }
 
         return OptimizationResult<ExecutionPlan>.Changed(
             optimized,
-            $"{loweredCandidateText}Bound {rewriter.AssignedTargets} method call target(s), assigned {rewriter.AssignedCaches} method cache(s), and inserted {rewriter.InsertedDeclarations} target declaration(s).");
+            $"{loweredCandidateText}Bound {rewriter.AssignedTargets} method call target(s), assigned {rewriter.AssignedCaches} method cache(s), and inserted {rewriter.InsertedDeclarations} target declaration(s)."
+        );
     }
+
     private static string FormatCandidateLowering(MethodTargetCandidateLoweringRewriter rewriter)
     {
         return rewriter.LoweredCalls == 0 && rewriter.LoweredDeclarations == 0
             ? string.Empty
             : $"Lowered {rewriter.LoweredCalls} method target reuse candidate call(s) and {rewriter.LoweredDeclarations} declaration candidate(s). ";
     }
+
     private sealed class MethodTargetCandidateLoweringRewriter : ExecutionIrRewriter
     {
         public int LoweredCalls { get; private set; }
         public int LoweredDeclarations { get; private set; }
-        protected override ExecutionNode RewriteMethodTargetDeclarationCandidate(ExecutionMethodTargetDeclarationCandidate node)
+
+        protected override ExecutionNode RewriteMethodTargetDeclarationCandidate(
+            ExecutionMethodTargetDeclarationCandidate node
+        )
         {
             LoweredDeclarations++;
             return new ExecutionCreateObject(node.Target);
         }
-        protected override ExecutionExpression RewriteMethodTargetReuseCandidate(ExecutionMethodTargetReuseCandidate expression)
+
+        protected override ExecutionExpression RewriteMethodTargetReuseCandidate(
+            ExecutionMethodTargetReuseCandidate expression
+        )
         {
             LoweredCalls++;
             return RewriteMethodCall(expression.MethodCall);
@@ -66,6 +77,7 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
         public int AssignedTargets { get; private set; }
         public int AssignedCaches { get; private set; }
         public int InsertedDeclarations { get; private set; }
+
         public override ExecutionBlock RewriteBlock(ExecutionBlock block)
         {
             if (_deferMethodTargetDeclarationsDepth > 0)
@@ -102,7 +114,8 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
                             builder,
                             registry.CreatedTargets.Skip(targetStartIndex),
                             block,
-                            index);
+                            index
+                        );
                     }
                     builder.Add(rewrittenNode);
                     if (IsMethodTargetScopeBarrier(node))
@@ -142,6 +155,7 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             }
             return builder.ToBlock();
         }
+
         protected override ExecutionExpression RewriteMethodCall(ExecutionMethodCall expression)
         {
             var rewritten = (ExecutionMethodCall)base.RewriteMethodCall(expression);
@@ -159,8 +173,10 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             if (_suppressMethodCacheScopeDepth > 0)
                 return rewritten.Cache == null ? rewritten : rewritten with { Cache = null };
 
-            if (rewritten.Cache != null ||
-                !MethodTargetCachePolicy.ShouldCache(rewritten, _valueTypeMethodCacheScopeDepth > 0))
+            if (
+                rewritten.Cache != null
+                || !MethodTargetCachePolicy.ShouldCache(rewritten, _valueTypeMethodCacheScopeDepth > 0)
+            )
             {
                 return rewritten;
             }
@@ -170,6 +186,7 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             AssignedCaches++;
             return rewritten with { Cache = cache };
         }
+
         protected override ExecutionExpression RewriteStrictCast(ExecutionStrictCast expression)
         {
             return (ExecutionStrictCast)base.RewriteStrictCast(expression);
@@ -178,29 +195,37 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
         protected override ExecutionNode RewriteParallelFilterProjectLoop(ExecutionParallelFilterProjectLoop node)
         {
             var prefix = node.AppendRow.Table.Name;
-            return RewriteWithPreferredTargetNamePrefix(prefix, () =>
-            {
-                return RewriteWithDeferredMethodTargetDeclarations(() =>
+            return RewriteWithPreferredTargetNamePrefix(
+                prefix,
+                () =>
                 {
-                    var sourceRows = RewriteExpression(node.SourceRows);
-                    var predicate = RewriteWithSuppressedMethodCache(() => RewriteOptionalExpression(node.Predicate));
-                    var appendRow = (ExecutionAppendRow)RewriteWithSuppressedMethodCache(() => RewriteAppendRow(node.AppendRow));
-                    var projectionBody = RewriteBlock(node.ProjectionBody);
+                    return RewriteWithDeferredMethodTargetDeclarations(() =>
+                    {
+                        var sourceRows = RewriteExpression(node.SourceRows);
+                        var predicate = RewriteWithSuppressedMethodCache(() =>
+                            RewriteOptionalExpression(node.Predicate)
+                        );
+                        var appendRow = (ExecutionAppendRow)RewriteWithSuppressedMethodCache(() =>
+                            RewriteAppendRow(node.AppendRow)
+                        );
+                        var projectionBody = RewriteBlock(node.ProjectionBody);
 
-                    return ReferenceEquals(sourceRows, node.SourceRows) &&
-                           ReferenceEquals(predicate, node.Predicate) &&
-                           ReferenceEquals(appendRow, node.AppendRow) &&
-                           ReferenceEquals(projectionBody, node.ProjectionBody)
-                        ? node
-                        : node with
-                        {
-                            SourceRows = sourceRows,
-                            Predicate = predicate,
-                            AppendRow = appendRow,
-                            ProjectionBody = projectionBody
-                        };
-                });
-            });
+                        return
+                            ReferenceEquals(sourceRows, node.SourceRows)
+                            && ReferenceEquals(predicate, node.Predicate)
+                            && ReferenceEquals(appendRow, node.AppendRow)
+                            && ReferenceEquals(projectionBody, node.ProjectionBody)
+                            ? node
+                            : node with
+                            {
+                                SourceRows = sourceRows,
+                                Predicate = predicate,
+                                AppendRow = appendRow,
+                                ProjectionBody = projectionBody,
+                            };
+                    });
+                }
+            );
         }
 
         protected override ExecutionNode RewriteForEach(ExecutionForEach node)
@@ -210,7 +235,8 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
                 ? base.RewriteForEach(node)
                 : RewriteWithPreferredTargetNamePrefix(
                     prefix,
-                    () => RewriteWithDeferredMethodTargetDeclarations(() => (ExecutionNode)RewriteForEachCore(node)));
+                    () => RewriteWithDeferredMethodTargetDeclarations(() => (ExecutionNode)RewriteForEachCore(node))
+                );
         }
 
         protected override ExecutionNode RewriteForEachWithOrdinality(ExecutionForEachWithOrdinality node)
@@ -220,7 +246,11 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
                 ? base.RewriteForEachWithOrdinality(node)
                 : RewriteWithPreferredTargetNamePrefix(
                     prefix,
-                    () => RewriteWithDeferredMethodTargetDeclarations(() => (ExecutionNode)RewriteForEachWithOrdinalityCore(node)));
+                    () =>
+                        RewriteWithDeferredMethodTargetDeclarations(() =>
+                            (ExecutionNode)RewriteForEachWithOrdinalityCore(node)
+                        )
+                );
         }
 
         protected override ExecutionNode RewriteForEachIndexed(ExecutionForEachIndexed node)
@@ -230,16 +260,20 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
                 ? base.RewriteForEachIndexed(node)
                 : RewriteWithPreferredTargetNamePrefix(
                     prefix,
-                    () => RewriteWithDeferredMethodTargetDeclarations(() => (ExecutionNode)RewriteForEachIndexedCore(node)));
+                    () =>
+                        RewriteWithDeferredMethodTargetDeclarations(() =>
+                            (ExecutionNode)RewriteForEachIndexedCore(node)
+                        )
+                );
         }
 
         protected override ExecutionNode RewriteMaterializeFilteredList(ExecutionMaterializeFilteredList node)
         {
             return RewriteWithPreferredTargetNamePrefix(
                 MethodTargetScopeFacts.CreateMaterializationTargetPrefix(node.Buffer.Name),
-                () => base.RewriteMaterializeFilteredList(node));
+                () => base.RewriteMaterializeFilteredList(node)
+            );
         }
-
 
         private ExecutionForEach RewriteForEachCore(ExecutionForEach node)
         {
@@ -247,7 +281,11 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             var body = RewriteBlock(node.Body);
             return ReferenceEquals(source, node.Source) && ReferenceEquals(body, node.Body)
                 ? node
-                : node with { Source = source, Body = body };
+                : node with
+                {
+                    Source = source,
+                    Body = body,
+                };
         }
 
         private ExecutionForEachWithOrdinality RewriteForEachWithOrdinalityCore(ExecutionForEachWithOrdinality node)
@@ -256,7 +294,11 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             var body = RewriteBlock(node.Body);
             return ReferenceEquals(source, node.Source) && ReferenceEquals(body, node.Body)
                 ? node
-                : node with { Source = source, Body = body };
+                : node with
+                {
+                    Source = source,
+                    Body = body,
+                };
         }
 
         private ExecutionForEachIndexed RewriteForEachIndexedCore(ExecutionForEachIndexed node)
@@ -298,8 +340,14 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
         private T RewriteWithSuppressedMethodCache<T>(Func<T> rewrite)
         {
             _suppressMethodCacheScopeDepth++;
-            try { return rewrite(); }
-            finally { _suppressMethodCacheScopeDepth--; }
+            try
+            {
+                return rewrite();
+            }
+            finally
+            {
+                _suppressMethodCacheScopeDepth--;
+            }
         }
 
         protected override ExecutionNode RewriteIf(ExecutionIf node)
@@ -311,7 +359,11 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             var body = RewriteBlock(node.Body);
             return ReferenceEquals(condition, node.Condition) && ReferenceEquals(body, node.Body)
                 ? node
-                : node with { Condition = condition, Body = body };
+                : node with
+                {
+                    Condition = condition,
+                    Body = body,
+                };
         }
 
         protected override ExecutionNode RewriteHashProbe(ExecutionHashProbe node)
@@ -322,11 +374,17 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             var key = RewriteExpression(node.Key);
             var body = RewriteBlock(node.Body);
             var noMatchBody = RewriteOptionalBlock(node.NoMatchBody);
-            return ReferenceEquals(key, node.Key) &&
-                   ReferenceEquals(body, node.Body) &&
-                   ReferenceEquals(noMatchBody, node.NoMatchBody)
+            return
+                ReferenceEquals(key, node.Key)
+                && ReferenceEquals(body, node.Body)
+                && ReferenceEquals(noMatchBody, node.NoMatchBody)
                 ? node
-                : node with { Key = key, Body = body, NoMatchBody = noMatchBody };
+                : node with
+                {
+                    Key = key,
+                    Body = body,
+                    NoMatchBody = noMatchBody,
+                };
         }
 
         protected override ExecutionNode RewriteKeySetProbe(ExecutionKeySetProbe node)
@@ -337,11 +395,17 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             var key = RewriteExpression(node.Key);
             var body = RewriteBlock(node.Body);
             var noMatchBody = RewriteOptionalBlock(node.NoMatchBody);
-            return ReferenceEquals(key, node.Key) &&
-                   ReferenceEquals(body, node.Body) &&
-                   ReferenceEquals(noMatchBody, node.NoMatchBody)
+            return
+                ReferenceEquals(key, node.Key)
+                && ReferenceEquals(body, node.Body)
+                && ReferenceEquals(noMatchBody, node.NoMatchBody)
                 ? node
-                : node with { Key = key, Body = body, NoMatchBody = noMatchBody };
+                : node with
+                {
+                    Key = key,
+                    Body = body,
+                    NoMatchBody = noMatchBody,
+                };
         }
 
         protected override ExecutionNode RewriteAsOfProbe(ExecutionAsOfProbe node)
@@ -355,22 +419,23 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             var candidateKey = RewriteExpression(node.CandidateKey);
             var body = RewriteBlock(node.Body);
             var noMatchBody = RewriteOptionalBlock(node.NoMatchBody);
-            return ReferenceEquals(candidates, node.Candidates) &&
-                   ReferenceEquals(equalityKeys, node.EqualityKeys) &&
-                   ReferenceEquals(probeKey, node.ProbeKey) &&
-                   ReferenceEquals(candidateKey, node.CandidateKey) &&
-                   ReferenceEquals(body, node.Body) &&
-                   ReferenceEquals(noMatchBody, node.NoMatchBody)
+            return
+                ReferenceEquals(candidates, node.Candidates)
+                && ReferenceEquals(equalityKeys, node.EqualityKeys)
+                && ReferenceEquals(probeKey, node.ProbeKey)
+                && ReferenceEquals(candidateKey, node.CandidateKey)
+                && ReferenceEquals(body, node.Body)
+                && ReferenceEquals(noMatchBody, node.NoMatchBody)
                 ? node
                 : node with
-                    {
-                        Candidates = candidates,
-                        EqualityKeys = equalityKeys,
-                        ProbeKey = probeKey,
-                        CandidateKey = candidateKey,
-                        Body = body,
-                        NoMatchBody = noMatchBody
-                    };
+                {
+                    Candidates = candidates,
+                    EqualityKeys = equalityKeys,
+                    ProbeKey = probeKey,
+                    CandidateKey = candidateKey,
+                    Body = body,
+                    NoMatchBody = noMatchBody,
+                };
         }
 
         protected override ExecutionNode RewriteRangeProbe(ExecutionRangeProbe node)
@@ -382,7 +447,11 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             var body = RewriteBlock(node.Body);
             return ReferenceEquals(probeKey, node.ProbeKey) && ReferenceEquals(body, node.Body)
                 ? node
-                : node with { ProbeKey = probeKey, Body = body };
+                : node with
+                {
+                    ProbeKey = probeKey,
+                    Body = body,
+                };
         }
 
         protected override ExecutionNode RewriteComputePluginWindow(ExecutionComputePluginWindow node)
@@ -390,7 +459,8 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             return RewriteWithHelperTargets(
                 node.MethodTargets,
                 () => (ExecutionComputePluginWindow)base.RewriteComputePluginWindow(node),
-                static (rewritten, targets) => rewritten with { MethodTargets = targets });
+                static (rewritten, targets) => rewritten with { MethodTargets = targets }
+            );
         }
 
         protected override ExecutionNode RewriteWindowAggregateKernel(ExecutionWindowAggregateKernel node)
@@ -398,7 +468,8 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             return RewriteWithHelperTargets(
                 node.MethodTargets,
                 () => (ExecutionWindowAggregateKernel)base.RewriteWindowAggregateKernel(node),
-                static (rewritten, targets) => rewritten with { MethodTargets = targets });
+                static (rewritten, targets) => rewritten with { MethodTargets = targets }
+            );
         }
 
         protected override ExecutionNode RewriteLet(ExecutionLet node)
@@ -422,7 +493,8 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
         private T RewriteWithHelperTargets<T>(
             IReadOnlyList<ExecutionVariable>? methodTargets,
             Func<T> rewrite,
-            Func<T, IReadOnlyList<ExecutionVariable>, T> withTargets)
+            Func<T, IReadOnlyList<ExecutionVariable>, T> withTargets
+        )
             where T : ExecutionNode
         {
             var previousRegistry = _currentRegistry;
@@ -439,7 +511,7 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
 
                 var existingTargets = methodTargets ?? [];
                 InsertedDeclarations += registry.CreatedTargets.Count;
-                return withTargets(rewritten, [..existingTargets, ..registry.CreatedTargets]);
+                return withTargets(rewritten, [.. existingTargets, .. registry.CreatedTargets]);
             }
             finally
             {
@@ -448,20 +520,23 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
         }
 
         private MethodTargetRegistry CurrentRegistry =>
-            _currentRegistry ?? throw new InvalidOperationException("Method target reuse requires a current Execution IR block registry.");
+            _currentRegistry
+            ?? throw new InvalidOperationException(
+                "Method target reuse requires a current Execution IR block registry."
+            );
 
         private string CreateRegistryPrefix()
         {
             var prefix = string.IsNullOrWhiteSpace(planIdentifier) ? "execution" : planIdentifier;
             return ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(
                 $"{prefix}{_nextRegistryIndex++.ToString(CultureInfo.InvariantCulture)}",
-                0);
+                0
+            );
         }
 
         private static bool IsMethodTargetScopeBarrier(ExecutionNode node)
         {
             return node is ExecutionStoreTable or ExecutionRelatedCtePhase;
         }
-
     }
 }

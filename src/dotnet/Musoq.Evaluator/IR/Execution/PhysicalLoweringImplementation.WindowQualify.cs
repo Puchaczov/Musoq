@@ -9,15 +9,22 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private static WindowQualifyTopRankPlan CreateWindowQualifyTopRankPlan(
         IrExpression? qualifyPredicate,
-        IReadOnlyList<WindowRegistrationBuildResult> registrations)
+        IReadOnlyList<WindowRegistrationBuildResult> registrations
+    )
     {
         if (qualifyPredicate == null)
             return new WindowQualifyTopRankPlan(null, new Dictionary<int, long>());
 
         var rankingIndexes = registrations
-            .Where(static registration => registration.Registration?.UseOrdinalUpperBounds == true &&
-                registration.RankingFunction is (ExecutionRankingWindowFunction.RowNumber or
-                    ExecutionRankingWindowFunction.Rank or ExecutionRankingWindowFunction.DenseRank))
+            .Where(static registration =>
+                registration.Registration?.UseOrdinalUpperBounds == true
+                && registration.RankingFunction
+                    is (
+                        ExecutionRankingWindowFunction.RowNumber
+                        or ExecutionRankingWindowFunction.Rank
+                        or ExecutionRankingWindowFunction.DenseRank
+                    )
+            )
             .Select(static registration => registration.Registration!.WindowIndex)
             .ToHashSet();
 
@@ -32,7 +39,8 @@ internal sealed partial class PhysicalLoweringImplementation
     private static IrExpression RewriteTopRankQualifyPredicate(
         IrExpression predicate,
         IReadOnlySet<int> rankingIndexes,
-        Dictionary<int, long> upperBounds)
+        Dictionary<int, long> upperBounds
+    )
     {
         if (predicate is BinaryOp { Kind: BinaryOpKind.And } binaryAnd)
         {
@@ -40,7 +48,11 @@ internal sealed partial class PhysicalLoweringImplementation
             var right = RewriteTopRankQualifyPredicate(binaryAnd.Right, rankingIndexes, upperBounds);
             return ReferenceEquals(left, binaryAnd.Left) && ReferenceEquals(right, binaryAnd.Right)
                 ? predicate
-                : binaryAnd with { Left = left, Right = right };
+                : binaryAnd with
+                {
+                    Left = left,
+                    Right = right,
+                };
         }
 
         if (!TryGetTopRankUpperBound(predicate, rankingIndexes, out var windowRef, out var upperBound))
@@ -55,20 +67,18 @@ internal sealed partial class PhysicalLoweringImplementation
             BinaryOpKind.GreaterThan,
             windowRef,
             new Literal(0L, typeof(long)),
-            typeof(bool));
+            typeof(bool)
+        );
 
-        return new BinaryOp(
-            BinaryOpKind.And,
-            positiveRank,
-            predicate,
-            typeof(bool));
+        return new BinaryOp(BinaryOpKind.And, positiveRank, predicate, typeof(bool));
     }
 
     private static bool TryGetTopRankUpperBound(
         IrExpression predicate,
         IReadOnlySet<int> rankingIndexes,
         out WindowFunctionRef windowRef,
-        out long upperBound)
+        out long upperBound
+    )
     {
         windowRef = null!;
         upperBound = 0;
@@ -76,16 +86,20 @@ internal sealed partial class PhysicalLoweringImplementation
         if (predicate is not BinaryOp binary)
             return false;
 
-        if (TryGetIntegralLiteral(binary.Right, out var rightValue) &&
-            binary.Left is WindowFunctionRef leftWindow &&
-            rankingIndexes.Contains(leftWindow.WindowIndex))
+        if (
+            TryGetIntegralLiteral(binary.Right, out var rightValue)
+            && binary.Left is WindowFunctionRef leftWindow
+            && rankingIndexes.Contains(leftWindow.WindowIndex)
+        )
         {
             return TryCreateLeftWindowUpperBound(binary.Kind, leftWindow, rightValue, out windowRef, out upperBound);
         }
 
-        if (TryGetIntegralLiteral(binary.Left, out var leftValue) &&
-            binary.Right is WindowFunctionRef rightWindow &&
-            rankingIndexes.Contains(rightWindow.WindowIndex))
+        if (
+            TryGetIntegralLiteral(binary.Left, out var leftValue)
+            && binary.Right is WindowFunctionRef rightWindow
+            && rankingIndexes.Contains(rightWindow.WindowIndex)
+        )
         {
             return TryCreateRightWindowUpperBound(binary.Kind, rightWindow, leftValue, out windowRef, out upperBound);
         }
@@ -98,14 +112,15 @@ internal sealed partial class PhysicalLoweringImplementation
         WindowFunctionRef candidate,
         long literal,
         out WindowFunctionRef windowRef,
-        out long upperBound)
+        out long upperBound
+    )
     {
         windowRef = candidate;
         upperBound = kind switch
         {
             BinaryOpKind.LessOrEqual => literal,
             BinaryOpKind.LessThan => literal - 1,
-            _ => long.MinValue
+            _ => long.MinValue,
         };
 
         return upperBound != long.MinValue;
@@ -116,14 +131,15 @@ internal sealed partial class PhysicalLoweringImplementation
         WindowFunctionRef candidate,
         long literal,
         out WindowFunctionRef windowRef,
-        out long upperBound)
+        out long upperBound
+    )
     {
         windowRef = candidate;
         upperBound = kind switch
         {
             BinaryOpKind.GreaterOrEqual => literal,
             BinaryOpKind.GreaterThan => literal - 1,
-            _ => long.MinValue
+            _ => long.MinValue,
         };
 
         return upperBound != long.MinValue;

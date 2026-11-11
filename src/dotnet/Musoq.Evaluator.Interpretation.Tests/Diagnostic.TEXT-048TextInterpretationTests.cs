@@ -10,12 +10,19 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextFieldModifiers_ShouldApplyAcrossCaptureTypes()
     {
-        var interpreter = CreateAndCompileInterpreter("ModifierRecord",
-            CreateTextField("Code", TextFieldType.Chars, "4", modifiers: TextFieldModifier.Trim | TextFieldModifier.Upper),
+        var interpreter = CreateAndCompileInterpreter(
+            "ModifierRecord",
+            CreateTextField(
+                "Code",
+                TextFieldType.Chars,
+                "4",
+                modifiers: TextFieldModifier.Trim | TextFieldModifier.Upper
+            ),
             CreateTextField("Gap1", TextFieldType.Whitespace, "*"),
             CreateTextField("Word", TextFieldType.Token, modifiers: TextFieldModifier.Lower),
             CreateTextField("Gap2", TextFieldType.Whitespace, "*"),
-            CreateTextField("Tail", TextFieldType.Rest, modifiers: TextFieldModifier.Upper));
+            CreateTextField("Tail", TextFieldType.Rest, modifiers: TextFieldModifier.Upper)
+        );
 
         var result = InvokeParse(interpreter, " abc  DEF   tail");
 
@@ -29,9 +36,11 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_NamedWhitespaceQuestion_ShouldCaptureOneOrZeroCharacters()
     {
-        var interpreter = CreateAndCompileInterpreter("WhitespaceRecord",
+        var interpreter = CreateAndCompileInterpreter(
+            "WhitespaceRecord",
             CreateTextField("Gap", TextFieldType.Whitespace, "?"),
-            CreateTextField("Tail", TextFieldType.Rest));
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "  value");
 
@@ -42,12 +51,16 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextUntilGreedyAndLazy_ShouldControlDelimiterSelection()
     {
-        var greedy = CreateAndCompileInterpreter("GreedyRecord",
+        var greedy = CreateAndCompileInterpreter(
+            "GreedyRecord",
             CreateTextField("Value", TextFieldType.Until, ",", modifiers: TextFieldModifier.Greedy),
-            CreateTextField("Tail", TextFieldType.Rest));
-        var lazy = CreateAndCompileInterpreter("LazyRecord",
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
+        var lazy = CreateAndCompileInterpreter(
+            "LazyRecord",
             CreateTextField("Value", TextFieldType.Until, ",", modifiers: TextFieldModifier.Lazy),
-            CreateTextField("Tail", TextFieldType.Rest));
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var greedyResult = InvokeParse(greedy, "a,b,c");
         var lazyResult = InvokeParse(lazy, "a,b,c");
@@ -61,9 +74,11 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_TextPatternLazy_ShouldMinimizeQuantifierMatch()
     {
-        var interpreter = CreateAndCompileInterpreter("LazyPatternRecord",
+        var interpreter = CreateAndCompileInterpreter(
+            "LazyPatternRecord",
             CreateTextField("Value", TextFieldType.Pattern, ".*,", modifiers: TextFieldModifier.Lazy),
-            CreateTextField("Tail", TextFieldType.Rest));
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "a,b,c");
 
@@ -74,8 +89,7 @@ public partial class TextInterpretationTests
     [TestMethod]
     public void Parse_CharsInsufficientData_ShouldReportFieldAndPosition()
     {
-        var interpreter = CreateAndCompileInterpreter("FixedRecord",
-            CreateTextField("Code", TextFieldType.Chars, "4"));
+        var interpreter = CreateAndCompileInterpreter("FixedRecord", CreateTextField("Code", TextFieldType.Chars, "4"));
 
         var exception = Assert.ThrowsExactly<ParseException>(() => InvokeParse(interpreter, "abc"));
 

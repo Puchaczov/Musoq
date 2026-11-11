@@ -71,28 +71,24 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
 
         var parentMagicField = CreatePrimitiveField("Magic", PrimitiveTypeName.Int, Endianness.LittleEndian);
         var parentVersionField = CreatePrimitiveField("Version", PrimitiveTypeName.Short, Endianness.LittleEndian);
-        var parentSchema =
-            new BinarySchemaNode("Header", [parentMagicField, parentVersionField]);
+        var parentSchema = new BinarySchemaNode("Header", [parentMagicField, parentVersionField]);
         registry.Register("Header", parentSchema);
 
         var childLengthField = CreatePrimitiveField("DataLength", PrimitiveTypeName.Int, Endianness.LittleEndian);
-        var childDataField = new FieldDefinitionNode("Data", new ArrayTypeNode(
-            new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
-            new IdentifierNode("DataLength")));
+        var childDataField = new FieldDefinitionNode(
+            "Data",
+            new ArrayTypeNode(
+                new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable),
+                new IdentifierNode("DataLength")
+            )
+        );
 
-        var childSchema = new BinarySchemaNode("Packet", [childLengthField, childDataField],
-            "Header");
+        var childSchema = new BinarySchemaNode("Packet", [childLengthField, childDataField], "Header");
         registry.Register("Packet", childSchema);
 
         var interpreter = CompileInterpreter(registry, "Packet");
 
-        var data = new byte[]
-        {
-            0xEF, 0xBE, 0xAD, 0xDE,
-            0x01, 0x00,
-            0x03, 0x00, 0x00, 0x00,
-            0xAA, 0xBB, 0xCC
-        };
+        var data = new byte[] { 0xEF, 0xBE, 0xAD, 0xDE, 0x01, 0x00, 0x03, 0x00, 0x00, 0x00, 0xAA, 0xBB, 0xCC };
 
         var result = InvokeInterpret(interpreter, data);
         var magic = GetPropertyValue<int>(result, "Magic");
@@ -120,8 +116,7 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
         registry.Register("Child", childSchema);
 
         var grandchildFlagsField = CreatePrimitiveField("Flags", PrimitiveTypeName.Byte, Endianness.NotApplicable);
-        var grandchildSchema =
-            new BinarySchemaNode("Grandchild", [grandchildFlagsField], "Child");
+        var grandchildSchema = new BinarySchemaNode("Grandchild", [grandchildFlagsField], "Child");
         registry.Register("Grandchild", grandchildSchema);
 
         var interpreter = CompileInterpreter(registry, "Grandchild");
@@ -153,22 +148,19 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
 
         var lengthField = CreatePrimitiveField("Length", PrimitiveTypeName.Int, Endianness.LittleEndian);
         var dataField = new FieldDefinitionNode("Data", new SchemaReferenceTypeNode("T"));
-        var genericSchema = new BinarySchemaNode("LengthPrefixed", [lengthField, dataField],
-            null, ["T"]);
+        var genericSchema = new BinarySchemaNode("LengthPrefixed", [lengthField, dataField], null, ["T"]);
         registry.Register("LengthPrefixed", genericSchema);
 
-        var prefixedField =
-            new FieldDefinitionNode("Prefixed", new SchemaReferenceTypeNode("LengthPrefixed", ["Record"]));
+        var prefixedField = new FieldDefinitionNode(
+            "Prefixed",
+            new SchemaReferenceTypeNode("LengthPrefixed", ["Record"])
+        );
         var wrapperSchema = new BinarySchemaNode("Wrapper", [prefixedField]);
         registry.Register("Wrapper", wrapperSchema);
 
         var interpreter = CompileInterpreter(registry, "Wrapper");
 
-        var data = new byte[]
-        {
-            0x02, 0x00, 0x00, 0x00,
-            0x34, 0x12
-        };
+        var data = new byte[] { 0x02, 0x00, 0x00, 0x00, 0x34, 0x12 };
 
         var result = InvokeInterpret(interpreter, data);
         var prefixed = GetPropertyValue<object>(result, "Prefixed");
@@ -190,11 +182,11 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
         registry.Register("Item", itemSchema);
 
         var countField = CreatePrimitiveField("Count", PrimitiveTypeName.Byte, Endianness.NotApplicable);
-        var itemsField = new FieldDefinitionNode("Items", new ArrayTypeNode(
-            new SchemaReferenceTypeNode("T"),
-            new IdentifierNode("Count")));
-        var genericSchema = new BinarySchemaNode("Container", [countField, itemsField], null,
-            ["T"]);
+        var itemsField = new FieldDefinitionNode(
+            "Items",
+            new ArrayTypeNode(new SchemaReferenceTypeNode("T"), new IdentifierNode("Count"))
+        );
+        var genericSchema = new BinarySchemaNode("Container", [countField, itemsField], null, ["T"]);
         registry.Register("Container", genericSchema);
 
         var boxField = new FieldDefinitionNode("Box", new SchemaReferenceTypeNode("Container", ["Item"]));
@@ -232,12 +224,10 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
 
         var firstField = new FieldDefinitionNode("First", new SchemaReferenceTypeNode("T"));
         var secondField = new FieldDefinitionNode("Second", new SchemaReferenceTypeNode("U"));
-        var genericSchema = new BinarySchemaNode("Pair", [firstField, secondField], null,
-            ["T", "U"]);
+        var genericSchema = new BinarySchemaNode("Pair", [firstField, secondField], null, ["T", "U"]);
         registry.Register("Pair", genericSchema);
 
-        var dataField =
-            new FieldDefinitionNode("Data", new SchemaReferenceTypeNode("Pair", ["ByteVal", "ShortVal"]));
+        var dataField = new FieldDefinitionNode("Data", new SchemaReferenceTypeNode("Pair", ["ByteVal", "ShortVal"]));
         var containerSchema = new BinarySchemaNode("Container", [dataField]);
         registry.Register("Container", containerSchema);
 
@@ -274,12 +264,15 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
         var wrapperSchema = new BinarySchemaNode("Wrapper", [dataField], null, ["T"]);
         registry.Register("Wrapper", wrapperSchema);
 
-        var byteWrappedField =
-            new FieldDefinitionNode("ByteWrapped", new SchemaReferenceTypeNode("Wrapper", ["ByteRecord"]));
-        var intWrappedField =
-            new FieldDefinitionNode("IntWrapped", new SchemaReferenceTypeNode("Wrapper", ["IntRecord"]));
-        var containerSchema =
-            new BinarySchemaNode("Container", [byteWrappedField, intWrappedField]);
+        var byteWrappedField = new FieldDefinitionNode(
+            "ByteWrapped",
+            new SchemaReferenceTypeNode("Wrapper", ["ByteRecord"])
+        );
+        var intWrappedField = new FieldDefinitionNode(
+            "IntWrapped",
+            new SchemaReferenceTypeNode("Wrapper", ["IntRecord"])
+        );
+        var containerSchema = new BinarySchemaNode("Container", [byteWrappedField, intWrappedField]);
         registry.Register("Container", containerSchema);
 
         var interpreter = CompileInterpreter(registry, "Container");
@@ -315,28 +308,24 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
         var zeroNode = new IntegerNode(0);
         var condition = new DiffNode(hasValueRef, zeroNode);
         var valueField = new FieldDefinitionNode("Value", new SchemaReferenceTypeNode("T"), null, null, condition);
-        var optionalSchema = new BinarySchemaNode("Optional", [hasValueField, valueField], null,
-            ["T"]);
+        var optionalSchema = new BinarySchemaNode("Optional", [hasValueField, valueField], null, ["T"]);
         registry.Register("Optional", optionalSchema);
 
         var firstField = new FieldDefinitionNode("First", new SchemaReferenceTypeNode("T"));
         var secondField = new FieldDefinitionNode("Second", new SchemaReferenceTypeNode("U"));
-        var pairSchema = new BinarySchemaNode("Pair", [firstField, secondField], null,
-            ["T", "U"]);
+        var pairSchema = new BinarySchemaNode("Pair", [firstField, secondField], null, ["T", "U"]);
         registry.Register("Pair", pairSchema);
 
-        var pairField = new FieldDefinitionNode("Data",
-            new SchemaReferenceTypeNode("Pair", ["Optional<ByteVal>", "Optional<ShortVal>"]));
+        var pairField = new FieldDefinitionNode(
+            "Data",
+            new SchemaReferenceTypeNode("Pair", ["Optional<ByteVal>", "Optional<ShortVal>"])
+        );
         var containerSchema = new BinarySchemaNode("Container", [pairField]);
         registry.Register("Container", containerSchema);
 
         var interpreter = CompileInterpreter(registry, "Container");
 
-        var data = new byte[]
-        {
-            0x01, 0xAA,
-            0x01, 0x34, 0x12
-        };
+        var data = new byte[] { 0x01, 0xAA, 0x01, 0x34, 0x12 };
 
         var result = InvokeInterpret(interpreter, data);
         var pair = GetPropertyValue<object>(result, "Data");
@@ -369,8 +358,7 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
         var isValidExpr = new EqualityNode(tagRef, expectedTag);
         var isValidField = new ComputedFieldNode("IsValid", isValidExpr);
 
-        var taggedSchema = new BinarySchemaNode("Tagged", [tagField, dataField, isValidField],
-            null, ["T"]);
+        var taggedSchema = new BinarySchemaNode("Tagged", [tagField, dataField, isValidField], null, ["T"]);
         registry.Register("Tagged", taggedSchema);
 
         var containerField = new FieldDefinitionNode("Item", new SchemaReferenceTypeNode("Tagged", ["Record"]));
@@ -399,15 +387,14 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
         var itemSchema = new BinarySchemaNode("Item", [valueField]);
         registry.Register("Item", itemSchema);
 
-        var itemsField = new FieldDefinitionNode("Items", new ArrayTypeNode(
-            new SchemaReferenceTypeNode("T"),
-            new IntegerNode(3)));
-        var bufferSchema =
-            new BinarySchemaNode("FixedBuffer", [itemsField], null, ["T"]);
+        var itemsField = new FieldDefinitionNode(
+            "Items",
+            new ArrayTypeNode(new SchemaReferenceTypeNode("T"), new IntegerNode(3))
+        );
+        var bufferSchema = new BinarySchemaNode("FixedBuffer", [itemsField], null, ["T"]);
         registry.Register("FixedBuffer", bufferSchema);
 
-        var bufferField =
-            new FieldDefinitionNode("Buffer", new SchemaReferenceTypeNode("FixedBuffer", ["Item"]));
+        var bufferField = new FieldDefinitionNode("Buffer", new SchemaReferenceTypeNode("FixedBuffer", ["Item"]));
         var containerSchema = new BinarySchemaNode("Container", [bufferField]);
         registry.Register("Container", containerSchema);
 
@@ -458,11 +445,11 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
         registry.Register("Item", itemSchema);
 
         var countField = CreatePrimitiveField("Count", PrimitiveTypeName.Byte, Endianness.NotApplicable);
-        var itemsField = new FieldDefinitionNode("Items", new ArrayTypeNode(
-            new SchemaReferenceTypeNode("T"),
-            new IdentifierNode("Count")));
-        var containerSchema = new BinarySchemaNode("Container", [countField, itemsField], null,
-            ["T"]);
+        var itemsField = new FieldDefinitionNode(
+            "Items",
+            new ArrayTypeNode(new SchemaReferenceTypeNode("T"), new IdentifierNode("Count"))
+        );
+        var containerSchema = new BinarySchemaNode("Container", [countField, itemsField], null, ["T"]);
         registry.Register("Container", containerSchema);
 
         var wrapperField = new FieldDefinitionNode("Data", new SchemaReferenceTypeNode("Container", ["Item"]));
@@ -492,11 +479,11 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
         registry.Register("Item", itemSchema);
 
         var countField = CreatePrimitiveField("Count", PrimitiveTypeName.Short, Endianness.LittleEndian);
-        var itemsField = new FieldDefinitionNode("Items", new ArrayTypeNode(
-            new SchemaReferenceTypeNode("T"),
-            new IdentifierNode("Count")));
-        var bufferSchema = new BinarySchemaNode("Buffer", [countField, itemsField], null,
-            ["T"]);
+        var itemsField = new FieldDefinitionNode(
+            "Items",
+            new ArrayTypeNode(new SchemaReferenceTypeNode("T"), new IdentifierNode("Count"))
+        );
+        var bufferSchema = new BinarySchemaNode("Buffer", [countField, itemsField], null, ["T"]);
         registry.Register("Buffer", bufferSchema);
 
         var wrapperField = new FieldDefinitionNode("Data", new SchemaReferenceTypeNode("Buffer", ["Item"]));
@@ -509,7 +496,8 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
         var data = new byte[2 + itemCount];
         data[0] = itemCount & 0xFF;
         data[1] = (itemCount >> 8) & 0xFF;
-        for (var i = 0; i < itemCount; i++) data[2 + i] = (byte)i;
+        for (var i = 0; i < itemCount; i++)
+            data[2 + i] = (byte)i;
 
         var result = InvokeInterpret(interpreter, data);
         var buffer = GetPropertyValue<object>(result, "Data");
@@ -533,8 +521,7 @@ public class BinaryInterpretationOopTests : BinaryInterpretationTestBase
 
         var headerField = new FieldDefinitionNode("Header", new SchemaReferenceTypeNode("T"));
         var footerField = new FieldDefinitionNode("Footer", new SchemaReferenceTypeNode("T"));
-        var bracketedSchema = new BinarySchemaNode("Bracketed", [headerField, footerField],
-            null, ["T"]);
+        var bracketedSchema = new BinarySchemaNode("Bracketed", [headerField, footerField], null, ["T"]);
         registry.Register("Bracketed", bracketedSchema);
 
         var dataField = new FieldDefinitionNode("Data", new SchemaReferenceTypeNode("Bracketed", ["Marker"]));

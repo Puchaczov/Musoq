@@ -18,10 +18,7 @@ public sealed class LogicalOptimizerTests
     [TestMethod]
     public void Optimize_WhenNoLogicalRewriteApplies_ShouldReturnInitialPlanAsOptimizedPlan()
     {
-        var initial = new ValuesScanNode(
-            "v",
-            [],
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+        var initial = new ValuesScanNode("v", [], new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
 
         var result = new LogicalOptimizer().Optimize(initial);
 
@@ -43,11 +40,9 @@ public sealed class LogicalOptimizerTests
         var unusedDefinitionPlan = new ValuesScanNode("unused", [], schema);
         var query = new CteRefNode("used", "u", schema);
         var initial = new CteNode(
-            [
-                new CteDefinition("used", usedDefinitionPlan),
-                new CteDefinition("unused", unusedDefinitionPlan)
-            ],
-            query);
+            [new CteDefinition("used", usedDefinitionPlan), new CteDefinition("unused", unusedDefinitionPlan)],
+            query
+        );
 
         var result = new LogicalOptimizer().Optimize(initial);
 
@@ -70,11 +65,9 @@ public sealed class LogicalOptimizerTests
         var middleDefinitionPlan = new CteRefNode("base", "b", schema);
         var query = new CteRefNode("middle", "m", schema);
         var initial = new CteNode(
-            [
-                new CteDefinition("base", baseDefinitionPlan),
-                new CteDefinition("middle", middleDefinitionPlan)
-            ],
-            query);
+            [new CteDefinition("base", baseDefinitionPlan), new CteDefinition("middle", middleDefinitionPlan)],
+            query
+        );
 
         var result = new LogicalOptimizer().Optimize(initial);
 
@@ -89,15 +82,11 @@ public sealed class LogicalOptimizerTests
         var usedDefinitionPlan = new ValuesScanNode("used", [], schema);
         var unusedDefinitionPlan = new ValuesScanNode("unused", [], schema);
         var source = new ValuesScanNode("input", [], schema);
-        var query = new ProjectNode(
-            [new ProjectedField("Value", new CteTableRef("used"), 0)],
-            source);
+        var query = new ProjectNode([new ProjectedField("Value", new CteTableRef("used"), 0)], source);
         var initial = new CteNode(
-            [
-                new CteDefinition("used", usedDefinitionPlan),
-                new CteDefinition("unused", unusedDefinitionPlan)
-            ],
-            query);
+            [new CteDefinition("used", usedDefinitionPlan), new CteDefinition("unused", unusedDefinitionPlan)],
+            query
+        );
 
         var result = new LogicalOptimizer().Optimize(initial);
 
@@ -113,9 +102,7 @@ public sealed class LogicalOptimizerTests
         var schema = new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]);
         var unusedDefinitionPlan = new ValuesScanNode("unused", [], schema);
         var query = new ValuesScanNode("query", [], schema);
-        var initial = new CteNode(
-            [new CteDefinition("unused", unusedDefinitionPlan)],
-            query);
+        var initial = new CteNode([new CteDefinition("unused", unusedDefinitionPlan)], query);
 
         var result = new LogicalOptimizer().Optimize(initial);
 
@@ -131,9 +118,7 @@ public sealed class LogicalOptimizerTests
         var schema = new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]);
         var unusedDefinitionPlan = new SchemaScanNode("#A", "entities", [], "a", schema, "a:1");
         var query = new ValuesScanNode("query", [], schema);
-        var initial = new CteNode(
-            [new CteDefinition("unused", unusedDefinitionPlan)],
-            query);
+        var initial = new CteNode([new CteDefinition("unused", unusedDefinitionPlan)], query);
 
         var result = new LogicalOptimizer().Optimize(initial);
 
@@ -150,13 +135,12 @@ public sealed class LogicalOptimizerTests
         var schema = new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]);
         var unusedDefinitionPlan = new SchemaScanNode("#A", "entities", [], "a", schema, "a:1");
         var query = new ValuesScanNode("query", [], schema);
-        var initial = new CteNode(
-            [new CteDefinition("unused", unusedDefinitionPlan)],
-            query);
+        var initial = new CteNode([new CteDefinition("unused", unusedDefinitionPlan)], query);
 
         var result = new DeadCteEliminationLogicalPass().Optimize(
             initial,
-            new OptimizationContext(OptimizationStage.LogicalOptimization));
+            new OptimizationContext(OptimizationStage.LogicalOptimization)
+        );
 
         Assert.AreSame(initial, result.Plan);
         Assert.IsFalse(result.IsChanged);
@@ -165,10 +149,7 @@ public sealed class LogicalOptimizerTests
     [TestMethod]
     public void Optimize_WhenLogicalConstantExpressionIsPresent_ShouldFoldIt()
     {
-        var input = new ValuesScanNode(
-            "v",
-            [],
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+        var input = new ValuesScanNode("v", [], new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
         var initial = new ProjectNode(
             [
                 new ProjectedField(
@@ -177,10 +158,13 @@ public sealed class LogicalOptimizerTests
                         BinaryOpKind.Add,
                         new Literal(1, typeof(int)),
                         new Literal(2, typeof(int)),
-                        typeof(int)),
-                    0)
+                        typeof(int)
+                    ),
+                    0
+                ),
             ],
-            input);
+            input
+        );
 
         var result = new LogicalOptimizer().Optimize(initial);
 
@@ -188,7 +172,9 @@ public sealed class LogicalOptimizerTests
         var literal = (Literal)optimized.Fields[0].Expression;
         Assert.AreEqual(3, literal.Value);
 
-        var constantFoldingEntry = result.Trace.Entries.Single(static entry => entry.PassName == "LogicalConstantFolding");
+        var constantFoldingEntry = result.Trace.Entries.Single(static entry =>
+            entry.PassName == "LogicalConstantFolding"
+        );
         Assert.IsTrue(constantFoldingEntry.IsChanged);
         Assert.AreEqual("Folded 1 logical constant expression.", constantFoldingEntry.Reason);
     }
@@ -196,23 +182,21 @@ public sealed class LogicalOptimizerTests
     [TestMethod]
     public void Optimize_WhenLogicalConstantFoldingIsDisabled_ShouldLeaveExpressionUnchanged()
     {
-        var input = new ValuesScanNode(
-            "v",
-            [],
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+        var input = new ValuesScanNode("v", [], new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
         var expression = new BinaryOp(
             BinaryOpKind.Add,
             new Literal(1, typeof(int)),
             new Literal(2, typeof(int)),
-            typeof(int));
-        var initial = new ProjectNode(
-            [new ProjectedField("Folded", expression, 0)],
-            input);
+            typeof(int)
+        );
+        var initial = new ProjectNode([new ProjectedField("Folded", expression, 0)], input);
 
         var result = new LogicalOptimizer(enableConstantFolding: false).Optimize(initial);
 
         Assert.AreSame(initial, result.OptimizedPlan);
-        var constantFoldingEntry = result.Trace.Entries.Single(static entry => entry.PassName == "LogicalConstantFolding");
+        var constantFoldingEntry = result.Trace.Entries.Single(static entry =>
+            entry.PassName == "LogicalConstantFolding"
+        );
         Assert.IsFalse(constantFoldingEntry.IsChanged);
         Assert.AreEqual("Logical constant folding is disabled by compilation options.", constantFoldingEntry.Reason);
     }
@@ -222,20 +206,12 @@ public sealed class LogicalOptimizerTests
     {
         var sourceText = new SourceText("SELECT 1 / 0 FROM #system.dual()");
         var diagnosticContext = new DiagnosticContext(sourceText);
-        var input = new ValuesScanNode(
-            "v",
-            [],
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+        var input = new ValuesScanNode("v", [], new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
         var expression = IrExpressionSourceSpans.Set(
-            new BinaryOp(
-                BinaryOpKind.Divide,
-                new Literal(1, typeof(int)),
-                new Literal(0, typeof(int)),
-                typeof(int)),
-            new TextSpan(7, 5));
-        var initial = new ProjectNode(
-            [new ProjectedField("Value", expression, 0)],
-            input);
+            new BinaryOp(BinaryOpKind.Divide, new Literal(1, typeof(int)), new Literal(0, typeof(int)), typeof(int)),
+            new TextSpan(7, 5)
+        );
+        var initial = new ProjectNode([new ProjectedField("Value", expression, 0)], input);
 
         _ = new LogicalOptimizer(diagnosticContext: diagnosticContext).Optimize(initial);
 
@@ -250,17 +226,16 @@ public sealed class LogicalOptimizerTests
     public void Optimize_WhenLogicalWherePredicateFoldsToFalse_ShouldLeaveAdvisoryOwnershipToSemanticPhase()
     {
         var diagnosticContext = new DiagnosticContext(new SourceText("SELECT Value FROM v WHERE true AND false"));
-        var input = new ValuesScanNode(
-            "v",
-            [],
-            new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
+        var input = new ValuesScanNode("v", [], new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
         var predicate = IrExpressionSourceSpans.Set(
             new BinaryOp(
                 BinaryOpKind.And,
                 new Literal(true, typeof(bool)),
                 new Literal(false, typeof(bool)),
-                typeof(bool)),
-            new TextSpan(26, 14));
+                typeof(bool)
+            ),
+            new TextSpan(26, 14)
+        );
         var initial = new FilterNode(predicate, input);
 
         _ = new LogicalOptimizer(diagnosticContext: diagnosticContext).Optimize(initial);
@@ -268,15 +243,20 @@ public sealed class LogicalOptimizerTests
         Assert.AreEqual(0, diagnosticContext.Warnings.Count());
     }
 
-    private static void AssertTraceEntriesAreMeaningful(
-        IReadOnlyList<OptimizationTraceEntry> entries)
+    private static void AssertTraceEntriesAreMeaningful(IReadOnlyList<OptimizationTraceEntry> entries)
     {
-        Assert.IsTrue(entries.All(static entry =>
-            entry.Stage is OptimizationStage.LogicalNormalization or OptimizationStage.LogicalOptimization));
+        Assert.IsTrue(
+            entries.All(static entry =>
+                entry.Stage is OptimizationStage.LogicalNormalization or OptimizationStage.LogicalOptimization
+            )
+        );
         Assert.IsTrue(entries.All(static entry => !string.IsNullOrWhiteSpace(entry.PassName)));
         Assert.IsTrue(entries.All(static entry => !string.IsNullOrWhiteSpace(entry.Outcome)));
         Assert.IsTrue(entries.All(static entry => !string.IsNullOrWhiteSpace(entry.Reason)));
-        Assert.IsTrue(entries.All(static entry =>
-            string.Equals(entry.Outcome, entry.IsChanged ? "Changed" : "NoChange", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            entries.All(static entry =>
+                string.Equals(entry.Outcome, entry.IsChanged ? "Changed" : "NoChange", StringComparison.Ordinal)
+            )
+        );
     }
 }

@@ -13,7 +13,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(SmartForEachPattern, StringComparison.Ordinal));
     }
 
@@ -24,7 +25,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("PhaseBoundary [Begin:cte0]", sample.Content);
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", sample.Content);
-        Assert.Contains("AppendShape [result <- ResultRow0(Name: ko3iko.Name, Population: population)]", sample.Content);
+        Assert.Contains(
+            "AppendShape [result <- ResultRow0(Name: ko3iko.Name, Population: population)]",
+            sample.Content
+        );
         Assert.Contains("OnPhaseChanged(\"compiled:cte0\", QueryPhase.Begin);", sample.Content);
         Assert.IsFalse(sample.Content.Contains("private Table[] _tableResults", StringComparison.Ordinal));
         Assert.IsFalse(sample.Content.Contains("private sealed class Cte0Row0", StringComparison.Ordinal));
@@ -71,7 +75,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("CreateKeySet [cte0DistinctKeys: string]", result.ExecutionPlanText);
         Assert.Contains("If [Add(country)]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("DistinctTable", StringComparison.Ordinal));
@@ -117,17 +122,21 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("PhysicalHashJoin [LeftSemi]", result.PhysicalPlanText);
         Assert.Contains("PhaseBoundary [Begin:cte0]", result.ExecutionPlanText);
         Assert.Contains("CreateKeySet [_sq_1Keys: string]", result.ExecutionPlanText);
         Assert.Contains("ForEach [b in cte0_bRows]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultRow0(City: a.City)]", result.ExecutionPlanText);
-        Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal));
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [cte0 -> _tableResults[0]]", StringComparison.Ordinal)
+        );
         Assert.IsFalse(result.ExecutionPlanText.Contains("AggregateGroup", StringComparison.Ordinal));
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[1]]", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(SmartForEachPattern, StringComparison.Ordinal));
     }
 
@@ -149,7 +158,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("var _sq_1Keys = new HashSet<string>();", sample.Content);
         Assert.Contains("foreach (var bChunk in cte0_bRows)", sample.Content);
         Assert.Contains("__musoqFinalShapeRows.Add(new ResultRow0(a.City));", sample.Content);
-        Assert.IsFalse(sample.Content.Contains("AppendHashJoinRows(aRows, _sq_1Keys, result, token);", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Content.Contains("AppendHashJoinRows(aRows, _sq_1Keys, result, token);", StringComparison.Ordinal)
+        );
         Assert.IsFalse(sample.Content.Contains("private static void BuildSq1Keys(", StringComparison.Ordinal));
         Assert.Contains("token.ThrowIfCancellationRequested();", sample.Content);
         Assert.Contains("string key = b.City;", sample.Content);
@@ -159,7 +170,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(sample.Content.Contains("private sealed class Cte0Row0", StringComparison.Ordinal));
         Assert.IsFalse(sample.Content.Contains("BuildCte0(", StringComparison.Ordinal));
         Assert.IsFalse(sample.Content.Contains("_tableResults[0]", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Content.Contains("EvaluationHelper.CastGeneratedRows<Cte0Row0>(_tableResults[0].Rows)", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Content.Contains(
+                "EvaluationHelper.CastGeneratedRows<Cte0Row0>(_tableResults[0].Rows)",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(sample.Content.Contains("private sealed class Statement0Row0", StringComparison.Ordinal));
         Assert.IsFalse(sample.Content.Contains("AggregateGroup [Cte0AggregateGroup", StringComparison.Ordinal));
         Assert.IsFalse(sample.Content.Contains("cte0RootGroup", StringComparison.Ordinal));
@@ -180,7 +196,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
-            result.ExecutionPlanText);
+            result.ExecutionPlanText
+        );
         Assert.Contains("SetOperation [", result.ExecutionPlanText);
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
@@ -209,7 +226,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .SelectMany(static sample => GetGroupedSetOperationShapeFailures(sample.FileName, sample.Content))
             .ToArray();
 
-        Assert.IsEmpty(failures, $"Grouped set-operation samples have stale resolver shape: {string.Join(", ", failures)}");
+        Assert.IsEmpty(
+            failures,
+            $"Grouped set-operation samples have stale resolver shape: {string.Join(", ", failures)}"
+        );
     }
 
     [TestMethod]
@@ -218,7 +238,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [DataRow(UnionWithGroupBySidesSampleFileName, 3)]
     public void GroupedSetOperationSamples_WhenCheckedIn_ShouldShareTypedStateWithoutSplittingCheckedSums(
         string fileName,
-        int helperReferenceCount)
+        int helperReferenceCount
+    )
     {
         var sample = ReadSample(fileName).Content;
 
@@ -244,5 +265,4 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.AreEqual(0, CountOccurrences(sample, ".SetValue<"));
         Assert.AreEqual(0, CountOccurrences(sample, "GroupSlot"));
     }
-
 }

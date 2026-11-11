@@ -24,12 +24,14 @@ internal sealed class DeterministicMemberOrderingPass : ICodegenReadabilityOptim
         {
             return OptimizationResult<CompilationUnitSyntax>.NoChange(
                 plan,
-                $"Observed {classes.Length} generated class(es) and {memberCount} class member(s); member order was already deterministic.");
+                $"Observed {classes.Length} generated class(es) and {memberCount} class member(s); member order was already deterministic."
+            );
         }
 
         return OptimizationResult<CompilationUnitSyntax>.Changed(
             optimized,
-            $"Reordered members in {rewriter.ReorderedClasses} generated class(es).");
+            $"Reordered members in {rewriter.ReorderedClasses} generated class(es)."
+        );
     }
 
     private sealed class MemberOrderingRewriter : CSharpSyntaxRewriter
@@ -39,8 +41,8 @@ internal sealed class DeterministicMemberOrderingPass : ICodegenReadabilityOptim
         public override SyntaxNode? VisitClassDeclaration(ClassDeclarationSyntax node)
         {
             var visited = (ClassDeclarationSyntax)base.VisitClassDeclaration(node)!;
-            var sortedMembers = visited.Members
-                .OrderBy(GetMemberGroup)
+            var sortedMembers = visited
+                .Members.OrderBy(GetMemberGroup)
                 .ThenBy(GetMemberName, StringComparer.Ordinal)
                 .ThenBy(static member => member.SpanStart)
                 .ToArray();
@@ -59,8 +61,10 @@ internal sealed class DeterministicMemberOrderingPass : ICodegenReadabilityOptim
                 FieldDeclarationSyntax => 0,
                 ConstructorDeclarationSyntax => 1,
                 PropertyDeclarationSyntax property when HasModifier(property.Modifiers, SyntaxKind.PublicKeyword) => 2,
-                EventFieldDeclarationSyntax eventField when HasModifier(eventField.Modifiers, SyntaxKind.PublicKeyword) => 3,
-                EventDeclarationSyntax eventDeclaration when HasModifier(eventDeclaration.Modifiers, SyntaxKind.PublicKeyword) => 3,
+                EventFieldDeclarationSyntax eventField
+                    when HasModifier(eventField.Modifiers, SyntaxKind.PublicKeyword) => 3,
+                EventDeclarationSyntax eventDeclaration
+                    when HasModifier(eventDeclaration.Modifiers, SyntaxKind.PublicKeyword) => 3,
                 MethodDeclarationSyntax method => GetMethodGroup(method.Modifiers),
                 PropertyDeclarationSyntax property => GetNonPublicMemberGroup(property.Modifiers),
                 EventFieldDeclarationSyntax eventField => GetNonPublicMemberGroup(eventField.Modifiers),
@@ -68,7 +72,7 @@ internal sealed class DeterministicMemberOrderingPass : ICodegenReadabilityOptim
                 ClassDeclarationSyntax => 8,
                 StructDeclarationSyntax => 8,
                 RecordDeclarationSyntax => 8,
-                _ => 9
+                _ => 9,
             };
         }
 
@@ -101,16 +105,20 @@ internal sealed class DeterministicMemberOrderingPass : ICodegenReadabilityOptim
         {
             return member switch
             {
-                FieldDeclarationSyntax field => field.Declaration.Variables.FirstOrDefault()?.Identifier.ValueText ?? string.Empty,
+                FieldDeclarationSyntax field => field.Declaration.Variables.FirstOrDefault()?.Identifier.ValueText
+                    ?? string.Empty,
                 PropertyDeclarationSyntax property => property.Identifier.ValueText,
-                EventFieldDeclarationSyntax eventField => eventField.Declaration.Variables.FirstOrDefault()?.Identifier.ValueText ?? string.Empty,
+                EventFieldDeclarationSyntax eventField => eventField
+                    .Declaration.Variables.FirstOrDefault()
+                    ?.Identifier.ValueText
+                    ?? string.Empty,
                 EventDeclarationSyntax eventDeclaration => eventDeclaration.Identifier.ValueText,
                 ConstructorDeclarationSyntax constructor => constructor.Identifier.ValueText,
                 MethodDeclarationSyntax method => method.Identifier.ValueText,
                 ClassDeclarationSyntax nestedClass => nestedClass.Identifier.ValueText,
                 StructDeclarationSyntax nestedStruct => nestedStruct.Identifier.ValueText,
                 RecordDeclarationSyntax nestedRecord => nestedRecord.Identifier.ValueText,
-                _ => string.Empty
+                _ => string.Empty,
             };
         }
 
@@ -120,4 +128,3 @@ internal sealed class DeterministicMemberOrderingPass : ICodegenReadabilityOptim
         }
     }
 }
-

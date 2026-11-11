@@ -13,22 +13,31 @@ public sealed partial class ExecutionCSharpRenderer
         members.AddRange(GetHashPayloadFields(shape).Select(CreateHashPayloadField));
         members.Add(CreateHashPayloadConstructor(shape));
 
-        return SyntaxFactory.StructDeclaration(shape.TypeName)
+        return SyntaxFactory
+            .StructDeclaration(shape.TypeName)
             .AddModifiers(
                 SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
+                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
+            )
             .WithMembers(SyntaxFactory.List(members));
     }
 
     private static FieldDeclarationSyntax CreateHashPayloadField(FieldBinding field)
     {
-        return SyntaxFactory.FieldDeclaration(
-                SyntaxFactory.VariableDeclaration(CreateTypeSyntax(field.Type))
-                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(EscapeIdentifier(GetGeneratedFieldName(field))))))
+        return SyntaxFactory
+            .FieldDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(CreateTypeSyntax(field.Type))
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(EscapeIdentifier(GetGeneratedFieldName(field)))
+                        )
+                    )
+            )
             .AddModifiers(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
+            );
     }
 
     private static ConstructorDeclarationSyntax CreateHashPayloadConstructor(HashPayloadShape shape)
@@ -37,7 +46,8 @@ public sealed partial class ExecutionCSharpRenderer
         var parameters = fields.Select(field =>
         {
             var fieldName = GetGeneratedFieldName(field);
-            return SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(fieldName)))
+            return SyntaxFactory
+                .Parameter(SyntaxFactory.Identifier(EscapeIdentifier(fieldName)))
                 .WithType(CreateTypeSyntax(field.Type));
         });
         var assignments = fields.Select(field =>
@@ -49,11 +59,15 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.ThisExpression(),
-                        CreateIdentifierName(fieldName)),
-                    CreateIdentifierName(fieldName)));
+                        CreateIdentifierName(fieldName)
+                    ),
+                    CreateIdentifierName(fieldName)
+                )
+            );
         });
 
-        return SyntaxFactory.ConstructorDeclaration(shape.TypeName)
+        return SyntaxFactory
+            .ConstructorDeclaration(shape.TypeName)
             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
             .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters)))
             .WithBody(StatementEmitter.CreateBlock(assignments));

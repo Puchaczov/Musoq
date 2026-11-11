@@ -15,7 +15,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static ExecutionWindowKeyArray? ResolveGeneratedWindowPartitionKeyArray(
         ExecutionExpression? partitionKey,
         ExecutionWindowKeyArray? partitionKeyArray,
-        string defaultVariableName)
+        string defaultVariableName
+    )
     {
         if (partitionKey == null)
             return null;
@@ -27,10 +28,13 @@ public sealed partial class ExecutionCSharpRenderer
     private static ExecutionWindowKeyArray ResolveGeneratedWindowOrderKeyArray(
         IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions,
         ExecutionWindowKeyArray? orderKeyArray,
-        string defaultVariableName)
+        string defaultVariableName
+    )
     {
-        if (orderKeyArray?.Shape is { IsGeneratedOrderKey: true, GeneratedElementTypeName: not null } shape &&
-            shape.GeneratedParts?.Count == orderKeyExpressions.Count)
+        if (
+            orderKeyArray?.Shape is { IsGeneratedOrderKey: true, GeneratedElementTypeName: not null } shape
+            && shape.GeneratedParts?.Count == orderKeyExpressions.Count
+        )
             return orderKeyArray;
 
         throw UnsupportedShape.Of($"Window order key '{defaultVariableName}' has no lowered concrete carrier.");
@@ -41,7 +45,8 @@ public sealed partial class ExecutionCSharpRenderer
         return ResolveGeneratedWindowPartitionKeyArray(
             ranking.PartitionKey,
             ranking.PartitionKeyArray,
-            $"{ranking.Results.Name}PartitionKeys");
+            $"{ranking.Results.Name}PartitionKeys"
+        );
     }
 
     private static ExecutionWindowKeyArray ResolveRankingOrderKeyArray(ExecutionComputeRankingWindow ranking)
@@ -49,7 +54,8 @@ public sealed partial class ExecutionCSharpRenderer
         return ResolveGeneratedWindowOrderKeyArray(
             ranking.OrderKeys,
             ranking.OrderKeyArray,
-            $"{ranking.Results.Name}OrderKeys");
+            $"{ranking.Results.Name}OrderKeys"
+        );
     }
 
     private static ExecutionWindowKeyArray? ResolveOffsetPartitionKeyArray(ExecutionComputeOffsetWindow offset)
@@ -57,7 +63,8 @@ public sealed partial class ExecutionCSharpRenderer
         return ResolveGeneratedWindowPartitionKeyArray(
             offset.PartitionKey,
             offset.PartitionKeyArray,
-            $"{offset.Results.Name}PartitionKeys");
+            $"{offset.Results.Name}PartitionKeys"
+        );
     }
 
     private static ExecutionWindowKeyArray ResolveOffsetOrderKeyArray(ExecutionComputeOffsetWindow offset)
@@ -65,7 +72,8 @@ public sealed partial class ExecutionCSharpRenderer
         return ResolveGeneratedWindowOrderKeyArray(
             offset.OrderKeys,
             offset.OrderKeyArray,
-            $"{offset.Results.Name}OrderKeys");
+            $"{offset.Results.Name}OrderKeys"
+        );
     }
 
     private static ExecutionWindowKeyArray? ResolvePluginPartitionKeyArray(ExecutionComputePluginWindow plugin)
@@ -73,7 +81,8 @@ public sealed partial class ExecutionCSharpRenderer
         return ResolveGeneratedWindowPartitionKeyArray(
             plugin.PartitionKey,
             plugin.PartitionKeyArray,
-            $"{plugin.Results.Name}PartitionKeys");
+            $"{plugin.Results.Name}PartitionKeys"
+        );
     }
 
     private static ExecutionWindowKeyArray? ResolvePluginOrderKeyArray(ExecutionComputePluginWindow plugin)
@@ -83,7 +92,8 @@ public sealed partial class ExecutionCSharpRenderer
             : ResolveGeneratedWindowOrderKeyArray(
                 plugin.OrderKeys,
                 plugin.OrderKeyArray,
-                $"{plugin.Results.Name}OrderKeys");
+                $"{plugin.Results.Name}OrderKeys"
+            );
     }
 
     private static ExecutionWindowKeyArray? ResolveAggregatePartitionKeyArray(ExecutionWindowAggregateKernel aggregate)
@@ -91,7 +101,8 @@ public sealed partial class ExecutionCSharpRenderer
         return ResolveGeneratedWindowPartitionKeyArray(
             aggregate.PartitionKey,
             aggregate.PartitionKeyArray,
-            $"{aggregate.Results.Name}PartitionKeys");
+            $"{aggregate.Results.Name}PartitionKeys"
+        );
     }
 
     private static ExecutionWindowKeyArray? ResolveAggregateOrderKeyArray(ExecutionWindowAggregateKernel aggregate)
@@ -101,7 +112,8 @@ public sealed partial class ExecutionCSharpRenderer
             : ResolveGeneratedWindowOrderKeyArray(
                 aggregate.OrderKeys,
                 aggregate.OrderKeyArray,
-                $"{aggregate.Results.Name}OrderKeys");
+                $"{aggregate.Results.Name}OrderKeys"
+            );
     }
 
     private static IReadOnlyList<ExecutionExpression> GetWindowKeyParts(ExecutionExpression expression)
@@ -109,24 +121,28 @@ public sealed partial class ExecutionCSharpRenderer
         return expression switch
         {
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts,
-            _ => [expression]
+            _ => [expression],
         };
     }
 
     private ObjectCreationExpressionSyntax CreateGeneratedWindowKeyCreation(
         ExecutionWindowKeyArray keyArray,
-        IReadOnlyList<ExecutionExpression> parts)
+        IReadOnlyList<ExecutionExpression> parts
+    )
     {
-        var typeName = keyArray.Shape?.GeneratedElementTypeName ??
-                       throw new InvalidOperationException("Generated window key type is required.");
+        var typeName =
+            keyArray.Shape?.GeneratedElementTypeName
+            ?? throw new InvalidOperationException("Generated window key type is required.");
 
-        return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(typeName))
+        return SyntaxFactory
+            .ObjectCreationExpression(SyntaxFactory.ParseTypeName(typeName))
             .WithArgumentList(CreateArgumentList(parts.Select(RenderExpression)));
     }
 
     private ExpressionSyntax CreateWindowPartitionKeyExpression(
         ExecutionWindowKeyArray partitionKeys,
-        ExecutionExpression partitionKey)
+        ExecutionExpression partitionKey
+    )
     {
         return HasGeneratedWindowKeyType(partitionKeys)
             ? CreateGeneratedWindowKeyCreation(partitionKeys, GetWindowKeyParts(partitionKey))
@@ -135,22 +151,27 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax CreateWindowOrderKeyExpression(
         ExecutionWindowKeyArray orderKeys,
-        IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions)
+        IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions
+    )
     {
-        return CreateGeneratedWindowKeyCreation(orderKeys,
-            orderKeyExpressions.Select(static key => key.Expression).ToArray());
+        return CreateGeneratedWindowKeyCreation(
+            orderKeys,
+            orderKeyExpressions.Select(static key => key.Expression).ToArray()
+        );
     }
 
     private ExpressionSyntax CreateRankingPartitionKeyExpression(
         ExecutionWindowKeyArray partitionKeys,
-        ExecutionExpression partitionKey)
+        ExecutionExpression partitionKey
+    )
     {
         return CreateWindowPartitionKeyExpression(partitionKeys, partitionKey);
     }
 
     private ExpressionSyntax CreateRankingOrderKeyExpression(
         ExecutionWindowKeyArray orderKeys,
-        IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions)
+        IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions
+    )
     {
         return CreateWindowOrderKeyExpression(orderKeys, orderKeyExpressions);
     }
@@ -164,20 +185,27 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static ArrayCreationExpressionSyntax CreateWindowKeyArrayCreation(
         ExecutionWindowKeyArray keyArray,
-        ExpressionSyntax size)
+        ExpressionSyntax size
+    )
     {
         return HasGeneratedWindowKeyType(keyArray)
             ? SyntaxFactory.ArrayCreationExpression(
-                SyntaxFactory.ArrayType(CreateWindowKeyElementTypeSyntax(keyArray))
-                    .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList(size)))))
+                SyntaxFactory
+                    .ArrayType(CreateWindowKeyElementTypeSyntax(keyArray))
+                    .WithRankSpecifiers(
+                        SyntaxFactory.SingletonList(
+                            SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList(size))
+                        )
+                    )
+            )
             : CreateWindowKeyArrayCreation(keyArray.Variable, size);
     }
 
     private static ExpressionStatementSyntax CreateWindowKeyArrayAssignment(
         ExecutionWindowKeyArray keyArray,
         string indexVariableName,
-        ExpressionSyntax value)
+        ExpressionSyntax value
+    )
     {
         if (!HasGeneratedWindowKeyType(keyArray))
             return CreateWindowKeyArrayAssignment(keyArray.Variable, indexVariableName, value);
@@ -187,8 +215,11 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxKind.SimpleAssignmentExpression,
                 CreateElementAccess(
                     SyntaxFactory.IdentifierName(keyArray.Variable.Name),
-                    SyntaxFactory.IdentifierName(indexVariableName)),
-                value));
+                    SyntaxFactory.IdentifierName(indexVariableName)
+                ),
+                value
+            )
+        );
     }
 
     private IEnumerable<GeneratedWindowKeyStruct> CollectGeneratedWindowKeyStructs(ExecutionBlock block)
@@ -206,10 +237,13 @@ public sealed partial class ExecutionCSharpRenderer
                 var typeName = keyArray.Shape!.GeneratedElementTypeName!;
                 if (!structs.TryGetValue(typeName, out var existing))
                 {
-                    structs.Add(typeName, CreateGeneratedWindowKeyStruct(keyArray) with
-                    {
-                        NeedsPeerEquals = usage.NeedsPeerEquals
-                    });
+                    structs.Add(
+                        typeName,
+                        CreateGeneratedWindowKeyStruct(keyArray) with
+                        {
+                            NeedsPeerEquals = usage.NeedsPeerEquals,
+                        }
+                    );
                     continue;
                 }
 
@@ -241,8 +275,9 @@ public sealed partial class ExecutionCSharpRenderer
 
                 yield return new GeneratedWindowKeyArrayUsage(
                     ResolveRankingOrderKeyArray(ranking),
-                    ranking.LibraryGet is not null && ranking.RequiresPeerMetadata ||
-                    ranking.Function is not ExecutionRankingWindowFunction.RowNumber);
+                    ranking.LibraryGet is not null && ranking.RequiresPeerMetadata
+                        || ranking.Function is not ExecutionRankingWindowFunction.RowNumber
+                );
                 break;
 
             case ExecutionComputeOffsetWindow offset:
@@ -275,14 +310,13 @@ public sealed partial class ExecutionCSharpRenderer
         }
     }
 
-    private sealed record GeneratedWindowKeyArrayUsage(
-        ExecutionWindowKeyArray KeyArray,
-        bool NeedsPeerEquals);
+    private sealed record GeneratedWindowKeyArrayUsage(ExecutionWindowKeyArray KeyArray, bool NeedsPeerEquals);
 
     private sealed record GeneratedWindowKeyStruct(
         string TypeName,
         bool IsOrderKey,
-        IReadOnlyList<ExecutionWindowGeneratedKeyPart> Parts)
+        IReadOnlyList<ExecutionWindowGeneratedKeyPart> Parts
+    )
     {
         public ExecutionTypeRef? RawValueType { get; init; }
         public bool NeedsPeerEquals { get; init; }

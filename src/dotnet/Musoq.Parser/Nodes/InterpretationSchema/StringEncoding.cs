@@ -34,5 +34,5 @@ public enum StringEncoding
     /// <summary>
     ///     IBM EBCDIC Code Page 037.
     /// </summary>
-    Ebcdic
+    Ebcdic,
 }

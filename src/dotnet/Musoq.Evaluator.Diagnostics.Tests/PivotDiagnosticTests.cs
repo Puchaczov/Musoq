@@ -12,20 +12,16 @@ public class PivotDiagnosticTests : BasicEntityTestBase
     [TestMethod]
     public void Pivot_WithNonAggregateUsingFunction_ShouldReportPivotUsingError()
     {
-        const string query = """
-                             pivot #A.Entities()
-                             on Month in ('Jan' as Jan)
-                             using ToUpper(Name) as Name
-                             """;
+        const string query = ("pivot #A.Entities()\n" + "on Month in ('Jan' as Jan)\n" + "using ToUpper(Name) as Name");
 
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateSources()));
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, CreateSources()));
 
         MusoqExceptionAssertions.AssertSingleError(
             exception,
             DiagnosticCode.MQ3051_FilterOnNonAggregate,
             DiagnosticPhase.Bind,
-            "PIVOT USING accepts aggregate function calls only");
+            "PIVOT USING accepts aggregate function calls only"
+        );
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources()

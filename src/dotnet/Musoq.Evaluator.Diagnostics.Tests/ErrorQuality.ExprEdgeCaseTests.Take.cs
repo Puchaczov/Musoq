@@ -103,10 +103,7 @@ public partial class ErrorQualityExprEdgeCaseTests
         AssertNoErrors(result);
     }
 
-
     // ============================================================================
     // E-EDGE: Edge Cases in Expressions and Literals
     // ============================================================================
-
-
 }

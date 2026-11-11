@@ -12,8 +12,10 @@ internal static class OuterJoinAdvisoryAnalyzer
     public static void Analyze(SemanticAdvisoryContext context)
     {
         var sourceColumns = CreateSourceColumnMap(context.Metadata.SourceContracts);
-        var variables = context.Metadata.ScriptVariableDefinitions
-            .ToDictionary(static definition => definition.Name, StringComparer.Ordinal);
+        var variables = context.Metadata.ScriptVariableDefinitions.ToDictionary(
+            static definition => definition.Name,
+            StringComparer.Ordinal
+        );
         foreach (var query in EnumerateQueries(context.Query))
         {
             var optionalAliases = CollectOptionalAliases(query.From);
@@ -29,7 +31,8 @@ internal static class OuterJoinAdvisoryAnalyzer
         QueryNode query,
         IReadOnlyDictionary<string, OptionalAlias> optionalAliases,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, BoundSchemaColumn>> sourceColumns,
-        IReadOnlyDictionary<string, ScriptVariableDefinition> variables)
+        IReadOnlyDictionary<string, ScriptVariableDefinition> variables
+    )
     {
         var predicate = query.Where?.Expression;
         if (predicate is null)
@@ -44,7 +47,8 @@ internal static class OuterJoinAdvisoryAnalyzer
         Node predicate,
         OptionalAlias alias,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, BoundSchemaColumn>> sourceColumns,
-        IReadOnlyDictionary<string, ScriptVariableDefinition> variables)
+        IReadOnlyDictionary<string, ScriptVariableDefinition> variables
+    )
     {
         if (ContainsPresenceGuard(predicate, alias.Name))
             return;
@@ -57,7 +61,8 @@ internal static class OuterJoinAdvisoryAnalyzer
             context.Report(
                 DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter,
                 ErrorCatalog.GetMessage(DiagnosticCode.MQ5019_NullRejectingOuterJoinFilter, alias.Name),
-                missingRow.RejectingNode?.Span ?? predicate.Span);
+                missingRow.RejectingNode?.Span ?? predicate.Span
+            );
         }
     }
 
@@ -65,30 +70,35 @@ internal static class OuterJoinAdvisoryAnalyzer
         SemanticAdvisoryContext context,
         Node predicate,
         OptionalAlias alias,
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, BoundSchemaColumn>> sourceColumns)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, BoundSchemaColumn>> sourceColumns
+    )
     {
         foreach (var node in EnumerateNodes(predicate))
         {
-            if (node is not IsNullNode { IsNegated: false, Expression: AccessColumnNode column } ||
-                !string.Equals(column.Alias, alias.Name, StringComparison.OrdinalIgnoreCase) ||
-                !IsOriginalNullable(sourceColumns, column.Alias, column.Name))
+            if (
+                node is not IsNullNode { IsNegated: false, Expression: AccessColumnNode column }
+                || !string.Equals(column.Alias, alias.Name, StringComparison.OrdinalIgnoreCase)
+                || !IsOriginalNullable(sourceColumns, column.Alias, column.Name)
+            )
                 continue;
 
             context.Report(
                 DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck,
                 ErrorCatalog.GetMessage(DiagnosticCode.MQ5018_AmbiguousOuterJoinNullCheck, column.Alias, column.Name),
-                column.HasSpan ? column.Span : node.Span);
+                column.HasSpan ? column.Span : node.Span
+            );
         }
     }
 
     private static bool IsOriginalNullable(
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, BoundSchemaColumn>> sourceColumns,
         string alias,
-        string column)
+        string column
+    )
     {
-        return sourceColumns.TryGetValue(alias, out var columns) &&
-               columns.TryGetValue(column, out var metadata) &&
-               metadata.IsNullable;
+        return sourceColumns.TryGetValue(alias, out var columns)
+            && columns.TryGetValue(column, out var metadata)
+            && metadata.IsNullable;
     }
 
     private static IReadOnlyDictionary<string, OptionalAlias> CollectOptionalAliases(FromNode from)
@@ -149,7 +159,8 @@ internal static class OuterJoinAdvisoryAnalyzer
         JoinType joinType,
         FromNode first,
         FromNode second,
-        IDictionary<string, OptionalAlias> aliases)
+        IDictionary<string, OptionalAlias> aliases
+    )
     {
         if (joinType is JoinType.OuterRight or JoinType.OuterFull)
             AddAliases(first, aliases);
@@ -162,7 +173,8 @@ internal static class OuterJoinAdvisoryAnalyzer
         JoinType joinType,
         string firstAlias,
         FromNode second,
-        IDictionary<string, OptionalAlias> aliases)
+        IDictionary<string, OptionalAlias> aliases
+    )
     {
         if (joinType is JoinType.OuterRight or JoinType.OuterFull)
             AddAlias(firstAlias, aliases);
@@ -211,18 +223,26 @@ internal static class OuterJoinAdvisoryAnalyzer
     }
 
     private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, BoundSchemaColumn>> CreateSourceColumnMap(
-        IReadOnlyList<BoundSourceContract> contracts)
+        IReadOnlyList<BoundSourceContract> contracts
+    )
     {
         return contracts
             .Where(static contract => !string.IsNullOrWhiteSpace(contract.Identity.Alias))
             .GroupBy(static contract => contract.Identity.Alias, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(
                 static group => group.Key,
-                static group => (IReadOnlyDictionary<string, BoundSchemaColumn>)group
-                    .SelectMany(static contract => contract.Columns)
-                    .GroupBy(static column => column.ColumnName, StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(static group => group.Key, static group => group.First(), StringComparer.OrdinalIgnoreCase),
-                StringComparer.OrdinalIgnoreCase);
+                static group =>
+                    (IReadOnlyDictionary<string, BoundSchemaColumn>)
+                        group
+                            .SelectMany(static contract => contract.Columns)
+                            .GroupBy(static column => column.ColumnName, StringComparer.OrdinalIgnoreCase)
+                            .ToDictionary(
+                                static group => group.Key,
+                                static group => group.First(),
+                                StringComparer.OrdinalIgnoreCase
+                            ),
+                StringComparer.OrdinalIgnoreCase
+            );
     }
 
     private static IEnumerable<QueryNode> EnumerateQueries(Node root)
@@ -231,29 +251,32 @@ internal static class OuterJoinAdvisoryAnalyzer
             yield return query;
 
         foreach (var child in ParserNodeTraversalRegistry.EnumerateChildren(root))
-            foreach (var nested in EnumerateQueries(child))
-                yield return nested;
+        foreach (var nested in EnumerateQueries(child))
+            yield return nested;
     }
 
     private static IEnumerable<Node> EnumerateNodes(Node root)
     {
         yield return root;
         foreach (var child in ParserNodeTraversalRegistry.EnumerateChildren(root))
-            foreach (var nested in EnumerateNodes(child))
-                yield return nested;
+        foreach (var nested in EnumerateNodes(child))
+            yield return nested;
     }
 
     private static bool ContainsPresenceGuard(Node predicate, string alias)
     {
-        return EnumerateNodes(predicate).Any(node =>
-            node is RowPresenceNode { Expression: IdentifierNode identifier } &&
-            string.Equals(identifier.Name, alias, StringComparison.OrdinalIgnoreCase));
+        return EnumerateNodes(predicate)
+            .Any(node =>
+                node is RowPresenceNode { Expression: IdentifierNode identifier }
+                && string.Equals(identifier.Name, alias, StringComparison.OrdinalIgnoreCase)
+            );
     }
 
     private static MissingPredicateResult EvaluateMissingRow(
         Node node,
         string alias,
-        IReadOnlyDictionary<string, ScriptVariableDefinition> variables)
+        IReadOnlyDictionary<string, ScriptVariableDefinition> variables
+    )
     {
         var staticValue = ScriptVariableInitializerEvaluator.EvaluateStaticExpression(node, variables);
         if (staticValue.Success && staticValue.Value is bool value)
@@ -279,13 +302,9 @@ internal static class OuterJoinAdvisoryAnalyzer
                 return Negate(result);
             }
             case RowPresenceNode presence when IsAlias(presence.Expression, alias):
-                return presence.IsPresent
-                    ? MissingPredicateResult.FalseFor(presence)
-                    : MissingPredicateResult.True;
+                return presence.IsPresent ? MissingPredicateResult.FalseFor(presence) : MissingPredicateResult.True;
             case IsNullNode isNull when IsOptionalReference(isNull.Expression, alias):
-                return isNull.IsNegated
-                    ? MissingPredicateResult.FalseFor(isNull)
-                    : MissingPredicateResult.True;
+                return isNull.IsNegated ? MissingPredicateResult.FalseFor(isNull) : MissingPredicateResult.True;
             case LikeNode like when IsOptionalPatternOperand(like.Left, alias):
             case RLikeNode rlike when IsOptionalPatternOperand(rlike.Left, alias):
             case InNode @in when IsOptionalReference(@in.Left, alias):
@@ -306,16 +325,15 @@ internal static class OuterJoinAdvisoryAnalyzer
     private static MissingPredicateResult Combine(
         MissingPredicateResult left,
         MissingPredicateResult right,
-        BooleanOperator operation)
+        BooleanOperator operation
+    )
     {
         var values = MissingTruth.None;
         foreach (var leftValue in Expand(left.Values))
         foreach (var rightValue in Expand(right.Values))
             values |= EvaluateBoolean(leftValue, rightValue, operation);
 
-        var rejectingNode = !CanBeTrue(values)
-            ? left.RejectingNode ?? right.RejectingNode
-            : null;
+        var rejectingNode = !CanBeTrue(values) ? left.RejectingNode ?? right.RejectingNode : null;
         return new MissingPredicateResult(values, rejectingNode);
     }
 
@@ -327,37 +345,30 @@ internal static class OuterJoinAdvisoryAnalyzer
             {
                 MissingTruth.True => MissingTruth.False,
                 MissingTruth.False => MissingTruth.True,
-                _ => MissingTruth.Unknown
+                _ => MissingTruth.Unknown,
             };
 
         return new MissingPredicateResult(values, result.RejectingNode);
     }
 
-    private static MissingTruth EvaluateBoolean(
-        MissingTruth left,
-        MissingTruth right,
-        BooleanOperator operation)
+    private static MissingTruth EvaluateBoolean(MissingTruth left, MissingTruth right, BooleanOperator operation)
     {
         if (operation == BooleanOperator.And)
         {
             if (left == MissingTruth.False || right == MissingTruth.False)
                 return MissingTruth.False;
-            return left == MissingTruth.True && right == MissingTruth.True
-                ? MissingTruth.True
-                : MissingTruth.Unknown;
+            return left == MissingTruth.True && right == MissingTruth.True ? MissingTruth.True : MissingTruth.Unknown;
         }
 
         if (left == MissingTruth.True || right == MissingTruth.True)
             return MissingTruth.True;
-        return left == MissingTruth.False && right == MissingTruth.False
-            ? MissingTruth.False
-            : MissingTruth.Unknown;
+        return left == MissingTruth.False && right == MissingTruth.False ? MissingTruth.False : MissingTruth.Unknown;
     }
 
     private enum BooleanOperator
     {
         And,
-        Or
+        Or,
     }
 
     private static IEnumerable<MissingTruth> Expand(MissingTruth values)
@@ -384,14 +395,14 @@ internal static class OuterJoinAdvisoryAnalyzer
 
     private static bool IsOptionalReference(Node node, string alias)
     {
-        return node is AccessColumnNode column &&
-               string.Equals(column.Alias, alias, StringComparison.OrdinalIgnoreCase);
+        return node is AccessColumnNode column
+            && string.Equals(column.Alias, alias, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsAlias(Node node, string alias)
     {
-        return node is IdentifierNode identifier &&
-               string.Equals(identifier.Name, alias, StringComparison.OrdinalIgnoreCase);
+        return node is IdentifierNode identifier
+            && string.Equals(identifier.Name, alias, StringComparison.OrdinalIgnoreCase);
     }
 
     private readonly record struct OptionalAlias(string Name);
@@ -402,7 +413,7 @@ internal static class OuterJoinAdvisoryAnalyzer
         None = 0,
         Unknown = 1,
         True = 2,
-        False = 4
+        False = 4,
     }
 
     private readonly record struct MissingPredicateResult(MissingTruth Truth, Node? RejectingNode)
@@ -417,7 +428,7 @@ internal static class OuterJoinAdvisoryAnalyzer
 
         public static MissingPredicateResult UnknownFor(Node node) => new(MissingTruth.Unknown, node);
 
-        public static MissingPredicateResult Indeterminate { get; } = new(MissingTruth.Unknown | MissingTruth.True | MissingTruth.False, null);
+        public static MissingPredicateResult Indeterminate { get; } =
+            new(MissingTruth.Unknown | MissingTruth.True | MissingTruth.False, null);
     }
-
 }

@@ -11,7 +11,8 @@ public static class SourcePlanningRows
         var baseDate = new DateTime(2024, 01, 01, 0, 0, 0, DateTimeKind.Utc);
         var categories = new[] { "alpha", "beta", "gamma", "delta" };
 
-        return Enumerable.Range(0, 24)
+        return Enumerable
+            .Range(0, 24)
             .Select(index => new SourcePlanningEntity
             {
                 Id = index + 1,
@@ -20,7 +21,7 @@ public static class SourcePlanningRows
                 Score = (index * 17 + 11) % 101,
                 CreatedAt = baseDate.AddHours((index * 5) % 37),
                 JoinKey = index % 6,
-                ExpensivePayload = $"payload-{index:00}"
+                ExpensivePayload = $"payload-{index:00}",
             })
             .ToArray();
     }

@@ -10,27 +10,46 @@ public partial class AsOfJoinTests
     [TestMethod]
     public void StructAsOfInner_InjectsOriginalMatchedSourceContext()
     {
-        const string query = "select l.Id as LeftId, r.ReadId() as MatchedId from #stress.rows('left') l asof join #stress.rows('right') r on l.KeyValue >= r.KeyValue tie break by r.Priority asc nulls last order by l.Id";
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new SpecStressAsofTieBreakSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        const string query =
+            "select l.Id as LeftId, r.ReadId() as MatchedId from #stress.rows('left') l asof join #stress.rows('right') r on l.KeyValue >= r.KeyValue tie break by r.Priority asc nulls last order by l.Id";
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new SpecStressAsofTieBreakSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
         TableMaterializationTestHelper.AssertColumns(result, ("LeftId", typeof(int)), ("MatchedId", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsInOrder(result,
-            new object?[] { 1, 12 }, new object?[] { 3, 14 });
+        TableMaterializationTestHelper.AssertRowsInOrder(result, new object?[] { 1, 12 }, new object?[] { 3, 14 });
     }
 
     [TestMethod]
     public void StructAsOfLeft_DefaultValuedMatchRetainsRowPresence()
     {
-        const string query = "select l.Id as LeftId, r.Id as MatchedId, r is present as Matched from #stress.rows('left') l asof left join #stress.rows('zero') r on l.KeyValue >= r.KeyValue order by l.Id";
-        using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new SpecStressAsofTieBreakSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        const string query =
+            "select l.Id as LeftId, r.Id as MatchedId, r is present as Matched from #stress.rows('left') l asof left join #stress.rows('zero') r on l.KeyValue >= r.KeyValue order by l.Id";
+        using var compiled = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new SpecStressAsofTieBreakSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var result = compiled.Run();
-        TableMaterializationTestHelper.AssertColumns(result,
-            ("LeftId", typeof(int)), ("MatchedId", typeof(int?)), ("Matched", typeof(bool)));
-        TableMaterializationTestHelper.AssertRowsInOrder(result,
-            new object?[] { 0, 0, true }, new object?[] { 1, 0, true },
-            new object?[] { 2, null, false }, new object?[] { 3, 0, true });
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("LeftId", typeof(int)),
+            ("MatchedId", typeof(int?)),
+            ("Matched", typeof(bool))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            result,
+            new object?[] { 0, 0, true },
+            new object?[] { 1, 0, true },
+            new object?[] { 2, null, false },
+            new object?[] { 3, 0, true }
+        );
     }
 
     // Candidate: SPECSTRESS-2026-09-29-P5-0007
@@ -45,26 +64,40 @@ public partial class AsOfJoinTests
     [TestProperty("Phase", "5")]
     public void AsofLeftJoinUsesTieBreakForEqualNearestKeysFromTypedSources()
     {
-        const string query = "select l.Id as LeftId, r.Id as MatchedId from #stress.rows('left') l asof left join #stress.rows('right') r on l.KeyValue >= r.KeyValue tie break by r.Priority asc nulls last";
+        const string query =
+            "select l.Id as LeftId, r.Id as MatchedId from #stress.rows('left') l asof left join #stress.rows('right') r on l.KeyValue >= r.KeyValue tie break by r.Priority asc nulls last";
         using var compiled = InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             new SpecStressAsofTieBreakSchemaProvider(),
             LoggerResolver,
-            TestCompilationOptions);
+            TestCompilationOptions
+        );
         using var result = TableMaterializationTestHelper.Materialize(compiled.Run());
 
         AssertTypedTieResult(result);
-        const string outerQuery = "select l.Id as LeftId, r.Id as MatchedId from #stress.rows('left') l asof left outer join #stress.rows('right') r on l.KeyValue >= r.KeyValue tie break by r.Priority asc nulls last";
-        using var outerCompiled = InstanceCreator.CompileForExecution(outerQuery, Guid.NewGuid().ToString(), new SpecStressAsofTieBreakSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        const string outerQuery =
+            "select l.Id as LeftId, r.Id as MatchedId from #stress.rows('left') l asof left outer join #stress.rows('right') r on l.KeyValue >= r.KeyValue tie break by r.Priority asc nulls last";
+        using var outerCompiled = InstanceCreator.CompileForExecution(
+            outerQuery,
+            Guid.NewGuid().ToString(),
+            new SpecStressAsofTieBreakSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
         using var outerResult = outerCompiled.Run();
         AssertTypedTieResult(outerResult);
     }
+
     private static void AssertTypedTieResult(Table result)
     {
         TableMaterializationTestHelper.AssertColumns(result, ("LeftId", typeof(int)), ("MatchedId", typeof(int?)));
-        TableMaterializationTestHelper.AssertRowsUnordered(result,
-            new object?[] { 0, null }, new object?[] { 1, 12 },
-            new object?[] { 2, null }, new object?[] { 3, 14 });
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
+            new object?[] { 0, null },
+            new object?[] { 1, 12 },
+            new object?[] { 2, null },
+            new object?[] { 3, 14 }
+        );
     }
 }

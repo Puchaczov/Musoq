@@ -23,14 +23,22 @@ internal sealed class CompiledTextFixture : ICompiledTextFixture, IDisposable
         try
         {
             var references = new FixtureReferences(_environment);
-            var compilation = _environment.CreateCompilation("TextFixtureProjection")
-                .AddReferences(references.GetReferences()).AddSyntaxTrees(CSharpSyntaxTree.ParseText(code));
+            var compilation = _environment
+                .CreateCompilation("TextFixtureProjection")
+                .AddReferences(references.GetReferences())
+                .AddSyntaxTrees(CSharpSyntaxTree.ParseText(code));
             var adapter = SchemaFixtureProjection.CreateText(compilation, schemaName);
-            _unit = new InterpreterCompilationUnit($"TextFixture_{Guid.NewGuid():N}", code + adapter,
-                _environment.CompilationFactory, references, DefaultAssemblyLoader.Instance);
+            _unit = new InterpreterCompilationUnit(
+                $"TextFixture_{Guid.NewGuid():N}",
+                code + adapter,
+                _environment.CompilationFactory,
+                references,
+                DefaultAssemblyLoader.Instance
+            );
             if (!_unit.Compile())
                 throw new InvalidOperationException(string.Join(Environment.NewLine, _unit.GetErrorMessages()));
-            _adapter = _unit.CreateInterpreterInstance<ICompiledTextFixture>("TextFixtureAdapter")
+            _adapter =
+                _unit.CreateInterpreterInstance<ICompiledTextFixture>("TextFixtureAdapter")
                 ?? throw new InvalidOperationException("Text fixture adapter was not activated.");
         }
         catch
@@ -42,6 +50,7 @@ internal sealed class CompiledTextFixture : ICompiledTextFixture, IDisposable
     }
 
     public object Parse(string text) => _adapter.Parse(text);
+
     public void Dispose()
     {
         _unit.Dispose();
@@ -51,9 +60,9 @@ internal sealed class CompiledTextFixture : ICompiledTextFixture, IDisposable
     private sealed class FixtureReferences(EvaluatorRuntimeEnvironment environment) : IInterpreterReferenceProvider
     {
         public IReadOnlyList<MetadataReference> GetReferences() =>
-        [
-            .. new DefaultInterpreterReferenceProvider(environment.MetadataReferenceCache).GetReferences(),
-            environment.GetOrCreateMetadataReference(typeof(ICompiledTextFixture).Assembly.Location)
-        ];
+            [
+                .. new DefaultInterpreterReferenceProvider(environment.MetadataReferenceCache).GetReferences(),
+                environment.GetOrCreateMetadataReference(typeof(ICompiledTextFixture).Assembly.Location),
+            ];
     }
 }

@@ -15,7 +15,10 @@ internal static partial class FinalOutputPlanner
         if (!HasFreshTerminalWrites(plan.Body, output.Result))
             return output;
 
-        return output with { RowRepresentation = FinalOutputRowRepresentation.GeneratedRow };
+        return output with
+        {
+            RowRepresentation = FinalOutputRowRepresentation.GeneratedRow,
+        };
     }
 
     private static bool HasFreshTerminalWrites(ExecutionBlock body, TableViaRowsResultInfo result)
@@ -23,8 +26,10 @@ internal static partial class FinalOutputPlanner
         var foundAppend = false;
         foreach (var node in ExecutionIrAnalysis.FlattenNodes(body))
         {
-            if (node is ExecutionParallelBlock or ExecutionParallelFilterProjectLoop &&
-                ExecutionIrAnalysis.ContainsVariableUse(node, result.TableName))
+            if (
+                node is ExecutionParallelBlock or ExecutionParallelFilterProjectLoop
+                && ExecutionIrAnalysis.ContainsVariableUse(node, result.TableName)
+            )
             {
                 return false;
             }
@@ -34,9 +39,11 @@ internal static partial class FinalOutputPlanner
 
             if (node is ExecutionAppendRow append && append.Table.Name == result.TableName)
             {
-                if (append.RowShape.TypeName != result.RowTypeName ||
-                    append.Values.Count != result.ShapeFields.Count ||
-                    !CanUseFinalShapeSourceBuffer(append.RowShape, result.ShapeFields))
+                if (
+                    append.RowShape.TypeName != result.RowTypeName
+                    || append.Values.Count != result.ShapeFields.Count
+                    || !CanUseFinalShapeSourceBuffer(append.RowShape, result.ShapeFields)
+                )
                 {
                     return false;
                 }
@@ -45,8 +52,10 @@ internal static partial class FinalOutputPlanner
                 continue;
             }
 
-            if (node is ExecutionReturnTable { Table.Name: var returned } && returned == result.TableName ||
-                node is ExecutionEnsureTableCapacity { Table.Name: var ensured } && ensured == result.TableName)
+            if (
+                node is ExecutionReturnTable { Table.Name: var returned } && returned == result.TableName
+                || node is ExecutionEnsureTableCapacity { Table.Name: var ensured } && ensured == result.TableName
+            )
             {
                 continue;
             }

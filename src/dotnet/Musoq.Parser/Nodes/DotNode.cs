@@ -15,8 +15,14 @@ public class DotNode : UnaryNode
         IntendedTypeName = intendedTypeName;
     }
 
-    public DotNode(Node root, Node expression, bool isTheMostInner, string name, Type? returnType = null,
-        string? intendedTypeName = null)
+    public DotNode(
+        Node root,
+        Node expression,
+        bool isTheMostInner,
+        string name,
+        Type? returnType = null,
+        string? intendedTypeName = null
+    )
         : base(expression)
     {
         ArgumentNullException.ThrowIfNull(root);

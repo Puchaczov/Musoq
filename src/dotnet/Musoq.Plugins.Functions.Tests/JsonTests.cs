@@ -199,11 +199,13 @@ public sealed class JsonTests : PluginsTestBase
     public void WhenExtractingFromComplexArray_ReturnsAllValues()
     {
         // Arrange
-        var json = @"[
-        { ""abc"": { ""test"": ""something"", ""value"": 42 } },
-        { ""abc"": { ""test"": ""something2"", ""value"": 43 } },
-        { ""abc"": { ""test"": ""something3"", ""value"": 44 } }
-    ]";
+        var json = (
+            "[\n"
+            + "        { \"abc\": { \"test\": \"something\", \"value\": 42 } },\n"
+            + "        { \"abc\": { \"test\": \"something2\", \"value\": 43 } },\n"
+            + "        { \"abc\": { \"test\": \"something3\", \"value\": 44 } }\n"
+            + "    ]"
+        );
 
         // Act
         var testResults = JsonExtractorHelper.ExtractFromJson(json, "$[*].abc.test");
@@ -225,15 +227,17 @@ public sealed class JsonTests : PluginsTestBase
     public void WhenExtractingDifferentDataTypes_ReturnsCorrectStringRepresentations()
     {
         // Arrange
-        var json = @"{
-        ""string"": ""text"",
-        ""number"": 42,
-        ""decimal"": 42.5,
-        ""boolean"": true,
-        ""nullValue"": null,
-        ""object"": { ""nested"": ""value"" },
-        ""array"": [1, 2, 3]
-    }";
+        var json = (
+            "{\n"
+            + "        \"string\": \"text\",\n"
+            + "        \"number\": 42,\n"
+            + "        \"decimal\": 42.5,\n"
+            + "        \"boolean\": true,\n"
+            + "        \"nullValue\": null,\n"
+            + "        \"object\": { \"nested\": \"value\" },\n"
+            + "        \"array\": [1, 2, 3]\n"
+            + "    }"
+        );
 
         // Act & Assert
         var stringResult = JsonExtractorHelper.ExtractFromJson(json, "$.string");
@@ -277,12 +281,14 @@ public sealed class JsonTests : PluginsTestBase
     public void WhenUsingDifferentArrayNotations_ReturnsCorrectValues()
     {
         // Arrange
-        var json = @"{
-        ""items"": [
-            { ""id"": 1, ""values"": [""a"", ""b"", ""c""] },
-            { ""id"": 2, ""values"": [""d"", ""e"", ""f""] }
-        ]
-    }";
+        var json = (
+            "{\n"
+            + "        \"items\": [\n"
+            + "            { \"id\": 1, \"values\": [\"a\", \"b\", \"c\"] },\n"
+            + "            { \"id\": 2, \"values\": [\"d\", \"e\", \"f\"] }\n"
+            + "        ]\n"
+            + "    }"
+        );
 
         // Act
         var specificArrayResult = JsonExtractorHelper.ExtractFromJson(json, "$.items[0].values[1]");
@@ -305,24 +311,26 @@ public sealed class JsonTests : PluginsTestBase
     public void WhenHandlingNestedArraysWithMixedTypes_ReturnsCorrectValues()
     {
         // Arrange
-        var json = @"{
-        ""data"": [
-            {
-                ""items"": [
-                    { ""value"": true },
-                    { ""value"": 42 },
-                    { ""value"": ""text"" }
-                ]
-            },
-            {
-                ""items"": [
-                    { ""value"": false },
-                    { ""value"": 43 },
-                    { ""value"": ""another"" }
-                ]
-            }
-        ]
-    }";
+        var json = (
+            "{\n"
+            + "        \"data\": [\n"
+            + "            {\n"
+            + "                \"items\": [\n"
+            + "                    { \"value\": true },\n"
+            + "                    { \"value\": 42 },\n"
+            + "                    { \"value\": \"text\" }\n"
+            + "                ]\n"
+            + "            },\n"
+            + "            {\n"
+            + "                \"items\": [\n"
+            + "                    { \"value\": false },\n"
+            + "                    { \"value\": 43 },\n"
+            + "                    { \"value\": \"another\" }\n"
+            + "                ]\n"
+            + "            }\n"
+            + "        ]\n"
+            + "    }"
+        );
 
         // Act
         var results = JsonExtractorHelper.ExtractFromJson(json, "$.data[*].items[*].value");
@@ -341,14 +349,16 @@ public sealed class JsonTests : PluginsTestBase
     public void WhenHandlingEmptyArraysAndObjects_ReturnsEmptyArray()
     {
         // Arrange
-        var json = @"{
-        ""emptyArray"": [],
-        ""emptyObject"": {},
-        ""arrayWithEmpty"": [
-            { },
-            { ""value"": ""something"" }
-        ]
-    }";
+        var json = (
+            "{\n"
+            + "        \"emptyArray\": [],\n"
+            + "        \"emptyObject\": {},\n"
+            + "        \"arrayWithEmpty\": [\n"
+            + "            { },\n"
+            + "            { \"value\": \"something\" }\n"
+            + "        ]\n"
+            + "    }"
+        );
 
         // Act
         var emptyArrayResult = JsonExtractorHelper.ExtractFromJson(json, "$.emptyArray[*]");
@@ -366,10 +376,9 @@ public sealed class JsonTests : PluginsTestBase
     public void WhenHandlingOutOfBoundsAndInvalidPaths_ReturnsEmptyArray()
     {
         // Arrange
-        var json = @"{
-        ""array"": [1, 2, 3],
-        ""nested"": { ""value"": ""test"" }
-    }";
+        var json = (
+            "{\n" + "        \"array\": [1, 2, 3],\n" + "        \"nested\": { \"value\": \"test\" }\n" + "    }"
+        );
 
         // Act & Assert
         var outOfBoundsResult = JsonExtractorHelper.ExtractFromJson(json, "$.array[5]");
@@ -402,14 +411,16 @@ public sealed class JsonTests : PluginsTestBase
     public void WhenHandlingSpecialCharactersInPaths_ReturnsCorrectValues()
     {
         // Arrange
-        var json = @"{
-        ""special.key"": ""value1"",
-        ""special[key]"": ""value2"",
-        ""nested"": {
-            ""special.key"": ""value3"",
-            ""array[0]"": ""value4""
-        }
-    }";
+        var json = (
+            "{\n"
+            + "        \"special.key\": \"value1\",\n"
+            + "        \"special[key]\": \"value2\",\n"
+            + "        \"nested\": {\n"
+            + "            \"special.key\": \"value3\",\n"
+            + "            \"array[0]\": \"value4\"\n"
+            + "        }\n"
+            + "    }"
+        );
 
         // Act & Assert
         // Test different quote styles
@@ -438,17 +449,19 @@ public sealed class JsonTests : PluginsTestBase
     public void WhenHandlingComplexPropertyNames_ReturnsCorrectValues()
     {
         // Arrange
-        var json = @"{
-        ""normal"": ""value0"",
-        ""special.key"": ""value1"",
-        ""special[key]"": ""value2"",
-        ""special[key].more"": ""value3"",
-        ""nested"": {
-            ""special.key"": ""value4"",
-            ""array[0]"": ""value5"",
-            ""complex[name].with.dot"": ""value6""
-        }
-    }";
+        var json = (
+            "{\n"
+            + "        \"normal\": \"value0\",\n"
+            + "        \"special.key\": \"value1\",\n"
+            + "        \"special[key]\": \"value2\",\n"
+            + "        \"special[key].more\": \"value3\",\n"
+            + "        \"nested\": {\n"
+            + "            \"special.key\": \"value4\",\n"
+            + "            \"array[0]\": \"value5\",\n"
+            + "            \"complex[name].with.dot\": \"value6\"\n"
+            + "        }\n"
+            + "    }"
+        );
 
         // Act & Assert
         // Test various property name formats
@@ -474,17 +487,19 @@ public sealed class JsonTests : PluginsTestBase
     public void WhenHandlingVeryComplexPaths_ReturnsCorrectValues()
     {
         // Arrange
-        var json = @"{
-        ""simple"": ""value1"",
-        ""with.dot"": ""value2"",
-        ""with[bracket]"": ""value3"",
-        ""nested"": {
-            ""complex[name].with.dot"": ""value4"",
-            ""array"": [
-                { ""special.name[0]"": ""value5"" }
-            ]
-        }
-    }";
+        var json = (
+            "{\n"
+            + "        \"simple\": \"value1\",\n"
+            + "        \"with.dot\": \"value2\",\n"
+            + "        \"with[bracket]\": \"value3\",\n"
+            + "        \"nested\": {\n"
+            + "            \"complex[name].with.dot\": \"value4\",\n"
+            + "            \"array\": [\n"
+            + "                { \"special.name[0]\": \"value5\" }\n"
+            + "            ]\n"
+            + "        }\n"
+            + "    }"
+        );
 
         // Act & Assert
         // Simple path

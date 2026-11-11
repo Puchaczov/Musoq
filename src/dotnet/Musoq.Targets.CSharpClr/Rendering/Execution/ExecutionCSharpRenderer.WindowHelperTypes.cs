@@ -5,33 +5,31 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static TypeSyntax CreateWindowHelperItemTypeSyntax(
-        ExecutionVariable item,
-        string? generatedRowTypeName)
+    private static TypeSyntax CreateWindowHelperItemTypeSyntax(ExecutionVariable item, string? generatedRowTypeName)
     {
         return CreateVariableTypeSyntax(CreateWindowHelperItem(item, generatedRowTypeName));
     }
 
-    private static TypeSyntax CreateWindowRowsParameterType(
-        ExecutionVariable item,
-        string? generatedRowTypeName)
+    private static TypeSyntax CreateWindowRowsParameterType(ExecutionVariable item, string? generatedRowTypeName)
     {
         return CreateReadOnlyListTypeSyntax(CreateWindowHelperItemTypeSyntax(item, generatedRowTypeName));
     }
 
-    private static ExecutionVariable CreateWindowHelperItem(
-        ExecutionVariable item,
-        string? generatedRowTypeName)
+    private static ExecutionVariable CreateWindowHelperItem(ExecutionVariable item, string? generatedRowTypeName)
     {
         return string.IsNullOrWhiteSpace(generatedRowTypeName)
             ? item
-            : item with { GeneratedRowTypeName = generatedRowTypeName };
+            : item with
+            {
+                GeneratedRowTypeName = generatedRowTypeName,
+            };
     }
 
     private static string? ResolveGeneratedRowTypeName(
         ExecutionVariable buffer,
         ExecutionVariable item,
-        IReadOnlyDictionary<string, string> materializedRowTypeNames)
+        IReadOnlyDictionary<string, string> materializedRowTypeNames
+    )
     {
         return materializedRowTypeNames.TryGetValue(buffer.Name, out var generatedRowTypeName)
             ? generatedRowTypeName
@@ -40,7 +38,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static void AddMaterializedRowTypeName(
         ExecutionNode node,
-        Dictionary<string, string> materializedRowTypeNames)
+        Dictionary<string, string> materializedRowTypeNames
+    )
     {
         switch (node)
         {

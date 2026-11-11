@@ -9,7 +9,8 @@ internal static class WindowFrameSemanticValidator
     internal static void Validate(
         WindowSpecificationNode node,
         FieldOrderedNode[] orderByFields,
-        Action<DiagnosticCode, string, TextSpan> report)
+        Action<DiagnosticCode, string, TextSpan> report
+    )
     {
         var frame = node.Frame;
         if (frame == null)
@@ -20,13 +21,12 @@ internal static class WindowFrameSemanticValidator
             report(
                 DiagnosticCode.MQ3053_InvalidWindowFrameBounds,
                 $"Invalid window frame: start bound '{DescribeBound(frame.Start)}' is logically after end bound '{DescribeBound(frame.End)}'.",
-                GetSpan(node));
+                GetSpan(node)
+            );
             return;
         }
 
-        if (frame.FrameType != WindowFrameType.Range ||
-            !HasOffsetBound(frame) ||
-            orderByFields.Length == 0)
+        if (frame.FrameType != WindowFrameType.Range || !HasOffsetBound(frame) || orderByFields.Length == 0)
             return;
 
         if (orderByFields.Length == 1 && IsNumeric(orderByFields[0]))
@@ -35,19 +35,21 @@ internal static class WindowFrameSemanticValidator
         report(
             DiagnosticCode.MQ3098_InvalidRangeFrameOrderKey,
             "A RANGE frame with a PRECEDING or FOLLOWING offset requires exactly one numeric ORDER BY key.",
-            GetSpan(node));
+            GetSpan(node)
+        );
     }
 
     private static bool IsNumeric(FieldOrderedNode field)
     {
         return BinaryOperatorTypeRules.IsNumericType(
-            BinaryOperatorTypeRules.NormalizeOperandType(field.Expression.ReturnType));
+            BinaryOperatorTypeRules.NormalizeOperandType(field.Expression.ReturnType)
+        );
     }
 
     private static bool HasOffsetBound(WindowFrameNode frame)
     {
-        return frame.Start.BoundType is WindowFrameBoundType.OffsetPreceding or WindowFrameBoundType.OffsetFollowing ||
-               frame.End.BoundType is WindowFrameBoundType.OffsetPreceding or WindowFrameBoundType.OffsetFollowing;
+        return frame.Start.BoundType is WindowFrameBoundType.OffsetPreceding or WindowFrameBoundType.OffsetFollowing
+            || frame.End.BoundType is WindowFrameBoundType.OffsetPreceding or WindowFrameBoundType.OffsetFollowing;
     }
 
     private static int GetBoundRank(WindowFrameBoundType boundType)
@@ -59,7 +61,7 @@ internal static class WindowFrameSemanticValidator
             WindowFrameBoundType.CurrentRow => 2,
             WindowFrameBoundType.OffsetFollowing => 3,
             WindowFrameBoundType.UnboundedFollowing => 4,
-            _ => throw new ArgumentOutOfRangeException(nameof(boundType), boundType, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(boundType), boundType, null),
         };
     }
 
@@ -72,7 +74,7 @@ internal static class WindowFrameSemanticValidator
             WindowFrameBoundType.CurrentRow => "CURRENT ROW",
             WindowFrameBoundType.OffsetFollowing => $"{bound.Offset} FOLLOWING",
             WindowFrameBoundType.UnboundedFollowing => "UNBOUNDED FOLLOWING",
-            _ => bound.BoundType.ToString().ToUpperInvariant()
+            _ => bound.BoundType.ToString().ToUpperInvariant(),
         };
     }
 

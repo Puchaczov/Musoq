@@ -12,12 +12,14 @@ public partial class ErrorQualityBinaryTextSchemaTests
     {
         // Arrange — correct binary schema
         var analyzer = CreateAnalyzer();
-        var query = @"binary Header {
-    Magic: int le,
-    Version: short le,
-    Flag: byte
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary Header {\n"
+            + "    Magic: int le,\n"
+            + "    Version: short le,\n"
+            + "    Flag: byte\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -37,12 +39,14 @@ select 1 from #A.Entities()";
     {
         // Arrange — correct text schema
         var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Timestamp: until ' ',
-    Level: until ' ',
-    Message: rest trim
-};
-select 1 from #A.Entities()";
+        var query = (
+            "text LogLine {\n"
+            + "    Timestamp: until ' ',\n"
+            + "    Level: until ' ',\n"
+            + "    Message: rest trim\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -61,14 +65,16 @@ select 1 from #A.Entities()";
     {
         // Arrange — binary schema referencing another binary schema
         var analyzer = CreateAnalyzer();
-        var query = @"binary Inner {
-    Size: int le
-};
-binary Outer {
-    Header: Inner,
-    Data: byte[10]
-};
-select 1 from #A.Entities()";
+        var query = (
+            "binary Inner {\n"
+            + "    Size: int le\n"
+            + "};\n"
+            + "binary Outer {\n"
+            + "    Header: Inner,\n"
+            + "    Data: byte[10]\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);
@@ -87,16 +93,18 @@ select 1 from #A.Entities()";
     {
         // Arrange — binary schema with 'as' clause referencing text schema
         var analyzer = CreateAnalyzer();
-        var query = @"text KeyValue {
-    Key: until ':',
-    Value: rest trim
-};
-binary ConfigPacket {
-    Version: byte,
-    Config: string[20] utf8 as KeyValue,
-    Checksum: byte
-};
-select 1 from #A.Entities()";
+        var query = (
+            "text KeyValue {\n"
+            + "    Key: until ':',\n"
+            + "    Value: rest trim\n"
+            + "};\n"
+            + "binary ConfigPacket {\n"
+            + "    Version: byte,\n"
+            + "    Config: string[20] utf8 as KeyValue,\n"
+            + "    Checksum: byte\n"
+            + "};\n"
+            + "select 1 from #A.Entities()"
+        );
 
         // Act
         var result = analyzer.ValidateSyntax(query);

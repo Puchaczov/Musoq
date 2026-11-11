@@ -9,11 +9,11 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private TableBuildResult BuildMarkHashJoinTable(HashJoinBuildContext context)
     {
-        if (context.Join.Kind != JoinKind.LeftMark ||
-            !ReferenceEquals(context.Sides.Build, context.Sources.Right))
+        if (context.Join.Kind != JoinKind.LeftMark || !ReferenceEquals(context.Sides.Build, context.Sources.Right))
         {
             return TableBuildResult.Unsupported(
-                "Execution IR hash-mark lowering requires the right side to be the hash build side.");
+                "Execution IR hash-mark lowering requires the right side to be the hash build side."
+            );
         }
 
         if (CanUsePayloadFreeMarkKeySet(context))
@@ -25,12 +25,15 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var resultTable = new ExecutionVariable(context.ResultTableName, typeof(object));
         var nullAlias = RowShapeLookup.ResolveSourceAlias(context.Sources.Right.Shape);
-        var projection = CreateNullExtendedProjection(new NullExtendedProjectionContext(
-            context.ResultShapeName,
-            resultTable,
-            context.Pipeline.Project.Fields,
-            context.SourceLookup,
-            nullAlias));
+        var projection = CreateNullExtendedProjection(
+            new NullExtendedProjectionContext(
+                context.ResultShapeName,
+                resultTable,
+                context.Pipeline.Project.Fields,
+                context.SourceLookup,
+                nullAlias
+            )
+        );
         if (!projection.IsBuilt)
             return TableBuildResult.Unsupported(projection.UnsupportedReason);
 
@@ -39,7 +42,8 @@ internal sealed partial class PhysicalLoweringImplementation
             projection.MatchedAppendRow,
             projection.UnmatchedAppendRow,
             context.SourceLookup,
-            nullAlias);
+            nullAlias
+        );
         if (!appendBlocks.IsBuilt)
             return TableBuildResult.Unsupported(appendBlocks.UnsupportedReason);
 
@@ -49,7 +53,8 @@ internal sealed partial class PhysicalLoweringImplementation
             context.Pipeline.Filter,
             hasMatch,
             projection.MatchedAppendRow,
-            context.ConversionLookup);
+            context.ConversionLookup
+        );
         return CompleteHashJoinTableBuild(
             context,
             new HashJoinTableLowering(
@@ -57,7 +62,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 projection.ResultShape,
                 matchedBody,
                 appendBlocks.UnmatchedAppendBlock,
-                hasMatch));
+                hasMatch
+            )
+        );
     }
 
     private ExecutionBlock CreateMarkJoinMatchedBody(
@@ -65,14 +72,14 @@ internal sealed partial class PhysicalLoweringImplementation
         PhysicalFilterNode? filter,
         ExecutionVariable hasMatch,
         ExecutionAppendRow appendRow,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
         var appendBlock = CreateOuterJoinMatchedAppendBlock(filter, appendRow, sourceLookup);
-        var matchedBlock = new ExecutionBlock(
-        [
+        var matchedBlock = new ExecutionBlock([
             new ExecutionAssign(hasMatch, new ExecutionLiteral(true, typeof(bool))),
-            ..appendBlock.Nodes,
-            new ExecutionBreak()
+            .. appendBlock.Nodes,
+            new ExecutionBreak(),
         ]);
         return CreateConditionalJoinBlock(joinCondition, sourceLookup, matchedBlock);
     }

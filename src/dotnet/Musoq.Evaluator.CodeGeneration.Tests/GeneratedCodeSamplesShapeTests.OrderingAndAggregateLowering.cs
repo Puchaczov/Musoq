@@ -14,7 +14,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             OrderBySimpleSampleFileName,
             OrderByMultipleKeysSampleFileName,
             OrderByAliasSampleFileName,
-            OrderByHiddenComputedKeySampleFileName);
+            OrderByHiddenComputedKeySampleFileName
+        );
 
         foreach (var sample in samples)
         {
@@ -44,27 +45,43 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains(
             "Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Reset(ref resultRunningProductsState);",
-            sample);
+            sample
+        );
         Assert.Contains(
             "Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Set(ref resultRunningProductsState, (decimal?)((decimal?)ko3iko.Population));",
-            sample);
-        Assert.Contains("Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Get(in resultRunningProductsState);", sample);
+            sample
+        );
+        Assert.Contains(
+            "Musoq.Evaluator.Tests.Schema.Basic.Library.RunningProductKernel.Get(in resultRunningProductsState);",
+            sample
+        );
         Assert.Contains("var resultRunningProducts = new decimal[resultWindowRows.Count];", sample);
-        Assert.IsFalse(sample.Contains("resultRunningProductsFunction.SetArguments(Array.Empty<object?>());", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains(
+                "resultRunningProductsFunction.SetArguments(Array.Empty<object?>());",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(sample.Contains("resultRunningProductsFunction.AccumulateValue", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("resultRunningProductsFunction.GetCurrentValue", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("var resultRunningProductsLibraryBase0 = new Musoq.Plugins.LibraryBase();", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains(
+                "var resultRunningProductsLibraryBase0 = new Musoq.Plugins.LibraryBase();",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(sample.Contains("new Musoq.Plugins.LibraryBase()", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("new Musoq.Plugins.LibraryBase().ToDecimal", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("WindowFunctionHelpers.ComputeFramedPluginWindowFunction", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains("WindowFunctionHelpers.ComputeFramedPluginWindowFunction", StringComparison.Ordinal)
+        );
         Assert.IsFalse(sample.Contains("resultRunningProductsValues", StringComparison.Ordinal));
     }
 
     [TestMethod]
     public void NonDeterministicPluginWindowValue_WhenCompiledForInspection_ShouldReuseOnlyTheLibraryReceiver()
     {
-        var result = CompileBasicQueryForInspection(
-            "select Sum(Rand()) over () as total from #A.entities()");
+        var result = CompileBasicQueryForInspection("select Sum(Rand()) over () as total from #A.entities()");
 
         Assert.Contains("var __compiled1LibraryBase0 = new Musoq.Plugins.LibraryBase();", result.GeneratedCSharpCode);
         Assert.Contains("__compiled1LibraryBase0.Rand()", result.GeneratedCSharpCode);
@@ -74,38 +91,32 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void TypedAggregateInputMethod_WhenCompiledForInspection_ShouldReuseLibraryTarget()
     {
-        var result = CompileBasicQueryForInspection(
-            "select City, Sum(Length(Name)) from #A.entities() group by City");
+        var result = CompileBasicQueryForInspection("select City, Sum(Length(Name)) from #A.entities() group by City");
 
-        Assert.Contains(
-            "var libraryBase0 = new Musoq.Plugins.LibraryBase();",
-            result.GeneratedCSharpCode);
-        Assert.Contains(
-            "libraryBase0.Length<char>",
-            result.GeneratedCSharpCode);
+        Assert.Contains("var libraryBase0 = new Musoq.Plugins.LibraryBase();", result.GeneratedCSharpCode);
+        Assert.Contains("libraryBase0.Length<char>", result.GeneratedCSharpCode);
         Assert.IsFalse(
-            result.GeneratedCSharpCode.Contains(
-                "new Musoq.Plugins.LibraryBase().Length",
-                StringComparison.Ordinal),
-            "Typed aggregate inputs should not allocate LibraryBase inside the row loop.");
+            result.GeneratedCSharpCode.Contains("new Musoq.Plugins.LibraryBase().Length", StringComparison.Ordinal),
+            "Typed aggregate inputs should not allocate LibraryBase inside the row loop."
+        );
     }
 
     [TestMethod]
     public void ParallelSingleKeyAggregateHelper_WhenAggregateInputUsesLibraryTarget_ShouldReceiveTargetParameter()
     {
         var result = CompileBasicQueryForInspection(
-            "select a.Country, Count(ToUpper(a.Country)) from #A.entities() a group by a.Country");
+            "select a.Country, Count(ToUpper(a.Country)) from #A.entities() a group by a.Country"
+        );
 
-        Assert.Contains(
-            "var libraryBase0 = new Musoq.Plugins.LibraryBase();",
-            result.GeneratedCSharpCode);
+        Assert.Contains("var libraryBase0 = new Musoq.Plugins.LibraryBase();", result.GeneratedCSharpCode);
 
         const string parallelAggregateCall = "ParallelSingleKeyAggregate_0(";
         if (result.GeneratedCSharpCode.Contains(parallelAggregateCall, StringComparison.Ordinal))
         {
             var callLine = GetLine(
                 result.GeneratedCSharpCode,
-                result.GeneratedCSharpCode.IndexOf(parallelAggregateCall, StringComparison.Ordinal));
+                result.GeneratedCSharpCode.IndexOf(parallelAggregateCall, StringComparison.Ordinal)
+            );
 
             Assert.Contains(", token, libraryBase0)", callLine);
             Assert.Contains("Musoq.Plugins.LibraryBase libraryBase0", result.GeneratedCSharpCode);
@@ -114,10 +125,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         {
             Assert.Contains(
                 "UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, libraryBase0,",
-                result.GeneratedCSharpCode);
-            Assert.Contains(
-                "Musoq.Plugins.LibraryBase libraryBase0",
-                result.GeneratedCSharpCode);
+                result.GeneratedCSharpCode
+            );
+            Assert.Contains("Musoq.Plugins.LibraryBase libraryBase0", result.GeneratedCSharpCode);
         }
     }
 
@@ -131,17 +141,19 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("private sealed class ResultAggregateGroup", sample);
         Assert.IsFalse(sample.Contains("private sealed class ResultAggregateGroup : Group", StringComparison.Ordinal));
         Assert.Contains("public Musoq.Plugins.CountReferenceAggregateKernel<string>.State __agg0", sample);
-        Assert.Contains("ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144", sample);
+        Assert.Contains(
+            "ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144",
+            sample
+        );
         Assert.DoesNotContain("EvaluationHelper.GetParallelAggregationRowsOrEmpty<", sample);
         Assert.Contains("ParallelSingleKeyAggregate_0", sample);
         Assert.DoesNotContain("EvaluationHelper.ShouldUseParallelSingleKeyAggregation<", sample);
         Assert.DoesNotContain("SerialSingleKeyAggregate", sample);
         Assert.Contains(
             "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]",
-            sample);
-        Assert.Contains(
-            "private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(",
-            sample);
+            sample
+        );
+        Assert.Contains("private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(", sample);
         Assert.Contains("Parallel.ForEach<IReadOnlyList<", sample);
         Assert.Contains("private static void ParallelSingleKeyAggregateChunk_0(", sample);
         Assert.Contains("private sealed class ParallelSingleKeyAggregateChunkWorker_0", sample);
@@ -153,14 +165,19 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(sample.Contains("EvaluationHelper.AggregateSingleKeyParallel<", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("rootGroup", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("CreateAggregateLibrary [", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("var libraryBase0 = new Musoq.Plugins.LibraryBase();", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains("var libraryBase0 = new Musoq.Plugins.LibraryBase();", StringComparison.Ordinal)
+        );
         Assert.Contains("group.__agg0.Count = checked(group.__agg0.Count + 1L);", sample);
         Assert.Contains("mergedGroupRef.MergeFrom(sourceGroup)", sample);
         Assert.Contains("public void MergeFrom(ResultAggregateGroup source)", sample);
         Assert.Contains("finalGroup.__agg0.Count", sample);
-        Assert.IsFalse(sample.Contains(
-            "libraryBase0.SetCount(group, \"ko3iko.Count(ko3iko.City)\", city, 0);",
-            StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains(
+                "libraryBase0.SetCount(group, \"ko3iko.Count(ko3iko.City)\", city, 0);",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(sample.Contains("Statement0Row0", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("_tableResults[0].Rows", StringComparison.Ordinal));
     }
@@ -170,8 +187,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var failures = ReadAllSamples()
             .Where(static sample =>
-                sample.Content.Contains("CreateValueTupleAggregateContext [groups:", StringComparison.Ordinal) &&
-                sample.Content.Contains("-> ResultAggregateGroup]", StringComparison.Ordinal))
+                sample.Content.Contains("CreateValueTupleAggregateContext [groups:", StringComparison.Ordinal)
+                && sample.Content.Contains("-> ResultAggregateGroup]", StringComparison.Ordinal)
+            )
             .SelectMany(static sample =>
             {
                 var failures = new List<string>();
@@ -193,17 +211,24 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var sample = ReadSample(GroupByHavingOrderBySampleFileName).Content;
 
         Assert.Contains(StaticColumnMetadataPattern, sample);
-        Assert.IsFalse(sample.Contains("var resultSorted = new Table(\"resultSorted\", __columns_", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains("var resultSorted = new Table(\"resultSorted\", __columns_", StringComparison.Ordinal)
+        );
         Assert.Contains("var result = new List<ResultShape0>", sample);
-        Assert.Contains(
-            "result.Sort(Comparer<ResultShape0>.Create",
-            sample);
+        Assert.Contains("result.Sort(Comparer<ResultShape0>.Create", sample);
         Assert.Contains("return left.__musoqSequence.CompareTo(right.__musoqSequence);", sample);
         Assert.Contains("return result;", sample);
         Assert.DoesNotContain("__musoqFinalShapeRows", sample);
-        Assert.IsFalse(sample.Contains("private sealed class ResultRow0OrderBy_2DComparer : IComparer<ResultRow0>", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains(
+                "private sealed class ResultRow0OrderBy_2DComparer : IComparer<ResultRow0>",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(sample.Contains("result.Columns.ToArray()", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("result.Rows.OrderByDescending((row) => (decimal?)row[2])", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains("result.Rows.OrderByDescending((row) => (decimal?)row[2])", StringComparison.Ordinal)
+        );
         Assert.IsFalse(sample.Contains("((ResultRow0)row).Sum_Population_", StringComparison.Ordinal));
     }
 
@@ -212,16 +237,23 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var sample = ReadSample(OrderBySkipTakeSampleFileName).Content;
 
-        Assert.Contains("CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Population DESC, skip 2, take 5]", sample);
+        Assert.Contains(
+            "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Population DESC, skip 2, take 5]",
+            sample
+        );
         Assert.Contains(
             "var resultOrderRecords = new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(2, 5, ResultRow0WithSortKeysComparer.Instance);",
-            sample);
+            sample
+        );
         Assert.Contains(
             "resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Name, ko3iko.Population, resultOrderRecords.Count));",
-            sample);
+            sample
+        );
         Assert.Contains("private readonly struct ResultRow0WithSortKeys", sample);
         Assert.IsFalse(sample.Contains("OrderRecordList [resultOrderRecords", StringComparison.Ordinal));
-        Assert.IsFalse(sample.Contains("EvaluationHelper.SelectTopOffsetRecords(resultOrderRecords", StringComparison.Ordinal));
+        Assert.IsFalse(
+            sample.Contains("EvaluationHelper.SelectTopOffsetRecords(resultOrderRecords", StringComparison.Ordinal)
+        );
         Assert.IsFalse(sample.Contains("TopOffsetTable [", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("RowOrderKey", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("AppendTopOffsetRowsDirect", StringComparison.Ordinal));
@@ -242,9 +274,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("GeneratedRecord [ResultRow0WithSortKeys]", sample);
         Assert.Contains("__sortKey0: decimal <- field __sortKey0", sample);
         Assert.Contains("Generated [ResultRow0]\n      Name: string <- field Name", normalizedSample);
-        Assert.Contains("MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0]", sample);
-        Assert.Contains("CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by __sortKey0 DESC, skip 1, take 3]", sample);
-        Assert.Contains("resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Name, (ko3iko.Population + ko3iko.Money), resultOrderRecords.Count));", sample);
+        Assert.Contains(
+            "MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0]",
+            sample
+        );
+        Assert.Contains(
+            "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by __sortKey0 DESC, skip 1, take 3]",
+            sample
+        );
+        Assert.Contains(
+            "resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Name, (ko3iko.Population + ko3iko.Money), resultOrderRecords.Count));",
+            sample
+        );
         Assert.Contains("private readonly struct ResultRow0WithSortKeys", sample);
         Assert.Contains("private sealed class ResultRow0 : Row", sample);
         Assert.IsFalse(normalizedSample.Contains("Generated [ResultRow0]\n      __sortKey0", StringComparison.Ordinal));
@@ -256,7 +297,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CompilationPipelineSamples_WhenCheckedIn_ShouldExposeSimpleAndComplexCompileShapes()
     {
-        var samples = ReadNamedSamples(CompilationSimpleSelectSampleFileName, CompilationComplexGroupedSortSampleFileName)
+        var samples = ReadNamedSamples(
+                CompilationSimpleSelectSampleFileName,
+                CompilationComplexGroupedSortSampleFileName
+            )
             .ToDictionary(static sample => sample.FileName, static sample => sample.Content);
         var simple = samples[CompilationSimpleSelectSampleFileName];
         var complex = samples[CompilationComplexGroupedSortSampleFileName];
@@ -274,7 +318,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(simple.Contains("_tableResults[0]", StringComparison.Ordinal));
 
         Assert.Contains("AggregateGroup [ResultAggregateGroup; keys: 3; typed aggs: 1]", complex);
-        Assert.Contains("CreateValueTupleAggregateContext [groups: (string, string, decimal) -> ResultAggregateGroup]", complex);
+        Assert.Contains(
+            "CreateValueTupleAggregateContext [groups: (string, string, decimal) -> ResultAggregateGroup]",
+            complex
+        );
         Assert.Contains("private sealed class ResultAggregateGroup", complex);
         Assert.Contains("var result = new List<ResultShape0>();", complex);
         Assert.Contains("result.Add(new ResultShape0(", complex);
@@ -283,13 +330,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(complex.Contains("void FinalizeResultGroups()", StringComparison.Ordinal));
         Assert.Contains("public Musoq.Plugins.CountReferenceAggregateKernel<string>.State __agg0", complex);
         Assert.Contains("SortOwnedBuffer [result by Population DESC, stable sequence __musoqSequence]", complex);
-        Assert.Contains(
-            "result.Sort(Comparer<ResultShape0>.Create",
-            complex);
-        Assert.IsFalse(complex.Contains("private sealed class ResultRow0OrderBy_2DComparer : IComparer<ResultRow0>", StringComparison.Ordinal));
+        Assert.Contains("result.Sort(Comparer<ResultShape0>.Create", complex);
+        Assert.IsFalse(
+            complex.Contains(
+                "private sealed class ResultRow0OrderBy_2DComparer : IComparer<ResultRow0>",
+                StringComparison.Ordinal
+            )
+        );
         Assert.IsFalse(complex.Contains("Statement0Row0", StringComparison.Ordinal));
         Assert.IsFalse(complex.Contains("_tableResults[0]", StringComparison.Ordinal));
-        Assert.IsFalse(complex.Contains("result.Rows.OrderByDescending((row) => (decimal)row[2])", StringComparison.Ordinal));
+        Assert.IsFalse(
+            complex.Contains("result.Rows.OrderByDescending((row) => (decimal)row[2])", StringComparison.Ordinal)
+        );
         Assert.IsFalse(complex.Contains("((ResultRow0)row).Population", StringComparison.Ordinal));
         Assert.IsFalse(complex.Contains(".SetCount(", StringComparison.Ordinal));
     }

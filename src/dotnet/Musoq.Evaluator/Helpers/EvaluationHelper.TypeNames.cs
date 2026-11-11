@@ -8,33 +8,47 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    private static readonly WeakTypeRuntimeCache<string> CastableTypeCache =
-        new(RuntimeCacheOptions.CastableTypeCacheSize);
-
-
+    private static readonly WeakTypeRuntimeCache<string> CastableTypeCache = new(
+        RuntimeCacheOptions.CastableTypeCacheSize
+    );
 
     public static string GetCastableType(Type type)
     {
-        if (type is NullNode.NullType) return "object";
+        if (type is NullNode.NullType)
+            return "object";
 
-
-        if (type == typeof(string)) return "string";
-        if (type == typeof(int)) return "int";
-        if (type == typeof(long)) return "long";
-        if (type == typeof(short)) return "short";
-        if (type == typeof(byte)) return "byte";
-        if (type == typeof(ulong)) return "ulong";
-        if (type == typeof(uint)) return "uint";
-        if (type == typeof(ushort)) return "ushort";
-        if (type == typeof(sbyte)) return "sbyte";
-        if (type == typeof(bool)) return "bool";
-        if (type == typeof(decimal)) return "decimal";
-        if (type == typeof(double)) return "double";
-        if (type == typeof(float)) return "float";
-        if (type == typeof(char)) return "char";
-        if (type == typeof(object)) return "object";
-        if (type == typeof(void)) return "void";
-
+        if (type == typeof(string))
+            return "string";
+        if (type == typeof(int))
+            return "int";
+        if (type == typeof(long))
+            return "long";
+        if (type == typeof(short))
+            return "short";
+        if (type == typeof(byte))
+            return "byte";
+        if (type == typeof(ulong))
+            return "ulong";
+        if (type == typeof(uint))
+            return "uint";
+        if (type == typeof(ushort))
+            return "ushort";
+        if (type == typeof(sbyte))
+            return "sbyte";
+        if (type == typeof(bool))
+            return "bool";
+        if (type == typeof(decimal))
+            return "decimal";
+        if (type == typeof(double))
+            return "double";
+        if (type == typeof(float))
+            return "float";
+        if (type == typeof(char))
+            return "char";
+        if (type == typeof(object))
+            return "object";
+        if (type == typeof(void))
+            return "void";
 
         return CastableTypeCache.GetOrAdd(type, ComputeCastableType);
     }
@@ -53,8 +67,10 @@ public static partial class EvaluationHelper
             return $"{GetCastableType(underlyingType)}?";
         }
 
-        if (type.IsNested) return $"{GetCastableType(GetClosedDeclaringType(type))}.{GetNestedTypeName(type)}";
-        if (type.IsGenericType) return GetFriendlyTypeName(type);
+        if (type.IsNested)
+            return $"{GetCastableType(GetClosedDeclaringType(type))}.{GetNestedTypeName(type)}";
+        if (type.IsGenericType)
+            return GetFriendlyTypeName(type);
 
         if (IsWellKnownNamespace(type.Namespace))
             return type.Name;
@@ -65,10 +81,11 @@ public static partial class EvaluationHelper
     private static Type GetClosedDeclaringType(Type type)
     {
         var declaringType = type.DeclaringType;
-        if (declaringType == null ||
-            !declaringType.ContainsGenericParameters ||
-            !type.IsGenericType)
-            return declaringType ?? throw new InvalidOperationException($"Nested type '{type.FullName ?? type.Name}' does not have a declaring type.");
+        if (declaringType == null || !declaringType.ContainsGenericParameters || !type.IsGenericType)
+            return declaringType
+                ?? throw new InvalidOperationException(
+                    $"Nested type '{type.FullName ?? type.Name}' does not have a declaring type."
+                );
 
         var declaringArguments = declaringType.GetGenericArguments();
         var nestedArguments = type.GetGenericArguments();
@@ -124,9 +141,11 @@ public static partial class EvaluationHelper
 
     private static string GetFriendlyTypeName(Type type)
     {
-        if (type.IsGenericParameter) return type.Name;
+        if (type.IsGenericParameter)
+            return type.Name;
 
-        if (!type.IsGenericType) return GetCastableType(type);
+        if (!type.IsGenericType)
+            return GetCastableType(type);
 
         var builder = new StringBuilder();
         var name = type.Name;
@@ -136,7 +155,8 @@ public static partial class EvaluationHelper
         var first = true;
         foreach (var arg in type.GetGenericArguments())
         {
-            if (!first) builder.Append(", ");
+            if (!first)
+                builder.Append(", ");
             builder.Append(GetCastableType(arg));
             first = false;
         }
@@ -152,7 +172,12 @@ public static partial class EvaluationHelper
 
     private static bool IsWellKnownNamespace(string? ns)
     {
-        return ns is "System" or "System.Collections.Generic" or "System.Linq" or "System.Threading" or "System.Threading.Tasks";
+        return ns
+            is "System"
+                or "System.Collections.Generic"
+                or "System.Linq"
+                or "System.Threading"
+                or "System.Threading.Tasks";
     }
 
     public static string RemapPrimitiveTypes(string typeName)
@@ -164,5 +189,4 @@ public static partial class EvaluationHelper
     {
         return PrimitiveTypeResolver.RemapPrimitiveTypeAsNullable(typeName);
     }
-
 }

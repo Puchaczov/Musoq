@@ -16,8 +16,10 @@ public partial class TextInterpretationTests
                 "Code",
                 TextFieldType.Pattern,
                 @"(?<Prefix>[A-Z]+)-(?<Word>\p{L}+)",
-                captureGroups: ["Prefix", "Word"]),
-            CreateTextField("Tail", TextFieldType.Rest));
+                captureGroups: ["Prefix", "Word"]
+            ),
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "ABC-Łódź!");
         var capture = GetPropertyValue<object>(result, "Code");
@@ -32,11 +34,8 @@ public partial class TextInterpretationTests
     {
         var interpreter = CreateAndCompileInterpreter(
             "KeywordCapture",
-            new TextFieldDefinitionNode(
-                "Code",
-                TextFieldType.Pattern,
-                @"(?<class>[A-Z]+)",
-                captureGroups: ["class"]));
+            new TextFieldDefinitionNode("Code", TextFieldType.Pattern, @"(?<class>[A-Z]+)", captureGroups: ["class"])
+        );
 
         var result = InvokeParse(interpreter, "ABC");
         var capture = GetPropertyValue<object>(result, "Code");
@@ -50,7 +49,8 @@ public partial class TextInterpretationTests
         var interpreter = CreateAndCompileInterpreter(
             "EscapedDoubled",
             new TextFieldDefinitionNode("Value", TextFieldType.Between, "[", "]", TextFieldModifier.Escaped, "~"),
-            CreateTextField("Tail", TextFieldType.Rest));
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "[a~~]b]tail");
 
@@ -64,7 +64,8 @@ public partial class TextInterpretationTests
         var interpreter = CreateAndCompileInterpreter(
             "NestedUnicode",
             new TextFieldDefinitionNode("Value", TextFieldType.Between, "{", "}", TextFieldModifier.Nested),
-            CreateTextField("Tail", TextFieldType.Rest));
+            CreateTextField("Tail", TextFieldType.Rest)
+        );
 
         var result = InvokeParse(interpreter, "{α{β}γ}tail");
 
@@ -78,10 +79,10 @@ public partial class TextInterpretationTests
         var interpreter = CreateAndCompileInterpreter(
             "PatternFailure",
             CreateTextField("Prefix", TextFieldType.Chars, "2"),
-            CreateTextField("Digits", TextFieldType.Pattern, @"\d+"));
+            CreateTextField("Digits", TextFieldType.Pattern, @"\d+")
+        );
 
-        var exception = Assert.ThrowsExactly<ParseException>(
-            () => InvokeParse(interpreter, "xxabc"));
+        var exception = Assert.ThrowsExactly<ParseException>(() => InvokeParse(interpreter, "xxabc"));
 
         Assert.AreEqual(ParseErrorCode.PatternMismatch, exception.ErrorCode);
         Assert.AreEqual("PatternFailure", exception.SchemaName);
@@ -96,10 +97,10 @@ public partial class TextInterpretationTests
         var interpreter = CreateAndCompileInterpreter(
             "LiteralFailure",
             CreateTextField("Prefix", TextFieldType.Chars, "2"),
-            CreateTextField("Marker", TextFieldType.Literal, "OK"));
+            CreateTextField("Marker", TextFieldType.Literal, "OK")
+        );
 
-        var exception = Assert.ThrowsExactly<ParseException>(
-            () => InvokeParse(interpreter, "xxok"));
+        var exception = Assert.ThrowsExactly<ParseException>(() => InvokeParse(interpreter, "xxok"));
 
         Assert.AreEqual(ParseErrorCode.LiteralMismatch, exception.ErrorCode);
         Assert.AreEqual("LiteralFailure", exception.SchemaName);

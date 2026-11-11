@@ -18,7 +18,8 @@ public static partial class InstanceCreator
         string assemblyName,
         ISchemaProvider schemaProvider,
         DiagnosticContext diagnosticContext,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         return new BuildItems
         {
@@ -28,7 +29,7 @@ public static partial class InstanceCreator
             AssemblyName = assemblyName,
             ExecutionTarget = ExecutionTargetIds.CSharpClr,
             CreateBuildMetadataAndInferTypesVisitor = null,
-            DiagnosticContext = diagnosticContext
+            DiagnosticContext = diagnosticContext,
         };
     }
 
@@ -53,16 +54,14 @@ public static partial class InstanceCreator
     private static CreateTree CreateExecutableBuildChain(ILoggerResolver loggerResolver)
     {
         return new CreateTree(
-            new CompileInterpretationSchemas(
-                new TransformTree(
-                    new TurnQueryIntoRunnableCode(null), loggerResolver)));
+            new CompileInterpretationSchemas(new TransformTree(new TurnQueryIntoRunnableCode(null), loggerResolver))
+        );
     }
 
     private static CreateTree CreateInspectionBuildChain(ILoggerResolver loggerResolver)
     {
         return new CreateTree(
-            new CompileInterpretationSchemas(
-                new TransformTree(
-                    new TerminalBuildChain(), loggerResolver)));
+            new CompileInterpretationSchemas(new TransformTree(new TerminalBuildChain(), loggerResolver))
+        );
     }
 }

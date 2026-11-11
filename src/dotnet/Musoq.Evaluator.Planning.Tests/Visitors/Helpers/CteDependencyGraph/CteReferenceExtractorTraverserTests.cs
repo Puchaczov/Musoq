@@ -36,8 +36,13 @@ public class CteReferenceExtractorTraverserTests
         // Create a join query that references both CTEs
         var fromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCondition = new BooleanNode(true);
-        var joinNode =
-            new JoinInMemoryWithSourceTableFromNode("cteA", fromB, joinCondition, JoinType.Inner, typeof(object));
+        var joinNode = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            fromB,
+            joinCondition,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         // Act
         joinNode.Accept(traverser);
@@ -102,8 +107,13 @@ public class CteReferenceExtractorTraverserTests
         // Create a join between known CTE and unknown table
         var unknownTable = new InMemoryTableFromNode("unknownCte", "u", typeof(object));
         var joinCond = new BooleanNode(true);
-        var join = new JoinInMemoryWithSourceTableFromNode("cteA", unknownTable, joinCond, JoinType.Inner,
-            typeof(object));
+        var join = new JoinInMemoryWithSourceTableFromNode(
+            "cteA",
+            unknownTable,
+            joinCond,
+            JoinType.Inner,
+            typeof(object)
+        );
 
         // Act
         join.Accept(traverser);
@@ -140,10 +150,7 @@ public class CteReferenceExtractorTraverserTests
 
         // Create a simple select with CTE in FROM clause
         var fromCte = new InMemoryTableFromNode("cteA", "a", typeof(object));
-        var selectFields = new[]
-        {
-            new FieldNode(new IntegerNode("1"), 0, "col1")
-        };
+        var selectFields = new[] { new FieldNode(new IntegerNode("1"), 0, "col1") };
         var selectNode = new SelectNode(selectFields);
         var queryNode = new QueryNode(selectNode, fromCte, null, null, null, null, null);
 
@@ -171,7 +178,8 @@ public class CteReferenceExtractorTraverserTests
             null,
             null,
             null,
-            null);
+            null
+        );
         var query = new QueryNode(
             new SelectNode([new FieldNode(new IdentifierNode("City"), 0, "City")]),
             outerFrom,
@@ -179,7 +187,8 @@ public class CteReferenceExtractorTraverserTests
             null,
             null,
             null,
-            null);
+            null
+        );
 
         // Act
         query.Accept(traverser);

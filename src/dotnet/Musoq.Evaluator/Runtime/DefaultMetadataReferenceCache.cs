@@ -9,9 +9,7 @@ internal sealed class DefaultMetadataReferenceCache : IMetadataReferenceCache
 
     public DefaultMetadataReferenceCache(int maxSize = RuntimeCacheOptions.MetadataReferenceCacheSize)
     {
-        _cache = new BoundedRuntimeCache<string, MetadataReferenceEntry>(
-            maxSize,
-            StringComparer.OrdinalIgnoreCase);
+        _cache = new BoundedRuntimeCache<string, MetadataReferenceEntry>(maxSize, StringComparer.OrdinalIgnoreCase);
     }
 
     public int Count => _cache.Count;
@@ -26,8 +24,7 @@ internal sealed class DefaultMetadataReferenceCache : IMetadataReferenceCache
         var length = fileInfo.Length;
         var lastWriteTimeUtcTicks = fileInfo.LastWriteTimeUtc.Ticks;
 
-        if (_cache.TryGetValue(path, out var cached) &&
-            cached.Matches(length, lastWriteTimeUtcTicks))
+        if (_cache.TryGetValue(path, out var cached) && cached.Matches(length, lastWriteTimeUtcTicks))
             return cached.Reference;
 
         var entry = _cache.GetOrAdd(
@@ -38,9 +35,11 @@ internal sealed class DefaultMetadataReferenceCache : IMetadataReferenceCache
                 return new MetadataReferenceEntry(
                     info.Length,
                     info.LastWriteTimeUtc.Ticks,
-                    MetadataReference.CreateFromFile(cachePath));
+                    MetadataReference.CreateFromFile(cachePath)
+                );
             },
-            candidate => candidate.Matches(length, lastWriteTimeUtcTicks));
+            candidate => candidate.Matches(length, lastWriteTimeUtcTicks)
+        );
         return entry.Reference;
     }
 
@@ -52,7 +51,8 @@ internal sealed class DefaultMetadataReferenceCache : IMetadataReferenceCache
     private readonly record struct MetadataReferenceEntry(
         long Length,
         long LastWriteTimeUtcTicks,
-        MetadataReference Reference)
+        MetadataReference Reference
+    )
     {
         public bool Matches(long length, long lastWriteTimeUtcTicks) =>
             Length == length && LastWriteTimeUtcTicks == lastWriteTimeUtcTicks;

@@ -13,7 +13,8 @@ public sealed class ArtifactBuildResult
     private ArtifactBuildResult(
         ICompiledQueryArtifact? artifact,
         IReadOnlyList<Diagnostic> diagnostics,
-        Exception? caughtException)
+        Exception? caughtException
+    )
     {
         Artifact = artifact;
         Diagnostics = diagnostics;
@@ -35,16 +36,15 @@ public sealed class ArtifactBuildResult
 
     public Exception? CaughtException { get; }
 
-    internal static ArtifactBuildResult Success(
-        ICompiledQueryArtifact artifact,
-        IReadOnlyList<Diagnostic> diagnostics)
+    internal static ArtifactBuildResult Success(ICompiledQueryArtifact artifact, IReadOnlyList<Diagnostic> diagnostics)
     {
         return new ArtifactBuildResult(artifact, diagnostics, caughtException: null);
     }
 
     internal static ArtifactBuildResult Failure(
         IReadOnlyList<Diagnostic> diagnostics,
-        Exception? caughtException = null)
+        Exception? caughtException = null
+    )
     {
         return new ArtifactBuildResult(null, diagnostics, caughtException);
     }

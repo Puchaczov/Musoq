@@ -10,9 +10,7 @@ public class DynamicTable : ISchemaTable
 {
     public DynamicTable(IReadOnlyDictionary<string, Type> columns)
     {
-        Columns = columns
-            .Select((f, i) => (ISchemaColumn)new SchemaColumn(f.Key, i, f.Value))
-            .ToArray();
+        Columns = columns.Select((f, i) => (ISchemaColumn)new SchemaColumn(f.Key, i, f.Value)).ToArray();
     }
 
     public ISchemaColumn[] Columns { get; }

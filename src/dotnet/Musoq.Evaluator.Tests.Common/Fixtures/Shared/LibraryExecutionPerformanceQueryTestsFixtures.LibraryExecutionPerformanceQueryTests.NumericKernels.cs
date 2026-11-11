@@ -9,7 +9,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class LibraryExecutionPerformanceQueryTestsFixtures
 {
-
-    public sealed record NumericInput<T>(T? Value) where T : struct;
-
+    public sealed record NumericInput<T>(T? Value)
+        where T : struct;
 }

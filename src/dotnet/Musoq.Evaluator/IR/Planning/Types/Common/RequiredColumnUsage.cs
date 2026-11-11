@@ -5,4 +5,5 @@ internal sealed record RequiredColumnUsage(
     string Alias,
     string ColumnName,
     RequiredColumnUsageReason UsageReason,
-    PlanningConfidence Confidence);
+    PlanningConfidence Confidence
+);

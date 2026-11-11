@@ -6,7 +6,6 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-
     /// <summary>
     ///     Decompresses a Brotli-compressed byte array and returns it as a UTF-8 string.
     ///     Brotli is commonly used in web APIs and HTTP responses.
@@ -36,7 +35,11 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        return DecompressToString(compressedData, Encoding.GetEncoding(encodingName), s => new BrotliStream(s, CompressionMode.Decompress));
+        return DecompressToString(
+            compressedData,
+            Encoding.GetEncoding(encodingName),
+            s => new BrotliStream(s, CompressionMode.Decompress)
+        );
     }
 
     /// <summary>

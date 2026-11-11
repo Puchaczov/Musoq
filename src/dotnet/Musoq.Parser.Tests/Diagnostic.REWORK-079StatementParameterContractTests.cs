@@ -32,8 +32,8 @@ public sealed class DiagnosticRework079StatementParameterContractTests
     public void ParameterDeclarationMatrix_ShouldPreserveCaseTypesDefaultsAndSpans()
     {
         const string query =
-            "params(Flag: boolean, flag: bit, amount: money = 10.5, ids: guid[], maybe: datetime? = null) " +
-            "select $Flag, $flag from #test.rows()";
+            "params(Flag: boolean, flag: bit, amount: money = 10.5, ids: guid[], maybe: datetime? = null) "
+            + "select $Flag, $flag from #test.rows()";
         var result = ParseWithDiagnostics(query);
 
         Assert.IsTrue(result.Success, result.FormatDiagnostics());
@@ -42,14 +42,20 @@ public sealed class DiagnosticRework079StatementParameterContractTests
         var statements = Assert.IsInstanceOfType<StatementsArrayNode>(result.Root!.Expression);
         var block = Assert.IsInstanceOfType<ParameterBlockNode>(statements.Statements[0].Node);
         Assert.AreEqual(
-            new TextSpan(query.IndexOf("params", StringComparison.Ordinal), "params(Flag: boolean, flag: bit, amount: money = 10.5, ids: guid[], maybe: datetime? = null)".Length),
-            block.Span);
+            new TextSpan(
+                query.IndexOf("params", StringComparison.Ordinal),
+                "params(Flag: boolean, flag: bit, amount: money = 10.5, ids: guid[], maybe: datetime? = null)".Length
+            ),
+            block.Span
+        );
         CollectionAssert.AreEqual(
             new[] { "Flag", "flag", "amount", "ids", "maybe" },
-            block.Parameters.Select(static parameter => parameter.Name).ToArray());
+            block.Parameters.Select(static parameter => parameter.Name).ToArray()
+        );
         CollectionAssert.AreEqual(
             new[] { "boolean", "bit", "money", "guid[]", "datetime?" },
-            block.Parameters.Select(static parameter => parameter.DeclaredTypeName).ToArray());
+            block.Parameters.Select(static parameter => parameter.DeclaredTypeName).ToArray()
+        );
         Assert.IsFalse(block.Parameters[0].IsNullable);
         Assert.IsFalse(block.Parameters[1].IsNullable);
         Assert.IsInstanceOfType<DecimalNode>(block.Parameters[2].DefaultValue);
@@ -63,7 +69,7 @@ public sealed class DiagnosticRework079StatementParameterContractTests
             "flag: bit",
             "amount: money = 10.5",
             "ids: guid[]",
-            "maybe: datetime? = null"
+            "maybe: datetime? = null",
         };
         for (var index = 0; index < block.Parameters.Length; index++)
         {
@@ -80,11 +86,13 @@ public sealed class DiagnosticRework079StatementParameterContractTests
         "select 1 from #test.rows() select 2 from #test.rows()",
         "select",
         DiagnosticCode.MQ2001_UnexpectedToken,
-        DisplayName = "query statements")]
+        DisplayName = "query statements"
+    )]
     public void StatementBatchWithoutSeparator_ShouldReportOneExactStructuredDiagnostic(
         string query,
         string offendingText,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var result = ParseWithDiagnostics(query);
 
@@ -133,35 +141,43 @@ public sealed class DiagnosticRework079StatementParameterContractTests
     [DataRow(
         "param(author string) select 1 from #test.rows()",
         "author string",
-        DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration)]
+        DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration
+    )]
     [DataRow(
         "param(author: ) select 1 from #test.rows()",
         ")",
-        DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration)]
+        DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration
+    )]
     [DataRow(
         "param(author: string,) select 1 from #test.rows()",
         ")",
-        DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration)]
+        DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration
+    )]
     [DataRow(
         "param(author: string = $other) select 1 from #test.rows()",
         "$other",
-        DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration)]
+        DiagnosticCode.MQ2031_InvalidScriptParameterDeclaration
+    )]
     [DataRow(
         "param([string]$author) select 1 from #test.rows()",
         "[string]$author",
-        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax)]
+        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax
+    )]
     [DataRow(
         "def query(author: string) select 1 from #test.rows()",
         "def",
-        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax)]
+        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax
+    )]
     [DataRow(
         "declare author string; select 1 from #test.rows()",
         "declare",
-        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax)]
+        DiagnosticCode.MQ2032_UnsupportedScriptParameterSyntax
+    )]
     public void MalformedParameterSyntax_ShouldReportOneExactStructuredDiagnostic(
         string query,
         string offendingText,
-        DiagnosticCode expectedCode)
+        DiagnosticCode expectedCode
+    )
     {
         var result = ParseWithDiagnostics(query);
 

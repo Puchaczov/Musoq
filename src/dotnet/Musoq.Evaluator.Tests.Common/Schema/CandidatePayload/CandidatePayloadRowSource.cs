@@ -10,8 +10,8 @@ namespace Musoq.Evaluator.Tests.Schema.CandidatePayload;
 public sealed class CandidatePayloadRowSource(
     IReadOnlyList<CandidatePayloadSeed> rows,
     SourceExecutionContext context,
-    CandidatePayloadRecorder recorder)
-    : RowSource<CandidatePayloadEntity>
+    CandidatePayloadRecorder recorder
+) : RowSource<CandidatePayloadEntity>
 {
     public override IEnumerable<IReadOnlyList<CandidatePayloadEntity>> Chunks => ReadChunks();
 
@@ -23,7 +23,8 @@ public sealed class CandidatePayloadRowSource(
                 rows,
                 context.Plan.PredicateApplications,
                 SourcePredicateEvaluationPhase.CandidateMetadata,
-                CreateCandidateSelector);
+                CreateCandidateSelector
+            );
 
             foreach (var candidate in candidates)
             {
@@ -44,14 +45,15 @@ public sealed class CandidatePayloadRowSource(
                 {
                     Id = candidate.Id,
                     Path = candidate.Path,
-                    Payload = payload
+                    Payload = payload,
                 };
 
                 var acceptedRows = SourcePlanningRowExecution.ApplyPredicateApplications(
                     [row],
                     context.Plan.PredicateApplications,
                     SourcePredicateEvaluationPhase.RowFiltering,
-                    CreateRowSelector);
+                    CreateRowSelector
+                );
 
                 foreach (var acceptedRow in acceptedRows)
                     yield return [acceptedRow];
@@ -68,8 +70,7 @@ public sealed class CandidatePayloadRowSource(
         return columnName switch
         {
             nameof(CandidatePayloadEntity.Path) => static candidate => candidate.Path,
-            _ => throw new InvalidOperationException(
-                $"Column '{columnName}' is not available as candidate metadata.")
+            _ => throw new InvalidOperationException($"Column '{columnName}' is not available as candidate metadata."),
         };
     }
 
@@ -80,7 +81,7 @@ public sealed class CandidatePayloadRowSource(
             nameof(CandidatePayloadEntity.Id) => static row => row.Id,
             nameof(CandidatePayloadEntity.Path) => static row => row.Path,
             nameof(CandidatePayloadEntity.Payload) => static row => row.Payload,
-            _ => throw new InvalidOperationException($"Unknown materialized row column '{columnName}'.")
+            _ => throw new InvalidOperationException($"Unknown materialized row column '{columnName}'."),
         };
     }
 }

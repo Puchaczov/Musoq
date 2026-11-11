@@ -25,20 +25,31 @@ public class BinaryAbsolutePositionFeatureTests
     [TestMethod]
     public void Binary_AtClause_HexOffset_ShouldReadAtHexPosition()
     {
-        var query = @"
-            binary Data { 
-                Value: byte at 0x04
-            };
-            select d.Value from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Value: byte at 0x04\n"
+            + "            };\n"
+            + "            select d.Value from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var testData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0xAB };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -55,26 +66,32 @@ public class BinaryAbsolutePositionFeatureTests
     [TestMethod]
     public void Binary_AtClause_FieldReference_ShouldUseDynamicOffset()
     {
-        var query = @"
-            binary FileHeader { 
-                DataOffset: int le,
-                Data: int le at DataOffset
-            };
-            select h.DataOffset, h.Data from #test.files() b
-            cross apply Interpret<FileHeader>(b.Content) h";
+        var query = (
+            "\n"
+            + "            binary FileHeader { \n"
+            + "                DataOffset: int le,\n"
+            + "                Data: int le at DataOffset\n"
+            + "            };\n"
+            + "            select h.DataOffset, h.Data from #test.files() b\n"
+            + "            cross apply Interpret<FileHeader>(b.Content) h"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x08, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0x2A, 0x00, 0x00, 0x00 };
+        var entities = new[]
         {
-            0x08, 0x00, 0x00, 0x00,
-            0xFF, 0xFF, 0xFF, 0xFF,
-            0x2A, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -92,26 +109,32 @@ public class BinaryAbsolutePositionFeatureTests
     [TestMethod]
     public void Binary_AtClause_ExpressionOffset_ShouldComputePosition()
     {
-        var query = @"
-            binary Data { 
-                BaseOffset: int le,
-                Value: short le at BaseOffset + 2
-            };
-            select d.BaseOffset, d.Value from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                BaseOffset: int le,\n"
+            + "                Value: short le at BaseOffset + 2\n"
+            + "            };\n"
+            + "            select d.BaseOffset, d.Value from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x04, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x2A, 0x00 };
+        var entities = new[]
         {
-            0x04, 0x00, 0x00, 0x00,
-            0xFF, 0xFF,
-            0x2A, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -129,26 +152,33 @@ public class BinaryAbsolutePositionFeatureTests
     [TestMethod]
     public void Binary_AtClause_BackwardJump_ShouldRereadData()
     {
-        var query = @"
-            binary Data { 
-                First: int le,
-                Second: int le,
-                FirstAgain: int le at 0
-            };
-            select d.First, d.Second, d.FirstAgain from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                First: int le,\n"
+            + "                Second: int le,\n"
+            + "                FirstAgain: int le at 0\n"
+            + "            };\n"
+            + "            select d.First, d.Second, d.FirstAgain from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00 };
+        var entities = new[]
         {
-            0x01, 0x00, 0x00, 0x00,
-            0x02, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -167,28 +197,33 @@ public class BinaryAbsolutePositionFeatureTests
     [TestMethod]
     public void Binary_AtClause_MultipleFields_ShouldReadEachAtOffset()
     {
-        var query = @"
-            binary PeHeader { 
-                DosMagic: short le at 0,
-                PeOffset: int le at 4,
-                Signature: int le at 8
-            };
-            select h.DosMagic, h.PeOffset, h.Signature from #test.files() b
-            cross apply Interpret<PeHeader>(b.Content) h";
+        var query = (
+            "\n"
+            + "            binary PeHeader { \n"
+            + "                DosMagic: short le at 0,\n"
+            + "                PeOffset: int le at 4,\n"
+            + "                Signature: int le at 8\n"
+            + "            };\n"
+            + "            select h.DosMagic, h.PeOffset, h.Signature from #test.files() b\n"
+            + "            cross apply Interpret<PeHeader>(b.Content) h"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x4D, 0x5A, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x50, 0x45, 0x00, 0x00 };
+        var entities = new[]
         {
-            0x4D, 0x5A,
-            0x00, 0x00,
-            0x08, 0x00, 0x00, 0x00,
-            0x50, 0x45, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -207,24 +242,31 @@ public class BinaryAbsolutePositionFeatureTests
     [TestMethod]
     public void Binary_AtClause_LiteralOffset_ShouldReadAtPosition()
     {
-        var query = @"
-            binary Data { 
-                Value: int le at 4
-            };
-            select d.Value from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Value: int le at 4\n"
+            + "            };\n"
+            + "            select d.Value from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x2A, 0x00, 0x00, 0x00 };
+        var entities = new[]
         {
-            0xFF, 0xFF, 0xFF, 0xFF,
-            0x2A, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -237,20 +279,31 @@ public class BinaryAbsolutePositionFeatureTests
     [TestMethod]
     public void Binary_AtClause_ZeroOffset_ShouldReadFromStart()
     {
-        var query = @"
-            binary Data { 
-                Value: short le at 0
-            };
-            select d.Value from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                Value: short le at 0\n"
+            + "            };\n"
+            + "            select d.Value from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var testData = new byte[] { 0x0A, 0x00, 0xFF, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -267,28 +320,33 @@ public class BinaryAbsolutePositionFeatureTests
     [TestMethod]
     public void Binary_AtClause_CombinedWithWhen_ShouldApplyBoth()
     {
-        var query = @"
-            binary Data { 
-                HasExtra: byte,
-                Value: int le,
-                ExtraValue: int le at 8 when HasExtra <> 0
-            };
-            select d.HasExtra, d.Value, d.ExtraValue from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                HasExtra: byte,\n"
+            + "                Value: int le,\n"
+            + "                ExtraValue: int le at 8 when HasExtra <> 0\n"
+            + "            };\n"
+            + "            select d.HasExtra, d.Value, d.ExtraValue from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x01, 0x0A, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x14, 0x00, 0x00, 0x00 };
+        var entities = new[]
         {
-            0x01,
-            0x0A, 0x00, 0x00, 0x00,
-            0xFF, 0xFF, 0xFF,
-            0x14, 0x00, 0x00, 0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -303,22 +361,33 @@ public class BinaryAbsolutePositionFeatureTests
     [TestMethod]
     public void Binary_AtClause_CombinedWithWhenFalse_ShouldBeNull()
     {
-        var query = @"
-            binary Data { 
-                HasExtra: byte,
-                Value: int le,
-                ExtraValue: int le at 8 when HasExtra <> 0
-            };
-            select d.HasExtra, d.Value, d.ExtraValue from #test.files() b
-            cross apply Interpret<Data>(b.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { \n"
+            + "                HasExtra: byte,\n"
+            + "                Value: int le,\n"
+            + "                ExtraValue: int le at 8 when HasExtra <> 0\n"
+            + "            };\n"
+            + "            select d.HasExtra, d.Value, d.ExtraValue from #test.files() b\n"
+            + "            cross apply Interpret<Data>(b.Content) d"
+        );
 
         var testData = "\u0000\n\u0000\u0000\u0000"u8.ToArray();
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

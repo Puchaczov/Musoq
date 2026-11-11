@@ -21,8 +21,7 @@ public partial class LibraryBase
         if (regex == null || content == null)
             return null;
 
-        var compiledRegex = MatchRegexCache.GetOrAdd(regex, pattern =>
-            new Regex(pattern, RegexOptions.Compiled));
+        var compiledRegex = MatchRegexCache.GetOrAdd(regex, pattern => new Regex(pattern, RegexOptions.Compiled));
 
         return compiledRegex.IsMatch(content);
     }

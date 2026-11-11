@@ -14,32 +14,59 @@ public static class QueryProfileTelemetry
 
     public static Meter Meter { get; } = new(Name);
 
-    private static readonly Histogram<double> QueryElapsedMilliseconds =
-        Meter.CreateHistogram<double>("musoq.query.elapsed", "ms", "Total profiled query elapsed time.");
+    private static readonly Histogram<double> QueryElapsedMilliseconds = Meter.CreateHistogram<double>(
+        "musoq.query.elapsed",
+        "ms",
+        "Total profiled query elapsed time."
+    );
 
-    private static readonly Counter<long> SourceRowsRead =
-        Meter.CreateCounter<long>("musoq.query.source.rows_read", "rows", "Rows read from a profiled source.");
+    private static readonly Counter<long> SourceRowsRead = Meter.CreateCounter<long>(
+        "musoq.query.source.rows_read",
+        "rows",
+        "Rows read from a profiled source."
+    );
 
-    private static readonly Counter<long> SourceRowsProduced =
-        Meter.CreateCounter<long>("musoq.query.source.rows_produced", "rows", "Rows produced by a profiled source.");
+    private static readonly Counter<long> SourceRowsProduced = Meter.CreateCounter<long>(
+        "musoq.query.source.rows_produced",
+        "rows",
+        "Rows produced by a profiled source."
+    );
 
-    private static readonly Histogram<double> SourceElapsedMilliseconds =
-        Meter.CreateHistogram<double>("musoq.query.source.elapsed", "ms", "Elapsed time until the last source row.");
+    private static readonly Histogram<double> SourceElapsedMilliseconds = Meter.CreateHistogram<double>(
+        "musoq.query.source.elapsed",
+        "ms",
+        "Elapsed time until the last source row."
+    );
 
-    private static readonly Histogram<double> SourceMoveNextWaitMilliseconds =
-        Meter.CreateHistogram<double>("musoq.query.source.move_next_wait", "ms", "Time spent waiting for source MoveNext.");
+    private static readonly Histogram<double> SourceMoveNextWaitMilliseconds = Meter.CreateHistogram<double>(
+        "musoq.query.source.move_next_wait",
+        "ms",
+        "Time spent waiting for source MoveNext."
+    );
 
-    private static readonly Histogram<double> SourceConsumerGapMilliseconds =
-        Meter.CreateHistogram<double>("musoq.query.source.consumer_gap", "ms", "Time between source rows consumed by the evaluator.");
+    private static readonly Histogram<double> SourceConsumerGapMilliseconds = Meter.CreateHistogram<double>(
+        "musoq.query.source.consumer_gap",
+        "ms",
+        "Time between source rows consumed by the evaluator."
+    );
 
-    private static readonly Histogram<long> SourceBacklogChunks =
-        Meter.CreateHistogram<long>("musoq.query.source.backlog_chunks", "chunks", "Observed chunked source backlog.");
+    private static readonly Histogram<long> SourceBacklogChunks = Meter.CreateHistogram<long>(
+        "musoq.query.source.backlog_chunks",
+        "chunks",
+        "Observed chunked source backlog."
+    );
 
-    private static readonly Counter<long> OperatorRows =
-        Meter.CreateCounter<long>("musoq.query.operator.rows", "rows", "Rows output by a profiled operator.");
+    private static readonly Counter<long> OperatorRows = Meter.CreateCounter<long>(
+        "musoq.query.operator.rows",
+        "rows",
+        "Rows output by a profiled operator."
+    );
 
-    private static readonly Histogram<double> OperatorElapsedMilliseconds =
-        Meter.CreateHistogram<double>("musoq.query.operator.elapsed", "ms", "Elapsed time attributed to a profiled operator.");
+    private static readonly Histogram<double> OperatorElapsedMilliseconds = Meter.CreateHistogram<double>(
+        "musoq.query.operator.elapsed",
+        "ms",
+        "Elapsed time attributed to a profiled operator."
+    );
 
     public static void Emit(QueryProfileSnapshot snapshot)
     {
@@ -100,9 +127,7 @@ public static class QueryProfileTelemetry
     private static void EmitMeasurements(QueryProfileSnapshot snapshot)
     {
         if (QueryElapsedMilliseconds.Enabled)
-            QueryElapsedMilliseconds.Record(
-                snapshot.TotalElapsed.TotalMilliseconds,
-                CreateQueryTags(snapshot.QueryId));
+            QueryElapsedMilliseconds.Record(snapshot.TotalElapsed.TotalMilliseconds, CreateQueryTags(snapshot.QueryId));
 
         foreach (var source in snapshot.Sources)
             EmitSourceMeasurements(snapshot.QueryId, source);
@@ -153,29 +178,25 @@ public static class QueryProfileTelemetry
 
     private static IEnumerable<long> GetBacklogValues(SourceProfileSnapshot source)
     {
-        return source.Metrics
-            .Where(static metric => DiagnosticChunkMetricNames.IsForSourceMetric(
-                metric.Key,
-                DiagnosticChunkMetricNames.PeakBacklogInChunks))
+        return source
+            .Metrics.Where(static metric =>
+                DiagnosticChunkMetricNames.IsForSourceMetric(metric.Key, DiagnosticChunkMetricNames.PeakBacklogInChunks)
+            )
             .Select(static metric => Math.Max(0, metric.Value));
     }
 
-    private static KeyValuePair<string, object?>[] CreateQueryTags(string? queryId) =>
-    [
-        new("musoq.query.id", queryId)
-    ];
+    private static KeyValuePair<string, object?>[] CreateQueryTags(string? queryId) => [new("musoq.query.id", queryId)];
 
     private static KeyValuePair<string, object?>[] CreateSourceTags(string? queryId, string sourceName) =>
-    [
-        new("musoq.query.id", queryId),
-        new("musoq.source.id", sourceName),
-        new("musoq.source.name", sourceName)
-    ];
+        [new("musoq.query.id", queryId), new("musoq.source.id", sourceName), new("musoq.source.name", sourceName)];
 
-    private static KeyValuePair<string, object?>[] CreateOperatorTags(string? queryId, OperatorProfileSnapshot operation) =>
-    [
-        new("musoq.query.id", queryId),
-        new("musoq.operator.id", operation.Id),
-        new("musoq.operator.name", operation.Name)
-    ];
+    private static KeyValuePair<string, object?>[] CreateOperatorTags(
+        string? queryId,
+        OperatorProfileSnapshot operation
+    ) =>
+        [
+            new("musoq.query.id", queryId),
+            new("musoq.operator.id", operation.Id),
+            new("musoq.operator.name", operation.Name),
+        ];
 }

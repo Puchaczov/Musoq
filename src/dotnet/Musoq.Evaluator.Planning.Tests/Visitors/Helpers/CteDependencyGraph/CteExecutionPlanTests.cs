@@ -27,10 +27,7 @@ public class CteExecutionPlanTests
         // Arrange
         var graph = CreateSimpleGraph();
         var node = new CteGraphNode("cteA", null) { ExecutionLevel = 0, IsReachable = true };
-        var levels = new List<CteExecutionLevel>
-        {
-            new(0, new List<CteGraphNode> { node })
-        };
+        var levels = new List<CteExecutionLevel> { new(0, new List<CteGraphNode> { node }) };
 
         // Act
         var plan = new CteExecutionPlan(levels, graph);
@@ -69,7 +66,7 @@ public class CteExecutionPlanTests
         var levels = new List<CteExecutionLevel>
         {
             new(0, new List<CteGraphNode> { node1, node2 }),
-            new(1, new List<CteGraphNode> { node3 })
+            new(1, new List<CteGraphNode> { node3 }),
         };
 
         // Act
@@ -92,7 +89,7 @@ public class CteExecutionPlanTests
         var levels = new List<CteExecutionLevel>
         {
             new(0, new List<CteGraphNode> { node1, node2, node3 }), // 3 CTEs
-            new(1, new List<CteGraphNode> { node4 }) // 1 CTE
+            new(1, new List<CteGraphNode> { node4 }), // 1 CTE
         };
 
         // Act
@@ -110,10 +107,7 @@ public class CteExecutionPlanTests
         var node1 = new CteGraphNode("cteA", null);
         var node2 = new CteGraphNode("cteB", null);
 
-        var levels = new List<CteExecutionLevel>
-        {
-            new(0, new List<CteGraphNode> { node1, node2 })
-        };
+        var levels = new List<CteExecutionLevel> { new(0, new List<CteGraphNode> { node1, node2 }) };
 
         // Act
         var plan = new CteExecutionPlan(levels, graph);
@@ -133,7 +127,7 @@ public class CteExecutionPlanTests
         var levels = new List<CteExecutionLevel>
         {
             new(0, new List<CteGraphNode> { node1 }),
-            new(1, new List<CteGraphNode> { node2 })
+            new(1, new List<CteGraphNode> { node2 }),
         };
 
         // Act
@@ -163,10 +157,7 @@ public class CteExecutionPlanTests
         // Arrange
         var graph = CreateSimpleGraph();
         var node = new CteGraphNode("cteA", null);
-        var levels = new List<CteExecutionLevel>
-        {
-            new(0, new List<CteGraphNode> { node })
-        };
+        var levels = new List<CteExecutionLevel> { new(0, new List<CteGraphNode> { node }) };
 
         // Act
         var plan = new CteExecutionPlan(levels, graph);
@@ -197,10 +188,7 @@ public class CteExecutionPlanTests
         var node1 = new CteGraphNode("cteA", null);
         var node2 = new CteGraphNode("cteB", null);
 
-        var levels = new List<CteExecutionLevel>
-        {
-            new(0, new List<CteGraphNode> { node1, node2 })
-        };
+        var levels = new List<CteExecutionLevel> { new(0, new List<CteGraphNode> { node1, node2 }) };
         var plan = new CteExecutionPlan(levels, graph);
 
         // Act
@@ -221,10 +209,7 @@ public class CteExecutionPlanTests
         // Arrange
         var graph = CreateSimpleGraph();
         var node = new CteGraphNode("cteA", null);
-        var levels = new List<CteExecutionLevel>
-        {
-            new(0, new List<CteGraphNode> { node })
-        };
+        var levels = new List<CteExecutionLevel> { new(0, new List<CteGraphNode> { node }) };
 
         // Act
         var plan = new CteExecutionPlan(levels, graph);
@@ -251,7 +236,7 @@ public class CteExecutionPlanTests
         {
             new(0, new List<CteGraphNode> { node1, node2 }),
             new(1, new List<CteGraphNode> { node3 }),
-            new(2, new List<CteGraphNode> { node4 })
+            new(2, new List<CteGraphNode> { node4 }),
         };
 
         // Act
@@ -292,7 +277,7 @@ public class CteExecutionPlanTests
         var levels = new List<CteExecutionLevel>
         {
             new(0, new List<CteGraphNode> { node1 }),
-            new(1, new List<CteGraphNode> { node2 })
+            new(1, new List<CteGraphNode> { node2 }),
         };
         var plan = new CteExecutionPlan(levels, graph);
 
@@ -337,7 +322,7 @@ public class CteExecutionPlanTests
         {
             new(0, new List<CteGraphNode> { node1 }),
             new(1, new List<CteGraphNode> { node2 }),
-            new(2, new List<CteGraphNode> { node3 })
+            new(2, new List<CteGraphNode> { node3 }),
         };
 
         // Act

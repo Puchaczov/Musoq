@@ -32,16 +32,19 @@ public sealed class DiagnosticREC094DocumentIdentityTests
         Assert.IsFalse(string.IsNullOrWhiteSpace(originalDiagnostic.Explanation), candidate.CaseId);
         Assert.IsFalse(string.IsNullOrWhiteSpace(originalDiagnostic.DocsReference), candidate.CaseId);
 
-        var textEdits = originalDiagnostic.SuggestedFixes
-            .Where(static action => action.TextEdit != null)
+        var textEdits = originalDiagnostic
+            .SuggestedFixes.Where(static action => action.TextEdit != null)
             .Select(static action => action.TextEdit!)
             .ToArray();
         Assert.HasCount(1, textEdits, candidate.CaseId);
 
         var edit = textEdits[0];
         Assert.AreEqual("Name", edit.NewText, candidate.CaseId);
-        Assert.AreEqual(candidate.OriginalQuery.IndexOf("Naem", StringComparison.Ordinal), edit.Span.Start,
-            $"{candidate.CaseId}: native edit did not use UTF-16 string coordinates.");
+        Assert.AreEqual(
+            candidate.OriginalQuery.IndexOf("Naem", StringComparison.Ordinal),
+            edit.Span.Start,
+            $"{candidate.CaseId}: native edit did not use UTF-16 string coordinates."
+        );
         Assert.AreEqual(4, edit.Span.Length, candidate.CaseId);
         Assert.AreEqual("Naem", candidate.OriginalQuery.Substring(edit.Span.Start, edit.Span.Length), candidate.CaseId);
         Assert.AreEqual(edit.Span.Start, originalDiagnostic.Location.Offset, candidate.CaseId);
@@ -50,12 +53,14 @@ public sealed class DiagnosticREC094DocumentIdentityTests
             candidate.OriginalDocumentId,
             candidate.OriginalVersion,
             candidate.OriginalQuery,
-            candidate.OriginalCoordinateUnit);
+            candidate.OriginalCoordinateUnit
+        );
         var currentDocument = DocumentSnapshot.Create(
             candidate.CurrentDocumentId,
             candidate.CurrentVersion,
             candidate.CurrentQuery,
-            candidate.CurrentCoordinateUnit);
+            candidate.CurrentCoordinateUnit
+        );
         var capturedAction = new CapturedAction(originalDocument, edit);
 
         var outcome = DocumentRecoveryHarness.ApplyOrReanalyze(capturedAction, currentDocument);
@@ -74,10 +79,14 @@ public sealed class DiagnosticREC094DocumentIdentityTests
 
         if (candidate.CurrentQueryShouldAnalyze)
         {
-            Assert.IsTrue(outcome.Reanalysis!.IsSuccess,
-                $"{candidate.CaseId}: current text should analyze after reanalysis. {FormatDiagnostics(outcome.Reanalysis)}");
-            Assert.IsTrue(naiveOffsetOnlyResult.IsSuccess,
-                $"{candidate.CaseId}: the offset-only comparison must demonstrate why identity checking is required.");
+            Assert.IsTrue(
+                outcome.Reanalysis!.IsSuccess,
+                $"{candidate.CaseId}: current text should analyze after reanalysis. {FormatDiagnostics(outcome.Reanalysis)}"
+            );
+            Assert.IsTrue(
+                naiveOffsetOnlyResult.IsSuccess,
+                $"{candidate.CaseId}: the offset-only comparison must demonstrate why identity checking is required."
+            );
         }
         else
         {
@@ -94,18 +103,34 @@ public sealed class DiagnosticREC094DocumentIdentityTests
     public void CaseMatrix_ShouldCoverEveryRequiredStaleMutationBoundary()
     {
         Assert.HasCount(24, StaleActionCases);
-        Assert.HasCount(24, StaleActionCases.Select(static candidate => candidate.CaseId).Distinct(StringComparer.Ordinal));
+        Assert.HasCount(
+            24,
+            StaleActionCases.Select(static candidate => candidate.CaseId).Distinct(StringComparer.Ordinal)
+        );
 
         var familyCounts = StaleActionCases
             .GroupBy(static candidate => candidate.Family)
             .ToDictionary(static group => group.Key, static group => group.Count(), StringComparer.Ordinal);
 
         CollectionAssert.AreEquivalent(
-            new[] { "before-error", "within-error", "after-error", "wrapper-identity", "unicode-and-lines", "same-length-boundary" },
-            familyCounts.Keys.ToArray());
+            new[]
+            {
+                "before-error",
+                "within-error",
+                "after-error",
+                "wrapper-identity",
+                "unicode-and-lines",
+                "same-length-boundary",
+            },
+            familyCounts.Keys.ToArray()
+        );
         Assert.IsTrue(familyCounts.Values.All(static count => count == 4));
-        Assert.IsTrue(StaleActionCases.All(static candidate => candidate.OriginalCoordinateUnit == Utf16CoordinateUnit));
-        Assert.IsTrue(StaleActionCases.All(static candidate => candidate.OriginalQuery.Contains("Naem", StringComparison.Ordinal)));
+        Assert.IsTrue(
+            StaleActionCases.All(static candidate => candidate.OriginalCoordinateUnit == Utf16CoordinateUnit)
+        );
+        Assert.IsTrue(
+            StaleActionCases.All(static candidate => candidate.OriginalQuery.Contains("Naem", StringComparison.Ordinal))
+        );
     }
 
     [TestMethod]
@@ -115,9 +140,7 @@ public sealed class DiagnosticREC094DocumentIdentityTests
         var diagnostic = Analyze(BaseQuery).Errors.Single();
         var edit = diagnostic.SuggestedFixes.Single(static action => action.TextEdit != null).TextEdit!;
 
-        var outcome = DocumentRecoveryHarness.ApplyOrReanalyze(
-            new CapturedAction(document, edit),
-            document);
+        var outcome = DocumentRecoveryHarness.ApplyOrReanalyze(new CapturedAction(document, edit), document);
 
         Assert.IsTrue(outcome.Applied);
         Assert.IsFalse(outcome.Reanalyzed);
@@ -132,8 +155,10 @@ public sealed class DiagnosticREC094DocumentIdentityTests
         var original = DocumentSnapshot.Create("query-1", 7, BaseQuery, Utf16CoordinateUnit);
         var currentText = ReplaceOnce(BaseQuery, "Warsaw", "Berlin");
         var current = DocumentSnapshot.Create("query-1", 7, currentText, Utf16CoordinateUnit);
-        var edit = Analyze(BaseQuery).Errors.Single().SuggestedFixes
-            .Single(static action => action.TextEdit != null).TextEdit!;
+        var edit = Analyze(BaseQuery)
+            .Errors.Single()
+            .SuggestedFixes.Single(static action => action.TextEdit != null)
+            .TextEdit!;
 
         Assert.AreEqual(original.Text.Length, current.Text.Length);
         Assert.AreNotEqual(original.TextDigest, current.TextDigest);
@@ -143,8 +168,10 @@ public sealed class DiagnosticREC094DocumentIdentityTests
         Assert.AreEqual(StaleRejection.TextDigest, outcome.Rejection);
         Assert.IsTrue(outcome.Reanalyzed);
         Assert.IsFalse(outcome.Reanalysis!.IsSuccess);
-        Assert.IsTrue(Analyze(ApplyEdit(current.Text, edit)).IsSuccess,
-            "The stale edit would silently turn same-length changed text into a valid query.");
+        Assert.IsTrue(
+            Analyze(ApplyEdit(current.Text, edit)).IsSuccess,
+            "The stale edit would silently turn same-length changed text into a valid query."
+        );
     }
 
     [TestMethod]
@@ -152,8 +179,10 @@ public sealed class DiagnosticREC094DocumentIdentityTests
     {
         var original = DocumentSnapshot.Create("query-1", 7, BaseQuery, Utf16CoordinateUnit);
         var current = DocumentSnapshot.Create("query-1", 8, BaseQuery, Utf16CoordinateUnit);
-        var edit = Analyze(BaseQuery).Errors.Single().SuggestedFixes
-            .Single(static action => action.TextEdit != null).TextEdit!;
+        var edit = Analyze(BaseQuery)
+            .Errors.Single()
+            .SuggestedFixes.Single(static action => action.TextEdit != null)
+            .TextEdit!;
 
         Assert.AreEqual(original.TextDigest, current.TextDigest);
         var outcome = DocumentRecoveryHarness.ApplyOrReanalyze(new CapturedAction(original, edit), current);
@@ -193,89 +222,342 @@ public sealed class DiagnosticREC094DocumentIdentityTests
 
     private static readonly IReadOnlyList<RecoveryCase> StaleActionCases =
     [
-        new("REC-094-B01", "before-error", BaseQuery, "  " + BaseQuery,
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-B02", "before-error", BaseQuery, ReplaceOnce(BaseQuery, "select", "SELECT"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-B03", "before-error", BaseQuery, "\r\n" + BaseQuery,
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-B04", "before-error", MarkerQuery, ReplaceOnce(MarkerQuery, "'😀'", "'🦄'"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-
-        new("REC-094-W01", "within-error", BaseQuery, ReplaceOnce(BaseQuery, "Naem", "Nime"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-W02", "within-error", BaseQuery, ReplaceOnce(BaseQuery, "Naem", "Name"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, true),
-        new("REC-094-W03", "within-error", BaseQuery, ReplaceOnce(BaseQuery, "Naem", "N"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-W04", "within-error", MarkerQuery, ReplaceOnce(MarkerQuery, "Naem", "Naeem"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-
-        new("REC-094-A01", "after-error", BaseQuery, BaseQuery + "  ",
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-A02", "after-error", BaseQuery, BaseQuery + "\r\n",
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-A03", "after-error", BaseQuery, ReplaceOnce(BaseQuery, "Warsaw", "Berlin"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-A04", "after-error", CrLfQuery, ReplaceOnce(CrLfQuery, "Warsaw", "Krakow"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-
-        new("REC-094-I01", "wrapper-identity", BaseQuery, BaseQuery,
-            "query-1", "query-1", 7, 8, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.DocumentVersion, false),
-        new("REC-094-I02", "wrapper-identity", BaseQuery, BaseQuery,
-            "query-1", "query-2", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.DocumentId, false),
-        new("REC-094-I03", "wrapper-identity", BaseQuery, BaseQuery,
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, "utf8-bytes",
-            StaleRejection.CoordinateUnit, false),
-        new("REC-094-I04", "wrapper-identity", MarkerQuery, MarkerQuery,
-            "query-1", "query-2", 7, 8, Utf16CoordinateUnit, "utf8-bytes",
-            StaleRejection.DocumentId, false),
-
-        new("REC-094-C01", "unicode-and-lines", MarkerQuery,
+        new(
+            "REC-094-B01",
+            "before-error",
+            BaseQuery,
+            "  " + BaseQuery,
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-B02",
+            "before-error",
+            BaseQuery,
+            ReplaceOnce(BaseQuery, "select", "SELECT"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-B03",
+            "before-error",
+            BaseQuery,
+            "\r\n" + BaseQuery,
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-B04",
+            "before-error",
+            MarkerQuery,
+            ReplaceOnce(MarkerQuery, "'😀'", "'🦄'"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-W01",
+            "within-error",
+            BaseQuery,
+            ReplaceOnce(BaseQuery, "Naem", "Nime"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-W02",
+            "within-error",
+            BaseQuery,
+            ReplaceOnce(BaseQuery, "Naem", "Name"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            true
+        ),
+        new(
+            "REC-094-W03",
+            "within-error",
+            BaseQuery,
+            ReplaceOnce(BaseQuery, "Naem", "N"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-W04",
+            "within-error",
+            MarkerQuery,
+            ReplaceOnce(MarkerQuery, "Naem", "Naeem"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-A01",
+            "after-error",
+            BaseQuery,
+            BaseQuery + "  ",
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-A02",
+            "after-error",
+            BaseQuery,
+            BaseQuery + "\r\n",
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-A03",
+            "after-error",
+            BaseQuery,
+            ReplaceOnce(BaseQuery, "Warsaw", "Berlin"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-A04",
+            "after-error",
+            CrLfQuery,
+            ReplaceOnce(CrLfQuery, "Warsaw", "Krakow"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-I01",
+            "wrapper-identity",
+            BaseQuery,
+            BaseQuery,
+            "query-1",
+            "query-1",
+            7,
+            8,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.DocumentVersion,
+            false
+        ),
+        new(
+            "REC-094-I02",
+            "wrapper-identity",
+            BaseQuery,
+            BaseQuery,
+            "query-1",
+            "query-2",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.DocumentId,
+            false
+        ),
+        new(
+            "REC-094-I03",
+            "wrapper-identity",
+            BaseQuery,
+            BaseQuery,
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            "utf8-bytes",
+            StaleRejection.CoordinateUnit,
+            false
+        ),
+        new(
+            "REC-094-I04",
+            "wrapper-identity",
+            MarkerQuery,
+            MarkerQuery,
+            "query-1",
+            "query-2",
+            7,
+            8,
+            Utf16CoordinateUnit,
+            "utf8-bytes",
+            StaleRejection.DocumentId,
+            false
+        ),
+        new(
+            "REC-094-C01",
+            "unicode-and-lines",
+            MarkerQuery,
             ReplaceOnce(MarkerQuery, "from #A.Entities()", "from  #A.Entities()"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-C02", "unicode-and-lines", MarkerQuery, ReplaceOnce(MarkerQuery, "Naem", "Name"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, true),
-        new("REC-094-C03", "unicode-and-lines", LfQuery, ReplaceOnce(LfQuery, "\nwhere", "\n  where"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-C04", "unicode-and-lines", CrLfQuery,
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-C02",
+            "unicode-and-lines",
+            MarkerQuery,
+            ReplaceOnce(MarkerQuery, "Naem", "Name"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            true
+        ),
+        new(
+            "REC-094-C03",
+            "unicode-and-lines",
+            LfQuery,
+            ReplaceOnce(LfQuery, "\nwhere", "\n  where"),
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-C04",
+            "unicode-and-lines",
+            CrLfQuery,
             ReplaceOnce(CrLfQuery, "\r\nwhere", "\r\n  where"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-
-        new("REC-094-D01", "same-length-boundary", BaseQuery,
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-D01",
+            "same-length-boundary",
+            BaseQuery,
             ReplaceOnce(BaseQuery, "select Name", "select City"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-D02", "same-length-boundary", BaseQuery,
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-D02",
+            "same-length-boundary",
+            BaseQuery,
             ReplaceOnce(BaseQuery, "Naem = ", "Naem  = "),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-D03", "same-length-boundary", BaseQuery,
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-D03",
+            "same-length-boundary",
+            BaseQuery,
             ReplaceOnce(BaseQuery, "#A.Entities()", "#B.Entities()"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false),
-        new("REC-094-D04", "same-length-boundary", BaseQuery,
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
+        new(
+            "REC-094-D04",
+            "same-length-boundary",
+            BaseQuery,
             ReplaceOnce(BaseQuery, "Warsaw", "London"),
-            "query-1", "query-1", 7, 7, Utf16CoordinateUnit, Utf16CoordinateUnit,
-            StaleRejection.TextDigest, false)
+            "query-1",
+            "query-1",
+            7,
+            7,
+            Utf16CoordinateUnit,
+            Utf16CoordinateUnit,
+            StaleRejection.TextDigest,
+            false
+        ),
     ];
 
     private const string BaseQuery = "select Name from #A.Entities() where Naem = 'Warsaw'";
@@ -304,8 +586,10 @@ public sealed class DiagnosticREC094DocumentIdentityTests
 
     private static string FormatDiagnostics(QueryAnalysisResult result)
     {
-        return string.Join(" | ", result.Diagnostics.Select(static diagnostic =>
-            $"[{diagnostic.Code}] {diagnostic.Message}"));
+        return string.Join(
+            " | ",
+            result.Diagnostics.Select(static diagnostic => $"[{diagnostic.Code}] {diagnostic.Message}")
+        );
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateBasicSources()
@@ -313,7 +597,7 @@ public sealed class DiagnosticREC094DocumentIdentityTests
         return new Dictionary<string, IEnumerable<BasicEntity>>
         {
             ["#A"] = [new BasicEntity("Warsaw", "PL", 100)],
-            ["#B"] = [new BasicEntity("Berlin", "DE", 200)]
+            ["#B"] = [new BasicEntity("Berlin", "DE", 200)],
         };
     }
 
@@ -328,7 +612,7 @@ public sealed class DiagnosticREC094DocumentIdentityTests
         DocumentId,
         DocumentVersion,
         TextDigest,
-        CoordinateUnit
+        CoordinateUnit,
     }
 
     private sealed record RecoveryCase(
@@ -343,14 +627,16 @@ public sealed class DiagnosticREC094DocumentIdentityTests
         string OriginalCoordinateUnit,
         string CurrentCoordinateUnit,
         StaleRejection ExpectedRejection,
-        bool CurrentQueryShouldAnalyze);
+        bool CurrentQueryShouldAnalyze
+    );
 
     private sealed record DocumentSnapshot(
         string DocumentId,
         int Version,
         string Text,
         string CoordinateUnit,
-        string TextDigest)
+        string TextDigest
+    )
     {
         public static DocumentSnapshot Create(string documentId, int version, string text, string coordinateUnit)
         {
@@ -365,7 +651,8 @@ public sealed class DiagnosticREC094DocumentIdentityTests
         bool Reanalyzed,
         string? AppliedText,
         QueryAnalysisResult? Reanalysis,
-        StaleRejection? Rejection);
+        StaleRejection? Rejection
+    );
 
     private static class DocumentRecoveryHarness
     {
@@ -379,7 +666,8 @@ public sealed class DiagnosticREC094DocumentIdentityTests
                     Reanalyzed: true,
                     AppliedText: null,
                     Reanalysis: Analyze(current.Text),
-                    Rejection: rejection);
+                    Rejection: rejection
+                );
             }
 
             var appliedText = ApplyEdit(current.Text, action.Edit);
@@ -388,7 +676,8 @@ public sealed class DiagnosticREC094DocumentIdentityTests
                 Reanalyzed: false,
                 AppliedText: appliedText,
                 Reanalysis: null,
-                Rejection: null);
+                Rejection: null
+            );
         }
 
         private static StaleRejection? GetRejection(DocumentSnapshot original, DocumentSnapshot current)

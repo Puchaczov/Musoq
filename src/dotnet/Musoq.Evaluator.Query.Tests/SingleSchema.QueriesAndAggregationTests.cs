@@ -26,9 +26,9 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
                     new BasicEntity("003"),
                     new BasicEntity("004"),
                     new BasicEntity("005"),
-                    new BasicEntity("006")
+                    new BasicEntity("006"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -44,15 +44,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     public void GetHexTest()
     {
         var query = @"select ToHex(GetBytes(5), '|') as hexValue from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("001")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("001")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -70,10 +62,14 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
-                    new BasicEntity("005"), new BasicEntity("006")
+                    new BasicEntity("001"),
+                    new BasicEntity("002"),
+                    new BasicEntity("003"),
+                    new BasicEntity("004"),
+                    new BasicEntity("005"),
+                    new BasicEntity("006"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -94,10 +90,14 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
-                    new BasicEntity("005"), new BasicEntity("006")
+                    new BasicEntity("001"),
+                    new BasicEntity("002"),
+                    new BasicEntity("003"),
+                    new BasicEntity("004"),
+                    new BasicEntity("005"),
+                    new BasicEntity("006"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -115,10 +115,14 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
-                    new BasicEntity("005"), new BasicEntity("006")
+                    new BasicEntity("001"),
+                    new BasicEntity("002"),
+                    new BasicEntity("003"),
+                    new BasicEntity("004"),
+                    new BasicEntity("005"),
+                    new BasicEntity("006"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -142,10 +146,14 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003"), new BasicEntity("004"),
-                    new BasicEntity("005"), new BasicEntity("006")
+                    new BasicEntity("001"),
+                    new BasicEntity("002"),
+                    new BasicEntity("003"),
+                    new BasicEntity("004"),
+                    new BasicEntity("005"),
+                    new BasicEntity("006"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -157,12 +165,8 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     [TestMethod]
     public void ColumnNamesSimpleTest()
     {
-        var query =
-            @"select Name as TestName, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [] }
-        };
+        var query = @"select Name as TestName, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from #A.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -185,14 +189,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     public void CallMethodWithTwoParametersTest()
     {
         var query = @"select Concat(Country, ToString(Population)) from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("ABBA", 200)
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("ABBA", 200)] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -212,11 +209,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity(DateTime.MinValue)
-                ]
-            }
+            { "#A", [new BasicEntity(DateTime.MinValue)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -236,15 +229,16 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("001"),
                     new BasicEntity("002"),
                     new BasicEntity("003"),
                     new BasicEntity("004"),
                     new BasicEntity("005"),
-                    new BasicEntity("006")
+                    new BasicEntity("006"),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -265,14 +259,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     {
         var query = "select 1.0, -1.0 from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("xX")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("xX")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -293,14 +280,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     {
         var query = "desc #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("xX")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("xX")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -316,17 +296,36 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Name" && (string)row.ReadValue(2) == "System.String"));
-        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "City" && (string)row.ReadValue(2) == "System.String"));
-        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Country" && (string)row.ReadValue(2) == "System.String"));
-        Assert.IsTrue(table.Any(row =>
-            (string)row.ReadValue(0) == "Self" && (string)row.ReadValue(2) == "Musoq.Evaluator.Tests.Schema.Basic.BasicEntity"));
-        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Money" && (string)row.ReadValue(2) == "System.Decimal"));
-        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Month" && (string)row.ReadValue(2) == "System.String"));
-        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Time" && (string)row.ReadValue(2) == "System.DateTime"));
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Name" && (string)row.ReadValue(2) == "System.String")
+        );
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "City" && (string)row.ReadValue(2) == "System.String")
+        );
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Country" && (string)row.ReadValue(2) == "System.String")
+        );
+        Assert.IsTrue(
+            table.Any(row =>
+                (string)row.ReadValue(0) == "Self"
+                && (string)row.ReadValue(2) == "Musoq.Evaluator.Tests.Schema.Basic.BasicEntity"
+            )
+        );
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Money" && (string)row.ReadValue(2) == "System.Decimal")
+        );
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Month" && (string)row.ReadValue(2) == "System.String")
+        );
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "Time" && (string)row.ReadValue(2) == "System.DateTime")
+        );
         Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "Id" && (string)row.ReadValue(2) == "System.Int32"));
-        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "NullableValue" && (string)row.ReadValue(2) ==
-            typeof(int?).FullName));
+        Assert.IsTrue(
+            table.Any(row =>
+                (string)row.ReadValue(0) == "NullableValue" && (string)row.ReadValue(2) == typeof(int?).FullName
+            )
+        );
     }
 
     [TestMethod]
@@ -334,14 +333,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     {
         var query = "desc #A.entities";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("xX")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("xX")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -356,14 +348,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     {
         var query = "desc #A";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("xX")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("xX")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -382,12 +367,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("A"),
-                    new BasicEntity("B")
-                ]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -395,9 +375,10 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.Any(row => (string)row.ReadValue(0) == "A") &&
-                      table.Any(row => (string)row.ReadValue(0) == "B"),
-            "Expected rows with values A and B");
+        Assert.IsTrue(
+            table.Any(row => (string)row.ReadValue(0) == "A") && table.Any(row => (string)row.ReadValue(0) == "B"),
+            "Expected rows with values A and B"
+        );
     }
 
     [TestMethod]
@@ -407,12 +388,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("A"),
-                    new BasicEntity("B")
-                ]
-            }
+            { "#A", [new BasicEntity("A"), new BasicEntity("B")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -428,13 +404,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("Alice"),
-                    new BasicEntity("Bob"),
-                    new BasicEntity("Carol")
-                ]
-            }
+            { "#A", [new BasicEntity("Alice"), new BasicEntity("Bob"), new BasicEntity("Carol")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -451,13 +421,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A", [
-                    new BasicEntity("X"),
-                    new BasicEntity("Y"),
-                    new BasicEntity("Z")
-                ]
-            }
+            { "#A", [new BasicEntity("X"), new BasicEntity("Y"), new BasicEntity("Z")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -475,12 +439,13 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", [
+                "#A",
+                [
                     new BasicEntity("Alice") { City = "NYC" },
                     new BasicEntity("Bob") { City = "LA" },
-                    new BasicEntity("Carol") { City = "NYC" }
+                    new BasicEntity("Carol") { City = "NYC" },
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -500,14 +465,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     {
         var query = @"select AggregateValues(Name, ', ') from #A.entities() a group by Name";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("Alice")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Alice")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -521,14 +479,7 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     {
         var query = @"select Coalesce('a', 'b', 'c', 'e', 'f') from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("A")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("A")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -541,19 +492,11 @@ public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
     {
         var query = @"select Choose(2, 'a', 'b', 'c', 'e', 'f') from #A.entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("A")
-                ]
-            }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("A")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual("c", table[0].ReadValue(0));
     }
-
 }

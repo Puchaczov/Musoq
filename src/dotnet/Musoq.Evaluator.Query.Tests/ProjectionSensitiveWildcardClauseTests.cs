@@ -10,10 +10,7 @@ public sealed partial class ProjectionSensitiveWildcardTests
     public void ExplicitSelectReference_ShouldCoexistWithWildcardDiscovery()
     {
         var recorder = new ProjectionSensitiveWildcardRecorder();
-        var table = Compile(
-                "select *, a.Id as CopyId from #wildcard.rows() a where a.Name = 'Ada'",
-                recorder)
-            .Run();
+        var table = Compile("select *, a.Id as CopyId from #wildcard.rows() a where a.Name = 'Ada'", recorder).Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
@@ -21,10 +18,9 @@ public sealed partial class ProjectionSensitiveWildcardTests
             ("Name", typeof(string)),
             ("Other", typeof(string)),
             ("Score", typeof(int)),
-            ("CopyId", typeof(int)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            [1, "Ada", "source-column", 10, 1]);
+            ("CopyId", typeof(int))
+        );
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", "source-column", 10, 1]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
     }
 
@@ -33,16 +29,18 @@ public sealed partial class ProjectionSensitiveWildcardTests
     {
         var recorder = new ProjectionSensitiveWildcardRecorder();
         var table = Compile(
-                "select * exclude (Score) from #wildcard.rows() a " +
-                "group by a.Id, a.Name, a.Other having Sum(a.Score) > 0",
-                recorder)
+                "select * exclude (Score) from #wildcard.rows() a "
+                    + "group by a.Id, a.Name, a.Other having Sum(a.Score) > 0",
+                recorder
+            )
             .Run();
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("Id", typeof(int)),
             ("Name", typeof(string)),
-            ("Other", typeof(string)));
+            ("Other", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Ada", "source-column"]);
         Assert.IsTrue(recorder.MetadataRequests.Any(static request => request.Length == 0));
     }
@@ -52,9 +50,10 @@ public sealed partial class ProjectionSensitiveWildcardTests
     {
         var recorder = new ProjectionSensitiveWildcardRecorder();
         var table = Compile(
-                "select * exclude (Other), RowNumber() over (order by a.Score) as rn " +
-                "from #wildcard.rows() a qualify RowNumber() over (order by a.Score) <= 1",
-                recorder)
+                "select * exclude (Other), RowNumber() over (order by a.Score) as rn "
+                    + "from #wildcard.rows() a qualify RowNumber() over (order by a.Score) <= 1",
+                recorder
+            )
             .Run();
 
         var columnNames = table.Columns.Select(static column => column.ColumnName).ToArray();

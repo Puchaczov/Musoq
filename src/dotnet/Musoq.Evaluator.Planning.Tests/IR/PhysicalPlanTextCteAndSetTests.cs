@@ -11,7 +11,8 @@ public sealed class PhysicalPlanTextCteAndSetTests : BasicEntityTestBase
     public void Print_WhenUnionAllQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "select Name from #A.Entities() union all (Name) select Name from #B.Entities()");
+            "select Name from #A.Entities() union all (Name) select Name from #B.Entities()"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
@@ -23,15 +24,18 @@ public sealed class PhysicalPlanTextCteAndSetTests : BasicEntityTestBase
                 "      PhysicalSchemaScan [#A.Entities() as ko3iko]",
                 "  PhysicalMultiStatement",
                 "    PhysicalProject [vo04qt.Name as Name]",
-                "      PhysicalSchemaScan [#B.Entities() as vo04qt]"),
-            planText);
+                "      PhysicalSchemaScan [#B.Entities() as vo04qt]"
+            ),
+            planText
+        );
     }
 
     [TestMethod]
     public void Print_WhenSimpleCteQuery_ShouldMatchReadableSnapshot()
     {
         var buildItems = CreateBuildItems<BasicEntity>(
-            "with cte as (select Name, City from #A.Entities()) select Name from cte");
+            "with cte as (select Name, City from #A.Entities()) select Name from cte"
+        );
 
         var planText = PhysicalPlanPrinter.Print(buildItems.RequirePhysicalPlan());
 
@@ -45,7 +49,9 @@ public sealed class PhysicalPlanTextCteAndSetTests : BasicEntityTestBase
                 "  Query",
                 "    PhysicalMultiStatement",
                 "      PhysicalProject [cte.Name as Name]",
-                "        PhysicalCteRef [cte as cte]"),
-            planText);
+                "        PhysicalCteRef [cte as cte]"
+            ),
+            planText
+        );
     }
 }

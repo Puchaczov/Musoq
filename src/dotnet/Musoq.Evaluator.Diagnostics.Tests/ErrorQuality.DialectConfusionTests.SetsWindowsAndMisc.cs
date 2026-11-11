@@ -12,7 +12,8 @@ public partial class ErrorQualityDialectConfusionTests
     {
         // Arrange — UNION ALL without explicit column list (standard SQL style)
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
+        var query =
+            @"SELECT Name FROM #A.Entities()
 UNION ALL
 SELECT Name FROM #B.Entities()";
 
@@ -28,7 +29,8 @@ SELECT Name FROM #B.Entities()";
     {
         // Arrange — UNION (no ALL) without column list
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
+        var query =
+            @"SELECT Name FROM #A.Entities()
 UNION
 SELECT Name FROM #B.Entities()";
 
@@ -44,7 +46,8 @@ SELECT Name FROM #B.Entities()";
     {
         // Arrange — EXCEPT without column list
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
+        var query =
+            @"SELECT Name FROM #A.Entities()
 EXCEPT
 SELECT Name FROM #B.Entities()";
 
@@ -60,7 +63,8 @@ SELECT Name FROM #B.Entities()";
     {
         // Arrange — INTERSECT without column list
         var analyzer = CreateAnalyzer();
-        var query = @"SELECT Name FROM #A.Entities()
+        var query =
+            @"SELECT Name FROM #A.Entities()
 INTERSECT
 SELECT Name FROM #B.Entities()";
 
@@ -194,13 +198,10 @@ SELECT Name FROM #B.Entities()";
     [TestMethod]
     public void P_MISC_01_NotEquals_ExclamationEquals()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name != 'Warsaw'";
 
         var result = analyzer.Analyze(query);
-
-
 
         Assert.IsTrue(result.IsParsed);
         DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(P_MISC_01_NotEquals_ExclamationEquals));
@@ -237,7 +238,11 @@ SELECT Name FROM #B.Entities()";
         const string query = "SELECT 'hello' ||| 'world' FROM #A.Entities()";
         var result = CreateAnalyzer().ValidateSyntax(query);
 
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2019_InvalidOperator, "consecutive concatenation/bitwise operators");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2019_InvalidOperator,
+            "consecutive concatenation/bitwise operators"
+        );
     }
 
     [TestMethod]
@@ -265,7 +270,11 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should error and suggest ToString() or appropriate Cast function
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3090_UnsupportedCastTarget, ":: casting should suggest ToString() etc.");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3090_UnsupportedCastTarget,
+            ":: casting should suggest ToString() etc."
+        );
     }
 
     [TestMethod]
@@ -279,7 +288,11 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest ToInt32()/ToString()/etc.
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ2021_UnclosedFunctionCall, "CAST should suggest Musoq conversion functions");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ2021_UnclosedFunctionCall,
+            "CAST should suggest Musoq conversion functions"
+        );
     }
 
     [TestMethod]
@@ -296,18 +309,20 @@ SELECT Name FROM #B.Entities()";
         // CONVERT(varchar, Population) parses as a function call CONVERT with args,
         // but 'varchar' is treated as a column reference (unknown) and
         // the method CONVERT cannot be resolved.
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3001_UnknownColumn, "CONVERT should suggest Musoq conversion functions");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3001_UnknownColumn,
+            "CONVERT should suggest Musoq conversion functions"
+        );
     }
 
     [TestMethod]
     public void P_MISC_08_Coalesce()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Coalesce(null, Name) FROM #A.Entities()";
 
         var result = analyzer.Analyze(query);
-
 
         Assert.IsTrue(result.IsParsed);
         DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(P_MISC_08_Coalesce));
@@ -339,7 +354,11 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest Coalesce or Musoq equivalent
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3086_UnknownCallable, "NVL should suggest Coalesce or Musoq equivalent");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3086_UnknownCallable,
+            "NVL should suggest Coalesce or Musoq equivalent"
+        );
     }
 
     [TestMethod]
@@ -353,18 +372,20 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest Coalesce or Musoq equivalent
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3087_InvalidCallableArity, "ISNULL should suggest Coalesce or Musoq equivalent");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3087_InvalidCallableArity,
+            "ISNULL should suggest Coalesce or Musoq equivalent"
+        );
     }
 
     [TestMethod]
     public void P_MISC_12_BetweenOperator()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Population BETWEEN 50 AND 150";
 
         var result = analyzer.Analyze(query);
-
 
         Assert.IsTrue(result.IsParsed);
         DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(P_MISC_12_BetweenOperator));
@@ -373,40 +394,40 @@ SELECT Name FROM #B.Entities()";
     [TestMethod]
     public void P_MISC_13_DoubleQuotedIdentifiers()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT \"Name\" FROM #A.Entities()";
 
         var result = analyzer.Analyze(query);
 
-
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ1001_UnknownToken, nameof(P_MISC_13_DoubleQuotedIdentifiers));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ1001_UnknownToken,
+            nameof(P_MISC_13_DoubleQuotedIdentifiers)
+        );
     }
 
     [TestMethod]
     public void P_MISC_14_BacktickIdentifiers_MySqlStyle()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT `Name` FROM #A.Entities()";
 
         var result = analyzer.ValidateSyntax(query);
 
-
-        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
-            Musoq.Parser.Diagnostics.DiagnosticCode.MQ1001_UnknownToken, nameof(P_MISC_14_BacktickIdentifiers_MySqlStyle));
+        _ = DiagnosticContractTestAssertions.AssertSingleError(
+            result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ1001_UnknownToken,
+            nameof(P_MISC_14_BacktickIdentifiers_MySqlStyle)
+        );
     }
 
     [TestMethod]
     public void P_MISC_15_StringAlias()
     {
-
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name AS 'MyColumn' FROM #A.Entities()";
 
         var result = analyzer.Analyze(query);
-
 
         Assert.IsTrue(result.IsParsed);
         DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(P_MISC_15_StringAlias));
@@ -423,7 +444,11 @@ SELECT Name FROM #B.Entities()";
         var result = analyzer.Analyze(query);
 
         // Assert — Should suggest ToString() or Concat()
-        AssertHasDiagnosticCode(result, DiagnosticCode.MQ3007_InvalidOperandTypes, "string + number should suggest ToString/Concat");
+        AssertHasDiagnosticCode(
+            result,
+            DiagnosticCode.MQ3007_InvalidOperandTypes,
+            "string + number should suggest ToString/Concat"
+        );
     }
 
     #endregion

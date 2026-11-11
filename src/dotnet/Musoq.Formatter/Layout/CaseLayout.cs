@@ -19,14 +19,21 @@ internal sealed class CaseLayout(LayoutContext context, Func<IReadOnlyList<Layou
                 index = End(elements, index) - 1;
                 continue;
             }
-            if (!elements[index].IsKeyword || elements[index].Token.TokenType is not (TokenType.When or TokenType.Else or TokenType.End))
+            if (
+                !elements[index].IsKeyword
+                || elements[index].Token.TokenType is not (TokenType.When or TokenType.Else or TokenType.End)
+            )
                 continue;
             if (start == 0)
             {
                 parts.Add(Header(elements.Take(index).ToArray()));
             }
             else
-                parts.Add(Document.Indent(Document.Concat(Document.Line, Branch(elements.Skip(start).Take(index - start).ToArray()))));
+                parts.Add(
+                    Document.Indent(
+                        Document.Concat(Document.Line, Branch(elements.Skip(start).Take(index - start).ToArray()))
+                    )
+                );
             start = index;
         }
         parts.Add(Document.Line);
@@ -59,12 +66,21 @@ internal sealed class CaseLayout(LayoutContext context, Func<IReadOnlyList<Layou
             }
         }
         if (then < 0)
-            return Document.Group(Document.Concat(context.Tokens.Of(elements[0].Token),
-                Document.Indent(Document.Concat(Document.Break(), sequence(elements.Skip(1).ToArray())))));
-        return Document.Group(Document.Concat(context.Tokens.Of(elements[0].Token),
-            Document.Indent(Document.Concat(Document.Break(), sequence(elements.Skip(1).Take(then - 1).ToArray()))),
-            Document.Break(), context.Tokens.Of(elements[then].Token),
-            Document.Indent(Document.Concat(Document.Break(), sequence(elements.Skip(then + 1).ToArray())))));
+            return Document.Group(
+                Document.Concat(
+                    context.Tokens.Of(elements[0].Token),
+                    Document.Indent(Document.Concat(Document.Break(), sequence(elements.Skip(1).ToArray())))
+                )
+            );
+        return Document.Group(
+            Document.Concat(
+                context.Tokens.Of(elements[0].Token),
+                Document.Indent(Document.Concat(Document.Break(), sequence(elements.Skip(1).Take(then - 1).ToArray()))),
+                Document.Break(),
+                context.Tokens.Of(elements[then].Token),
+                Document.Indent(Document.Concat(Document.Break(), sequence(elements.Skip(then + 1).ToArray())))
+            )
+        );
     }
 
     internal int End(IReadOnlyList<LayoutElement> elements, int start)
@@ -75,5 +91,4 @@ internal sealed class CaseLayout(LayoutContext context, Func<IReadOnlyList<Layou
             end++;
         return end;
     }
-
 }

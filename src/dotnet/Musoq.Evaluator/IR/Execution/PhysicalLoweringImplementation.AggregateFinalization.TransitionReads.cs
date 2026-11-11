@@ -10,33 +10,36 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private ExecutionExpression ConvertProjectedExpression(
         ProjectedField field,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
     {
-        var expression = _shapeResolver.InlineRecords.Bind(ExecutionExpressionConverter.Convert(field.Expression, sourceLookup));
+        var expression = _shapeResolver.InlineRecords.Bind(
+            ExecutionExpressionConverter.Convert(field.Expression, sourceLookup)
+        );
         if (_shapeResolver.ScriptValues.HasGeneratedStorage || _shapeResolver.InlineRecords.Carriers.Any())
             expression = new NativeScriptGenericBinding(_shapeResolver.ScriptValues).RewriteExpression(expression);
-        if (expression is not ExecutionFieldRead fieldRead ||
-            fieldRead.AccessStrategy != null ||
-            string.IsNullOrWhiteSpace(fieldRead.Alias))
+        if (
+            expression is not ExecutionFieldRead fieldRead
+            || fieldRead.AccessStrategy != null
+            || string.IsNullOrWhiteSpace(fieldRead.Alias)
+        )
         {
             return expression;
         }
 
-        if (sourceLookup.TryGetValue(fieldRead.Alias, out var sourceShape) &&
-            sourceShape is not TableRowShape)
+        if (sourceLookup.TryGetValue(fieldRead.Alias, out var sourceShape) && sourceShape is not TableRowShape)
         {
             return expression;
         }
 
-        return TryCreateTransitionTableRead(field, sourceLookup, out var tableRead)
-            ? tableRead
-            : expression;
+        return TryCreateTransitionTableRead(field, sourceLookup, out var tableRead) ? tableRead : expression;
     }
 
     private static bool TryCreateTransitionTableRead(
         ProjectedField field,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        out ExecutionExpression expression)
+        out ExecutionExpression expression
+    )
     {
         var tableRows = sourceLookup.Values.OfType<TableRowShape>().ToArray();
         if (tableRows.Length != 1)
@@ -67,27 +70,33 @@ internal sealed partial class PhysicalLoweringImplementation
             return false;
         }
 
-        expression = new ExecutionFieldRead(tableRow.Alias, binding.Name, field.Expression.ReturnType, binding.AccessStrategy);
+        expression = new ExecutionFieldRead(
+            tableRow.Alias,
+            binding.Name,
+            field.Expression.ReturnType,
+            binding.AccessStrategy
+        );
         return true;
     }
 
-    private static FieldBinding? FindUniqueTransitionBinding(
-        TableRowShape tableRow,
-        ProjectedField field)
+    private static FieldBinding? FindUniqueTransitionBinding(TableRowShape tableRow, ProjectedField field)
     {
-        var matches = tableRow.Fields
-            .Where(candidate =>
-                string.Equals(candidate.Name, field.OutputName, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(candidate.QualifiedName, $"{tableRow.Alias}.{field.OutputName}", StringComparison.OrdinalIgnoreCase))
+        var matches = tableRow
+            .Fields.Where(candidate =>
+                string.Equals(candidate.Name, field.OutputName, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(
+                    candidate.QualifiedName,
+                    $"{tableRow.Alias}.{field.OutputName}",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
             .Take(2)
             .ToArray();
 
         return matches.Length == 1 ? matches[0] : null;
     }
 
-    private static ExecutionFieldRead? CreateNestedTransitionTableRead(
-        ProjectedField field,
-        TableRowShape tableRow)
+    private static ExecutionFieldRead? CreateNestedTransitionTableRead(ProjectedField field, TableRowShape tableRow)
     {
         if (field.Expression is not ColumnRef columnRef)
             return null;
@@ -108,13 +117,12 @@ internal sealed partial class PhysicalLoweringImplementation
             tableRow.Alias,
             columnPath,
             field.Expression.ReturnType,
-            new NestedPositionalAccess(binding.OutputIndex, propertyPath));
+            new NestedPositionalAccess(binding.OutputIndex, propertyPath)
+        );
         return read with { GeneratedTypeName = binding.Type.DisplayName.Replace('+', '.') };
     }
 
-    private static NestedTransitionBinding? FindNestedTransitionBinding(
-        TableRowShape tableRow,
-        string columnPath)
+    private static NestedTransitionBinding? FindNestedTransitionBinding(TableRowShape tableRow, string columnPath)
     {
         var segments = columnPath.Split('.');
 
@@ -122,8 +130,13 @@ internal sealed partial class PhysicalLoweringImplementation
         {
             var prefix = CreateTransitionBindingPrefix(segments, prefixLength, out var indexerPath);
             var binding = tableRow.Fields.FirstOrDefault(candidate =>
-                string.Equals(candidate.Name, prefix, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(candidate.QualifiedName, $"{tableRow.Alias}.{prefix}", StringComparison.OrdinalIgnoreCase));
+                string.Equals(candidate.Name, prefix, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(
+                    candidate.QualifiedName,
+                    $"{tableRow.Alias}.{prefix}",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            );
 
             if (binding == null)
                 continue;
@@ -141,10 +154,7 @@ internal sealed partial class PhysicalLoweringImplementation
         return null;
     }
 
-    private static string CreateTransitionBindingPrefix(
-        string[] segments,
-        int prefixLength,
-        out string? indexerPath)
+    private static string CreateTransitionBindingPrefix(string[] segments, int prefixLength, out string? indexerPath)
     {
         indexerPath = null;
         var prefixSegments = segments.Take(prefixLength).ToArray();
@@ -160,18 +170,13 @@ internal sealed partial class PhysicalLoweringImplementation
         return string.Join('.', prefixSegments);
     }
 
-    private static string CreateTransitionPropertyPath(
-        string[] segments,
-        int prefixLength,
-        string? indexerPath)
+    private static string CreateTransitionPropertyPath(string[] segments, int prefixLength, string? indexerPath)
     {
         var remainingPath = string.Join('.', segments.Skip(prefixLength));
         if (string.IsNullOrWhiteSpace(indexerPath))
             return remainingPath;
 
-        return string.IsNullOrWhiteSpace(remainingPath)
-            ? indexerPath
-            : $"{indexerPath}.{remainingPath}";
+        return string.IsNullOrWhiteSpace(remainingPath) ? indexerPath : $"{indexerPath}.{remainingPath}";
     }
 
     private static bool CanReadNestedTransitionBinding(FieldBinding binding, string propertyPath)
@@ -196,5 +201,4 @@ internal sealed partial class PhysicalLoweringImplementation
 
         return true;
     }
-
 }

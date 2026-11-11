@@ -10,7 +10,8 @@ public static partial class ExecutionPlanPrinter
     private static void AppendStoredTableRepresentations(
         StringBuilder builder,
         IReadOnlyList<ExecutionStoredTableRepresentationPlan> representations,
-        ExecutionBlock block)
+        ExecutionBlock block
+    )
     {
         var structuralTableIndexes = ExecutionIrAnalysis
             .CollectExpressions<ExecutionCteCollectionInput>(block)
@@ -28,23 +29,25 @@ public static partial class ExecutionPlanPrinter
         builder.AppendLine("  StoredTableRepresentations");
         foreach (var representation in selected)
         {
-            builder.AppendLine(CultureInfo.InvariantCulture,
-                $"    [{representation.TableIndex}] {representation.Kind}; row={representation.RowShape.TypeName}; " +
-                $"ownership={representation.Ownership}; lifetime={representation.Lifetime}");
+            builder.AppendLine(
+                CultureInfo.InvariantCulture,
+                $"    [{representation.TableIndex}] {representation.Kind}; row={representation.RowShape.TypeName}; "
+                    + $"ownership={representation.Ownership}; lifetime={representation.Lifetime}"
+            );
         }
     }
 
-    private static void AppendStructuralPreparationPlans(
-        StringBuilder builder,
-        ExecutionBlock block)
+    private static void AppendStructuralPreparationPlans(StringBuilder builder, ExecutionBlock block)
     {
         var plans = ExecutionIrAnalysis
             .CollectNodes<ExecutionPrepareStructuralInput>(block)
             .Select(static node => node.Plan)
-            .Concat(ExecutionIrAnalysis
-                .CollectExpressions<ExecutionCteCollectionInput>(block)
-                .Where(static input => input.ConstructionPlan != null)
-                .Select(static input => input.ConstructionPlan!))
+            .Concat(
+                ExecutionIrAnalysis
+                    .CollectExpressions<ExecutionCteCollectionInput>(block)
+                    .Where(static input => input.ConstructionPlan != null)
+                    .Select(static input => input.ConstructionPlan!)
+            )
             .Distinct()
             .ToArray();
         if (plans.Length == 0)
@@ -54,11 +57,12 @@ public static partial class ExecutionPlanPrinter
         foreach (var plan in plans)
         {
             builder.AppendLine(
-                $"    {plan.TargetType.DisplayName}; constructor={plan.Constructor.StableId}; " +
-                $"shape={plan.InputShape.CanonicalType}; " +
-                $"origin={plan.Origin}; lifetime={plan.Lifetime}; metrics={plan.MetricsStrategy}; " +
-                $"ownership={plan.Ownership}; limits={plan.Limits}; " +
-                $"defaults={string.Join(',', plan.Defaults.Select(static value => value?.ToString() ?? "-"))}");
+                $"    {plan.TargetType.DisplayName}; constructor={plan.Constructor.StableId}; "
+                    + $"shape={plan.InputShape.CanonicalType}; "
+                    + $"origin={plan.Origin}; lifetime={plan.Lifetime}; metrics={plan.MetricsStrategy}; "
+                    + $"ownership={plan.Ownership}; limits={plan.Limits}; "
+                    + $"defaults={string.Join(',', plan.Defaults.Select(static value => value?.ToString() ?? "-"))}"
+            );
         }
     }
 }

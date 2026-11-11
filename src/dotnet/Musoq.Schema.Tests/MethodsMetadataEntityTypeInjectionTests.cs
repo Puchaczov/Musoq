@@ -127,39 +127,21 @@ public class MethodsMetadataEntityTypeInjectionTests : MethodsMetadataTestBase
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private sealed class TestClass
     {
-        public void Method1(
-            [InjectSpecificSource(typeof(IBaseEntity))]
-            IBaseEntity entity,
-            int param)
-        {
-        }
+        public void Method1([InjectSpecificSource(typeof(IBaseEntity))] IBaseEntity entity, int param) { }
 
-        public void Method2(
-            [InjectSpecificSource(typeof(ISpecificEntity))]
-            ISpecificEntity entity,
-            int param)
-        {
-        }
+        public void Method2([InjectSpecificSource(typeof(ISpecificEntity))] ISpecificEntity entity, int param) { }
 
-        public void StatsMethod(
-            [InjectQueryStats] object stats,
-            int param)
-        {
-        }
+        public void StatsMethod([InjectQueryStats] object stats, int param) { }
 
         public void MultipleInjection(
-            [InjectSpecificSource(typeof(IBaseEntity))]
-            IBaseEntity entity,
+            [InjectSpecificSource(typeof(IBaseEntity))] IBaseEntity entity,
             [InjectQueryStats] object stats,
-            int param)
-        {
-        }
+            int param
+        ) { }
 
         public void OptionalWithInjection(
-            [InjectSpecificSource(typeof(IBaseEntity))]
-            IBaseEntity entity,
-            int param = 42)
-        {
-        }
+            [InjectSpecificSource(typeof(IBaseEntity))] IBaseEntity entity,
+            int param = 42
+        ) { }
     }
 }

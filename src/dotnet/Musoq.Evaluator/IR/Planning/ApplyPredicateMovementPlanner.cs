@@ -14,7 +14,8 @@ internal static partial class ApplyPredicateMovementPlanner
         LogicalNode logicalPlan,
         IReadOnlyDictionary<string, SourcePlanProperties> sources,
         IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults = null,
-        IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans = null)
+        IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans = null
+    )
     {
         ArgumentNullException.ThrowIfNull(logicalPlan);
         ArgumentNullException.ThrowIfNull(sources);
@@ -28,7 +29,9 @@ internal static partial class ApplyPredicateMovementPlanner
     {
         private readonly Dictionary<LogicalNode, QueryScope> _scopes = new(ReferenceComparer<LogicalNode>.Instance);
         private readonly Dictionary<ApplyNode, int> _applyOrdinals = new(ReferenceComparer<ApplyNode>.Instance);
-        private readonly Dictionary<ApplyNode, HashSet<string>> _expandedLeftAliases = new(ReferenceComparer<ApplyNode>.Instance);
+        private readonly Dictionary<ApplyNode, HashSet<string>> _expandedLeftAliases = new(
+            ReferenceComparer<ApplyNode>.Instance
+        );
         private ApplyBoundary[] _allBoundaries = [];
         private readonly List<ApplyPredicateMovementPlan> _plans = [];
         private readonly List<PlanningDecision> _decisions = [];
@@ -38,7 +41,8 @@ internal static partial class ApplyPredicateMovementPlanner
             LogicalNode logicalPlan,
             IReadOnlyDictionary<string, SourcePlanProperties> sources,
             IReadOnlyDictionary<string, SourcePlanResult>? sourcePlanResults,
-            IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans)
+            IReadOnlyDictionary<string, SourcePredicatePlan>? sourcePredicatePlans
+        )
         {
             CollectScopes(logicalPlan, new QueryScope());
             InitializeScopes(logicalPlan, sources, sourcePlanResults, sourcePredicatePlans);
@@ -58,12 +62,13 @@ internal static partial class ApplyPredicateMovementPlanner
                 if (boundary.Apply.Left is CteRefNode cteRef)
                 {
                     var producer = rawBoundaries
-                        .Where(previous => previous.Ordinal < boundary.Ordinal &&
-                            ReferenceEquals(_scopes[previous.Apply], _scopes[boundary.Apply]))
-                        .LastOrDefault(previous => string.Equals(
-                            CreateCteName(previous),
-                            cteRef.CteName,
-                            StringComparison.OrdinalIgnoreCase));
+                        .Where(previous =>
+                            previous.Ordinal < boundary.Ordinal
+                            && ReferenceEquals(_scopes[previous.Apply], _scopes[boundary.Apply])
+                        )
+                        .LastOrDefault(previous =>
+                            string.Equals(CreateCteName(previous), cteRef.CteName, StringComparison.OrdinalIgnoreCase)
+                        );
                     if (producer != null)
                     {
                         leftAliases.UnionWith(producer.LeftAliases);
@@ -79,7 +84,8 @@ internal static partial class ApplyPredicateMovementPlanner
                     boundary.Apply,
                     boundary.Ordinal,
                     new HashSet<string>(_expandedLeftAliases[boundary.Apply], StringComparer.OrdinalIgnoreCase),
-                    boundary.RightAliases))
+                    boundary.RightAliases
+                ))
                 .ToArray();
             foreach (var boundary in _allBoundaries)
             {
@@ -113,8 +119,8 @@ internal static partial class ApplyPredicateMovementPlanner
                 .ToArray();
             if (boundaries.Length == 0 && ContainsCteReference(filter.Input))
             {
-                boundaries = scope.Boundaries
-                    .Where(static boundary => boundary.Apply.Kind is ApplyKind.Cross or ApplyKind.Outer)
+                boundaries = scope
+                    .Boundaries.Where(static boundary => boundary.Apply.Kind is ApplyKind.Cross or ApplyKind.Outer)
                     .ToArray();
             }
 
@@ -132,7 +138,8 @@ internal static partial class ApplyPredicateMovementPlanner
             IrExpression predicate,
             int ordinal,
             IReadOnlyList<ApplyBoundary> boundaries,
-            QueryScope scope)
+            QueryScope scope
+        )
         {
             var originalPredicateText = IrExpressionPrinter.Print(predicate);
             var movementPredicate = RewriteCteAliases(predicate, scope);
@@ -142,13 +149,16 @@ internal static partial class ApplyPredicateMovementPlanner
 
             if (scope.SourceAcceptedPredicateTexts.Contains(originalPredicateText))
             {
-                _decisions.Add(new PlanningDecision(
-                    PlanningDecisionCategory.PredicateMovement,
-                    "ApplyPredicateMovementPlan",
-                    $"Where:SourceAccepted:{ordinal}:{originalPredicateText}",
-                    "AlreadySourcePushed",
-                    PlanningConfidence.High,
-                    "Predicate was accepted by source planning and does not need a duplicate APPLY guard."));
+                _decisions.Add(
+                    new PlanningDecision(
+                        PlanningDecisionCategory.PredicateMovement,
+                        "ApplyPredicateMovementPlan",
+                        $"Where:SourceAccepted:{ordinal}:{originalPredicateText}",
+                        "AlreadySourcePushed",
+                        PlanningConfidence.High,
+                        "Predicate was accepted by source planning and does not need a duplicate APPLY guard."
+                    )
+                );
                 return;
             }
 
@@ -164,7 +174,8 @@ internal static partial class ApplyPredicateMovementPlanner
                     ordinal,
                     originalPredicateText,
                     PlanningConfidence.Medium,
-                    $"Predicate references a right-side or future APPLY alias and remains residual until all referenced aliases are available. Available APPLY left scopes: {FormatScopes(boundaries)}.");
+                    $"Predicate references a right-side or future APPLY alias and remains residual until all referenced aliases are available. Available APPLY left scopes: {FormatScopes(boundaries)}."
+                );
                 return;
             }
 
@@ -174,7 +185,8 @@ internal static partial class ApplyPredicateMovementPlanner
                     ordinal,
                     originalPredicateText,
                     PlanningConfidence.Low,
-                    "Predicate references an alias that appears in multiple source scopes, so APPLY movement remains conservative.");
+                    "Predicate references an alias that appears in multiple source scopes, so APPLY movement remains conservative."
+                );
                 return;
             }
 
@@ -184,7 +196,8 @@ internal static partial class ApplyPredicateMovementPlanner
                     ordinal,
                     originalPredicateText,
                     PlanningConfidence.High,
-                    "OR predicates are kept intact; only top-level AND conjuncts can become APPLY guards.");
+                    "OR predicates are kept intact; only top-level AND conjuncts can become APPLY guards."
+                );
                 return;
             }
 
@@ -194,7 +207,8 @@ internal static partial class ApplyPredicateMovementPlanner
                     ordinal,
                     originalPredicateText,
                     PlanningConfidence.Low,
-                    "Predicate is not a typed boolean expression, so it remains residual.");
+                    "Predicate is not a typed boolean expression, so it remains residual."
+                );
                 return;
             }
 
@@ -207,7 +221,8 @@ internal static partial class ApplyPredicateMovementPlanner
                     PlanningConfidence.Medium,
                     string.IsNullOrWhiteSpace(blockedReason)
                         ? "Predicate is non-deterministic or contains an unsupported planning-time expression, so it remains residual."
-                        : $"{blockedReason} APPLY movement is disabled for this predicate.");
+                        : $"{blockedReason} APPLY movement is disabled for this predicate."
+                );
                 return;
             }
 
@@ -224,19 +239,23 @@ internal static partial class ApplyPredicateMovementPlanner
                 movementPredicate,
                 predicateText,
                 PlanningConfidence.High,
-                $"Predicate is deterministic and references only aliases available before the right side of the {FormatApplyName(boundary.Apply.Kind)} boundary; it can be evaluated before right-side setup.")
+                $"Predicate is deterministic and references only aliases available before the right side of the {FormatApplyName(boundary.Apply.Kind)} boundary; it can be evaluated before right-side setup."
+            )
             {
-                ResidualPredicateText = originalPredicateText
+                ResidualPredicateText = originalPredicateText,
             };
 
             _plans.Add(plan);
-            _decisions.Add(new PlanningDecision(
-                PlanningDecisionCategory.PredicateMovement,
-                "ApplyPredicateMovementPlan",
-                plan.MovementId,
-                plan.Placement.ToString(),
-                plan.Confidence,
-                plan.Reason));
+            _decisions.Add(
+                new PlanningDecision(
+                    PlanningDecisionCategory.PredicateMovement,
+                    "ApplyPredicateMovementPlan",
+                    plan.MovementId,
+                    plan.Placement.ToString(),
+                    plan.Confidence,
+                    plan.Reason
+                )
+            );
         }
     }
 }

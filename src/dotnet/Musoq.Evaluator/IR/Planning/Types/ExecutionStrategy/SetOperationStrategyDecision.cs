@@ -3,7 +3,8 @@ namespace Musoq.Evaluator.IR.Planning;
 internal sealed record SetOperationStrategyDecision(
     SetOperationLoweringKind LoweringKind,
     SetOperationTableStrategy TableStrategy,
-    string Reason)
+    string Reason
+)
 {
     public bool CanStreamUnionAll => LoweringKind == SetOperationLoweringKind.StreamingUnionAll;
 
@@ -14,7 +15,8 @@ internal sealed record SetOperationStrategyDecision(
         return new SetOperationStrategyDecision(
             SetOperationLoweringKind.StreamingUnionAll,
             SetOperationTableStrategy.AppendLoop,
-            reason);
+            reason
+        );
     }
 
     public static SetOperationStrategyDecision AppendLoop(string reason)
@@ -22,7 +24,8 @@ internal sealed record SetOperationStrategyDecision(
         return new SetOperationStrategyDecision(
             SetOperationLoweringKind.TableOperation,
             SetOperationTableStrategy.AppendLoop,
-            reason);
+            reason
+        );
     }
 
     public static SetOperationStrategyDecision HashSet(string reason)
@@ -30,7 +33,8 @@ internal sealed record SetOperationStrategyDecision(
         return new SetOperationStrategyDecision(
             SetOperationLoweringKind.TableOperation,
             SetOperationTableStrategy.HashSet,
-            reason);
+            reason
+        );
     }
 
     public static SetOperationStrategyDecision GeneratedEqualityLoop(string reason)
@@ -38,6 +42,7 @@ internal sealed record SetOperationStrategyDecision(
         return new SetOperationStrategyDecision(
             SetOperationLoweringKind.TableOperation,
             SetOperationTableStrategy.GeneratedEqualityLoop,
-            reason);
+            reason
+        );
     }
 }

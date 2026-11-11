@@ -11,7 +11,11 @@ public sealed class SourceBoundaryStrategyPlannerTests
     [TestMethod]
     public void Plan_WhenBoundaryIsCorrelated_ShouldRequirePerRow()
     {
-        var boundary = CreateBoundary(SourceBoundaryKind.PropertySource, ApplyKind.Outer, SourceBoundaryInputMode.Correlated);
+        var boundary = CreateBoundary(
+            SourceBoundaryKind.PropertySource,
+            ApplyKind.Outer,
+            SourceBoundaryInputMode.Correlated
+        );
 
         var result = SourceBoundaryStrategyPlanner.Plan([boundary]);
 
@@ -24,7 +28,11 @@ public sealed class SourceBoundaryStrategyPlannerTests
     [TestMethod]
     public void Plan_WhenBoundaryIsIndependent_ShouldMarkPerQueryCandidateWithoutCaching()
     {
-        var boundary = CreateBoundary(SourceBoundaryKind.InterpretSource, ApplyKind.Cross, SourceBoundaryInputMode.Independent);
+        var boundary = CreateBoundary(
+            SourceBoundaryKind.InterpretSource,
+            ApplyKind.Cross,
+            SourceBoundaryInputMode.Independent
+        );
 
         var result = SourceBoundaryStrategyPlanner.Plan([boundary]);
 
@@ -37,7 +45,11 @@ public sealed class SourceBoundaryStrategyPlannerTests
     [TestMethod]
     public void Plan_WhenBoundaryShapeIsUnknown_ShouldKeepConservativeStrategy()
     {
-        var boundary = CreateBoundary(SourceBoundaryKind.AccessMethodSource, ApplyKind.Cross, SourceBoundaryInputMode.Unknown);
+        var boundary = CreateBoundary(
+            SourceBoundaryKind.AccessMethodSource,
+            ApplyKind.Cross,
+            SourceBoundaryInputMode.Unknown
+        );
 
         var result = SourceBoundaryStrategyPlanner.Plan([boundary]);
 
@@ -50,7 +62,8 @@ public sealed class SourceBoundaryStrategyPlannerTests
     private static SourceBoundaryPlan CreateBoundary(
         SourceBoundaryKind kind,
         ApplyKind applyKind,
-        SourceBoundaryInputMode inputMode)
+        SourceBoundaryInputMode inputMode
+    )
     {
         return new SourceBoundaryPlan(
             $"{kind}:test",
@@ -66,7 +79,8 @@ public sealed class SourceBoundaryStrategyPlannerTests
             ["input"],
             ["output"],
             PlanningConfidence.High,
-            "reason");
+            "reason"
+        );
     }
 
     private static SourceInvocationShape ResolveInvocationShape(SourceBoundaryInputMode inputMode)
@@ -75,7 +89,7 @@ public sealed class SourceBoundaryStrategyPlannerTests
         {
             SourceBoundaryInputMode.Independent => SourceInvocationShape.PerQuery,
             SourceBoundaryInputMode.Correlated => SourceInvocationShape.PerRow,
-            _ => SourceInvocationShape.Unknown
+            _ => SourceInvocationShape.Unknown,
         };
     }
 
@@ -85,7 +99,7 @@ public sealed class SourceBoundaryStrategyPlannerTests
         {
             SourceBoundaryInputMode.Independent => SourceCacheability.CacheCandidate,
             SourceBoundaryInputMode.Correlated => SourceCacheability.NotCacheable,
-            _ => SourceCacheability.Unknown
+            _ => SourceCacheability.Unknown,
         };
     }
 }

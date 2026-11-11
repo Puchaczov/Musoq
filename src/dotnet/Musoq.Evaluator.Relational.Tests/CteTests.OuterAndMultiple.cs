@@ -9,12 +9,14 @@ public partial class CteTests
     [TestMethod]
     public void CteWithTwoOuterExpressionTest()
     {
-        var query = @"
-with p as (
-    select City, Country from #A.entities()
-)
-select City, Country from p union (City, Country)
-select City, Country from #B.entities()";
+        var query = (
+            "\n"
+            + "with p as (\n"
+            + "    select City, Country from #A.entities()\n"
+            + ")\n"
+            + "select City, Country from p union (City, Country)\n"
+            + "select City, Country from #B.entities()"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -23,7 +25,7 @@ select City, Country from #B.entities()";
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400)
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                 ]
             },
             {
@@ -32,9 +34,9 @@ select City, Country from #B.entities()";
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350),
-                    new BasicEntity("HELSINKI", "FINLAND", 500)
+                    new BasicEntity("HELSINKI", "FINLAND", 500),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -47,18 +49,21 @@ select City, Country from #B.entities()";
             ["WARSAW", "POLAND"],
             ["CZESTOCHOWA", "POLAND"],
             ["BERLIN", "GERMANY"],
-            ["MUNICH", "GERMANY"]);
+            ["MUNICH", "GERMANY"]
+        );
     }
 
     [TestMethod]
     public void SimpleCteWithMultipleOuterExpressionsTest()
     {
-        var query = @"
-with p as (
-    select City, Country from #A.entities() intersect (Country, City)
-    select City, Country from #B.entities()
-) select City, Country from p where Country = 'FINLAND' union (Country, City)
-  select City, Country from p where Country = 'POLAND'";
+        var query = (
+            "\n"
+            + "with p as (\n"
+            + "    select City, Country from #A.entities() intersect (Country, City)\n"
+            + "    select City, Country from #B.entities()\n"
+            + ") select City, Country from p where Country = 'FINLAND' union (Country, City)\n"
+            + "  select City, Country from p where Country = 'POLAND'"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -67,7 +72,7 @@ with p as (
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400)
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                 ]
             },
             {
@@ -77,38 +82,37 @@ with p as (
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350),
                     new BasicEntity("TOKYO", "JAPAN", 500),
-                    new BasicEntity("HELSINKI", "FINLAND", 500)
+                    new BasicEntity("HELSINKI", "FINLAND", 500),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["HELSINKI", "FINLAND"],
-            ["WARSAW", "POLAND"]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["HELSINKI", "FINLAND"], ["WARSAW", "POLAND"]);
     }
 
     [TestMethod]
     public void MultipleCteExpressionsTest()
     {
-        const string query = @"
-with p as (
-    select City, Country from #A.entities()
-), c as (
-    select City, Country from #B.entities()
-), d as (
-    select City, Country from p where City = 'HELSINKI'
-), f as (
-    select City, Country from #B.entities() where City = 'WARSAW'
-)
-select City, Country from p union (City, Country)
-select City, Country from c union (City, Country)
-select City, Country from d union (City, Country)
-select City, Country from f";
+        const string query = (
+            "\n"
+            + "with p as (\n"
+            + "    select City, Country from #A.entities()\n"
+            + "), c as (\n"
+            + "    select City, Country from #B.entities()\n"
+            + "), d as (\n"
+            + "    select City, Country from p where City = 'HELSINKI'\n"
+            + "), f as (\n"
+            + "    select City, Country from #B.entities() where City = 'WARSAW'\n"
+            + ")\n"
+            + "select City, Country from p union (City, Country)\n"
+            + "select City, Country from c union (City, Country)\n"
+            + "select City, Country from d union (City, Country)\n"
+            + "select City, Country from f"
+        );
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -117,7 +121,7 @@ select City, Country from f";
                 [
                     new BasicEntity("HELSINKI", "FINLAND", 500),
                     new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400)
+                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
                 ]
             },
             {
@@ -126,9 +130,9 @@ select City, Country from f";
                     new BasicEntity("WARSAW", "POLAND", 250),
                     new BasicEntity("BERLIN", "GERMANY", 250),
                     new BasicEntity("MUNICH", "GERMANY", 350),
-                    new BasicEntity("HELSINKI", "FINLAND", 500)
+                    new BasicEntity("HELSINKI", "FINLAND", 500),
                 ]
-            }
+            },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -141,6 +145,7 @@ select City, Country from f";
             ["WARSAW", "POLAND"],
             ["CZESTOCHOWA", "POLAND"],
             ["BERLIN", "GERMANY"],
-            ["MUNICH", "GERMANY"]);
+            ["MUNICH", "GERMANY"]
+        );
     }
 }

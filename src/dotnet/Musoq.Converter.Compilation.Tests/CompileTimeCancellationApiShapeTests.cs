@@ -2,8 +2,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Build;
@@ -40,7 +40,8 @@ public sealed class CompileTimeCancellationApiShapeTests
             "Profile",
             "CompileForProfile",
             "ExplainAnalyze",
-            "CompileForExplainAnalyze");
+            "CompileForExplainAnalyze"
+        );
     }
 
     [TestMethod]
@@ -52,7 +53,8 @@ public sealed class CompileTimeCancellationApiShapeTests
             "CompileArtifact",
             "InspectTyped",
             "CompileForProfile",
-            "CompileAndRun");
+            "CompileAndRun"
+        );
         AssertLegacyAndTokenOverloads(typeof(Musoq), "Compile", "Load", "CompileAndRun");
         AssertLegacyAndTokenOverloads(typeof(QueryAnalyzer), "Analyze");
         AssertLegacyAndTokenOverloads(typeof(InterpreterCompilationUnit), "Compile");
@@ -69,33 +71,51 @@ public sealed class CompileTimeCancellationApiShapeTests
         Assert.HasCount(1, typeof(CompiledQueryArtifactLoader).GetMethod("Invoke")!.GetParameters());
         Assert.HasCount(2, typeof(CompiledQueryArtifactLoaderWithCancellation).GetMethod("Invoke")!.GetParameters());
         Assert.HasCount(1, typeof(CompiledQueryArtifactTypeLoader).GetMethod("Invoke")!.GetParameters());
-        Assert.HasCount(2, typeof(CompiledQueryArtifactTypeLoaderWithCancellation).GetMethod("Invoke")!.GetParameters());
-        Assert.IsNotNull(typeof(CompilationContextManager).GetConstructor(
-            [typeof(CSharpCompilation), typeof(EvaluatorRuntimeEnvironment)]));
-        Assert.IsNotNull(typeof(CompilationContextManager).GetConstructor(
-            [typeof(CSharpCompilation), typeof(EvaluatorRuntimeEnvironment), typeof(CancellationToken)]));
+        Assert.HasCount(
+            2,
+            typeof(CompiledQueryArtifactTypeLoaderWithCancellation).GetMethod("Invoke")!.GetParameters()
+        );
+        Assert.IsNotNull(
+            typeof(CompilationContextManager).GetConstructor([
+                typeof(CSharpCompilation),
+                typeof(EvaluatorRuntimeEnvironment),
+            ])
+        );
+        Assert.IsNotNull(
+            typeof(CompilationContextManager).GetConstructor([
+                typeof(CSharpCompilation),
+                typeof(EvaluatorRuntimeEnvironment),
+                typeof(CancellationToken),
+            ])
+        );
         Assert.AreEqual(CancellationToken.None, new BuildItems().CancellationToken);
     }
 
     private static void AssertLegacyAndTokenOverloads(Type type, params string[] names)
     {
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+        var methods = type.GetMethods(
+            BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly
+        );
         foreach (var name in names)
         {
             var overloads = methods.Where(method => method.Name == name).ToArray();
             Assert.IsNotEmpty(overloads, $"No public {type.Name}.{name} overload was found.");
             Assert.IsTrue(
                 overloads.Any(method => HasFinalCancellationToken(method)),
-                $"No token-final {type.Name}.{name} overload was found.");
+                $"No token-final {type.Name}.{name} overload was found."
+            );
             Assert.IsTrue(
                 overloads.Any(method => !HasFinalCancellationToken(method)),
-                $"No legacy {type.Name}.{name} overload was found.");
+                $"No legacy {type.Name}.{name} overload was found."
+            );
             Assert.IsTrue(
                 overloads
-                    .Where(method => method.GetParameters().Any(parameter =>
-                        parameter.ParameterType == typeof(CancellationToken)))
+                    .Where(method =>
+                        method.GetParameters().Any(parameter => parameter.ParameterType == typeof(CancellationToken))
+                    )
                     .All(HasFinalCancellationToken),
-                $"A {type.Name}.{name} overload places CancellationToken before its final parameter.");
+                $"A {type.Name}.{name} overload places CancellationToken before its final parameter."
+            );
         }
     }
 

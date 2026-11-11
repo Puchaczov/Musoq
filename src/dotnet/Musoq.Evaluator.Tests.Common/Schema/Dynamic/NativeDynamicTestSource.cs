@@ -5,7 +5,9 @@ using Musoq.Schema.DataSources;
 namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
 internal sealed class NativeDynamicTestSource<TRow, TMaterializer>(
-    IEnumerable<dynamic> values, IReadOnlyList<QueryRowField> fields) : RowSourceBase<TRow>
+    IEnumerable<dynamic> values,
+    IReadOnlyList<QueryRowField> fields
+) : RowSourceBase<TRow>
     where TMaterializer : struct, IQueryRowMaterializer<TRow>
 {
     protected override void CollectChunks(IChunkWriter<TRow> writer)
@@ -21,7 +23,9 @@ internal sealed class NativeDynamicTestSource<TRow, TMaterializer>(
 }
 
 internal ref struct NativeDynamicTestReader(
-    IReadOnlyDictionary<string, object?> row, IReadOnlyList<QueryRowField> fields) : IQuerySourceFieldReader
+    IReadOnlyDictionary<string, object?> row,
+    IReadOnlyList<QueryRowField> fields
+) : IQuerySourceFieldReader
 {
     public T Read<T>(int slot)
     {

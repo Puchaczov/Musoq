@@ -4,5 +4,5 @@ internal enum SubqueryCorrelationNullSemantics
 {
     NotCorrelated,
     EqualityComparison,
-    ResidualOrUnknown
+    ResidualOrUnknown,
 }

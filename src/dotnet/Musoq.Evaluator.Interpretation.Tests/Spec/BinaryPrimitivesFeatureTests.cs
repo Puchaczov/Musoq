@@ -25,18 +25,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_Byte_ShouldParseWithoutEndianness()
     {
-        var query = @"
-            binary Data { Value: byte };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Value: byte };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0xAB };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -49,18 +60,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_SByte_ShouldParseNegativeValue()
     {
-        var query = @"
-            binary Data { Value: sbyte };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Value: sbyte };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -77,19 +99,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_ShortLittleEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: short le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: short le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0x34, 0x12 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -102,19 +134,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_UShortLittleEndian_ShouldParseHighValues()
     {
-        var query = @"
-            binary Data { Value: ushort le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: ushort le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0xFF, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -127,19 +169,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_IntLittleEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: int le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: int le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0x78, 0x56, 0x34, 0x12 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -152,19 +204,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_UIntLittleEndian_ShouldParseHighValues()
     {
-        var query = @"
-            binary Data { Value: uint le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: uint le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -177,19 +239,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_LongLittleEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: long le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: long le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -202,19 +274,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_ULongLittleEndian_ShouldParseMaxValue()
     {
-        var query = @"
-            binary Data { Value: ulong le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: ulong le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -231,19 +313,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_ShortBigEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: short be };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: short be };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0x12, 0x34 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -256,19 +348,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_IntBigEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: int be };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: int be };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0x12, 0x34, 0x56, 0x78 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -281,19 +383,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_LongBigEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: long be };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: long be };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -310,19 +422,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_FloatLittleEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: float le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: float le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = BitConverter.GetBytes(3.14f);
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -335,19 +457,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_DoubleLittleEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: double le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: double le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = BitConverter.GetBytes(3.141592653589793);
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -360,20 +492,30 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_FloatBigEndian_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: float be };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: float be };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var leBytes = BitConverter.GetBytes(3.14f);
         Array.Reverse(leBytes);
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = leBytes } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = leBytes },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -390,30 +532,35 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_MultiplePrimitives_ShouldParseInSequence()
     {
-        var query = @"
-            binary Header {
-                Magic: int le,
-                Version: short le,
-                Flags: byte,
-                Reserved: byte
-            };
-            select h.Magic, h.Version, h.Flags, h.Reserved 
-            from #test.files() f
-            cross apply Interpret<Header>(f.Content) h";
+        var query = (
+            "\n"
+            + "            binary Header {\n"
+            + "                Magic: int le,\n"
+            + "                Version: short le,\n"
+            + "                Flags: byte,\n"
+            + "                Reserved: byte\n"
+            + "            };\n"
+            + "            select h.Magic, h.Version, h.Flags, h.Reserved \n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<Header>(f.Content) h"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x78, 0x56, 0x34, 0x12, 0x00, 0x01, 0xFF, 0x00 };
+        var entities = new[]
         {
-            0x78, 0x56, 0x34, 0x12,
-            0x00, 0x01,
-            0xFF,
-            0x00
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -429,26 +576,33 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_MixedEndianness_ShouldParseEachCorrectly()
     {
-        var query = @"
-            binary MixedData {
-                LittleValue: int le,
-                BigValue: int be
-            };
-            select m.LittleValue, m.BigValue 
-            from #test.files() f
-            cross apply Interpret<MixedData>(f.Content) m";
+        var query = (
+            "\n"
+            + "            binary MixedData {\n"
+            + "                LittleValue: int le,\n"
+            + "                BigValue: int be\n"
+            + "            };\n"
+            + "            select m.LittleValue, m.BigValue \n"
+            + "            from #test.files() f\n"
+            + "            cross apply Interpret<MixedData>(f.Content) m"
+        );
 
-        var testData = new byte[]
+        var testData = new byte[] { 0x78, 0x56, 0x34, 0x12, 0x12, 0x34, 0x56, 0x78 };
+        var entities = new[]
         {
-            0x78, 0x56, 0x34, 0x12,
-            0x12, 0x34, 0x56, 0x78
+            new BinaryEntity { Name = "test.bin", Content = testData },
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -466,19 +620,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_NegativeInt_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: int le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
-
+        var query = (
+            "\n"
+            + "            binary Data { Value: int le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = BitConverter.GetBytes(-1);
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
@@ -491,18 +655,29 @@ public class BinaryPrimitivesFeatureTests
     [TestMethod]
     public void Binary_IntMinValue_ShouldParseCorrectly()
     {
-        var query = @"
-            binary Data { Value: int le };
-            select d.Value from #test.files() f
-            cross apply Interpret<Data>(f.Content) d";
+        var query = (
+            "\n"
+            + "            binary Data { Value: int le };\n"
+            + "            select d.Value from #test.files() f\n"
+            + "            cross apply Interpret<Data>(f.Content) d"
+        );
 
         var testData = BitConverter.GetBytes(int.MinValue);
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);

@@ -42,7 +42,8 @@ public sealed partial class LogicalPlanBuilder
 
     private static OrderField[] RewriteOrderFieldsWithAggregateRefs(
         OrderField[] fields,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         var rewritten = new OrderField[fields.Length];
 
@@ -51,7 +52,7 @@ public sealed partial class LogicalPlanBuilder
             var field = fields[index];
             rewritten[index] = field with
             {
-                Expression = AggregateRefRewriter.Rewrite(field.Expression, bindingsByIdentifier)
+                Expression = AggregateRefRewriter.Rewrite(field.Expression, bindingsByIdentifier),
             };
         }
 
@@ -60,26 +61,31 @@ public sealed partial class LogicalPlanBuilder
 
     private static LogicalNode RewriteSourceExpressionsWithAggregateRefs(
         LogicalNode source,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         return source switch
         {
             IrNodes.HavingFilterNode having => new IrNodes.HavingFilterNode(
                 AggregateRefRewriter.Rewrite(having.Predicate, bindingsByIdentifier),
-                RewriteSourceExpressionsWithAggregateRefs(having.Input, bindingsByIdentifier)),
+                RewriteSourceExpressionsWithAggregateRefs(having.Input, bindingsByIdentifier)
+            ),
             IrNodes.WindowNode window => new IrNodes.WindowNode(
                 RewriteWindowRegistrationsWithAggregateRefs(window.Registrations, bindingsByIdentifier),
-                RewriteSourceExpressionsWithAggregateRefs(window.Input, bindingsByIdentifier)),
+                RewriteSourceExpressionsWithAggregateRefs(window.Input, bindingsByIdentifier)
+            ),
             IrNodes.QualifyFilterNode qualify => new IrNodes.QualifyFilterNode(
                 AggregateRefRewriter.Rewrite(qualify.Predicate, bindingsByIdentifier),
-                RewriteSourceExpressionsWithAggregateRefs(qualify.Input, bindingsByIdentifier)),
-            _ => source
+                RewriteSourceExpressionsWithAggregateRefs(qualify.Input, bindingsByIdentifier)
+            ),
+            _ => source,
         };
     }
 
     private static WindowRegistration[] RewriteWindowRegistrationsWithAggregateRefs(
         WindowRegistration[] registrations,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         var rewritten = new WindowRegistration[registrations.Length];
 
@@ -91,22 +97,25 @@ public sealed partial class LogicalPlanBuilder
 
     private static WindowRegistration RewriteWindowRegistrationWithAggregateRefs(
         WindowRegistration registration,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         return registration with
         {
             PartitionKeys = RewriteExpressionsWithAggregateRefs(registration.PartitionKeys, bindingsByIdentifier),
             OrderKeys = RewriteOrderFieldsWithAggregateRefs(registration.OrderKeys, bindingsByIdentifier),
             ValueArguments = RewriteExpressionsWithAggregateRefs(registration.ValueArguments, bindingsByIdentifier),
-            FilterPredicate = registration.FilterPredicate == null
-                ? null
-                : AggregateRefRewriter.Rewrite(registration.FilterPredicate, bindingsByIdentifier)
+            FilterPredicate =
+                registration.FilterPredicate == null
+                    ? null
+                    : AggregateRefRewriter.Rewrite(registration.FilterPredicate, bindingsByIdentifier),
         };
     }
 
     private static IrExpression[] RewriteExpressionsWithAggregateRefs(
         IrExpression[] expressions,
-        Dictionary<string, AggregateBinding> bindingsByIdentifier)
+        Dictionary<string, AggregateBinding> bindingsByIdentifier
+    )
     {
         var rewritten = new IrExpression[expressions.Length];
 

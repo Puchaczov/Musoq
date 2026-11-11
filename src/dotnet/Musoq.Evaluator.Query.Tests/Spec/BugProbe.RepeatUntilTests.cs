@@ -26,27 +26,41 @@ public class BugProbeRepeatUntilTests
     [TestMethod]
     public void Binary_RepeatUntilWithDotNotation_ShouldTerminateOnCondition()
     {
-        var query = @"
-            binary Record { Type: byte, Value: byte };
-            binary Stream { Records: Record repeat until Records[-1].Type = 0 };
-            select r.Type, r.Value from #test.files() b
-            cross apply Interpret<Stream>(b.Content) s
-            cross apply s.Records r
-            where r.Type <> 0
-            order by r.Value asc";
+        var query = (
+            "\n"
+            + "            binary Record { Type: byte, Value: byte };\n"
+            + "            binary Stream { Records: Record repeat until Records[-1].Type = 0 };\n"
+            + "            select r.Type, r.Value from #test.files() b\n"
+            + "            cross apply Interpret<Stream>(b.Content) s\n"
+            + "            cross apply s.Records r\n"
+            + "            where r.Type <> 0\n"
+            + "            order by r.Value asc"
+        );
 
         var testData = new byte[]
         {
-            0x01, 0x0A, // Type=1, Value=10
-            0x02, 0x14, // Type=2, Value=20
-            0x00, 0x00 // Type=0 (terminator)
+            0x01,
+            0x0A, // Type=1, Value=10
+            0x02,
+            0x14, // Type=2, Value=20
+            0x00,
+            0x00, // Type=0 (terminator)
         };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "test.bin", Content = testData },
+        };
         var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } }
+        );
 
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver,
+            TestCompilationOptions
+        );
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);

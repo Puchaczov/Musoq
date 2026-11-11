@@ -14,33 +14,28 @@ namespace Musoq.Evaluator.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public partial class NullInSetOperatorsTests : BasicEntityTestBase
 {
-
     #region UNION ALL with null columns (should work — no comparison)
 
     [TestMethod]
     public void UnionAll_NullColumn_ShouldWorkWithoutComparison()
     {
-        var query = @"
-            select null as Col1, Name from #A.Entities() 
-            union all (Name) 
-            select null as Col1, Name from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select null as Col1, Name from #A.Entities() \n"
+            + "            union all (Name) \n"
+            + "            select null as Col1, Name from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Col1", typeof(System.DBNull)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [null, "001"],
-            [null, "002"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(System.DBNull)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null, "001"], [null, "002"]);
     }
 
     #endregion
@@ -50,26 +45,25 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void ThreeWayUnion_NullKeyColumn_ShouldNotThrowNullReference()
     {
-        var query = @"
-            select null as Col1, Name from #A.Entities() 
-            union (Col1) 
-            select null as Col1, Name from #B.Entities()
-            union (Col1) 
-            select null as Col1, Name from #C.Entities()";
+        var query = (
+            "\n"
+            + "            select null as Col1, Name from #A.Entities() \n"
+            + "            union (Col1) \n"
+            + "            select null as Col1, Name from #B.Entities()\n"
+            + "            union (Col1) \n"
+            + "            select null as Col1, Name from #C.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
             { "#B", [new BasicEntity("002")] },
-            { "#C", [new BasicEntity("003")] }
+            { "#C", [new BasicEntity("003")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Col1", typeof(System.DBNull)),
-            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(System.DBNull)), ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, [null, "001"]);
     }
 
@@ -80,23 +74,22 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Intersect_NullOnLeftStringOnRight_ShouldInferTypeFromRight()
     {
-        var query = @"
-            select Name, null as Extra from #A.Entities() 
-            intersect (Name) 
-            select Name, City as Extra from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Extra from #A.Entities() \n"
+            + "            intersect (Name) \n"
+            + "            select Name, City as Extra from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("001") { City = "Warsaw" }] }
+            { "#B", [new BasicEntity("001") { City = "Warsaw" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
@@ -111,14 +104,16 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Union_SingleNullKeyColumn_ShouldNotThrowNullReference()
     {
-        var query = @"
-            select null as Col1 from #A.Entities() 
-            union (Col1) 
-            select null as Col1 from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select null as Col1 from #A.Entities() \n"
+            + "            union (Col1) \n"
+            + "            select null as Col1 from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -131,14 +126,16 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Union_NullKeyColumnWithOtherColumns_ShouldNotThrowNullReference()
     {
-        var query = @"
-            select null as NullKey, Name from #A.Entities() 
-            union (NullKey) 
-            select null as NullKey, Name from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select null as NullKey, Name from #A.Entities() \n"
+            + "            union (NullKey) \n"
+            + "            select null as NullKey, Name from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -147,34 +144,31 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("NullKey", typeof(System.DBNull)),
-            ("Name", typeof(string)));
+            ("Name", typeof(string))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, [null, "001"]);
     }
 
     [TestMethod]
     public void Union_NullNonKeyColumn_ShouldWork()
     {
-        var query = @"
-            select Name, null as Tag from #A.Entities() 
-            union (Name) 
-            select Name, null as Tag from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Tag from #A.Entities() \n"
+            + "            union (Name) \n"
+            + "            select Name, null as Tag from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Tag", typeof(System.DBNull)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", null],
-            ["002", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Tag", typeof(System.DBNull)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null], ["002", null]);
     }
 
     #endregion
@@ -184,14 +178,16 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Except_SingleNullKeyColumn_ShouldNotThrowNullReference()
     {
-        var query = @"
-            select null as Col1 from #A.Entities() 
-            except (Col1) 
-            select null as Col1 from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select null as Col1 from #A.Entities() \n"
+            + "            except (Col1) \n"
+            + "            select null as Col1 from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -204,23 +200,22 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Except_NullNonKeyColumn_ShouldWork()
     {
-        var query = @"
-            select Name, null as Tag from #A.Entities() 
-            except (Name) 
-            select Name, null as Tag from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Tag from #A.Entities() \n"
+            + "            except (Name) \n"
+            + "            select Name, null as Tag from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Tag", typeof(System.DBNull)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Tag", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
@@ -231,14 +226,16 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Intersect_SingleNullKeyColumn_ShouldNotThrowNullReference()
     {
-        var query = @"
-            select null as Col1 from #A.Entities() 
-            intersect (Col1) 
-            select null as Col1 from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select null as Col1 from #A.Entities() \n"
+            + "            intersect (Col1) \n"
+            + "            select null as Col1 from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -251,23 +248,22 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Intersect_NullNonKeyColumn_ShouldWork()
     {
-        var query = @"
-            select Name, null as Tag from #A.Entities() 
-            intersect (Name) 
-            select Name, null as Tag from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Tag from #A.Entities() \n"
+            + "            intersect (Name) \n"
+            + "            select Name, null as Tag from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("001")] }
+            { "#B", [new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Tag", typeof(System.DBNull)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Tag", typeof(System.DBNull)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
@@ -278,40 +274,38 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Union_NullAsFirstColumn_NonKeyPosition_ShouldWork()
     {
-        var query = @"
-            select null as Extra, Name from #A.Entities() 
-            union (Name) 
-            select null as Extra, Name from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select null as Extra, Name from #A.Entities() \n"
+            + "            union (Name) \n"
+            + "            select null as Extra, Name from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Extra", typeof(System.DBNull)),
-            ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            [null, "001"],
-            [null, "002"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Extra", typeof(System.DBNull)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null, "001"], [null, "002"]);
     }
 
     [TestMethod]
     public void Union_NullAsMiddleColumn_NonKeyPosition_ShouldWork()
     {
-        var query = @"
-            select Name, null as Extra, City from #A.Entities() 
-            union (Name) 
-            select Name, null as Extra, City from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Extra, City from #A.Entities() \n"
+            + "            union (Name) \n"
+            + "            select Name, null as Extra, City from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("AAA") { City = "CityA" }] },
-            { "#B", [new BasicEntity("BBB") { City = "CityB" }] }
+            { "#B", [new BasicEntity("BBB") { City = "CityB" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -321,63 +315,53 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
             table,
             ("Name", typeof(string)),
             ("Extra", typeof(System.DBNull)),
-            ("City", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["AAA", null, "CityA"],
-            ["BBB", null, "CityB"]);
+            ("City", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["AAA", null, "CityA"], ["BBB", null, "CityB"]);
     }
 
     [TestMethod]
     public void Union_NullAsLastColumn_NonKeyPosition_ShouldWork()
     {
-        var query = @"
-            select Name, null as Extra from #A.Entities() 
-            union (Name) 
-            select Name, null as Extra from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Extra from #A.Entities() \n"
+            + "            union (Name) \n"
+            + "            select Name, null as Extra from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(System.DBNull)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", null],
-            ["002", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(System.DBNull)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null], ["002", null]);
     }
 
     [TestMethod]
     public void Union_BareNullWithoutAlias_NonKeyPosition_ShouldWork()
     {
-        var query = @"
-            select Name, null from #A.Entities() 
-            union (Name) 
-            select Name, null from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null from #A.Entities() \n"
+            + "            union (Name) \n"
+            + "            select Name, null from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("null", typeof(System.DBNull)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", null],
-            ["002", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("null", typeof(System.DBNull)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null], ["002", null]);
     }
 
     #endregion
@@ -392,53 +376,45 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void UnionAll_NullOnLeftStringOnRight_ShouldInferTypeFromRight()
     {
-        var query = @"
-            select Name, null as Extra from #A.Entities() 
-            union all (Name) 
-            select Name, City as Extra from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Extra from #A.Entities() \n"
+            + "            union all (Name) \n"
+            + "            select Name, City as Extra from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002") { City = "Warsaw" }] }
+            { "#B", [new BasicEntity("002") { City = "Warsaw" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", null],
-            ["002", "Warsaw"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null], ["002", "Warsaw"]);
     }
 
     [TestMethod]
     public void UnionAll_StringOnLeftNullOnRight_ShouldInferTypeFromLeft()
     {
-        var query = @"
-            select Name, City as Extra from #A.Entities() 
-            union all (Name) 
-            select Name, null as Extra from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, City as Extra from #A.Entities() \n"
+            + "            union all (Name) \n"
+            + "            select Name, null as Extra from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001") { City = "Warsaw" }] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", "Warsaw"],
-            ["002", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", "Warsaw"], ["002", null]);
     }
 
     #endregion
@@ -448,53 +424,45 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Union_NullOnLeftStringOnRight_ShouldInferTypeFromRight()
     {
-        var query = @"
-            select Name, null as Extra from #A.Entities() 
-            union (Name) 
-            select Name, City as Extra from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Extra from #A.Entities() \n"
+            + "            union (Name) \n"
+            + "            select Name, City as Extra from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002") { City = "Warsaw" }] }
+            { "#B", [new BasicEntity("002") { City = "Warsaw" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", null],
-            ["002", "Warsaw"]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null], ["002", "Warsaw"]);
     }
 
     [TestMethod]
     public void Union_StringOnLeftNullOnRight_ShouldInferTypeFromLeft()
     {
-        var query = @"
-            select Name, City as Extra from #A.Entities() 
-            union (Name) 
-            select Name, null as Extra from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, City as Extra from #A.Entities() \n"
+            + "            union (Name) \n"
+            + "            select Name, null as Extra from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001") { City = "Warsaw" }] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", "Warsaw"],
-            ["002", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", "Warsaw"], ["002", null]);
     }
 
     #endregion
@@ -504,46 +472,44 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void Except_NullOnLeftStringOnRight_ShouldInferTypeFromRight()
     {
-        var query = @"
-            select Name, null as Extra from #A.Entities() 
-            except (Name) 
-            select Name, City as Extra from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Extra from #A.Entities() \n"
+            + "            except (Name) \n"
+            + "            select Name, City as Extra from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002") { City = "Warsaw" }] }
+            { "#B", [new BasicEntity("002") { City = "Warsaw" }] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
     [TestMethod]
     public void Except_StringOnLeftNullOnRight_ShouldInferTypeFromLeft()
     {
-        var query = @"
-            select Name, City as Extra from #A.Entities() 
-            except (Name) 
-            select Name, null as Extra from #B.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, City as Extra from #A.Entities() \n"
+            + "            except (Name) \n"
+            + "            select Name, null as Extra from #B.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001") { City = "Warsaw" }] },
-            { "#B", [new BasicEntity("002")] }
+            { "#B", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", "Warsaw"]);
     }
 
@@ -554,91 +520,76 @@ public partial class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void ThreeWayUnionAll_NullFirstThenConcreteTypeThenNull_ShouldInferType()
     {
-        var query = @"
-            select Name, null as Extra from #A.Entities() 
-            union all (Name) 
-            select Name, City as Extra from #B.Entities()
-            union all (Name) 
-            select Name, null as Extra from #C.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Extra from #A.Entities() \n"
+            + "            union all (Name) \n"
+            + "            select Name, City as Extra from #B.Entities()\n"
+            + "            union all (Name) \n"
+            + "            select Name, null as Extra from #C.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
             { "#B", [new BasicEntity("002") { City = "Warsaw" }] },
-            { "#C", [new BasicEntity("003")] }
+            { "#C", [new BasicEntity("003")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", null],
-            ["002", "Warsaw"],
-            ["003", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null], ["002", "Warsaw"], ["003", null]);
     }
 
     [TestMethod]
     public void ThreeWayUnionAll_ConcreteTypeThenNullThenNull_ShouldInferType()
     {
-        var query = @"
-            select Name, City as Extra from #A.Entities() 
-            union all (Name) 
-            select Name, null as Extra from #B.Entities()
-            union all (Name) 
-            select Name, null as Extra from #C.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, City as Extra from #A.Entities() \n"
+            + "            union all (Name) \n"
+            + "            select Name, null as Extra from #B.Entities()\n"
+            + "            union all (Name) \n"
+            + "            select Name, null as Extra from #C.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001") { City = "Warsaw" }] },
             { "#B", [new BasicEntity("002")] },
-            { "#C", [new BasicEntity("003")] }
+            { "#C", [new BasicEntity("003")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", "Warsaw"],
-            ["002", null],
-            ["003", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", "Warsaw"], ["002", null], ["003", null]);
     }
 
     [TestMethod]
     public void ThreeWayUnion_NullThenConcreteTypeThenNull_ShouldInferType()
     {
-        var query = @"
-            select Name, null as Extra from #A.Entities() 
-            union (Name) 
-            select Name, City as Extra from #B.Entities()
-            union (Name) 
-            select Name, null as Extra from #C.Entities()";
+        var query = (
+            "\n"
+            + "            select Name, null as Extra from #A.Entities() \n"
+            + "            union (Name) \n"
+            + "            select Name, City as Extra from #B.Entities()\n"
+            + "            union (Name) \n"
+            + "            select Name, null as Extra from #C.Entities()"
+        );
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001")] },
             { "#B", [new BasicEntity("002") { City = "Warsaw" }] },
-            { "#C", [new BasicEntity("003")] }
+            { "#C", [new BasicEntity("003")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("Name", typeof(string)),
-            ("Extra", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["001", null],
-            ["002", "Warsaw"],
-            ["003", null]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null], ["002", "Warsaw"], ["003", null]);
     }
 
     #endregion

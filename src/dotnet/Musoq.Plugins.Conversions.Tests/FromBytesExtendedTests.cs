@@ -10,7 +10,6 @@ namespace Musoq.Plugins.Tests;
 [global::Musoq.Tests.Common.CultureTestClass]
 public class FromBytesExtendedTests : PluginsTestBase
 {
-
     #region FromBytesToBool Tests
 
     [TestMethod]
@@ -107,8 +106,6 @@ public class FromBytesExtendedTests : PluginsTestBase
         Assert.AreEqual(-12345678, result);
     }
 
-
-
     #endregion
 
     #region FromBytesToUInt32 Tests
@@ -132,7 +129,6 @@ public class FromBytesExtendedTests : PluginsTestBase
     #endregion
 
     #region FromBytesToInt64 Tests
-
 
 
     [TestMethod]

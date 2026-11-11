@@ -6,7 +6,6 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class SetsOperatorsTests
 {
-
     [TestMethod]
     public void ExceptDoubleSourceTest()
     {
@@ -14,7 +13,7 @@ public partial class SetsOperatorsTests
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] }
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -33,7 +32,7 @@ public partial class SetsOperatorsTests
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
             { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
-            { "#C", [new BasicEntity("002")] }
+            { "#C", [new BasicEntity("002")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -55,15 +54,10 @@ select Name from #D.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
-                ]
-            },
+            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")] },
             { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
             { "#C", [new BasicEntity("005")] },
-            { "#D", [new BasicEntity("007")] }
+            { "#D", [new BasicEntity("007")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -80,7 +74,7 @@ select Name from #D.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] }
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -99,7 +93,7 @@ select Name from #D.Entities()";
         {
             { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
             { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
-            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -121,15 +115,10 @@ select Name from #D.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {
-                "#A",
-                [
-                    new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
-                ]
-            },
+            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")] },
             { "#B", [new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")] },
             { "#C", [new BasicEntity("005"), new BasicEntity("007"), new BasicEntity("001")] },
-            { "#D", [new BasicEntity("008"), new BasicEntity("007"), new BasicEntity("001")] }
+            { "#D", [new BasicEntity("008"), new BasicEntity("007"), new BasicEntity("001")] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -153,18 +142,10 @@ select City, Sum(Population) from #C.Entities() group by City";
         {
             {
                 "#A",
-                [
-                    new BasicEntity("001", "", 100), new BasicEntity("001", "", 100),
-                    new BasicEntity("002", "", 500)
-                ]
+                [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100), new BasicEntity("002", "", 500)]
             },
-            {
-                "#B",
-                [
-                    new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
-                ]
-            },
-            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
+            { "#B", [new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)] },
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -173,7 +154,8 @@ select City, Sum(Population) from #C.Entities() group by City";
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("Sum(Population)", typeof(decimal?)));
+            ("Sum(Population)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", 200m]);
     }
 
@@ -191,18 +173,10 @@ select City, Sum(Population) from #C.Entities() group by City";
         {
             {
                 "#A",
-                [
-                    new BasicEntity("001", "", 100), new BasicEntity("001", "", 100),
-                    new BasicEntity("002", "", 500)
-                ]
+                [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100), new BasicEntity("002", "", 500)]
             },
-            {
-                "#B",
-                [
-                    new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("001", "", 7)
-                ]
-            },
-            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("001", "", 9)] }
+            { "#B", [new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("001", "", 7)] },
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("001", "", 9)] },
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -211,7 +185,8 @@ select City, Sum(Population) from #C.Entities() group by City";
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("City", typeof(string)),
-            ("Sum(Population)", typeof(decimal?)));
+            ("Sum(Population)", typeof(decimal?))
+        );
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", 200m]);
     }
 
@@ -219,10 +194,7 @@ select City, Sum(Population) from #C.Entities() group by City";
     public void WhenExceptHasEmptyKeyList_ShouldUseAllProjectedFields()
     {
         var query = @"select Name from #A.Entities() except () select Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("001")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -235,10 +207,7 @@ select City, Sum(Population) from #C.Entities() group by City";
     public void WhenIntersectHasEmptyKeyList_ShouldUseAllProjectedFields()
     {
         var query = @"select Name from #A.Entities() intersect () select Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("001")] } };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
@@ -246,5 +215,4 @@ select City, Sum(Population) from #C.Entities() group by City";
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"]);
     }
-
 }

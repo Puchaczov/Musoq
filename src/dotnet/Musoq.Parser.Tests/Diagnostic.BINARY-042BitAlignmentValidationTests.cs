@@ -13,24 +13,27 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : SchemaParse
     [TestMethod]
     public void BitAndAlignmentAnnotations_BoundariesAndIntegerLiteralBases_ShouldParse()
     {
-        const string schema =
-            "binary Boundaries { Low: bits[1], High: bits[64], Hex: bits[0x40], Wide: align[0x80] }";
+        const string schema = "binary Boundaries { Low: bits[1], High: bits[64], Hex: bits[0x40], Wide: align[0x80] }";
 
         var result = ParseBinarySchema(schema);
 
         Assert.AreEqual(4, result.Fields.Length);
-        Assert.AreEqual(1, ((FieldDefinitionNode)result.Fields[0]).TypeAnnotation is BitsTypeNode low
-            ? low.BitCount
-            : -1);
-        Assert.AreEqual(64, ((FieldDefinitionNode)result.Fields[1]).TypeAnnotation is BitsTypeNode high
-            ? high.BitCount
-            : -1);
-        Assert.AreEqual(64, ((FieldDefinitionNode)result.Fields[2]).TypeAnnotation is BitsTypeNode hex
-            ? hex.BitCount
-            : -1);
-        Assert.AreEqual(128, ((FieldDefinitionNode)result.Fields[3]).TypeAnnotation is AlignmentNode wide
-            ? wide.AlignmentBits
-            : -1);
+        Assert.AreEqual(
+            1,
+            ((FieldDefinitionNode)result.Fields[0]).TypeAnnotation is BitsTypeNode low ? low.BitCount : -1
+        );
+        Assert.AreEqual(
+            64,
+            ((FieldDefinitionNode)result.Fields[1]).TypeAnnotation is BitsTypeNode high ? high.BitCount : -1
+        );
+        Assert.AreEqual(
+            64,
+            ((FieldDefinitionNode)result.Fields[2]).TypeAnnotation is BitsTypeNode hex ? hex.BitCount : -1
+        );
+        Assert.AreEqual(
+            128,
+            ((FieldDefinitionNode)result.Fields[3]).TypeAnnotation is AlignmentNode wide ? wide.AlignmentBits : -1
+        );
     }
 
     [TestMethod]
@@ -52,7 +55,8 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : SchemaParse
             DiagnosticCode.MQ4001_InvalidBinarySchemaField,
             expectedSpan,
             annotation,
-            () => ParseBinarySchema(schema));
+            () => ParseBinarySchema(schema)
+        );
     }
 
     [TestMethod]
@@ -80,7 +84,8 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : SchemaParse
     [DataRow("byte check Value > 0 const 1", "const")]
     public void InvalidValueValidationShapeOrOrdering_ShouldReportExactMq4006Span(
         string fieldDefinition,
-        string offendingText)
+        string offendingText
+    )
     {
         var schema = $"binary Packet {{ Value: {fieldDefinition} }}";
         var exception = Assert.ThrowsExactly<SyntaxException>(() => ParseBinarySchema(schema));
@@ -94,7 +99,8 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : SchemaParse
         DiagnosticCode expectedCode,
         TextSpan expectedSpan,
         string context,
-        Action parse)
+        Action parse
+    )
     {
         var exception = Assert.ThrowsExactly<SyntaxException>(parse, context);
 

@@ -13,7 +13,7 @@ internal static class CodegenReadabilitySyntaxFacts
         "OnDataSourceProgress",
         "OnQueryProgress",
         "OnPhaseChanged",
-        "Run"
+        "Run",
     ];
 
     public static bool IsLifecycleMethodName(string name)
@@ -28,9 +28,9 @@ internal static class CodegenReadabilitySyntaxFacts
 
     public static bool IsPrivateStaticHelper(MethodDeclarationSyntax method)
     {
-        return method.Modifiers.Any(static modifier => modifier.IsKind(SyntaxKind.PrivateKeyword)) &&
-               method.Modifiers.Any(static modifier => modifier.IsKind(SyntaxKind.StaticKeyword)) &&
-               !IsLifecycleMethodName(method.Identifier.ValueText);
+        return method.Modifiers.Any(static modifier => modifier.IsKind(SyntaxKind.PrivateKeyword))
+            && method.Modifiers.Any(static modifier => modifier.IsKind(SyntaxKind.StaticKeyword))
+            && !IsLifecycleMethodName(method.Identifier.ValueText);
     }
 
     public static IEnumerable<string> CollectInvocationNames(MethodDeclarationSyntax method)
@@ -49,7 +49,7 @@ internal static class CodegenReadabilitySyntaxFacts
         {
             IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
             MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
-            _ => null
+            _ => null,
         };
     }
 
@@ -65,7 +65,7 @@ internal static class CodegenReadabilitySyntaxFacts
             LiteralExpressionSyntax => true,
             DefaultExpressionSyntax => true,
             ParenthesizedExpressionSyntax parenthesized => IsSafelyRemovableExpression(parenthesized.Expression),
-            _ => false
+            _ => false,
         };
     }
 }

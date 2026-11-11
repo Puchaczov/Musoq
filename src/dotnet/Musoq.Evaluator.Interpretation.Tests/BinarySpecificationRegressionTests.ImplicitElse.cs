@@ -19,8 +19,11 @@ public partial class BinarySpecificationRegressionTests
     [TestMethod]
     public void EmbeddedUnmatchedImplicitElse_ShouldPreserveLazyThenEvaluation()
     {
-        var table = RunBinary("binary Rec { Flag: byte, Zero: byte, Derived: CASE WHEN Flag = 1 THEN 1 / Zero END };",
-            "r.Derived", [0, 0]);
+        var table = RunBinary(
+            "binary Rec { Flag: byte, Zero: byte, Derived: CASE WHEN Flag = 1 THEN 1 / Zero END };",
+            "r.Derived",
+            [0, 0]
+        );
 
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null });
     }

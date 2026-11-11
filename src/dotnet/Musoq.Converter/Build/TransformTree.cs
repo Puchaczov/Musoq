@@ -1,5 +1,3 @@
 namespace Musoq.Converter.Build;
 
-public partial class TransformTree
-{
-}
+public partial class TransformTree { }

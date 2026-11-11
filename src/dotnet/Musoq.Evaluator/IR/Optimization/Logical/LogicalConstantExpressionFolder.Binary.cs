@@ -23,27 +23,47 @@ internal sealed partial class LogicalConstantExpressionFolder
         {
             return node.Kind switch
             {
-                BinaryOpKind.And when left.Value is bool leftBool && right.Value is bool rightBool =>
-                    Succeed(CreateFoldedLiteral(leftBool && rightBool, node), out folded),
-                BinaryOpKind.Or when left.Value is bool leftBool && right.Value is bool rightBool =>
-                    Succeed(CreateFoldedLiteral(leftBool || rightBool, node), out folded),
-                BinaryOpKind.Equal or BinaryOpKind.IsNotDistinctFrom =>
-                    Succeed(CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) == 0, node), out folded),
-                BinaryOpKind.NotEqual or BinaryOpKind.IsDistinctFrom =>
-                    Succeed(CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) != 0, node), out folded),
-                BinaryOpKind.GreaterThan =>
-                    Succeed(CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) > 0, node), out folded),
-                BinaryOpKind.LessThan =>
-                    Succeed(CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) < 0, node), out folded),
-                BinaryOpKind.GreaterOrEqual =>
-                    Succeed(CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) >= 0, node), out folded),
-                BinaryOpKind.LessOrEqual =>
-                    Succeed(CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) <= 0, node), out folded),
-                BinaryOpKind.SqlStringConcatenate or BinaryOpKind.StringConcatenate =>
-                    Succeed(CreateFoldedLiteral(string.Concat(left.Value, right.Value), node), out folded),
-                BinaryOpKind.Add when node.ReturnType == typeof(string) =>
-                    Succeed(CreateFoldedLiteral(string.Concat(left.Value, right.Value), node), out folded),
-                _ => TryFoldNumericBinary(node, left.Value, right.Value, out folded)
+                BinaryOpKind.And when left.Value is bool leftBool && right.Value is bool rightBool => Succeed(
+                    CreateFoldedLiteral(leftBool && rightBool, node),
+                    out folded
+                ),
+                BinaryOpKind.Or when left.Value is bool leftBool && right.Value is bool rightBool => Succeed(
+                    CreateFoldedLiteral(leftBool || rightBool, node),
+                    out folded
+                ),
+                BinaryOpKind.Equal or BinaryOpKind.IsNotDistinctFrom => Succeed(
+                    CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) == 0, node),
+                    out folded
+                ),
+                BinaryOpKind.NotEqual or BinaryOpKind.IsDistinctFrom => Succeed(
+                    CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) != 0, node),
+                    out folded
+                ),
+                BinaryOpKind.GreaterThan => Succeed(
+                    CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) > 0, node),
+                    out folded
+                ),
+                BinaryOpKind.LessThan => Succeed(
+                    CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) < 0, node),
+                    out folded
+                ),
+                BinaryOpKind.GreaterOrEqual => Succeed(
+                    CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) >= 0, node),
+                    out folded
+                ),
+                BinaryOpKind.LessOrEqual => Succeed(
+                    CreateFoldedLiteral(CompareLiteralValues(left.Value, right.Value) <= 0, node),
+                    out folded
+                ),
+                BinaryOpKind.SqlStringConcatenate or BinaryOpKind.StringConcatenate => Succeed(
+                    CreateFoldedLiteral(string.Concat(left.Value, right.Value), node),
+                    out folded
+                ),
+                BinaryOpKind.Add when node.ReturnType == typeof(string) => Succeed(
+                    CreateFoldedLiteral(string.Concat(left.Value, right.Value), node),
+                    out folded
+                ),
+                _ => TryFoldNumericBinary(node, left.Value, right.Value, out folded),
             };
         }
         catch (OverflowException)
@@ -65,36 +85,47 @@ internal sealed partial class LogicalConstantExpressionFolder
         }
     }
 
-    private bool TryFoldNullBinary(
-        BinaryOp node,
-        object? left,
-        object? right,
-        out IrExpression folded)
+    private bool TryFoldNullBinary(BinaryOp node, object? left, object? right, out IrExpression folded)
     {
         folded = node;
 
         if (left is not null && right is not null)
             return false;
 
-        if (knownValues != null && node.ReturnType == typeof(string) &&
-            node.Kind is BinaryOpKind.Add or BinaryOpKind.StringConcatenate)
+        if (
+            knownValues != null
+            && node.ReturnType == typeof(string)
+            && node.Kind is BinaryOpKind.Add or BinaryOpKind.StringConcatenate
+        )
             return Succeed(CreateFoldedLiteral(string.Concat(left, right), node), out folded);
 
         return node.Kind switch
         {
-            BinaryOpKind.Equal or BinaryOpKind.NotEqual or
-                BinaryOpKind.GreaterThan or BinaryOpKind.LessThan or
-                BinaryOpKind.GreaterOrEqual or BinaryOpKind.LessOrEqual
-                when node.UsesSqlNullSemantics => Succeed(CreateFoldedLiteral(null, node), out folded),
-            BinaryOpKind.Equal or BinaryOpKind.IsNotDistinctFrom => Succeed(CreateFoldedLiteral(left is null && right is null, node), out folded),
-            BinaryOpKind.NotEqual or BinaryOpKind.IsDistinctFrom => Succeed(CreateFoldedLiteral(left is not null || right is not null, node), out folded),
-            BinaryOpKind.Add or
-                BinaryOpKind.Subtract or
-                BinaryOpKind.Multiply or
-                BinaryOpKind.Divide or
-                BinaryOpKind.Modulo or
-                BinaryOpKind.SqlStringConcatenate or BinaryOpKind.StringConcatenate => Succeed(CreateFoldedLiteral(null, node), out folded),
-            _ => false
+            BinaryOpKind.Equal
+            or BinaryOpKind.NotEqual
+            or BinaryOpKind.GreaterThan
+            or BinaryOpKind.LessThan
+            or BinaryOpKind.GreaterOrEqual
+            or BinaryOpKind.LessOrEqual when node.UsesSqlNullSemantics => Succeed(
+                CreateFoldedLiteral(null, node),
+                out folded
+            ),
+            BinaryOpKind.Equal or BinaryOpKind.IsNotDistinctFrom => Succeed(
+                CreateFoldedLiteral(left is null && right is null, node),
+                out folded
+            ),
+            BinaryOpKind.NotEqual or BinaryOpKind.IsDistinctFrom => Succeed(
+                CreateFoldedLiteral(left is not null || right is not null, node),
+                out folded
+            ),
+            BinaryOpKind.Add
+            or BinaryOpKind.Subtract
+            or BinaryOpKind.Multiply
+            or BinaryOpKind.Divide
+            or BinaryOpKind.Modulo
+            or BinaryOpKind.SqlStringConcatenate
+            or BinaryOpKind.StringConcatenate => Succeed(CreateFoldedLiteral(null, node), out folded),
+            _ => false,
         };
     }
 
@@ -117,24 +148,33 @@ internal sealed partial class LogicalConstantExpressionFolder
             BinaryOpKind.BitwiseXor => ConstantOperatorKind.BitwiseXor,
             BinaryOpKind.LeftShift => ConstantOperatorKind.LeftShift,
             BinaryOpKind.RightShift => ConstantOperatorKind.RightShift,
-            _ => (ConstantOperatorKind?)null
+            _ => (ConstantOperatorKind?)null,
         };
 
         if (operation is null)
             return false;
 
-        if ((operation == ConstantOperatorKind.Divide || operation == ConstantOperatorKind.Modulo) &&
-            ConstantOperatorEvaluator.IsZero(right))
+        if (
+            (operation == ConstantOperatorKind.Divide || operation == ConstantOperatorKind.Modulo)
+            && ConstantOperatorEvaluator.IsZero(right)
+        )
         {
             ReportDivisionByZero(node);
             return false;
         }
 
         var normalizedLeft = NormalizeNumericLiteral(left, node.ReturnType);
-        var normalizedRight = NormalizeNumericLiteral(right, operation.Value is ConstantOperatorKind.LeftShift or ConstantOperatorKind.RightShift
-            ? typeof(long)
-            : node.ReturnType);
-        var value = ConstantOperatorEvaluator.EvaluatePreservingNumericType(operation.Value, normalizedLeft, normalizedRight);
+        var normalizedRight = NormalizeNumericLiteral(
+            right,
+            operation.Value is ConstantOperatorKind.LeftShift or ConstantOperatorKind.RightShift
+                ? typeof(long)
+                : node.ReturnType
+        );
+        var value = ConstantOperatorEvaluator.EvaluatePreservingNumericType(
+            operation.Value,
+            normalizedLeft,
+            normalizedRight
+        );
 
         return Succeed(CreateFoldedLiteral(value, node), out folded);
     }
@@ -142,10 +182,12 @@ internal sealed partial class LogicalConstantExpressionFolder
     private static object NormalizeNumericLiteral(object value, Type targetType)
     {
         targetType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-        if (targetType == typeof(byte) ||
-            targetType == typeof(sbyte) ||
-            targetType == typeof(short) ||
-            targetType == typeof(ushort))
+        if (
+            targetType == typeof(byte)
+            || targetType == typeof(sbyte)
+            || targetType == typeof(short)
+            || targetType == typeof(ushort)
+        )
             return Convert.ToInt32(value, CultureInfo.InvariantCulture);
 
         if (targetType == typeof(uint))

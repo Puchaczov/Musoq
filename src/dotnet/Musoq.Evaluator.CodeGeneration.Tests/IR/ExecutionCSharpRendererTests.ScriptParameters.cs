@@ -14,9 +14,8 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderMethod_WhenPreparedLikeUsesScriptParameter_ShouldBindParameterBeforeMatcher()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
-            new ScriptParameterDefinition("pattern", typeof(string), false, null)
+        var renderer = new ExecutionCSharpRenderer([
+            new ScriptParameterDefinition("pattern", typeof(string), false, null),
         ]);
         var plan = CreatePlan();
         var matcherType = ExecutionClrBindingFactory.FromClr(typeof(PreparedLikeMatcher));
@@ -32,16 +31,24 @@ public sealed partial class ExecutionCSharpRendererTests
                         new ExecutionPrepareLikeMatcher(
                             new ExecutionScriptParameterRead("pattern", typeof(string)),
                             ExecutionStringMatchComparison.LikeIgnoreCase,
-                            matcherType),
-                        ExecutionLetCacheMode.SuppressMethodCache),
-                    .. plan.Body.Nodes
-                ]
-            }
+                            matcherType
+                        ),
+                        ExecutionLetCacheMode.SuppressMethodCache
+                    ),
+                    .. plan.Body.Nodes,
+                ],
+            },
         };
 
         var code = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
-        var bindingIndex = code.IndexOf("var paramPattern = ScriptParameterBinder.GetRequired<string>", StringComparison.Ordinal);
-        var matcherIndex = code.IndexOf("PreparedLikeMatcher __likeMatcher0 = Operators.PrepareLike(paramPattern, TimeSpan.FromTicks(20000000L));", StringComparison.Ordinal);
+        var bindingIndex = code.IndexOf(
+            "var paramPattern = ScriptParameterBinder.GetRequired<string>",
+            StringComparison.Ordinal
+        );
+        var matcherIndex = code.IndexOf(
+            "PreparedLikeMatcher __likeMatcher0 = Operators.PrepareLike(paramPattern, TimeSpan.FromTicks(20000000L));",
+            StringComparison.Ordinal
+        );
 
         Assert.IsGreaterThanOrEqualTo(0, bindingIndex, code);
         Assert.IsGreaterThan(bindingIndex, matcherIndex, code);
@@ -50,18 +57,26 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderMethod_WhenScriptParametersDeclared_ShouldBindLocalsBeforeOpeningSources()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
+        var renderer = new ExecutionCSharpRenderer([
             new ScriptParameterDefinition("author", typeof(string), false, null),
-            new ScriptParameterDefinition("limit", typeof(int), true, 100)
+            new ScriptParameterDefinition("limit", typeof(int), true, 100),
         ]);
         var method = renderer.RenderMethod(CreatePlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains("var paramAuthor = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"author\");", code);
-        Assert.Contains("var paramLimit = ScriptParameterBinder.GetOptional<int>(__musoqExecutionState, \"limit\", 100);", code);
+        Assert.Contains(
+            "var paramAuthor = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"author\");",
+            code
+        );
+        Assert.Contains(
+            "var paramLimit = ScriptParameterBinder.GetOptional<int>(__musoqExecutionState, \"limit\", 100);",
+            code
+        );
 
-        var fromPhaseIndex = code.IndexOf("OnPhaseChanged(\"ExecutePlan\", QueryPhase.From);", StringComparison.Ordinal);
+        var fromPhaseIndex = code.IndexOf(
+            "OnPhaseChanged(\"ExecutePlan\", QueryPhase.From);",
+            StringComparison.Ordinal
+        );
         var authorBindingIndex = code.IndexOf("var paramAuthor", StringComparison.Ordinal);
         var sourceOpenIndex = code.IndexOf("provider.GetSchema(\"test\")", StringComparison.Ordinal);
 
@@ -72,16 +87,17 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderBlock_WhenScriptParameterReadIsUsed_ShouldReferenceBoundLocal()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
-            new ScriptParameterDefinition("author", typeof(string), false, null)
+        var renderer = new ExecutionCSharpRenderer([
+            new ScriptParameterDefinition("author", typeof(string), false, null),
         ]);
-        var block = renderer.RenderBlock(new ExecutionBlock(
-        [
-            new ExecutionLet(
-                new ExecutionVariable("requestedAuthor", typeof(string)),
-                new ExecutionScriptParameterRead("author", typeof(string)))
-        ]));
+        var block = renderer.RenderBlock(
+            new ExecutionBlock([
+                new ExecutionLet(
+                    new ExecutionVariable("requestedAuthor", typeof(string)),
+                    new ExecutionScriptParameterRead("author", typeof(string))
+                ),
+            ])
+        );
         var code = block.NormalizeWhitespace().ToFullString();
 
         Assert.Contains("string requestedAuthor = paramAuthor;", code);
@@ -93,12 +109,15 @@ public sealed partial class ExecutionCSharpRendererTests
         var renderer = new ExecutionCSharpRenderer();
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            renderer.RenderBlock(new ExecutionBlock(
-            [
-                new ExecutionLet(
-                    new ExecutionVariable("requestedAuthor", typeof(string)),
-                    new ExecutionScriptParameterRead("author", typeof(string)))
-            ])));
+            renderer.RenderBlock(
+                new ExecutionBlock([
+                    new ExecutionLet(
+                        new ExecutionVariable("requestedAuthor", typeof(string)),
+                        new ExecutionScriptParameterRead("author", typeof(string))
+                    ),
+                ])
+            )
+        );
 
         Assert.AreEqual("Script parameter 'author' is not declared in render context.", exception.Message);
     }
@@ -114,8 +133,10 @@ public sealed partial class ExecutionCSharpRendererTests
                     "created",
                     typeof(DateTime),
                     new DateTime(2024, 1, 2, 3, 4, 5, DateTimeKind.Utc),
-                    false)
-            ]);
+                    false
+                ),
+            ]
+        );
         var method = renderer.RenderMethod(CreatePlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
@@ -128,16 +149,16 @@ public sealed partial class ExecutionCSharpRendererTests
     public void RenderBlock_WhenScriptVariableReadIsUsed_ShouldReferenceDeclaredLocal()
     {
         var renderer = new ExecutionCSharpRenderer(
-            scriptVariableDefinitions:
-            [
-                new ScriptVariableDefinition("topic", typeof(string), "important", true)
-            ]);
-        var block = renderer.RenderBlock(new ExecutionBlock(
-        [
-            new ExecutionLet(
-                new ExecutionVariable("requestedTopic", typeof(string)),
-                new ExecutionScriptVariableRead("topic", typeof(string)))
-        ]));
+            scriptVariableDefinitions: [new ScriptVariableDefinition("topic", typeof(string), "important", true)]
+        );
+        var block = renderer.RenderBlock(
+            new ExecutionBlock([
+                new ExecutionLet(
+                    new ExecutionVariable("requestedTopic", typeof(string)),
+                    new ExecutionScriptVariableRead("topic", typeof(string))
+                ),
+            ])
+        );
         var code = block.NormalizeWhitespace().ToFullString();
 
         Assert.Contains("string requestedTopic = letTopic;", code);
@@ -149,12 +170,15 @@ public sealed partial class ExecutionCSharpRendererTests
         var renderer = new ExecutionCSharpRenderer();
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            renderer.RenderBlock(new ExecutionBlock(
-            [
-                new ExecutionLet(
-                    new ExecutionVariable("requestedTopic", typeof(string)),
-                    new ExecutionScriptVariableRead("topic", typeof(string)))
-            ])));
+            renderer.RenderBlock(
+                new ExecutionBlock([
+                    new ExecutionLet(
+                        new ExecutionVariable("requestedTopic", typeof(string)),
+                        new ExecutionScriptVariableRead("topic", typeof(string))
+                    ),
+                ])
+            )
+        );
 
         Assert.AreEqual("Script variable 'topic' is not declared in render context.", exception.Message);
     }
@@ -162,21 +186,25 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderMethod_WhenScriptParameterReadIsUsed_ShouldReadDictionaryOnlyDuringBinding()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
-            new ScriptParameterDefinition("author", typeof(string), false, null)
+        var renderer = new ExecutionCSharpRenderer([
+            new ScriptParameterDefinition("author", typeof(string), false, null),
         ]);
         var method = renderer.RenderMethod(
             CreateProjectionPlan(
                 "Q_ParameterProjection",
                 "Author",
                 typeof(string),
-                new ExecutionScriptParameterRead("author", typeof(string))),
-            "ExecutePlan");
+                new ExecutionScriptParameterRead("author", typeof(string))
+            ),
+            "ExecutePlan"
+        );
         var code = method.NormalizeWhitespace().ToFullString();
 
         Assert.Contains("var __musoqExecutionState = ExecutionState.Capture(TypedParameters);", code);
-        Assert.Contains("var paramAuthor = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"author\");", code);
+        Assert.Contains(
+            "var paramAuthor = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"author\");",
+            code
+        );
         Assert.Contains("result.Add(new ResultRow0(paramAuthor));", code);
         Assert.AreEqual(1, CountOccurrences(code, "ExecutionState.Capture(TypedParameters)"));
         Assert.AreEqual(0, CountOccurrences(code, "__musoqExecutionState.Parameters"));
@@ -185,35 +213,47 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderMethod_WhenScriptParameterLocalNamesCollide_ShouldEmitDeterministicSuffixes()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
+        var renderer = new ExecutionCSharpRenderer([
             new ScriptParameterDefinition("author-name", typeof(string), false, null),
-            new ScriptParameterDefinition("author_name", typeof(string), false, null)
+            new ScriptParameterDefinition("author_name", typeof(string), false, null),
         ]);
         var method = renderer.RenderMethod(CreatePlan(), "ExecutePlan");
         var code = method.NormalizeWhitespace().ToFullString();
 
-        Assert.Contains("var paramAuthorName = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"author-name\");", code);
-        Assert.Contains("var paramAuthorName1 = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"author_name\");", code);
+        Assert.Contains(
+            "var paramAuthorName = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"author-name\");",
+            code
+        );
+        Assert.Contains(
+            "var paramAuthorName1 = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"author_name\");",
+            code
+        );
         Assert.IsLessThan(
-            code.IndexOf("var paramAuthorName1 = ", StringComparison.Ordinal), code.IndexOf("var paramAuthorName = ", StringComparison.Ordinal));
+            code.IndexOf("var paramAuthorName1 = ", StringComparison.Ordinal),
+            code.IndexOf("var paramAuthorName = ", StringComparison.Ordinal)
+        );
     }
 
     [TestMethod]
     public void RenderClassMembers_WhenHashBuildHelperUsesScriptParameter_ShouldReceiveTypedCapture()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
-            new ScriptParameterDefinition("country", typeof(string), false, null)
+        var renderer = new ExecutionCSharpRenderer([
+            new ScriptParameterDefinition("country", typeof(string), false, null),
         ]);
         var plan = CreateHashBuildScriptParameterCapturePlan();
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var helperCode = RenderClassMembersCode(renderer, plan);
 
-        Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");", methodCode);
+        Assert.Contains(
+            "var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");",
+            methodCode
+        );
         Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("BuildHash(leftRows, hash, token, paramCountry);", methodCode);
-        Assert.Contains("private static void BuildHash(IEnumerable<Musoq.Evaluator.Tables.Row> leftRows, Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tables.Row>> hash, CancellationToken token, string paramCountry)", helperCode);
+        Assert.Contains(
+            "private static void BuildHash(IEnumerable<Musoq.Evaluator.Tables.Row> leftRows, Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tables.Row>> hash, CancellationToken token, string paramCountry)",
+            helperCode
+        );
         Assert.Contains("token.ThrowIfCancellationRequested();", helperCode);
         Assert.Contains("string key = paramCountry;", helperCode);
         AssertNoParameterAccessInHelpers(helperCode);
@@ -222,9 +262,8 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderClassMembers_WhenHashBuildHelperIsCreated_ShouldAnnotateHelperExtractionMetadata()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
-            new ScriptParameterDefinition("country", typeof(string), false, null)
+        var renderer = new ExecutionCSharpRenderer([
+            new ScriptParameterDefinition("country", typeof(string), false, null),
         ]);
         var plan = CreateHashBuildScriptParameterCapturePlan();
 
@@ -249,10 +288,8 @@ public sealed partial class ExecutionCSharpRendererTests
     public void RenderClassMembers_WhenHashBuildHelperUsesScriptVariable_ShouldReceiveTypedCapture()
     {
         var renderer = new ExecutionCSharpRenderer(
-            scriptVariableDefinitions:
-            [
-                new ScriptVariableDefinition("country", typeof(string), "PL", true)
-            ]);
+            scriptVariableDefinitions: [new ScriptVariableDefinition("country", typeof(string), "PL", true)]
+        );
         var plan = CreateHashBuildScriptVariableCapturePlan();
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var helperCode = RenderClassMembersCode(renderer, plan);
@@ -260,7 +297,10 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.Contains("const string letCountry = \"PL\";", methodCode);
         Assert.AreEqual(0, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("BuildHash(leftRows, hash, token, letCountry);", methodCode);
-        Assert.Contains("private static void BuildHash(IEnumerable<Musoq.Evaluator.Tables.Row> leftRows, Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tables.Row>> hash, CancellationToken token, string letCountry)", helperCode);
+        Assert.Contains(
+            "private static void BuildHash(IEnumerable<Musoq.Evaluator.Tables.Row> leftRows, Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tables.Row>> hash, CancellationToken token, string letCountry)",
+            helperCode
+        );
         Assert.Contains("token.ThrowIfCancellationRequested();", helperCode);
         Assert.Contains("string key = letCountry;", helperCode);
         AssertNoParameterAccessInHelpers(helperCode);
@@ -269,18 +309,23 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderClassMembers_WhenHashProbeHelperUsesScriptParameter_ShouldReceiveTypedCapture()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
-            new ScriptParameterDefinition("label", typeof(string), false, null)
+        var renderer = new ExecutionCSharpRenderer([
+            new ScriptParameterDefinition("label", typeof(string), false, null),
         ]);
         var plan = CreateHashProbeScriptParameterCapturePlan();
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var helperCode = RenderClassMembersCode(renderer, plan);
 
-        Assert.Contains("var paramLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"label\");", methodCode);
+        Assert.Contains(
+            "var paramLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"label\");",
+            methodCode
+        );
         Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("AppendLeftJoinRows(rightRows, hash, result, token, paramLabel);", methodCode);
-        Assert.Contains("private static void AppendLeftJoinRows(IEnumerable<Musoq.Evaluator.Tables.Row> rightRows, Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tables.Row>> hash, Musoq.Evaluator.Tables.Table result, CancellationToken token, string paramLabel)", helperCode);
+        Assert.Contains(
+            "private static void AppendLeftJoinRows(IEnumerable<Musoq.Evaluator.Tables.Row> rightRows, Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tables.Row>> hash, Musoq.Evaluator.Tables.Table result, CancellationToken token, string paramLabel)",
+            helperCode
+        );
         Assert.Contains("token.ThrowIfCancellationRequested();", helperCode);
         Assert.Contains("result.Add(new ResultRow0(paramLabel));", helperCode);
         AssertNoParameterAccessInHelpers(helperCode);
@@ -289,19 +334,27 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderClassMembers_WhenSingleKeyAggregateHelpersUseScriptParameters_ShouldReceiveTypedCaptures()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
+        var renderer = new ExecutionCSharpRenderer([
             new ScriptParameterDefinition("country", typeof(string), false, null),
-            new ScriptParameterDefinition("include", typeof(bool), false, null)
+            new ScriptParameterDefinition("include", typeof(bool), false, null),
         ]);
         var plan = CreateSingleKeyAggregateScriptParameterCapturePlan();
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var helperCode = RenderClassMembersCode(renderer, plan);
 
-        Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");", methodCode);
-        Assert.Contains("var paramInclude = ScriptParameterBinder.GetRequired<bool>(__musoqExecutionState, \"include\");", methodCode);
+        Assert.Contains(
+            "var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");",
+            methodCode
+        );
+        Assert.Contains(
+            "var paramInclude = ScriptParameterBinder.GetRequired<bool>(__musoqExecutionState, \"include\");",
+            methodCode
+        );
         Assert.AreEqual(2, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
-        Assert.Contains("PopulateResultSingleKeyGroups(rows, rootGroup, groupsToFinalize, groups, token, paramCountry);", methodCode);
+        Assert.Contains(
+            "PopulateResultSingleKeyGroups(rows, rootGroup, groupsToFinalize, groups, token, paramCountry);",
+            methodCode
+        );
         Assert.Contains("FinalizeResultSingleKeyGroups(result, groupsToFinalize, token, paramInclude);", methodCode);
         Assert.Contains("IEnumerable<Musoq.Evaluator.Tables.Row> rows", helperCode);
         Assert.Contains("string paramCountry", helperCode);
@@ -314,21 +367,35 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderClassMembers_WhenParallelAggregateUsesScriptParameter_ShouldStoreTypedWorkerCapture()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
-            new ScriptParameterDefinition("country", typeof(string), false, null)
+        var renderer = new ExecutionCSharpRenderer([
+            new ScriptParameterDefinition("country", typeof(string), false, null),
         ]);
         var plan = CreateParallelAggregateScriptParameterCapturePlan();
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var helperCode = RenderClassMembersCode(renderer, plan);
 
-        Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");", methodCode);
+        Assert.Contains(
+            "var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");",
+            methodCode
+        );
         Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
-        Assert.Contains("ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, 4, token, paramCountry)", methodCode);
-        Assert.Contains("private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(IReadOnlyList<Musoq.Evaluator.Tables.Row> rows, int maxDegreeOfParallelism, CancellationToken cancellationToken, string paramCountry)", helperCode);
+        Assert.Contains(
+            "ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, 4, token, paramCountry)",
+            methodCode
+        );
+        Assert.Contains(
+            "private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(IReadOnlyList<Musoq.Evaluator.Tables.Row> rows, int maxDegreeOfParallelism, CancellationToken cancellationToken, string paramCountry)",
+            helperCode
+        );
         Assert.Contains("private readonly string _paramCountry;", helperCode);
-        Assert.Contains("public ParallelSingleKeyAggregateWorker_0(IReadOnlyList<Musoq.Evaluator.Tables.Row> rows, int workerCount, List<ResultAggregateGroup>[] shards, CancellationToken cancellationToken, string paramCountry)", helperCode);
-        Assert.Contains("ParallelSingleKeyAggregateShard_0(_rows, _workerCount, _shards, _cancellationToken, shardIndex, _paramCountry);", helperCode);
+        Assert.Contains(
+            "public ParallelSingleKeyAggregateWorker_0(IReadOnlyList<Musoq.Evaluator.Tables.Row> rows, int workerCount, List<ResultAggregateGroup>[] shards, CancellationToken cancellationToken, string paramCountry)",
+            helperCode
+        );
+        Assert.Contains(
+            "ParallelSingleKeyAggregateShard_0(_rows, _workerCount, _shards, _cancellationToken, shardIndex, _paramCountry);",
+            helperCode
+        );
         Assert.Contains("string groupKey = paramCountry;", helperCode);
         AssertNoParameterAccessInHelpers(helperCode);
     }
@@ -336,20 +403,28 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderClassMembers_WhenParallelFilterProjectUsesScriptParameters_ShouldReceiveTypedCaptures()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
+        var renderer = new ExecutionCSharpRenderer([
             new ScriptParameterDefinition("include", typeof(bool), false, null),
-            new ScriptParameterDefinition("label", typeof(string), false, null)
+            new ScriptParameterDefinition("label", typeof(string), false, null),
         ]);
         var plan = CreateParallelFilterProjectScriptParameterCapturePlan();
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var helperCode = RenderClassMembersCode(renderer, plan);
 
-        Assert.Contains("var paramInclude = ScriptParameterBinder.GetRequired<bool>(__musoqExecutionState, \"include\");", methodCode);
-        Assert.Contains("var paramLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"label\");", methodCode);
+        Assert.Contains(
+            "var paramInclude = ScriptParameterBinder.GetRequired<bool>(__musoqExecutionState, \"include\");",
+            methodCode
+        );
+        Assert.Contains(
+            "var paramLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"label\");",
+            methodCode
+        );
         Assert.AreEqual(2, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("PopulateResult(result, rows, token, paramInclude, paramLabel);", methodCode);
-        Assert.Contains("private static void PopulateResult(Musoq.Evaluator.Tables.Table result, IEnumerable<Musoq.Evaluator.Tables.Row> rowRows, CancellationToken token, bool paramInclude, string paramLabel)", helperCode);
+        Assert.Contains(
+            "private static void PopulateResult(Musoq.Evaluator.Tables.Table result, IEnumerable<Musoq.Evaluator.Tables.Row> rowRows, CancellationToken token, bool paramInclude, string paramLabel)",
+            helperCode
+        );
         Assert.Contains("if (paramInclude)", helperCode);
         Assert.Contains("return new ResultRow0(paramLabel);", helperCode);
         AssertNoParameterAccessInHelpers(helperCode);
@@ -358,19 +433,26 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderClassMembers_WhenStoredTableBuildUsesScriptParameter_ShouldReceiveTypedCapture()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
-            new ScriptParameterDefinition("country", typeof(string), false, null)
+        var renderer = new ExecutionCSharpRenderer([
+            new ScriptParameterDefinition("country", typeof(string), false, null),
         ]);
         var plan = CreateStoredTableBuildScriptParameterCapturePlan();
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var helperCode = RenderClassMembersCode(renderer, plan);
 
-        Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");", methodCode);
+        Assert.Contains(
+            "var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");",
+            methodCode
+        );
         Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
-        Assert.Contains("BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, paramCountry)", methodCode);
+        Assert.Contains(
+            "BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged, _cteRowResults, paramCountry)",
+            methodCode
+        );
         Assert.IsLessThan(
-            methodCode.IndexOf("BuildCte0(", StringComparison.Ordinal), methodCode.IndexOf("var paramCountry =", StringComparison.Ordinal));
+            methodCode.IndexOf("BuildCte0(", StringComparison.Ordinal),
+            methodCode.IndexOf("var paramCountry =", StringComparison.Ordinal)
+        );
         Assert.Contains("private static List<ResultRow0> BuildCte0(", helperCode);
         Assert.Contains("string paramCountry", helperCode);
         Assert.Contains("cte.Add(new ResultRow0(paramCountry));", helperCode);
@@ -380,19 +462,27 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderClassMembers_WhenRankingWindowKeyExtractionUsesScriptParameters_ShouldReceiveTypedCaptures()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
+        var renderer = new ExecutionCSharpRenderer([
             new ScriptParameterDefinition("country", typeof(string), false, null),
-            new ScriptParameterDefinition("sortLabel", typeof(string), false, null)
+            new ScriptParameterDefinition("sortLabel", typeof(string), false, null),
         ]);
         var plan = CreateRankingWindowKeyExtractionScriptParameterCapturePlan();
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var helperCode = RenderClassMembersCode(renderer, plan);
 
-        Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");", methodCode);
-        Assert.Contains("var paramSortLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"sortLabel\");", methodCode);
+        Assert.Contains(
+            "var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"country\");",
+            methodCode
+        );
+        Assert.Contains(
+            "var paramSortLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"sortLabel\");",
+            methodCode
+        );
         Assert.AreEqual(2, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
-        Assert.Contains("ExtractRankingsWindowKeys(windowRows, rankingsPartitionKeys, rankingsOrderKeys, paramCountry, paramSortLabel);", methodCode);
+        Assert.Contains(
+            "ExtractRankingsWindowKeys(windowRows, rankingsPartitionKeys, rankingsOrderKeys, paramCountry, paramSortLabel);",
+            methodCode
+        );
         Assert.Contains("private static void ExtractRankingsWindowKeys(", helperCode);
         Assert.Contains("string paramCountry", helperCode);
         Assert.Contains("string paramSortLabel", helperCode);
@@ -404,15 +494,17 @@ public sealed partial class ExecutionCSharpRendererTests
     [TestMethod]
     public void RenderClassMembers_WhenWindowAppendRowsUsesScriptParameter_ShouldReceiveTypedCapture()
     {
-        var renderer = new ExecutionCSharpRenderer(
-        [
-            new ScriptParameterDefinition("label", typeof(string), false, null)
+        var renderer = new ExecutionCSharpRenderer([
+            new ScriptParameterDefinition("label", typeof(string), false, null),
         ]);
         var plan = CreateWindowAppendRowsScriptParameterCapturePlan();
         var methodCode = renderer.RenderMethod(plan, "ExecutePlan").NormalizeWhitespace().ToFullString();
         var helperCode = RenderClassMembersCode(renderer, plan);
 
-        Assert.Contains("var paramLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"label\");", methodCode);
+        Assert.Contains(
+            "var paramLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState, \"label\");",
+            methodCode
+        );
         Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("AppendResultWindowRows(resultWindowRows, result, paramLabel);", methodCode);
         Assert.Contains("private static void AppendResultWindowRows(", helperCode);

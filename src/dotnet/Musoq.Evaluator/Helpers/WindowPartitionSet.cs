@@ -53,7 +53,8 @@ public sealed class WindowPartitionSet
             RowCount,
             (int[])Indices.Clone(),
             (int[])_starts.Clone(),
-            (int[])_lengths.Clone());
+            (int[])_lengths.Clone()
+        );
     }
 
     public List<List<int>> ToLists()

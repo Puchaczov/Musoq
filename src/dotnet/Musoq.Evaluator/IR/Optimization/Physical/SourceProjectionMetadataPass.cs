@@ -16,25 +16,32 @@ internal sealed class SourceProjectionMetadataPass : IPhysicalOptimizationPass
 
         return ReferenceEquals(plan, rewritten)
             ? OptimizationResult<PhysicalNode>.NoChange(plan, "No source projection metadata was applied.")
-            : OptimizationResult<PhysicalNode>.Changed(rewritten, "Applied source projection metadata to physical scans.");
+            : OptimizationResult<PhysicalNode>.Changed(
+                rewritten,
+                "Applied source projection metadata to physical scans."
+            );
     }
 
     private static PhysicalNode Rewrite(PhysicalNode node, PhysicalOptimizationState state)
     {
         if (node is PhysicalSchemaScanNode scan)
         {
-            var projectedColumns = !string.IsNullOrWhiteSpace(scan.SourceContextId) &&
-                                   state.Facts.SourceRewrite.ProjectedColumnsBySourceId.TryGetValue(scan.SourceContextId, out var columns)
-                ? columns
-                : [];
+            var projectedColumns =
+                !string.IsNullOrWhiteSpace(scan.SourceContextId)
+                && state.Facts.SourceRewrite.ProjectedColumnsBySourceId.TryGetValue(
+                    scan.SourceContextId,
+                    out var columns
+                )
+                    ? columns
+                    : [];
             return projectedColumns.Length == 0 && scan.ProjectedColumns.Length == 0
                 ? scan
-                : scan with { ProjectedColumns = projectedColumns };
+                : scan with
+                {
+                    ProjectedColumns = projectedColumns,
+                };
         }
 
-        return PhysicalPlanRewriter.RewriteChildren(
-            node,
-            child => Rewrite(child, state));
+        return PhysicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, state));
     }
 }
-

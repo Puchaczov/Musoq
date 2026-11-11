@@ -42,13 +42,13 @@ internal static partial class EvaluatorSampleFixtures
                         .Single(constructor => constructor.GetParameters().Length == 2),
                     false,
                     ("first", typeof(string)),
-                    ("second", typeof(int))))
+                    ("second", typeof(int))
+                )
+            ),
         ];
 
         public NamedDatasourceSampleSchema()
-            : base("named", new MethodsAggregator(new MethodsManager()))
-        {
-        }
+            : base("named", new MethodsAggregator(new MethodsManager())) { }
 
         public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext)
         {
@@ -58,22 +58,26 @@ internal static partial class EvaluatorSampleFixtures
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new NamedDatasourceSampleTable(
                 parameters.ElementAtOrDefault(0) as string ?? string.Empty,
-                parameters.Length > 1 && parameters[1] is int second ? second : 7);
+                parameters.Length > 1 && parameters[1] is int second ? second : 7
+            );
         }
 
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
             return EnsureSourceType<T, NamedDatasourceSampleEntity>(
                 name,
-                new NamedDatasourceSampleRowSource(parameters));
+                new NamedDatasourceSampleRowSource(parameters)
+            );
         }
     }
 
@@ -83,7 +87,7 @@ internal static partial class EvaluatorSampleFixtures
         [
             new SchemaColumn(nameof(NamedDatasourceSampleEntity.Value), 0, typeof(int)),
             new SchemaColumn(nameof(NamedDatasourceSampleEntity.First), 1, typeof(string)),
-            new SchemaColumn(nameof(NamedDatasourceSampleEntity.Second), 2, typeof(int))
+            new SchemaColumn(nameof(NamedDatasourceSampleEntity.Second), 2, typeof(int)),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(NamedDatasourceSampleEntity));
@@ -91,13 +95,15 @@ internal static partial class EvaluatorSampleFixtures
         public ISchemaColumn? GetColumnByName(string name)
         {
             return Columns.SingleOrDefault(column =>
-                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));
+                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)
+            );
         }
 
         public ISchemaColumn[] GetColumnsByName(string name)
         {
-            return Columns.Where(column =>
-                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            return Columns
+                .Where(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
         }
 
         public NamedDatasourceSampleEntity CreateEntity()
@@ -106,7 +112,7 @@ internal static partial class EvaluatorSampleFixtures
             {
                 Value = 1,
                 First = first,
-                Second = second
+                Second = second,
             };
         }
     }
@@ -118,14 +124,13 @@ internal static partial class EvaluatorSampleFixtures
         {
             var first = parameters.ElementAtOrDefault(0) as string ?? string.Empty;
             var second = parameters.Length > 1 && parameters[1] is int value ? value : 7;
-            writer.Write(
-            [
+            writer.Write([
                 new NamedDatasourceSampleEntity
                 {
                     Value = 1,
                     First = first,
-                    Second = second
-                }
+                    Second = second,
+                },
             ]);
         }
     }
@@ -141,14 +146,13 @@ internal static partial class EvaluatorSampleFixtures
     private sealed class TypedNumericSampleSchema : SchemaBase
     {
         public TypedNumericSampleSchema()
-            : base("object", CreateLibrary())
-        {
-        }
+            : base("object", CreateLibrary()) { }
 
         public override ISchemaTable GetTableByName(
             string name,
             SourceMetadataContext metadataContext,
-            params object?[] parameters)
+            params object?[] parameters
+        )
         {
             return new TypedNumericSampleTable();
         }
@@ -156,11 +160,10 @@ internal static partial class EvaluatorSampleFixtures
         public override RowSource<T> GetRowSource<T, TArguments>(
             string name,
             SourceExecutionContext executionContext,
-            TArguments nativeArguments)
+            TArguments nativeArguments
+        )
         {
-            return EnsureSourceType<T, TypedNumericSampleEntity>(
-                name,
-                new TypedNumericSampleRowSource());
+            return EnsureSourceType<T, TypedNumericSampleEntity>(name, new TypedNumericSampleRowSource());
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -176,7 +179,7 @@ internal static partial class EvaluatorSampleFixtures
         public ISchemaColumn[] Columns { get; } =
         [
             new SchemaColumn(nameof(TypedNumericSampleEntity.Label), 0, typeof(string)),
-            new SchemaColumn(nameof(TypedNumericSampleEntity.Value), 1, typeof(decimal?))
+            new SchemaColumn(nameof(TypedNumericSampleEntity.Value), 1, typeof(decimal?)),
         ];
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(TypedNumericSampleEntity));
@@ -184,13 +187,15 @@ internal static partial class EvaluatorSampleFixtures
         public ISchemaColumn? GetColumnByName(string name)
         {
             return Columns.SingleOrDefault(column =>
-                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase));
+                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)
+            );
         }
 
         public ISchemaColumn[] GetColumnsByName(string name)
         {
-            return Columns.Where(column =>
-                column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            return Columns
+                .Where(column => column.ColumnName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
         }
     }
 
@@ -198,10 +203,7 @@ internal static partial class EvaluatorSampleFixtures
     {
         protected override void CollectChunks(IChunkWriter<TypedNumericSampleEntity> writer)
         {
-            writer.Write(
-            [
-                new TypedNumericSampleEntity { Label = "object", Value = 42 }
-            ]);
+            writer.Write([new TypedNumericSampleEntity { Label = "object", Value = 42 }]);
         }
     }
 }

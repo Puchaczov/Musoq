@@ -21,8 +21,9 @@ public sealed class CompiledQueryDeferredTableTests
     [TestMethod]
     public void Run_WhenUnexpectedRunnableFailureOccurs_ShouldExposeSafeExecutionDiagnostic()
     {
-        var query = new CompiledQuery(new DeferredTableRunnable((_, _) =>
-            throw new InvalidOperationException("private execution detail")));
+        var query = new CompiledQuery(
+            new DeferredTableRunnable((_, _) => throw new InvalidOperationException("private execution detail"))
+        );
 
         var exception = Assert.Throws<QueryExecutionException>(() => query.Run());
 
@@ -34,8 +35,9 @@ public sealed class CompiledQueryDeferredTableTests
     [TestMethod]
     public void Run_WhenDeferredRowsRaiseUnexpectedFailure_ShouldExposeSafeExecutionDiagnostic()
     {
-        var query = new CompiledQuery(new DeferredTableRunnable((_, token) =>
-            QueryRows.DeferredTable("result", Columns, Rows, token)));
+        var query = new CompiledQuery(
+            new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token))
+        );
 
         var table = query.Run();
         var exception = Assert.Throws<QueryExecutionException>(() => _ = table.Count);
@@ -56,8 +58,9 @@ public sealed class CompiledQueryDeferredTableTests
     {
         var factoryCalls = 0;
         var enumeratedRows = 0;
-        var query = new CompiledQuery(new DeferredTableRunnable((_, token) =>
-            QueryRows.DeferredTable("result", Columns, Rows, token)));
+        var query = new CompiledQuery(
+            new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token))
+        );
 
         var table = query.Run(CancellationToken.None);
 
@@ -89,8 +92,9 @@ public sealed class CompiledQueryDeferredTableTests
     public void Run_WhenTokenIsCancelledAfterRun_ShouldThrowOnFirstAccess()
     {
         using var cancellation = new CancellationTokenSource();
-        var query = new CompiledQuery(new DeferredTableRunnable((_, token) =>
-            QueryRows.DeferredTable("result", Columns, Rows, token)));
+        var query = new CompiledQuery(
+            new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token))
+        );
 
         var table = query.Run(cancellation.Token);
         cancellation.Cancel();
@@ -108,8 +112,9 @@ public sealed class CompiledQueryDeferredTableTests
     [TestMethod]
     public void Run_WhenDeferredScriptParameterBindingFails_ShouldWrapOnFirstAccess()
     {
-        var query = new CompiledQuery(new DeferredTableRunnable((_, token) =>
-            QueryRows.DeferredTable("result", Columns, Rows, token)));
+        var query = new CompiledQuery(
+            new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token))
+        );
 
         var table = query.Run(CancellationToken.None);
         var exception = Assert.Throws<QueryExecutionException>(() => _ = table.Count);
@@ -127,8 +132,12 @@ public sealed class CompiledQueryDeferredTableTests
     [TestMethod]
     public void Run_WhenDeferredRowsRaiseEvents_ShouldForwardThemAtMaterializationTime()
     {
-        var query = new CompiledQuery(new DeferredTableRunnable((runnable, token) =>
-            QueryRows.DeferredTable("result", Columns, rowToken => Rows(runnable, rowToken), token)));
+        var query = new CompiledQuery(
+            new DeferredTableRunnable(
+                (runnable, token) =>
+                    QueryRows.DeferredTable("result", Columns, rowToken => Rows(runnable, rowToken), token)
+            )
+        );
         var phaseEvents = 0;
         var dataSourceEvents = 0;
         query.PhaseChanged += (_, args) =>
@@ -167,7 +176,8 @@ public sealed class CompiledQueryDeferredTableTests
         var owner = new TrackingLifetimeOwner(() => Volatile.Read(ref materialized) != 0);
         var query = new CompiledQuery(
             new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
-            owner);
+            owner
+        );
 
         using var table = query.Run(CancellationToken.None);
         await AssertDisposalWaits(query, table, () => Assert.AreEqual(1, table.Count), owner);
@@ -190,14 +200,20 @@ public sealed class CompiledQueryDeferredTableTests
         var owner = new TrackingLifetimeOwner(() => Volatile.Read(ref tableDisposeStarted) != 0);
         var query = new CompiledQuery(
             new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
-            owner);
+            owner
+        );
 
         using var table = query.Run(CancellationToken.None);
-        await AssertDisposalWaits(query, table, () =>
-        {
-            Volatile.Write(ref tableDisposeStarted, 1);
-            table.Dispose();
-        }, owner);
+        await AssertDisposalWaits(
+            query,
+            table,
+            () =>
+            {
+                Volatile.Write(ref tableDisposeStarted, 1);
+                table.Dispose();
+            },
+            owner
+        );
         Assert.IsFalse(owner.DisposedBeforeRelease);
         Assert.IsTrue(owner.IsDisposed);
         return;
@@ -209,7 +225,12 @@ public sealed class CompiledQueryDeferredTableTests
         }
     }
 
-    private static async Task AssertDisposalWaits(CompiledQuery query, Table table, Action releaseResult, TrackingLifetimeOwner owner)
+    private static async Task AssertDisposalWaits(
+        CompiledQuery query,
+        Table table,
+        Action releaseResult,
+        TrackingLifetimeOwner owner
+    )
     {
         var timeout = TimeSpan.FromMinutes(2);
         using var started = new ManualResetEventSlim();
@@ -227,13 +248,19 @@ public sealed class CompiledQueryDeferredTableTests
                 completion.SetException(failure);
             }
         })
-        { IsBackground = true };
+        {
+            IsBackground = true,
+        };
         worker.Start();
         try
         {
             Assert.IsTrue(started.Wait(timeout));
-            Assert.IsTrue(SpinWait.SpinUntil(() => completion.Task.IsCompleted ||
-                (worker.ThreadState & ThreadState.WaitSleepJoin) != 0, timeout));
+            Assert.IsTrue(
+                SpinWait.SpinUntil(
+                    () => completion.Task.IsCompleted || (worker.ThreadState & ThreadState.WaitSleepJoin) != 0,
+                    timeout
+                )
+            );
             Assert.IsFalse(completion.Task.IsCompleted, "Query disposal must wait for the outstanding result.");
             Assert.IsFalse(owner.IsDisposed);
         }
@@ -265,18 +292,25 @@ public sealed class CompiledQueryDeferredTableTests
         }
     }
 
-    private sealed class DeferredTableRunnable(Func<DeferredTableRunnable, CancellationToken, Table> run) : ITableRunnable
+    private sealed class DeferredTableRunnable(Func<DeferredTableRunnable, CancellationToken, Table> run)
+        : ITableRunnable
     {
         public ISchemaProvider Provider { get; set; } = null!;
 
-        public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; set; }
-            = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyDictionary<string, string>
+        > SourceRuntimeSettingsBySourceContextId { get; set; } =
+            new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; set; }
-            = new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
+        public IReadOnlyDictionary<
+            string,
+            IReadOnlyList<SourceRuntimeSettingDescription>
+        > SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } =
+            new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
-        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; }
-            = new Dictionary<string, SourceExecutionPlan>();
+        public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
+            new Dictionary<string, SourceExecutionPlan>();
 
         public ILogger Logger { get; set; } = NullLogger.Instance;
 
@@ -302,11 +336,9 @@ public sealed class CompiledQueryDeferredTableTests
 
     private sealed class TestRow(string value) : Row
     {
-        public override void VisitColumns<TVisitor>(ref TVisitor visitor)
-            => TypedColumnVisit.Apply(0, value, ref visitor);
+        public override void VisitColumns<TVisitor>(ref TVisitor visitor) =>
+            TypedColumnVisit.Apply(0, value, ref visitor);
 
         public override int Count => 1;
-
-
     }
 }

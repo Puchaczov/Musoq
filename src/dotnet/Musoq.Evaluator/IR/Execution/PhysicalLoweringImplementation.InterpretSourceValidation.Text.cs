@@ -8,12 +8,15 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         if (!string.IsNullOrWhiteSpace(text.Extends))
         {
-            if (_schemaRegistry == null ||
-                !_schemaRegistry.TryGetSchema(text.Extends, out var parentRegistration) ||
-                parentRegistration?.Node is not TextSchemaNode parent)
+            if (
+                _schemaRegistry == null
+                || !_schemaRegistry.TryGetSchema(text.Extends, out var parentRegistration)
+                || parentRegistration?.Node is not TextSchemaNode parent
+            )
             {
                 return InterpretSourceValidationResult.Unsupported(
-                    $"Execution IR text interpret-source lowering cannot resolve parent schema '{text.Extends}' for schema '{text.Name}'.");
+                    $"Execution IR text interpret-source lowering cannot resolve parent schema '{text.Extends}' for schema '{text.Name}'."
+                );
             }
 
             var parentResult = ValidateTextInterpretSource(parent);

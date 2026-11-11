@@ -8,7 +8,6 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public sealed partial class PhysicalToExecutionPlanBuilderTests
 {
-
     [TestMethod]
     public void Build_WhenOuterApplyFilterReferencesRightAlias_ShouldApplyNullSemanticsToUnmatchedRows()
     {
@@ -19,20 +18,23 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.Equal,
             new ColumnRef("o", "Description", typeof(string)),
             new Literal("paid", typeof(string)),
-            typeof(bool));
+            typeof(bool)
+        );
         var filter = new PhysicalFilterNode(predicate, apply);
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            filter);
+            filter
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_OuterApplyRightFilter");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_OuterApplyRightFilter]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -58,7 +60,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      If [NOT oHasMatch]",
             "        If [FALSE]",
             "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -73,27 +76,32 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             BinaryOpKind.Equal,
             new ColumnRef("p", "Name", typeof(string)),
             new Literal("Ada", typeof(string)),
-            typeof(bool));
+            typeof(bool)
+        );
         var rightPredicate = new BinaryOp(
             BinaryOpKind.Equal,
             new ColumnRef("o", "Description", typeof(string)),
             new Literal("paid", typeof(string)),
-            typeof(bool));
+            typeof(bool)
+        );
         var filter = new PhysicalFilterNode(
             new BinaryOp(BinaryOpKind.Or, leftPredicate, rightPredicate, typeof(bool)),
-            apply);
+            apply
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            filter);
+            filter
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_OuterApplyRightFilterOr");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_OuterApplyRightFilterOr]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -119,7 +127,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      If [NOT oHasMatch]",
             "        If [(((p.Name = 'Ada') OR NULL) = TRUE)]",
             "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -132,19 +141,22 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         var apply = new PhysicalNestedLoopApplyNode(ApplyKind.Outer, people, orders);
         var filter = new PhysicalFilterNode(
             new IsNullCheck(new ColumnRef("o", "Description", typeof(string)), false, typeof(bool)),
-            apply);
+            apply
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            filter);
+            filter
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_OuterApplyRightFilterIsNull");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_OuterApplyRightFilterIsNull]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -170,7 +182,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      If [NOT oHasMatch]",
             "        If [TRUE]",
             "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
@@ -185,35 +198,42 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             new ColumnRef("o", "PersonAge", typeof(int)),
             new Literal(18, typeof(int)),
             new Literal(30, typeof(int)),
-            typeof(bool));
+            typeof(bool)
+        );
         var like = new PatternMatch(
             new ColumnRef("o", "Description", typeof(string)),
             new Literal("p%", typeof(string)),
             PatternKind.Like,
-            typeof(bool));
+            typeof(bool)
+        );
         var inCheck = new InCheck(
             new ColumnRef("o", "Description", typeof(string)),
             [new Literal("paid", typeof(string))],
-            typeof(bool));
+            typeof(bool)
+        );
         var filter = new PhysicalFilterNode(
             new BinaryOp(
                 BinaryOpKind.Or,
                 between,
                 new BinaryOp(BinaryOpKind.Or, like, inCheck, typeof(bool)),
-                typeof(bool)),
-            apply);
+                typeof(bool)
+            ),
+            apply
+        );
         var project = new PhysicalProjectNode(
             [
                 new ProjectedField("Name", new ColumnRef("p", "Name", typeof(string)), 0),
-                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1)
+                new ProjectedField("Description", new ColumnRef("o", "Description", typeof(string)), 1),
             ],
-            filter);
+            filter
+        );
         var builder = CreateJoinBuilder();
 
         var result = builder.Build(project, "Q_OuterApplyRightFilterRawForms");
         var plan = RequireExecutionPlan(result);
 
-        var expected = string.Join("\n",
+        var expected = string.Join(
+            "\n",
             "ExecutionPlan [Q_OuterApplyRightFilterRawForms]",
             "  Shapes",
             "    SourceEntity [p: Person]",
@@ -239,9 +259,9 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             "      If [NOT oHasMatch]",
             "        If [((NULL OR (FALSE OR NULL IN ('paid'))) = TRUE)]",
             "          AppendShape [result <- ResultRow0(Name: p.Name, Description: NULL)]",
-            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]");
+            "    ReturnDeferredTable [result: ResultRow0 <- ResultRow0]"
+        );
 
         Assert.AreEqual(expected, PrintPlanWithoutPhaseBoundaries(plan));
     }
-
 }

@@ -17,14 +17,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
         var parentNodeType = SemanticPropertyParentType.Require(parentNode, node);
 
-
         if (parentNodeType == typeof(object) || parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
             var propertyInfo = _columnPropertyBindingService.ResolveDynamicProperty(
                 parentNodeType,
                 node.Name,
                 typeof(object),
-                typeof(ExpandoObject));
+                typeof(ExpandoObject)
+            );
             PushSemanticNode(new PropertyValueNode(node.Name, propertyInfo));
         }
         else
@@ -32,7 +32,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             var propertyInfo = _columnPropertyBindingService.TryResolveTypedProperty(
                 parentNodeType,
                 node.Name,
-                out var error);
+                out var error
+            );
 
             if (error != null)
             {
@@ -40,7 +41,8 @@ public partial class BuildMetadataAndInferTypesVisitor
                     VisitorName,
                     VisitorOperationNames.VisitPropertyValueNode,
                     $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
-                    error);
+                    error
+                );
             }
 
             if (propertyInfo == null)

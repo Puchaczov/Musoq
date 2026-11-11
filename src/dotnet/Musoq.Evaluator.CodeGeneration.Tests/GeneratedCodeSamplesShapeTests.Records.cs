@@ -34,10 +34,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private sealed record GeneratedMethod(string Name, string Body);
 
-    private sealed record GeneratedRowCastOccurrence(
-        string FileName,
-        string Line,
-        GeneratedRowCastCategory Category);
+    private sealed record GeneratedRowCastOccurrence(string FileName, string Line, GeneratedRowCastCategory Category);
 
     private sealed record RetiredGeneratedCodePattern(string Pattern, int Budget);
 
@@ -49,6 +46,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         ResultSortRows,
         AsOfCandidates,
         InterpretationApplyRows,
-        DynamicFallback
+        DynamicFallback,
     }
 }

@@ -27,5 +27,5 @@ public enum SourcePlanningMode
     AcceptTopNOrder,
     AcceptTopNOrderSkipTake,
     AcceptNaturalOrder,
-    AcceptNaturalOrderSkipTake
+    AcceptNaturalOrderSkipTake,
 }

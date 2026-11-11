@@ -15,16 +15,20 @@ public partial class TextInterpretationTests
                 "Item",
                 [
                     new TextFieldDefinitionNode("Key", TextFieldType.Until, ":"),
-                    new TextFieldDefinitionNode("Value", TextFieldType.Until, "|")
-                ]));
+                    new TextFieldDefinitionNode("Value", TextFieldType.Until, "|"),
+                ]
+            )
+        );
         registry.Register(
             "Container",
             new TextSchemaNode(
                 "Container",
                 [
                     new TextFieldDefinitionNode("Header", TextFieldType.SchemaReference, "Item"),
-                    new TextFieldDefinitionNode("Tail", TextFieldType.Rest)
-                ]));
+                    new TextFieldDefinitionNode("Tail", TextFieldType.Rest),
+                ]
+            )
+        );
 
         var interpreter = CompileFromRegistry(registry, "Container");
         var result = InvokeParse(interpreter, "name:value|tail");
@@ -41,15 +45,12 @@ public partial class TextInterpretationTests
         var registry = new SchemaRegistry();
         registry.Register(
             "Base",
-            new TextSchemaNode(
-                "Base",
-                [new TextFieldDefinitionNode("Prefix", TextFieldType.Literal, "X")]));
+            new TextSchemaNode("Base", [new TextFieldDefinitionNode("Prefix", TextFieldType.Literal, "X")])
+        );
         registry.Register(
             "Derived",
-            new TextSchemaNode(
-                "Derived",
-                [new TextFieldDefinitionNode("Suffix", TextFieldType.Rest)],
-                "Base"));
+            new TextSchemaNode("Derived", [new TextFieldDefinitionNode("Suffix", TextFieldType.Rest)], "Base")
+        );
 
         var interpreter = CompileFromRegistry(registry, "Derived");
         var result = InvokeParse(interpreter, "Xpayload");

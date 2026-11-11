@@ -27,32 +27,38 @@ public sealed class InterpretationSchemaPartitionTests
     [TestMethod]
     public void Create_WhenDefinitionsAreMixedWithExecutableStatements_PartitionsOnceAndPreservesOrder()
     {
-        var queryTree = Parse(@"
-            binary Header { Value: byte };
-            select 1 from #system.dual();
-            text Trailer { Value: rest };
-            select 2 from #system.dual();");
+        var queryTree = Parse(
+            (
+                "\n"
+                + "            binary Header { Value: byte };\n"
+                + "            select 1 from #system.dual();\n"
+                + "            text Trailer { Value: rest };\n"
+                + "            select 2 from #system.dual();"
+            )
+        );
 
         var partition = InterpretationSchemaPartition.Create(queryTree);
 
         Assert.IsTrue(partition.HasDefinitions);
         CollectionAssert.AreEqual(
             new[] { "Header", "Trailer" },
-            partition.Registry.Schemas.Select(static schema => schema.Name).ToArray());
+            partition.Registry.Schemas.Select(static schema => schema.Name).ToArray()
+        );
 
         var executableStatements = ((StatementsArrayNode)partition.UsageTree.Expression).Statements;
         Assert.HasCount(2, executableStatements);
-        Assert.IsTrue(executableStatements.All(static statement =>
-            statement.Node is not BinarySchemaNode and not TextSchemaNode));
+        Assert.IsTrue(
+            executableStatements.All(static statement => statement.Node is not BinarySchemaNode and not TextSchemaNode)
+        );
         Assert.AreSame(partition.UsageTree, partition.QueryWithoutDefinitions);
     }
 
     [TestMethod]
     public void Create_WhenAllDefinitionsArePresent_UsesEmptyUsageTreeButRetainsOriginalQueryTree()
     {
-        var queryTree = Parse(@"
-            binary Header { Value: byte };
-            text Trailer { Value: rest };");
+        var queryTree = Parse(
+            ("\n" + "            binary Header { Value: byte };\n" + "            text Trailer { Value: rest };")
+        );
 
         var partition = InterpretationSchemaPartition.Create(queryTree);
 
@@ -66,10 +72,14 @@ public sealed class InterpretationSchemaPartitionTests
     [TestMethod]
     public void Create_WhenSchemaReferencesAreValid_RegistersThroughTheExistingValidationPath()
     {
-        var queryTree = Parse(@"
-            binary Child { Value: byte };
-            binary Parent { Payload: Child };
-            select Interpret<Parent>(d.Dummy) from #system.dual() d;");
+        var queryTree = Parse(
+            (
+                "\n"
+                + "            binary Child { Value: byte };\n"
+                + "            binary Parent { Payload: Child };\n"
+                + "            select Interpret<Parent>(d.Dummy) from #system.dual() d;"
+            )
+        );
 
         var partition = InterpretationSchemaPartition.Create(queryTree);
         var result = DeadInterpretationSchemaEliminator.Eliminate(partition.UsageTree, partition.Registry);

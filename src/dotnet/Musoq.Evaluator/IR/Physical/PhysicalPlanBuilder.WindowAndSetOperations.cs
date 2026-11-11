@@ -1,7 +1,6 @@
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-
 namespace Musoq.Evaluator.IR.Physical;
 
 public sealed partial class PhysicalPlanBuilder
@@ -41,7 +40,8 @@ public sealed partial class PhysicalPlanBuilder
         {
             if (!TryResolveKey(keys[i], projectFields, columns, out var index, out var type))
                 throw new InvalidOperationException(
-                    $"Set operation key '{keys[i]}' does not match any output column of the left input.");
+                    $"Set operation key '{keys[i]}' does not match any output column of the left input."
+                );
             keyIndexes[i] = index;
             keyTypes[i] = type;
         }

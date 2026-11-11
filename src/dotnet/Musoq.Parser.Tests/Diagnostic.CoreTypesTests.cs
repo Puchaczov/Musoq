@@ -7,7 +7,6 @@ using Musoq.Parser.Exceptions;
 
 namespace Musoq.Parser.Tests;
 
-
 [TestClass]
 public class DiagnosticCoreTypesTests
 {
@@ -54,12 +53,10 @@ public class DiagnosticCoreTypesTests
         var source = "SELECT\nName,\nAge\nFROM table";
         var sourceText = new SourceText(source, "test.sql");
 
-
         var loc1 = sourceText.GetLocation(7);
         Assert.AreEqual(7, loc1.Offset);
         Assert.AreEqual(2, loc1.Line);
         Assert.AreEqual(1, loc1.Column);
-
 
         var loc2 = sourceText.GetLocation(13);
         Assert.AreEqual(13, loc2.Offset);
@@ -96,7 +93,11 @@ public class DiagnosticCoreTypesTests
     public void Diagnostic_Warning_ShouldHaveCorrectSeverity()
     {
         var span = new TextSpan(10, 5);
-        var diagnostic = Diagnostic.Warning(DiagnosticCode.MQ5003_ImplicitTypeConversion, "Consider using explicit columns", span);
+        var diagnostic = Diagnostic.Warning(
+            DiagnosticCode.MQ5003_ImplicitTypeConversion,
+            "Consider using explicit columns",
+            span
+        );
 
         Assert.AreEqual(DiagnosticSeverity.Warning, diagnostic.Severity);
         Assert.IsFalse(diagnostic.IsError);
@@ -125,7 +126,6 @@ public class DiagnosticCoreTypesTests
 
         for (var i = 0; i < 5; i++)
             bag.AddError(DiagnosticCode.MQ2001_UnexpectedToken, $"Error {i}", new TextSpan(i * 10, 5));
-
 
         Assert.IsTrue(bag.HasTooManyErrors);
 
@@ -381,8 +381,9 @@ public class DiagnosticCoreTypesTests
     [TestMethod]
     public void ToDiagnosticOrGeneric_UnstructuredUnterminatedStringMessage_ShouldClassifyAsInternal()
     {
-        var exception =
-            new Exception("Token ''' was unrecognized. Rest of the unparsed query is 'Unterminated string literal'");
+        var exception = new Exception(
+            "Token ''' was unrecognized. Rest of the unparsed query is 'Unterminated string literal'"
+        );
 
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
@@ -491,7 +492,8 @@ public class DiagnosticCoreTypesTests
             DiagnosticSeverity.Error,
             "Unexpected token",
             location,
-            suggestedFixes: [action]);
+            suggestedFixes: [action]
+        );
 
         Assert.HasCount(1, diagnostic.SuggestedFixes);
         Assert.AreEqual("Replace with correct syntax", diagnostic.SuggestedFixes[0].Title);

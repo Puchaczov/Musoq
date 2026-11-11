@@ -6,7 +6,6 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-
     private static CapturedLocal CreateCapturedLocal(ExecutionVariable variable)
     {
         return new CapturedLocal(variable.Name, variable.Type.RequireClrType(), variable.GeneratedRowTypeName);
@@ -17,7 +16,12 @@ public sealed partial class ExecutionCSharpRenderer
         return new CapturedLocal(
             GetScriptParameterLocalName(parameterRead.Name),
             parameterRead.ReturnType.RequireClrType(),
-            StructuralCarrierSyntaxFactory.GetReadStorageType(parameterRead, _scriptVariableDefinitions, _scriptParameterDefinitions));
+            StructuralCarrierSyntaxFactory.GetReadStorageType(
+                parameterRead,
+                _scriptVariableDefinitions,
+                _scriptParameterDefinitions
+            )
+        );
     }
 
     private CapturedLocal CreateCapturedLocal(ExecutionScriptVariableRead variableRead)
@@ -25,7 +29,12 @@ public sealed partial class ExecutionCSharpRenderer
         return new CapturedLocal(
             GetScriptVariableLocalName(variableRead.Name),
             variableRead.ReturnType.RequireClrType(),
-            StructuralCarrierSyntaxFactory.GetReadStorageType(variableRead, _scriptVariableDefinitions, _scriptParameterDefinitions));
+            StructuralCarrierSyntaxFactory.GetReadStorageType(
+                variableRead,
+                _scriptVariableDefinitions,
+                _scriptParameterDefinitions
+            )
+        );
     }
 
     private static ParameterSyntax CreateCapturedLocalParameter(CapturedLocal capture)
@@ -40,7 +49,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static TypeSyntax CreateCapturedLocalTypeSyntax(CapturedLocal capture)
     {
-        if (!string.IsNullOrWhiteSpace(capture.GeneratedRowTypeName) && capture.Type.RequireClrType() == typeof(IReadOnlyList<Evaluator.Tables.Row>))
+        if (
+            !string.IsNullOrWhiteSpace(capture.GeneratedRowTypeName)
+            && capture.Type.RequireClrType() == typeof(IReadOnlyList<Evaluator.Tables.Row>)
+        )
             return CreateReadOnlyListTypeSyntax(SyntaxFactory.ParseTypeName(capture.GeneratedRowTypeName));
 
         return string.IsNullOrWhiteSpace(capture.GeneratedRowTypeName)
@@ -51,7 +63,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static void AddHelperCapture(
         CapturedLocal capture,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         if (string.IsNullOrWhiteSpace(capture.Name) || excludedNames.Contains(capture.Name))
             return;
@@ -62,7 +75,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static void AddHelperCapture(
         ExecutionVariable variable,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         AddHelperCapture(CreateCapturedLocal(variable), excludedNames, captures);
     }
@@ -70,7 +84,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void AddHelperCapture(
         ExecutionScriptParameterRead parameterRead,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         AddHelperCapture(CreateCapturedLocal(parameterRead), excludedNames, captures);
     }
@@ -78,7 +93,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void AddHelperCapture(
         ExecutionScriptVariableRead variableRead,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         AddHelperCapture(CreateCapturedLocal(variableRead), excludedNames, captures);
     }
@@ -86,7 +102,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void AddHelperCaptures(
         ExecutionBlock block,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         foreach (var node in block.Nodes)
             AddHelperCaptures(node, excludedNames, captures);
@@ -95,7 +112,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void AddHelperCaptures(
         ExecutionNode node,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         if (node is ExecutionHashProbe hashProbe)
         {
@@ -106,10 +124,12 @@ public sealed partial class ExecutionCSharpRenderer
                     GeneratedRowTypeName = CreateHashTypeName(
                         hashProbe.KeyType.RequireClrType(),
                         hashProbe.RowType.RequireClrType(),
-                        hashProbe.GeneratedRowTypeName)
+                        hashProbe.GeneratedRowTypeName
+                    ),
                 },
                 excludedNames,
-                captures);
+                captures
+            );
         }
 
         if (node is ExecutionKeySetProbe keySetProbe)
@@ -118,10 +138,11 @@ public sealed partial class ExecutionCSharpRenderer
                 keySetProbe.Set with
                 {
                     Type = ExecutionClrBindingFactory.FromClr(typeof(object)),
-                    GeneratedRowTypeName = CreateKeySetTypeName(keySetProbe.KeyType)
+                    GeneratedRowTypeName = CreateKeySetTypeName(keySetProbe.KeyType),
                 },
                 excludedNames,
-                captures);
+                captures
+            );
         }
 
         foreach (var expression in ExecutionIrAnalysis.GetNodeExpressions(node))
@@ -134,7 +155,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void AddHelperCaptures(
         IEnumerable<ExecutionExpression> expressions,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         foreach (var expression in expressions)
             AddHelperCaptures(expression, excludedNames, captures);
@@ -143,7 +165,8 @@ public sealed partial class ExecutionCSharpRenderer
     private void AddHelperCaptures(
         ExecutionExpression? expression,
         HashSet<string> excludedNames,
-        Dictionary<string, CapturedLocal> captures)
+        Dictionary<string, CapturedLocal> captures
+    )
     {
         if (expression == null)
             return;
@@ -162,11 +185,14 @@ public sealed partial class ExecutionCSharpRenderer
                     AddHelperCapture(variableRead, excludedNames, captures);
                     break;
                 case ExecutionMethodCall methodCall:
-                    if (methodCall.Target != null) AddHelperCapture(methodCall.Target, excludedNames, captures);
-                    if (methodCall.Cache != null) AddHelperCapture(methodCall.Cache, excludedNames, captures);
+                    if (methodCall.Target != null)
+                        AddHelperCapture(methodCall.Target, excludedNames, captures);
+                    if (methodCall.Cache != null)
+                        AddHelperCapture(methodCall.Cache, excludedNames, captures);
                     break;
                 case ExecutionStrictCast { Target: not null } strictCast:
-                    AddHelperCapture(strictCast.Target, excludedNames, captures); break;
+                    AddHelperCapture(strictCast.Target, excludedNames, captures);
+                    break;
                 case ExecutionRowStream rows:
                     AddHelperCapture(rows.Variable, excludedNames, captures);
                     break;

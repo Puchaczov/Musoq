@@ -16,8 +16,11 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
         var failure = Assert.Throws<MusoqQueryException>(() => CompileRangeArguments(query));
 
-        MusoqExceptionAssertions.AssertErrorEnvelope(failure,
-            DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        MusoqExceptionAssertions.AssertErrorEnvelope(
+            failure,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            DiagnosticPhase.Parse
+        );
     }
 
     [TestMethod]
@@ -34,8 +37,12 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
 
     private static CompiledQuery CompileRangeArguments(string query)
     {
-        return InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new SpecStressSystemRangeSchemaProvider(), new TestsLoggerResolver(),
-            new CompilationOptions(usePrimitiveTypeValidation: false));
+        return InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            new SpecStressSystemRangeSchemaProvider(),
+            new TestsLoggerResolver(),
+            new CompilationOptions(usePrimitiveTypeValidation: false)
+        );
     }
 }

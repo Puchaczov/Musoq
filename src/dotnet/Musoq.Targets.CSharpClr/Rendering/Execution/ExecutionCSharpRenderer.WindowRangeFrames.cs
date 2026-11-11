@@ -14,7 +14,8 @@ internal static class WindowRangeFrameSyntax
         string partitionIndicesName,
         string partitionStartName,
         string partitionIndexName,
-        string partitionCountName)
+        string partitionCountName
+    )
     {
         return IsBoundedRangeBound(kernel, bound)
             ? CreateWindowAggregateRangeFrameExpression(
@@ -24,11 +25,13 @@ internal static class WindowRangeFrameSyntax
                 partitionIndicesName,
                 partitionStartName,
                 partitionIndexName,
-                partitionCountName)
+                partitionCountName
+            )
             : ExecutionCSharpRenderer.CreateWindowAggregateFrameStartExpression(
                 bound,
                 partitionIndexName,
-                partitionCountName);
+                partitionCountName
+            );
     }
 
     internal static ExpressionSyntax CreateAggregateFrameEndExpressionForKernel(
@@ -37,7 +40,8 @@ internal static class WindowRangeFrameSyntax
         string partitionIndicesName,
         string partitionStartName,
         string partitionIndexName,
-        string partitionCountName)
+        string partitionCountName
+    )
     {
         return IsBoundedRangeBound(kernel, bound)
             ? CreateWindowAggregateRangeFrameExpression(
@@ -47,21 +51,22 @@ internal static class WindowRangeFrameSyntax
                 partitionIndicesName,
                 partitionStartName,
                 partitionIndexName,
-                partitionCountName)
+                partitionCountName
+            )
             : ExecutionCSharpRenderer.CreateWindowAggregateFrameEndExpression(
                 bound,
                 partitionIndexName,
-                partitionCountName);
+                partitionCountName
+            );
     }
 
-    private static bool IsBoundedRangeBound(
-        ExecutionWindowAggregateKernel kernel,
-        ExecutionWindowFrameBound bound)
+    private static bool IsBoundedRangeBound(ExecutionWindowAggregateKernel kernel, ExecutionWindowFrameBound bound)
     {
-        return kernel.Frame?.Kind == ExecutionWindowFrameKind.Range &&
-               bound.Kind is ExecutionWindowFrameBoundKind.CurrentRow or
-                   ExecutionWindowFrameBoundKind.OffsetPreceding or
-                   ExecutionWindowFrameBoundKind.OffsetFollowing;
+        return kernel.Frame?.Kind == ExecutionWindowFrameKind.Range
+            && bound.Kind
+                is ExecutionWindowFrameBoundKind.CurrentRow
+                    or ExecutionWindowFrameBoundKind.OffsetPreceding
+                    or ExecutionWindowFrameBoundKind.OffsetFollowing;
     }
 
     private static ExpressionSyntax CreateWindowAggregateRangeFrameExpression(
@@ -71,15 +76,17 @@ internal static class WindowRangeFrameSyntax
         string partitionIndicesName,
         string partitionStartName,
         string partitionIndexName,
-        string partitionCountName)
+        string partitionCountName
+    )
     {
         var orderKeysName = kernel.OrderKeyArray?.Variable.Name ?? $"{kernel.Results.Name}OrderKeys";
 
         if (bound.Kind == ExecutionWindowFrameBoundKind.CurrentRow)
         {
-            var peerHelperName = helperName == nameof(WindowFunctionHelpers.ResolveRangeFrameStart)
-                ? nameof(WindowFunctionHelpers.ResolveRangePeerFrameStart)
-                : nameof(WindowFunctionHelpers.ResolveRangePeerFrameEnd);
+            var peerHelperName =
+                helperName == nameof(WindowFunctionHelpers.ResolveRangeFrameStart)
+                    ? nameof(WindowFunctionHelpers.ResolveRangePeerFrameStart)
+                    : nameof(WindowFunctionHelpers.ResolveRangePeerFrameEnd);
 
             return CreateWindowHelperInvocation(
                 peerHelperName,
@@ -87,7 +94,8 @@ internal static class WindowRangeFrameSyntax
                 SyntaxFactory.IdentifierName(partitionIndicesName),
                 SyntaxFactory.IdentifierName(partitionStartName),
                 SyntaxFactory.IdentifierName(partitionCountName),
-                SyntaxFactory.IdentifierName(partitionIndexName));
+                SyntaxFactory.IdentifierName(partitionIndexName)
+            );
         }
 
         if (kernel.OrderKeys.Count != 1)
@@ -97,7 +105,7 @@ internal static class WindowRangeFrameSyntax
         {
             ExecutionWindowFrameBoundKind.OffsetPreceding => -bound.Offset,
             ExecutionWindowFrameBoundKind.OffsetFollowing => bound.Offset,
-            _ => 0
+            _ => 0,
         };
 
         return CreateWindowHelperInvocation(
@@ -110,21 +118,24 @@ internal static class WindowRangeFrameSyntax
             SyntaxFactory.IdentifierName(partitionIndexName),
             CreateIntLiteral(offset),
             CreateBooleanLiteral(kernel.OrderKeys[0].Descending),
-            CreateBooleanLiteral(IsNullsFirst(kernel.OrderKeys[0])));
+            CreateBooleanLiteral(IsNullsFirst(kernel.OrderKeys[0]))
+        );
     }
 
     private static bool IsNullsFirst(ExecutionWindowOrderKey orderKey)
     {
-        return orderKey.NullOrdering == NullOrdering.First ||
-               orderKey.NullOrdering == NullOrdering.Default && !orderKey.Descending;
+        return orderKey.NullOrdering == NullOrdering.First
+            || orderKey.NullOrdering == NullOrdering.Default && !orderKey.Descending;
     }
 
     internal static bool HasRangeOffsetBound(ExecutionWindowFrame frame)
     {
-        return frame.Start.Kind is ExecutionWindowFrameBoundKind.OffsetPreceding or
-                   ExecutionWindowFrameBoundKind.OffsetFollowing ||
-               frame.End.Kind is ExecutionWindowFrameBoundKind.OffsetPreceding or
-                   ExecutionWindowFrameBoundKind.OffsetFollowing;
+        return frame.Start.Kind
+                is ExecutionWindowFrameBoundKind.OffsetPreceding
+                    or ExecutionWindowFrameBoundKind.OffsetFollowing
+            || frame.End.Kind
+                is ExecutionWindowFrameBoundKind.OffsetPreceding
+                    or ExecutionWindowFrameBoundKind.OffsetFollowing;
     }
 
     internal static string GetAggregateRangeKeysName(ExecutionWindowAggregateKernel kernel)
@@ -141,22 +152,30 @@ internal static class WindowRangeFrameSyntax
         string partitionIndicesName,
         string partitionStartName,
         string partitionIndexName,
-        string partitionCountName)
+        string partitionCountName
+    )
     {
-        if (plugin.Frame?.Kind != ExecutionWindowFrameKind.Range ||
-            bound.Kind is not (ExecutionWindowFrameBoundKind.CurrentRow or
-                ExecutionWindowFrameBoundKind.OffsetPreceding or
-                ExecutionWindowFrameBoundKind.OffsetFollowing))
+        if (
+            plugin.Frame?.Kind != ExecutionWindowFrameKind.Range
+            || bound.Kind
+                is not (
+                    ExecutionWindowFrameBoundKind.CurrentRow
+                    or ExecutionWindowFrameBoundKind.OffsetPreceding
+                    or ExecutionWindowFrameBoundKind.OffsetFollowing
+                )
+        )
         {
             return isStart
                 ? ExecutionCSharpRenderer.CreateWindowAggregateFrameStartExpression(
                     bound,
                     partitionIndexName,
-                    partitionCountName)
+                    partitionCountName
+                )
                 : ExecutionCSharpRenderer.CreateWindowAggregateFrameEndExpression(
                     bound,
                     partitionIndexName,
-                    partitionCountName);
+                    partitionCountName
+                );
         }
 
         if (orderKeys == null)
@@ -172,15 +191,14 @@ internal static class WindowRangeFrameSyntax
                 SyntaxFactory.IdentifierName(partitionIndicesName),
                 SyntaxFactory.IdentifierName(partitionStartName),
                 SyntaxFactory.IdentifierName(partitionCountName),
-                SyntaxFactory.IdentifierName(partitionIndexName));
+                SyntaxFactory.IdentifierName(partitionIndexName)
+            );
         }
 
         if (plugin.OrderKeys.Count != 1 || rangeKeys == null)
             throw new InvalidOperationException("Offset RANGE value windows require one numeric order key.");
 
-        var offset = bound.Kind == ExecutionWindowFrameBoundKind.OffsetPreceding
-            ? -bound.Offset
-            : bound.Offset;
+        var offset = bound.Kind == ExecutionWindowFrameBoundKind.OffsetPreceding ? -bound.Offset : bound.Offset;
         var orderKey = plugin.OrderKeys[0];
         return CreateWindowHelperInvocation(
             isStart
@@ -194,7 +212,8 @@ internal static class WindowRangeFrameSyntax
             SyntaxFactory.IdentifierName(partitionIndexName),
             CreateIntLiteral(offset),
             CreateBooleanLiteral(orderKey.Descending),
-            CreateBooleanLiteral(IsNullsFirst(orderKey)));
+            CreateBooleanLiteral(IsNullsFirst(orderKey))
+        );
     }
 
     internal static StatementSyntax CreateStreamingPeerRowsLoop(
@@ -206,57 +225,78 @@ internal static class WindowRangeFrameSyntax
         string partitionCountName,
         string currentIndexName,
         string itemDeclarations,
-        string accumulate)
+        string accumulate
+    )
     {
         var partitionIndexName = $"{resultName}PartitionIndex";
         var peerEndName = $"{resultName}PeerEnd";
         var peerIndexName = $"{resultName}PeerIndex";
         var peerValueName = $"{resultName}PeerValue";
         var source =
-            $"for (int {partitionIndexName} = 0; {partitionIndexName} < {partitionCountName};)" + Environment.NewLine +
-            "{" + Environment.NewLine +
-            $"    var {peerEndName} = WindowFunctionHelpers.ResolveRangePeerFrameEnd({orderKeysName}, {partitionIndicesName}, {partitionStartName}, {partitionCountName}, {partitionIndexName});" + Environment.NewLine +
-            $"    for (int {peerIndexName} = {partitionIndexName}; {peerIndexName} <= {peerEndName}; ++{peerIndexName})" + Environment.NewLine +
-            "    {" + Environment.NewLine +
-            $"        var {currentIndexName} = {partitionIndicesName}[{partitionStartName} + {peerIndexName}];" + Environment.NewLine +
-            itemDeclarations + Environment.NewLine +
-            $"        {accumulate}" + Environment.NewLine +
-            "    }" + Environment.NewLine +
-            $"    var {peerValueName} = {resultExpression};" + Environment.NewLine +
-            $"    for (int {peerIndexName} = {partitionIndexName}; {peerIndexName} <= {peerEndName}; ++{peerIndexName})" + Environment.NewLine +
-            "    {" + Environment.NewLine +
-            $"        var {currentIndexName} = {partitionIndicesName}[{partitionStartName} + {peerIndexName}];" + Environment.NewLine +
-            $"        {resultName}[{currentIndexName}] = {peerValueName};" + Environment.NewLine +
-            "    }" + Environment.NewLine +
-            $"    {partitionIndexName} = {peerEndName} + 1;" + Environment.NewLine +
-            "}";
+            $"for (int {partitionIndexName} = 0; {partitionIndexName} < {partitionCountName};)"
+            + Environment.NewLine
+            + "{"
+            + Environment.NewLine
+            + $"    var {peerEndName} = WindowFunctionHelpers.ResolveRangePeerFrameEnd({orderKeysName}, {partitionIndicesName}, {partitionStartName}, {partitionCountName}, {partitionIndexName});"
+            + Environment.NewLine
+            + $"    for (int {peerIndexName} = {partitionIndexName}; {peerIndexName} <= {peerEndName}; ++{peerIndexName})"
+            + Environment.NewLine
+            + "    {"
+            + Environment.NewLine
+            + $"        var {currentIndexName} = {partitionIndicesName}[{partitionStartName} + {peerIndexName}];"
+            + Environment.NewLine
+            + itemDeclarations
+            + Environment.NewLine
+            + $"        {accumulate}"
+            + Environment.NewLine
+            + "    }"
+            + Environment.NewLine
+            + $"    var {peerValueName} = {resultExpression};"
+            + Environment.NewLine
+            + $"    for (int {peerIndexName} = {partitionIndexName}; {peerIndexName} <= {peerEndName}; ++{peerIndexName})"
+            + Environment.NewLine
+            + "    {"
+            + Environment.NewLine
+            + $"        var {currentIndexName} = {partitionIndicesName}[{partitionStartName} + {peerIndexName}];"
+            + Environment.NewLine
+            + $"        {resultName}[{currentIndexName}] = {peerValueName};"
+            + Environment.NewLine
+            + "    }"
+            + Environment.NewLine
+            + $"    {partitionIndexName} = {peerEndName} + 1;"
+            + Environment.NewLine
+            + "}";
 
         return SyntaxFactory.ParseStatement(source);
     }
 
     private static InvocationExpressionSyntax CreateWindowHelperInvocation(
         string helperName,
-        params ExpressionSyntax[] arguments)
+        params ExpressionSyntax[] arguments
+    )
     {
-        return SyntaxFactory.InvocationExpression(
+        return SyntaxFactory
+            .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(WindowFunctionHelpers)),
-                    SyntaxFactory.IdentifierName(helperName)))
-            .WithArgumentList(SyntaxFactory.ArgumentList(
-                SyntaxFactory.SeparatedList(arguments.Select(SyntaxFactory.Argument))));
+                    SyntaxFactory.IdentifierName(helperName)
+                )
+            )
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(SyntaxFactory.Argument)))
+            );
     }
 
     private static LiteralExpressionSyntax CreateIntLiteral(int value)
     {
-        return SyntaxFactory.LiteralExpression(
-            SyntaxKind.NumericLiteralExpression,
-            SyntaxFactory.Literal(value));
+        return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(value));
     }
 
     private static LiteralExpressionSyntax CreateBooleanLiteral(bool value)
     {
         return SyntaxFactory.LiteralExpression(
-            value ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression);
+            value ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression
+        );
     }
 }

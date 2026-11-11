@@ -11,7 +11,6 @@ public class FuzzyMatchingExtendedTests : PluginsTestBase
     #region Soundex Tests
 
 
-
     [TestMethod]
     public void Soundex_ValidWord_ReturnsCode()
     {
@@ -68,8 +67,6 @@ public class FuzzyMatchingExtendedTests : PluginsTestBase
         Assert.IsFalse(Library.HasFuzzyMatchedWord("hello world", "xyz"));
     }
 
-
-
     #endregion
 
     #region HasWordThatHasSmallerLevenshteinDistanceThan Tests
@@ -109,8 +106,6 @@ public class FuzzyMatchingExtendedTests : PluginsTestBase
     {
         Assert.IsFalse(Library.HasWordThatHasSmallerLevenshteinDistanceThan("hello world", "xyz", 1));
     }
-
-
 
     #endregion
 
@@ -185,8 +180,6 @@ public class FuzzyMatchingExtendedTests : PluginsTestBase
     {
         Assert.IsFalse(Library.HasTextThatSoundLikeSentence("hello world", "hello xyz"));
     }
-
-
 
     #endregion
 

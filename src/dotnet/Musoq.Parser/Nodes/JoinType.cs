@@ -12,5 +12,5 @@ public enum JoinType
     LeftSemi,
     LeftAntiSemi,
     LeftMark,
-    LeftSingle
+    LeftSingle,
 }

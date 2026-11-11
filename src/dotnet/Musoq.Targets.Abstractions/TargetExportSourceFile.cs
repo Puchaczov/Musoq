@@ -30,23 +30,22 @@ internal static class TargetArtifactPath
             throw new ArgumentException("Artifact path cannot be empty.", parameterName);
 
         var normalized = path.Replace('\\', '/');
-        if (normalized.StartsWith("/", StringComparison.Ordinal) ||
-            normalized.Contains(':', StringComparison.Ordinal))
+        if (normalized.StartsWith("/", StringComparison.Ordinal) || normalized.Contains(':', StringComparison.Ordinal))
         {
             throw new ArgumentException("Artifact path must be relative.", parameterName);
         }
 
         var segments = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
         if (segments.Length == 0 || segments.Any(static segment => segment is "." or ".."))
-            throw new ArgumentException("Artifact path cannot contain current or parent directory segments.", parameterName);
+            throw new ArgumentException(
+                "Artifact path cannot contain current or parent directory segments.",
+                parameterName
+            );
 
         return string.Join('/', segments);
     }
 
-    public static void RequireUnique<T>(
-        IEnumerable<T> values,
-        Func<T, string> pathSelector,
-        string label)
+    public static void RequireUnique<T>(IEnumerable<T> values, Func<T, string> pathSelector, string label)
     {
         var duplicate = values
             .GroupBy(pathSelector, StringComparer.Ordinal)

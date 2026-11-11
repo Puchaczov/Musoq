@@ -21,14 +21,12 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class DiagnosticREC140DocumentationConflictTests : BinaryInterpretationTestBase
 {
-    private static readonly CompilationOptions CompilationOptions =
-        new(usePrimitiveTypeValidation: false);
+    private static readonly CompilationOptions CompilationOptions = new(usePrimitiveTypeValidation: false);
 
     [TestMethod]
     public void UntilExample_ShouldProveDelimiterIsConsumedBeforeFollowingLiteral()
     {
-        const string schemaText =
-            "text Example { Key: until ':', _: literal ': ', Value: until '\\n' }";
+        const string schemaText = "text Example { Key: until ':', _: literal ': ', Value: until '\\n' }";
 
         var interpreter = CompileTextInterpreter(schemaText, "Example");
 
@@ -44,8 +42,7 @@ public sealed class DiagnosticREC140DocumentationConflictTests : BinaryInterpret
     [TestMethod]
     public void UntilCorrectedExample_ShouldParseSingleDelimiterAndSpace()
     {
-        const string schemaText =
-            "text Example { Key: until ':', _: literal ' ', Value: until '\\n' }";
+        const string schemaText = "text Example { Key: until ':', _: literal ' ', Value: until '\\n' }";
 
         var result = InvokeParse(CompileTextInterpreter(schemaText, "Example"), "key: value\n");
 
@@ -57,23 +54,24 @@ public sealed class DiagnosticREC140DocumentationConflictTests : BinaryInterpret
     public void CheckExample_ShouldRejectForwardFieldReferenceBeforeCodeGeneration()
     {
         const string query =
-            "binary ValidatedHeader { " +
-            "Magic: int le check Magic = 0xDEADBEEF, " +
-            "Version: short le check Version >= 1 AND Version <= 5, " +
-            "Length: int le check Length <= 1048576, " +
-            "Checksum: int le check Checksum = Crc32(Data), " +
-            "Data: byte[Length] };" +
-            "select 1 from #test.files();";
+            "binary ValidatedHeader { "
+            + "Magic: int le check Magic = 0xDEADBEEF, "
+            + "Version: short le check Version >= 1 AND Version <= 5, "
+            + "Length: int le check Length <= 1048576, "
+            + "Checksum: int le check Checksum = Crc32(Data), "
+            + "Data: byte[Length] };"
+            + "select 1 from #test.files();";
 
         var result = new QueryAnalyzer(
-                new UnknownSchemaProvider(Array.Empty<dynamic>()),
-                compilationOptions: CompilationOptions)
-            .Analyze(query);
+            new UnknownSchemaProvider(Array.Empty<dynamic>()),
+            compilationOptions: CompilationOptions
+        ).Analyze(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            "documentation CHECK example forward reference");
+            "documentation CHECK example forward reference"
+        );
 
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
@@ -84,41 +82,40 @@ public sealed class DiagnosticREC140DocumentationConflictTests : BinaryInterpret
     public void CorrectedCheckExample_ShouldRemainValidWhenDataPrecedesChecksum()
     {
         const string query =
-            "binary ValidatedHeader { " +
-            "Magic: int le check Magic = 0xDEADBEEF, " +
-            "Version: short le check Version >= 1 AND Version <= 5, " +
-            "Length: int le check Length <= 1048576, " +
-            "Data: byte[Length], " +
-            "Checksum: int le check Checksum = Crc32(Data) };" +
-            "select 1 from #test.files();";
+            "binary ValidatedHeader { "
+            + "Magic: int le check Magic = 0xDEADBEEF, "
+            + "Version: short le check Version >= 1 AND Version <= 5, "
+            + "Length: int le check Length <= 1048576, "
+            + "Data: byte[Length], "
+            + "Checksum: int le check Checksum = Crc32(Data) };"
+            + "select 1 from #test.files();";
 
         var result = new QueryAnalyzer(
-                new UnknownSchemaProvider(Array.Empty<dynamic>()),
-                compilationOptions: CompilationOptions)
-            .Analyze(query);
+            new UnknownSchemaProvider(Array.Empty<dynamic>()),
+            compilationOptions: CompilationOptions
+        ).Analyze(query);
 
-        DiagnosticContractTestAssertions.AssertNoErrors(
-            result,
-            "corrected CHECK definition-before-use example");
+        DiagnosticContractTestAssertions.AssertNoErrors(result, "corrected CHECK definition-before-use example");
     }
 
     [TestMethod]
     public void SchemaReferenceExample_ShouldRejectUseBeforeDefinition()
     {
         const string query =
-            "binary Triangle { A: Point, B: Point, C: Point };" +
-            "binary Point { X: float le, Y: float le };" +
-            "select 1 from #test.files();";
+            "binary Triangle { A: Point, B: Point, C: Point };"
+            + "binary Point { X: float le, Y: float le };"
+            + "select 1 from #test.files();";
 
         var result = new QueryAnalyzer(
-                new UnknownSchemaProvider(Array.Empty<dynamic>()),
-                compilationOptions: CompilationOptions)
-            .Analyze(query);
+            new UnknownSchemaProvider(Array.Empty<dynamic>()),
+            compilationOptions: CompilationOptions
+        ).Analyze(query);
 
         var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
             result,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            "documentation schema reference forward declaration");
+            "documentation schema reference forward declaration"
+        );
 
         Assert.AreEqual(DiagnosticPhase.Parse, diagnostic.Phase);
         Assert.AreEqual(DiagnosticSourceKind.Query, diagnostic.SourceKind);
@@ -129,18 +126,19 @@ public sealed class DiagnosticREC140DocumentationConflictTests : BinaryInterpret
     public void CorrectedSchemaReferenceExample_ShouldRemainValidWhenDefinitionPrecedesUse()
     {
         const string query =
-            "binary Point { X: float le, Y: float le };" +
-            "binary Triangle { A: Point, B: Point, C: Point };" +
-            "select 1 from #test.files();";
+            "binary Point { X: float le, Y: float le };"
+            + "binary Triangle { A: Point, B: Point, C: Point };"
+            + "select 1 from #test.files();";
 
         var result = new QueryAnalyzer(
-                new UnknownSchemaProvider(Array.Empty<dynamic>()),
-                compilationOptions: CompilationOptions)
-            .Analyze(query);
+            new UnknownSchemaProvider(Array.Empty<dynamic>()),
+            compilationOptions: CompilationOptions
+        ).Analyze(query);
 
         DiagnosticContractTestAssertions.AssertNoErrors(
             result,
-            "corrected schema reference definition-before-use example");
+            "corrected schema reference definition-before-use example"
+        );
     }
 
     private object CompileTextInterpreter(string schemaText, string schemaName)

@@ -7,108 +7,317 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static partial class ExecutionNodeDefinitionCatalog
 {
-    private static readonly IReadOnlyList<ExecutionNodeDefinition> DefinitionList = ValidateDefinitions(CreateDefinitions().ToArray());
+    private static readonly IReadOnlyList<ExecutionNodeDefinition> DefinitionList = ValidateDefinitions(
+        CreateDefinitions().ToArray()
+    );
 
     public static IReadOnlyList<ExecutionNodeDefinition> Definitions => DefinitionList;
 
     private static IEnumerable<ExecutionNodeDefinition> CreateDefinitions()
     {
         yield return Definition<ExecutionSourceScan>("source.scan", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionPrepareStructuralInput>("structural.prepare", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionInterpretSource>("source.interpret", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionEnumerableSource>("source.enumerable", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionPrepareStructuralInput>(
+            "structural.prepare",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionInterpretSource>(
+            "source.interpret",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionEnumerableSource>(
+            "source.enumerable",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
         yield return Definition<ExecutionCreateTable>("table.create", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionCreateValuesRows>("table.values.create", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionCreateRecordList>("record-list.create", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionCreateBoundedRecordList>("record-list.bounded.create", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionEnsureTableCapacity>("table.capacity.ensure", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionForEach>("control.foreach", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.Body) : default);
-        yield return Definition<ExecutionForEachWithOrdinality>("control.foreach.ordinality", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.Body) : default);
-        yield return Definition<ExecutionScopedBlock>("control.scope", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.Body) : default);
-        yield return Definition<ExecutionForEachIndexed>("control.foreach.indexed", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.Body) : default);
-        yield return Definition<ExecutionParallelBlock>("control.parallel", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Multiple, static (node, index) => ParallelRegion(node, index));
-        yield return Definition<ExecutionFusedCteProducer>("cte.producer.fused", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.Body) : default);
+        yield return Definition<ExecutionCreateValuesRows>(
+            "table.values.create",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionCreateRecordList>(
+            "record-list.create",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionCreateBoundedRecordList>(
+            "record-list.bounded.create",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionEnsureTableCapacity>(
+            "table.capacity.ensure",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionForEach>(
+            "control.foreach",
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.Body) : default
+        );
+        yield return Definition<ExecutionForEachWithOrdinality>(
+            "control.foreach.ordinality",
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.Body) : default
+        );
+        yield return Definition<ExecutionScopedBlock>(
+            "control.scope",
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.Body) : default
+        );
+        yield return Definition<ExecutionForEachIndexed>(
+            "control.foreach.indexed",
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.Body) : default
+        );
+        yield return Definition<ExecutionParallelBlock>(
+            "control.parallel",
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeChildBlockShape.Multiple,
+            static (node, index) => ParallelRegion(node, index)
+        );
+        yield return Definition<ExecutionFusedCteProducer>(
+            "cte.producer.fused",
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.Body) : default
+        );
         yield return Definition<ExecutionLet>("variable.let", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionHoistCandidateLet>("optimizer.hoist-candidate", ExecutionRendererNodeFamily.Unsupported);
+        yield return Definition<ExecutionHoistCandidateLet>(
+            "optimizer.hoist-candidate",
+            ExecutionRendererNodeFamily.Unsupported
+        );
         yield return Definition<ExecutionAssign>("variable.assign", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionCreateBooleanArray>("array.boolean.create", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionCreateBooleanArray>(
+            "array.boolean.create",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
         yield return Definition<ExecutionArrayAssign>("array.assign", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionContinue>("control.continue", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionContinueIf>("control.continue-if", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionContinueIf>(
+            "control.continue-if",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
         yield return Definition<ExecutionBreak>("control.break", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionCreateObject>("object.create", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionMethodTargetDeclarationCandidate>("optimizer.method-target-declaration", ExecutionRendererNodeFamily.Unsupported);
-        yield return Definition<ExecutionIf>("control.if", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.Body) : default);
-        yield return Definition<ExecutionCreateGeneratedRow>("row.generated.create", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionRecursiveCte>("cte.recursive", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Multiple, static (node, index) => RecursiveRegion(node, index));
-        yield return Definition<ExecutionRecursiveCteAppend>("cte.recursive.append", ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.AppendRow) : default);
-        yield return Definition<ExecutionRecursiveCteSnapshotRowGuard>("cte.recursive.snapshot-guard", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionMethodTargetDeclarationCandidate>(
+            "optimizer.method-target-declaration",
+            ExecutionRendererNodeFamily.Unsupported
+        );
+        yield return Definition<ExecutionIf>(
+            "control.if",
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.Body) : default
+        );
+        yield return Definition<ExecutionCreateGeneratedRow>(
+            "row.generated.create",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionRecursiveCte>(
+            "cte.recursive",
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeChildBlockShape.Multiple,
+            static (node, index) => RecursiveRegion(node, index)
+        );
+        yield return Definition<ExecutionRecursiveCteAppend>(
+            "cte.recursive.append",
+            ExecutionRendererNodeFamily.TableControlFlow,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.AppendRow) : default
+        );
+        yield return Definition<ExecutionRecursiveCteSnapshotRowGuard>(
+            "cte.recursive.snapshot-guard",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
         yield return Definition<ExecutionAppendRow>("table.row.append", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionAppendExistingRow>("table.row.append-existing", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionAppendRecord>("record-list.append", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionMaterializeList>("collection.materialize", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionMaterializeFilteredList>("collection.materialize-filtered", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionAppendExistingRow>(
+            "table.row.append-existing",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionAppendRecord>(
+            "record-list.append",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionMaterializeList>(
+            "collection.materialize",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionMaterializeFilteredList>(
+            "collection.materialize-filtered",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
         yield return Definition<ExecutionSetOperation>("set.operation", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionDistinctTable>("table.distinct", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionSortTable>("table.sort", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionTopNTable>("table.top", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionTopOffsetTable>("table.top-offset", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionTopOffsetTable>(
+            "table.top-offset",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
         yield return Definition<ExecutionSkipTable>("table.skip", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionTakeTable>("table.take", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionSliceTable>("table.slice", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionProjectTable>("table.project", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionOrderRecordList>("record-list.order", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionMaterializeRecordListToTable>("record-list.to-table", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionOrderRecordList>(
+            "record-list.order",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
+        yield return Definition<ExecutionMaterializeRecordListToTable>(
+            "record-list.to-table",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
         yield return Definition<ExecutionStoreTable>("cte.table.store", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionPhaseBoundary>("phase.boundary", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionRelatedCtePhase>("cte.phase.related", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionRelatedCtePhase>(
+            "cte.phase.related",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
         yield return Definition<ExecutionReturnDesc>("return.desc", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionReturnTable>("return.table", ExecutionRendererNodeFamily.TableControlFlow);
-        yield return Definition<ExecutionCreateAggregateLibrary>("aggregate.library.create", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionInitializeAggregateState>("aggregate.state.initialize", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionCreateAggregateContext>("aggregate.context.create", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionEnsureAggregateGroup>("aggregate.group.ensure", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionCreateSingleKeyAggregateContext>("aggregate.single-key.context.create", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionGetOrAddSingleKeyAggregateGroup>("aggregate.single-key.group.get-or-add", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionParallelSingleKeyAggregateLoop>("aggregate.single-key.parallel-loop", ExecutionRendererNodeFamily.Aggregate, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.AggregateBody) : default);
-        yield return Definition<ExecutionCreateValueTupleAggregateContext>("aggregate.tuple.context.create", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionGetOrAddValueTupleAggregateGroup>("aggregate.tuple.group.get-or-add", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionAggregateSet>("aggregate.accumulator.set", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionAggregateCapturedValueSet>("aggregate.capture.set", ExecutionRendererNodeFamily.Aggregate);
-        yield return Definition<ExecutionParallelFilterProjectLoop>("join.parallel-filter-project", ExecutionRendererNodeFamily.Join, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.ProjectionBody) : default);
+        yield return Definition<ExecutionCreateAggregateLibrary>(
+            "aggregate.library.create",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionInitializeAggregateState>(
+            "aggregate.state.initialize",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionCreateAggregateContext>(
+            "aggregate.context.create",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionEnsureAggregateGroup>(
+            "aggregate.group.ensure",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionCreateSingleKeyAggregateContext>(
+            "aggregate.single-key.context.create",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionGetOrAddSingleKeyAggregateGroup>(
+            "aggregate.single-key.group.get-or-add",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionParallelSingleKeyAggregateLoop>(
+            "aggregate.single-key.parallel-loop",
+            ExecutionRendererNodeFamily.Aggregate,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.AggregateBody) : default
+        );
+        yield return Definition<ExecutionCreateValueTupleAggregateContext>(
+            "aggregate.tuple.context.create",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionGetOrAddValueTupleAggregateGroup>(
+            "aggregate.tuple.group.get-or-add",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionAggregateSet>(
+            "aggregate.accumulator.set",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionAggregateCapturedValueSet>(
+            "aggregate.capture.set",
+            ExecutionRendererNodeFamily.Aggregate
+        );
+        yield return Definition<ExecutionParallelFilterProjectLoop>(
+            "join.parallel-filter-project",
+            ExecutionRendererNodeFamily.Join,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.ProjectionBody) : default
+        );
         yield return Definition<ExecutionCreateHashPayload>("hash.payload.create", ExecutionRendererNodeFamily.Join);
-        yield return Definition<ExecutionWindowKernelPlan>("window.kernel-plan", ExecutionRendererNodeFamily.Window, ExecutionNodeChildBlockShape.Multiple, static (node, index) => index == 0 ? new(node.Kernels) : default);
+        yield return Definition<ExecutionWindowKernelPlan>(
+            "window.kernel-plan",
+            ExecutionRendererNodeFamily.Window,
+            ExecutionNodeChildBlockShape.Multiple,
+            static (node, index) => index == 0 ? new(node.Kernels) : default
+        );
         yield return Definition<ExecutionComputeRankingWindow>("window.ranking", ExecutionRendererNodeFamily.Window);
         yield return Definition<ExecutionComputeOffsetWindow>("window.offset", ExecutionRendererNodeFamily.Window);
         yield return Definition<ExecutionComputePluginWindow>("window.plugin", ExecutionRendererNodeFamily.Window);
         yield return Definition<ExecutionWindowAggregateKernel>("window.aggregate", ExecutionRendererNodeFamily.Window);
         yield return Definition<ExecutionCreateHash>("hash.create", ExecutionRendererNodeFamily.Index);
         yield return Definition<ExecutionHashAdd>("hash.add", ExecutionRendererNodeFamily.Index);
-        yield return Definition<ExecutionHashProbe>("hash.probe", ExecutionRendererNodeFamily.Index, ExecutionNodeChildBlockShape.Multiple, static (node, index) => OptionalRegion(node.Body, node.NoMatchBody, index));
+        yield return Definition<ExecutionHashProbe>(
+            "hash.probe",
+            ExecutionRendererNodeFamily.Index,
+            ExecutionNodeChildBlockShape.Multiple,
+            static (node, index) => OptionalRegion(node.Body, node.NoMatchBody, index)
+        );
         yield return Definition<ExecutionCreateKeySet>("keyset.create", ExecutionRendererNodeFamily.Index);
         yield return Definition<ExecutionKeySetAdd>("keyset.add", ExecutionRendererNodeFamily.Index);
-        yield return Definition<ExecutionKeySetProbe>("keyset.probe", ExecutionRendererNodeFamily.Index, ExecutionNodeChildBlockShape.Multiple, static (node, index) => OptionalRegion(node.Body, node.NoMatchBody, index));
-        yield return Definition<ExecutionStoreCteIndex>("cte.index.store", ExecutionRendererNodeFamily.TableControlFlow);
+        yield return Definition<ExecutionKeySetProbe>(
+            "keyset.probe",
+            ExecutionRendererNodeFamily.Index,
+            ExecutionNodeChildBlockShape.Multiple,
+            static (node, index) => OptionalRegion(node.Body, node.NoMatchBody, index)
+        );
+        yield return Definition<ExecutionStoreCteIndex>(
+            "cte.index.store",
+            ExecutionRendererNodeFamily.TableControlFlow
+        );
         yield return Definition<ExecutionLoadCteIndex>("cte.index.load", ExecutionRendererNodeFamily.TableControlFlow);
         yield return Definition<ExecutionCreateAsOfIndex>("asof.index.create", ExecutionRendererNodeFamily.Index);
-        yield return Definition<ExecutionAsOfProbe>("asof.probe", ExecutionRendererNodeFamily.Index, ExecutionNodeChildBlockShape.Multiple, static (node, index) => OptionalRegion(node.Body, node.NoMatchBody, index));
+        yield return Definition<ExecutionAsOfProbe>(
+            "asof.probe",
+            ExecutionRendererNodeFamily.Index,
+            ExecutionNodeChildBlockShape.Multiple,
+            static (node, index) => OptionalRegion(node.Body, node.NoMatchBody, index)
+        );
         yield return Definition<ExecutionCreateRangeIndex>("range.index.create", ExecutionRendererNodeFamily.Index);
-        yield return Definition<ExecutionRangeProbe>("range.probe", ExecutionRendererNodeFamily.Index, ExecutionNodeChildBlockShape.Multiple, static (node, index) => OptionalRegion(node.Body, node.NoMatchBody, index));
-        yield return Definition<ExecutionSingleUsePipelineFusionCandidate>("optimizer.pipeline-fusion-candidate", ExecutionRendererNodeFamily.Unsupported, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.Body) : default);
-        yield return Definition<ExecutionCteReadOnceFusionCandidate>("optimizer.cte-read-once-candidate", ExecutionRendererNodeFamily.Unsupported, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.Body) : default);
-        yield return Definition<ExecutionCteSidecarIndexStoreCandidate>("optimizer.cte-sidecar-store-candidate", ExecutionRendererNodeFamily.Unsupported);
-        yield return Definition<ExecutionCteSidecarIndexLoadCandidate>("optimizer.cte-sidecar-load-candidate", ExecutionRendererNodeFamily.Unsupported);
-        yield return Definition<ExecutionCteSidecarIndexBuildCandidate>("optimizer.cte-sidecar-build-candidate", ExecutionRendererNodeFamily.Unsupported);
-        yield return Definition<ExecutionCteSidecarAppendRewriteCandidate>("optimizer.cte-sidecar-append-candidate", ExecutionRendererNodeFamily.Unsupported);
-        yield return Definition<ExecutionCteFusedProducerCandidate>("optimizer.cte-fused-producer-candidate", ExecutionRendererNodeFamily.Unsupported, ExecutionNodeChildBlockShape.Single, static (node, index) => index == 0 ? new(node.Body) : default);
-        yield return Definition<ExecutionCteIndexOnlyStorageCandidate>("optimizer.cte-index-only-candidate", ExecutionRendererNodeFamily.Unsupported);
+        yield return Definition<ExecutionRangeProbe>(
+            "range.probe",
+            ExecutionRendererNodeFamily.Index,
+            ExecutionNodeChildBlockShape.Multiple,
+            static (node, index) => OptionalRegion(node.Body, node.NoMatchBody, index)
+        );
+        yield return Definition<ExecutionSingleUsePipelineFusionCandidate>(
+            "optimizer.pipeline-fusion-candidate",
+            ExecutionRendererNodeFamily.Unsupported,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.Body) : default
+        );
+        yield return Definition<ExecutionCteReadOnceFusionCandidate>(
+            "optimizer.cte-read-once-candidate",
+            ExecutionRendererNodeFamily.Unsupported,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.Body) : default
+        );
+        yield return Definition<ExecutionCteSidecarIndexStoreCandidate>(
+            "optimizer.cte-sidecar-store-candidate",
+            ExecutionRendererNodeFamily.Unsupported
+        );
+        yield return Definition<ExecutionCteSidecarIndexLoadCandidate>(
+            "optimizer.cte-sidecar-load-candidate",
+            ExecutionRendererNodeFamily.Unsupported
+        );
+        yield return Definition<ExecutionCteSidecarIndexBuildCandidate>(
+            "optimizer.cte-sidecar-build-candidate",
+            ExecutionRendererNodeFamily.Unsupported
+        );
+        yield return Definition<ExecutionCteSidecarAppendRewriteCandidate>(
+            "optimizer.cte-sidecar-append-candidate",
+            ExecutionRendererNodeFamily.Unsupported
+        );
+        yield return Definition<ExecutionCteFusedProducerCandidate>(
+            "optimizer.cte-fused-producer-candidate",
+            ExecutionRendererNodeFamily.Unsupported,
+            ExecutionNodeChildBlockShape.Single,
+            static (node, index) => index == 0 ? new(node.Body) : default
+        );
+        yield return Definition<ExecutionCteIndexOnlyStorageCandidate>(
+            "optimizer.cte-index-only-candidate",
+            ExecutionRendererNodeFamily.Unsupported
+        );
     }
 
     private static ExecutionNodeDefinition Definition<TNode>(
         string operationId,
         ExecutionRendererNodeFamily rendererFamily,
         ExecutionNodeChildBlockShape childBlockShape = ExecutionNodeChildBlockShape.None,
-        Func<TNode, int, ExecutionChildRegion>? childRegion = null)
+        Func<TNode, int, ExecutionChildRegion>? childRegion = null
+    )
         where TNode : ExecutionNode
     {
         return new ExecutionNodeDefinition(
@@ -116,33 +325,35 @@ internal static partial class ExecutionNodeDefinitionCatalog
             new ExecutionOperationId(operationId),
             rendererFamily,
             childBlockShape,
-            childRegion == null
-                ? static (_, _) => default
-                : (node, index) => childRegion((TNode)node, index),
+            childRegion == null ? static (_, _) => default : (node, index) => childRegion((TNode)node, index),
             new ExecutionNodeBehaviorDefinition(
                 static (builder, node, indentation) =>
                     ExecutionPlanPrinter.AppendNodeLegacy(builder, node, indentation),
                 static (rewriter, node) => rewriter.RewriteNodeLegacy(node),
                 rendererFamily == ExecutionRendererNodeFamily.Unsupported
                     ? ExecutionNodeTargetCapability.Unsupported
-                    : ExecutionNodeTargetCapability.Supported));
+                    : ExecutionNodeTargetCapability.Supported
+            )
+        );
     }
 
     private static IReadOnlyList<ExecutionNodeDefinition> ValidateDefinitions(
-        IReadOnlyList<ExecutionNodeDefinition> definitions)
+        IReadOnlyList<ExecutionNodeDefinition> definitions
+    )
     {
-        if (definitions.Any(static definition =>
-                definition.Behavior.Printer is null ||
-                definition.Behavior.Rewriter is null))
+        if (
+            definitions.Any(static definition =>
+                definition.Behavior.Printer is null || definition.Behavior.Rewriter is null
+            )
+        )
         {
             throw new InvalidOperationException(
-                "Every execution node definition must register printer and rewriter behavior.");
+                "Every execution node definition must register printer and rewriter behavior."
+            );
         }
 
         return definitions;
     }
-
-
 }
 
 internal sealed record ExecutionNodeDefinition(
@@ -151,31 +362,28 @@ internal sealed record ExecutionNodeDefinition(
     ExecutionRendererNodeFamily RendererFamily,
     ExecutionNodeChildBlockShape ChildBlockShape,
     Func<ExecutionNode, int, ExecutionChildRegion> GetChildRegion,
-    ExecutionNodeBehaviorDefinition Behavior);
+    ExecutionNodeBehaviorDefinition Behavior
+);
 
 internal sealed record ExecutionNodeBehaviorDefinition(
     ExecutionNodePrinterBehavior Printer,
     ExecutionNodeRewriterBehavior Rewriter,
-    ExecutionNodeTargetCapability TargetCapability);
+    ExecutionNodeTargetCapability TargetCapability
+);
 
-internal delegate void ExecutionNodePrinterBehavior(
-    StringBuilder builder,
-    ExecutionNode node,
-    int indentation);
+internal delegate void ExecutionNodePrinterBehavior(StringBuilder builder, ExecutionNode node, int indentation);
 
-internal delegate ExecutionNode ExecutionNodeRewriterBehavior(
-    ExecutionIrRewriter rewriter,
-    ExecutionNode node);
+internal delegate ExecutionNode ExecutionNodeRewriterBehavior(ExecutionIrRewriter rewriter, ExecutionNode node);
 
 internal enum ExecutionNodeTargetCapability
 {
     Supported,
-    Unsupported
+    Unsupported,
 }
 
 internal enum ExecutionNodeChildBlockShape
 {
     None,
     Single,
-    Multiple
+    Multiple,
 }

@@ -9,7 +9,6 @@ namespace Musoq.Schema.Exceptions;
 /// </summary>
 public class SchemaArgumentException : ArgumentException, IDiagnosticException
 {
-
     public SchemaArgumentException(string message, Exception innerException)
         : base(message, innerException)
     {
@@ -28,9 +27,7 @@ public class SchemaArgumentException : ArgumentException, IDiagnosticException
     }
 
     public SchemaArgumentException(string argumentName, string message)
-        : this(argumentName, message, "invalid-argument")
-    {
-    }
+        : this(argumentName, message, "invalid-argument") { }
 
     public SchemaArgumentException(string argumentName, string message, string? reason)
         : base(message, argumentName)
@@ -51,9 +48,10 @@ public class SchemaArgumentException : ArgumentException, IDiagnosticException
     ///     Method-name failures are source-resolution errors; other invalid schema arguments remain generic
     ///     semantic failures until the v18 schema-resolution contract is applied.
     /// </summary>
-    public DiagnosticCode Code => string.Equals(ParamName, "methodName", StringComparison.Ordinal)
-        ? DiagnosticCode.MQ3085_UnknownSource
-        : DiagnosticCode.MQ2030_UnsupportedSyntax;
+    public DiagnosticCode Code =>
+        string.Equals(ParamName, "methodName", StringComparison.Ordinal)
+            ? DiagnosticCode.MQ3085_UnknownSource
+            : DiagnosticCode.MQ2030_UnsupportedSyntax;
 
     /// <inheritdoc />
     public TextSpan? Span => null;
@@ -61,7 +59,8 @@ public class SchemaArgumentException : ArgumentException, IDiagnosticException
     /// <inheritdoc />
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.ErrorUnknownLocation(Code, Message)
+        return Diagnostic
+            .ErrorUnknownLocation(Code, Message)
             .WithArgument("reason", Reason)
             .WithArgument("argumentName", ParamName ?? string.Empty);
     }
@@ -82,9 +81,7 @@ public class SchemaArgumentException : ArgumentException, IDiagnosticException
         );
     }
 
-    public static SchemaArgumentException ForInvalidMethodName(
-        string methodName,
-        string availableMethods)
+    public static SchemaArgumentException ForInvalidMethodName(string methodName, string availableMethods)
     {
         return ForInvalidMethodName(methodName, availableMethods, "unknown-source");
     }
@@ -92,7 +89,8 @@ public class SchemaArgumentException : ArgumentException, IDiagnosticException
     public static SchemaArgumentException ForInvalidMethodName(
         string methodName,
         string availableMethods,
-        string reason)
+        string reason
+    )
     {
         return new SchemaArgumentException(
             nameof(methodName),

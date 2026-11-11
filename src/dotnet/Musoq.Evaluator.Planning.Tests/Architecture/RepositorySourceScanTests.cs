@@ -13,20 +13,30 @@ public sealed class RepositorySourceScanTests
     public void MissingSourceRoot_ShouldFailBeforeCheckingViolations()
     {
         using var source = new SourceFixture();
-        Assert.ThrowsExactly<DirectoryNotFoundException>(() => RepositorySourceScan.ProductionSourceFiles(source.Root, "Missing"));
-        Assert.ThrowsExactly<DirectoryNotFoundException>(() => RepositorySourceScan.FilesUnder(source.Root, "Missing", "*.cs"));
+        Assert.ThrowsExactly<DirectoryNotFoundException>(() =>
+            RepositorySourceScan.ProductionSourceFiles(source.Root, "Missing")
+        );
+        Assert.ThrowsExactly<DirectoryNotFoundException>(() =>
+            RepositorySourceScan.FilesUnder(source.Root, "Missing", "*.cs")
+        );
     }
 
     [TestMethod]
     public void EmptySourceRoot_ShouldFailBeforeCheckingViolations()
     {
         using var source = new SourceFixture();
-        Assert.ThrowsExactly<InvalidOperationException>(() => RepositorySourceScan.ProductionSourceFiles(source.Root, "Example"));
-        Assert.ThrowsExactly<InvalidOperationException>(() => RepositorySourceScan.FilesUnder(source.Root, "src/dotnet/Example", "*.cs"));
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            RepositorySourceScan.ProductionSourceFiles(source.Root, "Example")
+        );
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            RepositorySourceScan.FilesUnder(source.Root, "src/dotnet/Example", "*.cs")
+        );
         var other = Path.Combine(source.Root, "src", "dotnet", "Other");
         Directory.CreateDirectory(other);
         File.WriteAllText(Path.Combine(other, "Valid.cs"), "public sealed class Valid {}");
-        Assert.ThrowsExactly<InvalidOperationException>(() => RepositorySourceScan.ProductionSourceFiles(source.Root, "Other", "Example"));
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            RepositorySourceScan.ProductionSourceFiles(source.Root, "Other", "Example")
+        );
     }
 
     [TestMethod]
@@ -51,9 +61,19 @@ public sealed class RepositorySourceScanTests
 
     private sealed class SourceFixture : IDisposable
     {
-        internal string Root { get; } = Path.Combine(RepositorySourceScan.RepositoryRoot(), ".artifacts", "test-reliability", "source-fixtures", "Workspace.Tests", Guid.NewGuid().ToString("N"));
+        internal string Root { get; } =
+            Path.Combine(
+                RepositorySourceScan.RepositoryRoot(),
+                ".artifacts",
+                "test-reliability",
+                "source-fixtures",
+                "Workspace.Tests",
+                Guid.NewGuid().ToString("N")
+            );
         internal string File => Path.Combine(Root, "src", "dotnet", "Example", "Contract.cs");
+
         internal SourceFixture() => Directory.CreateDirectory(Path.GetDirectoryName(File)!);
+
         public void Dispose() => Directory.Delete(Root, recursive: true);
     }
 }

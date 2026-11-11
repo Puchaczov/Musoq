@@ -3,6 +3,7 @@ using Musoq.Schema;
 namespace Musoq.Examples.DataSources.Csv.Tests;
 
 internal readonly record struct NativeCsvTestRow(string Name);
+
 internal readonly struct NativeCsvTestMaterializer : IQueryRowMaterializer<NativeCsvTestRow>
 {
     public static NativeCsvTestRow Materialize<TReader>(ref TReader reader)
